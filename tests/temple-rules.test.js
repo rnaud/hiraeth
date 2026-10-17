@@ -14,6 +14,8 @@ import { templeRules, roomKinds, inMiddle, rulesText, RULES } from '../scripts/t
 import { recordTemple } from '../scripts/temple-design/record.mjs';
 
 /** The houses redone to the rules: none broken. */
+/** The houses with no fight at all (G3a, issue #409): the Hush-House, its guardian outwitted. */
+const NO_FIGHT = ['perdide'];
 const REDONE = ['desert', 'incal', 'arzach2', 'edena', 'arzach', 'bazaar', 'spacecity', 'underwater', 'moonfoundry', 'perdide2', 'garage', 'buried', 'spheres', 'perdide'];
 /** The houses still to redo, and how many rules each breaks today (docs/design/temple-redesign.md, "The other houses"). */
 const PENDING = {};   // (v1.77: every house redone, the Hush-House the last)
@@ -96,7 +98,9 @@ test('a redone house tags every room with its kind, and each tag is true', () =>
     const def = TEMPLES[id].def;
     const { rooms } = all.find((x) => x.id === id).r;
     for (const room of rooms) assert.ok(def.logic.rooms[room.id].kind, `${id} ${room.id}: tagged`);
-    assert.ok(rooms.some((x) => x.kind === 'combat'), `${id}: a fight of its own`);
+    // (but the house with no fight at all, G3a of docs/design/temple-best-practices.md: its guardian outwitted, issue #409)
+    if (NO_FIGHT.includes(id)) assert.ok(!rooms.some((x) => x.kind === 'combat'), `${id}: no fight at all`);
+    else assert.ok(rooms.some((x) => x.kind === 'combat'), `${id}: a fight of its own`);
     assert.ok(!rooms.some((x) => x.kind === 'both'));
   }
 });

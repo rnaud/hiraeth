@@ -58,9 +58,10 @@ test('every world on the route, in its order, with its lore, people, temples, gu
     for (const a of [`temple-${t.id}`, `guardian-${t.id}`, `gadget-${t.id}`]) assert.ok(anchors.includes(a), `${a}: a Note`);
     assert.ok(html.includes(`The gadget: ${t.gadget.name}`), `${t.id}: the gadget named`);
   }
-  // the second verb (#257) of the six guardians that ask for one
+  // the second verb (#257) of the five guardians that ask for one (six until v1.83: the Mother Snapper is outwitted now,
+  // never fought, issue #409)
   const asks = shown.filter((t) => t.guardian.phases.some((p) => p.asks));
-  assert.equal(asks.length, 6, 'six guardians ask for a second verb');
+  assert.equal(asks.length, 5, 'five guardians ask for a second verb');
   for (const t of asks) for (const p of t.guardian.phases.filter((x) => x.asks)) assert.ok(lore.verbs[p.asks.verb], `${t.id}: the verb ${p.asks.verb} named`);
   assert.equal((html.match(/Second verb:/g) ?? []).length, asks.reduce((n, t) => n + t.guardian.phases.filter((p) => p.asks).length, 0));
 });

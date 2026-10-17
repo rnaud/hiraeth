@@ -166,12 +166,19 @@ export const LAYOUTS = {
   // side mouths in shrines on its floor; the ledge's door by the Bog Well's west wall and a walk to the balcony down the
   // Choir's west side; the same state). A save that entered the house: taken to its last mark if it stood inside the old
   // rooms (runtime.js relaid)
+  // v1.83 (issue #409): no fight at all. The Choir the great hall (every room north of it 12 m on), the Mother's hall off
+  // its east wall through the great door (dG: the great key and the Choir's three crystals hushed, h2..h4), the small key's
+  // cage on the far landing sung open by the pendulums (the Nursery and the keeper's gate gone), the Threshold's door (d0)
+  // opened by its crystal. With the Nursery won or its key: the pendulums sung; past the old far door: the great door
+  // open; a save that entered: the Threshold's door open, and taken to its last mark (the rooms moved)
   perdide: {
-    v: 3,
+    v: 4,
     steps: [
       { if: ['open.d2', 'lit.j1', 'lit.w1', 'open.d3', 'open.ds', 'boss'], set: { 'lit.j2': true, 'lit.j3': true } },
       { if: ['open.d3', 'boss'], set: { 'unlocked.d3': 1, 'found.kB': true, 'found.kS': true, 'unlocked.dL': 1, 'lit.arN': true, 'drum.oB': 1 } },
-      { if: ['entered'], set: { relaid: true } },
+      { if: ['lit.arN', 'found.kS', 'unlocked.dL', 'open.ds', 'unlocked.d3', 'open.d3', 'boss', 'done'], set: { 'lit.w1': true, 'lit.w2': true, 'lit.w3': true, 'found.kS': true } },
+      { if: ['unlocked.d3', 'open.d3', 'checkpoint=ante', 'boss', 'done'], set: { 'unlocked.dG': 1, 'lit.h2': true, 'lit.h3': true, 'lit.h4': true, 'lit.c1': true, 'lit.c2': true, 'lit.c3': true, 'lit.c4': true } },
+      { if: ['entered'], set: { 'lit.c1': true, relaid: true } },
     ],
   },
   // v1.53: the Mooring-House's Rope Store off the Moorers' Gallery (its small key now opens the moorers' gate) and the

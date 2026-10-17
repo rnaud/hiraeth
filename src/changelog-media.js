@@ -1097,6 +1097,10 @@ const OPENING394 = 'Issue #394: the Unity bridge in the editor’s batch run on 
 /** (v1.83, issue #407: the Aerie round a great hall) */
 const AERIE407 = 'Issue #407: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, 11:00, the HUD hidden) on this branch’s own Vite (scripts/design-qc/capture.mjs), the camera pinned; before: the tree at c89a0a1e2, the same camera where the house allows (the well and the Eyrie moved: the same place in each); 16 October; cwebp -q 72';
 const AERIE407P = 'Issue #407: the Temple maps page (temples.html?t=arzach, Plan, all floors) in muted headless Chrome, before at c89a0a1e2 and after, the plan cut out at the same size; 16 October; cwebp -q 72';
+/** (v1.83, issue #409: the Hush-House with no fight at all) */
+const HUSH409 = 'Issue #409: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, 11:00, the HUD hidden) on this branch’s own Vite (port 5409, scripts/design-qc/capture.mjs), the camera pinned; before: the tree at 73d26da88, the same camera; 16 October; cwebp -q 72';
+const HUSH409M = 'Issue #409: the running game as HUSH409, the camera pinned by her hall’s door, her temple’s own pieces rung and stilled from the page (as a player’s globs would), each moment held for its picture (the world’s clock stopped: window.__stepDt); 16 October; cwebp -q 72';
+const HUSH409P = 'Issue #409: the Temple maps page (temples.html?t=perdide, Plan, all floors) in muted headless Chrome, before at 73d26da88 and after, the plan cut out at the same size; 16 October; cwebp -q 72';
 /** (v1.82, issue #401: the Footprint across four floors) */
 const FP401 = 'Issue #401: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, 11:00, the HUD hidden) on this branch’s own Vite (port 5401, scripts/design-qc/capture.mjs), the camera pinned; before: the same tree with src/temples/spheres.js as on origin/main (5b612814), the same camera where the house allows; 16 October; cwebp -q 72';
 const FP401P = 'Issue #401: the house’s plans drawn from its own rooms and pieces (scripts/temple-design/record.mjs: the kit’s halls, round halls and passages, every piece where the layout put it), one floor before, four after (local metres, the same scale), 16 October; cwebp -q 70';
@@ -1143,6 +1147,17 @@ export const CHANGELOG_MEDIA = {
       { name: 'belfry-drop', only: 'after', title: 'The way down', caption: 'The gallery’s west arm, open over the floor for 14 m: the drop back down to the hall', from: BELFRY408 },
       { name: 'belfry-plan', title: 'The plan', caption: 'The house from above with the solver’s steps: before, the Stone Stair; after, the Great Belfry and its gallery, the bell rung and stilled on the way', from: BELFRY408P },
     ], see: 'In Vael II, cross the west rim’s bridge into the Founders’ Belfry. Past the Hall of Stones, pull the lever by the Great Belfry’s door, then pull it again and run for the great stone before the hum fades.' },
+    { match: 'The Hush-House in Lorn has no fight any more', shots: [
+      { name: 'hush-hall', title: 'The way in', caption: 'From the Threshold, the door into the Choir: before, a hall 36 m across; after, the great hall, 44 by 66 m, its gallery up the side, the great key’s cage on it and the black pool under its sill', from: HUSH409 },
+      { name: 'hush-floors', only: 'after', title: 'The great hall', caption: 'From the Choir’s floor: the gallery 9 m up its west side, the wall across it with the snapper’s mouth, the sill’s two crystal posts, and the black pool below', from: HUSH409 },
+      { name: 'hush-sill', only: 'after', title: 'The sill', caption: 'On the gallery: the great key’s cage at the sill between its two crystal posts, the ball’s plate and the jaws beside it; off the edge, the black pool takes the fall', from: HUSH409 },
+      { name: 'hush-drop', only: 'after', title: 'The drop', caption: 'From the Choir’s floor: the sill up on the gallery, and the black pool you land in, unhurt', from: HUSH409 },
+      { name: 'hush-jangle', only: 'after', title: 'She strikes at sounds', caption: 'The Mother Snapper is blind: a crystal jangles out of tune over her, and she lunges at the floor under it', from: HUSH409M },
+      { name: 'hush-silent', only: 'after', title: 'Hushed', caption: 'The three crystals stilled, frosted and silent: she rears over the small crystal at her root, listening', from: HUSH409M },
+      { name: 'hush-decoy', only: 'after', title: 'A sound elsewhere', caption: 'A hanging crystal rung flat before the first note: she strikes at it, and her root’s crystal is free', from: HUSH409M },
+      { name: 'hush-lullaby', only: 'after', title: 'The lullaby', caption: 'The four notes rung low to high: her head sinks, her crown aglow, and you lay a hand on it', from: HUSH409M },
+      { name: 'hush-plan', size: [552, 870], title: 'The plan', caption: 'The Temple maps page (temples.html?t=perdide), all floors: before, the Nursery’s fight off the gallery and the Mother past it; after, no fight, the great hall the hub, the Mother off its east wall', from: HUSH409P },
+    ], see: 'In Lorn, go into the Hush-House: the Choir is the great hall. The sill is on the gallery by the great key; the Mother’s door is in the Choir’s east wall. Near her, walk, never run.' },
   ],
   '1.82': [
     { match: 'Locked on, RT / R2 throws the grappling hook at your foe', tags: ['combat'], shots: [

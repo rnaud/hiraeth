@@ -418,7 +418,7 @@ const own = (o, key) => makeMaterial({ ...o, key });
  * first, the house or the traveller: the slowing starts a few frames of the fall before the water. o: { at: [x, y, z] its
  * floor (local), r, follow: () => world point (a moving one: the great lift's disc), said }
  */
-class Catch {
+export class Catch {
   constructor(rt, o) { this.rt = rt; this.o = o; this.at = rt.kit.world(...(o.at ?? [0, 0, 0])); this.on = false; }
   update() {
     const P = this.rt.player;

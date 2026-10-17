@@ -190,7 +190,8 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
 - **Shortcuts back** (v1.12): the Hush-House's Pendulum Gallery has a keeper's ledge along its east wall from the
   far landing to a gate by the near one, its footstone (`ps`) behind the gate: a second link between the two
   landings (`ds`) that only the far side can open, so the walk back never means the pendulums again. (v1.53: the gate
-  opens once the Nursery off the far landing is won, its footstone gone: "Round 3" below.)
+  opens once the Nursery off the far landing is won, its footstone gone: "Round 3" below. v1.83, issue #409: the ledge
+  and the gate are gone; the pendulums, sung in turn from the far side, rest for good.)
 - **Notes that travel** (the Undertower, from the same audit; its idea: a note travels, the dishes carry
   it across a hall, the shell in your pocket, one note at a time). A `Dish` is a pair of the makers'
   receiving dishes: a `'note'` sung or an `'echo'` played within `reach` (4.5 m) of the near dish's mouth
@@ -766,6 +767,45 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   the saves), `tests/temple-playthrough.test.js` (the bell set for real: a lever pulled, or a ring hooked from its
   `from`), the rules (none broken), way back, unstrand. Old saves: `migrate.js` arzach2 v5 (past the porch: its slab sunk;
   one that stood inside: to its last mark).
+- **The Hush-House with no fight at all** (v1.83, issue #409; the approved best practices,
+  `docs/design/temple-best-practices.md`: G3a, G4, G6). `src/temples/perdide.js`:
+  - **The Choir is the great hall** (`ROOMS.choir`, 44 by 66 m under 30 m, the hub): its floor, its gallery 9 m up the
+    west side (`BALCONY`, the great key's cage on it) and the great door in its east wall (`dG`) all seen at once from
+    the way in. Every room north of it stands 12 m further on (`C2`). The Threshold's door into it (`d0`) opens to the
+    smallest crystal by the way in: the first note, sung at the door.
+  - **The small key is the pendulums' song**: its cage (`kS`, `FAR_KEY`) on the Pendulum Gallery's far landing sinks
+    once the three are stilled in turn from that side (`w1`..`w3`, as before), and then the pendulums rest for good
+    (`rt.galleryWings`, `hush()`): the bridge is a walk both ways. The Nursery's fight, the keeper's ledge and its gate
+    are gone; the house has no arena (`ARENAS = []`, no `combat` room: `tests/temple-rules.test.js` `NO_FIGHT`).
+  - **The sill** (`SILL`, G6): a gap in the gallery's parapet by the great key, between two crystal posts, a lit edge
+    along it; under it the black pool on the Choir's floor, whose still water takes the 9 m fall (`Catch`, exported
+    from `spheres.js`). The link `balcony → choir` is `oneWay`.
+  - **The great door** (`dG`, a big lock in the Choir's east wall): the great key, and the Choir hushed. The three
+    crystals sung at the start hum on, and it will not open over them: each is stilled with the stilling mode, high to
+    low (`h4`, `h3`, `h2`, `after`; a `HushNote` piece takes the stilling glob for its crystal's `Switch`, whose
+    target it replaces). The hush the Mother's hall asks for, taught where nothing strikes.
+  - **The Mother's hall** (`ROOMS.hall`, round, 22 m, at the Choir's floor) through an antechamber with the house's
+    last mark (`ante`, 6 m from her door).
+  - **The Mother Snapper outwitted** (`MOTHER`, `outwit: true`; `hush()` every frame as the temple's `onUpdate`). She
+    is blind: her one move, a lunge (half a heart), is struck only at a sound, aimed through `Guardian.listen`
+    (`boss.js`: a point she turns to and aims at instead of you) and begun by her temple (`begin(P, null, 'lunge')`:
+    a phase may have no moves of its own). She hears her three pendulums jangle at the end of each swing, and you when
+    you run, roll or land a jump within `HEAR.r` (16 m) of her; never a walk. **Hushed** (her first phase, to 0.45):
+    each pendulum stilled hangs frosted and silent for good (`motherFrost`, `CALM.hush` each, whenever it was done).
+    **The lullaby** (to 0.9): the four notes splashed low to high (`motherNote`), the first a crystal at her root
+    (`RootNote`) that her head covers while she listens (`cover`, 4.5 m): a splash there only wets her jaws until a
+    sound elsewhere turns her head. A note out of turn rings flat, the notes so far fade with their calm, and she
+    strikes at it: before the first note that costs nothing, the decoy. Weary, a hand on her head. Globs on her take
+    nothing (`motherHit`, dull). Knocked out before her hall is hushed, the frost falls off (`motherReset`).
+  - **In the Arena** she spars as she fought before (`motherSpar()`, `src/arena-guardians.js`).
+  Eight steps (the Threshold's door, the Choir, the Bog Well's eye, the passage's mouths, the crossing, the far
+  landing's song, the gallery's ball, the great door's hush), then the Mother. Design audit 4.56 → 4.56 (the chest at
+  38 % of the steps, was 33; the curve 4 → 4; mean obviousness 2.83 → 3.06; two steps painfully obvious, was one: the
+  Threshold's door and the crossing); the redesign's rules: none broken. Tests: `tests/mother-snapper.test.js` (the
+  Mother in her hall at 60 and 30 frames a second with real globs: never struck while walking), `tests/temples.test.js`
+  (the house on foot, the drop unhurt, the solver, old saves), `tests/engine-mother-snapper.test.js` (the engines'
+  build). Old saves (`migrate.js` perdide v4): with the Nursery won or its key, the pendulums sung; past the old far
+  door, the great door open and hushed; one that entered, the Threshold's door open and taken to its last mark.
 - **The Givers carried their fire** (the Rose House, from the v1.24 audit; the house's one fire, the pilot flame,
   never went out; the rooms below as they were until v1.44). A `Ball` with `tar: { burns }` is a tar ball: an ember glob lights it, and so does rolling it past a
   fire beside its groove (any piece with a `fire` point within its `fireReach`: a `Flame`, the pilot flame sunk in the

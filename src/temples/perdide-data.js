@@ -7,7 +7,7 @@ export const QUEST = {
   outro: 'The Mother Snapper sleeps, and every snapping plant in the swamp has a flower at its foot.',
   find: 'Find the violet dome on the cave island',
   gadget: 'Find what the makers left in the Hush-House',
-  keeper: 'Go to what snaps behind the last door',
+  keeper: 'Hush what snaps behind the great door',
 };
 
 export const PEOPLE = {
@@ -49,11 +49,11 @@ export const PEOPLE = {
         inside: {
           say: ["~surprised~ You went in? Is the Mother still snapping?"],
           choices: [
-            { text: "~solemn~ She snaps at anything that moves. Me most of all.", goto: 'still' },
+            { text: "~solemn~ She snaps at every sound. My footsteps most of all.", goto: 'still' },
             { text: '~neutral~ I’m going back.', end: true },
           ],
         },
-        still: { say: ["~solemn~ Find the makers’ cold tool inside. Something to slow her while you calm her. Wendel said they had a way."], choices: [{ text: '~neutral~ I’ll find it.', end: true }] },
+        still: { say: ["~solemn~ The makers kept a cold tool in there. Quiet what she hears, and she might listen."], choices: [{ text: '~neutral~ I’ll find it.', end: true }] },
         after: {
           say: ["~surprised~ No snapping! And the dome’s flowering. White and blue, all opening at dusk.",
             "~happy~ Every jaw-plant has flowers around its roots now. Wendel laughed out loud, and every jaw on the bed turned to look at him.",

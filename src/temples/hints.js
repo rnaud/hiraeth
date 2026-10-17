@@ -184,16 +184,22 @@ export const BOSS_HINTS = {
     ],
     at: (g) => (g.state === 'open' && g.rt.sing >= 0 && g.rt.resonators?.[g.rt.sing]?.center) || g.model.mouth,
   },
-  // the Hush-House: the Mother Snapper (organic: stilled, never hurt)
+  // the Hush-House: the Mother Snapper (organic: outwitted, never fought: issue #409). The lens on the next crystal
   perdide: {
     phases: [
-      ['She tires after a lunge.',
-        'When her head lies spent on the floor, still her.',
-        'Switch to stilling. After a lunge, shoot a cold glob into her open mouth while it lies there.'],
-      ['She can be stilled mid-strike now.',
-        'Still her as she rears to strike, or when she lies spent.',
-        'Keep the stilling mode: shoot her as she winds up to strike, or into her open mouth after a lunge.'],
+      ['She strikes at sounds: the crystals jangling over her.',
+        'Still the three swinging crystals to hush them.',
+        'Switch to stilling and shoot each pendulum crystal. Walk, never run, near her.'],
+      ['The hall is silent. Now the lullaby, low to high.',
+        'The smallest note grows at her root, under her head. Make a sound elsewhere.',
+        'Splash a hanging crystal: she strikes at it. Then splash her root crystal, then the hanging ones, smallest first.'],
     ],
+    at: (g) => {
+      const C = g.rt.motherCrystals;
+      if (!C) return null;
+      if (g.phaseIndex === 0) return C.swings.find((s) => !s.frost)?.center ?? null;
+      return C.notes.find((n) => !n.taken)?.center ?? null;
+    },
   },
   // the Lamp-House: the Lampless (organic: fed with your light)
   perdide2: {

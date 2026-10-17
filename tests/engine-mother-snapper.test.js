@@ -1,9 +1,8 @@
-// Issue #373 in the engines (#264: the Unity and Godot versions run engine/game.js, the temples' own guardians and
-// the fluid tool as the page does): the Mother Snapper in Lorn's Hush-House, the traveller 12 m off her, in the middle of
-// her hall. In her second phase, as she rears to snap, her head looms within the push's reach of him and the tool's own
-// push (FluidTool.push, its cone) answers it: she reels open; the cold in her open mouth then calms her, the glob is
-// not dull and the screen's guardian bar (BridgeHud.cs draws it) goes down; a glob on her leaves takes nothing and is
-// dull. Before, from there her head reared 9 m off and the push never reached it. engine/game.js in a bare V8 context.
+// The Mother Snapper in the engines (#264: the Unity and Godot versions run engine/game.js, the temples' own guardians
+// and pieces as the page does), outwitted since v1.83 (issue #409; her fight before, issue #373): in Lorn's Hush-House,
+// the traveller by her hall's door, out of her hearing: she strikes at the jangling pendulums; frosted, they fall
+// silent and the screen's guardian bar (BridgeHud.cs draws it) goes down; her root's crystal is covered by her head
+// till a flat note turns it away; the lullaby rung low to high leaves her weary. engine/game.js in a bare V8 context.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { tmpdir } from 'node:os';
@@ -20,7 +19,7 @@ const hushed = async (fn) => {
 };
 const run = (g, frames, each = null) => { const w = console.warn; console.warn = () => {}; try { for (let i = 0; i < frames; i++) { g.frame(1 / 30); if (each?.()) return true; } } finally { console.warn = w; } return false; };
 
-test('the engine’s Mother Snapper: from the middle of her hall her head looms within the push as she rears to snap, the tool’s push opens her, the cold in her mouth calms her and the bar shows it (issue #373)', async () => {
+test('the engine’s Mother Snapper, outwitted: she strikes at the jangling pendulums, frosted they fall silent and the bar goes down, her root’s crystal covered by her head till a flat note turns it away, the lullaby sung low to high, weary (issue #409)', async () => {
   const file = tempPath(join(tmpdir(), `hiraeth-engine-snapper-${process.pid}.js`));
   await bundle('godot', { input: 'engine/game.js', out: [file] });
   const g = await hushed(() => loadBundle(file).exports.createGame({ levelId: 'perdide', backend, fight: true }));
@@ -28,33 +27,31 @@ test('the engine’s Mother Snapper: from the middle of her hall her head looms 
   run(g, 10);
   const T = (g.level.temples ?? []).find((t) => t.def?.id === 'perdide' && t.guardian);
   assert.ok(T, 'the Hush-House and its Mother');
-  const G = T.guardian, m = G.model, P = g.player, V = m.pos.constructor;
-  const f = new V(Math.sin(m.heading), 0, Math.cos(m.heading)), spot = m.pos.clone().addScaledVector(f, 12).setY(G.arena.y + 0.3);
-  const stand = () => { P.teleport(spot, new V(0, 1, 0), f.clone().negate()); P.vel?.set(0, 0, 0); };
+  const G = T.guardian, m = G.model, P = g.player, V = m.pos.constructor, C = T.motherCrystals;
+  // (by her hall's door, inside it: out of her hearing)
+  const spot = G.arena.center.clone().add(new V(-G.arena.r + 3, 0.3, 0));
+  const stand = () => { P.teleport(spot, new V(0, 1, 0), new V(1, 0, 0)); P.vel?.set(0, 0, 0); };
   stand();
   P.opts.health = false;
-  assert.ok(run(g, 300, () => { stand(); return G.state === 'fight'; }), `she wakes and fights (${G.state})`);
-  // her second phase, as yet unanswered: it asks for the push as she rears to snap
-  G.meter = G.floor = G.def.phases[0].to; G.answered?.clear(); G.stop(); G.cool = 0.5;
-  assert.ok(G.asking && G.phase.asks.verb === 'push');
-  assert.ok(run(g, 30 * 40, () => { stand(); return G.attack && G.phase.asks.moves.includes(G.attack.id) && !G.struck && G.at > 0.6; }), 'she rears to snap');
-  const chest = P.pos.clone().add(new V(0, 1.15, 0)), reach = chest.distanceTo(m.mouth) - (m.mouthR ?? 1.2);
-  assert.ok(reach < 6, `her head within the push's 6 m (${reach.toFixed(1)} m past her jaws' edge)`);
-  // the tool's push, aimed at her head
-  const t = g.tool;
-  assert.ok(t?.push, 'the tool');
-  t.aimDir.copy(m.mouth).sub(chest).normalize(); t.camK = 1;
-  const hits = t.push();
-  assert.ok(hits.length > 0 && !G.asking && G.state === 'open', `the push meets her head and she reels open (${hits.length} hit, ${G.state})`);
+  assert.ok(run(g, 300, () => { stand(); return G.state === 'fight'; }), `she wakes and listens (${G.state})`);
+  assert.ok(run(g, 30 * 15, () => { stand(); return G.attack && G.heardWhy === 'jangle'; }), 'she strikes at a jangling pendulum');
   run(g, 3);
   const fill0 = S.state.guardian?.fill;
-  assert.ok(fill0 > 0, JSON.stringify(S.state.guardian));
-  const m0 = G.meter, info = {};
-  G.landed('mouth', 'stun', null, info);
-  assert.ok(G.meter > m0 && !info.dull, `the cold in her open mouth calms her, a bright splash (${m0} → ${G.meter})`);
+  assert.ok(fill0 > 0.95, JSON.stringify(S.state.guardian));
+  for (const s of C.swings) s.hit('stun');
+  assert.ok(C.swings.every((s) => s.frost), 'frosted silent');
+  assert.ok(run(g, 30 * 10, () => { stand(); return G.phaseIndex === 1 && G.state === 'fight'; }), 'hushed');
   run(g, 3);
-  assert.ok(S.state.guardian.fill < fill0 - 0.1, `the bar goes down (${fill0} → ${S.state.guardian.fill})`);
-  run(g, 10, () => !G.attack);
-  const leaves = {}, m1 = G.meter;
-  if (!G.attack) { G.landed('body', 'stun', null, leaves); assert.ok(leaves.dull && G.meter === m1, 'a glob on her leaves between moves takes nothing, dull'); }
+  assert.ok(S.state.guardian.fill < fill0 - 0.3, `the bar goes down (${fill0} → ${S.state.guardian.fill})`);
+  const off = () => Math.hypot(m.mouth.x - C.root.center.x, m.mouth.z - C.root.center.z) > C.cover;
+  run(g, 30 * 3, () => { stand(); return false; });
+  assert.ok(!off(), 'her head over her root');
+  C.root.hit('shoot');
+  assert.equal(C.root.taken, false, 'covered');
+  C.notes[3].hit('shoot');
+  assert.equal(G.heardWhy, 'flat', 'a flat note: she strikes at it');
+  assert.ok(run(g, 30 * 8, () => { stand(); return !G.attack && off(); }), 'her head off her root');
+  for (const n of C.notes) n.hit('shoot');
+  assert.ok(C.notes.every((n) => n.taken), 'the lullaby rings true');
+  assert.ok(run(g, 30 * 4, () => { stand(); return G.state === 'weary'; }), `weary (${G.meter.toFixed(2)})`);
 });

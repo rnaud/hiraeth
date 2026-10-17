@@ -5,7 +5,7 @@
 //   the Cloud-Mother (the Founders' Belfry: a bell holds things only while it rings)   a ring as she rises to dive
 //                     brings a stone down where she will dive; she lies on it, and the bell calms her
 //   the Lampless (the Lamp-House: light can be carried)   lured to the pools you lit earlier, it drinks there
-//   the Mother Snapper (the Hush-House: low to high)   the crystals over her stilled in turn, smallest first
+//   (the Mother Snapper, the Hush-House: outwitted since v1.83, issue #409: tests/mother-snapper.test.js)
 //   the First Sign (the Undertower: a note travels)   it hears only through the dishes on its hall's wall
 //   the Clockwork Foreman (the First Garage: count round from where the hand points)   its numerals from four
 //   the Gardener (the Builders' Greenhouse: nothing grows in the shade)   its back blooms only in the sun, brought onto
@@ -361,51 +361,7 @@ test('the Lampless’s second phase teaches the pools: a splash lights one and i
   A.done();
 });
 
-// ------------------------------------------------------------------ the Mother Snapper
-test('the Mother Snapper’s last phase: the cold no longer eases her; the three crystals over her stilled in turn, smallest first, calm her, and out of turn they ring flat and start again', () => {
-  const A = arena('perdide', 'stun', 2);
-  const { rt, G, until, said } = A;
-  const C = rt.motherCrystals.list, by = (rank) => C.find((s) => s.o.rank === rank);
-  assert.equal(C.length, 3, 'three crystals swing over her');
-  assert.ok(C.every((s) => s.center.y - G.arena.y > 5), 'well over your head: they knock nobody down');
-  assert.deepEqual([0, 1, 2].map((r) => by(r).o.size), [0.6, 0.85, 1.15], 'smallest first');
-  assert.notDeepEqual(C.map((s) => s.o.rank), [0, 1, 2], 'they hang out of order round the hall');
-  // the failure: a stilling glob in her open mouth does nothing now
-  A.stand(0, -2);   // (within her lunge)
-  assert.equal(until(() => G.state === 'open', 40), true, 'she lies spent');
-  const m0 = G.meter;
-  G.hit('mouth', 'stun');
-  assert.equal(G.meter, m0, 'the cold no longer eases her');
-  assert.ok(said(/crystals out of tune/), 'she looks up at the crystals');
-  // out of turn: the middle first rings flat; the smallest, then the biggest: flat again, and the turn starts over
-  by(1).hit('stun');
-  assert.equal(by(1).taken ?? false, false, 'out of turn it rings flat');
-  assert.ok(said(/smallest crystal first/i), 'and says so');
-  by(0).hit('stun');
-  assert.equal(by(0).taken, true, 'the smallest rings true');
-  by(2).hit('stun');
-  assert.ok(C.every((s) => !s.taken), 'the biggest before the middle: flat, and the notes fade');
-  assert.equal(G.meter, m0, 'nothing lost, nothing gained');
-  // the way: smallest, middle, biggest
-  for (const r of [0, 1, 2]) by(r).hit('stun');
-  assert.equal(G.state, 'weary', `calm (${G.meter.toFixed(2)})`);
-  A.done();
-});
-
-test('the Mother Snapper’s second phase teaches the crystals: stilled in turn they calm her a little, and the cold in her mouth still does', () => {
-  const A = arena('perdide', 'stun', 1);
-  const { rt, G, until } = A;
-  const by = (rank) => rt.motherCrystals.list.find((s) => s.o.rank === rank);
-  const m0 = G.meter;
-  for (const r of [0, 1, 2]) by(r).hit('stun');
-  assert.ok(G.meter > m0 + 0.09, `the crystals in turn calm her (${G.meter.toFixed(2)})`);
-  A.stand(0, -2);
-  assert.equal(until(() => G.state === 'open', 40), true, 'she lies spent');
-  const m1 = G.meter;
-  G.hit('mouth', 'stun');
-  assert.ok(G.meter > m1, 'and a cold glob in her mouth still does');
-  A.done();
-});
+// (the Mother Snapper, outwitted since v1.83 and never fought: tests/mother-snapper.test.js, issue #409)
 
 // ------------------------------------------------------------------ the First Sign
 /** Stand under one of the First Sign's hall's low dishes (its mouth within reach). */
@@ -778,8 +734,9 @@ test('the Tooth-Warden’s second phase teaches the gear: free, a volley counts 
 });
 
 // ------------------------------------------------------------------ a second verb (v1.63, #257)
-test('six guardians’ second phase asks for a second verb before the gadget (src/temples/boss.js asks): until it is answered no opening comes and the gadget takes nothing; answered, it reels open and the gadget takes', () => {
-  const SIX = [['arzach2', 'hook', 'parry'], ['perdide', 'stun', 'push'], ['perdide2', 'bubble', 'dodge'], ['edena', 'bloom', 'shot'], ['garage', 'boomerang', 'parry'], ['bazaar', 'recall', 'dodge']];
+test('five guardians’ second phase asks for a second verb before the gadget (src/temples/boss.js asks): until it is answered no opening comes and the gadget takes nothing; answered, it reels open and the gadget takes', () => {
+  // (the Mother Snapper's push left with her fight, v1.83: issue #409)
+  const SIX = [['arzach2', 'hook', 'parry'], ['perdide2', 'bubble', 'dodge'], ['edena', 'bloom', 'shot'], ['garage', 'boomerang', 'parry'], ['bazaar', 'recall', 'dodge']];
   for (const [id, gadget, verb] of SIX) {
     const A = arena(id, gadget, 1, { answer: false });
     const { G, P, frame, until, said } = A, Q = G.phase.asks;

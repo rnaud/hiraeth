@@ -12,7 +12,7 @@ import { TOOTH_WARDEN } from './temples/buried.js';
 import { GARDENER } from './temples/edena.js';
 import { FOREMAN } from './temples/garage.js';
 import { WARDEN } from './temples/incal.js';
-import { MOTHER as SNAPPER } from './temples/perdide.js';
+import { motherSpar } from './temples/perdide.js';   // (her fight before v1.83: in her house she is outwitted, issue #409)
 import { LAMPLESS } from './temples/perdide2.js';
 import { ECHO } from './temples/spheres.js';
 // (the three guardians that joined the route in v1.40)
@@ -41,7 +41,7 @@ export const GUARDIANS = [
   { id: 'incal', def: WARDEN, model: () => sentinelModel() },
   { id: 'arzach', def: ELDER, model: () => elderGuardian() },
   { id: 'arzach2', def: CLOUD_MOTHER, model: () => whaleModel() },
-  { id: 'perdide', def: SNAPPER, model: () => snapperModel({ reach: 12 }) },
+  { id: 'perdide', def: motherSpar(), model: () => snapperModel({ reach: 12 }) },
   { id: 'perdide2', def: LAMPLESS, model: () => mothModel() },
   { id: 'edena', def: GARDENER, model: () => gardenerModel() },
   { id: 'underwater', def: LISTENER, model: () => listenerModel() },

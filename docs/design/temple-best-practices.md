@@ -529,3 +529,31 @@ The Belfry's row of Part 3 (the bells as a house-wide state; the great key cage'
   steps 2 → 1, obscure 1 → 0; identity 2 as before). The audit measures each lock alone: a state set from the lock's own
   room counts as a key there, so G1's "cheap to change" reads as obvious, and the three conflicts (still for the spur,
   rung for the bridge and the far door) are not in its numbers. The redesign's rules: none broken.
+## As built: the Hush-House (v1.83, issue #409)
+
+The fourth house, the one with no fight at all (G3a), reworked to the approved rules (`src/temples/perdide.js`; how it
+works: `docs/systems/temples.md`, "The Hush-House with no fight at all"):
+
+- **G3a, no fight:** no arena and no foes anywhere in the house. The small key, the Nursery's prize before, is now the
+  Pendulum Gallery's song: stilled in turn from the far landing, the three notes sink its cage, and the pendulums rest
+  for good, so the bridge is a walk back (the keeper's ledge and its gate are gone).
+- **The guardian outwitted, not fought:** the Mother Snapper keeps her lore and her look (the first snapper, woken
+  frightened the night the crystals went out of tune), but she is blind and strikes only at sounds. Three pendulums
+  jangle over her and she lunges at each note; she hears you run, roll or land a jump, never walk. You still the three
+  with the stilling mode, and the hall falls silent (her first phase). Then you sing her the makers' lullaby, the
+  Choir's lesson, low to high: the first and smallest note grows at her root, under her head, so you first make a
+  sound elsewhere (a crystal rung flat costs nothing before the first note) and she turns her head to strike at it.
+  Sung through, she sleeps: a hand on her head. Globs on her do nothing; the only harm is walking under a lunge.
+- **G4, one great hall:** the Choir, 44 by 66 m under 30 m (36 by 54 before), is the hub: its floor, the gallery 9 m
+  up its west side with the great key's cage, the black pool under the gallery's sill and the great door in its east
+  wall, all seen at once from the way in.
+- **G6:** the sill, a marked drop from the gallery by the great key into the black pool on the Choir's floor, unhurt
+  (the Footprint's `Catch`). The great door is in the Choir, so the drop is the way to it; the antechamber's mark is
+  6 m from the Mother's door.
+- **The hush taught before it is asked:** the great door wants the great key and the Choir's three crystals, sung at
+  the start, stilled high to low; it will not open over their hum. The first phase of the guardian asks the same thing
+  under her lunges.
+- **Length:** eight steps (the Threshold's door, the Choir's crystals, the Bog Well's eye, the passage's mouths, the
+  crossing, the far landing's song, the gallery's ball, the great door's hush), then the Mother. Design audit 4.56
+  before and after: the chest at 38 % of the steps (33), the curve 4, mean obviousness 2.83 → 3.06 (the Threshold's new
+  door is a plain first step); the redesign's rules: none broken.

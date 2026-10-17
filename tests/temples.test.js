@@ -48,7 +48,7 @@ import bridgeGadget, { PEN } from '../src/gadgets/bridge.js';
 import boomGadget from '../src/gadgets/boomerang.js';
 import { irons } from '../src/gadgets/metal.js';
 import { LENS_VIEW } from '../src/gadgets/hidden.js';
-import { NURSERY, BALCONY, ROOMS as ROOMS_HUSH, UP as HUSH_UP, WALK as HUSH_WALK, MOUTHS as HUSH_MOUTHS, SHRINE as HUSH_SHRINE, KEEPER as HUSH_KEEPER } from '../src/temples/perdide.js';
+import { BALCONY, ROOMS as ROOMS_HUSH, UP as HUSH_UP, WALK as HUSH_WALK, MOUTHS as HUSH_MOUTHS, SHRINE as HUSH_SHRINE, SILL as HUSH_SILL, FAR_KEY as HUSH_FAR_KEY } from '../src/temples/perdide.js';
 import { SAND as FOUNDRY_SAND, UP as FOUNDRY_UP } from '../src/temples/moonfoundry.js';
 import { STORE as WHALE_STORE } from '../src/temples/underwater.js';
 import { setHintLevel } from '../src/hint-level.js';
@@ -777,38 +777,51 @@ test('the Founders’ Belfry (issues #23, #408): its hub’s west store an arena
   assert.equal(L.elements.p3.room, L.elements.ball3.room, 'the far plate in its ball’s room: nothing rolled through a door');
 });
 
-test('the Hush-House (issue #23, round 3): the passage’s mouths in the Choir’s order, the Nursery off the far landing gives the small key for the ledge round the Bog Well, the Choir’s balcony the great key; either order; old saves past the far door find it open', () => {
+test('the Hush-House (v1.83, issue #409: no fight at all): the Threshold’s crystal opens the great hall, the passage’s mouths in the Choir’s order, the pendulums sung for the small key, the ledge round the Bog Well to the Choir’s gallery and the great key, the drop back into the Choir, the great door hushed high to low; either order; old saves past the old far door find the great door open', () => {
   const L = TEMPLES.perdide.def.logic, items = ['backpack', 'gun', 'doublejump', 'sword', 'shield'];
   for (const reverse of [false, true]) { const r = solve(L, { items, reverse }); assert.equal(r.done, true, r.log.join(' / ')); }
-  const noArena = solve(L, { items, forbid: ['arN'] });
-  assert.ok(!noArena.stuck.includes('balcony') && !noArena.stuck.includes('hall'), 'without the Nursery the ledge’s door stays shut, and so the great lock');
+  assert.deepEqual(TEMPLES.perdide.def.arenas, [], 'no arena');
+  assert.ok(!Object.values(L.elements).some((e) => e.type === 'arena') && !Object.values(L.rooms).some((r) => r.kind === 'combat'), 'no fight anywhere');
+  const noSong = solve(L, { items, forbid: ['w3'] });
+  assert.ok(!noSong.stuck.includes('balcony') && !noSong.stuck.includes('hall'), 'without the pendulums’ song the ledge’s door stays shut, and so the great lock');
   const noBall = solve(L, { items, forbid: ['oB'] });
-  assert.ok(noBall.logic.isFound('kS') && noBall.stuck.includes('balcony') && !noBall.stuck.includes('hall'), 'without the balcony’s ball the hall stays shut');
-  assert.deepEqual(TEMPLES.perdide.def.arenas.map((A) => A.el), ['arN']);
-  // the passage's three mouths: only in the Choir's order, low to high, the gate's crown last
+  assert.ok(noBall.logic.isFound('kS') && noBall.stuck.includes('balcony') && !noBall.stuck.includes('hall'), 'without the gallery’s ball the great door stays shut');
+  const noHush = solve(L, { items, forbid: ['h2'] });
+  assert.ok(noHush.logic.isFound('kB') && !noHush.stuck.includes('hall'), 'without the Choir hushed the great door stays shut');
+  assert.ok(L.links.some((l) => l.a === 'balcony' && l.b === 'choir' && l.oneWay), 'the drop: from the gallery into the Choir, one way');
   const W = new TempleLogic(L, { has: (i) => ['gun', 'stun'].includes(i) });
+  // the Threshold's door: its crystal
+  assert.equal(W.isOpen('d0'), false);
+  W.light('c1'); W.update();
+  assert.equal(W.isOpen('d0'), true, 'the first note opens the great hall');
+  // the passage's three mouths: only in the Choir's order, low to high, the gate's crown last
   assert.equal(W.light('j3'), false, 'the gate first: flat');
   assert.equal(W.light('j2'), false, 'the middling first: flat');
   for (const id of ['j1', 'j2', 'j3']) assert.equal(W.light(id), true, id);
   W.update();
   assert.ok(W.isOpen('d2') && W.isOpen('dj1') && W.isOpen('dj2'), 'all three open');
-  // the balcony's mouth: open only while its frost holds
+  // the pendulums' notes, smallest first: the small key's cage
+  assert.equal(W.find('kS'), false, 'caged');
+  for (const id of ['w1', 'w2', 'w3']) assert.equal(W.light(id), true, id);
+  assert.equal(W.find('kS'), true, 'sung: the cage sinks');
+  // the gallery's mouth: open only while its frost holds
   assert.equal(W.light('jB'), true); W.update();
   assert.equal(W.isOpen('dJ'), true, 'stilled');
   W.quiet('jB'); W.update();
   assert.equal(W.isOpen('dJ'), false, 'thawed, shut again');
-  // the keeper's gate opens once the Nursery is won (no footstone now)
-  W.light('arN'); W.update();
-  assert.equal(W.isOpen('ds'), true);
-  for (const [extra, past] of [[{}, false], [{ 'lit.w1': true, 'lit.w2': true, 'lit.w3': true, 'open.d3': true, 'open.ds': true, checkpoint: 'hall' }, true]]) {
+  // the great door: the Choir hushed high to low
+  assert.equal(W.light('h2'), false, 'the lowest first: it hums on');
+  for (const id of ['h4', 'h3', 'h2']) assert.equal(W.light(id), true, id);
+  for (const [extra, past] of [[{}, false], [{ 'lit.w1': true, 'lit.w2': true, 'lit.w3': true, 'open.d3': true, 'open.ds': true, 'lit.arN': true, checkpoint: 'ante' }, true]]) {
     const g = new GameState(null);
-    for (const [k, v] of Object.entries({ 'lit.c1': true, 'lit.c2': true, 'lit.c3': true, 'lit.c4': true, 'open.d1': true, 'lit.sw': true, 'open.dw': true, gadget: true, 'lit.j1': true, 'open.d2': true, checkpoint: 'gallery', ...extra })) g.set(`temple.perdide.${k}`, v);
+    g.set('temple.perdide.layout', 3);
+    for (const [k, v] of Object.entries({ entered: true, 'lit.c1': true, 'lit.c2': true, 'lit.c3': true, 'lit.c4': true, 'open.d1': true, 'lit.sw': true, 'open.dw': true, gadget: true, 'lit.j1': true, 'open.d2': true, checkpoint: 'gallery', ...extra })) g.set(`temple.perdide.${k}`, v);
     migrateTemples(g);
     const B = new TempleLogic(L, { store: flagStore(g, 'perdide'), has: (i) => [...items, 'stun'].includes(i) });
     B.update();
-    assert.ok(B.isOpen('d2') && B.isLit('j2') && B.isLit('j3'), 'the old gate’s stilling counts for all three mouths: the way stays open behind them');
-    assert.equal(B.isOpen('d3'), past, past ? 'past the far door: open still' : 'on the gallery: the great key still on the balcony');
-    if (past) assert.ok(B.isOpen('dL') && B.isFound('kB') && B.isLit('arN'), 'and the wings done');
+    assert.ok(B.isOpen('d0') && B.isOpen('d2') && B.isLit('j2') && B.isLit('j3'), 'the old gate’s stilling counts for all three mouths: the way stays open behind them');
+    assert.equal(B.isOpen('dG'), past, past ? 'past the old far door: the great door open' : 'on the gallery: the great key still on the balcony');
+    if (past) assert.ok(B.isOpen('dL') && B.isFound('kB') && B.isFound('kS') && B.keys('small') === 0 && B.keys('big') === 0, 'and the wings done, their keys in their doors');
   }
 });
 
@@ -3140,7 +3153,7 @@ test('a shut gate of jaws collides as its two halves are drawn (square shutters,
   } finally { if (wasOpen) jaw.setOpen(true, true); }
 });
 
-test('the Hush-House on foot: the crystals sung low to high (the first by the door), the climbing disc and the eye on the root-wall, the stilling mode, the passage’s three mouths stilled in the Choir’s order and the smallest’s coffer, the pendulums stilled in turn, the Nursery’s arena off the far landing and the keeper’s gate it opens, the ledge by the Bog Well and the walk to the Choir’s balcony, the ball rolled through a mouth that thaws for the great key, the Mother Snapper stilled, the swamp in flower (v1.77: the rooms as shrines)', () => {
+test('the Hush-House on foot (v1.83, issue #409: no fight at all): the Threshold’s crystal opens the great hall, the Choir’s crystals sung low to high, the climbing disc and the eye on the root-wall, the stilling mode, the passage’s three mouths in the Choir’s order and the smallest’s coffer, the pendulums stilled to cross and sung in turn for the small key, the ledge by the Bog Well and the walk to the Choir’s gallery, the ball rolled through a mouth that thaws for the great key, the drop into the black pool, the Choir hushed high to low for the great door, the Mother outwitted and laid to sleep, the swamp in flower', () => {
   game.reset();
   own('backpack', 'gun');
   const { level, physics, rt } = world('perdide');
@@ -3160,61 +3173,59 @@ test('the Hush-House on foot: the crystals sung low to high (the first by the do
   const wait = (s) => { for (let i = 0; i < s / DT; i++) frame(); };
   const where = () => rt.kit.local(P.pos).toArray().map((v) => v.toFixed(1)).join(', ');
   const seen = (from, to) => { const d = to.clone().sub(from), n = d.length(); return physics.rayDistance(from, d.normalize(), n) >= n - 0.8; };
-  const R = ROOMS_HUSH, U = HUSH_UP, C2 = R.well.z, N0 = C2 - R.well.near, F0 = C2 + R.well.face, C3 = R.stilling.z, SP = R.snapping, GA = R.gallery;
-  const G0 = GA.z0, Q0 = G0 + GA.near, Q1 = Q0 + GA.pit, KG = (HUSH_KEEPER.x0 + GA.x1) / 2, Wk = HUSH_WALK;
+  const R = ROOMS_HUSH, U = HUSH_UP, C2 = R.well.z, N0 = C2 - R.well.near, F0 = C2 + R.well.face, C3 = R.stilling.z, SP = R.snapping, GA = R.gallery, CH = R.choir;
+  const G0 = GA.z0, Q0 = G0 + GA.near, Q1 = Q0 + GA.pit, Wk = HUSH_WALK, MH = R.hall;
   wait(0.5);
-  // ---- the Choir: its lowest crystal rings flat, and says where the first note was sung: at the door
-  assert.equal(walk(L(0, 0, 40)), true, `into the Choir (${where()})`);
-  rt.piece('c2').hit('shoot');
-  assert.equal(rt.logic.isLit('c2'), false, 'not before the first note');
-  assert.ok(notes.some((s) => /at the door/.test(s)), 'it says where the first note is');
-  rt.piece('c3').hit('shoot');
-  assert.equal(rt.logic.isLit('c3'), false, 'nor out of turn');
-  assert.equal(walk(L(2.5, 0, 14)), true, `back to the door's crystal (${where()})`);
+  // ---- the Threshold: its door into the Choir is shut; the smallest crystal by the way in opens it
+  assert.equal(walk(L(0, 0, 27)), true, `to the Threshold's far door (${where()})`);
+  assert.equal(walk(L(0, 0, 34), { max: 3 }), false, 'shut');
+  assert.equal(walk(L(2.5, 0, 14)), true, `to the door's crystal (${where()})`);
   rt.piece('c1').hit('shoot');
-  assert.equal(walk(L(0, 0, 50)), true, `into the Choir again (${where()})`);
+  wait(2.4);
+  assert.equal(rt.logic.isOpen('d0'), true, 'the first note opens the great hall');
+  // ---- the Choir, the great hall: 44 by 66 m, its gallery 9 m up its west side and the great door in its east wall both in
+  // sight from the way in
+  assert.ok(CH.x1 - CH.x0 >= 44 && CH.z1 - CH.z0 >= 60 && CH.top - CH.y >= 30, 'the great hall');
+  assert.equal(walk(L(0, 0, 36)), true, `into the Choir (${where()})`);
+  const eye0 = L(10, 1.6, 40);   // (a few steps in)
+  assert.ok(seen(eye0, rt.piece('kB').pos.clone().add(V(0, 1.2, 0))), 'the great key’s cage on the gallery, from the way in');
+  assert.ok(seen(eye0, rt.piece('dG').group.position.clone().add(V(-1, 4, 0))), 'and the great door');
+  rt.piece('c3').hit('shoot');
+  assert.equal(rt.logic.isLit('c3'), false, 'out of turn: not lit');
   for (const id of ['c2', 'c3', 'c4']) rt.piece(id).hit('shoot');
   wait(2.2);
   assert.equal(rt.logic.isOpen('d1'), true);
   // ---- the Bog Well: the disc that climbs over the dark water, then up the root-wall
-  assert.equal(path([4, 0, 60], [0, 0, 80], [0, 0, N0 - 2]), true, `to the well (${where()})`);
+  assert.equal(path([4, 0, 60], [3, 0, 90], [0, 0, N0 - 2]), true, `to the well (${where()})`);
   const disc = rt.pieces.find((p) => p.path);
   for (let i = 0; i < 30 / DT && !(disc.s < 0.2 && disc.wait > 0.6); i++) frame();
   assert.equal(walk(disc.group.position, { tol: 0.5, run: false, max: 4 }), true, `onto the disc (${where()})`);
   for (let i = 0; i < 30 / DT && !(disc.s > disc.total - 0.2); i++) frame();
   assert.ok(rt.kit.local(P.pos).y > 2.5, `carried up on it (${where()})`);
-  // the door at the top is shut; its eye is on the root-wall's face, in sight from the disc, not from the top
   const eye = rt.piece('sw').center;
   assert.ok(seen(P.pos.clone().add(V(0, 1.6, 0)), eye), 'the eye seen from the disc');
   assert.ok(!seen(L(-0.8, U + 1.7, F0 + 3.7), eye), 'not from the top of the wall');
-  assert.equal(rt.logic.isOpen('dw'), false);
   rt.piece('sw').hit('shoot');
   wait(0.2);
   let up = false;
   for (let i = 0; i < 20 / DT; i++) { frame({ KeyW: true }, toward(L(0, U, F0 + 6))); if (P.onGround && rt.kit.local(P.pos).y > U - 0.5) { up = true; break; } }
   assert.ok(up, `up the root-wall (${where()})`);
   assert.equal(rt.logic.isOpen('dw'), true, 'the door at the top is open');
-  // ---- the Stilling Chamber: the chest; its way on is open
+  // ---- the Stilling Chamber: the chest
   assert.equal(walk(L(0, U, C3 - 8)), true, `into the chamber (${where()})`);
   items.grant('stun'); game.emit('box:opened', { id: 'perdide.temple.stun' });
   assert.equal(rt.logic.gadget, true);
-  // ---- the Snapping Passage, a room on (the chamber's room in the logic): the gate of jaws snaps at plain fluid and will
-  // not let you by
-  assert.equal(path([0, U, SP.z0 + 3], [0, U, G0 - 6]), true, `through the open way into the passage (${where()})`);
+  // ---- the Snapping Passage: the side mouths, then the gate, in the Choir's order
+  assert.equal(path([0, U, SP.z0 + 3], [0, U, G0 - 6]), true, `into the passage (${where()})`);
   rt.piece('d2').hit('shoot');
   assert.equal(walk(L(0, U, G0 + 1), { max: 4 }), false, 'the jaws keep the way');
-  assert.ok(rt.kit.local(P.pos).z < G0 - 1.1, `not through them (${where()})`);
-  // (v1.52) the gate's crown is the biggest of the passage's three: stilled first, it rings flat; the side mouths, then
-  // the gate, in the Choir's order
   rt.piece('d2').hit('stun');
-  rt.piece('dj2').hit('stun');
   wait(0.5);
-  assert.deepEqual(['j1', 'j2', 'j3'].map((id) => rt.logic.isLit(id)), [false, false, false], 'out of turn, nothing takes');
+  assert.equal(rt.logic.isLit('j3'), false, 'the gate first: flat');
   assert.ok(notes.some((s) => /smallest crystal first/.test(s)), 'and says why');
   for (const id of ['dj1', 'dj2', 'd2']) rt.piece(id).hit('stun');
   wait(2.6);
   assert.equal(rt.logic.isOpen('d2'), true, 'stilled in turn, they rest open');
-  // the smallest mouth keeps a coffer in its niche (since v1.77 in a shrine out on the floor)
   const purses = [], m1 = HUSH_MOUTHS[0];
   const offPurse = game.on('temple:cache', (e) => purses.push(e));
   assert.equal(walk(L(-2.5, U, m1.z)) && walk(L(-(HUSH_SHRINE.face + m1.deep - 2.0), U, m1.z), { tol: 0.5 }), true, `into the smallest mouth's niche (${where()})`);
@@ -3226,7 +3237,7 @@ test('the Hush-House on foot: the crystals sung low to high (the first by the do
   assert.equal(walk(L(-1.5, U, m1.z)), true, `back out of the niche (${where()})`);
   // ---- the Pendulum Gallery: a pendulum knocks you off the bridge; stilled, they let you by
   assert.equal(path([0, U, G0 + 2], [0, U, Q0 - 1]), true, `to the bridge (${where()})`);
-  const swings = rt.pieces.filter((p) => p.len && p.arm && p.id);   // (the gallery's: the Mother's three hang in her hall)
+  const swings = rt.galleryWings;
   assert.equal(swings.length, 3);
   P.teleport(L(0, U + 0.05, rt.kit.local(swings[0].group.position).z), V(0, 1, 0), V(0, 0, 1));
   let knocked = false;
@@ -3236,124 +3247,96 @@ test('the Hush-House on foot: the crystals sung low to high (the first by the do
   wait(1.5);
   P.teleport(L(0, U + 0.05, Q0 - 1), V(0, 1, 0), V(0, 0, 1));
   wait(0.3);
-  // the keeper's ledge along the east wall: its gate is shut from this side
-  assert.equal(walk(L(KG, U, Q0 - 1.5)), true, `to the ledge's gate (${where()})`);
-  assert.equal(walk(L(KG, U, Q0 + 12), { max: 3 }), false, 'the gate holds');
-  assert.ok(rt.kit.local(P.pos).z < Q0 + 0.4 && rt.kit.local(P.pos).x > HUSH_KEEPER.x0 && rt.kit.local(P.pos).y > U - 0.5, `still this side of it, at the gate (${where()})`);
-  assert.equal(walk(L(0, U, Q0 - 1)), true, `back to the bridge (${where()})`);
-  // stilled near to far to cross: the walk stills them out of turn, and only the smallest's note takes
   for (const s of swings) s.hit('stun');
   assert.equal(walk(L(0, U, Q1 + 1), { max: 6 }), true, `over the bridge between the stilled pendulums (${where()})`);
-  assert.ok(rt.kit.local(P.pos).y > U - 1, 'on it, not in the chasm');
   assert.deepEqual(['w1', 'w2', 'w3'].map((id) => rt.logic.isLit(id)), [true, false, false], 'only the smallest crystal took');
-  assert.ok(notes.some((s) => /smallest crystal first/.test(s)), 'the others rang flat, and say why');
-  wait(1);
-  assert.equal(rt.logic.isOpen('d3'), false, 'the far door wants all three notes');
-  // from the far side, again, in turn: middle-sized, then the biggest
+  // ---- the far landing: the small key's cage; the notes again, in turn, from this side
+  const [kx, kz] = HUSH_FAR_KEY;
+  assert.equal(walk(L(kx + 2.2, U, kz)), true, `to the key's cage (${where()})`);
+  wait(0.3);
+  assert.equal(rt.logic.isFound('kS'), false, 'caged');
   for (const id of ['w2', 'w3']) rt.piece(id).hit('stun');
   wait(2.6);
-  assert.ok(rt.logic.check(rt.logic.el('d3').opens) && !rt.logic.isOpen('d3'), 'its notes rung: and since v1.52 it wants the great key too');
-  // ---- the Nursery, west off the far landing (an arena, the house's one fight): its door shuts behind you while its
-  // seedlings stand
-  const NZ = NURSERY.z, NR = R.nursery;
-  const keepers = [{ room: 'nursery', alive: true }, { room: 'nursery', alive: true }];
-  rt.machines = [...(rt.machines ?? []), ...keepers];
-  assert.equal(path([-10, U, NZ], [GA.x0 - 3, U, NZ], [NR.x1 - 6, U, NZ]), true, `into the Nursery (${where()})`);
-  wait(0.3);
-  assert.equal(rt.logic.isOpen('dN'), false, 'the door shuts behind you');
-  for (const k of keepers) k.alive = false;
-  wait(2.5);
-  assert.ok(rt.logic.isLit('arN') && rt.logic.isOpen('dN'), 'beaten: won, and the door lets go');
-  assert.equal(walk(rt.piece('kS').pos, { tol: 1.2 }), true, `to the key (${where()})`);
-  wait(0.3);
+  assert.ok(notes.some((s) => /pendulums rest/.test(s)), 'sung: the cage sinks, the pendulums rest');
   openChest(rt, 'kS', P);
   assert.equal(rt.logic.isFound('kS'), true, 'a small key');
-  assert.equal(rt.logic.isOpen('ds'), true, 'and out over the chasm the keeper’s gate is open');
-  assert.equal(path([NR.x1 - 6, U, NZ], [GA.x0 - 3, U, NZ], [-8, U, NZ]), true, `back out onto the far landing (${where()})`);
-  // the shortcut: along the ledge and through the keeper's gate, back past the chest to the root-wall's top
-  wait(2.2);
-  const toRootTop = [[0, U, G0 + 3], [0, U, SP.z0 + 3], [0, U, C3 + 8], [0, U, C3 - 8], [0, U, F0 + 5]];
-  assert.equal(path([KG, U, Q1 + 2], [KG, U, Q0 - 1.5]), true, `along the ledge, through the gate (${where()})`);
+  // the way back over: a walk, the pendulums at rest
+  wait(8);
+  assert.equal(path([0, U, Q1 + 1], [0, U, Q0 - 1]), true, `back over the bridge (${where()})`);
+  assert.ok(rt.kit.local(P.pos).y > U - 1, 'on it, not in the chasm');
+  const toRootTop = [[0, U, G0 - 3], [0, U, SP.z0 + 3], [0, U, C3 + 8], [0, U, C3 - 8], [0, U, F0 + 5]];
   assert.equal(path(...toRootTop), true, `back past the chest onto the root-wall (${where()})`);
   // ---- the ledge along the Bog Well's west wall to its west door: the small key goes in; on along the walk at UP
   assert.equal(path([-13, U, F0 + 2], [-14, U, C2]), true, `along the ledge (${where()})`);
-  assert.ok(rt.kit.local(P.pos).y > U - 0.5, 'on the ledge, not in the water');
-  assert.equal(walk(L(-18.9, U, C2), { tol: 0.4, max: 4 }), true, `up to the ledge's door (${where()})`);
+  assert.equal(walk(L(Wk.door + 1.7, U, C2), { tol: 0.4, max: 4 }), true, `up to the ledge's door (${where()})`);
   wait(2.4);
   assert.equal(rt.logic.keysIn('dL'), 1, 'the small key in it');
   assert.equal(rt.logic.isOpen('dL'), true);
   const wx = (Wk.x0 + Wk.x1) / 2;
-  assert.equal(path([wx, U, C2], [wx, U, Wk.to], [-16, U, Wk.to], [-14, U, Wk.to - 3]), true, `through the door, down the walk and onto the Choir's balcony (${where()})`);
-  // ---- the balcony: the great key behind a wall, a ball in a groove through a snapper's mouth in it
+  assert.equal(path([wx, U, C2], [wx, U, Wk.to], [-20, U, Wk.to], [-18, U, Wk.to - 3]), true, `through the door, down the walk and onto the Choir's gallery (${where()})`);
+  // ---- the gallery: the great key behind a wall, a ball in a groove through a snapper's mouth in it
   const B = BALCONY, ball = rt.piece('oB'), mouth = rt.piece('dJ');
-  assert.equal(rt.logic.el('dJ').type, 'bridge', 'since v1.77 the mouth a gate in the balcony’s middle, not a door between rooms');
   const toBall = () => walk(ball.center.clone().setY(L(0, U, 0).y).addScaledVector(ball.dir, -(ball.r + 1.3)), { tol: 0.5, max: 6 });
   assert.equal(toBall(), true, `behind the ball (${where()})`);
   ball.hit('push', ball.dir.clone(), { strength: 1 });
   wait(3);
   assert.ok(notes.some((s) => /spit it back/.test(s)), 'shut, the jaws spit the ball back');
-  assert.ok(rt.logic.drumT('oB') < 0.75, 'and it lies on this side');
   mouth.hit('stun');
   wait(0.3);
-  assert.equal(rt.logic.isOpen('dJ'), true, 'stilled, they open');
   for (let k = 0; k < 4 && !rt.logic.drumOn('oB', 'pB'); k++) { toBall(); ball.hit('push', ball.dir.clone(), { strength: 1 }); wait(2.4); }
   assert.equal(rt.logic.drumOn('oB', 'pB'), true, 'rolled through, onto the cage’s footstone');
-  // (back to this side, if the last push was made from the far one)
-  if (rt.kit.local(P.pos).z < B.wall) { if (!rt.logic.isOpen('dJ')) { mouth.hit('stun'); wait(1.2); } assert.equal(walk(L(B.groove, U, B.wall + 2.5)), true, `back to this side (${where()})`); }
-  for (let i = 0; i < 15 / DT && rt.logic.isOpen('dJ'); i++) frame();
-  assert.equal(rt.logic.isOpen('dJ'), false, 'the frost thaws: they snap shut again');
-  assert.ok(notes.some((s) => /frost on the jaws is cracking/.test(s)), 'and it says so before');
-  P.opts.health = false;   // (their nips would knock him out, here, with no one to wake him at the mark)
-  assert.equal(walk(L(B.groove, U, B.wall - 2), { max: 3 }), false, 'shut, they keep the way');
-  for (let i = 0; i < 10 / DT && (P.down || P.dead); i++) frame();   // (and nip: you are knocked down)
-  assert.equal(walk(L(B.groove, U, B.wall + 3)), true, `back from them (${where()})`);
-  mouth.hit('stun');
-  wait(1.2);
-  assert.equal(path([B.groove, U, B.wall - 1.3], [B.key[0] - 0.4, U, B.wall - 2]) && walk(rt.piece('kB').pos, { tol: 1.2 }), true, `through them to the great key (${where()})`);
+  if (!rt.logic.isOpen('dJ')) { mouth.hit('stun'); wait(1.2); }
+  P.opts.health = false;   // (the jaws' nips, if they close on him)
+  assert.equal(path([B.groove, U, B.wall + 2.5], [B.groove, U, B.wall - 1.3], [B.key[0] - 0.4, U, B.wall - 2]) && walk(rt.piece('kB').pos, { tol: 1.2 }), true, `through them to the great key (${where()})`);
+  P.opts.health = true;
   wait(0.3);
   openChest(rt, 'kB', P);
   assert.equal(rt.logic.isFound('kB'), true, 'the great key');
-  if (!rt.logic.isOpen('dJ')) { mouth.hit('stun'); wait(1.2); }
-  assert.equal(path([B.key[0] - 0.4, U, B.wall - 2], [B.groove, U, B.wall - 1.3], [B.groove, U, B.wall + 2.5]), true, `back through the mouth (${where()})`);
-  // ---- back along the walk and the ledge, past the chest, over the keeper's ledge to the far door
-  assert.equal(path([-14, U, Wk.to - 3], [-16, U, Wk.to], [wx, U, Wk.to], [wx, U, C2], [-14, U, C2], [-13, U, F0 + 2], [0, U, F0 + 5]), true, `off the balcony and back to the root-wall's top (${where()})`);
-  assert.equal(path(...toRootTop.slice().reverse(), [KG, U, Q0 - 1.5], [KG, U, Q1 + 2], [0, U, Q1 + 4]), true, `past the chest and over the keeper's ledge (${where()})`);
-  assert.ok(rt.kit.local(P.pos).y > U - 1, 'on the far landing');
-  // ---- the Mother's Hall: still her when she lies spent; later, mid-strike
-  const CL = R.gallery.z1 + 0.6 + ANTE.len + 1.2 + 19;
-  assert.equal(walk(L(0, U, CL - 19 + 1.5)) && walk(L(0, U, CL - 19 + 3.5)), true, `through the great lock into the hall (${where()})`);
-  assert.equal(rt.logic.keysIn('d3'), 1, 'the great key in it');
-  const G = rt.guardian;
+  // ---- the sill: off the gallery's edge into the black pool on the Choir's floor, unhurt
+  const S = HUSH_SILL, sz = (S.z0 + S.z1) / 2, hearts = P.hearts;
+  assert.equal(walk(L(B.x1 - 0.8, U, S.z0 + 0.9), { run: false }), true, `to the sill, beside the key's cage (${where()})`);
+  for (let i = 0; i < 4 / DT && !(P.onGround && rt.kit.local(P.pos).y < 1); i++) frame({ KeyW: true }, toward(L(S.pool[0], 0, sz)));
+  assert.ok(rt.kit.local(P.pos).y < 1 && P.onGround, `down on the Choir's floor (${where()})`);
+  wait(0.5);
+  assert.equal(P.hearts, hearts, 'unhurt');
+  assert.ok(!P.down, 'on his feet');
+  assert.ok(notes.some((s) => /black pool takes your fall/.test(s)), 'the pool took the fall');
+  // ---- the great door: the great key goes in; it will not open over the humming crystals; hushed high to low, it does
+  assert.equal(walk(L(CH.x1 - 0.9, 0, MH.z), { tol: 0.4 }), true, `to the great door (${where()})`);
+  wait(2.4);
+  assert.equal(rt.logic.keysIn('dG'), 1, 'the great key in it');
+  assert.equal(rt.logic.isOpen('dG'), false, 'shut still');
+  assert.ok(notes.some((s) => /humming crystals: hush them/.test(s)), 'and it says why');
+  rt.piece('h2').hit('stun');
+  assert.equal(rt.logic.isLit('h2'), false, 'the lowest first: it hums on');
+  assert.ok(notes.some((s) => /high to low/.test(s)), 'high to low, it says');
+  rt.piece('h2').hit('shoot');
+  assert.equal(rt.logic.isLit('h2'), false, 'a splash does not hush');
+  for (const id of ['h4', 'h3', 'h2']) rt.piece(id).hit('stun');
+  wait(2.4);
+  assert.equal(rt.logic.isOpen('dG'), true, 'hushed: the great door opens');
+  // ---- the antechamber's mark, a short walk from her hall; then in, walking
+  const ante = rt.marks.find((m) => m.room === 'ante');
+  assert.ok(ante && ante.spot.distanceTo(L(MH.x - MH.r, 0, MH.z)) < 10, 'the guardian’s checkpoint a short walk from her door');
+  assert.equal(walk(L(MH.x - MH.r + 3, 0, MH.z), { run: false }), true, `into her hall, walking (${where()})`);
+  const G = rt.guardian, C = rt.motherCrystals, m = G.model;
   wait(0.3);
   assert.notEqual(G.state, 'sleep', `she wakes (${where()})`);
-  P.opts.health = false;
-  const before0 = G.meter;
-  G.hit('mouth', 'shoot');
-  assert.equal(G.meter, before0, 'plain fluid only startles her');
-  let mid = 0;
-  // (in her last phase the cold no longer eases her: the crystals over her, stilled smallest first; tests/guardian-twists)
-  const crystal = (rank) => rt.motherCrystals.list.find((s) => s.o.rank === rank);
-  for (let n = 0; n < 16 && G.state !== 'weary'; n++) {
-    const pushed = answerAsks({ G, P, frame }, { keep: true });   // (its second phase's second verb first, src/temples/boss.js asks: tests/guardian-asks.js)
-    if (G.phaseIndex >= 2) {
-      const before = G.meter;
-      for (const r of [0, 1, 2]) crystal(r).hit('stun');
-      assert.ok(G.meter > before, `the crystals in turn calm her (${G.meter.toFixed(2)})`);
-      continue;
-    }
-    let ready = false;
-    for (let i = 0; i < 40 / DT; i++) { frame(); if (G.state === 'open' || (G.phaseIndex >= 1 && G.attack && !G.struck && G.at > 0.3)) { ready = true; break; } }
-    assert.ok(ready, `she lies spent, or rears (${n})`);
-    const before = G.meter;
-    if (G.state === 'open') { assert.ok(pushed || G.model.mouth.distanceTo(G.model.pos) > 8, 'her head lies out on the floor'); G.hit('mouth', 'stun'); }
-    else { G.hit('body', 'stun'); mid++; assert.equal(G.attack, null, 'stilled mid-strike'); }
-    assert.ok(G.meter > before, `calmer (${n}: ${G.meter.toFixed(2)})`);
-  }
-  assert.equal(G.state, 'weary', `calm (${G.meter.toFixed(2)})`);
-  assert.ok(mid > 0, 'stilled mid-strike at least once');
+  for (let i = 0; i < 8 / DT && G.state !== 'fight'; i++) frame();
+  for (const sw of C.swings) sw.hit('stun');
+  for (let i = 0; i < 10 / DT && !(G.phaseIndex === 1 && G.state === 'fight'); i++) frame();
+  assert.equal(G.phaseIndex, 1, 'hushed');
   wait(3);
-  const head = G.model.mouth.clone().setY(L(0, U, 0).y);
-  const out = head.clone().sub(G.model.pos).setY(0).normalize();
+  C.root.hit('shoot');
+  assert.equal(C.root.taken, false, 'her head over her root');
+  C.notes[3].hit('shoot');   // (a flat note before the first: she strikes at it)
+  for (let i = 0; i < 8 / DT && !(!G.attack && Math.hypot(m.mouth.x - C.root.center.x, m.mouth.z - C.root.center.z) > C.cover); i++) frame();
+  for (const n of C.notes) n.hit('shoot');
+  for (let i = 0; i < 4 / DT && G.state !== 'weary'; i++) frame();
+  assert.equal(G.state, 'weary', `sung to sleep (${G.meter.toFixed(2)})`);
+  wait(3);
+  const head = m.mouth.clone().setY(L(0, 0, 0).y);
+  const out = head.clone().sub(m.pos).setY(0).normalize();
   P.teleport(head.clone().addScaledVector(out, 2.4).add(V(0, 0.1, 0)), V(0, 1, 0), V(0, 0, 1));
   wait(0.3);
   const near = bestInteractable(P);
@@ -3362,23 +3345,24 @@ test('the Hush-House on foot: the crystals sung low to high (the first by the do
   assert.equal(game.flag('temple.perdide.done'), true);
   wait(6);
   assert.equal(rt.change.root.visible, true, 'the dome in flower');
-  const m = new THREE.Matrix4();
-  rt.change.foot.getMatrixAt(0, m);
-  assert.ok(new THREE.Vector3().setFromMatrixScale(m).x > 0.9, 'flowers at the snappers’ feet');
+  const mx = new THREE.Matrix4();
+  rt.change.foot.getMatrixAt(0, mx);
+  assert.ok(new THREE.Vector3().setFromMatrixScale(mx).x > 0.9, 'flowers at the snappers’ feet');
   game.reset();
   own();
 });
 
-test('the Hush-House as shrines (v1.77, issue #336): a save that stood in the old rooms is taken to its last mark; one that never went in is left alone', () => {
-  for (const entered of [true, false]) {
+test('the Hush-House as shrines (v1.77, issue #336) and round its great hall (v1.83, issue #409): a save that stood in the old rooms is taken to its last mark, the Threshold’s door open; one that never went in is left alone', () => {
+  for (const [entered, from] of [[true, 2], [false, 2], [true, 3], [false, 3]]) {
     const g = new GameState(null);
-    g.set('temple.perdide.layout', 2);
+    g.set('temple.perdide.layout', from);
     if (entered) for (const [k, v] of Object.entries({ entered: true, 'lit.c1': true, 'lit.c2': true, 'lit.c3': true, 'lit.c4': true, 'open.d1': true, 'lit.sw': true, 'open.dw': true, gadget: true, checkpoint: 'stilling' })) g.set(`temple.perdide.${k}`, v);
     migrateTemples(g);
     assert.equal(!!g.flag('temple.perdide.relaid'), entered, entered ? 'inside the old house: to its last mark' : 'never inside: nothing to move');
     assert.equal(g.flag('temple.perdide.layout'), LAYOUTS.perdide.v);
+    assert.equal(!!g.flag('temple.perdide.lit.c1'), entered, 'inside: the Threshold’s door open behind them');
   }
-  // standing where the old Snapping Passage was (in the new Bog Well's dark water): to the chamber's mark
+  // standing in the air where the old rooms were (over the new Choir): to the chamber's mark
   game.reset();
   own('backpack', 'gun');
   const { level, physics, rt } = world('perdide');
@@ -3389,10 +3373,10 @@ test('the Hush-House as shrines (v1.77, issue #336): a save that stood in the ol
   const mark = rt.marks.find((m) => m.room === 'stilling');
   assert.ok(P.pos.distanceTo(mark.spot) < 0.5, `at the Stilling Chamber's mark (${rt.kit.local(P.pos).toArray().map((v) => v.toFixed(1))})`);
   assert.ok(!game.flag('temple.perdide.relaid'), 'once');
-  // the rooms tagged, the one fight the Nursery's; the Snapping Passage the chamber's room still (a room of its own past
-  // a door for the stilling mode in hand cost the house a step of its design score)
+  // the rooms tagged, no fight since v1.83 (issue #409); the Snapping Passage the chamber's room still (a room of its own
+  // past a door for the stilling mode in hand cost the house a step of its design score)
   const L = TEMPLES.perdide.def.logic;
-  assert.deepEqual(Object.keys(L.rooms).filter((r) => L.rooms[r].kind === 'combat'), ['nursery']);
+  assert.deepEqual(Object.keys(L.rooms).filter((r) => L.rooms[r].kind === 'combat'), []);
   assert.ok(L.rooms.stilling.kind === 'puzzle' && ['j1', 'j2', 'j3', 'cache'].every((id) => L.elements[id].room === 'stilling'), 'the passage’s mouths and coffer the chamber’s');
   game.reset();
   own();

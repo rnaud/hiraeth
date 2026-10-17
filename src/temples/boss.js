@@ -34,6 +34,8 @@ import { SecondOrder } from '../motion-kit/spring.js';
 //   g.update(dt, t)   per frame (the runtime; wakes it when you step into the arena)
 //   g.add(k, why)     the meter, within the current phase (def.phases)
 //   g.state           'sleep' | 'wake' | 'fight' | 'open' | 'shift' | 'weary' | 'resolved'
+//   g.listen          null, or a point (Vector3): a guardian that hears and does not see turns to it and aims its moves there
+//                     instead of at you (the Mother Snapper, issue #409: set by her temple, src/temples/perdide.js)
 //
 // def: { kind, name, phases: [{ to: 0.4, attacks: ['stamp', …] (the moves it begins with; a combo starts at its
 //        first), pause, hint, openHint?, asks? }], shiftTime?, missHint?,
@@ -741,7 +743,7 @@ export class Guardian {
   }
   /** Turn toward heading `want` at `rate` (a share a second), never faster than the body's turnRate (rad/s). */
   turnTo(dt, want, rate) {
-    const m = this.model, d = Math.atan2(Math.sin(want - m.heading), Math.cos(want - m.heading)) * Math.min(1, dt * rate), cap = (m.turnRate ?? Infinity) * dt;
+    const m = this.model, d = Math.atan2(Math.sin(want - m.heading), Math.cos(want - m.heading)) * Math.min(1, dt * rate), cap = m.turnRate != null ? m.turnRate * dt : Infinity;   // (no turnRate: no cap, also in a frame of no time, where Infinity × 0 was NaN and her heading with it)
     let step = THREE.MathUtils.clamp(d, -cap, cap);
     // (turnAccel, rad/s²: a big body gathers its turn and slows out of it; the Elder went from still to 3 rad/s in a
     // frame, her wingtips 13 m/s at once, #237. A turn not asked for last frame starts from still.)
@@ -760,7 +762,7 @@ export class Guardian {
     const inArena = P && Math.hypot(P.pos.x - A.center.x, P.pos.z - A.center.z) < A.r - 1.5 && Math.abs(P.pos.y - A.y) < 6;
     if (this.state === 'sleep' && inArena && !P.dead) this.wake();
     if (this.state === 'wake' && this.t > (this.def.wakeTime ?? 3)) { this.enter('fight'); this.rt.notice?.(this.def.phases[0].hint); }
-    if (this.state === 'shift') { if (P) this.face(dt, P.pos, 1); if (this.t > (this.def.shiftTime ?? SHIFT)) this.enter('fight'); }
+    if (this.state === 'shift') { if (P) this.face(dt, this.listen ?? P.pos, 1); if (this.t > (this.def.shiftTime ?? SHIFT)) this.enter('fight'); }
     if (this.state === 'fight' || this.state === 'open') speed = this.fight(dt, t, P);
     if (this.state === 'open' && this.t > (this.openFor ?? 2.5)) this.enter('fight');
     if (this.state === 'weary' || this.state === 'resolved') {
@@ -802,12 +804,13 @@ export class Guardian {
       if (this.at < wind) {
         // the wind-up: it aims (turns to you, a lob's mark or a dive's spot follows you) for its `track`, then holds
         const aiming = this.at < wind * (a.track ?? 0.5);
-        if (a.at === 'player' && aiming) this.attackAt.set(P.pos.x, A.y, P.pos.z);
-        if (aiming) (this.aimP ??= V()).copy(P.pos);   // (where you were as its aim held: a beam's pitch)
+        const T = this.listen ?? P.pos;   // (a guardian that hears and does not see aims at the sound: `listen`)
+        if (a.at === 'player' && aiming) this.attackAt.set(T.x, A.y, T.z);
+        if (aiming) (this.aimP ??= V()).copy(T);   // (where you were as its aim held: a beam's pitch)
         // (a body that travels over the spot comes no nearer the wall than it may stand: keepIn; else it landed in the
         // wall and was pushed off it again, its blow struck from where it never stood)
         if (a.over && aiming) { _b.subVectors(this.attackAt, A.center).setY(0); const r = A.r - (m.radius ?? 2.6) - 1; if (_b.length() > r) this.attackAt.set(A.center.x, A.y, A.center.z).addScaledVector(_b.setLength(r), 1); }
-        if (a.shape !== 'ring' || a.at === 'front') { if (aiming && !m.rooted) this.face(dt, P.pos, 5); else if (aiming) this.face(dt, P.pos, 3); this.attackH = m.heading; }
+        if (a.shape !== 'ring' || a.at === 'front') { if (aiming && !m.rooted) this.face(dt, T, 5); else if (aiming) this.face(dt, T, 3); this.attackH = m.heading; }
         if (a.at === 'self') this.attackAt.copy(m.pos).setY(A.y);
         if (a.at === 'front') this.attackAt.set(m.pos.x + Math.sin(m.heading) * (a.ahead ?? 4), A.y, m.pos.z + Math.cos(m.heading) * (a.ahead ?? 4));
         // (a.leap [from, to]: it springs over only between those shares of the wind-up, the spot fixed by then: the Keeper's
@@ -848,7 +851,7 @@ export class Guardian {
       }
       return 0;
     }
-    if (this.state === 'open') { this.face(dt, P.pos, 1.5); return 0; }
+    if (this.state === 'open') { this.face(dt, this.listen ?? P.pos, 1.5); return 0; }
     // between attacks: keep a little distance from you, and circle
     const ang = Math.atan2(P.pos.x - A.center.x, P.pos.z - A.center.z) + Math.sin(t * 0.3) * 0.8;
     const want = _b.set(A.center.x + Math.sin(ang) * A.r * 0.35, A.y, A.center.z + Math.cos(ang) * A.r * 0.35);
@@ -861,7 +864,7 @@ export class Guardian {
       return sp;
     }
     const speed = m.rooted ? 0 : this.walk(dt, want, this.def.speed ?? 2.4, 1, this.def.faceYou ? P.pos : null);
-    if (speed < 0.2) this.face(dt, P.pos, 2);
+    if (speed < 0.2) this.face(dt, this.listen ?? P.pos, 2);
     this.cool -= dt;
     if (this.cool <= 0 && !P.dead) this.begin(P);
     return speed;
@@ -873,7 +876,7 @@ export class Guardian {
     const chained = !!id;
     if (!id) {
       const list = this.phase.attacks;
-      if (!list?.length) return;
+      if (!list?.length && !picked) return;   // (a move picked by its temple: a guardian with none of its own, the Mother Snapper, issue #409)
       const d = Math.hypot(P.pos.x - this.model.pos.x, P.pos.z - this.model.pos.z);
       id = picked ?? list[this.order % list.length];
       // a close move with you out of its reach: it comes for you first (a rooted one throws something instead)
@@ -894,7 +897,8 @@ export class Guardian {
     this.attack = a; this.at = 0; this.struck = false; this.attackK = 0; this.dashing = 0;
     this.windFor = windOf(a);
     this.view = { ...a, id: a.pose ?? id, move: id };
-    this.attackAt.set(P.pos.x, this.arena.y, P.pos.z);
+    const T = this.listen ?? P.pos;
+    this.attackAt.set(T.x, this.arena.y, T.z);
     if (a.at === 'self') this.attackAt.copy(this.model.pos).setY(this.arena.y);
     this.attackH = this.model.heading;
     if (a.lob && a.volley > 1) this.spreadMarks(a);

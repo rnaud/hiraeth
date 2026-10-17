@@ -127,6 +127,9 @@ for (const id of Object.keys(TEMPLES)) {
   test(`${TEMPLES[id].def.name ?? id}’s guardian (${id}): fought through standing close by, half way across its hall and at its far side, at 60 and 30 frames a second, every phase gives a way in`, () => {
     const H = hall(id);
     if (!H) return;   // (a temple without a guardian)
+    // (a guardian outwitted, never fought, has no openings to wait for: its own play-through, the Mother Snapper's in
+    // tests/mother-snapper.test.js, issue #409)
+    if (H.G.def.outwit) { H.done(); return; }
     try {
       for (const fps of FIGHT.fps) for (const stance of ['near', 'mid', 'far']) {
         const r = fightThrough(H, stance, fps);
