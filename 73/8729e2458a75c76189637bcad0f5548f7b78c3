@@ -1,0 +1,27 @@
+docs/systems/temples.md
+  s_5f899ba316b5dc::t_1867b7d6bec6a5 1908-1909,1923,1928-1936
+tests/house-walk.js
+  s_5f899ba316b5dc::t_41a4af513e199e 78,94-97
+tests/house-walk.test.js
+  s_5f899ba316b5dc::t_e5973ba99df281 1-29
+tests/shard-timings.json
+  s_5f899ba316b5dc::t_3fff3ca5f3a397 225
+tests/wings-reach.js
+  s_5f899ba316b5dc::t_7194bbbb7bcf9f 13-15,140-141
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "738729e2458a75c76189637bcad0f5548f7b78c3",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
