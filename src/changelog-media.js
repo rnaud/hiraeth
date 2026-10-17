@@ -1141,6 +1141,7 @@ const WISP398 = 'Issue #398: muted headless Chrome on this branch’s own dev se
 /** (v1.83, issue #432: the hook in a makers' house) */
 const HOOK432 = 'Issue #432: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, 11:00, the HUD hidden but the reticle) on this branch’s own Vite (port 5443, scripts/design-qc/capture.mjs), the camera pinned over the traveller’s shoulder at the Founders’ Belfry’s way in, the hook in hand and aimed at the hall’s east wall; before: the same build with the house’s rule turned off in the page (its runtime’s inside() false: the hook as it was), after: as shipped; 17 October; cwebp -q 70';
 /** (v1.83, issue #382: the Lens Vault, a first-person test game) */
+const FIGHT442 = 'Issue #442: muted headless Chrome (High, 1280 × 720) against this branch’s own Vite (ports 5442–5445), the Sunken Hall and the Drowned Mill begun from their start cards (?seed=4242), stepped 1/60 s a frame (window.__stepDt), foes held stunned, the blow dealt by Foes.hurt; before, the same build with the kills’ effects switched off; 17 October; cwebp -q 72';
 const PLUMB434 = 'Issue #434: the opening sequence (engine/sequences.js `opening`, scripts/unity-compare/sequences.mjs web) in muted headless Chrome (High, 1280 × 720) on this branch’s own Vite (port 5434), a new save, each beat’s picture; 17 October; cwebp -q 72';
 const LENS382 = 'Issue #382: the game’s page (?game=lens-vault&from=arcade) in muted headless Chrome (High, 1280 × 720) on this branch’s own Vite (port 5460), played by a script (keys through the debugging protocol, the eye turned by the session’s own look, his hearts kept full, rooms cleared by hand between the pictures: scratchpad fps-382 play.mjs); 17 October; cwebp -q 72';
 /** (v1.83, issue #418: the Undertower round the Great Well, the line its state, the exam of the whole game) */
@@ -1155,6 +1156,23 @@ const MOOR417 = 'Issue #417: the running game in muted headless Chrome (ANGLE Me
 const MOOR417P = 'Issue #417: the Temple maps page (temples.html?t=spacecity, Plan, all floors) in muted headless Chrome, 1600 × 1150, the plan with the solver’s steps; before: the tree at origin/main ec07b2d9d, after: this change; 17 October; cwebp -q 70';
 export const CHANGELOG_MEDIA = {
   '1.84': [
+    { match: 'In the fight temples the roll is on the button printed B', see: 'In a fight temple with a Nintendo-lettered pad or the Retroid, the start card lists the bottom button (printed B) as roll; press it. On an Xbox or PlayStation pad it is B / ○ as before.' },
+    { match: 'In the fight temples the sword is about a third quicker', numbers: [{ title: 'The combo’s cuts in the fight temples (wind-up + cut + follow-through)', unit: 's', better: 'lower', device: 'the tuning (src/fluid-blade.js SWINGS × QUICK_CUT), played in node: tests/fight-feel.test.js', rows: [
+      { where: 'first cut', before: 0.47, after: 0.32 },
+      { where: 'second cut', before: 0.51, after: 0.35 },
+      { where: 'third (heavy) cut', before: 0.75, after: 0.5 },
+      { where: 'the pause after the third', before: 0.4, after: 0.24 },
+    ], source: 'Issue #442: wind-ups × 0.65, cuts × 0.9, follow-throughs × 0.55, the pause × 0.6; outside the fight temples the combo is unchanged' }] },
+    { match: 'In the fight temples a roll cuts a swing off', shots: [
+      { name: 'fight-roll-cancel', only: 'after', title: 'A roll out of a wind-up', caption: 'The Sunken Hall, 60 fps steps: the cut pressed, three frames into its wind-up the roll pressed: the swing dropped that frame, the roll under way', from: FIGHT442 },
+    ] },
+    { match: 'Foes felled in the fight temples are easy to see', shots: [
+      { name: 'fight-kill', title: 'One felled', caption: 'The Sunken Hall at its own camera, half a second after the killing blow: before, the blot still sinking where it stood; after, thrown back a metre, flattened, its star of ink spread on the floor', from: FIGHT442 },
+      { name: 'fight-crowd', title: 'Seven in one blow', caption: 'Half a second after one blow fells seven round him: before, seven bodies slowly sinking; after, seven stains and four rings (the rest only stain: a crowd stays readable)', from: FIGHT442 },
+    ], see: 'In any fight temple, fell a foe and watch where it lands; listen for the thump under its cry.' },
+    { match: 'A roll takes you through every hazard of the fight temples', shots: [
+      { name: 'fight-roll-stone', only: 'after', title: 'Through a millstone', caption: 'The Drowned Mill: standing, the millstone takes a heart; rolling (B / ○) as it comes, through it unharmed, the perfect dodge’s ring at his feet', from: FIGHT442 },
+    ] },
     { match: 'Your ship’s little drone has a name now, Plumb', shots: [
       { name: 'plumb-wake', only: 'after', title: 'In its cradle', caption: 'After the landing, by the amber reserve light: Plumb asleep in its charging cradle by the hatch, its eye waking', from: PLUMB434 },
       { name: 'plumb-lift', only: 'after', title: 'Out of the cradle', caption: 'Bloomed, its rotors spinning, it lifts out of the cup and flies over to him', from: PLUMB434 },

@@ -121,11 +121,47 @@ near ones a 3.5 m trench, then the bank), so nothing but a wall that can be seen
 a tucked forward roll 0.42 s long, up to 9.5 m/s (about 3.3 m), along the stick or the way he faces (never the
 evade's backstep), i-frames from 0.02 to 0.34 s (Gentle 0.4), 0.75 s from one roll's start to the next; the pose is
 `jump.js` `ROLL_FLIP`, a front flip on the ground about a 0.6 m pivot, tucked hard. Jumping is disabled: the session’s input filter clears Space and PadJump before movement reads them.
-A / × does not roll, and the touch jump button and jump control hints are hidden.
+The roll is on the face button printed B, wherever the pad has it (issue #442, `rules.js` `rollInput`): B / ○ on Xbox
+and PlayStation pads; with Nintendo letters (the Retroid, a Switch pad: `native-pad.js` `padFaces`) the bottom button,
+the jump's place, and the right one (printed A there, the evade's own elsewhere) does nothing. The card's row is
+`rollKey` (in Xbox form by position, so the page prints the pad's B). The touch jump button and jump hints are hidden.
 The blade's cut takes every foe a drawn crescent covers (`WIDE_CUT`, issue #368: the crescent of the sword's water
 laid as the swing goes, out to 2.6 m from him, and what it covers is exactly what is cut, a wall between keeping a foe
 out; v1.77 took a 3.9 m, ±1.5 rad cone with nothing drawn; the sword drawn 1.25 m long in there: docs/systems/minigames.md
 "The Sunken Hall as a game"). Outside the fight temples neither is set: the evade and the swing are as they were. Tests: `tests/fight-roll.test.js`.
+
+**The quick cut, the roll's cancel and readable kills** (issue #442). The combo is quicker in here (`fluid-blade.js`
+`QUICK_CUT`, set on the blade as `quick` beside `roll`): wind-ups × 0.65, cuts × 0.9, follow-throughs × 0.55, the pause
+after the third × 0.6, the clips played through the same frames faster: the cuts 0.32 / 0.35 / 0.50 s (were 0.47 / 0.51
+/ 0.75), the pause 0.24 s (0.4). Only in here: the crowds of one- and two-cut foes want a quick blade, while the world's
+fights (guardians, parries, the charged cut) are tuned to the combo as it is. The roll cuts a swing off (`rollCancels`):
+pressed in its wind-up, its follow-through or a charge, it rolls that frame and the swing is dropped; pressed during
+the cut's own active frames (about 0.12 s) the cut lands and the press is kept (`ROLL.buffer`, 0.2 s), so the roll comes
+the frame they end. Why not at any time: the combat review's fairness rule is that a move is answerable but committed;
+taking back a wind-up when a foe's tell starts is the reaction the author asked for, and a hit that could always be
+rolled out of the instant it lands would cost nothing. The evade elsewhere still only leaves a follow-through.
+
+A kill reads from the iso camera (28 m off; `kill-fx.js`): at the killing blow the body is thrown back along it
+(7 m/s easing out, about a metre, kept in the room and off the pillars) and its own defeat (`enemies/defeat.js`) runs
+1.6 times as fast, so it lands with the blow; a thin ring of the world's glow snaps out on the floor; 14 big drops of
+its ink fly along the blow; a wet thump (`Audio.foeKill`) under its cry; and a star of ink spreads on the floor in 0.1 s,
+lies 2.4 s, then dries into the floor's colour and shrinks away over 0.9 s. In a crowd every kill is thrown and stains,
+but only 4 in any 0.3 s ring, splash and thump (one thump in the same few frames), so a cut through eight is eight
+marks, not a blaze. Two instanced meshes (24 splats, 24 rings): two draws at most.
+
+What the Diablo games do, for this: **Diablo II** lets whatever you kill keel over and lie on the ground, the corpse
+staying put (corpses were a resource there: Corpse Explosion, Revive) ([GamesBeat, on corpses in Diablo III](https://gamesbeat.com/creating-corpses-making-bodies-matter-in-diablo-3/);
+[Diablo Wiki, Corpse Explosion](https://diablo.fandom.com/wiki/Corpse_Explosion)). **Diablo III** made the death the
+spectacle: pre-animated deaths handed to physics, bodies flung by a blow, torn apart by critical hits, a Barbarian's
+bash sending a skeleton across the screen, often with no body left (a Havok ragdoll system Erin Catto built to give
+"lots of death variation", [GDC 2012 slides](https://box2d.org/files/ErinCatto_Ragdolls_GDC2012.pdf); GamesBeat above);
+corpses came back with the Necromancer, kept uniform and capped on screen so they read "at a glance". **Diablo IV**
+layers "death kits": how a monster dies follows what killed it (shattered when frozen, burnt to the bone by fire), with
+blood flying, the bodies lying a while ([Icy Veins, GamesRadar hands-on](https://icy-veins.com/forums/topic/47854-diablo-4-gamesradar-hands-on-death-kits-difficulty-and-more));
+its louder on-death effects drew complaints of clutter and were toned down. So: not a fade alone; the blow's
+direction and weight shown at once, a mark that stays, and the noise kept down in a crowd. Ours is that in ink: the
+knock and the quick fall, the splat that stays and dries (no corpse to tidy: the stain is the mark), the ring and the
+splash only within a budget. Tests: `tests/fight-feel.test.js`.
 
 **The controls.** The left stick walks up and across the screen. The aim is the right stick (twin-stick), or a ring
 on the floor that the mouse moves (pointer captured), or the way he walks. The blade and the gun take the foe in the

@@ -9,23 +9,25 @@
 // held at ISO.yaw, so the stick and WASD walk him relative to the screen). The aim: the right stick, or the mouse's
 // reticle on the floor, or the way he walks; the blade and the gun take the foe in that cone (FluidTool.lockOn and
 // updateAimPoint wrapped for the run). The walls and pillars between the camera and him are seen through (SEE: a hole with
-// a hand-cut edge opens in them round him, materials.js SEE_HOLE). B / ○ rolls (ROLL; jumping is disabled here), and the blade's cut
+// a hand-cut edge opens in them round him, materials.js SEE_HOLE). The button printed B rolls (B / ○; the bottom one with Nintendo letters: rules.js rollInput, #442; ROLL; jumping is disabled here), and the blade's cut
 // takes every foe in a wider, longer cone (WIDE_CUT); both only here (issue #365).
 
 import * as THREE from 'three';
 import { makeMaterial, SEE_HOLE } from '../materials.js';
-import { ROLL, WIDE_CUT, BLADE } from '../fluid-blade.js';
+import { ROLL, WIDE_CUT, BLADE, QUICK_CUT } from '../fluid-blade.js';
 import { FOES } from '../foes.js';
 import { lendTool, standAt, tune } from '../minigames/kit/onfoot.js';
 import { WorldLabels } from '../minigames/kit/labels.js';
 import { unlockColours, colourById, applyKitColours } from '../kit-colours.js';
 import { reliquaryModel } from './rooms.js';
 import { roomHazards, HAZARD } from './hazards.js';
+import { KillFx } from './kill-fx.js';
 import {
   ISO, isoOffset, followIso, SEE, sightPoints, inTheWay, easeSee, seeOpen, AIM, pickTarget, stickToGround, screenUp, screenRight,
   roomAt, inRoom, roomWaves, release, CROWD, headOf, heartChance, chimesFor, pursesFor, totalFoes,
-  GORGED, FURY, GEYSER, geyserSpots, rankFor, clock,
+  GORGED, FURY, GEYSER, geyserSpots, rankFor, clock, rollInput, rollKey,
 } from './rules.js';
+import { padFaces } from '../native-pad.js';
 
 const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0);
 /** A light foe's blows: this share of its kind's (many of them, each felled in a cut or two, each hurting less). */
@@ -140,7 +142,7 @@ export function startFightTemple(ctx) {
   }
   // the blade's dodge roll and its generous cut (fluid-blade.js ROLL, WIDE_CUT): only in here
   const blade = tool?.blade;
-  if (blade) { blade.roll = ROLL; blade.wide = WIDE_CUT; }
+  if (blade) { blade.roll = ROLL; blade.wide = WIDE_CUT; blade.quick = QUICK_CUT; }   // (and its quicker combo: QUICK_CUT, #442)
   // (the sword drawn longer and broader in here, to the crescent: its tip about 2.1 m out, the crescent's edge past it)
   const edge0 = BLADE.edge ?? 1;
   const keepBlade = tune(BLADE, { length: WIDE_CUT.length, width: WIDE_CUT.width, edge: edge0 });
@@ -154,6 +156,19 @@ export function startFightTemple(ctx) {
   let pending = [], geyserT = 0;
   // the world's own hazard in its rooms (hazards.js: Vael's gusts, Lorn's millstones, the Foundry's pour), on lanes
   const hz = roomHazards({ ctx, def, player, foes, tool, sfx, sound, gentle, mine: () => mine });
+  // the kills made to read from up here (kill-fx.js, issue #442): thrown back, a ring, a splash, a splat that dries, a thump;
+  // a body thrown is kept in the room and off the pillars
+  const kills = new KillFx({ add: ctx.add, tool, sound, palette: def.palette, keep: (f) => {
+    const R = rooms[run.room], r = (f.def.radius ?? 0.5) + 0.3;
+    if (R) { f.pos.x = THREE.MathUtils.clamp(f.pos.x, R.x[0] + r, R.x[1] - r); f.pos.z = THREE.MathUtils.clamp(f.pos.z, R.z[0] + r, R.z[1] - r); }
+    for (const c of F.cuttables) {
+      if (c.kind !== 'pillar') continue;
+      const cx = (c.box.min.x + c.box.max.x) / 2, cz = (c.box.min.z + c.box.max.z) / 2, hx = (c.box.max.x - c.box.min.x) / 2 + r, hz2 = (c.box.max.z - c.box.min.z) / 2 + r;
+      const dx = f.pos.x - cx, dz = f.pos.z - cz;
+      if (Math.abs(dx) >= hx || Math.abs(dz) >= hz2) continue;
+      if (hx - Math.abs(dx) < hz2 - Math.abs(dz)) f.pos.x = cx + Math.sign(dx || 1) * hx; else f.pos.z = cz + Math.sign(dz || 1) * hz2;
+    }
+  } });
 
   // ---------------------------------------------------------------- the aim
   const marks = ctx.add(aimMarks());
@@ -398,6 +413,7 @@ export function startFightTemple(ctx) {
   }
   function felled(f) {
     run.kills++;
+    kills.felled(f, player.pos);
     run.chain = t - run.lastKill <= 2.5 ? run.chain + 1 : 1;
     run.lastKill = t;
     run.bestChain = Math.max(run.bestChain, run.chain);
@@ -466,11 +482,8 @@ export function startFightTemple(ctx) {
   }
 
   return {
-    // The isometric fight stays on the floor. Touch jump also feeds Space; leave evade inputs alone.
-    input(controls) {
-      controls.Space = false;
-      controls.PadJump = false;
-    },
+    // The isometric fight stays on the floor (touch jump also feeds Space); the roll on the button printed B (rules.js rollInput)
+    input(controls) { rollInput(controls, padFaces().faces); },
     /** (the checks: n more of this room's kinds at once, over the cap: the frame budget with a full crowd) */
     crowd(n = CROWD.cap) {
       const kinds = plan[run.room].flat().filter((q) => !q.tough);
@@ -484,8 +497,17 @@ export function startFightTemple(ctx) {
     get def() { return def; },
     /** (the checks: the world's hazard, hazards.js) */
     get hazards() { return hz; },
+    /** (the pictures, an engine plan's -pose: the `n` foes nearest him felled from where he stands: kill-fx.js's marks) */
+    pose(n = 3) {
+      const near = mine.filter((f) => f.alive).sort((a, b) => a.pos.distanceTo(player.pos) - b.pos.distanceTo(player.pos)).slice(0, typeof n === 'number' ? n : 3);
+      for (const f of near) foes?.hurt?.(f, 'blade', _w.set(f.pos.x - player.pos.x + 1e-3, 0, f.pos.z - player.pos.z).normalize(), { damage: 99 });
+      return near.length > 0;
+    },
+    /** (the checks: the kills' marks, kill-fx.js) */
+    get kills() { return kills; },
     update(dt, inp, { live, raw, t: clockNow }) {
       t += dt;
+      kills.update(dt);
       runClock = clockNow ?? t;   // (the runner's clock: the time the results show)
       // (no lock-on here: the aim takes the foe in its cone, and a lock would turn the view and the stick off the iso line)
       if (foes?.lock) foes.lock = null;
@@ -527,7 +549,7 @@ export function startFightTemple(ctx) {
           : run.phase === 'wait' ? `On to ${rooms[run.room].name}` : run.phase === 'reward' ? 'Take the reliquary' : '');
         if (player.dead) {
           over = true;
-          ctx.finish({ failed: true, title: `${def.name} took you`, lines: [`Rooms cleared ${run.room} of ${rooms.length} · wave ${run.waveN} of ${run.waves} · foes felled ${run.kills} of ${run.total}`, `Gorged ${run.gorged} of ${run.gorgedOf} · longest chain ${run.bestChain} · chimes ${run.chimes}`, `A roll (B / ○) takes you through a blow or ${HAZARD[rooms.find((r) => r.hazard)?.hazard.kind]?.word ?? 'a geyser'} unharmed.`, ...(def.seed ? [`This run: ${def.seed} (?seed=${def.seed} to try it again)`] : [])] });
+          ctx.finish({ failed: true, title: `${def.name} took you`, lines: [`Rooms cleared ${run.room} of ${rooms.length} · wave ${run.waveN} of ${run.waves} · foes felled ${run.kills} of ${run.total}`, `Gorged ${run.gorged} of ${run.gorgedOf} · longest chain ${run.bestChain} · chimes ${run.chimes}`, `A roll (${rollKey(padFaces().faces)}) takes you through a blow or ${HAZARD[rooms.find((r) => r.hazard)?.hazard.kind]?.word ?? 'a geyser'} unharmed.`, ...(def.seed ? [`This run: ${def.seed} (?seed=${def.seed} to try it again)`] : [])] });
         }
       }
       // the geysers filling and bursting, the world's hazard on its lanes, the shards and the fury, the last few marked
@@ -588,12 +610,13 @@ export function startFightTemple(ctx) {
       for (const w of [...wells, ...geysers]) { w.busy = false; w.m.visible = false; }
       pending = []; filling.length = 0;
       hz.clear();
+      kills.dispose();
       keepBlade();
       if (blade) blade.slashTones = null;
       movers.forEach((m) => m && physics?.removeCollider?.(m));
       for (const c of F.cuttables) setSee(c, 0);
       SEE_HOLE.value.set(0, -1e4, 0, SEE.radius);
-      if (blade) { blade.roll = null; blade.wide = null; }
+      if (blade) { blade.roll = null; blade.wide = null; blade.quick = null; }
       if (tool) { tool.lockOn = lockOn0; if (aimOwn) tool.updateAimPoint = aimPoint0; else delete tool.updateAimPoint; }
       if (rig) { delete rig.yaw; if (yawWas) Object.defineProperty(rig, 'yaw', yawWas); else rig.yaw = yaw0; }
       globalThis.document?.body?.classList.remove('fight-iso');

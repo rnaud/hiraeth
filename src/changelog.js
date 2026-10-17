@@ -20,6 +20,14 @@ export const CHANGELOG = [
         { where: 'the Desert', before: 53.1, after: 44.1 },
         { where: 'the City-Shaft', before: 50.9, after: 41.9 },
       ], source: 'docs/systems/performance.md, "The Xbox\'s load, round three"' }] },
+    // issue #442: src/fight-temples/rules.js rollInput / rollKey, index.js (the card), session.js; src/fluid-blade.js
+    // QUICK_CUT, quickSwing, rollCancels, ROLL.buffer; src/fight-temples/kill-fx.js, src/audio.js foeKill; hazards.js
+    // LINGERING; tests/fight-feel.test.js; docs/design/fight-temples.md "The roll, the quick cut and readable kills"
+    'In the fight temples the roll is on the button printed B on every controller: B / ○ on Xbox and PlayStation pads, and the bottom button on a pad or handheld with Nintendo letters, like the Retroid, where the button printed A used to roll. A does nothing in there.',
+    'In the fight temples the sword is about a third quicker: each cut of the combo draws back and follows through faster, the three cuts taking 1.2 s instead of 1.7 s, and the pause after the third is shorter.',
+    'In the fight temples a roll cuts a swing off: pressed while the sword is drawn back or following through, you roll at once. Pressed during the cut itself, the cut lands and the roll comes the moment it ends.',
+    'Foes felled in the fight temples are easy to see from up there: the blow throws the body back about a metre and it goes down quicker, a ring flashes on the floor, ink splashes out with a wet thump, and a star of ink stays where it fell for a few seconds before it dries away. When many fall at once each leaves its stain, but only a few ring and splash.',
+    'A roll takes you through every hazard of the fight temples unharmed: gusts, millstones, ore carts, falling loads, the eyes’ flash and the toll as well as slag, oil, broken glass, the dark and the shade. Rolling across burning ground no longer flashes as a perfect dodge.',
   ] },
   { v: '1.83', date: '2026-10-16', items: [
     // issue #406: src/temples/desert.js (ROOMS, LOGIC: hall, balcony, ballK, kS, dE, sentry in the hall, d3), pieces.js Ball

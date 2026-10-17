@@ -111,7 +111,32 @@ export const EVADE = { duration: 0.28, cooldown: 0.65, speed: 7.5, iframes: [0.0
  * of one to the next. FluidBlade.roll set to it turns the evade into it; null (everywhere else) the evade as it is.
  * The pose: src/jump.js ROLL (a ground flip about the hips, as long as this).
  */
-export const ROLL = { duration: 0.42, cooldown: 0.75, speed: 9.5, iframes: [0.02, 0.34], gentle: [0.02, 0.4], rest: 0.3 };
+export const ROLL = { duration: 0.42, cooldown: 0.75, speed: 9.5, iframes: [0.02, 0.34], gentle: [0.02, 0.4], rest: 0.3, buffer: 0.2 };
+/**
+ * The roll cuts a swing off (issue #442: "the roll should cancel the sword attack to be faster to react"): with the
+ * roll set, a press during a swing's wind-up or its follow-through (or a charge) rolls at once, the swing dropped
+ * (the evade elsewhere: only from the follow-through). Not through its active frames (the cut's ~0.12 s): the cut you
+ * committed to lands, and the press is kept `ROLL.buffer` s, so the roll comes the frame they end. (Fairness: the
+ * wind-up stays a choice you can take back when a foe's tell starts; the hit itself is never free of commitment.)
+ */
+export const rollCancels = (phase, charging = false) => !phase || phase === 'wind' || phase === 'recover' || !!charging;
+/**
+ * The quick cut (the fight temples, issue #442: "the sword swings should be faster"): the combo's wind-ups, cuts and
+ * follow-throughs shortened by these shares there, and the rest after the third (BLADE.cooldown) too; the clips play
+ * through the same frames, faster. Only in there: the crowds of one- and two-cut foes want a quick blade, while the
+ * world's fights (guardians, parries, the charged cut's timing) are tuned to the combo as it is (v1.41).
+ * FluidBlade.quick set to it; null elsewhere.
+ */
+export const QUICK_CUT = { wind: 0.65, active: 0.9, recover: 0.55, cooldown: 0.6 };
+const _quick = new WeakMap();
+/** A combo swing under the quick cut `Q` (the same swing with shorter phases; memoised), or the swing itself with none. */
+export function quickSwing(S, Q) {
+  if (!Q || !S) return S;
+  let m = _quick.get(Q); if (!m) _quick.set(Q, (m = new Map()));
+  let out = m.get(S);
+  if (!out) m.set(S, (out = { ...S, wind: S.wind * Q.wind, active: S.active * Q.active, recover: S.recover * Q.recover }));
+  return out;
+}
 /**
  * The generous cut (the fight temples, issues #365, #368): the swing takes every foe a crescent round him reaches, not
  * only those the sword passes through, and the crescent is drawn (src/slash-arc.js): a sweep of the sword's water laid
@@ -480,7 +505,7 @@ export class FluidBlade {
     // its i-frames: how long it has run, whether it was given them, the rest before the next can be, a blow swallowed
     this.evadeAge = Infinity; this.evadeGranted = false; this.iframeRest = 0; this.dodged = false; this.gentle = false;
     // the dodge roll (ROLL: the evade made a roll; the fight temples set it) and the generous cut (WIDE_CUT); the evade under way's spec
-    this.roll = null; this.wide = null; this.evadeSpec = EVADE;
+    this.roll = null; this.wide = null; this.quick = null; this.rollWant = 0; this.evadeSpec = EVADE;
     // (the generous cut's crescent: its state, the hits' and the drawing's both, src/slash-arc.js; its tones, null: the sword's water)
     this.slash = null; this.arc = null; this.slashTones = null;
     // the locked-on hops' own dodge frames (hop(): the back flip, the side hop; src/jump.js HOP): how long it has run, its window
@@ -628,8 +653,14 @@ export class FluidBlade {
     if (!held) this.perfectReady = false;
     this.guardHeld = held;
     const dodgePress = evade && !this.evadeHeld; this.evadeHeld = evade;
-    if (ok && dodgePress && !this.evadeT && !this.evadeCool && p?.onGround && (!this.swinging || this.phase === 'recover' || this.charging)) {
+    // (out of a swing: the evade from its follow-through; the roll from its wind-up too, and pressed through the cut
+    // itself it is kept a moment and rolls as the cut ends: rollCancels, issue #442)
+    const outOfSwing = !this.swinging || (this.roll ? rollCancels(this.phase, this.charging) : this.phase === 'recover' || this.charging);
+    this.rollWant = Math.max(0, this.rollWant - dt);
+    if (this.roll && dodgePress && !outOfSwing) this.rollWant = this.roll.buffer ?? 0;
+    if (ok && (dodgePress || this.rollWant > 0) && !this.evadeT && !this.evadeCool && p?.onGround && outOfSwing) {
       const E = this.evadeSpec = this.roll ?? EVADE;
+      this.rollWant = 0;
       this.stop(); this.evadeT = E.duration; this.evadeCool = E.cooldown;
       this.evadeAge = 0; this.evadeGranted = this.iframeRest === 0; this.dodged = false;
       if (p._moveDir?.lengthSq() > 0.01) this.evadeDir.copy(p._moveDir);
@@ -725,7 +756,7 @@ export class FluidBlade {
       } else if (this.t * this.dur >= this.sample.wind && previousTime < this.sample.wind + this.sample.active) this.strike();
       if (this.t >= 1) {
         this.last = this.n; this.n = -1; p.swingMove = null;
-        if (this.last === 2 || ENDS.has(this.special)) { this.cool = BLADE.cooldown * (flurryLeft() > 0 ? FLURRY.cool : 1); this.chainT = 0; }   // (a flurry's blows come quicker)
+        if (this.last === 2 || ENDS.has(this.special)) { this.cool = BLADE.cooldown * (flurryLeft() > 0 ? FLURRY.cool : 1) * (this.quick?.cooldown ?? 1); this.chainT = 0; }   // (a flurry's blows come quicker)
         else { this.chainT = BLADE.chain; if (this.queued) this.start(this.last + 1); }
         this.queued = false;
       }
@@ -842,7 +873,7 @@ export class FluidBlade {
     const airSpec = air ? AIR_COMBO.swings[airStep] ?? AIR : null;
     this.special = force ? force : air ? airSpec : !this.chained && n === 0 && (p.sprinting || closing) && hasUpgrade('lunge', T.state) ? LUNGE : n === 2 && hasUpgrade('whirl', T.state) ? WHIRL : null;
     if (airSpec === AIR) this.airUsed = true;
-    const S = this.special ?? SWINGS[n];
+    const S = this.special ?? quickSwing(SWINGS[n], this.quick);   // (the fight temples' quick cut: QUICK_CUT)
     this.move = S && A?.moveClip?.(S.clip) ? S : null;
     this.spec = S; this.sample = attackSample(S, 0); this.dur = this.sample.duration;
     // (the press answered at once: the grip and the fluid drawn back, the cut's whoosh at the end of the wind-up;

@@ -2554,6 +2554,18 @@ export class Sound {
     this.foeVoice(voiceOf(kind, sound).burst);
   }
 
+  /**
+   * A foe killed in a fight temple (src/fight-temples/kill-fx.js, issue #442): a wet thump of ink hitting the floor under
+   * the foe's own cry, heavier for a bigger body (k 0..1); short, so a crowd's kills don't smear.
+   */
+  foeKill(k = 1) {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime, v = this.vary(0.08);
+    this.sweep(t, 150 * v, 46, 0.16, 0.16 + 0.1 * k);
+    this.burst(t, { dur: 0.12, type: 'lowpass', freq: 520 * v, q: 0.9, vol: 0.16 + 0.08 * k, rate: 0.7 });
+    this.burst(t + 0.015, { dur: 0.09, type: 'bandpass', freq: 1300 * v, q: 1.6, vol: 0.07, rate: 0.9 });
+  }
+
   /** Push: a deep whump with a rush of spray. */
   fluidPush() {
     if (!this.ctx) return;

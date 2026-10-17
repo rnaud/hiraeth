@@ -50,6 +50,9 @@ export const HAZARD = {
   last: 0.75, gentle: 1.6,
 };
 
+/** The hazards that lie on the ground and tick (their harm's names): a roll through them is no perfect dodge. */
+export const LINGERING = new Set(['slag', 'crack', 'spill', 'dark', 'shade']);
+
 /** A lane's rectangle on the floor: the whole room along it, `w` wide across it. */
 export function laneRect(room, lane) {
   const h = lane.w / 2;
@@ -275,8 +278,10 @@ export function roomHazards(env) {
   });
   const rimsOf = (ri, lane) => channels.find((c) => c.ri === ri && c.lane === lane)?.rims ?? [];
 
+  // (a roll's i-frames take him through any of it, issue #442: a blow (a gust, a stone, a cart, a flash, a load, the toll)
+  // swallowed is a perfect dodge; lingering ground (slag, a pit, oil, the dark, the shade) crossed in a roll is only crossed)
   function hurtHim(kind, at, amount) {
-    if (player.dead || player.dodge?.(at, 'strike', gentle)) return false;
+    if (player.dead || player.dodge?.(at, LINGERING.has(kind) ? 'burn' : 'strike', gentle)) return false;
     player.hurt?.(amount * (gentle ? 0.5 : 1), kind);
     player.flinch?.();
     env.onHit?.(kind);

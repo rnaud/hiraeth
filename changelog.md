@@ -4,6 +4,11 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.84 — 2026-10-17
 
+- A roll takes you through every hazard of the fight temples unharmed: gusts, millstones, ore carts, falling loads, the eyes’ flash and the toll as well as slag, oil, broken glass, the dark and the shade. Rolling across burning ground no longer flashes as a perfect dodge.
+- Foes felled in the fight temples are easy to see from up there: the blow throws the body back about a metre and it goes down quicker, a ring flashes on the floor, ink splashes out with a wet thump, and a star of ink stays where it fell for a few seconds before it dries away. When many fall at once each leaves its stain, but only a few ring and splash.
+- In the fight temples a roll cuts a swing off: pressed while the sword is drawn back or following through, you roll at once. Pressed during the cut itself, the cut lands and the roll comes the moment it ends.
+- In the fight temples the sword is about a third quicker: each cut of the combo draws back and follows through faster, the three cuts taking 1.2 s instead of 1.7 s, and the pause after the third is shorter.
+- In the fight temples the roll is on the button printed B on every controller: B / ○ on Xbox and PlayStation pads, and the bottom button on a pad or handheld with Nintendo letters, like the Retroid, where the button printed A used to roll. A does nothing in there.
 - On the Xbox, the Unity preview reaches the world about 9 seconds sooner each time you start it after the first: 44 s to the Desert instead of 53, 42 s to the City-Shaft instead of 51.
 - Your ship’s little drone has a name now, Plumb, and its lines say so. In the opening you see it wake in its charging cradle by the hatch and come to your shoulder; you walk down the ramp, not run, and once outside Plumb says your best bet is the village on the horizon, where someone might help you both recharge, and flies off toward it. After that it speaks up only when you seem lost: where to go next, a word on what waits in a makers’ house after a long while on one step, or a guardian’s weak point as a fight drags on. Never two lines within the minute, and Hints off quiets it.
 

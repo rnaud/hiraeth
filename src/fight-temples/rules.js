@@ -291,3 +291,17 @@ export function chimesFor(f, rng = Math.random, first = true, L = LOOT) {
   return first ? n : Math.floor(n / 2) + (n % 2 && rng() < 0.5 ? 1 : 0);
 }
 export const pursesFor = (what, first = true, L = LOOT) => { const n = L[what] ?? 0; return first ? n : Math.ceil(n / 2); };
+
+/**
+ * The roll's button in here (issue #442: "the roll button should be B not A"): the face button printed B, wherever the
+ * pad has it. On Xbox and PlayStation pads that is the right one (B / ○, the evade's own: PadEvade); with Nintendo
+ * letters (the Retroid, a Switch pad) the bottom one, where the jump sits (PadJump), and the right one, printed A there,
+ * does nothing. Jumping is off in here (535f87f9a): Space and the pad's jump are cleared. `faces`: native-pad.js padFaces.
+ */
+export function rollInput(c, faces = 'xbox') {
+  if (faces === 'nintendo') c.PadEvade = !!c.PadJump;
+  c.Space = false; c.PadJump = false;
+  return c;
+}
+/** The roll's button as the cards and lines write it (Xbox / PlayStation form, by position: padText names it B either way). */
+export const rollKey = (faces = 'xbox') => (faces === 'nintendo' ? 'A / ×' : 'B / ○');
