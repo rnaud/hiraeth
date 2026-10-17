@@ -1117,8 +1117,15 @@ const BELFRY408 = 'Issue #408: the running game in muted headless Chrome (ANGLE 
 const BELFRY408P = 'Issue #408: the Temple maps page (temples.html?t=arzach2, Debug → Pages) in muted headless Chrome, 1600 × 1150, the plan with the solver’s steps; before: the tree at origin/main 73d26da88, after: this change; 16 October; cwebp -q 70';
 const BODIES402 = 'Issue #402: the character studio’s crowd lineup (studio.html?lineup=crowd&count=9&seed=1, turned a little toward the camera: full bodies in front, the GPU crowd figures behind) and its every-build lineup (lineup=mhbuilds, a grown man), muted headless Chrome against this branch’s own Vite (port 5432), before at 490123fd8 and after on the branch; cropped to the people, cwebp -q 72';
 const WISP398 = 'Issue #398: muted headless Chrome on this branch’s own dev server, Medium, 1280 × 720, the Arena with ?foe=wisp, locked on (Tab), the blade (F) pressed as the ball came within 3.4 m, then walked up to the stunned wisp and cut; four of the exchange’s frames tiled; 16 October; cwebp -q 72';
+/** (v1.83, issue #382: the Lens Vault, a first-person test game) */
+const LENS382 = 'Issue #382: the game’s page (?game=lens-vault&from=arcade) in muted headless Chrome (High, 1280 × 720) on this branch’s own Vite (port 5460), played by a script (keys through the debugging protocol, the eye turned by the session’s own look, his hearts kept full, rooms cleared by hand between the pictures: scratchpad fps-382 play.mjs); 17 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.83': [
+    { match: 'A new game in the Arcade, The Lens Vault', shots: [
+      { name: 'lens-vault-lock', only: 'after', title: 'The lock', caption: 'The Round Hall from his eyes: locked on the lamp tripod (LT / L2), its coral brackets, the arm of the fluid glove; the stick circles it', from: LENS382 },
+      { name: 'lens-vault-lens', only: 'after', title: 'The lens', caption: 'The lens up (Y / △): the teal wash, the eye-lock read, its line at the bottom left; the sealed door beyond it opens', from: LENS382 },
+      { name: 'lens-vault-charge', only: 'after', title: 'A charged shot', caption: 'The heavy door only a charged shot opens: the trigger held, let go, the gold burst, the Round Hall beyond', from: LENS382 },
+    ], see: 'Debug → Worlds → the Arcade, then the Lens Vault’s sign (or Debug → Games). Click to capture the mouse; LT / L2 locks on, Y / △ the lens, RT / R2 held charges.' },
     { match: 'The Rose House is built round a Great Hall now', shots: [
       { name: 'rose-hall', title: 'In at the door', caption: 'Just inside the Rose House: before, the Hall of the Flame and its ball; after, the Great Hall, the cistern’s door at its far end, the balcony up its west side', from: ROSE406 },
       { name: 'rose-plan', size: [1180, 1060], title: 'The plan', caption: 'The house from above with the solver’s steps: before, one line of rooms; after, the Great Hall in the middle, the west wing (the Flame, the Dry Channel) and the east wing (the Machines’ Hall, the Hall of Fires, the Guard’s Hall, the Hall of Channels) off it, the cistern past its north wall', from: ROSE406P },

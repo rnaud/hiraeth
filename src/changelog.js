@@ -33,6 +33,9 @@ export const CHANGELOG = [
     // returnBall / ballStrikes, src/enemies/archetypes.js `wisp`, src/enemies/plans/ember.js (a stand-in body);
     // tests/fireball.test.js, tests/engine-fireball.test.js; docs/design/fireball-foe.md
     'A new foe, the ember wisp: a dark shell round a glowing coal that floats out of your reach and throws slow balls of fire at you. Watch its shell open and its coal swell, then cut the ball just as it reaches you: it flies back and knocks the wisp out of the air, stunned and low enough to cut. A perfect parry sends it back too. You meet them over the Moon Foundry’s furnaces, as marsh lights in Lorn’s deep wood, in the city during the eclipse, in the Pour Floor and in the Arena. Its body is a first sketch until its drawing is chosen.',
+    // issue #382: src/minigames/lens-vault.js (and -rules, -level, -arm, -hud), the screen's `visor` part (unity
+    // BridgeHud.Games.cs DrawVisor); tests/minigames-lens-vault.test.js
+    'A new game in the Arcade, The Lens Vault: a test of another way to play, through your own eyes. Your glove is an arm that shoots (hold the trigger for a charged shot), LT / L2 locks on and the stick circles the foe, and Y / △ raises a lens that reads what it is held on, a line about each. Four rooms of a makers’ vault: a door that opens to a shot, one only to a charged shot, one sealed until you read its lock, and a round hall to clear at the end.',
   ] },
   { v: '1.82', date: '2026-10-16', items: [
     // issue #399: src/hook-foes.js (each kind's `hook` class, hookOutcome, lockShot), src/gadgets/hook.js fireAtLock /

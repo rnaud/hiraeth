@@ -578,7 +578,7 @@ yet had (`travel:refused`) starts the quest that leads to it. The bridge's `-set
 before the world is built (`-level edena -set-flags desert.bike.found -walk 1.5 -out …`: the bike by the ramp, as on
 the web). Test: tests/engine-finishable.test.js.
 
-**The games' own panels** (issue #264). Four games draw part of their picture on a canvas or a panel of their own
+**The games' own panels** (issue #264). Five games draw part of their picture on a canvas or a panel of their own
 on the page; each publishes it as a screen part (src/platform.js) that BridgeHud.Games.cs draws with a few uGUI boxes
 and one Sketch mesh, laid out as the page's CSS and canvas calls are, never a full-screen raster:
 - `drums` (src/minigames/drums.js `drumsPart`): the lanes, the glyphs near (index, time, lane, missed), the approach,
@@ -597,6 +597,10 @@ and one Sketch mesh, laid out as the page's CSS and canvas calls are, never a fu
   marks), the lock, the missile's pip, the captain's bar, the hull's pips and their burst, the hit's flare, and the
   comms line (`DrawPirates`, the flare a radial texture under it). The hint row's missiles are coloured bars in its
   rich text (the runner's `hintNote(html, text)`).
+- `visor` (lens-vault-hud.js `visorPart`, CSS px of its W × H; issue #382): the Lens Vault's first-person visor: the
+  rim's brackets, the hearts and the ARM / LENS tab, the reticle with the charge's and the reading's rings, the lock, the
+  lens's marks and its reading's card, the hurt's flare (`DrawVisor`: the pirates' radial texture tinted teal for the
+  lens's wash and red for a hurt). Its arm and bolts are meshes in the world, carried as any.
 
 In an engine the page's canvases for these are not drawn at all (engine/platform.js `hudIsData`, src/platform.js
 `page.drawsHud`): the drum circle's full-screen canvas drawn into bytes each frame had left the Unity preview's camp
