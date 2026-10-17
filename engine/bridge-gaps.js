@@ -232,7 +232,6 @@ export const GAPS = {
     { keys: ['import:src/motion-match.js#loadMotionLibrary', 'import:src/motion-match.js#matchingSetting', 'import:src/loco-moves.js#movesSetting'], what: 'the traveller\'s motion matching and captured moves', status: 'gap', issue: 427, visible: 2,
       note: 'left out of the engines so far (engine/game.js: only the talk gestures are loaded)' },
     { keys: ['import:src/ambush.js#ambushDue', 'import:src/ambush.js#ambushHref', 'import:src/ambush.js#ambushKey', 'import:src/ambush.js#transitLinks'], what: 'the ambushes on a flight to a new world', status: 'gap', issue: 427, visible: 2 },
-    { keys: ['import:src/chemistry.js#Chemistry'], what: 'the world\'s chemistry (what burns, melts, grows)', status: 'gap', issue: 427, visible: 2, note: 'to check' },
     { keys: ['import:src/wall-openings.js#wallOpenings'], what: 'the walls\' openings, flushed once a world is up', status: 'gap', issue: 427, visible: 1, note: 'to check' },
     { keys: ['import:src/interior-kit.js#interiorAt', 'fn:inOffMapRoom'], what: 'which room the traveller is in (the map, the rooms\' culling)', status: 'gap', issue: 427, visible: 1, note: 'to check' },
     { keys: ['import:src/fragment-shop.js#fragmentPurse', 'fn:fragmentsLine'], what: 'the fragments\' purse line', status: 'gap', issue: 427, visible: 1, note: 'to check' },
@@ -249,6 +248,7 @@ export const GAPS = {
     { keys: ['shared:wireKit'], what: 'the sword and the shield only once found, the kit\'s chosen colours (backpack, sword, shield), won in the fight temples', status: 'handled', where: 'src/host/game-host.js wireKit (main.js armTool and applyKitColours before)' },
     { keys: ['shared:wireDangers'], what: 'the fires burning whoever walks into them, a world\'s deadly void (the dark below its edge)', status: 'handled', where: 'src/host/game-host.js wireDangers (main.js registerHazard(fireHazard) and worldVoid before); the void drawn by Hiraeth/PitVoid' },
     { keys: ['shared:wirePeople'], what: 'the errands, the people\'s faces while they talk, the hum when words on the screen mention it', status: 'handled', where: 'src/host/game-host.js wirePeople (main.js Errands, talkFaces, HumCue before)' },
+    { keys: ['shared:wireChemistry'], what: 'the world\'s chemistry (fire spreading on the wind, creatures fleeing it, foes catching it)', status: 'handled', where: 'src/host/game-host.js wireChemistry (main.js new Chemistry before)' },
     // handled by the engines' own
     { keys: ['import:src/hud.js#heartsSvg', 'import:src/hud.js#walletTick', 'import:src/hud.js#KEY_SVG', 'import:src/hud.js#GREAT_KEY_SVG', 'fn:updateStamina', 'fn:restartNow', 'fn:showToast',
       'import:src/story/charge.js#chargeHud', 'import:src/story/charge.js#showChargeCard', 'import:src/story/charge.js#GIVEN', 'import:src/story/charge.js#CARD', 'import:src/passage.js#PassageCover', 'import:src/flurry.js#FlurryFx'],

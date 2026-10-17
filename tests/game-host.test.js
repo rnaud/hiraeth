@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { readFileSync } from 'node:fs';
-import { wireKit, wireDangers, wirePeople } from '../src/host/game-host.js';
+import { wireKit, wireDangers, wirePeople, wireChemistry } from '../src/host/game-host.js';
 import { ERRANDS } from '../src/levels/content.js';
 import { hazardCount } from '../src/hazards.js';
 import * as THREE from 'three';
@@ -91,9 +91,16 @@ test('the people: an errand\'s giver and taker watched, the hum on words that sp
   p.talk(1 / 60, null, camera);
 });
 
+test('the chemistry: on the traveller\'s wind, with what burns, the creatures and the tool the host made', () => {
+  const player = { wind: new THREE.Vector3(1, 0, 0) };
+  const c = wireChemistry({ flammables: null, wildlife: null, tool: null, game: null, player });
+  assert.equal(c.wind, player.wind);
+  c.update(1 / 60, new THREE.Vector3());
+});
+
 test('both hosts call the same groups (src/host/game-host.js), and engine/game.js no longer arms the tool its own way', () => {
   const main = readFileSync('src/main.js', 'utf8'), engine = readFileSync('engine/game.js', 'utf8');
-  for (const g of ['wireKit', 'wireDangers', 'wirePeople']) {
+  for (const g of ['wireKit', 'wireDangers', 'wirePeople', 'wireChemistry']) {
     assert.match(main, new RegExp(`\\b${g}\\(`), `main.js calls ${g}`);
     assert.match(engine, new RegExp(`\\b${g}\\(`), `engine/game.js calls ${g}`);
   }
@@ -113,6 +120,7 @@ test('in the engines\' build: the sword hangs on him only once found and wears t
   assert.equal(base, colourById('ember').water.base, 'the sword\'s water in the ember colours');
   // the desert's errands watched over its people (wirePeople: none in the engines before)
   assert.ok(g.folk?.errands?.watch?.length >= 1, 'the desert\'s errands');
+  assert.ok(g.chemistry, 'the chemistry (wireChemistry: the engines\' brambles burnt alone before)');
   // the world's void (the Underside's, under its kill height) in the veils the engine mirrors, drawn by the port's PitVoid
   ports.clear();
   const v = await quiet(() => B.createGame({ levelId: 'underside', backend, people: false, flags: { 'prologue.done': true } }));
