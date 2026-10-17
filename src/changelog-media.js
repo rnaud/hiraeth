@@ -1200,6 +1200,7 @@ export const CHANGELOG_MEDIA = {
     ], source: 'tests/wings-reach.js (the real traveller in node); docs/systems/gadgets.md, “The wings in the makers’ houses”' }],
       see: 'In the Founders’ Belfry, run at the Hall of Echoes’ chasm before its bridge, jump, double jump and keep A / × held: the wings open with a low flap and you come down into the chasm. Outside, by its door, the same glide carries you some 45 m.' },
     { match: 'In the Unity version, the camera and the world round you behave as on the web too', see: 'In the Unity version, ride a cab in the City-Shaft and turn the camera into its side.' },
+    { match: 'In the Unity version, the camera and the world round you behave as on the web too', see: 'In the Unity version, ride a cab in the City-Shaft and turn the camera into its side. Ride the hoverbike in Viridel; fly on the jets in the City-Shaft.' },
   ],
   '1.83': [
     { match: 'A new game in the Arcade, The Lens Vault', shots: [

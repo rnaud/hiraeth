@@ -40,7 +40,7 @@ import { LEVELS, levelById } from './levels/index.js';
 import { partsOf, shiftAt } from './levels/names.js';
 import { fastTravel } from './fast-travel.js';
 import { fragmentPurse } from './fragment-shop.js';
-import { Player, CameraRig, jetCameraPitch, WIDE } from './player.js';
+import { Player, CameraRig } from './player.js';
 import { applyTimeOfDay, colourScript } from './timeofday.js';
 import { applyEclipse } from './eclipse.js';
 import { WindStreaks } from './wind.js';
@@ -146,7 +146,7 @@ import { queueHost, takeHosts } from './minigames/kit/hosts.js';
 import { MinigameRunner } from './minigames/kit/runner.js';
 import { levelMetaFor } from './minigames/kit/world.js';
 import { lendTool } from './minigames/kit/onfoot.js';
-import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip, wireCompanion, wireCamera, wireHero, heroCutFrame } from './host/game-host.js';
+import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip, wireCompanion, wireCamera, wireHero, heroCutFrame, cameraFollow } from './host/game-host.js';
 import { arcadeLinks } from './minigames/kit/arcade.js';
 import { ambushDue, ambushHref, ambushKey, transitLinks } from './ambush.js';
 import { talkAllowed } from './ship/landing.js';
@@ -634,7 +634,6 @@ if (footprints) player.onStep = (p, heading, up) => footprints.add(p, heading, u
 // local lights: the 8 nearest to the player go to the shader each frame
 const levelLights = level.lights ?? (level.lights = []);
 const jetLight = new THREE.Vector4();
-const jetShotK = { pitch: 0, keepTight: true, yawRate: 4 };   // (the follow camera behind the jets' nose: rig.follow's shot)
 function updateLights() {
   const L = sharedUniforms.uLights.value;
   const p = player.pos;
@@ -667,6 +666,7 @@ const rig = new CameraRig(camera, renderer.domElement, cam.physics);
 rig.yaw = level.camYaw;
 rig.pitch = level.camPitch ?? rig.pitch;
 rig.constrain = cam.constrain;   // (the level's bounds, and out of the cabs: src/carriers.js)
+const follow = cameraFollow({ rig, player });   // (the follow shot each frame: the engines' too)
 await slice();
 
 // ------------------------------------------------------------------ sound, weather, people, story
@@ -2256,14 +2256,7 @@ function frame(ts) {
     // (locked on, the stick strafes round the foe from the lock's own line, not the camera's turn off it for room: LOCK_ROOM)
     // (walked through a doorway: the door's way and pace, the stick read only to skip the steps in off it: src/door-walk.js)
     player.update(pdt, doorWalk.input(busy() ? noInput : benches.inputFor(ctl), pdt, rig.yaw), rig.yaw - (rig.locked ? rig.lockOff : 0));
-    // (a wider arm for what needs to see ahead and below: gliding, the jets the more the faster; a little for climbing and swimming)
-    const jets = player.onJets, jetSpeed = jets ? player.vel.length() : 0;
-    const wide = player.riding ? null : player.gliding ? WIDE.glide : jets || player.jetHold ? WIDE.jets + Math.min(jetSpeed, 30) * WIDE.jetsPerMs : player.climbing ? WIDE.climb : player.swim ? WIDE.swim : 0;
-    // flying on the jets the camera comes round behind the nose and tips with it, as a ride's does (the right stick or the mouse take it for a moment)
-    const jetShot = jets ? (jetShotK.pitch = jetCameraPitch(player.jetFlight.pitch), jetShotK) : null;
-    rig.follow(player.ride?.heading ?? player.heading, pdt, player.riding || player.gliding || jets, player.ride?.shot ?? jetShot, wide);
-    rig.down = !!player.down;   // knocked down: the camera follows the body on the ground, lower and softer
-    rig.air = !player.onGround && !player.climbing && !player.swim && !player.riding;   // a hop close in: the view rises with it softly (CameraRig.update)
+    follow(pdt);   // (a ride's shot, behind the jets, the wide arm, down, a hop: src/host/game-host.js cameraFollow)
     rig.update(player.pos, pdt, player.frame);
     storyRt.frameCamera(camera);   // the two-shot while talking
     benches.frameCamera(camera);   // sat on a bench: behind and above him, looking out (after the rig)

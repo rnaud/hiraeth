@@ -1931,6 +1931,9 @@ Round 2 (the mechanical groups):
   out of them (src/carriers.js; the engines' camera went through them), the traveller's own surfaces marked his with
   the gear hung on him later (keepHero), and the lens inside him cutting him out of the view (the shared uHeroCut,
   set in the engines too; Unity draws the cut once its port reads it, #264).
+- `cameraFollow`: the follow shot each frame: a ride's own (the bike's, the bird's), behind the jets' nose and tipped with
+  it, the wide arm (gliding, the jets by speed, climbing, swimming), low when knocked down, rising in a hop. The
+  engines followed his heading alone.
 
 Checked in Unity (the editor's batch run, `-fresh -no-hud`, against main's bundle for the before and the web's
 pictures of the same views): the kit's colours at the desert's ramp foot (`-set-flags` now takes `key=value`:

@@ -237,7 +237,6 @@ export const GAPS = {
     { keys: ['import:src/fragment-shop.js#fragmentPurse', 'fn:fragmentsLine'], what: 'the fragments\' purse line', status: 'gap', issue: 427, visible: 1, note: 'to check' },
     { keys: ['import:src/hud.js#magicHud'], what: 'the magic bar', status: 'gap', issue: 427, visible: 1, note: 'to check: the health part carries magic' },
     { keys: ['import:src/minigames/kit/arcade.js#arcadeLinks'], what: 'a game reached from the Arcade going back to it, its cards\' previous and next', status: 'gap', issue: 427, visible: 1 },
-    { keys: ['import:src/player.js#jetCameraPitch', 'import:src/player.js#WIDE'], what: 'the camera\'s pitch behind the jets, the wide lens', status: 'gap', issue: 427, visible: 1, note: 'to check' },
     { keys: ['import:src/weather.js#WEATHER_KINDS'], what: 'the weather\'s kinds (main.js\'s dev toggles)', status: 'handled', where: 'engine/game.js runs Weather itself; the list is for the page\'s toggles' },
     { keys: ['fn:potionGlow', 'fn:potionHint'], what: 'the potion\'s glow and hint', status: 'gap', issue: 427, visible: 1, note: 'to check' },
     { keys: ['fn:pingWhenFree'], what: 'a nudge\'s ping once the notices and the talk are done (the page\'s timing of pings)', status: 'gap', issue: 427, visible: 1, note: 'to check' },
@@ -253,6 +252,7 @@ export const GAPS = {
     { keys: ['shared:wireLessons'], what: 'what the save\'s events say and start: a gadget found and its line, a keepsake\'s theme, the trials\' upgrades, Plumb\'s clock and notes', status: 'handled', where: 'src/host/game-host.js wireLessons (both hosts\' own copies before)' },
     { keys: ['shared:wireCompanion'], what: 'Plumb each frame: its escort out of the prologue, the first person near, its hints when you look lost (where to go, a makers\' house\'s step, a guardian\'s weak point), its first word (issue #434)', status: 'handled', where: 'src/host/game-host.js wireCompanion (both hosts\' updatePlumb before)' },
     { keys: ['shared:wireCamera', 'shared:wireHero', 'shared:heroCutFrame'], what: 'the camera kept out of the cabs and carriers; the traveller\'s own surfaces (the gear hung on him later too); the lens inside him leaving him out of the view', status: 'handled', where: 'src/host/game-host.js wireCamera, wireHero, heroCutFrame (main.js before); the shared uHeroCut is set in the engines too, its cut drawn once the port reads it (#264)' },
+    { keys: ['shared:cameraFollow'], what: 'the follow camera\'s shot: a ride\'s own, behind the jets\' nose and tipped with it, the wide arm, low when knocked down, rising in a hop', status: 'handled', where: 'src/host/game-host.js cameraFollow (main.js before; the engines followed his heading alone)' },
     { keys: ['shared:wireShip'], what: 'the ship\'s place for quests, the scout and the Map\'s "Your ship" mark', status: 'handled', where: 'src/host/game-host.js wireShip (main.js level.ship before; the engines had none)' },
     // handled by the engines' own
     { keys: ['import:src/hud.js#heartsSvg', 'import:src/hud.js#walletTick', 'import:src/hud.js#KEY_SVG', 'import:src/hud.js#GREAT_KEY_SVG', 'fn:updateStamina', 'fn:restartNow', 'fn:showToast',

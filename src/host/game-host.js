@@ -15,6 +15,7 @@
 //   wireLessons({ game, items, gadgets, sound, plumb, … }) what the save's events say and start (a gadget's line, Plumb)
 //   wireCompanion({ game, plumb, scout, level, … })        Plumb each frame: its escort, its hints, its first word (#434)
 //   wireCamera, wireHero, heroCutFrame                     the camera kept out of the cabs, the traveller's own surfaces
+//   cameraFollow({ rig, player })                          the follow shot: a ride's, behind the jets, the wide arm
 //
 // tests/game-host.test.js holds each group to both hosts; scripts/bridge-gaps.mjs reports a group main.js calls and
 // engine/game.js doesn't as a host gap (engine/bridge-gaps.js `shared:`).
@@ -39,7 +40,7 @@ import { ESCORT } from '../scout.js';
 import { guardianHint } from '../temples/hints.js';
 import { cameraPhysics, keepLensOut } from '../carriers.js';
 import { keepHero, markHero, sharedUniforms } from '../materials.js';
-import { heroCut } from '../player.js';
+import { heroCut, jetCameraPitch, WIDE } from '../player.js';
 
 // ------------------------------------------------------------------ the kit
 /**
@@ -269,4 +270,22 @@ export function wireHero({ player }) {
 export function heroCutFrame({ camera, player, off = false }) {
   const U = sharedUniforms.uHeroCut;
   U.value = !off && heroCut(U.value > 0.5, camera.position, player.pos, player.frame?.up) ? 1 : 0;
+}
+
+/**
+ * The follow camera's shot each frame, before rig.update: a ride's own shot (the bike's, the bird's); on the jets, round
+ * behind the nose and tipped with it (jetCameraPitch); a wider arm for what needs to see ahead and below (gliding, the
+ * jets the more the faster, a little climbing and swimming: WIDE); knocked down, low and soft; off the ground in a
+ * hop, the view rising with it. → follow(dt) for the frame.
+ */
+export function cameraFollow({ rig, player }) {
+  const jetShot = { pitch: 0, keepTight: true, yawRate: 4 };   // (behind the jets' nose: rig.follow's shot)
+  return (dt) => {
+    const jets = player.onJets, jetSpeed = jets ? player.vel.length() : 0;
+    const wide = player.riding ? null : player.gliding ? WIDE.glide : jets || player.jetHold ? WIDE.jets + Math.min(jetSpeed, 30) * WIDE.jetsPerMs : player.climbing ? WIDE.climb : player.swim ? WIDE.swim : 0;
+    const shot = jets ? (jetShot.pitch = jetCameraPitch(player.jetFlight.pitch), jetShot) : null;
+    rig.follow(player.ride?.heading ?? player.heading, dt, player.riding || player.gliding || jets, player.ride?.shot ?? shot, wide);
+    rig.down = !!player.down;
+    rig.air = !player.onGround && !player.climbing && !player.swim && !player.riding;
+  };
 }

@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { readFileSync } from 'node:fs';
-import { wireKit, wireDangers, wirePeople, wireChemistry, wireVehicles, wireLessons, wireCompanion, wireCamera, heroCutFrame } from '../src/host/game-host.js';
+import { wireKit, wireDangers, wirePeople, wireChemistry, wireVehicles, wireLessons, wireCompanion, wireCamera, heroCutFrame, cameraFollow } from '../src/host/game-host.js';
 import { ERRANDS } from '../src/levels/content.js';
 import { hazardCount } from '../src/hazards.js';
 import * as THREE from 'three';
@@ -152,9 +152,29 @@ test('the camera: the level\'s bounds and the cabs kept out of the lens; the len
   assert.equal(sharedUniforms.uHeroCut.value, 0, 'not in a scene');
 });
 
+test('the follow camera: a ride\'s own shot, behind the jets\' nose, the wide arm, a hop', () => {
+  const calls = [];
+  const rig = { follow: (...a) => calls.push(a) };
+  const player = { heading: 1, vel: new THREE.Vector3(0, 0, 20), onGround: false, riding: false, gliding: false, onJets: true, jetFlight: { pitch: 0.2 } };
+  const follow = cameraFollow({ rig, player });
+  follow(1 / 60);
+  const [h, , behind, shot, wide] = calls[0];
+  assert.equal(h, 1);
+  assert.equal(behind, true, 'round behind on the jets');
+  assert.ok(shot?.keepTight && Number.isFinite(shot.pitch), 'the jets\' shot');
+  assert.ok(wide > 0, 'the wide arm');
+  assert.equal(rig.air, true, 'off the ground');
+  const rideShot = { pitch: 0.3 };
+  Object.assign(player, { onJets: false, riding: true, ride: { heading: 2, shot: rideShot }, onGround: true });
+  follow(1 / 60);
+  assert.equal(calls[1][0], 2, 'the ride\'s heading');
+  assert.equal(calls[1][3], rideShot, 'the ride\'s own shot');
+  assert.equal(calls[1][4], null);
+});
+
 test('both hosts call the same groups (src/host/game-host.js), and engine/game.js no longer arms the tool its own way', () => {
   const main = readFileSync('src/main.js', 'utf8'), engine = readFileSync('engine/game.js', 'utf8');
-  for (const g of ['wireKit', 'wireDangers', 'wirePeople', 'wireChemistry', 'wireMount', 'wireVehicles', 'wireLessons', 'wireShip', 'wireCamera', 'wireHero', 'heroCutFrame']) {
+  for (const g of ['wireKit', 'wireDangers', 'wirePeople', 'wireChemistry', 'wireMount', 'wireVehicles', 'wireLessons', 'wireShip', 'wireCamera', 'wireHero', 'heroCutFrame', 'cameraFollow']) {
     assert.match(main, new RegExp(`\\b${g}\\(`), `main.js calls ${g}`);
     assert.match(engine, new RegExp(`\\b${g}\\(`), `engine/game.js calls ${g}`);
   }

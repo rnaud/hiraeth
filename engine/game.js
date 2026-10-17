@@ -153,7 +153,7 @@ import { DevMenu } from '../src/dev-menu.js';
 import { gatherPoints, questList, applyQuestJump, landingSpot, godLanding } from '../src/world-debug.js';
 import { GAMES } from '../src/minigames/index.js';
 import { DEBUG_SLOT } from '../src/save-slots.js';
-import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip, wireCompanion, wireCamera, wireHero, heroCutFrame } from '../src/host/game-host.js';
+import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip, wireCompanion, wireCamera, wireHero, heroCutFrame, cameraFollow } from '../src/host/game-host.js';
 
 export { page };
 export { readHref } from './trials.js';   // (the tests: a game page's address)
@@ -675,6 +675,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   rig.yaw = level.camYaw ?? (player.heading + Math.PI);
   rig.pitch = level.camPitch ?? rig.pitch;
   rig.constrain = cam.constrain;
+  // (the follow shot each frame as the page: a ride's own, behind the jets' nose, the wide arm gliding; the engines
+  // followed his heading alone before, #427)
+  const follow = cameraFollow({ rig, player });
   if (tool) tool.rig = rig;
 
   // the look: the preset and the hour, as main.js applies them
@@ -1588,8 +1591,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         if (camera.fov !== pinned.fov) { camera.fov = pinned.fov; camera.updateProjectionMatrix(); }
         player.object.visible = !pinned.hidePlayer;
       } else if (!drives) {
-        rig.follow(player.ride?.heading ?? player.heading, pdt, player.riding || player.gliding);
-        rig.down = !!player.down;
+        follow(pdt);   // (a ride's own shot, behind the jets, the wide arm, a hop: cameraFollow, as the page)
         rig.update(player.pos, pdt, player.frame);
         story?.frameCamera?.(camera);   // the two-shot while talking
         // locked on: the camera keeps the foe ahead, a guardian framed with him; then a blow's jolt (main.js renderFrame)
