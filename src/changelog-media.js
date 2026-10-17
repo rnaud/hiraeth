@@ -1115,6 +1115,7 @@ const UI430 = 'Issue #430: the Unity bridge in the editor’s batch run on this 
 /** (v1.83, issue #408: the Founders' Belfry round its Great Belfry, the bell the house's state) */
 const BELFRY408 = 'Issue #408: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, 11:00, the HUD hidden) on this branch’s own Vite (port 5485), the camera pinned in the temple’s own metres; before: the tree at origin/main 73d26da88 (port 5481), the Stone Stair from its way in; 16 October; cwebp -q 70';
 const BELFRY408P = 'Issue #408: the Temple maps page (temples.html?t=arzach2, Debug → Pages) in muted headless Chrome, 1600 × 1150, the plan with the solver’s steps; before: the tree at origin/main 73d26da88, after: this change; 16 October; cwebp -q 70';
+const BODIES402 = 'Issue #402: the character studio’s crowd lineup (studio.html?lineup=crowd&count=9&seed=1, turned a little toward the camera: full bodies in front, the GPU crowd figures behind) and its every-build lineup (lineup=mhbuilds, a grown man), muted headless Chrome against this branch’s own Vite (port 5432), before at 490123fd8 and after on the branch; cropped to the people, cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.83': [
     { match: 'The Rose House is built round a Great Hall now', shots: [
@@ -1158,6 +1159,11 @@ export const CHANGELOG_MEDIA = {
       { name: 'hush-lullaby', only: 'after', title: 'The lullaby', caption: 'The four notes rung low to high: her head sinks, her crown aglow, and you lay a hand on it', from: HUSH409M },
       { name: 'hush-plan', size: [552, 870], title: 'The plan', caption: 'The Temple maps page (temples.html?t=perdide), all floors: before, the Nursery’s fight off the gallery and the Mother past it; after, no fight, the great hall the hub, the Mother off its east wall', from: HUSH409P },
     ], see: 'In Lorn, go into the Hush-House: the Choir is the great hall. The sill is on the gallery by the great key; the Mother’s door is in the Choir’s east wall. Near her, walk, never run.' },
+    { match: 'People come in more shapes and sizes', tags: ['characters'], shots: [
+      { name: 'bodies-bazaar', title: 'The Signal Market’s crowd', caption: 'Before, one lean figure in different clothes; after, a round woman in cream, stout men and women, a slim one, and more different heights', from: BODIES402 },
+      { name: 'bodies-desert', title: 'The desert’s pilgrims', caption: 'The desert runs lean: thinner arms and legs on most of them, a stout one here and there', from: BODIES402 },
+      { name: 'bodies-builds', title: 'Every build', caption: 'One man in each build. Before: slim, average, broad, heavy, hardly told apart. After: slender, slim, average, broad, stout, heavy', from: BODIES402 },
+    ], see: 'Walk through the Signal Market or the desert camps and look at the crowd, or open the character studio (title screen, Debug) with Lineup: MakeHuman every age and build.' },
   ],
   '1.82': [
     { match: 'Locked on, RT / R2 throws the grappling hook at your foe', tags: ['combat'], shots: [

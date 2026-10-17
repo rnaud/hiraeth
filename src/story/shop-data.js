@@ -87,7 +87,7 @@ export const SHOPKEEPERS = {
   brin: keeper({
     id: 'brin', shop: 'windshelf', name: 'Brin', title: 'keeper of the Wind-Shelf', color: '#dc9f52', voice: 1.04, kind: 'f',
     palette: { cloak: '#e8a07a', lining: '#c98a5a', cloth: '#e2b25e', legs: '#b07a5a', hat: '#e7b06a', accent: '#f3e6d0', hair: '#4a3328' },
-    head: 'headcloth', cape: 0, look: { head: 'headcloth', mask: 'scarfmask', body: 'scarf', robe: 0.12, build: 'slim', height: 1.1, mood: 'calm' },
+    head: 'headcloth', cape: 0, look: { head: 'headcloth', mask: 'scarfmask', body: 'scarf', robe: 0.12, build: 'slender', height: 1.1, mood: 'calm' },
     lines: ['~neutral~ Trade?', '~whisper~ Cures. Here.', '~happy~ Welcome.'],
     hello: ['~happy~ (She looks up from her tray of sand.) Trade?', '~neutral~ Cures. Hearts. Chimes. (She draws a flask in the sand, then a crystal beside it.)'],
     again: ['~happy~ Back.', '~neutral~ (She smooths the sand in her tray, ready to draw a price.)'],
@@ -115,7 +115,7 @@ export const SHOPKEEPERS = {
   nettle: keeper({
     id: 'nettle', shop: 'float', name: 'Nettle', title: 'keeper of the Float', color: '#6f8a4a', voice: 0.9, kind: 'f',
     palette: { cloak: '#6f8a4a', lining: '#4f6a3a', cloth: '#8a8a5a', legs: '#4a4a3a', hat: '#c9b07a', accent: '#c9b07a', hair: '#5a6a5a', skin: '#b9b48e' },
-    head: 'straw', cape: 1.3, look: { head: 'straw', body: 'reedcape', robe: 0.2, build: 'slim', height: 0.98, mood: 'amused' },
+    head: 'straw', cape: 1.3, look: { head: 'straw', body: 'reedcape', robe: 0.2, build: 'slender', height: 0.98, mood: 'amused' },
     lines: ['~whisper~ Hush now. The snappers are sleeping.', '~playful~ One knot for every cure sold.', '~neutral~ Mind the step. The float bobs.'],
     hello: ['~whisper~ Step soft, sky-child. The float bobs and the snappers listen. This is the only shop on the water.', '~playful~ Cures for bites. A heart now and then. A little more room in that tank, if you can pay in chimes. Every sale’s a knot on my cord.'],
     again: [{ if: { quest: 'perdide.crystal', done: true }, text: '~happy~ The Great Crystal sings again. My knots are counting faster.' }, '~happy~ Back on my float. Mind the hatch, it’s wet.'],
@@ -129,7 +129,7 @@ export const SHOPKEEPERS = {
   burdock: keeper({
     id: 'burdock', shop: 'welcome', name: 'Burdock', title: 'keeper of the Welcome-Shelf', color: '#3f4f86', voice: 0.92, kind: 'm',
     palette: { cloak: '#3f4f86', lining: '#2f3a66', cloth: '#4a5a92', legs: '#3a3a4a', hat: '#2f3a66', accent: '#34437a', hair: '#b08a5a' },
-    head: 'beanie', cape: 0, look: { head: 'beanie', body: 'collar', robe: 0.45, trim: 'diamonds', build: 'heavy', mood: 'curious' },
+    head: 'beanie', cape: 0, look: { head: 'beanie', body: 'collar', robe: 0.45, trim: 'diamonds', build: 'stout', mood: 'curious' },
     lines: ['~surprised~ A customer! A real one!', '~happy~ Everything dusted this morning. And yesterday.', '~playful~ An open corner and a short stroke. That’s the Welcome.'],
     hello: ['~surprised~ Oh! Oh, a customer! Thirty years I’ve kept this shelf stocked for travellers, and you’re the first. Hollin will be furious he missed it. Do come in, mind the rug.', '~happy~ Cures, all dusted. A heart in a glass jar, the only one I have. Chimes, please. I had to look up what to charge.'],
     again: [{ if: { quest: 'perdide2.lamps', done: true }, text: '~happy~ The lamps are lit all the way down the path. More travellers, Hollin says. Imagine!' }, '~happy~ You came back! Twice is a regular, you know.'],
@@ -170,7 +170,7 @@ export const SHOPKEEPERS = {
   odo: keeper({
     id: 'odo', shop: 'hatch', name: 'Odo', title: 'the Major’s quartermaster', color: '#5a76a6', voice: 0.8, kind: 'm',
     palette: { cloak: '#5a76a6', lining: '#46608a', cloth: '#5a76a6', legs: '#46608a', hat: '#46608a', accent: '#c9973e', hair: '#5a4a3a' },
-    head: 'peak', cape: 0, look: { head: 'peak', body: 'badge', trim: 'none', robe: 0, build: 'heavy', height: 0.97, mood: 'stern' },
+    head: 'peak', cape: 0, look: { head: 'peak', body: 'badge', trim: 'none', robe: 0, build: 'stout', height: 0.97, mood: 'stern' },
     lines: ['~neutral~ Requisition first. Then the goods.', '~solemn~ Signed by the Major. Stamped by me.', '~neutral~ Quartermaster’s hatch. State your needs.'],
     hello: ['~neutral~ Halt. Quartermaster’s hatch. Odo, quartermaster to Major Brask. Everything here is issued against a signed requisition.', '~solemn~ The Major signed a great many before he forgot why. Cures, a heart, stamped and issued. The chimes go in the strongbox. Regulations.'],
     again: [{ if: { quest: 'garage.signal', done: true }, text: '~surprised~ The Major remembered his own desk, they say. Then my requisitions are good for another forty years.' }, '~neutral~ You again. Good. Repeat customers keep the ledger tidy.'],
@@ -211,7 +211,7 @@ export const SHOPKEEPERS = {
   hale: keeper({
     id: 'hale', shop: 'listening', name: 'Hale', title: 'who listens to the cures', color: '#c9a24a', voice: 0.84, kind: 'm',
     palette: { cloak: '#efe6d2', lining: '#ddd2bc', cloth: '#f3ecdc', legs: '#cfc4ae', hat: '#e8e2d6', accent: '#c9a24a', hair: '#d8d2c6' },
-    head: 'crop', cape: 0, look: { head: 'crop', body: 'none', trim: 'none', robe: 0.06, build: 'slim', height: 1.03, mood: 'calm' },
+    head: 'crop', cape: 0, look: { head: 'crop', body: 'none', trim: 'none', robe: 0.06, build: 'slender', height: 1.03, mood: 'calm' },
     lines: ['~whisper~ Listen. That one hums true.', '~neutral~ Every cure here has been listened to.', '~whisper~ The spheres are quiet today.'],
     hello: ['~whisper~ Softly, if you would. I am listening. You may listen too; it costs nothing.', '~neutral~ Every cure here has been struck and heard. A heart that beats in tune. Chimes, if you please. They ring, too. I listen to those as well.'],
     again: [{ if: { quest: 'spheres.listen', done: true }, text: '~happy~ The spheres are sounding again. Everything in the stall hums a little sweeter.' }, '~whisper~ Ah, you’re back. I know your footsteps.'],
@@ -237,7 +237,7 @@ export const SHOPKEEPERS = {
   odette: keeper({
     id: 'odette', shop: 'airshop', name: 'Odette', title: 'who keeps the Air-Shop', color: '#4a8790', voice: 0.95, kind: 'f',
     palette: { cloak: '#4a8790', lining: '#f0aa98', cloth: '#efd2a6', legs: '#3d727a', hat: '#f0aa98', accent: '#d6a13e', hair: '#5a3a2a' },
-    head: 'bun', cape: 0, look: { head: 'bun', body: 'scarf', trim: 'none', robe: 0.2, build: 'heavy', height: 0.96, mood: 'kind' },
+    head: 'bun', cape: 0, look: { head: 'bun', body: 'scarf', trim: 'none', robe: 0.2, build: 'stout', height: 0.96, mood: 'kind' },
     lines: ['~happy~ Cures and a heart, under glass.', '~playful~ Everything here’s been to the bottom and back.', '~neutral~ Dry inside. Mind the floats.'],
     hello: ['~happy~ Dry feet? Then you came down the lock. I dived for forty years, and now I keep the Air-Shop and let others get wet.', '~neutral~ Cures in the red flasks, a heart in the glass jar. Chimes in the shell, love.'],
     again: [{ if: { flag: 'temple.underwater.done' }, text: '~surprised~ Did you hear them this morning? The whole dome rang. I sold three cures to people who fell off their chairs.' }, '~happy~ Back again, love. Dry feet still?'],
@@ -250,7 +250,7 @@ export const SHOPKEEPERS = {
   gunnar: keeper({
     id: 'gunnar', shop: 'crucible', name: 'Gunnar', title: 'who keeps the Crucible', color: '#c9703e', voice: 0.7, kind: 'm',
     palette: { cloak: '#6a4a3a', lining: '#c9703e', cloth: '#e8d2a8', legs: '#4a3a33', hat: '#6a4a3a', accent: '#d6a13e', hair: '#3a2a22' },
-    head: 'bald', cape: 0, look: { head: 'bald', body: 'apron', trim: 'bib', robe: 0, build: 'heavy', height: 1.08, mood: 'stern' },
+    head: 'bald', cape: 0, look: { head: 'bald', body: 'apron', trim: 'bib', robe: 0, build: 'broad', height: 1.08, mood: 'stern' },
     lines: ['~neutral~ Cures for the hurt. One heart, in the box.', '~solemn~ Nothing in here cracked in the cooling.', '~playful~ It’s a crucible. Of course it’s warm.'],
     hello: ['~neutral~ Mind your head on the rim: this was a crucible once. The founders poured moons out of it. Now it holds cures, and me.', '~solemn~ Red flasks for the hurt, a heart in the box. Each poured once, cooled slow. Chimes on the ingot.'],
     again: [{ if: { flag: 'temple.moonfoundry.done' }, text: '~surprised~ The floor’s still at night now. My ladles have stopped walking off the shelf.' }, '~neutral~ Back. Good. The pour’s steady today.'],
@@ -263,7 +263,7 @@ export const SHOPKEEPERS = {
   amaro: keeper({
     id: 'amaro', shop: 'oillamp', name: 'Amaro', title: 'who keeps the Oil-Lamp Shop', color: '#e89a7e', voice: 1.1, kind: 'm',
     palette: { cloak: '#e89a7e', lining: '#3f6f78', cloth: '#f2e2c4', legs: '#3f6f78', hat: '#f2e2c4', accent: '#d6a13e', hair: '#2b211f' },
-    head: 'hat', cape: 0, look: { head: 'hat', body: 'collar', trim: 'stripes', robe: 0.1, build: 'slim', height: 1.06, mood: 'amused' },
+    head: 'hat', cape: 0, look: { head: 'hat', body: 'collar', trim: 'stripes', robe: 0.1, build: 'slender', height: 1.06, mood: 'amused' },
     lines: ['~happy~ Cures, a heart, and lamps. Mostly lamps.', '~playful~ We pay in oil here. You can pay in chimes. I’ll allow it.', '~curious~ Don’t lean on the lamps. They’re lit.'],
     hello: ['~happy~ Mind the oil; it’s money here. I sell lamp oil, so I am the bank. The cures are a sideline.', '~neutral~ Red flasks for the hurt, a heart in the basket. Chimes will do, though oil would be nicer.'],
     again: [{ if: { flag: 'temple.spacecity.done' }, text: '~surprised~ The bridges stopped creaking, and nobody needs a lamp to find their way home. Business is terrible. I’ve never been happier.' }, '~happy~ Welcome back. The lamps have missed you. I asked.'],

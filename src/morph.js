@@ -21,9 +21,12 @@ import * as THREE from 'three';
 // Builds (costumes.js BUILDS): per bone, radial factor sideways, forward and back.
 // The head, hands and feet keep their size, so headwear and masks still fit.
 export const BUILD_SHAPE = {
+  slender: [[/^spine_0[123]$|^pelvis$/, 0.82, 0.8, 0.85], [/^clavicle_/, 0.9, 0.9, 0.9], [/^(upper|lower)arm_/, 0.76, 0.76, 0.76], [/^(thigh|calf)_/, 0.78, 0.78, 0.78], [/^neck_01$/, 0.84, 0.84, 0.84]],
   slim: [[/^spine_0[123]$|^pelvis$/, 0.88, 0.88, 0.9], [/^clavicle_/, 0.94, 0.94, 0.94], [/^(upper|lower)arm_/, 0.86, 0.86, 0.86], [/^(thigh|calf)_/, 0.87, 0.87, 0.87], [/^neck_01$/, 0.9, 0.9, 0.9]],
   broad: [[/^spine_03$/, 1.24, 1.14, 1.12], [/^clavicle_/, 1.16, 1.1, 1.1], [/^spine_02$/, 1.14, 1.1, 1.08], [/^spine_01$|^pelvis$/, 1.06, 1.05, 1.05],
     [/^upperarm_/, 1.22, 1.22, 1.22], [/^lowerarm_/, 1.12, 1.12, 1.12], [/^thigh_/, 1.1, 1.1, 1.1], [/^calf_/, 1.06, 1.06, 1.06], [/^neck_01$/, 1.18, 1.18, 1.18]],
+  stout: [[/^spine_01$/, 1.28, 1.55, 1.12], [/^spine_02$/, 1.22, 1.4, 1.1], [/^spine_03$/, 1.12, 1.16, 1.06], [/^pelvis$/, 1.2, 1.25, 1.18], [/^clavicle_/, 1.04, 1.06, 1.06],
+    [/^upperarm_/, 1.18, 1.18, 1.18], [/^lowerarm_/, 1.08, 1.08, 1.08], [/^thigh_/, 1.2, 1.2, 1.2], [/^calf_/, 1.08, 1.08, 1.08], [/^neck_01$/, 1.16, 1.16, 1.16]],
   heavy: [[/^spine_01$/, 1.42, 1.8, 1.2], [/^spine_02$/, 1.34, 1.62, 1.15], [/^spine_03$/, 1.16, 1.25, 1.08], [/^pelvis$/, 1.3, 1.4, 1.28], [/^clavicle_/, 1.06, 1.08, 1.08],
     [/^upperarm_/, 1.26, 1.26, 1.26], [/^lowerarm_/, 1.12, 1.12, 1.12], [/^thigh_/, 1.3, 1.3, 1.3], [/^calf_/, 1.12, 1.12, 1.12], [/^neck_01$/, 1.25, 1.25, 1.25]],
 };

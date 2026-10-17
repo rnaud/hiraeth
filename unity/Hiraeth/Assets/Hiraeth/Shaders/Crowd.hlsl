@@ -145,9 +145,15 @@ void crowdAnimate(CrowdInst I, float4 aRig, inout float3 p, inout float3 n, out 
     }
     const float HIP = 0.95, HIPX = 0.09, KNEE = 0.5, SHY = 1.43, SHX = 0.2, ELB = 1.13, NECK = 1.5, COLLAR = 1.45;
     float side = (part % 2 == 0) ? 1.0 : -1.0;
-    float fem = aBody.x, bw = aBody.y, bg = aBody.z;
+    float fem = cmod(aBody.x, 2.0), bw = aBody.y, bg = aBody.z;
+    // the build's belly, hips and limbs (costumes.js packBody, bodyShapeCode: issue #402; 0 all neutral)
+    float bcode = floor(aBody.x / 2.0 + 0.01);
+    float3 bsh = bcode > 0.5 ? 1.0 + (float3(cmod(bcode, 32.0), cmod(floor(bcode / 32.0 + 0.001), 32.0), floor(bcode / 1024.0 + 0.001)) - 16.0) * 0.05 : float3(1.0, 1.0, 1.0);
+    float bBelly = bsh.x, bHips = bsh.y, bLimbs = bsh.z;
+    // fuller bodies hold their arms a little out (CROWD_BODY.armOut)
+    if (pose != 3 && pose != 4) shA += max(0.0, bg - 1.0) * 0.3;
     // (crowd-shader.js CROWD_BODY: the full bodies' joints, MakeHuman's and the Quaternius ones')
-    float shx = SHX * bw * (1.0 - 0.12 * fem), hipx = HIPX * 1.17;
+    float shx = SHX * bw * (1.0 - 0.12 * fem), hipx = HIPX * 1.17 * (1.0 + (bHips - 1.0) * 0.5);
     if (part == 10)
     {
         // the cape: the open-fronted bell the full people's cloth hangs in (crowd-shader.js CROWD_CAPE)
@@ -223,19 +229,19 @@ void crowdAnimate(CrowdInst I, float4 aRig, inout float3 p, inout float3 n, out 
     {
         float y = p.y;
         float belly = exp(-pow((y - 1.06) / 0.16, 2.0)), bust = exp(-pow((y - 1.29) / 0.08, 2.0)), hips = exp(-pow((y - 0.93) / 0.09, 2.0));
-        p.x *= lerp(1.0, bw * (1.0 - 0.1 * fem), smoothstep(1.12, 1.38, y)) * (1.0 + (bg - 1.0) * 0.8 * belly) * (1.0 + 0.1 * fem * hips);
-        p.z *= p.z > 0.0 ? 1.0 + (bg - 1.0) * 1.5 * belly + 0.3 * fem * bust : 1.0 + (bg - 1.0) * 0.5 * belly + 0.12 * fem * hips;
+        p.x *= lerp(1.0, bw * (1.0 - 0.1 * fem), smoothstep(1.12, 1.38, y)) * (1.0 + (bg - 1.0) * 0.8 * belly + (bBelly - 1.0) * 0.35 * belly) * (1.0 + 0.1 * fem * hips + (bHips - 1.0) * hips);
+        p.z *= p.z > 0.0 ? 1.0 + (bg - 1.0) * 1.0 * belly + (bBelly - 1.0) * 1.1 * belly + 0.3 * fem * bust : 1.0 + (bg - 1.0) * 0.5 * belly + (bHips - 1.0) * 0.6 * hips + 0.12 * fem * hips;
     }
     else if (part == 0) p.x *= bw * (1.0 - 0.1 * fem);
     else if (part >= 2 && part <= 5)
     {
-        float k = slot == 0 ? 1.0 + (bg - 1.0) * (part <= 3 ? 0.6 : 0.3) + (part <= 3 ? 0.05 * fem : 0.0) : 1.0;
+        float k = slot == 0 ? 1.0 + (bLimbs - 1.0) * (part <= 3 ? 0.9 : 0.5) + (bg - 1.0) * (part <= 3 ? 0.2 : 0.0) + (part <= 3 ? 0.05 * fem : 0.0) : 1.0;
         p.x = side * hipx + (p.x - side * HIPX) * k;
         p.z *= k;
     }
     else if (part >= 6 && part <= 9)
     {
-        float k = slot == 0 ? 1.0 + (bg - 1.0) * 0.45 : 1.0;
+        float k = slot == 0 ? 1.0 + (bLimbs - 1.0) * 0.8 : 1.0;
         p.x = side * shx + (p.x - side * SHX) * k;
         p.z *= k;
     }

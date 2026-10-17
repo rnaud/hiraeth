@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { mulberry32 } from '../src/noise.js';
-import { dressFor, namedLook, crowdLook, packBody, BUILDS, HEIGHT, HEAD_IDS, HEAD_ID_LIMIT, MASK_IDS, HEADS, MASKS, COSTUMES, GENERIC_HAIR, MASK_ID_LIMIT, BODY_ID_LIMIT, BODY_IDS, packDress, unpackDress } from '../src/costumes.js';
+import { dressFor, namedLook, crowdLook, packBody, BUILDS, HEIGHT, HEAD_IDS, HEAD_ID_LIMIT, MASK_IDS, HEADS, MASKS, COSTUMES, GENERIC_HAIR, MASK_ID_LIMIT, BODY_ID_LIMIT, BODY_IDS, packDress, unpackDress, bodyShapeCode } from '../src/costumes.js';
 import { CROWD_GLSL } from '../src/crowd-shader.js';
 import { figureGeometry, worldPieces, packLook } from '../src/crowd.js';
 import { Humanoid, prepareHuman, buildGeometry } from '../src/humanoid.js';
@@ -24,7 +24,7 @@ test('everyone has a kind, a build and a height; crowds mix them all', () => {
     assert.deepEqual([...kinds].sort(), ['f', 'm'], world);
     assert.deepEqual([...builds].sort(), Object.keys(BUILDS).sort(), `${world}: every build`);
     const h = ppl.map((s) => s.height);
-    assert.ok(Math.min(...h) >= HEIGHT.min && Math.max(...h) <= HEIGHT.max, `${world}: heights within ${HEIGHT.min}..${HEIGHT.max}`);
+    assert.ok(Math.min(...h) >= HEIGHT.lo && Math.max(...h) <= HEIGHT.hi, `${world}: heights within ${HEIGHT.lo}..${HEIGHT.hi}`);
     assert.ok(Math.min(...h) < 0.92 && Math.max(...h) > 1.08, `${world}: short and tall people`);
     const mean = (k) => { const a = ppl.filter((s) => s.kind === k).map((s) => s.height); return a.reduce((x, y) => x + y, 0) / a.length; };
     assert.ok(mean('f') < mean('m'), `${world}: women a little shorter on average`);
@@ -81,7 +81,7 @@ test('the new hair and beard pieces are in every world\'s crowd figure, within t
   }
   // the crowd's per-instance body
   const s = dressFor('bazaar', mulberry32(5), { kind: 'f', look: { build: 'heavy' } });
-  assert.deepEqual(packBody(s), [1, BUILDS.heavy.width, BUILDS.heavy.girth, new THREE.Color(s.eyes).getHex()]);
+  assert.deepEqual(packBody(s), [1 + 2 * bodyShapeCode(BUILDS.heavy), BUILDS.heavy.width, BUILDS.heavy.girth, new THREE.Color(s.eyes).getHex()]);
   assert.equal(packLook(s).length, 4);
   assert.ok(figureGeometry('mid', 'bazaar').attributes.aRig);
 });

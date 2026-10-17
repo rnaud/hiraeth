@@ -25,6 +25,10 @@ export const CHANGELOG = [
     // issue #409: src/temples/perdide.js (ROOMS, SILL, FAR_KEY, MOTHER_HALL, hush, RootNote, HushNote), boss.js `listen`,
     // migrate.js perdide v4; tests/mother-snapper.test.js, tests/temples.test.js; docs/systems/temples.md "The Hush-House with no fight at all"
     'The Hush-House in Lorn has no fight any more. The Choir is now a great hall: from the way in you see its floor, the gallery up its side with the great key’s cage, and the great door in its far wall. The small key is the Pendulum Gallery’s song: still the three in turn from the far landing and its cage sinks, and the pendulums rest so you can walk back. By the great key a marked drop takes you down into a black pool on the Choir’s floor, and the great door wants the Choir’s crystals hushed, highest first. The Mother Snapper is never fought: she is blind and strikes at sounds, so walk near her, never run; still the crystals jangling over her, then sing her the makers’ lullaby, smallest first. The first note grows at her root, under her head: make a sound somewhere else and she turns away.',
+    // body shapes (issue #402): src/costumes.js BUILDS (six), BUILD_ODDS, WORLD_BUILDS, buildFor (a hash of the look), HEIGHT.stretch;
+    // src/makehuman/shape.js MH_BUILDS[].morph; humanoid.js armOut; crowd-shader.js / Crowd.hlsl aBody's belly, hips, limbs;
+    // tests/body-shapes.test.js; docs/systems/characters.md "Body shapes"
+    'People come in more shapes and sizes: thin as a rake, slim, broad-shouldered, stout and properly round, and taller and shorter than before, so a crowd no longer looks like one person over and over. Each world has its own mix: the desert’s pilgrims and Vael’s silent ones run lean, the market, the harbour and the foundry sturdier. Clothes, capes and robes fit every shape, and the fuller people hold their arms a little out from their sides.',
   ] },
   { v: '1.82', date: '2026-10-16', items: [
     // issue #399: src/hook-foes.js (each kind's `hook` class, hookOutcome, lockShot), src/gadgets/hook.js fireAtLock /

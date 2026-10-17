@@ -339,15 +339,21 @@ export const ROBE_CONE = { belt: 0.1, inset: 0.06, upright: 0.6 };
 export const CAPSULE_MARGIN = [0.072, 0.02, 0, 0.028, 0.032, 0.007, 0.028, 0.032, 0.007, 0.027, 0.024, 0.027, 0.024, 0.02, 0.02];
 
 const girths = new WeakMap();
+/** How far in front of the spine (m, bind space) the trunk's skin counts for a cape's colliders (segmentGirths `back`). */
+export const TRUNK_FRONT = 0.06;
 /**
  * How thick a skinned body is round each segment of CAPSULES (bind space, m): the `q` quantile of the
  * distances of its vertices (each counted for the bone with most of its weight) to the segment.
  * Cached per geometry (`geo`: the body's full mesh, when a simpler level of it is drawn: skinned-lod.js).
+ * `back`: the trunk measured round its back and sides only (its skin no more than TRUNK_FRONT in front of the
+ * spine): what a cape, open in front, lies on. Measured round the spine, a heavy belly made it a cylinder 40 cm
+ * wide behind them too, and the cloth stood out from their backs like a shelf (issue #402).
  */
-export function segmentGirths(body, q = 0.9, geo = body.geometry) {
+export function segmentGirths(body, q = 0.9, geo = body.geometry, { back = false } = {}) {
   const per = girths.get(geo) ?? new Map();
   girths.set(geo, per);
-  if (per.has(q)) return per.get(q);
+  const key = back ? `${q}|back` : q;
+  if (per.has(key)) return per.get(key);
   const bones = body.skeleton.bones, idx = new Map(bones.map((b, i) => [b.name, i]));
   const toGeo = body.bindMatrix.clone().invert();
   const at = (n) => (idx.has(n) ? new THREE.Vector3().setFromMatrixPosition(body.skeleton.boneInverses[idx.get(n)].clone().invert()).applyMatrix4(toGeo) : null);
@@ -365,10 +371,12 @@ export function segmentGirths(body, q = 0.9, geo = body.geometry) {
     v.fromBufferAttribute(P, i);
     ab.subVectors(B, A);
     const t = THREE.MathUtils.clamp(c.subVectors(v, A).dot(ab) / Math.max(ab.lengthSq(), 1e-9), 0, 1);
-    dist[s].push(v.distanceTo(c.copy(A).addScaledVector(ab, t)));
+    c.copy(A).addScaledVector(ab, t);
+    if (back && s <= 1 && v.z - c.z > TRUNK_FRONT) continue;
+    dist[s].push(v.distanceTo(c));
   }
   const out = dist.map((a) => { if (!a.length) return 0; a.sort((x, y) => x - y); return a[Math.min(a.length - 1, Math.floor(a.length * q))]; });
-  per.set(q, out);
+  per.set(key, out);
   return out;
 }
 
@@ -425,6 +433,7 @@ export class Humanoid {
     const model = cloneSkinned(template);
     this.model = model;
     this.build = 'average';
+    this.armOut = 0;          // (BUILDS[].armOut: setBuild)
     this.morph = null;        // body morph (morph.js BODY_MORPHS; setMorph)
     this.face = null;         // face morph (morph.js FACE_MORPHS; setFace)
     this.lift = 0;            // m the pelvis rises over the rig's hips (longer legs)
@@ -594,6 +603,8 @@ export class Humanoid {
     if (build === this.build && years === this.years) return;
     this.build = build;
     this.years = years;
+    // (a child's build is its own: no arms held out)
+    this.armOut = (BUILDS[build].armOut ?? 0) * (years !== undefined && years < 13 ? 0 : 1);
     this.reshapeBody();
   }
 
@@ -1339,6 +1350,11 @@ export class Humanoid {
         const from = charPosOf(ch.from(), _a);
         const to = ch.hand !== undefined ? _b.set(0, -0.31, 0).applyMatrix4(c.elbows[ch.hand].matrixWorld).applyMatrix4(rootInv) : charPosOf(ch.to(), _b);
         const want = to.sub(from).normalize();
+        // a fuller body's hanging arms held a little out from its sides (BUILDS[].armOut, issue #402): the more the arm hangs, the more
+        if (this.armOut && (bone === this.b.upperarm_l || bone === this.b.upperarm_r) && want.y < -0.3) {
+          want.x += Math.sign(rest.p.x) * this.armOut * Math.min(1, (-want.y - 0.3) / 0.5);
+          want.normalize();
+        }
         if (R.hinge) {
           // the forearm: swung from where the upper arm carries it, not from the T-pose. Swung from the
           // T-pose on its own, it took a roll of its own (an arm hanging with the forearm forward: 75° off
@@ -1698,7 +1714,7 @@ export class Humanoid {
       this._capScale = s;
       const g = BUILDS[this.build]?.girth ?? 1;   // fuller bodies, wider colliders (the trunk and thighs most)
       // (measured on the full mesh: far off the body may be drawing a simpler level of it, skinned-lod.js)
-      const own = this.profile && this.body ? segmentGirths(this.body, 0.9, this.fullBody()) : null;
+      const own = this.profile && this.body ? segmentGirths(this.body, 0.9, this.fullBody(), { back: true }) : null;
       this._caps = spec.map(([a, , r, , i]) => ({ a: new THREE.Vector3(), b: new THREE.Vector3(),
         r: own ? (own[i] + CAPSULE_MARGIN[i]) * s : r * (/spine|pelvis|clavicle|thigh/.test(a) ? g : Math.sqrt(g)), over: CAPE_OVER.test(a) }));
     }
