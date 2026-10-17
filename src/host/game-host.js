@@ -19,6 +19,7 @@
 //   wireBenches({ levelId, scene, physics, …, rig })       the benches to sit on
 //   wireTrails({ scene, player, physics, tool })           the hover vehicles' trails
 //   wireOpenings({ scene }), wireEdge({ wind, … })         the walls' openings for their cracks, the ink at the world's edge
+//   wireSky({ level, U, onPreset })                        the style preset, the planets, a level's zones
 //
 // tests/game-host.test.js holds each group to both hosts; scripts/bridge-gaps.mjs reports a group main.js calls and
 // engine/game.js doesn't as a host gap (engine/bridge-gaps.js `shared:`).
@@ -38,6 +39,7 @@ import { bikeComes, parkedBike, trailVehicles, trailVehicle } from '../bike-worl
 import { Trail } from '../trail.js';
 import { wallOpenings } from '../wall-openings.js';
 import { EdgeInk } from '../edge.js';
+import { PRESETS } from '../post.js';
 import * as THREE from 'three';
 import { gadgetFoundLine } from '../gadgets/index.js';
 import { syncUpgrades } from '../trials/upgrades.js';
@@ -361,6 +363,51 @@ export function wireEdge({ wind, player, parent }) {
     update(dt, camera, pxScale) {
       if (player.edge?.k > 0.03 && !player.ride) wind.edgeGust(dt, player.edge.at, player.edge.n, player.edge.k);
       ink.update(dt, player.ride ? null : player.edge, player.frame.up, camera, pxScale);
+    },
+  };
+}
+
+// ------------------------------------------------------------------ the look: the preset, the planets, a level's zones
+/** A style preset into the ink pass's uniforms (src/post.js PRESETS), with the world's own touches on its default one. */
+export function presetInto(U, name, level) {
+  for (const [k, v] of Object.entries(PRESETS[name] ?? {})) if (U[k]) U[k].value = v;
+  if (name === (level.defaults?.preset ?? 'Moebius print')) for (const [k, v] of Object.entries(level.defaults?.look ?? {})) if (U[k]) U[k].value = v;
+}
+/** Up to three planets hanging in the sky (a level's, or a zone's: the Lab's biome rooms) into the ink pass's uniforms. */
+export function planetsInto(U, list = []) {
+  for (let i = 0; i < 3; i++) {
+    const p = list[i];
+    if (!p) { U.uPlanet?.value[i].set(0, -1, 0, 0); continue; }
+    const el = THREE.MathUtils.degToRad(p.el), az = THREE.MathUtils.degToRad(p.az);
+    U.uPlanet?.value[i].set(Math.cos(el) * Math.sin(az), Math.sin(el), Math.cos(el) * Math.cos(az), THREE.MathUtils.degToRad(p.size));
+    const c = new THREE.Color(p.color);
+    U.uPlanetColor?.value[i].set(c.r, c.g, c.b, p.ring ?? 0);
+    U.uPlanetCraters?.value.setComponent(i, p.craters === false ? 0 : 1);
+  }
+}
+/**
+ * The world's look: its style preset and its planets, and, in a level with zones (the Hangar's styles, the Lab's biome
+ * rooms, the References' panels), the zone you are in: its preset, its own look over it (never carried into the next
+ * zone), its planets and its hour. `onPreset(name)`: after a preset or a zone's look is put on (the page's GUI, its
+ * params). → { at: { preset, planets, zone }, setPreset(name), setPlanets(list), zones(pos, sky) each frame }.
+ */
+export function wireSky({ level, U, onPreset = () => {} }) {
+  const at = { preset: level.defaults?.preset ?? 'Moebius print', planets: level.sky?.planets ?? [], zone: null };
+  const setPreset = (name) => { at.preset = name; presetInto(U, name, level); onPreset(name); };
+  const setPlanets = (list = []) => { at.planets = list; planetsInto(U, list); };
+  if (at.planets.length) setPlanets(at.planets);
+  return {
+    at, setPreset, setPlanets,
+    zones(pos, sky) {
+      if (!level.zoneAt) return;
+      const zone = level.zoneAt(pos), last = at.zone;
+      if (zone.preset !== at.preset) setPreset(zone.preset);
+      if (zone === last) return;
+      if (zone.look) { if (last?.look) setPreset(at.preset); for (const [k, v] of Object.entries(zone.look)) if (U[k]) U[k].value = v; onPreset(at.preset); }
+      else if (last?.look) setPreset(at.preset);
+      if (zone.planets || last?.planets) setPlanets(zone.planets ?? level.sky?.planets ?? []);
+      if (zone.hour !== undefined && last) sky.hour = zone.hour;
+      at.zone = zone;
     },
   };
 }

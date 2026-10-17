@@ -48,7 +48,7 @@ import { spawnAliens, alienSpots } from '../src/aliens/index.js';
 import { createStory } from '../src/story/index.js';
 import { game as gameState } from '../src/game-state.js';
 import { sharedUniforms } from '../src/materials.js';
-import { createPost, PRESETS } from '../src/post.js';
+import { createPost } from '../src/post.js';
 import { applyTimeOfDay, colourScript } from '../src/timeofday.js';
 import { EDGE_HINTS } from '../src/edge.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -154,7 +154,7 @@ import { gatherPoints, questList, applyQuestJump, landingSpot, godLanding } from
 import { GAMES } from '../src/minigames/index.js';
 import { DEBUG_SLOT } from '../src/save-slots.js';
 import { wallOpenings } from '../src/wall-openings.js';
-import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip, wireCompanion, wireCamera, wireHero, heroCutFrame, cameraFollow, wireBenches, wireTrails, wireOpenings, wireEdge } from '../src/host/game-host.js';
+import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip, wireCompanion, wireCamera, wireHero, heroCutFrame, cameraFollow, wireBenches, wireTrails, wireOpenings, wireEdge, wireSky } from '../src/host/game-host.js';
 
 export { page };
 export { readHref } from './trials.js';   // (the tests: a game page's address)
@@ -695,11 +695,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // the look: the preset and the hour, as main.js applies them
   const post = createPost();
   const U = post.uniforms;
-  const presetName = level.defaults?.preset ?? 'Moebius print';
-  const applyPreset = () => {
-    for (const [k, v] of Object.entries(PRESETS[presetName] ?? {})) if (U[k]) U[k].value = v;
-    for (const [k, v] of Object.entries(level.defaults?.look ?? {})) if (U[k]) U[k].value = v;
-  };
+  // (the world's style preset and planets, a level's zones: src/host/game-host.js wireSky, as the page)
+  const look = wireSky({ level, U });
+  const applyPreset = () => look.setPreset(look.at.preset);
   applyPreset();
   // the graphics preset's look (main.js applyDetail): the lighter weathering, no cloud shadows or crease shading where it
   // says, its shadow filter's taps
@@ -1338,7 +1336,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       const post = nums(U);
       // (-js-off skies: the sky's own left out, the look as the bridge sent it before them, a before-and-after on one build)
       if (!skies) for (const k of ['uEclipse', 'uCorona', 'uEclipseGlow', 'uEclipseDir', 'uLantern', 'uSpace', 'uSpaceTone', 'uSpaceSun', 'uSpaceNight']) delete post[k];
-      return { ...this.lookParams(), post, shared: nums(sharedUniforms), preset: presetName, planets: level.sky?.planets ?? [] };
+      return { ...this.lookParams(), post, shared: nums(sharedUniforms), preset: look.at.preset, planets: look.at.planets };
     },
     /**
      * The local lights the surfaces take this frame (main.js updateLights: the level's lamps, fires, eggs, pools and
@@ -1528,6 +1526,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       const ctl = mergeControls(latched(), pad);
       atmo = level.atmo(player.pos.x, player.pos.z, player.pos.y);
       updateSky();
+      look.zones(player.pos, sky);   // (a level's zones: their style, look, planets and hour, as the page)
       lap?.('sky');
       // weather into the look (main.js: rain, storm and the haze; the wind on the traveller and the plants)
       let Wx = null;

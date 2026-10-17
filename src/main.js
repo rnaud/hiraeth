@@ -143,7 +143,7 @@ import { queueHost, takeHosts } from './minigames/kit/hosts.js';
 import { MinigameRunner } from './minigames/kit/runner.js';
 import { levelMetaFor } from './minigames/kit/world.js';
 import { lendTool } from './minigames/kit/onfoot.js';
-import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip, wireCompanion, wireCamera, wireHero, heroCutFrame, cameraFollow, wireBenches, wireTrails, wireOpenings, wireEdge } from './host/game-host.js';
+import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip, wireCompanion, wireCamera, wireHero, heroCutFrame, cameraFollow, wireBenches, wireTrails, wireOpenings, wireEdge, wireSky } from './host/game-host.js';
 import { arcadeLinks } from './minigames/kit/arcade.js';
 import { ambushDue, ambushHref, ambushKey, transitLinks } from './ambush.js';
 import { talkAllowed } from './ship/landing.js';
@@ -1244,19 +1244,9 @@ const script = level.sky?.script ? colourScript(level.sky.script) : undefined;
 // (a level with rooms of its own sky, the Lab's biome rooms, hands its colour script over with atmo)
 // (an eclipse world's sun on its own path, the moon over it by the hour: src/eclipse.js)
 const updateSky = () => { applyTimeOfDay(sky.hour, sharedUniforms.uSunDir.value, post.uniforms, atmo, atmo?.script ?? script); if (level.sky?.eclipse) applyEclipse(sky.hour, level.sky.eclipse, post.uniforms, sharedUniforms.uSunDir.value); if (level.sky?.moon === false) post.uniforms.uMoonVis.value = 0; };   // (moon: false, a world with moons of its own: the Overnight Train)
-// planets hanging in this level's sky (a zone may bring its own: the Lab's biome rooms)
-function setPlanets(list = []) {
-  for (let i = 0; i < 3; i++) {
-    const p = list[i];
-    if (!p) { post.uniforms.uPlanet.value[i].set(0, -1, 0, 0); continue; }
-    const el = THREE.MathUtils.degToRad(p.el), az = THREE.MathUtils.degToRad(p.az);
-    post.uniforms.uPlanet.value[i].set(Math.cos(el) * Math.sin(az), Math.sin(el), Math.cos(el) * Math.cos(az), THREE.MathUtils.degToRad(p.size));
-    const c = new THREE.Color(p.color);
-    post.uniforms.uPlanetColor.value[i].set(c.r, c.g, c.b, p.ring ?? 0);
-    post.uniforms.uPlanetCraters.value.setComponent(i, p.craters === false ? 0 : 1);
-  }
-}
-if (level.sky?.planets?.length) setPlanets(level.sky.planets);
+// the world's look: its style preset, its planets, a level's zones (the Hangar's styles, the Lab's biome rooms)
+// (src/host/game-host.js wireSky, the engines' too; the GUI shows a preset put on)
+const look = wireSky({ level, U: post.uniforms, onPreset: (name) => { params.preset = name; gui.controllersRecursive().forEach((c) => c.updateDisplay()); } });
 // the Lantern's light low in the sky from the seventh world on, brighter as the end nears (src/story/lantern-sky.js);
 // again when a world is done or the story moves (the homecoming, the market heard)
 const setLanternSky = () => applyLanternSky(post.uniforms.uLantern.value, lanternSky({ level: levelId, completed: ship.completed(), flag: (k) => game.flag(k) }));
@@ -1336,13 +1326,8 @@ fSound.add(audioCfg, 'effects', 0, 1, 0.05).onChange(() => sound.setVolumes(audi
 fSound.add(audioCfg, 'mute').name('mute (M)').listen().onChange((v) => { if (v !== sound.muted) sound.toggleMute(); });
 fSound.close();
 
-function applyPreset(name) {
-  const p = PRESETS[name];
-  for (const [k, v] of Object.entries(p)) if (U[k]) U[k].value = v;
-  // the world's own touches on its default look (line weight, hatching, dots…)
-  if (name === (level.defaults.preset ?? 'Moebius print')) for (const [k, v] of Object.entries(level.defaults.look ?? {})) if (U[k]) U[k].value = v;
-  gui.controllersRecursive().forEach((c) => c.updateDisplay());
-}
+/** A style preset put on (the world's own touches on its default look: line weight, hatching, dots…): wireSky. */
+function applyPreset(name) { look.setPreset(name); }
 applyPreset(params.preset);
 gui.close();   // collapsed by default; click the title to open
 
@@ -2449,20 +2434,8 @@ function frame(ts) {
   }
   if (!aimingLocked() && (aimNudge.x || aimNudge.y || aimNudge.mx || aimNudge.my)) aimNudge.reset();   // (each locked aim starts on the point)
   tool.nudged = aimingLocked() && aimNudge.nudged;
-  // levels with zones (the Hangar) switch ink style as you cross between them
-  if (level.zoneAt) {
-    const zone = level.zoneAt(player.pos);
-    if (zone.preset !== params.preset) { params.preset = zone.preset; applyPreset(zone.preset); }
-    // a zone may also carry its world's own look, planets and hour (the Lab's biome rooms)
-    if (zone !== lastZone) {
-      // (from the preset afresh: a zone's touches never carry over into the next zone's)
-      if (zone.look) { if (lastZone?.look) applyPreset(params.preset); for (const [k, v] of Object.entries(zone.look)) if (U[k]) U[k].value = v; gui.controllersRecursive().forEach((c) => c.updateDisplay()); }
-      else if (lastZone?.look) applyPreset(params.preset);
-      if (zone.planets || lastZone?.planets) setPlanets(zone.planets ?? level.sky?.planets ?? []);
-      if (zone.hour !== undefined && lastZone) sky.hour = zone.hour;
-      lastZone = zone;
-    }
-  }
+  // levels with zones (the Hangar, the Lab's biome rooms) switch style, look, planets and hour as you cross them (wireSky)
+  look.zones(player.pos, sky);
 
   sharedUniforms.uTime.value = t;
   U.uTime.value = t;
@@ -2501,7 +2474,6 @@ const CALM = { speed: 0, gust: 0, storm: 0, rain: 0, rainRoof: 0, thrusting: fal
 let simT = 0;
 let flapT = 0;
 let portalCool = 0;
-let lastZone = null;
 let eWasDown = false;
 
 // ------------------------------------------------------------------ the ending

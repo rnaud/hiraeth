@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { readFileSync } from 'node:fs';
-import { wireKit, wireDangers, wirePeople, wireChemistry, wireVehicles, wireLessons, wireCompanion, wireCamera, heroCutFrame, cameraFollow, wireBenches, wireEdge, wireOpenings } from '../src/host/game-host.js';
+import { wireKit, wireDangers, wirePeople, wireChemistry, wireVehicles, wireLessons, wireCompanion, wireCamera, heroCutFrame, cameraFollow, wireBenches, wireEdge, wireOpenings, wireSky } from '../src/host/game-host.js';
 import { ERRANDS } from '../src/levels/content.js';
 import { hazardCount } from '../src/hazards.js';
 import * as THREE from 'three';
@@ -190,9 +190,34 @@ test('the edge: the wind streams in round you as you lean on it, the ink shown t
   assert.ok(wireOpenings({ scene }) >= 0);
 });
 
+test('the sky: the preset and the planets, a level\'s zones putting on their style, look, planets and hour', () => {
+  const v4 = () => [new THREE.Vector4(), new THREE.Vector4(), new THREE.Vector4()];
+  const U = { uPlanet: { value: v4() }, uPlanetColor: { value: v4() }, uPlanetCraters: { value: new THREE.Vector3() }, uInk: { value: 0 }, uHatch: { value: 0 } };
+  const hub = { preset: 'Moebius print' }, room = { preset: 'Moebius print', look: { uHatch: 0.9 }, planets: [{ el: 30, az: 90, size: 8, color: '#ff0000' }], hour: 18 };
+  let inRoom = false;
+  const level = { defaults: { preset: 'Moebius print' }, sky: { planets: [] }, zoneAt: () => (inRoom ? room : hub) };
+  const put = [];
+  const s = wireSky({ level, U, onPreset: (n) => put.push(n) });
+  s.setPreset(s.at.preset);
+  const sky = { hour: 10 };
+  s.zones(new THREE.Vector3(), sky);
+  assert.equal(s.at.zone, hub);
+  inRoom = true;
+  s.zones(new THREE.Vector3(), sky);
+  assert.equal(U.uHatch.value, 0.9, 'the room\'s own look');
+  assert.equal(s.at.planets, room.planets);
+  assert.ok(U.uPlanet.value[0].w > 0, 'its planet in the sky');
+  assert.equal(sky.hour, 18, 'its hour');
+  inRoom = false;
+  s.zones(new THREE.Vector3(), sky);
+  assert.notEqual(U.uHatch.value, 0.9, 'the look not carried out of the room');
+  assert.equal(U.uPlanet.value[0].w, 0, 'the level\'s own planets (none) again');
+  assert.ok(put.length >= 2);
+});
+
 test('both hosts call the same groups (src/host/game-host.js), and engine/game.js no longer arms the tool its own way', () => {
   const main = readFileSync('src/main.js', 'utf8'), engine = readFileSync('engine/game.js', 'utf8');
-  for (const g of ['wireKit', 'wireDangers', 'wirePeople', 'wireChemistry', 'wireMount', 'wireVehicles', 'wireLessons', 'wireShip', 'wireCamera', 'wireHero', 'heroCutFrame', 'cameraFollow', 'wireBenches', 'wireTrails', 'wireOpenings', 'wireEdge']) {
+  for (const g of ['wireKit', 'wireDangers', 'wirePeople', 'wireChemistry', 'wireMount', 'wireVehicles', 'wireLessons', 'wireShip', 'wireCamera', 'wireHero', 'heroCutFrame', 'cameraFollow', 'wireBenches', 'wireTrails', 'wireOpenings', 'wireEdge', 'wireSky']) {
     assert.match(main, new RegExp(`\\b${g}\\(`), `main.js calls ${g}`);
     assert.match(engine, new RegExp(`\\b${g}\\(`), `engine/game.js calls ${g}`);
   }

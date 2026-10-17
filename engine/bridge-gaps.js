@@ -233,10 +233,10 @@ export const GAPS = {
     { keys: ['import:src/fragment-shop.js#fragmentPurse', 'fn:fragmentsLine'], what: 'the fragments\' purse line', status: 'gap', issue: 427, visible: 1, note: 'to check' },
     { keys: ['import:src/hud.js#magicHud'], what: 'the magic bar', status: 'gap', issue: 427, visible: 1, note: 'to check: the health part carries magic' },
     { keys: ['import:src/minigames/kit/arcade.js#arcadeLinks'], what: 'a game reached from the Arcade going back to it, its cards\' previous and next', status: 'gap', issue: 427, visible: 1 },
+    { keys: ['import:src/post.js#PRESETS'], what: 'the style presets\' list (main.js\'s GUI)', status: 'web-only', why: 'the page\'s lil-gui list of styles; the presets themselves are put on by src/host/game-host.js wireSky in both hosts' },
     { keys: ['import:src/weather.js#WEATHER_KINDS'], what: 'the weather\'s kinds (main.js\'s dev toggles)', status: 'handled', where: 'engine/game.js runs Weather itself; the list is for the page\'s toggles' },
     { keys: ['fn:potionGlow', 'fn:potionHint'], what: 'the potion\'s glow and hint', status: 'gap', issue: 427, visible: 1, note: 'to check' },
     { keys: ['fn:pingWhenFree'], what: 'a nudge\'s ping once the notices and the talk are done (the page\'s timing of pings)', status: 'gap', issue: 427, visible: 1, note: 'to check' },
-    { keys: ['fn:setPlanets'], what: 'the planets in the sky', status: 'gap', issue: 427, visible: 1, note: 'to check' },
     { keys: ['fn:placeToolGauge'], what: 'the fluid tool\'s gauge by the traveller', status: 'gap', issue: 427, visible: 1, note: 'to check' },
     { keys: ['import:src/scout.js#roughDistance', 'import:src/hint-level.js#quietOr'], what: 'the scout\'s find said with a rough distance, the hints\' quiet line', status: 'gap', issue: 427, visible: 1, note: 'to check: engine/game.js says the find its own way' },
     // the one game setup's groups, called by both hosts (src/host/game-host.js, #427: docs/systems/engine-bridge.md "One host")
@@ -252,6 +252,7 @@ export const GAPS = {
     { keys: ['shared:wireBenches'], what: 'the benches to sit on', status: 'handled', where: 'src/host/game-host.js wireBenches (main.js createBenches before; none in the engines)' },
     { keys: ['shared:wireTrails'], what: 'the hover vehicles\' trails on the ground', status: 'handled', where: 'src/host/game-host.js wireTrails (main.js before; none in the engines); Unity draws their ribbon (MODE_RIBBON) as its Surface\'s plain mode (#264)' },
     { keys: ['shared:wireOpenings', 'shared:wireEdge'], what: 'the walls\' openings kept clear of their cracks; the ink at the world\'s edge and the wind streaming in round you', status: 'handled', where: 'src/host/game-host.js wireOpenings, wireEdge (main.js before); the edge\'s ink on the wind\'s Hiraeth/Wisp; uOpenings set in the engines, read once the port has it (#264)' },
+    { keys: ['shared:wireSky'], what: 'the style preset and the planets in the sky; a level\'s zones (the Hangar\'s styles, the Lab\'s biome rooms): their look, planets and hour', status: 'handled', where: 'src/host/game-host.js wireSky (main.js setPlanets and its zones before; the engines kept the level\'s first preset and planets)' },
     { keys: ['shared:wireShip'], what: 'the ship\'s place for quests, the scout and the Map\'s "Your ship" mark', status: 'handled', where: 'src/host/game-host.js wireShip (main.js level.ship before; the engines had none)' },
     // handled by the engines' own
     { keys: ['import:src/hud.js#heartsSvg', 'import:src/hud.js#walletTick', 'import:src/hud.js#KEY_SVG', 'import:src/hud.js#GREAT_KEY_SVG', 'fn:updateStamina', 'fn:restartNow', 'fn:showToast',

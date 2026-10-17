@@ -1944,6 +1944,10 @@ Round 2 (the mechanical groups):
   built; the engines reset its table before each world, and Unity reads uOpenings once its port has it, #264), and
   leaning on the world's edge: the wind streaming in round you and the edge's ink (src/edge.js EdgeInk, on the wind's
   material: Hiraeth/Wisp in Unity). The engines had neither; the openings cost the City-Shaft's build nothing measurable.
+- `wireSky`: the world's style preset (presetInto: the world's own touches on its default one) and its planets
+  (planetsInto), and a level's zones each frame: the Hangar's styles, the Lab's biome rooms with their own look,
+  planets and hour, never carried into the next. The engines kept the level's first preset and planets (fullLook now
+  sends the zone's).
 
 Checked in Unity (the editor's batch run, `-fresh -no-hud`, against main's bundle for the before and the web's
 pictures of the same views): the kit's colours at the desert's ramp foot (`-set-flags` now takes `key=value`:
