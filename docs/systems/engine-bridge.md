@@ -1956,6 +1956,10 @@ Round 2 (the mechanical groups):
   wraps it in its span, engine/unity/game.js adds it to the save's line. (The scout's rough distance was an import
   main.js never used; the hints' quietOr is the Android pad scheme's notice, the page's.)
 
+Round 2 checked in Unity (batch run against the base's bundle and the web's pictures of the same views): the bench on
+the dunes over Qanat (none before) and the Lab's Lorn II room (the hub's sky before, its own dusk and moon after); the
+pairs are v1.84's in the changelog.
+
 Checked in Unity (the editor's batch run, `-fresh -no-hud`, against main's bundle for the before and the web's
 pictures of the same views): the kit's colours at the desert's ramp foot (`-set-flags` now takes `key=value`:
 `kit.colour.sword=ember`) and the Underside's void past its edge; the pairs are v1.83's in the changelog.
