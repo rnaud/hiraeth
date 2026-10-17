@@ -1,0 +1,27 @@
+unity/Hiraeth/Assets/Hiraeth/Shaders/Veil.shader
+  s_5f899ba316b5dc::t_cb1c7e0f8f7ca7 108-111
+changelog.md
+  s_5f899ba316b5dc::t_147b3aa17c4b22 7
+docs/systems/engine-bridge.md
+  s_5f899ba316b5dc::t_12ba09f183c9b3 1934-1938
+src/changelog-media.js
+  s_5f899ba316b5dc::t_4ea7e1bc46ff39 1132-1133,1182-1184
+src/changelog.js
+  s_5f899ba316b5dc::t_8cfebcccf9ed4b 91-92
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "bd3e25b7d699ae636275189fd9be205d77299fd2",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
