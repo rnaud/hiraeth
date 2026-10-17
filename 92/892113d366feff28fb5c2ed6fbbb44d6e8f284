@@ -1,0 +1,39 @@
+docs/audits/combat-v1.61.md
+  s_5f899ba316b5dc::t_ef3d9dff2186af 280-303
+docs/design/enemy-roster-prompts.md
+  s_5f899ba316b5dc::t_d3b2e10fd36203 423
+docs/design/enemy-roster.md
+  s_5f899ba316b5dc::t_a7ae0bf43858fc 72,711-713,716,718,963
+docs/design/fireball-foe.md
+  s_5f899ba316b5dc::t_92ed921033fd5f 5-8,17,21,61-62
+docs/systems/foes.md
+  s_5f899ba316b5dc::t_b28dc7ac0a83a8 940-947,966
+scripts/enemy-roster/compare.mjs
+  s_5f899ba316b5dc::t_1626e6fccae5b4 41,52,85,101
+src/enemies/archetypes.js
+  s_5f899ba316b5dc::t_3573b9c781b8c5 590,593-594,603,606-607,609
+src/enemies/plans/ember.js
+  s_5f899ba316b5dc::t_22acef3c77e1c5 2,4-9,12-21,24-34,36-38,41-52,56-59,61-98,100-101,106,119-121,123-124,126-129,136,139,141-146
+src/enemies/skins.js
+  s_5f899ba316b5dc::t_0d71a3af0d7a75 200-205
+src/enemies/surfaces.js
+  s_5f899ba316b5dc::t_3f8f62bf154bf2 485-492,494-495
+tests/fireball.test.js
+  s_5f899ba316b5dc::t_3ba0ee8e7f6365 39,186-204
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "92892113d366feff28fb5c2ed6fbbb44d6e8f284",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
