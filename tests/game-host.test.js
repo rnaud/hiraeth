@@ -139,7 +139,7 @@ test('the lessons: Plumb\'s clock and notes, a keepsake\'s theme, the upgrades k
 
 test('both hosts call the same groups (src/host/game-host.js), and engine/game.js no longer arms the tool its own way', () => {
   const main = readFileSync('src/main.js', 'utf8'), engine = readFileSync('engine/game.js', 'utf8');
-  for (const g of ['wireKit', 'wireDangers', 'wirePeople', 'wireChemistry', 'wireMount', 'wireVehicles', 'wireLessons']) {
+  for (const g of ['wireKit', 'wireDangers', 'wirePeople', 'wireChemistry', 'wireMount', 'wireVehicles', 'wireLessons', 'wireShip']) {
     assert.match(main, new RegExp(`\\b${g}\\(`), `main.js calls ${g}`);
     assert.match(engine, new RegExp(`\\b${g}\\(`), `engine/game.js calls ${g}`);
   }

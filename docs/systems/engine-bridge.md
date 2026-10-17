@@ -1886,6 +1886,8 @@ the engines' build of the game to see it there. Moved so far:
 - `wireLessons` (both hosts had their own copy): what the save's events say and start: a gadget found and its line
   after its box's card, a keepsake's recorded theme, the trials' upgrades to the gadgets' tuning, Plumb's clock and
   notes.
+- `wireShip`: the ship's place (level.ship at its ramp's foot) for the quests that say "return to the ship", the
+  scout and the Map's "Your ship" mark; the engines' Map had no ship (#429's menus sequence).
 
 Checked in Unity (the editor's batch run, `-fresh -no-hud`, against main's bundle for the before and the web's
 pictures of the same views): the kit's colours at the desert's ramp foot (`-set-flags` now takes `key=value`:

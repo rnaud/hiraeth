@@ -9,6 +9,7 @@
 //   wireDangers({ scene, level })                          the fires that burn, a world's deadly void
 //   wirePeople({ levelId, npcs, journal, … })              the errands, the faces of whoever talks near, the hum
 //   wireChemistry({ flammables, wildlife, tool, … })       fire, wind, creatures and foes on each other
+//   wireShip({ level, ship })                              the ship's place for quests, the scout and the Map
 //   wireMount({ levelId, level, flag })                    the bird's promise, the hoverbike (before the traveller)
 //   wireVehicles({ bikeHere, player, … })                  the bike by the ramp, skimming water, no calls into rooms
 //   wireLessons({ game, items, gadgets, sound, plumb, … }) what the save's events say and start (a gadget's line, Plumb)
@@ -111,6 +112,15 @@ export function wirePeople({ levelId, npcs, journal, toast, titles, capture = ()
 /** Fire spreads on the wind, creatures flee it, foes catch it (src/chemistry.js); chemistry.update(dt, player.pos) after what burns. */
 export function wireChemistry({ flammables = null, wildlife = null, tool = null, game = null, player }) {
   return new Chemistry({ flammables, wildlife, tool, game, wind: player.wind });
+}
+
+// ------------------------------------------------------------------ the ship
+/**
+ * The ship at its site: where the world's "the ship" is, unless the level says (quests that say "return to the ship"
+ * point at its ramp, the scout finds it, the Map's "Your ship" mark). Once the Ship is made.
+ */
+export function wireShip({ level, ship }) {
+  if (ship?.rampFoot) level.ship ??= { pos: ship.rampFoot.clone() };
 }
 
 // ------------------------------------------------------------------ the mount and the vehicles

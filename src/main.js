@@ -147,7 +147,7 @@ import { queueHost, takeHosts } from './minigames/kit/hosts.js';
 import { MinigameRunner } from './minigames/kit/runner.js';
 import { levelMetaFor } from './minigames/kit/world.js';
 import { lendTool } from './minigames/kit/onfoot.js';
-import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons } from './host/game-host.js';
+import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip } from './host/game-host.js';
 import { arcadeLinks } from './minigames/kit/arcade.js';
 import { ambushDue, ambushHref, ambushKey, transitLinks } from './ambush.js';
 import { talkAllowed } from './ship/landing.js';
@@ -377,7 +377,7 @@ const playPrologue = levelId === 'desert' && !viaShip && !minigameDef && (query.
 const playHomecoming = (levelId === 'home' && (query.get('ending') === '1' ? 'first' : query.get('ending') === '2' ? 'final' : viaShip ? homecomingKind((k) => game.flag(k)) : null)) || false;
 setStep('ship');
 const ship = new Ship({ scene, physics, level, levelId, content, prologue: playPrologue || playHomecoming });
-level.ship ??= { pos: ship.rampFoot.clone() };
+wireShip({ level, ship });   // (the ship's place: quests, the scout, the Map's mark; the engines' too)
 await slice();
 const auditRoots = scene.children.slice();   // the level and the ship: what the clipping audit looks over (window.clipAudit)   // quests that say "return to the ship" point at its ramp
 setStep('reactive');
