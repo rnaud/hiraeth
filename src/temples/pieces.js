@@ -559,7 +559,7 @@ export class Ball {
    * at most when a number: hands, no gadget), blade: true (a cut of the sword sends it rolling, BALL_CUT m/s: far
    * faster than a shove),
    * hole: { gate, to, stand, fell } (issue #401, the Footprint's Sounding Toe: its groove ends over a hole in the floor
-   * under a hatch, the door element `gate`; come to its end while the hatch is open, it drops through and comes to rest
+   * under a hatch, the door element `gate` (none: an open hole, the Rose House's balcony, issue #406); come to its end while the hatch is open, it drops through and comes to rest
    * at `to` (its foot, the plate on the floor below, its element's `plate`), for good: t 1 is "fallen"; on its groove it
    * is never saved past HOLE_REST. `stand`: the plate the hatch wants you on, pushed from (the play-through's) }
    * A tether (the City Floating in Space's gun mode, 'tether') rolls any ball toward whoever pulled it: the cone hands
@@ -764,7 +764,7 @@ export class Ball {
     this.v *= Math.exp(-(near < 1.6 ? 1.6 : this.o.friction ?? 1.6) * dt);   // (the plate's dip holds it, whatever the groove)
     let t = this.t + (this.v * dt) / this.len;
     // (its groove's end over an open hatch: it drops through, issue #401)
-    if (this.o.hole && t >= 1 && L.isOpen(this.o.hole.gate)) { this.t = 1; this.place(); this.startHole(); return; }
+    if (this.o.hole && t >= 1 && (!this.o.hole.gate || L.isOpen(this.o.hole.gate))) { this.t = 1; this.place(); this.startHole(); return; }
     if (t <= 0 || t >= 1) { t = THREE.MathUtils.clamp(t, 0, 1); this.v = -this.v * 0.25; this.rt.sound?.critter?.('clack', 0.5); }
     // thorns across the groove: it stops against them, or, burning, burns them and rolls on
     const Th = this.o.thorns;

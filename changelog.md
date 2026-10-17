@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.83 — 2026-10-16
+
+- The Rose House is built round a Great Hall now, 84 m long, with a balcony up one side. From the door you see the cistern’s door at its far end, the watcher asleep before it, and a little chest in a cage beside a locked door: the house’s first small key. Find the way up to the balcony, take the Givers’ blade there, and cut the ball into the hole so it drops onto the plate by the cage, then jump down after it. The key opens the east wing, and the watcher now guards the cistern’s door in the hall.
+
 ## v1.82 — 2026-10-16
 
 - Far fewer people wear hats: about one in four now has something on the head, down from four in five, and the rest show their hair. The oddest hats are gone from the crowds: the tall stovepipes and spires of the City-Shaft, the balls of the Garden of Spheres, Lorn’s reed thatches, the lamp hats, the antenna helmets, Viridel’s floating blossoms and the fezzes. The desert’s headcloths, Vael’s cowls and the miners’ hard hats stay a little more common, and the people whose own design has a hat keep theirs.

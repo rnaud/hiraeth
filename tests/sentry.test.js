@@ -65,12 +65,14 @@ test('a bolt you step away from passes you by', () => {
   assert.equal(s.broken, false);
 });
 
-test('the Rose House: the watcher stands between the guard and the Hall of Channels', () => {
+test('the Rose House: the watcher stands before the cistern’s door, in the Great Hall; the door wants it broken and the Hall of Channels’ bowl lit (issue #406)', () => {
   const L = TEMPLES.desert.def.logic;
   const r = solve(L, { items: ['backpack', 'doublejump'] });
   assert.ok(r.done);
   const at = (s) => r.log.indexOf(s);
-  assert.ok(at('find guard (shield)') < at('switch sentry') && at('switch sentry') < at('switch e10'), r.log.join(' / '));
+  assert.ok(at('find guard (shield)') < at('switch sentry') && at('switch sentry') < at('resolve keeper'), r.log.join(' / '));
+  assert.equal(L.elements.sentry.room, 'hall');
+  assert.deepEqual(L.elements.d3.opens, { all: [{ lit: 'sentry' }, { lit: 'b4' }] });
   assert.ok(!L.links.some((l) => (l.needs ?? []).includes('shield')), 'no wind to lean into: the doorway is a door');
 });
 

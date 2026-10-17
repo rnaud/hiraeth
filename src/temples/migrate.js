@@ -235,9 +235,15 @@ export const LAYOUTS = {
   // its own past its north door (the Machines' Hall, an arena), the Hall of Fires' ball in that hall now. Past the old
   // chamber's fight (won, or anything after it): the hall won, its way on open. A save that entered the house: taken to its
   // last mark if it stood inside the old rooms (desert.js RELAID)
+  // v1.83 (issue #406): the house round its Great Hall, the hub: the blade on the hall's balcony, the small key caged on
+  // its floor under the balcony's hole (a ball cut into the hole drops onto its plate), the key's door into the east wing
+  // (the Machines' Hall, the Hall of Fires, the Guard's Hall, the Hall of Channels), the watcher before the cistern's door,
+  // which wants it broken and the Hall of Channels' bowl lit. Past the old Machines' Hall (won, or anything after it): the
+  // ball dropped, the key taken and turned in its door. A save that entered the house: taken to its last mark
   desert: {
-    v: 4,
+    v: 5,
     steps: [
+      { if: ['lit.arM', 'open.dm', 'encounter=done', 'lit.bw0', 'drum.ball3', 'lit.b3', 'open.br1', 'found.guard', 'lit.sentry', 'checkpoint=fires', 'checkpoint=wing', 'checkpoint=ante', 'checkpoint=cistern', 'lit.e10', 'open.sc', 'drum.ball4', 'lit.b4', 'open.d3', 'boss', 'done'], set: { 'drum.ballK': 1, 'found.kS': true, 'unlocked.dE': 1 } },
       { if: ['checkpoint=wing', 'checkpoint=ante', 'checkpoint=cistern', 'lit.e10', 'open.sc', 'drum.ball4', 'lit.b4', 'open.d3', 'boss', 'done'], set: { 'lit.sentry': true, 'open.dw': true } },
       { if: ['open.dc', 'gadget', 'checkpoint=chest', 'checkpoint=fires', 'checkpoint=wing', 'checkpoint=ante', 'checkpoint=cistern', 'boss', 'done'], set: { 'weight.wP': 'pp' } },
       { if: ['encounter=done', 'lit.bw0', 'drum.ball3', 'lit.b3', 'open.br1', 'found.guard', 'lit.sentry', 'checkpoint=fires', 'checkpoint=wing', 'checkpoint=ante', 'checkpoint=cistern', 'lit.e10', 'boss', 'done'], set: { 'lit.arM': true, 'open.dm': true } },

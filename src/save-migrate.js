@@ -525,7 +525,7 @@ export function migrateGunChest(flags) {
 }
 
 /** The remade Givers' House's doors and fires (src/temples/desert.js LOGIC): open and lit for a save that had calmed the Keeper. */
-export const GIVERS_DONE = { open: ['d1', 'dc', 'dk', 'dm', 'br1', 'dw', 'sc', 'd3'], lit: ['b0', 'arM', 'bw0', 'b3', 'sentry', 'e10', 'b4', 'b6', 'b7', 'b8', 'b9'], weight: { wP: 'pp' } };   // (weight: the Dry Channel's on its plate, issue #337)
+export const GIVERS_DONE = { open: ['d1', 'dc', 'dm', 'br1', 'sc', 'd3'], lit: ['b0', 'arM', 'bw0', 'b3', 'sentry', 'e10', 'b4', 'b6', 'b7', 'b8', 'b9'], weight: { wP: 'pp' }, drum: { ballK: 1 }, found: ['kS'], unlocked: { dE: 1 } };   // (weight: the Dry Channel's on its plate, issue #337; the balcony's ball dropped, the small key taken and turned, issue #406)
 /** Step 13 (pure, in place): the sword and the shield kept, the house's old state cleared or settled. */
 export function migrateGivers(flags) {
   flags['item.sword'] ??= true;
@@ -540,6 +540,9 @@ export function migrateGivers(flags) {
     for (const id of GIVERS_DONE.open) flags[`temple.desert.open.${id}`] = true;
     for (const id of GIVERS_DONE.lit) flags[`temple.desert.lit.${id}`] = true;
     for (const [id, plate] of Object.entries(GIVERS_DONE.weight)) flags[`temple.desert.weight.${id}`] = plate;
+    for (const [id, t] of Object.entries(GIVERS_DONE.drum)) flags[`temple.desert.drum.${id}`] = t;
+    for (const id of GIVERS_DONE.found) flags[`temple.desert.found.${id}`] = true;
+    for (const [id, n] of Object.entries(GIVERS_DONE.unlocked)) flags[`temple.desert.unlocked.${id}`] = n;
   }
   return flags;
 }

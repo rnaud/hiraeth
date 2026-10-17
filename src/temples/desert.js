@@ -8,11 +8,12 @@ import { glyphGeometry } from '../story/sign-text.js';
 import { magicMaterial, magicPool, setMagic } from '../story/magic-water.js';
 import { STORY, ROSE_SITE } from '../desert-sites.js';
 import { TempleKit, T, box, lathe, annulus, Z_GAP } from './kit.js';
-import { Door, Ball, Brazier, Flame, Bramble, Bridge, Mark, Pit, Sentry, Switch, Plate, Weight } from './pieces.js';
+import { Door, Ball, Brazier, Flame, Bramble, Bridge, Mark, Pit, Sentry, Switch, Plate, Weight, Key } from './pieces.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
 import { keeperGuardian } from './guardian-generated.js';
 import { chestMound } from '../boxes/mound.js';
 import { roseHouseSkin } from './skins/rose-house.js';
+
 
 // The desert's temple: the Rose House, the great drum of rose stone the
 // people of Qanat call the house of the Givers, standing above the dunes east
@@ -32,36 +33,40 @@ import { roseHouseSkin } from './skins/rose-house.js';
 // 24 m of stone, doors 7 m by 9, every puzzle in the middle of its own room and never rolled through a door, and every
 // room about a puzzle or a fight, never both: the machines stand only in their own hall, round its middle.
 //
+// Since issue #406 (docs/design/temple-best-practices.md, the first house) the house is a hub: the Great Hall, 84 m long
+// with a balcony 7 m up its west side, which you come back to three times. From the door you see, at its far end, the
+// cistern's door with its two dark lamps, the watcher asleep before it, a little chest in a cage on the floor and, high
+// on the balcony, a ball over a hole straight above the cage's plate; and the hall's east door, with a keyhole. The house
+// teaches the key: the lock seen first, the key seen caged, the way to it found round the west wing.
+//
 // Inside (built far overhead, through its door), in order (each room's kind in LOGIC.rooms):
 //   the Threshold        (a passage) a stair hall under an oculus: the first mark, the way back out
-//   the Hall of the Flame (a puzzle) the pilot flame that never went out, in the floor on a tar ball's groove down the
-//                        middle of the hall: lean on the ball (it rolls ahead of you at your pace: Ball `shove`) through
-//                        the flame and on into the hooded bowl at the groove's end before it burns out (pieces.js Ball
-//                        `tar`, Brazier `hood`); the bowl lit, the door in the north wall sinks
-//   the Dry Channel      (a puzzle) a sand pit across the hall, one pier of the old channel standing in its middle: too far
-//                        for one jump either side, a double jump each (its side walls glazed smooth by the old water: no
-//                        climbing round it); a plate on the pier's head holds the chamber's door at the top of the gallery
-//                        open while it is weighed down: stood on, it opens, stepped off, it shuts; the Givers' weight at
-//                        the pier's other end, carried onto it, holds it (issue #337: the house's first carry); a wall to
-//                        climb
-//   the Sword Chamber    (the chest) the makers' chest on a dais under the oculus: THE GIVERS' BLADE (src/items.js
-//                        'sword'). Its north door sinks for the blade in your hand
-//   the Machines' Hall   (a fight) the blade taken, the Givers' machines wake in the walls: step in and its doors hold
-//                        until they are broken (an arena, `ARENAS`; they stand round the hall's middle, its mark's `foes`)
-//   the Hall of Fires    (a puzzle) the near floor and a chasm: down the middle of the floor a tar ball's groove, a fire
-//                        and thorns on it, to the hooded bowl on the chasm's lip (cut the thorns, the blade alone, where
-//                        failure costs nothing; leaned on, the ball burns out on the way; cut, it is there in time); the
-//                        bowl lit, the bridge rises over the chasm to the far ledge and the archway beyond
-//   the Watcher's Hall   (a puzzle) the Givers' second chest by the west wall: THEIR GUARD (src/items.js 'shield', a
-//                        `find`). The guard taken, the Givers' watcher in the middle of the hall wakes (a Sentry, issue
-//                        #245): its eye holds a beam on you and fires a bolt down it; taken on the guard, the bolt flies
-//                        back into its eye, it breaks, and the east door sinks open
-//   the Hall of Channels (a puzzle) the Givers' old channels in its floor; down its middle a ball and a fire at the south
-//                        end, the long groove to the hooded bowl at its north end: a ball cut down it burns out short,
-//                        unless the relay's lid is off: the eye high on the obelisk beside the groove, struck from a
-//                        double jump (a Switch `blade`), lifts it, and wakes the keepers' door back to the Hall of Fires'
-//                        near floor (the shortcut, from the far side); the bowl lit, the north door sinks
-//   the antechamber      (a passage)
+//   the Great Hall       (a puzzle; the hub) floor 0, its balcony at 7 on the west side; the small key's little chest in a
+//                        cage on the floor, the plate beside it under the balcony's hole; the watcher before the cistern's
+//                        door (it wakes with the guard in hand: its own bolt, sent back, breaks it); the cistern's door in
+//                        the north wall, lit by the watcher broken and the Hall of Channels' bowl
+//   the Hall of the Flame (a puzzle, west) the pilot flame on a tar ball's groove: lean on the ball (Ball `shove`) through
+//                        the flame and on into the hooded bowl at the groove's end before it burns out; lit, its north door
+//                        sinks
+//   the Dry Channel      (a puzzle, west) a sand pit across the hall, one pier of the old channel standing in its middle: a
+//                        double jump each side; a plate on the pier's head holds the door at the top of the gallery (into the
+//                        Great Hall's balcony) open while it is weighed down, the Givers' weight carried onto it (issue
+//                        #337); a wall to climb
+//   the balcony          (a puzzle; the chest) THE GIVERS' BLADE on a mound (src/items.js 'sword'); a ball too heavy for
+//                        hands at the head of a groove that ends over a hole: cut, it rolls into the hole and drops onto the
+//                        plate on the floor below (the author's ruling, #401: a hole is not a door), and the cage round the
+//                        small key sinks. Then the drop: off the balcony's edge, 7 m, back to the hall's floor (G6)
+//   the Machines' Hall   (a fight, east, behind the small key's door) the blade taken, the Givers' machines wake in its
+//                        walls: step in and its doors hold until they are broken (an arena, `ARENAS`)
+//   the Hall of Fires    (a puzzle, east) the near floor and a chasm: thorns and a fire on the tar ball's groove to the
+//                        hooded bowl on the chasm's lip (cut the thorns; leaned on, the ball burns out on the way; cut, it
+//                        is there in time); the bowl lit, the bridge rises over the chasm
+//   the Guard's Hall     (the chest, east) the Givers' second chest: THEIR GUARD (src/items.js 'shield', a `find`)
+//   the Hall of Channels (a puzzle, east) down its middle a ball and a fire, the long groove to the hooded bowl: a ball cut
+//                        down it burns out short, unless the relay's lid is off: the eye high on the obelisk beside the
+//                        groove, struck from a double jump (a Switch `blade`), lifts it, and wakes the keepers' door back to
+//                        the Hall of Fires' near floor (the shortcut); the bowl lit, the cistern's door's second lamp lights
+//   the antechamber      (a passage) past the cistern's door, its mark a few steps from the guardian's
 //   the Cistern          (the guardian) the Keeper (an organic guardian: calm it, never hurt it). The dark round the
 //                        walls frightens it: cut each spoke's ball out through its little fire into the hooded bowl on
 //                        the rim. It charges: a guard against the charge jars it and it pants (it was thirsty): give it
@@ -74,28 +79,37 @@ import { roseHouseSkin } from './skins/rose-house.js';
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const UP = V(0, 1, 0);
 
+/** The west wing's middle, the east wing's and the Hall of Channels' (x, the kit's frame): issue #406. */
+export const XW = -41.2, XE = 41.2, XC = 78.4;
 /**
  * The house's doors (m: issue #336, 5 by 6 before) and its rooms in the kit's local frame (z into the house): each hall's
  * floor from wall to wall, its floor's height and its ceiling's, the Dry Channel's ledges and the Hall of Fires' lip.
+ * (issue #406: the Great Hall the hub, the west wing (Flame, Dry Channel) on its west side, the east wing (Machines,
+ * Fires, Guard's, Channels) on its east, the cistern past its north wall; every floor at 0 but the balcony's 7)
  */
 export const DOOR = { w: 7, h: 9 };
 export const ROOMS = {
   threshold: { x0: -10, x1: 10, z0: 0, z1: 14, y: 0, top: 12 },
-  flame: { x0: -18, x1: 18, z0: 15.2, z1: 54, y: 0, top: 20 },
-  channel: { x0: -18, x1: 18, z0: 55.2, z1: 98, y: -9.5, top: 24, ledge: 63.2, landing: 84.7, gallery: 90.7 },
-  chest: { x: 0, z: 115.2, r: 13, y: 7, top: 23 },
-  machines: { x0: -18, x1: 18, z0: 131.8, z1: 163.8, y: 7, top: 25 },
-  fires: { x0: -18, x1: 18, z0: 165, z1: 207, y: -3.5, top: 25, lip: 191, far: 204 },
-  watch: { x0: -18, x1: 18, z0: 208.2, z1: 240.2, y: 7, top: 25 },
-  wing: { x0: 19.2, x1: 55.2, z0: 165, z1: 240.2, y: 7, top: 25 },
-  cistern: { x: 37.2, z: 267.9, r: 18, y: 7, top: 29 },
+  hall: { x0: -22, x1: 22, z0: 15.2, z1: 99.2, y: 0, top: 30, west: 24.9, east: 31.2 },
+  balcony: { x0: -22, x1: -4, z0: 56, z1: 99.2, y: 7 },
+  flame: { x0: XW - 18, x1: XW + 18, z0: 15.2, z1: 54, y: 0, top: 20 },
+  channel: { x0: XW - 18, x1: XW + 18, z0: 55.2, z1: 98, y: -9.5, top: 24, ledge: 63.2, landing: 84.7, gallery: 90.7, door: 94.35 },
+  machines: { x0: XE - 18, x1: XE + 18, z0: 15.2, z1: 47.2, y: 0, top: 18 },
+  fires: { x0: XE - 18, x1: XE + 18, z0: 48.4, z1: 90.4, y: -10.5, top: 18, lip: 74.4, far: 87.4 },
+  watch: { x0: XE - 18, x1: XE + 18, z0: 91.6, z1: 123.6, y: 0, top: 18 },
+  wing: { x0: XC - 18, x1: XC + 18, z0: 48.4, z1: 123.6, y: 0, top: 18 },
+  cistern: { x: 0, z: 126.9, r: 18, y: 0, top: 22 },
 };
 /**
  * The Dry Channel's pier (the kit's x and z): its middle, width and depth, where the Givers' weight lies at its west end
  * (issue #337); 9 m of air either side of it (one jump is about 6 m, the double jump 13).
  */
-export const PIER = { x: -0.5, w: 8.6, d: 3.4, z: 73.95, weight: -3.3 };
-
+export const PIER = { x: XW - 0.5, w: 8.6, d: 3.4, z: 73.95, weight: XW - 3.3 };
+/**
+ * (issue #406) The balcony's ball: its groove (x, from z0 to z1), the hole at its end over the plate on the floor below,
+ * the hole's half width; the small key's little chest on the floor (x, z); the blade's mound on the balcony (x, z).
+ */
+export const DROP = { x: -10, z0: 63, z1: 76, hole: 1.7, key: [-1, 70], blade: [-15, 88] };
 /** Where the house stands in the dunes (world x, z) and which way its door looks (toward Qanat). */
 export const SITE = { ...ROSE_SITE };
 SITE.heading = Math.atan2(STORY.city.x - SITE.x, STORY.city.z - SITE.z);
@@ -119,6 +133,7 @@ export const PALETTE = {
   light: { shadow: '#c79aa3', light: '#fff0e0', sun: '#ffe6c4' },
 };
 
+
 // ------------------------------------------------------------------ the puzzle, as logic (src/temples/logic.js)
 // (a drum's `roll`: what moves it, `hand` a shove, `sword` a cut: logic.js solve; the bowls a cut ball reaches `need` the
 // sword, the rooms past the watcher the shield)
@@ -128,22 +143,23 @@ export const LOGIC = {
   // (each room's kind, issue #336: a puzzle, a fight, the chest, a passage or the guardian, never both a puzzle and a fight;
   // src/foes.js places machines only in a fight's room: scripts/temple-design/rules.mjs, tests/temple-rules.test.js)
   rooms: {
-    threshold: { checkpoint: true, kind: 'passage' }, flame: { checkpoint: true, kind: 'puzzle' }, channel: { checkpoint: true, kind: 'puzzle' },
-    landing: { kind: 'passage' }, chest: { checkpoint: true, kind: 'chest' }, machines: { checkpoint: true, kind: 'combat' },
-    fires: { checkpoint: true, kind: 'puzzle' }, firesFar: { kind: 'puzzle' }, wing: { checkpoint: true, kind: 'puzzle' },
+    threshold: { checkpoint: true, kind: 'passage' }, hall: { checkpoint: true, kind: 'puzzle' }, flame: { checkpoint: true, kind: 'puzzle' },
+    channel: { checkpoint: true, kind: 'puzzle' }, balcony: { checkpoint: true, kind: 'puzzle' }, machines: { checkpoint: true, kind: 'combat' },
+    fires: { checkpoint: true, kind: 'puzzle' }, firesFar: { kind: 'chest' }, wing: { checkpoint: true, kind: 'puzzle' },
     ante: { checkpoint: true, kind: 'passage' }, cistern: { boss: true, kind: 'guardian' }, spring: { kind: 'passage' },
   },
   links: [
-    { a: 'threshold', b: 'flame' },
+    { a: 'threshold', b: 'hall' },
+    { a: 'hall', b: 'flame' },                                    // the Great Hall's west archway
     { a: 'flame', b: 'channel', door: 'd1' },
-    { a: 'channel', b: 'landing', needs: ['doublejump'] },   // over the pier on the double jump
-    { a: 'landing', b: 'chest', door: 'dc' },     // up the gallery's wall, to the chamber's door the pier's plate wakes
-    { a: 'chest', b: 'machines', door: 'dk' },    // the chamber's north door: it sinks for the blade in your hand
-    { a: 'machines', b: 'fires', door: 'dm' },    // the Machines' Hall's way on: won, it opens
-    { a: 'fires', b: 'firesFar', door: 'br1' },   // the bridge, to the archway into the Watcher's Hall
-    { a: 'firesFar', b: 'wing', door: 'dw' },     // the Watcher's Hall's east door: shut until the watcher is broken
-    { a: 'fires', b: 'wing', door: 'sc' },        // the keepers' door: the shortcut, woken from the wing's side
-    { a: 'wing', b: 'ante', door: 'd3' },
+    { a: 'channel', b: 'balcony', door: 'dc', needs: ['doublejump'] },   // over the pier on the double jump, up the gallery, through the door its plate holds
+    { a: 'balcony', b: 'hall', oneWay: true },                    // the drop: off the balcony's edge, 7 m, to the hall's floor
+    { a: 'hall', b: 'machines', door: 'dE' },                     // the east door: the small key's lock
+    { a: 'machines', b: 'fires', door: 'dm' },                    // the Machines' Hall's way on: won, it opens
+    { a: 'fires', b: 'firesFar', door: 'br1' },                   // the bridge, to the archway into the Guard's Hall
+    { a: 'firesFar', b: 'wing' },                                 // the Guard's Hall's east doorway
+    { a: 'fires', b: 'wing', door: 'sc' },                        // the keepers' door: the shortcut, woken from the wing's side
+    { a: 'hall', b: 'ante', door: 'd3' },                         // the cistern's door, in the Great Hall's north wall
     { a: 'ante', b: 'cistern', door: 'd4' },
     { a: 'cistern', b: 'spring', door: 'd5' },
   ],
@@ -153,14 +169,20 @@ export const LOGIC = {
     ball1: { type: 'drum', room: 'flame', plate: 'pb0', plateAt: 1, start: 0, roll: 'hand' },
     b0: { type: 'brazier', room: 'flame', when: { drumOn: ['ball1', 'pb0'] } },     // hooded: only the ball lights it
     d1: { type: 'door', opens: { lit: 'b0' }, latch: true },
-    // the Dry Channel's pier: a plate on its head holds the chamber's door at the top of the gallery open while weighed down,
-    // across the pit; the Givers' weight at the pier's other end, carried onto it, holds it (issue #337)
+    // the Dry Channel's pier: a plate on its head holds the door at the top of the gallery open while weighed down, across
+    // the pit; the Givers' weight at the pier's other end, carried onto it, holds it (issue #337)
     wP: { type: 'weight', room: 'channel', plate: 'pp' },
     pp: { type: 'plate', room: 'channel' },
     dc: { type: 'door', opens: { pressed: 'pp' } },
-    // the Sword Chamber: the blade; its north door sinks for it in your hand
-    chest: { type: 'gadget', room: 'chest', item: 'sword' },
-    dk: { type: 'door', opens: { item: 'sword' }, latch: true },
+    // the balcony: the blade (issue #406: on a mound over the Great Hall)
+    chest: { type: 'gadget', room: 'balcony', item: 'sword' },
+    // the balcony's ball, too heavy for hands: cut down its groove into the hole, it drops onto the plate on the floor below
+    // (through: a hole, not a door, #401), and the small key's cage sinks
+    pK: { type: 'plate', room: 'hall' },
+    ballK: { type: 'drum', room: 'balcony', plate: 'pK', plateAt: 1, start: 0, roll: 'sword', needs: ['sword'], through: 'hole' },
+    kS: { type: 'key', kind: 'small', room: 'hall', when: { drumOn: ['ballK', 'pK'] } },
+    // the Great Hall's east door: the small key (issue #406: the first house teaches the key)
+    dE: { type: 'door', lock: 'small' },
     // the Machines' Hall: its doors hold while its machines stand and you are in it; won, its way on opens
     arM: { type: 'arena', room: 'machines' },
     dm: { type: 'door', opens: { lit: 'arM' }, latch: true },
@@ -170,18 +192,18 @@ export const LOGIC = {
     ball3: { type: 'drum', room: 'fires', plate: 'pb3', plateAt: 1, start: 0, roll: 'sword' },
     b3: { type: 'brazier', room: 'fires', needs: ['sword'], when: { drumOn: ['ball3', 'pb3'] } },
     br1: { type: 'bridge', opens: { lit: 'b3' }, latch: true },
-    // the Watcher's Hall: the Givers' guard
+    // the Guard's Hall: the Givers' guard
     guard: { type: 'find', room: 'firesFar', item: 'shield', box: 'desert.temple.shield' },
-    // the Givers' watcher in the middle of the hall: it wakes with the guard in hand; its bolt sent back breaks it, and the door opens
-    sentry: { type: 'switch', room: 'firesFar', needs: ['shield'] },
-    dw: { type: 'door', opens: { lit: 'sentry' }, latch: true },
     // the Hall of Channels: the eye that lifts the relay's lid (and wakes the keepers' door), the ball, the bowl at the groove's end
     e10: { type: 'switch', room: 'wing', needs: ['sword'] },
     sc: { type: 'door', opens: { lit: 'e10' }, latch: true },
     pb4: { type: 'plate', room: 'wing' },
     ball4: { type: 'drum', room: 'wing', plate: 'pb4', plateAt: 1, start: 0, roll: 'sword' },
     b4: { type: 'brazier', room: 'wing', needs: ['sword'], when: { all: [{ drumOn: ['ball4', 'pb4'] }, { lit: 'e10' }] } },
-    d3: { type: 'door', opens: { lit: 'b4' }, latch: true },
+    // the Givers' watcher before the cistern's door, in the Great Hall: it wakes with the guard in hand; its bolt sent back
+    // breaks it. The cistern's door wants it broken and the Hall of Channels' bowl lit (its two lamps)
+    sentry: { type: 'switch', room: 'hall', needs: ['shield'] },
+    d3: { type: 'door', opens: { all: [{ lit: 'sentry' }, { lit: 'b4' }] }, latch: true },
     d4: { type: 'door', opens: null },                            // the arena's door: shut while the Keeper is awake
     // the cistern's spokes: each ball cut out through its fire into the hooded bowl on the rim
     ...Object.fromEntries(SPOKES.flatMap((b, i) => [[`pk${i + 1}`, { type: 'plate', room: 'cistern' }], [b, { type: 'drum', room: 'cistern', plate: `pk${i + 1}`, plateAt: 0, start: 1, roll: 'sword' }]])),
@@ -189,7 +211,7 @@ export const LOGIC = {
     keeper: { type: 'boss', room: 'cistern', needs: ['sword', 'shield'], requires: { all: RIM.map((id) => ({ lit: id })) } },
     d5: { type: 'door', opens: { resolved: true } },
     // the house's map, in a little chest off the way on (issue #405: src/house-map.js; nothing waits on it)
-    map: { type: 'map', room: 'channel', at: [-16.2, 0, 56.4], yaw: Math.PI / 4 },
+    map: { type: 'map', room: 'channel', at: [XW - 16.2, 0, 56.4], yaw: Math.PI / 4 },
   },
 };
 
@@ -199,7 +221,7 @@ export const LOGIC = {
  * stand round the hall's middle (its mark's `foes`), never in a puzzle's room.
  */
 export const ARENAS = [{
-  el: 'arM', room: 'machines', zone: { min: [ROOMS.machines.x0, 6, ROOMS.machines.z0], max: [ROOMS.machines.x1, 16, ROOMS.machines.z1] }, doors: ['dk', 'dm'], extra: 1,
+  el: 'arM', room: 'machines', zone: { min: [ROOMS.machines.x0 + 0.4, -1, ROOMS.machines.z0], max: [ROOMS.machines.x1, 9, ROOMS.machines.z1] }, doors: ['dE', 'dm'], extra: 1,
   shut: 'The hall’s doors grind shut. The Givers’ machines are waking in the walls.',
   won: 'The last of the machines falls still, and the doors sink open.',
 }];
@@ -266,19 +288,20 @@ export const KEEPER_LIGHT = 0.2;
  */
 export const KEEPER_DARK = { open: 1.8, water: 1 };
 
+
 // where the Hall of Fires' ball stops against the thorns on its groove (t along it: 14.6 m, its front at the tangle's
 // face); its groove (x, and z from start to end) and the bowl on the chasm's lip past its end; the keepers' door in the
-// Hall of Fires' east wall and the Watcher's Hall's east door into the Hall of Channels (z); the Hall of Channels' groove
+// Hall of Fires' east wall and the Guard's Hall's east doorway into the Hall of Channels (z); the Hall of Channels' groove
 // (x, and z from its start at the south end to its end), and its ball: how freely it rolls, how long it burns (cut at the
 // start it goes out about 2 m short of the bowl, 1.5 s before it settles there; caught again at the relay it gets there
 // with 2 s to spare, issue #311: it had a fifth of a second), and where its relay fire lies (m along the groove: burning
 // there, it carries the ball on to the bowl); the eye's obelisk beside the groove (x, z)
 const CHEST_THORNS = 7.35 / 14.6;
-export const FIRES = { x: 0, z0: 174.2, z1: 188.8, bowl: 190.2, bridge: -5 };
-const SC_Z = 171, WING_Z = 232;
-export const WING = { friction: 0.2, burns: 6, relay: 20.5, x: 37.2, z0: 186.5, z1: 215.4, bowl: 216.8, eye: [44, 203] };
-/** The Givers' watcher (issue #245): its foot in the middle of the Watcher's Hall, east of its way in. */
-export const SENTRY_AT = [5, 7, 226];
+export const FIRES = { x: XE, z0: 57.6, z1: 72.2, bowl: 73.6, bridge: XE - 5 };
+const SC_Z = 54.4, WING_Z = 115.4;
+export const WING = { friction: 0.2, burns: 6, relay: 20.5, x: XC, z0: 69.9, z1: 98.8, bowl: 100.2, eye: [XC + 6.8, 86.4] };
+/** The Givers' watcher (issue #245): its foot on the Great Hall's floor before the cistern's door (issue #406). */
+export const SENTRY_AT = [6, 0, 80];
 /** The Hall of Fires' ball: rolls freely, burns briefly (leaned on, at a walk, it goes out before the bowl; cut, it is there). */
 export const CHEST_BALL = { friction: 0.25, burns: 3.8, flame: FIRES.z0 + 2.6 };
 /**
@@ -360,15 +383,17 @@ class Glazed {
   }
 }
 
+
 // ------------------------------------------------------------------ inside
 // (issue #336: every room 36 m across under 18 to 24 m of stone, doors 7 by 9 m, each puzzle in the middle of its room;
 // the props stay at a body's scale: the balls, the bowls, the plates, the weight, the chests, the eye, the jumps)
+// (issue #406: the Great Hall the hub, 44 by 84 m under 30 m of stone, its balcony 7 m up; the wings either side share its
+// walls, the cistern past its north wall)
 function layout(rt) {
   const K = rt.kit, M = rt.M;
   const add = (P, o) => rt.add(P, o);
   const D = DOOR, R0 = ROOMS;
-  // (on the floor at y: the Dry Channel's on its sunk sand, the upper halls' on their floors at 7; solid as drawn: you walk
-  // up over them)
+  // (on the floor at y: the Dry Channel's on its sunk sand; solid as drawn: you walk up over them)
   const sandDrift = (x, z, w, d, h, ry = 0, y = 0) => K.both(M.sand, T(new THREE.SphereGeometry(1, 10, 5, 0, Math.PI * 2, 0, Math.PI / 2), [x, y - 0.05, z], [0, ry, 0], [w, h, d]));
   /** A tar ball's groove on a floor at y, from (ax, az) to (bx, bz): a dark channel between two trim lips. */
   const groove = (ax, az, bx, bz, y, over = 1) => {
@@ -382,8 +407,6 @@ function layout(rt) {
   // ---- the Threshold (z 0..14): a stair hall, the way back out behind you
   const TH = R0.threshold;
   K.hall({ x: 0, z: 7, w: TH.x1 - TH.x0, d: TH.z1 - TH.z0, y: 0, h: TH.top, roof: 'oculus', oculus: 0.3, doors: [{ side: 's', w: 6, h: 8 }], omit: ['n'] });
-  // the wall between the Threshold and the taller hall beyond, with the archway through it
-  K.wall(-18.6, 14.6, 18.6, 14.6, 0, 20, { t: 1.2, holes: [{ at: 18.6, w: 8, h: 10 }] });
   // the way out: a dark doorway in the south wall
   K.add(M.voidM, T(new THREE.PlaneGeometry(6, 8).translate(0, 4, 0), [0, 0, -1.25]));
   K.solid(box(6.4, 8, 0.5, 0, 4, -1.4));
@@ -391,206 +414,240 @@ function layout(rt) {
   add(Mark, { room: 'threshold', at: [-6, 0, 6.5], yaw: Math.PI / 2 });
   sandDrift(6.5, 3, 2.4, 3, 0.5); sandDrift(-7, 11.5, 1.8, 2, 0.35);
 
-  // ---- the Hall of the Flame: the pilot flame on the tar ball's groove down the hall's middle, the hooded bowl at its end
+  // ---- the Great Hall (issue #406): the hub. Its south wall the Threshold's archway; its west wall the west wing's east wall
+  // (the archway into the Hall of the Flame, the Dry Channel's door at the balcony's height); its east wall the east wing's
+  // west wall (the small key's door); its north wall the cistern's door
+  const GH = R0.hall, [, ghz] = mid(GH), BA = R0.balcony, CH = R0.channel;
+  K.hall({ x: 0, z: ghz, w: GH.x1 - GH.x0, d: GH.z1 - GH.z0, y: 0, h: GH.top, roof: 'oculus', oculus: 0.25,
+    doors: [{ side: 's', w: 8, h: 10 }, { side: 'w', at: GH.west - ghz, w: D.w, h: D.h }, { side: 'w', at: CH.door - ghz, w: D.w, h: D.h, y0: BA.y },
+      { side: 'e', at: GH.east - ghz, w: D.w, h: D.h }, { side: 'n', w: D.w, h: D.h }] });
+  // the balcony: 18 m deep down the west side, 7 m up, the hole over the plate (its floor in four slabs round the hole)
+  const DR = DROP, h0 = DR.x - DR.hole, h1 = DR.x + DR.hole, hz0 = DR.z1 - DR.hole, hz1 = DR.z1 + DR.hole;
+  K.slab(BA.x0, BA.z0, h0, BA.z1, BA.y, 0.9);
+  K.slab(h1, BA.z0, BA.x1, BA.z1, BA.y, 0.9);
+  K.slab(h0, BA.z0, h1, hz0, BA.y, 0.9);
+  K.slab(h0, hz1, h1, BA.z1, BA.y, 0.9);
+  // its edge: a trim lip along the open sides, and the columns under it
+  K.both(M.trim, box(0.5, 0.3, BA.z1 - BA.z0, BA.x1 - 0.25, BA.y + 0.15, (BA.z0 + BA.z1) / 2));
+  K.both(M.trim, box(BA.x1 - BA.x0, 0.3, 0.5, (BA.x0 + BA.x1) / 2, BA.y + 0.15, BA.z0 + 0.25));
+  for (const z of [60, 69, 86, 95]) K.column(BA.x1 - 1.2, z, 0, BA.y - 0.9, 0.6);
+  // the hole's collar of trim (a ball's way down), and the plate under it on the floor
+  K.add(M.trim, box(DR.hole * 2 + 0.6, 0.06, 0.3, DR.x, BA.y + 0.03, hz0 - 0.15)); K.add(M.trim, box(DR.hole * 2 + 0.6, 0.06, 0.3, DR.x, BA.y + 0.03, hz1 + 0.15));
+  K.add(M.trim, box(0.3, 0.06, DR.hole * 2, h0 - 0.15, BA.y + 0.03, DR.z1)); K.add(M.trim, box(0.3, 0.06, DR.hole * 2, h1 + 0.15, BA.y + 0.03, DR.z1));
+  groove(DR.x, DR.z0, DR.x, hz0 - 0.4, BA.y, 0);   // (short of the hole's collar: no faces in one plane)
+  add(Ball, { id: 'ballK', a: [DR.x, BA.y + 0.04, DR.z0], b: [DR.x, BA.y + 0.04, DR.z1], r: 1.0, friction: 0.25, blade: true,
+    hole: { to: [DR.x, 0.04, DR.z1], fell: 'The ball drops through the balcony onto the plate below. Down there, a cage sinks.' } });
+  add(Plate, { id: 'pK', at: [DR.x, 0, DR.z1], r: 1.2 });
+  add(Key, { id: 'kS', at: [DR.key[0], 0, DR.key[1]], yaw: Math.PI });
+  // the blade on its mound by the Dry Channel's door (the box system builds the chest: src/boxes/)
+  K.both(M.trim, ...chestMound(DR.blade[0], BA.y, DR.blade[1]));   // (issue #162: a ramped mound, no steps: src/boxes/mound.js)
+  K.add(M.glyph, T(new THREE.TorusGeometry(1.2, 0.05, 4, 48), [DR.blade[0], BA.y + 0.635, DR.blade[1]], [Math.PI / 2, 0, 0]));
+  add(Mark, { room: 'balcony', at: [-18, BA.y, 70], yaw: Math.PI / 2 });
+  // the cistern's door, its two lamps (the watcher broken, the Hall of Channels' bowl lit), the makers' glyph over it
+  add(Door, { id: 'd3', at: [0, 0, GH.z1 + 0.6], w: D.w, h: D.h, lamps: [{ lit: 'sentry' }, { lit: 'b4' }] });
+  K.glyph([0, 12.5, GH.z1 - 0.05], 2.4, Math.PI);
+  // the Givers' watcher before it
+  add(Sentry, { id: 'sentry', at: SENTRY_AT, yaw: Math.PI, zone: { min: [-14, -1, 60], max: [20, 6, 99] },
+    woke: 'The watcher before the cistern’s door wakes. Hold up your guard ({key:guard}) as it fires.',
+    reflected: 'The bolt glances off your guard, back down its beam.',
+    broken: 'Its own bolt cracks its eye. A lamp on the cistern’s door lights.',
+    hit: 'The bolt burns. Guard ({key:guard}) when the beam narrows.',
+    shrug: 'The bronze rings and holds. Only its own bolt could crack that eye.' });
+  // the small key's door in the east wall
+  add(Door, { id: 'dE', at: [GH.x1 + 0.6, 0, GH.east], yaw: Math.PI / 2, w: D.w, h: D.h, t: 1.3 });
+  // the old channels in the floor, a mural of the giants carrying water, sand blown in
+  for (const x of [-15, 15]) K.add(M.dark, box(1.2, 0.04, 30, x, 0.02, 34));
+  for (let i = 0; i < 4; i++) K.glyph([GH.x1 - 0.05, 4 + (i % 2) * 1.8, 50 + i * 9], 1.5, -Math.PI / 2);
+  add(Mark, { room: 'hall', at: [12, 0, 21], yaw: -Math.PI / 4 });
+  sandDrift(-17, 30, 2.4, 4, 0.6, 0.3); sandDrift(18, 62, 2, 3, 0.5, 1.1); sandDrift(-6, 50, 1.6, 2.4, 0.4, 2);
+
+  // ---- the Hall of the Flame (west): the pilot flame on the tar ball's groove down the hall's middle, the hooded bowl at
+  // its end; its east wall the Great Hall's
   const FL = R0.flame, [, flz] = mid(FL);
-  K.hall({ x: 0, z: flz, w: FL.x1 - FL.x0, d: FL.z1 - FL.z0, y: 0, h: FL.top, roof: 'oculus', oculus: 0.22, columns: 4, omit: ['s', 'n'] });
+  K.hall({ x: XW, z: flz, w: FL.x1 - FL.x0, d: FL.z1 - FL.z0, y: 0, h: FL.top, roof: 'oculus', oculus: 0.22, columns: 4, omit: ['n', 'e'] });
   // the wall between the Hall of the Flame and the deeper, taller Dry Channel, with the door through it
-  K.wall(-18.6, 54.6, 18.6, 54.6, R0.channel.y, R0.channel.top - R0.channel.y, { t: 1.2, holes: [{ at: 18.6, w: D.w, h: D.h, y0: -R0.channel.y }] });
-  add(Door, { id: 'd1', at: [0, 0, 54.6], w: D.w, h: D.h, lamps: [{ lit: 'b0' }] });
-  groove(0, 23.2, 0, 43.2, 0);
-  add(Flame, { at: [0, 0, 29.7], r: 0.9 });
-  add(Ball, { id: 'ball1', a: [0, 0.04, 23.2], b: [0, 0.04, 43.2], r: 1.0, friction: 0.6, shove: true, blade: true,
+  K.wall(XW - 18.6, 54.6, XW + 18.6, 54.6, CH.y, CH.top - CH.y, { t: 1.2, holes: [{ at: 18.6, w: D.w, h: D.h, y0: -CH.y }] });
+  add(Door, { id: 'd1', at: [XW, 0, 54.6], w: D.w, h: D.h, lamps: [{ lit: 'b0' }] });
+  groove(XW, 23.2, XW, 43.2, 0);
+  add(Flame, { at: [XW, 0, 29.7], r: 0.9 });
+  add(Ball, { id: 'ball1', a: [XW, 0.04, 23.2], b: [XW, 0.04, 43.2], r: 1.0, friction: 0.6, shove: true, blade: true,
     shoveLine: 'You lean on the tar ball, and it rolls ahead of you along its groove.',
     tar: { ...TAR, burns: 14, caught: 'The tar ball rolls through the Givers’ flame and catches. It will not burn for long.' } });
-  add(Brazier, { id: 'b0', at: [0, 0, 45.1], hood: { ball: 'ball1', yaw: Math.PI, said: 'The bowl is hooded in stone, its mouth low on the groove: only something burning rolled into it would reach the coals.' } });
+  add(Brazier, { id: 'b0', at: [XW, 0, 45.1], hood: { ball: 'ball1', yaw: Math.PI, said: 'The bowl is hooded in stone, its mouth low on the groove: only something burning rolled into it would reach the coals.' } });
   // a mural on the west wall: the giants carrying water, in glyph rows, and carrying fire
-  for (let i = 0; i < 4; i++) K.glyph([-17.95, 3.6 + (i % 2) * 1.8, 22 + i * 8], 1.5, Math.PI / 2);
-  add(Mark, { room: 'flame', at: [-8, 0, 18], yaw: Math.PI / 2 });
-  sandDrift(-13, 30, 2, 5, 0.6, 0.2); sandDrift(-12.6, 50, 1.6, 2.4, 0.4); sandDrift(12.4, 21, 2.2, 3, 0.5, 0.6);
+  for (let i = 0; i < 4; i++) K.glyph([XW - 17.95, 3.6 + (i % 2) * 1.8, 22 + i * 8], 1.5, Math.PI / 2);
+  add(Mark, { room: 'flame', at: [XW - 8, 0, 18], yaw: Math.PI / 2 });
+  sandDrift(XW - 13, 30, 2, 5, 0.6, 0.2); sandDrift(XW - 12.6, 50, 1.6, 2.4, 0.4); sandDrift(XW + 12.4, 47, 2.2, 3, 0.5, 0.6);
 
-  // ---- the Dry Channel: a sand pit across the hall, one pier of the old channel in its middle, a wall to climb
-  const CH = R0.channel, [, chz] = mid(CH);
-  K.hall({ x: 0, z: chz, w: CH.x1 - CH.x0, d: CH.z1 - CH.z0, y: CH.y, h: CH.top - CH.y, floor: false, roof: 'oculus', oculus: 0.25, doors: [{ side: 'n', w: D.w, h: D.h, y0: 7 - CH.y }], omit: ['s'] });
-  K.slab(-18, 54.6, 18, CH.ledge, 0, 9.5);              // the near ledge
-  K.slab(-18, CH.landing, 18, CH.gallery, 0, 9.5);      // the far landing
+  // ---- the Dry Channel (west): a sand pit across the hall, one pier of the old channel in its middle, a wall to climb, the
+  // door at its top into the Great Hall's balcony
+  const [, chz] = mid(CH);
+  K.hall({ x: XW, z: chz, w: CH.x1 - CH.x0, d: CH.z1 - CH.z0, y: CH.y, h: CH.top - CH.y, floor: false, roof: 'oculus', oculus: 0.25, omit: ['s', 'e'] });
+  // (under the Great Hall's floor, its west wall carried down to the sand)
+  K.wall(GH.x0 - 0.6, 54.6, GH.x0 - 0.6, 98.6, CH.y, -CH.y, { t: 1.2, cap: false });
+  K.slab(CH.x0, 54.6, CH.x1, CH.ledge, 0, 9.5);           // the near ledge
+  K.slab(CH.x0, CH.landing, CH.x1, CH.gallery, 0, 9.5);   // the far landing
   // the gallery: a block you climb, under its own top slab (the block stops under the slab: one face, not two)
-  K.climbable('the gallery: the Dry Channel\'s climb from the far landing up to the Sword Chamber', () => {
-    K.both(M.wallGlyph, box(36, 16.1, CH.z1 - CH.gallery, 0, -1.45, (CH.gallery + CH.z1) / 2));
-    K.slab(-18, CH.gallery, 18, CH.z1, 7, 0.4);
+  K.climbable('the gallery: the Dry Channel\'s climb from the far landing up to the Great Hall\'s balcony', () => {
+    K.both(M.wallGlyph, box(36, 16.1, CH.z1 - CH.gallery, XW, -1.45, (CH.gallery + CH.z1) / 2));
+    K.slab(CH.x0, CH.gallery, CH.x1, CH.z1, 7, 0.4);
   });
-  K.both(M.sand, box(36, 1, CH.landing - CH.ledge + 0.1, 0, -9.5, (CH.ledge + CH.landing) / 2));  // the pit's sand
-  for (let i = 0; i < 7; i++) if (i !== 3) sandDrift(-14 + i * 4.6, 66.5 + (i % 3) * 6.5, 2.6, 3.4, 0.8 + (i % 2) * 0.5, i, -9);
-  add(Pit, { room: 'channel', min: [-19, -14, CH.ledge], max: [19, -2.5, CH.landing] });
+  K.both(M.sand, box(36, 1, CH.landing - CH.ledge + 0.1, XW, -9.5, (CH.ledge + CH.landing) / 2));  // the pit's sand
+  for (let i = 0; i < 7; i++) if (i !== 3) sandDrift(XW - 14 + i * 4.6, 66.5 + (i % 3) * 6.5, 2.6, 3.4, 0.8 + (i % 2) * 0.5, i, -9);
+  add(Pit, { room: 'channel', min: [CH.x0 - 1, -14, CH.ledge], max: [CH.x1 + 1, -2.5, CH.landing] });
   // the pier: 9 m of air either side (one jump is 6; the double jump 13), its head a step under the ledges'; long enough
   // east to west for the plate and, at its west end, the Givers' weight that holds it down (issue #337)
   K.both(M.wallGlyph, box(PIER.w, 9.2, PIER.d, PIER.x, -4.9, PIER.z));
   K.both(M.trim, box(PIER.w + 0.4, 0.3, PIER.d + 0.4, PIER.x, -0.15, PIER.z));
-  add(Plate, { id: 'pp', at: [1.5, 0, PIER.z], r: 1.2 });
+  add(Plate, { id: 'pp', at: [XW + 1.5, 0, PIER.z], r: 1.2 });
   add(Weight, { id: 'wP', at: [PIER.weight, 0, PIER.z], name: 'Givers’ weight',
     zone: { min: [PIER.x - PIER.w / 2 - 0.4, -1, PIER.z - 2.05], max: [PIER.x + PIER.w / 2 + 0.4, 6, PIER.z + 2.05] },
     hint: 'Off the plate, the door at the top of the gallery sinks shut again. Something heavier must hold it down.',
     back: 'The weight tumbles into the sand, and is back on the pier where it lay.' });
   // (its side walls glazed: no climbing round the pit; the gallery's face, past it, is the climb)
-  add(Glazed, { min: [-18.5, -10, CH.ledge - 0.1], max: [18.5, 18, CH.landing + 0.1], said: 'The channel’s walls are glazed smooth by the water that once ran here. Nothing to hold.' });
+  add(Glazed, { min: [CH.x0 - 0.5, -10, CH.ledge - 0.1], max: [CH.x1 + 0.5, 18, CH.landing + 0.1], said: 'The channel’s walls are glazed smooth by the water that once ran here. Nothing to hold.' });
   // handholds: a row of glyph ledges up the gallery's face (the house's one climb: its other walls are not, issue #115)
-  for (let i = 0; i < 3; i++) K.add(M.trim, box(5, 0.25, 0.4, 0, 1.8 + i * 1.8, CH.gallery - 0.22));
-  K.frieze([-17.9, 58], [-17.9, 95], 11, 'e', 6);
-  K.frieze([17.9, 58], [17.9, 95], 11, 'w', 6);
-  add(Mark, { room: 'channel', at: [-6.5, 0, 58.5], yaw: Math.PI / 2 });   // (off the wall: the camera has room behind you when you come back here, issue #195)
+  for (let i = 0; i < 3; i++) K.add(M.trim, box(5, 0.25, 0.4, XW, 1.8 + i * 1.8, CH.gallery - 0.22));
+  K.frieze([CH.x0 + 0.1, 58], [CH.x0 + 0.1, 95], 11, 'e', 6);
+  add(Door, { id: 'dc', at: [GH.x0 - 0.6, BA.y, CH.door], yaw: Math.PI / 2, w: D.w, h: D.h, t: 1.3, lamps: [{ pressed: 'pp' }] });
+  add(Mark, { room: 'channel', at: [XW - 6.5, 0, 58.5], yaw: Math.PI / 2 });   // (off the wall: the camera has room behind you when you come back here, issue #195)
 
-  // ---- the Sword Chamber (a rotunda, floor at 7), through a short passage in the Dry Channel's north wall
-  K.corridor([0, 99.2], [0, 101.6], 7, { w: D.w, h: D.h });
-  const SW = R0.chest;
-  K.rotunda({ x: SW.x, z: SW.z, y: SW.y, r: SW.r, h: SW.top - SW.y, gaps: [{ a: Math.PI, w: D.w, h: D.h }, { a: 0, w: D.w, h: D.h }], oculus: 0.32 });
-  // the dais under the oculus, and the chest on it (the box system builds the chest: src/boxes/)
-  K.both(M.trim, ...chestMound(SW.x, 7, SW.z));   // (issue #162: a ramped mound, no steps: src/boxes/mound.js)
-  K.add(M.glyph, T(new THREE.TorusGeometry(1.2, 0.05, 4, 48), [SW.x, 7.635, SW.z], [Math.PI / 2, 0, 0]));   // (the ring on the mound's top)
-  // the frieze of the Givers' blade round the chamber: their hands carrying it, in glyphs
-  for (let i = 0; i < 6; i++) { const a = Math.PI * (0.25 + i * 0.3); K.glyph([SW.x + Math.sin(a) * (SW.r - 0.05), 10.5, SW.z + Math.cos(a) * (SW.r - 0.05)], 1.4, a + Math.PI); }
-  add(Door, { id: 'dc', at: [0, 7, 98.6], w: D.w, h: D.h, lamps: [{ pressed: 'pp' }] });
-  add(Door, { id: 'dk', at: [0, 7, SW.z + SW.r + 0.7], w: D.w, h: D.h, lamps: [{ item: 'sword' }] });
-  add(Mark, { room: 'chest', at: [6.5, 7, SW.z - 6.5], yaw: -Math.PI * 0.25 });   // (its spot toward the dais, not the wall: issue #195)
+  // ---- the east wing (issue #406: its floors at 0): the Machines' Hall, the Hall of Fires and the Guard's Hall one behind
+  // the other along the Great Hall's east wall, the Hall of Channels east of them. One wall down their east side (the
+  // keepers' door and the Guard's Hall's east doorway in it), the Great Hall's east wall down their west
+  const MH = R0.machines, [, mhz] = mid(MH), FI = R0.fires, [, fiz] = mid(FI), WA = R0.watch, [, waz] = mid(WA);
+  K.wall(MH.x1 + 0.6, WA.z1 + 1.2, MH.x1 + 0.6, MH.z0 - 1.2, FI.y, FI.top - FI.y, { t: 1.2, holes: [{ at: WA.z1 + 1.2 - SC_Z, w: D.w, h: D.h, y0: -FI.y }, { at: WA.z1 + 1.2 - WING_Z, w: D.w, h: D.h, y0: -FI.y }] });
+  // (the Guard's Hall's west wall, north of the Great Hall's; and the Hall of Fires' chasm's west face, under its floor)
+  K.wall(MH.x0 - 0.6, GH.z1 + 1.2, MH.x0 - 0.6, WA.z1 + 1.2, 0, WA.top, { t: 1.2 });
+  K.wall(MH.x0 - 0.6, MH.z1 + 0.6, MH.x0 - 0.6, WA.z0 - 0.6, FI.y, -FI.y, { t: 1.2, cap: false });
 
   // ---- the Machines' Hall (an arena): nothing in it but the Givers' machines, round its middle, and four columns to
   // fight round
-  K.corridor([0, SW.z + SW.r + 0.6], [0, 131.2], 7, { w: D.w, h: D.h });
-  const MH = R0.machines, [, mhz] = mid(MH);
-  K.hall({ x: 0, z: mhz, w: MH.x1 - MH.x0, d: MH.z1 - MH.z0, y: 7, h: MH.top - 7, roof: 'oculus', oculus: 0.3, columns: 0, omit: ['e'], doors: [{ side: 's', w: D.w, h: D.h }, { side: 'n', w: D.w, h: D.h }] });
-  for (const [x, z] of [[-9.5, mhz - 8], [9.5, mhz - 8], [-9.5, mhz + 8], [9.5, mhz + 8]]) K.column(x, z, 7, MH.top - 7, 0.9);
-  for (const [x, z, a] of [[-15.5, 136, 0.4], [15.2, 158, 2.1], [-14.6, 159, 4]]) sandDrift(x, z, 2, 2.8, 0.45, a, 7);
-  add(Door, { id: 'dm', at: [0, 7, MH.z1 + 0.6], w: D.w, h: D.h, lamps: [{ lit: 'arM' }] });
+  K.hall({ x: XE, z: mhz, w: MH.x1 - MH.x0, d: MH.z1 - MH.z0, y: 0, h: MH.top, roof: 'oculus', oculus: 0.3, columns: 0, omit: ['e', 'w'], doors: [{ side: 'n', w: D.w, h: D.h }] });
+  for (const [x, z] of [[XE - 9.5, mhz - 8], [XE + 9.5, mhz - 8], [XE - 9.5, mhz + 8], [XE + 9.5, mhz + 8]]) K.column(x, z, 0, MH.top, 0.9);
+  for (const [x, z, a] of [[XE - 15.5, 19.4, 0.4], [XE + 15.2, 41.4, 2.1], [XE - 14.6, 42.4, 4]]) sandDrift(x, z, 2, 2.8, 0.45, a, 0);
+  add(Door, { id: 'dm', at: [XE, 0, MH.z1 + 0.6], w: D.w, h: D.h, lamps: [{ lit: 'arM' }] });
 
   // ---- the Hall of Fires (a puzzle): the near floor and a chasm; down the floor's middle the tar ball's groove, its fire
   // and thorns, to the hooded bowl on the lip; the bridge that rises over the chasm to the far ledge and the archway beyond
-  const FI = R0.fires, [, fiz] = mid(FI);
-  K.hall({ x: 0, z: fiz, w: FI.x1 - FI.x0, d: FI.z1 - FI.z0, y: FI.y, h: FI.top - FI.y, floor: false, roof: 'oculus', oculus: 0.2, columns: 0, omit: ['s', 'e'],
-    doors: [{ side: 'n', at: FIRES.bridge, w: D.w, h: D.h, y0: 7 - FI.y }] });
-  // (its east wall, the Machines' Hall's and the Watcher's Hall's are one, the Hall of Channels' west wall: the keepers'
-  // door and the east door in it; walls meeting there drew their faces in one plane)
-  const WA = R0.watch, [, waz] = mid(WA);
-  K.wall(18.6, WA.z1 + 1.2, 18.6, MH.z0 - 1.2, FI.y, FI.top - FI.y, { t: 1.2, holes: [{ at: WA.z1 + 1.2 - SC_Z, w: D.w, h: D.h, y0: 7 - FI.y }, { at: WA.z1 + 1.2 - WING_Z, w: D.w, h: D.h, y0: 7 - FI.y }] });
-  K.slab(-18, MH.z1 + 0.6, 18, FI.lip, 7, 7 - FI.y);       // the near floor
-  K.slab(-18, FI.far, 18, FI.z1 + 0.6, 7, 7 - FI.y);       // the far ledge
-  K.both(M.dark, box(36, 1, FI.far - FI.lip, 0, FI.y, (FI.lip + FI.far) / 2)); // the chasm's floor, far below
-  add(Pit, { room: 'fires', min: [-19, -8, FI.lip], max: [19, 3.5, FI.far] });
-  add(Bridge, { id: 'br1', a: [FIRES.bridge, 7, FI.lip - 0.1], b: [FIRES.bridge, 7, FI.far + 0.1], w: 6, n: 8 });
-  groove(FIRES.x, FIRES.z0, FIRES.x, FIRES.z1, 7);
-  add(Flame, { at: [FIRES.x, 7, CHEST_BALL.flame], r: 0.6 });
-  add(Ball, { id: 'ball3', a: [FIRES.x, 7.04, FIRES.z0], b: [FIRES.x, 7.04, FIRES.z1], r: 0.85, friction: CHEST_BALL.friction, shove: true, blade: true, thorns: { id: 'bw0', at: CHEST_THORNS, stopped: 'The cold ball stops against the thorns.' }, tar: { ...TAR, burns: CHEST_BALL.burns, out: 'The tar ball’s flame gutters and goes out on the way. Hands are too slow for it.' } });
+  K.hall({ x: XE, z: fiz, w: FI.x1 - FI.x0, d: FI.z1 - FI.z0, y: FI.y, h: FI.top - FI.y, floor: false, roof: 'oculus', oculus: 0.2, columns: 0, omit: ['s', 'e', 'w'],
+    doors: [{ side: 'n', at: FIRES.bridge - XE, w: D.w, h: D.h, y0: -FI.y }] });
+  K.slab(FI.x0, MH.z1 + 0.6, FI.x1, FI.lip, 0, -FI.y);        // the near floor
+  K.slab(FI.x0, FI.far, FI.x1, FI.z1 + 0.6, 0, -FI.y);        // the far ledge
+  K.both(M.dark, box(36, 1, FI.far - FI.lip, XE, FI.y, (FI.lip + FI.far) / 2)); // the chasm's floor, far below
+  add(Pit, { room: 'fires', min: [FI.x0 - 1, FI.y - 4.5, FI.lip], max: [FI.x1 + 1, -3.5, FI.far] });
+  add(Bridge, { id: 'br1', a: [FIRES.bridge, 0, FI.lip - 0.1], b: [FIRES.bridge, 0, FI.far + 0.1], w: 6, n: 8 });
+  groove(FIRES.x, FIRES.z0, FIRES.x, FIRES.z1, 0);
+  add(Flame, { at: [FIRES.x, 0, CHEST_BALL.flame], r: 0.6 });
+  add(Ball, { id: 'ball3', a: [FIRES.x, 0.04, FIRES.z0], b: [FIRES.x, 0.04, FIRES.z1], r: 0.85, friction: CHEST_BALL.friction, shove: true, blade: true, thorns: { id: 'bw0', at: CHEST_THORNS, stopped: 'The cold ball stops against the thorns.' }, tar: { ...TAR, burns: CHEST_BALL.burns, out: 'The tar ball’s flame gutters and goes out on the way. Hands are too slow for it.' } });
   // (the thorns over the ball's groove alone: you walk round them, the ball can't)
-  add(Bramble, { id: 'bw0', at: [FIRES.x + 0.3, 7, FIRES.z0 + 8.8], w: 2.4, h: 1.8, seed: 7, cut: true });
-  add(Brazier, { id: 'b3', at: [FIRES.x, 7, FIRES.bowl], scale: 1.1, hood: { ball: 'ball3', yaw: Math.PI } });
-  add(Door, { id: 'sc', at: [18.6, 7, SC_Z], yaw: Math.PI / 2, w: D.w, h: D.h, t: 1.3, lamps: [{ lit: 'e10' }] });
-  K.column(-12, FI.far + 1.8, 7, FI.top - 7, 0.9); K.column(12, FI.far + 1.8, 7, FI.top - 7, 0.9);
-  add(Mark, { room: 'fires', at: [-9, 7, MH.z1 + 4.4], yaw: 0.3 });
+  add(Bramble, { id: 'bw0', at: [FIRES.x + 0.3, 0, FIRES.z0 + 8.8], w: 2.4, h: 1.8, seed: 7, cut: true });
+  add(Brazier, { id: 'b3', at: [FIRES.x, 0, FIRES.bowl], scale: 1.1, hood: { ball: 'ball3', yaw: Math.PI } });
+  add(Door, { id: 'sc', at: [MH.x1 + 0.6, 0, SC_Z], yaw: Math.PI / 2, w: D.w, h: D.h, t: 1.3, lamps: [{ lit: 'e10' }] });
+  K.column(XE - 12, FI.far + 1.8, 0, FI.top, 0.9); K.column(XE + 12, FI.far + 1.8, 0, FI.top, 0.9);
+  add(Mark, { room: 'fires', at: [XE - 9, 0, MH.z1 + 4.4], yaw: 0.3 });
 
-  // ---- the Watcher's Hall (a puzzle): through the archway past the bridge; the Givers' guard on its mound by the west
-  // wall, their watcher in the middle; its east door into the Hall of Channels
-  K.hall({ x: 0, z: waz, w: WA.x1 - WA.x0, d: WA.z1 - WA.z0, y: 7, h: WA.top - 7, roof: 'oculus', oculus: 0.3, columns: 0, omit: ['s', 'e'] });
+  // ---- the Guard's Hall: through the archway past the bridge; the Givers' guard on its mound by the west wall; its east
+  // doorway into the Hall of Channels
+  K.hall({ x: XE, z: waz, w: WA.x1 - WA.x0, d: WA.z1 - WA.z0, y: 0, h: WA.top, roof: 'oculus', oculus: 0.3, columns: 0, omit: ['s', 'e', 'w'] });
   // the Givers' guard: a second chest on a low plinth (src/boxes/placements.js)
-  K.both(M.trim, ...chestMound(-9, 7, 222, { h: 0.3, top: 1.3, foot: 2.1, seg: 24 }));   // (the guard's: a low ramped mound, issue #162)
-  add(Door, { id: 'dw', at: [18.6, 7, WING_Z], yaw: Math.PI / 2, w: D.w, h: D.h, t: 1.3, lamps: [{ lit: 'sentry' }] });
-  add(Sentry, { id: 'sentry', at: SENTRY_AT, yaw: -2.6, zone: { min: [WA.x0, 6, WA.z0], max: [WA.x1, 13, WA.z1] },
-    woke: 'The watcher in the middle of the hall wakes. Hold up your guard ({key:guard}) as it fires.',
-    reflected: 'The bolt glances off your guard, back down its beam.',
-    broken: 'Its own bolt cracks its eye. The east door sinks open.',
-    hit: 'The bolt burns. Guard ({key:guard}) when the beam narrows.',
-    shrug: 'The bronze rings and holds. Only its own bolt could crack that eye.' });
-  for (const [x, z, a] of [[-15.5, 212, 0.3], [14.8, 238, 1.7]]) sandDrift(x, z, 1.8, 2.6, 0.4, a, 7);
+  K.both(M.trim, ...chestMound(XE - 9, 0, 105.4, { h: 0.3, top: 1.3, foot: 2.1, seg: 24 }));   // (the guard's: a low ramped mound, issue #162)
+  for (const [x, z, a] of [[XE - 15.5, 95.4, 0.3], [XE + 14.8, 121.4, 1.7]]) sandDrift(x, z, 1.8, 2.6, 0.4, a, 0);
+  add(Mark, { room: 'firesFar', at: [XE + 6, 0, WA.z0 + 5], yaw: Math.PI * 0.25 });
 
-  // ---- the Hall of Channels (east of the Hall of Fires and the Watcher's Hall, floor 7): the Givers' old water channels in
-  // its floor; down its middle the ball and its fire at the south end, the long groove to the hooded bowl at its north end,
-  // a fire under a lid half-way (the relay) that the eye high on the obelisk beside it lifts
+  // ---- the Hall of Channels (east of the Hall of Fires and the Guard's Hall): the Givers' old water channels in its floor;
+  // down its middle the ball and its fire at the south end, the long groove to the hooded bowl at its north end, a fire under
+  // a lid half-way (the relay) that the eye high on the obelisk beside it lifts. Its bowl lit, the cistern's door's lamp
   const WI = R0.wing, [wix, wiz] = mid(WI);
-  K.hall({ x: wix, z: wiz, w: WI.x1 - WI.x0, d: WI.z1 - WI.z0, y: 7, h: WI.top - 7, roof: 'oculus', oculus: 0.25, columns: 0, omit: ['w'], doors: [{ side: 'n', w: D.w, h: D.h }] });
-  groove(WING.x, WING.z0, WING.x, WING.z1, 7);
-  for (const x of [WI.x0 + 7, WI.x1 - 7]) K.add(M.dark, box(1.2, 0.04, 52, x, 7.02, wiz));   // the dry channels
-  add(Flame, { at: [WING.x + 1.1, 7, WING.z0 + 1.5], r: 0.6 });
-  add(Flame, { at: [WING.x + 1.2, 7, WING.z0 + WING.relay], r: 0.6, when: { lit: 'e10' }, lid: true });
-  add(Ball, { id: 'ball4', a: [WING.x, 7.04, WING.z0], b: [WING.x, 7.04, WING.z1], r: 0.85, friction: WING.friction, shove: true, blade: true,
+  K.hall({ x: wix, z: wiz, w: WI.x1 - WI.x0, d: WI.z1 - WI.z0, y: 0, h: WI.top, roof: 'oculus', oculus: 0.25, columns: 0, omit: ['w'] });
+  groove(WING.x, WING.z0, WING.x, WING.z1, 0);
+  for (const x of [WI.x0 + 7, WI.x1 - 7]) K.add(M.dark, box(1.2, 0.04, 52, x, 0.02, wiz));   // the dry channels
+  add(Flame, { at: [WING.x + 1.1, 0, WING.z0 + 1.5], r: 0.6 });
+  add(Flame, { at: [WING.x + 1.2, 0, WING.z0 + WING.relay], r: 0.6, when: { lit: 'e10' }, lid: true });
+  add(Ball, { id: 'ball4', a: [WING.x, 0.04, WING.z0], b: [WING.x, 0.04, WING.z1], r: 0.85, friction: WING.friction, shove: true, blade: true,
     tar: { ...TAR, burns: WING.burns, short: { unless: { lit: 'e10' }, said: 'The tar ball’s flame gutters, and goes out. Half-way down its groove, a fire waits under a stone lid.' } } });
-  add(Brazier, { id: 'b4', at: [WING.x, 7, WING.bowl], scale: 1.1, hood: { ball: 'ball4', yaw: Math.PI } });
+  add(Brazier, { id: 'b4', at: [WING.x, 0, WING.bowl], scale: 1.1, hood: { ball: 'ball4', yaw: Math.PI } });
   // the obelisk beside the groove, the eye high on its west face (struck from a double jump)
   const [ex, ez] = WING.eye;
-  K.both(M.wallGlyph, box(2.4, 10, 2.4, ex, 12, ez));
-  K.both(M.trim, box(3, 0.6, 3, ex, 17.3, ez));
-  K.both(M.trim, box(3.2, 0.5, 3.2, ex, 7.25, ez));
-  add(Switch, { id: 'e10', at: [ex - 1.25, 13.6, ez], yaw: -Math.PI / 2, size: 1.2, blade: true, wrong: 'The eye is cut in hard stone, high on the obelisk. It rings when you knock on it: it wants striking.' });
-  add(Door, { id: 'd3', at: [wix, 7, WI.z1 + 0.6], w: D.w, h: D.h, lamps: [{ lit: 'e10' }, { lit: 'b4' }] });
-  add(Mark, { room: 'wing', at: [24.5, 7, 236.5], yaw: Math.PI * 0.75 });
+  K.both(M.wallGlyph, box(2.4, 10, 2.4, ex, 5, ez));
+  K.both(M.trim, box(3, 0.6, 3, ex, 10.3, ez));
+  K.both(M.trim, box(3.2, 0.5, 3.2, ex, 0.25, ez));
+  add(Switch, { id: 'e10', at: [ex - 1.25, 6.6, ez], yaw: -Math.PI / 2, size: 1.2, blade: true, wrong: 'The eye is cut in hard stone, high on the obelisk. It rings when you knock on it: it wants striking.' });
+  add(Mark, { room: 'wing', at: [XC - 12.7, 0, 119.9], yaw: Math.PI * 0.75 });
 
-  // ---- the antechamber and the Cistern (a great rotunda, floor at 7)
-  const CI = R0.cistern, C = V(CI.x, 7, CI.z), R = CI.r;
-  K.corridor([CI.x, WI.z1 + 1.2], [CI.x, C.z - R - 0.6], 7, { w: D.w, h: D.h });
-  add(Mark, { room: 'ante', at: [CI.x + 2.2, 7, WI.z1 + 4.4], yaw: -Math.PI / 2 });
-  K.rotunda({ x: C.x, z: C.z, y: 7, r: R, h: CI.top - 7, seg: 36, gaps: [{ a: Math.PI, w: D.w, h: D.h }, { a: 0, w: D.w, h: D.h }], oculus: 0.3, floor: false });
+  // ---- the antechamber and the Cistern (a great rotunda), past the Great Hall's north wall
+  const CI = R0.cistern, C = V(CI.x, 0, CI.z), R = CI.r;
+  K.corridor([CI.x, GH.z1 + 1.2], [CI.x, C.z - R - 0.6], 0, { w: D.w, h: D.h });
+  add(Mark, { room: 'ante', at: [CI.x + 2.2, 0, GH.z1 + 4.4], yaw: -Math.PI / 2 });
+  K.rotunda({ x: C.x, z: C.z, y: 0, r: R, h: CI.top, seg: 36, gaps: [{ a: Math.PI, w: D.w, h: D.h }, { a: 0, w: D.w, h: D.h }], oculus: 0.3, floor: false });
   // the floor round a shallow dry basin, and the spout in the middle
-  K.both(M.floor, T(annulus(6.6, R + 1.6, 0.8, 48), [C.x, 7, C.z]));
-  K.both(M.stone, lathe([[6.65, 7], [6.2, 6.9], [4.2, 5.9], [0.01, 5.85]], 40).translate(C.x, 0, C.z));
-  K.both(M.trim, lathe([[0.9, 0], [0.9, 0.4], [0.6, 0.6], [0.55, 2.2], [0.8, 2.5], [0.3, 2.7], [0.01, 2.7]], 14).translate(C.x, 5.85, C.z), new THREE.CylinderGeometry(0.8, 0.9, 2.7, 12).translate(C.x, 5.85 + 1.35, C.z));
-  K.add(M.glyph, T(glyphGeometry(0.8, 0.06), [C.x, 7.9, C.z + 0.6]));
-  add(Door, { id: 'd4', at: [C.x, 7, C.z - R - 0.7], w: D.w, h: D.h });
-  add(Door, { id: 'd5', at: [C.x, 7, C.z + R + 0.7], w: D.w, h: D.h });
+  K.both(M.floor, T(annulus(6.6, R + 1.6, 0.8, 48), [C.x, 0, C.z]));
+  K.both(M.stone, lathe([[6.65, 0], [6.2, -0.1], [4.2, -1.1], [0.01, -1.15]], 40).translate(C.x, 0, C.z));
+  K.both(M.trim, lathe([[0.9, 0], [0.9, 0.4], [0.6, 0.6], [0.55, 2.2], [0.8, 2.5], [0.3, 2.7], [0.01, 2.7]], 14).translate(C.x, -1.15, C.z), new THREE.CylinderGeometry(0.8, 0.9, 2.7, 12).translate(C.x, -1.15 + 1.35, C.z));
+  K.add(M.glyph, T(glyphGeometry(0.8, 0.06), [C.x, 0.9, C.z + 0.6]));
+  add(Door, { id: 'd4', at: [C.x, 0, C.z - R - 0.7], w: D.w, h: D.h });
+  add(Door, { id: 'd5', at: [C.x, 0, C.z + R + 0.7], w: D.w, h: D.h });
   const rim = [0.25, 0.75, 1.25, 1.75].map((f) => f * Math.PI);
   // the spokes: a tar ball's groove from the basin's edge out to a hooded bronze bowl on its tripod at the rim (after the
   // picked reference), a little fire beside each groove half-way: a ball cut out passes it, catches, and lights its bowl
   const F = HEARTH_FIRE;
   rt.spokes = rim.map((a0, i) => {
-    const a = a0 + F.off, at = (r, y = 7.04, side = 0) => [C.x + Math.sin(a) * r + Math.cos(a) * side, y, C.z + Math.cos(a) * r - Math.sin(a) * side];
-    groove(at(F.from)[0], at(F.from)[2], at(F.to)[0], at(F.to)[2], 7);
-    add(Brazier, { id: RIM[i], at: at(F.bowl, 7), scale: 1.15, tripod: true, hood: { ball: SPOKES[i], yaw: a + Math.PI } });
-    add(Flame, { at: at(F.fire, 7, 1.1), r: 0.6 });
+    const a = a0 + F.off, at = (r, y = 0.04, side = 0) => [C.x + Math.sin(a) * r + Math.cos(a) * side, y, C.z + Math.cos(a) * r - Math.sin(a) * side];
+    groove(at(F.from)[0], at(F.from)[2], at(F.to)[0], at(F.to)[2], 0);
+    add(Brazier, { id: RIM[i], at: at(F.bowl, 0), scale: 1.15, tripod: true, hood: { ball: SPOKES[i], yaw: a + Math.PI } });
+    add(Flame, { at: at(F.fire, 0, 1.1), r: 0.6 });
     return add(Ball, { id: SPOKES[i], a: at(F.from), b: at(F.to), r: 0.8, friction: 0.5, blade: true, shove: true, tar: { burns: F.burns, caught: 'The ball rolls past the fire and catches.', out: 'The ball’s flame gutters, and goes out.' } });
   });
   // the Givers' muzzle over the basin on the east wall, dry, the stone under it damp; the channels' mouths at the floor
-  K.add(M.stone, T(new THREE.SphereGeometry(1, 12, 8).scale(3.2, 1.1, 1.3), [C.x + R - 1.6, 14.2, C.z]));
-  K.add(M.trim, T(new THREE.CylinderGeometry(0.45, 0.55, 0.6, 10), [C.x + R - 4.7, 14.2, C.z], [0, 0, Math.PI / 2]));
-  for (const a of [Math.PI * 0.5 - 0.5, Math.PI * 0.5 + 0.5, Math.PI * 1.5 - 0.5, Math.PI * 1.5 + 0.5]) K.add(M.voidM, T(new THREE.CircleGeometry(1.1, 12, 0, Math.PI), [C.x + Math.sin(a) * (R - 0.15), 7.01, C.z + Math.cos(a) * (R - 0.15)], [0, a + Math.PI, 0]));
+  K.add(M.stone, T(new THREE.SphereGeometry(1, 12, 8).scale(3.2, 1.1, 1.3), [C.x + R - 1.6, 7.2, C.z]));
+  K.add(M.trim, T(new THREE.CylinderGeometry(0.45, 0.55, 0.6, 10), [C.x + R - 4.7, 7.2, C.z], [0, 0, Math.PI / 2]));
+  for (const a of [Math.PI * 0.5 - 0.5, Math.PI * 0.5 + 0.5, Math.PI * 1.5 - 0.5, Math.PI * 1.5 + 0.5]) K.add(M.voidM, T(new THREE.CircleGeometry(1.1, 12, 0, Math.PI), [C.x + Math.sin(a) * (R - 0.15), 0.01, C.z + Math.cos(a) * (R - 0.15)], [0, a + Math.PI, 0]));
   // the water that rises once the Keeper is calm (hidden until then)
   const poolMat = magicMaterial(7);
   const pool = magicPool(6.2, poolMat);
-  pool.position.set(...K.world(C.x, 5.9, C.z).toArray());
+  pool.position.set(...K.world(C.x, -1.1, C.z).toArray());
   rt.root.add(pool);
   rt.spring = { pool, poolMat, k: rt.logic.resolved ? 1 : 0 };
 
   // ---- the spring (behind the far door): the way back out
   const S0 = C.z + R + 0.6, S1 = S0 + 9.8;
-  K.corridor([C.x, S0], [C.x, S1], 7, { w: D.w, h: D.h });
-  K.wall(C.x + 4.6, S1 + 0.4, C.x - 4.6, S1 + 0.4, 7, D.h, { t: 0.8, holes: [{ at: 4.6, w: 5, h: 7 }] });
-  K.add(M.voidM, T(new THREE.PlaneGeometry(5, 7).translate(0, 3.5, 0), [C.x, 7, S1 + 0.9]));
-  K.solid(box(5.4, 7, 0.5, C.x, 10.5, S1 + 1.3));
-  K.glyph([C.x, 15, S1 - 0.05], 1.6, Math.PI);
+  K.corridor([C.x, S0], [C.x, S1], 0, { w: D.w, h: D.h });
+  K.wall(C.x + 4.6, S1 + 0.4, C.x - 4.6, S1 + 0.4, 0, D.h, { t: 0.8, holes: [{ at: 4.6, w: 5, h: 7 }] });
+  K.add(M.voidM, T(new THREE.PlaneGeometry(5, 7).translate(0, 3.5, 0), [C.x, 0, S1 + 0.9]));
+  K.solid(box(5.4, 7, 0.5, C.x, 3.5, S1 + 1.3));
+  K.glyph([C.x, 8, S1 - 0.05], 1.6, Math.PI);
 
   // the machines' mark: the Machines' Hall's, its foes round the hall's middle (the last mark: its machines' ids are new)
-  add(Mark, { room: 'machines', at: [-12, 7, MH.z0 + 3.5], yaw: 0.7, foes: [0, 7, mhz + 1] });
+  add(Mark, { room: 'machines', at: [XE - 12, 0, MH.z0 + 3.5], yaw: 0.7, foes: [XE, 0, mhz + 1] });
 
   // the Keeper, asleep curled at the far side of the basin (its fitted Tripo body, the procedural one until it loads)
   const model = keeperGuardian();
-  model.pos.copy(K.world(C.x, 7, C.z + 9));
+  model.pos.copy(K.world(C.x, 0, C.z + 9));
   model.home = model.pos.clone();
   model.heading = K.heading(Math.PI);
-  model.rest = K.world(C.x + 3.5, 7, C.z + 7.5);
+  model.rest = K.world(C.x + 3.5, 0, C.z + 7.5);
   model.restHeading = K.heading(Math.PI + 0.6);
   // (its spout, a post in the basin's middle the Keeper's body is kept off: boss.js keepIn; 1.55 m over the floor)
-  const centre = K.world(C.x, 7, C.z);
-  const arena = { center: centre, r: R, y: K.world(0, 7, 0).y, posts: [{ x: centre.x, z: centre.z, r: 0.9, h: 1.55 }] };
+  const centre = K.world(C.x, 0, C.z);
+  const arena = { center: centre, r: R, y: K.world(0, 0, 0).y, posts: [{ x: centre.x, z: centre.z, r: 0.9, h: 1.55 }] };
   // (the basin is lower: the Keeper walks its rim and floor alike, at the arena's height)
 
   const W = (x, y, z) => K.world(x, y, z);
   return {
     arrival: { pos: W(0, 0.05, 4), heading: K.heading(0) },
-    bounds: new THREE.Box3(V(-20, -14, -3), V(58, 34, S1 + 3)),
-    gadget: { at: W(SW.x, 7.62, SW.z).toArray(), face: K.heading(Math.PI) },
-    finds: { guard: { at: W(-9, 7.3, 222).toArray(), face: K.heading(Math.PI / 2) } },
+    bounds: new THREE.Box3(V(XW - 21, -14, -3), V(XC + 21, 34, S1 + 3)),
+    gadget: { at: W(DR.blade[0], BA.y + 0.62, DR.blade[1]).toArray(), face: K.heading(-Math.PI * 0.28) },
+    finds: { guard: { at: W(XE - 9, 0.3, 105.4).toArray(), face: K.heading(Math.PI / 2) } },
     exits: [
       { at: W(0, 0.5, 0.4), r: 1.5 },
-      { at: W(C.x, 7.5, S1 - 0.4), r: 1.5 },
+      { at: W(C.x, 0.5, S1 - 0.4), r: 1.5 },
     ],
-    lights: [[0, 7, 7, 18], [0, 10, 25, 26], [0, 10, 45, 26], [0, 8, 64, 28], [0, 10, 90, 28], [0, 12, 115, 20], [0, 13, 140, 26], [0, 13, 156, 26],
-      [0, 13, 176, 28], [0, 13, 200, 28], [0, 13, 224, 28], [37, 13, 180, 28], [37, 13, 205, 28], [37, 13, 230, 28], [37, 11, 245, 11], [37, 15, 268, 32], [37, 11, S0 + 5, 11]],
+    lights: [[0, 7, 7, 18], [0, 14, 30, 34], [0, 14, 60, 34], [0, 14, 88, 30], [-13, 12, 78, 20], [XW, 10, 25, 26], [XW, 10, 45, 26], [XW, 8, 64, 28], [XW, 10, 90, 28],
+      [XE, 6, 24, 26], [XE, 6, 40, 26], [XE, 6, 59, 28], [XE, 6, 83, 28], [XE, 6, 107, 28], [XC, 6, 63, 28], [XC, 6, 88, 28], [XC, 6, 113, 28], [0, 4, GH.z1 + 5, 11], [0, 8, C.z, 32], [0, 4, S0 + 5, 11]],
     guardian: { def: { ...KEEPER, onHit: keeperHit, openFor: keeperOpen, onBlock: keeperBlocked, onStrike: keeperLands }, model, arena },
   };
 }
+
 
 // ------------------------------------------------------------------ outside: the Rose House in the dunes
 /** The Givers' channel from the door toward Qanat: world points every 3 m, winding a little, level down the steps, then on the sand. */
@@ -775,7 +832,7 @@ function change(scene, level, rt) {
       if (S) {
         S.k = rt.logic.resolved ? Math.min(1, S.k + dt / 6) : 0;
         S.pool.visible = S.k > 0.01;
-        S.pool.position.y = rt.kit.world(0, 5.95 + S.k * 0.9, 0).y;
+        S.pool.position.y = rt.kit.world(0, -1.05 + S.k * 0.9, 0).y;
         S.pool.scale.set(4.2 + S.k * 2.3, 1e-3, 4.2 + S.k * 2.3);
         if (S.pool.visible) setMagic(S.poolMat, t, { bright: S.k, tones: 6 });
       }
@@ -793,7 +850,7 @@ export const RELAID = 'temple.desert.relaid';
 export const DESERT_TEMPLE = {
   id: 'desert', levelId: 'desert', name: 'The Rose House', doorLabel: 'door of the Rose House',
   gadget: 'sword', gadgetBox: 'desert.temple.sword', arenaDoor: 'd4',
-  // (the blade taken, the Givers' machines wake in the Machines' Hall past the chamber's north door: an arena, its doors
+  // (the blade taken, the Givers' machines wake in the Machines' Hall behind the Great Hall's east door: an arena, its doors
   // held while they stand and you are in it; issue #336, a fight's room of its own)
   arenas: ARENAS,
   origin: [150, 2400, -250], yaw: 0,
@@ -809,8 +866,8 @@ export const DESERT_TEMPLE = {
   onWake(rt) { syncLight(rt.guardian); },
   // (a save that stood in the old rooms: to the last mark, once: src/temples/runtime.js, RELAID)
   onConnect(rt) {
-    // the blade taken from its chest here: the Givers' machines wake in the hall beyond (src/foes.js places them the moment he is armed)
-    rt.offs.push(rt.game.on('temple:gadget', ({ id } = {}) => { if (id === 'desert' && !rt.logic.isLit('arM')) rt.notice('Beyond the chamber’s north door, something in the walls is waking.', 'machines.wake'); }));
+    // the blade taken from its chest here: the Givers' machines wake in the hall behind the Great Hall's east door (src/foes.js places them the moment he is armed)
+    rt.offs.push(rt.game.on('temple:gadget', ({ id } = {}) => { if (id === 'desert' && !rt.logic.isLit('arM')) rt.notice('Behind the hall’s east door, something in the walls is waking.', 'machines.wake'); }));
     const G = rt.guardian;
     if (!G) return;
     // water from your tank, while it pants (its second phase on): at its mouth, as the hand on its brow at the end

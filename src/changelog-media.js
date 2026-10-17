@@ -1100,7 +1100,19 @@ const FP401P = 'Issue #401: the house’s plans drawn from its own rooms and pie
 const FP401N = 'Issue #401: muted headless Chrome on this Mac (ANGLE Metal, High, render scale 1, 1280 × 720, vsync off), this branch’s own Vite, the camera pinned, 9 s a view, the median frame and the median draw calls (the game’s frameStats), the before with src/temples/spheres.js as on origin/main measured in the same minutes (load 11–13); 16 October';
 const HOOK399 = 'Issue #399: muted headless Chrome on this branch’s own dev server and on origin/main before it, High, 1280 × 720, the Arena with the hook in hand, a foe spawned ahead, Tab then T, a frame every 85 ms or so with the world at a third of its speed (feel.js slowMo), eight frames tiled; 16 October; cwebp -q 72 -resize 1280';
 const HATS403 = 'Issue #403: the character studio’s crowd lineup (studio.html?lineup=crowd&count=12, seeds 1-12: full bodies in front, the GPU crowd figures behind), muted headless Chrome against this branch’s own Vite (port 5452), before at 9c1b698ba and after on the branch; cropped to the people, cwebp -q 72';
+/** (v1.83, issue #406: the Rose House round its Great Hall) */
+const ROSE406 = 'Issue #406: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, 11:00, the HUD hidden) on this branch’s own Vite (port 5407, scripts/design-qc/capture.mjs), the camera pinned; before: the tree at c89a0a1e2 (port 5408), the same camera; 16 October; cwebp -q 72';
+const ROSE406P = 'Issue #406: the Temple maps page (temples.html?t=desert, Debug → Pages) in muted headless Chrome, 1600 × 1150, the plan with the solver’s steps, cut to the plan; before: the tree at c89a0a1e2, after: this change; 16 October; cwebp -q 70';
 export const CHANGELOG_MEDIA = {
+  '1.83': [
+    { match: 'The Rose House is built round a Great Hall now', shots: [
+      { name: 'rose-hall', title: 'In at the door', caption: 'Just inside the Rose House: before, the Hall of the Flame and its ball; after, the Great Hall, the cistern’s door at its far end, the balcony up its west side', from: ROSE406 },
+      { name: 'rose-plan', size: [1180, 1060], title: 'The plan', caption: 'The house from above with the solver’s steps: before, one line of rooms; after, the Great Hall in the middle, the west wing (the Flame, the Dry Channel) and the east wing (the Machines’ Hall, the Hall of Fires, the Guard’s Hall, the Hall of Channels) off it, the cistern past its north wall', from: ROSE406P },
+      { name: 'rose-balcony', only: 'after', title: 'The balcony', caption: 'On the balcony: the ball at the head of its groove, the hole at its end, the blade’s mound beyond', from: ROSE406 },
+      { name: 'rose-drop', only: 'after', title: 'The drop', caption: 'Over the balcony’s edge: the hole at the end of the ball’s groove, and 7 m below the floor you jump down to', from: ROSE406 },
+      { name: 'rose-key', only: 'after', title: 'The small key', caption: 'Under the balcony: the small key’s little chest in its cage, the watcher by the cistern’s door', from: ROSE406 },
+    ], see: 'In the desert, go into the Rose House east of Qanat. The east door wants the small key in the cage; the way to it starts through the archway on your right.' },
+  ],
   '1.82': [
     { match: 'Locked on, RT / R2 throws the grappling hook at your foe', tags: ['combat'], shots: [
       { name: 'hook-yank', size: [1280, 360], title: 'A small foe', caption: 'The Arena, locked on to an ink blot 10 m off, T pressed (RT / R2), the world at a third of its speed: before, the quick throw went where the camera looked and reeled him toward the ground; after, the blot is yanked through the air and lands dazed at his side', from: HOOK399 },

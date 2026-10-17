@@ -466,3 +466,26 @@ plans and pictures in the commit's report):
   great door. The design audit counts ten puzzle locks (it was five; skeleton `XBBXXCRRRXLLK`), its mean obviousness 1.8
   (it was 3.0), its score 4.33 as before; the redesign's rules: none broken.
 
+
+## As built: the Rose House (v1.83, issue #406)
+
+The first house, reworked to the approved rules (`src/temples/desert.js`; how it works: `docs/systems/temples.md`, "The
+Rose House round its Great Hall"):
+
+- **G4, one great hall:** the Great Hall, 44 by 84 m under 30 m, the hub, with a balcony 7 m up its west side. The west
+  wing (the Hall of the Flame, the Dry Channel) and the east wing (the Machines' Hall, the Hall of Fires, the Guard's
+  Hall, the Hall of Channels) open off it through 7 m doorways.
+- **The Cistern's door early on:** straight ahead from the Threshold, at the hall's far end, its two lamps dark and the
+  watcher asleep before it.
+- **One small key and its lock (ALttP's Eastern Palace):** the east door's keyhole and the key's caged little chest are
+  both seen on the way in; above the cage, on the balcony, a ball over a hole. The way to it goes round the west wing.
+- **Balls through floor holes:** the balcony's ball, cut, drops through the hole onto the plate beside the cage.
+- **G6:** the drop from the balcony back to the hub's floor, 7 m, unhurt; the antechamber's mark a few steps from the
+  guardian's door.
+- **The three painfully obvious steps:** the Dry Channel's double jump is now part of its door's step (the weight and the
+  jump together); the Sword Chamber's door that opened for the blade in hand is gone (the blade's mound is on the
+  balcony); the watcher moved from its own hall to the Great Hall, and the cistern's door wants it broken and the Hall
+  of Channels' bowl lit.
+- **Length:** six puzzle steps (the cage, the Flame, the Dry Channel, the Hall of Fires, the keepers' door, the cistern's
+  door), plus the key's lock and the arena (skeleton `CBXXLAXGXK`, was `XTBCRAXBGXK`). Design audit 4.33 → 4.78, mean
+  obviousness 3.44 → 2.42; the redesign's rules: none broken.

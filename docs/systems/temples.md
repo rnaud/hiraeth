@@ -331,6 +331,29 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   `tests/temple-playthrough.test.js`, `tests/door-bypass.test.js`, `tests/zfight.test.js`. The Hall of Fires' groove
   (`FIRES.x`) runs down the hall's middle (x 0, it was 5 m east of it until a follow-up in v1.77), its fire, thorns and
   hooded bowl with it; the bridge and the north door stay at `FIRES.bridge`, west of the bowl.
+- **The Rose House round its Great Hall** (v1.83, issue #406; the first house per `docs/design/temple-best-practices.md`:
+  G4, G6, a small key). The Threshold opens into the **Great Hall** (`ROOMS.hall`, 44 by 84 m under 30 m), the hub you
+  come back to three times; a **balcony** 7 m up its west side (`ROOMS.balcony`). From the door you see the cistern's
+  door at the far end (`d3`, two lamps: the watcher broken and the Hall of Channels' bowl lit), the watcher asleep before
+  it (`sentry`, room `hall`), the small key's little chest caged on the floor (`kS`), and the east door with its keyhole
+  (`dE`, `lock: 'small'`). The west wing (`XW`): the Hall of the Flame through an archway, the Dry Channel behind it,
+  whose gallery's door (`dc`, the pier's plate, the double jump on its link) opens onto the balcony. On the balcony the
+  blade on its mound and a ball too heavy for hands (`ballK`, `blade` only, `needs: ['sword']`) at the head of a groove
+  that ends over an open hole (`Ball` `hole` without a `gate`: an open hole, `DROP`); cut, it drops onto the plate on
+  the floor below (`pK`, `through: 'hole'`, the author's #401 ruling) and the key's cage sinks. Then the drop: off the
+  balcony's edge, 7 m, back to the floor unhurt (`{ a: 'balcony', b: 'hall', oneWay: true }`). The key opens the east
+  wing (`XE`, its floors at 0): the Machines' Hall (the arena, its doors `dE` and `dm` held), the Hall of Fires, the
+  Guard's Hall (the guard; its doorway into the Hall of Channels open), the Hall of Channels (`XC`: the eye and the
+  relay; the eye wakes the keepers' door `sc` back to the Hall of Fires). Back in the hall with the guard, the watcher
+  wakes; its bolt sent back breaks it, and with the bowl lit the cistern's door opens onto the antechamber (its mark the
+  guardian's checkpoint) and the cistern, now at floor 0. Gone: the Sword Chamber (its `dk`, which opened for the blade
+  in hand) and the Dry Channel's `landing` room (the double jump is on `dc`'s link). Design audit 4.33 → 4.78: six
+  steps (the cage, `d1`, `dc`, `br1`, `sc`, `d3`), mean obviousness 3.44 → 2.42, none painfully obvious (three
+  before); rules broken: none. Old saves (`migrate.js` desert v5): past the old Machines' Hall, the ball dropped and the
+  key taken and turned; one that stood inside is taken to its last mark; `save-migrate.js` `GIVERS_DONE` for the old
+  remade house. Tests: the on-foot walk in `tests/temples.test.js` (the locked door, the ball through the hole, the drop
+  unhurt, the key turned, the watcher in the hall, the antechamber's mark), `tests/temple-playthrough.test.js`,
+  `tests/sentry.test.js`, the rules, z-fights and the house map.
 - **The Warden's Well as shrines** (v1.77, issue #336, the second house redone to the rules). The Turning Floors 30 m
   across (its depth and the discs as they were), the Climb a round well 34 m across, the Ash Store and the Vane Room
   30 m square under 18 m, the Bellows Chamber's round hall 20 m, the drum of the gallery, the loft and the crown 36 m
