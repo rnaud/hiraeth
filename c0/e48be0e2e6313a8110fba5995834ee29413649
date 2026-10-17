@@ -1,0 +1,37 @@
+changelog.md
+  s_5f899ba316b5dc::t_28ac49bd48e096 13
+docs/systems/performance.md
+  s_5f899ba316b5dc::t_c3bbdb3353ef1a 4427-4473
+src/changelog.js
+  s_5f899ba316b5dc::t_af2dd21a50b57b 32-40
+tests/unity-lean-rare.test.js
+  s_5f899ba316b5dc::t_e50392e27ebb06 1-38
+tests/unity-retroid-gpu.test.js
+  s_5f899ba316b5dc::t_2b911f92ea24fc 35
+tests/unity-veil.test.js
+  s_5f899ba316b5dc::t_18702343c022d3 89
+unity/Hiraeth/Assets/Hiraeth/Shaders/Surface.shader
+  s_5f899ba316b5dc::t_9c1b36eb509998 292-297,317-320,325,330,335-344,357,888,1257,1393
+unity/Hiraeth/Assets/HiraethJS/Editor/BridgeShaderStrip.cs
+  s_5f899ba316b5dc::t_982681c0235526 12-13,27-28,33-34
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRenderer.cs
+  s_5f899ba316b5dc::t_7ee9de259a6c37 573-575,589-602
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs
+  s_5f899ba316b5dc::t_5a195bed956741 590-594
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c0e48be0e2e6313a8110fba5995834ee29413649",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
