@@ -1838,6 +1838,7 @@ function shadowPass(c, reach, hide = [], kept = false) {
 
 /** The whole pipeline for one view: shadows, G-buffer, composite, overlays. */
 const _subjUp = new THREE.Vector3(0, 1, 0);
+const _frameHidden = [], _shadowHidden = [];   // (the frame's hidden lists, kept from frame to frame: issue #448)
 const framePin = pinRenderFrame(renderer);   // (the passes of a frame update the skeletons once: perf.js)
 const flatPass = flatPasses(renderer, scene);   // (and are drawn from one list of the scene, not a walk each: src/flat-pass.js)
 function renderFrame() {
@@ -1855,7 +1856,7 @@ function renderFrame() {
   // hidden in every pass of this frame (then shown again): far pebbles and shrubs, props under
   // a pixel or two on screen, rooms off the map while the camera is elsewhere
   camera.updateMatrixWorld();
-  const frameHidden = [];
+  const frameHidden = _frameHidden; frameHidden.length = 0;
   const pxPerRad = gbuffer.height / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2));
   flora?.update(camera, preset.floraFar ?? 1, { pxPerRad, px: preset.lodPx ?? 0 });   // each species draws the plants in view near enough (the far ones coarser)
   blades.grass?.update(camera);
@@ -1880,7 +1881,7 @@ function renderFrame() {
   for (const c of Object.values(cascades)) turned = c.aim(shadowDir) || turned;
   scene.overrideMaterial = shadowOverride;
   statics?.shadowsBegin();
-  const shadowHidden = [];
+  const shadowHidden = _shadowHidden; shadowHidden.length = 0;
   for (const list of [level.noShadow ?? [], player.gear?.noShadow ?? [], tinyShadowCasters(), glowCasters()])
     for (const o of list) if (o.visible) { o.visible = false; shadowHidden.push(o); }
   shadowCull.begin(camera, shadowDir, { vertical: !level.gravityAt });
