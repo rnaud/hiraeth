@@ -64,12 +64,20 @@ export const LAYOUTS = {
   // v1.77 (issue #336): the house remade to the redesign's rules, its rooms bigger and moved, the Bud Passage a room of its
   // own (the same pieces, the same state). A save that entered the house: taken to its last mark if it stood inside the
   // old rooms (runtime.js RELAID)
+  // v1.83 (issue #411): the Potting Hall and the Glass Stair one great hall, the Palm House, its gallery 18 m up; the old
+  // Glass Stair's door (d1) the Seed Chamber's door now (both keys, and the eye on the bridge, s2), the Cold Frame behind the
+  // eye's door (dE), the builders' water the house's state. Past the eye: the Cold Frame's door open. Past the old stair's
+  // door, or anything after it: the new door's eye woken. The Seed Vault's seeds grown (or anything past them): its weight on
+  // its plate. A save that entered the house: taken to its last mark in the new rooms
   edena: {
-    v: 5,
+    v: 6,
     steps: [
       { if: ['open.d1', 'lit.s2', 'open.d2', 'gadget', 'lit.bud1', 'open.d3', 'lit.seed1', 'boss'], set: { 'unlocked.d1': 2, 'found.kW': true, 'found.kE': true, 'lit.arW': true, 'lit.sC1': true, 'lit.sC2': true } },
       { if: ['open.d4', 'boss'], set: { 'unlocked.dB': 1, 'found.kB': true, 'lit.sdA': true, 'lit.sdB': true } },
       { if: ['found.kB', 'open.d4', 'boss'], set: { 'lit.sdA': true, 'lit.sdB': true, 'open.vineV': true, 'lit.arW': true } },
+      { if: ['lit.s1', 'open.d1', 'lit.sC1', 'lit.sC2', 'found.kE', 'gadget', 'boss'], set: { 'open.dE': true } },
+      { if: ['open.d1', 'open.d2', 'gadget', 'lit.bud1', 'open.d3', 'lit.seed1', 'boss'], set: { 'lit.s2': true } },
+      { if: ['lit.sdA', 'open.vineV', 'found.kB', 'boss'], set: { 'weight.wV': 'pVw' } },
       { if: ['entered'], set: { relaid: true } },
     ],
   },

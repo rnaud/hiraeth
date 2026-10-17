@@ -18,7 +18,8 @@ import './register-gadgets.js';
 import * as THREE from 'three';
 import { TEMPLES, TEMPLE_HOME, templeOf } from '../src/temples/index.js';
 import { Ball, Brazier, Bramble, Switch, Vane, Bank, Seed, Swing, Weight } from '../src/temples/pieces.js';
-import { CARRY as CARRYING } from '../src/carry.js';
+import { CARRY as CARRYING, pickUp } from '../src/carry.js';
+import { HOOK } from '../src/gadgets/hook.js';
 import { held } from '../src/temples/logic.js';
 import { buildableById } from '../src/levels/buildable.js';
 import { Physics } from '../src/physics.js';
@@ -43,7 +44,8 @@ export const SPARE = 1.0;
 const quiet = (fn) => { const w = console.warn, l = console.log; console.warn = () => {}; console.log = () => {}; try { return fn(); } finally { console.warn = w; console.log = l; } };
 const own = (...ids) => { for (const id of Object.keys(ITEMS)) if (ids.includes(id)) items.grant(id); else items.revoke(id); };
 /** What each house is walked into with: the route's (the lift valve's double jump before every temple, the gun from the desert's Hearth); the Rose House with nothing in hand (v1.44). */
-const CARRY = { desert: ['backpack', 'doublejump'] };
+// (and an older house's tool where a late step wants it with the house's own, G2: the Builders' Greenhouse's weight, issue #411)
+const CARRY = { desert: ['backpack', 'doublejump'], edena: ['backpack', 'gun', 'doublejump', 'hook'] };
 const carry = (id) => CARRY[id] ?? ['backpack', 'gun', 'doublejump'];
 
 /**
@@ -426,12 +428,23 @@ export function playTemple(id, o = {}) {
     const w = rt.piece(eid), e = L.el(eid), plate = rt.piece(e.plate);
     if (!(w instanceof Weight) || !plate?.pos) { fail(`${eid}: no weight, or no plate ${e.plate}`); return null; }
     const foot = w.prop.pos.clone().addScaledVector(UP, -w.size / 2);
-    const s = near(foot, w.size / 2 + 0.8);
-    if (!s) { fail(`${eid}: nowhere to stand by it`); return null; }
-    goTo(s, w.prop.pos.clone().sub(s).setY(0));
-    const pick = bestInteractable(P);
-    if (pick?.entry?.id !== `carry.${w.prop.id}`) { fail(`${eid}: the use button offers ${pick?.entry?.id ?? 'nothing'} beside it, not to pick it up`); return null; }
-    pick.entry.use(P);
+    if (e.needs?.includes('hook')) {
+      // (out of reach on a ledge, issue #411: from the plate's floor, in the hook's reach and sight, it is pulled down into
+      // his hands, as the hook's drag lands a loose thing, src/gadgets/hook.js)
+      const s = standAt(plate.pos.clone().addScaledVector(w.prop.pos.clone().sub(plate.pos).setY(0).normalize(), -2), plate.pos.y);
+      if (!s) { fail(`${eid}: nowhere to stand to hook it`); return null; }
+      goTo(s, w.prop.pos.clone().sub(s).setY(0));
+      const hand = P.pos.clone().addScaledVector(UP, 1.3), d = w.prop.pos.clone().sub(hand), n = d.length();
+      if (n > HOOK.range || physics.rayDistance(hand, d.normalize(), n) < n - 0.9) { fail(`${eid}: out of the hook's reach or sight (${n.toFixed(1)} m)`); return null; }
+      if (!pickUp(P, w.prop, { from: 'hook' })) { fail(`${eid}: the hook brought it, and it did not land in his hands`); return null; }
+    } else {
+      const s = near(foot, w.size / 2 + 0.8);
+      if (!s) { fail(`${eid}: nowhere to stand by it`); return null; }
+      goTo(s, w.prop.pos.clone().sub(s).setY(0));
+      const pick = bestInteractable(P);
+      if (pick?.entry?.id !== `carry.${w.prop.id}`) { fail(`${eid}: the use button offers ${pick?.entry?.id ?? 'nothing'} beside it, not to pick it up`); return null; }
+      pick.entry.use(P);
+    }
     wait(0.6);
     if (P.carrying?.thing !== w.prop) { fail(`${eid}: not in his hands`); return null; }
     // (to the plate, from the side he stands on: its middle the length of a put in front of him)

@@ -502,6 +502,40 @@ Rose House round its Great Hall"):
   checkpoint is the mark by the great door, as before.
 - The audit's scores are 4.56 before and after; no rule broken. How it works: `docs/systems/temples.md`, "The Aerie
   round a great hall".
+
+### As built: the Builders' Greenhouse (v1.83, issue #411)
+
+The Greenhouse's row of Part 3 (vines that stay; the lift and the vine door in plain sight of their locks) with G1, G2,
+G4 and G6, and the five steps the Temple maps page listed as extras (`src/temples/edena.js`; how it works:
+`docs/systems/temples.md`, "The Builders' Greenhouse round the Palm House"):
+
+- **G4, the great hall:** the Potting Hall and the Glass Stair became the **Palm House**, 36 by 78 m under a glass vault
+  34 m up, its gallery 18 m up round three sides and a bridge across its middle, open over the floor: the hub of both
+  floors. The wings, the Seed Chamber and the Bud Passage open off it through 7 m doorways, as before.
+- **G1, the house-wide state: the builders' water**, up in the high troughs (the gallery's and the upper rooms') or let
+  down into the low channels (the floor's and the wings'). It fits the house's idea: nothing grows in the shade, and now
+  nothing grows dry. **Set in one place, changing several rooms on both floors:** up, the bud, the Vine Gulf's seed and
+  the bridge's seed can grow; down, the Seed Vault's seed can, and the Cold Frame's disc rides up its column of water to
+  the gallery. **Cheap to change:** a sluice wheel by the floor's hub, on the gallery and in the Bud Passage. **Readable
+  everywhere:** a gauge of water in every room, troughs that brim or lie dry, a fall from the bridge into the cistern
+  while the water is down. On the way it is set down (the disc), up (the bud), down (the vault).
+- **Vines that stay:** the bridge's seed, grown with the water up, sends its vine down the glass of a pier to the floor:
+  a climb back up from the hub for good. A shortcut, and the Temple maps page says so.
+- **The lift and the vine door in plain sight of their locks (v1.74 edit 3), cut:** the disc rode on a ball beside it
+  (5, painfully obvious); it rides on the water now, set a room away (3.5).
+- **G2, one late step with the house's tool and an older one:** the Seed Vault's louvre is turned by a stone weight lying
+  high on the ledge over the glass; only the grappling hook (the Founders' Belfry's) pulls it down. Set on its plate with
+  the water down, the bloom grows the vine to the great key. The house has 10 steps (houses 5 to 10: 9 to 11).
+- **G6:** a drop off the gallery's east arm into the cistern on the hub's floor (18 m, nothing hurt), and the window from
+  the vault's ledge back down to the floor. The guardian's checkpoint: the antechamber's mark, a few steps from its door.
+- **The five extras:** the four beds are the Gardener's first phase (the guardian requires them, so they are the fight's
+  steps); the chamber's seed is the bloom's try. With the house's map and the vine that stays, each is listed on the
+  Temple maps page with its reason (a try, the house's map, a shortcut).
+- **Length and scores:** 9 → 10 steps (`XALBXCRXXXXLK` → `XXABLCXRXXXXLK`), design audit 4.11 → 4.33: combinations
+  7 of 9 → 8 of 10, mean obviousness 3.44 → 2.75 (painfully obvious 1 → 0), decoupling 3 → 7, loops 1 → 3, curve 3 → 4;
+  identity 3 → 2 (71 % like the Undertower). The audit measures each lock alone: the water set once upstairs serves all
+  three upper locks, and the gauges and dry troughs in their rooms are the clue it now counts. The redesign's rules: none
+  broken.
 ### As built: the Founders' Belfry (v1.83, issue #408)
 
 The Belfry's row of Part 3 (the bells as a house-wide state; the great key cage's sight line) with G1, G4 and G6

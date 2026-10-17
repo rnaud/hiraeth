@@ -231,7 +231,7 @@ test('every real temple builds a graph its measures can read (no layout needed)'
   for (const [id, { def }] of Object.entries(TEMPLES)) {
     // (its rooms in the order a player reaches them, as the audit reads it: the Footprint's guardian is a fall away from
     // the rim, in its well, but reached last, issue #401)
-    const g = puzzleGraph(def.logic, [], { order: solve(def.logic, { items: ['backpack', 'doublejump', ...(id === 'desert' ? [] : ['gun', 'glider'])] }).order });
+    const g = puzzleGraph(def.logic, [], { order: solve(def.logic, { items: ['backpack', 'doublejump', ...(id === 'desert' ? [] : ['gun', 'glider']), ...(id === 'edena' ? ['hook'] : [])] }).order });
     const m = templeMetrics(g);
     assert.ok(m.steps.length >= 2, `${id}: ${m.steps.length} steps`);
     assert.ok(g.chestRoom, `${id}: a chest room`);

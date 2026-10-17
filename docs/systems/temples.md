@@ -716,6 +716,59 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   spent `relaid`, null, is set again by a later version: `migrateTempleLayouts`). Tests: `tests/temples.test.js` (the
   logic, the migration, the house on foot with the Fledgery and the sill), `temple-playthrough` (the stone rolled for
   real), `house-map`, `temple-maps`, `ball-room`, `way-back`, `zfight`.
+- **The Builders' Greenhouse round the Palm House, the builders' water its state** (v1.83, issue #411; the approved best
+  practices, `docs/design/temple-best-practices.md` G1, G2, G4, G6 and its Greenhouse row). The Potting Hall and the
+  Glass Stair are one great hall, the **Palm House** (`ROOMS.potting`), 36 by 78.4 m, its walls 34 m under a vault of
+  greenhouse glass on white ribs. Its **gallery** (`GALLERY`, room `landing`) runs 18 m up round three sides on columns,
+  with a **bridge** across the middle between its arms, open over the floor: both floors seen at once, the hub of both.
+  The room ids `potting` and `landing` are kept (a save's last mark holds); `stair` is gone.
+  - **The water** (G1, `SLUICE`, `HIGH` / `LOW`): a drum of two stops, `wHigh` (t 1, the start: up in the high troughs,
+    the gallery's and the upper rooms') and `wLow` (let down into the low channels, the floor's and the wings'),
+    `roll: 'hand'`, `verb: 'sluice'`, set from `rooms` (logic.js, issue #408). `Sluice` keeps it: a wheel turned moves it
+    at once for the logic, and the water runs `SLUICE.run` (3 s) for the eye (`Sluice.k`). **Cheap to change:** a
+    `SluiceWheel` (a valve wheel on a white post, the use button: "send the water up" / "let the water down") by the
+    floor's hub, on the gallery's north band and in the Bud Passage, where the upper floor first wants the water up.
+    **Readable everywhere:** a `WaterGauge` (a cage of trim round a column of water standing in its upper or lower bulb)
+    in every room but the guardian's, one on every wheel; `Trough`s that brim or lie dry (the bridge's and the upper
+    rooms' high, the floor's rill and the vault's channel low); a `Fall` from the bridge's spout into the cistern while the
+    water is down. All share one water material.
+  - **What it does:** up, the bud, the Vine Gulf's near seed and the bridge's vine seed can grow; down, the Seed Vault's
+    seed can, and the Cold Frame's disc rides (`WaterLift`, a `Platform` that sinks to the floor when its column drains).
+    The disc is the way up (`lift`, latched for the logic: once ridden the way up is always one wheel away), so the water
+    is set down, up and down again on the way. A seed or a bud that fails says what it lacks, the sun or the water
+    (`why` on `Seed`, `Bud` and a seed-ball, pieces.js: the text under that key).
+  - **The floor** (the hub): the ball's louvre wakes the eye over the potting benches, which opens the **Cold Frame**'s
+    door (`dE`, its lamp). The Shade House west (the arena, a small key, the Seed Vault's door); the Cold Frame east (one
+    ball, two eyes, a small key) with the disc in its south-west corner, up to a landing and a door onto the gallery's east
+    arm (`FRAME_LIFT`).
+  - **The bridge:** one ball, two plates, two louvres: east, the sun on the eye on its post (`s2`), which the Seed
+    Chamber's door wants with both small keys (`d1`, the old Glass Stair's door); west, on the **vine that stays**' seed
+    (`seedS`, `VINE`): grown with the water up, its vine comes down the glass of a pier under the bridge's north edge
+    (`Glass` with `down`) and stays, a climb back up from the floor for good (`vineS`, latched; a shortcut: `shortcut` on
+    the element, the Temple maps page says so).
+  - **G6:** the east arm's `drop` has no parapet; under it the **cistern** (`BASIN`, `Basin`: the Footprint's `Catch`
+    over a long pool) takes the fall, a splash, nothing hurt. The Seed Vault's ledge has a window in the Palm House's west
+    wall, a 9 m drop back to the hub (a one-way link). The guardian's checkpoint: the antechamber's mark (`ante` a
+    checkpoint now).
+  - **G2, the late step with an older tool:** the Seed Vault's louvre is turned by a stone `Weight` lying high on the
+    ledge's lip over the glass (`wV`, `needs: ['hook']`): the grappling hook pulls it down into your hands, set on its
+    plate (`pVw`) the sun swings onto the seed (`sdA`, `weightOn`), and with the water down the bloom grows the vine up to
+    the great key. One seed where there were two and a ball.
+  - **The skippable steps** (the Temple maps page found five): the four beds are the guardian's first phase (`requires`
+    on the Gardener, so the solver blooms them in the fight); the chamber's seed is a try (`try`), the house's map a reward,
+    the vine that stays a shortcut, each listed with its reason. The disc no longer rides on a ball beside it (the v1.74
+    audit's edit 3). The chamber's north door still sinks for the bloom in hand: every room past the chest wants it.
+  Audit: 9 → 10 steps, skeleton `XALBXCRXXXXLK` → `XXABLCXRXXXXLK`, combinations 7 of 9 → 8 of 10, mean obviousness
+  3.44 → 2.75 (painfully obvious 1 → 0), decoupled 3 → 7, loops 1 → 3, the score 4.11 → 4.33 (non-obvious 3 → 4,
+  decoupling 4 → 5, curve 3 → 4, identity 3 → 2: 71 % like the Undertower); rules broken: none before or after. The
+  audit's own changes, all additive (`scripts/temple-design/lib.mjs`): a house state set elsewhere counts from its nearest
+  setter, and a gauge of it in the lock's room (a piece with `shows`) puts it in sight; a weight wanted by a `when`
+  (`weightOn`) is a key, its verbs the carry and its `needs`. Old saves (`migrate.js` edena v6): past the eye, the Cold
+  Frame's door open; past the old stair's door, the bridge's eye woken; past the vault, its weight on its plate; one that
+  stood inside, to its last mark. Tests: `tests/greenhouse-water.test.js` (the house on foot: every wheel turned with the
+  use button, the disc ridden, the drop into the cistern, the weight hooked down and carried, both vines climbed, the
+  window's drop, the Gardener calmed; the water's look), `temples.test.js` (the logic, the migration),
+  `temple-playthrough`, `temple-maps`, `house-map`, `temple-rules`, `way-back`, `zfight`.
 - **The Founders' Belfry round the Great Belfry, its bell the house's state** (v1.83, issue #408; the approved
   recommendations: `docs/design/temple-best-practices.md`, G1, G4, G6). The Stone Stair is gone: past the Hall of Stones
   the **Great Belfry** (`ROOMS.nave`), 40 by 66 m under 32, its gallery 8 m up round three sides (`GALLERY`: the north

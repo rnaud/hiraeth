@@ -652,7 +652,7 @@ export class Ball {
       if (this.rt.logic.isLit(this.o.seed.id)) { this.wobble = 0.3; return true; }   // (grown: rooted where it lies)
       if (mode === 'bloom') {
         if (this.rest && this.rt.logic.light(this.o.seed.id)) { this.v = 0; this.rt.sound?.chime?.(); this.rt.sound?.whoosh?.(); this.rt.onLit?.(this.o.seed.id); this.rt.notice?.(this.o.seed.grew ?? 'The seed splits in the sun, and roots, and grows.', `${this.id}.grew`); }
-        else { this.pale = 1.2; this.rt.notice?.(this.o.seed.shade ?? 'The seed sprouts, pale, reaching for light that isn’t there, and folds back into its husk. Nothing grows in the shade.', `${this.id}.shade`); }
+        else { const w = this.o.seed.why?.() ?? 'shade'; this.pale = 1.2; this.rt.notice?.(this.o.seed[w] ?? this.o.seed.shade ?? 'The seed sprouts, pale, reaching for light that isn’t there, and folds back into its husk. Nothing grows in the shade.', `${this.id}.${w}`); }   // (why: what it lacks, the sun or, issue #411, the water)
         return true;
       }
     }
@@ -2482,7 +2482,7 @@ export class Seed {
     if (this.on) return false;
     if (mode === 'bloom') {
       if (this.rt.logic.light(this.id)) { this.on = true; this.rt.sound?.chime?.(); this.rt.sound?.whoosh?.(); this.rt.onLit?.(this.id); }
-      else if (this.rt.logic.el(this.id)?.when) { this.pale = 1.2; this.rt.notice?.(this.o.shade ?? 'It sprouts, pale, reaching for light that isn’t there, and folds back into its husk. Nothing grows in the shade.', `${this.id}.shade`); }
+      else if (this.rt.logic.el(this.id)?.when) { const w = this.o.why?.() ?? 'shade'; this.pale = 1.2; this.rt.notice?.(this.o[w] ?? this.o.shade ?? 'It sprouts, pale, reaching for light that isn’t there, and folds back into its husk. Nothing grows in the shade.', `${this.id}.${w}`); }   // (why: what it lacks, the sun or, issue #411, the water)
       return true;
     }
     if (mode === 'fire') { this.rt.notice?.(this.o.burn ?? 'The husk only blackens at the edges. A seed wants to grow, not to burn.', 'seed.burn'); return true; }
@@ -2562,7 +2562,7 @@ export class Bud {
       if (this.bloom && this.rt.logic.light(this.bloom)) { this.rt.sound?.chime?.(); this.rt.onLit?.(this.bloom); this.rt.notice?.(this.o.opened ?? 'The bud swells, and splits, and its petals fold back against the wall like a hand opening.', `bud.${this.id}`); }
       else if (!this.bloom && this.o.dry) { this.curl = 0.4; this.rt.notice?.(this.o.dry, `bud.dry.${this.id}`); }
       // (a bud whose bloom wants the sun, `when`: in the shade it stirs and stays shut, the Greenhouse's Bud Passage)
-      else if (this.bloom && this.rt.logic.el(this.bloom)?.when && !this.rt.logic.check(this.rt.logic.el(this.bloom).when)) { this.curl = 0.4; this.rt.notice?.(this.o.shade ?? 'The bud stirs, and stays shut. It is in the shade.', `bud.shade.${this.id}`); }
+      else if (this.bloom && this.rt.logic.el(this.bloom)?.when && !this.rt.logic.check(this.rt.logic.el(this.bloom).when)) { const w = this.o.why?.() ?? 'shade'; this.curl = 0.4; this.rt.notice?.(this.o[w] ?? this.o.shade ?? 'The bud stirs, and stays shut. It is in the shade.', `bud.${w}.${this.id}`); }
       return true;
     }
     if (mode === 'fire') { this.curl = 1.5; this.rt.notice?.(this.o.burnt ?? 'The petals curl away from the ember and close tighter.', 'bud.fire'); return true; }
@@ -2640,6 +2640,8 @@ export class Glass {
       for (let j = 2; j < 10; j += 3) flowers.push(T(new THREE.SphereGeometry(0.22, 8, 6), [pts[j].x + 0.4, pts[j].y, 0.6]));
     }
     if (!o.rungs) this.vine.add(mesh(stems, own({ color: '#4f8a5a', flat: true })), mesh(leaves, own({ color: '#7fcf72', flat: true })), mesh(flowers, own({ color: '#f2a7b8', glow: 0.25, flat: true })));
+    // (down: it grows from the top of the pane down to its foot, a vine let down from a gallery: the Builders' Greenhouse's, issue #411)
+    if (o.down) { this.vine.position.y = h + 0.6; for (const c of this.vine.children) c.position.y -= h + 0.6; }
     this.group.add(this.vine);
     noCollide(this.group);
     this.k = this.grown ? 1 : 0;

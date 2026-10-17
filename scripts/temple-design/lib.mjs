@@ -45,6 +45,7 @@ export function conditionKeys(c, out = []) {
   if (c.pressed) out.push({ id: c.pressed, how: 'pressed' });
   if (c.lit) out.push({ id: c.lit, how: 'lit' });
   if (c.drumOn) out.push({ id: c.drumOn[0], how: 'drumOn' }, { id: c.drumOn[1], how: 'pressed' });
+  if (c.weightOn) out.push({ id: c.weightOn[0], how: 'weightOn' });   // (a weight carried onto its plate: issue #411, the Seed Vault's, hooked down off its ledge)
   if (c.item) out.push({ id: c.item, how: 'item' });
   if (c.open) out.push({ id: c.open, how: 'open' });
   if (c.resolved) out.push({ id: 'boss', how: 'resolved' });
@@ -97,6 +98,7 @@ export function mechanicOf(id, el, { elements = {}, piece = null } = {}) {
   else if (el.type === 'bell' && !item) tags.push('bell');
   else if (el.type === 'vane' && !item) tags.push('shot');
   else if (el.type === 'key') tags.push('key');
+  else if (el.type === 'weight') tags.push('carry');   // (a block carried onto its plate, issue #337; a key of a lock when a `when` wants it there, #411)
   else if (el.type === 'arena') tags.push('fight');   // (a room that shuts behind you until its foes are beaten)   // (a splash spins a small vane; a great one wants the bellows' wash: its item)
   if (piece?.o?.hidden) tags.push('reveal');
   if (el.hold || el.type === 'vane') tags.push('timed');
@@ -104,6 +106,7 @@ export function mechanicOf(id, el, { elements = {}, piece = null } = {}) {
   for (const k of conditionKeys(el.when)) {
     if (k.how === 'drumOn') tags.push(elements[k.id]?.verb ?? 'push');
     else if (k.how === 'pressed') tags.push(Object.values(elements).some((e) => drumFor(e, k.id)) ? 'push' : 'weight');
+    else if (k.how === 'weightOn' && elements[k.id]) tags.push(...mechanicOf(k.id, elements[k.id], { elements }));
     else if (k.how === 'lit' && elements[k.id]) tags.push(...mechanicOf(k.id, elements[k.id], { elements }).filter((m) => m !== 'sequence'));
   }
   return [...new Set(tags)];
@@ -199,6 +202,14 @@ export function puzzleGraph(logic, pieces = [], { los = null, order = null } = {
     // a ring there. Its key is that setter, in the room, with what it needs: the pieces placed with `sets: <drum>`)
     for (const q of merged) {
       const here = q.how === 'drumOn' ? stateRooms(E[q.id]).find((r) => r.room === l.a) : null;
+      // (issue #411: set elsewhere, its key is the nearest place it is set from, and a gauge of it in the lock's room, a
+      // piece placed with `shows: <drum>`, puts the state in sight: the Builders' Greenhouse's water)
+      if (!here && q.how === 'drumOn' && stateRooms(E[q.id]).length) {
+        const from = [E[q.id].room, ...stateRooms(E[q.id]).map((r) => r.room)].filter((r) => hops[l.a]?.[r] != null);
+        const best = from.sort((a, b) => hops[l.a][a] - hops[l.a][b])[0];
+        if (best) { const at = pieces.find((p) => p.o?.sets === q.id && (p.o?.room === best || p.o?.rooms?.includes(best))); Object.assign(q, { room: best, at: at ? piecePos(at.o) : q.at ?? null }); }
+        if (pieces.some((p) => p.o?.shows === q.id && p.o?.room === l.a)) q.shown = true;
+      }
       if (!here) continue;
       const near = pieces.filter((p) => p.o?.sets === q.id && (p.o?.room === l.a || p.o?.rooms?.includes(l.a))).map((p) => piecePos(p.o)).filter(Boolean);
       Object.assign(q, { room: l.a, mech: [...new Set([...q.mech, ...here.needs.filter((n) => n !== 'backpack').map((n) => `gadget:${n}`)])], at: near[0] ?? null });
@@ -223,7 +234,7 @@ export function puzzleGraph(logic, pieces = [], { los = null, order = null } = {
         ...k, pos: kp, clue,
         metres: where && lockPos ? +dist(where, lockPos).toFixed(1) : 0,
         rooms: k.how !== 'item' && k.how !== 'needs' && k.room && hops[l.a]?.[k.room] != null ? hops[l.a][k.room] : 0,
-        visible: where && stand ? seen(stand, [where[0], where[1] + 0.8, where[2]], l, clue ? null : k.plate ?? k.id) : true,
+        visible: k.shown || (where && stand ? seen(stand, [where[0], where[1] + 0.8, where[2]], l, clue ? null : k.plate ?? k.id) : true),
         before: k.room && k.how !== 'item' && k.how !== 'needs' ? roomOrder.indexOf(k.room) < roomOrder.indexOf(l.a) : false,
       };
     });

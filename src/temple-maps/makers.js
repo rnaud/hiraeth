@@ -57,7 +57,7 @@ export function nounOf(id, e, piece) {
   const cls = piece?.cls;
   if (!e) return id;
   switch (e.type) {
-    case 'drum': return e.needs?.includes('magnet') ? 'iron ball' : 'ball';
+    case 'drum': return e.verb === 'sluice' ? 'sluice' : e.needs?.includes('magnet') ? 'iron ball' : 'ball';
     case 'plate': return 'floor plate';
     case 'switch': return cls === 'Bank' ? 'bank of eyes' : cls === 'Bud' ? 'flower-door' : cls === 'Seed' ? 'seed' : cls === 'EchoEar' ? 'brass horn' : cls === 'Jaw' ? 'gate of jaws' : piece?.o?.crystal ? 'singing crystal' : 'eye';
     case 'brazier': return 'brazier';
@@ -79,7 +79,7 @@ export function nounOf(id, e, piece) {
 }
 /** The verbs a step asks for, in plain words (the design audit's mechanics). */
 export const VERB_WORDS = {
-  push: 'roll a ball', weight: 'stand on a plate', shot: 'shoot', ember: 'set alight', bell: 'ring a bell', sequence: 'in order',
+  push: 'roll a ball', weight: 'stand on a plate', shot: 'shoot', ember: 'set alight', bell: 'ring a bell', sluice: 'set the water', sequence: 'in order',
   volley: 'in one breath', timed: 'against the clock', reveal: 'see the hidden', key: 'carry a key', fight: 'fight', carry: 'carry a block',
   take: 'open a chest', unlock: 'unlock', guardian: 'face the guardian', dodge: 'dodge the hazard', gorged: 'a gorged one', tough: 'the tough ones',
 };
@@ -211,7 +211,9 @@ export function makersMap(id, { built = null, sight = true } = {}) {
   for (const [n, line] of first.log.entries()) {
     const s = parseStep(line), e = E[s.id];
     if (!e || optional.includes(s.id) || !['take', 'light', 'roll', 'carry', 'open'].includes(s.verb) || e.type === 'gadget' || e.type === 'boss') continue;
-    if ((resolvedAt >= 0 && n > resolvedAt) || solve(logic, { items, forbid: [...optional, s.id] }).done) optional.push(s.id);
+    // (one worked after the fight that was worked before it too is no extra: the Builders' Greenhouse's bridge ball, issue #411)
+    const before = resolvedAt >= 0 && first.log.slice(0, resolvedAt).some((x) => parseStep(x).id === s.id);
+    if ((resolvedAt >= 0 && n > resolvedAt && !before) || solve(logic, { items, forbid: [...optional, s.id] }).done) optional.push(s.id);
   }
   const snapsFor = (o) => {
     const snaps = [];
@@ -288,7 +290,9 @@ export function makersMap(id, { built = null, sight = true } = {}) {
     const opens = Object.entries(E).filter(([d, g]) => isGate(g) && JSON.stringify(g.opens ?? null).includes(`"${k}"`)).map(([d]) => d);
     return { id: `${id}-x${i + 1}`, n: `x${i + 1}`, verb: s.verb, element: k, room: e.room ?? null, roomName: roomName(e.room ?? ''), floor: el?.floor ?? 'f0', pos: el?.pos ?? null,
       text: stepText(s, { E, el, room: e.room, guardian, links, logic }), opens, verbs: el?.verbs ?? [], optional: true, serves: servesOf(s), clue: [],
-      why: resolvedAt >= 0 && first.log.indexOf(line) > resolvedAt ? 'worked during or after the guardian’s fight' : 'the house solves without it' };
+      // (what it is for, when the house says so, issue #411: the house's map, a try of the gadget, a shortcut kept for good)
+      why: e.type === 'map' ? 'the house’s map: nothing waits on it' : e.try ? 'a try: the gadget shown where nothing waits on it' : e.shortcut ? 'a shortcut: the house solves without it, quicker with it'
+        : resolvedAt >= 0 && first.log.indexOf(line) > resolvedAt ? 'worked during or after the guardian’s fight' : 'the house solves without it' };
   });
 
   // ---- the numbers
@@ -364,6 +368,8 @@ function stepText(s, { E, el, room, guardian, links, nth = 0 }) {
     case 'open': return `Open the coffer${where}${tag}`;
     // (a house-wide state, issue #408: the Founders' Belfry's bell, rung or stilled at a lever or a bell's ring)
     case 'roll': return e?.verb === 'bell' ? `${(e.stops?.[s.onto] ?? 1) > 0 ? 'Ring' : 'Still'} the house’s bell, at a lever or a bell’s ring${tag} → ${s.onto}`
+      // (issue #411: the Builders' Greenhouse's water, sent up or let down at a sluice wheel)
+      : e?.verb === 'sluice' ? `${(e.stops?.[s.onto] ?? 1) > 0 ? 'Send the house’s water up' : 'Let the house’s water down'}, at a sluice wheel${tag} → ${s.onto}`
       : `Roll the ${el?.noun ?? 'ball'} onto its plate${where}${using}${tag} → ${s.onto}`;
     case 'carry': return `Carry the stone block onto its plate${where}${using}${tag} → ${s.onto}`;
     case 'stand': return `Stand on the floor plate${where}${tag}`;
