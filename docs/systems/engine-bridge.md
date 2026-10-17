@@ -1902,6 +1902,20 @@ screen; the batch run's pictures only.
   cream ring and soft shadow at 0.8, no strip; with words, the cream badge on the strip before them. The cue sends its
   button apart from its words (src/hud.js Cue: `key`, `rest`, by src/prompt-keys.js `leadKey`), so the engines need not
   parse the line. Tests: tests/hud.test.js.
+- **The menus' design** (#423, "the menus look very different than the web, less design on them"). The Start menu is
+  the page's `.fullmenu` now (BridgeMenu.Pause.cs): the whole screen, the yellow side with its ink edge and inner shade,
+  PAUSED in the title face (Ui.Heavy) cream in an ink outline on a hard shadow, the save and the world under it, the
+  entries as paper buttons in a 2.5 px ink line on a 4 px shadow (the pad's red and lifted, the page shown with a red
+  edge), and the page on ruled cream: its title in spaced capitals, a row a setting with a dashed line under it, its
+  control at the right in 46 % of the width (a choice a boxed value, a slider a red line and dot, a switch a square, red
+  and ticked when on: engine/menus.js now sends a setting's `kind`), the pad's row tinted yellow. The game menu
+  (BridgeMenu.Chrome.cs) is the page's `#journal`: the warm desk, the panels' tabs over the sheet (the open one a gold
+  card lettered in the title face, the others pills), the panels either side as tabs at the sheet's edges with their
+  buttons, the sheet in a thick ink line on a hard shadow, ruled faintly, the quests as the page's `.qcard`s (white, the
+  kind's colour down the left, NEXT in red before the step), the strip under the sheet; rows are drawn whole only
+  (MapRoom follows the new sheet: tests/world-map.test.js). The menus and the HUD (hints, prompts, the conversation) are
+  in the page's face, `--face` (Avenir Next, Futura, Roboto: Ui.Sans, the OS's own as the page's is), not the monospaced
+  one. Left as they were: the title (already the web's), the shop, a game's cards, the star map.
 
 ## One host (2026-10-17, issue #427)
 

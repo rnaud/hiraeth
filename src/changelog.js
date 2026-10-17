@@ -83,6 +83,10 @@ export const CHANGELOG = [
     'In the Unity version, a world loads behind the same inked page as on the web, the pen turning in its rings and a line saying what is being drawn, where the screen used to stay black.',
     // issue #422: src/prompt-keys.js leadKey, src/hud.js Cue (the cue's key apart), unity BridgeHud.Glyph.cs; tests/hud.test.js
     'In the Unity version, the use button over a person or a thing is the round button alone, as on the web, instead of a dark strip, and a hint that names a button shows the button as a badge before its words.',
+    // issue #423: unity BridgeMenu.Pause.cs (the Start menu as src/menus.css .fullmenu), BridgeMenu.Chrome.cs (the game menu as
+    // src/game-menu.css #journal: the desk, the tabs, the sheet, the quest cards, the strip), the page's face (Ui.Sans) for the
+    // menus and the HUD; engine/menus.js (the brand, a setting's kind); tests/world-map.test.js
+    'In the Unity version, the menus look like the web’s: the pause screen’s yellow side with PAUSED in big lettering and its buttons in thick ink, the settings on ruled paper with their sliders, switches and boxes, the game menu’s tabs, quest cards and strip on a warm desk, and every menu, hint and conversation in the web’s own typeface instead of a typewriter’s.',
   ] },
   { v: '1.83', date: '2026-10-16', items: [
     // issue #406: src/temples/desert.js (ROOMS, LOGIC: hall, balcony, ballK, kS, dE, sentry in the hall, d3), pieces.js Ball

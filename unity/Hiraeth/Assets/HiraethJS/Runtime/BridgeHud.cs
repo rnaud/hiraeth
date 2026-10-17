@@ -72,7 +72,7 @@ namespace Hiraeth.Bridge
             Warm(Ui.Mono); Warm(Ui.Sans);   // (Sans: the minigames' words, the page's --face)
             root = Hud.MakeCanvas(cam, "HUD (JS bridge)", 100);
             root.SetParent(transform, false);
-            var mono = Ui.Mono;
+            var mono = Ui.Sans;   // (the page's face, --face, for the hints, the prompts and the conversation; issue #423, the monospaced face before)
             BuildEdges();   // (first: under every other piece, as the page's vignettes are under its HUD)
             toast = Ui.Panel(root, "toast", HintBg0, HintBg0, 0, 0, 0, 4);
             toastText = Ui.Label(toast.rt, "text", mono, 13, HintInk0, TextAnchor.UpperCenter);

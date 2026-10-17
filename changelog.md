@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.84 — 2026-10-17
 
+- In the Unity version, the menus look like the web’s: the pause screen’s yellow side with PAUSED in big lettering and its buttons in thick ink, the settings on ruled paper with their sliders, switches and boxes, the game menu’s tabs, quest cards and strip on a warm desk, and every menu, hint and conversation in the web’s own typeface instead of a typewriter’s.
 - In the Unity version, the use button over a person or a thing is the round button alone, as on the web, instead of a dark strip, and a hint that names a button shows the button as a badge before its words.
 - In the Unity version, a world loads behind the same inked page as on the web, the pen turning in its rings and a line saying what is being drawn, where the screen used to stay black.
 - In the Unity version, a new game no longer hands you the desert’s hoverbike as the opening ends. It lies under Marrow’s tarp in the hollow by the red rag again, and finding it starts its errand, as on the web. A save that was given it that way gets it back under the tarp.

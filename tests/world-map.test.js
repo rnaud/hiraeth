@@ -304,5 +304,6 @@ test('an engine\'s menus: the Map\'s shape handed to the Unity bridge, which dra
   const cs = src('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.cs');
   assert.match(cs, /float aspect = Mathf\.Clamp\(m\?\.F\("aspect", 1\) \?\? 1, 0\.5f, 3f\);/);
   assert.match(cs, /float mw = Mathf\.Min\(w - 10, \(h - 10\) \* aspect\), mh = mw \/ aspect;/);
-  assert.match(cs, /\(float w, float h\) MapRoom\(\) => \(W - 72 - 10, H - 202 - 10\);/);
+  // (the game menu's sheet, BridgeMenu.Chrome.cs GameFrame since issue #423: its sides' tabs, the tabs over it, the strip under it)
+  assert.match(cs, /\(float w, float h\) MapRoom\(\) => \(W - 2 \* Mathf\.Max\(56, W \* 0\.056f\) - 36 - 10, H - 70 - 112 - 26 - 10\);/);
 });

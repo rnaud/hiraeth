@@ -689,7 +689,7 @@ export class EngineMenus {
   settingValue(r) { return r.value ? r.value(this.settings) : this.settings[r.k]; }
   settingsPage(at) {
     if (!this.settings) return [];
-    return SETTINGS_ROWS.map((r, i) => ({ text: r.label(), val: settingText(r, this.settingValue(r)), slider: r.kind === 'range' ? (this.settings[r.k] - r.min) / (r.max - r.min) : null, on: at?.in === 'page' && at.i === i, note: (typeof r.note === 'function' ? r.note() : r.note) ?? '' }));
+    return SETTINGS_ROWS.map((r, i) => ({ text: r.label(), val: settingText(r, this.settingValue(r)), slider: r.kind === 'range' ? (this.settings[r.k] - r.min) / (r.max - r.min) : null, kind: r.kind, on: at?.in === 'page' && at.i === i, note: (typeof r.note === 'function' ? r.note() : r.note) ?? '' }));
   }
 
   // ------------------------------------------------------------------ the Updates page (the title's and the Start menu's)
@@ -1027,7 +1027,7 @@ export class EngineMenus {
    * The menu as plain state (null when none is open):
    *   { v, kind: 'title' | 'start' | 'game', … } with, by kind,
    *   title: { screen, logo, version, rows: [{ text, sub, sub2, when, on, tag, fold, back, del, note }], page (settings), ask, starting, hint }
-   *   start: { head, sub, side: [{ text, on, sel }], page: { title, rows: [{ text, val, slider, on, plain }] }, hint }
+   *   start: { brand, head, sub, line, side: [{ text, on, sel }], page: { title, rows: [{ text, val, slider, kind, on, plain }] }, hint }
    *   game:  { tabs: { names, i, edge }, panel, cols, rows: [[{ text, sub, on, col, span, kind, mark, inUse, empty }]], strip, full, map, hint }
    */
   view() {
@@ -1066,7 +1066,7 @@ export class EngineMenus {
       : page === 'house' ? `LB / RB floor · B / ○ ${S.at.in === 'page' ? 'back' : 'resume'}`
       : S.at.in !== 'page' ? 'A / × choose · ▶ the page · B / ○ resume'
       : page === 'news' ? '▲ ▼ read · B / ○ back' : page === 'updates' ? 'A / × choose · B / ○ back' : page === 'controls' ? 'A / × change · ◀ ▶ adjust · B / ○ back' : '◀ ▶ adjust · A / × change · B / ○ back';
-    const view = { v: this.v, kind: 'start', head: this.where() || '', sub: '', line: this.saveLine?.() ?? '',
+    const view = { v: this.v, kind: 'start', brand: t('menu.paused'), head: this.where() || '', sub: '', line: this.saveLine?.() ?? '',
       side: this.startSide().map((e, i) => ({ text: e.label(), on: S.at.in === 'side' && S.at.i === i, sel: e.page === page })),
       page: { title, note: page === 'controls' && this.settings ? t(keysFirst ? 'rebind.keysHow' : 'rebind.padHow') : '', rows: this.startPageRows() }, hint };
     // the House map: its floors' tabs (LB / RB), the one shown, its picture by key, the picture's shape (issue #405)

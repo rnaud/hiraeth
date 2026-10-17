@@ -130,7 +130,7 @@ namespace Hiraeth.Bridge
         {
             root = Hud.MakeCanvas(cam, "Menus (JS bridge)", 200);
             root.SetParent(transform, false);
-            var mono = Ui.Mono;
+            var mono = Ui.Sans;   // (the page's face, --face: Avenir Next, Futura, Roboto; the HUD's monospaced face until issue #423)
             dim = Ui.Fill(root, Dim, 0, "dim");
             titleArt = Ui.Node("title art", root).gameObject.AddComponent<RawImage>(); titleArt.raycastTarget = false;
             titleLogo = Ui.Node("title logo", root).gameObject.AddComponent<RawImage>(); titleLogo.raycastTarget = false;
@@ -211,9 +211,9 @@ namespace Hiraeth.Bridge
                 var c = new Cell { box = Ui.Panel(root, "cell" + cells.Count, Color.clear, Ui.Ink, 0) };
                 c.mark = Ui.Rect(c.box.rt, Ui.Red, 0, "mark");
                 c.line = Ui.Rect(c.box.rt, Ui.Red, 0, "line");
-                c.text = Ui.Label(c.box.rt, "text", Ui.Mono, Body, Ui.Ink, TextAnchor.UpperLeft);
-                c.sub = Ui.Label(c.box.rt, "sub", Ui.Mono, Small, Muted, TextAnchor.UpperLeft, lineSpacing: 1.2f);
-                c.val = Ui.Label(c.box.rt, "val", Ui.Mono, Body, Ui.Ink, TextAnchor.UpperRight);
+                c.text = Ui.Label(c.box.rt, "text", Ui.Sans, Body, Ui.Ink, TextAnchor.UpperLeft);
+                c.sub = Ui.Label(c.box.rt, "sub", Ui.Sans, Small, Muted, TextAnchor.UpperLeft, lineSpacing: 1.2f);
+                c.val = Ui.Label(c.box.rt, "val", Ui.Sans, Body, Ui.Ink, TextAnchor.UpperRight);
                 c.bar = Ui.Rect(c.box.rt, Ui.Hex("#2b211f", 0.25f), 0, "bar");
                 c.fill = Ui.Rect(c.bar.rectTransform, Ui.Ink, 0, "fill");
                 cells.Add(c);
@@ -276,9 +276,9 @@ namespace Hiraeth.Bridge
                 t.ring = Ui.Rect(t.box.rt, Ui.Red, 20, "ring"); t.ring.transform.SetAsFirstSibling();
                 t.pic = Ui.Node("pic", t.box.rt).gameObject.AddComponent<RawImage>(); t.pic.raycastTarget = false;
                 t.mark = Ui.Label(t.box.rt, "mark", Ui.Sans, 40, Ui.Teal, TextAnchor.MiddleCenter);
-                t.name = Ui.Label(t.box.rt, "name", Ui.Mono, Tiny, Ui.Ink, TextAnchor.UpperCenter, FontStyle.Bold, 1.1f);
+                t.name = Ui.Label(t.box.rt, "name", Ui.Sans, Tiny, Ui.Ink, TextAnchor.UpperCenter, FontStyle.Bold, 1.1f);
                 t.name.verticalOverflow = VerticalWrapMode.Truncate;
-                t.inUse = Ui.Label(t.box.rt, "inUse", Ui.Mono, 10, Ui.Paper, TextAnchor.MiddleCenter, FontStyle.Bold);
+                t.inUse = Ui.Label(t.box.rt, "inUse", Ui.Sans, 10, Ui.Paper, TextAnchor.MiddleCenter, FontStyle.Bold);
                 t.inUse.text = "in use";
                 tiles.Add(t);
             }
@@ -336,8 +336,10 @@ namespace Hiraeth.Bridge
             foreach (var (pic, ring) in markPics) { Show(pic, false); Show(ring, false); }
             foreach (var (area, label) in areaPics) { Show(area, false); Show(label, false); }
             var kind = state.S("kind");
+            HideGameFrame();   // (the journal's desk and tabs: BridgeMenu.Chrome.cs, drawn again by DrawGame)
+            if (pauseRoot && kind != "start") pauseRoot.gameObject.SetActive(false);   // (the Start menu's own page: BridgeMenu.Pause.cs)
             if (smRoot && kind != "starmap") { Show(smRoot, false); smView = null; smCv = -1; }
-            if (kind == "title") DrawTitle(); else if (kind == "start") DrawStart(); else if (kind == "shop") DrawShop(); else if (kind == "card") DrawCard(); else if (kind == "foes") DrawFoes(); else if (kind == "arcade") DrawArcade(); else if (kind == "starmap") DrawStarMap(); else DrawGame();
+            if (kind == "title") DrawTitle(); else if (kind == "start") DrawPause(); else if (kind == "shop") DrawShop(); else if (kind == "card") DrawCard(); else if (kind == "foes") DrawFoes(); else if (kind == "arcade") DrawArcade(); else if (kind == "starmap") DrawStarMap(); else DrawGame();
             for (int i = used; i < cells.Count; i++) cells[i].box.Show(false);
             for (int i = tilesUsed; i < tiles.Count; i++) tiles[i].box.Show(false);
             for (int i = titleUsed; i < titleButtons.Count; i++) titleButtons[i].box.Show(false);
@@ -845,42 +847,6 @@ namespace Hiraeth.Bridge
 
         // ------------------------------------------------------------------ the Start menu
 
-        void DrawStart()
-        {
-            float sx = 24, sy = 24, sw = W - 48, sh = H - 24 - 50;
-            Sheet(sx, sy, sw, sh, true);
-            Head(state.S("head"), sx + 24, sy + 16, sw - 48);
-            // (the save under the heading, as the web's: "Save 1 · The Desert · 12 min played")
-            var ln = state.S("line") ?? "";
-            Show(line, ln.Length > 0);
-            if (ln.Length > 0) { Ui.Set(line, ln, sw * 0.6f); Ui.Place(line.rectTransform, sx + sw - 24 - sw * 0.6f, sy + 22, sw * 0.6f, 20); line.alignment = TextAnchor.UpperRight; }
-            float sideW = Mathf.Clamp(sw * 0.3f, 190, 280), top = sy + 60;
-            var side = state.L("side") ?? new List<object>();
-            float y = top;
-            foreach (var o in side)
-            {
-                var e = o as Dictionary<string, object>;
-                Entry(sx + 16, y, sideW, 38, (B(e, "sel") ? "› " : "  ") + e.S("text"), null, null, B(e, "on"));
-                y += 42;
-            }
-            var page = state.O("page");
-            float px = sx + 16 + sideW + 20, pw = sw - (px - sx) - 20;
-            Show(sub, true);
-            sub.fontStyle = FontStyle.Bold;
-            Ui.Set(sub, Ui.Upper(page?.S("title") ?? ""), pw);
-            Ui.Place(sub.rectTransform, px + 14, top - 2, pw, 20);
-            // (what the page is for, under its title: the Controls page's "choose a verb, then press its new button")
-            var pn = page?.S("note") ?? "";
-            float noteH = 0;
-            Show(empty, pn.Length > 0);
-            if (pn.Length > 0) { empty.fontSize = Tiny; var ns = Ui.Set(empty, pn, pw - 28); noteH = ns.y + 6; Ui.Place(empty.rectTransform, px + 14, top + 20, pw - 28, ns.y); }
-            else empty.fontSize = Body;
-            var house = page?.O("house");
-            if (house != null) { DrawHouse(house, px, top + 26, pw, sh - (top - sy) - 44); return; }
-            var rows = page?.L("rows");
-            DrawSettings(rows, px, top + 22 + noteH, pw, sh - (top - sy) - 40 - noteH);
-        }
-
         /// <summary>
         /// The House map's page (src/ui.js drawHouse, issue #405): a tab a floor (1F, 2F, B1…; the one shown gold, LB / RB at
         /// the ends, a red dot on the one you stand on), the floor's name, and the floor's picture under them in its paper frame.
@@ -919,26 +885,9 @@ namespace Hiraeth.Bridge
 
         void DrawGame()
         {
-            float sx = 18, sy = 16, sw = W - 36, sh = H - 16 - 46;
-            Sheet(sx, sy, sw, sh, true);
-            // the tabs: the five panels' names, this one in ink with the red line under it; LB / RB at the sides
-            var t = state.O("tabs");
-            var names = t?.L("names") ?? new List<object>();
-            int cur = t?.I("i") ?? 0, edge = t?.I("edge") ?? 0;
-            float tw = (sw - 140) / Mathf.Max(1, names.Count), tx = sx + 70;
-            for (int i = 0; i < names.Count && i < tabs.Count; i++)
-            {
-                var l = tabs[i]; Show(l, true);
-                l.text = Ui.Upper(names[i] as string);
-                l.fontStyle = i == cur ? FontStyle.Bold : FontStyle.Normal; l.color = i == cur ? Ui.Ink : Muted;
-                Ui.Place(l.rectTransform, tx + i * tw, sy + 12, tw, 28);
-                if (i == cur) { Show(tabLine, true); float lw = Mathf.Min(tw - 12, Ui.Measure(l, l.text).x); Ui.Place(tabLine.rectTransform, tx + i * tw + tw / 2 - lw / 2, sy + 40, lw, 3); }
-            }
-            Show(tabPrev, true); Show(tabNext, true);
-            tabPrev.text = "◀ " + Key("prev", "LB"); tabNext.text = Key("next", "RB") + " ▶";
-            tabPrev.color = edge < 0 ? Ui.Red : Ui.Ink; tabNext.color = edge > 0 ? Ui.Red : Ui.Ink;
-            Ui.Place(tabPrev.rectTransform, sx + 14, sy + 12, 60, 28); Ui.Place(tabNext.rectTransform, sx + sw - 74, sy + 12, 60, 28);
-            float top = sy + 56, bottom = sy + sh - 84, px = sx + 18, pw = sw - 36;
+            // the sheet under its tabs on the desk, the tabs to the panels beside it (BridgeMenu.Chrome.cs: the web's journal, issue #423)
+            GameFrame(out float sx, out float sw, out float top, out float bottom);
+            float px = sx + 18, pw = sw - 36;
             var person = state.O("person");
             var full = state.O("full");
             var panel = state.S("panel");
@@ -950,16 +899,17 @@ namespace Hiraeth.Bridge
             if (s != null && person == null)
             {
                 strip.Show(true);
-                Ui.Place(strip.rt, sx + 14, bottom + 6, sw - 28, 70);
-                var ns = Ui.Set(stripName, s.S("name"), sw * 0.5f);
-                Ui.Place(stripName.rectTransform, 12, 8, ns.x, ns.y);
+                Ui.Place(strip.rt, sx, gStripY, sw, 58);
+                StripLook();
+                var ns = Ui.Set(stripName, Ui.Upper(s.S("name")), sw * 0.5f);
+                Ui.Place(stripName.rectTransform, 20, 10, ns.x, ns.y);
                 Ui.Set(stripSub, s.S("sub"), sw * 0.4f);
-                Ui.Place(stripSub.rectTransform, 24 + ns.x, 11, sw * 0.4f, 18);
+                Ui.Place(stripSub.rectTransform, 34 + ns.x, 13, sw * 0.4f, 18);
                 Ui.Set(stripDesc, s.S("desc"), sw - 220);
-                Ui.Place(stripDesc.rectTransform, 12, 34, sw - 220, 32);
+                Ui.Place(stripDesc.rectTransform, 20, 32, sw - 240, 24);
                 var act = s.S("act") ?? "";
                 stripAct.text = act.Length > 0 ? Key("ok", "A") + "  " + act : "";
-                Ui.Place(stripAct.rectTransform, sw - 28 - 190, 8, 176, 20);
+                Ui.Place(stripAct.rectTransform, sw - 20 - 190, 12, 176, 20);
             }
             if (full != null) DrawFull(full);
         }
@@ -1036,7 +986,8 @@ namespace Hiraeth.Bridge
                 var row = rows[r] as List<object>;
                 float rh = hs[r];
                 // (the list of foes draws whole rows only: a row cut by the sheet's foot ran over its edge)
-                bool shown = panel == "foes" ? yy >= y - 1 && yy + rh <= y + h + 2 : yy + rh > y - 1 && yy < y + h - 2;
+                // (whole rows only everywhere since the sheet has the web's strip under it, issue #423: a row cut by its foot ran over the strip)
+                bool shown = yy >= y - 1 && yy + rh <= y + h + 2;
                 if (shown)
                     foreach (var o in row)
                     {
@@ -1069,6 +1020,9 @@ namespace Hiraeth.Bridge
                         if (B(c, "tracked")) text = "◆ " + text;
                         if (c.S("done") == "done") text = "✓ " + text; else if (c.S("done") == "failed") text = "· " + text;
                         if (c.S("kind") == "item" || c.S("kind") == "empty") { DrawTile(cx, yy + 6, cw, side, c); continue; }
+                        // (a quest as the page's .qcard; a quest done, a line: BridgeMenu.Chrome.cs, issue #423)
+                        if (panel == "quests" && c.S("kind") != "ended") { QuestCard(cx, yy, cw, rh - 8, c); continue; }
+                        if (panel == "quests") under = null;
                         // (what you carry and the keepsakes: a line each, its small picture first)
                         var pic = Picture(c.S("pic"));
                         var cell = Entry(cx, yy, cw, rh - 6, (pic != null || string.IsNullOrEmpty(c.S("mark")) ? "" : c.S("mark") + " ") + text, under, null, B(c, "on"), size: c.S("kind") == "ended" ? Small : Body, dimmed: B(c, "off"), boxed: true);
@@ -1080,7 +1034,7 @@ namespace Hiraeth.Bridge
         }
 
         /// <summary>The room the game menu has for the Map (DrawGame's panel less the sheet's shadow), in the canvas' units.</summary>
-        (float w, float h) MapRoom() => (W - 72 - 10, H - 202 - 10);
+        (float w, float h) MapRoom() => (W - 2 * Mathf.Max(56, W * 0.056f) - 36 - 10, H - 70 - 112 - 26 - 10);   // (GameFrame's sheet, BridgeMenu.Chrome.cs)
 
         /// <summary>
         /// The Map as the web's (src/game-menu.js mapPanel and mapPaint, issue #343): the whole sheet at the map's own shape
@@ -1125,7 +1079,7 @@ namespace Hiraeth.Bridge
             while (areaPics.Count < rumours.Count)
             {
                 var area = Ui.Node("rumour area", mapClip).gameObject.AddComponent<RawImage>(); area.raycastTarget = false;
-                var label = Ui.Label(mapClip, "rumour label", Ui.Mono, Tiny, Ui.Hex("#5b2f52"), TextAnchor.MiddleCenter, FontStyle.BoldAndItalic);
+                var label = Ui.Label(mapClip, "rumour label", Ui.Sans, Tiny, Ui.Hex("#5b2f52"), TextAnchor.MiddleCenter, FontStyle.BoldAndItalic);
                 areaPics.Add((area, label));
             }
             for (int i = 0; i < areaPics.Count; i++)
