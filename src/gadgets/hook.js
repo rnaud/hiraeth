@@ -67,6 +67,24 @@ function clearOf(physics, item, fn) {
 /** Can the hook reach a point d metres from the glove? */
 export const inReach = (d, range = HOOK.range) => Number.isFinite(d) && d > 0.6 && d <= range;
 
+// ------------------------------------------------------------------ what it takes (issue #432)
+// In the open world the hook bites any surface in reach. Inside a makers' house it takes only what the house
+// set there for it (docs/systems/gadgets.md, "In the makers' houses"): its anchors (rings a room declares,
+// `hookAnchors`), loose things (a weight, a crate), foes and the founders' bells; never bare stone, or a hook
+// to a ledge would skip the house's steps. The reticle says so before the throw ('nohold', "won't hold").
+
+/** The house (a temple's runtime, src/temples/runtime.js) the traveller or any of `points` is inside, else null. */
+export function houseAt(level, ...points) {
+  for (const rt of level?.temples ?? (level?.temple ? [level.temple] : [])) if (points.some((p) => p && rt.inside?.(p))) return rt;
+  return null;
+}
+
+/** The anchors every house of the level declares (src/temples/pieces.js HookRing: rt.hookAnchors). */
+export const houseAnchors = (level) => (level?.temples ?? (level?.temple ? [level.temple] : [])).flatMap((rt) => rt.hookAnchors ?? []);
+
+/** Does the hook take what it would catch (a trace's hit), in `house` (null: the open world)? Bare surfaces only outside. */
+export const takes = (hit, house = null) => !house || hit.kind !== 'world';
+
 function hookModel() {
   const g = new THREE.Group();
   const brass = inkMat('#d6a94a', { metal: 'brass' }), dark = inkMat('#3a3330'), rope = inkMat('#e8d9b4'), red = inkMat('#c8483a');
@@ -160,7 +178,7 @@ class Hook {
     aimRay(camera, P, this.ray);
     const hand = this.hand(_u);
     const far = HOOK.range + hand.distanceTo(this.ray.origin) + 2;
-    const hit = traceAim(physics, this.ray.origin, this.ray.dir, far, { anchors: world?.anchors ?? [] });
+    const hit = traceAim(physics, this.ray.origin, this.ray.dir, far, { anchors: [...(world?.anchors ?? []), ...houseAnchors(this.ctx.level)] });
     hit.reach = hand.distanceTo(hit.point);
     if (hit.kind !== 'none' && hit.kind !== 'target') {
       // the line from the glove: whatever stands in the way is what it bites
@@ -181,6 +199,8 @@ class Hook {
       }
     }
     hit.ok = hit.kind !== 'none' && inReach(hit.reach);
+    // (in a makers' house bare stone doesn't take it: issue #432)
+    if (hit.ok && !takes(hit, houseAt(this.ctx.level, this.ctx.player?.pos, hit.point))) { hit.ok = false; hit.slick = true; }
     return hit;
   }
 
@@ -213,6 +233,8 @@ class Hook {
     this.t = 0;
     this.state = 'out';
     this.cool = HOOK.cool;
+    // (on a house's bare stone it flies there and glances off: nothing reels; once, the house's rule in a line)
+    if (hit.slick) { hit.kind = 'blocked'; hit.ok = true; this.ctx.notice?.('The makers’ stone won’t hold the hook. It takes their rings, weights and bells.', 'hook.house'); }
     if (!hit.ok) { const dir = _v.subVectors(hit.point, this.headPos).normalize(); hit.point.copy(this.headPos).addScaledVector(dir, HOOK.range); hit.kind = 'none'; }
     this.goal.copy(hit.point);
     sfx.hookFire(this.ctx.sound);
@@ -308,7 +330,9 @@ class Hook {
       if (!this.canUse()) this.aiming = false;
       else {
         this.aimHit = this.trace();
-        this.ctx.hud.reticle(this.aimHit.ok ? this.aimHit.point : null, this.aimHit.ok ? (this.aimHit.kind === 'anchor' ? 'anchor' : this.aimHit.kind === 'target' ? 'target' : 'ok') : 'far', this.aimHit.ok ? `${Math.round(this.aimHit.reach)} m` : 'out of reach');
+        const A = this.aimHit;
+        if (A.slick) this.ctx.hud.reticle(A.point, 'nohold', 'won’t hold');
+        else this.ctx.hud.reticle(A.ok ? A.point : null, A.ok ? (A.kind === 'anchor' ? 'anchor' : A.kind === 'target' ? 'target' : 'ok') : 'far', A.ok ? `${Math.round(A.reach)} m` : 'out of reach');
         this.ctx.aimAt(this.aimHit.point, this.ray.dir);
         this._ret = true;
       }

@@ -44,6 +44,9 @@ body.cine-on #gadget-chip, body.cine-on #gadget-reticle, body.cine-on #gadget-wh
 #gadget-reticle.anchor .r { border-color: #c8483a; transform: rotate(45deg) scale(1.1); border-radius: 4px; }
 #gadget-reticle.target .r { border-color: #2f7f86; }
 #gadget-reticle.far .r { border-style: dashed; opacity: 0.55; transform: scale(0.7); }
+#gadget-reticle.nohold .r { border-style: dashed; transform: rotate(45deg) scale(0.85); }   /* (a cross in a broken ring: a makers' house's bare stone won't take the hook, issue #432) */
+#gadget-reticle.nohold .r::before { width: 16px; margin-left: -8px; }
+#gadget-reticle.nohold .r::after { height: 16px; margin-top: -8px; }
 #gadget-reticle span { position: absolute; top: 40px; left: 50%; transform: translateX(-50%); white-space: nowrap; padding: 0 5px;
   font: calc(var(--type-s) * 0.8)/1.5 var(--face); color: #2b211f; background: rgba(247, 236, 210, 0.85); border: 1px solid #2b211f; }
 #gadget-marks { position: fixed; inset: 0; z-index: 31; pointer-events: none; }

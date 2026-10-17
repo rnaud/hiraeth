@@ -180,6 +180,23 @@ walls in every world, the jets end and the wings fold. Tests: `reelTarget`, `ree
 the aim assist through a wall, a whole reel to a wall (mantle tried, then the climb), the fling, the miss,
 dragging a crate and a foe.
 
+### In the makers' houses (v1.83, issue #432)
+
+The hook used to bite any surface in reach, so in a house it pulled you onto a gallery, across a chasm or up a shaft
+past the step that was meant to open it. Now, **inside a house** (the traveller or the point aimed at inside a temple
+runtime's bounds: `houseAt(level, …points)`), it takes only what the house set there for it (`takes(hit, house)`): its
+anchors (a `HookRing` a room declares, src/temples/pieces.js; they join the aim's anchors through `houseAnchors(level)`),
+loose things (a weight, a crate: dragged in; one too heavy, reeled to), foes (the lock-on throw is unchanged) and the
+founders' bells' pull-rings. Bare stone doesn't take it: the trace marks it `slick` (`ok` false), the reticle is
+`'nohold'` (a cross turned 45° in the ring, "won't hold"; BridgeHud.cs draws the same in Unity), and thrown it flies
+there and glances off (a `'blocked'` bite: a clink, nothing reels), saying once "The makers' stone won't hold the hook.
+It takes their rings, weights and bells." (`hook.house`). **The open world is unchanged**: any wall or ledge in reach,
+the yard's and the makers' courts' rings. The fight temples are minigames: the gadgets are put away there.
+
+Tests: tests/gadgets.test.js (a wall outside takes, inside it doesn't, the reticle's cross, the glance, a ring on the
+same wall reels), tests/engine-hook.test.js (the same in the engines' bundle, in the Founders' Belfry), and
+tests/hook-reach.test.js, the reach check over all fourteen houses (docs/systems/temples.md, "No hook past a lock").
+
 ### The hook on a foe (v1.82, issue #399, `src/hook-foes.js`)
 
 The author: "the grappling hook should work when locked on with R2, should freeze monsters or bring them closer to

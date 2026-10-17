@@ -1123,6 +1123,8 @@ const LAMP410 = 'Issue #410: the running game in muted headless Chrome (ANGLE Me
 const LAMP410P = 'Issue #410: the Temple maps page (temples.html?t=perdide2, Debug → Pages) in muted headless Chrome, 1600 × 1150, the plan with the solver’s steps; before: the tree at f496ba0ea, after: this change; 16 October; cwebp -q 70 -resize 1280';
 const BODIES402 = 'Issue #402: the character studio’s crowd lineup (studio.html?lineup=crowd&count=9&seed=1, turned a little toward the camera: full bodies in front, the GPU crowd figures behind) and its every-build lineup (lineup=mhbuilds, a grown man), muted headless Chrome against this branch’s own Vite (port 5432), before at 490123fd8 and after on the branch; cropped to the people, cwebp -q 72';
 const WISP398 = 'Issue #398: muted headless Chrome on this branch’s own dev server, Medium, 1280 × 720, the Arena with ?foe=wisp, locked on (Tab), the blade (F) pressed as the ball came within 3.4 m, then walked up to the stunned wisp and cut; four of the exchange’s frames tiled; 16 October; cwebp -q 72';
+/** (v1.83, issue #432: the hook in a makers' house) */
+const HOOK432 = 'Issue #432: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, 11:00, the HUD hidden but the reticle) on this branch’s own Vite (port 5443, scripts/design-qc/capture.mjs), the camera pinned over the traveller’s shoulder at the Founders’ Belfry’s way in, the hook in hand and aimed at the hall’s east wall; before: the same build with the house’s rule turned off in the page (its runtime’s inside() false: the hook as it was), after: as shipped; 17 October; cwebp -q 70';
 export const CHANGELOG_MEDIA = {
   '1.83': [
     { match: 'The Rose House is built round a Great Hall now', shots: [
@@ -1196,6 +1198,9 @@ export const CHANGELOG_MEDIA = {
     { match: 'A new foe, the ember wisp', tags: ['combat'], shots: [
       { name: 'ember-wisp', only: 'after', title: 'An exchange', caption: 'The Arena: the wisp’s shell open and its coal swelling (a second’s wind-up); its fireball on the way; cut as it arrives, the ball flies back white-hot; the wisp knocked down to the sand, cut', from: WISP398 },
     ], see: 'In the Arena, open FOES (K) and choose the ember wisp. Lock on, wait for its shell to open, and press the blade just as the ball reaches you; then run in and cut it while it is down.' },
+    { match: 'Inside the makers’ houses the grappling hook only catches', shots: [
+      { name: 'hook-house', title: 'Aimed at a wall', caption: 'In the Founders’ Belfry with the hook aimed at the hall’s wall: before, the ring said it would catch and reel you up there; after, a cross and “won’t hold”', from: HOOK432 },
+    ], see: 'In any makers’ house, hold LT / L2 with the hook in hand and aim at a wall: the reticle shows a cross. Aim at a bell’s ring or a weight and it catches as before; outside, any wall takes it.' },
   ],
   '1.82': [
     { match: 'Locked on, RT / R2 throws the grappling hook at your foe', tags: ['combat'], shots: [

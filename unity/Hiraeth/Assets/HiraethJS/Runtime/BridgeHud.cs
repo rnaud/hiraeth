@@ -1021,13 +1021,15 @@ namespace Hiraeth.Bridge
             Show(ret, at.HasValue); Show(retTag, false);
             if (!at.HasValue) return;
             var kind = r.S("kind") ?? "ok";
-            float sc = kind == "far" ? 0.7f : 1, sz = 34 * sc;
+            // (nohold: a makers' house's bare stone won't take the hook, a longer cross turned 45°: src/gadgets/hud.js, issue #432)
+            bool no = kind == "nohold";
+            float sc = kind == "far" ? 0.7f : no ? 0.85f : 1, sz = 34 * sc, arm = no ? 8 : 6;
             Ui.Place(ret.rt, at.Value.x - sz / 2, at.Value.y - sz / 2, sz, sz);
             ret.border.color = kind == "anchor" ? Ui.Red : kind == "target" ? Teal : Ui.Ink;
-            ret.rt.localRotation = Quaternion.Euler(0, 0, kind == "anchor" ? 45 : 0);
+            ret.rt.localRotation = Quaternion.Euler(0, 0, kind == "anchor" || no ? 45 : 0);
             Ui.Alpha(ret.rt, kind == "far" ? 0.55f : 1);
-            Ui.Place(retH.rectTransform, sz / 2 - 6, sz / 2 - 1, 12, 2);
-            Ui.Place(retV.rectTransform, sz / 2 - 1, sz / 2 - 6, 2, 12);
+            Ui.Place(retH.rectTransform, sz / 2 - arm, sz / 2 - 1, arm * 2, 2);
+            Ui.Place(retV.rectTransform, sz / 2 - 1, sz / 2 - arm, 2, arm * 2);
             var label = r.S("label") ?? "";
             if (label.Length == 0) return;
             Show(retTag, true);

@@ -1431,6 +1431,35 @@ export class HookBell {
 }
 
 /**
+ * A makers' hook ring (issue #432): in a house the grappling hook takes no bare stone, only what the house set there for it,
+ * and this is the one that reels you. A brass ring round a red heart on a short stub, drawn as the Gadget Yard draws the
+ * hook's rings, facing the way you would hook it from; it joins the house's anchors (`rt.hookAnchors`, which the hook's
+ * aim finds: src/gadgets/hook.js houseAnchors), and tests/hook-reach.test.js checks that none of them crosses a lock.
+ * o: { id, at (the ring's middle, local), yaw (the way it faces, local), tilt (radians up), room }
+ */
+export class HookRing {
+  constructor(rt, o) {
+    this.rt = rt; this.id = o.id; this.o = o;
+    const K = rt.kit, M = rt.M, yaw = o.yaw ?? 0, tilt = o.tilt ?? 0;
+    this.at = K.world(...o.at);
+    const ahead = K.world(o.at[0] + Math.sin(yaw) * Math.cos(tilt), o.at[1] + Math.sin(tilt), o.at[2] + Math.cos(yaw) * Math.cos(tilt));
+    this.group = new THREE.Group();
+    this.group.position.copy(this.at);
+    this.group.rotation.set(-tilt, K.heading(yaw), 0, 'YXZ');
+    const brass = own({ color: '#d6a94a', flat: true, metal: 'brass', refl: 0.4 });
+    const red = own({ color: '#c8483a', flat: true, glow: 0.12 });
+    this.group.add(mesh([T(new THREE.TorusGeometry(0.36, 0.075, 8, 22))], brass));
+    this.group.add(mesh([T(new THREE.CircleGeometry(0.2, 14), [0, 0, 0.01])], red));
+    this.group.add(mesh([T(new THREE.CylinderGeometry(0.09, 0.09, 0.32, 8), [0, 0, -0.16], [Math.PI / 2, 0, 0])], M.trimMat));
+    noCollide(this.group);
+    rt.root.add(this.group);
+    this.anchor = { pos: this.at, normal: ahead.sub(this.at).normalize(), radius: 0.4, room: o.room ?? null, id: o.id, enabled: () => this.group.visible };
+    (rt.hookAnchors ??= []).push(this.anchor);
+  }
+  dispose() { const a = this.rt.hookAnchors, i = a?.indexOf(this.anchor) ?? -1; if (i >= 0) a.splice(i, 1); }
+}
+
+/**
  * A lamp's glass: it wakes to the lantern charm's light: stand by it (within `reach`) with the lantern a moment (`hold` s), and
  * element `id` (a 'switch' that needs the lantern) is lit for good. o: { id, at, reach, hold, carried, hang, heard }. reach 0: only
  * something else wakes it (a Ball's `lamp`, the pool-orb); it glows once its element is lit. `carried` (issue #377, the

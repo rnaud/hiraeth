@@ -281,6 +281,40 @@ test('the hook reels the traveller in along the line, and at a wall he takes hol
   assert.ok(P.climbN.z > 0.9, 'facing it');
 });
 
+test('in a makers\' house the hook takes no bare stone (the reticle\'s cross, a glance off), only its rings (issue #432)', () => {
+  const wall = new THREE.Mesh(new THREE.BoxGeometry(10, 12, 1).translate(0, 6, -12.5), new THREE.MeshBasicMaterial());
+  const ph = physicsOf(wall);
+  const aim = (P, at = v(0, 3, -12)) => { const cam = new THREE.PerspectiveCamera(); cam.position.copy(P.pos).add(v(0, 1.6, 3)); cam.lookAt(at); cam.updateMatrixWorld(); return cam; };
+  const house = { inside: (p) => p.z < 5 }, rets = [], said = [];
+  const make = (level, at) => {
+    const P = player(v(0, 0, 0));
+    const ctx = hookCtx(P, ph, { camera: aim(P, at), level, hud: { reticle: (p, kind, label) => rets.push({ kind, label }) }, notice: (t) => said.push(t) });
+    return { P, H: hook.create(ctx) };
+  };
+  // the open world: the wall takes it
+  const out = make({});
+  assert.equal(out.H.trace().ok, true, 'outside: the wall');
+  // a house: the same wall won't hold
+  const { P, H } = make({ temples: [house] });
+  const t = H.trace();
+  assert.equal(t.kind, 'world'); assert.equal(t.ok, false); assert.equal(t.slick, true);
+  H.press(); H.update(DT);
+  assert.deepEqual(rets.at(-1), { kind: 'nohold', label: 'won’t hold' }, 'the reticle says so before the throw');
+  H.release();
+  for (let i = 0; i < 30 && H.state === 'out'; i++) H.update(DT);
+  assert.equal(H.state, 'back', 'it glanced off: nothing reels');
+  assert.equal(P.pos.length(), 0, 'and he never moved');
+  assert.equal(said.length, 1, 'the house\'s rule said once');
+  // its own ring, on the same wall: taken, and it reels
+  const ring = { pos: v(0, 9, -11.9), normal: v(0, 0, 1) };
+  const R = make({ temples: [{ ...house, hookAnchors: [ring] }] }, v(0, 8.5, -12));
+  const r = R.H.trace();
+  assert.equal(r.kind, 'anchor'); assert.equal(r.ok, true);
+  R.H.fire(r);
+  for (let i = 0; i < 30 && R.H.state === 'out'; i++) R.H.update(DT);
+  assert.equal(R.H.state, 'pull', 'the ring reels him');
+});
+
 test('jump while reeling lets go with the reel\'s speed; caught on nothing the hook comes back', () => {
   const P = player(v(0, 0, 0)), H = hook.create(hookCtx(P, physicsOf()));
   H.fire({ kind: 'anchor', ok: true, point: v(0, 10, -20), normal: v(0, 1, 0), reach: 22 });

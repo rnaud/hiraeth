@@ -1439,6 +1439,34 @@ the Capstan Hall's walkways and back in past its great lock: a second rail at 2 
 (`WINDOW_BARS`, 0.75 m apart; the anchors still go out under them and your aim reaches them). A door in an
 opening wider or taller than itself takes a `frame: { side, top }` (src/temples/pieces.js Door): stone that wide either
 side of it and that tall over it, drawn and solid.
+## No hook past a lock (v1.83, issue #432, `tests/hook-reach.test.js`)
+
+Found by the Lamp-House rework: the grappling hook reeled you onto any ledge in its 25 m reach, so a house's galleries,
+chasms and shafts could be crossed before the step meant to open them. Inside a house the hook now takes only what the
+house set there for it (docs/systems/gadgets.md, "In the makers' houses"): rings (`HookRing`, a piece of its own: a room
+that wants a hook point declares one, `rt.hookAnchors`), weights and crates, bells and foes; never bare stone. The open
+world keeps the free hook.
+
+The check: for every lock of a house's links (a door, a bridge, or a gap that wants an item; not one the logic goes round
+by another link), shut with every other door open, the walker floods each side (tests/house-walk.js, shared with the
+door-bypass test); from every spot of one side, his glove where it would be, every hold the hook takes in the house in
+reach and in plain sight reels him in (on a floor he stands on it; on a wall he hauls over its top as `tryMantle` probes,
+or climbs it if it is one of the house's climbs, to its top; the reel's line must have room for his body), and where he
+lands must not be the other side, nor walk on into it. Today no house has a ring or a too-heavy loose thing, so it
+passes everywhere; a ring added later is checked. `HOOK_FREE=1` runs the old rule as well (a fan of 280 aims from every
+spot, 2.5 m apart, within reach of the other side) and lists what it would skip. On the fourteen houses at 889012aca:
+
+| house | what the old hook skipped |
+|---|---|
+| the Warden's Well | the vane chasm both ways without its bridge; the jets' shaft up to the gallery without the fan |
+| the Lamp-House | the Dark Gallery's chasm (`br1`) from its near lip to the far one's face, 24.5 m even at 27 m across |
+| the Aerie | the Eyrie's gap to its key's ledge (`lift`) both ways without the wings |
+| the Builders' Greenhouse | the Glass Stair to its landing (and the vault's top) without the lift; the Vine Gulf (`vine1`) both ways |
+| the Undertower | the dishes' gap (`disc`) both ways; the gallery's gap without the hourglass, both ways |
+| the other nine | nothing (the Aerie's raft to the Wing Chamber, found on the house before #407, is gone with its rework) |
+
+Each was fixed by the rule itself: the hook no longer takes the stone it bit, and no house data changed.
+
 ## Weights on the plates (v1.76, issue #337, `Weight`)
 
 The author: "I should be able to pick up and put down small objects, that should be put to use for puzzles. Like grab a
