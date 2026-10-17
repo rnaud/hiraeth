@@ -1,0 +1,35 @@
+docs/README.md
+  s_5f899ba316b5dc::t_2a96f6ff61fb63 33-35
+docs/design/enemy-roster-prompts.md
+  s_5f899ba316b5dc::t_678f6735cf4e92 394-424
+docs/design/fireball-foe.md
+  s_5f899ba316b5dc::t_a39e910cf58555 6,53-60
+docs/design/hat-prompts.md
+  s_5f899ba316b5dc::t_1c35f97cd20c3c 8,10-14,68-69,71-73
+docs/design/space-port-prompts.md
+  s_5f899ba316b5dc::t_a610a64fe6b56c 1-71
+docs/design/space-ports.md
+  s_5f899ba316b5dc::t_be2e4c3190b3e9 6-7,9-10,160-162,166
+references/hats/README.md
+  s_5f899ba316b5dc::t_05381fd4272524 1
+references/space-ports/README.md
+  s_5f899ba316b5dc::t_74ff4c6ebf1455 1
+tests/reference-lab.test.js
+  s_5f899ba316b5dc::t_fcd45964f5b03a 113,116
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1533128f5766add210390a427c140aa700b622e7",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
