@@ -587,6 +587,11 @@ namespace Hiraeth.Bridge
             // (the slim lean variants: on Android, -slim elsewhere, -no-slim off; round 7 of #262)
             if (BridgeArgs.Flag("-slim")) BridgeRenderer.slim = true;
             if (BridgeArgs.Flag("-no-slim")) BridgeRenderer.slim = false;
+            // (the lean variants with the scrub's or the glass's path kept, round 11: -lean-rare elsewhere, needing a build with -keep-slim)
+            if (BridgeArgs.Flag("-lean-rare")) BridgeRenderer.leanRare = true;
+            if (BridgeArgs.Flag("-no-lean-rare")) BridgeRenderer.leanRare = false;
+            if (BridgeArgs.Flag("-no-lean-scrub")) BridgeRenderer.leanScrub = false;
+            if (BridgeArgs.Flag("-no-lean-glass")) BridgeRenderer.leanGlass = false;
             BridgeRenderer.slimNot = BridgeArgs.Arg("-slim-not")?.Split(',');
             BridgeRenderer.slimNoCopies = !BridgeArgs.Flag("-slim-copies");
             BridgeRenderer.slimOnPlain = BridgeArgs.Flag("-slim-on-plain");

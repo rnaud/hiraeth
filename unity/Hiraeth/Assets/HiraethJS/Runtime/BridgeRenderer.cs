@@ -570,6 +570,9 @@ namespace Hiraeth.Bridge
                 : F(m, "_Fluid") > 0.5f ? "fluid" : F(m, "_TripoFace") > 0.5f ? "face" : F(m, "_Veins") > 0 ? "veins" : F(m, "_BoxOn") > 0.5f ? "box"
                 : F(m, "_Scrub") > 0 ? "scrub" : null;
             string kw = why != null ? null : mode == 1 ? "HIRAETH_LEAN_TERRAIN" : mode == 3 ? "HIRAETH_LEAN_WATER" : "HIRAETH_LEAN";
+            // (the scrub's strokes or the glass's cut alone, on no ground or water: the lean variant with that one path kept)
+            if (leanRare && (why == "scrub" || why == "glass") && mode != 1 && mode != 3 && RareCount(m) == 1)
+                kw = why == "scrub" ? (leanScrub ? "HIRAETH_LEAN_SCRUB" : null) : (leanGlass ? "HIRAETH_LEAN_GLASS" : null);
             bool plainOk = kw != null && plain && (int)(F(m, "_Pattern") + 0.5f) == 0 && F(m, "_Weather") <= 0 && V(m, "_Detail").x <= 0.5f && F(m, "_Patch") <= 0;
             // (and none of the people's, a picture's or the form's hatching interpolators: the slim variant, its vertices 19 floats not 28;
             // never with HIRAETH_PLAIN: the two together stall the Retroid's frame for ~330 ms again and again, round 7; the ground is
@@ -583,6 +586,20 @@ namespace Hiraeth.Bridge
                 m.EnableKeyword("HIRAETH_PLAIN"); leanWhy.TryGetValue("plain", out int pc); leanWhy["plain"] = pc + 1;
             }
         }
+        /// <summary>How many of the full variant's rare paths a material uses (glass, veil, dissolve, fluid, drawn face, veins, box, scrub).</summary>
+        static int RareCount(Material m) => (F(m, "_Glass") > 0 ? 1 : 0) + (F(m, "_Veil") > 0 ? 1 : 0) + (V(m, "_Dissolve").x > 0 ? 1 : 0)
+            + (F(m, "_Fluid") > 0.5f ? 1 : 0) + (F(m, "_TripoFace") > 0.5f ? 1 : 0) + (F(m, "_Veins") > 0 ? 1 : 0) + (F(m, "_BoxOn") > 0.5f ? 1 : 0) + (F(m, "_Scrub") > 0 ? 1 : 0);
+        /// <summary>The lean variants with one rare path kept (HIRAETH_LEAN_SCRUB, HIRAETH_LEAN_GLASS: Surface.shader) for the scrub's
+        /// and the glass's materials that use no other: on Android under Vulkan, as the slim ones (their variants are in those builds
+        /// only: BridgeShaderStrip), -lean-rare elsewhere, -no-lean-rare off, -no-lean-scrub / -no-lean-glass one of them
+        /// (docs/systems/performance.md, "Unity on the Retroid, round 11").</summary>
+        public static bool leanRare =
+#if UNITY_ANDROID && !UNITY_EDITOR
+            SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Vulkan;
+#else
+            false;
+#endif
+        public static bool leanScrub = true, leanGlass = true;
         /// <summary>The plain lean variant (HIRAETH_PLAIN: Surface.shader) for the lean materials with none of a wall's marks (no
         /// pattern, weathering, pen detail or colour patches): on Android (the Retroid's GPU 0.7-1.4 ms a frame, issue #262),
         /// -plain elsewhere, -no-plain off.</summary>

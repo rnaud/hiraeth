@@ -4424,3 +4424,50 @@ distance), which the bridge leaves off (`-js-on lod`, round 9).
 Switches (BridgeRunner): `-inst-lod-px P` the pixels (0: off), `-inst-lod-save N` the triangles a level must save,
 `-inst-lod-shadow 0` the full mesh in the shadow maps; `-census` logs the instances drawn at each level. To repeat: round
 9's scripts with `--conds "off=-inst-lod-px 0|on="`.
+
+### Unity on the Retroid, round 11: the scrub's and the glass's lean variants (issue #404, 2026-10-17)
+
+The same device, preset and bench as round 10 (Handheld, FSR 1 at 0.67 of 1280 × 960, muted, the frame readout on; warm
+launches, conditions interleaved world by world, one APK with a switch: `off` is `-no-lean-rare`).
+
+**What was looked at first** (round 10's build, the City-Shaft's start / wide view, GPU ms against 18.2 / 24.9): the parts of the
+shader one by one (`-surface-skip`): the hatching 17.6 / 23.8, the shadow lookups 17.5 / 23.5, the patterns 18.3 / 24.8, the
+shade's tone 18.1 / 24.7; the shadow maps' schedule and size: the far map every 8th frame 18.0 / 24.7, the near map at 1 024
+17.7 / 24.1, the instances out of the maps 18.4 / 25.1 (and `-no-shadows` 22.1 / 27.3: the big meshes then drawn whole, not by
+their pieces). Each is at most ~1.4 ms and every one would change the picture. What does not show in those: **what the
+trees are drawn with.** The City-Shaft's cypresses, olives and pines are one material with the scrub's strokes (`scrub`,
+`pattern: 'leaves'`), and BridgeRenderer.Lean gave any scrub material the **full Surface variant** (~25 000 instructions, round
+6): each tree pixel paid for every rare path, and its prepass draw carried the glass's, the dissolve's and the veil's discard,
+so the Adreno could not know its depth before the fragment ran. Underwater's dome and tube glass is the same case with
+`_Glass` (round 9's 2.3-3.6 ms).
+
+**What it does** (Surface.shader, BridgeRenderer.Lean): two lean variants with one rare path kept, `HIRAETH_LEAN_SCRUB`
+(the scrub's strokes) and `HIRAETH_LEAN_GLASS` (the glass's cut), for a material whose only rare path is that one, on no
+ground or water (`RareCount`, mode not 1 or 3). Everything else is the lean variant's, so the picture is the same; the
+scrub's prepass has no discard at all. Like the slim variants they are in Android's Vulkan builds only (BridgeShaderStrip;
+`BridgeRenderer.leanRare`), so the Deck's, the Xbox's and the editor's shader sets do not grow. Switches: `-no-lean-rare`,
+`-no-lean-scrub`, `-no-lean-glass`, `-lean-rare` elsewhere (a build with `-keep-slim`).
+
+| view | off: fps (1 % low, GPU ms) | off again | on | on again |
+|---|---|---|---|---|
+| City-Shaft start | 51.3 (32.7, 18.3) | 51.2 (34.9, 18.3) | **54.5** (32.0, 17.1) | 54.5 (33.1, 17.1) |
+| City-Shaft crowd | 60.1 (46.6, 13.1) | 60.1 (49.7, 13.1) | 60.1 (50.5, 13.2) | 60.1 (48.2, 13.1) |
+| City-Shaft crowd2 | 60.1 (55.4, 15.4) | 60.1 (53.7, 15.1) | 60.1 (56.4, 14.8) | 60.1 (55.5, 15.1) |
+| City-Shaft wide | 38.5 (32.0, 24.9) | 38.5 (33.4, 24.9) | **42.5** (34.3, 22.4) | 42.5 (35.4, 22.4) |
+| Underwater start | 57.8 (47.7, 17.1) | 57.8 (39.1, 17.2) | **60.0** (43.7, 16.5) | 60.0 (36.3, 16.5) |
+| Underwater crowd | 58.7 (28.4, 16.8) | 58.8 (24.8, 16.8) | 59.8 (27.0, 16.4) | 59.6 (28.2, 16.4) |
+| Underwater wide | 52.1 (40.9, 19.1) | 52.1 (47.6, 19.1) | **54.3** (50.1, 18.4) | 54.3 (50.7, 18.3) |
+
+- **The City-Shaft's wide view, the worst of the six worlds, 38.5 → 42.5 fps (2.5 ms of GPU)**, its start 51 → 54.5;
+  Underwater's start reaches 60 and its wide view 52 → 54. The desert (its scrub bushes are few and near the ground) is
+  unchanged, 13.8-14.0 ms against 13.7-13.9; the Signal Market, Lorn and the Floating city, with neither material, within
+  0.2 ms (15.8 / 15.7, 15.7 / 15.9, 16.9 / 16.9).
+- **The pictures** (`diff.mjs`, pixels differing by more than 24): two runs off differ by 0.04-3.2 % per view, off against on
+  by 0.05-3.7 %, view by view within that spread (the moving people, birds, motes and the pillars' dots). Enlarged crops of the
+  City-Shaft's trees in the wide view and of Underwater's dome glass are the same.
+- **Where it stands:** the worst views are now the City-Shaft's wide view (42.5 fps, 22.4 ms), Lorn's start (48, 20.5 ms:
+  its far forest of trunks, 3-5 ms of pixels) and crowd (52), the Floating city's start (53) and Underwater's wide view (54).
+  Next by what was measured: Lorn's trunks (their ink and pixels), then the hatching and the shadow lookups (~1-1.4 ms each in
+  the City-Shaft, a far-pixel branch would have to leave the picture as it is).
+
+To repeat: round 9's scripts with `--conds "off=-no-lean-rare|on="`.

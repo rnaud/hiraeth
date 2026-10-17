@@ -33,6 +33,15 @@ export const CHANGELOG = [
         { where: 'the second crowd', before: 59.3, after: 60.1 },
         { where: 'the wide view', before: 37.8, after: 38.4 },
       ], source: 'docs/systems/performance.md, "Unity on the Retroid, round 10"' }] },
+    // issue #404 round 11: unity/Hiraeth Surface.shader HIRAETH_LEAN_SCRUB / HIRAETH_LEAN_GLASS, BridgeRenderer.Lean (RareCount,
+    // leanRare), BridgeShaderStrip; tests/unity-lean-rare.test.js; docs/systems/performance.md "Unity on the Retroid, round 11"
+    { text: 'In the Unity version on handhelds, the City-Shaft’s trees and Underwater’s glass are drawn with a lighter version of their shader that gives the same picture. On the Retroid Pocket 5 the City-Shaft’s wide view, the slowest of the game there, runs at 42 frames a second instead of 38, its arrival view at 54 instead of 51, and Underwater’s arrival reaches 60.',
+      numbers: [{ title: 'The City-Shaft and Underwater on the Retroid, frames a second, before → after', unit: 'fps', better: 'higher', device: 'Retroid Pocket 5, the Unity version, Handheld preset (FSR 1 at 0.67 of 1280 × 960), muted', rows: [
+        { where: 'the City-Shaft, the wide view', before: 38.5, after: 42.5 },
+        { where: 'the City-Shaft, the arrival view', before: 51.3, after: 54.5 },
+        { where: 'Underwater, the arrival view', before: 57.8, after: 60.0 },
+        { where: 'Underwater, the wide view', before: 52.1, after: 54.3 },
+      ], source: 'docs/systems/performance.md, "Unity on the Retroid, round 11"' }] },
     // issue #442: src/fight-temples/rules.js rollInput / rollKey, index.js (the card), session.js; src/fluid-blade.js
     // QUICK_CUT, quickSwing, rollCancels, ROLL.buffer; src/fight-temples/kill-fx.js, src/audio.js foeKill; hazards.js
     // LINGERING; tests/fight-feel.test.js; docs/design/fight-temples.md "The roll, the quick cut and readable kills"

@@ -289,7 +289,12 @@ Shader "Hiraeth/Surface"
       // the instances' and grass's copies, which stall or fault the Adreno): its vertices pass on 19 floats, not 28, without the
       // bind, fold and form interpolators; the same picture. The Retroid's GPU up to 1 ms less (issue #262;
       // docs/systems/performance.md, "Unity on the Retroid, round 7"). In Android's Vulkan builds only (BridgeShaderStrip).
-      #pragma multi_compile_local _ HIRAETH_LEAN HIRAETH_LEAN_TERRAIN HIRAETH_LEAN_WATER HIRAETH_LEAN_SLIM
+      // HIRAETH_LEAN_SCRUB and HIRAETH_LEAN_GLASS: the lean variant with one rare path kept, the scrub's strokes (the City-Shaft's
+      // trees, the desert's scrub) or the glass's cut (Underwater's domes and tubes), for a material that uses no other: drawn
+      // on the full variant before, ~25 000 instructions, and the scrub's in the prepass with the glass's discard in it (no early
+      // depth); the same picture. In Android's Vulkan builds only, as the slim ones (BridgeShaderStrip, BridgeRenderer.leanRare;
+      // docs/systems/performance.md, "Unity on the Retroid, round 11").
+      #pragma multi_compile_local _ HIRAETH_LEAN HIRAETH_LEAN_TERRAIN HIRAETH_LEAN_WATER HIRAETH_LEAN_SLIM HIRAETH_LEAN_SCRUB HIRAETH_LEAN_GLASS
       #if defined(HIRAETH_LEAN_SLIM)
         #define HIRAETH_LEAN 1
         #define SLIMV 1
@@ -309,20 +314,33 @@ Shader "Hiraeth/Surface"
         #define I_FOLD float2(0, 0)
         #define I_FORM float4(0, 0, 0, 0)
       #endif
-      #if defined(HIRAETH_LEAN) || defined(HIRAETH_LEAN_TERRAIN) || defined(HIRAETH_LEAN_WATER) || defined(HIRAETH_SKIN)
+      #if defined(HIRAETH_LEAN_SCRUB) || defined(HIRAETH_LEAN_GLASS)
+        #define LEAN_ONE 1
+      #endif
+      #if defined(HIRAETH_LEAN) || defined(HIRAETH_LEAN_TERRAIN) || defined(HIRAETH_LEAN_WATER) || defined(HIRAETH_SKIN) || defined(LEAN_ONE)
         #define LEANK false
       #else
         #define LEANK true
       #endif
-      #if defined(HIRAETH_LEAN) || defined(HIRAETH_LEAN_WATER) || defined(HIRAETH_SKIN)
+      #if defined(HIRAETH_LEAN) || defined(HIRAETH_LEAN_WATER) || defined(HIRAETH_SKIN) || defined(LEAN_ONE)
         #define TERRAINK false
       #else
         #define TERRAINK true
       #endif
-      #if defined(HIRAETH_LEAN) || defined(HIRAETH_LEAN_TERRAIN) || defined(HIRAETH_SKIN)
+      #if defined(HIRAETH_LEAN) || defined(HIRAETH_LEAN_TERRAIN) || defined(HIRAETH_SKIN) || defined(LEAN_ONE)
         #define WATERK false
       #else
         #define WATERK true
+      #endif
+      #if defined(HIRAETH_LEAN_SCRUB)
+        #define SCRUBK true
+      #else
+        #define SCRUBK LEANK
+      #endif
+      #if defined(HIRAETH_LEAN_GLASS)
+        #define GLASSK true
+      #else
+        #define GLASSK LEANK
       #endif
       // HIRAETH_PLAIN (fragment only): a lean material with none of a wall's marks (no pattern, weathering, pen detail or
       // colour patches: BridgeRenderer.Lean), on a variant without their code. Never drawn there, they still cost every
@@ -336,7 +354,7 @@ Shader "Hiraeth/Surface"
       #endif
       #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
       #include "Crowd.hlsl"
-      #if defined(HIRAETH_SKIN) && !defined(HIRAETH_LEAN) && !defined(HIRAETH_LEAN_TERRAIN) && !defined(HIRAETH_LEAN_WATER) && !defined(HIRAETH_PLAIN) && !defined(HIRAETH_PREPASS)
+      #if defined(HIRAETH_SKIN) && !defined(HIRAETH_LEAN) && !defined(HIRAETH_LEAN_TERRAIN) && !defined(HIRAETH_LEAN_WATER) && !defined(LEAN_ONE) && !defined(HIRAETH_PLAIN) && !defined(HIRAETH_PREPASS)
         #define SKINK 1
         #include "SkinPatterns.hlsl"
       #endif
@@ -867,7 +885,7 @@ Shader "Hiraeth/Surface"
         }
         int mode = (int)(_Mode + 0.5);
         // glass (the bubble helmet): see-through except at the grazing rim and a curved highlight
-        if (LEANK && _Glass > 0.0 && _MSurfaceDebug < 3.5)
+        if (GLASSK && _Glass > 0.0 && _MSurfaceDebug < 3.5)
         {
           float3 Vg = normalize(toThree(_WorldSpaceCameraPos) - i.worldPos);
           float fr = 1.0 - abs(dot(normalize(i.normal), Vg));
@@ -1236,7 +1254,7 @@ Shader "Hiraeth/Surface"
             if (_Cracks > 0.0) detail = max(detail, faceCracks(float2(faceX, i.objPos.y), fissFw * 9.0, _Cracks) * 1.7);   // (over 1: a pen line)
           }
         }
-        UNITY_BRANCH if (LEANK && _Scrub > 0.0) {
+        UNITY_BRANCH if (SCRUBK && _Scrub > 0.0) {
           float2 sc = strokeCoord(i.objPos, strokeWeights(on, mode), float2(0.766, 0.643));
           float sfw = fwidth(sc.x);
           float dashN = smoothstep(0.42, 0.6, vnoise(float2(sc.x * 2.5, sc.y * 9.0)));
@@ -1372,7 +1390,7 @@ Shader "Hiraeth/Surface"
         DepthVaryings vertEntry(Attributes v) { DepthVaryings d; d.positionCS = vert(v).positionCS; return d; }
         // (the lean variants have no glass, dissolve nor veil (BridgeRenderer.Lean): no discard there at all, so the depth
         // they write is known before the fragment runs (early depth, a tiled GPU's low-resolution depth), issue #262)
-        void fragEntry(DepthVaryings i) { if (LEANK && (_Glass > 0.0 || _Dissolve.x > 0.0 || _Veil > 0.0)) discard; }
+        void fragEntry(DepthVaryings i) { if ((GLASSK && _Glass > 0.0) || (LEANK && (_Dissolve.x > 0.0 || _Veil > 0.0))) discard; }
       #else
         Varyings vertEntry(Attributes v) { return vert(v); }
         GBufferOut fragEntry(Varyings i, bool frontFace : SV_IsFrontFace) { return frag(i, frontFace); }
