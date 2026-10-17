@@ -4471,3 +4471,181 @@ scrub's prepass has no discard at all. Like the slim variants they are in Androi
   the City-Shaft, a far-pixel branch would have to leave the picture as it is).
 
 To repeat: round 9's scripts with `--conds "off=-no-lean-rare|on="`.
+## CPU per frame (#446)
+
+**The question** (the author, 2026-10-17): the game scales badly on weak CPUs. Is too much done on the CPU, and what
+takes a frame's CPU time?
+
+**The short answer.** No single game system dominates. On the web, **three.js's render submission is the largest
+part: 25–37 % of a frame's main thread** (the per-draw work for ~370–550 draws a frame, plus its walk of the
+scene). The browser's own native work behind those draws is another 10–17 %. **The scene's matrices** take 11–14 %,
+and **culling, levels of detail and shadow-caster prep** take 5–12 %. Every gameplay system (people, the traveller,
+physics, foes, the world's animation, story, audio) is between 0 and 13 % alone, and together they make 25–35 %.
+**GC is not a factor**: under 1 %. So the CPU cost grows with **how many objects and draws a frame has**. Game logic
+matters less. Under Unity (the same JS under V8 on the Steam Deck) the script thread is the limit in 4 of 5
+worlds: 8.6–12.4 ms of a 9.5–13.9 ms frame. About half of that is the game's update and the other half is the
+bridge's mirror (matrices, scene walk, bones).
+
+### How it was measured
+
+- **Web.** A production build without minification and with source maps (`npx vite build --minify false
+  --sourcemap`: the same code as the release, with function names and a map to each file:line). It was served on
+  port 5446, and each world ran in a fresh headless muted Chrome (ANGLE on Metal: the M4 Pro's GPU, not software
+  GL) at 1280 × 633. The game ran on the **Handheld preset** (scale 0.75, no dynamic resolution), at 10:00, with
+  clear weather. After a 12 s warm-up, at **CPU throttle ×4 and ×6** (`Emulation.setCPUThrottlingRate`), each
+  world got 10 s of V8 sampling profile (`Profiler`, 200 µs) standing still and 10 s running (W + Shift for 5 s,
+  then S + Shift: 26–80 m covered). At ×4 the sampling heap profiler also ran (every allocation, including those
+  a minor GC collects). The frame count and each frame's callback time came from a wrapper on
+  `requestAnimationFrame`.
+- **How samples are assigned.** Each stack was mapped through the source maps. A sample under three's
+  `WebGLRenderer.render` went to "render": either to three itself or to the game file it calls back into
+  (static-batch.js's `build`, skeleton-update.js). Any other sample went to the nearest of the game's own files up
+  the stack, so three's maths called by the crowd counts as the crowd. `(program)` is native work outside JS
+  (mostly the browser's GL command path behind the draws). The files were then grouped by system (the table's
+  rows). Milliseconds are per frame, **at the throttle**: divide by 4 (or 6) for the Mac's real time. The profiler
+  adds ~10–20 % ("profiled frame" against the plain rAF time).
+- **Worlds.** The Desert (the spawn, looking at the city), the City-Shaft (start), the Signal Market (start), Lorn,
+  the Underwater City, a temple fight (`?level=desert&guardianReview=keeper`: the Rose House's cistern with the
+  Keeper awake, calm, not striking) and the City-Shaft's densest crowd (`crowd`, at viewpoints-worlds.json's crowd
+  view: 1 529 crowd people).
+- **Caveats.** The Mac's load was 16–21 throughout (other agents), so totals vary ±10 % between runs. Splits within
+  one profile are more reliable than totals across runs. In the City-Shaft's runs and the crowd's run the
+  traveller ran off a ledge and was **knocked down** (his ragdoll is the "physics" jump in those rows). A vite dev
+  server (same worlds, ×4) was no slower than the production build (27.5 against 32.4 ms in the desert, within this
+  load's noise), so dev mode's extra JS cost is not measurable here.
+- Scripts and raw traces (`.cpuprofile` / `.heapprofile` per world, rate and mode, `summary.json`, `results.json`):
+  the session's scratchpad, `cpu-446/` (`profile.mjs` records, `analyze.mjs` assigns and groups the samples,
+  `callers.mjs` shows who calls a function, `heapleaf.mjs` shows allocations by function, `ab.mjs` gives a toggle's
+  A/B under throttle, `deck/` holds the Unity runs).
+
+### Web, ×4 throttle: ms per frame by system (share of the profiled frame), standing / running
+
+| system | Desert | City-Shaft | Signal Market | Lorn | Underwater | temple fight | crowd |
+|---|---|---|---|---|---|---|---|
+| three.js render submission | 13.2 (35%) / 12.3 (31%) | 12.3 (29%) / 12.8 (28%) | 10.7 (33%) / 11.0 (31%) | 12.8 (37%) / 12.8 (36%) | 10.6 (35%) / 10.9 (31%) | 7.4 (25%) / 6.9 (24%) | 12.2 (27%) / 12.7 (25%) |
+| browser native (GL calls, compositing; not JS) | 5.7 (15%) / 4.0 (10%) | 6.9 (17%) / 4.5 (10%) | 5.0 (15%) / 3.5 (10%) | 5.0 (14%) / 3.4 (10%) | 4.4 (14%) / 3.3 (9%) | 5.2 (17%) / 3.7 (13%) | 7.7 (17%) / 5.2 (10%) |
+| matrices (scene list + rig walks) | 4.6 (12%) / 5.3 (14%) | 4.6 (11%) / 5.1 (11%) | 3.9 (12%) / 4.5 (12%) | 3.8 (11%) / 3.9 (11%) | 2.9 (10%) / 3.8 (11%) | 3.5 (12%) / 3.5 (12%) | 5.0 (11%) / 5.5 (11%) |
+| culling, LOD, shadow-caster prep | 3.0 (8%) / 4.2 (11%) | 3.9 (9%) / 5.4 (12%) | 1.9 (6%) / 3.1 (9%) | 2.4 (7%) / 2.9 (8%) | 1.4 (5%) / 2.4 (7%) | 2.9 (10%) / 2.9 (10%) | 4.0 (9%) / 5.7 (11%) |
+| still batches + skeletons inside the passes | 1.3 (3%) / 1.4 (4%) | 1.5 (4%) / 1.9 (4%) | 1.3 (4%) / 1.4 (4%) | 1.1 (3%) / 1.2 (3%) | 1.0 (3%) / 1.3 (4%) | 0.6 (2%) / 0.7 (2%) | 1.9 (4%) / 2.4 (5%) |
+| main.js frame() / renderFrame() own code | 1.7 (4%) / 2.2 (6%) | 2.2 (5%) / 2.9 (6%) | 1.3 (4%) / 1.9 (5%) | 1.8 (5%) / 2.1 (6%) | 1.2 (4%) / 1.8 (5%) | 2.0 (7%) / 2.3 (8%) | 2.2 (5%) / 2.9 (6%) |
+| people + crowd (pose, cloth, faces) | 1.6 (4%) / 2.5 (6%) | 3.4 (8%) / 4.5 (10%) | 3.3 (10%) / 4.5 (13%) | 1.6 (5%) / 1.9 (5%) | 1.9 (6%) / 2.8 (8%) | 1.1 (4%) / 1.2 (4%) | 4.2 (9%) / 4.9 (10%) |
+| traveller (player, feet, gear, cloth) | 1.7 (4%) / 2.0 (5%) | 1.9 (4%) / 2.0 (4%) | 2.0 (6%) / 2.1 (6%) | 2.0 (6%) / 2.0 (6%) | 1.8 (6%) / 2.5 (7%) | 2.2 (7%) / 2.3 (8%) | 2.2 (5%) / 2.2 (4%) |
+| physics + collision (BVH rays) | 0.6 (2%) / 0.6 (1%) | 0.8 (2%) / 1.9 (4%)* | 0.7 (2%) / 0.8 (2%) | 0.7 (2%) / 0.9 (3%) | 1.2 (4%) / 1.9 (5%) | 0.9 (3%) / 1.2 (4%) | 0.9 (2%) / 4.3 (8%)* |
+| world animation (level, flames, banners, wind, water) | 2.5 (6%) / 2.8 (7%) | 2.1 (5%) / 2.2 (5%) | 0.8 (2%) / 0.9 (3%) | 1.2 (3%) / 1.3 (4%) | 2.0 (7%) / 2.5 (7%) | 1.9 (6%) / 2.1 (7%) | 1.7 (4%) / 2.2 (4%) |
+| story, quests, UI, HUD | 1.0 (3%) / 1.1 (3%) | 1.0 (2%) / 1.2 (3%) | 0.9 (3%) / 0.9 (3%) | 1.3 (4%) / 1.3 (4%) | 0.9 (3%) / 1.1 (3%) | 1.1 (4%) / 1.2 (4%) | 0.9 (2%) / 1.5 (3%) |
+| foes + wildlife | 0.3 / 0.4 | 0.4 / 0.4 | 0.3 / 0.4 | 0.4 / 0.6 | 0.1 / 0.2 | 0.3 / 0.2 | 0.5 / 0.4 |
+| audio | 0.1 / 0.1 | 0.1 / 0.2 | 0.1 / 0.1 | 0.2 / 0.1 | 0.1 / 0.2 | 0.2 / 0.2 | 0.2 / 0.2 |
+| GC (main thread) | 0.1 / 0.1 | 0.1 / 0.2 | 0.1 / 0.1 | 0.1 / 0.1 | 0.1 / 0.1 | 0.1 / 0.1 | 0.1 / 0.3 |
+| **profiled frame, ms** | 38.0 / 39.6 | 41.7 / 45.8 | 32.9 / 36.0 | 34.9 / 35.2 | 30.1 / 35.6 | 30.0 / 29.0 | 44.3 / 51.1 |
+| frame's rAF time without the profiler share, ms | 32.4 / 35.7 | 34.8 / 41.3 | 27.9 / 32.5 | 30.0 / 32.1 | 25.7 / 32.2 | 24.7 / 25.1 | 36.7 / 46.0 |
+| fps at ×4 | 29.7 / 26.3 | 27.6 / 22.9 | 34.2 / 28.7 | 32.1 / 29.4 | 37.1 / 28.9 | 38.1 / 36.1 | 26.2 / 20.5 |
+| draws a frame (all passes) | 414 / 549 | 454 / 510 | 411 / 387 | 422 / 432 | 362 / 392 | 201 / 173 | 453 / 517 |
+| allocation, MB/s · kB/frame | 15.6 · 537 / 27.1 · 1 057 | 15.8 · 585 / 24.8 · 1 109 | 15.5 · 465 / 21.6 · 770 | 16.7 · 533 / 20.5 · 714 | 22.7 · 628 / 29.5 · 1 043 | 19.4 · 520 / 20.8 · 589 | 15.7 · 614 / 25.9 · 1 292 |
+
+\* the traveller knocked down: his ragdoll's ground rays (ragdoll.js `step`, below).
+
+At **×6** the shares stay the same within 2–3 points: three.js submission 24–38 %, matrices 11–14 %, culling prep
+5–11 %, native 11–17 %. The frames take 34–65 ms (16.9–27.3 fps). Running costs more than standing in every world
+except the temple, by 0.5–9 ms at ×4. The extra goes to culling and levels of detail (new tiles each frame), the
+people near him (newly met people's capes baked, cape.js `bake`) and physics.
+
+**Inside three.js's submission** (×4, the desert standing): `renderObjects` (per draw: `renderBufferDirect`,
+`setProgram`, uniform uploads, `bindVertexArray`) takes 9.8–11.8 ms. `projectObject` (the walk of the scene for
+each scene render: the frustum test, the screen depth for sorting, the render list) takes 4.2–5.4 ms. A frame on
+Handheld renders the whole scene **twice or three times**: the G-buffer (255–260 draws, ~2 ms of the M4's
+unthrottled frame), one shadow cascade (near and far take turns: 111–117 draws, 0.6 ms) and the hero map (the
+traveller only). The ~5 400 visible objects of the desert are walked in each pass. Per draw that is ~27 µs at ×4
+(~7 µs on the Mac's own CPU), so the draw count is what scales the CPU cost.
+
+### Unity (the same JS under V8): Steam Deck, the bridge's Linux player
+
+`scripts/bench/deck-unity.sh run u-5c94 <world> <views>`: the player already on the Deck (built 2026-10-14 from
+5c9421355). It ran in gamescope's headless backend at 1280 × 800, uncapped (`-vsync 0`), muted, with
+`-bench 6 -split -metrics`. **The per-system script time already has a switch**: `-split` makes engine/game.js lap
+its update by part (`game.sections()`, `lap?.('crowd')` …) and the mirror report its own profile. It is off by
+default, so no new switch was needed. ms per frame (medians of the view):
+
+| world, view | frame | GPU | script thread | = game update | + mirror (matrices · walk · bones) | main thread waits on script | update's largest parts |
+|---|---|---|---|---|---|---|---|
+| Desert, spawn | 11.4 | 10.7 | 10.4 | 5.5 | 4.7 (1.4 · 2.2 · 0.5) | 6.2 | traveller 1.2, life 0.9, story 0.9, wind 0.8, people 0.7 |
+| Desert, camps | 13.7 | 12.5 | 12.4 | 7.4 | 5.0 (1.5 · 2.2 · 0.5) | 8.7 | people 2.9, traveller 1.0, story 0.9, wind 0.7, life 0.6 |
+| City-Shaft, start | 13.6 | 13.1 | 12.0 | 6.2 | 5.5 (1.8 · 2.6 · 0.3) | 6.1 | traveller 1.4, life 1.2, crowd 1.1, story 0.7, level 0.7 |
+| City-Shaft, crowd | 13.4 | 12.3 | 12.1 | 6.8 | 5.1 (1.8 · 2.4 · 0.3) | 7.4 | people 2.1, crowd 1.1, traveller 1.1, life 0.9 |
+| Signal Market, start | 10.5 | 9.9 | 9.6 | 6.1 | 3.1 (1.0 · 1.4 · 0.3) | 6.1 | people 2.4, traveller 1.2, life 0.7, story 0.6, crowd 0.6 |
+| Signal Market, crowd | 9.5 | 7.8 | 8.6 | 5.1 | 3.3 (1.0 · 1.5 · 0.3) | 5.5 | people 1.8, traveller 1.1, life 0.6, crowd 0.6 |
+| Lorn, start | 13.6 | 15.2 | 9.6 | 6.1 | 3.2 (0.9 · 1.6 · 0.2) | 1.1 | people 1.8, traveller 1.4, life 1.1, story 1.0 |
+| Lorn, crowd | 13.9 | 13.7 | 9.3 | 5.7 | 3.4 (1.0 · 1.6 · 0.2) | 1.0 | people 1.8, traveller 1.3, life 1.1, story 0.9 |
+| Underwater, start | 9.8 | 9.5 | 9.0 | 5.9 | 2.6 (0.8 · 1.2 · 0.3) | 5.7 | level 1.5, traveller 1.4, people 1.3, life 0.7 |
+| Underwater, crowd | 10.9 | 10.0 | 9.9 | 7.0 | 2.6 (0.8 · 1.2 · 0.3) | 7.0 | people 2.2, level 1.9, traveller 1.2, life 0.6 |
+
+The script thread is the limit everywhere except Lorn, where the GPU is. The game's update ("traveller", "people",
+"crowd", "life", "story") is 5–7.4 ms, and the bridge's mirror is another 2.6–5.5 ms. Its scene walk and matrices
+are the same work as three's walk and `updateSceneMatrices` on the web. The order matches the web's: the work that
+scales with objects (matrices, walks) is as big as any gameplay system. **The Retroid** (the weakest CPU) was
+offered by the coordinator but was locked behind its secure lock screen. It needs the author to unlock it, so the
+same `-split` runs were not made there. To repeat them: the #404 round 11 `tools/ab.mjs` with `--conds "split=-split"`.
+
+### Ranked: what to change, by expected gain
+
+Gains are estimated from the profiles at ×4 (divide by 4 for the Mac's real time; a Retroid-class CPU is roughly ×4–6).
+
+1. **Fewer draws, or cheaper ones** (three.js `renderObjects`: `renderBufferDirect`, `setProgram`, the uniform
+   setters `setValueV1f`/`V3fArray`/`V4fArray`, `bindVertexArray`; three.module.js ~17270–18450). This is 25–37 %
+   of the frame plus most of the 10–17 % native work. Each draw costs ~27 µs at ×4. The G-buffer pass alone has
+   ~260 draws on Handheld (an earlier Deck round counted ~140 materials a pass). Cutting 100 draws from the G-buffer saves ~3 ms
+   at ×4. The ways to do it: more still meshes into static-batch.js's batches (one material key each), the people's
+   parts in part-batch.js, fewer distinct surface materials (materials.js `surfaceDefines`), and instancing the
+   repeated props. Big work, and the largest gain.
+2. **One walk of the scene a frame, not one per pass** (three's `projectObject`: 2.4 ms self on average, 4.2–5.4 ms
+   inclusive). The G-buffer, the shadow cascade and the hero map each walk ~5 000 visible objects, computing each
+   one's frustum test and screen depth. A list built once a frame (the visible meshes with their world spheres:
+   engine/scene-matrices.js already has the flat list), with each pass culling from it, would save ~2–3 ms at ×4.
+   This was already named in "The Steam Deck, round 2" ("the shadow passes culling from a list instead of walking
+   the scene each time"). Medium work (a custom render list).
+3. **Matrices only for what can move** (engine/scene-matrices.js `SceneList.update`, line ~86: 1.6 ms self + 0.5 in
+   `updateSceneMatrices`; src/matrix-cache.js `updateMatrixWorldCached` 1.4 ms in the rigs' walks). 7 249 of the
+   desert's 7 303 objects have `matrixAutoUpdate` on, so every frame each one's ten numbers are compared. Buildings,
+   rocks and props never move. Keeping the still subtrees out of the per-frame list (flagged when edited) would save
+   most of the 2 ms. **The Handheld preset also lacks `skipHidden`**, which the Deck has (round 11, the author
+   approved it for the Deck only). An A/B on the Mac at ×4 (`ab.mjs`, Handheld ± `skipHidden` + `peopleLod`) was
+   within the load's noise (+0.3 ms desert, −0.8 ms City-Shaft, ±3 ms between rounds): to be measured on the
+   Retroid before it is turned on there. Medium work.
+4. **The cullers and levels of detail every frame** (renderFrame's prep, 1.4–5.7 ms: static-batch.js `build` (~265,
+   0.66 ms self, called per view batch per pass, a frustum and a `shownUnder` parent walk per entry) and `update`
+   (~519, 0.43 ms, 16 numbers compared per still mesh); perf.js `hide` (smallCull, ~201 and ~356: 0.3 + 0.2 ms) and
+   `cullFar`; shadows.js `begin`/`hide` (0.3 + 0.15 ms); lod.js). Each runs over every candidate every frame, even
+   when the camera has not moved. The shadow maps already keep their culling while the view stays within
+   VIEW_SLACK. The same "view moved enough?" test for the small-prop, room and LOD culls, and the still batches'
+   lists kept between frames while the camera is still, would save ~1–3 ms at ×4 (more when standing). Small to
+   medium work.
+5. **The people** (1.1–4.9 ms; Unity "people" 0.5–2.9 ms, "crowd" 0.6–1.1 ms): animator.js `update` (~547),
+   humanoid.js `update` (~1320, its walk), crowd.js `simulate` (~946), npc.js `pose`/`move`, hands.js, cape.js. On
+   Handheld, people out of view are posed every frame (`peopleLod` is the Deck's only). Turning on `peopleLod` for
+   Handheld (to be approved and measured on the Retroid) and posing the people past ~30 m at half rate are the
+   levers. ~1–2 ms at ×4 in the Market and the City-Shaft.
+6. **The ragdoll's rays** (ragdoll.js `step`, line ~166: for each of its points, each sub-step (up to 6 a frame),
+   `physics.heightAbove` and `groundNormalAt`, two BVH rays). While the traveller is knocked down, physics goes
+   from 0.9 to 4.3 ms at ×4 (the crowd row). One ray per point per frame, with the normal from the same hit, would
+   save ~2–3 ms during a knock-down. This is per event, not steady, but it is a hitch in a fight. Small work.
+7. **ShadowCuller.collect** (shadows.js ~274) runs a full `scene.traverse` and builds ~2 500–4 000 item objects
+   whenever `scene.children.length` changes. Running through the Market it ran 6 times in 10 s, at 0.4–0.6 ms each on
+   the M4 (2–3 ms at ×4): a hitch, not a steady cost. Collect on the scene-matrices epoch instead, or add and remove
+   only the subtree that changed. Small work.
+8. **Per frame, where per change would do**: the traveller's bracer strap re-wrapped and its normals recomputed every
+   frame (shield.js `wrapStrap` ~394 from `attach` ~371: 0.3–0.4 ms at ×4 in every world, 23–33 kB a frame
+   allocated, the shield folded or open); the desert's banners' `computeVertexNormals` (life.js `update` ~184, in
+   view only); the frame's hidden list that `cullFar` and the culls fill, made anew each frame (perf.js ~134, ~20 kB a frame). Each is
+   ≤ 0.4 ms at ×4, which is why they were not changed here: under this machine's load an A/B cannot resolve them.
+9. **GC needs no work.** Allocation is 15–30 MB/s (0.5–1.3 MB a frame at ×4), but the main thread's GC is 0.1–0.3
+   ms a frame at ×4 (under 1 %): V8's young-generation collections are cheap and mostly parallel. The largest
+   allocators are three's uniform setters (boxed numbers in their caches), the newly met people's cape bakes and
+   body builds (deferred work, cape.js `bake`, makehuman/people.js), wind.js `update`, the strap above and the
+   shadow and prop culls' arrays.
+
+**Not slow** (each under 2 % at ×4 in every world): audio (0.1–0.2 ms), foes and wildlife (0.1–0.6), story and
+quests and HUD (0.9–1.5, mostly the ship's and the temples' per-frame checks), the camera (0.03). The JSON, string
+and timer culprits the brief listed did not show up in any profile.
+
+**Nothing was changed in the code for #446.** Each fix that is small and safe saves under ~0.4 ms at ×4, which is
+under this Mac's run-to-run noise (load 16–21). The larger ones (1–4 above) change how the frame is drawn and want
+their own issue with a device to measure on: the Retroid when it is unlocked, or the Deck.
