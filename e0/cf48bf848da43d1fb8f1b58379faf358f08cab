@@ -1,0 +1,23 @@
+docs/systems/engine-bridge.md
+  s_5f899ba316b5dc::t_bc23268407a6f2 1914-1917
+engine/unity/game.js
+  s_5f899ba316b5dc::t_1e41ab4805a188 342-343,346
+src/changelog-media.js
+  s_5f899ba316b5dc::t_0c156fb8efb1a2 1121,1163-1166
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e0cf48bf848da43d1fb8f1b58379faf358f08cab",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
