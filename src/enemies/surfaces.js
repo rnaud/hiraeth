@@ -480,6 +480,15 @@ Object.assign(SURFACES, {
     underside: { body: { rust: { color: 'rust', color2: 'body2', amount: 0.25, amount2: 0.1, scale: 0.08, down: 0.6, pits: 0.5 }, glow: null, spots2: null, mottle: null, gloss: { size: 0.03, sky: 0.4, amount: 0.5 } } },
     saltharbour: { body: { drips: { color: 'salt', width: 0.06, from: 1.6, length: 0.4, bulb: 0.3, amount: 0.7 }, mottle: { color: 'body2', scale: 0.1, amount: 0.3, soft: 0.2, strength: 0.6 }, glow: null, spots2: null } },
   },
+  wisp: {
+    '*': {
+      // (a stand-in until its sheet is picked: the shell's hardened ink cracked, the coal's light in its widest cracks;
+      // the coal itself hot at the heart)
+      shell: { cracks: { color: 'core', ink: 'shell*0.6', inkAmount: 0.4, scale: 0.22, width: 0.02, tone: 0.08, veins: 0.6, vein: 0.04, glow: 0.9, share: 0.45 }, gloss: { size: 0.03, sky: 0.4, amount: 0.5 } },
+      core: { glow: { color: 'fire', amount: 0.5, rim: 0.3, core: 2.2, pulse: 2.4, emit: 0.7 } },
+    },
+    perdide2: { shell: { mottle: { color: 'shell2', scale: 0.08, amount: 0.5, soft: 0.1, strength: 0.6 } } },
+  },
 });
 
 /** A colour of the table: '#rrggbb', a palette key, darker 'key*0.7', paler 'key+0.3'. */

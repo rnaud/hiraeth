@@ -29,6 +29,10 @@ export const CHANGELOG = [
     // src/makehuman/shape.js MH_BUILDS[].morph; humanoid.js armOut; crowd-shader.js / Crowd.hlsl aBody's belly, hips, limbs;
     // tests/body-shapes.test.js; docs/systems/characters.md "Body shapes"
     'People come in more shapes and sizes: thin as a rake, slim, broad-shouldered, stout and properly round, and taller and shorter than before, so a crowd no longer looks like one person over and over. Each world has its own mix: the desert’s pilgrims and Vael’s silent ones run lean, the market, the harbour and the foundry sturdier. Clothes, capes and robes fit every shape, and the fuller people hold their arms a little out from their sides.',
+    // issue #398: src/fireballs.js (FIREBALL, Fireball, catchable), src/foes.js throwBall / updateBalls / ballLands /
+    // returnBall / ballStrikes, src/enemies/archetypes.js `wisp`, src/enemies/plans/ember.js (a stand-in body);
+    // tests/fireball.test.js, tests/engine-fireball.test.js; docs/design/fireball-foe.md
+    'A new foe, the ember wisp: a dark shell round a glowing coal that floats out of your reach and throws slow balls of fire at you. Watch its shell open and its coal swell, then cut the ball just as it reaches you: it flies back and knocks the wisp out of the air, stunned and low enough to cut. A perfect parry sends it back too. You meet them over the Moon Foundry’s furnaces, as marsh lights in Lorn’s deep wood, in the city during the eclipse, in the Pour Floor and in the Arena. Its body is a first sketch until its drawing is chosen.',
   ] },
   { v: '1.82', date: '2026-10-16', items: [
     // issue #399: src/hook-foes.js (each kind's `hook` class, hookOutcome, lockShot), src/gadgets/hook.js fireAtLock /

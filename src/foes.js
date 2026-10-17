@@ -36,6 +36,7 @@ import { FoeReact, applyReact, restoreBody, installFlash, splashTones } from './
 import { DEFEATS, startDefeat, defeatPose, defeatRoot, dimEyes, groundStart, groundDefeat } from './enemies/defeat.js';
 import { bodyReach } from './foe-body.js';
 import { readSlope, slopeOf, tiltRoot } from './enemies/slope.js';
+import { Fireball, FIREBALL, aimAt, catchable } from './fireballs.js';
 
 // Foes (docs/systems/foes.md): the first things in the game that fight back.
 //
@@ -521,6 +522,7 @@ export class Foe {
       && (!(a.ward || a.mend) || !!this.allyFor(a))                              // (a support's move needs a neighbour to take it)
       && (!a.pile || this.mates >= 2)                                             // (a heap needs two of its flock to climb on)
       && (!a.dark || !(this.lit > 0))                                             // (lit, a shade is solid: it can't step)
+      && (!a.ball || !this.ballOut)                                               // (one fireball of its own in the air at a time)
       && (!a.possess || (!this.hosting && !!this.allyFor(a)))                     // (a marionette's strings: a creature to drop them on)
       && (!a.alone || (!this.hosting && !this.allyFor(this.def.attacks.find((x) => x.possess) ?? {}))));   // (its dance: nothing to hold)
   }
@@ -658,6 +660,7 @@ export class Foe {
     // a support's move on its neighbour (the jelly's ward, its mend): Foes.support does the rest
     if ((a.ward || a.mend) && this.allyTarget?.alive) ev.push({ type: a.ward ? 'ward' : 'mend', target: this.allyTarget, atk: a });
     if (a.possess && this.allyTarget?.alive && !this.allyTarget.possessed) ev.push({ type: 'possess', target: this.allyTarget, atk: a });   // (Foes.possess)
+    if (a.ball && playerOk) ev.push({ type: 'ball', atk: a });   // (the ember wisp's fireball: Foes.throwBall, src/fireballs.js)
     if (a.damage > 0 || a.slip || a.blur) {
       const pts = this.attackPts ?? [this.attackAt];
       const seen = a.at === 'self' ? env.seen?.(this.chest, P.pos) ?? true : true;   // (a flash needs a clear line; a lob goes over)
@@ -1661,6 +1664,9 @@ const worldSnd = {
   thud(s, k = 1) { const t = sndAt(s); if (t == null) return; s.burst(t, { dur: 0.18, type: 'lowpass', freq: 400, q: 0.8, vol: 0.12 + 0.18 * k }); s.sweep(t, 120, 50, 0.2, 0.08 * k); },
 };
 let _waveGeo, _waveMat, _waveInk, _patchGeo, _patchMat, _rimGeo, _patchRim;   // (shared by every shockwave and slag patch)
+/** The fireballs' shape, and their materials by colour (the game's glowing ink, as a thrown glob's: no shader of their own). */
+const BALL_GEO = new THREE.IcosahedronGeometry(0.3, 1), BALL_BACK = '#fff4d0', _ballMats = {};
+const ballMaterial = (color) => (_ballMats[color] ??= makeMaterial({ color, flat: true, glow: 1, key: `foe-ball-${color}` }));
 const _sporeMats = {};   // (a toad's spore patches, by colour)
 /** A heap of skitters (attack.pile): its flock within this many m climbs on. The spores' haze over your sight (of a flash's white). */
 const PILE = { near: 7 }, BLUR = 0.55;
@@ -1734,7 +1740,7 @@ export const guardianLock = (g) => { let L = _guardLocks.get(g); if (!L) _guardL
 export class Foes {
   constructor({ scene, level, levelId, content = null, physics, player, tool = null, sound = null, npcs = [], settings = null, notice = null, camera = null, lib = null, humans = null, waters = null, game = sharedGame, rng = Math.random }) {
     Object.assign(this, { scene, level, levelId, physics, player, tool, sound, npcs, settings, notice, camera, lib, humans, waters, game, rng });   // (waters: src/water.js, a foe knocked in is swept away)   // (lib, humans: a shade's body, src/shade.js)
-    this.list = []; this.group = new THREE.Group(); this.group.name = 'Foes';
+    this.list = []; this.balls = []; this.group = new THREE.Group(); this.group.name = 'Foes';
     this.group.userData.noCollide = true;
     scene?.add(this.group);
     this.peaceful = PEACEFUL.has(levelId) || !!level?.peaceful;   // (a minigame's arena: no foes, src/minigames/kit/world.js)
@@ -2086,6 +2092,7 @@ export class Foes {
   remove(f) {
     f.target?.(); f.tele?.dispose(); f.glow?.dispose(); f.model.group.removeFromParent();
     this.unstring(f);   // (its strings on a creature, or a marionette's on it)
+    for (const b of this.balls.slice()) if (b.owner === f) this.popBall(b, 'fizzle');   // (its fireball burns out with it)
     if (f.ward) f.unward(); for (const T of f.wards ?? []) if (T.ward?.by === f) T.unward();   // (a ward on it, or the ones it held: their threads with them)
     for (const t of f.teles ?? []) t.dispose();
     for (const g of f.globs ?? []) g.removeFromParent();
@@ -2597,6 +2604,7 @@ export class Foes {
         if (e?.type === 'ward' || e?.type === 'mend') { this.support(f, e); continue; }
         if (e?.type === 'possess') { this.possess(f, e.target, e.atk); continue; }
         if (e?.type === 'shatter') { this.shatter(f, e.atk); continue; }
+        if (e?.type === 'ball') { this.throwBall(f, e.atk); continue; }
         if (e?.type && e.type !== 'strike') { this.worldEvent(f, e); continue; }
         if (e?.type !== 'strike') continue;
         if (f.kind === 'shade') this.slashTrail(f);
@@ -2611,6 +2619,7 @@ export class Foes {
       if (f.possessed?.done) this.unstring(f);   // (a marionette's strings ran out, or it is gone: the creature is let go)
       this.look(f, dt);
     }
+    this.updateBalls(dt);
     this.updateHold(dt);
     this.corral();
     this.updateHazards(dt);
@@ -2780,6 +2789,121 @@ export class Foes {
     // a ray's downdraft: thrown down, the glide and the jets broken
     if (a.draft) { P.gliding = false; P.endJets?.(); if (P.vel) P.vel.y = Math.min(P.vel.y, -a.draft); }
     return true;
+  }
+
+  // ------------------------------------------------------------------ the ember wisp's fireballs (issue #398, src/fireballs.js)
+  /**
+   * The wisp's wind-up ends (attack.ball): a ball of its fire leaves its coal at you, slow, homing gently. The blade meets
+   * it as a target (kind 'ball': a cut that touches it sends it back), and any cut cutting while it is within reach in
+   * front of you does (updateBalls: the forgiving window); a shot douses it.
+   */
+  throwBall(f, a) {
+    const P = this.player;
+    if (!P || !f.alive) return null;
+    const M = f.model, from = M.mouthAt?.(new THREE.Vector3()) ?? f.chest.clone();
+    const b = new Fireball(f, from, aimAt(P, _w), FIREBALL, this.gentle ? FIREBALL.gentle : 1);
+    b.tone = M.fire ?? f.def.tone ?? '#ffd36a'; b.core = M.coreTone ?? f.def.tone ?? '#ff8a3e';
+    // (two meshes, out and back: sent back it turns white-hot by showing the other, not by changing its material, which the
+    // engines' scene mirror keeps as first sent)
+    b.mesh = new THREE.Group(); b.mesh.name = 'fireball'; b.mesh.userData.noCollide = true;
+    b.out = new THREE.Mesh(BALL_GEO, ballMaterial(b.core)); b.back = new THREE.Mesh(BALL_GEO, ballMaterial(BALL_BACK)); b.back.visible = false;
+    b.mesh.add(b.out, b.back);
+    b.mesh.position.copy(b.pos);
+    this.group.add(b.mesh);
+    b.target = registerTarget({ kind: 'ball', lock: false, radius: 0.5, accepts: ['blade'], position: () => b.pos, enabled: () => b.state === 'out',
+      onHit: (mode) => (mode === 'blade' ? this.returnBall(b, 'cut') : mode === 'shoot' ? (this.popBall(b, 'douse'), true) : false) });
+    b.hum = 0;
+    f.ballOut = b;
+    this.balls.push(b);
+    this.sound?.fireball?.('throw', b.pos);
+    this.animKit(f, 0, {}).spray(from, [b.core, b.tone], 8, 2.5, -1);
+    return b;
+  }
+
+  /** Each ball's flight: homing at you, back at its thrower, or flying on past; the window for a cut; walls put it out. */
+  updateBalls(dt) {
+    if (!this.balls.length) return;
+    const P = this.player, blade = this.tool?.blade;
+    for (const b of this.balls.slice()) {
+      // (a cut cutting as it reaches you, in front of you: sent back. The blade's own touch, the target, does the same)
+      if (b.state === 'out' && P && !P.dead && blade?.cutting && catchable(b.pos, P.pos, P.heading ?? 0)) this.returnBall(b, 'cut');
+      const to = b.state === 'back' ? b.owner.chest : aimAt(P, _w);
+      const e = b.step(dt, to);
+      if (!e && this.physics?.rayDistance) {
+        const d = _v.subVectors(b.pos, b.prev), l = d.length();
+        if (l > 1e-5 && this.physics.rayDistance(b.prev, d.divideScalar(l), l) < l) { this.popBall(b, 'wall'); continue; }
+      }
+      if (e === 'arrive') { this.ballLands(b); continue; }
+      if (e === 'struck') { this.ballStrikes(b); continue; }
+      if (e === 'fizzle') { this.popBall(b, 'fizzle'); continue; }
+      // drawn: the ball and its embers; its hum, following it
+      const m = b.mesh, now = performance.now();
+      m.position.copy(b.pos);
+      m.scale.setScalar((b.state === 'back' ? 1.15 : 1) * (1 + 0.12 * Math.sin(now / 45)));
+      m.rotation.y += dt * 7; m.rotation.x += dt * 5;
+      const T = this.tool;
+      if (T?.drops && Math.random() < 0.8) T.drops.add({ pos: b.pos, vel: _v.randomDirection().multiplyScalar(0.6).addScaledVector(b.vel, -0.12), drag: 3, grav: 1, stretch: 2, size: 0.04 + Math.random() * 0.03, life: 0.35, color: Math.random() < 0.5 ? b.tone : b.core });
+      if ((b.hum -= dt) <= 0) { b.hum = 0.3; this.sound?.fireball?.('hum', b.pos); }
+    }
+  }
+
+  /** A ball reaches you: an evade lets it pass, a perfect parry sends it back, a guard puts it out; else it burns you. */
+  ballLands(b) {
+    const P = this.player;
+    if (!P || P.dead || P.down) { this.popBall(b, 'fizzle'); return; }
+    if (P.dodge?.(b.pos, 'strike', this.gentle)) { b.pass(); return; }   // (it flies on past, and burns out)
+    const g = P.guard?.(b.prev);   // (guarded toward where it comes from)
+    if (g === 'perfect' && this.returnBall(b, 'parry')) return;
+    if (g) { this.sound?.fireball?.('tink', b.pos); this.popBall(b, 'block'); return; }
+    if (P.staggered) { this.popBall(b, 'fizzle'); return; }
+    this.harm(this.harmOf(b.B.damage));
+    _v.subVectors(P.pos, b.prev).setY(0);
+    if (_v.lengthSq() > 1e-6) P.vel?.addScaledVector(_v.normalize(), 4).addScaledVector(_up, 2);
+    P.flinch?.();
+    this.popBall(b, 'burn');
+  }
+
+  /** Sent back (a cut, a perfect parry): at its thrower, faster. The "tink", a spark, a ring; a hint the first time. */
+  returnBall(b, how = 'cut') {
+    if (!b.deflect()) return false;
+    this.sound?.fireball?.('tink', b.pos);
+    this.sparks(b.owner, b.pos);
+    this.tool?.rings?.add({ from: b.pos.clone(), dir: b.dir.clone(), reach: 0.05, r0: 0.2, r1: 0.9, life: 0.25, color: b.tone, thick: 1 });
+    b.out.visible = false; b.back.visible = true;
+    b.how = how;
+    hitStop(0.05);
+    if (!this.game.flag('foes.returned') && hintsFor('tip')) { this.game.set('foes.returned', true); this.notice?.('Sent back, its own fire stuns it: cut it while it is down.'); }
+    return true;
+  }
+
+  /** Its own fire comes back to it: hurt, stunned, it drops out of the air low enough to cut (Foe.update's HOVER). */
+  ballStrikes(b) {
+    const f = b.owner;
+    this.popBall(b, 'struck');
+    if (!f?.alive || f.dead !== undefined) return;
+    const B = b.B;
+    _v.copy(b.vel).setY(0);
+    const dir = _v.lengthSq() > 1e-6 ? _v.normalize().clone() : null;
+    f.calm();
+    this.hurt(f, 'world', dir, { damage: B.returned, stun: B.stun, source: 'ball' }, b.pos.clone());
+    if (f.alive) f.stunned = Math.max(f.stunned, B.stun);
+    this.sound?.fireball?.('back', f.chest);
+    if (f.alive) this.sound?.fireball?.('stun', f.chest);
+    this.animKit(f, 0, {}).spray(f.chest, [b.core, b.tone, '#ffffff'], 16, 4, 2);
+  }
+
+  /** A ball gone: burnt out, put out (a guard, a shot, a wall), burst on you or on its thrower. */
+  popBall(b, why = 'fizzle') {
+    if (b.state === 'gone') return;
+    b.state = 'gone'; b.why = why;
+    b.target?.(); b.target = null;
+    b.mesh?.removeFromParent();
+    if (b.owner?.ballOut === b) b.owner.ballOut = null;
+    const i = this.balls.indexOf(b); if (i >= 0) this.balls.splice(i, 1);
+    const T = this.tool, n = why === 'fizzle' ? 4 : 10;
+    if (T?.drops) for (let k = 0; k < n; k++) T.drops.add({ pos: b.pos, vel: _v.randomDirection().multiplyScalar(why === 'douse' ? 1 : 2.6), drag: 2.5, grav: why === 'douse' ? -2 : 3, size: 0.04 + Math.random() * 0.05, life: 0.4, color: why === 'douse' ? '#d8d4cc' : k % 2 ? b.tone : b.core });
+    if (why === 'burn' || why === 'wall') this.sound?.fireball?.('burst', b.pos);
+    if (why === 'douse') this.sound?.fireball?.('douse', b.pos);
   }
 
   /** Is the traveller looking toward f (the camera's view, else the body's heading)? */

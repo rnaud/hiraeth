@@ -17,7 +17,7 @@ import { playVoice, playColour, hit, echoBus, prepareLute } from './score-voices
 import { audioGuard } from './audio-guard.js';
 import { loadSoundtrack, loadTitleTheme } from './soundtracks.js';
 import { SampleBank } from './sfx.js';
-import { voiceOf, voiceLength, GLANCE, CUES } from './foe-voices.js';
+import { voiceOf, voiceLength, GLANCE, CUES, BALL_VOICES } from './foe-voices.js';
 import { MusicMoments, lightScore, musicMode } from './music-moments.js';
 import { HUM, boxHumWait } from './story/hum.js';
 import { lightThemeNotes, lightBeat } from './story/light-theme.js';
@@ -2483,6 +2483,16 @@ export class Sound {
     if (!this.ctx) return;
     const v = voiceOf(kind, sound).hurt;
     this.foeVoice(v, this.ctx.currentTime, this.foeSpot(pos, { until: voiceLength(v) + 0.3 }));
+  }
+
+  /**
+   * The ember wisp's fireball (src/foe-voices.js BALL_VOICES): 'throw', 'hum', 'tink' (sent back), 'back' (its thrower
+   * hit), 'stun', 'burst', 'douse'; at `pos` (the ball, a live vector), following it.
+   */
+  fireball(kind = 'throw', pos = null) {
+    if (!this.ctx) return;
+    const v = BALL_VOICES[kind];
+    if (v) this.foeVoice(v, this.ctx.currentTime, this.foeSpot(pos, { warn: kind === 'throw' || kind === 'hum', until: voiceLength(v) + 0.3 }));
   }
 
   /** A blow that does nothing (a shot on armour, a cut off a shell or the bronze): a spark's bright tick over a dull thunk. */

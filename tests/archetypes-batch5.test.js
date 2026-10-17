@@ -44,7 +44,7 @@ test('batch 5: the shade, the pearl roller and the marionette are built in every
   }
   assert.deepEqual(BATCH5.map((a) => `${ARCHETYPES[a].art.main}/${ARCHETYPES[a].art.alt}`), ['perdide2/eclipse', 'garage/spheres', 'spheres/bazaar']);
   // every archetype on its own body: the roster's stand-ins and planned ones are gone
-  assert.deepEqual(ARCHETYPE_IDS.filter((a) => ARCHETYPES[a].status !== 'built'), [], 'all 21 built');
+  assert.deepEqual(ARCHETYPE_IDS.filter((a) => ARCHETYPES[a].status !== 'built'), [], 'all 22 built');
   for (const a of ARCHETYPE_IDS) { assert.equal(ARCHETYPES[a].kind, a, `${a}: its own kind`); assert.equal(FOES[a], ARCHETYPES[a].def, `${a}: its own tuning`); }
   assert.deepEqual(Object.keys(KINDS), [], 'no old kind stands in');
   assert.deepEqual(RETIRED_KINDS, ['splinter']);

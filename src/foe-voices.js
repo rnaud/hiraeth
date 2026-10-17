@@ -92,6 +92,9 @@ export const FOE_VOICES = {
   marionette: { family: 'strings', // a string twanged and the paper crumpled; done, the strings snapping one by one
     hurt: [T('sawtooth', 660, 600, 0.25, 0.03), C(4, 0.02, 3200, 0.014, 0.07, { q: 1.5, at: 0.03 })],
     burst: [...[0, 1, 2, 3].map((i) => T('sawtooth', 880 - i * 110, 300 - i * 30, 0.35, 0.03, { at: i * 0.11 })), N('bandpass', 2400, 0.5, 0.1, { q: 1.2, at: 0.1 })] },
+  wisp: { family: 'ember',    // a coal knocked: a hiss of sparks over a hollow knock of the shell; done, the coal gutters out
+    hurt: [N('highpass', 2800, 0.18, 0.1, { rate: 1.4 }), R(420, CLAY, 0.22, 0.06), T('triangle', 260, 180, 0.1, 0.05)],
+    burst: [N('bandpass', 900, 0.9, 0.16, { f1: 220, q: 0.9, rate: 0.6 }), N('highpass', 3200, 0.5, 0.08, { rate: 1.5 }), T('sine', 520, 120, 0.8, 0.06, { at: 0.1 })] },
   // ---- the old sets (the makers' machine in the temples, anything without its own)
   machine: { family: 'machine',
     hurt: [T('square', 620, 540, 0.25, 0.06), T('square', 930, 810, 0.25, 0.06, { at: 0.01 })],
@@ -111,11 +114,29 @@ export function voiceOf(kind, sound = null) {
  * warning, starting at `at` of the wind-up (a share), so the body's second tell has a sound of its own (v1.63, #260, #261).
  *   coil   the antler hound coiling to pounce: a snarl through its smoke, rising
  *   quake  the makers' machine's arms high for its ground slam: a rumble under the floor and a ratchet winding
+ *   kindle the ember wisp's coal swelling for its fireball: a roar of fire rising through crackling
  */
 export const CUES = {
+  kindle: { at: 0.25, layers: [N('bandpass', 400, 0.75, 0.14, { f1: 1800, q: 1.2, rate: 0.6 }), C(7, 0.09, 2600, 0.015, 0.06, { f1: 4200, q: 2 })] },   // (the ember wisp's coal kindling for its fireball: a roar rising, crackling)
   coil: { at: 0.5, layers: [N('bandpass', 260, 0.45, 0.16, { f1: 520, q: 1.4, rate: 0.45 }), T('sawtooth', 95, 150, 0.45, 0.035)] },
   quake: { at: 0.3, layers: [N('lowpass', 140, 0.8, 0.2, { f1: 220, q: 0.9, rate: 0.3 }), T('sine', 48, 70, 0.8, 0.09), C(6, 0.09, 1800, 0.02, 0.05, { f1: 2600 })] },
 };
 
 /** How long a voice's layers sound (s): the last one's end. */
 export const voiceLength = (layers) => Math.max(0, ...layers.map((L) => (L.at ?? 0) + (L.p === 'clicks' ? (L.n - 1) * L.every + L.dur : L.dur)));
+
+/**
+ * The ember wisp's fireball (issue #398, src/fireballs.js; src/audio.js fireball): its throw (a whoosh off the coal),
+ * the hum it makes in the air (a short throb replayed while it flies, following it), the "tink" of a cut or a perfect
+ * parry sending it back (a bright struck ring), the hit back on its thrower (a burst of fire on a hollow shell), the stun
+ * (a falling, wobbling note), its burst on you or a wall, and a shot dousing it (steam).
+ */
+export const BALL_VOICES = {
+  throw: [N('bandpass', 500, 0.35, 0.18, { f1: 1500, q: 0.9, rate: 0.8 }), T('triangle', 140, 90, 0.3, 0.06)],
+  hum: [T('sawtooth', 92, 98, 0.32, 0.018), N('lowpass', 420, 0.32, 0.05, { rate: 0.5 })],
+  tink: [R(2400, GLASS, 0.45, 0.06), C(1, 0, 5200, 0.012, 0.12, { q: 3 }), N('highpass', 3000, 0.12, 0.08)],
+  back: [N('lowpass', 900, 0.35, 0.24, { rate: 0.6 }), R(300, CLAY, 0.4, 0.08), N('highpass', 2600, 0.4, 0.08, { rate: 1.4, at: 0.05 })],
+  stun: [T('sine', 660, 330, 0.7, 0.05, { at: 0.12 }), T('sine', 700, 350, 0.7, 0.03, { at: 0.12 })],
+  burst: [N('lowpass', 800, 0.3, 0.2, { rate: 0.6 }), N('highpass', 2400, 0.3, 0.06)],
+  douse: [N('highpass', 1800, 0.5, 0.12, { f1: 4200, rate: 1.6 })],
+};

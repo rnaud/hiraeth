@@ -934,6 +934,46 @@ a foe leaves ink (`INK_OF`: a blot 1, a machine 3) that runs into the glove (fla
 
 The count is said every 5 ink.
 
+## The ember wisp's fireball (issue #398: `src/fireballs.js`, `src/foes.js` Foes.throwBall …)
+
+The roster's 22nd archetype (`wisp`, a spirit, the bombardier; docs/design/fireball-foe.md, with its lore and the prompts
+for its sheet) floats out of the blade's reach, 4.2 m up (`hover`), and backs off within 7 m (`keep`). Its body is a
+stand-in (src/enemies/plans/ember.js, `art: 'pending'`) until the author picks a design: two lids of dark shell round
+a glowing coal.
+
+- **The throw** (`attack.ball`): the lids part, the coal swells and brightens, and the body rears back over 1.05 s, while
+  the `kindle` cue (src/foe-voices.js CUES) rises over the usual warning. The wind-up ends instantly (`Foe.resolve`
+  pushes `{ type: 'ball' }`) and `Foes.throwBall` sends a `Fireball` from the coal. Each wisp has one ball of its own in
+  the air at a time (`attacksAt`: `ballOut`).
+- **Its flight** (`FIREBALL`): 6.5 m/s at your chest, turning toward you at most 1.1 rad/s (gentle homing). Inside 2.6 m
+  (`near`) it flies straight, so a late step aside makes it miss. It lands within 0.75 m (`hit`), burns out after 6 s,
+  and a wall puts it out. Ember drops trail behind it, and its hum (src/foe-voices.js BALL_VOICES) follows it every 0.3 s.
+- **The answer:** a cut sends it back. Two ways count: the blade's own touch (the ball is a target of kind `ball` that
+  accepts `blade`), and **the window**. Any cut whose active frames (`blade.cutting`) fall while the ball is within 2.4 m
+  of your chest and in front of you (`catchable`, 75° each side) counts. That opens about 0.25 s before it lands at
+  Normal speed (0.32 s on Gentle, which flies it at 0.8×), with the cut's own active frames on top. Sent back
+  (`Fireball.deflect`), it flies straight at its thrower at 15 m/s. The "tink", a spark and a ring mark it, with a
+  hit-stop of 0.05 s and a hint the first time.
+- **Hit by its own fire** (`ballStrikes`): 1.5 harm and a 3.2 s stun (`hurt(f, 'world', …, { stun })`). Stunned, a
+  flyer drops out of the air (Foe.fly) to 0.3 m over the sand, where every cut lands double. The first cut wakes it,
+  and it then stays low for `KNOCKED_LOW`. It has 4 hp: three returns bring it down, or one return and a couple of cuts.
+- **Missed:** half a heart (an ordinary blow), with a flinch and a small shove. A **perfect parry** sends the ball back
+  as a cut does (the guard is the existing one, `P.guard`). A plain guard puts it out with no harm. An evade's
+  i-frames let it fly past (`pass`). A **shot** douses it in the air.
+- **Its other move:** the *flare*, a 3.2 m ring round it when you get under it (1.0 s wind-up, the lids clenched).
+- **With the kit:** lock-on works on it. The hook (#399) treats it as a `flyer` and pulls it down. Two wisps do not
+  rally balls off each other: a returned ball goes only to its own thrower, which keeps the exchange readable.
+- **The engines:** the same JS. The ball is a plain mesh in the game's glowing ink (`makeMaterial`, as a thrown
+  glob's), with no shader of its own. Two meshes, out and back, are swapped by visibility, because the engines' scene
+  mirror keeps a mesh's first material. The trail's drops fall gently (`grav: 1`): in Unity, rising drops (`grav < 0`)
+  without a stretch blacked the whole frame for good. `-fight wisp` photographs an exchange in a batch run.
+- **Where:** the Moon Foundry, Lorn II and the Eclipse (src/foe-worlds.js; `FROM.wisp` 1: not in a visit's first pack),
+  the Pour Floor's waves (src/fight-temples/moonfoundry.js), and the Arena's cycle and FOES list (it is a built archetype).
+
+Tests: `tests/fireball.test.js` (the flight, the window, the throw and a missed ball's harm, the return path, the stun and
+the doubled cut, three returns, parry, guard, evade, the hook, the douse) and `tests/engine-fireball.test.js` (an exchange in
+the engines' bundle, the blade pressed on the keys).
+
 ## Placed encounters
 
 - **Relic guards:** a relic out in the wilds (`content.relics.spots`, where `wild()` holds) gets `GUARDS.size`
@@ -1241,7 +1281,7 @@ The roster's last step (docs/design/enemy-roster.md, "Build plan" 8), measured i
 
 ## The enemy roster (v1.8–v1.18, `src/enemies/`)
 
-The 100 world enemies are retired: 21 archetypes take their place (docs/design/enemy-roster.md, approved 2026-10-09),
+The 100 world enemies are retired: 21 archetypes take their place (22 since the ember wisp, issue #398, below "The ember wisp's fireball") (docs/design/enemy-roster.md, approved 2026-10-09),
 each with its own silhouette, body plan, way of moving and job in a fight, met in several worlds in each world's skin.
 
 - **The archetypes** (`src/enemies/archetypes.js` `ARCHETYPES`): family, body plan (the kit's), role, tier, ranged,

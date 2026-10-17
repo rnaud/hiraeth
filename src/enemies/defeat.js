@@ -43,6 +43,7 @@ export const DEFEATS = {
   shade: { time: 1.2, sag: { y: -0.55, at: [0.1, 0.7] }, squash: { sy: 0.4, sxz: 1.45, at: [0.15, 0.85] }, puff: 'ink' },
   hound: { time: 1.2, sag: { y: -0.3, at: [0, 0.35] }, roll: { side: 1, angle: 1.4, at: [0.25, 0.7] }, curl: [0.4, 0.9, 0.6], puff: 'ink' },
   marionette: { time: 1.3, land: { at: [0.15, 0.45], to: 0 }, slack: true, puff: 'ink' },
+  wisp: { time: 1.2, land: { at: [0, 0.8] }, spin: 3, roll: { side: 1, angle: 0.7, at: [0.1, 0.6] }, puff: 'ink' },
 };
 
 /** A move's eased progress at u (0..1 over the defeat) for its `at` window. */

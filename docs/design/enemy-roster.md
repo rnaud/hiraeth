@@ -69,6 +69,7 @@ The rules this roster follows:
 | 19 | Shade | spirit | 9 humanoid spirit | duelist | cut, feint, thrust | 3 | Lorn II, City-Shaft, Hangar, Spheres · Glass Dunes, Eclipse |
 | 20 | Antler hound | spirit | 6 quadruped (spirit) | stalker / flanker | rises out of a shadow and pounces | 4 | Spheres, Market · Eclipse, White Mangrove |
 | 21 | Marionette | spirit | new: suspended on strings | puppeteer | drops strings on a foe and drives it | 4 | Spheres, Market · Underside, Salt Harbour |
+| 22 | Ember wisp (issue #398) | spirit | 22 ember shell (a stand-in) | bombardier | a slow fireball you cut back at it | 2 | Lorn II, Moon Foundry · Eclipse |
 
 The worlds before the dot are on the route; those after it are side worlds. Home, the Atelier and the Overnight
 Train stay peaceful, as now (their skins are for the Arena only). Plans 4 (serpent) and 10 (shelled turtle) have
@@ -705,6 +706,21 @@ Each spirit shows itself differently. None of them is the tall clawed biped with
   - the Garden of Spheres: a glass puppet on silver threads.
 - **Tier 4.** New. It is the late game's combination-maker.
 
+### 22. Ember wisp: bombardier (issue #398, added 2026-10-16)
+
+- **Silhouette:** a pumpkin-sized shell of dark ink in two lids, hinged at the back, round a glowing coal; it floats
+  4 m up and bobs slowly. Its picked body waits for the author: the design, the lore and the prompts for its sheet are in
+  [fireball-foe.md](fireball-foe.md). The game runs a stand-in body meanwhile (`art: 'pending'`).
+- **The manifestation:** **a borrowed fire**, the dark cupped round a stolen coal, mimicking the singing light.
+- **Role:** the bombardier. It stays out of reach and makes you time one cut.
+- **Attacks:** *Fireball*: the shell opens and the coal swells for 1.05 s, then a slow ball homes gently at you. Counter:
+  **cut it as it arrives** and it flies back and stuns the wisp low enough to cut; a perfect parry does the same. *Flare*
+  (when you get under it): the lids clench for 1.0 s, then heat bursts round it. Counter: step out.
+- **Best answers:** the timed cut, the parry, the hook (it is a flyer), a shot to douse a ball.
+- **Worlds and skins:** the Moon Foundry (cinder wisp, its own), Lorn II (marsh wisp), the Eclipse (corona wisp); the Pour
+  Floor's waves.
+- **Tier 2.** New.
+
 ---
 
 ## World table
@@ -718,7 +734,7 @@ marked (R).
 | 2 | **Vael** | sky ray (storm ray, lead); stilt heron (ridge runner); ink blot (feather tufts) | air striker, reach, rusher (spit R) | the Elder: sky ray |
 | 3 | **Vael II** | sky ray (cloud ray); shellback crab (cliff crab, lead); lantern jelly (cloud jelly, R); ink blot; bell walker (the belfry bell, one) | air, tank, support (R), rusher, siege (R, one) | the Cloud-Mother: sky ray, jelly; the belfry: bell walker |
 | 4 | **Lorn** | bellows toad (spore toad, lead, R); root knot (reed knot); stilt heron (marsh snapper); skitter swarm (spore mites) | lobber (R), grappler, reach, swarm | the Mother Snapper: none (her serpent plan is hers alone) |
-| 5 | **Lorn II** | root knot (root crawler, lead); lantern jelly (lamp jelly, R); signal moth (lamp moth, R); shade (hollow woodsman, rare); furnace brute (the wood cutter, one) | grappler, support (R), disruptor (R), duelist, heavy | the Lampless: moth, jelly |
+| 5 | **Lorn II** | root knot (root crawler, lead); lantern jelly (lamp jelly, R); signal moth (lamp moth, R); shade (hollow woodsman, rare); furnace brute (the wood cutter, one); ember wisp (marsh wisp, R; #398) | grappler, support (R), disruptor (R), duelist, heavy, bombardier (R) | the Lampless: moth, jelly |
 | 6 | **Viridel** | root knot (topiary knot); signal moth (glass wasp, lead, R); furnace brute (pruning machine); ink blot | grappler, disruptor (R), heavy, rusher | the Gardener: brute, root knot |
 | 7 | **The City-Shaft** | lamp tripod (inspection tripod, lead, R); ring drone (rust drone, R); horn lizard (pipe lizards, pairs); bellows toad (pressure toad, R); shade (vagrant) | sniper (R), tether (R), flanker, lobber (R), duelist | the warden: tripod |
 | 8 | **The Sealed Hangar** | ring drone (scrap drone, lead, R); crucible cart (welding cart, R); shellback crab (oil beetle); pearl roller (ball-bearing snail); sky ray (scrap ray); shade (mechanic) | tether (R), area (R), tank, charger, air, duelist | the Foreman: cart, drone |
@@ -736,9 +752,9 @@ Side worlds (all still WIP; they draw from the same set):
 | The Salt Harbour | shellback crab (anchor crab, lead); pearl roller (brine mollusk); bell walker (dock winch); marionette (drowned sailor) |
 | The Forest of Antennas | signal moth (lead); ring drone (relay dish); shellback crab (copper beetle); ring centipede (wire-wound) |
 | The Underwater City | shellback crab (coral crab, lead); sky ray (porcelain ray); lamp tripod (diving bell); lantern jelly (porcelain jelly) |
-| The City During the Eclipse | antler hound (night hound, lead, pairs); horn lizard (night lizard); ring centipede (crescent crawler); shade (pilgrim) |
+| The City During the Eclipse | antler hound (night hound, lead, pairs); horn lizard (night lizard); ring centipede (crescent crawler); shade (pilgrim); ember wisp (corona wisp; #398) |
 | The Fallen Ring | ring centipede (orbital, lead); lantern jelly (sun jelly); lamp tripod (gyroscope tripod); ring drone (gyroscope drone) |
-| The Moon Foundry | crucible cart (lead); skitter swarm (furnace beetles); horn lizard (ember lizard); furnace brute (crucible hand) |
+| The Moon Foundry | crucible cart (lead); skitter swarm (furnace beetles); horn lizard (ember lizard); furnace brute (crucible hand); ember wisp (cinder wisp; #398) |
 | The Underside | marionette (crane puppet, lead); bell walker (cable crane); sky ray (abyss ray); skitter swarm (bridge crawlers) |
 | The City Floating in Space | ring drone (airlock drone, lead); signal moth (space moth); pearl roller (magnetic mollusk) |
 | Home, the Atelier, the Overnight Train | peaceful, as now; Arena skins only (bulb toad; ink lizard → horn lizard; luggage trolley → crucible cart) |

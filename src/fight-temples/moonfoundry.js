@@ -3,7 +3,7 @@
 // from the start (hazards.js 'pour': a channel's rim glows, then the slag runs down it and lies there a while): in it
 // you burn, half a heart a tick, unless you are out of it or roll across; every foe in it burns too. The floor is read
 // before the fight: where the channels run, and where to stand. Its foes are the Foundry's own (src/foe-worlds.js:
-// crucible carts, skitters in the rails, horn lizards), light, many; the last wave brings a furnace brute and two
+// crucible carts, skitters in the rails, horn lizards; cinder wisps over the heat since issue #398), light, many; the last wave brings a furnace brute and two
 // whole carts. The reward: Moon slag (src/kit-colours.js).
 //
 // Its rooms: the tapping bay (no pour yet), the casting bays (three channels down it, columns of iron between), the
@@ -41,11 +41,11 @@ export const MOONFOUNDRY_FIGHT = {
     { id: 'moulds', name: 'The mould floor', x: [-34, -14], z: [-26, -12],
       springs: [[-32, -19], [-16, -19], [-24, -19]], pillars: [],
       hazard: { kind: 'pour', every: 5.5, n: 1, lanes: [C('x', -15.5, -1), C('x', -22.5, 1)] },
-      waves: [[['lizard', 3], ['skitter', 12], ['cart', 1]], [['skitter', 14], ['lizard', 3], ['skitter', 1, { gorged: true }]]] },
+      waves: [[['lizard', 3], ['skitter', 12], ['cart', 1]], [['skitter', 14], ['lizard', 3], ['wisp', 1], ['skitter', 1, { gorged: true }]]] },
     { id: 'crucible', name: 'The great crucible', x: [-38, -14], z: [-52, -28],
       springs: [[-36, -30], [-16, -30], [-36, -50], [-16, -50], [-26, -50]], pillars: [[-30, -36], [-22, -36], [-30, -44], [-22, -44]], altar: [-26, -40],
       hazard: { kind: 'pour', every: 5, n: 2, lanes: [C('z', -33, 1), C('z', -19, 1), C('x', -32.5, -1), C('x', -47.5, 1)] },
-      waves: [[['cart', 2], ['lizard', 4], ['skitter', 12], ['lizard', 1, { gorged: true }]], [['brute', 1, { tough: true }], ['cart', 2, { tough: true }], ['skitter', 16], ['lizard', 4], ['cart', 1, { gorged: true }], ['skitter', 1, { gorged: true }]]] },
+      waves: [[['cart', 2], ['lizard', 4], ['skitter', 12], ['wisp', 2], ['lizard', 1, { gorged: true }]], [['brute', 1, { tough: true }], ['cart', 2, { tough: true }], ['skitter', 16], ['lizard', 4], ['cart', 1, { gorged: true }], ['skitter', 1, { gorged: true }]]] },
   ],
   doors: [
     { from: 0, to: 1, side: 'n', at: 0, w: 4 },

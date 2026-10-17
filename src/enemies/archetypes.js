@@ -584,6 +584,34 @@ export const ARCHETYPES = {
     }),
     note: 'A marionette: cut its strings to free the creature. Jump for its body.',
   },
+  // ----------------------------------------------------------------------------- batch 6 (issue #398)
+  // The ember wisp (docs/design/fireball-foe.md): the dark's poor copy of the singing light, a cold shell round a borrowed
+  // coal, floating out of reach; it throws its fire at you, and a cut timed as the ball arrives sends it back (src/fireballs.js).
+  // Its body is a stand-in (art 'pending') until the author picks its sheet.
+  wisp: {
+    name: 'ember wisp', family: 'spirit', plan: 'ember', planNo: 22, role: 'bombardier', tier: 2, ranged: true,
+    status: 'built', kind: 'wisp', was: [], sound: 'ember', drop: 4, art: 'pending',
+    manifestation: 'a borrowed fire: a shell of hardened ink cupped round a stolen coal, mimicking the singing light',
+    moves: ['fireball', 'flare'], answers: ['a cut timed as the fireball arrives sends it back (stunned, it drops: cut it)', 'a perfect parry sends it back too', 'the hook pulls it down', 'a shot douses a fireball'],
+    idle: 'drifts over warm places, a lamp where no lamp should be; it turns to watch you go by',
+    def: S({
+      // (hover 4.2 m: out of the blade's reach; keep 7: it backs off when you close in. hp 4: three returns, or one and its cuts)
+      name: 'ember wisp', hp: 4, hook: 'flyer', radius: 0.6, height: 0.5, hover: 4.2, speed: 2.6, sight: 22, giveUp: 40, reach: 14, keep: 7,
+      tone: '#ff8a3e', takes: { shoot: 0, fire: 0 },
+      calm: { mode: 'drift', provoke: 15 },
+      attacks: [
+        // the shell's lids part, the coal swells and brightens (a crackling hum rising) and it rears back; then the ball
+        // flies at you, slow, homing gently: Foes.throwBall (src/fireballs.js FIREBALL)
+        { id: 'fireball', name: 'fireball', shape: 'ring', at: 'self', radius: 0.5, damage: 0, wind: 1.05, instant: true, ball: true, cue: 'kindle', min: 3.5, max: 14, weight: 3, recover: 1.0,
+          tell: 'its shell opens like a clam, the coal inside swelling white-hot, and it rears back with a rising crackle', counter: 'cut the ball as it reaches you: it flies back and stuns the wisp; a perfect parry does too; or step aside at the last moment' },
+        // under it: the shell clenches shut and glows through its seams; then a burst of heat round it
+        { id: 'flare', name: 'flare', shape: 'ring', at: 'self', radius: 3.2, damage: 0.5, knock: 4, wind: 1.0, strike: 0.25, contact: 0.4, max: 3.2, weight: 2,
+          tell: 'its shell clenches shut and the seams glow red', counter: 'step out from under it' },
+      ],
+      recover: 1.2, cool: [1.6, 2.6], hit: 0.4,
+    }),
+    note: 'An ember wisp: cut its fireball as it reaches you, and it flies back.',
+  },
 };
 
 export const ARCHETYPE_IDS = Object.keys(ARCHETYPES);

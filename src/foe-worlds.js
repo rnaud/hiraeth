@@ -27,7 +27,7 @@ export const WORLDS = {
   arzach: { stage: 0, lead: 'ray', roster: { ray: 4, heron: 2, blot: 3 } },
   arzach2: { stage: 1, lead: 'crab', roster: { crab: 4, ray: 3, jelly: 2, blot: 2 } },
   perdide: { stage: 1, lead: 'toad', roster: { toad: 3.5, rootknot: 3, heron: 1.5, skitter: 3 } },
-  perdide2: { stage: 1, lead: 'rootknot', roster: { rootknot: 4, jelly: 2, moth: 3, shade: 1 }, placed: ['brute'] },
+  perdide2: { stage: 1, lead: 'rootknot', roster: { rootknot: 4, jelly: 2, moth: 3, shade: 1, wisp: 1.5 }, placed: ['brute'] },
   edena: { stage: 2, budget: [3, 4], lead: 'moth', roster: { moth: 4, rootknot: 2, brute: 1.5, blot: 1 } },
   // (v1.40: the Underwater City between Viridel and the City-Shaft: crabs and jellies in the halls, a lamp tripod or two)
   underwater: { stage: 2, budget: [3, 4], lead: 'crab', roster: { crab: 4, ray: 2.5, jelly: 3, tripod: 2 } },
@@ -38,8 +38,9 @@ export const WORLDS = {
   // and nomads, and the Clock-House's drones, which came with the house; its rooms the makers' machines and drones)
   glassdunes: { stage: 2, budget: [4, 5], lead: 'brute', roster: { brute: 4, crab: 3, ray: 2, worm: 2, drone: 2, shade: 1 }, temple: ['machine', 'drone'] },
   buried: { stage: 3, lead: 'worm', roster: { worm: 3.5, tripod: 3, cart: 2, lizard: 2, centipede: 2, skitter: 3 }, temple: ['machine', 'drone'] },
-  // (v1.40: the Moon Foundry after the Buried Machine: the old carts and the walkers of the casting floor, skitters in the rails)
-  moonfoundry: { stage: 3, lead: 'cart', roster: { cart: 4, skitter: 3, lizard: 2.5, brute: 2 }, temple: ['machine', 'drone'] },
+  // (v1.40: the Moon Foundry after the Buried Machine: the old carts and the walkers of the casting floor, skitters in the rails;
+  // issue #398: cinder wisps over the warm furnaces, as in Lorn II's marsh lights over the pools and the Eclipse's coronas)
+  moonfoundry: { stage: 3, lead: 'cart', roster: { cart: 4, skitter: 3, lizard: 2.5, brute: 2, wisp: 2.5 }, temple: ['machine', 'drone'] },
   spheres: { stage: 3, budget: [4, 6], lead: 'roller', roster: { roller: 4, drone: 1, jelly: 1, centipede: 4, shade: 3.5, hound: 4 }, late: ['hound', 'marionette'], placed: ['marionette'] },
   // (v1.40: the City Floating in Space before the Signal Market: drones off the cables, moths round the lamps, rollers on the bridges)
   spacecity: { stage: 3, budget: [4, 6], lead: 'drone', roster: { drone: 4, moth: 3, roller: 3 }, temple: ['machine', 'drone'] },
@@ -49,7 +50,7 @@ export const WORLDS = {
   waterfall: { stage: 2, lead: 'toad', roster: { toad: 4, centipede: 2, brute: 2, rootknot: 2 } },
   saltharbour: { stage: 2, lead: 'crab', roster: { crab: 4, roller: 3, bell: 2, marionette: 1 } },
   antennas: { stage: 2, lead: 'moth', roster: { moth: 4, drone: 3, crab: 2, centipede: 2 } },
-  eclipse: { stage: 2, lead: 'hound', roster: { hound: 4, lizard: 3, centipede: 2, shade: 2 } },
+  eclipse: { stage: 2, lead: 'hound', roster: { hound: 4, lizard: 3, centipede: 2, shade: 2, wisp: 2 } },
   fallenring: { stage: 2, lead: 'centipede', roster: { centipede: 4, jelly: 3, tripod: 2, drone: 2 } },
   underside: { stage: 2, lead: 'marionette', roster: { marionette: 3, bell: 2, ray: 3, skitter: 2 } },
 };
@@ -76,7 +77,7 @@ export const CLASSIC = { wild: { blot: 1 }, fill: { blot: 1 }, first: 'blot', gu
 export const GROUP = { skitter: 8, moth: 3, hound: 2, lizard: 2 };
 /** The places a group takes in a pack from the third stage on (the rest filled round it): a flock of feeble skitters two. */
 export const GROUP_COST = { skitter: 2, moth: 3, hound: 2, lizard: 2 };
-export const FROM = { skitter: 1, machine: 2, brute: 1, cart: 1, bell: 2, shade: 3, tripod: 1, centipede: 1, marionette: 3, roller: 1 };
+export const FROM = { wisp: 1, skitter: 1, machine: 2, brute: 1, cart: 1, bell: 2, shade: 3, tripod: 1, centipede: 1, marionette: 3, roller: 1 };
 /** A big lead takes this many of a pack's places. */
 export const COSTS = { machine: 2, brute: 2, cart: 2, bell: 2, crab: 1.5, tripod: 2, centipede: 2, marionette: 2 };
 /** The pack's places by stage of the route (docs/design/enemy-roster.md, "Difficulty curve"). */

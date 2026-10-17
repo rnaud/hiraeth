@@ -196,6 +196,12 @@ export const SKINS = {
     underside: { name: 'crane puppet', palette: { body: '#59636f', body2: '#6f7a86', joint: '#c9a35e', thread: '#2a2a2e', smoke: '#1e1a26', smoke2: '#4a3a5a', rust: '#a0603a' }, props: ['girder'] },
     saltharbour: { name: 'drowned sailor', palette: { body: '#4f7aa2', body2: '#6a92b6', joint: '#d8cfb8', thread: '#b89a6a', smoke: '#1e2a34', smoke2: '#3f5a6a', salt: '#eef0ea' }, props: ['rope'] },
   },
+  wisp: {
+    // (a stand-in until its sheet is picked, docs/design/fireball-foe.md: an ink-dark shell round a coal, its fire the skin's)
+    moonfoundry: { name: 'cinder wisp', palette: { shell: '#2e2a30', shell2: '#4a4248', rim: '#9a7a48', core: '#ff8a3e', fire: '#ffd36a', eye: '#ffe2b0', smoke: '#1e1a20' }, props: ['seams'] },
+    perdide2: { name: 'marsh wisp', palette: { shell: '#24302c', shell2: '#36463e', rim: '#b8955a', core: '#b8e86a', fire: '#f2ffb0', eye: '#f2ffd0', smoke: '#1a2420' }, props: ['moss'] },
+    eclipse: { name: 'corona wisp', palette: { shell: '#15121c', shell2: '#2a2238', rim: '#d6c2ff', core: '#ffcf6a', fire: '#fff4d0', eye: '#d6c2ff', smoke: '#100c18' }, props: ['corona'] },
+  },
 };
 
 // The ink blot is in every world, few and early: it takes the ground's colour at its edge (sand in the Desert, moss in

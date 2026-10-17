@@ -215,6 +215,7 @@ add('Foes and guardians', 'foeWarn', 'A foe winds up', [pick('ink', (s) => s.foe
 add('Foes and guardians', 'guardianWarn', 'A guardian winds up', [pick('living', (s) => s.guardianWarn('organic', 1.2)), pick('living, heavy', (s) => s.guardianWarn('organic', 1.6, true)), pick('machine', (s) => s.guardianWarn('robot', 1.2)), pick('machine, heavy', (s) => s.guardianWarn('robot', 1.6, true))], 'src/temples/boss.js');
 add('Foes and guardians', 'foeGlance', 'A blow that does nothing', one((s) => s.foeGlance()));
 add('Foes and guardians', 'foeArmour', 'A cut that doesn\'t stop it', one((s) => s.foeArmour()));
+add('Foes and guardians', 'fireball', 'The ember wisp\'s fireball', ['throw', 'hum', 'tink', 'back', 'stun', 'burst', 'douse'].map((k) => pick(k, (s, e) => s.fireball(k, e.at))), 'issue #398: thrown, in the air, cut back, back on the wisp, the wisp stunned, burst, doused');
 for (const [kind, v] of Object.entries(FOE_VOICES)) add('Foes and guardians', `foe:${kind}`, `${kind} (${v.family ?? 'its own'})`, [pick('hurt', (s, e) => s.foeHurt(kind, null, e.at)), pick('done', (s) => s.foeBurst(kind))], 'src/foe-voices.js');
 // creatures
 const CRITTERS = ['squeak', 'inflate', 'boing', 'portal', 'chime', 'bloom', 'jet', 'whirr', 'clank', 'clack', 'blip', 'splash', 'skip', 'plop', 'poof', 'puff', 'spores', 'flutter', 'scribble', 'creak', 'daze', 'flash'];

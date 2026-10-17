@@ -595,6 +595,16 @@ function makePlan(args) {
     if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-fight-cut.png` });
     steps.push({ kind: 'wait', frames: 60, secs: 2 });
   }
+  if (fights.includes('wisp')) {
+    // (-fight wisp: an exchange with the ember wisp, issue #398: set down 9 m ahead, locked on; its wind-up, its ball in the
+    // air, the blade (F) pressed as the ball comes in, the ball sent back, the wisp stunned low; tests/engine-fireball.test.js)
+    const shot = (name) => (args.out ? [{ kind: 'shot', file: `${args.out}/unity-wisp-${name}.png` }] : []);
+    steps.push({ kind: 'wait', frames: 60, secs: 2 }, { kind: 'foe', what: 'wisp' }, { kind: 'wait', frames: 30, secs: 1 },
+      { kind: 'key', code: 'Tab', down: true }, { kind: 'wait', frames: 2 }, { kind: 'key', code: 'Tab', down: false },
+      { kind: 'wisp', until: 'wind', secs: 10 }, ...shot('1-windup'), { kind: 'wisp', until: 'near', d: 5.5, secs: 6 }, ...shot('2-ball'),
+      { kind: 'wisp', until: 'near', d: 3.3, secs: 3 }, { kind: 'key', code: 'KeyF', down: true }, { kind: 'wait', frames: 3 }, { kind: 'key', code: 'KeyF', down: false },
+      { kind: 'wisp', until: 'back', secs: 1 }, ...shot('3-deflect'), { kind: 'wisp', until: 'stunned', secs: 2 }, { kind: 'wait', frames: 25, secs: 0.8 }, ...shot('4-stun'), { kind: 'wisp', until: 'log' });
+  }
   if (fights.includes('down')) {
     // (at a quarter of a heart: the edges' heartbeat; then knocked out: the card)
     steps.push({ kind: 'foe', what: 'low' }, { kind: 'wait', frames: 20, secs: 0.4 });
@@ -952,8 +962,16 @@ export function frame(dt) {
         game.player.heading = Math.atan2(c.x - at.x, c.z - at.z); game.rig.yaw = game.player.heading + Math.PI;
         console.log(`[unity] in ${T.id}'s arena (${G.state})`);
       }
-    } else { const got = F.spawnKind(step.what, { n: 1, dist: 5 }); console.log(`[unity] a ${step.what} set down: ${got.length}`); }
+    } else { const got = F.spawnKind(step.what, { n: 1, dist: step.what === 'wisp' ? 9 : 5 }); console.log(`[unity] a ${step.what} set down: ${got.length}`); }
     next();
+  }
+  else if (step.kind === 'wisp') {
+    // (-fight wisp's beats, waited for at most secs: its fireball's wind-up well on, its ball within d m of his chest, sent back, it stunned)
+    const F = game.foes, f = F?.list.find((x) => x.kind === 'wisp' && x.alive), b = F?.balls?.[0], p = game.player.pos;
+    P.t += Math.min(dt, 0.1);
+    const near = b && b.state === 'out' && Math.hypot(b.pos.x - p.x, b.pos.y - p.y - 1.1, b.pos.z - p.z) < (step.d ?? 3);
+    const ok = step.until === 'wind' ? f?.state === 'wind' && f.atk?.ball && f.k > 0.7 : step.until === 'near' ? near : step.until === 'back' ? b?.state === 'back' : step.until === 'stunned' ? f?.stunned > 0 : true;
+    if (ok || P.t >= (step.secs ?? 0)) { console.log(`[unity] wisp ${step.until}: ${ok ? 'yes' : 'timed out'} (${f ? `${f.state} hp ${f.hp} stunned ${f.stunned.toFixed(2)} up ${(f.chest.y - p.y).toFixed(2)} m` : 'gone'}${b ? `, ball ${b.state}` : ''})`); next(); }
   }
   else if (step.kind === 'dev') {
     const D = game.devMenu, M = S.menus, p = game.player;
