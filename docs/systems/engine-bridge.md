@@ -1918,6 +1918,9 @@ the engines' build of the game to see it there. Moved so far:
   #376), every hover vehicle skimming the water (the waters' floor), and no calls into the rooms off the map nor from
   inside the ship (`canSummon`; the page culls by the rooms it returns). The engines had no parked bike, and their
   bikes and skiffs sank into water.
+- `wireLessons` (both hosts had their own copy): what the save's events say and start: a gadget found and its line
+  after its box's card, a keepsake's recorded theme, the trials' upgrades to the gadgets' tuning, Plumb's clock and
+  notes.
 
 Checked in Unity (the editor's batch run, `-fresh -no-hud`, against main's bundle for the before and the web's
 pictures of the same views): the kit's colours at the desert's ramp foot (`-set-flags` now takes `key=value`:

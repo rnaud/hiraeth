@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { readFileSync } from 'node:fs';
-import { wireKit, wireDangers, wirePeople, wireChemistry, wireVehicles } from '../src/host/game-host.js';
+import { wireKit, wireDangers, wirePeople, wireChemistry, wireVehicles, wireLessons } from '../src/host/game-host.js';
 import { ERRANDS } from '../src/levels/content.js';
 import { hazardCount } from '../src/hazards.js';
 import * as THREE from 'three';
@@ -115,9 +115,31 @@ test('the vehicles: hover ones skim the water, no calls into a room off the map 
   assert.equal(player.opts.canSummon(), false, 'nor from inside the ship');
 });
 
+test('the lessons: Plumb\'s clock and notes, a keepsake\'s theme, the upgrades kept with the items', () => {
+  const on = {}, flags = {};
+  const game = { on: (ev, f) => (on[ev] ??= []).push(f), flag: (k) => flags[k], set: (k, v) => { flags[k] = v; } };
+  const emit = (ev, e) => (on[ev] ?? []).forEach((f) => f(e));
+  let itemsHeard = 0;
+  const items = { has: () => false, on: () => { itemsHeard++; } };
+  const P = { progress: 0, notes: [] }, cues = [];
+  const plumb = { progress: () => { P.progress++; }, note: (k) => P.notes.push(k) };
+  wireLessons({ game, items, levelId: 'desert', sound: { musicCue: (k) => cues.push(k) }, toast: () => {}, plumb });
+  assert.equal(itemsHeard, 1, 'the upgrades follow the items');
+  emit('quest'); emit('item', { n: 1 }); emit('item', { n: -1 });
+  assert.equal(P.progress, 2, 'a quest and an item had, not one taken away');
+  emit('box:opened', { item: 'nothing-known' });
+  assert.deepEqual(P.notes, ['chest']);
+  emit('ship:exit');
+  assert.deepEqual(P.notes, ['chest', 'out'], 'the first steps out of the crashed ship');
+  emit('keepsake');
+  assert.deepEqual(cues, ['moment']);
+  // (no Plumb, no sound: the engines' benches)
+  wireLessons({ game: { on() {}, flag() {} }, items, levelId: 'arena', toast: () => {} });
+});
+
 test('both hosts call the same groups (src/host/game-host.js), and engine/game.js no longer arms the tool its own way', () => {
   const main = readFileSync('src/main.js', 'utf8'), engine = readFileSync('engine/game.js', 'utf8');
-  for (const g of ['wireKit', 'wireDangers', 'wirePeople', 'wireChemistry', 'wireMount', 'wireVehicles']) {
+  for (const g of ['wireKit', 'wireDangers', 'wirePeople', 'wireChemistry', 'wireMount', 'wireVehicles', 'wireLessons']) {
     assert.match(main, new RegExp(`\\b${g}\\(`), `main.js calls ${g}`);
     assert.match(engine, new RegExp(`\\b${g}\\(`), `engine/game.js calls ${g}`);
   }
