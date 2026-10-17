@@ -1,0 +1,58 @@
+src/gadgets/hook.js
+  h_a9d45f2c234256 70-87,181,202-203,236-237,333-335
+tests/house-walk.js
+  h_a9d45f2c234256 1-119
+tests/gadgets.test.js
+  h_a9d45f2c234256 284-317
+src/temples/pieces.js
+  h_a9d45f2c234256 1433-1461
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHud.cs
+  h_a9d45f2c234256 1024-1026,1029,1031-1032
+tests/hook-reach.test.js
+  h_a9d45f2c234256 1-247
+tests/engine-hook.test.js
+  h_a9d45f2c234256 20-22,25-29,66-118
+src/gadgets/hud.js
+  h_a9d45f2c234256 47-49
+tests/door-bypass.test.js
+  h_a9d45f2c234256 20,24,31,33,92
+changelog.md
+  s_5f899ba316b5dc::t_4b7e68e6af5b36 7
+src/changelog-media.js
+  s_5f899ba316b5dc::t_cb89584259352d 1126-1127,1201-1203
+docs/systems/gadgets.md
+  s_f2b20b17301447::t_9b4042424db2a9 183-199
+docs/systems/temples.md
+  s_f2b20b17301447::t_e30979f4b2b7e3 1442-1469
+src/changelog.js
+  s_f2b20b17301447::t_15d347faca3efb 45-47
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ae5226908ef0bfdeb5520b6c32d5785b026a4fb5",
+  "prompts": {},
+  "humans": {
+    "h_a9d45f2c234256": {
+      "author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  },
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_f2b20b17301447": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a65b6156f233d845c",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
