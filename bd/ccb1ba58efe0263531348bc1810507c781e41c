@@ -1,0 +1,30 @@
+src/gadgets/hook.js
+  h_a9d45f2c234256 70-87,181,202-203,236-237,333-335
+src/gadgets/hud.js
+  h_a9d45f2c234256 47-49
+src/temples/pieces.js
+  h_a9d45f2c234256 1433-1461
+tests/door-bypass.test.js
+  h_a9d45f2c234256 20,24,31,33,92
+tests/engine-hook.test.js
+  h_a9d45f2c234256 20-22,25-29,66-118
+tests/gadgets.test.js
+  h_a9d45f2c234256 284-317
+tests/hook-reach.test.js
+  h_a9d45f2c234256 1-247
+tests/house-walk.js
+  h_a9d45f2c234256 1-119
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHud.cs
+  h_a9d45f2c234256 1024-1026,1029,1031-1032
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "bdccb1ba58efe0263531348bc1810507c781e41c",
+  "prompts": {},
+  "humans": {
+    "h_a9d45f2c234256": {
+      "author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
