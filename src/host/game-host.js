@@ -6,11 +6,16 @@
 // the mirror, their screen parts and their pads). A group a function, each returning what the frame calls:
 //
 //   wireKit({ tool, game, armed, onArm })                  the sword and the shield only once found, the kit's colours
+//   wireDangers({ scene, level })                          the fires that burn, a world's deadly void
 //
 // tests/game-host.test.js holds each group to both hosts; scripts/bridge-gaps.mjs reports a group main.js calls and
 // engine/game.js doesn't as a host gap (engine/bridge-gaps.js `shared:`).
 
 import { applyKitColours, coloursData, cycleColour } from '../kit-colours.js';
+import { registerHazard, updateHazards } from '../hazards.js';
+import { fireHazard } from '../story/flames.js';
+import { worldVoid } from '../pit-void.js';
+import { hintsFor } from '../hint-level.js';
 
 // ------------------------------------------------------------------ the kit
 /**
@@ -36,4 +41,26 @@ export function wireKit({ tool, game, armed = false, onArm = null }) {
   const wear = tool.wear.bind(tool);
   tool.wear = () => { wear(); paint(); };
   return { arm, paint, colours: () => coloursData(game), cycle: (piece) => { cycleColour(game, piece); paint(); } };
+}
+
+// ------------------------------------------------------------------ the world's dangers
+let offFire = null;   // (one game at a time: the last one's fires let go, an engine's next world or a test's next game)
+/**
+ * Every fire drawn in the world burns while you stand in it (src/story/flames.js fireHazard; issue #77), with the
+ * hazards the levels registered as they built (spines, a temple's spike rows: src/hazards.js); and a world's deadly
+ * void under its kill height (issue #312, src/pit-void.js: a wash in level.veils, made if need be).
+ *   dangers.update(dt, player, { quiet, say })   the hazards biting while you touch them; `say` a lesson (hints full)
+ *   dangers.voidFrame(t)                         the void's rings' clock
+ */
+export function wireDangers({ scene, level }) {
+  offFire?.();
+  offFire = registerHazard(fireHazard(scene));
+  const deadlyVoid = worldVoid(level);
+  return {
+    deadlyVoid,
+    update(dt, player, { quiet = false, say = () => {} } = {}) {
+      if (!quiet) updateHazards(dt, player, { notice: (t) => { if (hintsFor('tip')) say(t); } });   // ("It burns!": the hurt says it; the line, hints full)
+    },
+    voidFrame(t) { deadlyVoid?.update(t); },
+  };
 }

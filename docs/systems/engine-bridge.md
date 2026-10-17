@@ -1868,6 +1868,9 @@ the engines' build of the game to see it there. Moved so far:
 
 - `wireKit`: the sword and the shield only once found (armTool), the kit's colours on him and in the Items panel's
   Colours row (engine/game.js gives the menus the row's data; drawing and cycling it in BridgeMenu is #430's).
+- `wireDangers`: every fire drawn burns while you stand in it (fireHazard, registered once a game: the next world's
+  lets the last one's go), with the hazards the levels register; a world's deadly void under its kill height
+  (worldVoid, a wash in level.veils, Hiraeth/PitVoid in Unity). The engines registered no fire's and drew no void.
 
 ## Status
 
