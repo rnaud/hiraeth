@@ -8,6 +8,7 @@
 //   wireKit({ tool, game, armed, onArm })                  the sword and the shield only once found, the kit's colours
 //   wireDangers({ scene, level })                          the fires that burn, a world's deadly void
 //   wirePeople({ levelId, npcs, journal, … })              the errands, the faces of whoever talks near, the hum
+//   wireChemistry({ flammables, wildlife, tool, … })       fire, wind, creatures and foes on each other
 //
 // tests/game-host.test.js holds each group to both hosts; scripts/bridge-gaps.mjs reports a group main.js calls and
 // engine/game.js doesn't as a host gap (engine/bridge-gaps.js `shared:`).
@@ -21,6 +22,7 @@ import { Errands } from '../quest.js';
 import { ERRANDS } from '../levels/content.js';
 import { talkFaces, TALK_FACE } from '../talk-face.js';
 import { HumCue } from '../story/hum.js';
+import { Chemistry } from '../chemistry.js';
 
 // ------------------------------------------------------------------ the kit
 /**
@@ -95,4 +97,10 @@ export function wirePeople({ levelId, npcs, journal, toast, titles, capture = ()
       talkFaces.update(dt);
     },
   };
+}
+
+// ------------------------------------------------------------------ the world's chemistry
+/** Fire spreads on the wind, creatures flee it, foes catch it (src/chemistry.js); chemistry.update(dt, player.pos) after what burns. */
+export function wireChemistry({ flammables = null, wildlife = null, tool = null, game = null, player }) {
+  return new Chemistry({ flammables, wildlife, tool, game, wind: player.wind });
 }

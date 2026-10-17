@@ -156,7 +156,7 @@ import { DevMenu } from '../src/dev-menu.js';
 import { gatherPoints, questList, applyQuestJump, landingSpot, godLanding } from '../src/world-debug.js';
 import { GAMES } from '../src/minigames/index.js';
 import { DEBUG_SLOT } from '../src/save-slots.js';
-import { wireKit, wireDangers, wirePeople } from '../src/host/game-host.js';
+import { wireKit, wireDangers, wirePeople, wireChemistry } from '../src/host/game-host.js';
 
 export { page };
 export { readHref } from './trials.js';   // (the tests: a game page's address)
@@ -597,7 +597,11 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     if (sound !== SILENT && waters.step?.(p)) return;   // (in the water: a splash, no print, as main.js)
     onStep?.(p, heading, up, i); footprints.add?.(p, heading, up, i); sound.step(Math.hypot(player.vel.x, player.vel.z));
   };
-  const wildlife = optional('wildlife', () => new Wildlife(scene, level, physics, { content, sound, defs: level.wildlife }));
+  // (never on the ship, its ramp or in it, as main.js: issue #246)
+  const wildlife = optional('wildlife', () => new Wildlife(scene, level, physics, { content, sound, defs: level.wildlife, keepOff: (p) => !!ship?.keepsOff?.(p) }));
+  // fire spreads on the wind, creatures flee it, foes catch it, as the page (src/host/game-host.js wireChemistry: the
+  // engines' brambles burnt alone before, #427)
+  const chemistry = optional('the chemistry', () => wireChemistry({ flammables, wildlife, tool, game: gameState, player }));
   // (its pace, and the desert's first arrival clear until its flag, issue #139, as main.js's)
   const weather = optional('weather', () => new Weather(content.weather, { ...content.weatherPace, calm: content.calmUntil ? () => !gameState.flag(content.calmUntil) : null }));
   // (on the page's window as main.js puts it, where the story reads it: rain on Lorn's Great Crystal makes it sing,
@@ -1291,7 +1295,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const lookOut = {};
   const SEC = { ms: {}, frames: 0 };
   const game = {
-    scene, camera, player, rig, level, physics, deferred, floraLater, npcs, crowd, story, storyPage, relics, ship, mirror, folk, kit, dangers, boxes, fragments, gadgets, itemFx, grass, wind, sky, post, T, wildlife, weather, shelter, tool, scout, sound, expedition, plumb, firstSteps, setLanternSky, flora, reactiveWorld, flammables,
+    scene, camera, player, rig, level, physics, deferred, floraLater, npcs, crowd, story, storyPage, relics, ship, mirror, folk, kit, dangers, chemistry, boxes, fragments, gadgets, itemFx, grass, wind, sky, post, T, wildlife, weather, shelter, tool, scout, sound, expedition, plumb, firstSteps, setLanternSky, flora, reactiveWorld, flammables,
     /** The sound's AudioContext (engine/webaudio.js): ctx.render(frames) → the next stereo PCM, or null without sound. */
     get audio() { return sound.ctx ?? null; },
     /** The wallet's chimes (src/resources.js), as the health HUD shows them while it is up. */
@@ -1680,6 +1684,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         wildlife?.update(dt, simT, player, camera, busy);
         reactiveWorld?.update(dt, simT, player, camera, busy);
         flammables?.update(dt, simT, player.pos);
+        chemistry?.update(dt, player.pos);
         trials?.world(dt, simT);   // the trials' wind columns, the makers' runs' moving pieces, the signs (src/trials/)
       } catch (e) { if (!game._lifeFailed) { game._lifeFailed = true; console.warn('[game] a system failed in its update', e?.stack ?? e); } }
       lap?.('life');

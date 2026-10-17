@@ -1910,6 +1910,9 @@ the engines' build of the game to see it there. Moved so far:
   menu's Quests panel gets the errands' list, the Worlds page the worlds told), the hum when words on the screen speak
   of it (the page's cinema's toasts and subtitles, the engines' toasts, a conversation's lines, a balloon), and the
   face of whoever talks near you (src/talk-face.js). The engines had none of the three.
+- `wireChemistry`: fire spreads on the wind, creatures flee it, foes catch it (src/chemistry.js), on the traveller's
+  wind; the engines' brambles burnt alone. (With it, engine/game.js's wildlife keeps off the ship as the page's does,
+  issue #246's `keepOff`.)
 
 Checked in Unity (the editor's batch run, `-fresh -no-hud`, against main's bundle for the before and the web's
 pictures of the same views): the kit's colours at the desert's ramp foot (`-set-flags` now takes `key=value`:

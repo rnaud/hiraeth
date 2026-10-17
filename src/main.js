@@ -106,7 +106,6 @@ import { ItemIcons } from './item-icons.js';
 import { PortraitCache } from './portrait-cache.js';
 import { buildItemModel } from './boxes/model.js';
 import { Flammables, flammableSpots } from './flammable.js';
-import { Chemistry } from './chemistry.js';
 import { createChallenges } from './trials/index.js';
 import { syncUpgrades } from './trials/upgrades.js';
 import { createBoxes, migrateSave } from './boxes/index.js';
@@ -150,7 +149,7 @@ import { queueHost, takeHosts } from './minigames/kit/hosts.js';
 import { MinigameRunner } from './minigames/kit/runner.js';
 import { levelMetaFor } from './minigames/kit/world.js';
 import { lendTool } from './minigames/kit/onfoot.js';
-import { wireKit, wireDangers, wirePeople } from './host/game-host.js';
+import { wireKit, wireDangers, wirePeople, wireChemistry } from './host/game-host.js';
 import { arcadeLinks } from './minigames/kit/arcade.js';
 import { ambushDue, ambushHref, ambushKey, transitLinks } from './ambush.js';
 import { talkAllowed } from './ship/landing.js';
@@ -1154,7 +1153,7 @@ if (chimePolicy !== 'off') game.on('foe:burst', (e) => { const pot = resources.p
 // at one heart or less: a short heartbeat and the screen's edges darkening with it (src/low-health.js)
 const lowHealth = new LowHealthCue({ sound });
 let trialsRt = null;   // this world's mastery trial (src/trials/), made once the world is up (below)
-const chemistry = new Chemistry({ flammables, wildlife, tool, game, wind: player.wind });   // fire spreads on the wind, creatures flee it, foes catch it (src/chemistry.js)
+const chemistry = wireChemistry({ flammables, wildlife, tool, game, player });   // fire spreads on the wind, creatures flee it, foes catch it (src/host/game-host.js, the engines' too)
 tool.lockOn = () => foes.lockTarget();   // (the blade and its guard turn to the locked foe)
 // Locked on, the back flip and the side hop (src/jump.js HOP, Player.hop): their dodge frames (FluidBlade.hop), and begun
 // just before a blow lands, a perfect dodge: the flurry, the world slowed round you a few seconds (src/flurry.js)
