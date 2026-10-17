@@ -8,7 +8,7 @@ export const QUEST = {
   find: 'Find the makers’ tower on the rim',
   gadget: 'Find what the makers left inside their tower',
   // the fan found: what it is for, at once (src/temples/index.js: a stage of its own, done in the gallery above)
-  use: { text: 'Ride the draught up through the chamber’s ceiling', label: 'Up through the ceiling' },
+  use: { text: 'Let the house breathe out; ride the draught up', label: 'Up the draught' },
   keeper: 'Go up to what walks at the top',
 };
 

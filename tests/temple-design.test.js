@@ -230,8 +230,8 @@ test('every real temple builds a graph its measures can read (no layout needed)'
   const { solve } = await import('../src/temples/logic.js');
   for (const [id, { def }] of Object.entries(TEMPLES)) {
     // (its rooms in the order a player reaches them, as the audit reads it: the Footprint's guardian is a fall away from
-    // the rim, in its well, but reached last, issue #401; the Greenhouse's and the Lamp-House's late steps want the hook, an older tool, #411, #410)
-    const g = puzzleGraph(def.logic, [], { order: solve(def.logic, { items: ['backpack', 'doublejump', ...(id === 'desert' ? [] : ['gun', 'glider']), ...(['edena', 'perdide2'].includes(id) ? ['hook'] : [])] }).order });
+    // the rim, in its well, but reached last, issue #401; the Greenhouse's, the Lamp-House's and the Warden's Well's late steps want the hook, an older tool, #411, #410, #413)
+    const g = puzzleGraph(def.logic, [], { order: solve(def.logic, { items: ['backpack', 'doublejump', ...(id === 'desert' ? [] : ['gun', 'glider']), ...(['edena', 'perdide2', 'incal'].includes(id) ? ['hook'] : [])] }).order });
     const m = templeMetrics(g);
     assert.ok(m.steps.length >= 2, `${id}: ${m.steps.length} steps`);
     assert.ok(g.chestRoom, `${id}: a chest room`);

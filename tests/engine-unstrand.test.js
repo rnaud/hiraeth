@@ -26,7 +26,7 @@ test('a save past the Vane Room’s chasm without the pen wakes on the near side
   const g0 = await make({}, null);
   const rt0 = (g0.level.temples ?? [g0.level.temple]).find((t) => t?.id === 'incal');
   assert.ok(rt0, 'the Warden’s Well is built');
-  const far = rt0.piece('kE').pos.clone();
+  const far = rt0.piece('kG').pos.clone();   // (the great key since issue #413)
   far.x += 0.8;   // (beside the key's chest, not in it)
   const farRoom = rt0.roomNear(far);
   assert.equal(farRoom, 'vaneFar', 'that spot is past the chasm');

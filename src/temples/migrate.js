@@ -86,11 +86,17 @@ export const LAYOUTS = {
   // v1.74 (issue #23's last round): the high door takes the great key too, from the Flue's ledge. Past it: the key in it
   // v1.77 (issue #336): the house remade to the redesign's rules, its rooms bigger and moved (the same pieces, the same
   // state). A save that entered the house: taken to its last mark if it stood inside the old rooms (runtime.js RELAID)
+  // v1.83 (issue #413): the house's breath its state, the Well's floors rings round an open core, the Flue the fast way
+  // back. Past the door at the balcony's end: the Climb's cage key taken (the ball on its plate), the Vane Room's door
+  // unlocked too, the house breathing out (the draught up the Well); a save that entered: taken to its last mark
   incal: {
-    v: 4,
+    v: 5,
     steps: [
       { if: ['open.d1', 'gadget', 'lit.s2', 'open.iris', 'open.iris2', 'lit.s4', 'open.d3', 'boss'], set: { 'unlocked.d1': 2, 'found.kW': true, 'found.kE': true, 'lit.arW': true } },
       { if: ['open.d3', 'boss'], set: { 'unlocked.d3': 1, 'found.kG': true } },
+      { if: ['open.d1', 'gadget', 'lit.s2', 'open.iris', 'open.iris2', 'lit.s4', 'open.d3', 'boss'], set: { 'found.kC': true, 'drum.ball1': 1, 'unlocked.dV': 1, 'drum.breath': 1, 'open.rise': true } },
+      { if: ['lit.s2', 'open.iris2', 'lit.s4', 'open.d3', 'boss'], set: { 'open.iris': true } },
+      { if: ['lit.s4', 'open.d3', 'boss'], set: { 'drum.ball3': 1, 'open.iris2': true, 'open.lift': true } },
       { if: ['entered'], set: { relaid: true } },
     ],
   },

@@ -32,7 +32,7 @@ import { VOLLEY, FROM_FOUR, CUPBOARD, MAINSPRING, UP as CLOCK_UP, WELL as CLOCK_
 import { resources } from '../src/resources.js';
 import { SITE as SITE_EDENA } from '../src/temples/edena.js';
 import { modeFor, allTargets, hitTarget } from '../src/targets.js';
-import { BELLOWS_NEXT, upUsed, VANES, FLUE, ROOMS as WELL, FLOORS, CLIMB, WING as WELL_WING } from '../src/temples/incal.js';
+import { OUT, IN } from '../src/temples/incal.js';
 import { createEchoShell } from '../src/echo-shell.js';
 import { RELAID as BELFRY_RELAID, RUNG, STILL, FOUNDERS } from '../src/temples/arzach2.js';
 import { HOLD as UNDERTOWER_HOLD, CHOIR } from '../src/temples/bazaar.js';
@@ -67,7 +67,9 @@ function openChest(rt, id, P) {
 }
 const BUILT = Object.keys(TEMPLES);
 /** The older houses' tools a house's late step asks for with its own (G2, issue #411). */
-const OLDER = { edena: ['hook'], perdide2: ['hook'] };
+const OLDER = { edena: ['hook'], perdide2: ['hook'], incal: ['hook'] };
+/** Rooms the gadget sends you back to (issue #413): reached before its chest, their step wants it. */
+const BACK_TO = { incal: ['vaneFar'] };
 
 const worlds = new Map();
 // (a temple by its id, in the world it stands in: the First Garage's, `garage`, is the Clock-House in the Glass Dunes;
@@ -265,8 +267,11 @@ test('every built temple is solvable through its state machine, its gadget found
     const no = solve(L, { items: base, withhold: [def.gadget] });
     assert.equal(no.done, false, `${id}: not without ${def.gadget}`);
     assert.ok(!no.stuck.includes(boss[1].room), `${id}: the arena stays shut without ${def.gadget}`);
-    const after = r.order.slice(at + 1);
+    // (a room the solver reaches after the chest, and a player may reach before it, whose step wants the gadget: the room the
+    // gadget sends you back to, the Warden's Well's Vane Room and its great key's cage, issue #413)
+    const after = r.order.slice(at + 1).filter((room) => !(BACK_TO[id] ?? []).includes(room));
     assert.ok(after.length >= 2 && after.every((room) => !no.stuck.includes(room)), `${id}: every room after the gadget needs it (${no.stuck.join(', ')})`);
+    for (const room of BACK_TO[id] ?? []) assert.ok(Object.values(L.elements).some((e) => e.room === room && e.needs?.includes(def.gadget)), `${id}: ${room} wants the gadget`);
     // 3–6 puzzle rooms (rooms with something to do; the arena's own pieces are the fight's), a checkpoint in most; a
     // house reworked round a hub (issue #23: wings, keys, an arena) up to eleven (the Warden's Well's two ways up since
     // the last round: the Flue's floor and its ledge); an arena is a fight's room, not a puzzle's (issue #336); the Footprint
@@ -492,37 +497,58 @@ test('the Builders’ Greenhouse round the Palm House (issues #23, #411): either
   }
 });
 
-test('the Warden’s Well is a hub (issue #23): either wing alone gives its key, the balcony’s door takes both, solved either way round; old saves past it find it open', () => {
-  const L = TEMPLES.incal.def.logic, items = ['backpack', 'gun', 'doublejump', 'sword', 'shield', 'glider'];
+test('the Warden’s Well (issue #413): the house’s breath its one state, two small keys and a choice of door, the great key a room the fan comes back to, the ring and the vane at once for the crown’s eye, the drops down the core and the Flue; every step wanted; old saves past it find it open', () => {
+  const L = TEMPLES.incal.def.logic, items = ['backpack', 'gun', 'doublejump', 'sword', 'shield', 'glider', 'hook'];
   for (const reverse of [false, true]) { const r = solve(L, { items, reverse }); assert.equal(r.done, true, r.log.join(' / ')); }
-  // (issue #375) the bridge pen is the Ash Store's prize, and the Vane Room's chasm wants it: the store first, always
-  const noPen = solve(L, { items, forbid: ['pen'] });
-  assert.ok(noPen.logic.isFound('kW') && !noPen.logic.isFound('kE') && !noPen.stuck.includes('jets'), 'the Ash Store alone: its key, no pen, no way over the chasm, and the chest stays shut');
-  assert.equal(L.elements.pen.item, 'bridge');
-  const noArena = solve(L, { items, forbid: ['arW'] });
-  assert.ok(noArena.logic.isFound('kE') && !noArena.stuck.includes('jets'), 'the Vane Room alone: its key, and the chest stays shut');
+  // G2: the crown's eye wants the hook (an older house's) and the fan at once
+  assert.equal(solve(L, { items: items.filter((i) => i !== 'hook') }).done, false, 'not without the hook');
+  assert.deepEqual(L.elements.s4.when, { all: [{ lit: 'rS' }, { lit: 'vC' }, IN] });
+  assert.ok(L.elements.rS.needs.includes('hook') && L.elements.vC.needs.includes('fan'));
+  // G1: one state set at a lever by every hub, wanted out and in
+  assert.deepEqual(L.elements.breath.stops, { breathIn: 0, breathOut: 1 });
+  assert.ok(['climb', 'gallery', 'loft', 'crown'].every((r) => L.elements.breath.rooms.includes(r)), 'set from every hub');
+  for (const id of ['stones', 'rise', 'iris', 'iris2', 'lift', 'd1']) assert.match(JSON.stringify(L.elements[id].opens), /breathOut/, `${id} wants the house breathing out`);
+  assert.match(JSON.stringify(L.elements.kG.when), /breathOut/, 'the great key’s cage too');
+  const log = solve(L, { items }).log, sets = log.filter((x) => x.startsWith('roll breath'));
+  assert.ok(sets.includes('roll breath onto breathOut') && sets.includes('roll breath onto breathIn'), `out and in again (${sets.join(', ')})`);
+  // G3c: two small keys (the Climb's cage, the Ash Store's) and two doors that take one each (the Bellows Chamber's, the
+  // Vane Room's): with one key in hand both doors are there to choose from, and either first solves it
+  assert.deepEqual(['d1', 'dV'].map((d) => L.elements[d].lock), ['small', 'small']);
+  assert.ok(!L.elements.d1.keys && !L.elements.dV.keys, 'one key each');
+  const one = new TempleLogic(L, { has: (i) => items.includes(i) });
+  one.update();
+  one.light('v1'); one.light('v1b'); one.update(); one.light('arW'); one.find('kW');   // (across the Turning Floors, the Ash Store won first)
+  assert.equal(one.keys('small'), 1);
+  assert.ok(one.canUnlock('d1') && one.canUnlock('dV') && one.lockReachable('d1') && one.lockReachable('dV'), 'one key, two doors: a choice');
+  for (const first of ['d1', 'dV']) {
+    const T = new TempleLogic(L, { has: (i) => items.includes(i) });
+    T.update(); T.light('arW'); T.find('kW'); T.unlock(first); T.update(); T.quiet('v1'); T.quiet('v1b');
+    const r = solve(L, { items, from: { data: { ...T.store.data }, has: () => false } });
+    assert.equal(r.done, true, `${first} first: still solved (${r.log.join(' / ')})`);
+  }
+  // every step wanted: without any one of them, no guardian
+  for (const id of ['v1', 'v1b', 'v2', 'ball1', 'kC', 'arW', 'kW', 'pen', 'vR', 'kG', 'chest', 'vG', 's2', 'vE', 'ball3', 'rS', 'vC', 's4']) assert.equal(solve(L, { items, forbid: [id] }).done, false, `${id} is wanted`);
+  // the great key a room the fan comes back to: across the chasm before the chest, its cage shut
+  const early = new TempleLogic(L, { has: (i) => items.includes(i) && i !== 'fan' });
+  early.update(); early.moveDrum('breath', 1); early.update();
+  assert.ok(early.isOpen('stones') && !early.canUse('vR'), 'the stones stand, the great vane too heavy without the fan');
+  // G6: the ways down, needing nothing
+  for (const [a, b] of [['crown', 'gallery'], ['loft', 'gallery'], ['ledge', 'crown'], ['crown', 'flue'], ['gallery', 'flue'], ['flue', 'jets']]) {
+    assert.ok(L.links.some((l) => l.a === a && l.b === b && l.oneWay && !l.door && !l.needs), `${a} → ${b}: a drop`);
+  }
+  // old saves past the balcony's door: its ways as they were, the house breathing out
   const g = new GameState(null);
-  for (const [k, v] of Object.entries({ 'lit.v1': true, 'drum.ball1': 1, 'open.d1': true, gadget: true, checkpoint: 'jets' })) g.set(`temple.incal.${k}`, v);
+  for (const [k, v] of Object.entries({ layout: 4, entered: true, 'lit.v1': true, 'drum.ball1': 1, 'open.d1': true, 'unlocked.d1': 2, 'found.kW': true, 'found.kE': true, gadget: true, checkpoint: 'jets' })) g.set(`temple.incal.${k}`, v);
   migrateTemples(g);
-  const W = new TempleLogic(L, { store: flagStore(g, 'incal'), has: (i) => items.includes(i) || i === 'fan' });
+  const W = new TempleLogic(L, { store: flagStore(g, 'incal'), has: (i) => items.includes(i) || i === 'fan' || i === 'bridge' });
   W.update();
-  assert.ok(W.isOpen('d1') && W.keys('small') === 0, 'the balcony’s door stays open behind them');
-  // (v1.74, issue #23's last round: two ways up from the gallery meeting at the crown. The Flue's draught rises only while
-  // its little vane turns, the great key on its ledge half-way; the high door takes it with the eye's two vanes)
-  assert.equal(L.elements.d3.lock, 'big', 'the high door takes the great key');
-  assert.deepEqual(L.elements.draught.opens, { lit: 'vT' }, 'the flue’s draught rises while its little vane turns');
-  assert.ok(L.links.some((l) => l.a === 'gallery' && l.b === 'flue') && L.links.some((l) => l.a === 'flueLedge' && l.b === 'crown' && l.door === 'draught'), 'gallery, flue, crown: a second way up, a loop with the irises’');
-  const noFlue = solve(L, { items, forbid: ['vT'] });
-  assert.ok(noFlue.order.includes('crown') && !noFlue.order.includes('warden'), 'the crown by the irises alone: the high door stays shut');
-  const noKey = solve(L, { items, forbid: ['kG'] });
-  assert.ok(noKey.logic.isLit('s4') && !noKey.order.includes('warden'), 'the eye awake but no great key: the high door stays shut');
-  for (const reverse of [false, true]) assert.equal(solve(L, { items, reverse }).done, true, 'either way up first');
+  assert.ok(W.isOpen('d1') && W.isOpen('dV') && W.check(OUT) && W.isOpen('rise'), 'the balcony’s door open behind them, the Vane Room’s too, and the draught up the Well');
   const g2 = new GameState(null);
   for (const [k, v] of Object.entries({ 'drum.ball1': 1, 'open.d1': true, gadget: true, 'lit.s2': true, 'open.iris': true, 'drum.ball3': 1, 'open.iris2': true, 'lit.s4': true, 'open.d3': true, checkpoint: 'hall', layout: 2 })) g2.set(`temple.incal.${k}`, v);
   migrateTemples(g2);
   const W2 = new TempleLogic(L, { store: flagStore(g2, 'incal'), has: (i) => items.includes(i) || i === 'fan' });
   W2.update();
-  assert.ok(W2.isOpen('d3') && W2.keys('big') === 0, 'an old save past the high door: open, its great key in it');
+  assert.ok(W2.isOpen('d3') && W2.keys('big') === 0 && W2.isOpen('lift'), 'an old save past the high door: open, its great key in it, the high ledge in reach');
 });
 
 test('the Undertower is a hub (issue #23): either wing alone gives its key, the Shell Chamber’s door takes both, solved either way round; old saves up the second disc find the door open', () => {
@@ -1697,444 +1723,7 @@ test('the Rose House is solved with the backpack and the double jump, the blade 
   for (const [id, e] of Object.entries(L.elements)) assert.ok(!(e.needs ?? []).some((n) => ['gun', 'fire', 'stun', 'bloom'].includes(n)), `${id}: no gun`);
 });
 
-// ------------------------------------------------------------------ on foot: the City-Shaft's tower, room by room
-test('the Warden’s Well on foot: the vane and the discs, the hub’s wings: the Ash Store’s arena and the Vane Room’s chasm, each a small key for the balcony’s door, the slot and the ball, the gust fan (issue #377: the bellows before) and the draught up the oculus, the great vane fanned and the lidded eye from the rising air, the iris, the ball pushed over the gap from the air, two vanes at once for the crown’s eye (the little one in the loft below, too slow and in time), the high door’s great lock, into the Flue from the gallery’s floor, its little vane’s draught up past the ledge and its great key, and up into the crown, the warden broken over a vane, the shaft’s breath', () => {
-  game.reset();
-  own('backpack', 'gun', 'glider');
-  const { level, physics, rt } = world('incal');
-  // (the rooms since issue #336: the Climb's middle, the Bellows Chamber's, the gallery's floor, the Warden's Hall's floor and middle)
-  const C2 = WELL.climb.z, C3 = WELL.chest.z, G0 = FLOORS.gallery, H0 = FLOORS.hall, CW = C3 + WELL.drum.r + 25.8;
-  const P = new Player(physics, { spawn: rt.arrival.pos.clone(), dynamic: level.dynamic, health: true, killY: level.killY });
-  const notes = [];
-  rt.connect({ player: P, toast: (s) => notes.push(s) });
-  let t = 0;
-  const L = (x, y, z) => rt.kit.world(x, y, z);
-  // (issue #377) the gust fan, the house's tool: a real one (src/gadgets/fan.js). Held in the air over a great vane, he swings
-  // it down at the vane every swing (FAN.cool), as the bellows' wash turned it before
-  const fanG = fanGadget.create({ player: P, physics, camera: null, tool: null, sound: null, world: null, hud: { reticle() {} }, sfx: { equip() {} }, fx: new THREE.Group(), aimAt() {}, notice: (s) => notes.push(s), game, bursts: { add() {} } });
-  let fanT = 0, fanAt = null;   // (fanAt: the great vane he swings it at, while he hovers over it)
-  const fanDown = () => {
-    const v = fanAt;
-    if (!v || P.onGround || !items.has('fan') || (fanT -= DT) > 0) return;
-    if (v.center.distanceTo(P.pos) > FAN.range - 1 || P.pos.y < v.center.y) return;
-    const hand = P.pos.clone().add(V(0, 1.4, 0));
-    fanG.gust(hand, v.center.clone().sub(hand).normalize());
-    fanT = FAN.cool;
-  };
-  const frame = (input = {}, yaw = 0) => { t += DT; physics.syncMovers(DT); rt.update(DT, t); P.update(DT, input, yaw); fanDown(); updateHazards(DT, P); };   // (as main.js: the moving colliders first)
-  const toward = (to) => Math.atan2(-(to.x - P.pos.x), -(to.z - P.pos.z));
-  const flat = (a) => Math.hypot(P.pos.x - a.x, P.pos.z - a.z);
-  const walk = (to, { tol = 0.6, max = 25, run = true, dy = 1.6 } = {}) => {
-    for (let i = 0; i < max / DT; i++) { if (flat(to) < tol && Math.abs(P.pos.y - to.y) < dy) return true; frame({ KeyW: true, ShiftLeft: run }, toward(to)); }
-    return false;
-  };
-  const wait = (s, input = {}, yaw = 0) => { for (let i = 0; i < s / DT; i++) frame(input, yaw); };
-  const where = () => rt.kit.local(P.pos).toArray().map((v) => v.toFixed(1)).join(', ');
-  const said = (re) => notes.some((n) => re.test(n));
-  const ly = () => rt.kit.local(P.pos).y;
-  // the wings in rising air (src/updraft.js): straight up, held at the top; the stick steers out (v1.42: no jets)
-  const inAir = () => inColumn(P);
-  /** Up the rising air from where you stand (a jump, the wings held open) until it holds you at its top, or s seconds. */
-  const rise = (s = 16) => {
-    for (let i = 0; i < 4; i++) frame({ Space: true }, 0);
-    for (let i = 0; i < s / DT; i++) { frame({ Space: true }, 0); if (i > 30 && inAir() && Math.abs(P.vel.y) < 0.3) return true; }
-    return inAir();
-  };
-  /** Off an edge into the rising air at `to` (local [x, z]): a jump toward it, the wings open, until it takes you; then up it. */
-  const leapInto = (to, s = 16) => {
-    const target = L(to[0], ly(), to[1]);
-    for (let i = 0; i < 3 / DT && !inAir(); i++) { P.heading = P.frame.headingOf(target.clone().sub(P.pos).setY(0)); frame({ Space: true, KeyW: P.onGround }, toward(target)); }
-    return inAir() && rise(s);
-  };
-  /** Held in the rising air, the wings open (it holds you still enough to aim): s seconds, or until fn. */
-  const holding = (s, fn = () => false) => { for (let i = 0; i < s / DT; i++) { frame({ Space: true }, 0); if (fn()) return true; } return false; };
-  /** Out of the rising air toward `to` (local [x, y, z]): the stick while in it, the glide on, the wings folded over it. */
-  const glideTo = (to, { max = 10, near = 1.2 } = {}) => {
-    const target = L(...to);
-    for (let i = 0; i < max / DT && !P.onGround; i++) {
-      if (!inAir()) P.heading = P.frame.headingOf(target.clone().sub(P.pos).setY(0));
-      frame(flat(target) < near ? {} : { Space: true, KeyW: inAir() }, toward(target));
-    }
-    return P.onGround && flat(target) < 2.6 && Math.abs(P.pos.y - target.y) < 0.6;
-  };
-  const land = () => { for (let i = 0; i < 8 / DT && !P.onGround; i++) frame({}, 0); return P.onGround; };
-  const push = (ball, n = 8, until = () => false) => {
-    for (let k = 0; k < n && !until(); k++) {
-      walk(ball.center.clone().addScaledVector(ball.dir, -2.0), { tol: 0.5 });
-      ball.hit('push', ball.dir.clone(), { strength: 0.6 });
-      wait(2.5);
-    }
-  };
-  wait(0.5);
-  assert.ok(P.onGround && rt.inside(P.pos), 'in the tower');
-
-  // ---- the Turning Floors: the discs are still until the vane over the far door turns; a splash spins it a while
-  assert.equal(walk(L(0, 0, 17)), true, `to the drop (${where()})`);
-  const [discA, discB] = rt.pieces.filter((p) => p.path);
-  wait(3);
-  assert.ok(discA.s === 0 && discB.s === discB.total, 'the discs are still');
-  const v1 = rt.piece('v1');
-  v1.hit('shoot');
-  wait(0.1);
-  assert.equal(v1.turning, true, 'the vane spins');
-  assert.equal(rt.logic.isOpen('discs'), true, 'and the discs ride');
-  let splashes = 1;
-  const ride = (disc, off) => {
-    for (let i = 0; i < 30 / DT && !(disc.s < 0.2 && disc.wait > 0.3); i++) { frame(); if (!v1.turning) { v1.hit('shoot'); splashes++; } }
-    assert.equal(walk(disc.group.position, { tol: 0.5, run: false, max: 6 }), true, `onto the disc (${where()})`);
-    for (let i = 0; i < 30 / DT && !(disc.s > disc.total - 0.2); i++) { frame(); if (!v1.turning) { v1.hit('shoot'); splashes++; } }
-    assert.equal(walk(off, { tol: 0.8 }), true, `off the disc (${where()})`);
-  };
-  // (the far disc comes back for you from the far side: the two meet you at the island together)
-  ride(discA, L(0, 0, 29));
-  ride(discB, L(0, 0, 42.5));
-  assert.ok(P.pos.y > L(0, -1, 0).y, 'across, not in the drop');
-  assert.equal(splashes, 1, 'one splash carries you across');
-  // it slows, and stops; and the discs stop with it
-  assert.equal(walk(L(0, 0, 44)), true);
-  for (let i = 0; i < 20 / DT && v1.turning; i++) frame();
-  assert.equal(v1.turning, false, 'the vane runs down');
-  assert.equal(rt.logic.isOpen('discs'), false);
-  const s0 = [discA.s, discB.s];
-  wait(2);
-  assert.deepEqual([discA.s, discB.s], s0, 'the discs stop where they are');
-  assert.ok(said(/slowing/), 'it says it is slowing');
-
-  // ---- the Climb: up the block's face; the ball stops at the slot, until the vane in the well's floor turns
-  assert.equal(walk(L(0, 0, C2 - 1.6)), true, `into the well (${where()})`);
-  // ---- the Ash Store, west off the hub (an arena): its door shuts behind you while its keepers stand
-  const WZ = WELL_WING.z, WS = WELL_WING.store.x, WV = WELL_WING.vane.x, [CH0, CH1] = WELL_WING.gap;
-  const keepers = [{ room: 'store', alive: true }, { room: 'store', alive: true }];
-  rt.machines = [...(rt.machines ?? []), ...keepers];
-  assert.equal(walk(L(-5, 0, WZ)) && walk(L(-17, 0, WZ)), true, `to the way west (${where()})`);
-  assert.equal(walk(L(WS + 10, 0, WZ)), true, `into the Ash Store (${where()})`);
-  wait(0.3);
-  assert.equal(rt.logic.isOpen('dW'), false, 'the door shuts behind you');
-  for (const k of keepers) k.alive = false;
-  wait(2.5);
-  assert.ok(rt.logic.isLit('arW') && rt.logic.isOpen('dW'), 'beaten: won, and the door lets go');
-  assert.equal(walk(rt.piece('kW').pos, { tol: 1.2 }), true, `to the key (${where()})`);
-  wait(0.3);
-  openChest(rt, 'kW', P);
-  assert.equal(rt.logic.isFound('kW'), true, 'a small key');
-  // (issue #375) the store's prize: the bridge pen's chest, shut while its keepers stood, open now
-  const penBox = PLACEMENTS.incal.find((b) => b.id === 'incal.bridge');
-  assert.ok(penBox.temple === 'incal' && penBox.item === 'bridge' && penBox.ready(game), 'the pen’s chest opens once the store is won');
-  items.grant('bridge'); game.set('box.incal.bridge', true); game.emit('box:opened', { id: 'incal.bridge', item: 'bridge' });
-  // a real pen (src/gadgets/bridge.js), drawn from the feet toward `to`: its plank set across
-  const pen = bridgeGadget.create({ player: P, physics, camera: null, tool: null, sound: null, world: null, hud: { reticle() {} }, sfx: { equip() {} }, fx: new THREE.Group(), scene: new THREE.Group(), aimAt() {}, notice: (s) => notes.push(s), game, bursts: { add() {} } });
-  const drawTo = (to) => {
-    const eye = P.pos.clone().add(V(0, 1.8, 0)), d = to.clone().sub(eye).setY(0).normalize();
-    const cam = new THREE.PerspectiveCamera(60, 16 / 9, 0.1, 500);
-    cam.position.copy(eye).addScaledVector(d, -3); cam.lookAt(cam.position.clone().add(d)); cam.updateMatrixWorld(true);
-    pen.ctx.camera = cam; pen.ink = PEN.ink;
-    const n0 = pen.bridges.length;
-    pen.press();
-    for (let i = 0; i < 3 / DT && pen.state === 'draw'; i++) { pen.hold(DT); pen.update(DT); if (pen.len > to.distanceTo(P.pos) + 0.6) break; }
-    pen.release();
-    return pen.bridges.length > n0;
-  };
-  // ---- the Vane Room, east: a chasm, its vane long seized; the key on the far side, a plank drawn across with the pen
-  assert.equal(walk(L(-17, 0, WZ)) && walk(L(17, 0, WZ)), true, `back across the hub (${where()})`);
-  assert.equal(walk(L(CH0 - 0.6, 0, WZ), { tol: 0.4 }), true, `to the chasm's edge (${where()})`);
-  assert.ok(!rt.piece('vR') && !rt.piece('vb'), 'no vane, no stones');
-  assert.equal(drawTo(L(CH1 + 1.5, 0, WZ)), true, 'a plank drawn across');
-  assert.equal(walk(L(CH1 + 1.5, 0, WZ)), true, `across on the ink (${where()})`);
-  assert.ok(ly() > -1, 'over the chasm, not in it');
-  assert.equal(walk(rt.piece('kE').pos, { tol: 1.2 }), true, `to the key (${where()})`);
-  wait(0.3);
-  openChest(rt, 'kE', P);
-  assert.equal(rt.logic.isFound('kE'), true, 'the second small key');
-  for (let i = 0; i < (PEN.life + PEN.fade + 1) / DT && pen.bridges.length; i++) { frame(); pen.update(DT); }
-  assert.equal(pen.bridges.length, 0, 'the ink wears away: stranded');
-  assert.equal(walk(L(CH1 + 0.6, 0, WZ), { tol: 0.4 }), true, `to the far edge (${where()})`);
-  assert.equal(drawTo(L(CH0 - 1.5, 0, WZ)), true, 'another plank, back');
-  assert.equal(walk(L(CH0 - 1.5, 0, WZ)) && walk(L(CH0 - 3, 0, WZ)), true, `and back across (${where()})`);
-  assert.equal(walk(L(17, 0, WZ)) && walk(L(0, 0, C2 - 1.6)), true, `back into the well (${where()})`);
-  let up = false;
-  for (let i = 0; i < 20 / DT; i++) { frame({ KeyW: true }, toward(L(0, 11, C2 + CLIMB.face + 3.4))); if (P.onGround && ly() > 10.5) { up = true; break; } }
-  assert.ok(up, `up the face (${where()})`);
-  const ball = rt.piece('ball1'), gap = ball.o.gap;
-  let most = 0;
-  for (let k = 0; k < 3; k++) { push(ball, 1); most = Math.max(most, ball.t); }
-  assert.ok(ball.t <= gap.from + 1e-3 && said(/slot’s lip/), `the ball stops at the slot's lip, and rolls back a little (${ball.t.toFixed(2)})`);
-  assert.equal(rt.logic.drumOn('ball1', 'p1'), false);
-  assert.ok(said(/drives them/), 'it says why');
-  // from the lip, the vane far below: a splash, and the slot's stones stand while it turns
-  const v2 = rt.piece('v2');
-  {
-    const eyeAt = L(0, 12.6, C2 + CLIMB.face + 0.3), to = v2.center.clone().add(V(0, 0.1, 0)), l = to.distanceTo(eyeAt);
-    assert.ok(physics.rayDistance(eyeAt, to.clone().sub(eyeAt).normalize(), l) >= l - 0.3, 'the vane in sight from the balcony’s lip');
-  }
-  v2.hit('shoot');
-  wait(0.2);
-  assert.equal(rt.logic.isOpen('slot'), true, 'the slot stands');
-  push(ball, 8, () => rt.logic.drumOn('ball1', 'p1'));
-  assert.ok(rt.logic.drumOn('ball1', 'p1'), `over the slot, onto its plate (${ball.t.toFixed(2)})`);
-  assert.equal(walk(L(0, 11, C2 + WELL.climb.r - 1.3), { tol: 0.5 }), true, `to the door at the balcony's end (${where()})`);
-  wait(2.5);
-  assert.equal(rt.logic.keysIn('d1'), 2, 'both small keys go in');
-  assert.equal(rt.logic.isOpen('d1'), true);
-
-  // ---- the Bellows Chamber: the chest; the only way on is up through the oculus, on the draught it unstops
-  assert.equal(walk(L(0, 11, C3 - 6.4)), true, `into the chamber (${where()})`);
-  for (let i = 0; i < 2 / DT; i++) frame({ Space: true }, 0);
-  assert.ok(ly() < 16, 'before the chest the plinth is still: the wings go nowhere up');
-  items.grant('fan'); game.emit('box:opened', { id: 'incal.temple.jetpack' });
-  assert.equal(rt.logic.gadget, true);
-  // what they are for, at once: a line a moment after the chest, the drone sent up, the draught rising through the oculus
-  const pings = [], offPing = game.on('scout:ping', (e) => pings.push(e));
-  wait(1.5);
-  assert.ok(notes.includes(BELLOWS_NEXT), `the next step is said (${notes.at(-1)})`);
-  assert.match(BELLOWS_NEXT, /\{key:thrust\}/);   // (jump held in the air, as the player holds it: src/prompt-keys.js keyText)
-  assert.equal(pings.length, 1, 'the drone flies up to show where');
-  offPing?.();
-  const draft = rt.pieces.find((p) => p.lift && p.o.when?.gadget);
-  assert.ok(draft?.on, 'the draught rises over the plinth');
-  assert.equal(upUsed(rt), false);
-  assert.equal(walk(L(0, 11, C3), { tol: 0.8 }), true, `onto the plinth (${where()})`);
-  assert.equal(rise(), true, `up the draught, held at its top (${where()})`);
-  assert.ok(ly() > G0 + 1.5, `up through the oculus (${where()})`);
-  assert.equal(glideTo([0, G0, C3 - 7.5]), true, `off it onto the gallery floor (${where()})`);
-  assert.equal(upUsed(rt), true, 'up: the draught was the way');
-
-  // ---- the Lamp Gallery: the eye over the west shelf, hidden from the floor, its lids shut
-  const eye = rt.piece('s2'), vG = rt.piece('vG');
-  const from = P.pos.clone().add(V(0, 1.5, 0)), d = eye.center.clone().sub(from), dist = d.length();
-  assert.ok(physics.rayDistance(from, d.normalize(), dist) < dist - 1, 'the eye is hidden from the floor');
-  eye.hit('shoot');
-  assert.equal(rt.logic.isLit('s2'), false, 'shut lids: the splash does nothing');
-  assert.ok(said(/lids/), 'and it says they are shut');
-  vG.hit('shoot');
-  wait(0.2);
-  assert.equal(vG.turning, false, 'a splash only rocks the great vane');
-  assert.ok(said(/too heavy/), 'too heavy for a splash');
-  assert.equal(rt.logic.isOpen('iris'), false, 'the iris is shut');
-  // the way: up the thin breath over the great vane on the wings, and hold there: the fan swung down at it turns it, the lids
-  // lift; splash the eye from the air (the rising air holds you still enough to aim)
-  assert.equal(walk(vG.center, { tol: 0.6 }), true, `onto the great vane (${where()})`);
-  fanAt = vG;
-  assert.equal(rise(), true, `the breath holds you over it (${where()})`);
-  assert.equal(P.hovering, true, 'on the wings, held: the gun may come up');
-  assert.equal(vG.turning, true, 'the fan’s gust turns it');
-  assert.ok(holding(0.8, () => eye.lidK > 0.95), 'the eye’s lids lift');
-  {
-    const f2 = P.pos.clone().add(V(0, 0.6, 0)), d2 = eye.center.clone().sub(f2), l2 = d2.length();
-    assert.ok(physics.rayDistance(f2, d2.normalize(), l2) >= l2 - 1.2, `from the air the eye is in sight (${where()})`);
-  }
-  eye.hit('shoot');
-  assert.equal(rt.logic.isLit('s2'), true, 'the eye wakes');
-  holding(2.2);
-  assert.equal(rt.logic.isOpen('iris'), true, 'the iris opens');
-  land(); fanAt = null;
-  wait(5.5);
-  assert.equal(vG.turning, false, 'no more gusts, the vane runs down');
-  assert.equal(rt.logic.isLit('s2'), true, 'and the eye stays awake');
-
-  // ---- up through the iris to the loft
-  const GC = FLOORS.loft;
-  assert.equal(walk(L(0, G0, C3 - 4.3), { tol: 0.4 }), true, `to the oculus' rim (${where()})`);
-  assert.ok(draft.h > GC - 11.62, 'the draught rises on through the open iris');
-  assert.equal(leapInto([0, C3]), true, `off the rim into the draught, and up through the iris (${where()})`);
-  assert.equal(glideTo([-6, GC, C3 - 8]), true, `off it onto the loft (${where()})`);
-  assert.ok(Math.abs(ly() - GC) < 0.5, `standing in the loft (${where()})`);
-  // the shelf's ball stops at the gap: its stones are down, and the great vane is too heavy for a splash
-  const ball3 = rt.piece('ball3'), vE = rt.piece('vE'), g3 = ball3.o.gap;
-  P.teleport(ball3.center.clone().addScaledVector(ball3.dir, -2.2).setY(ball3.group.position.y + 0.1), V(0, 1, 0), V(0, 0, 1));
-  wait(0.3);
-  ball3.hit('push', ball3.dir.clone(), { strength: 1 });
-  wait(3);
-  assert.ok(ball3.t <= g3.from + 1e-3 && said(/stops at the gap/), `the ball stops at the gap (${ball3.t.toFixed(2)})`);
-  vE.hit('shoot');
-  wait(0.2);
-  assert.equal(rt.logic.isOpen('span'), false, 'a splash does not turn it');
-  // the way: hover over the loft's great vane, and push the ball over the gap from the air
-  P.teleport(L(-7, GC + 0.1, C3 - 8.5), V(0, 1, 0), V(0, 0, 1));
-  wait(0.3);
-  assert.equal(walk(vE.center, { tol: 0.6 }), true, `onto the loft's vane (${where()})`);
-  fanAt = vE;
-  assert.equal(rise(), true, `held over it (${where()})`);
-  assert.ok(holding(2, () => rt.logic.isOpen('span')), 'the gap’s stones stand while it turns');
-  const aim = ball3.center.clone().sub(P.pos).normalize();
-  assert.ok(Math.abs(aim.dot(ball3.dir)) > 0.5, `the ball pushed along its groove from the air (${aim.dot(ball3.dir).toFixed(2)})`);
-  ball3.hit('push', aim, { strength: 1 });
-  holding(4, () => ball3.t > g3.to + 0.05);
-  assert.ok(ball3.t > g3.to, `over the gap (${ball3.t.toFixed(2)})`);
-  holding(3, () => rt.logic.drumOn('ball3', 'p3'));
-  land(); fanAt = null;
-  for (let k = 0; k < 4 && !rt.logic.drumOn('ball3', 'p3'); k++) push(ball3, 1);
-  assert.ok(rt.logic.drumOn('ball3', 'p3'), `onto its plate (${ball3.t.toFixed(2)})`);
-  wait(2.2);
-  assert.equal(rt.logic.isOpen('iris2'), true, 'the second iris opens');
-
-  // ---- up through the second iris to the crown: the eye whose lids lift only while two vanes turn at once
-  const GK = FLOORS.crown;
-  P.teleport(L(0, GC + 0.1, C3 - 6.2), V(0, 1, 0), V(0, 0, 1));
-  wait(0.3);
-  assert.equal(leapInto([0, C3]), true, `into the draught, and up through the second iris (${where()})`);
-  assert.equal(glideTo([-8, GK, C3 - 6]), true, `off it onto the crown (${where()})`);
-  assert.ok(Math.abs(ly() - GK) < 0.5, `standing in the crown (${where()})`);
-  const s4 = rt.piece('s4'), vS = rt.piece('vS'), vC = rt.piece('vC');
-  // the great vane alone: the lids stay shut (round the open iris, not across it)
-  for (const [x, z] of [[0, -10], [8, -6], [8, 0]]) walk(L(x, GK, C3 + z), { tol: 1 });
-  assert.equal(walk(vC.center, { tol: 0.6 }), true, `onto the crown's great vane (${where()})`);
-  fanAt = vC;
-  assert.equal(rise(), true, `held over it (${where()})`);
-  assert.equal(vC.turning, true);
-  holding(1);
-  assert.ok(s4.lidK < 0.05, 'one vane turning is not enough: the lids stay shut');
-  s4.hit('shoot');
-  assert.equal(rt.logic.isLit('s4'), false, 'and a splash on them does nothing');
-  assert.ok(said(/two vanes/), 'it says what they want');
-  land(); fanAt = null;
-  for (let i = 0; i < 6 / DT && vC.turning; i++) frame();
-  // the little vane is not in the crown: it stands on a post in the loft below, seen down through the second iris
-  assert.ok(rt.kit.local(vS.center).y < GK - 1 && rt.logic.el('vS').room === 'loft', 'the little vane stands in the loft');
-  {
-    const f2 = L(0, GK + 1.7, C3 + 8.5), d2 = vS.center.clone().sub(f2), l2 = d2.length();
-    assert.ok(physics.rayDistance(f2, d2.normalize(), l2) >= l2 - 1.2, 'seen from the crown by the high door, down through the iris');
-  }
-  // the small one alone: down in the loft, its splash, and it slows and stops before long
-  P.teleport(L(0, GC + 0.1, C3 - 6.2), V(0, 1, 0), V(0, 0, 1));
-  wait(0.3);
-  vS.hit('shoot');
-  assert.equal(vS.turning, true, 'the little vane spins');
-  assert.ok(!s4.lidsOpen(), 'still shut: the great one is still');
-  for (let i = 0; i < 20 / DT && vS.turning; i++) frame();
-  assert.equal(vS.turning, false, 'and it stops');
-  // too slow: splashed, then a long look round before flying up; it has stopped by the time the great one turns
-  vS.hit('shoot');
-  wait(VANES.small - 3);
-  assert.equal(leapInto([0, C3]), true, `into the draught, up through the second iris (${where()})`);
-  assert.equal(glideTo([5, GK, C3 + 8.6]), true, `over onto the great vane (${where()})`);
-  fanAt = vC;
-  assert.equal(rise(), true);
-  holding(1);
-  assert.ok(!vS.turning && s4.lidK < 0.05, 'the little one stopped on the way up: the lids stay shut');
-  land(); fanAt = null;
-  for (let i = 0; i < 6 / DT && vC.turning; i++) frame();
-  // the way: splash the small one in the loft, then fly straight up to the great one and hover while it still turns
-  P.teleport(L(0, GC + 0.1, C3 - 6.2), V(0, 1, 0), V(0, 0, 1));
-  wait(0.3);
-  vS.hit('shoot');
-  assert.equal(leapInto([0, C3]), true, `into the draught, up through the second iris (${where()})`);
-  assert.equal(glideTo([5, GK, C3 + 8.6]), true, `over onto the great vane (${where()})`);
-  fanAt = vC;
-  assert.equal(rise(), true);
-  assert.ok(holding(1.2, () => s4.lidK > 0.95), `both turn: the lids lift (${vS.left.toFixed(1)} s of the little one left)`);
-  {
-    const f2 = P.pos.clone().add(V(0, 0.6, 0)), d2 = s4.center.clone().sub(f2), l2 = d2.length();
-    assert.ok(physics.rayDistance(f2, d2.normalize(), l2) >= l2 - 1.2, `from the air the crown's eye is in sight (${where()})`);
-  }
-  s4.hit('shoot');
-  assert.equal(rt.logic.isLit('s4'), true, 'the crown’s eye wakes');
-  holding(2.2);
-  assert.equal(rt.logic.isOpen('d3'), false, 'the eye awake, and the high door still shut: it has a great lock too');
-  land(); fanAt = null;
-  // ---- the Flue (issue #23's last round): back down to the gallery (the irises stand open), and west out of it into the
-  // flue at its floor; its little vane, the draught up its middle while it turns, the great key on the ledge half-way, and
-  // up into the crown by its west doorway
-  const vT = rt.piece('vT'), kG = rt.piece('kG'), FX = FLUE.x, FL = G0 + FLUE.ledge.y;
-  P.teleport(L(-6, G0 + 0.1, C3 - 8), V(0, 1, 0), V(0, 0, 1));
-  wait(0.3);
-  assert.ok([[-14, G0, C3], [-19.5, G0, C3], [FX + 12, G0, C3], [FX + 4, G0, C3]].every((q) => walk(L(...q), { tol: 0.8, max: 8 })), `west through the gallery's doorway into the flue (${where()})`);
-  assert.ok(!vT.turning && !rt.logic.isOpen('draught'), 'its air still: the little vane high on its wall is still');
-  vT.hit('shoot');
-  assert.equal(vT.turning, true, 'splashed from the floor, the little vane spins');
-  assert.equal(leapInto([FX, C3]), true, `into the draught and up the flue (${where()})`);
-  assert.ok(ly() > FL + 6, `carried past the ledge (${where()})`);
-  // off it west onto the ledge (the wings folded over it)
-  const ledge = L(FX - FLUE.key, FL, C3 + 1.6);
-  for (let i = 0; i < 6 / DT && !P.onGround; i++) { P.heading = P.frame.headingOf(ledge.clone().sub(P.pos).setY(0)); frame(flat(ledge) < 1.2 ? {} : { Space: inAir(), KeyW: true }, toward(ledge)); }
-  assert.ok(P.onGround && Math.abs(ly() - FL) < 0.6, `onto the ledge (${where()})`);
-  assert.equal(walk(kG.pos, { tol: 1.2, max: 4 }), true, `to the great key (${where()})`);
-  wait(0.3);
-  openChest(rt, 'kG', P);
-  assert.equal(rt.logic.isFound('kG'), true, 'the great key');
-  for (let i = 0; i < 20 / DT && vT.turning; i++) frame();
-  assert.ok(!rt.logic.isOpen('draught'), 'the vane has slowed and stopped: the draught gone');
-  vT.hit('shoot');
-  assert.equal(vT.turning, true, 'splashed again from the ledge');
-  assert.equal(leapInto([FX, C3]), true, `back into the draught, up to the crown's doorway (${where()})`);
-  assert.equal(glideTo([FX + FLUE.landing.x0 + 2, GK - 0.3, C3]), true, `east onto the landing under the crown's doorway (${where()})`);
-  assert.equal(walk(L(-14, GK, C3), { tol: 0.8, max: 12 }), true, `through the doorway onto the crown's floor (${where()})`);
-  assert.ok([[-9.5, GK, C3 - 5], [0, GK, C3 - 10], [8, GK, C3 - 6], [8, GK, C3]].every((q) => walk(L(...q), { tol: 1, max: 8 })), `round the open iris (${where()})`);
-
-  // ---- the Warden's Hall
-  // up the breath over the crown's great vane, and off it onto the high ledge by the door
-  assert.equal(walk(vC.center, { tol: 0.6 }), true, `back onto the crown's great vane (${where()})`);
-  assert.equal(rise(), true);
-  assert.equal(glideTo([0, H0, C3 + WELL.drum.r - 2.4]), true, `up to the high ledge (${where()})`);
-  assert.equal(walk(L(0, H0, CW - 17.2)), true, `into the hall (${where()})`);
-  assert.equal(rt.logic.keysIn('d3'), 1, 'the great key went into the high door');
-  const K = rt.guardian;
-  wait(0.4);
-  assert.notEqual(K.state, 'sleep', 'it wakes');
-  assert.equal(rt.logic.isOpen('d3'), false, 'the door shuts behind you');
-  P.opts.health = false;
-  const nearest = () => rt.hallVanes.slice().sort((a, b) => a.center.distanceTo(K.model.pos) - b.center.distanceTo(K.model.pos))[0];
-  // (over the vane in its breath, the wings open: up to its top, held there)
-  const hoverOver = (v) => {
-    P.teleport(v.center.clone().add(V(0, 4, 0)), V(0, 1, 0), V(0, 0, 1));
-    for (let i = 0; i < 2.5 / DT && !(inAir() && Math.abs(P.vel.y) < 0.3 && i > 30); i++) frame({ Space: true }, 0);
-  };
-  let stillTried = false;
-  for (let n = 0; n < 10 && K.state !== 'resolved'; n++) {
-    let open = false;
-    for (let i = 0; i < 40 / DT; i++) { frame(); if (K.state === 'open') { open = true; break; } }
-    assert.ok(open, `its vents open (${n}, phase ${K.phaseIndex})`);
-    if (K.phaseIndex >= 1) {
-      // guarded: only from above
-      const below = K.meter;
-      P.teleport(L(0, H0, CW - 17.2), V(0, 1, 0), V(0, 0, 1));
-      K.hit('mouth', 'shoot');
-      assert.equal(K.meter, below, 'from the floor its shut sides take nothing');
-      wait(2.5);   // (it backs onto its nearest vane)
-      const v = nearest();
-      assert.ok(Math.hypot(v.center.x - K.model.pos.x, v.center.z - K.model.pos.z) < 8, 'it backs onto a vane');
-      if (K.phaseIndex === 2 && !stillTried) {
-        // the last phase: over it in still air, its hatch slams
-        stillTried = true;
-        P.teleport(K.model.mouth.clone().add(V(4, 1.5, 0)), V(0, 1, 0), V(0, 0, 1));
-        K.hit('mouth', 'shoot');
-        assert.equal(K.meter, below, 'in still air the hatch stays shut');
-        assert.ok(said(/still air/), 'and it says so');
-      }
-      // (first from the floor beside it, the warden's bulk not between: a swing at the vane sets it turning; then up its
-      // draught, the fan swung down at it as he rises)
-      { const side = v.center.clone().sub(K.model.pos).setY(0).normalize(), at = v.center.clone().addScaledVector(side, 3.5);
-        P.teleport(at.setY(v.center.y + 0.05), V(0, 1, 0), V(0, 0, 1)); P.vel.set(0, 0, 0);
-        const hand = P.pos.clone().add(V(0, 1.4, 0)); fanG.gust(hand, v.center.clone().sub(hand).normalize()); }
-      fanAt = v;
-      hoverOver(v);
-      if (!P.hovering) hoverOver(v);   // (knocked off his wings by its flare on the way up: up again)
-      assert.equal(v.turning, true, 'held on the wings over it, the fan turns the vane under you');
-      assert.ok(P.pos.y > K.model.mouth.y - 1.2 && P.hovering, `over its hatch (${(P.pos.y - v.center.y).toFixed(1)} vs ${(K.model.mouth.y - v.center.y).toFixed(1)}, held ${P.hovering})`);
-    }
-    const before = K.meter, phase = K.phaseIndex;
-    K.hit('mouth', 'shoot');
-    if (phase === 1) assert.ok(Math.abs(K.meter - before - 0.25) < 1e-6 || K.meter >= 0.75, `over a turning vane a hit counts twice (${(K.meter - before).toFixed(3)})`);
-    for (let i = 0; i < 1 / DT && !P.onGround; i++) frame();
-    fanAt = null;
-  }
-  assert.equal(K.state, 'resolved', `broken (${K.meter})`);
-  assert.ok(stillTried, 'the last phase was met');
-  land();
-  assert.equal(game.flag('temple.incal.done'), true);
-  wait(2.5);
-  assert.ok(rt.logic.isOpen('d5'));
-  // ---- the world changed: step into the breath at the bottom of the shaft and ride it up to the rim
-  const C = rt.change;
-  wait(4);
-  P.opts.health = true;
-  P.teleport(C.foot.clone().add(V(0, 1, 0)), V(0, 1, 0), V(0, 0, 1));
-  let rim = false;
-  for (let i = 0; i < 70 / DT; i++) { frame(); if (P.onGround && P.pos.y > 199 && Math.hypot(P.pos.x, P.pos.z) > 261) { rim = true; break; } }
-  assert.ok(rim, `carried up the shaft and set down on the rim (${P.pos.toArray().map((v) => v.toFixed(1))})`);
-  assert.ok(P.health > 0.9, 'gently');
-  game.reset();
-  own();
-});
+// (the Warden's Well on foot, round its Well and its breath since issue #413: tests/wardens-well.test.js)
 
 // (the Founders' Belfry on foot, round its Great Belfry and its bell since issue #408: tests/belfry-bells.test.js)
 

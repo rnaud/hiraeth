@@ -911,6 +911,52 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   (the house on foot, the drop unhurt, the solver, old saves), `tests/engine-mother-snapper.test.js` (the engines'
   build). Old saves (`migrate.js` perdide v4): with the Nursery won or its key, the pendulums sung; past the old far
   door, the great door open and hushed; one that entered, the Threshold's door open and taken to its last mark.
+- **The Warden's Well round its Well, the house's breath its state** (v1.83, issue #413; the approved recommendations:
+  `docs/design/temple-best-practices.md`, G1, G2, G3c, G4, G6, and the house's row: ways down, a view down the shaft, its
+  obvious steps). `src/temples/incal.js`:
+  - **The house's breath** (G1): the drum `breath`, `breathIn` (t 0, the start) or `breathOut` (t 1), `roll: 'hand'`,
+    `verb: 'breath'`, set from several rooms (`rooms`: the Climb, the Vane Room's far floor, the gallery, the loft, the
+    crown); `OUT` and `IN` its two conditions. `Breath` keeps it (its `setters`, the scout's nearest lever, the line said,
+    the shared lamp's colour); a `BreathLever` by every hub (`LEVERS`), pulled with the use button; a `BreathGauge` in every
+    room but the way in and the guardian's (`shows: 'breath'`): three rings of light in a glass tube drifting up, cyan,
+    while it breathes out and down, amber, while it breathes in. Out: the draughts rise (the plinth's up the Well, `rise`,
+    `iris`, `iris2`, `lift`, each latched once made), the balcony's door opens to its key (`d1`), the Vane Room's
+    breath-stones stand (`stones`) and the great key's cage can sink (`kG`). In: the crown's ring hangs down on its chain
+    (`CrownRing`, `RING`), and the crown's eye wants it (`s4`).
+  - **The Well** (G4): the gallery, the loft and the crown are one drum 36 m across and 64 m tall, its floors rings round an
+    open core (the irises gone: the loft's hole 7.2 m across its radius, the crown's 7, a `Rim` of light round each while the
+    draught is let on through it). From the crown's rim the plinth is 57 m straight down. The loft's raised walk stands on
+    piers clear of the core; the high ledge and the high door are 16 m over the crown (`FLOORS.hall`), past its great vane's
+    breath: the core's draught carries you there (`lift`).
+  - **The Turning Floors**: each disc rides on its own small vane (`v1` on the island's pillar, `v1b` high on a pillar by the
+    far ledge, 30 m off); `discs` wants both.
+  - **Two small keys, two doors** (G3c): the Climb's ball over the slot onto its plate while the vane below turns sinks the
+    cage of `kC`; the Ash Store's arena gives `kW`. The balcony's door (`d1`, to the Bellows Chamber) and the east way's
+    (`dV`, to the Vane Room) take one each: either first.
+  - **The Vane Room**: the chasm 17 m across (`VANE_ROOM`, wider than the pen's longest plank), the breath-stones' pier in
+    its middle; on the far floor a great vane (`vR`, the fan's) and the great key's cage, which sinks while it turns and the
+    house breathes out. Crossed before the fan, the key is in sight in its cage; the fan brings you back (the solver's room
+    order puts the room after the chest: `tests/temples.test.js` `BACK_TO`).
+  - **The crown's eye** (G2): its lids lift only while the ring is tugged with the hook (`rS`, a held bell, `VANES.ring`
+    14 s; let down only while the house breathes in) and its great vane turns in the fan's gust (`vC`), the house breathing
+    in. Then out again, and the draught to the ledge.
+  - **The ways down** (G6): `SoftFloor` zones break a fall onto the plinth, the gallery's, the loft's and the crown's floors
+    and the Flue's foot (`CATCH`). The **Flue** runs from the crown down to the Bellows Chamber's floor: off the crown's
+    landing or the gallery's west doorway, 57 or 24 m down, unhurt; at its foot a passage to the chamber's west wall and a
+    `Valve`, a door that opens from the flue's side only (from the chamber it stays shut and says so). One-way links:
+    `crown → gallery`, `loft → gallery`, `ledge → crown`, `crown → flue`, `gallery → flue`, `flue → jets`.
+  - **The way through** (ten locks for the audit, was nine; skeleton `BTLCTXXXXLK` → `BXLLXCXXXXXLK`): both vanes and the
+    discs; the Climb's ball and `kC`; the Ash Store, `kW` and the pen; a door (`dV` or `d1`); the house breathing out; the
+    stones and two planks; the balcony's door; the fan; back across for the great key; the gallery's eye; the loft's ball;
+    breathing in, the ring and the crown's vane, the eye; breathing out, the draught to the ledge; the high door.
+  - **The temple maps**: "Let the house breathe out / in, at a breath lever"; the four hall vanes the guardian asks for in
+    its own hall are its fight's steps, no extras (`makers.js`).
+  Tests: `tests/wardens-well.test.js` (the house on foot with a real traveller, a real gust fan and a real bridge pen: every
+  lever pulled, the ring hooked, the planks drawn, every drop fallen with his hearts counted, the valve, the warden, the
+  shaft's breath), `tests/temples.test.js` (the solver both ways, without the hook, every step wanted, the choice of door,
+  the saves), `tests/temple-playthrough.test.js` (the house walked in with the hook). Old saves: `migrate.js` incal v5 (past
+  the balcony's door: `kC` taken, the Vane Room's door unlocked, the house breathing out; past the eye or the high door:
+  the Well's ways made; one that stood inside: to its last mark).
 - **The Givers carried their fire** (the Rose House, from the v1.24 audit; the house's one fire, the pilot flame,
   never went out; the rooms below as they were until v1.44). A `Ball` with `tar: { burns }` is a tar ball: an ember glob lights it, and so does rolling it past a
   fire beside its groove (any piece with a `fire` point within its `fireReach`: a `Flame`, the pilot flame sunk in the
@@ -1116,7 +1162,7 @@ from the well, a room back, is on its footstone; a low and a high stone by its m
 ring the high one's colour, as the well's own horn is told by its colour). A door in the passage from the landing into the
 Shell Chamber (`dK`) takes both keys.
 
-The **Warden's Well** (`incal.js`, 4.22, structure 2): its Climb is the hub, its ways west and east south of the block
+The **Warden's Well** (`incal.js`, 4.22, structure 2; since v1.83 two doors of a small key each at its hub, "The Warden's Well round its Well" above): its Climb is the hub, its ways west and east south of the block
 (`WING.a`). West the **Ash Store** (an arena in the tower's old ash), east the **Vane Room** (a chasm whose stones stand
 only while the small vane on its post in the chasm turns, on its far wall until v1.77, `VANES.wing` s: splash it from this side and cross before it slows; the
 key on the far side, and back the same way). The door at the balcony's end (`d1`) takes both keys and the ball on its plate.
@@ -1285,7 +1331,7 @@ the landing (a `oneWay` link), and climb the house again in its new state, the p
 ball, to the far door (`d4`), which takes the great key with its ball and its bell. `migrate.js LAYOUTS.arzach2` v3: past
 the far door, the great key is in it.
 
-The **Warden's Well** (`incal.js` `FLUE`): **two ways up from the gallery, meeting at the crown**. The **Flue**, the tower's
+The **Warden's Well** (`incal.js` `FLUE`; until v1.83: since issue #413 the Flue is the way back down, "The Warden's Well round its Well" above): **two ways up from the gallery, meeting at the crown**. The **Flue**, the tower's
 old breath-way, is a round shaft outside the Lamp Gallery's west wall from the gallery's floor to over the crown's, a
 doorway into each (gaps in both drums, their walls overlapping between). A little vane on a post beside its draught (`vT`, 14 s; on its south wall until v1.77)
 sends a draught up its middle while it turns (`draught`, a gate on `{ lit: 'vT' }`; an `Updraft` with that `when`): splash

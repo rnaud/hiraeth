@@ -144,8 +144,8 @@ test('rooms seen are kept (temple.<id>.been.<room>): before the map only they ar
   v = houseView(rt, { game, player: P });
   assert.equal(v.has, true);
   assert.deepEqual(v.floors.map((f) => f.id), plan.floors.map((f) => f.id), 'a tab a floor of the house');
-  assert.equal(v.floors.length, 5, 'the Warden\'s Well: five floors');
-  assert.deepEqual(v.floors.map((f) => f.label), ['1F', '2F', '3F', '4F', '5F']);
+  assert.equal(v.floors.length, 6, 'the Warden\'s Well: six floors (issue #413: the high ledge 16 m over the crown)');
+  assert.deepEqual(v.floors.map((f) => f.label), ['1F', '2F', '3F', '4F', '5F', '6F']);
   assert.equal(shapeState(unseen, v.seen, v.has, 'floor'), 'faint');
   assert.equal(shapeState(plan.shapes.find((s) => s.kind !== 'wall' && seen.has(s.room)), v.seen, v.has, 'floor'), 'seen');
   assert.equal(v.here, plan.rooms.find((r) => r.id === walked.at(-1).room).floor, 'the floor you stand on');
@@ -202,7 +202,7 @@ test('the engines\' Start menu: House map after Map inside a house only, its pag
   view = menus.view();
   const H = view.page.house;
   assert.ok(H, 'the House map page');
-  assert.deepEqual(H.tabs, ['1F', '2F', '3F', '4F', '5F']);
+  assert.deepEqual(H.tabs, ['1F', '2F', '3F', '4F', '5F', '6F']);
   assert.equal(H.i, 0);
   const pic = menus.housePicture(H.key);
   assert.ok(pic && pic.width === HOUSE_MAP.w && pic.height === HOUSE_MAP.h && pic.data.length === HOUSE_MAP.w * HOUSE_MAP.h * 4, 'its picture');

@@ -57,7 +57,7 @@ export function nounOf(id, e, piece) {
   const cls = piece?.cls;
   if (!e) return id;
   switch (e.type) {
-    case 'drum': return e.verb === 'sluice' ? 'sluice' : e.needs?.includes('magnet') ? 'iron ball' : 'ball';
+    case 'drum': return e.verb === 'sluice' ? 'sluice' : e.verb === 'breath' ? 'the house’s breath' : e.needs?.includes('magnet') ? 'iron ball' : 'ball';
     case 'plate': return 'floor plate';
     // (issue #410: the Lamp-House's lamps, its pool-lamps and its great lamp, read as lamps)
     case 'switch': return cls === 'LightEar' ? 'lamp' : cls === 'LampGlass' ? 'great lamp' : piece?.o?.light ? 'pool-lamp' : cls === 'Bank' ? 'bank of eyes' : cls === 'Bud' ? 'flower-door' : cls === 'Seed' ? 'seed' : cls === 'EchoEar' ? 'brass horn' : cls === 'Jaw' ? 'gate of jaws' : piece?.o?.crystal ? 'singing crystal' : 'eye';
@@ -209,9 +209,13 @@ export function makersMap(id, { built = null, sight = true } = {}) {
   const first = solve(logic, { items });
   const optional = [];
   const resolvedAt = first.log.findIndex((x) => x.startsWith('resolve '));
+  // (what the guardian's fight asks for in its own hall, any one of several: the fight's own steps, no extras: the Warden's
+  // Well's four hall vanes, issue #413)
+  const bossEl = Object.values(E).find((e) => e.type === 'boss');
+  const fights = (id) => !!bossEl?.requires && E[id]?.room === bossEl.room && JSON.stringify(bossEl.requires).includes(`"${id}"`);
   for (const [n, line] of first.log.entries()) {
     const s = parseStep(line), e = E[s.id];
-    if (!e || optional.includes(s.id) || !['take', 'light', 'roll', 'carry', 'open'].includes(s.verb) || e.type === 'gadget' || e.type === 'boss') continue;
+    if (!e || optional.includes(s.id) || !['take', 'light', 'roll', 'carry', 'open'].includes(s.verb) || e.type === 'gadget' || e.type === 'boss' || fights(s.id)) continue;
     // (one worked after the fight that was worked before it too is no extra: the Builders' Greenhouse's bridge ball, issue #411)
     const before = resolvedAt >= 0 && first.log.slice(0, resolvedAt).some((x) => parseStep(x).id === s.id);
     if ((resolvedAt >= 0 && n > resolvedAt && !before) || solve(logic, { items, forbid: [...optional, s.id] }).done) optional.push(s.id);
@@ -373,6 +377,8 @@ function stepText(s, { E, el, room, guardian, links, nth = 0 }) {
       : e?.verb === 'sluice' ? `${(e.stops?.[s.onto] ?? 1) > 0 ? 'Send the house’s water up' : 'Let the house’s water down'}, at a sluice wheel${tag} → ${s.onto}`
       // (issue #410: the Lamp-House's great lamp, its shutters opened or shut at a lever or the pipe's ring)
       : e?.verb === 'lamp' ? `${(e.stops?.[s.onto] ?? 1) > 0 ? 'Open' : 'Shut'} the great lamp’s shutters, at a lever or the pipe’s ring${tag} → ${s.onto}`
+      // (issue #413: the Warden's Well's breath, let out or in at a lever by a hub)
+      : e?.verb === 'breath' ? `Let the house breathe ${(e.stops?.[s.onto] ?? 1) > 0 ? 'out' : 'in'}, at a breath lever${tag} → ${s.onto}`
       : `Roll the ${el?.noun ?? 'ball'} onto its plate${where}${using}${tag} → ${s.onto}`;
     case 'carry': return `Carry the stone block onto its plate${where}${using}${tag} → ${s.onto}`;
     case 'stand': return `Stand on the floor plate${where}${tag}`;

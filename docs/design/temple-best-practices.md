@@ -574,6 +574,46 @@ G4 and G6 (`src/temples/perdide2.js`; how it works: `docs/systems/temples.md`, "
   3 → 4, decoupling 4 → 5, curve 4 → 4, identity 3 → 2 (its shape 67 % like the Mooring-House's). The audit now takes a
   house state's key, where it is not set in the lock's own room, from the nearest room it is set from (no other house's
   numbers move). The redesign's rules: none broken.
+
+### As built: the Warden's Well (v1.83, issue #413)
+
+The Warden's Well's row of Part 3 (ways down: a drop from the crown, the Flue as a fast way back, a view from the crown
+down the whole shaft; its three painfully obvious steps) with G1, G2, G3c, G4 and G6, and the eight steps the Temple maps
+page listed as extras (`src/temples/incal.js`; how it works: `docs/systems/temples.md`, "The Warden's Well round its
+Well"):
+
+- **G1, the house-wide state: the house's breath**, out or in, the vanes' own idea (the makers built the tower to breathe).
+  **Set in one place, changing several rooms on several floors:** out, the draughts rise (the plinth's up the Well, on to
+  each floor it is let through), the Vane Room's breath-stones stand in its chasm and its great key's cage can sink, the
+  balcony's door opens to its key; in, the draughts die and the crown's ring comes down on its chain. **Cheap to change:** a
+  lever by every hub (the Climb's floor, the gallery, the loft, the crown) and one on the Vane Room's far floor.
+  **Readable everywhere:** a gauge in every room, rings of light drifting up (cyan) or down (amber), the levers' knobs and
+  arms the same. On the way it is set out (the stones, the chest's draught), in (the crown's ring) and out again (the high
+  ledge).
+- **G4, the great hall: the Well.** The gallery, the loft and the crown were three rooms one over another, an iris in each
+  ceiling; they are one drum 36 m across and 64 m tall now, its floors rings round an open core. **The view down the whole
+  shaft:** from the crown's rim the plinth is 57 m straight down, past the loft's ring and through the gallery's oculus.
+- **G6 and the ways down:** a fall down the core lands soft on the gallery's floor (or the loft's, or the plinth), and the
+  **Flue** is the fast way back: it runs from the crown down to the Bellows Chamber's floor now, off the crown's landing or
+  the gallery's doorway, and its foot's valve opens from the flue's side only, into the chamber. The high ledge drops back
+  to the crown. Marks by the high door and at the Flue's foot.
+- **G3c, two small keys and a choice of door:** the Climb's ball (over the slot while the vane below turns, onto its plate)
+  sinks a small key's cage; the Ash Store gives the other. The balcony's door and the Vane Room's door take one each, both
+  in the hub: either first.
+- **G2, the curve and an older tool:** ten locks (was nine). The crown's eye wakes only while the ring is tugged with the
+  grappling hook (the Founders' Belfry's) and the great vane turns in the fan's gust, the house breathing in.
+- **The three painfully obvious steps:** the Turning Floors' discs (4.5) ride each on its own vane now, the far one high by
+  the far ledge (3.0); the Vane Room's plank (5.0) is wider than one plank, its breath-stones a room's lever away (2.5); the
+  way up from the chest (5.0) wants the house breathing out (2.5).
+- **No step to skip:** the Temple maps page listed eight extras. The two balls stood in for by standing on their plates: a
+  ball's weight now (the Climb's sinks a key's cage, the loft's lets the draught on, each while its vane turns). The loft
+  and its vane skipped by the Flue: the Flue is the way down only. The hall's four vanes: the guardian's fight's own steps
+  (`makers.js`). The map's little chest is the one extra, as in every house.
+- **Length and scores:** ten steps (`BTLCTXXXXLK` → `BXLLXCXXXXXLK`). Design audit (all houses run together) 4.56 → 4.44:
+  combinations 6 of 9 → 8 of 10, mean obviousness 3.17 → 3.05, painfully obvious 3 → 0, obscure 0 → 1 (the high door: its
+  eye a floor below and its two keys in it, the house's exam), decoupling 5 → 4 (5 of 10 keys out of the lock's room or
+  sight), loops 3 → 5, the chest at 33 % → 40 % of the steps, identity 3 (67 % like the Mooring-House → 64 % like the
+  Greenhouse), curve 5 → 5. No other house's numbers move. The redesign's rules: none broken.
 ### As built: the Founders' Belfry (v1.83, issue #408)
 
 The Belfry's row of Part 3 (the bells as a house-wide state; the great key cage's sight line) with G1, G4 and G6
