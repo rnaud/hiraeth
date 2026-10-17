@@ -1,0 +1,45 @@
+unity/Hiraeth/Assets/Hiraeth/Shaders/Wisp.shader
+  s_5f899ba316b5dc::t_fe113a7a7e847f 21-24,35
+tests/sequences-web.json
+  s_5f899ba316b5dc::t_4eb18838b24d44 4622-4801
+  s_5f899ba316b5dc::t_0276efe659163d 3
+unity/Hiraeth/Assets/Hiraeth/Shaders/Mote.shader
+  s_5f899ba316b5dc::t_a60a571f0077c3 22-25,39
+engine/sequences.js
+  s_5f899ba316b5dc::t_8724e4d1c5cf37 193-214,217-225
+  s_5f899ba316b5dc::t_d8792ac41ca82a 226
+unity/Hiraeth/Assets/Hiraeth/Rendering/HiraethFeature.cs
+  s_5f899ba316b5dc::t_78f33e9e1ac8c4 464,472-476,588,598
+unity/Hiraeth/Assets/Hiraeth/Shaders/HoloFigure.shader
+  s_5f899ba316b5dc::t_839eeafc3c31ae 48-51,86
+unity/Hiraeth/Assets/Hiraeth/Shaders/Veil.shader
+  s_5f899ba316b5dc::t_cb1c7e0f8f7ca7 39-42,63
+unity/Hiraeth/Assets/Hiraeth/Shaders/DoorLight.shader
+  s_5f899ba316b5dc::t_4f109b934d26a7 32-35,52
+unity/Hiraeth/Assets/Hiraeth/Shaders/PitVoid.shader
+  s_5f899ba316b5dc::t_0eafc3d8ebcc20 35-38,67
+changelog.md
+  s_5f899ba316b5dc::t_422126465c1b5d 7
+docs/systems/engine-bridge.md
+  s_5f899ba316b5dc::t_e9eadb8e2273e5 1924-1933
+src/changelog-media.js
+  s_5f899ba316b5dc::t_1403f062660156 1182
+src/changelog.js
+  s_5f899ba316b5dc::t_93888ec40b6508 92-94
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "dc4f7f1b0d4ba41012cb5a279f36899ac180fcaf",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
