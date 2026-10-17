@@ -1161,6 +1161,10 @@ const MOOR417P = 'Issue #417: the Temple maps page (temples.html?t=spacecity, Pl
 const HATS439 = 'Issue #439: the character studio’s crowd lineup (studio.html?lineup=crowd&count=14, kind as seeded, the 14 seeds with the most hats in each world; full bodies in front, the GPU crowd figures behind), face view, muted headless Chrome (ANGLE Metal) against this branch’s own Vite (port 5441); before: the tree at origin/main 3a6ee5b29 (port 5446), the same people; 17 October; cwebp -q 70 -resize 1280';
 const HATS439S = 'Issue #439: the character studio’s headwear lineup (studio.html?lineup=mhheadwear&mh=hats): every piece of the 15 hat sets on a grown woman and a grown man in turn, labelled with its set, in its sheet’s first colour; muted headless Chrome against this branch’s own Vite (port 5441); 17 October; cwebp -q 70 -resize 1280';
 const hatRef = (set, what) => ({ sheet: `references/hats/${set}/sheet-1.jpg`, caption: `The author’s pick from the reference lab: ${what} (references/hats/${set})` });
+/** (v1.84, issue #441: the space ports from their picked sheets) */
+const PORT441 = 'Issue #441: the running game in muted headless Chrome (ANGLE Metal, High, render scale 1, 1280 × 720, 10:00, the HUD hidden; scripts/design-qc/capture.mjs --fixed-scale) on this branch’s own Vite (port 5441), the camera pinned in the hull’s frame round the ship; before: the tree at 16faa3b4c (its own Vite, port 5442), the same camera; 17 October; cwebp -q 72';
+const PORT441U = 'Issue #441: the Unity bridge in the editor’s batch run on this Mac (scripts/unity-compare/unity.mjs: muted, High, 1280 × 720, -fresh -no-hud, the same pinned camera as the web’s); 17 October; cwebp -q 72';
+const portRef = (id, what) => ({ sheet: `references/space-ports/${id}/sheet-1.jpg`, caption: `The author’s pick from the reference lab: ${what}` });
 export const CHANGELOG_MEDIA = {
   '1.84': [
     { match: 'In the fight temples the roll is on the button printed B', see: 'In a fight temple with a Nintendo-lettered pad or the Retroid, the start card lists the bottom button (printed B) as roll; press it. On an Xbox or PlayStation pad it is B / ○ as before.' },
@@ -1211,6 +1215,39 @@ export const CHANGELOG_MEDIA = {
       { name: 'art-wisp-windup', title: 'The fireball’s tell', caption: 'Held at 80 % of the fireball’s wind-up: before, the clam’s lids parted; after, the petals opened wide like a flower round the swollen coal', ...WISP440, view: { foe: { id: 'wisp@moonfoundry', yaw: 1.2, pitch: 0.12, pose: 'fireball', at: 0.8 } }, reference: REF('wisp', 1, 'the ember wisp, its fireball wind-up on the right') },
       { name: 'art-wisp-marsh', title: 'Lorn II', caption: 'Lorn II’s marsh wisp on the new body, its own green colours and pale lichen stars', ...WISP440, view: { foe: { id: 'wisp@perdide2', yaw: 0.45, pitch: 0.12 } }, reference: REF('wisp', 1, 'the ember wisp, its body (the marsh wisp’s own sheet waits in the lab)') },
     ], see: 'Debug → the Arena (or the Moon Foundry, Lorn II, the Eclipse): an ember wisp floats over the warm places; stand off and watch it open before it throws.' },
+    { match: 'The City Floating in Space’s Pier is a real port now', shots: [
+      { name: 'port-pier', title: 'The Pier', caption: 'The Pier from the south-east, by the ramp: before, the plain docks of v1.83; after, the blue hoop cradles hung off the rim with a sky-boat in each, the red bands on the deck, the lamp-mast and the harbour hut by the bridge', from: PORT441, reference: portRef('space-city', 'the Pier port, its hoop cradle and its boats') },
+      { name: 'port-pier-gate', title: 'From the bridge', caption: 'The Pier from over the bridge to the Gate: the hoops either side of the bridge’s mouth, the hut and the mast at its head', from: PORT441 },
+      { name: 'port-pier-unity', only: 'after', title: 'In Unity', caption: 'The Pier from the south-east in the Unity version (the editor’s batch run, High, 1280 × 720)', from: PORT441U },
+    ], numbers: [{ title: 'Draw calls a frame with the port in view (the shadow passes included)', unit: 'calls', better: 'lower', device: 'this Mac, headless Chrome, High, render scale 1, 1280 × 720 (the mean over a second)', rows: [
+      { where: 'the City in Space, the Pier', before: 330, after: 341 },
+      { where: 'the City-Shaft, the rim', before: 502, after: 522 },
+      { where: 'the Signal Market, the apron', before: 163, after: 174 },
+      { where: 'the Underwater City, the Dock', before: 442, after: 457 },
+      { where: 'the Glass Dunes, the yard', before: 536, after: 554 },
+      { where: 'the Eclipse city, the esplanade', before: 314, after: 325 },
+      { where: 'Salt Harbour, the quay', before: 275, after: 280 },
+      { where: 'the Waterfall, the ledge', before: 224, after: 238 },
+      { where: 'the Buried Machine, the stage', before: 395, after: 413 },
+    ], source: 'Issue #441: a port is at most six merged meshes (its paint, its solid paint, its lamps, the ground’s marks, its cables), parked craft baked in, and one a craft in flight; the before is the tree at 16faa3b4c (with v1.83’s stand-in on the Pier), the same pinned views' }],
+    see: 'Land in the City Floating in Space and look over the Pier’s rim by the ramp, or back at it from the bridge.' },
+    { match: 'The City-Shaft and the Signal Market have space ports round your ship', shots: [
+      { name: 'port-shaft', title: 'The Rim Docks', caption: 'Over the City-Shaft’s rim, looking back at the ship: the pink and lilac cradles out over the drop (a cab held in one), the gantry crane with a crate on its way down', from: PORT441, reference: portRef('city-shaft', 'the Rim Docks, the cradle and the cabs') },
+      { name: 'port-market', title: 'The Callsign Apron', caption: 'From the apron’s gate: the board of call-signs behind the ship, its boards lit and one dark, the apron’s white lines', from: PORT441, reference: portRef('signal-market', 'the Callsign Apron, its board and the parked craft') },
+      { name: 'port-shaft-unity', only: 'after', title: 'In Unity', caption: 'The Rim Docks in the Unity version, the same view', from: PORT441U },
+    ], see: 'In the City-Shaft walk west from the ship to the rim and look over; in the Signal Market look back at the ship from Madame Sel’s gate.' },
+    { match: 'The Underwater City and the Glass Dunes have ports too', shots: [
+      { name: 'port-dock', title: 'The Dock', caption: 'Over the Dock’s dome: the coral pontoon ring with its brass rims under the ship, open where the ramp comes down, the cupola and the pods moored on it', from: PORT441, reference: portRef('underwater-city', 'the pontoon ring and its pods') },
+      { name: 'port-floatyard', title: 'The Float Yard', caption: 'The Glass Dunes’ landing from the north-east: the pale disc ringed in white under the ship, the canvases over the racks of glass floats, the sledges', from: PORT441, reference: portRef('glass-dunes', 'the Float Yard, its disc, sledges and skiff') },
+      { name: 'port-dock-unity', only: 'after', title: 'In Unity', caption: 'The Dock in the Unity version, the same view', from: PORT441U },
+    ], see: 'Land in the Underwater City and look down from the ramp; in the Glass Dunes walk round the ship’s disc.' },
+    { match: 'The cities off the route have ports as well', shots: [
+      { name: 'port-eclipse', title: 'The esplanade', caption: 'The Eclipse city’s esplanade from the ramp’s side: the limewashed pylons with their lanterns along the ship, the gold rings in the paving', from: PORT441, reference: portRef('eclipse', 'the Lantern Esplanade, its pylons and junks') },
+      { name: 'port-salt', title: 'The Salt Quay', caption: 'Salt Harbour’s landing from high: the stakes and ropes round the ship, the mast crane on its tower, the skiff and the hopper', from: PORT441, reference: portRef('salt-harbour', 'the staked field and its craft') },
+      { name: 'port-ledge', title: 'The Falls Ledge', caption: 'The Waterfall’s shelf from high: the dashed ring round the ship, the gantry by the cliff', from: PORT441, reference: portRef('waterfall', 'the ledge, its gantry and the couriers') },
+      { name: 'port-freight', title: 'The freight stage', caption: 'The Buried Machine’s stage from high: the rust-orange lines, the lattice crane and its ore bucket, the drums and crates', from: PORT441, reference: portRef('buried-machine', 'the freight stage, its crane and the ore hopper') },
+    ], see: 'Land in any of these worlds and walk round the ship.' },
+    { match: 'Each port has someone who runs it', see: 'Look for the port’s keeper a few steps from the ship: by the harbour hut on the Pier, the cab stand on the City-Shaft’s rim, the board’s window in the Signal Market.' },
   ],
   '1.83': [
     { match: 'A new game in the Arcade, The Lens Vault', shots: [

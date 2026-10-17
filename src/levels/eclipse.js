@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import { attachPort } from './port-pad.js';
+import { ECLIPSE_PORT } from './ports.js';
 import { createNoise2D, fbm, mulberry32, smoothstep } from '../noise.js';
 import { MODE_TERRAIN } from '../materials.js';
 import { Terrain } from '../world.js';
@@ -354,7 +356,8 @@ export function* buildEclipse(scene) {
   yield;
 
   const spawn = new THREE.Vector3(SHIP_SITE.x + 4, H(SHIP_SITE.x + 4, SHIP_SITE.z - 16) + 0.05, SHIP_SITE.z - 16);
-  return {
+  // the Lantern Esplanade round the ship (issue #441, references/space-ports/eclipse/sheet-1.jpg; src/levels/ports.js)
+  return attachPort({
     id: 'eclipse',
     ground: terrain,
     collision: { strategy: 'SAH' },
@@ -393,6 +396,6 @@ export function* buildEclipse(scene) {
       return { groups, walks, edges, avoid: [], farMax: 420, costume: 'eclipse', clear: [{ x: SHIP_SITE.x, z: SHIP_SITE.z, r: 14 }, { x: 0, z: (STAIR.z + BOUNDS.STEP) / 2, r: 6 }] };
     },
     update() {},
-  };
+  }, scene, ECLIPSE_PORT, { groundAt: H });
 }
 export const createEclipse = stepped(buildEclipse);

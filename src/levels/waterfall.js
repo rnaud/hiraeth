@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import { attachPort } from './port-pad.js';
+import { WATERFALL_PORT } from './ports.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial, MODE_TERRAIN, MODE_WATER } from '../materials.js';
 import { mulberry32, createNoise2D } from '../noise.js';
@@ -235,7 +237,8 @@ export function* buildWaterfall(scene) {
   // ---------------------------------------------------------------- the crowd's places
   const streets = [...lower.streets, ...deep.streets].filter((s) => s.y > 0).map((s) => ({ ...s, z0: s.z0 - 10, z1: s.z1 - 10 }));   // (the quarters' frame stands at z -10)
   yield;
-  return {
+  // the Falls Ledge round the ship (issue #441, references/space-ports/waterfall/sheet-1.jpg; src/levels/ports.js)
+  return attachPort({
     id: 'waterfall',
     ground: { heightAt: groundHeight },
     envGround: '#6f9f9f',
@@ -285,6 +288,6 @@ export function* buildWaterfall(scene) {
       for (const m of kit.movers) m(t);
       updateSpray(Math.min(dt, 0.05), ctx.player?.pos);
     },
-  };
+  }, scene, WATERFALL_PORT, {});
 }
 export const createWaterfall = stepped(buildWaterfall);

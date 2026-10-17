@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import { attachPort } from './port-pad.js';
+import { SALTHARBOUR_PORT } from './ports.js';
 import { createNoise2D, fbm, mulberry32, smoothstep } from '../noise.js';
 import { MODE_TERRAIN } from '../materials.js';
 import { Terrain } from '../world.js';
@@ -422,7 +424,8 @@ export function* buildSaltHarbour(scene) {
   yield;
 
   const spawn = new THREE.Vector3(SHIP_SITE.x + 4, H(SHIP_SITE.x + 4, SHIP_SITE.z - 16) + 0.05, SHIP_SITE.z - 16);
-  return {
+  // the Salt Quay round the ship (issue #441, references/space-ports/salt-harbour/sheet-1.jpg; src/levels/ports.js)
+  return attachPort({
     id: 'saltharbour',
     ground: terrain,
     // (the hulls are long curved shells and the houses many small boxes: a BVH split by area, as the mangrove's)
@@ -461,6 +464,6 @@ export function* buildSaltHarbour(scene) {
       return { groups, walks, edges, avoid: [], farMax: 420, costume: 'saltharbour', clear: [{ x: SHIP_SITE.x, z: SHIP_SITE.z, r: 14 }, { x: TOWER.x, z: TOWER.z, r: 6 }] };
     },
     update() {},
-  };
+  }, scene, SALTHARBOUR_PORT, { groundAt: (x, z) => terrain.heightAt(x, z) });
 }
 export const createSaltHarbour = stepped(buildSaltHarbour);

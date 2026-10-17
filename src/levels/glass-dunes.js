@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import { attachPort } from './port-pad.js';
+import { GLASSDUNES_PORT } from './ports.js';
 import { makeMaterial, MODE_TERRAIN } from '../materials.js';
 import { createNoise2D, mulberry32, smoothstep } from '../noise.js';
 import { Terrain } from '../world.js';
@@ -308,6 +310,8 @@ export function* buildGlassDunes(scene) {
     cairnWay: up,
     update(dt, t, ctx) { cairn.wave(t ?? 0); breaker.wave(t ?? 0); up.update(dt, t, ctx); frozen.update(ctx?.camera); },
   };
+  // the Float Yard round the ship (issue #441, references/space-ports/glass-dunes/sheet-1.jpg; src/levels/ports.js)
+  attachPort(level, scene, GLASSDUNES_PORT, { groundAt: (x, z) => terrain.heightAt(x, z) });
   return attachTemple('garage', scene, level);
 }
 /** Marit's kiln-stall: on the valley floor up from the ship, turned to it. */

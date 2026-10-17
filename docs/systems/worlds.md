@@ -2796,21 +2796,65 @@ grid: it reads the ground from above, and the cave's roof is in the way; the wal
 Cost, from the ship looking west (the village and the cleft now in view) and on the square: High 445 → 468, 359 → 387,
 280 → 277 draw calls; Handheld 349 → 370, 303 → 329, 226 → 228; frame times within the noise of a loaded Mac.
 
-## Space ports, the stand-in (v1.83, issue #397, `src/levels/port-pad.js`)
+## Space ports (v1.84, issue #441, `src/levels/ports.js`, `src/levels/port-pad.js`, `src/levels/port-craft.js`)
 
-Cities should have space ports (the author, 2026-10-16). The plan for every city and the Midjourney prompts are in
-`docs/design/space-ports.md`; until the author picks a design, a city's landing is marked as a port from kit pieces it
-already has, as data (`SC_PORT` in `src/levels/space-city.js`, the only city built so far):
+Cities should have space ports (the author, 2026-10-16). The plan for every city is `docs/design/space-ports.md`; the
+author picked one sheet a city in the reference lab (`references/space-ports/<id>/sheet-1.jpg`, issue #437), and nine
+cities have their port drawn after it, replacing the v1.83 stand-in on the Pier (issue #397). **The landing does not
+move**: each port grows round the ship's present site (`site` = the level's `shipSite`), so the arrival views, the
+quest-givers' spots and the contact audit stand as they were.
 
-- **pad**: a ring of painted dashes round the ship's site (`gaps` keep the bridge's mouth and a shop's door open), four
-  chevrons pointing in, a lamp at each. The paint stands 5 cm over the deck and as far into it (`PAD_LIFT`), so no face
-  lies in the paving's plane (`tests/zfight.test.js`).
-- **docks**: an iron arm out over the rim, a post and jib with a lamp, a cradle, and a craft moored in it. The craft is
-  the City-Shaft's cab (`taxi.js cabModel`) in the city's colours, baked into the kit's merged meshes.
+**One kit, each city's data.** `PORTS` in `src/levels/ports.js` holds a port per city: its `site`, its `pad` (layers of
+paint and slabs), its `pieces`, its `traffic` and its `staff`. Positions are in the hull's frame, `at: [u, v]` (u metres
+out of the hatch, the ramp's way; v along the hull toward its stern: the hull spans v −21.6 … 30.4 and u ±8.4), or `xz`
+in the world where a piece belongs to the city's own plan (the Pier's rim, the shaft's rim). The kit
+(`src/levels/port-pad.js`):
+
+- **pad layers**: `dashes` (a dashed ring), `arc` (a painted band), `disc` (a low stone slab and its line, never solid),
+  `rect` (a bay's outline along the hull), `circle` (a ring with a cross or a dot), `studs` (lamps set in the paving),
+  `chevrons`, `annulus` (a ring of plates with rims, bollards and legs: the Underwater City's pontoon), `stakes` (stakes
+  on a grid with ropes between them: Salt Harbour). Paint stands `PAD_LIFT` over the ground (`tests/zfight.test.js`).
+- **pieces**: `craft` (parked), `cargo` (crates, casks, barrels, glass floats, baskets, sea chests, radios), `crane` (a
+  post or a lattice tower, a boom, a cable and its load), `signal` (the Signal Market's board of call-signs, a clerk's
+  window at its foot, one board dark), `mast` (a lamp-mast), `mirror` (the Eclipse city's mirror tower), `pylon` (a
+  tapered post with a lantern), `kiosk` (a hut with a lit window), `awning` (canvas on poles, goods under it), `rack`
+  (glass floats on a trestle), `board` (a chalk-board log), `ring` (the City in Space's hoop cradle hung off the rim with
+  a boat in it), `cradle` (the City-Shaft's lacquered cradle cantilevered over the drop), `arm` (the stand-in's dock).
+- **craft** (`src/levels/port-craft.js`, `CRAFT`): skyboat, pod, dart, buggy, hauler, skiff, sledge, junk, sandskiff,
+  hopper, orecart, and `cab` (the City-Shaft's own, taxi.js). Each a list of painted parts (vehicle-kit.js: one flat
+  colour a part, the ink outlining where colours meet).
 - **traffic**: craft on slow ellipses over the city (centre, radii, height, speed, direction), bobbing and banking,
-  moved by the level's `update(dt)`; no shadows.
+  moved by the level's update; no shadows.
+- **staff**: a harbourmaster with two toned lines, standing in the hull's frame (`uv`), added after the world's own
+  people in `src/levels/content.js` (so no index the errands count on moves). The Underwater City (Bastien at the lock)
+  and Salt Harbour (Hesper's harbour book) already had theirs.
 
-Nothing is solid and the ship's site does not move, so the landing, its arrival views and the quests' first steps are as
-they were. The Pier gains 8 merged meshes and each craft in flight 6 (drawn only in view); the frame's draw calls on
-High stayed within a call or two. The Unity bridge draws it through the mirror as it is. Tests:
-`tests/port-pad.test.js`.
+| city | the port | its pieces |
+|---|---|---|
+| the City in Space | the Pier port | red bands on the deck, four blue hoop cradles off the rim (three with sky-boats), the lamp-mast and the harbour hut by the bridge, a chalk-board, casks; four sky-boats in flight; Orla |
+| the City-Shaft | the Rim Docks | two lacquered cradles over the drop either side of the ramp's line (a cab in one), a gantry crane lowering a crate into the shaft, a cab stand of three behind the hull, the bay's lilac lines; Faro |
+| the Signal Market | the Callsign Apron | the apron's white lines, a 34 m board of call-signs with its clerk's window, a dart, the yellow walker and a hauler parked, a round pad, radios under a stall; two craft over the avenue; Ludo |
+| the Underwater City | the Dock made a port | a coral pontoon ring with brass rims on the dome's crown under the hull, open where the ramp comes down to the dome, a cupola, two pods moored, a brass lamp-post; three pods round the domes |
+| the Glass Dunes | the Float Yard | a pale stone disc ringed in white under the ship (flush with the ship's flat of sand: a slab drawn higher is walked through, src/contact-audit.js), ochre canvases over racks of glass floats, three float-sledges, a glass skiff; one skiff in flight; Mabyn |
+| the Eclipse city | the Lantern Esplanade | rows of limewashed pylons with lanterns along the hull, a pair at the way out, a mirror tower, gold rings and lamps set in the paving, baskets; two junks in flight; Cato |
+| Salt Harbour | the Salt Quay | stakes and mooring ropes round the ship, a mast crane on a terracotta tower, a sand-skiff and a hopper, sea chests, a sailcloth over herb crates; a hopper in flight |
+| the City Behind the Waterfall | the Falls Ledge | a dashed ring on the shelf, a gantry by the cliff with a crate on its cable, crates, a dart parked, a tarp; two darts in flight; Tully |
+| the Buried Machine | the freight stage | the stage's rust-orange lines, a lattice crane with an ore bucket, drums of oil, crates, an ore hopper and a hauler; Dace |
+
+**The cost.** Everything is painted, so a port is at most six merged meshes (its paint walked through and its solid
+paint, its lamps, the ground's marks, its cables), parked craft baked in, and each craft in flight one mesh. What stops
+you is only what a piece marks `solid` (towers, kiosks, cranes' feet, cargo on the ground); paint, craft, cables and
+what hangs over a void never do. Measured on this Mac (headless Chrome, High, 1280 × 720) from the same views before
+and after: a few draw calls to about 15 more a frame (shadow passes included), against 230–730.
+
+**Unity** draws the ports through the scene mirror as they are (vertex colours, thin cables, the glow); checked picture
+against picture in the editor's batch run (`scripts/unity-compare/unity.mjs`).
+
+Where a port meets the world's other checks: the staff stand 18 m and more off the hull's plan where the site search
+runs (`tests/ship.test.js`), clear of the makers' courts (`tests/trials-worlds.test.js`) and of the singing light's
+fragments (`tests/contact-audit.test.js`); what is drawn low and walked through counts against a world's contact audit;
+the craft in flight are `userData.floats` (`src/clip-audit.js`); the Underwater City's ring keeps the first step out's
+view (`tests/arrival-view.test.js`).
+
+Tests: `tests/ports.test.js` (each city's port on its landing, nothing but the pad on the hull's plan or the ramp's way,
+the meshes, the craft flying, the staff's tones).

@@ -6,16 +6,12 @@ star-faring people sees ships come and go. This file plans a port for every city
 for that city, what it holds, and whether the landing moves. Its prompts, one per city, are in
 [space-port-prompts.md](space-port-prompts.md).
 
-**Nothing here is modelled yet.** The prompts run in the reference lab (issue #437), and only the designs the author
-picks there are modelled. The picks go to `references/space-ports/<id>/`, one folder per city.
-
-**The stand-in.** Until then one city has a modest port made of kit pieces it already has: the City Floating in
-Space's Pier (`SC_PORT` in `src/levels/space-city.js`, built by `src/levels/port-pad.js`; docs/systems/worlds.md,
-"Space ports, the stand-in"). **It is a stand-in**, to be replaced by the picked design. It shows the gameplay
-hook-up the real ports will use: a pad round the ship's site, docks with a craft moored in each, and craft on
-loops over the city, all data, nothing solid, the ship landing where it did.
-
-![The stand-in from the Gate](../../changelog-media/1.83/space-port-pier-after.webp)
+**Built (v1.84, issue #441).** The author picked a sheet for each city in the reference lab (issue #437,
+`references/space-ports/<id>/sheet-1.jpg`), and all nine ports are drawn after them from one shared kit: the data in
+`src/levels/ports.js`, the kit in `src/levels/port-pad.js` and `src/levels/port-craft.js`, how it works in
+docs/systems/worlds.md, "Space ports". The v1.83 stand-in on the Pier (issue #397) is gone, the Pier port of its sheet in
+its place. What is below is the plan as it was written before the picks; where the built ports differ, the code and
+docs/systems/worlds.md say what is.
 
 ## The rule for every port: the landing does not move
 

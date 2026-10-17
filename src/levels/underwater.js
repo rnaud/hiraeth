@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import { attachPort } from './port-pad.js';
+import { UNDERWATER_PORT } from './ports.js';
 import { createNoise2D, fbm, mulberry32, smoothstep } from '../noise.js';
 import { MODE_TERRAIN, sharedUniforms } from '../materials.js';
 import { Terrain } from '../world.js';
@@ -597,6 +599,8 @@ export function* buildUnderwater(scene) {
       seaByHour();
     },
   };
+  // the Dock made a port: the pontoon ring on the dome's crown, pods round the city (issue #441, references/space-ports/underwater-city/sheet-1.jpg; src/levels/ports.js)
+  attachPort(level, scene, UNDERWATER_PORT);
   return attachTemple('underwater', scene, level);
 }
 export const createUnderwater = stepped(buildUnderwater);

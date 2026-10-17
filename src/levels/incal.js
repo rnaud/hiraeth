@@ -1,5 +1,7 @@
 import { templeVista } from '../temples/vistas.js';
 import * as THREE from 'three';
+import { buildPort } from './port-pad.js';
+import { INCAL_PORT } from './ports.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { mulberry32 } from '../noise.js';
 import { makeMaterial, MODE_STRATA } from '../materials.js';
@@ -1237,6 +1239,8 @@ export function* buildIncal(scene) {
   yield;
   const pillars = new ShaftPillars(scene, { veils });
 
+  // the Rim Docks round the ship (issue #441, references/space-ports/city-shaft/sheet-1.jpg; src/levels/ports.js)
+  const port = buildPort(INCAL_PORT); scene.add(port.group); roomLights.push(...port.lights);
   const spawn = new THREE.Vector3(R + 14, TOP, 0);
   // Fausta's Basket-Shop (src/shop-world.js, src/shop-fronts.js 'basket'): a narrow house on the middle terrace by the
   // middle levels' cab stop, its door and shop window turned to the promenade and the void
@@ -1296,7 +1300,7 @@ export function* buildIncal(scene) {
     //  to her after the light, followed by eye, not walked along)
     { name: 'the Lodestar’s light on Nima’s steps', points: nimaLight.line, auto: false }],
     // things to stop for that are neither people nor quests (the audit counts them as places): the climb's pads and relay lamp, Tobin's view pad
-    sights: [{ name: 'the lamplighters’ pad', at: ways.pad.at }, { name: 'the relay lamp', at: ways.relay.at }, { name: 'the lamplighters’ upper pad', at: ways.upper.at }, { name: 'Tobin’s view pad', at: ways.view.at }, { name: 'Tobin’s telescopes', at: ways.scopes.at }, { name: 'the cab rank', at: ways.rank.at }, ...(ways.locker ? [{ name: 'the lamplighters’ locker', at: ways.locker.at }] : []),
+    sights: [...port.sights.map((s) => ({ ...s, at: new THREE.Vector3(...s.at) })), { name: 'the lamplighters’ pad', at: ways.pad.at }, { name: 'the relay lamp', at: ways.relay.at }, { name: 'the lamplighters’ upper pad', at: ways.upper.at }, { name: 'Tobin’s view pad', at: ways.view.at }, { name: 'Tobin’s telescopes', at: ways.scopes.at }, { name: 'the cab rank', at: ways.rank.at }, ...(ways.locker ? [{ name: 'the lamplighters’ locker', at: ways.locker.at }] : []),
       // (issue #169: each quarter's own sight by the walk, and the great mirror on the rim; issue #174: and the four mirror
       //  decks down the bell quarter, each out over the void at its own height, a place to stand and turn its crank)
       ...quarters.sights.map(({ name, at }) => ({ name, at })), { name: 'the great mirror', at: mirrors.places[0].deck.clone() },
@@ -1443,6 +1447,7 @@ export function* buildIncal(scene) {
       pillars.update(dt, t, ctx ?? {});
       quarters.update(dt, t, ctx?.camera);
       mirrors.update(dt, t);
+      port.update(dt);
     },
     constrainCamera(pos) {
       if (pos.y > TOP - 0.5) return;

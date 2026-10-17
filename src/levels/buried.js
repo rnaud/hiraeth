@@ -2,6 +2,8 @@ import { COURTS } from '../finds/courts.js';
 import { templeVista } from '../temples/vistas.js';
 import { SITE as ENGINE_HOUSE } from '../temples/buried.js';
 import * as THREE from 'three';
+import { attachPort } from './port-pad.js';
+import { BURIED_PORT } from './ports.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { formAxis, padForm } from '../form.js';
 
@@ -1280,6 +1282,7 @@ export function* buildBuried(scene) {
   level.sights = () => [...sightsOf2(), { name: 'the keepers’ crown', at: breath.crown }, { name: 'the oil fall', at: breath.fall.pool }];
   const updateOf = level.update;
   level.update = function (dt, t, ctx) { updateOf.call(this, dt, t, ctx); stack.update(dt, t, ctx); flag.wave(t ?? 0); breath.update(dt, t, ctx); };
-  return level;
+  // the freight stage round the ship (issue #441, references/space-ports/buried-machine/sheet-1.jpg; src/levels/ports.js)
+  return attachPort(level, scene, BURIED_PORT, { groundAt: (x, z) => level.ground.heightAt(x, z) });
 }
 export const createBuried = stepped(buildBuried);

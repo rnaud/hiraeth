@@ -28,6 +28,7 @@ import { RING_CONTENT } from './fallen-ring.js';
 import { MOONFOUNDRY_CONTENT } from './moon-foundry.js';
 import { UNDERSIDE_CONTENT } from './underside.js';
 import { SPACECITY_CONTENT } from './space-city.js';
+import { PORTS } from './ports.js';
 import { UNDERWATER_CONTENT } from './underwater.js';
 import { TRAIN_CONTENT } from './overnight-train.js';
 import { HANGAR_CONTENT } from './dismissed/hangar/content.js';
@@ -313,6 +314,13 @@ export const CONTENT = {
   perdide: PERDIDE_CONTENT,
   fallenring: RING_CONTENT,   // src/levels/fallen-ring.js: off the route (names.js SIDE), no quest
 };
+
+// the space ports' staff (issue #441, src/levels/ports.js): each after its world's own people, so no index the errands
+// and the stories count on moves
+for (const [id, port] of Object.entries(PORTS)) {
+  const c = CONTENT[id];
+  if (c && Array.isArray(c.npcs) && port.staff?.length && !c.npcs.includes(port.staff[0])) c.npcs = [...c.npcs, ...port.staff];
+}
 
 // ---------------------------------------------------------------------------
 // The merged worlds (src/levels/names.js PARTS): a world's content is its parts', each moved to where the

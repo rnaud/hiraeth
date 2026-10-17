@@ -21,7 +21,9 @@ import { greebles } from './greeble-kit.js';
 import { Puffs } from '../life.js';
 import { nightPaint, MARKET_NIGHT, LANTERN_TINT, NIGHT_LIGHTS, NIGHT_CROWD_AWAY } from './market-night-kit.js';
 import { placeGameMarker } from '../minigames/kit/marker.js';
-import { gameById } from '../minigames/index.js';   // (none in node's tests: there is no glob there)
+import { gameById } from '../minigames/index.js';
+import { buildPort } from './port-pad.js';
+import { BAZAAR_PORT } from './ports.js';   // (none in node's tests: there is no glob there)
 
 // A street-level city, separate from the City-Shaft. Repeated details are
 // merged by street block and material so the mobile renderer can cull them.
@@ -475,6 +477,8 @@ export function* buildBazaar(scene) {
   // in the gap between two of the market's stalls, its counter and door turned to the avenue
   const cureStall = placeShop(scene, { def: SHOPS.curestall, at: new THREE.Vector3(-25, .3, -23.5), heading: Math.PI / 2 });
   lights.push(...cureStall.lights, ...nightHalt.lights);
+  // the Callsign Apron round the ship (issue #441, references/space-ports/signal-market/sheet-1.jpg; src/levels/ports.js)
+  const port = buildPort(BAZAAR_PORT); scene.add(port.group); lights.push(...port.lights);
   // the listeners' lane (src/market-ways.js, level design audit, fourth round): the back lane behind the west towers,
   // its old dishes all turned to the silent tower: the way home Sel sends you once it speaks again
   const lane = buildListenersLane(scene);
@@ -494,7 +498,7 @@ export function* buildBazaar(scene) {
     // home Sel sends you now, down through the old market and out through the screen lanes; the places to stop on them
     lines:[{ name:'the listeners’ lane', points:lane.points, auto:false }, { name:'the market in the air', points:air.line, auto:false },
       { name:'the old market and the screen lanes', points:[...old.line, ...lanes.line.slice(1)], auto:false }],
-    sights:[{ name:'the radio-mender’s table', at:lane.stall }, ...air.sights, ...old.sights, ...lanes.sights],
+    sights:[{ name:'the radio-mender’s table', at:lane.stall }, ...port.sights, ...air.sights, ...old.sights, ...lanes.sights],
     // (issue #191: the explorations, for the story and the tests)
     market:{ air, old, lanes },
     // (fifth round: the silent tower's aerial over its roof, the market's weenie, seen down the avenue over the stalls)
@@ -581,7 +585,7 @@ export function* buildBazaar(scene) {
     cabStops:CAB_STOPS, cabRoutes:CAB_ROUTES,
     update(dt,t,ctx){
       Taxi.playerPos=ctx?.player?.pos;
-      air.update(dt,t,ctx?.player); lanes.update(dt,t,ctx?.player);
+      air.update(dt,t,ctx?.player); lanes.update(dt,t,ctx?.player); port.update(dt);
       // after dark: the steam, the lanterns' pools (none by day: the shader looks at no light at all then)
       const k=sharedUniforms.uNight.value;
       sharedUniforms.uLampsOn.value=k;

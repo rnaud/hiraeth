@@ -16,7 +16,8 @@ import {
   SPACE_LOOK, SPACE_DAY, PLANET_TONE,
 } from './space-city-kit.js';
 import { buildDetours } from './space-city-detours.js';
-import { buildPortPad } from './port-pad.js';
+import { buildPort } from './port-pad.js';
+import { SPACECITY_PORT } from './ports.js';
 import { buildCityWays, routeOf, STACK_BRIDGE, OPENINGS, ANCHOR, STAIR_LAMP, UNDER, CAPSTAN, DRIFT, TIERS, corridors, inCorridor } from './space-city-ways.js';
 
 // ---------------------------------------------------------------------------
@@ -71,25 +72,8 @@ export const BRIDGES = [
 ];
 /** Where the ship lands (the Pier's middle, a little south of it: its ramp toward the bridge). */
 export const SHIP_SITE = { x: 0, z: 128 };
-/**
- * The port on the Pier (issue #397, a stand-in until the author picks a design: docs/design/space-ports.md): the
- * pad's ring round the ship's site (open at the bridge's mouth and round Amaro's shop), two docks out over the void
- * north-east and north-west, either side of the bridge, a moorer's craft in each, and three craft on slow loops over the city (src/levels/port-pad.js).
- */
-export const SC_PORT = {
-  pad: { x: SHIP_SITE.x, y: 0, z: SHIP_SITE.z, r: 19, dashes: 28, gaps: [[0, 108, 4.5], [-16, 112, 6]] },
-  docks: [
-    // (on the Pier's north rim either side of the bridge: seen as you walk off the ramp and from the Gate, clear of the hull)
-    { x: 0.64 * 26.4, y: 0, z: 122 - 0.77 * 26.4, yaw: Math.atan2(0.64, -0.77), len: 10, craft: '#5aa8a8' },
-    { x: -0.64 * 26.4, y: 0, z: 122 - 0.77 * 26.4, yaw: Math.atan2(-0.64, -0.77), len: 10, craft: '#e8a088' },
-  ],
-  traffic: [
-    { centre: [0, 0, -30], rx: 150, rz: 200, h: 30, speed: 13, color: '#f2d8c0' },
-    { centre: [10, 0, -40], rx: 125, rz: 165, h: 44, speed: 11, dir: -1, phase: 2.4, color: '#3e7e86' },
-    { centre: [0, 0, 60], rx: 70, rz: 95, h: 22, speed: 9, phase: 4.1, color: '#e8a088' },
-  ],
-  sight: { name: 'the Pier’s docks', at: [0.64 * 33, 0, 122 - 0.77 * 33] },
-};
+/** The port on the Pier: src/levels/ports.js SPACECITY_PORT (issue #441, after the #397 stand-in). */
+export const SC_PORT = SPACECITY_PORT;
 /** Below this you have fallen into the void: you come back where you last stood. */
 export const UNSAFE_Y = -40;
 /** The Market's plaza (clear of houses): its middle and radius. */
@@ -270,9 +254,10 @@ export function* buildSpaceCity(scene) {
     }
     // crates by the bridge's mouth, a mooring post with its cable down into the void
     for (const [x, z, s] of [[-7, 100, 1.1], [-8.4, 101.6, 0.9], [8, 99, 1.2]]) kit.add(M.wood, new THREE.BoxGeometry(s, s, s).translate(x, P.y + s / 2, z), { solid: true, shadow: true });
-    // the port's stand-in: the pad round the ship, the docks, the craft (issue #397)
-    port = buildPortPad(kit, { paint: M.rail, trim: M.pale, iron: M.iron, lamp: M.glowTeal, cable: M.cable }, SC_PORT);
-    for (const c of port.craft) { root.add(c); c.traverse((o) => o.isMesh && noShadow.push(o)); }
+    // the port (issue #441, references/space-ports/space-city/sheet-1.jpg): the red bands, the hoop cradles off the rim
+    // with their boats, the lamp-mast and the harbour hut by the bridge, boats over the city (src/levels/ports.js)
+    port = buildPort(SC_PORT);
+    root.add(port.group); noShadow.push(...port.noShadow); lights.push(...port.lights);
   }
 
   // ---------------------------------------------------------- the Gate Quarter: its lane, its lamps, washing over it

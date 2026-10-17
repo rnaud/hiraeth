@@ -10,7 +10,8 @@
 //   a link to the main checkout's, give one inside the worktree, .vite-cache/qc, or its deps cannot find three)
 // A view: { world, name, eye, target, player?, heading?, hour?, weather?, fov?, flags? (the save its world boots with), act? (an expression
 // run in the page before the shot) }.
-// Writes <out-dir>/<view name>.png for each view, <svg name>.png beside each SVG, and <out-dir>/captured.json.
+// Writes <out-dir>/<view name>.png for each view, <svg name>.png beside each SVG, and <out-dir>/captured.json (each view's
+// draw calls and triangles a frame, averaged over a second before the shot).
 import { spawn } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tempDir, ownProcess, viteCacheDir } from '../temp-dirs.mjs';
@@ -98,8 +99,11 @@ for (const [n, world] of worlds.entries()) {
     if (v.act) { await sleep(1500); const r = await ev(v.act); if (typeof r === 'string' && r.startsWith('ERR')) console.log(`${v.name}: ${r}`); }
     await ev(`(() => { if (window.sky) { window.sky.hour = ${v.hour ?? 12}; window.sky.speed = 0; window.updateSky?.(); } return true; })()`);
     await sleep(v.player ? 3500 : 2500);   // (a teleport: the world round him streams in)
+    // (the frame's draw calls and triangles over a second, from main.js frameStats: a change's cost, view by view)
+    const cost = await ev(`new Promise((r) => { const f = window.frameStats, s = []; const t = setInterval(() => { if (f?.n) s.push([f.calls / f.n, f.tris / f.n]); }, 40);
+      setTimeout(() => { clearInterval(t); const m = (i) => s.length ? Math.round(s.reduce((a, x) => a + x[i], 0) / s.length) : null; r({ calls: m(0), tris: m(1) }); }, 1200); })`);
     await shoot(join(OUT, `${v.name}.png`));
-    captured.push({ world, name: v.name, note: v.note ?? '' });
+    captured.push({ world, name: v.name, note: v.note ?? '', ...(cost && typeof cost === 'object' ? cost : {}) });
   }
   console.log(`${world}: ${views.filter((x) => x.world === world).length} views`);
 }
