@@ -1,0 +1,72 @@
+engine/game.js
+  s_72eaf1e6ad4df0::t_b3571dca297dc0 109-110,225-227,239-246,260,1085-1096,1098,1101,1107-1108,1110-1112,1114,1117
+  s_5f899ba316b5dc::t_67b2e686b2394f 1118
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHost.cs
+  s_5f899ba316b5dc::t_fafb84e4a9681e 164-165
+engine/unity/backend.js
+  s_72eaf1e6ad4df0::t_2a5d650324f774 455-456
+engine/unity/game.js
+  s_72eaf1e6ad4df0::t_9ec719855e0cdd 14,295
+src/ship/ship.js
+  s_72eaf1e6ad4df0::t_68319340986440 829-833,835
+unity/Hiraeth/Assets/Hiraeth/Shaders/Bloom.shader
+  s_5f899ba316b5dc::t_50a5631cbe0acf 44-47
+unity/Hiraeth/Assets/Hiraeth/Shaders/Marks.hlsl
+  s_5f899ba316b5dc::t_99d65c22b2ae7a 130-186,188-211,215-235,237-246,248-251,253-255,259-261,263,265-267,269-281,283
+unity/Hiraeth/Assets/Hiraeth/Shaders/Surface.shader
+  s_5f899ba316b5dc::t_27182bb47831a0 985,989,994-996,1000,1006,1160-1169,1190,1195
+engine/mirror.js
+  s_72eaf1e6ad4df0::t_bfbc2d2db0aa6f 368-371
+unity/Hiraeth/Assets/Hiraeth/Runtime/HiraethLook.cs
+  s_5f899ba316b5dc::t_51afa5cc959c52 15-16,213-215
+changelog.md
+  s_5f899ba316b5dc::t_03f86d5383f569 7
+docs/systems/bridge-gaps.md
+  s_5f899ba316b5dc::t_865c6673faaf2f 106,139-141,143-155
+docs/systems/engine-bridge.md
+  s_5f899ba316b5dc::t_138f352340ee53 1833-1834,1847-1881
+engine/bridge-gaps.js
+  s_5f899ba316b5dc::t_54ae0f3f5e6b3b 242,266,324-325,328-331,333-348
+engine/traveller-paint.js
+  s_5f899ba316b5dc::t_749ac2f37155d3 1-64
+scripts/bridge-gaps.mjs
+  s_5f899ba316b5dc::t_cf8ec5254052fd 286-288
+scripts/unity-compare/sequences.mjs
+  s_5f899ba316b5dc::t_76902efdc3ada0 79-81
+src/changelog-media.js
+  s_5f899ba316b5dc::t_8718e16c6ed76f 1120,1151-1156
+src/changelog.js
+  s_5f899ba316b5dc::t_53ca1e8a99f300 60-63
+tests/engine-unity-gaps.test.js
+  s_5f899ba316b5dc::t_dc00175569e07f 1-85
+tests/sequences-check.js
+  s_5f899ba316b5dc::t_5e6d6b0f8776d5 60
+tests/sequences-web.json
+  s_5f899ba316b5dc::t_4912e1e508d5e9 3,3153,3194,4239,4262-4264,4268-4269,4344-4346,4350-4351,4370-4372,4376-4377
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHud.cs
+  s_5f899ba316b5dc::t_9e6dcf8ad1bdb2 89,100-102,856,1525-1547,1553-1566,1568
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "323f2919be84e74782a547f703d5f9aa6a19a8ed",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_72eaf1e6ad4df0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-abe6f17391b1a57f2",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
