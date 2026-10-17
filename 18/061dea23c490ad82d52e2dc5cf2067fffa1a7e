@@ -1,0 +1,87 @@
+changelog.md
+  s_5f899ba316b5dc::t_04a9e6f1d9cd4c 5-7,9
+docs/systems/bridge-gaps.md
+  s_5f899ba316b5dc::t_b4483553efed55 13-14,79,83
+docs/systems/engine-bridge.md
+  s_5f899ba316b5dc::t_99c3ad8b58c9ec 1756-1791
+engine/bridge-gaps.js
+  s_5f899ba316b5dc::t_d74f26d56934d5 181-182,184-191
+engine/game.js
+  s_5f899ba316b5dc::t_517fdd20f055f1 25,43-44,708-716,880,938,947-948,1269-1270,1512,1594-1604
+engine/menus.js
+  s_5f899ba316b5dc::t_1290079d7710d6 221,438-494,546,560,579,1035
+engine/ui-poses.js
+  s_5f899ba316b5dc::t_a3f248a0b0f8fa 1-56
+engine/unity/game.js
+  s_5f899ba316b5dc::t_29d2fdc544d9e2 38-40,321-325,510-519,863-864,866,934-938
+scripts/bridge-gaps.mjs
+  s_5f899ba316b5dc::t_f4803267d45c9c 104
+src/aliens/alien.js
+  s_5f899ba316b5dc::t_5932b1bde17d3b 5,24,128,283,285,300
+src/boxes/effects.js
+  s_5f899ba316b5dc::t_5e4013d6497018 11,155-156,158,160-168,184
+src/changelog-media.js
+  s_5f899ba316b5dc::t_66853dc51a7263 1106-1107,1109,1117-1122
+src/changelog.js
+  s_5f899ba316b5dc::t_f01b6c120d2b58 11,15-18
+src/crowd.js
+  s_5f899ba316b5dc::t_a28345705fe9ae 10,1263,1265-1267,1276
+src/hud-shows.js
+  s_5f899ba316b5dc::t_d67a8a0de38fc3 1-56
+src/levels/arcade-board.js
+  s_5f899ba316b5dc::t_e8bfe378f217dc 46-52,63,102,107
+src/main.js
+  s_5f899ba316b5dc::t_01411467b30c11 142-143,2418-2419,2422,2556
+src/minigames/kit/runner.js
+  s_5f899ba316b5dc::t_2e32d3e2641f67 521
+src/npc.js
+  s_5f899ba316b5dc::t_ed9797c1812891 14,90,230,836,840,859-860
+src/ship/cinema.js
+  s_5f899ba316b5dc::t_4e44e1d7581db0 23-24,63,445-451
+src/ship/homecoming.js
+  s_5f899ba316b5dc::t_ca6b729c686d6e 1,9-12,184-195,197,200-206,213-214,216,223,231,245-248,252-256,258,260-262,267,272-273,502,621-622
+src/water.js
+  s_5f899ba316b5dc::t_d80d550900f68d 4,878-891,896,912-913
+tests/engine-finishable.test.js
+  s_5f899ba316b5dc::t_1703aadbd8ab6a 34-40,110-113,122-129,131-133
+tests/engine-ui-parts.test.js
+  s_5f899ba316b5dc::t_143500d467dd83 1-163
+tests/hud-shows.test.js
+  s_5f899ba316b5dc::t_4cb56c21fffa6c 1-60
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeArgs.cs
+  s_5f899ba316b5dc::t_017bce2a411874 203
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHud.Parts.cs
+  s_5f899ba316b5dc::t_0eb7847e05471b 1-348
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHud.Parts.cs.meta
+  s_5f899ba316b5dc::t_f0e03c9880d9b3 1-2
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHud.cs
+  s_5f899ba316b5dc::t_03d75647db803a 108,114,355-359,376-378,384-398,400-403,407-408,410-411
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.cs
+  s_5f899ba316b5dc::t_34efdc2c6cd25d 340,768-788,1052-1054
+src/balloon-part.js
+  s_d2282157228329::t_b2963ee0e0feb1 1-46
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "18061dea23c490ad82d52e2dc5cf2067fffa1a7e",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_d2282157228329": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a7dd2898b81bc8137",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
