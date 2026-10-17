@@ -1905,7 +1905,8 @@ real traveller (src/player.js, driven as tests/door-bypass.test.js drives him) f
 the lock, so the way back, a drop off a walkway into the room under it, is no skip), 2.5 m apart, within the wings' reach
 of the far side, toward its nearest spot and 0.35 rad either way, a run-up, the jump, the double jump at its top or late
 in its fall, and the wings held open with the stick let go; where he comes to stand must not be the far side, unless the
-same jumps without the wings get there too (not the wings': `WINGS_LOG=1` lists those). `WINGS_FREE=1` flies the open
+same jumps without the wings get there too; since #444 that fails as well (a bare jump over a lock; `WINGS_LOG=1` lists them
+as it goes). `WINGS_FREE=1` flies the open
 world's glide as well and lists what it crosses. On the fourteen houses at 75b95f7ed (the Engine-, Mooring-, Clock- and
 Casting-Houses and the Undertower reworked):
 
@@ -1919,13 +1920,20 @@ Casting-Houses and the Undertower reworked):
 | the Clock-House | the gallery's chasm (`br1`) |
 | the Builders' Greenhouse | the Vine Gulf (`vine1`) |
 | the Undertower | the dishes' gap (`disc`); the Gallery of Voices' gap without the recall and the lens |
-| the Mooring-House | the gallery's halves without the moored room (`rideW`); the gangway (`br2`); the Cable Walk (`cw`) |
+| the Mooring-House | the gallery's halves without the moored room (`rideW`); the Cable Walk (`cw`) (the gangway, `br2`, was the walker's: #444) |
 | the Rose House, the Hush-House, the Aerie, the Casting-House, the Whale-House | nothing |
 
 With the rule nothing crosses in any house. The narrowest was the Undertower's dishes' gap, 17 m, a metre past a running
 jump and the double jump alone: the reason the ratio is 1 and not the 2–2.5 that clear the 25–30 m chasms. Found on the
-way, not the wings' (open): the Mooring-House's gangway gap (`br2`) is crossed from the Chain Locker's side by a running
-jump and a late double jump alone, no wings. The Aerie's designed glides on still air (off the gallery into the Wind
+way: the Mooring-House's gangway gap (`br2`) "crossed from the Chain Locker's side by a running jump and a late double
+jump alone". It was not (issue #444): the walker (house-walk.js `walk`) had stepped off the east landing's railing onto
+the hall's north wall's face, a cell exactly on its plane; the ray down from there runs inside the wall and meets the
+underside of its foot (4 m under the floor) as ground, and a body on the face's plane is pushed nowhere (the push's
+direction is zero). The flood ran along inside the wall, over the void and under the west landing, and the traveller flew
+from it. The real gap is 20 m; a running jump and the double jump from the lip come down level with it some 9 m short. The
+walker now refuses a floor met from inside a solid (a ray down from just over it meets the face from behind:
+`Physics.rayHit` `front`), `tests/house-walk.test.js` keeps it so, and the reach check fails on any bare jump over a
+lock. The house is unchanged. The Aerie's designed glides on still air (off the gallery into the Wind
 Well's column, off the Eyrie's ledge into its column, off the column's top over the Gulf's second leg) now go through
 the makers’ breath (`WingAir`) over each while its column rises, and the Gulf's first leg through its gust (held a stride
 before it, `AIR_LEAD`): its walk on foot passes unchanged, and the Roost breathes all round the Elder. One other designed

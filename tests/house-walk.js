@@ -75,6 +75,7 @@ export function walk(W, from, { cell = WALK.cell, rise = RISE.doublejump, drop =
   const q = [from.clone()];
   const _o = V(), _d = V(), _c = V(), _push = V();
   const tight = (x, y, z) => { const pushed = physics.pushCapsule(_c.set(x, y, z), BODY.r, BODY.bottom, BODY.top, _push); return !!pushed && pushed.length() > BODY.give; };
+  const inside = (x, y, z) => { const h = physics.rayHit(_o.set(x + 1.37e-4, y + 0.3, z + 2.91e-4), _d.set(0, -1, 0), 0.6); return !!h && !h.front; };
   let n = 0;
   while (n < q.length && n < max) {
     const c = q[n++];
@@ -90,6 +91,10 @@ export function walk(W, from, { cell = WALK.cell, rise = RISE.doublejump, drop =
         if (physics.rayDistance(_o.set(x, g + 0.3, z), UP, 1.9) < 1.5) continue;
         // (room for the traveller's body, there and on the way: a slit beside a door or in a wall too narrow for him is no way)
         if (tight(x, g, z) || tight(c.x + dx / 2, Math.max(c.y, g), c.z + dz / 2)) continue;
+        // (a floor met from inside a solid is no floor: a cell on a wall's face drops into the wall's thickness, where
+        // the underside of its foot looks like ground and a body on the face's plane is pushed nowhere; the Mooring-House's
+        // north wall walked from the east landing's railing to under the west landing, #444)
+        if (inside(x, g, z)) continue;
         const p = V(x, g, z);
         if (harmful(W, p)) continue;
         const k = key(x, g, z);

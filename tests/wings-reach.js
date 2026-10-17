@@ -10,8 +10,9 @@
 //     (the glide's flattest);
 //   - from the lock's near side (its link's `a`) to its far one: the far side is had only through the lock, so the way
 //     back (a drop off a walkway back into the room under it) is no skip;
-//   - where he comes to stand must not be on the other side (and nothing of his own side within a stride), unless the
-//     same run-up, jump and double jump get there without the wings (not theirs: WINGS_LOG=1 lists those).
+//   - where he comes to stand must not be on the other side (and nothing of his own side within a stride); and when the
+//     same run-up, jump and double jump get there without the wings, that fails too, a bare jump over a lock (#444:
+//     WINGS_LOG=1 lists those as it goes).
 // WINGS_FREE=1 also flies the open world's glide in the house and lists what it crosses, the findings of #436
 // (docs/systems/temples.md, "No hook past a lock"):
 //   WINGS_FREE=1 node --test tests/wings-reach-*.test.js --test-name-pattern=<the house's name>
@@ -136,6 +137,8 @@ for (const id of Object.keys(TEMPLES).filter((_, i) => i % of === part)) {
     if (FREE) console.error(`[${id}] ${TEMPLES[id].def.name}, the open world's glide: ${free.length ? `\n    ${free.join('\n    ')}` : 'nothing crossed'}`);
     if ((FREE || process.env.WINGS_LOG) && jumped.length) console.error(`[${id}] without the wings, a jump and the double jump already cross:\n    ${jumped.join('\n    ')}`);
     assert.deepEqual(bad, [], `${id}: ${bad.join('; ')}`);
+    // (and none without them: a running jump and the double jump over a lock is a skip too, the wings' or not; #444)
+    assert.deepEqual(jumped, [], `${id}, without the wings: ${jumped.join('; ')}`);
   });
 }
 }
