@@ -365,6 +365,10 @@ export class SceneMirror {
       if (Array.isArray(M)) { for (const m of M) { this._live(m, f); moved = Math.max(moved, m.__mirrorMovedAt ?? -1e9); } } else if (M) { this._live(M, f); moved = M.__mirrorMovedAt ?? -1e9; }
       node.matMovedAt = moved;
     }
+    // ...and its after-hook once its material's values are read, as the renderer calls it after the draw: a hook that lends
+    // its material a look for the draw (a foe's flash, foe-react.js installFlash) gives it back. (Never called before, a
+    // struck foe stayed white and glowing in Unity, its flash laid on again every frame: issue #264)
+    if (look && Object.prototype.hasOwnProperty.call(o, 'onAfterRender') && Object.prototype.hasOwnProperty.call(o, 'onBeforeRender')) { try { o.onAfterRender(RENDERER_STUB, scene, camera, geo, o.material, null); } catch { /* as above */ } }
     // a MakeHuman face's shape keys (face-keys.js: the mesh's own weights), when they move
     const KW = look ? o.userData.keyWeights : null;
     if (KW && B.keyWeights) {

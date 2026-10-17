@@ -106,6 +106,8 @@ import { slots, slotStorage } from '../src/save-slots.js';
 import { menuSources } from '../src/game-menu-data.js';
 import { WorldMap, MAP, mapBounds, zoomBounds, mapMarks, scaleBar } from '../src/world-map.js';
 import { houseHere, houseView } from '../src/house-map.js';
+import { interiorAt } from '../src/interior-kit.js';
+import { fillUnfound, portraitPaint } from './traveller-paint.js';
 import { PixelCanvas } from './raster.js';
 import { GIVERS_NOTE } from '../src/story/signature.js';
 import { rumblePlay } from '../src/rumble.js';
@@ -220,6 +222,9 @@ function engineColours(ch, { gltf, colors, headColors }) {
       c[i * 3] = col.r; c[i * 3 + 1] = col.g; c[i * 3 + 2] = col.b;
     }
     if (found < P.count * 0.8) continue;   // (not the same places: left as it is)
+    // (the vertices the cloth made where it cut and hemmed the overshirt have no place in the skin: they were left black,
+    // a dark band round his waist in Unity's close-ups, issue #264; each takes its found neighbours' colour instead)
+    if (found < P.count) fillUnfound(part.geometry, c, (i) => at.has(key(P, i)));
     part.geometry.setAttribute('color', new THREE.BufferAttribute(c, 3));
     part.material.vertexColors = true;
   }
@@ -231,6 +236,14 @@ function engineColours(ch, { gltf, colors, headColors }) {
     headColors.forEach((rgb, i) => { col.setRGB(...rgb.map(v => v / 255)).convertSRGBToLinear(); col.toArray(c, i * 3); });
     head.geometry.setAttribute('color', new THREE.BufferAttribute(c, 3));
     head.material.vertexColors = true;
+    portraitPaint(head);
+  }
+  // the old collar lining tucked under the portrait's neck, in its skin (traveller-b3.js fitB3NeckMaterial: a display
+  // colour over the paint by b3NeckSkin; without it a black patch at the foot of his neck in Unity's close-ups)
+  const neck = ch.mesh?.geometry?.attributes?.b3NeckSkin, body = ch.mesh?.geometry?.attributes?.color;
+  if (neck && body?.itemSize === 3) {
+    const sk = new THREE.Color().setRGB(0.79, 0.525, 0.37, THREE.SRGBColorSpace);
+    for (let i = 0; i < neck.count; i++) { const t = neck.getX(i); if (t > 0) body.setXYZ(i, body.getX(i) + (sk.r - body.getX(i)) * t, body.getY(i) + (sk.g - body.getY(i)) * t, body.getZ(i) + (sk.b - body.getZ(i)) * t); }
   }
   // the overshirt's lining on its back faces, the trousers' repaired band in their fabric (tripo-material.js, linear)
   const lin = (hex) => new THREE.Color().setHex(hex, THREE.LinearSRGBColorSpace).convertSRGBToLinear().toArray();
@@ -243,6 +256,7 @@ function engineColours(ch, { gltf, colors, headColors }) {
   }
   for (const p of parts) for (const m of Array.isArray(p.material) ? p.material : [p.material]) if (m) m.userData.albedoLinear = true;
 }
+
 
 /**
  * A guardian's generated skin (the Keeper's, the Elder's) in an engine: its texture is a JPEG no engine VM decodes, so
@@ -1068,26 +1082,40 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     for (const k of pictures.keys()) if (!kept.has(k)) pictures.delete(k);
     menus?.changed?.();
   };
+  // (inside a shop's or a temple's room, built far from the ground: at its door on the map, as main.js mapAt. Without it
+  // the people and boxes in those rooms framed the map kilometres wide and lifted its rays over the ground: the Signal
+  // Market's Map was a plain sheet in Unity, issue #264)
+  const mapAt = (p) => {
+    const room = interiorAt(p);
+    if (room?.door?.at) return room.door.at;
+    for (const t of level.temples ?? []) {
+      const a = t.arrival?.pos, d = t.outside?.door?.at;
+      if (a && d && Math.abs(a.y - d.y) > 300 && Math.abs(p.y - a.y) < 300) return d;
+    }
+    return p;
+  };
   const temples = () => (level.temples ?? []).filter((t) => t.outside?.door?.at).map((t) => ({ id: t.id, name: t.def?.name, x: t.outside.door.at.x, z: t.outside.door.at.z, y: t.outside.door.at.y }));
+  const xz = (p) => ({ x: p.x, z: p.z });
   function mapSource({ zoom = null, detail = null, aspect = 1 } = {}) {
     if (!mapWhole || mapWhole.aspect !== aspect) {
-      const pts = mapWhole?.pts ?? [level.spawn, level.ship?.pos, ...temples(), ...npcs.map((n) => n.pos), ...(boxes?.list ?? []).map((b) => b.pos), player.pos].filter(Boolean).map((p) => ({ x: p.x, y: p.y, z: p.z }));
+      const pts = mapWhole?.pts ?? [level.spawn, level.ship?.pos, ...temples(), ...npcs.map((n) => n.pos && mapAt(n.pos)), ...(boxes?.list ?? []).map((b) => b.pos && mapAt(b.pos)), mapAt(player.pos)].filter(Boolean).map((p) => ({ x: p.x, y: p.y, z: p.z }));
       mapWhole = { bounds: mapBounds(pts, { limit: level.limit ?? Infinity, aspect }), pts, aspect, top: mapWhole?.top ?? Math.max(...pts.map((p) => p.y ?? 0).filter(Number.isFinite)) + MAP.up };
     }
     const dir = player.frame.dir(player.heading, new THREE.Vector3());
     const goal = nextObjective({ player, story: null, ship: level.ship, level: { navigationPortals: [] }, quest: () => story?.objective?.() });
     // (the people with a quest waiting for their talk: issue #273, as main.js mapSource)
-    const givers = (story?.quests?.giverMarks?.() ?? []).map((g) => ({ id: g.person, name: npcs.find((n) => n.def?.id === g.person)?.def?.name ?? null, label: g.label, x: g.position.x, z: g.position.z }));
+    const givers = (story?.quests?.giverMarks?.() ?? []).map((g) => ({ id: g.person, name: npcs.find((n) => n.def?.id === g.person)?.def?.name ?? null, label: g.label, ...xz(mapAt(g.position)) }));
+    const you = mapAt(player.pos);
     const raw = {
-      you: { x: player.pos.x, z: player.pos.z, dx: dir.x, dz: dir.z },
-      ship: level.ship?.pos && levelId !== 'home' ? level.ship.pos : null,
-      goal: goal?.position ? { x: goal.position.x, z: goal.position.z, label: goal.label } : null,
+      you: { x: you.x, z: you.z, dx: dir.x, dz: dir.z },
+      ship: level.ship?.pos && levelId !== 'home' ? mapAt(level.ship.pos) : null,
+      goal: goal?.position ? { ...xz(mapAt(goal.position)), label: goal.label } : null,
       // (the other quests under way, at their steps: issue #244, the marks of kind 'quest')
-      quests: (story?.quests?.objectives?.() ?? []).filter((q) => !q.tracked && q.position).map((q) => ({ id: q.quest, title: q.title, label: q.label, x: q.position.x, z: q.position.z })),
+      quests: (story?.quests?.objectives?.() ?? []).filter((q) => !q.tracked && q.position).map((q) => ({ id: q.quest, title: q.title, label: q.label, ...xz(mapAt(q.position)) })),
       givers,
       temples: temples(),
-      people: npcs.filter((n) => n.def?.id && n.pos && gameState.flag(`met.${n.def.id}`) && !givers.some((g) => g.id === n.def.id)).map((n) => ({ id: n.def.id, name: n.def.name ?? n.def.id, x: n.pos.x, z: n.pos.z })),
-      boxes: (boxes?.list ?? []).filter((b) => b.opened?.()).map((b) => ({ id: b.id, name: ITEMS[b.item]?.name ? `${ITEMS[b.item].name}’s box` : null, x: b.pos.x, z: b.pos.z })),
+      people: npcs.filter((n) => n.def?.id && n.pos && gameState.flag(`met.${n.def.id}`) && !givers.some((g) => g.id === n.def.id)).map((n) => ({ id: n.def.id, name: n.def.name ?? n.def.id, ...xz(mapAt(n.pos)) })),
+      boxes: (boxes?.list ?? []).filter((b) => b.opened?.()).map((b) => ({ id: b.id, name: ITEMS[b.item]?.name ? `${ITEMS[b.item].name}’s box` : null, ...xz(mapAt(b.pos)) })),
       // (the rumours told and not found yet, as main.js mapSource: issue #340)
       rumours: story?.rumours?.marks?.() ?? [],
     };

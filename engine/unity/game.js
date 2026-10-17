@@ -11,6 +11,7 @@ import { musicDecoder, pollMusic, themeDownloads } from './music.js';
 import { SOUNDTRACKS } from '../../src/soundtracks.js';
 import { UnityBackend } from './backend.js';
 import { portLook } from './port-format.js';
+import { sharedUniforms } from '../../src/materials.js';
 import { fullGcWatch } from './gc-watch.js';
 import { panSteps } from './pan.js';
 import { WorldLabels } from '../../src/minigames/kit/labels.js';
@@ -291,6 +292,7 @@ function pageTo({ level, from = null }) {
 function launch(args, { start: from = null, arrive = false, via = null, prologue = false, game = null, came = null } = {}) {
   const t0 = now();
   const backend = new UnityBackend(host);
+  backend.clock = () => sharedUniforms.uTime.value;   // (the shaders' time: HiraethLook.GameClock)
   backend.portraitDir = args.out ?? null;
   // (-js-off a,b: the script's own measures turned off for a before-and-after on one build: still, the mirror's still
   // matrices; hidden, the hidden subtrees' matrices; people, the people out of view; shape, the banners' frames moved by vertices();

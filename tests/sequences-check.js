@@ -57,6 +57,7 @@ export function checkList() {
   }
   for (const e of PICTURE_DIFFS) {
     if (!e.what || !(e.issue > 0)) bad.push(`picture ${e.seq}: its what and its issue`);
+    if (e.status != null && (e.status !== 'handled' || !e.where)) bad.push(`picture ${e.seq}: status is 'handled' with its where, or none (a gap)`);
     if (!SEQUENCES.some((s) => glob(e.seq).test(s.id))) bad.push(`picture ${e.seq}: no such sequence`);
   }
   return bad;

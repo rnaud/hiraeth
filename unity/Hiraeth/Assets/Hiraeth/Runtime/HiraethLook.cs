@@ -12,6 +12,8 @@ namespace Hiraeth
     [ExecuteAlways]
     public class HiraethLook : MonoBehaviour
     {
+        /// <summary>The game's clock in s (the JS bridge's sharedUniforms.uTime, BridgeHost.Clock), or -1: Unity's Time.time.</summary>
+        public static float GameClock = -1f;
         [Range(0, 24)] public float hour = 9.5f;
         public float hoursPerMinute = 0f;
         public Light sun;
@@ -208,7 +210,9 @@ namespace Hiraeth
             Shader.SetGlobalVector("_SpaceTone", V4("uSpaceTone", new Vector4(0.1f, 0.16f, 0.22f, 1)));
             Shader.SetGlobalVector("_SpaceSun", V4("uSpaceSun", new Vector4(0, 1, 0, 0)));
             Shader.SetGlobalVector("_SpaceNight", V4("uSpaceNight", Vector4.zero));
-            float time = Application.isPlaying ? Time.time : 0f;
+            // (the game's own clock when the JS bridge sends it, the web's uTime: the clouds' drifting shadows and the
+            // other things that move with the time fall where the page's do, issue #264; else Unity's)
+            float time = !Application.isPlaying ? 0f : GameClock >= 0f ? GameClock : Time.time;
             Shader.SetGlobalFloat("_MTime", time);
             // (the bridge's look carries the web's own wind, materials.js uWind: downwind x, z in three's space, strength, gust)
             var sw = look.O("shared")?.L("uWind");

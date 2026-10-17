@@ -214,20 +214,6 @@ float faceCracks(float2 q, float fwx, float k) {
   }
   return ink;
 }
-float glyphs(float2 g, float2 fw) {
-  float2 cell = floor(g), f = frac(g) - 0.5;
-  float h = hash(cell * 1.37 + 4.1);
-  if (h > 0.45) return 0.0;
-  float px = 1.0 / max(max(fw.x, fw.y), 1e-6);
-  if (px < 14.0 * _PixelRatio) return 0.0;
-  float bits = floor(hash(cell + 9.3) * 16.0);
-  float m = 0.0;
-  if (gmod(bits, 2.0) >= 1.0) m = max(m, inkLine(abs(length(f) - 0.26) * px, 1.2));
-  if (gmod(floor(bits / 2.0), 2.0) >= 1.0) m = max(m, inkLine(max(abs(f.x), abs(f.y) - 0.34) * px, 1.2));
-  if (gmod(floor(bits / 4.0), 2.0) >= 1.0) m = max(m, inkLine(max(abs(f.y - 0.12), abs(f.x) - 0.3) * px, 1.2));
-  if (gmod(floor(bits / 8.0), 2.0) >= 1.0 || bits < 1.0) m = max(m, 1.0 - smoothstep(0.05 * px, 0.05 * px + 1.0, length(f - float2(0.0, -0.22)) * px));
-  return m;
-}
 float grassTicks(float2 p, float2 fwp) {
   float cell = 1.4;
   float2 g = p / cell, id = floor(g);

@@ -41,7 +41,10 @@ Shader "Hidden/Hiraeth/Bloom"
             float a = fmod(_GHatch.Load(int3(p, 0)).a, 16.0);   // (+16 a face, +32 banked sand: post.js)
             a -= 8.0 * step(7.5, a); a -= 4.0 * step(3.5, a); a -= 2.0 * step(1.5, a);
             float e = smoothstep(0.62, 0.9, a);
-            if (e > 0.0) { float3 c = _GAlbedo.Load(int3(p, 0)).rgb * e; sum += c; mx = max(mx, c); }
+            // (a pixel that isn't a number, a glowing facet seen edge on, would spread over the whole blur and black out the
+            // picture: the Signal Market's white signs, issue #264; left out, as WebGL's blending clamps it away)
+            float3 c = _GAlbedo.Load(int3(p, 0)).rgb * e;
+            if (e > 0.0 && all(c == c) && all(c < 65000.0)) { sum += c; mx = max(mx, c); }
           }
         return float4(lerp(sum / 16.0, mx, 0.5), 1.0);
       }

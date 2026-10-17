@@ -452,6 +452,8 @@ export class UnityBackend {
     this.stats.frames++; this.stats.commandBytes = buf.byteLength;
     const t0 = performance.now();
     this.host.Frame(this.toHost(buf));
+    // (the game's clock for the shaders' time: the clouds' shadows drift as the page's do, issue #264)
+    if (this.clock) this.host.Clock?.(this.clock());
     this.stats.hostMs += performance.now() - t0;   // (the call: Puerts' marshalling and the C# apply)
   }
 

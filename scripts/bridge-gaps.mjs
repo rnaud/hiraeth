@@ -283,7 +283,9 @@ export function reportMarkdown() {
   for (const st of ['gap', 'web-only', 'handled']) for (const e of STREAM_DIFFS.filter((x) => x.status === st)) L.push(`- ${st === 'gap' ? `**${e.what}** (#${e.issue})` : `${e.what} (${st === 'web-only' ? `web only: ${e.why}` : `handled: ${e.where}`})`}: \`${e.seq}\`${e.beat ? ` at ${e.beat}` : ''}, ${e.keys.map((k) => `\`${k}\``).join(', ')}`);
   L.push('');
   L.push('## What the sequences\' pictures show differently in Unity', '', 'Read from the sheets of `node scripts/unity-compare/sequences.mjs` (Unity\'s batch run against headless Chrome, beat by beat), most visible first:', '');
-  for (const e of [...PICTURE_DIFFS].sort((a, b) => (b.visible ?? 0) - (a.visible ?? 0))) L.push(`- **${e.what}** (#${e.issue}, ${RANK[e.visible ?? 0]}): \`${e.seq}\`${e.beat ? ` at ${e.beat}` : ''}`);
+  for (const e of PICTURE_DIFFS.filter((x) => x.status !== 'handled').sort((a, b) => (b.visible ?? 0) - (a.visible ?? 0))) L.push(`- **${e.what}** (#${e.issue}, ${RANK[e.visible ?? 0]}): \`${e.seq}\`${e.beat ? ` at ${e.beat}` : ''}`);
+  const fixed = PICTURE_DIFFS.filter((x) => x.status === 'handled');
+  if (fixed.length) L.push('', '**Handled**:', '', ...fixed.map((e) => `- ${e.what} (#${e.issue}): ${e.where}; \`${e.seq}\`${e.beat ? ` at ${e.beat}` : ''}`));
   L.push('');
   L.push('## Dev pages and tools', '', `Their own HTML pages or developer tools, never in a player's game, not looked at for shaders, passes or page elements: ${DEV_PAGES.map((d) => `\`${d.path}\``).join(', ')}.`, '');
   return L.join('\n');

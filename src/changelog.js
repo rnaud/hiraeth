@@ -60,6 +60,10 @@ export const CHANGELOG = [
     // issue #433: src/gadgets/springs.js (launchHeight / launchVelocity `house`, Springs.inHouse); tests/boots-reach.test.js,
     // tests/engine-springs.test.js, tests/house-walk.js (lockSides)
     'Inside the makers’ houses the spring boots only hop: they won’t wind there, and a bounce goes no higher, so a launch can no longer carry you up onto a gallery or over a gap before its puzzle opens the way. Jump and press again in the air to stomp, as before. Out in the world they still throw you fourteen metres up.',
+    // issue #264 (the sequences' gaps): Bloom.shader (a pixel not a number), engine/game.js mapAt, engine/mirror.js onAfterRender,
+    // engine/traveller-paint.js, Marks.hlsl weatherInk and glyphCarve, BridgeHud.cs KeyGlyph and the 3-2-1, src/ship/ship.js
+    // applyCamera (the lens left alone); tests/engine-unity-gaps.test.js
+    'In the Unity version, the Signal Market’s broadcast no longer goes black, the Map draws its ground, a struck foe flashes and falls to its ink instead of staying white, his face close up is clean of ink blotches, Vael’s walls have fine cracks instead of dark drips, the builders’ walls in Edena carry their carved inscriptions again, the dark band round his shirt is gone, the temples’ key counter is a key, and the 3-2-1 is its proper size. In the ring race and the ski run the view now widens as you pick up speed, as it was meant to.',
   ] },
   { v: '1.82', date: '2026-10-16', items: [
     // issue #399: src/hook-foes.js (each kind's `hook` class, hookOutcome, lockShot), src/gadgets/hook.js fireAtLock /

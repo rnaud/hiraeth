@@ -86,7 +86,7 @@ namespace Hiraeth.Bridge
             health = Ui.Panel(root, "health", Ui.Page, Ui.Ink, 2, 2, 2, 6);
             healthFill = Ui.Rect(health.fill.rectTransform, Ui.Hp, 0, "hp");
             healthEdge = Ui.Rect(health.fill.rectTransform, Ui.Ink, 0, "edge");
-            keys = Ui.Panel(root, "keys", Ui.Page, Ui.Ink, 1.5f, 2, 2, 6);
+            keys = Ui.Panel(root, "keys", Color.clear, Color.clear, 0);   // (no box: the page's keys are inked glyphs on the picture)
             guardian = Ui.Panel(root, "guardian", Ui.Page, Ui.Ink, 2, 2, 2, 6);
             guardianFill = Ui.Rect(guardian.fill.rectTransform, Ui.Hp, 0, "fill");
             guardianEdge = Ui.Rect(guardian.fill.rectTransform, Ui.Ink, 0, "edge");
@@ -97,7 +97,9 @@ namespace Hiraeth.Bridge
             foeTabText = Ui.Label(foeTab.rt, "text", mono, 12, Ui.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
             foeTabKey = Ui.Panel(root, "foe tab key", Ui.Hex("#f7ecd2", 0.85f), Ui.Ink, 1, 0, 0, 3);
             foeTabKeyText = Ui.Label(foeTabKey.rt, "text", mono, 10, Ui.Ink, TextAnchor.MiddleCenter);
-            keysText = Ui.Label(keys.rt, "text", mono, 13, Ui.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+            keysGlyph = Ui.Node("glyphs", keys.rt).gameObject.AddComponent<Sketch>(); keysGlyph.raycastTarget = false;
+            keysText = Ui.Label(keys.rt, "text", Ui.Sans, 20, Ui.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+            { var o = keysText.gameObject.AddComponent<Outline>(); o.effectColor = Ui.Hex("#fffaf0"); o.effectDistance = new Vector2(1.5f, -1.5f); }   // (the page's cream glow round ×N)
             wheel = Ui.Node("stamina", root);
             wheelRing = Ui.Fill(wheel, Ui.Hex("#2b211f", 0.25f), 0, "ring"); wheelRing.sprite = Ui.Round(32);
             wheelFill = Ui.Fill(wheel, Ui.Gold, 0, "fill"); wheelFill.sprite = Ui.Round(32);
@@ -851,7 +853,7 @@ namespace Hiraeth.Bridge
                 float a = u < 0.18f ? u / 0.18f : u < 0.75f || go ? 1 : 1 - (u - 0.75f) / 0.25f;
                 mgCount.text = cn.S("text");
                 mgCount.color = go ? MgTeal : MgGold;
-                mgCount.fontSize = go ? 122 : 140;
+                mgCount.fontSize = go ? 72 : 84;   // (the page's 9.85em and 8.62em of Futura: the condensed face here stands taller, 140 was two thirds too big, issue #264)
                 Ui.PlaceC(mgCount.rectTransform, 0, H * 0.38f - 100, W, 200);
                 mgCount.rectTransform.localScale = new Vector3(s, s, 1);
                 Ui.Alpha(mgCount.rectTransform, a);
@@ -1520,16 +1522,50 @@ namespace Hiraeth.Bridge
             Ui.Place(foeTabKeyText.rectTransform, 0, 0, k.x + 12, 18);
         }
 
+        // the page's KEY_SVG and GREAT_KEY_SVG (src/hud.js): brass, an ink outline, a cream glint, in their viewBox units
+        static readonly Color KeyBrass = Ui.Hex("#d6a94a"), GreatBrass = Ui.Hex("#c9903a"), GreatGem = Ui.Hex("#3fae9a"), KeyGlint = Ui.Hex("#fff4dc");
+        Sketch keysGlyph;
+        /// <summary>One key at x (px), its viewBox scaled by u px a unit: the bit's boxes, the bow's ring and hole, the glint.</summary>
+        void KeyGlyph(Sketch sk, float x, float u, bool great)
+        {
+            Vector2 P(float vx, float vy) => new Vector2(x + vx * u, -vy * u);
+            void Bar(float x0, float y0, float x1, float y1, Color c, float grow) => sk.Box(new Rect(x + (x0 - grow) * u, -(y1 + grow) * u, (x1 - x0 + 2 * grow) * u, (y1 - y0 + 2 * grow) * u), c);
+            var brass = great ? GreatBrass : KeyBrass;
+            float bx = great ? 8 : 7, by = great ? 6.6f : 5.6f, br = great ? 5.4f : 4.3f, hole = great ? 2.6f : 1.55f;
+            // the shaft and its teeth, inked (the outline one ink width wider all round), the bow over them
+            var bars = great
+                ? new[] { (6.6f, 11.4f, 9.4f, 24.6f), (9.4f, 21.4f, 12.6f, 23.6f), (9.4f, 17.6f, 13.4f, 19.9f), (9.4f, 14f, 11.8f, 15.9f) }
+                : new[] { (5.8f, 9.2f, 8.2f, 20.6f), (8.2f, 18.2f, 10.4f, 19.9f), (8.2f, 15f, 11.2f, 16.9f) };
+            foreach (var b in bars) Bar(b.Item1, b.Item2, b.Item3, b.Item4, Ui.Ink, 0.7f);
+            foreach (var b in bars) Bar(b.Item1, b.Item2, b.Item3, b.Item4, brass, 0);
+            sk.Disc(P(bx, by), (br + 0.75f) * u, Ui.Ink);
+            sk.Disc(P(bx, by), (br - 0.75f) * u, brass);
+            if (great) { sk.Disc(P(bx, by), (hole + 0.6f) * u, Ui.Ink); sk.Disc(P(bx, by), (hole - 0.6f) * u, GreatGem); }
+            else sk.Disc(P(bx, by), hole * u, Ui.Ink);
+            sk.Line(P(bx - 2.7f, by - 1.2f), P(bx - 0.9f, by - 3.1f), Mathf.Max(1, u), KeyGlint);
+        }
+
         void DrawKeys(Dictionary<string, object> k, bool on)
         {
             on &= k != null;
             Show(keys, on);
             if (!on) return;
-            var text = "KEY ×" + k.I("small") + (k.Get("big") is bool big && big ? "  + GREAT KEY" : "");
-            var s = Ui.Set(keysText, text, 260);
-            Ui.Place(keysText.rectTransform, 8, 3, s.x, 18);
+            // (as the page: the small key and ×N, the great key beside them once it is in hand; --hh, the hearts' height)
+            float hh = 21.6f * ts, u = hh * 1.3f / 22f, ug = hh * 1.45f / 26f;
+            bool big = k.Get("big") is bool b && b;
+            int n = k.I("small");
+            keysGlyph.Clear();
+            Ui.Place(keysGlyph.rectTransform, 0, 0, 1, 1);
+            KeyGlyph(keysGlyph, 0, u, false);
+            keysText.fontSize = Mathf.RoundToInt(hh * 0.95f);
+            keysText.color = n > 0 ? Ui.Ink : new Color(Ui.Ink.r, Ui.Ink.g, Ui.Ink.b, 0.55f);
+            var s = Ui.Set(keysText, "×" + n, 260);
+            float tx = 14 * u + 2;
+            Ui.Place(keysText.rectTransform, tx, (hh * 1.3f - s.y) / 2, s.x, s.y);
+            if (big) KeyGlyph(keysGlyph, tx + s.x + hh * 0.4f, ug, true);
+            s = new Vector2(tx + s.x + (big ? hh * 0.4f + 16 * ug : 0) - 8, hh * 1.3f);
             // (under the hearts and the magic bar when they show, as the page's #keys is under #health)
-            float ky = heartRow != null && heartRow.gameObject.activeSelf ? 12 + 21.6f * ts * (magicBox.rt.gameObject.activeSelf ? 1.72f : 1) + 8 : 32;
+            float ky = heartRow != null && heartRow.gameObject.activeSelf ? 12 + 21.6f * ts * (magicBox.rt.gameObject.activeSelf ? 1.72f : 1) + 8 : 12;   // (the page's 12 px with no hearts up)
             Ui.Place(keys.rt, 16, ky, s.x + 16, 24);
         }
 

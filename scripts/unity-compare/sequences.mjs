@@ -76,6 +76,9 @@ async function web() {
           // (the game's own clock, but the page's while a menu holds the game still: the menus' beats wait in real time)
           const r = await c.ev(`(() => { const now = window.clock(), real = performance.now(), held = !!(window.menu?.open || window.journal?.open || window.minigame?.paused);
             const dt = Math.max(0, Math.min(0.25, held ? (real - window.__seqR) / 1000 : now - window.__seqT)); window.__seqT = now; window.__seqR = real; const r = window.__seq.tick(dt);
+            // (the page's CSS fades and pops on the same clock: headless Chrome draws slowly, the game's time ran at a
+            // fraction of the wall's and the transitions ran ahead, the take-off's warp card whole a beat early, issue #264)
+            for (const a of document.getAnimations()) { if (a.playState === 'running') a.pause(); if (a.playState === 'paused') a.currentTime = (a.currentTime ?? 0) + dt * 1000; }
             if (r?.record) { window.cinematicReview = Object.assign(window.cinematicReview ?? {}, { paused: true }); return { record: r.record.name, late: r.late, t: +window.__seq.time.toFixed(2), probe: window.__seqM.probe(window.__seqG) }; }
             return r ? { keys: r.keys, done: r.done } : null; })()`);
           if (r?.done) break;

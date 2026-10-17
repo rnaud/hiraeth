@@ -982,25 +982,28 @@ Shader "Hiraeth/Surface"
         else if (pattern == 2) patInk = roofTiles(i.worldPos);
         else if (pattern == 3) patInk = leaves(i.objPos);
         else if (pattern == 4) patInk = rockCracks(i.objPos);
-        // weathering (materials.js weatherInk): grime, chips, cracks, on upright faces
+        // weathering (materials.js weatherInk): the odd hairline crack on upright faces
         UNITY_BRANCH if (WALLK && _Weather > 0.0 && abs(n.y) < 0.55 && (skip & 2) == 0)
         {
           float2 wCell = floor(i.worldPos.xz / 9.0);
-          float wSeed = floor(hash(wCell + 7.0) * 61.0), wK = _Weather * (0.6 + 0.8 * hash(wCell + 3.0));
+          float wSeed = floor(hash(wCell + 7.0) * 61.0), wK = _Weather * (0.6 + 0.8 * hash(wCell + 3.0)) * step(hash(wCell + 19.0), 0.8);   // (some buildings none: WEATHER.walls)
           float wUp = 1.0 - smoothstep(0.35, 0.55, abs(n.y));
           float ax = abs(n.x), az = abs(n.z), wb = smoothstep(0.36, 0.64, ax / max(ax + az, 1e-4));
           float litK = smoothstep(0.02, 0.15, dot(n, _SunDir));
           float wi = 0.0;
+          // (the world's step for a metre along the wall in each frame, held off edge-on; a facade's windows kept clear)
+          float3 wT = normalize(float3(-n.z, 0.0, n.x) + float3(1e-5, 0.0, 0.0)), wNv = normalize(i.normal);
+          bool wFacade = pattern == 1;
           if (wb < 0.999)
           {
             float3 aA = albedo;
-            wi = weatherInk(wqA, wfqA, float2(_SunDir.x, _SunDir.y), litK, wSeed, wK, aA) * (1.0 - wb);
+            wi = weatherInk(wqA, wfqA, float2(_SunDir.x, _SunDir.y), litK, wSeed, wK, i.worldPos, wT / (abs(wT.x) < 0.3 ? 0.3 * sign(wT.x + 1e-6) : wT.x), wNv, wFacade, _Windows, aA) * (1.0 - wb);
             albedo = lerp(albedo, aA, (1.0 - wb) * wUp);
           }
           if (wb > 0.001)
           {
             float3 aB = albedo;
-            wi = max(wi, weatherInk(wqB, wfqB, float2(_SunDir.z, _SunDir.y), litK, wSeed + 13.0, wK, aB) * wb);
+            wi = max(wi, weatherInk(wqB, wfqB, float2(_SunDir.z, _SunDir.y), litK, wSeed + 13.0, wK, i.worldPos, wT / (abs(wT.z) < 0.3 ? 0.3 * sign(wT.z + 1e-6) : wT.z), wNv, wFacade, _Windows, aB) * wb);
             albedo = lerp(albedo, aB, wb * wUp);
           }
           patInk = max(patInk, wi * wUp);
@@ -1154,6 +1157,16 @@ Shader "Hiraeth/Surface"
             local = max(local, att * (_Room.w > 0.0 ? smoothstep(0.25, 0.75, dl.y / d) * (0.12 + 0.88 * max(dot(n, dl / d), 0.0)) : 0.35 + 0.65 * max(dot(n, dl / d), 0.0)));
           }
         }
+        // the makers' carved inscriptions (src/glyphs.js, materials.js carve): on upright faces in cells of _Glyphs metres, the
+        // groove's shadowed side dropped into the shadow tone, its lit lip a shade lighter, a fine outline round the cut
+        float3 carve = 0.0;
+        UNITY_BRANCH if (_Glyphs > 0.0)
+        {
+          float3 gg = i.objPos / max(_Glyphs, 1e-3), ggfw = fwidth(gg), cw = pow(abs(normalize(on)), 6.0); cw /= (cw.x + cw.y + cw.z);
+          if (cw.y < 0.5) carve = glyphCarve(cw.x > cw.z ? gg.zy : gg.xy, cw.x > cw.z ? ggfw.zy : ggfw.xy);
+          L = lerp(L, min(L, _Toon - 0.14), carve.y);
+          albedo *= 1.0 + 0.05 * (carve.x - carve.y);
+        }
         L = max(L, _Room.w > 0.0 ? lerp(L, 0.95, smoothstep(0.06, 0.6, local)) : lerp(L, 0.97, smoothstep(0.15, 0.5, local)));
         if (mode == MODE_WATER && _WaterOpt.x > 0.0) L = lerp(L, max(L, 0.8), waterLit);
         float metalInk = 0.0;
@@ -1174,17 +1187,12 @@ Shader "Hiraeth/Surface"
         float detail = skinInk;
         // (the grid's and the glyphs' coordinates only on a material that draws either: a uniform branch, its derivatives
         // fine there, issue #262)
-        UNITY_BRANCH if (_Grid > 0.0 || _Glyphs > 0.0)
+        UNITY_BRANCH if (_Grid > 0.0)
         {
           float3 gq = i.objPos / max(_Grid, 1e-3), gfw = fwidth(gq), gw = pow(abs(normalize(on)), 6.0); gw /= (gw.x + gw.y + gw.z);
           if (_Grid > 0.0) detail = _Plates > 0.5 ? plateInk : gridLines(gq, gfw, gw);
-          if (_Glyphs > 0.0)
-          {
-            float2 glyphUV = gw.x > max(gw.y, gw.z) ? gq.zy : (gw.y > gw.z ? gq.xz : gq.xy);
-            float2 glyphFw = gw.x > max(gw.y, gw.z) ? gfw.zy : (gw.y > gw.z ? gfw.xz : gfw.xy);
-            detail = max(detail, glyphs(glyphUV, glyphFw));
-          }
         }
+        detail = max(detail, carve.z * 0.62);   // (the carved inscriptions' outline: above)
         float2 gp = i.worldPos.xz;
         UNITY_BRANCH if (TERRAINK && mode == MODE_TERRAIN && (skip & 128) == 0) {
           float gm = max(length(ddx(gp)), length(ddy(gp)));

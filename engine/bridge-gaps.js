@@ -239,7 +239,7 @@ export const GAPS = {
     { keys: ['import:src/wall-openings.js#wallOpenings'], what: 'the walls\' openings, flushed once a world is up', status: 'gap', issue: 427, visible: 1, note: 'to check' },
     { keys: ['import:src/quest.js#Errands', 'import:src/levels/content.js#ERRANDS'], what: 'the errands', status: 'gap', issue: 427, visible: 2, note: 'to check: the journal keeps them (engineJournal)' },
     { keys: ['import:src/story/hum.js#HumCue'], what: 'the hum when words on the screen mention it', status: 'gap', issue: 427, visible: 1 },
-    { keys: ['import:src/interior-kit.js#interiorAt', 'fn:inOffMapRoom'], what: 'which room the traveller is in (the map, the rooms\' culling)', status: 'gap', issue: 427, visible: 1, note: 'to check' },
+    { keys: ['fn:inOffMapRoom'], what: 'which room the traveller is in (the rooms\' culling)', status: 'gap', issue: 427, visible: 1, note: 'to check' },
     { keys: ['import:src/fragment-shop.js#fragmentPurse', 'fn:fragmentsLine'], what: 'the fragments\' purse line', status: 'gap', issue: 427, visible: 1, note: 'to check' },
     { keys: ['import:src/hud.js#magicHud'], what: 'the magic bar', status: 'gap', issue: 427, visible: 1, note: 'to check: the health part carries magic' },
     { keys: ['import:src/minigames/kit/arcade.js#arcadeLinks'], what: 'a game reached from the Arcade going back to it, its cards\' previous and next', status: 'gap', issue: 427, visible: 1 },
@@ -263,7 +263,7 @@ export const GAPS = {
     { keys: ['import:src/item-icons.js#ItemIcons', 'import:src/boxes/model.js#buildItemModel', 'import:src/portrait-cache.js#PortraitCache', 'fn:pumpPortraits',
       'import:src/story/portrait-bg.js#isolate', 'import:src/story/portrait-bg.js#restore', 'import:src/story/portrait-bg.js#portraitPixelRatio'],
     what: 'the items\' pictures and the conversation\'s portraits, rendered by the page', status: 'handled', where: 'the bridge photographs its own (BridgeRunner.Portrait, engine/unity/backend.js portrait)' },
-    { keys: ['fn:mapAt', 'fn:mapTemples'], what: 'the Map\'s ground and temples', status: 'handled', where: 'engine/game.js keeps the map\'s marks and ground (docs/systems/engine-bridge.md, "The Map\'s ground")' },
+    { keys: ['fn:mapTemples'], what: 'the Map\'s ground and temples', status: 'handled', where: 'engine/game.js keeps the map\'s marks and ground (docs/systems/engine-bridge.md, "The Map\'s ground")' },
     { keys: ['import:src/gadgets/all.js#GADGETS'], what: 'every gadget', status: 'handled', where: 'engine/game.js makes the gadgets through src/gadgets (tests/engine-gadgets.test.js)' },
     { keys: ['import:src/music-store.js#startThemeDownload'], what: 'the recorded themes\' download', status: 'handled', where: 'BridgeMusic.cs downloads them into persistentDataPath (#264)' },
     { keys: ['fn:takeShot', 'fn:savePhoto'], what: 'photo mode\'s picture', status: 'handled', where: 'engine/unity/backend.js photo, BridgeHost.Photo' },
@@ -311,7 +311,6 @@ export const STREAM_DIFFS = [
   { seq: 'menus', beat: 'items', keys: ['menu.rows'], what: 'the Items page lists the gadgets among the gear in the engines, after the gear on the page (another order of the same things owned)', status: 'gap', issue: 430 },
   { seq: 'menus', beat: 'start|settings', keys: ['menu.rows'], what: 'the Settings page: the page has Language, the jets\' pitch and longer labels, the engines Music, Effects, Voices, Mute, Hints first (engine/menus.js SETTINGS_ROWS against src/ui.js SettingsMenu)', status: 'gap', issue: 430 },
   { seq: 'fight-temple', beat: 'card', keys: ['part-:minigame', 'cam'], what: 'a fight temple\'s start card: on the page the hall seen from above with its HUD up; in the engines the traveller\'s own camera until Start', status: 'gap', issue: 264 },
-  { seq: 'game-*', beat: 'run|pause', keys: ['cam.fov'], what: 'a flying minigame\'s camera: the engines widen it (74 and 65 degrees against the page\'s 60 and 58)', status: 'gap', issue: 264 },
   // ---- web only
   { seq: 'menus|house-map', beat: 'start|settings|map', keys: ['menu.side'], what: 'the Start menu\'s "Debug: worlds"', status: 'web-only', why: 'a developer\'s entry on the page (the worlds picker); the engines\' debug saves are on the title' },
   // ---- handled
@@ -322,17 +321,29 @@ export const STREAM_DIFFS = [
 /**
  * What the sequences' pictures show differently in Unity (issue #429: scripts/unity-compare/sequences.mjs, its sheets),
  * the most visible first; what the state stream can't see (a shader's look, the sky, a pass). Each { seq, beat, what,
- * issue, visible (3 seen at once … 1 barely) }. Written by hand from the sheets; docs/systems/bridge-gaps.md lists them.
+ * issue, visible (3 seen at once … 1 barely), status 'handled' + where once fixed }. Written by hand from the sheets;
+ * docs/systems/bridge-gaps.md lists them.
  */
 export const PICTURE_DIFFS = [
-  { seq: 'moment-bazaar.broadcast', beat: 'mid|late', what: 'the broadcast\'s moment turned black in Unity from four seconds in (a starry black void where the towers and the traveller\'s close-up are); on the first run, not on the second: intermittent, to check', issue: 264, visible: 3 },
-  { seq: 'menus', beat: 'map', what: 'the Map page\'s drawn ground is not there in Unity a second and a half after opening (its marks on a plain sheet; the page\'s streets and walls drawn at once)', issue: 264, visible: 3 },
-  { seq: 'fight', beat: 'cut|hit|death|chimes', what: 'the blade\'s cut is a thin grey sword and a white flare in Unity, not the page\'s blue fluid arcs; a foe\'s death a white flash, not its ink burst; a chime a white ball', issue: 264, visible: 3 },
-  { seq: 'takeoff', beat: 'away', what: 'the take-off\'s warp disc opens see-through grey in Unity with the ship behind it and no world\'s name; on the page an opaque night disc with THE DESERT', issue: 264, visible: 2 },
+  // ---- known gaps
+  { seq: 'fight', beat: 'cut|hit', what: 'the blade is a thin grey sword in Unity, not the page\'s blue fluid blade (src/blade-shader.js: materials\' BLADE_FLUID)', issue: 264, visible: 3 },
+  { seq: 'fight', beat: 'chimes', what: 'a dropped chime is a pale ball in Unity, not the page\'s faceted crystal (src/crystal-shader.js), its shade a dark disc', issue: 264, visible: 2 },
+  { seq: 'talk|moment-arzach2.bell|moment-edena.terraces', beat: 'beside|start|mid', what: 'people\'s barks, the speech balloons over their heads ("A visitor! On a bird!", "Shut it! Shut it!"), not drawn in Unity', issue: 264, visible: 2 },
   { seq: 'moment-perdide.crystal', what: 'the hearts and wallet show over the crystal\'s moment in Unity (the screen\'s health part up; none on the page or in node)', issue: 264, visible: 2 },
-  { seq: 'moment-arzach2.bell|moment-perdide2.pools', beat: 'late', what: 'his face close up: dark ink blotches on the chin and neck and a darker skin in Unity; behind him in Vael dark drip shapes down the wall', issue: 264, visible: 2 },
-  { seq: 'moment-edena.terraces', beat: 'start', what: 'the builders\' wall without its carved glyphs in Unity (plain panels), the far white tower drawn dark grey', issue: 264, visible: 2 },
-  { seq: 'box', what: 'a dark band across the back of his shirt at the waist in Unity, close up', issue: 264, visible: 1 },
-  { seq: 'fight-temple|game-*', beat: 'count', what: 'the count\'s numeral larger and a duller gold in Unity', issue: 264, visible: 1 },
-  { seq: 'temple', what: 'the key counter a "KEY ×0" box in Unity, the page\'s a key glyph', issue: 264, visible: 1 },
+  { seq: 'moment-edena.terraces', beat: 'start', what: 'the far white tower and the slope before it in a cloud\'s shadow in Unity, lit on the page (the same shadows on the game\'s clock now; to check: the cloud cover, Weather\'s uClouds)', issue: 264, visible: 1 },
+  // ---- handled (#264, 2026-10-17: scripts/unity-compare/sequences.mjs, before and after sheets on the issue)
+  { seq: 'moment-bazaar.broadcast', beat: 'mid|late', what: 'the broadcast\'s moment turned black in Unity from four seconds in', issue: 264, status: 'handled',
+    where: 'Bloom.shader Extract leaves out a pixel that is not a number: one on the white signs (glow 0.8) spread over the whole glow buffer' },
+  { seq: 'menus|house-map', beat: 'map', what: 'the Map page\'s drawn ground missing in Unity (its marks on a plain sheet)', issue: 264, status: 'handled',
+    where: 'engine/game.js mapSource puts what is in a shop\'s or a temple\'s room at its door (main.js mapAt): those rooms framed the map kilometres wide and lifted its rays over the ground' },
+  { seq: 'fight', beat: 'hit|death', what: 'a struck foe stayed white and glowing in Unity (its death a white flash, not its ink burst)', issue: 264, status: 'handled',
+    where: 'engine/mirror.js calls an object\'s onAfterRender after reading its material: a foe\'s flash (foe-react.js installFlash) is given back' },
+  { seq: 'takeoff', beat: 'away', what: 'the take-off\'s warp disc see-through grey with no world\'s name in Unity, opaque with THE DESERT on the page', issue: 264, status: 'handled',
+    where: 'the page\'s picture was ahead: its CSS fades ran on the wall\'s clock in slow headless Chrome; sequences.mjs runs them on the game\'s, and both now show the disc opening' },
+  { seq: 'moment-arzach2.bell|moment-perdide2.pools', beat: 'late', what: 'his face close up with ink blotches on the chin and neck, a darker skin; dark drips down Vael\'s walls', issue: 264, status: 'handled',
+    where: 'engine/traveller-paint.js portraitPaint (the portrait head\'s paint as wearPortraitHeadFace leaves it) and the old collar in skin (b3NeckSkin); Marks.hlsl weatherInk the web\'s hairline cracks (the grime and chips were older)' },
+  { seq: 'moment-edena.terraces', beat: 'start', what: 'the builders\' wall without its carved glyphs in Unity', issue: 264, status: 'handled', where: 'Marks.hlsl glyphCarve, the web\'s inscriptions (src/glyphs.js)' },
+  { seq: 'box', what: 'a dark band round his shirt at the waist in Unity, close up', issue: 264, status: 'handled', where: 'engine/traveller-paint.js fillUnfound: the overshirt\'s cut vertices take their neighbours\' colour, not black' },
+  { seq: 'fight-temple|game-*', beat: 'count', what: 'the count\'s numeral larger in Unity', issue: 264, status: 'handled', where: 'BridgeHud.cs the 3-2-1 at 84 (GO at 72): the condensed face stands taller than the page\'s Futura' },
+  { seq: 'temple', what: 'the key counter a "KEY ×0" box in Unity, the page\'s a key glyph', issue: 264, status: 'handled', where: 'BridgeHud.cs KeyGlyph: the page\'s KEY_SVG and GREAT_KEY_SVG drawn, ×N beside them' },
 ];

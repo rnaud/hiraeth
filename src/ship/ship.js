@@ -826,7 +826,13 @@ export class Ship {
       cam.rotateZ(Math.sin(t * 37) * 0.025 * s);
       this.shakeK *= Math.exp(-2.2 * dt);
     }
+    // (the lens is the ship's only while it films or widens it in the rooms: once that is over it gives the base back,
+    // then leaves the fov to whoever else sets it. It set it every frame, and a flying game's widening with its speed,
+    // src/minigames/rings.js and ski.js setFov, never showed on the page; it did in the engines, issue #264)
+    const own = !!this.cam || !!this.blend || (this.rig?.indoorK ?? 0) > 0 || this.shakeK > 0.001;
+    if (!own) { if (this._fovSet != null && Math.abs(cam.fov - fov) > 0.01) { cam.fov = fov; cam.updateProjectionMatrix(); } this._fovSet = null; return; }
     if (Math.abs(cam.fov - fov) > 0.01) { cam.fov = fov; cam.updateProjectionMatrix(); }
+    this._fovSet = fov;
   }
 
   // ------------------------------------------------------------------ per frame

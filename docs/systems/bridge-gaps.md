@@ -103,7 +103,7 @@ web only and why; then what the bridge handles and where. How it works: `docs/sy
 - **the ink at the world's edges** (#427, barely seen). To check. `import:src/edge.js#EdgeInk`
 - **the walls' openings, flushed once a world is up** (#427, barely seen). To check. `import:src/wall-openings.js#wallOpenings`
 - **the hum when words on the screen mention it** (#427, barely seen). `import:src/story/hum.js#HumCue`
-- **which room the traveller is in (the map, the rooms' culling)** (#427, barely seen). To check. `import:src/interior-kit.js#interiorAt`, `fn:inOffMapRoom`
+- **which room the traveller is in (the rooms' culling)** (#427, barely seen). To check. `fn:inOffMapRoom`
 - **the fragments' purse line** (#427, barely seen). To check. `import:src/fragment-shop.js#fragmentPurse`, `fn:fragmentsLine`
 - **the magic bar** (#427, barely seen). To check: the health part carries magic. `import:src/hud.js#magicHud`
 - **a game reached from the Arcade going back to it, its cards' previous and next** (#427, barely seen). `import:src/minigames/kit/arcade.js#arcadeLinks`
@@ -128,7 +128,6 @@ The engines' bundle played through the same sequences as the web (issue #429, `e
 - **the Items page lists the gadgets among the gear in the engines, after the gear on the page (another order of the same things owned)** (#430): `menus` at items, `menu.rows`
 - **the Settings page: the page has Language, the jets' pitch and longer labels, the engines Music, Effects, Voices, Mute, Hints first (engine/menus.js SETTINGS_ROWS against src/ui.js SettingsMenu)** (#430): `menus` at start|settings, `menu.rows`
 - **a fight temple's start card: on the page the hall seen from above with its HUD up; in the engines the traveller's own camera until Start** (#264): `fight-temple` at card, `part-:minigame`, `cam`
-- **a flying minigame's camera: the engines widen it (74 and 65 degrees against the page's 60 and 58)** (#264): `game-*` at run|pause, `cam.fov`
 - the Start menu's "Debug: worlds" (web only: a developer's entry on the page (the worlds picker); the engines' debug saves are on the title): `menus|house-map` at start|settings|map, `menu.side`
 - the sky's planets (handled: sent as the look's data, not meshes (engine/game.js fullLook planets; Unity draws them in its sky)): `*`, `obj-:planet`
 - the ship's line over the hatch ends sooner in node, so the charge card comes back up (handled: a subtitle lasts as long as its recording is heard; the node VM has no sound, Unity plays it and shows the line as the page does (unity.json)): `opening` at hatch|stepout, `part-:sub`, `part+:charge`
@@ -137,16 +136,23 @@ The engines' bundle played through the same sequences as the web (issue #429, `e
 
 Read from the sheets of `node scripts/unity-compare/sequences.mjs` (Unity's batch run against headless Chrome, beat by beat), most visible first:
 
-- **the broadcast's moment turned black in Unity from four seconds in (a starry black void where the towers and the traveller's close-up are); on the first run, not on the second: intermittent, to check** (#264, seen at once): `moment-bazaar.broadcast` at mid|late
-- **the Map page's drawn ground is not there in Unity a second and a half after opening (its marks on a plain sheet; the page's streets and walls drawn at once)** (#264, seen at once): `menus` at map
-- **the blade's cut is a thin grey sword and a white flare in Unity, not the page's blue fluid arcs; a foe's death a white flash, not its ink burst; a chime a white ball** (#264, seen at once): `fight` at cut|hit|death|chimes
-- **the take-off's warp disc opens see-through grey in Unity with the ship behind it and no world's name; on the page an opaque night disc with THE DESERT** (#264, seen in play): `takeoff` at away
+- **the blade is a thin grey sword in Unity, not the page's blue fluid blade (src/blade-shader.js: materials' BLADE_FLUID)** (#264, seen at once): `fight` at cut|hit
+- **a dropped chime is a pale ball in Unity, not the page's faceted crystal (src/crystal-shader.js), its shade a dark disc** (#264, seen in play): `fight` at chimes
+- **people's barks, the speech balloons over their heads ("A visitor! On a bird!", "Shut it! Shut it!"), not drawn in Unity** (#264, seen in play): `talk|moment-arzach2.bell|moment-edena.terraces` at beside|start|mid
 - **the hearts and wallet show over the crystal's moment in Unity (the screen's health part up; none on the page or in node)** (#264, seen in play): `moment-perdide.crystal`
-- **his face close up: dark ink blotches on the chin and neck and a darker skin in Unity; behind him in Vael dark drip shapes down the wall** (#264, seen in play): `moment-arzach2.bell|moment-perdide2.pools` at late
-- **the builders' wall without its carved glyphs in Unity (plain panels), the far white tower drawn dark grey** (#264, seen in play): `moment-edena.terraces` at start
-- **a dark band across the back of his shirt at the waist in Unity, close up** (#264, barely seen): `box`
-- **the count's numeral larger and a duller gold in Unity** (#264, barely seen): `fight-temple|game-*` at count
-- **the key counter a "KEY ×0" box in Unity, the page's a key glyph** (#264, barely seen): `temple`
+- **the far white tower and the slope before it in a cloud's shadow in Unity, lit on the page (the same shadows on the game's clock now; to check: the cloud cover, Weather's uClouds)** (#264, barely seen): `moment-edena.terraces` at start
+
+**Handled**:
+
+- the broadcast's moment turned black in Unity from four seconds in (#264): Bloom.shader Extract leaves out a pixel that is not a number: one on the white signs (glow 0.8) spread over the whole glow buffer; `moment-bazaar.broadcast` at mid|late
+- the Map page's drawn ground missing in Unity (its marks on a plain sheet) (#264): engine/game.js mapSource puts what is in a shop's or a temple's room at its door (main.js mapAt): those rooms framed the map kilometres wide and lifted its rays over the ground; `menus|house-map` at map
+- a struck foe stayed white and glowing in Unity (its death a white flash, not its ink burst) (#264): engine/mirror.js calls an object's onAfterRender after reading its material: a foe's flash (foe-react.js installFlash) is given back; `fight` at hit|death
+- the take-off's warp disc see-through grey with no world's name in Unity, opaque with THE DESERT on the page (#264): the page's picture was ahead: its CSS fades ran on the wall's clock in slow headless Chrome; sequences.mjs runs them on the game's, and both now show the disc opening; `takeoff` at away
+- his face close up with ink blotches on the chin and neck, a darker skin; dark drips down Vael's walls (#264): engine/traveller-paint.js portraitPaint (the portrait head's paint as wearPortraitHeadFace leaves it) and the old collar in skin (b3NeckSkin); Marks.hlsl weatherInk the web's hairline cracks (the grime and chips were older); `moment-arzach2.bell|moment-perdide2.pools` at late
+- the builders' wall without its carved glyphs in Unity (#264): Marks.hlsl glyphCarve, the web's inscriptions (src/glyphs.js); `moment-edena.terraces` at start
+- a dark band round his shirt at the waist in Unity, close up (#264): engine/traveller-paint.js fillUnfound: the overshirt's cut vertices take their neighbours' colour, not black; `box`
+- the count's numeral larger in Unity (#264): BridgeHud.cs the 3-2-1 at 84 (GO at 72): the condensed face stands taller than the page's Futura; `fight-temple|game-*` at count
+- the key counter a "KEY ×0" box in Unity, the page's a key glyph (#264): BridgeHud.cs KeyGlyph: the page's KEY_SVG and GREAT_KEY_SVG drawn, ×N beside them; `temple`
 
 ## Dev pages and tools
 

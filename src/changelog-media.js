@@ -1117,6 +1117,7 @@ const HATS403 = 'Issue #403: the character studio’s crowd lineup (studio.html?
 const ROSE406 = 'Issue #406: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, 11:00, the HUD hidden) on this branch’s own Vite (port 5407, scripts/design-qc/capture.mjs), the camera pinned; before: the tree at c89a0a1e2 (port 5408), the same camera; 16 October; cwebp -q 72';
 const ROSE406P = 'Issue #406: the Temple maps page (temples.html?t=desert, Debug → Pages) in muted headless Chrome, 1600 × 1150, the plan with the solver’s steps, cut to the plan; before: the tree at c89a0a1e2, after: this change; 16 October; cwebp -q 70';
 /** (v1.83, issue #430: the page's HTML as screen parts in Unity) */
+const GAPS264 = 'Issue #264: the Unity bridge in the editor’s batch run on this Mac (muted, High, 1280x720), the same beats of scripts/unity-compare/sequences.mjs before (#429’s run) and after; cwebp -q 70';
 const UI430 = 'Issue #430: the Unity bridge in the editor’s batch run on this Mac (muted, High, -frames 1280x720), each piece put up by -ui through engine/ui-poses.js on the debug save; before, none of them was drawn (the web’s side, the same poses in headless Chrome, beside them in the issue’s sheet); cwebp -q 72';
 /** (v1.83, issue #408: the Founders' Belfry round its Great Belfry, the bell the house's state) */
 const BELFRY408 = 'Issue #408: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, 11:00, the HUD hidden) on this branch’s own Vite (port 5485), the camera pinned in the temple’s own metres; before: the tree at origin/main 73d26da88 (port 5481), the Stone Stair from its way in; 16 October; cwebp -q 70';
@@ -1147,6 +1148,12 @@ export const CHANGELOG_MEDIA = {
       { name: 'rose-drop', only: 'after', title: 'The drop', caption: 'Over the balcony’s edge: the hole at the end of the ball’s groove, and 7 m below the floor you jump down to', from: ROSE406 },
       { name: 'rose-key', only: 'after', title: 'The small key', caption: 'Under the balcony: the small key’s little chest in its cage, the watcher by the cistern’s door', from: ROSE406 },
     ], see: 'In the desert, go into the Rose House east of Qanat. The east door wants the small key in the cage; the way to it starts through the archway on your right.' },
+    { match: 'In the Unity version, the Signal Market’s broadcast no longer goes black', shots: [
+      { name: 'unity-broadcast', title: 'The broadcast', caption: 'The Signal Market’s broadcast, 5 s in: before, a starry black void from the white signs on; after, the tower and its white signs', from: GAPS264 },
+      { name: 'unity-face', title: 'His face, Vael', caption: 'The bell’s moment, his face close up: before, ink blotches on his chin and neck and dark drips down the walls; after, a clean face and fine cracks', from: GAPS264 },
+      { name: 'unity-foe', title: 'A foe’s death', caption: 'The Arena, a blot cut down: before, a white glowing shape (its flash never given back); after, its ink burst on the sand', from: GAPS264 },
+      { name: 'unity-map', title: 'The Map', caption: 'The Start menu’s Map in the Signal Market: before, the marks on a plain sheet; after, its streets and stalls drawn', from: GAPS264 },
+    ], see: 'In the Unity version, play the Signal Market’s broadcast, open the Map there, or cut down a foe in the Arena. The ring race’s wider view at speed shows on the web too.' },
     { match: 'In the Unity version, everything the web game shows on the screen', shots: [
       { name: 'unity-balloons', only: 'after', title: 'A balloon', caption: 'A shout over someone’s head in the desert, its highlight in red, as the web’s balloon', from: UI430 },
       { name: 'unity-cargo', only: 'after', title: 'The cargo check', caption: 'The homecoming’s cargo panel with three things in the hold, waiting for A / ×', from: UI430 },

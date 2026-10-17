@@ -1830,7 +1830,8 @@ side and compares them beat by beat.
   When the web changes on purpose (a line, a page's rows), record its stream again:
   `node scripts/unity-compare/sequences.mjs web <ids>` then `node scripts/unity-compare/sequences.mjs record`.
 - **Pictures** (on this Mac): `node scripts/unity-compare/sequences.mjs` runs everything: the web in muted headless
-  Chrome on its own Vite (PORT, default 5429; the game held still while each picture is taken), the engines' stream in
+  Chrome on its own Vite (PORT, default 5429; the game held still while each picture is taken, the page's CSS
+  animations run on the game's clock), the engines' stream in
   node, Unity's batch run a sequence at a time (`scripts/unity-js-run.sh seq-<id> -sequence <id> -out <dir>`: the debug
   save seeded as the sequence says; each beat's picture and its probe as a `[unity] seq <id> <beat> {…}` line) under
   `.local-tools/handoff/unity-build.lock`, resting while the load is over 25; then a sheet a sequence
@@ -1842,6 +1843,41 @@ side and compares them beat by beat.
   or a launchd agent that brings the checkout up to date and runs
   `node scripts/unity-compare/sequences.mjs > output/sequences/last.log 2>&1` (it waits for the Unity lock if someone
   holds it), e.g. `17 3 * * *`; then look at `overview.jpg` and `report.md`, and comment what is new on #264.
+
+## The sequences' first gaps closed (2026-10-17, issue #264)
+
+What #429's sheets showed, fixed in the bridge and checked picture against picture (before and after sheets on #264):
+
+- **A pixel that is not a number** in the glow buffer blacked out the whole picture (the Signal Market's broadcast from
+  its white signs on, glow 0.8): Bloom.shader's Extract leaves such a pixel out, as WebGL's blending clamps it away.
+- **The Map's ground**: engine/game.js mapSource puts what is in a shop's or a temple's room at its door, as main.js
+  `mapAt`. The rooms, built far from the ground, framed the map kilometres wide and lifted its rays over the ground.
+- **A foe's flash**: the mirror called an object's `onBeforeRender` and never its `onAfterRender`, so a struck foe's
+  flash (foe-react.js installFlash) was laid on again every frame and never given back: the foe went white and glowing
+  for good. engine/mirror.js now calls the after-hook once the material's values are read.
+- **The traveller's colours** (engine/traveller-paint.js): the portrait head's paint as the page's shader leaves it
+  (`portraitPaint`: the generator's black hatch under the chin and the baked shading to one flat skin, the hair one ink,
+  the eyes, brows, nose and lips kept), the old collar under his neck in skin (`b3NeckSkin`), and the overshirt's
+  vertices the cloth made where it cut it (no place in the skin's colours) given their neighbours' colour instead of
+  black (`fillUnfound`: the dark band round his waist).
+- **Walls**: Marks.hlsl `weatherInk` is the web's hairline cracks (the grime streaks and chips it still had drew dark
+  drips down Vael's walls), kept off a facade's windows (the web's table of the pieces fixed on a wall,
+  src/wall-openings.js, doesn't cross yet); `glyphCarve` the web's carved inscriptions (src/glyphs.js), not the old
+  drawn glyphs that vanished from afar.
+- **The shaders' clock** is the game's (`BridgeHost.Clock`, HiraethLook.GameClock: the web's uTime) instead of Unity's
+  Time.time, so the clouds' shadows drift where the page's do.
+- **The HUD**: the key counter is the page's key glyph and ×N (BridgeHud.cs KeyGlyph), the 3-2-1 its page size.
+- **Not the bridge's**: the take-off's warp looked half drawn in Unity because the page's picture was ahead: headless
+  Chrome draws slowly, the game's time ran at a fraction of the wall's and the page's CSS fades ran on the wall's.
+  sequences.mjs now runs the page's animations on the game's clock. A flying game's lens: the engines widened it with
+  the speed as the games ask (rings.js, ski.js setFov); the page's ship set the fov back every frame
+  (src/ship/ship.js applyCamera now leaves the lens alone when it isn't filming), so the web now widens too.
+
+Left (engine/bridge-gaps.js PICTURE_DIFFS): the blade's fluid surface, the chimes' crystals and their shade, the
+far cloud's shadow in Edena, the barks (#430), the lit stone's flame in `desert.lit`. In the batch run's pictures the
+HUD is laid out on a 960 × 720 canvas (the editor's screen) while the camera draws 1280 × 720: the cinematic bars
+cover three quarters of the width and the HUD's middle is left of the picture's. The players lay it out on their own
+screen; the batch run's pictures only.
 
 ## Status
 

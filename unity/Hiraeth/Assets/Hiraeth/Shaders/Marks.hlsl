@@ -127,85 +127,160 @@ float3 wallPatch(float3 p, float3 nv, float k, float3 pfw)
   return mA * mB;
 }
 
-// ---------------------------------------------------------------- weathering (materials.js weatherInk, WEATHER)
-float weatherInk(float2 q, float2 fq, float2 sun2, float litK, float seed, float k, inout float3 alb)
+// ---------------------------------------------------------------- the makers' inscriptions (src/glyphs.js GLYPH_GLSL)
+// Laid out like an inscription: each row of the wall's grid a frieze between two incised border lines, a row of signs with
+// the makers' mark opening every sixth; on odd rows a cell now and then a seal (a framed panel with the mark, big). Carved,
+// not drawn: each stroke a groove, the rim on the light's side shading into it. Only while a groove is ~1.5 px wide.
+float glyphHash(float a) { a = gmod(a, 89.0); return gmod(a * a * 13.0 + a * 7.0 + 3.0, 61.0) / 61.0; }
+float gSeg(float2 p, float2 a, float2 b) { float2 pa = p - a, ba = b - a; float h = saturate(dot(pa, ba) / max(dot(ba, ba), 1e-8)); return length(pa - ba * h); }
+float gRing(float2 q, float2 c, float r) { return abs(length(q - c) - r); }
+float gArc(float2 q, float2 c, float r) { float2 d = q - c; return d.y >= 0.0 ? abs(length(d) - r) : length(float2(abs(d.x) - r, d.y)); }
+float gDot(float2 q, float2 c, float r) { return max(length(q - c) - r, 0.0); }
+float gDiamond(float2 q, float a, float b) { float2 p = abs(q); return (p.x / a + p.y / b - 1.0) / sqrt(1.0 / (a * a) + 1.0 / (b * b)); }
+float glyphSignD(float2 q, float k)
 {
-  float ink = 0.0, dark = 0.0;
-  const float2 cellS = float2(3.7, 3.1);
+  if (k < 0.5) return min(gSeg(q, float2(-0.12, -0.29), float2(-0.12, 0.29)), min(gSeg(q, float2(-0.12, 0.29), float2(0.15, 0.29)), gSeg(q, float2(0.13, -0.29), float2(0.13, 0.02))));
+  if (k < 1.5) return min(gRing(q, 0.0, 0.25), gDot(q, 0.0, 0.05));
+  if (k < 2.5) return min(gRing(q, float2(-0.1, 0.0), 0.19), gRing(q, float2(0.1, 0.0), 0.19));
+  if (k < 3.5) return abs(min(gDiamond(q, 0.1, 0.36), gDiamond(q, 0.36, 0.1)));
+  if (k < 4.5) return min(gSeg(q, float2(0.0, -0.32), float2(0.0, 0.1)), gArc(q, float2(0.0, 0.1), 0.17));
+  if (k < 5.5) return min(gSeg(q, float2(-0.26, -0.16), float2(0.26, -0.16)), min(gDot(q, float2(-0.19, 0.12), 0.05), min(gDot(q, float2(0.0, 0.12), 0.05), gDot(q, float2(0.19, 0.12), 0.05))));
+  if (k < 6.5) return min(gArc(q, float2(0.0, -0.3), 0.3), gArc(q, float2(0.0, -0.3), 0.15));
+  return min(min(gRing(q, float2(0.0, 0.15), 0.12), gSeg(q, float2(-0.24, -0.28), float2(0.24, -0.28))), gSeg(q, float2(0.0, 0.03), float2(0.0, -0.28)));
+}
+float inscriptionD(float2 g, out float unit)
+{
+  float r = floor(g.y), fy = frac(g.y), c = floor(g.x);
+  unit = 0.36;
+  if (gmod(r, 2.0) < 0.5 || glyphHash(c * 3.0 + r * 11.0 + 5.0) > 0.16)
+  {
+    float by = (fy - 0.5) / unit;
+    float border = min(abs(by - 0.62), abs(by + 0.62));
+    float bx = g.x / (unit * 0.82), j = floor(bx);
+    float2 q = float2((frac(bx) - 0.5) * 0.82, by);
+    float k = gmod(j, 6.0) < 0.5 ? 0.0 : 1.0 + floor(glyphHash(j + r * 31.0) * 7.0);
+    return min(abs(by) < 0.5 ? glyphSignD(q, k) : 1e3, border);
+  }
+  unit = 0.7;
+  float2 q = (frac(g) - 0.5) / unit;
+  return min(glyphSignD(q, 0.0), abs(max(abs(q.x), abs(q.y)) - 0.6));
+}
+// x the groove, y the part of it in the rim's shadow, z a fine outline round the cut; fw the cells' screen footprint
+float3 glyphCarve(float2 g, float2 fw)
+{
+  float px = 1.0 / max(max(fw.x, fw.y), 1e-6);
+  float unit;
+  float d = inscriptionD(g, unit);
+  float upx = unit * px;
+  const float w = 0.066;
+  float vis = smoothstep(1.1, 2.2, 2.0 * w * upx / max(_PixelRatio, 1.0));
+  if (vis <= 0.0 || d > w * 4.0) return 0.0;
+  float aa = 0.7 / upx;
+  float groove = 1.0 - smoothstep(w - aa, w + aa, d);
+  float u2;
+  float dl = inscriptionD(g + float2(-0.45, 1.0) * (w * 1.3 * unit), u2);
+  float shade = groove * smoothstep(w - aa, w + aa, dl);
+  float edge = inkLine(abs(d - w) * upx, 0.75) * (1.0 - shade);
+  return float3(groove, shade, edge) * vis;
+}
+
+// ---------------------------------------------------------------- weathering (materials.js weatherInk, WEATHER)
+// Old walls, lived in: in cells of the wall anchored in the world, the odd hairline crack, jagged, thinning to its ends,
+// a branch or two, a faint pen line with a shaded lip away from the sun and a lit one toward it (the web's since v1.73:
+// the grime streaks and plaster chips that were here drew dark drips down Vael's walls, issue #264). A crack is drawn
+// whole or not at all: none whose points land in a facade's window (wallOpenAt; the web also keeps them off the pieces
+// fixed on a wall, src/wall-openings.js, a table the bridge doesn't carry yet). q: (along the wall, up) in metres, fq:
+// metres per px of each; wp the pixel (world), alongW the world step for a metre of q.x along the wall, nv the normal.
+bool wallOpenAt(float3 p, float3 nv, bool facade, float windows)
+{
+  if (!facade) return false;
+  float2 dirH = normalize(float2(-nv.z, nv.x) + 1e-5);
+  float2 fc = float2(dot(p.xz, dirH), p.y) / float2(3.0, 3.3);
+  float2 c = frac(fc) - float2(0.5, 0.48);
+  return hash(floor(fc) + 3.7) >= 1.0 - windows && abs(c.x) < 0.31 + 0.25 / 3.0 && abs(c.y) < 0.25 + 0.25 / 3.3;
+}
+// a crack's line s metres along it: its offset along the wall and its slope (two polylines over a lean: jagged, not wavy)
+float2 crackLine(float s, float lean, float sd)
+{
+  float u = s / 0.19, i = floor(u), f = u - i;
+  float a = hash(float2(i, sd)) - 0.5, b = hash(float2(i + 1.0, sd)) - 0.5;
+  float U = s / 0.75, I = floor(U), F = U - I;
+  float A = hash(float2(I, sd + 17.0)) - 0.5, B = hash(float2(I + 1.0, sd + 17.0)) - 0.5;
+  return float2(lean * s + lerp(a, b, f) * 0.05 + lerp(A, B, F) * 0.26, lean + (b - a) * 0.05 / 0.19 + (B - A) * 0.26 / 0.75);
+}
+float weatherInk(float2 q, float2 fq, float2 sun2, float litK, float seed, float k, float3 wp, float3 alongW, float3 nv, bool facade, float windows, inout float3 alb)
+{
   float fm = max(fq.x, fq.y);
-  float rTone = 1.0 - smoothstep(0.1, 0.28, fm);
-  if (rTone <= 0.0) return 0.0;
   float resolved = 1.0 - smoothstep(0.03, 0.075, fm);
-  bool lite = _WearLite > 0.5;
-  float2 sunD = normalize(sun2 + float2(1e-4, 0.0));
-  // grime: a streak running down from the top of its cell, narrowing as it goes; small ones soft-sided and faint
+  if (resolved <= 0.0 || k <= 0.0) return 0.0;
+  const float2 cellS = float2(3.7, 3.1);
+  float2 cell = floor(q / cellS), id = cell + seed;
+  if (hash(id + 41.0) > 0.45 * k) return 0.0;
+  float len = cellS.y * (0.3 + 0.45 * hash(id + 8.8));
+  float yb = cell.y * cellS.y + (cellS.y - len) * hash(id + 2.2);
+  bool down = hash(id + 6.4) > 0.45;
+  float sAlong = down ? yb + len - q.y : q.y - yb, t = sAlong / len;
+  if (t < 0.0 || t > 1.0) return 0.0;
+  float x0 = (cell.x + 0.3 + 0.4 * hash(id + 3.3)) * cellS.x;
+  float lean = (hash(id + 5.1) - 0.5) * 0.5, sd = id.x * 7.0 + id.y * 13.0;
+  float2 L = crackLine(sAlong, lean, sd);
+  float px = _PixelRatio;
+  float wPx = lerp(1.1, 0.4, t) * smoothstep(0.0, 0.06, t);
+  float dPx = (q.x - x0 - L.x) / length(float2(fq.x, L.y * fq.y));
+  float fade = 1.0 - smoothstep(0.75, 1.0, t);
+  float tb = 0.22 + 0.25 * hash(id + 9.4), bLen = len * (0.18 + 0.2 * hash(id + 4.6)), side = hash(id + 6.6) > 0.5 ? 1.0 : -1.0;
+  float dB = 1e3, wB = 0.0, fB = 0.0;
+  float2 bEnd = 0.0, b2End = 0.0;
+  bool hasB = hash(id + 1.9) < 0.6, hasB2 = hasB && hash(id + 7.7) < 0.3;
+  if (hasB)
   {
-    const float2 gc = float2(1.3, 2.4);
-    float2 id = floor(q / gc) + seed;
-    if (hash(id + 0.7) < 0.75 * k)
+    float2 Lb = crackLine(tb * len, lean, sd);
+    float sb = sAlong - tb * len, bs = side * (0.55 + 0.4 * hash(id + 2.9));
+    bEnd = float2(x0 + Lb.x + bs * bLen, down ? yb + len - tb * len - bLen : yb + tb * len + bLen);
+    if (sb > 0.0 && sb < bLen)
     {
-      float x0 = (floor(q.x / gc.x) + 0.3 + 0.4 * hash(id + 1.3)) * gc.x;
-      float top = (floor(q.y / gc.y) + 1.0) * gc.y - 0.04 - 0.9 * hash(id + 4.4);
-      float len = gc.y * (0.35 + 0.6 * hash(id + 2.7)), t = (top - q.y) / len, ty = fq.y / len;
-      if (t > -ty && t < 1.0 + ty)
+      float2 Bl = crackLine(sb, bs, sd + 31.0);
+      dB = (q.x - x0 - Lb.x - Bl.x) / length(float2(fq.x, Bl.y * fq.y));
+      wB = lerp(0.65, 0.25, sb / bLen); fB = 1.0 - smoothstep(0.6, 1.0, sb / bLen);
+    }
+    if (hasB2)
+    {
+      float tb2 = tb + 0.3, sb2 = sAlong - tb2 * len, bs2 = -bs * 0.8, bLen2 = bLen * 0.7;
+      float2 Lb2 = crackLine(tb2 * len, lean, sd);
+      b2End = float2(x0 + Lb2.x + bs2 * bLen2, down ? yb + len - tb2 * len - bLen2 : yb + tb2 * len + bLen2);
+      if (sb2 > 0.0 && sb2 < bLen2 && abs(dB) > 1e2)
       {
-        float tc = saturate(t);
-        float w0 = 0.1 + 0.34 * hash(id + 3.1) * hash(id + 5.9);
-        float w = w0 * (1.0 - 0.65 * tc) + 0.05 * (vnoise(float2(q.y * 3.0, id.x * 5.0)) - 0.5);
-        float d = abs(q.x - x0 - 0.1 * (vnoise(float2(q.y * 1.3, id.x)) - 0.5)) - w;
-        float headPx = 2.0 * w0 / max(fq.x, 1e-5), bigK = smoothstep(6.0, 14.0, headPx / _PixelRatio);
-        float soft = lerp(2.0, 1.0, bigK) * _PixelRatio;
-        float gDark = lerp(min(0.36, 0.065 / max(length(alb), 0.1)), 0.36, bigK);
-        float ends = smoothstep(-0.5 * soft, 0.5 * soft, t / ty) * (1.0 - smoothstep(-0.5 * soft, 0.5 * soft, (t - 1.0) / ty));
-        float wide = step(2.25 * _PixelRatio, headPx);
-        dark = max(dark, (1.0 - smoothstep(-0.5 * soft * fq.x, 0.5 * soft * fq.x, d)) * gDark * (1.0 - 0.2 * tc) * ends * wide);
+        float2 Bl2 = crackLine(sb2, bs2, sd + 47.0);
+        dB = (q.x - x0 - Lb2.x - Bl2.x) / length(float2(fq.x, Bl2.y * fq.y));
+        wB = lerp(0.55, 0.22, sb2 / bLen2); fB = 1.0 - smoothstep(0.6, 1.0, sb2 / bLen2);
       }
     }
   }
-  // chips: the plaster broken away, the layer under it darker, the edge inked, the lip's shadow on the sun's side
-  float pn = vnoise(q * float2(0.42, 0.55) + seed * 7.1) * 0.7 + vnoise(q * 1.9 + seed) * 0.3;
-  float fpn = 0.9 * fm;
-  float th = 1.0 - 0.24 * k;
-  float inside = smoothstep(th - fpn, th + fpn, pn);
-  alb = lerp(alb, alb * float3(0.74, 0.68, 0.62), inside * rTone);
-  ink = max(ink, inkLine(abs(pn - th) / max(fpn, 1e-5), 0.9) * 0.85 * resolved);
-  float lipK = smoothstep(0.75 * _PixelRatio, 1.75 * _PixelRatio, 0.1 / max(fm, 1e-5));
-  if (!lite && inside > 0.0 && litK > 0.0 && lipK > 0.0)
+  if (min(abs(dPx), abs(dB)) > 3.5 * px) return 0.0;
+  // whole or not at all: its points along it, its branches' ends and this pixel, clear of every window
+  if (facade)
   {
-    float2 qs = q + sunD * 0.1;
-    float pl = vnoise(qs * float2(0.42, 0.55) + seed * 7.1) * 0.7 + vnoise(qs * 1.9 + seed) * 0.3;
-    dark = max(dark, (1.0 - smoothstep(th - 0.5 * fpn, th + 0.5 * fpn, pl)) * inside * 0.42 * litK * resolved * lipK);
-  }
-  // cracks: down from a storey's top or up from its foot, jagged, thinning, a branch now and then; a shadow side
-  if (!lite && resolved > 0.0)
-  {
-    [unroll] for (int dy = 0; dy < 2; dy++)
+    [unroll] for (int j = 0; j < 5; j++)
     {
-      float2 id = floor(q / cellS) - float2(0.0, (float)dy) + seed;
-      if (hash(id + 41.0) > 0.5 * k) continue;
-      bool down = hash(id + 2.2) > 0.45;
-      float x0 = (floor(q.x / cellS.x) + 0.12 + 0.76 * hash(id + 3.3)) * cellS.x;
-      float y0 = (floor(q.y / cellS.y) - (float)dy + (down ? 1.0 : 0.0)) * cellS.y;
-      float len = cellS.y * (0.5 + 0.8 * hash(id + 8.8));
-      float sAlong = down ? y0 - q.y : q.y - y0, t = sAlong / len;
-      if (t < 0.0 || t > 1.0) continue;
-      float lean = (hash(id + 5.1) - 0.5) * 1.1;
-      float x = x0 + lean * sAlong + (vnoise(float2(sAlong * 2.3, id.x * 7.0 + id.y)) - 0.5) * 0.32 + (vnoise(float2(sAlong * 8.0, id.y * 3.0)) - 0.5) * 0.07;
-      float wPx = lerp(1.15, 0.4, t), dPx = (q.x - x) / max(fq.x, 1e-5);
-      float fade = 1.0 - smoothstep(0.8, 1.0, t);
-      ink = max(ink, inkLine(abs(dPx), wPx) * fade);
-      float side = dPx * -sign(sunD.x);
-      dark = max(dark, smoothstep(wPx * 0.5 - 0.5, wPx * 0.5 + 0.5, side) * (1.0 - smoothstep(wPx * 0.5 + 1.1, wPx * 0.5 + 2.1, side)) * 0.32 * fade * litK);
-      float tb = 0.3 + 0.3 * hash(id + 9.4), sb = sAlong - tb * len;
-      if (sb > 0.0 && sb < len * 0.35 && hash(id + 1.9) < 0.6)
-      {
-        float xb = x0 + lean * tb * len + (vnoise(float2(tb * len * 2.3, id.x * 7.0 + id.y)) - 0.5) * 0.32 + sign(hash(id + 6.6) - 0.5) * sb * 0.9 + (vnoise(float2(sb * 6.0, id.x)) - 0.5) * 0.06;
-        ink = max(ink, inkLine(abs(q.x - xb) / max(fq.x, 1e-5), lerp(0.75, 0.3, sb / (len * 0.35))) * (1.0 - smoothstep(0.7, 1.0, sb / (len * 0.35))));
-      }
+      float s = len * (float)j / 4.0;
+      float2 Ls = crackLine(s, lean, sd);
+      if (wallOpenAt(wp + alongW * (x0 + Ls.x - q.x) + float3(0.0, (down ? yb + len - s : yb + s) - q.y, 0.0), nv, facade, windows)) return 0.0;
     }
+    if (hasB && wallOpenAt(wp + alongW * (bEnd.x - q.x) + float3(0.0, bEnd.y - q.y, 0.0), nv, facade, windows)) return 0.0;
+    if (hasB2 && wallOpenAt(wp + alongW * (b2End.x - q.x) + float3(0.0, b2End.y - q.y, 0.0), nv, facade, windows)) return 0.0;
+    if (wallOpenAt(wp, nv, facade, windows)) return 0.0;
   }
-  alb *= 1.0 - dark * rTone;
-  return ink * resolved;
+  float ink = max(inkLine(abs(dPx), wPx) * fade, inkLine(abs(dB), wB) * fB);
+  if (_WearLite < 0.5 && litK > 0.0)
+  {
+    float sunS = -sign(sun2.x + 1e-4), sA = dPx * sunS, hw = wPx * 0.5 * px;
+    float lipK = fade * litK * smoothstep(0.25, 0.6, wPx);
+    float aL = max(length(alb), 0.1);
+    float dk = smoothstep(hw - 0.5, hw + 0.5, sA) * (1.0 - smoothstep(hw + 0.9 * px, hw + 1.9 * px, sA)) * min(0.12, 0.06 / aL);
+    float lt = smoothstep(hw - 0.5, hw + 0.5, -sA) * (1.0 - smoothstep(hw + 0.7 * px, hw + 1.5 * px, -sA)) * min(0.06, 0.06 / aL);
+    alb *= 1.0 + (lt - dk) * lipK * resolved;
+  }
+  return ink * resolved * 0.8;
 }
 
 // ---------------------------------------------------------------- pen detail (materials.js DETAIL)
