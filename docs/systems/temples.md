@@ -1022,6 +1022,45 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   breath meter and the camera under it), `temples.test.js`, `temple-playthrough` (and the route's, `playthrough-agent.js`:
   the arena's own work first while its guardian is awake), `temple-maps`, `house-map`, `temple-rules`, `way-back`,
   `zfight` (19 → 6).
+- **The Casting-House round its Pouring Hall, the pour its state** (v1.83, issue #416; the approved recommendations:
+  `docs/design/temple-best-practices.md`, G1, G2, G4, G6 and the house's row). `src/temples/moonfoundry.js`:
+  - **The pour** (G1): the drum `pour`, `pourOn` (t 1, the start: the house pours by itself) or `pourCold` (t 0),
+    `roll: 'hand'`, `verb: 'pour'`, set from several rooms (`rooms`: the hall's floor and gallery, the landing, the Mould
+    Room, the Sand Room, the furnace, the Weighing Hall); `POURED` and `COLD` its two conditions. `Pour` keeps it (its
+    `setters`, the scout's nearest tap, the line said, the one lamp material every tap, gauge and gate lamp shares, the
+    iron's level `k` running in or draining over `POUR.run` s); a `PourTap` by every hub (`POUR.taps`), turned with the use
+    button; a `PourGauge` in every room but the guardian's and the two short passages (`shows: 'pour'`): a glass column, its
+    iron up while it pours. Poured: the great `Crucible` over the hall's north end tips and its stream falls into the
+    basin; the runnels cut in the hall's floor (`RUN`, `RUNS`: the Runner from gate to gate, the spine up to the basin)
+    fill and burn (the night pour's rule outside: a fire hazard that throws you up and out to the nearer side, a quarter
+    heart a bite, never a fall back to a mark); the four heat-gates shut (`gW`, `gE` in the hall's walls, `dR` the Sand
+    Room's, `cF` the furnace's far gate: `opens: COLD`), a `PourFall` of three streams down each one's face into a gutter
+    that burns too; and the moulds are cast. Cold: the gates open, the runnels drain into dry lanes with steps down
+    (`RUN.steps`), crossed by flush plates (`RUN.plates`, two before the gates).
+  - **The casts** (teach, test, twist): a stone moon in the Mould Room's great mould and the pour let in opens its north
+    door (`dM`); the same on the Crucible Stair's landing opens the north door to the Tong Chamber (`gT`, its counterweight
+    cast); in the furnace the hot moon lights the hooded mould (`bH`, the pilot flame always lit) and the pour casts the
+    bridge (`brH`). The founders' moon drawn across the spine into the great cradle on the hall's floor, the pour round it,
+    with the great key opens the Founders' Door (`dF`, a great lock now). Each a latched door, wherever the pour was let in
+    from: `logic.js` solve() counts a latching door a stop would open (its one change: no other house's solve log moves).
+  - **G2**: the great key's cage (`kG`) in the Weighing Hall sinks once both pans of the great scale weigh: the pier's iron
+    moon (the glove, `mB`) and the stone weight (`wS`, `needs: ['hook']`) hooked off its column's capital 19 m up and
+    carried into the floor pan (`pS`).
+  - **G4**: the Pouring Hall (`HALL`) 44 by 72 m under 34, its gallery 11 m up round three sides reached from the Crucible
+    Stair's landing (a 30 m square hall now, the landing a puzzle room), the crucible, the runnels and the Founders' Door
+    all seen from the way in. **G6**: the sill (`SILL`), a gap in the gallery's west arm over a bed of moulding sand
+    (`Catch`); the antechamber's mark 6 m from the founder's door.
+  - **The skippable wing, needed**: the small key (the Sand Room's) opens the door down to the Weighing Hall (`dW`), whose
+    great key the Founders' Door wants. Deliberately optional: the map, the Tong Chamber's try (`mT`, `try`) and the
+    keepers' door back to the hub (`eS`, `shortcut`: the long way round is through the furnace and down the sill).
+  - **The temple maps**: "Let the pour in / Stop the pour, at a tap" (`makers.js`).
+  Twelve locks for the audit (six before; skeleton `XBCXXXLK` → `BBBXBXCXXXBLXLK`). Tests: `tests/casting-pour.test.js`
+  (the house on foot with a real traveller: every tap turned with the use button, the runnel's burn, the dry lane and its
+  steps, every moon rolled or drawn, the hoist, the press, the weight hooked off its capital, the sill dropped from unhurt;
+  the pour read the same everywhere), `tests/temples.test.js` (the solver both ways, the hook carried in, the arena's key
+  for `dW`, old saves), `tests/temple-playthrough.test.js` (walked in with the hook; a house-wide state may be asked for
+  twelve times). Old saves: `migrate.js` moonfoundry v4 (past the old Mould Room's door: the landing's moon cast; past the
+  Founders' Door: the Weighing Hall done, the small key in its door; one that stood inside: to its last mark).
 - **The Givers carried their fire** (the Rose House, from the v1.24 audit; the house's one fire, the pilot flame,
   never went out; the rooms below as they were until v1.44). A `Ball` with `tar: { burns }` is a tar ball: an ember glob lights it, and so does rolling it past a
   fire beside its groove (any piece with a `fire` point within its `fireReach`: a `Flame`, the pilot flame sunk in the

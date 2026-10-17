@@ -208,7 +208,7 @@ test('every skinned house’s signs are the shared makers’ mark: friezes, thre
     }
     if (id === 'moonfoundry') {
       const hoods = all.filter((m) => m.name === 'cradle sign (skin)');
-      assert.equal(hoods.length, 2);
+      assert.equal(hoods.length, 1);   // (the furnace's: the Pouring Hall's hooded cradle a mould the pour fills since issue #416)
       for (const m of hoods) assert.equal(skMarks(m.geometry).marks.length, 1, 'the Casting-House: the mark on each cradle’s hood');
       assert.equal(count((m) => m.name === 'skin: their lights'), 1, 'the Casting-House: the mark on the moon’s ring');
     }

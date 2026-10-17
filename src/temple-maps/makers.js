@@ -57,7 +57,7 @@ export function nounOf(id, e, piece) {
   const cls = piece?.cls;
   if (!e) return id;
   switch (e.type) {
-    case 'drum': return e.verb === 'sluice' ? 'sluice' : e.verb === 'breath' ? 'the house’s breath' : e.verb === 'tide' ? 'tide' : e.needs?.includes('magnet') ? 'iron ball' : 'ball';
+    case 'drum': return e.verb === 'sluice' ? 'sluice' : e.verb === 'breath' ? 'the house’s breath' : e.verb === 'tide' ? 'tide' : e.verb === 'pour' ? 'pour' : e.needs?.includes('magnet') ? 'iron ball' : 'ball';
     case 'plate': return 'floor plate';
     // (issue #410: the Lamp-House's lamps, its pool-lamps and its great lamp, read as lamps)
     case 'switch': return cls === 'LightEar' ? 'lamp' : cls === 'LampGlass' ? 'great lamp' : piece?.o?.light ? 'pool-lamp' : cls === 'Bank' ? 'bank of eyes' : cls === 'Bud' ? 'flower-door' : cls === 'Seed' ? 'seed' : cls === 'EchoEar' ? 'brass horn' : cls === 'Jaw' ? 'gate of jaws' : piece?.o?.crystal ? 'singing crystal' : 'eye';
@@ -80,7 +80,7 @@ export function nounOf(id, e, piece) {
 }
 /** The verbs a step asks for, in plain words (the design audit's mechanics). */
 export const VERB_WORDS = {
-  push: 'roll a ball', weight: 'stand on a plate', shot: 'shoot', ember: 'set alight', bell: 'ring a bell', sluice: 'set the water', tide: 'set the tide', sequence: 'in order',
+  push: 'roll a ball', weight: 'stand on a plate', shot: 'shoot', ember: 'set alight', bell: 'ring a bell', sluice: 'set the water', tide: 'set the tide', pour: 'set the pour', sequence: 'in order',
   volley: 'in one breath', timed: 'against the clock', reveal: 'see the hidden', key: 'carry a key', fight: 'fight', carry: 'carry a block',
   take: 'open a chest', unlock: 'unlock', guardian: 'face the guardian', dodge: 'dodge the hazard', gorged: 'a gorged one', tough: 'the tough ones',
 };
@@ -375,6 +375,8 @@ function stepText(s, { E, el, room, guardian, links, nth = 0 }) {
     case 'roll': return e?.verb === 'bell' ? `${(e.stops?.[s.onto] ?? 1) > 0 ? 'Ring' : 'Still'} the house’s bell, at a lever or a bell’s ring${tag} → ${s.onto}`
       // (issue #411: the Builders' Greenhouse's water, sent up or let down at a sluice wheel)
       : e?.verb === 'sluice' ? `${(e.stops?.[s.onto] ?? 1) > 0 ? 'Send the house’s water up' : 'Let the house’s water down'}, at a sluice wheel${tag} → ${s.onto}`
+      // (issue #416: the Casting-House's pour, let in or stopped at a tap)
+      : e?.verb === 'pour' ? `${(e.stops?.[s.onto] ?? 1) > 0 ? 'Let the pour in' : 'Stop the pour'}, at a tap${tag} → ${s.onto}`
       // (issue #410: the Lamp-House's great lamp, its shutters opened or shut at a lever or the pipe's ring)
       : e?.verb === 'lamp' ? `${(e.stops?.[s.onto] ?? 1) > 0 ? 'Open' : 'Shut'} the great lamp’s shutters, at a lever or the pipe’s ring${tag} → ${s.onto}`
       // (issue #413: the Warden's Well's breath, let out or in at a lever by a hub)

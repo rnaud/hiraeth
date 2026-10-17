@@ -49,7 +49,8 @@ export const PEOPLE = {
         },
         go: {
           say: ['~neutral~ *The door under the chimney.* It isn’t locked. The founders never locked anything; they just made it heavy.',
-            '~curious~ The ledger lists a *magnet glove* in the house, for drawing the iron moons along. They move for nothing else. Find it first.'],
+            '~curious~ The ledger lists a *magnet glove* in the house, for drawing the iron moons along. They move for nothing else. Find it first.',
+            '~neutral~ And it pours. There’s a tap by every hub: shut it, and the channels go cold.'],
           choices: [{ text: '~happy~ Tongs. Got it.', end: true }],
         },
         again: {

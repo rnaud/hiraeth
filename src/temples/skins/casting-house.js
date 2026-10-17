@@ -57,10 +57,10 @@ export const CASTING = {
   /** the bands across the walls (kit.js M.bands): a dark plinth (no course under the frieze: the picks' walls run clear) */
   bands: [{ y: 0.45, h: 0.9, color: '#3a2e24' }],
   stone: '#5a4a3c',
-  /** the grating over the Last Founder in the Pouring Floor (local m: its middle, half sizes; bars every m) */
-  grate: { x: 8, z: 38.5, hx: 3.4, hz: 2.8, bar: 0.75 },
+  /** the grating over the Last Founder in the Pouring Hall's north floor (local m: its middle, half sizes; bars every m) */
+  grate: { x: 10, z: 82, hx: 3.4, hz: 2.8, bar: 0.75 },
   /** the great moon made larger (its middle, local m, and how much), in its floating ring (radii, height, tilt) */
-  moonAt: { x: 0, y: 16, z: 32, scale: 1.35, ring: [4.4, 5.0, 0.55, 0.08] },
+  moonAt: { x: 0, y: 20, z: 38, scale: 1.35, ring: [4.4, 5.0, 0.55, 0.08] },
   /** a pilot flame's two floating rings: [inner, outer radius, height, y over the flame] */
   flameRings: [[1.25, 1.6, 0.34, 3.6], [1.45, 1.85, 0.3, 6.0]],
   /** how bright the skin's lights are (makeMaterial glow; post.js haloes over 0.62: just over it keeps a halo tight) */
@@ -588,7 +588,7 @@ export function castingHouseSkin(rt) {
           if (near(c, ironFrom)) {
             const { c: mid, s } = shapeOf(K, g);
             // (the great moon's chains up to the oculus: it hangs by nothing now)
-            if (Math.abs(mid.y - 20.3) < 0.6 && Math.hypot(mid.x - big.x, mid.z - big.z) < 2.4 && s.y > 3.5) { chains++; continue; }
+            if (Math.abs(mid.y - (big.y + 4.3)) < 0.6 && Math.hypot(mid.x - big.x, mid.z - big.z) < 2.4 && s.y > 3.5) { chains++; continue; }
             const a = g.attributes.color;
             for (let i = 0; i < a.count; i++) a.setXYZ(i, ironTo.r, ironTo.g, ironTo.b);
             iron++;

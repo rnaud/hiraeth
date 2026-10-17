@@ -67,7 +67,7 @@ function openChest(rt, id, P) {
 }
 const BUILT = Object.keys(TEMPLES);
 /** The older houses' tools a house's late step asks for with its own (G2, issues #411, #410, #413 and #412). */
-const OLDER = { edena: ['hook'], perdide2: ['hook'], incal: ['hook'], underwater: ['hook'] };
+const OLDER = { edena: ['hook'], perdide2: ['hook'], incal: ['hook'], underwater: ['hook'], moonfoundry: ['hook'] };
 /** Rooms the gadget sends you back to (issue #413): reached before its chest, their step wants it. */
 const BACK_TO = { incal: ['vaneFar'] };
 
@@ -931,7 +931,8 @@ test('the Whale-House, the Casting-House and the Footprint (issue #23, round 3):
     // (the Whale-House's passage door is held, not latched: a save past it had the keepers' door open behind it, before
     // issue #412; since then the Horn Store wants the boots and the tide let out, and the gallery's weight the hook)
     ['underwater', 'arH', 'd4', 'tank', { 'lit.eP': true, 'lit.eS': true, 'open.dH': true }, { 'open.dK': true }],
-    ['moonfoundry', 'arS', 'dF', 'ante', { 'lit.bG': true, 'drum.mG': 1 }, { 'open.dF': true }],
+    // (the Casting-House's small key since issue #416 for the door down to the Weighing Hall, past the furnace's far gate)
+    ['moonfoundry', 'arS', 'dW', 'scales', { 'lit.bH': true, 'drum.mH': 1, 'open.brH': true }, { 'open.dF': true }],
     ['spheres', 'arL', 'd4', 'hall', { 'lit.s2': true, 'drum.ball4': 0.62 }, { 'open.d4': true }],
   ]) {
     const L = TEMPLES[id].def.logic, items2 = [...items, ...(OLDER[id] ?? [])];
@@ -1976,220 +1977,7 @@ test('the Engine-House on foot: the valve and the ball in the pistons’ crank, 
   own();
 });
 
-// ------------------------------------------------------------------ on foot: the Moon Foundry's Casting-House, room by room
-test('the Casting-House on foot: the founders’ moon too heavy at the start, the test scale, the stone moon rolled into the great mould and its seam-eye, the Sand Room’s arena off it and its small key, you in the hoist’s pan and the stone moon for you, the hoist, the magnet glove (issue #377: the founders’ tongs before) and its try, the east door’s cradle out on the chamber’s floor (v1.77, issue #336: every room a shrine’s, each puzzle in the middle of its room), through the door, the near lip’s iron moon through the pilot flame into the hooded mould, the press over the bridge, the keepers’ pan and eye and the way back, the founders’ moon hot into the great cradle, the Last Founder given a whole moon, the moon on the jib', () => {
-  game.reset();
-  own('backpack', 'gun');
-  const { level, physics, rt } = world('moonfoundry');
-  const P = new Player(physics, { spawn: rt.arrival.pos.clone(), dynamic: level.dynamic, health: true, limit: level.limit });
-  const notes = [];
-  rt.connect({ player: P, toast: (s) => notes.push(s) });
-  let t = 0;
-  const L = (x, y, z) => rt.kit.world(x, y, z);
-  const frame = (input = {}, yaw = 0) => { t += DT; physics.syncMovers(DT); rt.update(DT, t); P.update(DT, input, yaw); updateHazards(DT, P); };
-  const toward = (to) => Math.atan2(-(to.x - P.pos.x), -(to.z - P.pos.z));
-  const flat = (a) => Math.hypot(P.pos.x - a.x, P.pos.z - a.z);
-  const walk = (to, { tol = 0.6, max = 25, run = true, dy = 1.6 } = {}) => {
-    for (let i = 0; i < max / DT; i++) { if (flat(to) < tol && Math.abs(P.pos.y - to.y) < dy) return true; frame({ KeyW: true, ShiftLeft: run }, toward(to)); }
-    return false;
-  };
-  const wait = (s) => { for (let i = 0; i < s / DT; i++) frame(); };
-  const where = () => rt.kit.local(P.pos).toArray().map((v) => v.toFixed(1)).join(', ');
-  const said = (re) => notes.some((n) => re.test(n));
-  const roll = (ball, way, done, n = 8) => {
-    const d = ball.dir.clone().multiplyScalar(way);
-    for (let k = 0; k < n && !done(); k++) {
-      P.teleport(ball.center.clone().addScaledVector(d, -2.2).setY(ball.group.position.y + 0.1), V(0, 1, 0), V(0, 0, 1));
-      wait(0.2);
-      ball.hit('push', d.clone(), { strength: 0.8 });
-      wait(2.6);
-    }
-    return done();
-  };
-  // (issue #377) an iron moon drawn along its rail in the magnet glove's field: the glove's hold on it (src/gadgets/metal.js
-  // irons: what src/gadgets/magnet.js holds), toward the rail's end `way` (1: its far end), till done
-  const draw = (ball, way, done, s = 10) => {
-    const x = irons().find((i) => i.pos() === ball.center);
-    assert.ok(x, `${ball.id}: the glove takes hold of it`);
-    const goal = (way > 0 ? ball.b : ball.a).clone().addScaledVector(ball.dir, way * 1.5);
-    P.teleport(ball.center.clone().addScaledVector(ball.dir, -way * 5).setY(ball.group.position.y + 0.1), V(0, 1, 0), V(0, 0, 1));
-    for (let i = 0; i < s / DT && !done(); i++) { x.follow(goal, DT); frame(); }
-    for (let i = 0; i < 3 / DT && !done(); i++) frame();
-    return done();
-  };
-  wait(0.5);
-  // ---- the Pouring Floor: the founders' moon is cast iron, too heavy for a plain push; the test scale tips, and nothing
-  const mG = rt.piece('mG');
-  mG.hit('push', mG.dir.clone(), { strength: 1 });
-  wait(1);
-  assert.ok(mG.t < 0.01, 'the founders’ moon only rocks on its rail');
-  assert.ok(said(/far too heavy/), 'and it says why');
-  assert.equal(roll(rt.piece('m0'), 1, () => rt.logic.drumOn('m0', 'p0')), true, 'the test cast into its little scale');
-  wait(0.3);
-  assert.ok(said(/test cast/), 'it tips, and nothing waits on it');
-  // ---- the Mould Room: the seam-eye stays lidded until the stone moon from the floor fills the great mould
-  const eM = rt.piece('eM');
-  eM.hit('shoot');
-  assert.equal(rt.logic.isLit('eM'), false, 'lidded over an empty mould');
-  const m1 = rt.piece('m1');
-  assert.equal(walk(L(3, 0, 24)) && walk(L(-15, 0, 31)) && walk(L(-26, 0, 31)), true, `through the west doorway into the Mould Room (${where()})`);
-  assert.equal(roll(m1, 1, () => rt.logic.drumOn('m1', 'pM')), true, `the stone moon rolled across the room into the great mould (${m1.t.toFixed(2)})`);
-  wait(1);
-  assert.ok(eM.lidsOpen(), 'the lids lift');
-  eM.hit('shoot');
-  assert.equal(rt.logic.isLit('eM'), true);
-  wait(2.5);
-  assert.equal(rt.logic.isOpen('dM'), true, 'the door to the Crucible Stair');
-  // ---- the Sand Room, south off the Mould Room (v1.53, an arena): its door shuts behind you while its keepers stand
-  const keepers = [{ room: 'sand', alive: true }, { room: 'sand', alive: true }];
-  rt.machines = [...(rt.machines ?? []), ...keepers];
-  const sandDoor = FOUNDRY_SAND.z + FOUNDRY_SAND.d / 2 + 0.6;
-  assert.equal(walk(L(FOUNDRY_SAND.x, 0, sandDoor + 4)) && walk(L(FOUNDRY_SAND.x, 0, sandDoor)) && walk(L(FOUNDRY_SAND.x, 0, sandDoor - 5)), true, `into the Sand Room (${where()})`);
-  wait(0.3);
-  assert.equal(rt.logic.isOpen('dR'), false, 'the door shuts behind you');
-  for (const k of keepers) k.alive = false;
-  wait(2.5);
-  assert.ok(rt.logic.isLit('arS') && rt.logic.isOpen('dR'), 'beaten: won, and the door lets go');
-  assert.equal(walk(rt.piece('kS').pos, { tol: 1.2 }), true, `to the key (${where()})`);
-  wait(0.3);
-  openChest(rt, 'kS', P);
-  assert.equal(rt.logic.isFound('kS'), true, 'a small key, for the last door');
-  assert.equal(walk(L(FOUNDRY_SAND.x, 0, sandDoor)) && walk(L(FOUNDRY_SAND.x, 0, sandDoor + 4)), true, `back into the Mould Room (${where()})`);
-  // ---- the hoist's pan: you are the weight, but not on the hoist; the stone moon stands in for you
-  const hoist = rt.pieces.find((p) => p.path && p.o.when?.pressed === 'pK');
-  const U = FOUNDRY_UP;
-  P.teleport(L(-44.3, 4.6, 38), V(0, 1, 0), V(0, 0, 1));
-  wait(1.5);
-  assert.equal(rt.logic.pressed('pK'), true, 'you in the pan');
-  assert.ok(said(/You are the weight/), 'and the hoist rises without you');
-  P.teleport(L(-39, 4.6, 38), V(0, 1, 0), V(0, 0, 1));
-  wait(0.5);
-  assert.equal(roll(rt.piece('m2'), 1, () => rt.logic.drumOn('m2', 'pK')), true, 'the stone moon into the pan');
-  P.teleport(L(-30, 0.1, 44), V(0, 1, 0), V(0, 0, 1));
-  wait(0.5);
-  assert.equal(walk(L(-30, 0, 53)), true, `through the door to the stair (${where()})`);
-  for (let i = 0; i < 30 / DT && !(hoist.s < 0.1 && hoist.wait > 0.4); i++) frame();
-  assert.equal(walk(hoist.group.position, { tol: 0.6, run: false, max: 4, dy: 0.9 }), true, `onto the hoist (${where()})`);
-  for (let i = 0; i < 20 / DT && hoist.s < hoist.total - 0.05; i++) frame();
-  assert.equal(walk(L(-30, U, 62.5), { max: 4 }), true, `onto the landing (${where()})`);
-  assert.equal(walk(L(-30, U, 76)), true, `into the Tong Chamber (${where()})`);
-  // ---- the Tong Chamber: the tongs; the try by the dais
-  assert.equal(irons().some((i) => i.pos() === rt.piece('mT').center), false, 'before the glove, nothing takes hold of the iron');
-  items.grant('magnet'); game.emit('box:opened', { id: 'moonfoundry.temple.tongs' });
-  wait(0.3);
-  assert.equal(rt.logic.gadget, true);
-  roll(rt.piece('mT'), 1, () => rt.logic.drumOn('mT', 'pT'), 1);
-  assert.equal(rt.logic.drumOn('mT', 'pT'), false, 'a push still only rocks the iron');
-  assert.equal(draw(rt.piece('mT'), 1, () => rt.logic.drumOn('mT', 'pT')), true, 'the try: the iron moon drawn in the glove’s field');
-  assert.ok(said(/rolls in the glove’s field/));
-  // ---- the chamber's east door (v1.77: the Pincer Passage's): held by the cradle's moon out on the chamber's floor
-  assert.equal(rt.logic.isOpen('dP'), false, 'the east door shut');
-  assert.equal(draw(rt.piece('mP'), 1, () => rt.logic.drumOn('mP', 'pP')), true, 'the cradle’s moon home');
-  wait(2.5);
-  assert.equal(rt.logic.isOpen('dP'), true, 'the chamber’s east door');
-  assert.equal(walk(L(-20, U, 89)) && walk(L(-5, U, 89)), true, `through it onto the furnace’s near lip (${where()})`);
-  // ---- the Casting Furnace: the near lip's iron moon through the pilot flame, hot into the hooded mould (v1.77: all of
-  // it on the lip, nothing rolled under a door)
-  const mH = rt.piece('mH');
-  assert.ok(!mH.o.gap, 'no door on its rail');
-  assert.equal(draw(mH, 1, () => rt.logic.drumOn('mH', 'pH')), true, `the iron moon into the mould’s mouth (${mH.t.toFixed(2)})`);
-  wait(1.5);
-  assert.ok(said(/comes out glowing/), 'it went through the flame');
-  assert.equal(rt.logic.isLit('bH'), true, 'the hot moon lights the hooded mould');
-  wait(3);
-  assert.equal(rt.logic.isOpen('brH'), true, 'the bridge over the channel');
-  // the press over the bridge: wait for it to rise, then cross
-  const press = rt.piece('hm');
-  P.teleport(L(6.3, U + 0.1, 84), V(0, 1, 0), V(0, 0, 1));
-  wait(0.5);
-  for (let i = 0; i < 8 / DT && !(press.phase > 0.45 && press.phase < 0.5); i++) frame();
-  assert.equal(walk(L(19.8, U, 84), { max: 6 }), true, `over the bridge under the press (${where()})`);
-  assert.ok(P.pos.y > L(0, U - 1, 0).y, 'over it, not in the channel');
-  assert.equal(walk(L(27, U, 75)) && walk(L(27, U, 65)), true, `from the far lip through its south door onto the Weighing Hall’s gallery (${where()})`);
-  // ---- the far landing and the Weighing Hall: the iron moon into the keepers' pan; the keepers' eye; down and back
-  assert.equal(draw(rt.piece('mB'), 1, () => rt.logic.drumOn('mB', 'pB')), true, 'the third iron moon into the keepers’ pan on the gallery');
-  const eS = rt.piece('eS');
-  wait(1);
-  assert.ok(eS.lidsOpen(), 'the keepers’ eye unlids');
-  eS.hit('shoot');
-  wait(2.5);
-  assert.equal(rt.logic.isOpen('dS'), true, 'the keepers’ door');
-  P.teleport(L(48, U + 0.1, 64), V(0, 1, 0), V(0, 0, 1));
-  wait(0.3);
-  assert.equal(walk(L(53, U, 61)) && walk(L(53, 0, 30.6), { max: 20 }), true, `down the gallery’s stair (${where()})`);
-  assert.equal(walk(L(26, 0, 32)) && walk(L(8, 0, 32)), true, `through the keepers’ door onto the Pouring Floor (${where()})`);
-  // ---- back on the floor: the founders' moon through the pilot flame into the great cradle
-  assert.equal(draw(mG, 1, () => rt.logic.drumOn('mG', 'pG')), true, `the founders’ moon home (${mG.t.toFixed(2)})`);
-  wait(1.5);
-  assert.equal(rt.logic.isLit('bG'), true, 'hot into the great cradle');
-  wait(3);
-  assert.ok(rt.logic.check(rt.logic.el('dF').opens) && !rt.logic.isOpen('dF'), 'the cradle hot: and since v1.53 the Founders’ Door wants the Sand Room’s key');
-  P.teleport(L(0, 0.1, 49.0), V(0, 1, 0), V(0, 0, 1));
-  wait(2.4);
-  assert.equal(rt.logic.keysIn('dF'), 1, 'the key in it');
-  assert.equal(rt.logic.isOpen('dF'), true, 'the Founders’ Door');
-  P.teleport(L(0, 0.1, 48), V(0, 1, 0), V(0, 0, 1));
-  wait(0.3);
-  assert.equal(walk(L(0, 0, 70)) && walk(L(0, 0, 118), { max: 30 }), true, `down the cold passage under the furnace into the Last Casting (${where()})`);
-  // ---- the Last Founder
-  const G = rt.guardian, mA = rt.piece('mA');
-  wait(0.3);
-  assert.notEqual(G.state, 'sleep');
-  P.opts.health = false;
-  const opening = () => { for (let i = 0; i < 40 / DT; i++) { frame(); if (G.state === 'open') return true; } return false; };
-  let tipped = false, hot = false, twice = false;
-  for (let n = 0; n < 14 && G.state !== 'resolved'; n++) {
-    assert.ok(opening(), `its crucible opens (${n}, phase ${G.phaseIndex})`);
-    if (G.phaseIndex === 1 && !rt.founderCradled()) {
-      const m = G.meter;
-      rt.quench();
-      assert.ok(Math.abs(G.meter - m - 0.175) < 1e-6, `free, a splash as before (${(G.meter - m).toFixed(3)})`);
-      draw(mA, 1, () => rt.logic.drumOn('mA', 'pA'));
-      assert.equal(rt.founderCradled(), true, 'a whole moon in its cradle');
-      continue;
-    }
-    if (G.phaseIndex === 1 && rt.founderCradled()) {
-      const m = G.meter;
-      rt.quench();
-      twice = Math.abs(Math.min(0.7, m + 0.35) - G.meter) < 1e-6;
-      assert.ok(twice, `with the moon in its cradle it counts twice (${(G.meter - m).toFixed(3)})`);
-      continue;
-    }
-    if (G.phaseIndex === 2 && !hot) {
-      tipped = said(/tip the moon out/);
-      assert.ok(tipped, 'shifting into its last phase it tips the moon out of the cradle');
-      assert.equal(rt.founderCradled(), false);
-      hot = true;
-      const m = G.meter;
-      assert.equal(rt.quench(), false, 'too hot for water');
-      assert.equal(G.meter, m);
-      assert.ok(said(/too hot/), 'and it says why');
-      draw(mA, 1, () => rt.logic.drumOn('mA', 'pA'));
-      assert.equal(rt.founderCradled(), true, 'rolled back in');
-      continue;
-    }
-    const m = G.meter;
-    rt.quench();
-    assert.ok(G.meter > m, `a splash takes (${n}, phase ${G.phaseIndex})`);
-  }
-  assert.equal(G.state, 'resolved', `stopped (${G.meter})`);
-  assert.ok(twice && tipped && hot, 'its phases were met');
-  assert.equal(game.flag('temple.moonfoundry.done'), true);
-  wait(2.5);
-  assert.ok(rt.logic.isOpen('d5'));
-  // ---- outside: the one whole moon is lifted onto the jib over the door
-  assert.equal(rt.change.on, true);
-  // (it waits at the door's foot for the climax's film, src/story/moonfoundry-moments.js: issue #295)
-  wait(9);
-  const moon = rt.change.root.children[0];
-  assert.ok(moon.position.distanceTo(rt.outside.hook) > 10, 'still at the door\'s foot, for the film');
-  assert.equal(rt.change.show(), true);
-  wait(6);
-  assert.ok(rt.change.root.visible && moon.position.distanceTo(rt.outside.hook) < 3, `the moon on the hook (${moon.position.distanceTo(rt.outside.hook).toFixed(1)} m)`);  game.reset();
-  own();
-});
-
-// (the Whale-House on foot: tests/whale-tide.test.js since issue #412, the house round its tide)
+// (the Casting-House on foot: tests/casting-pour.test.js, issue #416)
 
 // (the Lamp-House on foot, room by room: tests/lamp-house.test.js since issue #410)
 test('the Lamp-House as shrines (v1.77, issue #336): a save that stood in the old rooms is taken to its last mark; one that never went in is left alone', () => {

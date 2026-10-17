@@ -707,3 +707,35 @@ wing; a second way round its one hub), the alternative #401 house of Part 4, wit
   wings' eyes for the Horn Door, the gallery's weight for the Listener's door, each a wing or a floor from its lock, out
   of its sight; the doors' lamps say what they wait for, which the audit doesn't read). Identity 3 (62 % like the
   Warden's Well). The redesign's rules: none broken.
+### As built: the Casting-House (v1.83, issue #416)
+
+The Casting-House's row of Part 3 (the pour as the house's state; the hook or the bombs once; 12 steps or more; 70 %
+alike) with G1, G2, G4 and G6, and the seven steps the Temple maps page listed as extras, the furnace-and-scales wing
+(`src/temples/moonfoundry.js`; how it works: `docs/systems/temples.md`, "The Casting-House round its Pouring Hall"):
+
+- **G1, the pour:** the great crucible over the Pouring Hall tips its iron into the runnels, or stands upright and lets
+  them drain. Set at a tap by every hub (the hall's floor and gallery, the landing, the Mould Room, the Sand Room, the
+  furnace, the Weighing Hall); read everywhere on a gauge, the one lamp colour (amber poured, slate cold), the runnels'
+  own glow and the crucible's stream. Poured, it blocks: the four heat-gates shut, the iron spilling down them, and the
+  runnels burn (step in and you are thrown out, a quarter heart: the night pour's rule outside, safe and plain). It opens
+  another way: every mould with a moon in it is cast, and a cast door stays open. Cold, the gates open and the runnels are
+  dry lanes. On the way it is set cold, poured, cold, poured (the landing), poured or cold in the furnace (the bridge, then
+  the far gate), and poured again for the founders' moon.
+- **Teach, test, twist, on the pour:** the Mould Room's cast (its stone moon and the pour), the landing's (the same, a
+  floor up, its tap a room away), the furnace's (the glove's hot moon lights the hooded mould, the pour casts the bridge),
+  and the founders' last cast in the great cradle with the great key.
+- **The skippable wing, made needed:** the Sand Room's small key opens the door down to the Weighing Hall, and the
+  Founders' Door is a great lock whose key is the Weighing Hall's. Deliberately optional, and listed so on the Temple maps
+  page: the house's map, the Tong Chamber's try, and the keepers' door back to the hub (the long way is three rooms more).
+- **G2, the hook with the glove:** the great key's cage sinks once the great scale's two pans weigh: the pier's iron moon
+  (the glove) and a stone weight hooked off a column's capital 19 m up and carried into the floor pan.
+- **G4:** the Pouring Hall, 44 by 72 m under 34 (the round Pouring Floor was 36 across), its gallery 11 m up round three
+  sides, the crucible, the runnels and the Founders' Door seen from the way in. **G6:** the sill, a gap in the gallery's
+  west arm over a bed of moulding sand on the hall's floor, unhurt; the antechamber's mark 6 m from the founder's door.
+- **Its own shape:** a hub with a crucible and a state that shuts its own wings, two floors joined by a hoist, a gallery
+  and a sill, and a wing reached by a key and left by a shortcut; the skeleton 67 % like the nearest (the Hush-House's),
+  70 % before (the Founders' Belfry's). The audit compares only the order of the kinds of step.
+- **Length and scores:** 6 → 12 steps (`XBCXXXLK` → `BBBXBXCXXXBLXLK`); design audit 4.44 → 4.56: combinations 5 of 6 →
+  7 of 12, mean obviousness 2.58 → 3.13 (the first gates are plain teaching steps), decoupling 5 (8 of 12 keys out of the
+  lock's room or sight), curve 4 → 5, identity 3 as before; the redesign's rules: none broken. The Temple maps page: 11
+  steps and 8 extras → 25 steps and 3 extras.

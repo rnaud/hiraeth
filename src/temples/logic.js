@@ -466,7 +466,11 @@ export function solve(def, { items = ['backpack', 'gun'], withhold = [], maxStep
       // (a room never reached before counts more than one left behind: the Aerie's one stone, its vent's shaft down into the
       // Moult while it sits in one throat, the column up to the great key's perch in the other, issue #23)
       const fresh = [...rooms].filter((r) => !order.includes(r)).length;
-      return usable * 1e6 + fits * 1e5 + fresh * 1e4 + rooms.size * 1000 + Object.entries(def.elements).filter(([x, g]) => isGate(g) && L.computeOpen(x)).length;
+      // (and a latching door or bridge that would open there, wherever it is: once open it stays, so the stop is worth
+      // setting even where it shuts others for a while. The Casting-House's pour, issue #416: let in from anywhere, it casts
+      // the stone moon in the Mould Room and the furnace's bridge, though its heat-gates shut the way to them while it runs)
+      const latches = Object.entries(def.elements).filter(([x, g]) => isGate(g) && g.latch && !L.store.get(`open.${x}`) && L.computeOpen(x)).length;
+      return usable * 1e6 + (fits + latches) * 1e5 + fresh * 1e4 + rooms.size * 1000 + Object.entries(def.elements).filter(([x, g]) => isGate(g) && L.computeOpen(x)).length;
     };
     // (and with you standing on a plate there: a ball set down in one place while you stand in another, the Footprint's)
     const plates = L.ofType('plate').filter((p) => reach.has(def.elements[p].room) && !L.pressed(p));

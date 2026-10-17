@@ -707,13 +707,14 @@ test('the Casting-House wears its futuristic skin: slate slabs, ivory circuits, 
   // (every ivory moon in the moon's shader, the great one's chains and the old seams gone, the founders' iron warmed, the
   // frieze's glyphs and the doors' medallions the shared makers' mark, a frame round every door, two rings over each
   // pilot flame, the two hooded cradles drawn by the skin)
-  assert.ok(s.moons >= 30 && s.chains === 3 && s.seams >= 30 && s.iron > 40 && s.signs > 50 && s.frames >= 6 && s.flames === 2 && s.cradles === 2, JSON.stringify(s));
+  // (issue #416: the Pouring Hall's pilot flame and its hooded cradle gone, the great cradle a mould the pour fills)
+  assert.ok(s.moons >= 30 && s.chains === 3 && s.seams >= 30 && s.iron > 40 && s.signs > 50 && s.frames >= 6 && s.flames === 1 && s.cradles === 1, JSON.stringify(s));
   assert.ok(rt.kit.group.children.some((m) => m.material === rt.skin.mats.moon), 'the moons drawn cracked');
   const dressing = rt.kit.group.children.filter((m) => m.userData.skin);
   assert.ok(dressing.length === 2 && dressing.every((m) => m.isInstancedMesh && m.userData.noCollide && m.userData.keepBuried && m.userData.castShadow === false), 'two drawn-only instanced meshes, out of the shadow passes');
   for (const m of rt.kit.group.children) if ([rt.skin.mats.glyph, rt.skin.mats.lights, rt.skin.mats.ring].includes(m.material)) assert.equal(m.userData.castShadow, false, m.name);
   // the cradles: the skin's half-pipe and hood, their sign lit, the fire and the hood's logic the piece's own
-  for (const id of ['bG', 'bH']) {
+  for (const id of ['bH']) {   // (the Pouring Hall's hooded cradle gone since issue #416: the great cradle a mould the pour fills)
     const b = rt.piece(id), names = [];
     b.group.traverse((o) => o.isMesh && names.push(o.name));
     assert.ok(names.includes('cradle (skin)') && names.includes('cradle sign (skin)') && b.o.hood, `${id}: ${names}`);
@@ -759,7 +760,7 @@ test('the Casting-House’s frames and rings keep off its doorways and the moons
       assert.ok(!(Math.hypot(v.x - q.x, v.z - q.z) < b.r + 0.2 && v.y < q.y + 2 * b.r + 0.4), `the dressing over a rail at ${v.toArray().map((q) => q.toFixed(1))}`);
     }
   }
-  const cr = rt.pieces.find((x) => x.constructor.name === 'SkinCradles'), b = rt.piece('bG'), u = b.skinGlow.uniforms.uGlow;
+  const cr = rt.pieces.find((x) => x.constructor.name === 'SkinCradles'), b = rt.piece('bH'), u = b.skinGlow.uniforms.uGlow;
   for (let i = 0; i < 40; i++) cr.update(0.1, i * 0.1);
   const cold = u.value;
   b.ignite(true);

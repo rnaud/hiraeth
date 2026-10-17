@@ -45,7 +45,7 @@ const quiet = (fn) => { const w = console.warn, l = console.log; console.warn = 
 const own = (...ids) => { for (const id of Object.keys(ITEMS)) if (ids.includes(id)) items.grant(id); else items.revoke(id); };
 /** What each house is walked into with: the route's (the lift valve's double jump before every temple, the gun from the desert's Hearth); the Rose House with nothing in hand (v1.44). */
 // (and an older house's tool where a late step wants it with the house's own, G2: the Greenhouse's weight #411, the Lamp-House's far door #410, the Warden's Well's crown #413, the Whale-House's weight #412)
-const CARRY = { desert: ['backpack', 'doublejump'], edena: ['backpack', 'gun', 'doublejump', 'hook'], perdide2: ['backpack', 'gun', 'doublejump', 'hook'], incal: ['backpack', 'gun', 'doublejump', 'hook'], underwater: ['backpack', 'gun', 'doublejump', 'hook'] };
+const CARRY = { desert: ['backpack', 'doublejump'], edena: ['backpack', 'gun', 'doublejump', 'hook'], perdide2: ['backpack', 'gun', 'doublejump', 'hook'], incal: ['backpack', 'gun', 'doublejump', 'hook'], underwater: ['backpack', 'gun', 'doublejump', 'hook'], moonfoundry: ['backpack', 'gun', 'doublejump', 'hook'] };
 const carry = (id) => CARRY[id] ?? ['backpack', 'gun', 'doublejump'];
 
 /**
@@ -488,7 +488,8 @@ export function playTemple(id, o = {}) {
     const e = L.el(eid);
     const k = (tries.get(eid) ?? 0) + 1;
     tries.set(eid, k);
-    if (k > (held(e) ? 12 : 4)) { fail(`${e.type} ${eid}: asked for again and again (${k} times)`); break; }
+    // (a house-wide state is set back and forth on the way: the Casting-House's pour six times and more, issue #416)
+    if (k > (held(e) || e.rooms ? 12 : 4)) { fail(`${e.type} ${eid}: asked for again and again (${k} times)`); break; }
     let how = null;
     if (e.type === 'drum') how = roll(eid) ? (rt.piece(eid)?.setters ? 'set' : rt.piece(eid)?.carries ? 'called' : 'rolled') : null;
     else if (e.type === 'weight') how = carryOnto(eid);

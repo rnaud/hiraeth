@@ -241,10 +241,18 @@ export const LAYOUTS = {
   // up, the Pouring Floor's stone moon in the Mould Room, the Pincer Passage folded into the Tong Chamber, the hot moon's
   // rail on the furnace's near lip (the same pieces, the same state). A save that entered the house: taken to its last
   // mark if it stood inside the old rooms (runtime.js relaid)
+  // v1.83 (issue #416): the house round its Pouring Hall, the pour its state (it starts poured: heat-gates shut, the
+  // moulds cast). The Mould Room's door cast round its stone moon (no seam-eye), the landing's north door cast round its
+  // own, the furnace's bridge cast by the pour, the far gate, the small key's door down to the Weighing Hall, its great key
+  // (the pier's moon and the stone weight in the scale's pans), the Founders' Door a great lock. Past the old Mould Room's
+  // door: the landing's moon cast too. Past the Founders' Door (or the guardian): the Weighing Hall done, the small key in
+  // its door. And a save that entered the house: taken to its last mark in the new rooms
   moonfoundry: {
-    v: 3,
+    v: 4,
     steps: [
       { if: ['open.dF', 'boss'], set: { 'unlocked.dF': 1, 'found.kS': true, 'lit.arS': true } },
+      { if: ['open.dM', 'gadget', 'open.dP', 'open.dF', 'boss'], set: { 'drum.mL': 1, 'open.gT': true } },
+      { if: ['open.dF', 'boss'], set: { 'unlocked.dW': 1, 'found.kG': true, 'drum.mB': 1, 'weight.wS': 'pS', 'lit.eS': true, 'open.dS': true } },
       { if: ['entered'], set: { relaid: true } },
     ],
   },
