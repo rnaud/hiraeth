@@ -1,0 +1,40 @@
+unity/Hiraeth/Assets/StreamingAssets/hiraeth-pso/Direct3D12.graphicsstate
+  s_9ca76055a220ed::t_4dcad8ef0062d6 1-12797
+tests/unity-pso.test.js
+  s_be080572ac7f7a::t_6638d7c0bcf0be 85-98,104
+  s_5f899ba316b5dc::t_949ff9c6bcc62f 2-3,14
+unity/Hiraeth/Assets/StreamingAssets/hiraeth-pso/Direct3D12.graphicsstate.meta
+  s_be080572ac7f7a::t_ba2ccc68601b2c 1-7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "601a5d2a71c7a0d495c4240fb01a0ba1b1720565",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_be080572ac7f7a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a14544-e974-7c30-a4fc-7a8dc20510dc",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
