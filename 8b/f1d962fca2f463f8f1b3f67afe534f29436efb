@@ -1,0 +1,57 @@
+changelog.md
+  s_5f899ba316b5dc::t_5d2910c827e0df 5-8
+docs/design/temple-best-practices.md
+  s_5f899ba316b5dc::t_19d2b8846f47e4 469-497
+docs/systems/foes.md
+  s_5f899ba316b5dc::t_41cd1a6b8c305e 567,717,792
+docs/systems/temples.md
+  s_5f899ba316b5dc::t_cd8d18cf845257 193-194,669-707
+src/arena-guardians.js
+  s_5f899ba316b5dc::t_82c8563d07b92b 15,44
+src/changelog-media.js
+  s_5f899ba316b5dc::t_fb444a8289f563 1097-1100,1106-1118
+src/changelog.js
+  s_5f899ba316b5dc::t_b4ff9c0ff72579 11-15
+src/temples/boss.js
+  s_5f899ba316b5dc::t_a6c5052bb16dc0 37-38,746,765,807-809,813,854,867,879,900-901
+src/temples/hints.js
+  s_5f899ba316b5dc::t_2dd9917e3eb61a 187,190-195,197-202
+src/temples/migrate.js
+  s_5f899ba316b5dc::t_e0b0102b546ea0 165-169,171,175-177
+src/temples/perdide-data.js
+  s_5f899ba316b5dc::t_41438079a7430f 10,52,56
+src/temples/perdide.js
+  s_5f899ba316b5dc::t_7bf669c7b7bb7c 8,11,23,27-37,40-41,45-47,49-67,98-101,103-105,109-111,114,119,124-132,135-142,145-156,160-161,165,169,172,175-176,182,190,197-199,203,205,207,213-219,224,228-229,231-236,238-241,244-245,248-261,273-283,286-287,289-305,308-310,312-319,321-333,335-368,373-376,378,380-403,405-409,411-413,415-416,420-487,491-495,521-526,535,539,545-548,550-551,553-560,571,576-577,598-600,602-603,606-609,611-612,614-615,620,655-657,664,677,679,682-701,703-725,727-728,731,733,735-736,740,743,745-748,752-764,871,875-876
+src/temples/spheres.js
+  s_5f899ba316b5dc::t_ae1bd626d22cc5 421
+tests/engine-mother-snapper.test.js
+  s_5f899ba316b5dc::t_8d67f5f25f7ed9 1-5,22,30-33,36-37,40-43,45-56
+tests/guardian-completable.test.js
+  s_5f899ba316b5dc::t_a907c414439aeb 130-132
+tests/guardian-twists.test.js
+  s_5f899ba316b5dc::t_8029a88a84eb3c 8,364,737-739
+tests/lore-page.test.js
+  s_5f899ba316b5dc::t_a9521a04985da4 61-62,64
+tests/mother-snapper.test.js
+  s_5f899ba316b5dc::t_b2341a92c62233 1-8,21,23,25,31-32,39-57,59-66,68-70,73-167,169-171,173-191
+tests/temple-rules.test.js
+  s_5f899ba316b5dc::t_bf2ad567818eb7 17-18,101-103
+tests/temples.test.js
+  s_5f899ba316b5dc::t_de6802a3311e41 52,735,738-741,743-746,748-752,758-762,767-770,772-773,777-779,3332,3352-3353,3355-3358,3360-3370,3375,3390,3394-3395,3400,3416,3429-3433,3436,3439-3443,3447,3452-3453,3464-3467,3471-3498,3501-3504,3506-3515,3524-3526,3531-3532,3534,3539,3541,3552-3553,3555
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8bf1d962fca2f463f8f1b3f67afe534f29436efb",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
