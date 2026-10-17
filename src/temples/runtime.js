@@ -75,7 +75,8 @@ export function roomsPast(def, pass, isOpen = () => false) {
   while (todo.length) {
     const r = todo.pop();
     for (const l of def.links) {
-      const other = l.a === r ? l.b : l.b === r ? l.a : null;
+      // (a one-way link, a drop, is walked only the way it goes: issue #408, the Founders' Belfry's drop off its key's ledge)
+      const other = l.a === r ? l.b : l.b === r && !l.oneWay ? l.a : null;
       if (!other || seen.has(other) || !(l.needs ?? []).every((it) => pass(it))) continue;
       if (l.door && !isOpen(l.door) && wants(def, l.door, lack)) continue;
       seen.add(other); todo.push(other);

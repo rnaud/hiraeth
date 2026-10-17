@@ -307,9 +307,10 @@ test('the Founders’ Belfry wears its futuristic skin; collision, climbs and pi
   assert.deepEqual(solids(on), solids(off), 'collision and climbs vertex for vertex');
   assert.deepEqual(on.pieces.filter((p) => p.id).map((p) => [p.id, p.constructor.name]), off.pieces.filter((p) => p.id).map((p) => [p.id, p.constructor.name]));
   // its bells drawn as rings (the stair's, the oculus's, the porch's; since issue #377 the Hall of Echoes', the far door's and
-  // the Cloud-Mother's four, each with a pull-ring for the hook), a note for every ear, lens terminals beside the doorways
-  assert.equal(on.skin.stats.bells, 9);
-  assert.equal(on.pieces.filter((p) => p.constructor.name === 'HookBell').length, 9, 'a pull-ring under every bell');
+  // the Cloud-Mother's four, each with a pull-ring for the hook; since issue #408 the founders' bell in the Great Belfry for
+  // the stair's, and no far door's bell), a note for every ear, lens terminals beside the doorways
+  assert.equal(on.skin.stats.bells, 8);
+  assert.equal(on.pieces.filter((p) => p.constructor.name === 'HookBell').length, 8, 'a pull-ring under every bell');
   assert.equal(on.skin.stats.notes, on.pieces.filter((p) => p instanceof BellEar).length);
   assert.ok(on.skin.stats.lenses > 20, `lenses ${on.skin.stats.lenses}`);
   // the house's own materials back for its exterior; the cobalt casts no shadow
@@ -318,11 +319,15 @@ test('the Founders’ Belfry wears its futuristic skin; collision, climbs and pi
   const cobalt = on.kit.group.children.find((m) => m.material === on.skin.mats.cobalt);
   assert.ok(cobalt && !cobalt.castShadow && cobalt.userData.castShadow === false);
   // a bell that rings lights its note
-  const ear = on.piece('e1');
-  on.logic.ringing.add('e1'); ear.left = 8;
+  const ear = on.piece('eT');
+  on.logic.ringing.add('eT'); ear.left = 6;
   const note = on.pieces.find((p) => p.constructor.name === 'BelfryNote');
   for (let i = 0; i < 30; i++) note.update(1 / 30);
-  assert.ok(on.skin.U.bells.value.some((b) => b.w > 0.9), 'the porch bell rings');
+  assert.ok(on.skin.U.bells.value.some((b) => b.w > 0.9), 'the chamber’s bell rings');
+  // (issue #408) the founders' bell rung: its note, and the Hall of Echoes' that answers it
+  on.foundersBell.toggle('test');
+  for (let i = 0; i < 90; i++) on.foundersBell.update(1 / 30, i / 30);
+  assert.ok(on.skin.U.bells.value[4].w > 0.9 && on.skin.U.bells.value[3].w > 0.9, 'the founders’ bell and the one that answers it ring');
 });
 
 // ---- the Aerie in its futuristic skin (src/temples/skins/aerie.js, after references/temples/future/aerie/sheet-*.jpg;

@@ -51,6 +51,8 @@ export function conditionKeys(c, out = []) {
   if (c.gadget) out.push({ id: 'gadget', how: 'gadget' });
   return out;
 }
+/** The rooms a house-wide state is set from besides its own (logic.js `rooms`, issue #408): [{ room, needs }]. */
+export const stateRooms = (e) => (e?.rooms ?? []).map((r) => (typeof r === 'string' ? { room: r, needs: [] } : { needs: [], ...r }));
 /** Does a drum rest on this plate (its own, or one of its `stops`: one ball, several places)? */
 export const drumFor = (e, plate) => e?.type === 'drum' && (e.plate === plate || (e.stops && e.stops[plate] != null));
 
@@ -87,7 +89,7 @@ export function mechanicOf(id, el, { elements = {}, piece = null } = {}) {
   const tags = [];
   if (item) tags.push(`gadget:${item === 'magic:4' ? 'cell' : item}`);
   if (piece?.cls === 'Bank' || item === 'magic:4' || item === 'coil') tags.push('volley');
-  if (el.type === 'drum') tags.push('push');
+  if (el.type === 'drum') tags.push(el.verb ?? 'push');   // (`verb`: what moves it, when not a push: the Founders' Belfry's bell, rung or stilled at a lever, issue #408)
   else if (el.type === 'plate') tags.push(Object.values(elements).some((e) => drumFor(e, id)) ? 'push' : 'weight');
   else if (el.type === 'switch' && (el.after || el.order || Object.values(elements).some((e) => e.after === id))) tags.push('sequence');   // (in turn: with a gadget too, the gadget and the order; `order`: a bank's eyes in turn)
   else if (el.type === 'switch' && !item) tags.push('shot');
@@ -100,7 +102,7 @@ export function mechanicOf(id, el, { elements = {}, piece = null } = {}) {
   if (el.hold || el.type === 'vane') tags.push('timed');
   // `when` a condition holds (an eye that wakes only in the sun a ball's louvre lets in): that condition's verbs too
   for (const k of conditionKeys(el.when)) {
-    if (k.how === 'drumOn') tags.push('push');
+    if (k.how === 'drumOn') tags.push(elements[k.id]?.verb ?? 'push');
     else if (k.how === 'pressed') tags.push(Object.values(elements).some((e) => drumFor(e, k.id)) ? 'push' : 'weight');
     else if (k.how === 'lit' && elements[k.id]) tags.push(...mechanicOf(k.id, elements[k.id], { elements }).filter((m) => m !== 'sequence'));
   }
@@ -188,10 +190,18 @@ export function puzzleGraph(logic, pieces = [], { los = null, order = null } = {
       if (drum) stopsWanted.set(drum[0], new Set([...(stopsWanted.get(drum[0]) ?? []), k.id]));
       // (a plate only the lens shows, among plain ones: the push and the reveal, the Footprint's walker's print)
       const shown = byId.get(k.id)?.o?.hidden, seenBy = shown ? [`gadget:${shown === true ? 'lens' : shown}`, 'reveal'] : [];
-      const q = drum ? { id: drum[0], how: 'drumOn', room: drum[1].room ?? k.room, mech: ['push', ...seenBy], plate: k.id } : k;
+      const q = drum ? { id: drum[0], how: 'drumOn', room: drum[1].room ?? k.room, mech: [drum[1].verb ?? 'push', ...seenBy], plate: k.id } : k;
       const had = merged.find((x) => x.id === q.id);
       if (!had) merged.push(q);
       else if (had.how === 'drumOn' && q.how === 'drumOn') had.mech = [...new Set([...had.mech, ...q.mech])];   // (its plate's reveal too)
+    }
+    // (a house-wide state set from the lock's own room, issue #408: the Founders' Belfry's bell, a lever there or the hook at
+    // a ring there. Its key is that setter, in the room, with what it needs: the pieces placed with `sets: <drum>`)
+    for (const q of merged) {
+      const here = q.how === 'drumOn' ? stateRooms(E[q.id]).find((r) => r.room === l.a) : null;
+      if (!here) continue;
+      const near = pieces.filter((p) => p.o?.sets === q.id && (p.o?.room === l.a || p.o?.rooms?.includes(l.a))).map((p) => piecePos(p.o)).filter(Boolean);
+      Object.assign(q, { room: l.a, mech: [...new Set([...q.mech, ...here.needs.filter((n) => n !== 'backpack').map((n) => `gadget:${n}`)])], at: near[0] ?? null });
     }
     const arena = !!isGate && lockEl.opens == null && !lockEl.lock;   // the arena's door: shut while the guardian fights (no puzzle)
     const isBossDoor = keys.some((k) => k.how === 'resolved');
@@ -199,7 +209,7 @@ export function puzzleGraph(logic, pieces = [], { los = null, order = null } = {
     // where you stand to face the lock: 4 m back toward the room you come from, eye height
     const stand = lockPos && at[l.a] ? standPoint(lockPos, at[l.a]) : lockPos;
     const ks = merged.map((k) => {
-      const kp = (k.how === 'needs' || k.how === 'item') ? null : byId.get(k.plate ?? k.id)?.pos ?? byId.get(k.id)?.pos ?? (k.room ? at[k.room] : null);
+      const kp = (k.how === 'needs' || k.how === 'item') ? null : k.at ?? byId.get(k.plate ?? k.id)?.pos ?? byId.get(k.id)?.pos ?? (k.room ? at[k.room] : null);
       // the echo ears: the clue is the singing stone of the same note (it must be splashed first; a singing ball,
       // `sings`, is one too)
       const ear = byId.get(k.id);

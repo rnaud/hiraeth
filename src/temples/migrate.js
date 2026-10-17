@@ -259,11 +259,16 @@ export const LAYOUTS = {
   // Past the far door: the great key in it
   // v1.77 (issue #336): the house remade to the redesign's rules, bigger rooms (the porch a room of its own, the
   // antechamber too). A save that entered the house: taken to its last mark if it stood inside the old rooms (arzach2.js RELAID)
+  // v1.83 (issue #408): the house round the Great Belfry (its hall where the Stone Stair was), the founders' bell the house's
+  // state; the porch's door a founders' stone sunk for good the first time the bell rings (its held bell before), the far
+  // door's own bell gone. Past the porch (anything done past it): its slab sunk. A save that entered the house: taken to its
+  // last mark in the new rooms (arzach2.js RELAID)
   arzach2: {
-    v: 4,
+    v: 5,
     steps: [
       { if: ['open.d1', 'drum.ballS', 'lit.s1', 'open.d2', 'gadget', 'open.br1', 'boss'], set: { 'unlocked.d1': 1, 'found.kW': true, 'lit.arW': true } },
       { if: ['open.d4', 'boss'], set: { 'unlocked.d4': 1, 'found.kB': true } },
+      { if: ['drum.ball3', 'open.br1', 'found.kB', 'open.d4', 'boss', 'checkpoint=echoes', 'checkpoint=ringers', 'checkpoint=ante'], set: { 'open.d3': true } },
       { if: ['entered'], set: { relaid: true } },
     ],
   },
@@ -279,6 +284,8 @@ export function migrateTempleLayouts(g) {
       if (!st.if.some(has)) continue;
       // (`relaid` is spent, null, once the traveller has been taken to his mark: a later version of the house sets it again)
       for (const [f, v] of Object.entries(st.set)) { const was = g.flag(`temple.${id}.${f}`); if (was === undefined || (f === 'relaid' && was === null)) { g.set(`temple.${id}.${f}`, v); n++; } }
+      // (a flag cleared to null counts as unset: `relaid`, used up once, is set again when the house is remade again, #408)
+      for (const [f, v] of Object.entries(st.set)) if (g.flag(`temple.${id}.${f}`) == null) { g.set(`temple.${id}.${f}`, v); n++; }
     }
     g.set(k, L.v);
   }

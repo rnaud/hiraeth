@@ -715,6 +715,57 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   spent `relaid`, null, is set again by a later version: `migrateTempleLayouts`). Tests: `tests/temples.test.js` (the
   logic, the migration, the house on foot with the Fledgery and the sill), `temple-playthrough` (the stone rolled for
   real), `house-map`, `temple-maps`, `ball-room`, `way-back`, `zfight`.
+- **The Founders' Belfry round the Great Belfry, its bell the house's state** (v1.83, issue #408; the approved
+  recommendations: `docs/design/temple-best-practices.md`, G1, G4, G6). The Stone Stair is gone: past the Hall of Stones
+  the **Great Belfry** (`ROOMS.nave`), 40 by 66 m under 32, its gallery 8 m up round three sides (`GALLERY`: the north
+  band a block of stone from the floor up, the arms down the long walls on columns), open over the floor, so both floors
+  are seen at once; the great key's ledge (`RING.ledge`) high on its west wall, the Ringers' Walk's end. The rooms after it
+  (the Bell Chamber, the porch, the Hall of Echoes, her hall) stand 32.6 m further north (`SHIFT`), the walk 3 m further
+  west (`RING.x`). The room ids `stair` and `landing` are kept for its floor and its gallery (a save's last mark holds).
+  - **The founders' bell** (`FOUNDERS`), hung in the middle of the hall, is the house's one state: a drum of two stops,
+    `bellStill` (t 0, the start: its stones fell up) and `bellRung` (t 1), `roll: 'hand'`, `verb: 'bell'`, set from
+    several rooms (logic.js `rooms`: a room's id, or `{ room, needs }`, issue #408: `inReach`). `FoundersBell` keeps it:
+    rung at once, every stone it holds comes down; stilled, its hum fades for `FOUNDERS.fade` (10 s) and only then do they
+    fall up (a pull while it fades rings it on). Its clapper, under its mouth, glows and swings while it rings.
+  - **Cheap to change** (G1): a `BellLever` by every hub (`FOUNDERS.levers`: the Hall of Stones by its door on, the Great
+    Belfry's floor by its way in, its gallery by the high door), pulled with the use button; upstairs the hook at a bell's
+    ring (`FOUNDERS.rings`): the founders' own (`hb.founders`, from the gallery), the porch's bell (`hb.e1`) and the Hall
+    of Echoes' (`hb.e2`, from either lip), which answer it.
+  - **Readable everywhere** (G1): every lamp of the house shares one material (`stateLamp`, `STATE_LOOK`): warm amber
+    while it rings, cold slate-blue while it is still, flickering as it fades. A `BellGauge` (a bell-lamp on a bronze post)
+    in every room but the guardian's, the levers' knobs and lamps, the clapper; stones that fell up hang under the Great
+    Belfry's roof and lie along its walls while it rings (`StateStones`); the skin's note spreads from the founders' bell
+    and the Hall of Echoes' while it rings (`skin.U.bells` 3 and 4).
+  - **What it stands, on both floors**: rung, the great stone (`FallUpStone` `lift`) is down on the floor; stilled it falls
+    up to the gallery's north band with whoever stands on it (the floor's lever is 45 m from it: pull it and run while the
+    hum fades). Rung, the porch's slab sinks (`d3`, latched the first time it rings once the chamber's north door is open)
+    and the Hall of Echoes' bridge comes down (`br1`; the ball rolled across onto `p3` holds it for good); still, the spur
+    to the Ringers' Walk falls up out of the chasm level with it (`spur`, a `Bridge` from `'below'`). The far door's slab
+    sinks while it rings (`d4`: the great key, the ball on its plate and the bell rung; its own bell `e3` is gone).
+  - **The great key** lies free by the ledge's edge (v1.74's cage, `cage:kB` at 1.0 then 1.5, cut): the ledge
+    is its lock, its chest seen from the floor at the way in, the founders' bell in sight from it.
+  - **The drops** (G6): every edge of the ledge drops onto the gallery (8 m), and the west arm's edge has no parapet for
+    14 m (`DROP`), down to the hall's floor, the hub (8 m): unhurt, a `oneWay` link `landing → stair`. The antechamber's
+    mark is a few steps from her hall's door, and the far lip has a mark of its own (`echoesFar`).
+  - **The way through**: the arena and the ball in the stores and the hall's door (`d1`); the eye under the gallery's north
+    band from the floor (`s1`, `d2`); ring, still and run onto the great stone; the hook; the porch's bell rung (`d3`);
+    the ball across the held bridge; stilled from the near lip, the spur and the walk to the great key; down to the
+    gallery or the floor, round again; the far door rung open from the far lip. Eight locks for the audit (was nine:
+    `LBBCRGXLK` → `LBBCRXXXLK`).
+  - **The scout** asks for the bell last (`bell` and the chamber's try `eT` after every other element), so it points at a
+    stone to roll or a key first; then at the nearest place the bell is set from (`FoundersBell.center`: a lever, or a
+    ring once the hook is carried). The temple maps' steps say "Ring the house's bell" / "Still the house's bell".
+  - **The audit** (`scripts/temple-design/`): a drum's `verb` names its mechanic (`bell`, not `push`); a house-wide state
+    set from the lock's own room counts as a key there, the nearest piece placed with `sets: <drum>` in that room, with
+    what that room's entry needs (`gadget:hook` upstairs); a room where it is set only with the gadget is a puzzle room
+    (rules.mjs). runtime.js `roomsPast` walks a one-way link only the way it goes. migrate.js: a flag cleared to null counts
+    as unset (`relaid` used up once is set again when the house is remade again).
+  Tests: `tests/belfry-bells.test.js` (the house on foot with a real traveller: every lever pulled with the use button,
+  every ring hooked from where he stands, the stone ridden in the fade, both drops unhurt, the far door rung open, the
+  Cloud-Mother calmed; the lamps' colours both ways), `tests/temples.test.js` (the solver both ways, the state's doors,
+  the saves), `tests/temple-playthrough.test.js` (the bell set for real: a lever pulled, or a ring hooked from its
+  `from`), the rules (none broken), way back, unstrand. Old saves: `migrate.js` arzach2 v5 (past the porch: its slab sunk;
+  one that stood inside: to its last mark).
 - **The Givers carried their fire** (the Rose House, from the v1.24 audit; the house's one fire, the pilot flame,
   never went out; the rooms below as they were until v1.44). A `Ball` with `tar: { burns }` is a tar ball: an ember glob lights it, and so does rolling it past a
   fire beside its groove (any piece with a `fire` point within its `fireReach`: a `Flame`, the pilot flame sunk in the
@@ -1074,7 +1125,8 @@ at a ball's stop only for a door that leads somewhere out of reach now (`awaited
 the stone once the Moult's door is open. (Vael's level init now runs the temples' and the stones that rise both, in the
 game's steps and in `init`: the game had never made the risers solid, nor the tests the Aerie's doors.)
 
-The **Founders' Belfry** (`arzach2.js` `RING`): **a ring through both halves of the house, back over the first from the
+The **Founders' Belfry** (`arzach2.js` `RING`; since v1.83 round the Great Belfry, its bell the house's state: "The
+Founders' Belfry round the Great Belfry" above): **a ring through both halves of the house, back over the first from the
 second**. Half-way over the Hall of Echoes a spur of the same stones runs off the bridge to a doorway in its west wall
 (`spur`, a bridge on `{ lit: 'e2' }`: the ball on the far plate holds the bridge for good, and nothing but the bell holds
 the spur: ring, and run). Through it the **Ringers' Walk** goes back south outside the house past the porch and the Bell

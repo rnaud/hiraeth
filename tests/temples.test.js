@@ -34,8 +34,7 @@ import { SITE as SITE_EDENA, SUN, VAULT, ROOMS as GREENHOUSE } from '../src/temp
 import { modeFor, allTargets, hitTarget } from '../src/targets.js';
 import { BELLOWS_NEXT, upUsed, VANES, FLUE, ROOMS as WELL, FLOORS, CLIMB, WING as WELL_WING } from '../src/temples/incal.js';
 import { createEchoShell } from '../src/echo-shell.js';
-import { HOLD as BELFRY_HOLD, FallUpStone, RING, ROOMS as BELFRY, UP as BELFRY_UP, RELAID as BELFRY_RELAID } from '../src/temples/arzach2.js';
-const HOLD_DOOR = BELFRY_HOLD.door, HOLD_STONES = BELFRY_HOLD.stones, HOLD_STAIR = BELFRY_HOLD.stair, HOLD_CHAMBER = BELFRY_HOLD.chamber;
+import { RELAID as BELFRY_RELAID, RUNG, STILL, FOUNDERS } from '../src/temples/arzach2.js';
 import { HOLD as UNDERTOWER_HOLD, CHOIR } from '../src/temples/bazaar.js';
 const HOLD_PILLAR = UNDERTOWER_HOLD.pillar;
 import { Key, KEY_CHEST, MapChest } from '../src/temples/pieces.js';
@@ -709,7 +708,7 @@ test('the Lamp-House (issue #23): the Kennel off its first hall gives the small 
   }
 });
 
-test('the Founders’ Belfry (issue #23): its hub’s west store an arena, the east store’s ball, either order; the Ringers’ Walk a ring through both halves for the great key; old saves past the hall and the far door find them open', () => {
+test('the Founders’ Belfry (issues #23, #408): its hub’s west store an arena, the east store’s ball, either order; the founders’ bell rung or still the house’s one state; the Ringers’ Walk a ring through both halves for the great key; old saves past the hall and the far door find them open', () => {
   const L = TEMPLES.arzach2.def.logic, items = ['backpack', 'gun', 'doublejump', 'glider', 'sword', 'shield'];
   for (const reverse of [false, true]) { const r = solve(L, { items, reverse }); assert.equal(r.done, true, r.log.join(' / ')); }
   const noArena = solve(L, { items, forbid: ['arW'] });
@@ -723,15 +722,33 @@ test('the Founders’ Belfry (issue #23): its hub’s west store an arena, the e
   const B = new TempleLogic(L, { store: flagStore(g, 'arzach2'), has: (i) => [...items, 'hook'].includes(i) });
   B.update();
   assert.ok(B.isOpen('d1') && B.keys('small') === 0, 'the hall’s door stays open behind them');
-  // (v1.74, the last round of issue #23: a ring through both halves. The spur off the bridge's middle, held by the bell
-  // alone, to the Ringers' Walk and its ledge high in the Stone Stair, the great key's; a drop onto the landing)
-  assert.deepEqual(L.elements.spur.opens, { lit: 'e2' }, 'the spur: the bell alone holds it');
-  assert.equal(L.elements.d4.lock, 'big', 'the far door takes the great key');
-  assert.ok(L.links.some((l) => l.a === 'echoes' && l.b === 'ringers' && l.door === 'spur') && L.links.some((l) => l.a === 'ringers' && l.b === 'landing' && l.oneWay), 'from the Hall of Echoes round to the landing: a loop');
-  const noSpur = solve(L, { items, forbid: ['e2'] });
-  assert.ok(!noSpur.order.includes('ringers') && !noSpur.order.includes('hall'), 'without the bell, neither the walk nor the far side');
+  // (issue #408) the founders' bell: one state, still or rung, that stands the stones on both floors: the great stone on the
+  // Great Belfry's floor, the porch's slab and the Hall of Echoes' bridge rung; the spur to the Ringers' Walk still. Set at a
+  // lever by each hub, or with the hook at a bell's ring upstairs
+  const bell = L.elements.bell;
+  assert.deepEqual(bell.stops, { bellStill: 0, bellRung: 1 });
+  assert.equal(bell.start, 0, 'it starts still: its stones fell up');
+  for (const [door, want] of [['lift', RUNG], ['spur', STILL]]) assert.deepEqual(L.elements[door].opens, want, `${door}: the bell ${want === RUNG ? 'rung' : 'still'}`);
+  assert.deepEqual(L.elements.d3.opens, { all: [RUNG, { open: 'dP' }] }, 'the porch’s slab: rung, once the porch is open to you (then sunk for good)');
+  assert.deepEqual(L.elements.br1.opens, { any: [RUNG, { drumOn: ['ball3', 'p3'] }] }, 'the bridge: rung, or held by its ball for good');
+  assert.ok(L.elements.d4.opens.all.some((c) => c === RUNG) && L.elements.d4.lock === 'big', 'the far door: the great key, its ball, and the bell rung');
+  const rooms = Object.fromEntries(bell.rooms.map((r) => (typeof r === 'string' ? [r, []] : [r.room, r.needs])));
+  for (const hub of ['stones', 'stair', 'landing']) assert.deepEqual(rooms[hub], [], `${hub}: a lever there, nothing needed`);
+  for (const up of ['porch', 'echoes', 'echoesFar']) assert.deepEqual(rooms[up], ['hook'], `${up}: set with the hook at a bell’s ring`);
+  assert.deepEqual(FOUNDERS.levers.map((l) => l.room), ['stones', 'stair', 'landing'], 'a lever by every hub');
   const r = solve(L, { items });
-  assert.ok(r.log.indexOf('take kB') > r.gadgetAt, 'the great key after the bell');
+  const sets = r.log.filter((s) => s.startsWith('roll bell')), ix = (s) => r.log.indexOf(s);
+  assert.ok(sets.length >= 3, `the bell set again and again on the way (${sets.join(', ')})`);
+  assert.ok(ix('roll bell onto bellRung') < ix('take chest (hook)') && ix('roll ball3 onto p3') < ix('roll bell onto bellStill') && ix('roll bell onto bellStill') < ix('take kB') && ix('take kB') < r.log.lastIndexOf('roll bell onto bellRung'),
+    `rung for the great stone; the ball across, then still for the spur and the key; rung again for the far door (${r.log.join(' / ')})`);
+  // the Ringers' Walk: off the bridge's middle to the great key's ledge high in the Great Belfry, and a drop to its gallery;
+  // the gallery's own drop back to the hub's floor (G6). The great key lies free on its ledge (v1.74's cage cut)
+  assert.equal(L.elements.d4.lock, 'big', 'the far door takes the great key');
+  assert.equal(L.elements.kB.when, undefined, 'the great key free: the ledge is its lock');
+  assert.ok(L.links.some((l) => l.a === 'echoes' && l.b === 'ringers' && l.door === 'spur') && L.links.some((l) => l.a === 'ringers' && l.b === 'landing' && l.oneWay), 'from the Hall of Echoes round to the gallery: a loop');
+  assert.ok(L.links.some((l) => l.a === 'landing' && l.b === 'stair' && l.oneWay), 'the drop off the gallery to the hub’s floor');
+  const still = solve(L, { items, forbid: ['bell'] });
+  assert.ok(!still.order.includes('landing') && !still.done, 'without the bell rung, no way up');
   // an old save past the far door: the great key in it
   const g2 = new GameState(null);
   for (const [k, v] of Object.entries({ 'drum.ball2': 1, 'open.d1': true, 'open.lift': true, 'open.d2': true, gadget: true, 'drum.ball3': 1, 'open.d4': true, checkpoint: 'hall', layout: 2 })) g2.set(`temple.arzach2.${k}`, v);
@@ -739,22 +756,24 @@ test('the Founders’ Belfry (issue #23): its hub’s west store an arena, the e
   const B2 = new TempleLogic(L, { store: flagStore(g2, 'arzach2'), has: (i) => [...items, 'hook'].includes(i) });
   B2.update();
   assert.ok(B2.isOpen('d4') && B2.keys('big') === 0, 'past the far door: open, its great key in it');
-  // (v1.77, issue #336: the house rebuilt as shrines, the porch and the antechamber rooms of their own. A save that had been
-  // inside is taken to its last mark in the new rooms; one that never went in is left alone)
+  // (v1.77, issue #336: the house rebuilt as shrines; v1.83, issue #408: round the Great Belfry. A save that had been inside
+  // is taken to its last mark in the new rooms; one that never went in is left alone. Past the porch: its slab sunk)
   for (const entered of [true, false]) {
     const g3 = new GameState(null);
-    g3.set('temple.arzach2.layout', 3);
-    if (entered) for (const [k, v] of Object.entries({ entered: true, 'open.d1': true, checkpoint: 'bell' })) g3.set(`temple.arzach2.${k}`, v);
+    g3.set('temple.arzach2.layout', 4);
+    if (entered) for (const [k, v] of Object.entries({ entered: true, 'open.d1': true, checkpoint: 'bell', 'drum.ball3': 1 })) g3.set(`temple.arzach2.${k}`, v);
     migrateTemples(g3);
     assert.equal(!!g3.flag(BELFRY_RELAID), entered, entered ? 'inside the old house: to its last mark' : 'never inside: nothing to move');
-    assert.equal(g3.flag('temple.arzach2.layout'), 4);
+    assert.equal(g3.flag('temple.arzach2.layout'), 5);
+    assert.equal(!!g3.flag('temple.arzach2.open.d3'), entered, entered ? 'past the porch: its slab sunk' : 'the porch untouched');
   }
-  assert.ok(L.links.some((l) => l.a === 'bell' && l.b === 'porch' && l.door === 'dP') && L.elements.dP.opens.item === 'hook' && L.elements.e1.room === 'porch', 'the porch a room of its own past the chamber’s north door (the hook in hand), its bell in it');
-  // (issue #377) the hook is the house's dungeon item: every bell past its chest and the Cloud-Mother want it
+  assert.ok(L.links.some((l) => l.a === 'bell' && l.b === 'porch' && l.door === 'dP') && L.elements.dP.opens.item === 'hook', 'the porch a room of its own past the chamber’s north door (the hook in hand)');
+  // (issue #377) the hook is the house's dungeon item: the chamber's bell, the Cloud-Mother, and the founders' bell set from
+  // upstairs want it
   assert.equal(L.gadget, 'hook');
-  for (const id of ['eT', 'e1', 'e2', 'e3', 'mother']) assert.ok(L.elements[id].needs.includes('hook'), `${id}: the hook`);
+  for (const id of ['eT', 'mother']) assert.ok(L.elements[id].needs.includes('hook'), `${id}: the hook`);
   const without = solve(L, { items, withhold: ['hook'] });
-  assert.ok(!without.done && !without.order.includes('echoes'), 'without the hook nobody gets past the porch');
+  assert.ok(!without.done && !without.order.includes('porch'), 'without the hook nobody gets past the chamber');
   assert.equal(L.elements.p3.room, L.elements.ball3.room, 'the far plate in its ball’s room: nothing rolled through a door');
 });
 
@@ -2057,273 +2076,7 @@ test('the Warden’s Well on foot: the vane and the discs, the hub’s wings: th
   own();
 });
 
-// ------------------------------------------------------------------ on foot: Vael II's belfry, room by room
-// (v1.77, issue #336: the house rebuilt as shrines, src/temples/arzach2.js ROOMS: the walk goes by its rooms' own numbers)
-test('the Founders’ Belfry on foot: the west store’s arena and the east store’s ball, the founders’ bell struck by a ball and the great stone that falls up (and without you), the eye under the landing, the grappling hook (issue #377: the whistle before) and its try on the chamber’s bell, the porch’s held door a room on, the held stones and the ball rolled across them, the far door’s great lock, the spur off the bridge the bell alone holds, the Ringers’ Walk round to the ledge high in the Stone Stair and its great key, the drop onto the landing and the climb again, the Cloud-Mother calmed, the stones come down outside', () => {
-  game.reset();
-  own('backpack', 'gun');
-  const { level, physics, rt } = world('arzach2');
-  const P = new Player(physics, { spawn: rt.arrival.pos.clone(), dynamic: level.dynamic, health: true, unsafe: level.unsafe });
-  const notes = [];
-  rt.connect({ player: P, toast: (s) => notes.push(s) });
-  let t = 0;
-  const L = (x, y, z) => rt.kit.world(x, y, z);
-  const frame = (input = {}, yaw = 0) => { t += DT; rt.update(DT, t); P.update(DT, input, yaw); updateHazards(DT, P); level.update(DT, t, {}); };
-  const toward = (to) => Math.atan2(-(to.x - P.pos.x), -(to.z - P.pos.z));
-  const flat = (a) => Math.hypot(P.pos.x - a.x, P.pos.z - a.z);
-  const walk = (to, { tol = 0.6, max = 25, run = true, dy = 1.6 } = {}) => {
-    for (let i = 0; i < max / DT; i++) { if (flat(to) < tol && Math.abs(P.pos.y - to.y) < dy) return true; frame({ KeyW: true, ShiftLeft: run }, toward(to)); }
-    return false;
-  };
-  const wait = (s, input = {}, yaw = 0) => { for (let i = 0; i < s / DT; i++) frame(input, yaw); };
-  const where = () => rt.kit.local(P.pos).toArray().map((v) => v.toFixed(1)).join(', ');
-  // (issue #377) a founders' bell rung by the hook: its pull-ring bitten (src/gadgets/hook.js: a target's onHit with mode
-  // 'hook'), from where he stands, if the ring is in the hook's reach and in sight, as the hook's own trace finds it
-  const sight = (to) => { const eye = P.pos.clone().add(V(0, 1.5, 0)), d = to.clone().sub(eye), n = d.length(); return n <= HOOK.range && physics.rayDistance(eye, d.normalize(), n) >= n - 0.9; };
-  const hookBell = (id) => { const b = rt.piece(`hb.${id}`); if (!b || !sight(b.at)) return false; b.hit('push', { mode: 'hook' }); return true; };
-  const ring = (id) => assert.ok(hookBell(id), `the ${id} bell's ring in the hook's reach and sight (${where()})`);
-  const R = BELFRY, U = BELFRY_UP, AZ = (R.stones.z0 + R.stones.z1) / 2 - 5.2, C2 = R.stair.z, C3 = R.bell.z, PZ = (R.porch.z0 + R.porch.z1) / 2, E0 = R.echoes.z0, CH = R.hall.z;
-  const SE = [(R.storeE.x0 + R.storeE.x1) / 2, (R.storeE.z0 + R.storeE.z1) / 2];
-  wait(0.5);
-  assert.ok(P.onGround && rt.inside(P.pos), 'in the belfry');
-  const via = (...pts) => pts.every((q) => walk(L(...q)));
-  // ---- the Hall of Stones, a hub: the door's lamp wants the east store's ball, its keyhole the west store's key
-  const roll = (id, plate) => {
-    const ball = rt.piece(id);
-    for (let k = 0; k < 10 && !rt.logic.drumOn(id, plate); k++) {
-      walk(ball.center.clone().addScaledVector(ball.dir, -(ball.r + 1.3)), { tol: 0.5 });
-      ball.hit('push', ball.dir.clone(), { strength: 1 });
-      wait(2.6);
-    }
-    return rt.logic.drumOn(id, plate);
-  };
-  // the west store, the house's one fight: its archway shuts behind you while its keepers stand
-  const keepers = [{ room: 'storeW', alive: true }, { room: 'storeW', alive: true }];
-  rt.machines = [...(rt.machines ?? []), ...keepers];
-  assert.equal(via([-6, 0, AZ], [-24, 0, AZ]), true, `into the west store (${where()})`);
-  wait(0.3);
-  assert.equal(rt.logic.isOpen('dSW'), false, 'the archway shuts behind you');
-  for (const k of keepers) k.alive = false;
-  wait(2.5);
-  assert.ok(rt.logic.isLit('arW') && rt.logic.isOpen('dSW'), 'beaten: won, and the archway lets go');
-  assert.equal(walk(rt.piece('kW').pos, { tol: 1.2 }), true, `to the key (${where()})`);
-  wait(0.3);
-  openChest(rt, 'kW', P);
-  assert.equal(rt.logic.isFound('kW'), true, 'a small key');
-  assert.equal(via([-24, 0, AZ], [-6, 0, AZ], [6, 0, AZ], [24, 0, AZ]), true, `into the east store (${where()})`);
-  assert.ok(Math.abs(rt.kit.local(rt.piece('ball2').center).z - SE[1]) < 0.1, 'its ball’s groove down the store’s middle');
-  assert.equal(roll('ball2', 'p2'), true, `the east ball home (${rt.piece('ball2').t.toFixed(2)})`);
-  wait(2.2);
-  assert.equal(rt.logic.isOpen('d1'), false, 'the door’s lamp, and its keyhole still empty');
-  assert.equal(via([24, 0, AZ], [6, 0, AZ], [0, 0, 40], [0, 0, R.stones.z1 - 1.6]), true, `to the door (${where()})`);
-  wait(2.5);
-  assert.equal(rt.logic.keysIn('d1'), 1, 'the small key goes in');
-  assert.equal(rt.logic.isOpen('d1'), true);
-  // ---- the Stone Stair: the great stone hangs at the top of the well, by the landing; the founders' bell in the middle
-  // of the floor, a ball in a groove into its mouth
-  assert.equal(via([0, 0, R.stones.z1 - 1.6], [0, 0, C2 - 14]), true, `into the well (${where()})`);
-  assert.equal(rt.pieces.filter((p) => p.path && !(p instanceof FallUpStone)).length, 0, 'no riding disc in the belfry');
-  const stone = rt.pieces.find((p) => p instanceof FallUpStone);
-  assert.ok(stone.s > stone.total - 0.01, 'the great stone hangs at the top');
-  const eye = rt.piece('s1').center, seen = (from) => { const d = eye.clone().sub(from), n = d.length(); return physics.rayDistance(from, d.normalize(), n) >= n - 0.8; };
-  assert.ok(seen(L(2, 1.7, C2 - 14)), 'the eye under the landing is seen from the floor of the well');
-  assert.ok(!seen(L(0, U + 1.8, C2 + 13)), 'and not from the landing');
-  assert.equal(roll('ballS', 'pS'), true, `the ball rolled into the bell's mouth (${rt.piece('ballS').t.toFixed(2)})`);
-  assert.equal(rt.logic.isLit('e0'), true, 'it strikes the founders’ bell');
-  wait(6);
-  assert.ok(stone.s < 0.05, `while it rings the great stone is down (${stone.s.toFixed(2)})`);
-  // the catch: stay on the floor, and when the bell falls quiet the stone falls up again without you
-  wait(HOLD_STAIR);
-  assert.equal(rt.logic.isLit('e0'), false, 'the bell falls quiet');
-  wait(10);
-  assert.ok(stone.s > stone.total - 0.05 && P.pos.y < L(0, 1, 0).y, 'the stone went up without you');
-  // a splash on the ball lying in its mouth strikes the bell again (no pushing it out)
-  const ballS = rt.piece('ballS');
-  ballS.hit('shoot', ballS.dir.clone().negate());
-  wait(0.3);
-  assert.equal(rt.logic.isLit('e0') && rt.logic.drumOn('ballS', 'pS'), true, 'a splash rocks the clapper, and the bell rings again');
-  for (let i = 0; i < 8 / DT && stone.s > 0.02; i++) frame();
-  assert.equal(walk(stone.group.position, { tol: 0.6, run: false, max: 8, dy: 1.0 }), true, `onto the great stone (${where()})`);
-  // ride it up as the note fades; first without the eye: the landing's door stays shut
-  for (let i = 0; i < 30 / DT && stone.s < stone.total - 0.05; i++) frame();
-  assert.ok(P.pos.y > L(0, U - 0.5, 0).y, `carried up to the landing (${where()})`);
-  const off = rt.kit.local(stone.group.position).multiplyScalar(1).sub(V(0, 0, C2)).setY(0).normalize().multiplyScalar(RING.landing.r + 1.4).add(V(0, U, C2));
-  assert.equal(walk(L(off.x, U, off.z), { tol: 0.7, max: 4 }), true, `off onto the landing (${where()})`);
-  wait(0.5);
-  assert.equal(rt.logic.isOpen('d2'), false, 'the high door is shut: its eye was not splashed');
-  // down again (a drop to the floor costs nothing), ring, and splash the eye on the way up
-  assert.equal(walk(L(0, 0, C2 + 1), { tol: 0.8, max: 6, dy: 20 }), true, `down to the floor (${where()})`);
-  ballS.hit('shoot', ballS.dir.clone().negate());
-  for (let i = 0; i < 8 / DT && stone.s > 0.02; i++) frame();
-  assert.equal(walk(stone.group.position, { tol: 0.6, run: false, max: 8, dy: 1.0 }), true, `onto the great stone again (${where()})`);
-  let splashed = false;
-  for (let i = 0; i < 30 / DT && stone.s < stone.total - 0.05; i++) { frame(); if (!splashed && P.pos.y > L(0, 2.5, 0).y && seen(P.pos.clone().add(V(0, 1.6, 0)))) { rt.piece('s1').hit('shoot'); splashed = true; } }
-  assert.ok(splashed, 'the eye splashed on the way up');
-  wait(2);
-  assert.equal(rt.logic.isOpen('d2'), true, 'the eye wakes the high door');
-  assert.equal(walk(L(off.x, U, off.z), { tol: 0.7, max: 4 }), true, `off onto the landing (${where()})`);
-  // the great key on a ledge high over the landing: its cage seen from the way into the stair, out of a jump's reach; the
-  // founders' bell seen from beside it (issue #336)
-  {
-    const k = rt.piece('kB'), top = k.pos.clone().add(V(0, RING.cage - 0.2, 0)), from = L(2, 1.7, C2 - 14), d = top.clone().sub(from), n = d.length();
-    assert.ok(k.cage.visible && physics.rayDistance(from, d.normalize(), n) >= n - 0.6, 'the great key’s tall cage seen up on its ledge from the way into the stair');
-    assert.ok(rt.kit.local(k.pos).y - U > 7.5, 'too high over the landing for any jump');
-    const bell = rt.piece('e0').at, eyeK = k.pos.clone().add(V(0, 1.7, 0)).lerp(L(0, RING.y + 1.7, C2), 0.12), b = bell.clone().sub(eyeK), m = b.length();
-    assert.ok(physics.rayDistance(eyeK, b.normalize(), m) >= m - 1.5 && k.pos.distanceTo(bell) < 20, 'the founders’ bell in sight below the key’s ledge, under 20 m');
-  }
-  // ---- the Bell Chamber: the chest; its way on is open, and its own bell is a try
-  assert.equal(walk(L(0, U, C3 - 10)), true, `into the bell chamber (${where()})`);
-  rt.piece('hb.eT').hit('push', { mode: 'hook' });
-  wait(0.2);
-  assert.equal(rt.logic.isLit('eT'), false, 'without the hook nothing answers (whoever tugged it)');
-  rt.piece('hb.eT').hit('shoot', { mode: 'shoot' });
-  game.emit('bell', { pos: P.pos.clone() });
-  assert.equal(rt.logic.isLit('eT'), false, 'nor a splash, nor the bell-note whistle (a charm now)');
-  items.grant('hook'); game.emit('box:opened', { id: 'arzach2.temple.bell' });
-  ring('eT');
-  wait(2.5);
-  assert.equal(rt.logic.isLit('eT') && rt.logic.isOpen('heap'), true, 'the chamber’s bell brings its stones down round the dais');
-  wait(HOLD_CHAMBER);
-  assert.equal(rt.logic.isOpen('heap'), false, 'and they fall up again when it falls quiet: nothing was locked');
-  // ---- the Bell Porch, a room on: the door into the Hall of Echoes is held by the porch's own bell, in its middle
-  assert.equal(walk(L(0, U, R.porch.z0 + 6)), true, `through the open way into the porch (${where()})`);
-  assert.equal(walk(L(0, U, R.porch.z1 + 2.5), { max: 5 }), false, 'the held door is shut');
-  assert.equal(walk(L(0, U, C3 + 4)), true, `back in the chamber (${where()})`);
-  assert.equal(hookBell('e1'), false, 'the porch’s bell is out of the hook’s reach from the chamber');
-  assert.equal(walk(L(0, U, PZ - 6)), true, `before the porch's bell (${where()})`);
-  ring('e1');
-  wait(2.2);
-  assert.equal(rt.logic.isOpen('d3'), true, 'the door answers the bell');
-  wait(HOLD_DOOR - 1);
-  assert.equal(rt.logic.isOpen('d3'), false, 'and rises again when the note fades');
-  assert.ok(notes.some((s) => /fading/i.test(s)), 'it says the note is fading');
-  ring('e1');
-  assert.equal(walk(L(0, U, E0 + 2.5)), true, `through while it rings (${where()})`);
-  // ---- the Hall of Echoes: a ball at the near edge, its groove over the chasm to the plate on the far lip
-  const ball = rt.piece('ball3'), gap = ball.o.gap;
-  wait(HOLD_STONES + 0.5);
-  assert.equal(rt.logic.isOpen('br1'), false, 'the stones hang');
-  walk(ball.center.clone().addScaledVector(ball.dir, -(ball.r + 1.3)), { tol: 0.5 });
-  ball.hit('push', ball.dir.clone(), { strength: 1 });
-  wait(3);
-  assert.ok(ball.t <= gap.from + 1e-3, `while they hang the ball stops at the lip (${ball.t.toFixed(3)})`);
-  // the catch: rung, the stones come down, but only while it rings; a ball still on them when they rise drops
-  ring('e2');
-  wait(0.3);
-  assert.equal(rt.logic.isOpen('br1'), true, 'the bell brings the stones down');
-  wait(HOLD_STONES - 1.2);
-  walk(ball.center.clone().addScaledVector(ball.dir, -(ball.r + 1.3)), { tol: 0.5, max: 3 });
-  ball.hit('push', ball.dir.clone(), { strength: 0.4 });
-  wait(1.5);
-  assert.equal(rt.logic.isOpen('br1'), false, 'the note faded: the stones rise');
-  wait(4);
-  assert.ok(ball.t < 1e-3 && !ball.drop, `the ball dropped, and a new one waits at the near edge (${ball.t.toFixed(3)})`);
-  // the revelation: ring, then roll the ball across at once; on its plate its weight holds the stones for good
-  walk(ball.center.clone().addScaledVector(ball.dir, -(ball.r + 1.3)), { tol: 0.5 });
-  ring('e2');
-  wait(0.2);
-  ball.hit('push', ball.dir.clone(), { strength: 1 });
-  for (let i = 0; i < 12 / DT && !rt.logic.drumOn('ball3', 'p3'); i++) frame();
-  assert.equal(rt.logic.drumOn('ball3', 'p3'), true, `the ball across, on the far plate (${ball.t.toFixed(3)})`);
-  wait(HOLD_STONES + 1);
-  assert.equal(rt.logic.isOpen('br1'), true, 'the stones stay down');
-  ball.hit('push', ball.dir.clone().negate(), { strength: 1 });
-  wait(1);
-  assert.equal(rt.logic.drumOn('ball3', 'p3'), true, 'settled in its socket: no pushing it back');
-  assert.equal(walk(L(-1.5, U, E0 + 37)), true, `over the stones (${where()})`);
-  assert.ok(P.pos.y > L(0, U - 1, 0).y, 'on the bridge, not in the chasm');
-  ring('e3');
-  wait(2.2);
-  assert.equal(walk(L(0, U, R.echoes.z1 - 1), { max: 4 }), true, `up to the far door (${where()})`);
-  wait(0.5);
-  assert.equal(rt.logic.isOpen('d4'), false, 'its ball home and its bell rung, but a great lock: no key yet');
-  assert.ok(notes.some((s) => /great lock/i.test(s)), 'it says what it wants');
-  // ---- the spur off the bridge's middle to the Ringers' Walk: the same stones, and no ball holds them, only the bell
-  assert.equal(walk(L(0, U, RING.z)), true, `back to the bridge's middle (${where()})`);
-  wait(HOLD_STONES + 0.5);
-  assert.ok(rt.logic.isOpen('br1') && !rt.logic.isOpen('spur'), 'the ball holds the bridge; the spur hangs');
-  ring('e2');
-  wait(0.4);
-  assert.equal(rt.logic.isOpen('spur'), true, 'rung, the spur comes down too');
-  assert.ok([[-8, U, RING.z], [-15, U, RING.z], [RING.x, U, RING.z]].every((q) => walk(L(...q), { max: 6 })), `over the spur and through the doorway, into the walk (${where()})`);
-  assert.ok(P.pos.y > L(0, U - 0.5, 0).y, 'on its floor');
-  wait(HOLD_STONES);
-  assert.equal(rt.logic.isOpen('spur'), false, 'the spur falls up again behind you');
-  // back along it outside the house, up its stair, and east onto the ledge high in the Stone Stair
-  assert.ok([[RING.x, U, RING.stairs[0] + 2], [RING.x, RING.y, RING.stairs[1] - 1], [RING.x, RING.y, C2], [-R.stair.r - 1.6, RING.y, C2], [-15.5, RING.y, C2 + 2]].every((q) => walk(L(...q), { max: 20, dy: 1.2 })), `along the walk, up its stair, onto the ledge (${where()})`);
-  const kB = rt.piece('kB');
-  assert.equal(walk(kB.pos, { tol: 1.2, max: 8 }), true, `to the great key (${where()})`);
-  wait(0.3);
-  assert.ok(!rt.logic.find('kB') && kB.cage.visible, 'caged');
-  ring('e0');
-  wait(1.6);
-  assert.ok(rt.logic.isLit('e0') && !kB.cage.visible, 'its ring hooked from the ledge: the founders’ bell far below booms with the ball in its mouth, and the cage sinks while it sounds');
-  openChest(rt, 'kB', P);
-  assert.equal(rt.logic.isFound('kB'), true, 'the great key');
-  // down where the parapet stops, onto the landing (a drop that costs nothing), and up the house again
-  const hearts0 = P.hearts;
-  assert.equal(walk(L(-3, U, C2 + 10.5), { tol: 0.9, max: 6, dy: 0.6 }), true, `off the ledge, down onto the landing (${where()})`);
-  assert.equal(P.hearts, hearts0, 'unhurt');
-  assert.equal(walk(L(0, U, C3 + 4)), true, `through the bell chamber (${where()})`);
-  assert.equal(walk(L(0, U, PZ - 6)), true, `before the porch's bell (${where()})`);
-  ring('e1');
-  wait(2.2);
-  assert.equal(walk(L(0, U, E0 + 2.5)), true, `through the porch's door while it rings (${where()})`);
-  assert.equal(walk(L(-1.5, U, E0 + 37)), true, `over the stones the ball holds (${where()})`);
-  ring('e3');
-  assert.equal(walk(L(0, U, R.echoes.z1 - 1), { max: 4 }), true, `to the far door (${where()})`);
-  wait(2.2);
-  assert.equal(rt.logic.keysIn('d4'), 1, 'the great key goes in');
-  assert.equal(rt.logic.isOpen('d4'), true, 'the far bell door');
-  // ---- the Cloud-Mother's hall
-  assert.equal(walk(L(0, U, CH - 14)), true, `into her hall (${where()})`);
-  const G = rt.guardian;
-  wait(0.4);
-  assert.notEqual(G.state, 'sleep', 'she wakes');
-  P.opts.health = false;
-  // (from her second phase a ring as she rises to dive brings a stone down where she dives; in her last that is the
-  // only way she lies down to cry: tests/guardian-twists.test.js plays it through, failures and all)
-  const rising = () => G.phaseIndex >= 1 && G.attack?.over && !G.struck && G.at > 0.15 && G.at < G.windFor * 0.5;
-  // (her hall's bell nearest her that the hook reaches from where he stands)
-  const hallBell = () => { const bs = rt.pieces.filter((p) => p.id?.startsWith?.('hb.hall.')).sort((a, b) => a.at.distanceTo(G.model.pos) - b.at.distanceTo(G.model.pos)); const b = bs.find((q) => sight(q.at)); assert.ok(b, `a hall bell in reach (${where()})`); b.hit('push', { mode: 'hook' }); };
-  let landed = 0;
-  for (let n = 0; n < 16 && G.state !== 'weary'; n++) {
-    answerAsks({ G, P, frame }, { keep: true });   // (its second phase's second verb first, src/temples/boss.js asks: tests/guardian-asks.js)
-    let ready = false;
-    for (let i = 0; i < 40 / DT; i++) { frame(); if (G.state === 'open' || rising()) { ready = true; break; } }
-    assert.ok(ready, `she cries, or rises to dive (${n}, phase ${G.phaseIndex})`);
-    if (n === 0) { const m = G.meter; G.hit('mouth', 'shoot'); assert.equal(G.meter, m, 'fluid does not calm her'); }
-    if (G.state !== 'open') {
-      hallBell();
-      assert.ok(rt.hallStones.list.some((s) => s.held > 0), `a stone comes down where she will dive (${n})`);
-      let lay = false;
-      for (let i = 0; i < 6 / DT; i++) { frame(); if (G.state === 'open') { lay = true; break; } }
-      assert.ok(lay, `she dives onto it and lies there, crying (${n})`);
-      landed++;
-    }
-    P.teleport(G.model.pos.clone().setY(L(0, U, 0).y).add(V(G.model.pos.x > L(0, U, CH).x ? -6 : 6, 0.1, 0)), V(0, 1, 0), V(0, 0, 1));
-    hallBell();
-  }
-  assert.ok(landed > 0, 'a stone brought down under her at least once');
-  assert.equal(G.state, 'weary', `calm (${G.meter.toFixed(2)})`);
-  for (let i = 0; i < 30 / DT && Math.hypot(G.model.pos.x - G.model.rest.x, G.model.pos.z - G.model.rest.z) > 0.6; i++) frame();
-  wait(2);
-  P.teleport(G.model.mouth.clone().setY(L(0, U, 0).y).add(V(2.2, 0.1, 0)), V(0, 1, 0), V(0, 0, 1));
-  wait(0.3);
-  const near = bestInteractable(P);
-  assert.equal(near?.entry.id, 'temple.arzach2.touch', 'a hand on her brow');
-  near.entry.use(P);
-  assert.equal(G.state, 'resolved');
-  assert.equal(game.flag('temple.arzach2.done'), true);
-  // ---- outside: the stones that fell up come down
-  const stones = level.arzach2.floaters.children;
-  const before = stones.map((g) => g.getWorldPosition(V()).y);
-  wait(20);
-  const after = stones.map((g) => g.getWorldPosition(V()).y);
-  assert.ok(after.every((y, i) => y < before[i] - 5), `every floating stone came down (${after.map((y, i) => (before[i] - y).toFixed(0)).join(', ')})`);
-  game.reset();
-  own();
-});
+// (the Founders' Belfry on foot, round its Great Belfry and its bell since issue #408: tests/belfry-bells.test.js)
 
 // (the Footprint on foot, room by room and floor by floor since issue #401: tests/footprint-floors.test.js)
 

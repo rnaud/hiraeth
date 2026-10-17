@@ -9,6 +9,7 @@ import { Door, Plate, Ball, Platform, Bridge, BellEar, HookBell, Switch, Mark, P
 import { whaleModel } from './guardians.js';
 import { chestMound } from '../boxes/mound.js';
 import { foundersBelfrySkin } from './skins/founders-belfry.js';
+import { registerInteractable, PRIORITY } from '../interact.js';
 
 // Vael II's temple: the Founders' Belfry, a tower of bone-white stone that
 // rises straight out of the cloud beside the starting plateau, a bridge from
@@ -106,27 +107,50 @@ const BRONZE = () => makeMaterial({ color: '#9c7c46', flat: true, metal: 'brass'
  */
 export const DOOR = { w: 7, h: 9 };
 export const UP = 8;
+/**
+ * (issue #408) The Great Belfry, the house's great hall (G4: docs/design/temple-best-practices.md): `nave` its floor from
+ * wall to wall, 40 by 66 m under 32; its gallery at UP round three sides (GALLERY: the north band's south edge `n`, the
+ * arms' inner edges `w`, `e`, how far south they run `s`), open over the floor, and the great key's ledge high on its west
+ * wall (RING). The rooms after it on the upper floor stand SHIFT m further north than they did round the Stone Stair.
+ */
+const SHIFT = 32.6;
 export const ROOMS = {
   threshold: { x0: -10, x1: 10, z0: 0, z1: 14, y: 0, top: 12 },
   stones: { x0: -18, x1: 18, z0: 15.2, z1: 51.2, y: 0, top: 18 },
   storeW: { x0: -49.2, x1: -19.2, z0: 15.2, z1: 51.2, y: 0, top: 18 },
   storeE: { x0: 19.2, x1: 49.2, z0: 15.2, z1: 51.2, y: 0, top: 18 },
-  stair: { x: 0, z: 72.4, r: 17, y: 0, top: 28 },
-  bell: { x: 0, z: 110.8, r: 17, y: UP, top: UP + 18 },
-  porch: { x0: -18, x1: 18, z0: 132.8, z1: 160.8, y: UP, top: UP + 18 },
-  echoes: { x0: -18, x1: 18, z0: 165.6, z1: 215.6, y: UP - 10, top: UP + 18, lip: 13.8, far: 34 },
-  hall: { x: 0, z: 245.8, r: 21, y: UP, top: UP + 26 },
+  nave: { x0: -20, x1: 20, z0: 56, z1: 122, y: 0, top: 32 },
+  bell: { x: 0, z: 110.8 + SHIFT, r: 17, y: UP, top: UP + 18 },
+  porch: { x0: -18, x1: 18, z0: 132.8 + SHIFT, z1: 160.8 + SHIFT, y: UP, top: UP + 18 },
+  echoes: { x0: -18, x1: 18, z0: 165.6 + SHIFT, z1: 215.6 + SHIFT, y: UP - 10, top: UP + 18, lip: 13.8, far: 34 },
+  hall: { x: 0, z: 245.8 + SHIFT, r: 21, y: UP, top: UP + 26 },
 };
+export const GALLERY = { n: 108, w: -13, e: 13, s: 70, t: 0.8, parapet: 1.1 };
+/**
+ * (issue #408) The founders' bell, the house's one state: hung in the middle of the Great Belfry (`at`: its mouth, `s` its
+ * size, `ring` its pull-ring's height), rung or still. Rung, the stones the founders set come down all through the house;
+ * stilled, its hum fades for `fade` s and they fall up again. Set at a lever by every hub (`levers`: local [x, y, z], the
+ * way each faces), with the hook at its ring, or at the Hall of Echoes' bell, which answers it (`rings`: the pull-rings
+ * that set it).
+ */
+export const FOUNDERS = {
+  at: [0, 12.5, 95], s: 1.8, ring: 10.1, fade: 10,
+  levers: [{ room: 'stones', at: [7, 0, 47.5], yaw: Math.PI }, { room: 'stair', at: [-5, 0, 60.5], yaw: Math.PI }, { room: 'landing', at: [-8.5, UP, 119.5], yaw: Math.PI }],
+  rings: ['hb.founders', 'hb.e1', 'hb.e2'],
+};
+/** (issue #408) The bell's two stops, as conditions: rung (its stones down) and still (fallen up). */
+export const RUNG = { drumOn: ['bell', 'bellRung'] }, STILL = { drumOn: ['bell', 'bellStill'] };
 
 export const LOGIC = {
   id: 'arzach2', entry: 'threshold', gadget: 'hook',
   // (each room's kind, issue #336: a puzzle, a fight, the chest, a passage or the guardian, never both a puzzle and a fight;
   // src/foes.js places machines only in a fight's room: scripts/temple-design/rules.mjs, tests/temple-rules.test.js. The
-  // Bell Chamber holds the hook and its try; the Bell Porch past its open way is a room of its own since v1.77)
+  // Bell Chamber holds the hook and its try; the Bell Porch past its open way is a room of its own since v1.77. Since v1.83
+  // (issue #408) `stair` is the Great Belfry's floor and `landing` its gallery: the ids kept, so a save's last mark holds)
   rooms: {
     threshold: { checkpoint: true, kind: 'passage' }, stones: { checkpoint: true, kind: 'passage' }, storeW: { kind: 'combat' }, storeE: { kind: 'puzzle' },
     stair: { checkpoint: true, kind: 'puzzle' }, landing: { kind: 'passage' }, bell: { checkpoint: true, kind: 'puzzle' }, porch: { checkpoint: true, kind: 'puzzle' },
-    echoes: { checkpoint: true, kind: 'puzzle' }, echoesFar: { kind: 'puzzle' }, ringers: { checkpoint: true, kind: 'passage' },
+    echoes: { checkpoint: true, kind: 'puzzle' }, echoesFar: { checkpoint: true, kind: 'puzzle' }, ringers: { checkpoint: true, kind: 'passage' },
     ante: { checkpoint: true, kind: 'passage' }, hall: { boss: true, kind: 'guardian' }, out: { kind: 'passage' },
   },
   links: [
@@ -134,12 +158,14 @@ export const LOGIC = {
     { a: 'stones', b: 'storeW', door: 'dSW' },      // (open: it shuts behind you while its keepers stand)
     { a: 'stones', b: 'storeE' },
     { a: 'stones', b: 'stair', door: 'd1' },
-    { a: 'stair', b: 'landing', door: 'lift' },     // the great stone: rung down, it falls up again with you on it
+    { a: 'stair', b: 'landing', door: 'lift' },     // the great stone: rung down to the floor, stilled it falls up with you on it
+    { a: 'landing', b: 'stair', oneWay: true },     // (G6, issue #408: the drop off the gallery, back to the hub's floor)
     { a: 'landing', b: 'bell', door: 'd2' },
     { a: 'bell', b: 'porch', door: 'dP' },          // the chamber's north door: it sinks for the hook in your hand
     { a: 'porch', b: 'echoes', door: 'd3' },        // the Bell Porch's held door, a room on from the chest
-    // (issue #23's last round: a ring through both halves. Off the bridge's middle a spur of stones the bell alone holds, to
-    // the Ringers' Walk back south and up to a ledge high in the Stone Stair, the great key's, a drop over the landing)
+    // (issue #23's last round: a ring through both halves. Since v1.83, issue #408: the spur off the bridge's middle stands
+    // while the founders' bell is still, to the Ringers' Walk back south and up to the great key's ledge high in the Great
+    // Belfry, a drop onto its gallery)
     { a: 'echoes', b: 'ringers', door: 'spur' },
     { a: 'ringers', b: 'landing', oneWay: true },
     { a: 'echoes', b: 'echoesFar', door: 'br1' },
@@ -155,37 +181,45 @@ export const LOGIC = {
     p2: { type: 'plate', room: 'storeE' },
     ball2: { type: 'drum', room: 'storeE', plate: 'p2', plateAt: 1, start: 0 },
     d1: { type: 'door', lock: 'small', opens: { drumOn: ['ball2', 'p2'] }, latch: true },   // (the ball's weight: you alone are not enough)
-    // the Stone Stair: the ball rolled into the founders' bell's mouth strikes it; while it rings the great stone is down
-    ballS: { type: 'drum', room: 'stair', plate: 'pS', plateAt: 1, start: 0 },
-    pS: { type: 'plate', room: 'stair' },
-    e0: { type: 'bell', room: 'stair', hold: 12, when: { drumOn: ['ballS', 'pS'] } },
-    lift: { type: 'door', opens: { lit: 'e0' }, latch: true },
+    // the Great Belfry (issue #408): the great stone comes down to its floor while the founders' bell rings, and falls up
+    // with you on it when it is stilled; the eye under the gallery's north band wakes the high door
+    lift: { type: 'door', opens: RUNG, latch: true },
     s1: { type: 'switch', room: 'stair' },
     d2: { type: 'door', opens: { lit: 's1' }, latch: true },
     // (issue #377: the chest held the bell-note whistle, a charm that finds chests; the hook rings the founders' bells by
     // their pull-rings now, HookBell, and the whistle waits in Vael's makers' court)
     chest: { type: 'gadget', room: 'bell', item: 'hook' },
     dP: { type: 'door', opens: { item: 'hook' }, latch: true },
-    // the chamber's own bell in the oculus: stones come down round the dais while it rings (nothing is locked by it)
-    eT: { type: 'bell', room: 'bell', needs: ['hook'], hold: 6 },
-    heap: { type: 'bridge', opens: { lit: 'eT' } },
-    e1: { type: 'bell', room: 'porch', needs: ['hook'], hold: 8 },   // the porch's bell, in the middle of the porch
-    d3: { type: 'door', opens: { lit: 'e1' } },
-    e2: { type: 'bell', room: 'echoes', needs: ['hook'], hold: 10 },   // the bell hung over the chasm's east side
-    // the spur off the bridge's middle to the Ringers' Walk: held by the bell alone (no ball holds it). At the walk's end,
-    // on the ledge high in the Stone Stair, the great key in a tall cage (seen from the stair's floor at the start) that
-    // sinks only while the founders' bell far below rings: the ball still in its mouth, its ring hooked from the ledge
-    spur: { type: 'bridge', opens: { lit: 'e2' } },
-    kB: { type: 'key', kind: 'big', room: 'ringers', when: { lit: 'e0' } },
+    // the Bell Porch (issue #408): its door's slab is one of the founders' stones; the first time the founders' bell rings
+    // once the chamber's north door is open, it sinks into its socket and stays. The porch's own bell, in its middle,
+    // answers that bell: hooked, it rings it or stills it (as the Hall of Echoes' does)
+    d3: { type: 'door', opens: { all: [RUNG, { open: 'dP' }] }, latch: true },
+    // the Hall of Echoes (issue #408): the bridge's stones come down while the founders' bell rings, and the ball's weight on
+    // the far plate holds them for good. The spur off its middle, west to the Ringers' Walk, is other stones, lying on the
+    // chasm's floor while the bell rings, that fall up level with the bridge while it is still. The walk ends on the great
+    // key's ledge, high in the Great Belfry (since issue #408 the key lies free: the ledge is its lock, v1.74's cage cut)
     ball3: { type: 'drum', room: 'echoes', plate: 'p3', plateAt: 1, start: 0 },
     p3: { type: 'plate', room: 'echoes' },   // (on the far lip, in the same hall as its ball: nothing rolled through a door)
-    br1: { type: 'bridge', opens: { any: [{ lit: 'e2' }, { drumOn: ['ball3', 'p3'] }] } },
-    e3: { type: 'bell', room: 'echoesFar', needs: ['hook'] },   // the bell beside the far door
-    d4: { type: 'door', lock: 'big', opens: { all: [{ drumOn: ['ball3', 'p3'] }, { lit: 'e3' }] }, latch: true },
+    br1: { type: 'bridge', opens: { any: [RUNG, { drumOn: ['ball3', 'p3'] }] } },
+    spur: { type: 'bridge', opens: STILL },
+    kB: { type: 'key', kind: 'big', room: 'ringers' },
+    // the far door: the great key, the ball on its plate, and its slab one of the founders' stones, sunk while the bell rings
+    // (from the far lip, the hook rings the Hall of Echoes' bell, which answers the founders' bell)
+    d4: { type: 'door', lock: 'big', opens: { all: [{ drumOn: ['ball3', 'p3'] }, RUNG] }, latch: true },
     mother: { type: 'boss', room: 'hall', needs: ['gun', 'hook'] },
     d5: { type: 'door', opens: { resolved: true } },
+    // (issue #408) the founders' bell, the house's state: still (0) or rung (1), saved. Set at the levers by the hubs (the
+    // Hall of Stones, the Great Belfry's floor and its gallery), with the hook at its ring (from the gallery) or at the Hall
+    // of Echoes' bell, which answers it (from either lip). Its two stops are no plates anyone stands on (no room: nothing
+    // points at them). (Last of the things to do, so the scout asks for it only once nothing nearer is left: logic.next)
+    bell: { type: 'drum', room: 'stair', rooms: ['stones', 'stair', 'landing', ...['porch', 'echoes', 'echoesFar'].map((room) => ({ room, needs: ['hook'] }))], stops: { bellStill: 0, bellRung: 1 }, start: 0, roll: 'hand', verb: 'bell' },
+    bellStill: { type: 'plate' }, bellRung: { type: 'plate' },
+    // the chamber's own bell in the oculus: stones come down round the dais while it rings (nothing is locked by it; last,
+    // so the scout never asks for a try)
+    eT: { type: 'bell', room: 'bell', needs: ['hook'], hold: 6 },
+    heap: { type: 'bridge', opens: { lit: 'eT' } },
     // the house's map, in a little chest off the way on (issue #405: src/house-map.js; nothing waits on it)
-    map: { type: 'map', room: 'stair', at: [-15.2, 0, 72.4], yaw: Math.PI / 2 },
+    map: { type: 'map', room: 'stair', at: [-17.6, 0, 62], yaw: Math.PI / 2 },
   },
 };
 
@@ -204,22 +238,21 @@ export const BELL2 = [10, UP + 8, ROOMS.echoes.z0 + 24];
 export const HALL_BELLS = [[12, 0, 12], [-12, 0, 12], [-12, 0, -12], [12, 0, -12]];
 
 /** The held notes: how long the founders' bells hold their door and their stones (s). */
-export const HOLD = { door: LOGIC.elements.e1.hold, stones: LOGIC.elements.e2.hold, stair: LOGIC.elements.e0.hold, chamber: LOGIC.elements.eT.hold };
+export const HOLD = { chamber: LOGIC.elements.eT.hold, fade: FOUNDERS.fade, stones: 10 };   // (stones: how long a note holds a stone under the Cloud-Mother, HallStones)
 /**
- * The Ringers' Walk (issue #23's last round, local m): its doorway in the Hall of Echoes' west wall half-way over (z, the
- * spur's), the walk's middle (x) and half its width, its doorways' width and height; its floor at UP to its stair
- * (`stairs`: foot and head, z), then RING.y to its south end, where it turns east through the Stone Stair's west wall onto
- * a ledge round its north-west wall at RING.y (`ledge`: radii, rotunda angles; a parapet along it but over the landing,
- * `drop`), the great key on it by its edge (`key`: angle, radius; `cage` its cage's height, seen over the ledge's edge from
- * the stair's floor, sunk only while the founders' bell in the middle of the stair's floor rings, its pull-ring hooked
- * from the ledge: `hear` its ear's reach). The founders' bell (`bell`: angle, radius) stands straight in from the key, in sight
- * of it and under 20 m from it (issue #336: the temple design audit's cage at 1.0, out of sight two rooms off); the
- * landing (`landing`: its face's radius, its angles) under the ledge's drop; the Stone Stair `stairH` high.
+ * The Ringers' Walk (issue #23's last round; since v1.83, issue #408, to the Great Belfry; local m): its doorway in the
+ * Hall of Echoes' west wall half-way over (z, the spur's), the walk's middle (x) and half its width, its doorways' width
+ * and height; its floor at UP to its stair (`stairs`: foot and head, z), then RING.y to its south end (`south`), where it
+ * turns east (at `in`) through the Great Belfry's west wall onto the ledge high over its west gallery (`ledge`: x and z,
+ * open along its edges: any way off it drops onto the gallery). The great key on it (`key`: x, z), free by its edge,
+ * seen from the Great Belfry's floor; the founders' bell in sight from it and under 20 m (issue
+ * #336: v1.74's edit 1, its cage at 1.0, cut). The great stone (`lift`: x, z, r) rides between the floor and the gallery's
+ * north band.
  */
 export const RING = {
-  z: ROOMS.echoes.z0 + 24, x: -23.1, half: 3, w: 6, door: 8, y: 16, stairH: ROOMS.stair.top, stairs: [112.4, 94.4], south: ROOMS.stair.z - 5.4,
-  ledge: { r0: 13, r1: 17.4, a0: -Math.PI / 2 - 0.3, a1: -0.3 }, drop: -0.9, key: { a: -0.5, r: 14.3 }, cage: 3.2, hear: 28,
-  bell: { a: -0.5, r: 5 }, landing: { r: 9.8, a0: -1.02, a1: 0.75 }, lift: { a: 0.35 },
+  z: ROOMS.echoes.z0 + 24, x: -26, half: 3, w: 6, door: 8, y: 16, stairs: [150, 132], south: 94, in: 99,
+  ledge: { x0: ROOMS.nave.x0, x1: -13.6, z0: 91, z1: 107 }, key: [-15, 101],
+  lift: { x: -4, z: GALLERY.n - 2.2, r: 2.2 },
 };
 /** How long the Cloud-Mother lies on a held stone she dived onto, crying (s): a bell rung near her calms her then. */
 export const GROUNDED = 4.5;
@@ -403,6 +436,192 @@ export class FallUpStone extends Platform {
   }
 }
 
+// ------------------------------------------------------------------ the founders' bell, the house's state (issue #408)
+/** Its look in every room: the lamps warm while it rings, cold and dim while it is still. */
+export const STATE_LOOK = { rung: '#ffc764', still: '#5b6c9c', glow: [0.12, 0.85] };
+/** The one lamp material every lever, bell-lamp and the bell's heart share (its colour set once a frame: FoundersBell). */
+const stateLamp = () => makeMaterial({ color: STATE_LOOK.still, glow: STATE_LOOK.glow[0], flat: true, key: 'temple.arzach2.state' });
+const _sc = new THREE.Color(), _sv = new THREE.Vector3();
+
+/**
+ * The founders' bell (LOGIC `bell`, a drum of two stops: still 0, rung 1): this piece keeps the house's state. A lever
+ * pulled (BellLever) or a ring hooked (FOUNDERS.rings: its own, and the Hall of Echoes' bell that answers it) rings it at
+ * once, its stones come down all through the house; or stills it: its hum fades for FOUNDERS.fade s, and then they fall
+ * up. A pull while it fades rings it on. It lights the house's lamps (stateLamp), sends the skin's note out from it and
+ * from the bell that answers it, and points the scout at the nearest place to set it from (`center`).
+ * o: { id: 'bell', at: [x, y, z] its heart (local), s: its size }
+ */
+export class FoundersBell {
+  constructor(rt, o) {
+    this.rt = rt; this.id = o.id; this.o = o;
+    this.at = rt.kit.world(...o.at);
+    this.fading = 0; this.time = 0;
+    this.k = this.rung ? 1 : 0;
+    this.lamp = stateLamp();
+    // its clapper under its mouth, lit in the house's state's colour: it swings while the bell rings, hangs still when it
+    // is still (`mouth`: local, the bell's mouth)
+    const s = o.s ?? 1;
+    this.clapper = new THREE.Group();
+    this.clapper.position.copy(rt.kit.world(...o.mouth));
+    this.clapper.add(new THREE.Mesh(new THREE.CylinderGeometry(0.07 * s, 0.07 * s, 0.5 * s, 6).translate(0, -0.25 * s, 0), makeMaterial({ color: '#a8874a', flat: true, metal: 'brass', refl: 0.3, key: 'temple.arzach2.lever' })));
+    this.clapper.add(new THREE.Mesh(new THREE.SphereGeometry(0.26 * s, 14, 10).translate(0, -0.5 * s - 0.2 * s, 0), this.lamp));
+    this.clapper.traverse((m) => { m.userData.noCollide = true; m.userData.dynamic = true; });
+    this.clapper.name = 'The founders’ bell’s clapper';
+    rt.root.add(this.clapper);
+    this.setters = [];   // (the levers, and the rings once the hook is carried: the scout's)
+    this.off = rt.game?.on?.('bell', ({ by, struck } = {}) => { if (struck && FOUNDERS.rings.includes(by)) this.toggle(by); });
+    rt.foundersBell = this;
+  }
+  get rung() { return this.rt.logic.drumOn(this.id, 'bellRung'); }
+  /** Rung (now), or stilled (once its hum fades); a pull while it fades rings it on. Returns what it does. */
+  toggle(by = null) {
+    const rt = this.rt;
+    if (this.fading > 0) {
+      this.fading = 0;
+      rt.sound?.bell?.(); rt.notice?.('The bell swells again. Its stones stay down.', 'founders.again');
+      return 'rung';
+    }
+    if (this.rung) {
+      this.fading = FOUNDERS.fade;
+      rt.rumble?.(0.4, 0.3); rt.notice?.('The founders’ bell’s hum begins to fade. Its stones stir.', 'founders.fading');
+      return 'stilling';
+    }
+    rt.logic.moveDrum(this.id, 1); rt.applyDoors?.();
+    rt.sound?.bell?.(); rt.rumble?.(1.2, 0.5);
+    rt.notice?.('The founders’ bell rings out, and its stones come down.', 'founders.rung');
+    rt.game?.emit?.('temple:lit', { id: rt.id, el: this.id });
+    return 'rung';
+  }
+  update(dt, t) {
+    this.time += dt;
+    if (this.fading > 0) {
+      this.fading -= dt;
+      if (this.fading <= 0) {
+        this.fading = 0;
+        this.rt.logic.moveDrum(this.id, 0); this.rt.applyDoors?.();
+        this.rt.rumble?.(1.0, 0.4); this.rt.notice?.('The hum dies away. The founders’ stones fall up.', 'founders.stilled');
+      }
+    }
+    const want = this.rung ? (this.fading > 0 ? 0.35 + 0.65 * (this.fading / FOUNDERS.fade) : 1) : 0;
+    this.k += (want - this.k) * Math.min(1, dt * 3);
+    // every lamp of the house at once: warm and breathing with its swing while it rings, flickering as it fades
+    const u = this.lamp.uniforms, flick = this.fading > 0 ? 0.25 * Math.sin(t * 17) : 0;
+    u.uColor.value.set(STATE_LOOK.still).lerp(_sc.set(STATE_LOOK.rung), this.k);
+    u.uGlow.value = STATE_LOOK.glow[0] + this.k * (STATE_LOOK.glow[1] - STATE_LOOK.glow[0] + 0.12 * Math.sin(t * 4.2) + flick);
+    this.clapper.rotation.z = this.k * Math.sin(t * 2.4) * 0.3;
+    this.clapper.rotation.x = this.k * Math.sin(t * 2.4 + 1.1) * 0.12;
+    // the skin's note: pale rings out over the floors from it, and from the Hall of Echoes' bell that answers it
+    const B = this.rt.skin?.U?.bells?.value;
+    if (B && B.length > 4) { B[4].set(this.o.at[0], this.o.at[1], this.o.at[2], this.k); B[3].set(BELL2[0], BELL2[1] + 1.8, BELL2[2], this.k); }
+  }
+  /** Where to set it from (the scout's): the nearest lever, or ring once the hook is carried. */
+  get center() {
+    const P = this.rt.player?.pos, hook = this.rt.logic.has?.('hook');
+    const list = this.setters.filter((s) => !s.ring || hook).map((s) => s.at);
+    if (!P || !list.length) return this.at;
+    return list.reduce((b, p) => (p.distanceTo(P) < b.distanceTo(P) ? p : b));
+  }
+  dispose() { this.off?.(); }
+}
+
+/**
+ * A lever of the founders' bell, by a hub (FOUNDERS.levers): a bronze arm on a slate post, a lamp on its knob (stateLamp).
+ * Pulled (A / ×) it rings the bell, or stills it (FoundersBell.toggle); the arm stands up while it rings, down while it is
+ * still. o: { id, room, at (its foot, local), yaw (the way it faces) }
+ */
+export class BellLever {
+  constructor(rt, o) {
+    this.rt = rt; this.id = o.id; this.o = o;
+    const K = rt.kit, M = rt.M, [x, y, z] = o.at, H = 1.05;
+    this.pos = K.world(x, y, z);
+    K.both(M.dark, T(new THREE.CylinderGeometry(0.3, 0.42, H, 8), [x, y + H / 2, z]));
+    K.add(M.trim, T(new THREE.TorusGeometry(0.33, 0.05, 6, 20), [x, y + H, z], [Math.PI / 2, 0, 0]));
+    K.add(stateLamp(), T(new THREE.CylinderGeometry(0.22, 0.22, 0.06, 16), [x, y + H + 0.02, z]));
+    this.top = K.world(x, y + H + 0.1, z);
+    this.at = this.top;
+    // the arm: pivoting on the post's top, across the way it faces; its knob the lamp's colour
+    this.arm = new THREE.Group();
+    this.arm.position.copy(this.top);
+    this.arm.rotation.y = K.heading(o.yaw ?? 0);
+    const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 1.0, 6).translate(0, 0.5, 0), makeMaterial({ color: '#a8874a', flat: true, metal: 'brass', refl: 0.3, key: 'temple.arzach2.lever' }));
+    const knob = new THREE.Mesh(new THREE.SphereGeometry(0.13, 10, 8).translate(0, 1.02, 0), stateLamp());
+    this.pivot = new THREE.Group(); this.pivot.add(bar, knob);
+    this.arm.add(this.pivot);
+    this.arm.traverse((m) => { m.userData.noCollide = true; m.userData.dynamic = true; });
+    rt.root.add(this.arm);
+    this.a = 0;
+    const bell = () => rt.foundersBell;
+    this.off = registerInteractable({
+      id: `temple.${rt.id}.${o.id}`, priority: PRIORITY.use, range: 2.4, at: () => this.top,
+      prompt: () => (bell()?.rung && !(bell()?.fading > 0) ? 'still the founders’ bell' : 'ring the founders’ bell'),
+      enabled: () => !!bell(),
+      distance: (p) => Math.hypot(p.pos.x - this.pos.x, p.pos.z - this.pos.z) + Math.max(0, Math.abs(p.pos.y - this.pos.y) - 1.2) * 4,
+      use: () => { const r = bell()?.toggle(this.id); this.kick = 1; return r; },
+    });
+    rt.foundersBell?.setters.push({ at: this.top, lever: this.id });
+    this.later = !rt.foundersBell;   // (a lever placed before the bell: it joins the bell's list on its first frame)
+  }
+  update(dt) {
+    const B = this.rt.foundersBell;
+    if (this.later && B) { this.later = false; B.setters.push({ at: this.top, lever: this.id }); }
+    const want = (B?.rung && !(B.fading > 0) ? 1 : -1) * 0.75;
+    this.a += (want - this.a) * Math.min(1, dt * 6);
+    this.kick = Math.max(0, (this.kick ?? 0) - dt * 3);
+    this.pivot.rotation.x = this.a + Math.sin(this.kick * 9) * 0.1 * this.kick;
+  }
+  dispose() { this.off?.(); }
+}
+
+/**
+ * A bell-lamp: the founders' bell's state in a room (issue #408, G1: readable everywhere). A slender bronze post by the
+ * room's way in, a lamp in a ring on it, warm while the bell rings and cold while it is still (stateLamp). Drawn in the
+ * kit's batches: its colour is the shared material's. o: { room, at (its foot, local) }
+ */
+export class BellGauge {
+  constructor(rt, o) {
+    const K = rt.kit, M = rt.M, [x, y, z] = o.at;
+    this.rt = rt; this.o = o;
+    K.both(M.trim, T(new THREE.CylinderGeometry(0.08, 0.14, 2.3, 8), [x, y + 1.15, z]));
+    K.add(M.trim, T(new THREE.TorusGeometry(0.48, 0.06, 6, 24), [x, y + 2.75, z], [Math.PI / 2, 0, 0]));
+    K.add(M.trim, T(new THREE.TorusGeometry(0.48, 0.05, 6, 24), [x, y + 2.75, z]));
+    K.add(stateLamp(), T(new THREE.SphereGeometry(0.34, 14, 10).scale(1, 1.25, 1), [x, y + 2.75, z]));
+  }
+  update() {}
+}
+
+/**
+ * Stones that fell up (issue #408): hanging under a hall's roof while the founders' bell is still, bobbing; down on the
+ * floor, where somebody set them, while it rings. Drawn only. o: { id, list: [[x, z, r]], y: the floor, up: [lo, hi] }
+ */
+export class StateStones {
+  constructor(rt, o) {
+    this.rt = rt; this.id = o.id; this.o = o;
+    const K = rt.kit, [lo, hi] = o.up ?? [18, 24];
+    this.list = o.list.map(([x, z, r], i) => {
+      const m = new THREE.Mesh(new THREE.IcosahedronGeometry(r, 1).scale(1, 0.7, 1), rt.M.stoneMat);
+      m.userData.noCollide = true; m.userData.dynamic = true;
+      rt.root.add(m);
+      const low = K.world(x, o.y + r * 0.6, z), high = K.world(x, o.y + lo + ((i * 5) % 7) / 6 * (hi - lo), z);
+      return { m, low, high, i, k: 0 };
+    });
+    const down = rt.logic.check(RUNG) ? 1 : 0;
+    for (const s of this.list) { s.k = down; this.place(s, 0); }
+  }
+  place(s, t) {
+    const e = s.k * s.k * (3 - 2 * s.k), bob = (1 - e) * Math.sin(t * 0.5 + s.i * 2.1) * 0.6;
+    s.m.position.lerpVectors(s.high, s.low, e).y += bob;
+    s.m.rotation.set(s.i + (1 - e) * t * 0.05, s.i * 2, 0);
+  }
+  update(dt, t) {
+    const B = this.rt.foundersBell, down = this.rt.logic.check(RUNG), stir = B?.fading > 0;
+    for (const s of this.list) {
+      s.k = down ? Math.min(1, s.k + dt / (1.2 + s.i * 0.15)) : Math.max(0, s.k - dt / (3 + s.i * 0.2));
+      this.place(s, t);
+      if (stir) s.m.position.y += Math.sin(t * 23 + s.i) * 0.04;
+    }
+  }
+}
+
 // ------------------------------------------------------------------ inside
 // (issue #336: every hall 36 m across (the stores 30 by 36, the round halls 34 and 42 across) under 18 m of stone or more,
 // doors 7 by 9 m, each puzzle in the middle of its room; the props at a body's scale as they were (the balls, the bells, the
@@ -452,6 +671,8 @@ function layout(rt) {
   hall(ST, { oculus: 0.25, columns: 3, omit: ['s'], doors: [{ side: 'n', w: D.w, h: D.h }, { side: 'w', at: AZ - stz, w: D.w, h: D.h }, { side: 'e', at: AZ - stz, w: D.w, h: D.h }] });
   add(Door, { id: 'd1', at: [0, 0, ST.z1 + 0.6], w: D.w, h: D.h, lamps: [{ drumOn: ['ball2', 'p2'] }] });   // (and a keyhole: logic `lock`)
   add(Mark, { room: 'stones', at: [-8, 0, 19], yaw: Math.PI / 2 });
+  // (issue #408) the founders' bell's lever by the hub's door on (it rings in the Great Belfry beyond)
+  for (const lv of FOUNDERS.levers) if (lv.room === 'stones') add(BellLever, { ...lv, id: `lever.${lv.room}`, sets: 'bell' });
   // stones that once fell up, heaped in the corners where somebody brought them back down
   [[-15, 0.8, 48.2, 1.2], [-13.4, 0.6, 46.4, 0.9], [15.2, 0.8, 18.6, 1.1], [13.8, 1.7, 19.6, 0.8]].forEach(([x, y, z, r], i) => stone(x, y, z, r, i));
   // a dark line inlaid from each archway to the door's foot: the two lamps' two ways
@@ -476,44 +697,55 @@ function layout(rt) {
   K.glyph([SE.x1 - 0.05, 6.2, sez - 5], 1.8, -Math.PI / 2);
   [[45.6, 0.8, 47.6, 1.2], [44, 0.6, 48.6, 0.8], [46, 0.7, 18.8, 0.9]].forEach(([x, y, z, r], i) => stone(x, y, z, r, i + 9));
 
-  // ---- the corridor and the Stone Stair (a round well whose stair fell up: one great stone hangs at the top, by the
-  // landing and the high door; a founders' bell in the middle of the floor, and a ball in a groove into its mouth)
-  const S2 = R0.stair, C2 = S2.z;
-  K.corridor([0, ST.z1 + 1.2], [0, C2 - S2.r - 0.6], 0, { w: D.w, h: D.h });
-  // (a ledge round its north-west wall at RING.y, the Ringers' Walk's end, through a doorway in its west wall)
-  K.rotunda({ x: 0, z: C2, y: 0, r: S2.r, h: S2.top, gaps: [{ a: Math.PI, w: D.w, h: D.h }, { a: 0, w: D.w, h: D.h, y0: UP + 0.2 }, { a: -Math.PI / 2, w: RING.w, h: RING.door, y0: RING.y }], oculus: 0.15 });
-  const rotA = (a) => Math.PI / 2 - a, LD = RING.landing;
-  // the landing, by the high door: a block of stone round the north wall, its face toward the middle
-  K.both(M.floor, T(sector(LD.r, S2.r + 0.4, rotA(LD.a1), rotA(LD.a0), UP - 0.1), [0, UP - 0.1, C2]));
-  K.both(M.trim, T(sector(LD.r - 0.1, S2.r + 0.4, rotA(LD.a1), rotA(LD.a0), 0.3), [0, UP + 0.2, C2]));
-  // the great stone: down while the bell rings, up again (with you) when it falls quiet
-  const LS = round(S2, RING.lift.a, LD.r - 2.2);
-  add(FallUpStone, { id: 'lift', path: [[LS[0], 0.3, LS[2]], [LS[0], UP + 0.25, LS[2]]], r: 2.2, held: { lit: 'e0' }, down: 3.2, up: 1.7 });
-  K.both(M.dark, T(new THREE.CylinderGeometry(2.4, 2.6, 0.08, 8), [LS[0], 0.04, LS[2]]));   // where it comes to rest
-  // the founders' bell in the middle of the floor, with no clapper: the ball's groove runs into its mouth from the west,
-  // across the line from the key's ledge to the bell (in sight of each other, issue #336)
-  const [BX, , BZ] = round(S2, RING.bell.a, RING.bell.r), tx = Math.cos(RING.bell.a), tz = -Math.sin(RING.bell.a), GL = 5.2;
-  const GA = [BX - tx * GL, BZ - tz * GL], gyaw = Math.atan2(tx, tz);
-  hang(BX, 2.5, BZ, 1, S2.top, 'e0', Math.PI);   // (from the vault: the oculus is small, over the middle)
-  if (!rt.skin?.bell) K.add(M.trim, T(new THREE.TorusGeometry(1.48, 0.08, 4, 28).rotateX(Math.PI / 2), [BX, 2.6, BZ]));
-  K.add(M.dark, box(1.0, 0.04, GL + 0.6, BX - tx * (GL + 0.6) / 2, 0.02, BZ - tz * (GL + 0.6) / 2, gyaw));
-  for (const sd of [-1, 1]) K.both(M.trim, box(0.25, 0.12, GL - 0.8, BX - tx * (GL + 0.8) / 2 + tz * sd * 0.75, 0.06, BZ - tz * (GL + 0.8) / 2 - tx * sd * 0.75, gyaw));
-  add(Ball, { id: 'ballS', a: [GA[0], 0.04, GA[1]], b: [BX, 0.04, BZ], r: 1.0, strike: { at: [BX, 3.4, BZ] } });
-  add(Plate, { id: 'pS', at: [BX, 0, BZ], r: 1.2 });
-  // (and once the ball lies in its mouth, its pull-ring on its crown rings it too, hooked from anywhere in the stair: the
-  // Ringers' Walk's ledge high over it as well, where the great key's cage sinks only while it rings. Its ear at its crown)
-  add(HookBell, { id: 'hb.e0', at: [BX, 6.9, BZ], chain: 0.3, yaw: Math.atan2(BX, BZ - C2) });   // (facing out, toward the key's ledge)
-  add(BellEar, { id: 'e0', at: [BX, 6.4, BZ], reach: RING.hear, struck: true, heard: 'The founders’ bell booms, and high over the well the great stone comes down to the floor. It stays only while the bell sounds.', heardKey: 'e0.heard', fading: 'The bell’s hum is fading: the great stone stirs.' });
-
-  add(Mark, { room: 'stair', at: [8.5, 0, C2 - 9.5], yaw: -Math.PI * 0.7 });
-  // the high door, and its eye on the landing's face: under your feet once you are up, seen on the way
-  add(Door, { id: 'd2', at: [0, UP + 0.2, C2 + S2.r + 0.7], w: D.w, h: D.h, lamps: [{ lit: 's1' }] });
-  const EY = round(S2, -0.05, LD.r - 0.1, UP - 3);
-  add(Switch, { id: 's1', at: EY, yaw: Math.PI - 0.05, size: 1.0 });
-
+  // ---- the corridor and the Great Belfry (issue #408: the house's great hall, its floor and its gallery the hub of both
+  // floors). The founders' bell hangs in its middle; the great stone rides between its floor and the gallery's north band;
+  // the great key's ledge high on its west wall
+  const NV = R0.nave, GA = GALLERY, NZ = (NV.z0 + NV.z1) / 2, C2 = NZ;
+  K.corridor([0, ST.z1 + 1.2], [0, NV.z0 - 0.6], 0, { w: D.w, h: D.h });
+  hall(NV, { oculus: 0.22, frieze: false, doors: [{ side: 's', w: D.w, h: D.h }, { side: 'n', w: D.w, h: D.h, y0: UP }, { side: 'w', at: RING.in - NZ, w: RING.w, h: RING.door, y0: RING.y }] });
+  // (its frieze high on the long walls, kept off the ledge's doorway)
+  const FY = NV.y + (NV.top - NV.y) * 0.72;
+  K.frieze([NV.x1 - 0.02, NV.z0 + 2], [NV.x1 - 0.02, NV.z1 - 2], FY, 'w');
+  K.frieze([NV.x0 + 0.02, NV.z0 + 2], [NV.x0 + 0.02, RING.in - RING.w / 2 - 2], FY, 'e');
+  K.frieze([NV.x0 + 0.02, RING.in + RING.w / 2 + 2], [NV.x0 + 0.02, NV.z1 - 2], FY, 'e');
+  // the gallery: the north band a block of stone from the floor up (its face the great stone's dock, the eye on it), the
+  // arms down the long walls on columns, open over the floor; a parapet along their edges but where the great stone docks
+  // and where the west arm drops to the floor (G6: the way back down to the hub)
+  K.both(M.floor, box(NV.x1 - NV.x0, UP, NV.z1 - GA.n, 0, UP / 2, (GA.n + NV.z1) / 2));
+  K.chart.push({ kind: 'slab', x0: NV.x0, x1: NV.x1, z0: GA.n, z1: NV.z1, y: UP });
+  K.slab(NV.x0, GA.s, GA.w, GA.n, UP, GA.t);
+  K.slab(GA.e, GA.s, NV.x1, GA.n, UP, GA.t);
+  for (const x of [GA.w + 0.9, GA.e - 0.9]) for (let z = GA.s + 3; z < GA.n - 2; z += 10.5) K.column(x, z, 0, UP - GA.t, 0.7);
+  const rail = (ax, az, bx, bz) => { const L = Math.hypot(bx - ax, bz - az); if (L > 0.05) K.both(M.trim, box(0.4, GA.parapet, L, (ax + bx) / 2, UP + GA.parapet / 2, (az + bz) / 2, Math.atan2(bx - ax, bz - az))); };
+  const LF = RING.lift, dock = [LF.x - LF.r - 0.4, LF.x + LF.r + 0.4], DROP = [GA.s + 8, GA.s + 22];
+  rail(GA.w - 0.2, GA.n + 0.2, dock[0], GA.n + 0.2); rail(dock[1], GA.n + 0.2, GA.e + 0.2, GA.n + 0.2);
+  rail(GA.w - 0.2, GA.s + 0.2, GA.w - 0.2, DROP[0]); rail(GA.w - 0.2, DROP[1], GA.w - 0.2, GA.n);
+  rail(GA.e + 0.2, GA.s + 0.2, GA.e + 0.2, GA.n);
+  rail(NV.x0 + 0.1, GA.s + 0.2, GA.w - 0.2, GA.s + 0.2); rail(GA.e + 0.2, GA.s + 0.2, NV.x1 - 0.1, GA.s + 0.2);
+  K.add(M.trim, box(0.5, 0.12, DROP[1] - DROP[0], GA.w - 0.25, UP + 0.06, (DROP[0] + DROP[1]) / 2));   // (a lip where it drops)
+  // the stones the founders set down where the drop lands: a soft heap's look (it is only floor)
+  [[GA.w - 3.6, 0.5, DROP[0] + 4, 0.9], [GA.w - 2.2, 0.4, DROP[1] - 3, 0.7]].forEach(([x, y, z, r], i) => stone(x, y, z, r, i + 14));
+  // the great stone: down while the bell rings, up again (with you) when it is stilled
+  add(FallUpStone, { id: 'lift', path: [[LF.x, 0.3, LF.z], [LF.x, UP + 0.25, LF.z]], r: LF.r, held: RUNG, down: 3.2, up: 1.7 });
+  K.both(M.dark, T(new THREE.CylinderGeometry(LF.r + 0.2, LF.r + 0.4, 0.08, 8), [LF.x, 0.04, LF.z]));   // where it comes to rest
+  // the founders' bell in the middle, from the roof, its pull-ring under its mouth; its heart and its note (FoundersBell)
+  const FB = FOUNDERS, [BX, BY, BZ] = FB.at;
+  hang(BX, BY, BZ, FB.s, NV.top + 4, 'bell', Math.PI);
+  add(FoundersBell, { id: 'bell', at: [BX, BY + 2 * FB.s, BZ], mouth: [BX, BY - 0.2 * FB.s, BZ], s: FB.s });
+  add(HookBell, { id: 'hb.founders', at: [BX, FB.ring, BZ], chain: 0.45, yaw: Math.PI, size: 0.6, sets: 'bell', room: 'landing', from: [-10, UP, GALLERY.n + 2] });
+  rt.foundersBell.setters.push({ at: K.world(BX, FB.ring, BZ), ring: 'hb.founders' });
+  // the levers by the hubs (the Hall of Stones' is placed with its hall), and the founders' bell's keeper
+  for (const lv of FB.levers) if (lv.room !== 'stones') add(BellLever, { ...lv, id: `lever.${lv.room}`, sets: 'bell' });
+  add(Mark, { room: 'stair', at: [7, 0, NV.z0 + 5], yaw: -Math.PI * 0.8 });
+  // the high door, and its eye on the north band's face: under your feet once you are up, seen from the floor and on the ride
+  add(Door, { id: 'd2', at: [0, UP, NV.z1 + 0.6], w: D.w, h: D.h, lamps: [{ lit: 's1' }] });
+  add(Switch, { id: 's1', at: [3.5, UP - 3, GA.n - 0.1], yaw: Math.PI, size: 1.0 });
+  // stones that fell up, hanging under the roof while the bell is still, down on the floor along the walls while it rings
+  add(StateStones, { id: 'stones.nave', list: [[-15, 63, 1.3], [15, 64, 1.1], [-8, 74, 0.9], [9, 77, 1.2], [-16.5, 80, 1], [16, 92, 1.4], [6, 104, 0.8], [-10, 106, 1.1]], y: 0, up: [20, 27] });
   // ---- the corridor and the Bell Chamber (floor UP): the chest; its north door sinks for the hook in hand
   const S3 = R0.bell, C3 = S3.z;
-  K.corridor([0, C2 + S2.r + 1.4], [0, C3 - S3.r - 0.6], UP, { w: D.w, h: D.h });
+  K.corridor([0, NV.z1 + 1.2], [0, C3 - S3.r - 0.6], UP, { w: D.w, h: D.h });
+  add(BellGauge, { room: 'bell', at: [9.5, UP, C3 - 11.5] });
   K.rotunda({ x: 0, z: C3, y: UP, r: S3.r, h: S3.top - UP, gaps: [{ a: Math.PI, w: D.w, h: D.h }, { a: 0, w: D.w, h: D.h }], oculus: 0.35 });
   // (in the futuristic skin a hexagonal slate pedestal with lit panels, drawn over the same collider)
   const [moundD, moundS] = chestMound(0, UP, C3);
@@ -533,13 +765,14 @@ function layout(rt) {
   const PO = R0.porch, [, poz] = mid(PO);
   K.corridor([0, C3 + S3.r + 0.6], [0, PO.z0 - 1.2], UP, { w: D.w, h: D.h });
   hall(PO, { oculus: 0.3, columns: 2, doors: [{ side: 's', w: D.w, h: D.h }, { side: 'n', w: D.w, h: D.h }] });
-  hang(0, UP + 6.6, poz, 0.8, PO.top + 4, 'e1', Math.PI);
-  add(HookBell, { id: 'hb.e1', at: [0, UP + 5.7, poz], chain: 0.4, yaw: Math.PI });
-  add(BellEar, { id: 'e1', at: [0, UP + 7, poz], reach: 8.5, struck: true, heard: 'The porch’s bell booms as the hook tugs it, and the door sinks. It stands open only while the bell sounds.', heardKey: 'e1.heard', fading: 'The bell’s hum is fading. The door will rise again.' });
+  // (issue #408) its bell answers the founders' bell: hooked, it rings it or stills it, and the door's slab with it
+  hang(0, UP + 6.6, poz, 0.8, PO.top + 4, 'porch', Math.PI);
+  add(HookBell, { id: 'hb.e1', at: [0, UP + 5.7, poz], chain: 0.4, yaw: Math.PI, sets: 'bell', room: 'porch', from: [0, UP, poz - 6] });
+  rt.foundersBell.setters.push({ at: K.world(0, UP + 5.7, poz), ring: 'hb.e1' });
   add(Mark, { room: 'porch', at: [-6, UP, PO.z0 + 5], yaw: Math.PI / 2 });
-  add(Door, { id: 'd3', at: [0, UP, PO.z1 + 0.6], w: D.w, h: D.h, bell: true, lamps: [{ lit: 'e1' }] });
+  add(Door, { id: 'd3', at: [0, UP, PO.z1 + 0.6], w: D.w, h: D.h, bell: true, lamps: [RUNG] });
 
-  // ---- the Hall of Echoes: a chasm across its middle under a bridge of stones that fell up
+  // ---- the Hall of Echoes: a chasm across its middle under a bridge of the founders' stones
   const EC = R0.echoes, [, ecz] = mid(EC), E0 = EC.z0, LIP = E0 + EC.lip, FAR = E0 + EC.far;
   K.corridor([0, PO.z1 + 1.2], [0, E0 - 1.2], UP, { w: D.w, h: D.h });
   hall(EC, { floor: false, oculus: 0.3, doors: [{ side: 's', w: D.w, h: D.h, y0: UP - EC.y }, { side: 'n', w: D.w, h: D.h, y0: UP - EC.y }, { side: 'w', at: RING.z - ecz, w: RING.w, h: RING.door, y0: UP - EC.y }] });
@@ -547,15 +780,17 @@ function layout(rt) {
   K.slab(EC.x0, FAR, EC.x1, EC.z1, UP, UP - EC.y);
   K.both(M.dark, box(EC.x1 - EC.x0, 1, FAR - LIP, 0, EC.y - 0.5, (LIP + FAR) / 2));
   add(Pit, { room: 'echoes', min: [EC.x0 - 1, EC.y - 4, LIP], max: [EC.x1 + 1, UP - 3.5, FAR] });
-  // the stones come down while the bell rings, and fall up again when it stops; a ball's weight on the far
-  // plate holds them down for good. The ball's groove runs from the near edge over the bridge to that plate.
+  // (issue #408) the bridge's stones come down while the founders' bell rings, and fall up again when it is stilled; a
+  // ball's weight on the far plate holds them down for good. The ball's groove runs from the near edge over the bridge.
   add(Bridge, { id: 'br1', a: [0, UP, LIP - 0.1], b: [0, UP, FAR + 0.1], w: 6, n: 8, from: 'above' });
-  // the spur off its middle, west to the Ringers' Walk's doorway: the same stones, held by the bell alone
-  add(Bridge, { id: 'spur', a: [-3.05, UP, RING.z], b: [EC.x0 + 0.05, UP, RING.z], w: RING.w - 0.4, n: 5, from: 'above' });
-  // the hall's bell, hung over the chasm's east side by the bridge's middle: hooked from either lip or the bridge
-  hang(BELL2[0], BELL2[1], BELL2[2], 0.9, EC.top + 4, 'e2', Math.PI);
-  add(HookBell, { id: 'hb.e2', at: [BELL2[0], BELL2[1] - 0.9, BELL2[2]], chain: 0.4, yaw: -Math.PI / 2 });
-  add(BellEar, { id: 'e2', at: [0, UP, E0 + 11.9], reach: 32, struck: true, heard: 'The hanging stones answer the note and come down into a bridge. They stay only while it sounds.', heardKey: 'e2.heard', fading: 'The note is fading: the stones begin to tremble.' });
+  // the spur off its middle, west to the Ringers' Walk's doorway: other stones, that fall up out of the chasm level with the
+  // bridge while the bell is still, and lie in it while it rings
+  add(Bridge, { id: 'spur', a: [-3.05, UP, RING.z], b: [EC.x0 + 0.05, UP, RING.z], w: RING.w - 0.4, n: 5, from: 'below' });
+  // the hall's bell, hung over the chasm's east side by the bridge's middle: it answers the founders' bell (it swings and
+  // hums while that one rings), and hooked from either lip or the bridge it rings or stills it (FoundersBell)
+  hang(BELL2[0], BELL2[1], BELL2[2], 0.9, EC.top + 4, 'echo', Math.PI);
+  add(HookBell, { id: 'hb.e2', at: [BELL2[0], BELL2[1] - 0.9, BELL2[2]], chain: 0.4, yaw: -Math.PI / 2, sets: 'bell', room: 'echoes', rooms: ['echoesFar'], from: [5, UP, E0 + 8] });
+  rt.foundersBell.setters.push({ at: K.world(BELL2[0], BELL2[1] - 0.9, BELL2[2]), ring: 'hb.e2' });
   const BA = [1.6, UP + 0.04, E0 + 10.5], BB = [1.6, UP + 0.04, E0 + 38.2], BL = BB[2] - BA[2];
   add(Ball, { id: 'ball3', a: BA, b: BB, r: 1.0, friction: 0.2, lock: true, gap: { bridge: 'br1', from: (LIP - 0.1 - BA[2]) / BL, to: (FAR + 0.1 - BA[2]) / BL } });
   add(Plate, { id: 'p3', at: [1.6, UP, BB[2]], r: 1.2 });
@@ -563,16 +798,15 @@ function layout(rt) {
     K.add(M.dark, box(1.0, 0.04, z1 - z0, 1.6, UP + 0.02, (z0 + z1) / 2));
     for (const sd of [-1, 1]) K.both(M.trim, box(0.25, 0.12, z1 - z0, 1.6 + sd * 0.75, UP + 0.06, (z0 + z1) / 2));
   }
-  add(Door, { id: 'd4', at: [0, UP, EC.z1 + 0.6], w: D.w, h: D.h, bell: true, lamps: [{ drumOn: ['ball3', 'p3'] }, { lit: 'e3' }] });
-  // the far door's own bell, hung beside it over the far landing
-  hang(-6, UP + 6.4, EC.z1 - 2.2, 0.6, EC.top + 4, 'e3', Math.PI);
-  add(HookBell, { id: 'hb.e3', at: [-6, UP + 5.7, EC.z1 - 2.2], chain: 0.3, yaw: Math.PI });
-  add(BellEar, { id: 'e3', at: [-1.8, UP, E0 + 39.4], reach: 14, struck: true });
+  // the far door: its ball home, and its slab one of the founders' stones, sunk while the bell rings (and the great key)
+  add(Door, { id: 'd4', at: [0, UP, EC.z1 + 0.6], w: D.w, h: D.h, bell: true, lamps: [{ drumOn: ['ball3', 'p3'] }, RUNG] });
   add(Mark, { room: 'echoes', at: [-3.6, UP, E0 + 4.5], yaw: Math.PI / 2 });
+  add(BellGauge, { room: 'echoes', at: [7.5, UP, E0 + 3] });
+  add(BellGauge, { room: 'echoesFar', at: [-7.5, UP, EC.z1 - 3] });
   for (let i = 0; i < 4; i++) K.glyph([EC.x0 + 0.05, UP + 6 + (i % 2) * 2.4, LIP + 1.5 + i * 5.6], 1.6, Math.PI / 2);
   for (const z of [E0 + 6, EC.z1 - 6]) for (const x of [EC.x0 + 6, EC.x1 - 6]) K.column(x, z, UP, EC.top - UP, 0.9);
 
-  ringersWalk(rt, K, M, C2);
+  ringersWalk(rt, K, M);
 
   // ---- the antechamber, and the Cloud-Mother's hall (a great rotunda, open to the sky)
   const HA = R0.hall, CH = HA.z, HR = HA.r;
@@ -608,30 +842,34 @@ function layout(rt) {
   // round the store's middle)
   add(Mark, { room: 'storeW', at: [SW.x1 - 4, 0, SW.z0 + 5], yaw: -Math.PI * 0.75, foes: [swx, 0, swz] });
   // (and the Ringers' Walk's: at its end, in its doorway onto the ledge, the great key and the founders' bell below it in sight)
-  const RX = -(ROOMS.stair.r + 1.6);
-  add(Mark, { room: 'ringers', at: [RX, RING.y, C2 - 1.8], yaw: Math.PI / 2 });
+  add(Mark, { room: 'ringers', at: [RING.x - 1.2, RING.y, RING.in + 5], yaw: Math.PI / 2 });
+  // (issue #408: and the far lip's, before the far door, the Hall of Echoes' bell in the hook's reach from it)
+  add(Mark, { room: 'echoesFar', at: [5.5, UP, EC.z1 - 6.5], yaw: Math.PI });
+  // (issue #408) the founders' bell's state in every room: a bell-lamp, warm while it rings, cold and dim while it is still
+  for (const [room, at] of [['threshold', [6, 0, 9]], ['stones', [-7, 0, ST.z1 - 3.5]], ['storeW', [SW.x1 - 3, 0, SW.z1 - 3]], ['storeE', [SE.x0 + 3, 0, SE.z1 - 3]],
+    ['porch', [7, UP, PO.z0 + 4]], ['ringers', [RING.x + 1.6, UP, RING.z - 9]], ['ringers', [RING.x + 1.6, RING.y, RING.stairs[1] - 4]], ['ante', [-(D.w / 2 - 0.7), UP, EC.z1 + 3.2]]]) add(BellGauge, { room, at });
   const W = (x, y, z) => K.world(x, y, z);
   return {
     arrival: { pos: W(0, 0.05, 3.6), heading: K.heading(0) },
     bounds: new THREE.Box3(V(-52, -8, -3), V(52, 40, O1 + 3)),
     gadget: { at: W(0, UP + 0.62, C3).toArray(), face: K.heading(Math.PI) },
     exits: [{ at: W(0, 0.5, 0.4), r: 1.5 }, { at: W(0, UP + 0.5, O1 - 0.4), r: 1.5 }],
-    lights: [[0, 6, 7, 16], [0, 9, 22, 24], [0, 9, 44, 24], [swx, 8, swz, 24], [sex, 8, sez, 24], [0, 10, C2 - 6, 22], [0, 12, C2 + 8, 20], [-6, RING.y + 5, C2 + 9, 14],
+    lights: [[0, 6, 7, 16], [0, 9, 22, 24], [0, 9, 44, 24], [swx, 8, swz, 24], [sex, 8, sez, 24], [0, 10, NV.z0 + 12, 26], [0, 14, C2 + 4, 30], [0, UP + 7, NV.z1 - 5, 20], [-16, RING.y + 5, RING.in, 14],
       [0, UP + 9, C3, 22], [0, UP + 9, poz, 24], [0, UP + 9, E0 + 10, 24], [0, UP + 9, E0 + 30, 24], [0, UP + 9, EC.z1 - 6, 20],
-      [RING.x, UP + 5, RING.z - 12, 16], [RING.x, UP + 5, RING.z - 40, 16], [RING.x, UP + 5, RING.z - 68, 16], [RING.x, RING.y + 5, RING.stairs[1] - 2, 16], [RING.x, RING.y + 5, RING.south + 6, 14],
+      [RING.x, UP + 5, RING.z - 12, 16], [RING.x, UP + 5, RING.z - 40, 16], [RING.x, UP + 5, RING.stairs[0] + 4, 16], [RING.x, RING.y + 5, RING.stairs[1] - 2, 16], [RING.x, RING.y + 5, RING.south + 10, 16],
       [0, UP + 5, (EC.z1 + CH - HR) / 2, 10], [0, UP + 14, CH, 32]],
     guardian: { def: { ...MOTHER, onHit: motherHit, onStrike: motherStrike, openFor: motherOpen, onReset: (g) => { g.grounded = false; rt.hallStones?.reset(); } }, model, arena },
   };
 }
 
 /**
- * The Ringers' Walk: off the Hall of Echoes through its west wall half-way over (the spur of stones the bell alone holds),
- * back south outside the house past the porch and the Bell Chamber, up a stair, and east through the Stone Stair's west
- * wall onto a ledge round its north-west wall high over the landing: the great key's, seen from the stair below at the start.
- * A parapet along the ledge but where the landing is under it: the drop down onto it.
+ * The Ringers' Walk: off the Hall of Echoes through its west wall half-way over (the spur, whose stones stand while the
+ * founders' bell is still), back south outside the house past the porch, the Bell Chamber and the Great Belfry, up a
+ * stair, and east through the Great Belfry's west wall onto a ledge high over its west gallery (issue #408): the great
+ * key's, seen from the floor below. A parapet along the ledge's inner edge but at its south end: the drop onto the gallery.
  */
-function ringersWalk(rt, K, M, C2) {
-  const { x: X, half, w, y: Y, z: Z, south: S, door: DH } = RING, [s0, s1] = RING.stairs, R = ROOMS.stair.r;
+function ringersWalk(rt, K, M) {
+  const { x: X, half, w, y: Y, z: Z, south: S, door: DH, in: IN } = RING, [s0, s1] = RING.stairs, NV = ROOMS.nave;
   const xe = X + half + 0.4, xw = X - half - 0.4, fx0 = xw - 0.4, fx1 = xe + 0.4, low = UP, lowTop = UP + DH + 1.5, highTop = Y + DH + 1.5;
   const hallIn = ROOMS.echoes.x0 + 0.02;   // (the sill 2 cm proud of the hall's wall: no face in another's plane)
   // the doorway's sill through the hall's west wall, and the walk's floors and stair
@@ -645,26 +883,25 @@ function ringersWalk(rt, K, M, C2) {
   K.wall(xw, s0, xw, zN, low - 0.8, lowTop - low + 0.8, wt);
   K.wall(xw, S - 0.4, xw, s0, low - 0.8, highTop - low + 0.8, wt);
   K.wall(xe, zN, xe, s0, low - 0.8, lowTop - low + 0.8, { ...wt, holes: [{ at: zN - Z, w, y0: 0.8, h: DH }] });
-  K.wall(xe, s0, xe, S - 0.4, low - 0.8, highTop - low + 0.8, { ...wt, holes: [{ at: s0 - C2, w, y0: Y - low + 0.8, h: DH }] });
+  K.wall(xe, s0, xe, S - 0.4, low - 0.8, highTop - low + 0.8, { ...wt, holes: [{ at: s0 - IN, w, y0: Y - low + 0.8, h: DH }] });
   K.wall(fx0, zN, fx1, zN, low - 0.8, lowTop - low + 0.8, wt);
   K.wall(fx1, S - 0.4, fx0, S - 0.4, Y - 0.8, highTop - Y + 0.8, wt);
   K.wall(fx0 + 0.4, s0, fx1 - 0.4, s0, lowTop, highTop - lowTop, wt);
   K.both(M.wall, box(fx1 - fx0, 0.8, zN - s0, X, lowTop + 0.42, (zN + s0) / 2));
   K.both(M.wall, box(fx1 - fx0, 0.8, s0 - S + 0.4, X, highTop + 0.42, (s0 + S - 0.4) / 2));
-  // the way east into the Stone Stair, through its west wall at Y (its walls end inside the round wall)
-  const pz = w / 2 + 0.7, inWall = -Math.sqrt((R + 0.7) ** 2 - pz * pz);
-  K.slab(-RING.ledge.r1, C2 - w / 2 - 0.2, xe, C2 + w / 2 + 0.2, Y, 0.8);
-  K.wall(xe, C2 - pz, inWall, C2 - pz, Y, DH + 0.6, { ...wt, cap: false });
-  K.wall(inWall, C2 + pz, xe, C2 + pz, Y, DH + 0.6, { ...wt, cap: false });
-  K.both(M.wall, box(inWall - xe + 0.4, 0.8, 2 * pz + 0.8, (xe + inWall) / 2, Y + DH + 0.62 + 0.4, C2));
-  // the ledge round the stair's north-west wall, and its parapet but over the landing (the drop down onto it)
-  const rotA = (a) => Math.PI / 2 - a, Lg = RING.ledge;
-  K.both(M.floor, T(sector(Lg.r0, Lg.r1, rotA(Lg.a1), rotA(Lg.a0), 0.7), [0, Y, C2]));
-  K.both(M.trim, T(sector(Lg.r0 - 0.02, Lg.r0 + 0.35, rotA(RING.drop), rotA(Lg.a0), 1.05), [0, Y + 1.0, C2]));
-  K.add(M.trim, T(sector(Lg.r0 - 0.05, Lg.r0 + 0.3, rotA(Lg.a1), rotA(RING.drop), 0.2), [0, Y + 0.12, C2]));   // (a lip where it drops)
-  // the great key on it by its edge, over the landing: the founders' bell straight below it, in sight
-  const ka = RING.key.a, kr = RING.key.r;
-  rt.add(Key, { id: 'kB', big: true, cageH: RING.cage, at: [Math.sin(ka) * kr, Y, C2 + Math.cos(ka) * kr], yaw: Math.atan2(Math.cos(ka), -Math.sin(ka)) });
+  // the way east into the Great Belfry, through its west wall at Y (its walls end at the hall's wall's outer face)
+  const pz = w / 2 + 0.7, outer = NV.x0 - 1.2;
+  K.slab(NV.x0, IN - w / 2 - 0.2, xe, IN + w / 2 + 0.2, Y, 0.8);
+  K.wall(xe, IN - pz, outer, IN - pz, Y, DH + 0.6, { ...wt, cap: false });
+  K.wall(outer, IN + pz, xe, IN + pz, Y, DH + 0.6, { ...wt, cap: false });
+  K.both(M.wall, box(outer - xe, 0.8, 2 * pz + 0.8, (xe + outer) / 2, Y + DH + 0.62 + 0.4, IN));
+  // the ledge high over the west gallery, open along its edges (a lip): every way off it drops onto the gallery
+  const Lg = RING.ledge;
+  K.slab(Lg.x0, Lg.z0, Lg.x1, Lg.z1, Y, 0.8);
+  K.add(M.trim, box(0.3, 0.2, Lg.z1 - Lg.z0, Lg.x1 - 0.15, Y + 0.1, (Lg.z0 + Lg.z1) / 2));
+  // the great key on it, free (issue #408: the ledge is its lock; the cage of v1.74 cut), by the edge, seen from the floor
+  // below (its front toward the wall: room to stand before it); the founders' bell in sight from it
+  rt.add(Key, { id: 'kB', big: true, at: [RING.key[0], Y, RING.key[1]], yaw: -Math.PI / 2 });
 }
 
 // ------------------------------------------------------------------ outside: the Founders' Belfry over the cloud

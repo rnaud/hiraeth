@@ -10,7 +10,7 @@
 //   { shape: 'box', x0, x1, z0, z1, y, top, passage? } | { shape: 'round', x, z, r, y, top }
 // pieces: [{ cls, o }] as the audit records them (o in the kit's local metres).
 
-import { piecePos, conditionKeys } from './lib.mjs';
+import { piecePos, conditionKeys, stateRooms } from './lib.mjs';
 
 /** The numbers (docs/design/temple-redesign.md, "The rules"). */
 export const RULES = {
@@ -95,6 +95,9 @@ export function roomKinds(logic, pieces, { guardian = null, encounter = null } =
     if (e.type === 'arena') combat.set(e.room, `an arena (${id})`);
     if (e.type === 'gadget' || e.type === 'find') chest.add(e.room);
   }
+  // (a room where a house-wide state is set only with an item, the hook at a bell's ring: that is something to work there,
+  // issue #408's Founders' Belfry)
+  for (const e of Object.values(E)) for (const r of stateRooms(e)) if (r.needs.length) puzzle.add(r.room);
   if (encounter?.room) combat.set(encounter.room, 'the house’s encounter');
   // the machines by the marks (as foes.js places them): every mark past the first, 14 m or more from the guardian's arena
   const marks = pieces.filter((p) => p.cls === 'Mark');
@@ -209,7 +212,9 @@ export function templeRules({ logic, pieces = [], spaces = [], order = null, gua
     const at = ord.indexOf(gadgetEl.room);
     const uses = (r) => Object.values(E).some((e) => e.room === r && (e.needs ?? []).some((n) => items.has(n) || (n === 'magic:4' && items.has('cell'))))
       || (logic.links ?? []).some((l) => (l.a === r || l.b === r) && (l.needs ?? []).some((n) => items.has(n)))
-      || Object.entries(E).some(([, e]) => e.room === r && conditionKeys(e.opens).some((k) => k.how === 'item' && items.has(k.id)));
+      || Object.entries(E).some(([, e]) => e.room === r && conditionKeys(e.opens).some((k) => k.how === 'item' && items.has(k.id)))
+      // (a house-wide state set here only with the gadget: the hook at the Founders' Belfry's bells' rings, issue #408)
+      || Object.values(E).some((e) => stateRooms(e).some((x) => x.room === r && x.needs.some((n) => items.has(n))));
     const after = ord.slice(at + 1).filter((r) => kinds[r] === 'puzzle' || kinds[r] === 'both');
     if (at <= 0) add('gadget', gadgetEl.room, 'the gadget is in the first room');
     const unused = after.filter((r) => !uses(r));

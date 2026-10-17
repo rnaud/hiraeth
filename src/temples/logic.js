@@ -27,7 +27,9 @@ import { meetsWith } from '../resources.js';
 //           gadget stays the temple's own, the dungeon item) · map (the little chest with the house's map in it: nothing
 //          waits on it, the scout never points at it; issue #405, src/house-map.js)
 //          (a drum with `stops: { plate: t }` rests on any of several plates along its groove: one ball, two
-//           places, the Builders' Greenhouse's louvres and the Aerie's vents)
+//           places, the Builders' Greenhouse's louvres and the Aerie's vents; `rooms: [...]` (issue #408): set from any
+//           of those rooms too, a house-wide state with a lever by every hub, the Founders' Belfry's bell rung or still;
+//           an entry { room, needs } is set from there only with those items: the hook at a bell's ring)
 //          (a latched element may come `after` another: it only takes once that one is lit; or `when` a
 //           condition holds: an eye that wakes only in the sun a ball's louvre lets in)
 //          (a bell with `hold: s` is not latched: it rings for s seconds, then falls quiet. The piece keeps
@@ -266,7 +268,7 @@ export class TempleLogic {
     for (const [id, e] of Object.entries(this.def.elements)) {
       // (a lock a key can go in now, by a room you can reach: a door has no room of its own)
       if (isGate(e) && e.lock && this.canUnlock(id) && this.lockReachable(id, reach)) return id;
-      if (!reach.has(e.room)) continue;
+      if (!inReach(e, reach, (it) => this.has(it))) continue;
       if (e.type === 'gadget' && !this.gadget) return id;
       if (e.type === 'find' && !this.isFound(id)) return id;
       if (e.type === 'key' && !this.isFound(id) && this.check(e.when)) return id;
@@ -373,6 +375,13 @@ export function stopOf(e, plate) {
 
 const isGate = (e) => e?.type === 'door' || e?.type === 'bridge';
 /**
+ * An element is in reach when its room is, or (a house-wide state set from several places, issue #408: the Founders'
+ * Belfry's bell, a lever by every hub, the hook at its bells' rings) any of its `rooms` is: a room's id, or { room, needs }
+ * where it is set only with those items (has(item)).
+ */
+export const roomsOf = (e) => (e?.rooms ?? []).map((r) => (typeof r === 'string' ? { room: r, needs: [] } : { needs: [], ...r }));
+export const inReach = (e, reach, has = () => true) => reach.has(e?.room) || roomsOf(e).some((r) => reach.has(r.room) && r.needs.every(has));
+/**
  * What rolls a drum (its `roll`): 'hand' a shove (nothing carried, the Rose House's first ball), 'sword' a cut of the
  * blade (or a push of the gun); left out, the gun's push, as every temple's balls before v1.44.
  */
@@ -414,7 +423,7 @@ export function solve(def, { items = ['backpack', 'gun'], withhold = [], maxStep
     let did = false;
     const els = Object.entries(def.elements);
     for (const [id, e] of reverse ? els.slice().reverse() : els) {
-      if (!reach.has(e.room) || forbid.includes(id)) continue;
+      if (!inReach(e, reach, has) || forbid.includes(id)) continue;
       if (e.type === 'gadget' && !L.store.get('gadget')) {
         L.takeGadget();
         if (e.item && !withhold.includes(e.item)) owned.add(e.item);
@@ -459,7 +468,7 @@ export function solve(def, { items = ['backpack', 'gun'], withhold = [], maxStep
     // (and with you standing on a plate there: a ball set down in one place while you stand in another, the Footprint's)
     const plates = L.ofType('plate').filter((p) => reach.has(def.elements[p].room) && !L.pressed(p));
     const scoreStood = () => { let best = score(); for (const p of plates) { L.press(p, 'player'); best = Math.max(best, score()); L.release(p, 'player'); } return best; };
-    const stopBalls = Object.entries(def.elements).filter(([id, e]) => !forbid.includes(id) && e.type === 'drum' && e.stops && rolls(e, has) && reach.has(e.room) && (e.needs ?? []).every(has));
+    const stopBalls = Object.entries(def.elements).filter(([id, e]) => !forbid.includes(id) && e.type === 'drum' && e.stops && rolls(e, has) && inReach(e, reach, has) && (e.needs ?? []).every(has));
     for (const [id, e] of stopBalls) {
       const t0 = L.drumT(id), base = scoreStood();
       let best = null;

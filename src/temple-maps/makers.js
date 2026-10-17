@@ -362,7 +362,9 @@ function stepText(s, { E, el, room, guardian, links, nth = 0 }) {
       if (e?.type === 'map') return `Open the little chest${where}: the house’s map${tag}`;
       return `Take the ${el?.noun ?? 'key'}${where}${tag}`;
     case 'open': return `Open the coffer${where}${tag}`;
-    case 'roll': return `Roll the ${el?.noun ?? 'ball'} onto its plate${where}${using}${tag} → ${s.onto}`;
+    // (a house-wide state, issue #408: the Founders' Belfry's bell, rung or stilled at a lever or a bell's ring)
+    case 'roll': return e?.verb === 'bell' ? `${(e.stops?.[s.onto] ?? 1) > 0 ? 'Ring' : 'Still'} the house’s bell, at a lever or a bell’s ring${tag} → ${s.onto}`
+      : `Roll the ${el?.noun ?? 'ball'} onto its plate${where}${using}${tag} → ${s.onto}`;
     case 'carry': return `Carry the stone block onto its plate${where}${using}${tag} → ${s.onto}`;
     case 'stand': return `Stand on the floor plate${where}${tag}`;
     case 'unlock': {

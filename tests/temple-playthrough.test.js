@@ -280,8 +280,38 @@ export function playTemple(id, o = {}) {
     if (off) goTo(off);
     return true;
   };
+  /**
+   * (issue #408) A house-wide state (the Founders' Belfry's bell, its drum's piece keeps `setters`): set to the stop its
+   * puzzle wants now from the nearest place he can: a lever pulled (the use button's own entry), or with the hook at a
+   * ring, from where it is hooked (the ring's `from`); stilled, it waits for the hum to fade.
+   */
+  const setState = (eid) => {
+    const B = rt.piece(eid), e = L.el(eid), [t, plate] = goal({ id: eid }, e);
+    if (L.drumOn(eid, plate)) return true;
+    const reach = L.reachable();
+    const ways = B.setters.map((s) => {
+      const p = rt.piece(s.lever ?? s.ring);
+      if (!p) return null;
+      if (s.lever) return reach.has(p.o.room) ? { s, p, at: near(p.pos, 1.3) } : null;
+      if (!has('hook') || ![p.o.room, ...(p.o.rooms ?? [])].some((r) => reach.has(r))) return null;
+      const f = p.o.from && rt.kit.world(...p.o.from);
+      return f ? { s, p, at: standAt(f, f.y) } : null;
+    }).filter((w) => w?.at).sort((a, b) => a.at.distanceTo(P.pos) - b.at.distanceTo(P.pos));
+    if (!ways.length) { fail(`${eid}: nowhere to set it from`); return false; }
+    const w = ways[0];
+    goTo(w.at, (w.p.pos ?? w.p.at).clone().sub(w.at));
+    if (w.s.lever) {
+      const pick = bestInteractable(P);
+      if (pick?.entry?.id !== `temple.${rt.id}.${w.s.lever}`) { fail(`${eid}: the use button offers ${pick?.entry?.id ?? 'nothing'} by ${w.s.lever}`); return false; }
+      pick.entry.use(P);
+    } else w.p.hit('push', { mode: 'hook' });
+    if (!wait(30, () => L.drumOn(eid, plate))) { fail(`${eid}: set from ${w.s.lever ?? w.s.ring}, never came to ${plate} (t ${L.drumT(eid)}, wanted ${t})`); return false; }
+    say(`${eid}: ${w.s.lever ? 'pulled' : 'hooked'} ${w.s.lever ?? w.s.ring} → ${plate}`);
+    return true;
+  };
   /** Roll a drum onto the stop its puzzle wants now; what it lights must catch from it. */
   const roll = (eid) => {
+    if (rt.piece(eid)?.setters) return setState(eid);
     if (rt.piece(eid)?.carries) return ride(eid);
     const b = rt.piece(eid), e = L.el(eid);
     if (!(b instanceof Ball)) { fail(`${eid}: no ball`); return false; }
@@ -441,7 +471,7 @@ export function playTemple(id, o = {}) {
     tries.set(eid, k);
     if (k > (held(e) ? 12 : 4)) { fail(`${e.type} ${eid}: asked for again and again (${k} times)`); break; }
     let how = null;
-    if (e.type === 'drum') how = roll(eid) ? (rt.piece(eid)?.carries ? 'called' : 'rolled') : null;
+    if (e.type === 'drum') how = roll(eid) ? (rt.piece(eid)?.setters ? 'set' : rt.piece(eid)?.carries ? 'called' : 'rolled') : null;
     else if (e.type === 'weight') how = carryOnto(eid);
     else if (e.type === 'gadget' || e.type === 'find') {
       const item = e.item ?? def.gadget, box = e.type === 'find' ? e.box : def.gadgetBox;

@@ -18,6 +18,10 @@ export const CHANGELOG = [
     // issue #407: src/temples/arzach.js (WELL, PASSAGE, FLEDGE, SILL, Cushion, STACK.chute, the layout), migrate.js arzach v5;
     // tests/temples.test.js; docs/systems/temples.md "The Aerie round a great hall"
     'The Aerie in Vael is rebuilt round a great hall: the Wind Well is almost twice as wide, with a gallery round it halfway up, so you see its floor, the gallery and the high balcony at once, and a long narrow passage leads to it. Before the wings there is a new room, the Fledgery: roll its stone into the hole in its floor, and it drops onto a grate in the passage below and the wind lifts the Wing Chamber’s shutter. A marked drop off the gallery lands you softly back on the well’s floor, and from the Eyrie’s ledge you now look down a wide well onto the Moult before you go in.',
+    // issue #408: src/temples/arzach2.js (ROOMS.nave, GALLERY, FOUNDERS, RUNG/STILL, FoundersBell, BellLever, BellGauge,
+    // StateStones, RING), logic.js `rooms` (inReach), runtime.js roomsPast (one-way links), migrate.js arzach2 v5,
+    // scripts/temple-design (a drum's verb, a state set in the lock's room); tests/belfry-bells.test.js
+    'The Founders’ Belfry is built round a great hall now, the Great Belfry, 66 m long with a gallery round three sides, and its founders’ bell is the house’s state. Ring it at a lever and the stones it holds come down all through the house: the great stone to the floor, the porch’s door, the Hall of Echoes’ bridge. Still it, and once its hum fades they fall up again, the spur to the Ringers’ Walk with them. A lamp in every room glows warm while it rings and cold while it is still, there is a lever by every hub, and upstairs the porch’s and the Hall of Echoes’ bells ring it or still it with the hook. The great key now lies free on its ledge high in the hall, and from there you can jump down to the gallery and on to the floor.',
   ] },
   { v: '1.82', date: '2026-10-16', items: [
     // issue #399: src/hook-foes.js (each kind's `hook` class, hookOutcome, lockShot), src/gadgets/hook.js fireAtLock /

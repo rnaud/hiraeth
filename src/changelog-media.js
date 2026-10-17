@@ -1108,6 +1108,9 @@ const ROSE406 = 'Issue #406: the running game in muted headless Chrome (ANGLE Me
 const ROSE406P = 'Issue #406: the Temple maps page (temples.html?t=desert, Debug → Pages) in muted headless Chrome, 1600 × 1150, the plan with the solver’s steps, cut to the plan; before: the tree at c89a0a1e2, after: this change; 16 October; cwebp -q 70';
 /** (v1.83, issue #430: the page's HTML as screen parts in Unity) */
 const UI430 = 'Issue #430: the Unity bridge in the editor’s batch run on this Mac (muted, High, -frames 1280x720), each piece put up by -ui through engine/ui-poses.js on the debug save; before, none of them was drawn (the web’s side, the same poses in headless Chrome, beside them in the issue’s sheet); cwebp -q 72';
+/** (v1.83, issue #408: the Founders' Belfry round its Great Belfry, the bell the house's state) */
+const BELFRY408 = 'Issue #408: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, 11:00, the HUD hidden) on this branch’s own Vite (port 5485), the camera pinned in the temple’s own metres; before: the tree at origin/main 73d26da88 (port 5481), the Stone Stair from its way in; 16 October; cwebp -q 70';
+const BELFRY408P = 'Issue #408: the Temple maps page (temples.html?t=arzach2, Debug → Pages) in muted headless Chrome, 1600 × 1150, the plan with the solver’s steps; before: the tree at origin/main 73d26da88, after: this change; 16 October; cwebp -q 70';
 export const CHANGELOG_MEDIA = {
   '1.83': [
     { match: 'The Rose House is built round a Great Hall now', shots: [
@@ -1131,6 +1134,15 @@ export const CHANGELOG_MEDIA = {
       { name: 'aerie-moult', title: 'A look onto the Moult', caption: 'From the Eyrie’s ledge, down the vent into the Moult: before, a narrow hole; after, a lit well 9 m across, the Moult’s floor and its key’s cage below', from: AERIE407 },
       { name: 'aerie-plan', size: [500, 880], title: 'The plan', caption: 'The Temple maps page (temples.html?t=arzach), all floors: before, six steps; after, seven, the Fledgery over the long passage and the gallery round the well', from: AERIE407P },
     ], see: 'In Vael, go into the Aerie and push the hall’s stone into its vent; ride the raft up to the gallery, and go round it to the Fledgery before the Wing Chamber. The sill is on the gallery between two tall feathers.' },
+    { match: 'The Founders’ Belfry is built round a great hall now', shots: [
+      { name: 'belfry-hall', title: 'In at the hall', caption: 'Past the Hall of Stones: before, the Stone Stair, a round well with the founders’ bell on its floor; after, the Great Belfry, 66 m long, its gallery round three sides, the founders’ bell in its middle, still: its stones hang under the roof', from: BELFRY408 },
+      { name: 'belfry-rung', only: 'after', title: 'The bell rung', caption: 'The same view with the founders’ bell rung: its clapper glows and swings, the stones lie along the walls, the great stone is down on the floor at the far end', from: BELFRY408 },
+      { name: 'belfry-echoes-still', only: 'after', title: 'Echoes, still', caption: 'The Hall of Echoes with the bell still: the bridge’s stones hang high, the spur to the Ringers’ Walk stands level with the lips', from: BELFRY408 },
+      { name: 'belfry-echoes-rung', only: 'after', title: 'Echoes, rung', caption: 'The same with the bell rung: the bridge is down across the chasm, the spur gone into it', from: BELFRY408 },
+      { name: 'belfry-ledge', only: 'after', title: 'The great key', caption: 'On the ledge high in the Great Belfry: the great key free by its edge, the founders’ bell in front of it', from: BELFRY408 },
+      { name: 'belfry-drop', only: 'after', title: 'The way down', caption: 'The gallery’s west arm, open over the floor for 14 m: the drop back down to the hall', from: BELFRY408 },
+      { name: 'belfry-plan', title: 'The plan', caption: 'The house from above with the solver’s steps: before, the Stone Stair; after, the Great Belfry and its gallery, the bell rung and stilled on the way', from: BELFRY408P },
+    ], see: 'In Vael II, cross the west rim’s bridge into the Founders’ Belfry. Past the Hall of Stones, pull the lever by the Great Belfry’s door, then pull it again and run for the great stone before the hum fades.' },
   ],
   '1.82': [
     { match: 'Locked on, RT / R2 throws the grappling hook at your foe', tags: ['combat'], shots: [

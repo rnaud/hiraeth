@@ -502,3 +502,30 @@ Rose House round its Great Hall"):
   checkpoint is the mark by the great door, as before.
 - The audit's scores are 4.56 before and after; no rule broken. How it works: `docs/systems/temples.md`, "The Aerie
   round a great hall".
+### As built: the Founders' Belfry (v1.83, issue #408)
+
+The Belfry's row of Part 3 (the bells as a house-wide state; the great key cage's sight line) with G1, G4 and G6
+(`src/temples/arzach2.js`; how it works: `docs/systems/temples.md`, "The Founders' Belfry round the Great Belfry"):
+
+- **G4, the great hall:** the Stone Stair became the **Great Belfry**, 40 by 66 m under 32, its gallery 8 m up round three
+  sides and open over the floor: both floors seen at once, the hub of both. The passages between it and the other rooms
+  stay 7 m wide.
+- **G1, the house-wide state:** the founders' bell, hung in the hall's middle, rung or still (a two-stop state, saved).
+  Rung, the stones it holds come down on both floors: the great stone to the hall's floor, the porch's slab, the Hall of
+  Echoes' bridge, the far door's slab. Still (once its hum fades, 10 s), they fall up: the great stone to the gallery with
+  you on it, and the spur to the Ringers' Walk out of the chasm. **Cheap to change:** a lever by every hub (the Hall of
+  Stones, the hall's floor, its gallery), and upstairs the hook at a bell's ring (the founders' own, the porch's, the Hall
+  of Echoes'), which answer it. **Readable everywhere:** one lamp colour for the whole house (warm while it rings, cold
+  while it is still) on a bell-lamp in every room, the levers and the bell's clapper; stones that fell up hang under the
+  hall's roof or lie along its walls.
+- **The cage's sight line, cut:** the great key lies free on its ledge (the ledge is its lock), seen from the hall's floor;
+  the step at 1.0, then 1.5, is gone. Getting there needs the bell still (the spur), the far door needs it rung, and the
+  bridge between needs it rung or held by its ball: the state is set and set back three times on the way.
+- **G6:** every edge of the key's ledge drops onto the gallery, and the gallery's west arm drops to the hall's floor, the
+  hub, 8 m each, unhurt. The antechamber's mark a few steps from her door; a mark on the far lip too.
+- **Length:** eight locks (was nine): the hall's door, the great stone (ring, still, and run 45 m before the hum fades),
+  the eye under the gallery, the hook, the porch's slab, the bridge, the spur, the far door. Design audit 4.22 → 4.11
+  (skeleton `LXBCRGGXXLK` → `LBBCRXXXLK`, combinations 4 of 9 → 4 of 8, mean obviousness 3.06 → 3.31, painfully obvious
+  steps 2 → 1, obscure 1 → 0; identity 2 as before). The audit measures each lock alone: a state set from the lock's own
+  room counts as a key there, so G1's "cheap to change" reads as obvious, and the three conflicts (still for the spur,
+  rung for the bridge and the far door) are not in its numbers. The redesign's rules: none broken.
