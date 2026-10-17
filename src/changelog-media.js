@@ -1241,6 +1241,7 @@ export const CHANGELOG_MEDIA = {
       { name: 'whale-drop', only: 'after', title: 'The Drop', caption: 'From the deep floor, looking up: the gap in the great horn’s pipes along the gallery’s lip, over the Sound, which always has water enough to fall into', from: WHALE412 },
       { name: 'whale-plan', size: [1180, 1060], title: 'The plan', caption: 'The Temple maps page (temples.html?t=underwater), all floors: before, 17 steps on three floors round one hub; after, 22 on four round the Sounding Hall and the dais, the Shell Room and the Throat off the deep floor, the High Walk to the gallery', from: WHALE412P },
     ], see: 'In the Underwater City, go into the Whale-House and down the stair to the deep floor; roll its ball into the cradle by the pillar. In the Shell Room, turn the valve and ride the water up to the ledge.' },
+    { match: 'Inside the makers’ houses the spring boots only hop', see: 'With the spring boots on (the Whale-House’s chest), hold RT / R2 on any makers’ house’s floor: the ring round your feet stays dark and letting go is a hop. Step outside its door and the same wind throws you fourteen metres up.' },
   ],
   '1.82': [
     { match: 'Locked on, RT / R2 throws the grappling hook at your foe', tags: ['combat'], shots: [

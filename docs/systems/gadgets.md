@@ -443,6 +443,22 @@ landing (the figure's lift is taken back first where nothing placed it since: ph
 wobble (`coilWobble`, a damped spring) on each launch and landing. Tests: the heights and velocities, the
 bounce and stomp rules, a full launch's height and the guard given back, a chain of three bounces, a stomp
 breaking a cracked floor, pushing a foe and unearthing a cache, the stick held while winding.
+
+### In the makers' houses (v1.83, issue #433)
+
+A full wind threw him 14 m up, a chain of bounces 24, and with the double jump at the top and the wings after it he came
+down on any gallery, balcony or far lip of a house, past the step meant to open it. Now, **inside a house** (the
+traveller inside a temple runtime's bounds: hook.js `houseAt`), the coils give only the tap's hop: `launchHeight(…,
+house)` is `SPRING.minH` (2.4 m, under a plain jump's 2.6) whatever the wind or the chain, and `launchVelocity(…,
+house)` the tap's forward speed (5 m/s, under a run). Winding there the ring stays dark and the wound note never
+sounds; a bounce still bounces, no higher. The stomp, the houses' use of them (the Whale-House's deep note, cracked
+floors), comes down from a jump as before (`STOMP.min` 1.6 m; a hop is all inside the bounce window). **The open world is unchanged.** Why a rule and
+not house fixes: with the wings a launch's reach is a cone some 150 m across, so every gallery under a roof open over a
+hall floor was in it; ceilings over every launch line would have changed every room's look.
+
+Tests: tests/boots-reach.test.js (the rule's numbers, and the reach check over all fourteen houses: docs/systems/
+temples.md, "No hook past a lock"), tests/engine-springs.test.js (in the engines' bundle: a full wind on the Founders'
+Belfry's floor is a hop, by its door outside over 10 m).
 ## The bubble wand (`bubble.js`)
 
 Hold the use button to aim (the wand in hand, the reticle on what it would catch: "a foe", "a crate", "a

@@ -57,6 +57,9 @@ export const CHANGELOG = [
     // issue #382: src/minigames/lens-vault.js (and -rules, -level, -arm, -hud), the screen's `visor` part (unity
     // BridgeHud.Games.cs DrawVisor); tests/minigames-lens-vault.test.js
     'A new game in the Arcade, The Lens Vault: a test of another way to play, through your own eyes. Your glove is an arm that shoots (hold the trigger for a charged shot), LT / L2 locks on and the stick circles the foe, and Y / △ raises a lens that reads what it is held on, a line about each. Four rooms of a makers’ vault: a door that opens to a shot, one only to a charged shot, one sealed until you read its lock, and a round hall to clear at the end.',
+    // issue #433: src/gadgets/springs.js (launchHeight / launchVelocity `house`, Springs.inHouse); tests/boots-reach.test.js,
+    // tests/engine-springs.test.js, tests/house-walk.js (lockSides)
+    'Inside the makers’ houses the spring boots only hop: they won’t wind there, and a bounce goes no higher, so a launch can no longer carry you up onto a gallery or over a gap before its puzzle opens the way. Jump and press again in the air to stomp, as before. Out in the world they still throw you fourteen metres up.',
   ] },
   { v: '1.82', date: '2026-10-16', items: [
     // issue #399: src/hook-foes.js (each kind's `hook` class, hookOutcome, lockShot), src/gadgets/hook.js fireAtLock /

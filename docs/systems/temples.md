@@ -1550,7 +1550,7 @@ the Capstan Hall's walkways and back in past its great lock: a second rail at 2 
 (`WINDOW_BARS`, 0.75 m apart; the anchors still go out under them and your aim reaches them). A door in an
 opening wider or taller than itself takes a `frame: { side, top }` (src/temples/pieces.js Door): stone that wide either
 side of it and that tall over it, drawn and solid.
-## No hook past a lock (v1.83, issue #432, `tests/hook-reach.test.js`)
+## No hook past a lock (v1.83, issue #432, `tests/hook-reach.test.js`; the boots: issue #433)
 
 Found by the Lamp-House rework: the grappling hook reeled you onto any ledge in its 25 m reach, so a house's galleries,
 chasms and shafts could be crossed before the step meant to open them. Inside a house the hook now takes only what the
@@ -1577,6 +1577,42 @@ spot, 2.5 m apart, within reach of the other side) and lists what it would skip.
 | the other nine | nothing (the Aerie's raft to the Wing Chamber, found on the house before #407, is gone with its rework) |
 
 Each was fixed by the rule itself: the hook no longer takes the stone it bit, and no house data changed.
+
+**The spring boots** (v1.83, issue #433, `tests/boots-reach.test.js`). Found by the Undertower rework: a full wind threw
+you 14.3 m up, a chain of three bounces 23.7 m, and every reworked house has galleries 10–12 m up. Inside a house the
+boots now give only the tap's hop (2.4 m, under a plain jump's 2.6; docs/systems/gadgets.md, "Spring boots", "In the
+makers' houses"); the open world keeps the full launch. The check shares the hook's sides (house-walk.js `lockSides`):
+from every spot of one side, 2.5 m apart, a launch straight up to the boots' height, stopped by what is over his head,
+the double jump at its top (+3.5 m); then the wings down and on at 6 m a metre down (the glide's flattest is 6.25), by a
+straight glide, a glide then a drop, or a drop then a glide, with room for his capsule all the way (a ray first, then the
+capsule every 0.5 m); a landing on the other side, none of his own side within a stride, is a skip. A spot from which a
+plain jump does the same is not counted against the boots (`BOOTS_LOG=1` lists those). `BOOTS_FREE=1` runs the old
+launch as well. On the fourteen houses at 94817f4a6 (the Whale-House reworked):
+
+| house | what the old boots skipped (23.7 m, the double jump, the wings) |
+|---|---|
+| the Warden's Well | the turning discs (`discs`) both ways, from the threshold and from the climb; the vane chasm (`stones`) without its bridge |
+| the Founders' Belfry | the Echoes' chasm (`br1`) both ways |
+| the Footprint | the pool's stones (`stones`) from the first balcony; the Unseen's chasm (`br1`) both ways |
+| the Engine-House | the furnace chasm (`br1`) both ways |
+| the Lamp-House | the Dark Gallery's chasm (`br1`) both ways, from 15.8 m under its roof |
+| the Aerie | the Eyrie's gap to its key's ledge (`lift`, which wants the wings) |
+| the Clock-House | the escapement's discs (`discs`) both ways |
+| the Builders' Greenhouse | five of its locks under a roof 27 m up: the landing's door (`d1`) from the seed vault, the bud door (`d3`), the Vine Gulf (`vine1`), the far door (`d4`) from the hall, the great lock (`dB`) |
+| the Undertower | the dishes' gap (`disc`) both ways; the gallery's gap without the hourglass |
+| the Mooring-House | the Capstan door (`gN`) and the arena door (`d6`) both ways, over their walls |
+| the Rose House, the Hush-House, the Casting-House, the Whale-House | nothing |
+
+A rule and not house fixes: with the wings, a launch's reach is a cone some 150 m across, so every gallery, balcony or
+far lip under a roof open over a floor was in it; ceilings over every launch line would have changed every room. With
+the hop no launch goes higher than a jump, so the check passes in every house, and a later change to the rule is checked.
+
+**The wings over the chasms** (found by the same check; not the boots', open): a running jump, the double jump at its
+top and the wings (6.1 m up, a glide of 6:1) cross up to about 45 m on the level, and the real traveller (src/player.js,
+driven as tests/door-bypass.test.js drives him) does, both ways, over the Warden's Well's discs and vane chasm, the
+Belfry's, the Footprint's, the Engine-House's and the Lamp-House's `br1`, the Footprint's pool stones, the Clock-House's
+discs, the Greenhouse's Vine Gulf and the Undertower's dishes' and gallery's gaps. tests/door-bypass.test.js flies the
+wings only round locked doors, not over bridges.
 
 ## Weights on the plates (v1.76, issue #337, `Weight`)
 

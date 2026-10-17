@@ -307,6 +307,37 @@ test('winding then letting go springs him up about 14 m, he lands unhurt and the
   assert.equal(P.fallGuard, 1.3, 'the soles\' guard back');
 });
 
+test('inside a makers\' house they only hop: no wind, a bounce no higher; the stomp still comes down from a jump (issue #433)', () => {
+  const { P, S, run } = springRig();
+  const house = { inside: (p) => p.x < 50 };
+  S.ctx.level = { temples: [house] };
+  S.press();
+  for (let i = 0; i < 60; i++) { S.hold(DT); run(1); }
+  assert.equal(S.charge, 0, 'they won\'t wind');
+  assert.equal(S.hud().count, 0, 'the ring stays dark');
+  S.release();
+  let top = 0, bounced = false;
+  for (let f = 0; f < 60 * 4; f++) {
+    if (S.state === 'air' && P.vel.y < 0 && !S.armed && !bounced && S.air().tLand < 0.2) { S.press(); bounced = true; }
+    run(1);
+    top = Math.max(top, P.pos.y);
+    if (S.state === 'idle') break;
+  }
+  assert.ok(top > 2 && top < 2.6, `a hop, the bounce too: ${top.toFixed(2)} m`);
+  // the stomp, from a jump's top as the houses' hints say (src/player.js JUMP 13 m/s)
+  P.pos.set(0, 0, 0); P.vel.set(0, 13, 0); P.onGround = false;
+  let stomped = false;
+  for (let f = 0; f < 60 && !stomped; f++) { if (P.vel.y <= 0.5) S.press(); run(1); stomped = S.state === 'hang' || S.state === 'pound'; }
+  assert.ok(stomped, 'the stomp from a jump');
+  // outside the house the same wind springs 14 m
+  for (let f = 0; f < 120 && S.state !== 'idle'; f++) run(1);
+  P.pos.set(60, 0, 0); P.vel.set(0, 0, 0); P.onGround = true;
+  S.press();
+  for (let i = 0; i < 60; i++) { S.hold(DT); run(1); }
+  S.release();
+  assert.ok(Math.max(...run(150)) > 13.8, 'a full launch outside');
+});
+
 test('pressed just before touching down they bounce him on, higher each time, three times at most', () => {
   const { P, S, run } = springRig();
   S.press(); for (let i = 0; i < 60; i++) S.hold(DT); S.release();

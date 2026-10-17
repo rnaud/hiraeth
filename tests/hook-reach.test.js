@@ -18,12 +18,11 @@ import assert from 'node:assert/strict';
 import './register-gadgets.js';
 import * as THREE from 'three';
 import { TEMPLES } from '../src/temples/index.js';
-import { Door } from '../src/temples/pieces.js';
 import { HOOK, reelTarget, houseAt, takes, houseAnchors } from '../src/gadgets/hook.js';
 import { carryables } from '../src/carry.js';
 import { roomAt } from '../src/temples/house-plan.js';
 import { game } from '../src/game-state.js';
-import { V, UP, BODY, own, carry, fmt, buildHouse, onlyShut, joinedWithout, sides, walk, spots, harmful } from './house-walk.js';
+import { V, UP, BODY, own, carry, fmt, buildHouse, walk, spots, harmful, thin, locksOf, lockSides } from './house-walk.js';
 
 /** The probe: the glove over the feet (m), spots `every` m apart, the free hook's fan of aims (yaws, pitches in radians). */
 const REACH = { hand: 1.45, every: 2.5, yaws: 40, pitches: [-0.4, -0.15, 0.1, 0.35, 0.6, 0.9, 1.2], climb: 30 };
@@ -113,7 +112,6 @@ function hands(F, Gfew) {
   }
   return out;
 }
-const thin = (list, every = 3) => { const g = new Set(); return list.filter((p) => { const k = `${Math.round(p.x / every)},${Math.round(p.z / every)},${Math.round(p.y / 3)}`; return !g.has(k) && g.add(k); }); };
 
 /**
  * From side F (its spots, hasF) the hook's moves (`aims(hand)` → [{ point, normal, what }] it would bite) that put him on
@@ -162,36 +160,6 @@ const freeAims = (W) => (hand) => {
   return out;
 };
 
-/** A floor spot in room `room`: its checkpoint's, else round the middle the house's map gives it (world), else null. */
-function seedOf(W, room) {
-  const { rt, physics } = W;
-  const m = rt.marks.find((k) => k.room === room);
-  const tryAt = (q) => {
-    const g = physics.groundAt(q.x, q.y + 1.6, q.z, 4);
-    if (!Number.isFinite(g)) return null;
-    const p = V(q.x, g, q.z);
-    return !harmful(W, p) && physics.rayDistance(_o.set(p.x, g + 0.3, p.z), UP, 1.9) >= 1.5 ? p : null;
-  };
-  if (m) { const p = tryAt(m.spot); if (p) return p; }
-  const r = rt.housePlan().rooms.find((x) => x.id === room);
-  if (!r) return null;
-  const c = rt.kit.world(...r.pos);
-  for (let rad = 0; rad <= 8; rad += 1) for (let k = 0; k < (rad ? 12 : 1); k++) {
-    const p = tryAt(c.clone().add(V(Math.cos(k * Math.PI / 6) * rad, 0, Math.sin(k * Math.PI / 6) * rad)));
-    if (p) return p;
-  }
-  return null;
-}
-
-/** The house's locks: links the logic can't go round, with a gate (a door or bridge element) or an item to cross. */
-function locksOf(def) {
-  return def.links.filter((l) => {
-    const e = l.door ? def.elements[l.door] : null;
-    const gated = (e && (e.type === 'door' || e.type === 'bridge')) || l.needs?.some((n) => n !== 'hook');
-    return gated && !joinedWithout(def, l);
-  });
-}
-
 const FREE = !!process.env.HOOK_FREE;
 
 test('the rule: a bare wall takes the hook in the open world, not inside a makers\' house; its rings, weights and foes do', () => {
@@ -220,14 +188,9 @@ for (const id of Object.keys(TEMPLES)) {
     if (!holds.length && !FREE) return;   // (nothing in the house reels you: nothing can cross a lock)
     const bad = [], free = [];
     for (const link of locksOf(def)) {
-      const el = link.door ? def.elements[link.door] : null;
-      const name = `${link.door ?? `the way ${link.a} | ${link.b}`} (${link.a} | ${link.b}${link.needs ? `, needs ${link.needs.join(' ')}` : ''})`;
-      const S = el && rt.byId.get(link.door) instanceof Door ? sides(rt, physics, link.door).from : [seedOf(W, link.a), seedOf(W, link.b)];
-      if (!S[0] || !S[1]) { if (process.env.HOOK_LOG) console.error(`  [${id}] ${name}: no floor to start from`); continue; }
-      onlyShut(rt, link.door ?? null);
-      const [A, B] = S.map((s) => walk(W, s));
-      const [hasA, hasB] = [A, B].map((f) => spots(f));
-      if (hasA.has(S[1]) || hasB.has(S[0])) { if (process.env.HOOK_LOG) console.error(`  [${id}] ${name}: walked across (not a lock for the walker)`); continue; }
+      const L = lockSides(W, link), name = L.name;
+      if (L.skip) { if (process.env.HOOK_LOG) console.error(`  [${id}] ${name}: ${L.skip}`); continue; }
+      const { A, B, hasA, hasB } = L;
       for (const [F, hasF, G, hasG] of [[A, hasA, B, hasB], [B, hasB, A, hasA]]) {
         if (holds.length) for (const c of crossings(W, F, hasF, G, hasG, holdAims(W, holds), { first: true })) bad.push(`${name}: ${c.what} reels you from ${fmt(K.local(c.from))} to ${fmt(K.local(c.to))}`);
         if (FREE) {

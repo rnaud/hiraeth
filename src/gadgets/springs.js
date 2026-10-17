@@ -3,6 +3,7 @@ import { inkMat, INK } from './kit.js';
 import { targetsInCone } from '../targets.js';
 import { hitStop, kick } from '../feel.js';
 import { HIDDEN, hiddenIn, unearth } from './hidden.js';
+import { houseAt } from './hook.js';
 
 // Spring boots (docs/systems/gadgets.md, "Spring boots"): coiled brass springs strapped under the boots. Hold
 // the use button on the ground to crouch and wind them (the coils squash, a ring of ink dashes fills round the
@@ -10,6 +11,9 @@ import { HIDDEN, hiddenIn, unearth } from './hidden.js';
 // Press again just before touching down and they bounce you on, higher each time (BOUNCE.max in a chain);
 // press higher up and you stomp down instead (STOMP: cracked floors break, foes and crates near are thrown,
 // what is buried comes up). No landing on them hurts.
+// Inside a makers' house (issue #433) the coils give only the tap's hop: no wind, no higher bounce, or a launch of
+// 14 m (24 in a chain) would skip the galleries and ledges its locks guard; the stomp, the house's use of them, still
+// comes down from a jump (a hop is all bounce window: airPress). The open world keeps the full launch.
 
 export const SPRING = {
   wind: 0.85,          // s to wind them fully
@@ -26,16 +30,18 @@ export const STOMP = { min: 1.6, hang: 0.14, speed: 38, radius: 4.5, breakR: 1.6
 const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _u = new THREE.Vector3(), _q = new THREE.Quaternion();
 const _Y = new THREE.Vector3(0, 1, 0);
 
-/** The height a launch reaches: the wind's, raised by each bounce of a chain. Pure. */
-export const launchHeight = (charge, chain = 0) => (SPRING.minH + (SPRING.fullH - SPRING.minH) * THREE.MathUtils.clamp(charge, 0, 1)) * (1 + BOUNCE.gain * Math.min(chain, BOUNCE.max));
+/** The height a launch reaches: the wind's, raised by each bounce of a chain; in a makers' house (`house`) the hop's. Pure. */
+export const launchHeight = (charge, chain = 0, house = false) => house ? SPRING.minH
+  : (SPRING.minH + (SPRING.fullH - SPRING.minH) * THREE.MathUtils.clamp(charge, 0, 1)) * (1 + BOUNCE.gain * Math.min(chain, BOUNCE.max));
 
 /**
  * A launch's velocity: up to launchHeight (v = √(2 g h)); along `move` (a unit-or-less direction in the
- * ground's plane) the arc goes forward, lower. Pure.
+ * ground's plane) the arc goes forward, lower; in a makers' house (`house`) the tap's, whatever the wind. Pure.
  */
-export function launchVelocity(charge, move = null, up = _Y, chain = 0, out = new THREE.Vector3()) {
+export function launchVelocity(charge, move = null, up = _Y, chain = 0, out = new THREE.Vector3(), house = false) {
+  if (house) charge = 0;   // (in a house: the tap's hop, and its forward speed)
   const m = move ? Math.min(1, move.length()) : 0;
-  const h = launchHeight(charge, chain) * (m > 0.2 ? THREE.MathUtils.lerp(1, SPRING.arc, m) : 1);
+  const h = launchHeight(charge, chain, house) * (m > 0.2 ? THREE.MathUtils.lerp(1, SPRING.arc, m) : 1);
   out.copy(up).multiplyScalar(Math.sqrt(2 * SPRING.gravity * h));
   if (m > 0.2) out.addScaledVector(_v.copy(move).addScaledVector(up, -move.dot(up)).normalize(), SPRING.fwd * (0.45 + 0.55 * charge) * m);
   return out;
@@ -222,6 +228,8 @@ class Springs {
     const P = this.P;
     return !!P && !P.ride && !P.down && !P.dead && !P.climbing && !P.mantle && !P.swim && !P.jetFlight;
   }
+  /** In a makers' house (issue #433): the coils give only the tap's hop there. */
+  inHouse() { const P = this.P; return !!P && !!houseAt(this.ctx.level, P.pos); }
   /** How high over the ground, and how soon he lands. */
   air() {
     const P = this.P, up = this.up();
@@ -251,6 +259,8 @@ class Springs {
   }
   hold(dt) {
     if (this.state !== 'wind') return;
+    if (this.inHouse()) { this.charge = 0; this.held = true; return; }   // (a house's floor won't let them wind: the ring stays dark)
+    this.held = false;
     const was = this.charge;
     this.charge = Math.min(1, this.charge + dt / SPRING.wind);
     this.windT = (this.windT ?? 0) - dt;
@@ -266,7 +276,8 @@ class Springs {
   /** Off the ground: up (and along `move`), the coils thrown out, a ring of dust. */
   launch(charge, chain = 0, move = null) {
     const P = this.P, up = this.up();
-    const vel = launchVelocity(charge, move, up, chain, _w);
+    const house = this.inHouse();
+    const vel = launchVelocity(charge, move, up, chain, _w, house);
     if (chain > 0 && this.flightDir.lengthSq() > 0.01) vel.addScaledVector(this.flightDir, 1);   // (a bounce keeps the way you were going)
     P.vel.copy(vel);
     P.onGround = false; P._carry = true; P._jumped = true;
@@ -277,7 +288,7 @@ class Springs {
     this.wob.v += 9; this.stretch = 1;
     this.dust?.add(_v.copy(P.pos).addScaledVector(up, 0.03), up, 0.8 + 0.5 * charge + 0.2 * chain);
     sfx.boing(this.ctx.sound, chain, 0.6 + 0.4 * charge);
-    this.ctx.game?.emit?.('gadget:spring', { chain, charge, height: launchHeight(charge, chain) });
+    this.ctx.game?.emit?.('gadget:spring', { chain, charge, height: launchHeight(charge, chain, house), house });
   }
 
   startStomp() {
@@ -453,6 +464,7 @@ class Springs {
   }
 
   hud() {
+    if (this.state === 'wind' && this.held) return { count: 0, max: 4, note: 'a hop in here' };
     if (this.state === 'wind') return { count: Math.round(this.charge * 4), max: 4, note: this.charge >= 1 ? 'wound' : 'winding' };
     if (this.state === 'air' && this.chain) return { count: this.chain, max: BOUNCE.max, note: 'bounce' };
     return {};

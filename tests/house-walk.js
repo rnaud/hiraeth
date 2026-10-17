@@ -9,6 +9,7 @@ import { buildableById } from '../src/levels/buildable.js';
 import { Physics } from '../src/physics.js';
 import { items, ITEMS } from '../src/items.js';
 import { RISE } from './fragments-reach.js';
+import { Door } from '../src/temples/pieces.js';
 
 export const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 export const UP = V(0, 1, 0);
@@ -116,4 +117,56 @@ export function spots(list, r = 1.0, dy = 1.2) {
     return best;
   };
   return { nearest, has: (p) => !!nearest(p) };
+}
+
+/** Spots of a list one `every` m apart (and 3 m in height). */
+export const thin = (list, every = 3) => { const g = new Set(); return list.filter((p) => { const k = `${Math.round(p.x / every)},${Math.round(p.z / every)},${Math.round(p.y / 3)}`; return !g.has(k) && g.add(k); }); };
+
+/** A floor spot in room `room`: its checkpoint's, else round the middle the house's map gives it (world), else null. */
+export function seedOf(W, room) {
+  const { rt, physics } = W, _o = V();
+  const m = rt.marks.find((k) => k.room === room);
+  const tryAt = (q) => {
+    const g = physics.groundAt(q.x, q.y + 1.6, q.z, 4);
+    if (!Number.isFinite(g)) return null;
+    const p = V(q.x, g, q.z);
+    return !harmful(W, p) && physics.rayDistance(_o.set(p.x, g + 0.3, p.z), UP, 1.9) >= 1.5 ? p : null;
+  };
+  if (m) { const p = tryAt(m.spot); if (p) return p; }
+  const r = rt.housePlan().rooms.find((x) => x.id === room);
+  if (!r) return null;
+  const c = rt.kit.world(...r.pos);
+  for (let rad = 0; rad <= 8; rad += 1) for (let k = 0; k < (rad ? 12 : 1); k++) {
+    const p = tryAt(c.clone().add(V(Math.cos(k * Math.PI / 6) * rad, 0, Math.sin(k * Math.PI / 6) * rad)));
+    if (p) return p;
+  }
+  return null;
+}
+
+/** The house's locks: links the logic can't go round, with a gate (a door or bridge element) or an item to cross. */
+export function locksOf(def) {
+  return def.links.filter((l) => {
+    const e = l.door ? def.elements[l.door] : null;
+    const gated = (e && (e.type === 'door' || e.type === 'bridge')) || l.needs?.some((n) => n !== 'hook');
+    return gated && !joinedWithout(def, l);
+  });
+}
+
+/** A lock's name in a finding: its door (or the way), its rooms, what it needs. */
+export const lockName = (link) => `${link.door ?? `the way ${link.a} | ${link.b}`} (${link.a} | ${link.b}${link.needs ? `, needs ${link.needs.join(' ')}` : ''})`;
+
+/**
+ * A lock's two sides, shut with every other door open: { name, A, B, hasA, hasB } (the walker's flood of each, looked up
+ * by place), or { name, skip } (no floor to start from; or walked across, not a lock for the walker).
+ */
+export function lockSides(W, link) {
+  const { rt, physics } = W, def = rt.logic.def, name = lockName(link);
+  const el = link.door ? def.elements[link.door] : null;
+  const S = el && rt.byId.get(link.door) instanceof Door ? sides(rt, physics, link.door).from : [seedOf(W, link.a), seedOf(W, link.b)];
+  if (!S[0] || !S[1]) return { name, skip: 'no floor to start from' };
+  onlyShut(rt, link.door ?? null);
+  const [A, B] = S.map((s) => walk(W, s));
+  const [hasA, hasB] = [A, B].map((f) => spots(f));
+  if (hasA.has(S[1]) || hasB.has(S[0])) return { name, skip: 'walked across (not a lock for the walker)' };
+  return { name, A, B, hasA, hasB };
 }
