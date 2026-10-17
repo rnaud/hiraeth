@@ -6,6 +6,7 @@ import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { PORTS, portAt } from '../src/levels/ports.js';
 import { buildPort, hullFrame, PAD_LIFT } from '../src/levels/port-pad.js';
+import { CRAFT, KINDS } from '../src/levels/port-craft.js';
 import { levelById } from '../src/levels/index.js';
 import { HALF_W, NOSE_Z, STERN_Z, HINGE_R } from '../src/ship/hull.js';
 import { SITE_OVERRIDES } from '../src/ship/sites.js';
@@ -80,6 +81,20 @@ test('the staff: a name of their own, two toned lines each, standing in the hull
     for (const l of s.lines) assert.ok(tones.has(l.match(/^~([a-z]+)~ /)?.[1]), `${id} ${s.name}: "${l}" toned`);
     const [x, z] = portAt(P, hullFrame(P.site).uv(...s.at));
     assert.ok(Math.hypot(x - s.at[0], z - s.at[1]) < 1e-6);
+  }
+});
+
+test('the sky-boat is a long capsule, not a squat lens (issue #447), and lies inside its hoop on the Pier', () => {
+  const box = (P, only = KINDS) => { const b = new THREE.Box3(); for (const k of only) for (const g of P[k]) { g.computeBoundingBox(); b.union(g.boundingBox); } return b.getSize(new THREE.Vector3()); };
+  const P = CRAFT.skyboat(), all = box(P);
+  const hull = box({ metal: P.metal.slice(0, 2) }, ['metal']);   // (its two half-hulls)
+  assert.ok(hull.z > 8.4 && hull.z < 9.5, `the hull ${hull.z.toFixed(2)} m long`);
+  assert.ok(hull.z / hull.x > 3.6, `as long as ${(hull.z / hull.x).toFixed(2)} widths (the sheet's boats: about four)`);
+  assert.ok(hull.y > hull.x, 'deeper than wide');
+  assert.ok(all.y < 4.6, `${all.y.toFixed(2)} m to the mast's top`);
+  for (const p of PORTS.spacecity.pieces.filter((x) => x.kind === 'ring' && x.craft)) {
+    const k = p.craft.scale ?? 1, inner = 2 * ((p.r ?? 4.4) - 0.42) * 0.95;   // (the hoop's inside at the boat's waist)
+    assert.ok(all.z * k < inner, `a ${p.r} m hoop: the boat ${(all.z * k).toFixed(2)} m inside ${inner.toFixed(2)} m`);
   }
 });
 

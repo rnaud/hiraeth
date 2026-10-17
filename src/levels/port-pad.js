@@ -69,7 +69,22 @@ const PAD = {
       P.paint(box(len, 2 * PAD_LIFT, w).rotateY(F.yaw(a)).translate(x, y, z), color);   // (turned to angle a, its local z runs out from the middle)
     }
   },
-  /** A painted arc: { r, w, from, to (rad, 0 out of the hatch, toward the stern at PI/2), color, at }. */
+  /** Blots on the ground, ragged round the edge: puddles, moss: { blots: [[u, v, r]] or xz: [[x, z, r]], color, lift (a
+   *  share of PAD_LIFT, so two kinds of blot never lie in one plane), seed }. Keep them apart: one kind is one plane. */
+  blots(P, F, L, y) {
+    const lift = PAD_LIFT * (L.lift ?? 1);
+    const all = [...(L.blots ?? []).map(([u, v, r]) => [...F.at(u, v), r]), ...(L.xz ?? [])];
+    all.forEach(([x, z, r], i) => {
+      const n = 14, pts = [];
+      for (let k = 0; k < n; k++) {
+        const a = (k / n) * TAU, w = 1 + 0.22 * Math.sin(a * 3 + i * 1.7 + (L.seed ?? 0)) + 0.12 * Math.sin(a * 5 + i * 2.9);
+        pts.push(new THREE.Vector2(Math.cos(a) * r * w * (L.stretch ?? 1.4), Math.sin(a) * r * w));
+      }
+      const g = new THREE.ShapeGeometry(new THREE.Shape(pts)).rotateX(-Math.PI / 2).rotateY(i * 0.9 + (L.seed ?? 0));
+      P.paint(g.translate(x, y + lift, z), L.color);
+    });
+  },
+  /** A painted arc:{ r, w, from, to (rad, 0 out of the hatch, toward the stern at PI/2), color, at }. */
   arc(P, F, L, y) {
     const [cu, cv] = L.at ?? [0, 0], [x, z] = F.at(cu, cv);
     // (laid flat, RingGeometry's angle t points to (cos t, -sin t); turned by the hull's yaw, local z is u and x is v: the
@@ -247,6 +262,32 @@ const PIECE = {
     put(P, L, x, y, z, yaw);
   },
 
+  /** A gantry bolted to a rock face (the Waterfall's niche): a plate on the face, a beam straight out along the yaw on a
+   *  strut, a trolley and its pulley near the end, a cable down to a crate, a lamp; placed at the bolt (`dy` its height). */
+  gantry(P, p, [x, y, z, yaw]) {
+    const L = new Parts(), reach = p.reach ?? 10, c = p.color ?? '#c8b878', dk = p.dark ?? '#6a6a5a', drop = p.drop ?? 8;
+    L.plate(box(2.6, 3.6, 0.5).translate(0, -0.6, 0.25), dk);   // (the plate on the rock)
+    for (const s of [-1, 1]) L.plate(cyl(0.16, 0.16, 0.3, 6).rotateX(Math.PI / 2).translate(s * 0.9, 0.7, 0.55), c);   // (its bolts)
+    L.plate(box(0.8, 1.0, reach).translate(0, 0, reach / 2 + 0.4), c);
+    L.plate(box(0.5, 0.18, reach - 1).translate(0, 0.59, reach / 2 + 0.6), dk);   // (the rail on top)
+    // the strut from low on the plate up under the beam
+    const s0 = new THREE.Vector3(0, -2.2, 0.5), s1 = new THREE.Vector3(0, -0.5, reach * 0.45), d = s1.clone().sub(s0);
+    L.plate(box(0.45, 0.45, d.length()).rotateX(-Math.atan2(d.y, d.z)).translate(0, (s0.y + s1.y) / 2, (s0.z + s1.z) / 2), c);
+    L.plate(cyl(0.55, 0.55, 1.2, 12).rotateZ(Math.PI / 2).translate(0, 0, 0.9), dk);   // (the winch drum at its root)
+    // the trolley, its pulley, the cable and the crate
+    const tz = reach - 1.0;
+    L.plate(box(1.3, 0.7, 1.4).translate(0, -0.85, tz), p.cab ?? dk);
+    L.plate(cyl(0.38, 0.38, 0.22, 12).rotateZ(Math.PI / 2).translate(0, -1.4, tz), c);
+    L.rope([0, -1.6, tz], [0, -1.6 - drop, tz], p.rope ?? '#1e2226', 0.04);
+    const load = new Parts();
+    load.add(box(1.5, 1.3, 1.5).translate(0, -0.65, 0), p.loadColor ?? '#a89070');
+    load.add(box(1.56, 0.12, 1.56).translate(0, -0.3, 0), '#5a4a3a');
+    for (const s of [-1, 1]) load.rope([s * 0.65, -0.05, 0], [0, 0.55, 0], '#3a3028', 0.025);
+    load.apply(new THREE.Matrix4().makeTranslation(0, -1.6 - drop - 0.55, tz), L);
+    if (p.lamp) { L.lit(new THREE.SphereGeometry(0.28, 8, 6).translate(0, -0.7, reach + 0.5), p.lamp); L.light(0, -0.9, reach + 0.5, 9); }
+    put(P, L, x, y, z, yaw);
+  },
+
   /** A tall board of call-signs (the Signal Market): a slab, its boards lit one above another, one dark, antennas on top,
    *  a clerk's window at its foot facing out along its yaw. */
   signal(P, p, [x, y, z, yaw]) {
@@ -381,7 +422,8 @@ const PIECE = {
     L.plate(box(0.2, 0.2, 1.6).translate(ex, cy + ey + 2.2, out + 0.8), c);
     L.lit(new THREE.SphereGeometry(0.3, 8, 6).translate(ex, cy + ey + 1.8, out + 1.6), p.lamp ?? '#ffd48c');
     L.light(ex, cy + ey + 1.8, out + 1.6, 8);
-    if (p.craft) craftParts(p.craft).apply(new THREE.Matrix4().makeRotationY(Math.PI / 2).setPosition(0, cy - R * 0.62 + 0.25, out), L);
+    // (the boat lies along the hoop, scaled to sit inside it: `craft.scale`)
+    if (p.craft) { const k = p.craft.scale ?? 1; craftParts(p.craft).apply(new THREE.Matrix4().makeRotationY(Math.PI / 2).scale(new THREE.Vector3(k, k, k)).setPosition(0, cy - R * 0.62 + 0.25, out), L); }
     put(P, L, x, y, z, yaw);
   },
 

@@ -37,6 +37,10 @@ export const LANDING = { x0: 44, x1: 214, z0: -76, z1: 72 };
 /** The balconies behind the slits in the water: their middles (x). */
 export const BALCONIES = [-236, -126, -22];
 export const SHIP_SITE = { x: 140, z: 2, heading: -Math.PI / 2 };   // (the hatch toward the cavern)
+/** The docking niche cut into the cliff north of the ship (issue #447, references/space-ports/waterfall/sheet-1.jpg): its
+ *  arch's middle (x), the carved frame's face (z) and its back, the opening's half width, where the arch springs, the
+ *  loading dock's top and its front edge. */
+export const NICHE = { x: 140, face: -56, back: -78, half: 10, spring: 11, frame: 19, top: 32, dock: 1.2, dockFront: -64, wall: -73 };
 /** The curtain's sheets: [x0, x1] along z = CAVE.fall, the slits between them at the balconies. */
 export const SHEETS = [[-306, -242], [-230, -132], [-120, -28], [-16, 41]];
 /** The small fall at the deep end: from the roof into a basin. */
@@ -184,6 +188,39 @@ export function* buildWaterfall(scene) {
     kit.add(M.wall, new THREE.BoxGeometry(w, 1.0, d).translate(x, 0.5, z), solid);
   for (const [x, z] of [[60, 30], [60, -30], [100, 60], [180, 60]]) lamp(kit, M, x, 3.6, z, { post: true, r: 9 });
   for (const [x, z, s] of [[52, 40, 1.4], [56, 46, 1.1], [52, -40, 1.5], [200, -50, 1.6]]) pottedPlant(kit, M, rng, x, 0, z, s);
+  // the docking niche cut into the cliff north of the ship (issue #447, the port's sheet): a carved frame round an arched
+  // opening, rough rock round it into the mountain, the dark hall behind with a lit front, a loading dock and its steps
+  {
+    const N = NICHE, hole = new THREE.Path();
+    hole.moveTo(-N.half, -0.5); hole.lineTo(N.half, -0.5); hole.lineTo(N.half, N.spring);
+    hole.absarc(0, N.spring, N.half, 0, Math.PI, false); hole.lineTo(-N.half, -0.5);
+    const outer = new THREE.Shape([new THREE.Vector2(-N.frame, -1), new THREE.Vector2(N.frame, -1), new THREE.Vector2(N.frame, N.top), new THREE.Vector2(-N.frame, N.top)]);
+    outer.holes.push(hole);
+    const frame = new THREE.ExtrudeGeometry(outer, { depth: N.face - N.back, bevelEnabled: false, curveSegments: 14 }).translate(N.x, 0, N.back);
+    kit.add(M.rock, frame, solid);
+    // (rough rock either side of it and over it, stepping back into the mountain; boulders at its foot)
+    for (const e of [-1, 1]) {
+      rockAt(951 + e, N.x + e * (N.frame + 6), 26, N.face - 14, 16, 56, 30, 0.14);
+      rockAt(961 + e, N.x + e * (N.frame + 18), 18, N.face - 18, 14, 40, 26, 0.16);
+      kit.add(M.rock, new THREE.DodecahedronGeometry(1.7, 0).scale(1.2 + e * 0.15, 0.85, 1.05).rotateY(e * 0.7).translate(N.x + e * (N.frame + 3), 0.9, N.face + 2), solid);
+    }
+    rockAt(953, N.x, N.top + 10, N.face - 14, N.frame * 2 + 6, 24, 30, 0.14);
+    // the hall behind: dark, a lit front of stone across it at the dock's back, a wide door, windows
+    kit.add(M.dark, new THREE.BoxGeometry(N.half * 2 + 2, N.spring + N.half + 2, 3).translate(N.x, (N.spring + N.half) / 2, N.wall - 1.5), solid);
+    kit.add(M.stone[0], new THREE.BoxGeometry(N.half * 2 - 2, 7.2, 0.6).translate(N.x, 3.6, N.wall + 0.3), solid);
+    kit.add(M.door, new THREE.BoxGeometry(3.2, 3.4, 0.2).translate(N.x, N.dock + 1.72, N.wall + 0.75), solid);
+    for (const dx of [-5, -2.6, 2.6, 5]) kit.add(M.lit, new THREE.BoxGeometry(0.9, 1.1, 0.2).translate(N.x + dx, N.dock + 3.2, N.wall + 0.75), { solid: false, shadow: false });
+    for (const dx of [-4, 0, 4]) kit.add(M.lit, new THREE.BoxGeometry(0.6, 0.8, 0.2).translate(N.x + dx, 6.2, N.wall + 0.75), { solid: false, shadow: false });
+    for (const [dx, y] of [[-7, 10.5], [-3.5, 12.5], [1, 11], [4.5, 13.5], [7.5, 10], [-1, 15.5], [3, 17]]) kit.add(M.lit, new THREE.BoxGeometry(0.5, 0.7, 0.2).translate(N.x + dx, y, N.wall + 0.05), { solid: false, shadow: false });   // (lamps further in)
+    kit.light(N.x, N.dock + 3, N.wall + 3, 10);
+    // the loading dock across the opening's back, steps up its front in the middle
+    kit.add(M.paving, new THREE.BoxGeometry(N.half * 2 + 0.4, N.dock + 0.5, N.dockFront - N.wall).translate(N.x, (N.dock - 0.5) / 2, (N.wall + N.dockFront) / 2), solid);
+    for (let k = 1; k * 0.3 < N.dock - 0.01; k++) {
+      const h = k * 0.3, run = 0.42 * Math.round((N.dock - h) / 0.3);
+      kit.add(M.step, new THREE.BoxGeometry(4, h + 0.1, run).translate(N.x, (h - 0.1) / 2, N.dockFront + run / 2), solid);
+    }
+    for (const e of [-1, 1]) lamp(kit, M, N.x + e * (N.half + 2.2), 3.6, N.face + 1, { post: true, r: 9 });
+  }
   yield;
 
   // ---------------------------------------------------------------- the valley far below, seen through the slits and from the landing

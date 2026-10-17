@@ -72,20 +72,41 @@ function legs(P, x, z, y, color) {
 }
 
 export const CRAFT = {
-  /** The moorers' sky-boat (the City in Space): a round-bellied hull, a cabin with a lit porthole, a short mast. */
+  /** The moorers' sky-boat (the City in Space): a long round capsule, its top and its belly each their own colour (the
+   *  sheet's two-tone boats), a long low cabin forward with a lit band of windows, portholes, two lamps in its blunt nose,
+   *  a keel under it, a fin, stabilisers and a screw at its tail, a mast. About 9 m long, 2.2 m wide, 2.4 m deep in the
+   *  hull (issue #447: the v1.84 first boat was a 7.5 × 2.6 m lens, squat beside the sheet's boats). */
   skyboat({ hull = '#f2dcc4', belly = '#e0786a', trim = '#3e6e7a', lamp = '#ffd48c' } = {}) {
     const P = new Parts();
-    const prof = [[0.35, -3.7], [1.05, -2.9], [1.3, -0.6], [1.2, 1.5], [0.8, 3.0], [0.12, 3.75]];
-    P.plate(spindle(prof, { seg: 16, sx: 1, sy: 0.85 }).translate(0, 1.35, 0), hull);
-    P.plate(spindle(prof.map(([r, z]) => [r * 1.04, z * 1.01]), { seg: 16, sx: 1, sy: 0.45 }).translate(0, 0.95, 0), belly);   // (the belly's band, its own colour)   // (the belly, its own colour)
-    P.plate(T(cyl(0.62, 0.7, 0.9, 12), [0, 2.45, 0.4], [0, 0, 0], [1, 1, 1.5]), hull);
-    P.lit(T(cyl(0.64, 0.64, 0.26, 12), [0, 2.6, 0.4], [0, 0, 0], [1, 1, 1.5]), lamp);   // (the cabin's windows, a lit band)
-    P.plate(T(ball(0.66, 12, 6), [0, 2.9, 0.4], [0, 0, 0], [1, 0.45, 1.5]), trim);
-    for (const s of [-1, 1]) P.lit(T(cyl(0.2, 0.2, 0.08, 10), [s * 0.55, 1.35, 3.25], [Math.PI / 2 - 0.3, 0, 0]), lamp);
-    P.plate(T(cyl(0.04, 0.05, 1.8, 4), [0, 3.5, -0.9]), trim);
-    P.plate(T(box(0.12, 0.9, 1.1), [0, 2.0, -3.1], [0.35, 0, 0]), trim);
-    for (const s of [-1, 1]) P.plate(T(box(1.0, 0.08, 0.7), [s * 1.45, 1.25, -2.4], [0, 0, s * 0.2]), trim);
-    P.plate(T(cyl(0.3, 0.42, 0.7, 10), [0, 1.3, -3.6], [Math.PI / 2, 0, 0]), trim);
+    const prof = [[0.22, -4.3], [0.7, -3.85], [0.98, -3.0], [1.1, -1.6], [1.12, 0.6], [1.06, 2.3], [0.88, 3.4], [0.55, 4.1], [0.06, 4.35]];
+    const Y = 1.62, SY = 1.06;   // (the hull's middle over the ground, its depth against its width)
+    // (two half-lathes of one profile: the top in the hull's colour, the belly in its own; lathe angle 0 is straight down
+    //  once laid along z, so -PI/2 .. PI/2 is the lower half)
+    const halfHull = (start) => {
+      const g = new THREE.LatheGeometry(prof.map(([r, z]) => new THREE.Vector2(r, z)), 18, start, Math.PI);
+      return g.rotateX(Math.PI / 2).scale(1, SY, 1).translate(0, Y, 0);
+    };
+    P.plate(halfHull(Math.PI / 2), hull);
+    P.plate(halfHull(-Math.PI / 2), belly);
+    P.plate(T(box(0.14, 0.42, 3.8), [0, Y - 1.12 * SY - 0.02, -0.3]), trim);   // (the keel it sits on)
+    for (const z of [-1.9, 1.3]) P.plate(T(box(0.9, 0.24, 0.3), [0, 0.12, z]), trim);   // (and its two skids)
+    // the cabin: long and low, forward of the middle, a lit band of windows under its roof
+    P.plate(T(cyl(0.66, 0.74, 0.42, 14), [0, Y + 1.12, 0.9], [0, 0, 0], [1, 1, 2.1]), hull);
+    P.lit(T(cyl(0.67, 0.67, 0.24, 14), [0, Y + 1.43, 0.9], [0, 0, 0], [1, 1, 2.1]), lamp);
+    P.plate(T(half(0.68, 14, 5), [0, Y + 1.55, 0.9], [Math.PI, 0, 0], [1, 0.5, 2.1]), trim);
+    // portholes down each side, two lamps in the nose
+    for (const s of [-1, 1]) {
+      for (const z of [-1.4, -0.4, 0.6]) P.lit(T(cyl(0.16, 0.16, 0.08, 10), [s * 1.09, Y + 0.25, z], [0, 0, Math.PI / 2]), lamp);
+      P.lit(T(cyl(0.2, 0.2, 0.08, 10), [s * 0.42, Y - 0.05, 4.15], [Math.PI / 2 - 0.45, 0, s * 0.35]), lamp);
+    }
+    // the tail: a fin, two stabilisers, the screw's hub and blades
+    P.plate(T(box(0.12, 1.0, 1.1), [0, Y + 1.05, -3.55], [0.45, 0, 0]), trim);
+    for (const s of [-1, 1]) P.plate(T(box(1.1, 0.08, 0.75), [s * 1.0, Y + 0.05, -3.55], [0, 0, s * 0.12]), trim);
+    P.plate(T(cyl(0.18, 0.3, 0.55, 10), [0, Y, -4.45], [Math.PI / 2, 0, 0]), trim);
+    for (const r of [0, Math.PI / 2]) P.plate(T(box(1.1, 0.14, 0.05), [0, Y, -4.75], [0, 0, r]), trim);
+    // a mast behind the cabin with its yard
+    P.plate(T(cyl(0.04, 0.05, 1.7, 4), [0, Y + 1.9, -0.9]), trim);
+    P.plate(T(cyl(0.025, 0.025, 0.8, 4), [0, Y + 2.45, -0.9], [0, 0, Math.PI / 2]), trim);
     return P;
   },
   /** The Underwater City's pod: a riveted sphere, a brass band and porthole rings, a great front window. */

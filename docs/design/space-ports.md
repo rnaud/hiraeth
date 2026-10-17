@@ -125,6 +125,9 @@ landmark in the arrival view (the numbers per city below come from the serendipi
 - **The port: the Falls Ledge.** A carved landing shelf with a docking niche cut into the cliff, spray over it,
   small craft that fly out through the slits in the falls.
 - **Holds**: the shelf's pad, a niche with a gantry, a ledge keeper, crates hauled into the cavern on a cable.
+- **Built** (v1.84, #441, #447): a docking niche cut into the cliff north of the ship, ahead of its nose (an arch 20 m
+  wide on a lit hall, a loading dock with steps; `waterfall.js` `NICHE`), a gantry bolted over it with a crate on its
+  cable, crates on the dock and at its foot, puddles and moss, two darts parked, two in flight, Tully at the niche.
 - **Look**: wet grey stone, moss, the white falls and the sunlit valley below.
 - **Landing**: stays; the cavern's mouth on the ramp's axis.
 

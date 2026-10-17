@@ -71,6 +71,10 @@ export const CHANGELOG = [
     // issue #435: src/host/game-host.js (wireHealth, hurtReactions, wireFight, wireAmbush), engine/combat.js, engine/game.js,
     // engine/trials.js, engine/unity/game.js; tests/game-host.test.js, tests/engine-trials.test.js
     'In the Unity version, fights answer as on the web: fire and spines burn at the web’s rate (they bit twice as fast), a blow lands with a dull thud under the cry, the hearts stay up for the whole fight, the chimes count up into the wallet, the fight temples and the games shake the camera on a hit, the chime-pirates meet the ship on its first flight to a new world, and in the Lab R3 and L3 hop between the worlds’ rooms.',
+    // issue #447: src/levels/waterfall.js NICHE (the arch, the hall, the dock), src/levels/ports.js WATERFALL_PORT,
+    // port-pad.js gantry and blots; port-craft.js skyboat, port-pad.js ring (the boat's scale); docs/systems/worlds.md
+    'The City Behind the Waterfall’s landing is a proper port now, closer to its design: a docking niche is cut into the cliff ahead of your ship, its arch opening on a lit hall with a loading dock and steps up to it, a gantry bolted over it with a crate on its cable, crates on the dock and at its foot, puddles and moss on the wet stone, and a second courier parked beside the first. Tully waits by the niche.',
+    'The City Floating in Space’s sky-boats are longer and rounder, as on their design: a nine-metre capsule with its top and its belly in two colours, a long low cabin with lit windows, portholes down each side, two lamps in the nose and a fin and a screw at the tail. The boats moored in the Pier’s hoops sit inside them.',
   ] },
   { v: '1.83', date: '2026-10-16', items: [
     // issue #406: src/temples/desert.js (ROOMS, LOGIC: hall, balcony, ballK, kS, dE, sentry in the hall, d3), pieces.js Ball

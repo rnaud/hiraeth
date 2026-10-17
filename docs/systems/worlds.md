@@ -2813,16 +2813,21 @@ in the world where a piece belongs to the city's own plan (the Pier's rim, the s
 - **pad layers**: `dashes` (a dashed ring), `arc` (a painted band), `disc` (a low stone slab and its line, never solid),
   `rect` (a bay's outline along the hull), `circle` (a ring with a cross or a dot), `studs` (lamps set in the paving),
   `chevrons`, `annulus` (a ring of plates with rims, bollards and legs: the Underwater City's pontoon), `stakes` (stakes
-  on a grid with ropes between them: Salt Harbour). Paint stands `PAD_LIFT` over the ground (`tests/zfight.test.js`).
+  on a grid with ropes between them: Salt Harbour), `blots` (ragged puddles or moss, each kind at its own lift so two kinds
+  never share a plane: the Waterfall). Paint stands `PAD_LIFT` over the ground (`tests/zfight.test.js`).
 - **pieces**: `craft` (parked), `cargo` (crates, casks, barrels, glass floats, baskets, sea chests, radios), `crane` (a
-  post or a lattice tower, a boom, a cable and its load), `signal` (the Signal Market's board of call-signs, a clerk's
+  post or a lattice tower, a boom, a cable and its load), `gantry` (a beam bolted to a rock face on a strut, a trolley, a
+  cable and a crate: the Waterfall's niche), `signal` (the Signal Market's board of call-signs, a clerk's
   window at its foot, one board dark), `mast` (a lamp-mast), `mirror` (the Eclipse city's mirror tower), `pylon` (a
   tapered post with a lantern), `kiosk` (a hut with a lit window), `awning` (canvas on poles, goods under it), `rack`
   (glass floats on a trestle), `board` (a chalk-board log), `ring` (the City in Space's hoop cradle hung off the rim with
   a boat in it), `cradle` (the City-Shaft's lacquered cradle cantilevered over the drop), `arm` (the stand-in's dock).
 - **craft** (`src/levels/port-craft.js`, `CRAFT`): skyboat, pod, dart, buggy, hauler, skiff, sledge, junk, sandskiff,
   hopper, orecart, and `cab` (the City-Shaft's own, taxi.js). Each a list of painted parts (vehicle-kit.js: one flat
-  colour a part, the ink outlining where colours meet).
+  colour a part, the ink outlining where colours meet). The sky-boat is a 9 m capsule, 2.2 m wide and 2.4 m deep in the
+  hull, top and belly in two colours (two half-lathes of one profile), a long low cabin forward, a keel and two skids, a
+  fin and a screw (issue #447: the first one was a squat 7.5 × 2.6 m lens); in a hoop cradle it lies at the hoop's
+  `craft.scale` (0.72 in a 4.2 m hoop) so it sits inside it.
 - **traffic**: craft on slow ellipses over the city (centre, radii, height, speed, direction), bobbing and banking,
   moved by the level's update; no shadows.
 - **staff**: a harbourmaster with two toned lines, standing in the hull's frame (`uv`), added after the world's own
@@ -2838,14 +2843,16 @@ in the world where a piece belongs to the city's own plan (the Pier's rim, the s
 | the Glass Dunes | the Float Yard | a pale stone disc ringed in white under the ship (flush with the ship's flat of sand: a slab drawn higher is walked through, src/contact-audit.js), ochre canvases over racks of glass floats, three float-sledges, a glass skiff; one skiff in flight; Mabyn |
 | the Eclipse city | the Lantern Esplanade | rows of limewashed pylons with lanterns along the hull, a pair at the way out, a mirror tower, gold rings and lamps set in the paving, baskets; two junks in flight; Cato |
 | Salt Harbour | the Salt Quay | stakes and mooring ropes round the ship, a mast crane on a terracotta tower, a sand-skiff and a hopper, sea chests, a sailcloth over herb crates; a hopper in flight |
-| the City Behind the Waterfall | the Falls Ledge | a dashed ring on the shelf, a gantry by the cliff with a crate on its cable, crates, a dart parked, a tarp; two darts in flight; Tully |
+| the City Behind the Waterfall | the Falls Ledge | a docking niche cut into the cliff ahead of the ship's nose (the level's own rock: `waterfall.js` `NICHE`, an arch on a lit hall, a loading dock and its steps), a gantry bolted over it with a crate on its cable, crates on the dock and at its foot, puddles and moss, a dashed ring on the shelf, two darts parked, a tarp; two darts in flight; Tully at the niche (issue #447) |
 | the Buried Machine | the freight stage | the stage's rust-orange lines, a lattice crane with an ore bucket, drums of oil, crates, an ore hopper and a hauler; Dace |
 
 **The cost.** Everything is painted, so a port is at most six merged meshes (its paint walked through and its solid
 paint, its lamps, the ground's marks, its cables), parked craft baked in, and each craft in flight one mesh. What stops
 you is only what a piece marks `solid` (towers, kiosks, cranes' feet, cargo on the ground); paint, craft, cables and
 what hangs over a void never do. Measured on this Mac (headless Chrome, High, 1280 × 720) from the same views before
-and after: a few draw calls to about 15 more a frame (shadow passes included), against 230–730.
+and after: a few draw calls to about 15 more a frame (shadow passes included), against 230–730. The Waterfall's niche (#447)
+is the level's rock and stone, merged with the rest of its materials: 221 → 231 calls from the ledge's corner, 86 → 102
+at the niche's foot.
 
 **Unity** draws the ports through the scene mirror as they are (vertex colours, thin cables, the glow); checked picture
 against picture in the editor's batch run (`scripts/unity-compare/unity.mjs`).

@@ -3,7 +3,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import { createWaterfall, CAVE, BALCONIES, SHIP_SITE, SHEETS, roarAt, groundHeight } from '../src/levels/waterfall.js';
+import { createWaterfall, CAVE, BALCONIES, SHIP_SITE, SHEETS, NICHE, roarAt, groundHeight } from '../src/levels/waterfall.js';
 import { Physics } from '../src/physics.js';
 import { LEVELS } from '../src/levels/index.js';
 import { CONTENT, ORDER } from '../src/levels/content.js';
@@ -97,4 +97,15 @@ test('the City Behind the Waterfall\'s views: four plates, one view each, in the
     assert.ok(m.SHEETS[v.sheet].name.startsWith(`${w.name} / `));
     assert.deepEqual(v.crop, [0, 0, ...m.SHEETS[v.sheet].size]);
   }
+});
+
+test('the docking niche (issue #447): the arch open to the floor, the loading dock and its steps solid, the frame round it', () => {
+  const N = NICHE;
+  assert.ok(Math.abs(physics.groundAt(N.x, 3, N.face + 6)) < 0.05, 'the shelf in front of the arch');
+  assert.ok(Math.abs(physics.groundAt(N.x - N.half + 1.5, 3, N.dockFront + 2)) < 0.05, 'the floor under the arch, in front of the dock');
+  assert.ok(Math.abs(physics.groundAt(N.x + 4, 4, (N.wall + N.dockFront) / 2) - N.dock) < 0.05, 'the dock’s top');
+  const steps = [N.dockFront + 1.1, N.dockFront + 0.6, N.dockFront + 0.2].map((z) => physics.groundAt(N.x, 3, z));
+  for (let i = 1; i < steps.length; i++) assert.ok(steps[i] - steps[i - 1] > 0.2 && steps[i] - steps[i - 1] < 0.35, `a step up: ${steps.map((y) => y.toFixed(2))}`);
+  for (const e of [-1, 1]) assert.ok(physics.groundAt(N.x + e * (N.frame - 3), 60, N.face - 3) > N.top - 1, 'the carved frame either side of the arch');
+  assert.ok(physics.groundAt(N.x, 60, N.face - 3) > N.spring + N.half, 'rock over the arch');
 });

@@ -30,10 +30,11 @@ export const SPACECITY_PORT = {
     { kind: 'arc', at: [6, 0], r: 21.4, w: 0.45, from: 0.5, to: TAU - 0.5, color: SC_COL.red },
   ],
   pieces: [
-    // the hoop cradles off the rim, each with a boat: either side of the bridge, the east side, and behind the hull
-    { kind: 'ring', ...onRim(PIER.x, PIER.z, PIER.r - 0.6, Math.PI - 0.62), r: 4.2, color: SC_COL.hoop, trim: SC_COL.brass, craft: { model: 'skyboat', colors: { hull: SC_COL.cream, belly: SC_COL.salmon, trim: SC_COL.teal } } },
-    { kind: 'ring', ...onRim(PIER.x, PIER.z, PIER.r - 0.6, Math.PI + 0.62), r: 4.2, color: SC_COL.hoop, trim: SC_COL.brass, craft: { model: 'skyboat', colors: { hull: '#9cc0c4', belly: SC_COL.cream, trim: '#c86a5a' } } },
-    { kind: 'ring', ...onRim(PIER.x, PIER.z, PIER.r - 0.6, Math.PI / 2 + 0.35), r: 4.6, color: SC_COL.hoop, trim: SC_COL.brass, craft: { model: 'skyboat', colors: { hull: SC_COL.salmon, belly: SC_COL.cream, trim: SC_COL.teal } } },
+    // the hoop cradles off the rim, each with a boat: either side of the bridge, the east side, and behind the hull (the
+    // boats a little under their flying size, so the 9 m boat sits inside its hoop as on the sheet)
+    { kind: 'ring', ...onRim(PIER.x, PIER.z, PIER.r - 0.6, Math.PI - 0.62), r: 4.2, color: SC_COL.hoop, trim: SC_COL.brass, craft: { model: 'skyboat', scale: 0.72, colors: { hull: SC_COL.cream, belly: SC_COL.salmon, trim: SC_COL.teal } } },
+    { kind: 'ring', ...onRim(PIER.x, PIER.z, PIER.r - 0.6, Math.PI + 0.62), r: 4.2, color: SC_COL.hoop, trim: SC_COL.brass, craft: { model: 'skyboat', scale: 0.72, colors: { hull: '#9cc0c4', belly: SC_COL.cream, trim: '#c86a5a' } } },
+    { kind: 'ring', ...onRim(PIER.x, PIER.z, PIER.r - 0.6, Math.PI / 2 + 0.35), r: 4.6, color: SC_COL.hoop, trim: SC_COL.brass, craft: { model: 'skyboat', scale: 0.78, colors: { hull: SC_COL.salmon, belly: SC_COL.cream, trim: SC_COL.teal } } },
     { kind: 'ring', ...onRim(PIER.x, PIER.z, PIER.r - 0.6, 0.25), r: 4.2, color: SC_COL.hoop, trim: SC_COL.brass },
     // the harbour's lamp-mast at the bridge's mouth, the harbour hut and its chalk-board log beside it
     { kind: 'mast', xz: [7.5, 99], h: 12, color: SC_COL.hoop, trim: SC_COL.brass, solid: true },
@@ -254,28 +255,36 @@ export const SALTHARBOUR_PORT = {
 };
 
 // ------------------------------------------------------------------ the City Behind the Waterfall: the Falls Ledge
-// The ship on the stone shelf outside the cavern's east mouth (140, 0, 2), its hatch west into the cavern. The sheet: a
-// wet carved shelf, a gantry boom out of the cliff with a crate on its cable, crates by the cavern, winged couriers
-// flying out through the slits in the falls.
-const WF_COL = { stone: '#9aa4a0', pale: '#e8e2d0', gantry: '#c8b878', moss: '#7a9a5a', stripe: '#d8843c' };
+// The ship on the stone shelf outside the cavern's east mouth (140, 0, 2), its hatch west into the cavern, its nose north
+// toward the mountain. The sheet: a wet carved shelf, a docking niche cut into the cliff (the level builds it: waterfall.js
+// NICHE) with a gantry bolted over its arch and a crate on its cable, crates on its loading dock and at its foot, puddles
+// and moss on the stone, two couriers parked side by side, more flying out through the slits in the falls (issue #447).
+const WF_COL = { stone: '#9aa4a0', pale: '#e8e2d0', gantry: '#c8b878', moss: '#7a9a5a', stripe: '#d8843c', wet: '#c6dad8' };
+const WF_NICHE = { x: 140, face: -56, dock: 1.2 };   // (waterfall.js NICHE: the arch's middle, the frame's face, the dock's top)
 export const WATERFALL_PORT = {
   id: 'waterfall',
   site: { x: 140, y: 0, z: 2, h: -Math.PI / 2 },
   pad: [
     { kind: 'dashes', r: 30, n: 30, w: 0.5, color: WF_COL.pale, gaps: [[28, 4, 7]] },
+    // puddles on the shelf (inside the ring and outside it, never across it), moss at the cliff's foot and along the drop
+    { kind: 'blots', color: WF_COL.wet, seed: 1, xz: [[120, -14, 2.2], [104, -40, 3.4], [160, -34, 2.2], [128, 20, 1.8], [154, 40, 3.0], [100, 14, 2.0], [178, 12, 2.8], [150, -46, 1.6], [128, -44, 1.3]] },
+    { kind: 'blots', color: WF_COL.moss, lift: 1.5, seed: 4, xz: [[117, -52.5, 1.8], [164, -52, 2.2], [190, -68, 2.6], [88, -66, 2.4], [120, 66, 3.4], [150, 67, 2.6], [182, 64, 3.2], [207, 40, 2.4], [207, -20, 2.8], [76, 64, 2.2]] },
   ],
   pieces: [
-    { kind: 'crane', at: [14, 50], yaw: -Math.PI / 2, h: 9, r: 0.55, reach: 9, color: WF_COL.gantry, cab: '#a89858', dark: '#6a6a5a', load: 'crate', drop: 3.5, lamp: '#ffe0a0', solid: true },
-    { kind: 'cargo', at: [20, 42], yaw: 0.2, items: ['crate', 'crate', 'crate', 'cask', 'crate'], cols: 3, stack: true, colors: { crate: '#a89070', cask: '#7a8a8a' }, solid: true },
+    { kind: 'gantry', xz: [WF_NICHE.x + 13, WF_NICHE.face], dy: 22, yaw: 0, reach: 11, drop: 9.5, color: WF_COL.gantry, dark: '#6a6a5a', cab: '#a89858', loadColor: '#a89070', lamp: '#ffe0a0' },
+    { kind: 'cargo', xz: [WF_NICHE.x - 4.5, -69.5], dy: WF_NICHE.dock, yaw: 0.1, items: ['crate', 'crate', 'cask', 'crate', 'crate', 'cask'], cols: 3, stack: true, colors: { crate: '#a89070', cask: '#7a8a8a' }, solid: true },
+    { kind: 'cargo', xz: [WF_NICHE.x + 5, -70], dy: WF_NICHE.dock, yaw: -0.15, items: ['crate', 'cask', 'crate'], cols: 3, colors: { crate: '#b09878', cask: '#7a8a8a' }, solid: true },
+    { kind: 'cargo', xz: [126, -50], yaw: 0.2, items: ['crate', 'crate', 'crate', 'cask', 'crate'], cols: 3, stack: true, colors: { crate: '#a89070', cask: '#7a8a8a' }, solid: true },
     { kind: 'craft', at: [-22, -8], yaw: 1.4, model: 'dart', colors: { hull: WF_COL.pale, stripe: WF_COL.stripe, fin: '#4a6a9a' } },
+    { kind: 'craft', at: [-24, 6], yaw: 1.7, model: 'dart', colors: { hull: WF_COL.pale, stripe: '#4a6a9a', fin: WF_COL.stripe } },
     { kind: 'awning', at: [-20, 28], yaw: Math.PI, w: 5, d: 3.6, h: 2.8, color: '#c8b890', pole: '#5a5048', under: { items: ['crate', 'cask', 'crate'], cols: 3, colors: { crate: '#a89070', cask: '#7a8a8a' } } },
   ],
   traffic: [
     { model: 'dart', colors: { hull: WF_COL.pale, stripe: WF_COL.stripe, fin: '#4a6a9a' }, centre: [180, 0, 2], rx: 110, rz: 140, h: 30, speed: 18 },
     { model: 'dart', colors: { hull: WF_COL.pale, stripe: '#4a6a9a', fin: WF_COL.stripe }, centre: [200, 0, -20], rx: 140, rz: 100, h: 18, speed: 20, dir: -1, phase: 2.5 },
   ],
-  sights: [{ name: 'the ledge’s gantry', at: [14, 46] }],
-  staff: [{ id: 'tully', name: 'Tully', title: 'who keeps the ledge', color: '#c8b878', kind: 'm', uv: [18, 37], y: 0, radius: 2, lang: 'waterfall',
+  sights: [{ name: 'the ledge’s niche', xz: [WF_NICHE.x, WF_NICHE.face] }],
+  staff: [{ id: 'tully', name: 'Tully', title: 'who keeps the ledge', color: '#c8b878', kind: 'm', uv: [6, -51], y: 0, radius: 2, lang: 'waterfall',
     lines: ['~neutral~ Mind the wet. The spray comes in sideways when the wind turns.', '~playful~ The couriers fly out through the gaps in the falls. Mostly through the gaps.'] }],
 };
 

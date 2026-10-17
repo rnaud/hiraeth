@@ -1164,6 +1164,8 @@ const hatRef = (set, what) => ({ sheet: `references/hats/${set}/sheet-1.jpg`, ca
 /** (v1.84, issue #441: the space ports from their picked sheets) */
 const PORT441 = 'Issue #441: the running game in muted headless Chrome (ANGLE Metal, High, render scale 1, 1280 × 720, 10:00, the HUD hidden; scripts/design-qc/capture.mjs --fixed-scale) on this branch’s own Vite (port 5441), the camera pinned in the hull’s frame round the ship; before: the tree at 16faa3b4c (its own Vite, port 5442), the same camera; 17 October; cwebp -q 72';
 const PORT441U = 'Issue #441: the Unity bridge in the editor’s batch run on this Mac (scripts/unity-compare/unity.mjs: muted, High, 1280 × 720, -fresh -no-hud, the same pinned camera as the web’s); 17 October; cwebp -q 72';
+const PORT447 = 'Issue #447: the running game in muted headless Chrome (ANGLE Metal, High, render scale 1, 1280 × 720, 10:00, the HUD hidden; scripts/design-qc/capture.mjs --fixed-scale) on this branch’s own Vite (port 5447), the camera pinned; before: the tree at 3e6d426a0, the same camera; the boats in flight held still by the view’s `act`; 17 October; cwebp -q 72';
+const PORT447U = 'Issue #447: the Unity bridge in the editor’s batch run on this Mac (scripts/unity-compare/unity.mjs: muted, High, 1280 × 720, the same pinned camera as the web’s); 17 October; cwebp -q 72';
 const portRef = (id, what) => ({ sheet: `references/space-ports/${id}/sheet-1.jpg`, caption: `The author’s pick from the reference lab: ${what}` });
 export const CHANGELOG_MEDIA = {
   '1.84': [
@@ -1249,6 +1251,24 @@ export const CHANGELOG_MEDIA = {
     ], see: 'Land in any of these worlds and walk round the ship.' },
     { match: 'Each port has someone who runs it', see: 'Look for the port’s keeper a few steps from the ship: by the harbour hut on the Pier, the cab stand on the City-Shaft’s rim, the board’s window in the Signal Market.' },
     { match: 'In the Unity version, fights answer as on the web', see: 'In the Unity version, stand in a fire for a few seconds and count the hearts it takes (as many as on the web); fight a blot in the Arena and take a blow (the thud), pick up its chimes (the count ticks up); play the Sunken Hall; fly to a world you have never visited (the pirates come); in the Lab press R3.' },
+    { match: 'The City Behind the Waterfall’s landing is a proper port now', shots: [
+      { name: 'port-niche', title: 'The ledge', caption: 'The Waterfall’s shelf from over its south-west corner: before, the bare cliff past the ship’s nose; after, the docking niche cut into it, the gantry over it, puddles and moss on the stone', from: PORT447, reference: portRef('waterfall', 'the ledge, its niche, its gantry and the couriers') },
+      { name: 'port-niche-close', title: 'The niche', caption: 'At the cliff’s foot: the arch opening on the lit hall, the loading dock and its steps, the crate on the gantry’s cable, Tully by the crates', from: PORT447 },
+      { name: 'port-niche-high', title: 'From high', caption: 'The v1.84 view from high over the ledge: the post crane gone from the south, the gantry at the left edge, puddles and moss round the ring', from: PORT447 },
+    ], numbers: [{ title: 'Draw calls a frame (the shadow passes included)', unit: 'calls', better: 'lower', device: 'this Mac, headless Chrome, High, render scale 1, 1280 × 720 (the mean over a second)', rows: [
+      { where: 'the ledge from the south-west', before: 221, after: 231 },
+      { where: 'at the niche', before: 86, after: 102 },
+      { where: 'from high', before: 235, after: 241 },
+    ] }], see: 'Land at the City Behind the Waterfall and walk past your ship’s nose to the cliff.' },
+    { match: 'The City Floating in Space’s sky-boats are longer and rounder', shots: [
+      { name: 'skyboats', title: 'In flight', caption: 'Two sky-boats held still off the Pier for the picture (the one on the left side-on): before, a flat 7.5 m lens with a drum on top; after, the 9 m capsule in two colours, its cabin, portholes, fin and screw', from: PORT447, reference: portRef('space-city', 'the moorers’ boats and their hoop cradle') },
+      { name: 'skyboats-hoop', title: 'In a hoop', caption: 'A hoop cradle off the Pier’s rim from outside: the boat now lies inside the hoop, a little under its flying size', from: PORT447 },
+      { name: 'skyboats-pier', title: 'The Pier', caption: 'The Pier from the south-east, by the ramp: the boats in the two near hoops', from: PORT447 },
+    ], numbers: [{ title: 'Draw calls a frame (the shadow passes included)', unit: 'calls', better: 'lower', device: 'this Mac, headless Chrome, High, render scale 1, 1280 × 720 (the mean over a second)', rows: [
+      { where: 'the boats in flight', before: 326, after: 332 },
+      { where: 'a hoop cradle', before: 325, after: 329 },
+      { where: 'the Pier', before: 347, after: 352 },
+    ] }], see: 'On the City Floating in Space, look over the Pier’s rim at the hoops, or up at the boats circling the islands.' },
   ],
   '1.83': [
     { match: 'A new game in the Arcade, The Lens Vault', shots: [
