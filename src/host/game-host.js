@@ -11,6 +11,7 @@
 //   wireChemistry({ flammables, wildlife, tool, … })       fire, wind, creatures and foes on each other
 //   wireMount({ levelId, level, flag })                    the bird's promise, the hoverbike (before the traveller)
 //   wireVehicles({ bikeHere, player, … })                  the bike by the ramp, skimming water, no calls into rooms
+//   wireLessons({ game, items, gadgets, sound, plumb, … }) what the save's events say and start (a gadget's line, Plumb)
 //
 // tests/game-host.test.js holds each group to both hosts; scripts/bridge-gaps.mjs reports a group main.js calls and
 // engine/game.js doesn't as a host gap (engine/bridge-gaps.js `shared:`).
@@ -27,6 +28,9 @@ import { HumCue } from '../story/hum.js';
 import { Chemistry } from '../chemistry.js';
 import { birdAnswers, promisedBird } from '../bird.js';
 import { bikeComes, parkedBike } from '../bike-worlds.js';
+import { gadgetFoundLine } from '../gadgets/index.js';
+import { syncUpgrades } from '../trials/upgrades.js';
+import { keyText } from '../prompt-keys.js';
 
 // ------------------------------------------------------------------ the kit
 /**
@@ -144,4 +148,33 @@ export function wireVehicles({ bikeHere = false, player, physics, level, scene, 
   const inRoom = () => rooms.some((r) => r.distanceToSquared(player.pos) < 90 * 90);
   player.opts.canSummon = () => !inRoom() && !ship?.inside;
   return { rooms, inRoom };
+}
+
+// ------------------------------------------------------------------ what the save's events say and start
+/**
+ * The game's events (game-state.js `game.on`), answered alike in both hosts:
+ *   - a gadget found is in hand at once (issue #330): after its box's card, one line says so, or the item's own lesson,
+ *     once (src/gadgets/index.js gadgetFoundLine; the first time two are carried, how to pick another)
+ *   - a keepsake kept: the recorded theme comes back (src/music-moments.js), where the host has sound
+ *   - the trials' rewards, upgrades to the gadgets' tuning while owned (src/trials/upgrades.js): before the gadgets are made
+ *   - Plumb's lost clock starts over at a quest, a keepsake, a conversation, a box, an item had; its notes on the first
+ *     chest and the first steps out of the crashed ship (src/companion.js), where the host has Plumb
+ * `gadgets()` is asked when a box opens (the gadgets are made later than this).
+ */
+export function wireLessons({ game, items, levelId, gadgets = () => null, sound = null, toast, plumb = null }) {
+  syncUpgrades((id) => items.has(id));
+  items.on(() => syncUpgrades((id) => items.has(id)));
+  game.on('box:opened', ({ item } = {}) => {
+    const found = gadgetFoundLine(item, { owned: gadgets()?.owned?.() ?? [], taught: (k) => !!game.flag(`${k}.taught`), teach: hintsFor('teach'), tip: hintsFor('tip') });
+    if (!found) return;
+    if (found.key) game.set(`${found.key}.taught`, true);
+    setTimeout(() => toast(keyText(found.text, { teach: true })), 4200);
+  });
+  if (sound) game.on('keepsake', () => sound.musicCue?.('moment', { delay: 1 }));
+  if (plumb) {
+    for (const ev of ['quest', 'keepsake', 'dialogue:start', 'box:opened']) game.on(ev, () => plumb.progress());
+    game.on('item', (e) => { if (!(e?.n < 0)) plumb.progress(); });
+    game.on('box:opened', () => plumb.note('chest'));
+    game.on('ship:exit', () => { if (levelId === 'desert' && !game.flag('item.backpack')) plumb.note('out'); });   // (the first steps out of the crashed ship)
+  }
 }

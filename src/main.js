@@ -106,7 +106,6 @@ import { PortraitCache } from './portrait-cache.js';
 import { buildItemModel } from './boxes/model.js';
 import { Flammables, flammableSpots } from './flammable.js';
 import { createChallenges } from './trials/index.js';
-import { syncUpgrades } from './trials/upgrades.js';
 import { createBoxes, migrateSave } from './boxes/index.js';
 import { createFragments } from './fragments.js';
 import { createBenches } from './benches.js';
@@ -117,7 +116,7 @@ import { AimNudge, AIM_NUDGE, lockAimStep } from './lock-aim.js';
 import { hopAxis } from './jump.js';
 import { setView, inView } from './motion-kit/view.js';
 import { GADGETS } from './gadgets/all.js';   // (first: the gadgets become items before anything reads ITEMS)
-import { Gadgets, gadgetFoundLine } from './gadgets/index.js';
+import { Gadgets } from './gadgets/index.js';
 import { feelDt, shakeCamera, kick, selfDt, flurry, endFlurry, flurryLeft } from './feel.js';
 import { breatheDetail } from './breathe-shader.js';
 import { Companion, shown as droneShown } from './companion.js';
@@ -148,7 +147,7 @@ import { queueHost, takeHosts } from './minigames/kit/hosts.js';
 import { MinigameRunner } from './minigames/kit/runner.js';
 import { levelMetaFor } from './minigames/kit/world.js';
 import { lendTool } from './minigames/kit/onfoot.js';
-import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles } from './host/game-host.js';
+import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons } from './host/game-host.js';
 import { arcadeLinks } from './minigames/kit/arcade.js';
 import { ambushDue, ambushHref, ambushKey, transitLinks } from './ambush.js';
 import { talkAllowed } from './ship/landing.js';
@@ -452,17 +451,6 @@ function potionHint() {
   game.set('hint.potion', true);
   setTimeout(() => showToast(keyText(tr('potion.hint'), { teach: true })), 900);
 }
-// The progression's new verbs (v1.38: the lift valve's double jump, the fluid gun, the jets on jump held), each
-// taught once when its chest opens, after the card (src/gadgets/index.js TEACH_ON_FIND, gadgetFoundLine)
-// A gadget found is in hand at once (issue #330: src/items.js grant, src/gadgets/index.js): after its card, one line says
-// so, gadgetFoundLine (the first time there are two, how to pick another)
-game.on('box:opened', ({ item } = {}) => {
-  const owned = gadgets?.owned?.() ?? [];
-  const found = gadgetFoundLine(item, { owned, taught: (k) => !!game.flag(`${k}.taught`), teach: hintsFor('teach'), tip: hintsFor('tip') });
-  if (!found) return;
-  if (found.key) game.set(`${found.key}.taught`, true);
-  setTimeout(() => showToast(keyText(found.text, { teach: true })), 4200);
-});
 window.addEventListener('keydown', (e) => { if (e.code === 'KeyC' && !e.repeat && !e.ctrlKey && !e.metaKey) drinkPotion(); });   // (KEYS.potion: src/remap.js sends a moved key on as C)
 hpPotion?.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); drinkPotion(); });   // (the touch screen's flask)
 // Knocked out (a fatal fall, or the bar run out): you lie there a moment, then the screen
@@ -853,10 +841,10 @@ const struggle = new Struggle();   // (the seconds in the guardian's phase: tick
 const plumb = new Companion({ state: game, setting: () => settings.droneHints });
 const droneSaid = { text: '', until: 0 };   // (its line on the cue: before the find's, a moment)
 { const said = scout.onPing; scout.onPing = (t) => { said(t); plumb.progress(); }; }   // (a ping, asked or its own: the lost clock starts over)
-for (const ev of ['quest', 'keepsake', 'dialogue:start', 'box:opened']) game.on(ev, () => plumb.progress());
-game.on('item', (e) => { if (!(e?.n < 0)) plumb.progress(); });
-game.on('box:opened', () => plumb.note('chest'));
-game.on('ship:exit', () => { if (levelId === 'desert' && !game.flag('item.backpack')) plumb.note('out'); });   // (the first steps out of the crashed ship)
+// what the save's events say and start: a gadget found and its line after its card (the progression's new verbs, each
+// taught once), a keepsake's theme, the trials' upgrades, Plumb's clock and notes (src/host/game-host.js wireLessons,
+// the engines' too)
+wireLessons({ game, items, levelId, gadgets: () => gadgets, sound, toast: (t) => showToast(t), plumb });
 const plumbAt = { goalT: 0, goal: null, lookT: 0 };
 /** Plumb, each frame (after the scout's own update): the lost watch and the opening's lines. */
 function updatePlumb(dt) {
@@ -1041,7 +1029,6 @@ function mapSource({ zoom = null, detail = null, aspect = 1 } = {}) {
     note: [givers.length ? GIVERS_NOTE : '', frag.found && here?.total ? tr('gm.fragments', { n: here.found, m: here.total }) : ''].filter(Boolean).join(' · ') };
 }
 // a keepsake just earned: a toast says what the father's charge gained
-game.on('keepsake', () => sound.musicCue('moment', { delay: 1 }));   // (the recorded theme comes back: src/music-moments.js)
 game.on('keepsake', (k) => { const line = chargeHud(charge(), { kept: k.name }); if (line) showToast(line); });
 // a save from before the charge had its card: letter it once, at the first quiet moment
 if (game.flag('prologue.done') && !game.flag(CHARGE_CARD) && !playPrologue && !playHomecoming && !minigameDef) {   // (not over a game: the next world's first quiet moment)
@@ -1256,9 +1243,7 @@ window.addEventListener('keydown', (e) => { if (e.code === 'KeyE' && (wasBusy ||
 bindToolMouse(renderer.domElement, input);   // right button aims, left shoots, middle pushes
 renderer.domElement.addEventListener('mousedown', (e) => { if (e.button === 1) input.MouseMiddle = true; });   // the middle button: the gadget in hand (src/gadgets/)
 // the gadgets (src/gadgets/: the fluid gun, the grappling hook, the ink bombs…): LT / L2 aims and RT / R2 uses the one in hand (R and T, G), D-pad ↑ or B changes it, D-pad → or X its mode; Y / △ (V) the bell-note whistle
-// the trials' rewards, upgrades to the gadgets' tuning while owned (src/trials/upgrades.js): before the gadgets are made
-syncUpgrades((id) => items.has(id));
-items.on(() => syncUpgrades((id) => items.has(id)));
+// (the trials' rewards, upgrades to the gadgets' tuning while owned: wireLessons, before the gadgets are made)
 gadgets = new Gadgets({ scene, physics, player, camera, rig, sound, tool, level, foes, wind, input, relics, flammables, post: post.uniforms, boxes, notice: (t) => showToast(t, TEACH), touch: isTouch, ring: () => itemFx.ring(),
   icon: (id) => itemIcons.get(id), drawIcon: (id) => itemIcons.pump(id) });   // (the chip shows the gadget's own model, drawn once)
 // the hitbox overlay (src/hitboxes.js): F4, the dev menu's Toggles (L3 + R3, F2, `), the Arena's board, ?hitboxes=1 (this session only)

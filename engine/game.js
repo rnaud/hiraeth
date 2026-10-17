@@ -131,10 +131,8 @@ import { padFaces, setFaces, confirmKey, backKey } from '../src/native-pad.js';
 import { attachMotion } from '../src/motion-match.js';
 import { ShopPanel } from '../src/shop-panel.js';
 import { resources } from '../src/resources.js';
-import { Gadgets, gadgetFoundLine } from '../src/gadgets/index.js';
-import { syncUpgrades } from '../src/trials/upgrades.js';
+import { Gadgets } from '../src/gadgets/index.js';
 import { createItemEffects } from '../src/boxes/effects.js';
-import { hintsFor } from '../src/hint-level.js';
 import { createFragments } from '../src/fragments.js';
 import { keyText } from '../src/prompt-keys.js';
 import { carryHooks } from '../src/carry.js';
@@ -153,7 +151,7 @@ import { DevMenu } from '../src/dev-menu.js';
 import { gatherPoints, questList, applyQuestJump, landingSpot, godLanding } from '../src/world-debug.js';
 import { GAMES } from '../src/minigames/index.js';
 import { DEBUG_SLOT } from '../src/save-slots.js';
-import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles } from '../src/host/game-host.js';
+import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons } from '../src/host/game-host.js';
 
 export { page };
 export { readHref } from './trials.js';   // (the tests: a game page's address)
@@ -641,12 +639,10 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const plumb = help ? new Companion({ state: gameState, setting: () => settings?.droneHints ?? 'on' }) : null;
   const droneSaid = { text: '', until: 0 };
   const plumbAt = { goalT: 0, goal: null, lookT: 0 };
-  if (plumb) {
-    for (const ev of ['quest', 'keepsake', 'dialogue:start', 'box:opened']) gameState.on(ev, () => plumb.progress());
-    gameState.on('item', (e) => { if (!(e?.n < 0)) plumb.progress(); });
-    gameState.on('box:opened', () => plumb.note('chest'));
-    gameState.on('ship:exit', () => { if (levelId === 'desert' && !gameState.flag('item.backpack')) plumb.note('out'); });
-  }
+  // what the save's events say and start: a gadget found and its line after its card, a keepsake's theme, the trials'
+  // upgrades to the gadgets' tuning (before the gadgets are made), Plumb's clock and notes (src/host/game-host.js
+  // wireLessons, as the page)
+  wireLessons({ game: gameState, items: gear, levelId, gadgets: () => gadgets, sound: sound !== SILENT ? sound : null, toast: (t) => toast(t), plumb });
   const scoutTeach = { left: 0, at: 0 };
   const scoutHint = help ? installScoutHint({ game: gameState, show: () => { scoutTeach.left = SCOUT_HINT_SHOW; },
     usable: () => !(shipOn && (ship.inside || ship.playing)) && !trials?.running && gameState.flag('prologue.done') && !!scout?.getTarget?.() }) : null;
@@ -707,8 +703,6 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // hand on LT / RT (R, and G or T), D-pad ↑ or B to choose another (held: the wheel), D-pad → or X its mode, Y / △ (V) the
   // whistle; a gadget found is in hand at once (#330). Their chip, wheel, reticle and marks are the screen's state
   // (src/gadgets/hud.js; BridgeHud.cs draws them), and what they do to a foe (the fight's foes, above).
-  syncUpgrades((id) => gear.has(id));
-  gear.on(() => syncUpgrades((id) => gear.has(id)));
   // the foes and the fight (engine/combat.js: src/foes.js as main.js wires it, the lock-on and its camera, the drops, the
   // potion, the knock-out's card; the guardians are the temples' own), when the engine is played (with its menus) or a
   // plan asks for them (`fight`: the bridge's -fight); not in a bench's plan, whose numbers stay comparable with before
@@ -734,16 +728,6 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   }
   const gadgets = optional('the gadgets', () => new Gadgets({ scene, physics, player, camera, rig, sound, tool, level, foes: combat?.foes ?? null, wind, input: null, relics: null, flammables, post: U, boxes,
     notice: (t) => toast(t), ring: () => itemFx?.ring?.() }));
-  // after a box's card, the line a gadget found says (in hand; the first time two are carried, how to pick another), or the
-  // item's own lesson, once (main.js on 'box:opened'; src/gadgets/index.js gadgetFoundLine)
-  // (a keepsake kept: the recorded theme comes back, as main.js says; src/music-moments.js)
-  if (sound !== SILENT) gameState.on('keepsake', () => sound.musicCue?.('moment', { delay: 1 }));
-  gameState.on('box:opened', ({ item } = {}) => {
-    const found = gadgetFoundLine(item, { owned: gadgets?.owned?.() ?? [], taught: (k) => !!gameState.flag(`${k}.taught`), teach: hintsFor('teach'), tip: hintsFor('tip') });
-    if (!found) return;
-    if (found.key) gameState.set(`${found.key}.taught`, true);
-    setTimeout(() => toast(keyText(found.text, { teach: true })), 4200);
-  });
 
   // the ship attached, as main.js attaches it, when the engine is played (its menus; not a bench's plan): walking up the
   // ramp takes you aboard, E at the console plays the voicemail (CallDirector), at the holo table the galactic map (the
