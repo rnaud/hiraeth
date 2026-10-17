@@ -219,6 +219,10 @@ namespace Hiraeth.Bridge
         /// <summary>The themes to download where the package has none ("file url;…"), and those it carries where they can't be looked for.</summary>
         public static void MusicFetch(string list, string carried) => Music?.Fetch(list, carried);
         public static void Screen(string json) => On(() => { if (Runner && Runner.hud) Runner.hud.Set(json); });
+        /// <summary>The loading screen's line (engine/game.js onStage: "sketching …", "inking the collisions…"), set from the
+        /// script's thread while it builds the world; BridgeHud reads it each frame (issue #424).</summary>
+        public static volatile string LoadLine;
+        public static void LoadStage(string text) { LoadLine = text; }
         /// <summary>The menus' state (engine/menus.js view(): the title, the Start menu, the game menu; "null" none open), for BridgeMenu.</summary>
         /// <summary>The menus' canvas width in its units (720 high: 1280 on 16:9, 960 on the Retroid's 4:3), set by BridgeMenu; how many item tiles fit a row.</summary>
         public static float MenuWidth() => menuWidth;

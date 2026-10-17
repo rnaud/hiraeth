@@ -836,6 +836,8 @@ namespace Hiraeth.Bridge
             else UnityEngine.Scripting.GarbageCollector.CollectIncremental((ulong)(gcStepMs * 1e6));
         }
         bool booted;
+        /// <summary>Has the script built its world and played its first frame: the loading screen goes then (BridgeHud.Loading).</summary>
+        public bool Booted => readyMarked;
         static bool deferLast => deferLastFlag ??= BridgeArgs.Flag("-ops-after");
         static bool? deferLastFlag;
         static bool bootBlocking => BridgeArgs.Flag("-boot-blocking");

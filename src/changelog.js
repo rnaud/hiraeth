@@ -78,6 +78,9 @@ export const CHANGELOG = [
     // issue #421: src/boxes/index.js migrateSave (an engines' save: no legacy backpack, the bike back under its tarp), run by
     // engine/game.js createGame as main.js runs it; engine/sequences.js 'hoverbike'; tests/boxes.test.js
     'In the Unity version, a new game no longer hands you the desert’s hoverbike as the opening ends. It lies under Marrow’s tarp in the hollow by the red rag again, and finding it starts its errand, as on the web. A save that was given it that way gets it back under the tarp.',
+    // issue #424: unity BridgeHud.Loading.cs (the page's #loading), BridgeHost.LoadStage, engine/game.js onStage;
+    // tests/engine-unity.test.js
+    'In the Unity version, a world loads behind the same inked page as on the web, the pen turning in its rings and a line saying what is being drawn, where the screen used to stay black.',
   ] },
   { v: '1.83', date: '2026-10-16', items: [
     // issue #406: src/temples/desert.js (ROOMS, LOGIC: hall, balcony, ballK, kS, dE, sentry in the hall, d3), pieces.js Ball

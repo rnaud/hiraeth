@@ -198,7 +198,7 @@ export const GAPS = {
     { keys: ['src/story/index.js'], count: { 'src/story/index.js': 2 }, parts: ['prompt'], what: 'the floating prompt', status: 'handled', where: 'the prompt part, BridgeHud.cs' },
     { keys: ['src/hud.js'], count: { 'src/hud.js': 2 }, parts: ['cue'], what: 'the cue line', status: 'handled', where: 'the cue part, BridgeHud.cs' },
     { keys: ['src/main.js'], count: { 'src/main.js': 20 }, parts: ['health', 'keys', 'stamina', 'restart', 'photo'], what: 'the health, stamina, keys, knock-out card, photo hint, the tool\'s gauge, the loading screen, the picker',
-      status: 'handled', where: 'the health, stamina, keys, restart and photo parts, BridgeHud.cs; the picker and loading screen are the page\'s (host)' },
+      status: 'handled', where: 'the health, stamina, keys, restart and photo parts, BridgeHud.cs; the picker is the page\'s (host); the loading screen BridgeHud.Loading.cs (engine/game.js onStage, issue #424)' },
     { keys: ['src/boxes/card.js'], count: { 'src/boxes/card.js': 6 }, parts: ['boxCard'], what: 'a makers\' box\'s card', status: 'handled', where: 'the boxCard part, BridgeHud.cs' },
     { keys: ['src/gadgets/hud.js'], count: { 'src/gadgets/hud.js': 13 }, parts: ['gadget', 'gadgetMarks', 'gadgetWheel', 'reticle'], what: 'the gadgets\' chip, marks, wheel and reticle', status: 'handled', where: 'their parts, BridgeHud.cs' },
     { keys: ['src/minigames/kit/runner.js', 'src/minigames/kit/labels.js'], count: { 'src/minigames/kit/runner.js': 10, 'src/minigames/kit/labels.js': 7 }, parts: ['minigame', 'words'], what: 'a minigame\'s HUD, card, results and floating words', status: 'handled', where: 'the minigame and words parts, BridgeHud.Games.cs' },

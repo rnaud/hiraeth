@@ -119,6 +119,7 @@ namespace Hiraeth.Bridge
             BuildMinigame(mono);
             BuildWarp();          // (over everything but the frame readout, as the page's #warp)
             BuildPassage();   // (over everything: the paper covers the screen as it carries you through)
+            BuildLoading();   // (over all of it while the world is built: the page's #loading, BridgeHud.Loading.cs)
             fpsBox = Ui.Panel(root, "fps", new Color(1, 250 / 255f, 240 / 255f, 0.8f), Ui.Ink, 1.5f);
             fpsText = Ui.Label(fpsBox.rt, "text", mono, 12, Ui.Ink, TextAnchor.MiddleLeft);
             fpsBox.Show(false);
@@ -414,6 +415,7 @@ namespace Hiraeth.Bridge
             DrawRestart(state.O("restart"));
             DrawWarp(state.O("warp"));
             DrawPassage(state.O("passage"));
+            DrawLoading();
         }
 
         // ---------------------------------------------------------------- the take-off's warp (issue #264)

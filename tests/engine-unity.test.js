@@ -280,6 +280,7 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
   // the menus (engine/menus.js, BridgeMenu.cs): the kind of each state sent, null when none is open
   const menus = [], panels = {}, grounds = [], maps = [];
   let closedAt = 0;
+  const stages = [];   // (the loading screen's lines, BridgeHud.Loading.cs: issue #424)
   const cloths = {}, capes = {};
   const clothWords = (id) => { const c = cloths[id]; return 3 * c.N + 28 * c.K + 16 * c.B + 16; };
   // the sound (BridgeAudio.cs): a ring Unity drains at its rate, topped up by the script each frame
@@ -307,6 +308,7 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
     MapImage(key, buf, w, h) { maps.push({ key, bytes: buf.byteLength, w, h, sentBefore: !grounds.includes(key), inked: new Uint8Array(buf).some((x, i) => i % 4 === 0 && x < 80) }); },
     // (gone away at frame 76, BridgeRunner.Away: the Steam button, a suspend; back, the game waits under the Start menu)
     AwayCount: () => (closedAt && calls.Frame >= closedAt + 6 ? 1 : 0),
+    LoadStage(t) { stages.push(t); },
     MenuWidth: () => 960, MenuMapBox: () => '878,508', PadName: () => 'Retroid Pocket Controller', Platform: () => 'android', Pad: () => null, MouseLook: () => null, Shot() {}, WriteText() {}, LastFrameCpuMs: () => 0, LastFrameGpuMs: () => 0, Exit() {},
     AudioRate: () => 48000, AudioQueued: () => sound.queued,
     Audio(buf) { const f = new Float32Array(buf); sound.queued += f.length / 2; sound.frames += f.length / 2; for (const x of f) { if (!Number.isFinite(x)) sound.bad++; sound.sumSq += x * x; } },
@@ -329,6 +331,8 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
     for (let i = 0; i < 400 && !(closedAt && calls.Frame >= closedAt + 10); i++) { exports.frame(1 / 30); sound.queued = Math.max(0, sound.queued - 1600); await new Promise((r) => setImmediate(r)); }
   } finally { console.warn = warn; console.info = info; console.log = log; console.error = error; }
   assert.ok(calls.Frame >= 20, `frames: ${JSON.stringify(calls)} ${errors.join(' | ')}`);
+  // the loading screen told what the build is on, main.js's stages in its order (issue #424)
+  assert.deepEqual(stages, ['sketching the glass dunes…', 'inking the collisions…', 'waking the people…', 'mixing the inks…'], JSON.stringify(stages));
   // the title first, gone once the world was ready; the Start menu over the world, and closed again
   assert.deepEqual(menus.filter((k, i) => k !== menus[i - 1]), ['title', null, 'start', null, 'game', null, 'start'], JSON.stringify(menus));
   // the game menu's panels filled from the world running (engine/game.js menuSources): the father's charge, the map's marks

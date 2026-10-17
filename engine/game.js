@@ -312,7 +312,7 @@ export const LOOK_VECTORS = new Set(['uWind', 'uHaze', 'uSpot', 'uSpotTone', 'uH
   // (the sky's own: the eclipse, src/eclipse.js; the Lantern's light, src/story/lantern-sky.js; space, src/levels/space-city-kit.js)
   'uEclipse', 'uCorona', 'uEclipseGlow', 'uEclipseDir', 'uLantern', 'uSpace', 'uSpaceTone', 'uSpaceSun', 'uSpaceNight']);
 
-export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', quality = null, log = () => {}, menus = null, start = null, arrive = false, hullSpawn = false, settings = null, gestures = true, via = null, prologue = false, onTravel = null, aboard = null, scenes = false, fight = false, game: gameId = null, from = null, to: transitTo = null, onGame = null, onLeave = null, trials: withTrials = false, onPage = null, arrival = null, saves = true, defer = true, far: farOn = true, lod: lodOn = false, skies = true } = {}) {
+export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', quality = null, log = () => {}, menus = null, start = null, arrive = false, hullSpawn = false, settings = null, gestures = true, via = null, prologue = false, onTravel = null, aboard = null, scenes = false, fight = false, game: gameId = null, from = null, to: transitTo = null, onGame = null, onLeave = null, trials: withTrials = false, onPage = null, arrival = null, saves = true, defer = true, far: farOn = true, lod: lodOn = false, skies = true, onStage = null } = {}) {
   const T = {};
   // (the fight, engine/combat.js, made once the traveller and his tool are)
   let combat = null;
@@ -335,6 +335,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const meta = gameDef ? levelMetaFor(gameDef, levelById) : levelById(levelId);
   if (!meta) throw new Error(`no level ${levelId}`);
   if (gameDef) levelId = meta.id;
+  // the loading screen's line as the build goes, main.js's stages (issue #424: BridgeHud's loading screen says it)
+  const stage = (text) => { try { onStage?.(text); } catch { /* a host without one */ } };
+  stage(`sketching ${String(meta.title ?? 'the world').toLowerCase()}…`);
   const content = CONTENT[levelId];
   // start the loads the way main.js does: the clips, the traveller, the bodies
   const animLib = loadAnimationLibrary().catch((e) => { log('animation library failed', e); return null; });
@@ -366,7 +369,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   level.id ??= levelId;
   // where the old walls' cracks may not run: their windows and doors, as the page (src/host/game-host.js wireOpenings)
   quiet(() => wireOpenings({ scene }));
-  stamp('level');
+  stamp('level'); stage('inking the collisions…');
   const physics = new Physics(scene, level.ground?.heightAt ? level.ground : null);
   physics.noClimbZones = level.noClimb ?? null;   // (walls not to be climbed, ladders climbed for free: main.js)
   physics.ladders = level.ladders ?? null;
@@ -454,7 +457,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // page (src/host/game-host.js wireDangers: the engines registered no fire's and drew no void before, #427); the void's
   // wash hangs in level.veils, drawn by the port's Hiraeth/PitVoid
   const dangers = wireDangers({ scene, level });
-  stamp('traveller');
+  stamp('traveller'); stage('waking the people…');
   const npcs = [];
   if (people && content?.npcs?.length && humans && lib) {
     const near = quiet(() => spawnNPCs(scene, physics, content.npcs, { lib, humans }));
@@ -1225,7 +1228,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     const L = physics.late;
     log(`distant detail: ${n} jobs done near in ${Math.round(performance.now() - t)} ms, ${queues.reduce((s, q) => s + q.pending, 0)} after the first frame${L ? ` (the drifts' collision: ${L.made} pieces made, ${L.forced} by a query, in ${Math.round(L.ms)} ms; ${L.pending} after)` : ''}${crowd?.pending ? `; ${crowd.pending} walks still to come` : ''}`);
   }
-  stamp('near detail');
+  stamp('near detail'); stage('mixing the inks…');
   // the first frame's camera (a game that drives: its own, which its session set as it was made; main.js never runs the
   // rig for it, so the start card shows the game's view: the cistern court from above, not the traveller's follow camera)
   if (!trials?.drives) rig.update(player.pos, 0, player.frame);

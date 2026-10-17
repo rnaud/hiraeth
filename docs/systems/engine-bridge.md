@@ -1888,6 +1888,13 @@ screen; the batch run's pictures only.
   knows such a save (migrateBike's `desert.bike.v` without its `items.v`, which a page always writes first): no legacy
   backpack, and a bike "found" whose tarp was never pulled back goes back under it. The sequence `hoverbike` (a new save,
   the traveller by the bike, E) compares it with the web.
+- **The loading screen** (#424). The page's `#loading` (the paper, the pen turning in its two dashed rings, the line under
+  it) had no Unity side: the screen stayed black while the script built the world. BridgeHud.Loading.cs draws it from
+  the HUD's first frame until BridgeRunner.Booted (the world built and its first frame played), then fades it as the
+  page's `.done` (0.8 s); its line is main.js's stages, which engine/game.js says through `onStage` ("sketching <the
+  world>…", "inking the collisions…", "waking the people…", "mixing the inks…") and engine/unity/game.js hands to
+  `BridgeHost.LoadStage`. A flight's arrival keeps the warp (carried over the reboot, the page's `#loading.space`).
+  `-loading-shot <file>` photographs it at "waking the people…"; `-no-loading` leaves it out (the before).
 
 ## One host (2026-10-17, issue #427)
 
