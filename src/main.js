@@ -107,7 +107,6 @@ import { Flammables, flammableSpots } from './flammable.js';
 import { createChallenges } from './trials/index.js';
 import { createBoxes, migrateSave } from './boxes/index.js';
 import { createFragments } from './fragments.js';
-import { createBenches } from './benches.js';
 import { createItemEffects } from './boxes/effects.js';
 import { Foes, lockFollow, LOCK_NEAR } from './foes.js';
 import { guardianBox } from './lock-frame.js';
@@ -146,7 +145,7 @@ import { queueHost, takeHosts } from './minigames/kit/hosts.js';
 import { MinigameRunner } from './minigames/kit/runner.js';
 import { levelMetaFor } from './minigames/kit/world.js';
 import { lendTool } from './minigames/kit/onfoot.js';
-import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip, wireCompanion, wireCamera, wireHero, heroCutFrame, cameraFollow } from './host/game-host.js';
+import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip, wireCompanion, wireCamera, wireHero, heroCutFrame, cameraFollow, wireBenches } from './host/game-host.js';
 import { arcadeLinks } from './minigames/kit/arcade.js';
 import { ambushDue, ambushHref, ambushKey, transitLinks } from './ambush.js';
 import { talkAllowed } from './ship/landing.js';
@@ -884,7 +883,7 @@ const itemFx = createItemEffects({ player, tool, level, sound, camera, toast: sh
 // The first brings the scientist (src/story/scientist.js, game 'fragment'), who sells upgrades aboard for them (src/fragment-shop.js)
 const fragments = createFragments({ levelId, scene, physics, level, player, sound, game, items, toast: (t) => showToast(t), lights: levelLights });
 // ---- the benches (src/benches.js, issue #363): sit, the camera comes round behind, the HUD fades, the music swells
-const benches = createBenches({ levelId, scene, physics, level, player, sound, rig });
+const benches = wireBenches({ levelId, scene, physics, level, player, sound, rig });   // (the engines' too)
 // (his light-stitched heart: one more for good, and the hearts filled, as a heart container does)
 items.on((id, owned) => { if (id === 'lightheart') { player.setMaxHearts(resources.maxHearts); if (owned) player.restore(player.maxHearts); hpShown = 3; } });
 // (in the Start menu, under where you are: the fragments all told, how many you hold to spend with Anselm once he is met

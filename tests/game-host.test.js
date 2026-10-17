@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { readFileSync } from 'node:fs';
-import { wireKit, wireDangers, wirePeople, wireChemistry, wireVehicles, wireLessons, wireCompanion, wireCamera, heroCutFrame, cameraFollow } from '../src/host/game-host.js';
+import { wireKit, wireDangers, wirePeople, wireChemistry, wireVehicles, wireLessons, wireCompanion, wireCamera, heroCutFrame, cameraFollow, wireBenches } from '../src/host/game-host.js';
 import { ERRANDS } from '../src/levels/content.js';
 import { hazardCount } from '../src/hazards.js';
 import * as THREE from 'three';
@@ -174,7 +174,7 @@ test('the follow camera: a ride\'s own shot, behind the jets\' nose, the wide ar
 
 test('both hosts call the same groups (src/host/game-host.js), and engine/game.js no longer arms the tool its own way', () => {
   const main = readFileSync('src/main.js', 'utf8'), engine = readFileSync('engine/game.js', 'utf8');
-  for (const g of ['wireKit', 'wireDangers', 'wirePeople', 'wireChemistry', 'wireMount', 'wireVehicles', 'wireLessons', 'wireShip', 'wireCamera', 'wireHero', 'heroCutFrame', 'cameraFollow']) {
+  for (const g of ['wireKit', 'wireDangers', 'wirePeople', 'wireChemistry', 'wireMount', 'wireVehicles', 'wireLessons', 'wireShip', 'wireCamera', 'wireHero', 'heroCutFrame', 'cameraFollow', 'wireBenches']) {
     assert.match(main, new RegExp(`\\b${g}\\(`), `main.js calls ${g}`);
     assert.match(engine, new RegExp(`\\b${g}\\(`), `engine/game.js calls ${g}`);
   }
@@ -195,6 +195,12 @@ test('in the engines\' build: the sword hangs on him only once found and wears t
   // the desert's errands watched over its people (wirePeople: none in the engines before)
   assert.ok(g.folk?.errands?.watch?.length >= 1, 'the desert\'s errands');
   assert.ok(g.chemistry, 'the chemistry (wireChemistry: the engines\' brambles burnt alone before)');
+  // the desert's benches: there, and sitting on one holds him and frames him from behind (wireBenches: none in the engines)
+  assert.equal(g.benches?.list?.length, 2, 'the desert\'s two benches');
+  g.benches.sit(g.benches.list[0]);
+  quiet(() => { for (let i = 0; i < 20; i++) g.frame(1 / 30); });
+  assert.ok(g.benches.sitting, 'sat');
+  assert.ok(g.benches.k > 0.2, 'the seated shot easing in: ' + g.benches.k);
   // the Garden of Spheres with the bird promised and the bike found: the bird is the mount, the bike stands by the ramp
   // (wireVehicles: none in the engines before, #376) and skims the lake
   const sp = await quiet(() => B.createGame({ levelId: 'spheres', backend, people: false, flags: { 'prologue.done': true, 'bird.promise': true, 'desert.bike.found': true } }));

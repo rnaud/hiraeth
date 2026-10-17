@@ -153,7 +153,7 @@ import { DevMenu } from '../src/dev-menu.js';
 import { gatherPoints, questList, applyQuestJump, landingSpot, godLanding } from '../src/world-debug.js';
 import { GAMES } from '../src/minigames/index.js';
 import { DEBUG_SLOT } from '../src/save-slots.js';
-import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip, wireCompanion, wireCamera, wireHero, heroCutFrame, cameraFollow } from '../src/host/game-host.js';
+import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip, wireCompanion, wireCamera, wireHero, heroCutFrame, cameraFollow, wireBenches } from '../src/host/game-host.js';
 
 export { page };
 export { readHref } from './trials.js';   // (the tests: a game page's address)
@@ -678,6 +678,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // (the follow shot each frame as the page: a ride's own, behind the jets' nose, the wide arm gliding; the engines
   // followed his heading alone before, #427)
   const follow = cameraFollow({ rig, player });
+  // the benches to sit on, as the page (src/host/game-host.js wireBenches; #264: "benches aren't in the engine yet")
+  const benches = optional('the benches', () => wireBenches({ levelId, scene, physics, level, player, sound, rig }));
   if (tool) tool.rig = rig;
 
   // the look: the preset and the hour, as main.js applies them
@@ -1272,7 +1274,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const lookOut = {};
   const SEC = { ms: {}, frames: 0 };
   const game = {
-    scene, camera, player, rig, level, physics, deferred, floraLater, npcs, crowd, story, storyPage, relics, ship, mirror, folk, kit, dangers, chemistry, boxes, fragments, gadgets, itemFx, grass, wind, sky, post, T, wildlife, weather, shelter, tool, scout, sound, expedition, plumb, firstSteps, setLanternSky, flora, reactiveWorld, flammables,
+    scene, camera, player, rig, level, physics, deferred, floraLater, npcs, crowd, story, storyPage, relics, ship, mirror, folk, kit, dangers, chemistry, benches, boxes, fragments, gadgets, itemFx, grass, wind, sky, post, T, wildlife, weather, shelter, tool, scout, sound, expedition, plumb, firstSteps, setLanternSky, flora, reactiveWorld, flammables,
     /** The sound's AudioContext (engine/webaudio.js): ctx.render(frames) → the next stereo PCM, or null without sound. */
     get audio() { return sound.ctx ?? null; },
     /** The wallet's chimes (src/resources.js), as the health HUD shows them while it is up. */
@@ -1565,6 +1567,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       if (shopWaiting && !talking()) { const e = shopWaiting; shopWaiting = null; menus.openShop(shopPanel, e); }
       lap?.('story');
       const busy = !!story?.busy?.() || (shipOn && ship.busy()) || !!boxes?.busy?.() || !!trials?.busy();
+      benches?.update(dt, busy || pinned ? noInput : ctlS, ePressed && !handled);   // (sat on a bench: a move, a jump, B or E stands him up)
       player.camFwd = camera.getWorldDirection(player.camFwd ?? new THREE.Vector3());
       // (a run on foot's own buttons, before the traveller and the gadget in hand read them: main.js filterInput)
       if (!busy && !pinned) trials?.filterInput(ctlS);
@@ -1580,7 +1583,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         if (gadgets) { try { gadgets.control(pdt, gadgetsPaused ? noInput : ctlS, gadgetsPaused); } catch (e) { if (!game._gadgetsFailed) { game._gadgetsFailed = true; console.warn('[game] the gadgets failed', e?.stack ?? e); } } }
         // (the observatory's lens beside him takes E before he whistles: main.js)
         if (expedition) { try { if (expedition.update(dt, player, pinned ? noInput : ctlS, busy || !!pinned) && ctlS.KeyE) player._eHeld = true; } catch (e) { if (!game._obsFailed) { game._obsFailed = true; console.warn('[game] the observatory failed', e?.stack ?? e); } } }
-        player.update(pdt, doorWalk.input(pinned || busy ? noInput : ctlS, pdt, rig.yaw), rig.yaw - (rig.locked ? rig.lockOff ?? 0 : 0), rig.pitch);
+        player.update(pdt, doorWalk.input(pinned || busy ? noInput : benches ? benches.inputFor(ctlS) : ctlS, pdt, rig.yaw), rig.yaw - (rig.locked ? rig.lockOff ?? 0 : 0), rig.pitch);
       }
       // the vehicles no one rides go about (the cabs on their lanes; main.js)
       lap?.('traveller');
@@ -1594,6 +1597,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         follow(pdt);   // (a ride's own shot, behind the jets, the wide arm, a hop: cameraFollow, as the page)
         rig.update(player.pos, pdt, player.frame);
         story?.frameCamera?.(camera);   // the two-shot while talking
+        benches?.frameCamera(camera);   // (sat on a bench: behind and above him, looking out)
         // locked on: the camera keeps the foe ahead, a guardian framed with him; then a blow's jolt (main.js renderFrame)
         if (combat) { try { combat.frame(realDt, busy || (shipOn && ship.playing)); } catch (e) { if (!game._lockFailed) { game._lockFailed = true; console.warn('[game] the lock-on failed', e?.stack ?? e); } } shakeCamera(camera, realDt); }
         // a game played on foot (a trial, the Sunken Hall): its clock, gates and waves, after the rig, so it may take the camera

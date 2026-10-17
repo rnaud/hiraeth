@@ -41,6 +41,8 @@ export const CHANGELOG = [
     'In the Unity version, the camera and the world round you behave as on the web too: the camera stays out of the cabs and carriers instead of passing through them.',
     // issue #427 round 2: src/host/game-host.js (wireCamera, cameraFollow…), engine/game.js; tests/game-host.test.js
     'In the Unity version, the camera and the world round you behave as on the web too: the camera stays out of the cabs and carriers instead of passing through them; riding the bike or the bird, the camera takes the ride’s own view, and on the jets it comes round behind and tips with you, pulling back the faster you fly.',
+    // issue #427 round 2: src/host/game-host.js (wireCamera, cameraFollow, wireBenches…), engine/game.js; tests/game-host.test.js
+    'In the Unity version, the camera and the world round you behave as on the web too: the camera stays out of the cabs and carriers instead of passing through them; riding the bike or the bird, the camera takes the ride’s own view, and on the jets it comes round behind and tips with you, pulling back the faster you fly; the benches are there to sit on.',
   ] },
   { v: '1.83', date: '2026-10-16', items: [
     // issue #406: src/temples/desert.js (ROOMS, LOGIC: hall, balcony, ballK, kS, dE, sentry in the hall, d3), pieces.js Ball

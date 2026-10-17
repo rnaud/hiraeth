@@ -1934,6 +1934,9 @@ Round 2 (the mechanical groups):
 - `cameraFollow`: the follow shot each frame: a ride's own (the bike's, the bird's), behind the jets' nose and tipped with
   it, the wide arm (gliding, the jets by speed, climbing, swimming), low when knocked down, rising in a hop. The
   engines followed his heading alone.
+- `wireBenches`: the benches to sit on (src/benches.js), once the rig is made; each frame the host calls their update after
+  the story took E, their inputFor as the traveller's input and their frameCamera after the rig. The engines had none
+  (the seated HUD's fade is the page's body class; BridgeHud's own is #430's).
 
 Checked in Unity (the editor's batch run, `-fresh -no-hud`, against main's bundle for the before and the web's
 pictures of the same views): the kit's colours at the desert's ramp foot (`-set-flags` now takes `key=value`:

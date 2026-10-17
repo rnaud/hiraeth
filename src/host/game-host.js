@@ -16,6 +16,7 @@
 //   wireCompanion({ game, plumb, scout, level, … })        Plumb each frame: its escort, its hints, its first word (#434)
 //   wireCamera, wireHero, heroCutFrame                     the camera kept out of the cabs, the traveller's own surfaces
 //   cameraFollow({ rig, player })                          the follow shot: a ride's, behind the jets, the wide arm
+//   wireBenches({ levelId, scene, physics, …, rig })       the benches to sit on
 //
 // tests/game-host.test.js holds each group to both hosts; scripts/bridge-gaps.mjs reports a group main.js calls and
 // engine/game.js doesn't as a host gap (engine/bridge-gaps.js `shared:`).
@@ -38,6 +39,7 @@ import { keyText } from '../prompt-keys.js';
 import { placeOf, droneWorld, shown as droneShown } from '../companion.js';
 import { ESCORT } from '../scout.js';
 import { guardianHint } from '../temples/hints.js';
+import { createBenches } from '../benches.js';
 import { cameraPhysics, keepLensOut } from '../carriers.js';
 import { keepHero, markHero, sharedUniforms } from '../materials.js';
 import { heroCut, jetCameraPitch, WIDE } from '../player.js';
@@ -288,4 +290,17 @@ export function cameraFollow({ rig, player }) {
     rig.down = !!player.down;
     rig.air = !player.onGround && !player.climbing && !player.swim && !player.riding;
   };
+}
+
+// ------------------------------------------------------------------ the benches
+let lastBenches = null;   // (one game at a time: the last one's let go, its E's interactables with them)
+/**
+ * The benches to sit on (src/benches.js, issue #363): E by one sits him, the camera comes round behind and above, the
+ * HUD fades (the body's 'seated'), a move, a jump, B or E stands him up. Once the camera rig is made. Each frame:
+ * benches.update(dt, input, ePressed) after the story took E, benches.inputFor(input) as the traveller's input,
+ * benches.frameCamera(camera) after the rig.
+ */
+export function wireBenches({ levelId, scene, physics, level, player, sound = null, rig }) {
+  lastBenches?.dispose?.();
+  return (lastBenches = createBenches({ levelId, scene, physics, level, player, sound, rig }));
 }
