@@ -72,12 +72,16 @@ test('every line said on the way carries a tone; the pirates come for the hull, 
 });
 
 test('the wiring: the ship asks main.js where a take-off goes; the fight\'s page marks the trip; the setting', () => {
-  const ship = read('src/ship/ship.js'), main = read('src/main.js'), ui = read('src/ui.js');
+  const ship = read('src/ship/ship.js'), main = read('src/main.js'), ui = read('src/ui.js'), host = read('src/host/game-host.js');
   assert.match(ship, /location\.search = this\.departure\?\.\(to\) \?\? `\?level=\$\{to\}&via=ship`/);
-  assert.match(main, /departure: \(to\) => \(ambushDue\(\{ to, flag: \(k\) => game\.flag\(k\), seen: \(id\) => journal\.seen\(id\), settings \}\) \? ambushHref\(to, levelId\) : null\)/);
-  assert.match(main, /if \(transit && !game\.flag\(ambushKey\(transit\.to\)\)\) game\.set\(ambushKey\(transit\.to\), 'met'\)/);
+  // (the one game setup's wireAmbush, both hosts': src/host/game-host.js, issue #435; tests/game-host.test.js plays it)
+  assert.match(host, /departure: \(to\) => \(ambushDue\(\{ to, flag: \(k\) => game\.flag\(k\), seen, settings \}\) \? ambushHref\(to, levelId\) : null\)/);
+  assert.match(main, /departure: ambush\.departure/);
+  assert.match(host, /if \(!game\.flag\(ambushKey\(to\)\)\) game\.set\(ambushKey\(to\), 'met'\)/);
+  assert.match(main, /const transit = ambush\.transit\(query\.get\('to'\)\)/);
   // won: marked, and the chimes shot down banked once
-  assert.match(main, /onResult: \(r\) => \{ if \(transit && !r\.failed\) \{ if \(r\.chimes && game\.flag\(ambushKey\(transit\.to\)\) !== 'won'\) resources\.addChimes\(r\.chimes, \{ source: 'pirates' \}\); game\.set\(ambushKey\(transit\.to\), 'won'\); \} \}/);
+  assert.match(host, /if \(r\.chimes && game\.flag\(ambushKey\(to\)\) !== 'won'\) resources\.addChimes\(r\.chimes, \{ source: 'pirates' \}\);/);
+  assert.match(main, /onResult: \(r\) => transit\?\.onResult\(r\)/);
   // (the setting that turned the pirates off alone went with the skip, v1.45)
   assert.doesNotMatch(ui, /data-k="ambush"/);
   for (const lang of ['en', 'fr']) assert.doesNotMatch(read(`src/i18n/${lang}.js`), /'set\.ambush': '/);

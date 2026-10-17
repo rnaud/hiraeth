@@ -425,7 +425,7 @@ B / ○ out of the question, then out of the shop. BridgeMenu.cs `DrawShop`, the
 tests/engine-menus.test.js, tests/engine-ship.test.js. A new save's slot on the title says it starts with the prologue.
 
 **The fight** (issue #264). When the engine is played (with its menus), or a plan asks (`fight`, the bridge's `-fight`),
-engine/game.js makes the fight as main.js wires it, in engine/combat.js: `Foes` (src/foes.js: the ink blots in the
+engine/game.js makes the fight as main.js does, the one game setup's `wireFight` (below, round 3), in engine/combat.js: `Foes` (src/foes.js: the ink blots in the
 wilds, the makers' machines in the temples, the relics' guards; the Enemies setting), the lock-on (Tab, R3: `cycleLock`,
 the scout's ping with none in reach), its camera after the rig (`lockFollow`; a guardian framed whole with him,
 lock-frame.js `guardianBox`; the boss framing its fight asks for, `rig.boss`; the aim locked on, src/lock-aim.js), the
@@ -1959,6 +1959,29 @@ Round 2 (the mechanical groups):
 Round 2 checked in Unity (batch run against the base's bundle and the web's pictures of the same views): the bench on
 the dunes over Qanat (none before) and the Lab's Lorn II room (the hub's sky before, its own dusk and moon after); the
 pairs are v1.84's in the changelog.
+
+Round 3, the fight (issue #435): what main.js and engine/combat.js each wired is four groups.
+- `wireHealth`: the hearts, the magic bar, the potions and the wallet (healthHud), shown while fighting (`foes.fighting`;
+  the engines showed them on a lock or a foe within 12 m), after a hurt, a drink or a chime, the wallet's count ticking up
+  (walletTick; the engines' jumped). The page draws its #health from it, the engines publish it.
+- `hurtReactions`: the Player's onHurt, onDrink, onKnockdown and onRestart: the thud under a hit (src/ship/sfx.js rumble,
+  heavier by the hearts it cost) and its cry, the pad's rumble, the screen's jolt for a foe's blow, the potion's lesson;
+  a knockdown's heavier thud; the fade up again after a knock-out (the ship's cinema). The engines had no thud and no fade.
+- `wireFight`: the foes and their drops (chimes, potions), the lock-on with its lesson and the flick to the next foe, its
+  camera (lockFollow, a guardian's box, the boss framing, the locked aim), the perfect dodge's flurry, the potion, the
+  low-health cue and the knock-out's card (`card(dt, paused)` → its text on a change). engine/combat.js keeps the
+  engines' layer: the reticle, the warnings, the edges and the card as the screen's parts. The engines' combat ran the
+  hazards too, so fire and spines bit twice a frame there: they bite in wireDangers alone now.
+- `wireAmbush`: the chime-pirates on the first flight to a world never visited: the page's ship departure and its game
+  page's transit; in the engines the ship's `go` asks for the pirates' page (`onGame`), engine/trials.js gives its runner
+  the ways out, the trip's marks and the chimes won, and engine/unity/game.js carries `to` through the reboot and lands
+  at the world by ship after it (readHref's `to`, `via`).
+Also: the engines' trials pass `kick` to the runs (the fight temples' and the games' jolts were lost), and R3 / L3 hop the
+Lab's rooms there as on the page. The fight temples' rules (the roll on B, the quick cut, the kills' marks, #442) are the
+runner's own (src/fight-temples/session.js), the same in both. Checked in Unity (batch, muted, 1280 × 720, High) against
+the web's same steps: the Arena's lock, cut, low hearts and knock-out (`-level arena -fight foe,down`) and the Sunken
+Hall's run posed (`-game fight-desert -pose 4`). Left: the page dims the world behind the knock-out's card, BridgeHud
+draws the card alone.
 
 Checked in Unity (the editor's batch run, `-fresh -no-hud`, against main's bundle for the before and the web's
 pictures of the same views): the kit's colours at the desert's ramp foot (`-set-flags` now takes `key=value`:

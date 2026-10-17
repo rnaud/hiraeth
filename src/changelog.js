@@ -68,6 +68,9 @@ export const CHANGELOG = [
     'The Underwater City and the Glass Dunes have ports too. On the Dock’s dome a coral pontoon ring with brass rims lies under your ship, with a little cupola and two pods moored, and round pods glide between the domes. In the Glass Dunes your ship stands on a pale stone landing disc in a yard of ochre canvases, racks of green glass floats, float-sledges and a glass skiff.',
     'The cities off the route have ports as well: rows of lamp-topped pylons and a mirror tower on the Eclipse city’s esplanade, stakes and old mooring ropes round your ship on Salt Harbour’s salt with a mast crane and a sand-skiff, a gantry and couriers on the Waterfall’s ledge, and a rust-orange crane with an ore bucket at the Buried Machine’s freight stage.',
     'Each port has someone who runs it: Orla keeps the Pier’s harbour book, Faro wardens the City-Shaft’s rim docks, Ludo logs the Signal Market’s call-signs, Mabyn keeps the Float Yard’s tally, Cato walks ships in on the Eclipse city’s esplanade, Tully keeps the Waterfall’s ledge and Dace loads the Buried Machine’s freight.',
+    // issue #435: src/host/game-host.js (wireHealth, hurtReactions, wireFight, wireAmbush), engine/combat.js, engine/game.js,
+    // engine/trials.js, engine/unity/game.js; tests/game-host.test.js, tests/engine-trials.test.js
+    'In the Unity version, fights answer as on the web: fire and spines burn at the web’s rate (they bit twice as fast), a blow lands with a dull thud under the cry, the hearts stay up for the whole fight, the chimes count up into the wallet, the fight temples and the games shake the camera on a hit, the chime-pirates meet the ship on its first flight to a new world, and in the Lab R3 and L3 hop between the worlds’ rooms.',
   ] },
   { v: '1.83', date: '2026-10-16', items: [
     // issue #406: src/temples/desert.js (ROOMS, LOGIC: hall, balcony, ballK, kS, dE, sentry in the hall, d3), pieces.js Ball

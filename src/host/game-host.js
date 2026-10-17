@@ -22,6 +22,7 @@
 //   wireSky({ level, U, onPreset })                        the style preset, the planets, a level's zones
 //   wirePotion({ game, toast }), wireNudges({ … })         the potion's glow and lesson, the world's nudges
 //   fragmentsLine({ fragments, game, items, levelId })     the Start menu's line of the fragments
+//   wireHealth, hurtReactions, wireFight, wireAmbush       the hearts, a hurt's answer, the foes and the lock-on, the pirates (#435)
 //
 // tests/game-host.test.js holds each group to both hosts; scripts/bridge-gaps.mjs reports a group main.js calls and
 // engine/game.js doesn't as a host gap (engine/bridge-gaps.js `shared:`).
@@ -55,6 +56,23 @@ import { createBenches } from '../benches.js';
 import { cameraPhysics, keepLensOut } from '../carriers.js';
 import { keepHero, markHero, sharedUniforms } from '../materials.js';
 import { heroCut, jetCameraPitch, WIDE } from '../player.js';
+import { Foes, lockFollow, LOCK_NEAR } from '../foes.js';
+import { guardianBox } from '../lock-frame.js';
+import { hopAxis } from '../jump.js';
+import { lockAim } from '../fluid-tool.js';
+import { AimNudge, AIM_NUDGE, lockAimStep } from '../lock-aim.js';
+import { ChimeField, ChimeView, dropPolicy, connectDrops } from '../chimes.js';
+import { PotionDrops } from '../potion-drops.js';
+import { LowHealthCue } from '../low-health.js';
+import { resources, POTION } from '../resources.js';
+import { kick, flurry, endFlurry, flurryLeft } from '../feel.js';
+import { FLURRY, nextFlurry } from '../flurry.js';
+import { rumblePlay } from '../rumble.js';
+import { lockLesson } from '../hook-foes.js';
+import { items } from '../items.js';
+import { Fader, healthHud, walletTick } from '../hud.js';
+import * as shipSfx from '../ship/sfx.js';
+import { ambushDue, ambushHref, ambushKey, transitLinks } from '../ambush.js';
 
 // ------------------------------------------------------------------ the kit
 /**
@@ -469,4 +487,245 @@ export function fragmentsLine({ fragments, game, items, levelId }) {
   if (!c?.found) return '';
   const w = c.worlds?.[levelId], held = game.flag('frag.met') ? fragmentPurse(game.data.flags, (id) => items.has(id)).held : null;
   return `✧ ${c.found} of ${c.total} fragments of the singing light${held != null ? ` · ${held} to spend` : ''}${w ? ` · ${w.left ? `${w.left} left here` : 'none left here'}` : ''}`;
+}
+
+// ------------------------------------------------------------------ the fight (issue #435)
+// The hearts on the screen, how a hurt is answered, the foes with their drops, the lock-on and its camera, the perfect
+// dodge's flurry, the knock-out's card and the ambushes on a flight to a new world: main.js wired them and engine/combat.js
+// again, apart (the engines' hazards bit twice a frame, their hurts had no thud, their wallet no count). Each host keeps
+// how it draws them: the page its DOM (#health, #restart, the flurry's vignette), the engines the screen's parts.
+
+/**
+ * The hearts, the magic bar, the potions and the wallet (src/hud.js healthHud): shown while hurt, spending, fighting
+ * (src/foes.js fighting) and a moment after; the wallet's count ticking up to the real one (walletTick). Made before
+ * the traveller: a hurt, a drink, a chime picked up show it (`show()`).
+ *   health.show()                                    a hurt, a knockdown, a potion, a chime: shown at once
+ *   health.frame(dt, { player, fighting, quiet })    → { hp, wallet } each frame: the state drawn (null: hidden), the count shown
+ */
+export function wireHealth({ game, tool = null }) {
+  let shown = 0, walletShown = resources.chimes;
+  const fade = new Fader(3);
+  game.on?.('wallet', () => { shown = 3; });
+  return {
+    show() { shown = 3; },
+    frame(dt, { player, fighting = false, quiet = false }) {
+      player.setMaxHearts?.(resources.maxHearts);
+      const T = typeof tool === 'function' ? tool() : tool;
+      const R = T?.owned && !T.dry ? T.reserve : null, pot = resources.potions, wallet = resources.chimes, ticking = walletShown !== wallet;
+      walletShown = walletTick(walletShown, wallet, dt);
+      const hp = healthHud({ health: player.health ?? 1, hearts: player.hearts ?? null, max: player.maxHearts ?? 3, magic: R ? R.level : null, magicMax: R?.max ?? 3,
+        potions: pot.count, infinite: pot.infinite, chimes: Math.round(walletShown), wallet: ticking, combat: !!fighting, down: player.down, hurt: shown > 0, quiet }, fade, dt);
+      shown = 0;
+      return { hp, wallet: walletShown };
+    },
+  };
+}
+
+/**
+ * How the traveller's hurts are answered (the Player's onHurt, onDrink, onKnockdown, onRestart): a thud under the hit
+ * (src/ship/sfx.js rumble, heavier by the hearts it cost), its cry, the pad's rumble (a fall rumbles as its landing),
+ * the screen's jolt for a foe's blow, the hearts shown, the potion's lesson; the drink's sound, glow and rumble; a
+ * knockdown's heavier thud; up again after a knock-out, a quick fade. Spread into the Player's options. `player()`,
+ * `sound()`, `tool()`: read when they happen (the engines make the sound after the traveller); `fade(k, secs)`: the
+ * host's screen fade (null: none).
+ */
+export function hurtReactions({ player, sound, potion = null, tool = () => null, health = null, fade = null }) {
+  return {
+    onHurt: (h, why) => {
+      const s = sound(), k = Math.min(1, h / 1.5);
+      shipSfx.rumble(s, 0.35 + k * 0.4, 0.25 + k * 0.5); s?.hurt?.(h, why); health?.show();
+      if (why === 'foe') kick(0.45 + k * 0.5);
+      potion?.hint(player());
+      if (why !== 'fall') rumblePlay('hurt', { h });   // (a fall rumbles as its landing: onKnockdown)
+    },
+    onDrink: (got) => { sound()?.potion?.('heal'); health?.show(); potion?.glow(player(), tool(), got); rumblePlay('potion'); },
+    onKnockdown: (dead, why) => {
+      shipSfx.rumble(sound(), dead ? 0.95 : 0.6, dead ? 0.9 : 0.45); health?.show();
+      rumblePlay(why === 'fall' && !dead ? 'land' : 'knockdown', { dead, speed: player()?.lastLanding });
+    },
+    onRestart: () => { if (!fade) return; fade(1, 0.05); setTimeout(() => fade(0, 0.9), 120); },
+  };
+}
+
+/**
+ * The fight: the ink blots in the wilds and the makers' machines in the temples (src/foes.js Foes, the Enemies setting);
+ * the chimes and potions they drop (src/chimes.js, potion-drops.js); the lock-on (R3 / Tab) with its lesson, a flick to
+ * the next foe, and its camera (lockFollow; a guardian framed whole with you, lock-frame.js; the boss framing its fight
+ * asks for; aiming locked on, lock-aim.js); the hops' perfect dodge and its flurry (src/flurry.js); the potion (D-pad ←);
+ * the low-health cue (src/low-health.js) and the knock-out's card. `lowParent`: where the low-health edges are drawn
+ * (left out: the page's body; null in the engines, which draw `low()`'s k).
+ *   fight.update(dt, quiet)                        the foes, the flurry's end, the drops (quiet: a menu, a photo, a scene)
+ *   fight.frame(realDt, { busy, still })           the lock's camera, after the rig (still: a photo held)
+ *   fight.lock() → bool                            R3 / Tab (false: nothing in reach: the host's scout pings)
+ *   fight.drink() → bool                           D-pad ←: a potion drunk, or a word why not
+ *   fight.low(dt, paused) → k                      the low-health cue (0..1: the edges)
+ *   fight.knockout(why); fight.card(dt, paused)    knocked out: after 1.4 s the card (null, or { open, text } on a change)
+ *   fight.restart() → bool                         the card's confirm: up again at the last safe place
+ *   fight.padLook = () => stick                    the right stick's tilt (aiming locked on, it shifts the aim)
+ */
+export function wireFight({ scene, level, levelId, content, physics, player, tool = null, sound = null, npcs, settings, camera, rig, lib, humans, waters, game, toast = () => {}, teach = toast, health = null, lowParent = undefined }) {
+  const foes = new Foes({ scene, level, levelId, content, physics, player, tool, sound, npcs, settings, camera, lib, humans, waters, notice: teach });   // (its notices teach: paced as hints)
+  // chimes, the currency: a foe cut down scatters a few (by its weight), a guardian a purse once; walked over or drawn
+  // in, they ring into the wallet (src/resources.js); none from a game's own foes (Ink tide)
+  const chimePolicy = dropPolicy(level);
+  const groundAt = (x, y, z) => physics.groundAt(x, y + 2, z, 8);
+  const chimes = new ChimeField({ groundAt, onTake: (p) => { resources.addChimes(p.value, { source: 'pickup', training: p.training }); sound?.chimePickup?.(p.value); rumblePlay('chime'); health?.show(); } });
+  const chimeView = new ChimeView(scene);
+  /** A guardian's purse: scattered on the floor between it and you (a floating guardian's body is out of reach). */
+  const purseAt = (pos) => {
+    const P = player.pos, at = P.clone();
+    if (pos) { const dx = pos.x - P.x, dz = pos.z - P.z, d = Math.hypot(dx, dz); if (d > 0.1) at.set(P.x + (dx / d) * Math.min(3.4, d), P.y, P.z + (dz / d) * Math.min(3.4, d)); }
+    return at;
+  };
+  const offs = [connectDrops(game, chimes, { policy: chimePolicy, purseAt, sound })];
+  // potions a foe leaves now and then: walked over, into the pack
+  const potionDrops = new PotionDrops(scene, { groundAt, onTake: () => { if (resources.addPotions(1)) { sound?.potionPickup?.(); health?.show(); toast(tr('potion.found')); rumblePlay('chime'); } } });
+  if (chimePolicy !== 'off') offs.push(game.on('foe:burst', (e) => { const pot = resources.potions; potionDrops.maybe(e, { hearts: player.hearts, max: player.maxHearts, potions: pot.count, cap: POTION.cap, infinite: pot.infinite }); }));
+  // at one heart or less: a short heartbeat and the screen's edges darkening with it
+  const lowHealth = new LowHealthCue(lowParent === undefined ? { sound } : { sound, parent: lowParent });
+  if (tool) tool.lockOn = () => foes.lockTarget();   // (the blade and its guard turn to the locked foe)
+  // Locked on, the back flip and the side hop (src/jump.js HOP): their dodge frames (FluidBlade.hop), and begun just
+  // before a blow lands, a perfect dodge: the flurry, the world slowed round you a few seconds
+  let flurryAgainAt = 0, flurryChain = null;
+  function startFlurry() {
+    const now = performance.now() / 1000;
+    if (flurryLeft() > 0 || now < flurryAgainAt) return;
+    const F = flurryChain = nextFlurry(flurryChain, now);   // (back to back, each shorter and the wait after it longer: CHAIN)
+    flurry(F.time, FLURRY.rate, FLURRY.ease);
+    flurryAgainAt = F.nextAt;
+    sound?.flurry?.(true); kick(0.1); rumblePlay('flurry');
+    if (!game.flag('hint.flurry') && hintsFor('tip')) { game.set('hint.flurry', true); teach(tr('hint.flurry')); }   // (said after the fact, hints full)
+  }
+  player.onHop = (kind, win) => { tool?.blade?.hop(win); if (foes.perfectDodge()) startFlurry(); };
+  if (tool?.blade) tool.blade.onHopDodge = () => startFlurry();
+  player.untouchable = () => flurryLeft() > 0;   // (a guardian's blows and rings pass you by: src/temples/boss.js)
+  const lockView = { foe: null, side: 1, angle: 0, line: 0, turn: 0, vel: 0 };   // (the lock camera's swing off the line: lockViewAngle)
+  const lockBox = { min: new THREE.Vector3(), max: new THREE.Vector3() };
+  const aimNudge = new AimNudge();
+  const _hopView = new THREE.Vector3();
+  let padLook = () => null, off = false;
+  // aiming locked on (LT / L2): the aim on the lock's point, the right stick shifting it a little (issue #362)
+  const aimingLocked = () => !!(foes.lock && !off && tool && tool.camK > 0.2 && tool.k > 0.2);
+  // locked on, the look's sideways motion is the lock's: a quick flick switches to the next foe that way (FLICK);
+  // aiming locked on, it shifts the aim off the lock's point instead, within its cone (the stick by its tilt, read each
+  // frame; a pointer by its moves)
+  const look = rig.look.bind(rig);
+  rig.look = (dx, dy) => {
+    if (aimingLocked()) { const s = padLook(); if (!(s?.x || s?.y)) aimNudge.push(dx, dy, rig.sensitivity); return; }
+    if (foes.lock && !off && foes.flickLook(dx)) dx = 0;
+    look(dx, dy);
+  };
+  let deadFor = 0, knockedOut = null, cardOpen = false;
+  const F = {
+    foes, chimes, potionDrops, lowHealth, lockView, startFlurry,
+    set padLook(fn) { padLook = fn; },
+    get cardOpen() { return cardOpen; },
+    lock() {
+      const had = foes.lock;
+      const got = foes.cycleLock();
+      if (foes.lock && !had && hintsFor('teach')) {
+        // (locked on, a new verb, taught once: the hops, then, the hook owned, the hook at the lock: src/hook-foes.js)
+        const lesson = lockLesson({ taught: (k) => !!game.flag(`${k}.taught`), hook: items.has('hook') });
+        if (lesson) { game.set(`${lesson}.taught`, true); teach(keyText(tr(lesson), { teach: true })); }
+      }
+      return !!got || !!had;
+    },
+    drink() {
+      const why = player.cantDrink?.();
+      if (why === 'full') { sound?.potion?.('no'); toast(tr('potion.full')); health?.show(); return false; }
+      if (why) return false;
+      if (!resources.takePotion()) { sound?.potion?.('no'); toast(tr('potion.none')); return false; }
+      player.drinkPotion();
+      sound?.potion?.('open'); health?.show();
+      return true;
+    },
+    low: (dt, paused) => lowHealth.update(dt, { hearts: player.hearts, max: player.maxHearts, dead: player.dead, paused }).k,
+    knockout(why) { knockedOut = why; },
+    card(dt, paused) {
+      deadFor = player.dead ? deadFor + dt : 0;
+      const want = player.dead && deadFor > 1.4 && !paused;
+      if (want === cardOpen) return null;
+      cardOpen = want;
+      return { open: want, text: want ? tr(knockedOut === 'fall' ? 'restart.fall' : 'restart.out') : null };
+    },
+    restart() {
+      if (!player.dead) return false;
+      cardOpen = false; deadFor = 0; knockedOut = null;
+      player.restart();
+      rig.target?.copy?.(player.pos);
+      return true;
+    },
+    near: (r = 20) => foes.near(r),
+    update(dt, quiet = false) {
+      foes.update(dt, quiet);
+      if (flurryLeft() > 0 && !foes.anyFighting()) endFlurry();   // (nothing left to cut: the world comes back to speed)
+      if (!quiet) { chimes.update(dt, player.dead ? null : player.pos); potionDrops.update(dt, player.dead ? null : player.pos); }
+      chimeView.update(chimes, camera);
+    },
+    frame(realDt, { busy = false, still = false } = {}) {
+      off = busy || still;
+      // locked on: the traveller faces the foe, strafing round it (player.lockOn: src/player.js LOCK_MOVE); a guardian
+      // through its steady stand-in (GuardianLock.steady, issue #321: its lunges no longer swing the line or the camera)
+      player.lockOn = foes.lock && !busy ? Object.assign(player._lockOn ??= { dir: new THREE.Vector3() }, {}) : null;
+      const L = foes.lock?.steady ? foes.lock.steady(off ? 0 : realDt) : foes.lock;
+      if (player.lockOn) {
+        player.lockOn.dir.set(L.pos.x - player.pos.x, 0, L.pos.z - player.pos.z).normalize();
+        (player.lockOn.at ??= new THREE.Vector3()).copy(L.pos);   // (what a sidestep circles: Player.orbitLock)
+        // (a hop read against the camera's look with the foe at his feet: src/jump.js hopAxis)
+        camera.getWorldDirection(_hopView);
+        const a = hopAxis(player.lockOn.dir, _hopView.setY(0).normalize(), Math.hypot(L.pos.x - player.pos.x, L.pos.z - player.pos.z), LOCK_NEAR);
+        (player.lockOn.hop ??= new THREE.Vector3()).set(a.x, 0, a.z);
+      }
+      if (!foes.lock) { lockView.foe = null; lockView.angle = 0; }
+      if (!foes.lock || off) lockView.vel = 0;
+      rig.locked = !!(foes.lock && !off);
+      rig.lockAt = rig.locked ? (L.chest ?? L.pos) : null;
+      // (a guardian: its box round its steady stand-in, so the camera frames you both whole: CameraRig.fitFrame, #359)
+      rig.frameWith = rig.locked && foes.lock.guardian && foes.lock.model?.group ? guardianBox(foes.lock.model, L.pos, lockBox, performance.now() / 1000) : null;
+      rig.boss = off ? null : foes.bossFight()?.def.camera ?? null;   // (a guardian's arena, awake: further back and higher)
+      if (!rig.locked) rig.lockRoom?.(realDt, null);
+      if (foes.lock && !off) {
+        const f = foes.lock, P = player.frame;
+        // (aiming the gun locked on: the crosshair on the lock's own point, the camera turned from where it stands;
+        // not aiming: the line to the foe, its stand-off swing, the room behind him: src/foes.js lockFollow)
+        const aim = aimingLocked() ? lockAim(camera.position, f.aim ?? f.chest, P) : null;
+        if (!aim) lockFollow(lockView, rig, L, player.pos, P, realDt);
+        else {
+          rig.lockRoom?.(realDt, null); lockView.vel = 0;
+          aimNudge.update(realDt, padLook());
+          lockAimStep(rig, aim, aimNudge, THREE.MathUtils.smoothstep(tool.camK, AIM_NUDGE.ramp[0], AIM_NUDGE.ramp[1]));
+        }
+      }
+      if (!aimingLocked() && (aimNudge.x || aimNudge.y || aimNudge.mx || aimNudge.my)) aimNudge.reset();   // (each locked aim starts on the point)
+      if (tool) tool.nudged = aimingLocked() && aimNudge.nudged;
+    },
+    dispose() { for (const o of offs) o?.(); foes.dispose?.(); chimeView.dispose?.(); },
+  };
+  return F;
+}
+
+/**
+ * The chime-pirates on the first flight to a world never visited (src/ambush.js): `departure(to)` → the fight's page
+ * ('?game=pirates&to=…&from=…') or null (straight there). On that page, `transit(to)` → what its runner takes (null on
+ * a game's own page): the ways out (none but through it), the trip marked at once (a crash never sends you round it
+ * again), `left()` as it goes, the chimes shot down into the wallet once won (`onResult`).
+ */
+export function wireAmbush({ game, levelId, seen = () => false, settings = null, titles = {} }) {
+  return {
+    departure: (to) => (ambushDue({ to, flag: (k) => game.flag(k), seen, settings }) ? ambushHref(to, levelId) : null),
+    transit(to) {
+      const links = to ? transitLinks({ get: (k) => (k === 'to' ? to : null) }, titles) : null;
+      if (!links) return null;
+      if (!game.flag(ambushKey(to))) game.set(ambushKey(to), 'met');
+      return {
+        links,
+        left() { if (game.flag(ambushKey(to)) === 'met') game.set(ambushKey(to), 'skipped'); },
+        onResult(r) {
+          if (r.failed) return;
+          if (r.chimes && game.flag(ambushKey(to)) !== 'won') resources.addChimes(r.chimes, { source: 'pirates' });   // (once: a Retry after the win flies it for the score)
+          game.set(ambushKey(to), 'won');
+        },
+      };
+    },
+  };
 }

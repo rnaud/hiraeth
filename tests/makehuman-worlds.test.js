@@ -429,7 +429,7 @@ test('every person of the game on a MakeHuman body by default (issue #271): each
     'the minigames\' people': /people: \{ lib, humans: peopleT \}/,
   };
   for (const [who, re] of Object.entries(uses)) assert.match(main, re, who);
-  assert.doesNotMatch(main.replace(/const foes = new Foes[^\n]*/, ''), /humans: humanT/, 'no person left on the Quaternius pair');
+  assert.doesNotMatch(main.replace(/fight = wireFight\([^\n]*/, ''), /humans: humanT/, 'no person left on the Quaternius pair');
   // the traveller: his own accepted body (src/characters/traveller.js, B3 on a MakeHuman template), the Quaternius man only if it fails to load
   assert.match(main, /player\.character = createTraveller\(player\.char, generatedTraveller\)/);
   // a template from the family picks each person's own body; a pooled crowd body is a grown-up of average build

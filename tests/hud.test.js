@@ -105,11 +105,13 @@ test('the health bar and the stamina wheel show while it matters and fade a mome
   for (let i = 0; i < 20; i++) f.update(0.1, true);   // healing
   assert.equal(f.update(2.9, false), true, 'a moment after');
   assert.equal(f.update(0.2, false), false, 'gone');
-  const main = src('src/main.js');
-  assert.match(main, /const hpFade = new Fader\(3\)/);
-  // (the rule in hud.js healthHud, which main.js draws and an engine reads: platform.js screen.health)
-  assert.match(main, /healthHud\(\{ health: h, hearts: player\.hearts, max: player\.maxHearts, magic: R \? R\.level : null/, 'main.js shows the hearts by healthHud');
-  assert.match(main, /down: player\.down, hurt: hpShown > 0/);
+  // (the rule in hud.js healthHud, which the one game setup's wireHealth runs for both hosts: main.js draws it, an
+  // engine publishes it, platform.js screen.health; issue #435)
+  const host = src('src/host/game-host.js');
+  assert.match(host, /const fade = new Fader\(3\)/);
+  assert.match(host, /healthHud\(\{ health: player\.health \?\? 1, hearts: player\.hearts \?\? null, max: player\.maxHearts \?\? 3, magic: R \? R\.level : null/, 'the hearts by healthHud');
+  assert.match(host, /down: player\.down, hurt: shown > 0/);
+  assert.match(src('src/main.js'), /health\.frame\(dt, \{ player, fighting: !!fight\?\.foes\.fighting/);
   const g = new Fader(3);
   assert.equal(healthHud({ health: 1 }, g, 0.1), null, 'unhurt: nothing');
   assert.deepEqual(healthHud({ hearts: 2.25, max: 3 }, g, 0.1), { value: 0.75, low: false, hearts: 2.25, max: 3 }, 'a heart missing: the hearts show');
@@ -191,7 +193,8 @@ test('R3 sends the scout on foot and riding when there is no foe to lock on to; 
   const main = src('src/main.js');
   // (scoutHint.pinged(): a ping of your own counts the scout's button as learnt, src/scout-hint.js)
   assert.match(main, /e\.code === 'KeyQ' && !e\.repeat && !busy\(\) && !photo\.on && !ship\.playing\) \{ scoutHint\.pinged\(\); scout\.ping\(\); \}/);
-  assert.match(main, /const had = foes\.lock;\s*if \(!foes\.cycleLock\(\) && !had && !minigame\) \{ scoutHint\.pinged\(\); scout\.ping\(\); \}/, 'R3: nothing to lock on to, the scout');
+  assert.match(main, /if \(!fight\.lock\(\) && !minigame\) \{ scoutHint\.pinged\(\); scout\.ping\(\); \}/, 'R3: nothing to lock on to, the scout');
+  assert.match(src('src/host/game-host.js'), /const had = foes\.lock;\s*const got = foes\.cycleLock\(\);[\s\S]{0,600}return !!got \|\| !!had;/, '(wireFight lock: false with nothing in reach)');
   assert.match(src('src/ui.js'), /data-press="KeyQ" class="b-ping"/);
   // what it found: the cue, at once, and the quest marker for a while; nothing to find: a shrug, said
   // (said at the ping, issue #65: not when the drone gets there; and its distance as it is every frame: findLine)

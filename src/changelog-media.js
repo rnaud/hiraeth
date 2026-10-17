@@ -1248,6 +1248,7 @@ export const CHANGELOG_MEDIA = {
       { name: 'port-freight', title: 'The freight stage', caption: 'The Buried Machine’s stage from high: the rust-orange lines, the lattice crane and its ore bucket, the drums and crates', from: PORT441, reference: portRef('buried-machine', 'the freight stage, its crane and the ore hopper') },
     ], see: 'Land in any of these worlds and walk round the ship.' },
     { match: 'Each port has someone who runs it', see: 'Look for the port’s keeper a few steps from the ship: by the harbour hut on the Pier, the cab stand on the City-Shaft’s rim, the board’s window in the Signal Market.' },
+    { match: 'In the Unity version, fights answer as on the web', see: 'In the Unity version, stand in a fire for a few seconds and count the hearts it takes (as many as on the web); fight a blot in the Arena and take a blow (the thud), pick up its chimes (the count ticks up); play the Sunken Hall; fly to a world you have never visited (the pirates come); in the Lab press R3.' },
   ],
   '1.83': [
     { match: 'A new game in the Arcade, The Lens Vault', shots: [

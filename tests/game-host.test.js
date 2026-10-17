@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { readFileSync } from 'node:fs';
-import { wireKit, wireDangers, wirePeople, wireChemistry, wireVehicles, wireLessons, wireCompanion, wireCamera, heroCutFrame, cameraFollow, wireBenches, wireEdge, wireOpenings, wireSky, wirePotion, wireNudges, fragmentsLine } from '../src/host/game-host.js';
+import { wireKit, wireDangers, wirePeople, wireChemistry, wireVehicles, wireLessons, wireCompanion, wireCamera, heroCutFrame, cameraFollow, wireBenches, wireEdge, wireOpenings, wireSky, wirePotion, wireNudges, fragmentsLine, wireHealth, hurtReactions, wireAmbush } from '../src/host/game-host.js';
 import { ERRANDS } from '../src/levels/content.js';
 import { hazardCount } from '../src/hazards.js';
 import * as THREE from 'three';
@@ -17,6 +17,7 @@ import { colourById } from '../src/kit-colours.js';
 import { portMaterial } from '../engine/unity/port-format.js';
 import { sharedUniforms } from '../src/materials.js';
 import { setHintLevel } from '../src/hint-level.js';
+import { resources } from '../src/resources.js';
 
 const quiet = (f) => { const w = console.warn, i = console.info, l = console.log; console.warn = console.info = console.log = () => {}; try { return f(); } finally { console.warn = w; console.info = i; console.log = l; } };
 const state = (flags = {}) => ({ data: { flags }, flag: (k) => flags[k], set: (k, v) => { flags[k] = v; } });
@@ -267,7 +268,7 @@ test('the fragments\' line: nothing before the first, then found, to spend once 
 
 test('both hosts call the same groups (src/host/game-host.js), and engine/game.js no longer arms the tool its own way', () => {
   const main = readFileSync('src/main.js', 'utf8'), engine = readFileSync('engine/game.js', 'utf8');
-  for (const g of ['wireKit', 'wireDangers', 'wirePeople', 'wireChemistry', 'wireMount', 'wireVehicles', 'wireLessons', 'wireShip', 'wireCamera', 'wireHero', 'heroCutFrame', 'cameraFollow', 'wireBenches', 'wireTrails', 'wireOpenings', 'wireEdge', 'wireSky', 'wirePotion', 'wireNudges', 'fragmentsLine']) {
+  for (const g of ['wireKit', 'wireDangers', 'wirePeople', 'wireChemistry', 'wireMount', 'wireVehicles', 'wireLessons', 'wireShip', 'wireCamera', 'wireHero', 'heroCutFrame', 'cameraFollow', 'wireBenches', 'wireTrails', 'wireOpenings', 'wireEdge', 'wireSky', 'wirePotion', 'wireNudges', 'fragmentsLine', 'wireHealth', 'hurtReactions', 'wireAmbush']) {
     assert.match(main, new RegExp(`\\b${g}\\(`), `main.js calls ${g}`);
     assert.match(engine, new RegExp(`\\b${g}\\(`), `engine/game.js calls ${g}`);
   }
@@ -337,4 +338,90 @@ test('wireCompanion: the prologue\'s drone handed over to the scout; Plumb\'s fi
   assert.equal(village, 1, 'the desert\'s quest starts on it');
   assert.deepEqual(calls.at(-1), ['ping'], 'and it flies off toward the village');
   assert.equal(wireCompanion({ game, plumb: null, scout, level: {}, player })(0.1), '', 'no help: no lines');
+});
+
+test('the hearts on the screen (wireHealth): shown after a hurt or a chime and while fighting, the wallet\'s count ticking up to the real one', () => {
+  const on = {};
+  const game = { on: (ev, f) => (on[ev] ??= []).push(f) };
+  const health = wireHealth({ game, tool: () => null });
+  let maxSet = 0;
+  const player = { health: 1, hearts: 3, maxHearts: 3, down: false, setMaxHearts: () => { maxSet++; } };
+  // (full hearts, no fight: hidden, once the fader has run out)
+  let f = null;
+  for (let i = 0; i < 60; i++) f = health.frame(0.1, { player });
+  assert.equal(f.hp, null, 'full and calm: hidden');
+  assert.ok(maxSet > 0, 'the hearts kept to the save\'s');
+  health.show();
+  assert.ok(health.frame(0.1, { player }).hp, 'a hurt shows them');
+  for (let i = 0; i < 60; i++) f = health.frame(0.1, { player });
+  assert.equal(f.hp, null);
+  assert.ok(health.frame(0.1, { player, fighting: true }).hp, 'and a fight');
+  for (let i = 0; i < 60; i++) f = health.frame(0.1, { player });
+  // (a chime into the wallet: shown, the count ticking up to it rather than jumping)
+  const before = resources.chimes;
+  resources.addChimes(40, { source: 'test' });
+  on.wallet?.forEach((g) => g());
+  f = health.frame(0.1, { player });
+  assert.ok(f.hp, 'the wallet shows them');
+  assert.ok(f.wallet > before && f.wallet < before + 40, `the count on its way (${f.wallet})`);
+  assert.equal(f.hp.chimes, Math.round(f.wallet), 'the screen\'s count is the one ticking');
+  for (let i = 0; i < 30; i++) f = health.frame(0.1, { player });
+  assert.equal(f.wallet, before + 40);
+  assert.equal(health.frame(0.1, { player, quiet: true }).hp, null, 'quiet in a scene');
+});
+
+test('a hurt\'s answer (hurtReactions): the thud under the hit and its cry, the hearts shown, the lesson; the knockdown\'s heavier thud; the fade up again', () => {
+  const bursts = [], cries = [];
+  const sound = { ctx: { currentTime: 0 }, muted: false, burst: (t, o) => bursts.push(o.vol), hurt: (h, why) => cries.push([h, why]), potion: () => {} };
+  let shown = 0, hinted = 0;
+  const health = { show: () => { shown++; } };
+  const player = { lastLanding: 3 };
+  const fades = [];
+  const R = hurtReactions({ player: () => player, sound: () => sound, potion: { hint: () => { hinted++; }, glow: () => {} }, health, fade: (k, s) => fades.push([k, s]) });
+  R.onHurt(0.25, 'foe');
+  assert.deepEqual(cries, [[0.25, 'foe']]);
+  assert.equal(bursts.length, 2, 'the thud (src/ship/sfx.js rumble: two bands)');
+  assert.ok(shown === 1 && hinted === 1);
+  const light = bursts[0];
+  R.onHurt(1.5, 'foe');
+  assert.ok(bursts[2] > light, 'heavier by the hearts it cost');
+  R.onKnockdown(true, 'foe');
+  assert.ok(bursts[4] >= 0.9, 'a knock-out\'s heaviest');
+  R.onRestart();
+  assert.deepEqual(fades[0], [1, 0.05], 'the screen fades out at once, in again just after');
+  // (no sound to play on: nothing breaks; the engines' silent stand-in has no ctx)
+  hurtReactions({ player: () => player, sound: () => ({ ctx: null }) }).onHurt(0.5, 'fire');
+});
+
+test('the ambushes (wireAmbush): the first flight to a world never visited goes by the pirates\' page, marked as it opens, won once', () => {
+  const flags = {};
+  const game = { flag: (k) => flags[k], set: (k, v) => { flags[k] = v; } };
+  const seen = new Set(['desert']);
+  const A = wireAmbush({ game, levelId: 'desert', seen: (id) => seen.has(id), settings: {}, titles: { viridel: 'Viridel' } });
+  assert.equal(A.departure('desert'), null, 'a world visited: straight there');
+  assert.equal(A.departure('home'), null, 'never home');
+  assert.equal(A.departure('viridel'), '?game=pirates&to=viridel&from=desert');
+  assert.equal(wireAmbush({ game, levelId: 'desert', settings: { enemies: 'off' } }).departure('viridel'), null, 'the calm game: none');
+  assert.equal(A.transit(null), null, 'a game\'s own page: no transit');
+  const T = A.transit('viridel');
+  assert.equal(flags['ambush.viridel'], 'met', 'marked as it opens');
+  assert.ok(T.links.mandatory && /Viridel/.test(T.links.win.label), JSON.stringify(T.links.win));
+  assert.equal(A.departure('viridel'), null, 'never round it again');
+  const before = resources.chimes;
+  T.onResult({ failed: true, chimes: 9 });
+  assert.equal(flags['ambush.viridel'], 'met');
+  T.onResult({ chimes: 12 });
+  T.onResult({ chimes: 12 });
+  assert.equal(flags['ambush.viridel'], 'won');
+  assert.equal(resources.chimes - before, 12, 'the chimes shot down, once');
+  T.left();
+  assert.equal(flags['ambush.viridel'], 'won');
+});
+
+test('the fight in the one game setup: the engines\' layer draws it, its hazards bite once a frame (they bit twice in the engines)', () => {
+  const combat = readFileSync('engine/combat.js', 'utf8');
+  assert.match(combat, /\bwireFight\(/);
+  assert.doesNotMatch(combat, /updateHazards|new Foes\(|nextFlurry|lockFollow\(|new ChimeField/, 'the fight\'s wiring is wireFight\'s');
+  const main = readFileSync('src/main.js', 'utf8');
+  assert.doesNotMatch(main, /new Foes\(|nextFlurry\(|lockFollow\(|new ChimeField|ambushDue\(/, 'nor main.js\'s own');
 });

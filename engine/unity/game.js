@@ -202,7 +202,7 @@ function titleSettings(s, settings) {
  */
 function begin(choice) {
   let slot = choice.slot, level = choice.level ?? null, arrive = !!choice.arrive, start = null, prologue = false;
-  const via = choice.via ?? null, game = choice.game ?? null, came = choice.from ?? null;
+  const via = choice.via ?? null, game = choice.game ?? null, came = choice.from ?? null, transit = choice.to ?? null;
   if (choice.debug) { seedDebugSave(choice.debug, { slot, state: gameState }); slot = slots.active; level = choice.debug; arrive = true; }
   else {
     slots.setActive(slot);
@@ -221,12 +221,12 @@ function begin(choice) {
   if (S.game) {
     if (S.game.level?.id === level && S.slot === slot && !arrive && !prologue && !game && !S.game.trials?.def) { S.menus.close(); return; }
     console.log(`[unity] onto save ${slot}, ${level}: the engine starts again`);
-    host.Reboot?.(JSON.stringify({ boot: { slot, level, arrive, via, game, from: came, resolved: true } }));
+    host.Reboot?.(JSON.stringify({ boot: { slot, level, arrive, via, game, from: came, to: transit, resolved: true } }));
     return;
   }
   S.slot = slot;
   S.titleSound?.menuMusic(false);   // (the title's music fades as the world loads, as the page's does before it goes)
-  launch({ ...S.args, level }, { start, arrive, via, prologue, game, came });
+  launch({ ...S.args, level }, { start, arrive, via, prologue, game, came, transit });
 }
 
 /**
@@ -260,19 +260,21 @@ function showMenu() {
  * starts again on the game's page, then on the world at the place saved as you left it (engine/trials.js).
  */
 function playGame(href) {
-  const { game, from } = readHref(href);
+  const { game, from, to } = readHref(href);
   if (!game) return;
   S.game?.save();
-  console.log(`[unity] the game ${game}: the engine starts again on its page`);
-  host.Reboot?.(JSON.stringify({ boot: { slot: slots.active, level: from ?? S.game?.level?.id ?? 'desert', game, resolved: true } }));
+  console.log(`[unity] the game ${game}${to ? ` on the way to ${to}` : ''}: the engine starts again on its page`);
+  // (to: the chime-pirates on the first flight to a world, ?game=pirates&to=<world>: src/ambush.js, issue #435)
+  host.Reboot?.(JSON.stringify({ boot: { slot: slots.active, level: from ?? S.game?.level?.id ?? 'desert', game, to: to ?? null, resolved: true } }));
 }
 function leaveGame(href) {
-  const { level, from } = readHref(href);
+  const { level, from, via } = readHref(href);
   const to = level ?? from ?? S.gameFrom ?? 'desert';
-  console.log(`[unity] back from the game to ${to}`);
+  console.log(`[unity] back from the game to ${to}${via === 'ship' ? ', arriving by ship' : ''}`);
   // (a plan's game, the bridge's -game: it ends with it)
   if (S.plan) { host.Exit(0); return; }
-  host.Reboot?.(JSON.stringify({ boot: { slot: slots.active, level: to, resolved: true } }));
+  // (the pirates won on the way: on to the world, landing, as the page's ?level=<world>&via=ship)
+  host.Reboot?.(JSON.stringify({ boot: via === 'ship' ? { slot: slots.active, level: to, arrive: true, via: 'ship', resolved: true } : { slot: slots.active, level: to, resolved: true } }));
 }
 
 /** Another world by the ship (its take-off done, Ship.travel's `go`): the engine starts again at that world's landing, arriving. */
@@ -289,7 +291,7 @@ function pageTo({ level, from = null }) {
   host.Reboot?.(JSON.stringify({ boot: { slot: slots.active, level, from, resolved: true } }));
 }
 
-function launch(args, { start: from = null, arrive = false, via = null, prologue = false, game = null, came = null } = {}) {
+function launch(args, { start: from = null, arrive = false, via = null, prologue = false, game = null, came = null, transit = null } = {}) {
   const t0 = now();
   const backend = new UnityBackend(host);
   backend.clock = () => sharedUniforms.uTime.value;   // (the shaders' time: HiraethLook.GameClock)
@@ -379,7 +381,7 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
   if (ending) { args.level = 'home'; via = 'ship'; arrive = true; }
   game ??= args.game ?? null;
   S.gameFrom = args.level ?? 'desert';
-  createGame({ levelId: args.level ?? 'desert', backend, game, from: game ? args.level ?? 'desert' : null, onGame: (href) => playGame(href), onLeave: (href) => leaveGame(href), trials: !!args.trial || !!args.fresh, quality: args.quality ?? null, people: args.people !== false, audio: rate ? { sampleRate: rate, record } : null, flags: !ending && (args.views?.length || args.play) ? BENCH_FLAGS : null, log: (...a) => console.log('[game]', ...a),
+  createGame({ levelId: args.level ?? 'desert', backend, game, from: game ? args.level ?? 'desert' : null, to: game ? transit ?? args.to ?? null : null, onGame: (href) => playGame(href), onLeave: (href) => leaveGame(href), trials: !!args.trial || !!args.fresh, quality: args.quality ?? null, people: args.people !== false, audio: rate ? { sampleRate: rate, record } : null, flags: !ending && (args.views?.length || args.play) ? BENCH_FLAGS : null, log: (...a) => console.log('[game]', ...a),
     menus, settings: S.settings ?? null, start: from, arrive: arrive || !!args.arrive, hullSpawn: !!args.hullSpawn, gestures: !off.has('gestures'),
     via, prologue: prologue || !!args.prologue, onTravel: (to) => flyTo(to), aboard: aboardRooms(args)[0] ?? (starScenes.length ? 'main' : null), scenes: !!args.aboard, fight: !!args.fight || seqFight, arrival: came, onPage: (o) => pageTo(o), saves: !args.foes && !args.devmenu && !args.house && !args.ui, defer: !off.has('defer'), far: !off.has('far'), skies: !off.has('skies'), lod: String(args.on ?? '').split(',').includes('lod') })
     .then((game) => {

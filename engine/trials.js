@@ -26,24 +26,24 @@ import { partsOf, shiftAt } from '../src/levels/names.js';
 import { inputKind } from '../src/prompt-keys.js';
 import * as THREE from 'three';
 
-/** A game page's address (?game=<id>&from=<world>, ?level=<id>, ?worlds=1) as { game, from, level }. */
+/** A game page's address (?game=<id>&from=<world>, ?level=<id>, ?worlds=1) as { game, from, level, back, to, via } (to: the world the pirates' fight is on the way to, src/ambush.js). */
 export function readHref(href) {
   // (no URLSearchParams in an engine's VM)
   const q = {};
   for (const kv of String(href ?? '').replace(/^[^?]*\?/, '').split('&')) { const [k, v = ''] = kv.split('='); if (k) q[decodeURIComponent(k)] = decodeURIComponent(v.replace(/\+/g, ' ')); }
-  return { game: q.game ?? null, from: q.from ?? null, level: q.level ?? null, back: q.back ?? null };
+  return { game: q.game ?? null, from: q.from ?? null, level: q.level ?? null, back: q.back ?? null, to: q.to ?? null, via: q.via ?? null };
 }
 
 export function makeTrials({ levelId, scene, physics, level, player, camera, rig, sound, wind = null, tool = null, foes = null, chimes = null, npcs = [], crowd = null, wildlife = null, flora = null,
-  people = null, story = null, menus = null, items, game, toast = () => {}, waters = null, kick = null, settings = null, ship = null, def = null, from = null, onGame = null, onLeave = null, thresholds = null, log = () => {} }) {
+  people = null, story = null, menus = null, items, game, toast = () => {}, waters = null, kick = null, settings = null, ship = null, def = null, from = null, onGame = null, onLeave = null, thresholds = null, transit = null, log = () => {} }) {
   let runner = null;
   const host = (extra) => ({ scene, camera, player, physics, level, sound, wind, state: game, kick, tool, foes, rig, settings, chimes,
     npcs, crowd, wildlife, flora, people, capture: null, othersOpen: () => !!menus?.open && menus.mode !== 'card', ...extra });
   let challenges = null;
   if (def) {
     // a game's page: the runner takes over at once (main.js: the start card up), the world's story set aside
-    runner = new MinigameRunner(def, host({ ship, from,
-      navigate: (href) => { runner = null; onLeave?.(href); } }));
+    runner = new MinigameRunner(def, host({ ship, from, links: transit?.links ?? null, onResult: transit ? (r) => transit.onResult(r) : null,
+      navigate: (href) => { transit?.left(); runner = null; onLeave?.(href); } }));
     story?.beacon?.removeFromParent?.();
     if (story) story.done = true;
   } else {

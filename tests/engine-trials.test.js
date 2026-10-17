@@ -61,7 +61,10 @@ async function play(g, n, done) {
 
 test('readHref reads a game page\'s address', async () => {
   const { readHref } = (await load()).exports;
-  assert.deepEqual(plain(readHref('?game=fight-desert&from=desert')), { game: 'fight-desert', from: 'desert', level: null, back: null });
+  assert.deepEqual(plain(readHref('?game=fight-desert&from=desert')), { game: 'fight-desert', from: 'desert', level: null, back: null, to: null, via: null });
+  // (the chime-pirates on the way to a world, and the landing after them: src/ambush.js, issue #435)
+  assert.deepEqual(plain(readHref('?game=pirates&to=viridel&from=desert')), { game: 'pirates', from: 'desert', level: null, back: null, to: 'viridel', via: null });
+  assert.equal(readHref('?level=viridel&via=ship').via, 'ship');
   assert.equal(readHref('?level=perdide').level, 'perdide');
 });
 

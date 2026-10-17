@@ -71,7 +71,7 @@ test('where they drop: everywhere but a game\'s own foes (Ink tide); the Arena\'
   assert.equal(dropPolicy({ foes: { chimes: false } }), 'off');
   assert.match(src('src/minigames/waves.js'), /foes: \{ own: true, wild: false, noInk: true, chimes: false \}/, 'Ink tide: none');
   assert.match(src('src/levels/arena.js'), /chimes: 'training'/, 'the Arena: training');
-  assert.match(src('src/main.js'), /connectDrops\(game, chimes, \{ policy: chimePolicy/, 'main.js wires them by the policy');
+  assert.match(src('src/host/game-host.js'), /connectDrops\(game, chimes, \{ policy: chimePolicy/, 'the one game setup wires them by the policy (wireFight, both hosts)');
 });
 
 test('the pieces pop out in an arc, bounce, hover; walked over they are picked up', () => {
@@ -230,7 +230,7 @@ test('picked-up pieces go into the wallet (main.js), Arena pieces as training', 
   for (let t = 0; t < 2 && F.list.length; t += DT) F.update(DT, v(0, 0, 0));
   assert.equal(F.list.length, 0, 'all in reach drawn in');
   assert.equal(R.chimes, 15); assert.equal(R.chimesEarned, 12);
-  assert.match(src('src/main.js'), /resources\.addChimes\(p\.value, \{ source: 'pickup', training: p\.training \}\)/);
+  assert.match(src('src/host/game-host.js'), /resources\.addChimes\(p\.value, \{ source: 'pickup', training: p\.training \}\)/);   // (wireFight, both hosts)
 });
 
 /** A traveller stand-in and a Foes on flat ground (as tests/arena.test.js). */

@@ -1,4 +1,3 @@
-import * as shipSfx from './ship/sfx.js';
 import { homecomingKind, roadDone, ROAD } from './story/ending.js';
 import { GIVERS_NOTE } from './story/signature.js';
 import * as THREE from 'three';
@@ -17,13 +16,9 @@ import { SOUNDTRACKS, THEME_FILES } from './soundtracks.js';
 import { ObservatoryQuest } from './observatory.js';
 import { Scout, nextObjective, findText, HINT, FIND } from './scout.js';
 import { guardianHint, openHint, Struggle } from './temples/hints.js';
-import { hintsFor, quietOr } from './hint-level.js';
-import { lockLesson } from './hook-foes.js';
-import { cueText, Cue, PlaceName, Fader, healthHud, staminaHud, findSummary, heartsSvg, magicHud, walletTick, keysHud, KEY_SVG, GREAT_KEY_SVG } from './hud.js';
-import { resources, POTION } from './resources.js';
-import { PotionDrops } from './potion-drops.js';
-import { LowHealthCue } from './low-health.js';
-import { ChimeField, ChimeView, dropPolicy, connectDrops } from './chimes.js';
+import { quietOr } from './hint-level.js';
+import { cueText, Cue, PlaceName, staminaHud, findSummary, heartsSvg, magicHud, keysHud, KEY_SVG, GREAT_KEY_SVG } from './hud.js';
+import { resources } from './resources.js';
 import { screen } from './platform.js';
 import { inputKind, keyText } from './prompt-keys.js';
 import { FirstSteps } from './first-steps.js';
@@ -82,7 +77,7 @@ import { Changelog, VERSION } from './changelog.js';
 import { Settings, SettingsMenu, TouchControls, SaveGame, isTouch, isNativeApp, isDeckApp, isXboxApp, ToolHud } from './ui.js';
 import { xboxReadout } from './xbox.js';
 import { InputMode } from './input-mode.js';
-import { FluidTool, bindToolMouse, lockAim } from './fluid-tool.js';
+import { FluidTool, bindToolMouse } from './fluid-tool.js';
 import { ORDER } from './levels/content.js';
 import { createStory } from './story/index.js';
 import { knownWorlds, newlyKnown } from './story/route.js';
@@ -105,17 +100,13 @@ import { createChallenges } from './trials/index.js';
 import { createBoxes, migrateSave } from './boxes/index.js';
 import { createFragments } from './fragments.js';
 import { createItemEffects } from './boxes/effects.js';
-import { Foes, lockFollow, LOCK_NEAR } from './foes.js';
-import { guardianBox } from './lock-frame.js';
-import { AimNudge, AIM_NUDGE, lockAimStep } from './lock-aim.js';
-import { hopAxis } from './jump.js';
 import { setView, inView } from './motion-kit/view.js';
 import { GADGETS } from './gadgets/all.js';   // (first: the gadgets become items before anything reads ITEMS)
 import { Gadgets } from './gadgets/index.js';
-import { feelDt, shakeCamera, kick, selfDt, flurry, endFlurry, flurryLeft } from './feel.js';
+import { feelDt, shakeCamera, kick, selfDt } from './feel.js';
 import { breatheDetail } from './breathe-shader.js';
 import { Companion, shown as droneShown } from './companion.js';
-import { FLURRY, FlurryFx, nextFlurry } from './flurry.js';
+import { FlurryFx } from './flurry.js';
 import { DevMenu } from './dev-menu.js';
 import { HitboxOverlay } from './hitbox-overlay.js';
 import { hitboxes, registerHitboxes } from './hitboxes.js';
@@ -142,12 +133,11 @@ import { queueHost, takeHosts } from './minigames/kit/hosts.js';
 import { MinigameRunner } from './minigames/kit/runner.js';
 import { levelMetaFor } from './minigames/kit/world.js';
 import { lendTool } from './minigames/kit/onfoot.js';
-import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip, wireCompanion, wireCamera, wireHero, heroCutFrame, cameraFollow, wireBenches, wireTrails, wireOpenings, wireEdge, wireSky, wirePotion, wireNudges, fragmentsLine } from './host/game-host.js';
+import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip, wireCompanion, wireCamera, wireHero, heroCutFrame, cameraFollow, wireBenches, wireTrails, wireOpenings, wireEdge, wireSky, wirePotion, wireNudges, fragmentsLine, wireHealth, hurtReactions, wireFight, wireAmbush } from './host/game-host.js';
 import { arcadeLinks } from './minigames/kit/arcade.js';
-import { ambushDue, ambushHref, ambushKey, transitLinks } from './ambush.js';
 import { talkAllowed } from './ship/landing.js';
 import { ShopPanel } from './shop-panel.js';
-import { rumblePlay, setRumbleSettings } from './rumble.js';
+import { setRumbleSettings } from './rumble.js';
 import { interiorAt } from './interior-kit.js';
 import { WorldMap, MAP, mapBounds, zoomBounds, mapMarks, scaleBar } from './world-map.js';
 import { houseHere, houseView } from './house-map.js';
@@ -391,6 +381,9 @@ const { bikeHere } = wireMount({ levelId, level, flag: (k) => game.flag(k) });
 // the potion's glow as the hearts come back, and its lesson the first time a hurt leaves you short (src/host/game-host.js
 // wirePotion, the engines' too)
 const potion = wirePotion({ game, toast: (t) => showToast(t) });
+// the hearts on the screen (src/host/game-host.js wireHealth, the engines' too): shown a while after a hurt, a drink, a chime
+const health = wireHealth({ game, tool: () => tool });
+let fight = null;   // (the foes, the lock-on, the drops, the knock-out: wireFight, made with the foes below)
 const player = new Player(physics, {
   mount: level.mount, mountAt: level.mountAt, jetpack: level.features.jetpack, climb: level.features.climb ?? true,
   killY: level.killY, limit: level.limit ?? 1900, edgeHint: level.edgeHint ?? EDGE_HINTS[levelId] ?? EDGE_HINTS.default, spawn: level.spawn, spawnHeading: level.spawnHeading,
@@ -398,26 +391,24 @@ const player = new Player(physics, {
   // a hurt: a thud; knocked over (a hard landing: the ragdoll, src/ragdoll.js): a heavier one;
   // knocked out: the screen dims and asks to restart (updateRestart below)
   // (k: hearts, in quarters: a quarter is a tap, a heart and a half and more the heaviest)
-  onHurt: (h, why) => { const k = Math.min(1, h / 1.5); shipSfx.rumble(sound, 0.35 + k * 0.4, 0.25 + k * 0.5); sound.hurt(h, why); hpShown = 3; if (why === 'foe') kick(0.45 + k * 0.5); potion.hint(player); if (why !== 'fall') rumblePlay('hurt', { h }); },   // (a fall rumbles as its landing: onKnockdown)
-  onDrink: (got) => { sound.potion('heal'); hpShown = 3; potion.glow(player, tool, got); rumblePlay('potion'); },
-  onKnockdown: (dead, why) => { shipSfx.rumble(sound, dead ? 0.95 : 0.6, dead ? 0.9 : 0.45); hpShown = 3; rumblePlay(why === 'fall' && !dead ? 'land' : 'knockdown', { dead, speed: player?.lastLanding }); },
-  onKnockout: (why) => { knockedOut = why; },
+  // (src/host/game-host.js hurtReactions, the engines' too: a thud under the hit, its cry, the pad's rumble, the hearts
+  // shown, the potion's lesson; the drink's glow; a knockdown's heavier thud; up again, a quick fade)
+  ...hurtReactions({ player: () => player, sound: () => sound, potion, tool: () => tool, health, fade: (k, secs) => ship.cinema?.fade(k, true, secs) }),
+  onKnockout: (why) => fight?.knockout(why),
   // calling the mount or a taxi: the bird with the rider's call on the flute; the hoverbike from your pack (its socket sends
   // it a pulse, the tank's rings blinking: no whistle, issue #249; nothing without the pack it runs on); a taxi, a whistle
   onWhistle: (kind) => { const how = callKind(kind, level.mountName, items.has('backpack')); if (how === 'rider') sound.tune(RIDER_CALL, RIDER_CALL_BEAT); else if (how === 'pack') { sound.packCall(); tool.signal(); } else if (how) sound.whistle(kind); },
-  onRestart: () => { ship.cinema?.fade(1, true, 0.05); setTimeout(() => ship.cinema?.fade(0, true, 0.9), 120); },
 });
 // the hearts, the magic bar and the potion (index.html #health): while a heart is missing, the bar spends or
 // refills, or a fight is on, and a moment after (src/hud.js healthHud, heartsSvg, magicHud; src/resources.js)
 const hpEl = document.getElementById('health');
 const hpHearts = hpEl?.querySelector?.('.hearts'), hpMagic = hpEl?.querySelector?.('.magic'), hpMagicFill = hpMagic?.firstElementChild;
 const hpPotion = hpEl?.querySelector?.('.potion'), hpPotionN = hpPotion?.querySelector?.('b');
-let hpShown = 0, hpKey = '', hpMagicKey = '', hpPotionKey = '';
+let hpKey = '', hpMagicKey = '', hpPotionKey = '';
 // the chimes beside the potion (src/chimes.js): the count ticks up to the wallet's, the block shows a moment on a change
 const hpChimes = hpEl?.querySelector?.('.chimes'), hpChimesN = hpChimes?.querySelector?.('b');
-let walletShown = resources.chimes, walletDrawn = -1;
-game.on('wallet', () => { hpShown = 3; if (hpChimes) { hpChimes.classList.remove('got'); void hpChimes.offsetWidth; hpChimes.classList.add('got'); } });
-const hpFade = new Fader(3);   // (src/hud.js: while hurt, spending or fighting, and 3 s after)
+let walletDrawn = -1;
+game.on('wallet', () => { if (hpChimes) { hpChimes.classList.remove('got'); void hpChimes.offsetWidth; hpChimes.classList.add('got'); } });
 player.setMaxHearts(resources.maxHearts);
 /**
  * The potion button (KEYS.potion C, D-pad ← on a pad, the flask beside the hearts on a touch screen): the drink
@@ -426,12 +417,7 @@ player.setMaxHearts(resources.maxHearts);
  */
 function drinkPotion() {
   try { if (busy() || photo.on || ship.playing || !player.object?.visible) return false; } catch { return false; }   // (still loading: busy and the rest come later)
-  const why = player.cantDrink();
-  if (why === 'full') { sound.potion('no'); showToast(tr('potion.full')); hpShown = 3; return false; }
-  if (why) return false;
-  if (!resources.takePotion()) { sound.potion('no'); showToast(tr('potion.none')); return false; }
-  player.drinkPotion();
-  sound.potion('open'); hpShown = 3;
+  if (!fight?.drink()) return false;   // (src/host/game-host.js wireFight: the potion drunk, or a word why not)
   hpEl?.classList.remove('drink'); void hpEl?.offsetWidth; hpEl?.classList.add('drink');
   return true;
 }
@@ -442,26 +428,24 @@ hpPotion?.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPro
 // the one thing in focus: Enter (or Space, E), A / × on a pad (the panel counts as a menu:
 // busy()), a click or a tap.
 const restartEl = document.getElementById('restart');
-let restartOpen = false, knockedOut = null, deadFor = 0;
+let restartOpen = false;   // (src/host/game-host.js wireFight card, the engines' too: after 1.4 s down for good)
 function updateRestart(dt) {
-  deadFor = player.dead ? deadFor + dt : 0;
-  const want = player.dead && deadFor > 1.4 && !ship.playing;
-  if (want === restartOpen || !restartEl) return;
-  restartOpen = want;
-  restartEl.classList.toggle('open', want);
-  if (want) {
-    restartEl.querySelector('p').textContent = tr(knockedOut === 'fall' ? 'restart.fall' : 'restart.out');
+  const c = fight?.card(dt, ship.playing);
+  if (!c) return;
+  restartOpen = c.open;
+  if (!restartEl) return;
+  restartEl.classList.toggle('open', c.open);
+  if (c.open) {
+    restartEl.querySelector('p').textContent = c.text;
     if (document.pointerLockElement) document.exitPointerLock?.();
     restartEl.querySelector('button').focus({ preventScroll: true });
   }
 }
 function restartNow() {
-  if (!player.dead) return;
-  restartOpen = false; deadFor = 0; knockedOut = null;
+  if (!fight?.restart()) return;
+  restartOpen = false;
   restartEl?.classList.remove('open');
   document.activeElement?.blur?.();
-  player.restart();
-  rig.target.copy(player.pos);
 }
 restartEl?.querySelector('button').addEventListener('click', (e) => { e.stopPropagation(); restartNow(); });
 window.addEventListener('keydown', (e) => {
@@ -497,18 +481,12 @@ function updateStamina(dt) {
 function updateHealth(dt) {
   updateRestart(dt);
   updateStamina(dt);
-  lowHealth.update(dt, { hearts: player.hearts, max: player.maxHearts, dead: player.dead, paused: busy() || photo.on || ship.playing });
-  if (!hpEl) return;
-  player.setMaxHearts(resources.maxHearts);
-  const h = player.health ?? 1, R = tool.owned && !tool.dry ? tool.reserve : null, pot = resources.potions;
-  // (a hurt, a knockdown, a potion: at once; the state goes to platform.js screen.health as it is drawn)
-  const wallet = resources.chimes, ticking = walletShown !== wallet;
-  walletShown = walletTick(walletShown, wallet, dt);
-  const hp = healthHud({ health: h, hearts: player.hearts, max: player.maxHearts, magic: R ? R.level : null, magicMax: R?.max ?? 3, potions: pot.count, infinite: pot.infinite,
-    chimes: wallet, wallet: ticking,
-    combat: document.body.classList.contains('combat'), down: player.down, hurt: hpShown > 0, quiet: ship.playing || photo.on }, hpFade, dt);
-  hpShown = 0;
+  fight?.low(dt, busy() || photo.on || ship.playing);   // (at one heart or less: the heartbeat, the edges)
+  // (a hurt, a knockdown, a potion: at once; the state goes to platform.js screen.health as it is drawn: wireHealth)
+  const { hp, wallet: walletShown } = health.frame(dt, { player, fighting: !!fight?.foes.fighting, quiet: ship.playing || photo.on });
   screen.set('health', hp);
+  if (!hpEl) return;
+  const R = tool.owned && !tool.dry ? tool.reserve : null, pot = resources.potions, wallet = resources.chimes;
   hpEl.classList.toggle('on', !!hp);
   if (!hp) return;
   const key = `${hp.hearts}|${hp.max}|${hp.low}`;
@@ -756,7 +734,7 @@ story.waitFor = () => storyRt.dialogue.open || !!storyRt.moments?.playing;   // 
 // the shops (src/shop.js, src/shop-panel.js, src/story/shops.js): talking to a keeper ("Show me what you have") or E at
 // their counter opens the panel; a heart container fills the hearts too, and the HUD shows the wallet and the hearts
 const shopPanel = new ShopPanel({ game, resources, sound,
-  onBought: ({ ware }) => { if (ware === 'heart') { player.setMaxHearts(resources.maxHearts); player.restore(player.maxHearts); } hpShown = 3; },
+  onBought: ({ ware }) => { if (ware === 'heart') { player.setMaxHearts(resources.maxHearts); player.restore(player.maxHearts); } health.show(); },
   onClose: () => { document.body.classList.remove('shopping'); },
   covered: () => menu.open || journal.open || changelog.open || restartOpen,
   icon: (id) => itemIcons.get(id) });   // (Anselm's upgrades: the items page's own pictures, src/item-icons.js)
@@ -858,7 +836,7 @@ const fragments = createFragments({ levelId, scene, physics, level, player, soun
 // ---- the benches (src/benches.js, issue #363): sit, the camera comes round behind, the HUD fades, the music swells
 const benches = wireBenches({ levelId, scene, physics, level, player, sound, rig });   // (the engines' too)
 // (his light-stitched heart: one more for good, and the hearts filled, as a heart container does)
-items.on((id, owned) => { if (id === 'lightheart') { player.setMaxHearts(resources.maxHearts); if (owned) player.restore(player.maxHearts); hpShown = 3; } });
+items.on((id, owned) => { if (id === 'lightheart') { player.setMaxHearts(resources.maxHearts); if (owned) player.restore(player.maxHearts); health.show(); } });
 // (in the Start menu, under where you are: the fragments all told, how many you hold to spend with Anselm once he is met
 // (src/fragment-shop.js), and how many are left in this world, once one is found)
 // (src/host/game-host.js fragmentsLine, the engines' Start menu too)
@@ -1060,66 +1038,18 @@ const wildlife = new Wildlife(scene, level, physics, { content, sound, defs: lev
 // the desert's first steps: the camera and the jump, each said once if you haven't used it yet (src/first-steps.js)
 const firstSteps = levelId === 'desert' && !minigameDef && !game.flag('item.backpack') ? new FirstSteps(game) : null;
 const firstStepsAt = new THREE.Vector3(NaN, 0, 0); let firstStepsT = 0;
-const foes = new Foes({ scene, level, levelId, content, physics, player, tool, sound, npcs, settings, camera, lib, humans: humanT, waters, notice: (t) => showToast(t, TEACH) });   // (its notices teach: paced as hints, src/notice-pace.js)
-// chimes, the currency (src/chimes.js): a foe cut down scatters a few (by its weight), a guardian a purse once;
-// walked over or drawn in, they ring into the wallet (src/resources.js); none from a game's own foes (Ink tide)
-const chimePolicy = dropPolicy(level);
-const chimes = new ChimeField({
-  groundAt: (x, y, z) => physics.groundAt(x, y + 2, z, 8),
-  onTake: (p) => { resources.addChimes(p.value, { source: 'pickup', training: p.training }); sound.chimePickup?.(p.value); rumblePlay('chime'); },
-});
-const chimeView = new ChimeView(scene);
-/** A guardian's purse: scattered on the floor between it and you (a floating guardian's body is out of reach). */
-const purseAt = (pos) => {
-  const P = player.pos, at = P.clone();
-  if (pos) { const dx = pos.x - P.x, dz = pos.z - P.z, d = Math.hypot(dx, dz); if (d > 0.1) at.set(P.x + (dx / d) * Math.min(3.4, d), P.y, P.z + (dz / d) * Math.min(3.4, d)); }
-  return at;
-};
-connectDrops(game, chimes, { policy: chimePolicy, purseAt, sound });
-// potions a foe leaves now and then (src/potion-drops.js): walked over, into the pack; none from a game's own foes
-const potionDrops = new PotionDrops(scene, {
-  groundAt: (x, y, z) => physics.groundAt(x, y + 2, z, 8),
-  onTake: () => { if (resources.addPotions(1)) { sound.potionPickup?.(); hpShown = 3; showToast(tr('potion.found')); rumblePlay('chime'); } },
-});
-if (chimePolicy !== 'off') game.on('foe:burst', (e) => { const pot = resources.potions; potionDrops.maybe(e, { hearts: player.hearts, max: player.maxHearts, potions: pot.count, cap: POTION.cap, infinite: pot.infinite }); });
-// at one heart or less: a short heartbeat and the screen's edges darkening with it (src/low-health.js)
-const lowHealth = new LowHealthCue({ sound });
+// the foes and their drops, the lock-on and its camera, the perfect dodge's flurry, the potion, the low-health cue and the
+// knock-out (src/host/game-host.js wireFight, the engines' too; src/foes.js: the ink blots in the wilds and the makers'
+// machines in the temple, the Enemies setting; its notices teach: paced as hints, src/notice-pace.js)
+fight = wireFight({ scene, level, levelId, content, physics, player, tool, sound, npcs, settings, camera, rig, lib, humans: humanT, waters, game, health,
+  toast: (t) => showToast(t), teach: (t) => showToast(t, TEACH) });
+const { foes, chimes, potionDrops, lowHealth } = fight;
 let trialsRt = null;   // this world's mastery trial (src/trials/), made once the world is up (below)
 const chemistry = wireChemistry({ flammables, wildlife, tool, game, player });   // fire spreads on the wind, creatures flee it, foes catch it (src/host/game-host.js, the engines' too)
-tool.lockOn = () => foes.lockTarget();   // (the blade and its guard turn to the locked foe)
-// Locked on, the back flip and the side hop (src/jump.js HOP, Player.hop): their dodge frames (FluidBlade.hop), and begun
-// just before a blow lands, a perfect dodge: the flurry, the world slowed round you a few seconds (src/flurry.js)
-const flurryFx = new FlurryFx();
-let flurryAgainAt = 0, flurryChain = null;
-const lockView = { foe: null, side: 1, angle: 0, line: 0, turn: 0, vel: 0 };   // (the lock camera's swing off the line: src/foes.js lockViewAngle)
-const lockBox = { min: new THREE.Vector3(), max: new THREE.Vector3() };   // (a locked guardian's box: src/lock-frame.js guardianBox)
-// aiming locked on (LT / L2): the aim on the lock's point, the right stick shifting it a little (src/lock-aim.js, issue #362)
-const aimNudge = new AimNudge();
-const aimingLocked = () => !!(foes.lock && !busy() && !photo.on && tool.camK > 0.2 && tool.k > 0.2);
-let padLook = () => null;   // (the right stick's tilt, once the controller is made below)
-const _hopView = new THREE.Vector3();   // m: the locked foe this near (flat), the lock camera turns after it less, not at all under the first
-function startFlurry() {
-  const now = performance.now() / 1000;
-  if (flurryLeft() > 0 || now < flurryAgainAt) return;
-  // (back to back, each shorter and the wait after it longer: src/flurry.js CHAIN)
-  const F = flurryChain = nextFlurry(flurryChain, now);
-  flurry(F.time, FLURRY.rate, FLURRY.ease);
-  flurryAgainAt = F.nextAt;
-  sound.flurry?.(true); kick(0.1); rumblePlay('flurry');
-  if (!game.flag('hint.flurry') && hintsFor('tip')) { game.set('hint.flurry', true); showToast(tr('hint.flurry'), TEACH); }   // (said after the fact, hints full)
-}
-player.onHop = (kind, win) => { tool.blade?.hop(win); if (foes.perfectDodge()) startFlurry(); };
-if (tool.blade) tool.blade.onHopDodge = () => startFlurry();
-player.untouchable = () => flurryLeft() > 0;   // (a guardian's blows and rings pass you by: src/temples/boss.js)
-{ // locked on, the look's sideways motion is the lock's: a quick flick (the right stick, the mouse, a drag) switches to the next foe that way (src/foes.js FLICK)
+const flurryFx = new FlurryFx();   // (the perfect dodge's slow time drawn round the screen's edge: src/flurry.js)
+{ // (any look counts as the camera learnt: the first steps' line never said then)
   const look = rig.look.bind(rig);
-  // (aiming locked on, the look shifts the aim off the lock's point instead, within its cone: the stick by its tilt, read
-  // each frame, a pointer by its moves; src/lock-aim.js AimNudge, issue #362)
-  rig.look = (dx, dy) => {
-    if (dx || dy) firstSteps?.looked();
-    if (aimingLocked()) { const s = padLook(); if (!(s?.x || s?.y)) aimNudge.push(dx, dy, rig.sensitivity); return; }
-    if (foes.lock && !busy() && foes.flickLook(dx)) dx = 0; look(dx, dy);
-  };
+  rig.look = (dx, dy) => { if (dx || dy) firstSteps?.looked(); look(dx, dy); };
 }
 if (level.foes?.waves && !minigameDef) {   // (the Arena's FOES list, its guardians' ring: src/foe-spawner.js, the level's quick menu)
   const attach = { foes, player, physics, sound, scene, notice: (t) => showToast(t), kind: query.get('foe') };
@@ -1128,9 +1058,11 @@ if (level.foes?.waves && !minigameDef) {   // (the Arena's FOES list, its guardi
 }
 await slice();
 setStep('rest');
+// the first flight to a world never visited: the chime-pirates on the way (src/host/game-host.js wireAmbush, the engines' too)
+const ambush = wireAmbush({ game, levelId, seen: (id) => journal.seen(id), settings, titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])) });
 ship.attach({ player, rig, camera, sound, journal, post, story, wind, npcs, lib, humans: peopleT, levels: LEVELS, order: ORDER, titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])),
   // the first flight to a world never visited: the chime-pirates on the way (src/ambush.js, src/minigames/pirates.js)
-  departure: (to) => (ambushDue({ to, flag: (k) => game.flag(k), seen: (id) => journal.seen(id), settings }) ? ambushHref(to, levelId) : null) });
+  departure: ambush.departure });
 if (viaShip) {
   const a = ship.arrivalSpot();
   player.respawn(a.pos);
@@ -1802,13 +1734,8 @@ const controller = new Controller({
     else if (name === 'lock' && !ship.playing) {
       // R3: lock on to a foe, then the next, then let go (Tab: src/foes.js); with no foe in reach, the scout
       // finds the objective (Q; src/scout.js), as a scan does in other games
-      const had = foes.lock;
-      if (!foes.cycleLock() && !had && !minigame) { scoutHint.pinged(); scout.ping(); }
-      else if (foes.lock && !had && hintsFor('teach')) {
-        // (locked on, a new verb, taught once: the hops, then, the hook owned, the hook at the lock: src/hook-foes.js)
-        const lesson = lockLesson({ taught: (k) => !!game.flag(`${k}.taught`), hook: items.has('hook') });
-        if (lesson) { game.set(`${lesson}.taught`, true); showToast(keyText(tr(lesson), { teach: true }), TEACH); }
-      }
+      // (locked on, a new verb, taught once: the hops, then, the hook owned, the hook at the lock: wireFight lock)
+      if (!fight.lock() && !minigame) { scoutHint.pinged(); scout.ping(); }
     }
     if (name === 'l3' && level.jump) level.jump(-1);
     if (name === 'worldDebug' && (devMenu.open || !busy() || menuRoot() === picker)) devMenu.toggle();   // L3 + R3: the dev menu (F2, `; the hitbox overlay is in its Toggles, and F4)
@@ -1816,7 +1743,7 @@ const controller = new Controller({
     if (name === 'viewDown' || name === 'viewLeft' || name === 'viewRight') window.dispatchEvent(new CustomEvent('padchord', { detail: { name } }));
   },
 });
-padLook = () => controller.held.lookStick ?? null;   // (aiming locked on, the right stick's tilt shifts the aim: src/lock-aim.js)
+fight.padLook = () => controller.held.lookStick ?? null;   // (aiming locked on, the right stick's tilt shifts the aim: src/lock-aim.js)
 inputDisplay.bind({ context: () => controller.lastContext ?? 'game', index: () => controller.index });
 // The keyboard, the mouse or a finger takes over from the controller (and back on its next use). A pad
 // that is connected (the Retroid's own controls) counts as in use until the screen or keys are touched,
@@ -2122,7 +2049,7 @@ function missedFrames() {
   return n;
 }
 window.addEventListener('keydown', (e) => { if (e.code === 'F3' && !photo.on) { e.preventDefault(); settings.set('showFps', !settings.showFps); } });   // (F is the fluid blade)
-window.addEventListener('keydown', (e) => { if (e.code === 'Tab' && !e.repeat && !busy() && !photo.on) { e.preventDefault(); foes.cycleLock(); } });   // lock on (R3 on a pad: src/foes.js)
+window.addEventListener('keydown', (e) => { if (e.code === 'Tab' && !e.repeat && !busy() && !photo.on) { e.preventDefault(); fight.lock(); } });   // lock on (R3 on a pad: src/foes.js)
 // (first the engine, and a benchmark's label when it sets one: window.__benchLabel, e.g. "camps r2/3")
 const ENGINE = window.__fpsEngine = engineLabel(navigator.userAgent, location.search, window.Capacitor);
 function frameReadout(fps) {
@@ -2363,56 +2290,10 @@ function frame(ts) {
   dangers.voidFrame(t);
   reactiveWorld.update(dt, t, player, camera, busy() || photo.on);
   wildlife.update(dt, t, player, camera, busy() || photo.on);
-  foes.update(dt, busy() || photo.on || ship.playing);
-  if (flurryLeft() > 0 && !foes.anyFighting()) endFlurry();   // (nothing left to cut: the world comes back to speed)
+  fight.update(dt, busy() || photo.on || ship.playing);   // the foes, the flurry's end, the drops (wireFight)
   flurryFx.update();
-  if (!(busy() || photo.on || ship.playing)) chimes.update(dt, player.dead ? null : player.pos);   // (src/chimes.js: picked up walking over them, or drawn in)
-  if (!(busy() || photo.on || ship.playing)) potionDrops.update(dt, player.dead ? null : player.pos);   // (src/potion-drops.js)
-  chimeView.update(chimes, camera);
-  // locked on (R3 / Tab): the camera turns to keep the foe ahead (src/foes.js)
-  // and the traveller faces it, strafing round it (player.lockOn: src/player.js LOCK_MOVE)
-  player.lockOn = foes.lock && !busy() ? Object.assign(player._lockOn ??= { dir: new THREE.Vector3() }, {}) : null;
-  // (a guardian as the lock camera and the strafe follow it: its steady stand-in, GuardianLock.steady, issue #321; its
-  // lunges and sways no longer swing the line the stick is read against, nor the camera)
-  const lockView_ = foes.lock?.steady ? foes.lock.steady(busy() || photo.on ? 0 : realDt) : foes.lock;
-  if (player.lockOn) player.lockOn.dir.set(lockView_.pos.x - player.pos.x, 0, lockView_.pos.z - player.pos.z).normalize();
-  if (player.lockOn) (player.lockOn.at ??= new THREE.Vector3()).copy(lockView_.pos);   // (what a sidestep circles: Player.orbitLock)
-  // (a hop read against the camera's look with the foe at his feet, where the camera stops turning after it: src/jump.js hopAxis)
-  if (player.lockOn) {
-    camera.getWorldDirection(_hopView);
-    const a = hopAxis(player.lockOn.dir, _hopView.setY(0).normalize(), Math.hypot(lockView_.pos.x - player.pos.x, lockView_.pos.z - player.pos.z), LOCK_NEAR);
-    (player.lockOn.hop ??= new THREE.Vector3()).set(a.x, 0, a.z);
-  }
-  if (!foes.lock) { lockView.foe = null; lockView.angle = 0; }
-  if (!foes.lock || busy() || photo.on) lockView.vel = 0;
-  rig.locked = !!(foes.lock && !busy() && !photo.on);
-  rig.lockAt = rig.locked ? (lockView_.chest ?? lockView_.pos) : null;
-  // (locked on a guardian: its box round its steady stand-in, so the camera frames you both whole, the floor between:
-  // CameraRig.fitFrame, src/lock-frame.js, issue #359)
-  rig.frameWith = rig.locked && foes.lock.guardian && foes.lock.model?.group ? guardianBox(foes.lock.model, lockView_.pos, lockBox, performance.now() / 1000) : null;
-  // (in a guardian's arena, awake, the boss framing it asks for: further back and higher, both of you in the frame)
-  rig.boss = busy() || photo.on ? null : foes.bossFight()?.def.camera ?? null;
-  if (!rig.locked) rig.lockRoom(realDt, null);
-  if (foes.lock && !busy() && !photo.on) {
-    const f = foes.lock, F = player.frame;
-    // aiming the gun locked on (LT / L2): the crosshair kept on the foe's chest, the camera turned (yaw and pitch) from
-    // where it stands over the shoulder, not from the traveller (lockAim; v1.41, the author: "gun aim stays on the locked target")
-    // (a guardian's weak point, GuardianLock.aim; v1.71 turned the camera after its steady stand-in, v1.77 onto the point itself)
-    // (on the lock's own point, not its steady stand-in's: the crosshair on the reticle, issue #362)
-    const aim = aimingLocked() ? lockAim(camera.position, f.aim ?? f.chest, F) : null;
-    // (not aiming: the line to the foe, its stand-off swing, the room behind him, the turn after it: src/foes.js lockFollow)
-    if (!aim) lockFollow(lockView, rig, lockView_, player.pos, F, realDt);
-    else {
-      // (onto the lock's point as the aim comes up, and exactly on it from then, shifted by the right stick within its
-      // cone, eased back when let go: src/lock-aim.js, issue #362; it used to ease toward it at 14 /s, a little
-      // behind it, and the stick switched the lock)
-      rig.lockRoom(realDt, null); lockView.vel = 0;
-      aimNudge.update(realDt, padLook());
-      lockAimStep(rig, aim, aimNudge, THREE.MathUtils.smoothstep(tool.camK, AIM_NUDGE.ramp[0], AIM_NUDGE.ramp[1]));
-    }
-  }
-  if (!aimingLocked() && (aimNudge.x || aimNudge.y || aimNudge.mx || aimNudge.my)) aimNudge.reset();   // (each locked aim starts on the point)
-  tool.nudged = aimingLocked() && aimNudge.nudged;
+  // locked on (R3 / Tab): the camera turns to keep the foe ahead, the traveller faces it, strafing round it (wireFight)
+  fight.frame(realDt, { busy: busy(), still: photo.on });
   // levels with zones (the Hangar, the Lab's biome rooms) switch style, look, planets and hour as you cross them (wireSky)
   look.zones(player.pos, sky);
 
@@ -2640,15 +2521,14 @@ if (!minigameDef) for (const g of GAMES) for (const m of g.markers ?? []) {
 if (minigameDef) {
   // on the way to a world (?game=pirates&to=<id>, src/ambush.js): the fight's page marks the trip at once (a crash or a
   // closed tab never sends you round it again), won as it is won; every way out lands at the world
-  const transit = transitLinks(query, Object.fromEntries(LEVELS.map((l) => [l.id, l.title])));
-  if (transit && !game.flag(ambushKey(transit.to))) game.set(ambushKey(transit.to), 'met');
+  const transit = ambush.transit(query.get('to'));
   minigame = new MinigameRunner(minigameDef, { scene, camera, player, physics, level, sound, wind, ship, state: game, kick, from: query.get('from'), tool, foes, rig, settings, chimes,
     capture: captureView, npcs, crowd, wildlife, flora, people: { lib, humans: peopleT },   // (what a game played in a world, or with people of its own, may use)
     othersOpen: () => menu.open || journal.open || changelog.open || picker.classList.contains('open') || devMenu.open,
-    navigate: (href) => { if (transit && game.flag(ambushKey(transit.to)) === 'met') game.set(ambushKey(transit.to), 'skipped'); flushPlay(); location.href = href; },
+    navigate: (href) => { transit?.left(); flushPlay(); location.href = href; },
     // (won: the chimes shot down go into the wallet, once: a Retry after the win flies it again for the score alone)
-    onResult: (r) => { if (transit && !r.failed) { if (r.chimes && game.flag(ambushKey(transit.to)) !== 'won') resources.addChimes(r.chimes, { source: 'pirates' }); game.set(ambushKey(transit.to), 'won'); } },
-    links: transit ?? arcadeLinks(query.get('from'), minigameDef.id) });   // (started from the Arcade: the game before / after, back to its sign)
+    onResult: (r) => transit?.onResult(r),
+    links: transit?.links ?? arcadeLinks(query.get('from'), minigameDef.id) });   // (started from the Arcade: the game before / after, back to its sign)
   window.minigame = minigame;
   story.beacon?.removeFromParent();   // (the host world's story beacon: not in a game)
   if (story) story.done = true;   // (nor its goal: the Arena's ring would end its story under a game played by it)

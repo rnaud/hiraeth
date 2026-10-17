@@ -110,14 +110,13 @@ import { interiorAt } from '../src/interior-kit.js';
 import { fillUnfound, portraitPaint } from './traveller-paint.js';
 import { PixelCanvas } from './raster.js';
 import { GIVERS_NOTE } from '../src/story/signature.js';
-import { rumblePlay } from '../src/rumble.js';
 import { items as gear, ITEMS } from '../src/items.js';
 import { callKind } from '../src/bike-worlds.js';
 import { RIDER_CALL, RIDER_CALL_BEAT } from '../src/story/arzach-data.js';
 import { chargeState } from '../src/story/charge.js';
 import { ORDER, TITLES, partsOf } from '../src/levels/names.js';
 import { fastTravel } from '../src/fast-travel.js';
-import { cueText, Cue, PlaceName, Fader, healthHud, staminaHud, keysHud, findSummary } from '../src/hud.js';
+import { cueText, Cue, PlaceName, staminaHud, keysHud, findSummary } from '../src/hud.js';
 import { toastSeconds, Story, Relics } from '../src/quest.js';
 import { EngineStarMap } from './starmap.js';
 import { homecomingKind, HOME_ID, roadDone, ROAD } from '../src/story/ending.js';
@@ -154,7 +153,7 @@ import { gatherPoints, questList, applyQuestJump, landingSpot, godLanding } from
 import { GAMES } from '../src/minigames/index.js';
 import { DEBUG_SLOT } from '../src/save-slots.js';
 import { wallOpenings } from '../src/wall-openings.js';
-import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip, wireCompanion, wireCamera, wireHero, heroCutFrame, cameraFollow, wireBenches, wireTrails, wireOpenings, wireEdge, wireSky, wirePotion, wireNudges, fragmentsLine } from '../src/host/game-host.js';
+import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip, wireCompanion, wireCamera, wireHero, heroCutFrame, cameraFollow, wireBenches, wireTrails, wireOpenings, wireEdge, wireSky, wirePotion, wireNudges, fragmentsLine, wireHealth, hurtReactions, wireAmbush } from '../src/host/game-host.js';
 
 export { page };
 export { readHref } from './trials.js';   // (the tests: a game page's address)
@@ -313,10 +312,10 @@ export const LOOK_VECTORS = new Set(['uWind', 'uHaze', 'uSpot', 'uSpotTone', 'uH
   // (the sky's own: the eclipse, src/eclipse.js; the Lantern's light, src/story/lantern-sky.js; space, src/levels/space-city-kit.js)
   'uEclipse', 'uCorona', 'uEclipseGlow', 'uEclipseDir', 'uLantern', 'uSpace', 'uSpaceTone', 'uSpaceSun', 'uSpaceNight']);
 
-export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', quality = null, log = () => {}, menus = null, start = null, arrive = false, hullSpawn = false, settings = null, gestures = true, via = null, prologue = false, onTravel = null, aboard = null, scenes = false, fight = false, game: gameId = null, from = null, onGame = null, onLeave = null, trials: withTrials = false, onPage = null, arrival = null, saves = true, defer = true, far: farOn = true, lod: lodOn = false, skies = true } = {}) {
+export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', quality = null, log = () => {}, menus = null, start = null, arrive = false, hullSpawn = false, settings = null, gestures = true, via = null, prologue = false, onTravel = null, aboard = null, scenes = false, fight = false, game: gameId = null, from = null, to: transitTo = null, onGame = null, onLeave = null, trials: withTrials = false, onPage = null, arrival = null, saves = true, defer = true, far: farOn = true, lod: lodOn = false, skies = true } = {}) {
   const T = {};
-  // (the fight, engine/combat.js, made once the traveller and his tool are; a hurt shows the hearts a while: hpHurt s)
-  let combat = null, hpHurt = 0;
+  // (the fight, engine/combat.js, made once the traveller and his tool are)
+  let combat = null;
   // the graphics preset's detail (src/perf.js QUALITY_PRESETS: the Unity bridge's -quality, the Deck's on its Linux player),
   // as main.js applies it: the plants' share and distance, the grass patch, the crowd's ranges, the props under a few
   // pixels hidden, the people's low detail; none (everything, as the bench's High) without one
@@ -399,6 +398,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // the potion's glow as the hearts come back, its lesson the first time a hurt leaves you short, as the page
   // (src/host/game-host.js wirePotion: neither in the engines before)
   const potion = wirePotion({ game: gameState, toast: (t) => toast(t) });
+  // the hearts on the screen: shown a while after a hurt, a drink, a chime, the wallet's count ticking up (src/host/game-host.js
+  // wireHealth, as the page: the engines' showed the wallet at once and the hearts on a lock or a foe near, not a fight)
+  const health = wireHealth({ game: gameState, tool: () => tool });
   const player = new Player(physics, {
     // (calling the mount: the bird with the rider's call on the flute, the bike from your pack, its tank's rings blinking;
     // a taxi, a whistle: main.js onWhistle)
@@ -406,11 +408,10 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     mount: level.mount, mountAt: level.mountAt, jetpack: level.features.jetpack, climb: level.features.climb ?? true,
     killY: level.killY, limit: level.limit ?? 1900, edgeHint: level.edgeHint ?? EDGE_HINTS[levelId] ?? EDGE_HINTS.default, spawn: level.spawn, spawnHeading: level.spawnHeading,
     gravityAt: level.gravityAt, unsafe: level.unsafe, dynamic: level.dynamic, water: waters,
-    // (the pad shakes as on the web, main.js's: a hit by the hearts it cost, the potion, a hard landing or a knockdown;
-    // src/rumble.js, nothing without a pad that can, issue #346)
-    onHurt: (h, why) => { if (why !== 'fall') rumblePlay('hurt', { h }); sound?.hurt?.(h, why); hpHurt = 3; if (why === 'foe') kick(0.45 + Math.min(1, h / 1.5) * 0.5); potion.hint(player); },
-    onDrink: (got) => { sound?.potion?.('heal'); rumblePlay('potion'); potion.glow(player, tool, got); },   // (the hearts coming back heard, as main.js: issue #379)
-    onKnockdown: (dead, why) => { hpHurt = 3; rumblePlay(why === 'fall' && !dead ? 'land' : 'knockdown', { dead, speed: player?.lastLanding }); },
+    // how a hurt is answered, as the page (src/host/game-host.js hurtReactions, issue #435): a thud under the hit and its
+    // cry, the pad's rumble (src/rumble.js, issue #346), the hearts shown, the potion's lesson; the drink's glow; a
+    // knockdown's heavier thud (the engines had no thud); up again after a knock-out, the ship's cinema's quick fade
+    ...hurtReactions({ player: () => player, sound: () => sound, potion, tool: () => tool, health, fade: (k, secs) => { if (shipOn) ship.cinema?.fade?.(k, true, secs); } }),
     onKnockout: (why) => combat?.knockout(why),
   });
   const lib = await animLib;
@@ -745,7 +746,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // potion, the knock-out's card; the guardians are the temples' own), when the engine is played (with its menus) or a
   // plan asks for them (`fight`: the bridge's -fight); not in a bench's plan, whose numbers stay comparable with before
   combat = (menus || fight) && !flags ? optional('the foes', () => makeCombat({ scene, level, levelId, content, physics, player, tool, sound, npcs, settings, camera, rig, lib, humans, waters, screen,
-    toast: (t) => toast(t), teach: (t) => toast(keyText(t, { teach: true })) })) : null;
+    health, toast: (t) => toast(t), teach: (t) => toast(keyText(t, { teach: true })) })) : null;
   if (combat) stamp('foes');
   // the Arena's list of foes (src/foe-spawner.js FoeList, the level's quick menu: every foe there is to fight, a world's
   // waves, a guardian's ring), attached to the fight's foes as main.js does; its page is the menus' 'foes' (engine/menus.js
@@ -778,10 +779,14 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   pageGo = menus && !flags && !view && !gameDef ? onPage : null;
   refusedGo = ({ quest } = {}) => { const q = story?.quests; if (quest && q && !q.isStarted(quest)) q.start(quest); };
   shipIndoors = shipOn ? (p) => !!ship.parked && !!ship.modelOf(p) : null;
+  const ambush = wireAmbush({ game: gameState, levelId, seen: (id) => journal.seen(id), settings, titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])) });
   if (shipOn) {
     ship.cinema.dom = false;
     quiet(() => ship.attach({ player, rig, camera, sound, journal, post, story, wind, npcs, lib, humans, levels: LEVELS, order: ORDER,
-      titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])), go: (to) => onTravel?.(to) }));
+      titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])),
+      // (the first flight to a world never visited by way of the chime-pirates' page, as the page's departure:
+      // src/host/game-host.js wireAmbush, issue #435; the engine starts again on it, then at the world, arriving)
+      go: (to) => { const href = onGame ? ambush.departure(to) : null; if (href) onGame(href); else onTravel?.(to); } }));
     // the recordings' hologram (src/ship/hologram.js): on the page a scene of its own drawn over the finished picture
     // (HOLO.render); here that scene hangs in the mirrored one, its figures drawn by the engine in light over its ink
     // (Unity: Hiraeth/HoloFigure, port-format.js 'holo'), as the veils' washes are (issue #394: the father's message showed
@@ -845,7 +850,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // engine is played (its menus draw the runner's card) or a plan asks for them (`trials`: the bridge's -trial, -game);
   // not in a bench's plan, whose numbers stay comparable with before. On a game's page, its runner at once.
   const trials = gameDef || withTrials || (menus && !flags && !view) ? optional('the trials', () => makeTrials({ levelId, scene, physics, level, player, camera, rig, sound, wind, tool, foes: combat?.foes ?? null, chimes: combat?.chimes ?? null,
-    npcs, crowd, wildlife, flora, people: lib && humans ? { lib, humans } : null, story, menus, items: gear, game: gameState, toast, waters, settings, ship, def: gameDef, from, onGame, onLeave, thresholds,
+    npcs, crowd, wildlife, flora, people: lib && humans ? { lib, humans } : null, story, menus, items: gear, game: gameState, toast, waters, settings, ship, kick, def: gameDef, from, onGame, onLeave, thresholds,
+    transit: gameDef ? ambush.transit(transitTo) : null,
     log: (t) => log(t) })) : null;
   if (trials) stamp('trials');
   // input: the keys by KeyboardEvent.code, as the page's listeners keep them (main.js), and the pads
@@ -913,7 +919,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       if (boxes?.busy?.()) { if (name === 'confirm') { boxes.dismiss(); return; } if (name === 'back') { boxes.skip(); return; } }
       if (combat?.restartOpen) { if (name === 'confirm') combat.restart(); return; }
       // R3: lock on to a foe, then the next, then let go; with none in reach the scout finds the objective (main.js)
-      if (name === 'lock' && combat && !pinned && !(shipOn && ship.playing)) { if (!combat.lock()) scout?.ping?.(); return; }
+      if ((name === 'lock' || name === 'l3') && level.jump && !pinned) { level.jump(name === 'lock' ? 1 : -1); return; }   // (the Lab: R3 / L3 hop to the next / previous world's room, as main.js)
+      if (name === 'lock' && combat && !pinned && !(shipOn && ship.playing)) { if (!combat.lock() && !trials?.running) scout?.ping?.(); return; }
       if (name === 'potion' && combat && !pinned && !talking() && !(shipOn && ship.playing)) { combat.drink(); return; }
       // D-pad ↓ (the mount's call: there is none in the Arena): its list of foes, as main.js's quickMenu
       if (name === 'call' && foeList && !pinned && !talking()) { menus.openFoes(foeList); return; }
@@ -964,7 +971,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   let eWasDown = false, qWasDown = false;
   // the HUD's state, as main.js draws it (src/platform.js screen): the cue line, the floating prompt,
   // the toasts, the health bar and the stamina wheel
-  const cue = new Cue(), placeName = new PlaceName(), hpFade = new Fader(3);
+  const cue = new Cue(), placeName = new PlaceName();
   const breath = new BreathMeter(null);   // (the screen's 'breath' part only: BridgeHud.cs DrawBreath, issue #430)
   const rideHint = { kind: null, at: 0 };
   let stShown = 0;
@@ -1016,13 +1023,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     if (pinned) screen.set('toast', null);
     else if (toasts.left <= 0 && toasts.queue.length && !busy) { const t = toasts.queue.shift(), secs = toastSeconds(t); screen.toast(t, secs); toasts.left = secs * 0.58; }
     if (toasts.left < -6) screen.set('toast', null);
-    // (the hearts, the potions and the wallet, as main.js updateHealth; shown a while after a hurt, a drink or a chime)
-    if (combat) player.setMaxHearts?.(resources.maxHearts);
-    const pot = resources.potions, R = tool?.owned && !tool.dry ? tool.reserve : null;
-    screen.set('health', healthHud({ health: player.health ?? 1, hearts: player.hearts ?? null, max: player.maxHearts ?? 3, magic: R ? R.level : null, magicMax: R?.max ?? 3,
-      potions: pot.count, infinite: pot.infinite, chimes: resources.chimes, combat: !!combat?.foes.lock || !!combat?.near(12), down: player.down, hurt: hpHurt > 0 || (combat?.shown ?? 0) > 0,
-      quiet: !!pinned || (shipOn && ship.playing) }, hpFade, dt));
-    hpHurt = 0; if (combat) combat.shown = 0;
+    // (the hearts, the potions and the wallet, as main.js updateHealth: src/host/game-host.js wireHealth; shown while
+    // fighting, a while after a hurt, a drink or a chime, the wallet's count ticking up)
+    screen.set('health', health.frame(dt, { player, fighting: !!combat?.foes.fighting, quiet: !!pinned || (shipOn && ship.playing) }).hp);
     // the key counter while in a temple (issue #274: as main.js updateKeys; BridgeHud.cs draws it)
     const keyT = (level.temples ?? (level.temple ? [level.temple] : [])).find((t) => t.keyCount && Object.values(t.def?.logic?.elements ?? {}).some((e) => e.type === 'key') && t.inside(player.pos));
     const keyN = keyT?.keyCount();
