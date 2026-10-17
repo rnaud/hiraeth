@@ -1116,6 +1116,8 @@ const HATS403 = 'Issue #403: the character studio’s crowd lineup (studio.html?
 /** (v1.83, issue #406: the Rose House round its Great Hall) */
 const ROSE406 = 'Issue #406: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, 11:00, the HUD hidden) on this branch’s own Vite (port 5407, scripts/design-qc/capture.mjs), the camera pinned; before: the tree at c89a0a1e2 (port 5408), the same camera; 16 October; cwebp -q 72';
 const ROSE406P = 'Issue #406: the Temple maps page (temples.html?t=desert, Debug → Pages) in muted headless Chrome, 1600 × 1150, the plan with the solver’s steps, cut to the plan; before: the tree at c89a0a1e2, after: this change; 16 October; cwebp -q 70';
+const PORT397 = 'Issue #397: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, 10:00, the HUD hidden) on this branch’s own Vite (port 5441), the camera pinned; before: the tree at 0e7a41e5a (port 5443), the same camera; 17 October; cwebp -q 72';
+const PORT397U = 'Issue #397: the Unity bridge in the editor’s batch run on this Mac (muted, High, 1280 × 720, -level spacecity, the view pinned from the Gate); 17 October; cwebp -q 72';
 /** (v1.83, issue #430: the page's HTML as screen parts in Unity) */
 const GAPS264 = 'Issue #264: the Unity bridge in the editor’s batch run on this Mac (muted, High, 1280x720), the same beats of scripts/unity-compare/sequences.mjs before (#429’s run) and after; cwebp -q 70';
 const UI430 = 'Issue #430: the Unity bridge in the editor’s batch run on this Mac (muted, High, -frames 1280x720), each piece put up by -ui through engine/ui-poses.js on the debug save; before, none of them was drawn (the web’s side, the same poses in headless Chrome, beside them in the issue’s sheet); cwebp -q 72';
@@ -1249,6 +1251,16 @@ export const CHANGELOG_MEDIA = {
       { name: 'whale-plan', size: [1180, 1060], title: 'The plan', caption: 'The Temple maps page (temples.html?t=underwater), all floors: before, 17 steps on three floors round one hub; after, 22 on four round the Sounding Hall and the dais, the Shell Room and the Throat off the deep floor, the High Walk to the gallery', from: WHALE412P },
     ], see: 'In the Underwater City, go into the Whale-House and down the stair to the deep floor; roll its ball into the cradle by the pillar. In the Shell Room, turn the valve and ride the water up to the ledge.' },
     { match: 'Inside the makers’ houses the spring boots only hop', see: 'With the spring boots on (the Whale-House’s chest), hold RT / R2 on any makers’ house’s floor: the ring round your feet stays dark and letting go is a hop. Step outside its door and the same wind throws you fourteen metres up.' },
+    { match: 'The City Floating in Space has a little space port on its Pier', shots: [
+      { name: 'space-port-pier', title: 'From the Gate', caption: 'The Pier from the Gate Quarter: the two docks either side of the bridge, a craft moored in each, one more flying over the city', from: PORT397 },
+      { name: 'space-port-high', title: 'From above', caption: 'The Pier from high in the south-east: the landing ring round the ship, a dock beside the bridge, craft over the islands', from: PORT397 },
+      { name: 'space-port-unity', only: 'after', title: 'In Unity', caption: 'The same view from the Gate in the Unity version (the editor’s batch run, High, 1280 × 720)', from: PORT397U },
+    ], numbers: [{ title: 'Draw calls a frame', unit: 'calls', better: 'lower', device: 'this Mac, headless Chrome, High, 1280 × 720 (the most in 60 frames)', rows: [
+      { where: 'the Pier from the Gate', before: 373, after: 373 },
+      { where: 'the ramp’s foot, looking north', before: 348, after: 350 },
+      { where: 'the Pier from high', before: 513, after: 514 },
+    ], source: 'Issue #397: the port adds 8 merged meshes to the Pier (its parked craft baked into them) and 6 a craft in flight, drawn only when in view' }],
+    see: 'Land in the City Floating in Space and look back at the Pier from the bridge, or up over the islands for the craft.' },
   ],
   '1.82': [
     { match: 'Locked on, RT / R2 throws the grappling hook at your foe', tags: ['combat'], shots: [

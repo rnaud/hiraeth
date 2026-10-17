@@ -64,6 +64,9 @@ export const CHANGELOG = [
     // engine/traveller-paint.js, Marks.hlsl weatherInk and glyphCarve, BridgeHud.cs KeyGlyph and the 3-2-1, src/ship/ship.js
     // applyCamera (the lens left alone); tests/engine-unity-gaps.test.js
     'In the Unity version, the Signal Market’s broadcast no longer goes black, the Map draws its ground, a struck foe flashes and falls to its ink instead of staying white, his face close up is clean of ink blotches, Vael’s walls have fine cracks instead of dark drips, the builders’ walls in Edena carry their carved inscriptions again, the dark band round his shirt is gone, the temples’ key counter is a key, and the 3-2-1 is its proper size. In the ring race and the ski run the view now widens as you pick up speed, as it was meant to.',
+    // issue #397: src/levels/port-pad.js (pad, docks, traffic as data), space-city.js SC_PORT, taxi.js (the fin's tip);
+    // tests/port-pad.test.js; docs/design/space-ports.md (the plan and the Midjourney prompts for every city)
+    'The City Floating in Space has a little space port on its Pier while the real one is being designed: a landing ring painted round your ship, two docks reaching out over the void either side of the bridge with a moorer’s craft in each, and small craft circling slowly over the city.',
   ] },
   { v: '1.82', date: '2026-10-16', items: [
     // issue #399: src/hook-foes.js (each kind's `hook` class, hookOutcome, lockShot), src/gadgets/hook.js fireAtLock /
