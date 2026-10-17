@@ -3,7 +3,7 @@
 2026-10-16. The author: "add a floating monster, it sends a fireball, you have to hit with your sword to send the ball back
 and hit it". Its mechanic is built (src/fireballs.js, src/foes.js, docs/systems/foes.md "The ember wisp's fireball") on a
 **stand-in body** (src/enemies/plans/ember.js: two lids of dark shell round a glowing coal). Its real body waits for the
-author to pick a design sheet from the prompts below (`art: 'pending'` in src/enemies/archetypes.js). Once a sheet is picked, save it as
+author to pick a design sheet from the prompts below (run in the reference lab) (`art: 'pending'` in src/enemies/archetypes.js). Once a sheet is picked, save it as
 `references/enemy-archetypes/wisp/sheet-1.jpg` with its manifest, and rebuild the body with the enemy-rework skill.
 
 ## Role
@@ -50,36 +50,14 @@ Where it is met, and why:
 
 ## Prompts for its design sheet
 
-These are for Midjourney in the author's browser, made the way the existing sheets were
-(docs/design/enemy-roster-prompts.md, "What every prompt keeps"): four views at one scale, the wind-up pose that the
-game uses as its telegraph, the black silhouette under the side view, the small traveller for scale, cream paper, and the
-house style's common tail. Run each at the default model (add `--v 8.2` if the default has moved). The author picks.
-The chosen sheet becomes `sheet-1.jpg`, and an alternate skin is run from it with the image URL pasted first, as for the
-other archetypes.
-
-**1. The clam shell (closest to the stand-in).**
-
-```
-Spirit design reference sheet for a science fiction exploration game: one ember wisp, a small floating spirit, drawn four times side by side at the same scale on a plain cream background: front view, side view, three-quarter view, and its fireball wind-up with its shell opened wide like a clam and the coal inside swollen white-hot, the body reared back. Beneath the side view its solid black silhouette. A small cloaked human traveller with a round jade fluid backpack stands below it for scale; the wisp is the size of a pumpkin and hovers four metres up, well above the traveller's head. Body plan: a round shell of hardened black ink in two lids hinged at the back, cracked all over with thin orange light showing through the cracks, a single fin along the upper lid's crown, two small pale eyes low on the upper lid, a glowing coal in the middle, and a short tail of smoke beads hanging beneath; no limbs. The manifestation: a borrowed fire, the dark cupped round a stolen coal, a lamp where no lamp should be. Moon Foundry palette: ink-black and soot-violet shell, brass rim on the lids, molten orange and butter-yellow coal, pale cream eyes. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, restrained cream paper grain, whimsical technology, clear readable construction, fully visible bodies, evenly spaced views, no lettering --ar 3:2 --no photorealism 3d-render text watermark lettering labels scenery collage flames-everywhere
-```
-
-**2. The lantern husk (a found object the dark wears).**
-
-```
-Spirit design reference sheet for a science fiction exploration game: one ember wisp, a floating spirit, drawn four times side by side at the same scale on a plain cream background: front view, side view, three-quarter view, and its fireball wind-up, its iron cage-shell splitting open along its ribs, a coal swelling white-hot inside, smoke streaming upward. Beneath the side view its solid black silhouette. A small cloaked human traveller with a round jade fluid backpack stands below it for scale; the wisp hovers four metres up, above the traveller's head. Body plan: a hollow, cracked lantern-like husk of black ink with curved ribs like a birdcage, a ring of small holes round its waist, one long smoke ribbon trailing behind it, two pale slit eyes in the dark between the ribs, an ember coal floating at its heart. The manifestation: the dark wearing a lamp's shape to copy the singing light, glowing from inside, cold outside. Palette: ink-black ribs with violet sheen, ember orange coal, gold sparks, a cream glow on the ribs nearest the coal. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, restrained cream paper grain, whimsical technology, clear readable construction, fully visible bodies, evenly spaced views, no lettering --ar 3:2 --no photorealism 3d-render text watermark lettering labels scenery collage
-```
-
-**3. The ink moth-lamp (wings that fold round the coal).**
-
-```
-Spirit design reference sheet for a science fiction exploration game: one ember wisp, a floating spirit, drawn four times side by side at the same scale on a plain cream background: front view, side view, three-quarter view, and its fireball wind-up with its four stiff ink petals opened outward like a flower around a white-hot coal, the body tilted back. Beneath the side view its solid black silhouette. A small cloaked human traveller with a round jade fluid backpack stands below it for scale; the wisp hovers four metres up. Body plan: four curved petals of hardened black ink closed into a bud around a glowing coal, a thin ring of light round the bud's waist, two small round pale eyes on the front petal, three drips of ink hanging from its base like a tassel; it bobs slowly, no limbs. The manifestation: the dark folded round a stolen ember, a false flower of light. Palette: glossy ink-black petals with deep violet shadows, a thin white-gold ring, orange and yellow coal, pale lilac eyes. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, restrained cream paper grain, whimsical technology, clear readable construction, fully visible bodies, evenly spaced views, no lettering --ar 3:2 --no photorealism 3d-render text watermark lettering labels scenery collage
-```
-
-**Alternate skin** (run once a main sheet is picked; the image URL pasted first):
-
-```
-[sheet-1 image URL] Use the attached sheet only for the creature's shape, anatomy, proportions and poses; repaint it completely in a new colour scheme that reads as a different colour at a glance: none of the attached sheet's colours may remain. The same ember wisp, same shell and coal, redrawn as Lorn II's marsh wisp: a mossy dark green-black shell with pale lichen, a brass rim, the coal a cold green marsh-light, pale green eyes. Front, side and three-quarter views and the opened wind-up on plain cream paper, black silhouette below, small cloaked traveller with a round jade backpack for scale. Moebius science-fiction ligne claire, exquisite fine pen contours, sparse hatching, flat pastel gouache, cream paper grain, no lettering --ar 3:2 --no photorealism 3d-render text watermark lettering scenery collage
-```
+The prompts are in the enemy roster's prompt document, as archetype 22
+([enemy-roster-prompts.md](enemy-roster-prompts.md), "22. Ember wisp", id `wisp`), in the same format as the other
+archetypes' sheets: three candidate main sheets (the clam shell, closest to the stand-in; the lantern husk; the ink
+moth-lamp) and the marsh wisp's alternate skin, run from the picked sheet. They run in the reference lab (issue #437,
+docs/systems/reference-lab.md): text alone, Gemini and OpenAI,
+`node scripts/gen-reference.mjs --from docs/design/enemy-roster-prompts.md#wisp` (and `#wisp/v2`, `#wisp/v3`). The
+author picks in the lab's Pick mode; the pick becomes `sheet-1.jpg` in the archetype's folder. The alternate skin is
+run afterwards with that sheet as its base (`#wisp/alt --refs <the picked sheet-1>`).
 
 ## What a picked sheet must keep (for the rework)
 

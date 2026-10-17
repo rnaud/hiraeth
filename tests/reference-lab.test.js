@@ -110,10 +110,10 @@ test('a prompt document can name its own target folder', async () => {
   assert.equal(targetFor('docs/design/level-explorations-prompts.md', 'b-two', many), 'references/levels/B/explorations/b-two/');
 });
 
-test('the real enemy roster prompts parse: 21 archetypes, each with a main sheet', () => {
+test('the real enemy roster prompts parse: 22 archetypes, each with a main sheet', () => {
   const md = readFileSync(new URL('../docs/design/enemy-roster-prompts.md', import.meta.url), 'utf8');
   const e = parsePromptDoc(md);
-  assert.equal(e.length, 21, e.map((x) => x.id).join(','));
+  assert.equal(e.length, 22, e.map((x) => x.id).join(','));
   for (const x of e) assert.ok(x.variants[0].key === 'main' && x.variants[0].prompt.length > 200 && x.variants[0].ar, x.id);
 });
 

@@ -5,12 +5,13 @@
 and took the oddest shapes out of the crowds. What is left is a patchwork: each world's own piece from the first
 costumes, plus the "stage 3" hats (bowler, trilby, flat cap, peak cap, beanie, trapper, bandana), which read as a
 twentieth-century Earth street rather than a Moebius world. This file prepares the redesign: a small coherent set
-of hats per culture, **three to five at most**, from one Midjourney sheet per world.
+of hats per culture, **three to five at most**, from one design sheet per world.
 
-**Nothing here is generated or modelled yet.** As CLAUDE.md asks: the author runs these prompts in Midjourney in his
-own browser, hearts the sheets they like, and only the picked designs are modelled (as `HEADS` pieces in
-`src/costumes.js`, fitted to the skull like the stage 3 hats, then given to each tribe's `heads` table). The picks
-go to a new `hats/<id>/` folder under the references folder (made when the first pick is saved).
+**Nothing here is modelled yet.** The prompts below run in the reference lab (issue #437; docs/systems/reference-lab.md),
+text alone, Gemini and OpenAI: `node scripts/gen-reference.mjs --from docs/design/hat-prompts.md#<id>`. The author
+picks in the lab's Pick mode, and only the picked designs are modelled (as `HEADS` pieces in `src/costumes.js`,
+fitted to the skull like the stage 3 hats, then given to each tribe's `heads` table). A pick goes to its set's
+folder, `references/hats/<id>/`, with its `manifest.json`.
 
 ## What every hat must do
 
@@ -64,9 +65,12 @@ version of the same idea, never a different hat.
 ## The prompts
 
 Every prompt asks for one sheet: the set's hats each worn by a head-and-shoulders figure of that people, front and
-three-quarter view, on cream paper, no lettering. Same style suffix throughout, so the sheets can be compared.
+three-quarter view, on cream paper, no lettering. Same style suffix throughout, so the sheets can be compared. The
+Midjourney flags stay: the lab turns `--ar` into the aspect ratio and `--no` into a closing "Avoid: …".
 
-### 1. The City-Shaft (`city-shaft`): the worlds that need it most
+Target folder: `references/hats/<id>/`
+
+### 1. The City-Shaft, the worlds that need it most (`city-shaft`)
 
 ```
 Character design sheet for a science fiction exploration game: the hats of a city built down the walls of a vast vertical shaft, rich families on the sunlit rim and the poor in the dark depths. Four hats, each worn by a head-and-shoulders figure, front and three-quarter view: a rim family's hat of pale lacquered felt with a short stiff brim and a single pastel band, worn with a high collar; a middle-levels worker's soft cap with a short peak, canvas and patched; a bottom-of-the-shaft hood of layered rags close round the face, lantern-soot on the cloth; a leather goggle band worn over close-cropped hair. Every hat sits close on the skull, no taller than the head, brims no wider than the shoulders, one clear silhouette each, readable from far away. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, rose, lavender and pale blue on the rim, rust and soot grey below, restrained cream paper grain, clear readable construction, no lettering --ar 16:9 --no photorealism 3d-render text watermark lettering labels costume-party
