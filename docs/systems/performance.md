@@ -3828,12 +3828,61 @@ that the prewarm's first frame held for 12-15 s.
   into `LocalState\pso-trace.graphicsstate`, reading it first, so launches in other worlds add to the same file. It saves
   20 s after the world settles. Fetch the file into `unity/Hiraeth/Assets/StreamingAssets/hiraeth-pso/Direct3D12.graphicsstate`
   (unity/.gitignore lets that folder in) and commit it. `-no-pso` turns the warm-up off for an A/B.
-- **Not done yet:** the console run. It needs a build of the branch by the Xbox workflow, which only a push can start: a
+- **Measured in round three** (below): the list made the load 39-47 s longer and was not shipped.
+- **Not done yet (then):** the console run. It needs a build of the branch by the Xbox workflow, which only a push can start: a
   development build to trace the Desert, the City-Shaft and the worlds a save may start in, then a release build carrying
   the collection, to measure cold and warm against the numbers above. The C# compiles in the editor (6000.6.4f1, batch
   mode). Expected: the 11-22 s wait at the first frame drops toward the slowest single pipeline (~2.5 s), if the
   console's driver makes pipelines in parallel. If it does not, the fallback is still the drawn prewarm, now overlapping
   the script (about 7 s sooner).
+## The Xbox's load, round three: the pipeline list measured and dropped, the drawn prewarm off (issue #16, 2026-10-17)
+
+Round two built BridgePso but did not measure it on the console. Here the list was traced over every world and measured
+against the first draws. The list made the load much longer, so it was not shipped. The drawn prewarm made every warm
+launch 9 s longer, so it is now off on the Xbox.
+
+**The trace.** A development player (1.80.2452, `-pso-trace`) ran every world's views and walk, its first temple and the
+ship's rooms, and a fight. That gave 158 states of 42 variants (511 KB). The title adds nothing: the trace saves 20 s after
+a world settles, and the title has no world.
+
+**Measured** on the Xbox (Series X, `rnaud.HiraethUnity`, release build, Direct3D 12, a 4K TV, muted) with
+`-mute -level <world> -walk 60 -slow-ms 100`. Cold means the app's D3D12 caches and `prewarm.txt` were removed first. The
+times are seconds after launch to the world's first frame.
+
+| build 1.83.2528 | Desert cold | Desert warm | City-Shaft cold | City-Shaft warm |
+|---|---|---|---|---|
+| `-no-pso` (the drawn prewarm, as shipped until now) | 45.0 | 52.9 | 42.7 | 50.2 |
+| the list warmed (BridgePso) | **83.9** | **92.9** | **89.5** | **90.3** |
+| `-no-pso`, no `prewarm.txt` | | 43.6 | | 41.9 |
+
+- **The list is 39-47 s slower.** `WarmUp` took 78-87 s for 158 states. The pipelines were made in parallel: the app used
+  ~75 % of the CPU for over a minute while the GPU sat idle. But each state cost ~3 core-seconds, far more than the same
+  pipelines made at the first draws: the Desert's first frame waits 27-28 s for them on a cold driver cache. The script's
+  `Hiraeth.start` waited behind the workers (76-85 s, against 6.5-9 s without). A warm launch was no quicker, because the
+  driver's cache did not shorten the warm-up. **The Xbox ships no list.** `-pso-file` still warms one for a test; the
+  traced file is kept outside the repository.
+- **The drawn prewarm cost 9 s on every warm launch.** It draws last launch's 9 (layout, state) pairs in one frame, while
+  the script builds the world. On Direct3D 12 that frame held the main thread for ~25-30 s. The script's start waited on
+  it (`Hiraeth.start` 29.6-32.1 s against 6.6-9.0 s). The world's first frame then still waited ~13.5 s on its other
+  pipelines. Now BridgeRunner leaves it out on the Xbox (`RuntimePlatform.WSAPlayerX64`), and `-draw-prewarm` draws it.
+- **The driver's cache barely helps.** Cold or warm, the world's first frame waits ~25-28 s on its pipelines. That wait
+  is most of the load and is still the next thing to cut.
+
+Build 1.83.2546 (the change), the same runs. Before is `-draw-prewarm` with a `prewarm.txt` from the run before it:
+
+| build 1.83.2546 | Desert | City-Shaft |
+|---|---|---|
+| cold | 44.1 | 42.7 |
+| warm | **44.1** | **41.9** |
+| warm, `-draw-prewarm` (before) | 53.1 | 50.9 |
+
+**A warm launch reaches the world 9.0 s sooner in both worlds**, the same as a cold one. The walk is unchanged:
+54.8-55.2 fps in the Desert and 47.4-48.8 fps in the City-Shaft.
+
+The round's starting points (35.9 / 35.1 s Desert, 38.8 / 38.2 s City-Shaft) were on builds 2373 and 2399. Build 2528 is
+slower to its first frame with the drawn prewarm on: 45.0 / 52.9 s Desert, 42.7 / 50.2 s City-Shaft, with more to build
+and more pipelines. With this change it is 44.1 / 44.1 s and 42.7 / 41.9 s.
+
 ## The Steam Deck, round 11: three levers that change what is simulated (issue #111, 2026-10-15)
 
 After round 10 four worlds were still under 60 at native resolution, CPU-bound (JS 18-22 ms). The author approved three

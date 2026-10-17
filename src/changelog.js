@@ -13,6 +13,13 @@ export const CHANGELOG = [
     // escort, src/ship/prologue-drone.js and the prologue's `drone` stage, interior.js DOCK, ship.js AUTO_WALK, desert.js
     // drone:village; tests/companion.test.js, tests/prologue-drone.test.js, tests/scout.test.js
     'Your ship’s little drone has a name now, Plumb, and its lines say so. In the opening you see it wake in its charging cradle by the hatch and come to your shoulder; you walk down the ramp, not run, and once outside Plumb says your best bet is the village on the horizon, where someone might help you both recharge, and flies off toward it. After that it speaks up only when you seem lost: where to go next, a word on what waits in a makers’ house after a long while on one step, or a guardian’s weak point as a fight drags on. Never two lines within the minute, and Hints off quiets it.',
+    // issue #16: unity/Hiraeth BridgeRunner (the drawn prewarm off on the Xbox, -draw-prewarm); tests/unity-xbox.test.js;
+    // docs/systems/performance.md "The Xbox's load, round three"
+    { text: 'On the Xbox, the Unity preview reaches the world about 9 seconds sooner each time you start it after the first: 44 s to the Desert instead of 53, 42 s to the City-Shaft instead of 51.',
+      numbers: [{ title: 'Launch to the world’s first frame on the Xbox, a launch after the first, before → after', unit: 's', better: 'lower', device: 'Xbox Series X, the Unity preview (Direct3D 12), 4K TV, muted', rows: [
+        { where: 'the Desert', before: 53.1, after: 44.1 },
+        { where: 'the City-Shaft', before: 50.9, after: 41.9 },
+      ], source: 'docs/systems/performance.md, "The Xbox\'s load, round three"' }] },
   ] },
   { v: '1.83', date: '2026-10-16', items: [
     // issue #406: src/temples/desert.js (ROOMS, LOGIC: hall, balcony, ballK, kS, dE, sentry in the hall, d3), pieces.js Ball

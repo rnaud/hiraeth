@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.84 — 2026-10-17
 
+- On the Xbox, the Unity preview reaches the world about 9 seconds sooner each time you start it after the first: 44 s to the Desert instead of 53, 42 s to the City-Shaft instead of 51.
 - Your ship’s little drone has a name now, Plumb, and its lines say so. In the opening you see it wake in its charging cradle by the hatch and come to your shoulder; you walk down the ramp, not run, and once outside Plumb says your best bet is the village on the horizon, where someone might help you both recharge, and flies off toward it. After that it speaks up only when you seem lost: where to go next, a word on what waits in a makers’ house after a long while on one step, or a guardian’s weak point as a fight drags on. Never two lines within the minute, and Hints off quiets it.
 
 ## v1.83 — 2026-10-16

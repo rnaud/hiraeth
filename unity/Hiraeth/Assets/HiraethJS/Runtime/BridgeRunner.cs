@@ -155,6 +155,11 @@ namespace Hiraeth.Bridge
             // the drawn prewarm is left out, its pairs still noted for a launch without one; -draw-prewarm both)
             if (!Rebooted) BridgePso.Begin();
             if (BridgeArgs.Flag("-no-prewarm") || Rebooted) BridgePrewarm.On = false;
+            // (the Xbox: not drawn unless -draw-prewarm. On Direct3D 12 its pairs held the main thread ~25 s in one frame of a
+            // warm launch, the script's start waiting on it, and the world's first frame still waited as long on its pipelines:
+            // the load 8-9 s longer than without it; performance.md, "The Xbox's load, round three")
+            else if (Application.platform == RuntimePlatform.WSAPlayerX64 && !BridgeArgs.Flag("-draw-prewarm"))
+            { BridgePrewarm.On = false; Debug.Log("Hiraeth bridge: prewarm: not drawn on the Xbox (-draw-prewarm draws it)"); }
             else if (BridgePso.Warming && !BridgeArgs.Flag("-draw-prewarm")) Debug.Log("Hiraeth bridge: prewarm: not drawn, the pipelines warmed from the collection");
             else { int warmed = BridgePrewarm.Load(scene.MaterialFromSpec); Debug.Log($"Hiraeth bridge: prewarm: {warmed} (layout, state) pairs from the last launch"); }
             // the port's shadow pass draws casters over a WorldDetail; the bridge's are all "movers" (HiraethShadows

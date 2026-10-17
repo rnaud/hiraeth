@@ -2,7 +2,7 @@
 // package's own identity, Puerts' QuickJS chosen where there is no V8, and the numbers written to LocalState.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import { UNITY_RELEASES, unityNotes } from '../scripts/release-info.mjs';
 
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
@@ -230,6 +230,14 @@ test('the GPU\'s pipelines warmed on the job system\'s workers from a traced col
   assert.match(runner, /BridgePso\.Warming && !BridgeArgs\.Flag\("-draw-prewarm"\)/);
   assert.match(runner, /scriptEnvMade\.IsSet\) BridgePrewarm\.Draw/, 'the drawn prewarm waits for the script\'s engine, made through the main thread');
   assert.match(read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMetrics.cs'), /BridgePso\.Settled\(\)/);
+});
+
+test('the Xbox ships no pipeline list and draws no prewarm unless -draw-prewarm: each made its load longer (issue #16, round three)', () => {
+  // (round three: the traced list's 158 states warmed in 78-87 s on the workers, the load 39-47 s longer; the drawn
+  // prewarm held a warm launch's main thread ~25 s, 8-9 s longer than without it)
+  const runner = read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs');
+  assert.match(runner, /Application\.platform == RuntimePlatform\.WSAPlayerX64 && !BridgeArgs\.Flag\("-draw-prewarm"\)\)\s*\{ BridgePrewarm\.On = false;/);
+  assert.ok(!existsSync(new URL('../unity/Hiraeth/Assets/StreamingAssets/hiraeth-pso/Direct3D12.graphicsstate', import.meta.url)), 'no Direct3D 12 list: its warm-up was slower than the first draws');
 });
 
 test('the engine finishes distant detail after the first frame, as the web does: the City-Shaft\'s trees-in-houses check off the load (issue #16)', () => {
