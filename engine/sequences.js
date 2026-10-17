@@ -177,6 +177,19 @@ export const SEQUENCES = [
       { name: 'answer', keys: tap('Digit1'), wait: 1.5 },
     ],
   },
+  {
+    // the desert's hoverbike on a new save (issue #421: in Unity it was given at the prologue's end, nothing in the
+    // hollow, no quest): under its tarp in Marrow's hollow, the tarp pulled back with E, the errand begun
+    id: 'hoverbike', title: 'The hoverbike in its hollow', setup: { level: 'desert' },
+    beats: [
+      { name: 'hollow', act: (G) => {
+        const b = G.player.mount, dir = new THREE.Vector3(1, 0, 0.6).normalize(), p = b.pos.clone().addScaledVector(dir, 3.2);
+        G.player.teleport(p, new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1));
+        G.player.heading = Math.atan2(b.pos.x - p.x, b.pos.z - p.z); G.rig.yaw = G.player.heading + Math.PI;
+      }, wait: 2 },
+      { name: 'tarp', keys: tap('KeyE'), wait: 1.6 },
+    ],
+  },
 ];
 
 /** The sequence of that id, or null. */

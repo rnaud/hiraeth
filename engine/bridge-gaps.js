@@ -259,7 +259,7 @@ export const GAPS = {
     { keys: ['import:src/hud.js#heartsSvg', 'import:src/hud.js#KEY_SVG', 'import:src/hud.js#GREAT_KEY_SVG', 'fn:updateStamina', 'fn:restartNow', 'fn:showToast',
       'import:src/story/charge.js#chargeHud', 'import:src/story/charge.js#showChargeCard', 'import:src/story/charge.js#GIVEN', 'import:src/story/charge.js#CARD', 'import:src/passage.js#PassageCover', 'import:src/flurry.js#FlurryFx'],
     what: 'the HUD\'s page drawing (hearts, wallet, keys, stamina, knock-out, toast, charge, passage cover, flurry)', status: 'handled', where: 'the screen\'s parts the engines publish (engine/game.js, engine/combat.js), drawn by BridgeHud.cs' },
-    { keys: ['import:src/quest.js#Journal', 'import:src/save-migrate.js#migrateJournal', 'import:src/boxes/index.js#migrateSave', 'import:src/levels/content.js#RELIC_BASE', 'fn:flushPlay'],
+    { keys: ['import:src/quest.js#Journal', 'import:src/save-migrate.js#migrateJournal', 'import:src/levels/content.js#RELIC_BASE', 'fn:flushPlay'],
       what: 'the journal and the save\'s migrations', status: 'handled', where: 'engine/game.js engineJournal (the same key and fields); BridgeStore.cs' },
     { keys: ['import:src/changelog.js#Changelog', 'import:src/changelog.js#VERSION', 'import:src/ui.js#SettingsMenu', 'import:src/controller.js#menuNavigate', 'import:src/menu-pad.js#padConfirm',
       'fn:menuHeard', 'fn:uiSound', 'fn:pageUp', 'fn:menuRoot', 'fn:closeControllerMenu', 'fn:quitToTitle', 'fn:saveBeforeRestart', 'import:src/ui-sound.js#uiKind', 'import:src/levels/content.js#ORDER'],

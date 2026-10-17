@@ -125,7 +125,7 @@ import { knownWorlds, newlyKnown } from '../src/story/route.js';
 import { selfLitSkips } from '../src/shadows.js';
 import { plainValue } from './ink-spec.js';
 import { Sound } from '../src/audio.js';
-import { createBoxes } from '../src/boxes/index.js';
+import { createBoxes, migrateSave } from '../src/boxes/index.js';
 import { installAudio } from './webaudio.js';
 import { setView, inView } from '../src/motion-kit/view.js';
 import { padFaces, setFaces, confirmKey, backKey } from '../src/native-pad.js';
@@ -324,6 +324,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const t0 = performance.now();
   // the save's flags to start from (the side-by-sides: the web bench's, scripts/bench/web-page.mjs prepareStorage)
   if (flags) Object.assign(gameState.data.flags, flags);
+  // saves from before the items, as main.js's start migrates them (src/boxes/index.js); and the engines' own saves,
+  // which never were until v1.83 and so had the desert's hoverbike given them at the prologue's end (issue #421)
+  migrateSave(gameState);
   const stamp = (k) => { T[k] = Math.round(performance.now() - t0); };
   // a game's page (?game=<id>, src/minigames/): its own arena under its host's id, or the world it is played in, is the
   // level (src/minigames/kit/world.js levelMetaFor, as main.js builds it); `from` the world its Quit goes back to

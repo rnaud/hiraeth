@@ -359,6 +359,23 @@ test('old saves that finished the prologue keep the backpack; new games start wi
   assert.equal(migrateSave(newer), false);
 });
 
+test('an engines\' save that never ran the items\' migration gets no backpack and its hoverbike back under the tarp (issue #421)', () => {
+  const store = () => { const m = new Map(); return { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, v) }; };
+  // Unity's new game: through the prologue, no items.v, and migrateBike took it for a legacy save
+  const unity = new GameState(store());
+  unity.set('prologue.done', true); unity.set('desert.bike.v', 1); unity.set('desert.bike.found', true);
+  assert.equal(migrateSave(unity), false);
+  assert.equal(unity.flag('item.backpack'), undefined, 'no legacy backpack');
+  assert.equal(unity.flag('desert.bike.found'), false, 'the bike lies in the hollow again');
+  assert.equal(unity.flag('items.v'), 2);
+  // one that went on and really found it (the tarp pulled back) keeps it
+  const rode = new GameState(store());
+  rode.set('prologue.done', true); rode.set('desert.bike.v', 1); rode.set('desert.bike.found', true); rode.set('desert.bike.uncovered', true); rode.set('item.backpack', true);
+  migrateSave(rode);
+  assert.equal(rode.flag('desert.bike.found'), true);
+  assert.equal(rode.flag('box.desert.backpack'), true);
+});
+
 test('the dev menu grants and revokes items, all and none', () => {
   game.reset();
   const dev = new DevMenu({ levelId: 'desert' });

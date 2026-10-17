@@ -66,7 +66,14 @@ export function boxesFound(g = sharedGame) {
 export function migrateSave(g = sharedGame) {
   const v = g.flag('items.v') ?? 0;
   let legacy = false;
-  if (v < 1) {
+  // (issue #421: the engines' builds never ran this until v1.83, so a new save there finished the prologue with no
+  // items.v, and src/story/desert-bike.js migrateBike took it for a save from before the items and gave it the
+  // hoverbike: awake by the ship's spawn, nothing under the tarp, no quest. Such a save carries migrateBike's mark
+  // without this one's, which a page always writes first. It is no old save: no backpack is granted, and a bike
+  // "found" whose tarp was never pulled back goes back under it.)
+  const engineMade = v < 1 && g.flag('desert.bike.v') !== undefined;
+  if (engineMade && g.flag('desert.bike.found') && !g.flag('desert.bike.uncovered')) g.set('desert.bike.found', false);
+  if (v < 1 && !engineMade) {
     // (the sword and the shield don't count: src/save-migrate.js step 12 gives them to every old save, before this runs)
     legacy = !!g.flag('prologue.done') && !Object.keys(ITEMS).some((id) => id !== 'sword' && id !== 'shield' && g.flag(`item.${id}`) !== undefined);
     if (legacy) g.set('item.backpack', true);

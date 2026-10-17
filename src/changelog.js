@@ -75,6 +75,9 @@ export const CHANGELOG = [
     // port-pad.js gantry and blots; port-craft.js skyboat, port-pad.js ring (the boat's scale); docs/systems/worlds.md
     'The City Behind the Waterfall’s landing is a proper port now, closer to its design: a docking niche is cut into the cliff ahead of your ship, its arch opening on a lit hall with a loading dock and steps up to it, a gantry bolted over it with a crate on its cable, crates on the dock and at its foot, puddles and moss on the wet stone, and a second courier parked beside the first. Tully waits by the niche.',
     'The City Floating in Space’s sky-boats are longer and rounder, as on their design: a nine-metre capsule with its top and its belly in two colours, a long low cabin with lit windows, portholes down each side, two lamps in the nose and a fin and a screw at the tail. The boats moored in the Pier’s hoops sit inside them.',
+    // issue #421: src/boxes/index.js migrateSave (an engines' save: no legacy backpack, the bike back under its tarp), run by
+    // engine/game.js createGame as main.js runs it; engine/sequences.js 'hoverbike'; tests/boxes.test.js
+    'In the Unity version, a new game no longer hands you the desert’s hoverbike as the opening ends. It lies under Marrow’s tarp in the hollow by the red rag again, and finding it starts its errand, as on the web. A save that was given it that way gets it back under the tarp.',
   ] },
   { v: '1.83', date: '2026-10-16', items: [
     // issue #406: src/temples/desert.js (ROOMS, LOGIC: hall, balcony, ballK, kS, dE, sentry in the hall, d3), pieces.js Ball

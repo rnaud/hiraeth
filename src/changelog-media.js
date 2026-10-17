@@ -1127,6 +1127,8 @@ const GAPS264 = 'Issue #264: the Unity bridge in the editor’s batch run on thi
 const HOST427B = 'Issue #427 round 2: the Unity bridge in the editor’s batch run on this Mac (muted, High, 1280 × 720, -fresh -no-hud, the camera pinned); before: the same run on main’s bundle (3a6ee5b29); after: this branch’s; the web’s pictures of the same views (scripts/design-qc/capture.mjs) beside them to check; 17 October; cwebp -q 72';
 const HOST427 = 'Issue #427: the Unity bridge in the editor’s batch run on this Mac (muted, High, 1280 × 720, -fresh -no-hud, the camera pinned), the kit’s with -set-flags item.sword,kit.colours.ember and the ember set chosen; before: the same run on main’s bundle (bb4163346); after: this branch’s; the web’s pictures of the same views (scripts/design-qc/capture.mjs) beside them to check; 17 October; cwebp -q 72';
 const UI430 = 'Issue #430: the Unity bridge in the editor’s batch run on this Mac (muted, High, -frames 1280x720), each piece put up by -ui through engine/ui-poses.js on the debug save; before, none of them was drawn (the web’s side, the same poses in headless Chrome, beside them in the issue’s sheet); cwebp -q 72';
+/** (v1.83, issue #421: the hoverbike in its hollow on a Unity save) */
+const BIKE421 = 'Issue #421: the Unity bridge in the editor’s batch run on this Mac (muted, High), the sequence `hoverbike` (engine/sequences.js: a new save in the desert, the traveller put 3 m from the bike, then E); before: the same run with the items’ migration left out of engine/game.js, as Unity played until now; 17 October; cwebp -q 72 -resize 1280';
 /** (v1.83, issue #408: the Founders' Belfry round its Great Belfry, the bell the house's state) */
 const BELFRY408 = 'Issue #408: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, 11:00, the HUD hidden) on this branch’s own Vite (port 5485), the camera pinned in the temple’s own metres; before: the tree at origin/main 73d26da88 (port 5481), the Stone Stair from its way in; 16 October; cwebp -q 70';
 const BELFRY408P = 'Issue #408: the Temple maps page (temples.html?t=arzach2, Debug → Pages) in muted headless Chrome, 1600 × 1150, the plan with the solver’s steps; before: the tree at origin/main 73d26da88, after: this change; 16 October; cwebp -q 70';
@@ -1169,6 +1171,9 @@ const PORT447U = 'Issue #447: the Unity bridge in the editor’s batch run on th
 const portRef = (id, what) => ({ sheet: `references/space-ports/${id}/sheet-1.jpg`, caption: `The author’s pick from the reference lab: ${what}` });
 export const CHANGELOG_MEDIA = {
   '1.84': [
+    { match: 'In the Unity version, a new game no longer hands you the desert’s hoverbike', shots: [
+      { name: 'unity-hoverbike', title: 'Marrow’s hollow', caption: 'A new save in Unity, the traveller set by the bike: before, it stood awake out on the dunes, given as the opening ended, and the hollow was empty; after, it lies under the tarp by the red rag, E pulls it back and its errand starts', from: BIKE421 },
+    ], see: 'In the Unity version, start a new game, then walk to the red rag on its pole in the dunes between the ship and the camps.' },
     { match: 'In the fight temples the roll is on the button printed B', see: 'In a fight temple with a Nintendo-lettered pad or the Retroid, the start card lists the bottom button (printed B) as roll; press it. On an Xbox or PlayStation pad it is B / ○ as before.' },
     { match: 'In the fight temples the sword is about a third quicker', numbers: [{ title: 'The combo’s cuts in the fight temples (wind-up + cut + follow-through)', unit: 's', better: 'lower', device: 'the tuning (src/fluid-blade.js SWINGS × QUICK_CUT), played in node: tests/fight-feel.test.js', rows: [
       { where: 'first cut', before: 0.47, after: 0.32 },

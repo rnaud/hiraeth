@@ -1,6 +1,6 @@
 {
  "recorded": "2026-10-17",
- "sha": "3a6ee5b29",
+ "sha": "f31346a0b",
  "how": "node scripts/unity-compare/sequences.mjs web [ids] && node scripts/unity-compare/sequences.mjs record",
  "sequences": {
   "moment-desert.flow": {
@@ -4551,6 +4551,70 @@
       -27.4,
       111.8,
       533.1
+     ],
+     "late": false
+    }
+   ]
+  },
+  "hoverbike": {
+   "beats": [
+    {
+     "beat": "hollow",
+     "hud": {
+      "prompt": {
+       "text": "pull back the tarp",
+       "key": "E"
+      }
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 1643,
+      "print": 1,
+      "shader": 2,
+      "wisp": 1,
+      "mote": 1
+     },
+     "cam": [
+      138.8,
+      11.7,
+      154.1,
+      55
+     ],
+     "player": [
+      134.7,
+      9.2,
+      151.6
+     ],
+     "late": false
+    },
+    {
+     "beat": "tarp",
+     "hud": {
+      "prompt": {
+       "text": "look at the hoverbike",
+       "key": "E"
+      }
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 1642,
+      "print": 1,
+      "shader": 2,
+      "wisp": 1,
+      "mote": 1
+     },
+     "cam": [
+      138.8,
+      11.7,
+      154.1,
+      55
+     ],
+     "player": [
+      134.7,
+      9.2,
+      151.6
      ],
      "late": false
     }

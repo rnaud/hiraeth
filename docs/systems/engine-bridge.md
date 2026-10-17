@@ -1878,6 +1878,16 @@ far cloud's shadow in Edena, the barks (#430), the lit stone's flame in `desert.
 HUD is laid out on a 960 × 720 canvas (the editor's screen) while the camera draws 1280 × 720: the cinematic bars
 cover three quarters of the width and the HUD's middle is left of the picture's. The players lay it out on their own
 screen; the batch run's pictures only.
+## The author's Unity play-through (2026-10-17, issues #420–#425)
+
+- **The hoverbike** (#421, "the quest doesn't start and the hoverbike is missing altogether"). main.js runs the items'
+  migration (src/boxes/index.js `migrateSave`) as the page starts, so a new save has `items.v` before its prologue;
+  engine/game.js never did. A Unity save then ended the prologue with no `items.v`, and src/story/desert-bike.js
+  `migrateBike` took it for a save from before the items and gave it the bike: awake by the level's spawn, nothing under
+  the tarp, no errand. createGame now runs `migrateSave` where main.js does (after a run's own flags), and `migrateSave`
+  knows such a save (migrateBike's `desert.bike.v` without its `items.v`, which a page always writes first): no legacy
+  backpack, and a bike "found" whose tarp was never pulled back goes back under it. The sequence `hoverbike` (a new save,
+  the traveller by the bike, E) compares it with the web.
 
 ## One host (2026-10-17, issue #427)
 
