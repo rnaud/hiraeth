@@ -1127,6 +1127,8 @@ const GAPS264 = 'Issue #264: the Unity bridge in the editor’s batch run on thi
 const HOST427B = 'Issue #427 round 2: the Unity bridge in the editor’s batch run on this Mac (muted, High, 1280 × 720, -fresh -no-hud, the camera pinned); before: the same run on main’s bundle (3a6ee5b29); after: this branch’s; the web’s pictures of the same views (scripts/design-qc/capture.mjs) beside them to check; 17 October; cwebp -q 72';
 const HOST427 = 'Issue #427: the Unity bridge in the editor’s batch run on this Mac (muted, High, 1280 × 720, -fresh -no-hud, the camera pinned), the kit’s with -set-flags item.sword,kit.colours.ember and the ember set chosen; before: the same run on main’s bundle (bb4163346); after: this branch’s; the web’s pictures of the same views (scripts/design-qc/capture.mjs) beside them to check; 17 October; cwebp -q 72';
 const UI430 = 'Issue #430: the Unity bridge in the editor’s batch run on this Mac (muted, High, -frames 1280x720), each piece put up by -ui through engine/ui-poses.js on the debug save; before, none of them was drawn (the web’s side, the same poses in headless Chrome, beside them in the issue’s sheet); cwebp -q 72';
+/** (v1.84, issue #449: the knocked-out card's dim in Unity) */
+const KO449 = 'Issue #449: the Unity bridge in the editor’s batch run on this Mac (muted, -level arena -fight foe,down, -frames 1280x720), the knock-out’s picture; before: the build before this change; 17 October; cwebp -q 72';
 /** (v1.84, issue #423: the menus in Unity as the web's) */
 const MENUS423 = 'Issue #423: the Unity bridge in the editor’s batch run on this Mac (muted, High, -frames 1280x720), the sequences `menus` (the Signal Market, the debug save) and `talk`; before: the same runs with this change set aside; 17 October; cwebp -q 70';
 /** (v1.84, issue #422: the use button alone in Unity) */
@@ -1177,6 +1179,9 @@ const PORT447U = 'Issue #447: the Unity bridge in the editor’s batch run on th
 const portRef = (id, what) => ({ sheet: `references/space-ports/${id}/sheet-1.jpg`, caption: `The author’s pick from the reference lab: ${what}` });
 export const CHANGELOG_MEDIA = {
   '1.84': [
+    { match: 'In the Unity version, the world dims behind the “You were knocked out” card', shots: [
+      { name: 'unity-knockout', title: 'Knocked out', caption: 'In the Arena, knocked out: before, the card alone over the bright sand; after, the world dimmed under it as on the web, the card high with its gold button', from: KO449 },
+    ], see: 'In the Unity version, let a foe in the Arena knock you out.' },
     { match: 'In the Unity version, the menus look like the web’s', shots: [
       { name: 'unity-menu-start', title: 'The pause screen', caption: 'The Start menu on its Settings page in Unity: before, a paper sheet over the world in a typewriter face; after, the web’s yellow side, PAUSED, the inked buttons and the ruled page with its sliders, switches and boxes', from: MENUS423 },
       { name: 'unity-menu-quests', title: 'Quests', caption: 'The game menu’s Quests: before, lines on a sheet with the tabs as words; after, the web’s desk, the gold tab, the quest cards with their coloured edges and NEXT, the strip under them', from: MENUS423 },

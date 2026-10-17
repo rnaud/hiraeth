@@ -87,6 +87,8 @@ export const CHANGELOG = [
     // src/game-menu.css #journal: the desk, the tabs, the sheet, the quest cards, the strip), the page's face (Ui.Sans) for the
     // menus and the HUD; engine/menus.js (the brand, a setting's kind); tests/world-map.test.js
     'In the Unity version, the menus look like the web’s: the pause screen’s yellow side with PAUSED in big lettering and its buttons in thick ink, the settings on ruled paper with their sliders, switches and boxes, the game menu’s tabs, quest cards and strip on a warm desk, and every menu, hint and conversation in the web’s own typeface instead of a typewriter’s.',
+    // issue #449: unity BridgeHud.cs DrawRestart (the page's #restart: the dim, the card, its gold button)
+    'In the Unity version, the world dims behind the “You were knocked out” card as it does on the web, and the card sits high with its gold Restart button.',
   ] },
   { v: '1.83', date: '2026-10-16', items: [
     // issue #406: src/temples/desert.js (ROOMS, LOGIC: hall, balcony, ballK, kS, dE, sentry in the hall, d3), pieces.js Ball

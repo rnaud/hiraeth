@@ -577,7 +577,7 @@ namespace Hiraeth.Bridge
         RectTransform lockRoot;
         readonly List<(RectTransform rt, Image ring, Image paper, Image tone)> warnChips = new();
         Image edgeLow, edgeFlurry, edgeBlind;
-        Ui.Box restartBox; Label restartText, restartKey;
+        Ui.Box restartBox, restartButton; Label restartText, restartKey; Image restartDim; float restartT;
         static readonly Color Gold = Ui.Hex("#f2c54b"), Light = Ui.Hex("#fff6dc");
 
         /// <summary>An arrowhead pointing down, its tip at the sprite's bottom centre (the pivot): filled, or its outline.</summary>
@@ -649,9 +649,17 @@ namespace Hiraeth.Bridge
                 lockArrows.Add((rt, halo, ink, face));
             }
             lockRoot.gameObject.SetActive(false);
-            restartBox = Ui.Panel(root, "restart", Ui.Page, Ui.Ink, 2.5f, 4, 4, 6);
+            // (the world dimmed under the card, as the page's #restart: rgba(43, 33, 31, 0.6), faded in over 0.9 s; issue #449)
+            // (0.78 here: Unity blends in its linear target, the page in display values, where 0.6 of ink over the sand darkens it as much)
+            restartDim = Ui.Fill(root, new Color(43 / 255f, 33 / 255f, 31 / 255f, 0.78f), 0, "restart dim");
+            restartDim.gameObject.SetActive(false);
+            restartBox = Ui.Panel(root, "restart", Ui.Hex("#f7ecd2"), Ui.Ink, 2, 6, 6);
             restartText = Ui.Label(restartBox.rt, "text", mono, 20, Ui.Ink, TextAnchor.UpperCenter);
-            restartKey = Ui.Label(restartBox.rt, "key", mono, 16, Ui.Ink, TextAnchor.UpperCenter, FontStyle.Bold);
+            Ui.Space(restartText, 0.04f);
+            // (its button: the page's gold button in an ink line on a small hard shadow)
+            restartButton = Ui.Panel(restartBox.rt, "button", Ui.Hex("#f2c54b"), Ui.Ink, 2, 3, 3, 4);
+            restartKey = Ui.Label(restartButton.rt, "key", mono, 20, Ui.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            Ui.Space(restartKey, 0.14f);
             restartBox.Show(false);
         }
 
@@ -716,13 +724,21 @@ namespace Hiraeth.Bridge
         void DrawRestart(Dictionary<string, object> r)
         {
             restartBox.Show(r != null);
-            if (r == null) return;
+            restartDim.gameObject.SetActive(r != null);
+            if (r == null) { restartT = 0; return; }
+            // (the page's #restart: the world dimmed, the card a sixth of the way down, faded in together over 0.9 s)
+            restartT += Time.unscaledDeltaTime;
+            float a = Mathf.Clamp01(restartT / 0.9f);
+            Ui.Place(restartDim.rectTransform, 0, 0, W, H);
+            Ui.Alpha(restartDim.rectTransform, a); Ui.Alpha(restartBox.rt, a);
             var s = Ui.Set(restartText, r.S("text") ?? "", 520);
             var ks = Ui.Set(restartKey, $"{r.S("key") ?? ""}  {r.S("label") ?? ""}".Trim(), 520);
-            float w = Mathf.Max(s.x, ks.x) + 64, h = s.y + ks.y + 54;
-            Ui.Place(restartText.rectTransform, (w - s.x) / 2, 20, s.x, s.y);
-            Ui.Place(restartKey.rectTransform, (w - ks.x) / 2, 20 + s.y + 14, ks.x, ks.y);
-            Ui.Place(restartBox.rt, (W - w) / 2, (H - h) / 2, w, h);
+            float bw = ks.x + 44, bh = ks.y + 20;
+            float w = Mathf.Max(Mathf.Max(s.x, bw) + 52, 13 * 21), h = 18 + s.y + 12 + bh + 18;
+            Ui.Place(restartText.rectTransform, (w - s.x) / 2, 18, s.x, s.y);
+            Ui.Place(restartButton.rt, (w - bw) / 2, 18 + s.y + 12, bw, bh);
+            Ui.Place(restartKey.rectTransform, 0, 0, bw, bh);
+            Ui.Place(restartBox.rt, (W - w) / 2, H * 0.16f, w, h);
         }
 
         // ---------------------------------------------------------------- a trial's or a game's HUD (screen 'minigame')

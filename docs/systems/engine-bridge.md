@@ -1916,6 +1916,11 @@ screen; the batch run's pictures only.
   (MapRoom follows the new sheet: tests/world-map.test.js). The menus and the HUD (hints, prompts, the conversation) are
   in the page's face, `--face` (Avenir Next, Futura, Roboto: Ui.Sans, the OS's own as the page's is), not the monospaced
   one. Left as they were: the title (already the web's), the shop, a game's cards, the star map.
+- **The knock-out card's dim** (#449). The page dims the world under "You were knocked out" (#restart: rgba(43, 33, 31,
+  0.6), faded in over 0.9 s, the card a sixth of the way down with its gold button); BridgeHud drew the card alone,
+  centred. DrawRestart now lays the dim under the card (0.78 in Unity's linear target, which darkens the Arena's sand as
+  much as the page's 0.6: 127 against 122 of 255), places the card as the page's and draws its gold button. Checked with
+  `-level arena -fight foe,down` against the page knocked out in the Arena.
 
 ## One host (2026-10-17, issue #427)
 
