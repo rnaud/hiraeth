@@ -223,11 +223,9 @@ export const GAPS = {
   host: [
     // gaps
     { keys: ['import:src/jump-shadow.js#JumpShadow'], what: 'the patch of shade under the traveller in a jump', status: 'gap', issue: 427, visible: 2 },
-    { keys: ['import:src/hazards.js#registerHazard', 'import:src/story/flames.js#fireHazard'], what: 'the fires burning whoever walks into them', status: 'gap', issue: 427, visible: 2, note: 'engine/game.js updates the hazards but registers no fire\'s (to check)' },
     { keys: ['import:src/carriers.js#cameraPhysics', 'import:src/carriers.js#keepLensOut'], what: 'the camera kept out of the cabs and carriers', status: 'gap', issue: 427, visible: 2 },
     { keys: ['import:src/player.js#heroCut', 'import:src/materials.js#keepHero'], what: 'the traveller left out of the view when the lens is inside him', status: 'gap', issue: 427, visible: 1 },
     { keys: ['import:src/benches.js#createBenches'], what: 'the benches to sit on', status: 'gap', issue: 427, visible: 2, note: '#264: "benches aren\'t in the engine yet"' },
-    { keys: ['import:src/pit-void.js#worldVoid'], what: 'a world\'s void (the dark below its edge)', status: 'gap', issue: 427, visible: 2, note: 'to check: the temples\' pits cross (pitvoid)' },
     { keys: ['import:src/trail.js#Trail', 'import:src/bike-worlds.js#trailVehicles', 'import:src/bike-worlds.js#trailVehicle', 'fn:trailGround'], what: 'the hoverbike\'s trail on the ground', status: 'gap', issue: 427, visible: 2 },
     { keys: ['import:src/brush.js#BrushTrail'], what: 'the grass parting along the traveller\'s recent path', status: 'gap', issue: 427, visible: 1, note: 'the engine parts it round his feet only' },
     { keys: ['import:src/edge.js#EdgeInk'], what: 'the ink at the world\'s edges', status: 'gap', issue: 427, visible: 1, note: 'to check' },
@@ -252,6 +250,7 @@ export const GAPS = {
     { keys: ['import:src/scout.js#roughDistance', 'import:src/hint-level.js#quietOr'], what: 'the scout\'s find said with a rough distance, the hints\' quiet line', status: 'gap', issue: 427, visible: 1, note: 'to check: engine/game.js says the find its own way' },
     // the one game setup's groups, called by both hosts (src/host/game-host.js, #427: docs/systems/engine-bridge.md "One host")
     { keys: ['shared:wireKit'], what: 'the sword and the shield only once found, the kit\'s chosen colours (backpack, sword, shield), won in the fight temples', status: 'handled', where: 'src/host/game-host.js wireKit (main.js armTool and applyKitColours before)' },
+    { keys: ['shared:wireDangers'], what: 'the fires burning whoever walks into them, a world\'s deadly void (the dark below its edge)', status: 'handled', where: 'src/host/game-host.js wireDangers (main.js registerHazard(fireHazard) and worldVoid before); the void drawn by Hiraeth/PitVoid' },
     // handled by the engines' own
     { keys: ['import:src/hud.js#heartsSvg', 'import:src/hud.js#walletTick', 'import:src/hud.js#KEY_SVG', 'import:src/hud.js#GREAT_KEY_SVG', 'fn:updateStamina', 'fn:restartNow', 'fn:showToast',
       'import:src/story/charge.js#chargeHud', 'import:src/story/charge.js#showChargeCard', 'import:src/story/charge.js#GIVEN', 'import:src/story/charge.js#CARD', 'import:src/passage.js#PassageCover', 'import:src/flurry.js#FlurryFx'],

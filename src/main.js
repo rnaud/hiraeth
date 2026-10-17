@@ -1,8 +1,5 @@
 import * as shipSfx from './ship/sfx.js';
-import { worldVoid } from './pit-void.js';
 import { homecomingKind, roadDone, ROAD } from './story/ending.js';
-import { updateHazards, registerHazard } from './hazards.js';
-import { fireHazard } from './story/flames.js';
 import { GIVERS_NOTE } from './story/signature.js';
 import * as THREE from 'three';
 import { installMatrixCache } from './matrix-cache.js';
@@ -154,7 +151,7 @@ import { queueHost, takeHosts } from './minigames/kit/hosts.js';
 import { MinigameRunner } from './minigames/kit/runner.js';
 import { levelMetaFor } from './minigames/kit/world.js';
 import { lendTool } from './minigames/kit/onfoot.js';
-import { wireKit } from './host/game-host.js';
+import { wireKit, wireDangers } from './host/game-host.js';
 import { arcadeLinks } from './minigames/kit/arcade.js';
 import { ambushDue, ambushHref, ambushKey, transitLinks } from './ambush.js';
 import { talkAllowed } from './ship/landing.js';
@@ -586,8 +583,9 @@ function updateKeys() {
   keysLast = hud.small;
 }
 player.vehicles.push(...(level.vehicles ?? []));
-// every fire drawn in the world burns while you stand in it (src/story/flames.js fireHazard; issue #77)
-registerHazard(fireHazard(scene));
+// every fire drawn in the world burns while you stand in it, and a world's deadly void under its kill height
+// (src/host/game-host.js wireDangers, the engines' too)
+const dangers = wireDangers({ scene, level });
 if (bikeHere && player.mount?.kind !== 'bike') {
   const bike = parkedBike(physics, level.spawn, level.spawnHeading ?? 0);
   scene.add(bike.object);
@@ -1322,7 +1320,6 @@ updateSky();
 
 // ------------------------------------------------------------------ GUI
 const U = post.uniforms;
-const deadlyVoid = worldVoid(level);   // (the world's deadly void under its kill height, issue #312: src/pit-void.js; makes level.veils if need be)
 // every way through to another space wears its light (issue #305, src/thresholds.js): washes over the finished picture
 // (and a fight temple's gatehouse door, which opens its game's page: issue #384, kit/marker.js)
 const doorSigns = GAMES.some((g) => g.marker?.door && g.markers?.some((m) => partsOf(levelId).includes(m.level)));
@@ -2465,11 +2462,11 @@ function frame(ts) {
   }
   updateHud();
   pingWhenFree();
-  if (!busy() && !ship.playing) updateHazards(dt, player, { notice: (t) => { if (hintsFor('tip')) showToast(t, TEACH); } });   // ("It burns!": the hurt says it; the line, hints full)   // fire and spines (src/hazards.js)
+  dangers.update(dt, player, { quiet: busy() || ship.playing, say: (t) => showToast(t, TEACH) });   // fire and spines (src/hazards.js)
   updateHealth(dt);
   updateKeys();
   level.update(dt, t, { player, rig, camera, passage, hour: sky.hour, fade: (k, secs) => ship.cinema?.fade(k, true, secs) });
-  deadlyVoid?.update(t);
+  dangers.voidFrame(t);
   reactiveWorld.update(dt, t, player, camera, busy() || photo.on);
   wildlife.update(dt, t, player, camera, busy() || photo.on);
   foes.update(dt, busy() || photo.on || ship.playing);

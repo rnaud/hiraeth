@@ -83,7 +83,9 @@ test('every channel goes through the setting', () => {
   assert.match(main, /getHint: \(\) => openHint\(guardianHint\(level\.temple\), struggle\.t\)/, 'the drone in a fight');
   assert.match(main, /game\.on\('scout:ping', \(e\) => \{ if \(e\?\.why && \(!hintsFor\('nudge'\) \|\| ship\.cinema\.noticeBusy\(\)\)\) return;/, 'a world\'s own ping (the jets): a nudge');
   assert.match(main, /!hintsFor\('teach'\)\) return;/, 'the potion: taught once');
-  assert.match(main, /updateHazards\(dt, player, \{ notice: \(t\) => \{ if \(hintsFor\('tip'\)\) showToast\(t, TEACH\); \} \}\)/, 'fire and spines');
+  // (fire and spines: the one game setup's, both hosts: src/host/game-host.js wireDangers, #427)
+  assert.match(src('src/host/game-host.js'), /updateHazards\(dt, player, \{ notice: \(t\) => \{ if \(hintsFor\('tip'\)\) say\(t\); \} \}\)/, 'fire and spines');
+  assert.match(main, /dangers\.update\(dt, player, \{ quiet: busy\(\) \|\| ship\.playing, say: \(t\) => showToast\(t, TEACH\) \}\)/, 'fire and spines: a teaching notice');
   assert.match(src('src/player.js'), /this\.opts\.edgeHint && hintsFor\('tip'\)/, 'the world\'s edge');
   assert.match(src('src/story/quests.js'), /hintsFor\('objective'\)/, 'a quest\'s next step');
   assert.match(src('src/foes.js'), /if \(!note \|\| this\.own \|\| !hintsFor\('tip'\)\) return;/, 'how to beat each foe');

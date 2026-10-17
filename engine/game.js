@@ -139,7 +139,6 @@ import { syncUpgrades } from '../src/trials/upgrades.js';
 import { createItemEffects } from '../src/boxes/effects.js';
 import { hintsFor } from '../src/hint-level.js';
 import { createFragments } from '../src/fragments.js';
-import { updateHazards } from '../src/hazards.js';
 import { keyText } from '../src/prompt-keys.js';
 import { carryHooks } from '../src/carry.js';
 import { BodyFoley } from '../src/foley.js';
@@ -157,7 +156,7 @@ import { DevMenu } from '../src/dev-menu.js';
 import { gatherPoints, questList, applyQuestJump, landingSpot, godLanding } from '../src/world-debug.js';
 import { GAMES } from '../src/minigames/index.js';
 import { DEBUG_SLOT } from '../src/save-slots.js';
-import { wireKit } from '../src/host/game-host.js';
+import { wireKit, wireDangers } from '../src/host/game-host.js';
 
 export { page };
 export { readHref } from './trials.js';   // (the tests: a game page's address)
@@ -446,6 +445,10 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   if (player.mount) scene.add(player.mount.object);
   // the world's vehicles (the self-driving cabs: src/taxi.js), as main.js gives them to the traveller
   player.vehicles.push(...(level.vehicles ?? []));
+  // every fire drawn in the world burns while you stand in it, and a world's deadly void under its kill height, as the
+  // page (src/host/game-host.js wireDangers: the engines registered no fire's and drew no void before, #427); the void's
+  // wash hangs in level.veils, drawn by the port's Hiraeth/PitVoid
+  const dangers = wireDangers({ scene, level });
   stamp('traveller');
   const npcs = [];
   if (people && content?.npcs?.length && humans && lib) {
@@ -1617,7 +1620,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         // (the world's words waiting for a conversation's end; a relic walked into, as main.js)
         storyPage?.update(dt, simT, camera);
         if (!busy && !pinned && !(shipOn && ship.playing)) relics?.update(dt, simT, player);
-        if (!busy && !pinned && !(shipOn && ship.playing)) updateHazards(dt, player, { notice: (t) => { if (hintsFor('tip')) toast(t); } });
+        dangers.update(dt, player, { quiet: busy || !!pinned || (shipOn && ship.playing), say: (t) => toast(t) });
       } catch (e) { if (!game._fragmentsFailed) { game._fragmentsFailed = true; console.warn('[game] the fragments or hazards failed', e?.stack ?? e); } }
       if (shipOn && !pinned) {
         // inside or out, its scenes and their camera (after the rig, as main.js: a scene's shot replaces the rig's)
@@ -1646,6 +1649,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       thresholds?.update(dt, simT, camera.position);
       if (!pinned) throughPortals(dt, simT);
       level.update?.(dt, simT, { player, rig, camera, passage, fade: () => {} });
+      dangers.voidFrame(simT);   // (the void's rings' clock)
       lap?.('level');
       // the foes, the drops, the knock-out's card and what the page draws over the picture for them (engine/combat.js)
       if (level.temple) struggle.tick(guardianHint(level.temple)?.id, busy ? 0 : dt);   // (how long this phase of a guardian's fight has gone on)

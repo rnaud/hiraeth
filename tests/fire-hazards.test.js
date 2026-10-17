@@ -69,9 +69,10 @@ test('every fire in the worlds burns: each tongue of every flame drawn, the braz
   }
 });
 
-test('main.js registers the one fire hazard for the world, and the still flames are registered where they are drawn', () => {
-  const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
-  assert.match(main, /registerHazard\(fireHazard\(scene\)\)/);
+test('the one game setup registers the one fire hazard for the world (both hosts: wireDangers, #427), and the still flames are registered where they are drawn', () => {
+  const host = readFileSync(new URL('../src/host/game-host.js', import.meta.url), 'utf8');
+  assert.match(host, /registerHazard\(fireHazard\(scene\)\)/);
+  for (const f of ['../src/main.js', '../engine/game.js']) assert.match(readFileSync(new URL(f, import.meta.url), 'utf8'), /wireDangers\(\{ scene, level \}\)/, f);
   for (const f of ['../src/levels/arena.js', '../src/levels/home-houses.js', '../src/desert-road.js', '../src/levels/incal.js'])
     assert.match(readFileSync(new URL(f, import.meta.url), 'utf8'), /staticFlame\(/, f);
 });
