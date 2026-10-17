@@ -49,6 +49,11 @@ export const CHANGELOG = [
     // issue #432: src/gadgets/hook.js (houseAt, takes, houseAnchors; the 'nohold' reticle), src/gadgets/hud.js, BridgeHud.cs,
     // src/temples/pieces.js HookRing; tests/hook-reach.test.js, tests/gadgets.test.js, tests/engine-hook.test.js
     'Inside the makers’ houses the grappling hook only catches what the makers set there for it: their rings, the weights, the bells and your foes. Bare stone won’t hold it any more, so it can’t pull you up past a puzzle onto a ledge or across a chasm; aim at a wall and the reticle turns to a cross that says “won’t hold”. Out in the world it still takes any wall or ledge in reach.',
+    // issue #412: src/temples/underwater.js (HALL the Sounding Hall, SOUND, GALLERY, COLUMN, TIDE, HIGH/LOW, Tide, TideValve,
+    // TideGauge, TideWater, TideColumn, TideGlass, the Shell Room's ledge door dE, the Horn Store's horn eSt, the gallery's
+    // weight wG and dish, the Throat west), underwater-data.js (Achille), migrate.js underwater v4, logic.js (the solver's
+    // stop: an eye in reach), temple-maps makers.js (the tide's words); tests/whale-tide.test.js
+    'The Whale-House is built round a great hall now, the Sounding Hall, 76 m long, and the tide is the house’s state. Turn a valve to let the sea in or out: in, it fills every wing at once, lifts you to ledges you could not reach and fills the tank behind its glass, so a stomp by the glass carries through the water to the ear inside; out, it bares the hall’s deep floor and the doors in it, which hold the sea back while it is in. A gauge and a lamp in every room show where the tide stands, there is a valve by every landing, and you swim in it: up through the Shell Room to its ledge, across the Sound to the dais. On the gallery, pull the stone weight off its post with the grappling hook, set it by the dish and stomp, then drop through the gap in the great horn’s pipes into the Sound.',
   ] },
   { v: '1.82', date: '2026-10-16', items: [
     // issue #399: src/hook-foes.js (each kind's `hook` class, hookOutcome, lockShot), src/gadgets/hook.js fireAtLock /

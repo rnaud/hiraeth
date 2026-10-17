@@ -44,8 +44,8 @@ export const SPARE = 1.0;
 const quiet = (fn) => { const w = console.warn, l = console.log; console.warn = () => {}; console.log = () => {}; try { return fn(); } finally { console.warn = w; console.log = l; } };
 const own = (...ids) => { for (const id of Object.keys(ITEMS)) if (ids.includes(id)) items.grant(id); else items.revoke(id); };
 /** What each house is walked into with: the route's (the lift valve's double jump before every temple, the gun from the desert's Hearth); the Rose House with nothing in hand (v1.44). */
-// (and an older house's tool where a late step wants it with the house's own, G2: the Greenhouse's weight #411, the Lamp-House's far door #410, the Warden's Well's crown #413)
-const CARRY = { desert: ['backpack', 'doublejump'], edena: ['backpack', 'gun', 'doublejump', 'hook'], perdide2: ['backpack', 'gun', 'doublejump', 'hook'], incal: ['backpack', 'gun', 'doublejump', 'hook'] };
+// (and an older house's tool where a late step wants it with the house's own, G2: the Greenhouse's weight #411, the Lamp-House's far door #410, the Warden's Well's crown #413, the Whale-House's weight #412)
+const CARRY = { desert: ['backpack', 'doublejump'], edena: ['backpack', 'gun', 'doublejump', 'hook'], perdide2: ['backpack', 'gun', 'doublejump', 'hook'], incal: ['backpack', 'gun', 'doublejump', 'hook'], underwater: ['backpack', 'gun', 'doublejump', 'hook'] };
 const carry = (id) => CARRY[id] ?? ['backpack', 'gun', 'doublejump'];
 
 /**
@@ -479,9 +479,10 @@ export function playTemple(id, o = {}) {
   wait(1);
   const tries = new Map();
   for (let n = 0; n < 160 && !L.resolved; n++) {
-    let eid = L.next();
     // (in the arena, its door held shut behind him while its guardian is awake: the arena's own work is done from inside,
-    // then the guardian, once what it requires is done)
+    // then the guardian, once what it requires is done; what the house might still want outside waits, issue #412: the
+    // Whale-House's tide, which the logic would have let in again for the Sound with nothing else left)
+    let eid = rt.guardian?.awake && !L.resolved ? arenaNext() ?? L.next() : L.next();
     if (!eid && rt.guardian?.awake && !L.resolved) eid = arenaNext();
     if (!eid) { fail(`nothing left to do, and the guardian not reached (rooms open: ${[...L.reachable()].join(', ')})`); break; }
     const e = L.el(eid);

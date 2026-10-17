@@ -222,10 +222,18 @@ export const LAYOUTS = {
   // v1.77 (issue #336): the house remade to the redesign's rules, its rooms bigger and moved, the Pool Room's ball in a
   // cradle of its own (the same pieces, the same state). A save that entered the house: taken to its last mark if it
   // stood inside the old rooms (runtime.js relaid)
+  // v1.83 (issue #412): the house round the Sounding Hall, a great hall with a deep floor, the tide its state (it starts
+  // out). The Horn Store on the deep floor behind a door its horn opens (eSt); the keepers' landing gone (dK, its ball and
+  // dish); the Listener's door on the deep floor, its ear heard through the gallery's dish with the stone weight on its
+  // footstone (wG on pG), open with the tide out. Past the Horn Store (or anything after it): its horn stomped. Past the old
+  // Listener's door, or the guardian: the weight on its footstone, the ear heard, the tide out. And a save that entered the
+  // house: taken to its last mark in the new rooms
   underwater: {
-    v: 3,
+    v: 4,
     steps: [
       { if: ['lit.e5', 'open.dK', 'open.dL', 'boss'], set: { 'unlocked.d4': 1, 'found.kS': true, 'lit.arH': true } },
+      { if: ['lit.arH', 'found.kS', 'unlocked.d4', 'lit.e5', 'open.dK', 'open.dL', 'boss'], set: { 'lit.eSt': true } },
+      { if: ['open.dL', 'boss'], set: { 'weight.wG': 'pG', 'lit.eL': true, 'drum.tide': 0 } },
       { if: ['entered'], set: { relaid: true } },
     ],
   },

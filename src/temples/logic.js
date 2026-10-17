@@ -457,7 +457,10 @@ export function solve(def, { items = ['backpack', 'gun'], withhold = [], maxStep
         }
       }
       // (an eye that can be woken now first: it stays woken, and the ball can go on to its next place; then rooms, then doors)
-      const usable = Object.entries(def.elements).filter(([x, g]) => LATCHED.has(g.type) && !L.isLit(x) && L.canUse(x)).length;
+      // (only one in a room that stop lets you reach: an eye that could be woken behind a locked door is no reason to choose
+      // it, the Whale-House's tank ear behind the Song Passage's door while the tide wants letting out for the Horn Store,
+      // issue #412)
+      const usable = Object.entries(def.elements).filter(([x, g]) => LATCHED.has(g.type) && !L.isLit(x) && L.canUse(x) && (!g.room || inReach(g, rooms, has))).length;
       // (and a lock a key in hand fits, brought within reach: the Mooring-House's great lock past the west door, v1.53)
       const fits = lockIds.filter((x) => L.canUnlock(x) && L.lockReachable(x, rooms)).length;
       // (a room never reached before counts more than one left behind: the Aerie's one stone, its vent's shaft down into the

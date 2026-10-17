@@ -615,7 +615,10 @@ export async function templeTo(W, until, issue, { nextSpot, id = null }) {
     let id = L.next();
     // (in the arena with its guardian awake, its door held shut behind him: the arena's own work, a moon in its cradle,
     // is done from inside, so the guardian is what is left)
-    if (!id && until === 'done' && T.guardian?.awake && !L.resolved) id = Object.keys(L.def.elements).find((k) => L.el(k).type === 'boss');
+    // (and nothing outside it while it is awake: the Whale-House's tide, which the Sound and the Listener's door would have
+    // him let in and out by turns from the arena, issue #412)
+    const bossId = Object.keys(L.def.elements).find((k) => L.el(k).type === 'boss');
+    if (until === 'done' && T.guardian?.awake && !L.resolved && (!id || L.el(id)?.room !== L.el(bossId)?.room)) id = bossId;
     if (!id) { issue('soft-lock', `${T.def.name}: nothing left to do, and ${until === 'gadget' ? 'the chest' : 'the guardian'} not reached (rooms open: ${[...L.reachable()].join(', ')})`); break; }
     const e = L.el(id), at = nextSpot(T);
     // (by the thing itself, else by its plate: a ball out over the void that only a tether brings home, an eye set high in a

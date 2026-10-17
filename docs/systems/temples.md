@@ -957,6 +957,71 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   the saves), `tests/temple-playthrough.test.js` (the house walked in with the hook). Old saves: `migrate.js` incal v5 (past
   the balcony's door: `kC` taken, the Vane Room's door unlocked, the house breathing out; past the eye or the high door:
   the Well's ways made; one that stood inside: to its last mark).
+- **The Whale-House round the Sounding Hall, the tide its state** (v1.83, issue #412; the approved best practices,
+  `docs/design/temple-best-practices.md` G1, G2, G4, G6 and its Whale-House row, the research's alternative #401 house).
+  The **Sounding Hall** (`HALL`) is the great hall, 48 by 76 m and 43 high from the Sound's floor: the **quays** (y 0) round
+  its south, west and east sides; the **deep floor** (`DEEP`, 11 m under them) between them, down a stair from the south
+  quay; the **Sound** (`SOUND`), a moat across the hall 5 m deeper still, always water enough to fall into; the **dais**
+  (y 0) beyond it; the **gallery** (`GALLERY`, y 10) over the dais behind a screen of the great horn's pipes (0.9 m apart:
+  you see through them, you can't pass them, and no bounce of the boots lands you behind them). The quays and the deep
+  floor are one room (`hall`, the hub: a key on the deep floor is in the same room as a door on the quay); the dais
+  (`dais`, the Horn Door, the drop back) is the second hub. Room ids kept: `hall`, `gallery` (now the shelf, the High Walk
+  and the gallery), the wings; the keepers' landing is gone.
+  - **The tide** (G1, `TIDE`, `HIGH` / `LOW`): a drum of two stops, `tLow` (t 0, the start: the sea out) and `tHigh` (the
+    sea in), `roll: 'hand'`, `verb: 'tide'`, set from `rooms` (logic.js, issue #408). `Tide` keeps it: a valve turned moves
+    it at once for the logic, and the water runs `TIDE.run` (13 s, slow enough that a swimmer afloat rides up on it:
+    src/swim.js's spring to the surface lags 0.3 m at 0.85 m/s). **Cheap to change:** a `TideValve` (a brass valve wheel
+    on a post, a lamp on its cap; the use button: "let the sea in" / "let the sea out") on the south quay, on the deep
+    floor, on the dais and on the gallery, and in the two rooms the water lifts you out of or strands you in without one:
+    the Shell Room and the Tank Hall. **Readable everywhere:** a `TideGauge` (a brass cage round a column of the sea, coral
+    rings at its two marks, a lamp on top) in every room but the guardian's; every gauge's and valve's lamp turns from
+    coral (out) to the sea's blue (in) as the tide runs; coral high-water lines round the deep floor, the Sound, the Shell
+    Room and on the tank's glass, the low line on the Sound's walls, and a tide staff in the Sound ringed every metre.
+  - **The water you swim in** (`TideWater`): the Sounding Hall's and the Shell Room's sea, a sheet from wall to wall that
+    stands at its `low` mark (the Sound only) or its `high` (0.6 m under the quays and the Shell Room's ledge, so you climb
+    out onto them), between as it runs. It is a body src/water.js finds in the scene (`userData.water`, moved with it:
+    `waterMoves`): you wade, swim, dive with the breath meter, fall into it unhurt, and the camera keeps off its surface
+    and takes the underwater look under it, all as in any lake. It is drawn as the house draws water (flat, lit from
+    within, seen from both sides), not with the world's water shader, whose passes the Unity build doesn't have
+    (docs/systems/bridge-gaps.md): the same picture there. The tank's sea is seen through the glass the skin draws as the
+    open sea: over the part of the pane the tide has left, the tank's empty dark, and a lit line at its top (`TideGlass`).
+    Two channels show it too (`TideColumn`): along the Pool Room's south wall and round the Horn Chamber's foot.
+  - **What it does:** in, it lifts you up to ledges (the Shell Room's ledge, the dais across the Sound) and fills the tank,
+    so the ear on the tank's floor hears a stomp by the glass through the water (`e5`, `when: HIGH`, held while it rings:
+    the rungs). Out, it bares the deep floor, and its doors, which hold the sea back while it is in, open: the Shell Room's
+    floor door (`d2`, the Pool Room's ball as well), the Horn Store's (`dS`, its horn `eSt` too) and the Listener's
+    (`dL`, its ear `eL` too). On the way it is let in, out, in and out again.
+  - **The deep floor:** its ball into the cradle at the pillar's foot (the cradle in sight from the west door over the
+    quay's lip) wakes the eye for the west door, up on the quay (`d1`). The **Shell Room** sinks to the deep floor's level:
+    in at its floor door with the tide out; its shell's eye wakes the Horn Door's second lamp and the ledge's door onto the
+    east quay (`dE`, latched, from inside); its valve lets the sea in and the water lifts you to the ledge's stage (no
+    parapet there) and out (`ledgeE`: `dE` open and `HIGH`): the second way round. So the Pool Room's ball is the only way
+    in the first time.
+  - **G6:** off the dais's edge into the Sound (11 m, a one-way link to the hall), and the **Drop**, a 5 m gap in the
+    gallery's pipes with a coral lip, 21 m down into the Sound (one-way, gallery → hall): any water deep enough breaks a fall
+    (src/swim.js `SWIM.cushion`), so no `Catch` is needed. The guardian's checkpoint: the antechamber's mark.
+  - **G2, the late step with an older tool:** the Listener's door's ear hears the gallery's dish (`dishG`), which carries
+    only with the stone weight on its footstone (`wG` on `pG`, `weightOn`); the weight lies on a post's capital under a
+    horn's bell hung from the roof, its rim 1.25 m over the capital: nobody stands there, and the grappling hook (the
+    Founders' Belfry's) brings it down. The hook and the boots at once, and then the tide out for the door.
+  - **The way back from the Tank Hall:** a dish by the Song Passage's door, its twin over the passage horn in the Horn
+    Chamber (no element: a stomp by it is the horn's note, `e4`). The Throat now runs west from the deep floor, under the
+    Pool Room, to the Listener's Hall turned to face it (`A`: its own frame).
+  - **The solver:** a ball's stop is chosen for an eye it lets be woken only if that eye's room is in reach then
+    (logic.js `solve`, the score's `usable`): the tank's ear, out of reach behind the passage's locked door, would have kept
+    the tide in when the Horn Store wanted it out. Every other house solves as before. The scout's target for the tide is
+    the way out once the Listener is calmed (`Tide.center`).
+  Audit: 7 → 9 steps, skeleton `XBXCLGXXK` → `BXXBXCXLXXK`, combinations 4 of 7 → 6 of 9, loops 1 → 3, hubs 1 → 2, the
+  chest at 43 → 56 % of the steps, mean obviousness 2.71 → 2.83, the score 4.44 → 4.44 (curve 4 → 5, non-obvious 4 → 3:
+  three steps at 1.5 or less, the keys a wing or a floor away from their doors; identity 3, 62 % like the Warden's Well);
+  rules broken: none before or after. Old saves (`migrate.js` underwater v4): past the Horn Store, its horn stomped; past
+  the old Listener's door, the weight on its footstone, the ear heard and the tide out; one that stood inside, to its last
+  mark. Tests: `tests/whale-tide.test.js` (the house on foot with a traveller who swims: every valve turned with the use
+  button, the water ridden up, the Sound swum, the dais's edge and the Drop fallen into the water unhurt, the rungs
+  climbed, the weight hooked off its post and carried, the Listener calmed; the tide's look everywhere, the deaf ear, the
+  breath meter and the camera under it), `temples.test.js`, `temple-playthrough` (and the route's, `playthrough-agent.js`:
+  the arena's own work first while its guardian is awake), `temple-maps`, `house-map`, `temple-rules`, `way-back`,
+  `zfight` (19 → 6).
 - **The Givers carried their fire** (the Rose House, from the v1.24 audit; the house's one fire, the pilot flame,
   never went out; the rooms below as they were until v1.44). A `Ball` with `tar: { burns }` is a tar ball: an ember glob lights it, and so does rolling it past a
   fire beside its groove (any piece with a `fire` point within its `fireReach`: a `Flame`, the pilot flame sunk in the

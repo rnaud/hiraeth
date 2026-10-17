@@ -43,7 +43,8 @@ export const PEOPLE = {
         },
         go: {
           say: ['~neutral~ *The door at the end of the tube.* It opens for anyone who walks up to it. It always did.',
-            '~curious~ The old divers said that house hears the deep note in anything that booms through it. Find what the makers left in there before you go down.'],
+            '~curious~ The old divers said that house hears the deep note in anything that booms through it. Find what the makers left in there before you go down.',
+            '~neutral~ And mind the sea. The makers let it in and out of that house at a valve.'],
           choices: [{ text: '~happy~ Something that booms. Got it.', end: true }],
         },
         again: {

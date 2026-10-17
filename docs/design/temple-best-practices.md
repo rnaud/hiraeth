@@ -669,3 +669,41 @@ works: `docs/systems/temples.md`, "The Hush-House with no fight at all"):
   crossing, the far landing's song, the gallery's ball, the great door's hush), then the Mother. Design audit 4.56
   before and after: the chest at 38 % of the steps (33), the curve 4, mean obviousness 2.83 → 3.06 (the Threshold's new
   door is a plain first step); the redesign's rules: none broken.
+
+### As built: the Whale-House (v1.83, issue #412)
+
+The Whale-House's row of Part 3 (a tide, one valve in the Sounding Hall raising and lowering the water through every
+wing; a second way round its one hub), the alternative #401 house of Part 4, with G1, G2, G4 and G6
+(`src/temples/underwater.js`; how it works: `docs/systems/temples.md`, "The Whale-House round the Sounding Hall"):
+
+- **G4, the great hall:** the Sounding Hall is 48 by 76 m and 43 m high from the Sound's floor, three floors seen at once:
+  the quays round three sides, the deep floor 11 m under them, and the gallery over the dais 10 m up, behind a screen of
+  the great horn's pipes. The doors stay 7 by 9; the High Walk, a 47 m passage, leads from the Tank Hall's shelf to the
+  gallery.
+- **G1, the tide:** the sea let in or out at a valve. **Set in one place, changing several rooms on several floors:** in,
+  it fills the hall, the Shell Room and the tank at once, lifts you to ledges (the Shell Room's ledge, the dais across the
+  Sound), and the tank's ear hears a stomp through its water; out, it bares the deep floor, whose doors (the Shell Room's,
+  the Horn Store's, the Listener's) hold the sea back while it is in. **Cheap to change:** "one valve in the Sounding
+  Hall" became a valve by every hub (the south quay, the deep floor, the dais, the gallery) and one in each room the water
+  lifts you out of or strands you in (the Shell Room, the Tank Hall). **Readable everywhere:** a gauge in every room but
+  the guardian's, every gauge's and valve's lamp coral with the sea out and blue with it in, the high- and low-water lines
+  and a tide staff in the Sound, the tank's glass dark above its water. On the way it is let in, out, in and out again.
+- **Swimming inside the temple:** the house had no water to swim in; the hall's and the Shell Room's sea are now bodies
+  the world's water finds and moves with the tide (src/water.js): you swim, dive with the breath meter, ride the rising
+  water up, fall into it unhurt, and the camera keeps off its surface. The tide takes 13 s, slow enough that a swimmer
+  afloat rides up with it. They are drawn as the house draws water, not with the world's water shader, so the Unity build
+  draws them the same (checked picture against picture there: the hall and the Shell Room at both tides, the tank).
+- **A second way round:** the Shell Room, in at its floor door with the tide out, out by its ledge's door onto the east
+  quay with the tide in (opened from inside by its eye: the floor door is the way in the first time); the dais a second
+  hub, with the Horn Door and the fall back into the Sound. Three loops where there was one.
+- **G2, one late step with the house's tool and an older one:** the Listener's door's ear hears only the gallery's dish,
+  which carries only with the stone weight on its footstone; the weight lies on a post's capital under a hanging bell,
+  where only the grappling hook (the Founders' Belfry's) brings it down. Then the stomp, then the tide out for the door.
+- **G6:** the Drop, a gap in the gallery's pipes, 21 m down into the Sound, and the dais's edge, 11 m: water breaks the
+  fall. The guardian's checkpoint: the antechamber's mark, a few steps from its door.
+- **Length and scores:** 7 → 9 steps (`XBXCLGXXK` → `BXXBXCXLXXK`; the Temple maps page's walk 17 → 22 actions), design
+  audit 4.44 → 4.44: combinations 4 of 7 → 6 of 9, loops 1 → 3, hubs 1 → 2, the chest at 43 → 56 % of the steps, curve
+  4 → 5, but non-obvious 4 → 3 (three steps at 1.5 or less: the Pool Room's ball for the Shell Room's floor door, the two
+  wings' eyes for the Horn Door, the gallery's weight for the Listener's door, each a wing or a floor from its lock, out
+  of its sight; the doors' lamps say what they wait for, which the audit doesn't read). Identity 3 (62 % like the
+  Warden's Well). The redesign's rules: none broken.

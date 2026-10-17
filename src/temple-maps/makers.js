@@ -57,7 +57,7 @@ export function nounOf(id, e, piece) {
   const cls = piece?.cls;
   if (!e) return id;
   switch (e.type) {
-    case 'drum': return e.verb === 'sluice' ? 'sluice' : e.verb === 'breath' ? 'the house’s breath' : e.needs?.includes('magnet') ? 'iron ball' : 'ball';
+    case 'drum': return e.verb === 'sluice' ? 'sluice' : e.verb === 'breath' ? 'the house’s breath' : e.verb === 'tide' ? 'tide' : e.needs?.includes('magnet') ? 'iron ball' : 'ball';
     case 'plate': return 'floor plate';
     // (issue #410: the Lamp-House's lamps, its pool-lamps and its great lamp, read as lamps)
     case 'switch': return cls === 'LightEar' ? 'lamp' : cls === 'LampGlass' ? 'great lamp' : piece?.o?.light ? 'pool-lamp' : cls === 'Bank' ? 'bank of eyes' : cls === 'Bud' ? 'flower-door' : cls === 'Seed' ? 'seed' : cls === 'EchoEar' ? 'brass horn' : cls === 'Jaw' ? 'gate of jaws' : piece?.o?.crystal ? 'singing crystal' : 'eye';
@@ -80,7 +80,7 @@ export function nounOf(id, e, piece) {
 }
 /** The verbs a step asks for, in plain words (the design audit's mechanics). */
 export const VERB_WORDS = {
-  push: 'roll a ball', weight: 'stand on a plate', shot: 'shoot', ember: 'set alight', bell: 'ring a bell', sluice: 'set the water', sequence: 'in order',
+  push: 'roll a ball', weight: 'stand on a plate', shot: 'shoot', ember: 'set alight', bell: 'ring a bell', sluice: 'set the water', tide: 'set the tide', sequence: 'in order',
   volley: 'in one breath', timed: 'against the clock', reveal: 'see the hidden', key: 'carry a key', fight: 'fight', carry: 'carry a block',
   take: 'open a chest', unlock: 'unlock', guardian: 'face the guardian', dodge: 'dodge the hazard', gorged: 'a gorged one', tough: 'the tough ones',
 };
@@ -379,6 +379,8 @@ function stepText(s, { E, el, room, guardian, links, nth = 0 }) {
       : e?.verb === 'lamp' ? `${(e.stops?.[s.onto] ?? 1) > 0 ? 'Open' : 'Shut'} the great lamp’s shutters, at a lever or the pipe’s ring${tag} → ${s.onto}`
       // (issue #413: the Warden's Well's breath, let out or in at a lever by a hub)
       : e?.verb === 'breath' ? `Let the house breathe ${(e.stops?.[s.onto] ?? 1) > 0 ? 'out' : 'in'}, at a breath lever${tag} → ${s.onto}`
+      // (issue #412: the Whale-House's tide, the sea let in or out at a valve)
+      : e?.verb === 'tide' ? `${(e.stops?.[s.onto] ?? 1) > 0 ? 'Let the sea into the house' : 'Let the sea out of the house'}, at a tide valve${tag} → ${s.onto}`
       : `Roll the ${el?.noun ?? 'ball'} onto its plate${where}${using}${tag} → ${s.onto}`;
     case 'carry': return `Carry the stone block onto its plate${where}${using}${tag} → ${s.onto}`;
     case 'stand': return `Stand on the floor plate${where}${tag}`;
