@@ -74,15 +74,29 @@ const clamp01 = (v) => Math.min(1, Math.max(0, Number.isFinite(v) ? v : 0.5));
 
 // ------------------------------------------------------------------ people
 /**
- * The game's builds (costumes.js BUILDS) as MakeHuman's muscle and weight, the heavy with a belly
- * and fuller hips (its weight slider at the top is only moderately heavy).
+ * The game's builds (costumes.js BUILDS) as MakeHuman's muscle and weight, the stout and the heavy with a
+ * belly and fuller hips; and (`morph`, issue #402) a little more on the mesh round the bones than MakeHuman
+ * goes (its weight slider at the top is only moderately heavy, at the bottom only lean): morph.js's radial
+ * body morph, so a slender person reads as thin and a heavy one as round from across a square.
  */
 export const MH_BUILDS = {
-  slim: { muscle: 0.42, weight: 0.3 },
+  slender: { muscle: 0.25, weight: 0, morph: { shoulders: 0.92, chest: 0.85, belly: 0.8, hips: 0.88, arms: 0.72, legs: 0.74, neck: 0.85 } },
+  slim: { muscle: 0.4, weight: 0.25, morph: { chest: 0.95, belly: 0.92, hips: 0.96, arms: 0.88, legs: 0.9, neck: 0.95 } },
   average: { muscle: 0.5, weight: 0.5 },
-  broad: { muscle: 0.72, weight: 0.58 },
-  heavy: { muscle: 0.42, weight: 1, belly: 0.75, hips: 0.45, waist: 0.4 },
+  broad: { muscle: 0.85, weight: 0.62, morph: { shoulders: 1.08, chest: 1.08, arms: 1.12, legs: 1.06, neck: 1.08 } },
+  stout: { muscle: 0.5, weight: 0.85, belly: 0.8, hips: 0.35, waist: 0.5, morph: { chest: 1.12, belly: 1.32, hips: 1.14, arms: 1.16, legs: 1.15, neck: 1.12 } },
+  heavy: { muscle: 0.42, weight: 1, belly: 1, hips: 0.6, waist: 0.8, morph: { chest: 1.22, belly: 1.55, hips: 1.26, arms: 1.32, legs: 1.28, neck: 1.2 } },
 };
+/** How much of a build's mesh morph (MH_BUILDS[].morph) someone of `years` takes: none for a child, half at 13, all from 18. */
+export function buildMorphShare(years = 32) {
+  return smooth(years, 10, 18);
+}
+/** A build's mesh morph (morph.js body keys) at a share (0: none), or null. */
+export function buildMorph(build, share = 1) {
+  const m = MH_BUILDS[build]?.morph;
+  if (!m || share <= 0) return null;
+  return Object.fromEntries(Object.entries(m).map(([k, v]) => [k, 1 + (v - 1) * share]));
+}
 
 /** Age classes (years), as the game tells people apart: a story child, a teenager, a grown-up, an elder. */
 export const AGES = { child: 8, teen: 15, adult: 32, elder: 72 };

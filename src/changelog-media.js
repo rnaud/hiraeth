@@ -1100,7 +1100,15 @@ const FP401P = 'Issue #401: the house’s plans drawn from its own rooms and pie
 const FP401N = 'Issue #401: muted headless Chrome on this Mac (ANGLE Metal, High, render scale 1, 1280 × 720, vsync off), this branch’s own Vite, the camera pinned, 9 s a view, the median frame and the median draw calls (the game’s frameStats), the before with src/temples/spheres.js as on origin/main measured in the same minutes (load 11–13); 16 October';
 const HOOK399 = 'Issue #399: muted headless Chrome on this branch’s own dev server and on origin/main before it, High, 1280 × 720, the Arena with the hook in hand, a foe spawned ahead, Tab then T, a frame every 85 ms or so with the world at a third of its speed (feel.js slowMo), eight frames tiled; 16 October; cwebp -q 72 -resize 1280';
 const HATS403 = 'Issue #403: the character studio’s crowd lineup (studio.html?lineup=crowd&count=12, seeds 1-12: full bodies in front, the GPU crowd figures behind), muted headless Chrome against this branch’s own Vite (port 5452), before at 9c1b698ba and after on the branch; cropped to the people, cwebp -q 72';
+const BODIES402 = 'Issue #402: the character studio’s crowd lineup (studio.html?lineup=crowd&count=9&seed=1, turned a little toward the camera: full bodies in front, the GPU crowd figures behind) and its every-build lineup (lineup=mhbuilds, a grown man), muted headless Chrome against this branch’s own Vite (port 5432), before at 490123fd8 and after on the branch; cropped to the people, cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '1.83': [
+    { match: 'People come in more shapes and sizes', tags: ['characters'], shots: [
+      { name: 'bodies-bazaar', title: 'The Signal Market’s crowd', caption: 'Before, one lean figure in different clothes; after, a round woman in cream, stout men and women, a slim one, and more different heights', from: BODIES402 },
+      { name: 'bodies-desert', title: 'The desert’s pilgrims', caption: 'The desert runs lean: thinner arms and legs on most of them, a stout one here and there', from: BODIES402 },
+      { name: 'bodies-builds', title: 'Every build', caption: 'One man in each build. Before: slim, average, broad, heavy, hardly told apart. After: slender, slim, average, broad, stout, heavy', from: BODIES402 },
+    ], see: 'Walk through the Signal Market or the desert camps and look at the crowd, or open the character studio (title screen, Debug) with Lineup: MakeHuman every age and build.' },
+  ],
   '1.82': [
     { match: 'Locked on, RT / R2 throws the grappling hook at your foe', tags: ['combat'], shots: [
       { name: 'hook-yank', size: [1280, 360], title: 'A small foe', caption: 'The Arena, locked on to an ink blot 10 m off, T pressed (RT / R2), the world at a third of its speed: before, the quick throw went where the camera looked and reeled him toward the ground; after, the blot is yanked through the air and lands dazed at his side', from: HOOK399 },

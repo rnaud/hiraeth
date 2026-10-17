@@ -8,6 +8,12 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.83', date: '2026-10-16', items: [
+    // body shapes (issue #402): src/costumes.js BUILDS (six), BUILD_ODDS, WORLD_BUILDS, buildFor (a hash of the look), HEIGHT.stretch;
+    // src/makehuman/shape.js MH_BUILDS[].morph; humanoid.js armOut; crowd-shader.js / Crowd.hlsl aBody's belly, hips, limbs;
+    // tests/body-shapes.test.js; docs/systems/characters.md "Body shapes"
+    'People come in more shapes and sizes: thin as a rake, slim, broad-shouldered, stout and properly round, and taller and shorter than before, so a crowd no longer looks like one person over and over. Each world has its own mix: the desert’s pilgrims and Vael’s silent ones run lean, the market, the harbour and the foundry sturdier. Clothes, capes and robes fit every shape, and the fuller people hold their arms a little out from their sides.',
+  ] },
   { v: '1.82', date: '2026-10-16', items: [
     // issue #399: src/hook-foes.js (each kind's `hook` class, hookOutcome, lockShot), src/gadgets/hook.js fireAtLock /
     // catchFoe, Foe.hookYank / hookPin / hookDown, src/gadgets/index.js (RT locked on); tests/hook-foes.test.js,

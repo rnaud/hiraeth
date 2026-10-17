@@ -191,13 +191,13 @@ it, so everyone looks the same on every visit:
   (`MASKS.beard`, only on a bare face). Tribes can weight headwear per kind
   (`headsF` / `headsM`: the desert, the rim, the bazaar). Story people whose kind
   isn't given get no hair swap or beard.
-- **Build** (`BUILDS`: slim, average, broad, heavy; women and men have their own odds).
+- **Build** (`BUILDS`: slender, slim, average, broad, stout, heavy since issue #402, see *Body shapes* below; women and men have their own odds).
   Full NPCs reshape their body mesh round its bones (`buildGeometry` in
   `src/humanoid.js`, cached per build; `Humanoid.setBuild` swaps it on a pooled
   body); the skeleton, head, hands and feet stay as they are, so headwear, masks
   and the foot planting still fit. Shoulder pieces widen with the build, robes
   measure the body they hang on, cape colliders grow with the girth.
-- **Height** (`HEIGHT`: 0.85–1.15, a triangle round 1, women ×0.95) on top of the
+- **Height** (`HEIGHT`: 0.85–1.15, a triangle round 1, women ×0.95; stretched to 0.82–1.18 since issue #402) on top of the
   tribe's size; people leaning on a railing keep nearly its height. Bodies scale
   from their feet. A story person with `scale` keeps exactly that.
 - **The GPU crowd** gets the same body from a per-instance `aBody` (female, shoulder
@@ -545,6 +545,49 @@ Machine's and the Moon Foundry's crowds. Now 28 %.
   dropped shapes on nobody but the sheets, the sheets' and the story's own heads kept, the streams unchanged.
 - **Next** (not modelled yet): a smaller, coherent set of hats per world, from Midjourney sheets the author picks:
   `docs/design/hat-prompts.md`.
+
+## Body shapes: thin to round (issue #402)
+
+The author: "Add people with different body shapes so they don't all look the same (more slender, fatter)". The
+four builds were there, but MakeHuman's sliders kept them close (its heaviest weight is only moderately heavy) and
+on screen everyone was the same lean figure; heights varied by a few centimetres.
+
+- **Six builds** (`BUILDS` in `src/costumes.js`, slender to heavy): `slender`, `slim`, `average`, `broad` (the
+  muscled one), `stout`, `heavy`. Each is a MakeHuman shape (`MH_BUILDS` in `src/makehuman/shape.js`: muscle, weight
+  and the belly, hips and waist targets) with its own girths on the mesh over it (`MH_BUILDS[].morph`: morph.js's
+  radial body keys, shoulders, chest, belly, hips, arms, legs, neck, within the studio's slider ranges), so a slender
+  person reads as thin and a heavy one as round from across a square. Children take none of a build's girths, a
+  teenager some (`buildMorphShare`); a story person's own `def.morph` multiplies them (`withBuildMorph`). The
+  skeleton, head, hands and feet are untouched, so hats, masks, held props and the foot planting fit every build.
+  The Quaternius bodies (`?mh=0`) have the two new ones too (`BUILD_SHAPE`).
+- **Who has which** (`buildFor` in `dressFor`): from a hash of the look already drawn, like the capes, skirts and
+  hats, so no draw of a crowd's stream moves (the old build's draw is still made and thrown away). At the odds of
+  `BUILD_ODDS` (a man's and a woman's) times the world's lean (`WORLD_BUILDS`, from the people their notes describe):
+  the desert's pilgrims, Vael's silent ones, the lake folk and the rope-town under the rock leaner; the Signal
+  Market, the Salt Harbour, the Moon Foundry, the city at its tables and the ring's herders sturdier; the mechanics
+  and the miners broad. Children and teenagers are seldom heavy. A build the story sets (`look.build`) is kept.
+  `node scripts/cape-census.mjs --builds [--who]` prints each world's shares and the named people's builds.
+- **Heights** spread further (`HEIGHT.stretch` 1.4, 0.82–1.18 of the tribe's size, was 0.85–1.15): the height
+  drawn is stretched last, so everything seeded by it (eyes, face, cape, hat, skirt, build) stays as it was.
+- **Clothes follow** on their own: a tunic and trousers are painted on the body (the outfit shader), a robe
+  measures the body it hangs on, the cape's colliders are the body's own girths (`segmentGirths`), shoulder and
+  chest pieces widen with `BUILDS[].width` and `girth`. The stout and the heavy hold their hanging arms a little out
+  from their sides (`BUILDS[].armOut`, rad, `Humanoid.update`: the more the arm hangs, the more), clear of the belly
+  and hips; gestures, props and the seated poses are left as they are. Gait: the new builds have their own stride,
+  bob and sway (`gaitStyle`); the heavyset captured walks suit the stout too.
+- **The crowd figures** carry the same body for nothing (no draw call): `packBody` puts the build's belly, hips and
+  limbs (`bodyShapeCode`, 31 steps of 0.05 each) over the female bit of `aBody.x`; `crowd-shader.js` (and the
+  port's `Crowd.hlsl`) widen the belly forward and to the sides, the hips and their pivots, thicken the limbs and hold
+  a fuller figure's arms out (`CROWD_BODY.armOut`, `hipPivot`, `bellyF`).
+- **Named people**: the shopkeepers' builds follow their notes: Brin, Nettle, Hale and Amaro slender; Burdock, Odo and
+  Odette stout; Gunnar broad; Pashka and Sister Perpetue stay heavy; Anselm Thrum slender (his drawn height kept so
+  his eyes and face stay his). Everyone else without a build of their own draws one as the crowd does.
+- **Checked**: the studio's `lineup=mhbuilds` (every build of one kind), the crowd lineups of every world before and
+  after, three named people up close; walkers of each build in node (planted feet slip 1.4–1.8 mm a frame, as the
+  average's; the hands' joints 3–9 cm clear of the trunk and thighs walking, 5–15 standing); Unity's crowd from the
+  same JS and the ported shader. `tests/body-shapes.test.js`: every build in every crowd, the worlds' leans, the
+  streams unchanged, the named builds, the crowd packing (and the HLSL's numbers), the rig's limits (girths within
+  the sliders, ordered thin to round, the skeleton and head untouched, a child's arms as they hang).
 
 ## Seated capes fall onto the seat
 

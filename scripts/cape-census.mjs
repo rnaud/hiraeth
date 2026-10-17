@@ -32,7 +32,7 @@ export async function capeCensus({ sample = CROWD_SAMPLE } = {}) {
   const { FAMILY, FAMILY_WORLDS } = await import('../src/characters/family.js');
 
   const worlds = {};
-  const W = (w) => (worlds[w] ??= { people: 0, capes: 0, capelets: 0, skirts: 0, who: { story: [0, 0], walkers: [0, 0], crowd: [0, 0] }, skirted: { story: [0, 0], walkers: [0, 0], crowd: [0, 0] }, caped: [], inSkirts: [], heads: { story: {}, walkers: {}, crowd: {} }, hatted: { story: [0, 0], walkers: [0, 0], crowd: [0, 0] }, inHats: [] });
+  const W = (w) => (worlds[w] ??= { people: 0, capes: 0, capelets: 0, skirts: 0, who: { story: [0, 0], walkers: [0, 0], crowd: [0, 0] }, skirted: { story: [0, 0], walkers: [0, 0], crowd: [0, 0] }, caped: [], inSkirts: [], heads: { story: {}, walkers: {}, crowd: {} }, hatted: { story: [0, 0], walkers: [0, 0], crowd: [0, 0] }, inHats: [], builds: { story: {}, walkers: {}, crowd: {} }, built: [] });
   const seen = new Set();
   const count = (world, s, part, name) => {
     const r = W(world);
@@ -46,6 +46,9 @@ export async function capeCensus({ sample = CROWD_SAMPLE } = {}) {
     r.heads[part][s.head] = (r.heads[part][s.head] ?? 0) + 1;
     r.hatted[part][0]++;
     if (wearsHat(s)) { r.hats = (r.hats ?? 0) + 1; r.hatted[part][1]++; if (part === 'story') r.inHats.push(`${name} (${s.head})`); }
+    // builds (issue #402), by who has them
+    r.builds[part][s.build] = (r.builds[part][s.build] ?? 0) + 1;
+    if (part === 'story') r.built.push(`${name} (${s.build})`);
   };
   // a story person as npc.js dresses them (def: their own id and tier; no def: a walker of a spawn spot)
   const person = (world, d) => {
@@ -104,6 +107,19 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     console.log(`all              ${String(all.people).padStart(6)} ${String(all.hats).padStart(5)} ${pc0(all.hats, all.people)}`);
     if (process.argv.includes('--who')) for (const [w, r] of Object.entries(worlds)) if (r.inHats.length) console.log(`${w}: ${r.inHats.join(', ')}`);
     if (process.argv.includes('--json')) console.log(JSON.stringify(Object.fromEntries(Object.entries(worlds).map(([w, r]) => [w, { people: r.people, hats: r.hats ?? 0, hatted: r.hatted, heads: r.heads }]))));
+    process.exit(0);
+  }
+  if (process.argv.includes('--builds')) {
+    const { BUILDS } = await import('../src/costumes.js');
+    const ids = Object.keys(BUILDS);
+    // (issue #402) each build's share of a world's crowd, and of its story people and walkers
+    console.log(`world            people  crowd: ${ids.map((b) => b.padStart(7)).join(' ')}   story+walkers: ${ids.map((b) => b.slice(0, 4).padStart(4)).join(' ')}`);
+    for (const [w, r] of Object.entries(worlds)) {
+      const cr = r.builds.crowd, n = Object.values(cr).reduce((a, b) => a + b, 0);
+      const named = (b) => (r.builds.story[b] ?? 0) + (r.builds.walkers[b] ?? 0);
+      console.log(`${w.padEnd(16)} ${String(r.people).padStart(6)}         ${ids.map((b) => pc0(cr[b] ?? 0, n).padStart(7)).join(' ')}                  ${ids.map((b) => String(named(b)).padStart(4)).join(' ')}`);
+    }
+    if (process.argv.includes('--who')) for (const [w, r] of Object.entries(worlds)) if (r.built.length) console.log(`${w}: ${r.built.join(', ')}`);
     process.exit(0);
   }
   if (process.argv.includes('--skirts')) {

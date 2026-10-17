@@ -15,6 +15,7 @@ const el = () => ({ classList: { add() {}, remove() {}, toggle() {}, contains: (
 globalThis.document ??= { createElement: el, body: el(), getElementById: () => null, querySelector: () => null };
 const { parseBody, unpackBody } = await import('../src/makehuman/body.js');
 const { personTemplate, MakeHumanPeople, ageClassOf, yearsOf, usesMakeHuman, MH_WORLDS, Q_TOP } = await import('../src/makehuman/people.js');
+const { MH_BUILDS } = await import('../src/makehuman/shape.js');
 const { hairFor, mhLookPieces, SCALP_LIFT, MH_STYLES } = await import('../src/makehuman/hair.js');
 const { Humanoid, prepareHuman, segmentGirths, CAPSULES, CAPSULE_MARGIN, hairEdge } = await import('../src/humanoid.js');
 const { JOINTS } = await import('../src/ragdoll.js');
@@ -98,7 +99,7 @@ test('a crowd body come close takes its person\'s age and build: an elder\'s bod
 test('the crowd\'s bodies are made ahead, while the page is idle: every build of a grown-up and an elder', async () => {
   const people = new MakeHumanPeople(data, 'bazaar');
   const n = await people.warm({ gap: 0 });
-  assert.equal(n, 16);
+  assert.equal(n, 2 * 2 * Object.keys(MH_BUILDS).length);
   const t = people.template('f');
   const before = data.cache.size;
   const h = new Humanoid(t, buildCharacter(), 'f');
@@ -114,11 +115,13 @@ test('cloth and ragdolls fit the new girths: a heavy belly, a child\'s thin limb
   assert.ok(gh[0] > ga[0] * 1.25, `the heavy trunk ${gh[0].toFixed(3)} against ${ga[0].toFixed(3)}`);
   for (const H of [heavy, avg]) {
     H.char.root.updateMatrixWorld(true);
-    const caps = H.capsules(), g = segmentGirths(H.body);
+    // (a cape's colliders: the trunk round its back and sides, issue #402)
+    const caps = H.capsules(), g = segmentGirths(H.body, 0.9, H.body.geometry, { back: true });
     caps.forEach((c, i) => assert.ok(c.r >= g[i] - 1e-9, `${CAPSULES[i][0]}: the collider holds the skin (${c.r.toFixed(3)} >= ${g[i].toFixed(3)})`));
     assert.ok(Math.abs(caps[0].r - (g[0] + CAPSULE_MARGIN[0])) < 1e-9);
   }
-  assert.ok(heavy.capsules()[0].r > 0.29, 'no cloth through a heavy belly');
+  assert.ok(heavy.capsules()[0].r > avg.capsules()[0].r + 0.02, 'a heavy trunk fuller round its back and sides too');
+  assert.ok(heavy.capsules()[0].r < 0.36, `but no cylinder round the belly behind them (${heavy.capsules()[0].r.toFixed(3)}): the cape stood out like a shelf`);
   // a child: the colliders at its size
   const child = new Humanoid(personTemplate(data, { kind: 'f', years: 8, world: 'desert' }), buildCharacter(), 'f');
   child.char.root.scale.setScalar(child.profile.trueScale);
@@ -222,7 +225,11 @@ test('a cape on a heavy MakeHuman body hangs round its belly, not through it', a
   const player = { pos: new THREE.Vector3(0, 0, 6), vel: new THREE.Vector3(), riding: false, ride: null, wind: new THREE.Vector3() };
   const camera = new THREE.PerspectiveCamera(); camera.position.set(0, 1.6, 5);
   for (let f = 0; f < 240; f++) npc.update(1 / 60, player, camera);
-  const H = npc.humanoid, g = segmentGirths(H.body)[0] * npc.object.scale.y;
+  // (the belly in front, the back and sides behind and beside it: a cylinder round the spine as wide as the belly
+  // stood the cloth out from the back like a shelf, issue #402)
+  const H = npc.humanoid, gFull = segmentGirths(H.body)[0] * npc.object.scale.y, gBack = segmentGirths(H.body, 0.9, H.body.geometry, { back: true })[0] * npc.object.scale.y;
+  const fwd = new THREE.Vector3(0, 0, 1).applyQuaternion(npc.object.getWorldQuaternion(new THREE.Quaternion()));
+  let g = gFull;
   const a = H.b.pelvis.getWorldPosition(new THREE.Vector3()), b = H.b.spine_03.getWorldPosition(new THREE.Vector3());
   const c = npc.cape, m = c.hung ? c.mesh.matrixWorld : new THREE.Matrix4(), p = new THREE.Vector3(), ab = b.clone().sub(a);
   let inside = 0, near = 0;
@@ -231,7 +238,11 @@ test('a cape on a heavy MakeHuman body hangs round its belly, not through it', a
     const t = THREE.MathUtils.clamp(p.clone().sub(a).dot(ab) / ab.lengthSq(), 0, 1);
     if (t <= 0 || t >= 1) continue;
     near++;
-    if (p.distanceTo(a.clone().addScaledVector(ab, t)) < g * 0.95) inside++;
+    // (in front: an ellipse as deep as the belly and as wide as the back and sides)
+    const d = p.clone().sub(a.clone().addScaledVector(ab, t)), f = d.dot(fwd), side = Math.sqrt(Math.max(0, d.lengthSq() - f * f));
+    const e = f > 0 ? Math.hypot(f / gFull, side / gBack) : d.length() / gBack;
+    g = f > 0 ? gFull : gBack;
+    if (e < 0.95) inside++;
   }
   assert.ok(near > 5, `${near} cloth points by the trunk`);
   assert.equal(inside, 0, `${inside} cloth points inside the belly (${g.toFixed(3)} m)`);

@@ -632,8 +632,10 @@ export function dressFor(world, rng, { palette = {}, lists = {}, head = null, ca
   // woman, a build and a height, all seeded with the look
   const female = kind === 'f';
   s.kind = kind;
-  s.build = look.build ?? weighted(rng, female ? BUILD_ODDS.f : BUILD_ODDS.m);
+  if (look.build == null) rng();   // (the build's draw before issue #402: kept, so the rest of this look and those drawn after it from the same stream stay as they were)
   s.height = look.height ?? THREE.MathUtils.clamp((1 + (rng() + rng() - 1) * HEIGHT.spread) * (female ? HEIGHT.f : 1), HEIGHT.min, HEIGHT.max);
+  // their build (issue #402): from a hash of the look, at their world's odds
+  s.build = look.build ?? buildFor(world, kind, s, young);
   const rh = rng(), rb = rng();
   // bare heads: the tribe's own hairstyles, a woman's or a man's (or a man's when nobody says); some men have a beard
   if (!look.head && GENERIC_HAIR.includes(s.head)) s.head = hairstyleOf(T, female ? 'f' : 'm', rh);
@@ -653,7 +655,15 @@ export function dressFor(world, rng, { palette = {}, lists = {}, head = null, ca
   robed(T, s, look);
   // a coat (the family's open coats: humanoid.js robeOptions), when the story asks for one
   for (const k of ['robeOpen', 'robeRole', 'robeLining', 'robeHem']) if (look[k] !== undefined) s[k] = look[k];
+  // people of more different heights (issue #402): the one drawn, further from the middle
+  if (look.height == null) s.height = stretchHeight(s.height, female);
   return s;
+}
+
+/** A height drawn (HEIGHT: spread round 1, a woman's x f) further from the middle by HEIGHT.stretch, within HEIGHT.lo..hi. */
+export function stretchHeight(h, female = false) {
+  const f = female ? HEIGHT.f : 1;
+  return THREE.MathUtils.clamp(f * (1 + (h / f - 1) * HEIGHT.stretch), HEIGHT.lo, HEIGHT.hi);
 }
 
 /**
@@ -791,19 +801,89 @@ export function hairstyleOf(T, kind = 'm', u = 0.5) {
  * vertices (crowd-shader.js, aBody); the head, hands and feet stay as they are.
  */
 export const BUILDS = {
-  slim: { width: 0.93, girth: 0.9 },
-  average: { width: 1, girth: 1 },
-  broad: { width: 1.12, girth: 1.06 },
-  heavy: { width: 1.08, girth: 1.3 },
+  // (issue #402: from thin as a rake to round; each also a MakeHuman body, src/makehuman/shape.js MH_BUILDS.
+  //  belly, hips and limbs: the crowd figure's, crowd-shader.js; width and girth the shoulders and the trunk;
+  //  armOut: how far a full body's hanging arms are held out from its sides, clear of its belly and hips, Humanoid.update)
+  slender: { width: 0.86, girth: 0.8, belly: 0.85, hips: 0.92, limbs: 0.72 },
+  slim: { width: 0.93, girth: 0.9, belly: 0.92, hips: 0.96, limbs: 0.86 },
+  average: { width: 1, girth: 1, belly: 1, hips: 1, limbs: 1 },
+  broad: { width: 1.12, girth: 1.06, belly: 1, hips: 1.02, limbs: 1.16 },
+  stout: { width: 1.05, girth: 1.18, belly: 1.3, hips: 1.12, limbs: 1.14, armOut: 0.14 },
+  heavy: { width: 1.08, girth: 1.3, belly: 1.55, hips: 1.25, limbs: 1.3, armOut: 0.2 },
 };
-const BUILD_ODDS = { m: { slim: 2, average: 4, broad: 2.5, heavy: 1.5 }, f: { slim: 3, average: 4, broad: 1, heavy: 2 } };
+/** The builds' odds (issue #402), a woman's and a man's, where a world doesn't say (WORLD_BUILDS). */
+export const BUILD_ODDS = {
+  m: { slender: 1.2, slim: 2, average: 3, broad: 2, stout: 1.3, heavy: 0.9 },
+  f: { slender: 1.5, slim: 2.4, average: 3, broad: 0.6, stout: 1.3, heavy: 1 },
+};
+/**
+ * Each world's lean (multiplies BUILD_ODDS; issue #402, from the people their docs describe, shape.js
+ * WORLD_BODIES): the desert's pilgrims and the silent orders lean, the market, the harbour, the falls,
+ * the ring's herders and the foundry sturdy, the mechanics and the miners broad, the lake's polers and
+ * the rope-town under the rock slight.
+ */
+export const WORLD_BUILDS = {
+  desert: { slender: 1.8, slim: 1.4, stout: 0.6, heavy: 0.4 },
+  glassdunes: { slender: 1.6, slim: 1.3, stout: 0.7, heavy: 0.5 },
+  arzach: { slender: 2, slim: 1.5, broad: 0.6, stout: 0.6, heavy: 0.4 },
+  arzach2: { slender: 1.6, slim: 1.3, stout: 1.1, heavy: 0.8 },   // (the bell monastery: well-fed brothers too)
+  garage: { broad: 1.8, stout: 1.3, slender: 0.6 },
+  buried: { broad: 1.6, stout: 1.3, slender: 0.7 },
+  moonfoundry: { broad: 1.8, stout: 1.4, heavy: 1.2, slender: 0.5 },
+  bazaar: { stout: 1.8, heavy: 1.8, broad: 1.2, slender: 0.6 },
+  saltharbour: { stout: 1.5, heavy: 1.4, broad: 1.3, slender: 0.7 },
+  waterfall: { broad: 1.4, stout: 1.3, slender: 0.8 },
+  fallenring: { broad: 1.4, stout: 1.4, heavy: 1.2 },
+  eclipse: { stout: 1.4, heavy: 1.5 },   // (the city's folk at their tables)
+  overnighttrain: { stout: 1.3, heavy: 1.2 },
+  mangrove: { slender: 1.5, slim: 1.3, heavy: 0.6 },
+  underside: { slender: 1.4, slim: 1.4, stout: 0.7, heavy: 0.5 },
+  spacecity: { slender: 1.3, slim: 1.2, heavy: 0.7 },
+  antennas: { slim: 1.3, broad: 1.2, heavy: 0.6 },
+  edena: { slender: 1.3, slim: 1.2 },
+};
+/** A build from a draw u (0..1) at a world's odds for a kind (BUILD_ODDS x WORLD_BUILDS). */
+export function buildOdds(world, kind = 'm') {
+  const base = BUILD_ODDS[kind === 'f' ? 'f' : 'm'], lean = WORLD_BUILDS[world] ?? {};
+  return Object.fromEntries(Object.entries(base).map(([b, w]) => [b, w * (lean[b] ?? 1)]));
+}
+/**
+ * Someone's build (issue #402: "Add people with different body shapes so they don't all look the same"):
+ * drawn from no random number (a hash of the look already drawn), like the capes, skirts and hats, so no
+ * draw of a crowd's stream moves. A child or a teenager is never heavy (slim or average mostly).
+ */
+function buildFor(world, kind, s, young) {
+  const u = (hashSeed(`build|${s.cloth}|${s.legs}|${s.skin}|${s.hair}|${s.height}|${s.capeWide}`) % 100003) / 100003;
+  const odds = buildOdds(world, kind);
+  if (young) { odds.heavy *= 0.2; odds.stout *= 0.5; odds.broad *= 0.4; }
+  return weighted(() => u, odds);
+}
 /** Heights: 1 ± spread (a triangle, most people near the middle), women a little shorter; the tribe's size on top. */
-export const HEIGHT = { spread: 0.14, f: 0.95, min: 0.85, max: 1.15 };
+export const HEIGHT = { spread: 0.14, f: 0.95, min: 0.85, max: 1.15,
+  // (issue #402) the height drawn, further from the middle by `stretch`, within lo..hi: done last, so every choice
+  // seeded by the height drawn (eyes, face, cape, hat, skirt, build) stays as it was
+  stretch: 1.4, lo: 0.82, hi: 1.18 };
 const BEARDS = 0.3;
 /** The crowd shader's per-instance body: female (0 / 1), shoulder width, girth, the iris colour (0xRRGGBB; 0: a brown). */
 export function packBody(s) {
   const b = BUILDS[s.build] ?? BUILDS.average;
-  return [s.kind === 'f' ? 1 : 0, b.width, b.girth, s.eyes ? new THREE.Color(s.eyes).getHex() : 0];
+  return [(s.kind === 'f' ? 1 : 0) + 2 * bodyShapeCode(b), b.width, b.girth, s.eyes ? new THREE.Color(s.eyes).getHex() : 0];
+}
+/**
+ * A build's belly, hips and limbs for the crowd shader, in aBody.x over the female bit (issue #402):
+ * each in 31 steps of BODY_STEP round 1 (q 1..31, 16 neutral), belly + 32 hips + 1024 limbs; 0: all neutral.
+ */
+export const BODY_STEP = 0.05;
+const bodyQ = (v) => Math.min(31, Math.max(1, Math.round(((v ?? 1) - 1) / BODY_STEP) + 16));
+export function bodyShapeCode(b) {
+  return bodyQ(b.belly) + 32 * bodyQ(b.hips) + 1024 * bodyQ(b.limbs);
+}
+/** The inverse (what the shader reads): { fem, belly, hips, limbs }. */
+export function unpackBodyShape(x) {
+  const fem = x % 2, code = Math.floor(x / 2);
+  if (!code) return { fem, belly: 1, hips: 1, limbs: 1 };
+  const v = (q) => 1 + (q - 16) * BODY_STEP;
+  return { fem, belly: v(code % 32), hips: v(Math.floor(code / 32) % 32), limbs: v(Math.floor(code / 1024)) };
 }
 
 // ------------------------------------------------------------------ prominence

@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.83 — 2026-10-16
+
+- People come in more shapes and sizes: thin as a rake, slim, broad-shouldered, stout and properly round, and taller and shorter than before, so a crowd no longer looks like one person over and over. Each world has its own mix: the desert’s pilgrims and Vael’s silent ones run lean, the market, the harbour and the foundry sturdier. Clothes, capes and robes fit every shape, and the fuller people hold their arms a little out from their sides.
+
 ## v1.82 — 2026-10-16
 
 - Far fewer people wear hats: about one in four now has something on the head, down from four in five, and the rest show their hair. The oddest hats are gone from the crowds: the tall stovepipes and spires of the City-Shaft, the balls of the Garden of Spheres, Lorn’s reed thatches, the lamp hats, the antenna helmets, Viridel’s floating blossoms and the fezzes. The desert’s headcloths, Vael’s cowls and the miners’ hard hats stay a little more common, and the people whose own design has a hat keep theirs.

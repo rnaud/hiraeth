@@ -17,7 +17,7 @@
 // The traveller has his own body (src/characters/traveller.js: the accepted B3 body, built on a MakeHuman
 // template of its own), not one of these.
 import { loadBody, makeBody, bodyGeometryFor } from './body.js';
-import { personParams, AGES, paramsKey, MH_BUILDS } from './shape.js';
+import { personParams, AGES, paramsKey, MH_BUILDS, buildMorph, buildMorphShare } from './shape.js';
 import { mhLookPieces, mhStyleOf } from './hair.js';
 import { buildGeometry } from '../humanoid.js';
 import { FACE_MORPHS } from '../morph.js';
@@ -62,6 +62,17 @@ export function yearsOf(who = {}) {
   return Number.isFinite(y) ? y : AGES[ageClassOf(who)];
 }
 
+/** The radial keys of morph.js's body morph (on the mesh): a build's and a person's multiply. */
+const RADIAL = ['shoulders', 'chest', 'belly', 'hips', 'arms', 'legs', 'neck'];
+/** A build's mesh morph under a person's own (def.morph): the girths multiplied, the rest the person's. */
+export function withBuildMorph(build, own) {
+  if (!build) return own ?? null;
+  if (!own) return build;
+  const out = { ...own };
+  for (const k of RADIAL) if (build[k] !== undefined) out[k] = (own[k] ?? 1) * build[k];
+  return out;
+}
+
 /** The profile hooks humanoid.js reads on a MakeHuman template (its builds, its hair, its face). */
 export function equip(scene, { kind, years, build = 'average', world = 'default', over = {} }) {
   const prof = scene.userData.profile;
@@ -71,9 +82,10 @@ export function equip(scene, { kind, years, build = 'average', world = 'default'
   prof.buildGeometry = (body, b, morph, y = years) => {
     const base = body.userData.baseGeometry ?? body.geometry;
     const g = (b === build || !b) && y === years ? base : bodyGeometryFor(scene, personParams({ kind, years: y, build: b || build, world, over }));
-    if (!morph) return g;
-    // the game's body morphs (girths, on the mesh) over the MakeHuman build
-    return buildGeometry({ userData: { baseGeometry: g }, geometry: g, skeleton: body.skeleton, bindMatrix: body.bindMatrix }, 'average', morph);
+    // the build's own girths on the mesh (shape.js MH_BUILDS[].morph, issue #402) and the game's body morphs over them
+    const m = withBuildMorph(buildMorph(b || build, buildMorphShare(y)), morph);
+    if (!m) return g;
+    return buildGeometry({ userData: { baseGeometry: g }, geometry: g, skeleton: body.skeleton, bindMatrix: body.bindMatrix }, 'average', m);
   };
   prof.lookPieces = mhLookPieces;
   prof.lookKey = (look) => `|${mhStyleOf(look) ?? ''}`;
@@ -148,7 +160,13 @@ export class MakeHumanPeople {
         if (n >= jobs.length) return done(n);
         const [k, years, build] = jobs[n++];
         const t = this.template(k);
-        if (!(years === AGES.adult && build === 'average')) bodyGeometryFor(t, personParams({ kind: k, years, build, world: this.world }));
+        if (!(years === AGES.adult && build === 'average')) {
+          // (and the build's girths on the mesh over it, as Humanoid.reshapeBody will ask for them)
+          let body = null;
+          t.traverse((o) => { if (!body && o.isSkinnedMesh && o.name === 'Body') body = o; });
+          if (body) t.userData.profile.buildGeometry(body, build, null, years);
+          else bodyGeometryFor(t, personParams({ kind: k, years, build, world: this.world }));
+        }
         setTimeout(() => idle(next), gap);
       };
       idle(next);

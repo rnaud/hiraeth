@@ -286,7 +286,8 @@ export class StairLine {
  */
 export function gaitStyle(rand, { build = 'average', kind = 'm', size = 1 } = {}) {
   const r = () => rand() * 2 - 1;
-  const B = { slim: { stride: 1.04, bob: 1.1, sway: 0.02 }, average: { stride: 1, bob: 1, sway: 0.03 }, broad: { stride: 0.97, bob: 0.95, sway: 0.04 }, heavy: { stride: 0.9, bob: 0.82, sway: 0.065 } }[build] ?? { stride: 1, bob: 1, sway: 0.03 };
+  const B = { slender: { stride: 1.06, bob: 1.12, sway: 0.018 }, slim: { stride: 1.04, bob: 1.1, sway: 0.02 }, average: { stride: 1, bob: 1, sway: 0.03 }, broad: { stride: 0.97, bob: 0.95, sway: 0.04 },
+    stout: { stride: 0.94, bob: 0.88, sway: 0.05 }, heavy: { stride: 0.9, bob: 0.82, sway: 0.065 } }[build] ?? { stride: 1, bob: 1, sway: 0.03 };
   const child = size < 0.8, f = kind === 'f';
   // an older or more tired walker now and then: a shorter stride, bent forward, eyes lower
   const age = Math.max(0, rand() * 1.6 - 0.6);
@@ -308,7 +309,7 @@ export function gaitStyle(rand, { build = 'average', kind = 'm', size = 1 } = {}
 // capture's description, and who they suit; the rest are plain walks anyone may have
 const WALK_SUITS = [
   [/old man|elderly/, (p) => p.older],
-  [/heavyset|strong man/, (p) => p.build === 'heavy' || p.build === 'broad'],
+  [/heavyset|strong man/, (p) => p.build === 'heavy' || p.build === 'stout' || p.build === 'broad'],
   [/lady|relaxed/, (p) => p.kind === 'f'],
   [/childish|teen/, (p) => p.child],
   [/rushed|fast/, () => false],   // (hurried: nobody strolls like that)

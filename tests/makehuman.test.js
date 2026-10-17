@@ -130,7 +130,10 @@ test('a MakeHuman person is a Humanoid template: the game bones, its own landmar
   assert.equal(h.body.geometry.attributes.position.count, g0.attributes.position.count);
   assert.ok(h.body.geometry.userData.faceKeys?.names.length, 'the face keys kept');
   h.setBuild('broad');
-  assert.equal(h.body.geometry, g0, 'its own build: the template\'s body');
+  const g1 = h.body.geometry;
+  assert.equal(g1.userData.faceKeys, g0.userData.faceKeys, 'its own build: the template\'s body (with the build\'s girths on it: MH_BUILDS[].morph)');
+  h.setBuild('heavy'); h.setBuild('broad');
+  assert.equal(h.body.geometry, g1, 'made once');
   // the skull for the hats
   assert.ok(headScale(prof.skull, 'm').every((k) => k > 0.8 && k < 1.35));
 });
