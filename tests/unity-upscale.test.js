@@ -19,7 +19,7 @@ test('the switches: -upscale fsr|sgsr|linear|off, -sharpness, -ink-full, URP\'s 
   assert.match(feature, /"sgsr" or "sgsr1" => Upscaler\.Sgsr,/);
   assert.match(feature, /"linear" => Upscaler\.Linear,/);
   assert.match(feature, /_ => null,/, 'an unknown name changes nothing');
-  assert.match(runner, /ApplyUpscale\(urp, BridgeArgs\.Arg\("-upscale"\), BridgeArgs\.Arg\("-sharpness"\), BridgeArgs\.Flag\("-ink-full"\), BridgeArgs\.Arg\("-ink-weight"\)\)/);
+  assert.match(runner, /string upAsked = BridgeArgs\.Arg\("-upscale"\), sharpAsked = BridgeArgs\.Arg\("-sharpness"\);/);
   assert.match(runner, /up\.StartsWith\("urp-"\)/);
   assert.match(runner, /Settings\.sharpness = Mathf\.Clamp01\(sv\)/);
   // (-ink-full: the G-buffer at the render scale, the rest at the screen's: URP's own scale back to 1, nothing to upscale)
@@ -27,11 +27,11 @@ test('the switches: -upscale fsr|sgsr|linear|off, -sharpness, -ink-full, URP\'s 
   assert.match(runner, /BridgeArgs\.Arg\("-render-scale"\) is string rs/);
 });
 
-test('URP\'s own final blit by default on every platform: no upscaler chosen unless asked', () => {
+test('URP\'s own final blit by default everywhere but Android\'s Handheld: no upscaler chosen unless asked', () => {
   assert.match(feature, /public static Upscaler upscaler = Upscaler\.Urp;/);
   assert.match(feature, /public static float gbufferScale = 1f;/);
   assert.match(feature, /if \(Settings\.upscaler != Upscaler\.Urp\)\n\s+\{/, 'the pass enqueued only when asked');
-  // (Android's Handheld still draws at 0.75 of the screen)
+  // (Android's Handheld draws at HandheldScale of the screen)
   assert.match(runner, /else if \(urp != null\) urp\.renderScale = BridgeArgs\.Quality == "handheld" \? HandheldScale\(Screen\.width, Screen\.height\) : 1f;/);
 });
 
@@ -72,4 +72,19 @@ test('placement (a): the G-buffer and the glow at gbufferScale, the composite\'s
   assert.match(feature, /ddesc\.width = gs\.x; ddesc\.height = gs\.y;/);
   assert.match(feature, /new TextureDesc\(Mathf\.Max\(1, \(GW \+ 3\) \/ 4\), Mathf\.Max\(1, \(GH \+ 3\) \/ 4\)\)/);
   assert.match(feature, /if \(s >= 0\.999f \|\| s <= 0\) return new Vector2Int\(w, h\);/);
+});
+
+test('Android\'s Handheld: FSR 1 at 0.67 by default on the Retroid\'s screen, RCAS at 0.6; none on the Thor; -upscale off and -render-scale override', () => {
+  const m = runner.match(/public static string HandheldUpscale\(int w, int h\) => \(float\)w \* h <= 1280f \* 960f \? "fsr" : null;/);
+  assert.ok(m, 'FSR up to the Retroid\'s pixels, nothing on a larger screen');
+  const up = (w, h) => (w * h <= 1280 * 960 ? 'fsr' : null);
+  assert.equal(up(1280, 960), 'fsr'); assert.equal(up(1920, 1080), null);
+  assert.match(runner, /public const string HandheldSharpness = "0\.6";/);
+  assert.match(runner, /if \(upAsked == null && BridgeArgs\.Quality == "handheld" && HandheldUpscale\(Screen\.width, Screen\.height\) is string hu\) \{ upAsked = hu; sharpAsked \?\?= HandheldSharpness; \}/,
+    'only when -upscale is not given: -upscale off keeps URP\'s bilinear blit');
+  const s = runner.slice(runner.indexOf('string upAsked'));
+  assert.ok(s.indexOf('#if UNITY_ANDROID && !UNITY_EDITOR') < s.indexOf('upAsked == null'), 'Android players only');
+  assert.match(runner, /ApplyUpscale\(urp, upAsked, sharpAsked, BridgeArgs\.Flag\("-ink-full"\), BridgeArgs\.Arg\("-ink-weight"\)\)/);
+  // (SGSR 1 with Qualcomm's edge direction: without it the thin ink lines came out stippled)
+  assert.match(sgsr, /^#define UseEdgeDirection$/m);
 });

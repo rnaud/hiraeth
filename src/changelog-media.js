@@ -1092,6 +1092,7 @@ const DOORS391G = 'Issue #391: the running game in muted headless Chrome (ANGLE 
 const SWORD390 = 'muted headless Chrome on this Mac, High, 1280 × 720, the Arena at 10:00, a blot (its health raised) fought with the combo, the camera off his right front quarter, origin/main against issue #390’s change; 16 October; cwebp -q 72';
 /** (v1.82, issue #395: the Unity build's render scale on the AYN Thor) */
 const THOR395 = 'Issue #395: the Unity testers’ APK on the AYN Thor (adb, muted, the frame readout on, the bench’s plan -views … -bench 6 in one sitting); before: the installed v1.82 build (build 2490, Handheld at 0.75 of 1920 × 1080), after: this change’s build (0.5); the pictures are the bench’s own frames of the desert’s spawn from this change’s build, before held at 0.75 (-render-scale 0.75), the middle 1280 × 720 cut at full size; 16 October; cwebp -q 72';
+const FSR392 = 'Issue #392: the Unity testers’ APK on the Retroid Pocket Nova (adb, muted, the frame readout on, the bench’s plan -views … -bench 5, the screen taken by adb screencap mid-view); before: build 2503 with -render-scale 0.75 -upscale off (the old default: 0.75 and a bilinear blit), after: the same build with no arguments (0.67, FSR 1, RCAS 0.6); Lorn’s first view, the upper right 640 × 360 of the 1280 × 960 screen shown at twice its size (nearest); 16 October; cwebp -q 72';
 const OPENING394 = 'Issue #394: the Unity bridge in the editor’s batch run on this Mac (muted, High, 1280 × 720; its HUD laid out for the batch’s 4:3 window, so the letterbox stops short of the right edge in both), a new save’s prologue photographed beat by beat by -opening (engine/opening-beats.js), before and after the fix; 16 October; cwebp -q 72';
 /** (v1.82, issue #401: the Footprint across four floors) */
 const FP401 = 'Issue #401: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, 11:00, the HUD hidden) on this branch’s own Vite (port 5401, scripts/design-qc/capture.mjs), the camera pinned; before: the same tree with src/temples/spheres.js as on origin/main (5b612814), the same camera where the house allows; 16 October; cwebp -q 72';
@@ -1149,6 +1150,18 @@ export const CHANGELOG_MEDIA = {
       { name: 'sword-open', size: [1280, 711], title: 'Between cuts', caption: 'The Arena, a blot fought with the combo, a frame every half second or so: before, the blade dark in the fist after each cut (only the cuts lit); after, open at full length between them', from: SWORD390 },
       { name: 'sword-sheathe', size: [960, 400], title: 'The fight over', caption: 'The blot gone: 1.5 s after, and 6.5 s after. Before, dark in the fist, then on his back; after, still open, then on his back with the same sheathe', from: SWORD390 },
     ], see: 'Fight anything: between your swings the blade stays lit in your hand. Walk away from the fight and a few seconds later he puts it back on his back.' },
+    { match: 'The Unity version on the Retroid is sharper and faster', tags: ['performance'], shots: [
+      { name: 'fsr-retroid', caption: 'Lorn’s first view on the Retroid’s screen, a corner at twice its size: before, 960 × 720 blurred up to the screen; after, 857 × 643 taken up by FSR, its ink lines crisp', from: FSR392 },
+    ], numbers: [
+      { title: 'Frames a second on the Retroid, Unity version, the slowest of the bench’s views per world (the mean over 5-6 s)', unit: 'fps', better: 'higher', device: 'Retroid Pocket Nova (1280 × 960 at 60 Hz), Handheld, muted, the frame readout on', rows: [
+        { where: 'the City-Shaft (4 views)', before: 37.6, after: 38.8 },
+        { where: 'the Signal Market (4)', before: 53.9, after: 59.1 },
+        { where: 'Lorn (4)', before: 46.8, after: 50.7 },
+        { where: 'Underwater (4)', before: 49.8, after: 54.7 },
+        { where: 'the Floating city (4)', before: 53.6, after: 57.3 },
+        { where: 'the Desert (5)', before: 54.4, after: 59.1 },
+      ], source: FSR392, note: 'The worst view of each world, in one sitting: before at 0.75 with the bilinear blit, after at 0.67 with FSR 1. The 1 % lows hold (40–53). GeckoView on the same views: 37.0, 58.6, 57.3, 58.7, 58.5, 54.0.' },
+    ], see: 'On the Retroid, play the Unity version at Graphics: Handheld (its default) and look at the ink lines of a building or a crystal: they are as sharp as at full size.' },
     { match: 'The Unity version on the AYN Thor runs at or near 60', tags: ['performance'], shots: [
       { name: 'thor-render', caption: 'The desert’s first view on the Thor’s screen, the middle at its own pixels: before, drawn at 1440 × 810; after, at 960 × 540 and scaled up, softer at the edges', from: THOR395 },
     ], numbers: [

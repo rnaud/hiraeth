@@ -4190,6 +4190,47 @@ stippled** along diagonals (Lorn's crystals, the City-Shaft's floor grid), softe
 SGSR 1's own look on thin dark lines, or a fault in this port (its gathers were checked against the original's
 coordinates, but no reference picture). At 0.67 it is the same, a little blockier.
 
+**The author's pick: FSR 1 at 0.67, the Retroid's default** (BridgeRunner.HandheldScale 0.67, HandheldUpscale "fsr"
+on a screen up to 1280 × 960, HandheldSharpness 0.6; `-upscale off` and `-render-scale` still override). The same
+sitting's FSR at 0.67, first at URP's 0.92 sharpness and then as shipped (build 2503, no arguments: the log says
+"upscale Fsr 857x643 -> 1280x960, RCAS sharpness 0.6"):
+
+| world (views) | 0.75 bilinear (the old default) | FSR 1 at 0.67, RCAS 0.92 | FSR 1 at 0.67, RCAS 0.6 (default) | off at 0.67 |
+|---|---|---|---|---|
+| City-Shaft (4) | 51.6, 37.6, 38.7, 18.9 | 53.4, 38.8, 40.2, 18.3 | 53.4, 38.8, 40.3, 18.1 | 53.9, 39.7, 41.9, 17.6 |
+| Signal Market (4) | 58.6, 53.9, 45.4, 16.9 | 60.1, 58.8, 52.2, 15.6 | 60.1, 59.1, 52.7, 15.6 | 60.1, 60.1, 54.0, 15.0 |
+| Lorn (4) | 55.4, 46.8, 45.0, 16.3 | 57.6, 50.6, 49.5, 15.0 | 57.7, 50.7, 46.6, 14.9 | 58.6, 52.1, 46.8, 14.4 |
+| Underwater (4) | 56.6, 49.8, 43.9, 17.5 | 59.9, 54.7, 51.8, 16.1 | 60.0, 54.7, 52.2, 16.0 | 60.0, 56.5, 51.3, 15.6 |
+| Floating city (4) | 59.1, 53.6, 53.9, 16.6 | 60.1, 56.9, 52.9, 15.6 | 60.1, 57.3, 52.6, 15.6 | 60.1, 58.8, 53.5, 15.0 |
+| Desert (5) | 60.1, 54.4, 53.0, 14.2 | 60.1, 58.1, 52.1, 13.6 | 60.1, 59.1, 52.1, 13.7 | 60.1, 60.1, 51.4, 13.1 |
+
+- Against the old default every world's worst view is **1.2-5.2 fps higher** and the 1 % lows hold or rise (40-53
+  against 39-54; the desert's and the Floating city's about 1 fps lower, within the noise). FSR costs 0.5-0.7 ms over bilinear at 0.67. GeckoView's worst views (37.0 / 58.6 / 57.3 / 58.7 /
+  58.5 / 54.0) are now behind it in the City-Shaft, the Signal Market and the desert, about level in the Floating city,
+  and ahead in Lorn (−6.6) and Underwater (−4.0).
+- **RCAS at 0.6, not URP's 0.92.** At 0.92 the paper's specks in flat skies come out as dark dots, much stronger than
+  the web draws them. At 0.6 they are as light as bilinear's while the ink lines stay as crisp (desert spawn's sky and
+  the City-Shaft's floor grid, 0.92 / 0.6 / 0.3, `sheets/sharpness/`). It costs the same.
+
+**SGSR 1 fixed.** The stippled, stair-stepped lines were not a port fault. A line-for-line CPU run of Qualcomm's
+`sgsr1_mobile.h` (`sgsr-ref.mjs`, float and fp16, on a 960 × 720 frame from the device) gives the **same dashes** as the
+device. They come from its default configuration: twice the filtered luma, clamped to the nearest four texels, snaps a
+one-texel ink line to those texels one output pixel at a time. Qualcomm's optional `UseEdgeDirection` stretches the
+kernel along the edge: in the CPU run and on the device the lines stay whole. It is now on (SGSR1.hlsl), at no
+measurable cost (SGSR at 0.67: 13.1-17.8 ms, the same as before within 0.1). Its column in the sheets (`sheets/s2/`) is
+re-shot. It is softer than FSR and has no RCAS, so FSR stays the default.
+
+**The AYN Thor** (1920 × 1080, Handheld at 0.5 since #395; the City-Shaft and the desert, the same build):
+
+| world (views) | bilinear (default) | FSR 1, RCAS 0.6 | SGSR 1 (edge direction) |
+|---|---|---|---|
+| City-Shaft (4) | 51.9, 37.1, 34.0, 17.2 | 49.7, 35.9, 34.7, 18.1 | 51.4, 36.7, 34.2, 17.3 |
+| Desert (5) | 59.5, 56.0, 49.2, 13.3 | 59.5, 52.3, 48.3, 13.4 | 59.5, 55.2, 46.0, 13.5 |
+
+- FSR's two passes at 1080p cost ~0.9 ms and **2-4 fps in the views under 60** (the desert's spawn 55 → 52, the camps
+  57 → 53), so the Thor keeps the bilinear blit (HandheldUpscale gives it none). SGSR costs 0.1-0.2 ms and under 1 fps
+  there. It is the candidate for the Thor if the author likes its look.
+
 To repeat (scripts in `.local-tools/handoff/upscale-392/`): `ab.mjs <tag> --worlds … --conds "off=|fsr=-upscale
 fsr|sgsr=-upscale sgsr"`, `table.mjs <tag> off,fsr,sgsr <gecko raw dir>`, `caps.mjs`/`sheet.mjs` for the pictures;
 GeckoView with `ANDROID_SERIAL=ea2c972a node scripts/bench/android-worlds.mjs --serve <dist> --modes fixed --scale

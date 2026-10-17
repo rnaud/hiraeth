@@ -29,6 +29,9 @@ export const CHANGELOG = [
     // issue #395: unity/…/BridgeRunner.cs HandheldScale (Handheld on Android: 960 × 540's pixels at most on a screen
     // larger than the Retroid's); tests/unity-thor.test.js; docs/systems/performance.md "Unity on the AYN Thor"
     'The Unity version on the AYN Thor runs at or near 60 frames a second in most places instead of about 40: on its 1080p screen the world is now drawn at half its width and height and scaled up to fill it, a little softer for it. Retroid players see no change.',
+    // issue #392: unity/…/HiraethFeature.cs UpscalePass, Shaders/Upscale.shader (FSR 1, SGSR 1), BridgeRunner.cs
+    // HandheldScale 0.67, HandheldUpscale, HandheldSharpness; tests/unity-upscale.test.js
+    'The Unity version on the Retroid is sharper and faster: the world is drawn a little smaller than before and scaled up to the screen by FSR, which keeps the ink lines crisp instead of blurring them, and the slowest places run a few frames a second faster. The HUD is still drawn at the screen’s own size, so its text stays sharp.',
     // issue #384: src/fight-temples/entrance.js (the Blade Gate: six draws, its opening's light through Thresholds.addDoor),
     // kit/marker.js, the hosts beside it (hosts-data.js FIGHT_STAND), the Oil Exchange's and the Lift Depot's spots moved;
     // tests/fight-entrance.test.js

@@ -399,8 +399,8 @@ namespace Hiraeth.Bridge
             var inv = System.Globalization.CultureInfo.InvariantCulture;
             if (urp != null && BridgeArgs.Arg("-render-scale") is string rs && float.TryParse(rs, System.Globalization.NumberStyles.Float, inv, out float rsv)) urp.renderScale = rsv;
 #if UNITY_ANDROID && !UNITY_EDITOR
-            // (the handheld at Handheld draws at 0.75 of its screen, as the web's Handheld preset holds it on the Retroid; the
-            // GPU was the frame there: 34-55 ms at 1, 23-25 at 0.65 with the lean surfaces); a larger screen fewer of its own,
+            // (the handheld at Handheld draws at 0.67 of its screen, taken to it by FSR 1 (issue #392; 0.75 and bilinear before);
+            // the GPU was the frame there: 34-55 ms at 1, 23-25 at 0.65 with the lean surfaces); a larger screen fewer of its own,
             // 960 x 540 at most (the AYN Thor's 1080p at 0.5, issue #395: HandheldScale)
             else if (urp != null) urp.renderScale = BridgeArgs.Quality == "handheld" ? HandheldScale(Screen.width, Screen.height) : 1f;
 #endif
@@ -410,7 +410,13 @@ namespace Hiraeth.Bridge
             // ignores while the camera has no post-processing (ours has none: bilinear whatever it says).
             // -ink-full: the G-buffer, its light and the glow at the render scale, the ink composite, AA and the rest at the
             // screen's (issue #392's placement (a); -ink-weight N its lines' weight in screen pixels, 1/scale by default))
-            if (urp != null) ApplyUpscale(urp, BridgeArgs.Arg("-upscale"), BridgeArgs.Arg("-sharpness"), BridgeArgs.Flag("-ink-full"), BridgeArgs.Arg("-ink-weight"));
+            // (Android's Handheld: FSR 1 by default on a screen up to the Retroid's, its RCAS at 0.6 (HandheldUpscale); -upscale
+            // off gives URP's bilinear blit back, -sharpness another RCAS)
+            string upAsked = BridgeArgs.Arg("-upscale"), sharpAsked = BridgeArgs.Arg("-sharpness");
+#if UNITY_ANDROID && !UNITY_EDITOR
+            if (upAsked == null && BridgeArgs.Quality == "handheld" && HandheldUpscale(Screen.width, Screen.height) is string hu) { upAsked = hu; sharpAsked ??= HandheldSharpness; }
+#endif
+            if (urp != null) ApplyUpscale(urp, upAsked, sharpAsked, BridgeArgs.Flag("-ink-full"), BridgeArgs.Arg("-ink-weight"));
             // (Screen.SetResolution takes effect at the end of the frame: until then Screen.width is the last launch's, so the log
             // says the size asked for)
             string asked = null;
@@ -730,8 +736,8 @@ namespace Hiraeth.Bridge
         /// Xbox's 4K swap chain (Uhd.On), from 2/3 (1440p) to 1 (-no-dyn-res keeps the scale where it starts).
         /// </summary>
         /// <summary>
-        /// The render scale of Handheld on Android, by the screen's size (issue #395): 0.75 on a screen up to the Retroid's
-        /// 1280 × 960 (960 × 720 drawn); on a larger one, as many pixels as 960 × 540 at most (the AYN Thor's 1920 × 1080 at
+        /// The render scale of Handheld on Android, by the screen's size (issue #395): 0.67 on a screen up to the Retroid's
+        /// 1280 × 960 (857 × 643 drawn, FSR 1 to the screen: HandheldUpscale, issue #392; 0.75 and bilinear before); on a larger one, as many pixels as 960 × 540 at most (the AYN Thor's 1920 × 1080 at
         /// 0.5: an exact half, which the upscale likes). The Thor at 0.75 drew 1440 × 810, 1.7 times the Retroid's
         /// pixels on the same GPU (the Adreno 740, here at 680 MHz at most): 39-47 fps in the open views. The GPU's fixed
         /// ~14 ms leaves little to win below 0.5 (docs/systems/performance.md, "Unity on the AYN Thor").
@@ -740,8 +746,18 @@ namespace Hiraeth.Bridge
         {
             const float retroid = 1280f * 960f, budget = 960f * 540f;
             float px = Mathf.Max(1f, (float)w * h);
-            return px <= retroid ? 0.75f : Mathf.Min(0.75f, Mathf.Sqrt(budget / px));
+            return px <= retroid ? 0.67f : Mathf.Min(0.67f, Mathf.Sqrt(budget / px));
         }
+        /// <summary>
+        /// Handheld's upscaler on Android when -upscale is not given (issue #392): FSR 1 on a screen up to the Retroid's
+        /// (0.67 → 1280 × 960: 0.6-0.7 ms of GPU, and every world's worst view 1-5 fps above 0.75 with bilinear); none on a
+        /// larger one (the AYN Thor's 2× to 1080p cost ~1 ms and up to 4 fps in the views under 60, so it keeps the bilinear
+        /// blit). docs/systems/performance.md, "Unity on the Retroid, round 8".
+        /// </summary>
+        public static string HandheldUpscale(int w, int h) => (float)w * h <= 1280f * 960f ? "fsr" : null;
+        /// <summary>RCAS's sharpness for Handheld's FSR (issue #392): 0.6, not URP's 0.92, which made the paper's specks in
+        /// flat skies dark dots; the ink lines are as crisp at 0.6.</summary>
+        public const string HandheldSharpness = "0.6";
         static bool dynOn; static float dynMin = 0.75f;   // (set by Experiments, once the screen is chosen)
         static void DynamicResolutionSettings()
         {

@@ -1,5 +1,5 @@
 // The Unity build's render scale on Android's handhelds (issue #395; docs/systems/performance.md, "Unity on the AYN
-// Thor"): Handheld draws 0.75 of a screen up to the Retroid's 1280 × 960, and at most 960 × 540's pixels on a larger one
+// Thor"): Handheld draws 0.67 of a screen up to (0.75 before issue #392's FSR) the Retroid's 1280 × 960, and at most 960 × 540's pixels on a larger one
 // (the Thor's 1080p at 0.5), instead of 0.75 of every screen.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -18,10 +18,10 @@ function handheldScale() {
   return new Function('Mathf', 'w', 'h', body).bind(null, { Max: Math.max, Min: Math.min, Sqrt: Math.sqrt });
 }
 
-test('Handheld keeps 0.75 on the Retroid and smaller screens, and draws the Thor\'s 1080p at half', () => {
+test('Handheld draws 0.67 on the Retroid and smaller screens, and draws the Thor\'s 1080p at half', () => {
   const s = handheldScale();
-  assert.equal(s(1280, 960), 0.75, 'the Retroid Pocket Nova');
-  assert.equal(s(1280, 800), 0.75, 'a 1280 × 800 handheld');
+  assert.equal(s(1280, 960), 0.67, 'the Retroid Pocket Nova');
+  assert.equal(s(1280, 800), 0.67, 'a 1280 × 800 handheld');
   assert.ok(Math.abs(s(1920, 1080) - 0.5) < 1e-6, 'the AYN Thor: 960 × 540');
   assert.ok(Math.abs(s(1080, 1920) - 0.5) < 1e-6, 'its portrait size alike');
   const q = s(2560, 1440);

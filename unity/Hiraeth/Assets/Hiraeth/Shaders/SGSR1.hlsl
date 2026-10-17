@@ -52,7 +52,11 @@
 * If set, will use edge direction to improve visual quality
 * Expect a minimal cost increase
 */
-// #define UseEdgeDirection
+// (Hiraeth, issue #392: on. Without it the one-texel ink lines come out stippled and stair-stepped along diagonals, the
+// same on the device and in a line-for-line CPU run of this file: the clamp of twice the filtered luma to the nearest
+// four texels snaps a thin dark line to them one output pixel at a time. With the edge's direction the kernel stretches
+// along the line and the lines stay whole.)
+#define UseEdgeDirection
 
 #define EdgeThreshold 8.0/255.0
 
