@@ -20,6 +20,7 @@
 //   wireTrails({ scene, player, physics, tool })           the hover vehicles' trails
 //   wireOpenings({ scene }), wireEdge({ wind, … })         the walls' openings for their cracks, the ink at the world's edge
 //   wireSky({ level, U, onPreset })                        the style preset, the planets, a level's zones
+//   wirePotion({ game, toast }), wireNudges({ … })         the potion's glow and lesson, the world's nudges
 //
 // tests/game-host.test.js holds each group to both hosts; scripts/bridge-gaps.mjs reports a group main.js calls and
 // engine/game.js doesn't as a host gap (engine/bridge-gaps.js `shared:`).
@@ -40,6 +41,7 @@ import { Trail } from '../trail.js';
 import { wallOpenings } from '../wall-openings.js';
 import { EdgeInk } from '../edge.js';
 import { PRESETS } from '../post.js';
+import { t as tr } from '../i18n.js';
 import * as THREE from 'three';
 import { gadgetFoundLine } from '../gadgets/index.js';
 import { syncUpgrades } from '../trials/upgrades.js';
@@ -408,6 +410,49 @@ export function wireSky({ level, U, onPreset = () => {} }) {
       if (zone.planets || last?.planets) setPlanets(zone.planets ?? level.sky?.planets ?? []);
       if (zone.hour !== undefined && last) sky.hour = zone.hour;
       at.zone = zone;
+    },
+  };
+}
+
+// ------------------------------------------------------------------ the potion's glow and lesson, the world's nudges
+const _potP = new THREE.Vector3(), _potV = new THREE.Vector3();
+/**
+ * The potion (src/player.js drinkPotion): `glow(player, tool, got)` as the hearts come back, a warm glow rising round
+ * him (the tool's glow particles); `hint(player)` once per save, the first time a hurt leaves him short: how to drink
+ * (a new verb with nothing on the screen to find it by: taught, hints subtle or full).
+ */
+export function wirePotion({ game, toast }) {
+  return {
+    glow(player, tool, got) {
+      if (!(got > 0) || !player.object?.visible) return;
+      const U = player.frame.up;
+      for (let i = 0; i < 26; i++) tool?.glow?.add({ pos: _potP.copy(player.pos).addScaledVector(U, 0.3 + Math.random() * 1.2).add(_potV.randomDirection().multiplyScalar(0.45)), vel: _potV.copy(U).multiplyScalar(0.8 + Math.random() * 1.4), drag: 1.5, size: 0.05 + Math.random() * 0.04, life: 0.7 + Math.random() * 0.5, color: i % 3 ? '#e8643c' : '#f6c84e', grow: true });
+    },
+    hint(player) {
+      if (game.flag('hint.potion') || player.hearts > player.maxHearts - 1 || player.dead || !hintsFor('teach')) return;
+      game.set('hint.potion', true);
+      setTimeout(() => toast(keyText(tr('potion.hint'), { teach: true })), 900);
+    },
+  };
+}
+/**
+ * A world that wants to show you the way at once (the City-Shaft's jets, just found: up through the ceiling) says so
+ * with game.emit('scout:ping'): the scout pings, never over a scene or a conversation; a nudge (`why`) only at hints
+ * that nudge and not over another notice (issue #78); one that `wait`s (the way on from a place reached, issue #349)
+ * comes once the notices and the talk are done, within 30 s. `quiet()`: a scene playing or a conversation open;
+ * `noticeBusy()`: a notice up or waiting. → frame(busy) each frame (null without a scout).
+ */
+export function wireNudges({ game, scout, quiet, noticeBusy }) {
+  if (!scout) return null;
+  const later = { until: 0 };
+  game.on('scout:ping', (e) => { if (e?.wait && hintsFor('nudge')) later.until = performance.now() + 30000; });   // (kept until it is shown)
+  game.on('scout:ping', (e) => { if (e?.why && (!hintsFor('nudge') || noticeBusy())) return; if (!quiet()) { scout.ping(); later.until = 0; } });
+  return {
+    later,
+    frame(busy) {
+      if (!later.until) return;
+      if (performance.now() > later.until) { later.until = 0; return; }
+      if (!quiet() && !noticeBusy() && !busy) { later.until = 0; scout.ping(); }
     },
   };
 }

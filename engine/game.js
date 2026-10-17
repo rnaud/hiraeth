@@ -154,7 +154,7 @@ import { gatherPoints, questList, applyQuestJump, landingSpot, godLanding } from
 import { GAMES } from '../src/minigames/index.js';
 import { DEBUG_SLOT } from '../src/save-slots.js';
 import { wallOpenings } from '../src/wall-openings.js';
-import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip, wireCompanion, wireCamera, wireHero, heroCutFrame, cameraFollow, wireBenches, wireTrails, wireOpenings, wireEdge, wireSky } from '../src/host/game-host.js';
+import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip, wireCompanion, wireCamera, wireHero, heroCutFrame, cameraFollow, wireBenches, wireTrails, wireOpenings, wireEdge, wireSky, wirePotion, wireNudges } from '../src/host/game-host.js';
 
 export { page };
 export { readHref } from './trials.js';   // (the tests: a game page's address)
@@ -396,6 +396,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   stamp('ship');
   // the bird's promise and the hoverbike in the worlds after the desert (src/host/game-host.js wireMount, as the page)
   const { bikeHere } = wireMount({ levelId, level, flag: (k) => gameState.flag(k) });
+  // the potion's glow as the hearts come back, its lesson the first time a hurt leaves you short, as the page
+  // (src/host/game-host.js wirePotion: neither in the engines before)
+  const potion = wirePotion({ game: gameState, toast: (t) => toast(t) });
   const player = new Player(physics, {
     // (calling the mount: the bird with the rider's call on the flute, the bike from your pack, its tank's rings blinking;
     // a taxi, a whistle: main.js onWhistle)
@@ -405,8 +408,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     gravityAt: level.gravityAt, unsafe: level.unsafe, dynamic: level.dynamic, water: waters,
     // (the pad shakes as on the web, main.js's: a hit by the hearts it cost, the potion, a hard landing or a knockdown;
     // src/rumble.js, nothing without a pad that can, issue #346)
-    onHurt: (h, why) => { if (why !== 'fall') rumblePlay('hurt', { h }); sound?.hurt?.(h, why); hpHurt = 3; if (why === 'foe') kick(0.45 + Math.min(1, h / 1.5) * 0.5); },
-    onDrink: () => { sound?.potion?.('heal'); rumblePlay('potion'); },   // (the hearts coming back heard, as main.js: issue #379)
+    onHurt: (h, why) => { if (why !== 'fall') rumblePlay('hurt', { h }); sound?.hurt?.(h, why); hpHurt = 3; if (why === 'foe') kick(0.45 + Math.min(1, h / 1.5) * 0.5); potion.hint(player); },
+    onDrink: (got) => { sound?.potion?.('heal'); rumblePlay('potion'); potion.glow(player, tool, got); },   // (the hearts coming back heard, as main.js: issue #379)
     onKnockdown: (dead, why) => { hpHurt = 3; rumblePlay(why === 'fall' && !dead ? 'land' : 'knockdown', { dead, speed: player?.lastLanding }); },
     onKnockout: (why) => combat?.knockout(why),
   });
@@ -674,6 +677,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     usable: () => !(shipOn && (ship.inside || ship.playing)) && !trials?.running && gameState.flag('prologue.done') && !!scout?.getTarget?.() }) : null;
   const firstSteps = help && levelId === 'desert' && !gameState.flag('item.backpack') ? new FirstSteps(gameState) : null;
   const firstStepsAt = new THREE.Vector3(NaN, 0, 0);
+  // a world's own ping (the City-Shaft's jets: the way up), a nudge, one that waits for the notices and the talk, as the
+  // page (src/host/game-host.js wireNudges: the engines heard no 'scout:ping' before)
+  const nudges = optional('the nudges', () => wireNudges({ game: gameState, scout, quiet: () => !!ship?.playing || !!story?.dialogue?.open, noticeBusy }));
   stamp('life');
   stamp('flora');
 
@@ -1666,6 +1672,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         gadgets?.update(pdt, gadgetsPaused);   // (after the tool: an aiming gadget's camera and pose win)
         scout?.update(dt, busy || !!pinned);
         if (plumb && !pinned) updatePlumb(dt, busy);
+        if (!pinned) nudges?.frame(busy);
         for (const f of flocks) f.update(dt, simT, player.pos, camera.position);
         motes?.update(dt, simT, camera.position);
         houseAir?.update(dt, simT, camera, player.pos);

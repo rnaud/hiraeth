@@ -143,7 +143,7 @@ import { queueHost, takeHosts } from './minigames/kit/hosts.js';
 import { MinigameRunner } from './minigames/kit/runner.js';
 import { levelMetaFor } from './minigames/kit/world.js';
 import { lendTool } from './minigames/kit/onfoot.js';
-import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip, wireCompanion, wireCamera, wireHero, heroCutFrame, cameraFollow, wireBenches, wireTrails, wireOpenings, wireEdge, wireSky } from './host/game-host.js';
+import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip, wireCompanion, wireCamera, wireHero, heroCutFrame, cameraFollow, wireBenches, wireTrails, wireOpenings, wireEdge, wireSky, wirePotion, wireNudges } from './host/game-host.js';
 import { arcadeLinks } from './minigames/kit/arcade.js';
 import { ambushDue, ambushHref, ambushKey, transitLinks } from './ambush.js';
 import { talkAllowed } from './ship/landing.js';
@@ -389,6 +389,9 @@ await stage('waking the people…');
 // the bird's promise, the hoverbike from your pack (src/host/game-host.js wireMount, the engines' too)
 setStep('player');
 const { bikeHere } = wireMount({ levelId, level, flag: (k) => game.flag(k) });
+// the potion's glow as the hearts come back, and its lesson the first time a hurt leaves you short (src/host/game-host.js
+// wirePotion, the engines' too)
+const potion = wirePotion({ game, toast: (t) => showToast(t) });
 const player = new Player(physics, {
   mount: level.mount, mountAt: level.mountAt, jetpack: level.features.jetpack, climb: level.features.climb ?? true,
   killY: level.killY, limit: level.limit ?? 1900, edgeHint: level.edgeHint ?? EDGE_HINTS[levelId] ?? EDGE_HINTS.default, spawn: level.spawn, spawnHeading: level.spawnHeading,
@@ -396,8 +399,8 @@ const player = new Player(physics, {
   // a hurt: a thud; knocked over (a hard landing: the ragdoll, src/ragdoll.js): a heavier one;
   // knocked out: the screen dims and asks to restart (updateRestart below)
   // (k: hearts, in quarters: a quarter is a tap, a heart and a half and more the heaviest)
-  onHurt: (h, why) => { const k = Math.min(1, h / 1.5); shipSfx.rumble(sound, 0.35 + k * 0.4, 0.25 + k * 0.5); sound.hurt(h, why); hpShown = 3; if (why === 'foe') kick(0.45 + k * 0.5); potionHint(); if (why !== 'fall') rumblePlay('hurt', { h }); },   // (a fall rumbles as its landing: onKnockdown)
-  onDrink: (got) => { sound.potion('heal'); hpShown = 3; potionGlow(got); rumblePlay('potion'); },
+  onHurt: (h, why) => { const k = Math.min(1, h / 1.5); shipSfx.rumble(sound, 0.35 + k * 0.4, 0.25 + k * 0.5); sound.hurt(h, why); hpShown = 3; if (why === 'foe') kick(0.45 + k * 0.5); potion.hint(player); if (why !== 'fall') rumblePlay('hurt', { h }); },   // (a fall rumbles as its landing: onKnockdown)
+  onDrink: (got) => { sound.potion('heal'); hpShown = 3; potion.glow(player, tool, got); rumblePlay('potion'); },
   onKnockdown: (dead, why) => { shipSfx.rumble(sound, dead ? 0.95 : 0.6, dead ? 0.9 : 0.45); hpShown = 3; rumblePlay(why === 'fall' && !dead ? 'land' : 'knockdown', { dead, speed: player?.lastLanding }); },
   onKnockout: (why) => { knockedOut = why; },
   // calling the mount or a taxi: the bird with the rider's call on the flute; the hoverbike from your pack (its socket sends
@@ -432,20 +435,6 @@ function drinkPotion() {
   sound.potion('open'); hpShown = 3;
   hpEl?.classList.remove('drink'); void hpEl?.offsetWidth; hpEl?.classList.add('drink');
   return true;
-}
-/** The hearts coming back: a warm glow rising round the traveller. */
-function potionGlow(got) {
-  if (!(got > 0) || !player.object?.visible) return;
-  const U = player.frame.up;
-  for (let i = 0; i < 26; i++) tool.glow?.add({ pos: _potP.copy(player.pos).addScaledVector(U, 0.3 + Math.random() * 1.2).add(_potV.randomDirection().multiplyScalar(0.45)), vel: _potV.copy(U).multiplyScalar(0.8 + Math.random() * 1.4), drag: 1.5, size: 0.05 + Math.random() * 0.04, life: 0.7 + Math.random() * 0.5, color: i % 3 ? '#e8643c' : '#f6c84e', grow: true });
-}
-const _potP = new THREE.Vector3(), _potV = new THREE.Vector3();
-/** Once per save, the first time a hurt leaves you short: how to drink. */
-function potionHint() {
-  // (a genuinely new verb with nothing on the screen to find it by: taught once, hints subtle or full: src/hint-level.js)
-  if (game.flag('hint.potion') || player.hearts > player.maxHearts - 1 || player.dead || !hintsFor('teach')) return;
-  game.set('hint.potion', true);
-  setTimeout(() => showToast(keyText(tr('potion.hint'), { teach: true })), 900);
 }
 window.addEventListener('keydown', (e) => { if (e.code === 'KeyC' && !e.repeat && !e.ctrlKey && !e.metaKey) drinkPotion(); });   // (KEYS.potion: src/remap.js sends a moved key on as C)
 hpPotion?.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); drinkPotion(); });   // (the touch screen's flask)
@@ -857,14 +846,7 @@ const scoutHint = installScoutHint({ game, show: () => { scoutTeach.left = SCOUT
   usable: () => !ship.inside && !ship.playing && !minigame && !minigameDef && game.flag('prologue.done') && !!scout.getTarget?.() });
 // (a nudge that `wait`s, the way on from a place reached (Vael's riders' gate, issue #349), comes once the notices
 //  and the talk are done, within 30 s, instead of not at all)
-const pingLater = { until: 0 };
-game.on('scout:ping', (e) => { if (e?.wait && hintsFor('nudge')) pingLater.until = performance.now() + 30000; });   // (kept until it is shown)
-game.on('scout:ping', (e) => { if (e?.why && (!hintsFor('nudge') || ship.cinema.noticeBusy())) return; if (!ship.playing && !storyRt.dialogue.open) { scout.ping(); pingLater.until = 0; } });   // (a nudge is the last of the notices: not over another, issue #78)
-function pingWhenFree() {
-  if (!pingLater.until) return;
-  if (performance.now() > pingLater.until) { pingLater.until = 0; return; }
-  if (!ship.playing && !storyRt.dialogue.open && !ship.cinema.noticeBusy() && !busy()) { pingLater.until = 0; scout.ping(); }
-}
+const nudges = wireNudges({ game, scout, quiet: () => ship.playing || storyRt.dialogue.open, noticeBusy: () => ship.cinema.noticeBusy() });   // (src/host/game-host.js, the engines' too)
 // ---- item boxes (src/boxes/): they notice you; E opens one (a Zelda-style scene on the ship's cinematic camera)
 const boxes = createBoxes({ levelId, scene, physics, level, player, sound, quests: storyRt.quests, toast: showToast,
   anchor: () => ship.arrivalSpot(),
@@ -2376,7 +2358,7 @@ function frame(ts) {
   wind.update(dt, player.pos, camera, terrain, pxScale, world.wind);
   hoverTrails?.update(dt);
   updateHud();
-  pingWhenFree();
+  nudges.frame(busy());   // (a nudge that waited for the notices and the talk: wireNudges)
   dangers.update(dt, player, { quiet: busy() || ship.playing, say: (t) => showToast(t, TEACH) });   // fire and spines (src/hazards.js)
   updateHealth(dt);
   updateKeys();

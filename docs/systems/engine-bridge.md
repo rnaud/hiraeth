@@ -1948,6 +1948,10 @@ Round 2 (the mechanical groups):
   (planetsInto), and a level's zones each frame: the Hangar's styles, the Lab's biome rooms with their own look,
   planets and hour, never carried into the next. The engines kept the level's first preset and planets (fullLook now
   sends the zone's).
+- `wirePotion`, `wireNudges`: the potion's warm glow as the hearts come back and its lesson once a hurt leaves him
+  short; a world's own ping (`game.emit('scout:ping')`: the City-Shaft's jets, the way up), a nudge at hints that
+  nudge and not over a notice, one that waits for the notices and the talk (issue #349). The engines heard no
+  'scout:ping'.
 
 Checked in Unity (the editor's batch run, `-fresh -no-hud`, against main's bundle for the before and the web's
 pictures of the same views): the kit's colours at the desert's ramp foot (`-set-flags` now takes `key=value`:

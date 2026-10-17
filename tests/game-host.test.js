@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { readFileSync } from 'node:fs';
-import { wireKit, wireDangers, wirePeople, wireChemistry, wireVehicles, wireLessons, wireCompanion, wireCamera, heroCutFrame, cameraFollow, wireBenches, wireEdge, wireOpenings, wireSky } from '../src/host/game-host.js';
+import { wireKit, wireDangers, wirePeople, wireChemistry, wireVehicles, wireLessons, wireCompanion, wireCamera, heroCutFrame, cameraFollow, wireBenches, wireEdge, wireOpenings, wireSky, wirePotion, wireNudges } from '../src/host/game-host.js';
 import { ERRANDS } from '../src/levels/content.js';
 import { hazardCount } from '../src/hazards.js';
 import * as THREE from 'three';
@@ -16,6 +16,7 @@ import { tempPath } from '../scripts/temp-dirs.mjs';
 import { colourById } from '../src/kit-colours.js';
 import { portMaterial } from '../engine/unity/port-format.js';
 import { sharedUniforms } from '../src/materials.js';
+import { setHintLevel } from '../src/hint-level.js';
 
 const quiet = (f) => { const w = console.warn, i = console.info, l = console.log; console.warn = console.info = console.log = () => {}; try { return f(); } finally { console.warn = w; console.info = i; console.log = l; } };
 const state = (flags = {}) => ({ data: { flags }, flag: (k) => flags[k], set: (k, v) => { flags[k] = v; } });
@@ -215,9 +216,47 @@ test('the sky: the preset and the planets, a level\'s zones putting on their sty
   assert.ok(put.length >= 2);
 });
 
+test('the potion: its glow as the hearts come back, its lesson once when a hurt leaves him short', () => {
+  const flags = {}, game = { flag: (k) => flags[k], set: (k, v) => { flags[k] = v; } };
+  const p = wirePotion({ game, toast: () => {} });
+  const glows = [];
+  const player = { hearts: 1, maxHearts: 3, dead: false, pos: new THREE.Vector3(), frame: { up: new THREE.Vector3(0, 1, 0) }, object: { visible: true } };
+  p.glow(player, { glow: { add: (g) => glows.push(g) } }, 2);
+  assert.equal(glows.length, 26, 'a warm glow rising');
+  p.glow(player, { glow: { add: (g) => glows.push(g) } }, 0);
+  assert.equal(glows.length, 26, 'nothing back: no glow');
+  p.hint(player);
+  assert.equal(flags['hint.potion'], true, 'taught once');
+});
+
+test('the nudges: a world\'s ping, not over a scene; one that waits comes once the notices and the talk are done', () => {
+  const on = {};
+  const game = { on: (ev, f) => (on[ev] ??= []).push(f) };
+  let pings = 0, quiet = true, busyN = false;
+  setHintLevel('full');   // (a nudge kept for later: hints that nudge)
+  const n = wireNudges({ game, scout: { ping: () => { pings++; } }, quiet: () => quiet, noticeBusy: () => busyN });
+  const emit = (e) => on['scout:ping'].forEach((f) => f(e));
+  emit({});
+  assert.equal(pings, 0, 'not over a scene or a talk');
+  quiet = false;
+  emit({});
+  assert.equal(pings, 1);
+  quiet = true;
+  emit({ wait: true });
+  n.frame(false);
+  assert.equal(pings, 1, 'waits');
+  quiet = false;
+  n.frame(true);
+  assert.equal(pings, 1, 'and while busy');
+  n.frame(false);
+  assert.equal(pings, 2, 'then comes');
+  assert.equal(wireNudges({ game, scout: null }), null);
+  setHintLevel('subtle');
+});
+
 test('both hosts call the same groups (src/host/game-host.js), and engine/game.js no longer arms the tool its own way', () => {
   const main = readFileSync('src/main.js', 'utf8'), engine = readFileSync('engine/game.js', 'utf8');
-  for (const g of ['wireKit', 'wireDangers', 'wirePeople', 'wireChemistry', 'wireMount', 'wireVehicles', 'wireLessons', 'wireShip', 'wireCamera', 'wireHero', 'heroCutFrame', 'cameraFollow', 'wireBenches', 'wireTrails', 'wireOpenings', 'wireEdge', 'wireSky']) {
+  for (const g of ['wireKit', 'wireDangers', 'wirePeople', 'wireChemistry', 'wireMount', 'wireVehicles', 'wireLessons', 'wireShip', 'wireCamera', 'wireHero', 'heroCutFrame', 'cameraFollow', 'wireBenches', 'wireTrails', 'wireOpenings', 'wireEdge', 'wireSky', 'wirePotion', 'wireNudges']) {
     assert.match(main, new RegExp(`\\b${g}\\(`), `main.js calls ${g}`);
     assert.match(engine, new RegExp(`\\b${g}\\(`), `engine/game.js calls ${g}`);
   }
