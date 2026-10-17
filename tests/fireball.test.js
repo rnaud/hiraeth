@@ -36,7 +36,7 @@ const run = (foes, max, until = () => false) => { for (let t = 0; t < max; t += 
 
 test('the ember wisp: a spirit of the roster, built, a flyer for the hook, out of reach; its moves told by the body', () => {
   const A = ARCHETYPES.wisp, D = FOES.wisp;
-  assert.equal(A.family, 'spirit'); assert.equal(A.status, 'built'); assert.equal(A.art, 'pending', 'a stand-in body until its sheet is picked');
+  assert.equal(A.family, 'spirit'); assert.equal(A.status, 'built'); assert.equal(A.art, 'sheet-1', 'drawn to its picked sheet (issue #440)');
   assert.equal(D.hook, 'flyer', 'the grappling hook pulls it down');
   assert.ok(D.hover >= 3 && D.hover <= 5, `it floats 3–5 m up (${D.hover})`);
   assert.ok(D.keep >= 5, 'it keeps its distance');
@@ -181,5 +181,24 @@ test('a shot douses a ball; one ball of its own in the air at a time', () => {
   b.target && allTargets().find((t) => t.kind === 'ball').onHit('shoot');
   assert.equal(b.why, 'douse');
   assert.equal(f.ballOut, null);
+  foes.dispose(); clearTargets();
+});
+
+test('its body (issue #440, its sheet): the petals open wide for the fireball; stunned low, nothing of it goes under the sand', () => {
+  const { foes, f } = fight();
+  const box = new THREE.Box3(), size = new THREE.Vector3();
+  const width = () => { f.model.group.updateMatrixWorld(true); box.setFromObject(f.model.group); box.getSize(size); return Math.max(size.x, size.z); };
+  foes.update(DT);
+  const rest = width();
+  const t = run(foes, 20, () => f.state === 'wind' && f.atk?.id === 'fireball' && f.k > 0.8);
+  assert.ok(t != null, 'it winds up a fireball');
+  const open = width();
+  assert.ok(open > rest * 1.6, `the petals opened like a flower (${rest.toFixed(2)} → ${open.toFixed(2)} m across)`);
+  // stunned (its own fire back at it): down low, its cup and drips over the ground
+  let lowest = Infinity;
+  f.stunned = 3; f.state = 'chase'; f.atk = null;
+  run(foes, 2.5, () => { f.stunned = Math.max(f.stunned, 1); f.model.group.updateMatrixWorld(true); box.setFromObject(f.model.group); lowest = Math.min(lowest, box.min.y - f.pos.y); return false; });
+  assert.ok(f.alt < 0.6, `it dropped low (${f.alt.toFixed(2)} m)`);
+  assert.ok(lowest > -0.02, `nothing of it under the sand (lowest ${lowest.toFixed(2)} m)`);
   foes.dispose(); clearTargets();
 });

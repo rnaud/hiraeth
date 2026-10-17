@@ -277,3 +277,27 @@ Re-run on this branch (12 October): `arena.mjs --watch 24 --version 1.63` (every
 
 Left: the lock camera against a wall (#256, recommendation 1) and desert-open (#259) are another branch's; playing it
 with a pad (recommendation 7).
+
+## v1.84 follow-up: the ember wisp on its sheet (#440)
+
+The ember wisp (#398, archetype 22, added after this review) now wears its picked sheet: a bud of four ink petals
+round the coal (src/enemies/plans/ember.js). Its tuning is unchanged; only the body that tells its moves is new.
+`arena.mjs --kinds wisp --watch 24 --version 1.84` (the Arena, a still player, Normal):
+
+| kind | read | counter | space | fair | identity | combines | **total** | wind seen (s) | attacks/min | health/min | ttk combo | ttk charge |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| ember wisp (script) | 5 | 2 | 3 | 5 | 4 | 4 | **3.8** | 1.05 | 12.5 | 2.09 | 1.73 | 2.9 |
+| ember wisp (by eye) | 5 | 4 | 4 | 5 | 5 | 4 | **4.5** | | | | | |
+
+- **Read 5:** the fireball's wind-up is now the biggest change of shape in the roster's flyers: the closed bud
+  (1.1 m across) opens into a flower 2.5 m across, the front petals folding down under the coal so the coal shows
+  from below, where the traveller stands; the coal rises, swells and whitens, the body tilts back, the kindle cue
+  rises. The flare reads the other way: the bud clenches shut and shakes, the coal glowing through the seams.
+- **Counter 4 (the script's 2 counts only gun modes):** the return cut, the perfect parry, the hook (a flyer), a shot
+  douses the ball, a guard puts it out, a late step aside.
+- **Space 4:** it keeps 7 m off and 4.2 m up; stunned it comes down with its middle 0.9 m over the sand (`EMBER.sit`),
+  its drips splayed on it, the petals hanging half open, in reach of every cut.
+- **Identity 5:** a false flower of light, unlike any other silhouette in the roster (the jelly's dome, the moth's
+  kite wings, the drone's ring).
+- Unity: `-fight wisp` (the Arena, batch mode) plays the same exchange: the flower opens, the ball goes out, comes
+  back, the wisp drops stunned.

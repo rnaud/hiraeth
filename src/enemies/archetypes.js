@@ -587,11 +587,11 @@ export const ARCHETYPES = {
   // ----------------------------------------------------------------------------- batch 6 (issue #398)
   // The ember wisp (docs/design/fireball-foe.md): the dark's poor copy of the singing light, a cold shell round a borrowed
   // coal, floating out of reach; it throws its fire at you, and a cut timed as the ball arrives sends it back (src/fireballs.js).
-  // Its body is a stand-in (art 'pending') until the author picks its sheet.
+  // Its body is its picked sheet-1 (issue #440): a bud of four ink petals round the coal, a ring of light, three drips.
   wisp: {
     name: 'ember wisp', family: 'spirit', plan: 'ember', planNo: 22, role: 'bombardier', tier: 2, ranged: true,
-    status: 'built', kind: 'wisp', was: [], sound: 'ember', drop: 4, art: 'pending',
-    manifestation: 'a borrowed fire: a shell of hardened ink cupped round a stolen coal, mimicking the singing light',
+    status: 'built', kind: 'wisp', was: [], sound: 'ember', drop: 4, art: 'sheet-1',
+    manifestation: 'a borrowed fire: petals of hardened ink folded round a stolen coal, a false flower of light mimicking the singing light',
     moves: ['fireball', 'flare'], answers: ['a cut timed as the fireball arrives sends it back (stunned, it drops: cut it)', 'a perfect parry sends it back too', 'the hook pulls it down', 'a shot douses a fireball'],
     idle: 'drifts over warm places, a lamp where no lamp should be; it turns to watch you go by',
     def: S({
@@ -600,13 +600,13 @@ export const ARCHETYPES = {
       tone: '#ff8a3e', takes: { shoot: 0, fire: 0 },
       calm: { mode: 'drift', provoke: 15 },
       attacks: [
-        // the shell's lids part, the coal swells and brightens (a crackling hum rising) and it rears back; then the ball
+        // the petals part, the coal swells and brightens (a crackling hum rising) and it rears back; then the ball
         // flies at you, slow, homing gently: Foes.throwBall (src/fireballs.js FIREBALL)
         { id: 'fireball', name: 'fireball', shape: 'ring', at: 'self', radius: 0.5, damage: 0, wind: 1.05, instant: true, ball: true, cue: 'kindle', min: 3.5, max: 14, weight: 3, recover: 1.0,
-          tell: 'its shell opens like a clam, the coal inside swelling white-hot, and it rears back with a rising crackle', counter: 'cut the ball as it reaches you: it flies back and stuns the wisp; a perfect parry does too; or step aside at the last moment' },
-        // under it: the shell clenches shut and glows through its seams; then a burst of heat round it
+          tell: 'its four petals open like a flower, the coal inside swelling white-hot, and it rears back with a rising crackle', counter: 'cut the ball as it reaches you: it flies back and stuns the wisp; a perfect parry does too; or step aside at the last moment' },
+        // under it: the petals clench shut and glow through their seams; then a burst of heat round it
         { id: 'flare', name: 'flare', shape: 'ring', at: 'self', radius: 3.2, damage: 0.5, knock: 4, wind: 1.0, strike: 0.25, contact: 0.4, max: 3.2, weight: 2,
-          tell: 'its shell clenches shut and the seams glow red', counter: 'step out from under it' },
+          tell: 'its petals clench shut and the seams glow red', counter: 'step out from under it' },
       ],
       recover: 1.2, cool: [1.6, 2.6], hit: 0.4,
     }),

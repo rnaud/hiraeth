@@ -937,11 +937,14 @@ The count is said every 5 ink.
 ## The ember wisp's fireball (issue #398: `src/fireballs.js`, `src/foes.js` Foes.throwBall …)
 
 The roster's 22nd archetype (`wisp`, a spirit, the bombardier; docs/design/fireball-foe.md, with its lore and the prompts
-for its sheet) floats out of the blade's reach, 4.2 m up (`hover`), and backs off within 7 m (`keep`). Its body is a
-stand-in (src/enemies/plans/ember.js, `art: 'pending'`) until the author picks a design: two lids of dark shell round
-a glowing coal.
+for its sheet) floats out of the blade's reach, 4.2 m up (`hover`), and backs off within 7 m (`keep`). Its body is its
+picked sheet-1 (src/enemies/plans/ember.js, `art: 'sheet-1'`, issue #440): four petals of glossy ink closed into a bud
+round a glowing coal, each hinged at the ring of light round its waist, a cup under the ring and three drips of ink, the
+petals, cup and drips one skinned mesh on their pivots (6 draws, the stand-in's clam 11). Its surface (surfaces.js):
+the petals' wet streaked gloss and a violet coming up from the cup, the coal mottled; the marsh wisp's lichen stars.
+Stunned low, its middle is held 0.9 m over the ground (`EMBER.sit`) and its drips splay on the sand.
 
-- **The throw** (`attack.ball`): the lids part, the coal swells and brightens, and the body rears back over 1.05 s, while
+- **The throw** (`attack.ball`): the petals open outward (the front pair furthest, down under the coal: `EMBER.open`), the coal rises, swells and brightens, and the body tilts back over 1.05 s, while
   the `kindle` cue (src/foe-voices.js CUES) rises over the usual warning. The wind-up ends instantly (`Foe.resolve`
   pushes `{ type: 'ball' }`) and `Foes.throwBall` sends a `Fireball` from the coal. Each wisp has one ball of its own in
   the air at a time (`attacksAt`: `ballOut`).
@@ -960,7 +963,7 @@ a glowing coal.
 - **Missed:** half a heart (an ordinary blow), with a flinch and a small shove. A **perfect parry** sends the ball back
   as a cut does (the guard is the existing one, `P.guard`). A plain guard puts it out with no harm. An evade's
   i-frames let it fly past (`pass`). A **shot** douses it in the air.
-- **Its other move:** the *flare*, a 3.2 m ring round it when you get under it (1.0 s wind-up, the lids clenched).
+- **Its other move:** the *flare*, a 3.2 m ring round it when you get under it (1.0 s wind-up, the petals clenched).
 - **With the kit:** lock-on works on it. The hook (#399) treats it as a `flyer` and pulls it down. Two wisps do not
   rally balls off each other: a returned ball goes only to its own thrower, which keeps the exchange readable.
 - **The engines:** the same JS. The ball is a plain mesh in the game's glowing ink (`makeMaterial`, as a thrown

@@ -197,10 +197,12 @@ export const SKINS = {
     saltharbour: { name: 'drowned sailor', palette: { body: '#4f7aa2', body2: '#6a92b6', joint: '#d8cfb8', thread: '#b89a6a', smoke: '#1e2a34', smoke2: '#3f5a6a', salt: '#eef0ea' }, props: ['rope'] },
   },
   wisp: {
-    // (a stand-in until its sheet is picked, docs/design/fireball-foe.md: an ink-dark shell round a coal, its fire the skin's)
-    moonfoundry: { name: 'cinder wisp', palette: { shell: '#2e2a30', shell2: '#4a4248', rim: '#9a7a48', core: '#ff8a3e', fire: '#ffd36a', eye: '#ffe2b0', smoke: '#1e1a20' }, props: ['seams'] },
-    perdide2: { name: 'marsh wisp', palette: { shell: '#24302c', shell2: '#36463e', rim: '#b8955a', core: '#b8e86a', fire: '#f2ffb0', eye: '#f2ffd0', smoke: '#1a2420' }, props: ['moss'] },
-    eclipse: { name: 'corona wisp', palette: { shell: '#15121c', shell2: '#2a2238', rim: '#d6c2ff', core: '#ffcf6a', fire: '#fff4d0', eye: '#d6c2ff', smoke: '#100c18' }, props: ['corona'] },
+    // sheet-1 (references/enemy-archetypes/wisp/sheet-1.jpg, issue #440) is the cinder wisp: glossy ink-black petals with
+    // deep violet shadows (shell2), thin gold edges (rim), a white-gold ring of light, an orange and yellow coal, lilac
+    // eyes. The marsh and corona wisps keep their own colours on its body (the marsh wisp's own sheet is in the lab).
+    moonfoundry: { name: 'cinder wisp', palette: { shell: '#1b1622', shell2: '#4a3568', rim: '#cdb27a', ring: '#fff1c4', core: '#ff8a3e', fire: '#ffd36a', eye: '#c7a6f2', smoke: '#1e1a20' }, props: [] },
+    perdide2: { name: 'marsh wisp', palette: { shell: '#1d2a25', shell2: '#3c5446', rim: '#b8955a', ring: '#eaf7b8', core: '#b8e86a', fire: '#f2ffb0', eye: '#e2ffc0', smoke: '#1a2420', lichen: '#8f9c62' }, props: ['moss'] },
+    eclipse: { name: 'corona wisp', palette: { shell: '#15121c', shell2: '#2e2444', rim: '#d6c2ff', ring: '#f4ecff', core: '#ffcf6a', fire: '#fff4d0', eye: '#d6c2ff', smoke: '#100c18' }, props: ['corona'] },
   },
 };
 

@@ -482,12 +482,17 @@ Object.assign(SURFACES, {
   },
   wisp: {
     '*': {
-      // (a stand-in until its sheet is picked: the shell's hardened ink cracked, the coal's light in its widest cracks;
-      // the coal itself hot at the heart)
-      shell: { cracks: { color: 'core', ink: 'shell*0.6', inkAmount: 0.4, scale: 0.22, width: 0.02, tone: 0.08, veins: 0.6, vein: 0.04, glow: 0.9, share: 0.45 }, gloss: { size: 0.03, sky: 0.4, amount: 0.5 } },
-      core: { glow: { color: 'fire', amount: 0.5, rim: 0.3, core: 2.2, pulse: 2.4, emit: 0.7 } },
+      // (sheet-1: the petals glossy ink, their shine broken in wet streaks, a deep violet coming up from the cup into
+      // their lower halves and the shadows; the coal mottled orange and yellow, hot at the heart)
+      petal: {
+        fade: { color: 'shell2', axis: 1, from: 0.1, to: -0.7, amount: 0.5 },
+        gloss: { size: 0.05, sky: 0.55, amount: 0.8, streaks: 5, streakWidth: 0.35 },
+      },
+      edge: { gloss: { size: 0.03, sky: 0.5, amount: 0.6 } },
+      core: { mottle: { color: 'fire', scale: 0.07, amount: 0.45, soft: 0.15, strength: 0.8 }, glow: { color: 'fire', amount: 0.5, rim: 0.3, core: 2.2, pulse: 2.4, emit: 0.7 } },
     },
-    perdide2: { shell: { mottle: { color: 'shell2', scale: 0.08, amount: 0.5, soft: 0.1, strength: 0.6 } } },
+    // (the marsh wisp: pale lichen stars on its dark green petals, as the stand-in's mottle was)
+    perdide2: { petal: { spots: { color: 'lichen', scale: 0.1, share: 0.7, size: 0.95, jitter: 0.8, star: 0.7, soft: 0.2, cluster: 0.35, clusterShare: 0.6 } } },
   },
 });
 

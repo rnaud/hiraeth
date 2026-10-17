@@ -38,7 +38,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 // the wind-ups each sheet draws (attack ids), and the yaw of each view (0: from the front; π/2: side, facing left)
 const WINDUPS = { crab: ['spin'], lizard: ['blare'], hound: ['pounce'], tripod: ['beam'], blot: ['lunge', 'spit'], worm: ['spit'], ray: ['skim'], moth: ['flash'], centipede: ['lunge'], jelly: ['ward'],
   toad: ['lob'], heron: ['spear'], skitter: ['rush'], rootknot: ['grip'], brute: ['slam'], drone: ['harpoon'], cart: ['pour'], bell: ['toll'],
-  shade: ['cut'], roller: ['bowl'], marionette: ['strings'] };
+  shade: ['cut'], roller: ['bowl'], marionette: ['strings'], wisp: ['fireball'] };
 // (the flyers are shown flying: 'walk' in the gallery is the creature moving)
 const MOVING = new Set(['ray', 'moth', 'jelly', 'drone']);
 // (from above for a flat flyer: its back is what the sheet draws and what you see of it)
@@ -49,7 +49,7 @@ const VIEWS = [['front', 0], ['side', Math.PI / 2], ['three-quarter', 0.75]];
 
 // (the sheets' skins: art { main, alt }; batch 2's art 'sheet-1': its own skin, the first listed, and sheet-2's from the skins' notes)
 const { SKINS } = await import('../../src/enemies/skins.js');
-const ALT = { worm: 'buried', ray: 'glassdunes', moth: 'antennas', centipede: 'fallenring', jelly: 'underwater' };
+const ALT = { worm: 'buried', ray: 'glassdunes', moth: 'antennas', centipede: 'fallenring', jelly: 'underwater', wisp: 'perdide2' };
 const artOf = (a) => { const A = ARCHETYPES[a]; if (A?.art?.main) return A.art; if (A?.art === 'sheet-1') return { main: Object.keys(SKINS[a])[0], alt: ALT[a] }; return null; };
 const list = (picks.length ? picks : Object.keys(WINDUPS)).filter((a) => artOf(a));
 if (!list.length) throw new Error('no archetype with its sheets set (art: { main, alt } or sheet-1)');
@@ -82,7 +82,7 @@ try {
     const A = ARCHETYPES[a];
     const art = artOf(a);
     for (const [n, world] of [[1, art.main], [2, art.alt]].filter(([n, w]) => w && SHEETS.includes(n))) {
-      const job = { id: `${A.kind}@${world}`, sheet: `/references/enemy-archetypes/${a}/sheet-${n}.jpg`, views: VIEWS, windups: WINDUPS[a] ?? [], separate: SEPARATE, size: [SW, SH], zoom: ZOOM, idle: MOVING.has(a) ? 'walk' : 'idle', pitch: PITCH[a] ?? 0.12, at: AT[a] ?? 0.8 };
+      const job = { id: `${A.kind}@${world}`, sheet: `/references/enemy-archetypes/${a}/sheet-${n}.jpg`, views: VIEWS, windups: WINDUPS[a] ?? [], separate: SEPARATE, size: [SW, SH], zoom: ZOOM, idle: MOVING.has(a) ? 'walk' : 'idle', pitch: PITCH[a] ?? 0.12, windYaw: Number(arg('windup-yaw', 0.75)), at: AT[a] ?? 0.8 };
       const url = await ev(`(async () => {
         const J = ${JSON.stringify(job)}, E = window.enemyViewer, V = E.viewer, W = 1280;
         const img = new Image(); img.src = J.sheet; await img.decode();
@@ -98,7 +98,7 @@ try {
         const f = () => V.models.get(J.id)?.f ?? V.model(J.id).f;
         const moves = f().def.attacks.filter((x) => !x.chain);
         const poses = [...J.views.map(([label, yaw]) => ({ label, yaw, mode: J.idle })),
-          ...J.windups.map((w) => { const i = moves.findIndex((m) => m.id === w); return { label: (moves[i].name ?? w) + ' wind-up', yaw: 0.75, mode: 'attack' + i, wind: moves[i].wind }; })];
+          ...J.windups.map((w) => { const i = moves.findIndex((m) => m.id === w); return { label: (moves[i].name ?? w) + ' wind-up', yaw: J.windYaw, mode: 'attack' + i, wind: moves[i].wind }; })];
         const pw = J.separate ? J.size[0] : Math.floor(W / poses.length), ph = J.separate ? J.size[1] : 420, shots = [];
         for (const p of poses) {
           const m = f(); m.provoked = true; m.watcher = true;   // (standing: a hound not lying as its shadow, a blot not pooled)
