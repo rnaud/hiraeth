@@ -112,8 +112,7 @@ import { PixelCanvas } from './raster.js';
 import { GIVERS_NOTE } from '../src/story/signature.js';
 import { rumblePlay } from '../src/rumble.js';
 import { items as gear, ITEMS } from '../src/items.js';
-import { birdAnswers, promisedBird } from '../src/bird.js';
-import { bikeComes, parkedBike, callKind } from '../src/bike-worlds.js';
+import { callKind } from '../src/bike-worlds.js';
 import { RIDER_CALL, RIDER_CALL_BEAT } from '../src/story/arzach-data.js';
 import { chargeState } from '../src/story/charge.js';
 import { ORDER, TITLES, partsOf } from '../src/levels/names.js';
@@ -156,7 +155,7 @@ import { DevMenu } from '../src/dev-menu.js';
 import { gatherPoints, questList, applyQuestJump, landingSpot, godLanding } from '../src/world-debug.js';
 import { GAMES } from '../src/minigames/index.js';
 import { DEBUG_SLOT } from '../src/save-slots.js';
-import { wireKit, wireDangers, wirePeople, wireChemistry } from '../src/host/game-host.js';
+import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles } from '../src/host/game-host.js';
 
 export { page };
 export { readHref } from './trials.js';   // (the tests: a game page's address)
@@ -390,12 +389,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const playHomecoming = !!(menus && levelId === HOME_ID && via === 'ship' && !flags && !view && !gameDef) && homecomingKind((k) => gameState.flag(k));
   const ship = quiet(() => new Ship({ scene, physics, level, levelId, content, prologue: playPrologue || !!playHomecoming }));
   stamp('ship');
-  // the bird's promise and the hoverbike in the worlds after the desert, as main.js: under open sky, in a world with no
-  // mount of its own, the whistle calls Vael's bird down (src/bird.js); the bike, found in the desert, stands by the ramp
-  // in the worlds made for riding, called from your pack (src/bike-worlds.js)
-  const flagOf = (k) => gameState.flag(k);
-  if (birdAnswers(levelId, level, flagOf)) { level.mount = (p) => promisedBird(p, level.spawn); level.mountName = 'bird'; }
-  if (!level.mount && bikeComes(levelId, level, flagOf)) { level.mount = (p) => parkedBike(p, level.spawn, level.spawnHeading ?? 0); level.mountName = 'hoverbike'; }
+  // the bird's promise and the hoverbike in the worlds after the desert (src/host/game-host.js wireMount, as the page)
+  const { bikeHere } = wireMount({ levelId, level, flag: (k) => gameState.flag(k) });
   const player = new Player(physics, {
     // (calling the mount: the bird with the rider's call on the flute, the bike from your pack, its tank's rings blinking;
     // a taxi, a whistle: main.js onWhistle)
@@ -410,9 +405,6 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     onKnockdown: (dead, why) => { hpHurt = 3; rumblePlay(why === 'fall' && !dead ? 'land' : 'knockdown', { dead, speed: player?.lastLanding }); },
     onKnockout: (why) => combat?.knockout(why),
   });
-  // (no call from a room off the map, nor from inside the ship: main.js canSummon)
-  const offMapRooms = (level.portals ?? []).filter((p) => p.to && !p.toUp && p.to.y - (level.ground?.heightAt?.(p.to.x, p.to.z) ?? p.to.y) > 200).map((p) => p.to);
-  player.opts.canSummon = () => !offMapRooms.some((r) => r.distanceToSquared(player.pos) < 90 * 90) && !ship?.inside;
   const lib = await animLib;
   const gestureClips = await gesturesP;
   if (lib && gestureClips) { attachMotion(lib, gestureClips); stamp('gestures'); }
@@ -445,6 +437,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   if (player.mount) scene.add(player.mount.object);
   // the world's vehicles (the self-driving cabs: src/taxi.js), as main.js gives them to the traveller
   player.vehicles.push(...(level.vehicles ?? []));
+  // the bike by the ramp where the bird is the mount (Viridel, #376: the engines had none), the hover vehicles skimming
+  // water (they sank in the engines), no calls into the rooms off the map nor from inside the ship (wireVehicles)
+  wireVehicles({ bikeHere, player, physics, level, scene, waters, ship });
   // every fire drawn in the world burns while you stand in it, and a world's deadly void under its kill height, as the
   // page (src/host/game-host.js wireDangers: the engines registered no fire's and drew no void before, #427); the void's
   // wash hangs in level.veils, drawn by the port's Hiraeth/PitVoid

@@ -1913,6 +1913,11 @@ the engines' build of the game to see it there. Moved so far:
 - `wireChemistry`: fire spreads on the wind, creatures flee it, foes catch it (src/chemistry.js), on the traveller's
   wind; the engines' brambles burnt alone. (With it, engine/game.js's wildlife keeps off the ship as the page's does,
   issue #246's `keepOff`.)
+- `wireMount`, `wireVehicles` (both hosts had their own copy): the bird's promise and the hoverbike as the world's mount,
+  set before the traveller is made; once he is, the bike parked by the ramp where the bird is the mount (Viridel,
+  #376), every hover vehicle skimming the water (the waters' floor), and no calls into the rooms off the map nor from
+  inside the ship (`canSummon`; the page culls by the rooms it returns). The engines had no parked bike, and their
+  bikes and skiffs sank into water.
 
 Checked in Unity (the editor's batch run, `-fresh -no-hud`, against main's bundle for the before and the web's
 pictures of the same views): the kit's colours at the desert's ramp foot (`-set-flags` now takes `key=value`:
