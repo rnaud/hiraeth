@@ -105,6 +105,10 @@ Shader "Hiraeth/Veil"
         // (a temple's first room washed out), over a lit floor about the same; its alpha brought down between the two,
         // measured against the web at the Rose House's, the Moon Foundry's and the Buried Machine's first rooms)
         if (_DstBlend < 1.5) a = pow(saturate(a), 1.5);
+        // (a wash laid over, likewise: three blends it in the page's sRGB, Unity in its linear target, where a pale wash
+        // over a dark wall comes out far lighter: the skull cave's shafts of light read as white slabs, issue #420. Its alpha
+        // brought down toward the web's over the cave's walls and floor)
+        else a = pow(saturate(a), 1.15);
         return float4(pow(saturate(col), 2.2), a);
       }
       ENDHLSL

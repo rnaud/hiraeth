@@ -92,6 +92,8 @@ export const CHANGELOG = [
     // issue #425 (and #420's cut-up shafts): unity HiraethFeature.cs _GFlip, the washes' GAt (Veil, PitVoid, DoorLight, Mote,
     // Wisp, HoloFigure); engine/sequences.js 'pits', 'skull-cave'
     'In the Unity version, the dark of the makers’ houses’ deadly pits no longer shows through walls, and the shafts of light, the doorways’ glow, the floating motes and the recordings’ figures are hidden behind what stands in front of them again: drawn straight to the screen, they had read the scene’s depth upside down.',
+    // issue #420: unity Veil.shader (a laid-over wash's alpha for the linear blend); engine/sequences.js 'skull-cave'
+    'In the Unity version, the shafts of light in the skull cave and the makers’ houses are as soft and pale as on the web, no longer bright white slabs.',
   ] },
   { v: '1.83', date: '2026-10-16', items: [
     // issue #406: src/temples/desert.js (ROOMS, LOGIC: hall, balcony, ballK, kS, dE, sentry in the hall, d3), pieces.js Ball

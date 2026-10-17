@@ -1931,6 +1931,11 @@ screen; the batch run's pictures only.
   now sets `_GFlip` (1 when the target is the back buffer) and the six read the G-buffer through `GAt`, its row from the
   bottom then. Not seen on a device yet: the sequences `pits` (the Rose House's Great Hall turned toward its pits, the
   channel's lip) and `skull-cave` compare it with the web in the editor, where both ways look the same.
+- **The shafts of light** (#420). Besides the flip above, a shaft's wash (alpha 0.12 and 0.14 a layer, both faces of two
+  cones) came out far whiter than the web's: three blends it in display values, Unity in its linear target, where a pale
+  wash over a dark wall is much lighter (the "blend is Unity's linear one" note above). Veil.shader now raises a laid-over
+  wash's alpha to 1.15, as a light's is raised to 1.5: in the `skull-cave` sequence's two beats, three regions over the
+  shafts come within 1-6 of 255 of the web's (13-20 lighter before; 1.3 left them 8-12 darker).
 
 ## One host (2026-10-17, issue #427)
 

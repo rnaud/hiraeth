@@ -1129,6 +1129,8 @@ const HOST427 = 'Issue #427: the Unity bridge in the editor’s batch run on thi
 const UI430 = 'Issue #430: the Unity bridge in the editor’s batch run on this Mac (muted, High, -frames 1280x720), each piece put up by -ui through engine/ui-poses.js on the debug save; before, none of them was drawn (the web’s side, the same poses in headless Chrome, beside them in the issue’s sheet); cwebp -q 72';
 /** (v1.84, issue #449: the knocked-out card's dim in Unity) */
 const KO449 = 'Issue #449: the Unity bridge in the editor’s batch run on this Mac (muted, -level arena -fight foe,down, -frames 1280x720), the knock-out’s picture; before: the build before this change; 17 October; cwebp -q 72';
+/** (v1.84, issue #420: the shafts of light in Unity) */
+const SHAFT420 = 'Issue #420: the Unity bridge in the editor’s batch run on this Mac (muted, High, -frames 1280x720), the sequence `skull-cave` (engine/sequences.js) at its second beat; before: the build before this change; the alpha measured against the web’s picture of the same beat (three regions within 1-6 of 255); 17 October; cwebp -q 72';
 /** (v1.84, issue #423: the menus in Unity as the web's) */
 const MENUS423 = 'Issue #423: the Unity bridge in the editor’s batch run on this Mac (muted, High, -frames 1280x720), the sequences `menus` (the Signal Market, the debug save) and `talk`; before: the same runs with this change set aside; 17 October; cwebp -q 70';
 /** (v1.84, issue #422: the use button alone in Unity) */
@@ -1179,6 +1181,9 @@ const PORT447U = 'Issue #447: the Unity bridge in the editor’s batch run on th
 const portRef = (id, what) => ({ sheet: `references/space-ports/${id}/sheet-1.jpg`, caption: `The author’s pick from the reference lab: ${what}` });
 export const CHANGELOG_MEDIA = {
   '1.84': [
+    { match: 'In the Unity version, the shafts of light in the skull cave and the makers’ houses are as soft', shots: [
+      { name: 'unity-shafts', title: 'The skull cave', caption: 'Among the skull cave’s shafts of light in Unity: before, a white slab with a hard edge; after, a pale wash as the web’s', from: SHAFT420 },
+    ], see: 'In the Unity version, go down into the skull cave behind Qanat.' },
     { match: 'In the Unity version, the dark of the makers’ houses’ deadly pits no longer shows through walls', see: 'In the Unity version, go into the Rose House and look from its Great Hall toward its wings, and down into the skull cave from its passage. (The editor’s pictures draw into a texture, the right way up, so they never showed it: there is no before picture.)' },
     { match: 'In the Unity version, the world dims behind the “You were knocked out” card', shots: [
       { name: 'unity-knockout', title: 'Knocked out', caption: 'In the Arena, knocked out: before, the card alone over the bright sand; after, the world dimmed under it as on the web, the card high with its gold button', from: KO449 },
