@@ -536,6 +536,44 @@ G4 and G6, and the five steps the Temple maps page listed as extras (`src/temple
   identity 3 → 2 (71 % like the Undertower). The audit measures each lock alone: the water set once upstairs serves all
   three upper locks, and the gauges and dry troughs in their rooms are the clue it now counts. The redesign's rules: none
   broken.
+
+### As built: the Lamp-House (v1.83, issue #410)
+
+The Lamp-House's row of Part 3 (light as the house's state; its two obscure steps and its two obvious ones) with G1, G2,
+G4 and G6 (`src/temples/perdide2.js`; how it works: `docs/systems/temples.md`, "The Lamp-House round its Lamp Hall"):
+
+- **G4, the great hall:** the Hall of Dark Pools became the **Lamp Hall**, 36 by 64 m under 34, its gallery 9 m up along
+  the west wall and open over the floor: both floors seen at once, the hub of both. The great lamp hangs in its middle, its
+  balcony out from the gallery. The rooms past it stand 24 m further north; the ledge back from the Root Stair to the
+  gallery and the Lamp Passage stay passages 6 to 7 m wide.
+- **G1, the house-wide state:** the great lamp lit or dark. Kindled once (a bubble of its balcony's pool-lamp's light),
+  then its shutters set. Lit, its light runs out through the house: the Kennel's lamp-door and the Lamp Passage's open
+  (for good), a curtain of it bars the Wick Room, the Dark Gallery's moss-stones lie sunk, and on its far floor it pours
+  from a pipe into a basin. Dark, the curtain falls and the moss-stones rise and take root. **Cheap to change:** a lever by
+  every hub (the hall's floor, its gallery, the Lantern Chamber) and, on the far floor, the hook at the pipe's ring.
+  **Readable everywhere:** one lamp colour for the house (warm lit, cold dark) on a lamp-post in every room, the levers'
+  knobs and the lamp-doors' lintels; lit, the whole hall is bright. Whichever way the house is played, the state is set and
+  set back at least three times (lit for the Kennel and the passage, dark for the Wick Room and the moss-stones, lit at
+  the pipe).
+- **G2, the curve and an older tool:** nine locks (was six). The far door's step asks for the hook and the bubble at once:
+  hook the pipe's ring, and while the valve is open (9 s) blow a bubble in the poured light and send it to the far door's
+  lamp. The Dark Gallery's chasm is 27 m now, wider than the hook reels you.
+- **The obscure and the obvious, reworked:** the far door (1.0: an eye a room back, an orb lit and rolled into a niche,
+  the great key) is the great key and the pipe's light (3.0); the Wick Room's grille (1.5) keeps its two orbs at once but
+  wants its pool-lamp lit, as a player does (2.0). The Lamp Passage's lamp by the fount (4.5) is the great lamp's
+  lamp-door; the moss-stones' hanging lamp (4.5) is the dark, set a room back (3.5). The lamp by the dais, a try before,
+  opens the ledge's door.
+- **No step to skip:** the Temple maps page listed four extras (the try by the dais, three pool-lamps whose light the
+  logic never asked for). Every one is needed now, or gone; the map's little chest is the one extra, as in every house.
+- **G6:** the gallery's edge has no parapet for 10 m, nor the balcony's end: 9 m down to the hall's floor, the hub,
+  unhurt. The antechamber's mark is a few steps from the Lamp-Room's door, and the far floor has a mark of its own.
+- **Length:** nine locks: the three pools, the orb's socket, the lamp by the dais, the Kennel's lamp-door, the Wick Room's
+  curtain, the Lamp Passage's lamp-door, the moss-stones, the grille, the far door. Design audit (all houses run together)
+  4.11 → 4.33: skeleton `BXCGGLLK` → `BBXCGXXBLLK`, combinations 3 of 6 → 5 of 9, mean obviousness 3.0 → 3.0, painfully
+  obvious 2 → 0, obscure 2 → 1 (the Lamp Passage's lamp-door: its lamp is kindled two rooms back, out of sight), non-obvious
+  3 → 4, decoupling 4 → 5, curve 4 → 4, identity 3 → 2 (its shape 67 % like the Mooring-House's). The audit now takes a
+  house state's key, where it is not set in the lock's own room, from the nearest room it is set from (no other house's
+  numbers move). The redesign's rules: none broken.
 ### As built: the Founders' Belfry (v1.83, issue #408)
 
 The Belfry's row of Part 3 (the bells as a house-wide state; the great key cage's sight line) with G1, G4 and G6

@@ -41,8 +41,7 @@ import { Key, KEY_CHEST, MapChest } from '../src/temples/pieces.js';
 import { BOX_SCALE } from '../src/boxes/model.js';
 import { TempleKit, ANTE } from '../src/temples/kit.js';
 import { GULF, STACK, WELL_VENT, WELL as AERIE_WELL, HALL as AERIE_HALL, TOP as AERIE_TOP, BALCONY as AERIE_BALCONY, FLEDGE as AERIE_FLEDGE, SILL as AERIE_SILL } from '../src/temples/arzach.js';
-import { KENNEL, WICK, ROOT_WAY, ROOMS as ROOMS_P2, FOUNT } from '../src/temples/perdide2.js';
-import bubbleGadget, { BUBBLE } from '../src/gadgets/bubble.js';
+import { ROOMS as ROOMS_P2, LIT as PERDIDE2_LIT } from '../src/temples/perdide2.js';
 import fanGadget, { FAN } from '../src/gadgets/fan.js';
 import bridgeGadget, { PEN } from '../src/gadgets/bridge.js';
 import boomGadget from '../src/gadgets/boomerang.js';
@@ -68,7 +67,7 @@ function openChest(rt, id, P) {
 }
 const BUILT = Object.keys(TEMPLES);
 /** The older houses' tools a house's late step asks for with its own (G2, issue #411). */
-const OLDER = { edena: ['hook'] };
+const OLDER = { edena: ['hook'], perdide2: ['hook'] };
 
 const worlds = new Map();
 // (a temple by its id, in the world it stands in: the First Garage's, `garage`, is the Clock-House in the Glass Dunes;
@@ -686,28 +685,52 @@ test('the Aerie reworked (issue #407): a step before the wings (the Fledgery’s
   assert.equal(fresh.flag('temple.arzach.drum.bD'), undefined, 'before the wings: the new step still to do');
 });
 
-test('the Lamp-House (issue #23): the Kennel off its first hall gives the small key for the Wick Room along the hall (v1.60), whose great key the gallery’s far door wants; its two orbs must burn at once, and its keepers’ door back up opens with them; old saves past the gallery find it open', () => {
-  const L = TEMPLES.perdide2.def.logic, items = ['backpack', 'gun', 'doublejump', 'sword', 'shield'];
+test('the Lamp-House (issues #23, #410): the great lamp lit or dark the house’s one state: kindled once from its balcony, then set at a lever by every hub or with the hook at its pipe’s ring; the Kennel off its first hall lit, the Wick Room dark, the moss-stones risen in the dark; the far door’s lamp a bubble of the great lamp’s light; old saves past the gallery find it open', () => {
+  const L = TEMPLES.perdide2.def.logic, items = ['backpack', 'gun', 'doublejump', 'sword', 'shield', 'glider', 'hook', 'stun'];
   for (const reverse of [false, true]) { const r = solve(L, { items, reverse }); assert.equal(r.done, true, r.log.join(' / ')); }
   const noWick = solve(L, { items, forbid: ['lW2'] });
-  assert.ok(noWick.logic.isFound('kS') && noWick.stuck.includes('galleryFar') && !noWick.stuck.includes('lamp'), 'without the Wick Room the lamp-room stays shut');
+  assert.ok(noWick.logic.isFound('kS') && !noWick.done, 'without the Wick Room the great key stays behind its grille');
   const noArena = solve(L, { items, forbid: ['arK'] });
-  assert.ok(!noArena.stuck.includes('wickKey') && noArena.stuck.includes('galleryFar') && !noArena.stuck.includes('lamp'), 'without the Kennel the Wick Room’s grille stays shut, and the lamp-room with it');
-  // (v1.60) the Wick Room off the first hall, a loop: its door from the hall, its keepers' door up onto the root-wall's top
-  assert.ok(L.links.some((l) => !l.door && l.a === 'pools' && l.b === 'wick') && L.links.some((l) => l.door === 'dU' && l.a === 'wick' && l.b === 'lantern'), 'the Wick Room between the first hall and the chamber');
+  assert.ok(!noArena.stuck.includes('wickKey') && !noArena.done, 'without the Kennel the Wick Room’s grille stays shut');
+  for (const k of ['s8', 'lG', 'l0', 'sW', 'pv']) assert.equal(solve(L, { items, forbid: [k] }).done, false, `${k} is needed (issue #410: no step to skip)`);
+  // (issue #410) the great lamp: kindled (lG, a bubble of its balcony's pool-lamp's light), its shutters (`lamp`) set from the
+  // hubs: the Lamp Hall's floor, its gallery (the drum's own room), the Lantern Chamber; and with the hook at the far floor's ring
+  assert.equal(L.elements.lamp.room, 'hallUp');
+  assert.deepEqual(L.elements.lamp.rooms, ['pools', 'lantern', { room: 'galleryFar', needs: ['hook'] }]);
+  assert.deepEqual(L.elements.lG.needs, ['bubble']);
+  const without = (w) => solve(L, { items: items.filter((i) => i !== w) });
+  assert.ok(!without('hook').done && !without('hook').stuck.includes('lamp'), 'the far door wants the hook too, an older tool (G2)');
+  const noWand = solve(L, { items, withhold: ['bubble'] });
+  assert.ok(!noWand.done && !noWand.order.includes('gallery') && !noWand.order.includes('kennel'), 'without the wand the great lamp stays cold: no Kennel, no Lamp Passage');
+  // the state's ways: lit, the lamp-doors (for good) and the curtain; dark, the curtain gone and the moss-stones up for good
+  const S = new TempleLogic(L, { has: (i) => [...items, 'bubble'].includes(i) });
+  S.update();
+  assert.ok(S.isOpen('cur') && !S.isOpen('dK') && !S.isOpen('d2') && !S.isOpen('br1'), 'cold: the house dark, the Wick Room open, the lamp-doors shut, the moss-stones still');
+  // (its levers will not open the shutters on a cold lamp: GreatLamp.toggle, tests/lamp-house.test.js)
+  S.store.set('lit.s8', true); S.light('lG'); S.update();
+  assert.ok(S.isLit('lG') && S.isOpen('cur') && !S.isOpen('dK'), 'kindled behind shut shutters: still dark');
+  S.moveDrum('lamp', 1); S.update();
+  assert.ok(S.isOpen('dK') && S.isOpen('d2') && !S.isOpen('cur') && !S.isOpen('br1'), 'lit: the Kennel’s and the Lamp Passage’s doors, the curtain across the Wick Room, the moss-stones sunk');
+  S.moveDrum('lamp', 0); S.update();
+  assert.ok(S.isOpen('dK') && S.isOpen('d2') && S.isOpen('cur') && S.isOpen('br1'), 'dark: the lamp-doors stay open, the curtain falls, the moss-stones rise');
+  S.moveDrum('lamp', 1); S.update();
+  assert.ok(S.isOpen('br1') && !S.isOpen('cur'), 'lit again: the moss-stones keep their root');
+  // the far door's lamp: a bubble of the light the valve lets down the pipe, while it is open
+  assert.equal(S.light('l2'), false, 'no light in the basin');
+  S.light('pv'); assert.equal(S.light('l2'), true, 'the valve open: its light taken');
+  assert.deepEqual(L.elements.d4.opens, { lit: 'l2' });
+  assert.equal(L.elements.d4.lock, 'big');
+  // (v1.60) the Wick Room off the first hall, a loop: its way from the hall, its keepers' door up onto the root-wall's top
+  assert.ok(L.links.some((l) => l.door === 'cur' && l.a === 'pools' && l.b === 'wick') && L.links.some((l) => l.door === 'dU' && l.a === 'wick' && l.b === 'lantern'), 'the Wick Room between the first hall and the chamber');
+  assert.ok(L.links.some((l) => l.a === 'hallUp' && l.b === 'pools' && l.oneWay), 'G6: the gallery drops to the hub’s floor');
   assert.equal(L.elements.cW.lock, 'small', 'its grille takes the Kennel’s small key');
-  assert.deepEqual(L.elements.dU.opens, { open: 'cW' }, 'its keepers’ door opens with the grille, never before the bubble wand');
-  // (issue #377) the bubble wand is the house's tool: the lamps past its chest, the moss-stones' lamp, the orbs' lamps, the Lampless
+  assert.deepEqual(L.elements.dU.opens, { open: 'cW' }, 'its keepers’ door opens with the grille');
   assert.equal(L.gadget, 'bubble');
-  for (const id of ['l0', 'l1', 'lM', 'l2', 'lW1', 'lW2', 'moth']) assert.ok(L.elements[id].needs.includes('bubble'), `${id}: the bubble wand`);
-  assert.deepEqual(L.elements.br1.opens, { lit: 'lM' }, 'the moss-stones wake to their hanging lamp');
-  const without = solve(L, { items, withhold: ['bubble'] });
-  assert.ok(!without.done && !without.order.includes('gallery'), 'without the wand nobody gets past the Lamp Passage');
-  assert.equal(L.elements.d2.lock, undefined, 'the Lamp Passage’s door is its lamp alone');
+  for (const id of ['l0', 'lG', 'l2', 'lW1', 'lW2', 'moth']) assert.ok(L.elements[id].needs.includes('bubble'), `${id}: the bubble wand`);
   assert.deepEqual(TEMPLES.perdide2.def.arenas.map((A) => A.el), ['arK']);
-  // the grille: both lamps at once (each only while its orb glows), then up for good
+  // the grille: both lamps at once (each only while its orb glows, the pool-lamp lit), then up for good
   const W = new TempleLogic(L, { has: (i) => ['gun', 'bubble'].includes(i) });
-  W.store.set('found.kS', true); W.unlock('cW');   // (the Kennel's key in its keyhole, v1.60)
+  W.store.set('found.kS', true); W.unlock('cW'); W.store.set('lit.sW', true);
   W.moveDrum('oW1', 1); W.light('lW1'); W.update();
   assert.equal(W.isOpen('cW'), false, 'one lamp');
   W.quiet('lW1'); W.moveDrum('oW2', 1); W.light('lW2'); W.update();
@@ -716,18 +739,19 @@ test('the Lamp-House (issue #23): the Kennel off its first hall gives the small 
   assert.equal(W.isOpen('cW'), true, 'both at once');
   W.quiet('lW1'); W.quiet('lW2'); W.update();
   assert.equal(W.isOpen('cW'), true, 'and it stays up');
+  // old saves (v1.77–v1.82): past the Lamp Passage's door, the great lamp kindled and lit for them; past the far door, open
   for (const [extra, past] of [[{}, false], [{ 'drum.orb': 1, 'lit.l2': true, 'lit.s4': true, 'open.d4': true, checkpoint: 'lamp' }, true]]) {
     const g = new GameState(null);
-    for (const [k, v] of Object.entries({ 'lit.s1': true, 'lit.s2': true, 'lit.s3': true, 'open.d1': true, 'open.disc': true, gadget: true, 'lit.l1': true, 'open.d2': true, checkpoint: 'gallery', ...extra })) g.set(`temple.perdide2.${k}`, v);
+    g.set('temple.perdide2.layout', 4);
+    for (const [k, v] of Object.entries({ entered: true, 'lit.s1': true, 'lit.s2': true, 'lit.s3': true, 'open.d1': true, 'open.disc': true, gadget: true, 'lit.l1': true, 'open.d2': true, 'found.kS': true, 'lit.arK': true, checkpoint: 'gallery', ...extra })) g.set(`temple.perdide2.${k}`, v);
     migrateTemples(g);
     const B = new TempleLogic(L, { store: flagStore(g, 'perdide2'), has: (i) => [...items, 'bubble'].includes(i) });
     B.update();
-    assert.ok(B.isOpen('d2') && B.isLit('arK'), 'the Lamp Passage’s door stays open behind them');
+    assert.ok(B.isOpen('d2') && B.isOpen('dC') && B.isLit('lG') && B.check(PERDIDE2_LIT) && B.isOpen('dK'), 'the ledge’s and the Lamp Passage’s doors open behind them, the great lamp lit');
     assert.equal(B.isOpen('d4'), past, past ? 'past the far door: open still' : 'on the gallery: the great key still in the Wick Room');
-    // (v1.60) the Kennel's key went into the passage's door then: on the gallery it is back in hand for the Wick Room's;
-    // past the far door, the Wick Room counts as done
-    assert.equal(B.keys('small'), past ? 0 : 1, past ? 'past the far door: no key left over' : 'the Kennel’s key in hand again, for the Wick Room’s grille');
+    assert.equal(B.keys('small'), past ? 0 : 1, past ? 'past the far door: no key left over' : 'the Kennel’s key in hand, for the Wick Room’s grille');
     if (past) assert.ok(B.isOpen('cW') && B.isOpen('dU'), 'and the Wick Room’s grille up, its keepers’ door open too');
+    assert.equal(!!g.flag('temple.perdide2.relaid'), true, 'inside the old house: to its last mark');
   }
 });
 
@@ -2783,304 +2807,7 @@ test('the Whale-House on foot (v1.77, as shrines): its door sealing the last tub
   own();
 });
 
-// ------------------------------------------------------------------ on foot: Lorn II's Lamp-House, room by room
-test('the Lamp-House on foot: three dark pools (the third up the loft of roots, out of sight), the Kennel’s arena off the hall, the moss-stones the orb’s lamp wakes over the dark pool and the root-wall, the bubble wand (issue #377: the lantern before), its bubbles carrying the fount’s light to the lamp by the dais and the passage’s lamp, the Wick Room off the first hall and the Kennel’s key in its grille, the moss-stones’ hanging lamp lit by a bubble of the near pool’s light, the pool-orb lit by a bubble and rolled to the niche, back down to the Wick Room: its two orbs burning at once for the great key, and up its stair through the keepers’ door onto the root-wall, the Lampless fed, the lamp lit (v1.77: the rooms as shrines)', () => {
-  game.reset();
-  own('backpack', 'gun');
-  const { level, physics, rt } = world('perdide2');
-  const P = new Player(physics, { spawn: rt.arrival.pos.clone(), dynamic: level.dynamic, health: true, limit: level.limit });
-  const notes = [];
-  rt.connect({ player: P, toast: (s) => notes.push(s) });
-  let t = 0;
-  const L = (x, y, z) => rt.kit.world(x, y, z);
-  // (issue #377) the bubble wand, the house's tool: a real one (src/gadgets/bubble.js), its bubbles blown from his hand
-  const wand = bubbleGadget.create({ player: P, physics, camera: null, tool: null, sound: null, world: null, hud: { reticle() {} }, sfx: { equip() {} }, fx: new THREE.Group(), aimAt() {}, notice: (s) => notes.push(s), game, bursts: { add() {} } });
-  const frame = (input = {}, yaw = 0) => { t += DT; physics.syncMovers(DT); rt.update(DT, t); P.update(DT, input, yaw); wand.update(DT); updateHazards(DT, P); };   // (as main.js: the moving colliders first)
-  const toward = (to) => Math.atan2(-(to.x - P.pos.x), -(to.z - P.pos.z));
-  const flat = (a) => Math.hypot(P.pos.x - a.x, P.pos.z - a.z);
-  const walk = (to, { tol = 0.6, max = 25, run = true, dy = 1.6 } = {}) => {
-    for (let i = 0; i < max / DT; i++) { if (flat(to) < tol && Math.abs(P.pos.y - to.y) < dy) return true; frame({ KeyW: true, ShiftLeft: run }, toward(to)); }
-    return false;
-  };
-  const path = (...pts) => pts.every((p) => walk(L(...p)));
-  const wait = (s) => { for (let i = 0; i < s / DT; i++) frame(); };
-  const where = () => rt.kit.local(P.pos).toArray().map((v) => v.toFixed(1)).join(', ');
-  // a bubble blown from his hand toward `to` (a world point), flown for real until it bursts: was it glowing when it did?
-  const blow = (to) => {
-    let lit = false;
-    const off = game.on('bubble:light', () => { lit = true; });
-    const from = P.pos.clone().add(V(0, 1.45, 0)), b = wand.spawn('free', from), dir = to.clone().sub(from).normalize();
-    b.blow.copy(dir).setY(0).normalize(); b.vel.copy(dir).multiplyScalar(BUBBLE.speed);
-    for (let i = 0; i < 5 / DT && wand.bubble; i++) frame();
-    off();
-    return lit;
-  };
-  // stand on the near side of a lit pool-lamp, within its light, toward `to`
-  const byPool = (id, to) => { const c = rt.piece(id).center, d = to.clone().sub(c).setY(0).normalize(); return walk(c.clone().addScaledVector(d, 2.2).setY(c.y - 0.9), { tol: 0.4 }); };
-  const R = ROOMS_P2, [sx0, sx1, sz] = WICK.stair, CL = R.gallery.z1 + 0.6 + 7.4 + 1.2 + 19;
-  wait(0.5);
-  assert.equal(P.inDark, true, 'a dark house: the lantern charm glows in it');
-  // ---- the Hall of Dark Pools: two pools on the floor; the third up on the loft, hidden from the floor
-  const seen = (from, to) => { const d = to.clone().sub(from), n = d.length(); return physics.rayDistance(from, d.normalize(), n) >= n - 0.8; };
-  const eye3 = rt.piece('s3').center;
-  for (const [x, z] of [[-3, 22], [6, 30], [0, 44], [16, 17], [16, 53]]) assert.ok(!seen(L(x, 1.7, z), eye3), `the loft's pool hidden from the floor (${x}, ${z})`);
-  for (const id of ['s1', 's2']) rt.piece(id).hit('shoot');
-  wait(1);
-  assert.equal(rt.logic.isOpen('d1'), false, 'two lamps of three');
-  assert.ok(!rt.piece('orb5') || rt.kit.local(rt.piece('orb5').center).z > R.roots.z0, 'no orb in the hall since v1.77: it waits in the Root Stair');
-  // up the loft of roots
-  assert.equal(walk(L(-3, 0, 34)), true, `to the loft's foot (${where()})`);
-  let loft = false;
-  for (let i = 0; i < 20 / DT; i++) { frame({ KeyW: true }, toward(L(-9, 8, 34))); if (P.onGround && rt.kit.local(P.pos).y > 7.6) { loft = true; break; } }
-  assert.ok(loft, `up onto the loft (${where()})`);
-  assert.equal(walk(L(-8, 8, 34), { tol: 0.8 }), true, `on the loft (${where()})`);
-  assert.ok(seen(P.pos.clone().add(V(0, 1.6, 0)), eye3), 'there it is');
-  rt.piece('s3').hit('shoot');
-  wait(2.2);
-  assert.equal(rt.logic.isOpen('d1'), true);
-  P.teleport(L(0, 0.05, 50), V(0, 1, 0), V(0, 0, 1));
-  wait(0.5);
-  // ---- the Kennel, east off the hall (an arena, in the dark): its door shuts behind you while its keepers stand
-  const keepers = [{ room: 'kennel', alive: true }, { room: 'kennel', alive: true }];
-  rt.machines = [...(rt.machines ?? []), ...keepers];
-  assert.equal(path([7, 0, KENNEL.z], [20, 0, KENNEL.z], [31, 0, KENNEL.z]), true, `into the Kennel (${where()})`);
-  wait(0.3);
-  assert.equal(rt.logic.isOpen('dK'), false, 'the door shuts behind you');
-  for (const k of keepers) k.alive = false;
-  wait(2.5);
-  assert.ok(rt.logic.isLit('arK') && rt.logic.isOpen('dK'), 'beaten: won, and the door lets go');
-  assert.equal(walk(rt.piece('kS').pos, { tol: 1.2 }), true, `to the key (${where()})`);
-  wait(0.3);
-  openChest(rt, 'kS', P);
-  assert.equal(rt.logic.isFound('kS'), true, 'a small key');
-  assert.equal(path([31, 0, KENNEL.z], [20, 0, KENNEL.z], [7, 0, KENNEL.z], [0, 0, 40]), true, `back into the hall (${where()})`);
-  // ---- (v1.60) the Wick Room, along the hall: dark niches and the great key behind a grille, the grille's keyhole the
-  // Kennel's key's; since v1.77 all of it in the wick-house in the middle of the floor
-  assert.equal(path([7, 0, WICK.door], [20, 0, WICK.door], [31, 0, WICK.door + 2]), true, `into the Wick Room (${where()})`);
-  assert.ok(!rt.logic.isOpen('cW') && !rt.logic.isLit('lW1') && !rt.logic.isLit('lW2'), 'dark: the niches cold, the great key behind its grille');
-  assert.equal(walk(L(WICK.x, 0, WICK.face - 1.8), { tol: 0.8 }), true, `up to the grille (${where()})`);
-  wait(2.5);
-  assert.equal(rt.logic.keysIn('cW'), 1, 'the Kennel’s small key goes into the grille');
-  assert.equal(rt.logic.isOpen('cW'), false, 'and it stays down: both niches must burn');
-  // round the wick-house and up the stair on the north wall to the balcony: its keepers' door shut
-  const upStair = () => path([41, 0, 59], [52, 0, 59], [52, 0, 78], [sx0 + 1.5, 0, sz]) && walk(L(sx1 + 0.4, 9, sz), { max: 12 }) && walk(L(28.5, 9, ROOT_WAY.z));
-  assert.equal(upStair(), true, `up the stair onto the balcony (${where()})`);
-  assert.equal(rt.logic.isOpen('dU'), false, 'the keepers’ door on the balcony is shut');
-  assert.equal(walk(L(16, 9, ROOT_WAY.z), { max: 4 }), false, 'and keeps you in');
-  // down off the balcony (no fall in the house hurts) and out the way you came
-  const hearts0 = P.hearts;
-  assert.equal(walk(L(34, 0, 76), { max: 8 }), true, `off the balcony's edge (${where()})`);
-  assert.equal(P.hearts, hearts0, 'the drop costs nothing');
-  assert.equal(path([29, 0, 60], [31, 0, WICK.door], [20, 0, WICK.door], [7, 0, WICK.door], [0, 0, 50]), true, `back into the hall (${where()})`);
-  // ---- the Root Stair: the moss-stones lie sunk in the dark pool, waiting for the lamp in their socket; only light wakes it
-  const P0 = R.roots.z0 + R.roots.near, P1 = P0 + R.roots.pit;
-  assert.equal(walk(L(-1, 0, R.roots.z0 + 2.5)), true, `to the stair (${where()})`);
-  assert.equal(rt.pieces.filter((p) => p.path).length, 0, 'no riding disc in the Lamp-House');
-  const moss = rt.piece('disc');
-  wait(3);
-  assert.equal(moss.open, false, 'the moss-stones are sunk and dark');
-  assert.equal(walk(L(0, 0, P1 - 1), { max: 5 }), false, 'no way over the pool');
-  P.teleport(L(-1, 0.05, R.roots.z0 + 2.5), V(0, 1, 0), V(0, 0, 1)); wait(0.3);
-  // the pool-orb by the small pool, on the near floor (v1.77: in the hall before, its groove through the door): rolled
-  // dark, it wakes nothing, and is tipped back
-  const orb5 = rt.piece('orb5');
-  const behind5 = () => orb5.center.clone().addScaledVector(orb5.dir, -(orb5.r + 1.3)).setY(L(0, 0, 0).y);
-  const roll5 = () => { for (let k = 0; k < 8 && !rt.logic.drumOn('orb5', 'p5'); k++) { walk(behind5(), { tol: 0.5, max: 6 }); orb5.hit('push', orb5.dir.clone(), { strength: 1 }); for (let i = 0; i < 5 / DT && !orb5.rest; i++) frame(); } };
-  roll5();
-  assert.equal(rt.logic.drumOn('orb5', 'p5'), true, `the dark orb in the socket (${orb5.t.toFixed(2)} ${rt.logic.drumT('orb5')} ${orb5.rest} ${orb5.v} ${where()})`);
-  wait(1);
-  assert.equal(rt.logic.isLit('l5'), false, 'dark, it wakes nothing');
-  assert.ok(notes.some((s) => /disc’s lamp wants light/.test(s)), 'it says the lamp wants light');
-  wait(5);
-  assert.ok(orb5.t < 0.5, `tipped back out (${orb5.t.toFixed(2)})`);
-  for (let k = 0; k < 6 && orb5.t > 0.05; k++) { walk(orb5.center.clone().addScaledVector(orb5.dir, orb5.r + 1.3).setY(L(0, 0, 0).y), { tol: 0.5, max: 6 }); orb5.hit('push', orb5.dir.clone().negate(), { strength: 1 }); wait(2.2); }
-  assert.ok(orb5.t < 0.1, `back by the small pool (${orb5.t.toFixed(2)})`);
-  // light the small pool: at rest beside it, the orb drinks its light; then roll it to the socket before it fades
-  rt.piece('s5').hit('shoot');
-  wait(2.6);
-  assert.ok(orb5.charge > 0, 'it caught the pool’s light');
-  roll5();
-  wait(0.5);
-  assert.equal(rt.logic.isLit('l5'), true, 'the glowing orb wakes the disc’s lamp');
-  assert.equal(rt.logic.isOpen('disc'), true, 'the moss-stones wake');
-  wait(2);
-  assert.equal(walk(L(0, 0, P0 - 1.5)), true, `to the pool's edge (${where()})`);
-  assert.equal(walk(L(0, 0, P1 - 0.6), { tol: 0.6 }), true, `over the glowing moss-stones (${where()})`);
-  assert.ok(P.pos.y > L(0, -0.5, 0).y, 'on them, not in the pool');
-  let up = false;
-  for (let i = 0; i < 20 / DT; i++) { frame({ KeyW: true }, toward(L(0, 9, P1 + 6))); if (P.onGround && rt.kit.local(P.pos).y > 8.5) { up = true; break; } }
-  assert.ok(up, `up the root-wall (${where()})`);
-  // ---- the Lantern Chamber: the chest; its way on is open, and the lamp by the dais is a try
-  const C3 = R.lantern.z, LP = { z0: C3 + R.lantern.r, z1: R.gallery.z0 };   // (the Lamp Passage: the way through the chamber's north wall)
-  assert.equal(path([0, 9, R.roots.z1 - 2], [0, 9, C3 - 8]), true, `into the chamber (${where()})`);
-  assert.equal(walk(L(-5.4, 9, C3 + 2), { tol: 0.6 }), true, `by the chamber's lamp (${where()})`);
-  wait(2.5);
-  assert.equal(rt.logic.isLit('l0'), false, 'nothing wakes it by standing there');
-  assert.equal(rt.logic.next(), 'chest');
-  items.grant('bubble'); game.emit('box:opened', { id: 'perdide2.temple.lantern' });
-  wait(1);
-  // by the fount of lamp-water: a bubble blown in its light takes it, and bursts on the dark lamp's glass
-  const fount = rt.kit.world(...FOUNT), glass0 = rt.piece('l0').glass;
-  assert.equal(walk(fount.clone().add(rt.kit.world(1.2, 0, 1.6).sub(rt.kit.world(0, 0, 0))), { tol: 0.5 }), true, `by the fount (${where()})`);
-  assert.equal(blow(glass0), true, 'the bubble took the fount’s light and burst glowing');
-  assert.equal(rt.logic.isLit('l0'), true, 'the lamp by the dais catches it');
-  assert.equal(rt.logic.isOpen('d2'), false, 'and nothing waits on it');
-  // ---- the Lamp Passage: the door into the gallery, its lamp on a post in the chamber beside the way north (v1.77)
-  assert.equal(path([0, 9, C3 + 10], [0, 9, LP.z1 - 1.6]), true, `through the open way to the passage's door (${where()})`);
-  wait(2);
-  assert.equal(rt.logic.isOpen('d2'), false, 'the passage’s door is shut');
-  assert.equal(path([0, 9, C3 + 10], [4.6, 9, C3 + 7.3]), true, `by its lamp (${where()})`);
-  wait(2.5);
-  assert.equal(rt.logic.isLit('l1'), false, 'standing by it wakes nothing: it wants light carried');
-  assert.equal(walk(fount.clone().add(rt.kit.world(1.6, 0, 1.2).sub(rt.kit.world(0, 0, 0))), { tol: 0.5 }), true, `back by the fount (${where()})`);
-  assert.equal(blow(rt.piece('l1').glass), true, 'a glowing bubble sent to it');
-  assert.equal(rt.logic.isLit('l1'), true, 'it catches');
-  wait(2.2);
-  assert.equal(rt.logic.el('d2').lock, undefined, 'since v1.60 its lamp alone: the Kennel’s key went into the Wick Room’s door');
-  assert.equal(rt.logic.isOpen('d2'), true);
-  // ---- the Dark Gallery: the moss-stones sunk in the chasm, their lamp hanging over it; the eye; the second lamp
-  const GA = R.gallery, Q0 = GA.z0 + GA.near, Q1 = Q0 + GA.pit;
-  assert.equal(path([0, 9, C3 + 10], [0, 9, LP.z1 + 2], [0, 9, Q0 - 0.7]), true, `to the chasm (${where()})`);
-  wait(2);
-  assert.equal(rt.logic.isOpen('br1'), false, 'the moss-stones lie sunk and dark');
-  const lampM = rt.piece('lM').glass;
-  assert.ok(rt.kit.local(lampM).z > Q0 + 2, 'their lamp hangs out over the chasm');
-  assert.equal(blow(lampM), false, 'a bubble blown in the dark carries no light');
-  assert.equal(rt.logic.isLit('lM'), false);
-  rt.piece('s6').hit('shoot');
-  wait(0.5);
-  assert.equal(byPool('s6', lampM), true, `by the near pool-lamp (${where()})`);
-  assert.equal(blow(lampM), true, 'a bubble of the pool’s light, out over the chasm');
-  assert.equal(rt.logic.isLit('lM'), true, 'the hanging lamp catches');
-  wait(2.5);
-  assert.equal(rt.logic.isOpen('br1'), true, 'the moss-stones rise, glowing');
-  assert.equal(walk(L(0, 9, Q0 - 0.7)), true, `back to the lip (${where()})`);
-  assert.equal(walk(L(0, 9, Q1 + 1.3)), true, `over the moss-stones (${where()})`);
-  assert.ok(P.pos.y > L(0, 8, 0).y, 'on them, not in the chasm');
-  rt.piece('s4').hit('shoot');
-  // the pool-orb: rolled into the niche dark, it wakes nothing
-  const orb = rt.piece('orb');
-  const behind = () => orb.center.clone().addScaledVector(orb.dir, -(orb.r + 1.3)).setY(L(0, 9, 0).y);
-  const roll = () => { for (let k = 0; k < 6 && !rt.logic.drumOn('orb', 'p4'); k++) { walk(behind(), { tol: 0.5, max: 4 }); orb.hit('push', orb.dir.clone(), { strength: 1 }); wait(2.4); } };
-  assert.ok(P.pos.distanceTo(orb.center) > 4, 'not standing by the orb yet');
-  roll();
-  assert.equal(rt.logic.drumOn('orb', 'p4'), true, `the orb in the niche (${orb.t.toFixed(2)})`);
-  wait(1);
-  assert.equal(rt.logic.isLit('l2'), false, 'dark, it wakes nothing');
-  assert.ok(notes.some((s) => /dark/.test(s)), 'it says the lamp wants light');
-  assert.equal(rt.logic.isOpen('d4'), false);
-  // the niche tips it back out; lit by a bubble of the far pool-lamp's light, then rolled in again
-  wait(7);
-  assert.ok(orb.t < 0.4 && orb.rest, `rolled back out (${orb.t.toFixed(2)})`);
-  assert.equal(walk(orb.center.clone().setY(L(0, 9, 0).y).add(V(1.6, 0, 0)), { tol: 0.6 }), true, `by the orb (${where()})`);
-  wait(2.4);
-  assert.equal(orb.charge, 0, 'standing by it lights nothing');
-  rt.piece('s7').hit('shoot');
-  wait(0.5);
-  assert.equal(byPool('s7', orb.center), true, `by the far pool-lamp (${where()})`);
-  assert.equal(blow(orb.center), true, 'a bubble of its light sent to the orb');
-  assert.ok(orb.charge > 0, 'the orb drank it, and glows');
-  roll();
-  wait(1);
-  assert.equal(rt.logic.isLit('l2'), true, 'glowing, it wakes the niche’s lamp');
-  wait(2.2);
-  assert.ok(rt.logic.check(rt.logic.el('d4').opens) && !rt.logic.isOpen('d4'), 'its lamps lit: and since v1.49 it wants the great key too');
-  // ---- (v1.60) the Wick Room is back in the first hall: down off the root-wall's top, over the moss-stones and into it
-  assert.equal(rt.logic.el(rt.logic.next()).room, 'wick', 'the marker sends you back to the Wick Room');
-  const back = [[0, 9, Q1 + 1.3], [0, 9, Q0 - 1.5], [0, 9, LP.z1 + 2], [0, 9, C3 + 10], [0, 9, C3 - 8], [0, 9, R.roots.z1 - 2]];
-  assert.equal(path(...back), true, `back to the root-wall's top (${where()})`);
-  const hearts1 = P.hearts;
-  assert.equal(walk(L(0, 0, P1 - 2.5), { max: 8 }), true, `down off the root-wall onto the moss-stones (${where()})`);
-  assert.equal(P.hearts, hearts1, 'the drop costs nothing');
-  assert.equal(path([0, 0, P0 - 2], [0, 0, R.roots.z0 + 2], [0, 0, 50], [7, 0, WICK.door], [20, 0, WICK.door], [31, 0, WICK.door + 2]), true, `into the Wick Room (${where()})`);
-  // two niches, two orbs, one pool-lamp; the grille wants both burning at once
-  rt.piece('sW').hit('shoot');
-  const lightAndRoll = (id, plate) => {
-    const o = rt.piece(id);
-    assert.equal(byPool('sW', o.center), true, `by the wick-house's pool-lamp (${where()})`);
-    assert.equal(blow(o.center), true, `a bubble of its light to ${id}`);
-    assert.ok(o.charge > 0, `${id} drank the bubble’s light`);
-    for (let k = 0; k < 6 && !rt.logic.drumOn(id, plate); k++) { walk(o.center.clone().addScaledVector(o.dir, -(o.r + 1.3)).setY(L(0, 0, 0).y), { tol: 0.5, max: 4 }); o.hit('push', o.dir.clone(), { strength: 1 }); wait(2.4); }
-    assert.equal(rt.logic.drumOn(id, plate), true, `${id} in its niche`);
-    wait(0.6);
-    return o;
-  };
-  const away = L(29, 0, 76);
-  const o1 = lightAndRoll('oW1', 'pW1');
-  assert.equal(rt.logic.isLit('lW1'), true, 'the first niche burns');
-  assert.equal(rt.logic.isOpen('cW'), false, 'one is not enough');
-  // left to fade: its lamp goes out with it
-  assert.equal(walk(L(29, 0, 60)) && walk(away), true, `away from the orbs (${where()})`);
-  for (let i = 0; i < 40 / DT && rt.logic.isLit('lW1'); i++) frame();
-  assert.equal(rt.logic.isLit('lW1'), false, 'the orb’s glow gone, its niche dark again');
-  assert.ok(notes.some((n) => /glow has gone out/.test(n)), 'and it says so');
-  for (let i = 0; i < 6 / DT && rt.logic.drumOn('oW1', 'pW1'); i++) frame();   // (the niche tips the dark orb back out)
-  // both, one after the other inside an orb's glow
-  assert.equal(walk(L(29, 0, 56)), true, `back round to the grooves (${where()})`);
-  lightAndRoll('oW1', 'pW1');
-  lightAndRoll('oW2', 'pW2');
-  assert.ok(rt.logic.isLit('lW1') && rt.logic.isLit('lW2'), 'both niches burn');
-  wait(2.2);
-  assert.equal(rt.logic.isOpen('cW'), true, 'the grille lifts');
-  assert.equal(rt.logic.isOpen('dU'), true, 'and the keepers’ door on the balcony with it');
-  assert.equal(walk(L(WICK.x, 0, WICK.face - 2)) && walk(rt.piece('kB').pos, { tol: 1.2 }), true, `to the great key (${where()})`);
-  wait(0.3);
-  openChest(rt, 'kB', P);
-  assert.equal(rt.logic.isFound('kB'), true, 'the great key');
-  assert.equal(walk(L(WICK.x, 0, WICK.face - 2)) && walk(L(29, 0, 60)) && walk(away), true, `away from the orbs (${where()})`);
-  for (let i = 0; i < 30 / DT && rt.logic.isLit('lW1'); i++) frame();
-  assert.ok(!rt.logic.isLit('lW1') && rt.logic.isOpen('cW'), 'and the grille stays up when they fade');
-  assert.ok(o1, 'orbs');
-  // the way back up: the stair, the balcony, the keepers' door, the ledge of roots along the Root Stair to the root-wall's top
-  assert.equal(walk(L(29, 0, 60)) && upStair(), true, `up onto the balcony (${where()})`);
-  assert.equal(path([22, 9, ROOT_WAY.z], [15.8, 9, ROOT_WAY.z], [15.8, 9, P1 + 2], [6, 9, P1 + 4]), true, `through the keepers' door and along the ledge to the root-wall's top (${where()})`);
-  assert.ok(Math.abs(rt.kit.local(P.pos).y - 9) < 0.6, 'up at the root-wall’s height');
-  assert.equal(path([0, 9, R.roots.z1 - 2], [0, 9, C3 - 8], [0, 9, C3 + 10], [0, 9, LP.z1 + 2], [0, 9, Q0 - 1.5], [0, 9, Q1 + 1.3]), true, `back up through the chamber and over the moss-stones to the far side (${where()})`);
-  // ---- the Lamp-Room: send the Lampless light while it searches
-  assert.equal(walk(L(0, 9, GA.z1 - 1.5)) && walk(L(0, 9, CL - 16.5)), true, `through the great lock into the lamp-room (${where()})`);
-  assert.equal(rt.logic.keysIn('d4'), 1, 'the great key in it');
-  const G = rt.guardian;
-  wait(0.3);
-  assert.notEqual(G.state, 'sleep');
-  P.opts.health = false;
-  // (in its last phase it shies from you: a pool lit earlier lures it down, and it drinks there while you stand back;
-  // tests/guardian-twists.test.js plays it through, failures and all)
-  const lure = rt.lurePools.list[0];
-  for (let n = 0; n < 12 && G.state !== 'weary'; n++) {
-    answerAsks({ G, P, frame }, { keep: true });   // (its second phase's second verb first, src/temples/boss.js asks: tests/guardian-asks.js)
-    let open = false;
-    for (let i = 0; i < 40 / DT; i++) { frame(); if (G.state === 'open') { open = true; break; } }
-    assert.ok(open, `it hangs low, searching (${n})`);
-    const before = G.meter, body = G.model.pos.clone().add(V(0, 2, 0));
-    // a pool lit (a splash), and from the far side of it, a bubble of its light sent to the moth (from afar: in its last
-    // phase it won't drink while you stand by it)
-    if (!lure.lit) { lure.m && rt.lurePools.light(lure); }
-    const d = body.clone().sub(lure.at).setY(0).normalize();
-    if (G.phaseIndex >= 2) P.teleport(lure.at.clone().setY(L(0, 9, 0).y).add(V(lure.at.x > L(0, 9, CL).x ? -9 : 9, 0.1, 0)), V(0, 1, 0), V(0, 0, 1));   // (its last: the pool, you stood back)
-    else {
-      P.teleport(lure.at.clone().addScaledVector(d, -2.2).setY(L(0, 9, 0).y + 0.05), V(0, 1, 0), V(0, 0, 1));
-      P.vel.set(0, 0, 0);
-      if (P.pos.distanceTo(body) < 12) blow(G.model.pos.clone().add(V(0, 2, 0)));
-    }
-    for (let i = 0; i < 8 / DT && G.meter === before && G.state === 'open'; i++) frame();
-    assert.ok(G.meter > before || G.state !== 'open', `it drank (${n}: ${G.meter.toFixed(2)})`);
-  }
-  assert.ok(notes.some((s) => /bursts on its fur/.test(s)), 'a bubble of light reached it at least once');
-  assert.equal(G.state, 'weary', `calm (${G.meter.toFixed(2)})`);
-  for (let i = 0; i < 20 / DT && Math.hypot(G.model.pos.x - G.model.rest.x, G.model.pos.z - G.model.rest.z) > 0.6; i++) frame();
-  wait(2);
-  P.teleport(G.model.pos.clone().setY(L(0, 9, 0).y).add(V(0, 0.1, -2.4)), V(0, 1, 0), V(0, 0, 1));
-  wait(0.3);
-  const near = bestInteractable(P);
-  assert.equal(near?.entry.id, 'temple.perdide2.touch', 'a hand on its back');
-  near.entry.use(P);
-  assert.equal(game.flag('temple.perdide2.done'), true);
-  wait(6);
-  assert.ok(rt.outside.lampM.uniforms.uGlow.value > 0.6, 'the Lamp-House burns again');
-  game.reset();
-  own();
-});
-
+// (the Lamp-House on foot, room by room: tests/lamp-house.test.js since issue #410)
 test('the Lamp-House as shrines (v1.77, issue #336): a save that stood in the old rooms is taken to its last mark; one that never went in is left alone', () => {
   for (const entered of [true, false]) {
     const g = new GameState(null);
@@ -3090,12 +2817,12 @@ test('the Lamp-House as shrines (v1.77, issue #336): a save that stood in the ol
     assert.equal(!!g.flag('temple.perdide2.relaid'), entered, entered ? 'inside the old house: to its last mark' : 'never inside: nothing to move');
     assert.equal(g.flag('temple.perdide2.layout'), LAYOUTS.perdide2.v);
   }
-  // standing where the old Dark Gallery's near ledge was (in the new Lantern Chamber): to the gallery's mark
+  // standing where the old Dark Gallery's near ledge was (in the Lantern Chamber since v1.83): to the gallery's mark
   game.reset();
   own('backpack', 'gun');
   const { level, physics, rt } = world('perdide2');
   game.set('temple.perdide2.checkpoint', 'gallery'); game.set('temple.perdide2.relaid', true);
-  const P = new Player(physics, { spawn: rt.kit.world(0, 9.1, 120), dynamic: level.dynamic, health: true });
+  const P = new Player(physics, { spawn: rt.kit.world(0, 9.1, ROOMS_P2.lantern.z), dynamic: level.dynamic, health: true });
   rt.connect({ player: P, toast: () => {} });
   rt.update(DT, DT);
   const mark = rt.marks.find((m) => m.room === 'gallery');

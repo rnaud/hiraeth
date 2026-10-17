@@ -202,12 +202,18 @@ export function puzzleGraph(logic, pieces = [], { los = null, order = null } = {
     // a ring there. Its key is that setter, in the room, with what it needs: the pieces placed with `sets: <drum>`)
     for (const q of merged) {
       const here = q.how === 'drumOn' ? stateRooms(E[q.id]).find((r) => r.room === l.a) : null;
-      // (issue #411: set elsewhere, its key is the nearest place it is set from, and a gauge of it in the lock's room, a
-      // piece placed with `shows: <drum>`, puts the state in sight: the Builders' Greenhouse's water)
+      // (none in the lock's room: the nearest room it is set from, the state's own or another: the Lamp-House's great lamp,
+      // its shutters opened at the lever a room back, issue #410; and a gauge of it in the lock's room, a piece placed with
+      // `shows: <drum>`, puts the state in sight: the Builders' Greenhouse's water, issue #411)
       if (!here && q.how === 'drumOn' && stateRooms(E[q.id]).length) {
-        const from = [E[q.id].room, ...stateRooms(E[q.id]).map((r) => r.room)].filter((r) => hops[l.a]?.[r] != null);
-        const best = from.sort((a, b) => hops[l.a][a] - hops[l.a][b])[0];
-        if (best) { const at = pieces.find((p) => p.o?.sets === q.id && (p.o?.room === best || p.o?.rooms?.includes(best))); Object.assign(q, { room: best, at: at ? piecePos(at.o) : q.at ?? null }); }
+        const d = (r) => hops[l.a]?.[r] ?? Infinity, best = stateRooms(E[q.id]).reduce((b, r) => (!b || d(r.room) < d(b.room) ? r : b), null);
+        if (best && d(best.room) < d(q.room)) {
+          const near = pieces.filter((p) => p.o?.sets === q.id && (p.o?.room === best.room || p.o?.rooms?.includes(best.room))).map((p) => piecePos(p.o)).filter(Boolean);
+          Object.assign(q, { room: best.room, mech: [...new Set([...q.mech, ...best.needs.filter((n) => n !== 'backpack').map((n) => `gadget:${n}`)])], at: near[0] ?? null });
+        } else if (d(q.room) < Infinity) {
+          const own = pieces.find((p) => p.o?.sets === q.id && (p.o?.room === q.room || p.o?.rooms?.includes(q.room)));
+          if (own) q.at = piecePos(own.o) ?? q.at;
+        }
         if (pieces.some((p) => p.o?.shows === q.id && p.o?.room === l.a)) q.shown = true;
       }
       if (!here) continue;

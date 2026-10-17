@@ -157,12 +157,18 @@ export const LAYOUTS = {
   // v1.77 (issue #336): the house remade to the redesign's rules, bigger rooms (the Lamp Passage's lamp in the Lantern Chamber, the
   // Root Stair's orb and its small pool in that room; the same state). A save that entered the house: taken to its last
   // mark if it stood inside the old rooms (runtime.js relaid)
+  // v1.83 (issue #410): the house round its Lamp Hall and the great lamp, lit or dark, its state. Past the Lamp Passage's door
+  // (it opened to a lamp by the fount before): the ledge's door open, the great lamp kindled and lit (the Kennel's lamp-door
+  // and the Lamp Passage's open with it); past the far door, its lamp lit too (its pool-orb's niche before). A save that
+  // entered the house: taken to its last mark in the new rooms (runtime.js relaid)
   perdide2: {
-    v: 4,
+    v: 5,
     steps: [
       { if: ['open.d2', 'lit.s4', 'drum.orb', 'lit.l2', 'open.d4', 'boss'], set: { 'unlocked.d2': 1, 'found.kS': true, 'lit.arK': true } },
       { if: ['open.d4', 'boss'], set: { 'unlocked.d4': 1, 'found.kB': true, 'open.cW': true } },
       { if: ['found.kB', 'open.cW', 'open.d4', 'boss'], set: { 'unlocked.cW': 1, 'found.kS': true, 'lit.arK': true, 'open.cW': true } },
+      { if: ['open.d2', 'open.br1', 'lit.l2', 'open.d4', 'boss', 'checkpoint=gallery'], set: { 'lit.l0': true, 'open.dC': true, 'lit.s8': true, 'lit.lG': true, 'drum.lamp': 1, 'open.dK': true } },
+      { if: ['open.d4', 'boss'], set: { 'lit.l2': true } },
       { if: ['entered'], set: { relaid: true } },
     ],
   },

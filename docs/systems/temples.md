@@ -769,6 +769,58 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   use button, the disc ridden, the drop into the cistern, the weight hooked down and carried, both vines climbed, the
   window's drop, the Gardener calmed; the water's look), `temples.test.js` (the logic, the migration),
   `temple-playthrough`, `temple-maps`, `house-map`, `temple-rules`, `way-back`, `zfight`.
+- **The Lamp-House round its Lamp Hall, its great lamp the house's state** (v1.83, issue #410; the approved
+  recommendations: `docs/design/temple-best-practices.md`, G1, G2, G4, G6). The Hall of Dark Pools is the **Lamp Hall**
+  (`ROOMS.pools`, its id kept), 36 by 64 m under 34, its **gallery** (`GALLERY`, the room `hallUp`) along the west wall
+  9 m up on columns, open over the floor, so both floors are seen at once; the great lamp's balcony juts out from it
+  (`GALLERY.pier`), a pool-lamp on its end (`s8`). Every room past it (the Root Stair, the Lantern Chamber, the Dark
+  Gallery, the Lamp-Room, the Wick Room) stands 24 m further north (`SHIFT`); the Kennel keeps its place. The loft of roots
+  (`LOFT`) stays on the west wall, 12 m short of the gallery and a metre lower: no jump between them.
+  - **The great lamp** (`GREAT_LAMP`, `GreatLamp`), hung from the roof in the middle of the hall in a brass cage with eight
+    shutters, is the house's one state: `lG` its kindling (a bubble of `s8`'s light burst on its glass: it catches behind
+    its shutters, gold at their seams) and the drum `lamp` its shutters, `lampDark` (t 0, the start) or `lampLit` (t 1),
+    `roll: 'hand'`, `verb: 'lamp'`, set from several rooms (logic.js `rooms`, issue #408). `LIT` is kindled and open;
+    `DARK` its shutters shut. A lever pulled before it is kindled opens its shutters on nothing (`toggle` says so).
+  - **Cheap to change** (G1): a `LampLever` by every hub (`LEVERS`: the hall's floor between the Kennel's way and the Wick
+    Room's, its gallery by the balcony, the Lantern Chamber by the Lamp Passage), pulled with the use button; on the Dark
+    Gallery's far floor the hook at the pipe's ring (`hb.pipe`, a `HookBell`; `PipeLight` opens the shutters).
+  - **Readable everywhere** (G1): one lamp material for the house (`stateLamp`, `LAMP_LOOK`): warm while it is lit, cold
+    slate-blue while it is dark; a `LampGauge` (a lamp on a bronze post) in every room but the guardian's, the levers'
+    knobs, the lamp-doors' lintel lamps; lit, the great lamp blazes over the hall (`GreatLamp.light`, 48 m) and the skin's
+    gold lines wake round it. Shut ways say what they want when you come up to them (`LampWord`, `LightCurtain.said`).
+  - **What it opens, on both floors**: lit, the Kennel's lamp-door (`dK`, in the hall's wall, in sight of the lamp) and the
+    Lamp Passage's (`d2`), both for good; a curtain of its light bars the Wick Room's way (`cur`, a `LightCurtain`: a Door
+    drawn as a sheet of light, fading into its sill while dark). Dark, the curtain falls, and the Dark Gallery's moss-stones
+    rise and take root (`br1`: dark once the Lamp Passage's door has opened, latched). On the far floor the far door's lamp
+    (`l2`) wakes to a bubble of the great lamp's light, which pours from its pipe into a basin there (`pv`, a held bell,
+    `PIPE.hold` 9 s) while the valve is open: the hook at the pipe's ring opens it, and the shutters with it. The hook and
+    the bubble at once, an older tool and the house's own (G2).
+  - **The chasm is wider than the hook reaches** (27 m, `HOOK.range` 25): no reeling over it, and the pipe's ring is out of
+    the hook's reach from the near lip.
+  - **The ledge** (`LEDGE`): from the Root Stair's root-wall top a ledge runs back south along its west wall at 9, to a
+    lamp-door through the walls into the gallery (`dC`); its lamp is the one by the chamber's dais (`l0`, a try before):
+    a bubble of the fount's light wakes it.
+  - **The drop** (G6): the gallery's edge has no parapet for 10 m (`GALLERY.drop`), nor the balcony's end: 9 m down to
+    the hall's floor, the hub, unhurt (a `oneWay` link `hallUp → pools`). The far floor has a mark of its own; the
+    antechamber's is a few steps from the Lamp-Room's door.
+  - **The way through** (nine locks for the audit, was six; skeleton `BXCGGLLK` → `BBXCGXXBLLK`): the three pools (`d1`);
+    the orb to the socket (`disc`); the wand; the lamp by the dais (`dC`); kindle the great lamp and open its shutters (the
+    Kennel `dK` and the Lamp Passage `d2` open); the drop; the Kennel's key; dark at the floor's lever (`cur`, and far off
+    the moss-stones, `br1`); the Wick Room's two orbs at once and the key (`cW`); up the keepers' door; over the moss-stones;
+    the hook at the ring and a bubble of the poured light to the far door's lamp, the great key (`d4`). Played the other
+    way (the Dark Gallery first, lit), the moss-stones lie sunk and the chamber's lever a room back darkens it.
+  - **The scout**: the great lamp's glass until it is kindled (`LampGlass`, `lG`), then the nearest lever, or the pipe's
+    ring once the hook is carried (`GreatLamp.center`). The temple maps' steps say "Open / Shut the great lamp's
+    shutters" and "Light the lamp / the pool-lamp / the great lamp" (`makers.js`: a `LightEar` reads as a lamp).
+  - **The audit** (`scripts/temple-design/lib.mjs`): a house-wide state's key, where it is not set in the lock's own room,
+    is the nearest room it is set from (no other house's numbers move). The temple maps page: a state set back after the
+    guardian is no extra if it was set before it too (the Belfry's bell, the Lamp-House's lamp).
+  Tests: `tests/lamp-house.test.js` (the house on foot with a real traveller and a real bubble wand: every lever pulled with
+  the use button, the ring hooked, every bubble blown and flown, the drop unhurt, the Lampless calmed; the other way round;
+  the lamps' colours; the scout), `tests/temples.test.js` (the solver both ways, every step needed, the state's ways, the
+  saves), `tests/temple-playthrough.test.js` (the lamp set at a lever, the valve's ring hooked from its `from`; the house
+  walked in with the hook). Old saves: `migrate.js` perdide2 v5 (past the Lamp Passage's door: the ledge's door open and
+  the great lamp kindled and lit; past the far door: its lamp lit; one that stood inside: to its last mark).
 - **The Founders' Belfry round the Great Belfry, its bell the house's state** (v1.83, issue #408; the approved
   recommendations: `docs/design/temple-best-practices.md`, G1, G4, G6). The Stone Stair is gone: past the Hall of Stones
   the **Great Belfry** (`ROOMS.nave`), 40 by 66 m under 32, its gallery 8 m up round three sides (`GALLERY`: the north

@@ -702,6 +702,11 @@ class SkinLife {
     }
     const L = rt.lampRoom;
     if (L && L.lampM.uniforms.uGlow.value > 0.5) list.push([L.lamp.position.x, L.lamp.position.y, L.lamp.position.z, S.lampRoom]);
+    // (issue #410) the great lamp, its shutters open: the Lamp Hall's lines wake round it; the pipe's basin while it pours
+    const G = rt.greatLamp;
+    if (G && G.k > 0.2) list.push([G.glass.x, G.glass.y, G.glass.z, S.lampRoom * G.k]);
+    const pipe = rt.piece?.('pv');
+    if (pipe?.pouring) list.push([pipe.basin.x, pipe.basin.y, pipe.basin.z, S.pool]);
     // (the nearest to you first, if there are more than the shader takes)
     if (list.length > LAMP_SOURCES && P?.pos) list.sort((a, b) => Math.hypot(a[0] - P.pos.x, a[2] - P.pos.z) - Math.hypot(b[0] - P.pos.x, b[2] - P.pos.z));
     const n = Math.min(LAMP_SOURCES, list.length);

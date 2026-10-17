@@ -44,8 +44,8 @@ export const SPARE = 1.0;
 const quiet = (fn) => { const w = console.warn, l = console.log; console.warn = () => {}; console.log = () => {}; try { return fn(); } finally { console.warn = w; console.log = l; } };
 const own = (...ids) => { for (const id of Object.keys(ITEMS)) if (ids.includes(id)) items.grant(id); else items.revoke(id); };
 /** What each house is walked into with: the route's (the lift valve's double jump before every temple, the gun from the desert's Hearth); the Rose House with nothing in hand (v1.44). */
-// (and an older house's tool where a late step wants it with the house's own, G2: the Builders' Greenhouse's weight, issue #411)
-const CARRY = { desert: ['backpack', 'doublejump'], edena: ['backpack', 'gun', 'doublejump', 'hook'] };
+// (and an older house's tool where a late step wants it with the house's own, G2: the Greenhouse's weight #411, the Lamp-House's far door #410)
+const CARRY = { desert: ['backpack', 'doublejump'], edena: ['backpack', 'gun', 'doublejump', 'hook'], perdide2: ['backpack', 'gun', 'doublejump', 'hook'] };
 const carry = (id) => CARRY[id] ?? ['backpack', 'gun', 'doublejump'];
 
 /**
@@ -381,6 +381,11 @@ export function playTemple(id, o = {}) {
         wait(0.4);
         if (L.isLit(eid)) return m;
       }
+    }
+    // (issue #410) a valve on a ring the hook tugs (the Lamp-House's pipe): hooked from where the ring is hooked from
+    if (piece?.o?.ringId && has('hook')) {
+      const ring = rt.piece(piece.o.ringId), f = ring?.o?.from && rt.kit.world(...ring.o.from), s = f && standAt(f, f.y);
+      if (s) { goTo(s, ring.at.clone().sub(s)); ring.hit('push', { mode: 'hook' }); wait(0.4); if (L.isLit(eid)) return 'hooked'; }
     }
     // a small vane splashed (it turns a while, `coast`: the next thing must be done before it stops); a great one wants
     // the bellows' steady wash, the walk-throughs' work

@@ -59,7 +59,8 @@ export function nounOf(id, e, piece) {
   switch (e.type) {
     case 'drum': return e.verb === 'sluice' ? 'sluice' : e.needs?.includes('magnet') ? 'iron ball' : 'ball';
     case 'plate': return 'floor plate';
-    case 'switch': return cls === 'Bank' ? 'bank of eyes' : cls === 'Bud' ? 'flower-door' : cls === 'Seed' ? 'seed' : cls === 'EchoEar' ? 'brass horn' : cls === 'Jaw' ? 'gate of jaws' : piece?.o?.crystal ? 'singing crystal' : 'eye';
+    // (issue #410: the Lamp-House's lamps, its pool-lamps and its great lamp, read as lamps)
+    case 'switch': return cls === 'LightEar' ? 'lamp' : cls === 'LampGlass' ? 'great lamp' : piece?.o?.light ? 'pool-lamp' : cls === 'Bank' ? 'bank of eyes' : cls === 'Bud' ? 'flower-door' : cls === 'Seed' ? 'seed' : cls === 'EchoEar' ? 'brass horn' : cls === 'Jaw' ? 'gate of jaws' : piece?.o?.crystal ? 'singing crystal' : 'eye';
     case 'brazier': return 'brazier';
     case 'bramble': return 'thorns';
     case 'bell': return cls === 'HookBell' ? 'pull-ring bell' : 'bell';
@@ -370,6 +371,8 @@ function stepText(s, { E, el, room, guardian, links, nth = 0 }) {
     case 'roll': return e?.verb === 'bell' ? `${(e.stops?.[s.onto] ?? 1) > 0 ? 'Ring' : 'Still'} the house’s bell, at a lever or a bell’s ring${tag} → ${s.onto}`
       // (issue #411: the Builders' Greenhouse's water, sent up or let down at a sluice wheel)
       : e?.verb === 'sluice' ? `${(e.stops?.[s.onto] ?? 1) > 0 ? 'Send the house’s water up' : 'Let the house’s water down'}, at a sluice wheel${tag} → ${s.onto}`
+      // (issue #410: the Lamp-House's great lamp, its shutters opened or shut at a lever or the pipe's ring)
+      : e?.verb === 'lamp' ? `${(e.stops?.[s.onto] ?? 1) > 0 ? 'Open' : 'Shut'} the great lamp’s shutters, at a lever or the pipe’s ring${tag} → ${s.onto}`
       : `Roll the ${el?.noun ?? 'ball'} onto its plate${where}${using}${tag} → ${s.onto}`;
     case 'carry': return `Carry the stone block onto its plate${where}${using}${tag} → ${s.onto}`;
     case 'stand': return `Stand on the floor plate${where}${tag}`;
@@ -383,7 +386,7 @@ function stepText(s, { E, el, room, guardian, links, nth = 0 }) {
     case 'light': {
       if (s.type === 'switch') {
         const n = el?.noun ?? 'eye';
-        const verb = n === 'flower-door' || n === 'seed' ? 'Bloom' : n === 'brass horn' ? 'Play the note back into' : n === 'gate of jaws' ? 'Still' : n === 'bank of eyes' ? 'Wake every eye of' : 'Wake';
+        const verb = n === 'flower-door' || n === 'seed' ? 'Bloom' : n === 'brass horn' ? 'Play the note back into' : n === 'gate of jaws' ? 'Still' : n === 'bank of eyes' ? 'Wake every eye of' : n === 'lamp' || n === 'great lamp' || n === 'pool-lamp' ? 'Light' : 'Wake';
         return `${verb} the ${n}${where}${using}${tag}`;
       }
       return `${LIGHT[s.type] ?? 'Work'}${where}${using}${tag}`;
