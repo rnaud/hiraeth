@@ -21,6 +21,7 @@
 //   wireOpenings({ scene }), wireEdge({ wind, … })         the walls' openings for their cracks, the ink at the world's edge
 //   wireSky({ level, U, onPreset })                        the style preset, the planets, a level's zones
 //   wirePotion({ game, toast }), wireNudges({ … })         the potion's glow and lesson, the world's nudges
+//   fragmentsLine({ fragments, game, items, levelId })     the Start menu's line of the fragments
 //
 // tests/game-host.test.js holds each group to both hosts; scripts/bridge-gaps.mjs reports a group main.js calls and
 // engine/game.js doesn't as a host gap (engine/bridge-gaps.js `shared:`).
@@ -42,6 +43,7 @@ import { wallOpenings } from '../wall-openings.js';
 import { EdgeInk } from '../edge.js';
 import { PRESETS } from '../post.js';
 import { t as tr } from '../i18n.js';
+import { fragmentPurse } from '../fragment-shop.js';
 import * as THREE from 'three';
 import { gadgetFoundLine } from '../gadgets/index.js';
 import { syncUpgrades } from '../trials/upgrades.js';
@@ -455,4 +457,16 @@ export function wireNudges({ game, scout, quiet, noticeBusy }) {
       if (!quiet() && !noticeBusy() && !busy) { later.until = 0; scout.ping(); }
     },
   };
+}
+
+// ------------------------------------------------------------------ the fragments' line
+/**
+ * In the Start menu, under where you are: the fragments of the singing light all told, how many you hold to spend with
+ * Anselm once he is met (src/fragment-shop.js), how many are left in this world, once one is found; '' before.
+ */
+export function fragmentsLine({ fragments, game, items, levelId }) {
+  const c = fragments?.counts?.();
+  if (!c?.found) return '';
+  const w = c.worlds?.[levelId], held = game.flag('frag.met') ? fragmentPurse(game.data.flags, (id) => items.has(id)).held : null;
+  return `✧ ${c.found} of ${c.total} fragments of the singing light${held != null ? ` · ${held} to spend` : ''}${w ? ` · ${w.left ? `${w.left} left here` : 'none left here'}` : ''}`;
 }

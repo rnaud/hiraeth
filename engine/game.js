@@ -154,7 +154,7 @@ import { gatherPoints, questList, applyQuestJump, landingSpot, godLanding } from
 import { GAMES } from '../src/minigames/index.js';
 import { DEBUG_SLOT } from '../src/save-slots.js';
 import { wallOpenings } from '../src/wall-openings.js';
-import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip, wireCompanion, wireCamera, wireHero, heroCutFrame, cameraFollow, wireBenches, wireTrails, wireOpenings, wireEdge, wireSky, wirePotion, wireNudges } from '../src/host/game-host.js';
+import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip, wireCompanion, wireCamera, wireHero, heroCutFrame, cameraFollow, wireBenches, wireTrails, wireOpenings, wireEdge, wireSky, wirePotion, wireNudges, fragmentsLine } from '../src/host/game-host.js';
 
 export { page };
 export { readHref } from './trials.js';   // (the tests: a game page's address)
@@ -1291,6 +1291,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     scene, camera, player, rig, level, physics, deferred, floraLater, npcs, crowd, story, storyPage, relics, ship, mirror, folk, kit, dangers, chemistry, benches, hoverTrails, edge, boxes, fragments, gadgets, itemFx, grass, wind, sky, post, T, wildlife, weather, shelter, tool, scout, sound, expedition, plumb, firstSteps, setLanternSky, flora, reactiveWorld, flammables,
     /** The sound's AudioContext (engine/webaudio.js): ctx.render(frames) → the next stereo PCM, or null without sound. */
     get audio() { return sound.ctx ?? null; },
+    /** The Start menu's line of the fragments of the singing light (src/host/game-host.js fragmentsLine), as the page's. */
+    fragmentsLine: () => fragmentsLine({ fragments, game: gameState, items: gear, levelId }),
     /** The wallet's chimes (src/resources.js), as the health HUD shows them while it is up. */
     get chimes() { return resources.chimes; },
     key(code, down) {

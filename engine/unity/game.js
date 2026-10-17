@@ -152,7 +152,7 @@ export function start(argsJson) {
     },
     where: () => TITLES[S?.game?.level?.id] ?? '',
     // (the save under the Start menu's heading, as the web's: "Save 1 · The Desert · 12 min played")
-    saveLine: () => `${slots.active === DEBUG_SLOT ? 'Debug save' : `Save ${slots.active}`} · ${TITLES[S?.game?.level?.id] ?? ''} · ${formatPlaytime(slots.meta?.()?.playtime ?? 0)} played`,
+    saveLine: () => `${slots.active === DEBUG_SLOT ? 'Debug save' : `Save ${slots.active}`} · ${TITLES[S?.game?.level?.id] ?? ''} · ${formatPlaytime(slots.meta?.()?.playtime ?? 0)} played${S?.game?.fragmentsLine?.() ? ` · ${S.game.fragmentsLine()}` : ''}`,   // (and the fragments', as the page's: fragmentsLine)
     // (the menus' canvas, its units: 720 high, as wide as the screen's shape; the title laid out on it)
     screen: () => ({ w: host.MenuWidth?.() || 1280, h: 720 }),
     // (the Items panel's tiles a row: as many of ~128 units as the sheet holds, BridgeMenu's canvas 720 high)

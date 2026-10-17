@@ -15,7 +15,7 @@ import { installAppShell, markBooted } from './native-app.js';
 import { startThemeDownload } from './music-store.js';
 import { SOUNDTRACKS, THEME_FILES } from './soundtracks.js';
 import { ObservatoryQuest } from './observatory.js';
-import { Scout, nextObjective, findText, roughDistance, HINT, FIND } from './scout.js';
+import { Scout, nextObjective, findText, HINT, FIND } from './scout.js';
 import { guardianHint, openHint, Struggle } from './temples/hints.js';
 import { hintsFor, quietOr } from './hint-level.js';
 import { lockLesson } from './hook-foes.js';
@@ -38,7 +38,6 @@ import { createPost, createBloom, DEBUG_VIEWS, PRESETS } from './post.js';
 import { LEVELS, levelById } from './levels/index.js';
 import { partsOf, shiftAt } from './levels/names.js';
 import { fastTravel } from './fast-travel.js';
-import { fragmentPurse } from './fragment-shop.js';
 import { Player, CameraRig } from './player.js';
 import { applyTimeOfDay, colourScript } from './timeofday.js';
 import { applyEclipse } from './eclipse.js';
@@ -143,7 +142,7 @@ import { queueHost, takeHosts } from './minigames/kit/hosts.js';
 import { MinigameRunner } from './minigames/kit/runner.js';
 import { levelMetaFor } from './minigames/kit/world.js';
 import { lendTool } from './minigames/kit/onfoot.js';
-import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip, wireCompanion, wireCamera, wireHero, heroCutFrame, cameraFollow, wireBenches, wireTrails, wireOpenings, wireEdge, wireSky, wirePotion, wireNudges } from './host/game-host.js';
+import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip, wireCompanion, wireCamera, wireHero, heroCutFrame, cameraFollow, wireBenches, wireTrails, wireOpenings, wireEdge, wireSky, wirePotion, wireNudges, fragmentsLine } from './host/game-host.js';
 import { arcadeLinks } from './minigames/kit/arcade.js';
 import { ambushDue, ambushHref, ambushKey, transitLinks } from './ambush.js';
 import { talkAllowed } from './ship/landing.js';
@@ -862,10 +861,8 @@ const benches = wireBenches({ levelId, scene, physics, level, player, sound, rig
 items.on((id, owned) => { if (id === 'lightheart') { player.setMaxHearts(resources.maxHearts); if (owned) player.restore(player.maxHearts); hpShown = 3; } });
 // (in the Start menu, under where you are: the fragments all told, how many you hold to spend with Anselm once he is met
 // (src/fragment-shop.js), and how many are left in this world, once one is found)
-const fragmentsLine = () => {
-  const c = fragments.counts(), w = c.worlds[levelId], held = game.flag('frag.met') ? fragmentPurse(game.data.flags, (id) => items.has(id)).held : null;
-  return c.found ? `<span class="frag">✧ ${c.found} of ${c.total} fragments of the singing light${held != null ? ` · ${held} to spend` : ''}${w ? ` · ${w.left ? `${w.left} left here` : 'none left here'}` : ''}</span>` : '';
-};
+// (src/host/game-host.js fragmentsLine, the engines' Start menu too)
+const fragmentsHtml = () => { const t = fragmentsLine({ fragments, game, items, levelId }); return t ? `<span class="frag">${t}</span>` : ''; };
 await slice();
 // the father's charge (src/story/charge.js): the journey's own quest, pinned above everything
 const charge = () => chargeState({ flag: (f) => game.flag(f), keepsakes: game.keepsakes(), completed: ship.completed().length,
@@ -1398,7 +1395,7 @@ const menu = new SettingsMenu(settings, {
   onQuit: () => quitToTitle(),
   onBeforeRestart: saveBeforeRestart,
   // where you are, at the top of the Start menu
-  where: () => `<b>${slots.active === DEBUG_SLOT ? 'Debug save' : `Save ${slots.active}`}</b>${meta.title} · ${formatPlaytime((slots.meta().playtime ?? 0) + playClock)} played${fragmentsLine()}`,
+  where: () => `<b>${slots.active === DEBUG_SLOT ? 'Debug save' : `Save ${slots.active}`}</b>${meta.title} · ${formatPlaytime((slots.meta().playtime ?? 0) + playClock)} played${fragmentsHtml()}`,
   // (Esc during the ship's scenes is "hold to skip", even in the parts you walk through)
   isBusy: () => shopPanel.isOpen || story.pageOpen || journal.open || changelog.open || picker.classList.contains('open') || devMenu.open || photo.on || storyRt.busy() || ship.busy() || ship.playing || boxes.busy(),
   // this save only (the other slots stay): forget it and start again with the prologue

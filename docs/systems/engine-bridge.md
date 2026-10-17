@@ -1952,6 +1952,9 @@ Round 2 (the mechanical groups):
   short; a world's own ping (`game.emit('scout:ping')`: the City-Shaft's jets, the way up), a nudge at hints that
   nudge and not over a notice, one that waits for the notices and the talk (issue #349). The engines heard no
   'scout:ping'.
+- `fragmentsLine`: the Start menu's line of the fragments of the singing light (found, to spend, left here): the page
+  wraps it in its span, engine/unity/game.js adds it to the save's line. (The scout's rough distance was an import
+  main.js never used; the hints' quietOr is the Android pad scheme's notice, the page's.)
 
 Checked in Unity (the editor's batch run, `-fresh -no-hud`, against main's bundle for the before and the web's
 pictures of the same views): the kit's colours at the desert's ramp foot (`-set-flags` now takes `key=value`:

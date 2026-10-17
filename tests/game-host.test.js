@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { readFileSync } from 'node:fs';
-import { wireKit, wireDangers, wirePeople, wireChemistry, wireVehicles, wireLessons, wireCompanion, wireCamera, heroCutFrame, cameraFollow, wireBenches, wireEdge, wireOpenings, wireSky, wirePotion, wireNudges } from '../src/host/game-host.js';
+import { wireKit, wireDangers, wirePeople, wireChemistry, wireVehicles, wireLessons, wireCompanion, wireCamera, heroCutFrame, cameraFollow, wireBenches, wireEdge, wireOpenings, wireSky, wirePotion, wireNudges, fragmentsLine } from '../src/host/game-host.js';
 import { ERRANDS } from '../src/levels/content.js';
 import { hazardCount } from '../src/hazards.js';
 import * as THREE from 'three';
@@ -254,9 +254,20 @@ test('the nudges: a world\'s ping, not over a scene; one that waits comes once t
   setHintLevel('subtle');
 });
 
+test('the fragments\' line: nothing before the first, then found, to spend once Anselm is met, left here', () => {
+  const flags = {}, game = { data: { flags }, flag: (k) => flags[k] };
+  const items = { has: () => false };
+  const at = (found, left) => ({ counts: () => ({ found, total: 40, worlds: { desert: { left } } }) });
+  assert.equal(fragmentsLine({ fragments: at(0, 3), game, items, levelId: 'desert' }), '');
+  assert.equal(fragmentsLine({ fragments: at(2, 1), game, items, levelId: 'desert' }), '✧ 2 of 40 fragments of the singing light · 1 left here');
+  flags['frag.met'] = true;
+  assert.match(fragmentsLine({ fragments: at(2, 0), game, items, levelId: 'desert' }), /to spend · none left here$/);
+  assert.equal(fragmentsLine({ fragments: null, game, items, levelId: 'desert' }), '');
+});
+
 test('both hosts call the same groups (src/host/game-host.js), and engine/game.js no longer arms the tool its own way', () => {
   const main = readFileSync('src/main.js', 'utf8'), engine = readFileSync('engine/game.js', 'utf8');
-  for (const g of ['wireKit', 'wireDangers', 'wirePeople', 'wireChemistry', 'wireMount', 'wireVehicles', 'wireLessons', 'wireShip', 'wireCamera', 'wireHero', 'heroCutFrame', 'cameraFollow', 'wireBenches', 'wireTrails', 'wireOpenings', 'wireEdge', 'wireSky', 'wirePotion', 'wireNudges']) {
+  for (const g of ['wireKit', 'wireDangers', 'wirePeople', 'wireChemistry', 'wireMount', 'wireVehicles', 'wireLessons', 'wireShip', 'wireCamera', 'wireHero', 'heroCutFrame', 'cameraFollow', 'wireBenches', 'wireTrails', 'wireOpenings', 'wireEdge', 'wireSky', 'wirePotion', 'wireNudges', 'fragmentsLine']) {
     assert.match(main, new RegExp(`\\b${g}\\(`), `main.js calls ${g}`);
     assert.match(engine, new RegExp(`\\b${g}\\(`), `engine/game.js calls ${g}`);
   }
