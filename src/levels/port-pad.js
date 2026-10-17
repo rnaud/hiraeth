@@ -7,6 +7,7 @@ import { padForm } from '../form.js';
 import { padThin } from '../thin.js';
 import { mergeable } from './lab-kit.js';
 import { CRAFT, KINDS, Parts, partsOf } from './port-craft.js';
+import { berthSpec, berthRest } from './port-berth.js';
 
 // ---------------------------------------------------------------------------
 // The space ports' shared kit (issue #441, after the #397 stand-in; docs/systems/worlds.md "Space ports"; the plan:
@@ -23,7 +24,11 @@ import { CRAFT, KINDS, Parts, partsOf } from './port-craft.js';
 // What is solid: a piece's `solid` (towers, kiosks, cargo on the ground); the paint, the craft and what hangs over a
 // void never are. The ship lands where it always did: nothing stands on its plan or its ramp (tests/ports.test.js).
 //
-//   buildPort(port, { groundAt }) → { group, craft: [Object3D], update(dt), sights, lights: [Vector4], noShadow }
+//   buildPort(port, { groundAt }) → { group, craft: [Object3D], update(dt), sights, lights: [Vector4], noShadow, berth }
+//
+// A port may have a `berth` (issue #451, port-berth.js): what carries the ship between where it sets down and its rest,
+// the Underwater City's lock and the City-Shaft's cradle. Its fixed part (the lock's columns, the cradle's towers) is
+// baked in with the rest; what moves is a mesh or two of its own, posed by the ship's scenes (berth.set(pose)).
 // ---------------------------------------------------------------------------
 
 /** The pad's paint stands this far over the deck and as far into it (no face in the paving's plane: tests/zfight.test.js). */
@@ -465,6 +470,110 @@ const PIECE = {
   },
 };
 
+// ------------------------------------------------------------------ the berths (issue #451): what carries the ship
+/** A box from a to b (local points), `w` wide and `h` high across it (a strut, an arm). */
+function beam(a, b, w, h) {
+  const d = new THREE.Vector3(b[0] - a[0], b[1] - a[1], b[2] - a[2]), L = d.length();
+  const g = box(w, h, L).translate(0, 0, L / 2);
+  g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), d.normalize()));
+  return g.translate(...a);
+}
+// (built in the hull's own frame, y from the site's ground: local x runs along the hull toward its stern (v), z out of
+// the hatch (u); the berth's group turns it to the world with the hull's yaw)
+const BERTH_KIT = {
+  /**
+   * The Underwater City's lock (its sheet: the ship lowered down the lock's shaft between teal columns banded in brass):
+   * four columns standing on the pontoon ring either side of the hull, and the lift's coral plate under the belly,
+   * braced to collars that ride the columns. The ship sets down on the plate `rise` m up and comes down on it.
+   */
+  lock(b, still, move) {
+    const top = b.collar + b.rise + 1.4;
+    for (const [u, v] of b.columns) {
+      still.plate(cyl(0.55, 0.62, top, 12).translate(v, top / 2, u), b.column);
+      still.plate(cyl(0.85, 0.95, 0.5, 12).translate(v, 0.25, u), b.brass);
+      for (let y = 2.5; y < top - 1; y += 3) still.plate(cyl(0.66, 0.66, 0.32, 12).translate(v, y, u), b.brass);
+      still.plate(cyl(0.88, 0.7, 0.7, 12).translate(v, top + 0.35, u), b.color);
+      still.lit(new THREE.SphereGeometry(0.32, 10, 6).translate(v, top + 0.95, u), b.lamp);
+      still.light(v, top + 1.2, u, 10);
+    }
+    // the plate: coral over a brass lip, ribbed along its sides, its top just under the belly
+    const [v0, v1] = b.plate.v, w = b.plate.u, len = v1 - v0, vc = (v0 + v1) / 2, y1 = b.plate.top;
+    move.plate(box(len, 0.7, 2 * w).translate(vc, y1 - 0.35, 0), b.color);
+    move.plate(box(len + 0.5, 0.2, 2 * w + 0.5).translate(vc, y1 - 0.62, 0), b.brass);
+    for (let v = v0 + 2; v < v1 - 1; v += 5) for (const s of [-1, 1]) move.plate(box(0.3, 0.5, 0.2).translate(v, y1 - 0.3, s * (w + 0.05)), b.brass);
+    // a strut from the plate's edge up to a collar round each column
+    for (const [u, v] of b.columns) {
+      const s = Math.sign(u);
+      move.plate(beam([v, y1 - 0.4, s * (w - 0.3)], [v, b.collar, u - s * 0.95], 0.45, 0.55), b.brass);
+      move.plate(cyl(1.0, 1.0, 0.9, 14).translate(v, b.collar, u), b.brass);
+      move.plate(cyl(1.04, 1.04, 0.3, 14).translate(v, b.collar, u), b.color);
+    }
+  },
+  /**
+   * The City-Shaft's cradle (its sheet: the ship held in a lacquered cradle of pink and lilac box girders, a brass hub on
+   * its end): two towers past the bow and the stern, a hub high on each; the cradle hangs from them on an arm at each
+   * end, a girder along either side of the hull (open where the ramp comes down), saddles under the feet. The ship sets
+   * down into it swung out over the rim's paving and it swings in.
+   */
+  cradle(b, still, move, arms) {
+    const hub = b.pin + b.arm, [vn, vs] = b.ends, H = hub + 1.6;
+    for (const [vt, face, dir] of [[vn - 2.8, vn - 1.6, 1], [vs + 2.8, vs + 1.6, -1]]) {
+      still.plate(box(2.4, H, 2.8).translate(vt, H / 2, 0), b.lilac);
+      still.plate(box(4, 0.6, 4.2).translate(vt, 0.3, 0), b.iron);
+      for (const y of [4, 9.5, 15]) still.plate(box(2.6, 0.7, 3.0).translate(vt, y, 0), b.color);
+      still.plate(box(2.8, 0.5, 3.2).translate(vt, H + 0.25, 0), b.brass);
+      still.plate(cyl(1.2, 1.2, 1.0, 16).rotateZ(Math.PI / 2).translate(face + dir * 0.4, hub, 0), b.brass);   // (the hub, out of its face)
+      still.lit(new THREE.SphereGeometry(0.3, 10, 6).translate(vt, H + 0.8, 0), b.lamp);
+      still.light(vt, H + 1, 0, 10);
+    }
+    // the cradle: girders along the sides (the hatch's split for the ramp), its ends, posts up to the pins, the saddles
+    const g = b.girder, ends = [vn + 0.3, vs - 0.3];
+    const run = (u, a, z) => { const L = z - a, c = (a + z) / 2; move.plate(box(L, 2.0, 1.0).translate(c, 1.0, u), b.color); move.plate(box(L, 0.5, 1.06).translate(c, 0.45, u), b.blue); };
+    run(-g, ends[0], ends[1]);
+    run(g, ends[0], -b.gap); run(g, b.gap, ends[1]);
+    for (const s of [-1, 1]) move.plate(box(0.3, 2.2, 1.2).translate(s * b.gap, 1.05, g), b.brass);
+    for (const [ve, out] of [[vn, -1], [vs, 1]]) {
+      move.plate(box(1.0, 1.3, 2 * g + 1.0).translate(ve, 0.65, 0), b.color);
+      move.plate(box(1.0, b.pin + 0.8, 1.6).translate(ve, (b.pin + 0.8) / 2, 0), b.lilac);
+      move.plate(cyl(0.45, 0.45, 1.0, 12).rotateZ(Math.PI / 2).translate(ve + out * 0.6, b.pin, 0), b.brass);
+    }
+    for (const v of b.saddles) move.plate(box(1.6, 0.4, 2 * g).translate(v, -0.08, 0), b.iron);
+    // the arms, from the hubs (their pivot, local 0) down to the pins
+    for (const [ve, out] of [[vn, -1], [vs, 1]]) {
+      arms.plate(box(0.5, b.arm + 0.6, 1.0).translate(ve + out * 1.2, -b.arm / 2, 0), b.color);
+      for (const y of [0, -b.arm]) arms.plate(cyl(0.6, 0.6, 0.62, 12).rotateZ(Math.PI / 2).translate(ve + out * 1.2, y, 0), b.brass);
+    }
+  },
+};
+
+/**
+ * A port's berth: its fixed part into `still` (the port's solid parts), its moving part as meshes of its own under a
+ * group turned with the hull, posed with set({ du, up, theta }). Never solid (the hull's collider and the ground keep you
+ * off it), never frozen (userData.dynamic: it moves).
+ */
+function buildBerth(spec, site, y0, still, mats, noShadow) {
+  const b = berthSpec(spec), fixed = new Parts(), move = new Parts(), arms = new Parts();
+  BERTH_KIT[b.kind](b, fixed, move, arms);
+  const group = new THREE.Group();
+  group.name = `port berth ${b.kind}`;
+  group.position.set(site.x, y0, site.z);
+  group.rotation.y = site.h;
+  group.updateMatrix();
+  fixed.apply(group.matrix, still);   // (the columns, the towers: into the port's own solid meshes, in the world)
+  const body = meshesOf(move, mats, { noShadow }), swing = meshesOf(arms, mats, { noShadow });
+  body.name = 'berth body'; swing.name = 'berth arms';
+  group.add(body, swing);
+  if (b.kind === 'cradle') swing.position.y = b.pin + b.arm;
+  group.traverse((o) => { o.userData.dynamic = true; o.userData.noCollide = true; });
+  const set = ({ du = 0, up = 0, theta = 0 } = {}) => {
+    body.position.set(0, up, du);
+    swing.rotation.x = -theta;   // (about the hull's long axis: + swings the pins out of the hatch)
+    group.updateMatrixWorld(true);
+  };
+  set(berthRest(b));
+  return { spec: b, group, set };
+}
+
 // ------------------------------------------------------------------ craft in flight
 /** A craft on a loop: an ellipse round `centre` at height h, its nose along the way, bobbing and banking. */
 class Flyer {
@@ -530,16 +639,18 @@ export function buildPort(port, { groundAt = null } = {}) {
     if (!PIECE[p.kind]) throw new Error(`port ${port.id}: no piece "${p.kind}"`);
     PIECE[p.kind](p.solid ? solid : loose, p, spot(F, p, groundAt));
   }
-  for (const k of ['glow', 'mark', 'cable']) { loose[k].push(...solid[k]); solid[k] = []; }   // (lamps, paint and cables never stop you)
   const group = new THREE.Group(), noShadow = [];
+  const berth = port.berth ? buildBerth(port.berth, port.site, y0, solid, mats, noShadow) : null;
+  for (const k of ['glow', 'mark', 'cable']) { loose[k].push(...solid[k]); solid[k] = []; }   // (lamps, paint and cables never stop you)
   group.name = `${port.id} port`;
   meshesOf(loose, mats, { group, noShadow });
   meshesOf(solid, mats, { solid: true, group, noShadow });
+  if (berth) group.add(berth.group);
   const flyers = (port.traffic ?? []).map((T, i) => new Flyer(T, i, mats));
   for (const f of flyers) { group.add(f.root); f.root.traverse((o) => o.isMesh && noShadow.push(o)); }
   const lights = [...loose.lights, ...solid.lights].map(([x, y, z, r]) => new THREE.Vector4(x, y, z, r));
   return {
-    group, lights, noShadow,
+    group, lights, noShadow, berth,
     craft: flyers.map((f) => f.root),
     update(dt) { for (const f of flyers) f.place(dt); },
     sights: (port.sights ?? []).map((s) => ({ name: s.name, at: s.xz ? [s.xz[0], y0, s.xz[1]] : (([x, z]) => [x, y0, z])(F.at(...s.at)) })),

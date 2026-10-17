@@ -22,7 +22,9 @@ arrival fixtures. So **in every city the port grows round the ship's present sit
 hull, the docks, cranes, staff and cargo stand round it where the ground is free, and the quest-giver stays where
 players meet them. What changes for the first walk in is only what you see round the ship: the city's traffic,
 a harbourmaster, cargo on its way somewhere. Two cities could later change the arrival itself (the Underwater
-City's lock, the City-Shaft's cradle), and both are noted below as options, not as part of this phase.
+City's lock, the City-Shaft's cradle), and both are noted below as options, not as part of this phase. **Both built
+(v1.84, issue #451)**: the landing site and the walk off the ramp unchanged, the berth's step added to the arrival
+and the take-off (docs/systems/worlds.md, "Space ports", Berths).
 
 Sight lines to keep in every port: nothing taller than the ship's hull between the ramp's foot and the city's
 landmark in the arrival view (the numbers per city below come from the serendipity map's data,
@@ -42,7 +44,9 @@ landmark in the arrival view (the numbers per city below come from the serendipi
   uniform, crates and baskets lowered into the shaft on cables (the ration for the guard starts here).
 - **Look**: the rim's rich pastel lacquer and brass over iron, everything hung over the void.
 - **Landing**: stays. Keep the view west across the shaft to the Lodestar clear of cranes. Option for later: the
-  ship settling into a cradle that swings it in over the rim (a cinematic change, the takeoff too).
+  ship settling into a cradle that swings it in over the rim (a cinematic change, the takeoff too). **Built (v1.84,
+  issue #451)**: the cradle hangs between towers past the bow and the stern; the ship sets down in it swung out toward
+  the shaft and it swings in over the rim's paving (the villas in front of the ramp keep the swing to about 9 m).
 
 ### The Signal Market (`bazaar`)
 
@@ -67,7 +71,8 @@ landmark in the arrival view (the numbers per city below come from the serendipi
 - **Holds**: the pontoon's pad and bollards, the lock's great doors, pods gliding outside the glass on lanes,
   Bastien as the lockkeeper (he already is), divers' cargo nets and air bells.
 - **Look**: coral pinks and sea teals under glass, brass lock gear, the pods round like bathyscaphes.
-- **Landing**: stays. Option for later: show the ship going down the lock (the arrival's last shot).
+- **Landing**: stays. Option for later: show the ship going down the lock (the arrival's last shot). **Built (v1.84,
+  issue #451)**: four columns on the ring, the ship set down on the lift's plate 12 m up and lowered onto the dome.
 
 ### The City Floating in Space (`spacecity`): the stand-in is here
 

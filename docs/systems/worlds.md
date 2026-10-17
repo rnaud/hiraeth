@@ -2846,6 +2846,18 @@ in the world where a piece belongs to the city's own plan (the Pier's rim, the s
 | the City Behind the Waterfall | the Falls Ledge | a docking niche cut into the cliff ahead of the ship's nose (the level's own rock: `waterfall.js` `NICHE`, an arch on a lit hall, a loading dock and its steps), a gantry bolted over it with a crate on its cable, crates on the dock and at its foot, puddles and moss, a dashed ring on the shelf, two darts parked, a tarp; two darts in flight; Tully at the niche (issue #447) |
 | the Buried Machine | the freight stage | the stage's rust-orange lines, a lattice crane with an ore bucket, drums of oil, crates, an ore hopper and a hauler; Dace |
 
+**Berths** (v1.84, issue #451, `src/levels/port-berth.js`): what carries the ship between where it sets down and its
+rest, a port's `berth`. The Underwater City's **lock** (its sheet's shaft between teal columns): four columns banded in
+brass on the pontoon ring either side of the hull, the lift's coral plate under the belly braced to collars on them; the
+ship sets down on it 12 m up and is lowered onto the dome. The City-Shaft's **cradle** (its sheet's lacquered cradle with
+a brass hub): towers past the bow and the stern, the cradle hung from their hubs on an arm at each end, girders along the
+hull's sides (open where the ramp comes down), saddles under the feet; the ship sets down in it swung out toward the
+shaft and it swings in over the rim's paving. The fixed part (columns, towers) is baked into the port's solid meshes;
+what moves is one or two meshes of its own (`userData.dynamic`, never solid: under the hull or beside it, where the
+hull's collider keeps you off), posed by the ship's scenes (`port.berth.set(pose)`; docs/systems/cinematics.md,
+"Berths"). The lock's columns moved the Dock's mast, cargo and a pod across the ring. The berth's step in the ship's
+scenes runs in Unity through the bridge as it does on the web.
+
 **The cost.** Everything is painted, so a port is at most six merged meshes (its paint walked through and its solid
 paint, its lamps, the ground's marks, its cables), parked craft baked in, and each craft in flight one mesh. What stops
 you is only what a piece marks `solid` (towers, kiosks, cranes' feet, cargo on the ground); paint, craft, cables and

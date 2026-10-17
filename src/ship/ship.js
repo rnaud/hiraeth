@@ -418,6 +418,17 @@ export class Ship {
 
   get playing() { return !!this.cinematic && !this.cinematic.done; }
 
+  /**
+   * What carries the ship between where it sets down and its rest in this world's port, or null (issue #451: the
+   * Underwater City's lock, the City-Shaft's cradle; src/levels/port-berth.js): { spec, set(pose) }.
+   */
+  get berth() { return this.level?.port?.berth ?? null; }
+
+  /** Where it rests offset by a berth's pose (in the hull's frame: du out of the hatch, up): into `out`. */
+  berthPos(pose, out = new THREE.Vector3()) {
+    return out.copy(this.restPos).addScaledVector(this.outDir, pose?.du ?? 0).setY(this.restPos.y + (pose?.up ?? 0));
+  }
+
   // ------------------------------------------------------------------ the player in and around the ship
   local(model, p) { return model.group.worldToLocal(p.clone()); }
   world(model, v) { model.group.updateMatrixWorld(); return v.clone().applyMatrix4(model.group.matrixWorld); }

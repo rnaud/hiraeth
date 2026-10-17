@@ -1178,6 +1178,8 @@ const PORT441 = 'Issue #441: the running game in muted headless Chrome (ANGLE Me
 const PORT441U = 'Issue #441: the Unity bridge in the editor’s batch run on this Mac (scripts/unity-compare/unity.mjs: muted, High, 1280 × 720, -fresh -no-hud, the same pinned camera as the web’s); 17 October; cwebp -q 72';
 const PORT447 = 'Issue #447: the running game in muted headless Chrome (ANGLE Metal, High, render scale 1, 1280 × 720, 10:00, the HUD hidden; scripts/design-qc/capture.mjs --fixed-scale) on this branch’s own Vite (port 5447), the camera pinned; before: the tree at 3e6d426a0, the same camera; the boats in flight held still by the view’s `act`; 17 October; cwebp -q 72';
 const PORT447U = 'Issue #447: the Unity bridge in the editor’s batch run on this Mac (scripts/unity-compare/unity.mjs: muted, High, 1280 × 720, the same pinned camera as the web’s); 17 October; cwebp -q 72';
+const PORT451 = 'Issue #451: the running game in muted headless Chrome (ANGLE Metal, High, render scale 1, 1280 × 720, 10:00, the HUD hidden) on this branch’s own Vite (port 5451): the berth’s pictures with the camera pinned on the berth’s own lens (scripts/design-qc/capture.mjs --fixed-scale), the motion’s frames with the page’s clock stepped 1/30 s and held for the shot; before: the tree at 675f05cb4, the same camera; 17 October; cwebp -q 72';
+const PORT451U = 'Issue #451: the Unity bridge in the editor’s batch run on this Mac (scripts/unity-compare/sequences.mjs unity: muted, High, 1280 × 720), the same moments of the same scenes as the web’s; 17 October; cwebp -q 72';
 const portRef = (id, what) => ({ sheet: `references/space-ports/${id}/sheet-1.jpg`, caption: `The author’s pick from the reference lab: ${what}` });
 export const CHANGELOG_MEDIA = {
   '1.84': [
@@ -1284,6 +1286,24 @@ export const CHANGELOG_MEDIA = {
       { name: 'port-freight', title: 'The freight stage', caption: 'The Buried Machine’s stage from high: the rust-orange lines, the lattice crane and its ore bucket, the drums and crates', from: PORT441, reference: portRef('buried-machine', 'the freight stage, its crane and the ore hopper') },
     ], see: 'Land in any of these worlds and walk round the ship.' },
     { match: 'Each port has someone who runs it', see: 'Look for the port’s keeper a few steps from the ship: by the harbour hut on the Pier, the cab stand on the City-Shaft’s rim, the board’s window in the Signal Market.' },
+    { match: 'In the Underwater City your ship now comes down the Dock’s lock', shots: [
+      { name: 'port-lock', title: 'The lock', caption: 'The Dock from the lock’s own lens, the ship at rest: before, the pontoon ring alone; after, the lock’s four teal columns banded in brass either side of the hull, the lift’s coral plate under it', from: PORT451, reference: portRef('underwater-city', 'the ship lowered down the lock’s shaft') },
+      { name: 'port-lock-up', only: 'after', title: 'Set down on the lock', caption: 'The arrival, a fifth of a second into the lock’s step: the ship on the plate 12 m up its columns, about to be lowered onto the dome', from: PORT451 },
+      { name: 'port-lock-unity', only: 'after', title: 'In Unity', caption: 'The same moment in the Unity version: the ship on the lock’s plate up its columns', from: PORT451U },
+    ], numbers: [{ title: 'Draw calls a frame from the lock’s lens, the ship at rest (the shadow passes included)', unit: 'calls', better: 'lower', device: 'this Mac, headless Chrome, High, render scale 1, 1280 × 720 (the mean over a second)', rows: [
+      { where: 'the Dock, the lock’s lens', before: 299, after: 299 },
+      { where: 'the Dock, from the ramp’s foot', before: 285, after: 287 },
+    ], source: 'Issue #451: scripts/design-qc/capture.mjs on both trees (the columns are baked into the port’s own meshes; the plate is one mesh of its own)' }],
+      see: 'Fly to the Underwater City: after the ship sets down, watch the lock lower it onto the dome. Fly away from it to see the lock lift it first.' },
+    { match: 'On the City-Shaft’s rim your ship now sets down into a lacquered cradle', shots: [
+      { name: 'port-cradle', title: 'The cradle', caption: 'The rim from the cradle’s own lens, the ship at rest: before, the ship on the paving; after, the towers past its bow and stern, the arms down from their brass hubs, the pink and lilac girders along its sides', from: PORT451, reference: portRef('city-shaft', 'the ship held in a lacquered cradle with a brass hub') },
+      { name: 'port-cradle-out', only: 'after', title: 'Swung out', caption: 'The arrival, a fifth of a second into the cradle’s step: the ship just set down in the cradle swung out toward the shaft, before it swings in', from: PORT451 },
+      { name: 'port-cradle-unity', only: 'after', title: 'In Unity', caption: 'The same moment in the Unity version: the cradle swung out with the ship in it', from: PORT451U },
+    ], numbers: [{ title: 'Draw calls a frame on the rim, the ship at rest (the shadow passes included)', unit: 'calls', better: 'lower', device: 'this Mac, headless Chrome, High, render scale 1, 1280 × 720 (the mean over a second)', rows: [
+      { where: 'the cradle’s lens', before: 361, after: 365 },
+      { where: 'from the ramp’s foot', before: 252, after: 257 },
+    ], source: 'Issue #451: scripts/design-qc/capture.mjs on both trees (the towers baked into the port’s meshes; the cradle and its arms two meshes of their own)' }],
+      see: 'Fly to the City-Shaft: after the ship sets down, watch the cradle swing it in over the rim. Fly away to see it swing out first.' },
     { match: 'In the Unity version, fights answer as on the web', see: 'In the Unity version, stand in a fire for a few seconds and count the hearts it takes (as many as on the web); fight a blot in the Arena and take a blow (the thud), pick up its chimes (the count ticks up); play the Sunken Hall; fly to a world you have never visited (the pirates come); in the Lab press R3.' },
     { match: 'The City Behind the Waterfall’s landing is a proper port now', shots: [
       { name: 'port-niche', title: 'The ledge', caption: 'The Waterfall’s shelf from over its south-west corner: before, the bare cliff past the ship’s nose; after, the docking niche cut into it, the gantry over it, puddles and moss on the stone', from: PORT447, reference: portRef('waterfall', 'the ledge, its niche, its gantry and the couriers') },

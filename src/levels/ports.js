@@ -5,7 +5,8 @@
 // Positions are in the hull's frame, `at: [u, v]` (u out of the hatch, v along the hull to its stern: port-pad.js), or
 // `xz` in the world where a piece belongs to the city's own plan (a rim, a bridge's mouth).
 //
-// A port: { id, site, pad: [layers], pieces: [pieces], traffic: [craft on loops], sights, staff: [people] }. The staff
+// A port: { id, site, pad: [layers], pieces: [pieces], traffic: [craft on loops], sights, staff: [people], berth? }
+// (berth: what carries the ship between where it sets down and its rest, issue #451: src/levels/port-berth.js). The staff
 // are the level's own people (a harbourmaster with two toned lines): each level adds them to its content's npcs.
 // ---------------------------------------------------------------------------
 
@@ -90,6 +91,15 @@ export const INCAL_PORT = {
     // crates and baskets for the ration down the shaft, by the crane
     { kind: 'cargo', ...rimAt(-0.17, SHAFT_R + 6), items: ['crate', 'basket', 'crate', 'basket', 'crate', 'crate'], stack: true, colors: { crate: '#b89a72', basket: '#c8a46a', goods: '#e0b050' }, solid: true },
   ],
+  // the swinging cradle (issue #451, the sheet's lacquered cradle with a brass hub on its end): towers past the bow and
+  // the stern, the cradle hung from their hubs on an arm at each end, girders along the hull's sides (open where the
+  // ramp comes down) and saddles under its feet; the ship sets down into it swung out toward the shaft and it swings it
+  // in over the rim's paving (src/levels/port-berth.js). Its lens: ahead of the bow, the swing seen across.
+  berth: {
+    kind: 'cradle', arm: 13, swing: 0.72, pin: 5, ends: [-24.2, 32.6], girder: 10, gap: 4.2, saddles: [-11.2, 22],
+    color: SH_COL.pink, lilac: SH_COL.lilac, blue: SH_COL.blue, brass: SH_COL.brass, iron: SH_COL.iron, lamp: '#ffd890',
+    shot: { at: [52, -50, 24], look: [2, 6, 4], fov: 46 },
+  },
   sights: [{ name: 'the Rim Docks', xz: rimAt(0.115).xz }],
   staff: [
     { id: 'faro', name: 'Faro', title: 'who wardens the rim docks', color: '#b8a6d8', kind: 'm', uv: [-20, -38], y: 200, radius: 2, lang: 'incal',
@@ -150,10 +160,20 @@ export const UNDERWATER_PORT = {
     // the cupola on the ring by the stern, two pods moored, the lock's brass lamp-post
     { kind: 'kiosk', at: [12, 22], dy: 0, yaw: 0.9, w: 3.6, d: 3.6, h: 2.6, color: UW_COL.cream, roof: 'round', roofColor: UW_COL.brass, window: '#ffe2a8' },
     { kind: 'craft', at: [21, 13], dy: 0, yaw: 2.2, model: 'pod', colors: { hull: UW_COL.coral, brass: UW_COL.brass, glass: UW_COL.glass } },
-    { kind: 'craft', at: [-10, 16], dy: 0, yaw: -2.4, model: 'pod', colors: { hull: UW_COL.cream, brass: UW_COL.brass, glass: UW_COL.glass } },
-    { kind: 'mast', at: [-11, -6], dy: 0, h: 5.5, color: UW_COL.brass, trim: UW_COL.teal, lamp: '#ffe8b0' },
-    { kind: 'cargo', at: [-10, -8], dy: 0, yaw: 0.5, items: ['cask', 'crate', 'cask', 'crate'], cols: 2, colors: { cask: UW_COL.teal, band: UW_COL.brass, crate: '#c8a882' } },
+    // (on the ring's far side, between the lock's columns)
+    { kind: 'craft', at: [-12.2, 9.8], dy: 0, yaw: -2.4, model: 'pod', colors: { hull: UW_COL.cream, brass: UW_COL.brass, glass: UW_COL.glass } },
+    { kind: 'mast', at: [-12.5, 1], dy: 0, h: 5.5, color: UW_COL.brass, trim: UW_COL.teal, lamp: '#ffe8b0' },
+    { kind: 'cargo', at: [-12.5, 5.5], dy: 0, yaw: 0.5, items: ['cask', 'crate', 'cask', 'crate'], cols: 2, colors: { cask: UW_COL.teal, band: UW_COL.brass, crate: '#c8a882' } },
   ],
+  // the lock (issue #451, the sheet's shaft between teal columns banded in brass): four columns on the ring either side
+  // of the hull, the lift's coral plate under the belly braced to collars on them; the ship sets down on it 12 m up and
+  // is lowered onto the dome (src/levels/port-berth.js). The lens of its step: off the ramp's side, ahead of the bow.
+  berth: {
+    kind: 'lock', rise: 12, collar: 3.0, columns: [[10.5, -6.5], [10.5, 14.5], [-10.5, -6.5], [-10.5, 14.5]],
+    plate: { u: 7.3, v: [-18.5, 27.5], top: 0.78 },
+    color: UW_COL.coral, brass: UW_COL.brass, column: '#8fcabb', lamp: '#ffe8b0',
+    shot: { at: [44, -34, 7], look: [0, 4, 11], fov: 50 },
+  },
   traffic: [
     { model: 'pod', colors: { hull: UW_COL.coral, brass: UW_COL.brass, glass: UW_COL.glass }, centre: [0, 0, 20], rx: 72, rz: 150, h: 16, speed: 6 },
     { model: 'pod', colors: { hull: UW_COL.teal, brass: UW_COL.brass, glass: UW_COL.glass }, centre: [0, 0, -50], rx: 110, rz: 90, h: 34, speed: 5, dir: -1, phase: 2.2 },

@@ -56,6 +56,14 @@ The ship's cutscenes and the filmed first times.
   arrival's wide is still not wired. Tests: `tests/cutscenes.test.js` (up first with no step forward, then away along
   the bow; in, a hover, straight down, no speed at touchdown; the director's take-off; the flame under the bells on the
   new curve), `tests/arrival-view.test.js` (every world's wide glides in from 150 m back or more).
+- **Berths: the lock and the cradle** (v1.84, issue #451; `src/levels/port-berth.js`, pure numbers). In a port with a
+  `berth` (docs/systems/worlds.md, "Space ports") the landing sets the ship down on the berth out and a step of its own,
+  after the landing and before the ramp, brings it to its rest; leaving, a step after the seal carries it out and the
+  lift-off starts from there. The Underwater City's lock lowers it 12 m down its columns in 3.6 s (raises it in 2.8);
+  the City-Shaft's cradle, swung out 0.72 rad on 13 m arms, swings it in, past its rest by a quarter of the swing and
+  back, in 3.8 s (out in 2.6). Each eased to a standstill at both ends; filmed from the port's own lens (`shot`, in the
+  hull's frame). The ship's rest, its ramp and the walk out are as before; a world without a berth plays the same steps
+  as before (the sequences' indices hold). Tests: `tests/port-berth.test.js`.
 - **The first arrival in each world** (issue #327: "the landing view and the first exit out of the ship should show a
   beautiful view of the landscape with points of interest visible"; `src/ship/arrival-view.js`). Two views per route
   world, picked from its own data and kept in `src/ship/arrival-views.js`:

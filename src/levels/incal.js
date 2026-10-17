@@ -1272,6 +1272,7 @@ export function* buildIncal(scene) {
     camYaw: Math.PI / 2,
     features: { mount: false, wind: false, jetpack: true, climb: true, taxis: true },
     vehicles,
+    port,   // (the Rim Docks: its cradle carries the ship in and out, the ship's scenes pose it: src/ship/cinematics.js)
     veils,   // (the air pillars' see-through bodies: src/veil.js, drawn by main.js after the ink pass)
     // the rising air the wings ride (the trials' course check: src/trials/check.js)
     columns: pillars.pillars.map((c) => ({ x: c.x, z: c.z, r: c.w, foot: c.foot, top: c.top })),

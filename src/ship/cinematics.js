@@ -18,6 +18,7 @@ import { FACE } from '../humanoid.js';
 import { WIDE, WIDE_FLAG, VIEW_FLAG, arrivalViews, exitStops, wideBack, wideFlight } from './arrival-view.js';
 import { TAKEOFF, LANDING, takeoffPose, landingPose, landingDur } from './flight.js';
 import { PrologueDrone, WAKE, shoulderSpot } from './prologue-drone.js';
+import { berthOut, berthRest, berthArrive, berthLeave } from '../levels/port-berth.js';
 
 // What the ship's cinematics look like: cameras, the moving ship, dust,
 // sounds, subtitles. The prologue's timing lives in prologue.js; the
@@ -879,11 +880,24 @@ export function planetDistance(D, ang, near = PLANET_NEAR) {
 }
 
 /**
+ * A berth's step's lens (issue #451, src/levels/port-berth.js): its port's `shot` ([u, v, y]: metres out of the hatch,
+ * along the hull toward its stern, up from the ground the ship rests on), fixed while the lock or the cradle moves.
+ */
+export function berthShot(ship, spec) {
+  const o = ship.outDir, aft = V(o.z, 0, -o.x), g = ship.site?.ground ?? ship.restPos.y - LIFT;
+  const s = spec.shot ?? { at: [40, -30, 8], look: [0, 4, 8], fov: 50 };
+  const P = ([u, v, y]) => ship.restPos.clone().addScaledVector(o, u).addScaledVector(aft, v).setY(g + y);
+  return { pos: P(s.at), look: P(s.look), fov: s.fov };
+}
+
+/**
  * Arriving by ship: out of the jump, the destination planet grows ahead (drawn in its own
  * colours, src/ship/approach.js); the ship levels out and brakes into the air, through the
  * clouds; it flies in nose first, hovers over the site, comes straight down on its jets
  * (src/ship/flight.js landingPose, issue #354) and settles onto its feet (no fire,
- * no shaking: only the prologue's arrival is a crash); then it opens, and you walk out.
+ * no shaking: only the prologue's arrival is a crash); then it opens, and you walk out. In a port with a berth (issue
+ * #451) it sets down on the berth out (the lock's plate up its columns, the cradle swung out) and the berth brings it to
+ * its rest before the ramp comes down.
  */
 export class ArrivalDirector extends Sequence {
   constructor(ship) {
@@ -894,6 +908,8 @@ export class ArrivalDirector extends Sequence {
     // the approach: the ship flies nose first along `fwd` (its bow's way as it will stand), the planet ahead and below
     const fwd = V(0, 0, -1).applyQuaternion(ship.restQuat).setY(0).normalize(), up = V(0, 1, 0), across = V(-fwd.z, 0, fwd.x);
     const cam = new THREE.Vector3(), pl = new THREE.Vector3(), q = new THREE.Quaternion(), tilt = new THREE.Quaternion();
+    // (where it sets down: its rest, or its port's berth out, which then brings it to its rest)
+    const B = ship.berth, out0 = B ? berthOut(B.spec) : null, base = ship.berthPos(out0);
     const fog0 = () => { const U = ship.post?.uniforms; if (U) U.uFogMul.value = 0; };   // no haze in space
     // the first time here (issue #327, src/ship/arrival-view.js): the establishing descent over the world's landmarks
     // instead of the short drop out of the clouds, and the first step out turned to its best view; later arrivals as before
@@ -908,7 +924,7 @@ export class ArrivalDirector extends Sequence {
     const t0 = wide ? L.glide : APPROACH.sky, landDur = wide ? WIDE.land : landingDur(L) - APPROACH.sky;
     const flyAt = (t) => {
       const p = landingPose(t, L);
-      m.group.position.copy(ship.restPos).addScaledVector(fwd, -p.back).addScaledVector(up, p.up);
+      m.group.position.copy(base).addScaledVector(fwd, -p.back).addScaledVector(up, p.up);
       m.group.quaternion.copy(tilt.setFromAxisAngle(across, p.pitch)).multiply(ship.restQuat);
       return p;
     };
@@ -928,6 +944,7 @@ export class ArrivalDirector extends Sequence {
           C.hud(false); C.bars(true);
           ship.placePlayer(ship.world(m, m.interior.points.hatchIn), ship.worldHeading(m, HATCH_A), false);
           ship.setDoor(m, 0); ship.setRamp(m, 0);
+          B?.set(out0);
           // the first time here: the ship reads the light's signature (src/story/signature.js)
           const sig = arrivalLine(ship.levelId, (k) => game.flag(k));
           if (sig) { C.say(sig, { secs: 5.2 }); for (const [k, v] of Object.entries(sig.set)) game.set(k, v); }
@@ -1022,7 +1039,7 @@ export class ArrivalDirector extends Sequence {
           m.mats.thrust.uniforms.uGlow.value = 1;
           sfx.engines(ship.sound, 0.8);
           flyAt(t0);
-          look.copy(m.group.position).lerp(ship.restPos, LAND_LOOK);
+          look.copy(m.group.position).lerp(base, LAND_LOOK);
         },
         frame: (t, dt) => {
           flyAt(t0 + t);
@@ -1030,9 +1047,9 @@ export class ArrivalDirector extends Sequence {
           // aims a little under it, so the ground it is coming down to stays in the frame and the drop reads)
           const cam = ship.rampFoot.clone().addScaledVector(ship.outDir, 34).addScaledVector(side, 20);
           cam.y = ship.groundAt(cam.x, cam.z) + 5;
-          look.lerp(_w.copy(m.group.position).lerp(ship.restPos, LAND_LOOK), 1 - Math.exp(-5 * dt));
+          look.lerp(_w.copy(m.group.position).lerp(base, LAND_LOOK), 1 - Math.exp(-5 * dt));
           ship.shot({ pos: cam, look, fov: 52 });
-          const h = m.group.position.y - ship.restPos.y;
+          const h = m.group.position.y - base.y;
           // set every frame, so the engines come in even if the sound starts mid-scene
           if (!this.down) sfx.engines(ship.sound, 0.55 + 0.45 * (1 - Math.min(1, h / 140)));
           if (h < 40 && !this.dusted && ship.sound?.ctx) { this.dusted = true; sfx.rumble(ship.sound, 2.4, 0.22); }
@@ -1045,6 +1062,19 @@ export class ArrivalDirector extends Sequence {
           }
         },
       },
+      ...(B ? [{
+        // the berth brings it to its rest (issue #451): the lock lowers it down its columns onto the dome, the cradle,
+        // let go, swings it in over the rim and settles; seen from its port's own lens
+        dur: B.spec.arrive + 0.3,
+        enter: () => sfx.rumble(ship.sound, B.spec.arrive, 0.18),
+        frame: (t) => {
+          const p = berthArrive(B.spec, t);
+          B.set(p);
+          ship.berthPos(p, m.group.position);
+          ship.shot(berthShot(ship, B.spec));
+          if (t > B.spec.arrive - 0.1 && !this.berthed) { this.berthed = true; sfx.rumble(ship.sound, 0.4, 0.2); }   // (home: a clunk)
+        },
+      }] : []),
       {
         // the door unseals and slides up the hull; then the ramp slides out, tips down and telescopes to the ground
         dur: 2.8,
@@ -1077,6 +1107,7 @@ export class ArrivalDirector extends Sequence {
         ship.removeApproach();
         C.fade(0, true, skipped ? 0.3 : 0);
         m.group.position.copy(ship.restPos); m.group.quaternion.copy(ship.restQuat);
+        B?.set(berthRest(B.spec));
         ship.setDoor(m, 1); ship.setRamp(m, 1);
         m.mats.thrust.uniforms.uGlow.value = 0;
         sfx.engines(ship.sound, 0);
@@ -1106,13 +1137,15 @@ const _w = new THREE.Vector3();
 /**
  * Leaving: the hatch shuts, the ship lifts straight up off its feet on its jets in a storm of dust and hangs there;
  * then the nose dips, the jets tip it forward and it powers away along its bow, climbing (issue #354:
- * src/ship/flight.js takeoffPose); then the stars rush past.
+ * src/ship/flight.js takeoffPose); then the stars rush past. In a port with a berth (issue #451) the berth carries it
+ * out first (the lock lifts it up its columns, the cradle swings it out toward the shaft) and it lifts off from there.
  */
 export class TakeoffDirector extends Sequence {
   constructor(ship, { to, title, onDone }) {
     const m = ship.parked, C = ship.cinema;
     const look = new THREE.Vector3(), tilt = new THREE.Quaternion();
     const fwd = V(0, 0, -1).applyQuaternion(ship.restQuat).setY(0).normalize(), across = V(-fwd.z, 0, fwd.x);
+    const B = ship.berth, base = ship.berthPos(B ? berthOut(B.spec) : null);
     super(ship, [
       {
         dur: 2.0,
@@ -1130,6 +1163,17 @@ export class TakeoffDirector extends Sequence {
           ship.shake(0.25 * t);
         },
       },
+      ...(B ? [{
+        // sealed, the berth carries it out: up the lock's columns, or the cradle swung out toward the shaft
+        dur: B.spec.leave + 0.2,
+        enter: () => { ship.showPlayer(false); sfx.rumble(ship.sound, B.spec.leave, 0.18); },
+        frame: (t) => {
+          const p = berthLeave(B.spec, t);
+          B.set(p);
+          ship.berthPos(p, m.group.position);
+          ship.shot(berthShot(ship, B.spec));
+        },
+      }] : []),
       {
         dur: TAKEOFF.dur,
         enter: () => {
@@ -1140,7 +1184,7 @@ export class TakeoffDirector extends Sequence {
         frame: (t, dt) => {
           const k = t / TAKEOFF.dur, p = takeoffPose(t);
           // up off its feet to a hover, then tipped forward and away along its bow, climbing
-          m.group.position.copy(ship.restPos).addScaledVector(fwd, p.ahead).add(V(0, p.up, 0));
+          m.group.position.copy(base).addScaledVector(fwd, p.ahead).add(V(0, p.up, 0));
           m.group.quaternion.copy(tilt.setFromAxisAngle(across, p.pitch)).multiply(ship.restQuat);
           // (low, out from the hatch and a little behind the stern: the lift and the hover side on, then it goes away
           // across and ahead of the lens rather than over it)

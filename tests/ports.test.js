@@ -47,7 +47,7 @@ test('a port is a handful of merged meshes; only what is marked solid stops you;
     assert.ok(statics.length <= 6, `${id}: ${statics.length} meshes`);
     for (const m of statics) {
       const solid = !m.userData.noCollide;
-      if (solid) assert.ok(P.pieces.some((p) => p.solid), `${id}: a solid mesh only from solid pieces`);
+      if (solid) assert.ok(P.pieces.some((p) => p.solid) || P.berth, `${id}: a solid mesh only from solid pieces (or a berth's columns and towers)`);
       if (/glow|mark|cable/.test(m.name)) assert.ok(!solid, `${id} ${m.name}: walked through`);
     }
     // the solid meshes keep off the hull's plan (a metre round it) and the ramp's way
