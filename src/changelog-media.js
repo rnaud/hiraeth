@@ -1255,6 +1255,7 @@ export const CHANGELOG_MEDIA = {
       { name: 'port-niche', title: 'The ledge', caption: 'The Waterfall’s shelf from over its south-west corner: before, the bare cliff past the ship’s nose; after, the docking niche cut into it, the gantry over it, puddles and moss on the stone', from: PORT447, reference: portRef('waterfall', 'the ledge, its niche, its gantry and the couriers') },
       { name: 'port-niche-close', title: 'The niche', caption: 'At the cliff’s foot: the arch opening on the lit hall, the loading dock and its steps, the crate on the gantry’s cable, Tully by the crates', from: PORT447 },
       { name: 'port-niche-high', title: 'From high', caption: 'The v1.84 view from high over the ledge: the post crane gone from the south, the gantry at the left edge, puddles and moss round the ring', from: PORT447 },
+      { name: 'port-niche-unity', only: 'after', title: 'In Unity', caption: 'The niche in the Unity version (the editor’s batch run, High, 1280 × 720), the same view', from: PORT447U },
     ], numbers: [{ title: 'Draw calls a frame (the shadow passes included)', unit: 'calls', better: 'lower', device: 'this Mac, headless Chrome, High, render scale 1, 1280 × 720 (the mean over a second)', rows: [
       { where: 'the ledge from the south-west', before: 221, after: 231 },
       { where: 'at the niche', before: 86, after: 102 },
@@ -1264,6 +1265,7 @@ export const CHANGELOG_MEDIA = {
       { name: 'skyboats', title: 'In flight', caption: 'Two sky-boats held still off the Pier for the picture (the one on the left side-on): before, a flat 7.5 m lens with a drum on top; after, the 9 m capsule in two colours, its cabin, portholes, fin and screw', from: PORT447, reference: portRef('space-city', 'the moorers’ boats and their hoop cradle') },
       { name: 'skyboats-hoop', title: 'In a hoop', caption: 'A hoop cradle off the Pier’s rim from outside: the boat now lies inside the hoop, a little under its flying size', from: PORT447 },
       { name: 'skyboats-pier', title: 'The Pier', caption: 'The Pier from the south-east, by the ramp: the boats in the two near hoops', from: PORT447 },
+      { name: 'skyboats-unity', only: 'after', title: 'In Unity', caption: 'The Pier in the Unity version (the editor’s batch run, High, 1280 × 720), the same view', from: PORT447U },
     ], numbers: [{ title: 'Draw calls a frame (the shadow passes included)', unit: 'calls', better: 'lower', device: 'this Mac, headless Chrome, High, render scale 1, 1280 × 720 (the mean over a second)', rows: [
       { where: 'the boats in flight', before: 326, after: 332 },
       { where: 'a hoop cradle', before: 325, after: 329 },
