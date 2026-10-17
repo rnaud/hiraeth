@@ -66,8 +66,12 @@ test('the Steam Deck preset takes the levers; main.js sets offView from the pres
   for (const k of ['high', 'medium', 'auto']) {
     assert.ok(!QUALITY_PRESETS[k].peopleLod && !QUALITY_PRESETS[k].skipHidden, `${k}: every person every frame, every matrix`);
   }
+  // (the Handheld too, the people's alone: issue #450)
+  assert.equal(QUALITY_PRESETS.handheld.peopleLod, true, 'handheld: people out of view past 30 m at a quarter of the frames');
+  assert.ok(!QUALITY_PRESETS.handheld.skipHidden, 'handheld: every matrix');
   const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
-  assert.match(main, /n\.offView = peopleLod \? !inView\(n\.pos, /);
+  assert.match(main, /n\.offView = peopleLod \? !inViewNow\(peopleView, n\.pos, /);
+  assert.match(main, /const peopleView = peopleLod \? viewNow\(camera\) : null;/);
   assert.match(main, /updateSceneMatrices\(scene, !!preset\.skipHidden\)/);
   // (the catch-up after everything that shows things before the draws, and before the still batches copy matrices)
   const at = (s) => main.indexOf(s);

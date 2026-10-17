@@ -258,6 +258,8 @@ export const GAPS = {
     { keys: ['shared:fragmentsLine', 'fn:fragmentsHtml'], what: 'the Start menu\'s line of the fragments (found, to spend, left here)', status: 'handled', where: 'src/host/game-host.js fragmentsLine (main.js before; its HTML span fragmentsHtml the page\'s); engine/unity/game.js saveLine' },
     { keys: ['shared:wireShip'], what: 'the ship\'s place for quests, the scout and the Map\'s "Your ship" mark', status: 'handled', where: 'src/host/game-host.js wireShip (main.js level.ship before; the engines had none)' },
     // handled by the engines' own
+    { keys: ['import:src/motion-kit/view.js#viewNow', 'import:src/motion-kit/view.js#inViewNow'], what: 'the people\'s offView from this frame\'s view (peopleLod, issue #450)', status: 'handled',
+      where: 'engine/game.js: offView from inView, always (backend.peopleLod); its camera is placed after the people move, so the last frame\'s view is the one it has' },
     { keys: ['import:src/hud.js#heartsSvg', 'import:src/hud.js#KEY_SVG', 'import:src/hud.js#GREAT_KEY_SVG', 'fn:updateStamina', 'fn:restartNow', 'fn:showToast',
       'import:src/story/charge.js#chargeHud', 'import:src/story/charge.js#showChargeCard', 'import:src/story/charge.js#GIVEN', 'import:src/story/charge.js#CARD', 'import:src/passage.js#PassageCover', 'import:src/flurry.js#FlurryFx'],
     what: 'the HUD\'s page drawing (hearts, wallet, keys, stamina, knock-out, toast, charge, passage cover, flurry)', status: 'handled', where: 'the screen\'s parts the engines publish (engine/game.js, engine/combat.js), drawn by BridgeHud.cs' },

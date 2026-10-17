@@ -4764,3 +4764,54 @@ mirror (2.5–5.3, its scene walk half of it). This round changes nothing there 
 "after" is these numbers. For the Retroid the CPU levers are the people (#446's item 5) and the mirror's walk.
 Raw: the session's scratchpad, `cpu-448/` (`ab/base/split/<world>-r0|r1/unity-bench.json`, `tools/split.py`,
 `passall*.txt`, `pix*.txt`, `check-*.txt`, `shots/`).
+## CPU round 2 (#450): the people out of view, the ragdoll's rays
+
+Fixes 5 and 6 of the list above. Measured on this Mac (M4 Pro, load 15–35 from other agents), headless muted Chrome,
+Handheld, the CPU throttled ×4; the scripts are #446's (`profile.mjs`, `analyze.mjs`) plus three of this round's in the
+session's scratchpad, `cpu-450/` (`rag-cmp.mjs`, `diag.mjs`, `pan.mjs`).
+
+**The ragdoll** (src/ragdoll.js `step`, src/physics.js `groundHit` / `baseHit`). Each of the fifteen particles cast
+`heightAbove` and then `groundNormal` down the very same line, every sub-step (2–3 a frame at 60–30 fps): 59–89 rays a
+frame. Now one ray gives both, and on the frame's later sub-steps a particle that has moved less than `RAG.reuse`
+(3 cm) across, and no higher, reads the ground its ray found: the hit's plane under where it is now (exact on level
+ground), or on a heightfield its own height and slope from the heightfield (no ray: a dune is no plane, and the plane
+there made one limb flick 17 cm for a few frames). A wall-steep hit is cast again. `rag-cmp.mjs` steps the old and the
+new ragdoll side by side in the page from the same pose with the real collision (the Desert's dunes, the City-Shaft,
+the Market; knocked over three ways and the walk's own run off the City-Shaft's ledge; 1/60 and 1/30 s): **the same
+fall to under 0.01 mm every frame, the same settling frame**, 15–17 rays a frame. Time at ×4 (ms a frame):
+
+| fall | before | after |
+|---|---|---|
+| the City-Shaft, run off the ledge down the shaft (1/30 s) | 3.80 | 0.73 |
+| the same at 1/60 s | 2.60 | 0.75 |
+| the City-Shaft, knocked over where he stands | 0.43–0.65 | 0.13–0.19 |
+| the Signal Market | 0.38–0.58 | 0.13–0.20 |
+| the Desert's dunes | 0.41–0.71 | 0.16–0.25 |
+
+**The people** (src/perf.js: Handheld takes the Deck's `peopleLod`; src/main.js). A person past 30 m and out of view
+is moved a quarter of the frames (src/npc.js `offView`, the time missed taken at once back in view); past 110 m it was
+already so on every preset, and past 260 m (or `away`) nobody moves at all. `offView` is now judged from **this
+frame's** view (src/motion-kit/view.js `viewNow`: the camera is placed before the people move), not the last frame's:
+`pan.mjs` turned the camera at 90 and 270°/s at ×4 and checked, every frame, that everybody in the view within 110 m
+had moved that frame. With the last frame's view, 6–10 person-frames in 200–550 were a frame behind at 270°/s; with
+this frame's, none (0 of 4 900 over the three views and both speeds, two runs; the crowd 0 of 46 000). The Unity bridge
+has had `peopleLod` on every preset since round 11; its camera is placed after the people, so its last view is the
+current one there.
+
+`diag.mjs` turns the setting off and on in turns in one page (2.5 s each, three times) and times every person's update:
+
+| ms a frame at ×4 (people posed a frame) | off | on |
+|---|---|---|
+| the City-Shaft, the start (two runs) | 1.72, 2.08 (7.5) | 1.17, 1.30 (4.2) |
+| the City-Shaft, its densest crowd | 2.60, 2.93 (7) | 2.13, 2.34 (4.7) |
+| the Signal Market, the start | 2.57, 2.56 (11) | 2.33, 2.36 (8.8) |
+
+In the profiles (`profile.mjs`, two runs of each build) the people's posing in the City-Shaft's start goes from 1.6–1.7
+to 1.35–1.4 ms; the whole frame (27–46 ms) moves by more than that between runs of the same build, so these two fixes do
+not show in the frame total under this load. The pictures (still, 12 s after the load) differ before → after no more
+than two runs of one build do (mean |Δ| 0.9–4.1 against 0.6–4.5).
+
+**The crowd was left alone.** It already moves its people past 120 m every sixth frame and quietly; out of view within
+30–120 m there are only 20–120 of its 560–1 530 (most are in view or far), and a quarter rate for them saved nothing
+measurable in node (0.18 ms a frame unthrottled either way), the extra view test costing what it saved. Its cost is
+`Crowd.update`'s own walk of everybody (tiers, distances, the mid tier's writes), not `simulate`.

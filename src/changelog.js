@@ -51,6 +51,14 @@ export const CHANGELOG = [
         { where: 'the Signal Market, knocked over', before: 0.56, after: 0.16 },
         { where: 'the Desert’s dunes, knocked over', before: 0.48, after: 0.16 },
       ], source: 'docs/systems/performance.md, "CPU round 2 (#450)": 89 ground rays a frame → 16, the fall the same to 0.01 mm' }] },
+    // issue #450: src/perf.js handheld peopleLod, src/main.js offView from this frame's view (src/motion-kit/view.js viewNow /
+    // inViewNow), src/npc.js; tests/deck-levers.test.js; docs/systems/performance.md "CPU round 2 (#450)"
+    { text: 'On the Handheld setting, people out of your view more than 30 m away move on a quarter of the frames, as on the Steam Deck, and catch up the moment they come back into view, so nobody you can see is ever a step behind, even when you swing the camera round fast. With this Mac’s processor slowed four times, the people take about half a millisecond less of each frame in the City-Shaft.',
+      numbers: [{ title: 'The people’s update, ms of each frame, before → after (two runs each)', unit: 'ms', better: 'lower', device: 'this Mac (M4 Pro), headless Chrome, the CPU slowed ×4, Handheld; the setting turned off and on in turns in the same page', rows: [
+        { where: 'the City-Shaft, where you arrive', before: 1.9, after: 1.24 },
+        { where: 'the City-Shaft, its densest crowd', before: 2.76, after: 2.24 },
+        { where: 'the Signal Market, where you arrive', before: 2.57, after: 2.34 },
+      ], source: 'docs/systems/performance.md, "CPU round 2 (#450)": people posed a frame 7.5 → 4.2 (the City-Shaft), 7 → 4.7 (its crowd), 11 → 8.8 (the Market)' }] },
     // issue #442: src/fight-temples/rules.js rollInput / rollKey, index.js (the card), session.js; src/fluid-blade.js
     // QUICK_CUT, quickSwing, rollCancels, ROLL.buffer; src/fight-temples/kill-fx.js, src/audio.js foeKill; hazards.js
     // LINGERING; tests/fight-feel.test.js; docs/design/fight-temples.md "The roll, the quick cut and readable kills"

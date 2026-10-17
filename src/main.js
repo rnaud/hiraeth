@@ -101,7 +101,7 @@ import { createChallenges } from './trials/index.js';
 import { createBoxes, migrateSave } from './boxes/index.js';
 import { createFragments } from './fragments.js';
 import { createItemEffects } from './boxes/effects.js';
-import { setView, inView } from './motion-kit/view.js';
+import { setView, viewNow, inViewNow } from './motion-kit/view.js';
 import { GADGETS } from './gadgets/all.js';   // (first: the gadgets become items before anything reads ITEMS)
 import { Gadgets } from './gadgets/index.js';
 import { feelDt, shakeCamera, kick, selfDt } from './feel.js';
@@ -2220,11 +2220,13 @@ function frame(ts) {
   if (crowd && level.crowdAway) crowd.away = level.crowdAway();   // (a world's night thins its street: bazaar.js)
   if (crowd) crowd.hush = !talkAllowed({ shipPlaying: ship.playing });   // (no shouts over the crash or a landing: src/ship/landing.js)
   crowd?.update(dt, t, player, camera);
-  // (the light presets' peopleLod: a person past 30 m out of the last frame's view, with room round them for their shadow
-  //  and the camera's turn, is moved a quarter of the frames as past 110 m, src/npc.js offView; issue #111)
+  // (the light presets' peopleLod: a person past 30 m out of this frame's view (the camera is placed by now), with room
+  //  round them for their shadow and the camera's turn, is moved a quarter of the frames as past 110 m, src/npc.js offView;
+  //  issue #111; this frame's view, not the last one's: a fast turn brought somebody in a frame late, issue #450)
   const peopleLod = !!preset.peopleLod;
+  const peopleView = peopleLod ? viewNow(camera) : null;
   for (const n of npcs) {
-    if (!n.pooled) n.offView = peopleLod ? !inView(n.pos, 3 * (n.object?.scale?.y ?? 1) + 6) : undefined;
+    if (!n.pooled) n.offView = peopleLod ? !inViewNow(peopleView, n.pos, 3 * (n.object?.scale?.y ?? 1) + 6) : undefined;
     n.update(dt, player, camera);
   }
   errands.update();
