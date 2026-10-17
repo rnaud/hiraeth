@@ -16,6 +16,56 @@ references/space-ports/README.md
   s_5f899ba316b5dc::t_74ff4c6ebf1455 1
 tests/reference-lab.test.js
   s_5f899ba316b5dc::t_fcd45964f5b03a 113,116
+references/enemy-archetypes/wisp/manifest.json
+  s_5f899ba316b5dc::t_2fb7265b4d8b4d 1-57
+references/hats/antennas/manifest.json
+  s_5f899ba316b5dc::t_eb5ee0477634b3 1-22
+references/hats/buried/manifest.json
+  s_5f899ba316b5dc::t_f01c7db62f16aa 1-22
+references/hats/city-shaft/manifest.json
+  s_5f899ba316b5dc::t_d13f8f85989a00 1-22
+references/hats/desert/manifest.json
+  s_5f899ba316b5dc::t_c3509694354c9f 1-22
+references/hats/fallen-ring/manifest.json
+  s_5f899ba316b5dc::t_5b1ade2170078b 1-22
+references/hats/falls/manifest.json
+  s_5f899ba316b5dc::t_5f5ed16abc96cf 1-22
+references/hats/harbour/manifest.json
+  s_5f899ba316b5dc::t_23613ab77ebb9c 1-22
+references/hats/lorn-ii/manifest.json
+  s_5f899ba316b5dc::t_c17598850754f5 1-22
+references/hats/lorn/manifest.json
+  s_5f899ba316b5dc::t_948a1ca1f0eb70 1-22
+references/hats/mangrove/manifest.json
+  s_5f899ba316b5dc::t_045780b5190962 1-22
+references/hats/signal-market/manifest.json
+  s_5f899ba316b5dc::t_a897fdca42978a 1-22
+references/hats/spheres/manifest.json
+  s_5f899ba316b5dc::t_583aa2f9136f35 1-22
+references/hats/vael-ii/manifest.json
+  s_5f899ba316b5dc::t_b691f17d93b440 1-22
+references/hats/vael/manifest.json
+  s_5f899ba316b5dc::t_09a7bce5f215ed 1-22
+references/hats/viridel/manifest.json
+  s_5f899ba316b5dc::t_5324fdb2bcf790 1-22
+references/space-ports/buried-machine/manifest.json
+  s_5f899ba316b5dc::t_65b3ccb9678319 1-22
+references/space-ports/city-shaft/manifest.json
+  s_5f899ba316b5dc::t_df630ba97ed574 1-22
+references/space-ports/eclipse/manifest.json
+  s_5f899ba316b5dc::t_0fba9ac9817705 1-22
+references/space-ports/glass-dunes/manifest.json
+  s_5f899ba316b5dc::t_44bf3d263099db 1-22
+references/space-ports/salt-harbour/manifest.json
+  s_5f899ba316b5dc::t_1697ef90be210d 1-22
+references/space-ports/signal-market/manifest.json
+  s_5f899ba316b5dc::t_48461594dfe367 1-22
+references/space-ports/space-city/manifest.json
+  s_5f899ba316b5dc::t_a0be315ff9a2ca 1-22
+references/space-ports/underwater-city/manifest.json
+  s_5f899ba316b5dc::t_28541b200b7b51 1-22
+references/space-ports/waterfall/manifest.json
+  s_5f899ba316b5dc::t_84666078849eba 1-22
 ---
 {
   "schema_version": "authorship/3.0.0",
