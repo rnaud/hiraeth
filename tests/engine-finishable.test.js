@@ -31,6 +31,13 @@ const hushed = async (fn) => {
   const w = console.warn, i = console.info, l = console.log, e = console.error; console.warn = console.info = console.log = console.error = () => {};
   try { return await fn(); } finally { console.warn = w; console.info = i; console.log = l; console.error = e; }
 };
+/** The cargo panel answered once it is drawn (the screen's 'cargo' part, issue #430: it waits for Enter, E or A as the page's). */
+function answerCargo(g, seen) {
+  const c = g.screen().state.cargo;
+  if (c && !seen.cargo) { seen.cargo = { items: c.items.map((k) => k.name), go: c.go, ok: c.ok, n: 0 }; }
+  if (c && ++seen.cargo.n === 30) g.key('Enter', true);
+  else if (seen.cargo?.n === 31) { g.key('Enter', false); seen.cargo.n++; }
+}
 function run(g, frames, keys = {}, each = null) {
   const warn = console.warn; console.warn = () => {};
   try { for (let i = 0; i < frames; i++) { for (const [k, v] of Object.entries(keys)) g.key(k, v); g.frame(1 / 20); if (each?.() === true) break; } } finally { console.warn = warn; }
@@ -100,8 +107,10 @@ test('the engine keeps a world done, flies to a world never visited from the hol
   gs.set('calls.home', true);
   const h = await hushed(() => B.createGame({ levelId: 'home', backend, menus: menusStub(), via: 'ship', arrive: true }));
   assert.equal(h.ship.cinematic?.constructor?.name, 'HomecomingDirector');
-  const stages = new Set();
-  run(h, 20 * 240, {}, () => { stages.add(h.ship.cinematic?.stage); return !h.ship.playing; });
+  const stages = new Set(), seen = {};
+  run(h, 20 * 240, {}, () => { stages.add(h.ship.cinematic?.stage); answerCargo(h, seen); return !h.ship.playing; });
+  // (the cargo panel drawn from the screen's part, waiting for its answer: issue #430)
+  assert.ok(seen.cargo && seen.cargo.go.includes('Take it all down') && seen.cargo.ok, JSON.stringify(seen.cargo));
   assert.ok(stages.has('cargo') && stages.has('tomb'), [...stages].join(' '));
   assert.ok(!h.ship.playing, `the homecoming over (${[...stages].join(' ')})`);
   assert.ok(gs.flag('ending.done'), 'ending.done set');
@@ -110,9 +119,18 @@ test('the engine keeps a world done, flies to a world never visited from the hol
   gs.set('finale.met', true);
   const f = await hushed(() => B.createGame({ levelId: 'home', backend, menus: menusStub(), via: 'ship', arrive: true }));
   assert.ok(f.ship.cinematic?.final, 'the final homecoming');
-  const subs = [], fs = new Set();
-  run(f, 20 * 600, {}, () => { fs.add(f.ship.cinematic?.stage); const t = f.screen().state.sub?.text; if (t && subs.at(-1) !== t) subs.push(t); return !f.ship.playing; });
+  const subs = [], fs = new Set(), fseen = {};
+  let card = null;
+  run(f, 20 * 600, {}, () => {
+    fs.add(f.ship.cinematic?.stage); answerCargo(f, fseen);
+    const t = f.screen().state.sub?.text; if (t && subs.at(-1) !== t) subs.push(t);
+    card ??= f.screen().state.endCard ? JSON.parse(JSON.stringify(f.screen().state.endCard)) : null;
+    return !f.ship.playing;
+  });
   assert.ok(fs.has('card') && fs.has('credits'), [...fs].join(' '));
+  assert.ok(fseen.cargo?.items.includes('Ilen'), 'Ilen in the hold');
+  // (the end card drawn from the screen's 'endCard' part, issue #430: no longer said as a line)
+  assert.deepEqual(card && { title: card.title, line: card.line, on: card.on }, { title: 'SOMETHING OF VALUE', line: 'for the two of them, on the hill', on: true });
   assert.ok(subs.includes('SOMETHING OF VALUE'), subs.slice(-12).join(' | '));
   assert.ok(subs.includes('The ship is ready whenever you are.'), 'the credits said to their end');
   assert.ok(!f.ship.playing && gs.flag('ending.final'), 'the true ending over');

@@ -22,7 +22,7 @@ import * as THREE from 'three';
 import { levelById, LEVELS } from '../src/levels/index.js';
 import { CONTENT } from '../src/levels/content.js';
 import { Physics, dropBuriedFloraSteps } from '../src/physics.js';
-import { Waters } from '../src/water.js';
+import { Waters, BreathMeter, breathShown } from '../src/water.js';
 import { Ship } from '../src/ship/ship.js';
 import { CallScreen } from '../src/ship/portrait.js';
 // (the console's round screen is drawn in the VM, engine/raster.js, and sent to the GPU each time: smaller and 10 times a second)
@@ -40,6 +40,8 @@ import { CAPE_HOST } from '../src/cape.js';
 import { updateHands } from '../src/hands.js';
 import { spawnNPCs, pooledNPC, setCalmZones, shipCalmZones } from '../src/npc.js';
 import { Crowd, CROWD_BUDGET, CROWD_DIST_CELL, buildPeople } from '../src/crowd.js';
+import { pickBalloon, publishBalloons } from '../src/balloon-part.js';
+import { talkAllowed } from '../src/ship/landing.js';
 import { QUALITY_PRESETS, SmallCuller, tilesInstances, cullFar } from '../src/perf.js';
 import { LodManager } from '../src/lod.js';
 import { spawnAliens, alienSpots } from '../src/aliens/index.js';
@@ -703,6 +705,15 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     foeList.win?.removeEventListener?.('keydown', foeList.onKey, true);   // (its K is the engine's own: game.key)
     optional('the list of foes', () => foeList.attach({ foes: combat.foes, player, physics, sound, scene, notice: (t) => toast(t), kind: level.foes.kind ?? null }));
   }
+  // the Arcade's board of games (src/levels/arcade-board.js, the level's quick menu): its sheet is the menus' 'arcade' page
+  // (engine/menus.js openArcade, BridgeMenu.cs DrawArcade, issue #430), opened as the page's is: the board by the way in
+  // (its E), D-pad ↓, Tab; a game chosen goes to its page as a sign's does (onGame)
+  const arcadeBoard = menus?.openArcade && level.quickMenu?.games && level.quickMenu.choose && !flags && !view ? level.quickMenu : null;
+  if (arcadeBoard) {
+    arcadeBoard.win?.removeEventListener?.('keydown', arcadeBoard.onKey, true);   // (its Tab is the engine's own: game.key)
+    arcadeBoard.go = (href) => onGame?.(href);
+    arcadeBoard.toggle = (on = !arcadeBoard.open) => { if (on) return menus.openArcade(arcadeBoard); if (menus.mode === 'arcade') menus.close(); arcadeBoard.open = false; return false; };
+  }
   const gadgets = optional('the gadgets', () => new Gadgets({ scene, physics, player, camera, rig, sound, tool, level, foes: combat?.foes ?? null, wind, input: null, relics: null, flammables, post: U, boxes,
     notice: (t) => toast(t), ring: () => itemFx?.ring?.() }));
   // after a box's card, the line a gadget found says (in hand; the first time two are carried, how to pick another), or the
@@ -866,6 +877,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       if (name === 'potion' && combat && !pinned && !talking() && !(shipOn && ship.playing)) { combat.drink(); return; }
       // D-pad ↓ (the mount's call: there is none in the Arena): its list of foes, as main.js's quickMenu
       if (name === 'call' && foeList && !pinned && !talking()) { menus.openFoes(foeList); return; }
+      if (name === 'call' && arcadeBoard && !pinned && !talking()) { arcadeBoard.toggle(true); return; }   // (the Arcade's board, the same)
       // Menu / Start: the Start menu; View / Select: the game menu (main.js: settingsMenu, journal), from play or a conversation
       if (menus && !pinned && (name === 'settings' || name === 'start')) { game.save(); menus.show('start'); return; }
       if (menus && !pinned && (name === 'journal' || name === 'select')) { menus.show('game'); return; }
@@ -923,6 +935,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // the HUD's state, as main.js draws it (src/platform.js screen): the cue line, the floating prompt,
   // the toasts, the health bar and the stamina wheel
   const cue = new Cue(), placeName = new PlaceName(), hpFade = new Fader(3);
+  const breath = new BreathMeter(null);   // (the screen's 'breath' part only: BridgeHud.cs DrawBreath, issue #430)
   const rideHint = { kind: null, at: 0 };
   let stShown = 0;
   const _w = new THREE.Vector3();
@@ -931,6 +944,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     if (player.ride) { if (rideHint.kind !== player.ride.kind) { rideHint.kind = player.ride.kind; rideHint.at = nowMs; } } else rideHint.kind = null;
     const pad = padInHand();
     const quiet = busy || player.dead || !!pinned;
+    // the breath meter, under the same rule as main.js's (src/water.js breathShown)
+    breath.update(player.breath ?? 1, !pinned && breathShown(player, level, busy));
     const text = cueText({ quiet, ride: player.ride?.kind ?? null, rideFor: nowMs - rideHint.at, prompt: story?.prompt, promptAt: story?.promptAt, boarding: player.boarding, controller: pad,
       shipHint: shipOn && !ship.promptTag() ? ship.hud() : null, shipPlaying: shipOn && ship.playing });
     const place = quiet || (shipOn && ship.playing) ? '' : placeName.update(atmo?.name, nowMs);
@@ -1251,6 +1266,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         // (K: the Arena's list of foes, as its page's key)
         if (code === 'KeyK' && foeList && !pinned && !talking() && !boxes?.busy?.()) menus.openFoes(foeList);
       }
+      // (Tab: the Arcade's board, as its page's key)
+      if (down && !was && !menus?.open && code === 'Tab' && arcadeBoard && !pinned && !talking() && !boxes?.busy?.()) arcadeBoard.toggle(true);
       // (the dev menu: F2 or `, as the page's; the menu's own keys close it again, engine/menus.js)
       if (down && !was && !menus?.open && (code === 'F2' || code === 'Backquote')) openDev();
       // (photo mode from the keyboard, as the page's: P in and out, Enter saves, Esc leaves)
@@ -1492,6 +1509,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       level.lightAt?.(player.pos, sharedUniforms.uSunDir.value);
       lap?.('weather');
       sharedUniforms.uTime.value = simT;
+      if (crowd) crowd.hush = !talkAllowed({ shipPlaying: shipOn && ship.playing }) || !!pinned;   // (no shouts over a ship's scene: main.js)
       crowd?.update(dt, simT, player, camera);
       lap?.('crowd');
       if (deferred?.pending) { deferred.run(player.pos); if (!deferred.pending) log(`distant detail: all done, ${deferred.done} jobs in ${Math.round(deferred.ms)} ms`); }   // (a share a frame, nearest first)
@@ -1573,6 +1591,17 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       try { updateHands(dt, { player, npcs, camera }); player.character?.updateHands?.(); } catch (e) { if (!game._handsFailed) { game._handsFailed = true; console.warn('[game] the hands failed', e?.stack ?? e); } }
       lap?.('boxes, hands');
       hud(dt, busy);
+      // the balloons over people, chosen and published as main.js does (src/balloon-part.js; BridgeHud.cs DrawBalloons,
+      // issue #430): the nearest who talks; none over a ship's scene, a shop or a box's card, nor in a fixed view's picture
+      // (the web's side-by-sides hide the page); a greeting waits while a notice is up or waiting, a shout still comes
+      try {
+        camera.updateMatrixWorld();
+        const talkOk = talkAllowed({ shipPlaying: shipOn && ship.playing }) && menus?.mode !== 'shop' && !boxes?.busy?.() && !pinned;
+        const best = pickBalloon(npcs, { player, talk: talkOk, filming: !!story?.moments?.playing, greet: !noticeBusy() });
+        const prompted = story?.prompt && story?.promptEntry?.npc;
+        for (const n of npcs) n.placeBalloon?.(camera, n === best, n === prompted ? 30 : 0);
+        publishBalloons([...npcs, crowd]);
+      } catch (e) { if (!game._balloonsFailed) { game._balloonsFailed = true; console.warn('[game] the balloons failed', e?.stack ?? e); } }
       lap?.('hud');
       // (the ways through's light every frame, a fixed view's too: the web's bench draws them, scripts/unity-compare/)
       thresholds?.update(dt, simT, camera.position);

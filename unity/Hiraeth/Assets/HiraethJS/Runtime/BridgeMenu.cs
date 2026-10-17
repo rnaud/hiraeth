@@ -337,7 +337,7 @@ namespace Hiraeth.Bridge
             foreach (var (area, label) in areaPics) { Show(area, false); Show(label, false); }
             var kind = state.S("kind");
             if (smRoot && kind != "starmap") { Show(smRoot, false); smView = null; smCv = -1; }
-            if (kind == "title") DrawTitle(); else if (kind == "start") DrawStart(); else if (kind == "shop") DrawShop(); else if (kind == "card") DrawCard(); else if (kind == "foes") DrawFoes(); else if (kind == "starmap") DrawStarMap(); else DrawGame();
+            if (kind == "title") DrawTitle(); else if (kind == "start") DrawStart(); else if (kind == "shop") DrawShop(); else if (kind == "card") DrawCard(); else if (kind == "foes") DrawFoes(); else if (kind == "arcade") DrawArcade(); else if (kind == "starmap") DrawStarMap(); else DrawGame();
             for (int i = used; i < cells.Count; i++) cells[i].box.Show(false);
             for (int i = tilesUsed; i < tiles.Count; i++) tiles[i].box.Show(false);
             for (int i = titleUsed; i < titleButtons.Count; i++) titleButtons[i].box.Show(false);
@@ -765,6 +765,27 @@ namespace Hiraeth.Bridge
             DrawRows("foes", sx + 18, sy + 58, sw - 36, sh - 58 - 14);
         }
 
+        /// <summary>
+        /// The Arcade's board of games (engine/menus.js arcadeView; the web's src/levels/arcade-board.js, issue #430): the
+        /// sheet with "The Arcade" over its heading, every game a boxed row in a grid as the foes' (its colour's dot, its name,
+        /// its line and its best under it), the pad's in gold, the rows scrolled to keep it in view.
+        /// </summary>
+        void DrawArcade()
+        {
+            float sw = Mathf.Min(860, W - 36), sx = W / 2 - sw / 2, sy = 16, sh = H - 16 - 46;
+            Sheet(sx, sy, sw, sh, true);
+            var k = state.S("kicker") ?? "";
+            if (k.Length > 0)
+            {
+                Show(line, true);
+                line.alignment = TextAnchor.UpperLeft; line.fontStyle = FontStyle.Normal; line.color = Ui.Hex("#8a5a3c");
+                Ui.Set(line, Ui.Upper(k), sw * 0.5f);
+                Ui.Place(line.rectTransform, sx + 24, sy + 14, sw * 0.5f, 18);
+            }
+            Head(state.S("head"), sx + 24, sy + 28, sw * 0.6f);
+            DrawRows("foes", sx + 18, sy + 72, sw - 36, sh - 72 - 14);
+        }
+
         void DrawAsk(Dictionary<string, object> a)
         {
             ask.Show(true);
@@ -1028,7 +1049,9 @@ namespace Hiraeth.Bridge
                             // (a section's heading in the page's brick red, small spaced capitals; a row boxed, gold while chosen)
                             var fk = c.S("kind");
                             if (fk == "head") { var hc = Entry(cx, yy + 4, cw, rh - 6, Ui.Upper(text), null, null, false, size: Small); hc.text.color = Ui.Hex("#7a3a35"); hc.text.fontStyle = FontStyle.Bold; continue; }
-                            var fc = Entry(cx, yy, cw, rh - 6, fk == "foot" || fk == "waves" ? Ui.Upper(text) : text, under, null, B(c, "on"), size: fk == "foe" ? Body : Small, boxed: true);
+                            // (a game on the Arcade's board: its colour's dot before its name, as the page's)
+                            var dot = c.S("color") is string dotCol && dotCol.Length > 0 ? $"<color={dotCol}>●</color> " : "";
+                            var fc = Entry(cx, yy, cw, rh - 6, fk == "foot" || fk == "waves" ? Ui.Upper(text) : dot + text, under, null, B(c, "on"), size: fk == "foe" ? Body : Small, boxed: true);
                             if (B(c, "lit") && !B(c, "on")) fc.box.SetFill(Ui.Gold);
                             continue;
                         }

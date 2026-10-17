@@ -12,6 +12,9 @@ export const CHANGELOG = [
     // issue #406: src/temples/desert.js (ROOMS, LOGIC: hall, balcony, ballK, kS, dE, sentry in the hall, d3), pieces.js Ball
     // `hole` without a gate, migrate.js desert v5, save-migrate.js GIVERS_DONE; tests/temples.test.js, tests/sentry.test.js
     'The Rose House is built round a Great Hall now, 84 m long, with a balcony up one side. From the door you see the cistern’s door at its far end, the watcher asleep before it, and a little chest in a cage beside a locked door: the house’s first small key. Find the way up to the balcony, take the Givers’ blade there, and cut the ball into the hole so it drops onto the plate by the cage, then jump down after it. The key opens the east wing, and the watcher now guards the cistern’s door in the hall.',
+    // issue #430: src/balloon-part.js, src/hud-shows.js; the balloons, objective, cargo, endCard, breath and level parts
+    // (BridgeHud.Parts.cs); the Arcade's board in engine/menus.js (BridgeMenu.cs DrawArcade); tests/engine-ui-parts.test.js
+    'In the Unity version, everything the web game shows on the screen now shows there too: people’s speech balloons over their heads, the homecoming’s objective, cargo check and end card, the breath meter under water, the brass level and the Arcade’s board of games. The cargo check now waits for you to press A / × as it does on the web, and the hints, prompts and hearts come and go at the same moments as on the web.',
   ] },
   { v: '1.82', date: '2026-10-16', items: [
     // issue #399: src/hook-foes.js (each kind's `hook` class, hookOutcome, lockShot), src/gadgets/hook.js fireAtLock /

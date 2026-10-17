@@ -105,11 +105,13 @@ namespace Hiraeth.Bridge
             Ui.Stretch(wheelFill.rectTransform, 3, 3, 3, 3);
             wordsRoot = Ui.Node("words", root);   // (a minigame's words in the world: under the conversation and the cards, as the page's #mg-words)
             Ui.Stretch(wordsRoot);
+            BuildUnder(mono);     // (the balloons over people, the breath meter, the brass level: BridgeHud.Parts.cs, issue #430)
             BuildDialogue(mono);
             BuildGadgets(mono);
             BuildCine(mono);
             BuildBoxCard(mono);   // (over the letterbox: the card stands in its bottom band)
             BuildCharge();
+            BuildOver(mono);      // (the objective card, the cargo check, the end card: BridgeHud.Parts.cs)
             BuildFight(mono);
             BuildGames(mono);     // (the drum circle's ring, the sketch hunt's list, the fishing's meter, the pirates' reticle: BridgeHud.Games.cs)
             BuildMinigame(mono);
@@ -350,6 +352,11 @@ namespace Hiraeth.Bridge
         void LateUpdate() { if (!oldPlace) Draw(); }
         // (-no-hud: nothing of the HUD drawn, the picture alone, as the web's side-by-sides hide the page: scripts/unity-compare/)
         static readonly bool noHud = BridgeArgs.Flag("-no-hud");
+        Dictionary<string, object> shows;
+        /// <summary>Does the part show now, by the page's rules (src/hud-shows.js hudShows: false for each part hidden).</summary>
+        bool On(string part) => !(shows != null && shows.Get(part) is bool b && !b);
+        /// <summary>The part's state, or null while the page's rules hide it.</summary>
+        Dictionary<string, object> Part(string part) => On(part) ? state.O(part) : null;
         void Draw()
         {
             if (!root) return;
@@ -365,41 +372,43 @@ namespace Hiraeth.Bridge
             showFps = acc != null && acc.Get("fps") is bool fp && fp;
             DrawFps();
             var d = state.O("dialogue");
-            // (a ship's scene hides the game's HUD, cinema.hud(false), but for the cue in a scene you walk through,
-            // cinema.controls(true); its own pieces drawn over everything)
             var cine = state.O("cine");
-            bool hud = !(cine != null && cine.Get("hud") is bool hs && !hs), free = d == null && hud;
-            bool walk = cine != null && cine.Get("walk") is bool wk && wk;
+            // (which parts the page's rules hide now: src/hud-shows.js, sent with the state as `shows`, issue #430; the
+            // conditions kept here before drifted from the page's: the voicemail's E drew only while the HUD was on, #394)
+            shows = state.O("shows");
             // (photo mode: its keys in the cue's strip at the top, the rest of the HUD gone; none as the picture is taken)
             var cueState = state.O("cue");
             if (state.O("photo") is Dictionary<string, object> ph)
                 cueState = (ph.S("hint") ?? "").Length > 0 ? new Dictionary<string, object> { ["text"] = ph.S("hint"), ["kind"] = "" } : null;
-            // (a trial or a game under way: its own HUD, the cue and the floating prompt gone, as the page's body.minigame)
             var mg = state.O("minigame");
-            DrawCue(cueState, d == null && (hud || walk) && (mg == null || state.O("photo") != null));
-            DrawGames(state, hud);
-            DrawMinigame(hud && d == null ? mg : null);   // (before the toast: it stacks under the run's clock)
-            DrawWords(hud ? state.O("words") : null);
-            DrawToast(state.O("toast"), free);
-            // (and in a scene walked through: the prologue's walk to the voicemail, its E over the button, as the page's, issue #394)
-            DrawPrompt(state.O("prompt"), (free || walk && d == null) && mg == null);
-            DrawHealth(hud ? state.O("health") : null);
-            DrawKeys(state.O("keys"), free);
-            DrawGuardian(free ? state.O("guardian") : null);
-            DrawFoeTab(state.O("foeTab"), free);
-            DrawWheel(state.O("stamina"), free);
+            DrawCue(cueState, On("cue"));
+            DrawGames(state, On("words"));
+            DrawMinigame(d == null ? mg : null);   // (before the toast: it stacks under the run's clock)
+            DrawWords(Part("words"));
+            DrawBreath(Part("breath"));
+            DrawLevel(Part("level"));
+            DrawToast(state.O("toast"), On("toast"));
+            DrawObjective(Part("objective"));
+            DrawBalloons(On("balloons") ? state.L("balloons") : null);
+            DrawPrompt(state.O("prompt"), On("prompt"));
+            DrawHealth(Part("health"));
+            DrawKeys(state.O("keys"), On("keys"));
+            DrawGuardian(Part("guardian"));
+            DrawFoeTab(state.O("foeTab"), On("foeTab"));
+            DrawWheel(state.O("stamina"), On("stamina"));
             DrawTalk(d, state.Get("choice") is double c ? (int)c : 0);
-            // (the gadget's chip, wheel and reticle gone while a run is on, as the page's body.minigame #gadget-chip: src/gadgets/hud.js)
-            DrawGadget(free && mg == null ? state.O("gadget") : null);
-            DrawGadgetWheel(free && mg == null ? state.O("gadgetWheel") : null);
-            DrawReticle(free && mg == null ? state.O("reticle") : null);
-            DrawMarks(free ? state.L("gadgetMarks") : null);
+            DrawGadget(Part("gadget"));
+            DrawGadgetWheel(Part("gadgetWheel"));
+            DrawReticle(Part("reticle"));
+            DrawMarks(On("gadgetMarks") ? state.L("gadgetMarks") : null);
             DrawCine(cine, state.O("sub"));
             DrawBoxCard(state.O("boxCard"));
             DrawCharge(state.O("charge"));
+            DrawCargo(state.O("cargo"));
+            DrawEndCard(state.O("endCard"));
             DrawEdges(state.O("edges"));
-            DrawLock(free ? state.O("lock") : null);
-            DrawWarn(free ? state.L("warn") : null);
+            DrawLock(Part("lock"));
+            DrawWarn(On("warn") ? state.L("warn") : null);
             DrawRestart(state.O("restart"));
             DrawWarp(state.O("warp"));
             DrawPassage(state.O("passage"));

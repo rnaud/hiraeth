@@ -11,6 +11,7 @@ import { mulberry32 } from './noise.js';
 import { namedLook, costumeWorld, TRIM_IDS, BUILDS, browColour, BOOT } from './costumes.js';
 import { ageClassOf } from './makehuman/people.js';
 import { formatText } from './story/dialogue.js';
+import { balloonData } from './balloon-part.js';
 import { keySig, hasKeys } from './prompt-keys.js';
 import { speakBalloon } from './story/voice.js';
 import { toneOf } from './story/tone.js';
@@ -86,7 +87,7 @@ export function shipCalmZones(hull, ramp, C = SHIP_CALM) {
 let knockedDown = 0;   // bodies down at once (KNOCKOVER.most)
 
 const _face = new THREE.Vector3();
-const _w2 = new THREE.Vector3(), _w3 = new THREE.Vector3(), _seatBox = new THREE.Box3();
+const _w2 = new THREE.Vector3(), _w3 = new THREE.Vector3(), _seatBox = new THREE.Box3(), _bw = new THREE.Vector3();
 /** Where the player's eyes are (the traveller's head, or about there), for people to look at. */
 function faceOf(player) {
   const head = player.humanoid?.b?.Head;
@@ -226,7 +227,7 @@ export class NPC {
     this.show(false);
     if (this.cape) this.cape.mesh.visible = false;
     this.talking = false;
-    this.balloon.classList.remove('show');
+    this.balloon.classList.remove('show'); this.balloonUp = null;
   }
 
   /** Become a crowd person: their clothes, size and place (pooled NPCs only). */
@@ -832,10 +833,11 @@ export class NPC {
   /** Put the balloon over the head (call after the camera update; only for the one that talks). */
   /** @param lift extra pixels up (the E prompt hangs over this person's head) */
   placeBalloon(camera, show, lift = 0) {
-    if (!show || !this.talking) { this.balloon.classList.remove('show'); this._voiced = null; return; }
+    if (!show || !this.talking) { this.balloon.classList.remove('show'); this._voiced = null; this.balloonUp = null; return; }
     const head = this.humanoid?.b?.Head;
     if (head) head.getWorldPosition(_w).add(_v.set(0, 0.62, 0));
     else _w.copy(this.pos).add(_v.set(0, 2.3, 0));
+    _bw.copy(_w);
     _w.project(camera);
     const on = _w.z < 1 && Math.abs(_w.x) < 1.1 && Math.abs(_w.y) < 1.1;
     if (on) {
@@ -854,6 +856,8 @@ export class NPC {
       const x = THREE.MathUtils.clamp((_w.x * 0.5 + 0.5) * window.innerWidth - 22, 6, Math.max(6, window.innerWidth - w - 6));
       this.balloon.style.transform = `translate(${x.toFixed(1)}px, ${((-_w.y * 0.5 + 0.5) * window.innerHeight - lift).toFixed(1)}px) translate(0, calc(-100% - 12px))`;
     }
+    // (as data too: the screen's 'balloons', src/balloon-part.js; an engine draws its own from it, issue #430)
+    this.balloonUp = on ? balloonData(this._balloonLine, _bw, { lift }) : null;
     this.balloon.classList.toggle('show', on);
   }
 

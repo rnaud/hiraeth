@@ -218,7 +218,7 @@ export class EngineMenus {
     this.stopRebind?.();
     if (this.mode === 'shop') this.shop?.panel?.close?.();
     const star = this.mode === 'starmap' ? this.star : null, dev = this.mode === 'dev' ? this.dev : null;
-    this.mode = null; this.shop = null; this.card = null; this.foes = null; this.star = null; this.dev = null;
+    this.mode = null; this.shop = null; this.card = null; this.foes = null; this.star = null; this.dev = null; this.arcade = null;
     star?.close();
     if (dev?.open) dev.toggle(false);
     this.changed(); this.onResume();
@@ -435,6 +435,63 @@ export class EngineMenus {
       hint: 'A / × fights · LB / RB a world · B / ○ closes' };
   }
 
+  // ------------------------------------------------------------------ the Arcade's games board
+
+  /**
+   * The Arcade's board of games (issue #430): the web's ArcadeBoard (src/levels/arcade-board.js, the level's quick menu)
+   * keeps the games, their lines and bests and what a choice does (board.choose: that game's page); here its sheet is a
+   * grid of rows as the Arena's foes' (BridgeMenu.cs DrawArcade): left / right the game before / after, up / down the one
+   * above / below, A / × plays, B / ○ closes. Its words are the page's (board.words: ARCADE_BOARD).
+   */
+  openArcade(board) {
+    if (!board?.games?.length) return false;
+    this.arcade = { board, i: 0 };
+    this.mode = 'arcade';
+    board.open = true;
+    this.changed();
+    return true;
+  }
+  arcadeRows() {
+    const B = this.arcade.board, cols = (this.screen?.()?.w ?? 1280) < 1100 ? 2 : 3, rows = [], items = [];
+    for (let k = 0; k < B.games.length; k += cols) {
+      const r = rows.length;
+      rows.push(B.games.slice(k, k + cols).map((g, j) => {
+        const best = B.best(g);
+        const c = { kind: 'foe', text: g.name, sub: `${g.blurb ?? ''}\n${best ? `best ${best}` : 'no best yet'}`, color: g.color ?? '#71d7cf', col: j, id: g.id };
+        items.push({ r, k: j, c });
+        return c;
+      }));
+    }
+    return { rows, items, cols };
+  }
+  arcadeMove(x, y) {
+    const A = this.arcade, { items, cols } = this.arcadeRows(), n = items.length;
+    if (!n) return;
+    const at = Math.min(A.i, n - 1);
+    if (!y) { A.i = Math.max(0, Math.min(n - 1, at + Math.sign(x))); return; }
+    const j = at + Math.sign(y) * cols;
+    if (j >= 0 && j < n) A.i = j;
+  }
+  arcadeAction(name) {
+    const A = this.arcade;
+    if (name === 'back' || name === 'start' || name === 'select') { A.board.open = false; this.close(); return; }
+    if (name !== 'confirm') return;
+    const it = this.arcadeRows().items[A.i];
+    if (!it) return;
+    A.board.open = false;
+    this.close();
+    A.board.choose(it.c.id);
+  }
+  arcadeView() {
+    const A = this.arcade, { rows, items, cols } = this.arcadeRows();
+    A.i = Math.min(A.i, Math.max(0, items.length - 1));
+    const on = items[A.i];
+    const W = A.board.words ?? {};
+    return { v: this.v, kind: 'arcade', kicker: W.kicker ?? '', head: W.title ?? '', cols: Array(cols).fill(1 / cols),
+      rows: rows.map((row, r) => row.map((c, k) => ({ kind: c.kind, text: c.text, sub: c.sub, color: c.color, col: c.col, span: 1, on: !!on && on.r === r && on.k === k }))),
+      hint: W.pad ?? '' };
+  }
+
   // ------------------------------------------------------------------ the dev menu
 
   /**
@@ -486,6 +543,7 @@ export class EngineMenus {
     else if (this.mode === 'shop') this.shopAction(name);
     else if (this.mode === 'card') this.cardAction(name);
     else if (this.mode === 'foes') this.foesAction(name);
+    else if (this.mode === 'arcade') this.arcadeAction(name);
     else if (this.mode === 'starmap') this.star?.action(name);
     else if (this.mode === 'dev') this.devAction(name);
     else this.gameAction(name);
@@ -499,6 +557,7 @@ export class EngineMenus {
     else if (this.mode === 'shop') this.shopMove(x, y);
     else if (this.mode === 'card') this.cardMove(x, y);
     else if (this.mode === 'foes') this.foesMove(x, y);
+    else if (this.mode === 'arcade') this.arcadeMove(x, y);
     else if (this.mode === 'starmap') this.star?.navigate(x, y);
     else if (this.mode === 'dev') this.devMove(x, y);
     else this.gameMove(x, y);
@@ -517,6 +576,7 @@ export class EngineMenus {
     if (dir) { this.navigate(dir[0], dir[1]); return true; }
     const act = { Enter: 'confirm', Space: 'confirm', NumpadEnter: 'confirm', Escape: 'back', Backspace: 'back', KeyQ: 'tabPrev', BracketLeft: 'tabPrev', KeyE: 'tabNext', BracketRight: 'tabNext', Delete: 'x', KeyX: 'x', KeyJ: 'select', KeyO: 'start' }[code];
     if (this.mode === 'foes' && code === 'KeyK') { this.close(); return true; }   // (K opened it: K closes it, as the page's)
+    if (this.mode === 'arcade' && code === 'Tab') { this.arcadeAction('back'); return true; }   // (Tab opened it: Tab closes it, as the page's)
     if (!act) return false;
     if (this.mode === 'game' && act === 'select') { this.close(); return true; }
     this.action(act);
@@ -972,7 +1032,7 @@ export class EngineMenus {
    */
   view() {
     if (!this.mode) return null;
-    const v = this.mode === 'title' ? this.titleView() : this.mode === 'start' ? this.startView() : this.mode === 'shop' ? this.shopView() : this.mode === 'card' ? this.cardView() : this.mode === 'foes' ? this.foesView() : this.mode === 'starmap' ? { v: this.v, hint: '', ...this.star.view() } : this.mode === 'dev' ? this.devView() : this.gameView();
+    const v = this.mode === 'title' ? this.titleView() : this.mode === 'start' ? this.startView() : this.mode === 'shop' ? this.shopView() : this.mode === 'card' ? this.cardView() : this.mode === 'foes' ? this.foesView() : this.mode === 'arcade' ? this.arcadeView() : this.mode === 'starmap' ? { v: this.v, hint: '', ...this.star.view() } : this.mode === 'dev' ? this.devView() : this.gameView();
     // (the menus' own confirm and back are the buttons printed A and B whatever the layout, as on the web: with Nintendo
     // letters the right and the bottom ones; the prompts' "A / ×" written by position, src/native-pad.js confirmKey)
     v.hint = menuKeys(v.hint);

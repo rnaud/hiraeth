@@ -518,7 +518,7 @@ export class MinigameRunner {
       hints = { off: !live || (row.off && !this.hintNote), items: row.items.map((i) => ({ k: keyText(i.k, { kind, teach: true }), w: i.w, gone: i.gone || row.off })), note: this.hintNote ? this.hintNoteText ?? plainHtml(this.hintNote) : '' };
     }
     screen.set('minigame', { on: this.hudOn && !this.paused && !this.cardModel, timer, score: s, bump: this.scoreBumps ?? 0, lives: this.lives === null ? null : [this.lives, Math.max(this.livesMax ?? this.lives, this.lives)],
-      count: this.countState, flashes: this.flashes, hints, speed: Math.round((this._speedK ?? 0) * 20) / 20 });
+      count: this.countState, flashes: this.flashes, hints, speed: Math.round((this._speedK ?? 0) * 20) / 20, onFoot: !this.drives });   // (onFoot: the page's mg-onfoot, src/hud-shows.js)
   }
   bumpScore() { this.scoreBumps = (this.scoreBumps ?? 0) + 1; this.scoreEl.classList.remove('bump'); void this.scoreEl.offsetWidth; this.scoreEl.classList.add('bump'); }
   drawLives() {

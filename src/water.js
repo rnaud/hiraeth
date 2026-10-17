@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { makeMaterial, sharedUniforms, MODE_WATER } from './materials.js';
 import { waterShared, RINGS, WATER_MARK } from './water-shader.js';
+import { screen } from './platform.js';
 
 // ---------------------------------------------------------------------------
 // The world's water (one per level, main.js): every body of water in it, for
@@ -874,11 +875,25 @@ class WaterPass {
 }
 
 /** The breath meter: little inked bubbles under the health bar, only while you hold your breath. */
+/**
+ * Is the breath meter up (main.js and engine/game.js alike): under water and holding your breath (not in a sea, where the
+ * pack gives air: swim.js SEA), or catching it back; out in a helmet's sea (the Underwater City's seabed) and while its
+ * air fills again; never while a conversation or a menu has the screen (`busy`).
+ */
+export function breathShown(player, level, busy = false) {
+  const helmetSea = !!player.inWater?.body?.sea?.helmet || (!!level?.sea?.userData?.sea?.helmet && player.breath < 0.999);
+  return ((!!player.swim && ((player.swim.under && !player.swim.sea) || player.breath < 0.999)) || helmetSea) && !busy;
+}
+
+/**
+ * The breath meter: a row of bubbles under the hearts, one gone for each eighth of the breath. As the screen's 'breath'
+ * part too ({ n, full }, null when down), which an engine draws (BridgeHud.cs DrawBreath, issue #430).
+ */
 export class BreathMeter {
   constructor(doc = typeof document !== 'undefined' ? document : null, n = 8) {
     this.n = n;
     this.shown = -1;
-    if (!doc) return;
+    if (!doc?.body) return;
     const el = (this.el = doc.createElement('div'));
     el.id = 'breath';
     el.setAttribute('aria-hidden', 'true');
@@ -893,8 +908,9 @@ export class BreathMeter {
   }
   /** breath 0..1; on: show it (holding your breath, or catching it back). */
   update(breath, on) {
-    if (!this.el) return;
     const full = Math.ceil(breath * this.n - 1e-6);
+    screen.set('breath', on ? { n: this.n, full: Math.max(0, full) } : null);
+    if (!this.el) return;
     this.el.style.opacity = on ? 1 : 0;
     if (full === this.shown) return;
     this.shown = full;

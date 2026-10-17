@@ -1103,6 +1103,8 @@ const HATS403 = 'Issue #403: the character studio’s crowd lineup (studio.html?
 /** (v1.83, issue #406: the Rose House round its Great Hall) */
 const ROSE406 = 'Issue #406: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, 11:00, the HUD hidden) on this branch’s own Vite (port 5407, scripts/design-qc/capture.mjs), the camera pinned; before: the tree at c89a0a1e2 (port 5408), the same camera; 16 October; cwebp -q 72';
 const ROSE406P = 'Issue #406: the Temple maps page (temples.html?t=desert, Debug → Pages) in muted headless Chrome, 1600 × 1150, the plan with the solver’s steps, cut to the plan; before: the tree at c89a0a1e2, after: this change; 16 October; cwebp -q 70';
+/** (v1.83, issue #430: the page's HTML as screen parts in Unity) */
+const UI430 = 'Issue #430: the Unity bridge in the editor’s batch run on this Mac (muted, High, -frames 1280x720), each piece put up by -ui through engine/ui-poses.js on the debug save; before, none of them was drawn (the web’s side, the same poses in headless Chrome, beside them in the issue’s sheet); cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.83': [
     { match: 'The Rose House is built round a Great Hall now', shots: [
@@ -1112,6 +1114,11 @@ export const CHANGELOG_MEDIA = {
       { name: 'rose-drop', only: 'after', title: 'The drop', caption: 'Over the balcony’s edge: the hole at the end of the ball’s groove, and 7 m below the floor you jump down to', from: ROSE406 },
       { name: 'rose-key', only: 'after', title: 'The small key', caption: 'Under the balcony: the small key’s little chest in its cage, the watcher by the cistern’s door', from: ROSE406 },
     ], see: 'In the desert, go into the Rose House east of Qanat. The east door wants the small key in the cage; the way to it starts through the archway on your right.' },
+    { match: 'In the Unity version, everything the web game shows on the screen', shots: [
+      { name: 'unity-balloons', only: 'after', title: 'A balloon', caption: 'A shout over someone’s head in the desert, its highlight in red, as the web’s balloon', from: UI430 },
+      { name: 'unity-cargo', only: 'after', title: 'The cargo check', caption: 'The homecoming’s cargo panel with three things in the hold, waiting for A / ×', from: UI430 },
+      { name: 'unity-arcade', only: 'after', title: 'The Arcade’s board', caption: 'Every game, its line and its best, opened with Tab or D-pad down', from: UI430 },
+    ], see: 'In the Unity version, walk up to someone in the desert who has something to say, open the Arcade’s board with Tab, or swim under water in the Underwater City.' },
   ],
   '1.82': [
     { match: 'Locked on, RT / R2 throws the grappling hook at your foe', tags: ['combat'], shots: [

@@ -1753,6 +1753,42 @@ surfaces, the wall's see-through hole, the blade, the waterfalls, the speech bal
 shadow, the breath meter…) are the to-do of #429, #430 and #427; "to check" marks a gap read from the code, not yet
 seen in a Unity picture.
 
+## The page's own HTML as screen parts (2026-10-16, issue #430)
+
+The pieces the page drew only as its own HTML now set a screen part (src/platform.js `screen`) where they build their
+DOM, and BridgeHud.Parts.cs / BridgeMenu.cs draw them in the game's paper, ink and fonts:
+
+- `balloons`: the speech balloons over people. src/balloon-part.js `pickBalloon` (the nearest who talks; none over a
+  ship's scene, a shop or a box's card; a greeting waits for the notices, a shout doesn't) and `publishBalloons` are
+  main.js's and engine/game.js's alike; each person's `placeBalloon` (npc.js, aliens/alien.js, crowd.js's shouts) sets
+  its `balloonUp` ({ text, at, lift, kind }). DrawBalloons places it as the page's `.balloon`: 22 px left of the point,
+  12 px over it, kept on the screen (a crowd's shout not), the tail at its foot, *highlights* in red.
+- `objective`: the homecoming's card (cinema.objective: { text, id, secs }); without a page it shows at once.
+- `cargo`, `endCard`: the homecoming's cargo check (homecoming.js `cargoState`: the hold's things, their kind's tag,
+  the button and its key) and the true ending's card (its title, line, and the shared makers' mark's contours,
+  `markContours`, filled in C#: never redrawn). Without a page the cargo panel now waits for Enter, E or A as the
+  page's does (it went on by itself after 3.4 s); the card is drawn, no longer said as a subtitle. The credits are
+  still said as subtitles (the gap left in engine/bridge-gaps.js).
+- `breath`: the breath meter ({ n, full }); src/water.js `breathShown` is the rule for both hosts, and engine/game.js
+  now keeps a BreathMeter (data only).
+- `level`: the brass level ({ roll, dy }, the floor line's turn and rise), from src/boxes/effects.js.
+- The Arcade's board: a menus page (engine/menus.js `openArcade`, `arcadeView`; BridgeMenu.cs DrawArcade, the foes'
+  rows with each game's dot), opened by the board's E, Tab or D-pad down; a game chosen goes to its page (`onGame`).
+  Its words are the page's (arcade-board.js `ARCADE_BOARD`).
+
+**When a part shows** is one table, src/hud-shows.js `HUD_HIDES` (talking, bars, hudOff, minigame; onFoot keeps the
+stamina in a game played on foot). engine/unity/game.js sends `hudShows(state)` with the state as `shows`, and
+BridgeHud's `On(part)` / `Part(part)` ask it: its own conditions (`free`, `hud`) are gone. tests/hud-shows.test.js
+holds the page's CSS rules (`body.talking #prompt`, `body.cine-on #gadget-chip`, `body.minigame #cue`…) to the table.
+What changed in Unity with it: the toast and the health show in a conversation and with a scene's HUD off, as the
+page's; the cue hides under a letterbox you don't walk through.
+
+**Pictures**: `-ui balloons,objective,level,cargo,endcard` (with `-level`, and `-frames 1280x720` so the canvas is laid
+out at the picture's size, not the batch editor's 4:3 window) puts each piece up through engine/ui-poses.js `uiPose`
+and photographs it (unity-ui-<piece>.png), on the debug save past the prologue; the web's side runs the same
+`uiPose` in the page. Tests: tests/engine-ui-parts.test.js, tests/engine-finishable.test.js (the cargo answered,
+the end card's part), tests/hud-shows.test.js.
+
 ## Status
 
 - **Stage 1, the spike**: the desert, built by `createDesert` inside GodotJS, mirrored to Godot

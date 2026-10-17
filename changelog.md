@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.83 — 2026-10-16
 
+- In the Unity version, everything the web game shows on the screen now shows there too: people’s speech balloons over their heads, the homecoming’s objective, cargo check and end card, the breath meter under water, the brass level and the Arcade’s board of games. The cargo check now waits for you to press A / × as it does on the web, and the hints, prompts and hearts come and go at the same moments as on the web.
 - The Rose House is built round a Great Hall now, 84 m long, with a balcony up one side. From the door you see the cistern’s door at its far end, the watcher asleep before it, and a little chest in a cage beside a locked door: the house’s first small key. Find the way up to the balcony, take the Givers’ blade there, and cut the ball into the hole so it drops onto the plate by the cage, then jump down after it. The key opens the east wing, and the watcher now guards the cistern’s door in the hall.
 
 ## v1.82 — 2026-10-16

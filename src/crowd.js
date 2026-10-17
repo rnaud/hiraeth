@@ -7,6 +7,7 @@ import { KNOCKOVER } from './ragdoll.js';
 import { registerTarget } from './targets.js';
 import { mulberry32 } from './noise.js';
 import { formatText } from './story/dialogue.js';
+import { balloonData } from './balloon-part.js';
 import { keySig, hasKeys } from './prompt-keys.js';
 import { speakBalloon } from './story/voice.js';
 import { simplify } from './lod.js';
@@ -1259,8 +1260,11 @@ export class Crowd {
     if (!b) return;
     const p = this.shout;
     const on = !this.hush && p && !p.npc && this.time < p.shoutUntil && p._dCam < 45;   // (hush: a ship's scene plays, main.js)
+    this.balloonUp = null;
     if (on) {
-      _w.set(p.pos.x, p.pos.y + 2.05 * p.scale, p.pos.z).project(camera);
+      _w.set(p.pos.x, p.pos.y + 2.05 * p.scale, p.pos.z);
+      const at = { x: _w.x, y: _w.y, z: _w.z };
+      _w.project(camera);
       if (_w.z < 1 && Math.abs(_w.x) < 1.1 && Math.abs(_w.y) < 1.1) {
         if (this._balloonLine !== p.say) { this._balloonLine = p.say; b.innerHTML = formatText(p.say); this._balloonKeys = keySig(); }   // *highlights* as in the dialogue panel
         else if (hasKeys(p.say) && this._balloonKeys !== keySig()) { this._balloonKeys = keySig(); b.innerHTML = formatText(p.say); }   // ({key:…}: the input changed hands)
@@ -1269,6 +1273,7 @@ export class Crowd {
           && speakBalloon(p.say, { person: { seed: `crowd:${p.id}`, kind: p.kind, size: p.size }, dist: p._dCam, pan: THREE.MathUtils.clamp(_w.x * 0.8, -0.9, 0.9), max: 6 })) { this._voiced = p; this._voicedLine = p.say; }
         b.style.transform = `translate(${((_w.x * 0.5 + 0.5) * window.innerWidth).toFixed(1)}px, ${((-_w.y * 0.5 + 0.5) * window.innerHeight).toFixed(1)}px) translate(-22px, calc(-100% - 12px))`;
         b.classList.add('show');
+        this.balloonUp = balloonData(p.say, at, { kind: 'shout' });   // (as data too: src/balloon-part.js, issue #430)
         return;
       }
     }

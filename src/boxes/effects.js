@@ -8,6 +8,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createEchoShell } from '../echo-shell.js';
 import { hintsFor } from '../hint-level.js';
 import { t as tr } from '../i18n.js';
+import { screen, page } from '../platform.js';
 
 // What the boxes' special items do (src/items.js documents them). Kept cheap
 // and from the outside: nothing here edits the tool or the player.
@@ -151,9 +152,20 @@ export function createItemEffects({ player, tool = null, level = null, sound = n
   // ---- the brass level: a little bubble level at the screen's edge where down has turned
   let levelEl = null, levelBar = null;
   const _lu = new THREE.Vector3(), _lr = new THREE.Vector3(), _lf = new THREE.Vector3();
+  // (as the screen's 'level' part too, { roll, dy }: the floor line's turn in degrees and its rise in px, which an engine
+  // draws, BridgeHud.cs DrawLevel, issue #430; null while it is down)
   function updateLevel() {
-    if (typeof document === 'undefined' || !document.body?.appendChild || !player?.frame?.up) return;
+    if (!player?.frame?.up) return;
     const up = player.frame.up, on = items.has('level') && up.y < 0.95 && !player.hidden && !!camera;
+    let roll = 0, dy = 0;
+    if (on) {
+      // the floor's line across the view: the camera's right and forward against the way up here
+      camera.matrixWorld.extractBasis(_lr, _lu, _lf);
+      const r = Math.atan2(-_lr.dot(up), _lu.dot(up)), pitch = THREE.MathUtils.clamp(_lf.dot(up), -1, 1);
+      roll = Math.round(-r * 180 / Math.PI * 2) / 2; dy = Math.round(-pitch * 22 * 2) / 2;
+    }
+    screen.set('level', on ? { roll, dy } : null);
+    if (!page.drawsHud() || !document.body?.appendChild) return;   // (an engine draws the part instead)
     if (!levelEl && !on) return;
     if (!levelEl) {
       levelEl = document.createElement('div');
@@ -169,10 +181,7 @@ export function createItemEffects({ player, tool = null, level = null, sound = n
     }
     levelEl.style.opacity = on ? '0.9' : '0';
     if (!on) return;
-    // the floor's line across the view: the camera's right and forward against the way up here
-    camera.matrixWorld.extractBasis(_lr, _lu, _lf);
-    const roll = Math.atan2(-_lr.dot(up), _lu.dot(up)), pitch = THREE.MathUtils.clamp(_lf.dot(up), -1, 1);
-    levelBar.style.transform = `translateY(${(-pitch * 22).toFixed(1)}px) rotate(${(-roll * 180 / Math.PI).toFixed(1)}deg)`;
+    levelBar.style.transform = `translateY(${dy.toFixed(1)}px) rotate(${roll.toFixed(1)}deg)`;
   }
   applyTank();
 

@@ -200,6 +200,7 @@ namespace Hiraeth.Bridge
             if (Arg("-run-secs") != null) args["runSecs"] = double.Parse(Arg("-run-secs"), CultureInfo.InvariantCulture);
             // (-words: with -trial / -game, a fixed set of the minigames' words put up after the run's picture and photographed)
             if (Flag("-words")) args["words"] = true;
+            if (Arg("-ui") != null) args["ui"] = Arg("-ui");   // (the page elements of issue #430, each pictured: engine/ui-poses.js)
             // (-run-key KeyR: the key held through the run instead of W; -pose: the game's own pose a moment before the run's
             // picture, session.pose: the drum circle played by itself, a fish on the fishing's line)
             if (Arg("-run-key") != null) args["runKey"] = Arg("-run-key");

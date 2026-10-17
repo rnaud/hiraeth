@@ -139,7 +139,8 @@ import { isolate, restore, portraitPixelRatio } from './story/portrait-bg.js';
 import { chargeState, chargeHud, showChargeCard, GIVEN as CHARGE_GIVEN, CARD as CHARGE_CARD } from './story/charge.js';
 import { lanternSky, applyLanternSky } from './story/lantern-sky.js';
 import { slots, formatPlaytime, DEBUG_SLOT } from './save-slots.js';
-import { Waters, BreathMeter } from './water.js';
+import { Waters, BreathMeter, breathShown } from './water.js';
+import { pickBalloon, publishBalloons } from './balloon-part.js';
 import { Passage, PassageCover, WarmDraw, warmPasses, carryAcross, PASSAGE } from './passage.js';
 import { Thresholds, THRESHOLD } from './thresholds.js';
 import { DoorWalk } from './door-walk.js';
@@ -2406,7 +2407,6 @@ function frame(ts) {
   // only the nearest talking villager shows a balloon
   {
     camera.updateMatrixWorld();   // project with this frame's camera, not last frame's
-    let best = null, bd = Infinity;
     // (while a moment is filmed only a shout the moment asked for: an idle bark over a panel reads as a caption, src/story/moment.js)
     const filming = storyRt.moments.playing;
     // (and nobody at all until the player has the controls: the crash, a landing, a recording: src/ship/landing.js)
@@ -2415,9 +2415,11 @@ function frame(ts) {
     const talk = talkAllowed({ shipPlaying: ship.playing }) && !shopPanel.isOpen && !boxes?.busy?.();
     // (and a greeting waits while a notice is up or waiting: one thing on the screen at a time, issue #78; a shout a scene asked for still comes)
     const greet = !ship.cinema.noticeBusy();
-    if (talk) for (const n of npcs) if (n.talking && ((!filming && greet) || (n.shout && n.time < n.shout.until))) { const d = n.pos.distanceTo(player.pos); if (d < bd) { bd = d; best = n; } }
+    // (the nearest who talks; the balloons as the screen's part too, which the engines draw: src/balloon-part.js, issue #430)
+    const best = pickBalloon(npcs, { player, talk, filming, greet });
     const prompted = storyRt.prompt && storyRt.promptEntry?.npc;
     for (const n of npcs) n.placeBalloon(camera, n === best, n === prompted ? 30 : 0);
+    publishBalloons([...npcs, crowd]);
     if (best) balloonAt = performance.now();
     // a balloon that speaks of humming: the hum, softly (src/story/hum.js)
     if (best?._balloonLine && best._balloonLine !== lastBalloon) { lastBalloon = best._balloonLine; hearWords(best._balloonLine); }
@@ -2551,8 +2553,7 @@ function frame(ts) {
   waters.keepCamera(camera, player.swim?.under ? 'under' : 'over');
   // (deep in a sea the pack gives air: swim.js SEA; but a helmet's sea, the Underwater City's seabed, runs its air down and
   // a bell gives it back: shown out there, and while it fills again)
-  const helmetSea = !!player.inWater?.body?.sea?.helmet || (!!level.sea?.userData?.sea?.helmet && player.breath < 0.999);
-  breathMeter.update(player.breath, ((!!player.swim && ((player.swim.under && !player.swim.sea) || player.breath < 0.999)) || helmetSea) && !busy());
+  breathMeter.update(player.breath, breathShown(player, level, busy()));   // (engine/game.js the same: src/water.js breathShown)
 
   gpuTimer.begin();
   renderFrame();

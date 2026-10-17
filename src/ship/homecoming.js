@@ -1,4 +1,4 @@
-import { MAKERS_MARK_SVG } from '../makers-mark/design.js';
+import { MAKERS_MARK_SVG, markContours } from '../makers-mark/design.js';
 import * as THREE from 'three';
 import { game } from '../game-state.js';
 import { DECK, HATCH_A } from './hull.js';
@@ -6,8 +6,10 @@ import { cockpitZ } from './interior.js';
 import { makeMaterial, MODE_STRATA } from '../materials.js';
 import { callTimeline } from './prologue.js';
 import * as sfx from './sfx.js';
-import { padIndex } from '../native-pad.js';
-import { glyph } from '../pad-glyphs.js';
+import { padIndex, confirmKey } from '../native-pad.js';
+import { glyph, GLYPH_KEYS } from '../pad-glyphs.js';
+import { screen } from '../platform.js';
+import { inputKind } from '../prompt-keys.js';
 import { exhaust, touchdownDust } from './exhaust.js';
 import { spoken } from '../story/tone.js';
 import { tokenList, leaveTokens, tombLines, credits, creditsHtml, creditLines, KIND_LABEL, choicesMade, homecomingKind, ILEN_TOKEN, FINALE_ID, marketHeard } from '../story/ending.js';
@@ -179,33 +181,46 @@ export function tombCuts(timeline, { lou = false, min = TOMB_CUTS.min, order = T
 const hasDOM = (page = true) => page && typeof document !== 'undefined' && !!document.body;
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
+/** The cargo panel's words (the page's and an engine's alike). */
+export const CARGO = { title: 'CARGO CHECK', lead: 'Before descent. Everything in the hold goes down with you.', go: 'Take it all down ▶', empty: { name: 'Nothing', text: 'The hold is empty. Just you.' } };
+/**
+ * The cargo panel as data, the screen's 'cargo' part (an engine draws it: BridgeHud.cs DrawCargo, issue #430): its
+ * title and line, each thing in the hold (its kind's tag, name, where it came from, its line), the button and its key.
+ */
+export function cargoState(items, titles, kind = inputKind()) {
+  const list = items.length ? items.map((k) => ({ kind: k.kind ?? '', label: KIND_LABEL[k.kind] ?? k.kind ?? '', name: k.name ?? '', from: k.kind === 'item' ? 'a makers’ gift' : titles?.[k.level] ?? k.level ?? '', text: k.text ?? '' }))
+    : [{ kind: '', label: '', name: CARGO.empty.name, from: '', text: CARGO.empty.text }];
+  return { title: CARGO.title, lead: CARGO.lead, items: list, go: CARGO.go, ok: kind === 'pad' ? confirmKey() : GLYPH_KEYS.ok };
+}
+
 /** The cockpit panel: everything in the hold, all of it going down. */
-class CargoPanel {
+export class CargoPanel {
   constructor({ items, titles, onGo, page = true }) {
     Object.assign(this, { items, titles, onGo, open: false });
+    // (the keys and the pad answer it with or without a page: an engine's keys arrive as the page's, engine/platform.js)
+    this.onKey = (e) => {
+      if (!this.open) return;
+      if (e.code === 'Enter' || e.code === 'Space' || (e.code === 'KeyE' && !e.repeat && this.armed)) { this.go(); e.preventDefault?.(); e.stopPropagation?.(); }
+    };
+    this.onUp = (e) => { if (e.code === 'KeyE') this.armed = true; };
+    if (typeof window !== 'undefined' && window.addEventListener) { window.addEventListener('keydown', this.onKey, true); window.addEventListener('keyup', this.onUp); this.listening = true; }
     if (!hasDOM(page)) return;
     if (!document.getElementById('homeward-css')) { const s = document.createElement('style'); s.id = 'homeward-css'; s.textContent = CSS; document.head.appendChild(s); }
     this.el = document.createElement('div');
     this.el.id = 'homeward';
     const list = items.length ? items.map((k) => `<div class="k"><span class="kind ${esc(k.kind)}">${esc(KIND_LABEL[k.kind] ?? k.kind)}</span>
         <b>${esc(k.name)}</b><span class="from">${esc(k.kind === 'item' ? 'a makers’ gift' : titles[k.level] ?? k.level ?? '')}</span><span class="text">${esc(k.text ?? '')}</span></div>`).join('')
-      : '<div class="k"><b>Nothing</b><span class="text">The hold is empty. Just you.</span></div>';
-    this.el.innerHTML = `<header><h2>CARGO CHECK</h2><p>Before descent. Everything in the hold goes down with you.</p></header>
+      : `<div class="k"><b>${CARGO.empty.name}</b><span class="text">${CARGO.empty.text}</span></div>`;
+    this.el.innerHTML = `<header><h2>${CARGO.title}</h2><p>${CARGO.lead}</p></header>
       <div class="list">${list}</div>
-      <footer><button class="go">${glyph('ok')}Take it all down ▶</button></footer>`;
+      <footer><button class="go">${glyph('ok')}${CARGO.go}</button></footer>`;
     document.body.appendChild(this.el);
     this.el.querySelector('.go').addEventListener('click', () => this.go());
-    this.onKey = (e) => {
-      if (!this.open) return;
-      if (e.code === 'Enter' || e.code === 'Space' || (e.code === 'KeyE' && !e.repeat && this.armed)) { this.go(); e.preventDefault(); e.stopPropagation(); }
-    };
-    this.onUp = (e) => { if (e.code === 'KeyE') this.armed = true; };
-    window.addEventListener('keydown', this.onKey, true);
-    window.addEventListener('keyup', this.onUp);
   }
   show() {
     this.open = true;
     this.armed = false;
+    screen.set('cargo', cargoState(this.items, this.titles));
     if (!this.el) return;
     this.el.classList.add('open');
     document.exitPointerLock?.();
@@ -213,6 +228,7 @@ class CargoPanel {
   go() {
     if (!this.open) return;
     this.open = false;
+    screen.set('cargo', null);
     this.el?.classList.remove('open');
     this.onGo();
   }
@@ -226,27 +242,35 @@ class CargoPanel {
     this._padA = A;
   }
   remove() {
-    if (!this.el) return;
-    window.removeEventListener('keydown', this.onKey, true);
-    window.removeEventListener('keyup', this.onUp);
-    this.el.remove();
+    if (this.open) screen.set('cargo', null);
+    this.open = false;
+    if (this.listening) { window.removeEventListener('keydown', this.onKey, true); window.removeEventListener('keyup', this.onUp); this.listening = false; }
+    this.el?.remove();
   }
 }
 
+/** The end card's words: the title, the line under the makers' mark. */
+export const END_CARD = { title: 'SOMETHING OF VALUE', line: 'for the two of them, on the hill' };
+let endCards = 0;
+/** The makers' mark as the shared one's contours (src/makers-mark/design.js), for an engine to fill: never redrawn. */
+const markShape = () => markContours(1).map((ps) => ps.map(([x, y]) => [Math.round(x * 1000) / 1000, Math.round(y * 1000) / 1000]));
 /** The end card: the title on dark paper, a moment, before the credits. */
-class EndCard {
+export class EndCard {
   constructor(page = true) {
+    // (as the screen's 'endCard' part too, which an engine draws: BridgeHud.cs DrawEndCard, issue #430; `on` false as it fades)
+    this.id = ++endCards;
+    screen.set('endCard', { ...END_CARD, mark: markShape(), id: this.id, on: true });
     if (!hasDOM(page)) return;
     if (!document.getElementById('homeward-css')) { const s = document.createElement('style'); s.id = 'homeward-css'; s.textContent = CSS; document.head.appendChild(s); }
     this.el = document.createElement('div');
     this.el.id = 'endcard';
-    this.el.innerHTML = `<h1>SOMETHING OF VALUE</h1><div class="mark">${MAKERS_MARK_SVG}</div><p>for the two of them, on the hill</p>`;
+    this.el.innerHTML = `<h1>${END_CARD.title}</h1><div class="mark">${MAKERS_MARK_SVG}</div><p>${END_CARD.line}</p>`;
     document.body.appendChild(this.el);
     void this.el.offsetWidth;
     this.el.classList.add('on');
   }
-  fade() { this.el?.classList.remove('on'); }
-  remove() { this.el?.remove(); }
+  fade() { if (screen.state.endCard?.id === this.id) screen.set('endCard', { ...END_CARD, mark: markShape(), id: this.id, on: false }); this.el?.classList.remove('on'); }
+  remove() { if (screen.state.endCard?.id === this.id) screen.set('endCard', null); this.el?.remove(); }
 }
 
 /**
@@ -475,9 +499,7 @@ export class HomecomingDirector {
       case 'card':
         C.say(null);
         this.s.holo?.hide();
-        this.card = new EndCard(this.page);
-        // (no page: the card's words as a line under the picture, the engines')
-        if (!this.card.el) C.say({ text: 'SOMETHING OF VALUE · for the two of them, on the hill' });
+        this.card = new EndCard(this.page);   // (no page: an engine draws it from the screen's part, issue #430)
         break;
       case 'credits':
         C.say(null);
@@ -596,8 +618,8 @@ export class HomecomingDirector {
         }
         if (id === 'cargo') {
           this.panel?.pad();
-          // (no page for the cargo panel, the engines': its one answer, everything goes down, given once the ship has asked)
-          if (this.panel && !this.panel.el && !this.chosen && t > 3.4) this.choose();
+          // (without a page too the panel waits for its answer, Enter, E or A: an engine draws it from the screen's 'cargo'
+          // part, issue #430; it went on by itself after 3.4 s before, when nothing was drawn)
           if (t > 3.6 && !this.chosen && !this.quiet) { this.quiet = true; C.say(null); }   // the panel asks the rest
         }
         break;

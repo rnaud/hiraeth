@@ -10,8 +10,8 @@ web only and why; then what the bridge handles and where. How it works: `docs/sy
 | Materials and shaders the bridge draws as something else | 25 | 1 | 9 |
 | Where the game makes its own shaders | 5 | 3 | 12 |
 | Passes and scenes outside the main picture | 1 | 4 | 8 |
-| Page elements (HTML) the game builds | 6 | 4 | 16 |
-| What src/main.js sets up that engine/game.js doesn't | 29 | 5 | 11 |
+| Page elements (HTML) the game builds | 1 | 4 | 21 |
+| What src/main.js sets up that engine/game.js doesn't | 27 | 5 | 11 |
 | Dev pages and tools (web only by category) | | 28 | |
 
 ## Materials and shaders the bridge draws as something else
@@ -76,16 +76,11 @@ web only and why; then what the bridge handles and where. How it works: `docs/sy
 
 **Gaps**
 
-- **the speech balloons over people as they pass (their barks)** (#430, seen at once). Page elements placed over each head; BridgeHud draws only the minigames' balloons (words) `src/aliens/alien.js`, `src/npc.js`, `src/crowd.js`
-- **the homecoming's objective card (cinema.objective)** (#430, seen in play). Known in #264; the letterbox, subtitles, toast and warp cross as the cine, sub, toast and warp parts. `src/ship/cinema.js`
-- **the homecoming's cargo check and its end card** (#430, seen in play). The engines answer the cargo panel and say the credits as lines (tests/engine-finishable.test.js) but draw neither. `src/ship/homecoming.js`
-- **the breath meter (bubbles under the health bar while holding your breath)** (#430, seen in play). Engine/game.js makes no BreathMeter. `src/water.js`
-- **the brass level (a bubble level at the screen's edge where down has turned)** (#430, seen in play). `src/boxes/effects.js`
-- **the Arcade's board of games** (#430, barely seen). To check: the Arcade's games may be reached from their signs alone. `src/levels/arcade-board.js`
+- **the homecoming's credits rolling up the screen** (#430, barely seen). The cargo check and the end card are drawn (the cargo and endCard parts, BridgeHud.Parts.cs); the credits' page is said as subtitles, a line at a time (tests/engine-finishable.test.js) `src/ship/homecoming.js`
 
 **Web only**: the title's first paint (a drawing shown while the page loads its WebGL; the engines start on their own splash); the Android app's shell and the web's update panel (the web build's (Capacitor); the Unity players update through BridgeUpdates and their Updates page); the pad glyphs' style sheet (CSS for the page's glyphs; BridgeHud draws its own); the world picker (?level) (the page's list of worlds; the engines choose by -level and the Worlds page).
 
-**Handled**: the charge card (the screen's charge part, BridgeHud.cs DrawCharge (issue #394)); the conversation (the dialogue part, BridgeHud.cs); the floating prompt (the prompt part, BridgeHud.cs); the cue line (the cue part, BridgeHud.cs); the health, stamina, keys, knock-out card, photo hint, the tool's gauge, the loading screen, the picker (the health, stamina, keys, restart and photo parts, BridgeHud.cs; the picker and loading screen are the page's (host)); a makers' box's card (the boxCard part, BridgeHud.cs); the gadgets' chip, marks, wheel and reticle (their parts, BridgeHud.cs); a minigame's HUD, card, results and floating words (the minigame and words parts, BridgeHud.Games.cs); the four minigames' own panels (their parts, BridgeHud.Games.cs); the foes' warning chips, the blinding flash, the lock-on ring, the low-health and flurry edges (the warn, lock and edges parts, BridgeHud.cs); the guardian's bar (the guardian part, BridgeHud.cs DrawGuardian); a way through's cover (the passage part, BridgeHud.cs); the journal and the toast (the toast part; the journal's Quests page in engine/menus.js); the game menu, the Start menu and settings, the title, the shops, What's new, the galactic map (engine/menus.js and engine/starmap.js, BridgeMenu.cs and BridgeMenu.StarMap.cs); page.byId, the page's elements by id (engine/platform.js stands in for the page); what the traveller carries (src/carry.js) (nothing to draw: the web draws nothing from the part either (the thing is in his hands, in the scene)).
+**Handled**: the speech balloons over people as they pass (their barks) (the balloons part (src/balloon-part.js: main.js and engine/game.js choose alike), BridgeHud.Parts.cs DrawBalloons (issue #430)); a ship's scene: the letterbox, subtitles, hint, skip, and the homecoming's objective card (cinema.objective) (the cine, sub, toast, warp and objective parts, BridgeHud.cs DrawCine and BridgeHud.Parts.cs DrawObjective (issue #430)); the breath meter (bubbles under the health bar while holding your breath) (the breath part (src/water.js breathShown: main.js and engine/game.js alike), BridgeHud.Parts.cs DrawBreath (issue #430)); the brass level (a bubble level at the screen's edge where down has turned) (the level part, BridgeHud.Parts.cs DrawLevel (issue #430)); the Arcade's board of games (engine/menus.js openArcade (its E, D-pad down, Tab), BridgeMenu.cs DrawArcade (issue #430)); the charge card (the screen's charge part, BridgeHud.cs DrawCharge (issue #394)); the conversation (the dialogue part, BridgeHud.cs); the floating prompt (the prompt part, BridgeHud.cs); the cue line (the cue part, BridgeHud.cs); the health, stamina, keys, knock-out card, photo hint, the tool's gauge, the loading screen, the picker (the health, stamina, keys, restart and photo parts, BridgeHud.cs; the picker and loading screen are the page's (host)); a makers' box's card (the boxCard part, BridgeHud.cs); the gadgets' chip, marks, wheel and reticle (their parts, BridgeHud.cs); a minigame's HUD, card, results and floating words (the minigame and words parts, BridgeHud.Games.cs); the four minigames' own panels (their parts, BridgeHud.Games.cs); the foes' warning chips, the blinding flash, the lock-on ring, the low-health and flurry edges (the warn, lock and edges parts, BridgeHud.cs); the guardian's bar (the guardian part, BridgeHud.cs DrawGuardian); a way through's cover (the passage part, BridgeHud.cs); the journal and the toast (the toast part; the journal's Quests page in engine/menus.js); the game menu, the Start menu and settings, the title, the shops, What's new, the galactic map (engine/menus.js and engine/starmap.js, BridgeMenu.cs and BridgeMenu.StarMap.cs); page.byId, the page's elements by id (engine/platform.js stands in for the page); what the traveller carries (src/carry.js) (nothing to draw: the web draws nothing from the part either (the thing is in his hands, in the scene)).
 
 ## What src/main.js sets up that engine/game.js doesn't
 
@@ -93,7 +88,6 @@ web only and why; then what the bridge handles and where. How it works: `docs/sy
 
 - **the kit's chosen colours (backpack, sword, shield), won in the fight temples** (#427, seen in play). Known in #264. `import:src/kit-colours.js#applyKitColours`, `import:src/kit-colours.js#coloursData`, `import:src/kit-colours.js#cycleColour`
 - **the patch of shade under the traveller in a jump** (#427, seen in play). `import:src/jump-shadow.js#JumpShadow`
-- **the breath meter** (#427, seen in play). `import:src/water.js#BreathMeter`
 - **the fires burning whoever walks into them** (#427, seen in play). Engine/game.js updates the hazards but registers no fire's (to check) `import:src/hazards.js#registerHazard`, `import:src/story/flames.js#fireHazard`
 - **the camera kept out of the cabs and carriers** (#427, seen in play). `import:src/carriers.js#cameraPhysics`, `import:src/carriers.js#keepLensOut`
 - **the benches to sit on** (#427, seen in play). #264: "benches aren't in the engine yet". `import:src/benches.js#createBenches`
@@ -113,7 +107,6 @@ web only and why; then what the bridge handles and where. How it works: `docs/sy
 - **the fragments' purse line** (#427, barely seen). To check. `import:src/fragment-shop.js#fragmentPurse`, `fn:fragmentsLine`
 - **the magic bar** (#427, barely seen). To check: the health part carries magic. `import:src/hud.js#magicHud`
 - **a game reached from the Arcade going back to it, its cards' previous and next** (#427, barely seen). `import:src/minigames/kit/arcade.js#arcadeLinks`
-- **no balloons or talk prompts while a ship's scene plays** (#427, barely seen). To check. `import:src/ship/landing.js#talkAllowed`
 - **the camera's pitch behind the jets, the wide lens** (#427, barely seen). To check. `import:src/player.js#jetCameraPitch`, `import:src/player.js#WIDE`
 - **the potion's glow and hint** (#427, barely seen). To check. `fn:potionGlow`, `fn:potionHint`
 - **a line heard once free (the page's timing of words and pings)** (#427, barely seen). To check. `fn:hearWords`, `fn:pingWhenFree`

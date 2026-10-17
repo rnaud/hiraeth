@@ -43,6 +43,13 @@ const CSS = `
   body.controller #arcade-board footer .kb { display: none; }
 `;
 
+/** The board's words (the page's sheet and an engine's, engine/menus.js openArcade, issue #430). */
+export const ARCADE_BOARD = {
+  kicker: 'The Arcade', title: 'The games',
+  keys: 'arrows choose · Enter plays · Tab or Esc closes · in a game, [ and ] play the one before / after',
+  pad: 'D-pad or left stick choose · A / × plays · B / ○ closes · in a game, LB / RB play the one before / after',
+};
+
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 
 export class ArcadeBoard {
@@ -53,6 +60,7 @@ export class ArcadeBoard {
    */
   constructor({ games, best = () => '', go = (href) => { location.href = href; }, win = globalThis.window, doc = globalThis.document }) {
     Object.assign(this, { games, best, go, win, doc });
+    this.words = ARCADE_BOARD;
     this.open = false;
     this.el = null;          // (main.js: the root of the pad's menu navigation while open)
     this.items = [];
@@ -91,12 +99,12 @@ export class ArcadeBoard {
     el.id = 'arcade-board';
     el.setAttribute('role', 'dialog');
     el.setAttribute('aria-label', 'The games board');
-    el.innerHTML = `<div class="sheet"><p class="kicker">The Arcade</p><h1>The games</h1><button class="close" type="button" aria-label="Close">×</button>
+    el.innerHTML = `<div class="sheet"><p class="kicker">${ARCADE_BOARD.kicker}</p><h1>${ARCADE_BOARD.title}</h1><button class="close" type="button" aria-label="Close">×</button>
       <div class="grid">${this.games.map((g) => {
         const best = this.best(g);
         return `<button class="game" type="button" data-id="${esc(g.id)}" style="--c:${esc(g.color ?? '#71d7cf')}"><i></i><b>${esc(g.name)}</b><span>${esc(g.blurb)}</span><em>${best ? `best ${esc(best)}` : 'no best yet'}</em></button>`;
       }).join('')}</div>
-      <footer><span class="kb">arrows choose · Enter plays · Tab or Esc closes · in a game, [ and ] play the one before / after</span><span class="pad">D-pad or left stick choose · A / × plays · B / ○ closes · in a game, LB / RB play the one before / after</span></footer></div>`;
+      <footer><span class="kb">${ARCADE_BOARD.keys}</span><span class="pad">${ARCADE_BOARD.pad}</span></footer></div>`;
     this.items = [...el.querySelectorAll('button.game')];
     for (const b of this.items) {
       b.addEventListener('click', (e) => { e.stopPropagation(); this.choose(b.dataset.id); });

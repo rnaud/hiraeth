@@ -35,6 +35,9 @@ import { VERSION } from '../../src/version.js';
 import { devMode } from '../../src/dev-gate.js';
 import { setEnginePad, setFaces, padFaces, padLabels, promptText } from '../../src/native-pad.js';
 import { keyRouter } from '../../src/remap.js';
+import { hudShows } from '../../src/hud-shows.js';
+import { uiPose } from '../ui-poses.js';
+import { items as ownedItems } from '../../src/items.js';
 
 // The scene's matrices recomposed only where something moved (src/matrix-cache.js, the web game's own, with its walks
 // entered below the root forced, reparented objects forced and updateMatrix remembered), for the walk over the whole
@@ -72,7 +75,7 @@ const RUMBLE = {
 };
 
 /** A run with a plan (the bench's views, a conversation, the tour…): straight into its world, no title, no menus. */
-const planned = (a) => !!(a.views?.length || a.talk || a.through != null || a.play || a.walk || a.hudRun || a.tour || a.idle || a.aboard || a.fight || a.foes || a.devmenu || a.noTitle || a.trial || a.game || a.ending || a.opening || a.starmap || a.updatesPage || a.house);
+const planned = (a) => !!(a.views?.length || a.talk || a.through != null || a.play || a.walk || a.hudRun || a.tour || a.idle || a.aboard || a.fight || a.foes || a.devmenu || a.ui || a.noTitle || a.trial || a.game || a.ending || a.opening || a.starmap || a.updatesPage || a.house);
 /** -aboard cockpit,main,cabin,hold: the rooms of the parked ship it photographs, as the web's ?aboard= (main.js). */
 const aboardRooms = (a) => String(a.aboard ?? '').split(',').filter(Boolean);
 /**
@@ -315,6 +318,11 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
     S.settings = settings;
     S.menus = new EngineMenus({ store: slots, settings, version: `v${VERSION}`, screen: () => ({ w: host.MenuWidth?.() || 1280, h: 720 }) });
   }
+  // (-ui: on the debug save past the prologue with the backpack, as the web's side's page storage: engine/ui-poses.js)
+  if (args.ui) {
+    slots.setActive(DEBUG_SLOT); gameState.reload();
+    for (const k of ['prologue.done', 'item.backpack', 'charge.given', 'charge.card']) gameState.set(k, true);
+  }
   const starScenes = starmapScenes(args);
   if (starScenes.length) {
     // (the debug save, its journal of worlds seen emptied: the worlds to find are those the route opens, none seen yet)
@@ -350,7 +358,7 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
   // (-foes: the Arena's list of foes is a page of the menus, so the plan has menus to draw it, and writes no save; -devmenu:
   // the dev menu is one of the menus too, with the player's settings for its frame readout)
   const menus = S.menus ?? (ending || args.opening || starScenes.length ? new EngineMenus({ store: slots, screen: () => ({ w: host.MenuWidth?.() || 1280, h: 720 }) })
-    : args.foes || args.devmenu || args.house ? (S.menus = new EngineMenus({ dev: () => false, house: () => S?.game?.houseView?.() ?? null, screen: () => ({ w: host.MenuWidth?.() || 1280, h: 720 }) })) : null);
+    : args.foes || args.devmenu || args.house || args.ui ? (S.menus = new EngineMenus({ dev: () => false, house: () => S?.game?.houseView?.() ?? null, screen: () => ({ w: host.MenuWidth?.() || 1280, h: 720 }) })) : null);
   if (args.devmenu && !S.settings) S.settings = new Settings();
   if (starScenes.length) S.menus = menus;   // (shown: BridgeMenu draws the map)
   // (-updates-page: the Start menu's Updates page photographed as it checks, downloads and restarts: BridgeUpdates, with
@@ -365,7 +373,7 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
   S.gameFrom = args.level ?? 'desert';
   createGame({ levelId: args.level ?? 'desert', backend, game, from: game ? args.level ?? 'desert' : null, onGame: (href) => playGame(href), onLeave: (href) => leaveGame(href), trials: !!args.trial || !!args.fresh, quality: args.quality ?? null, people: args.people !== false, audio: rate ? { sampleRate: rate, record } : null, flags: !ending && (args.views?.length || args.play) ? BENCH_FLAGS : null, log: (...a) => console.log('[game]', ...a),
     menus, settings: S.settings ?? null, start: from, arrive: arrive || !!args.arrive, hullSpawn: !!args.hullSpawn, gestures: !off.has('gestures'),
-    via, prologue: prologue || !!args.prologue, onTravel: (to) => flyTo(to), aboard: aboardRooms(args)[0] ?? (starScenes.length ? 'main' : null), scenes: !!args.aboard, fight: !!args.fight, arrival: came, onPage: (o) => pageTo(o), saves: !args.foes && !args.devmenu && !args.house, defer: !off.has('defer'), far: !off.has('far'), skies: !off.has('skies'), lod: String(args.on ?? '').split(',').includes('lod') })
+    via, prologue: prologue || !!args.prologue, onTravel: (to) => flyTo(to), aboard: aboardRooms(args)[0] ?? (starScenes.length ? 'main' : null), scenes: !!args.aboard, fight: !!args.fight, arrival: came, onPage: (o) => pageTo(o), saves: !args.foes && !args.devmenu && !args.house && !args.ui, defer: !off.has('defer'), far: !off.has('far'), skies: !off.has('skies'), lod: String(args.on ?? '').split(',').includes('lod') })
     .then((game) => {
       S.game = game;
       // (the title's sound let go: the world's own plays from here; the themes this package lacks fetched once, BridgeMusic)
@@ -497,6 +505,16 @@ function makePlan(args) {
     if (args.play.includes('drone')) {
       steps.push({ kind: 'key', code: 'KeyQ', down: true }, { kind: 'wait', frames: 2 }, { kind: 'key', code: 'KeyQ', down: false }, { kind: 'wait', frames: 75 });
       if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-drone.png` });
+    }
+  }
+  if (args.ui) {
+    // (-ui balloons,objective,…: the page elements of issue #430 put up one after another as the web's side does
+    // (engine/ui-poses.js), each photographed a moment on (unity-ui-<piece>.png), then let go)
+    steps.push({ kind: 'wait', frames: 90, secs: 3 });
+    for (const piece of String(args.ui).split(',').filter(Boolean)) {
+      steps.push({ kind: 'ui', piece }, { kind: 'wait', frames: 30, secs: piece === 'objective' ? 1.2 : piece === 'endcard' ? 2.2 : 1 });
+      if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-ui-${piece}.png` });
+      steps.push({ kind: 'ui', piece: 'none' }, { kind: 'wait', frames: 10 });
     }
   }
   if (args.warp) {
@@ -842,9 +860,10 @@ export function frame(dt) {
   // (the look moves with the hour and the place: read every 4th frame is enough)
   if (S.frames % 4 === 0) backend.look(JSON.stringify(portLook(game.fullLook())));
   S.lookMs = (S.lookMs ?? 0) + now() - tL;
-  // the HUD's state when it changed (src/platform.js screen: BridgeHud draws it in uGUI)
+  // the HUD's state when it changed (src/platform.js screen: BridgeHud draws it in uGUI), with which of its parts the page's
+  // rules hide now (src/hud-shows.js: BridgeHud asks it, issue #430)
   const scr = game.screen(), acc = access();
-  if (scr.version !== S.screenV || acc.key !== S.accessKey) { S.screenV = scr.version; S.accessKey = acc.key; host.Screen(forPad(JSON.stringify({ ...scr.state, access: acc.state }), true)); }
+  if (scr.version !== S.screenV || acc.key !== S.accessKey) { S.screenV = scr.version; S.accessKey = acc.key; host.Screen(forPad(JSON.stringify({ ...scr.state, access: acc.state, shows: hudShows(scr.state) }), true)); }
   pumpAudio(game.audio);
   const tB = now();
   const lastT = S.lastT; S.lastT = tA;
@@ -910,6 +929,11 @@ export function frame(dt) {
   else if (step.kind === 'untilOver') {
     // (the homecoming over: one more picture of where it leaves him, then done)
     if (game.ship && !game.ship.playing && !P.over) { P.over = true; P.i = P.steps.length - 1; P.steps.splice(P.i, 0, { kind: 'wait', frames: 2, secs: 3 }, { kind: 'stage' }, ...(S.args.out ? [{ kind: 'shot', file: `${S.args.out}/unity-ending-after.png` }] : [])); return; }
+    next();
+  }
+  else if (step.kind === 'ui') {
+    if (step.piece === 'none') { game.menus?.close?.(); S.menus?.close?.(); console.log('[unity] ui: let go'); uiPose({ THREE, player: game.player }, 'none'); }
+    else console.log(`[unity] ui ${step.piece}: ${uiPose({ THREE, player: game.player, npcs: game.npcs, ship: game.ship, items: ownedItems, level: game.level, page: false, openArcade: (b) => S.menus?.openArcade?.(b) }, step.piece)}`);
     next();
   }
   else if (step.kind === 'warp') { game.ship?.warp?.start(step.title); next(); }

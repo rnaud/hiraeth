@@ -20,6 +20,8 @@ import { hintLevel } from '../hint-level.js';
 import { HINT } from '../hint-look.js';   // every hint one look, one place (issue #306)
 import { toastSeconds } from '../quest.js';   // a long toast stays up longer   // the mumbled voice under each subtitle
 
+/** How long the objective card stays (s): the page's animation and an engine's part alike. */
+const OBJECTIVE_SECS = 6.5;
 const CSS = `
 #cine { position: fixed; inset: 0; z-index: 8000; pointer-events: none; }
 #cine .bar { position: absolute; left: 0; right: 0; height: 0; background: #2b211f; transition: height 1.1s cubic-bezier(.6,0,.3,1); }
@@ -58,7 +60,7 @@ const CSS = `
 #objective .t { padding: 0.35em 1.1em 0.4em; font: 500 max(clamp(15px, 4vw, 20px), calc(var(--type) * 1.1))/1.3 var(--face); letter-spacing: .03em;
   background: var(--hint-bg, ${HINT.bg}); border-radius: var(--hint-radius, ${HINT.radius}); box-shadow: 0 1px 0 rgba(0, 0, 0, .25); text-wrap: balance; }
 #objective .t::before { content: '◆'; margin-right: .55em; color: var(--hint-accent, ${HINT.accent}); }
-#objective.show { animation: objective 6.5s forwards; transition: top .3s; }
+#objective.show { animation: objective ${OBJECTIVE_SECS}s forwards; transition: top .3s; }
 @keyframes objective { 0% { opacity: 0; transform: translate(-50%, 8px); } 8%, 82% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; } }
 #warp { position: fixed; inset: 0; z-index: 8400; pointer-events: none; opacity: 0; transition: opacity .5s; }
 #warp.on { opacity: 1; }
@@ -440,6 +442,13 @@ export class Cinema {
   }
 
   objective(text) {
+    // (as the screen's 'objective' part too, which an engine draws (BridgeHud.cs DrawObjective, issue #430): the step,
+    // `id` one a card, `secs` its life; without a page it shows at once, there being no notices' stack to wait in)
+    if (!this.dom || this.mayNotice('objective')) {
+      const id = (this._objN = (this._objN ?? 0) + 1);
+      screen.set('objective', { text: keyText(String(text)), id, secs: OBJECTIVE_SECS });
+      setTimeout(() => { if (screen.state.objective?.id === id) screen.set('objective', null); }, OBJECTIVE_SECS * 1000);
+    }
     if (!this.dom) return;
     // it waits its turn (the notices' order): after the region's name and a line, before the notices
     if (!this.mayNotice('objective')) { this._objPending = text; return; }

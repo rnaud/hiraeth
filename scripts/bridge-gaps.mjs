@@ -101,7 +101,7 @@ export function gatherDom() {
 export function bridgeParts() {
   const dir = 'unity/Hiraeth/Assets/HiraethJS/Runtime';
   const cs = readdirSync(join(ROOT, dir)).filter((f) => f.endsWith('.cs')).map((f) => read(`${dir}/${f}`)).join('\n');
-  return new Set([...cs.matchAll(/\.[A-Z]\w*\(\s*"(\w+)"/g)].map((m) => m[1]));
+  return new Set([...cs.matchAll(/(?:\.[A-Z]\w*|\bPart)\(\s*"(\w+)"/g)].map((m) => m[1]));   // (Part("x"): BridgeHud's, the part unless the page's rules hide it)
 }
 
 /** main.js's imports from src/ and its own functions, against what engine/game.js and engine/ use. */

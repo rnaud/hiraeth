@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { buildBody, kneeOf, STILT } from './bodies.js';
 import { SPECIES, TONE_BODY } from './species.js';
 import { formatText } from '../story/dialogue.js';
+import { balloonData } from '../balloon-part.js';
 import { keySig, hasKeys } from '../prompt-keys.js';
 import { speakBalloon } from '../story/voice.js';
 import { toneOf } from '../story/tone.js';
@@ -20,7 +21,7 @@ import { mulberry32 } from '../noise.js';
 // steps to catch itself, a shellback pulls in and rolls, a murmur's five scatter and hop back.
 
 const Y = new THREE.Vector3(0, 1, 0);
-const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _d = new THREE.Vector3(), _p = new THREE.Vector3(), _push = new THREE.Vector3();
+const _bw = new THREE.Vector3(), _v = new THREE.Vector3(), _w = new THREE.Vector3(), _d = new THREE.Vector3(), _p = new THREE.Vector3(), _push = new THREE.Vector3();
 const _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _m = new THREE.Matrix4(), _s = new THREE.Vector3(), _e = new THREE.Euler();
 const _c = new THREE.Color(), _c2 = new THREE.Color();
 const damp = (a, b, r, dt) => a + (b - a) * (1 - Math.exp(-r * dt));
@@ -124,7 +125,7 @@ export class Alien {
   }
   voicePerson() { return this.def; }
   show(on) { this.object.visible = on; }
-  hide() { this.show(false); this.talking = false; this.balloon?.classList.remove('show'); }
+  hide() { this.show(false); this.talking = false; this.balloon?.classList.remove('show'); this.balloonUp = null; }
 
   /**
    * The fluid tool. 'push' and 'shoot' and 'fire' play the species' reaction and a line; 'stun'
@@ -279,8 +280,9 @@ export class Alien {
   /** Put the balloon over the head (after the camera update; only for the one that talks). */
   placeBalloon(camera, show, lift = 0) {
     if (!this.balloon) return;
-    if (!show || !this.talking) { this.balloon.classList.remove('show'); this._voiced = null; return; }
+    if (!show || !this.talking) { this.balloon.classList.remove('show'); this._voiced = null; this.balloonUp = null; return; }
     this.faceAt(_w).addScaledVector(Y, 0.9);
+    _bw.copy(_w);
     _w.project(camera);
     const on = _w.z < 1 && Math.abs(_w.x) < 1.1 && Math.abs(_w.y) < 1.1;
     if (on) {
@@ -295,6 +297,7 @@ export class Alien {
       const x = clamp((_w.x * 0.5 + 0.5) * window.innerWidth - 22, 6, Math.max(6, window.innerWidth - w - 6));
       this.balloon.style.transform = `translate(${x.toFixed(1)}px, ${((-_w.y * 0.5 + 0.5) * window.innerHeight - lift).toFixed(1)}px) translate(0, calc(-100% - 12px))`;
     }
+    this.balloonUp = on ? balloonData(this._balloonLine, _bw, { lift }) : null;   // (as data too: src/balloon-part.js, issue #430)
     this.balloon.classList.toggle('show', on);
   }
   balloonFace() { return { speaking: false }; }
