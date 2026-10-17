@@ -2795,3 +2795,22 @@ grid: it reads the ground from above, and the cave's roof is in the way; the wal
 
 Cost, from the ship looking west (the village and the cleft now in view) and on the square: High 445 → 468, 359 → 387,
 280 → 277 draw calls; Handheld 349 → 370, 303 → 329, 226 → 228; frame times within the noise of a loaded Mac.
+
+## Space ports, the stand-in (v1.83, issue #397, `src/levels/port-pad.js`)
+
+Cities should have space ports (the author, 2026-10-16). The plan for every city and the Midjourney prompts are in
+`docs/design/space-ports.md`; until the author picks a design, a city's landing is marked as a port from kit pieces it
+already has, as data (`SC_PORT` in `src/levels/space-city.js`, the only city built so far):
+
+- **pad**: a ring of painted dashes round the ship's site (`gaps` keep the bridge's mouth and a shop's door open), four
+  chevrons pointing in, a lamp at each. The paint stands 5 cm over the deck and as far into it (`PAD_LIFT`), so no face
+  lies in the paving's plane (`tests/zfight.test.js`).
+- **docks**: an iron arm out over the rim, a post and jib with a lamp, a cradle, and a craft moored in it. The craft is
+  the City-Shaft's cab (`taxi.js cabModel`) in the city's colours, baked into the kit's merged meshes.
+- **traffic**: craft on slow ellipses over the city (centre, radii, height, speed, direction), bobbing and banking,
+  moved by the level's `update(dt)`; no shadows.
+
+Nothing is solid and the ship's site does not move, so the landing, its arrival views and the quests' first steps are as
+they were. The Pier gains 8 merged meshes and each craft in flight 6 (drawn only in view); the frame's draw calls on
+High stayed within a call or two. The Unity bridge draws it through the mirror as it is. Tests:
+`tests/port-pad.test.js`.

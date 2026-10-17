@@ -60,6 +60,9 @@ export const CHANGELOG = [
     // issue #433: src/gadgets/springs.js (launchHeight / launchVelocity `house`, Springs.inHouse); tests/boots-reach.test.js,
     // tests/engine-springs.test.js, tests/house-walk.js (lockSides)
     'Inside the makers’ houses the spring boots only hop: they won’t wind there, and a bounce goes no higher, so a launch can no longer carry you up onto a gallery or over a gap before its puzzle opens the way. Jump and press again in the air to stomp, as before. Out in the world they still throw you fourteen metres up.',
+    // issue #397: src/levels/port-pad.js (pad, docks, traffic as data), space-city.js SC_PORT, taxi.js (the fin's tip);
+    // tests/port-pad.test.js; docs/design/space-ports.md (the plan and the Midjourney prompts for every city)
+    'The City Floating in Space has a little space port on its Pier while the real one is being designed: a landing ring painted round your ship, two docks reaching out over the void either side of the bridge with a moorer’s craft in each, and small craft circling slowly over the city.',
   ] },
   { v: '1.82', date: '2026-10-16', items: [
     // issue #399: src/hook-foes.js (each kind's `hook` class, hookOutcome, lockShot), src/gadgets/hook.js fireAtLock /

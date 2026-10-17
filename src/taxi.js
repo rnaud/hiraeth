@@ -194,7 +194,8 @@ function cabParts(color) {
   const tail = new Paint();
   for (const side of [-1, 1]) {
     tail.add(plate([[0, 0], [0.4, 0], [0.62, 0.72], [0.4, 0.75]], 0.05).rotateY(Math.PI / 2), color, { at: [side * 0.2, 0, 0], rot: [0, 0, side * 0.55] });
-    tail.add(plate([[0.5, 0.45], [0.62, 0.72], [0.4, 0.75], [0.36, 0.5]], 0.07).rotateY(Math.PI / 2), RED, { at: [side * 0.2, 0, 0], rot: [0, 0, side * 0.55] });
+    // (the red tip's edges stand 1.5 cm proud of the fin's: one face in the same plane flickered, tests/zfight.test.js)
+    tail.add(plate([[0.5, 0.45], [0.635, 0.725], [0.39, 0.765], [0.36, 0.5]], 0.07).rotateY(Math.PI / 2), RED, { at: [side * 0.2, 0, 0], rot: [0, 0, side * 0.55] });
   }
   // what glows: the headlamps, the hover rings, the sensor eye and the dash's screen (always); the sign
   // and the wing-tip lamps (for hire)
