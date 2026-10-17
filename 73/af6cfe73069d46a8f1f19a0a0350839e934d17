@@ -1,0 +1,29 @@
+src/flat-pass.js
+  s_5f899ba316b5dc::t_48071bae9a89f3 1-147,150-153,156-192
+  s_5f899ba316b5dc::t_03827cb1176480 148-149,154-155
+src/main.js
+  s_5f899ba316b5dc::t_ef179fdfeb46d2 7,1843,1874,1950,2598
+  s_5f899ba316b5dc::t_c8ce242e4d9345 1841,1859,1884
+tests/flat-pass.test.js
+  s_5f899ba316b5dc::t_21a01d83df0073 1-122
+docs/systems/bridge-gaps.md
+  s_5f899ba316b5dc::t_8e8462ae606989 12,71
+engine/bridge-gaps.js
+  s_5f899ba316b5dc::t_943f084b57b2a5 164-165,288
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "73af6cfe73069d46a8f1f19a0a0350839e934d17",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
