@@ -153,7 +153,7 @@ import { DevMenu } from '../src/dev-menu.js';
 import { gatherPoints, questList, applyQuestJump, landingSpot, godLanding } from '../src/world-debug.js';
 import { GAMES } from '../src/minigames/index.js';
 import { DEBUG_SLOT } from '../src/save-slots.js';
-import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip, wireCompanion, wireCamera, wireHero, heroCutFrame, cameraFollow, wireBenches } from '../src/host/game-host.js';
+import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip, wireCompanion, wireCamera, wireHero, heroCutFrame, cameraFollow, wireBenches, wireTrails } from '../src/host/game-host.js';
 
 export { page };
 export { readHref } from './trials.js';   // (the tests: a game page's address)
@@ -525,6 +525,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // drum and the hearth's hints, its tank's moment: src/story/desert.js toolHasPush)
   const tool = optional('the fluid tool', () => new FluidTool({ scene, player, physics, camera, rig: null, sound, level, hud: new ToolHud(), noShadow: (level.noShadow ??= []) }));
   if (tool && level.lendTool) lendTool(tool, level.lendTool);   // (the Arena's: the backpack, the blade and the shield lent for the visit, main.js)
+  // the hover vehicles' trails in the fluid's tones, as the page (src/host/game-host.js wireTrails: none in the engines)
+  const hoverTrails = optional('the hover trails', () => wireTrails({ scene, player, physics, tool }));
   // the sword and the shield only once found, the kit in the colours chosen (src/host/game-host.js wireKit, as the page:
   // unset, the sword hung on his back from the opening on in Unity, and cut, before the Rose House gave it, issue #394;
   // and the kit's colours won in the fight temples were the page's alone, #264). A fight's bench (-fight): armed, as the
@@ -1274,7 +1276,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const lookOut = {};
   const SEC = { ms: {}, frames: 0 };
   const game = {
-    scene, camera, player, rig, level, physics, deferred, floraLater, npcs, crowd, story, storyPage, relics, ship, mirror, folk, kit, dangers, chemistry, benches, boxes, fragments, gadgets, itemFx, grass, wind, sky, post, T, wildlife, weather, shelter, tool, scout, sound, expedition, plumb, firstSteps, setLanternSky, flora, reactiveWorld, flammables,
+    scene, camera, player, rig, level, physics, deferred, floraLater, npcs, crowd, story, storyPage, relics, ship, mirror, folk, kit, dangers, chemistry, benches, hoverTrails, boxes, fragments, gadgets, itemFx, grass, wind, sky, post, T, wildlife, weather, shelter, tool, scout, sound, expedition, plumb, firstSteps, setLanternSky, flora, reactiveWorld, flammables,
     /** The sound's AudioContext (engine/webaudio.js): ctx.render(frames) → the next stereo PCM, or null without sound. */
     get audio() { return sound.ctx ?? null; },
     /** The wallet's chimes (src/resources.js), as the health HUD shows them while it is up. */
@@ -1705,6 +1707,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       const aboard = shipOn && ship.inside;
       if (wind) { wind.mesh.visible = !aboard; wind.hush = shelter?.indoor ?? 0; }
       if (wind && !aboard && level.ground?.heightAt) wind.update(dt, player.pos, camera, level.ground, (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))) / height, !!level.features.wind);
+      try { hoverTrails?.update(dt); } catch (e) { if (!game._trailsFailed) { game._trailsFailed = true; console.warn('[game] the trails failed', e?.stack ?? e); } }
       // the traveller's feet for the plants and the grass to part round (the engine's own, a frame's worth: brush.js on the web)
       backend?.brush?.(player.pos, Math.hypot(player.vel.x, player.vel.z));
       lap?.('wind');

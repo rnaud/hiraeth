@@ -100,7 +100,9 @@ test('#376: the hover trails follow the vehicle you ride, the bike by the ship t
   player.ride = bike; assert.equal(trailVehicle(player), bike, 'riding the bike');
   player.ride = bird; assert.equal(trailVehicle(player, bike), bike, 'on the bird: still the bike’s, fading out');
   assert.equal(trailVehicle({ vehicles: [bird], ride: bird }), null, 'only the bird: no trails');
-  const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
-  assert.match(main, /trailVehicle\(player, trailBy\)/, 'main.js lays them behind the vehicle trailVehicle names');
+  // (the one game setup lays them, both hosts: src/host/game-host.js wireTrails, #427)
+  const main = readFileSync(new URL('../src/host/game-host.js', import.meta.url), 'utf8');
+  assert.match(main, /trailVehicle\(player, by\)/, 'laid behind the vehicle trailVehicle names');
   assert.doesNotMatch(main, /player\.mount\.kind !== 'bird' \? \[new Trail/, 'not made for the mount alone');
+  for (const f of ['../src/main.js', '../engine/game.js']) assert.match(readFileSync(new URL(f, import.meta.url), 'utf8'), /wireTrails\(\{ scene, player, physics, tool \}\)/, f);
 });

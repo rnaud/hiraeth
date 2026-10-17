@@ -174,7 +174,7 @@ test('the follow camera: a ride\'s own shot, behind the jets\' nose, the wide ar
 
 test('both hosts call the same groups (src/host/game-host.js), and engine/game.js no longer arms the tool its own way', () => {
   const main = readFileSync('src/main.js', 'utf8'), engine = readFileSync('engine/game.js', 'utf8');
-  for (const g of ['wireKit', 'wireDangers', 'wirePeople', 'wireChemistry', 'wireMount', 'wireVehicles', 'wireLessons', 'wireShip', 'wireCamera', 'wireHero', 'heroCutFrame', 'cameraFollow', 'wireBenches']) {
+  for (const g of ['wireKit', 'wireDangers', 'wirePeople', 'wireChemistry', 'wireMount', 'wireVehicles', 'wireLessons', 'wireShip', 'wireCamera', 'wireHero', 'heroCutFrame', 'cameraFollow', 'wireBenches', 'wireTrails']) {
     assert.match(main, new RegExp(`\\b${g}\\(`), `main.js calls ${g}`);
     assert.match(engine, new RegExp(`\\b${g}\\(`), `engine/game.js calls ${g}`);
   }
@@ -208,6 +208,10 @@ test('in the engines\' build: the sword hangs on him only once found and wears t
   const bike = sp.player.vehicles.find((x) => x.kind === 'bike');
   assert.ok(bike, 'the bike parked by the ramp');
   assert.equal(typeof bike.surface, 'function', 'skimming the water');
+  // its two trails, in the fluid's tones (wireTrails: none in the engines before)
+  assert.equal(sp.hoverTrails?.trails?.length, 2, 'the hover trails');
+  sp.player.vel.set(0, 0, 0);
+  quiet(() => sp.frame(1 / 30));
   // the world's void (the Underside's, under its kill height) in the veils the engine mirrors, drawn by the port's PitVoid
   ports.clear();
   const v = await quiet(() => B.createGame({ levelId: 'underside', backend, people: false, flags: { 'prologue.done': true } }));

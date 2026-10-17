@@ -17,6 +17,7 @@
 //   wireCamera, wireHero, heroCutFrame                     the camera kept out of the cabs, the traveller's own surfaces
 //   cameraFollow({ rig, player })                          the follow shot: a ride's, behind the jets, the wide arm
 //   wireBenches({ levelId, scene, physics, …, rig })       the benches to sit on
+//   wireTrails({ scene, player, physics, tool })           the hover vehicles' trails
 //
 // tests/game-host.test.js holds each group to both hosts; scripts/bridge-gaps.mjs reports a group main.js calls and
 // engine/game.js doesn't as a host gap (engine/bridge-gaps.js `shared:`).
@@ -32,7 +33,9 @@ import { talkFaces, TALK_FACE } from '../talk-face.js';
 import { HumCue } from '../story/hum.js';
 import { Chemistry } from '../chemistry.js';
 import { birdAnswers, promisedBird } from '../bird.js';
-import { bikeComes, parkedBike } from '../bike-worlds.js';
+import { bikeComes, parkedBike, trailVehicles, trailVehicle } from '../bike-worlds.js';
+import { Trail } from '../trail.js';
+import * as THREE from 'three';
 import { gadgetFoundLine } from '../gadgets/index.js';
 import { syncUpgrades } from '../trials/upgrades.js';
 import { keyText } from '../prompt-keys.js';
@@ -303,4 +306,30 @@ let lastBenches = null;   // (one game at a time: the last one's let go, its E's
 export function wireBenches({ levelId, scene, physics, level, player, sound = null, rig }) {
   lastBenches?.dispose?.();
   return (lastBenches = createBenches({ levelId, scene, physics, level, player, sound, rig }));
+}
+
+// ------------------------------------------------------------------ the hover trails
+/** The jets' rear caps on a hover vehicle (unless the vehicle says: its `jets`). */
+const JETS = [new THREE.Vector3(0.66, -0.08, -1.18), new THREE.Vector3(-0.66, -0.08, -1.18)];
+/**
+ * Two trails, one per hover jet, behind whichever hover vehicle you ride (the world's mount, or the bike by the ship
+ * where the bird is the mount, as in Viridel: issue #376; src/bike-worlds.js trailVehicle), never under the ground or
+ * the skiff's water, in the fluid's tones (the tool's powerTrails). Once the tool is made, after wireVehicles.
+ * → null (no hover vehicle here), or { trails, update(dt) } for each frame.
+ */
+export function wireTrails({ scene, player, physics, tool = null }) {
+  let by = trailVehicles(player)[0] ?? null;
+  if (!by) return null;
+  const ground = (x, y, z) => (by?.groundAt ? by.groundAt(x, y, z) : physics.groundAt(x, y, z));
+  const trails = [new Trail(scene, { offset: 0, physics, ground }), new Trail(scene, { offset: 2.5, physics, ground })];
+  tool?.powerTrails?.(trails);
+  return {
+    trails,
+    update(dt) {
+      const m = trailVehicle(player, by), moving = Math.hypot(m.vel.x, m.vel.z) > 3, jets = m.jets ?? JETS;
+      if (m !== by) { for (const tr of trails) tr.samples.length = 0; by = m; }   // (another vehicle's: not joined to the last one's)
+      m.body.updateMatrixWorld(true);
+      trails.forEach((tr, i) => tr.update(dt, moving ? m.body.localToWorld(jets[i].clone()) : null));
+    },
+  };
 }

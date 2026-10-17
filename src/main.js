@@ -59,7 +59,6 @@ import { buildFloraSteps, floraKeep, FLORA_WORLDS } from './flora.js';
 import { buildGrass } from './flora-grass.js';
 import { BrushTrail } from './brush.js';
 import { Cascade, FINE_CASCADE, NEAR_CASCADE, ShadowCuller, shadowVariants, shadowDirection, farPassSkips, selfLitSkips, VIEW_SLACK, viewOf, viewLeft, heroExtent, nearDue, farDue, nearEveryNow } from './shadows.js';
-import { Trail } from './trail.js';
 import { Flock, Motes, Footprints } from './life.js';
 import { HouseAir } from './temples/air.js';
 import { JumpShadow } from './jump-shadow.js';
@@ -93,7 +92,7 @@ import { routeChart, findableNote } from './story/signature-search.js';
 import { registerInteractable, PRIORITY, interactHooks } from './interact.js';
 import { carryHooks } from './carry.js';
 import { Ship } from './ship/ship.js';
-import { callKind, trailVehicles, trailVehicle } from './bike-worlds.js';
+import { callKind } from './bike-worlds.js';
 import { RIDER_CALL, RIDER_CALL_BEAT } from './story/arzach-data.js';
 import { game } from './game-state.js';
 import { BodyFoley } from './foley.js';
@@ -145,7 +144,7 @@ import { queueHost, takeHosts } from './minigames/kit/hosts.js';
 import { MinigameRunner } from './minigames/kit/runner.js';
 import { levelMetaFor } from './minigames/kit/world.js';
 import { lendTool } from './minigames/kit/onfoot.js';
-import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip, wireCompanion, wireCamera, wireHero, heroCutFrame, cameraFollow, wireBenches } from './host/game-host.js';
+import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip, wireCompanion, wireCamera, wireHero, heroCutFrame, cameraFollow, wireBenches, wireTrails } from './host/game-host.js';
 import { arcadeLinks } from './minigames/kit/arcade.js';
 import { ambushDue, ambushHref, ambushKey, transitLinks } from './ambush.js';
 import { talkAllowed } from './ship/landing.js';
@@ -617,13 +616,6 @@ overlays.motes = motes;
 const houseAir = level.temples?.length ? new HouseAir(level, { lowDetail: () => !!preset.lowDetail, worldMotes: motes }) : null;
 overlays.houseAir = houseAir;
 houseAir?.setTarget(gbuffer.textures[1], post.uniforms.uRes.value.x, post.uniforms.uRes.value.y, post.uniforms.uPixelRatio.value);
-// the hoverbike / skiff trail
-// two trails, one per hover jet, behind whichever hover vehicle you ride (the world's mount, or the bike by the ship
-// where the bird is the mount, as in Viridel: issue #376; src/bike-worlds.js trailVehicle)
-let trailBy = trailVehicles(player)[0] ?? null;
-const trailGround = (x, y, z) => (trailBy?.groundAt ? trailBy.groundAt(x, y, z) : physics.groundAt(x, y, z));   // never under the ground (or the skiff's water)
-const trails = trailBy ? [new Trail(scene, { offset: 0, physics, ground: trailGround }), new Trail(scene, { offset: 2.5, physics, ground: trailGround })] : null;
-const JETS = [new THREE.Vector3(0.66, -0.08, -1.18), new THREE.Vector3(-0.66, -0.08, -1.18)];   // the jets' rear caps (unless the vehicle says)
 const footprints = new Footprints(scene);   // prints take the colour of whatever they land on
 const jumpShadow = new JumpShadow(scene);    // off the ground: a patch of shade straight under you (src/jump-shadow.js)
 (level.noShadow ??= []).push(jumpShadow.mesh);
@@ -692,7 +684,9 @@ const kit = wireKit({ tool, game,
   onArm: (s, g) => { if (s !== tool.swordOn) document.body.classList.toggle('no-sword', !s); if (g !== tool.shieldOn) document.body.classList.toggle('no-shield', !g); } });
 if (level.lendTool) lendTool(tool, level.lendTool);   // (the Arena: the backpack, the blade and the shield lent for the visit, whatever the save: src/minigames/kit/onfoot.js)
 await slice();
-tool.powerTrails(trails);   // the hover trails run in the fluid's tones
+// the hover vehicles' trails, in the fluid's tones (src/host/game-host.js wireTrails, the engines' too)
+const hoverTrails = wireTrails({ scene, player, physics, tool });
+const trails = hoverTrails?.trails ?? null;
 // what an ember glob sets alight: the camp fires, the market's lamps, dry brambles (flammable.js)
 const flammables = new Flammables(scene, flammableSpots(level), { lights: levelLights, sound });
 const weather = new Weather(content.weather, { ...content.weatherPace, calm: content.calmUntil ? () => !game.flag(content.calmUntil) : null });   // (the desert's first arrival: clear, issue #139)
@@ -2398,12 +2392,7 @@ function frame(ts) {
   if (player.edge?.k > 0.03 && !player.ride) wind.edgeGust(dt, player.edge.at, player.edge.n, player.edge.k);
   edgeInk.update(dt, player.ride ? null : player.edge, player.frame.up, camera, pxScale);   // and the ink shimmers where you touch it
   wind.update(dt, player.pos, camera, terrain, pxScale, world.wind);
-  if (trails) {
-    const m = trailVehicle(player, trailBy), moving = Math.hypot(m.vel.x, m.vel.z) > 3, jets = m.jets ?? JETS;
-    if (m !== trailBy) { for (const tr of trails) tr.samples.length = 0; trailBy = m; }   // (another vehicle's: not joined to the last one's)
-    m.body.updateMatrixWorld(true);
-    trails.forEach((tr, i) => tr.update(dt, moving ? m.body.localToWorld(jets[i].clone()) : null));
-  }
+  hoverTrails?.update(dt);
   updateHud();
   pingWhenFree();
   dangers.update(dt, player, { quiet: busy() || ship.playing, say: (t) => showToast(t, TEACH) });   // fire and spines (src/hazards.js)
