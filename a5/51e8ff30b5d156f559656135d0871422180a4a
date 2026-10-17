@@ -1,0 +1,29 @@
+docs/systems/engine-bridge.md
+  s_5f899ba316b5dc::t_9b9dea43c75438 1913-1915
+engine/bridge-gaps.js
+  s_5f899ba316b5dc::t_4aa944b11652bf 250
+engine/game.js
+  s_5f899ba316b5dc::t_b30758085b9f9b 595-599,1293,1682
+src/host/game-host.js
+  s_5f899ba316b5dc::t_c095fb2826907e 11,27,105-110
+src/main.js
+  s_5f899ba316b5dc::t_166857cbbd01d0 1141
+tests/game-host.test.js
+  s_5f899ba316b5dc::t_04a8ba018fc602 94-100,140
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a551e8ff30b5d156f559656135d0871422180a4a",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
