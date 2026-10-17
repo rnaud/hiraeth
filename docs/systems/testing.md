@@ -43,19 +43,40 @@ branch named main) or a `Tests` run by hand deploys nothing. Until 2026-10-09 ea
 
 ## The shards
 
-On GitHub the suite runs as three jobs at once (`.github/workflows/tests.yml`, a matrix `shard: [1, 2, 3]`;
-the run, and so the deploys, succeed only when all three pass). Each runs `node --test $(node scripts/test-shards.mjs N/3)`:
-the script deals the test files out by their times in `tests/shard-timings.json` (file → seconds, committed),
-longest first, each to the shard with the least time so far; a file not in the table yet (a new test) goes
-round-robin after them, and one in the table that is gone is ignored. Every shard works the plan out alone,
-the same way, so together they run every file once (`tests/test-shards.test.js`).
+On GitHub the suite runs as four jobs at once (`.github/workflows/tests.yml`, a matrix `shard: [1, 2, 3, 4]`;
+the run, and so the deploys, succeed only when all four pass). Each runs `node --test $(node scripts/test-shards.mjs N/4)`:
+the script deals the test files out by their times in `tests/shard-timings.json` (file → the seconds a GitHub
+runner takes over it, committed), longest first, each to the shard with the least time so far; a file not in the
+table yet (a new test) counts as the table's mean file (about 10 s), and one in the table that is gone is ignored.
+Every shard works the plan out alone, the same way, so together they run every file once (`tests/test-shards.test.js`).
 
-    node scripts/test-shards.mjs --plan 3              each shard's files and expected seconds
-    node scripts/test-shards.mjs --update [--jobs 6]   time every file on its own and rewrite the table
+    node scripts/test-shards.mjs --plan 4                 each shard's files, seconds and minutes
+    node scripts/test-shards.mjs --ci <run id> [<id>...]  each file's time from green runs of Tests: the update
+    node scripts/test-shards.mjs --update --missing       the fallback: time here the files the table lacks
 
-Regenerate the table when a file's time changes a lot or many new files came in (the test fails once a fifth
-of the files are missing from it). A runner has 4 cores, `node --test` runs about 2.4 files at a time there,
-so a shard takes about its seconds / 2.4, or its longest file if that is longer: keep files under a minute.
+Beside spec, every shard runs a reporter of its own (`scripts/test-file-times.mjs`): at its end it prints one line,
+`test-file-times {...}`, each file's time from its process's start to its end, which `--ci` reads back from the
+run's log (`gh run view --log`; several runs: the mean). It also leaves a warning on the run's page for a file over
+240 s (split it) and for one over 60 s the table lacks (update the table). Update the table after a batch of new
+tests, from a green run of main or two. `--update` times the files on this Mac instead (`--jobs 2`, while `uptime`
+stays under 25), times 1.9: a runner's seconds for a file here.
+
+A runner has 4 cores and `node --test` runs 3 files at once there, so a shard takes about its seconds / 3. The
+runners vary: on 2026-10-17 two green runs of the same suite took 0.8 and 1.2 times the table (a fast and a slow
+runner), so the jobs' time differs by half from run to run. `tests/test-shards.test.js` holds the plan to 12
+minutes a shard (15 on a slow runner, with the job's half minute of setup, under the 20-minute timeout) and no
+file in the table over 240 s: a file that long holds its shard's tail alone; deal its tests out over files
+(`tests/wings-reach.js`, `tests/door-bypass.js`: `-1`, `-2`... test files of a few lines each). When the plan
+passes 12 minutes, add a shard (the matrix in `tests.yml` and `SHARDS` in the script) or lighten the heaviest files.
+
+Why the three shards ran 8 to 15 minutes in October 2026 when the plan said 5.5 (#445): the table was in the Mac's
+seconds, timed one file alone; on a runner, three at once, a file takes about 1.9 times that (each file's process
+also takes 1.4 to 1.8 s to start), and a slow runner 1.2 times more again. And 96 of the 691 files were not in
+the table (2,350 runner seconds, a third of the suite, dealt round-robin with no weight). The "2.4 files at once"
+was about right (2.3 to 2.9 measured from the logs). The table was then rebuilt from the logs of two green runs
+(the tests' durations in the spec output, by file, plus each process's start), the 340 s door-bypass test split in
+two, and a fourth shard added: 9.5 minutes each planned (8 on a fast runner, 11.5 on a slow one), against 12.7
+for three.
 
 ## Nightly (`tests/nightly/`)
 

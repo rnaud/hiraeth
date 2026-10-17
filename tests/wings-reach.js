@@ -4,7 +4,7 @@
 // `ratio` m on, whatever the stick or the charms; rising air and a carrying gust lift the rule); the open world keeps its
 // glide. For every lock of a house's links (tests/house-walk.js lockSides: shut, every other door open, the walker's
 // flood of each side), not one the wings themselves open (`needs: ['glider']`), the real traveller (src/player.js, driven
-// as tests/door-bypass.test.js drives him):
+// as tests/door-bypass.js drives him):
 //   - from every spot of one side, `every` m apart, within reach of the other side, toward its nearest spot and a fan
 //     either way: a run-up, the jump, the double jump at the top of it (or late), and the wings held open, the stick let go
 //     (the glide's flattest);

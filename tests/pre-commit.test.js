@@ -64,7 +64,7 @@ test('the whole unit suite runs once per push, and every deploy waits for it to 
   assert.ok(n, 'a matrix of shards');
   const shards = n[1].split(',').map(Number);
   assert.deepEqual(shards, shards.map((_, i) => i + 1), 'numbered from 1');
-  assert.match(tests, new RegExp(`node --test \\$\\(node scripts/test-shards\\.mjs \\$\\{\\{ matrix\\.shard \\}\\}/${shards.length}\\)`), 'each shard runs its share of all of them');
+  assert.match(tests, new RegExp(`node --test (?:--[\\w-]+=\\S+ )*\\$\\(node scripts/test-shards\\.mjs \\$\\{\\{ matrix\\.shard \\}\\}/${shards.length}\\)`), 'each shard runs its share of all of them');
   assert.doesNotMatch(tests, /fail-fast: true/, 'one shard failing doesn’t hide the others');
 
   for (const [f, job, group, cancels] of [['deploy.yml', 'build', 'pages', true], ['cloudflare.yml', 'deploy', 'cloudflare-production', false],

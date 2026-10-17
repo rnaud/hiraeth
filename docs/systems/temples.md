@@ -329,7 +329,7 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   one plane: `tests/zfight.test.js`). Old saves: past the old chamber's fight, the Machines' Hall is won; one that stood
   in the old rooms is taken to its last mark (`migrate.js` desert v4, `desert.js` `RELAID`). Tests:
   `tests/temple-rules.test.js` (no rule broken), the on-foot walk and the play-through in `tests/temples.test.js` and
-  `tests/temple-playthrough.test.js`, `tests/door-bypass.test.js`, `tests/zfight.test.js`. The Hall of Fires' groove
+  `tests/temple-playthrough.test.js`, `tests/door-bypass.js`, `tests/zfight.test.js`. The Hall of Fires' groove
   (`FIRES.x`) runs down the hall's middle (x 0, it was 5 m east of it until a follow-up in v1.77), its fire, thorns and
   hooded bowl with it; the bridge and the north door stay at `FIRES.bridge`, west of the bowl.
 - **The Rose House round its Great Hall** (v1.83, issue #406; the first house per `docs/design/temple-best-practices.md`:
@@ -1819,7 +1819,7 @@ out 2 m short with the lid on); the Footprint's stilling stone, from whose middl
 ran into the ledge's edge (only its last 20 cm worked): the stone at the ledge's edge and the sphere a little farther out
 (`POOL`).
 
-## No way round a shut door (issue #356, `tests/door-bypass.test.js`)
+## No way round a shut door (issue #356, `tests/door-bypass.js`)
 
 The author: "In the Hush-House there is a locked door but I can just jump around it?" Every door of a house's links (a
 door of stone, one the logic can't go round by another link) is shut with every other door open, and from each side of
@@ -1900,7 +1900,7 @@ jump, the double jump at its top and the wings (6.1 m up, a glide of 6.25:1) car
 level, over the bridge and gate chasms of nine houses both ways. Inside a house the wings now glide heavier
 (docs/systems/gadgets.md, "The wings in the makers' houses": 6 m/s on, a metre down for every metre on, unless moving air
 holds them); the open world keeps its glide. The check shares the hook's sides (house-walk.js `lockSides`) and flies the
-real traveller (src/player.js, driven as tests/door-bypass.test.js drives him) for every lock but the wings' own
+real traveller (src/player.js, driven as tests/door-bypass.js drives him) for every lock but the wings' own
 (`needs: ['glider']`, the Aerie's): from every spot of its near side (the link's `a`; the far side is had only through
 the lock, so the way back, a drop off a walkway into the room under it, is no skip), 2.5 m apart, within the wings' reach
 of the far side, toward its nearest spot and 0.35 rad either way, a run-up, the jump, the double jump at its top or late

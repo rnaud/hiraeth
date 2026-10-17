@@ -8,9 +8,11 @@ name: Tests
 # file (workflow_call). The pre-commit hook runs only the tests a commit's changes reach (scripts/affected-tests.mjs).
 # A flaky shard on main: "Re-run failed jobs" on this run; when it passes, the deploys follow.
 #
-# Split in three shards that run at once, of about equal time: scripts/test-shards.mjs deals the
+# Split in four shards that run at once, of about equal time: scripts/test-shards.mjs deals the
 # files out by their times in tests/shard-timings.json (docs/systems/testing.md, "The shards").
-# The run succeeds (and the deploys start) only when every shard passed.
+# The run succeeds (and the deploys start) only when every shard passed. Beside spec, the
+# test-file-times reporter prints each file's time (the table is updated from them:
+# node scripts/test-shards.mjs --ci <run id>) and warns of a file long enough to be split.
 
 on:
   push:
@@ -33,13 +35,13 @@ concurrency:
 
 jobs:
   unit:
-    name: unit (shard ${{ matrix.shard }}/3)
+    name: unit (shard ${{ matrix.shard }}/4)
     runs-on: ubuntu-latest
     timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3]
+        shard: [1, 2, 3, 4]
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -47,4 +49,4 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
-      - run: node --test $(node scripts/test-shards.mjs ${{ matrix.shard }}/3)
+      - run: node --test --test-reporter=spec --test-reporter-destination=stdout --test-reporter=./scripts/test-file-times.mjs --test-reporter-destination=stdout $(node scripts/test-shards.mjs ${{ matrix.shard }}/4)

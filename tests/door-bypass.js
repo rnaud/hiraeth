@@ -13,7 +13,8 @@
 // door: src/temples/pieces.js Door frame), the Mooring-House's Capstan door (jumped through beside it, the rotunda's gap
 // wider than the door; and the exits beside the guardians' halls the same), the Capstan Floor's windows (out over the
 // void on the wings and back in past its great lock: barred, spacecity.js WINDOW_BARS). A CLI: DOOR_LOG=1 node --test
-// tests/door-bypass.test.js --test-name-pattern=<the house's name>.
+// tests/door-bypass-<n>.test.js --test-name-pattern=<the house's name>. The houses are dealt out over the files
+// tests/door-bypass-<n>.test.js (doorBypass(part, of)), so no one file outlasts a shard (#445: 340 s on GitHub in one).
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import './register-gadgets.js';
@@ -85,43 +86,45 @@ function goes(P, starts, land, { glider = false, only = null } = {}) {
 }
 
 
-for (const id of Object.keys(TEMPLES)) {
-  test(`${TEMPLES[id].def.name}: no way round a shut door, walked, nor round a locked one, walked, jumped or flown`, () => {
-    game.reset();
-    own(...carry(id));
-    const { level, physics, rt } = buildHouse(id);
-    const def = rt.logic.def, K = rt.kit;
-    const P = new Player(physics, { spawn: rt.arrival.pos.clone(), dynamic: level.dynamic, health: false });
-    const W = { physics, level, rt };
-    const bad = [];
-    let doors = 0;
-    for (const link of def.links) {
-      const el = def.elements[link.door];
-      if (el?.type !== 'door' || !(rt.byId.get(link.door) instanceof Door) || joinedWithout(def, link)) continue;
-      doors++;
-      const name = `${link.door} (${link.a} | ${link.b})`;
-      const S = sides(rt, physics, link.door);
-      assert.ok(S.from[0] && S.from[1], `${name}: a floor on both sides of it`);
-      onlyShut(rt, link.door);
-      const tw = Date.now(), [A, B] = S.from.map((s) => walk(W, s));
-      if (process.env.DOOR_LOG) console.error(`  [${id}] ${link.door}: walked ${A.length} + ${B.length} spots in ${Date.now() - tw} ms`);
-      const [hasA, hasB] = [A, B].map((f) => spots(f));
-      // walked round: the way it went, near the door
-      const round = [[A, S.from[1]], [B, S.from[0]]].map(([F, to]) => F.find((p) => p.distanceTo(to) < 1.3)).find(Boolean);
-      if (round) {
-        const way = [];
-        for (let p = round; p; p = p.prev) if (Math.hypot(p.x - S.at.x, p.z - S.at.z) < 5) way.unshift(fmt(K.local(p)));
-        bad.push(`${name}: walked round, by ${way.join(' > ')}`);
-        continue;
+export function doorBypass(part, of) {
+  for (const id of Object.keys(TEMPLES).filter((_, i) => i % of === part)) {
+    test(`${TEMPLES[id].def.name}: no way round a shut door, walked, nor round a locked one, walked, jumped or flown`, () => {
+      game.reset();
+      own(...carry(id));
+      const { level, physics, rt } = buildHouse(id);
+      const def = rt.logic.def, K = rt.kit;
+      const P = new Player(physics, { spawn: rt.arrival.pos.clone(), dynamic: level.dynamic, health: false });
+      const W = { physics, level, rt };
+      const bad = [];
+      let doors = 0;
+      for (const link of def.links) {
+        const el = def.elements[link.door];
+        if (el?.type !== 'door' || !(rt.byId.get(link.door) instanceof Door) || joinedWithout(def, link)) continue;
+        doors++;
+        const name = `${link.door} (${link.a} | ${link.b})`;
+        const S = sides(rt, physics, link.door);
+        assert.ok(S.from[0] && S.from[1], `${name}: a floor on both sides of it`);
+        onlyShut(rt, link.door);
+        const tw = Date.now(), [A, B] = S.from.map((s) => walk(W, s));
+        if (process.env.DOOR_LOG) console.error(`  [${id}] ${link.door}: walked ${A.length} + ${B.length} spots in ${Date.now() - tw} ms`);
+        const [hasA, hasB] = [A, B].map((f) => spots(f));
+        // walked round: the way it went, near the door
+        const round = [[A, S.from[1]], [B, S.from[0]]].map(([F, to]) => F.find((p) => p.distanceTo(to) < 1.3)).find(Boolean);
+        if (round) {
+          const way = [];
+          for (let p = round; p; p = p.prev) if (Math.hypot(p.x - S.at.x, p.z - S.at.z) < 5) way.unshift(fmt(K.local(p)));
+          bad.push(`${name}: walked round, by ${way.join(' > ')}`);
+          continue;
+        }
+        for (const [F, hasF, hasG] of [[A, hasA, hasB], [B, hasB, hasA]]) {
+          const starts = el.lock ? launches(F, hasG, S.at) : launches(F, hasG, S.at, { near: PROBE.walkNear, reach: 0 }), t0 = Date.now();
+          const got = goes(P, starts, (p) => hasG.has(p) && !hasF.has(p), { glider: P.canGlide, only: el.lock ? null : ['walk'] });
+          if (process.env.DOOR_LOG) console.error(`  [${id}] ${link.door}: ${starts.length} spots, ${Date.now() - t0} ms, ${got.length} ways round`);
+          if (got.length) { const g = got[0]; bad.push(`${name}: ${got.length} ways round, e.g. a ${g.how} from ${fmt(K.local(g.from))} heading ${g.yaw.toFixed(2)} to ${fmt(K.local(g.to))}`); break; }
+        }
       }
-      for (const [F, hasF, hasG] of [[A, hasA, hasB], [B, hasB, hasA]]) {
-        const starts = el.lock ? launches(F, hasG, S.at) : launches(F, hasG, S.at, { near: PROBE.walkNear, reach: 0 }), t0 = Date.now();
-        const got = goes(P, starts, (p) => hasG.has(p) && !hasF.has(p), { glider: P.canGlide, only: el.lock ? null : ['walk'] });
-        if (process.env.DOOR_LOG) console.error(`  [${id}] ${link.door}: ${starts.length} spots, ${Date.now() - t0} ms, ${got.length} ways round`);
-        if (got.length) { const g = got[0]; bad.push(`${name}: ${got.length} ways round, e.g. a ${g.how} from ${fmt(K.local(g.from))} heading ${g.yaw.toFixed(2)} to ${fmt(K.local(g.to))}`); break; }
-      }
-    }
-    assert.ok(doors > 0, 'doors to try');
-    assert.deepEqual(bad, [], `${id}: ${bad.join('; ')}`);
-  });
+      assert.ok(doors > 0, 'doors to try');
+      assert.deepEqual(bad, [], `${id}: ${bad.join('; ')}`);
+    });
+  }
 }

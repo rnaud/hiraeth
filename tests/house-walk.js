@@ -1,4 +1,4 @@
-// The walker in a makers' house, shared by tests/door-bypass.test.js (no way round a shut door, issue #356) and
+// The walker in a makers' house, shared by tests/door-bypass.js (no way round a shut door, issue #356) and
 // tests/hook-reach.test.js (no hook past a lock, issue #432): a house built with its level and physics, a door shut with
 // every other open, the walker's flood from a spot (a cell at a time, up what the double jump climbs, down what a fall
 // doesn't hurt, never into a pit, with room for the traveller's body: tests/fragments-reach.js's steps), and its spots
