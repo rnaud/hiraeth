@@ -34,7 +34,6 @@ import { createGBuffer, createComposeTarget, createBlit, createSmaa, aaOf, setSu
 import GUI from 'lil-gui';
 import { sharedUniforms, setEnvGround } from './materials.js';
 import { BLADE_QUALITY, bladeLiteFor } from './blade-shader.js';
-import { wallOpenings } from './wall-openings.js';
 import { createPost, createBloom, DEBUG_VIEWS, PRESETS } from './post.js';
 import { LEVELS, levelById } from './levels/index.js';
 import { partsOf, shiftAt } from './levels/names.js';
@@ -44,7 +43,7 @@ import { Player, CameraRig } from './player.js';
 import { applyTimeOfDay, colourScript } from './timeofday.js';
 import { applyEclipse } from './eclipse.js';
 import { WindStreaks } from './wind.js';
-import { EDGE_HINTS, EdgeInk } from './edge.js';
+import { EDGE_HINTS } from './edge.js';
 import { HOLO } from './ship/hologram.js';
 import { Physics, dropBuriedFloraSteps } from './physics.js';
 import { DeferredWork, DEFER } from './deferred.js';
@@ -144,7 +143,7 @@ import { queueHost, takeHosts } from './minigames/kit/hosts.js';
 import { MinigameRunner } from './minigames/kit/runner.js';
 import { levelMetaFor } from './minigames/kit/world.js';
 import { lendTool } from './minigames/kit/onfoot.js';
-import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip, wireCompanion, wireCamera, wireHero, heroCutFrame, cameraFollow, wireBenches, wireTrails } from './host/game-host.js';
+import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip, wireCompanion, wireCamera, wireHero, heroCutFrame, cameraFollow, wireBenches, wireTrails, wireOpenings, wireEdge } from './host/game-host.js';
 import { arcadeLinks } from './minigames/kit/arcade.js';
 import { ambushDue, ambushHref, ambushKey, transitLinks } from './ambush.js';
 import { talkAllowed } from './ship/landing.js';
@@ -337,7 +336,7 @@ const terrain = level.ground;
 // where the old walls' cracks may not run: their windows, doors and what is fixed on them (src/wall-openings.js;
 // the builders added their merged pieces as they laid them)
 setStep('openings');
-{ const t = performance.now(); wallOpenings.collectScene(scene).flush(sharedUniforms); console.info(`wall openings: ${wallOpenings.boxes} pieces in ${(performance.now() - t).toFixed(0)} ms`); }
+{ const t = performance.now(), n = wireOpenings({ scene }); console.info(`wall openings: ${n} pieces in ${(performance.now() - t).toFixed(0)} ms`); }   // (src/host/game-host.js, the engines' too)
 // what the metals see below the horizon: the world's ground (materials.js)
 setEnvGround(level.envGround ?? level.ground?.mesh?.material?.uniforms?.uColor?.value);
 await slice();
@@ -646,9 +645,8 @@ if (level.windAngle != null) wind.fixedAngle = level.windAngle;   // (a world wh
 wind.uniforms.tNormal.value = gbuffer.textures[1];
 wind.uniforms.uRes.value.copy(post.uniforms.uRes.value);
 wind.uniforms.uInk.value = post.uniforms.uInk.value;
-// the ink where you lean on the world's edge (src/edge.js), drawn with the wisps
-const edgeInk = new EdgeInk(wind.mesh.material);
-wind.scene.add(edgeInk.mesh);
+// the ink where you lean on the world's edge (src/edge.js), drawn with the wisps (src/host/game-host.js, the engines' too)
+const edge = wireEdge({ wind, player, parent: wind.scene });
 // the recordings' hologram (src/ship/hologram.js): light drawn over the composite, hidden behind what the G-buffer holds
 HOLO.uniforms.tNormal.value = gbuffer.textures[1];
 // (the camera's view of the collision: the level's, and the cabs as drawn, never the one you ride: src/carriers.js)
@@ -2389,8 +2387,7 @@ function frame(ts) {
       wind.emit(b.pos.x - fx * 1.8, b.pos.z - fz * 1.8, b.vel.x * 0.25 - fz * (Math.random() - 0.5) * 6, b.vel.z * 0.25 + fx * (Math.random() - 0.5) * 6);
   }
   // leaning into the world's edge: the wind that holds you back streams in round you (src/edge.js)
-  if (player.edge?.k > 0.03 && !player.ride) wind.edgeGust(dt, player.edge.at, player.edge.n, player.edge.k);
-  edgeInk.update(dt, player.ride ? null : player.edge, player.frame.up, camera, pxScale);   // and the ink shimmers where you touch it
+  edge.update(dt, camera, pxScale);   // (and the ink shimmers where you touch it)
   wind.update(dt, player.pos, camera, terrain, pxScale, world.wind);
   hoverTrails?.update(dt);
   updateHud();

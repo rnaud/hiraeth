@@ -1940,6 +1940,10 @@ Round 2 (the mechanical groups):
 - `wireTrails`: the hover vehicles' two trails in the fluid's tones, behind whichever one you ride. None in the engines;
   Unity draws their ribbon as its Surface's plain mode until the port has MODE_RIBBON (#264). The brush trail (the
   grass parting along his recent path) stays the page's: the bridge's brush op carries one point, so it is #264's.
+- `wireOpenings`, `wireEdge`: the walls' openings kept clear of their cracks (src/wall-openings.js, once the world is
+  built; the engines reset its table before each world, and Unity reads uOpenings once its port has it, #264), and
+  leaning on the world's edge: the wind streaming in round you and the edge's ink (src/edge.js EdgeInk, on the wind's
+  material: Hiraeth/Wisp in Unity). The engines had neither; the openings cost the City-Shaft's build nothing measurable.
 
 Checked in Unity (the editor's batch run, `-fresh -no-hud`, against main's bundle for the before and the web's
 pictures of the same views): the kit's colours at the desert's ramp foot (`-set-flags` now takes `key=value`:

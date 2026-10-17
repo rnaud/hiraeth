@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { readFileSync } from 'node:fs';
-import { wireKit, wireDangers, wirePeople, wireChemistry, wireVehicles, wireLessons, wireCompanion, wireCamera, heroCutFrame, cameraFollow, wireBenches } from '../src/host/game-host.js';
+import { wireKit, wireDangers, wirePeople, wireChemistry, wireVehicles, wireLessons, wireCompanion, wireCamera, heroCutFrame, cameraFollow, wireBenches, wireEdge, wireOpenings } from '../src/host/game-host.js';
 import { ERRANDS } from '../src/levels/content.js';
 import { hazardCount } from '../src/hazards.js';
 import * as THREE from 'three';
@@ -172,9 +172,27 @@ test('the follow camera: a ride\'s own shot, behind the jets\' nose, the wide ar
   assert.equal(calls[1][4], null);
 });
 
+test('the edge: the wind streams in round you as you lean on it, the ink shown there; the walls\' openings counted', () => {
+  const gusts = [];
+  const wind = { mesh: { material: new THREE.MeshBasicMaterial() }, edgeGust: (...a) => gusts.push(a) };
+  const parent = new THREE.Group();
+  const player = { ride: null, frame: { up: new THREE.Vector3(0, 1, 0) }, edge: { k: 0.5, at: new THREE.Vector3(10, 0, 0), n: new THREE.Vector3(-1, 0, 0) } };
+  const e = wireEdge({ wind, player, parent });
+  assert.equal(parent.children[0], e.ink.mesh, 'the ink drawn with the wisps');
+  const camera = new THREE.PerspectiveCamera();
+  e.update(1 / 60, camera, 0.001);
+  assert.equal(gusts.length, 1, 'the wind leaning back');
+  player.edge.k = 0;
+  e.update(1 / 60, camera, 0.001);
+  assert.equal(gusts.length, 1);
+  assert.equal(wireEdge({ wind: null, player, parent }), null);
+  const scene = new THREE.Scene();
+  assert.ok(wireOpenings({ scene }) >= 0);
+});
+
 test('both hosts call the same groups (src/host/game-host.js), and engine/game.js no longer arms the tool its own way', () => {
   const main = readFileSync('src/main.js', 'utf8'), engine = readFileSync('engine/game.js', 'utf8');
-  for (const g of ['wireKit', 'wireDangers', 'wirePeople', 'wireChemistry', 'wireMount', 'wireVehicles', 'wireLessons', 'wireShip', 'wireCamera', 'wireHero', 'heroCutFrame', 'cameraFollow', 'wireBenches', 'wireTrails']) {
+  for (const g of ['wireKit', 'wireDangers', 'wirePeople', 'wireChemistry', 'wireMount', 'wireVehicles', 'wireLessons', 'wireShip', 'wireCamera', 'wireHero', 'heroCutFrame', 'cameraFollow', 'wireBenches', 'wireTrails', 'wireOpenings', 'wireEdge']) {
     assert.match(main, new RegExp(`\\b${g}\\(`), `main.js calls ${g}`);
     assert.match(engine, new RegExp(`\\b${g}\\(`), `engine/game.js calls ${g}`);
   }
@@ -197,6 +215,8 @@ test('in the engines\' build: the sword hangs on him only once found and wears t
   assert.ok(g.chemistry, 'the chemistry (wireChemistry: the engines\' brambles burnt alone before)');
   // the desert's benches: there, and sitting on one holds him and frames him from behind (wireBenches: none in the engines)
   assert.equal(g.benches?.list?.length, 2, 'the desert\'s two benches');
+  assert.ok(g.edge?.ink, 'the ink at the world\'s edge (wireEdge: none in the engines before)');
+  assert.ok(g.T.level >= 0);
   g.benches.sit(g.benches.list[0]);
   quiet(() => { for (let i = 0; i < 20; i++) g.frame(1 / 30); });
   assert.ok(g.benches.sitting, 'sat');

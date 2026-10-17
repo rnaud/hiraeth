@@ -227,11 +227,9 @@ export const GAPS = {
     // gaps
     { keys: ['import:src/jump-shadow.js#JumpShadow'], what: 'the patch of shade under the traveller in a jump', status: 'gap', issue: 427, visible: 2 },
     { keys: ['import:src/brush.js#BrushTrail'], what: 'the grass parting along the traveller\'s recent path', status: 'gap', issue: 264, visible: 1, note: 'the engine parts it round his feet only: the brush op (engine/unity/backend.js brush, _Brush) carries one point; the trail needs its samples sent and the port\'s grass and plants to read them (#427 left it for the bridge)' },
-    { keys: ['import:src/edge.js#EdgeInk'], what: 'the ink at the world\'s edges', status: 'gap', issue: 427, visible: 1, note: 'to check' },
     { keys: ['import:src/motion-match.js#loadMotionLibrary', 'import:src/motion-match.js#matchingSetting', 'import:src/loco-moves.js#movesSetting'], what: 'the traveller\'s motion matching and captured moves', status: 'gap', issue: 427, visible: 2,
       note: 'left out of the engines so far (engine/game.js: only the talk gestures are loaded)' },
     { keys: ['import:src/ambush.js#ambushDue', 'import:src/ambush.js#ambushHref', 'import:src/ambush.js#ambushKey', 'import:src/ambush.js#transitLinks'], what: 'the ambushes on a flight to a new world', status: 'gap', issue: 427, visible: 2 },
-    { keys: ['import:src/wall-openings.js#wallOpenings'], what: 'the walls\' openings, flushed once a world is up', status: 'gap', issue: 427, visible: 1, note: 'to check' },
     { keys: ['import:src/fragment-shop.js#fragmentPurse', 'fn:fragmentsLine'], what: 'the fragments\' purse line', status: 'gap', issue: 427, visible: 1, note: 'to check' },
     { keys: ['import:src/hud.js#magicHud'], what: 'the magic bar', status: 'gap', issue: 427, visible: 1, note: 'to check: the health part carries magic' },
     { keys: ['import:src/minigames/kit/arcade.js#arcadeLinks'], what: 'a game reached from the Arcade going back to it, its cards\' previous and next', status: 'gap', issue: 427, visible: 1 },
@@ -253,6 +251,7 @@ export const GAPS = {
     { keys: ['shared:cameraFollow'], what: 'the follow camera\'s shot: a ride\'s own, behind the jets\' nose and tipped with it, the wide arm, low when knocked down, rising in a hop', status: 'handled', where: 'src/host/game-host.js cameraFollow (main.js before; the engines followed his heading alone)' },
     { keys: ['shared:wireBenches'], what: 'the benches to sit on', status: 'handled', where: 'src/host/game-host.js wireBenches (main.js createBenches before; none in the engines)' },
     { keys: ['shared:wireTrails'], what: 'the hover vehicles\' trails on the ground', status: 'handled', where: 'src/host/game-host.js wireTrails (main.js before; none in the engines); Unity draws their ribbon (MODE_RIBBON) as its Surface\'s plain mode (#264)' },
+    { keys: ['shared:wireOpenings', 'shared:wireEdge'], what: 'the walls\' openings kept clear of their cracks; the ink at the world\'s edge and the wind streaming in round you', status: 'handled', where: 'src/host/game-host.js wireOpenings, wireEdge (main.js before); the edge\'s ink on the wind\'s Hiraeth/Wisp; uOpenings set in the engines, read once the port has it (#264)' },
     { keys: ['shared:wireShip'], what: 'the ship\'s place for quests, the scout and the Map\'s "Your ship" mark', status: 'handled', where: 'src/host/game-host.js wireShip (main.js level.ship before; the engines had none)' },
     // handled by the engines' own
     { keys: ['import:src/hud.js#heartsSvg', 'import:src/hud.js#walletTick', 'import:src/hud.js#KEY_SVG', 'import:src/hud.js#GREAT_KEY_SVG', 'fn:updateStamina', 'fn:restartNow', 'fn:showToast',

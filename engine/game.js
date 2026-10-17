@@ -153,7 +153,8 @@ import { DevMenu } from '../src/dev-menu.js';
 import { gatherPoints, questList, applyQuestJump, landingSpot, godLanding } from '../src/world-debug.js';
 import { GAMES } from '../src/minigames/index.js';
 import { DEBUG_SLOT } from '../src/save-slots.js';
-import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip, wireCompanion, wireCamera, wireHero, heroCutFrame, cameraFollow, wireBenches, wireTrails } from '../src/host/game-host.js';
+import { wallOpenings } from '../src/wall-openings.js';
+import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip, wireCompanion, wireCamera, wireHero, heroCutFrame, cameraFollow, wireBenches, wireTrails, wireOpenings, wireEdge } from '../src/host/game-host.js';
 
 export { page };
 export { readHref } from './trials.js';   // (the tests: a game page's address)
@@ -357,9 +358,12 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   DRIFT_FITS.pending.length = 0;
   DRIFT_FITS.later = !!deferred;
   DRIFT_FITS.most = DRIFT_PIECE;   // (a piece's triangles tested at most: each made on the frame's thread here)
+  wallOpenings.reset();   // (one world at a time in a VM: the last one's pieces let go before the builders lay theirs)
   let level;
   try { level = quiet(() => (meta.create ? meta.create(scene) : runSteps(meta.build(scene)))); } finally { DRIFT_FITS.later = false; DRIFT_FITS.most = Infinity; }
   level.id ??= levelId;
+  // where the old walls' cracks may not run: their windows and doors, as the page (src/host/game-host.js wireOpenings)
+  quiet(() => wireOpenings({ scene }));
   stamp('level');
   const physics = new Physics(scene, level.ground?.heightAt ? level.ground : null);
   physics.noClimbZones = level.noClimb ?? null;   // (walls not to be climbed, ladders climbed for free: main.js)
@@ -613,6 +617,10 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     scene.add(wind.mesh);
     (level.noShadow ??= []).push(wind.mesh);
   }
+  // the ink where you lean on the world's edge and the wind streaming in round you, as the page (src/host/game-host.js
+  // wireEdge: the engines had neither)
+  const edge = wind ? optional('the edge', () => wireEdge({ wind, player, parent: scene })) : null;
+  if (edge) (level.noShadow ??= []).push(edge.ink.mesh);
   // (in a guardian's fight the ping is a hint, as main.js's: the lens on the weak point, its line once the struggle has
   // gone on a while, src/temples/hints.js; the line a toast here, the page's drone bubble)
   const struggle = new Struggle();
@@ -1276,7 +1284,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const lookOut = {};
   const SEC = { ms: {}, frames: 0 };
   const game = {
-    scene, camera, player, rig, level, physics, deferred, floraLater, npcs, crowd, story, storyPage, relics, ship, mirror, folk, kit, dangers, chemistry, benches, hoverTrails, boxes, fragments, gadgets, itemFx, grass, wind, sky, post, T, wildlife, weather, shelter, tool, scout, sound, expedition, plumb, firstSteps, setLanternSky, flora, reactiveWorld, flammables,
+    scene, camera, player, rig, level, physics, deferred, floraLater, npcs, crowd, story, storyPage, relics, ship, mirror, folk, kit, dangers, chemistry, benches, hoverTrails, edge, boxes, fragments, gadgets, itemFx, grass, wind, sky, post, T, wildlife, weather, shelter, tool, scout, sound, expedition, plumb, firstSteps, setLanternSky, flora, reactiveWorld, flammables,
     /** The sound's AudioContext (engine/webaudio.js): ctx.render(frames) → the next stereo PCM, or null without sound. */
     get audio() { return sound.ctx ?? null; },
     /** The wallet's chimes (src/resources.js), as the health HUD shows them while it is up. */
@@ -1706,6 +1714,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       // the walls, issue #264; and none in any interior, nor while you are in one: wind.js hush, issue #348)
       const aboard = shipOn && ship.inside;
       if (wind) { wind.mesh.visible = !aboard; wind.hush = shelter?.indoor ?? 0; }
+      if (wind && !aboard) edge?.update(dt, camera, (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))) / height);
+      if (edge) edge.ink.mesh.visible &&= !aboard;
       if (wind && !aboard && level.ground?.heightAt) wind.update(dt, player.pos, camera, level.ground, (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))) / height, !!level.features.wind);
       try { hoverTrails?.update(dt); } catch (e) { if (!game._trailsFailed) { game._trailsFailed = true; console.warn('[game] the trails failed', e?.stack ?? e); } }
       // the traveller's feet for the plants and the grass to part round (the engine's own, a frame's worth: brush.js on the web)

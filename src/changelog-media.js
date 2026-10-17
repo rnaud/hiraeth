@@ -1203,6 +1203,7 @@ export const CHANGELOG_MEDIA = {
     { match: 'In the Unity version, the camera and the world round you behave as on the web too', see: 'In the Unity version, ride a cab in the City-Shaft and turn the camera into its side. Ride the hoverbike in Viridel; fly on the jets in the City-Shaft.' },
     { match: 'In the Unity version, the camera and the world round you behave as on the web too', see: 'In the Unity version, ride a cab in the City-Shaft and turn the camera into its side. Ride the hoverbike in Viridel; fly on the jets in the City-Shaft. Sit with E on the bench on the dunes over Qanat.' },
     { match: 'In the Unity version, the camera and the world round you behave as on the web too', see: 'In the Unity version, ride a cab in the City-Shaft and turn the camera into its side. Ride the hoverbike in Viridel; fly on the jets in the City-Shaft. Sit with E on the bench on the dunes over Qanat. Ride the hoverbike fast across Viridel’s meadows.' },
+    { match: 'In the Unity version, the camera and the world round you behave as on the web too', see: 'In the Unity version, ride a cab in the City-Shaft and turn the camera into its side. Ride the hoverbike in Viridel; fly on the jets in the City-Shaft. Sit with E on the bench on the dunes over Qanat. Ride the hoverbike fast across Viridel’s meadows. Walk into the desert’s far edge and keep pushing.' },
   ],
   '1.83': [
     { match: 'A new game in the Arcade, The Lens Vault', shots: [

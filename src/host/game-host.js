@@ -18,6 +18,7 @@
 //   cameraFollow({ rig, player })                          the follow shot: a ride's, behind the jets, the wide arm
 //   wireBenches({ levelId, scene, physics, …, rig })       the benches to sit on
 //   wireTrails({ scene, player, physics, tool })           the hover vehicles' trails
+//   wireOpenings({ scene }), wireEdge({ wind, … })         the walls' openings for their cracks, the ink at the world's edge
 //
 // tests/game-host.test.js holds each group to both hosts; scripts/bridge-gaps.mjs reports a group main.js calls and
 // engine/game.js doesn't as a host gap (engine/bridge-gaps.js `shared:`).
@@ -35,6 +36,8 @@ import { Chemistry } from '../chemistry.js';
 import { birdAnswers, promisedBird } from '../bird.js';
 import { bikeComes, parkedBike, trailVehicles, trailVehicle } from '../bike-worlds.js';
 import { Trail } from '../trail.js';
+import { wallOpenings } from '../wall-openings.js';
+import { EdgeInk } from '../edge.js';
 import * as THREE from 'three';
 import { gadgetFoundLine } from '../gadgets/index.js';
 import { syncUpgrades } from '../trials/upgrades.js';
@@ -330,6 +333,34 @@ export function wireTrails({ scene, player, physics, tool = null }) {
       if (m !== by) { for (const tr of trails) tr.samples.length = 0; by = m; }   // (another vehicle's: not joined to the last one's)
       m.body.updateMatrixWorld(true);
       trails.forEach((tr, i) => tr.update(dt, moving ? m.body.localToWorld(jets[i].clone()) : null));
+    },
+  };
+}
+
+// ------------------------------------------------------------------ the world's edges and its walls' openings
+/**
+ * Where the old walls' cracks may not run: their windows, doors and what is fixed on them (src/wall-openings.js; the
+ * builders added their merged pieces as they laid them, the world's small meshes here), the table to the shaders'
+ * uOpenings. Once the world is built. → how many pieces.
+ */
+export function wireOpenings({ scene }) {
+  wallOpenings.collectScene(scene).flush(sharedUniforms);
+  return wallOpenings.boxes;
+}
+/**
+ * Leaning into the world's edge (src/edge.js): the wind that holds you back streams in round you (the wind's edgeGust)
+ * and the ink shimmers where you touch it (EdgeInk, drawn with the wind's wisps: in `parent`, the wind's own scene on the
+ * page, the mirrored one in the engines). → update(dt, camera, pxScale) for each frame, before the wind's own.
+ */
+export function wireEdge({ wind, player, parent }) {
+  if (!wind) return null;
+  const ink = new EdgeInk(wind.mesh.material);
+  parent.add(ink.mesh);
+  return {
+    ink,
+    update(dt, camera, pxScale) {
+      if (player.edge?.k > 0.03 && !player.ride) wind.edgeGust(dt, player.edge.at, player.edge.n, player.edge.k);
+      ink.update(dt, player.ride ? null : player.edge, player.frame.up, camera, pxScale);
     },
   };
 }
