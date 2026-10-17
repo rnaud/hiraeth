@@ -226,8 +226,6 @@ export const GAPS = {
   host: [
     // gaps
     { keys: ['import:src/jump-shadow.js#JumpShadow'], what: 'the patch of shade under the traveller in a jump', status: 'gap', issue: 427, visible: 2 },
-    { keys: ['import:src/carriers.js#cameraPhysics', 'import:src/carriers.js#keepLensOut'], what: 'the camera kept out of the cabs and carriers', status: 'gap', issue: 427, visible: 2 },
-    { keys: ['import:src/player.js#heroCut', 'import:src/materials.js#keepHero'], what: 'the traveller left out of the view when the lens is inside him', status: 'gap', issue: 427, visible: 1 },
     { keys: ['import:src/benches.js#createBenches'], what: 'the benches to sit on', status: 'gap', issue: 427, visible: 2, note: '#264: "benches aren\'t in the engine yet"' },
     { keys: ['import:src/trail.js#Trail', 'import:src/bike-worlds.js#trailVehicles', 'import:src/bike-worlds.js#trailVehicle', 'fn:trailGround'], what: 'the hoverbike\'s trail on the ground', status: 'gap', issue: 427, visible: 2 },
     { keys: ['import:src/brush.js#BrushTrail'], what: 'the grass parting along the traveller\'s recent path', status: 'gap', issue: 427, visible: 1, note: 'the engine parts it round his feet only' },
@@ -254,6 +252,7 @@ export const GAPS = {
     { keys: ['shared:wireMount', 'shared:wireVehicles'], what: 'the bird\'s promise and the hoverbike, the bike by the ramp where the bird is the mount, hover vehicles skimming water, no calls into the rooms off the map', status: 'handled', where: 'src/host/game-host.js wireMount, wireVehicles (both hosts\' own copies before; the engines had no parked bike and no skimming)' },
     { keys: ['shared:wireLessons'], what: 'what the save\'s events say and start: a gadget found and its line, a keepsake\'s theme, the trials\' upgrades, Plumb\'s clock and notes', status: 'handled', where: 'src/host/game-host.js wireLessons (both hosts\' own copies before)' },
     { keys: ['shared:wireCompanion'], what: 'Plumb each frame: its escort out of the prologue, the first person near, its hints when you look lost (where to go, a makers\' house\'s step, a guardian\'s weak point), its first word (issue #434)', status: 'handled', where: 'src/host/game-host.js wireCompanion (both hosts\' updatePlumb before)' },
+    { keys: ['shared:wireCamera', 'shared:wireHero', 'shared:heroCutFrame'], what: 'the camera kept out of the cabs and carriers; the traveller\'s own surfaces (the gear hung on him later too); the lens inside him leaving him out of the view', status: 'handled', where: 'src/host/game-host.js wireCamera, wireHero, heroCutFrame (main.js before); the shared uHeroCut is set in the engines too, its cut drawn once the port reads it (#264)' },
     { keys: ['shared:wireShip'], what: 'the ship\'s place for quests, the scout and the Map\'s "Your ship" mark', status: 'handled', where: 'src/host/game-host.js wireShip (main.js level.ship before; the engines had none)' },
     // handled by the engines' own
     { keys: ['import:src/hud.js#heartsSvg', 'import:src/hud.js#walletTick', 'import:src/hud.js#KEY_SVG', 'import:src/hud.js#GREAT_KEY_SVG', 'fn:updateStamina', 'fn:restartNow', 'fn:showToast',

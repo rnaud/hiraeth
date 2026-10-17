@@ -1925,6 +1925,13 @@ the engines' build of the game to see it there. Moved so far:
 - `wireShip`: the ship's place (level.ship at its ramp's foot) for the quests that say "return to the ship", the
   scout and the Map's "Your ship" mark; the engines' Map had no ship (#429's menus sequence).
 
+Round 2 (the mechanical groups):
+
+- `wireCamera`, `wireHero`, `heroCutFrame`: the camera's view of the world with the cabs as drawn and the lens kept
+  out of them (src/carriers.js; the engines' camera went through them), the traveller's own surfaces marked his with
+  the gear hung on him later (keepHero), and the lens inside him cutting him out of the view (the shared uHeroCut,
+  set in the engines too; Unity draws the cut once its port reads it, #264).
+
 Checked in Unity (the editor's batch run, `-fresh -no-hud`, against main's bundle for the before and the web's
 pictures of the same views): the kit's colours at the desert's ramp foot (`-set-flags` now takes `key=value`:
 `kit.colour.sword=ember`) and the Underside's void past its edge; the pairs are v1.83's in the changelog.

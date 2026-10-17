@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { readFileSync } from 'node:fs';
-import { wireKit, wireDangers, wirePeople, wireChemistry, wireVehicles, wireLessons, wireCompanion } from '../src/host/game-host.js';
+import { wireKit, wireDangers, wirePeople, wireChemistry, wireVehicles, wireLessons, wireCompanion, wireCamera, heroCutFrame } from '../src/host/game-host.js';
 import { ERRANDS } from '../src/levels/content.js';
 import { hazardCount } from '../src/hazards.js';
 import * as THREE from 'three';
@@ -15,6 +15,7 @@ import { loadBundle } from '../engine/vm-run.mjs';
 import { tempPath } from '../scripts/temp-dirs.mjs';
 import { colourById } from '../src/kit-colours.js';
 import { portMaterial } from '../engine/unity/port-format.js';
+import { sharedUniforms } from '../src/materials.js';
 
 const quiet = (f) => { const w = console.warn, i = console.info, l = console.log; console.warn = console.info = console.log = () => {}; try { return f(); } finally { console.warn = w; console.info = i; console.log = l; } };
 const state = (flags = {}) => ({ data: { flags }, flag: (k) => flags[k], set: (k, v) => { flags[k] = v; } });
@@ -137,9 +138,23 @@ test('the lessons: Plumb\'s clock and notes, a keepsake\'s theme, the upgrades k
   wireLessons({ game: { on() {}, flag() {} }, items, levelId: 'arena', toast: () => {} });
 });
 
+test('the camera: the level\'s bounds and the cabs kept out of the lens; the lens inside him cuts him out, not in a scene', () => {
+  let bounded = 0;
+  const player = { vehicles: [], ride: null, pos: new THREE.Vector3(), frame: { up: new THREE.Vector3(0, 1, 0) } };
+  const c = wireCamera({ physics: { raycast: () => null }, level: { constrainCamera: () => { bounded++; } }, player });
+  assert.ok(c.physics);
+  c.constrain(new THREE.Vector3(0, 2, 3));
+  assert.equal(bounded, 1, 'the level\'s own bounds');
+  const camera = { position: new THREE.Vector3(0, 1.2, 0.05) };
+  heroCutFrame({ camera, player });
+  assert.equal(sharedUniforms.uHeroCut.value, 1, 'the lens in his body: cut');
+  heroCutFrame({ camera, player, off: true });
+  assert.equal(sharedUniforms.uHeroCut.value, 0, 'not in a scene');
+});
+
 test('both hosts call the same groups (src/host/game-host.js), and engine/game.js no longer arms the tool its own way', () => {
   const main = readFileSync('src/main.js', 'utf8'), engine = readFileSync('engine/game.js', 'utf8');
-  for (const g of ['wireKit', 'wireDangers', 'wirePeople', 'wireChemistry', 'wireMount', 'wireVehicles', 'wireLessons', 'wireShip']) {
+  for (const g of ['wireKit', 'wireDangers', 'wirePeople', 'wireChemistry', 'wireMount', 'wireVehicles', 'wireLessons', 'wireShip', 'wireCamera', 'wireHero', 'heroCutFrame']) {
     assert.match(main, new RegExp(`\\b${g}\\(`), `main.js calls ${g}`);
     assert.match(engine, new RegExp(`\\b${g}\\(`), `engine/game.js calls ${g}`);
   }

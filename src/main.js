@@ -32,7 +32,7 @@ import { t as tr } from './i18n.js';
 import { Wildlife } from './wildlife.js';
 import { createGBuffer, createComposeTarget, createBlit, createSmaa, aaOf, setSubject } from './pipeline.js';
 import GUI from 'lil-gui';
-import { sharedUniforms, markHero, keepHero, setEnvGround } from './materials.js';
+import { sharedUniforms, setEnvGround } from './materials.js';
 import { BLADE_QUALITY, bladeLiteFor } from './blade-shader.js';
 import { wallOpenings } from './wall-openings.js';
 import { createPost, createBloom, DEBUG_VIEWS, PRESETS } from './post.js';
@@ -40,8 +40,7 @@ import { LEVELS, levelById } from './levels/index.js';
 import { partsOf, shiftAt } from './levels/names.js';
 import { fastTravel } from './fast-travel.js';
 import { fragmentPurse } from './fragment-shop.js';
-import { Player, CameraRig, jetCameraPitch, WIDE, heroCut } from './player.js';
-import { cameraPhysics, keepLensOut } from './carriers.js';
+import { Player, CameraRig, jetCameraPitch, WIDE } from './player.js';
 import { applyTimeOfDay, colourScript } from './timeofday.js';
 import { applyEclipse } from './eclipse.js';
 import { WindStreaks } from './wind.js';
@@ -147,7 +146,7 @@ import { queueHost, takeHosts } from './minigames/kit/hosts.js';
 import { MinigameRunner } from './minigames/kit/runner.js';
 import { levelMetaFor } from './minigames/kit/world.js';
 import { lendTool } from './minigames/kit/onfoot.js';
-import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip, wireCompanion } from './host/game-host.js';
+import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip, wireCompanion, wireCamera, wireHero, heroCutFrame } from './host/game-host.js';
 import { arcadeLinks } from './minigames/kit/arcade.js';
 import { ambushDue, ambushHref, ambushKey, transitLinks } from './ambush.js';
 import { talkAllowed } from './ship/landing.js';
@@ -604,8 +603,7 @@ if (generatedTraveller) {
 }
 player.attach(scene);
 await slice();
-const heroMaterials = keepHero(player.char.root);   // (and the gear hung on him later: materials.js keepHero)
-markHero(player.cape?.mesh, heroMaterials);
+wireHero({ player });   // (his own surfaces, the gear hung on him later too: src/host/game-host.js, the engines' too)
 if (player.mount) scene.add(player.mount.object);
 await slice();
 
@@ -664,10 +662,11 @@ wind.scene.add(edgeInk.mesh);
 // the recordings' hologram (src/ship/hologram.js): light drawn over the composite, hidden behind what the G-buffer holds
 HOLO.uniforms.tNormal.value = gbuffer.textures[1];
 // (the camera's view of the collision: the level's, and the cabs as drawn, never the one you ride: src/carriers.js)
-const rig = new CameraRig(camera, renderer.domElement, cameraPhysics(physics, () => player.vehicles, () => player.ride));
+const cam = wireCamera({ physics, level, player });   // (src/host/game-host.js, the engines' too)
+const rig = new CameraRig(camera, renderer.domElement, cam.physics);
 rig.yaw = level.camYaw;
 rig.pitch = level.camPitch ?? rig.pitch;
-rig.constrain = (cam) => { level.constrainCamera?.(cam); keepLensOut(cam, () => player.vehicles, () => player.ride); };   // (and out of the cabs: src/carriers.js)
+rig.constrain = cam.constrain;   // (the level's bounds, and out of the cabs: src/carriers.js)
 await slice();
 
 // ------------------------------------------------------------------ sound, weather, people, story
@@ -2276,7 +2275,7 @@ function frame(ts) {
   ship.update(dt, t, mergedInput, { photo: photo.on });   // inside / outside, its scenes and their camera
   // the lens inside the traveller (his back to a cabin's wall, the camera pressed into him): his own surfaces left out of
   // the view, not drawn from inside; his shadow stays (issue #324). Not in a scene, photo mode or a game that takes the camera
-  SU.uHeroCut.value = !ship.playing && !photo.on && !minigame?.drives && heroCut(SU.uHeroCut.value > 0.5, camera.position, player.pos, player.frame?.up) ? 1 : 0;
+  heroCutFrame({ camera, player, off: ship.playing || photo.on || !!minigame?.drives });
   kit.arm();
   tool.update(pdt, ctl, busy() || photo.on || player.god || !!minigame?.drives);   // (a game on foot keeps the blade and the gun; god mode: the triggers fly)
   gadgets.update(pdt, busy() || photo.on || ship.playing || player.god || (!!minigame && !minigame.def.trial));   // (after the tool: an aiming gadget's camera and pose win)

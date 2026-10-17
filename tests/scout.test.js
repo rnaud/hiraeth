@@ -196,7 +196,9 @@ test('keepHero tags the gear hung on the traveller later (the shield, the sword)
   const tagged=shield.children[0].material;
   root.add(shield);   // (moved: the sword from his back to his hand)
   assert.equal(shield.children[0].material,tagged,'no new copy');
-  assert.match(readFileSync(new URL('../src/main.js',import.meta.url),'utf8'),/const heroMaterials = keepHero\(player\.char\.root\);/);
+  // (the one game setup's, both hosts: src/host/game-host.js wireHero, #427)
+  assert.match(readFileSync(new URL('../src/host/game-host.js',import.meta.url),'utf8'),/const copies = keepHero\(player\.char\.root\);/);
+  for (const f of ['../src/main.js', '../engine/game.js']) assert.match(readFileSync(new URL(f,import.meta.url),'utf8'),/wireHero\(\{ player \}\)/, f);
 });
 
 test('scout keeps your pace riding: it looks out ahead of you, stays near, and points at the goal', () => {
@@ -401,7 +403,8 @@ test('the lens inside the traveller leaves him out of the view, his gear and its
   assert.match(body.vertexShader,/if \(uHeroCut \* uCutMe > 0\.5\) gl_Position = vec4\(2\.0, 2\.0, 2\.0, 1\.0\);/);
   assert.doesNotMatch(body.fragmentShader,/uHeroCut/);
   const main=readFileSync(new URL('../src/main.js',import.meta.url),'utf8');
-  assert.match(main,/SU\.uHeroCut\.value = !ship\.playing && !photo\.on && !minigame\?\.drives && heroCut\(/);
+  assert.match(main,/heroCutFrame\(\{ camera, player, off: ship\.playing \|\| photo\.on \|\| !!minigame\?\.drives \}\)/);
+  assert.match(readFileSync(new URL('../src/host/game-host.js',import.meta.url),'utf8'),/U\.value = !off && heroCut\(U\.value > 0\.5, camera\.position, player\.pos, player\.frame\?\.up\) \? 1 : 0;/);
 });
 
 test('escort (issue #434): handed over by the prologue, it rides at your shoulder; a ping sends it off; else it winks out in time', async () => {

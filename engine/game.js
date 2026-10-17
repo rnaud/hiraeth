@@ -47,7 +47,7 @@ import { LodManager } from '../src/lod.js';
 import { spawnAliens, alienSpots } from '../src/aliens/index.js';
 import { createStory } from '../src/story/index.js';
 import { game as gameState } from '../src/game-state.js';
-import { markHero, sharedUniforms } from '../src/materials.js';
+import { sharedUniforms } from '../src/materials.js';
 import { createPost, PRESETS } from '../src/post.js';
 import { applyTimeOfDay, colourScript } from '../src/timeofday.js';
 import { EDGE_HINTS } from '../src/edge.js';
@@ -153,7 +153,7 @@ import { DevMenu } from '../src/dev-menu.js';
 import { gatherPoints, questList, applyQuestJump, landingSpot, godLanding } from '../src/world-debug.js';
 import { GAMES } from '../src/minigames/index.js';
 import { DEBUG_SLOT } from '../src/save-slots.js';
-import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip, wireCompanion } from '../src/host/game-host.js';
+import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip, wireCompanion, wireCamera, wireHero, heroCutFrame } from '../src/host/game-host.js';
 
 export { page };
 export { readHref } from './trials.js';   // (the tests: a game page's address)
@@ -432,9 +432,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     if (travellerTemplate) player.humanoid = new Humanoid(humans0[0], player.char, 'm', { outfit: travellerTemplate });
   }
   player.attach(scene);
-  const heroMaterials = markHero(player.char.root);
-  markHero(player.gear?.device, heroMaterials);
-  markHero(player.cape?.mesh, heroMaterials);
+  wireHero({ player });   // (his own surfaces, the gear hung on him later too, as the page: src/host/game-host.js)
   if (player.mount) scene.add(player.mount.object);
   // the world's vehicles (the self-driving cabs: src/taxi.js), as main.js gives them to the traveller
   player.vehicles.push(...(level.vehicles ?? []));
@@ -670,10 +668,13 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   stamp('flora');
 
   // the camera rig, on the page's stand-in canvas
-  const rig = new CameraRig(camera, document.createElement('canvas'), physics);
+  // (its view of the world: the cabs as drawn, the lens kept out of them, as the page: src/host/game-host.js wireCamera;
+  // the engines' camera went through the cabs before, #427)
+  const cam = wireCamera({ physics, level, player });
+  const rig = new CameraRig(camera, document.createElement('canvas'), cam.physics);
   rig.yaw = level.camYaw ?? (player.heading + Math.PI);
   rig.pitch = level.camPitch ?? rig.pitch;
-  rig.constrain = level.constrainCamera;
+  rig.constrain = cam.constrain;
   if (tool) tool.rig = rig;
 
   // the look: the preset and the hour, as main.js applies them
@@ -1614,6 +1615,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         // with its signature search; dark under NO POWER without power, as the page shows it
         if (ship.map?.open) { ship.map.toggle(false); openStarMap(); }
       }
+      // (the lens inside the traveller: his own surfaces left out of the view, as the page: heroCutFrame)
+      heroCutFrame({ camera, player, off: (shipOn && ship.playing) || !!trials?.drives || !!pinned });
       // the fingers (hands.js: relaxed, gripping, gesturing), the coral-shirt traveller's own hands after (main.js)
       try { updateHands(dt, { player, npcs, camera }); player.character?.updateHands?.(); } catch (e) { if (!game._handsFailed) { game._handsFailed = true; console.warn('[game] the hands failed', e?.stack ?? e); } }
       lap?.('boxes, hands');

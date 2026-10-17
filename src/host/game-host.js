@@ -14,6 +14,7 @@
 //   wireVehicles({ bikeHere, player, … })                  the bike by the ramp, skimming water, no calls into rooms
 //   wireLessons({ game, items, gadgets, sound, plumb, … }) what the save's events say and start (a gadget's line, Plumb)
 //   wireCompanion({ game, plumb, scout, level, … })        Plumb each frame: its escort, its hints, its first word (#434)
+//   wireCamera, wireHero, heroCutFrame                     the camera kept out of the cabs, the traveller's own surfaces
 //
 // tests/game-host.test.js holds each group to both hosts; scripts/bridge-gaps.mjs reports a group main.js calls and
 // engine/game.js doesn't as a host gap (engine/bridge-gaps.js `shared:`).
@@ -36,6 +37,9 @@ import { keyText } from '../prompt-keys.js';
 import { placeOf, droneWorld, shown as droneShown } from '../companion.js';
 import { ESCORT } from '../scout.js';
 import { guardianHint } from '../temples/hints.js';
+import { cameraPhysics, keepLensOut } from '../carriers.js';
+import { keepHero, markHero, sharedUniforms } from '../materials.js';
+import { heroCut } from '../player.js';
 
 // ------------------------------------------------------------------ the kit
 /**
@@ -233,4 +237,36 @@ export function wireCompanion({ game, plumb = null, scout = null, level, player,
     if (r.point) scout?.ping();   // (out toward the goal, a look, the flare, home; in a guardian's fight, the hint)
     return r.say ? droneShown(r.say) : '';
   };
+}
+
+// ------------------------------------------------------------------ the camera and the traveller's own surfaces
+/**
+ * The camera's view of the world: the level's collision and the cabs and carriers as drawn, never the one you ride
+ * (src/carriers.js cameraPhysics), the lens kept out of them and inside the level's own bounds (keepLensOut,
+ * level.constrainCamera). → { physics, constrain }: the CameraRig's physics and its constrain.
+ */
+export function wireCamera({ physics, level, player }) {
+  return {
+    physics: cameraPhysics(physics, () => player.vehicles, () => player.ride),
+    constrain: (cam) => { level.constrainCamera?.(cam); keepLensOut(cam, () => player.vehicles, () => player.ride); },
+  };
+}
+/**
+ * The traveller's own surfaces marked his (materials.js uHero: his own shadow map, the lens cut), the gear hung on him
+ * later too (keepHero watches him), and his cape. → the copies (a host may mark more with them).
+ */
+export function wireHero({ player }) {
+  const copies = keepHero(player.char.root);
+  markHero(player.gear?.device, copies);
+  markHero(player.cape?.mesh, copies);
+  return copies;
+}
+/**
+ * Each frame, after the camera is placed: the lens inside the traveller (his back to a cabin's wall, the camera pressed
+ * into him) leaves his own surfaces out of the view, his shadow kept (issue #324; src/player.js heroCut, the shared
+ * uHeroCut). `off`: a scene, photo mode or a game that takes the camera.
+ */
+export function heroCutFrame({ camera, player, off = false }) {
+  const U = sharedUniforms.uHeroCut;
+  U.value = !off && heroCut(U.value > 0.5, camera.position, player.pos, player.frame?.up) ? 1 : 0;
 }

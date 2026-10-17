@@ -37,6 +37,8 @@ export const CHANGELOG = [
     // (the drum's at the high ledge), audio.js wings
     // heavy; tests/wings-reach.js, tests/engine-wings.test.js
     'Inside the makers’ houses the wings now glide heavy: they open as a brake and come down steeply, with a lower, duller flap, so a running jump, the double jump and a glide no longer carry you over a chasm before its bridge or gate is open. Out in the world they glide as before, and moving air still carries them indoors: the columns, the gusts, the Warden’s Well’s draught out to its high ledge, and in the Aerie the breath of the Wind Well, the Eyrie’s gap, the Gulf and the Roost, so their glides work as they did.',
+    // issue #427 round 2: src/host/game-host.js (wireCamera…), engine/game.js; tests/game-host.test.js
+    'In the Unity version, the camera and the world round you behave as on the web too: the camera stays out of the cabs and carriers instead of passing through them.',
   ] },
   { v: '1.83', date: '2026-10-16', items: [
     // issue #406: src/temples/desert.js (ROOMS, LOGIC: hall, balcony, ballK, kS, dE, sentry in the hall, d3), pieces.js Ball
