@@ -769,6 +769,69 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   use button, the disc ridden, the drop into the cistern, the weight hooked down and carried, both vines climbed, the
   window's drop, the Gardener calmed; the water's look), `temples.test.js` (the logic, the migration),
   `temple-playthrough`, `temple-maps`, `house-map`, `temple-rules`, `way-back`, `zfight`.
+- **The Mooring-House round its moored room** (v1.83, issue #417; the approved best practices,
+  `docs/design/temple-best-practices.md` G1, G2, G4, G6 and its Mooring-House row). The Drift, the Cable Walk and the
+  Balance are one great hall, the **Mooring Hall** (`MH`), 57 by 73 m, its walls 34 m up, open to the stars over its void;
+  its floors all seen at once: the **east landing** (y 0, the room `drift`, its id kept) from the loft, its apron under the
+  gallery out to the room's shaft; the **gallery** (`GALLERY`, y 11) along the south wall in two halves (`moor` east,
+  `moorW` west) with the room's shaft between them; the **west landing** (`WEST`), its lower part (y 0, `west`) where the
+  gangway lands and its upper part (y 6, `westS`) by the west door, the **Cable Walk** between. The west landing stands
+  behind a moorers' screen of bars (and an invisible wall) up to 16 m, the gangway's gate in it (a twin of `br2`): nothing
+  glides in past the gangway and the walk. The **Chain Locker** (`LOCKER`, `locker`) north off the east landing; the
+  Rope Store moved 4 m north with the hall's south wall (`STORE`).
+  - **The moored room** (G1, `ROOM`, `MooredRoom`): a round room of the makers, 13 m across, its ribs, roof and capstan of
+    dark iron, hung on the house's great cable in the shaft; docked low (its floor at the east landing's) or high (at the
+    gallery's, bridging its halves). The drum `mooring`, two stops `mLow` (t 0) and `mHigh` (t 1, the start), `roll:
+    'hand'`, `verb: 'moor'`, set from `rooms` (the hub's lever in the Capstan Hall, the west landing's lever, and with the
+    tether at the docks). The room's floor is a riding disc (a moving solid, as the Footprint's great lift: no
+    `physics.addMover`, which the engines do not sync); its walls are kept by hand (`keep()`: no one passes its ribs, in or
+    out, but at a doorway that faces a dock it is docked at, east at either, west only high). Under way it is at neither
+    stop (t 0.45 or 0.55, saved: a save left under way finishes the trip), so everything that waits on it shuts; docked,
+    the drum is at the stop. A **gate at each dock** (`dockL` a `Door`, `dockH` and `dockW` a `DockGate`, which rises:
+    the gate below would meet a sinking one) opens while it is docked there.
+  - **Set from:** its own capstan (the use button, "send the room up / down"), which waits a breath (`ROOM.wait`, 2.2 s)
+    before it casts off, so you can step off and stay; a `MooringLever` in the Capstan Hall (`LEVERS`, usable before the
+    tether: the state is taught before the chest) and on the west landing's lower part; and the tether at a moorers' ring on
+    a post at each dock (`DOCK_RINGS`, `DockRing`: it calls the room home to that dock; its line to the room is drawn).
+  - **Readable everywhere:** one lamp material for the house (`stateLamp`, `STATE_LOOK`): amber while the room is low,
+    starlight blue while it is high, between them under way; a `MooringGauge` (a little room riding between two brass
+    collars on an iron post) in every room but the guardian's; the levers' arms up or down; the counterweights themselves.
+  - **What it changes** (every counterweight in the house hangs on the same cable: the room low, they rise; high, they
+    sink), on all the floors: low, the Lamp Shaft's counterweight (`ShaftWeight`, a carrier while it rests) is hauled up
+    off the grating and the void's breath blows (`breath`, an `Updraft` with `when`), the Chain Locker's shutter (`dL`)
+    and the Rope Store's (`dR`, its arena door too) rise, the Cable Walk (`cw`, with its catch `rW` pulled) hangs level;
+    high, the loft's ring comes down within the tether's reach (`r1`, moved by a `Hoist`), the gangway draws taut with its
+    ball home (`br2`, latched once taut), the coffer's cage can sink (`cC`, with its weight).
+  - **The rides** (the links `ride`, `drift → moor`, and `rideW`, `moor → moorW`): latched for the logic once the room has
+    been there with you (a ring at your dock calls it back whenever you want it), as the Greenhouse's disc.
+  - **The way through** (13 locks for the audit, was 8; skeleton `BBBCGXXLXXLK` → `XBBBCXXXXXXXXLXLK`): the winch's ball
+    (`g1`); the hub's lever, the room low: the breath up the shaft (`breath`) to the lamp-eye (`d1`); the chest; the hub's
+    lever again, the room high: the loft's ring (`d2`); in the Mooring Hall the east landing's ball home (the gangway taut,
+    `br2`); the ring calls the room down, its capstan carries you up (`ride`); out west onto the gallery's west half, turn
+    the capstan and step off: the room sinks, the Rope Store's shutter rises (`dR`); the arena, its small key; the west
+    half's ring calls the room home, the only way back east (`rideW`); the moorers' gate (`sc`); on the balcony the ball
+    home and (G2: the tether and the lens at once) the ring only the lens shows (`rL`, `hidden`; its chain to the roof is
+    there for anyone to see, ending in nothing): the great key (`kB`); the cradle down; the room called down again: the
+    Chain Locker (`dL`), its ball pushed OUT over the well (`ballK`) brings the west door's ring down (`rK`, a `Hoist`):
+    pulled, the west door's chain lets go (`gN`, push then pull, the Balance's twist); over the gangway, the walk's catch,
+    the room low (the west lever, if it is not): up the Cable Walk (`cw`); the west door, the great door (`d6`).
+  - **G6:** the gallery's east half has a gap in its railing with a lit sill (`GALLERY.drop`): 11 m down onto a ring of the
+    void's breath on the east landing (`GALLERY.catch`, the Aerie's `Cushion`), nothing hurt, a one-way link `moor →
+    drift`; and the balcony's cradle down to the hub, as before. The antechamber's mark a few steps from the Capstan
+    Floor's door, as before.
+  - **The two obvious steps reworked:** the loft's ring (4.5 before, hung in plain reach over the door it opens) now hangs
+    on the house's cable, set a room away; the coffer's cage (5, the weight beside it) wants the room high too.
+  Audit: 8 → 13 steps, combinations 4 of 8 → 10 of 13, mean obviousness 3.31 → 2.85 (painfully obvious 2 → 0), decoupled
+  4 → 8, loops 1 → 2, the score 4.22 → 4.22 (combination 4 → 5, decoupling 4 → 5, curve 5 → 3: the state's first steps,
+  set a room away, come early; identity 3: 59 % like the Aerie, it was 75 % like the Hush-House); rules broken: none
+  before or after. Old saves (`migrate.js` spacecity v4): past the west door, the locker's ring, the walk's catch, the
+  gangway and the rides as done; past the great key, the lens's ring pulled; past the loft's door, the breath; one that
+  stood inside, to its last mark. Tests: `tests/mooring-room.test.js` (the house on foot with a real traveller: every lever
+  and capstan worked with the use button, every ring pulled from where he stands, the room called and ridden both ways, the
+  step off before it casts off, the drop unhurt, the lens's ring, the locker's push then pull, the Cable Walk, the
+  Anchor-Warden; its walls; a save left under way), `tests/temples.test.js` (the logic both ways, the state's doors, the
+  saves), `temple-playthrough` (the room set at a lever or called at a dock's ring with the tether; walked in with the lens),
+  `carry`, `temple-design`, `temple-maps` (`makers.js`: "Send the moored room up / Bring it down"), `house-map`, `zfight`.
 - **The Lamp-House round its Lamp Hall, its great lamp the house's state** (v1.83, issue #410; the approved
   recommendations: `docs/design/temple-best-practices.md`, G1, G2, G4, G6). The Hall of Dark Pools is the **Lamp Hall**
   (`ROOMS.pools`, its id kept), 36 by 64 m under 34, its **gallery** (`GALLERY`, the room `hallUp`) along the west wall
@@ -1228,7 +1291,8 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   hangs from the jib over the door and the chimney's glow is steady (`change`). Petra, who keeps the founders' ledger, is
   its local.
 - **Pulling things home across the void** (the City Floating in Space's Mooring-House, `spacecity.js` +
-  `spacecity-data.js`, v1.40; its guardian's body `guardian-anchor.js`). A round adobe drum with the moorers' great
+  `spacecity-data.js`, v1.40; its guardian's body `guardian-anchor.js`; since v1.83 the Drift, the Cable Walk and the
+  Balance are the Mooring Hall round the moored room: "The Mooring-House round its moored room" above). A round adobe drum with the moorers' great
   capstan on its roof, on the Moorings (`ISLANDS.moorings`, a rising bridge from the Towers); inside, floors that stop
   short over the stars. **Tether mode** (item `tether`, a gun mode: the push's cone, its targets handed `'tether'` and
   the way back to the hand) rolls any `Ball` toward you and wakes a moorers' ring (`Switch` `pull: true`, element

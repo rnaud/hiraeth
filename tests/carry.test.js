@@ -201,12 +201,12 @@ test('a plate holds its door only while weighed down: stood on, or a weight on i
 
 test('the temples still solve with their weights, and the Rose House\'s old saves find the weight on its plate', () => {
   for (const id of ['desert', 'spacecity']) {
-    const items0 = id === 'desert' ? ['backpack', 'doublejump'] : ['backpack', 'gun', 'doublejump'];
+    const items0 = id === 'desert' ? ['backpack', 'doublejump'] : ['backpack', 'gun', 'doublejump', 'monocle'];   // (the Mooring-House's great key wants the lens, issue #417)
     const r = solve(TEMPLES[id].def.logic, { items: items0 });
     assert.equal(r.done, true, `${id}: ${r.log.join(' / ')}`);
   }
   assert.ok(solve(TEMPLES.desert.def.logic, { items: ['backpack', 'doublejump'] }).log.includes('carry wP onto pp'), 'the Rose House\'s weight is on the way');
-  assert.ok(solve(TEMPLES.spacecity.def.logic, { items: ['backpack', 'gun', 'doublejump', 'hook'] }).log.includes('open cC'), 'the Mooring-House\'s coffer, with the hook');
+  assert.ok(solve(TEMPLES.spacecity.def.logic, { items: ['backpack', 'gun', 'doublejump', 'hook', 'monocle'] }).log.includes('open cC'), 'the Mooring-House\'s coffer, with the hook');
   // (a save past the Dry Channel's door, which latched open for good before)
   const g = new GameState(null);
   g.set('temple.desert.layout', 2);

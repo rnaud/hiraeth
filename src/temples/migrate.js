@@ -218,11 +218,19 @@ export const LAYOUTS = {
   // v1.77 (issue #336): the house remade to the redesign's rules, its rooms bigger and moved (the same pieces, the same
   // state; the Mooring Passage's ring now over the loft's floor). A save that entered the house: taken to its last mark if
   // it stood inside the old rooms (runtime.js relaid)
+  // v1.83 (issue #417): the Drift, the Cable Walk and the Balance one great hall, the Mooring Hall, round the moored room
+  // (the house's state, `mooring`); the west door's chain on the Chain Locker's ring (rK) now, the great key's cage on a
+  // ring only the lens shows (rL), the Cable Walk's catch on a ring (rW). Past the west door (or the guardian): those rings
+  // pulled, the locker's ball in its cup, the gangway taut. Past the great key: its ring pulled. A save that entered the
+  // house: taken to its last mark in the new rooms
   spacecity: {
-    v: 3,
+    v: 4,
     steps: [
       { if: ['lit.r5', 'open.sc', 'open.gN', 'boss'], set: { 'unlocked.sc': 1, 'found.kS': true, 'lit.arR': true } },
       { if: ['open.gN', 'boss'], set: { 'unlocked.d6': 1, 'found.kB': true, 'drum.bK': 0.167 } },   // (spacecity.js PERCH.plateAt: tests/temples.test.js checks)
+      { if: ['open.gN', 'boss'], set: { 'drum.ballK': 1, 'lit.rK': true, 'lit.rW': true, 'open.br2': true, 'drum.ballD': 0.125, 'open.ride': true, 'open.rideW': true } },
+      { if: ['found.kB', 'open.gN', 'boss'], set: { 'lit.rL': true, 'seen.rL': true } },
+      { if: ['open.d1', 'gadget', 'open.d2', 'boss'], set: { 'open.breath': true } },
       { if: ['entered'], set: { relaid: true } },
     ],
   },

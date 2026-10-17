@@ -641,6 +641,49 @@ The Belfry's row of Part 3 (the bells as a house-wide state; the great key cage'
   steps 2 → 1, obscure 1 → 0; identity 2 as before). The audit measures each lock alone: a state set from the lock's own
   room counts as a key there, so G1's "cheap to change" reads as obvious, and the three conflicts (still for the spur,
   rung for the bridge and the far door) are not in its numbers. The redesign's rules: none broken.
+### As built: the Mooring-House (v1.83, issue #417)
+
+The thirteenth house, its row of Part 3 (a moored room; its two obvious steps) with G1, G2, G4 and G6
+(`src/temples/spacecity.js`; how it works: `docs/systems/temples.md`, "The Mooring-House round its moored room"):
+
+- **G1, the moored room:** a round room of the makers hung on the house's great cable in the Mooring Hall, docked at the
+  low dock (the east landing, y 0) or the high dock (between the gallery's halves, y 11). It is a lift (its own capstan
+  carries you up or down after a breath, time to step off) and a key at once: docked high it bridges the gallery's
+  halves, and every counterweight in the house hangs on the same cable, so its place changes rooms on every floor. The
+  room low: the Lamp Shaft's counterweight is hauled off the grating and the void's breath blows, the Chain Locker's and
+  the Rope Store's shutters rise, the Cable Walk hangs level. The room high: the loft's ring comes down within the
+  tether's reach, the gangway draws taut, the coffer's cage can sink. **Cheap to change:** a lever in the Capstan Hall
+  (before the tether: the state is taught before the chest), a lever on the west landing, the room's own capstan, and
+  the tether at a moorers' ring at each dock, which calls the room home there (the house's tool: "pulling things home").
+  **Readable everywhere:** a lamp in every room, amber low and starlight blue high, on a gauge whose little room rides
+  between two collars, and the counterweights themselves. On the way it is set low and high again at the hub's lever
+  (the breath, then the loft's ring), called home low and ridden up, sent down without you (the Rope Store), called home
+  high (the only way back east) and called down again (the Chain Locker, the Cable Walk): seven times, each a lever, a
+  ring or the capstan where you stand.
+- **The two obvious steps, reworked:** the loft's ring that opened the door beside it (4.5) now hangs on the house's
+  cable, hauled out of reach until the room is sent high again from the hub, a room away; the coffer's cage (5) wants the
+  room high as well as its weight.
+- **G2, the late step with the tether and an older tool:** the great key's cage on the Capstan Hall's balcony wants its
+  ball pulled home and a ring hung in the air over the hall that only the seeing lens shows (the Footprint's, house 12):
+  its chain is there for anyone to see, running up to the roof and ending in nothing.
+- **G4, the great hall:** the Mooring Hall, 57 by 73 m, its walls 34 m, open to the stars: the east landing, the gallery
+  11 m up and the west landing at 0 and 6 m, all seen at once, round the void and the room's shaft. The west landing
+  stands behind a moorers' screen of bars, so the gangway and the Cable Walk cannot be glided past.
+- **G6:** a gap in the gallery's railing with a lit sill, 11 m down onto a ring of the void's breath on the east landing
+  (the Aerie's `Cushion`), unhurt; the balcony's cradle down to the hub as before. The guardian's checkpoint: the
+  antechamber's mark, a few steps from the Capstan Floor's door.
+- **Where the code asked for something else:** the room's floor is a riding disc (as the Footprint's great lift) and its
+  walls are kept by hand: a moving collider (`physics.addMover`) is not synced by the engines' loop, and the room must work
+  in Unity. Its rides are latched for the logic (as the Greenhouse's disc): once the room has been there with you, a ring at
+  your dock calls it back. The gangway, once taut, holds (latched), so going for the Cable Walk's low after it costs no
+  trip back. The Lamp Shaft's breath is a lock of its own (the pier's top a room), so the state's first use is a step.
+- **Length and scores:** 8 → 13 steps (skeleton `BBBCGXXLXXLK` → `XBBBCXXXXXXXXLXLK`), design audit 4.22 → 4.22:
+  combinations 4 of 8 → 10 of 13, mean obviousness 3.31 → 2.85 (painfully obvious 2 → 0), decoupling 4 → 8 of 13,
+  loops 1 → 2, the chest at 31 % of the steps; combination 4 → 5 and decoupling 4 → 5, the curve 5 → 3 (the state's first
+  steps, each set a room away, come early and score high), identity 3 (59 % like the Aerie; 75 % like the Hush-House
+  before), non-obvious 3 (the Lamp Shaft's eye two rooms from the great door, and the west door's ring three rooms from
+  it in the Chain Locker, read as obscure). The redesign's rules: none broken before or after.
+
 ## As built: the Hush-House (v1.83, issue #409)
 
 The fourth house, the one with no fight at all (G3a), reworked to the approved rules (`src/temples/perdide.js`; how it

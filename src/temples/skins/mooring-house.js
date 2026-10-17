@@ -73,8 +73,8 @@ export const MOORING_SKIN = {
 export const MOORING_PLATES = [
   { round: [0, 30], r: [7.5, 13.5], y: [10, 17], n: 7, skip: [-1.795, 0.7] },        // the Capstan Hall
   { round: [-28.3, 1.7], r: [6, 11], y: [10.5, 14], n: 3 },                             // the Winch Room
-  { box: [-52, 11, 67, -38, 16, 92], n: 4 },                                            // the Drift, over the void
-  { box: [-76, 16, 31, -48, 22, 39], n: 3 },                                            // the Balance, over the void
+  { box: [-54, 21, 42, -38, 27, 90], n: 5 },                                            // the Mooring Hall, over the void (v1.83: over the moored room's top)
+  { box: [-48, 13, 98, -22, 16, 122], n: 2 },                                           // the Chain Locker
   { round: [-107, 46.5], r: [11, 15.5], y: [14.5, 19], n: 4 },                              // the Capstan Floor
 ];
 /** The islands floating in the void round the house (the kit's local m): their middles and sizes, the cable's end on the house. */
@@ -85,10 +85,10 @@ export const MOORING_ISLANDS = [
   { at: [-165, 18, -32], s: 12, to: [-120, 20, 30] },
   { at: [-150, 34, 140], s: 14, to: [-112, 24, 64] },
   // overhead, seen up through the void halls' open tops
-  { at: [-40, 62, 112], s: 18, to: [-45, 21, 94.6] },
-  { at: [-96, 54, 78], s: 14, to: [-69.6, 21, 80] },
-  { at: [-22, 74, 38], s: 16, to: [-45.4, 29, 40] },
-  { at: [-66, 68, -6], s: 12, to: [-62, 29, 16.4] },
+  { at: [-40, 62, 140], s: 18, to: [-45, 21, 125.6] },
+  { at: [-108, 54, 82], s: 14, to: [-78.6, 28, 80] },
+  { at: [-22, 74, 38], s: 16, to: [-20.6, 29, 40] },
+  { at: [-66, 68, -6], s: 12, to: [-62, 29, 20.4] },
 ];
 
 // ------------------------------------------------------------------ the shader

@@ -8,6 +8,8 @@ import { registerTarget } from '../targets.js';
 import { glyphGeometry } from '../story/sign-text.js';
 import { TempleKit, T, box, lathe, annulus, paint } from './kit.js';
 import { Door, Plate, Ball, Switch, Updraft, Platform, Bridge, Mark, Pit, Key, Weight, Coffer } from './pieces.js';
+import { Cushion } from './arzach.js';
+import { registerInteractable, PRIORITY } from '../interact.js';
 import { anchorModel, anchorGeometry } from './guardian-anchor.js';
 import { chestMound } from '../boxes/mound.js';
 import { mooringHouseSkin } from './skins/mooring-house.js';
@@ -20,50 +22,50 @@ import { mooringHouseSkin } from './skins/mooring-house.js';
 //
 // Inside (built far overhead, through its door), one idea from the first room to the last: PULLING THINGS HOME
 // ACROSS THE VOID. Its floors stop short over the stars; what you need is out on a cable where you can't walk, and
-// the tether (the gun's new mode, src/fluid-kit.js MODES.tether) brings it home. Before it, the plain verbs: a ball
-// pushed, an eye splashed, the wings in a column of the void's breath.
+// the tether (the gun's new mode, src/fluid-kit.js MODES.tether) brings it home. Since v1.83 (issue #417, the temple best
+// practices, docs/design/temple-best-practices.md) the house turns on ONE STATE: THE MOORED ROOM, a round room of the
+// makers floating in the Mooring Hall, docked at the low dock (the east landing, y 0) or the high dock (the gallery, y 11).
+// It is a lift and a key at once. On the one great cable it hangs on, every counterweight in the house: the room low,
+// they rise; the room high, they sink. A lamp and a little gauge of the room in every room say which (MooringGauge).
 //   the Landing Stage    the first mark, the way out
-//   the Capstan Hall     the hub: a tall round hall round the dead great capstan, its cables slack. Ways off it to
-//                        the two wings, south-west and south-east, the great door north (its lamp waits on an eye
-//                        nobody can see from the hall), and high up the moorers' gate, the way back at the end.
-//                        (v1.76, issue #337) On its east side a coffer caged by the wall, a plate before it that sinks
-//                        the cage while weighed down, and the moorers' weight high on a cleat where a cable from the
-//                        capstan ends (v1.77: on a mast in the floor), out of reach: the grappling hook pulls it down into your hands; set on the plate, it
-//                        holds the cage down (a reward, nothing waits on it)
-//   the Winch Room       (south-west) the counterweight, a stone ball rolled along its groove down the middle of
-//                        the floor into its socket at the winch's mouth: the Lamp Shaft's gate, across the hall, rises (its pawl holds it after)
-//   the Lamp Shaft       (south-east) a tall well whose grating breathes the void's air up: open the wings over it
-//                        and it lifts you to the top of the pier beside it and the lamp-eye there (v1.77: it was in a
-//                        niche over a balcony; the top's edge hides it from the floor: seen only from up there),
-//                        which opens the great door, back across the hall
-//   the Cord Loft        the makers' chest: TETHER MODE (src/items.js 'tether'). Its try: a ring on a post that
-//                        brings its lamp down. Its west side was the Mooring Passage (a room on, before v1.77): the
-//                        door into the Drift is chained to a moorers' ring hung over the loft's floor, too high to
-//                        reach, and only a pull wakes it (the tether's first lock, where a miss costs nothing)
-//   the Drift            a void hall. The gangway to the high far landing rises only when the ball is home on the
-//                        near landing's plate; the ball sits out on its cable-rail over the void, where nobody can
-//                        stand behind it to push: pull it home
-//   the Cable Walk       an open walkway over the stars to
-//   the Balance          the twist: a void hall, one ball on a rail out over the void and two places for it. Pushed
-//                        OUT to the far cup, its weight tips the balance and the pan rides between the landings, up
-//                        to the Moorers' Gallery; pulled back HOME it frees the west door. Push, then pull
-//   the Moorers' Gallery the south landing: the ring that holds the west door's chain hangs on a davit over it, seen from
-//                        the door across the void, reached only here; and the moorers' gate back to the Capstan Hall
-//                        (a balcony and a cradle down). (v1.53, issue #23) The gate takes a small key now (the ring
-//                        opened it before; its chain holds the great key's cage instead): the key is in
-//   the Rope Store       (v1.53, south off the Gallery, an arena) the moorers' spare cable on drums; its door shuts
-//                        behind you while its keepers stand. Won, the small key's cage sinks: for the moorers' gate
-//   the Capstan Hall's balcony (v1.53) inside the gate, high over the hub you began in: the great key's cage, and a
-//                        ball out along a cable-rail from the balcony's lip over the floor eleven metres down. Pull it
-//                        home onto the cage's footstone (the Drift's lesson, back where the house began); with the
-//                        Gallery's ring pulled (the cage's chain runs up over the gate to it) the cage sinks, and the
-//                        Capstan Floor's door takes the great key
+//   the Capstan Hall     the hub: a tall round hall round the dead great capstan. The capstan's lever (MooringLever)
+//                        sends the room up or down from here, before the tether too. Ways off it to the two wings,
+//                        south-west and south-east, the great door north, and high up the balcony (the perch). On its
+//                        east side the caged coffer, its weight high on a mooring mast (the grappling hook): a reward
+//   the Winch Room       (south-west) the counterweight ball rolled into its socket: the Lamp Shaft's gate rises
+//   the Lamp Shaft       (south-east) the void breathes up its grating, but only with the shaft's counterweight hauled
+//                        up off it (the room low: turn the capstan); the wings ride the breath to the pier's top and
+//                        the lamp-eye, which opens the great door
+//   the Cord Loft        the makers' chest: TETHER MODE. Its try: a ring that brings a lamp down. The ring that holds
+//                        the door into the Mooring Hall hangs on the house's cable: hauled up under the roof while the
+//                        counterweights are up, down within the tether's reach once the room is sent high again
+//   the Mooring Hall     the great hall (G4): 57 by 73 m, open to the stars, its floors seen at once: the east landing
+//                        (y 0) from the loft, the gallery (y 11) along the south wall in two halves with the room's
+//                        shaft between them, the west landings (y 0 and y 6) behind a moorers' screen of bars. The room
+//                        docks low at the east landing or high between the gallery's halves (it bridges them); a
+//                        moorers' ring on a post at each dock (DockRing) pulls it home with the tether; its own capstan
+//                        sends it to the other dock after a breath (step off, and it goes without you). A gate at each
+//                        dock opens while it is docked there. The gallery's east half drops onto the east landing over
+//                        a cushion of the void's breath (G6)
+//   the Rope Store       south off the gallery's west half (an arena): its shutter rises on a counterweight (the room
+//                        low), so you send the room down and stay behind; won, its small key; the room's ring calls it
+//                        home again, the only way back east
+//   the moorers' gate    (the small key) from the gallery's east half to the Capstan Hall's balcony: the great key's
+//                        cage, a ball out on a cable-rail pulled home and (G2: the tether and an older tool at once) a
+//                        ring hung over the hall only the seeing lens shows, pulled; the cradle down to the hub
+//   the Chain Locker     north off the east landing: its shutter rises with the room low. Push its ball OUT along its
+//                        rail over the well, and its weight brings the ring of the west door's chain down within
+//                        reach: pull it (push, then pull)
+//   the gangway          the east landing's ball pulled home, and the room high (the gangway hangs on its cable):
+//                        across to the west landing
+//   the Cable Walk       up from the west landing to its upper part: slung from the counterweights, it hangs level only
+//                        with the room low (a lever there). The west door: the Chain Locker's ring pulled
 //   the Capstan Floor    the guardian (a robot: its meter is damage): the Anchor-Warden. When it has thrown its
 //                        anchor and its drum stalls, pull the anchor home with the tether and it jams. In its second
 //                        phase it hooks them over the bollards; in its last it pays them out over the void, out of
-//                        reach: push its capstan bars to wind them in, then pull (the Balance's twist)
-// (v1.77, issue #336: redone to the temple redesign's rules, the plan below: rooms 34 m across and more, doors 7 by 9,
-// every puzzle in the middle of its room, the Rope Store the one fight; docs/design/temple-redesign.md.)
+//                        reach: push its capstan bars to wind them in, then pull
+// (v1.77, issue #336: redone to the temple redesign's rules: rooms 34 m across and more, doors 7 by 9, every puzzle in the
+// middle of its room, the Rope Store the one fight; docs/design/temple-redesign.md.)
 // After: the cables over the city hum taut, lamps along them, and the Mooring-House's capstan turns (the world change).
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -114,53 +116,100 @@ export const WING = { d: 40, r: 17, h: 18 };
 const WINCH = hallAt(SW, WING.d), SHAFT = hallAt(SE, WING.d);
 /** The Lamp Shaft's pier (out along its radial from the hall: the void's breath at `draught`, the pier's middle at `pier`, its top at `top`). */
 export const SHAFT_PIER = { draught: 37, pier: 43.3, top: 13, eye: 44 };
-/** The moorers' corridor from the Gallery east to the Capstan Hall's balcony, along x at `z`, its floor at the Gallery's. */
-export const MOOR = { z: 26, gate: -43.6 };
+/** The moorers' corridor from the gallery's east half to the Capstan Hall's balcony, along x at `z`, its floor at the
+ * gallery's; its gate (the small key) in the short passage between the two halls' walls (v1.83). */
+export const MOOR = { z: 26, gate: -19.1 };
 export const MOOR_A = Math.atan2(-Math.sqrt(R1 * R1 - (MOOR.z - C1) ** 2), MOOR.z - C1);   // (where it meets the hall's wall)
-/** The Balance: the north landing's floor, the south landing's (the Gallery), the ball's rail (x) and its two cups (z);
- * the hall round them (its middle, width, depth) and the two lips over the void. */
-export const BALANCE = { north: 6, south: 11, x: -58, a: 44.5, b: 34.0, home: 43.0, out: 35.0, cx: -62, cz: 35, w: 32, d: 36, lipN: 40, lipS: 30 };
-/** The Drift: the far landing's height (no glide climbs to it), the ball's rail (z, x from the plate out over the void),
- * the near lip, the far one, the gangway's z; the hall round them (x0..x1, z0..z1). */
-export const DRIFT = { far: 6, z: 72, a: -31, b: -41.2, plate: -32, lip: -35.8, farLip: -53.4, gang: 84, x0: -69, x1: -21, z0: 64, z1: 94 };
-/** The Cord Loft: its middle (z) and radius. */
-export const LOFT = { z: 69, r: 17, h: 18 };
+/**
+ * (v1.83, issue #417) The Mooring Hall, the great hall (G4): its inner faces (x0..x1, z0..z1), its walls from y to y + h,
+ * open to the stars (it replaced the Drift, the Cable Walk and the Balance). Its floors: the gallery (`GALLERY`, y 11)
+ * along the south wall, in a west half (x0..w) and an east half (e..x1) with the moored room's shaft between them, its
+ * drop (x, half its width) off the east half's lip onto the cushion (`catch`: x, z, r) on the east landing below; the
+ * east landing (`EAST`, y 0) from the loft, its apron under the gallery's east half out to the shaft; the west landings
+ * (`WEST`): its lower part (y 0, zN) where the gangway lands and its upper part (y 6, zS) by the west door, the Cable Walk
+ * between, behind the moorers' screen of bars along `lip`, `screen` m high (nothing glides in past it).
+ */
+export const MH = { x0: -78, x1: -21, z0: 21, z1: 94, y: -4, h: 34 };
+export const GALLERY = { y: 11, z1: 34.6, w: -57.9, e: -44.3, drop: [-31, 2.2], catch: [-31, 38.8, 3.4] };
+export const EAST = { lip: -36, apron: GALLERY.e, apronZ: 46 };
+export const WEST = { lip: -56, yN: 0, yS: 6, zN: [70, MH.z1], zS: [44, 56], walk: -67, gang: 84, screen: 16, catch: [-63.6, 3.6, 68.8] };
+/** The east landing's ball (the Drift's before v1.83): its cable-rail out over the void at z, home a, out b, its plate. */
+export const DRIFT = { z: 72, a: -33.4, b: -41.4, plate: -34.4 };
+/**
+ * (v1.83, issue #417) The moored room: a round room of the makers (`r` its floor's radius, `wall` its ribs', `h` its roof)
+ * hung on the house's great cable in the shaft between the gallery's halves, its middle at (x, z); docked low (its floor at
+ * y `low`, the east landing's) or high (`high`, the gallery's). It rides `speed` m/s, `wait` s after its capstan is turned
+ * (time to step off); its doorways east and west, `door` m wide.
+ */
+export const ROOM = { x: (GALLERY.w + GALLERY.e) / 2, z: 27.9, r: 6.6, wall: 6.2, h: 6.4, low: 0, high: GALLERY.y, speed: 2.6, wait: 2.2, door: 7.2 };
+/** (v1.83) The moored room's two stops, as conditions: docked low (the counterweights up) or high (they sink). */
+export const LOW = { drumOn: ['mooring', 'mLow'] }, HIGH = { drumOn: ['mooring', 'mHigh'] };
+/** (v1.83) The house's state in its lamps: amber while the room is docked low, starlight blue while it rides high. */
+export const STATE_LOOK = { low: '#ffb35a', high: '#8fd8ff', glow: [0.55, 0.8] };
+/** (v1.83) The Chain Locker, north off the east landing (its south side the Mooring Hall's north wall): its doorway (x),
+ * its well (x0, z0, x1, z1), its ball's rail (z, home a, out b: the far cup over the well), the ring of the west door's
+ * chain (x, z) and its heights: up out of the tether's reach, down within it. */
+export const LOCKER = { x: -35, z: MH.z1 + 1.2 + 15, w: 30, d: 30, h: 18, door: -28.5, well: [-50, 101, -38, 119], rail: 110, a: -29, b: -43.5, ring: [-39.6, 114.6], up: 14.2, down: 3.6 };
+/** The Cord Loft: its middle (z) and radius; (v1.83) its ring's heights: down within the tether's reach, hauled up. */
+export const LOFT = { z: 69, r: 17, h: 18, ring: [7.4, 15.6] };
 /** The Capstan Floor: its middle, radius, floor. */
 export const FLOOR = { x: -107, z: 46.5, r: 19, y: 6 };
 /** (issue #356) The bars across the Capstan Floor's four windows: a rail at `rail` m and `n` bars `gap` m apart over it (the window's gap is cut by whole stones: wider than its 9 m). */
 export const WINDOW_BARS = { rail: 2.0, gap: 0.75, n: 17 };
-/** (v1.53) The Rope Store, south off the Moorers' Gallery (an arena, the house's one fight since v1.77); its north side
- * the Balance's south wall. */
-export const STORE = { x: -64, z: 0.8, w: 30, d: 30, h: 16.6 };   // (its roof over the Balance's wall's top: no face shared)
+/** (v1.53) The Rope Store, south off the gallery (an arena, the house's one fight since v1.77); its north side the Mooring
+ * Hall's south wall (the Balance's before v1.83). */
+export const STORE = { x: -64, z: MH.z0 - 1.2 - 15, w: 30, d: 30, h: 16.6 };   // (its roof over the hall's wall's top: no face shared)
 STORE.zone = { min: [STORE.x - STORE.w / 2, 10, STORE.z - STORE.d / 2], max: [STORE.x + STORE.w / 2, 28, STORE.z + STORE.d / 2] };
 /** (v1.53) The balcony's cable-rail in the Capstan Hall (v1.77: out from the balcony's lip toward the middle, over the
  * floor, `side` m beside the moorers' radial): the footstone `home` m from the hall's middle, the rail `rail` m on
- * inward (as long as it was round the wall); the balcony's lip at `lip`; the cradle and the great key on it. */
-export const PERCH = { home: 9.4, rail: 4.476, side: 2.5, lip: 8, cradle: [6.0, -4.0], key: [14, -4] };
+ * inward (as long as it was round the wall); the balcony's lip at `lip`; the cradle and the great key on it; (v1.83) the
+ * ring only the lens shows, hung in the air past the lip (d, side, height). */
+export const PERCH = { home: 9.4, rail: 4.476, side: 2.5, lip: 8, cradle: [6.0, -4.0], key: [14, -4], ring: [5.6, -1.2, 15.2] };
 /** (the footstone 0.9 m in from the rail's home end: its stop along the groove) */
 PERCH.plateAt = +(0.9 / (PERCH.rail + 0.9)).toFixed(3);
+/** (v1.83) Where the house's state is set by hand: the capstan's lever in the Capstan Hall, the lever on the west landing's
+ * lower part (local [x, y, z] and the way each faces); the moorers' rings on their posts at the docks (the tether's), each
+ * calling the room to its dock (0 low, 1 high). */
+export const LEVERS = [{ id: 'lvH', room: 'hall', at: [-7.4, 0, 30.9], yaw: Math.PI / 2 }, { id: 'lvW', room: 'west', at: [-61.5, 0, 78.5], yaw: -Math.PI / 2 }];
+export const DOCK_RINGS = [
+  { id: 'rgL', room: 'drift', at: [GALLERY.e + 1.6, 0, ROOM.z + 5.4], yaw: -Math.PI / 2, dock: 0 },
+  { id: 'rgH', room: 'moor', at: [GALLERY.e + 1.6, GALLERY.y, ROOM.z + 5.4], yaw: -Math.PI / 2, dock: 1 },
+  { id: 'rgW', room: 'moorW', at: [GALLERY.w - 1.6, GALLERY.y, ROOM.z + 5.4], yaw: Math.PI / 2, dock: 1 },
+];
 
 export const LOGIC = {
   id: 'spacecity', entry: 'stage', gadget: 'tether',
+  // (v1.83, issue #417: the Mooring Hall's rooms: `drift` its east landing (the Drift's near landing's id kept, so a save's
+  // last mark holds), `float` the moored room, `moor` the gallery's east half, `moorW` its west half, `west` and `westS` the
+  // west landings, `locker` the Chain Locker; the Cable Walk, the Balance and the Drift's far landing gone into the hall)
   rooms: {
     stage: { checkpoint: true, kind: 'passage' }, hall: { checkpoint: true, kind: 'puzzle' }, winch: { checkpoint: true, kind: 'puzzle' },
-    stair: { checkpoint: true, kind: 'puzzle' }, loft: { checkpoint: true, kind: 'puzzle' }, drift: { checkpoint: true, kind: 'puzzle' },
-    driftFar: { checkpoint: true, kind: 'passage' }, scale: { checkpoint: true, kind: 'puzzle' }, moor: { checkpoint: true, kind: 'puzzle' },
-    store: { checkpoint: true, kind: 'combat' }, perch: { kind: 'puzzle' }, ante: { kind: 'passage' }, arena: { boss: true, kind: 'guardian' }, out: { kind: 'passage' },
+    stair: { checkpoint: true, kind: 'passage' }, stairTop: { kind: 'puzzle' }, loft: { checkpoint: true, kind: 'puzzle' }, drift: { checkpoint: true, kind: 'puzzle' },
+    moor: { checkpoint: true, kind: 'puzzle' }, moorW: { checkpoint: true, kind: 'puzzle' },
+    store: { checkpoint: true, kind: 'combat' }, perch: { kind: 'puzzle' }, locker: { checkpoint: true, kind: 'puzzle' },
+    west: { checkpoint: true, kind: 'puzzle' }, westS: { checkpoint: true, kind: 'passage' },
+    ante: { checkpoint: true, kind: 'passage' }, arena: { boss: true, kind: 'guardian' }, out: { kind: 'passage' },
   },
   links: [
     { a: 'stage', b: 'hall' },
     { a: 'hall', b: 'winch' },
     { a: 'hall', b: 'stair', door: 'g1' },          // the shaft's gate, while the counterweight sits on the winch's mouth
+    { a: 'stair', b: 'stairTop', door: 'breath' },  // (v1.83) the void's breath up the shaft to the pier's top: the room low
     { a: 'hall', b: 'loft', door: 'd1' },           // the great door: the lamp-eye up the shaft lit
-    { a: 'loft', b: 'drift', door: 'd2' },          // the ring hung over the loft's floor (v1.77: the Mooring Passage is the loft's west side)
-    { a: 'drift', b: 'driftFar', door: 'br2' },     // the gangway: the ball pulled home off its cable-rail
-    { a: 'driftFar', b: 'scale' },                  // the Cable Walk
-    { a: 'scale', b: 'moor', door: 'gW' },          // the balance's pan: the ball pushed out to the far cup
-    { a: 'moor', b: 'store', door: 'dR' },          // the Rope Store, south off the Gallery (v1.53): an arena, the small key
-    { a: 'moor', b: 'perch', door: 'sc' },          // the moorers' gate (its small key, v1.53) to the Capstan Hall's balcony
+    { a: 'loft', b: 'drift', door: 'd2' },          // the ring on the house's cable over the loft's floor
+    // the moored room: called home to the low dock with the tether and ridden up to the high one (latched for the logic:
+    // from the east landing a moorers' ring calls it whenever you want it); docked high it bridges the gallery's halves.
+    // (The gates at its docks, dockL / dockH / dockW, open only while it is docked there: their pieces')
+    { a: 'drift', b: 'moor', door: 'ride' },
+    { a: 'moor', b: 'moorW', door: 'rideW' },
+    { a: 'moor', b: 'drift', oneWay: true },        // (G6) the drop off the gallery's east half onto the cushion below
+    { a: 'moorW', b: 'store', door: 'dR' },         // the Rope Store: its shutter on a counterweight (the room low), an arena
+    { a: 'moor', b: 'perch', door: 'sc' },          // the moorers' gate (its small key) to the Capstan Hall's balcony
     { a: 'perch', b: 'hall', oneWay: true },        // and the cradle down
-    { a: 'scale', b: 'ante', door: 'gN' },          // the west door: the ball pulled home, and the Gallery's ring
+    { a: 'drift', b: 'locker', door: 'dL' },        // the Chain Locker: its shutter on a counterweight (the room low)
+    { a: 'drift', b: 'west', door: 'br2' },         // the gangway: its ball pulled home, and the room high
+    { a: 'west', b: 'westS', door: 'cw' },          // the Cable Walk: level only with the room low
+    { a: 'westS', b: 'ante', door: 'gN' },          // the west door: the Chain Locker's ring pulled
     { a: 'ante', b: 'arena', door: 'd6' },
     { a: 'arena', b: 'out', door: 'd7' },
   ],
@@ -169,46 +218,67 @@ export const LOGIC = {
     ballW: { type: 'drum', room: 'winch', plate: 'pG', plateAt: 1, start: 0.12 },   // (issue #275: it starts 1.3 m along its groove: room behind it to push from)
     pG: { type: 'plate', room: 'winch' },
     g1: { type: 'door', opens: { drumOn: ['ballW', 'pG'] }, latch: true },
-    s1: { type: 'switch', room: 'stair' },                          // the lamp-eye, seen only from the pier's top
+    // (v1.83) the void's breath up the shaft: it blows once the shaft's counterweight is hauled up off the grating (the room
+    // low), and bears the wings to the pier's top (latched for the logic: the capstan's lever is a room away)
+    breath: { type: 'door', opens: LOW, latch: true },
+    s1: { type: 'switch', room: 'stairTop' },        // the lamp-eye on the pier's top
     d1: { type: 'door', opens: { lit: 's1' }, latch: true },
     chest: { type: 'gadget', room: 'loft', item: 'tether' },
-    t0: { type: 'switch', room: 'loft', needs: ['tether'] },       // the loft's try: its ring brings the lamp down
-    r1: { type: 'switch', room: 'loft', needs: ['tether'] },       // the ring hung over the loft's floor, its chain to the door into the Drift
+    t0: { type: 'switch', room: 'loft', needs: ['tether'], try: true },   // the loft's try: its ring brings the lamp down (nothing waits on it)
+    // the ring over the loft's floor, its chain to the door into the Mooring Hall: on the house's cable, down within the
+    // tether's reach only with the counterweights down (the room high)
+    r1: { type: 'switch', room: 'loft', needs: ['tether'], when: HIGH },
     d2: { type: 'door', opens: { lit: 'r1' }, latch: true },
-    // the Drift's ball, out on its cable-rail over the void: only a pull brings it home
-    ballD: { type: 'drum', room: 'drift', plate: 'pD', plateAt: 0.098, start: 1, needs: ['tether'] },
+    // the Chain Locker: its shutter rises with the room low; its ball pushed OUT along the rail over its well into the far
+    // cup brings the ring of the west door's chain down within reach (push, then pull)
+    dL: { type: 'door', opens: LOW },
+    ballK: { type: 'drum', room: 'locker', plate: 'pK2', plateAt: 1, start: 0.06 },
+    pK2: { type: 'plate', room: 'locker' },
+    rK: { type: 'switch', room: 'locker', needs: ['tether'], when: { drumOn: ['ballK', 'pK2'] } },
+    gN: { type: 'door', opens: { lit: 'rK' }, latch: true },
+    // the moored room's rides (the links'), and the gates at its docks, each open while it is docked there (their pieces)
+    ride: { type: 'door', opens: HIGH, latch: true },
+    rideW: { type: 'door', opens: HIGH, latch: true },
+    dockL: { type: 'door', opens: LOW },
+    dockH: { type: 'door', opens: HIGH },
+    dockW: { type: 'door', opens: HIGH },
+    // the Rope Store: its shutter on a counterweight (the room low); its keepers beaten, the small key's cage sinks (v1.53)
+    arR: { type: 'arena', room: 'store' },
+    kS: { type: 'key', kind: 'small', room: 'store', when: { lit: 'arR' } },
+    dR: { type: 'door', opens: LOW },
+    sc: { type: 'door', lock: 'small', latch: true },              // (v1.53: the Rope Store's small key)
+    // the Capstan Hall's balcony: the great key's cage, a ball out along a cable-rail from its lip pulled home onto the
+    // cage's footstone, and (v1.83, G2: the tether and an older tool at once) the cage's chain on a ring hung over the hall
+    // that only the seeing lens shows (the Footprint's), pulled
+    bK: { type: 'drum', room: 'perch', plate: 'pK', plateAt: PERCH.plateAt, start: 1, needs: ['tether'] },
+    pK: { type: 'plate', room: 'perch' },
+    rL: { type: 'switch', room: 'perch', needs: ['tether', 'monocle'] },
+    kB: { type: 'key', kind: 'big', room: 'perch', when: { all: [{ drumOn: ['bK', 'pK'] }, { lit: 'rL' }] } },
+    // the east landing's ball, out on its cable-rail over the void: pulled home, and the room high, the gangway hangs taut
+    ballD: { type: 'drum', room: 'drift', plate: 'pD', plateAt: 0.125, start: 1, needs: ['tether'] },
     pD: { type: 'plate', room: 'drift' },
-    br2: { type: 'bridge', opens: { drumOn: ['ballD', 'pD'] }, latch: true },
-    // the Gallery's ring first (logic.next goes in this order: once the pan has carried you up, the ring is the thing to
-    // do there, before the ball is pulled home again)
-    r5: { type: 'switch', room: 'moor', needs: ['tether'] },       // the Gallery's ring: the west door's chain, and the great key's cage's (v1.53)
-    sc: { type: 'door', lock: 'small', latch: true },              // (v1.53: the Rope Store's small key; the ring was its)
-    // the Balance: one ball, home on the north landing or out in the far cup over the void
-    ballS: { type: 'drum', room: 'scale', plate: 'pHome', stops: { pHome: 0.143, pOut: 0.905 }, start: 0.143, needs: ['tether'] },
-    pHome: { type: 'plate', room: 'scale' },
-    pOut: { type: 'plate', room: 'scale' },
-    gW: { type: 'bridge', opens: { drumOn: ['ballS', 'pOut'] } },  // (the balance's pan, a Platform: it rides while this holds)
-    gN: { type: 'door', opens: { all: [{ drumOn: ['ballS', 'pHome'] }, { lit: 'r5' }] }, latch: true },
+    br2: { type: 'bridge', opens: { all: [{ drumOn: ['ballD', 'pD'] }, HIGH] }, latch: true },
+    // the Cable Walk, slung from the counterweights: let down level only with the room low, and its catch on a ring hung
+    // over the gap at its foot, pulled
+    rW: { type: 'switch', room: 'west', needs: ['tether'] },
+    cw: { type: 'bridge', opens: { all: [LOW, { lit: 'rW' }] } },
+    warden: { type: 'boss', room: 'arena', needs: ['gun', 'tether'] },
     // the Capstan Floor's doors (its great key, v1.53; shut while the Warden fights; the way out): the floor's own (v1.77:
     // the rules measure the guardian's hall by them, its two sides)
     d6: { type: 'door', lock: 'big', room: 'arena' },
-    // the Rope Store: its keepers beaten, the small key's cage sinks (v1.53)
-    arR: { type: 'arena', room: 'store' },
-    kS: { type: 'key', kind: 'small', room: 'store', when: { lit: 'arR' } },
-    dR: { type: 'door', opens: null },
-    // the Capstan Hall's balcony: the great key's cage, and a ball out along a cable-rail from its lip; pulled home onto
-    // the cage's footstone, the cage sinks
-    bK: { type: 'drum', room: 'perch', plate: 'pK', plateAt: PERCH.plateAt, start: 1, needs: ['tether'] },
-    pK: { type: 'plate', room: 'perch' },
-    // (and the cage's chain runs up over the gate to the Gallery's ring, with the west door's: pulled, it lets the cage go)
-    kB: { type: 'key', kind: 'big', room: 'perch', when: { all: [{ drumOn: ['bK', 'pK'] }, { lit: 'r5' }] } },
-    warden: { type: 'boss', room: 'arena', needs: ['gun', 'tether'] },
     d7: { type: 'door', opens: { resolved: true }, room: 'arena' },
     // (v1.76, issue #337) the Capstan Hall's caged coffer: the plate before it sinks the cage while weighed down; the moorers'
-    // weight on its cleat high on a mast, pulled down into your hands by the grappling hook (a reward: `optional`)
+    // weight on its cleat high on a mast, pulled down into your hands by the grappling hook (a reward: `optional`); (v1.83)
+    // the cage hangs on the house's cable too: it sinks only with the counterweights down (the room high)
     wC: { type: 'weight', room: 'hall', plate: 'pC', needs: ['hook'], optional: true },
     pC: { type: 'plate', room: 'hall' },
-    cC: { type: 'cache', room: 'hall', when: { pressed: 'pC' } },
+    cC: { type: 'cache', room: 'hall', when: { all: [{ pressed: 'pC' }, HIGH] } },
+    // (v1.83, issue #417) the moored room, the house's state: docked high (1, the start) or low (0), saved. Set at the
+    // capstan's lever in the Capstan Hall, at its own capstan, at the west landing's lever, and with the tether at the
+    // moorers' ring of any dock (it comes home to that dock). Its stops are no plates anyone stands on (no room). (Last of
+    // the things to do, so the scout asks for it only once nothing nearer is left: logic.next)
+    mooring: { type: 'drum', room: 'hall', rooms: ['west', ...['drift', 'moor', 'moorW'].map((room) => ({ room, needs: ['tether'] }))], stops: { mLow: 0, mHigh: 1 }, start: 1, roll: 'hand', verb: 'moor' },
+    mLow: { type: 'plate' }, mHigh: { type: 'plate' },
     // the house's map, in a little chest off the way on (issue #405: src/house-map.js; nothing waits on it)
     map: { type: 'map', room: 'stair', at: [13.1, 0, 1.7], yaw: Math.PI / 2 },
   },
@@ -271,6 +341,412 @@ function wardenHit(g, part, mode) {
 }
 
 
+// ------------------------------------------------------------------ the moored room, the house's state (v1.83, issue #417)
+/** The one lamp material every lever, gauge, ring and the room's capstan share (its colour set once a frame: MooredRoom). */
+const stateLamp = () => makeMaterial({ color: STATE_LOOK.high, glow: STATE_LOOK.glow[0], flat: true, key: 'temple.spacecity.state' });
+const roomBrass = () => makeMaterial({ color: '#b8904e', flat: true, metal: 'brass', refl: 0.3, key: 'temple.spacecity.roombrass' });
+const roomIron = () => makeMaterial({ color: '#2c2d36', flat: true, metal: 'iron', refl: 0.2, key: 'temple.spacecity.roomiron' });
+const _sc = new THREE.Color(), _mq = new THREE.Quaternion(), _mu = V(0, 1, 0), _md = V();
+const ease3 = (k) => k * k * (3 - 2 * k);
+/** A thin line (a cylinder 1 m tall, its foot at the origin) to stretch between two points each frame (stretch()). */
+function line(rt, mat, r = 0.06) {
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, 1, 5).translate(0, 0.5, 0), mat);
+  m.userData.noCollide = true; m.userData.dynamic = true;
+  rt.root.add(m);
+  return m;
+}
+function stretch(m, a, b) {
+  _md.subVectors(b, a);
+  const L = _md.length();
+  m.position.copy(a);
+  m.quaternion.copy(_mq.setFromUnitVectors(_mu, _md.divideScalar(Math.max(L, 1e-4))));
+  m.scale.set(1, Math.max(0.01, L), 1);
+}
+/** The angle (rad) between two headings, -π..π. */
+const angleTo = (a, b) => Math.atan2(Math.sin(a - b), Math.cos(a - b));
+
+/**
+ * (v1.83, issue #417) The moored room (LOGIC `mooring`, a drum of two stops: low 0, high 1): this piece keeps the house's
+ * state. A round room of the makers hung on the house's great cable in the shaft between the gallery's halves: its floor a
+ * riding disc (a moving solid, as the Footprint's great lift, src/temples/spheres.js), its ribs, roof and doorways drawn and
+ * its walls kept by hand (keep(): nobody walks through its ribs, in or out, but at a doorway that faces a dock it is docked
+ * at: east at either dock, west at the high one, where it bridges the gallery's halves). Its own capstan in its middle
+ * (A / ×) sends it to the other dock after a breath (ROOM.wait: time to step off); the moorers' ring at a dock (DockRing),
+ * pulled with the tether, calls it home there; a lever (MooringLever) sends it either way. Leaving, it is at neither stop
+ * (everything that waits on it shuts); docked, the logic's drum is at that stop. It lights the house's lamps (stateLamp:
+ * amber low, starlight blue high) and its counterweights follow it (`s`: 0 low, 1 high).
+ * o: { id: 'mooring', x, z, low, high, r, wall, h, door }
+ */
+export class MooredRoom {
+  constructor(rt, o) {
+    this.rt = rt; this.id = o.id; this.o = o;
+    const K = rt.kit, L = rt.logic;
+    this.lowP = K.world(o.x, o.low, o.z); this.highP = K.world(o.x, o.high, o.z);
+    const t = L.drumT(o.id);
+    this.at = t >= 0.5 ? 1 : 0;   // (left half-way, saved on its way: it finishes the trip)
+    if (Math.abs(t - this.at) > 1e-3) L.moveDrum(o.id, this.at);
+    this.s = this.at; this.dest = null; this.wait = 0;
+    // (the audits' point: where it is set first, the hub's lever; its shaft is charted as a lift for the maps, the layout's)
+    o.at ??= LEVERS[0].at;
+    this.lamp = stateLamp();
+    this.setters = [];   // (the levers and the docks' rings: the scout's)
+    rt.mooring = this;
+    // ---- the room, in a group that rides (its floor's top at the group's origin)
+    const M = rt.M, r = o.r, W = o.wall, H = o.h, half = Math.asin(Math.min(0.95, (o.door / 2) / W));
+    this.half = half;
+    // (its floor, the riding disc, in `group`; its ribs, roof, capstan and bars, all that stands on the floor, in `body`:
+    // the contact audit measures a carrier's drawn top by its group, src/contact-audit.js)
+    this.group = new THREE.Group();
+    this.group.name = 'The Mooring-House: the moored room';
+    this.body = new THREE.Group();
+    this.body.name = 'The Mooring-House: the moored room’s ribs';
+    rt.root.add(this.group, this.body);
+    this.glow = makeMaterial({ color: rt.P.glow ?? '#7fe3ec', glow: 0.5, flat: true, key: 'temple.spacecity.roomglow' });
+    const brass = roomBrass(), iron = roomIron();
+    const add = (geos, mat, to = this.body) => { const m = new THREE.Mesh(mergeAll(geos), mat); to.add(m); return m; };
+    add([new THREE.CylinderGeometry(r, r * 0.9, 0.8, 48).translate(0, -0.4, 0)], M.floor, this.group);
+    add([new THREE.TorusGeometry(r * 0.94, 0.08, 4, 56).rotateX(Math.PI / 2).translate(0, -0.84, 0), glyphGeometry(r * 0.6, 0.05).rotateX(Math.PI / 2).translate(0, -0.86, 0)], this.glow, this.group);
+    add([new THREE.TorusGeometry(r - 0.12, 0.06, 4, 56).rotateX(Math.PI / 2).translate(0, -0.05, 0)], this.glow, this.group);
+    // its ribs, round but for its two doorways (east +x, west -x), a band at hand height and one under its roof
+    const ribs = [], bands = [];
+    const inDoor = (a) => Math.abs(angleTo(a, Math.PI / 2)) < half || Math.abs(angleTo(a, -Math.PI / 2)) < half;
+    for (let i = 0; i < 24; i++) {
+      const a = (i / 24) * TAU + TAU / 48;
+      if (inDoor(a)) continue;
+      ribs.push(new THREE.BoxGeometry(0.24, H, 0.36).translate(0, H / 2, 0).rotateY(a).translate(Math.sin(a) * W, 0, Math.cos(a) * W));
+    }
+    for (const [a0, a1] of [[Math.PI / 2 + half, Math.PI * 1.5 - half], [-Math.PI / 2 + half, Math.PI / 2 - half]]) {
+      bands.push(new THREE.TorusGeometry(W, 0.07, 4, 24, a1 - a0).rotateX(Math.PI / 2).rotateY(Math.PI / 2 - a1).translate(0, 1.05, 0));
+    }
+    // the doorways' frames: posts and a lintel each
+    for (const c of [Math.PI / 2, -Math.PI / 2]) {
+      for (const sd of [-1, 1]) { const a = c + sd * half; ribs.push(new THREE.BoxGeometry(0.5, H, 0.5).translate(0, H / 2, 0).rotateY(a).translate(Math.sin(a) * W, 0, Math.cos(a) * W)); }
+      ribs.push(new THREE.BoxGeometry(o.door + 0.6, 0.6, 0.5).translate(0, H - 0.3, 0).rotateY(c + Math.PI / 2).translate(Math.sin(c) * W * Math.cos(half), 0, Math.cos(c) * W * Math.cos(half)));
+    }
+    add(ribs, iron);
+    add(bands, this.glow);
+    // its roof: a disc of dark metal, a ring of light round it, the great cable's shackle on top
+    add([new THREE.CylinderGeometry(W + 0.5, W + 0.3, 0.5, 48).translate(0, H + 0.25, 0), new THREE.CylinderGeometry(0.9, 1.2, 0.8, 16).translate(0, H + 0.9, 0)], iron);
+    add([new THREE.TorusGeometry(W + 0.35, 0.07, 4, 56).rotateX(Math.PI / 2).translate(0, H + 0.02, 0)], this.glow);
+    add([new THREE.TorusGeometry(0.6, 0.14, 6, 16).translate(0, H + 1.7, 0)], brass);
+    // moorers' rings on its hull, east and west (drawn: the docks' rings are the ones the tether pulls)
+    for (const c of [Math.PI / 2 + half + 0.25, -Math.PI / 2 - half - 0.25]) add([new THREE.TorusGeometry(0.42, 0.09, 6, 18).rotateY(c).translate(Math.sin(c) * (W + 0.35), 2.6, Math.cos(c) * (W + 0.35))], brass);
+    // its capstan in its middle: an iron drum, four brass bars, the house's lamp on its lid
+    this.cap = new THREE.Group();
+    this.cap.add(new THREE.Mesh(mergeAll([new THREE.CylinderGeometry(0.5, 0.62, 1.1, 16).translate(0, 0.55, 0)]), iron));
+    const bars = [];
+    for (let i = 0; i < 4; i++) bars.push(new THREE.BoxGeometry(0.12, 0.12, 2.2).translate(0, 0.95, 0).rotateY((i / 4) * Math.PI));
+    this.cap.add(new THREE.Mesh(mergeAll(bars), brass));
+    this.cap.add(new THREE.Mesh(mergeAll([new THREE.CylinderGeometry(0.34, 0.34, 0.12, 16).translate(0, 1.16, 0)]), this.lamp));
+    this.body.add(this.cap);
+    // the bars across its doorways, lifted while a doorway faces a dock it is docked at (drawn: keep() is the wall)
+    this.gateBars = [Math.PI / 2, -Math.PI / 2].map((c) => {
+      const g = new THREE.Mesh(mergeAll([new THREE.BoxGeometry(o.door, 0.14, 0.14).translate(0, 1.05, 0), new THREE.BoxGeometry(o.door, 0.1, 0.1).translate(0, 0.55, 0)]), brass);
+      g.rotation.y = c + Math.PI / 2; g.position.set(Math.sin(c) * W * Math.cos(half), 0, Math.cos(c) * W * Math.cos(half));
+      this.body.add(g);
+      return { g, c, k: 0 };
+    });
+    for (const o of [this.group, this.body]) o.traverse((m) => { m.userData.noCollide = true; m.userData.dynamic = true; });
+    // the great cable, from its shackle up out of the hall
+    this.cable = line(rt, roomIron(), 0.12);
+    this.top = K.world(o.x, MH.y + MH.h + 6, o.z);
+    this.solid = { pos: V(), r, top: 0, bottom: 0, vel: V(), flat: true };
+    this.capAt = V();
+    const P = () => rt.player;
+    this.off = registerInteractable({
+      id: `temple.${rt.id}.${o.id}`, priority: PRIORITY.use, range: 2.6, at: () => this.capAt,
+      prompt: () => (this.at ? 'send the room down' : 'send the room up'),
+      enabled: () => this.dest == null && this.carries(P()),
+      distance: (p) => Math.hypot(p.pos.x - this.capAt.x, p.pos.z - this.capAt.z) + Math.max(0, Math.abs(p.pos.y - this.solid.top) - 1.2) * 4,
+      use: () => (this.go(1 - this.at, 'capstan') ? (this.at ? 'down' : 'up') : null),
+    });
+    this.place(0);
+    this.update(0, 0);
+  }
+  y() { const e = ease3(this.s); return THREE.MathUtils.lerp(this.lowP.y, this.highP.y, e); }
+  /** Docked low (false while under way). */
+  get low() { return this.dest == null && this.at === 0; }
+  get high() { return this.dest == null && this.at === 1; }
+  place(dt) {
+    const y = this.y(), prev = this.group.position.y;
+    this.group.position.set(this.lowP.x, y, this.lowP.z);
+    this.group.rotation.y = this.rt.kit.heading(0);
+    this.body.position.copy(this.group.position); this.body.rotation.copy(this.group.rotation);
+    this.solid.pos.copy(this.group.position);
+    this.solid.top = y; this.solid.bottom = y - 1.2;
+    this.solid.vel.set(0, dt > 0 ? (y - prev) / dt : 0, 0);
+    this.capAt.copy(this.group.position).add(_md.set(0, 1.2, 0));
+    stretch(this.cable, _md.copy(this.group.position).setY(y + this.o.h + 1.7), this.top);
+  }
+  /** The traveller stands on its floor. */
+  carries(P) { return !!P?.pos && !P.dead && Math.hypot(P.pos.x - this.lowP.x, P.pos.z - this.lowP.z) < this.o.wall && Math.abs(P.pos.y - this.y()) < 0.6; }
+  /** Off to the other dock (1: up to the high dock, 0: down to the low); `by`: what sent it (its capstan waits a breath). */
+  go(dest, by = null) {
+    const rt = this.rt;
+    if (this.dest != null) { rt.notice?.('The room is under way on its cable.', 'moor.busy'); return false; }
+    if (dest === this.at) { rt.notice?.(dest ? 'The room is moored at the high dock already.' : 'The room is moored at the low dock already.', `moor.there.${dest}`); return false; }
+    this.dest = dest; this.wait = by === 'capstan' ? ROOM.wait : 0.9;
+    rt.sound?.critter?.('creak', 0.7);
+    if (by === 'capstan') rt.notice?.('The capstan turns. The room will cast off in a breath.', 'moor.capstan');
+    return true;
+  }
+  /** Its breath over: it casts off (at neither stop while it goes: what waits on it shuts, the gates at its docks first). */
+  castOff() {
+    const rt = this.rt, dest = this.dest;
+    rt.logic.moveDrum(this.id, dest ? 0.55 : 0.45); rt.applyDoors?.();
+    rt.rumble?.(1.2, 0.35); rt.sound?.critter?.('creak', 0.9);
+    rt.notice?.(dest ? 'The room casts off and climbs its cable. Counterweights sink.' : 'The room casts off and sinks on its cable. Counterweights rise.', dest ? 'moor.up' : 'moor.down');
+  }
+  update(dt, t) {
+    const P = this.rt.player, L = this.rt.logic;
+    if (this.dest == null) this.solid.vel.set(0, 0, 0);
+    else if (this.wait > 0) { this.wait -= dt; this.solid.vel.set(0, 0, 0); if (this.wait <= 0) this.castOff(); }
+    else {
+      const total = this.highP.y - this.lowP.y, dir = Math.sign(this.dest - this.s);
+      this.s = THREE.MathUtils.clamp(this.s + (dir * this.o.speed * dt) / total, 0, 1);
+      if (Math.abs(this.s - this.dest) < 1e-3) this.s = this.dest;
+      this.place(dt);
+      // going down with someone on it: they go down with it (as a Platform's riders)
+      if (P && this.solid.vel.y < 0 && !P.climbing && this.carries(P) && P.vel.y <= 0.5) P.vel.y = Math.min(P.vel.y, this.solid.vel.y);
+      if (this.s === this.dest) {
+        this.at = this.dest; this.dest = null; this.solid.vel.set(0, 0, 0);
+        L.moveDrum(this.id, this.at); this.rt.applyDoors?.();
+        this.rt.sound?.chime?.(); this.rt.rumble?.(0.8, 0.3);
+        this.rt.notice?.(this.at ? 'The room docks high, between the gallery’s halves.' : 'The room docks low, by the east landing.', `moor.docked.${this.at}`);
+        this.rt.game?.emit?.('temple:lit', { id: this.rt.id, el: this.id });
+      }
+    }
+    if (P?.pos) this.keep(P);
+    // the house's lamps: amber low, starlight blue high, between them under way
+    const u = this.lamp.uniforms;
+    u.uColor.value.set(STATE_LOOK.low).lerp(_sc.set(STATE_LOOK.high), this.s);
+    u.uGlow.value = STATE_LOOK.glow[0] + (this.dest != null ? 0.25 * (0.5 + 0.5 * Math.sin(t * 9)) : 0.1 * Math.sin(t * 1.6));
+    this.glow.uniforms.uGlow.value = this.dest != null ? 0.85 : 0.45 + 0.1 * Math.sin(t * 1.4);
+    // its capstan turns as it rides; the bars across its doorways lift where it is docked
+    this.cap.rotation.y = this.s * Math.PI * 4;
+    for (const b of this.gateBars) {
+      const want = this.open(b.c > 0 ? 'e' : 'w') ? 1 : 0;
+      b.k = THREE.MathUtils.clamp(b.k + (want ? dt / 0.6 : -dt / 0.4), 0, 1);
+      b.g.position.y = ease3(b.k) * (this.o.h - 1.8);
+    }
+  }
+  /** A doorway (e: east, w: west) faces a dock it is docked at. */
+  open(side) { return (this.dest == null || this.wait > 0) && (side === 'e' || this.at === 1); }
+  /**
+   * Its walls, kept by hand: from inside, nobody passes its ribs but at an open doorway; from outside, nobody walks into
+   * them; nobody stands in its capstan.
+   */
+  keep(P) {
+    const c = this.group.position, y = c.y;
+    if (P.pos.y < y - 0.7 || P.pos.y > y + this.o.h - 0.4) return;
+    const dx = P.pos.x - c.x, dz = P.pos.z - c.z, d = Math.hypot(dx, dz), W = this.o.wall, R = 0.45;
+    if (d > W + R + 0.4 || d < 1e-4) return;
+    const push = (to) => { P.pos.x = c.x + (dx / d) * to; P.pos.z = c.z + (dz / d) * to; const vr = (P.vel.x * dx + P.vel.z * dz) / d; if ((to < d && vr > 0) || (to > d && vr < 0)) { P.vel.x -= (dx / d) * vr; P.vel.z -= (dz / d) * vr; } };
+    if (d < 0.62 + R) { push(0.62 + R); return; }   // (its capstan)
+    const a = Math.atan2(dx, dz) - this.rt.kit.heading(0);
+    const fit = Math.asin(Math.min(0.95, (this.o.door / 2 - R) / W));
+    const side = Math.abs(angleTo(a, Math.PI / 2)) < fit ? 'e' : Math.abs(angleTo(a, -Math.PI / 2)) < fit ? 'w' : null;
+    if (side && this.open(side)) return;
+    if (d < W) { if (d > W - R) push(W - R); }
+    else if (d < W + R) push(W + R);
+  }
+  /** Where to set it from (the scout's): the nearest lever, or ring once the tether is carried. */
+  get center() {
+    const P = this.rt.player?.pos, tether = this.rt.logic.has?.('tether');
+    const list = this.setters.filter((s) => !s.ring || tether).map((s) => s.at);
+    if (!P || !list.length) return this.capAt;
+    return list.reduce((b, p) => (p.distanceTo(P) < b.distanceTo(P) ? p : b));
+  }
+  get pos() { return this.center; }
+  dispose() { this.off?.(); this.cable.removeFromParent(); this.body.removeFromParent(); }
+}
+
+/**
+ * (v1.83) A moorers' ring on a post at a dock (DOCK_RINGS): its line runs out to the moored room. Pulled with the tether
+ * (from anywhere the tether's cone reaches it) the room comes home to this dock; anything else only rings it. Its line to
+ * the room is drawn, short while the room is moored here, long while it is away.
+ * o: { id, room, at (its post's foot, local), yaw (the way the ring faces), dock: 0 low | 1 high, sets: 'mooring' }
+ */
+export class DockRing {
+  constructor(rt, o) {
+    this.rt = rt; this.id = o.id; this.o = o;
+    const K = rt.kit, M = rt.M, [x, y, z] = o.at, yaw = o.yaw ?? 0;
+    K.both(roomIron(), T(new THREE.CylinderGeometry(0.28, 0.4, 2.4, 10), [x, y + 1.2, z]));
+    K.add(stateLamp(), T(new THREE.CylinderGeometry(0.3, 0.3, 0.1, 14), [x, y + 2.45, z]));
+    const fx = Math.sin(yaw), fz = Math.cos(yaw);
+    this.center = K.world(x + fx * 0.55, y + 1.9, z + fz * 0.55);
+    this.ring = new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.09, 8, 22), roomBrass());
+    this.ring.position.copy(this.center); this.ring.rotation.y = K.heading(yaw);
+    this.ring.userData.noCollide = true; this.ring.userData.dynamic = true;
+    rt.root.add(this.ring);
+    this.glow = makeMaterial({ color: rt.P.glow ?? '#7fe3ec', glow: 0.1, flat: true, key: `temple.spacecity.ring.${o.id}` });
+    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.16, 10, 8), this.glow);
+    eye.position.copy(this.center); eye.userData.noCollide = true; eye.userData.dynamic = true;
+    rt.root.add(eye); this.eye = eye;
+    this.line = line(rt, roomIron(), 0.05);
+    this.flash = 0;
+    this.offT = registerTarget({ kind: 'switch', radius: 0.7, position: () => this.center, accepts: ['tether'], onHit: (mode) => this.hit(mode) });
+    rt.mooring?.setters.push({ at: this.center, ring: this.id });
+    this.later = !rt.mooring;
+  }
+  hit(mode) {
+    const rt = this.rt;
+    if (mode !== 'tether') { this.flash = 0.6; rt.sound?.critter?.('clank', 0.5); rt.notice?.('The ring clanks on its post. Its line runs to the room: pull it.', 'moor.ring.wrong'); return true; }
+    if (rt.mooring?.go(this.o.dock, 'ring')) { this.flash = 1; rt.sound?.chime?.(); }
+    return true;
+  }
+  update(dt, t) {
+    const R = this.rt.mooring;
+    if (this.later && R) { this.later = false; R.setters.push({ at: this.center, ring: this.id }); }
+    this.flash = Math.max(0, this.flash - dt);
+    this.glow.uniforms.uGlow.value = 0.25 + 0.15 * Math.sin(t * 2) + this.flash * 0.7;
+    if (!R) return;
+    // its line to the room's hull, at the ring's own side, a metre over its floor
+    const c = R.group.position, sx = Math.sign(this.center.x - c.x) || 1;
+    stretch(this.line, this.center, _md.set(c.x + sx * (ROOM.wall + 0.3), R.y() + 2.6, c.z + 2.2));
+  }
+  dispose() { this.offT?.(); this.line.removeFromParent(); }
+}
+
+/**
+ * (v1.83) A lever of the moored room, by a hub (LEVERS): an iron arm on a post, the house's lamp on its knob (stateLamp).
+ * Pulled (A / ×) it sends the room to the other dock (MooredRoom.go); the arm stands up while the room is high, down
+ * while it is low. o: { id, room, at (its foot, local), yaw, sets: 'mooring' }
+ */
+export class MooringLever {
+  constructor(rt, o) {
+    this.rt = rt; this.id = o.id; this.o = o;
+    const K = rt.kit, [x, y, z] = o.at, H = 1.05;
+    this.pos = K.world(x, y, z);
+    K.both(roomIron(), T(new THREE.CylinderGeometry(0.3, 0.42, H, 8), [x, y + H / 2, z]));
+    K.add(roomBrass(), T(new THREE.TorusGeometry(0.33, 0.05, 6, 20), [x, y + H, z], [Math.PI / 2, 0, 0]));
+    K.add(stateLamp(), T(new THREE.CylinderGeometry(0.22, 0.22, 0.06, 16), [x, y + H + 0.02, z]));
+    this.top = K.world(x, y + H + 0.1, z);
+    this.at = this.top;
+    this.arm = new THREE.Group();
+    this.arm.position.copy(this.top);
+    this.arm.rotation.y = K.heading(o.yaw ?? 0);
+    const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 1.0, 6).translate(0, 0.5, 0), roomBrass());
+    const knob = new THREE.Mesh(new THREE.SphereGeometry(0.13, 10, 8).translate(0, 1.02, 0), stateLamp());
+    this.pivot = new THREE.Group(); this.pivot.add(bar, knob);
+    this.arm.add(this.pivot);
+    this.arm.traverse((m) => { m.userData.noCollide = true; m.userData.dynamic = true; });
+    rt.root.add(this.arm);
+    this.a = 0;
+    const R = () => rt.mooring;
+    this.off = registerInteractable({
+      id: `temple.${rt.id}.${o.id}`, priority: PRIORITY.use, range: 2.4, at: () => this.top,
+      prompt: () => (R()?.at ? 'send the moored room down' : 'send the moored room up'),
+      enabled: () => !!R() && R().dest == null,
+      distance: (p) => Math.hypot(p.pos.x - this.pos.x, p.pos.z - this.pos.z) + Math.max(0, Math.abs(p.pos.y - this.pos.y) - 1.2) * 4,
+      use: () => { this.kick = 1; return R()?.go(1 - R().at, this.id) ? 'sent' : null; },
+    });
+    rt.mooring?.setters.push({ at: this.top, lever: this.id });
+    this.later = !rt.mooring;
+  }
+  update(dt) {
+    const R = this.rt.mooring;
+    if (this.later && R) { this.later = false; R.setters.push({ at: this.top, lever: this.id }); }
+    const want = ((R?.s ?? 1) * 2 - 1) * 0.75;
+    this.a += (want - this.a) * Math.min(1, dt * 6);
+    this.kick = Math.max(0, (this.kick ?? 0) - dt * 3);
+    this.pivot.rotation.x = this.a + Math.sin(this.kick * 9) * 0.1 * this.kick;
+  }
+  dispose() { this.off?.(); }
+}
+
+/**
+ * (v1.83) A gauge of the moored room (G1, readable everywhere): an iron post, two brass collars on it (the docks), a little
+ * room between them that rides up and down with the real one, and the house's lamp over it (stateLamp). In every room but
+ * the guardian's. o: { room, at (its foot, local), shows: 'mooring' }
+ */
+export class MooringGauge {
+  constructor(rt, o) {
+    const K = rt.kit, [x, y, z] = o.at;
+    this.rt = rt; this.o = o;
+    K.both(roomIron(), T(new THREE.CylinderGeometry(0.09, 0.15, 2.9, 8), [x, y + 1.45, z]));
+    for (const h of [1.0, 2.4]) K.add(roomBrass(), T(new THREE.TorusGeometry(0.26, 0.05, 6, 18), [x, y + h, z], [Math.PI / 2, 0, 0]));
+    K.add(stateLamp(), T(new THREE.SphereGeometry(0.22, 12, 8), [x, y + 3.05, z]));
+    this.lo = K.world(x, y + 1.0, z); this.hi = K.world(x, y + 2.4, z);
+    this.car = new THREE.Mesh(mergeAll([new THREE.CylinderGeometry(0.3, 0.3, 0.32, 14), new THREE.CylinderGeometry(0.34, 0.34, 0.05, 14).translate(0, 0.18, 0)]), stateLamp());
+    this.car.userData.noCollide = true; this.car.userData.dynamic = true;
+    rt.root.add(this.car);
+    this.update();
+  }
+  update() { this.car.position.lerpVectors(this.lo, this.hi, ease3(this.rt.mooring?.s ?? (this.rt.logic.check(HIGH) ? 1 : 0))); }
+}
+
+/**
+ * (v1.83) A piece hung on the house's cable (the loft's ring, the Chain Locker's): it hangs `down` (local y) while its
+ * condition holds (`when`: the room high, a ball in its cup), hauled `up` while it does not, a chain from it up to `top`.
+ * o: { piece (the id of the piece it moves), when, up, down, top }
+ */
+export class Hoist {
+  constructor(rt, o) {
+    this.rt = rt; this.o = o;
+    this.k = rt.logic.check(o.when) ? 1 : 0;
+    this.chain = line(rt, roomIron(), 0.06);
+    this.y0 = null;
+  }
+  update(dt) {
+    const p = this.rt.piece(this.o.piece);
+    if (!p?.group) return;
+    const K = this.rt.kit;
+    if (this.y0 == null) { this.base = K.local(p.group.position).y; this.y0 = p.group.position.y; this.c0 = p.center.y - p.group.position.y; }
+    const want = this.rt.logic.check(this.o.when) ? 1 : 0;
+    this.k = THREE.MathUtils.clamp(this.k + (want ? dt / 2.2 : -dt / 2.2), 0, 1);
+    const y = this.y0 + (THREE.MathUtils.lerp(this.o.up, this.o.down, ease3(this.k)) - this.base);
+    p.group.position.y = y; p.center.y = y + this.c0;
+    const top = K.world(0, this.o.top, 0).y;
+    stretch(this.chain, _md.copy(p.group.position).setY(y + 0.8), p.group.position.clone().setY(top));
+  }
+  dispose() { this.chain.removeFromParent(); }
+}
+
+/**
+ * (v1.83) The Lamp Shaft's counterweight on the house's cable: it rests on the grating, stopping the void's breath, while
+ * the room is high; hauled up the shaft (`up`, local y of its foot) while the room is low. Solid only resting there.
+ * o: { at: [x, y, z] its foot on the grating (local), r, h, up }
+ */
+export class ShaftWeight {
+  constructor(rt, o) {
+    this.rt = rt; this.o = o;
+    const K = rt.kit, [x, y, z] = o.at, r = o.r, h = o.h;
+    this.foot = K.world(x, y, z); this.upY = K.world(x, o.up, z).y;
+    this.group = new THREE.Group();
+    this.group.add(new THREE.Mesh(mergeAll([new THREE.CylinderGeometry(r, r * 1.05, h, 24).translate(0, h / 2, 0)]), roomIron()));
+    this.group.add(new THREE.Mesh(mergeAll([new THREE.TorusGeometry(r + 0.05, 0.1, 4, 32).rotateX(Math.PI / 2).translate(0, h * 0.25, 0), new THREE.TorusGeometry(r + 0.05, 0.1, 4, 32).rotateX(Math.PI / 2).translate(0, h * 0.75, 0)]), roomBrass()));
+    // (its shackle and the cable's eye on top, apart from its group: a carrier's drawn top is its own, src/contact-audit.js)
+    this.shackle = new THREE.Mesh(mergeAll([new THREE.CylinderGeometry(r * 0.4, r * 0.5, 0.8, 12).translate(0, h + 0.4, 0), new THREE.TorusGeometry(0.5, 0.12, 6, 16).translate(0, h + 1.2, 0)]), roomBrass());
+    for (const o of [this.group, this.shackle]) o.traverse((m) => { m.userData.noCollide = true; m.userData.dynamic = true; });
+    rt.root.add(this.group, this.shackle);
+    this.cable = line(rt, roomIron(), 0.1);
+    this.solid = { pos: V(), r, top: 0, bottom: 0, vel: V(), flat: true };
+    this.update(0);
+  }
+  update(dt) {
+    const s = this.rt.mooring?.s ?? (this.rt.logic.check(HIGH) ? 1 : 0);
+    const y = THREE.MathUtils.lerp(this.upY, this.foot.y, ease3(s));
+    this.group.position.set(this.foot.x, y, this.foot.z);
+    this.shackle.position.copy(this.group.position);
+    const resting = s > 0.995;
+    this.solid.pos.copy(this.group.position);
+    this.solid.r = resting ? this.o.r : 0.01;
+    this.solid.top = y + this.o.h; this.solid.bottom = y;
+    stretch(this.cable, _md.copy(this.group.position).setY(y + this.o.h + 1.3), this.group.position.clone().setY(this.upY + this.o.h + 12));
+  }
+  dispose() { this.cable.removeFromParent(); }
+}
+
+/** (v1.83, issue #417) A gate at a dock (`dockH`, `dockW`), a Door whose slab rises to let you by (the gallery's docks: the
+ * one below at the east landing sinks, as doors do). */
+export class DockGate extends Door {
+  apply() {
+    this.slab.position.y = ease3(this.k) * (this.h + 0.3);
+    this.slab.visible = this.k < 0.999;
+  }
+}
+
 /**
  * (v1.53, issue #23) The Rope Store south off the Moorers' Gallery (an arena: drums of the moorers' spare cable), and on
  * the Capstan Hall's balcony inside the moorers' gate the great key's cage and a ball out along a cable-rail, pulled home
@@ -281,8 +757,10 @@ function wings(rt, K, M, { BS, rail, cable, iron, brass, cableM }) {
   const add = (P, o) => rt.add(P, o);
   // ---- the Rope Store
   const S = STORE;
-  K.hall({ x: S.x, z: S.z, w: S.w, d: S.d, y: BS, h: S.h, roof: true, omit: ['n'] });   // (its north wall the Balance's, the doorway in it)
-  add(Door, { id: 'dR', at: [S.x, BS, S.z + S.d / 2 + 0.6], ...DOOR });   // (open: it shuts behind you while they stand)
+  K.hall({ x: S.x, z: S.z, w: S.w, d: S.d, y: BS, h: S.h, roof: true, omit: ['n'] });   // (its north wall the Mooring Hall's, the doorway in it)
+  // (v1.83) its shutter rides on a counterweight of the house's cable: up with the room low (and shut behind you while its
+  // keepers stand); its lamp the state's
+  add(Door, { id: 'dR', at: [S.x, BS, S.z + S.d / 2 + 0.6], ...DOOR, lamps: [LOW] });
   for (const [x, z] of [[-8, -7], [8, -6.4], [-8.6, 6.2], [8.4, 6.8]]) {
     K.both(brass, T(new THREE.CylinderGeometry(1.5, 1.5, 3.8, 18), [S.x + x, BS + 2.0, S.z + z], [0, 0, Math.PI / 2]));
     K.both(cableM, T(new THREE.CylinderGeometry(1.74, 1.74, 3.0, 18, 1, true), [S.x + x, BS + 2.0, S.z + z], [0, 0, Math.PI / 2]));   // (the cable wound on it, clear of the drum: solid, as you stand on it)
@@ -290,6 +768,7 @@ function wings(rt, K, M, { BS, rail, cable, iron, brass, cableM }) {
   }
   add(Key, { id: 'kS', at: [S.x, BS, S.z - S.d / 2 + 2.4], yaw: 0 });
   add(Mark, { room: 'store', at: [S.x + 7, BS, S.z + S.d / 2 - 3.6], yaw: Math.PI, foes: [S.x, BS, S.z] });
+  add(MooringGauge, { room: 'store', at: [S.x - 9, BS, S.z + S.d / 2 - 2.4], shows: 'mooring' });
 
   // ---- the balcony's cable-rail, out from its lip over the hall's floor, the ball at its far end; the great key's cage
   const P = PERCH, Y = BS;
@@ -303,8 +782,17 @@ function wings(rt, K, M, { BS, rail, cable, iron, brass, cableM }) {
   cable([fx + Math.sin(ry) * 1.2, Y - 0.2, fz + Math.cos(ry) * 1.2], [fx + Math.sin(ry) * 1.2, 28, fz + Math.cos(ry) * 1.2], 0, 0.06);   // (hung from the roof)
   add(Ball, { id: 'bK', a: [hx - Math.sin(ry) * 0.9, Y + 0.04, hz - Math.cos(ry) * 0.9], b: [fx, Y + 0.04, fz], r: 1.0, friction: 1.0 });
   add(Plate, { id: 'pK', at: [hx, Y, hz], r: 1.2 });
+  { const [ux, uz] = at(16, 5.5); add(MooringGauge, { room: 'perch', at: [ux, Y, uz], shows: 'mooring' }); }
   const [kx, kz] = at(P.key[0], P.key[1]);
   add(Key, { id: 'kB', big: true, at: [kx, Y, kz], yaw: MOOR_A + Math.PI });
+  // (v1.83, G2) the cage's chain runs up to the roof and back down to a moorers' ring hung in the air past the lip, that only
+  // the seeing lens shows (the chain is there for anyone to see, ending in nothing): pulled with the tether, it lets the
+  // cage go (with the ball home)
+  const [gx, gz] = at(P.ring[0], P.ring[1]);
+  add(Switch, { id: 'rL', at: [gx, P.ring[2], gz], yaw: MOOR_A, size: 0.85, pull: true, hidden: true, wrong: 'The ring swings on its chain. It wants pulling, not wetting.' });
+  cable([gx, P.ring[2] + 0.9, gz], [gx, 27.6, gz], 0, 0.06);
+  cable([gx, 27.6, gz], [kx, 27.6, kz], 1.4, 0.06);
+  cable([kx, 27.6, kz], [kx, Y + 3.2, kz], 0, 0.06);
 }
 
 // ------------------------------------------------------------------ inside
@@ -349,12 +837,13 @@ function layout(rt) {
   coil(5.2, 0, -3.6);
   K.solid(T(new THREE.CylinderGeometry(0.85, 0.85, 0.6, 12), [5.2, 0.3, -3.6]));   // (the coil stood on, not walked through)
   add(Mark, { room: 'stage', at: [-4.6, 0, -2], yaw: Math.PI / 2 });
+  add(MooringGauge, { room: 'stage', at: [4.4, 0, 2.6], shows: 'mooring' });
   K.wall(-8.6, 4.6, 8.6, 4.6, 0, 13, { t: 1.2, holes: [{ at: 8.6, w: HOLE.w, h: 9 }] });
   corridor(0, 5.2, 0, C1 - R1 - 0.6, 0);
 
   // ---- the Capstan Hall (the hub): the dead great capstan in the middle, its cables slack to the walls
   K.rotunda({ x: 0, z: C1, y: 0, r: R1, h: 28, seg: 54, oculus: 0.3, gaps: [
-    { a: Math.PI, w: 6.6, h: PASS.h }, { a: SW, w: 7.8, h: PASS.h }, { a: SE, w: 7.8, h: PASS.h }, { a: 0, w: 6.6, h: PASS.h }, { a: MOOR_A, w: 8.4, h: PASS.h, y0: BALANCE.south },
+    { a: Math.PI, w: 6.6, h: PASS.h }, { a: SW, w: 7.8, h: PASS.h }, { a: SE, w: 7.8, h: PASS.h }, { a: 0, w: 6.6, h: PASS.h }, { a: MOOR_A, w: 8.4, h: PASS.h, y0: GALLERY.y },
   ] });
   // (in the skin a bare drum of dark metal banded with teal circuits, its lid the same, its bars iron)
   K.both(SK?.drum ?? brass, T(new THREE.CylinderGeometry(2.6, 2.9, 4.2, 20), [0, 2.1, C1]));
@@ -365,7 +854,7 @@ function layout(rt) {
   // (clear of the doorways and of the balcony)
   for (const a of [0.55, 1.95, 2.75, -2.75, -0.95, -0.4]) { cable([Math.sin(a) * 2.8, 3, C1 + Math.cos(a) * 2.8], [Math.sin(a) * 17.9, 12, C1 + Math.cos(a) * 17.9], 4.6); }
   // the balcony inside the moorers' gate (the shortcut back), 10 m deep from the wall to its lip, and its cradle down
-  const BS = BALANCE.south;
+  const BS = GALLERY.y;
   {
     const [bx, bz] = wingAt(MOOR_A, (R1 + PERCH.lip) / 2, 0);
     K.both(M.floor, box(14, 0.8, R1 - PERCH.lip, bx, BS - 0.4, bz, MOOR_A));
@@ -377,6 +866,7 @@ function layout(rt) {
     add(Platform, { id: 'cradle', room: 'moor', path: [[px, BS, pz], [px, 0.2, pz]], r: 1.8, speed: 2.2, pause: 2.6, when: { open: 'sc' } });   // (the Gallery's way back)
   }
   add(Mark, { room: 'hall', at: [6.5, 0, C1 - 7], yaw: -Math.PI * 0.75 });
+  add(MooringGauge, { room: 'hall', at: [-5.4, 0, 16.5], shows: 'mooring' });
   // the caged coffer on the hall's east side, the plate before it, and the moorers' weight up on its cleat (issue #337)
   {
     const [ca, cr] = CLEAT.coffer, [pa, pr] = CLEAT.plate, [wa, wr] = CLEAT.weight;
@@ -412,18 +902,21 @@ function layout(rt) {
     for (const s of [-1, 1]) K.both(iron, box(0.8, 4.4, 1.6, wx + Math.cos(SW) * s * 2.7, 2.2, wz - Math.sin(SW) * s * 2.7, SW));
   }
   { const [x, z] = wingAt(SW, 28, 5); add(Mark, { room: 'winch', at: [x, 0, z], yaw: SW + Math.PI }); }
+  { const [x, z] = wingAt(SW, 25.5, -4.5); add(MooringGauge, { room: 'winch', at: [x, 0, z], shows: 'mooring' }); }
 
   // ---- the Lamp Shaft (south-east): the gate in the corridor; a tall well breathing the void's air up its grating, and
   // beside it a pier, the lamp-eye on its top (hidden from the floor by the top's own edge)
   corridor(...hallAt(SE, R1 + 0.7), ...hallAt(SE, WING.d - WING.r - 0.7), 0);
   const [gx, gz] = hallAt(SE, (R1 + 1.4 + WING.d - WING.r - 1.4) / 2);
   add(Door, { id: 'g1', at: [gx, 0, gz], yaw: SE, ...DOOR, lamps: [{ drumOn: ['ballW', 'pG'] }] });
-  K.rotunda({ x: SHAFT[0], z: SHAFT[1], y: 0, r: WING.r, h: 24, seg: 39, gaps: [{ a: -Math.PI / 4, w: 8, h: PASS.h }], oculus: 0.45 });
+  K.rotunda({ x: SHAFT[0], z: SHAFT[1], y: 0, r: WING.r, h: 30, seg: 39, gaps: [{ a: -Math.PI / 4, w: 8, h: PASS.h }], oculus: 0.45 });
   {
     const SP = SHAFT_PIER, [ux, uz] = hallAt(SE, SP.draught);
     K.add(M.trim, T(annulus(3.2, 3.6, 0.05, 32), [ux, 0.02, uz]));
     for (let i = 0; i < 5; i++) K.add(M.dark, box(6.2, 0.05, 0.3, ux, 0.04, uz - 2.4 + i * 1.2, Math.PI / 4));
-    add(Updraft, { at: [ux, 0, uz], r: 3.4, h: 17, lift: 7, hint: 'The void’s breath rises up the shaft. Open your wings in it.' });
+    add(Updraft, { at: [ux, 0, uz], r: 3.4, h: 17, lift: 7, when: LOW, hint: 'The void’s breath rises up the shaft. Open your wings in it.', still: 'The counterweight sits on the grating. No breath gets past it.' });
+    // (v1.83) its counterweight on the house's cable: on the grating while the moored room is high, hauled up the shaft while it is low
+    add(ShaftWeight, { at: [ux, 0.05, uz], r: 2.8, h: 3.4, up: 23.6 });
     // the pier: its top 6 by 7.6 m, its lip 2.5 m from the draught's middle (as the balcony's was)
     const [px, pz] = hallAt(SE, SP.pier), [qx, qz] = hallAt(SE, SP.pier + 1.2);
     K.both(M.floor, box(6, 0.8, 7.6, px, SP.top - 0.4, pz, SE));
@@ -436,6 +929,8 @@ function layout(rt) {
     add(Switch, { id: 's1', at: [ex, SP.top + 0.9, ez], yaw: SE + Math.PI, size: 0.8 });
   }
   { const [x, z] = wingAt(SE, 28, -5); add(Mark, { room: 'stair', at: [x, 0, z], yaw: SE + Math.PI }); }
+  { const [x, z] = wingAt(SE, SHAFT_PIER.pier + 3.1, 1.8); add(Mark, { room: 'stairTop', at: [x, SHAFT_PIER.top, z], yaw: SE + Math.PI }); }   // (beside the eye's stone)
+  { const [x, z] = wingAt(SE, 25.5, 4.5); add(MooringGauge, { room: 'stair', at: [x, 0, z], shows: 'mooring' }); }
 
   // ---- the great door and the Cord Loft (the chest): coils of the makers' cord round its walls; its try, a ring on a
   // mooring post; and over its west side, where the Mooring Passage was, the ring that holds the door into the Drift
@@ -449,102 +944,178 @@ function layout(rt) {
   K.both(iron, box(0.6, 3.4, 0.6, 6.9, 1.7, C3 + 5));
   add(Switch, { id: 't0', at: [6.4, 2.6, C3 + 5], yaw: -Math.PI / 2, size: 0.8, pull: true });
   rt.loftLamp = { at: [6.4, 9, C3 + 5] };
-  // the ring over the floor, too high to reach: its chain up to a pulley under the roof and along it to the door's head
+  // the ring over the floor: its chain up to a pulley under the roof and along it to the door's head. (v1.83) It hangs on
+  // the house's cable: down within the tether's reach with the counterweights down (the moored room high), hauled up under
+  // the roof with them up (low)
   const R1x = -8;
-  add(Switch, { id: 'r1', at: [R1x, 7.4, C3], yaw: Math.PI / 2, size: 0.85, pull: true });
-  cable([R1x, 8.2, C3], [R1x, LOFT.h - 0.6, C3], 0, 0.06);
+  add(Switch, { id: 'r1', at: [R1x, LOFT.ring[0], C3], yaw: Math.PI / 2, size: 0.85, pull: true });
+  add(Hoist, { piece: 'r1', when: HIGH, up: LOFT.ring[1], down: LOFT.ring[0], top: LOFT.h - 0.6 });
   K.both(brass, T(new THREE.CylinderGeometry(0.5, 0.5, 0.3, 12), [R1x, LOFT.h - 0.6, C3], [Math.PI / 2, 0, 0]));
   cable([R1x, LOFT.h - 0.6, C3], [-LOFT.r + 0.3, PASS.h + 0.6, C3], 1.2, 0.06);
   add(Mark, { room: 'loft', at: [5.6, 0, C3 - 8], yaw: Math.PI * 0.25 });
+  add(MooringGauge, { room: 'loft', at: [4.5, 0, C3 - LOFT.r + 2.4], shows: 'mooring' });
 
-  // ---- the Drift: a void hall open to the stars. The near landing (east), the far one six metres higher (west)
-  const D = DRIFT, DX = (D.x0 + D.x1) / 2, DZ = (D.z0 + D.z1) / 2;
-  corridor(-LOFT.r - 0.7, C3, D.x1 + 0.6, C3, 0);
-  add(Door, { id: 'd2', at: [(-LOFT.r - 1.4 + D.x1 + 1.2) / 2, 0, C3], yaw: Math.PI / 2, ...DOOR, lamps: [{ lit: 'r1' }] });
-  K.hall({ x: DX, z: DZ, w: D.x1 - D.x0, d: D.z1 - D.z0, y: -4, h: 24, floor: false, roof: false, doors: [{ side: 'e', at: C3 - DZ, ...HOLE, y0: 4 }, { side: 's', at: -61 - DX, ...HOLE, y0: 10 }] });
-  K.slab(D.lip, D.z0, D.x1, D.z1, 0, 0.8);
-  K.slab(D.x0, D.z0, D.farLip, D.z1, D.far, 2);
-  add(Pit, { room: 'drift', min: [D.x0, -24, D.z0], max: [D.lip, -8, D.z1] });
-  // the void's breath under the Drift: fall off with your wings open and it bears you back up to the near landing (no
-  // higher: the far landing is out of its reach)
-  add(Updraft, { at: [D.lip - 7.6, -8, D.gang + 3], r: 3.6, h: 10.5, lift: 6.5, hint: 'The void breathes up under the Drift. It bears your wings, but not as high as the far landing.' });
-  add(Bridge, { id: 'br2', a: [D.lip + 0.1, 0, D.gang], b: [D.farLip - 0.1, D.far, D.gang], w: 4, n: 16 });
-  // the ball's cable-rail: two cables from the near landing out over the void, a stop post at their end
+  // ---- (v1.83, issue #417) the Mooring Hall: the great hall, open to the stars over its void; its floors seen at once
+  const G = GALLERY, MX = (MH.x0 + MH.x1) / 2, MZ = (MH.z0 + MH.z1) / 2, DZ = MZ;
+  corridor(-LOFT.r - 0.7, C3, MH.x1 + 0.6, C3, 0);
+  add(Door, { id: 'd2', at: [(-LOFT.r - 1.4 + MH.x1 + 1.2) / 2, 0, C3], yaw: Math.PI / 2, ...DOOR, lamps: [{ lit: 'r1' }] });
+  K.hall({ x: MX, z: MZ, w: MH.x1 - MH.x0, d: MH.z1 - MH.z0, y: MH.y, h: MH.h, floor: false, roof: false, doors: [
+    { side: 'e', at: C3 - MZ, ...HOLE, y0: -MH.y },                     // from the loft
+    { side: 'e', at: MOOR.z - MZ, ...HOLE, y0: G.y - MH.y },             // the moorers' passage to the Capstan Hall's balcony
+    { side: 's', at: STORE.x - MX, ...HOLE, y0: G.y - MH.y },            // the Rope Store
+    { side: 'w', at: FLOOR.z - MZ, ...HOLE, y0: WEST.yS - MH.y },        // the west door, on to the Capstan Floor
+    { side: 'n', at: LOCKER.door - MX, ...HOLE, y0: -MH.y },             // the Chain Locker
+  ] });
+  // its floors: the gallery's halves (y 11), the east landing and its apron out to the room's shaft (y 0), the west landing's
+  // lower part (y 0) and upper part (y 6)
+  K.slab(MH.x0, MH.z0, G.w, G.z1, G.y, 2);
+  K.slab(G.e, MH.z0, MH.x1, G.z1, G.y, 2);
+  K.slab(EAST.lip, MH.z0, MH.x1, MH.z1, 0, 0.8);
+  K.slab(EAST.apron, MH.z0, EAST.lip, EAST.apronZ, 0, 0.8);
+  K.slab(MH.x0, WEST.zN[0], WEST.lip, WEST.zN[1], WEST.yN, 0.8);
+  K.slab(MH.x0, WEST.zS[0], WEST.lip, WEST.zS[1], WEST.yS, 2);
+  add(Pit, { room: 'drift', min: [MH.x0, -24, MH.z0], max: [MH.x1, -8, MH.z1] });
+  // the void's breath under the east landing: fall off with your wings open and it bears you back up beside it
+  add(Updraft, { at: [EAST.lip - 7.6, -8, WEST.gang + 3], r: 3.6, h: 10.5, lift: 6.5, hint: 'The void breathes up under the hall. It bears your wings back up beside the landing.' });
+  // the docks: a wall across each floor's lip at the room's shaft, a gate in it (open while the room is docked there), a
+  // moorers' ring on a post beside it
+  // (posts either side of the gate and a lintel over it, 2 cm in from the floor's edge: no face shared with the slab's end,
+  // and no doorway frame standing out over the shaft, scripts/zfight)
   {
-    const y = 0.02, L = D.a - D.b + 1.4, cx = (D.a + D.b) / 2 - 0.4;
+    const d0 = ROOM.z - HOLE.w / 2, d1 = ROOM.z + HOLE.w / 2;
+    for (const [x, y, h, lintel] of [[G.e + 0.62, 0, G.y - 2, false], [G.e + 0.62, G.y, 10, true], [G.w - 0.62, G.y, 10, true]]) {
+      K.wall(x, MH.z0, x, d0, y, h, { t: 1.2, cap: false }); K.wall(x, d1, x, G.z1, y, h, { t: 1.2, cap: false });
+      if (lintel) K.both(M.wall, box(1.2, h - DOOR.h, d1 - d0, x, y + (h + DOOR.h) / 2, ROOM.z));
+    }
+  }
+  add(Door, { id: 'dockL', at: [G.e + 0.62, 0, ROOM.z], yaw: Math.PI / 2, ...DOOR, lamps: [LOW] });
+  add(DockGate, { id: 'dockH', at: [G.e + 0.62, G.y, ROOM.z], yaw: Math.PI / 2, ...DOOR, lamps: [HIGH] });
+  add(DockGate, { id: 'dockW', at: [G.w - 0.62, G.y, ROOM.z], yaw: Math.PI / 2, ...DOOR, lamps: [HIGH] });
+  // the moored room itself, and the moorers' rings at its docks
+  K.chartNote({ kind: 'lift', id: 'mooring', path: [[ROOM.x, ROOM.low, ROOM.z], [ROOM.x, ROOM.high, ROOM.z]], r: ROOM.r });   // (the house's map: issue #405)
+  add(MooredRoom, { id: 'mooring', room: 'float', x: ROOM.x, z: ROOM.z, low: ROOM.low, high: ROOM.high, r: ROOM.r, wall: ROOM.wall, h: ROOM.h, door: ROOM.door, speed: ROOM.speed });
+  for (const R of DOCK_RINGS) add(DockRing, { ...R, sets: 'mooring' });
+  // railings along the lips over the void: the gallery's halves (the east half's open at its drop), the apron's, the east
+  // landing's (open at its ball's cable-rail and at the gangway)
+  rail([MH.x0 + 0.4, G.z1 - 0.3], [G.w - 1.4, G.z1 - 0.3], G.y);
+  rail([G.e + 1.4, G.z1 - 0.3], [G.drop[0] - G.drop[1], G.z1 - 0.3], G.y);
+  rail([G.drop[0] + G.drop[1], G.z1 - 0.3], [MH.x1 - 0.4, G.z1 - 0.3], G.y);
+  rail([EAST.apron + 0.3, G.z1 + 0.4], [EAST.apron + 0.3, EAST.apronZ - 0.3], 0);
+  rail([EAST.apron + 0.3, EAST.apronZ - 0.3], [EAST.lip + 0.3, EAST.apronZ - 0.3], 0);
+  rail([EAST.lip + 0.3, EAST.apronZ - 0.3], [EAST.lip + 0.3, DRIFT.z - 1.5], 0);
+  rail([EAST.lip + 0.3, DRIFT.z + 1.5], [EAST.lip + 0.3, WEST.gang - 2.4], 0);
+  rail([EAST.lip + 0.3, WEST.gang + 2.4], [EAST.lip + 0.3, MH.z1 - 0.4], 0);
+  // (G6) the drop off the gallery's east half: a lit sill in the railing's gap, and under it on the east landing a ring of
+  // the void's breath that takes the fall
+  {
+    const [dx, dw] = G.drop, [cx, cz, cr] = G.catch;
+    K.add(M.trim, box(2 * dw, 0.06, 0.6, dx, G.y + 0.03, G.z1 - 0.3));
+    K.add(starM, box(2 * dw, 0.04, 0.12, dx, G.y + 0.07, G.z1 - 0.15));
+    K.add(M.trim, T(annulus(cr - 0.4, cr, 0.05, 40), [cx, 0.02, cz]));
+    K.add(starM, T(annulus(cr - 0.65, cr - 0.5, 0.04, 40), [cx, 0.03, cz]));
+    for (let i = 0; i < 5; i++) K.add(M.dark, box(2 * (cr - 0.9), 0.04, 0.25, cx, 0.035, cz - 1.6 + i * 0.8));
+    add(Cushion, { at: [cx, 0, cz], r: cr, said: 'The void’s breath billows up under the gallery and sets you down.' });
+  }
+  // the east landing's ball, out on its cable-rail over the void: pulled home, and the room high, the gangway hangs taut
+  {
+    const D = DRIFT, y = 0.02, L = D.a - D.b + 1.4, cx = (D.a + D.b) / 2 - 0.4;
     for (const s of [-0.55, 0.55]) K.add(M.trim, box(L, 0.12, 0.12, cx, y, D.z + s));
     K.add(iron, box(0.4, 1.8, 1.6, D.b - 1.5, -0.6, D.z));
-    for (let x = D.lip - 2; x > D.b; x -= 2.6) K.add(iron, box(0.14, 0.5, 1.3, x, -0.25, D.z));
+    for (let x = EAST.lip - 2; x > D.b; x -= 2.6) K.add(iron, box(0.14, 0.5, 1.3, x, -0.25, D.z));
     cable([D.b - 1.5, -1.4, D.z], [D.b - 2, -18, D.z + 1], 0, 0.06);
+    add(Ball, { id: 'ballD', a: [D.a, 0.04, D.z], b: [D.b, 0.04, D.z], r: 1.1, friction: 1.0 });
+    add(Plate, { id: 'pD', at: [D.plate, 0, D.z], r: 1.3 });
   }
-  add(Ball, { id: 'ballD', a: [D.a, 0.04, D.z], b: [D.b, 0.04, D.z], r: 1.1, friction: 1.0 });
-  add(Plate, { id: 'pD', at: [D.plate, 0, D.z], r: 1.3 });
-  // railings along the near lip, open at the rail and the gangway; along the far lip, open at the gangway
-  rail([D.lip + 0.3, D.z0 + 0.4], [D.lip + 0.3, D.z - 1.5], 0);
-  rail([D.lip + 0.3, D.z + 1.5], [D.lip + 0.3, D.gang - 2.4], 0);
-  rail([D.lip + 0.3, D.gang + 2.4], [D.lip + 0.3, D.z1 - 0.4], 0);
-  rail([D.farLip - 0.3, D.z0 + 0.4], [D.farLip - 0.3, D.gang - 2.4], D.far);
-  rail([D.farLip - 0.3, D.gang + 2.4], [D.farLip - 0.3, D.z1 - 0.4], D.far);
-  // starlight lines down the walls, cables hanging in the void
-  for (const x of [-64, -56, -46, -38, -28]) { K.add(starM, box(0.14, 16, 0.06, x, 4, D.z1 - 0.02)); }
-  for (const [x, z] of [[-42, 91], [-48, 68], [-51, 89], [-39, 77]]) cable([x, 20, z], [x + 0.5, -20, z + 0.4], 0, 0.06);
-  add(Mark, { room: 'drift', at: [-24, 0, 88], yaw: -Math.PI / 2 });
-  add(Mark, { room: 'driftFar', at: [-66, D.far, 90], yaw: Math.PI / 2 });
-
-  // ---- the Cable Walk: an open walkway over the stars from the Drift's far landing south to the Balance
-  const B = BALANCE, BN = B.north, BZ1 = B.cz + B.d / 2, BX0 = B.cx - B.w / 2, BX1 = B.cx + B.w / 2, BZ0 = B.cz - B.d / 2;
-  K.bridge([-61, D.far, D.z0 - 0.6], [-61, D.far, BZ1 + 1.2], 4.4, { parapet: 1.0 });
-  for (const z of [D.z0 - 3, BZ1 + 3.6]) K.both(M.trim, box(0.4, 3.2, 0.4, -63.6, D.far + 1.6, z)), K.both(M.trim, box(0.4, 3.2, 0.4, -58.4, D.far + 1.6, z));
-  add(Pit, { room: 'driftFar', min: [-75, -18, BZ1 + 1.2], max: [-47, 2, D.z0 - 0.6] });
-
-  // ---- the Balance: a void hall; the north landing (y 6), the Moorers' Gallery to the south (y 11)
-  K.hall({ x: B.cx, z: B.cz, w: B.w, d: B.d, y: -2, h: 30, floor: false, roof: false, doors: [
-    { side: 'n', at: -61 - B.cx, ...HOLE, y0: BN + 2 }, { side: 'w', at: FLOOR.z - B.cz, ...HOLE, y0: BN + 2 }, { side: 'e', at: MOOR.z - B.cz, ...HOLE, y0: BS + 2 },
-    { side: 's', at: STORE.x - B.cx, ...HOLE, y0: BS + 2 },   // (and south off the Gallery into the Rope Store, v1.53)
-  ] });
-  K.slab(BX0, B.lipN, BX1, BZ1, BN, 2);
-  K.slab(BX0, BZ0, BX1, B.lipS, BS, 2);
-  add(Pit, { room: 'scale', min: [BX0, -18, BZ0], max: [BX1, 3.5, BZ1] });
-  // the balance's pan: while the ball's weight sits in the far cup it rides between the landings, up to the Gallery
-  add(Platform, { id: 'gW', room: 'scale', path: [[-68, BN, B.lipN - 2], [-68, BS, B.lipS + 2]], r: 2.2, speed: 1.6, pause: 2.4, when: { open: 'gW' } });
-  // the balance itself: a great beam over the void on a post, tipped by the ball's weight (drawn), the ball's rail out to the far cup
-  const MZ = (B.lipN + B.lipS) / 2;
-  K.both(iron, box(1.2, 14, 1.2, -54, 4, MZ));
-  K.both(brass, box(0.6, 0.6, 16, -54, 11.4, MZ));   // (solid: its ends reach over the landings)
-  for (const z of [MZ - 7.6, MZ + 7.6]) K.both(brass, T(new THREE.CylinderGeometry(1.6, 1.2, 0.6, 14), [-54, 10.6, z]));
+  add(Bridge, { id: 'br2', a: [EAST.lip + 0.1, 0, WEST.gang], b: [WEST.lip - 0.1, WEST.yN, WEST.gang], w: 4, n: 16 });
+  // the gangway's gate in the moorers' screen (its twin: it opens with the gangway), and the screen: bars from the void up
+  // to `screen` along the west landings' lip and the upper part's south edge, an invisible wall behind them, so nothing
+  // glides in past it
+  add(Door, { id: 'br2', at: [WEST.lip + 0.2, WEST.yN, WEST.gang], yaw: Math.PI / 2, ...DOOR });
   {
-    const L = B.a - B.b + 1.6, cz = (B.a + B.b) / 2 - 0.4;
-    for (const s of [-0.55, 0.55]) K.add(M.trim, box(0.12, 0.12, L, B.x + s, BN + 0.02, cz));
-    K.add(iron, box(1.6, 1.8, 0.4, B.x, BN - 0.6, B.b - 1.4));
-    for (let z = B.lipN - 2; z > B.b; z -= 2.6) K.add(iron, box(1.3, 0.5, 0.14, B.x, BN - 0.25, z));
-    K.add(brass, T(annulus(1.3, 1.8, 0.08, 24), [B.x, BN + 0.03, B.out]));
+    const X = WEST.lip + 0.2, top = WEST.screen, bot = MH.y + 1, g0 = WEST.gang - HOLE.w / 2, g1 = WEST.gang + HOLE.w / 2;
+    const bars = (a, b, y0, y1, along) => { const L = Math.hypot(b[0] - a[0], b[1] - a[1]), n = Math.max(1, Math.round(L / 1.1)); for (let i = 0; i <= n; i++) { const t = i / n; K.add(iron, T(new THREE.CylinderGeometry(0.07, 0.07, y1 - y0, 6), [a[0] + (b[0] - a[0]) * t, (y0 + y1) / 2, a[1] + (b[1] - a[1]) * t])); } };
+    // (along the lip: below the upper part from the void, beside the gate from its floor, over the gate from its lintel)
+    bars([X, WEST.zS[0]], [X, g0 - 0.6], bot, top); bars([X, g1 + 0.6], [X, MH.z1 - 0.3], bot, top);
+    bars([X, g0 + 0.4], [X, g1 - 0.4], WEST.yN + DOOR.h + 0.6, top);
+    K.solid(box(0.3, top - bot, g0 - WEST.zS[0], X, (top + bot) / 2, (WEST.zS[0] + g0) / 2));
+    K.solid(box(0.3, top - bot, MH.z1 - g1, X, (top + bot) / 2, (g1 + MH.z1) / 2));
+    K.both(iron, box(0.6, DOOR.h + 0.6, 0.6, X, WEST.yN + (DOOR.h + 0.6) / 2, g0 - 0.3));
+    K.both(iron, box(0.6, DOOR.h + 0.6, 0.6, X, WEST.yN + (DOOR.h + 0.6) / 2, g1 + 0.3));
+    K.both(iron, box(0.6, 0.6, g1 - g0 + 1.2, X, WEST.yN + DOOR.h + 0.3, WEST.gang));
+    K.solid(box(0.3, top - WEST.yN - DOOR.h, g1 - g0, X, (top + WEST.yN + DOOR.h) / 2, WEST.gang));
+    // (the upper part's south edge, over the gallery's west half's gap)
+    const Z = WEST.zS[0] - 0.2;
+    bars([MH.x0 + 0.3, Z], [WEST.lip, Z], WEST.yS - 2, top);
+    K.solid(box(WEST.lip - MH.x0, top - WEST.yS + 2, 0.3, (MH.x0 + WEST.lip) / 2, (top + WEST.yS - 2) / 2, Z));
+    // the rails along the screen's foot and its top
+    for (const y of [top - 0.2]) { K.add(M.trim, box(0.3, 0.3, MH.z1 - WEST.zS[0], X, y, (MH.z1 + WEST.zS[0]) / 2)); K.add(M.trim, box(WEST.lip - MH.x0, 0.3, 0.3, (MH.x0 + WEST.lip) / 2, y, Z)); }
   }
-  add(Ball, { id: 'ballS', a: [B.x, BN + 0.04, B.a], b: [B.x, BN + 0.04, B.b], r: 1.1, friction: 0.7 });
-  add(Plate, { id: 'pHome', at: [B.x, BN, B.home], r: 1.3 });
-  add(Plate, { id: 'pOut', at: [B.x, BN, B.out], r: 1.3 });
-  rail([BX0 + 0.4, B.lipN + 0.3], [-69.9, B.lipN + 0.3], BN);
-  rail([-66.1, B.lipN + 0.3], [B.x - 1.6, B.lipN + 0.3], BN);
-  rail([B.x + 1.6, B.lipN + 0.3], [BX1 - 0.4, B.lipN + 0.3], BN);
-  rail([BX0 + 0.4, B.lipS - 0.3], [-69.9, B.lipS - 0.3], BS);
-  rail([-66.1, B.lipS - 0.3], [BX1 - 0.4, B.lipS - 0.3], BS);
-  // the west door and its chain up to the Gallery's ring (drawn), the Gallery's ring on its davit
-  add(Door, { id: 'gN', at: [BX0 - 0.6, BN, FLOOR.z], yaw: Math.PI / 2, ...DOOR, lamps: [{ drumOn: ['ballS', 'pHome'] }, { lit: 'r5' }] });
-  // (on a davit over the Gallery, in the hall's middle: high over the landing, out of the tether's reach from the north landing)
-  const RZ = B.lipS - 4;
-  K.both(iron, box(0.5, 5.2, 0.5, -68.2, BS + 2.6, RZ));
-  K.add(iron, box(2.6, 0.3, 0.3, -67.1, BS + 5.1, RZ));
-  add(Switch, { id: 'r5', at: [-66, BS + 3.4, RZ], yaw: 0, size: 0.9, pull: true });
-  cable([BX0 + 1.6, BN + 6.6, FLOOR.z - 1], [-66.6, BS + 5.1, RZ + 0.2], 1.2, 0.06);
-  for (const x of [-74, -50]) K.add(starM, box(0.14, 14, 0.06, x, 10, BZ0 + 0.02));
-  add(Mark, { room: 'scale', at: [-49, BN, BZ1 - 4], yaw: Math.PI });
-  add(Mark, { room: 'moor', at: [-50, BS, BZ0 + 6], yaw: -Math.PI / 2 });
-  // the moorers' gate (its small key) and the corridor back east to the Capstan Hall's balcony
-  corridor(BX1 + 0.6, MOOR.z, -Math.sqrt(R1 * R1 - (MOOR.z - C1) ** 2) - 0.8, MOOR.z, BS);
-  add(Door, { id: 'sc', at: [MOOR.gate, BS, MOOR.z], yaw: Math.PI / 2, ...DOOR });   // (v1.53: its small key; the ring holds the cage's chain now)
+  // the Cable Walk, slung from the counterweights: up from the lower part to the upper, level only with the room low
+  add(Bridge, { id: 'cw', a: [WEST.walk, WEST.yN, WEST.zN[0] + 0.1], b: [WEST.walk, WEST.yS, WEST.zS[1] - 0.1], w: 4.4, n: 10 });
+  for (const z of [WEST.zN[0] + 0.6, WEST.zS[1] - 0.6]) for (const s of [-2.6, 2.6]) K.both(M.trim, box(0.4, 3.2, 0.4, WEST.walk + s, (z > MZ ? WEST.yN : WEST.yS) + 1.6, z));
+  rail([MH.x0 + 0.4, WEST.zN[0] + 0.3], [WEST.walk - 2.4, WEST.zN[0] + 0.3], WEST.yN); rail([WEST.walk + 2.4, WEST.zN[0] + 0.3], [WEST.lip - 0.3, WEST.zN[0] + 0.3], WEST.yN);
+  rail([MH.x0 + 0.4, WEST.zS[1] - 0.3], [WEST.walk - 2.4, WEST.zS[1] - 0.3], WEST.yS); rail([WEST.walk + 2.4, WEST.zS[1] - 0.3], [WEST.lip - 0.3, WEST.zS[1] - 0.3], WEST.yS);
+  // its catch: a moorers' ring on a davit over the gap at the walk's foot, in the tether's reach from the lower part's lip
+  {
+    const [x, y, z] = WEST.catch;
+    K.both(iron, box(0.5, y + 1.6, 0.5, x + 1.6, WEST.yN + (y + 1.6) / 2, WEST.zN[0] + 0.5));
+    K.add(iron, box(0.3, 0.3, 2.2, x + 1.6, WEST.yN + y + 1.45, WEST.zN[0] - 0.6));
+    add(Switch, { id: 'rW', at: [x, WEST.yN + y, z], yaw: 0, size: 0.8, pull: true });
+    cable([x, WEST.yN + y + 0.7, z], [x + 1.6, WEST.yN + y + 1.4, WEST.zN[0] - 1.6], 0, 0.05);
+  }
+  // the west door, its chain under the floors to the Chain Locker's ring
+  add(Door, { id: 'gN', at: [MH.x0 - 0.6, WEST.yS, FLOOR.z], yaw: Math.PI / 2, ...DOOR, lamps: [{ lit: 'rK' }] });
+  // the levers, the gauges (one in every room), the marks
+  for (const lv of LEVERS) add(MooringLever, { ...lv, sets: 'mooring' });
+  for (const [room, at] of [['drift', [-23.2, 0, 64.2]], ['moor', [-23.2, G.y, 31.8]], ['moorW', [MH.x0 + 2.2, G.y, 31.8]], ['west', [MH.x0 + 2.2, WEST.yN, 91.8]], ['westS', [MH.x0 + 2.2, WEST.yS, 53.8]]]) add(MooringGauge, { room, at, shows: 'mooring' });
+  for (const z of [44, 58, 88]) K.add(starM, box(0.06, 16, 0.14, MH.x1 - 0.02, 4, z));
+  for (const x of [-70, -62, -30, -26]) K.add(starM, box(0.14, 14, 0.06, x, 18, MH.z1 - 0.02));
+  for (const [x, z] of [[-44, 91], [-48, 62], [-52, 89], [-40, 54]]) cable([x, 26, z], [x + 0.5, -20, z + 0.4], 0, 0.06);
+  add(Mark, { room: 'drift', at: [-24, 0, 88], yaw: -Math.PI / 2 });
+  add(Mark, { room: 'moor', at: [-25, G.y, 24.5], yaw: -Math.PI / 2 });
+  add(Mark, { room: 'moorW', at: [MH.x0 + 4.5, G.y, 24.5], yaw: Math.PI / 2 });
+  add(Mark, { room: 'west', at: [-66, WEST.yN, 90], yaw: Math.PI / 2 });
+  add(Mark, { room: 'westS', at: [-62, WEST.yS, 47.5], yaw: Math.PI });
+  // the moorers' gate (its small key), in the short passage east to the Capstan Hall's balcony
+  corridor(MH.x1 + 0.6, MOOR.z, -Math.sqrt(R1 * R1 - (MOOR.z - C1) ** 2) - 0.8, MOOR.z, BS);
+  add(Door, { id: 'sc', at: [MOOR.gate, BS, MOOR.z], yaw: Math.PI / 2, ...DOOR });
+
+  // ---- (v1.83) the Chain Locker, north off the east landing: its shutter on a counterweight (the room low); a well in its
+  // floor, its ball's rail out over it to the far cup, the ring of the west door's chain hung over the well
+  {
+    const Lk = LOCKER, [wx0, wz0, wx1, wz1] = Lk.well, x0 = Lk.x - Lk.w / 2, x1 = Lk.x + Lk.w / 2, z0 = Lk.z - Lk.d / 2, z1 = Lk.z + Lk.d / 2;
+    add(Door, { id: 'dL', at: [Lk.door, 0, MH.z1 + 0.6], ...DOOR, lamps: [LOW] });
+    K.hall({ x: Lk.x, z: Lk.z, w: Lk.w, d: Lk.d, y: 0, h: Lk.h, roof: 'oculus', oculus: 0.3, floor: false, omit: ['s'] });
+    K.slab(wx1, z0, x1, z1, 0, 0.8); K.slab(x0, z0, wx1, wz0, 0, 0.8); K.slab(x0, wz1, wx1, z1, 0, 0.8);
+    add(Pit, { room: 'locker', min: [wx0, -24, wz0], max: [wx1, -8, wz1] });
+    rail([wx1 + 0.3, wz0 + 0.3], [wx1 + 0.3, Lk.rail - 1.6], 0); rail([wx1 + 0.3, Lk.rail + 1.6], [wx1 + 0.3, wz1 - 0.3], 0);
+    rail([wx0 + 0.4, wz0 - 0.3], [wx1 + 0.3, wz0 - 0.3], 0); rail([wx0 + 0.4, wz1 + 0.3], [wx1 + 0.3, wz1 + 0.3], 0);
+    // the groove on the floor, its cables on over the well, the far cup on its stop post
+    K.add(M.dark, box(wx1 - Lk.a - 0.4 + 1.6, 0.04, 1.0, (Lk.a + 1.2 + wx1) / 2, 0.02, Lk.rail));
+    const L = wx1 - Lk.b + 1.2, cx = (wx1 + Lk.b) / 2 - 0.6;
+    for (const s of [-0.55, 0.55]) K.add(M.trim, box(L, 0.12, 0.12, cx, 0.02, Lk.rail + s));
+    for (let x = wx1 - 2; x > Lk.b; x -= 2.6) K.add(iron, box(0.14, 0.5, 1.3, x, -0.25, Lk.rail));
+    K.add(iron, box(0.4, 1.8, 1.6, Lk.b - 1.5, -0.6, Lk.rail));
+    K.add(brass, T(annulus(1.3, 1.8, 0.08, 24), [Lk.b, 0.03, Lk.rail]));
+    cable([Lk.b - 1.5, -1.4, Lk.rail], [Lk.b - 2, -18, Lk.rail + 1], 0, 0.06);
+    add(Ball, { id: 'ballK', a: [Lk.a, 0.04, Lk.rail], b: [Lk.b, 0.04, Lk.rail], r: 1.1, friction: 1.0 });
+    add(Plate, { id: 'pK2', at: [Lk.b, 0, Lk.rail], r: 1.3 });
+    // the ring, its chain up to a pulley under the roof and across to the cup's post (drawn); hoisted by the cup's weight
+    const [rx, rz] = Lk.ring;
+    add(Switch, { id: 'rK', at: [rx, Lk.down, rz], yaw: Math.PI / 2, size: 0.85, pull: true });
+    add(Hoist, { piece: 'rK', when: { drumOn: ['ballK', 'pK2'] }, up: Lk.up, down: Lk.down, top: Lk.h - 0.8 });
+    K.both(brass, T(new THREE.CylinderGeometry(0.5, 0.5, 0.3, 12), [rx, Lk.h - 0.8, rz], [Math.PI / 2, 0, 0]));
+    cable([rx, Lk.h - 0.8, rz], [Lk.b - 1.5, Lk.h - 0.8, Lk.rail], 0.8, 0.06);
+    cable([Lk.b - 1.5, Lk.h - 0.8, Lk.rail], [Lk.b - 1.5, 1.2, Lk.rail], 0, 0.06);
+    for (const a of [0.6, 2.2]) for (let i = 0; i < 4; i++) K.add(cableM, T(new THREE.TorusGeometry(0.9 - (i % 2) * 0.15, 0.13, 4, 18), [x1 - 2.4, 1.6 + i * 0.32, z1 - 3 - a * 4], [0, Math.PI / 2, 0]));
+    add(MooringGauge, { room: 'locker', at: [Lk.door + 4.4, 0, z0 + 1.8], shows: 'mooring' });
+    add(Mark, { room: 'locker', at: [x1 - 4, 0, z0 + 4], yaw: Math.PI });
+  }
 
   // ---- the ante and the Capstan Floor: a round floor open to the void at four great windows, a bollard before each
-  K.corridor([BX0 - 1.2, FLOOR.z], [FLOOR.x + FLOOR.r + 0.6, FLOOR.z], FLOOR.y, { w: 8.2, h: 10 });   // (wide and tall since issue #195: the close camera fought its walls)
-  add(Mark, { room: 'ante', at: [BX0 - 5.3, FLOOR.y, FLOOR.z + 3.2], yaw: Math.PI });
+  K.corridor([MH.x0 - 1.2, FLOOR.z], [FLOOR.x + FLOOR.r + 0.6, FLOOR.z], FLOOR.y, { w: 8.2, h: 10 });   // (wide and tall since issue #195: the close camera fought its walls)
+  add(Mark, { room: 'ante', at: [MH.x0 - 5.3, FLOOR.y, FLOOR.z + 3.2], yaw: Math.PI });
+  add(MooringGauge, { room: 'ante', at: [MH.x0 - 4, FLOOR.y, FLOOR.z - 3.2], shows: 'mooring' });
   const HR = FLOOR.r, CX = FLOOR.x, CZ = FLOOR.z, FY = FLOOR.y;
   const windows = [Math.PI / 4, -Math.PI / 4, Math.PI * 3 / 4, -Math.PI * 3 / 4];
   K.rotunda({ x: CX, z: CZ, y: FY, r: HR, h: 20, seg: 36, oculus: 0.62, gaps: [{ a: Math.PI / 2, w: 6, h: 9.2 }, { a: -Math.PI / 2, w: 6, h: 9.2 }, ...windows.map((a) => ({ a, w: 9, h: 7 }))] });
@@ -595,11 +1166,11 @@ function layout(rt) {
   const W = (x, y, z) => K.world(x, y, z);
   return {
     arrival: { pos: W(0, 0.05, -4.4), heading: K.heading(0) },
-    bounds: new THREE.Box3(V(CX - HR - 14, -26, STORE.z - STORE.d / 2 - 6), V(SHAFT[0] + WING.r + 4, 34, D.z1 + 6)),
+    bounds: new THREE.Box3(V(CX - HR - 14, -26, STORE.z - STORE.d / 2 - 6), V(SHAFT[0] + WING.r + 4, 34, LOCKER.z + LOCKER.d / 2 + 6)),
     gadget: { at: W(0, 0.62, C3).toArray(), face: K.heading(Math.PI) },
     exits: [{ at: W(0, 0.5, -7.6), r: 1.5 }, { at: W(X0 - 9.4, FY + 0.5, CZ), r: 1.5 }],
     lights: [[0, 5, -2, 10], [0, 14, C1, 26], [WINCH[0], 9, WINCH[1], 20], [SHAFT[0], 13, SHAFT[1], 20], [0, 10, C3, 20],
-      [-28, 6, DZ, 18], [-58, 10, DZ, 18], [-61, 9, 58, 12], [B.cx, 13, B.cz, 24], [STORE.x, BS + 6, STORE.z, 18], [CX, FY + 8, CZ, 24]],
+      [-28, 6, 70, 18], [-50, 15, 28, 22], [-66, 9, 82, 18], [-66, 12, 50, 16], [-40, 10, 60, 24], [-30, 16, 30, 16], [LOCKER.x, 9, LOCKER.z, 20], [STORE.x, BS + 6, STORE.z, 18], [CX, FY + 8, CZ, 24]],
     guardian: { def: { ...ANCHOR_WARDEN, onHit: wardenHit, openFor: wardenOpenFor }, model, arena },
   };
 }

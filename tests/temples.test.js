@@ -61,8 +61,8 @@ function openChest(rt, id, P) {
   near.entry.use(P);
 }
 const BUILT = Object.keys(TEMPLES);
-/** The older houses' tools a house's late step asks for with its own (G2, issues #411, #410, #413, #412 and #414). */
-const OLDER = { edena: ['hook'], perdide2: ['hook'], incal: ['hook'], underwater: ['hook'], moonfoundry: ['hook'], garage: ['hook'], bazaar: ['glider', 'hook', 'monocle', 'bomb'] };   // (the Undertower: the exam of the whole game, issue #418)
+/** The older houses' tools a house's late step asks for with its own (G2, issues #411, #410, #413, #412, #414 and #417). */
+const OLDER = { edena: ['hook'], perdide2: ['hook'], incal: ['hook'], underwater: ['hook'], moonfoundry: ['hook'], garage: ['hook'], spacecity: ['monocle'], bazaar: ['glider', 'hook', 'monocle', 'bomb'] };   // (the Undertower: the exam of the whole game, issue #418)
 /** Rooms the gadget sends you back to (issue #413): reached before its chest, their step wants it. */
 const BACK_TO = { incal: ['vaneFar'] };
 
@@ -923,30 +923,54 @@ test('the Hush-House (v1.83, issue #409: no fight at all): the Threshold’s cry
   }
 });
 
-test('the Mooring-House (issue #23, round 3): the Rope Store off the Gallery gives the small key for the moorers’ gate, the hall’s balcony the great key for the Capstan Floor; either order; old saves past the west door find it open', async () => {
-  const { PERCH } = await import('../src/temples/spacecity.js');
-  const L = TEMPLES.spacecity.def.logic, items = ['backpack', 'gun', 'doublejump', 'glider', 'sword', 'shield'];
+test('the Mooring-House (issue #417): the moored room high or low is the house’s one state; the Rope Store’s small key for the moorers’ gate, the great key on the balcony behind the lens’s ring; either order; old saves past the west door find it open', async () => {
+  const { PERCH, LOW, HIGH } = await import('../src/temples/spacecity.js');
+  const L = TEMPLES.spacecity.def.logic, items = ['backpack', 'gun', 'doublejump', 'glider', 'sword', 'shield', 'monocle'];
   for (const reverse of [false, true]) { const r = solve(L, { items, reverse }); assert.equal(r.done, true, r.log.join(' / ')); }
+  // (G2: the tether and the lens at once, for the great key)
+  const noLens = solve(L, { items: items.filter((i) => i !== 'monocle') });
+  assert.ok(!noLens.done && !noLens.logic.isFound('kB'), 'without the lens the great key stays caged');
   const noArena = solve(L, { items, forbid: ['arR'] });
   assert.ok(!noArena.stuck.includes('perch') && !noArena.stuck.includes('arena'), 'without the Rope Store the moorers’ gate stays shut, and so the Capstan Floor');
   const noBall = solve(L, { items, forbid: ['bK'] });
   assert.ok(noBall.logic.isFound('kS') && noBall.stuck.includes('perch') && !noBall.stuck.includes('arena'), 'without the balcony’s ball the Capstan Floor stays shut');
   assert.deepEqual(TEMPLES.spacecity.def.arenas.map((A) => A.el), ['arR']);
-  // the cage wants the ball home and the Gallery's ring (its chain)
-  const W = new TempleLogic(L, { has: (i) => ['gun', 'tether'].includes(i) });
+  // the state: one drum of two stops, set from the hub, the room, the west landing, and with the tether at the docks
+  const M = L.elements.mooring;
+  assert.deepEqual(M.stops, { mLow: 0, mHigh: 1 });
+  assert.equal(M.start, 1, 'it starts high');
+  assert.deepEqual(M.rooms.map((r) => (typeof r === 'string' ? r : `${r.room}:${r.needs}`)), ['west', 'drift:tether', 'moor:tether', 'moorW:tether']);
+  // what each stop does, through the house's floors (G1): low, the breath, the locker's and the store's shutters, the Cable
+  // Walk; high, the loft's ring, the gangway, the coffer's cage
+  for (const [id, want] of [['breath', LOW], ['dL', LOW], ['dR', LOW], ['dockL', LOW], ['dockH', HIGH], ['dockW', HIGH], ['ride', HIGH], ['rideW', HIGH]]) assert.deepEqual(L.elements[id].opens, want, id);
+  assert.deepEqual(L.elements.r1.when, HIGH);
+  assert.deepEqual(L.elements.cw.opens.all[0], LOW);
+  assert.deepEqual(L.elements.br2.opens.all[1], HIGH);
+  assert.deepEqual(L.elements.cC.when.all[1], HIGH);
+  const S = new TempleLogic(L, { has: (i) => ['gun', 'tether', 'monocle'].includes(i) });
+  S.update();
+  assert.equal(S.isOpen('dL'), false, 'high: the locker shut');
+  S.moveDrum('mooring', 0); S.update();
+  assert.ok(S.isOpen('dL') && S.isOpen('dR') && !S.isOpen('dockH'), 'low: the locker and the store open, the high dock’s gate shut');
+  S.moveDrum('mooring', 0.45); S.update();
+  assert.ok(!S.isOpen('dL') && !S.isOpen('dockL') && !S.isOpen('dockH'), 'under way: every gate shut');
+  // the cage wants the ball home and the ring only the lens shows (its chain)
+  const W = new TempleLogic(L, { has: (i) => ['gun', 'tether', 'monocle'].includes(i) });
   W.moveDrum('bK', L.elements.bK.plateAt);
   assert.equal(W.find('kB'), false, 'the ball home, the ring not pulled');
-  W.light('r5');
+  W.light('rL');
   assert.equal(W.find('kB'), true, 'and with the ring');
   assert.equal(L.elements.bK.plateAt, PERCH.plateAt);
   for (const [extra, past] of [[{}, false], [{ 'drum.ballS': 0.143, 'open.gN': true, checkpoint: 'ante' }, true]]) {
     const g = new GameState(null);
-    for (const [k, v] of Object.entries({ 'drum.ballW': 1, 'open.g1': true, 'lit.s1': true, 'open.d1': true, gadget: true, 'lit.r1': true, 'open.d2': true, 'drum.ballD': 0.098, 'open.br2': true, 'drum.ballS': 0.905, 'lit.r5': true, 'open.sc': true, checkpoint: 'moor', ...extra })) g.set(`temple.spacecity.${k}`, v);
+    for (const [k, v] of Object.entries({ layout: 3, 'drum.ballW': 1, 'open.g1': true, 'lit.s1': true, 'open.d1': true, gadget: true, 'lit.r1': true, 'open.d2': true, 'drum.ballD': 0.098, 'open.br2': true, 'drum.ballS': 0.905, 'lit.r5': true, 'open.sc': true, checkpoint: 'moor', ...extra })) g.set(`temple.spacecity.${k}`, v);
     migrateTemples(g);
     const B = new TempleLogic(L, { store: flagStore(g, 'spacecity'), has: (i) => [...items, 'tether'].includes(i) });
     B.update();
     assert.ok(B.isOpen('sc') && B.isLit('arR') && B.keys('small') === 0, 'the moorers’ gate stays open behind them');
-    assert.equal(B.isOpen('d6'), past, past ? 'past the west door: the Capstan Floor’s door open' : 'on the Gallery: the great key still on the balcony');
+    assert.equal(B.isOpen('d6'), past, past ? 'past the west door: the Capstan Floor’s door open' : 'on the gallery: the great key still on the balcony');
+    assert.ok(B.isOpen('d1') && B.isOpen('d2') && B.isOpen('br2'), 'the doors behind them open as they were');
+    if (past) assert.ok(B.isOpen('gN') && B.isLit('rK') && B.isLit('rL'), 'past the west door: its ring and the lens’s ring pulled');
   }
 });
 
@@ -2764,238 +2788,4 @@ test('a save from the Undertower before issue #418: its state as it was (the sam
   own();
 });
 
-test('the Mooring-House on foot: the winch’s counterweight and the shaft’s gate, the void’s breath up the shaft to the lamp-eye, the great door, tether mode and its try, the ring hung over the loft’s floor (v1.77, issue #336: the house redone as shrines), the Drift’s ball pulled home off its cable-rail and the rising gangway, the Cable Walk, the Balance’s ball pushed out (the pan to the Gallery) and pulled home (the west door), the Gallery’s ring, the Rope Store’s arena off the Gallery and its key for the moorers’ gate, the great key pulled home on the hall’s balcony, the Anchor-Warden’s anchors pulled home (wound in over the void first), the cables taut', async () => {
-  const { BALANCE, DRIFT, FLOOR, MOOR, MOOR_A, STORE, PERCH, SHAFT_PIER, WING, LOFT } = await import('../src/temples/spacecity.js');
-  game.reset();
-  own('backpack', 'gun', 'glider');
-  const { level, physics, rt } = world('spacecity');
-  const P = new Player(physics, { spawn: rt.arrival.pos.clone(), dynamic: level.dynamic, health: true, limit: level.limit ?? 1900 });
-  const notes = [];
-  rt.connect({ player: P, toast: (s) => notes.push(s) });
-  let t = 0;
-  const L = (x, y, z) => rt.kit.world(x, y, z);
-  const frame = (input = {}, yaw = 0) => { t += DT; physics.syncMovers(DT); rt.update(DT, t); P.update(DT, input, yaw); updateHazards(DT, P); };
-  const toward = (to) => Math.atan2(-(to.x - P.pos.x), -(to.z - P.pos.z));
-  const flat = (a) => Math.hypot(P.pos.x - a.x, P.pos.z - a.z);
-  const walk = (to, { tol = 0.6, max = 25, run = true, dy = 1.6 } = {}) => {
-    for (let i = 0; i < max / DT; i++) { if (flat(to) < tol && Math.abs(P.pos.y - to.y) < dy) return true; frame({ KeyW: true, ShiftLeft: run }, toward(to)); }
-    return false;
-  };
-  const wait = (s) => { for (let i = 0; i < s / DT; i++) frame(); };
-  const where = () => rt.kit.local(P.pos).toArray().map((v) => v.toFixed(1)).join(', ');
-  const local = () => rt.kit.local(P.pos);
-  const said = (re) => notes.some((n) => re.test(n));
-  const stand = (x, y, z) => { P.teleport(L(x, y + 0.05, z), V(0, 1, 0), V(0, 0, 1)); P.vel.set(0, 0, 0); };
-  const hall = (a, d, y = 0) => L(Math.sin(a) * d, y, 30 + Math.cos(a) * d);
-  /** Push a ball along its groove (way +1: toward its b end) from behind it, until it rests on `plate`. */
-  const roll = (id, plate, way = 1, n = 10) => {
-    const ball = rt.piece(id);
-    for (let k = 0; k < n && !rt.logic.drumOn(id, plate); k++) {
-      const d = ball.dir.clone().multiplyScalar(way);
-      walk(ball.center.clone().addScaledVector(d, -1.9).setY(P.pos.y), { tol: 0.5, max: 4 });
-      ball.hit('push', d, { strength: 0.8 });
-      wait(0.5); for (let i = 0; i < 8 / DT && !ball.rest; i++) frame();
-    }
-    return rt.logic.drumOn(id, plate);
-  };
-  /** The tether from where you stand: the cone's way back to the hand, its strength by the distance (src/fluid-tool.js push). */
-  const tether = (target) => {
-    const c = target.center, from = P.pos.clone().add(V(0, 1.15, 0)), d = from.distanceTo(c) - (target.r ?? 0.8) - 0.15;
-    if (d > 6) return false;
-    return target.hit('tether', from.clone().sub(c).normalize(), { strength: 1 - Math.max(0, d) / 6 });
-  };
-  /** Pull a ball home from where you stand, until it rests on `plate`. */
-  const pull = (id, plate, n = 8) => {
-    const ball = rt.piece(id);
-    for (let k = 0; k < n && !rt.logic.drumOn(id, plate); k++) { tether(ball); wait(0.5); for (let i = 0; i < 8 / DT && !ball.rest; i++) frame(); }
-    return rt.logic.drumOn(id, plate);
-  };
-  wait(0.5);
-  // ---- the Capstan Hall: the great door and the shaft's gate both shut
-  assert.equal(walk(L(0, 0, 18)), true, `into the hall (${where()})`);
-  assert.equal(rt.logic.isOpen('d1'), false, 'the great door is shut');
-  assert.equal(rt.logic.isOpen('g1'), false, 'and the shaft’s gate');
-  // ---- the Winch Room: the counterweight rolled into its socket at the winch's mouth: the shaft's gate rises, and stays
-  assert.equal(walk(hall(-Math.PI * 3 / 4, 10)), true, `toward the winch (${where()})`);
-  assert.equal(walk(hall(-Math.PI * 3 / 4, WING.d - 10)), true, `into the winch room (${where()})`);
-  const ballW = rt.piece('ballW');
-  assert.equal(walk(ballW.center.clone().addScaledVector(ballW.dir, -1.9).setY(P.pos.y), { tol: 0.5 }), true, `behind the counterweight (${where()})`);
-  assert.equal(roll('ballW', 'pG'), true, `the counterweight in its socket (${where()})`);
-  assert.equal(rt.logic.isOpen('g1'), true, 'the shaft’s gate rises');
-  // ---- the Lamp Shaft: the void's breath lifts open wings to the balcony; the lamp-eye there
-  assert.equal(walk(hall(-Math.PI * 3 / 4, 10)), true, `back in the hall (${where()})`);
-  assert.equal(walk(hall(Math.PI * 3 / 4, 12)), true, `across to the gate (${where()})`);
-  const shaft = hall(Math.PI * 3 / 4, SHAFT_PIER.draught);
-  assert.equal(walk(hall(Math.PI * 3 / 4, 26)), true, `through the gate (${where()})`);
-  assert.equal(walk(shaft, { tol: 0.8 }), true, `onto the grating (${where()})`);
-  let up = false;
-  for (let i = 0; i < 14 / DT; i++) { frame(i < 6 ? { Space: true } : { Space: true }, 0); if (local().y > 14.6) { up = true; break; } }
-  assert.ok(up, `the breath lifts the wings up the shaft (${where()})`);
-  const balcony = hall(Math.PI * 3 / 4, SHAFT_PIER.draught + 4.6, SHAFT_PIER.top);
-  for (let i = 0; i < 6 / DT && !(P.onGround && i > 5); i++) { P.heading = Math.atan2(balcony.x - P.pos.x, balcony.z - P.pos.z); frame({ Space: flat(balcony) > 2.6, KeyW: flat(balcony) > 0.8 }, toward(balcony)); }
-  assert.ok(P.onGround && Math.abs(local().y - SHAFT_PIER.top) < 0.5, `onto the pier's top (${where()})`);
-  rt.piece('s1').hit('shoot');
-  wait(0.2);
-  assert.equal(rt.logic.isLit('s1'), true, 'the lamp-eye wakes');
-  assert.equal(rt.logic.isOpen('d1'), true, 'the great door opens');
-  // ---- the Cord Loft: tether mode; its try, the ring that brings the lamp down
-  stand(...rt.kit.local(hall(Math.PI * 3 / 4, 12)).toArray());
-  assert.equal(walk(L(0, 0, 44)), true, `to the great door (${where()})`);
-  assert.equal(walk(L(0, 0, LOFT.z - 12)), true, `into the loft (${where()})`);
-  items.grant('tether'); game.emit('box:opened', { id: 'spacecity.temple.tether' });
-  assert.equal(rt.logic.gadget, true);
-  const t0 = rt.piece('t0');
-  t0.hit('push');
-  assert.equal(rt.logic.isLit('t0'), false, 'a push only rings a moorers’ ring');
-  assert.ok(said(/wants pulling/), 'it says so');
-  assert.equal(walk(L(4.4, 0, LOFT.z + 5)), true, `beside the loft's ring (${where()})`);
-  assert.ok(tether(t0) && rt.logic.isLit('t0'), 'the tether pulls it: its lamp comes down, and nothing else');
-  // ---- the loft's west side (the Mooring Passage before v1.77): the ring hung over the floor, chained to the door into the Drift
-  assert.equal(walk(L(-6, 0, LOFT.z - 7)), true, `round the chest (${where()})`);
-  assert.equal(walk(L(-7, 0, LOFT.z)), true, `under the ring (${where()})`);
-  assert.equal(rt.logic.isOpen('d2'), false);
-  assert.ok(tether(rt.piece('r1')), 'in reach of the ring');
-  wait(0.2);
-  assert.equal(rt.logic.isOpen('d2'), true, 'pulled, the door into the Drift opens');
-  // ---- the Drift: the ball out on its cable-rail over the void; pulled home, the gangway rises
-  assert.equal(walk(L(DRIFT.x1 - 3, 0, LOFT.z)), true, `into the Drift (${where()})`);
-  assert.equal(rt.logic.isOpen('br2'), false, 'no gangway yet');
-  // on still air the far landing is out of reach: it stands six metres higher than a glide can climb
-  assert.equal(walk(L(DRIFT.lip + 2.5, 0, DRIFT.gang), { tol: 0.5 }), true, `back from the lip (${where()})`);
-  let far = false;
-  for (let i = 0; i < 8 / DT; i++) {
-    P.heading = -Math.PI / 2;
-    frame({ KeyW: i < 30, ShiftLeft: true, Space: i < 12 || i > 30 }, Math.PI / 2);
-    if (P.onGround && local().y > DRIFT.far - 0.5) far = true;
-    if (local().y < -6) break;
-  }
-  assert.equal(far, false, `no glide reaches the far landing (${where()})`);
-  wait(1);
-  stand(DRIFT.lip + 2.5, 0, DRIFT.gang - 1);
-  assert.equal(walk(L(DRIFT.lip + 0.8, 0, DRIFT.z + 1.9), { tol: 0.4 }), true, `to the lip beside the cable-rail (${where()})`);
-  assert.equal(pull('ballD', 'pD'), true, `the ball pulled home along its cables (${where()})`);
-  wait(2);
-  assert.equal(rt.logic.isOpen('br2'), true, 'the gangway rises');
-  assert.equal(walk(L(DRIFT.lip + 0.4, 0, DRIFT.gang), { tol: 0.6 }), true, `to the gangway (${where()})`);
-  assert.equal(walk(L(DRIFT.farLip - 2, DRIFT.far, DRIFT.gang), { tol: 0.8, max: 16 }), true, `up the gangway to the far landing (${where()})`);
-  // ---- the Cable Walk, the Balance's north landing
-  assert.equal(walk(L(-61, DRIFT.far, DRIFT.z0 + 6)), true, `to the walk (${where()})`);
-  assert.equal(walk(L(-61, DRIFT.far, BALANCE.cz + BALANCE.d / 2 + 3)), true, `along the Cable Walk (${where()})`);
-  assert.equal(walk(L(-61, BALANCE.north, BALANCE.lipN + 8)), true, `onto the Balance's north landing (${where()})`);
-  // the ball pushed OUT along its rail to the far cup over the void: the pan rides to the Gallery
-  assert.equal(rt.logic.drumOn('ballS', 'pHome'), true, 'the ball sits home');
-  assert.equal(rt.logic.isOpen('gN'), false, 'the west door is shut: it wants the Gallery’s ring as well');
-  const ballS = rt.piece('ballS');
-  assert.equal(walk(ballS.center.clone().addScaledVector(ballS.dir, -1.9).setY(P.pos.y), { tol: 0.5 }), true, `behind the ball (${where()})`);
-  assert.equal(roll('ballS', 'pOut'), true, `the ball out in the far cup (${where()})`);
-  assert.equal(rt.logic.isOpen('gW'), true, 'the balance tips');
-  const pan = rt.piece('gW');
-  for (let i = 0; i < 20 / DT && !(pan.s < 0.2 && pan.wait > 0.8); i++) frame();
-  assert.equal(walk(L(-68, BALANCE.north, BALANCE.lipN + 2.2), { tol: 0.5 }), true, `to the pan's berth (${where()})`);
-  for (let i = 0; i < 20 / DT && !(pan.s < 0.2 && pan.wait > 0.8); i++) frame();
-  assert.equal(walk(pan.group.position, { tol: 0.5, run: false, max: 6 }), true, `onto the pan (${where()})`);
-  for (let i = 0; i < 20 / DT && !(pan.s > pan.total - 0.2); i++) frame();
-  assert.equal(walk(L(-68, BALANCE.south, BALANCE.lipS - 2.4), { tol: 0.6, max: 6 }), true, `off it onto the Gallery (${where()})`);
-  // ---- the Moorers' Gallery: its ring, high on its davit (out of reach from the north landing, seen from the west door)
-  assert.ok(tether(rt.piece('r5')), 'the ring in reach from the Gallery');
-  wait(0.2);
-  assert.equal(rt.logic.isLit('r5'), true);
-  assert.equal(rt.logic.isOpen('sc'), false, 'the moorers’ gate home wants a small key now (v1.53)');
-  assert.equal(rt.logic.isOpen('gN'), false, 'and the west door still wants the ball home');
-  // ---- the Rope Store, south off the Gallery (an arena): its door shuts behind you while its keepers stand
-  const keepers = [{ room: 'store', alive: true }, { room: 'store', alive: true }];
-  rt.machines = [...(rt.machines ?? []), ...keepers];
-  const storeDoor = STORE.z + STORE.d / 2 + 0.6;
-  assert.equal(walk(L(STORE.x, BALANCE.south, storeDoor + 3)) && walk(L(STORE.x, BALANCE.south, storeDoor - 2)) && walk(L(STORE.x, BALANCE.south, STORE.z + 4)), true, `into the Rope Store (${where()})`);
-  wait(0.3);
-  assert.equal(rt.logic.isOpen('dR'), false, 'the door shuts behind you');
-  for (const k of keepers) k.alive = false;
-  wait(2.5);
-  assert.ok(rt.logic.isLit('arR') && rt.logic.isOpen('dR'), 'beaten: won, and the door lets go');
-  assert.equal(walk(rt.piece('kS').pos, { tol: 1.2 }), true, `to the key (${where()})`);
-  wait(0.3);
-  openChest(rt, 'kS', P);
-  assert.equal(rt.logic.isFound('kS'), true, 'a small key');
-  assert.equal(walk(L(STORE.x, BALANCE.south, storeDoor - 2)) && walk(L(STORE.x, BALANCE.south, storeDoor + 3.2)), true, `back onto the Gallery (${where()})`);
-  // (the gate back: the corridor east to the Capstan Hall's balcony; the key goes in as you come up to it)
-  const moor = (x) => L(x, BALANCE.south, MOOR.z);
-  assert.equal(walk(L(-50, BALANCE.south, MOOR.z - 2)) && walk(moor(MOOR.gate - 1.8)), true, `to the moorers' gate (${where()})`);
-  wait(2.4);
-  assert.equal(rt.logic.keysIn('sc'), 1, 'the small key in it');
-  /** On the balcony: d m out along the moorers' radial from the hall's middle, s m to its side (spacecity.js wingAt). */
-  const perch = (d, s = 0) => L(Math.sin(MOOR_A) * d + Math.cos(MOOR_A) * s, BALANCE.south, 30 + Math.cos(MOOR_A) * d - Math.sin(MOOR_A) * s);
-  assert.equal(walk(moor(-30), { max: 10 }) && walk(perch(13), { max: 10 }), true, `through it to the hall's balcony (${where()})`);
-  const cradle = rt.piece('cradle'), c0 = cradle.s;
-  wait(4);
-  assert.notEqual(cradle.s, c0, 'the cradle rides between the balcony and the hall’s floor');
-  // ---- the balcony: the great key's cage, and a ball out along a cable-rail round the wall: pull it home
-  assert.equal(rt.logic.isFound('kB'), false);
-  assert.equal(walk(perch(PERCH.lip + 0.6, PERCH.side + 1.9), { tol: 0.5 }), true, `to the balcony's lip beside the cable-rail (${where()})`);
-  assert.equal(pull('bK', 'pK'), true, `the ball pulled home onto the cage's footstone (${where()})`);
-  wait(1.5);
-  assert.equal(walk(rt.piece('kB').pos, { tol: 1.2 }), true, `to the great key (${where()})`);
-  wait(0.3);
-  openChest(rt, 'kB', P);
-  assert.equal(rt.logic.isFound('kB'), true, 'the great key');
-  assert.equal(walk(perch(15)) && walk(moor(-30)) && walk(L(-50, BALANCE.south, MOOR.z - 2), { max: 15 }), true, `back to the Gallery (${where()})`);
-  // back over on the pan, and the ball pulled HOME from the lip: the west door opens (the Gallery's ring is out of reach from here)
-  assert.equal(walk(L(-68, BALANCE.south, BALANCE.lipS - 2.2), { tol: 0.5 }), true, `to the pan's upper berth (${where()})`);
-  for (let i = 0; i < 30 / DT && !(pan.s > pan.total - 0.2 && pan.wait > 0.8); i++) frame();
-  assert.equal(walk(pan.group.position, { tol: 0.5, run: false, max: 6 }), true, `onto the pan again (${where()})`);
-  for (let i = 0; i < 20 / DT && !(pan.s < 0.2); i++) frame();
-  assert.equal(walk(L(-68, BALANCE.north, BALANCE.lipN + 2.5), { tol: 0.6, max: 6 }), true, `back on the north landing (${where()})`);
-  assert.equal(tether(rt.piece('r5')), false, 'the Gallery’s ring hangs out of the tether’s reach from the north landing');
-  assert.equal(walk(L(BALANCE.x + 1.8, BALANCE.north, BALANCE.lipN + 0.8), { tol: 0.4 }), true, `to the lip beside the rail (${where()})`);
-  assert.equal(pull('ballS', 'pHome'), true, `the ball pulled home past you (${where()})`);
-  wait(1);
-  assert.equal(rt.logic.isOpen('gN'), true, 'the west door opens');
-  // ---- the Capstan Floor: the Anchor-Warden
-  const BX0 = BALANCE.cx - BALANCE.w / 2;
-  assert.equal(walk(L(BX0 + 1.6, BALANCE.north, FLOOR.z)), true, `to the west door (${where()})`);
-  assert.equal(walk(L(BX0 - 5, FLOOR.y, FLOOR.z)), true, `along the ante (${where()})`);
-  assert.equal(walk(L(FLOOR.x + FLOOR.r + 3, FLOOR.y, FLOOR.z)), true, `to the Capstan Floor's door (${where()})`);
-  wait(2.4);
-  assert.equal(rt.logic.keysIn('d6'), 1, 'the great key in it (v1.53)');
-  assert.equal(walk(L(FLOOR.x + 10, FLOOR.y, FLOOR.z)), true, `onto the Capstan Floor (${where()})`);
-  const G = rt.guardian;
-  wait(0.3);
-  assert.notEqual(G.state, 'sleep', 'it wakes');
-  P.opts.health = false;
-  const m0 = G.meter;
-  G.hit('body', 'shoot');
-  assert.equal(G.meter, m0, 'fluid does nothing to it');
-  const anchorTarget = () => allTargets().find((x) => x.accepts?.includes('tether') && x.kind === 'sentinel');
-  let wound = false, refused = false;
-  for (let n = 0; n < 16 && G.state !== 'resolved'; n++) {
-    let open = false;
-    for (let i = 0; i < 40 / DT; i++) { frame(); if (G.state === 'open') { open = true; break; } }
-    assert.ok(open, `its drum stalls, an anchor out (${n})`);
-    const an = rt.anchor;
-    assert.equal(an.out, true, 'an anchor lies out');
-    const before = G.meter;
-    if (an.far > 0) {
-      // out over the void: too far; push its bars to wind it in, then pull
-      assert.equal(rt.anchorPull(), false, 'too far for the tether');
-      refused = true;
-      for (let k = 0; k < 4 && an.far > 0; k++) G.hit('body', 'push');
-      assert.equal(an.far, 0, 'wound in to the rim');
-      wound = true;
-    }
-    // stand near it, and pull (through its target, as the cone would)
-    const dir = an.at.clone().sub(G.arena.center).setY(0).normalize();
-    P.teleport(an.at.clone().addScaledVector(dir, -2.4).setY(G.arena.y + 0.1), V(0, 1, 0), V(0, 0, 1));
-    wait(0.1);
-    if (G.state !== 'open') continue;
-    anchorTarget().onHit('tether');
-    assert.ok(G.meter > before || G.state === 'resolved', `pulled home, it jams (${n}: ${G.meter.toFixed(2)})`);
-  }
-  assert.equal(G.state, 'resolved', `broken (${G.meter.toFixed(2)})`);
-  assert.ok(refused && wound, 'its last phase wanted the push before the pull');
-  assert.equal(game.flag('temple.spacecity.done'), true);
-  assert.equal(rt.logic.isOpen('d7'), true, 'the way out opens');
-  wait(4);
-  assert.equal(rt.change.root.visible, true, 'the cables hum taut, their lamps lit');
-  assert.equal(rt.change.slack.visible, false, 'no slack cable left');
-  game.reset();
-  own();
-});
+// (the Mooring-House on foot: tests/mooring-room.test.js since issue #417, the house round its moored room)

@@ -44,9 +44,9 @@ export const SPARE = 1.0;
 const quiet = (fn) => { const w = console.warn, l = console.log; console.warn = () => {}; console.log = () => {}; try { return fn(); } finally { console.warn = w; console.log = l; } };
 const own = (...ids) => { for (const id of Object.keys(ITEMS)) if (ids.includes(id)) items.grant(id); else items.revoke(id); };
 /** What each house is walked into with: the route's (the lift valve's double jump before every temple, the gun from the desert's Hearth); the Rose House with nothing in hand (v1.44). */
-// (and an older house's tool where a late step wants it with the house's own, G2: the Greenhouse's weight #411, the Lamp-House's far door #410, the Warden's Well's crown #413, the Whale-House's weight #412, the Clock-House's striking train #414)
+// (and an older house's tool where a late step wants it with the house's own, G2: the Greenhouse's weight #411, the Lamp-House's far door #410, the Warden's Well's crown #413, the Whale-House's weight #412, the Clock-House's striking train #414, the Mooring-House's great key #417)
 // (the Undertower, the last house: the exam of the whole game, the wings, the hook, the lens and the bombs with its own, #418)
-const CARRY = { desert: ['backpack', 'doublejump'], edena: ['backpack', 'gun', 'doublejump', 'hook'], perdide2: ['backpack', 'gun', 'doublejump', 'hook'], incal: ['backpack', 'gun', 'doublejump', 'hook'], underwater: ['backpack', 'gun', 'doublejump', 'hook'], moonfoundry: ['backpack', 'gun', 'doublejump', 'hook'], garage: ['backpack', 'gun', 'doublejump', 'hook'], bazaar: ['backpack', 'gun', 'doublejump', 'glider', 'hook', 'monocle', 'bomb'] };
+const CARRY = { desert: ['backpack', 'doublejump'], edena: ['backpack', 'gun', 'doublejump', 'hook'], perdide2: ['backpack', 'gun', 'doublejump', 'hook'], incal: ['backpack', 'gun', 'doublejump', 'hook'], underwater: ['backpack', 'gun', 'doublejump', 'hook'], moonfoundry: ['backpack', 'gun', 'doublejump', 'hook'], garage: ['backpack', 'gun', 'doublejump', 'hook'], spacecity: ['backpack', 'gun', 'doublejump', 'monocle'], bazaar: ['backpack', 'gun', 'doublejump', 'glider', 'hook', 'monocle', 'bomb'] };
 const carry = (id) => CARRY[id] ?? ['backpack', 'gun', 'doublejump'];
 
 /**
@@ -302,6 +302,8 @@ export function playTemple(id, o = {}) {
       if (!p) return null;
       // (a lever that brings the state round to its own stop, the Clock-House's docks', issue #414: only for that stop)
       if (s.lever) return reach.has(p.o.room) && (!p.o.to || p.o.to === plate) ? { s, p, at: near(p.pos, 1.3) } : null;
+      // (issue #417: a moorers' ring at a dock, the tether's: it calls the moored room home to its own dock)
+      if (p.o?.dock != null) return has('tether') && reach.has(p.o.room) && p.o.dock === t ? { s, p, at: near(p.center, 2.4), tether: true } : null;
       if (!has('hook') || ![p.o.room, ...(p.o.rooms ?? [])].some((r) => reach.has(r))) return null;
       const f = p.o.from && rt.kit.world(...p.o.from);
       return f ? { s, p, at: standAt(f, f.y) } : null;
@@ -312,11 +314,14 @@ export function playTemple(id, o = {}) {
     if (w.s.lever) {
       const pick = bestInteractable(P);
       if (pick?.entry?.id !== `temple.${rt.id}.${w.s.lever}`) { fail(`${eid}: the use button offers ${pick?.entry?.id ?? 'nothing'} by ${w.s.lever}`); return false; }
-      // (a state of more than two stops turned on a stop a pull, the Clock-House's hour, issue #414: pulled till it comes)
-      for (let k = 0; k < Object.keys(e.stops ?? {}).length && !L.drumOn(eid, plate); k++) { pick.entry.use(P); wait(0.3); }
-    } else w.p.hit('push', { mode: 'hook' });
+      // (a state of more than two stops turned on a stop a pull, the Clock-House's hour, issue #414: pulled till it comes;
+      // a state of two pulled once, its change perhaps a while coming: the Mooring-House's room on its cable, #417)
+      pick.entry.use(P);
+      for (let k = 2; k < Object.keys(e.stops ?? {}).length && (wait(0.3), !L.drumOn(eid, plate)); k++) pick.entry.use(P);
+    } else if (w.tether) w.p.hit('tether');
+    else w.p.hit('push', { mode: 'hook' });
     if (!wait(30, () => L.drumOn(eid, plate))) { fail(`${eid}: set from ${w.s.lever ?? w.s.ring}, never came to ${plate} (t ${L.drumT(eid)}, wanted ${t})`); return false; }
-    say(`${eid}: ${w.s.lever ? 'pulled' : 'hooked'} ${w.s.lever ?? w.s.ring} → ${plate}`);
+    say(`${eid}: ${w.s.lever ? 'pulled' : w.tether ? 'tethered' : 'hooked'} ${w.s.lever ?? w.s.ring} → ${plate}`);
     return true;
   };
   /** Roll a drum onto the stop its puzzle wants now; what it lights must catch from it. */
