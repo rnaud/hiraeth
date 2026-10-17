@@ -1,31 +1,44 @@
 changelog.md
   s_5f899ba316b5dc::t_d0e7ae90615044 11
+  s_5f899ba316b5dc::t_812b2c29baf19e 11
 docs/design/temple-best-practices.md
   s_5f899ba316b5dc::t_e4926671fef69c 539-576
+  s_5f899ba316b5dc::t_bdf76bcfa43e62 539-576
 docs/systems/temples.md
   s_5f899ba316b5dc::t_582a916898df7d 772-823
+  s_5f899ba316b5dc::t_50527f13ebc59d 772-823
 scripts/temple-design/lib.mjs
   s_5f899ba316b5dc::t_492fdd38bd5f8d 205-207,209-216
+  s_5f899ba316b5dc::t_ae2bc7b73b60d3 208-212,216,218
 src/changelog-media.js
   s_5f899ba316b5dc::t_3e3d0a38eb2771 1121-1123,1159-1170
+  s_5f899ba316b5dc::t_9d334ab315a951 1121-1123,1159-1170
 src/changelog.js
   s_5f899ba316b5dc::t_2228eb257704a8 26-29
+  s_5f899ba316b5dc::t_71a7c71dcaaff3 26-29
 src/temple-maps/makers.js
   s_5f899ba316b5dc::t_f00fe011e20697 62-63,374-375,389
+  s_5f899ba316b5dc::t_f2423329727ffd 62-63,374-375,389
 src/temples/migrate.js
   s_5f899ba316b5dc::t_020cd22c0622a6 160-163,165,170-171
+  s_5f899ba316b5dc::t_4977a53f044be8 160-163,165,170-171
 src/temples/perdide2.js
   s_5f899ba316b5dc::t_c8aaa7283ad0df 6,12-14,32-40,42-47,49-51,54-58,63-83,129-134,137-140,142,144-171,184-186,192,195,198-206,212-213,215-217,223-224,227-228,239,248-257,260-271,273-276,278-279,286-292,295-300,302,390-685,720-724,742-743,780,799-805,812-814,823-849,853-856,884,889-896,898-900,909-910,914,917-920,922-923,927,929-930,932-942,944-945,949,992
+  s_5f899ba316b5dc::t_b5ceb961ceda2f 6,12-14,32-40,42-47,49-51,54-58,63-83,129-134,137-140,142,144-171,184-186,192,195,198-206,212-213,215-217,223-224,227-228,239,248-257,260-271,273-276,278-279,286-292,295-300,302,390-685,720-724,742-743,780,799-805,812-814,823-849,853-856,884,889-896,898-900,909-910,914,917-920,922-923,927,929-930,932-942,944-945,949,992
 src/temples/skins/lamp-house.js
   s_5f899ba316b5dc::t_d14177209b8289 705-709
+  s_5f899ba316b5dc::t_5466fde0570a1c 705-709
 tests/lamp-house.test.js
   s_5f899ba316b5dc::t_1a702b98c70465 1-343
+  s_5f899ba316b5dc::t_97ec2cf8838330 1-343
 tests/temple-design.test.js
   s_5f899ba316b5dc::t_7767d90f25b1ba 233-234
 tests/temple-playthrough.test.js
   s_5f899ba316b5dc::t_82758bf0160718 47-48,385-389
+  s_09746ee554b0c6::t_e4a5919990ee0d 385-389
 tests/temples.test.js
   s_5f899ba316b5dc::t_1a276887ab5dff 44,70,688-689,692,694-725,727,729,731,733,742,745-746,750,752,754,2810,2820,2825
+  s_5f899ba316b5dc::t_4a0133f78389f4 44,688-689,692,694-725,727,729,731,733,742,745-746,750,752,754,2810,2820,2825
 ---
 {
   "schema_version": "authorship/3.0.0",
@@ -33,6 +46,14 @@ tests/temples.test.js
   "base_commit_sha": "bb4163346402c91dc2c6ac30ca7dd4213b5b6e70",
   "prompts": {},
   "sessions": {
+    "s_09746ee554b0c6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-aef08b54e1d261efb",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
     "s_5f899ba316b5dc": {
       "agent_id": {
         "tool": "claude",
