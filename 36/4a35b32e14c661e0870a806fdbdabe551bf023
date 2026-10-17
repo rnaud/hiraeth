@@ -1,0 +1,51 @@
+scripts/temple-design/lib.mjs
+  s_5f899ba316b5dc::t_f3c696c235bd1e 54-55,92,105,193,198-205,212
+docs/systems/temples.md
+  s_5f899ba316b5dc::t_dd54cab65a788d 691-741,1101-1102
+src/changelog.js
+  s_5f899ba316b5dc::t_9ffb74a3d23b30 11,18-22
+tests/temples.test.js
+  s_5f899ba316b5dc::t_5be2c41c385e25 37,685,699-712,714-725,733-734,737-738,741-742,744-746,748,750,2053
+tests/temple-skins.test.js
+  s_5f899ba316b5dc::t_976fbea4062039 310-313,322-323,326-330
+src/temple-maps/makers.js
+  s_5f899ba316b5dc::t_eed0fe259ceb54 365-367
+tests/temple-playthrough.test.js
+  s_5f899ba316b5dc::t_4e21a67d8604c8 283-311,314,474
+src/temples/arzach2.js
+  s_5f899ba316b5dc::t_ef1c5113edb962 12,110-116,122-126,128-142,148-149,153,161-162,166-168,184-186,193-200,203-208,211-220,222,241,243-250,253-255,439-624,674-675,700-744,747-748,768-771,773,775,783-784,786-793,801-802,804-805,809,845-850,857,859,866-869,871-872,886,892-904
+src/temples/runtime.js
+  s_5f899ba316b5dc::t_7d54ee55fdf1aa 78-79
+src/changelog-media.js
+  s_5f899ba316b5dc::t_5e8e9b1ae9f6c6 1108-1110,1112,1125-1134
+scripts/temple-design/rules.mjs
+  s_5f899ba316b5dc::t_a65b246b9b5634 13,98-100,215-217
+tests/belfry-bells.test.js
+  s_5f899ba316b5dc::t_a63c25e36d1a62 1-270
+docs/design/temple-best-practices.md
+  s_5f899ba316b5dc::t_11ec114f909eb8 469,492-518
+tests/playthrough-agent.js
+  s_5f899ba316b5dc::t_f7a16d0af5e6a9 627-628
+src/temples/migrate.js
+  s_5f899ba316b5dc::t_6f06c30b28edb0 258-261,263,267,281-282
+src/temples/logic.js
+  s_5f899ba316b5dc::t_bb948dc2f4cc82 30-32,271,377-383,426,471
+changelog.md
+  s_5f899ba316b5dc::t_c8cc70fffd2d68 5-7,10
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "364a35b32e14c661e0870a806fdbdabe551bf023",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
