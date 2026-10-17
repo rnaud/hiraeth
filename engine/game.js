@@ -20,7 +20,7 @@ import { page } from './boot.js';
 import '../src/gadgets/all.js';   // (first after the page's stand-ins: the gadgets become items before anything reads ITEMS)
 import * as THREE from 'three';
 import { levelById, LEVELS } from '../src/levels/index.js';
-import { CONTENT } from '../src/levels/content.js';
+import { CONTENT, ERRANDS } from '../src/levels/content.js';
 import { Physics, dropBuriedFloraSteps } from '../src/physics.js';
 import { Waters, BreathMeter, breathShown } from '../src/water.js';
 import { Ship } from '../src/ship/ship.js';
@@ -154,7 +154,7 @@ import { DevMenu } from '../src/dev-menu.js';
 import { gatherPoints, questList, applyQuestJump, landingSpot, godLanding } from '../src/world-debug.js';
 import { GAMES } from '../src/minigames/index.js';
 import { DEBUG_SLOT } from '../src/save-slots.js';
-import { wireKit, wireDangers } from '../src/host/game-host.js';
+import { wireKit, wireDangers, wirePeople } from '../src/host/game-host.js';
 
 export { page };
 export { readHref } from './trials.js';   // (the tests: a game page's address)
@@ -469,7 +469,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // the toasts, one at a time for their reading time (as ship/cinema.js shows them on the page)
   const toasts = { queue: [], left: 0 };
   let roadT = 1;
-  const toast = (text) => { if (text && toasts.queue.at(-1) !== text) toasts.queue.push(String(text)); };
+  let folk = null;   // (the errands, the hum, the faces of whoever talks: wirePeople, below once the journal is)
+  // (a toast's words heard for the hum, as the page's cinema hears its own: src/story/hum.js)
+  const toast = (text) => { if (text && toasts.queue.at(-1) !== text) { toasts.queue.push(String(text)); folk?.hear(String(text)); } };
   const noticeBusy = () => toasts.left > 0 || toasts.queue.length > 0;   // (a notice up or waiting: main.js ship.cinema.noticeBusy)
   carryHooks.notice = (t) => toast(keyText(t, { teach: true }));   // (carrying, src/carry.js: the first time, how to put it down and throw it)
   player.onNotice = toast;
@@ -490,6 +492,10 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // the journal's record (src/quest.js Journal: the worlds seen, the stories told, the relics, the errands), read from
   // the save as the page keeps it, without its page (the game menu draws from it: engine/menus.js)
   const journal = engineJournal({ write: !flags });
+  // the errands (a parcel from one world's person to another's), the hum when words on the screen speak of it, the face of
+  // whoever talks near you, as the page (src/host/game-host.js wirePeople: the engines had none of them before, #427)
+  folk = optional('the people\'s errands and faces', () => wirePeople({ levelId, npcs, journal, toast: (t) => toast(t), titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])),
+    sound, ship, game: gameState }));
   // the world's story page (src/quest.js Story, as main.js makes it): its quest's last step calls story.complete(), which
   // keeps the world in the journal as told (journal.storyDone: a world done for the route, the ship's map, the recordings
   // and home), says its closing words and names what the route opened. (It was a stand-in that kept nothing: no world
@@ -1257,7 +1263,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const lookOut = {};
   const SEC = { ms: {}, frames: 0 };
   const game = {
-    scene, camera, player, rig, level, physics, deferred, floraLater, npcs, crowd, story, storyPage, relics, ship, mirror, boxes, fragments, gadgets, itemFx, grass, wind, sky, post, T, wildlife, weather, shelter, tool, scout, sound, expedition, plumb, firstSteps, setLanternSky, flora, reactiveWorld, flammables,
+    scene, camera, player, rig, level, physics, deferred, floraLater, npcs, crowd, story, storyPage, relics, ship, mirror, folk, kit, dangers, boxes, fragments, gadgets, itemFx, grass, wind, sky, post, T, wildlife, weather, shelter, tool, scout, sound, expedition, plumb, firstSteps, setLanternSky, flora, reactiveWorld, flammables,
     /** The sound's AudioContext (engine/webaudio.js): ctx.render(frames) → the next stereo PCM, or null without sound. */
     get audio() { return sound.ctx ?? null; },
     /** The wallet's chimes (src/resources.js), as the health HUD shows them while it is up. */
@@ -1401,6 +1407,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         levels: LEVELS.map((l) => ({ id: l.id, title: l.title, hidden: l.hidden, blurb: l.blurb, relicNames: CONTENT[l.id]?.relics?.names })),
         mode: () => ({ mode: tool?.owned ? tool.mode : null, modes: tool?.owned ? tool.modes : [], gadget: gadgets?.equipped ?? null, gadgets: gadgets?.owned?.() ?? [] }), boxes: () => boxes?.counts?.() ?? {},
         fragments: () => fragments?.counts?.() ?? null,
+        errandDefs: ERRANDS, done: worldDone,   // (the Quests panel's errands under way, the Worlds page's worlds told, as main.js)
         colours: () => kit?.colours() ?? null,   // (the Items panel's Colours row: src/host/game-host.js wireKit)
         map: (o) => mapSource(o), travel: (id) => !!travel && fastTravel.can({ to: id, from: levelId, seen, flag }), order: ORDER, known: (id) => journal.seen(id) });
     },
@@ -1536,6 +1543,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         if (lod && !n.pooled) n.offView = !inView(n.pos, 3 * (n.object?.scale?.y ?? 1) + 6);
         n.update(dt, player, camera);
       }
+      folk?.errands.update();
       lap?.('people');
       // the ship's E aboard and its autopilot (the ramp's walk in and out), as main.js filters the input before the rest
       const busy0 = !!story?.busy?.() || (shipOn && ship.busy()) || !!boxes?.busy?.() || !!trials?.busy();
@@ -1615,6 +1623,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         const prompted = story?.prompt && story?.promptEntry?.npc;
         for (const n of npcs) n.placeBalloon?.(camera, n === best, n === prompted ? 30 : 0);
         publishBalloons([...npcs, crowd]);
+        folk?.talk(dt, best, camera);   // (a balloon that speaks of humming: the hum; the one who talks near says it with their face)
       } catch (e) { if (!game._balloonsFailed) { game._balloonsFailed = true; console.warn('[game] the balloons failed', e?.stack ?? e); } }
       lap?.('hud');
       // (the ways through's light every frame, a fixed view's too: the web's bench draws them, scripts/unity-compare/)

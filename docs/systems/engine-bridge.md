@@ -1871,6 +1871,10 @@ the engines' build of the game to see it there. Moved so far:
 - `wireDangers`: every fire drawn burns while you stand in it (fireHazard, registered once a game: the next world's
   lets the last one's go), with the hazards the levels register; a world's deadly void under its kill height
   (worldVoid, a wash in level.veils, Hiraeth/PitVoid in Unity). The engines registered no fire's and drew no void.
+- `wirePeople`: the errands (src/quest.js Errands, kept in the journal: engineJournal has the same fields; the game
+  menu's Quests panel gets the errands' list, the Worlds page the worlds told), the hum when words on the screen speak
+  of it (the page's cinema's toasts and subtitles, the engines' toasts, a conversation's lines, a balloon), and the
+  face of whoever talks near you (src/talk-face.js). The engines had none of the three.
 
 ## Status
 
