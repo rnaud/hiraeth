@@ -4,6 +4,8 @@ import { smoothstep, mulberry32 } from './noise.js';
 import { RoomKit } from './levels/lab-kit.js';
 import { LightShaft } from './veil.js';
 import { GLASS_ATTR } from './dune-glass-shader.js';
+import { quarterMaterials } from './glass-dunes-quarter.js';
+import { buildBuriedStreets } from './glass-dunes-streets.js';
 import { clock } from './glass-dunes-frozen.js';
 
 // ---------------------------------------------------------------------------
@@ -53,7 +55,7 @@ export const APRON = [6, 12];
  * the Clock-House: src/levels/glass-dunes.js CLOCK_HOUSE), the clear patches of its ceiling.
  */
 export const CITY = {
-  at: [620, 2600, -620], box: [-38, 46, -34, 46], ceiling: 15,
+  at: [620, 2600, -620], box: [-38, 46, -34, 46], ceiling: 15, vaultHeight: 66,
   ramp: { top: [0, 14.2, 1.5], foot: [0, 0, 25], w: 6 },
   landing: [5, 0, 30], exit: [0, 14.0, 2.6],
   tower: { x: 30, z: -12, r: 4.6 },
@@ -61,7 +63,7 @@ export const CITY = {
 };
 CITY.landingHeading = Math.atan2(CITY.tower.x - CITY.landing[0], CITY.tower.z - CITY.landing[2]);   // (the tower ahead as you land)
 /** The city's look (sRGB): pale stone and green glass, as the sheets'. */
-export const CITY_LOOK = { stone: '#ece2cc', stone2: '#ded2b8', floor: '#d9cdb0', glass: '#86d6aa', lit: '#c8f7c4', ceiling: '#a9e4c4', sand: '#e8c48f', print: '#8f6c4c', pane: '#9fe6c0' };
+export const CITY_LOOK = { stone: '#ece2cc', stone2: '#ded2b8', floor: '#ddd3bc', glass: '#86d6aa', lit: '#c8f7c4', ceiling: '#a9e4c4', sand: '#e8c48f', print: '#8f6c4c', pane: '#9fe6c0' };
 
 // ------------------------------------------------------------------ the ground
 
@@ -187,7 +189,7 @@ export const cityPoint = (x, y, z) => V(CITY.at[0] + x, CITY.at[1] + y, CITY.at[
 export function inCity(p) {
   if (!p) return false;
   const [x0, x1, z0, z1] = CITY.box, x = p.x - CITY.at[0], y = p.y - CITY.at[1], z = p.z - CITY.at[2];
-  return x > x0 - 2 && x < x1 + 2 && z > z0 - 2 && z < z1 + 2 && y > -3 && y < CITY.ceiling + 6;
+  return x > x0 - 2 && x < x1 + 2 && z > z0 - 2 && z < z1 + 2 && y > -3 && y < CITY.vaultHeight + 6;
 }
 
 /** The ceiling's outline, a rectangle with the sinkhole's hole and the tower's (local x, z). */
@@ -217,14 +219,14 @@ function buildCity(scene, M, veils) {
     glass: kit.mat({ color: L.glass, flat: true, glow: 0.35, line: 0.4, lineTint: 0.8, spot: 0 }),
     lit: kit.mat({ color: L.lit, flat: true, glow: 0.9, line: 0.2 }),
     sand: kit.mat({ color: L.sand, flat: true, hatch: 0.35, spot: 0 }),
-    roofSand: kit.mat({ color: L.sand, flat: true, hatch: 0.35, spot: 0, side: THREE.DoubleSide }),
-    ceiling: kit.mat({ color: L.ceiling, flat: true, glow: 0.55, line: 0.3, lineTint: 1, spot: 0, side: THREE.DoubleSide }),
+    roofSand: kit.mat({ color: '#3d6b58', flat: true, hatch: 0.25, spot: 0, side: THREE.DoubleSide }),
+    ceiling: kit.mat({ color: '#5e8e78', flat: true, glow: 0.16, line: 0.3, lineTint: 1, spot: 0, side: THREE.DoubleSide }),
     print: kit.mat({ color: L.print, flat: true, spot: 0 }),
     face: kit.mat({ color: '#f6f0e4', flat: true, glow: 0.5, spot: 0 }),
     hands: kit.mat({ color: '#34405e', flat: true, spot: 0 }),
   };
   const add = (k, g, o) => kit.add(mat[k], g, o);
-  const [x0, x1, z0, z1] = CITY.box, W = x1 - x0, D = z1 - z0, cx = (x0 + x1) / 2, cz = (z0 + z1) / 2, C = CITY.ceiling;
+  const [x0, x1, z0, z1] = CITY.box, W = x1 - x0, D = z1 - z0, cx = (x0 + x1) / 2, cz = (z0 + z1) / 2, C = CITY.vaultHeight;
   // the streets: paving, its joints a darker grid
   add('floor', new THREE.BoxGeometry(W, 0.4, D).translate(cx, -0.2, cz));
   for (let x = x0 + 6; x < x1; x += 6) add('stone2', new THREE.BoxGeometry(0.12, 0.02, D).translate(x, 0.01, cz), { solid: false });
@@ -245,10 +247,11 @@ function buildCity(scene, M, veils) {
   }
   // the ceiling of glass, lit from above (no shadow: the sun comes through it), its lattice, and the sand drifted on it
   const ceil = new THREE.Mesh(ceilingGeometry().translate(0, C, 0), mat.ceiling);
-  ceil.userData.castShadow = false; ceil.userData.noCollide = true;
+  // The taller streets meet a real ceiling; its existing sinkhole and tower holes stay open.
+  ceil.userData.castShadow = false;
   group.add(ceil);
-  for (let x = x0 + 8; x < x1; x += 8) add('stone2', new THREE.BoxGeometry(0.3, 0.45, D).translate(x, C - 0.25, cz), { solid: false });
-  for (let z = z0 + 8; z < z1; z += 8) add('stone2', new THREE.BoxGeometry(W, 0.45, 0.3).translate(cx, C - 0.25, z), { solid: false });
+  // Irregular mint skylights in the green crust, rather than a low pale lattice.
+  for(const [i,[x,z,r]] of CITY.clear.entries())add('lit',new THREE.BoxGeometry(r*.9,.09,r*.65).rotateY(i*.27).translate(x,C-.12,z),{solid:false,shadow:false});
   const rng = mulberry32(1660);
   const clearAt = (x, z) => CITY.clear.some(([a, b, r]) => Math.hypot(x - a, z - b) < r) || Math.hypot(x - CITY.ramp.top[0], z - CITY.ramp.top[2]) < 5 || Math.hypot(x - CITY.tower.x, z - CITY.tower.z) < CITY.tower.r + 1.5;
   const sandOn = [];
@@ -275,8 +278,8 @@ function buildCity(scene, M, veils) {
   }
   // the round tower under the Clock-House, through the ceiling; its clock stopped at seven to, over the square
   const T = CITY.tower;
-  add('stone', new THREE.CylinderGeometry(T.r, T.r * 1.08, C + 4, 24).translate(T.x, (C + 4) / 2, T.z));
-  for (const y of [4.2, 9.4, C - 0.6]) add('stone2', new THREE.CylinderGeometry(T.r + 0.3, T.r + 0.3, 0.45, 24).translate(T.x, y, T.z));
+  add('stone', new THREE.CylinderGeometry(T.r, T.r * 1.08, CITY.ceiling + 4, 24).translate(T.x, (CITY.ceiling + 4) / 2, T.z));
+  for (const y of [4.2, 9.4, CITY.ceiling - 0.6]) add('stone2', new THREE.CylinderGeometry(T.r + 0.3, T.r + 0.3, 0.45, 24).translate(T.x, y, T.z));
   add('print', new THREE.BoxGeometry(1.6, 2.8, 0.4).translate(0, 1.4, T.r).applyMatrix4(new THREE.Matrix4().makeRotationY(CITY.landingHeading + Math.PI)).translate(T.x, 0, T.z));
   for (let i = 0; i < 10; i++) { const a = (i / 10) * TAU, y = 6 + (i % 2) * 5; add('lit', new THREE.BoxGeometry(0.6, 1.4, 0.12).translate(0, 0, T.r + 0.02).applyMatrix4(new THREE.Matrix4().makeRotationY(a)).translate(T.x, y, T.z)); }
   {
@@ -284,11 +287,8 @@ function buildCity(scene, M, veils) {
     const m = new THREE.Matrix4().makeTranslation(T.x, 11.6, T.z).multiply(new THREE.Matrix4().makeRotationY(CITY.landingHeading + Math.PI)).multiply(new THREE.Matrix4().makeTranslation(0, 0, T.r + 0.12)).multiply(new THREE.Matrix4().makeScale(3.4, 3.4, 3.4));
     add('face', c.face.applyMatrix4(m)); add('hands', c.hands.applyMatrix4(m)); add('stone2', c.body.applyMatrix4(m));
   }
-  // the houses: round drums with domes of green glass, arcades, a dry fountain in the square, floats on a doorstep
-  const houses = [[-26, -22, 3.2, 7], [-14, -24, 2.4, 9], [-28, -6, 2.8, 6], [-26, 14, 3, 8], [-24, 32, 2.6, 6], [-10, 38, 3.4, 7], [16, 38, 2.6, 9], [34, 34, 3.2, 6], [38, 16, 2.4, 8], [16, -26, 2.8, 7], [40, -24, 2.6, 6], [-12, -6, 2.2, 5]];
-  for (const [i, [x, z, r, h]] of houses.entries()) roundHouse((k, g) => add(k, g), x, 0, z, { r, h, dome: i % 3 !== 1, spire: i % 4 === 0 ? 3 : 0, windows: 7, seed: i });
-  for (let i = 0; i < 6; i++) add('stone', new THREE.CylinderGeometry(0.4, 0.45, 6, 10).translate(-20 + i * 5, 3, -14));
-  add('stone2', new THREE.BoxGeometry(27, 1.0, 2.2).translate(-7.5, 6.4, -14));
+  // Connected facades and a roof loop, with the original square and tower intact.
+  const streets=buildBuriedStreets(kit,quarterMaterials(kit));
   const fx = 14, fz = 4;
   add('stone2', new THREE.TorusGeometry(3.2, 0.45, 6, 24).rotateX(Math.PI / 2).translate(fx, 0.5, fz));
   add('stone', new THREE.CylinderGeometry(3.2, 3.2, 0.3, 24).translate(fx, 0.15, fz));
@@ -303,7 +303,7 @@ function buildCity(scene, M, veils) {
   const shafts = veils ? CITY.clear.map(([x, z, r]) => new LightShaft(veils, scene, { color: '#e9fbd6', alpha: [0.1, 0.12], near: 3 }).set(cityPoint(x, C, z), r * 0.7, cityPoint(x + 2.5, 0, z + 1.5), r * 0.9)) : [];
   // its lamps at night: the floats' glow and the lit windows
   for (const [x, z] of [[fx, fz], [CITY.landing[0], CITY.landing[2]], [T.x - 6, T.z + 6], [-20, 20], [-14, -18], [30, 30]]) kit.light(x, 3, z, 16);
-  return { group, kit, lights: kit.lights, shafts };
+  return { group, kit, lights: kit.lights, shafts, streets };
 }
 
 // ------------------------------------------------------------------ all of it

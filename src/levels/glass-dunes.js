@@ -14,6 +14,8 @@ import { LOCALS } from '../story/glassdunes-people.js';
 import { buildFloatPosts, buildWaveCairn, buildCairnWay, WAVE_CAIRN, BREAKER_CAIRN } from '../glass-dunes-ways.js';
 import { buildFrozenScenes, frozenTraces } from '../glass-dunes-frozen.js';
 import { buildSandCity, cutSand, windowGlass, inCity } from '../glass-dunes-city.js';
+import { buildGlassQuarter } from '../glass-dunes-quarter.js';
+import { buildWesternDunes } from '../glass-dunes-west.js';
 import { Veils } from '../veil.js';
 
 // ---------------------------------------------------------------------------
@@ -88,7 +90,8 @@ export const GLASS_RIDGES = [
     silhouettes: [{ shape: 'giant', u: 120, y: 0, s: 28 }, { shape: 'head', u: 215, y: 6, s: 22 }, { shape: 'beast', u: 300, y: 10, s: 30 }],
     passages: [{ at: [-171, 70], w: 7, h: 10 }] },
   // the billows, east (reference-2), facing west
-  { name: 'billows', path: [[265, -150], [250, -60], [235, 30], [228, 120], [210, 205]], height: 58, depth: 150, profile: 'dome', taper: [1.2, 0.6],
+  // (from z -50: north of it, where the billows met the breaker, the half-buried court is dug in: src/glass-dunes-quarter.js COURT)
+  { name: 'billows', path: [[250, -50], [235, 30], [228, 120], [210, 205]], height: 58, depth: 150, profile: 'dome', taper: [1.2, 0.6],
     folds: { width: 26, amp: 10, lean: 0.25, crest: 0.05 }, colours: { mid: '#62c48c', top: '#3f9c7a' } },
   // the frozen wave in the valley's middle (reference-1), facing south
   { name: 'wave', path: [[-90, 70], [-40, 46], [20, 40], [80, 56]], height: 34, depth: 50, profile: 'wave',
@@ -118,7 +121,7 @@ GLASS_RIDGES.push({ name: 'carriers', path: [[174, 85], [166, 145]], height: 16,
 /** The green flows over the sand (low glass bands, walkable), east of the valley. */
 export const GLASS_FLOWS = [
   [[30, 190], [80, 170], [130, 176]], [[20, 120], [70, 100], [140, 108]], [[60, 10], [110, -10], [150, 0]],
-  [[-100, 180], [-60, 196], [-20, 186]],
+  [[-86, 192], [-56, 200], [-20, 186]],   // (from clear of the painted quarter's foot: src/glass-dunes-quarter.js QUARTER)
 ];
 /** Archways in the walls' feet, drawn only (lit from beyond): [x, z, yaw (the way out), width, height]. The two you walk through are the ridges' `passages`. */
 export const GLASS_ARCHES = [[237, -20, -Math.PI / 2, 9, 12], [-70, -222, 0, 10, 16], [60, -218, 0, 8, 12], [0, -600, 0, 30, 60]];
@@ -212,6 +215,8 @@ export function* buildGlassDunes(scene) {
   yield;
   // the windows in the sand, the sinkhole by the Clock-House and the city under it (issue #166)
   const city = buildSandCity(scene, M, { ground: terrain, veils });
+  const quarter = buildGlassQuarter(scene, terrain, M.glass);
+  const western = buildWesternDunes(scene, terrain, M.glass);
   yield;
   // the arches' and the camps' glow at night
   const lights = [...kit.lights, ...city.lights];
@@ -239,7 +244,9 @@ export function* buildGlassDunes(scene) {
     id: 'glassdunes',
     portals: [...shop.portals, ...city.portals],
     shops: [shop],
-    floraAvoid: shop.avoid(city.avoid),
+    floraAvoid: shop.avoid((x, z, r) => city.avoid(x, z, r) || quarter.avoid(x, z, r) || western.avoid(x,z,r)),
+    quarter,
+    western,
     veils,
     frozen,
     sandCity: city,
@@ -283,6 +290,7 @@ export function* buildGlassDunes(scene) {
     // neither people nor quests: the camps, the passage through the wave, the rack, the cairn
     lines: [{ name: 'the float-posts', points: floats.points, auto: false }, { name: 'the cairn’s posts', points: up.points }],
     sights: [
+      ...quarter.sights.map(s=>({...s,at:new THREE.Vector3(...s.at)})),
       { name: 'the west camp', at: new THREE.Vector3(GLASS_CAMPS.west.x, terrain.heightAt(GLASS_CAMPS.west.x, GLASS_CAMPS.west.z) + 0.5, GLASS_CAMPS.west.z) },
       { name: 'the north camp, under the breaking wave', at: new THREE.Vector3(GLASS_CAMPS.north.x, terrain.heightAt(GLASS_CAMPS.north.x, GLASS_CAMPS.north.z) + 0.5, GLASS_CAMPS.north.z) },
       { name: 'the passage through the frozen wave', at: new THREE.Vector3(-12, terrain.heightAt(-12, 44) + 0.5, 44) },
@@ -295,6 +303,7 @@ export function* buildGlassDunes(scene) {
       // (issue #166: the stopped minutes in the glass, read from where you stand; the windows in the sand, the sinkhole)
       ...frozen.scenes.map((f) => ({ name: f.label, at: f.stand.clone().setY(f.stand.y + 0.5) })),
       ...city.sights,
+      ...western.sights.map(s=>({...s,at:new THREE.Vector3(...s.at)})),
     ],
     cairnWay: up,
     update(dt, t, ctx) { cairn.wave(t ?? 0); breaker.wave(t ?? 0); up.update(dt, t, ctx); frozen.update(ctx?.camera); },

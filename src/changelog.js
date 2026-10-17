@@ -54,6 +54,16 @@ export const CHANGELOG = [
     // rt.placed), pieces.js MapChest, each house's LOGIC `map`, src/ui.js drawHouse, engine/menus.js HOUSE_SIDE,
     // BridgeMenu.cs DrawHouse; tests/house-map.test.js
     'Every makers’ house now has its map, in a little chest off the way on, early in the house. Open it and the Start menu’s new House map shows the whole house floor by floor, a tab for each (LB / RB): the rooms you have been in drawn in ink, the rest faint, where you stand and which way you face, the doors open or shut, the locks still waiting for a key, the great key’s door in gold and the guardian’s door ringed in red. Before you find it, the House map shows only the rooms you have seen.',
+    // issue #393 (over Codex's ba8ff71a2): src/glass-dunes-masses.js (towers with scalloped tops, crowded blocks, rock
+    // dwellings, crystal columns, pale floors, cottages), glass-dunes-quarter.js, -west.js, -streets.js; one set of merged
+    // meshes a place; tests/glass-dunes-quarter.test.js
+    // issue #426: where they stand: src/glass-dunes-quarter.js QUARTER, CLEFT, COURT (turned: placed()), glass-dunes-west.js
+    // FOLDED, PRISM, PEARL (the pearl city's east stair, its east side open), the billows from z -50 (glass-dunes.js);
+    // tests/glass-dunes-quarter.test.js walks the loop
+    { text: 'The Glass Dunes have new places, and they now sit where they belong. A white hillside village of curved terraces, one blue house and one coral tower, leans on the giants’ cliff a short walk west of the ship, its stairs facing you as you land. South-west of the ship, a red stair climbs a cleft of rounded green glass, and its arch is the way round the giants’ cliff to the west. In the north-east corner, where the billows meet the breaking wave, a court of pale rock dwellings is dug under a green glass cave, a dark cave mouth and a tall blue door beside it. Under the sand, the buried streets by the Clock-House are pale stone towers crowded with rooms and small amber windows.',
+      see: 'From the ship, look west: the village is under the cliff, the red cleft beyond it to the south-west. Walk east along the breaking wave past the north camp to find the cave court. Go down the sinkhole by the Clock-House for the buried streets.' },
+    { text: 'Behind the giants’ cliff, the far west is now one way north and a loop back. Through the red cleft’s arch, a ravine of dark folded glass with a massive pale stair up its wall leads to a square where the giants’ passage comes out. From there a cleft of faceted crystal columns over gold sand, with a high bridge and a crystal arch, frames the pearl city ahead, a castle of white towers against dark glass. Its east stair takes you out through the gap between the giants and the breaking wave, back to the north camp, and from the gap you can see the castle again.',
+      see: 'Go through the red cleft south-west of the ship, or the passage in the giants’ cliff by the west camp, then north through the ravine and the crystal cleft to the pearl city; leave it by its east stair.' },
   ] },
   { v: '1.81', date: '2026-10-16', items: [
     // issue #385: engine/game.js defers the drifts' collision (DRIFT_FITS.later, late-collision mergeMax, DRIFT_FITS.most)

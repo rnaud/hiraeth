@@ -2721,3 +2721,77 @@ Quartermaster's Hatch on the way to the keep; Mott's Tooth-Counter among the Bur
 Listening Stall by the path to the sphere-arch; Pashka's Cure-Stall on the Market's avenue. Where each stands, its
 front and room and how it was placed: docs/systems/interiors.md, "A shop in every world"; what they sell:
 docs/systems/items.md.
+
+### Glass Dunes: selected-reference scenery (v1.82, issues #393 over Codex's first pass)
+
+Seven places built to the plates the author hearted (`references/levels/The Glass Dunes/environment/diversity/`,
+`selection.json`): green glass stays dominant, colour is a few accents. Scenery only: quests, temples, people and
+the original dunes are untouched, and every stair, bridge and walk a place returns is walked both ways by
+`tests/glass-dunes-quarter.test.js`.
+
+- **The masses** (`src/glass-dunes-masses.js`): what the plates are made of, as merged pieces. `roundTower` and
+  `squareTower` (set-back storeys, scalloped merlons, small deep openings, a few lamplit), `crowdedBlock` (a core with
+  rooms jutting from every face at every storey, ledges, a ragged top; `clear(x, y, z, r)` keeps rooms off the walks),
+  `rockDwelling` and `lump` (pale eroded rock piled on rounded blocks, doors and windows carved in), `cottage` (a light
+  20-sided whitewashed house, a door, a window, sometimes a cone), `crystalColumn` (a 5-7-faced prism, each face its own
+  green, the top cut on a slant, with the dune glass's data on every vertex for Unity), `paleFloor` (a solid sheet a few
+  cm over the sand: the plates' bright floors), `rubble`. Openings are drawn only (no collision, no shadow) and lie
+  1-2 cm off their wall, so the contact audit sees the wall behind them. `tests/glass-dunes-masses.test.js`.
+- **One kit a place**: the painted quarter, the cleft, the court (`glass-dunes-quarter.js`) and the ravine, the prism
+  cleft and the pearl city (`glass-dunes-west.js`) each merge into their own few meshes, so each is culled on its own;
+  their no-shadow pieces (openings, floors, the court's cave) are marked so.
+- **The painted quarter** (painted-stair-quarter.jpeg): four terraces scaled 1 × 1.4 × 1, a ring of cottages
+  on each rim and round the foot wherever no stair, landing or walk passes, one blue house and the coral tower on top;
+  six green ribbons (`glassFold`) curl round it, two across its front corners.
+- **The vermilion cleft** (vermilion-cleft.jpeg): Codex's lobed walls kept; the red stair thicker, a pale floor.
+- **The half-buried court** (half-buried-courtyard.jpeg): rock dwellings in tiers on both sides and up the
+  back terrace, lumps piled over them, the plum-dark cave mouth in a rock arch, a tall blue door, a broad middle stair to
+  the back terrace; warm pale sand; the emerald cave (`glassCave`) casts no shadow, so the sun lights the court.
+- **The buried streets** (the city under the sand; buried-city.jpeg): `crowdedBlock`s 44-58 m tall in cream stone, the
+  west row a cool slate (the plate's shaded side), small amber windows (`uGlow` 1.4), an arched span high over the lane;
+  the floor back to pale stone. `CITY.vaultHeight` 66 m over `CITY.ceiling` 15 m (the exit and the clock tower's datum).
+- **The folded ravine** (folded-ravine.jpeg): the stair is one pale mass: the lower flights solid to the sand
+  and joined to the cliff by the mass under them, 7.5-8 m wide with parapets, the landings drums from the sand, the high
+  return 8 m wide and 10 m deep; a pale floor.
+- **The prism crossings** (prism-cleft-1, -3): three ranks of faceted crystal columns a side (52-130 m), a
+  crystal arch over the lane at the north end (26 m wide, off the stairs' feet and the route on to the pearl city),
+  heavier stairs and bridge, bright sand.
+- **The pearl city** (pearl-labyrinth-3.jpeg): `pearlCastle`, towers and curtain walls 30-80 m behind the
+  galleries, against darker, nearer glass slabs (98 m, the back 125 m: low enough for the sun to reach the plaza); the
+  stopped clock a slender 87 m spire; the plaza pale stone whose shade stays light.
+
+Cost (headless Chrome on this Mac, uncapped, loaded machine, from where the traveller stands): draw calls within ±13 of
+Codex's pass in every view measured (painted quarter 433 → 446, red cleft 646 → 645, court 287 → 281, pearl 241 → 245
+at High; 328 → 334, 526 → 531, 210 → 209, 184 → 185 on Handheld), triangles -12 to +11 %, frame times within the noise.
+
+**Where they stand (issue #426).** The look is #393's; the places were moved so the world reads as one geography,
+from the game's own map (the serendipity page's data, `src/serendipity-page/collect.js`). Before, the village stood
+alone in the open north-west, the red cleft was a dead end south of the ship, the court was sealed between the breaker
+and the billows, and the far west was one corridor behind the giants entered only by the 7 m passage, ending at the
+pearl city, which nothing let you see. Now:
+
+- **The painted quarter** (-128, 192): leaning on the giants' cliff a short walk west of the ship, its stairs facing the
+  landing, its ribbons framing it (none on the cliff side); the low glass flow north of it starts clear of its foot.
+- **The vermilion cleft** (-238, 266): south-west of the ship, entered at its south end; its vault's arch opens north
+  behind the giants' south end: the southern way west.
+- **The folded ravine** (-330, 120): its south mouth just west of the cleft's arch, its north mouth on a square
+  (about (-300, 35)) where the giants' passage (-171, 70) comes out: a way through, two ways in.
+- **The prism crossings** (-330, -55): from the square north; its crystal arch frames the pearl city ahead.
+- **The pearl city** (-330, -206): in line with the prism; its east side open, a broad stair down off the plaza
+  (`western.pearl.exit`) to the gap between the giants' north end and the breaker's west end, and on to the north camp.
+  Seen again from the gap.
+- **The half-buried court** (282, -150, turned to face west): dug into the corner where the billows (now from z -50)
+  met the breaker, its mouth on the north valley's east end, past the north camp and the makers' court. A place can be
+  turned: `placed(q)` maps a point built about the anchor facing +z to the world; the place is built on the ground as it
+  lies once turned, its group turned into place, and the stairs and points it returns turned with it.
+- **The buried streets** stay under the Clock-House, in the city they belong to.
+
+The main loop (walked both ways by `tests/glass-dunes-quarter.test.js`): the ship, the cleft, the ravine, the square,
+the prism, the pearl city, the gap, the north camp; the giants' passage is the shortcut between the square and the
+west camp. No quest, person, shard or box was tied to the old places, so none moved. Walking distances from the ship
+(the map's grid): the village 354 → 155 m, the cleft 183 → 278 m, the ravine 384 → 365 m, the prism 498 → 488 m,
+the pearl city 638 → 650 m; the empty share of the walkable ground 44 → 42 %. (The court is counted unreached on that
+grid: it reads the ground from above, and the cave's roof is in the way; the walk into it is tested.)
+
+Cost, from the ship looking west (the village and the cleft now in view) and on the square: High 445 → 468, 359 → 387,
+280 → 277 draw calls; Handheld 349 → 370, 303 → 329, 226 → 228; frame times within the noise of a loaded Mac.

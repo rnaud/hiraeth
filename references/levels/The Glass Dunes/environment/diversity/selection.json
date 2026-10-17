@@ -1,0 +1,82 @@
+{
+  "selectedBy": "User hearts in Midjourney; inspected 2026-10-16",
+  "constraint": "Keep green glass dunes dominant. Architectural diversity and selective blue, coral, plum, gold and vermilion accents only. No changes to quests, temples or main characters. Kiln quarter and suspended dwellings rejected.",
+  "implementationReferences": [
+    {
+      "file": "painted-stair-quarter.jpeg",
+      "job": "9b2419d3-4a73-488d-9844-fba9fe319347",
+      "index": 3
+    },
+    {
+      "file": "vermilion-cleft.jpeg",
+      "job": "e059c757-8131-4cde-8306-ccbc9462f17f",
+      "index": 1
+    },
+    {
+      "file": "half-buried-courtyard.jpeg",
+      "job": "fbd599d9-f144-4c05-992c-15156026b94b",
+      "index": 1
+    },
+    {
+      "file": "painted-accents.jpeg",
+      "job": "da70ba8f-8be3-4697-be99-def82c3499ea",
+      "index": 3
+    }
+  ],
+  "earlierApprovedDirections": [
+    {
+      "file": "pearl-labyrinth-0.jpeg",
+      "job": "cca5dd6a-e747-41ca-87bd-f5c85d9dbcb8",
+      "index": 0,
+      "title": "Pearl labyrinth \u00b7 broad galleries",
+      "coverage": "implemented",
+      "area": "pearl",
+      "note": "Broad raised galleries on slender columns, connected stairs and eroded scallops among roofless ruined shells."
+    },
+    {
+      "file": "pearl-labyrinth-3.jpeg",
+      "job": "cca5dd6a-e747-41ca-87bd-f5c85d9dbcb8",
+      "index": 3,
+      "title": "Pearl labyrinth \u00b7 narrow lanes",
+      "coverage": "implemented",
+      "area": "pearl",
+      "note": "Empty stone shells with uneven broken tops, missing upper walls, open arches and a slender stopped clock above the galleries."
+    },
+    {
+      "file": "folded-ravine.jpeg",
+      "job": "00255e75-32d1-4c2a-b89b-77c7f877eed3",
+      "index": 0,
+      "title": "Folded ravine",
+      "coverage": "implemented",
+      "area": "folded",
+      "note": "Tall folded green sheets enclose a pale white-blue glass stair that climbs 112 m along the cliff; a lower arched bridge crosses the rift."
+    },
+    {
+      "file": "buried-city.jpeg",
+      "job": "93f312d2-5820-4810-b9b6-758d0197317d",
+      "index": 2,
+      "title": "City under the sand",
+      "coverage": "implemented",
+      "area": "city",
+      "note": "Close-set 46\u201358 m facades with offset floors, projecting rooms, emissive amber windows and overhead crossings beneath a 66 m green vault. The original exit and clock square remain."
+    },
+    {
+      "file": "prism-cleft-1.jpeg",
+      "job": "16e47a09-6ef1-4f78-b871-a5190ce43009",
+      "index": 1,
+      "title": "Prism cleft \u00b7 arch crossing",
+      "coverage": "implemented",
+      "area": "prism",
+      "note": "Sharp rectangular glass columns with inclined planar faces frame the high arch crossing."
+    },
+    {
+      "file": "prism-cleft-3.jpeg",
+      "job": "16e47a09-6ef1-4f78-b871-a5190ce43009",
+      "index": 3,
+      "title": "Prism cleft \u00b7 crossing stairs",
+      "coverage": "implemented",
+      "area": "prism",
+      "note": "Angular glass columns frame diagonal stairs, a lower branch and an upper bridge."
+    }
+  ]
+}
