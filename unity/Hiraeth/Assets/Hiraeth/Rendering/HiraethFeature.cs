@@ -132,6 +132,11 @@ namespace Hiraeth.Rendering
             public static float prepassMinRadius;
             /// <summary>The bridge's -gbuffer-test N (the G-buffer's targets in 8 bits, a test: GBufferPass).</summary>
             public static int gbufferTest;
+            /// <summary>The bridge's -draw-tax N and -vert-tax K (issue #404, tests of what one draw and one vertex cost the GPU):
+            /// N more draws of one triangle, or one draw of K thousand, in the G-buffer pass (Tax).</summary>
+            public static int drawTax, vertTax;
+            /// <summary>Where the tax is put, m along the view (-tax-at; under 0: behind the eye, every triangle outside the view).</summary>
+            public static float taxAt = 40f;
             /// <summary>The upscaler from the render scale to the screen (issue #392): Urp, URP's own final blit, as before.</summary>
             public static Upscaler upscaler = Upscaler.Urp;
             /// <summary>RCAS's sharpness after FSR's EASU (FSRUtils' linear scale, 0..1: URP's default 0.92); 0 leaves RCAS out.</summary>
@@ -242,9 +247,66 @@ namespace Hiraeth.Rendering
         static readonly int SceneDepthTex = Shader.PropertyToID("_HiraethSceneDepth"), ContactOn = Shader.PropertyToID("_HiraethContact");
         static readonly int DepthSrc = Shader.PropertyToID("_GDepthSrc"), SceneZParams = Shader.PropertyToID("_SceneZParams");
 
+        /// <summary>The -draw-tax / -vert-tax test (issue #404): extra draws in the G-buffer pass with a lean material the world
+        /// draws with (its own G-buffer program), each a point too small for a pixel at 40 m in the view (a grid across it, so
+        /// the draws fall in every bin of a tiled GPU): they cost the GPU their draw and their vertices and no fragment.</summary>
+        static class Tax
+        {
+            static Mesh tri, many; static Material mat; static int pass = -1; static float nextLook;
+            public static Matrix4x4[] spots = new Matrix4x4[0];
+            public static bool Ready(Camera cam)
+            {
+                if (mat == null && Time.realtimeSinceStartup > nextLook)
+                {
+                    nextLook = Time.realtimeSinceStartup + 2;
+                    foreach (var r in Object.FindObjectsByType<MeshRenderer>(FindObjectsSortMode.None))
+                    {
+                        var m = r.sharedMaterial;
+                        if (m == null || m.shader == null || !m.shader.name.Contains("Surface")) continue;
+                        int p = m.FindPass("HiraethGBuffer");
+                        if (p < 0 || m.IsKeywordEnabled("HIRAETH_INSTMAT") || m.IsKeywordEnabled("HIRAETH_CROWD") || m.IsKeywordEnabled("HIRAETH_GRASS")) continue;
+                        mat = m; pass = p;
+                        Debug.Log($"Hiraeth: draw tax {Settings.drawTax}, vertex tax {Settings.vertTax}k with {m.name} ({string.Join(" ", m.shaderKeywords)}) pass {p}");
+                        break;
+                    }
+                }
+                if (mat == null) return false;
+                if (tri == null)
+                {
+                    tri = new Mesh { name = "tax tri", vertices = new[] { Vector3.zero, Vector3.right, Vector3.up }, normals = new[] { Vector3.back, Vector3.back, Vector3.back }, triangles = new[] { 0, 1, 2 } };
+                    tri.bounds = new Bounds(Vector3.zero, Vector3.one * 1e6f);
+                }
+                if (Settings.vertTax > 0 && many == null)
+                {
+                    int n = Settings.vertTax * 1000 / 3 * 3;
+                    var v = new Vector3[n]; var nr = new Vector3[n]; var ix = new int[n];
+                    for (int i = 0; i < n; i++) { v[i] = new Vector3(i % 3 == 1 ? 1 : 0, i % 3 == 2 ? 1 : 0, (i / 3) * 1e-3f); nr[i] = Vector3.back; ix[i] = i; }
+                    many = new Mesh { name = "tax many", indexFormat = IndexFormat.UInt32, vertices = v, normals = nr };
+                    many.SetIndices(ix, MeshTopology.Triangles, 0); many.bounds = new Bounds(Vector3.zero, Vector3.one * 1e6f);
+                }
+                int k = Mathf.Max(Settings.drawTax, Settings.vertTax > 0 ? 1 : 0);
+                if (spots.Length != k) spots = new Matrix4x4[k];
+                int side = Mathf.Max(1, Mathf.CeilToInt(Mathf.Sqrt(k)));
+                for (int i = 0; i < k; i++)
+                {
+                    var vp = new Vector3(((i % side) + 0.5f) / side, ((i / side) + 0.5f) / side, Mathf.Abs(Settings.taxAt));
+                    var at = cam.ViewportToWorldPoint(vp);
+                    if (Settings.taxAt < 0) at = cam.transform.position - (at - cam.transform.position);   // (mirrored behind the eye)
+                    spots[i] = Matrix4x4.TRS(at, Quaternion.identity, Vector3.one * 1e-4f);
+                }
+                return true;
+            }
+            public static void Draw(RasterCommandBuffer cmd, Matrix4x4[] at)
+            {
+                if (mat == null) return;
+                if (Settings.vertTax > 0 && many != null) cmd.DrawMesh(many, at[0], mat, 0, pass);
+                for (int i = 0; i < Settings.drawTax && i < at.Length; i++) cmd.DrawMesh(tri, at[i], mat, 0, pass);
+            }
+        }
+
         class GBufferPass : ScriptableRenderPass
         {
-            class PassData { public RendererListHandle list, water; public WorldDetail detail; public TextureHandle[] shadowMaps; public Matrix4x4 view, proj; public bool pre; }
+            class PassData { public RendererListHandle list, water; public WorldDetail detail; public TextureHandle[] shadowMaps; public Matrix4x4 view, proj; public bool pre; public Matrix4x4[] tax; }
             class PrepassData { public RendererListHandle list; public Matrix4x4 view, proj; }
             static readonly GlobalKeyword PrepassKeyword = GlobalKeyword.Create("HIRAETH_PREPASS");
             class DepthData { public Material mat; public TextureHandle src; public Vector4 zp; public MaterialPropertyBlock mpb; }
@@ -325,6 +387,7 @@ namespace Hiraeth.Rendering
                     pass.shadowMaps = sm.maps;
                     foreach (var m in sm.maps) if (m.IsValid()) builder.UseTexture(m, AccessFlags.Read);
                     pass.view = cam.GetViewMatrix(); pass.proj = cam.GetProjectionMatrix(); pass.pre = pre;
+                    pass.tax = (Settings.drawTax > 0 || Settings.vertTax > 0) && WorldDetail.DrawsWorld(cam.camera) && Tax.Ready(cam.camera) ? (Matrix4x4[])Tax.spots.Clone() : null;
                     builder.UseRendererList(pass.list);
                     if (split && !contact) builder.UseRendererList(pass.water);
                     builder.SetRenderAttachment(data.albedo, 0, AccessFlags.Write);
@@ -343,6 +406,7 @@ namespace Hiraeth.Rendering
                         ctx.cmd.DrawRendererList(d.list);
                         d.detail?.DrawGBuffer(ctx.cmd);   // (the flora: instanced, one draw a species)
                         if (d.water.IsValid()) { ctx.cmd.SetGlobalFloat(ContactOn, 0); ctx.cmd.DrawRendererList(d.water); }
+                        if (d.tax != null) Tax.Draw(ctx.cmd, d.tax);
                     });
                 }
                 if (!contact) return;

@@ -1175,6 +1175,7 @@ namespace Hiraeth.Bridge
         public void DrawCrowds()
         {
             if (census && Time.frameCount % 300 == 0) Census();
+            if ((hideFar > 0 || hideBig > 0) && cam) HideFar();
             if (staticBatch && lastCreateFrame > 0 && batchedFor != lastCreateFrame && Time.frameCount - lastCreateFrame > 180) StaticBatch();
             PointQuads();
             var around = new Bounds(cam ? cam.transform.position : Vector3.zero, Vector3.one * 1e4f);
@@ -1344,6 +1345,84 @@ namespace Hiraeth.Bridge
             HiraethShadows.Instance.Rescan();
         }
         int unbatched;
+        /// <summary>-hide-far D (a test, issue #404: what the far plain meshes cost): the plain still meshes whose bounds lie wholly
+        /// past D m from the eye are not drawn (nor cast), each frame.</summary>
+        public static float hideFar;
+        /// <summary>-hide-big N (a test): the plain meshes of N vertices and more not drawn (the terrain, the merged towers).</summary>
+        public static int hideBig;
+        readonly HashSet<Node> farHidden = new();
+        /// <summary>-hide-nocast: -hide-far only the meshes that cast no shadow; -hide-match s: only those whose description has s.</summary>
+        public static bool hideNoCast; public static string hideMatch;
+        string Describe(Node n)
+        {
+            var m = n.r.sharedMaterial;
+            Mesh mesh = meshes.TryGetValue(n.mesh ?? "", out var md) && md.mesh ? md.mesh : null;
+            long t = 0; if (mesh) for (int s = 0; s < mesh.subMeshCount; s++) t += mesh.GetIndexCount(s) / 3;
+            return $"'{n.go.name}' {(n.smr ? "skinned" : n.kind)} {(mesh ? mesh.vertexCount : 0)} v {t} t, {(n.shadow ? "casts" : "no cast")}, {n.r.sharedMaterials.Length} mats, {(m ? m.shader.name + " q" + m.renderQueue + " [" + string.Join(" ", m.shaderKeywords) + "]" : "-")} r {n.r.bounds.extents.magnitude:0}";
+        }
+        void HideFar()
+        {
+            var eye = cam.transform.position;
+            foreach (var n in nodes.Values)
+            {
+                if (n.r == null || !n.go || n.im != null || (!hideNoCast && (n.kind != "mesh" || n.smr))) continue;
+                bool far = hideFar > 0 && n.r.bounds.SqrDistance(eye) > hideFar * hideFar;
+                if (hideBig > 0 && !far && meshes.TryGetValue(n.mesh ?? "", out var md) && md.mesh && md.mesh.vertexCount >= hideBig) far = true;
+                if (far && hideNoCast && n.shadow) far = false;
+                if (far && hideMatch != null && !Describe(n).Contains(hideMatch)) far = false;
+                if (far && !farHidden.Contains(n))
+                {
+                    farHidden.Add(n); n.r.forceRenderingOff = true;
+                    if (farHidden.Count <= 80) Debug.Log($"Hiraeth bridge: hidden far: {Describe(n)} at {Mathf.Sqrt(n.r.bounds.SqrDistance(eye)):0} m");
+                }
+                else if (!far && farHidden.Remove(n)) n.r.forceRenderingOff = false;
+            }
+        }
+        /// <summary>-census (issue #404): the triangles inside the camera's view (each renderer's own mesh, its static batch
+        /// aside; the instanced sets by the instances drawn), by distance from the eye and by how many pixels a triangle covers
+        /// on average (the bounds' projected area over its triangles), and the largest contributors: where the G-buffer's and
+        /// the prepass's triangles go.</summary>
+        void TrisCensus()
+        {
+            var planes = GeometryUtility.CalculateFrustumPlanes(cam);
+            var eye = cam.transform.position;
+            float pxPerRad = cam.pixelHeight * HiraethFeatureScale() / (2f * Mathf.Tan(cam.fieldOfView * 0.5f * Mathf.Deg2Rad));
+            float[] bandAt = { 50, 150, 300, 600, 1e9f }; long[] band = new long[5]; long[] tiny = new long[5]; long all = 0;
+            var list = new List<(long t, string name, float d, float r, float pxPerTri)>();
+            foreach (var n in nodes.Values)
+            {
+                if (!n.go || !n.go.activeInHierarchy) continue;
+                long t; Bounds b; string name = n.go.name;
+                if (n.im != null)
+                {
+                    if (n.rawN <= 0 || !n.im.mesh) continue;
+                    t = (long)n.im.lastDrawn * (n.im.mesh.GetIndexCount(0) / 3);
+                    if (t == 0) continue;
+                    b = new Bounds(n.im.Middle, Vector3.one); name = "inst " + name + " x" + n.im.lastDrawn;
+                }
+                else
+                {
+                    if (n.r == null || !n.r.enabled || n.r.forceRenderingOff || n.smr) continue;
+                    Mesh m = meshes.TryGetValue(n.mesh ?? "", out var md) && md.mesh ? md.mesh : n.mf ? n.mf.sharedMesh : null;
+                    if (!m) continue;
+                    b = n.r.bounds;
+                    if (!GeometryUtility.TestPlanesAABB(planes, b)) continue;
+                    t = 0; for (int s = 0; s < m.subMeshCount; s++) t += m.GetIndexCount(s) / 3;
+                }
+                float d = Mathf.Max(0.1f, Vector3.Distance(eye, b.center) - b.extents.magnitude * 0.5f);
+                float rpx = b.extents.magnitude / Mathf.Max(1, Vector3.Distance(eye, b.center)) * pxPerRad;
+                float pxPerTri = Mathf.PI * rpx * rpx / Mathf.Max(1, t);
+                int bi = 0; while (d > bandAt[bi]) bi++;
+                band[bi] += t; if (pxPerTri < 1) tiny[bi] += t; all += t;
+                list.Add((t, name, Vector3.Distance(eye, b.center), b.extents.magnitude, pxPerTri));
+            }
+            list.Sort((a, c) => c.t.CompareTo(a.t));
+            var sb = new System.Text.StringBuilder($"Hiraeth bridge: census, triangles in the view {all / 1000}k; by distance <50 / 150 / 300 / 600 / beyond: ");
+            for (int i = 0; i < 5; i++) sb.Append($"{band[i] / 1000}k ({tiny[i] / 1000}k under a pixel each) ");
+            for (int i = 0; i < Mathf.Min(30, list.Count); i++) sb.Append($"\n  {list[i].t / 1000.0:0.0}k {list[i].name} at {list[i].d:0} m r {list[i].r:0} m, {list[i].pxPerTri:0.00} px a triangle");
+            Debug.Log(sb.ToString());
+        }
+        static float HiraethFeatureScale() { var u = UnityEngine.Rendering.GraphicsSettings.currentRenderPipeline as UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset; return u ? u.renderScale : 1f; }
         readonly List<(int v, string name, float r, float d)> seenMeshes = new();
         void Census()
         {
@@ -1358,6 +1437,7 @@ namespace Hiraeth.Bridge
                 Add(n.smr ? "skinned" : n.kind, 1, m ? m.vertexCount : 0, n.r.isVisible);
                 if (m && n.r.isVisible && !n.smr) seenMeshes.Add((m.vertexCount, n.go.name, n.r.bounds.extents.magnitude, cam ? Vector3.Distance(cam.transform.position, n.r.bounds.center) : 0));
             }
+            if (Time.frameCount % 900 == 0 && cam) TrisCensus();
             if (Time.frameCount % 900 == 0 && seenMeshes.Count > 0)
             {
                 // (the largest meshes seen: their vertices, how far they reach and how far off they are)

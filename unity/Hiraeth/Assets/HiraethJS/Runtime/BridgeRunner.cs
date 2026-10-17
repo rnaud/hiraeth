@@ -547,6 +547,17 @@ namespace Hiraeth.Bridge
             // -census what is drawn by kind, -skin-cull the skinned meshes skinned only when seen)
             if (BridgeArgs.Arg("-hide") is string hk) foreach (var k in hk.Split(',')) BridgeRenderer.hide.Add(k.Trim());
             BridgeRenderer.census = BridgeArgs.Flag("-census");
+            // (tests of the fixed cost, issue #404: -hide-far D the plain meshes past D m not drawn, -hide-big N those of N vertices
+            // and up; -draw-tax N / -vert-tax K, N more draws of one triangle or one draw of K
+            // thousand in the G-buffer pass, too small for a pixel, -tax-at D where along the view (under 0: behind the eye))
+            var flt = System.Globalization.NumberStyles.Float;
+            if (BridgeArgs.Arg("-hide-far") is string hfx && float.TryParse(hfx, flt, inv, out float hfv)) BridgeRenderer.hideFar = hfv;
+            BridgeRenderer.hideNoCast = BridgeArgs.Flag("-hide-nocast");
+            BridgeRenderer.hideMatch = BridgeArgs.Arg("-hide-match");
+            if (BridgeArgs.Arg("-hide-big") is string hbx && int.TryParse(hbx, out int hbv)) BridgeRenderer.hideBig = hbv;
+            if (BridgeArgs.Arg("-draw-tax") is string dtx && int.TryParse(dtx, out int dtv)) Hiraeth.Rendering.HiraethFeature.Settings.drawTax = dtv;
+            if (BridgeArgs.Arg("-vert-tax") is string vtx && int.TryParse(vtx, out int vtv)) Hiraeth.Rendering.HiraethFeature.Settings.vertTax = vtv;
+            if (BridgeArgs.Arg("-tax-at") is string tax && float.TryParse(tax, flt, inv, out float tav)) Hiraeth.Rendering.HiraethFeature.Settings.taxAt = tav;
             if (BridgeArgs.Arg("-gbuffer-test") is string gbt && int.TryParse(gbt, out int gbv)) Hiraeth.Rendering.HiraethFeature.Settings.gbufferTest = gbv;
             // (-merge-instances, a test: the GPU instances' sets of one mesh and material drawn as one, BridgeRenderer.mergeInstances;
             // -merge-min N only the sets of N instances and up, -merge-max N up to N)

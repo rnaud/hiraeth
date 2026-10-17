@@ -4284,3 +4284,89 @@ To repeat (scripts in `.local-tools/handoff/upscale-392/`): `ab.mjs <tag> --worl
 fsr|sgsr=-upscale sgsr"`, `table.mjs <tag> off,fsr,sgsr <gecko raw dir>`, `caps.mjs`/`sheet.mjs` for the pictures;
 GeckoView with `ANDROID_SERIAL=ea2c972a node scripts/bench/android-worlds.mjs --serve <dist> --modes fixed --scale
 0.75` (the serial is needed when another device is on adb).
+
+### Unity on the Retroid, round 9: the fixed cost, taken apart (issue #404, 2026-10-17)
+
+The same device, preset and bench as round 8 (Handheld, FSR 1 at 0.67 of 1280 × 960, muted, the frame readout on; warm
+launches; nothing else running but the player's cached app). Round 8's APK (2503, as installed) measured again first, then
+development and release builds of this branch.
+
+**No GPU capture.** Android GPU Inspector and RenderDoc both work by installing a capture app of their own on the device
+and turning on Android's GPU debug layers (`settings put global enable_gpu_debug_layers` / `gpu_debug_app`), which the
+device rules here forbid (only the two Hiraeth test apps, no system settings), and neither is on the Mac. Perfetto on the
+Retroid has no `gpu.renderstages` or `gpu.counters` data source (it would take `debug.graphics.gpu.profiler.perfetto`, a
+system property). Unity's Frame Debugger lists draws but times none. So the frame was taken apart with switches, the GPU's
+time from Unity's frame timing (kgsl: 99 % busy at 680 MHz in the slow views, so the GPU is the frame) and a development
+build's pass recorders (`-split`), which on a tiler time a pass's submission more than its work: the G-buffer pass reads
+1-3 ms, the prepass 2-3, the ink composite 2.5-3, the glow 0.8, FSR 0.65, SMAA 0.1-0.2, the shadow maps 0.6-2.3.
+
+**What does not scale with the pixels** (GPU ms at a render scale of 0.375, a third of the pixels of 0.67; switches on top):
+
+| view | 0.375 | the GPU instances hidden | the plain meshes hidden | no shadow maps | no prepass | the skinned people hidden | grass, crowd, puffs, motes hidden | everything hidden, no shadows |
+|---|---|---|---|---|---|---|---|---|
+| City-Shaft, start | 15.6 | 11.6 | 12.2 | 13.6 | 14.5 | 15.0 | 15.1 | 2.4 |
+| City-Shaft, wide | 18.3 | 13.1 | 12.3 | 15.1 | 20.8 | 20.5 | 17.6 | 2.2 |
+| Lorn, start | 14.0 | 13.7 | 5.0 | 13.3 | 14.4 | 13.8 | 13.8 | 2.9 |
+| Desert, spawn | 12.8 | 11.2 | 6.5 | 12.0 | 12.2 | 10.1 | 12.1 | 2.5 |
+
+- **The empty frame is 2.2-2.9 ms** (the ink composite 0.9, FSR's two passes 0.7, the glow 0.2, the HUD, clears): the
+  passes themselves are not the fixed cost. It is what is drawn: the GPU instances (4-5 ms in the City-Shaft, ~1 M
+  vertices of ~2 900 instances in the view, drawn in the prepass and the G-buffer), the plain meshes (3.4-9 ms), the
+  shadow maps (2-3 ms in the City-Shaft), the skinned people (2.7 ms at the desert's spawn). The City-Shaft's instances past
+  300 m (a test build's cap, not kept: it changes the picture, the web draws them) are 4-5 ms of it: its start 21.5 → 16.7
+  ms, its wide view 25.5 → 21.6; past 150 m 16.5 and 21.1.
+- **What a draw and a vertex cost** (`-draw-tax N`, `-vert-tax K`: extra draws in the G-buffer pass with a lean material,
+  each a point too small for a pixel): a draw 0.6-2 µs; a million triangles of three unshared vertices **~5 ms** (desert
+  and Lorn 5.0-5.1, the City-Shaft 2-5), **the same behind the eye** (`-tax-at -40`, every triangle clipped) as in front.
+- **But fewer vertices of the world's own meshes buy nothing.** The big still meshes drawn by their 128 m pieces in the view
+  too (as round 4 tried, and as the web's tileScene does; `BridgeShadowChunks` with the camera's layer) took the frame's
+  vertices 8.0 → 4.8 M in the City-Shaft's wide view and 4.5 → 2.1 M at Lorn's start, and the GPU went **up** (25.5 → 28.4
+  and 20.6 → 23.7 ms; at 256 m pieces 26.5 and 21.0). Not kept. The vertices the Adreno skips (out of the view, in a bin
+  they miss) are not where its time goes; the tax's cost is its own (a draw of 3 M unshared vertices).
+- **The far meshes' cost is their pixels and what they are.** `-hide-far D` (the plain meshes past D m not drawn): the
+  City-Shaft's wide view 25.4 → 25.4 / 22.5 / 19.9 ms past 600 / 300 / 150 m (the rings and terraces fill the view), Lorn's
+  start 20.3 → 19.4 / 16.1 / 14.5 (the drowned forest's trunks fill its sky). Underwater, the meshes past 30 m that cast no
+  shadow (`-hide-nocast`) are 2.3-3.6 ms (the dome's glass and ribs: the glass draws on the full Surface variant, ~25 000
+  instructions, the lean ones being without its path).
+- **Not the lever:** batched GPU skinning (the player setting `gpuSkinning: 2`, the same frames), skinning only the seen
+  people (`-skin-cull`, within 0.4 ms), the engine's levels of detail (`-js-on lod`, 0.5-1.1 ms with round 5's stalls),
+  merging into fewer draws (round 5).
+
+**The prepass, a trap measured.** Leaving the meshes past 30 m out of the depth prepass (by their rendering layer) seemed to
+win 2-5 ms everywhere, every view of five worlds at 60. The bench's shots showed why: a mesh that casts no shadow, or a big
+one cast by its pieces, is in Unity's default rendering layer alone, so taken out of it, it was drawn by nothing at all
+(Lorn's forest gone from the sky, Underwater's dome glass; 10-22 % of the pixels changed where two runs of one build change
+0.1-1 %). With the far meshes put in a layer of their own instead (the same picture, 0.2-2.7 %), the gain was gone (Lorn's
+start 20.5 → 21.3 ms, Underwater the same). Not kept. Instances out of the prepass (all, or past 30-100 m) cost the
+City-Shaft's wide view 3-5 ms: its terraces' houses are the occluders there.
+
+**Dynamic resolution** (#404 step 2): not on top of FSR. The City-Shaft's wide view at 0.6 / 0.55 / 0.5 makes 50 / 53 / 56
+fps and its start 59-60: even at 0.5 the wide view misses 60, and `-dyn-res` (0.05 a step toward 15 ms of GPU) climbed to
+0.75 at the start and settled no better than 0.67 held (41 fps wide). The fixed cost below it is the content above.
+
+**Where it stands** (round 8's APK today, the six worlds' views: fps, the worst view, the 1 % low, the GPU's ms; medians):
+
+| world (views) | round 8 (2503) | this branch (the same frame: only test switches added) |
+|---|---|---|
+| City-Shaft (4) | 53.2, 38.7, 41.4, 18.2 | 52.5, 37.9, 38.4, 18.7 |
+| Signal Market (4) | 60.1, 59.1, 53.4, 15.5 | 60.1, 57.8, 53.7, 15.9 |
+| Lorn (4) | 57.9, 50.9, 46.8, 14.9 | 56.2, 48.0, 43.8, 15.7 |
+| Underwater (4) | 60.0, 54.7, 50.9, 16.1 | 58.5, 52.3, 46.5, 16.9 |
+| Floating city (4) | 60.1, 57.5, 53.2, 15.6 | 59.0, 53.4, 53.0, 16.7 |
+| Desert (5) | 60.1, 59.1, 51.4, 13.6 | 60.1, 56.9, 51.3, 13.9 |
+
+(The second column is this branch with every new switch off, two hours later and warmer: 0.3-1.1 ms of GPU over the
+first, within what a warm Retroid drifts.) The worst views stay the City-Shaft's wide view (38 fps, 25 ms) and start
+(46, 21), Lorn's start and crowd (48-56), Underwater's wide view (52-55) and the Floating city's start (53-57).
+
+**What would move them, in order of what was measured:** the City-Shaft's GPU instances (4-5 ms: levels of detail for the
+terraces' houses, ~130-1 000 triangles each and ~2 900 in the view, built off the script's thread, as the web's lod.js
+builds the instanced props'); Underwater's glass on a lean variant of its own (`HIRAETH_LEAN_GLASS`, as the ground's and the
+water's: up to 3.6 ms, at the cost of more Surface variants for every platform); the shadow maps (2-3 ms in the
+City-Shaft); then Lorn's far forest (3-5 ms of its pixels: the ink on the trunks).
+
+New test switches (BridgeRunner, all off unless asked): `-draw-tax N`, `-vert-tax K`, `-tax-at D`, `-hide-far D`,
+`-hide-big N`, `-hide-nocast`, `-hide-match s` (only meshes whose description has s; each hidden one is logged); `-census` now logs the triangles in the view by distance with the largest contributors, each mesh by its own geometry
+rather than its static batch's. To repeat: the scripts in `.local-tools/handoff/gpu-404/` (`ab.mjs` as round 8's,
+`sum.mjs <tag> [--split]` per view with the SetPass calls, triangles, vertices and the passes, `diff.mjs <tag> <a> <b> <out>` the shots' differing
+pixels and a sheet a | b | the difference; `ANDROID_SERIAL=ea2c972a`).
