@@ -79,6 +79,9 @@ SECOND_NAMES = (*OLD_UNITY_NAMES, UNITY_NAME, WEB_NAME)
 # The Unity player's watched start: no first frame by then is a failed start (its load on the Deck builds the whole
 # world before the first frame: ~25 s measured; the pipeline cache cold after a reboot adds to it)
 UNITY_READY_SECONDS = 120
+# Steam's Exit Game (issue #438): the player ends itself within 2 s of the signal (BridgeQuit.cs: its saves written, then
+# an alarm ends it if its shutdown is still going); killed, with anything it started, if it is still there after this
+UNITY_STOP_SECONDS = 4
 # What says the player is up: the file it touches after its first frame (-ready, BridgeRunner.MarkReady), or, for
 # players from before -ready, these lines of its log (the first script frame played)
 UNITY_READY_MARKS = (b'Hiraeth bridge: ready', b'Hiraeth bridge: script frame 1 took')
@@ -1513,7 +1516,7 @@ def launch_unity_watched(root, arguments, run=run_game, log=print):
                 output.replace(root / 'unity-data/player-prev.log')
             command = unity_command(player, root, ['-ready', str(ready), *arguments])
             log(f'Starting the Unity player {player.name}.')
-            how, code, shown = run(command, unity_env(root), ready, ready_seconds=UNITY_READY_SECONDS, stop_seconds=10,
+            how, code, shown = run(command, unity_env(root), ready, ready_seconds=UNITY_READY_SECONDS, stop_seconds=UNITY_STOP_SECONDS,
                                    log=log, check=unity_ready(output), stop_signal=signal.SIGTERM, cwd=player)
             if how == 'restart':
                 log(f'Restarting into the update (Unity {player.name}).')

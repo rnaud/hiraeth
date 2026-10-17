@@ -69,6 +69,37 @@ Steam Play compatibility tool. The game starts fullscreen at a 1280×800 window
 size and uses its existing controller controls. Exit through Steam's **Exit Game**
 command, or Alt+F4 in Desktop Mode.
 
+### Exit Game with the Unity player (issue #438)
+
+Gaming Mode stays black until the last of the game's processes is gone. Steam's Exit Game sends SIGINT to each
+of them (the launcher adds SIGTERM). Unity's own handling of those signals waited for the main thread's frame,
+which waits on the script's (seconds during a load), then shut IL2CPP down with the script's thread still inside
+V8: during a load that aborted (SIGTRAP from V8, or SIGABRT in `il2cpp_shutdown`) and systemd-coredump wrote a core
+of the 1–2 GB process before it was gone. The player now takes those signals itself (`BridgeQuit.cs`):
+
+- the handler only notes the signal, turns core dumps off (`prctl(PR_SET_DUMPABLE, 0)`) and sets `alarm(2)`.
+  SIGALRM, left at its default action, ends the process 2 s later whatever is still running: a GPU wait, a long frame,
+  Unity's own shutdown;
+- the main thread sees the note at its next frame, or within 250 ms while it waits on the script
+  (`BridgeRunner.Await`), and quits as the game's own exit does (`BridgeRunner.Exit`: the saves on the disk,
+  `Application.Quit`);
+- every quit (a signal, the game's exit, the window closed) goes through `Application.quitting`. It stops the
+  script's and the sound's threads (300 ms at most) and writes the saves. When the script's thread is still in a
+  frame, the process ends there (`_exit`) instead of IL2CPP's shutdown;
+- the launcher kills what is left after 4 s (`UNITY_STOP_SECONDS`, 10 before).
+
+Measured on the Deck (OLED, Gaming Mode, a copy of the player, muted, its own profile), from the signal to the
+process gone, 3 runs each:
+
+| quit | before | after |
+|---|---|---|
+| Steam's signals, in the desert | 0.91 s | 0.91 s |
+| Steam's signals, during the load | 4.1–4.2 s, and a crash with a core dump each time | 0.43 s, no crash |
+| the game's own exit (`-limit`: `Exit`, `Application.Quit`) | 0.85 s | 0.90 s |
+
+The game has no Quit to desktop of its own; its Start menu's Quit goes to the title. Exit Game is the way out on
+the Deck.
+
 ## Library artwork
 
 The shortcut has its own artwork in Steam's library, from captures of the game and the title's
@@ -161,8 +192,8 @@ python3 ~/.local/share/hiraeth-deck/current/resources/app/deck.py --engine unity
   launch reads that file, never the network: the switch takes effect at the launch after a Deck's next update
   check, and lifting it the same way. It only ever turns Unity off; it never puts a web Deck on Unity.
 - **A watched start** (`launch_unity_watched`). With the engine `unity`, `launch` runs the installed player as
-  `run_game` runs Electron: its own process group, Steam's Exit Game passed on as SIGTERM (10 s, then killed), no
-  helper left behind. Ready is the file the player touches after its first frame (`-ready <file>`,
+  `run_game` runs Electron: its own process group, Steam's Exit Game passed on as SIGTERM (4 s, then killed:
+  `UNITY_STOP_SECONDS`; the player ends itself within 2 s, below), no helper left behind. Ready is the file the player touches after its first frame (`-ready <file>`,
   `BridgeRunner.MarkReady`, which also logs `Hiraeth bridge: ready`), or, for players built before it, the line
   `Hiraeth bridge: script frame 1 took` in its log (`unity_ready` reads `unity-data/player.log` as it grows). No
   first frame within 120 s (`UNITY_READY_SECONDS`), or a crash before a minute of play, marks that player build

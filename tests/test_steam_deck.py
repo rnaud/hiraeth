@@ -1152,6 +1152,9 @@ class EngineTests(unittest.TestCase):
             self.assertEqual(env['XDG_CONFIG_HOME'], str(self.root / 'unity-data'), 'the player\'s own data folder')
             self.assertEqual(kwargs['ready_seconds'], deck.UNITY_READY_SECONDS)
             self.assertEqual(kwargs['stop_signal'], signal.SIGTERM)
+            # (Steam's Exit Game: Gaming Mode is black until the player is gone; it ends itself in 2 s, BridgeQuit.cs, #438)
+            self.assertEqual(kwargs['stop_seconds'], deck.UNITY_STOP_SECONDS)
+            self.assertLessEqual(deck.UNITY_STOP_SECONDS, 5)
             with (player / '.in-use').open('a') as lock, self.assertRaises(BlockingIOError):
                 fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)   # (pinned while it runs)
             return results[player.name]

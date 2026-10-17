@@ -62,6 +62,7 @@ namespace Hiraeth.Bridge
         void Start()
         {
             BridgeHost.Runner = this;
+            BridgeQuit.Install();   // (Steam's Exit Game and every quit: quick, issue #438)
             downloadRoot = Path.Combine(Application.persistentDataPath, "public");
             BridgeHost.OpenStore();   // (the saves' file, once a process: BridgeStore)
             // a player's plan from its command line (BridgeBuild: -views, -bench, -out …; the editor's batch run sets args itself)
@@ -342,6 +343,7 @@ namespace Hiraeth.Bridge
                 BridgeHost.RunOps();
                 if (done) { if (!deferLast) BridgeHost.RunOps(); return !threadFailed; }
                 BridgeHost.Wake.WaitOne(250);
+                if (BridgeQuit.Asked != 0) return true;   // (a quit asked: not waited out behind a long frame)
                 if (Time.realtimeSinceStartup > limitAt) return false;
             }
         }
@@ -633,6 +635,8 @@ namespace Hiraeth.Bridge
         void Update()
         {
             if (Time.realtimeSinceStartup > limitAt) { Debug.LogError("Hiraeth bridge: timed out"); limitAt = float.PositiveInfinity; Exit(4); return; }
+            // (Steam's Exit Game, a signal: BridgeQuit noted it; the game's own way out from here)
+            if (BridgeQuit.Asked != 0) { if (!exiting) Exit(0); return; }
             BridgeHost.NewFrame();
             // (a downloaded script that hasn't played its first frame in BridgeUpdates.BootSeconds: the built-in one instead)
             if (started && !failed && !exiting && BridgeUpdates.Watchdog()) { pendingReboot = "{}"; RebootNow(); return; }
@@ -666,6 +670,7 @@ namespace Hiraeth.Bridge
                 double wait = (Time.realtimeSinceStartupAsDouble - t0) * 1000;
                 waitMs += wait; waitMsTotal += wait;
                 if (gpuSplit != null) Hitch(t0, wait);
+                if (BridgeQuit.Asked != 0 && !exiting) { Exit(0); return; }
                 if (exiting) return;
                 if (!ok)
                 {
@@ -1029,7 +1034,7 @@ namespace Hiraeth.Bridge
         [System.Runtime.InteropServices.DllImport("libc", EntryPoint = "_exit")] static extern void PosixExit(int code);
 #endif
 #endif
-        static void HardExit(int code)
+        internal static void HardExit(int code)
         {
             try
             {
@@ -1041,10 +1046,24 @@ namespace Hiraeth.Bridge
             }
             catch (Exception e) { Debug.Log("Hiraeth bridge: the hard exit: " + e.Message); }
         }
+        /// <summary>The code the process ends with (Exit's; 0 for a quit asked from outside).</summary>
+        public int ExitCode { get; private set; }
+        /// <summary>
+        /// The way out (BridgeQuit's Application.quitting): the script's and the sound's threads told to stop and waited for
+        /// (ms at most). False: the script's thread is still in a frame (inside V8), and IL2CPP's shutdown would wait on it.
+        /// </summary>
+        public bool StopThreads(int ms)
+        {
+            quit = true; go.Set(); BridgeHost.AudioWake.Set();
+            bool stopped = thread == null || thread.Join(ms);
+            if (audioThread != null && !audioThread.Join(Math.Min(ms, 100))) Debug.Log("Hiraeth bridge: quit: the sound's thread did not stop");
+            return stopped;
+        }
         public void Exit(int code)
         {
             if (exiting) return;
             exiting = true;
+            ExitCode = code;
             quit = true; go.Set();
             if (audioOut) Debug.Log($"Hiraeth bridge: sound {audioOut.Report()}");
             if (music) Debug.Log($"Hiraeth bridge: music {music.Report()}");

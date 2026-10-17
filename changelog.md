@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.83 — 2026-10-16
 
+- On the Steam Deck, Exit Game closes Hiraeth at once, even while a world is loading: it used to leave a black screen for four seconds or more while the game crashed on its way out.
 - The City Floating in Space has a little space port on its Pier while the real one is being designed: a landing ring painted round your ship, two docks reaching out over the void either side of the bridge with a moorer’s craft in each, and small craft circling slowly over the city.
 - In the Unity version, the Signal Market’s broadcast no longer goes black, the Map draws its ground, a struck foe flashes and falls to its ink instead of staying white, his face close up is clean of ink blotches, Vael’s walls have fine cracks instead of dark drips, the builders’ walls in Edena carry their carved inscriptions again, the dark band round his shirt is gone, the temples’ key counter is a key, and the 3-2-1 is its proper size. In the ring race and the ski run the view now widens as you pick up speed, as it was meant to.
 - Inside the makers’ houses the spring boots only hop: they won’t wind there, and a bounce goes no higher, so a launch can no longer carry you up onto a gallery or over a gap before its puzzle opens the way. Jump and press again in the air to stomp, as before. Out in the world they still throw you fourteen metres up.

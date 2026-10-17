@@ -67,6 +67,13 @@ export const CHANGELOG = [
     // issue #397: src/levels/port-pad.js (pad, docks, traffic as data), space-city.js SC_PORT, taxi.js (the fin's tip);
     // tests/port-pad.test.js; docs/design/space-ports.md (the plan and the Midjourney prompts for every city)
     'The City Floating in Space has a little space port on its Pier while the real one is being designed: a landing ring painted round your ship, two docks reaching out over the void either side of the bridge with a moorer’s craft in each, and small craft circling slowly over the city.',
+    // issue #438: unity BridgeQuit.cs (SIGTERM/SIGINT/SIGHUP, alarm(2), Application.quitting), BridgeRunner.cs (Await and
+    // Update give way to a quit, StopThreads), scripts/steam-deck/deck.py UNITY_STOP_SECONDS; tests/unity-quit.test.js. Unity only
+    { text: 'On the Steam Deck, Exit Game closes Hiraeth at once, even while a world is loading: it used to leave a black screen for four seconds or more while the game crashed on its way out.',
+      numbers: [{ title: 'From Exit Game to the game gone, before → after', unit: 's', better: 'lower', device: 'Steam Deck OLED, Gaming Mode, the Unity Linux player, muted, three runs each', rows: [
+        { where: 'during a world’s load', before: 4.15, after: 0.43 },
+        { where: 'in the desert', before: 0.91, after: 0.91 },
+      ], source: 'docs/steam-deck.md, "Exit Game with the Unity player"' }] },
   ] },
   { v: '1.82', date: '2026-10-16', items: [
     // issue #399: src/hook-foes.js (each kind's `hook` class, hookOutcome, lockShot), src/gadgets/hook.js fireAtLock /
