@@ -1878,6 +1878,31 @@ far cloud's shadow in Edena, the barks (#430), the lit stone's flame in `desert.
 HUD is laid out on a 960 × 720 canvas (the editor's screen) while the camera draws 1280 × 720: the cinematic bars
 cover three quarters of the width and the HUD's middle is left of the picture's. The players lay it out on their own
 screen; the batch run's pictures only.
+## One host (2026-10-17, issue #427)
+
+src/main.js (about 2,850 lines) and engine/game.js (about 1,700) each built the game's systems and joined them by
+hand, and drifted: armTool and the kit's colours were the page's alone, so Unity hung the sword on him from the opening
+on (#394); the fires that burn, a world's void, the errands, the faces of whoever talks were never made in the engines
+at all (#428's host list). **src/host/game-host.js** is the one game setup both call: a group a function (`wireKit`,
+`wireDangers`, …), made where the page made it, each returning what the frame calls. A host keeps only its own layer.
+
+Read side by side, the two hosts hold three kinds of thing:
+
+| | what | where it goes |
+|---|---|---|
+| **the game** | the systems and how they are joined: the mount and the whistle, the traveller's hurts and drinks, the tool and the kit, the fires and the void, the people (crowd, aliens, errands, faces, the hum), the story, relics, shops, the observatory, the scout, Plumb and the first lessons, the boxes, items' effects, fragments, benches, gadgets and their upgrades, the foes, chimes, potions, the flurry and the lock-on, what burns and the chemistry, the weather and the wind on him, the sky (hour, eclipse, the Lantern), the ship and its departure (the ambush), the ways through (passage, thresholds, door walk), the Map's and the game menu's sources, the saves, the frame's order | src/host/ (shared), a group at a time |
+| **the page's** | the WebGL renderer (G-buffer, shadow cascades, the ink and bloom passes, SMAA, shader warm-up), loading in slices, culling and levels of detail, the quality's adapting, the DOM HUD (hearts, stamina, keys, the restart panel, toasts), the menus' HTML, the keyboard, mouse and touch listeners, lil-gui and the dev tools, item icons and portraits it renders, photo capture, the browser's loop (requestAnimationFrame, the pacer), the address (`?level`, `?items`, `?aboard`), the Android app's shell | src/main.js |
+| **the bridge's** | the scene mirror and its backend, the screen parts published for BridgeHud, engine/menus.js and the star map's state, keys and pads arriving by `game.key`, the VM's stand-ins (engineJournal, the silent sound, the vertex colours for JPEGs no VM decodes), the preset by `-quality`, a plan's options (a pinned view, a bench's flags, `-fight`), the engine's own portraits, photos and Map pictures | engine/game.js |
+
+The rule for a group: what both hosts did the same, or the page did and the engines should, moves into a function of
+game-host.js taking the systems it joins; what differs by host comes in as an option (`armed` for a fight's bench,
+`onArm` for the page's touch buttons, `say` for how a host shows a line). scripts/bridge-gaps.mjs reports a group both
+hosts import as `shared:<group>` (listed `handled` in engine/bridge-gaps.js), and one only main.js calls as a host gap,
+so a group can't fall out of one host unnoticed. tests/game-host.test.js holds each group to what it does, and runs
+the engines' build of the game to see it there. Moved so far:
+
+- `wireKit`: the sword and the shield only once found (armTool), the kit's colours on him and in the Items panel's
+  Colours row (engine/game.js gives the menus the row's data; drawing and cycling it in BridgeMenu is #430's).
 
 ## Status
 

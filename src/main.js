@@ -154,7 +154,7 @@ import { queueHost, takeHosts } from './minigames/kit/hosts.js';
 import { MinigameRunner } from './minigames/kit/runner.js';
 import { levelMetaFor } from './minigames/kit/world.js';
 import { lendTool } from './minigames/kit/onfoot.js';
-import { applyKitColours, coloursData, cycleColour } from './kit-colours.js';
+import { wireKit } from './host/game-host.js';
 import { arcadeLinks } from './minigames/kit/arcade.js';
 import { ambushDue, ambushHref, ambushKey, transitLinks } from './ambush.js';
 import { talkAllowed } from './ship/landing.js';
@@ -720,18 +720,10 @@ for (const v of player.vehicles) if (v.groundAt && !v.surface) v.surface = (x, y
 const breathMeter = new BreathMeter();
 // the magic-fluid backpack: shoot, boost and push on three shared charges (fluid-tool.js)
 const tool = new FluidTool({ scene, player, physics, camera, rig, sound, level, hud: new ToolHud(), noShadow: (level.noShadow ??= []) });
-// the sword and the shield's guard are found (v1.44, the Rose House): without them no cut, no guard, and neither drawn
-// on him (the tool's items: a game on foot lends them, src/minigames/kit/onfoot.js)
-const armTool = () => {
-  const s = !!tool.items.has('sword'), g = !!tool.items.has('shield');
+// the sword and the shield only once found, the kit in the colours chosen (src/host/game-host.js wireKit, the engines' too)
+const kit = wireKit({ tool, game,
   // (the touch screen's ⚔ and ◇ only once found: index.html body.no-sword, body.no-shield)
-  if (s !== tool.swordOn) document.body.classList.toggle('no-sword', !s);
-  if (g !== tool.shieldOn) document.body.classList.toggle('no-shield', !g);
-  tool.swordOn = s; tool.shieldOn = g;
-};
-armTool();
-applyKitColours(tool, game);   // (the colours chosen for the backpack, the sword and the shield: src/kit-colours.js, won in the fight temples)
-{ const wear = tool.wear.bind(tool); tool.wear = () => { wear(); applyKitColours(tool, game); }; }   // (and on the backpack worn once his body is up)
+  onArm: (s, g) => { if (s !== tool.swordOn) document.body.classList.toggle('no-sword', !s); if (g !== tool.shieldOn) document.body.classList.toggle('no-shield', !g); } });
 if (level.lendTool) lendTool(tool, level.lendTool);   // (the Arena: the backpack, the blade and the shield lent for the visit, whatever the save: src/minigames/kit/onfoot.js)
 await slice();
 tool.powerTrails(trails);   // the hover trails run in the fluid's tones
@@ -989,13 +981,13 @@ Object.assign(journal.menu, {
     levels: LEVELS.map((l) => ({ id: l.id, title: l.title, hidden: l.hidden, blurb: l.blurb, relicNames: CONTENT[l.id]?.relics.names, storyTitle: CONTENT[l.id]?.story.title,
       parts: partsOf(l.id).slice(1).map((p) => ({ id: p, storyTitle: CONTENT[p]?.story?.title })) })),
     mode: () => ({ mode: tool.owned ? tool.mode : null, modes: tool.owned ? tool.modes : [], gadget: gadgets?.equipped ?? null, gadgets: gadgets?.owned() ?? [] }), boxes: () => boxes.counts(), errandDefs: ERRANDS, done: worldDone,
-    fragments: () => fragments.counts(), toggles: () => ({ finder: fragments.finderOn() }), colours: () => coloursData(game),
+    fragments: () => fragments.counts(), toggles: () => ({ finder: fragments.finderOn() }), colours: () => kit.colours(),
     icon: (id) => itemIcons.get(id), map: (o) => mapSource(o),
     // (the Worlds page's "Travel here": a world you have been to, with the ship powered: src/fast-travel.js, issue #213)
     travel: (id) => fastTravel.can({ to: id, from: levelId, seen: (w) => journal.seen(w), flag: (k) => game.flag(k) }) }),
   onTrack: (id) => storyRt.quests.choose(id),
   // the Colours row: the next colour won for that piece, worn at once (src/kit-colours.js)
-  onColour: (piece) => { cycleColour(game, piece); applyKitColours(tool, game); },
+  onColour: (piece) => kit.cycle(piece),
   // an item that is a gun mode: take it (the fluid tool's D-pad / X switch, from the menu)
   onUse: (id) => { if (id === 'finder') { game.set('frag.finder.off', !game.flag('frag.finder.off')); return; } const m = { backpack: 'shoot', stun: 'stun', fire: 'fire', bloom: 'bloom' }[id]; if (m && tool.modes.includes(m)) tool.setMode(m); else gadgets?.equip(id); },   // (or a gadget taken in hand: src/gadgets/)
   // "Travel here" (the Worlds page): the galactic map's own way (src/ship/ship.js travel: the take-off, the arrival at
@@ -2332,7 +2324,7 @@ function frame(ts) {
   // the lens inside the traveller (his back to a cabin's wall, the camera pressed into him): his own surfaces left out of
   // the view, not drawn from inside; his shadow stays (issue #324). Not in a scene, photo mode or a game that takes the camera
   SU.uHeroCut.value = !ship.playing && !photo.on && !minigame?.drives && heroCut(SU.uHeroCut.value > 0.5, camera.position, player.pos, player.frame?.up) ? 1 : 0;
-  armTool();
+  kit.arm();
   tool.update(pdt, ctl, busy() || photo.on || player.god || !!minigame?.drives);   // (a game on foot keeps the blade and the gun; god mode: the triggers fly)
   gadgets.update(pdt, busy() || photo.on || ship.playing || player.god || (!!minigame && !minigame.def.trial));   // (after the tool: an aiming gadget's camera and pose win)
   flammables.update(dt, t, player.pos);

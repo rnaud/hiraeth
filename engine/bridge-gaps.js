@@ -13,7 +13,8 @@
 //              passes     <file>: <call>         a scene of its own, a renderer.render, an object's own render(renderer)
 //              dom        <file>                 the page elements that file builds; part:<name> a screen part
 //                                                (src/platform.js screen) the bridge never reads
-//              host       import:<module>#<name> main.js imports it, nothing in engine/ does; fn:<name> a function of
+//              host       import:<module>#<name> main.js imports it, nothing in engine/ does; shared:<group> a group of the
+//                         one game setup (src/host/game-host.js) both hosts call; fn:<name> a function of
 //                                                main.js's that engine/ never names (its convention: "as main.js armTool")
 //   count    { key: n }: for the counted kinds (shaders, dom), how many sites that file has: one added or taken away
 //            fails the test until it is looked at and the count moved
@@ -221,7 +222,6 @@ export const GAPS = {
   // ------------------------------------------------------------------ host wiring: main.js against engine/game.js (also #427's list)
   host: [
     // gaps
-    { keys: ['import:src/kit-colours.js#applyKitColours', 'import:src/kit-colours.js#coloursData', 'import:src/kit-colours.js#cycleColour'], what: 'the kit\'s chosen colours (backpack, sword, shield), won in the fight temples', status: 'gap', issue: 427, visible: 2, note: 'known in #264' },
     { keys: ['import:src/jump-shadow.js#JumpShadow'], what: 'the patch of shade under the traveller in a jump', status: 'gap', issue: 427, visible: 2 },
     { keys: ['import:src/hazards.js#registerHazard', 'import:src/story/flames.js#fireHazard'], what: 'the fires burning whoever walks into them', status: 'gap', issue: 427, visible: 2, note: 'engine/game.js updates the hazards but registers no fire\'s (to check)' },
     { keys: ['import:src/carriers.js#cameraPhysics', 'import:src/carriers.js#keepLensOut'], what: 'the camera kept out of the cabs and carriers', status: 'gap', issue: 427, visible: 2 },
@@ -250,6 +250,8 @@ export const GAPS = {
     { keys: ['fn:setPlanets'], what: 'the planets in the sky', status: 'gap', issue: 427, visible: 1, note: 'to check' },
     { keys: ['fn:placeToolGauge'], what: 'the fluid tool\'s gauge by the traveller', status: 'gap', issue: 427, visible: 1, note: 'to check' },
     { keys: ['import:src/scout.js#roughDistance', 'import:src/hint-level.js#quietOr'], what: 'the scout\'s find said with a rough distance, the hints\' quiet line', status: 'gap', issue: 427, visible: 1, note: 'to check: engine/game.js says the find its own way' },
+    // the one game setup's groups, called by both hosts (src/host/game-host.js, #427: docs/systems/engine-bridge.md "One host")
+    { keys: ['shared:wireKit'], what: 'the sword and the shield only once found, the kit\'s chosen colours (backpack, sword, shield), won in the fight temples', status: 'handled', where: 'src/host/game-host.js wireKit (main.js armTool and applyKitColours before)' },
     // handled by the engines' own
     { keys: ['import:src/hud.js#heartsSvg', 'import:src/hud.js#walletTick', 'import:src/hud.js#KEY_SVG', 'import:src/hud.js#GREAT_KEY_SVG', 'fn:updateStamina', 'fn:restartNow', 'fn:showToast',
       'import:src/story/charge.js#chargeHud', 'import:src/story/charge.js#showChargeCard', 'import:src/story/charge.js#GIVEN', 'import:src/story/charge.js#CARD', 'import:src/passage.js#PassageCover', 'import:src/flurry.js#FlurryFx'],
