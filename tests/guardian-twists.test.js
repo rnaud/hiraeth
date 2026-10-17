@@ -376,48 +376,67 @@ test('the First Sign’s last phase: it turns its dish up and hears its word onl
   const A = arena('bazaar', 'recall', 2);
   const { rt, G, P, until, wait, said, stand } = A;
   const echo = (note) => game.emit('echo', { pos: P.pos.clone(), note });
-  const word = 'sign.3';
+  const word = 'sign.0', start = G.def.phases[1].to;   // (its last fight goes round its line from its first word, issue #418)
   assert.deepEqual(['signDishW', 'signDishE'].map((id) => !!rt.piece(id)), [true, true], 'two low dishes on the wall');
   // the failure: its word played close to it, as before
   assert.equal(until(() => G.state === 'open', 40), true, 'it stops to listen');
   stand(G.model.pos.x - G.arena.center.x + 4, G.model.pos.z - G.arena.center.z);
   echo(word);
   wait(1);
-  assert.equal(G.meter, 0.75, 'it does not hear it: its dish is turned up');
+  assert.equal(G.meter, start, 'it does not hear it: its dish is turned up');
   assert.ok(said(/only what its cables bring/), 'it says where it listens now');
   assert.ok(G.model.pitch < 0, 'its dish turned up to the dark as it listens');
   // the wrong word into a dish: carried, and refused
   until(() => G.state !== 'open', 10);
   underDish(A, 'signDishW');
   assert.equal(until(() => G.state === 'open', 40), true, 'it listens again');
-  echo('sign.0');
+  echo('sign.2');
   wait(1);
-  assert.equal(G.meter, 0.75, 'its old word, through the dish: refused');
+  assert.equal(G.meter, start, 'another word of its line, through the dish: refused');
   assert.ok(said(/old word/), 'it shakes its dish');
   // the way: its word into the low dish
   until(() => G.state !== 'open', 10);
   underDish(A, 'signDishE');
   assert.equal(until(() => G.state === 'open', 40), true, 'it listens');
   echo(word);
-  assert.equal(G.meter, 0.75, 'a moment on its way up the dish and down the cable');
+  assert.equal(G.meter, start, 'a moment on its way up the dish and down the cable');
   wait(1);
-  assert.equal(G.state, 'resolved', `its whole line (${G.meter})`);
+  assert.ok(G.meter > start + 0.05, `retuned through its cables (${G.meter})`);
   assert.ok(said(/down the cable/), 'it says how it heard');
   A.done();
 });
 
-test('the First Sign’s second phase teaches the dishes: a word played into a low dish on the wall reaches it from across the hall', () => {
+test('the First Sign’s puzzle between its fights (issue #418, G3d): it floods the cables with its word and hears nothing until the word is shut out at its hall’s relay; then it turns its dish to the stone of the word it wants, and wants its line in order', () => {
   const A = arena('bazaar', 'recall', 1);
-  const { rt, G, P, until, wait, said } = A;
-  assert.equal(until(() => G.state === 'open', 40), true, 'it listens');
-  // (under the dish further from it: out of its own hearing)
-  const far = ['signDishW', 'signDishE'].sort((a, b) => rt.piece(b).ends[0].mouth.distanceTo(G.model.mouth) - rt.piece(a).ends[0].mouth.distanceTo(G.model.mouth))[0];
-  underDish(A, far);
-  assert.ok(P.pos.distanceTo(G.model.mouth) > 14, `out of its own hearing (${P.pos.distanceTo(G.model.mouth).toFixed(1)} m)`);
-  game.emit('echo', { pos: P.pos.clone(), note: 'sign.2' });
-  wait(1);
-  assert.ok(G.meter >= 0.75 - 1e-6, `its word, through the dish (${G.meter})`);
-  assert.ok(said(/down the cable/), 'down the cable from the dish');
+  const { rt, G, P, until, wait, said, stand } = A;
+  const echo = (note, at = G.model.mouth.clone().add(V(3, 0, 0))) => game.emit('echo', { pos: at, note });
+  wait(3);
+  assert.equal(G.phase.puzzle, true, 'a puzzle, not a fight: no moves of its own');
+  assert.deepEqual(G.phase.attacks, []);
+  assert.ok(rt.logic.drumOn('line', 'lineSpeaking'), 'it floods the cables: the house speaks');
+  assert.ok(said(/floods every cable/));
+  const m0 = G.meter;
+  echo('sign.1'); wait(0.5);
+  assert.equal(G.meter, m0, 'over its own word in the cables it hears nothing');
+  assert.ok(said(/roars in the cables/));
+  // the hall's relay, by the way in
+  const lever = rt.piece('lever.hall');
+  assert.ok(lever && lever.pos.distanceTo(G.arena.center) > G.arena.r - 6, 'a relay lever in its hall, by the way in');
+  lever.rt.line.toggle('lever.hall');
+  assert.equal(until(() => G.state === 'open', 4), true, 'the word shut out: it listens');
+  const stones = rt.wordStones;
+  assert.deepEqual(stones.map((s) => s.i).sort(), [1, 2, 3], 'three stones round the wall, a word of its line each');
+  for (const i of [1, 2, 3]) {
+    const want = stones.find((s) => s.i === i), h = Math.atan2(want.center.x - G.model.pos.x, want.center.z - G.model.pos.z);
+    wait(1.5);
+    assert.ok(Math.abs(Math.atan2(Math.sin(G.model.heading - h), Math.cos(G.model.heading - h))) < 0.5, `its dish turned to the stone of “${i}”`);
+    const before = G.meter;
+    echo(`sign.${i === 3 ? 1 : 3}`); wait(0.3);
+    assert.equal(G.meter, before, 'not that word, not yet');
+    echo(`sign.${i}`); wait(0.5);
+    assert.ok(G.meter > before, `it hears its word (${i}: ${G.meter.toFixed(2)})`);
+  }
+  assert.equal(G.phaseIndex, 2, 'its line given back: on into its last fight');
   A.done();
 });
 
@@ -736,9 +755,10 @@ test('the Tooth-Warden’s second phase teaches the gear: free, a volley counts 
 // ------------------------------------------------------------------ a second verb (v1.63, #257)
 test('five guardians’ second phase asks for a second verb before the gadget (src/temples/boss.js asks): until it is answered no opening comes and the gadget takes nothing; answered, it reels open and the gadget takes', () => {
   // (the Mother Snapper's push left with her fight, v1.83: issue #409)
-  const SIX = [['arzach2', 'hook', 'parry'], ['perdide2', 'bubble', 'dodge'], ['edena', 'bloom', 'shot'], ['garage', 'boomerang', 'parry'], ['bazaar', 'recall', 'dodge']];
-  for (const [id, gadget, verb] of SIX) {
-    const A = arena(id, gadget, 1, { answer: false });
+  // (the First Sign's in its last fight since issue #418: its second phase is a puzzle)
+  const SIX = [['arzach2', 'hook', 'parry'], ['perdide2', 'bubble', 'dodge'], ['edena', 'bloom', 'shot'], ['garage', 'boomerang', 'parry'], ['bazaar', 'recall', 'dodge', 2]];
+  for (const [id, gadget, verb, phase = 1] of SIX) {
+    const A = arena(id, gadget, phase, { answer: false });
     const { G, P, frame, until, said } = A, Q = G.phase.asks;
     assert.equal(Q?.verb, verb, `${id}: asks for ${verb}`);
     // (a move of its combos too: the Mother Snapper's second snap, reared as the first, v1.79 #373)

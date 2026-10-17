@@ -110,12 +110,18 @@ export const LAYOUTS = {
   // v1.77 (issue #336): the house remade to the redesign's rules, bigger rooms (the Listening Passage a room of its own, the
   // Tuning Room's ball in that room; the same state). A save that entered the house: taken to its last mark if it stood
   // inside the old rooms (runtime.js relaid)
+  // v1.83 (issue #418): the house remade round the Great Well over three floors, the line its state. The second disc and its
+  // horn are gone (the great lift runs while the house speaks), the chamber's door for the hourglass in hand is gone (its
+  // walkway's counterweight now: a save past it has knocked it off), the great key on the Bellows' Crown (an old save that
+  // found it in the Choir keeps it, and the Choir's horns answered sink the cage of its small key). Past the chamber's door
+  // or anything after it: the counterweight knocked. A save that entered the house: taken to its last mark (the rooms moved)
   bazaar: {
-    v: 5,
+    v: 6,
     steps: [
       { if: ['lit.eW', 'open.wdisc', 'gadget', 'lit.e0', 'open.d3', 'open.d4', 'boss'], set: { 'unlocked.dK': 2, 'found.kW': true, 'found.kE': true, 'lit.arW': true, 'lit.eT': true, 'drum.ballT': 1 } },
       { if: ['open.d4', 'boss'], set: { 'unlocked.d4': 1, 'found.kB': true, 'lit.hA': true, 'lit.hB': true, 'drum.ballQ': 1 } },
       { if: ['found.kB', 'open.d4', 'boss'], set: { 'lit.hG': true, 'lit.hA': true, 'lit.hB': true, 'drum.ballQ': 1 } },
+      { if: ['open.dL', 'lit.e0', 'open.d3', 'open.d4', 'boss'], set: { 'lit.knock': true } },
       { if: ['entered'], set: { relaid: true } },
     ],
   },

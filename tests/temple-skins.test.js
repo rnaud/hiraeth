@@ -790,7 +790,7 @@ test('the Undertower wears its futuristic skin: slate panels and coral circuits,
     const m = rt.skin.mats[k];
     assert.ok(m.userData.houseSkin && m.fragmentShader.includes('float emit = utGlow;') && m.fragmentShader.includes('float detail = utInkV;'), `its ${k}: the skin's panels, seams and lit lines`);
   }
-  assert.equal(rt.skin.mats.wall.uniforms.uUtRoundN.value, 3, 'its three round halls handed to the shader');
+  assert.equal(rt.skin.mats.wall.uniforms.uUtRoundN.value, 2, 'its two round halls handed to the shader (the Shell Chamber, the First Sign’s: the Cable Well a great hall since issue #418)');
   // the lights crisp (just over the post's halo start), out of the shadow passes
   assert.ok(UT.emit >= 0.68 && UT.emit <= 0.8 && rt.skin.mats.glow.uniforms.uGlow.value >= 0.68 && rt.skin.mats.glow.uniforms.uGlow.value <= 0.8);
   const kitMats = new Set(rt.kit.group.children.filter((m) => !m.userData.skin).map((m) => m.material));
@@ -799,8 +799,11 @@ test('the Undertower wears its futuristic skin: slate panels and coral circuits,
   for (const m of rt.kit.group.children) if (m.material === rt.skin.mats.glyph || m.material === rt.skin.mats.slot) assert.ok(!m.castShadow && m.userData.castShadow === false, 'its glyphs and slits cast no shadow');
   assert.ok(!rt.M.wall.userData.houseSkin && !rt.M.floor.userData.houseSkin && rt.M.trimMat !== rt.skin.mats.brass, 'rt.M the house’s own again, for its exterior');
   assert.equal(rt.kit.plan, null);
-  // the dishes and horns in brass, the balls and eggs bronze (their notes' rings their own)
-  for (const p of rt.pieces.filter((q) => q instanceof UtDish || q instanceof UtEar)) {
+  // the dishes and horns in brass, the balls and eggs bronze (their notes' rings their own); the Choir's black horn its own
+  // dark bell (`body`, issue #418)
+  const black = rt.piece('hB'), bb = new Set(); black.group.traverse((o) => o.isMesh && bb.add(o.material));
+  assert.ok(black.o.body && [...bb].some((m) => m.uniforms?.uColor?.value?.getHexString?.() === new THREE.Color(black.o.body).getHexString()), 'the black horn keeps its own dark bell');
+  for (const p of rt.pieces.filter((q) => (q instanceof UtDish || q instanceof UtEar) && !q.o?.body)) {
     const mats = new Set();
     for (const g of p.group ? [p.group] : p.ends.map((e) => e.g)) g.traverse((o) => o.isMesh && mats.add(o.material));
     assert.ok(mats.has(rt.skin.mats.brass) && !mats.has(p.cream), `${p.id ?? p.constructor.name} in the skin's brass`);
@@ -832,7 +835,7 @@ test('the Undertower’s skin adds no collision and moves nothing (rt.noSkin: th
 test('the Undertower’s dressing keeps out of every doorway, and the lighter presets hide its finest', () => {
   const rt = utHouse(), p = new THREE.Vector3(), q = new THREE.Quaternion(), s = new THREE.Vector3(), m4 = new THREE.Matrix4();
   const doors = rt.pieces.filter((d) => d instanceof UtDoor).map((d) => ({ at: rt.kit.local(d.group.position), w: d.o.w ?? 5, h: d.o.h ?? 6 }));
-  assert.ok(doors.length >= 8);
+  assert.ok(doors.length >= 7, `its doors (${doors.length})`);
   for (const m of utDressing(rt).filter((x) => x.isInstancedMesh || x.userData.places)) for (let i = 0; i < (m.isInstancedMesh ? m.count : m.userData.places.length); i++) {
     if (m.isInstancedMesh) m.getMatrixAt(i, m4); else m4.copy(m.userData.places[i]);
     m4.decompose(p, q, s);

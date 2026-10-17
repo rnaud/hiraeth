@@ -50,7 +50,8 @@ test('every quest\'s needs are critical items (or a quest), each with a place to
     } else assert.ok(ALL.some((o) => o.id === n.quest), `${q.id}: the quest it waits for, ${n.quest}, exists`);
   }
   const held = ALL.filter((q) => questNeeds(q).length).map((q) => q.id).sort();
-  assert.deepEqual(held, ['arzach.bird', 'arzach2.bell', 'desert.bike', 'desert.mask', 'incal.light', 'temple.desert'].sort(), 'the quests held back');
+  // (the Undertower, the exam of the whole game, issue #418: its Bellows want the wings, so its quest waits for them)
+  assert.deepEqual(held, ['arzach.bird', 'arzach2.bell', 'desert.bike', 'desert.mask', 'incal.light', 'temple.bazaar', 'temple.desert'].sort(), 'the quests held back');
   assert.deepEqual(templeNeeds(TEMPLES.desert.def.logic, 'desert'), ['doublejump'], 'the Rose House wants the lift valve (over the channel)');
   assert.deepEqual(templeNeeds(TEMPLES.arzach.def.logic, 'arzach'), [], 'the Aerie holds its own wings; the gun is carried past the desert');
 });

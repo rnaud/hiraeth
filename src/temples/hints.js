@@ -219,9 +219,13 @@ export const BOSS_HINTS = {
       ['It is trying to say something.',
         'Catch its word in the hourglass, then give it back when it listens.',
         'Stay near when it cries its word, then turn the hourglass on the air ({key:fire}) while its dish is lowered.'],
-      ['It has a new word.',
-        'Catch the new word, and play it back when it lowers its dish.',
-        'Be close when it cries, then turn the hourglass ({key:fire}) close to its dish while it listens.'],
+      // (issue #418: its puzzle between its fights)
+      ['Its one word floods the cables. It hears nothing.',
+        'Shut the word out at the hall’s relay. Then give it the word it turns to.',
+        'Pull the lever by the door; splash the stone its dish faces, then turn the hourglass ({key:fire}) by it.'],
+      ['It hears only through its cables now.',
+        'Catch its word, then play it into a low dish on the wall.',
+        'Be close when it cries, then stand under a low wall dish and turn the hourglass ({key:fire}) while it listens.'],
     ],
   },
   // the Casting-House: the Last Founder (a machine, stopped)

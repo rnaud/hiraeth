@@ -20,6 +20,7 @@ const { allTargets } = await import('../src/targets.js');
 const { CONTENT } = await import('../src/levels/content.js');
 
 game.reset();
+game.set('item.glider', true);   // (the wings, had long before the Signal Market: the Undertower's Bellows want them, issue #418)
 const scene = new THREE.Scene();
 const level = createBazaar(scene);
 const physics = new Physics(scene, level.ground);

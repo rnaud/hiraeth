@@ -45,7 +45,8 @@ const quiet = (fn) => { const w = console.warn, l = console.log; console.warn = 
 const own = (...ids) => { for (const id of Object.keys(ITEMS)) if (ids.includes(id)) items.grant(id); else items.revoke(id); };
 /** What each house is walked into with: the route's (the lift valve's double jump before every temple, the gun from the desert's Hearth); the Rose House with nothing in hand (v1.44). */
 // (and an older house's tool where a late step wants it with the house's own, G2: the Greenhouse's weight #411, the Lamp-House's far door #410, the Warden's Well's crown #413, the Whale-House's weight #412)
-const CARRY = { desert: ['backpack', 'doublejump'], edena: ['backpack', 'gun', 'doublejump', 'hook'], perdide2: ['backpack', 'gun', 'doublejump', 'hook'], incal: ['backpack', 'gun', 'doublejump', 'hook'], underwater: ['backpack', 'gun', 'doublejump', 'hook'], moonfoundry: ['backpack', 'gun', 'doublejump', 'hook'] };
+// (the Undertower, the last house: the exam of the whole game, the wings, the hook, the lens and the bombs with its own, #418)
+const CARRY = { desert: ['backpack', 'doublejump'], edena: ['backpack', 'gun', 'doublejump', 'hook'], perdide2: ['backpack', 'gun', 'doublejump', 'hook'], incal: ['backpack', 'gun', 'doublejump', 'hook'], underwater: ['backpack', 'gun', 'doublejump', 'hook'], moonfoundry: ['backpack', 'gun', 'doublejump', 'hook'], bazaar: ['backpack', 'gun', 'doublejump', 'glider', 'hook', 'monocle', 'bomb'] };
 const carry = (id) => CARRY[id] ?? ['backpack', 'gun', 'doublejump'];
 
 /**

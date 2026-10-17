@@ -7,7 +7,7 @@ import { KEEPER, keeperLands } from './temples/desert.js';
 import { keeperGuardian, elderGuardian } from './temples/guardian-generated.js';
 import { ELDER } from './temples/arzach.js';
 import { MOTHER as CLOUD_MOTHER } from './temples/arzach2.js';
-import { FIRST_SIGN } from './temples/bazaar.js';
+import { signSpar } from './temples/bazaar.js';   // (its fight before v1.83: in its house a puzzle comes between its fights, issue #418)
 import { TOOTH_WARDEN } from './temples/buried.js';
 import { GARDENER } from './temples/edena.js';
 import { FOREMAN } from './temples/garage.js';
@@ -51,7 +51,7 @@ export const GUARDIANS = [
   { id: 'moonfoundry', def: LAST_FOUNDER, model: () => founderModel() },
   { id: 'spheres', def: ECHO, model: () => echoModel() },
   { id: 'spacecity', def: ANCHOR_WARDEN, model: () => anchorModel() },
-  { id: 'bazaar', def: FIRST_SIGN, model: () => signModel() },
+  { id: 'bazaar', def: signSpar(), model: () => signModel() },
 ].map((g) => ({ ...g, name: g.def.name.replace(/^the /, 'The '), world: TITLES[g.id] ?? g.id, kind: g.def.kind }));
 export const GUARDIAN_BY_ID = Object.fromEntries(GUARDIANS.map((g) => [g.id, g]));
 

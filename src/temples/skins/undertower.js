@@ -506,12 +506,12 @@ function mulberry(a) { return () => { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = 
 /**
  * The house's dishes and horns in the skin's brass (drawn only: their materials swapped, their meshes, logic and lights
  * as they were): a dish's cream bowl, its rim and post, its lens coral; a horn's bell and its stand (its ring keeps
- * its note's colour).
+ * its note's colour; a horn of its own colour, the Choir's black horn, `body`, issue #418, keeps that too).
  */
 function brassPieces(rt, mats) {
   const trim = mats.brass, coral = new THREE.Color(UNDERTOWER_SKIN.line);
   for (const p of rt.pieces) {
-    if (!(p instanceof Dish || p instanceof EchoEar)) continue;
+    if (!(p instanceof Dish || p instanceof EchoEar) || p.o?.body) continue;
     for (const g of p.group ? [p.group] : (p.ends ?? []).map((e) => e.g)) g?.traverse((o) => { if (o.isMesh && (p instanceof EchoEar ? o.material !== p.glow : o.material === trim || o.material === p.cream)) o.material = mats.brass; });
     if (p instanceof Dish) p.glow?.uniforms?.uColor?.value?.copy?.(coral);
   }

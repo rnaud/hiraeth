@@ -2704,6 +2704,10 @@ export const NOTES = {
   high: { degree: 4, color: '#e58aa0', name: 'high' },
   // the whales' note (the Underwater City's Whale-House): the whale-horn sounds it (src/items.js 'horn', src/boxes/effects.js)
   deep: { degree: -3, color: '#6f8fd8', name: 'deep' },
+  // (issue #418, the Undertower) a blast's boom: only an ink bomb sounds it (src/temples/bazaar.js hears 'gadget:blast'),
+  // and the First Sign's one word as its cables say it while the house speaks
+  boom: { degree: -5, color: '#5a4a7a', name: 'boom' },
+  'sign.0': { degree: 1, color: '#fff0bd', name: 'word' },
 };
 
 /**
@@ -2768,7 +2772,7 @@ export class EchoStone {
  * Something that listens for a note played back close to it (the echo shell's game event 'echo' { pos, note }):
  * its own note, within `reach`, lights element `id` (a 'switch' that needs the shell); another note it only
  * shrugs off. A horn of brass on a post (or over a door's lintel: o.lintel), ringed in its note's colour.
- * o: { id, note, at, yaw, reach, lintel, hears, stand, size, heard, wrong, fading }
+ * o: { id, note, at, yaw, reach, lintel, hears, stand, size, body (its bell's colour), heard, wrong, fading }
  *   hears: 'echo' (the shell played back: the default), 'note' (a stone's own song, no shell needed) or 'both'
  *   stand: the post's height (2.4 m); size: the horn's scale (1)
  * An element with `hold: s` (logic.js) is not latched: the horn rings s seconds after it hears its note (heard
@@ -2791,7 +2795,7 @@ export class EchoEar {
     const y = o.lintel ? 0 : stand;
     if (!o.lintel) this.group.add(mesh([T(new THREE.CylinderGeometry(0.16 * Math.sqrt(sz), 0.22 * Math.sqrt(sz), stand, 8), [0, stand / 2, 0]), T(new THREE.CylinderGeometry(0.5 * sz, 0.6 * sz, 0.25, 12), [0, 0.12, 0])], M.trimMat));
     // the horn: a flared bell of brass facing out, its mouth ringed in the note's colour
-    this.group.add(mesh([T(lathe([[0.12, 0], [0.18, 0.5], [0.35, 0.9], [0.75, 1.15], [0.8, 1.2]], 14).scale(sz, sz, sz), [0, y, -0.4 * sz], [Math.PI / 2, 0, 0])], own({ color: '#d8a24a', flat: true, side: THREE.DoubleSide })));
+    this.group.add(mesh([T(lathe([[0.12, 0], [0.18, 0.5], [0.35, 0.9], [0.75, 1.15], [0.8, 1.2]], 14).scale(sz, sz, sz), [0, y, -0.4 * sz], [Math.PI / 2, 0, 0])], own({ color: o.body ?? '#d8a24a', flat: true, side: THREE.DoubleSide })));   // (body: its bell's colour, brass but for the Undertower's black horn, issue #418)
     this.glow = own({ color: N.color, glow: 0.2, flat: true });
     this.group.add(mesh([T(new THREE.TorusGeometry(0.78 * sz, 0.07 * Math.sqrt(sz), 4, 24), [0, y, 0.82 * sz])], this.glow));
     noCollide(this.group);
@@ -3077,12 +3081,15 @@ export class Bridge {
  * game event 'echo', not a stone's own song), still rings: `hold` s from the last time it heard it within `reach` (across
  * the floor) of its top; then it sinks again, but not while someone stands on it. So the way over is carried: play the
  * note at the edge, step out, play it again further on (the shell keeps it), and the pillars ahead rise as you go.
- * o: { a, b: [x, y, z] the walkway's ends (its top), w, n, pillar: m deep, note, reach (m), hold (s), heard, wrong }
+ * o: { a, b: [x, y, z] the walkway's ends (its top), w, n, pillar: m deep, note, reach (m), hold (s), heard, wrong,
+ *      id, hidden (issue #418: there only through the seeing lens, as the Footprint's stones: risen but unseen, nothing to
+ *      stand on; once seen through it, there for good: `revealed`), unseen (said when they rise unseen) }
  */
 export const PILLARS = { reach: 6.5, hold: 6, rise: 0.9, sink: 1.0 };
 export class Pillars {
   constructor(rt, o) {
-    this.rt = rt; this.o = o; this.note = o.note ?? 'high';
+    this.rt = rt; this.o = o; this.id = o.id; this.note = o.note ?? 'high';
+    this.hidden = !!o.hidden;
     const N = NOTES[this.note] ?? NOTES.high;
     const K = rt.kit, M = rt.M, w = o.w ?? 4, n = o.n ?? 8;
     const a = V(...o.a), b = V(...o.b), L = a.distanceTo(b), yaw = Math.atan2(b.x - a.x, b.z - a.z);
@@ -3098,7 +3105,7 @@ export class Pillars {
       g.position.copy(K.world(c.x, c.y, c.z));
       g.rotation.y = K.heading(yaw);
       const deep = (o.pillar ?? 12) * (0.8 + 0.4 * ((i * 7) % 5) / 4);
-      g.add(mesh([box(w, 1.0, len - 0.08, 0, -0.5, 0), box(w - 0.3, deep, len - 0.3, 0, -1 - deep / 2, 0)], M.floor));
+      g.add(mesh([box(w, 1.0, len - 0.08, 0, -0.5, 0), box(w - 0.3, deep, len - 0.3, 0, -1 - deep / 2, 0)], this.hidden ? (this.ghost ??= own({ color: rt.P.glow ?? '#a8e6ee', glow: 0.45, flat: true })) : M.floor));
       g.add(mesh([T(glyphGeometry(w * 0.5, 0.04).rotateX(-Math.PI / 2), [0, 0.01, 0])], M.glyph));
       // its horn, on the pillar's side under the walkway's edge, turned up and out (by turns on either side)
       const sd = i % 2 ? 1 : -1;
@@ -3112,11 +3119,14 @@ export class Pillars {
       this.stones.push({ g, y: g.position.y, block: bl, local: c, half: len / 2, left: 0, k: 0, handle: null });
     }
     this.span = { a, b, w, yaw };
+    this.mid = K.world((a.x + b.x) / 2, (a.y + b.y) / 2, (a.z + b.z) / 2);
     this.wrongSaid = false;
     this.off = rt.game?.on?.('echo', (e = {}) => this.hear(e));
     this.apply();
   }
   init(physics) { this.physics = physics; }
+  /** Shown (a hidden walkway: once seen through the seeing lens, for good: revealed). */
+  seen() { return !this.hidden || revealed(this.rt, this.id, this.mid); }
   /** A note played back somewhere: the pillars within reach of it rise (their own note), or stay down (another). */
   hear({ pos, note } = {}) {
     if (!pos) return;
@@ -3129,7 +3139,12 @@ export class Pillars {
     }
     let rose = false;
     for (const s of near) { if (s.left <= 0 && s.k < 0.5) rose = true; s.left = this.hold; }
-    if (rose) { this.rt.rumble?.(1.2, 0.35); this.rt.sound?.chime?.(); this.rt.notice?.(this.o.heard ?? 'The pillars nearest you hear the note and rise out of the dark. Further on, they wait to hear it too.', 'pillars.heard'); }
+    if (rose) {
+      this.rt.rumble?.(1.2, 0.35); this.rt.sound?.chime?.();
+      // (hidden and not seen yet: something rises, and nothing is there to see)
+      if (!this.seen()) this.rt.notice?.(this.o.unseen ?? 'Something rises out of the dark, and nothing is there to see.', `pillars.unseen.${this.id ?? ''}`);
+      else this.rt.notice?.(this.o.heard ?? 'The pillars nearest you hear the note and rise out of the dark. Further on, they wait to hear it too.', 'pillars.heard');
+    }
   }
   /** Someone stands on stone s (it waits for them to step off before it sinks). */
   ridden(s, p = this.rt.player) {
@@ -3143,23 +3158,25 @@ export class Pillars {
   get up() { return this.stones.filter((s) => s.handle).length; }
   /** Stone i stands (solid). */
   standing(i) { return !!this.stones[i]?.handle; }
-  apply() {
+  apply(seen = true) {
     for (const s of this.stones) {
       s.g.position.y = s.y - (1 - ease(s.k)) * 14;
-      s.g.visible = s.k > 0.001;
+      s.g.visible = s.k > 0.001 && seen;
     }
   }
   update(dt, t) {
     let lit = 0;
+    const seen = this.seen();
     for (const s of this.stones) {
       if (s.left > 0) s.left = Math.max(0, s.left - dt);
-      const want = s.left > 0 || (s.handle && this.ridden(s));
+      const risen = s.left > 0 || (s.handle && this.ridden(s));
+      const want = risen && seen;   // (a hidden walkway risen but unseen: nothing to stand on)
       if (want && !s.handle && this.physics) s.handle = this.physics.addCollider?.(s.block, NO_CLIMB) ?? null;
       if (!want && s.handle) { this.physics.removeCollider?.(s.handle); s.handle = null; }
-      s.k = THREE.MathUtils.clamp(s.k + (want ? dt / PILLARS.rise : -dt / PILLARS.sink), 0, 1);
-      if (want) lit++;
+      s.k = THREE.MathUtils.clamp(s.k + (risen ? dt / PILLARS.rise : -dt / PILLARS.sink), 0, 1);
+      if (risen) lit++;
     }
-    this.apply();
+    this.apply(seen);
     this.ringM.uniforms.uGlow.value = lit ? 0.85 + 0.15 * Math.sin(t * 6) : 0.2 + 0.08 * Math.sin(t * 2);
   }
   dispose() { this.off?.(); for (const s of this.stones) if (s.handle) this.physics?.removeCollider?.(s.handle); }

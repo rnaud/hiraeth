@@ -1061,6 +1061,73 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   for `dW`, old saves), `tests/temple-playthrough.test.js` (walked in with the hook; a house-wide state may be asked for
   twelve times). Old saves: `migrate.js` moonfoundry v4 (past the old Mould Room's door: the landing's moon cast; past the
   Founders' Door: the Weighing Hall done, the small key in its door; one that stood inside: to its last mark).
+- **The Undertower round the Great Well, the line its state, the exam of the whole game** (v1.83, issue #418; the approved
+  best practices, `docs/design/temple-best-practices.md` G1, G2, G3d, G4, G6 and its Undertower row). `src/temples/bazaar.js`:
+  - **G4, the great hall:** the round Cable Well is gone; the **Great Well** (`ROOMS.well`, room `well`) is 42 by 64 m under
+    42, over three floors seen at once (`WELL`): its floor (F0, the hub), its **gallery** 12 m up round the west, east and
+    north sides (`landing`: the north band a block of stone from the floor up, the arms on columns, open over the floor), and
+    its **high balcony** 24 m up over the north end (`top`), on the band's wall and two piers. West off the floor the Cable
+    Store's passage, east the Tuning Room (8 m further east), north off the gallery the Shell Chamber (r 17 now, 28 m
+    before), west off the gallery's arm the Choir's gate, east off the balcony the Bellows. The rooms after the chamber
+    stand on F2 (the Listening Passage, the Gallery of Voices, the First Sign's hall). The ids `gallery` and `galleryFar`
+    are kept (a save's last mark holds).
+  - **G1, the line** (`SPEAK` / `QUIET`, `LINE_LOOK`): the First Sign's one word let into the makers' cables or shut out, a
+    drum of two stops (`lineQuiet` t 0, the start; `lineSpeaking`), `roll: 'hand'`, `verb: 'relay'`, its room the Hall of
+    Dishes' far landing and `rooms` the gallery, the balcony, the Listening Passage and the First Sign's hall (logic.js,
+    issue #408). `LineRelay` keeps it (`rt.line`; its scout's `center` the nearest lever): **the great horn** hung in the Great
+    Well's middle (`WELL.horn`), its ring, throat and the cables out to the walls lit in one lamp material (`lineLamp`:
+    coral while the house speaks, slate while quiet); while it speaks it says the word every `LINE_LOOK.every` s (the
+    game's `note` `sign.0`, caught by the sand within `LINE_LOOK.reach`, a ring of light going out from its mouth).
+    **Cheap to change:** a `RelayLever` by every hub (`LEVERS`: the far landing by the way into the Great Well, the gallery's
+    north band, the balcony's west end by the davit, the Listening Passage by its door, the First Sign's hall by its door), the use button ("let
+    the word into the cables" / "shut the word out of the cables"). **Readable everywhere:** a `LineLamp` (a small brass horn
+    on a post, its mouth the lamp) in every room but the Threshold's, the pit hall's near side, the far landing of the
+    gallery and the Crown; the levers' knobs; the horn's word, heard. **What it sets, on three floors:** speaking, the
+    Cable Store's door (`dS`, a cable door, and the arena's), the great lift (`lift`, woken the first time and running from
+    then on: a latch, so the house quiet never strands anyone on either floor), the Bellows' door (`dB`, with the Choir's
+    small key) and their draught; quiet, the horns on the cables hear: the Listening Passage's (`e0`), the Choir's two
+    (`hA`, `hB`), and the First Sign in its puzzle. The way through sets it speaking, quiet, speaking, quiet
+    (`tests/temples.test.js`).
+  - **The hourglass's ride** (`Counterweight`, `WEIGHTS`): a block of the house's stone on its cable, a loose weight (the
+    hook's rule, #432) and the level's `recallables` (`src/gadgets/recall.js`: the house adds its adapters to the level).
+    Knocked off its ledge (a shot, a push, a blast: `slide`) it tips off and goes down its cable at `WEIGHTS.pace`; hooked,
+    it is dragged at that pace; the recall hourglass sends it back along its path with you on it (a moving collider). Left
+    `WEIGHTS.back` s off its ledge with nobody on it, its cable draws it home. **Taught** in the Shell Chamber (`SHELF`):
+    the way on is a walkway 12 m up on a pier, its counterweight on it (`cwShell`, the element `knock`, its words on the
+    Temple maps page `noun` / `act`): knock it off, stand on it, turn the hourglass on it.
+  - **G2, one step each for the older tools, each with the hourglass:** **the hook**: the high counterweight (`cwTop`)
+    hangs from a davit over the balcony's lip, its top level with the balcony, seen whole from the gallery's west arm: hook
+    it down to you, stand on it, ride it back up (`landing → top`, `needs: ['hook', 'recall']`). **The lens**: the Gallery of
+    Voices' listening pillars still rise for the high note played back near them, and they are there only through the seeing
+    lens (`Pillars` `hidden`, pieces.js: risen but unseen, nothing to stand on; seen once, for good): `needs: ['recall',
+    'monocle']`. **The bombs**: the Choir's near horn is black and hears only a blast's boom, and only played back (`hB`,
+    `NOTES.boom`; a blast in the house is a note, `gadget:blast` → `note` 'boom', and by the horn it says so): with the far
+    horn's low song through the dishes, the small key's cage (`kC`). **The wings**: the Bellows' horn (`hW`, held 12 s)
+    wants the First Sign's word played back, caught from the great horn while the house speaks; while it rings and the house
+    speaks the bellows blow (`draught`, an `Updraft` 24 m), and the wings ride it up to the **Crown**, a ledge high on the
+    shaft's wall with the great key free on it (`bellows → crown`, `needs: ['glider']`).
+  - **G6:** the gallery's west arm has no parapet over `WELL.drop` (12 m to the floor, unhurt); the balcony's lip has an open
+    stretch (`WELL.gap`) over a heap of old cable on the floor (`CableHeap`, the Footprint's `Catch` done with cable: 24 m,
+    nothing hurt); off the Crown the bellows' breath takes the fall. The guardian's checkpoint: the antechamber's mark.
+  - **G3d, the First Sign: two fights and a puzzle between them** (`FIRST_SIGN`, `signWord`, `onUpdate`): its first fight
+    as before (its word, SOMEBODY, played back when it lowers its dish, twice). Its **puzzle** (`puzzle: true`, no moves):
+    it turns its dish up and floods the cables with its word (the house speaks: `LineRelay.set`), and hears nothing until
+    the word is shut out at its hall's relay; then it turns its dish to the stone of the word it wants next (three
+    `WordStone`s round the wall: OUT THERE, IS TALKING, TO YOU; `Guardian.listen`) and listens, as long as it takes (every
+    `SIGN_WAIT` s it swings round to the stone again): the word caught from that stone, played back into its dish, in order.
+    Its **last fight**: it hears only through its cables, the low wall dishes (its second verb, the dodge of its beam,
+    here now). In the Arena it spars its three fights as before (`signSpar()`); the guardians' fight-through test lends a
+    puzzle phase its temple's `puzzleHand` (the word shut out) and takes its openings.
+  - **The three painfully obvious steps, cut:** the second disc's horn by the low stone (5): the great lift runs on the
+    line now; the chamber's north door for the shell in hand (4.5): the walkway's counterweight; the listening pillars (5):
+    seen only through the lens.
+  Thirteen steps for the design audit (see the best-practices doc's As built); a player takes about twenty. Old saves
+  (`migrate.js` bazaar v6): past the chamber's old door, the walkway's counterweight knocked; an old great key kept; one
+  that stood inside, to its last mark. Tests: `tests/undertower-line.test.js` (the house on foot with a real traveller:
+  every lever pulled, both counterweights ridden under the hourglass, the hook's aim and drag, the lens's pillars, the
+  bomb's boom, the bellows' draught on the wings, the drops unhurt, the First Sign's three phases), `temples.test.js` (the
+  logic, the line set both ways, each older tool needed, the migration), `temple-playthrough` (the levers pulled for real),
+  `guardian-twists` (its puzzle and its last fight), `guardian-completable`.
 - **The Givers carried their fire** (the Rose House, from the v1.24 audit; the house's one fire, the pilot flame,
   never went out; the rooms below as they were until v1.44). A `Ball` with `tar: { burns }` is a tar ball: an ember glob lights it, and so does rolling it past a
   fire beside its groove (any piece with a `fire` point within its `fireReach`: a `Flame`, the pilot flame sunk in the

@@ -739,3 +739,41 @@ alike) with G1, G2, G4 and G6, and the seven steps the Temple maps page listed a
   7 of 12, mean obviousness 2.58 → 3.13 (the first gates are plain teaching steps), decoupling 5 (8 of 12 keys out of the
   lock's room or sight), curve 4 → 5, identity 3 as before; the redesign's rules: none broken. The Temple maps page: 11
   steps and 8 extras → 25 steps and 3 extras.
+### As built: the Undertower (v1.83, issue #418)
+
+The last house's row of Part 3 (the exam of the whole game: one step each for the wings, the hook, the lens and the
+bombs, joined with the hourglass; its three painfully obvious steps) with G1, G2, G3d, G4 and G6 (`src/temples/bazaar.js`;
+how it works: `docs/systems/temples.md`, "The Undertower round the Great Well"):
+
+- **G4, the great hall:** the round Cable Well became the **Great Well**, 42 by 64 m under 42, over three floors seen at
+  once: its floor (the hub), its gallery 12 m up round three sides, its high balcony 24 m up over the north end. The rooms
+  after the chest stand on the third floor; passages between rooms stay 7 m wide.
+- **G1, the house-wide state: the line**, the First Sign's one word let into the makers' cables (the house speaks) or shut
+  out (quiet). It fits the house: the machine under the market says one word, and its cables still carry it. **Set in
+  one place, changing several rooms on three floors:** speaking, the Cable Store's door, the great lift, the Bellows'
+  door and their draught run, and the great horn in the hall says the word (the sand catches it); quiet, the horns on the
+  cables hear (the Listening Passage's, the Choir's two). **Cheap to change:** a relay lever by the way into the hall, on
+  its gallery, on its balcony, by the Listening Passage's door and in the First Sign's hall. **Readable everywhere:** a
+  line lamp in every room, the great horn's ring and its cables lit coral or dark, the word heard. On the way it is set
+  speaking, quiet, speaking and quiet; the lift latches the first time (the state never strands anyone).
+- **The exam (G2), each older tool with the hourglass:** the hook drags the high counterweight off its davit over the
+  balcony's lip down to you on the gallery, and the hourglass rides it (and you) back up; the listening pillars rise for
+  the high note played back, and are there only through the lens; the Choir's black horn hears only a bomb's boom played
+  back from the sand; the bellows blow for the First Sign's word played back, and the wings ride their draught to the
+  Crown and the great key. The hourglass's ride is taught first on the Shell Chamber's walkway (a counterweight knocked
+  off with a shot).
+- **The three painfully obvious steps, cut:** the second disc and its horn by the low stone (the great lift runs on the
+  line now), the chamber's north door for the hourglass in hand (the walkway's counterweight), the pillars that rose for a
+  note sung beside them (the lens).
+- **G3d, the guardian:** the First Sign fights, then stops: it floods the cables with its word, and hears nothing until
+  the word is shut out at its hall's relay; then it turns its dish to the stone that sings the next word of its line, and
+  wants OUT THERE, IS TALKING, TO YOU played back, in order. Then its last fight, through its cables only. In the Arena
+  it spars its three fights as before.
+- **G6:** a drop off the gallery's west arm to the floor (12 m), a drop off the balcony's lip into old cable heaped on the
+  floor (24 m), the bellows' breath under the Crown; the guardian's checkpoint the antechamber's mark.
+- **Length and scores:** 9 → 13 steps for the design audit (`XXBLCRXTGXLK` → `XXBBLCTXGXXTLXLK`): combinations 5 → 9,
+  mean obviousness 3.39 → 3.08 (painfully obvious 3 → 0), decoupled 5 → 9, loops 1 → 3, non-obvious 3 → 4, curve 5 → 4,
+  identity 3 (69 % like the Greenhouse); the score 4.44 before and after. The Temple maps page lists 28 actions (it was
+  22), and a player takes about twenty steps; the redesign's rules: none broken. The hook takes only the two
+  counterweights here (#432's rule: rings, loose weights, bells and foes; `tests/hook-reach.test.js` passes). Not guarded:
+  the spring boots' launch (14 m) reaches a 12 m floor, here as in every reworked house.

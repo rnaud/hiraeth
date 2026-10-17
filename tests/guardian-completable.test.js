@@ -88,6 +88,9 @@ function fightThrough(H, stance, fps) {
     if (G.state === 'sleep') { G.wake(); continue; }
     if (G.state === 'weary' || G.state === 'resolved') { log.push(`${G.state} after ${total.toFixed(0)} s`); return { won: true, log, stuck: null }; }
     if (G.phaseIndex !== phase) { phase = G.phaseIndex; since = 0; }
+    // (a puzzle phase between its fights, G3d, issue #418: what a player does first to let it listen is its temple's hand;
+    // its whole puzzle, played, is that temple's own test)
+    if (G.phase?.puzzle) H.rt.def?.puzzleHand?.(H.rt);
     if (G.state === 'fight' || G.state === 'open') since += dt;
     const Q = asks(), a = G.attack;
     // the phase's second verb: a push or a shot from where he stands into the asked move's wind-up
