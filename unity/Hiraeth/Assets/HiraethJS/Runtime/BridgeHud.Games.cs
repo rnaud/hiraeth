@@ -85,7 +85,7 @@ namespace Hiraeth.Bridge
         void BuildGames(Font mono)
         {
             gamesRoot = Ui.Node("games", root); Ui.Stretch(gamesRoot);
-            BuildPirates(); BuildDrums(); BuildFishing(); BuildHunt();
+            BuildPirates(); BuildDrums(); BuildFishing(); BuildHunt(); BuildVisor();
         }
         void DrawGames(Dictionary<string, object> s, bool on)
         {
@@ -94,6 +94,7 @@ namespace Hiraeth.Bridge
             DrawHunt(on ? s.O("hunt") : null, dt);
             DrawFishing(on ? s.O("fishing") : null, dt);
             DrawPirates(on ? s.O("pirates") : null, dt);
+            DrawVisor(on ? s.O("visor") : null);
         }
 
         // ---------------------------------------------------------------- the drum circle (src/minigames/drums.js Overlay.draw)
@@ -796,6 +797,154 @@ namespace Hiraeth.Bridge
                 float bw = iw + 24 + 4, bh = a.y + b.y + 15 + 4;
                 Ui.Place(piComms.rt, 18, H - 22 - bh + 8 * (1 - piCommsA), bw, bh);
                 Ui.Alpha(piComms.rt, piCommsA);
+            }
+        }
+    
+        // ---------------------------------------------------------------- the Lens Vault's visor (src/minigames/lens-vault-hud.js drawVisor)
+        // The traveller's eyes in the first-person game (issue #382), in CSS px of the part's W × H: the teal wash with the
+        // lens up, the rim's ink brackets in the corners, his hearts (diamonds filled by the quarter) and the ARM / LENS tab
+        // at the top left, a teal diamond over each thing the lens can read (hollow once read), the lock's coral brackets and
+        // LOCK, the reticle (a ring broken at its four points round a dot) with the charge's gold ring and the reading's teal
+        // one, the reading's dark card at the bottom left (the thing's name over its line), the hurt's red at the edges.
+        RectTransform viRoot; Sketch viSk; RawImage viWash, viRed; Label viTab, viLock, viHint; Ui.Box viCard; Label viName, viText;
+        static readonly Color ViPaper = Ui.Hex("#f7ecd2"), ViCoral = Ui.Hex("#ef9479"), ViRed = Ui.Hex("#d9643a");
+
+        void BuildVisor()
+        {
+            viRoot = Ui.Node("visor", gamesRoot); Ui.Stretch(viRoot);
+            RawImage Glow(string name)
+            {
+                var r = new GameObject(name, typeof(RectTransform)).AddComponent<RawImage>();
+                r.rectTransform.SetParent(viRoot, false); r.raycastTarget = false; r.texture = redGlow ??= RedGlow();
+                return r;
+            }
+            viWash = Glow("lens wash"); viRed = Glow("hurt");
+            viSk = MakeSketch(viRoot, "visor");
+            viTab = Ui.Label(viRoot, "tab", Ui.Sans, 11, GInk, TextAnchor.MiddleCenter, FontStyle.Bold, 1f);
+            viLock = Stroked(viRoot, "lock", Ui.Sans, 10, ViCoral, 3);
+            viHint = Stroked(viRoot, "hint", Ui.Sans, 13, ViPaper, 3);
+            viCard = Ui.Panel(viRoot, "reading", GInk, GInk, 0, 4, 4, 0, new Color(0, 0, 0, 0.35f));
+            viName = Ui.Label(viCard.rt, "name", Ui.Sans, 10, GTeal, TextAnchor.UpperLeft, FontStyle.Bold, 1.2f);
+            viText = Ui.Label(viCard.rt, "text", Ui.Sans, 15, ViPaper, TextAnchor.UpperLeft, FontStyle.Normal, 1.25f);
+            viRoot.gameObject.SetActive(false);
+        }
+
+        /// <summary>A convex polygon (part px, y down) kept below the line y = yl, filled as a fan.</summary>
+        static void FillBelow(Sketch sk, IList<Vector2> poly, float yl, Color c, System.Func<float, float, Vector2> Q)
+        {
+            var o = new List<Vector2>();
+            for (int i = 0; i < poly.Count; i++)
+            {
+                Vector2 a = poly[i], b = poly[(i + 1) % poly.Count];
+                bool ain = a.y >= yl, bin = b.y >= yl;
+                if (ain) o.Add(a);
+                if (ain != bin) { float t = (yl - a.y) / (b.y - a.y); o.Add(new Vector2(a.x + (b.x - a.x) * t, yl)); }
+            }
+            for (int i = 1; i + 1 < o.Count; i++) sk.Tri(Q(o[0].x, o[0].y), Q(o[i].x, o[i].y), Q(o[i + 1].x, o[i + 1].y), c);
+        }
+
+        void DrawVisor(Dictionary<string, object> g)
+        {
+            bool on = g != null;
+            if (viRoot.gameObject.activeSelf != on) viRoot.gameObject.SetActive(on);
+            if (!on) return;
+            float cw = Mathf.Max(1, g.F("W", 1280)), ch = Mathf.Max(1, g.F("H", 720));
+            float sx = W / cw, sy = H / ch, s = sy;
+            Vector2 Q(float x, float y) => P(x * sx, y * sy);
+            var sk = viSk; sk.Clear();
+            Ui.Place(sk.rectTransform, 0, 0, W, H);
+            bool lens = g.S("mode") == "lens";
+            // the lens's teal wash, the hurt's red (the pirates' radial glow, tinted)
+            float m = Mathf.Max(W, H) * 0.72f * 2;
+            viWash.enabled = lens;
+            if (lens) { Ui.Place(viWash.rectTransform, W / 2 - m / 2, H / 2 - m / 2, m, m); viWash.color = new Color(113 / 255f, 215 / 255f, 207 / 255f, 0.32f); }
+            float red = g.F("red");
+            viRed.enabled = red > 0.002f;
+            if (red > 0.002f) { Ui.Place(viRed.rectTransform, W / 2 - m / 2, H / 2 - m / 2, m, m); viRed.color = new Color(217 / 255f, 70 / 255f, 40 / 255f, 0.7f * red); }
+            // the rim's brackets
+            const float c = 22, a = 46;
+            var rim = lens ? GTeal : ViPaper;
+            foreach (var (x, y, bx, by) in new[] { (c, c, 1f, 1f), (cw - c, c, -1f, 1f), (c, ch - c, 1f, -1f), (cw - c, ch - c, -1f, -1f) })
+            {
+                var pts = new[] { Q(x, y + by * a), Q(x, y), Q(x + bx * a, y) };
+                sk.Path(pts, (2.4f + 2.4f) * s, GInk); sk.Path(pts, 2.4f * s, rim);
+            }
+            // his hearts, the tab under them
+            var hp = g.O("hp");
+            float hn = hp != null ? hp.F("n") : 0; int hmax = hp != null ? hp.I("max") : 3;
+            float hx = c + 18, hy = c + 22;
+            for (int i = 0; i < hmax; i++)
+            {
+                float x = hx + i * 30, fill = Mathf.Clamp01(hn - i);
+                var dia = new[] { new Vector2(x, hy - 12), new Vector2(x + 10, hy), new Vector2(x, hy + 12), new Vector2(x - 10, hy) };
+                sk.Quad(Q(dia[0].x, dia[0].y), Q(dia[1].x, dia[1].y), Q(dia[2].x, dia[2].y), Q(dia[3].x, dia[3].y), new Color(43 / 255f, 33 / 255f, 31 / 255f, 0.45f));
+                if (fill > 0) FillBelow(sk, dia, hy + 12 - 24 * fill, hn <= 1 ? ViRed : GCoral, Q);
+                Poly(sk, new[] { Q(dia[0].x, dia[0].y), Q(dia[1].x, dia[1].y), Q(dia[2].x, dia[2].y), Q(dia[3].x, dia[3].y) }, 2.6f * s, GInk);
+            }
+            float tx = c + 8, ty = hy + 22, tw = 56;
+            sk.Box(new Rect((tx - 2) * sx, -(ty - 2 + 22) * sy, (tw + 4) * sx, 22 * sy), GInk);
+            sk.Box(new Rect(tx * sx, -(ty + 18) * sy, tw * sx, 18 * sy), rim);
+            viTab.fontSize = Mathf.RoundToInt(11 * s);
+            Center(viTab, (tx + tw / 2) * sx, (ty + 9.5f) * sy, lens ? "LENS" : "ARM");
+            // what the lens can read
+            foreach (var o in g.L("marks") ?? new List<object>())
+            {
+                if (o is not Dictionary<string, object> mk) continue;
+                float x = mk.F("x"), y = mk.F("y"); bool read = mk.Get("read") is bool rd && rd;
+                var q = new[] { Q(x, y - 7), Q(x + 6, y), Q(x, y + 7), Q(x - 6, y) };
+                if (!read) sk.Quad(q[0], q[1], q[2], q[3], GTeal);
+                Poly(sk, q, 2 * s, GInk);
+                if (read) Poly(sk, q, 1 * s, GTeal);
+            }
+            // the lock
+            var lk = g.O("lock");
+            Show(viLock, lk != null);
+            if (lk != null)
+            {
+                float x = lk.F("x"), y = lk.F("y"), r = lk.F("r");
+                foreach (var (lw, col) in new[] { (5f, GInk), (2.4f, ViCoral) })
+                    foreach (var (bx, by) in new[] { (-1, -1), (1, -1), (-1, 1), (1, 1) })
+                        sk.Path(new[] { Q(x + bx * r, y + by * (r - 7)), Q(x + bx * r, y + by * r), Q(x + bx * (r - 7), y + by * r) }, lw * s, col);
+                viLock.fontSize = Mathf.RoundToInt(10 * s); Stroke(viLock, 1.5f * s);
+                Center(viLock, x * sx, (y + r + 11) * sy, "LOCK");
+            }
+            // the reticle, the charge's and the reading's rings
+            var rt = g.O("ret");
+            if (rt != null)
+            {
+                float x = rt.F("x"), y = rt.F("y"), R = rt.F("r", 11), gap = rt.F("gap", 0.32f), dot = rt.F("dot", 2.2f);
+                var hot = Json.Hex(rt.S("hot") ?? "#f7ecd2");
+                for (int pass = 0; pass < 2; pass++)
+                    for (int k = 0; k < 4; k++) Arc(sk, x * sx, y * sy, R * s, k * Mathf.PI / 2 + gap, (k + 1) * Mathf.PI / 2 - gap, (pass == 0 ? 2.1f + 2.4f : 2.1f) * s, pass == 0 ? GInk : hot);
+                sk.Disc(Q(x, y), (dot + 0.6f) * s, GInk);
+                sk.Disc(Q(x, y), (dot - 0.6f) * s, hot);
+                bool full = rt.Get("full") is bool fu && fu;
+                foreach (var (k, col, gold) in new[] { (rt.F("charge"), GGold, true), (rt.F("scan"), GTeal, false) })
+                {
+                    if (!(k > 0)) continue;
+                    float cr = (R + 6) * s, a0 = -Mathf.PI / 2, a1 = a0 + Mathf.PI * 2 * Mathf.Min(1, k);
+                    Arc(sk, x * sx, y * sy, cr, a0, a1, 4.6f * s, GInk);
+                    Arc(sk, x * sx, y * sy, cr, a0, a1, (full && gold ? 2.6f : 2f) * s, col);
+                }
+            }
+            // the hint under the reticle (the pointer refused: drag to look)
+            string hint = g.S("hint") ?? "";
+            Show(viHint, hint.Length > 0);
+            if (hint.Length > 0) { viHint.fontSize = Mathf.RoundToInt(13 * s); Stroke(viHint, 1.5f * s); Center(viHint, cw / 2 * sx, (ch / 2 + 44) * sy, hint); }
+            // the reading's card
+            var rd2 = g.O("read");
+            bool ron = rd2 != null && rd2.Get("on") is bool ro && ro;
+            viCard.Show(ron);
+            if (ron)
+            {
+                float maxW = Mathf.Min(440, cw * 0.7f) * s;
+                viName.fontSize = Mathf.RoundToInt(10 * s); viText.fontSize = Mathf.RoundToInt(15 * s);
+                var na = CssSet(viName, Ui.Upper(rd2.S("name") ?? ""), maxW - 24 * s, 1.35f);
+                var tb = CssSet(viText, rd2.S("text") ?? "", maxW - 24 * s, 1.35f);
+                float bh = 12 * s + na.y + tb.y + 10 * s;
+                CssPlace(viName, 12 * s, 8 * s, maxW - 24 * s, na, 1.35f);
+                CssPlace(viText, 12 * s, 8 * s + na.y + 2 * s, maxW - 24 * s, tb, 1.35f);
+                Ui.Place(viCard.rt, 22 * sx, H - 22 * sy - bh, maxW, bh);
             }
         }
     }

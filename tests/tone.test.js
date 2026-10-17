@@ -146,6 +146,13 @@ test('the lines said on the way between worlds (the chime-pirates: the ship, the
   for (const l of lines) assert.ok(parseLine(l).explicit, `${l.text}: no tone`);
 });
 
+test('what the Lens Vault\'s lens reads carries a tone (issue #382: src/minigames/lens-vault-rules.js LENS)', async () => {
+  const { LENS_LINES } = await import('../src/minigames/lens-vault-rules.js');
+  const lines = Object.values(LENS_LINES);
+  assert.ok(lines.length >= 10);
+  for (const l of lines) assert.ok(parseLine(l).explicit && TONES.includes(parseLine(l).tone), `${l}: no tone`);
+});
+
 // ------------------------------------------------------------------ the voice
 
 const LINE = 'The water has not risen this year, and the pilgrims are still walking round the walls';

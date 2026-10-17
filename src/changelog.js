@@ -54,6 +54,9 @@ export const CHANGELOG = [
     // weight wG and dish, the Throat west), underwater-data.js (Achille), migrate.js underwater v4, logic.js (the solver's
     // stop: an eye in reach), temple-maps makers.js (the tide's words); tests/whale-tide.test.js
     'The Whale-House is built round a great hall now, the Sounding Hall, 76 m long, and the tide is the house’s state. Turn a valve to let the sea in or out: in, it fills every wing at once, lifts you to ledges you could not reach and fills the tank behind its glass, so a stomp by the glass carries through the water to the ear inside; out, it bares the hall’s deep floor and the doors in it, which hold the sea back while it is in. A gauge and a lamp in every room show where the tide stands, there is a valve by every landing, and you swim in it: up through the Shell Room to its ledge, across the Sound to the dais. On the gallery, pull the stone weight off its post with the grappling hook, set it by the dish and stomp, then drop through the gap in the great horn’s pipes into the Sound.',
+    // issue #382: src/minigames/lens-vault.js (and -rules, -level, -arm, -hud), the screen's `visor` part (unity
+    // BridgeHud.Games.cs DrawVisor); tests/minigames-lens-vault.test.js
+    'A new game in the Arcade, The Lens Vault: a test of another way to play, through your own eyes. Your glove is an arm that shoots (hold the trigger for a charged shot), LT / L2 locks on and the stick circles the foe, and Y / △ raises a lens that reads what it is held on, a line about each. Four rooms of a makers’ vault: a door that opens to a shot, one only to a charged shot, one sealed until you read its lock, and a round hall to clear at the end.',
   ] },
   { v: '1.82', date: '2026-10-16', items: [
     // issue #399: src/hook-foes.js (each kind's `hook` class, hookOutcome, lockShot), src/gadgets/hook.js fireAtLock /

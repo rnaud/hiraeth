@@ -84,10 +84,12 @@ export const audio = {
  *   hunt      the sketch hunt's list, viewfinder, flash and hint (minigames/sketchhunt.js)
  *   fishing   the fishing's journal, line meter, pull, hint and catch card (minigames/fishing.js)
  *   pirates   the chime pirates' reticle, lock, captain's bar, hull pips, hit flare (half-size canvas px) and comms line
+ *   visor     the Lens Vault's first-person visor (minigames/lens-vault-hud.js visorPart, CSS px of W × H): the rim, the hearts,
+ *             the ARM / LENS tab, the reticle with the charge's and the reading's rings, the lock, the lens's marks, its reading
  * `version` moves whenever a part changes, so a renderer reads it only then.
  */
 export const screen = {
-  state: { cue: null, toast: null, prompt: null, health: null, stamina: null, keys: null, dialogue: null, choice: null, cine: null, sub: null, photo: null, gadget: null, gadgetWheel: null, reticle: null, gadgetMarks: null, carry: null, boxCard: null, charge: null, warp: null, foeTab: null, words: null, drums: null, hunt: null, fishing: null, pirates: null },
+  state: { cue: null, toast: null, prompt: null, health: null, stamina: null, keys: null, dialogue: null, choice: null, cine: null, sub: null, photo: null, gadget: null, gadgetWheel: null, reticle: null, gadgetMarks: null, carry: null, boxCard: null, charge: null, warp: null, foeTab: null, words: null, drums: null, hunt: null, fishing: null, pirates: null, visor: null },
   version: 0,
   _keys: {},
   set(part, value) {

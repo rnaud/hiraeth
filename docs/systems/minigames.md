@@ -10,7 +10,8 @@ rhythm game (`src/minigames/drums.js`), and the **Sketch hunt** in the Signal Ma
 (`src/minigames/sketchhunt.js`), and **Chime pirates**, the rail shooter in space that is also the first flight to a new
 world (`src/minigames/pirates.js`, below "Pirates between worlds"). Two help a guardian instead of fighting it (v1.79,
 issue #339, docs/design/helper-guardians.md): **The Elder's flight** (`src/minigames/elderflight.js`) and **Cistern
-channels** (`src/minigames/cistern.js`).
+channels** (`src/minigames/cistern.js`). **The Lens Vault** (`src/minigames/lens-vault.js`, issue #382) is a test of first-person play in the manner of
+Metroid Prime: the glove as an arm that shoots, a lock to circle-strafe round, a lens that reads (below, "The Lens Vault").
 
 ## Playing one
 
@@ -559,6 +560,69 @@ cleared in about 100 s, 144 of 145 felled, then stuck on a tripod past the wall;
 150, 30 geysers, 5 gorged and 5 furies, and it is hit twice as often (it never rolls). Unity: all of it is meshes and
 the session's logic, so the engine's runner plays it as is (`tests/engine-trials.test.js` runs a wave there); the
 floating words (`WorldLabels`, DOM) stay web-only.
+
+## The Lens Vault (`lens-vault.js`, the rules in `lens-vault-rules.js`; issue #382)
+
+A test of another way to play, asked for as "an FPS with a Metroid Prime vibe": through the traveller's own eyes, a
+short makers' vault to explore and fight through. In the Arcade (its sign and the board) and the Debug menu's Games;
+no host, no sign in a world. Score: the time (`score.kind: 'time'`).
+
+- **On foot, seen from his eyes** (`drives: false`). He walks, jumps, is hurt and knocked out as ever, hidden
+  (`player.object.visible`); the session's `input(controls)` reads its own buttons (`readButtons`: fire, lock, lens) and
+  takes them and the blade's, the guard's, the evade's and the gadgets' out of the controls (`TAKEN`) before he and the
+  tool read them. Its own look: `rig.look` is wrapped for the run, so the mouse, the right stick and a touch drag turn
+  the eye's yaw and pitch (`k = 0.0025 × rig.sensitivity`, `rig.invertY`: the settings' look sensitivity), pitch held to
+  ±1.25 rad; `rig.yaw` set to the eye's each frame, so the stick walks the way he looks. After the rig the camera is put
+  in his eyes (`FPS.eye` 1.62 m, a 72° lens) with the view's bob (`bob`: up and down twice a stride, aside once, by his
+  speed). The pointer is captured from a click as ever; the canvas' `requestPointerLock` is wrapped so a refusal (its
+  promise rejected, `pointerlockerror`) is heard: the visor then says to drag to look.
+- **The arm** (`lens-vault-arm.js`): the fluid glove seen from his eyes as a cannon, in the traveller's own colours
+  (the coral sleeve bent down out of the picture at the elbow, the lavender band, the dark glove round a brass barrel,
+  the glass vial of the tank's fluid along its top, three lit knuckle studs round the mouth). Drawn in the world (the
+  post pass inks it), placed in the camera's frame each frame 0.66 m out (the near plane is 0.3), low and right, turned
+  in to the reticle 20 m out; it sways with the bob, kicks back at each shot, and a ball of fluid swells at its mouth
+  as the charge fills (teal, gold when full).
+- **The trigger** (`triggerStep`): RT / R2 (left mouse, G, the touch ✺) pressed looses a plain bolt at once (0.2 s
+  between two); held 0.28 s more the charge fills over 0.95 s (the gold ring round the reticle); let go full, the
+  charged bolt. A bolt flies from the arm's mouth to what the reticle is on (the lock's foe, or the wall the eye's ray
+  meets), its segment each frame tested against the closed doors (`segBox`), the foes' bodies (`segPoint` against
+  `hurtRadius`) and the world (`physics.rayDistance`); it hurts as the blade does (`foes.hurt(f, 'blade', …, { damage
+  1 | 4, source: 'cannon', breaks })`: every kind takes it, the charged one staggers anyone), splashing the tool's own
+  drops and rings.
+- **The lock** (LT / L2, right mouse or R, the touch ◎; held, Prime's): what is nearest the middle of the view within
+  0.32 rad and 34 m, seen (`pickLock`; with the lens up, the things it reads too). The eye swings onto it
+  (`FPS.lockTurn`), and `player.lockOn` is set before he moves, so the traveller's own lock-on strafe carries him: the
+  stick's forward toward it, sideways round it (`Player.orbitLock`: a circle-strafe), A / × hops aside. main.js and the
+  engine's combat clear `player.lockOn` after he moves; the session's `foes.lock` is kept null (no lock camera).
+- **The lens** (Y / △, F, the touch ◐): a teal wash at the visor's edges, a diamond over each thing it can read (hollow
+  once read). RT / R2 held on a thing (or on the lock's) reads it in 0.85 s (`scanStep`, the teal ring), once: its card
+  at the bottom left, the thing's name over its line (`LENS`, each line toned, `tests/tone.test.js`), up for 6 s. The
+  foes are read by their kind. The eye-lock beside the sealed door is the lens's lock: read, its eye turns teal and the
+  door opens (once the room is cleared).
+- **The vault** (`lens-vault-level.js`, `ROOMS`, `DOORS`): the temples' kit (`src/temples/kit.js`: halls with doorways
+  under oculi, the round hall, columns, the shared glyph frieze, the slot ornament), pale panelled stone banded in the
+  makers' steel blue, teal light (`VAULT`, after the Warden's Well). The Lens Room (the lamp, the makers' mark over the
+  ringed door, a bench), the Long Gallery (columns, plinths; three ink blots and two ring drones), the Press (two press
+  blocks, a painted wall of the makers with arms of water; a makers' machine and two blots), the Round Hall (a dais,
+  four posts; five, then a lamp tripod, two drones and two blots). A room's foes wake as he walks in (`roomAt`, out of
+  the floor in an ink splash, chasing, `sight` 45). The doors (movers, `physics.addMover`: they rise into their
+  lintels): the ringed door (teal) opens to any shot, the heavy door (gold rings) only to a charged one ("It only
+  splashes. Hold the trigger, let it build."), the sealed door (coral ring, a bar) to the lens. A door's ring is dark
+  while the room before it is fought. The Round Hall's second wave cleared ends the run.
+- **The visor** (`lens-vault-hud.js`, the screen's `visor` part, `visorPart`): in the game's ink and paper, CSS px of the
+  screen: the rim's ink brackets, his hearts as diamonds filled by the quarter and the ARM / LENS tab at the top left
+  (the page's own hearts hidden while it runs), the reticle (the pirates' broken ring round a dot: cream, teal with the
+  lens, coral locked), the lock's coral brackets and LOCK, the lens's marks and reading, a red flare at the edges when
+  he is hurt. The page draws it on a canvas (`drawVisor`) where `page.drawsHud()`; Unity draws the part
+  (BridgeHud.Games.cs `DrawVisor`, as the pirates' reticle). `session.pose('lens' | 'charge')` for the pictures (the
+  bridge's `-pose`).
+- Results: the foes felled, the charged shots, the shots and the share on target, what the lens read; a run lost says
+  how many rooms it reached and that the lock circles the foe.
+- Tests: `tests/minigames-lens-vault.test.js` (the trigger and the charge, the lock, the lens, the doors, the view's
+  angles and bob, the table's rooms and doors, the definition and its buttons, the visor's part, the vault built in
+  node; in the engines' bundle: the card, the eye's camera, a door shot open, the lens reading the mark, the gallery
+  woken, the lock and the strafe, knocked out and its results, Quit to the Arcade; the Round Hall's two waves ending
+  the run), `tests/tone.test.js` (the lens's lines).
 
 ## Ink tide (`waves.js`)
 
