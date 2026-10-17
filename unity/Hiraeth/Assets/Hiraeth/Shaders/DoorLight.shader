@@ -29,6 +29,10 @@ Shader "Hiraeth/DoorLight"
       #pragma fragment frag
       #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
       Texture2D _GNormalTex;
+      // (HiraethFeature _GFlip: drawn straight into a player's back buffer, which is the other way up from the G-buffer's
+      // texture, its row read from the bottom; issue #420 / #425)
+      float _GFlip;
+      float4 GAt(float4 cs) { int2 p = int2(cs.xy); if (_GFlip > 0.5) { uint gw, gh; _GNormalTex.GetDimensions(gw, gh); p.y = (int)gh - 1 - p.y; } return _GNormalTex.Load(int3(p, 0)); }
       CBUFFER_START(UnityPerMaterial)
       float4 _Color, _Pool, _Far, _Door;
       CBUFFER_END
@@ -45,7 +49,7 @@ Shader "Hiraeth/DoorLight"
       float4 frag(V i) : SV_Target
       {
         // by hand against the scene's depth: under anything nearer, nothing (src/veil.js)
-        float scene = _GNormalTex.Load(int3(i.cs.xy, 0)).w;
+        float scene = GAt(i.cs).w;
         if (scene > 0.0 && scene < i.d + 0.06) discard;
         float part = i.part.x * 4.0, along = i.part.y, edge = i.part.z * 4.0;
         float near = smoothstep(1.0, 4.5, _Door.y);

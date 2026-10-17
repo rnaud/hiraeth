@@ -461,7 +461,7 @@ namespace Hiraeth.Rendering
         class CompositePass : ScriptableRenderPass
         {
             public Material material, bloom, fxaa, smaa;
-            class PassData { public Material mat; public TextureHandle a, n, h, b1, b2; public bool hasBloom; public float flip; }
+            class PassData { public Material mat; public TextureHandle a, n, h, b1, b2; public bool hasBloom; public float flip, gflip; }
             // (each pass its own property block: a material's properties are read when the command buffer
             // runs, so five passes sharing one material would all see the last pass's source)
             class BloomData { public Material mat; public TextureHandle src, a, h; public Vector4 step; public int pass; public MaterialPropertyBlock mpb; }
@@ -469,6 +469,11 @@ namespace Hiraeth.Rendering
             class FxaaData { public Material mat; public TextureHandle src; public Vector4 texel; public float flip; public MaterialPropertyBlock mpb; }
             readonly MaterialPropertyBlock fxaaMpb = new();
             static readonly int IdFlip = Shader.PropertyToID("_TargetFlip");
+            /// <summary>1 when what is drawn after the composite (the washes, the motes, the hologram: they read _GNormalTex at
+            /// their own pixel) goes straight into a player's back buffer, which is the other way up from the G-buffer's
+            /// texture: they read its row from the bottom then (issue #420 / #425; the editor and every picture taken draw into
+            /// a texture, so only the players showed it: the shafts of light cut up, the pits' dark through the walls).</summary>
+            static readonly int IdGFlip = Shader.PropertyToID("_GFlip");
             static readonly int IdPixelRatio = Shader.PropertyToID("_PixelRatio");
             bool pixelRatioSet;
             static readonly int IdA = Shader.PropertyToID("_GAlbedo"), IdN = Shader.PropertyToID("_GNormal"), IdH = Shader.PropertyToID("_GHatch");
@@ -580,6 +585,7 @@ namespace Hiraeth.Rendering
                 {
                     pass.mat = material; pass.a = g.albedo; pass.n = g.normal; pass.h = g.hatch; pass.b1 = b1; pass.b2 = b2; pass.hasBloom = b1.IsValid();
                     pass.flip = fxaa == null && !useSmaa && ToScreen(res, cam) ? 1 : 0;
+                    pass.gflip = ToScreen(res, cam) ? 1 : 0;
                     builder.UseTexture(g.albedo); builder.UseTexture(g.normal); builder.UseTexture(g.hatch);
                     if (pass.hasBloom) { builder.UseTexture(b1); builder.UseTexture(b2); }
                     builder.SetRenderAttachment(target, 0, AccessFlags.WriteAll);   // (every pixel written, no blend: nothing to load)
@@ -589,6 +595,7 @@ namespace Hiraeth.Rendering
                         d.mat.SetTexture(IdA, d.a); d.mat.SetTexture(IdN, d.n); d.mat.SetTexture(IdH, d.h);
                         if (d.hasBloom) { d.mat.SetTexture(IdB1, d.b1); d.mat.SetTexture(IdB2, d.b2); d.mat.SetFloat("_Bloom", 1); } else d.mat.SetFloat("_Bloom", 0);
                         d.mat.SetFloat(IdFlip, d.flip);
+                        ctx.cmd.SetGlobalFloat(IdGFlip, d.gflip);
                         ctx.cmd.DrawProcedural(Matrix4x4.identity, d.mat, 0, MeshTopology.Triangles, 3, 1);
                     });
                 }

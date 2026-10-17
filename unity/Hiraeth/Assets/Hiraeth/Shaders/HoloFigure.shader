@@ -45,6 +45,10 @@ Shader "Hiraeth/HoloFigure"
       #pragma fragment frag
       #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
       Texture2D _GNormalTex;
+      // (HiraethFeature _GFlip: drawn straight into a player's back buffer, which is the other way up from the G-buffer's
+      // texture, its row read from the bottom; issue #420 / #425)
+      float _GFlip;
+      float4 GAt(float4 cs) { int2 p = int2(cs.xy); if (_GFlip > 0.5) { uint gw, gh; _GNormalTex.GetDimensions(gw, gh); p.y = (int)gh - 1 - p.y; } return _GNormalTex.Load(int3(p, 0)); }
       TEXTURE2D(_Map); SAMPLER(sampler_Map);
       CBUFFER_START(UnityPerMaterial)
       float4 _Color, _Color2, _Color3, _Skin, _Tint, _Outfit, _Glove, _Face, _EyeC, _GenFace, _HoloA, _HoloB, _HoloC, _Map_ST;
@@ -79,7 +83,7 @@ Shader "Hiraeth/HoloFigure"
       {
         const float3 INK = float3(0.13, 0.1, 0.11);
         // behind the traveller, the dash: hidden (the page's test against its G-buffer)
-        float scene = _GNormalTex.Load(int3(i.cs.xy, 0)).w;
+        float scene = GAt(i.cs).w;
         if (scene > 0.0 && i.d > scene + 0.04) discard;
         float t = _Time.y, alpha = _HoloA.x, g = _HoloA.y, talk = _HoloA.z, seed = _HoloA.w;
         float h = saturate((i.w.y - _HoloB.x) / max(_HoloB.y - _HoloB.x, 0.01));

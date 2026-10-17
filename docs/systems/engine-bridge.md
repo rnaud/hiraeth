@@ -1921,6 +1921,16 @@ screen; the batch run's pictures only.
   centred. DrawRestart now lays the dim under the card (0.78 in Unity's linear target, which darkens the Arena's sand as
   much as the page's 0.6: 127 against 122 of 255), places the card as the page's and draws its gold button. Checked with
   `-level arena -fight foe,down` against the page knocked out in the Arena.
+- **The pits' dark through walls, the shafts cut up** (#425, and #420's "weird artifacts on the god rays"). Everything
+  drawn over the finished picture tests its depth by hand against the G-buffer at its own pixel (`_GNormalTex.Load(i.cs.xy)`:
+  Hiraeth/Veil, PitVoid, DoorLight, Mote, Wisp, HoloFigure). In a player the ink composite writes straight into the back
+  buffer (HiraethFeature `ToScreen`, the composite's `_TargetFlip`), and what follows it draws there too, the other way up
+  from the G-buffer's texture: each of them read the depth of the pixel mirrored top to bottom, so a pit's dark showed
+  where the ceiling far off was behind a wall, and a shaft of light was cut where the floor near by was over it. The
+  editor and every picture the batch runs take draw into a texture, the right way up, so no check saw it. The composite
+  now sets `_GFlip` (1 when the target is the back buffer) and the six read the G-buffer through `GAt`, its row from the
+  bottom then. Not seen on a device yet: the sequences `pits` (the Rose House's Great Hall turned toward its pits, the
+  channel's lip) and `skull-cave` compare it with the web in the editor, where both ways look the same.
 
 ## One host (2026-10-17, issue #427)
 

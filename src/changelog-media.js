@@ -1179,6 +1179,7 @@ const PORT447U = 'Issue #447: the Unity bridge in the editor’s batch run on th
 const portRef = (id, what) => ({ sheet: `references/space-ports/${id}/sheet-1.jpg`, caption: `The author’s pick from the reference lab: ${what}` });
 export const CHANGELOG_MEDIA = {
   '1.84': [
+    { match: 'In the Unity version, the dark of the makers’ houses’ deadly pits no longer shows through walls', see: 'In the Unity version, go into the Rose House and look from its Great Hall toward its wings, and down into the skull cave from its passage. (The editor’s pictures draw into a texture, the right way up, so they never showed it: there is no before picture.)' },
     { match: 'In the Unity version, the world dims behind the “You were knocked out” card', shots: [
       { name: 'unity-knockout', title: 'Knocked out', caption: 'In the Arena, knocked out: before, the card alone over the bright sand; after, the world dimmed under it as on the web, the card high with its gold button', from: KO449 },
     ], see: 'In the Unity version, let a foe in the Arena knock you out.' },

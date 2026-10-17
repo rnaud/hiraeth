@@ -1,6 +1,6 @@
 {
  "recorded": "2026-10-17",
- "sha": "f31346a0b",
+ "sha": "99f8b033c",
  "how": "node scripts/unity-compare/sequences.mjs web [ids] && node scripts/unity-compare/sequences.mjs record",
  "sequences": {
   "moment-desert.flow": {
@@ -4615,6 +4615,186 @@
       134.7,
       9.2,
       151.6
+     ],
+     "late": false
+    }
+   ]
+  },
+  "skull-cave": {
+   "beats": [
+    {
+     "beat": "landing",
+     "hud": {},
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 1476,
+      "print": 1,
+      "shader": 2,
+      "veil": 10,
+      "doorlight": 1
+     },
+     "cam": [
+      -1249.3,
+      1006,
+      1288.1,
+      55
+     ],
+     "player": [
+      -1250,
+      1004.2,
+      1286.2
+     ],
+     "late": false
+    },
+    {
+     "beat": "shafts",
+     "hud": {},
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 1465,
+      "print": 1,
+      "shader": 2,
+      "veil": 4,
+      "doorlight": 1
+     },
+     "cam": [
+      -1250.3,
+      1000.3,
+      1248.4,
+      55
+     ],
+     "player": [
+      -1252.4,
+      998.4,
+      1246.8
+     ],
+     "late": false
+    }
+   ]
+  },
+  "pits": {
+   "beats": [
+    {
+     "beat": "hall",
+     "hud": {
+      "keys": {
+       "small": 0,
+       "big": false
+      }
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 1561,
+      "print": 1,
+      "shader": 2,
+      "pitvoid": 2,
+      "doorlight": 1,
+      "mote": 2
+     },
+     "cam": [
+      149.3,
+      2401.9,
+      -248.3,
+      55
+     ],
+     "player": [
+      150,
+      2400,
+      -246
+     ],
+     "late": false
+    },
+    {
+     "beat": "toward-channel",
+     "hud": {
+      "keys": {
+       "small": 0,
+       "big": false
+      }
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 1539,
+      "print": 1,
+      "shader": 2,
+      "pitvoid": 2,
+      "doorlight": 1,
+      "mote": 2
+     },
+     "cam": [
+      150.6,
+      2401.9,
+      -248.4,
+      55
+     ],
+     "player": [
+      150,
+      2400,
+      -246
+     ],
+     "late": false
+    },
+    {
+     "beat": "toward-fires",
+     "hud": {
+      "keys": {
+       "small": 0,
+       "big": false
+      }
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 1558,
+      "print": 1,
+      "shader": 2,
+      "pitvoid": 2,
+      "doorlight": 1,
+      "mote": 2
+     },
+     "cam": [
+      148.3,
+      2401.9,
+      -247.7,
+      55
+     ],
+     "player": [
+      150,
+      2400,
+      -246
+     ],
+     "late": false
+    },
+    {
+     "beat": "lip",
+     "hud": {
+      "keys": {
+       "small": 0,
+       "big": false
+      }
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 1530,
+      "print": 1,
+      "shader": 2,
+      "pitvoid": 1
+     },
+     "cam": [
+      108.1,
+      2401.9,
+      -192.4,
+      55
+     ],
+     "player": [
+      108.8,
+      2400,
+      -189.8
      ],
      "late": false
     }

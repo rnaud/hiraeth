@@ -190,7 +190,39 @@ export const SEQUENCES = [
       { name: 'tarp', keys: tap('KeyE'), wait: 1.6 },
     ],
   },
+  {
+    // the skull cave's shafts of light (issue #420, "weird artifacts on the god rays"): from the passage's landing over
+    // the cave, then down among the shafts
+    id: 'skull-cave', title: 'The skull cave\'s shafts of light', setup: { level: 'desert', debug: true },
+    beats: [
+      { name: 'landing', act: (G) => { const c = G.level.qanat.cave; standAt(G, c.inside, c.origin); }, wait: 2.5 },
+      { name: 'shafts', act: (G) => { const c = G.level.qanat.cave, s = shaftMid(c.shafts, 0); standAt(G, c.origin.clone().lerp(s, 0.35), s); }, wait: 2.5 },
+    ],
+  },
+  {
+    // a makers' house's deadly pits (issue #425, "seen through walls like an artifact"): the Rose House's Great Hall from
+    // its door, turned toward each of its pits behind the wings' walls, then at the channel's pit's lip
+    id: 'pits', title: 'A makers\' house\'s pits', setup: { level: 'desert', debug: true },
+    beats: [
+      { name: 'hall', act: (G) => { const a = temple(G, 'desert').arrival; standAt(G, a.pos, a.pos.clone().add(new THREE.Vector3(Math.sin(a.heading), 0, Math.cos(a.heading)))); }, wait: 2.5 },
+      { name: 'toward-channel', act: (G) => standAt(G, temple(G, 'desert').arrival.pos, pitMid(temple(G, 'desert'), 'channel')), wait: 1.5 },
+      { name: 'toward-fires', act: (G) => standAt(G, temple(G, 'desert').arrival.pos, pitMid(temple(G, 'desert'), 'fires')), wait: 1.5 },
+      { name: 'lip', act: (G) => { const rt = temple(G, 'desert'), p = rt.pits.find((x) => x.room === 'channel'), b = p.box;
+        const lip = new THREE.Vector3((b.min.x + b.max.x) / 2, b.max.y + 3, b.min.z - 3).applyMatrix4(rt.kit.frame);
+        standAt(G, lip, pitMid(rt, 'channel')); }, wait: 2.5 },
+    ],
+  },
 ];
+
+/** The traveller set down at `at`, he and the camera facing `to` (a world point). */
+function standAt(G, at, to) {
+  G.player.teleport(at.clone(), new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1));
+  G.player.heading = Math.atan2(to.x - at.x, to.z - at.z); G.rig.yaw = G.player.heading + Math.PI;
+}
+/** The middle of a cave's shaft of light (its wash's mesh, in the world). */
+const shaftMid = (shafts, i) => { shafts.updateMatrixWorld(true); return new THREE.Vector3().setFromMatrixPosition(shafts.children[i].matrixWorld); };
+/** The middle of a temple's pit of that room, in the world. */
+const pitMid = (rt, room) => rt.pits.find((p) => p.room === room).box.getCenter(new THREE.Vector3()).applyMatrix4(rt.kit.frame);
 
 /** The sequence of that id, or null. */
 export const sequenceById = (id) => SEQUENCES.find((s) => s.id === id) ?? null;

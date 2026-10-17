@@ -36,6 +36,10 @@ Shader "Hiraeth/Veil"
       #pragma fragment frag
       #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
       Texture2D _GNormalTex;
+      // (HiraethFeature _GFlip: drawn straight into a player's back buffer, which is the other way up from the G-buffer's
+      // texture, its row read from the bottom; issue #420 / #425)
+      float _GFlip;
+      float4 GAt(float4 cs) { int2 p = int2(cs.xy); if (_GFlip > 0.5) { uint gw, gh; _GNormalTex.GetDimensions(gw, gh); p.y = (int)gh - 1 - p.y; } return _GNormalTex.Load(int3(p, 0)); }
       CBUFFER_START(UnityPerMaterial)
       float4 _Color;
       float _WashAlpha, _WashGlow, _WashNear, _Cull, _DstBlend;
@@ -56,7 +60,7 @@ Shader "Hiraeth/Veil"
       float4 frag(V i, bool front : SV_IsFrontFace) : SV_Target
       {
         // by hand against the scene's depth: under something nearer, or on its own rim (drawn in the G-buffer), nothing
-        float scene = _GNormalTex.Load(int3(i.cs.xy, 0)).w;
+        float scene = GAt(i.cs).w;
         if (scene > 0.0 && scene < i.d + 0.08) discard;
         float3 n = normalize(i.n) * (front ? 1.0 : -1.0);
         float faceOn = abs(dot(n, normalize(_WorldSpaceCameraPos - i.wp)));   // (Unity's space, before n goes to three's)

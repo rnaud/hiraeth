@@ -32,6 +32,10 @@ Shader "Hiraeth/PitVoid"
       #pragma fragment frag
       #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
       Texture2D _GNormalTex;
+      // (HiraethFeature _GFlip: drawn straight into a player's back buffer, which is the other way up from the G-buffer's
+      // texture, its row read from the bottom; issue #420 / #425)
+      float _GFlip;
+      float4 GAt(float4 cs) { int2 p = int2(cs.xy); if (_GFlip > 0.5) { uint gw, gh; _GNormalTex.GetDimensions(gw, gh); p.y = (int)gh - 1 - p.y; } return _GNormalTex.Load(int3(p, 0)); }
       CBUFFER_START(UnityPerMaterial)
       float4 _Color, _Ring, _BoxMin, _BoxMax, _Look, _Rings, _Mid;
       float4x4 _Inv;
@@ -60,7 +64,7 @@ Shader "Hiraeth/PitVoid"
         float t0 = max(max(max(lo.x, lo.y), lo.z), 0.0), t1 = min(min(hi.x, hi.y), hi.z);
         if (t1 <= t0) discard;
         // where it meets the scene (the G-buffer's view depth; 0: nothing, the sky, as deep as the box goes)
-        float4 g = _GNormalTex.Load(int3(i.cs.xy, 0));
+        float4 g = GAt(i.cs);
         float s = g.w;
         float3 fwd = -UNITY_MATRIX_V[2].xyz;   // (the camera's forward, Unity's world: the dot is the same in either)
         float ts = s > 0.0 ? s / max(dot(rdU, fwd), 1e-4) : 1e9;
