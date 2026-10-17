@@ -393,12 +393,15 @@ export const sweepRadius = (a, def) => (a.width ? a.width / 2 : def.radius + 0.7
  * update() returns the events of the frame: 'notice', 'warn', 'strike' { hit }, 'home'.
  */
 export class Foe {
-  constructor(kind, at, { rng = Math.random, id = null, templeOnly, skin = null, calm = false } = {}) {
+  constructor(kind, at, { rng = Math.random, id = null, templeOnly, skin = null, calm = false, def = null } = {}) {
     // a kind, or a kind in a world's skin ('crab@saltharbour': src/enemies/skins.js)
     const p = parseKind(kind);
     this.kind = p.kind; this.skin = p.skin ?? skin;
     if (!FOES[this.kind]) throw new Error(`Unknown enemy: ${kind}`);
-    this.def = FOES[this.kind];
+    // (def: a stronger one of its kind, its tuning laid over the kind's: a house's mini-boss, the Engine-House's Boiler
+    // Keeper, issue #415; its attacks its own, its first strike the first of them)
+    this.def = def ? { ...FOES[this.kind], ...def } : FOES[this.kind];
+    if (def?.attacks) this.def.attack = this.def.attacks[0];
     this.archetype = archetypeOfKind(this.kind);
     this.moves = this.skin && this.archetype ? skinOf(this.archetype, this.skin)?.moves ?? [] : [];   // (its skin's own moves)
     this.templeOnly = templeOnly ?? this.kind === 'machine';
@@ -630,7 +633,7 @@ export class Foe {
   /** Done with attack a: its follow-up straight away (a combo), else recover. */
   next(a, P, ev) {
     if (a.shatter && this.state !== 'dead') { this.shatter(a, ev); return; }   // (its last roll ends in pieces)
-    const n = a.then ? attackOf(this.kind, a.then) : null;
+    const n = a.then ? this.def.attacks.find((x) => x.id === a.then) ?? attackOf(this.kind, a.then) : null;   // (a stronger one's own combo first)
     if (n && !P.dead && !P.down) { this.beginWind(n, P); ev.push('warn'); return; }
     if (a.dives && this.def.burrow) { this.buried = true; this.upFor = 0; }   // (the worm's dive: back under the sand)
     if (a.leap) { this.alt = 0; this.leapFrom = null; }                       // (down from its leap)
@@ -2139,6 +2142,19 @@ export class Foes {
       const rooms = rt.def?.logic?.rooms, kind = rooms?.[m.room]?.kind;
       if (kind ? kind !== 'combat' : rooms && Object.values(rooms).some((r) => r.kind)) return;
       const c = m.foes ?? m.pos;
+      // (an arena with a keeper of its own, a house's mini-boss: { kind, def } its one foe, at its mark's foes, issue #415)
+      const keeper = (rt.def?.arenas ?? []).find((A) => A.room === m.room && A.keeper)?.keeper;
+      if (keeper) {
+        if (!this.game.flag(id) && !this.list.some((f) => f.id === id && f.alive)) {
+          const y = phys.groundAt(c.x, c.y + 2, c.z, 5);
+          const f = this.add(keeper.kind, new THREE.Vector3(c.x, Number.isFinite(y) ? y : c.y, c.z), { id, def: keeper.def });
+          f.placed = true; f.room = m.room; f.keeper = true;
+          if (keeper.size) f.model.size = keeper.size;   // (drawn bigger: its def's radius and height say so too)
+          if (Number.isFinite(keeper.heading ?? m.heading)) f.heading = keeper.heading ?? m.heading;
+          rt.machines.push(f);
+        }
+        return;
+      }
       // (broken, or standing already: placed again for an encounter)
       if (!this.game.flag(id) && !this.list.some((f) => f.id === id && f.alive)) for (const a of [0.9, -0.9, 2.2, -2.2, Math.PI]) {
         const h = m.heading + a, x = c.x + Math.sin(h) * 3.6, z = c.z + Math.cos(h) * 3.6;

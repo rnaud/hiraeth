@@ -58,7 +58,7 @@ export function nounOf(id, e, piece) {
   if (!e) return id;
   if (e.noun) return e.noun;   // (an element that names itself: the Undertower's counterweight knocked off its walkway, issue #418)
   switch (e.type) {
-    case 'drum': return e.verb === 'sluice' ? 'sluice' : e.verb === 'breath' ? 'the house’s breath' : e.verb === 'tide' ? 'tide' : e.verb === 'pour' ? 'pour' : e.verb === 'relay' ? 'relay lever' : e.verb === 'hour' ? 'great clock' : e.verb === 'moor' ? 'moored room' : e.needs?.includes('magnet') ? 'iron ball' : 'ball';
+    case 'drum': return e.verb === 'sluice' ? 'sluice' : e.verb === 'breath' ? 'the house’s breath' : e.verb === 'tide' ? 'tide' : e.verb === 'pour' ? 'pour' : e.verb === 'relay' ? 'relay lever' : e.verb === 'hour' ? 'great clock' : e.verb === 'moor' ? 'moored room' : e.verb === 'power' ? 'clutch' : e.needs?.includes('magnet') ? 'iron ball' : 'ball';
     case 'plate': return 'floor plate';
     // (issue #410: the Lamp-House's lamps, its pool-lamps and its great lamp, read as lamps)
     case 'switch': return cls === 'LightEar' ? 'lamp' : cls === 'LampGlass' ? 'great lamp' : piece?.o?.light ? 'pool-lamp' : cls === 'Bank' ? 'bank of eyes' : cls === 'Bud' ? 'flower-door' : cls === 'Seed' ? 'seed' : cls === 'EchoEar' ? 'brass horn' : cls === 'Jaw' ? 'gate of jaws' : piece?.o?.crystal ? 'singing crystal' : 'eye';
@@ -390,6 +390,8 @@ function stepText(s, { E, el, room, guardian, links, nth = 0 }) {
       : e?.verb === 'hour' ? `Turn the great clock on to ${s.onto}, at a lever: the stair’s arm meets the dock at ${s.onto}${tag} → ${s.onto}`
       // (issue #417: the Mooring-House's moored room, sent to its high or its low dock at a lever, or called home with the tether)
       : e?.verb === 'moor' ? `${(e.stops?.[s.onto] ?? 1) > 0 ? 'Send the moored room up to its high dock' : 'Bring the moored room down to its low dock'}, at a lever or a dock’s ring${tag} → ${s.onto}`
+      // (issue #415: the Engine-House's power, sent to the upper or the lower shaft at a clutch lever)
+      : e?.verb === 'power' ? `Send the engine’s power to the ${(e.stops?.[s.onto] ?? 1) > 0 ? 'upper' : 'lower'} pistons, at a clutch lever${tag} → ${s.onto}`
       : `Roll the ${el?.noun ?? 'ball'} onto its plate${where}${using}${tag} → ${s.onto}`;
     case 'carry': return `Carry the stone block onto its plate${where}${using}${tag} → ${s.onto}`;
     case 'stand': return `Stand on the floor plate${where}${tag}`;

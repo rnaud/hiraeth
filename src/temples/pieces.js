@@ -1333,10 +1333,12 @@ export class Bank {
     this.was = n;
     // eyes on pistons: each up in its turn of the stroke (o.stroke: { period, up }; its piston's phase), or held up
     // by its jam (a condition: a ball in its crank), and all up once the bank has woken
-    const St = this.o.stroke;
+    // (o.drive: a condition the stroke needs, the shaft that drives them turning: the Engine-House's power, issue #415;
+    // undriven, they rest down, but for a jam that holds them)
+    const St = this.o.stroke, driven = !this.o.drive || this.rt.logic.check(this.o.drive);
     for (const e of this.eyes) {
       if (!e.piston) continue;
-      const turn = St ? ((((this.time / St.period - (e.piston.phase ?? 0)) % 1) + 1) % 1) * St.period < St.up : true;
+      const turn = St ? driven && ((((this.time / St.period - (e.piston.phase ?? 0)) % 1) + 1) % 1) * St.period < St.up : true;
       const want = this.done || turn || (!!e.piston.jam && this.rt.logic.check(e.piston.jam)) ? 1 : 0;
       e.k += (want - e.k) * Math.min(1, dt * 9);
       e.g.position.copy(e.base).addScaledVector(UP, -(1 - e.k) * (e.piston.drop ?? 3));

@@ -67,7 +67,10 @@ export const GAPS = {
     // known gaps, most seen first
     { keys: ['define:FOE_SURFACE', 'define:FS_BELLY', 'define:FS_RUST', 'define:FS_BANDS', 'define:FS_GLOSS', 'define:FS_MOTTLE',
       'uniform:uFsBelly', 'uniform:uFsBellyC', 'uniform:uFsBellyW', 'uniform:uFsRust', 'uniform:uFsRustC', 'uniform:uFsRustC2', 'uniform:uFs_bands',
-      'uniform:uFs_bandsC', 'uniform:uFs_bandsO', 'uniform:uFsGloss', 'uniform:uFsGlossC', 'uniform:uFsGlossW', 'uniform:uFsMottle', 'uniform:uFsMottleC'],
+      'uniform:uFs_bandsC', 'uniform:uFs_bandsO', 'uniform:uFsGloss', 'uniform:uFsGlossC', 'uniform:uFsGlossW', 'uniform:uFsMottle', 'uniform:uFsMottleC',
+      // (and the furnace brute's grain, spots, drips and glowing cracks: seen at a world's build since the Engine-House's Boiler Keeper, #415)
+      'define:FS_GRAIN', 'uniform:uFsGrain', 'uniform:uFsGrainC', 'define:FS_SPOTS2', 'uniform:uFs_spots2', 'uniform:uFs_spots2C', 'uniform:uFs_spots2S', 'uniform:uFs_spots2K',
+      'define:FS_DRIPS', 'uniform:uFsDrips', 'uniform:uFsDripsC', 'define:FS_CRACKS', 'uniform:uFsCracks', 'uniform:uFsCracksC', 'uniform:uFsCracksI', 'uniform:uFsCracksV', 'uniform:uFsCracksO'],
     what: 'the foes\' own surfaces: bellies, mottling, rust, bands, gloss (src/foe-surface.js)', status: 'gap', issue: 264, visible: 3,
     note: 'nothing of it reaches Surface.shader: the foes are their plain colours in Unity' },
     { keys: ['define:SEE_HOLE', 'uniform:uSee', 'uniform:uSeeK'], what: 'the hole a wall opens round the traveller when it hides him (makeMaterial seeThrough: the fight temples)', status: 'gap', issue: 264, visible: 3 },

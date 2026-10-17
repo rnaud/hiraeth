@@ -1258,6 +1258,57 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   or reaches a new room first; the train's ring hooked from its `from`), `temple-maps`, `house-map`, `hook-reach`,
   `door-bypass`, `way-back`, `zfight`, `key-chests`. Old saves: `migrate.js` garage v4 (past the north door: the hand at two,
   the counterweight home; one that stood inside: to its last mark).
+- **The Engine-House round its Engine Hall, the engine's clutch its state** (v1.83, issue #415; the approved
+  recommendations, `docs/design/temple-best-practices.md`: G1, G2, G3b, G4, G6). `src/temples/buried.js`:
+  - **The Engine Hall** (`EH`, G4) is the Piston Hall grown to 44 by 70 m under 32 (its room id kept, `pistons`), its
+    **gallery** (`GALLERY`, room `gallery`) 7 m up round the north end and along the west wall, open over the floor. The
+    great engine stands in its middle (`ENGINE`, `GreatEngine`); its valve's eye (`s1`) on a post by the way in, a stone ball
+    in its crank's teeth (`ball0`, `lock`: out, it stays out). Woken (`RUN`), its flywheel turns and the hall's three pistons
+    ride up to the gallery (`pumps`, `Platform` `when: RUN`), whichever shaft has the power.
+  - **The state** (G1): the engine's clutch, a drum of two stops (`shaft`: `shaftLow` 0, `shaftUp` 1, starting up; `roll:
+    'hand'`, `verb: 'power'`, saved). `UPPER`/`LOWER` (the running engine and the clutch) drive the pieces; the logic of the
+    rooms past the engine reads the clutch alone (`UP_SHAFT`, `LOW_SHAFT`: by then the engine runs, for good). Upper: the
+    Crank Hall's bulkhead (`dU`) rises, its hammer runs (`PoweredHammer`), the Crank Passage's and the Furnace's pistons
+    rise in turn (`Bank` `drive`, new and additive in `pieces.js`). Lower: the boilers' firebox door (`dF`), the governor's
+    shutter (`dG`, held up by a ball in its crank, `bD`, then latched), the Governor Room's pistons and hammer. **Cheap to
+    change:** a `PowerLever` (A / ×) by every hub (`LEVERS`: the hall's floor by the engine, the gallery by the drop, the
+    Fourth Chamber, and the Crank Passage past the hammer). **Readable everywhere:** a `PowerGauge` in every room but the
+    guardian's, two lamps on a post, the upper one amber over the lower one blue, one lit (both dark while the engine is
+    still), the same two lamps on the gearbox and every lever; the shaft with the power turns, the other stands, and the
+    clutch arm on the gearbox points up or down. On the way it is set down (the firebox, the Governor Room) and up (the
+    bulkhead, the passage, the Furnace), and down again for the great key if it was left.
+  - **The Boiler Keeper** (`KEEPER`, G3b, the house's mini-boss): the Boiler Room (east, the lower floor) is the house's one
+    fight and the only way to the chest. Its arena has a `keeper` (`src/foes.js placeMachinesIn`, new and additive: an
+    arena's `{ kind, def, size }` is its room's one foe, at its mark's `foes`; `Foe` takes a `def` laid over its kind's,
+    its own combos first): a furnace brute in its own skin (`brute@perdide2`), drawn 1.3 times its size, 16 hearts of
+    harm. Its slam is the lesson: both fists high for 1.5 s, down, a quake along the floor (jump it), then stuck for 2.4 s
+    (`opens`, `stuck`: the blade lands double). The Tooth-Warden's stomps and slam end the same way, its vents open: the
+    bombs then. Beaten, the small key's cage sinks and the door north (`dC`) opens onto the Fourth Chamber.
+  - **The rooms moved** (its own shape: the Engine Hall the hub of both floors; the lower floor east, the Boiler Room, the
+    Fourth Chamber north of it, the Governor Room north of that; the upper floor north of the gallery, the Crank Hall, the
+    Crank Passage, the Furnace, the Tooth-Warden's hall). The chamber's four eyes (`k0`) roll up its shutter west back into
+    the hall (`dS`, the loop) and the governor's with its ball and the lower shaft. The Crank Passage's ball now lies on the
+    pistons' far side, in sight of its door.
+  - **G2, the late step**: the Furnace's bridge (`br1`) wants four eyes in a breath, the bombs, and the two east pistons
+    stand only while their clutch bites (`cF`, a held bell, `CLUTCH.hold` 14 s): its ring (`hb.clutch`, a `HookBell`) hangs
+    over the far lip's edge, hooked from the near lip (`BellEar` `ringId`). The house is walked in with the hook
+    (`tests/temple-playthrough.test.js` `CARRY`, `tests/temples.test.js` `OLDER`).
+  - **G6**: the gallery's west arm is open over the floor for 10 m between two posts (`GALLERY.drop`, `oneWay`
+    `gallery → pistons`): 7 m down, unhurt. The guardian's checkpoint: the antechamber's mark by its door, and a mark on the
+    Furnace's far lip.
+  - **The temple maps**: "Send the engine's power to the upper / lower pistons, at a clutch lever" (`makers.js`).
+  Nine steps (was six): the hall's pistons, the bulkhead, the hammer, the firebox door, the chamber's shutter, the
+  governor's shutter, the great key's cage, the passage's door, the Furnace's bridge; the arena before the chest. Design
+  audit 4.56 before and after: skeleton `XBCGXALXLK` → `XBBXACGXXLXLK`, combinations 4 of 6 → 6 of 9, mean obviousness
+  3.08 → 2.83, decoupling 4 → 8 keys apart, the chest at 44 % of the steps, identity 70 % like the Casting-House → 69 %
+  like the Lamp-House; the redesign's rules: none broken. Tests: `tests/engine-house.test.js` (the house on foot with a
+  real traveller: every lever pulled with the use button, every ball pushed, the drop fallen unhurt, the ring hooked, the
+  warden stopped, the pipe-cart; the Boiler Keeper placed by a real `Foes`, its slam's wind-up and its fists stuck, the
+  blade double; the gauges and levers), `tests/temples.test.js` (the solver both ways, every step needed, the state, old
+  saves), `tests/temple-playthrough.test.js`. Old saves: `migrate.js` buried v4 (with the bombs or past them: the keeper
+  beaten, its door open; with the great key or past the Furnace: the governor's shutter up and its ball home; one that
+  stood inside: to its last mark). The Unity bridge carries it as it is (the same JS); the brute's surface patterns are
+  #264's known gap, listed in `engine/bridge-gaps.js`.
 - **The Givers carried their fire** (the Rose House, from the v1.24 audit; the house's one fire, the pilot flame,
   never went out; the rooms below as they were until v1.44). A `Ball` with `tar: { burns }` is a tar ball: an ember glob lights it, and so does rolling it past a
   fire beside its groove (any piece with a `fire` point within its `fireReach`: a `Flame`, the pilot flame sunk in the

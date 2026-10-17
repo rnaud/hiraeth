@@ -614,6 +614,37 @@ Well"):
   eye a floor below and its two keys in it, the house's exam), decoupling 5 → 4 (5 of 10 keys out of the lock's room or
   sight), loops 3 → 5, the chest at 33 % → 40 % of the steps, identity 3 (67 % like the Mooring-House → 64 % like the
   Greenhouse), curve 5 → 5. No other house's numbers move. The redesign's rules: none broken.
+### As built: the Engine-House (v1.83, issue #415)
+
+The Engine-House's row of Part 3 (power routing; a mini-boss at the middle; 10 steps or more; its own shape) with G1, G2,
+G3b, G4 and G6 (`src/temples/buried.js`; how it works: `docs/systems/temples.md`, "The Engine-House round its Engine
+Hall"):
+
+- **G4, the great hall:** the Piston Hall became the **Engine Hall**, 44 by 70 m under 32, its gallery 7 m up round the
+  north end and the west side, open over the floor: both floors seen at once. The great engine stands in its middle.
+- **G1, power routing:** the engine's clutch sends its power up the upper shaft (a column to the roof and along it north)
+  or down the lower one (into a ring in the floor). Upper: the Crank Hall's bulkhead and hammer, the Crank Passage's and
+  the Furnace's pistons. Lower: the boilers' firebox door, the governor's shutter, the Governor Room's pistons and hammer.
+  **Cheap to change:** a clutch lever by every hub (the hall's floor, its gallery, the Fourth Chamber) and one past the
+  hammer, in the Crank Passage. **Readable everywhere:** two lamps on a post in every room, amber up over blue down, the
+  same on the gearbox and every lever, and the shaft with the power turning. On the way it is set down, up, and down again.
+- **G3b, the mini-boss guarding the tool:** the **Boiler Keeper**, a furnace brute grown huge (16 hearts, 1.3 times its
+  size, in the furnace brute's own skin), alone in the Boiler Room, the one way to the chest. Its slam (both fists high
+  for 1.5 s) sends a quake along the floor and leaves it stuck for 2.4 s, the blade landing double: the Tooth-Warden's
+  slam and open vents, taught a room early with the blade, before the bombs. Its wind-ups are all 1 s or more.
+- **G2:** nine steps (was six). The late step asks for the bombs and the hook at once: the Furnace's two east pistons stand
+  only while their clutch bites, its ring hooked from the near lip, 14 s; the bombs wake the four eyes in that window.
+- **Its own shape:** every room moved: the hub is the hall of both floors, the lower rooms east (the Boiler Room, the
+  Fourth Chamber, the Governor Room behind it), the upper rooms in a line north. The skeleton `XBCGXALXLK` (70 % like
+  the Casting-House) is `XBBXACGXXLXLK` (69 % like the Lamp-House): the audit's identity stays 3, the shape the player
+  walks is new. Making the bulkhead or the hammer a two-verb step brought it to 62 %, but cost a step's clue its sight
+  (non-obvious 4 → 3), so it stayed.
+- **G6:** the gallery's west arm open over the floor for 10 m between two posts: 7 m down to the hub, unhurt. The
+  antechamber's mark a few steps from the Tooth-Warden's door; a mark on the Furnace's far lip.
+- **Scores:** design audit 4.56 before and after: combinations 4 of 6 → 6 of 9, mean obviousness 3.08 → 2.83 (one step at
+  1.0, the Furnace's bridge, the house's hardest), decoupling 4 → 8, loops 1 → 2, the chest at 44 % of the steps, curve 5;
+  the redesign's rules: none broken.
+
 ### As built: the Founders' Belfry (v1.83, issue #408)
 
 The Belfry's row of Part 3 (the bells as a house-wide state; the great key cage's sight line) with G1, G4 and G6

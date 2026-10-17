@@ -18,7 +18,7 @@ web only and why; then what the bridge handles and where. How it works: `docs/sy
 
 **Gaps**
 
-- **the foes' own surfaces: bellies, mottling, rust, bands, gloss (src/foe-surface.js)** (#264, seen at once). Nothing of it reaches Surface.shader: the foes are their plain colours in Unity. `define:FOE_SURFACE`, `define:FS_BELLY`, `define:FS_RUST`, `define:FS_BANDS` and 16 more
+- **the foes' own surfaces: bellies, mottling, rust, bands, gloss (src/foe-surface.js)** (#264, seen at once). Nothing of it reaches Surface.shader: the foes are their plain colours in Unity. `define:FOE_SURFACE`, `define:FS_BELLY`, `define:FS_RUST`, `define:FS_BANDS` and 33 more
 - **the hole a wall opens round the traveller when it hides him (makeMaterial seeThrough: the fight temples)** (#264, seen at once). `define:SEE_HOLE`, `uniform:uSee`, `uniform:uSeeK`
 - **the sword's blade: its bow along the swing, the ring a hit sends along it (src/blade-shader.js)** (#264, seen in play). The blade crosses as the fluid tool's surface only. `define:BLADE_FLUID`, `define:BLADE_DISC`, `uniform:uBlade`, `uniform:uBladeB` and 1 more
 - **the waterfalls' falling water (src/waterfall-shader.js)** (#264, seen in play). #264's "the waterfall a flat sheet". `define:FALL`, `uniform:uFallA`, `uniform:uFallB`

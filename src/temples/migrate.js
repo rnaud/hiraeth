@@ -136,11 +136,17 @@ export const LAYOUTS = {
   // v1.77 (issue #336): the house remade to the redesign's rules, its rooms bigger and moved, the Crank Hall's ball on its
   // near landing (it lay on the Piston Hall's gantry), the Crank Passage a room of its own (the same pieces, the same
   // state). A save that entered the house: taken to its last mark if it stood inside the old rooms (runtime.js relaid)
+  // v1.83 (issue #415): the house round the Engine Hall, its engine's clutch the house's state (upper as it starts), the
+  // Boiler Room's keeper guarding the chest, the Governor Room north of the chamber behind its shutter. With the bombs (or
+  // anything after): the keeper beaten, its door north open; with the great key or past the Furnace: the Governor Room's
+  // shutter up and its ball home. A save that entered the house: taken to its last mark again (the rooms moved)
   buried: {
-    v: 3,
+    v: 4,
     steps: [
       { if: ['open.d3', 'lit.k2', 'open.br1', 'boss'], set: { 'unlocked.d3': 1, 'found.kS': true, 'lit.arB': true, 'open.dBo': true, 'lit.k0': true, 'open.dS': true } },
       { if: ['open.br1', 'boss'], set: { 'unlocked.d4': 1, 'found.kB': true, 'lit.k3': true } },
+      { if: ['gadget', 'lit.k0', 'open.dS', 'lit.k1', 'open.d3', 'lit.k3', 'found.kB', 'open.br1', 'boss'], set: { 'lit.arB': true, 'open.dC': true } },
+      { if: ['lit.k3', 'found.kB', 'open.br1', 'boss'], set: { 'lit.k0': true, 'open.dS': true, 'drum.bD': 1, 'open.dG': true } },
       { if: ['entered'], set: { relaid: true } },
     ],
   },
