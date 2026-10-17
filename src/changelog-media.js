@@ -1127,6 +1127,8 @@ const GAPS264 = 'Issue #264: the Unity bridge in the editor’s batch run on thi
 const HOST427B = 'Issue #427 round 2: the Unity bridge in the editor’s batch run on this Mac (muted, High, 1280 × 720, -fresh -no-hud, the camera pinned); before: the same run on main’s bundle (3a6ee5b29); after: this branch’s; the web’s pictures of the same views (scripts/design-qc/capture.mjs) beside them to check; 17 October; cwebp -q 72';
 const HOST427 = 'Issue #427: the Unity bridge in the editor’s batch run on this Mac (muted, High, 1280 × 720, -fresh -no-hud, the camera pinned), the kit’s with -set-flags item.sword,kit.colours.ember and the ember set chosen; before: the same run on main’s bundle (bb4163346); after: this branch’s; the web’s pictures of the same views (scripts/design-qc/capture.mjs) beside them to check; 17 October; cwebp -q 72';
 const UI430 = 'Issue #430: the Unity bridge in the editor’s batch run on this Mac (muted, High, -frames 1280x720), each piece put up by -ui through engine/ui-poses.js on the debug save; before, none of them was drawn (the web’s side, the same poses in headless Chrome, beside them in the issue’s sheet); cwebp -q 72';
+/** (v1.84, issue #422: the use button alone in Unity) */
+const PROMPT422 = 'Issue #422: the Unity bridge in the editor’s batch run on this Mac (muted, High), the sequence `hoverbike`’s first beat (engine/sequences.js); before: the build before this change (no -frames); after: -frames 1280x720; 17 October; cwebp -q 72';
 /** (v1.84, issue #424: a loading screen in Unity) */
 const LOAD424 = 'Issue #424: the Unity bridge in the editor’s batch run on this Mac (muted, -frames 1280x720, -walk 1), photographed by -loading-shot as the build said “waking the people…”; before: the same run with -no-loading (the screen as it was); 17 October; cwebp -q 72';
 /** (v1.83, issue #421: the hoverbike in its hollow on a Unity save) */
@@ -1173,6 +1175,9 @@ const PORT447U = 'Issue #447: the Unity bridge in the editor’s batch run on th
 const portRef = (id, what) => ({ sheet: `references/space-ports/${id}/sheet-1.jpg`, caption: `The author’s pick from the reference lab: ${what}` });
 export const CHANGELOG_MEDIA = {
   '1.84': [
+    { match: 'In the Unity version, the use button over a person or a thing is the round button alone', shots: [
+      { name: 'unity-prompt', title: 'The use button', caption: 'By the hoverbike’s tarp in Unity: before, the E on a dark strip (the batch run’s HUD laid out for its 4:3 window, so it stands left of the bike); after, the web’s round ink button with its cream ring over the tarp', from: PROMPT422 },
+    ], see: 'In the Unity version, walk up to someone or something you can use, with Hints on Subtle (the default).' },
     { match: 'In the Unity version, a world loads behind the same inked page', shots: [
       { name: 'unity-loading', title: 'Loading the desert', caption: 'Unity as the desert is built, at “waking the people…”: before, a black screen; after, the web’s loading page, its pen and its line', from: LOAD424 },
     ], see: 'In the Unity version, start or continue a game, or travel to another world.' },

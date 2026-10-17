@@ -81,6 +81,8 @@ export const CHANGELOG = [
     // issue #424: unity BridgeHud.Loading.cs (the page's #loading), BridgeHost.LoadStage, engine/game.js onStage;
     // tests/engine-unity.test.js
     'In the Unity version, a world loads behind the same inked page as on the web, the pen turning in its rings and a line saying what is being drawn, where the screen used to stay black.',
+    // issue #422: src/prompt-keys.js leadKey, src/hud.js Cue (the cue's key apart), unity BridgeHud.Glyph.cs; tests/hud.test.js
+    'In the Unity version, the use button over a person or a thing is the round button alone, as on the web, instead of a dark strip, and a hint that names a button shows the button as a badge before its words.',
   ] },
   { v: '1.83', date: '2026-10-16', items: [
     // issue #406: src/temples/desert.js (ROOMS, LOGIC: hall, balcony, ballK, kS, dE, sentry in the hall, d3), pieces.js Ball

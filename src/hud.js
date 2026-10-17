@@ -11,7 +11,7 @@
 //     (main.js, ui.js ToolHud), each lingering a moment (Fader);
 //   - the objective: the scout finds it (Q, R3: src/scout.js) and the cue says its goal over its
 //     next step (findSummary); the game menu's Quests panel shows the same for every quest (src/game-menu.js).
-import { badgeLine, escapeHtml, keysHtml } from './prompt-keys.js';
+import { badgeLine, escapeHtml, keysHtml, leadKey } from './prompt-keys.js';
 import { page, screen } from './platform.js';
 import { t, t as tr } from './i18n.js';
 import { hintsFor } from './hint-level.js';
@@ -160,7 +160,9 @@ export function staminaHud({ stamina = 1, winded = false, quiet = false } = {}, 
 export class Cue {
   constructor(el = page.byId('cue')) { this.el = el; this.text = ''; this.kind = ''; }
   set(text, kind = '') {
-    screen.set('cue', text ? { text, kind } : null);
+    // (a prompt's button as its own badge, the words after it: an engine draws them as the page's .key and .glyph, issue #422)
+    const lead = text && !kind ? leadKey(text) : null;
+    screen.set('cue', text ? (lead ? { text, kind, key: lead.key, rest: lead.rest } : { text, kind }) : null);
     if (!this.el) return;
     if (text && (text !== this.text || kind !== this.kind)) {
       // (the place name is a plain line; a prompt badges its button: native-pad.js renames it in place)

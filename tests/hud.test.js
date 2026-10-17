@@ -289,3 +289,20 @@ test('the Start menu opens the game menu on its Items and Quests, has a Controls
   const html = controlsHtml(L, 'touch');
   assert.ok(html.indexOf('<h2>Touch</h2>') < html.indexOf('<h2>Controller</h2>'), 'a touch screen: its controls first');
 });
+
+test('the cue sends its button apart from its words, for an engine to draw the badge (issue #422)', async () => {
+  const { leadKey } = await import('../src/prompt-keys.js');
+  const { screen } = await import('../src/platform.js');
+  assert.deepEqual(leadKey('E voicemail'), { key: 'E', rest: 'voicemail' });
+  assert.deepEqual(leadKey('A / ×'), { key: 'A / ×', rest: '' });
+  assert.equal(leadKey('Golden dunes'), null);
+  assert.equal(leadKey('E talk · SPACE hop'), null, 'a line of several prompts stays words');
+  const cue = new Cue(null);
+  cue.set('X / □');
+  assert.deepEqual(screen.state.cue, { text: 'X / □', kind: '', key: 'X / □', rest: '' }, 'the button alone: a glyph');
+  cue.set('E step outside');
+  assert.equal(screen.state.cue.key, 'E'); assert.equal(screen.state.cue.rest, 'step outside');
+  cue.set('Golden dunes', 'place');
+  assert.deepEqual(screen.state.cue, { text: 'Golden dunes', kind: 'place' }, 'a place\'s name has no button');
+  cue.set('');
+});

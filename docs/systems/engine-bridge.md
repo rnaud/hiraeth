@@ -1895,6 +1895,13 @@ screen; the batch run's pictures only.
   world>…", "inking the collisions…", "waking the people…", "mixing the inks…") and engine/unity/game.js hands to
   `BridgeHost.LoadStage`. A flight's arrival keeps the warp (carried over the reboot, the page's `#loading.space`).
   `-loading-shot <file>` photographs it at "waking the people…"; `-no-loading` leaves it out (the before).
+- **The buttons' prompts** (#422, "the button prompts default to the long version instead of just the button"). The
+  floating prompt's words already followed the hints (#394: the button alone unless hints are full), but Unity still drew
+  that button on the hints' dark strip, cream on black, and the cue's button ("E voicemail", "E step outside") as plain
+  letters. Now BridgeHud.Glyph.cs draws the page's `.key`: with no words (`.glyph`) the round ink button alone with its
+  cream ring and soft shadow at 0.8, no strip; with words, the cream badge on the strip before them. The cue sends its
+  button apart from its words (src/hud.js Cue: `key`, `rest`, by src/prompt-keys.js `leadKey`), so the engines need not
+  parse the line. Tests: tests/hud.test.js.
 
 ## One host (2026-10-17, issue #427)
 

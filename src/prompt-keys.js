@@ -40,6 +40,18 @@ export const keyBadge = (label) => `<b class="key">${escapeHtml(label)}</b>`;
 const LEAD = /^(E|SPACE|SHIFT|[WASD]\/[WASD]|X \/ □|A \/ ×|B \/ ○|Y \/ △|RT \/ R2|LT \/ L2|RB \/ R1|LB \/ L1|L3|R3|D-pad [↑↓←→])(?: (?=\S)|$)/;   // (alone: a prompt as its button only, hints subtle or off)
 
 /**
+ * A line's leading button as the badge draws it, and the words after it: "E voicemail" → { key: 'E', rest: 'voicemail' },
+ * "A / ×" → { key: 'A / ×', rest: '' }; null when the line starts with no button (an engine draws the badge from it:
+ * the screen's cue, issue #422).
+ */
+export function leadKey(text) {
+  const s = String(text ?? '');
+  if (s.includes('\n') || s.includes(' · ')) return null;
+  const m = s.match(LEAD);
+  return m ? { key: m[1], rest: s.slice(m[0].length) } : null;
+}
+
+/**
  * A status line as HTML: every " · "-separated part that starts with a
  * button name gets that name as a badge; the rest stays plain (escaped) text.
  */

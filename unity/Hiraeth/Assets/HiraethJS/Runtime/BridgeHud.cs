@@ -1323,6 +1323,7 @@ namespace Hiraeth.Bridge
             Show(cue, on);
             cueBottom = 0;
             if (!on) return;
+            if (DrawCueBadge(c)) return;   // (a prompt's button: the page's badge, alone or before its words; issue #422)
             bool place = c.S("kind") == "place";
             cueText.fontStyle = place ? FontStyle.Italic : FontStyle.Normal;
             // (a region's name: letters on the land, no strip, as the page's #cue.place)
@@ -1343,6 +1344,10 @@ namespace Hiraeth.Bridge
             if (trace) tracePrompt.at = null;
             if (!at.HasValue) return;
             var key = p.S("key", "E");
+            // (the button alone unless hints are full, as the page's .glyph: src/hint-level.js; issue #394, Unity always wrote
+            // "E voicemail" where the page shows the E; issue #422, the page's badge alone over the world, not on a strip)
+            if (p.Get("words") is bool wd0 && !wd0) { DrawPromptGlyph(at.Value, key); return; }
+            PromptOnStrip();
             prompt.SetFill(HintBg); promptKey.color = HintInk; promptText.color = HintInk;
             promptText.fontSize = Sz(12); promptKeyText.fontSize = Sz(11);
             promptKeyText.text = key;
