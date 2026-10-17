@@ -1,0 +1,45 @@
+changelog.md
+  s_5f899ba316b5dc::t_3b0bd7dc95528f 7
+docs/systems/engine-bridge.md
+  s_5f899ba316b5dc::t_4ecbdefe81b02f 581,600-603
+docs/systems/minigames.md
+  s_5f899ba316b5dc::t_14662dc24213f2 13-14,564-626
+src/changelog-media.js
+  s_5f899ba316b5dc::t_4244e2a455149c 1106-1107,1110-1114
+src/changelog.js
+  s_5f899ba316b5dc::t_9f095b30030b4a 15-17
+src/minigames/lens-vault-arm.js
+  s_5f899ba316b5dc::t_8f0b85f43114d7 1-74
+src/minigames/lens-vault-hud.js
+  s_5f899ba316b5dc::t_e1373aa707bd7e 1-121
+src/minigames/lens-vault-level.js
+  s_5f899ba316b5dc::t_1c272773e66b14 1-146
+src/minigames/lens-vault-rules.js
+  s_5f899ba316b5dc::t_835258c192bfc5 1-183
+src/minigames/lens-vault.js
+  s_5f899ba316b5dc::t_6478f1d1e96fa1 1-440
+src/platform.js
+  s_5f899ba316b5dc::t_ddefac8da042c0 87-88,92
+tests/minigames-lens-vault.test.js
+  s_5f899ba316b5dc::t_c572c80fe85213 1-260
+tests/tone.test.js
+  s_5f899ba316b5dc::t_2cf97a8b5613c1 147-153
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHud.Games.cs
+  s_5f899ba316b5dc::t_523d11938ef3c0 88,97,802-949
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "674718d86afa03eba8ef81d9fd1c04da9b8e9241",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
