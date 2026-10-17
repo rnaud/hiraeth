@@ -1,0 +1,39 @@
+changelog.md
+  s_5f899ba316b5dc::t_997a5bf764aed5 11
+docs/systems/bridge-gaps.md
+  s_5f899ba316b5dc::t_84838e9ac83036 92
+docs/systems/engine-bridge.md
+  s_5f899ba316b5dc::t_92c66f76b6191a 1940-1942
+engine/bridge-gaps.js
+  s_5f899ba316b5dc::t_63504868f3f40e 229,255
+engine/game.js
+  s_5f899ba316b5dc::t_45089e9f8b505f 528-529,1279,1710
+src/changelog-media.js
+  s_5f899ba316b5dc::t_02fcdb13b0765b 1205
+src/changelog.js
+  s_5f899ba316b5dc::t_50a68cf0ef0870 46-47
+src/host/game-host.js
+  s_5f899ba316b5dc::t_7dd37e152d5551 20,36-38,310-335
+src/main.js
+  s_5f899ba316b5dc::t_f307f82758ac5e 95,687-689,2395
+tests/bike-worlds.test.js
+  s_5f899ba316b5dc::t_eb868bfbbfae45 103-105,107
+tests/game-host.test.js
+  s_5f899ba316b5dc::t_462ca83c014a32 177,211-214
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9212a2f8895370b62c153596ad38e413e60e498e",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
