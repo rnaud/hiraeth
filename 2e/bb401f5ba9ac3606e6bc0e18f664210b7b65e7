@@ -1,0 +1,37 @@
+docs/README.md
+  s_5f899ba316b5dc::t_3d3eb632781387 34
+src/taxi.js
+  s_5f899ba316b5dc::t_14c01bd07e23de 197-198
+src/levels/port-pad.js
+  s_5f899ba316b5dc::t_521800e499072d 1-124
+src/changelog.js
+  s_5f899ba316b5dc::t_155b98393b02ba 67-69
+changelog.md
+  s_5f899ba316b5dc::t_3f2130e7669298 7
+docs/systems/worlds.md
+  s_5f899ba316b5dc::t_2ff0313b6b65ed 2798-2816
+src/levels/space-city.js
+  s_5f899ba316b5dc::t_2e4df4341b3068 19,74-92,260,273-275,470,549
+src/changelog-media.js
+  s_5f899ba316b5dc::t_7019bc116d2e88 1119-1120,1254-1263
+tests/port-pad.test.js
+  s_5f899ba316b5dc::t_db7bdf115526d4 1-56
+docs/design/space-ports.md
+  s_5f899ba316b5dc::t_e010e942b718bf 1-227
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2ebb401f5ba9ac3606e6bc0e18f664210b7b65e7",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
