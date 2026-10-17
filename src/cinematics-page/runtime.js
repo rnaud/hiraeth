@@ -11,6 +11,10 @@ const selected = () => CINEMATICS.find(e => e.id === new URLSearchParams(locatio
 export async function seedReview() {
   const e = selected();
   if (!e) throw new Error('Unknown cinematic review');
+  seedReviewEntry(e);
+}
+/** The save a cinematic of the catalog plays on, written to the active slot (the page's review, the engines' sequences: engine/sequences.js). */
+export function seedReviewEntry(e) {
   const seed = progressBefore(e.world) ?? progressBefore('bazaar');
   game.data = { flags: { ...seed?.flags, 'prologue.done': true, 'item.backpack': 1, 'ship.powered': true, 'ship.launched': true }, keepsakes: seed?.keepsakes ?? [] };
   if (e.id === 'homecoming.final') Object.assign(game.data.flags, { 'finale.met': true, 'ending.done': true, 'world.lantern.done': true });

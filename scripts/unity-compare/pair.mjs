@@ -12,6 +12,7 @@
 // notes.json: { "<world>--<view>": "what differs, and whether it is a bug (fixed / open) or design" } shown beside each.
 // Writes <out-dir>/index.html, pairs/<world>--<view>.webp (web | Unity | heat), scores.json.
 import sharp from 'sharp';
+import { lab, dE, raw, ssim } from './measure.mjs';
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join, resolve, relative } from 'node:path';
 
@@ -22,35 +23,6 @@ const viewInfo = {};
 if (arg('views')) for (const v of JSON.parse(readFileSync(arg('views'), 'utf8')).views) viewInfo[v.name] = v;
 mkdirSync(join(outDir, 'pairs'), { recursive: true });
 
-// ---- colour and the measures, on raw RGB buffers
-const lin = (c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
-function lab(r, g, b) {
-  const R = lin(r / 255), G = lin(g / 255), B = lin(b / 255);
-  const f = (t) => (t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116);
-  const x = f((0.4124 * R + 0.3576 * G + 0.1805 * B) / 0.95047), y = f(0.2126 * R + 0.7152 * G + 0.0722 * B), z = f((0.0193 * R + 0.1192 * G + 0.9505 * B) / 1.08883);
-  return [116 * y - 16, 500 * (x - y), 200 * (y - z)];
-}
-const dE = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
-const raw = async (file, w, h, grey = false) => {
-  let s = sharp(file).resize(w, h, { fit: 'fill' }).removeAlpha();
-  if (grey) s = s.greyscale();
-  return (await s.raw().toBuffer({ resolveWithObject: true })).data;
-};
-
-function ssim(a, b, w, h, win = 8) {
-  const C1 = (0.01 * 255) ** 2, C2 = (0.03 * 255) ** 2;
-  let sum = 0, n = 0;
-  for (let y = 0; y + win <= h; y += win / 2) for (let x = 0; x + win <= w; x += win / 2) {
-    let ma = 0, mb = 0;
-    for (let j = 0; j < win; j++) for (let i = 0; i < win; i++) { const k = (y + j) * w + x + i; ma += a[k]; mb += b[k]; }
-    ma /= win * win; mb /= win * win;
-    let va = 0, vb = 0, cv = 0;
-    for (let j = 0; j < win; j++) for (let i = 0; i < win; i++) { const k = (y + j) * w + x + i, da = a[k] - ma, db = b[k] - mb; va += da * da; vb += db * db; cv += da * db; }
-    va /= win * win - 1; vb /= win * win - 1; cv /= win * win - 1;
-    sum += ((2 * ma * mb + C1) * (2 * cv + C2)) / ((ma * ma + mb * mb + C1) * (va + vb + C2)); n++;
-  }
-  return sum / n;
-}
 function edges(g, w, h) {
   const out = new Uint8Array(w * h);
   for (let y = 1; y < h - 1; y++) for (let x = 1; x < w - 1; x++) {

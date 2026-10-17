@@ -118,6 +118,36 @@ web only and why; then what the bridge handles and where. How it works: `docs/sy
 
 **Handled**: the weather's kinds (main.js's dev toggles) (engine/game.js runs Weather itself; the list is for the page's toggles); the HUD's page drawing (hearts, wallet, keys, stamina, knock-out, toast, charge, passage cover, flurry) (the screen's parts the engines publish (engine/game.js, engine/combat.js), drawn by BridgeHud.cs); the journal and the save's migrations (engine/game.js engineJournal (the same key and fields); BridgeStore.cs); the page's menus, What's new, and their sounds (engine/menus.js (BridgeMenu.cs)); the people, built a step at a time (engine/game.js spawnNPCs and the crowd (all at once)); the items' pictures and the conversation's portraits, rendered by the page (the bridge photographs its own (BridgeRunner.Portrait, engine/unity/backend.js portrait)); the Map's ground and temples (engine/game.js keeps the map's marks and ground (docs/systems/engine-bridge.md, "The Map's ground")); every gadget (engine/game.js makes the gadgets through src/gadgets (tests/engine-gadgets.test.js)); the recorded themes' download (BridgeMusic.cs downloads them into persistentDataPath (#264)); photo mode's picture (engine/unity/backend.js photo, BridgeHost.Photo); the page's input latched between frames (the engines send their keys each frame (g.key)).
 
+## What the sequences show differently
+
+The engines' bundle played through the same sequences as the web (issue #429, `engine/sequences.js`), beat by beat; what a beat's state shows differently and is known:
+
+- **a world's deadly void (src/pit-void.js worldVoid: the dark wash under its kill height) is never made by engine/game.js** (#427): `moment-*`, `obj-:pitvoid`
+- **the Signal Market's void under its avenue (worldVoid), not made by engine/game.js** (#427): `menus`, `obj-:pitvoid`
+- **the Map has no "Your ship" mark in the engines (engine/game.js mapSource: level.ship is the page's)** (#427): `menus` at map, `menu.rows`
+- **the Items page lists the gadgets among the gear in the engines, after the gear on the page (another order of the same things owned)** (#430): `menus` at items, `menu.rows`
+- **the Settings page: the page has Language, the jets' pitch and longer labels, the engines Music, Effects, Voices, Mute, Hints first (engine/menus.js SETTINGS_ROWS against src/ui.js SettingsMenu)** (#430): `menus` at start|settings, `menu.rows`
+- **a fight temple's start card: on the page the hall seen from above with its HUD up; in the engines the traveller's own camera until Start** (#264): `fight-temple` at card, `part-:minigame`, `cam`
+- **a flying minigame's camera: the engines widen it (74 and 65 degrees against the page's 60 and 58)** (#264): `game-*` at run|pause, `cam.fov`
+- the Start menu's "Debug: worlds" (web only: a developer's entry on the page (the worlds picker); the engines' debug saves are on the title): `menus|house-map` at start|settings|map, `menu.side`
+- the sky's planets (handled: sent as the look's data, not meshes (engine/game.js fullLook planets; Unity draws them in its sky)): `*`, `obj-:planet`
+- the ship's line over the hatch ends sooner in node, so the charge card comes back up (handled: a subtitle lasts as long as its recording is heard; the node VM has no sound, Unity plays it and shows the line as the page does (unity.json)): `opening` at hatch|stepout, `part-:sub`, `part+:charge`
+
+## What the sequences' pictures show differently in Unity
+
+Read from the sheets of `node scripts/unity-compare/sequences.mjs` (Unity's batch run against headless Chrome, beat by beat), most visible first:
+
+- **the broadcast's moment turned black in Unity from four seconds in (a starry black void where the towers and the traveller's close-up are); on the first run, not on the second: intermittent, to check** (#264, seen at once): `moment-bazaar.broadcast` at mid|late
+- **the Map page's drawn ground is not there in Unity a second and a half after opening (its marks on a plain sheet; the page's streets and walls drawn at once)** (#264, seen at once): `menus` at map
+- **the blade's cut is a thin grey sword and a white flare in Unity, not the page's blue fluid arcs; a foe's death a white flash, not its ink burst; a chime a white ball** (#264, seen at once): `fight` at cut|hit|death|chimes
+- **the take-off's warp disc opens see-through grey in Unity with the ship behind it and no world's name; on the page an opaque night disc with THE DESERT** (#264, seen in play): `takeoff` at away
+- **the hearts and wallet show over the crystal's moment in Unity (the screen's health part up; none on the page or in node)** (#264, seen in play): `moment-perdide.crystal`
+- **his face close up: dark ink blotches on the chin and neck and a darker skin in Unity; behind him in Vael dark drip shapes down the wall** (#264, seen in play): `moment-arzach2.bell|moment-perdide2.pools` at late
+- **the builders' wall without its carved glyphs in Unity (plain panels), the far white tower drawn dark grey** (#264, seen in play): `moment-edena.terraces` at start
+- **a dark band across the back of his shirt at the waist in Unity, close up** (#264, barely seen): `box`
+- **the count's numeral larger and a duller gold in Unity** (#264, barely seen): `fight-temple|game-*` at count
+- **the key counter a "KEY ×0" box in Unity, the page's a key glyph** (#264, barely seen): `temple`
+
 ## Dev pages and tools
 
 Their own HTML pages or developer tools, never in a player's game, not looked at for shaders, passes or page elements: `src/studio/`, `src/audits-page/`, `src/reference-lab/`, `src/changelog-page/`, `src/references-page/`, `src/serendipity-page/`, `src/temple-maps/`, `src/enemies/page.js`, `src/cinematics-page/`, `src/music-page/`, `src/motion/`, `src/notes-page/`, `src/makers-mark/page.js`, `src/makers-mark/runtime.js`, `src/items-page/`, `src/lore-page/`, `src/trailer/`, `src/levels/reference-picker.js`, `src/levels/references.js`, `src/guardian-review.js`, `src/character-review.js`, `src/dev-menu.js`, `src/foe-spawner.js`, `src/hitbox-overlay.js`, `src/input-display.js`, `src/debug-back.js`, `src/changelog-media.js`, `src/gait-course.js`.

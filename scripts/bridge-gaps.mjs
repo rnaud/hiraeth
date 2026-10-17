@@ -18,7 +18,7 @@
 import { readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { GAPS, DEV_PAGES, STATUSES } from '../engine/bridge-gaps.js';
+import { GAPS, DEV_PAGES, STATUSES, STREAM_DIFFS, PICTURE_DIFFS } from '../engine/bridge-gaps.js';
 
 export const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 export const REPORT = 'docs/systems/bridge-gaps.md';
@@ -278,6 +278,13 @@ export function reportMarkdown() {
     const ok = GAPS[k].filter((e) => e.status === 'handled');
     if (ok.length) L.push(`**Handled**: ${ok.map((e) => `${e.what} (${e.where})`).join('; ')}.`, '');
   }
+  // (the sequences' known differences, issue #429: engine/sequences.js, tests/sequences-*.test.js)
+  L.push('## What the sequences show differently', '', 'The engines\' bundle played through the same sequences as the web (issue #429, `engine/sequences.js`), beat by beat; what a beat\'s state shows differently and is known:', '');
+  for (const st of ['gap', 'web-only', 'handled']) for (const e of STREAM_DIFFS.filter((x) => x.status === st)) L.push(`- ${st === 'gap' ? `**${e.what}** (#${e.issue})` : `${e.what} (${st === 'web-only' ? `web only: ${e.why}` : `handled: ${e.where}`})`}: \`${e.seq}\`${e.beat ? ` at ${e.beat}` : ''}, ${e.keys.map((k) => `\`${k}\``).join(', ')}`);
+  L.push('');
+  L.push('## What the sequences\' pictures show differently in Unity', '', 'Read from the sheets of `node scripts/unity-compare/sequences.mjs` (Unity\'s batch run against headless Chrome, beat by beat), most visible first:', '');
+  for (const e of [...PICTURE_DIFFS].sort((a, b) => (b.visible ?? 0) - (a.visible ?? 0))) L.push(`- **${e.what}** (#${e.issue}, ${RANK[e.visible ?? 0]}): \`${e.seq}\`${e.beat ? ` at ${e.beat}` : ''}`);
+  L.push('');
   L.push('## Dev pages and tools', '', `Their own HTML pages or developer tools, never in a player's game, not looked at for shaders, passes or page elements: ${DEV_PAGES.map((d) => `\`${d.path}\``).join(', ')}.`, '');
   return L.join('\n');
 }

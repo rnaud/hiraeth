@@ -1,7 +1,7 @@
 // The opening's beats photographed for the web-against-Unity check (issue #394): each a stage of the prologue
-// (src/ship/prologue.js PROLOGUE_STAGES) and how far into it, the same on both sides. The Unity run is
-// `-opening` (engine/unity/game.js), the web's scripts/unity-compare/opening.mjs; at `console` the traveller is put at
-// the cockpit's point (the voicemail's prompt over its button) and E plays the message.
+// (src/ship/prologue.js PROLOGUE_STAGES) and how far into it, the same on both sides. Since issue #429 they are the
+// 'opening' sequence of engine/sequences.js (scripts/unity-compare/sequences.mjs; Unity's -opening is -sequence opening);
+// at `console` the traveller is put at the cockpit's point (the voicemail's prompt over its button) and E plays the message.
 export const OPENING_BEATS = [
   { name: 'wake', stage: 'wake', t: 3.5 },
   { name: 'walk', stage: 'walk', t: 1.5 },

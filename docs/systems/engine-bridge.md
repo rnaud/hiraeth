@@ -1702,11 +1702,10 @@ Run it again on every Unity release, before the Deck's and the Retroid's default
 
 "Unity: opening cinematic on android seems a bit bugged out, father's hologram is not working, there is no button
 prompt on the voicemail machine, etc." The prologue compared with the web at seventeen beats (engine/opening-beats.js:
-a stage of src/ship/prologue.js and how far into it), a new save on each side: the web's
-`node scripts/unity-compare/opening.mjs web <dir>` (headless Chrome, `?level=desert&prologue=1`, its own Vite port), the
-bridge's `scripts/unity-js-run.sh opening -opening -out <dir>` (the debug save emptied, the beats photographed and the
-screen's cine, subtitle and prompt logged; at `console` the traveller is put at the cockpit's point and E pressed), the
-sheet by `opening.mjs sheet <web> <unity> <sheet.jpg>`. What differed, all fixed:
+a stage of src/ship/prologue.js and how far into it), a new save on each side, the web in headless Chrome
+(`?level=desert&prologue=1`) and Unity's batch run (`-opening`, the debug save emptied; at `console` the traveller is put
+at the cockpit's point and E pressed). Since #429 this is the `opening` sequence of the sequences harness (below:
+`node scripts/unity-compare/sequences.mjs all opening`). What differed, all fixed:
 
 | Beat | Unity before | Cause, fix |
 |---|---|---|
@@ -1788,6 +1787,57 @@ out at the picture's size, not the batch editor's 4:3 window) puts each piece up
 and photographs it (unity-ui-<piece>.png), on the debug save past the prologue; the web's side runs the same
 `uiPose` in the page. Tests: tests/engine-ui-parts.test.js, tests/engine-finishable.test.js (the cargo answered,
 the end card's part), tests/hud-shows.test.js.
+
+## Sequences (2026-10-16, issue #429)
+
+The still views (scripts/unity-compare, 117 of them) never saw a cinematic, a menu, a fight, a temple or a minigame:
+#394 found the opening wrong in five ways no still showed. **engine/sequences.js** plays the same sequences on every
+side and compares them beat by beat.
+
+- **A sequence** is a setup (a world; the cinematics review's save and staging for a catalog entry, src/cinematics-page;
+  the prologue; a debug save; a game's page) and its beats. A beat: `act(G)` (a dev jump on the game's own objects:
+  the traveller set down, a foe spawned, a temple's switch lit, a page of the Start menu opened), `keys` tapped,
+  `until(G)` waited for (a cinematic's own clock, a box's phase, a ship's step, a dialogue open; `timeout`, then the
+  beat is recorded `late`), `wait` more seconds of the game's time, then recorded: a picture, and `probe(G)`.
+  `SequenceRun` is the one runner; each side gives it its clock and presses its keys. `G` is the game as a sequence sees
+  it, the same names on both sides: `webGame(window)` (the page's globals, its Start menu and game menu) and
+  `engineGame(game, menus)` (engine/game.js, engine/menus.js); `engineKey` routes a key as the Unity host routes the
+  player's.
+- **The sequences** (29): the opening (#394's seventeen beats), every world's filmed moment (17, the catalog's "World
+  moments"), a makers' box, the ship's arrival (by step) and takeoff, the Start menu and its pages (Items, Map, Quests,
+  Settings), the House map (the Start menu's page inside the Buried's makers' house, issue #405), a fight in the Arena (a blot spawned, lock-on, a cut, a hit, its
+  death, its chimes), a makers' temple (the Buried's: in at the door, a switch, a small key, the great key and the
+  guardian's door), a fight temple's first wave (the Sunken Hall), two minigames (the rings, the ski: card, count, run,
+  pause), a conversation with choices (Teo: two pages, his answers, the first chosen).
+- **The state stream**: `probe(G)` at each beat, as data: the screen's parts (src/platform.js `screen`, and what the page
+  draws of the fight in its own HTML: the lock, the warnings, the knock-out card, the foes' tab) and what each says; the
+  menu open, its page, its sidebar and rows; what plays (the prologue's stage, a moment, a ship's step, a box's phase);
+  the drawables in the camera's view within 120 m by the port's kind of their material (on the web the scenes the page
+  draws over its picture too: the veils, the wind, the motes, a house's air, the hologram); the camera and the
+  traveller. Left out as timing alone: the toast (the page clears it as it fades, the engines keep it for its secs), a
+  region's name, the stamina wheel; the motes and wisps (one cloud each that follows the camera).
+  `compareStreams` gives each difference a key (`part-:sub` on the web only, `part+:charge` in the engines only,
+  `part~:prompt` saying something else, `menu.rows`, `playing`, `obj-:pitvoid`, `cam`, `late`…).
+- **In CI** (no Unity, no Chrome): the web's stream is recorded on the Mac into **tests/sequences-web.json**;
+  **tests/sequences-opening / -moments / -play.test.js** (three files, so the shards run them side by side, about a
+  minute each) play every sequence in the engines' bundle in node (engine/sequence-run.mjs: a fresh VM a sequence, a
+  fixed 1/30 s step, the menus the Unity host makes) and fail on a difference not named in **engine/bridge-gaps.js
+  `STREAM_DIFFS`** (gap + issue, web-only + why, handled + where), and on an entry that matches nothing any more.
+  When the web changes on purpose (a line, a page's rows), record its stream again:
+  `node scripts/unity-compare/sequences.mjs web <ids>` then `node scripts/unity-compare/sequences.mjs record`.
+- **Pictures** (on this Mac): `node scripts/unity-compare/sequences.mjs` runs everything: the web in muted headless
+  Chrome on its own Vite (PORT, default 5429; the game held still while each picture is taken), the engines' stream in
+  node, Unity's batch run a sequence at a time (`scripts/unity-js-run.sh seq-<id> -sequence <id> -out <dir>`: the debug
+  save seeded as the sequence says; each beat's picture and its probe as a `[unity] seq <id> <beat> {…}` line) under
+  `.local-tools/handoff/unity-build.lock`, resting while the load is over 25; then a sheet a sequence
+  (`sheets/<id>.jpg`, web left, Unity right, each beat's SSIM and its unlisted differences), `overview.jpg` (a row a
+  sequence) and `report.md` (SSIM per beat, the three streams against each other). Out: `output/sequences/<sha>/`.
+  `web`, `engine`, `unity`, `sheet` and `record` run one step; a list of ids runs those sequences only. The whole run
+  takes about 40 minutes (Unity about 25 s a sequence, the opening 90 s).
+- **Scheduling it**: it needs this Mac (Chrome on its GPU, the Unity editor), so not GitHub. Nightly, a crontab line
+  or a launchd agent that brings the checkout up to date and runs
+  `node scripts/unity-compare/sequences.mjs > output/sequences/last.log 2>&1` (it waits for the Unity lock if someone
+  holds it), e.g. `17 3 * * *`; then look at `overview.jpg` and `report.md`, and comment what is new on #264.
 
 ## Status
 

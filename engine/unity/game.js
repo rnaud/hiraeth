@@ -20,8 +20,7 @@ import { watchSceneEdits } from '../scene-matrices.js';
 import { EngineMenus } from '../menus.js';
 import { UnityUpdates } from './updates.js';
 import { STARMAP_SCENES, STARMAP_BASE, poseStarMap } from '../starmap.js';
-import { OPENING_BEATS, beatDue } from '../opening-beats.js';
-import { PROLOGUE_STAGES } from '../../src/ship/prologue.js';
+import { sequenceById, SequenceRun, engineSetup, engineReady, engineGame, engineKey, probe } from '../sequences.js';
 import { readHref } from '../trials.js';
 import { Controller } from '../../src/controller.js';
 import { Settings, SaveGame, TEXT_SIZES } from '../../src/ui.js';
@@ -75,7 +74,7 @@ const RUMBLE = {
 };
 
 /** A run with a plan (the bench's views, a conversation, the tour…): straight into its world, no title, no menus. */
-const planned = (a) => !!(a.views?.length || a.talk || a.through != null || a.play || a.walk || a.hudRun || a.tour || a.idle || a.aboard || a.fight || a.foes || a.devmenu || a.ui || a.noTitle || a.trial || a.game || a.ending || a.opening || a.starmap || a.updatesPage || a.house);
+const planned = (a) => !!(a.views?.length || a.talk || a.through != null || a.play || a.walk || a.hudRun || a.tour || a.idle || a.aboard || a.fight || a.foes || a.devmenu || a.ui || a.noTitle || a.trial || a.game || a.ending || a.opening || a.sequence || a.starmap || a.updatesPage || a.house);
 /** -aboard cockpit,main,cabin,hold: the rooms of the parked ship it photographs, as the web's ?aboard= (main.js). */
 const aboardRooms = (a) => String(a.aboard ?? '').split(',').filter(Boolean);
 /**
@@ -343,11 +342,15 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
     slots.setActive(DEBUG_SLOT); gameState.reload();
     for (const f of String(args.setFlags).split(',').filter(Boolean)) gameState.data.flags[f] = true;
   }
-  // (-opening: a new save's prologue played on the debug save, emptied first, photographed beat by beat: issue #394)
-  if (args.opening) {
-    slots.setActive(DEBUG_SLOT); gameState.reload(); gameState.reset();
-    try { slotStorage.removeItem('hiraeth.journal.v1'); } catch { /* none */ }
-    args.level = 'desert'; prologue = true;
+  // (-sequence <id>: one of engine/sequences.js's sequences, on the debug save seeded as the sequence says, each beat
+  // photographed and its state logged, issue #429; -opening is the opening's, issue #394)
+  if (args.opening) args.sequence = 'opening';
+  let seqFight = false;
+  if (args.sequence) {
+    const seq = sequenceById(String(args.sequence));
+    if (!seq) { console.log(`[unity] no sequence ${args.sequence}`); host.Exit(2); return; }
+    const o = engineSetup(seq.setup);
+    args.level = o.levelId; prologue = !!o.prologue; arrive = !!o.arrive; via = o.via ?? null; game = o.game ?? null; seqFight = !!o.fight;
   }
   const ending = args.ending ? String(args.ending) : null;
   if (ending) {
@@ -357,7 +360,9 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
   // (the ship's scenes play only with menus: an -ending run makes its own, never opened)
   // (-foes: the Arena's list of foes is a page of the menus, so the plan has menus to draw it, and writes no save; -devmenu:
   // the dev menu is one of the menus too, with the player's settings for its frame readout)
-  const menus = S.menus ?? (ending || args.opening || starScenes.length ? new EngineMenus({ store: slots, screen: () => ({ w: host.MenuWidth?.() || 1280, h: 720 }) })
+  const menus = S.menus ?? (ending || starScenes.length ? new EngineMenus({ store: slots, screen: () => ({ w: host.MenuWidth?.() || 1280, h: 720 }) })
+    // (a sequence's menus are drawn: its Start menu's pages are beats; S.menus is what BridgeMenu is sent)
+    : args.sequence ? (S.menus = new EngineMenus({ store: slots, settings: new Settings(), house: () => S?.game?.houseView?.() ?? null, screen: () => ({ w: host.MenuWidth?.() || 1280, h: 720 }), itemCols: () => Math.max(4, Math.min(12, Math.floor(((host.MenuWidth?.() || 1280) - 72) / 128))), mapBox: () => { const [w, h] = String(host.MenuMapBox?.() ?? '').split(',').map(Number); return w > 0 && h > 0 ? { w, h } : null; } }))
     : args.foes || args.devmenu || args.house || args.ui ? (S.menus = new EngineMenus({ dev: () => false, house: () => S?.game?.houseView?.() ?? null, screen: () => ({ w: host.MenuWidth?.() || 1280, h: 720 }) })) : null);
   if (args.devmenu && !S.settings) S.settings = new Settings();
   if (starScenes.length) S.menus = menus;   // (shown: BridgeMenu draws the map)
@@ -373,7 +378,7 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
   S.gameFrom = args.level ?? 'desert';
   createGame({ levelId: args.level ?? 'desert', backend, game, from: game ? args.level ?? 'desert' : null, onGame: (href) => playGame(href), onLeave: (href) => leaveGame(href), trials: !!args.trial || !!args.fresh, quality: args.quality ?? null, people: args.people !== false, audio: rate ? { sampleRate: rate, record } : null, flags: !ending && (args.views?.length || args.play) ? BENCH_FLAGS : null, log: (...a) => console.log('[game]', ...a),
     menus, settings: S.settings ?? null, start: from, arrive: arrive || !!args.arrive, hullSpawn: !!args.hullSpawn, gestures: !off.has('gestures'),
-    via, prologue: prologue || !!args.prologue, onTravel: (to) => flyTo(to), aboard: aboardRooms(args)[0] ?? (starScenes.length ? 'main' : null), scenes: !!args.aboard, fight: !!args.fight, arrival: came, onPage: (o) => pageTo(o), saves: !args.foes && !args.devmenu && !args.house && !args.ui, defer: !off.has('defer'), far: !off.has('far'), skies: !off.has('skies'), lod: String(args.on ?? '').split(',').includes('lod') })
+    via, prologue: prologue || !!args.prologue, onTravel: (to) => flyTo(to), aboard: aboardRooms(args)[0] ?? (starScenes.length ? 'main' : null), scenes: !!args.aboard, fight: !!args.fight || seqFight, arrival: came, onPage: (o) => pageTo(o), saves: !args.foes && !args.devmenu && !args.house && !args.ui, defer: !off.has('defer'), far: !off.has('far'), skies: !off.has('skies'), lod: String(args.on ?? '').split(',').includes('lod') })
     .then((game) => {
       S.game = game;
       // (the title's sound let go: the world's own plays from here; the themes this package lacks fetched once, BridgeMusic)
@@ -678,18 +683,7 @@ function makePlan(args) {
     // (the first world: the hand-over, then the engine starts again; the second: done)
     steps.push(args.boot ? { kind: 'done' } : { kind: 'page', to, from }, { kind: 'hold' });
   }
-  if (args.opening) {
-    // (-opening: the prologue's beats, engine/opening-beats.js, each photographed with what the screen shows logged; at the
-    // console the traveller put at the cockpit's point and E pressed: the father's message; issue #394)
-    for (const b of OPENING_BEATS) {
-      steps.push({ kind: 'beat', beat: b });
-      if (b.console) steps.push({ kind: 'console' }, { kind: 'wait', frames: 20, secs: 0.8 });
-      steps.push({ kind: 'stage' });
-      if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-opening-${b.name}.png` });
-      if (b.console) steps.push({ kind: 'key', code: 'KeyE', down: true }, { kind: 'wait', frames: 3 }, { kind: 'key', code: 'KeyE', down: false });
-    }
-    steps.push({ kind: 'untilOver' });
-  }
+  if (args.sequence) steps.push({ kind: 'seq', id: String(args.sequence) });
   if (args.ending) {
     const n = args.endingShots ?? 40, every = args.endingEvery ?? 5;
     for (let k = 0; k < n; k++) {
@@ -926,15 +920,24 @@ export function frame(dt) {
     console.log(`[unity] ending: ${c?.constructor?.name ?? '-'} ${c?.stage ?? '-'} playing=${!!game.ship?.playing} ending.done=${!!gameState.flag('ending.done')} ending.final=${!!gameState.flag('ending.final')} sub="${sub}" space=${!!game.ship?.spaceCopy} cine=${JSON.stringify(game.screen().state.cine ?? null)} prompt=${JSON.stringify(game.screen().state.prompt?.text ?? null)} holo=${!!game.ship?.holo?.visible} cam=${game.camera.position.toArray().map((v) => v.toFixed(0))}`);
     next();
   }
-  else if (step.kind === 'beat') {
-    const pr = game.ship?.prologue;
-    if (!pr || beatDue(step.beat, PROLOGUE_STAGES, pr.stage, pr.t) || (pr.done && ++P.wait > 1)) next();
-    else if ((P.t += Math.min(dt, 0.05)) > 90) { console.log(`[unity] opening: ${step.beat.name} never came (${pr.stage})`); next(); }
-  }
-  else if (step.kind === 'console') {
-    const m = game.ship.modelOf(game.player.pos);
-    if (m?.interior?.points?.cockpit) game.player.pos.copy(game.ship.world(m, m.interior.points.cockpit));
-    next();
+  else if (step.kind === 'seq') {
+    // (a sequence's beats, engine/sequences.js: its runner ticked a frame at a time in the game's seconds, its keys as the
+    // player's arrive (engineKey), each beat photographed and what the screen shows logged as one line of JSON)
+    if (!P.seq) {
+      P.G = engineGame(game, S.menus);
+      P.seq = new SequenceRun(P.G, sequenceById(step.id));
+      const r = engineReady(P.G, P.seq.seq.setup);
+      if (r?.then) { P.staging = true; r.then((ok) => { P.staging = false; if (ok === false) console.log('[unity] seq: the cinematic refused to start'); }, (e) => { P.staging = false; console.log(`[unity] seq: staging failed ${e?.message ?? e}`); }); }
+      return;
+    }
+    if (P.staging) return;
+    const r = P.seq.tick(Math.min(dt, 0.05));
+    if (r?.keys) for (const [code, down] of r.keys) engineKey(game, S.menus, code, down);
+    if (r?.record) {
+      console.log(`[unity] seq ${step.id} ${r.record.name} ${JSON.stringify({ beat: r.record.name, t: +P.seq.time.toFixed(2), late: r.late, ...probe(P.G) })}`);
+      if (S.args.out) { P.steps.splice(P.i, 0, { kind: 'shot', file: `${S.args.out}/unity-${step.id}-${r.record.name}.png` }); P.wait = 0; }
+    }
+    if (r?.done) { for (const e of P.seq.errors) console.log(`[unity] seq error: ${e}`); next(); }
   }
   else if (step.kind === 'untilOver') {
     // (the homecoming over: one more picture of where it leaves him, then done)

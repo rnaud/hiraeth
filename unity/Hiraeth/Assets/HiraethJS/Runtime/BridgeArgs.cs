@@ -229,6 +229,8 @@ namespace Hiraeth.Bridge
             if (Arg("-ending") != null) args["ending"] = Arg("-ending");
             // (-opening: a new save's prologue on the debug save, photographed beat by beat: engine/opening-beats.js, issue #394)
             if (Flag("-opening")) args["opening"] = true;
+            // (-sequence <id>: one of engine/sequences.js's sequences, each beat photographed and its state logged: issue #429)
+            if (Arg("-sequence") != null) args["sequence"] = Arg("-sequence");
             if (Arg("-ending-every") != null) args["endingEvery"] = double.Parse(Arg("-ending-every"), CultureInfo.InvariantCulture);
             // (-starmap search,warm,found,system,ask,nopower: the holo table's galactic map aboard, each scene photographed: engine/starmap.js)
             if (Arg("-starmap") != null) args["starmap"] = Arg("-starmap");

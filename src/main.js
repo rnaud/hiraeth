@@ -2840,7 +2840,7 @@ window.contactAudit = async (o = {}) => {
   if (o.print !== false) console.log(formatContact(r));
   return r;
 };
-Object.assign(window, { waters, flora, blades, bloom, shelter, items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, fragments, story, journal, errands, expedition, scout, plumb, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife, foes, chimes, potionDrops, lowHealth, resources, itemIcons, gadgets,
+Object.assign(window, { motes, houseAir, waters, flora, blades, bloom, shelter, items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, fragments, story, journal, errands, expedition, scout, plumb, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife, foes, chimes, potionDrops, lowHealth, resources, itemIcons, gadgets,
   storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, passage, doorWalk, warmDraw, boxes, benches, devMenu, slots, paused, quitToTitle, clock: () => simT, sharedUniforms, cascades, shadowCull, applyQuality, preset: () => preset, frameStats, renderFrame, lod: () => lod, skinnedLods, interiorCull });
 
 if (['keeper','elder'].includes(query.get('guardianReview'))) {

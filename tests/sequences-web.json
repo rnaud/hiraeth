@@ -1,0 +1,4384 @@
+{
+ "recorded": "2026-10-17",
+ "sha": "5f8d2f377",
+ "how": "node scripts/unity-compare/sequences.mjs web [ids] && node scripts/unity-compare/sequences.mjs record",
+ "sequences": {
+  "moment-desert.flow": {
+   "beats": [
+    {
+     "beat": "start",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": true
+      }
+     },
+     "menu": null,
+     "playing": {
+      "what": "moment:desert.flow",
+      "stage": null
+     },
+     "objects": {
+      "ink": 1478,
+      "print": 1,
+      "shader": 2,
+      "veil": 4
+     },
+     "cam": [
+      -1238.3,
+      1006.7,
+      1260.2,
+      49.3
+     ],
+     "player": [
+      -1227,
+      1000,
+      1247.3
+     ],
+     "late": false
+    },
+    {
+     "beat": "mid",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": true
+      }
+     },
+     "menu": null,
+     "playing": {
+      "what": "moment:desert.flow",
+      "stage": null
+     },
+     "objects": {
+      "ink": 1478,
+      "print": 1,
+      "shader": 2,
+      "veil": 4
+     },
+     "cam": [
+      -1240.5,
+      1002.8,
+      1249.6,
+      34
+     ],
+     "player": [
+      -1227,
+      1000,
+      1247.3
+     ],
+     "late": false
+    },
+    {
+     "beat": "late",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": true
+      }
+     },
+     "menu": null,
+     "playing": {
+      "what": "moment:desert.flow",
+      "stage": null
+     },
+     "objects": {
+      "ink": 1478,
+      "print": 1,
+      "shader": 2,
+      "veil": 1
+     },
+     "cam": [
+      -1227.8,
+      1001.5,
+      1248.5,
+      35.9
+     ],
+     "player": [
+      -1227,
+      1000,
+      1247.3
+     ],
+     "late": false
+    }
+   ]
+  },
+  "talk": {
+   "beats": [
+    {
+     "beat": "beside",
+     "hud": {
+      "prompt": {
+       "text": "talk to Teo",
+       "key": "E"
+      },
+      "balloons": true
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 1575,
+      "print": 1,
+      "shader": 2
+     },
+     "cam": [
+      168,
+      3.7,
+      290.1,
+      55
+     ],
+     "player": [
+      167.9,
+      1.2,
+      294.8
+     ],
+     "late": false
+    },
+    {
+     "beat": "open",
+     "hud": {
+      "dialogue": {
+       "name": "Teo",
+       "text": "Teo. Drummer. Currently providing only the first half of the service.",
+       "choices": []
+      },
+      "balloons": true
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 1581,
+      "print": 1,
+      "shader": 2,
+      "doorlight": 1
+     },
+     "cam": [
+      164.2,
+      3.3,
+      296.2,
+      55
+     ],
+     "player": [
+      167.9,
+      1.2,
+      294.8
+     ],
+     "late": false
+    },
+    {
+     "beat": "page",
+     "hud": {
+      "dialogue": {
+       "name": "Teo",
+       "text": "The wind rolled my drum off a camel on our last night crossing. It went *south, under the old ribcage*, past your crash site. Too dark to fetch it then.",
+       "choices": [
+        "I’ll look for it.",
+        "Can’t you play something else?"
+       ]
+      }
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 1580,
+      "print": 1,
+      "shader": 2,
+      "doorlight": 1
+     },
+     "cam": [
+      164.2,
+      3.3,
+      296.2,
+      55
+     ],
+     "player": [
+      167.9,
+      1.2,
+      294.8
+     ],
+     "late": false
+    },
+    {
+     "beat": "choices",
+     "hud": {
+      "dialogue": {
+       "name": "Teo",
+       "text": "The wind rolled my drum off a camel on our last night crossing. It went *south, under the old ribcage*, past your crash site. Too dark to fetch it then.",
+       "choices": [
+        "I’ll look for it.",
+        "Can’t you play something else?"
+       ]
+      }
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 1580,
+      "print": 1,
+      "shader": 2,
+      "doorlight": 1
+     },
+     "cam": [
+      164.2,
+      3.3,
+      296.2,
+      55
+     ],
+     "player": [
+      167.9,
+      1.2,
+      294.8
+     ],
+     "late": false
+    },
+    {
+     "beat": "answer",
+     "hud": {
+      "dialogue": {
+       "name": "Teo",
+       "text": "You’ll look? Red drum, shells around the rim. South, under the great ribcage, beyond your ship. Ignore any sand pretending to be part of it.",
+       "choices": [
+        "I’ll bring it back."
+       ]
+      }
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 1581,
+      "print": 1,
+      "shader": 2,
+      "doorlight": 1
+     },
+     "cam": [
+      164.2,
+      3.3,
+      296.1,
+      55
+     ],
+     "player": [
+      167.9,
+      1.2,
+      294.8
+     ],
+     "late": false
+    }
+   ]
+  },
+  "opening": {
+   "beats": [
+    {
+     "beat": "wake",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": true,
+       "hud": false,
+       "walk": false,
+       "skip": false
+      }
+     },
+     "menu": null,
+     "playing": {
+      "what": "prologue",
+      "stage": "wake"
+     },
+     "objects": {
+      "ink": 1661,
+      "shader": 3,
+      "print": 1
+     },
+     "cam": [
+      93,
+      2600.9,
+      143.9,
+      62
+     ],
+     "player": [
+      91.1,
+      2600,
+      144.5
+     ],
+     "late": false
+    },
+    {
+     "beat": "walk",
+     "hud": {
+      "cine": {
+       "bars": false,
+       "lids": false,
+       "hud": false,
+       "walk": true,
+       "skip": false
+      }
+     },
+     "menu": null,
+     "playing": {
+      "what": "prologue",
+      "stage": "walk"
+     },
+     "objects": {
+      "ink": 1643,
+      "print": 1,
+      "shader": 2
+     },
+     "cam": [
+      91.8,
+      2601.7,
+      146.3,
+      65
+     ],
+     "player": [
+      91.1,
+      2600,
+      144.5
+     ],
+     "late": false
+    },
+    {
+     "beat": "console",
+     "hud": {
+      "prompt": {
+       "text": "voicemail",
+       "key": "E"
+      },
+      "cine": {
+       "bars": false,
+       "lids": false,
+       "hud": false,
+       "walk": true,
+       "skip": false
+      }
+     },
+     "menu": null,
+     "playing": {
+      "what": "prologue",
+      "stage": "walk"
+     },
+     "objects": {
+      "ink": 1651,
+      "planet": 1,
+      "shader": 4,
+      "print": 1
+     },
+     "cam": [
+      86.6,
+      2601.7,
+      147.9,
+      65
+     ],
+     "player": [
+      85.9,
+      2600,
+      146.1
+     ],
+     "late": false
+    },
+    {
+     "beat": "call-rise",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": true
+      },
+      "sub": {
+       "who": "SHIP",
+       "text": "First new message."
+      }
+     },
+     "menu": null,
+     "playing": {
+      "what": "prologue",
+      "stage": "call"
+     },
+     "objects": {
+      "ink": 1649,
+      "planet": 1,
+      "shader": 4,
+      "print": 1
+     },
+     "cam": [
+      86.9,
+      2602,
+      147.6,
+      48
+     ],
+     "player": [
+      85.9,
+      2600,
+      146.1
+     ],
+     "late": false
+    },
+    {
+     "beat": "call-talk",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": false
+      },
+      "sub": {
+       "who": "FATHER",
+       "text": "Is it on? Right. There you are. We haven’t heard from you for so long."
+      }
+     },
+     "menu": null,
+     "playing": {
+      "what": "prologue",
+      "stage": "call"
+     },
+     "objects": {
+      "ink": 1649,
+      "planet": 1,
+      "shader": 4,
+      "print": 1,
+      "hidden": 3,
+      "holo": 1
+     },
+     "cam": [
+      86.7,
+      2601.9,
+      146.8,
+      36
+     ],
+     "player": [
+      85.9,
+      2600,
+      146.1
+     ],
+     "late": false
+    },
+    {
+     "beat": "call-late",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": false
+      },
+      "sub": {
+       "who": "FATHER",
+       "text": "And I’m still disappointed in you. The boat, the school. You leave everything half done."
+      }
+     },
+     "menu": null,
+     "playing": {
+      "what": "prologue",
+      "stage": "call"
+     },
+     "objects": {
+      "ink": 1650,
+      "planet": 1,
+      "shader": 4,
+      "print": 1,
+      "hidden": 3,
+      "holo": 1
+     },
+     "cam": [
+      86.7,
+      2601.9,
+      146.8,
+      36
+     ],
+     "player": [
+      85.9,
+      2600,
+      146.1
+     ],
+     "late": false
+    },
+    {
+     "beat": "pause-bust",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": false
+      }
+     },
+     "menu": null,
+     "playing": {
+      "what": "prologue",
+      "stage": "pause"
+     },
+     "objects": {
+      "ink": 1647,
+      "planet": 1,
+      "shader": 4,
+      "print": 1,
+      "hidden": 3,
+      "holo": 1
+     },
+     "cam": [
+      85.3,
+      2601.7,
+      146.4,
+      29.8
+     ],
+     "player": [
+      85.9,
+      2600,
+      146.1
+     ],
+     "late": false
+    },
+    {
+     "beat": "pause-window",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": false
+      }
+     },
+     "menu": null,
+     "playing": {
+      "what": "prologue",
+      "stage": "pause"
+     },
+     "objects": {
+      "ink": 1650,
+      "planet": 1,
+      "shader": 4,
+      "print": 1,
+      "hidden": 3,
+      "holo": 1
+     },
+     "cam": [
+      87,
+      2601.3,
+      147.3,
+      49.7
+     ],
+     "player": [
+      85.9,
+      2600,
+      146.1
+     ],
+     "late": false
+    },
+    {
+     "beat": "pass",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": false
+      }
+     },
+     "menu": null,
+     "playing": {
+      "what": "prologue",
+      "stage": "pass"
+     },
+     "objects": {
+      "ink": 1634,
+      "print": 1,
+      "shader": 2,
+      "holo": 1
+     },
+     "cam": [
+      86.6,
+      2602,
+      132.3,
+      56
+     ],
+     "player": [
+      85.9,
+      2600,
+      146.1
+     ],
+     "late": false
+    },
+    {
+     "beat": "pass-out",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": false
+      },
+      "sub": {
+       "who": "SHIP",
+       "text": "Power draining."
+      }
+     },
+     "menu": null,
+     "playing": {
+      "what": "prologue",
+      "stage": "pass"
+     },
+     "objects": {
+      "ink": 1634,
+      "print": 1,
+      "shader": 2,
+      "hidden": 3,
+      "holo": 1
+     },
+     "cam": [
+      18,
+      2607.3,
+      161.6,
+      56
+     ],
+     "player": [
+      85.9,
+      2600,
+      146.1
+     ],
+     "late": false
+    },
+    {
+     "beat": "drain",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": false
+      },
+      "sub": {
+       "who": "SHIP",
+       "text": "Main power drained. Emergency reserve only."
+      }
+     },
+     "menu": null,
+     "playing": {
+      "what": "prologue",
+      "stage": "drain"
+     },
+     "objects": {
+      "ink": 1634,
+      "print": 1,
+      "shader": 2
+     },
+     "cam": [
+      87.1,
+      2601.8,
+      132.9,
+      58
+     ],
+     "player": [
+      85.9,
+      2600,
+      146.1
+     ],
+     "late": false
+    },
+    {
+     "beat": "drain-late",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": false
+      },
+      "sub": {
+       "who": "SHIP",
+       "text": "Not enough to hold orbit. Taking us down."
+      }
+     },
+     "menu": null,
+     "playing": {
+      "what": "prologue",
+      "stage": "drain"
+     },
+     "objects": {
+      "ink": 1633,
+      "print": 1,
+      "shader": 2
+     },
+     "cam": [
+      87.1,
+      2601.8,
+      132.9,
+      58
+     ],
+     "player": [
+      85.9,
+      2600,
+      146.1
+     ],
+     "late": false
+    },
+    {
+     "beat": "glide",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": false
+      }
+     },
+     "menu": null,
+     "playing": {
+      "what": "prologue",
+      "stage": "glide"
+     },
+     "objects": {
+      "ink": 1508,
+      "print": 1,
+      "shader": 2,
+      "wisp": 1
+     },
+     "cam": [
+      -47.3,
+      35.4,
+      210.7,
+      40
+     ],
+     "player": [
+      89.1,
+      19.4,
+      154.4
+     ],
+     "late": false
+    },
+    {
+     "beat": "land",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": false
+      }
+     },
+     "menu": null,
+     "playing": {
+      "what": "prologue",
+      "stage": "land"
+     },
+     "objects": {
+      "ink": 1555,
+      "print": 1,
+      "shader": 2,
+      "wisp": 1,
+      "mote": 1
+     },
+     "cam": [
+      10.4,
+      29.4,
+      90.8,
+      52
+     ],
+     "player": [
+      89.1,
+      19.4,
+      154.4
+     ],
+     "late": false
+    },
+    {
+     "beat": "settle",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": false
+      },
+      "charge": {
+       "mark": "✦",
+       "text": "BRING BACK SOMETHING OF VALUE"
+      }
+     },
+     "menu": null,
+     "playing": {
+      "what": "prologue",
+      "stage": "settle"
+     },
+     "objects": {
+      "ink": 1554,
+      "print": 1,
+      "shader": 2,
+      "wisp": 1,
+      "mote": 1
+     },
+     "cam": [
+      13.4,
+      47.4,
+      190.9,
+      46
+     ],
+     "player": [
+      89.1,
+      19.4,
+      154.4
+     ],
+     "late": false
+    },
+    {
+     "beat": "hatch",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": false
+      },
+      "sub": {
+       "who": "SHIP",
+       "text": "Emergency power online. Whatever passed us drained the core and left a magnetic signature on the hull. I can track its pulse."
+      }
+     },
+     "menu": null,
+     "playing": {
+      "what": "prologue",
+      "stage": "hatch"
+     },
+     "objects": {
+      "ink": 1615,
+      "planet": 1,
+      "shader": 4,
+      "print": 1,
+      "wisp": 1,
+      "mote": 1
+     },
+     "cam": [
+      96,
+      15.7,
+      175.5,
+      54
+     ],
+     "player": [
+      89.1,
+      19.4,
+      154.4
+     ],
+     "late": false
+    },
+    {
+     "beat": "stepout",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": false
+      },
+      "sub": {
+       "who": "SHIP",
+       "text": "Emergency power online. Whatever passed us drained the core and left a magnetic signature on the hull. I can track its pulse."
+      }
+     },
+     "menu": null,
+     "playing": {
+      "what": "prologue",
+      "stage": "stepout"
+     },
+     "objects": {
+      "ink": 1639,
+      "planet": 1,
+      "shader": 4,
+      "print": 1,
+      "wisp": 1,
+      "mote": 1
+     },
+     "cam": [
+      102.2,
+      14.1,
+      170.8,
+      50
+     ],
+     "player": [
+      94.5,
+      14.9,
+      163.9
+     ],
+     "late": false
+    }
+   ]
+  },
+  "moment-desert.fill": {
+   "beats": [
+    {
+     "beat": "start",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": true
+      }
+     },
+     "menu": null,
+     "playing": {
+      "what": "moment:desert.fill",
+      "stage": null
+     },
+     "objects": {
+      "ink": 1499,
+      "print": 1,
+      "shader": 2,
+      "veil": 2
+     },
+     "cam": [
+      -1243.2,
+      1001.3,
+      1248.6,
+      41.6
+     ],
+     "player": [
+      -1238.2,
+      999.2,
+      1250
+     ],
+     "late": false
+    },
+    {
+     "beat": "mid",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": true
+      }
+     },
+     "menu": null,
+     "playing": {
+      "what": "moment:desert.fill",
+      "stage": null
+     },
+     "objects": {
+      "ink": 1501,
+      "print": 1,
+      "shader": 2,
+      "veil": 8
+     },
+     "cam": [
+      -1237.1,
+      1000.7,
+      1249.6,
+      40
+     ],
+     "player": [
+      -1238.2,
+      999.2,
+      1250
+     ],
+     "late": false
+    },
+    {
+     "beat": "late",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": true
+      }
+     },
+     "menu": null,
+     "playing": {
+      "what": "moment:desert.fill",
+      "stage": null
+     },
+     "objects": {
+      "ink": 1496,
+      "print": 1,
+      "shader": 2,
+      "veil": 2
+     },
+     "cam": [
+      -1239.7,
+      1000.8,
+      1249.8,
+      35.9
+     ],
+     "player": [
+      -1238.2,
+      999.2,
+      1250
+     ],
+     "late": false
+    }
+   ]
+  },
+  "moment-desert.lit": {
+   "beats": [
+    {
+     "beat": "start",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": true
+      }
+     },
+     "menu": null,
+     "playing": {
+      "what": "moment:desert.lit",
+      "stage": null
+     },
+     "objects": {
+      "ink": 1553,
+      "print": 1,
+      "shader": 2
+     },
+     "cam": [
+      227.3,
+      1.8,
+      392.8,
+      48.5
+     ],
+     "player": [
+      227.1,
+      1.2,
+      394.9
+     ],
+     "late": false
+    },
+    {
+     "beat": "mid",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": true
+      }
+     },
+     "menu": null,
+     "playing": {
+      "what": "moment:desert.lit",
+      "stage": null
+     },
+     "objects": {
+      "ink": 1539,
+      "print": 1,
+      "shader": 2
+     },
+     "cam": [
+      219.4,
+      14,
+      376.2,
+      50
+     ],
+     "player": [
+      227.1,
+      1.2,
+      394.9
+     ],
+     "late": false
+    },
+    {
+     "beat": "late",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": true
+      },
+      "balloons": true
+     },
+     "menu": null,
+     "playing": {
+      "what": "moment:desert.lit",
+      "stage": null
+     },
+     "objects": {
+      "ink": 1546,
+      "print": 1,
+      "shader": 2
+     },
+     "cam": [
+      174.7,
+      58.3,
+      278.4,
+      55.3
+     ],
+     "player": [
+      227.1,
+      1.2,
+      394.9
+     ],
+     "late": false
+    }
+   ]
+  },
+  "moment-arzach.bird": {
+   "beats": [
+    {
+     "beat": "start",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": true
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": {
+      "what": "moment:arzach.bird",
+      "stage": null
+     },
+     "objects": {
+      "ink": 1871,
+      "basic": 1,
+      "print": 1,
+      "shader": 1,
+      "wisp": 1,
+      "mote": 1
+     },
+     "cam": [
+      -189.9,
+      41.5,
+      -1088,
+      49.6
+     ],
+     "player": [
+      -190,
+      38,
+      -1080
+     ],
+     "late": false
+    },
+    {
+     "beat": "mid",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": true
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": {
+      "what": "moment:arzach.bird",
+      "stage": null
+     },
+     "objects": {
+      "ink": 1853,
+      "basic": 1,
+      "print": 1,
+      "shader": 1,
+      "wisp": 1,
+      "mote": 1
+     },
+     "cam": [
+      -190.3,
+      39.6,
+      -1082.5,
+      48
+     ],
+     "player": [
+      -190,
+      38,
+      -1080
+     ],
+     "late": false
+    },
+    {
+     "beat": "late",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": true
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": {
+      "what": "moment:arzach.bird",
+      "stage": null
+     },
+     "objects": {
+      "ink": 1915,
+      "basic": 1,
+      "print": 1,
+      "shader": 1,
+      "wisp": 1,
+      "mote": 1
+     },
+     "cam": [
+      -195.6,
+      40,
+      -1073.9,
+      46
+     ],
+     "player": [
+      -190,
+      38,
+      -1080
+     ],
+     "late": false
+    }
+   ]
+  },
+  "moment-arzach2.bell": {
+   "beats": [
+    {
+     "beat": "start",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": true
+      },
+      "gadget": "gun",
+      "balloons": true
+     },
+     "menu": null,
+     "playing": {
+      "what": "moment:arzach2.bell",
+      "stage": null
+     },
+     "objects": {
+      "ink": 1908,
+      "basic": 1,
+      "print": 1,
+      "shader": 1,
+      "wisp": 1
+     },
+     "cam": [
+      -119.8,
+      87.4,
+      -188.4,
+      43.6
+     ],
+     "player": [
+      -227.2,
+      76.8,
+      -234.1
+     ],
+     "late": false
+    },
+    {
+     "beat": "mid",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": true
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": {
+      "what": "moment:arzach2.bell",
+      "stage": null
+     },
+     "objects": {
+      "ink": 1827,
+      "basic": 1,
+      "print": 1,
+      "shader": 1,
+      "wisp": 1
+     },
+     "cam": [
+      -218.3,
+      102.8,
+      -238.7,
+      36.6
+     ],
+     "player": [
+      -227.2,
+      76.8,
+      -234.1
+     ],
+     "late": false
+    },
+    {
+     "beat": "late",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": true
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": {
+      "what": "moment:arzach2.bell",
+      "stage": null
+     },
+     "objects": {
+      "ink": 1856,
+      "basic": 1,
+      "print": 1,
+      "shader": 1,
+      "wisp": 1
+     },
+     "cam": [
+      -226,
+      78.4,
+      -234.6,
+      34.5
+     ],
+     "player": [
+      -227.2,
+      76.8,
+      -234.1
+     ],
+     "late": false
+    }
+   ]
+  },
+  "moment-perdide.crystal": {
+   "beats": [
+    {
+     "beat": "start",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": true
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": {
+      "what": "moment:perdide.crystal",
+      "stage": null
+     },
+     "objects": {
+      "ink": 439,
+      "print": 1,
+      "shader": 1
+     },
+     "cam": [
+      -164.8,
+      6.1,
+      150.5,
+      49.6
+     ],
+     "player": [
+      -168.4,
+      1.6,
+      140.4
+     ],
+     "late": false
+    },
+    {
+     "beat": "mid",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": true
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": {
+      "what": "moment:perdide.crystal",
+      "stage": null
+     },
+     "objects": {
+      "ink": 442,
+      "print": 1,
+      "shader": 1
+     },
+     "cam": [
+      -166.5,
+      3.5,
+      141.9,
+      44.2
+     ],
+     "player": [
+      -168.4,
+      1.6,
+      140.4
+     ],
+     "late": false
+    },
+    {
+     "beat": "late",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": true
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": {
+      "what": "moment:perdide.crystal",
+      "stage": null
+     },
+     "objects": {
+      "ink": 445,
+      "print": 1,
+      "shader": 1
+     },
+     "cam": [
+      -169.4,
+      3.1,
+      141.2,
+      34.5
+     ],
+     "player": [
+      -168.4,
+      1.6,
+      140.4
+     ],
+     "late": false
+    }
+   ]
+  },
+  "moment-perdide2.pools": {
+   "beats": [
+    {
+     "beat": "start",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": true
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": {
+      "what": "moment:perdide2.pools",
+      "stage": null
+     },
+     "objects": {
+      "ink": 457,
+      "print": 1,
+      "shader": 1,
+      "veil": 4
+     },
+     "cam": [
+      -28.4,
+      2.9,
+      -858,
+      47.7
+     ],
+     "player": [
+      -18.4,
+      0.5,
+      -851.5
+     ],
+     "late": false
+    },
+    {
+     "beat": "mid",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": true
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": {
+      "what": "moment:perdide2.pools",
+      "stage": null
+     },
+     "objects": {
+      "ink": 420,
+      "print": 1,
+      "shader": 1,
+      "veil": 12
+     },
+     "cam": [
+      39,
+      4.3,
+      -758.2,
+      44
+     ],
+     "player": [
+      -18.4,
+      0.5,
+      -851.5
+     ],
+     "late": false
+    },
+    {
+     "beat": "late",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": true
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": {
+      "what": "moment:perdide2.pools",
+      "stage": null
+     },
+     "objects": {
+      "ink": 435,
+      "print": 1,
+      "shader": 1
+     },
+     "cam": [
+      -17.7,
+      2.1,
+      -850.4,
+      34.8
+     ],
+     "player": [
+      -18.4,
+      0.5,
+      -851.5
+     ],
+     "late": false
+    }
+   ]
+  },
+  "moment-edena.terraces": {
+   "beats": [
+    {
+     "beat": "start",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": true
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": {
+      "what": "moment:edena.terraces",
+      "stage": null
+     },
+     "objects": {
+      "ink": 215,
+      "print": 1,
+      "shader": 1
+     },
+     "cam": [
+      254.2,
+      -6.1,
+      -109.8,
+      45.4
+     ],
+     "player": [
+      265.3,
+      -11.8,
+      -98
+     ],
+     "late": false
+    },
+    {
+     "beat": "mid",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": true
+      },
+      "gadget": "gun",
+      "balloons": true
+     },
+     "menu": null,
+     "playing": {
+      "what": "moment:edena.terraces",
+      "stage": null
+     },
+     "objects": {
+      "ink": 184,
+      "print": 1,
+      "shader": 1
+     },
+     "cam": [
+      252,
+      2.6,
+      -74,
+      48
+     ],
+     "player": [
+      265.3,
+      -11.8,
+      -98
+     ],
+     "late": false
+    },
+    {
+     "beat": "late",
+     "hud": {
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 204,
+      "print": 1,
+      "shader": 1
+     },
+     "cam": [
+      265.3,
+      -9.3,
+      -93.3,
+      55
+     ],
+     "player": [
+      265.3,
+      -11.8,
+      -98
+     ],
+     "late": false
+    }
+   ]
+  },
+  "moment-incal.lodestar": {
+   "beats": [
+    {
+     "beat": "start",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": true
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": {
+      "what": "moment:incal.lodestar",
+      "stage": null
+     },
+     "objects": {
+      "ink": 216,
+      "print": 1,
+      "shader": 2,
+      "veil": 2,
+      "pitvoid": 1
+     },
+     "cam": [
+      6.9,
+      355.5,
+      4.3,
+      58
+     ],
+     "player": [
+      3.2,
+      355,
+      1.2
+     ],
+     "late": false
+    },
+    {
+     "beat": "mid",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": true
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": {
+      "what": "moment:incal.lodestar",
+      "stage": null
+     },
+     "objects": {
+      "ink": 293,
+      "print": 1,
+      "shader": 2,
+      "veil": 5,
+      "pitvoid": 1
+     },
+     "cam": [
+      97.9,
+      325.4,
+      33.3,
+      54.6
+     ],
+     "player": [
+      3.2,
+      355,
+      1.2
+     ],
+     "late": false
+    },
+    {
+     "beat": "late",
+     "hud": {
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 291,
+      "print": 1,
+      "shader": 2,
+      "veil": 5,
+      "pitvoid": 1
+     },
+     "cam": [
+      3.2,
+      357.5,
+      -3.5,
+      55
+     ],
+     "player": [
+      3.2,
+      355,
+      1.2
+     ],
+     "late": false
+    }
+   ]
+  },
+  "moment-glassdunes.clock": {
+   "beats": [
+    {
+     "beat": "start",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": true
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": {
+      "what": "moment:glassdunes.clock",
+      "stage": null
+     },
+     "objects": {
+      "ink": 162,
+      "print": 1,
+      "shader": 2,
+      "veil": 1,
+      "wisp": 1
+     },
+     "cam": [
+      83.8,
+      8.2,
+      91.8,
+      45.7
+     ],
+     "player": [
+      109.6,
+      2.1,
+      81.1
+     ],
+     "late": false
+    },
+    {
+     "beat": "mid",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": true
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": {
+      "what": "moment:glassdunes.clock",
+      "stage": null
+     },
+     "objects": {
+      "ink": 159,
+      "print": 1,
+      "shader": 2,
+      "veil": 1,
+      "wisp": 1
+     },
+     "cam": [
+      109.4,
+      38.6,
+      81.4,
+      32.7
+     ],
+     "player": [
+      109.6,
+      2.1,
+      81.1
+     ],
+     "late": false
+    },
+    {
+     "beat": "late",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": true
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": {
+      "what": "moment:glassdunes.clock",
+      "stage": null
+     },
+     "objects": {
+      "ink": 182,
+      "print": 1,
+      "shader": 2,
+      "veil": 4,
+      "doorlight": 1,
+      "wisp": 1
+     },
+     "cam": [
+      109.4,
+      3.7,
+      79.9,
+      34
+     ],
+     "player": [
+      109.6,
+      2.1,
+      81.1
+     ],
+     "late": false
+    }
+   ]
+  },
+  "moment-buried.wheel": {
+   "beats": [
+    {
+     "beat": "start",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": true
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": {
+      "what": "moment:buried.wheel",
+      "stage": null
+     },
+     "objects": {
+      "ink": 225,
+      "print": 1,
+      "shader": 1
+     },
+     "cam": [
+      77.4,
+      15,
+      -117.3,
+      50.8
+     ],
+     "player": [
+      77.2,
+      13.1,
+      -126.9
+     ],
+     "late": false
+    },
+    {
+     "beat": "mid",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": true
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": {
+      "what": "moment:buried.wheel",
+      "stage": null
+     },
+     "objects": {
+      "ink": 179,
+      "print": 1,
+      "shader": 1
+     },
+     "cam": [
+      135,
+      20.9,
+      -124.9,
+      42.2
+     ],
+     "player": [
+      77.2,
+      13.1,
+      -126.9
+     ],
+     "late": false
+    },
+    {
+     "beat": "late",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": true
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": {
+      "what": "moment:buried.wheel",
+      "stage": null
+     },
+     "objects": {
+      "ink": 195,
+      "print": 1,
+      "shader": 1
+     },
+     "cam": [
+      76.7,
+      14.7,
+      -128.1,
+      34.1
+     ],
+     "player": [
+      77.2,
+      13.1,
+      -126.9
+     ],
+     "late": false
+    }
+   ]
+  },
+  "moment-spheres.chord": {
+   "beats": [
+    {
+     "beat": "start",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": true
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": {
+      "what": "moment:spheres.chord",
+      "stage": null
+     },
+     "objects": {
+      "ink": 488,
+      "print": 1,
+      "shader": 1
+     },
+     "cam": [
+      16.3,
+      3.2,
+      -618.8,
+      51.6
+     ],
+     "player": [
+      3,
+      0.7,
+      -618
+     ],
+     "late": false
+    },
+    {
+     "beat": "mid",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": true
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": {
+      "what": "moment:spheres.chord",
+      "stage": null
+     },
+     "objects": {
+      "ink": 486,
+      "print": 1,
+      "shader": 1
+     },
+     "cam": [
+      1.1,
+      24.8,
+      -598,
+      55.7
+     ],
+     "player": [
+      3,
+      0.7,
+      -618
+     ],
+     "late": false
+    },
+    {
+     "beat": "late",
+     "hud": {
+      "prompt": {
+       "text": "talk to Ume",
+       "key": "E"
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 472,
+      "print": 1,
+      "shader": 1
+     },
+     "cam": [
+      3,
+      3.1,
+      -613.3,
+      55
+     ],
+     "player": [
+      3,
+      0.7,
+      -618
+     ],
+     "late": false
+    }
+   ]
+  },
+  "moment-bazaar.broadcast": {
+   "beats": [
+    {
+     "beat": "start",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": true
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": {
+      "what": "moment:bazaar.broadcast",
+      "stage": null
+     },
+     "objects": {
+      "ink": 408,
+      "print": 1,
+      "shader": 2,
+      "pitvoid": 1
+     },
+     "cam": [
+      -10.8,
+      3.2,
+      -158.9,
+      59.8
+     ],
+     "player": [
+      0,
+      44,
+      -235.5
+     ],
+     "late": false
+    },
+    {
+     "beat": "mid",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": true
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": {
+      "what": "moment:bazaar.broadcast",
+      "stage": null
+     },
+     "objects": {
+      "ink": 294,
+      "print": 1,
+      "shader": 2,
+      "pitvoid": 1
+     },
+     "cam": [
+      -14,
+      27.6,
+      33.5,
+      49.2
+     ],
+     "player": [
+      0,
+      44,
+      -235.5
+     ],
+     "late": false
+    },
+    {
+     "beat": "late",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": true
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": {
+      "what": "moment:bazaar.broadcast",
+      "stage": null
+     },
+     "objects": {
+      "ink": 260,
+      "print": 1,
+      "shader": 2,
+      "pitvoid": 1
+     },
+     "cam": [
+      1,
+      45.6,
+      -234.7,
+      34.2
+     ],
+     "player": [
+      0,
+      44,
+      -235.5
+     ],
+     "late": false
+    }
+   ]
+  },
+  "moment-underwater.whales": {
+   "beats": [
+    {
+     "beat": "start",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": true
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": {
+      "what": "moment:underwater.whales",
+      "stage": null
+     },
+     "objects": {
+      "ink": 216,
+      "print": 1,
+      "shader": 2,
+      "pitvoid": 1,
+      "doorlight": 1
+     },
+     "cam": [
+      1.5,
+      2.6,
+      -160.9,
+      49.3
+     ],
+     "player": [
+      0,
+      0,
+      -174
+     ],
+     "late": false
+    },
+    {
+     "beat": "mid",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": true
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": {
+      "what": "moment:underwater.whales",
+      "stage": null
+     },
+     "objects": {
+      "ink": 232,
+      "print": 1,
+      "shader": 2,
+      "pitvoid": 1
+     },
+     "cam": [
+      108.9,
+      -14.8,
+      -104.1,
+      48.8
+     ],
+     "player": [
+      0,
+      0,
+      -174
+     ],
+     "late": false
+    },
+    {
+     "beat": "late",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": true
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": {
+      "what": "moment:underwater.whales",
+      "stage": null
+     },
+     "objects": {
+      "ink": 273,
+      "print": 1,
+      "shader": 2,
+      "pitvoid": 1,
+      "doorlight": 1
+     },
+     "cam": [
+      1.1,
+      1.6,
+      -174.7,
+      34.3
+     ],
+     "player": [
+      0,
+      0,
+      -174
+     ],
+     "late": false
+    }
+   ]
+  },
+  "moment-moonfoundry.moon": {
+   "beats": [
+    {
+     "beat": "start",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": true
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": {
+      "what": "moment:moonfoundry.moon",
+      "stage": null
+     },
+     "objects": {
+      "ink": 208,
+      "print": 1,
+      "shader": 2
+     },
+     "cam": [
+      116.8,
+      15.6,
+      -155.8,
+      49.3
+     ],
+     "player": [
+      115.7,
+      0,
+      -153.9
+     ],
+     "late": false
+    },
+    {
+     "beat": "mid",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": true
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": {
+      "what": "moment:moonfoundry.moon",
+      "stage": null
+     },
+     "objects": {
+      "ink": 203,
+      "print": 1,
+      "shader": 2
+     },
+     "cam": [
+      162.5,
+      2.1,
+      -133.6,
+      38.8
+     ],
+     "player": [
+      115.7,
+      0,
+      -153.9
+     ],
+     "late": false
+    },
+    {
+     "beat": "late",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": true
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": {
+      "what": "moment:moonfoundry.moon",
+      "stage": null
+     },
+     "objects": {
+      "ink": 263,
+      "print": 1,
+      "shader": 2,
+      "doorlight": 1
+     },
+     "cam": [
+      115.6,
+      1.6,
+      -152.6,
+      34.3
+     ],
+     "player": [
+      115.7,
+      0,
+      -153.9
+     ],
+     "late": false
+    }
+   ]
+  },
+  "moment-spacecity.cables": {
+   "beats": [
+    {
+     "beat": "start",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": true
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": {
+      "what": "moment:spacecity.cables",
+      "stage": null
+     },
+     "objects": {
+      "ink": 160,
+      "print": 1,
+      "shader": 2,
+      "pitvoid": 1
+     },
+     "cam": [
+      96.6,
+      26.1,
+      -169.5,
+      51.4
+     ],
+     "player": [
+      96,
+      14,
+      -166.6
+     ],
+     "late": false
+    },
+    {
+     "beat": "mid",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": true
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": {
+      "what": "moment:spacecity.cables",
+      "stage": null
+     },
+     "objects": {
+      "ink": 294,
+      "print": 1,
+      "shader": 2,
+      "pitvoid": 1
+     },
+     "cam": [
+      115.8,
+      56.7,
+      -184.7,
+      52.7
+     ],
+     "player": [
+      96,
+      14,
+      -166.6
+     ],
+     "late": false
+    },
+    {
+     "beat": "late",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": true
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": {
+      "what": "moment:spacecity.cables",
+      "stage": null
+     },
+     "objects": {
+      "ink": 226,
+      "print": 1,
+      "shader": 2,
+      "pitvoid": 1,
+      "doorlight": 1
+     },
+     "cam": [
+      95,
+      15.6,
+      -167.4,
+      34.3
+     ],
+     "player": [
+      96,
+      14,
+      -166.6
+     ],
+     "late": false
+    }
+   ]
+  },
+  "moment-lantern.arrive": {
+   "beats": [
+    {
+     "beat": "start",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": true
+      },
+      "sub": {
+       "who": "",
+       "text": "Overhead, the singing light. It comes down out of the dusk, slowly, the way none of them ever saw it do.)"
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": {
+      "what": "moment:lantern.arrive",
+      "stage": null
+     },
+     "objects": {
+      "ink": 62,
+      "print": 1,
+      "shader": 1
+     },
+     "cam": [
+      2.5,
+      3.4,
+      34.8,
+      48
+     ],
+     "player": [
+      0,
+      1.1,
+      26
+     ],
+     "late": false
+    },
+    {
+     "beat": "mid",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": true
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": {
+      "what": "moment:lantern.arrive",
+      "stage": null
+     },
+     "objects": {
+      "ink": 55,
+      "print": 1,
+      "shader": 1
+     },
+     "cam": [
+      9,
+      30.6,
+      14,
+      34
+     ],
+     "player": [
+      0,
+      1.1,
+      26
+     ],
+     "late": false
+    },
+    {
+     "beat": "late",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": true
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": {
+      "what": "moment:lantern.arrive",
+      "stage": null
+     },
+     "objects": {
+      "ink": 87,
+      "print": 1,
+      "shader": 1
+     },
+     "cam": [
+      -1.1,
+      2.5,
+      25.2,
+      34.9
+     ],
+     "player": [
+      0,
+      1.1,
+      26
+     ],
+     "late": false
+    }
+   ]
+  },
+  "box": {
+   "beats": [
+    {
+     "beat": "rise",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": false
+      },
+      "boxCard": {
+       "name": "",
+       "card": false,
+       "scene": true
+      }
+     },
+     "menu": null,
+     "playing": {
+      "what": "box",
+      "stage": "rise"
+     },
+     "objects": {
+      "ink": 1549,
+      "print": 1,
+      "shader": 2
+     },
+     "cam": [
+      228.5,
+      3.7,
+      389.1,
+      46
+     ],
+     "player": [
+      231.4,
+      2.2,
+      389.7
+     ],
+     "late": false
+    },
+    {
+     "beat": "wobble",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": false
+      },
+      "boxCard": {
+       "name": "",
+       "card": false,
+       "scene": true
+      }
+     },
+     "menu": null,
+     "playing": {
+      "what": "box",
+      "stage": "wobble"
+     },
+     "objects": {
+      "ink": 1549,
+      "print": 1,
+      "shader": 2
+     },
+     "cam": [
+      228.8,
+      3.7,
+      389.2,
+      46
+     ],
+     "player": [
+      231.4,
+      2.2,
+      389.7
+     ],
+     "late": false
+    },
+    {
+     "beat": "reveal",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": false
+      },
+      "boxCard": {
+       "name": "",
+       "card": false,
+       "scene": true
+      }
+     },
+     "menu": null,
+     "playing": {
+      "what": "box",
+      "stage": "reveal"
+     },
+     "objects": {
+      "ink": 1590,
+      "print": 1,
+      "shader": 2,
+      "veil": 4
+     },
+     "cam": [
+      229.4,
+      3.6,
+      389.6,
+      44.9
+     ],
+     "player": [
+      231.4,
+      2.2,
+      389.7
+     ],
+     "late": false
+    },
+    {
+     "beat": "card",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": false
+      },
+      "boxCard": {
+       "name": "Magic-fluid backpack",
+       "card": true,
+       "scene": true
+      }
+     },
+     "menu": null,
+     "playing": {
+      "what": "box",
+      "stage": "card"
+     },
+     "objects": {
+      "ink": 1591,
+      "print": 1,
+      "shader": 2,
+      "veil": 4
+     },
+     "cam": [
+      229.9,
+      3.6,
+      390,
+      44
+     ],
+     "player": [
+      231.4,
+      2.2,
+      389.7
+     ],
+     "late": false
+    }
+   ]
+  },
+  "arrival": {
+   "beats": [
+    {
+     "beat": "space",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": false
+      },
+      "sub": {
+       "who": "SHIP",
+       "text": "The singing light’s signature, here too. Strongest among the humming standing stones."
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": {
+      "what": "ship:ArrivalDirector",
+      "stage": 0
+     },
+     "objects": {
+      "ink": 1818,
+      "print": 1,
+      "shader": 1
+     },
+     "cam": [
+      -271.6,
+      2611.6,
+      -1179.9,
+      42
+     ],
+     "player": [
+      -266.7,
+      63.1,
+      -1113.7
+     ],
+     "late": false
+    },
+    {
+     "beat": "clouds",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": false
+      },
+      "sub": {
+       "who": "SHIP",
+       "text": "The singing light’s signature, here too. Strongest among the humming standing stones."
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": {
+      "what": "ship:ArrivalDirector",
+      "stage": 1
+     },
+     "objects": {
+      "ink": 1855,
+      "planet": 1,
+      "shader": 3,
+      "print": 1
+     },
+     "cam": [
+      -282.9,
+      2606.2,
+      -1135.4,
+      50
+     ],
+     "player": [
+      -266.7,
+      63.1,
+      -1113.7
+     ],
+     "late": false
+    },
+    {
+     "beat": "descent",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": false
+      },
+      "sub": {
+       "who": "SHIP",
+       "text": "The same pulse, faint, on people below who saw the light pass. I'll mark them on your map."
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": {
+      "what": "ship:ArrivalDirector",
+      "stage": 2
+     },
+     "objects": {
+      "ink": 1800,
+      "basic": 1,
+      "print": 1,
+      "shader": 1,
+      "wisp": 1
+     },
+     "cam": [
+      -228.7,
+      127.4,
+      -870.1,
+      54
+     ],
+     "player": [
+      -266.7,
+      63.1,
+      -1113.7
+     ],
+     "late": false
+    },
+    {
+     "beat": "land",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": false
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": {
+      "what": "ship:ArrivalDirector",
+      "stage": 3
+     },
+     "objects": {
+      "ink": 1932,
+      "basic": 1,
+      "print": 1,
+      "shader": 1,
+      "wisp": 1,
+      "mote": 1
+     },
+     "cam": [
+      -226.4,
+      52.7,
+      -1073.9,
+      52
+     ],
+     "player": [
+      -266.7,
+      63.1,
+      -1113.7
+     ],
+     "late": false
+    },
+    {
+     "beat": "ramp",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": false
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": {
+      "what": "ship:ArrivalDirector",
+      "stage": 4
+     },
+     "objects": {
+      "ink": 1964,
+      "basic": 1,
+      "planet": 1,
+      "shader": 3,
+      "print": 1,
+      "wisp": 1,
+      "mote": 1
+     },
+     "cam": [
+      -245.2,
+      57.1,
+      -1099.2,
+      54
+     ],
+     "player": [
+      -266.7,
+      63.1,
+      -1113.7
+     ],
+     "late": false
+    },
+    {
+     "beat": "out",
+     "hud": {
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 1928,
+      "basic": 1,
+      "print": 1,
+      "shader": 1,
+      "wisp": 1,
+      "mote": 1
+     },
+     "cam": [
+      -252.6,
+      58.7,
+      -1101.4,
+      55
+     ],
+     "player": [
+      -246.7,
+      55.2,
+      -1105.4
+     ],
+     "late": false
+    }
+   ]
+  },
+  "takeoff": {
+   "beats": [
+    {
+     "beat": "seal",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": false
+      },
+      "sub": {
+       "who": "SHIP",
+       "text": "Course set: The Desert. Hold on."
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": {
+      "what": "ship:TakeoffDirector",
+      "stage": 0
+     },
+     "objects": {
+      "ink": 1942,
+      "basic": 1,
+      "planet": 1,
+      "shader": 3,
+      "print": 1,
+      "wisp": 1
+     },
+     "cam": [
+      -274.2,
+      65.1,
+      -1108.2,
+      54
+     ],
+     "player": [
+      -275.7,
+      63.1,
+      -1111.1
+     ],
+     "late": false
+    },
+    {
+     "beat": "lift",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": false
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": {
+      "what": "ship:TakeoffDirector",
+      "stage": 1
+     },
+     "objects": {
+      "ink": 1902,
+      "basic": 1,
+      "print": 1,
+      "shader": 1,
+      "wisp": 1
+     },
+     "cam": [
+      -202.2,
+      55.8,
+      -1113.5,
+      52
+     ],
+     "player": [
+      -275.7,
+      63.1,
+      -1111.1
+     ],
+     "late": false
+    },
+    {
+     "beat": "away",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": false
+      },
+      "gadget": "gun",
+      "warp": true
+     },
+     "menu": null,
+     "playing": {
+      "what": "ship:TakeoffDirector",
+      "stage": 1
+     },
+     "objects": {
+      "ink": 1827,
+      "basic": 1,
+      "print": 1,
+      "shader": 1,
+      "wisp": 1,
+      "mote": 1
+     },
+     "cam": [
+      -202.2,
+      55.7,
+      -1113.5,
+      46.5
+     ],
+     "player": [
+      -275.7,
+      63.1,
+      -1111.1
+     ],
+     "late": false
+    },
+    {
+     "beat": "stars",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": false
+      },
+      "gadget": "gun",
+      "warp": true
+     },
+     "menu": null,
+     "playing": {
+      "what": "ship:TakeoffDirector",
+      "stage": 2
+     },
+     "objects": {
+      "ink": 1820,
+      "basic": 1,
+      "print": 1,
+      "shader": 1,
+      "wisp": 1,
+      "mote": 1
+     },
+     "cam": [
+      -202.2,
+      55.7,
+      -1113.5,
+      46
+     ],
+     "player": [
+      -275.7,
+      63.1,
+      -1111.1
+     ],
+     "late": false
+    }
+   ]
+  },
+  "menus": {
+   "beats": [
+    {
+     "beat": "play",
+     "hud": {
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 407,
+      "print": 1,
+      "shader": 2,
+      "pitvoid": 1,
+      "wisp": 1,
+      "mote": 1
+     },
+     "cam": [
+      0,
+      1.8,
+      92.8,
+      55
+     ],
+     "player": [
+      0,
+      0,
+      88
+     ],
+     "late": false
+    },
+    {
+     "beat": "start",
+     "hud": {
+      "gadget": "gun"
+     },
+     "menu": {
+      "kind": "start",
+      "page": "settings",
+      "side": [
+       "Resume",
+       "Items",
+       "Quests",
+       "Map",
+       "Settings",
+       "Controls",
+       "Photo mode",
+       "What's new",
+       "Debug: worlds",
+       "Quit to title"
+      ],
+      "rows": [
+       "Language (menus and prompts; the story is in English for now)",
+       "Graphics",
+       "Text size (conversations, notes, story pages, menus)",
+       "Plain, solid background behind speech",
+       "Show FPS and frame time (F3)",
+       "Camera sensitivity",
+       "Invert camera Y",
+       "Invert the jets' pitch (push forward to climb)",
+       "Reduce motion (no camera shake, freeze-frames or slow motion; a still title)",
+       "Camera shake when a blow lands",
+       "Controller buttons",
+       "Controller rumble · no controller that can rumble",
+       "Rumble strength",
+       "Run",
+       "Guard",
+       "Music",
+       "Music plays",
+       "Effects",
+       "Voices",
+       "Alien voices (heard through your translator)",
+       "Mute (M)",
+       "Enemies (ink blots in the wilds, machines in the temples)",
+       "Chime pirates: push the stick up to",
+       "Hints (subtle: a quiet glyph, the drone helps after a while; full: every prompt and tip)",
+       "Drone hints (Plumb speaks up when you seem lost, and says a few things at the start)",
+       "Developer panel"
+      ]
+     },
+     "playing": null,
+     "objects": {
+      "ink": 407,
+      "print": 1,
+      "shader": 2,
+      "pitvoid": 1,
+      "wisp": 1,
+      "mote": 1
+     },
+     "cam": [
+      0,
+      1.8,
+      92.8,
+      55
+     ],
+     "player": [
+      0,
+      0,
+      88
+     ],
+     "late": false
+    },
+    {
+     "beat": "items",
+     "hud": {
+      "gadget": "gun"
+     },
+     "menu": {
+      "kind": "game",
+      "page": "items",
+      "side": [],
+      "rows": [
+       "Magic-fluid backpack",
+       "Givers’ blade",
+       "Givers’ guard",
+       "Lift valve",
+       "Warden’s bellows",
+       "Fluid wings",
+       "Stilling mode",
+       "Bloom mode",
+       "Tether mode",
+       "Fluid gun",
+       "Fourth chamber",
+       "Quick coil",
+       "Dune fins",
+       "Clear glass",
+       "Long line",
+       "Fourth coil",
+       "Wide vane",
+       "Fourth notch",
+       "Long breath",
+       "Deep well",
+       "Strong lodestone",
+       "Fourth pouch",
+       "Light-stitched heart",
+       "Light-tempered edge",
+       "Light chamber",
+       "Light-veined wings",
+       "Light-soled boots",
+       "Light-rimmed guard",
+       "Lantern charm",
+       "Glyph lens",
+       "Bell-note whistle",
+       "Soft-fall soles",
+       "Hush-cloth",
+       "Listening shell",
+       "Glow-moss pin",
+       "Seed pouch",
+       "Wind-silk scarf",
+       "Breathing reed",
+       "Climber’s resin",
+       "Brass level",
+       "Diver’s pearl",
+       "Pocket bellows",
+       "Star-thread",
+       "Float-bead",
+       "Founders’ keeper",
+       "Moorer’s splice",
+       "Lamplighter’s glass",
+       "Fragment finder",
+       "Cab pass",
+       "Rider’s cap",
+       "Reed pin",
+       "Lagoon ribbon",
+       "Pale star",
+       "Teo’s walking rhythm",
+       "What the giants left",
+       "The bird’s promise",
+       "The bell’s note",
+       "Wendel’s saying",
+       "A singing splinter",
+       "Hollin’s lamps",
+       "Mira’s words",
+       "The whales’ answer",
+       "Look up once a day",
+       "Dov’s lift token",
+       "Wim’s tick",
+       "A rust gear tooth",
+       "A pocket moon",
+       "The chord of the spheres",
+       "What the cables are for"
+      ]
+     },
+     "playing": null,
+     "objects": {
+      "ink": 349,
+      "print": 1,
+      "shader": 2,
+      "pitvoid": 1,
+      "wisp": 1,
+      "mote": 1
+     },
+     "cam": [
+      0,
+      1.8,
+      92.8,
+      55
+     ],
+     "player": [
+      0,
+      0,
+      88
+     ],
+     "late": false
+    },
+    {
+     "beat": "map",
+     "hud": {
+      "gadget": "gun"
+     },
+     "menu": {
+      "kind": "game",
+      "page": "map",
+      "side": [],
+      "rows": [
+       "You",
+       "Hobb, by the Undertower",
+       "Your ship",
+       "The Undertower",
+       "Anselm Thrum"
+      ]
+     },
+     "playing": null,
+     "objects": {
+      "ink": 349,
+      "print": 1,
+      "shader": 2,
+      "pitvoid": 1,
+      "wisp": 1,
+      "mote": 1
+     },
+     "cam": [
+      0,
+      1.8,
+      92.8,
+      55
+     ],
+     "player": [
+      0,
+      0,
+      88
+     ],
+     "late": false
+    },
+    {
+     "beat": "quests",
+     "hud": {
+      "gadget": "gun"
+     },
+     "menu": {
+      "kind": "game",
+      "page": "quests",
+      "side": [],
+      "rows": [
+       "Something of Value",
+       "The Tree That Drinks",
+       "Errand: Flask of lamp oil",
+       "Something Singing",
+       "Teo’s Drum",
+       "Ilo Wants to See",
+       "The One Who Fell Behind",
+       "Something Faster Than Walking",
+       "Water for the Tea Terraces"
+      ]
+     },
+     "playing": null,
+     "objects": {
+      "ink": 349,
+      "print": 1,
+      "shader": 2,
+      "pitvoid": 1,
+      "wisp": 1,
+      "mote": 1
+     },
+     "cam": [
+      0,
+      1.8,
+      92.8,
+      55
+     ],
+     "player": [
+      0,
+      0,
+      88
+     ],
+     "late": false
+    },
+    {
+     "beat": "settings",
+     "hud": {
+      "gadget": "gun"
+     },
+     "menu": {
+      "kind": "start",
+      "page": "settings",
+      "side": [
+       "Resume",
+       "Items",
+       "Quests",
+       "Map",
+       "Settings",
+       "Controls",
+       "Photo mode",
+       "What's new",
+       "Debug: worlds",
+       "Quit to title"
+      ],
+      "rows": [
+       "Language (menus and prompts; the story is in English for now)",
+       "Graphics",
+       "Text size (conversations, notes, story pages, menus)",
+       "Plain, solid background behind speech",
+       "Show FPS and frame time (F3)",
+       "Camera sensitivity",
+       "Invert camera Y",
+       "Invert the jets' pitch (push forward to climb)",
+       "Reduce motion (no camera shake, freeze-frames or slow motion; a still title)",
+       "Camera shake when a blow lands",
+       "Controller buttons",
+       "Controller rumble · no controller that can rumble",
+       "Rumble strength",
+       "Run",
+       "Guard",
+       "Music",
+       "Music plays",
+       "Effects",
+       "Voices",
+       "Alien voices (heard through your translator)",
+       "Mute (M)",
+       "Enemies (ink blots in the wilds, machines in the temples)",
+       "Chime pirates: push the stick up to",
+       "Hints (subtle: a quiet glyph, the drone helps after a while; full: every prompt and tip)",
+       "Drone hints (Plumb speaks up when you seem lost, and says a few things at the start)",
+       "Developer panel"
+      ]
+     },
+     "playing": null,
+     "objects": {
+      "ink": 349,
+      "print": 1,
+      "shader": 2,
+      "pitvoid": 1,
+      "wisp": 1,
+      "mote": 1
+     },
+     "cam": [
+      0,
+      1.8,
+      92.8,
+      55
+     ],
+     "player": [
+      0,
+      0,
+      88
+     ],
+     "late": false
+    },
+    {
+     "beat": "closed",
+     "hud": {
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 406,
+      "print": 1,
+      "shader": 2,
+      "pitvoid": 1,
+      "wisp": 1,
+      "mote": 1
+     },
+     "cam": [
+      0,
+      1.8,
+      92.8,
+      55
+     ],
+     "player": [
+      0,
+      0,
+      88
+     ],
+     "late": false
+    }
+   ]
+  },
+  "house-map": {
+   "beats": [
+    {
+     "beat": "inside",
+     "hud": {
+      "keys": {
+       "small": 0,
+       "big": false
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 249,
+      "print": 1,
+      "shader": 1,
+      "pitvoid": 1,
+      "doorlight": 1,
+      "mote": 2
+     },
+     "cam": [
+      -150.7,
+      2201.8,
+      -278.4,
+      55
+     ],
+     "player": [
+      -150,
+      2200,
+      -276.4
+     ],
+     "late": false
+    },
+    {
+     "beat": "map",
+     "hud": {
+      "keys": {
+       "small": 0,
+       "big": false
+      },
+      "gadget": "gun"
+     },
+     "menu": {
+      "kind": "start",
+      "page": "house",
+      "side": [
+       "Resume",
+       "Items",
+       "Quests",
+       "Map",
+       "House map",
+       "Settings",
+       "Controls",
+       "Photo mode",
+       "What's new",
+       "Debug: worlds",
+       "Quit to title"
+      ],
+      "rows": []
+     },
+     "playing": null,
+     "objects": {
+      "ink": 249,
+      "print": 1,
+      "shader": 1,
+      "pitvoid": 1,
+      "doorlight": 1,
+      "mote": 2
+     },
+     "cam": [
+      -150.7,
+      2201.8,
+      -278.4,
+      55
+     ],
+     "player": [
+      -150,
+      2200,
+      -276.4
+     ],
+     "late": false
+    },
+    {
+     "beat": "closed",
+     "hud": {
+      "keys": {
+       "small": 0,
+       "big": false
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 249,
+      "print": 1,
+      "shader": 1,
+      "pitvoid": 1,
+      "doorlight": 1,
+      "mote": 2
+     },
+     "cam": [
+      -150.7,
+      2201.8,
+      -278.4,
+      55
+     ],
+     "player": [
+      -150,
+      2200,
+      -276.4
+     ],
+     "late": false
+    }
+   ]
+  },
+  "fight": {
+   "beats": [
+    {
+     "beat": "ready",
+     "hud": {
+      "foeTab": true
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 91,
+      "print": 1,
+      "shader": 1,
+      "wisp": 1
+     },
+     "cam": [
+      0,
+      2.5,
+      10.7,
+      55
+     ],
+     "player": [
+      0,
+      0,
+      6
+     ],
+     "late": false
+    },
+    {
+     "beat": "spawn",
+     "hud": {
+      "health": {
+       "low": false
+      },
+      "foeTab": true
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 148,
+      "print": 1,
+      "shader": 1,
+      "wisp": 1
+     },
+     "cam": [
+      0,
+      2.5,
+      10.7,
+      55
+     ],
+     "player": [
+      0,
+      0,
+      6
+     ],
+     "late": false
+    },
+    {
+     "beat": "lock",
+     "hud": {
+      "health": {
+       "low": false
+      },
+      "foeTab": true,
+      "lock": true
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 148,
+      "print": 1,
+      "shader": 1,
+      "wisp": 1
+     },
+     "cam": [
+      1.4,
+      2.5,
+      11.3,
+      55
+     ],
+     "player": [
+      0,
+      0,
+      6.8
+     ],
+     "late": false
+    },
+    {
+     "beat": "cut",
+     "hud": {
+      "health": {
+       "low": false
+      },
+      "foeTab": true,
+      "lock": true
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 139,
+      "print": 1,
+      "shader": 1,
+      "wisp": 1
+     },
+     "cam": [
+      1.3,
+      2.5,
+      12.6,
+      55
+     ],
+     "player": [
+      0,
+      0,
+      8.2
+     ],
+     "late": false
+    },
+    {
+     "beat": "hit",
+     "hud": {
+      "health": {
+       "low": false
+      },
+      "foeTab": true
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 141,
+      "print": 2,
+      "shader": 1,
+      "wisp": 1
+     },
+     "cam": [
+      1,
+      2.5,
+      12.7,
+      55
+     ],
+     "player": [
+      0,
+      0,
+      8
+     ],
+     "late": false
+    },
+    {
+     "beat": "death",
+     "hud": {
+      "health": {
+       "low": false
+      },
+      "foeTab": true
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 140,
+      "print": 2,
+      "shader": 1,
+      "wisp": 1
+     },
+     "cam": [
+      1,
+      2.5,
+      12.4,
+      55
+     ],
+     "player": [
+      0,
+      0,
+      7.7
+     ],
+     "late": false
+    },
+    {
+     "beat": "chimes",
+     "hud": {
+      "health": {
+       "low": false
+      },
+      "foeTab": true
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 94,
+      "print": 2,
+      "shader": 1,
+      "wisp": 1
+     },
+     "cam": [
+      1,
+      2.5,
+      11,
+      55
+     ],
+     "player": [
+      0,
+      0,
+      6.3
+     ],
+     "late": false
+    }
+   ]
+  },
+  "temple": {
+   "beats": [
+    {
+     "beat": "enter",
+     "hud": {
+      "keys": {
+       "small": 0,
+       "big": false
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 248,
+      "print": 1,
+      "shader": 1,
+      "pitvoid": 1,
+      "doorlight": 1,
+      "mote": 2
+     },
+     "cam": [
+      -150.7,
+      2201.8,
+      -278.4,
+      55
+     ],
+     "player": [
+      -150,
+      2200,
+      -276.4
+     ],
+     "late": false
+    },
+    {
+     "beat": "switch",
+     "hud": {
+      "keys": {
+       "small": 0,
+       "big": false
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 249,
+      "print": 1,
+      "shader": 1,
+      "pitvoid": 1,
+      "doorlight": 1,
+      "mote": 2
+     },
+     "cam": [
+      -150.7,
+      2201.8,
+      -278.4,
+      55
+     ],
+     "player": [
+      -150,
+      2200,
+      -276.4
+     ],
+     "late": false
+    },
+    {
+     "beat": "key",
+     "hud": {
+      "keys": {
+       "small": 1,
+       "big": false
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 250,
+      "print": 1,
+      "shader": 1,
+      "pitvoid": 1,
+      "doorlight": 1,
+      "mote": 2
+     },
+     "cam": [
+      -150.7,
+      2201.8,
+      -278.4,
+      55
+     ],
+     "player": [
+      -150,
+      2200,
+      -276.4
+     ],
+     "late": false
+    },
+    {
+     "beat": "door",
+     "hud": {
+      "keys": {
+       "small": 1,
+       "big": false
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 249,
+      "print": 1,
+      "shader": 1,
+      "pitvoid": 1,
+      "doorlight": 1,
+      "mote": 2
+     },
+     "cam": [
+      -150.7,
+      2201.8,
+      -278.4,
+      55
+     ],
+     "player": [
+      -150,
+      2200,
+      -276.4
+     ],
+     "late": false
+    }
+   ]
+  },
+  "fight-temple": {
+   "beats": [
+    {
+     "beat": "card",
+     "hud": {
+      "minigame": true
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 133,
+      "print": 1,
+      "shader": 1,
+      "wisp": 1
+     },
+     "cam": [
+      10.8,
+      24.4,
+      15.3,
+      31
+     ],
+     "player": [
+      0,
+      0,
+      4.5
+     ],
+     "late": false
+    },
+    {
+     "beat": "count",
+     "hud": {
+      "minigame": true
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 128,
+      "print": 1,
+      "shader": 1,
+      "wisp": 1
+     },
+     "cam": [
+      10.8,
+      24.4,
+      15.3,
+      31
+     ],
+     "player": [
+      0,
+      0,
+      4.5
+     ],
+     "late": false
+    },
+    {
+     "beat": "wave",
+     "hud": {
+      "health": {
+       "low": false
+      },
+      "minigame": true
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 381,
+      "print": 1,
+      "shader": 1,
+      "wisp": 1
+     },
+     "cam": [
+      10.8,
+      24.4,
+      15.3,
+      31
+     ],
+     "player": [
+      0,
+      0,
+      4.5
+     ],
+     "late": false
+    }
+   ]
+  },
+  "game-rings": {
+   "beats": [
+    {
+     "beat": "card",
+     "hud": {
+      "minigame": true
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 57,
+      "print": 1,
+      "shader": 1
+     },
+     "cam": [
+      0,
+      51.9,
+      425.2,
+      60
+     ],
+     "player": [
+      0,
+      50,
+      420
+     ],
+     "late": false
+    },
+    {
+     "beat": "count",
+     "hud": {
+      "minigame": true
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 53,
+      "print": 1,
+      "shader": 1
+     },
+     "cam": [
+      0,
+      51.9,
+      425.2,
+      60
+     ],
+     "player": [
+      0,
+      50,
+      420
+     ],
+     "late": false
+    },
+    {
+     "beat": "run",
+     "hud": {
+      "minigame": true
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 53,
+      "print": 1,
+      "shader": 1
+     },
+     "cam": [
+      0,
+      83.8,
+      373.6,
+      60
+     ],
+     "player": [
+      0,
+      86.4,
+      362.2
+     ],
+     "late": false
+    },
+    {
+     "beat": "pause",
+     "hud": {
+      "minigame": true
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 53,
+      "print": 1,
+      "shader": 1
+     },
+     "cam": [
+      0,
+      84.6,
+      372.3,
+      60
+     ],
+     "player": [
+      0,
+      87.2,
+      360.9
+     ],
+     "late": false
+    }
+   ]
+  },
+  "game-ski": {
+   "beats": [
+    {
+     "beat": "card",
+     "hud": {
+      "minigame": true
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 48,
+      "print": 1,
+      "shader": 1,
+      "wisp": 1
+     },
+     "cam": [
+      -27.6,
+      121.5,
+      560.4,
+      58
+     ],
+     "player": [
+      -27.6,
+      118.4,
+      554
+     ],
+     "late": false
+    },
+    {
+     "beat": "count",
+     "hud": {
+      "minigame": true
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 43,
+      "print": 1,
+      "shader": 1,
+      "wisp": 1
+     },
+     "cam": [
+      -27.6,
+      121.5,
+      560.4,
+      58
+     ],
+     "player": [
+      -27.6,
+      118.4,
+      554
+     ],
+     "late": false
+    },
+    {
+     "beat": "run",
+     "hud": {
+      "minigame": true
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 42,
+      "print": 1,
+      "shader": 1,
+      "wisp": 1
+     },
+     "cam": [
+      -27.5,
+      116.5,
+      544,
+      58
+     ],
+     "player": [
+      -27.4,
+      112.3,
+      534.6
+     ],
+     "late": false
+    },
+    {
+     "beat": "pause",
+     "hud": {
+      "minigame": true
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 42,
+      "print": 1,
+      "shader": 1,
+      "wisp": 1
+     },
+     "cam": [
+      -27.5,
+      116.3,
+      543.3,
+      58
+     ],
+     "player": [
+      -27.4,
+      112.1,
+      533.9
+     ],
+     "late": false
+    }
+   ]
+  }
+ }
+}

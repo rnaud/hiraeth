@@ -295,3 +295,43 @@ export const GAPS = {
     what: 'the dev tools: hitboxes, inputs, teleports, films, the picker, the Notes screenshot', status: 'web-only', why: 'developer tools on the page (the engines have their own command-line switches)' },
   ],
 };
+
+/**
+ * The sequences' differences (issue #429, engine/sequences.js): what a beat's state shows on the web and not in the
+ * engines' bundle, or the other way, that is known. Each { seq, beat (globs, default '*'), keys (globs of compareBeat's
+ * keys: 'part-:lock', 'obj+:ink', 'menu.rows'…), status (STATUSES), and its issue (a gap), why (web only) or where
+ * (handled) }. tests/sequences.test.js fails on a difference none of them names, and on an entry that names nothing.
+ */
+export const STREAM_DIFFS = [
+  // ---- known gaps (the first run, 2026-10-16: scripts/unity-compare/sequences.mjs)
+  { seq: 'moment-*', keys: ['obj-:pitvoid'], what: 'a world\'s deadly void (src/pit-void.js worldVoid: the dark wash under its kill height) is never made by engine/game.js', status: 'gap', issue: 427 },
+  { seq: 'menus', keys: ['obj-:pitvoid'], what: 'the Signal Market\'s void under its avenue (worldVoid), not made by engine/game.js', status: 'gap', issue: 427 },
+  { seq: 'menus', beat: 'map', keys: ['menu.rows'], what: 'the Map has no "Your ship" mark in the engines (engine/game.js mapSource: level.ship is the page\'s)', status: 'gap', issue: 427 },
+  { seq: 'menus', beat: 'items', keys: ['menu.rows'], what: 'the Items page lists the gadgets among the gear in the engines, after the gear on the page (another order of the same things owned)', status: 'gap', issue: 430 },
+  { seq: 'menus', beat: 'start|settings', keys: ['menu.rows'], what: 'the Settings page: the page has Language, the jets\' pitch and longer labels, the engines Music, Effects, Voices, Mute, Hints first (engine/menus.js SETTINGS_ROWS against src/ui.js SettingsMenu)', status: 'gap', issue: 430 },
+  { seq: 'fight-temple', beat: 'card', keys: ['part-:minigame', 'cam'], what: 'a fight temple\'s start card: on the page the hall seen from above with its HUD up; in the engines the traveller\'s own camera until Start', status: 'gap', issue: 264 },
+  { seq: 'game-*', beat: 'run|pause', keys: ['cam.fov'], what: 'a flying minigame\'s camera: the engines widen it (74 and 65 degrees against the page\'s 60 and 58)', status: 'gap', issue: 264 },
+  // ---- web only
+  { seq: 'menus|house-map', beat: 'start|settings|map', keys: ['menu.side'], what: 'the Start menu\'s "Debug: worlds"', status: 'web-only', why: 'a developer\'s entry on the page (the worlds picker); the engines\' debug saves are on the title' },
+  // ---- handled
+  { seq: '*', keys: ['obj-:planet'], what: 'the sky\'s planets', status: 'handled', where: 'sent as the look\'s data, not meshes (engine/game.js fullLook planets; Unity draws them in its sky)' },
+  { seq: 'opening', beat: 'hatch|stepout', keys: ['part-:sub', 'part+:charge'], what: 'the ship\'s line over the hatch ends sooner in node, so the charge card comes back up', status: 'handled', where: 'a subtitle lasts as long as its recording is heard; the node VM has no sound, Unity plays it and shows the line as the page does (unity.json)' },
+];
+
+/**
+ * What the sequences' pictures show differently in Unity (issue #429: scripts/unity-compare/sequences.mjs, its sheets),
+ * the most visible first; what the state stream can't see (a shader's look, the sky, a pass). Each { seq, beat, what,
+ * issue, visible (3 seen at once … 1 barely) }. Written by hand from the sheets; docs/systems/bridge-gaps.md lists them.
+ */
+export const PICTURE_DIFFS = [
+  { seq: 'moment-bazaar.broadcast', beat: 'mid|late', what: 'the broadcast\'s moment turned black in Unity from four seconds in (a starry black void where the towers and the traveller\'s close-up are); on the first run, not on the second: intermittent, to check', issue: 264, visible: 3 },
+  { seq: 'menus', beat: 'map', what: 'the Map page\'s drawn ground is not there in Unity a second and a half after opening (its marks on a plain sheet; the page\'s streets and walls drawn at once)', issue: 264, visible: 3 },
+  { seq: 'fight', beat: 'cut|hit|death|chimes', what: 'the blade\'s cut is a thin grey sword and a white flare in Unity, not the page\'s blue fluid arcs; a foe\'s death a white flash, not its ink burst; a chime a white ball', issue: 264, visible: 3 },
+  { seq: 'takeoff', beat: 'away', what: 'the take-off\'s warp disc opens see-through grey in Unity with the ship behind it and no world\'s name; on the page an opaque night disc with THE DESERT', issue: 264, visible: 2 },
+  { seq: 'moment-perdide.crystal', what: 'the hearts and wallet show over the crystal\'s moment in Unity (the screen\'s health part up; none on the page or in node)', issue: 264, visible: 2 },
+  { seq: 'moment-arzach2.bell|moment-perdide2.pools', beat: 'late', what: 'his face close up: dark ink blotches on the chin and neck and a darker skin in Unity; behind him in Vael dark drip shapes down the wall', issue: 264, visible: 2 },
+  { seq: 'moment-edena.terraces', beat: 'start', what: 'the builders\' wall without its carved glyphs in Unity (plain panels), the far white tower drawn dark grey', issue: 264, visible: 2 },
+  { seq: 'box', what: 'a dark band across the back of his shirt at the waist in Unity, close up', issue: 264, visible: 1 },
+  { seq: 'fight-temple|game-*', beat: 'count', what: 'the count\'s numeral larger and a duller gold in Unity', issue: 264, visible: 1 },
+  { seq: 'temple', what: 'the key counter a "KEY ×0" box in Unity, the page\'s a key glyph', issue: 264, visible: 1 },
+];
