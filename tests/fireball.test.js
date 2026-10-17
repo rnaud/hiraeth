@@ -193,7 +193,9 @@ test('its body (issue #440, its sheet): the petals open wide for the fireball; s
   const t = run(foes, 20, () => f.state === 'wind' && f.atk?.id === 'fireball' && f.k > 0.8);
   assert.ok(t != null, 'it winds up a fireball');
   const open = width();
-  assert.ok(open > rest * 1.6, `the petals opened like a flower (${rest.toFixed(2)} → ${open.toFixed(2)} m across)`);
+  // (the resting box swings 1.5–2.0 m with the drips trailing as it drifts, so the open flower is held to the bud's own
+  // width too: EMBER.w across, about 1.1 m; open it spans about 3 m)
+  assert.ok(open > rest * 1.4 && open > 2.4, `the petals opened like a flower (${rest.toFixed(2)} → ${open.toFixed(2)} m across)`);
   // stunned (its own fire back at it): down low, its cup and drips over the ground
   let lowest = Infinity;
   f.stunned = 3; f.state = 'chase'; f.atk = null;
