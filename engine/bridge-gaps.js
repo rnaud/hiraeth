@@ -305,8 +305,6 @@ export const GAPS = {
  */
 export const STREAM_DIFFS = [
   // ---- known gaps (the first run, 2026-10-16: scripts/unity-compare/sequences.mjs)
-  { seq: 'moment-*', keys: ['obj-:pitvoid'], what: 'a world\'s deadly void (src/pit-void.js worldVoid: the dark wash under its kill height) is never made by engine/game.js', status: 'gap', issue: 427 },
-  { seq: 'menus', keys: ['obj-:pitvoid'], what: 'the Signal Market\'s void under its avenue (worldVoid), not made by engine/game.js', status: 'gap', issue: 427 },
   { seq: 'menus', beat: 'map', keys: ['menu.rows'], what: 'the Map has no "Your ship" mark in the engines (engine/game.js mapSource: level.ship is the page\'s)', status: 'gap', issue: 427 },
   { seq: 'menus', beat: 'items', keys: ['menu.rows'], what: 'the Items page lists the gadgets among the gear in the engines, after the gear on the page (another order of the same things owned)', status: 'gap', issue: 430 },
   { seq: 'menus', beat: 'start|settings', keys: ['menu.rows'], what: 'the Settings page: the page has Language, the jets\' pitch and longer labels, the engines Music, Effects, Voices, Mute, Hints first (engine/menus.js SETTINGS_ROWS against src/ui.js SettingsMenu)', status: 'gap', issue: 430 },

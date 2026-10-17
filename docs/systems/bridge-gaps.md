@@ -114,8 +114,6 @@ web only and why; then what the bridge handles and where. How it works: `docs/sy
 
 The engines' bundle played through the same sequences as the web (issue #429, `engine/sequences.js`), beat by beat; what a beat's state shows differently and is known:
 
-- **a world's deadly void (src/pit-void.js worldVoid: the dark wash under its kill height) is never made by engine/game.js** (#427): `moment-*`, `obj-:pitvoid`
-- **the Signal Market's void under its avenue (worldVoid), not made by engine/game.js** (#427): `menus`, `obj-:pitvoid`
 - **the Map has no "Your ship" mark in the engines (engine/game.js mapSource: level.ship is the page's)** (#427): `menus` at map, `menu.rows`
 - **the Items page lists the gadgets among the gear in the engines, after the gear on the page (another order of the same things owned)** (#430): `menus` at items, `menu.rows`
 - **the Settings page: the page has Language, the jets' pitch and longer labels, the engines Music, Effects, Voices, Mute, Hints first (engine/menus.js SETTINGS_ROWS against src/ui.js SettingsMenu)** (#430): `menus` at start|settings, `menu.rows`
