@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { readFileSync } from 'node:fs';
-import { wireKit, wireDangers, wirePeople, wireChemistry } from '../src/host/game-host.js';
+import { wireKit, wireDangers, wirePeople, wireChemistry, wireVehicles } from '../src/host/game-host.js';
 import { ERRANDS } from '../src/levels/content.js';
 import { hazardCount } from '../src/hazards.js';
 import * as THREE from 'three';
@@ -98,9 +98,26 @@ test('the chemistry: on the traveller\'s wind, with what burns, the creatures an
   c.update(1 / 60, new THREE.Vector3());
 });
 
+test('the vehicles: hover ones skim the water, no calls into a room off the map nor from inside the ship', () => {
+  const room = new THREE.Vector3(0, 1000, 0);
+  const level = { ground: { heightAt: () => 0 }, portals: [{ to: room }, { to: new THREE.Vector3(50, 2, 0) }] };
+  const skiff = { groundAt: () => 0 }, cab = {};
+  const player = { pos: new THREE.Vector3(), vehicles: [skiff, cab], opts: {} };
+  const ship = { inside: false };
+  const v = wireVehicles({ player, physics: null, level, scene: null, waters: { floorAt: () => -3 }, ship });
+  assert.equal(skiff.surface?.(0, 0, 0), -3, 'the skiff skims the water');
+  assert.equal(cab.surface, undefined);
+  assert.equal(v.rooms.length, 1, 'only the room far over the ground');
+  assert.equal(player.opts.canSummon(), true);
+  player.pos.copy(room);
+  assert.equal(player.opts.canSummon(), false, 'not from the room');
+  player.pos.set(0, 0, 0); ship.inside = true;
+  assert.equal(player.opts.canSummon(), false, 'nor from inside the ship');
+});
+
 test('both hosts call the same groups (src/host/game-host.js), and engine/game.js no longer arms the tool its own way', () => {
   const main = readFileSync('src/main.js', 'utf8'), engine = readFileSync('engine/game.js', 'utf8');
-  for (const g of ['wireKit', 'wireDangers', 'wirePeople', 'wireChemistry']) {
+  for (const g of ['wireKit', 'wireDangers', 'wirePeople', 'wireChemistry', 'wireMount', 'wireVehicles']) {
     assert.match(main, new RegExp(`\\b${g}\\(`), `main.js calls ${g}`);
     assert.match(engine, new RegExp(`\\b${g}\\(`), `engine/game.js calls ${g}`);
   }
@@ -121,6 +138,13 @@ test('in the engines\' build: the sword hangs on him only once found and wears t
   // the desert's errands watched over its people (wirePeople: none in the engines before)
   assert.ok(g.folk?.errands?.watch?.length >= 1, 'the desert\'s errands');
   assert.ok(g.chemistry, 'the chemistry (wireChemistry: the engines\' brambles burnt alone before)');
+  // the Garden of Spheres with the bird promised and the bike found: the bird is the mount, the bike stands by the ramp
+  // (wireVehicles: none in the engines before, #376) and skims the lake
+  const sp = await quiet(() => B.createGame({ levelId: 'spheres', backend, people: false, flags: { 'prologue.done': true, 'bird.promise': true, 'desert.bike.found': true } }));
+  assert.equal(sp.level.mountName, 'bird');
+  const bike = sp.player.vehicles.find((x) => x.kind === 'bike');
+  assert.ok(bike, 'the bike parked by the ramp');
+  assert.equal(typeof bike.surface, 'function', 'skimming the water');
   // the world's void (the Underside's, under its kill height) in the veils the engine mirrors, drawn by the port's PitVoid
   ports.clear();
   const v = await quiet(() => B.createGame({ levelId: 'underside', backend, people: false, flags: { 'prologue.done': true } }));

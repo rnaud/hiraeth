@@ -9,6 +9,8 @@
 //   wireDangers({ scene, level })                          the fires that burn, a world's deadly void
 //   wirePeople({ levelId, npcs, journal, … })              the errands, the faces of whoever talks near, the hum
 //   wireChemistry({ flammables, wildlife, tool, … })       fire, wind, creatures and foes on each other
+//   wireMount({ levelId, level, flag })                    the bird's promise, the hoverbike (before the traveller)
+//   wireVehicles({ bikeHere, player, … })                  the bike by the ramp, skimming water, no calls into rooms
 //
 // tests/game-host.test.js holds each group to both hosts; scripts/bridge-gaps.mjs reports a group main.js calls and
 // engine/game.js doesn't as a host gap (engine/bridge-gaps.js `shared:`).
@@ -23,6 +25,8 @@ import { ERRANDS } from '../levels/content.js';
 import { talkFaces, TALK_FACE } from '../talk-face.js';
 import { HumCue } from '../story/hum.js';
 import { Chemistry } from '../chemistry.js';
+import { birdAnswers, promisedBird } from '../bird.js';
+import { bikeComes, parkedBike } from '../bike-worlds.js';
 
 // ------------------------------------------------------------------ the kit
 /**
@@ -103,4 +107,41 @@ export function wirePeople({ levelId, npcs, journal, toast, titles, capture = ()
 /** Fire spreads on the wind, creatures flee it, foes catch it (src/chemistry.js); chemistry.update(dt, player.pos) after what burns. */
 export function wireChemistry({ flammables = null, wildlife = null, tool = null, game = null, player }) {
   return new Chemistry({ flammables, wildlife, tool, game, wind: player.wind });
+}
+
+// ------------------------------------------------------------------ the mount and the vehicles
+/**
+ * The bird's promise: under open sky, in a world with no mount of its own, the whistle calls Vael's bird down (src/bird.js);
+ * the hoverbike, found in the desert, comes out of the ship in the worlds made for riding (src/bike-worlds.js), called from
+ * your pack unless the bird answers there. Sets level.mount and level.mountName, before the traveller is made (his
+ * Player takes them). → { bikeHere }, for wireVehicles.
+ */
+export function wireMount({ levelId, level, flag }) {
+  if (birdAnswers(levelId, level, flag)) { level.mount = (p) => promisedBird(p, level.spawn); level.mountName = 'bird'; }
+  const bikeHere = bikeComes(levelId, level, flag);
+  if (bikeHere && !level.mount) { level.mount = (p) => parkedBike(p, level.spawn, level.spawnHeading ?? 0); level.mountName = 'hoverbike'; }
+  return { bikeHere };
+}
+
+/**
+ * Once the traveller is made, with the world's own vehicles in player.vehicles (the cabs):
+ *   - the hoverbike stands by the ramp to be boarded where the bird is this world's mount (Viridel: issue #376);
+ *   - hoverbikes and skiffs skim over any water (bike.js groundAt, the waters' floor);
+ *   - rooms off the map, reached through doorways (the desert's chambers, the cave in the giant's chest, ~1 km up): no
+ *     whistling the mount or hailing a cab into them (it would come to the same x, z far below and wait there), nor
+ *     from inside the ship (player.opts.canSummon).
+ * → { rooms, inRoom() }: the rooms off the map (the page culls by them).
+ */
+export function wireVehicles({ bikeHere = false, player, physics, level, scene, waters = null, ship = null }) {
+  if (bikeHere && player.mount?.kind !== 'bike') {
+    const bike = parkedBike(physics, level.spawn, level.spawnHeading ?? 0);
+    scene.add(bike.object);
+    player.vehicles.push(bike);
+  }
+  if (waters?.floorAt) for (const v of player.vehicles) if (v.groundAt && !v.surface) v.surface = (x, y, z) => waters.floorAt(x, y, z);
+  const ground = level.ground;
+  const rooms = (level.portals ?? []).filter((p) => p.to && !p.toUp && p.to.y - (ground?.heightAt?.(p.to.x, p.to.z) ?? p.to.y) > 200).map((p) => p.to);
+  const inRoom = () => rooms.some((r) => r.distanceToSquared(player.pos) < 90 * 90);
+  player.opts.canSummon = () => !inRoom() && !ship?.inside;
+  return { rooms, inRoom };
 }

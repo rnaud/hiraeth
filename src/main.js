@@ -94,8 +94,7 @@ import { routeChart, findableNote } from './story/signature-search.js';
 import { registerInteractable, PRIORITY, interactHooks } from './interact.js';
 import { carryHooks } from './carry.js';
 import { Ship } from './ship/ship.js';
-import { birdAnswers, promisedBird } from './bird.js';
-import { bikeComes, parkedBike, callKind, trailVehicles, trailVehicle } from './bike-worlds.js';
+import { callKind, trailVehicles, trailVehicle } from './bike-worlds.js';
 import { RIDER_CALL, RIDER_CALL_BEAT } from './story/arzach-data.js';
 import { game } from './game-state.js';
 import { BodyFoley } from './foley.js';
@@ -149,7 +148,7 @@ import { queueHost, takeHosts } from './minigames/kit/hosts.js';
 import { MinigameRunner } from './minigames/kit/runner.js';
 import { levelMetaFor } from './minigames/kit/world.js';
 import { lendTool } from './minigames/kit/onfoot.js';
-import { wireKit, wireDangers, wirePeople, wireChemistry } from './host/game-host.js';
+import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles } from './host/game-host.js';
 import { arcadeLinks } from './minigames/kit/arcade.js';
 import { ambushDue, ambushHref, ambushKey, transitLinks } from './ambush.js';
 import { talkAllowed } from './ship/landing.js';
@@ -392,13 +391,9 @@ const tiled = await runStepsAsync(tileSceneSteps(scene), slice);
 tiled.small.push(...(level.smallProps ?? []));
 await slice();
 await stage('waking the people…');
-// the bird's promise: under open sky, in a world with no mount of its own, the whistle calls her down (src/bird.js)
+// the bird's promise, the hoverbike from your pack (src/host/game-host.js wireMount, the engines' too)
 setStep('player');
-if (birdAnswers(levelId, level, (k) => game.flag(k))) { level.mount = (p) => promisedBird(p, level.spawn); level.mountName = 'bird'; }
-// the hoverbike, found in the desert, comes out of the ship in the worlds made for riding (src/bike-worlds.js): called from
-// your pack, unless the bird answers there; then it stands by the ramp to be boarded
-const bikeHere = bikeComes(levelId, level, (k) => game.flag(k));
-if (bikeHere && !level.mount) { level.mount = (p) => parkedBike(p, level.spawn, level.spawnHeading ?? 0); level.mountName = 'hoverbike'; }
+const { bikeHere } = wireMount({ levelId, level, flag: (k) => game.flag(k) });
 const player = new Player(physics, {
   mount: level.mount, mountAt: level.mountAt, jetpack: level.features.jetpack, climb: level.features.climb ?? true,
   killY: level.killY, limit: level.limit ?? 1900, edgeHint: level.edgeHint ?? EDGE_HINTS[levelId] ?? EDGE_HINTS.default, spawn: level.spawn, spawnHeading: level.spawnHeading,
@@ -583,17 +578,9 @@ player.vehicles.push(...(level.vehicles ?? []));
 // every fire drawn in the world burns while you stand in it, and a world's deadly void under its kill height
 // (src/host/game-host.js wireDangers, the engines' too)
 const dangers = wireDangers({ scene, level });
-if (bikeHere && player.mount?.kind !== 'bike') {
-  const bike = parkedBike(physics, level.spawn, level.spawnHeading ?? 0);
-  scene.add(bike.object);
-  player.vehicles.push(bike);
-}
-// rooms off the map, reached through doorways (the desert's chambers and the cave in the
-// giant's chest, ~1 km up): no whistling the mount or hailing a taxi into them; it would
-// come to the same x, z on the dunes far below and wait there
-const offMapRooms = (level.portals ?? []).filter((p) => p.to && !p.toUp && p.to.y - (terrain.heightAt?.(p.to.x, p.to.z) ?? p.to.y) > 200).map((p) => p.to);
-const inOffMapRoom = () => offMapRooms.some((r) => r.distanceToSquared(player.pos) < 90 * 90);
-player.opts.canSummon = () => !inOffMapRoom() && !ship?.inside;   // (nor from inside the ship)
+// the bike by the ramp where the bird is the mount, the hover vehicles skimming water, no calls into the rooms off the
+// map (src/host/game-host.js wireVehicles, the engines' too)
+const { rooms: offMapRooms } = wireVehicles({ bikeHere, player, physics, level, scene, waters, ship });
 await slice();
 setStep('assets wait');
 const lib = await animLib;
@@ -710,8 +697,6 @@ carryHooks.sound = (t) => sound.land?.({ speed: 2.5, pos: t?.pos ?? player.pos }
 carryHooks.toss = () => sound.toss?.();
 waters.sound = sound;
 player.onSwim = (kind, info) => waters.event(kind, info);   // splashes, strokes, a gasp
-// hoverbikes and skiffs skim over any water (bike.js groundAt)
-for (const v of player.vehicles) if (v.groundAt && !v.surface) v.surface = (x, y, z) => waters.floorAt(x, y, z);
 const breathMeter = new BreathMeter();
 // the magic-fluid backpack: shoot, boost and push on three shared charges (fluid-tool.js)
 const tool = new FluidTool({ scene, player, physics, camera, rig, sound, level, hud: new ToolHud(), noShadow: (level.noShadow ??= []) });

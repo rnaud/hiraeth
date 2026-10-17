@@ -29,11 +29,13 @@ test('the bike comes along once found, only to the worlds made for riding, never
   // every world on the route is decided, and the module says why for each
   const src = readFileSync(new URL('../src/bike-worlds.js', import.meta.url), 'utf8');
   for (const id of ORDER) assert.match(src, new RegExp(`//\\s.*\\b${id}\\b`), `${id}: decided in src/bike-worlds.js`);
-  // main.js brings it out: the whistle's where the bird doesn't answer, parked by the ramp where she does
-  const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
-  assert.match(main, /bikeComes\(levelId, level/);
-  assert.match(main, /if \(bikeHere && !level\.mount\)/);
-  assert.match(main, /player\.vehicles\.push\(bike\)/);
+  // the one game setup brings it out, for both hosts (src/host/game-host.js, #427): the whistle's where the bird doesn't
+  // answer, parked by the ramp where she does
+  const host = readFileSync(new URL('../src/host/game-host.js', import.meta.url), 'utf8');
+  assert.match(host, /bikeComes\(levelId, level/);
+  assert.match(host, /if \(bikeHere && !level\.mount\)/);
+  assert.match(host, /player\.vehicles\.push\(bike\)/);
+  for (const f of ['../src/main.js', '../engine/game.js']) assert.match(readFileSync(new URL(f, import.meta.url), 'utf8'), /wireVehicles\(\{ bikeHere,/, f);
 });
 
 test('where Vael’s bird answers (Viridel, the Garden of Spheres), she keeps the whistle and the bike stands by the ship', () => {
