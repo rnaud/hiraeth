@@ -1,0 +1,45 @@
+tests/test-shards.test.js
+  s_5f899ba316b5dc::t_ceed5594c4e9b2 2-3,7-8,10-14,18-20,24-31,34-37,40-61
+tests/shard-timings.json
+  s_5f899ba316b5dc::t_dd5af49941c46f 483-1035,1037-1132,1134-1174
+tests/pre-commit.test.js
+  s_5f899ba316b5dc::t_028edfba597693 67
+tests/door-bypass.js
+  s_5f899ba316b5dc::t_4b76378398c515 16-17,89-124,126-129
+changelog.md
+  s_5f899ba316b5dc::t_9ae529d0c70943 8-9
+tests/house-walk.js
+  s_5f899ba316b5dc::t_da8c4d12a8c113 1
+docs/systems/temples.md
+  s_5f899ba316b5dc::t_465b6a8c27e238 332,1822,1903
+tests/wings-reach.js
+  s_5f899ba316b5dc::t_f517c517d0f3b8 7
+tests/door-bypass-1.test.js
+  s_5f899ba316b5dc::t_af727eae8cb45e 1-4
+scripts/test-file-times.mjs
+  s_5f899ba316b5dc::t_28619913b52b06 1-29
+.github/workflows/tests.yml
+  s_5f899ba316b5dc::t_4d54b652589e03 11,13-15,38,44,52
+scripts/test-shards.mjs
+  s_5f899ba316b5dc::t_e4a79e1d13584b 5-14,16-18,21,27-29,33-39,41-43,45-46,54-84,93-94,99,101,105,112-115,117-119,124
+docs/systems/testing.md
+  s_5f899ba316b5dc::t_dcb1fc293384f4 46-51,53-55,57-79
+tests/door-bypass-2.test.js
+  s_5f899ba316b5dc::t_26a2e98733f62b 1-4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5e32cc590b5b7c44db35ee74721a594d13e1c7fe",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
