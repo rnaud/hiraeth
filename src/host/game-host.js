@@ -7,6 +7,7 @@
 //
 //   wireKit({ tool, game, armed, onArm })                  the sword and the shield only once found, the kit's colours
 //   wireDangers({ scene, level })                          the fires that burn, a world's deadly void
+//   wirePeople({ levelId, npcs, journal, … })              the errands, the faces of whoever talks near, the hum
 //
 // tests/game-host.test.js holds each group to both hosts; scripts/bridge-gaps.mjs reports a group main.js calls and
 // engine/game.js doesn't as a host gap (engine/bridge-gaps.js `shared:`).
@@ -16,6 +17,10 @@ import { registerHazard, updateHazards } from '../hazards.js';
 import { fireHazard } from '../story/flames.js';
 import { worldVoid } from '../pit-void.js';
 import { hintsFor } from '../hint-level.js';
+import { Errands } from '../quest.js';
+import { ERRANDS } from '../levels/content.js';
+import { talkFaces, TALK_FACE } from '../talk-face.js';
+import { HumCue } from '../story/hum.js';
 
 // ------------------------------------------------------------------ the kit
 /**
@@ -62,5 +67,32 @@ export function wireDangers({ scene, level }) {
       if (!quiet) updateHazards(dt, player, { notice: (t) => { if (hintsFor('tip')) say(t); } });   // ("It burns!": the hurt says it; the line, hints full)
     },
     voidFrame(t) { deadlyVoid?.update(t); },
+  };
+}
+
+// ------------------------------------------------------------------ the people
+/**
+ * The errands (src/quest.js Errands: a parcel from one world's person to another's, kept in the journal), the hum when
+ * words on the screen speak of it (src/story/hum.js: a toast, a subtitle, a line of a conversation, a balloon), and the
+ * face of whoever talks near you (src/talk-face.js; a conversation drives its own).
+ *   people.hear(text)                 words that went up (a host's toasts, if they don't go through the ship's cinema)
+ *   people.talk(dt, best, camera)     each frame, once the balloon is chosen (src/balloon-part.js pickBalloon)
+ *   people.errands.update()           each frame, after the people
+ */
+export function wirePeople({ levelId, npcs, journal, toast, titles, capture = () => null, sound = null, ship = null, game = null }) {
+  const errands = new Errands({ levelId, defs: ERRANDS, npcs, journal, toast, titles, capture, sound });
+  const hum = new HumCue();
+  const hear = (text) => { if (hum.hear(text, performance.now() / 1000)) sound?.makersHum?.({ vol: 0.7 }); };
+  if (ship?.cinema) ship.cinema.onWords = hear;
+  game?.on?.('words', ({ text } = {}) => hear(text));
+  let lastBalloon = null;
+  return {
+    errands, hear,
+    talk(dt, best, camera) {
+      // (a balloon that speaks of humming: the hum, softly)
+      if (best?._balloonLine && best._balloonLine !== lastBalloon) { lastBalloon = best._balloonLine; hear(best._balloonLine); }
+      if (best?.humanoid && !best.talkTo && best.object?.visible && camera.position.distanceTo(best.pos) < TALK_FACE.near) talkFaces.drive(best.humanoid, best.balloonFace());
+      talkFaces.update(dt);
+    },
   };
 }

@@ -6,7 +6,8 @@ import assert from 'node:assert/strict';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { readFileSync } from 'node:fs';
-import { wireKit, wireDangers } from '../src/host/game-host.js';
+import { wireKit, wireDangers, wirePeople } from '../src/host/game-host.js';
+import { ERRANDS } from '../src/levels/content.js';
 import { hazardCount } from '../src/hazards.js';
 import * as THREE from 'three';
 import { bundle } from '../scripts/engine-bundle.mjs';
@@ -62,9 +63,37 @@ test('the dangers: the fires registered once a game (the last one\'s let go), a 
   d.update(1 / 60, { pos: new THREE.Vector3(), hurt() {} }, { quiet: true });
 });
 
+test('the people: an errand\'s giver and taker watched, the hum on words that speak of it, a face for whoever talks near', () => {
+  const d = ERRANDS[0];
+  const npcs = [];
+  npcs[d.from[1]] = { lines: ['hello'], greeted: false, pos: new THREE.Vector3(), heading: 0 };
+  const hums = [], listeners = {};
+  const journal = { data: {}, errand: (id) => journal.data[id], setErrand: (id, v) => { journal.data[id] = v; } };
+  const ship = { cinema: {} };
+  const said = [];
+  const p = wirePeople({ levelId: d.from[0], npcs, journal, toast: (t) => said.push(t), titles: {}, sound: { makersHum: () => hums.push(1) }, ship,
+    game: { on: (ev, f) => { listeners[ev] = f; } } });
+  assert.equal(p.errands.watch.length, 1, 'the giver watched');
+  npcs[d.from[1]].greeted = true;
+  p.errands.update();
+  assert.ok(journal.data[d.id], 'the errand given once greeted');
+  assert.ok(said.some((t) => /Errand/.test(t)), 'and said');
+  assert.equal(ship.cinema.onWords, p.hear, 'the cinema\'s words heard');
+  listeners.words({ text: 'the makers\' hum rose' });
+  assert.equal(hums.length, 1, 'words of the hum: the hum');
+  p.hear('nothing of it');
+  assert.equal(hums.length, 1);
+  let driven = 0;
+  const camera = { position: new THREE.Vector3() };
+  const best = { humanoid: {}, object: { visible: true }, pos: new THREE.Vector3(1, 0, 0), balloonFace: () => { driven++; return null; } };
+  try { p.talk(1 / 60, best, camera); } catch { /* the stub humanoid: driven is what counts */ }
+  assert.equal(driven, 1, 'the face of whoever talks near');
+  p.talk(1 / 60, null, camera);
+});
+
 test('both hosts call the same groups (src/host/game-host.js), and engine/game.js no longer arms the tool its own way', () => {
   const main = readFileSync('src/main.js', 'utf8'), engine = readFileSync('engine/game.js', 'utf8');
-  for (const g of ['wireKit', 'wireDangers']) {
+  for (const g of ['wireKit', 'wireDangers', 'wirePeople']) {
     assert.match(main, new RegExp(`\\b${g}\\(`), `main.js calls ${g}`);
     assert.match(engine, new RegExp(`\\b${g}\\(`), `engine/game.js calls ${g}`);
   }
@@ -76,12 +105,14 @@ test('in the engines\' build: the sword hangs on him only once found and wears t
   const file = tempPath(join(tmpdir(), `hiraeth-engine-host-${process.pid}.js`));
   await bundle('godot', { input: 'engine/game.js', out: [file] });
   const B = loadBundle(file).exports;
-  const g = await quiet(() => B.createGame({ levelId: 'desert', backend, people: false, flags: { 'prologue.done': true, 'kit.colours.ember': true, 'kit.colour.sword': 'ember' } }));
+  const g = await quiet(() => B.createGame({ levelId: 'desert', backend, flags: { 'prologue.done': true, 'kit.colours.ember': true, 'kit.colour.sword': 'ember' } }));
   quiet(() => { for (let i = 0; i < 3; i++) g.frame(1 / 30); });
   assert.equal(g.tool.swordOn, false, 'the save has no sword yet');
   let base = null;
   g.tool.blade?.group?.traverse((o) => { const U = o.material?.uniforms; if (U?.uFluidBase && !base) base = `#${U.uFluidBase.value.getHexString()}`; });
   assert.equal(base, colourById('ember').water.base, 'the sword\'s water in the ember colours');
+  // the desert's errands watched over its people (wirePeople: none in the engines before)
+  assert.ok(g.folk?.errands?.watch?.length >= 1, 'the desert\'s errands');
   // the world's void (the Underside's, under its kill height) in the veils the engine mirrors, drawn by the port's PitVoid
   ports.clear();
   const v = await quiet(() => B.createGame({ levelId: 'underside', backend, people: false, flags: { 'prologue.done': true } }));

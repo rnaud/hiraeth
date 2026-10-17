@@ -70,7 +70,7 @@ import { Shelter, addIndoors } from './shelter.js';
 import { spawnNPCsSteps, pooledNPC, registerNPCTargets, setCalmZones, shipCalmZones } from './npc.js';
 import { spawnAliens, alienSpots } from './aliens/index.js';
 import { Crowd, CROWD_DIST_CELL, CROWD_BUDGET, buildPeopleSteps } from './crowd.js';
-import { Journal, Relics, Story, Errands } from './quest.js';
+import { Journal, Relics, Story } from './quest.js';
 import { CONTENT, ERRANDS, RELIC_BASE } from './levels/content.js';
 import { migrateJournal } from './save-migrate.js';
 import { loadAnimationLibrary, Animator } from './animator.js';
@@ -79,7 +79,6 @@ import { movesSetting } from './loco-moves.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { loadHuman, Humanoid } from './humanoid.js';
 import { loadPeople, usesMakeHuman } from './makehuman/people.js';
-import { talkFaces, TALK_FACE } from './talk-face.js';
 import { updateHands } from './hands.js';
 import { loadTraveller, createTraveller } from './characters/traveller.js';
 import { buildTravellerLod } from './characters/traveller-lod.js';
@@ -151,11 +150,10 @@ import { queueHost, takeHosts } from './minigames/kit/hosts.js';
 import { MinigameRunner } from './minigames/kit/runner.js';
 import { levelMetaFor } from './minigames/kit/world.js';
 import { lendTool } from './minigames/kit/onfoot.js';
-import { wireKit, wireDangers } from './host/game-host.js';
+import { wireKit, wireDangers, wirePeople } from './host/game-host.js';
 import { arcadeLinks } from './minigames/kit/arcade.js';
 import { ambushDue, ambushHref, ambushKey, transitLinks } from './ambush.js';
 import { talkAllowed } from './ship/landing.js';
-import { HumCue } from './story/hum.js';
 import { ShopPanel } from './shop-panel.js';
 import { rumblePlay, setRumbleSettings } from './rumble.js';
 import { interiorAt } from './interior-kit.js';
@@ -764,7 +762,10 @@ setStep('story');
 const journal = new Journal(LEVELS.map((l) => ({ id: l.id, title: l.title, hidden: l.hidden, relicNames: CONTENT[l.id].relics.names, storyTitle: CONTENT[l.id].story.title })));
 // (a merged world's parts kept their relics apart before: they join its list, src/save-migrate.js)
 if (migrateJournal(journal.data, RELIC_BASE)) journal.save();
-const errands = new Errands({ levelId, defs: ERRANDS, npcs, journal, toast: (t, o) => showToast(t, o), titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])), capture: (e, l, w, h) => captureView(e, l, w, h), sound });
+// the errands, the hum when words on the screen speak of it, the face of whoever talks near (src/host/game-host.js
+// wirePeople, the engines' too; the words heard: the cinema's toasts and subtitles, a conversation's lines, a balloon)
+const people = wirePeople({ levelId, npcs, journal, toast: (t, o) => showToast(t, o), titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])), capture: (e, l, w, h) => captureView(e, l, w, h), sound, ship, game });
+const errands = people.errands;
 const capture = (eye, look, w, h) => captureView(eye, look, w, h);
 const relics = new Relics(scene, physics, { levelId, spots: content.relics.spots, names: content.relics.names, journal, sound, capture, lights: levelLights });
 await slice();
@@ -788,12 +789,7 @@ await slice();
 /** A teaching notice: paced as a hint (src/notice-pace.js, issue #221: spaced out, let go once stale, none with hints off). */
 const TEACH = { kind: 'hint' };
 const showToast = (text, o) => { if (!text || (typeof text === 'string' && !keyText(text).trim())) return; ship.cinema.toast(text, o); };   // (o.kind 'quest': a quest's start, its own look)   // queued, and held while a scene has the screen dark (src/ship/cinema.js)
-// the hum, when words on the screen speak of it: a toast, a subtitle, a line of a conversation, a balloon (src/story/hum.js)
-const humCue = new HumCue();
-let lastBalloon = null, balloonAt = -1e9;   // (when a balloon last showed: a lesson on the cue waits for it, issue #79)
-const hearWords = (text) => { if (humCue.hear(text, performance.now() / 1000)) sound.makersHum?.({ vol: 0.7 }); };
-ship.cinema.onWords = hearWords;
-game.on('words', ({ text }) => hearWords(text));
+let balloonAt = -1e9;   // (when a balloon last showed: a lesson on the cue waits for it, issue #79)
 player.onNotice = showToast;   // "It needs power." (a vehicle without the backpack)
 const preStory = new Set(scene.children);
 const storyRt = createStory({ levelId, scene, physics, level, player, npcs, crowd, sound, journal, story, lib, humans: peopleT, toast: showToast, tool,
@@ -2410,11 +2406,8 @@ function frame(ts) {
     for (const n of npcs) n.placeBalloon(camera, n === best, n === prompted ? 30 : 0);
     publishBalloons([...npcs, crowd]);
     if (best) balloonAt = performance.now();
-    // a balloon that speaks of humming: the hum, softly (src/story/hum.js)
-    if (best?._balloonLine && best._balloonLine !== lastBalloon) { lastBalloon = best._balloonLine; hearWords(best._balloonLine); }
-    // the one who talks near you says it with their face too (src/talk-face.js; a conversation drives its own)
-    if (best?.humanoid && !best.talkTo && best.object.visible && camera.position.distanceTo(best.pos) < TALK_FACE.near) talkFaces.drive(best.humanoid, best.balloonFace());
-    talkFaces.update(dt);
+    // a balloon that speaks of humming: the hum, softly; the one who talks near you says it with their face too (wirePeople)
+    people.talk(dt, best, camera);
     updateHands(dt, { player, npcs, camera });   // the fingers: relaxed, gripping, gesturing with the line (src/hands.js)
     player.character?.updateHands();
     // (a scene's own E, by what it is for: the prologue's voicemail button, issue #350)
