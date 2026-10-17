@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-17",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Character design sheet for a science fiction exploration game: the work headwear of a people living in domes inside a buried machine and its moon foundry, dust, heat and dark tunnels. Three pieces, each worn by a head-and-shoulders figure, front and three-quarter view: a padded canvas dome hood with a thick rolled rim and round ear pads; a miner's hard hat with a short brim and a small lamp set flush into its front; a knitted under-cap worn alone off shift. Every piece sits close on the head, one clear silhouette each, readable from far away. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, rust orange, slate blue and pale sage, warm lamp light, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, costume party.",
+      "from": "docs/design/hat-prompts.md#buried",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-17",
+      "batch": "2026-10-17-15-14-05-752b",
+      "candidate": "openai/1",
+      "sha256": "fa577b7052ac9a9a31df64ab74c1538a80877b1a92ff083293bd436348ec7f7e",
+      "bytes": 195134,
+      "costUSD": 0.041
+    }
+  ]
+}

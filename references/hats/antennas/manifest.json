@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-17",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Character design sheet for a science fiction exploration game: the headwear of the menders of a forest of giant radio masts, who climb with tools at their belts, in lilac and rust. Three pieces, each worn by a head-and-shoulders figure, front and three-quarter view: a mast-mender's close cap with brass goggles pushed up on it; a climbing hood buckled under the chin; a band of braided wire round the brow. Every piece sits close on the head, nothing sticking up from it, one clear silhouette each, readable from far away. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, lilac, rust and brass, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, costume party.",
+      "from": "docs/design/hat-prompts.md#antennas",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-17",
+      "batch": "2026-10-17-15-15-09-e77b",
+      "candidate": "openai/1",
+      "sha256": "2e6fa7b9a885d2635542adcec481bf87727a43e7030ad469f3e300dbfa5b619a",
+      "bytes": 183139,
+      "costUSD": 0.041
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-17",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment design sheet for a science fiction exploration game: a harbour that lost its sea, huge weathered ships standing on their keels in a vast dry white salt basin, made into apartment buildings. A landing field staked out on the salt with the old mooring ropes, a long boxy starship set down on it, a crane built from a ship's mast and boom, the harbour book kept at a window cut into a hull, sea chests and herb crates, a sand-skiff on runners and a small hopper craft, a harbour mistress in a salt-stained coat. Three panels: the quay from above three-quarter with the street of hulls running off toward a ship standing on its stern, the staked pad close with a person for scale, two small craft side by side. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, salt white, terracotta, weathered blue hulls, sailcloth cream, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/space-port-prompts.md#salt-harbour",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-17",
+      "batch": "2026-10-17-15-16-11-59c0",
+      "candidate": "openai/1",
+      "sha256": "878c365678b56256f9b187c127d5c03fd5160cbee164e7e813040ef0f3019863",
+      "bytes": 259014,
+      "costUSD": 0.041
+    }
+  ]
+}

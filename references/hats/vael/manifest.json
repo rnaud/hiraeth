@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-17",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Character design sheet for a science fiction exploration game: the headwear of a silent order of riders of great birds, in white and ivory robes among red rock needles. Two pieces, each worn by a head-and-shoulders figure, front, three-quarter and back view: the order's cowl of heavy ivory cloth, rising to a low soft point behind the head and falling over the shoulders; a lighter travelling hood thrown forward against the wind. Both close round the face, no taller than a hand above the head, one clear silhouette each, readable from far away. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, ivory, bone white and a single red cord, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, costume party.",
+      "from": "docs/design/hat-prompts.md#vael",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-17",
+      "batch": "2026-10-17-15-14-05-e169",
+      "candidate": "openai/1",
+      "sha256": "a786eec9ff4b69a248f01467c9362fab0b12a129db338849955bf9fc6e586e14",
+      "bytes": 188884,
+      "costUSD": 0.041
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-17",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment design sheet for a science fiction exploration game: the landing yard of glassworkers' camps in a sand valley walled by giant frozen waves of green glass that broke and never fell. Ancient landing discs of pale smooth stone with a thin line of soft light, made by a vanished high-tech people, a long boxy starship resting on the largest, racks of hand-blown glass floats, float-sledges loading them, a small skiff with a glass hull, canvas shades on poles, a yard boss with a tally board. Three panels: the yard from above three-quarter with a round clock-tower house in the distance, the landing disc close with a person for scale, three small craft and a float-sledge side by side. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, sand gold, bottle green glass, ochre canvas, pale stone, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/space-port-prompts.md#glass-dunes",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-17",
+      "batch": "2026-10-17-15-16-11-fb57",
+      "candidate": "openai/1",
+      "sha256": "786a458afe08cf4060617e24112f3c4de40718a034c293f72bca5d6d3c156429",
+      "bytes": 331692,
+      "costUSD": 0.041
+    }
+  ]
+}

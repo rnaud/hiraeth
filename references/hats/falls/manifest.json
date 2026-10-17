@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-17",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Character design sheet for a science fiction exploration game: the headwear of basket carriers and pot gardeners in a pale stone city behind a great waterfall, and of the city under the sea. Three pieces, each worn by a head-and-shoulders figure, front and three-quarter view: a spray hood of oiled rust-coloured cloth; a basket-carrier's ring head-pad on braided hair; a close oiled cap of teal cloth. Every piece sits close on the head, one clear silhouette each, readable from far away. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, rust, ochre and teal on pale stone, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, costume party.",
+      "from": "docs/design/hat-prompts.md#falls",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-17",
+      "batch": "2026-10-17-15-14-37-6114",
+      "candidate": "openai/1",
+      "sha256": "9e1e793d358d557423ebbc6df80350bffd74c59ce4a3bb6901fdb81d5d34be9d",
+      "bytes": 235668,
+      "costUSD": 0.041
+    }
+  ]
+}

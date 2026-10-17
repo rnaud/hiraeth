@@ -1,0 +1,57 @@
+{
+  "archetype": "wisp",
+  "created": "2026-10-17",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Spirit design reference sheet for a science fiction exploration game: one ember wisp, a floating spirit, drawn four times side by side at the same scale on a plain cream background: front view, side view, three-quarter view, and its fireball wind-up with its four stiff ink petals opened outward like a flower around a white-hot coal, the body tilted back. Beneath the side view its solid black silhouette. A small cloaked human traveller with a round jade fluid backpack stands below it for scale; the wisp hovers four metres up. Body plan: four curved petals of hardened black ink closed into a bud around a glowing coal, a thin ring of light round the bud's waist, two small round pale eyes on the front petal, three drips of ink hanging from its base like a tassel; it bobs slowly, no limbs. The manifestation: the dark folded round a stolen ember, a false flower of light. Palette: glossy ink-black petals with deep violet shadows, a thin white-gold ring, orange and yellow coal, pale lilac eyes. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, restrained cream paper grain, whimsical technology, clear readable construction, fully visible bodies, evenly spaced views, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, scenery, collage.",
+      "from": "docs/design/enemy-roster-prompts.md#wisp/v3",
+      "refs": [],
+      "ar": "3:2",
+      "date": "2026-10-17",
+      "batch": "2026-10-17-15-15-40-24a2",
+      "candidate": "openai/1",
+      "sha256": "ba4709afde7d6f2fd4230db151e96b12c4bdcda8ae69b70344c8905257d5fabf",
+      "bytes": 161104,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Spirit design reference sheet for a science fiction exploration game: one ember wisp, a small floating spirit, drawn four times side by side at the same scale on a plain cream background: front view, side view, three-quarter view, and its fireball wind-up with its shell opened wide like a clam and the coal inside swollen white-hot, the body reared back. Beneath the side view its solid black silhouette. A small cloaked human traveller with a round jade fluid backpack stands below it for scale; the wisp is the size of a pumpkin and hovers four metres up, well above the traveller's head. Body plan: a round shell of hardened black ink in two lids hinged at the back, cracked all over with thin orange light showing through the cracks, a single fin along the upper lid's crown, two small pale eyes low on the upper lid, a glowing coal in the middle, and a short tail of smoke beads hanging beneath; no limbs. The manifestation: a borrowed fire, the dark cupped round a stolen coal, a lamp where no lamp should be. Moon Foundry palette: ink-black and soot-violet shell, brass rim on the lids, molten orange and butter-yellow coal, pale cream eyes. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, restrained cream paper grain, whimsical technology, clear readable construction, fully visible bodies, evenly spaced views, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, scenery, collage, flames everywhere.",
+      "from": "docs/design/enemy-roster-prompts.md#wisp",
+      "refs": [],
+      "ar": "3:2",
+      "date": "2026-10-17",
+      "batch": "2026-10-17-15-15-09-a524",
+      "candidate": "openai/1",
+      "sha256": "285ee060be8c260fc7448e813d524d1f6c3771d191950b0956de6d106b6f9988",
+      "bytes": 170816,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-3.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Spirit design reference sheet for a science fiction exploration game: one ember wisp, a floating spirit, drawn four times side by side at the same scale on a plain cream background: front view, side view, three-quarter view, and its fireball wind-up, its iron cage-shell splitting open along its ribs, a coal swelling white-hot inside, smoke streaming upward. Beneath the side view its solid black silhouette. A small cloaked human traveller with a round jade fluid backpack stands below it for scale; the wisp hovers four metres up, above the traveller's head. Body plan: a hollow, cracked lantern-like husk of black ink with curved ribs like a birdcage, a ring of small holes round its waist, one long smoke ribbon trailing behind it, two pale slit eyes in the dark between the ribs, an ember coal floating at its heart. The manifestation: the dark wearing a lamp's shape to copy the singing light, glowing from inside, cold outside. Palette: ink-black ribs with violet sheen, ember orange coal, gold sparks, a cream glow on the ribs nearest the coal. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, restrained cream paper grain, whimsical technology, clear readable construction, fully visible bodies, evenly spaced views, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, scenery, collage.",
+      "from": "docs/design/enemy-roster-prompts.md#wisp/v2",
+      "refs": [],
+      "ar": "3:2",
+      "date": "2026-10-17",
+      "batch": "2026-10-17-15-15-09-1ae5",
+      "candidate": "openai/1",
+      "sha256": "08795c777bfde5ad3bc0f9b1608e996ea9561e1976fa5ef40030a0e32962e4e2",
+      "bytes": 201524,
+      "costUSD": 0.041
+    }
+  ]
+}

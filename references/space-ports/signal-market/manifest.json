@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-17",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment design sheet for a science fiction exploration game: the space port of a crowded market of a thousand glowing signs where one tall tower is silent. A paved landing apron at the end of the market's avenue under a thicket of antenna masts and stacked sign boards, a long boxy starship parked on a painted pad, a tall board of call signs lit for each arrival with one dark, a clerk's window logging ships, flying cabs turning round at a stand, crates of old radios and antenna parts, stalls selling to crews. Three panels: the apron from above three-quarter with the avenue running off toward the silent tower, the pad close with a person for scale, three small craft and a squat freighter side by side. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, sea green paving, coral and slate walls, signs in warm yellow and cyan, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/space-port-prompts.md#signal-market",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-17",
+      "batch": "2026-10-17-15-15-40-3270",
+      "candidate": "openai/1",
+      "sha256": "232acfc9aec7b7e214a6f71b889ba6ed91f8e8b3da88bbcc701e59bd56fcc243",
+      "bytes": 331581,
+      "costUSD": 0.041
+    }
+  ]
+}

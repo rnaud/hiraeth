@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-17",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Character design sheet for a science fiction exploration game: the hats of a swamp people with violet skin who live on raft-houses in the reeds and keep their accounts in knots. Three hats, each worn by a head-and-shoulders figure, front and three-quarter view: a low woven reed hat with a gently drooping brim, the reeds' ends tucked in neatly; a hood of moss-green waxed cloth, close round the face; a knotted head-cloth tied over locks and braids, a small knot at the back. Every hat sits close on the head, no taller than the head, brims no wider than the shoulders, one clear silhouette each, readable from far away. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, reed olive, moss green and lilac, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, costume party.",
+      "from": "docs/design/hat-prompts.md#lorn",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-17",
+      "batch": "2026-10-17-15-13-36-757e",
+      "candidate": "openai/1",
+      "sha256": "3509edcaaaeffa1e65bda6c9ef26c4f9b90d7b08f39b08b5172620e995207500",
+      "bytes": 203711,
+      "costUSD": 0.041
+    }
+  ]
+}

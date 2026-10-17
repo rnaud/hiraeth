@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-17",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment design sheet for a science fiction exploration game: the port of a city of glass domes on the sea floor. A round pontoon ring on the sea's surface round a lock shaft where a long boxy starship sets down and is lowered under the sea, great brass lock doors, below in the glass dome a moon pool where small round submersible pods like bathyscaphes come and go, pods gliding outside the glass on lanes past kelp and a distant whale, divers' racks and cargo nets, a lockkeeper in a heavy coat. Three panels: the pontoon and the lock from above three-quarter, the lock's chamber cut away with the ship inside and a person for scale, three small pods side by side. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, coral pink and sea teal, brass, pale green glass, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/space-port-prompts.md#underwater-city",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-17",
+      "batch": "2026-10-17-15-15-40-7afe",
+      "candidate": "openai/1",
+      "sha256": "d93aceb9a353f486c09117d2eb725b300c8358905518e9883fbfb8af6615ee5b",
+      "bytes": 334881,
+      "costUSD": 0.041
+    }
+  ]
+}

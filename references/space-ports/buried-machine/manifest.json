@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-17",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment design sheet for a science fiction exploration game: the freight stage of a stokers' town round a vast machine buried in a rust canyon, a great wheel turning one tooth a year. A loading stage of riveted iron beside the town's dome where a long boxy starship lands, an ore hopper on a crane, barrels of oil and crates of iron teeth, a stoker foreman with a whistle, steam from the canyon stacks. Three panels: the stage from above three-quarter, the pad close with a person for scale, a small freighter and a hopper craft side by side. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, rust orange, soot grey, oil black, brass, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/space-port-prompts.md#buried-machine",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-17",
+      "batch": "2026-10-17-15-16-47-77e6",
+      "candidate": "openai/1",
+      "sha256": "69618f26f7f61cd4fbfc62c16c5a2ab448cb10fc46d55de929f8174ae8a44e66",
+      "bytes": 329390,
+      "costUSD": 0.041
+    }
+  ]
+}

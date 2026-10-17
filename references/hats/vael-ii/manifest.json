@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-17",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Character design sheet for a science fiction exploration game: the headwear of a bell monastery on floating stones, brothers and sisters in wine-red and violet habits. Three pieces, each worn by a head-and-shoulders figure, front and three-quarter view: a monk's cowl of cream wool, rounded, close round a tonsured head; a sister's white wimple shaped like a small bell; a novice's plain skull cap. Every piece sits close on the head, one clear silhouette each, readable from far away. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, cream, wine red, violet and pale teal, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, costume party.",
+      "from": "docs/design/hat-prompts.md#vael-ii",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-17",
+      "batch": "2026-10-17-15-14-05-aff0",
+      "candidate": "openai/1",
+      "sha256": "f0691b86f8928c21c533890dbe43b519caaa8aa0901ef0cd42901ae755104fd5",
+      "bytes": 239869,
+      "costUSD": 0.041
+    }
+  ]
+}

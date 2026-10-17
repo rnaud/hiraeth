@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-17",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Character design sheet for a science fiction exploration game: the hats of gentle gardeners in white and pastel, tending a garden built over the ruins of white builders' slabs. Three pieces, each worn by a head-and-shoulders figure, front and three-quarter view: a gardener's straw hat with a low crown and a soft brim; a band of woven leaves lying flat on long loose hair; a cotton sun bonnet tied under the chin. Every piece sits close on the head, nothing floating round it, one clear silhouette each, readable from far away. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, white, mint, rose and straw, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, costume party.",
+      "from": "docs/design/hat-prompts.md#viridel",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-17",
+      "batch": "2026-10-17-15-14-05-b36b",
+      "candidate": "openai/1",
+      "sha256": "00ae7e0dbaa2546078a25a0554e58085f784498d4162b044c7a460a769a07edc",
+      "bytes": 268956,
+      "costUSD": 0.041
+    }
+  ]
+}

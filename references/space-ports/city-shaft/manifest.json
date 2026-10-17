@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-17",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment design sheet for a science fiction exploration game: a space port on the rim of a city built down the walls of a vast vertical shaft, rich families on the sunlit rim, the poor in the dark depths, a great lamp hanging over the void. Cantilevered landing cradles of iron and pastel lacquered panels bolted to the rim over the drop, the biggest holding a long boxy starship, a gantry crane on rails along the rim, a slender dispatch mast with a signal lamp, small flying cabs with striped awnings queueing at a stand and rising out of the shaft on lanes, crates lowered on cables, a dock warden in a high collar. Three panels: the port from above three-quarter, the landing cradle close with a person for scale, three small craft side by side. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, rose, lavender and pale blue lacquer with brass, rust and soot grey below, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/space-port-prompts.md#city-shaft",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-17",
+      "batch": "2026-10-17-15-15-40-b42b",
+      "candidate": "openai/1",
+      "sha256": "dc69b8318c63b832e825eb5dc495c01596de16c3cbcd6c916c19e452060a5bc5",
+      "bytes": 336062,
+      "costUSD": 0.041
+    }
+  ]
+}

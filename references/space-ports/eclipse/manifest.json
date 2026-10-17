@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-17",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment design sheet for a science fiction exploration game: the landing terrace of a city of limewashed houses, domes and round towers on terraces round great stairs, at midday under a total eclipse, the black sun and its corona over the roofs, every lamp lit at noon. A ceremonial esplanade before the city gate where a long boxy starship lands between rows of limewashed pylons topped with lamps, lamp-bearers in long pale robes walking the ship in, a signal tower with a great mirror, a small craft with lantern sails, baskets carried to the feast tables. Three panels: the esplanade from above three-quarter with the gate and the stairs beyond, the landing marks close with a person for scale, two small craft side by side. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, limewash white, rose horizon light, warm lamp gold, deep blue shadow, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/space-port-prompts.md#eclipse",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-17",
+      "batch": "2026-10-17-15-16-11-7528",
+      "candidate": "openai/1",
+      "sha256": "068d0ce96bceb9141117703d607e8469c793ca0b3bd8e4c26abe39596927586f",
+      "bytes": 274205,
+      "costUSD": 0.041
+    }
+  ]
+}
