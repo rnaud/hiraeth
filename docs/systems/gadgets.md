@@ -459,6 +459,30 @@ hall floor was in it; ceilings over every launch line would have changed every r
 Tests: tests/boots-reach.test.js (the rule's numbers, and the reach check over all fourteen houses: docs/systems/
 temples.md, "No hook past a lock"), tests/engine-springs.test.js (in the engines' bundle: a full wind on the Founders'
 Belfry's floor is a hop, by its door outside over 10 m).
+
+### The wings in the makers' houses (v1.84, issue #436)
+
+The fluid wings (backpack + glider, src/player.js, the wings' branch of `Player.update`) glide 15 m/s on and 2.4 m/s
+down in the open world: a running jump, the double jump at its top and the wings carried him some 45 m on the level, over
+the bridge and gate chasms of nine houses before the step meant to open them. Now, **inside a house** (`Player.inHouse`:
+the temple runtimes connected to him put themselves in `P.houses`, src/temples/runtime.js `connect`), the glide is
+heavier (`HOUSE_GLIDE`): the wings open as a brake at `speed` 6 m/s, no faster whatever the stick or the charms, and
+come down at least a metre for every `ratio` 1 m on (`glideSink(sink, speed, house)`), settling to it at `settle` 8/s
+(the open world's 3), so a running jump, the double jump and the wings fall short of every lock's chasm. Opened under a
+roof the flap is lower and duller and its sweep falls (src/audio.js `wings({ heavy })`, src/foley.js). **The open world
+is unchanged**, and so is moving air in a house: in a column (src/updraft.js), within `AIR_LEAD` 4 m round one or short
+of a carrying gust, in a gust that carries him, or in a `WingAir` (src/temples/pieces.js: the makers' breath, a box that
+holds open wings up without lifting them) the wings glide as outside (`P.windAt`, fresh for `UPDRAFT.fresh` s). The Aerie,
+the wings' own house, keeps its designed glides that way: its Wind Well breathes while its column rises (off the gallery
+into the column, down to the floor), and so do the Eyrie's gap over its column and the Gulf's second leg over the
+perch's column; the Gulf's first leg rides its gust; the Roost breathes all round the Elder, whose fight is flown. One
+other house's designed glide needed its air: the Warden's Well, off the top of its draught to the high ledge, where the
+drum breathes at the ledge's height while the draught rises that far (src/temples/incal.js).
+
+Tests: tests/wings-reach.js (the rule's numbers, and the reach check over all fourteen houses: docs/systems/
+temples.md, "No hook past a lock"), tests/engine-wings.test.js (in the engines' bundle: steep over the Founders' Belfry's
+floor, as before out by its door), the Aerie's walk on foot (tests/temples.test.js), the Elder's wind
+(tests/guardian-twists.test.js), the Warden's Well on foot (tests/wardens-well.test.js).
 ## The bubble wand (`bubble.js`)
 
 Hold the use button to aim (the wand in hand, the reticle on what it would catch: "a foe", "a crate", "a

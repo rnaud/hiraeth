@@ -6,7 +6,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
 import { glyphGeometry } from '../story/sign-text.js';
 import { TempleKit, T, box, lathe, annulus, sector } from './kit.js';
-import { Door, Plate, Ball, Switch, Platform, Bridge, Vane, Mark, Pit, Updraft, Key, HookBell } from './pieces.js';
+import { Door, Plate, Ball, Switch, Platform, Bridge, Vane, Mark, Pit, Updraft, WingAir, Key, HookBell } from './pieces.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
 import { sentinelModel } from './guardians.js';
 import { items } from '../items.js';
@@ -967,6 +967,9 @@ function layout(rt) {
   // floor of the core as it is let on (the eye woken, the ball on its plate), past the crown to the high ledge
   add(Updraft, { at: [0, 11.62, C3], r: 2.5, h: G0 + 3 - 11.62, heights: [[{ open: 'iris2' }, H0 + 3 - 11.62], [{ open: 'iris' }, GC + 3 - 11.62]], lift: 12, when: { all: [{ gadget: true }, OUT] },
     hint: 'The draught rushes up past you. Open your wings in it.', ride: 'The draught off the plinth fills your wings and carries you straight up.' });
+  // (issue #436) and its breath spread under the drum's roof at the high ledge's height, while it rises that far: off its
+  // top the wings glide on to the ledge as out in the world (a house's still air glides them steeper: player.js HOUSE_GLIDE)
+  add(WingAir, { min: [-GR, H0 - 1, C3 - GR], max: [GR, H0 + 6, C3 + GR], when: { all: [{ gadget: true }, OUT, { open: 'iris2' }] } });
   add(Door, { id: 'd3', at: [0, H0, C3 + GR + 0.7], w: D.w, h: D.h, lamps: [{ lit: 's4' }] });
   // (G6) a fall down the core or the Flue lands soft: the house's breath under its floors
   add(SoftFloor, { zones: [

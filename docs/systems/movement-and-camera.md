@@ -547,6 +547,8 @@ Tests: `tests/updraft.test.js` (the lift, the drift, no forward run once in, hel
 air also holds the wings still enough to aim (`Player.hovering`: the gun's arm may come up, `FluidTool.bodyFree`
 `{ hover }`, not the blade). The camera QC rides the City-Shaft's halfway pillar (`incal-pillar`, 18 m/s straight up,
 the camera turned while rising, then steered out): green, no pops, one small kink (0.21 m) as the wings open, 0.8 cm rough.
+Under a makers' roof the wings glide heavier, except in moving air (issue #436: docs/systems/gadgets.md, "The wings in the
+makers' houses"); a column holds them `AIR_LEAD` m round it as well, so they open into it at full speed.
 
 ## Aiming straight up (`CameraRig.pitchUpLimit`, `PITCH_UP_AIM`)
 

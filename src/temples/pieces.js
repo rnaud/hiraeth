@@ -1828,6 +1828,9 @@ export class Updraft {
     // (still: what it says, or [[condition, what it says]…], the first whose condition holds: why it is still)
     const still = Array.isArray(this.o.still) ? (this.o.still.find(([c]) => this.rt.logic?.check(c)) ?? this.o.still[this.o.still.length - 1])[1] : this.o.still;
     if (P && !this.on && still && P.gliding && this.inside(P.pos)) this.rt.notice?.(still, `updraft.still.${this.o.id ?? ''}.${still.length}`);
+    // (rising air spills a stride round its column: open wings there are held up already, so a makers' house's steeper glide,
+    // player.js HOUSE_GLIDE, doesn't drop him short of it, issue #436)
+    if (P && this.on && !P.onGround && Math.hypot(P.pos.x - this.foot.x, P.pos.z - this.foot.z) < this.r + AIR_LEAD && P.pos.y > this.foot.y - 1 && P.pos.y < this.foot.y + h) P.windAt = P.time ?? 0;
     if (!P || P.dead || P.down || !this.contains(P.pos)) { this.rideT = 0; return; }
     if (!P.gliding) {
       if (!P.onGround && P.vel.y < 0) this.rt.notice?.(this.o.hint ?? 'The wind rushes up past you. Open your wings in it.', 'updraft.hint');
@@ -1838,6 +1841,21 @@ export class Updraft {
     rideColumn(P, dt, { x: this.foot.x, z: this.foot.z, top: this.foot.y + this.h, lift: this.lift, r: this.r });
     if (this.o.low && h < this.hMax && P.pos.y > this.foot.y + h - 1.2) this.rt.notice?.(this.o.low, `updraft.low.${this.o.id ?? ''}`);
     if ((this.rideT += dt) > 0.4) this.rt.notice?.(this.o.ride ?? 'The wind fills your wings and lifts you, round and up.', 'updraft.ride');
+  }
+}
+
+/**
+ * The makers' breath in a hall built for wings (issue #436, the Aerie's Wind Well): air too soft to lift anyone, enough to
+ * hold open wings up. Inside its box (local) while its `when` holds, the house's steeper glide (src/player.js HOUSE_GLIDE)
+ * gives way to the open world's, as in a column or a carrying gust (P.windAt). Nothing drawn: the hall's own columns and
+ * feathers say what it is. o: { min, max, when }
+ */
+export class WingAir {
+  constructor(rt, o) { this.rt = rt; this.o = o; this.box = new THREE.Box3(V(...o.min), V(...o.max)); }
+  get on() { return !this.o.when || !!this.rt.logic?.check(this.o.when); }
+  update() {
+    const P = this.rt.player;
+    if (P && !P.dead && this.on && this.box.containsPoint(this.rt.kit.local(P.pos))) P.windAt = P.time ?? 0;   // (marked before the wings open: they open into it)
   }
 }
 
@@ -1855,6 +1873,8 @@ export class Updraft {
 const _gl = new THREE.Vector3(), _gd = new THREE.Vector3();
 /** Gust.lee: the height (m) of a body's chest over its feet, for the ray upwind. */
 export const LEE = { chest: 1.1 };
+/** How far short of rising air or a carrying gust (m: round a column, upwind of a gust's box) open wings are already held up by it (issue #436). */
+export const AIR_LEAD = 4;
 export class Gust {
   constructor(rt, o) {
     this.rt = rt; this.o = o;
@@ -1950,6 +1970,9 @@ export class Gust {
     this.mat.uniforms.uGlow.value = st === 1 ? 0.6 : 0.35;
     if (!P || P.dead || st < 1) return;
     const l = this.rt.kit.local(P.pos);
+    // (wings opened in a carrying gust or a stride short of it: it holds them up already, so the house's steeper glide, player.js
+    // HOUSE_GLIDE, doesn't drop him before it takes him: the Aerie's gulf, leapt into from its lip)
+    if (this.o.carry && !P.onGround && this.box.containsPoint(_gl.copy(l).addScaledVector(this.dirL, AIR_LEAD))) P.windAt = P.time ?? 0;
     if (!this.box.containsPoint(l) || this.sheltered(l) || screened(P.pos, this.dirW) || this.lee(P.pos)) return;   // (or behind a wall drawn in ink: src/wind-screens.js; or in a wall's lee)
     // the shield raised into it (o.guard, the Rose House): it breaks the wind, and you walk on into it, slowly
     if (this.o.guard && P.guarding?.() && this.facing(P.guardDir?.())) {
@@ -1962,6 +1985,7 @@ export class Gust {
       // the wings open: it carries you along with it (the glide keeps its own way and sink; the wind adds its own)
       const c = (this.o.carry ?? this.push) * dt;
       P.pos.x += this.dirW.x * c; P.pos.z += this.dirW.z * c;
+      P.windAt = P.time ?? 0;   // (and holds the wings up: no steeper glide in a house while it carries them, player.js HOUSE_GLIDE)
       this.rt.notice?.(this.o.carried ?? 'The gust fills your wings and carries you with it.', 'gust.carried');
       return;
     }

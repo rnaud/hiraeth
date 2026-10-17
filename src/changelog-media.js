@@ -1180,6 +1180,11 @@ export const CHANGELOG_MEDIA = {
       { name: 'plumb-walk', only: 'after', title: 'A walk down the ramp', caption: 'His first steps on the desert at a walk (about 1.5 m/s; it was a 3.8 m/s jog), the drone at his shoulder', from: PLUMB434 },
       { name: 'plumb-line', only: 'after', title: 'Its first word', caption: '“Best bet? The village on the horizon.” Qanat’s camps and its great tree stand to the right; then it flies off toward them', from: PLUMB434 },
     ], see: 'Start a new game and play the opening to the step out; later, wander a while without progress, stay stuck on one step in a makers’ house, or fight a guardian for a minute or two.' },
+    { match: 'Inside the makers’ houses the wings now glide heavy', numbers: [{ title: 'The wings inside a makers’ house', unit: 'm', better: 'lower', device: 'any', rows: [
+      { where: 'm on for each metre down (the glide’s flattest)', before: 6.25, after: 1 },
+      { where: 'running jump, double jump and wings, on the level', before: 45.1, after: 17 },
+    ], source: 'tests/wings-reach.js (the real traveller in node); docs/systems/gadgets.md, “The wings in the makers’ houses”' }],
+      see: 'In the Founders’ Belfry, run at the Hall of Echoes’ chasm before its bridge, jump, double jump and keep A / × held: the wings open with a low flap and you come down into the chasm. Outside, by its door, the same glide carries you some 45 m.' },
   ],
   '1.83': [
     { match: 'A new game in the Arcade, The Lens Vault', shots: [

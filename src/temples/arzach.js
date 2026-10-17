@@ -6,7 +6,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
 import { glyphGeometry } from '../story/sign-text.js';
 import { TempleKit, T, box, lathe, annulus, sector } from './kit.js';
-import { Door, Ball, Plate, Gust, Updraft, Platform, Mark, Pit, Key, Coffer } from './pieces.js';
+import { Door, Ball, Plate, Gust, Updraft, WingAir, Platform, Mark, Pit, Key, Coffer } from './pieces.js';
 import { elderGuardian } from './guardian-generated.js';
 import { items } from '../items.js';
 import { shiftAt } from '../levels/names.js';
@@ -458,6 +458,9 @@ function stack(rt, K, M, { C2, WR, feather }) {
   add(Updraft, { at: [Cl.x, E.floor + 1, C2], r: Cl.r, h: Cl.h, lift: 7.5, when: { all: [{ drumOn: ['bE', 'pC'] }, { open: 'dM' }] },
     still: [[{ drumOn: ['bE', 'pU'] }, 'Still air: the stone sits in the throat of the vent down there, and its shaft goes on down into the dark.'],
       [{ not: { open: 'dM' } }, 'Barely a breath out of the vent down there: its shaft goes down into the Moult, and the Moult’s door onto the well is shut. Nothing comes up a shaft that no wind goes into.']] });
+  // (issue #436) and its breath across the gap while it rises, spilling over the ledge's lip: open wings off the ledge glide
+  // on into it as out in the world
+  add(WingAir, { min: [Cl.x - 8, E.floor, C2 - E.d / 2], max: [STACK.ledge[0] + 3, E.y + E.h, C2 + E.d / 2], when: { all: [{ drumOn: ['bE', 'pC'] }, { open: 'dM' }] } });
   // the stone's groove on the ledge between its two throats
   const [Z0, Z1] = STACK.groove.z, GX = STACK.groove.x;
   K.add(M.dark, box(1.0, 0.04, Z1 - Z0 + 0.6, GX, E.y + 0.02, (Z0 + Z1) / 2));
@@ -572,6 +575,9 @@ function layout(rt) {
   // open wings go just over the chest's balcony (the gate of the way up: its id)
   add(Updraft, { id: 'column', at: [0, 0, C2], r: 4.5, h: WELL_VENT.low, heights: [[{ drumOn: ['bF', 'pF'] }, 36]], lift: 7, when: { drumOn: ['ballW', 'pH'] }, still: 'Still air over the grate: the wind goes down the hall. Nothing rises here.',
     low: 'The wind thins out over the balcony and lets your wings go. Down on the floor, by the Moult’s door, the other vent is breathing half of it away.' });
+  // (issue #436) while the column rises, the whole well breathes: open wings glide in it as out in the world, off the
+  // gallery into the column, down to the floor, round to the Eyrie's ledge (the houses' steeper glide is for still air)
+  add(WingAir, { min: [-WR, 0, C2 - WR], max: [WR, WELL.h, C2 + WR], when: { drumOn: ['ballW', 'pH'] } });
   // the floor's second vent, toward the Moult's door, and its stone beside it on a short groove; open, the wind breathes
   // out of it in a low column
   {
@@ -712,6 +718,8 @@ function layout(rt) {
   add(Plate, { id: 'pP', at: [S0, perchY, PZ], r: 1.3 });
   add(Plate, { id: 'pQ', at: [S1, perchY, PZ], r: 1.3 });
   add(Updraft, { at: [GULF.column, 2, PZ], r: 3, h: GULF.top - 2, lift: 7.5, when: { not: { drumOn: ['ballP', 'pP'] } }, still: 'Still air: the column’s stone sits in its throat, up on the perch.' });
+  // (issue #436) its breath over the second leg while it rises: off its top the wings glide on to the higher ledge as out in the world
+  add(WingAir, { min: [-GX, farY - 4, PZ], max: [GX, GULF.top + 2, FZ + 1], when: { not: { drumOn: ['ballP', 'pP'] } } });
   K.add(M.trim, T(annulus(2.9, 3.4, 0.2, 32), [GULF.column, 2.1, PZ]));
   add(Mark, { room: 'perch', at: [-2.4, perchY, PZ - 3.2], yaw: 0 });
   add(Mark, { room: 'gulfFar', at: [7, farY, FZ + 6], yaw: Math.PI });
@@ -747,6 +755,8 @@ function layout(rt) {
     add(Updraft, { at: [ROOST.vent, RY, CL], r: 4.5, h: 16, lift: 6, when: { drumOn: ['ballR', 'pRW'] }, hint: 'The wind rushes up out of the vent. Open your wings in it.' }),
     add(Updraft, { at: [-ROOST.vent, RY, CL], r: 4.5, h: 16, lift: 6, when: { drumOn: ['ballR', 'pRE'] }, hint: 'The wind rushes up out of the vent. Open your wings in it.' }),
   ];
+  // (issue #436) the Roost is the wings' own hall: its breath holds open wings up all round her, as out in the world
+  add(WingAir, { min: [-HR, RY - 1, CL - HR], max: [HR, RY + 24, CL + HR] });
   for (let i = 0; i < 10; i++) { const a = (i / 10) * TAU + 0.3; if (off(a, 0) < 0.4 || off(a, Math.PI) < 0.4) continue; feather(M.trim, Math.sin(a) * (HR - 0.8), RY, CL + Math.cos(a) * (HR - 0.8), 14, a + Math.PI, 0.2); }
   add(Door, { id: 'd5', at: [0, RY, CL + HR + 0.7], ...DOOR, frame: { side: 1.2 } });   // (frame: the rotunda's gap is wider than the door, issue #356)
   const XZ = CL + HR + 10;

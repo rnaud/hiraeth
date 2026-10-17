@@ -186,6 +186,11 @@ export class TempleRuntime {
     if (typeof window !== 'undefined') (window.temples ??= {})[this.id] = this;
     // no whistling the mount into the temple: it would come to the same x, z on the ground far below
     if (player?.opts) { const can = player.opts.canSummon; player.opts.canSummon = () => !this.inside(player.pos) && (can ? can() : true); }
+    // under its roof the wings glide steeper (src/player.js HOUSE_GLIDE, issue #436): he knows the houses he is connected to
+    if (player && !(player.houses ??= []).includes(this)) {
+      player.houses.push(this);
+      this.offs.push(() => { const i = player.houses.indexOf(this); if (i >= 0) player.houses.splice(i, 1); });
+    }
     // the chest in the temple: opening it is taking the gadget
     this.offs.push(this.game.on('box:opened', ({ id } = {}) => {
       if (id === this.def.gadgetBox) { this.logic.takeGadget(); this.game.emit('temple:gadget', { id: this.id }); }

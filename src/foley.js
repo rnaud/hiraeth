@@ -93,7 +93,7 @@ export class BodyFoley {
     if (!o.mantle && c.mantle) this.emit('mantle', { breath: this.breathe(F.mantleBreath, c.stamina), pos });
     if (o.gliding !== c.gliding && !c.down && this.t - this.lastFlap >= F.flapGap) {
       this.lastFlap = this.t;
-      this.emit('wings', { open: c.gliding, pos });
+      this.emit('wings', { open: c.gliding, pos, heavy: c.gliding && !!p.glideHeavy });   // (heavy: under a makers' roof, player.js HOUSE_GLIDE)
     }
     if (!o.thrust && c.thrust) this.emit('jets', { pos });
     if (!o.evade && c.evade) this.emit('evade', { pos });

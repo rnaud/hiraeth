@@ -33,7 +33,18 @@ const WALK = 3.8;
 const RUN = 8.2;   // (7.2 until October 2026: a little faster now that it costs stamina, src/stamina.js)
 export const GRAVITY = 32;   // (m/s²; the blade's rising cut leaps with it: src/fluid-blade.js RISE)
 const JUMP = 13;
-export { JUMP, STEP };   // (how high a jump reaches: the desert cave's ledges are set above it, src/desert-city.js CAVE_LEDGES)
+export { JUMP, STEP };
+/**
+ * The wings under a makers' roof (issue #436): in a house (Player.inHouse, the houses the temples' runtimes connect him
+ * to) the glide comes down at least a metre for every `ratio` m it goes on, whatever the stick or the charms, so a running
+ * jump, the double jump and the wings can't cross a bridge's or a gate's chasm before the step meant to open it (the open
+ * world's glide: 6.25 m on for each metre down, 15 / 2.4; 12.5 with the charms). Rising air is the house's own way of
+ * carrying the wings: in a column (src/updraft.js) and in a gust that carries them (pieces.js Gust, P.windAt) the rule
+ * gives way.
+ */
+export const HOUSE_GLIDE = { ratio: 1, speed: 6, settle: 8 };
+/** The glide's sink (m/s) at `speed` m/s on: the wings' own `sink`, steeper in a house (HOUSE_GLIDE). Pure. */
+export const glideSink = (sink, speed, house = false) => house ? Math.max(sink, speed / HOUSE_GLIDE.ratio) : sink;   // (how high a jump reaches: the desert cave's ledges are set above it, src/desert-city.js CAVE_LEDGES)
 const LIMIT = 1900;
 // The follow camera's look down when a world starts (rad, the rig's pitch): a gentle look down the way the
 // traveller faces, as Sable's (CameraRig; 0.13 until v1.49).
@@ -757,6 +768,8 @@ export class Player {
   get canJet() { return this.packWorn && this.jetsOwned; }
   /** The fluid wings. */
   get canGlide() { return this.packWorn && this.has('glider'); }
+  /** Inside a makers' house (issue #436: the temples' runtimes put themselves in `houses` as they connect to him). */
+  get inHouse() { return !!this.houses?.some((h) => h.inside?.(this.pos)); }
   /** On the wings in rising air (src/updraft.js): it holds him still enough to aim and shoot (src/fluid-tool.js bodyFree). */
   get hovering() { return this.gliding && inColumn(this); }
   /** The double jump (the lift valve, the backpack's first strength: items.js BACKPACK_STAGES). */
@@ -1706,10 +1719,13 @@ export class Player {
       const wasGliding = this.gliding;
       this.gliding = wantGlide && (vu < 0 || wasGliding);
       if (this.gliding) {
-        if (!wasGliding) this.glideSpeed = Math.max(Math.hypot(tv.x, tv.z), 11);
-        const target = (f > 0 ? 30 : f < 0 ? 7 : 15) * (this.glideK ?? 1);   // (the scientist's light-veined wings: glideK 1.2)
-        this.glideSpeed += (target - this.glideSpeed) * (1 - Math.exp(-(f > 0 ? 0.9 : 0.6) * dt));
-        const sink = (f > 0 ? 7 : f < 0 ? 1.3 : 2.4) * (f > 0 ? 1 : this.sinkK ?? 1);   // (the wind-silk scarf: sinkK 0.6)
+        // (in a makers' house, slower and steeper unless rising air or a gust carries him: HOUSE_GLIDE, issue #436)
+        const heavy = this.glideHeavy = !inColumn(this) && !((this.time ?? 0) - (this.windAt ?? -1) <= UPDRAFT.fresh) && this.inHouse;
+        if (!wasGliding) this.glideSpeed = heavy ? HOUSE_GLIDE.speed : Math.max(Math.hypot(tv.x, tv.z), 11);   // (under a roof they open as a brake)
+        else if (!heavy && this.glideSpeed < 11) this.glideSpeed += (11 - this.glideSpeed) * (1 - Math.exp(-HOUSE_GLIDE.settle * dt));   // (out of it into moving air: the open world's speed again)
+        const target = Math.min((f > 0 ? 30 : f < 0 ? 7 : 15) * (this.glideK ?? 1), heavy ? HOUSE_GLIDE.speed : Infinity);   // (the scientist's light-veined wings: glideK 1.2)
+        this.glideSpeed += (target - this.glideSpeed) * (1 - Math.exp(-(heavy && this.glideSpeed > target ? HOUSE_GLIDE.settle : f > 0 ? 0.9 : 0.6) * dt));
+        const sink = glideSink((f > 0 ? 7 : f < 0 ? 1.3 : 2.4) * (f > 0 ? 1 : this.sinkK ?? 1), this.glideSpeed, heavy);   // (the wind-silk scarf: sinkK 0.6)
         this.glideTurn = THREE.MathUtils.lerp(this.glideTurn ?? 0, -s * 1.25, 1 - Math.exp(-4 * dt));
         this.heading += this.glideTurn * dt;
         tv.copy(F.dir(this.heading, _g6)).multiplyScalar(this.glideSpeed);
@@ -1723,8 +1739,8 @@ export class Player {
           this.glideTurn = 0;
         }
         vu += GRAVITY * dt;                                  // the wing carries you: no free fall
-        vu += (-sink - vu) * (1 - Math.exp(-3 * dt));
-      } else this.glideTurn = 0;
+        vu += (-sink - vu) * (1 - Math.exp(-(this.glideHeavy ? HOUSE_GLIDE.settle : 3) * dt));   // (heavier: it settles sooner)
+      } else { this.glideTurn = 0; this.glideHeavy = false; }
       this.vel.copy(tv).addScaledVector(U, vu);
       // the double jump sets its burst on this.vel; the wings reopen once you fall again
       if (airPress) this.doubleJump();

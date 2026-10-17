@@ -1881,11 +1881,13 @@ export class Sound {
   }
 
   /** The fluid wings open (a cloth snapping full, a breath of the fluid rising) or fold away. */
-  wings({ open = true, pos = null } = {}) {
+  wings({ open = true, pos = null, heavy = false } = {}) {
     if (!this.ctx || this.muted) return;
     const t = this.ctx.currentTime;
-    if (!this.sample('flap', { vol: open ? 1 : 0.55, rate: open ? 0.95 : 1.2, pos })) this.flap();
-    if (open) this.sweep(t + 0.02, 300, 760, 0.25, 0.018, 'triangle');
+    // (heavy: opened under a makers' roof, where they glide steeper, player.js HOUSE_GLIDE: a lower, duller flap, the sweep falling)
+    if (!this.sample('flap', { vol: open ? 1 : 0.55, rate: open ? (heavy ? 0.78 : 0.95) : 1.2, pos })) this.flap();
+    if (open && heavy) this.sweep(t + 0.02, 420, 240, 0.3, 0.018, 'triangle');
+    else if (open) this.sweep(t + 0.02, 300, 760, 0.25, 0.018, 'triangle');
     else this.sweep(t, 620, 280, 0.2, 0.012, 'triangle');
   }
 

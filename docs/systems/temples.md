@@ -1838,7 +1838,7 @@ the Capstan Hall's walkways and back in past its great lock: a second rail at 2 
 (`WINDOW_BARS`, 0.75 m apart; the anchors still go out under them and your aim reaches them). A door in an
 opening wider or taller than itself takes a `frame: { side, top }` (src/temples/pieces.js Door): stone that wide either
 side of it and that tall over it, drawn and solid.
-## No hook past a lock (v1.83, issue #432, `tests/hook-reach.test.js`; the boots: issue #433)
+## No hook past a lock (v1.83, issue #432, `tests/hook-reach.test.js`; the boots: issue #433; the wings: issue #436)
 
 Found by the Lamp-House rework: the grappling hook reeled you onto any ledge in its 25 m reach, so a house's galleries,
 chasms and shafts could be crossed before the step meant to open them. Inside a house the hook now takes only what the
@@ -1895,12 +1895,42 @@ A rule and not house fixes: with the wings, a launch's reach is a cone some 150 
 far lip under a roof open over a floor was in it; ceilings over every launch line would have changed every room. With
 the hop no launch goes higher than a jump, so the check passes in every house, and a later change to the rule is checked.
 
-**The wings over the chasms** (found by the same check; not the boots', open): a running jump, the double jump at its
-top and the wings (6.1 m up, a glide of 6:1) cross up to about 45 m on the level, and the real traveller (src/player.js,
-driven as tests/door-bypass.test.js drives him) does, both ways, over the Warden's Well's discs and vane chasm, the
-Belfry's, the Footprint's, the Engine-House's and the Lamp-House's `br1`, the Footprint's pool stones, the Clock-House's
-discs, the Greenhouse's Vine Gulf and the Undertower's dishes' and gallery's gaps. tests/door-bypass.test.js flies the
-wings only round locked doors, not over bridges.
+**The wings over the chasms** (v1.84, issue #436, `tests/wings-reach.js`; found by the boots' check): a running
+jump, the double jump at its top and the wings (6.1 m up, a glide of 6.25:1) carried the traveller about 45 m on the
+level, over the bridge and gate chasms of nine houses both ways. Inside a house the wings now glide heavier
+(docs/systems/gadgets.md, "The wings in the makers' houses": 6 m/s on, a metre down for every metre on, unless moving air
+holds them); the open world keeps its glide. The check shares the hook's sides (house-walk.js `lockSides`) and flies the
+real traveller (src/player.js, driven as tests/door-bypass.test.js drives him) for every lock but the wings' own
+(`needs: ['glider']`, the Aerie's): from every spot of its near side (the link's `a`; the far side is had only through
+the lock, so the way back, a drop off a walkway into the room under it, is no skip), 2.5 m apart, within the wings' reach
+of the far side, toward its nearest spot and 0.35 rad either way, a run-up, the jump, the double jump at its top or late
+in its fall, and the wings held open with the stick let go; where he comes to stand must not be the far side, unless the
+same jumps without the wings get there too (not the wings': `WINGS_LOG=1` lists those). `WINGS_FREE=1` flies the open
+world's glide as well and lists what it crosses. On the fourteen houses at 75b95f7ed (the Engine-, Mooring-, Clock- and
+Casting-Houses and the Undertower reworked):
+
+| house | what the open world's glide crossed (running jump, double jump, wings) |
+|---|---|
+| the Warden's Well | the turning discs (`discs`); the vane chasm (`stones`) without its bridge |
+| the Founders' Belfry | the Echoes' chasm (`br1`) |
+| the Footprint | the pool's stones (`stones`); the Unseen's chasm (`br1`) |
+| the Engine-House | the furnace chasm (`br1`) |
+| the Lamp-House | the Dark Gallery's chasm (`br1`) |
+| the Clock-House | the gallery's chasm (`br1`) |
+| the Builders' Greenhouse | the Vine Gulf (`vine1`) |
+| the Undertower | the dishes' gap (`disc`); the Gallery of Voices' gap without the recall and the lens |
+| the Mooring-House | the gallery's halves without the moored room (`rideW`); the gangway (`br2`); the Cable Walk (`cw`) |
+| the Rose House, the Hush-House, the Aerie, the Casting-House, the Whale-House | nothing |
+
+With the rule nothing crosses in any house. The narrowest was the Undertower's dishes' gap, 17 m, a metre past a running
+jump and the double jump alone: the reason the ratio is 1 and not the 2–2.5 that clear the 25–30 m chasms. Found on the
+way, not the wings' (open): the Mooring-House's gangway gap (`br2`) is crossed from the Chain Locker's side by a running
+jump and a late double jump alone, no wings. The Aerie's designed glides on still air (off the gallery into the Wind
+Well's column, off the Eyrie's ledge into its column, off the column's top over the Gulf's second leg) now go through
+the makers’ breath (`WingAir`) over each while its column rises, and the Gulf's first leg through its gust (held a stride
+before it, `AIR_LEAD`): its walk on foot passes unchanged, and the Roost breathes all round the Elder. One other designed
+glide needed its air: the Warden's Well's, off the top of the draught to the high ledge (the drum breathes at the ledge's
+height while the draught rises that far).
 
 ## Weights on the plates (v1.76, issue #337, `Weight`)
 

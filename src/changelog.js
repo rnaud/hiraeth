@@ -28,6 +28,11 @@ export const CHANGELOG = [
     'In the fight temples a roll cuts a swing off: pressed while the sword is drawn back or following through, you roll at once. Pressed during the cut itself, the cut lands and the roll comes the moment it ends.',
     'Foes felled in the fight temples are easy to see from up there: the blow throws the body back about a metre and it goes down quicker, a ring flashes on the floor, ink splashes out with a wet thump, and a star of ink stays where it fell for a few seconds before it dries away. When many fall at once each leaves its stain, but only a few ring and splash.',
     'A roll takes you through every hazard of the fight temples unharmed: gusts, millstones, ore carts, falling loads, the eyes’ flash and the toll as well as slag, oil, broken glass, the dark and the shade. Rolling across burning ground no longer flashes as a perfect dodge.',
+    // issue #436: src/player.js HOUSE_GLIDE, glideSink, Player.inHouse (runtime.js connect: P.houses), src/temples/pieces.js
+    // WingAir, AIR_LEAD (Updraft, Gust), arzach.js (the well's, the Eyrie gap's, the Gulf's and the Roost's breath), incal.js
+    // (the drum's at the high ledge), audio.js wings
+    // heavy; tests/wings-reach.js, tests/engine-wings.test.js
+    'Inside the makers’ houses the wings now glide heavy: they open as a brake and come down steeply, with a lower, duller flap, so a running jump, the double jump and a glide no longer carry you over a chasm before its bridge or gate is open. Out in the world they glide as before, and moving air still carries them indoors: the columns, the gusts, the Warden’s Well’s draught out to its high ledge, and in the Aerie the breath of the Wind Well, the Eyrie’s gap, the Gulf and the Roost, so their glides work as they did.',
   ] },
   { v: '1.83', date: '2026-10-16', items: [
     // issue #406: src/temples/desert.js (ROOMS, LOGIC: hall, balcony, ballK, kS, dE, sentry in the hall, d3), pieces.js Ball
