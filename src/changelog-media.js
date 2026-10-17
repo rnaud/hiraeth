@@ -1152,6 +1152,7 @@ export const CHANGELOG_MEDIA = {
       { name: 'unity-cargo', only: 'after', title: 'The cargo check', caption: 'The homecoming’s cargo panel with three things in the hold, waiting for A / ×', from: UI430 },
       { name: 'unity-arcade', only: 'after', title: 'The Arcade’s board', caption: 'Every game, its line and its best, opened with Tab or D-pad down', from: UI430 },
     ], see: 'In the Unity version, walk up to someone in the desert who has something to say, open the Arcade’s board with Tab, or swim under water in the Underwater City.' },
+    { match: 'In the Unity version, the sword and the shield hang on the traveller only once you have found them', see: 'In the Unity version, start a new game: no sword on his back and no ink blots in the wilds until the Rose House gives you the blade. Win a fight temple: the backpack, the sword and the shield wear its colours.' },
     { match: 'The Aerie in Vael is rebuilt round a great hall', shots: [
       { name: 'aerie-well', title: 'Down the well', caption: 'From the tip of the high balcony, down the Wind Well: before, a round hall 36 m across; after, 62 m, the Feather Gallery round it 16 m up, the raft, the stones and the vents on the floor below', from: AERIE407 },
       { name: 'aerie-hall', title: 'The great hall', caption: 'From the well’s floor by the way in, looking up: before, one balcony over a narrow shaft; after, the gallery’s ring and the high balcony’s pier, both floors over you at once', from: AERIE407 },

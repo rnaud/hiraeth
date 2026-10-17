@@ -155,6 +155,7 @@ import { DevMenu } from '../src/dev-menu.js';
 import { gatherPoints, questList, applyQuestJump, landingSpot, godLanding } from '../src/world-debug.js';
 import { GAMES } from '../src/minigames/index.js';
 import { DEBUG_SLOT } from '../src/save-slots.js';
+import { wireKit } from '../src/host/game-host.js';
 
 export { page };
 export { readHref } from './trials.js';   // (the tests: a game page's address)
@@ -507,6 +508,11 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // drum and the hearth's hints, its tank's moment: src/story/desert.js toolHasPush)
   const tool = optional('the fluid tool', () => new FluidTool({ scene, player, physics, camera, rig: null, sound, level, hud: new ToolHud(), noShadow: (level.noShadow ??= []) }));
   if (tool && level.lendTool) lendTool(tool, level.lendTool);   // (the Arena's: the backpack, the blade and the shield lent for the visit, main.js)
+  // the sword and the shield only once found, the kit in the colours chosen (src/host/game-host.js wireKit, as the page:
+  // unset, the sword hung on his back from the opening on in Unity, and cut, before the Rose House gave it, issue #394;
+  // and the kit's colours won in the fight temples were the page's alone, #264). A fight's bench (-fight): armed, as the
+  // Arena lends them
+  const kit = optional('the kit', () => wireKit({ tool, game: gameState, armed: fight }));
   let story = null;
   if (people && humans && lib) {
     try {
@@ -1392,6 +1398,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         levels: LEVELS.map((l) => ({ id: l.id, title: l.title, hidden: l.hidden, blurb: l.blurb, relicNames: CONTENT[l.id]?.relics?.names })),
         mode: () => ({ mode: tool?.owned ? tool.mode : null, modes: tool?.owned ? tool.modes : [], gadget: gadgets?.equipped ?? null, gadgets: gadgets?.owned?.() ?? [] }), boxes: () => boxes?.counts?.() ?? {},
         fragments: () => fragments?.counts?.() ?? null,
+        colours: () => kit?.colours() ?? null,   // (the Items panel's Colours row: src/host/game-host.js wireKit)
         map: (o) => mapSource(o), travel: (id) => !!travel && fastTravel.can({ to: id, from: levelId, seen, flag }), order: ORDER, known: (id) => journal.seen(id) });
     },
     /** The Map's drawn ground by its key (the view's map.ground): a PixelCanvas (width, height, data: RGBA, rows top down). */
@@ -1618,9 +1625,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       lap?.('foes');
       // the world's life, the tool and the drone (main.js's order)
       try {
-        // (the sword and the shield only once found, as main.js armTool: unset, the sword hung on his back from the
-        // opening on in Unity, and cut, before the Rose House gave it; issue #394)
-        if (tool?.items) { tool.swordOn = fight || !!tool.items.has('sword'); tool.shieldOn = fight || !!tool.items.has('shield'); }   // (a fight's bench, -fight: armed, as the Arena lends them)
+        kit?.arm();   // (the sword and the shield only once found: wireKit)
         tool?.update(pdt, pinned || busy ? noInput : ctl, busy || !!pinned || drives || player.god);   // (a game on foot keeps the blade and the gun)
         gadgets?.update(pdt, gadgetsPaused);   // (after the tool: an aiming gadget's camera and pose win)
         scout?.update(dt, busy || !!pinned);

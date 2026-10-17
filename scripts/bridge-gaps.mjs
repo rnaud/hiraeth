@@ -10,6 +10,7 @@
 //              object's own render(renderer)
 //   dom        the page's own elements a system builds (createElement but canvases, innerHTML, getElementById…)
 //   host       what src/main.js sets up that engine/game.js doesn't: the modules' names it imports, its own functions
+//              (and shared:<group>, the one game setup's groups both hosts call: src/host/game-host.js, #427)
 //
 //   node scripts/bridge-gaps.mjs            writes docs/systems/bridge-gaps.md from engine/bridge-gaps.js
 //   node scripts/bridge-gaps.mjs --check    gathers everything and prints what isn't listed, or is listed but gone
@@ -123,7 +124,12 @@ export function gatherHost() {
   const engine = engineFiles.map((f) => read(f)).join('\n');
   const engineImports = new Set(engineFiles.flatMap((f) => imports(code(read(f)), dirname(f))));
   const out = new Map();
-  for (const k of new Set(imports(main, 'src'))) if (!engineImports.has(k)) out.set(`import:${k}`, {});
+  for (const k of new Set(imports(main, 'src'))) {
+    // (the one game setup both hosts call, src/host/ (#427): a group both import is `shared:<name>`, listed as handled;
+    // one main.js calls and engine/ doesn't is a gap like any other import)
+    if (k.startsWith('src/host/') && engineImports.has(k)) out.set(`shared:${k.split('#')[1]}`, {});
+    else if (!engineImports.has(k)) out.set(`import:${k}`, {});
+  }
   const own = new Set();
   for (const m of main.matchAll(/^(?:async\s+)?function\s+(\w+)|^(?:const|let)\s+(\w+)\s*=\s*(?:async\s*)?(?:\([^)]*\)|\w+)\s*=>/gm)) own.add(m[1] ?? m[2]);
   for (const n of own) if (!new RegExp(`\\b${n}\\b`).test(engine)) out.set(`fn:${n}`, {});
@@ -150,6 +156,9 @@ export async function gatherMaterials({ worlds = null, games = null, log = () =>
   const file = tempPath(join(tmpdir(), `hiraeth-bridge-gaps-${process.pid}.js`));
   await bundle('godot', { input: 'engine/game.js', out: [file] });
   const B = loadBundle(file, { pads: () => [] }).exports;
+  // (the sword and the shield had: unarmed, no pack of foes comes in from the wilds, src/foes.js armed(), and the engines
+  // keep to that since #427 (src/host/game-host.js wireKit); the foes' materials are what this run is for)
+  for (const id of ['sword', 'shield']) B.items?.grant?.(id);
   const out = new Map();
   let at = '';
   const note = (key, name) => {
