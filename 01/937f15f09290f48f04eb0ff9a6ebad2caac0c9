@@ -1,0 +1,57 @@
+changelog.md
+  s_5f899ba316b5dc::t_f9bd25c957a7bd 7-11
+docs/design/space-ports.md
+  s_5f899ba316b5dc::t_702589bccf6cef 9-14
+docs/systems/worlds.md
+  s_5f899ba316b5dc::t_0b8e0344273f41 2799-2825,2827-2860
+scripts/design-qc/capture.mjs
+  s_5f899ba316b5dc::t_d1e6d75c423d8d 13-14,102-104,106
+src/changelog-media.js
+  s_5f899ba316b5dc::t_b29ea89b827bfd 1157-1160,1187-1219
+src/changelog.js
+  s_5f899ba316b5dc::t_03133ef87add4f 31-38
+src/levels/bazaar.js
+  s_5f899ba316b5dc::t_3063b410ebea5e 24-26,480-481,501,588
+src/levels/buried.js
+  s_5f899ba316b5dc::t_652fab079994e3 5-6,1285-1286
+src/levels/content.js
+  s_5f899ba316b5dc::t_784b441e9ae90f 31,318-324
+src/levels/eclipse.js
+  s_5f899ba316b5dc::t_d18eee7342257a 2-3,359-360,399
+src/levels/glass-dunes.js
+  s_5f899ba316b5dc::t_1244eaa49f4b02 2-3,313-314
+src/levels/incal.js
+  s_5f899ba316b5dc::t_c863b47dfbf8ce 3-4,1242-1243,1303,1450
+src/levels/port-craft.js
+  s_5f899ba316b5dc::t_3ddeed5cfbc3b3 1-245
+src/levels/port-pad.js
+  s_5f899ba316b5dc::t_cd8ed3ebd395ee 2-4,6-9,12-15,17-19,21-24,26,31,33-42,45-54,57-196,200-426,429,431-432,434,448-498,500,503,506-525
+src/levels/ports.js
+  s_5f899ba316b5dc::t_a6548e62ae772e 1-321
+src/levels/salt-harbour.js
+  s_5f899ba316b5dc::t_728bbe35c7eb2b 2-3,427-428,467
+src/levels/space-city.js
+  s_5f899ba316b5dc::t_d908282d3f6b05 19-20,75-76,257-260
+src/levels/underwater.js
+  s_5f899ba316b5dc::t_6803b4e3ab33ba 2-3,602-603
+src/levels/waterfall.js
+  s_5f899ba316b5dc::t_7eb24b7263c5d1 2-3,240-241,291
+tests/ports.test.js
+  s_5f899ba316b5dc::t_0b1dcd1ed1d3e2 1-3,7-12,14-17,19-71,75-83,86-99
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "01937f15f09290f48f04eb0ff9a6ebad2caac0c9",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
