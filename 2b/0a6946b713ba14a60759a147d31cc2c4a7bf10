@@ -1,0 +1,45 @@
+changelog.md
+  s_5f899ba316b5dc::t_b3f2c8ad28fe4d 20
+docs/design/temple-best-practices.md
+  s_5f899ba316b5dc::t_3d84a903eafe26 644-686
+docs/systems/temples.md
+  s_5f899ba316b5dc::t_4f93bac4e03a75 772-834,1294-1295
+src/changelog-media.js
+  s_5f899ba316b5dc::t_d01357a4ce678f 1149-1151,1248-1258
+src/changelog.js
+  s_5f899ba316b5dc::t_5e53d2d007e2fb 41-44
+src/temple-maps/makers.js
+  s_5f899ba316b5dc::t_d7e560edfff158 391-392
+src/temples/migrate.js
+  s_5f899ba316b5dc::t_23767864fa682f 221-225,227,231-233
+src/temples/skins/mooring-house.js
+  s_5f899ba316b5dc::t_ec351534bb40f6 76-77,88-91
+src/temples/spacecity-data.js
+  s_5f899ba316b5dc::t_677172bb606f9e 47-48
+src/temples/spacecity.js
+  s_5f899ba316b5dc::t_ec5e88b88a3ef5 11-12,25-29,31-62,66-68,119-121,123-154,159-161,165-167,170-178,182-184,187-191,197,199-207,209-212,221-224,227-230,232-245,248-252,255-264,266-268,271-272,275-281,344-749,760-763,771,785,788-795,840,846,857,869,905,912,917-919,932-933,947-949,951-952,956,958-1009,1011-1021,1024,1026-1027,1029-1073,1075-1084,1086-1113,1116-1118,1169,1173
+tests/carry.test.js
+  s_5f899ba316b5dc::t_b73d89f4fcbf23 204,209
+tests/mooring-room.test.js
+  s_5f899ba316b5dc::t_d1c27d0cc2245f 1-348
+tests/temple-playthrough.test.js
+  s_5f899ba316b5dc::t_88dd0ad23e11d3 305-306,321-322,324
+tests/temples.test.js
+  s_5f899ba316b5dc::t_2c23a25a0854e5 926-928,930-932,938-958,961,966,971-973,2791
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2b0a6946b713ba14a60759a147d31cc2c4a7bf10",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
