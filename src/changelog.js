@@ -24,6 +24,15 @@ export const CHANGELOG = [
         { where: 'the Desert', before: 53.1, after: 44.1 },
         { where: 'the City-Shaft', before: 50.9, after: 41.9 },
       ], source: 'docs/systems/performance.md, "The Xbox\'s load, round three"' }] },
+    // issue #404 round 10: unity/Hiraeth InstLod.cs (each instanced mesh's coarser levels, made on a worker thread, picked by
+    // their stray in pixels), InstMats (Wildlife.cs) DrawLevels / CastLevels; tests/unity-instance-lod.test.js;
+    // docs/systems/performance.md "Unity on the Retroid, round 10"
+    { text: 'In the Unity version on handhelds, the City-Shaft runs smoother where you arrive: its far trees across the shaft are drawn with fewer triangles, too few pixels to see the difference. On the Retroid Pocket 5 the arrival view runs at 51 frames a second instead of 45.',
+      numbers: [{ title: 'The City-Shaft on the Retroid, frames a second, before → after', unit: 'fps', better: 'higher', device: 'Retroid Pocket 5, the Unity version, Handheld preset (FSR 1 at 0.67 of 1280 × 960), muted', rows: [
+        { where: 'the arrival view', before: 45.2, after: 51.3 },
+        { where: 'the second crowd', before: 59.3, after: 60.1 },
+        { where: 'the wide view', before: 37.8, after: 38.4 },
+      ], source: 'docs/systems/performance.md, "Unity on the Retroid, round 10"' }] },
     // issue #442: src/fight-temples/rules.js rollInput / rollKey, index.js (the card), session.js; src/fluid-blade.js
     // QUICK_CUT, quickSwing, rollCancels, ROLL.buffer; src/fight-temples/kill-fx.js, src/audio.js foeKill; hazards.js
     // LINGERING; tests/fight-feel.test.js; docs/design/fight-temples.md "The roll, the quick cut and readable kills"

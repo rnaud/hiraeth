@@ -569,6 +569,10 @@ namespace Hiraeth.Bridge
             if (BridgeArgs.Arg("-merge-min") is string mmn && int.TryParse(mmn, out int mnv)) BridgeRenderer.mergeMin = mnv;
             BridgeRenderer.skinCull = BridgeArgs.Flag("-skin-cull");
             if (BridgeArgs.Flag("-no-view-instances")) InstMats.ViewCull = false;
+            // (the far instances on coarser versions of their meshes, straying under this many of the render's pixels: InstLod; 0 off)
+            if (BridgeArgs.Arg("-inst-lod-px") is string ilp && float.TryParse(ilp, flt, inv, out float ilv)) InstLod.Px = ilv;
+            if (BridgeArgs.Arg("-inst-lod-shadow") == "0") InstMats.LodShadows = false;
+            if (BridgeArgs.Arg("-inst-lod-save") is string ils && int.TryParse(ils, out int ilsv)) InstLod.MinSave = ilsv;
             InstMats.ViewSetsOnly = BridgeArgs.Flag("-view-instance-sets");
             if (BridgeArgs.Arg("-shadow-depth") is string sdp)
                 HiraethShadows.DepthFormat = sdp == "16" ? UnityEngine.Experimental.Rendering.GraphicsFormat.D16_UNorm : sdp == "24" ? UnityEngine.Experimental.Rendering.GraphicsFormat.D24_UNorm_S8_UInt : UnityEngine.Experimental.Rendering.GraphicsFormat.D32_SFloat;

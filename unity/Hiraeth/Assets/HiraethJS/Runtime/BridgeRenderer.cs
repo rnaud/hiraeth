@@ -1182,6 +1182,15 @@ namespace Hiraeth.Bridge
             // (the GPU instances drawn only where the camera's view holds them: InstMats.ViewCull)
             Plane[] view = null;
             if (cam) { GeometryUtility.CalculateFrustumPlanes(cam, viewPlanes); view = viewPlanes; InstMats.ViewEye = cam.transform.position; }   // (and the eye: InstMats.far)
+            // (the instances' coarser versions made since, and the pixels a radian at the render scale: InstLod)
+            Hiraeth.InstLod.Pump();
+            if (cam)
+            {
+                float rs = GraphicsSettings.currentRenderPipeline is UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset ua ? ua.renderScale : 1f;
+                Hiraeth.InstLod.PxPerRad = cam.pixelHeight * rs / (2f * Mathf.Tan(cam.fieldOfView * 0.5f * Mathf.Deg2Rad));
+            }
+            if (census && Time.frameCount % 300 == 0) Debug.Log($"Hiraeth bridge: census, the instances by level (full, then coarser): {string.Join(" / ", Hiraeth.InstLod.Drawn)}; {Hiraeth.InstLod.Pending} meshes still being made, {Hiraeth.InstLod.PxPerRad:0} px a radian");
+            System.Array.Clear(Hiraeth.InstLod.Drawn, 0, Hiraeth.InstLod.Drawn.Length);
             foreach (var n in nodes.Values)
             {
                 if (!n.go.activeInHierarchy) continue;

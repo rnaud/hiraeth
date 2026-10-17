@@ -4370,3 +4370,57 @@ New test switches (BridgeRunner, all off unless asked): `-draw-tax N`, `-vert-ta
 rather than its static batch's. To repeat: the scripts in `.local-tools/handoff/gpu-404/` (`ab.mjs` as round 8's,
 `sum.mjs <tag> [--split]` per view with the SetPass calls, triangles, vertices and the passes, `diff.mjs <tag> <a> <b> <out>` the shots' differing
 pixels and a sheet a | b | the difference; `ANDROID_SERIAL=ea2c972a`).
+
+### Unity on the Retroid, round 10: levels of detail for the GPU instances (issue #404, 2026-10-17)
+
+The same device, preset and bench as round 9 (Handheld, FSR 1 at 0.67 of 1280 × 960, muted, the frame readout on; warm
+launches). Round 9's lever was the City-Shaft's GPU instances. Its census (`-census`) shows what they are: not the houses
+(those are merged meshes) but **the trees**, cypresses, olives and umbrella pines in 112 sets (a terrace, a kind and an
+eighth of the ring each), ~2 400 of the ~2 900 instances in the start and wide views, 120-160 triangles each, most of them
+250-550 m off; the rest the bells and the cabs' parts.
+
+**What it does** (`InstLod.cs`, `InstMats` in `Wildlife.cs`): every instanced mesh of 40-4 000 triangles gets up to three
+coarser levels at about 1/2, 1/4 and 1/8 of its triangles: half-edge collapses ordered by quadric error (Garland and
+Heckbert, unweighted planes, the open edges held), over the positions welded, so each level is an index list over the
+full mesh's own vertices and every attribute comes from it. Each level knows how far it strays from the full mesh (the
+farthest a sample of either surface lies from the other: vertices, edges' middles, triangles' middles). They are made on a
+worker thread the first time a set of the mesh is drawn (all of the City-Shaft's 87 in ~0.5 s after the world appears; until
+then a set draws whole, as before). Each frame an instance draws on the coarsest level whose stray, times its scale,
+projects to under **half a pixel** at its distance (the camera's pixels at the render scale: 618 a radian on the Retroid):
+the picture does not change. The cypress's 126 triangles become 54 / 26 / 12 (stray 0.24 / 0.42 / 0.70 m: from 290 m, 520 m
+and 870 m at its usual scale); the olive's and the pine's lobes are icosahedra already, their first level strays 0.76-1.1 m
+and starts past 900-1 400 m (never, in the shaft). The shadow maps take the level the view gives each instance (it made no
+measurable difference: 0.1 ms).
+
+**A level is a draw.** Drawn apart, every set's levels were a draw more each in the prepass and the G-buffer (~350 more):
+the start view gained 3 ms but the second crowd lost 0.7 ms (59.3 → 57.8 fps) and the wide view gained nothing. A level whose
+instances save fewer triangles than `MinSave` joins the finer one (600: the crowd still lost 0.5 ms; **2 000** kept: every
+view gains; 5 000 merges nearly all and the gain is gone).
+
+| City-Shaft view | off: fps (1 % low, GPU ms) | off again | on (0.5 px, 2 000) |
+|---|---|---|---|
+| start | 45.2 (25.2, 21.6) | 45.3 (27.3, 21.5) | **51.3** (34.1, 18.3) |
+| crowd | 60.1 (50.4, 13.2) | 60.1 (51.1, 13.4) | 60.1 (49.2, 13.3) |
+| crowd2 | 59.3 (46.9, 16.0) | 59.4 (35.5, 15.9) | **60.1** (53.9, 15.4) |
+| wide | 37.8 (31.9, 25.5) | 37.8 (32.5, 25.6) | 38.4 (32.1, 25.0) |
+
+The other worlds, the same sitting (fps, worst view, 1 % low, GPU ms; medians of their views): the Signal Market 60.1, 57.9,
+52.5, 15.9 against 60.1, 58.0, 54.0, 15.9 off; Lorn 56.3, 48.0, 48.1, 15.8 against 56.5, 48.5, 47.8, 15.7; Underwater 58.6,
+52.4, 45.9, 16.9 against 58.4, 52.1, 48.5, 16.9; the Floating city 58.7, 53.0, 47.9, 16.9 against 58.6, 53.0, 52.0, 16.8; the
+desert 59.9, 56.6, 44.8, 13.9 against 60.1, 57.1, 51.7, 13.9. No GPU time moves: their instances are few or near. The
+desert's 1 % low, run twice more off / on: 49.1 / 47.3 and 47.2 / 52.1 (noise).
+
+**The pictures** (the bench's shots, `diff.mjs`: pixels differing by more than 24): two runs of the same build differ by
+0.02-3.6 % of the pixels per view, the levels on by 0.03-3.6 %, view by view within that spread (the City-Shaft's start
+0.37 % against 0.02-0.36 %: the glass pillar's dots and the people, and a faint line along the far trees under the ×4
+difference). Enlarged crops of the far trees in the start and wide views show no difference. At 1 px the start view is the
+same (49.9 fps) and the far trees still look the same; at 2 px (51.9 fps) their ink comes out lighter, so 0.5 it is.
+
+**Where it stands:** the City-Shaft's start view 45 → 51 fps; its wide view 38 fps stays the worst (25 ms): there the
+trees are 150-450 m below the eye and their cost is their pixels, not their triangles (hiding every instance takes 5 ms;
+the levels take 0.6). Unity only: the web has its own levels of detail (src/lod.js, a whole set's geometry swapped by its
+distance), which the bridge leaves off (`-js-on lod`, round 9).
+
+Switches (BridgeRunner): `-inst-lod-px P` the pixels (0: off), `-inst-lod-save N` the triangles a level must save,
+`-inst-lod-shadow 0` the full mesh in the shadow maps; `-census` logs the instances drawn at each level. To repeat: round
+9's scripts with `--conds "off=-inst-lod-px 0|on="`.

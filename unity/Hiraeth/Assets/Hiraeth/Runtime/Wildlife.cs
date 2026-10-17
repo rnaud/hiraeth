@@ -26,15 +26,18 @@ namespace Hiraeth
                 {
                     int k = subN[ci];
                     if (k == 0) { said++; return; }
-                    if (k > 0) { drew++; cmd.DrawMeshInstancedProcedural(mesh, 0, mat, shadowPass, k, subMpb[ci]); return; }
+                    if (k > 0) { drew++; if (!CastLevels(cmd, ci, sub[ci], k)) cmd.DrawMeshInstancedProcedural(mesh, 0, mat, shadowPass, k, subMpb[ci]); return; }
                 }
                 else if (c.cullN > 0 && boundsOk && !Inside(c, bounds)) { said++; return; }
                 drew++;
+                if (ci >= 0 && CastLevels(cmd, ci, data, count)) return;
                 cmd.DrawMeshInstancedProcedural(mesh, 0, mat, shadowPass, count, null);
             };
             HiraethShadows.Instanced.Add(caster);
             all.Add(this);
+            lod = InstLod.For(m);   // (its coarser versions for the far instances, made on a worker thread: InstLod)
         }
+        readonly InstLod.Lod lod;
         // each cascade's instances inside its planes this frame (CullFor): -1 every one, 0 none, k the first k of sub[ci]
         readonly int[] subN = new int[3], culledAt = { -1, -1, -1 };
         readonly Inst[][] sub = new Inst[3][];
@@ -237,9 +240,90 @@ namespace Hiraeth
                 }
             }
             lastDrawn = k;
+            // (the far instances on their coarser versions, where those stray under InstLod.Px pixels: InstLod)
+            if (lod != null && lod.ready && InstLod.Px > 0 && InstLod.PxPerRad > 0 && DrawLevels(mpb == null ? data : viewSub, k, b)) return;
+            InstLod.Drawn[0] += k;
             Graphics.RenderMeshPrimitives(new RenderParams(mat) { worldBounds = b, shadowCastingMode = ShadowCastingMode.Off, receiveShadows = true, matProps = mpb }, mesh, 0, k);
         }
-        public void Release() { buf?.Release(); buf = null; viewBuf?.Release(); viewBuf = null; for (int i = 0; i < 3; i++) { subBuf[i]?.Release(); subBuf[i] = null; } HiraethShadows.Instanced.Remove(caster); all.Remove(this); }
+        Inst[][] lvData; int[] lvN; GraphicsBuffer[] lvBuf; MaterialPropertyBlock[] lvMpb; float[] lvAt;
+        /// <summary>The first k of `src` drawn, each on the coarsest level whose stray (times the instance's scale) projects to
+        /// under InstLod.Px pixels from the eye; false (nothing drawn) when every one wants the full mesh.</summary>
+        /// <summary>The first k of `src` sorted into `into` by level (as DrawLevels); false when every one wants the full mesh.</summary>
+        bool Partition(Inst[] src, int k, ref Inst[][] into, ref int[] n)
+        {
+            int L = lod.levels;
+            if (into == null) { into = new Inst[L + 1][]; n = new int[L + 1]; }
+            if (lvAt == null) lvAt = new float[L + 1];
+            float K = InstLod.PxPerRad / InstLod.Px;
+            for (int j = 1; j <= L; j++) { float a = lod.err[j - 1] * K; lvAt[j] = a * a; }   // (a level from this distance², times the scale²)
+            var e = ViewEye;
+            if (lvOf == null || lvOf.Length < k) lvOf = new byte[Mathf.Max(k, data.Length)];
+            for (int j = 0; j <= L; j++) n[j] = 0;
+            for (int i = 0; i < k; i++)
+            {
+                ref var d = ref src[i];
+                float x = d.r0.w - e.x, y = d.r1.w - e.y, z = d.r2.w - e.z, d2 = x * x + y * y + z * z;
+                // (the instance's largest scale², from its matrix's columns)
+                float s0 = d.r0.x * d.r0.x + d.r1.x * d.r1.x + d.r2.x * d.r2.x, s1 = d.r0.y * d.r0.y + d.r1.y * d.r1.y + d.r2.y * d.r2.y, s2 = d.r0.z * d.r0.z + d.r1.z * d.r1.z + d.r2.z * d.r2.z;
+                float s = Mathf.Max(s0, Mathf.Max(s1, s2));
+                int j = L;
+                while (j > 0 && d2 < lvAt[j] * s) j--;
+                lvOf[i] = (byte)j; n[j]++;
+            }
+            // (a level whose instances save fewer triangles than a draw costs joins the finer one: each level is a draw
+            // more in the prepass and the G-buffer, ~1.5 µs of the Retroid's GPU, about what 300 triangles cost there)
+            if (lvTo == null || lvTo.Length < L + 1) lvTo = new int[L + 1];
+            for (int j = 0; j <= L; j++) lvTo[j] = j;
+            for (int j = L; j > 0; j--)
+            {
+                int finer = j - 1, tf = finer == 0 ? fullTris : lod.tris[finer - 1];
+                if (n[j] > 0 && (long)n[j] * (tf - lod.tris[j - 1]) < InstLod.MinSave) { n[finer] += n[j]; n[j] = 0; for (int m = 0; m <= L; m++) if (lvTo[m] == j) lvTo[m] = finer; }
+            }
+            if (n[0] == k) return false;
+            for (int j = 0; j <= L; j++) { if (into[j] == null || into[j].Length < n[j]) into[j] = new Inst[Mathf.Max(n[j], data.Length)]; n[j] = 0; }
+            for (int i = 0; i < k; i++) { int j = lvTo[lvOf[i]]; into[j][n[j]++] = src[i]; }
+            return true;
+        }
+        byte[] lvOf; int[] lvTo; int fullTris => mesh ? (int)(mesh.GetIndexCount(0) / 3) : 0;
+        /// <summary>-inst-lod-shadow 0: the shadow maps draw every instance on its full mesh (by default the casters take the
+        /// level the view gives them: what strays under InstLod.Px pixels seen from the eye strays less in a shadow map's texels).</summary>
+        public static bool LodShadows = true;
+        readonly Inst[][][] csData = new Inst[3][][]; readonly int[][] csN = new int[3][]; readonly GraphicsBuffer[][] csBuf = new GraphicsBuffer[3][]; readonly MaterialPropertyBlock[][] csMpb = new MaterialPropertyBlock[3][];
+        bool CastLevels(RasterCommandBuffer cmd, int ci, Inst[] src, int k)
+        {
+            if (!LodShadows || ci < 0 || ci > 2 || lod == null || !lod.ready || InstLod.Px <= 0 || InstLod.PxPerRad <= 0) return false;
+            if (!Partition(src, k, ref csData[ci], ref csN[ci])) return false;
+            int L = lod.levels;
+            csBuf[ci] ??= new GraphicsBuffer[L + 1]; csMpb[ci] ??= new MaterialPropertyBlock[L + 1];
+            for (int j = 0; j <= L; j++)
+            {
+                int n = csN[ci][j];
+                if (n == 0) continue;
+                var bf = csBuf[ci][j];
+                if (bf == null || bf.count < csData[ci][j].Length) { bf?.Release(); bf = csBuf[ci][j] = new GraphicsBuffer(GraphicsBuffer.Target.Structured, csData[ci][j].Length, Marshal.SizeOf<Inst>()); (csMpb[ci][j] ??= new MaterialPropertyBlock()).SetBuffer(IdMats, bf); }
+                bf.SetData(csData[ci][j], 0, 0, n);
+                cmd.DrawMeshInstancedProcedural(j == 0 ? mesh : lod.mesh, j == 0 ? 0 : j - 1, mat, shadowPass, n, csMpb[ci][j]);
+            }
+            return true;
+        }
+        bool DrawLevels(Inst[] src, int k, Bounds b)
+        {
+            int L = lod.levels;
+            if (lvBuf == null) { lvBuf = new GraphicsBuffer[L + 1]; lvMpb = new MaterialPropertyBlock[L + 1]; }
+            if (!Partition(src, k, ref lvData, ref lvN)) return false;
+            for (int j = 0; j <= L; j++)
+            {
+                int n = lvN[j];
+                InstLod.Drawn[j] += n;
+                if (n == 0) continue;
+                var bf = lvBuf[j];
+                if (bf == null || bf.count < lvData[j].Length) { bf?.Release(); bf = lvBuf[j] = new GraphicsBuffer(GraphicsBuffer.Target.Structured, lvData[j].Length, Marshal.SizeOf<Inst>()); (lvMpb[j] ??= new MaterialPropertyBlock()).SetBuffer(IdMats, bf); }
+                bf.SetData(lvData[j], 0, 0, n);
+                Graphics.RenderMeshPrimitives(new RenderParams(mat) { worldBounds = b, shadowCastingMode = ShadowCastingMode.Off, receiveShadows = true, matProps = lvMpb[j] }, j == 0 ? mesh : lod.mesh, j == 0 ? 0 : j - 1, n);
+            }
+            return true;
+        }
+        public void Release() { buf?.Release(); buf = null; viewBuf?.Release(); viewBuf = null; for (int i = 0; i < 3; i++) { subBuf[i]?.Release(); subBuf[i] = null; } if (lvBuf != null) foreach (var x in lvBuf) x?.Release(); lvBuf = null; lvData = null; for (int i = 0; i < 3; i++) { if (csBuf[i] != null) foreach (var x in csBuf[i]) x?.Release(); csBuf[i] = null; } HiraethShadows.Instanced.Remove(caster); all.Remove(this); }
     }
 
     /// <summary>
