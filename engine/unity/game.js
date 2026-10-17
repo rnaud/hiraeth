@@ -337,10 +337,11 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
     slots.setActive(DEBUG_SLOT); gameState.reload(); gameState.reset();
     try { slotStorage.removeItem('hiraeth.journal.v1'); } catch { /* none */ }
   }
-  // (-set-flags a,b: on the debug save, those flags set first: the hoverbike found, the bird's promise, for a world's picture)
+  // (-set-flags a,b,k=v: on the debug save, those flags set first: the hoverbike found, the bird's promise, a kit's colour
+  // chosen (kit.colour.sword=ember), for a world's picture)
   if (args.setFlags) {
     slots.setActive(DEBUG_SLOT); gameState.reload();
-    for (const f of String(args.setFlags).split(',').filter(Boolean)) gameState.data.flags[f] = true;
+    for (const f of String(args.setFlags).split(',').filter(Boolean)) { const [k, v] = f.split('='); gameState.data.flags[k] = v ?? true; }
   }
   // (-sequence <id>: one of engine/sequences.js's sequences, on the debug save seeded as the sequence says, each beat
   // photographed and its state logged, issue #429; -opening is the opening's, issue #394)
