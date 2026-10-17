@@ -153,7 +153,7 @@ import { DevMenu } from '../src/dev-menu.js';
 import { gatherPoints, questList, applyQuestJump, landingSpot, godLanding } from '../src/world-debug.js';
 import { GAMES } from '../src/minigames/index.js';
 import { DEBUG_SLOT } from '../src/save-slots.js';
-import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons } from '../src/host/game-host.js';
+import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip } from '../src/host/game-host.js';
 
 export { page };
 export { readHref } from './trials.js';   // (the tests: a game page's address)
@@ -386,6 +386,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // stone, the light over the hill), then, with Ilen, the true ending and its credits; its ship in orbit too
   const playHomecoming = !!(menus && levelId === HOME_ID && via === 'ship' && !flags && !view && !gameDef) && homecomingKind((k) => gameState.flag(k));
   const ship = quiet(() => new Ship({ scene, physics, level, levelId, content, prologue: playPrologue || !!playHomecoming }));
+  // the ship's place for the quests that say "return to the ship", the scout and the Map's "Your ship" mark, as the page
+  // (src/host/game-host.js wireShip: the engines' Map had no ship, #429's sequences)
+  wireShip({ level, ship });
   stamp('ship');
   // the bird's promise and the hoverbike in the worlds after the desert (src/host/game-host.js wireMount, as the page)
   const { bikeHere } = wireMount({ levelId, level, flag: (k) => gameState.flag(k) });

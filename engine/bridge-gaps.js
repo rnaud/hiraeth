@@ -250,6 +250,7 @@ export const GAPS = {
     { keys: ['shared:wireChemistry'], what: 'the world\'s chemistry (fire spreading on the wind, creatures fleeing it, foes catching it)', status: 'handled', where: 'src/host/game-host.js wireChemistry (main.js new Chemistry before)' },
     { keys: ['shared:wireMount', 'shared:wireVehicles'], what: 'the bird\'s promise and the hoverbike, the bike by the ramp where the bird is the mount, hover vehicles skimming water, no calls into the rooms off the map', status: 'handled', where: 'src/host/game-host.js wireMount, wireVehicles (both hosts\' own copies before; the engines had no parked bike and no skimming)' },
     { keys: ['shared:wireLessons'], what: 'what the save\'s events say and start: a gadget found and its line, a keepsake\'s theme, the trials\' upgrades, Plumb\'s clock and notes', status: 'handled', where: 'src/host/game-host.js wireLessons (both hosts\' own copies before)' },
+    { keys: ['shared:wireShip'], what: 'the ship\'s place for quests, the scout and the Map\'s "Your ship" mark', status: 'handled', where: 'src/host/game-host.js wireShip (main.js level.ship before; the engines had none)' },
     // handled by the engines' own
     { keys: ['import:src/hud.js#heartsSvg', 'import:src/hud.js#walletTick', 'import:src/hud.js#KEY_SVG', 'import:src/hud.js#GREAT_KEY_SVG', 'fn:updateStamina', 'fn:restartNow', 'fn:showToast',
       'import:src/story/charge.js#chargeHud', 'import:src/story/charge.js#showChargeCard', 'import:src/story/charge.js#GIVEN', 'import:src/story/charge.js#CARD', 'import:src/passage.js#PassageCover', 'import:src/flurry.js#FlurryFx'],
@@ -305,7 +306,6 @@ export const GAPS = {
  */
 export const STREAM_DIFFS = [
   // ---- known gaps (the first run, 2026-10-16: scripts/unity-compare/sequences.mjs)
-  { seq: 'menus', beat: 'map', keys: ['menu.rows'], what: 'the Map has no "Your ship" mark in the engines (engine/game.js mapSource: level.ship is the page\'s)', status: 'gap', issue: 427 },
   { seq: 'menus', beat: 'items', keys: ['menu.rows'], what: 'the Items page lists the gadgets among the gear in the engines, after the gear on the page (another order of the same things owned)', status: 'gap', issue: 430 },
   { seq: 'menus', beat: 'start|settings', keys: ['menu.rows'], what: 'the Settings page: the page has Language, the jets\' pitch and longer labels, the engines Music, Effects, Voices, Mute, Hints first (engine/menus.js SETTINGS_ROWS against src/ui.js SettingsMenu)', status: 'gap', issue: 430 },
   { seq: 'fight-temple', beat: 'card', keys: ['part-:minigame', 'cam'], what: 'a fight temple\'s start card: on the page the hall seen from above with its HUD up; in the engines the traveller\'s own camera until Start', status: 'gap', issue: 264 },

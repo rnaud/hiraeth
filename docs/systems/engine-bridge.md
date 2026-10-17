@@ -1878,6 +1878,7 @@ far cloud's shadow in Edena, the barks (#430), the lit stone's flame in `desert.
 HUD is laid out on a 960 × 720 canvas (the editor's screen) while the camera draws 1280 × 720: the cinematic bars
 cover three quarters of the width and the HUD's middle is left of the picture's. The players lay it out on their own
 screen; the batch run's pictures only.
+
 ## One host (2026-10-17, issue #427)
 
 src/main.js (about 2,850 lines) and engine/game.js (about 1,700) each built the game's systems and joined them by
@@ -1921,6 +1922,8 @@ the engines' build of the game to see it there. Moved so far:
 - `wireLessons` (both hosts had their own copy): what the save's events say and start: a gadget found and its line
   after its box's card, a keepsake's recorded theme, the trials' upgrades to the gadgets' tuning, Plumb's clock and
   notes.
+- `wireShip`: the ship's place (level.ship at its ramp's foot) for the quests that say "return to the ship", the
+  scout and the Map's "Your ship" mark; the engines' Map had no ship (#429's menus sequence).
 
 Checked in Unity (the editor's batch run, `-fresh -no-hud`, against main's bundle for the before and the web's
 pictures of the same views): the kit's colours at the desert's ramp foot (`-set-flags` now takes `key=value`:
