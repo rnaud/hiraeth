@@ -9,6 +9,10 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   { v: '1.82', date: '2026-10-16', items: [
+    // issue #399: src/hook-foes.js (each kind's `hook` class, hookOutcome, lockShot), src/gadgets/hook.js fireAtLock /
+    // catchFoe, Foe.hookYank / hookPin / hookDown, src/gadgets/index.js (RT locked on); tests/hook-foes.test.js,
+    // tests/engine-hook.test.js
+    'Locked on, RT / R2 throws the grappling hook at your foe. Small ones are yanked through the air to land dazed at your feet, ready for a cut; big ones are held where they stand for a moment, straining against the rope; flyers are pulled down to the ground; armour rings it off. It works with the hook in hand or nothing in hand, needs a clear line to the foe, and takes a few seconds to be ready again. Before, the quick throw went where the camera looked and could reel you straight into a big foe.',
     // every visit its own run (issue #386): src/fight-temples/generate.js (drawRun, layOut, drawWave, fromTheme), index.js,
     // session.js (the seed on the cards); tests/fight-generate.test.js; docs/design/fight-temples.md "Each run its own"
     'The fight temples are different every time you go in: the rooms between the entrance and the altar come in a new order and a new layout, each turned its own way, and every wave is drawn fresh from the world’s foes, as hard as before at each point of the run. The results show the run’s number, so you can play the same one again.',

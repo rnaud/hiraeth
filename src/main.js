@@ -21,6 +21,7 @@ import { ObservatoryQuest } from './observatory.js';
 import { Scout, nextObjective, findText, roughDistance, HINT, FIND } from './scout.js';
 import { guardianHint, openHint, Struggle } from './temples/hints.js';
 import { hintsFor, quietOr } from './hint-level.js';
+import { lockLesson } from './hook-foes.js';
 import { cueText, Cue, PlaceName, Fader, healthHud, staminaHud, findSummary, heartsSvg, magicHud, walletTick, keysHud, KEY_SVG, GREAT_KEY_SVG } from './hud.js';
 import { resources, POTION } from './resources.js';
 import { PotionDrops } from './potion-drops.js';
@@ -1903,7 +1904,11 @@ const controller = new Controller({
       // finds the objective (Q; src/scout.js), as a scan does in other games
       const had = foes.lock;
       if (!foes.cycleLock() && !had && !minigame) { scoutHint.pinged(); scout.ping(); }
-      else if (foes.lock && !had && !game.flag('hint.hop.taught') && hintsFor('teach')) { game.set('hint.hop.taught', true); showToast(keyText(tr('hint.hop'), { teach: true }), TEACH); }   // (locked on, a new verb: the hops, taught once)
+      else if (foes.lock && !had && hintsFor('teach')) {
+        // (locked on, a new verb, taught once: the hops, then, the hook owned, the hook at the lock: src/hook-foes.js)
+        const lesson = lockLesson({ taught: (k) => !!game.flag(`${k}.taught`), hook: items.has('hook') });
+        if (lesson) { game.set(`${lesson}.taught`, true); showToast(keyText(tr(lesson), { teach: true }), TEACH); }
+      }
     }
     if (name === 'l3' && level.jump) level.jump(-1);
     if (name === 'worldDebug' && (devMenu.open || !busy() || menuRoot() === picker)) devMenu.toggle();   // L3 + R3: the dev menu (F2, `; the hitbox overlay is in its Toggles, and F4)

@@ -25,7 +25,8 @@ import { t as tr } from '../i18n.js';
 //          throws or fires (release); pressed without aiming, it is used at once where the camera looks (press,
 //          release). A gadget used by holding (`trigger: 'use'`: the fan, the spring boots, the magnet, the pen)
 //          is pressed, held and let go on it; the lens (`'look'`) is held up on either trigger. The fluid gun
-//          (`'tool'`) leaves both triggers to the fluid tool, which shoots while it is in hand
+//          (`'tool'`) leaves both triggers to the fluid tool, which shoots while it is in hand. Locked on, with the hook in
+//          hand or nothing in hand, it throws the hook at the locked foe (issue #399, src/hook-foes.js)
 //   modes  D-pad → or X: the gadget in hand's next mode (the gun's: fluid, push and those found); one without
 //          modes says so
 //   choose D-pad ↑ or B: a tap takes the next one (Shift + B the one before), held a moment it opens the wheel:
@@ -247,9 +248,15 @@ export class Gadgets {
     const kind = cur ? triggerKind(this.def(this.equipped), cur) : null;
     const usePress = g.use && !this.held.use;
     const aimPress = g.aim && !this.held.aim, aimLet = !g.aim && this.held.aim;
+    // locked on (R3, Tab), RT / R2 throws the grappling hook at the locked foe (issue #399, src/hook-foes.js): with the hook
+    // in hand, or with nothing in hand and the hook owned. Another gadget in hand keeps RT (its throw goes at the lock as
+    // before), and with LT's aim taken the hook's own free throw is RT's
+    const hook = this.items.has?.('hook') ? this.inst.get('hook') ?? null : null;
+    const lock = hook?.fireAtLock && this.foes?.lock && this.foes.lock.alive !== false ? this.foes.lock : null;
     if (!cur) {
-      // nothing in hand: touch's ◆ still sounds the whistle (touch has no Y)
-      if (!this.wheelOn && g.touch && usePress) this.ring?.();
+      // nothing in hand: the hook at the lock; else touch's ◆ still sounds the whistle (touch has no Y)
+      if (!this.wheelOn && lock && usePress) hook.fireAtLock(lock);
+      else if (!this.wheelOn && g.touch && usePress) this.ring?.();
     } else if (this.wheelOn) {
       if (this.armed) { cur.lower?.(); this.armed = false; }
     } else if (kind === 'aim') {
@@ -258,6 +265,7 @@ export class Gadgets {
       else if (g.aim && this.armed) cur.hold?.(dt);
       if (usePress) {
         if (this.armed) { cur.release?.(); this.armed = false; }
+        else if (lock && cur === hook) hook.fireAtLock(lock);
         else { cur.press?.(); cur.release?.(); }
       }
       if (aimLet && this.armed) { cur.lower?.(); this.armed = false; }

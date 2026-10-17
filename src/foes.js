@@ -64,7 +64,7 @@ import { readSlope, slopeOf, tiltRoot } from './enemies/slope.js';
 export const FOES = {
   blot: ARCHETYPE_KINDS.blot,   // (the ink blot, the teacher: src/enemies/archetypes.js, the spitting blot's spit folded in)
   machine: {
-    name: 'makers’ machine', hp: 4, radius: 0.8, height: 1.0, speed: 2.1, sight: 13, giveUp: 14, reach: 2.6, heavy: true, metal: true, breaks: true,
+    name: 'makers’ machine', hp: 4, hook: 'heavy', radius: 0.8, height: 1.0, speed: 2.1, sight: 13, giveUp: 14, reach: 2.6, heavy: true, metal: true, breaks: true,
     tone: '#e0703a', sound: 'machine', takes: { shoot: 0, fire: 0 },
     attacks: [
       // the slam: one arm high over its shoulder; a perfect parry knocks a plate off it (onParry 'chip', v1.63 #261)
@@ -448,13 +448,58 @@ export class Foe {
     // batch 5 (v1.18): the walls it has bounced off in this roll (the roller); the strings driving it ({ by, t }: a
     // marionette's) and the creature its own strings drive (host); its calm path's turn and its wait at the end (the shade)
     this.bounced = 0; this.possessed = null; this.host = null; this.pace = null;
+    // the grappling hook (issue #399, src/hook-foes.js): yanked through the air to you ({ from, to, t, time, lift, daze }),
+    // pinned where it stands ({ t, time, x, z, dir }); lift: m its body rides over its feet on the yank's arc
+    this.yank = null; this.pin = null; this.lift = 0;
   }
   get alive() { return this.state !== 'dead'; }
-  get chest() { return (this._chest ??= new THREE.Vector3()).copy(this.pos).setY(this.pos.y + this.over + this.def.height + this.alt); }
+  get chest() { return (this._chest ??= new THREE.Vector3()).copy(this.pos).setY(this.pos.y + this.over + this.def.height + this.alt + this.lift); }
   /** The level its strikes and its sight are measured from: a walker's feet; a hovering foe's footing and the height it holds over it. */
   get level() { return this.pos.y + this.over; }
   /** Where its body is (the hazards' and the workings' test point): its feet, or under a hovering body. */
   bodyAt(out = (this._body ??= new THREE.Vector3())) { return out.set(this.pos.x, this.pos.y + this.over + this.alt, this.pos.z); }
+  /**
+   * Caught on the grappling hook, light (src/hook-foes.js 'yank'): pulled in an arc to `to` over `time` s, `lift` m high at
+   * its middle, then dazed `daze` s where it lands (a cut lands double). Whatever it was winding up is broken off.
+   */
+  hookYank(to, time, lift, daze) {
+    this.calm(); this.route = null; this.cover = null; this.hid = false; this.pin = null; this.vel.set(0, 0, 0);
+    this.yank = { from: this.pos.clone(), to: to.clone(), t: 0, time: Math.max(0.05, time), lift, daze };
+    this.stunned = Math.max(this.stunned, time + daze); this.flash = 1; this.provoked = true;
+    if (this.state === 'idle' || this.state === 'home' || this.state === 'recover') this.state = 'chase';
+  }
+  /** The yank's arc (fast off the mark, easing in), then down on its feet in front of you, dazed. */
+  yanked(dt, env) {
+    const Y = this.yank;
+    Y.t += dt;
+    const u = Math.min(1, Y.t / Y.time), e = 1 - (1 - u) * (1 - u);
+    this.pos.lerpVectors(Y.from, Y.to, e);
+    this.lift = Y.lift * 4 * e * (1 - e);
+    this.face(Y.to.x - Y.from.x, Y.to.z - Y.from.z, dt, 14);   // (turned to you as it comes)
+    if (u < 1) return;
+    this.yank = null; this.lift = 0;
+    const y = env.ground?.(this.pos.x, this.pos.y + 1.5, this.pos.z);
+    if (y != null) this.pos.y = y;
+    this.stunned = Math.max(this.stunned, Y.daze);
+    this.recoil = 1; this.heavyRecoil = true; this.recoilDir.set(Y.to.x - Y.from.x, 0, Y.to.z - Y.from.z).normalize();
+  }
+  /** Caught on the hook, heavy ('pin'): held where it stands `time` s, straining against the line toward `toward` (the traveller). */
+  hookPin(time, toward) {
+    this.calm(); this.route = null; this.vel.set(0, 0, 0); this.yank = null;
+    const dir = new THREE.Vector3(toward.x - this.pos.x, 0, toward.z - this.pos.z);
+    if (dir.lengthSq() > 1e-6) dir.normalize(); else dir.set(Math.sin(this.heading), 0, Math.cos(this.heading));
+    this.pin = { t: time, time, x: this.pos.x, z: this.pos.z, dir };
+    this.flash = 1; this.provoked = true;
+    if (this.state === 'idle' || this.state === 'home') this.state = 'chase';
+  }
+  /** Caught on the hook, a flyer ('down'): pulled down out of its air and dazed near the ground `time` s. */
+  hookDown(time) {
+    this.calm(); this.cover = null; this.hid = false; this.vel.set(0, 0, 0);
+    this.alt *= 0.45;   // (the line's jerk: most of the way down at once, the rest eased: Foe.update's HOVER)
+    this.low = Math.max(this.low, time + 0.6); this.stunned = Math.max(this.stunned, time);
+    this.flash = 1; this.recoil = 1; this.heavyRecoil = true; this.recoilDir.set(0, 0, 0); this.provoked = true;
+    if (this.state === 'idle' || this.state === 'home') this.state = 'chase';
+  }
   /** Thrown or tumbled: whatever it was winding up is broken off, a hold let go. */
   calm() { if (this.state === 'wind' || this.state === 'strike') this.state = 'chase'; this.k = 0; this.letGo = true; this.cover = null; }
   /** A roller rolled up: rolling at you (attack.rolls) or spinning for its last roll; nothing harms it then. */
@@ -654,6 +699,12 @@ export class Foe {
     if (this.hop) { this.leap(dt, ev); return ev; }
     // flying off from you (calm.flee): crouched, then the flight; its mind waits until it lands at its new home
     if (this.flight) { this.flyOff(dt, ev); return ev; }
+    // on the grappling hook's line (src/hook-foes.js): yanked through the air to you, or pinned where it stands; its mind waits
+    if (this.yank) { this.yanked(dt, env); return ev; }
+    if (this.pin) {
+      if ((this.pin.t -= dt) > 0) { this.pos.x = this.pin.x; this.pos.z = this.pin.z; this.vel.set(0, 0, 0); return ev; }
+      this.pin = null;
+    }
     // a shove's slide eases out (a shove may carry it off a ledge, or into a hazard: step's `shoved`)
     if (this.vel.lengthSq() > 1e-4) {
       this.step(this.vel.x * dt, this.vel.z * dt, env, this.vel.lengthSq() > 1);
@@ -3097,6 +3148,7 @@ export class Foes {
     g.visible = true;
     g.position.copy(f.pos);
     g.position.y += f.over;   // (a hovering foe's held height over its footing: HOVER)
+    g.position.y += f.lift;   // (on the hook's yank: the arc's height, Foe.yanked)
     g.rotation.set(0, f.heading, 0);
     const moving = f.state === 'chase' || f.state === 'home';
     const wind = f.state === 'wind' ? THREE.MathUtils.smoothstep(f.k, 0, 0.72) : 0;
@@ -3164,6 +3216,16 @@ export class Foes {
     // (combat-v1.47 recommendation 5): the sway and the stars read in every colour vision.
     const S = stunCue(f, t);
     if (S.sway) { g.rotateX(S.pitch); g.rotateZ(S.roll); }
+    // pinned on the hook's line (src/hook-foes.js): leaning back against it, trembling with the strain (eased in and out)
+    if (f.pin) {
+      const pin = f.pin, dir = pin.dir, k = Math.min(1, (pin.time - pin.t) / 0.12, pin.t / 0.2);
+      const lean = (0.2 + 0.05 * Math.sin(t * 53)) * k, h = f.heading;
+      // (back against the line, a shudder along it, and a sway across it that reads from behind the traveller too)
+      g.position.addScaledVector(dir, (-0.08 + 0.03 * Math.sin(t * 71)) * k);
+      g.position.x += dir.z * 0.06 * Math.sin(t * 23) * k; g.position.z -= dir.x * 0.06 * Math.sin(t * 23) * k;
+      g.rotateX(-lean * (dir.x * Math.sin(h) + dir.z * Math.cos(h)));
+      g.rotateZ(lean * (dir.x * Math.cos(h) - dir.z * Math.sin(h)));
+    }
     this.daze(f, dt, S.stars);
     {
     // The body is the tell (src/telegraph.js); only a lobbed shot's landing mark is drawn on the floor.

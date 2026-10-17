@@ -3,6 +3,8 @@ import { inkMat, INK, InkLine, traceAim, aimRay, assistPick } from './kit.js';
 import { rayWorld } from '../fluid-tool.js';
 import { sfx } from './sfx.js';
 import { carryables, canCarry, pickUp } from '../carry.js';
+import { HOOK_FOE, hookOutcome, lockShot, yankTime, yankLift } from '../hook-foes.js';
+import { hitStop, kick } from '../feel.js';
 
 // The grappling hook (docs/systems/gadgets.md, "The grappling hook"): hold the use button to aim (the camera
 // comes over the shoulder, a reticle shows what the hook would catch within HOOK.range), let go to fire.
@@ -10,6 +12,8 @@ import { carryables, canCarry, pickUp } from '../carry.js';
 // traveller in (a wall: he takes hold of it, or hauls himself over its top; a floor: he lands there), and
 // caught on something loose (a crate, a foe, a creature) it drags that to him instead. Jump while reeling
 // in lets go, flinging him on with the reel's speed. A tap fires at once where the camera looks.
+// Locked on to a foe, the tap throws it at the foe instead (issue #399, src/hook-foes.js): a light one is yanked to him,
+// a heavy one pinned where it stands, a flyer pulled down, an armoured one clanks it off; a guardian shrugs it off.
 
 export const HOOK = {
   range: 25,         // m from the glove
@@ -133,6 +137,8 @@ class Hook {
     this.head.visible = false;
     ctx.fx.add(this.head);
     this.line = new InkLine(ctx.fx, { px: 1.7 });
+    this.line2 = new InkLine(ctx.fx, { px: 1.7 });   // (the rope in two: it sags on the throw and snaps straight on the catch)
+    this.mid = new THREE.Vector3(); this.slack = 0; this.foeCool = 0; this.held = null;
     this.headPos = new THREE.Vector3(); this.target = null; this.goal = new THREE.Vector3(); this.from = new THREE.Vector3();
     this.reel = new THREE.Vector3(); this.best = Infinity; this.since = 0;
     this.ray = { origin: new THREE.Vector3(), dir: new THREE.Vector3() };
@@ -187,7 +193,7 @@ class Hook {
   unequip() { this.cancel(); }
 
   press() {
-    if (this.state === 'pull' || this.state === 'drag') { this.letGo(false); return; }   // pressed again: let go
+    if (this.state === 'pull' || this.state === 'drag' || this.state === 'pin') { this.letGo(false); return; }   // pressed again: let go
     if (this.state !== 'idle' || !this.canUse()) return;
     this.aiming = true; this.aimT = 0;
   }
@@ -213,6 +219,29 @@ class Hook {
     P.faceToward = null;
   }
 
+  /**
+   * Locked on (src/gadgets/index.js: RT / R2 with the hook in hand, or nothing in hand): the hook thrown at the locked foe
+   * `lock` (a Foe, or a guardian's GuardianLock). Too soon after the last catch: a dry click and nothing thrown; past its
+   * reach it falls short; the world in the way (a line of sight from the glove) takes it; else it flies to the foe, homing,
+   * and what it does there is the foe's (bite: catchFoe). Returns lockShot's word ('ok', 'far', 'blocked', 'cool').
+   */
+  fireAtLock(lock) {
+    if (this.state === 'pull' || this.state === 'drag' || this.state === 'pin') { this.letGo(false); return 'let go'; }
+    if (this.state !== 'idle' || !this.canUse() || !lock?.chest) return 'busy';
+    const hand = this.hand(new THREE.Vector3()), at = lock.chest.clone();
+    const dir = new THREE.Vector3().subVectors(at, hand), d = dir.length();
+    dir.divideScalar(Math.max(d, 1e-6));
+    const r = lock.def?.radius ?? 0.5;
+    const block = d > r + 0.4 ? rayWorld(this.ctx.physics, hand, dir, Math.max(0.1, d - r - 0.3)) : null;
+    const why = lockShot({ d: d - r, blocked: !!block, cool: this.foeCool });
+    if (why === 'cool') { sfx.hookDry(this.ctx.sound); return why; }
+    const normal = dir.clone().negate();
+    if (why === 'far') this.fire({ kind: 'none', ok: true, point: hand.clone().addScaledVector(dir, HOOK_FOE.range), normal, reach: HOOK_FOE.range });
+    else if (why === 'blocked') this.fire({ kind: 'blocked', ok: true, point: block.point.clone(), normal: block.normal.clone(), reach: block.distance });
+    else this.fire({ kind: 'target', ok: true, locked: true, target: { kind: 'foe', foe: lock, position: () => lock.chest }, point: at, normal, reach: d });
+    return why;
+  }
+
   /** Let go of the line (jump while reeling, pressed again, knocked down): the hook comes back. */
   letGo(fling = false) {
     const P = this.ctx.player;
@@ -223,6 +252,8 @@ class Hook {
     }
     if (this.dragged?.prop) { this.dragged.prop.held = null; this.dragged.prop.vel.multiplyScalar(0.25); }
     this.dragged = null;
+    if (this.held?.pin && this.held.pin === this.held.foe.pin) this.held.foe.pin.t = Math.min(this.held.foe.pin.t, 0.12);   // (a pin let go: it shakes free)
+    this.held = null;
     this.state = 'back';
   }
 
@@ -271,6 +302,7 @@ class Hook {
   update(dt) {
     const { player: P } = this.ctx;
     this.cool = Math.max(0, this.cool - dt);
+    this.foeCool = Math.max(0, this.foeCool - dt);
     const hand = this.hand(_u);
     if (this.aiming) {
       if (!this.canUse()) this.aiming = false;
@@ -296,6 +328,7 @@ class Hook {
       }
       case 'pull': break;   // (the head stays where it bit)
       case 'drag': this.updateDrag(dt, hand); break;
+      case 'yank': case 'pin': case 'down': case 'shrug': this.updateHeld(dt, hand); break;
       case 'back': {
         const to = _v.subVectors(hand, this.headPos), d = to.length(), step = HOOK.back * dt;
         if (d <= step + 0.2) { this.state = 'idle'; } else this.headPos.addScaledVector(to.divideScalar(d), step);
@@ -310,7 +343,17 @@ class Hook {
       const dir = shown ? _w.subVectors(this.headPos, hand) : this.ray.dir;
       if (dir.lengthSq() > 1e-4) this.head.quaternion.setFromUnitVectors(_Y, _w.copy(dir).normalize());
     }
-    if (shown) this.line.set(hand, this.headPos); else this.line.hide();
+    // the rope: slack as it pays out (a sag under its middle, easing as the head nears its mark), snapped straight on a catch
+    const out = hand.distanceTo(this.headPos), all = Math.max(1, hand.distanceTo(this.goal));
+    const want = this.state === 'out' ? 0.08 * Math.min(1, out / 5) * (1 - 0.7 * Math.min(1, out / all)) : this.state === 'back' ? 0.04 : 0;
+    this.slack = want >= this.slack ? want : this.slack + (want - this.slack) * Math.min(1, dt * 40);
+    if (shown) {
+      const up = P?.frame?.up ?? _Y;
+      this.mid.lerpVectors(hand, this.headPos, 0.5).addScaledVector(up, -this.slack * out);
+      // pinned: the taut line trembles with the strain
+      if (this.state === 'pin') this.mid.addScaledVector(up, Math.sin((this._tr = (this._tr ?? 0) + dt) * 90) * 0.025);
+      this.line.set(hand, this.mid); this.line2.set(this.mid, this.headPos);
+    } else { this.line.hide(); this.line2.hide(); }
     if (P && this.state === 'pull' && P.object) P.aim = null;
   }
 
@@ -318,11 +361,12 @@ class Hook {
   bite(T) {
     const P = this.ctx.player;
     if (T.kind === 'none') { this.state = 'back'; sfx.hookMiss(this.ctx.sound); return; }
+    if (T.kind === 'blocked') { this.state = 'back'; sfx.hookCatch(this.ctx.sound, false); this.ctx.bursts?.add?.(T.point, T.normal, 0.3); return; }   // (thrown at a foe: the wall in the way took it)
     if (T.kind === 'target') {
       const tg = T.target;
+      if (tg.kind === 'foe') { this.catchFoe(tg.foe); return; }
       sfx.hookCatch(this.ctx.sound, !!tg.prop?.metal);
       if (tg.kind === 'prop' && tg.prop.light) { this.dragged = { prop: tg.prop }; tg.prop.held = this; this.state = 'drag'; sfx.hookReel(this.ctx.sound); return; }
-      if (tg.kind === 'foe' && tg.foe?.alive) { this.dragged = { foe: tg.foe }; this.state = 'drag'; tg.foe.stunned = Math.max(tg.foe.stunned, 0.6); sfx.hookReel(this.ctx.sound); return; }
       if (tg.kind === 'prop') {   // too heavy to drag: reel yourself to it
         T.normal.copy(_v.subVectors(P.pos, tg.prop.pos).setY(0).normalize());
         T.point.copy(tg.prop.pos).addScaledVector(T.normal, tg.prop.r).setY(tg.prop.pos.y + tg.prop.h);
@@ -342,30 +386,90 @@ class Hook {
     sfx.hookReel(this.ctx.sound);
   }
 
+  /**
+   * The hook reached a foe (thrown locked on, or aimed at one): by its size and the moment (src/hook-foes.js hookOutcome),
+   * yanked to the traveller, pinned, pulled down, clanked off, missed, or shrugged off; then a cooldown (HOOK_FOE.cool).
+   */
+  catchFoe(f) {
+    const P = this.ctx.player, s = this.ctx.sound;
+    const dir = new THREE.Vector3().subVectors(f.pos ?? f.chest, P.pos).setY(0);
+    const d = dir.length(); if (d > 1e-4) dir.divideScalar(d);
+    const out = this.foeCool > 0 ? 'shrug' : hookOutcome(f, dir);
+    this.held = null;
+    if (out === 'none' || out === 'miss') { this.state = 'back'; sfx.hookMiss(s); return out; }
+    if (out === 'clank') {
+      sfx.hookClank(s); f.flash = Math.max(f.flash ?? 0, 0.4);
+      this.ctx.bursts?.add?.(this.headPos, dir.clone().negate(), 0.25);
+      this.state = 'back'; return out;
+    }
+    if (out === 'shrug') { sfx.hookCatch(s, true); sfx.hookSnap(s); this.held = { foe: f, out, t: 0, time: 0.22 }; this.state = 'shrug'; return out; }
+    this.foeCool = HOOK_FOE.cool;
+    sfx.hookCatch(s, !!f.def?.metal);
+    this.ctx.bursts?.add?.(this.headPos, dir.clone().negate(), 0.35);
+    hitStop(HOOK_FOE.stop[out]); kick(HOOK_FOE.kick[out]);
+    if (out === 'yank') {
+      const fr = f.def?.radius ?? 0.5, to = P.pos.clone().addScaledVector(dir, HOOK_FOE.before + fr);
+      const time = yankTime(Math.max(0, d - HOOK_FOE.before - fr));
+      f.hookYank?.(to, time, yankLift(d), HOOK_FOE.daze);
+      sfx.hookYank(s);
+      this.held = { foe: f, out, t: 0, time: time + 0.05 };
+      this.state = 'yank';
+    } else if (out === 'pin') {
+      f.hookPin?.(HOOK_FOE.pin, P.pos);
+      sfx.hookPin(s, HOOK_FOE.pin);
+      this.held = { foe: f, out, t: 0, time: HOOK_FOE.pin, pin: f.pin ?? null };
+      this.state = 'pin';
+    } else {
+      f.hookDown?.(HOOK_FOE.down);
+      sfx.hookYank(s);
+      this.held = { foe: f, out, t: 0, time: 0.4 };
+      this.state = 'down';
+    }
+    return out;
+  }
+
+  /** On a foe's line: the head stays on its body (its arc, its strain) until the yank lands, the pin ends or the traveller is too far off. */
+  updateHeld(dt, hand) {
+    const H = this.held, f = H?.foe, P = this.ctx.player;
+    if (!f || f.alive === false || f.dying || !P || P.down || P.ride || P.swim) { this.letGo(false); return; }
+    H.t += dt;
+    if (f.chest) this.headPos.copy(f.chest);
+    if (H.out === 'pin') {
+      // (the pin ends with its time, when the foe is freed, or when he walks off past the line's reach: the line snaps)
+      if (!f.pin || H.t >= H.time || hand.distanceTo(this.headPos) > HOOK_FOE.range + 3) { if (H.t < H.time - 0.05) sfx.hookSnap(this.ctx.sound); this.letGo(false); }
+      return;
+    }
+    if (H.out === 'yank' && f.yank) return;
+    if (H.t >= H.time) this.letGo(false);
+  }
+
+  /** A loose thing on the line (a crate, a temple's weight): drawn in to the traveller, into his hands if it is small enough. */
   updateDrag(dt, hand) {
     const P = this.ctx.player, D = this.dragged;
-    const thing = D?.prop?.pos ?? D?.foe?.pos;
-    if (!thing || (D.foe && !D.foe.alive)) { this.letGo(false); return; }
+    const thing = D?.prop?.pos;
+    if (!thing) { this.letGo(false); return; }
     const to = _v.subVectors(P.pos, thing); to.y = 0;
     const d = to.length();
     if (d < HOOK.dragTo) {
       // (small enough to carry, and his hands free: it lands in them, src/carry.js; else let go at his feet)
-      if (D.prop) { D.prop.held = null; if (!(canCarry(D.prop) && !P.carrying && P.onGround && pickUp(P, D.prop, { from: 'hook' }))) D.prop.vel.copy(to.normalize()).multiplyScalar(1.2); }
-      if (D.foe) { D.foe.vel.set(0, 0, 0); D.foe.stunned = Math.max(D.foe.stunned, 1.2); D.foe.flash = 1; }
+      D.prop.held = null;
+      if (!(canCarry(D.prop) && !P.carrying && P.onGround && pickUp(P, D.prop, { from: 'hook' }))) D.prop.vel.copy(to.normalize()).multiplyScalar(1.2);
       this.dragged = null; this.state = 'back';
       return;
     }
     to.divideScalar(d);
-    if (D.prop) {
-      // lifted a little off the ground as it comes, falling when let go
-      const lift = THREE.MathUtils.clamp(P.pos.y + 1 - D.prop.pos.y, -4, 4);
-      D.prop.vel.copy(to).multiplyScalar(Math.min(HOOK.drag, d * 4)).setY(lift * 3);
-      D.prop.resting = false;
-    } else D.foe.vel.copy(to).multiplyScalar(Math.min(HOOK.drag * 0.8, d * 4));
-    this.headPos.copy(thing).setY(thing.y + (D.prop ? D.prop.h * 0.6 : D.foe.def.height));
+    // lifted a little off the ground as it comes, falling when let go
+    const lift = THREE.MathUtils.clamp(P.pos.y + 1 - D.prop.pos.y, -4, 4);
+    D.prop.vel.copy(to).multiplyScalar(Math.min(HOOK.drag, d * 4)).setY(lift * 3);
+    D.prop.resting = false;
+    this.headPos.copy(thing).setY(thing.y + D.prop.h * 0.6);
   }
 
-  hud() { return { note: this.state === 'pull' ? 'reeling' : this.state === 'drag' ? 'pulling' : '' }; }
+  hud() {
+    const note = this.state === 'pull' ? 'reeling' : this.state === 'drag' || this.state === 'yank' ? 'pulling' : this.state === 'pin' ? 'holding' : '';
+    // (after a foe caught, the ring round the chip fills again over HOOK_FOE.cool)
+    return this.foeCool > 0 ? { note, count: Math.round(100 * (1 - this.foeCool / HOOK_FOE.cool)), max: 100 } : { note };
+  }
 
-  dispose() { this.head.removeFromParent(); this.line.dispose(); }
+  dispose() { this.head.removeFromParent(); this.line.dispose(); this.line2.dispose(); }
 }

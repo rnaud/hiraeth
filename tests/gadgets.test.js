@@ -16,6 +16,7 @@ import { Physics } from '../src/physics.js';
 import { clearTargets, registerTarget } from '../src/targets.js';
 import { GameState } from '../src/game-state.js';
 import { Controller } from '../src/controller.js';
+import { Foe } from '../src/foes.js';
 import { itemsData } from '../src/game-menu-data.js';
 
 registerGadget(hook);
@@ -320,13 +321,14 @@ test('the hook drags a loose crate into your hands (one too big to carry at your
   assert.ok(Math.hypot(big.pos.x, big.pos.z) < HOOK.dragTo + 0.9, `at your feet: ${big.pos.toArray().map((x) => x.toFixed(1))}`);
   assert.equal(big.held, null, 'let go');
   assert.equal(P.carrying, null, 'not carried');
-  const foe = { kind: 'foe', foe: { alive: true, pos: v(0, 0, -10), vel: v(), stunned: 0, flash: 0, def: { height: 0.5 } } };
+  // (a foe aimed at: what the hook does is its size's, issue #399, tests/hook-foes.test.js; a light one is yanked in, dazed)
+  const blot = new Foe('blot', v(0, 0, -10));
+  const foe = { kind: 'foe', foe: blot, position: () => blot.chest };
   const F = hook.create(hookCtx(player(v()), ph));
-  F.fire({ kind: 'target', ok: true, target: foe, point: v(0, 0.5, -10), normal: v(0, 0, 1), reach: 10 });
+  F.fire({ kind: 'target', ok: true, target: foe, point: blot.chest.clone(), normal: v(0, 0, 1), reach: 10 });
   while (F.state === 'out') F.update(DT);
-  assert.equal(F.state, 'drag');
-  F.update(DT);
-  assert.ok(foe.foe.stunned > 0 && foe.foe.vel.z > 0, 'held, coming toward you');
+  assert.equal(F.state, 'yank');
+  assert.ok(blot.stunned > 0 && blot.yank, 'yanked, coming toward you');
 });
 
 // ------------------------------------------------------------------ ink bombs

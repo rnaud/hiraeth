@@ -172,13 +172,52 @@ so what stands in the way is what it bites. The head flies at 75 m/s, then:
 - **something loose** (a light crate): dragged in at 15 m/s, a little off the ground; small enough to carry and your
   hands free, it lands in them (v1.76, issue #337: docs/systems/carry.md), else it is let go at your feet. A temple's
   weight is caught the same way. A metal crate is too heavy: you are reeled to it.
-- **a foe**: pulled in and stunned for a moment. Anything else alive (wildlife, people): a tug (the push's
+- **a foe**: by its size (below, "The hook on a foe"). Anything else alive (wildlife, people): a tug (the push's
   hit, toward you).
 
 Since the reel only sets the velocity, his own sub-stepped collision carries him round corners and along
 walls in every world, the jets end and the wings fold. Tests: `reelTarget`, `reelVelocity`, `inReach`,
 the aim assist through a wall, a whole reel to a wall (mantle tried, then the climb), the fling, the miss,
 dragging a crate and a foe.
+
+### The hook on a foe (v1.82, issue #399, `src/hook-foes.js`)
+
+The author: "the grappling hook should work when locked on with R2, should freeze monsters or bring them closer to
+me depending on size". **Locked on** (R3, Tab), **RT / R2** (T, the middle mouse button) throws the hook at the
+locked foe: with the hook in hand, or with nothing in hand and the hook owned (`Gadgets.control` → `Hook.fireAtLock`).
+Another gadget in hand keeps RT (the bombs, the boomerang thrown at the lock as before), and with LT's aim taken RT is
+the hook's free throw, so no prompt moved. The first lock with the hook owned says it once (`hint.hookLock`, after
+the hops' `hint.hop`: `lockLesson`, main.js and engine/combat.js).
+
+Each kind has a class in its data, `hook` (src/enemies/archetypes.js, the machine in src/foes.js; `hookClass` judges a
+kind without one by its body), and `hookOutcome` turns it and the moment into what happens:
+
+| class | kinds | what the hook does |
+|---|---|---|
+| `light` | ink blot, skitter, horn lizard, stilt heron, pearl roller, shade, antler hound | **yanked**: an arc to `before` (1.25 m) + its radius in front of him, `yankTime` (≤ 0.42 s), `yankLift` high (0.16 × the way, 0.3–1.3 m); dazed `daze` 1.1 s after (a cut lands double) |
+| `heavy` | makers' machine, shellback crab, ring centipede, bellows toad, root knot, mound worm, lamp tripod, crucible cart, furnace brute | **pinned** where it stands `pin` 1.8 s: no step, no blow, a wind-up broken off; the rope taut and trembling, the body leaning back against it, shuddering (Foes.look) |
+| `flyer` | lantern jelly, signal moth, sky ray, ring drone, marionette | **pulled down**: most of its height at once, the rest eased; dazed low `down` 1.4 s |
+| `armoured` | bell walker | **clanks off** its bronze |
+
+By the moment: under the sand (the worm buried) or a running shadow (the hound phased) it **misses**; rolled up (the
+roller) or a shell faced (the crab, not flipped) it **clanks off**; a guardian **shrugs it off** (it bites, the rope
+snaps taut and is thrown loose: no pin for a guardian).
+
+Rules (`lockShot`): **a cooldown**, `HOOK_FOE.cool` 2.6 s after a catch (the chip's ring fills again; a throw before
+it is a dry click and nothing leaves the glove); **a reach**, `range` 16 m from the glove to the foe's body (further, it
+flies 16 m and falls short); **a line of sight** from the glove to the foe's body: a wall in the way takes it (a thud,
+a puff on the wall, no cooldown). An aimed throw (LT, then RT) that catches a foe does the same as the locked one.
+
+**Feel:** the rope is two strokes that sag while it pays out (`slack`) and snap straight on the catch, with a small
+burst at the bite; a hit-stop on the catch (`stop`: 0.05 s yank, 0.08 pin, 0.06 down) and a camera nudge (`kick`). The
+sounds (`src/gadgets/sfx.js`): `hookFire` (the throw), `hookCatch` (the bite), `hookYank` (a whip-crack and the rope's
+rush), `hookPin` (the line snapping taut, then creaking for the pin), `hookClank` (armour), `hookSnap` (shrugged off, or
+a pin broken off by walking away), `hookDry` (not ready). The lock and its camera are untouched: measured in the Arena
+and the Golden Dunes, the camera's largest step in a frame through a yank or a pin was 3.8 cm, the lock never let go.
+
+Tests: tests/hook-foes.test.js (every kind's class, the outcomes, the cooldown, the reach, a wall in the way, a blot
+yanked, a brute pinned, a ray pulled down, the bell's clank, the routing of RT), tests/engine-hook.test.js (the engines'
+bundle: Tab, T, a blot yanked, a brute pinned).
 
 ## Ink bombs (`bomb.js`)
 

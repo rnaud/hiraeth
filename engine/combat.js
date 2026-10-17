@@ -30,6 +30,8 @@ import { game as sharedGame } from '../src/game-state.js';
 import { rumblePlay } from '../src/rumble.js';
 import { updateHazards } from '../src/hazards.js';
 import { hintsFor } from '../src/hint-level.js';
+import { lockLesson } from '../src/hook-foes.js';
+import { items } from '../src/items.js';
 import { keyText } from '../src/prompt-keys.js';
 import { t as tr } from '../src/i18n.js';
 
@@ -99,7 +101,11 @@ export function makeCombat({ scene, level, levelId, content, physics, player, to
     lock() {
       const had = foes.lock;
       const got = foes.cycleLock();
-      if (foes.lock && !had && !game.flag('hint.hop.taught') && hintsFor('teach')) { game.set('hint.hop.taught', true); teach(keyText(tr('hint.hop'), { teach: true })); }
+      if (foes.lock && !had && hintsFor('teach')) {
+        // (taught once each: the hops, then, the hook owned, the hook at the lock: main.js, src/hook-foes.js lockLesson)
+        const lesson = lockLesson({ taught: (k) => !!game.flag(`${k}.taught`), hook: items.has('hook') });
+        if (lesson) { game.set(`${lesson}.taught`, true); teach(keyText(tr(lesson), { teach: true })); }
+      }
       return !!got || !!had;
     },
     /** D-pad ←: a healing potion (main.js drinkPotion). */

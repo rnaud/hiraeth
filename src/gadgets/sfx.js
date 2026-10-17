@@ -3,6 +3,7 @@
 // (`vol`). Nothing plays before the audio has started (sound.ctx).
 //
 //   sfx.hookFire(sound) · hookCatch(sound, metal) · hookReel(sound) · hookMiss(sound)
+//   sfx.hookYank(sound) · hookPin(sound, dur) · hookClank(sound) · hookSnap(sound) · hookDry(sound)   (a foe on the line: #399)
 //   sfx.bombThrow(sound) · bombBounce(sound, k) · bombFuse(sound) · bombBlast(sound, vol)
 //   sfx.equip(sound) · crumble(sound) · click(sound, on)
 
@@ -19,6 +20,21 @@ export const sfx = {
   hookReel(s) { const t = now(s); if (t == null) return; for (let i = 0; i < 6; i++) s.burst(t + i * 0.045, { dur: 0.025, type: 'bandpass', freq: 1800 + i * 140, q: 4, vol: 0.05 }); s.sweep(t, 220, 520, 0.3, 0.04, 'square'); },
   /** Nothing to catch on: the hook comes back empty. */
   hookMiss(s) { const t = now(s); if (t == null) return; s.sweep(t, 600, 300, 0.2, 0.06, 'triangle'); },
+  /** A foe yanked off its feet on the line (issue #399): a whip-crack and the rope's rush. */
+  hookYank(s) { const t = now(s); if (t == null) return; s.burst(t, { dur: 0.03, type: 'highpass', freq: 3800, q: 1.4, vol: 0.16 }); s.sweep(t + 0.01, 1700, 420, 0.07, 0.07, 'triangle'); s.burst(t + 0.02, { dur: 0.3, type: 'bandpass', freq: 900, q: 0.6, vol: 0.12, rate: 1.6 }); s.sweep(t + 0.04, 180, 420, 0.28, 0.06, 'sawtooth'); },
+  /** A heavy foe pinned: the line snaps taut, then creaks under the strain for `dur` s. */
+  hookPin(s, dur = 1.8) {
+    const t = now(s); if (t == null) return;
+    s.burst(t, { dur: 0.04, type: 'highpass', freq: 3000, q: 1, vol: 0.12 });
+    s.sweep(t, 140, 95, 0.25, 0.14, 'sawtooth');
+    for (let i = 0, n = Math.max(2, Math.round(dur / 0.3)); i < n; i++) s.burst(t + 0.18 + i * 0.3 + (i % 2) * 0.04, { dur: 0.12, type: 'bandpass', freq: 520 + (i % 3) * 70, q: 6, vol: 0.06 * (1 - i / (n + 1)), rate: 0.6 });
+  },
+  /** The hook rings off armour, a shell, a rolled-up roller: a bright clank, no bite. */
+  hookClank(s) { const t = now(s); if (t == null) return; [1, 1.52, 2.1].forEach((m, i) => s.sweep(t + i * 0.006, 1500 * m, 1420 * m, 0.32 - i * 0.07, 0.07, 'triangle')); s.burst(t, { dur: 0.05, type: 'highpass', freq: 4200, q: 1, vol: 0.12 }); },
+  /** The line thrown loose (a guardian shrugs it off; a pin broken off early): a rope's snap and its slap. */
+  hookSnap(s) { const t = now(s); if (t == null) return; s.burst(t + 0.05, { dur: 0.04, type: 'highpass', freq: 5000, q: 1.2, vol: 0.13 }); s.sweep(t + 0.05, 1200, 300, 0.12, 0.06, 'triangle'); },
+  /** Not ready (the cooldown after a catch): the reel's dry click. */
+  hookDry(s) { const t = now(s); if (t == null) return; s.burst(t, { dur: 0.02, type: 'bandpass', freq: 2600, q: 5, vol: 0.07 }); s.burst(t + 0.06, { dur: 0.02, type: 'bandpass', freq: 2200, q: 5, vol: 0.05 }); },
   /** A bomb thrown: a grunt of air. */
   bombThrow(s) { const t = now(s); if (t == null) return; s.burst(t, { dur: 0.16, type: 'bandpass', freq: 700, q: 0.7, vol: 0.12, rate: 0.8 }); s.sweep(t, 300, 180, 0.12, 0.05); },
   /** It lands and bounces (k 0..1 how hard). */

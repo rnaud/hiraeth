@@ -401,8 +401,12 @@ mode." The fluid gun became a gadget (docs/systems/gadgets.md, "The fluid gun"),
 - **LT / L2 aims and RT / R2 uses the gadget in hand.** Each gadget says how it takes them (`trigger`: `aim`, `use`,
   `look`, `tool`; src/gadgets/index.js): the throwers take aim on LT and let fly on RT (RT alone throws at once
   where the camera looks), the held ones work on RT, the lens on either, the gun's triggers are the fluid tool's.
-  With nothing in hand the triggers do nothing. D-pad ↑ chooses (a tap the next, held the wheel), D-pad → is the
-  gadget's next mode.
+  With nothing in hand the triggers do nothing (but locked on with the hook owned: below). D-pad ↑ chooses (a tap the
+  next, held the wheel), D-pad → is the gadget's next mode.
+- **Locked on, RT / R2 throws the hook at the foe** (v1.82, issue #399): with the hook in hand its quick throw goes at
+  the locked foe instead of where the camera looks, and with nothing in hand RT throws it too. Another gadget in hand
+  keeps RT, and LT then RT is still the hook's free aim, so no other prompt moved (docs/systems/gadgets.md, "The hook
+  on a foe").
 - **Y / △: the bell-note whistle and the echo shell, whatever is in hand.** Y was "the gadget in hand, or the whistle
   with none"; using the gadget moved to RT, so Y keeps the whistle alone: the bell and the shell guardians always have
   their button, and Y never changes job under you (the old layout's first oddity). A gadget that wants a press with

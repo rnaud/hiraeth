@@ -109,7 +109,7 @@ export const ARCHETYPES = {
     // (hp 3 since v1.41, was 4; the author: "they take too many hits". A heavy blow bites through its shell from the
     // front too, at half: src/foes.js SHELL)
     def: S({
-      name: 'shellback crab', hp: 3, radius: 0.85, height: 0.6, speed: 3.2, sight: 15, giveUp: 30, reach: 8, heavy: true, shell: true, breaks: true,
+      name: 'shellback crab', hp: 3, hook: 'heavy', radius: 0.85, height: 0.6, speed: 3.2, sight: 15, giveUp: 30, reach: 8, heavy: true, shell: true, breaks: true,
       tone: '#b8553a', sound: 'machine', takes: { shoot: 0, fire: 1 }, weak: { bomb: 1.5 },
       calm: { mode: 'graze', wild: true, provoke: 3.2, shy: 7, alarm: 10 }, burst: [0.75, 0.45], sideways: true,
       attacks: [
@@ -130,7 +130,7 @@ export const ARCHETYPES = {
     moves: ['ripple rush', 'pile'], answers: ['push', 'ember', 'the combo’s sweeping third swing'],
     idle: 'grazes in a loose flock; scatters in a ripple when you run at it, and comes back; fights only if you stay in the middle of it',
     def: S({
-      name: 'skitter', hp: 1, radius: 0.32, height: 0.22, speed: 5.4, sight: 16, giveUp: 40, reach: 4.6, light: true, group: 8,
+      name: 'skitter', hp: 1, hook: 'light', radius: 0.32, height: 0.22, speed: 5.4, sight: 16, giveUp: 40, reach: 4.6, light: true, group: 8,
       flock: { ring: 4, one: true },   // (it rings you at 4 m and only one darts in at a time)
       tone: '#e0a64e', takes: { shoot: 1, fire: 1, push: 1 },
       calm: { mode: 'flock', wild: true, provoke: 3.2, linger: 2.2, shy: 6, alarm: 9 },
@@ -151,7 +151,7 @@ export const ARCHETYPES = {
     moves: ['ring', 'pincer lunge', 'segment shed'], answers: ['wings or jets out of the ring', 'air cut on the head', 'parry', 'the push breaks the ring'],
     idle: 'suns coiled on warm rocks and unrolls slowly when you pass',
     def: S({
-      name: 'ring centipede', hp: 6, radius: 0.75, height: 0.55, speed: 4.4, sight: 18, giveUp: 40, reach: 6, heavy: true, segmented: true, breaks: true,
+      name: 'ring centipede', hp: 6, hook: 'heavy', radius: 0.75, height: 0.55, speed: 4.4, sight: 18, giveUp: 40, reach: 6, heavy: true, segmented: true, breaks: true,
       tone: '#d8b048', takes: { shoot: 0, fire: 1, push: 0 }, weak: { bomb: 1.5 },
       calm: { mode: 'coil', wild: true, provoke: 6, alarm: 10 },
       shed: { kind: 'skitter', n: 2, below: 0.67, segments: 2 },
@@ -173,7 +173,7 @@ export const ARCHETYPES = {
     moves: ['spore lob', 'volley', 'belly flop'], answers: ['a shot in the swollen throat', 'air cut', 'closing in'],
     idle: 'sits by water with its throat pulsing, croaking in chorus; fights only within 4 m or if one near it is hurt',
     def: S({
-      name: 'bellows toad', hp: 3, radius: 0.85, height: 1.1, speed: 2.4, sight: 18, giveUp: 38, reach: 11, keep: 6.5, perch: true, hops: true,
+      name: 'bellows toad', hp: 3, hook: 'heavy', radius: 0.85, height: 1.1, speed: 2.4, sight: 18, giveUp: 38, reach: 11, keep: 6.5, perch: true, hops: true,
       tone: '#b49ad6', takes: { shoot: 1, fire: 1 },
       calm: { mode: 'sit', wild: true, provoke: 4, alarm: 10 },
       attacks: [
@@ -198,7 +198,7 @@ export const ARCHETYPES = {
     answers: ['parry and riposte on the bite', 'dash cut past the blarer', 'split the pair (the hook)'],
     idle: 'basks on warm stones and blares at the others in turn; territorial near its stones, harmless away from them',
     def: S({
-      name: 'horn lizard', hp: 3, radius: 0.6, height: 0.55, speed: 4.6, sight: 18, giveUp: 40, reach: 7, clamber: true, group: 2, flanks: true,
+      name: 'horn lizard', hp: 3, hook: 'light', radius: 0.6, height: 0.55, speed: 4.6, sight: 18, giveUp: 40, reach: 7, clamber: true, group: 2, flanks: true,
       tone: '#d9925f', takes: { shoot: 1, fire: 1 },
       calm: { mode: 'bask', wild: true, provoke: 6, alarm: 14 },
       attacks: [
@@ -219,7 +219,7 @@ export const ARCHETYPES = {
     moves: ['spear', 'sweep', 'wing buffet'], answers: ['dash cut inside its reach', 'charged cut at a leg topples it', 'parry the spear'],
     idle: 'wades and fishes, stabbing at the water; walks off if you come near, flies off if you run at it; fights only if you corner it',
     def: S({
-      name: 'stilt heron', hp: 4, radius: 0.6, height: 1.3, speed: 2.6, sight: 18, giveUp: 34, reach: 5.2, topples: true,
+      name: 'stilt heron', hp: 4, hook: 'light', radius: 0.6, height: 1.3, speed: 2.6, sight: 18, giveUp: 34, reach: 5.2, topples: true,
       tone: '#5fbfb0', takes: { shoot: 1, fire: 1 },
       // (run at it and it flies off, to land 13 m away: its new home; only walk up and it strides away)
       calm: { mode: 'wade', wild: true, provoke: 2.8, shy: 7, alarm: 8, flee: { run: 3.2, far: 13, up: 3.6, time: 2.1, crouch: 0.45 } },
@@ -243,7 +243,7 @@ export const ARCHETYPES = {
     moves: ['bowl', 'ricochet', 'last roll'], answers: ['guard: it bounces off stunned (then the charged cut into its foot)', 'walls: sidestep it into one', 'the bubble (it floats, helpless)'],
     idle: 'grazes moss in slow glistening trails, and pulls in if you touch it',
     def: S({
-      name: 'pearl roller', hp: 4, radius: 0.8, height: 0.9, speed: 2.4, sight: 16, giveUp: 30, reach: 9,
+      name: 'pearl roller', hp: 4, hook: 'light', radius: 0.8, height: 0.9, speed: 2.4, sight: 16, giveUp: 30, reach: 9,
       tone: '#e8d7f0', takes: { shoot: 1, fire: 1 },
       calm: { mode: 'graze', wild: true, provoke: 2.4, alarm: 8 },
       attacks: [
@@ -267,7 +267,7 @@ export const ARCHETYPES = {
     moves: ['grip', 'lash', 'spore puff'], answers: ['bloom glob (asleep, cuts double)', 'ember ×2', 'parry on the lash', 'jump the roots'],
     idle: 'stands rooted among the mushrooms and stumps; its cap turns to follow you',
     def: S({
-      name: 'root knot', hp: 5, radius: 0.95, height: 1.5, speed: 1.6, sight: 16, giveUp: 30, reach: 6.5, heavy: true, rooted: true, breaks: true,
+      name: 'root knot', hp: 5, hook: 'heavy', radius: 0.95, height: 1.5, speed: 1.6, sight: 16, giveUp: 30, reach: 6.5, heavy: true, rooted: true, breaks: true,
       tone: '#9fd86a', takes: { shoot: 1, fire: 2, push: 0, bloom: 'hold' },
       calm: { mode: 'root', wild: true, provoke: 3.6, alarm: 8 },
       attacks: [
@@ -290,7 +290,7 @@ export const ARCHETYPES = {
     moves: ['ward', 'mend', 'sting curtain'], answers: ['shot (each lantern)', 'boomerang', 'air cut when it sinks', 'the push knocks it off a mend'],
     idle: 'drifts with the wind in slow herds; never starts a fight',
     def: S({
-      name: 'lantern jelly', hp: 3, radius: 0.75, height: 0.6, hover: 3.6, speed: 2.2, sight: 18, giveUp: 40, reach: 9, support: true, lanterns: 3, flinchy: true,
+      name: 'lantern jelly', hp: 3, hook: 'flyer', radius: 0.75, height: 0.6, hover: 3.6, speed: 2.2, sight: 18, giveUp: 40, reach: 9, support: true, lanterns: 3, flinchy: true,
       tone: '#f2a45c', takes: { shoot: 'pop', fire: 1, push: 0 }, escort: 'blot',
       calm: { mode: 'drift', wild: true, provoke: 0, alarm: 14, joins: true },
       attacks: [
@@ -311,7 +311,7 @@ export const ARCHETYPES = {
     moves: ['flash', 'dart', 'dust'], answers: ['push', 'fan’s gust', 'a light swing', 'shot'],
     idle: 'circles lamps and signs and sits on them in rows; fights near its lit sign',
     def: S({
-      name: 'signal moth', hp: 1, radius: 0.5, height: 0.4, hover: 1.6, speed: 4.2, sight: 18, reach: 6.5, flinchy: true, light: true, group: 3, breaks: true,
+      name: 'signal moth', hp: 1, hook: 'flyer', radius: 0.5, height: 0.4, hover: 1.6, speed: 4.2, sight: 18, reach: 6.5, flinchy: true, light: true, group: 3, breaks: true,
       tone: '#ff5fa2', takes: { shoot: 1, fire: 1, push: 1 },
       calm: { mode: 'circle', wild: true, provoke: 5, alarm: 12 },
       attacks: [
@@ -332,7 +332,7 @@ export const ARCHETYPES = {
     moves: ['skim', 'tail lash', 'downdraft'], answers: ['parry grounds it', 'air cut as it passes low', 'wings or jets'],
     idle: 'circles in the thermals over cliffs and lands on warm rock with its wings spread flat',
     def: S({
-      name: 'sky ray', hp: 3, radius: 0.9, height: 0.3, hover: 3.6, speed: 4.6, sight: 24, giveUp: 45, reach: 10,
+      name: 'sky ray', hp: 3, hook: 'flyer', radius: 0.9, height: 0.3, hover: 3.6, speed: 4.6, sight: 24, giveUp: 45, reach: 10,
       tone: '#b98674', takes: { shoot: 1, fire: 1 },
       calm: { mode: 'circle', wild: true, provoke: 7, alarm: 12 },
       attacks: [
@@ -353,7 +353,7 @@ export const ARCHETYPES = {
     moves: ['erupt', 'spit stones', 'dive'], answers: ['flush it out (stomp, gust, bomb, a cut at the fin)', 'air cut onto the mound', 'cut it while it is up'],
     idle: 'its mound wanders the dunes slowly, surfacing to eat thorn bushes; ignores you unless you stand on it',
     def: S({
-      name: 'mound worm', hp: 4, radius: 0.8, height: 1.1, speed: 4.2, sight: 20, giveUp: 45, reach: 9, burrow: true,
+      name: 'mound worm', hp: 4, hook: 'heavy', radius: 0.8, height: 1.1, speed: 4.2, sight: 20, giveUp: 45, reach: 9, burrow: true,
       tone: '#c98d4f', takes: { shoot: 1, fire: 1 },
       calm: { mode: 'wander', wild: true, provoke: 2.6 },
       attacks: [
@@ -377,7 +377,7 @@ export const ARCHETYPES = {
     answers: ['cover breaks the beam', 'dash under it', 'magnet glove (it is metal)', 'parry sends the bolt back'],
     idle: 'patrols its old round sweeping the lamp across the walls; stops and peers at anything moving',
     def: S({
-      name: 'lamp tripod', hp: 5, radius: 0.9, height: 1.6, speed: 2.1, sight: 22, giveUp: 40, reach: 18, keep: 9, heavy: true, metal: true, breaks: true,
+      name: 'lamp tripod', hp: 5, hook: 'heavy', radius: 0.9, height: 1.6, speed: 2.1, sight: 22, giveUp: 40, reach: 18, keep: 9, heavy: true, metal: true, breaks: true,
       tone: '#f2c54b', sound: 'machine', takes: { shoot: 0, fire: 0 },
       calm: { mode: 'patrol', provoke: 20, round: 7 },
       attacks: [
@@ -399,7 +399,7 @@ export const ARCHETYPES = {
     moves: ['pour', 'ram', 'trail'], answers: ['a plain shot cools its crust (cuts ×2)', 'a bomb on its tracks (it can’t turn)', 'the combo from behind', 'a wall stalls its ram'],
     idle: 'trundles its old route between the furnaces, pouring into moulds that are no longer there',
     def: S({
-      name: 'crucible cart', hp: 6, radius: 1.1, height: 1.0, speed: 2.0, sight: 16, giveUp: 30, reach: 8, heavy: true, breaks: true,
+      name: 'crucible cart', hp: 6, hook: 'heavy', radius: 1.1, height: 1.0, speed: 2.0, sight: 16, giveUp: 30, reach: 8, heavy: true, breaks: true,
       trail: { every: 1.5, r: 0.7, life: 3.5 }, douse: 4, jams: 5, tracks: true,
       tone: '#ff8a2e', sound: 'machine', takes: { shoot: 1, fire: 0 }, weak: { bomb: 1.5 },
       calm: { mode: 'trundle', provoke: 10, round: 6 },
@@ -422,7 +422,7 @@ export const ARCHETYPES = {
     moves: ['toll', 'drop', 'opening'], answers: ['the bell-note whistle chokes its toll', 'strike the clapper while it sits open', 'jump the rings', 'guard its drop (it tips open)'],
     idle: 'stands in a square and tolls the hours, softly',
     def: S({
-      name: 'bell walker', hp: 6, radius: 1.3, height: 2.6, speed: 1.1, sight: 22, giveUp: 30, reach: 12, heavy: true, stout: true, clapper: true, breaks: true,
+      name: 'bell walker', hp: 6, hook: 'armoured', radius: 1.3, height: 2.6, speed: 1.1, sight: 22, giveUp: 30, reach: 12, heavy: true, stout: true, clapper: true, breaks: true,
       tone: '#d8b048', sound: 'machine', takes: { shoot: 0, fire: 0 },
       calm: { mode: 'toll', provoke: 12 },
       attacks: [
@@ -444,7 +444,7 @@ export const ARCHETYPES = {
     moves: ['harpoon', 'ram', 'hide'], answers: ['guard the harpoon (the line is cut)', 'stilling (it drops)', 'magnet glove (it is metal)', 'the hook pulls it down'],
     idle: 'circles its old post polishing a dome that isn’t there; drifts after anything that shines',
     def: S({
-      name: 'ring drone', hp: 3, radius: 0.7, height: 0.8, hover: 1.7, speed: 3.2, sight: 20, reach: 9.5, keep: 4, metal: true, breaks: true,
+      name: 'ring drone', hp: 3, hook: 'flyer', radius: 0.7, height: 0.8, hover: 1.7, speed: 3.2, sight: 20, reach: 9.5, keep: 4, metal: true, breaks: true,
       tone: '#b8924e', sound: 'machine', takes: { shoot: 0, fire: 0 },
       calm: { mode: 'circle', provoke: 14 },
       attacks: [
@@ -466,7 +466,7 @@ export const ARCHETYPES = {
     moves: ['slam', 'hurl', 'sweep'], answers: ['riposte (×2 on the stunned)', 'bombs ×2 crack the hull', 'charged cut on a glowing crack', 'jump the quake'],
     idle: 'stands where it stopped working, rusted mid-task; wakes with a groan when you come close',
     def: S({
-      name: 'furnace brute', hp: 8, radius: 1.15, height: 2.4, speed: 1.7, sight: 18, giveUp: 32, reach: 12, heavy: true, stout: true, breaks: true,
+      name: 'furnace brute', hp: 8, hook: 'heavy', radius: 1.15, height: 2.4, speed: 1.7, sight: 18, giveUp: 32, reach: 12, heavy: true, stout: true, breaks: true,
       tone: '#a77bff', sound: 'machine', takes: { shoot: 0, fire: 0 }, weak: { bomb: 2 },
       calm: { mode: 'stand', provoke: 7 },
       attacks: [
@@ -492,7 +492,7 @@ export const ARCHETYPES = {
     moves: ['lunge', 'lunge combo', 'spit'], answers: ['a cut breaks its coil (it teaches the combo)', 'the guard ends its combo', 'a shot washes it'],
     idle: 'pools in shade and under arches, a stain until you come near; then the stain stands up',
     def: {
-      name: 'ink blot', hp: 2, radius: 0.6, height: 0.55, speed: 3.4, sight: 17, giveUp: 40, reach: 2.1, flinchy: true, clamber: true,
+      name: 'ink blot', hp: 2, hook: 'light', radius: 0.6, height: 0.55, speed: 3.4, sight: 17, giveUp: 40, reach: 2.1, flinchy: true, clamber: true,
       calm: { mode: 'pool', provoke: 9 },
       attacks: [
         { id: 'lunge', name: 'lunge', shape: 'ring', radius: 1.7, ahead: 1.1, damage: 0.5, wind: 0.7, strike: 0.24, contact: 0.55, lunge: 1.8, weight: 2,
@@ -515,7 +515,7 @@ export const ARCHETYPES = {
     moves: ['cut', 'feint and thrust', 'step through the shade'], answers: ['parry and riposte', 'ember (lit, it is solid: no step, and it burns)', 'an evade sideways from the thrust'],
     idle: 'walks a path it walked in life and stops at doorways',
     def: S({
-      name: 'shade', hp: 5, radius: 0.45, height: 1.3, speed: 3.0, sight: 18, giveUp: 40, reach: 7, clamber: true, lights: true,
+      name: 'shade', hp: 5, hook: 'light', radius: 0.45, height: 1.3, speed: 3.0, sight: 18, giveUp: 40, reach: 7, clamber: true, lights: true,
       tone: '#3b2a5c', takes: { shoot: 1, fire: 2 },
       calm: { mode: 'pace', provoke: 5, round: 5, wait: 2.5 },
       attacks: [
@@ -541,7 +541,7 @@ export const ARCHETYPES = {
     moves: ['pounce', 'step behind', 'antler rake'], answers: ['ember (solid, and it burns: 2)', 'the lantern', 'parry'],
     idle: 'shadows lie under trees and arches where there shouldn’t be any; one stands up and watches you go; not every one hunts',
     def: S({
-      name: 'antler hound', hp: 3, radius: 0.55, height: 1.15, speed: 5.6, sight: 22, giveUp: 45, reach: 7, phase: true, group: 2, clamber: true,
+      name: 'antler hound', hp: 3, hook: 'light', radius: 0.55, height: 1.15, speed: 5.6, sight: 22, giveUp: 45, reach: 7, phase: true, group: 2, clamber: true,
       tone: '#6c4fa0', takes: { shoot: 0, fire: 2 },
       calm: { mode: 'lie', provoke: 11, hunts: 0.7, alarm: 12 },
       attacks: [
@@ -566,7 +566,7 @@ export const ARCHETYPES = {
     moves: ['strings', 'yank', 'dance'], answers: ['cut the strings it drops (the air cut, the boomerang, an ember): the creature goes free', 'air cut, wings or jets to its body', 'evade the yank; a guard cuts its line'],
     idle: 'hangs still under bridges, cranes and arches, swaying like a coat on a hook',
     def: S({
-      name: 'marionette', hp: 4, radius: 0.5, height: 1.4, hover: 1.1, speed: 2.4, sight: 20, giveUp: 40, reach: 12, keep: 5, puppeteer: true,
+      name: 'marionette', hp: 4, hook: 'flyer', radius: 0.5, height: 1.4, hover: 1.1, speed: 2.4, sight: 20, giveUp: 40, reach: 12, keep: 5, puppeteer: true,
       tone: '#8a6cc8', takes: { shoot: 1, fire: 2 }, escort: 'crab',
       calm: { mode: 'hang', provoke: 9 },
       attacks: [

@@ -30,7 +30,8 @@
 // heavy (sturdy: light cuts don't stop it, it shoves less), metal (the magnet glove lifts it), light (a gust ends
 // it), shell (the blade glances off its front), burrow (swims under the ground), phase (a shadow while it runs),
 // trail (burning slag where it walks), splits (what it breaks into), group (how many come together), noWild,
-// clamber (it leaps up ledges to 2.4 m: src/foe-height.js), perch (it climbs to the high ground to shoot down).
+// clamber (it leaps up ledges to 2.4 m: src/foe-height.js), perch (it climbs to the high ground to shoot down),
+// hook ('light' | 'heavy' | 'flyer' | 'armoured': what the grappling hook does to it, src/hook-foes.js; every kind says).
 
 export const KINDS = {};
 

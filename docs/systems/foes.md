@@ -963,6 +963,10 @@ The count is said every 5 ink.
 
 - **RB / R1** (a left click, F, ⚔) swings (held, the charged cut; in the air, the air cut); **LB / L1** held (Ctrl or Z on land, 🛡) guards; **B / ○** (Alt, ↶) evades; **R3** (Tab, ◉) locks on, and with no foe in reach sends the scout (docs/systems/controls.md, "The layout").
 - The push is a gun mode (`MODES.push`, always owned with the backpack): fired as a shot, it throws the cone.
+- **The hook on the lock** (v1.82, issue #399): locked on, **RT / R2** throws the grappling hook at the foe (the hook in
+  hand, or nothing in hand). Each kind's `hook` class says what it does: `light` yanked to you and dazed, `heavy` pinned
+  1.8 s, `flyer` pulled down, `armoured` clanks it off (`Foe.hookYank`, `hookPin`, `hookDown`; the classes, the rules and
+  each kind's: docs/systems/gadgets.md, "The hook on a foe").
 - In a fight (`foes.near(20)`) LB doesn't zoom (`Controller.combat`).
 - **The lock-on:** `Foes.cycleLock()` locks a foe in `LOCK.reach`: those ahead of the camera first, by distance
   × (1.6 − how straight ahead), so the one nearest the middle of the view wins; then the next, then lets go. It

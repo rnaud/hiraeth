@@ -296,6 +296,7 @@ export const EN = {
   'potion.hint': 'Hearts don’t come back by themselves: drink a potion with {key:potion} (two hearts).',
   'hint.carry': 'Carried in both hands: {key:interact} puts it down, {key:blade} throws it.',
   'hint.hop': 'Locked on: {key:jump} with the stick back flips away, to a side hops aside.',
+  'hint.hookLock': 'Locked on: {key:use} hooks the foe. Small ones come to you, big ones are held.',
   'hint.flurry': 'A perfect dodge: time slows round you. Cut while it lasts.',
   'hint.lift': 'Press {key:jump} again in the air for a second jump.',
   'hint.sword': 'The Givers’ blade: {key:blade} cuts, three in a row; hold to charge. {key:evade} evades.',
