@@ -319,7 +319,13 @@ test('a new game: the quest doesn’t just appear; Marrow, at your ship, calls y
   assert.ok(W.calls.marrow.calls === 1 && /Sky-person|Over here/.test(m.shout?.text ?? ''), `he calls, once in twelve seconds (${W.calls.marrow.calls})`);
   assert.equal(m._wavedFor, 'desert.called.marrow.opening', 'and waves, once');
   assert.ok(!rt.dialogue.open, 'no talk on its own');
-  // talk to him (the usual prompt): the quest starts in that talk, in his words
+  // Plumb's word as you step out (src/companion.js, issue #434): "Best bet? The village on the horizon. Someone there might
+  // help us recharge." The quest starts on it, its first step the same village, and Marrow is still there to ask
+  game.emit('drone:village');
+  assert.equal(quests.stage('desert.power'), 'city', 'the drone\'s word starts it');
+  assert.equal(quests.objective().label, 'Qanat, under the dark tree', 'the scout finds the village it spoke of');
+  assert.ok(flat(m.pos, level.spawn) < 18, 'Marrow, not met yet, still at your ship');
+  // talk to him (the usual prompt): the quest is under way, in his words (the scar on the hull, the city, Nour)
   at(m.pos.clone().add(V(1.5, 0, 0)));
   assert.equal(bestInteractable(player)?.entry.id, 'talk.marrow');
   bestInteractable(player).entry.use(player);

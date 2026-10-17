@@ -28,6 +28,11 @@ import { ReboardGate } from './landing.js';
 import { REVEAL, rigView, anyInput } from './arrival-view.js';
 /** Walking into the ramp takes you aboard (issue #87): this near its foot (m), this fast up it (m/s). */
 export const RAMP_IN = { near: 2.4, speed: 1.2 };
+/**
+ * The autopilot's stick at a walk (issue #434): src/player.js eases the speed from 0.35 to 1 of WALK (3.8 m/s, his jog)
+ * with the stick, so 0.06 is ~1.5 m/s, under the walk clip's top (walkAt, 1.52 m/s): a walk, not a jog.
+ */
+export const AUTO_WALK = 0.06;
 import { PrologueDirector, ArrivalDirector, TakeoffDirector, CallDirector, OBJECTIVE } from './cinematics.js';
 
 // The traveller's ship: the angular family ship, home between worlds (src/ship/hull.js, docs/systems/ship.md).
@@ -543,9 +548,12 @@ export class Ship {
     P.hidden = !on;
   }
 
-  /** Walk the player along world points; the camera stays behind (or a shot is used). */
-  autopilot(points, onDone, { run = false } = {}) {
-    this.auto = { points: points.map((p) => p.clone()), i: 0, onDone, run, t: 0 };
+  /**
+   * Walk the player along world points; the camera stays behind (or a shot is used). The stick full forward is his jog;
+   * `walk` holds it at AUTO_WALK (a walk: the prologue's first steps down the ramp, issue #434), `run` sprints.
+   */
+  autopilot(points, onDone, { run = false, walk = false } = {}) {
+    this.auto = { points: points.map((p) => p.clone()), i: 0, onDone, run, k: walk && !run ? AUTO_WALK : 1, t: 0 };
   }
 
   /** Filter the player's input: the ship's E, and the autopilot. Called before player.update. */
@@ -565,7 +573,7 @@ export class Ship {
       // the camera swings round behind; the stick walks straight at the target whatever the camera does
       this.rig.yaw += Math.atan2(Math.sin(h + Math.PI - this.rig.yaw), Math.cos(h + Math.PI - this.rig.yaw)) * 0.06;
       const rel = h - this.rig.yaw;
-      return { ShiftLeft: a.run, stick: { x: Math.sin(rel), y: -Math.cos(rel) } };
+      return { ShiftLeft: a.run, stick: { x: Math.sin(rel) * a.k, y: -Math.cos(rel) * a.k } };
     }
     const c = this.cinematic;
     if (c && !c.done) {

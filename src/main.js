@@ -147,7 +147,7 @@ import { queueHost, takeHosts } from './minigames/kit/hosts.js';
 import { MinigameRunner } from './minigames/kit/runner.js';
 import { levelMetaFor } from './minigames/kit/world.js';
 import { lendTool } from './minigames/kit/onfoot.js';
-import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip } from './host/game-host.js';
+import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip, wireCompanion } from './host/game-host.js';
 import { arcadeLinks } from './minigames/kit/arcade.js';
 import { ambushDue, ambushHref, ambushKey, transitLinks } from './ambush.js';
 import { talkAllowed } from './ship/landing.js';
@@ -833,7 +833,7 @@ const scout = new Scout({ scene, player, physics, sound,
   // in a guardian's fight the ping is a hint: the lens on the weak point, the line on the cue (src/temples/hints.js);
   // the hint level lets its lines out (subtle: none at first, then one by one as the struggle goes on: openHint)
   getHint: () => openHint(guardianHint(level.temple), struggle.t),
-  onHint: (line) => scoutSays(`◇ ${line}`, HINT.say),
+  onHint: (line) => scoutSays(droneShown(line), HINT.say),   // (in its own name: src/companion.js shown)
 });
 const struggle = new Struggle();   // (the seconds in the guardian's phase: ticked in the loop)
 // Plumb's own mind (src/companion.js): it speaks up when you look lost (a line, and the ping's flight toward the goal),
@@ -845,26 +845,17 @@ const droneSaid = { text: '', until: 0 };   // (its line on the cue: before the 
 // taught once), a keepsake's theme, the trials' upgrades, Plumb's clock and notes (src/host/game-host.js wireLessons,
 // the engines' too)
 wireLessons({ game, items, levelId, gadgets: () => gadgets, sound, toast: (t) => showToast(t), plumb });
-const plumbAt = { goalT: 0, goal: null, lookT: 0 };
-/** Plumb, each frame (after the scout's own update): the lost watch and the opening's lines. */
+// Plumb each frame (src/host/game-host.js wireCompanion, the engines' too): its escort out of the prologue, the first
+// person near, its hints when you look lost, its first word (issue #434)
+const plumbStep = wireCompanion({ game, plumb, scout, level, player, npcs, struggle });
+/** Plumb, each frame (after the scout's own update): its line on the cue, a moment. */
 function updatePlumb(dt) {
   const now = performance.now();
-  // the first person near (the opening's line): now and then
-  if ((plumbAt.lookT -= dt) <= 0) {
-    plumbAt.lookT = 0.5;
-    const metAnyone = Object.keys(game.data?.flags ?? {}).some((k) => k.startsWith('met.'));
-    if (!metAnyone) for (const n of npcs) {
-      if (!n.def?.id || n.pooled || !n.object?.visible) continue;
-      if (n.pos.distanceTo(player.pos) < 8) { plumb.note('person'); break; }
-    }
-  }
   const canSpeak = !busy() && !photo.on && !ship.playing && !ship.inside && !player.dead && !cue.text && !ship.cinema.noticeBusy() && now >= scoutSaid.until && now >= droneSaid.until;
   const fight = !!foes.lock || !!guardianHint(level.temple) || !!minigame || !!minigameDef;
-  if ((plumbAt.goalT -= dt) <= 0) { plumbAt.goalT = 1; plumbAt.goal = fight ? null : scout.getTarget()?.position ?? null; }
-  const r = plumb.update(dt, { active: !fight && !scout.out, canSpeak, pos: player.pos, goal: plumbAt.goal });
-  if (!r.say) return;
-  if (r.point) scout.ping();   // (out toward the goal, a look, the flare, home: the find's line comes after its own)
-  droneSaid.text = droneShown(r.say); droneSaid.until = now + 3200;
+  const said = plumbStep(dt, { canSpeak, fight });
+  if (!said) return;
+  droneSaid.text = said; droneSaid.until = now + 3200;
   sound.drone?.('go');
 }
 // a world that wants to show you the way at once (the City-Shaft's jets, just found: up through the ceiling): a nudge, hints full only

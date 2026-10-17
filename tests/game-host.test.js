@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { readFileSync } from 'node:fs';
-import { wireKit, wireDangers, wirePeople, wireChemistry, wireVehicles, wireLessons } from '../src/host/game-host.js';
+import { wireKit, wireDangers, wirePeople, wireChemistry, wireVehicles, wireLessons, wireCompanion } from '../src/host/game-host.js';
 import { ERRANDS } from '../src/levels/content.js';
 import { hazardCount } from '../src/hazards.js';
 import * as THREE from 'three';
@@ -175,4 +175,26 @@ test('in the engines\' build: the sword hangs on him only once found and wears t
   v.level.veils?.scene?.traverse((o) => { if (/deadly void/.test(o.name)) voidMesh = o; });
   assert.ok(voidMesh, 'the world\'s void in the veils the engine mirrors');
   assert.ok([...ports.values()].some((p) => p.port === 'pitvoid' && Math.abs(p.min[0]) > 500), 'sent as the port\'s pitvoid (its box the world\'s width)');
+});
+
+test('wireCompanion: the prologue\'s drone handed over to the scout; Plumb\'s first word starts the village\'s quest and sends it off (issue #434)', async () => {
+  const { GameState } = await import('../src/game-state.js');
+  const { Companion, DRONE_LINES, shown } = await import('../src/companion.js');
+  const game = new GameState({ getItem: () => null, setItem: () => {} });
+  const calls = [];
+  const scout = { out: false, phase: 'away', escort: (s, p) => calls.push(['escort', p]), ping: () => calls.push(['ping']), getTarget: () => ({ id: 'q', label: 'Qanat, under the dark tree', position: new THREE.Vector3(80, 0, 0) }) };
+  const plumb = new Companion({ state: game, hints: () => 'subtle' });
+  const player = { pos: new THREE.Vector3() };
+  const step = wireCompanion({ game, plumb, scout, level: {}, player, npcs: [], struggle: { t: 0 } });
+  const at = new THREE.Vector3(1, 2, 3);
+  game.emit('drone:out', { pos: at });
+  assert.deepEqual(calls[0], ['escort', at], 'the scout escorts from where the prologue\'s drone is');
+  let village = 0;
+  game.on('drone:village', () => village++);
+  plumb.note('out');
+  assert.equal(step(0.1), shown(DRONE_LINES.out));
+  assert.equal(step(0.1), shown(DRONE_LINES.recharge));
+  assert.equal(village, 1, 'the desert\'s quest starts on it');
+  assert.deepEqual(calls.at(-1), ['ping'], 'and it flies off toward the village');
+  assert.equal(wireCompanion({ game, plumb: null, scout, level: {}, player })(0.1), '', 'no help: no lines');
 });

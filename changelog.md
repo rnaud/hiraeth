@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.84 — 2026-10-17
+
+- Your ship’s little drone has a name now, Plumb, and its lines say so. In the opening you see it wake in its charging cradle by the hatch and come to your shoulder; you walk down the ramp, not run, and once outside Plumb says your best bet is the village on the horizon, where someone might help you both recharge, and flies off toward it. After that it speaks up only when you seem lost: where to go next, a word on what waits in a makers’ house after a long while on one step, or a guardian’s weak point as a fight drags on. Never two lines within the minute, and Hints off quiets it.
+
 ## v1.83 — 2026-10-16
 
 - The Clock-House is built round a great hall now, the Winding Well, 64 m across, and the hour is the house’s state. In its middle the Escapement’s stair turns with the great clock’s hand: at two its arm meets the north door, at four the Pendulum Hall’s high door, at six the Striking Room’s loft. Roll the counterweight home to wind the clock, then turn the hand on at a lever by the stair, on its top, on every ledge or on the Escapement’s landing. A clock face in every room says the hour, and the hour track, the Clockmaker’s clock and the gallery’s eyes count from it. In the Clock Gallery the eyes sit behind shutters now: hook the ring under the great clock to run its striking train, then throw the boomerang. Every ledge’s edge is a safe drop back to the hall’s floor.

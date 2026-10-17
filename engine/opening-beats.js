@@ -18,8 +18,14 @@ export const OPENING_BEATS = [
   { name: 'glide', stage: 'glide', t: 2.6 },
   { name: 'land', stage: 'land', t: 2.2 },
   { name: 'settle', stage: 'settle', t: 2 },
+  // (Plumb wakes in its cradle and comes to his shoulder, issue #434)
+  { name: 'drone-wake', stage: 'drone', t: 1.4 },
+  { name: 'drone-lift', stage: 'drone', t: 3.0 },
+  { name: 'drone-shoulder', stage: 'drone', t: 4.9 },
   { name: 'hatch', stage: 'hatch', t: 2.4 },
   { name: 'stepout', stage: 'stepout', t: 2.5 },
+  // (down the ramp at a walk, the drone at his shoulder)
+  { name: 'stepout-walk', stage: 'stepout', t: 6 },
 ];
 
 /** Whether a beat is due: its stage reached and that far in, or a later stage already (a slow frame jumped it). */

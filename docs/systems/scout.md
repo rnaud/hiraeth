@@ -98,8 +98,9 @@ The drone has a name, Plumb, and a character (`lore/characters/plumb.md`).
   pings (the ping's own flight, flare and find line follow). Then it rests
   5 minutes (12 with "fewer"). It only speaks when the cue is empty and no
   notice is up.
-- **Opening** (`Opening`): four lines, each once per save (flags
-  `drone.said.<id>`): `out` (the first steps out of the crashed ship), `person`
+- **Opening** (`Opening`): five lines, each once per save (flags
+  `drone.said.<id>`): `out` and `recharge` (the first steps out of the crashed ship: the village on the horizon,
+  someone there to help us recharge; issue #434, below), `person`
   (an unmet person within 8 m before you have talked to anyone), `chest` (the
   first chest opened, said once its scene is over), `pointer` (the first time it
   finds you lost, in place of a lost line). None names a button: the R3 line
@@ -133,3 +134,41 @@ talks, portraits, menus and the studio all show him without it) until it is call
 Its lines (Plumb's, `src/companion.js`) still come on the cue with its ◇. `tests/drone.test.js` ("off him") checks nothing of it on him or drawn while idle, the light
 and the growing by his shoulder, the bloom only once grown, the job and the going, and the scene
 hiding it; `tests/scout.test.js` the phases of a find, a shrug, a hint and a recall.
+
+## A name, a voice, and help when you look lost (v1.84, issue #434)
+
+The author: "The drone should have a name and a personality. From time to time it should give me hints about where to
+go next, or a hint about how to defeat a boss. In the prologue we should see the drone leave its charging station…"
+
+- **Its name on its lines**: every line of its own, and a guardian's hints, show on the cue as `◇ Plumb: …`
+  (`shown`, `DRONE_NAME`). The character, in three lines, is in `docs/story-bible.md` ("The drone: Plumb").
+- **The prologue** (`src/ship/prologue-drone.js`, the prologue's `drone` stage, 5.2 s between `settle` and `hatch`):
+  its charging cradle hangs on the cabin's port wall forward of the hatch (`src/ship/interior.js` `DOCK`: a shelf, a cup,
+  its charge ring lit, a pilot light that goes dark with the ship, the cable down the wall). In orbit it sleeps there;
+  after the landing the camera in the amber cabin holds the cradle while it wakes (`WAKE`: the eye at 1.0 s, the bloom
+  at 1.6, out of the cup at 2.3), then pushes in on him as it comes to his ear (4.1). It rides at his shoulder through
+  the hatch and down the ramp; at the end the director emits `drone:out` with where it is and the scout takes over
+  there (`Scout.escort`, phase `escort`, `ESCORT.secs` 60 s at `appearSpot`, a ping sends it off, else it winks out;
+  skipped, it comes out of its light). The step out is a **walk**: `ship.autopilot(…, { walk: true })` holds the
+  stick at `AUTO_WALK` (0.06: ~1.5 m/s, under the walk clip's top), only in the prologue's first step out.
+- **Its first word**: once outside, the opening's `out` brings `recharge` with it (`FOLLOWS`): "Best bet? The village on
+  the horizon." "Someone there might help us recharge." The second points (`OPENING_POINTS`: `village`): main.js (and
+  engine/game.js) emit `drone:village`, which starts the desert's main quest (src/story/desert.js; its first step is
+  "Walk to Qanat, under the dark tree"), and ping, so it flies off toward Qanat, whose camps and great tree stand in the
+  first step out's view. Marrow still calls you over until you meet him.
+- **Where to go** (`placeOf`, `PLACE_LINES`): a lost line names the objective when it is a place ("The giant's skull is
+  over here"): a label starting "The" / "Your", or "Name, description" whose name is no one's; never a person, never a
+  doing, at most 28 characters.
+- **A makers' house** (`StepWatch`, `HOUSE`, `HOUSE_LINES`; `droneWorld` reads the house you are in and
+  `logic.next()`): 150 s (300 on fewer) on one step of its solver, a line on the kind of thing that waits (a switch, a
+  plate, a ball, a lock…) and the ping's flight to it; then 240 s (480) of rest. Inside, the lost watch rests.
+- **A guardian** (`FightWatch`): as the struggle in one phase passes 40, 100 and 180 s (`STRUGGLE`; fewer from the
+  second), it pings by itself, the hint's flight: the lens on the weak point and the phase's next line
+  (src/temples/hints.js), once a threshold.
+- **Never chatty**: `GAP` 45 s (90 on fewer) between any two of its own lines, besides each watch's cooldown; Hints off
+  or Drone hints off and it says nothing on its own.
+
+Tests: tests/companion.test.js (the name, the first word, places, the house, the guardian, the gap), tests/scout.test.js
+(escort), tests/prologue-drone.test.js (the beat, the walk, the hand-over), tests/desert-story.test.js (the quest on its
+word). In the engines the same code runs (engine/game.js's `updatePlumb`); the opening's sequence has the beat's three
+beats, the walk and the line (`plumb`).

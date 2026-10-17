@@ -16,8 +16,9 @@
 //   glide   → outside, over the desert: the dark ship glides down, no fire, on its last reserve
 //   land    → a hard landing on its belly, a short skid through the dunes (a landing, not a crash)
 //   settle  → the dust clears
+//   drone   → inside, by the hatch: Plumb wakes in its charging cradle, blooms and comes to his shoulder (issue #434)
 //   hatch   → the hatch opens, the ramp comes down
-//   stepout → the traveller walks out
+//   stepout → the traveller walks out, at a walk (his first steps on a new world), the drone at his shoulder
 //   objective → "Find a new source of power."
 //
 // Hold Esc (or B on a pad) to skip; Menu / Start pauses it. `prologue.done` is set at the end.
@@ -59,8 +60,9 @@ export const PROLOGUE_STAGES = [
   { id: 'glide', dur: 5.2 },
   { id: 'land', dur: 3.6 },
   { id: 'settle', dur: 3.6 },
+  { id: 'drone', dur: 5.2 },
   { id: 'hatch', dur: 3.4 },
-  { id: 'stepout', until: true, dur: 9, play: true },
+  { id: 'stepout', until: true, dur: 26, play: true },   // (a walk down the ramp: ~12 s; the dur is a safety net)
   { id: 'objective', dur: 1.4 },
 ];
 

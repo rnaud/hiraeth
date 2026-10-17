@@ -1,7 +1,9 @@
 // Plumb, the drone's own mind (src/companion.js): the lost watch, the opening's lines, the setting, its moods.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { Companion, LostWatch, Opening, LOST, DRONE_LINES, OPENING, DRONE_HINTS, droneSay, shown } from '../src/companion.js';
+import { Companion, LostWatch, Opening, LOST, DRONE_LINES, OPENING, DRONE_HINTS, droneSay, shown, DRONE_NAME, FOLLOWS, OPENING_POINTS,
+  PLACE_LINES, PLACE_MAX, placeOf, HOUSE_LINES, HOUSE, GAP, StepWatch, FightWatch, droneWorld, withPlace } from '../src/companion.js';
+import { STRUGGLE } from '../src/hint-level.js';
 import { parseLine } from '../src/story/tone.js';
 
 /** A save's flags, as the game state keeps them. */
@@ -98,6 +100,7 @@ test('the opening: each line once, kept in the save; it waits until it can be sa
   const s = state(), o = new Opening(s);
   o.note('out'); o.note('out'); o.note('chest');
   assert.equal(o.take(), DRONE_LINES.out);
+  assert.equal(o.take(), DRONE_LINES.recharge, 'the village line brings the recharge line with it');
   assert.equal(o.take(), DRONE_LINES.chest);
   assert.equal(o.take(), '');
   o.note('out'); o.note('chest');
@@ -129,14 +132,112 @@ test('the first time it finds you lost it says the pointer line; after that the 
 });
 
 test('every line carries a tone, is short, and never names a button (the R3 line is the hint system\'s, #151)', () => {
-  const all = [...OPENING.map((k) => DRONE_LINES[k]), ...['still', 'away', 'circling'].flatMap((k) => DRONE_LINES[k])];
-  assert.ok(all.length >= 10);
+  const all = [...OPENING.map((k) => DRONE_LINES[k]), ...['still', 'away', 'circling'].flatMap((k) => DRONE_LINES[k]),
+    ...Object.values(PLACE_LINES).flat(), ...Object.values(HOUSE_LINES)];
+  assert.ok(all.length >= 30);
   for (const l of all) {
     assert.ok(parseLine(l).explicit, `${l}: a tone`);
-    assert.ok(parseLine(l).text.split(/\s+/).length <= 9, `${l}: terse`);
+    assert.ok(parseLine(l).text.replace('{place}', '').split(/\s+/).filter(Boolean).length <= 9, `${l}: terse`);
     assert.ok(!/R3|\{key|Q\b/.test(l), `${l}: no button`);
-    assert.ok(shown(l).startsWith('◇ ') && !shown(l).includes('~'), 'shown without its tag');
+    assert.ok(shown(l).startsWith(`◇ ${DRONE_NAME}: `) && !shown(l).includes('~'), 'shown in its name, without its tag');
+    // (a notice's length, its name and the longest place in it)
+    assert.ok(shown(withPlace(l, 'x'.repeat(PLACE_MAX))).length <= 72, `${l}: short enough for the cue (72, with the longest place)`);
   }
   assert.ok(OPENING.length >= 3 && OPENING.length <= 5, 'three to five opening lines');
 });
 
+
+test('its name: Plumb, on every line it says (issue #434)', () => {
+  assert.equal(DRONE_NAME, 'Plumb');
+  assert.equal(shown('~curious~ Best bet?'), '◇ Plumb: Best bet?');
+});
+
+test('the first steps out: the village on the horizon, someone there to recharge us, then it flies off toward it (issue #434)', () => {
+  assert.match(DRONE_LINES.out, /village on the horizon/);
+  assert.match(DRONE_LINES.recharge, /recharge/);
+  assert.equal(FOLLOWS.out, 'recharge');
+  assert.equal(OPENING_POINTS.recharge, 'village');
+  const s = state(), c = new Companion({ state: s, hints: () => 'subtle' });
+  c.note('out');
+  const a = c.update(0.5, { pos: { x: 0, y: 0, z: 0 } });
+  assert.equal(a.say, DRONE_LINES.out); assert.equal(a.point, null);
+  const b = c.update(0.5, { pos: { x: 0, y: 0, z: 0 } });
+  assert.equal(b.say, DRONE_LINES.recharge); assert.equal(b.point, 'village', 'the second line sends it toward the village');
+  // hints off: none of it
+  const off = new Companion({ state: state(), hints: () => 'off' });
+  off.note('out');
+  assert.equal(off.update(0.5, { pos: { x: 0, y: 0, z: 0 } }).say, '');
+});
+
+test('where to go: a place it can name, never a person or a doing', () => {
+  const people = new Set(['Marrow', 'Nour']);
+  assert.equal(placeOf('Qanat, under the dark tree', people), 'Qanat, under the dark tree');
+  assert.equal(placeOf('The giant’s skull', people), 'The giant’s skull');
+  for (const l of ['Marrow, by your ship', 'Nour, the eldest', 'Back to the ship', 'Through the doorway', 'Climb to ledge 2', '', null, 'The ' + 'very '.repeat(8) + 'long way'])
+    assert.equal(placeOf(l, people), null, `${l}: not a place to name`);
+  const c = new Companion({ state: state(), hints: () => 'subtle' });
+  c.lostLine('still');   // (the pointer line, the first time)
+  assert.equal(c.lostLine('still', 'The giant’s skull'), withPlace(PLACE_LINES.still[0], 'The giant’s skull'));
+  assert.match(c.lostLine('away', 'The pool'), /^~\w+~ .*The pool is back here\.$/);
+  assert.equal(c.lostLine('circling', null), DRONE_LINES.circling[0], 'no place: the plain line');
+});
+
+test('a makers\' house: a long time on one step, a line about what waits there, then the cooldown', () => {
+  const w = new StepWatch();
+  let fired = -1;
+  for (let t = 0; t < HOUSE.after.on + 5 && fired < 0; t += 0.5) if (w.update(0.5, { step: 'h.sw1' })) fired = t;
+  assert.ok(fired >= HOUSE.after.on - 1, `not before ${HOUSE.after.on} s (${fired})`);
+  // a new step starts the clock over; the cooldown holds
+  for (let t = 0; t < HOUSE.cool.on - 10; t += 0.5) assert.equal(w.update(0.5, { step: 'h.sw2' }), false);
+  // off: never; not active (a scene, a menu): the clock waits
+  const off = new StepWatch();
+  for (let t = 0; t < 2000; t += 1) assert.equal(off.update(1, { step: 'x', say: 'off' }), false);
+  const idle = new StepWatch();
+  for (let t = 0; t < 2000; t += 1) assert.equal(idle.update(1, { step: 'x', active: false }), false);
+  // the companion: inside, the house's line and the ping's flight to the step
+  const c = new Companion({ state: state(), hints: () => 'subtle' });
+  let r = null;
+  for (let t = 0; t < HOUSE.after.on + 5 && !r?.point; t += 0.5) r = c.update(0.5, { pos: { x: Math.cos(t), y: 0, z: 0 }, goal: { x: 9, y: 0, z: 0 }, house: { step: 'h.p1', type: 'plate' } });
+  assert.equal(r.point, 'house');
+  assert.equal(r.say, HOUSE_LINES.plate);
+});
+
+test('a guardian: its hints offered by themselves as the struggle goes on, once a threshold, fewer from the second', () => {
+  const run = (say) => {
+    const w = new FightWatch(), at = [];
+    for (let t = 0; t < 240; t += 0.5) if (w.update({ id: 'desert.0', secs: t, say })) at.push(t);
+    return at;
+  };
+  assert.deepEqual(run('on'), STRUGGLE);
+  assert.deepEqual(run('fewer'), STRUGGLE.slice(1));
+  assert.deepEqual(run('off'), []);
+  // a new phase starts over; held while it can't speak
+  const w = new FightWatch();
+  assert.equal(w.update({ id: 'a.0', secs: 50, canSpeak: false }), false);
+  assert.equal(w.update({ id: 'a.0', secs: 51 }), true);
+  assert.equal(w.update({ id: 'a.1', secs: 1 }), false);
+  assert.equal(w.update({ id: 'a.1', secs: 41 }), true);
+  // the companion: the hint's flight, no line of its own (the hint's line is the ping's)
+  const c = new Companion({ state: state(), hints: () => 'full' });
+  const r = c.update(0.5, { pos: { x: 0, y: 0, z: 0 }, active: false, fight: { id: 'desert.0', secs: 41 } });
+  assert.deepEqual([r.say, r.point], ['', 'hint']);
+});
+
+test('never chatty: no two of its own lines within GAP, whatever asks', () => {
+  const c = new Companion({ state: state(), hints: () => 'subtle' });
+  c.state.set('drone.said.pointer', true);
+  const said = [];
+  for (let t = 0; t < 1200; t += 0.5) {
+    const r = c.update(0.5, { pos: { x: 12 + Math.cos(t), y: 12, z: 12 }, goal: { x: 90, y: 12, z: 12 }, fight: t > 600 ? { id: 'g.0', secs: t - 600 } : null, house: t > 300 && t <= 600 ? { step: `s${Math.floor(t / 400)}`, type: 'switch' } : null });
+    if (r.point || r.say) said.push(t);
+  }
+  assert.ok(said.length >= 3, `it spoke (${said.join(', ')})`);
+  for (let i = 1; i < said.length; i++) assert.ok(said[i] - said[i - 1] >= GAP.on, `${said[i - 1]} then ${said[i]}`);
+});
+
+test('droneWorld: the guardian first, else the house you are in and its next step', () => {
+  const rt = { id: 'buried', inside: () => true, logic: { resolved: false, next: () => 'sw2', el: () => ({ type: 'switch' }) } };
+  assert.deepEqual(droneWorld({ level: { temples: [rt] }, pos: { x: 0, y: 0, z: 0 } }), { fight: null, house: { step: 'buried.sw2', type: 'switch' } });
+  assert.deepEqual(droneWorld({ level: { temple: rt }, pos: { x: 0, y: 0, z: 0 }, hint: { id: 'buried.1' }, secs: 12 }), { fight: { id: 'buried.1', secs: 12 }, house: null });
+  assert.deepEqual(droneWorld({ level: { temples: [{ ...rt, inside: () => false }] }, pos: { x: 0, y: 0, z: 0 } }), { fight: null, house: null });
+});

@@ -8,6 +8,12 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.84', date: '2026-10-17', items: [
+    // issue #434: src/companion.js (the name on its lines, the first word, places, StepWatch, FightWatch, GAP), src/scout.js
+    // escort, src/ship/prologue-drone.js and the prologue's `drone` stage, interior.js DOCK, ship.js AUTO_WALK, desert.js
+    // drone:village; tests/companion.test.js, tests/prologue-drone.test.js, tests/scout.test.js
+    'Your ship’s little drone has a name now, Plumb, and its lines say so. In the opening you see it wake in its charging cradle by the hatch and come to your shoulder; you walk down the ramp, not run, and once outside Plumb says your best bet is the village on the horizon, where someone might help you both recharge, and flies off toward it. After that it speaks up only when you seem lost: where to go next, a word on what waits in a makers’ house after a long while on one step, or a guardian’s weak point as a fight drags on. Never two lines within the minute, and Hints off quiets it.',
+  ] },
   { v: '1.83', date: '2026-10-16', items: [
     // issue #406: src/temples/desert.js (ROOMS, LOGIC: hall, balcony, ballK, kS, dE, sentry in the hall, d3), pieces.js Ball
     // `hole` without a gate, migrate.js desert v5, save-migrate.js GIVERS_DONE; tests/temples.test.js, tests/sentry.test.js

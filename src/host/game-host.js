@@ -13,6 +13,7 @@
 //   wireMount({ levelId, level, flag })                    the bird's promise, the hoverbike (before the traveller)
 //   wireVehicles({ bikeHere, player, … })                  the bike by the ramp, skimming water, no calls into rooms
 //   wireLessons({ game, items, gadgets, sound, plumb, … }) what the save's events say and start (a gadget's line, Plumb)
+//   wireCompanion({ game, plumb, scout, level, … })        Plumb each frame: its escort, its hints, its first word (#434)
 //
 // tests/game-host.test.js holds each group to both hosts; scripts/bridge-gaps.mjs reports a group main.js calls and
 // engine/game.js doesn't as a host gap (engine/bridge-gaps.js `shared:`).
@@ -32,6 +33,9 @@ import { bikeComes, parkedBike } from '../bike-worlds.js';
 import { gadgetFoundLine } from '../gadgets/index.js';
 import { syncUpgrades } from '../trials/upgrades.js';
 import { keyText } from '../prompt-keys.js';
+import { placeOf, droneWorld, shown as droneShown } from '../companion.js';
+import { ESCORT } from '../scout.js';
+import { guardianHint } from '../temples/hints.js';
 
 // ------------------------------------------------------------------ the kit
 /**
@@ -187,4 +191,46 @@ export function wireLessons({ game, items, levelId, gadgets = () => null, sound 
     game.on('box:opened', () => plumb.note('chest'));
     game.on('ship:exit', () => { if (levelId === 'desert' && !game.flag('item.backpack')) plumb.note('out'); });   // (the first steps out of the crashed ship)
   }
+}
+
+// ------------------------------------------------------------------ Plumb's own mind, each frame
+/**
+ * Plumb, the drone (issue #434; src/companion.js, src/scout.js): handed over by the prologue's drone, it escorts you
+ * (game 'drone:out'); each frame after the scout, the first person near (its opening line), the goal and the place it
+ * names, the makers' house you are in and its step, the guardian's phase, then its line and the ping's flight (its first
+ * word, "the village on the horizon", starts the desert's quest: 'drone:village', src/story/desert.js).
+ *   const plumbStep = wireCompanion({ game, plumb, scout, level, player, npcs, struggle })
+ *   plumbStep(dt, { canSpeak, fight })   → its line as the cue shows it ('' none); the host puts it up
+ * `plumb` null (a host without the help): only the escort.
+ */
+export function wireCompanion({ game, plumb = null, scout = null, level, player, npcs = [], struggle = null }) {
+  if (scout) game.on('drone:out', (e) => scout.escort(ESCORT.secs, e?.pos ?? null));
+  const at = { goalT: 0, goal: null, lookT: 0, place: null, world: { fight: null, house: null }, names: null };
+  return (dt, { canSpeak = true, fight = false } = {}) => {
+    if (!plumb) return '';
+    // the first person near (the opening's line): now and then
+    if ((at.lookT -= dt) <= 0) {
+      at.lookT = 0.5;
+      const metAnyone = Object.keys(game.data?.flags ?? {}).some((k) => k.startsWith('met.'));
+      if (!metAnyone) for (const n of npcs) {
+        if (!n.def?.id || n.pooled || !n.object?.visible) continue;
+        if (n.pos.distanceTo(player.pos) < 8) { plumb.note('person'); break; }
+      }
+    }
+    const hint = level.temple ? guardianHint(level.temple) : null, secs = struggle?.t ?? 0;
+    if ((at.goalT -= dt) <= 0) {
+      at.goalT = 1;
+      const target = fight ? null : scout?.getTarget?.() ?? null;
+      at.goal = target?.position ?? null;
+      // (the place it names when you look lost, never a person: src/companion.js placeOf)
+      at.names ??= new Set(npcs.map((n) => n.def?.name).filter(Boolean));
+      at.place = target ? placeOf(target.label, at.names) : null;
+      at.world = droneWorld({ level, pos: player.pos, hint, secs });
+    }
+    const r = plumb.update(dt, { active: !fight && !(scout?.out && scout.phase !== 'escort'), canSpeak, pos: player.pos, goal: at.goal, place: at.place,
+      house: at.world.house, fight: hint ? { id: hint.id, secs } : null });
+    if (r.point === 'village') game.emit('drone:village');
+    if (r.point) scout?.ping();   // (out toward the goal, a look, the flare, home; in a guardian's fight, the hint)
+    return r.say ? droneShown(r.say) : '';
+  };
 }

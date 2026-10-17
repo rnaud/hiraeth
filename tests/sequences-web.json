@@ -1,6 +1,6 @@
 {
  "recorded": "2026-10-17",
- "sha": "11a395ad7",
+ "sha": "3a6ee5b29",
  "how": "node scripts/unity-compare/sequences.mjs web [ids] && node scripts/unity-compare/sequences.mjs record",
  "sequences": {
   "moment-desert.flow": {
@@ -293,7 +293,7 @@
       "stage": "wake"
      },
      "objects": {
-      "ink": 1661,
+      "ink": 1662,
       "shader": 3,
       "print": 1
      },
@@ -327,7 +327,7 @@
       "stage": "walk"
      },
      "objects": {
-      "ink": 1643,
+      "ink": 1644,
       "print": 1,
       "shader": 2
      },
@@ -365,7 +365,7 @@
       "stage": "walk"
      },
      "objects": {
-      "ink": 1651,
+      "ink": 1652,
       "planet": 1,
       "shader": 4,
       "print": 1
@@ -404,7 +404,7 @@
       "stage": "call"
      },
      "objects": {
-      "ink": 1649,
+      "ink": 1650,
       "planet": 1,
       "shader": 4,
       "print": 1
@@ -443,7 +443,7 @@
       "stage": "call"
      },
      "objects": {
-      "ink": 1649,
+      "ink": 1650,
       "planet": 1,
       "shader": 4,
       "print": 1,
@@ -484,7 +484,7 @@
       "stage": "call"
      },
      "objects": {
-      "ink": 1650,
+      "ink": 1651,
       "planet": 1,
       "shader": 4,
       "print": 1,
@@ -521,7 +521,7 @@
       "stage": "pause"
      },
      "objects": {
-      "ink": 1647,
+      "ink": 1648,
       "planet": 1,
       "shader": 4,
       "print": 1,
@@ -558,7 +558,7 @@
       "stage": "pause"
      },
      "objects": {
-      "ink": 1650,
+      "ink": 1651,
       "planet": 1,
       "shader": 4,
       "print": 1,
@@ -595,7 +595,7 @@
       "stage": "pass"
      },
      "objects": {
-      "ink": 1634,
+      "ink": 1635,
       "print": 1,
       "shader": 2,
       "holo": 1
@@ -634,7 +634,7 @@
       "stage": "pass"
      },
      "objects": {
-      "ink": 1634,
+      "ink": 1636,
       "print": 1,
       "shader": 2,
       "hidden": 3,
@@ -674,7 +674,7 @@
       "stage": "drain"
      },
      "objects": {
-      "ink": 1634,
+      "ink": 1635,
       "print": 1,
       "shader": 2
      },
@@ -712,7 +712,7 @@
       "stage": "drain"
      },
      "objects": {
-      "ink": 1633,
+      "ink": 1634,
       "print": 1,
       "shader": 2
      },
@@ -829,8 +829,116 @@
      },
      "cam": [
       13.4,
-      47.4,
+      47.3,
       190.9,
+      46
+     ],
+     "player": [
+      89.1,
+      19.4,
+      154.4
+     ],
+     "late": false
+    },
+    {
+     "beat": "drone-wake",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": false
+      }
+     },
+     "menu": null,
+     "playing": {
+      "what": "prologue",
+      "stage": "drone"
+     },
+     "objects": {
+      "ink": 1577,
+      "print": 1,
+      "shader": 2,
+      "wisp": 1,
+      "mote": 1
+     },
+     "cam": [
+      84.5,
+      21,
+      155.6,
+      46
+     ],
+     "player": [
+      89.1,
+      19.4,
+      154.4
+     ],
+     "late": false
+    },
+    {
+     "beat": "drone-lift",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": false
+      }
+     },
+     "menu": null,
+     "playing": {
+      "what": "prologue",
+      "stage": "drone"
+     },
+     "objects": {
+      "ink": 1577,
+      "print": 1,
+      "shader": 2,
+      "wisp": 1,
+      "mote": 1
+     },
+     "cam": [
+      85.3,
+      21.1,
+      155.4,
+      46
+     ],
+     "player": [
+      89.1,
+      19.4,
+      154.4
+     ],
+     "late": false
+    },
+    {
+     "beat": "drone-shoulder",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": false
+      }
+     },
+     "menu": null,
+     "playing": {
+      "what": "prologue",
+      "stage": "drone"
+     },
+     "objects": {
+      "ink": 1580,
+      "print": 1,
+      "shader": 2,
+      "wisp": 1,
+      "mote": 1
+     },
+     "cam": [
+      86.5,
+      21.1,
+      155.1,
       46
      ],
      "player": [
@@ -861,7 +969,7 @@
       "stage": "hatch"
      },
      "objects": {
-      "ink": 1615,
+      "ink": 1618,
       "planet": 1,
       "shader": 4,
       "print": 1,
@@ -902,7 +1010,7 @@
       "stage": "stepout"
      },
      "objects": {
-      "ink": 1639,
+      "ink": 1650,
       "planet": 1,
       "shader": 4,
       "print": 1,
@@ -916,9 +1024,77 @@
       50
      ],
      "player": [
-      94.5,
-      14.9,
-      163.9
+      91.8,
+      17.8,
+      159
+     ],
+     "late": false
+    },
+    {
+     "beat": "stepout-walk",
+     "hud": {
+      "cine": {
+       "bars": true,
+       "lids": false,
+       "hud": false,
+       "walk": false,
+       "skip": false
+      },
+      "sub": {
+       "who": "",
+       "text": "Then track it. When we can fly, we follow it. I want to hear it again."
+      }
+     },
+     "menu": null,
+     "playing": {
+      "what": "prologue",
+      "stage": "stepout"
+     },
+     "objects": {
+      "ink": 1641,
+      "planet": 1,
+      "shader": 4,
+      "print": 1,
+      "wisp": 1,
+      "mote": 1
+     },
+     "cam": [
+      102.2,
+      14.1,
+      170.8,
+      50
+     ],
+     "player": [
+      94.3,
+      15.1,
+      163.5
+     ],
+     "late": false
+    },
+    {
+     "beat": "plumb",
+     "hud": {
+      "cue": "Plumb: Best bet? The village on the horizon."
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 1568,
+      "print": 1,
+      "shader": 2,
+      "wisp": 1,
+      "mote": 1
+     },
+     "cam": [
+      94.6,
+      16.1,
+      166.9,
+      55
+     ],
+     "player": [
+      98.3,
+      13.2,
+      169.8
      ],
      "late": false
     }

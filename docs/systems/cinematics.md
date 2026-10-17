@@ -136,6 +136,10 @@ The ship's cutscenes and the filmed first times.
     behind it, no fire; the reserve's jets only at the very end.
   - `land` (3.6 s): down on its belly, a short skid through the dunes (`SITE_OVERRIDES.desert.crash.length`
     52 m, was 118), dust, still. No smoke after (the ship never burned).
+  - `drone` (5.2 s, issue #434): inside, the reserve's amber light; Plumb wakes in its charging cradle by the hatch,
+    blooms, lifts out of the cup and comes to his ear, the camera pushing in from the cradle to the two of them
+    (src/ship/prologue-drone.js; docs/systems/scout.md). It rides at his shoulder from here, and he walks (not runs)
+    down the ramp in `stepout` (`autopilot(…, { walk: true })`).
   - `hatch`: once the charge's card has gone, the ship: "Whatever passed us drained the core and left a
     magnetic signature on the hull. I can track its pulse." and he answers: "Then track it. When we can
     fly, we follow it. I want to hear it again." (`LANDING_LINE`, `FOLLOW_LINE`, src/story/signature.js:

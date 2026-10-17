@@ -1141,6 +1141,7 @@ const WISP398 = 'Issue #398: muted headless Chrome on this branch’s own dev se
 /** (v1.83, issue #432: the hook in a makers' house) */
 const HOOK432 = 'Issue #432: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, 11:00, the HUD hidden but the reticle) on this branch’s own Vite (port 5443, scripts/design-qc/capture.mjs), the camera pinned over the traveller’s shoulder at the Founders’ Belfry’s way in, the hook in hand and aimed at the hall’s east wall; before: the same build with the house’s rule turned off in the page (its runtime’s inside() false: the hook as it was), after: as shipped; 17 October; cwebp -q 70';
 /** (v1.83, issue #382: the Lens Vault, a first-person test game) */
+const PLUMB434 = 'Issue #434: the opening sequence (engine/sequences.js `opening`, scripts/unity-compare/sequences.mjs web) in muted headless Chrome (High, 1280 × 720) on this branch’s own Vite (port 5434), a new save, each beat’s picture; 17 October; cwebp -q 72';
 const LENS382 = 'Issue #382: the game’s page (?game=lens-vault&from=arcade) in muted headless Chrome (High, 1280 × 720) on this branch’s own Vite (port 5460), played by a script (keys through the debugging protocol, the eye turned by the session’s own look, his hearts kept full, rooms cleared by hand between the pictures: scratchpad fps-382 play.mjs); 17 October; cwebp -q 72';
 /** (v1.83, issue #418: the Undertower round the Great Well, the line its state, the exam of the whole game) */
 const UT418 = 'Issue #418: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, noon, the HUD hidden) on this branch’s own Vite (port 5457, scripts/design-qc/capture.mjs), the camera pinned in the temple’s own metres, the house’s own pieces set from the page where it says (the line, a knock, a note played back); before: the tree at origin/main 1582ce084 (port 5458), the same camera; 17 October; cwebp -q 72';
@@ -1153,6 +1154,15 @@ const CLOCK414P = 'Issue #414: the Temple maps page (temples.html?t=garage, Debu
 const MOOR417 = 'Issue #417: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, 11:00, the HUD hidden) on this branch’s own Vite (port 5418, scripts/design-qc/capture.mjs), the camera pinned in the temple’s own metres, the moored room set where the caption says; before: the tree at origin/main ec07b2d9d (port 5419), the same camera; 17 October; cwebp -q 70';
 const MOOR417P = 'Issue #417: the Temple maps page (temples.html?t=spacecity, Plan, all floors) in muted headless Chrome, 1600 × 1150, the plan with the solver’s steps; before: the tree at origin/main ec07b2d9d, after: this change; 17 October; cwebp -q 70';
 export const CHANGELOG_MEDIA = {
+  '1.84': [
+    { match: 'Your ship’s little drone has a name now, Plumb', shots: [
+      { name: 'plumb-wake', only: 'after', title: 'In its cradle', caption: 'After the landing, by the amber reserve light: Plumb asleep in its charging cradle by the hatch, its eye waking', from: PLUMB434 },
+      { name: 'plumb-lift', only: 'after', title: 'Out of the cradle', caption: 'Bloomed, its rotors spinning, it lifts out of the cup and flies over to him', from: PLUMB434 },
+      { name: 'plumb-shoulder', only: 'after', title: 'At his shoulder', caption: 'By his ear at the hatch, ready to go out with him', from: PLUMB434 },
+      { name: 'plumb-walk', only: 'after', title: 'A walk down the ramp', caption: 'His first steps on the desert at a walk (about 1.5 m/s; it was a 3.8 m/s jog), the drone at his shoulder', from: PLUMB434 },
+      { name: 'plumb-line', only: 'after', title: 'Its first word', caption: '“Best bet? The village on the horizon.” Qanat’s camps and its great tree stand to the right; then it flies off toward them', from: PLUMB434 },
+    ], see: 'Start a new game and play the opening to the step out; later, wander a while without progress, stay stuck on one step in a makers’ house, or fight a guardian for a minute or two.' },
+  ],
   '1.83': [
     { match: 'A new game in the Arcade, The Lens Vault', shots: [
       { name: 'lens-vault-lock', only: 'after', title: 'The lock', caption: 'The Round Hall from his eyes: locked on the lamp tripod (LT / L2), its coral brackets, the arm of the fluid glove; the stick circles it', from: LENS382 },

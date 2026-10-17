@@ -153,7 +153,7 @@ import { DevMenu } from '../src/dev-menu.js';
 import { gatherPoints, questList, applyQuestJump, landingSpot, godLanding } from '../src/world-debug.js';
 import { GAMES } from '../src/minigames/index.js';
 import { DEBUG_SLOT } from '../src/save-slots.js';
-import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip } from '../src/host/game-host.js';
+import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip, wireCompanion } from '../src/host/game-host.js';
 
 export { page };
 export { readHref } from './trials.js';   // (the tests: a game page's address)
@@ -648,14 +648,15 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     onPing: (target) => { scoutSays(findLine(target), FIND.say + FIND.seek, 'quest'); plumb?.progress(); },
     onFind: (target) => { scoutSays(findLine(target), FIND.say, 'quest'); story?.marker?.reveal?.(); },
     onShrug: () => scoutSays(guardianHint(level.temple) ? '◇ …' : 'Nothing to find here', 2.5),
-    getHint: () => openHint(guardianHint(level.temple), struggle.t), onHint: (line) => scoutSays(`◇ ${line}`, HINT.say) }));
+    getHint: () => openHint(guardianHint(level.temple), struggle.t), onHint: (line) => scoutSays(droneShown(line), HINT.say) }));
   // the onboarding, as main.js: Plumb's own lines (src/companion.js: the opening's, once a save, and when you look lost, its
   // ping toward the goal), the scout's button taught once after the first conversation (src/scout-hint.js), the desert's
   // first steps (src/first-steps.js: the camera and the jump); all on the cue at the bottom
   const help = !flags && !view && !gameDef;
   const plumb = help ? new Companion({ state: gameState, setting: () => settings?.droneHints ?? 'on' }) : null;
   const droneSaid = { text: '', until: 0 };
-  const plumbAt = { goalT: 0, goal: null, lookT: 0 };
+  // (Plumb each frame, as the page: src/host/game-host.js wireCompanion, issue #434)
+  const plumbStep = wireCompanion({ game: gameState, plumb, scout, level, player, npcs, struggle });
   // what the save's events say and start: a gadget found and its line after its card, a keepsake's theme, the trials'
   // upgrades to the gadgets' tuning (before the gadgets are made), Plumb's clock and notes (src/host/game-host.js
   // wireLessons, as the page)
@@ -931,21 +932,11 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   /** Plumb, each frame after the scout (main.js updatePlumb): the first person near, the lost watch, its line and ping. */
   function updatePlumb(dt, busy) {
     const now = performance.now();
-    if ((plumbAt.lookT -= dt) <= 0) {
-      plumbAt.lookT = 0.5;
-      const metAnyone = Object.keys(gameState.data?.flags ?? {}).some((k) => k.startsWith('met.'));
-      if (!metAnyone) for (const n of npcs) {
-        if (!n.def?.id || n.pooled || !n.object?.visible) continue;
-        if (n.pos.distanceTo(player.pos) < 8) { plumb.note('person'); break; }
-      }
-    }
     const canSpeak = !busy && !photo.on && !(shipOn && (ship.playing || ship.inside)) && !player.dead && !cue.text && !noticeBusy() && now >= scoutSaid.until && now >= droneSaid.until;
     const fight = !!combat?.foes?.lock || !!guardianHint(level.temple) || !!trials?.running;
-    if ((plumbAt.goalT -= dt) <= 0) { plumbAt.goalT = 1; plumbAt.goal = fight ? null : scout?.getTarget()?.position ?? null; }
-    const r = plumb.update(dt, { active: !fight && !scout?.out, canSpeak, pos: player.pos, goal: plumbAt.goal });
-    if (!r.say) return;
-    if (r.point) scout?.ping();
-    droneSaid.text = droneShown(r.say); droneSaid.until = now + 3200;
+    const said = plumbStep(dt, { canSpeak, fight });
+    if (!said) return;
+    droneSaid.text = said; droneSaid.until = now + 3200;
     sound.drone?.('go');
   }
 

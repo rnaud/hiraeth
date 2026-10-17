@@ -34,6 +34,11 @@ export const FIND = {
   say: 6,         // s the find's line stays on the cue once the drone is there (it is up from the ping: onPing)
   shrug: 1.0,     // s: the little shake, no (between its coming and going)
 };
+/**
+ * Keeping you company (issue #434): after the prologue it rides at your shoulder (APPEAR's spot) a while, until it has
+ * something to say and somewhere to fly (a ping), or `secs` run out and it winks out into its light.
+ */
+export const ESCORT = { secs: 60 };
 /** A hint in a guardian's fight: from just over your shoulder, the lens on the weak point for a while. */
 export const HINT = {
   out: 1.6,       // m towards it from over your head (it stays by you: the fight is all round)
@@ -227,7 +232,8 @@ export function viaPortal(start, target, portals) {
  * getHint() (main.js: the temple's guardian in a fight, src/temples/boss.js guardianHint) returns
  * { id, lines: [first, plainer, plainest], at: () => Vector3 } or null: while it gives one, a ping is
  * a hint (HINT) and calls onHint(line, n): each ping on the same id says the next, plainer line.
- * Phases: away → appear → seek → point → leave → away (and shrug, from away). Away, nothing is drawn.
+ * Phases: away → appear → seek → point → leave → away (and shrug, from away; escort, at your shoulder, from away or
+ * handed over by the prologue, issue #434, then seek on a ping or leave). Away, nothing is drawn.
  */
 export class Scout {
   constructor({ scene, player, physics, getTarget, getHint = () => null, sound, onPing = () => {}, onFind = () => {}, onShrug = () => {}, onHint = () => {} }) {
@@ -328,6 +334,19 @@ export class Scout {
     else this.home();
     this.sound?.drone?.('shrug');
     this.onShrug();
+  }
+  /**
+   * Ride at your shoulder for `secs` (escort): from `from` (world: the prologue's drone, handed over where it is, already
+   * open) or out of its light there. A ping sends it off from here; nothing, and it winks out when the time is up.
+   */
+  escort(secs = ESCORT.secs, from = null) {
+    if (this.phase !== 'away' && this.phase !== 'escort') return false;
+    this.phase = 'escort'; this.escortT = secs; this.target = null; this.hinting = null; this.found = false;
+    this.vel.set(0, 0, 0); this.stuck = this.over = 0; this.fade = null; this.leaveT = null;
+    if (from) { this.object.position.copy(from); this.object.scale.setScalar(1); this.fold.snap(true); this.growT = APPEAR.grow; }
+    else { this.appearSpot(this.object.position); this.object.scale.setScalar(1e-3); this.fold.snap(false); this.growT = 0; }
+    this.object.visible = !this.player.hidden;
+    return true;
   }
   /** Send it away now (a find cut short, or done): it rises, folds and winks out. */
   home() { if (this.phase !== 'away' && this.phase !== 'leave' && this.phase !== 'shrug') { this.phase = 'leave'; this.leaveT = 0; this.fade = null; } }
@@ -512,6 +531,7 @@ export class Scout {
       if (t >= S) this.hide();
       return;
     }
+    if (this.phase === 'escort') { this.escortFrame(dt, up); return; }
     this.age += dt;
     if (this.hinting) {
       // a hint follows its weak point (the guardian moves); the fight over, it goes
@@ -581,6 +601,34 @@ export class Scout {
       this.lens.quaternion.slerp(_qt.setFromUnitVectors(_z, local), 1 - Math.exp(-10 * dt));
     }
     this.updateBeam(dt, beam);
+  }
+  /** Escorting: at your shoulder (grown out of its light first, if it was not handed over), facing the way you go. */
+  escortFrame(dt, up) {
+    const pv = this.player.ride?.vel ?? this.player.vel ?? _o.set(0, 0, 0), pSpeed = pv.length();
+    const lastVel = _lv.copy(this.vel);
+    this.escortT -= dt;
+    let open = true;
+    if (this.growT < APPEAR.grow) {
+      this.growT = Math.min(APPEAR.grow, this.growT + dt);
+      const e = this.growT / APPEAR.grow;
+      this.appearSpot(this.object.position);
+      this.object.scale.setScalar(Math.max(1e-3, THREE.MathUtils.smootherstep(e, 0, 1)));
+      this.setLight(Math.sin(Math.PI * Math.min(1, e * 1.15)));
+      open = e >= APPEAR.bloomAt;
+    } else {
+      this.setLight(0);
+      const p = this.player, fwd = _f;
+      if (p.frame?.dir && p.heading != null) p.frame.dir(p.heading, fwd); else fwd.set(Math.sin(p.heading ?? 0), 0, Math.cos(p.heading ?? 0));
+      this.aim = (this._aim ??= new THREE.Vector3()).copy(fwd);
+      this.fly(this.appearSpot(_d2), Math.max(6, pSpeed + 4), up, dt, pv);
+      this.aim = null;
+    }
+    if (this.escortT <= 0) this.home();
+    this.fold.update(dt, open, true);
+    const acc = _a.subVectors(this.vel, lastVel).divideScalar(Math.max(dt, 1e-3)).applyQuaternion(_q3.copy(this.object.quaternion).invert());
+    this.drone.pose(this.fold, dt, _lean.set(acc.x, acc.z));
+    this.ring.visible = false;
+    this.updateBeam(dt, false);
   }
   /** At the lookout: the flare goes down on the objective, a chirp, and onFind (a hint: the beam on the weak point, its chirp, onHint). */
   arrive() {

@@ -174,6 +174,9 @@ export function setupDesert(ctx) {
   // you walk past him. Until then the scout finds Marrow.
   const opening = () => !quests.isStarted('desert.power') && !game.flag('ship.powered');
   if (opening()) quests.opensWith('desert.power', ['marrow', 'ama', 'speaker', 'nour', 'hessa'], { label: 'Marrow, by your ship', at: 'marrow', lead: true });   // (the lead giver, ahead of Sabri's temple: the ship's power first, issue #273)
+  // or with Plumb, as you step out the first time: "Best bet? The village on the horizon. Someone there might help us
+  // recharge." (src/companion.js, issue #434): the quest's first step is the same, Qanat under the dark tree
+  game.on('drone:village', () => { if (opening()) quests.start('desert.power'); });
   // the tree already burns (a save from before the spark-stone's errand): its stages are passed over
   const lit = () => !!game.flag('desert.tree.lit');
   // (on to the Rose House's step, passed over to the gift if the blade and guard are had: quests.landing; issue #278)
@@ -815,7 +818,7 @@ export function setupDesert(ctx) {
     }
   };
   // Marrow at your ship, a new game: "Sky-person! Over here!" (he turns from the hull to you)
-  const marrowCall = caller(people.marrow, { lines: CALLS.marrow, range: 30, every: 9, wait: 2.5, moment: () => 'opening', when: () => opening() && people.marrow.route !== marrowHome,
+  const marrowCall = caller(people.marrow, { lines: CALLS.marrow, range: 30, every: 9, wait: 2.5, moment: () => 'opening', when: () => (opening() || (quests.stage('desert.power') === 'city' && !game.flag('met.marrow'))) && people.marrow.route !== marrowHome,
     turn: (near) => { const m = people.marrow; if (m.route === marrowHome) return; m.facing = near ? Math.atan2(player.pos.x - m.pos.x, player.pos.z - m.pos.z) : Math.atan2(hull.x - m.pos.x, hull.z - m.pos.z); } });
   // Nour, when she has a word for you: the chest opened (she has come over), or the tree drank and stays cold
   const nourHasWord = () => (sh.nour && !sh.nour.talked) || quests.stage('desert.power') === 'spark';

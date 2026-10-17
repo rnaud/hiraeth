@@ -253,6 +253,7 @@ export const GAPS = {
     { keys: ['shared:wireChemistry'], what: 'the world\'s chemistry (fire spreading on the wind, creatures fleeing it, foes catching it)', status: 'handled', where: 'src/host/game-host.js wireChemistry (main.js new Chemistry before)' },
     { keys: ['shared:wireMount', 'shared:wireVehicles'], what: 'the bird\'s promise and the hoverbike, the bike by the ramp where the bird is the mount, hover vehicles skimming water, no calls into the rooms off the map', status: 'handled', where: 'src/host/game-host.js wireMount, wireVehicles (both hosts\' own copies before; the engines had no parked bike and no skimming)' },
     { keys: ['shared:wireLessons'], what: 'what the save\'s events say and start: a gadget found and its line, a keepsake\'s theme, the trials\' upgrades, Plumb\'s clock and notes', status: 'handled', where: 'src/host/game-host.js wireLessons (both hosts\' own copies before)' },
+    { keys: ['shared:wireCompanion'], what: 'Plumb each frame: its escort out of the prologue, the first person near, its hints when you look lost (where to go, a makers\' house\'s step, a guardian\'s weak point), its first word (issue #434)', status: 'handled', where: 'src/host/game-host.js wireCompanion (both hosts\' updatePlumb before)' },
     { keys: ['shared:wireShip'], what: 'the ship\'s place for quests, the scout and the Map\'s "Your ship" mark', status: 'handled', where: 'src/host/game-host.js wireShip (main.js level.ship before; the engines had none)' },
     // handled by the engines' own
     { keys: ['import:src/hud.js#heartsSvg', 'import:src/hud.js#walletTick', 'import:src/hud.js#KEY_SVG', 'import:src/hud.js#GREAT_KEY_SVG', 'fn:updateStamina', 'fn:restartNow', 'fn:showToast',
@@ -316,7 +317,7 @@ export const STREAM_DIFFS = [
   { seq: 'menus|house-map', beat: 'start|settings|map', keys: ['menu.side'], what: 'the Start menu\'s "Debug: worlds"', status: 'web-only', why: 'a developer\'s entry on the page (the worlds picker); the engines\' debug saves are on the title' },
   // ---- handled
   { seq: '*', keys: ['obj-:planet'], what: 'the sky\'s planets', status: 'handled', where: 'sent as the look\'s data, not meshes (engine/game.js fullLook planets; Unity draws them in its sky)' },
-  { seq: 'opening', beat: 'hatch|stepout', keys: ['part-:sub', 'part+:charge'], what: 'the ship\'s line over the hatch ends sooner in node, so the charge card comes back up', status: 'handled', where: 'a subtitle lasts as long as its recording is heard; the node VM has no sound, Unity plays it and shows the line as the page does (unity.json)' },
+  { seq: 'opening', beat: 'drone-*|hatch|stepout*', keys: ['part-:sub', 'part~:sub', 'part+:charge'], what: 'the ship\'s line over the hatch ends sooner in node, so the charge card comes back up (and over Plumb\'s beat before it, issue #434: its card times on the clock, the node VM runs ahead of it)', status: 'handled', where: 'a subtitle lasts as long as its recording is heard; the node VM has no sound, Unity plays it and shows the line as the page does (unity.json)' },
 ];
 
 /**

@@ -403,3 +403,32 @@ test('the lens inside the traveller leaves him out of the view, his gear and its
   const main=readFileSync(new URL('../src/main.js',import.meta.url),'utf8');
   assert.match(main,/SU\.uHeroCut\.value = !ship\.playing && !photo\.on && !minigame\?\.drives && heroCut\(/);
 });
+
+test('escort (issue #434): handed over by the prologue, it rides at your shoulder; a ping sends it off; else it winks out in time', async () => {
+  const { ESCORT } = await import('../src/scout.js');
+  const {scout,player,finds}=fixture();
+  player.heading=0;
+  const from=scout.appearSpot(v()).add(v(0.2,0.1,0));
+  assert.equal(scout.escort(ESCORT.secs, from), true);
+  assert.equal(scout.phase,'escort'); assert.equal(scout.object.visible,true);
+  assert.ok(scout.object.position.distanceTo(from)<1e-6,'where the prologue\'s drone was');
+  // you walk off: it keeps to your shoulder
+  for(let i=0;i<120;i++){ player.pos.z+=1.5/60; player.vel.set(0,0,1.5); scout.update(1/60); }
+  assert.equal(scout.phase,'escort');
+  assert.ok(scout.object.position.distanceTo(scout.appearSpot(v()))<0.6,'at your shoulder as you walk');
+  // a ping: off to the objective from there (no light, no growing: it is already out)
+  scout.ping();
+  assert.equal(scout.phase,'seek');
+  for(let i=0;i<600&&!finds.length;i++) scout.update(1/60);
+  assert.equal(finds.length,1,'it found it');
+  // nothing said: it goes by itself when its time is up, out of its light if nothing handed it over
+  const b=fixture();
+  b.player.heading=0;
+  b.scout.escort(2);
+  assert.ok(b.scout.object.scale.x<0.01,'out of its light');
+  for(let i=0;i<60;i++) b.scout.update(1/60);
+  assert.ok(b.scout.object.scale.x>0.99,'grown');
+  for(let i=0;i<300&&b.scout.phase!=='away';i++) b.scout.update(1/60);
+  assert.equal(b.scout.phase,'away','gone when its time is up');
+  assert.equal(b.scout.escort(5),true,'and it can come again');
+});

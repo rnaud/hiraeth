@@ -3,6 +3,7 @@ import { makeMaterial } from '../materials.js';
 import { Paint } from '../vehicle-kit.js';
 import { DECK, CEIL, HALF_W, WALL_IN, HATCH, HATCH_A, OPENINGS, STATIONS, SHIP_SCALE, sectionAt, Quads, holedPatch, reveal, addShape } from './hull.js';
 import { familyDrawing, motherNote, homePhoto, starChart } from './art.js';
+import { DRONE_BELLY } from '../drone.js';
 
 // The ship's rooms, inside the angular hull (docs/systems/ship.md, "The blockout"). The main room follows the
 // layout the author picked in the reference lab (references/The Travellers Ship/Interior - Lab/sheet-1.jpg):
@@ -102,6 +103,12 @@ export const GALLEY_X = -(WALL_IN - 0.65);
  */
 const WIN = OPENINGS.find((o) => o.kind === 'window');
 export const ALCOVE = { x: WALL_IN - 1.2, z0: (WIN.z0 + WIN.z1) / 2 - 1.35, z1: (WIN.z0 + WIN.z1) / 2 + 1.35, top: WIN.y1 + 0.35 };
+/**
+ * Plumb's charging cradle (issue #434), on the port wall forward of the hatch: the shelf's top over the deck, how far its
+ * cup stands off the wall (x) and how deep the shelf is, z along the ship. The drone sits in the cup (points.dock: its
+ * centre, its belly on the cup).
+ */
+export const DOCK = { shelf: DECK + 1.2, out: 0.2, depth: 0.36, z: HATCH.z0 - 1.1 };
 /** The lamps' light: a warm bulb (the shader's local lights are white; the rooms' warm tint is ROOM_LIGHT's). */
 export const LAMP_COLOR = '#ffd9a0';
 /** The lamps' height over the deck: hanging on cords under the ceiling (issue #338). */
@@ -593,6 +600,21 @@ export function buildInterior(batch, group, o = {}) {
     for (const z of [0.95, 1.12]) P(box(0.28, 0.14, 0.1, xw + 0.35, 0, z), C.woodDark);   // boots by the hatch
     block(box(0.62, BLOCK_H, 0.95, xw + 0.31, DECK, 1.95));
   });
+  // forward of the hatch on the port wall: Plumb's charging cradle (issue #434), where the drone sleeps between worlds and
+  // where the prologue wakes it: a back plate, a shelf on two brackets, a cup it sits in with the charge ring lit round
+  // it, a pilot light (btnB: lit while the ship has power, dark once it is drained), the cable down the wall to the deck
+  {
+    const xw = -WALL_IN, d = DOCK;
+    P(box(0.03, 0.62, 0.52, xw + 0.015, d.shelf - 0.34, d.z), C.dark);                       // the back plate
+    P(box(0.02, 0.5, 0.4, xw + 0.035, d.shelf - 0.28, d.z), C.steel);
+    P(box(d.depth, 0.04, 0.44, xw + d.depth / 2, d.shelf - 0.04, d.z), C.cream);              // the shelf
+    for (const s of [-1, 1]) P(box(0.03, 0.2, 0.03, xw + 0.06, d.shelf - 0.24, d.z + s * 0.19).rotateZ(-0.5), C.steel);   // its brackets
+    P(cyl(0.15, 0.12, 0.05, xw + d.out, d.shelf, d.z, 16), C.dark);                           // the cup
+    P(cyl(0.09, 0.09, 0.012, xw + d.out, d.shelf + 0.045, d.z, 14), C.ink);                   // its well
+    batch.add('glowTeal', new THREE.TorusGeometry(0.135, 0.014, 5, 24).rotateX(PI / 2).translate(xw + d.out, d.shelf + 0.052, d.z));   // the charge ring
+    batch.add('btnB', new THREE.BoxGeometry(0.012, 0.05, 0.05).translate(xw + 0.04, d.shelf + 0.2, d.z + 0.17));   // its pilot light (dark once the ship is drained)
+    P(tube([V(xw + 0.05, d.shelf - 0.3, d.z - 0.16), V(xw + 0.06, d.shelf - 0.7, d.z - 0.22), V(xw + 0.05, DECK + 0.05, d.z - 0.3)], 0.014, 8), C.ink);   // the cable
+  }
   // starboard, by the frame: a chest of drawers with a lamp, a box and a book on it
   at(BY_FRAME, () => {   // (by the frame)
     const xw = WALL_IN, z = -5.45;
@@ -955,6 +977,7 @@ export function buildInterior(batch, group, o = {}) {
       threshold: V(-(WALL_IN + HALF_W) / 2, DECK, (HATCH.z0 + HATCH.z1) / 2),   // in the doorway (stepping out)
       aboard: V(-(WALL_IN - 3.2), DECK, HATCH.z1 - 0.7),  // a few steps in from the hatch (clear of the voicemail's reach; (-1.4, 0.45) until issue #338)
       voicemail: VOICEMAIL.clone(),                       // the voicemail button on the console (it blinks while a message waits)
+      dock: V(-WALL_IN + DOCK.out, DOCK.shelf + 0.05 + DRONE_BELLY, DOCK.z),   // Plumb asleep in its cradle (its centre)
     },
   };
 }

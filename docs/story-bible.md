@@ -580,6 +580,16 @@ giant mushrooms, keepers, temple and story as they were, in the one world.)*
   line by how many you picked up: none ("Nobody stops for them"), some ("I can hear them from here, in your hold"), every
   one ("Then it's whole again"). (src/story/lantern-data.js `SPLINTERS`.)
 
+## The drone: Plumb (built: src/companion.js, src/scout.js, src/ship/prologue-drone.js; lore/characters/plumb.md)
+
+**Plumb** is the ship's little folding drone, named after a plumb bob: the father's kind of tool, a weight on a string
+that shows which way is true. It sleeps in a charging cradle by the hatch, and the night the light drained the ship its
+cradle went dark too, so it says *us* when it says recharge. Curious, dry, warm and a little pleased with itself, it
+knows the way and never the story: it points before it comments, answers its own questions ("Lost? A little. This
+way."), and, unlike the father, never weighs what the traveller brings home. It leaves its cradle in the prologue to
+walk out with him, says the village on the horizon is their best bet, and after that speaks up only when he looks lost:
+where to go next, a nudge in a makers' house, a guardian's weak point.
+
 ## The fellow traveller: Tansy (built: src/story/fellow-data.js; docs/systems/story.md)
 
 One person travels too. **Tansy**, about nineteen, from the Salt Harbour: the harbour book's old line in home

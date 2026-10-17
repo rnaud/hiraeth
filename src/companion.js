@@ -1,15 +1,25 @@
 // Plumb, the drone that comes when it is needed (src/scout.js flies it, src/drone.js is its body; the character:
 // lore/characters/plumb.md). Besides finding the objective when you ask (Q, R3), it has a little mind
-// of its own, two parts, all here so they can be tested without a scene:
+// of its own, all here so it can be tested without a scene:
 //
 //   LostWatch   notices when you are lost: no progress (a quest step, an item, a chest, a talk) and
 //               no new place for a few minutes while you walk about, sooner when you walk away from
-//               the goal. Then it says one short line and flies out toward the goal (the ping's own
+//               the goal. Then it says one short line, naming the place it means when it is one
+//               (placeOf: "The giant's skull is over here"), and flies out toward the goal (the ping's own
 //               flight: it comes, a look, the flare, it goes). Cooldowns, so it never nags.
+//   StepWatch   in a makers' house: a long time on one step of its solver (logic.next(), the same thing
+//               for minutes): a line about the kind of thing that waits (HOUSE_LINES: a switch, a plate,
+//               a ball...) and the ping's flight to it (issue #434).
+//   FightWatch  against a guardian: once the struggle has gone on (src/hint-level.js STRUGGLE: 40, 100,
+//               180 s in one phase) it offers the next of the phase's hints by itself, the ping's hint
+//               flight (the lens on the weak point; src/temples/hints.js), once a threshold.
 //   Opening     a few lines at the start of a game, each said once per save (flags drone.said.<id>):
-//               stepping out of the ship, the first person near, the first chest, the first time
-//               you are lost (the R3 line after the first talk is the hint system's, issue #151:
-//               these say nothing of the button).
+//               stepping out of the ship the first time (the village on the horizon, someone there to
+//               help us recharge: then it flies off toward it, issue #434), the first person near, the
+//               first chest, the first time you are lost (the R3 line after the first talk is the hint
+//               system's, issue #151: these say nothing of the button).
+//
+// One rate limit over all of it: never two of its own lines within GAP s (the opening's excepted).
 //
 // The setting "Drone hints" (src/ui.js droneHints: on | fewer | off) sets how often it speaks up:
 // fewer waits twice as long and rests twice as long between two; off, it says nothing on its own
@@ -19,9 +29,10 @@
 //   const plumb = new Companion({ state: game, setting: () => settings.droneHints })
 //   plumb.progress()                       a quest step, an item, a chest, a talk, a new world
 //   plumb.note('chest')                    an opening moment happened (said when it can be)
-//   plumb.update(dt, { active, canSpeak, pos, goal })  →  { say: text | '', point: reason | null }
+//   plumb.update(dt, { active, canSpeak, pos, goal, place, house, fight })
+//       →  { say: text | '', point: reason | null, id }   point: fly the ping's flight (main.js scout.ping())
 
-import { hintLevel } from './hint-level.js';
+import { hintLevel, STRUGGLE } from './hint-level.js';
 import { stripTone } from './story/tone.js';
 
 export const DRONE_HINTS = ['on', 'fewer', 'off'];
@@ -35,8 +46,9 @@ export const DRONE_NAME = 'Plumb';
  * Each carries its tone (src/story/tone.js); the cue shows them without it, after the drone's ◇.
  */
 export const DRONE_LINES = {
-  // the opening: each once per save
-  out: '~playful~ Out at last. I’ll ride on your pack.',
+  // the opening: each once per save (out and recharge one after the other, stepping out of the ship the first time)
+  out: '~curious~ Best bet? The village on the horizon.',
+  recharge: '~neutral~ Someone there might help us recharge.',
   person: '~whisper~ Someone’s there. Go and say hello.',
   chest: '~happy~ Oh, that’s a good one. Keep it.',
   pointer: '~playful~ This way. Ask me any time.',
@@ -45,7 +57,66 @@ export const DRONE_LINES = {
   away: ['~curious~ Wrong way, I think. Look.', '~neutral~ Further and further. It’s back here.'],
   circling: ['~tired~ That rock again. Over here.', '~playful~ My petals are dizzy. This way.'],
 };
-export const OPENING = ['out', 'person', 'chest', 'pointer'];
+export const OPENING = ['out', 'recharge', 'person', 'chest', 'pointer'];
+/** An opening line that brings the next with it (said in turn). */
+export const FOLLOWS = { out: 'recharge' };
+/** An opening line after which it flies off toward the goal, and why (main.js: 'village' starts the desert's quest, issue #434). */
+export const OPENING_POINTS = { recharge: 'village' };
+
+/**
+ * Lost, with the place it means named ({place}: the objective's label, when it is a place: placeOf). Each template
+ * puts the place at the start of a sentence.
+ */
+export const PLACE_LINES = {
+  still: ['~curious~ Lost? A little. {place}: this way.', '~playful~ Scenic route? {place} is over here.'],
+  away: ['~curious~ Wrong way, I think. {place} is back here.', '~neutral~ Further and further. {place} is back here.'],
+  circling: ['~tired~ That rock again. {place}: over here.', '~playful~ My petals are dizzy. {place}: this way.'],
+};
+/** The longest place it names (characters): a longer label and it says the plain line. */
+export const PLACE_MAX = 28;
+/**
+ * The objective's label as a place it can name, or null: "The giant’s skull", "Qanat, under the dark tree", "Your
+ * ship, and Qanat’s gift"; not a person ("Marrow, by your ship": `people` their names), not a doing ("Climb to ledge 2",
+ * "Back to the ship", "Through the doorway"). Hints say where, never who.
+ */
+export function placeOf(label, people = new Set()) {
+  const s = String(label ?? '').trim();
+  if (!s || s.length > PLACE_MAX) return null;
+  const head = s.split(',')[0].trim();
+  if (people.has(head) || people.has(head.split(/\s+/)[0])) return null;
+  if (/^(The|Your)\s/.test(s) || (s.includes(',') && /^[A-Z][\w’'-]+$/.test(head))) return s;
+  return null;
+}
+
+/**
+ * In a makers' house, stuck on one step a long time: a line about what waits (by the kind of the solver's next element,
+ * src/temples/logic.js next()), then it flies there.
+ */
+export const HOUSE_LINES = {
+  switch: '~curious~ A switch nobody has thrown. Over here.',
+  plate: '~curious~ That plate wants a weight. Look.',
+  weight: '~curious~ That weight belongs on a plate.',
+  drum: '~curious~ That ball rolls somewhere useful. Look.',
+  key: '~happy~ A key, lying about. Over here.',
+  door: '~curious~ A lock wants your key. This way.',
+  bridge: '~curious~ That bridge wants waking. This way.',
+  brazier: '~curious~ A cold brazier. Over here.',
+  bramble: '~curious~ Something’s grown over the way. Look.',
+  bell: '~curious~ A bell nobody has rung. Over here.',
+  vane: '~curious~ That vane wants turning. Over here.',
+  arena: '~whisper~ Something waits in there. Ready?',
+  boss: '~whisper~ The keeper of this house waits. Ready?',
+  gadget: '~happy~ Something here is yours. This way.',
+  find: '~happy~ Something to pick up. This way.',
+  default: '~curious~ Stuck? A little. Try over here.',
+};
+export const houseLine = (type) => HOUSE_LINES[type] ?? HOUSE_LINES.default;
+export const HOUSE = {
+  after: { on: 150, fewer: 300 },   // s on one step before it says so
+  cool: { on: 240, fewer: 480 },    // s at least between two
+};
+/** Never two of its own lines (lost, a house, a guardian) closer than this (s); the opening's lines are their own. */
+export const GAP = { on: 45, fewer: 90 };
 
 export const LOST = {
   after: { on: 180, fewer: 360 },   // s of no progress before it says so
@@ -65,8 +136,10 @@ export function droneSay(setting, hints = hintLevel()) {
   return DRONE_HINTS.includes(setting) ? setting : DEFAULT_DRONE_HINTS;
 }
 
-/** The line as the cue shows it: the drone's ◇, no tone tag. */
-export const shown = (line) => `◇ ${stripTone(line)}`;
+/** The line as the cue shows it: the drone's ◇ and its name, no tone tag ("◇ Plumb: Best bet? …"). */
+export const shown = (line) => `◇ ${DRONE_NAME}: ${stripTone(line)}`;
+/** A lost line with its place filled in (or the plain line, no place). */
+export const withPlace = (line, place) => String(line).replace('{place}', place ?? '');
 
 /** The lost detector: update() returns why you look lost ('still' | 'away' | 'circling') when it is time to say so, else null. */
 export class LostWatch {
@@ -110,18 +183,54 @@ export class LostWatch {
   }
 }
 
+/** A makers' house: how long on one step of its solver; update() is true when it is time to say so. */
+export class StepWatch {
+  constructor() { this.step = null; this.t = 0; this.cool = 0; }
+  /** step: the solver's next element (null: nothing, or not in a house); active: in the house, nothing else up. */
+  update(dt, { step = null, active = true, say = 'on' } = {}) {
+    if (!(dt > 0)) return false;
+    this.cool = Math.max(0, this.cool - dt);
+    if (step !== this.step) { this.step = step; this.t = 0; }
+    if (!step || !active) return false;
+    this.t += dt;
+    if (say === 'off' || this.cool > 0 || this.t < HOUSE.after[say]) return false;
+    this.t = 0; this.cool = HOUSE.cool[say];
+    return true;
+  }
+}
+
+/**
+ * A guardian's fight: `secs` into its phase (`id`, src/temples/hints.js Struggle). update() is true once as each
+ * STRUGGLE threshold is crossed (fewer: from the second), held while it can't speak; a new phase starts over.
+ */
+export class FightWatch {
+  constructor() { this.id = null; this.n = 0; }
+  update({ id = null, secs = 0, say = 'on', canSpeak = true } = {}) {
+    if (id !== this.id) { this.id = id; this.n = 0; }
+    if (!id || say === 'off') return false;
+    const due = STRUGGLE.filter((s) => secs >= s).length;
+    if (say === 'fewer' && this.n < 1) this.n = Math.min(1, due);
+    if (due <= this.n || !canSpeak) return false;
+    this.n = due;
+    return true;
+  }
+}
+
 /** The opening's lines: each said once per save (state: the game state, flags drone.said.<id>). */
 export class Opening {
   constructor(state) { this.state = state; this.queue = []; }
   said(id) { return !!this.state?.flag?.(`drone.said.${id}`); }
-  /** The moment happened: its line waits to be said (once). */
-  note(id) { if (OPENING.includes(id) && !this.said(id) && !this.queue.includes(id)) this.queue.push(id); }
-  /** The next line to say now (marked said), or ''. */
+  /** The moment happened: its line waits to be said (once), and any that follow it. */
+  note(id) {
+    for (let k = id; k; k = FOLLOWS[k]) if (OPENING.includes(k) && !this.said(k) && !this.queue.includes(k)) this.queue.push(k);
+  }
+  /** The next line to say now (marked said), or ''. `this.last` is its id. */
   take() {
     while (this.queue.length) {
       const id = this.queue.shift();
       if (this.said(id)) continue;
       this.state?.set?.(`drone.said.${id}`, true);
+      this.last = id;
       return DRONE_LINES[id];
     }
     return '';
@@ -134,30 +243,63 @@ export class Companion {
   constructor({ state, setting = () => DEFAULT_DRONE_HINTS, hints = hintLevel } = {}) {
     this.state = state; this.setting = setting; this.hints = hints;
     this.lost = new LostWatch(); this.opening = new Opening(state);
+    this.house = new StepWatch(); this.fight = new FightWatch();
     this.seen = new Set(); this.turn = { still: 0, away: 0, circling: 0 };
+    this.gap = 0;   // s until it may say another line of its own (GAP)
   }
   get say() { return droneSay(this.setting(), this.hints()); }
   progress() { this.lost.reset(); }
   note(id) { if (this.say !== 'off') this.opening.note(id); }
-  /** A lost line for this reason (the first time: the opening's pointer line). */
-  lostLine(why) {
+  /** A lost line for this reason (the first time: the opening's pointer line), naming `place` when there is one. */
+  lostLine(why, place = null) {
     if (!this.opening.said('pointer')) { this.state?.set?.('drone.said.pointer', true); return DRONE_LINES.pointer; }
-    const lines = DRONE_LINES[why] ?? DRONE_LINES.still, n = this.turn[why] ?? 0;
+    const lines = (place ? PLACE_LINES[why] : null) ?? DRONE_LINES[why] ?? DRONE_LINES.still, n = this.turn[why] ?? 0;
     this.turn[why] = n + 1;
-    return lines[n % lines.length];
+    return withPlace(lines[n % lines.length], place);
   }
   /**
    * active: the lost watch runs (in the world, no fight, no scene); canSpeak: nothing else on the screen just now;
-   * goal: the objective's position or null. Returns { say: the line to put on the cue ('' none), point: why
-   * it is pointing ('still' | 'away' | 'circling'), or null }.
+   * goal: the objective's position or null; place: the objective's label when it is a place (placeOf), else null;
+   * house: { step, type } in a makers' house (its solver's next element and its kind), else null; fight: { id, secs }
+   * against a guardian (the phase's hint id and the seconds in it), else null. Returns { say: the line to put on the
+   * cue ('' none), point: why it flies the ping's flight ('still' | 'away' | 'circling' | 'house' | 'hint' |
+   * 'village'), or null; id: the opening line's id }.
    */
-  update(dt, { active = true, canSpeak = true, pos, goal = null } = {}) {
+  update(dt, { active = true, canSpeak = true, pos, goal = null, place = null, house = null, fight = null } = {}) {
     const say = this.say;
     if (say === 'off') this.opening.drop();
-    const why = this.lost.update(dt, { active: active && canSpeak, pos, goal, say, seen: this.seen });
-    if (why) return { say: this.lostLine(why), point: why };
-    if (canSpeak && say !== 'off') { const line = this.opening.take(); if (line) return { say: line, point: null }; }
+    if (dt > 0) this.gap = Math.max(0, this.gap - dt);
+    const quiet = this.gap > 0;
+    const spoke = (r) => { this.gap = GAP[say] ?? GAP.on; return r; };
+    // a guardian's fight: the next of its hints, by itself, once the struggle has gone on (the hint's line is the ping's)
+    if (this.fight.update({ id: fight?.id ?? null, secs: fight?.secs ?? 0, say, canSpeak: canSpeak && !quiet })) return spoke({ say: '', point: 'hint' });
+    // a makers' house: a long time on one step (the lost watch rests inside: the house's own watch is the one)
+    if (this.house.update(dt, { step: house?.step ?? null, active: !!house && active && canSpeak && !quiet, say })) return spoke({ say: houseLine(house.type), point: 'house' });
+    const why = this.lost.update(dt, { active: active && canSpeak && !house && !quiet, pos, goal, say, seen: this.seen });
+    if (why) return spoke({ say: this.lostLine(why, place), point: why });
+    if (canSpeak && say !== 'off') {
+      const line = this.opening.take();
+      if (line) { const id = this.opening.last; return { say: line, point: OPENING_POINTS[id] ?? null, id }; }
+    }
     return { say: '', point: null };
   }
 }
 
+
+/**
+ * What Plumb's watches need from the world now (main.js and engine/game.js, sampled once a second): the guardian's
+ * fight (`hint`: src/temples/hints.js guardianHint(level.temple), `secs`: its Struggle's seconds), else the makers'
+ * house you are in and its solver's next step (src/temples/logic.js next()) and that element's kind.
+ */
+export function droneWorld({ level, pos, hint = null, secs = 0 }) {
+  const fight = hint ? { id: hint.id, secs } : null;
+  let house = null;
+  if (!fight && pos) {
+    const rt = [...(level?.temples ?? []), level?.temple].find((t) => t?.logic?.next && t.inside?.(pos)) ?? null;
+    if (rt) {
+      const step = rt.logic.resolved ? null : rt.logic.next();
+      house = { step: step ? `${rt.id}.${step}` : null, type: step ? rt.logic.el?.(step)?.type ?? null : null };
+    }
+  }
+  return { fight, house };
+}

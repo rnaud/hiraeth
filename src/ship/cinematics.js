@@ -17,6 +17,7 @@ import { rumblePlay } from '../rumble.js';
 import { FACE } from '../humanoid.js';
 import { WIDE, WIDE_FLAG, VIEW_FLAG, arrivalViews, exitStops, wideBack, wideFlight } from './arrival-view.js';
 import { TAKEOFF, LANDING, takeoffPose, landingPose, landingDur } from './flight.js';
+import { PrologueDrone, WAKE, shoulderSpot } from './prologue-drone.js';
 
 // What the ship's cinematics look like: cameras, the moving ship, dust,
 // sounds, subtitles. The prologue's timing lives in prologue.js; the
@@ -265,6 +266,8 @@ export class PrologueDirector {
     this.S0 = this.touch.clone().addScaledVector(this.T, -1250).addScaledVector(this.N, 160).add(V(0, 620, 0));
     this.S1 = this.touch.clone().addScaledVector(this.T, -430).addScaledVector(this.N, 25).add(V(0, 95, 0));
     this.look = new THREE.Vector3();
+    // Plumb, asleep in its cradle until the landing, then the beat where it comes with him (issue #434: prologue-drone.js)
+    this.bot = new PrologueDrone(ship.scene);
   }
 
   W(v) { return this.s.world(this.sp, v); }
@@ -288,6 +291,7 @@ export class PrologueDirector {
         s.setDoor(pk, 0); s.setRamp(pk, 0);
         s.setPower('on', sp);
         sp.callScreen?.set({ who: 'idle' });
+        this.docked(sp);
         sfx.hum(s.sound, 1);
         // the ship's own music while you wake and walk (src/score.js SCORES.ship), the desert's held back until you
         // step out onto the sand (issue #149: the desert's theme played in the ship)
@@ -343,6 +347,7 @@ export class PrologueDirector {
         s.holo?.clear();
         sfx.alarm(s.sound, 0); sfx.hum(s.sound, 0); sfx.roar(s.sound, 4.2);
         s.removeSpaceCopy();
+        this.bot.hide();   // (asleep inside the dark ship until the beat after the landing)
         // the player waits, hidden, inside the parked ship; the ship itself glides in, dark
         s.placePlayer(this.P(pk.interior.points.hatchIn), s.worldHeading(pk, HATCH_A), false);
         pk.group.visible = true;
@@ -361,6 +366,14 @@ export class PrologueDirector {
         if (s.crashSite) s.crashSite.berm.visible = true;
         this.giveCharge();   // as the dust clears: his charge, lettered over the landing site (src/story/charge.js)
         break;
+      case 'drone':
+        // inside, the reserve's amber light: Plumb wakes in its cradle and comes to his shoulder at the hatch (issue #434)
+        pk.lightsOff = false;
+        s.setPower('emergency', pk);
+        s.placePlayer(this.P(pk.interior.points.hatchIn), s.worldHeading(pk, HATCH_A), true);
+        this.docked(pk);
+        this.botSaid = 0;
+        break;
       case 'hatch':
         pk.lightsOff = false;
         s.setPower('emergency', pk);
@@ -377,7 +390,8 @@ export class PrologueDirector {
         const thr = this.P(pk.interior.points.threshold), exit = this.firstExit();
         s.placePlayer(thr, s.site.heading, true);
         // (his first step out in the desert: two steps out and a turn toward its best view, issue #327)
-        s.autopilot([s.hinge.clone().addScaledVector(s.outDir, 0.6), s.rampFoot.clone(), ...(exit ? exitStops(s.rampFoot, s.outDir, exit.heading) : [s.rampFoot.clone().addScaledVector(s.outDir, 2.2)])]);
+        // (at a walk, not a run: his first steps on a new world, issue #434)
+        s.autopilot([s.hinge.clone().addScaledVector(s.outDir, 0.6), s.rampFoot.clone(), ...(exit ? exitStops(s.rampFoot, s.outDir, exit.heading) : [s.rampFoot.clone().addScaledVector(s.outDir, 2.2)])], null, { walk: true });
         break;
       }
       case 'objective': {
@@ -400,6 +414,8 @@ export class PrologueDirector {
     const s = this.s, C = s.cinema, sp = this.sp, pk = this.pk;
     const U = s.post?.uniforms;
     if (U && sp && ['black', 'wake', 'rise', 'walk', 'call', 'pause', 'pass', 'drain'].includes(id)) U.uFogMul.value = 0;   // no haze in space
+    if (['black', 'wake', 'rise', 'walk', 'call', 'pause', 'pass', 'drain'].includes(id) && sp) this.docked(sp);   // (asleep in orbit)
+    else if (['hatch', 'stepout', 'objective'].includes(id)) this.botFollow(dt);
     switch (id) {
       case 'black':
       case 'wake': {
@@ -568,6 +584,24 @@ export class PrologueDirector {
         if (t > 1.6 && !this.creak) { this.creak = true; s.sound?.critter?.('creak', 1); }
         break;
       }
+      case 'drone': {
+        // from the room, the cradle on the wall at the left and him by the hatch at the right; it wakes, blooms, lifts out
+        // of the cup and comes over to his shoulder, and the camera turns a little with it
+        const L = (x, y, z) => this.P(V(x, y, z));
+        const dock = pk.interior.points.dock, seat = this.P(dock);
+        const P = s.player, head = P.pos.clone().add(V(0, 1.6, 0)), out = V(Math.sin(P.heading), 0, Math.cos(P.heading));
+        const k = smooth(seg(t, WAKE.lift - 0.3, WAKE.arrive + 0.4));
+        // (from the room on the cradle, then in on him as it flies, to hold the two of them: him and the drone at his ear)
+        const cam0 = L(dock.x + 2.4, DECK + 1.6, dock.z - 1.9), away = cam0.clone().sub(head).setY(0).normalize();
+        const cam = cam0.lerp(head.clone().addScaledVector(away, 2.3).add(V(0, 0.1, 0)), 0.85 * k);
+        const look = seat.clone().lerp(head.clone().lerp(this.bot.position, 0.5), 0.2 + 0.7 * k);
+        s.shot({ pos: cam, look, fov: 46 });
+        this.bot.wake(t, dt, seat, shoulderSpot(P.pos, P.heading, undefined, true), head.addScaledVector(out, 4));
+        if (t >= WAKE.eye && this.botSaid < 1) { this.botSaid = 1; s.sound?.drone?.('shrug'); }
+        if (t >= WAKE.lift && this.botSaid < 2) { this.botSaid = 2; s.sound?.drone?.('go'); }
+        if (t >= WAKE.arrive && this.botSaid < 3) { this.botSaid = 3; s.sound?.drone?.('found'); }
+        break;
+      }
       case 'hatch': {
         const side = V(-s.outDir.z, 0, s.outDir.x);
         const cam = s.rampFoot.clone().addScaledVector(s.outDir, 6.5).addScaledVector(side, 4.5);
@@ -632,6 +666,20 @@ export class PrologueDirector {
     this.light.vec = null;
   }
 
+  /** Plumb asleep in its cradle in `model` (the orbiting ship, or the parked one before its beat): facing into the room. */
+  docked(model) {
+    const q = model.group.getWorldQuaternion(new THREE.Quaternion()).multiply(new THREE.Quaternion().setFromAxisAngle(V(0, 1, 0), Math.PI / 2));
+    this.bot.dock(this.s.world(model, model.interior.points.dock), q);
+  }
+
+  /** Plumb at his shoulder, looking where he goes (after its beat: the hatch, the walk down, the view). */
+  botFollow(dt) {
+    const P = this.s.player;
+    if (!P) return;
+    const look = P.pos.clone().add(V(Math.sin(P.heading) * 5, 1.4, Math.cos(P.heading) * 5));
+    this.bot.follow(dt, shoulderSpot(P.pos, P.heading), look);
+  }
+
   /** At the cockpit console, in the orbiting ship (the prologue's walk). */
   atConsole() {
     const s = this.s;
@@ -686,6 +734,11 @@ export class PrologueDirector {
   finish(skipped) {
     const s = this.s, C = s.cinema, pk = this.pk;
     prologueMusic(s.sound, 'desert');   // (skipped before the step out: the desert's music now)
+    // Plumb goes on with him (issue #434): the scout takes over where the prologue's drone is (src/scout.js escort; main.js),
+    // or, skipped, comes out of its light at his shoulder
+    const handed = !skipped && this.bot.object.visible ? this.bot.position.clone() : null;
+    this.bot.hide(); this.bot.dispose();
+    game.emit('drone:out', { pos: handed });
     this.humming?.stop(); this.humming = null;
     this.lightOff();
     if (skipped) this.cueRec?.stop?.();

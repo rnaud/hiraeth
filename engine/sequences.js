@@ -74,7 +74,7 @@ const gameBeats = (hold) => [
 /** The opening (issue #394's beats, engine/opening-beats.js): a new save's prologue in the desert. */
 const OPENING = {
   id: 'opening', title: 'The opening', setup: { level: 'desert', prologue: true, fresh: true },
-  beats: OPENING_BEATS.map((b) => ({
+  beats: [...OPENING_BEATS.map((b) => ({
     name: b.name,
     // (the E that plays the father's message: pressed after the console's beat, before the call's)
     keys: b.stage === 'call' && b.name === 'call-rise' ? tap('KeyE') : [],
@@ -84,6 +84,9 @@ const OPENING = {
     after: b.console ? (G) => { const m = G.ship.modelOf(G.player.pos); if (m?.interior?.points?.cockpit) G.player.pos.copy(G.ship.world(m, m.interior.points.cockpit)); } : null,
     wait: b.console ? 0.9 : 0,
   })),
+  // after it: Plumb's word on the village on the horizon, on the cue in its name (src/companion.js, issue #434)
+  // (and the first step out's drift into the view over, so the camera is the rig's on both sides whenever the line comes)
+  { name: 'plumb', until: (G) => /Plumb:/.test(G.screen().cue?.text ?? '') && !G.ship?.reveal && !G.ship?.blend, timeout: 60 }],
 };
 
 /** Every world's filmed moment (src/story/*-moments.js, the catalog's "World moments"): three beats into each. */
