@@ -1,0 +1,115 @@
+changelog.md
+  s_5f899ba316b5dc::t_1166fa681b65fc 16
+  s_5f899ba316b5dc::t_76388e90956427 5-7,10
+docs/README.md
+  s_5f899ba316b5dc::t_620983c9d8ab0a 61
+docs/systems/dev-tools.md
+  s_5f899ba316b5dc::t_14b2c39d972909 291-294
+docs/systems/engine-bridge.md
+  s_5f899ba316b5dc::t_bad52e8fe4141a 167-172
+docs/systems/temples.md
+  s_5f899ba316b5dc::t_8a940cb3175fa8 1342-1357,1361-1375
+  s_5f899ba316b5dc::t_7f35f2a55e5b34 691-717
+docs/systems/ui.md
+  s_5f899ba316b5dc::t_3537b20412fd66 693-702
+engine/game.js
+  s_5f899ba316b5dc::t_0601622e0f5b3a 108,1395-1396
+engine/menus.js
+  s_5f899ba316b5dc::t_a2322f78b7057b 10-11,41-42,118-119,168-175,208-212,732-736,739-754,757,864-865,885,1064,1066,1069,1072-1077
+engine/unity/game.js
+  s_5f899ba316b5dc::t_d64927b81bf53e 162-163,250,252,400,551-556,981-1004
+scripts/temple-design/rules.mjs
+  s_5f899ba316b5dc::t_88c0221bf75e37 46
+src/changelog-media.js
+  s_5f899ba316b5dc::t_ca247eb8283a8a 1159-1162
+  s_5f899ba316b5dc::t_3ac32bc03bd9d1 1097-1099,1112,1125-1134
+src/changelog.js
+  s_5f899ba316b5dc::t_3d634dfd10d6f5 64-67
+  s_5f899ba316b5dc::t_ad4f51fe736e04 11,18-21
+src/house-map.js
+  s_5f899ba316b5dc::t_da239ba0446d2a 1-33,35-176,195-378
+src/i18n/en.js
+  s_5f899ba316b5dc::t_70e275d6fb1509 14
+src/i18n/fr.js
+  s_5f899ba316b5dc::t_3d4dcf66942fe8 14
+src/main.js
+  s_5f899ba316b5dc::t_d72827278a4385 166,1494-1495,1880
+src/menus.css
+  s_5f899ba316b5dc::t_2935a55097d375 373-381
+src/temple-maps/makers.js
+  s_5f899ba316b5dc::t_df9b65c390cc78 28,71,88-89,142,146,199,362
+src/temple-maps/record.js
+  s_5f899ba316b5dc::t_4ece1ff1207584 2-6,11,15,17-18
+src/temples/arzach.js
+  s_5f899ba316b5dc::t_9eb7185d9b18ac 213
+  s_5f899ba316b5dc::t_70b20ebce35384 30-33,37,39-43,46-50,117-118,130-134,162-167,214-215,278,280,291-315,335-344,348-357,371-376,378-383,386,421-425,429-432,523-552,557-562,566-567,587,589,591,593-605,614-637,646-650,768-770,778
+src/temples/arzach2.js
+  s_5f899ba316b5dc::t_c7f0f1fdbda9d8 187-188
+src/temples/bazaar.js
+  s_5f899ba316b5dc::t_81d6a988e9ac09 197-198
+src/temples/buried.js
+  s_5f899ba316b5dc::t_d7f12b15216a56 177-178
+src/temples/desert.js
+  s_5f899ba316b5dc::t_f6b932c604ff63 213
+src/temples/edena.js
+  s_5f899ba316b5dc::t_d1a3bade69bbce 195-196
+src/temples/garage.js
+  s_5f899ba316b5dc::t_2998ce7d6e599f 202-203
+src/temples/house-plan.js
+  s_5f899ba316b5dc::t_d1641f83e494a8 1-75,79-93,95-119,121-123,135,137-214
+src/temples/incal.js
+  s_5f899ba316b5dc::t_ee53c6b3344fa3 230-231
+src/temples/kit.js
+  s_5f899ba316b5dc::t_5c65aed42d3c81 280-282,284-285,388,405,438,480,525,545,553,570,577,588
+src/temples/logic.js
+  s_5f899ba316b5dc::t_bd69e96fd6789e 27-28,65-66,428
+src/temples/moonfoundry.js
+  s_5f899ba316b5dc::t_38a49b242777bc 196-197
+src/temples/perdide.js
+  s_5f899ba316b5dc::t_e30d7a9acfa62f 205-206
+src/temples/perdide2.js
+  s_5f899ba316b5dc::t_6302f725c5c0c5 230-231
+src/temples/pieces.js
+  s_5f899ba316b5dc::t_e865c8f8a85680 23,64-65,3194-3195,3237-3238,3283-3284,3295-3310
+src/temples/runtime.js
+  s_5f899ba316b5dc::t_173e823788bb1b 11-12,32-33,36-37,111,118-119,162,241-255,337
+src/temples/spacecity.js
+  s_5f899ba316b5dc::t_cbf6e0b9aaf0c5 212-213
+src/temples/spheres.js
+  s_5f899ba316b5dc::t_aeb0622981d45d 237
+src/temples/underwater.js
+  s_5f899ba316b5dc::t_191f60ddf712bf 212-213
+src/ui.js
+  s_5f899ba316b5dc::t_8d3c815f220532 16,206,208-210,266,281,329-330,384,414,417,423,426-448,471-474
+tests/house-map.test.js
+  s_5f899ba316b5dc::t_d2280f4cb621e6 1-245
+tests/moonfoundry.test.js
+  s_5f899ba316b5dc::t_334a84bb7fae52 205
+tests/temples.test.js
+  s_5f899ba316b5dc::t_3c0a45943ae81f 41,926-927,931,933-934,942
+  s_5f899ba316b5dc::t_65f514c1cf5918 44,641-666,3648,3700-3701,3731-3733,3735,3740,3742,3744,3751-3770,3777,3794
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeArgs.cs
+  s_5f899ba316b5dc::t_08a59cd7eb21f5 216-219
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.cs
+  s_5f899ba316b5dc::t_bf86af6b4b5e49 65-67,180-183,335,878-879,884-917
+docs/design/temple-best-practices.md
+  s_5f899ba316b5dc::t_d8cbd9c3252b04 469,492-504
+src/temples/migrate.js
+  s_5f899ba316b5dc::t_08b49eb623f322 130-132,134,136,280-281
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "889012acaced41bbf1b97253c973d5b4ee5c21fc",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
