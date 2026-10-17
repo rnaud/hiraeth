@@ -94,6 +94,17 @@ export const CHANGELOG = [
     'In the Unity version, the dark of the makers’ houses’ deadly pits no longer shows through walls, and the shafts of light, the doorways’ glow, the floating motes and the recordings’ figures are hidden behind what stands in front of them again: drawn straight to the screen, they had read the scene’s depth upside down.',
     // issue #420: unity Veil.shader (a laid-over wash's alpha for the linear blend); engine/sequences.js 'skull-cave'
     'In the Unity version, the shafts of light in the skull cave and the makers’ houses are as soft and pale as on the web, no longer bright white slabs.',
+    // issue #448: src/flat-pass.js (the passes drawn from the scene's flat list, not a walk each), main.js renderFrame;
+    // tests/flat-pass.test.js; docs/systems/performance.md "CPU round 1 (#448)"
+    { text: 'In the browser and the Android app, each frame takes less work to get ready to draw on a slow processor: the world is looked over once a frame to find what is in view, instead of once for every picture the frame is made of (its shadows and the view itself). The picture is exactly the same.',
+      numbers: [{ title: 'Drawing the world (the shadow map and the view) at a quarter of the processor’s speed, ms a frame, before → after', unit: 'ms', better: 'lower', device: 'MacBook Pro (M4 Pro), headless Chrome, the CPU slowed 4× (a weak handheld’s stand-in), Handheld preset, 1280 × 633, standing at the start', rows: [
+        { where: 'the Desert', before: 13.34, after: 12.05 },
+        { where: 'the City-Shaft', before: 10.81, after: 10.24 },
+        { where: 'the Signal Market', before: 11.01, after: 9.68 },
+        { where: 'Lorn', before: 13.27, after: 11.61 },
+        { where: 'the Underwater City', before: 10.24, after: 9.19 },
+        { where: 'the Rose House’s fight', before: 6.88, after: 5.92 },
+      ], source: 'docs/systems/performance.md, "CPU round 1 (#448)"', note: 'The same build with the change off and on in turn, six rounds of 2 s each, the median of each; the pixels of a frame drawn both ways are identical.' }] },
   ] },
   { v: '1.83', date: '2026-10-16', items: [
     // issue #406: src/temples/desert.js (ROOMS, LOGIC: hall, balcony, ballK, kS, dE, sentry in the hall, d3), pieces.js Ball

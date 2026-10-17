@@ -4649,3 +4649,118 @@ and timer culprits the brief listed did not show up in any profile.
 **Nothing was changed in the code for #446.** Each fix that is small and safe saves under ~0.4 ms at ×4, which is
 under this Mac's run-to-run noise (load 16–21). The larger ones (1–4 above) change how the frame is drawn and want
 their own issue with a device to measure on: the Retroid when it is unlocked, or the Deck.
+
+## CPU round 1 (#448)
+
+The fixes ranked 2–4 and 7–8 in "CPU per frame (#446)" above, each tried and measured. One of them pays and is in:
+**one walk of the scene a frame** (`src/flat-pass.js`). The others were measured and left out, for the reasons below.
+
+### One walk of the scene a frame (src/flat-pass.js)
+
+`renderer.render(scene, camera)` walks the whole scene for each pass (three's `projectObject`). A Handheld frame has
+two or three such passes (a shadow cascade, the G-buffer; the hero map draws its own little scene). Now each pass of
+`renderFrame` hands three a stand-in for the scene (`Object.create(scene)`: the scene's background, override material
+and hooks are the scene's) whose children are what of the scene's flat list (engine/scene-matrices.js, made for the
+frame's matrices) could be drawn in that pass, in the walk's order:
+
+- a hidden container steps over its subtree, as the walk does; a container with nothing drawable under it (a rig's
+  bones: 1 260 of the desert's 7 303 objects) is stepped over without a look;
+- a mesh is handed over only if it is shown, its layers meet the camera's, and its world sphere (three's own: the
+  object's or its geometry's, carried into the world once a frame, when first reached) is not certainly outside the
+  frustum. A margin (1 mm, and as much again per km) leaves anything near a plane to three, which tests again what it
+  is handed: the pass draws exactly what the walk drew;
+- a mesh cut into tiles (perf.js `tileSceneSteps`: the source draws nothing, its tiles are its children) is not handed
+  over; its tiles are, one by one. Its own draw was an empty one (a draw range of 0). Otherwise a mesh with children,
+  an unculled one, one with a hook of its own, a line, a sprite or a group with a render order is handed over whole,
+  and three walks it as ever;
+- a frame whose list is stale (the scene edited since its matrices: `sceneList()` null) walks as before.
+
+What is read once a frame is what nothing changes between a frame's passes: the world matrices are made before them,
+and a level of detail swapped in for a shadow pass carries its source's bounds (lod.js `unpack`). A first version that
+read every mesh's flags each frame, hidden or not, and took the tiles' children off them for the pass, was no faster
+than the walk: the cost is in touching the objects (cold cache lines, megamorphic reads), so a hidden mesh is now passed
+by on its `visible` alone, as three does, and a mesh outside the frustum on the numbers kept in the pass's arrays.
+
+**Checked.** The render lists of every pass (object, material, group order, render order, screen depth) the same as
+the walk's over 12 frames, the flat pass off and on in turn, in the Desert, the City-Shaft, the Signal Market, Lorn,
+the Underwater City and the Rose House's fight. The final frame's pixels read back after `renderFrame()` with the
+flat pass off and on, in the same frozen frame: identical (0 pixels differ) in all seven #446 worlds on Handheld and
+in the Desert on High. `tests/flat-pass.test.js` runs a copy of three's walk over the scene and the stand-in through
+hides (between passes too), layers, moves, cameras, swapped geometries, a render order, instances and tiles; it fails
+when the margin is made negative or a hidden mesh is left stamped. The full test suite and the sequence tests pass.
+**Web only**: the Unity bridge has no three renderer, and its mirror walks the flat list already. The Unity script
+bundle (`hiraeth.cjs`) is byte-for-byte the same before and after this round.
+
+**Measured** (MacBook Pro M4 Pro, headless muted Chrome on ANGLE Metal, Handheld, 1280 × 633, 10:00, clear, standing at
+each world's start; the Mac's load 20–40 from other agents). The time a frame of three's renders of the scene (the
+passes' walk and their draws), the same build with the flat pass off and on in turn, six rounds of 2 s each, medians:
+
+| world | CPU ×4: off → on, ms | gain | CPU ×1: off → on, ms | gain |
+|---|---|---|---|---|
+| the Desert | 13.34 → 12.05 | 1.29 | 1.85 → 1.68 | 0.17 |
+| the City-Shaft | 10.81 → 10.24 | 0.57 | 2.22 → 2.02 | 0.20 |
+| the Signal Market | 11.01 → 9.68 | 1.33 | 1.90 → 1.69 | 0.21 |
+| Lorn | 13.27 → 11.61 | 1.66 | 2.33 → 2.11 | 0.22 |
+| the Underwater City | 10.24 → 9.19 | 1.05 | 2.01 → 1.86 | 0.15 |
+| the Rose House's fight | 6.88 → 5.92 | 0.96 | 1.09 → 0.99 | 0.10 |
+
+So 0.6–1.7 ms of a ×4-throttled frame, not the 2–3 ms #446 estimated: the walk's own reads are what is left to pay,
+and three's frustum test, render list and sort stay as they were for what it is handed. The #446 profiles
+(`profile.mjs`, ×4, standing and running, two runs of each build interleaved) agree in the walk's share (three's
+`projectObject` plus the flat pass: Desert 4.7 → 4.5 standing and 5.7 → 4.4 running, City-Shaft 4.3 → 3.5, Market
+3.3 → 2.7 and 4.4 → 3.1, Underwater 3.4 → 2.3, the crowd 3.8 → 3.3 and 3.8 → 2.4 ms; the temple 1.7 → 2.6 before the
+hidden-first order above, which the pass timings since put at 6.88 → 5.92), but their totals moved ±8 ms between runs
+of one build under this load, so they cannot show a 1 ms gain.
+
+### Measured and left out
+
+- **Matrices only for what can move.** The scene list's compare of each object's ten numbers is ~95 µs a frame of its
+  ~150 µs in the desert (×1). What is still by construction is the tiles (perf.js `tileSceneSteps`: 1 668 in the
+  desert, 11 in the City-Shaft); marked `matrixAutoUpdate = false`, the list took 15–20 µs (×1) less in the desert and
+  nothing elsewhere. The rest of the world (buildings, props, the temples) is moved now and then by its levels and
+  systems (doors, the reactive world, the still batches that follow a mesh that moves), so it cannot be marked without a
+  write barrier on position, quaternion and scale. And the Unity mirror treats an object with its own matrix as one that
+  may change at any time (engine/mirror-freeze.js never freezes it; mirror.js compares its matrix every frame), so the
+  tiles marked would cost the Deck and the Retroid more than the web gains. The rig walks (matrix-cache.js, 1.2 ms at ×4
+  in the desert) are the poses' own reads of their joints (humanoid.js `update`, animator.js, feet.js, cloth), needed.
+- **Cullers and levels of detail only when the view moves.** Their results depend on more than the view: lod.js picks
+  the coarsest level built so far (the worker finishes levels between frames), the small-prop and room culls hide only
+  what is shown and other systems change that, the still batches follow meshes that move. A gate on the view with a
+  periodic refresh would draw a level, a prop or a room a few frames late: a picture change, which this round rules out.
+- **Per change, not per frame.** The bracer strap's inputs (the forearm's skin points and the bracer's matrix) were
+  compared bit for bit each frame: different in 421 of 421 frames standing and 386 of 386 walking (the idle pose
+  breathes), so a per-change wrap saves nothing without a tolerance, which would change the picture. The desert's
+  banners wave every frame. The frame's two hidden lists are now kept from frame to frame (main.js `_frameHidden`,
+  `_shadowHidden`): ~20 kB a frame less to allocate, too small to measure.
+- **ShadowCuller.collect** walks the whole scene when the scene's top-level count changes. Collecting only the
+  top-level children that changed would miss what was added deeper inside the others since the last collect (the full
+  walk catches it at that moment); doing it exactly needs a per-subtree edit count in engine/scene-matrices.js, shared
+  with Unity: left for a round with a device to measure the hitch on.
+
+### Unity on the Retroid: the script thread (-split), next to the Deck's
+
+The development player of this round's base (675f05cb4, `BUILD_ARGS=-development`; its `hiraeth.cjs` the same as after
+this round) on the Retroid Pocket 5, Handheld (FSR 1, 857 × 643 → 1280 × 960), muted, the frame readout on, the #446
+Deck views (`cpu-446/deck/views-*.json`), `-bench 6 -split -metrics`, two launches each (they agreed within 0.5 ms),
+means. ms a frame; the last column is the Deck's frame and script thread from #446:
+
+| world, view | frame | GPU | script thread | = game update | + mirror (matrices · walk · bones) | main thread waits on script | update's largest parts | Deck: frame / script |
+|---|---|---|---|---|---|---|---|---|
+| Desert, spawn | 17.7 | 17.6 | 9.7 | 5.5 | 3.9 (1.2 · 2.1 · 0.3) | 0.9 | people 1.4, traveller 1.3, story 0.9, wind 0.6, life 0.5 | 11.4 / 10.4 |
+| Desert, camps | 17.2 | 17.4 | 13.0 | 7.7 | 4.7 (1.3 · 2.5 · 0.4) | 1.6 | people 3.2, traveller 1.1, story 0.9, wind 0.6, level 0.6 | 13.7 / 12.4 |
+| City-Shaft, start | 18.6 | 17.4 | 13.5 | 7.9 | 5.3 (1.6 · 2.8 · 0.2) | 1.8 | people 3.3, traveller 1.3, crowd 0.8, life 0.7, story 0.6 | 13.6 / 12.0 |
+| City-Shaft, crowd | 16.6 | 12.4 | 13.0 | 7.8 | 4.8 (1.6 · 2.4 · 0.2) | 1.1 | people 4.3, traveller 1.1, life 0.6, story 0.6, crowd 0.5 | 13.4 / 12.1 |
+| Signal Market, start | 17.5 | 17.3 | 8.8 | 5.8 | 2.7 (0.8 · 1.3 · 0.2) | 0.7 | people 2.1, traveller 1.3, story 0.7, crowd 0.6, life 0.5 | 10.5 / 9.6 |
+| Signal Market, crowd | 16.7 | 11.2 | 9.5 | 6.0 | 3.2 (0.9 · 1.5 · 0.2) | 0.6 | people 2.3, traveller 1.3, story 0.7, crowd 0.5, life 0.4 | 9.5 / 8.6 |
+| Lorn, start | 20.9 | 20.5 | 8.6 | 5.5 | 2.9 (0.8 · 1.6 · 0.1) | 0.6 | people 1.6, traveller 1.3, story 1.0, life 0.7 | 13.6 / 9.6 |
+| Lorn, crowd | 19.1 | 18.9 | 7.9 | 4.8 | 2.8 (0.8 · 1.5 · 0.1) | 0.6 | people 1.5, traveller 1.2, story 0.9, life 0.6 | 13.9 / 9.3 |
+| Underwater, start | 16.8 | 16.8 | 7.9 | 5.1 | 2.5 (0.7 · 1.3 · 0.2) | 0.7 | traveller 1.4, people 1.1, level 1.0, story 0.7, life 0.3 | 9.8 / 9.0 |
+| Underwater, crowd | 16.7 | 16.7 | 10.0 | 6.7 | 2.8 (0.8 · 1.5 · 0.3) | 1.0 | people 2.2, level 1.6, traveller 1.3, story 0.6 | 10.9 / 9.9 |
+
+On the Retroid the **GPU is the frame** in every view (16.6–20.9 ms, the frame held near 60 Hz in four), and the
+script thread (7.9–13.5 ms) runs beside it: the main thread waits on it only 0.6–1.8 ms. Its split is the Deck's,
+slightly slower: the people (1.1–4.3 ms, the largest part wherever a crowd is near), the traveller (1.1–1.4) and the
+mirror (2.5–5.3, its scene walk half of it). This round changes nothing there (the same script, byte for byte), so the
+"after" is these numbers. For the Retroid the CPU levers are the people (#446's item 5) and the mirror's walk.
+Raw: the session's scratchpad, `cpu-448/` (`ab/base/split/<world>-r0|r1/unity-bench.json`, `tools/split.py`,
+`passall*.txt`, `pix*.txt`, `check-*.txt`, `shots/`).
