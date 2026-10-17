@@ -359,6 +359,8 @@ const FROM_LORN_GLASS = 'headless Chrome (muted, High, 1280 × 633, 17:42 or 22:
 const FELLOW_FROM = 'headless Chrome (muted, High, 10:00, clear) against this branch’s own dev server, one session for each pair: the before with the new thing taken out of the scene (Tansy, the course and its sign), the after with it back, the same pinned view; cwebp -q 72';
 /** Batch 1's art pass: from before compare.mjs (7dd178f7) to its last commit. */
 const ART = { commit: 'afc7dfb0', before: '7dd178f7^' };
+/** (v1.84, issue #440: the ember wisp drawn to its picked sheet) */
+const WISP440 = { commit: '92892113d', before: '92892113d^' };
 /** The roster's batch 3 (v1.13): its bodies at their commit, the stand-ins before them at batch 3's parent. */
 const B3 = { commit: '5a1659cd', before: '890913ce' };
 /** The roster's batch 4 (the machines): the after at the batch's own commit, the before (the stand-ins) at main's before it. */
@@ -1212,6 +1214,11 @@ export const CHANGELOG_MEDIA = {
       { name: 'unity-bench', title: 'A bench', caption: 'In Unity on the dunes over Qanat: before, no bench; after, the bench to sit on, as on the web', from: HOST427B },
       { name: 'unity-lab-room', title: 'A room of the Lab', caption: 'In Unity in the Lab’s Lorn II room: before, the hub’s sky (its rays and clouds) over it; after, the room’s own dusk and its moon, as on the web', from: HOST427B },
     ], see: 'In the Unity version, ride a cab in the City-Shaft and turn the camera into its side. Ride the hoverbike in Viridel; fly on the jets in the City-Shaft. Sit with E on the bench on the dunes over Qanat. Ride the hoverbike fast across Viridel’s meadows. Walk into the desert’s far edge and keep pushing. Walk from the Lab’s hub into one of its biome rooms. Drink a potion after a hurt (D-pad left); find the jets in the City-Shaft and the drone points up through the ceiling. Find a fragment, then open the Start menu.' },
+    { match: 'The ember wisp has its real body now', shots: [
+      { name: 'art-wisp', title: 'Moon Foundry', caption: 'The Moon Foundry’s cinder wisp, three-quarter, at rest: before, the stand-in clam with its fin and smoke beads; after, the bud of four petals, its ring of light and three drips', ...WISP440, view: { foe: { id: 'wisp@moonfoundry', yaw: 0.45, pitch: 0.12 } }, reference: REF('wisp', 1, 'the ember wisp (its own skin, the Moon Foundry’s cinder wisp)') },
+      { name: 'art-wisp-windup', title: 'The fireball’s tell', caption: 'Held at 80 % of the fireball’s wind-up: before, the clam’s lids parted; after, the petals opened wide like a flower round the swollen coal', ...WISP440, view: { foe: { id: 'wisp@moonfoundry', yaw: 1.2, pitch: 0.12, pose: 'fireball', at: 0.8 } }, reference: REF('wisp', 1, 'the ember wisp, its fireball wind-up on the right') },
+      { name: 'art-wisp-marsh', title: 'Lorn II', caption: 'Lorn II’s marsh wisp on the new body, its own green colours and pale lichen stars', ...WISP440, view: { foe: { id: 'wisp@perdide2', yaw: 0.45, pitch: 0.12 } }, reference: REF('wisp', 1, 'the ember wisp, its body (the marsh wisp’s own sheet waits in the lab)') },
+    ], see: 'Debug → the Arena (or the Moon Foundry, Lorn II, the Eclipse): an ember wisp floats over the warm places; stand off and watch it open before it throws.' },
   ],
   '1.83': [
     { match: 'A new game in the Arcade, The Lens Vault', shots: [
