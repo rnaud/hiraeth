@@ -42,6 +42,15 @@ export const CHANGELOG = [
         { where: 'Underwater, the arrival view', before: 57.8, after: 60.0 },
         { where: 'Underwater, the wide view', before: 52.1, after: 54.3 },
       ], source: 'docs/systems/performance.md, "Unity on the Retroid, round 11"' }] },
+    // issue #450: src/ragdoll.js (groundHitAt, RAG.reuse, rayAt / rayTop / rayH / rayN / rayBase), src/physics.js groundHit /
+    // baseHit; tests/ragdoll.test.js; docs/systems/animation.md "Ragdolls", docs/systems/performance.md "CPU round 2 (#450)"
+    { text: 'Being knocked over no longer makes the game stutter on a slow processor: the falling body looks for the ground under each limb once a frame instead of twice in every small step, and falls exactly as before. With this Mac’s processor slowed four times, as a stand-in for a handheld’s, a tumble down the City-Shaft takes 0.7 ms of each frame instead of 3.8.',
+      numbers: [{ title: 'A knock-down’s fall, ms of each frame, before → after', unit: 'ms', better: 'lower', device: 'this Mac (M4 Pro), headless Chrome, the CPU slowed ×4, Handheld; the old and the new ragdoll stepped side by side from the same pose at 1/30 s', rows: [
+        { where: 'the City-Shaft, run off the ledge down the shaft', before: 3.8, after: 0.73 },
+        { where: 'the City-Shaft, knocked over where he stands', before: 0.65, after: 0.13 },
+        { where: 'the Signal Market, knocked over', before: 0.56, after: 0.16 },
+        { where: 'the Desert’s dunes, knocked over', before: 0.48, after: 0.16 },
+      ], source: 'docs/systems/performance.md, "CPU round 2 (#450)": 89 ground rays a frame → 16, the fall the same to 0.01 mm' }] },
     // issue #442: src/fight-temples/rules.js rollInput / rollKey, index.js (the card), session.js; src/fluid-blade.js
     // QUICK_CUT, quickSwing, rollCancels, ROLL.buffer; src/fight-temples/kill-fx.js, src/audio.js foeKill; hazards.js
     // LINGERING; tests/fight-feel.test.js; docs/design/fight-temples.md "The roll, the quick cut and readable kills"

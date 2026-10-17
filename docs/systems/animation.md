@@ -48,10 +48,20 @@ shoulders, elbows, wrists) moved by position-based dynamics in sub-steps of at
 most 1/90 s. The trunk is held rigid, the limbs by their bone lengths, with a
 few limits (knees bend forward only, thighs don't swing far behind the hips,
 the head stays on the neck, elbows and knees never fold flat). Each particle
-lands on the ground under it (one `heightAbove` ray per sub-step, from where it
-was, so nothing overhead counts as ground, along any "up"), with friction that
-lets it come to rest on slopes up to ~20°; the trunk is pushed out of walls as
-a capsule once a frame. `apply(humanoid)` turns the whole body with the trunk
+lands on the ground under it (a ray down from where it was, so nothing overhead
+counts as ground, along any "up"), with friction that lets it come to rest on
+slopes up to ~20°; the trunk is pushed out of walls as a capsule once a frame.
+**One ray a particle a frame** (issue #450): `physics.groundHit` gives the
+height and the ground's slope from the same hit (it was `heightAbove` and then
+`groundNormal`, two rays along the same line), and on the frame's later
+sub-steps a particle that has moved less than `RAG.reuse` (3 cm) across and up
+since its ray reads the same ground: the hit's plane under where it is now (the
+very height on level ground), or on a heightfield its own height and slope
+(`physics.baseHit`, no ray); a wall-steep hit is cast again. A fall in the
+desert, the City-Shaft and the Market is the same, frame by frame, as with two
+rays a sub-step (under 0.01 mm apart, the same settling frame: the in-page
+comparison in the issue), with 15–17 rays a frame instead of 59 (at 60 fps) or
+89 (at 30); `RAG.reuse = 0` casts every sub-step again. `apply(humanoid)` turns the whole body with the trunk
 and aims neck, legs and arms along their segments; `snapshot` / `blend` blend
 any two poses.
 

@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { Humanoid, prepareHuman } from '../src/humanoid.js';
 import { buildCharacter } from '../src/player.js';
-import { Ragdoll, Knockdown, J, JOINTS, KNOCK } from '../src/ragdoll.js';
+import { Ragdoll, Knockdown, J, JOINTS, KNOCK, RAG } from '../src/ragdoll.js';
 
 globalThis.ProgressEvent ??= class { constructor(type, init) { Object.assign(this, { type }, init); } };
 async function glb(name) {
@@ -208,4 +208,37 @@ test('the traveller: tumbling off a ledge down a long drop stays limp all the wa
   for (t = 0; t < 12 && q.down; t += 1 / 60) q.update(1 / 60, {}, 0);
   assert.ok(!q.down && q.pos.y < -24, `up at the bottom (${q.pos.y.toFixed(1)} m)`);
   assert.ok(q.hearts < q.maxHearts && q.hearts >= q.maxHearts - FALL.worst, `a little hurt (${q.hearts} hearts)`);
+});
+
+// #450: one ray a point a frame (physics.groundHit: the height and the slope from one hit), the frame's later sub-steps
+// reading the hit's plane while the point stays over it, not two rays a point a sub-step
+test('ragdoll: one ground ray a point a frame, the fall the same as a ray every sub-step', () => {
+  const N = JOINTS.length;
+  const run = (ground, dt, reuse) => {
+    const keep = RAG.reuse; RAG.reuse = reuse;
+    try {
+      const H = body();
+      const rag = new Ragdoll().startFrom(H, new THREE.Vector3(3, -4, 2));
+      let rays = 0;
+      const P = { groundHit: (p, up, step, n) => { rays++; return ground(p, n); }, pushCapsule: () => null };
+      const xs = [];
+      let settled = -1;
+      for (let f = 0; f < 240; f++) { rag.step(dt, P, Y); xs.push(rag.x.map((v) => v.clone())); if (settled < 0 && rag.settled) settled = f; }
+      return { xs, rays: rays / 240, settled };
+    } finally { RAG.reuse = keep; }
+  };
+  const flat = (p, n) => (n.set(0, 1, 0), p.y);
+  const slope = (p, n) => (n.set(-0.25, 1, 0).normalize(), p.y - p.x * 0.25);   // ~14°
+  for (const dt of [1 / 60, 1 / 30]) {
+    const subs = Math.ceil(dt / RAG.sub);
+    for (const [name, g, tol] of [['flat', flat, 1e-9], ['slope', slope, 0.01]]) {
+      const every = run(g, dt, 0), once = run(g, dt, RAG.reuse);
+      assert.equal(every.rays, N * subs, `${name}: a ray a point a sub-step without reuse`);
+      assert.ok(once.rays <= N * 1.5, `${name} at 1/${Math.round(1 / dt)} s: ~one ray a point a frame (${once.rays.toFixed(1)} a frame, ${N} points, ${subs} sub-steps)`);
+      let worst = 0;
+      every.xs.forEach((xs, f) => xs.forEach((x, i) => { worst = Math.max(worst, x.distanceTo(once.xs[f][i])); }));
+      assert.ok(worst < tol, `${name}: the same fall, frame by frame (${(worst * 100).toFixed(4)} cm apart at most)`);
+      assert.ok(Math.abs(every.settled - once.settled) <= 1, `${name}: settles on the same frame (${every.settled} / ${once.settled})`);
+    }
+  }
 });

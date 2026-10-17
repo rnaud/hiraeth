@@ -7,9 +7,10 @@ import * as THREE from 'three';
 // so it falls like a body and not a string of beads: knees only bend forward,
 // thighs don't swing far behind the hips, the head stays on top of the neck,
 // elbows and knees never fold flat. Every particle lands on the ground under it
-// (one ray each per sub-step, physics.heightAbove, so any "up" works), and the
-// trunk is pushed out of walls as a capsule. Cheap: ~30 rays and a capsule cast
-// a frame.
+// (one ray each a frame, physics.groundHit, so any "up" works: its height and the
+// ground's slope from the same hit, reused on the frame's later sub-steps while
+// the particle stays over it), and the trunk is pushed out of walls as a capsule.
+// Cheap: ~15 rays and a capsule cast a frame.
 //
 // It drives a Humanoid by aiming its bones at the particles (apply), and blends
 // between any two poses (snapshot, blend): from the animated pose into the
@@ -27,6 +28,8 @@ export const RAG = {
   stillFor: 0.35,    // s of that before it is settled
   air: 0.2,          // s without touching anything: it is falling (a landing after that is a landing: Ragdoll.landing)
   wall: 0.5,         // ground steeper than this (its normal's share of up: 60°) is a wall: pushed out sideways, never up it
+  reuse: 0.03,       // m: on a frame's later sub-steps a particle that moved less than this across (and up) since its ray
+                     // reads the same ground (the hit's plane) instead of casting again; 0: a ray every sub-step (issue #450)
 
 };
 
@@ -82,6 +85,24 @@ export function groundNormalAt(physics, p, up, step, out) {
   return out;
 }
 
+const _gq = new THREE.Vector3();
+/**
+ * The height of p above the ground along up (physics.heightAbove) and the ground's normal there into outN (facing
+ * up): physics.groundHit's one ray where it has it, else heightAbove and groundNormalAt (a test double).
+ */
+export function groundHitAt(physics, p, up, step, outN) {
+  let h;
+  if (physics.groundHit) h = physics.groundHit(p, up, step, outN);
+  else {
+    h = physics.heightAbove(p, up, step);
+    if (Number.isFinite(h)) return groundNormalAt(physics, _gq.copy(p).addScaledVector(up, -h), up, step + Math.max(0, h), outN), h;
+    outN.copy(up);
+  }
+  if (!(outN.lengthSq() > 0.5)) outN.copy(up);
+  if (outN.dot(up) < 0) outN.negate();
+  return h;
+}
+
 export class Ragdoll {
   constructor() {
     this.x = Array.from({ length: N }, () => new THREE.Vector3());
@@ -93,6 +114,14 @@ export class Ragdoll {
     this.nrm = Array.from({ length: N }, () => new THREE.Vector3(0, 1, 0));   // ... and its normal
     this.out = Array.from({ length: N }, () => new THREE.Vector3(0, 1, 0));   // ... and the way out of it (the normal, or level off a wall)
     this.cor = Array.from({ length: N }, () => new THREE.Vector3());   // the ground's and walls' push this sub-step (not speed)
+    // each particle's ray this frame: where it was cast from (the particle then), the top of the ray (along up), the
+    // height it found (Infinity: nothing under) and the hit's own normal (facing up)
+    this.rayAt = Array.from({ length: N }, () => new THREE.Vector3());
+    this.rayTop = new Float64Array(N);
+    this.rayH = new Float64Array(N);
+    this.rayN = Array.from({ length: N }, () => new THREE.Vector3(0, 1, 0));
+    this.rayBase = new Uint8Array(N);      // ... and whether that ground was the heightfield's (physics.groundBase)
+    this.rays = 0;                         // rays cast so far (a count, for the tests and the profile)
     this.w = JOINTS.map(([, , , m]) => 1 / m);
     this.r = JOINTS.map(([, , r]) => r);
     this.links = [];                       // [i, j, length, stiffness]
@@ -178,12 +207,28 @@ export class Ragdoll {
         // the ground under it: a ray from where it was (so nothing overhead counts as ground)
         const drop = Math.max(0, _a.subVectors(prev[i], x[i]).dot(up));
         const step = drop + this.r[i] + 0.05;
-        const hgt = physics.heightAbove(x[i], up, step);
+        const top = x[i].dot(up) + step;
+        // (one ray a frame: a later sub-step reads the ground its ray found while the particle has stayed over it, no
+        //  higher, and it was not a wall: the hit's plane under where it is now, the very height on level ground)
+        let hgt = Infinity;
+        const moved = _a.subVectors(x[i], this.rayAt[i]), up_ = moved.dot(up), R = RAG.reuse;
+        const rn = this.rayN[i], ny0 = rn.dot(up);
+        if (s > 0 && R > 0 && moved.lengthSq() - up_ * up_ < R * R && top <= this.rayTop[i] + R
+          && (!Number.isFinite(this.rayH[i]) || ny0 >= RAG.wall || this.rayBase[i])) {
+          // (on the heightfield its own height and slope, no ray: a dune is no plane)
+          if (this.rayBase[i]) hgt = physics.baseHit(x[i], rn);
+          else if (Number.isFinite(this.rayH[i])) hgt = (this.rayH[i] * ny0 + moved.dot(rn)) / ny0;
+        } else {
+          hgt = groundHitAt(physics, x[i], up, step, rn);
+          this.rays++;
+          this.rayAt[i].copy(x[i]); this.rayTop[i] = top; this.rayH[i] = Number.isFinite(hgt) ? hgt : Infinity;
+          this.rayBase[i] = physics.groundHit && physics.groundBase && physics.baseHit ? 1 : 0;
+        }
         const ok = Number.isFinite(hgt);
         this.floor[i] = ok ? x[i].dot(up) - hgt : -Infinity;
         gp[i].copy(x[i]).addScaledVector(up, ok ? -hgt : 0);
         // its slope, where it is close enough to touch it this sub-step
-        if (ok && hgt < this.r[i] + 0.3) groundNormalAt(physics, gp[i], up, step + Math.max(0, hgt), nrm[i]);
+        if (ok && hgt < this.r[i] + 0.3) nrm[i].copy(rn);
         else nrm[i].copy(up);
         // (a wall-steep face pushes out level: along its normal the push would lift the body up it)
         const ny = nrm[i].dot(up);

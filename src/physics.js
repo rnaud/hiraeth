@@ -363,6 +363,51 @@ export class Physics {
     return this.rayDistance(_cap, _dir, 600) - step;
   }
 
+  /**
+   * heightAbove(pos, up, step) and the ground's normal there from the same ray, into outN (facing up): the very
+   * numbers heightAbove and groundNormal (or, under any other up, rayHit) give, for one ray instead of two
+   * (src/ragdoll.js: fifteen points a sub-step, issue #450). outN is up where nothing is under it. this.groundBase
+   * says whether the ground it found is the heightfield's (baseHit then gives the same numbers anywhere near, no ray).
+   */
+  groundHit(pos, up, step, outN) {
+    this.groundBase = false;
+    if (up.y > 0.999) {
+      const fromY = pos.y + step;
+      const b = this.base ? this.base.heightAt(pos.x, pos.z) : -Infinity;
+      this.groundMover = null;
+      this.groundKind = 'ground';
+      let hit = null;
+      if (this.bvh) {
+        _ray.origin.set(pos.x + 1.37e-4, fromY, pos.z + 2.91e-4);
+        _ray.direction.set(0, -1, 0);
+        hit = this.bvh.raycastFirst(_ray, THREE.DoubleSide, 0, 600);
+        this.groundMover = hit?.mover && hit.point.y >= b ? hit.mover : null;
+        this.groundKind = groundKind(hit, b, !!this.base);
+      }
+      if (hit && hit.point.y >= b) { outN.copy(hit.face.normal).transformDirection(_m.identity()); if (outN.y < 0) outN.negate(); }
+      else if (this.base) { this.groundBase = true; return this.baseHit(pos, outN); }
+      else outN.set(0, 1, 0);
+      return pos.y - (hit ? Math.max(hit.point.y, b) : b);
+    }
+    this.groundMover = null;
+    this.groundKind = 'ground';
+    if (!this.bvh) { outN.copy(up); return Infinity; }
+    _ray.origin.copy(pos).addScaledVector(up, step);
+    _ray.direction.copy(up).negate();
+    const hit = this.bvh.raycastFirst(_ray, THREE.DoubleSide, 0, 600);
+    if (!hit) { outN.copy(up); return Infinity; }
+    outN.copy(hit.face.normal);
+    if (outN.dot(_ray.direction) >= 0) outN.negate();
+    return hit.distance - step;
+  }
+
+  /** The height of pos over the heightfield (+Y up) and its normal there into outN, as groundHit gives them on it. */
+  baseHit(pos, outN) {
+    const e = 0.35, H = (a, c) => this.base.heightAt(a, c);
+    outN.set(H(pos.x - e, pos.z) - H(pos.x + e, pos.z), 2 * e, H(pos.x, pos.z - e) - H(pos.x, pos.z + e)).normalize();
+    return pos.y - this.base.heightAt(pos.x, pos.z);
+  }
+
   /** Surface normal of the ground at (x, z) below fromY (meshes or the heightfield). */
   groundNormal(x, fromY, z, out = new THREE.Vector3()) {
     const b = this.base ? this.base.heightAt(x, z) : -Infinity;
