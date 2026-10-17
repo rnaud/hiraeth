@@ -1,0 +1,85 @@
+src/temple-maps/makers.js
+  s_5f899ba316b5dc::t_427e6be44c975d 384-385
+  s_5f899ba316b5dc::t_f4ac285c854fdb 60
+src/temples/pieces.js
+  s_5f899ba316b5dc::t_3d872287a3d5b3 1331-1333,1336
+src/temples/migrate.js
+  s_5f899ba316b5dc::t_a679d4ad1e5f64 128-131,133,137-138
+changelog.md
+  s_5f899ba316b5dc::t_8f9e4669fb7bde 14
+docs/systems/temples.md
+  s_5f899ba316b5dc::t_a233d3ce41667b 1025-1075
+tests/sequences-web.json
+  s_d2282157228329::t_7c4abf46eaecdc 3,3645-3646,3694-3695,3726-3727,3968-3969,4000-4001,4032-4033,4064-4065
+docs/design/temple-best-practices.md
+  s_5f899ba316b5dc::t_c9f71dbea176c5 617-647
+docs/systems/bridge-gaps.md
+  s_5f899ba316b5dc::t_cfd68b3bdb1448 21
+tests/temple-playthrough.test.js
+  s_5f899ba316b5dc::t_0ce5a7dfe956e5 49
+  s_5f899ba316b5dc::t_7bd37705bc7b68 47-48
+engine/bridge-gaps.js
+  s_5f899ba316b5dc::t_376cb22091fd44 69-72
+tests/temples.test.js
+  s_5f899ba316b5dc::t_8d61ce87d44156 593-594,596-608,610-621,623-626,630-636,639,641,643,645-646,1755
+  s_5f899ba316b5dc::t_d068076f2e6118 69-70
+src/changelog.js
+  s_5f899ba316b5dc::t_353820106902fe 34-37
+src/temples/buried.js
+  s_9ca76055a220ed::t_54751c59cb632e 312,503,510,515,519
+  s_1fd8d0e7b02dcf::t_1f876571b4ea26 621,678,698,823
+  s_5f899ba316b5dc::t_08c336f9b37022 8,11,14,24-30,32-56,93-96,101-113,116-118,120-123,127-135,141,146-151,154-168,170,174-190,195-196,204-208,304-311,313-419,421-499,502,504-509,511-514,516-518,520-525,527-529,531-537,539-541,543-551,554-555,557,562,564-568,570-579,582,584-586,611-612,620,622-661,666-677,679-697,699-705,708-711,713,716-729,731-799,801-803,805-811,814-822,824-826,828-836,838-840,842-846,849-851,853-855,857-870,872,874-875,877-878,881-887,889-892,897,900,902,904,908-912,1002
+tests/engine-house.test.js
+  s_5f899ba316b5dc::t_ca28995bc6f2b4 1-309
+src/foes.js
+  s_5f899ba316b5dc::t_85b076cff51cf8 396,401-404,636,2145-2157
+src/changelog-media.js
+  s_5f899ba316b5dc::t_b52e746cf7f33d 1130-1132,1204-1214
+output/sequences/2608ba196/web.json
+  s_5f899ba316b5dc::t_003c17512a4431 1-284
+tests/temple-design.test.js
+  s_5f899ba316b5dc::t_2e289ca3e652b3 233-234
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "701ce2616d5ca2c6aa7c6561da79b957b5952dda",
+  "prompts": {},
+  "sessions": {
+    "s_1fd8d0e7b02dcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79b266a7-36c4-4810-b5a3-d753e92ed428",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>",
+      "custom_attributes": {
+        "runtime": "local"
+      }
+    },
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_d2282157228329": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a7dd2898b81bc8137",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
