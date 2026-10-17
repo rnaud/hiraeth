@@ -279,6 +279,7 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
   let lastFrame = null, look = null, screenJson = null, keyCalls = 0;
   // the menus (engine/menus.js, BridgeMenu.cs): the kind of each state sent, null when none is open
   const menus = [], panels = {}, grounds = [], maps = [];
+  let closedAt = 0;
   const cloths = {}, capes = {};
   const clothWords = (id) => { const c = cloths[id]; return 3 * c.N + 28 * c.K + 16 * c.B + 16; };
   // the sound (BridgeAudio.cs): a ring Unity drains at its rate, topped up by the script each frame
@@ -298,12 +299,14 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
     // (on the title Enter once: New game, in the world it was started at; in the world W held, and Esc twice: the Start
     // menu open, then closed)
     // then J: the game menu (Quests), E: the Map (left open while its ground is drawn), J: closed
-    Keys: () => (!calls.Frame ? (++keyCalls === 8 ? 'Enter' : '') : calls.Frame > 3 ? ({ 8: 'KeyW,Escape', 12: 'KeyW,Escape', 14: 'KeyW,KeyJ', 16: 'KeyW,KeyE', 70: 'KeyW,KeyJ' }[calls.Frame] ?? 'KeyW') : ''),
+    // (the Map closed once its ground has come, at frame 70 at the soonest: its raster runs on a time budget a frame, so a
+    // slow runner's frames take longer to finish it; away 6 frames after)
+    Keys: () => (!calls.Frame ? (++keyCalls === 8 ? 'Enter' : '') : calls.Frame > 3 ? (({ 8: 'KeyW,Escape', 12: 'KeyW,Escape', 14: 'KeyW,KeyJ', 16: 'KeyW,KeyE' }[calls.Frame]) ?? (!closedAt && calls.Frame >= 70 && maps.length ? (closedAt = calls.Frame, 'KeyW,KeyJ') : 'KeyW')) : ''),
     Menu(json) { const v = JSON.parse(json); menus.push(v?.kind ?? null); if (v?.kind === 'game') panels[v.panel] = v; if (v?.map?.ground) grounds.push(v.map.ground); },
     // the Map's drawn ground (BridgeMenu.SetMap), before the state that names it
     MapImage(key, buf, w, h) { maps.push({ key, bytes: buf.byteLength, w, h, sentBefore: !grounds.includes(key), inked: new Uint8Array(buf).some((x, i) => i % 4 === 0 && x < 80) }); },
     // (gone away at frame 76, BridgeRunner.Away: the Steam button, a suspend; back, the game waits under the Start menu)
-    AwayCount: () => (calls.Frame >= 76 ? 1 : 0),
+    AwayCount: () => (closedAt && calls.Frame >= closedAt + 6 ? 1 : 0),
     MenuWidth: () => 960, MenuMapBox: () => '878,508', PadName: () => 'Retroid Pocket Controller', Platform: () => 'android', Pad: () => null, MouseLook: () => null, Shot() {}, WriteText() {}, LastFrameCpuMs: () => 0, LastFrameGpuMs: () => 0, Exit() {},
     AudioRate: () => 48000, AudioQueued: () => sound.queued,
     Audio(buf) { const f = new Float32Array(buf); sound.queued += f.length / 2; sound.frames += f.length / 2; for (const x of f) { if (!Number.isFinite(x)) sound.bad++; sound.sumSq += x * x; } },
@@ -323,7 +326,7 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
     exports.start(JSON.stringify({ level: 'glassdunes' }));   // (the Sealed Hangar's successor; since issue #347 its mechanics' crowd wears no capes)
     for (let i = 0; i < 2000 && !calls.Frame; i++) { await new Promise((r) => setTimeout(r, 30)); exports.frame(1 / 30); }   // (the world builds first: up to a minute on a busy machine)
     // (the promises settled between frames, as Puerts' V8 does after each call: a recording Unity decoded comes in)
-    for (let i = 0; i < 80; i++) { exports.frame(1 / 30); sound.queued = Math.max(0, sound.queued - 1600); await new Promise((r) => setImmediate(r)); }
+    for (let i = 0; i < 400 && !(closedAt && calls.Frame >= closedAt + 10); i++) { exports.frame(1 / 30); sound.queued = Math.max(0, sound.queued - 1600); await new Promise((r) => setImmediate(r)); }
   } finally { console.warn = warn; console.info = info; console.log = log; console.error = error; }
   assert.ok(calls.Frame >= 20, `frames: ${JSON.stringify(calls)} ${errors.join(' | ')}`);
   // the title first, gone once the world was ready; the Start menu over the world, and closed again
