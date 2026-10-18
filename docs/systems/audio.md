@@ -810,3 +810,28 @@ What is left: the engines still play no recorded effect (engine/unity/music.js d
 the body is its synth stand-ins; the QC drives the engines' build, not the browser (main.js's wiring is checked in
 the code, not pressed); no voice limits or priorities beyond `vocal`'s gap and the balloons' count; the loudness is a
 50 ms window per sound against the score, not integrated LUFS over play.
+
+### The v1.85 run (issue #467, the full audit, 18 October 2026)
+
+`node .claude/skills/sound-qc/run.mjs` on main `8f01feae5`, judged by the code and the renders only (nothing listened
+to). 71 actions: **OK in the browser 65, in the engines 66** (round 1's after: 71 / 71). The six not OK are the QC's
+own, not the game's:
+
+| action | browser | engines | what the code says |
+|---|---|---|---|
+| taking a blow ★ | missing | missing | heard: `hurtReactions` (src/host/game-host.js) calls `s?.hurt?.(h, why)` for both hosts since #435; the QC still looks for `sound.hurt(` in src/main.js and engine/game.js. The drive presses it (press 0 ms) |
+| a potion uncorked ★, the hearts coming back ★ | missing | missing | heard: game-host.js `sound?.potion?.('open')` and `onDrink`'s `potion?.('heal')` (both hosts); the drive hears the healing chord 433 ms after the press |
+| a chime picked up ★, a potion picked up | missing | missing | heard: game-host.js `chimePickup` / `potionPickup` in the drops' `onTake` (both hosts) |
+| a perfect dodge's flurry | missing | OK | heard: game-host.js `startFlurry` calls `sound?.flurry?.(true)` (both hosts) |
+
+Every level, length, onset and spread is where round 1 left it (the same numbers to 0.1 dB); nothing repetitive, nothing
+alike, no sample over -1 dBFS; the mix as before (the music -4.3 dB under a conversation, the fight's loudest moment
+-20.0 dBFS, peak -6.3).
+
+Two gaps in the QC itself (#499): its code patterns still point at main.js and engine/combat.js for what moved
+into the one game setup (#427, #435), so it calls six heard sounds missing; and its mix reference is the procedural
+score (`the music's reference`, -24.7 dBFS), while since v1.85 (#474, Music: Always) a world's recording plays all the
+time, balanced to -24.3 to -25.4 LUFS (above): the bands should be held against what plays. Not covered by the list:
+the gadgets' own sounds (the hook, the bomb, the boomerang, the magnet, the bubble, the fan, the springs, the recall, the
+lens: each calls the Sound in src/gadgets/, none measured). Still as round 1 left it: Unity plays no recorded effect
+(engine/unity/music.js: "Only music"), so its body is the synth stand-ins.

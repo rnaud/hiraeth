@@ -1396,6 +1396,11 @@ are reworked, #278), the City Floating in Space's last 22 (house feet in the dec
 own 5 cm tolerance; two chimneys; two greebles under the market; the Mooring-House's 3), the Garden of Spheres' paths on the ground (7) and one bank
 meeting a rise of the ground.
 
+**v1.85, 2026-10-18** (docs/audits/zfight-v1.85.md, issue #467): desert 29, incal 4064, arzach 6, glassdunes **268** (the
+city under the sand rebuilt in #393/#426: `crowdedBlock`'s jutting rooms flush on each other, issue #498), buried 1708,
+edena 7, spheres 8, perdide 11, bazaar 74, underwater 43, moonfoundry 238, spacecity 19: 6475 in all. The temples at or
+under their baselines (the Warden's Well 8 of 39, the Belfry 3 of 10, the Undertower 3 of 8).
+
 ## The Shadow Room and the shadow QC (`?level=shadows`, `.claude/skills/shadow-qc`; October 2026)
 
 Issue #67: a room for complex shadow situations, and a check of the shadows in motion with the traveller.
@@ -1465,6 +1470,11 @@ at a low sun, thin long shadows seen from 30–40 m fade out as the lookup widen
 12°: the props spot's leaks on High); the Handheld's balcony keeps 25 % of its contact probes lit (a 16 cm texel);
 the 2 cm fence and the 3 cm grate shimmer a little as the near window steps (sub-texel rasterisation, 0.04 % a frame).
 `tests/shadow-room.test.js`, `tests/shadow-qc.test.js`, `tests/shadows.test.js` (the hero map, `NEAR_CASCADE`).
+
+**v1.85, 2026-10-18** (main `8f01feae5`, the Mac M4 Pro, headless Chrome on the GPU, load 23–27; High, Steam Deck and
+Handheld at 35° and 12°; docs/audits/shadow-v1.85.md): 52 of 60 spots green, the same eight reds as v1.66 at the same
+readings within 1–2 points (the High props at 12° leak 9.9 %, the Handheld balcony 24.7 %), his shadow drawn 86–100 %,
+spill 1–36 %, gap 0–4.5 cm.
 
 **v1.66, 2026-10-13** (main `0949c08a`, the Mac M4 Pro, headless Chrome on the GPU, a shared machine at load 6–70;
 High, Steam Deck and Handheld at 35° and 12°; docs/audits/shadow-v1.66.md): 52 of 60 spots green, his shadow as above
