@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { sceneList } from '../engine/scene-matrices.js';
+import { InstanceMerge } from './instance-merge.js';
 
 // ---------------------------------------------------------------------------
 // One walk of the scene a frame, not one per pass (issue #448).
@@ -49,6 +50,7 @@ export class FlatPass {
     this.frustum = new THREE.Frustum();
     this.planes = new Float64Array(24);
     this.stats = { passes: 0, walked: 0, handed: 0, dropped: 0, classified: 0, frames: 0 };
+    this.merge = new InstanceMerge();   // (a material's instanced meshes in one draw a pass: src/instance-merge.js)
   }
 
   /** Classify the list's objects (each time the list is made again). */
@@ -79,6 +81,7 @@ export class FlatPass {
     for (let i = 0; i < n; i++) draws[i + 1] = draws[i] + (this.kind[i] === CONTAINER ? 0 : 1);
     for (let i = 0; i < n; i++) if (this.kind[i] === CONTAINER && draws[end[i]] === draws[i]) this.kind[i] = EMPTY;
     this.groups = this.groups.filter((i) => this.kind[i] === CONTAINER);
+    this.merge.build(objs, n);
     this.list = L; this.built = L.built; this.stats.classified++;
   }
 
@@ -123,7 +126,7 @@ export class FlatPass {
   }
 
   /** The scene's stand-in for a pass by this camera (or the scene itself when this frame can't be drawn so). */
-  sceneFor(camera) {
+  sceneFor(camera, sort = true) {
     const L = this.list;
     if (!this.active || sceneList(this.scene) !== L) return this.scene;
     // (the frustum as three makes it for this camera, the same numbers)
@@ -172,6 +175,7 @@ export class FlatPass {
     }
     const st = this.stats;
     st.passes++; st.walked += walked; st.handed += out.length; st.dropped += dropped;
+    this.merge.apply(out, camera, _pm, sort);
     return this.proxy;
   }
 }
@@ -185,7 +189,7 @@ export function flatPasses(renderer, scene) {
   const flat = new FlatPass(scene);
   const render = renderer.render;
   renderer.render = function (s, camera) {
-    if (s === scene && flat.active && scene.matrixWorldAutoUpdate === false) s = flat.sceneFor(camera);
+    if (s === scene && flat.active && scene.matrixWorldAutoUpdate === false) s = flat.sceneFor(camera, this.sortObjects);
     return render.call(this, s, camera);
   };
   return flat;
