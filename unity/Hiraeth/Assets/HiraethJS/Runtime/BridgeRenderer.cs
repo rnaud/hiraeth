@@ -576,7 +576,7 @@ namespace Hiraeth.Bridge
             // (the ground and the water keep their own path in a lean variant of their own, when they use no other rare one)
             string why = F(m, "_Glass") > 0 ? "glass" : F(m, "_Veil") > 0 ? "veil" : V(m, "_Dissolve").x > 0 ? "dissolve"
                 : F(m, "_Fluid") > 0.5f ? "fluid" : F(m, "_TripoFace") > 0.5f ? "face" : F(m, "_Veins") > 0 ? "veins" : F(m, "_BoxOn") > 0.5f ? "box"
-                : F(m, "_Scrub") > 0 ? "scrub" : F(m, "_SplatOn") > 0.5f ? "splat" : null;
+                : F(m, "_Scrub") > 0 ? "scrub" : F(m, "_SplatOn") > 0.5f ? "splat" : F(m, "_MirrorOn") > 0.5f ? "mirror" : null;
             string kw = why != null ? null : mode == 1 ? "HIRAETH_LEAN_TERRAIN" : mode == 3 ? "HIRAETH_LEAN_WATER" : "HIRAETH_LEAN";
             // (the scrub's strokes or the glass's cut alone, on no ground or water: the lean variant with that one path kept)
             if (leanRare && (why == "scrub" || why == "glass") && mode != 1 && mode != 3 && RareCount(m) == 1)

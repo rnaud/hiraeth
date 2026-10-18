@@ -1527,8 +1527,9 @@ Shader "Hiraeth/Surface"
         DepthVaryings vertEntry(Attributes v) { DepthVaryings d; d.positionCS = vert(v).positionCS; return d; }
         // (the lean variants have no glass, dissolve nor veil (BridgeRenderer.Lean): no discard there at all, so the depth
         // they write is known before the fragment runs (early depth, a tiled GPU's low-resolution depth), issue #262)
-        // (a reflection in still water and a splat cut their shapes in the G-buffer pass: they write no depth here)
-        void fragEntry(DepthVaryings i) { if ((GLASSK && _Glass > 0.0) || (LEANK && (_Dissolve.x > 0.0 || _Veil > 0.0 || _SplatOn > 0.5)) || (WATERK && _MirrorOn > 0.5)) discard; }
+        // (a reflection in still water and a splat cut their shapes in the G-buffer pass: they write no depth here; both are
+        // kept on the full variant (BridgeRenderer.Lean: "mirror", "splat"), so no lean prepass carries a discard)
+        void fragEntry(DepthVaryings i) { if ((GLASSK && _Glass > 0.0) || (LEANK && (_Dissolve.x > 0.0 || _Veil > 0.0 || _SplatOn > 0.5 || _MirrorOn > 0.5))) discard; }
       #else
         Varyings vertEntry(Attributes v) { return vert(v); }
         GBufferOut fragEntry(Varyings i, bool frontFace : SV_IsFrontFace) { return frag(i, frontFace); }

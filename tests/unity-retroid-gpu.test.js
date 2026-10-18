@@ -32,7 +32,7 @@ test('the bridge gives a lean material the plain variant only when it has none o
 });
 
 test('the lean depth prepass has no discard (early depth on a tiled GPU); the full variant keeps the glass\'s, the dissolve\'s and a veil\'s', () => {
-  assert.match(surface, /void fragEntry\(DepthVaryings i\) \{ if \(\(GLASSK && _Glass > 0\.0\) \|\| \(LEANK && \(_Dissolve\.x > 0\.0 \|\| _Veil > 0\.0\)\)\) discard; \}/);
+  assert.match(surface, /void fragEntry\(DepthVaryings i\) \{ if \(\(GLASSK && _Glass > 0\.0\) \|\| \(LEANK && \(_Dissolve\.x > 0\.0 \|\| _Veil > 0\.0 \|\| _SplatOn > 0\.5 \|\| _MirrorOn > 0\.5\)\)\) discard; \}/);
 });
 
 test('the crowd\'s trim and the grass\'s look are varyings of their own variants only', () => {
