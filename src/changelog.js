@@ -36,6 +36,14 @@ export const CHANGELOG = [
         { where: 'second run', before: 175.3, after: 29.3 },
         { where: 'frames over 33 ms, both runs', before: 11, after: 0 },
       ], source: 'docs/systems/performance.md, "Stutters"' }] },
+    // issue #468 phase 2: src/foe-shapes.js (shareShapes, disposeOwnShapes), src/foes.js (shapes, spares, warmModels keep),
+    // engine/game.js (the roster built in the load); tests/foe-shapes.test.js; docs/systems/performance.md "Stutters", phase 2
+    { text: 'Foes arriving no longer freeze the game for a moment, most of all on the Retroid and in the Unity version: every foe of a kind now shares one body shape instead of building its own, and the foes a world can field are prepared while it loads. When a brute and a swarm of skitters come in, the longest frame on the Retroid is about half what it was.',
+      numbers: [{ title: 'A brute and a swarm of skitters coming in (the Arena), the longest frame, before → after', unit: 'ms', better: 'lower', device: 'Retroid Pocket 5, the Unity version (Handheld, a development build), muted',
+        rows: [
+        { where: 'first run', before: 155.2, after: 70.2 },
+        { where: 'second run', before: 142.4, after: 88.5 },
+      ], source: 'docs/systems/performance.md, "Stutters", phase 2' }] },
   ] },
   { v: '1.84', date: '2026-10-17', items: [
     // issue #439: src/costumes.js (HEADS: the 47 pieces of the 15 hat sets, HAT_SETS, HAT_SET_WORLDS, hoodShell / hoodNeck /

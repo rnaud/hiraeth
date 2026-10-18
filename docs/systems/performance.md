@@ -5581,3 +5581,65 @@ what the spawn and the crowd's bodies cost on a handheld's CPU (the Mac is four 
 
 Raw: the session's scratchpad, `stutter-468/` (`before/`, `after-js/`, `after-cs/`, `crowd-A/`, `crowd-B/`: each run's
 tsv, json and log, `report.md`; `compare.mjs`).
+
+### Phase 2: the Retroid (2026-10-18)
+
+The Unity APK (com.rnaud.hiraeth.unity, a development build of 1.84 build 2628 for the profiler's markers), its Handheld
+preset, muted, the frame readout on, `-bundle none` (the packaged script; a fix's script pushed by hand, `--bundle`),
+each run twice, the spike line 33 ms (`scripts/stutter/run-android.mjs`). The Retroid shows 60 Hz: its median frame is
+16.7 ms, held to the display.
+
+```sh
+BUILD_ARGS=-development NO_UPLOAD=1 scripts/unity-android-release.sh      # under the Unity build lock; adb install -r
+node scripts/stutter/run-android.mjs [ids…] --repeat 2 --out <dir> [--bundle <hiraeth.cjs>]
+node scripts/stutter/run-deck.mjs <player> [ids…] --repeat 2 --out <dir>  # the Deck: deck-unity.sh put first, deck.lock
+```
+
+| run | frames | p50 ms | p99 ms | max ms | > 33 ms | > 50 ms |
+|---|---|---|---|---|---|---|
+| route-city | 2798 / 2775 | 16.8 / 16.8 | 28.5 / 29.4 | 56.2 / 60.6 | 12 / 15 | 3 / 3 |
+| route-border | 2293 / 2267 | 17.0 / 17.0 | 32.7 / 32.3 | 73.5 / 61.3 | 19 / 18 | 6 / 3 |
+| route-fight | 892 / 892 | 16.6 / 16.7 | 19.1 / 19.0 | 155.2 / 142.4 | 4 / 3 | 3 / 3 |
+| route-menus | 812 / 811 | 18.5 / 18.6 | 32.5 / 33.6 | 95.3 / 98.1 | 6 / 10 | 1 / 1 |
+| route-board | 1897 / 1902 | 17.0 / 16.9 | 25.9 / 31.1 | 37.1 / 36.5 | 5 / 8 | 0 / 0 |
+| moment-desert.lit | 507 / 507 | 16.7 / 16.7 | 19.9 / 20.4 | 20.7 / 34.5 | 0 / 1 | 0 / 0 |
+| talk | 352 / 351 | 16.8 / 16.8 | 31.0 / 30.9 | 36.5 / 41.6 | 1 / 1 | 0 / 0 |
+| takeoff | 477 / 450 | 16.7 / 16.7 | 29.8 / 19.8 | 58.4 / 26.1 | 2 / 0 | 1 / 0 |
+
+**The spikes, ranked** (the 16 runs, by the time they cost over each run's median):
+
+| cause | spikes | worst | ms lost | where | evidence |
+|---|---|---|---|---|---|
+| The wait on the present | 52 | 57 ms | 950 | every route but the talk and the takeoff; most at a region's name, a load's end, a menu | `Gfx.PresentFrame` 25-42 ms with the GPU's frame 4-19 ms: not the Mac's alone. Most at a region's name, a load's end or a menu's opening, moments that make objects too; their own cause (the swap chain, the driver) is not in the markers |
+| A foe's spawn: the brute and the skitters' bodies built, then made in Unity | 2 + 2 | 155 ms | 740 | route-fight | the script's frame 118-122 ms (the act), then ops 116-126 ms: 228 objects, 14.0 MB of geometry, 11-12 managed collections. **Fixed** (below) |
+| The people's capes baked as they come in sight (Cape.bake, in the script even when the cloth is the Burst job's) | 10 | 61 ms | 338 | the border at the Rose canyons and the camps, the city | `people` +40-59 ms over its median; in node (the cloth's steps offloaded as Unity does) a bake is 8-15 ms of the Mac's and the whole of each slow person's update |
+| A crowd body taken on (NPC.restyle: the build, the face, the costume as new geometry) | 12 | 73 ms | 325 | city, border | `crowd` +20-55 ms; its geometry, 0.5 MB, made in Unity the next frames (`mirror (objects made)`, 268 ms lost, worst 61 ms) |
+| Streaming: what the first seconds of a world make (the menus' run's first open is in them) | 2 | 98 ms | 160 | route-menus at its start, takeoff | ops 40-45 ms, 537-543 objects, 2.8 MB of geometry made in one frame |
+| A shader's first use | 4 | 42 ms | 81 | the talk's first line, the Items page, a region's name | `Shader.CreateGPUProgram` 7-8 ms: Android's prewarm and list are off by default (`-pso`), and they cost under 10 ms a program here |
+| V8's full collection | 0-3 | 88 ms | 115 | border, fight | gc-watch.js; one in four runs |
+
+**Fixed:**
+- **A foe's shapes shared, the roster built at the load** (src/foe-shapes.js, Foes.warmModels / add, engine/game.js):
+  the first foe of a kind and skin keeps its geometries and every later one draws them (compared value for value:
+  a builder's random draw keeps its own); the engines build the world's roster during the load and show it out of the
+  world for two frames, so Unity makes its meshes then, and keep each body for the first foe of its kind. route-fight's
+  spawn frame **155 / 142 → 70 / 88 ms** (the 88 a V8 full collection in it), its geometry made **14.0 MB → 0.28 MB**,
+  ops **116-126 → 38 ms**, the script's frame 118-122 → 82 ms (the swarm's other seven skitters still built: ~10 ms
+  each). Nothing else moved past the runs' spread.
+
+**Tried and left out:** a crowd body dressed before it is taken on: its restyle (the build, the face, the costume)
+in a frame of its own, the person taken on in the next, and an idle body dressed ahead for the nearest person a few
+metres before they come near (one every 0.25 s). The crowd's spikes fell (325 → 186 ms lost, the worst 73 → 49 ms) but
+the restyles only moved to frames of their own, some for people who never came near: the city's frames over 33 ms went
+12 / 15 → 19 / 16, the border's 19 / 18 → 24 / 19, the maxima within the runs' spread. The patch is in the raw folder
+(`crowd-dress.patch`).
+
+**The Steam Deck** was off the network for the whole round (steamdeck.local unresolved, no host on the LAN with its
+key): not measured. The Linux development player of this round is built (`BridgeBuild.Linux -development`, with the
+macOS-arm64 Linux toolchain and sysroot 1.1.0 added to the manifest for the build only) and `run-deck.mjs` is ready.
+#465's re-traced pipeline list is on main since this round's rebase (405ed645c), so the Deck's first uses are to be
+measured under it.
+
+Raw: the session's scratchpad, `stutter-468-p2/` (`retroid-before/`, `retroid-after/`: each run's tsv, json and log,
+`report.md`; `title-470/` the #470 cold start; `bin/` the node probes: `geo-sent.mjs` what the mirror sends frame by
+frame, `foe-geo.mjs` a body's geometry and build time).
