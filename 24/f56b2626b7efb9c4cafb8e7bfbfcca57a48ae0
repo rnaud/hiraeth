@@ -1,0 +1,90 @@
+engine/menus.js
+  s_5f899ba316b5dc::t_8e16972a1f5689 344-347,360-363,365-366,382-386,390,485,516
+  s_5f899ba316b5dc::t_da9f3765572ca6 39-40,60-70,73,75,77,83-97,184-185,701,708,717-724,726-727,879-880,882
+scripts/engine-bundle.mjs
+  s_5f899ba316b5dc::t_1f4f36fe3ab232 94-104
+tests/engine-menus.test.js
+  s_5f899ba316b5dc::t_28ee05ad76e52a 158,498,527-530,532
+  s_5f899ba316b5dc::t_dbf58643cd1370 10,117-124,126,129,133-134,140,160,599,601,605
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.Shop.cs
+  s_433fd21060b50f::t_8f3a467b87f328 1-262
+  s_5f899ba316b5dc::t_c626c2cccf4bf1 263-265
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.Arcade.cs
+  s_433fd21060b50f::t_5172a1ee5d7407 1-132
+engine/unity/game.js
+  s_5f899ba316b5dc::t_995ec84ea524dd 528-531,533-534,960-961
+  s_5f899ba316b5dc::t_2cec7213ae9150 154-155,273-275
+engine/ui-poses.js
+  s_5f899ba316b5dc::t_a0e1f017394da7 5,14,17-18,20-23,25,59-64,66-70
+  s_5f899ba316b5dc::t_cd76e290857b8a 71-72
+changelog.md
+  s_5f899ba316b5dc::t_5fb191be48bf21 7-10
+docs/systems/bridge-gaps.md
+  s_5f899ba316b5dc::t_d78f78c7bdfbdf 13,79,99
+engine/bridge-gaps.js
+  s_5f899ba316b5dc::t_557e0a02d5afd7 188-189,316
+engine/game.js
+  s_5f899ba316b5dc::t_a3b1c9ff241254 1478,1499-1502
+engine/sequences.js
+  s_5f899ba316b5dc::t_4960a4ff8e0f5f 341
+engine/trials.js
+  s_5f899ba316b5dc::t_6a309008b6e4e3 25,46-47
+src/boot.js
+  s_5f899ba316b5dc::t_59e0ad34592b1b 61-63
+src/changelog.js
+  s_5f899ba316b5dc::t_57e5fb59b3a410 125-137
+src/minigames/kit/runner.js
+  s_5f899ba316b5dc::t_a2650c610582ea 520-522
+src/ship/homecoming.js
+  s_5f899ba316b5dc::t_4ab41373eccedf 15,277-280,282,287-290,303-304,306-309,321-341
+tests/engine-finishable.test.js
+  s_5f899ba316b5dc::t_836b661004f31f 118,122-123,127,134-138
+tests/engine-trials.test.js
+  s_5f899ba316b5dc::t_a207ad4e11bd2c 253-266
+tests/minigames-lens-vault.test.js
+  s_5f899ba316b5dc::t_74790d9f4b85d4 227-229
+tests/sequences-web.json
+  s_5f899ba316b5dc::t_cfa285ffc1678e 2-3,3430,3501,3541-3549,3613,3652,3695,3766,3794
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHud.Credits.cs
+  s_5f899ba316b5dc::t_964ff17640f66d 1-141
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHud.Credits.cs.meta
+  s_5f899ba316b5dc::t_502ecb7ba6219d 1-2
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHud.cs
+  s_5f899ba316b5dc::t_98085da58bea82 412
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.Arcade.cs.meta
+  s_5f899ba316b5dc::t_aa7bd5974c90a5 1-2
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.Pause.cs
+  s_5f899ba316b5dc::t_ef71a21936bcb2 175-180
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.Shop.cs.meta
+  s_5f899ba316b5dc::t_372db3ad4ad195 1-2
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.cs
+  s_5f899ba316b5dc::t_3a67d3fc8002e4 203,336,349,533,543,545-549,553-556,575,581,596-599,667,675
+docs/systems/engine-bridge.md
+  s_433fd21060b50f::t_f7ddea061cd54b 1919-1942
+src/changelog-media.js
+  s_433fd21060b50f::t_c0d407bc4eb2ad 1182-1184,1187-1201
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "24f56b2626b7efb9c4cafb8e7bfbfcca57a48ae0",
+  "prompts": {},
+  "sessions": {
+    "s_433fd21060b50f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a5277dc7e43a4bcc0",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
