@@ -2,6 +2,9 @@ import { glyphGeometry } from './story/sign-text.js';
 import * as THREE from 'three';
 import { makeMaterial, releaseMaterial } from './materials.js';
 import { batchParts } from './part-batch.js';
+import { shareShapes, disposeOwnShapes, disposeShapes } from './foe-shapes.js';
+/** The key a foe's shapes are shared by: its kind and its skin (src/foe-shapes.js). */
+const shapeKey = (kind, skin) => `${kind}@${skin ?? ''}`;
 import { registerTarget } from './targets.js';
 import { screened } from './wind-screens.js';
 import { hazardAt } from './hazards.js';
@@ -1744,6 +1747,8 @@ export class Foes {
   constructor({ scene, level, levelId, content = null, physics, player, tool = null, sound = null, npcs = [], settings = null, notice = null, camera = null, lib = null, humans = null, waters = null, game = sharedGame, rng = Math.random }) {
     Object.assign(this, { scene, level, levelId, physics, player, tool, sound, npcs, settings, notice, camera, lib, humans, waters, game, rng });   // (waters: src/water.js, a foe knocked in is swept away)   // (lib, humans: a shade's body, src/shade.js)
     this.list = []; this.balls = []; this.group = new THREE.Group(); this.group.name = 'Foes';
+    this.shapes = new Map();   // (kind@skin → the geometries its foes share: src/foe-shapes.js)
+    this.spares = new Map();   // (kind@skin → a body built for the load's warm, kept for the first foe of it: warmModels)
     this.group.userData.noCollide = true;
     scene?.add(this.group);
     this.peaceful = PEACEFUL.has(levelId) || !!level?.peaceful;   // (a minigame's arena: no foes, src/minigames/kit/world.js)
@@ -2035,11 +2040,18 @@ export class Foes {
     const p = parseKind(kind), a = archetypeOfKind(p.kind);
     const skin = p.skin ?? (a && ARCHETYPES[a].status === 'built' ? skinFor(a, this.worldHere) : null);
     const f = new Foe(p.kind, at, { rng: this.rng, ...o, skin });
-    f.model = archetypeModel(f.kind, skin) ?? (f.kind === 'machine' ? machineModel() : kindModel(f.kind) ?? blotModel(f.kind));
+    // (the body built for the load's warm and kept, if there is one of its kind and skin: keepWarm; else built now)
+    const key = shapeKey(f.kind, skin), spare = this.spares.get(key);
+    if (spare) { this.spares.delete(key); f.model = spare.model; f.batches = spare.batches; }
+    else {
+      f.model = archetypeModel(f.kind, skin) ?? (f.kind === 'machine' ? machineModel() : kindModel(f.kind) ?? blotModel(f.kind));
+      // (its shapes the first of its kind and skin's: sent to the GPU, or made into Unity's meshes, once: src/foe-shapes.js)
+      shareShapes(this.shapes, key, f.model.group);
+      // its parts drawn as instances, a draw for each shape and material instead of one a part (src/part-batch.js); every
+      // part, one alone in its shape too, so a body compiles one set of programs (instanced), not two the first time it is met
+      f.batches = batchParts(f.model.group);
+    }
     f.model.group.position.copy(at);
-    // its parts drawn as instances, a draw for each shape and material instead of one a part (src/part-batch.js); every
-    // part, one alone in its shape too, so a body compiles one set of programs (instanced), not two the first time it is met
-    f.batches = batchParts(f.model.group);
     this.group.add(f.model.group);
     f.tele = new Telegraph(this.group, f.def.tone ?? '#6d4fa8');
     if (f.def.flanks) f.flanker = this.list.some((x) => x.alive && x.kind === f.kind && !x.flanker && x.pos.distanceTo(at) < 12);   // (the second of a pair circles behind you)
@@ -2080,13 +2092,14 @@ export class Foes {
   warmModels(kinds = this.rosterKinds()) {
     const group = new THREE.Group();
     group.name = 'Foes to warm';
-    const made = [];
+    const made = [], models = [];
     for (const kind of kinds) {
       const p = parseKind(kind), a = archetypeOfKind(p.kind);
       if (!FOES[p.kind]) continue;
       const skin = p.skin ?? (a && ARCHETYPES[a].status === 'built' ? skinFor(a, this.worldHere) : null);
       const model = archetypeModel(p.kind, skin) ?? (p.kind === 'machine' ? machineModel() : kindModel(p.kind) ?? blotModel(p.kind));
-      batchParts(model.group);
+      shareShapes(this.shapes, shapeKey(p.kind, skin), model.group);   // (its shapes the ones the kind's foes will draw)
+      models.push({ key: shapeKey(p.kind, skin), model, batches: batchParts(model.group) });
       group.add(model.group);
       made.push(kind);
     }
@@ -2096,7 +2109,12 @@ export class Foes {
     // frame). Only for the warm: kept in the world from the start, its dynamic meshes had every shadow map redrawn each
     // frame (+500 draws); its materials outlive it, so the pools made at the first stain find their programs ready.
     const pools = new ShadePools(group);
-    return { group, kinds: made, dispose: () => { tele.dispose?.(); pools.dispose(); group.removeFromParent(); group.traverse((o) => o.geometry?.dispose?.()); } };
+    // (keep: each body kept for the first foe of its kind and skin, Foes.add, instead of let go: the engines', where
+    // building it is the spawn's script frame, issue #468)
+    return { group, kinds: made, dispose: ({ keep = false } = {}) => {
+      if (keep) for (const m of models) { m.model.group.removeFromParent(); if (!this.spares.has(m.key)) this.spares.set(m.key, m); else disposeOwnShapes(m.model.group); }
+      tele.dispose?.(); pools.dispose(); group.removeFromParent(); disposeOwnShapes(group);
+    } };
   }
 
   remove(f) {
@@ -2111,7 +2129,7 @@ export class Foes {
     if (this.lock === f) this.lock = null;
     // (each foe's shapes and its warning's glow are its own: let go with it, or every wave of a fight leaves
     // its GPU buffers and materials behind)
-    for (const o of [f.model.group, ...(f.globs ?? [])]) o?.traverse((m) => m.geometry?.dispose());
+    for (const o of [f.model.group, ...(f.globs ?? [])]) disposeOwnShapes(o);   // (not the shapes it shares with its kind)
     for (const b of f.batches ?? []) b.dispose();
     if (f.model.dispose && this.debris?.some((d) => d.owner === f)) f.awaitingDebrisDisposal = true;   // (its pieces still fly: their materials go with the last)
     else if (f.model.dispose) f.model.dispose(); else if (f.model.eyeMat) releaseMaterial(f.model.eyeMat);
@@ -2419,7 +2437,7 @@ export class Foes {
       d.o.rotation.x += d.spin.x * dt; d.o.rotation.y += d.spin.y * dt; d.o.rotation.z += d.spin.z * dt;
       if (d.o.position.y < d.floor + 0.12) { d.o.position.y = d.floor + 0.12; d.vel.y *= -0.3; d.vel.x *= 0.6; d.vel.z *= 0.6; d.spin.multiplyScalar(0.5); }
       if (d.t > 2.4) d.o.scale.multiplyScalar(Math.max(0, 1 - dt * 3));
-      if (d.t > 3.4) {d.o.removeFromParent();d.o.traverse(o=>o.geometry?.dispose());}
+      if (d.t > 3.4) {d.o.removeFromParent();disposeOwnShapes(d.o);}
     }
     if (this.debris) {
       const expired=new Set(this.debris.filter(d=>d.t>3.4).map(d=>d.owner));
@@ -3487,5 +3505,5 @@ export class Foes {
     return out;
   }
 
-  dispose() { this.offBell?.(); this.offBell = null; this.offChest?.(); this.offChest = null; for (const f of this.list.slice()) this.remove(f); this.updateDebris(10); this.group.removeFromParent(); this.warnEl?.remove(); this.reticle?.dispose(); this.blindEl?.remove(); this.puffs?.dispose(); this.puffs = null; this.shadePools?.dispose(); this.slime?.mesh?.removeFromParent(); this.slime = null; this.shocks = this.patches = this.waveQueue = null; this.hold = null; }
+  dispose() { this.offBell?.(); this.offBell = null; this.offChest?.(); this.offChest = null; for (const f of this.list.slice()) this.remove(f); this.updateDebris(10); this.group.removeFromParent(); this.warnEl?.remove(); this.reticle?.dispose(); this.blindEl?.remove(); this.puffs?.dispose(); this.puffs = null; this.shadePools?.dispose(); this.slime?.mesh?.removeFromParent(); this.slime = null; this.shocks = this.patches = this.waveQueue = null; this.hold = null; for (const m of this.spares.values()) { m.model.dispose?.(); disposeOwnShapes(m.model.group); } this.spares.clear(); disposeShapes(this.shapes); }
 }

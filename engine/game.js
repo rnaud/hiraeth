@@ -788,6 +788,13 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   combat = (menus || fight) && !flags ? optional('the foes', () => makeCombat({ scene, level, levelId, content, physics, player, tool, sound, npcs, settings, camera, rig, lib, humans, waters, screen,
     health, toast: (t) => toast(t), teach: (t) => toast(keyText(t, { teach: true })) })) : null;
   if (combat) stamp('foes');
+  // the bodies of the foes this world can field, built in the load and drawn (out of the world) by its first frames, as
+  // main.js builds them for its warm passes: their shapes are then the ones every foe of the kind shares
+  // (src/foe-shapes.js), so a foe's spawn makes no meshes in the host (issue #468: a brute and its skitters were 14 MB of
+  // geometry and 100 ms of Unity's main thread on the Mac). Taken out after two frames, each body kept for the first foe of
+  // its kind (Foes.add), so that foe is not built in its spawn's frame either; the shapes stay for the rest.
+  let foeWarm = combat?.foes?.on ? optional('the foes\' bodies', () => combat.foes.warmModels()) : null;
+  if (foeWarm) { foeWarm.group.position.set(0, -1e4, 0); foeWarm.group.updateMatrixWorld(true); scene.add(foeWarm.group); foeWarm.frames = 0; }
   // the Arena's list of foes (src/foe-spawner.js FoeList, the level's quick menu: every foe there is to fight, a world's
   // waves, a guardian's ring), attached to the fight's foes as main.js does; its page is the menus' 'foes' (engine/menus.js
   // openFoes, BridgeMenu.cs DrawFoes), D-pad ↓ or K opens it; the tab on the left edge saying so is the screen's 'foeTab'
@@ -1519,6 +1526,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     },
     frame(dtRaw) {
       const tA = performance.now();
+      if (foeWarm && ++foeWarm.frames > 2) { foeWarm.dispose({ keep: true }); foeWarm = null; }   // (sent: each warm body kept for the first foe of its kind)
       const on = game.sectionsOn; let tL = tA;
       // (a lap: the time since the last, to `name`; only when asked, a clock read each)
       const lap = on ? (name) => { const t = performance.now(); SEC.ms[name] = (SEC.ms[name] ?? 0) + t - tL; tL = t; } : null;
