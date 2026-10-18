@@ -1,0 +1,48 @@
+changelog.md
+  s_5f899ba316b5dc::t_3072f24e50a47f 7
+tests/sequences-web.json
+  s_5f899ba316b5dc::t_bc2a2cbdd61734 3,5116-5308
+tests/unity-decals.test.js
+  s_43d220b0ab40d3::t_dc0e8e237ed833 1-44
+docs/systems/performance.md
+  s_5f899ba316b5dc::t_5081c0ff3aca71 5199-5217
+  s_5f899ba316b5dc::t_c20bda7edaf4a9 5198
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgePrewarm.cs
+  s_5f899ba316b5dc::t_f511f1e7b537be 31-32
+tests/unity-splat.test.js
+  s_5f899ba316b5dc::t_c3316fb46a69f1 17,25
+docs/systems/engine-bridge.md
+  s_5f899ba316b5dc::t_22948d5927dff1 2181-2182,2188-2200
+engine/sequences.js
+  s_5f899ba316b5dc::t_d8bfc032117a3b 251-266,269-300
+engine/unity/port-format.js
+  s_5f899ba316b5dc::t_e6741cd15433ce 10-14,176-180,182
+src/changelog-media.js
+  s_5f899ba316b5dc::t_b98fb9e8ce1d58 1194-1195,1205-1208
+src/changelog.js
+  s_5f899ba316b5dc::t_52fd770ff559f0 215-217
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3b79fae692755726af64f8262a50892e3e4a637e",
+  "prompts": {},
+  "sessions": {
+    "s_43d220b0ab40d3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a8a72b10834ff94b0",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
