@@ -248,7 +248,55 @@ export const SEQUENCES = [
       { name: 'at-1', wait: 0.7 },
     ],
   },
+  {
+    // the desert's ground decals that three pulls in front with a polygon offset (issue #463: in Unity only the splats'
+    // reached the port): the sand banked against things, the salt pan, the tide lines, the sand river, the basin's
+    // shore, the crash's scorch and its scrapes, each looked at from its edge nearest the start
+    id: 'decals', title: 'The ground\'s decals', setup: { level: 'desert', debug: true },
+    beats: [
+      { name: 'start', act: (G) => { G.decalFrom = G.player.pos.clone(); }, wait: 0.5 },
+      decalBeat('drift', (m) => m.uniforms?.uDrift?.value === 1),
+      decalBeat('salt', colourIs('#f1ece0')),
+      decalBeat('tide', colourIs('#efe6d3')),
+      decalBeat('river', colourIs('#f7e0b2')),
+      decalBeat('shore', colourIs('#d6c19c')),
+      decalBeat('scorch', colourIs('#e2be86')),
+      decalBeat('scrape', colourIs('#b48a5e')),
+    ],
+  },
 ];
+
+/** A ground decal's material by its colour (makeMaterial's uColor). */
+function colourIs(hex) { return (m) => m.uniforms?.uColor?.value?.getHexString?.() === hex.slice(1); }
+/**
+ * A beat at a ground decal (a mesh drawn with three's polygon offset, not a splat, whose material `match`es): of its
+ * vertices the one nearest where the sequence started, the traveller 5 m outside it facing 6 m into it.
+ */
+function decalBeat(name, match) {
+  return { name, wait: 2.5, act: (G) => {
+    const from = G.decalFrom ?? G.player.pos, v = new THREE.Vector3(), best = new THREE.Vector3();
+    let bestD = Infinity;
+    G.scene.updateMatrixWorld(true);
+    G.scene.traverse((o) => {
+      const m = o.material;
+      if (!o.isMesh || Array.isArray(m) || !m?.polygonOffset || m.uniforms?.uSplatTime || !match(m)) return;
+      const p = o.geometry?.attributes?.position;
+      if (!p || o.isInstancedMesh) return;
+      for (let i = 0; i < p.count; i++) {
+        v.fromBufferAttribute(p, i).applyMatrix4(o.matrixWorld);
+        const d = (v.x - from.x) ** 2 + (v.z - from.z) ** 2;
+        if (d < bestD) { bestD = d; best.copy(v); }
+      }
+    });
+    if (!Number.isFinite(bestD)) throw new Error(`no decal ${name}`);
+    const out = new THREE.Vector3(from.x - best.x, 0, from.z - best.z);
+    if (out.lengthSq() < 1e-6) out.set(0, 0, 1);
+    out.normalize();
+    const at = best.clone().addScaledVector(out, 5), to = best.clone().addScaledVector(out, -6);
+    at.y = G.level.ground?.heightAt?.(at.x, at.z) ?? best.y;
+    standAt(G, at, to);
+  } };
+}
 
 /** A splat on the ground 4 m before the traveller and 2 m to his side, in view (the tool's Splats.add, as a glob landing there). */
 function splatAhead(G) {

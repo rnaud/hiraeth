@@ -28,6 +28,8 @@ namespace Hiraeth.Bridge
 
         static string StateKey(Material m) => $"{m.shader.name} q{m.renderQueue}" + (m.HasProperty("_Cull") ? $" c{m.GetFloat("_Cull")}" : "")
             + (m.HasProperty("_ZWrite") ? $" z{m.GetFloat("_ZWrite")}" : "") + (m.HasProperty("_SrcBlend") ? $" b{m.GetFloat("_SrcBlend")}/{m.GetFloat("_DstBlend")}" : "")
+            // (a depth offset is the pipeline's raster state: the splats' and the ground decals' own pairs, issue #463)
+            + (m.HasProperty("_OffsetUnits") && (m.GetFloat("_OffsetFactor") != 0 || m.GetFloat("_OffsetUnits") != 0) ? $" o{m.GetFloat("_OffsetFactor")}/{m.GetFloat("_OffsetUnits")}" : "")
             + " " + string.Join(" ", m.shaderKeywords.OrderBy(k => k));
         static string Enc(VertexAttributeDescriptor a) => $"{(int)a.attribute}:{(int)a.format}:{a.dimension}:{a.stream}";
 

@@ -1194,6 +1194,8 @@ const PAR459W = 'Issue #459: the web game in muted headless Chrome (High, 1280 �
 /** (v1.84, issues #264 / #458: surfaces C, the water in Unity) */
 const WATER458 = 'Issues #264 / #458 (surfaces C): the Unity bridge in the editor’s batch run on this Mac (muted, High, 1280 × 720, -fresh -no-hud, the camera pinned at the same views as the web’s); before: the same build with -no-water-over -no-fall (the water’s pass and the falls as they were); after: this change; the web’s pictures of the same views as their own tab; 18 October; cwebp -q 72';
 const WATER458W = 'Issues #264 / #458 (surfaces C): the web game in muted headless Chrome (High, 1280 × 720, a fixed render scale) on this branch’s own Vite (port 5468), the same view as Unity’s; 18 October; cwebp -q 72';
+const DEC463 = 'Issue #463: the Unity bridge in the editor’s batch run on this Mac (scripts/unity-compare/sequences.mjs unity: muted, High, 1280 × 720), the sequence `decals`, its `tide` beat (the desert’s dry wash); before: #459’s state (the splats’ offset alone); after: this change; 18 October; cwebp -q 72';
+const DEC463W = 'Issue #463: the web game in muted headless Chrome (High, 1280 × 720) on this branch’s own Vite (port 5463), the same beat; 18 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.84': [
     { match: 'In the Unity version the waterfalls fall as on the web', shots: [
@@ -1217,6 +1219,10 @@ export const CHANGELOG_MEDIA = {
       { name: 'unity-letterbox-web', only: 'after', title: 'The bars on the web', caption: 'The same moment on the web', from: PAR459W },
       { name: 'unity-ride-bird', only: 'after', title: 'Ride the bird', caption: 'The bird landed beside you in the Garden of Spheres, in Unity: its E over it (there was none)', from: PAR459 },
     ], see: 'In the Unity version, whistle the bird down in the Garden of Spheres and walk up to it; watch the black bars come down as Viridel’s terraces moment starts; shoot the fluid at the ground.' },
+    { match: 'In the Unity version, the marks lying on the desert’s ground are drawn whole', shots: [
+      { name: 'unity-decal-river', title: 'The sand river', caption: 'The sand river’s pale ribbon and the tide lines along the dry wash, in Unity: before, broken into jagged pieces with the sand showing through; after, whole, as on the web', from: DEC463 },
+      { name: 'unity-decal-river-web', only: 'after', title: 'The sand river on the web', caption: 'The same view on the web', from: DEC463W },
+    ], see: 'In the Unity version, walk the desert’s dry wash and look along the sand river; the salt pan and the basin’s shore too.' },
     { match: 'In the Unity version, more of the world moves and shines as on the web', shots: [
       { name: 'unity-mirror-lake', title: 'The mirror lake', caption: 'The Garden’s lake from its south shore in Unity: before, plain water, and the garden it remembers standing on the far shore; after, the shore and that garden in the water, as on the web', from: SURF264 },
       { name: 'unity-mirror-lake-web', only: 'after', title: 'The lake on the web', caption: 'The same view on the web', from: SURF264W },

@@ -2213,13 +2213,26 @@ four throwaway views first gave the right pictures; not looked into further.)
   reach Unity in the frame it is made: engine-side traces). The splats lie exactly on the surface they hit, and the web
   pulls them in front of it with three's polygon offset (-2, -4), which never reached Unity: the ground hid them, whole
   or in part, as the depth test fell frame by frame (`grass-splats`: slivers at 0.08 s and 1.08 s). ink-spec.js reads
-  the offset, port-format.js sends it with the splats' material (only theirs: the ground's other decals that have one
-  would each be a new raster state for the Retroid's prewarmed pipelines), WorldLoader sets `_OffsetFactor`,
+  the offset, port-format.js sends it with the splats' material (the ground's other decals: next point, #463),
+  WorldLoader sets `_OffsetFactor`,
   `_OffsetUnits` and Surface.shader's G-buffer pass draws with `Offset [_OffsetFactor], [_OffsetUnits]` (0 for every
   other material). A splat's very middle no longer takes atan2(0, 0) (NaN on Metal; the black pictures seen then were
   something else: "A black picture" below). And the traveller's cloth is `noSplat`: the engines' overshirt, offloaded to
   BridgeCloth, is a plain mesh there, and its 3 600 triangles once filled a splat's gather by his feet so that the
   ground was left out of it.
+- **The ground's other decals** (issue #463): three pulls these in front of the ground with a polygon offset too:
+  sand banked against things (sand-drifts.js, -1/-2), the salt pan and the tide lines (desert-water.js, -1/-2), the sand
+  river (desert-dunes.js, -1/-2), the basin's shore (desert-vistas.js, -2/-4), the crash's scorch and scrapes
+  (ship/crash.js, -2/-6), a guardian's shade (temples/boss.js, -2/-4) and Nima's pool (levels/incal.js, -1/-2). In Unity
+  only the splats had theirs; the sequence `decals` (the desert, each decal from its edge nearest the start) showed the
+  sand river's ribbon broken into jagged pieces with the sand through it, the scrapes' far ends cut, the rest close.
+  port-format.js now sends every one of them as one shared state, `DECAL_OFFSET` (-1, -2): weaker than the splats'
+  (-2, -4), so a splat landing on a decal is drawn over it as on the web; the scorch at -1/-2 shows no shards in
+  Unity's float depth. So the whole game has two offset states besides none, each a raster state (one pipeline more
+  per variant that draws it): BridgePrewarm's state key now names the offset, so the decals' pairs are warmed apart
+  from the plain ones (docs/systems/performance.md, "The decals' offset states"). The footprints (Print.shader,
+  -2/-2) and the jump's shade (JumpShade.shader, -3/-3) have their own; the chimes' shade has no port yet.
+  tests/unity-decals.test.js lists the materials with an offset in src/, so a new one is noticed.
 
 ## A black picture: the renderer made again (2026-10-18, issue #462)
 

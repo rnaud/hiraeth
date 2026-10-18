@@ -220,6 +220,9 @@ export const CHANGELOG = [
     // Surface.shader waterLook's glints (WATER_MARK); src/water.js underLook / overState; engine/game.js keepCamera, waterOver;
     // engine/unity/backend.js water; tests/unity-surfaces-c.test.js; docs/systems/engine-bridge.md "Surfaces C: the water"
     'In the Unity version the water looks as on the web from below and in the sun: under water the view sinks into the water’s colour in flat bands, and in the Underwater City pale shafts of light come down from the sea’s surface and caustics play on the floors, behind the halls’ glass too; above water the sun glints in white dashes on the water toward it (not on the Handheld, Steam Deck and Xbox presets, as on the web). Sounds are muffled under water there too, and the camera no longer stops half in, half out of the water.',
+    // issue #463: engine/unity/port-format.js DECAL_OFFSET (every decal three pulls in front, the splats aside), BridgePrewarm's
+    // state key with the offset; engine/sequences.js decals; tests/unity-decals.test.js; docs/systems/engine-bridge.md "Parity bits"
+    'In the Unity version, the marks lying on the desert’s ground are drawn whole, as on the web: the sand river’s pale ribbon, the tide lines along the dry wash, the salt pan, the basin’s wet shore, the sand banked against things and the crash’s scrapes no longer break into jagged pieces with the ground showing through.',
   ] },
   { v: '1.83', date: '2026-10-16', items: [
     // issue #406: src/temples/desert.js (ROOMS, LOGIC: hall, balcony, ballK, kS, dE, sentry in the hall, d3), pieces.js Ball

@@ -1,6 +1,6 @@
 {
  "recorded": "2026-10-18",
- "sha": "67bd0b800",
+ "sha": "fd1f78064",
  "how": "node scripts/unity-compare/sequences.mjs web [ids] && node scripts/unity-compare/sequences.mjs record",
  "sequences": {
   "moment-desert.flow": {
@@ -5109,6 +5109,199 @@
       96.7,
       13.5,
       167.6
+     ],
+     "late": false
+    }
+   ]
+  },
+  "decals": {
+   "beats": [
+    {
+     "beat": "start",
+     "hud": {},
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 1576,
+      "print": 1,
+      "shader": 2,
+      "wisp": 1,
+      "mote": 1
+     },
+     "cam": [
+      94.3,
+      16,
+      163.5,
+      55
+     ],
+     "player": [
+      96.7,
+      13.5,
+      167.6
+     ],
+     "late": false
+    },
+    {
+     "beat": "drift",
+     "hud": {},
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 1628,
+      "print": 1,
+      "shader": 2
+     },
+     "cam": [
+      158.6,
+      3.7,
+      251.5,
+      55
+     ],
+     "player": [
+      161.4,
+      1.2,
+      255.4
+     ],
+     "late": false
+    },
+    {
+     "beat": "salt",
+     "hud": {},
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 1540,
+      "print": 1,
+      "shader": 2
+     },
+     "cam": [
+      242.6,
+      17.3,
+      193.3,
+      55
+     ],
+     "player": [
+      247.2,
+      14.8,
+      194.1
+     ],
+     "late": false
+    },
+    {
+     "beat": "tide",
+     "hud": {},
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 1515,
+      "print": 1,
+      "shader": 2
+     },
+     "cam": [
+      363.7,
+      22.8,
+      153,
+      55
+     ],
+     "player": [
+      368.4,
+      20.3,
+      152.7
+     ],
+     "late": false
+    },
+    {
+     "beat": "river",
+     "hud": {},
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 1535,
+      "print": 1,
+      "shader": 2,
+      "wisp": 1
+     },
+     "cam": [
+      163.1,
+      17.6,
+      107,
+      55
+     ],
+     "player": [
+      166.6,
+      15.1,
+      103.8
+     ],
+     "late": false
+    },
+    {
+     "beat": "shore",
+     "hud": {},
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 1476,
+      "print": 1,
+      "shader": 2
+     },
+     "cam": [
+      -377.7,
+      3.5,
+      -160.2,
+      55
+     ],
+     "player": [
+      -381.6,
+      1,
+      -162.9
+     ],
+     "late": false
+    },
+    {
+     "beat": "scorch",
+     "hud": {},
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 1624,
+      "print": 1,
+      "shader": 2,
+      "wisp": 1
+     },
+     "cam": [
+      97.2,
+      15.8,
+      137,
+      55
+     ],
+     "player": [
+      96.5,
+      14,
+      135.1
+     ],
+     "late": false
+    },
+    {
+     "beat": "scrape",
+     "hud": {},
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 1624,
+      "print": 1,
+      "shader": 2,
+      "wisp": 1
+     },
+     "cam": [
+      95.7,
+      16,
+      136.8,
+      55
+     ],
+     "player": [
+      94.9,
+      14.2,
+      135
      ],
      "late": false
     }

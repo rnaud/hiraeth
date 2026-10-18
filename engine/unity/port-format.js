@@ -7,6 +7,11 @@
 const r5 = (v) => +(+v).toFixed(5);
 const col = (c) => (Array.isArray(c) ? c.slice(0, 3).map(r5) : null);
 const mx = (v) => (Array.isArray(v) ? [-v[0], v[1], v[2]].map(r5) : null);
+/**
+ * The one polygon offset (factor, units) every ground decal but the splats is drawn with in Unity (issue #463): weaker than
+ * the splats' (-2, -4), so a splat on a decal is drawn over it as on the web. One raster state for all of them.
+ */
+export const DECAL_OFFSET = [-1, -2];
 
 /**
  * A material the port has no shader for, by what tells it apart: a shader's own uniforms (sorted), or three's material
@@ -168,9 +173,13 @@ export function portMaterial(spec, id = 0) {
   if (spec.defines?.BREATHE && Array.isArray(u.uBreathe)) e.breathe = u.uBreathe.map((x) => Math.min(r5(x), 1e9));   // (the Buried Machine's clock: BridgeRenderer.Breathe, live)
   if (typeof u.uSplatTime === 'number') Object.assign(e, { splatOn: 1, splatClock: [r5(u.uSplatTime), 0, 0, 0] });
   // three's polygon offset, Surface.shader's Offset: the splats lie on the ground itself, pulled in front in depth (issue #459:
-  // without it the ground hid them, or not, frame by frame). Only theirs so far: the ground's other decals that have one
-  // (sand drifts, salt, the crash's scorch…) would each be a new raster state for the Retroid's prewarmed pipelines
+  // without it the ground hid them, or not, frame by frame), their own (-2, -4). Every other decal three pulls in front
+  // (sand banked against things, the salt pan, the tide lines, the sand river, the basin's shore, the crash's scorch, a
+  // guardian's shade, Nima's pool: -1..-2, -2..-6 on the web) shares the one DECAL_OFFSET (issue #463): each distinct
+  // offset is a raster state, a pipeline more per variant for the prewarm (BridgePrewarm) and the traced lists, and the
+  // splats stay in front of the decals they land on
   if (spec.offset && typeof u.uSplatTime === 'number') e.offset = spec.offset.map(r5);
+  else if (spec.offset && (spec.offset[0] < 0 || spec.offset[1] < 0)) e.offset = DECAL_OFFSET.slice();
   // a falling sheet of water (src/waterfall-shader.js FALL): Surface.shader's _FallOn, its uv in the form's slot (Fall.hlsl)
   if (spec.defines?.FALL) Object.assign(e, { fallOn: 1, fallA: (Array.isArray(u.uFallA) ? u.uFallA : [6, 2.4, 0.18, 9]).map(r5), fallB: (Array.isArray(u.uFallB) ? u.uFallB : [0.85, 3.5, 100, 0]).map(r5) });
   // a temple skin's pattern (src/temples/skins/skin-shader.js): Surface.shader's HIRAETH_SKIN, its uniforms the material's _SkinData

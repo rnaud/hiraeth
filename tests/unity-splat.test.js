@@ -14,7 +14,7 @@ import { makeMaterial } from '../src/materials.js';
 
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
 
-test('the splats\' material takes three\'s polygon offset to Unity; nothing else does yet', () => {
+test('the splats\' material takes three\'s polygon offset to Unity, their own', () => {
   const splats = new Splats(new THREE.Group(), null), m = splats.material;
   assert.ok(m.polygonOffset);
   const pm = portMaterial(inkSpec(m), 1);
@@ -22,7 +22,7 @@ test('the splats\' material takes three\'s polygon offset to Unity; nothing else
   assert.deepEqual(pm.offset, [m.polygonOffsetFactor, m.polygonOffsetUnits]);
   const other = makeMaterial({ color: '#f1ece0', flat: true });
   Object.assign(other, { polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 });
-  assert.equal(portMaterial(inkSpec(other), 2).offset, undefined, 'the ground\'s other decals: not yet (new raster states for the Retroid)');
+  assert.deepEqual(portMaterial(inkSpec(other), 2).offset, [-1, -2], 'the ground\'s other decals: the shared decal offset (issue #463)');
   assert.equal(portMaterial(inkSpec(makeMaterial({ color: '#fff' })), 3).offset, undefined);
 });
 

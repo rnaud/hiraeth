@@ -5195,3 +5195,23 @@ it runs (the slowed thread's frame), 33–35 after it in either.
 
 Raw: the session's scratchpad, `deck-460/` (`trees.mjs` the VM's hashes and times, `web-check.mjs` and `web2/` the page's,
 `thr/` the throttled runs, `deck/` and `deck-sum.mjs`, `ms-*.json` the streams, `mutate.mjs`).
+
+## The decals' offset states (#463)
+
+The ground's decals that three pulls in front with a polygon offset (docs/systems/engine-bridge.md, "Parity bits") reach
+Unity as a depth bias in the Surface shader's G-buffer pass, which is part of a pipeline's raster state: each distinct
+(factor, units) is one pipeline more for every variant drawn with it. The web uses five values (-1/-2, -2/-2, -2/-4,
+-2/-6, -3/-3); in Unity the Surface shader's decals are held to two, the splats' (-2, -4) and one shared `DECAL_OFFSET`
+(-1, -2) for all the others (engine/unity/port-format.js); the footprints and the jump's shade keep their own shaders'.
+The decals' variants are few (the plain flat colour, the terrain's look, the drift), so this adds a handful of
+pipelines, seen in the desert (most of them), the Glass Dunes, Vael and the Buried Machine (the drifts), the guardians'
+rooms and the Incal.
+- **The Retroid** (the drawn prewarm, BridgePrewarm): a pair's state key now names the offset (` o-1/-2`), so a decal's
+  pair is kept in `prewarm.txt` apart from the same layout and variant without one, and drawn with its offset at the
+  next launch. Before, the two had one key, and whichever came first was warmed.
+- **The Xbox** (no prewarm, round three above): the pipelines are made at their first draw, as every other; two states
+  rather than five keep that to the fewest.
+- **The Deck** (the traced list, `hiraeth-pso/Vulkan.graphicsstate`): its states hold the depth bias, and the list was
+  traced before the decals had one, so their pipelines are made at first sight until it is traced again
+  (`scripts/bench/deck-pso-trace.mjs`, docs/steam-deck.md "The pipeline list"). Not done here: it needs the Deck.
+  Android's list (off by default) the same.
