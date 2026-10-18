@@ -1175,6 +1175,7 @@ const HATS439S = 'Issue #439: the character studio’s headwear lineup (studio.h
 const hatRef = (set, what) => ({ sheet: `references/hats/${set}/sheet-1.jpg`, caption: `The author’s pick from the reference lab: ${what} (references/hats/${set})` });
 /** (v1.84, issue #441: the space ports from their picked sheets) */
 const PORT441 = 'Issue #441: the running game in muted headless Chrome (ANGLE Metal, High, render scale 1, 1280 × 720, 10:00, the HUD hidden; scripts/design-qc/capture.mjs --fixed-scale) on this branch’s own Vite (port 5441), the camera pinned in the hull’s frame round the ship; before: the tree at 16faa3b4c (its own Vite, port 5442), the same camera; 17 October; cwebp -q 72';
+const HUD461 = 'Issue #461: the Unity bridge in the editor’s batch run on this Mac (muted, High, 1280 × 720), each pose put up by -ui through engine/ui-poses.js on the debug save, the top-left corner (320 × 180) at four times; the web’s pictures of the same poses (headless Chrome, its own Vite) beside them; 18 October; cwebp -q 72';
 const HOST427D = 'Issue #427 round 4: the Unity bridge in the editor’s batch run on this Mac (muted, High, 1280 × 720), each piece put up by -ui through engine/ui-poses.js on the debug save; before, Unity drew no crosshair, no mode name, no jump shade and a plain bar; the web’s pictures of the same poses (headless Chrome, its own Vite) beside them to check; 18 October; cwebp -q 72';
 const PORT441U = 'Issue #441: the Unity bridge in the editor’s batch run on this Mac (scripts/unity-compare/unity.mjs: muted, High, 1280 × 720, -fresh -no-hud, the same pinned camera as the web’s); 17 October; cwebp -q 72';
 const PORT447 = 'Issue #447: the running game in muted headless Chrome (ANGLE Metal, High, render scale 1, 1280 × 720, 10:00, the HUD hidden; scripts/design-qc/capture.mjs --fixed-scale) on this branch’s own Vite (port 5447), the camera pinned; before: the tree at 3e6d426a0, the same camera; the boats in flight held still by the view’s `act`; 17 October; cwebp -q 72';
@@ -1343,6 +1344,12 @@ export const CHANGELOG_MEDIA = {
       { name: 'unity-gun-aim', only: 'after', title: 'Aiming', caption: 'Aiming the fluid gun in Unity in the desert: the inked crosshair at the centre with the push’s name under it, as on the web', from: HOST427D },
       { name: 'unity-magic-short', only: 'after', title: 'The magic bar', caption: 'Short of a shot (half a unit of three): the bar’s ticks, its paler fill hatched, as on the web', from: HOST427D },
     ], see: 'In the Unity version, take up the fluid gun and aim (LT / L2); switch its mode (D-pad →) and watch its name by you; run the tank dry; spend the bar below one unit and look at it under the hearts.' },
+    { match: 'In the Unity version, the hearts and the potion look as on the web', shots: [
+      { name: 'unity-hearts-quarters', only: 'after', title: 'A quarter of a heart', caption: 'Two hearts and a quarter in Unity: the third heart’s bottom-left quarter red, thin lines between its quarters, the flask beside them', from: HUD461 },
+      { name: 'unity-hearts-quarters-web', only: 'after', title: 'On the web', caption: 'The same hearts on the web', from: HUD461 },
+      { name: 'unity-potion-flask', only: 'after', title: 'The potion', caption: 'Two potions in the pack in Unity: the corked flask and its count, after a heart and a half lost', from: HUD461 },
+      { name: 'unity-potion-flask-web', only: 'after', title: 'On the web', caption: 'The same on the web', from: HUD461 },
+    ], see: 'In the Unity version, take a hit or two and look at the hearts at the top left; buy a potion at Haddu’s shop in Qanat and look beside them.' },
     { match: 'In the Unity version, a patch of shade lies under you whenever you jump', shots: [
       { name: 'unity-jump-shade', only: 'after', title: 'Off the ground', caption: 'Held half a metre off the dunes in Unity: the round patch of shade under him, beside the sun’s shadow, as on the web', from: HOST427D },
     ], see: 'In the Unity version, jump or glide anywhere and look under you. In the Arcade, play a game and choose Back to the Arcade: you stand in front of its sign.' },

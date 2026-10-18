@@ -21,6 +21,11 @@
 // mode       the gun's mode switched: its name a moment beside the traveller (the tool's modeFlash)
 // aim        aiming (the host holds the aim, KeyR): the crosshair at the centre and the mode's name under it
 // jump       the traveller held 0.5 m off the ground, falling: the jump's patch of shade under him
+// hearts0..4 the last heart's quarters: hearts0 the last one empty (2 of 3), hearts1 a quarter in it, hearts2 a half,
+//            hearts3 three quarters, hearts4 all full (the magic bar part spent, so the hearts show) (issue #461)
+// heartslow  three quarters of one heart left: low, the last one warmer and pulsing
+// potions    two potions in the pack (a count, not the endless stock), a heart and a half gone
+// potionsnone none left: the flask faded, 0
 // shop       Haddu's shop in the desert (src/shop-panel.js on the page, engine/menus.js shopView in an engine), its
 //            first ware asked about after a moment (shopask)
 
@@ -30,7 +35,8 @@ import { ORDER, TITLES } from '../src/levels/names.js';
 import { resources } from '../src/resources.js';
 
 export const UI_PIECES = { balloons: 'desert', objective: 'desert', level: 'desert', cargo: 'desert', endcard: 'desert', credits: 'desert', breath: 'underwater', arcade: 'arcade', shop: 'desert', shopask: 'desert',
-  magic: 'desert', magicshort: 'desert', magicfull: 'desert', magicempty: 'desert', mode: 'desert', aim: 'desert', jump: 'desert' };
+  magic: 'desert', magicshort: 'desert', magicfull: 'desert', magicempty: 'desert', mode: 'desert', aim: 'desert', jump: 'desert',
+  hearts0: 'desert', hearts1: 'desert', hearts2: 'desert', hearts3: 'desert', hearts4: 'desert', heartslow: 'desert', potions: 'desert', potionsnone: 'desert' };
 /** The pieces a host poses by holding a key while they are up: the aim (KeyR, src/bindings.js KEYS.aim). */
 export const UI_KEYS = { aim: 'KeyR' };
 
@@ -54,6 +60,20 @@ export function uiPose(ctx, piece) {
     player.pos.copy(up);
     undo = () => { player.update = update; player.teleport?.(at, player.frame.up, player.frame.fwd); };
     return 'held up';
+  }
+  if (/^hearts[0-4]$|^heartslow$|^potions/.test(piece)) {
+    // (the hearts held where they are put: their slow mending after a fall waits on hurtAt; the potions in the pack as a
+    // count; at full hearts the reserve part spent so the hearts show; let go, all as it was)
+    const R = tool?.reserve, st = resources.state;
+    const was = { hearts: player.hearts, hurtAt: player.hurtAt, pots: st.flag('res.potions') ?? null, inf: st.flag('res.potions.infinite') ?? null, level: R?.level, since: R?.since };
+    undo = () => { player.hearts = was.hearts; player.hurtAt = was.hurtAt; st.set('res.potions', was.pots); st.set('res.potions.infinite', was.inf); if (R) { R.level = was.level; R.since = was.since; } };
+    const max = player.maxHearts ?? 3;
+    player.hearts = piece === 'heartslow' ? 0.75 : piece.startsWith('potions') ? max - 1.5 : max - 1 + Number(piece.slice(6)) / 4;
+    player.hurtAt = 1e12;
+    st.set('res.potions.infinite', null);
+    st.set('res.potions', piece === 'potionsnone' ? 0 : piece === 'potions' ? 2 : 1);
+    if (piece === 'hearts4' && R) { R.level = Math.min(R.max, 1.6); R.since = -1e6; }
+    return `${player.hearts} of ${max}`;
   }
   if (/^magic/.test(piece) || piece === 'mode' || piece === 'aim') {
     const R = tool?.reserve;

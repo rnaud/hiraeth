@@ -141,6 +141,12 @@ export function heartsSvg(hearts, max, { low = false } = {}) {
   return `<svg viewBox="-1 -1 ${qs.length * W} 20" width="${qs.length * W}" height="20" aria-hidden="true">${body}</svg>`;
 }
 
+/**
+ * The potion's corked flask beside the hearts (index.html #health .potion, the same markup): cream glass, the red
+ * draught, an ink outline, a glint. An engine draws it as a PNG made from this (scripts/engine-bundle.mjs: hud-potion).
+ */
+export const POTION_SVG = '<svg viewBox="0 0 14 18" aria-hidden="true"><path d="M5 1.2h4v1.6H5z" fill="#b07a45" stroke="#2b211f" stroke-width="1.2"/><path d="M5.3 2.8h3.4v3.1c2.6 0.8 4.3 3 4.3 5.7 0 3.4-2.7 5.6-6 5.6s-6-2.2-6-5.6c0-2.7 1.7-4.9 4.3-5.7z" fill="#f7ecd2"/><path d="M1.4 10.6c1.6-0.9 3.4-0.2 5.6 0.2s3.9-0.2 5.6-0.7c0.3 3.4-2.4 6.1-5.6 6.1s-5.9-2.4-5.6-5.6z" fill="#d9503f"/><path d="M5.3 2.8h3.4v3.1c2.6 0.8 4.3 3 4.3 5.7 0 3.4-2.7 5.6-6 5.6s-6-2.2-6-5.6c0-2.7 1.7-4.9 4.3-5.7z" fill="none" stroke="#2b211f" stroke-width="1.5" stroke-linejoin="round"/><path d="M3.6 9.6c-0.6 0.8-0.8 1.7-0.6 2.6" fill="none" stroke="#fff4dc" stroke-width="1.1" stroke-linecap="round"/></svg>';
+
 /** The magic bar's fill and look: { fill 0..1, units (its length), short: can't pay for a shot (under one unit) }. */
 export function magicHud(level, max) {
   const m = Math.max(0, max ?? 0);

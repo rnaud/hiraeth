@@ -1388,9 +1388,15 @@ namespace Hiraeth.Bridge
         // the hearts (src/hud.js healthHud / heartsSvg, the page's #health): a heart a container, filled by its quarters,
         // the last one warmer when low; then the potions' flask and count, the wallet's chimes; the magic bar under them
         // (its units, the reserve's level). Without hearts in the state, the old bar.
-        static Sprite heartFill, heartLine;
-        readonly List<(RectTransform rt, Image back, Image fill, Image line)> hearts = new();
-        RectTransform heartRow; Image potionIcon, chimeIcon; Label potionN, chimeN;
+        // (the heart's layers as the page's heartsSvg: its shadow, the cream (he), the red (hf) whole or cut to its quarters,
+        // the quarter lines (hq) on a part-filled one, the glint (hl), the ink outline (ho); issue #461)
+        static Sprite heartFill, heartLine, heartSolid, heartTicks, heartGlint;
+        static readonly Sprite[] heartQuarter = new Sprite[4];
+        class HeartImg { public RectTransform rt, body; public Image back, fill, ticks, glint, line; }
+        readonly List<HeartImg> hearts = new();
+        RectTransform heartRow; RawImage potionIcon, potionInk; Image chimeIcon; Label potionN, chimeN;
+        // (the page's #health .hq, .hl: the quarter lines' ink at 0.55, the glint #fff4dc at 0.85)
+        static readonly Color HeartTick = Ui.Hex("#2b211f", 0.55f), HeartGlint = Ui.Hex("#fff4dc", 0.85f);
         Ui.Box magicBox; Image magicFill, magicEdge, magicHatch; readonly List<Image> magicTicks = new();
         // (the page's #health .magic i: #3fae9a, short of a unit #8fb9ad under its hatching, index.html)
         static readonly Color HeartRed = Ui.Hex("#d9503f"), HeartLow = Ui.Hex("#e8643c"), ChimeTeal = Ui.Hex("#63d3e4"), MagicTeal = Ui.Hex("#3fae9a"), MagicShort = Ui.Hex("#8fb9ad");
@@ -1416,41 +1422,71 @@ namespace Hiraeth.Bridge
             return magicHatchSprite = Sprite.Create(t, new Rect(0, 0, n, n), new Vector2(0.5f, 0.5f), 100, 0, SpriteMeshType.FullRect);
         }
 
-        /// <summary>A heart (filled, or its ink outline) from the page's own path (src/hud.js HEART, its 20 × 18.4 box, y
-        /// down), its curves cut into a polygon: 40 × 37 px, a pixel's coverage by its distance to the outline.</summary>
-        static Sprite Heart(bool outline)
+        /// <summary>A heart's layer from the page's own path (src/hud.js HEART, its 20 × 18.4 box, y down), its curves cut
+        /// into a polygon: 40 × 37 px, a pixel's coverage by its distance to the outline. kind: "fill", "line" (the ink
+        /// outline, 2.1 wide), "solid" (the fill and its outline: the drop shadow's shape), "q1".."q3" (the fill cut to its
+        /// first quarters, as QUAD: bottom left, top left, top right), "ticks" (the quarter lines, hq: M10 3.6V17.2 M1.6 9H18.4,
+        /// 0.9 wide), "glint" (hl: M5.2 4.4 C 4 4.9 3.4 6 3.5 7.2, 1.4 wide, round).</summary>
+        static Sprite Heart(string kind)
         {
             const int w = 40, h = 37; const float s = 2, edge = 2.1f * s;
+            List<Vector2> Bez(float[] c, int steps, List<Vector2> into)
+            {
+                for (int i = 0; i < steps; i++)
+                {
+                    float t = i / (float)steps, u = 1 - t;
+                    float x = u * u * u * c[0] + 3 * u * u * t * c[2] + 3 * u * t * t * c[4] + t * t * t * c[6];
+                    float y = u * u * u * c[1] + 3 * u * u * t * c[3] + 3 * u * t * t * c[5] + t * t * t * c[7];
+                    into.Add(new Vector2(x * s, (18.4f - y) * s));   // (texture y up)
+                }
+                return into;
+            }
             float[][] curves = {
                 new[] { 10f, 17.2f, 6.2f, 14.1f, 1.4f, 10.6f, 1.4f, 6.1f }, new[] { 1.4f, 6.1f, 1.4f, 3.2f, 3.6f, 1.2f, 6.1f, 1.2f },
                 new[] { 6.1f, 1.2f, 7.8f, 1.2f, 9.2f, 2.2f, 10f, 3.6f }, new[] { 10f, 3.6f, 10.8f, 2.2f, 12.2f, 1.2f, 13.9f, 1.2f },
                 new[] { 13.9f, 1.2f, 16.4f, 1.2f, 18.6f, 3.2f, 18.6f, 6.1f }, new[] { 18.6f, 6.1f, 18.6f, 10.6f, 13.8f, 14.1f, 10f, 17.2f },
             };
             var poly = new List<Vector2>();
-            foreach (var c in curves)
-                for (int i = 0; i < 16; i++)
-                {
-                    float t = i / 16f, u = 1 - t;
-                    float x = u * u * u * c[0] + 3 * u * u * t * c[2] + 3 * u * t * t * c[4] + t * t * t * c[6];
-                    float y = u * u * u * c[1] + 3 * u * u * t * c[3] + 3 * u * t * t * c[5] + t * t * t * c[7];
-                    poly.Add(new Vector2(x * s, (18.4f - y) * s));   // (texture y up)
-                }
-            var t2 = new Texture2D(w, h, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear, name = outline ? "heart line" : "heart" };
+            foreach (var c in curves) Bez(c, 16, poly);
+            // (the open strokes, in texture px: the quarter lines, the glint's curve)
+            Vector2 P(float x, float y) => new Vector2(x * s, (18.4f - y) * s);
+            var strokes = new List<List<Vector2>>();
+            if (kind == "ticks") { strokes.Add(new List<Vector2> { P(10, 3.6f), P(10, 17.2f) }); strokes.Add(new List<Vector2> { P(1.6f, 9), P(18.4f, 9) }); }
+            if (kind == "glint") { var g = Bez(new[] { 5.2f, 4.4f, 4f, 4.9f, 3.4f, 6f, 3.5f, 7.2f }, 12, new List<Vector2>()); g.Add(P(3.5f, 7.2f)); strokes.Add(g); }
+            float half = (kind == "ticks" ? 0.9f : 1.4f) * s / 2;
+            int quarters = kind.Length == 2 && kind[0] == 'q' ? kind[1] - '0' : 0;
+            float Seg(Vector2 p, Vector2 a, Vector2 b) { var ab = b - a; float k = Mathf.Clamp01(Vector2.Dot(p - a, ab) / Mathf.Max(1e-6f, ab.sqrMagnitude)); return (a + ab * k - p).magnitude; }
+            var t2 = new Texture2D(w, h, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear, name = "heart " + kind };
             var px = new Color32[w * h];
             for (int y = 0; y < h; y++)
                 for (int x = 0; x < w; x++)
                 {
                     var p = new Vector2(x + 0.5f, y + 0.5f);
-                    bool inside = false; float best = float.MaxValue;
-                    for (int i = 0, j = poly.Count - 1; i < poly.Count; j = i++)
+                    float cov;
+                    if (strokes.Count > 0)
                     {
-                        Vector2 a = poly[i], b = poly[j];
-                        if ((a.y > p.y) != (b.y > p.y) && p.x < (b.x - a.x) * (p.y - a.y) / (b.y - a.y) + a.x) inside = !inside;
-                        var ab = b - a; float k = Mathf.Clamp01(Vector2.Dot(p - a, ab) / Mathf.Max(1e-6f, ab.sqrMagnitude));
-                        best = Mathf.Min(best, (a + ab * k - p).magnitude);
+                        float best = float.MaxValue;
+                        foreach (var st in strokes) for (int i = 1; i < st.Count; i++) best = Mathf.Min(best, Seg(p, st[i - 1], st[i]));
+                        cov = Mathf.Clamp01(0.5f - (best - half));
                     }
-                    float d = inside ? -best : best;
-                    float cov = outline ? Mathf.Clamp01(0.5f - (Mathf.Abs(d) - edge * 0.5f)) : Mathf.Clamp01(0.5f - d);
+                    else
+                    {
+                        bool inside = false; float best = float.MaxValue;
+                        for (int i = 0, j = poly.Count - 1; i < poly.Count; j = i++)
+                        {
+                            Vector2 a = poly[i], b = poly[j];
+                            if ((a.y > p.y) != (b.y > p.y) && p.x < (b.x - a.x) * (p.y - a.y) / (b.y - a.y) + a.x) inside = !inside;
+                            best = Mathf.Min(best, Seg(p, a, b));
+                        }
+                        float d = inside ? -best : best;
+                        cov = kind == "line" ? Mathf.Clamp01(0.5f - (Mathf.Abs(d) - edge * 0.5f)) : kind == "solid" ? Mathf.Clamp01(0.5f - (d - edge * 0.5f)) : Mathf.Clamp01(0.5f - d);
+                        if (quarters > 0)
+                        {
+                            // (QUAD's halves at x 10 and y 9, in px: left of the middle, under it, over it)
+                            float left = Mathf.Clamp01(0.5f + (10 * s - p.x)), low = Mathf.Clamp01(0.5f + ((18.4f - 9) * s - p.y)), high = 1 - low;
+                            cov *= quarters == 1 ? Mathf.Min(left, low) : quarters == 2 ? left : Mathf.Max(left, high);
+                        }
+                    }
                     px[y * w + x] = new Color32(255, 255, 255, (byte)(cov * 255));
                 }
             t2.SetPixels32(px); t2.Apply(false, true);
@@ -1473,20 +1509,22 @@ namespace Hiraeth.Bridge
                 healthFill.color = h.Get("low") is bool low && low ? Color.Lerp(Ui.Hp, Ui.Gold, 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * Mathf.PI * 2.5f)) : Ui.Hp;
                 return;
             }
-            float hh = 21.6f * ts, hw = hh * 1.1f, q = Mathf.Max(0, Mathf.Round(h.F("hearts") * 4));
+            // (the page's #health .row: the hearts' svg hh tall, a heart a 22-unit pitch of its 20 (u = hh / 20), the flask
+            // 1.15 hh tall beside them, the row as tall as the flask and each centred in it)
+            float hh = 21.6f * ts, hw = hh * 1.1f, u = hh / 20, rowH = hh * 1.15f, q = Mathf.Max(0, Mathf.Round(h.F("hearts") * 4));
             int max = Mathf.Max(0, h.I("max", 3));
             bool lowNow = h.Get("low") is bool lw && lw;
             while (hearts.Count < max)
             {
                 var rt = Ui.Node("heart " + hearts.Count, heartRow);
-                Image L(string name, Color c, Sprite sp) { var im = Ui.Rect(rt, c, 0, name); im.sprite = sp; im.type = Image.Type.Simple; Ui.Stretch(im.rectTransform); return im; }
-                var shadow = L("shadow", new Color(Ui.Ink.r, Ui.Ink.g, Ui.Ink.b, 0.9f), heartFill); shadow.rectTransform.offsetMin = new Vector2(1.5f, -1.5f); shadow.rectTransform.offsetMax = new Vector2(1.5f, -1.5f);
-                var back = L("empty", Cream, heartFill);
-                var fill = L("fill", HeartRed, heartFill);
-                fill.type = Image.Type.Filled; fill.fillMethod = Image.FillMethod.Radial360; fill.fillOrigin = (int)Image.Origin360.Bottom; fill.fillClockwise = true;
-                var line = L("ink", Ui.Ink, heartLine);
-                hearts.Add((rt, back, fill, line));
+                // (the body scales about the page's transform-origin 50% 60% when low: hpulse)
+                var body = Ui.Stretch(Ui.Node("body", rt)); body.pivot = new Vector2(0.5f, 0.42f);
+                Image L(string name, Color c, Sprite sp) { var im = Ui.Rect(body, c, 0, name); im.sprite = sp; im.type = Image.Type.Simple; Ui.Stretch(im.rectTransform); return im; }
+                var shadow = L("shadow", new Color(Ui.Ink.r, Ui.Ink.g, Ui.Ink.b, 0.9f), heartSolid); shadow.rectTransform.offsetMin = new Vector2(1.5f, -1.5f); shadow.rectTransform.offsetMax = new Vector2(1.5f, -1.5f);
+                hearts.Add(new HeartImg { rt = rt, body = body, back = L("empty", Cream, heartFill), fill = L("fill", HeartRed, heartFill), ticks = L("quarters", HeartTick, heartTicks), glint = L("glint", HeartGlint, heartGlint), line = L("ink", Ui.Ink, heartLine) });
             }
+            // (hpulse: 1 → 1.14 → 1 over 0.8 s, each half eased in and out)
+            float ph = Time.unscaledTime / 0.8f % 1, pk = ph < 0.5f ? ph * 2 : 2 - ph * 2, pulse = 1 + 0.14f * pk * pk * (3 - 2 * pk);
             float x = 0;
             for (int i = 0; i < hearts.Count; i++)
             {
@@ -1494,26 +1532,38 @@ namespace Hiraeth.Bridge
                 if (H_.rt.gameObject.activeSelf != on) H_.rt.gameObject.SetActive(on);
                 if (!on) continue;
                 int n = (int)Mathf.Clamp(q - i * 4, 0, 4);
-                Ui.Place(H_.rt, x, 0, hw * 0.92f, hh);
-                H_.fill.fillAmount = n / 4f;
+                // (the heart's 20 × 18.5 units at its place in the svg's viewBox, which starts a unit up and left)
+                Ui.Place(H_.rt, x + u, (rowH - hh) / 2 + u, 20 * u, 18.5f * u);
+                Show(H_.fill, n > 0);
+                if (n > 0) H_.fill.sprite = n >= 4 ? heartFill : heartQuarter[n];
+                Show(H_.ticks, n > 0 && n < 4);
+                Show(H_.glint, n > 0);
                 bool last = lowNow && n > 0 && (i == max - 1 || q - (i + 1) * 4 <= 0);
-                H_.fill.color = last ? Color.Lerp(HeartLow, Ui.Gold, 0.35f + 0.35f * Mathf.Sin(Time.unscaledTime * Mathf.PI * 2.5f)) : HeartRed;
+                H_.fill.color = last ? HeartLow : HeartRed;
+                H_.body.localScale = Vector3.one * (last ? pulse : 1);
                 x += hw;
             }
-            // the potions (∞ while the shop's are endless) and the chimes (none: hidden), beside the hearts
+            // the potions (∞ while the shop's are endless) and the chimes (none: hidden), beside the hearts: the page's flask
+            // (src/hud.js POTION_SVG as a PNG on a viewBox a unit wider all round: scripts/engine-bundle.mjs hud-potion), its
+            // drop shadow, the count in the page's heavy face (0.9 hh) with its cream glow; none left, faded to 0.4
             bool infinite = h.Get("infinite") is bool inf && inf;
             int pots = h.I("potions", -1);
             bool showPot = pots >= 0;
-            Show(potionIcon, showPot); Show(potionN, showPot);
+            if (showPot && potionIcon.texture == null) { potionIcon.texture = BridgeMenu.Picture("hud-potion"); potionInk.texture = BridgeMenu.Picture("hud-potion-ink"); }
+            Show(potionIcon, showPot && potionIcon.texture != null); Show(potionInk, showPot && potionInk.texture != null); Show(potionN, showPot);
             x += hh * 0.35f;
             if (showPot)
             {
-                Ui.Place(potionIcon.rectTransform, x, hh * 0.05f, hh * 0.8f, hh * 0.9f);
-                Ui.Alpha(potionIcon.rectTransform, infinite || pots > 0 ? 1 : 0.4f);
+                float pu = rowH / 18, a = infinite || pots > 0 ? 1 : 0.4f;
+                Ui.Place(potionInk.rectTransform, x - pu + 1.5f, -pu + 1.5f, 16 * pu, 20 * pu);
+                Ui.Place(potionIcon.rectTransform, x - pu, -pu, 16 * pu, 20 * pu);
+                potionInk.color = new Color(1, 1, 1, 0.9f * a); potionIcon.color = new Color(1, 1, 1, a);
+                potionN.fontSize = Mathf.RoundToInt(hh * 0.8f);   // (the page's 0.9 hh in Avenir Next Heavy: Unity's bold Avenir draws its figures taller)
+                potionN.color = new Color(Ui.Ink.r, Ui.Ink.g, Ui.Ink.b, a);
                 var s = Ui.Set(potionN, infinite ? "∞" : pots.ToString(), 80);
-                potionN.fontSize = Mathf.RoundToInt(hh * 0.8f);
-                Ui.Place(potionN.rectTransform, x + hh * 0.9f, 0, s.x + 4, hh);
-                x += hh * 0.9f + s.x + hh * 0.35f;
+                float px0 = x + 14 * pu + 2;
+                Ui.Place(potionN.rectTransform, px0, (rowH - s.y) / 2 - hh * 0.12f, s.x + 4, s.y);   // (Unity's line box sits its figures lower than the page's line-height 1)
+                x = px0 + s.x + hh * 0.35f;
             }
             int chimes = h.I("chimes", -1);
             Show(chimeIcon, chimes > 0); Show(chimeN, chimes > 0);
@@ -1534,7 +1584,7 @@ namespace Hiraeth.Bridge
                 float bw = hh * 2.35f * units, bh = hh * 0.5f, iw = bw - 4, ih = bh - 4;
                 float fill = h.Get("magicFill") is double mf ? Mathf.Clamp01((float)mf) : Mathf.Clamp01(h.F("magic") / units), fw = iw * fill;
                 bool shortOf = h.Get("magicShort") is bool sh ? sh : h.F("magic") < 1 - 1e-6f;
-                Ui.Place(magicBox.rt, 0, hh + hh * 0.22f, bw, bh);
+                Ui.Place(magicBox.rt, 0, rowH + hh * 0.22f, bw, bh);   // (under the row, as tall as the flask: the page's gap 0.22 hh)
                 Ui.Place(magicFill.rectTransform, 0, 0, fw, ih);
                 magicFill.color = shortOf ? MagicShort : MagicTeal;
                 Show(magicHatch, shortOf && fw > 0);
@@ -1553,12 +1603,18 @@ namespace Hiraeth.Bridge
 
         void BuildHearts()
         {
-            if (!heartFill) heartFill = Heart(false);
-            if (!heartLine) heartLine = Heart(true);
+            if (!heartFill) heartFill = Heart("fill");
+            if (!heartLine) heartLine = Heart("line");
             heartRow = Ui.Node("hearts", root);
             heartRow.SetSiblingIndex(health.rt.GetSiblingIndex());
-            potionIcon = Round(heartRow, HeartRed, "potion"); potionIcon.sprite = Ui.Round(8); potionIcon.type = Image.Type.Sliced;
-            potionN = Ui.Label(heartRow, "potions", Ui.Mono, 17, Ui.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+            if (!heartSolid) heartSolid = Heart("solid");
+            if (!heartTicks) heartTicks = Heart("ticks");
+            if (!heartGlint) heartGlint = Heart("glint");
+            for (int n = 1; n < 4; n++) if (!heartQuarter[n]) heartQuarter[n] = Heart("q" + n);
+            RawImage Pic(string name) { var r = Ui.Node(name, heartRow).gameObject.AddComponent<RawImage>(); r.raycastTarget = false; return r; }
+            potionInk = Pic("potion shadow"); potionIcon = Pic("potion");
+            potionN = Ui.Label(heartRow, "potions", Ui.Sans, 17, Ui.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+            { var o = potionN.gameObject.AddComponent<Outline>(); o.effectColor = Ui.Hex("#fffaf0", 0.8f); o.effectDistance = new Vector2(1, -1); }   // (the page's soft cream glow round the count)
             chimeIcon = Ui.Rect(heartRow, ChimeTeal, 0, "chime"); chimeIcon.rectTransform.localRotation = Quaternion.Euler(0, 0, 45);
             chimeN = Ui.Label(heartRow, "chimes", Ui.Mono, 17, Ui.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             magicBox = Ui.Panel(heartRow, "magic", Cream, Ui.Ink, 2, 1.5f, 1.5f, 6);

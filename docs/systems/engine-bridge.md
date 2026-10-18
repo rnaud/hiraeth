@@ -2093,6 +2093,16 @@ Round 4 (#427): what was still the page's alone, or never drawn in Unity.
 Checked in Unity (batch, muted, 1280 × 720, High) against the web's same poses (engine/ui-poses.js `-ui magic,magicshort,
 magicfull,magicempty,mode,aim,jump`).
 
+**The hearts and the potion** (#461). BridgeHud DrawHealth drew a part-filled heart as a radial fill and the potion as a
+red rounded blob. Now each heart is the page's heartsSvg in layers made from its paths (BridgeHud `Heart(kind)`): its
+shadow, the cream, the red whole or cut to its quarters (QUAD's order), the quarter lines on a part-filled one, the
+glint, the ink outline; the last one low is #e8643c and pulses (hpulse, 1.14 over 0.8 s). The flask is the page's own
+SVG (src/hud.js `POTION_SVG`, the same markup as index.html's, tests/hud.test.js) made a PNG by scripts/engine-bundle.mjs
+(`hud-potion`, and `hud-potion-ink` for its drop shadow) in item-pictures; the count beside it in the page's heavy face,
+faded to 0.4 with none. The row is as tall as the flask (1.15 hh), so the magic bar sits under it as on the page.
+Pictures: `-ui hearts0,hearts1,hearts2,hearts3,hearts4,heartslow,potions,potionsnone` (the last heart empty to full,
+three quarters of one heart left, two potions, none).
+
 **Motion matching in the engines** (#427 round 4). The page loads the people's walks (walks.glb) and the traveller's captured
 moves (moves.glb: his jumps, idles, starts and stops, `locoMoves`, on by default) for every player, and the matching
 database (locomotion.glb) only when matching is switched on (the dev menu, `?mm=1`: no player has it). The engines loaded

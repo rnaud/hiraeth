@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { cueText, PlaceName, Fader, Cue, findSummary, padCue, healthHud, staminaHud } from '../src/hud.js';
+import { cueText, PlaceName, Fader, Cue, findSummary, padCue, healthHud, staminaHud, POTION_SVG } from '../src/hud.js';
 import { badgeLine } from '../src/prompt-keys.js';
 const cueTextOf = cueText;
 import { Quests } from '../src/story/quests.js';
@@ -305,4 +305,20 @@ test('the cue sends its button apart from its words, for an engine to draw the b
   cue.set('Golden dunes', 'place');
   assert.deepEqual(screen.state.cue, { text: 'Golden dunes', kind: 'place' }, 'a place\'s name has no button');
   cue.set('');
+});
+
+test('the potion flask an engine draws is the page’s own (issue #461)', () => {
+  // (index.html's #health .potion carries the same SVG; scripts/engine-bundle.mjs makes hud-potion.png from POTION_SVG)
+  assert.ok(src('index.html').includes(POTION_SVG), 'index.html and src/hud.js POTION_SVG differ');
+  assert.match(src('scripts/engine-bundle.mjs'), /'hud-potion': flask/);
+  // (Unity draws that picture, and the heart's quarters, their lines and its glint, not a radial fill)
+  const cs = src('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHud.cs');
+  assert.match(cs, /BridgeMenu\.Picture\("hud-potion"\)/);
+  assert.match(cs, /Heart\("q" \+ n\)/);
+  assert.doesNotMatch(cs.slice(cs.indexOf('void DrawHealth('), cs.indexOf('void BuildHearts(')), /FillMethod\.Radial360/);
+});
+
+test('the hearts and potions have their -ui poses (issue #461)', async () => {
+  const { UI_PIECES } = await import('../engine/ui-poses.js');
+  for (const p of ['hearts0', 'hearts1', 'hearts2', 'hearts3', 'hearts4', 'heartslow', 'potions', 'potionsnone']) assert.equal(UI_PIECES[p], 'desert', p);
 });

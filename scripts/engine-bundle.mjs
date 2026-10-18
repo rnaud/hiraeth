@@ -102,6 +102,17 @@ export async function unityPictures({ to = UNITY_PICTURES.to, size = UNITY_PICTU
     if (!existsSync(out) || statSync(out).mtimeMs < statSync(shopSrc).mtimeMs) await sharp(Buffer.from(sized)).png({ compressionLevel: 9 }).toFile(out);
     n++; bytes += statSync(out).size;
   }
+  // (the HUD's potion flask beside the hearts (src/hud.js POTION_SVG, index.html's own), for BridgeHud DrawHealth: the
+  // flask on a viewBox a unit wider all round (its ink outline overhangs it), and its ink silhouette for the page's
+  // drop-shadow; issue #461)
+  const { POTION_SVG } = await import('../src/hud.js');
+  const hudSrc = resolve(ROOT, 'src/hud.js');
+  const flask = POTION_SVG.replace(/^<svg[^>]*>/, `<svg xmlns="http://www.w3.org/2000/svg" width="${size * 16 / 20}" height="${size}" viewBox="-1 -1 16 20">`);
+  for (const [id, svg] of Object.entries({ 'hud-potion': flask, 'hud-potion-ink': flask.replace(/(fill|stroke)="#[0-9a-f]{6}"/gi, '$1="#2b211f"') })) {
+    const out = resolve(dst, `${id}.png`);
+    if (!existsSync(out) || statSync(out).mtimeMs < statSync(hudSrc).mtimeMs) await sharp(Buffer.from(svg)).png({ compressionLevel: 9 }).toFile(out);
+    n++; bytes += statSync(out).size;
+  }
   return { n, bytes, to };
 }
 
