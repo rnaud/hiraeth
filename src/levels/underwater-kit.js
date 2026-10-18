@@ -258,18 +258,27 @@ export function glassColumns(kit, M, cols, { per = 2.6, speed = 1.4, mover = tru
   mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
   kit.group.add(mesh);
   kit.noShadow?.push?.(mesh);
-  const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(), _p = new THREE.Vector3(), _e = new THREE.Euler();
   /** A column's bubbles laid out at the clock t. */
+  // (three's Quaternion.setFromEuler(0, Y, 0) and Matrix4.compose written out, the same products in the same order, so
+  // the same floats to the bit (tests/glass-columns.test.js): a turn about y alone needs two of the six sines and cosines)
+  const arr = mesh.instanceMatrix.array, c1 = Math.cos(0), s1 = Math.sin(0), c3 = Math.cos(0), s3 = Math.sin(0);
   const lay = (S, t) => {
     const c = S.c;
     for (let k = S.from; k < S.to; k++) {
       const b = list[k];
       const L = c.y1 - c.y0 - 0.8, yy = c.y0 + 0.4 + ((b.y + t * b.v) % L + L) % L;
       const a = b.a + Math.sin(t * 0.8 + b.wob) * 0.12;
-      _p.set(c.x + Math.cos(a) * c.r * 1.01, yy, c.z + Math.sin(a) * c.r * 1.01);
-      _q.setFromEuler(_e.set(0, Math.PI / 2 - a, 0));
+      const px = c.x + Math.cos(a) * c.r * 1.01, pz = c.z + Math.sin(a) * c.r * 1.01;
+      const Y = Math.PI / 2 - a, c2 = Math.cos(Y / 2), s2 = Math.sin(Y / 2);
+      const x = s1 * c2 * c3 + c1 * s2 * s3, y = c1 * s2 * c3 - s1 * c2 * s3, z = c1 * c2 * s3 + s1 * s2 * c3, w = c1 * c2 * c3 - s1 * s2 * s3;
       const s = b.s * Math.min(1, (yy - c.y0) / 1.5, (c.y1 - yy) / 1.5);
-      mesh.setMatrixAt(k, _m.compose(_p, _q, _s.set(s, s, s)));
+      const x2 = x + x, y2 = y + y, z2 = z + z;
+      const xx = x * x2, xy = x * y2, xz = x * z2, yy2 = y * y2, yz = y * z2, zz = z * z2, wx = w * x2, wy = w * y2, wz = w * z2;
+      const o = k * 16;
+      arr[o] = (1 - (yy2 + zz)) * s; arr[o + 1] = (xy + wz) * s; arr[o + 2] = (xz - wy) * s; arr[o + 3] = 0;
+      arr[o + 4] = (xy - wz) * s; arr[o + 5] = (1 - (xx + zz)) * s; arr[o + 6] = (yz + wx) * s; arr[o + 7] = 0;
+      arr[o + 8] = (xz + wy) * s; arr[o + 9] = (yz - wx) * s; arr[o + 10] = (1 - (xx + yy2)) * s; arr[o + 11] = 0;
+      arr[o + 12] = px; arr[o + 13] = yy; arr[o + 14] = pz; arr[o + 15] = 1;
     }
     S.t = t;
     mesh.instanceMatrix.needsUpdate = true;
@@ -300,7 +309,7 @@ export function glassColumns(kit, M, cols, { per = 2.6, speed = 1.4, mover = tru
   };
   update(0);
   if (mover) kit.mover(update);
-  return { mesh, update, draw };
+  return { mesh, update, draw, bubbles: list };
 }
 
 // ------------------------------------------------------------------ the café domes

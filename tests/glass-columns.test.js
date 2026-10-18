@@ -68,3 +68,25 @@ test('the check sees a set never drawn (draw skipped): its bubbles in view stand
   const r = run({ blind: true });
   assert.ok(r.bad > 1000, JSON.stringify(r));
 });
+
+test('a bubble laid out is the matrix three composes for it, to the bit', () => {
+  const G = glassColumns(fakeKit(), M, COLS, { mover: false });
+  const m = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), p = new THREE.Vector3(), s = new THREE.Vector3(), got = new THREE.Matrix4();
+  const want = new Float32Array(16);
+  let n = 0;
+  for (const t of [0, 0.37, 12.5, 1234.567, -3.2]) {
+    G.update(t);
+    G.bubbles.forEach((b, k) => {
+      const c = b.c;
+      const L = c.y1 - c.y0 - 0.8, yy = c.y0 + 0.4 + ((b.y + t * b.v) % L + L) % L;
+      const a = b.a + Math.sin(t * 0.8 + b.wob) * 0.12;
+      p.set(c.x + Math.cos(a) * c.r * 1.01, yy, c.z + Math.sin(a) * c.r * 1.01);
+      q.setFromEuler(e.set(0, Math.PI / 2 - a, 0));
+      const sc = b.s * Math.min(1, (yy - c.y0) / 1.5, (c.y1 - yy) / 1.5);
+      m.compose(p, q, s.set(sc, sc, sc)).toArray(want);
+      const arr = G.mesh.instanceMatrix.array;
+      for (let i = 0; i < 16; i++) { assert.ok(Object.is(arr[k * 16 + i], want[i]), `bubble ${k} at ${t}, element ${i}`); n++; }
+    });
+  }
+  assert.ok(n > 50000);
+});
