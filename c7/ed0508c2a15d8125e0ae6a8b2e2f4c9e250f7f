@@ -1,0 +1,33 @@
+docs/README.md
+  s_5f899ba316b5dc::t_676d3cadaefc03 26
+docs/audits/camera-v1.85.md
+  s_5f899ba316b5dc::t_b1488e6ec6c3d0 1-63
+docs/audits/perf-v1.85.md
+  s_5f899ba316b5dc::t_41d0d40af28e67 1-167
+docs/audits/shadow-v1.85.md
+  s_5f899ba316b5dc::t_b9e74377c02700 1-54
+docs/audits/visual-v1.85.md
+  s_5f899ba316b5dc::t_0b238a97a04c99 1-138
+docs/audits/zfight-v1.85.md
+  s_5f899ba316b5dc::t_e7247bfa8b8ebf 1-61
+docs/systems/audio.md
+  s_5f899ba316b5dc::t_228a8129251337 813-837
+docs/systems/rendering.md
+  s_5f899ba316b5dc::t_a4baf2feeb88f9 1399-1403,1474-1478
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c7ed0508c2a15d8125e0ae6a8b2e2f4c9e250f7f",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
