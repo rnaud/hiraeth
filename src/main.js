@@ -2086,6 +2086,7 @@ function frameReadout(fps) {
     + ` · ${quality.renderScale}× · ${Math.round(frameStats.calls / n)} calls · ${Math.round(frameStats.tris / n / 1000)}k tris · ${preset.key}`
     + xboxReadout();   // (the Xbox app only: whether the JIT is on, the JS heap; '' elsewhere)
 }
+let fightFailed = false;   // (the foes threw once: said, not again; frame)
 function frame(ts) {
   // (paced: a refresh left out while the frames are too slow for every one, an even 30 rather than 20-50: frame-pace.js)
   if (pacer.skip(ts)) { requestAnimationFrame(frame); return; }
@@ -2320,7 +2321,9 @@ function frame(ts) {
   dangers.voidFrame(t);
   reactiveWorld.update(dt, t, player, camera, busy() || photo.on);
   wildlife.update(dt, t, player, camera, busy() || photo.on);
-  fight.update(dt, busy() || photo.on || ship.playing);   // the foes, the flurry's end, the drops (wireFight)
+  // the foes, the flurry's end, the drops (wireFight); a foe that throws is said once and the world goes on, as in the
+  // engines (engine/game.js): before issue #509 one throw here ended the frame loop, and the game froze
+  try { fight.update(dt, busy() || photo.on || ship.playing); } catch (e) { if (!fightFailed) { fightFailed = true; console.warn('[game] the foes failed in their update', e); } }
   flurryFx.update();
   // locked on (R3 / Tab): the camera turns to keep the foe ahead, the traveller faces it, strafing round it (wireFight)
   fight.frame(realDt, { busy: busy(), still: photo.on });

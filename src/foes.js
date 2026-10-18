@@ -1779,7 +1779,14 @@ export class Foes {
         // (and it sees you: no blow through a shut door or a wall, LOCK_SIGHT.strike)
         return busy < this.strikers && (busy === 0 || this.onScreen(f)) && this.seesYou(f);
       },
-      seen: (from, to) => !physics?.rayDistance || physics.rayDistance(from, _w.subVectors(_v.copy(to).setY(to.y + 1), from).normalize(), from.distanceTo(_v)) >= from.distanceTo(_v) - 0.5,
+      // (from and to may be plain { x, y, z }: the toad's perch search asks from a spot it might climb to, src/foe-height.js
+      // findPerch; issue #509, `from.distanceTo` threw there and froze the game the moment a toad looked for high ground)
+      seen: (from, to) => {
+        if (!physics?.rayDistance) return true;
+        _v.set(to.x, to.y + 1, to.z);
+        const d = _v.distanceTo(from);
+        return physics.rayDistance(from, _w.subVectors(_v, from).normalize(), d) >= d - 0.5;
+      },
     };
     // (the machines once he is armed: unarmed, as he comes into the desert, nothing out there or in the temples needs a
     // fight, and they are placed the moment the sword is his: update)

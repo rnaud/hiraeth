@@ -6,6 +6,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 - In the Rose House, the watcher’s aiming beam now stops at your shield when you hold it up, and at you when you don’t, instead of running on through you and out the other side.
 - The fight temples’ end card no longer says your sword and shield wear the new colours before you have them: they take them once found. And people no longer tell of a game you can’t play yet, a trial that wants the hoverbike or a gadget you haven’t found.
+- In Lorn, locking on to a bellows toad near a bank or a rise in the ground no longer freezes the game. As the toad looked for high ground to spit from, its search broke and the game stopped.
 - The Clock-House’s and the Undertower’s last steps now point the right way: their guardians wait upstairs, and the steps used to say go down.
 - Each world’s own recorded music now plays the whole time you are there, out in the open as well as on arriving, indoors and at the big moments. If you liked it better the old way, with the music for the moments and quieter, lighter tunes in between, choose Moments under Settings > Music plays.
 

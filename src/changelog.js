@@ -18,6 +18,10 @@ export const CHANGELOG = [
     // issue #480: src/fight-temples/session.js coloursLine (the save's own items, read before the run lends its kit),
     // fight-temples/index.js rules; src/story/rumours.js (a host's lacks(): not told of), story/index.js addHost;
     // tests/fight-temples.test.js, tests/rumours.test.js
+    // issue #509: src/foes.js Foes.env.seen (a plain { x, y, z } from the toad's perch search, src/foe-height.js findPerch),
+    // src/main.js (a foe that throws no longer ends the frame loop, as in the engines); tests/engine-lock-lorn.test.js
+    { text: 'In Lorn, locking on to a bellows toad near a bank or a rise in the ground no longer freezes the game. As the toad looked for high ground to spit from, its search broke and the game stopped.',
+      see: 'In Lorn, stand at the foot of a bank or a rock, lock on to a toad (R3 / Tab) and let it come for you: it climbs to the high ground to spit from, and the game carries on.' },
     'The fight temples’ end card no longer says your sword and shield wear the new colours before you have them: they take them once found. And people no longer tell of a game you can’t play yet, a trial that wants the hoverbike or a gadget you haven’t found.',
     // issue #485: src/beam-stop.js (beamStop, bodyHit), src/temples/pieces.js Sentry beamLength, src/fluid-blade.js
     // shieldFace / covers / faceFor; tests/sentry.test.js
