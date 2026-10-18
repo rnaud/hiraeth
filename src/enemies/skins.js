@@ -199,9 +199,12 @@ export const SKINS = {
   wisp: {
     // sheet-1 (references/enemy-archetypes/wisp/sheet-1.jpg, issue #440) is the cinder wisp: glossy ink-black petals with
     // deep violet shadows (shell2), thin gold edges (rim), a white-gold ring of light, an orange and yellow coal, lilac
-    // eyes. The marsh and corona wisps keep their own colours on its body (the marsh wisp's own sheet is in the lab).
+    // eyes. The corona wisp keeps its own colours on its body.
     moonfoundry: { name: 'cinder wisp', palette: { shell: '#1b1622', shell2: '#4a3568', rim: '#cdb27a', ring: '#fff1c4', core: '#ff8a3e', fire: '#ffd36a', eye: '#c7a6f2', smoke: '#1e1a20' }, props: [] },
-    perdide2: { name: 'marsh wisp', palette: { shell: '#1d2a25', shell2: '#3c5446', rim: '#b8955a', ring: '#eaf7b8', core: '#b8e86a', fire: '#f2ffb0', eye: '#e2ffc0', smoke: '#1a2420', lichen: '#8f9c62' }, props: ['moss'] },
+    // sheet-4 (issue #472) is Lorn II's marsh wisp: mossy olive green-black petals (shell) going blue-green and darker
+    // toward the cup (shell2), pale sage lichen in flower-shaped patches over half of them, brass edges and a brass ring
+    // (not a ring of light: 'brass'), a cold pale-green marsh-light coal, pale green eyes, olive-black drips.
+    perdide2: { name: 'marsh wisp', palette: { shell: '#2e3527', shell2: '#25322c', rim: '#a8905e', ring: '#c4a468', core: '#8ed49c', fire: '#e2f4d2', eye: '#bfe8a8', smoke: '#23251b', lichen: '#a6a67a' }, props: ['moss', 'brass'] },
     eclipse: { name: 'corona wisp', palette: { shell: '#15121c', shell2: '#2e2444', rim: '#d6c2ff', ring: '#f4ecff', core: '#ffcf6a', fire: '#fff4d0', eye: '#d6c2ff', smoke: '#100c18' }, props: ['corona'] },
   },
 };

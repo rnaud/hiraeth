@@ -491,8 +491,13 @@ Object.assign(SURFACES, {
       edge: { gloss: { size: 0.03, sky: 0.5, amount: 0.6 } },
       core: { mottle: { color: 'fire', scale: 0.07, amount: 0.45, soft: 0.15, strength: 0.8 }, glow: { color: 'fire', amount: 0.5, rim: 0.3, core: 2.2, pulse: 2.4, emit: 0.7 } },
     },
-    // (the marsh wisp: pale lichen stars on its dark green petals, as the stand-in's mottle was)
-    perdide2: { petal: { spots: { color: 'lichen', scale: 0.1, share: 0.7, size: 0.95, jitter: 0.8, star: 0.7, soft: 0.2, cluster: 0.35, clusterShare: 0.6 } } },
+    // (sheet-4, the marsh wisp: pale lichen in flower-shaped rosettes gathered in colonies over half of its dull mossy
+    // petals, flecks of it between them; a soft sheen, not the cinder wisp's wet ink)
+    perdide2: { petal: {
+      spots: { color: 'lichen', scale: 0.11, share: 0.95, size: 1.8, jitter: 0.9, star: 0.3, soft: 0.3, cluster: 0.22, clusterShare: 0.55 },
+      spots2: { color: 'lichen', scale: 0.04, share: 0.45, size: 0.8, amount: 0.75, soft: 0.3, cluster: 0.22, clusterShare: 0.65 },
+      gloss: { size: 0.05, sky: 0.35, amount: 0.3, streaks: 5, streakWidth: 0.35 },
+    }, drip: { gloss: { size: 0.04, sky: 0.5, amount: 0.6 } } },
   },
 });
 

@@ -56,7 +56,12 @@ export function wispModel(skin) {
   // (built in build materials on the pivots that move them, then one skinned mesh a material: kit.js skinBy)
   const inkB = M.mat('petalBuild', P.shell), edgeB = M.mat('edgeBuild', P.rim);
   const inkM = M.mat('petal', P.shell, { vertexColors: true, side: THREE.DoubleSide }), edgeM = M.mat('edge', P.rim, { vertexColors: true });
-  const ringM = M.own('ring', P.ring ?? P.fire, { glow: 0.9 }), coreM = M.own('core', P.core, { glow: E.glow[0] }), eyeM = M.own('eye', P.eye, { glow: 0.7 });
+  // (the drips plain ink where the petals wear lichen, 'moss': spots would wrap round their thin runs as stripes)
+  const dripB = props.has('moss') ? M.mat('dripBuild', P.smoke ?? P.shell) : inkB;
+  const dripM = dripB === inkB ? null : M.mat('drip', P.smoke ?? P.shell, { vertexColors: true });
+  // (the ring of light; a brass band where the skin's sheet draws one: 'brass', the marsh wisp)
+  const brass = props.has('brass'), ringGlow = brass ? 0 : 0.9;
+  const ringM = M.own('ring', P.ring ?? P.fire, brass ? { metal: 'brass', glow: 0 } : { glow: 0.9 }), coreM = M.own('core', P.core, { glow: E.glow[0] }), eyeM = M.own('eye', P.eye, { glow: 0.7 });
   const body = pivot(g, 0, 0, 0, 'body');
   const base = pivot(body, 0, E.ring, 0, 'base');
   // the coal, in the middle of the bud; the ball is thrown from it
@@ -95,15 +100,15 @@ export function wispModel(skin) {
   const drips = E.drips.map(([x, z, len], i) => {
     const p = pivot(base, x, -E.cup * 0.82, z, `drip ${i}`);
     add(p, merged([tubeGeometry([[0, 0.08, 0], [0, -len * 0.4, 0], [0, -len * 0.92, 0]], 0.065, 0.026),
-      new THREE.SphereGeometry(0.055, 10, 8).scale(1, 1.4, 1).translate(0, -len + 0.01, 0)]), inkB);
+      new THREE.SphereGeometry(0.055, 10, 8).scale(1, 1.4, 1).translate(0, -len + 0.01, 0)]), dripB);
     return p;
   });
-  const [inkMesh, edgeMesh] = skinBy(g, [{ from: [inkB], into: inkM }, { from: [edgeB], into: edgeM }]);
+  const [inkMesh, edgeMesh, dripMesh] = skinBy(g, [{ from: [inkB], into: inkM }, { from: [edgeB], into: edgeM }, ...(dripM ? [{ from: [dripB], into: dripM }] : [])]);
   finish(g);
   const prev = { x: null, z: 0, state: 'idle' };
   let open = 0, clench = 0, kick = 0, glowK = 0;
   return {
-    group: g, body, parts: [inkMesh, edgeMesh, core].filter(Boolean), eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.shell, P.core, P.fire],
+    group: g, body, parts: [inkMesh, edgeMesh, dripMesh, core].filter(Boolean), eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.shell, P.core, P.fire],
     tell: () => core,
     /** Where the ball leaves it: the coal, in the world. */
     mouthAt: (out = new THREE.Vector3()) => { g.updateMatrixWorld(true); return core.getWorldPosition(out); },
@@ -136,7 +141,7 @@ export function wispModel(skin) {
       core.position.y = 0.1 + 0.1 * open;   // (it rises out of the opened bud, as the sheet's wind-up draws it)
       core.scale.setScalar((1 + E.swell * glowK - (stunned ? 0.25 : 0)) * (1 + 0.05 * Math.sin(c.now / 90)));
       coreM.uniforms.uGlow.value = stunned ? 0.25 : THREE.MathUtils.lerp(E.glow[0], E.glow[1], glowK);
-      ringM.uniforms.uGlow.value = stunned ? 0.3 : 0.9 + 0.3 * glowK;
+      ringM.uniforms.uGlow.value = stunned ? 0.3 * ringGlow : ringGlow + (brass ? 0.25 : 0.3) * glowK;
       if (corona) { corona.rotation.z += dt * (0.8 + 3 * glowK); corona.scale.setScalar(1 + 0.2 * glowK); }
       // the drips trail behind its drift and sway, each a little later than the one before
       const splay = THREE.MathUtils.clamp((E.sit + 0.75 - f.alt) / 0.75, 0, 1);   // (from a drip's length over its low, splaying as it comes down)
