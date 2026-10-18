@@ -1,0 +1,65 @@
+changelog.md
+  s_5f899ba316b5dc::t_afa7aafde8b339 7
+docs/systems/bridge-gaps.md
+  s_5f899ba316b5dc::t_c36c44de610eb8 26
+docs/systems/engine-bridge.md
+  s_5f899ba316b5dc::t_bc06f1b5803d27 2350-2369
+engine/boot.js
+  s_5f899ba316b5dc::t_36c8f5a74388e5 28-41
+engine/bridge-gaps.js
+  s_5f899ba316b5dc::t_9ac7322061d922 74-75,77
+engine/encoded-textures.js
+  s_5f899ba316b5dc::t_bc2c12c301d2fd 1-4
+engine/game.js
+  s_5f899ba316b5dc::t_243ac1f3246671 19-20,115,246-250
+engine/ink-spec.js
+  s_5f899ba316b5dc::t_9e3e8fed13f972 51-52
+engine/mirror.js
+  s_5f899ba316b5dc::t_5427ab2a0fdd35 64,70
+engine/unity/backend.js
+  s_5f899ba316b5dc::t_d52dddefc4a7e0 7,85-88,97
+engine/unity/game.js
+  s_5f899ba316b5dc::t_3afe9363723baa 340
+engine/unity/port-format.js
+  s_5f899ba316b5dc::t_b12ea2a20ffc2f 142-145
+scripts/tripo/bake-eye-paint.mjs
+  s_5f899ba316b5dc::t_577b9f8b73508a 1-98
+src/changelog-media.js
+  s_5f899ba316b5dc::t_a3d70e537d01bc 1206-1207,1210-1215
+src/changelog.js
+  s_5f899ba316b5dc::t_b502d1fa8d94ee 255-260
+src/characters/portrait-head.js
+  s_5f899ba316b5dc::t_5575d4f433d195 40-43
+tests/unity-eye-paint.test.js
+  s_5f899ba316b5dc::t_d82f6e46d632a5 1-123
+tests/unity-xbox.test.js
+  s_5f899ba316b5dc::t_edd281ce221a6d 300
+unity/Hiraeth/Assets/Hiraeth/Runtime/WorldLoader.cs
+  s_5f899ba316b5dc::t_ec5b3c2e8e560a 194
+unity/Hiraeth/Assets/Hiraeth/Shaders/Figure.hlsl
+  s_5f899ba316b5dc::t_f65a22d6a6a475 49-55,73-76,78-79
+unity/Hiraeth/Assets/Hiraeth/Shaders/PortraitFace.hlsl
+  s_5f899ba316b5dc::t_75a692b6fb2baa 14-15,17-64,70
+unity/Hiraeth/Assets/Hiraeth/Shaders/Surface.shader
+  s_5f899ba316b5dc::t_76bcce10b8071c 60-62,211,234-235
+unity/Hiraeth/Assets/HiraethJS/Editor/BridgeBuild.cs
+  s_5f899ba316b5dc::t_36de987f4328fd 54
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRenderer.cs
+  s_5f899ba316b5dc::t_8e9154a4b96dc3 70
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8d10e28c6222c056e9e6201f5e25b848ff212142",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
