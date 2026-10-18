@@ -5015,3 +5015,99 @@ the bones (0.2–0.5). Tried and left out: the list's numbers (the objects' `_pq
 no faster on the Deck. **The Retroid** was not measured: it is locked until the author is back (#456's agent holds it).
 Raw: the session's scratchpad, `mirror-455/` (`deck/<tag>/<world>-r<n>/unity-bench.json`, `deck-sum.mjs`, `vm/`,
 `streams/`, `compare/`).
+
+## The game's update on the Deck (#457)
+
+**The question** (the author, 2026-10-17): after #455 the Deck's Unity script thread is the game's update (5–10 ms) plus
+the mirror, and it limits the frame in the Desert, the City-Shaft and the Signal Market. Take what is biggest in the
+update without changing what is drawn.
+
+### How it was profiled
+
+Puerts' V8 on the Deck gives no sampling profile, so the same `hiraeth.cjs` ran in Node's VM against a stand-in host
+(engine/vm-run.mjs `loadBundle`, the bench's `-views -bench -split` at the #446 views), with V8's sampling profiler, and its
+`-split` sections were set against the Deck's own. The proxy keeps the order but not the scale: this Mac's M4 runs the
+update **5–8 times faster** than the Deck (Lorn's 'story' 0.17 against 1.2 ms, the traveller 0.25 against 2.0), more than
+the clocks say: the Deck's small caches pay more for the megamorphic reads and pointer chasing of the game's objects. So a
+change was kept only once the Deck itself showed it.
+
+What the profiles found (self time in the VM, a frame's game update):
+
+- **The rigs' walks** (src/matrix-cache.js `updateMatrixWorldCached`): ~10 % of all the script, a third of the traveller's
+  update and of a posed person's. Counted per walk: the traveller's rig is walked ~1 000 visits a frame (from its root for
+  the cloth, from the MakeHuman root, from the pelvis for the feet, the arms, the hands), a posed person's 200–300. Each
+  visit reads a dozen properties off objects of hundreds of shapes: megamorphic reads, not the maths.
+- **The Underwater City's bubbles** (src/levels/underwater-kit.js `glassColumns`): 3 000 bubbles laid out every frame
+  (three trig calls, setFromEuler's six more, compose, setMatrixAt), in view or not: the Deck's 'level' 1.6–2.1 ms there.
+- **The City-Shaft's 'people'** was mostly not people: the load's queued distant detail (src/deferred.js: 17 600 buried-tree
+  checks, ~5.5 s of work on the Mac, a dozen rays each) runs 2 ms a frame in the 'people' lap until it is done, minutes of
+  frames on the Deck. Now lapped on its own (`distant detail`): 2.8 ms of the City-Shaft's 3.9–4.9.
+- Per-frame allocation and GC: not a factor (as #446). `peopleLod` is on for Unity (engine/unity/backend.js, read by
+  engine/game.js every frame): in the Market's start the walk counts show two people posed in full a frame (`Humanoid.update`
+  from `NPC.update`), the rest at a quarter rate or far. The rest is spread thin: the temples' runtime and
+  guardians, the interactables, the fluid tool, the wildlife, each under 0.05 ms in the VM.
+
+### What changed
+
+1. **The bubbles laid out only where the frame's camera sees them** (9ee684021). A bubble's place is a function of the
+   clock alone, so with `ctx.drawLater` the level waits for `level.beforeDraw(camera)`: main.js `renderFrame` and
+   engine/game.js call it once the frame's camera is final, and a column whose box is in that frustum is laid out at this
+   frame's clock there; a column past `near` is laid out as it stood on its last frame within it, as before. Pages that
+   draw on their own (the title, the trailer) pass no `drawLater` and lay out every column.
+2. **A bubble's matrix written out** (f4f5c91cd): three's setFromEuler(0, y, 0) and compose as their own products in their
+   order, straight into the instance buffer: the same floats to the bit, two trig calls instead of six.
+3. **A rig walked down a list of it** (bdf940555): a walk entered from outside one goes down a `SubtreeList` of its
+   subtree, made at its second walk after an edit (Object3D add / remove / attach: the count scene-matrices.js keeps, now
+   `EDITS` in matrix-cache.js) and kept in a WeakMap (#455: nothing put on three's objects): position, quaternion, scale,
+   the composed-from numbers, matrix and world matrix in arrays, three flags read off the object a visit. Own
+   updateMatrixWorlds (cameras, part batches) are called as the recursion calls them; a holder lending its children (the
+   hero map's scene) and subtrees under 8 objects walk as before.
+4. **`-split` laps `distant detail`** apart from the people (4050ee720). Measuring only.
+
+Tried and left out: `embedded()`'s rays down first instead of up (the buried checks 5.5 → 5.9 s: no better).
+
+### Exact
+
+- `tests/glass-columns.test.js`: every bubble in the camera's frustum and every one past `near` bit for bit as laying out
+  every frame, through turns, cuts, a held clock and two draws a frame; every element of every matrix equal to three's
+  compose (Object.is). Fails when draw is skipped or the hand-over past `near` is.
+- `tests/matrix-lists.test.js`: the list against the recursion over 400 frames of random rigs (walks from roots and inner
+  joints, forced or not, moves, owners' matrices with and without a flag, world matrices left to owners, edits, reparenting,
+  a holder for one walk and one for good, own walks, updateChain and getWorldPosition between, the mirror's stamps): every
+  world matrix, flag, stamp and own call the same; each of its guards taken out fails it.
+- **What Unity receives** (scripts/unity-compare/mirror-stream.mjs, the bundle before against after, the five worlds, a
+  600-frame walk and the bench's views): byte for byte the same in every frame of the Desert, the City-Shaft, the Market
+  and Lorn; in the Underwater City every transform and host call the same, the instance buffers different only as
+  intended (the bubbles out of view not moved, the far columns' buffer no longer sent again unchanged).
+- **Unity's pictures against the web's** (scripts/unity-compare/, the editor's batch, High, 1280 × 720, under the build lock;
+  the five worlds' 31 views) against #455's after (this round's before): mean score 13.31 → 13.26, SSIM 0.888 → 0.888, ΔE
+  3.42 → 3.38; every view within the two runs' own spread (the temples' first rooms the most, as in #455). The Underwater
+  City's columns, their bubbles and the people looked at in the pictures: as before.
+- The sequence tests (39) pass; the hook's tests pass for each commit.
+
+### Measured on the Steam Deck
+
+The u-rel264 Linux player (build 2582) copied to its own folder, only `hiraeth.cjs` swapped (before: main with #455,
+e55bec6b3; after: these four commits), gamescope headless 1280 × 800, uncapped, muted, the #446 views, `-bench 6 -split`,
+two runs each, averaged. ms a frame; the people's "before" includes the distant detail:
+
+| world, view | fps before → after | script thread | game update | people → people + distant detail | traveller | level |
+|---|---|---|---|---|---|---|
+| Desert, spawn | 72.6 → 75.1 | 12.72 → 12.36 | 7.83 → 7.40 | 1.58 → 0.80 + 0.72 | 1.89 → 1.62 | 0.57 → 0.58 |
+| Desert, camps | 65.4 → 67.7 | 14.03 → 13.49 | 8.70 → 8.32 | 2.85 → 2.71 + 0.00 | 1.65 → 1.36 | 0.75 → 0.75 |
+| City-Shaft, start | 57.1 → 58.1 | 15.75 → 15.48 | 10.39 → 10.22 | 3.88 → 0.93 + 2.82 | 1.95 → 1.75 | 0.62 → 0.63 |
+| City-Shaft, crowd | 58.4 → 60.6 | 15.79 → 15.15 | 10.04 → 9.69 | 4.85 → 1.92 + 2.80 | 1.59 → 1.36 | 0.36 → 0.37 |
+| Signal Market, start | 81.0 → 82.1 | 11.37 → 11.28 | 7.63 → 7.53 | 2.37 → 2.30 + 0.00 | 2.00 → 1.82 | 0.07 → 0.07 |
+| Signal Market, crowd | 92.1 → 94.3 | 9.97 → 9.73 | 6.31 → 6.03 | 2.05 → 1.95 + 0.00 | 1.64 → 1.46 | 0.06 → 0.05 |
+| Lorn, start | 75.1 → 76.6 | 12.34 → 12.00 | 8.25 → 7.79 | 1.91 → 1.76 + 0.00 | 2.30 → 2.05 | 0.07 → 0.07 |
+| Lorn, crowd | 77.9 → 77.5 | 11.45 → 11.12 | 6.99 → 6.64 | 1.66 → 1.54 + 0.00 | 2.08 → 1.85 | 0.05 → 0.06 |
+| Underwater, start | 85.7 → 90.9 | 10.77 → 10.11 | 7.44 → 6.50 | 1.24 → 1.25 + 0.00 | 2.17 → 1.99 | 1.60 → 0.72 |
+| Underwater, crowd | 79.1 → 86.5 | 11.64 → 10.55 | 8.31 → 6.95 | 2.44 → 2.42 + 0.00 | 1.82 → 1.79 | 2.09 → 0.65 |
+
+The traveller is 0.2–0.3 ms lighter everywhere (the lists), the Underwater City's level 0.9–1.4 ms (the bubbles); Lorn's
+frame is the GPU's (13.2 ms), so its crowd view does not move. The people themselves gain little from the lists (their
+small subtrees: hands, feet, a joint's chain, walk by the recursion). What is left, by size: the people (1–2.7 ms: posing,
+the feet's rays), the traveller (1.4–2 ms), the City-Shaft's distant detail while it lasts (2.8 ms: cheaper buried checks
+would shorten it, not lighten its frames), 'life' and 'story' (0.6–1.4 ms each, spread over a dozen systems), the crowd
+(up to 1.1). Raw: the session's scratchpad, `deck-457/` (`deck/<tag>/<world>-r<n>/unity-bench.json`, `deck-sum.mjs`,
+`table.mjs`, `vm/` with the profiles, `groups.mjs`, `streams/`, `compare/`).
