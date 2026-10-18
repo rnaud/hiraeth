@@ -152,6 +152,21 @@ export const CHANGELOG = [
     // issue #264: engine/trials.js arcadeLinks, engine/unity/game.js leaveGame; engine/game.js (a game on foot runs under its
     // card); tests/engine-trials.test.js, tests/sequences-play.test.js
     'In the Unity version, a game started from the Arcade offers the game before and after and the way back to the Arcade on its cards, and a fight temple’s start card shows its hall from above, as on the web.',
+    // issue #455: engine/mirror.js `noticed`, engine/mirror-notices.js (hooks and attributes noticed), engine/scene-matrices.js
+    // `track`; tests/mirror-noticed.test.js, scripts/unity-compare/mirror-stream.mjs; docs/systems/performance.md "Unity mirror: only what changed (#455)"
+    { text: 'In the Unity version, each frame spends less time copying the world over to Unity: only what changed is looked at again, not every building and rock. Up to 3 more frames a second in the City-Shaft and the Signal Market. And a lamp’s brief pulse in the Underwater City, which Unity used to miss, now shows.',
+      numbers: [{ title: 'Frames a second, before → after', unit: 'fps', better: 'higher', device: 'Steam Deck, the Unity version (Linux player), 1280 × 800, uncapped, the Deck’s own preset', rows: [
+        { where: 'the Desert, at the ship', before: 71.8, after: 73.4 },
+        { where: 'the Desert, the camps', before: 64.7, after: 66.9 },
+        { where: 'the City-Shaft, the start', before: 55.6, after: 57.1 },
+        { where: 'the City-Shaft, the crowd', before: 55.3, after: 58.2 },
+        { where: 'the Signal Market, the start', before: 78.7, after: 80.1 },
+        { where: 'the Signal Market, the crowd', before: 90.3, after: 93.1 },
+        { where: 'Lorn, the start', before: 75.1, after: 75.8 },
+        { where: 'Lorn, the crowd', before: 78.2, after: 78.6 },
+        { where: 'the Underwater City, the start', before: 84.6, after: 84.4 },
+        { where: 'the Underwater City, the crowd', before: 76.5, after: 77.5 },
+      ], source: 'docs/systems/performance.md, "Unity mirror: only what changed (#455)"', note: 'The same player with the script before and after, two runs of each view (6 s measured), averaged; what Unity is sent is the same, byte for byte, as when it looks at everything every frame.' }] },
   ] },
   { v: '1.83', date: '2026-10-16', items: [
     // issue #406: src/temples/desert.js (ROOMS, LOGIC: hall, balcony, ballK, kS, dE, sentry in the hall, d3), pieces.js Ball

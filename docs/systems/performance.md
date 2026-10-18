@@ -4902,3 +4902,116 @@ cheaper ones (one program) and the merged meshes' copies cost a little when the 
 
 Raw: the session's scratchpad, `cpu-453/` (`drawlist.js`, `tally.py`, `list-*-base.lines`, `pix*.txt`, `shots/`,
 `tog-*.js`, `timeab.js`, `time-r1|r2-*.txt`, `timesum.py`).
+
+## Unity mirror: only what changed (#455)
+
+**The question** (the author, 2026-10-17): on the Steam Deck the script thread limits the frame in 4 of 5 worlds, and
+3–6 ms of it is the bridge's mirror (engine/mirror.js). Make it send, and look at, only what changed.
+
+### What the mirror did a frame, against what changed
+
+Counted by the mirror's census (`-split`: `split.census`, the bench's JSON; engine/mirror.js `profile()`), the Unity
+bundle in Node's VM against a stand-in host, at the #446 Deck views, a frame's average:
+
+| world, view | objects listed / matrices changed | drawables walked | looked at in full: before → after | matrices compared: before → after | matrices sent | materials read: before → after |
+|---|---|---|---|---|---|---|
+| Desert, spawn | 4 404 / 355–380 | 1 212 | 471 → 131 | 286 → 154 | 83 | 267 → 503 |
+| Desert, camps | 4 848 / 410–460 | 1 168 | 480 → 156 | 305 → 182 | 112 | 281 → 504 |
+| City-Shaft, start | 4 910 / 460–470 | 1 484 | 722 → 246 | 454 → 309 | 212 | 235 → 452 |
+| City-Shaft, crowd | 5 130 / 515–545 | 1 500 | 730 → 253 | 462 → 316 | 218 | 240 → 462 |
+| Signal Market, start | 3 504 / 274–285 | 742 | 324 → 92 | 227 → 154 | 106 | 149 → 270 |
+| Signal Market, crowd | 3 392 / 278–280 | 785 | 346 → 88 | 249 → 172 | 113 | 145 → 270 |
+| Lorn, start | 3 355 / 241–245 | 870 | 378 → 97 | 270 → 184 | 117 | 210 → 420 |
+| Lorn, crowd | 3 355 / 230–238 | 874 | 378 → 98 | 271 → 185 | 113 | 211 → 421 |
+| Underwater, start | 2 569 / 315–336 | 619 | 343 → 70 | 262 → 211 | 176 | 146 → 281 |
+| Underwater, crowd | 2 690–2 890 / 358–367 | 653–665 | 382 → 75 | 302 → 241 | 202 | 157 → 289 |
+
+So a frame sent 80–220 matrices (what moved: the transforms were already sent only on a change) but walked every one of
+the 600–1 500 shown drawables, looked at 40–50 % of them in full (their geometry and its attributes' versions, their
+render hooks, shape keys and materials: every drawable that had moved in the last half second, and every 4th frame each
+quiet one) and compared 30–40 % of the world matrices (the "still matrices" of round 113 skipped the rest, but compared
+every one every 8th frame, and every object with its own matrix every frame: 2–42 a frame, not the cost #448 feared).
+Where the time went, Node's profile of the desert's walk: the materials' live values 32 %, the render hooks' look-ups
+(hasOwnProperty) 11 %, the geometries' versions 15 %, the shape keys and the rest of the look 5 %, reading each
+drawable's flags off it 10 %. On the C# side the apply (`split.apply`, the main thread) is 0.7–1.7 ms and already only
+what was sent: the transforms that moved, the bones, the cloth; the main thread waits on the script 3–10 ms anyway, so it
+was left as it is.
+
+### What changed (engine/mirror.js `noticed`, engine/mirror-notices.js, engine/scene-matrices.js `track`)
+
+- **Matrices and visibility from the scene's list.** The list's frame (engine/scene-matrices.js) already reads every
+  object's `visible` and matrix flags; with `track` it keeps them beside it (`vis`, `auto`), and the mirror walks those
+  arrays and a node per list index instead of the objects. A drawable's matrix is compared only when the list changed it,
+  a walk outside the list stamped it (src/matrix-cache.js WORLD_STAMP), its matrix is its owner's (matrixAutoUpdate or
+  matrixWorldAutoUpdate off: the only objects whose world matrix is ever written by hand, checked: pit-void.js, veil.js,
+  thresholds.js, gadgets, tripo-cloth.js), it was not seen last frame, or a render hook ran a walk of its own on it. The
+  every-8th-frame compare "for safety" is gone. An own walk's subtree (the part batches show and hide in theirs) is read
+  by the mirror itself, after it.
+- **Notices for what is costly to watch** (engine/mirror-notices.js, put on by engine/unity/notices-on.js before anything
+  is made; the Unity bridge only): a render hook put on an object (onBeforeRender / onAfterRender: accessors on
+  Object3D's prototype) marks its node; an attribute rewritten (needsUpdate, the only way three counts a version: nothing
+  in the game writes `.version`), an index or an attribute added or taken (setIndex, setAttribute, deleteAttribute) mark
+  the mirror's records of the geometries that hold it stale. The records are found through a WeakMap: a property put on
+  three's attributes gave them a second shape, and the game's own update (the people, the world's life) grew 0.4–0.8 ms
+  slower on the Deck (measured: the notices alone, the mirror as before).
+- **Looked at in full only when something of it changed**: a drawable with a hook (or skinned, instanced, shape keys) every
+  frame as before; any other only for a notice, another geometry (its geometry and material are read every frame: two
+  reads off the object; as accessors too they cost the game more than they saved), or a stale record.
+- **Its materials' values every frame** (a colour, a glow, the live vectors, a temple skin's): nothing can tell when a
+  colour is written, so every shown material is read once a frame, at its first drawable in the list's order, as before
+  for the moving ones; a record of which of its uniforms can move (liveRecord) is kept on it and looked up again every
+  64 frames, as the live vectors already were. That is 270–500 materials a frame instead of 150–280, at half the cost each.
+- `-js-off noticed` (and `quiet`, `still`) turn it off for a before-and-after on one build.
+
+### Exact
+
+- **The same commands as the mirror that looks at everything.** `scripts/unity-compare/mirror-stream.mjs` records what the
+  Unity bundle tells the C# host frame by frame over a scripted run, made deterministic (Math.random seeded, the host's
+  clock a fixed step a call): each frame's command buffer, each transform sent, every other op and host call. Against the
+  same bundle with `-js-off noticed,quiet,still` (every drawable looked at in full, every matrix compared, every frame), in
+  the five worlds, a 600-frame walk forward and the bench's views: **byte for byte the same, every frame** (56 738–135 418
+  matrices sent a run).
+- **Against the bundle before** (6c6c57bfb): every transform and every visibility the same in every frame of all ten runs;
+  the frame's bytes the same except where the old mirror missed a change: a lamp's glow pulsing for 3 frames every ~2.7 s
+  in the Underwater City (its material, quiet between pulses, was looked at every 4th frame, and never caught the pulse:
+  now sent, 8–15 frames a run), points rewritten for a few frames in the desert (twice a walk) and a few colours in Lorn and the desert.
+- `tests/mirror-noticed.test.js`: random moves with no flag of any kind, owners' matrices flagged and written by hand,
+  hides, geometry swaps, a shared geometry rewritten, attributes added, another index, cloth, materials swapped and their
+  colours, glows and live vectors moved, a hook put on late, shape keys, instances, bones, reparenting, streaming in and
+  going: call for call what the look-at-everything mirror says, three seeds of 60 frames, every kind of op in them; and it
+  fails when the list's word on what moved is blinded or an attribute's version is moved by hand.
+- The sequence tests (tests/sequences-*.test.js: the web's and the engines' frames, 39) pass; the full suite passes.
+- **Unity's pictures against the web's** (scripts/unity-compare/, the editor's batch, High, 1280 × 720, under the build
+  lock; the five worlds' 31 views): before (`-js-off noticed`) and after, against the same web pictures: mean score 13.21 →
+  13.31, SSIM 0.890 → 0.888, ΔE 3.44 → 3.42. Unity's own pictures before against after differ by as much as two runs of the
+  same build do (0.2–11 % of the channels by more than 16, the most in the temples' first rooms, where the pool of light
+  on the floor round the traveller is caught at another size each run: the batch's shots go by the wall clock): the same in the VM, where those rooms' commands are the
+  same byte for byte before, after and against the look-at-everything mirror.
+
+### Measured on the Steam Deck
+
+The u-rel264 Linux player (build 2582, this round's base), copied to its own folder, the script bundle swapped (before:
+the player's own, byte for byte main's; after: this round's), gamescope headless 1280 × 800, uncapped, muted, its own
+profile (scripts/bench/deck-unity.sh), the #446 views, `-bench 6 -split`; two runs each (and a third of the base after,
+within 1 fps of the first two). fps (ms a frame) and the script thread's mirror, ms:
+
+| world, view | fps before → after | frame ms | script thread ms | mirror ms (its walk) |
+|---|---|---|---|---|
+| Desert, spawn | 71.8 → 73.4 | 13.93 → 13.63 | 12.86 → 12.57 | 5.14 → 4.60 (2.44 → 1.92) |
+| Desert, camps | 64.7 → 66.9 | 15.45 → 14.95 | 14.23 → 13.75 | 5.50 → 4.87 (2.53 → 1.96) |
+| City-Shaft, start | 55.6 → 57.1 | 17.98 → 17.51 | 16.32 → 15.79 | 5.69 → 4.96 (2.73 → 2.05) |
+| City-Shaft, crowd | 55.3 → 58.2 | 18.07 → 17.18 | 16.78 → 15.80 | 6.29 → 5.36 (2.94 → 2.07) |
+| Signal Market, start | 78.7 → 80.1 | 12.71 → 12.48 | 11.73 → 11.51 | 3.66 → 3.38 (1.64 → 1.31) |
+| Signal Market, crowd | 90.3 → 93.1 | 11.07 → 10.74 | 10.21 → 9.86 | 3.63 → 3.35 (1.59 → 1.22) |
+| Lorn, start | 75.1 → 75.8 | 13.31 → 13.20 | 12.40 → 12.14 | 4.25 → 3.85 (2.23 → 1.78) |
+| Lorn, crowd | 78.2 → 78.6 | 12.79 → 12.73 | 11.52 → 11.46 | 4.44 → 4.11 (2.37 → 1.95) |
+| Underwater, start | 84.6 → 84.4 | 11.81 → 11.84 | 10.91 → 10.92 | 3.17 → 2.94 (1.57 → 1.27) |
+| Underwater, crowd | 76.5 → 77.5 | 13.08 → 12.91 | 12.13 → 11.90 | 3.29 → 3.01 (1.59 → 1.25) |
+
+The mirror is 0.2–0.9 ms a frame lighter, its walk 20–30 %; the frame gains as much where the script thread is the frame
+(the City-Shaft, the Market, the desert), less in Lorn (where the GPU is the frame) and the Underwater City. What is left of the mirror: the list's frame (0.9–2.2 ms: every shown object's flags and numbers read, the
+memory reads themselves), the walk (1.2–2.1: 600–1 500 drawables' geometry and material and 270–500 materials' values),
+the bones (0.2–0.5). Tried and left out: the list's numbers (the objects' `_pqs`) in one array the list reads in order,
+no faster on the Deck. **The Retroid** was not measured: it is locked until the author is back (#456's agent holds it).
+Raw: the session's scratchpad, `mirror-455/` (`deck/<tag>/<world>-r<n>/unity-bench.json`, `deck-sum.mjs`, `vm/`,
+`streams/`, `compare/`).
