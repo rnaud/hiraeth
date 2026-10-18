@@ -1,0 +1,21 @@
+src/static-batch.js
+  s_5f899ba316b5dc::t_e3f1f01c806f82 118-132,134-135,234,270-271,273
+tests/static-batch.test.js
+  s_5f899ba316b5dc::t_55a0e5fed053b0 149-175
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0a3a02e139a3db8d80a097fe5d322065dbd6178e",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
