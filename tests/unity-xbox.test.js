@@ -250,6 +250,8 @@ test('the Xbox ships only its first views\' pipelines, warmed a few at a time, a
   assert.match(pso, /Application\.platform == RuntimePlatform\.WSAPlayerX64 \? XboxBatch : 0/);
   assert.match(pso, /WarmUpProgressively\(progressive, default\(JobHandle\)\)/);
   assert.match(pso, /progressive > 0 && job\.IsCompleted && !warm\.isWarmedUp/, 'the next batch only once the last is made');
+  assert.match(pso, /if \(worldUp\)\s*\{\s*said = true;[\s\S]*?else \{ job = warm\.WarmUpProgressively/, 'no batch once the world is mirrored: its first frame makes only what it draws');
+  assert.match(runner, /BridgePso\.Tick\(thread == null \|\| scriptEnvMade\.IsSet, scene && scene\.Nodes > 0\)/);
 });
 
 test('the engine finishes distant detail after the first frame, as the web does: the City-Shaft\'s trees-in-houses check off the load (issue #16)', () => {

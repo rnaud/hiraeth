@@ -100,7 +100,7 @@ test('BridgePso warms the shipped list on the workers, only on the platform and 
   assert.match(pso, /c\.graphicsDeviceType != SystemInfo\.graphicsDeviceType/);
   assert.match(pso, /c\.runtimePlatform != Application\.platform/, 'the APK (Vulkan too) leaves the Linux player\'s list');
   assert.match(pso, /if \(pending != null && engineMade\) Warm\(\)/, 'the main thread waits for the warm-up: the engine, made through it, first');
-  assert.match(read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs'), /BridgePso\.Tick\(thread == null \|\| scriptEnvMade\.IsSet\)/);
+  assert.match(read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs'), /BridgePso\.Tick\(thread == null \|\| scriptEnvMade\.IsSet, scene && scene\.Nodes > 0\)/);
   assert.match(pso, /BridgeArgs\.Arg\("-pso-file"\) \?\? Shipped/);
   assert.match(read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs'), /BridgePso\.Exit\(\);/, 'the trace saved at the exit');
 });

@@ -144,12 +144,22 @@ namespace Hiraeth.Bridge
         public static void Settled() { if (settledAt < 0) settledAt = Time.realtimeSinceStartupAsDouble; }
 
         /// <summary>Each frame (BridgeRunner.Update): the warm-up started once the script's engine is made, its end said once; the trace saved when its time comes.</summary>
-        public static void Tick(bool engineMade)
+        public static void Tick(bool engineMade, bool worldUp = false)
         {
             if (pending != null && engineMade) Warm();
-            // (progressively: the next N once the last N are made, a frame at a time)
+            // (progressively: the next N once the last N are made, a frame at a time; none once the world is mirrored, whose
+            // first frame then makes only the states it draws instead of waiting behind the rest of the list: the driver
+            // makes one at a time, so another world's states in the way held the City-Shaft's first frame up to 8 s longer)
             if (warm != null && !said && progressive > 0 && job.IsCompleted && !warm.isWarmedUp)
-            { job.Complete(); job = warm.WarmUpProgressively(progressive, default(JobHandle)); JobHandle.ScheduleBatchedJobs(); }
+            {
+                job.Complete();
+                if (worldUp)
+                {
+                    said = true;
+                    Debug.Log($"Hiraeth bridge: pso: {warm.completedWarmupCount} of {warm.totalGraphicsStateCount} states warmed when the world came, the rest left to their first draws, {(Time.realtimeSinceStartupAsDouble - startedAt) * 1000:0} ms after the start");
+                }
+                else { job = warm.WarmUpProgressively(progressive, default(JobHandle)); JobHandle.ScheduleBatchedJobs(); }
+            }
             if (warm != null && !said && (progressive > 0 ? warm.isWarmedUp : job.IsCompleted || warm.isWarmedUp))
             {
                 said = true;

@@ -681,7 +681,7 @@ namespace Hiraeth.Bridge
             // (drawn once the script's engine is made: it is made through this thread, which the prewarm's first frame holds
             // for as long as its pipelines take, 12-15 s on the Xbox; from then on its draws overlap the script's world build)
             if (thread == null || scriptEnvMade.IsSet) BridgePrewarm.Draw(cam, !booted);
-            BridgePso.Tick(thread == null || scriptEnvMade.IsSet);   // (its warm-up waits for the engine too: it holds this thread as long)
+            BridgePso.Tick(thread == null || scriptEnvMade.IsSet, scene && scene.Nodes > 0);   // (its warm-up waits for the engine too: it holds this thread as long; the Xbox's batches stop once the world is mirrored)
             FrameTimingManager.CaptureFrameTimings();
             if (FrameTimingManager.GetLatestTimings(1, timing) > 0) { cpuMs = timing[0].cpuFrameTime; gpuMs = timing[0].gpuFrameTime; }
             gpuSplit?.Tick();
