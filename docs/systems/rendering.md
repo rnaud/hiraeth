@@ -1507,6 +1507,23 @@ side: the share of pixels changing by more than a step): the bunk's alcove 3.3 �
 2.4 %; the other views (the doorway, the console, the sofa, the main room) 1.4-1.9 % before and after, their ink lines'
 own steps.
 
+## The bird's wings, shimmering from the saddle (v1.85, issue #489)
+
+The author: "In Vael, the bird shimmers when flying (when I'm riding it)." Her wings are rows of thin feathers
+stacked a few millimetres apart (src/bird.js `buildBird`), and every third one was another tone (the primaries
+`flight` / `featherWhite`, the secondaries `featherWhite` / `cover`, the secondaries all in one plane besides). Each
+change of tone is a colour edge the ink pass draws (post.js `inkLines`' albedo boundary; Unity's Composite.shader the
+same), so from the riding camera (13 m back, nearly level with the wings) each wing was a bundle of lines one or two
+pixels apart, and as it beat they came and went frame to frame. Not the cause, each checked: the camera against the
+bird (steady to half a pixel with the step wobbled 1/60-1/30 s), the bird's own cast shadow, the gaps in interior
+lines anchored in the world, the feathers' spacing in depth.
+
+The tones now go by row (primaries one, secondaries one, coverts one): no two feathers of different tones lie within
+`WING_TONE_GAP` (1 cm) of each other, so only a few row boundaries are inked (`tests/bird-wing-tones.test.js`). The
+tail's fan keeps its alternate tones: from the saddle it lies open, each feather several pixels wide. Measured (muted
+headless Chrome, Medium, 1280 × 720, Vael, gliding ridden, the game stepped 1/60 s a frame, 30 frames): pixels inside
+the bird that jump over 20 levels and straight back, 597 → 345 per 10 000 a frame (the wings held still: 23).
+
 ## Crease shading back, spot blacks gone (v1.73, issue #322)
 
 The author, after #322 and #325: "I don't like what we did here, we removed the shadows which were helpful, but we kept

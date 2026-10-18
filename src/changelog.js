@@ -26,6 +26,8 @@ export const CHANGELOG = [
     // issue #485: src/beam-stop.js (beamStop, bodyHit), src/temples/pieces.js Sentry beamLength, src/fluid-blade.js
     // shieldFace / covers / faceFor; tests/sentry.test.js
     'In the Rose House, the watcher’s aiming beam now stops at your shield when you hold it up, and at you when you don’t, instead of running on through you and out the other side.',
+    // issue #489: src/bird.js buildBird (the wings' tones by row, WING_TONE_GAP); tests/bird-wing-tones.test.js
+    'Riding the bird in Vael, her wings no longer shimmer as they beat. Their feathers took turns in two tones, and seen from the saddle each wing was a bundle of thin lines crawling with every stroke; now each row of feathers is one tone.',
   ] },
   { v: '1.84', date: '2026-10-17', items: [
     // issue #439: src/costumes.js (HEADS: the 47 pieces of the 15 hat sets, HAT_SETS, HAT_SET_WORLDS, hoodShell / hoodNeck /

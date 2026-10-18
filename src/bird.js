@@ -31,6 +31,12 @@ export const TAKEOFF = { crouch: 0.22, up: 8.5, forward: 7, gravity: 14, flight:
  * `runout` m/s of her speed.
  */
 export const LANDING = { height: 5, descent: 0.6, ttc: 1.6, rate: 5, reach: 0.5, lower: 0.12, flare: 0.42, brake: 9, touch: 2.2, dip: 0.42, settle: 0.5, runout: 5, footReach: 0.6 };
+/**
+ * Feathers of different tones are never stacked closer than this (m) on her wings (issue #489): each change
+ * of tone is an inked colour edge (post.js inkLines), and feathers millimetres apart that alternate tones drew a bundle
+ * of thin lines a pixel or two apart that shimmered across each wing as it beat, seen from the saddle.
+ */
+export const WING_TONE_GAP = 0.01;
 /** Where her feet are on the leg (the leg's own frame: the middle toe's base), and the ground under it. */
 export const FOOT = new THREE.Vector3(0, -1.66, 0.22);
 /**
@@ -111,12 +117,14 @@ export function buildBird() {
   for(const side of [-1,1]) {
     const shoulder=new THREE.Group();shoulder.position.set(side*.65,.35,.55);
     const elbow=new THREE.Group();elbow.position.set(side*2.65,0,-.3);
-    // Rounded leading edge over an overlapping row of secondary feathers.
+    // Rounded leading edge over an overlapping row of secondary feathers. (The tones go by row, never feather by
+    // feather: stacked millimetres apart, every change of tone is an inked colour edge, and from the saddle, behind
+    // and level with the wing, a row of them was a bundle of thin lines crawling with each beat: WING_TONE_GAP.)
     feather(shoulder,3.2,1.7,0,.04,.1,-side*1.35,featherWhite);
-    for(let i=0;i<10;i++) feather(shoulder,1.45+i*.04,.46,side*(.35+i*.235),-.03,-.05-i*.035,-side*.13,i%3?featherWhite:cover);
+    for(let i=0;i<10;i++) feather(shoulder,1.45+i*.04,.46,side*(.35+i*.235),-.03,-.05-i*.035,-side*.13,featherWhite);
     feather(elbow,2.7,1.1,0,.03,.12,-side*1.17,cover);
     // Primary feathers fan from the wrist with separate, swept tips.
-    for(let i=0;i<9;i++) feather(elbow,2.8-i*.09,.45,side*(.28+i*.18),-.035-i*.004,-i*.045,-side*(.48+i*.115),i%3?flight:featherWhite);
+    for(let i=0;i<9;i++) feather(elbow,2.8-i*.09,.45,side*(.28+i*.18),-.035-i*.004,-i*.045,-side*(.48+i*.115),flight);
     // Shorter coverts lie on top and hide the feather roots.
     for(let i=0;i<7;i++) feather(shoulder,.9,.46,side*(.3+i*.34),.16,.16,-side*.35,cover);
     shoulder.add(elbow);body.add(shoulder);wings.push({shoulder,elbow,side});
