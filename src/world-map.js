@@ -157,6 +157,17 @@ export const mapPixels = (grid, size = MAP.size) => {
  * void, the contours, the steep edges, the frame. Pure over a canvas-like context (tests use a recording one).
  */
 export function drawTerrain(ctx, grid, size = MAP.size) {
+  const steps = drawTerrainSteps(ctx, grid, size);
+  for (;;) { const r = steps.next(); if (r.done) return r.value; }
+}
+
+/**
+ * drawTerrain a part at a time (a generator: it yields between its parts, the ground's rows, its smoothing, each
+ * contour level, each pen line), so WorldMap.pump draws it within its few milliseconds a frame: in an engine
+ * (engine/raster.js) the whole picture drawn at once was the Map's first open's 140-170 ms frame in Unity on the Mac
+ * (issue #468). The same strokes in the same order: the same picture. Returns what drawTerrain returns.
+ */
+export function* drawTerrainSteps(ctx, grid, size = MAP.size) {
   const { h, water } = grid, nx = grid.nx ?? grid.n, ny = grid.ny ?? grid.n, cell = grid.bounds.w / nx;
   const [W, H] = mapPixels(grid, size), px = W / nx;
   const r = grid.range() ?? { lo: 0, hi: 1 }, span = Math.max(1, r.hi - r.lo);
@@ -182,14 +193,19 @@ export function drawTerrain(ctx, grid, size = MAP.size) {
       const k3 = lit > 1.05 ? 1.06 : lit > 0.8 ? 1 : lit > 0.55 ? 0.88 : 0.76;
       c = band.map((x) => Math.min(255, Math.round(x * k3)));
     }
-    if (img) { img.data.set([c[0], c[1], c[2], 255], k * 4); continue; }
-    ctx.fillStyle = `rgb(${c.join(',')})`;
-    ctx.fillRect(Math.floor(i * px), Math.floor(j * px), Math.ceil(px) + 1, Math.ceil(px) + 1);
+    if (img) img.data.set([c[0], c[1], c[2], 255], k * 4);
+    else {
+      ctx.fillStyle = `rgb(${c.join(',')})`;
+      ctx.fillRect(Math.floor(i * px), Math.floor(j * px), Math.ceil(px) + 1, Math.ceil(px) + 1);
+    }
+    if (i === nx - 1 && j % 64 === 63) yield;
   }
+  yield;
   if (img) {
     sctx.putImageData(img, 0, 0);
     ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(small, 0, 0, W, H);
+    yield;
   }
   // the void: nothing below (an island's edge, the sky): dotted paper
   ctx.fillStyle = 'rgba(43,33,31,0.22)';
@@ -203,6 +219,7 @@ export function drawTerrain(ctx, grid, size = MAP.size) {
     ctx.lineWidth = idx % 5 === 0 ? 1.2 : 0.8;
     for (let j = 0; j < ny - 1; j++) for (let i = 0; i < nx - 1; i++) contourCell(ctx, at(i, j), at(i + 1, j), at(i + 1, j + 1), at(i, j + 1), lv, (i + 0.5) * px, (j + 0.5) * px, px);
     ctx.stroke();
+    yield;
   }
   // the pen's lines, traced round (marching squares, so they run smooth): the steep places (a cliff, a wall, a
   // dome's or a roof's edge), the shore of the void (an island's edge), the water's edge
@@ -223,8 +240,11 @@ export function drawTerrain(ctx, grid, size = MAP.size) {
     for (let j = -1; j < ny; j++) for (let i = -1; i < nx; i++) contourCell(ctx, val(i, j), val(i + 1, j), val(i + 1, j + 1), val(i, j + 1), 0.5, (i + 0.5) * px, (j + 0.5) * px, px);
     ctx.stroke();
   };
+  yield;
   trace(relief, INK, Math.max(1, px * 0.3));
+  yield;
   trace(solid, INK, Math.max(1.6, px * 0.45));
+  yield;
   trace(wet, 'rgba(31,79,96,0.8)', 1.1);
   // the frame
   ctx.strokeStyle = INK; ctx.lineWidth = 3; ctx.strokeRect(1.5, 1.5, W - 3, H - 3);
@@ -233,6 +253,7 @@ export function drawTerrain(ctx, grid, size = MAP.size) {
 }
 
 const fin = (v, or) => (Number.isFinite(v) ? v : or);
+const now = () => (typeof performance !== 'undefined' ? performance.now() : Date.now());
 
 /** One cell of marching squares at level `lv` (corners clockwise from the top left; centre (x, y), side s). */
 function contourCell(ctx, a, b, c, d, lv, x, y, s) {
@@ -281,13 +302,17 @@ export class WorldMap {
   pump(ms = MAP.budget) {
     const m = this.want;
     if (!m || m.drawn) return false;
-    if (!m.grid.step(ms)) return false;
-    m.canvas = this.makeCanvas();
-    if (m.canvas) {
-      [m.canvas.width, m.canvas.height] = mapPixels(m.grid, this.size);
-      const ctx = m.canvas.getContext('2d');
-      if (ctx) drawTerrain(ctx, m.grid, this.size);
+    const t0 = now();
+    if (!m.drawing) {
+      if (!m.grid.step(ms)) return false;
+      // (the rays done: the picture drawn from the next pump on, a part at a time in the same budget: drawTerrainSteps)
+      m.canvas = this.makeCanvas();
+      const ctx = m.canvas ? ([m.canvas.width, m.canvas.height] = mapPixels(m.grid, this.size), m.canvas.getContext('2d')) : null;
+      m.drawing = ctx ? drawTerrainSteps(ctx, m.grid, this.size) : [][Symbol.iterator]();
+      if (now() - t0 >= ms) return false;
     }
+    do { if (m.drawing.next().done) { m.drawing = null; break; } } while (now() - t0 < ms);
+    if (m.drawing) return false;
     m.drawn = true;
     this.onReady?.();
     return true;

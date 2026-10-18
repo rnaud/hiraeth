@@ -6,6 +6,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 - Riding the bird in Vael, her wings no longer shimmer as they beat. Their feathers took turns in two tones, and seen from the saddle each wing was a bundle of thin lines crawling with every stroke; now each row of feathers is one tone.
 - In the Rose House, the watcher’s aiming beam now stops at your shield when you hold it up, and at you when you don’t, instead of running on through you and out the other side.
+- Opening the Map for the first time in a world no longer freezes the game for a moment: its ground is drawn a little each frame while the page says how far along it is. In the Unity version the longest frame of a trip through the menus and the Map went from about 190 ms to 29.
 - The fight temples’ end card no longer says your sword and shield wear the new colours before you have them: they take them once found. And people no longer tell of a game you can’t play yet, a trial that wants the hoverbike or a gadget you haven’t found.
 - In Lorn, locking on to a bellows toad near a bank or a rise in the ground no longer freezes the game. As the toad looked for high ground to spit from, its search broke and the game stopped.
 - The Clock-House’s and the Undertower’s last steps now point the right way: their guardians wait upstairs, and the steps used to say go down.

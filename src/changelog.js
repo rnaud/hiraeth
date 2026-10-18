@@ -28,6 +28,14 @@ export const CHANGELOG = [
     'In the Rose House, the watcher’s aiming beam now stops at your shield when you hold it up, and at you when you don’t, instead of running on through you and out the other side.',
     // issue #489: src/bird.js buildBird (the wings' tones by row, WING_TONE_GAP); tests/bird-wing-tones.test.js
     'Riding the bird in Vael, her wings no longer shimmer as they beat. Their feathers took turns in two tones, and seen from the saddle each wing was a bundle of thin lines crawling with every stroke; now each row of feathers is one tone.',
+    // issue #468: src/world-map.js drawTerrainSteps (WorldMap.pump draws the picture a part at a time in its budget);
+    // tests/world-map.test.js; docs/systems/performance.md "Stutters"
+    { text: 'Opening the Map for the first time in a world no longer freezes the game for a moment: its ground is drawn a little each frame while the page says how far along it is. In the Unity version the longest frame of a trip through the menus and the Map went from about 190 ms to 29.',
+      numbers: [{ title: 'Opening the Start menu, the game menu\'s pages and the Map (twice each run), the longest frame, before → after', unit: 'ms', better: 'lower', device: 'Mac (Apple M4 Pro), the Unity version (macOS development player), High, 1280 × 720, uncapped, muted', rows: [
+        { where: 'first run', before: 198.0, after: 28.1 },
+        { where: 'second run', before: 175.3, after: 29.3 },
+        { where: 'frames over 33 ms, both runs', before: 11, after: 0 },
+      ], source: 'docs/systems/performance.md, "Stutters"' }] },
   ] },
   { v: '1.84', date: '2026-10-17', items: [
     // issue #439: src/costumes.js (HEADS: the 47 pieces of the 15 hat sets, HAT_SETS, HAT_SET_WORLDS, hoodShell / hoodNeck /

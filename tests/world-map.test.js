@@ -2,9 +2,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { MAP, VIEW, MapView, mapBounds, mapAspect, mapPixels, zoomBounds, toMap, onMap, compass, facing, metres, HeightGrid, contourStep, drawTerrain, WorldMap, mapMarks, scaleBar } from '../src/world-map.js';
+import { MAP, VIEW, MapView, mapBounds, mapAspect, mapPixels, zoomBounds, toMap, onMap, compass, facing, metres, HeightGrid, contourStep, drawTerrain, drawTerrainSteps, WorldMap, mapMarks, scaleBar } from '../src/world-map.js';
 import { GameMenu, mapPanel, PANELS } from '../src/game-menu.js';
 import { menuSources } from '../src/game-menu-data.js';
+import { PixelCanvas } from '../engine/raster.js';
 
 const src = (f) => readFileSync(new URL(`../${f}`, import.meta.url), 'utf8');
 
@@ -306,4 +307,26 @@ test('an engine\'s menus: the Map\'s shape handed to the Unity bridge, which dra
   assert.match(cs, /float mw = Mathf\.Min\(w - 10, \(h - 10\) \* aspect\), mh = mw \/ aspect;/);
   // (the game menu's sheet, BridgeMenu.Chrome.cs GameFrame since issue #423: its sides' tabs, the tabs over it, the strip under it)
   assert.match(cs, /\(float w, float h\) MapRoom\(\) => \(W - 2 \* Mathf\.Max\(56, W \* 0\.056f\) - 36 - 10, H - 70 - 112 - 26 - 10\);/);
+});
+
+test('the picture drawn a part at a time (issue #468): the same pixels as at once; pump draws it over several frames', () => {
+  const b = { x0: 0, z0: 0, w: 900, h: 1250 };
+  const grid = () => { const g = new HeightGrid(b, [90, 125], (x, z) => ({ h: 20 * Math.sin(x / 40) * Math.cos(z / 55) + z / 30, water: x < 120 && z < 200 ? 30 : null })); while (!g.step(1000)); return g; };
+  const draw = (steps) => {
+    const g = grid(), c = new PixelCanvas(1); [c.width, c.height] = mapPixels(g, 320);
+    if (!steps) { drawTerrain(c.getContext('2d'), g, 320); return { c, parts: 1 }; }
+    let parts = 0; const it = drawTerrainSteps(c.getContext('2d'), g, 320);
+    while (!it.next().done) parts++;
+    return { c, parts };
+  };
+  const one = draw(false), many = draw(true);
+  assert.ok(many.parts > 10, `${many.parts} parts`);
+  const px = (c) => c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+  assert.deepEqual(px(many.c), px(one.c), 'the same picture');
+  // (pump: the rays, then the picture over more than one pump at a budget smaller than the whole draw)
+  const wm = new WorldMap({ sample: (x, z) => ({ h: Math.sin(x / 30) * 10 + z / 50 }), canvas: () => new PixelCanvas(1), size: 320 });
+  wm.view(b, 90);
+  let pumps = 0;
+  while (!wm.pump(0.01) && pumps < 5000) pumps++;
+  assert.ok(wm.want.drawn && pumps > 20, `${pumps} pumps`);
 });
