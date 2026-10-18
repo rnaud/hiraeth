@@ -50,7 +50,9 @@ export class UnityBackend {
   geometry(gid, g, geo) {
     this.geoms.set(gid, g);
     if (geo) (this.gidOf ??= new WeakMap()).set(geo, gid);
-    if (geo?.userData?.faceKeys?.texture) (this.keysOf ??= new Map()).set(gid, geo.userData.faceKeys); else this.keysOf?.delete(gid);   // (the overshirt's frame names its garment's: clothOffload)
+    // (or three's own morph targets: the traveller's portrait head, characters/portrait-head.js: his blink, smile, brows, open mouth)
+    const keys = geo?.userData?.faceKeys?.texture ? geo.userData.faceKeys : this.surfacesD !== false ? morphKeys(geo) : null;
+    if (keys) (this.keysOf ??= new Map()).set(gid, keys); else this.keysOf?.delete(gid);   // (the overshirt's frame names its garment's: clothOffload)
     // (a geometry rewritten: its variants go again when next drawn)
     const was = this.sentOf.get(gid);
     if (was?.size) { for (const k of was) this.sent.delete(k); was.clear(); this._resend = true; }
@@ -65,7 +67,7 @@ export class UnityBackend {
       this.host.Geometry(key, this.toHost(buf));
       // a MakeHuman face's shape keys (body.js keyTexture): the mesh's blend shapes, only the vertices they move
       const fk = this.keysOf?.get(gid);
-      if (fk && this.host.FaceKeys) { const kb = faceKeyDeltas(fk, g.attributes.position.array.length / 3); if (kb) this.host.FaceKeys(key, this.toHost(kb)); }
+      if (fk && this.host.FaceKeys) { const nv = g.attributes.position.array.length / 3, kb = fk.morph ? morphKeyDeltas(fk, nv) : faceKeyDeltas(fk, nv); if (kb) this.host.FaceKeys(key, this.toHost(kb)); }
       this.sent.add(key); this.sentGids.add(gid);
       let of = this.sentOf.get(gid);
       if (!of) this.sentOf.set(gid, of = new Set());
@@ -78,6 +80,8 @@ export class UnityBackend {
   material(mid, spec, m) {
     this.specs.set(mid, spec);
     const pm = portMaterial(spec, mid);
+    // (-js-off surfd: issue #264's surfaces D left out, its before pictures)
+    if (this.surfacesD === false) for (const k of ['phFit', 'phFit2', 'phSpeech', 'phBlink', 'surfD', 'cutMe', 'lineWhite']) { if (k === 'phFit' && pm.phFit) pm.tripoFace = 0; delete pm[k]; }
     if (pm.port) this.ports.set(mid, pm.port);
     // a picture on it (makeMaterial's map: a canvas the game drew, engine/raster.js, or a DataTexture's bytes): sent first,
     // the material names it (BridgeRenderer.Texture, the Surface shader's _Map)
@@ -541,6 +545,36 @@ export function faceKeyDeltas(fk, nv) {
   const buf = new ArrayBuffer(words * 4), u = new Uint32Array(buf), f = new Float32Array(buf);
   let o = 0;
   u[o++] = nk; u[o++] = nv;
+  for (const L of lists) { u[o++] = L.length / 4; for (let i = 0; i < L.length; i += 4) { u[o++] = L[i]; f[o++] = L[i + 1]; f[o++] = L[i + 2]; f[o++] = L[i + 3]; } }
+  return buf;
+}
+/** A geometry's own morph targets (three's morphAttributes.position) as a face's keys: { morph, relative, base }; null without. */
+export function morphKeys(geo) {
+  const M = geo?.morphAttributes?.position;
+  if (!M?.length || !geo.attributes?.position) return null;
+  return { morph: M, relative: !!geo.morphTargetsRelative, base: geo.attributes.position };
+}
+/**
+ * Three's morph targets as blend shapes for Unity (as faceKeyDeltas: the same layout, x mirrored): each target's offsets
+ * (relative, or less the rest position), only the vertices it moves. Their weights are the mesh's morphTargetInfluences
+ * (engine/mirror.js, op 19).
+ */
+export function morphKeyDeltas(mk, nv) {
+  const lists = [];
+  let words = 2;
+  for (const A of mk.morph) {
+    const L = [], n = Math.min(nv, A.count), b = mk.base;
+    for (let v = 0; v < n; v++) {
+      let x = A.getX(v), y = A.getY(v), z = A.getZ(v);
+      if (!mk.relative) { x -= b.getX(v); y -= b.getY(v); z -= b.getZ(v); }
+      if (Math.abs(x) > 1e-7 || Math.abs(y) > 1e-7 || Math.abs(z) > 1e-7) L.push(v, -x, y, z);
+    }
+    lists.push(L); words += 1 + L.length;
+  }
+  if (words === 2 + lists.length) return null;
+  const buf = new ArrayBuffer(words * 4), u = new Uint32Array(buf), f = new Float32Array(buf);
+  let o = 0;
+  u[o++] = lists.length; u[o++] = nv;
   for (const L of lists) { u[o++] = L.length / 4; for (let i = 0; i < L.length; i += 4) { u[o++] = L[i]; f[o++] = L[i + 1]; f[o++] = L[i + 2]; f[o++] = L[i + 3]; } }
   return buf;
 }

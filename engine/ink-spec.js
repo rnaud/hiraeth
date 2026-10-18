@@ -42,9 +42,12 @@ export function inkSpec(m) {
     vertexColors: !!m.vertexColors, depthWrite: m.depthWrite !== false, depthTest: m.depthTest !== false, visible: m.visible !== false, blending: m.blending ?? 1,
     defines: {}, u: {},
   };
+  if (m.colorWrite === false) spec.colorWrite = false;   // (no colour written: depth or shadows only, the crowd's shadow casters)
   if (m.polygonOffset) spec.offset = [m.polygonOffsetFactor ?? 0, m.polygonOffsetUnits ?? 0];   // (pulled in front in depth: the splats)
   if (m.userData?.albedoLinear) spec.albedoLinear = true;
   if (Array.isArray(m.userData?.lining)) spec.lining = m.userData.lining.slice(0, 3);   // (back faces in this colour: the overshirt's lining)   // (its colours linear: the shader turns them to display values)
+  // the traveller's portrait head (src/characters/portrait-head.js): its fit (offset, scale, the mouth's height), engine/game.js's
+  if (Array.isArray(m.userData?.portraitFace)) spec.portraitFace = m.userData.portraitFace.slice(0, 5);
   // a temple skin's pattern (src/temples/skins/skin-shader.js): its number and its uniforms packed, as the engines draw it
   const skin = skinPatternSpec(m);
   if (skin) spec.skin = { body: skin.body, data: Array.from(skin.data) };

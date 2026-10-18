@@ -130,7 +130,8 @@ Shader "Hidden/Hiraeth/Composite"
       float invDepth(float d) { return d > 0.0 ? 1.0 / d : 0.0; }
 
       // the light term under a material's line step (materials.js LINE: gAlbedoLight.a = L + 2 x step)
-      float lightOf(float a) { return a - 2.0 * floor(a * 0.5); }
+      // (a white line, makeMaterial({ lineWhite }), is stored in the sign bit: −(1 + L + 2 × step); issue #264, surfaces D)
+      float lightOf(float a) { a = a < 0.0 ? -a - 1.0 : a; return a - 2.0 * floor(a * 0.5); }
       // x depth edge, y crease, z colour edge, w shadow edge; minDepth the nearest surface in the kernel, near.xy where it
       // is, near.z the signed Laplacian of 1/z (over 0: a depth edge's far side, whose line is the surface's in front)
       float4 inkLines(float2 uv, float w, bool interior, out float minDepth, out float3 near)
@@ -195,7 +196,9 @@ Shader "Hidden/Hiraeth/Composite"
       // 2 x 2 quad (12 each, lane = x + 2y in the quad), the same for every quad (no random turn: that drew a grey speckle
       // crawling in every room, issue #322), each weighing 1 - 0.6 r^2 by how far out it lies; frag averages the four
       // lanes over the quad (quadMean), so the shading falls off smoothly from a corner
-      float creaseAO(float2 uv, float3 nW, float d, int lane)
+      // (self: this point on a mover, a foe or the drone, +64 in gHatch.a: its own pockets its own; a tap on another one is
+      // seen past like a person's, post.js notStanding; issue #264, surfaces D)
+      float creaseAO(float2 uv, float3 nW, float d, float self, int lane)
       {
         float3 P = viewPos(uv, d);
         float3 nV = normalize(mul(transpose((float3x3)_CamWorld), nW));
@@ -213,7 +216,7 @@ Shader "Hidden/Hiraeth/Composite"
           float dist = length(v);
           float cc = max(dot(nV, v / max(dist, 1e-4)) - 0.2, 0.0) * (1.0 - smoothstep(R * 0.6, R * 1.6, dist));
           // (grass blades close nothing in; a tap on a person isn't counted at all, open or closed: post.js notPerson)
-          float t = fmod(tH(suv).a, 16.0), np = step(fmod(t, 8.0), 1.5);
+          float ha = tH(suv).a, t = fmod(ha, 16.0), np = step(fmod(t, 8.0), 1.5) * max(step(ha, 63.5), self);
           ao += cc * step(t, 7.5) * np * w; seen += np * w;
         }
         return saturate(ao / max(seen, 0.6) * 2.2);
@@ -554,7 +557,9 @@ Shader "Hidden/Hiraeth/Composite"
         bool ownFlat = shadeQ.x > 9.5;
         float shadeHue = shadeQ.x > 0.5 && !ownFlat ? (shadeQ.x - 1.0) / 8.0 : _ShadeKeep;
         float shadowFlat = ownFlat ? (shadeQ.x - 10.0) / 5.0 : _ShadowFlat;
-        // gHatch.a: glow + 2 hero + 4 figure + 8 soft ink (grass) + 16 a face + 32 banked sand
+        // gHatch.a: glow + 2 hero + 4 figure + 8 soft ink (grass) + 16 a face + 32 banked sand + 64 a mover (materials.js MOVER)
+        float mover = step(63.5, surface.a);
+        surface.a -= 64.0 * mover;
         float drift = step(31.5, surface.a);
         surface.a -= 32.0 * drift;
         float face = step(15.5, surface.a);
@@ -582,7 +587,7 @@ Shader "Hidden/Hiraeth/Composite"
         if (_AO > 0.0)
         {
           float2 lq = fmod(floor(i.pos.xy), 2.0);
-          if (!isSky && depth < 260.0 && hero < 0.5 && soft < 0.5 && face < 0.5) creaseOcc = creaseAO(uv, N.xyz, depth, int(lq.x + 2.0 * lq.y));
+          if (!isSky && depth < 260.0 && hero < 0.5 && soft < 0.5 && face < 0.5) creaseOcc = creaseAO(uv, N.xyz, depth, mover, int(lq.x + 2.0 * lq.y));
           creaseOcc = quadMean(creaseOcc, i.pos.xy);
         }
         float3 rd = viewRay(uv);
@@ -675,7 +680,7 @@ Shader "Hidden/Hiraeth/Composite"
         if (ink > 0.02 && hero < 0.5 && !isSky) {
           float2 fo = max(silW * _PixelRatio, 1.0) * _Res.zw;
           float4 t1 = tH(euv + float2(fo.x, 0)), t2 = tH(euv - float2(fo.x, 0)), t3 = tH(euv + float2(0, fo.y)), t4 = tH(euv - float2(0, fo.y));
-          float4 fa = float4(t1.a, t2.a, t3.a, t4.a);
+          float4 fa = fmod(float4(t1.a, t2.a, t3.a, t4.a), 64.0);   // (+64, a mover: nothing to the lines)
           driftNear = max(drift, max(max(step(31.5, fa.x), step(31.5, fa.y)), max(step(31.5, fa.z), step(31.5, fa.w))));
           fa = fmod(fa, 16.0);
           float4 faSoft = step(7.5, fa);
@@ -704,13 +709,15 @@ Shader "Hidden/Hiraeth/Composite"
         if (ink > 0.02 && hero < 0.5) {
           bool own = !isSky && ownK.z < 0.5 * _DepthThresh;
           float4 Ao = tA(own ? euv : ownK.xy);
-          float lq = floor(Ao.a * 0.5);
+          float lq = floor((Ao.a < 0.0 ? -Ao.a - 1.0 : Ao.a) * 0.5);
           if (lq > 0.5) {
             float wq = lq - 4.0 * floor(lq * 0.25), tq = floor(lq * 0.25);
             float4 pick = float4(wq == 0.0, wq == 1.0, wq == 2.0, wq == 3.0);
             ink *= dot(pick, float4(1.0, 0.82, 0.66, 0.5)) * (own ? 1.0 : dot(pick, float4(1.0, 0.45, 0.0, 0.0)));
             lineC = lerp(_Ink, Ao.rgb * _ShadowTint * 0.62, tq / 3.0);
           }
+          // inverted ink (the shade, src/shade.js; a struck foe's first frames: RT0.a's sign bit): its lines in the paper's white
+          if (Ao.a < 0.0) lineC = float3(0.97, 0.95, 0.9);
         }
         float heroInk = max(heroBoundary * 0.82, max(eI.y, eI.z) * 0.22 * heroDetail * hero);
         ink = lerp(ink, heroInk, heroNear);

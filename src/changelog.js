@@ -223,6 +223,12 @@ export const CHANGELOG = [
     // issue #463: engine/unity/port-format.js DECAL_OFFSET (every decal three pulls in front, the splats aside), BridgePrewarm's
     // state key with the offset; engine/sequences.js decals; tests/unity-decals.test.js; docs/systems/engine-bridge.md "Parity bits"
     'In the Unity version, the marks lying on the desert’s ground are drawn whole, as on the web: the sand river’s pale ribbon, the tide lines along the dry wash, the salt pan, the basin’s wet shore, the sand banked against things and the crash’s scrapes no longer break into jagged pieces with the ground showing through.',
+    // issue #264 surfaces D: engine/unity/backend.js morphKeys / morphKeyDeltas, engine/mirror.js (morphTargetInfluences, LIVE_VECTORS
+    // uHeadSpeech, uPortraitBlink, uCutMe, uLineWhite), port-format.js (portraitFace, surfD, cutMe, lineWhite, colorWrite → hidden),
+    // ink-spec.js, engine/game.js; unity/Hiraeth PortraitFace.hlsl, Surface.shader (_TripoFace 2, _SurfD, the cut, the white line,
+    // the plants' lean), Composite.shader (white lines, a mover's taps), HiraethLook (_HeroCut), WorldLoader, BridgeRenderer;
+    // tests/unity-surfaces-d.test.js; docs/systems/engine-bridge.md "Surfaces D"
+    'In the Unity version, the traveller’s face moves as on the web: he blinks, smiles, raises his brows and opens his mouth as he talks (it stayed still). The ship’s rooms keep their shading strokes clear instead of a grey blur; plants lean away from you along the path you walk through them; the camera pressed into the traveller leaves him out of the view; a struck foe’s lines flash white; and the shading round foes by a wall no longer darkens round them.',
   ] },
   { v: '1.83', date: '2026-10-16', items: [
     // issue #406: src/temples/desert.js (ROOMS, LOGIC: hall, balcony, ballK, kS, dE, sentry in the hall, d3), pieces.js Ball

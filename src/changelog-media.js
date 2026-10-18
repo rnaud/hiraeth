@@ -1196,6 +1196,9 @@ const WATER458 = 'Issues #264 / #458 (surfaces C): the Unity bridge in the edito
 const WATER458W = 'Issues #264 / #458 (surfaces C): the web game in muted headless Chrome (High, 1280 × 720, a fixed render scale) on this branch’s own Vite (port 5468), the same view as Unity’s; 18 October; cwebp -q 72';
 const DEC463 = 'Issue #463: the Unity bridge in the editor’s batch run on this Mac (scripts/unity-compare/sequences.mjs unity: muted, High, 1280 × 720), the sequence `decals`, its `tide` beat (the desert’s dry wash); before: #459’s state (the splats’ offset alone); after: this change; 18 October; cwebp -q 72';
 const DEC463W = 'Issue #463: the web game in muted headless Chrome (High, 1280 × 720) on this branch’s own Vite (port 5463), the same beat; 18 October; cwebp -q 72';
+/** (v1.84, issue #264 surfaces D) */
+const SURFD = 'Issue #264 (surfaces D): the Unity bridge in the editor’s batch run on this Mac (muted, High, 1280 × 720, -fresh -no-hud); before: the same build with -js-off surfd (this round left out); after: this change; the traveller’s face from 0.55 m with his expression set (engine/unity/game.js aimed: smile 0.8, squint 0.25, brow 0.15; surprised: brow 1, open 0.55), the ship’s main room from -aboard main; 18 October; cwebp -q 72';
+const SURFDW = 'Issue #264 (surfaces D): the web game in muted headless Chrome (High, 1280 × 720, a fixed render scale) on this branch’s own Vite (port 5469), the same view and expression; 18 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.84': [
     { match: 'In the Unity version the waterfalls fall as on the web', shots: [
@@ -1212,6 +1215,15 @@ export const CHANGELOG_MEDIA = {
       { name: 'unity-sparkle', title: 'The sun on the water', caption: 'The mangrove’s water from high over the jetty in Unity: before, plain; after, the white dashes of sun on it toward the light', from: WATER458 },
       { name: 'unity-sparkle-web', only: 'after', title: 'The sparkle on the web', caption: 'The same view on the web', from: WATER458W },
     ], see: 'In the Unity version, dive in the pool under the City Behind the Waterfall’s curtain, or walk the Underwater City’s squares.' },
+    { match: 'In the Unity version, the traveller’s face moves as on the web', shots: [
+      { name: 'unity-face-open', title: 'Surprised', caption: 'The traveller surprised (brows up, mouth open) in Unity: before, his face as painted, still; after, the brows up and the mouth open, as on the web', from: SURFD },
+      { name: 'unity-face-open-web', only: 'after', title: 'Surprised on the web', caption: 'The same expression on the web (his head turns with his idle on its own clock)', from: SURFDW },
+      { name: 'unity-face-smile', title: 'Happy', caption: 'The traveller happy in Unity: before, still; after, the corners of his mouth up and his lids a little lower', from: SURFD },
+      { name: 'unity-ship-hatch', title: 'The ship’s main room', caption: 'The ship’s main room in Unity: before, the floor’s and walls’ shade strokes so close they blur grey; after, kept apart as on the web', from: SURFD },
+      { name: 'unity-ship-hatch-web', only: 'after', title: 'The room on the web', caption: 'The same room on the web', from: SURFDW },
+      { name: 'unity-brushed', only: 'after', title: 'Brushed metal (already as the web)', caption: 'The lab’s steel, brushed steel and chrome in Unity: the brushed cube’s streaks and stretched highlight were already the web’s (checked, nothing to change)', from: SURFD },
+      { name: 'unity-brushed-web', only: 'after', title: 'Brushed metal on the web', caption: 'The same view on the web', from: SURFDW },
+    ], see: 'In the Unity version, talk to someone and watch the traveller’s face in the close-ups; walk into the ship’s main room; walk through tall flowers; back the camera into a wall behind you; strike a foe.' },
     { match: 'In the Unity version, “ride the bird” shows over the bird', shots: [
       { name: 'unity-splat-ground', title: 'A splat', caption: 'A splat of the fluid in the Garden’s meadow in Unity, 0.08 s after it landed: before, slivers of it, the ground drawn over the rest; after, whole, as on the web', from: PAR459 },
       { name: 'unity-splat-ground-web', only: 'after', title: 'The splat on the web', caption: 'The same moment on the web (its turn and drops are drawn at random)', from: PAR459W },

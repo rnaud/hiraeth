@@ -58,10 +58,13 @@ import { noticesOn, ownHook, attrIn } from './mirror-notices.js';
  * ray and clock (boxes/), the coral-shirt traveller's drawn face (characters/tripo-face.js: brows, eyes, mouth), a
  * face's expression as its ink draws it (Humanoid.setExpression: uMood, uMood2).
  */
-export const LIVE_VECTORS = ['uBoxA', 'uTfBrowA', 'uTfBrowB', 'uTfEye', 'uTfMouth', 'uMood', 'uMood2', 'uRays', 'uDoor', 'uHoloA', 'uHoloB', 'uHoloC', 'uBreathe', 'uVeinBox', 'uSplatTime'];   // (uRays: a light's wash, its rays' clock: src/veil.js; uDoor: a way through's glow, src/door-light.js; uHoloA..C: a recording's figure, src/ship/hologram.js)
+export const LIVE_VECTORS = ['uBoxA', 'uTfBrowA', 'uTfBrowB', 'uTfEye', 'uTfMouth', 'uMood', 'uMood2', 'uRays', 'uDoor', 'uHoloA', 'uHoloB', 'uHoloC', 'uBreathe', 'uVeinBox', 'uSplatTime',
+  'uHeadSpeech', 'uPortraitBlink', 'uCutMe', 'uLineWhite'];   // (uRays: a light's wash, its rays' clock: src/veil.js; uDoor: a way through's glow, src/door-light.js; uHoloA..C: a recording's figure, src/ship/hologram.js)
 const LIVE_FROM_SPEC = LIVE_VECTORS.indexOf('uMood');
 // (uBreathe: the Buried Machine's clock, src/breathe-shader.js; uVeinBox: where Lorn's vein map lies, src/lorn-veins.js; uSplatTime:
-// the splats' clock, a number sent as (t, 0, 0, 0), src/splat-decal.js; issue #264)
+// the splats' clock, a number sent as (t, 0, 0, 0), src/splat-decal.js; issue #264; surfaces D: the portrait head's mouth and
+// blink, characters/portrait-head.js; the traveller's own surfaces, cut while the lens is in him, materials.js uCutMe; a line
+// drawn white, uLineWhite: the shade, a struck foe's flash)
 const liveVec = (v) => (v?.isVector4 ? v : typeof v === 'number' ? (LIVE_NUM.x = v, LIVE_NUM) : null);
 const LIVE_NUM = { x: 0, y: 0, z: 0, w: 0 };
 
@@ -446,8 +449,9 @@ export class SceneMirror {
     // its material a look for the draw (a foe's flash, foe-react.js installFlash) gives it back. (Never called before, a
     // struck foe stayed white and glowing in Unity, its flash laid on again every frame: issue #264)
     if (hooked && ownHook(o, 'onAfterRender')) { try { o.onAfterRender(RENDERER_STUB, scene, camera, geo, o.material, null); } catch { /* as above */ } }
-    // a MakeHuman face's shape keys (face-keys.js: the mesh's own weights), when they move
-    const KW = look ? o.userData.keyWeights : null;
+    // a MakeHuman face's shape keys (face-keys.js: the mesh's own weights), or three's morph targets' (the traveller's
+    // portrait head: his blink, smile, brows and open mouth; backend.js morphKeys), when they move
+    const KW = look ? o.userData.keyWeights ?? (o.morphTargetInfluences?.length ? o.morphTargetInfluences : null) : null;
     if (KW && B.keyWeights) {
       const S = node.keys ??= new Float32Array(KW.length).fill(NaN);
       let moved = false;

@@ -51,7 +51,15 @@ Shader "Hiraeth/Surface"
     _Veins ("A dark cap's veins", Float) = 0
     _Lining ("Back faces' colour (rgb, a 1: on)", Vector) = (0, 0, 0, 0)
     _BoxOn ("A makers' box", Float) = 0
-    _TripoFace ("The coral-shirt traveller's drawn face", Float) = 0
+    _TripoFace ("The coral-shirt traveller's drawn face (2: the portrait head's, PortraitFace.hlsl)", Float) = 0
+    // (issue #264, surfaces D: the portrait head's fit, mouth and blink; the hatch's least spacing; the traveller cut; a white line)
+    _PhFit ("Portrait head: offset, scale", Vector) = (0, 0, 0, 1)
+    _PhFit2 ("Portrait head: the mouth's height", Vector) = (0, 0, 0, 0)
+    _PhSpeech ("Portrait head: mouth (live)", Vector) = (0, 0, 0, 0)
+    _PhBlink ("Portrait head: blink (live)", Vector) = (0, 0, 0, 0)
+    _SurfD ("Hatch least spacing (px), plant height, large plant, mover", Vector) = (0, 0, 0, 0)
+    _CutMe ("The traveller's own: cut while the lens is in him (live)", Vector) = (0, 0, 0, 0)
+    _LineWhite ("Its lines drawn white (live)", Vector) = (0, 0, 0, 0)
     _BoxA ("Box: ray, glow, star reach, clock", Vector) = (0.6, 0.35, 0.4, 0)
     _BoxB ("Box: half size, centre height", Vector) = (0.5, 0.5, 0.5, 0.5)
     _BoxMark ("Box: the marks", Vector) = (0.86, 0.93, 0.95, 1)
@@ -178,6 +186,8 @@ Shader "Hiraeth/Surface"
     float _Weather; float4 _Detail; float _Patch, _Plates, _Windows;
     // (TripoFace.hlsl's: the coral-shirt traveller's drawn face)
     float4 _TfBrowA, _TfBrowB, _TfEye, _TfMouth;
+    // (PortraitFace.hlsl's: the traveller's portrait head; and surfaces D's: the hatch's least spacing, the traveller cut, a white line)
+    float4 _PhFit, _PhFit2, _PhSpeech, _PhBlink, _SurfD, _CutMe, _LineWhite;
     // (the passes' own that a material sets: the crowd's clock, the puffs' far fade, the grass's view)
     float _CrowdTime;
     float _MapOn;          // a picture over the colour (materials.js uMap: the game's canvases, BridgeRenderer.Texture), its uv in form.xy
@@ -203,6 +213,8 @@ Shader "Hiraeth/Surface"
     #include "Marks.hlsl"
     #include "TripoFace.hlsl"
     #include "Fall.hlsl"
+    #include "PortraitFace.hlsl"
+    float _HeroCut;   // the lens inside the traveller (materials.js uHeroCut, a shared one: HiraethLook)
     #if defined(HIRAETH_VMAT)
       // a merged mesh's material values per vertex (materials.js S_VMAT): every read below takes the vertex's, set in frag
       static float4 vmColor, vmColor2, vmColor3;
@@ -273,7 +285,19 @@ Shader "Hiraeth/Surface"
       world = float3(dot(fi.r0.xyz, q) + fi.r0.w, dot(fi.r1.xyz, q) + fi.r1.w, dot(fi.r2.xyz, q) + fi.r2.w);
       float y = max(q.y, 0.0);
       float4 sw = float4(fi.r0.w, fi.r2.w, _Sway * y * y / s, 0.45 * min(y * s, 1.4) / s);
-      swayed = world + swayOffset(sw);
+      // the traveller brushing past along his path (brush.js, the bridge's trail), each plant by its own height and kind
+      // (materials.js SWAY's uSwayPlant: _SurfD.y its height, z 1 a large plant, which parts only its low leaves round his legs)
+      float3 lean3 = 0;
+      if (_BrushTrailOn > 0.5 && _SurfD.y > 0.0)
+      {
+        sw.w = 0.0;
+        float plantH = _SurfD.y * s, reach = clamp(0.3 + 0.35 * plantH, 0.45, 1.1);
+        float2 lean = brushLean(toThree(float3(fi.r0.w, fi.r1.w, fi.r2.w)), reach * 0.35, reach, 2.5);
+        float wy = y * s, rel = saturate(q.y / max(_SurfD.y, 1e-3));
+        float prof = _SurfD.z > 0.5 ? 0.6 * min(wy, 1.3) / 1.3 * (1.0 - smoothstep(1.3, 2.2, wy)) : rel * rel * clamp(plantH / 1.3, 0.3, 1.2);
+        lean3 = float3(-lean.x, 0.0, lean.y) * prof;
+      }
+      swayed = world + swayOffset(sw) + lean3;
       nW = SafeNormalize((cross(c1, c2) * n.x + cross(c2, c0) * n.y + cross(c0, c1) * n.z) * (det < 0.0 ? -1.0 : 1.0));   // (not sign(det): a plant flat in one axis, det 0, kept its normal, issue #462)
     }
     // a reflection in still water, from wherever the eye is (materials.js MIRROR: the Garden's mirror lake), three space: the
@@ -1215,7 +1239,8 @@ Shader "Hiraeth/Surface"
         UNITY_BRANCH if (LEANK && _TripoFace > 0.5)
         {
           float tfAA = max(fwidth(I_BIND.x) + fwidth(I_BIND.y), 1e-6) * 0.75;   // (the drawn face's pixel, in its bind space)
-          albedo = tripoFace(albedo, I_BIND, tfAA);
+          // (2: the portrait head's blink and mouth, PortraitFace.hlsl)
+          albedo = _TripoFace > 1.5 ? portraitFace(albedo, I_BIND) : tripoFace(albedo, I_BIND, tfAA);
         }
         #if defined(HIRAETH_GRASS)
           // further off, the ground's own tone under the tuft (its patches, as the terrain draws them)
@@ -1369,6 +1394,7 @@ Shader "Hiraeth/Surface"
         if (LEANK && _FallOn > 0.5) { albedo = fall.albedo; L = 1.0; }   // (the sheet is its own light: materials.js FALL)
         GBufferOut o;
         o.albedoLight = float4(albedo, saturate(L) + 2.0 * _LineStep);   // (the line's weight and colour over it: materials.js LINE)
+        if (_LineWhite.x > 0.5) o.albedoLight.a = -1.0 - o.albedoLight.a;   // (a white line, uLineWhite: the sign bit, Composite 1b)
         o.normalDepth = float4(n, _FarDepth.x > 0 && i.viewDepth > _FarDepth.x ? _FarDepth.x + (i.viewDepth - _FarDepth.x) * _FarDepth.y : i.viewDepth);
         o.hatch = 0;
         // (the water marks itself by its normal's length, its glints on top: water-shader.js WATER_MARK, read by WaterOver.shader)
@@ -1461,7 +1487,7 @@ Shader "Hiraeth/Surface"
         o.hatch.b = detail + 4.0 * _SpotStep + (_Weather > 0.0 ? 16.0 : 0.0);
         bool facePart = mode == MODE_EYE || (mode == MODE_OUTFIT && I_BIND.y > _Outfit.z && abs(I_BIND.x) < 0.16);
         // gHatch.a: glow + 2 hero + 4 figure (+ 8 soft ink) + 16 a face + 32 banked sand (post.js)
-        o.hatch.a = max(max(max(_Glow, emit), smoothstep(0.15, 0.6, local) * 0.6), dEdge) + 2.0 * _Hero + 4.0 * _Figure + (facePart ? 16.0 : 0.0) + 32.0 * _Drift;
+        o.hatch.a = max(max(max(_Glow, emit), smoothstep(0.15, 0.6, local) * 0.6), dEdge) + 2.0 * _Hero + 4.0 * _Figure + (facePart ? 16.0 : 0.0) + 32.0 * _Drift + 64.0 * _SurfD.w;   // (+64 a mover, uMover: Composite's crease shading sees past it)
         if (_BoxOn > 0.5) { o.hatch.rgb = float3(1, 0, 0); o.hatch.a += 8.0; return o; }   // (a box with no edges: its outline only)
         if (LEANK && _Fluid > 0.5 && _FluidA.w < 0.5) { o.hatch.rgb = float3(1, 0, 0); o.hatch.a += 8.0; return o; }   // (the round backpack's glass: its outline only, a full pen line, no hatching)
         #if defined(HIRAETH_GRASS)
@@ -1484,7 +1510,7 @@ Shader "Hiraeth/Surface"
         // (a hatch over 1 is a denser one, a hatched mass: closer strokes, heavier; materials.js HATCH_DENSE)
         float hDense = max(_Shade.z, 1.0);
         float hsp0 = _HatchSpacing * lerp(0.78, 1.4, smoothstep(6.0, 260.0, i.viewDepth));
-        float hsp = max(hsp0 / min(hDense, 1.3), min(hsp0, 4.5));   // (never closer than a pen can draw: HATCH_DENSE.minPx)
+        float hsp = max(max(hsp0 / min(hDense, 1.3), min(hsp0, 4.5)), _SurfD.x);   // (never closer than a pen can draw: HATCH_DENSE.minPx; a room's least, uHatchPx)
         float dark = min(dark0 * (1.0 + (hDense - 1.0) * 0.9), 1.0);
         // (each pen's strokes worked out in the branch that draws them, as the web does: strokes() and stipple() take no
         // derivatives (their footprints come in from above), so a pixel in the light, or one stippled, pays for none of
@@ -1569,14 +1595,16 @@ Shader "Hiraeth/Surface"
 
       #if defined(HIRAETH_PREPASS)
         struct DepthVaryings { float4 positionCS : SV_POSITION; };
-        DepthVaryings vertEntry(Attributes v) { DepthVaryings d; d.positionCS = vert(v).positionCS; return d; }
+        DepthVaryings vertEntry(Attributes v) { DepthVaryings d; d.positionCS = vert(v).positionCS; if (_HeroCut * _CutMe.x > 0.5) d.positionCS = float4(2, 2, 2, 1); return d; }
         // (the lean variants have no glass, dissolve nor veil (BridgeRenderer.Lean): no discard there at all, so the depth
         // they write is known before the fragment runs (early depth, a tiled GPU's low-resolution depth), issue #262)
         // (a reflection in still water and a splat cut their shapes in the G-buffer pass: they write no depth here; both are
         // kept on the full variant (BridgeRenderer.Lean: "mirror", "splat", "fall"), so no lean prepass carries a discard)
         void fragEntry(DepthVaryings i) { if ((GLASSK && _Glass > 0.0) || (LEANK && (_Dissolve.x > 0.0 || _Veil > 0.0 || _SplatOn > 0.5 || _MirrorOn > 0.5 || _FallOn > 0.5))) discard; }
       #else
-        Varyings vertEntry(Attributes v) { return vert(v); }
+        // (the traveller's own surfaces while the lens is in his body, materials.js uHeroCut × uCutMe: past the clip volume, so
+        // none of him is drawn; his shadow is the ShadowCaster's, kept)
+        Varyings vertEntry(Attributes v) { Varyings o = vert(v); if (_HeroCut * _CutMe.x > 0.5) o.positionCS = float4(2, 2, 2, 1); return o; }
         GBufferOut fragEntry(Varyings i, bool frontFace : SV_IsFrontFace) { return frag(i, frontFace); }
       #endif
       ENDHLSL

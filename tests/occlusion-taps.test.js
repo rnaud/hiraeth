@@ -29,7 +29,7 @@ test('the crease shading is back, web and Unity, on the presets that drew it bef
   assert.ok(PRESETS['Moebius print'].uCrevice > 0, 'the print fills its deepest crevices');
   for (const k of ['auto', 'deck']) assert.equal(QUALITY_PRESETS[k].ao, true, `${k}: crease shading`);
   for (const k of ['handheld', 'low']) assert.equal(QUALITY_PRESETS[k].ao, false, `${k}: none (its cost)`);
-  assert.ok(/float creaseAO\(float2 uv, float3 nW, float d, int lane\)/.test(unity) && /_AO > 0\.0/.test(unity));
+  assert.ok(/float creaseAO\(float2 uv, float3 nW, float d, float self, int lane\)/.test(unity) && /_AO > 0\.0/.test(unity));
   const look = readFileSync(new URL('../unity/Hiraeth/Assets/Hiraeth/Runtime/HiraethLook.cs', import.meta.url), 'utf8');
   assert.ok(look.includes('"uAO:_AO"') && look.includes('post.F("uCrevice", 0)'));
 });

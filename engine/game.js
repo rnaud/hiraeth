@@ -238,6 +238,9 @@ function engineColours(ch, { gltf, colors, headColors }) {
     head.geometry.setAttribute('color', new THREE.BufferAttribute(c, 3));
     head.material.vertexColors = true;
     portraitPaint(head);
+    // (and the fit its drawn blink and open mouth are measured in: port-format.js portraitFace, Unity's PortraitFace.hlsl)
+    const F = head.userData.portraitHeadFit;
+    if (F) head.material.userData.portraitFace = [...F.offset, F.scale, F.mouthY];
   }
   // the old collar lining tucked under the portrait's neck, in its skin (traveller-b3.js fitB3NeckMaterial: a display
   // colour over the paint by b3NeckSkin; without it a black patch at the foot of his neck in Unity's close-ups)

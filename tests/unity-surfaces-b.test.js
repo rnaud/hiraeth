@@ -60,7 +60,7 @@ test('the Buried Machine\'s parts: the clock live, the port\'s slide and puff th
   assert.ok(LIVE_VECTORS.includes('uBreathe') && LIVE_VECTORS.includes('uVeinBox') && LIVE_VECTORS.includes('uSplatTime'));
   const cs = RENDERER.match(/static readonly string\[\] LiveVectors = \{([^}]+)\}/)[1].match(/"[^"]+"/g);
   assert.equal(cs.length, LIVE_VECTORS.length, 'BridgeRenderer.LiveVectors one for one with mirror.js LIVE_VECTORS');
-  assert.deepEqual(cs.slice(-3), ['"_Breathe"', '"_VeinBox"', '"_SplatClock"']);
+  assert.deepEqual(['uBreathe', 'uVeinBox', 'uSplatTime'].map((k) => cs[LIVE_VECTORS.indexOf(k)]), ['"_Breathe"', '"_VeinBox"', '"_SplatClock"']);
   const slide = RENDERER.match(/static float BreatheSlide[\s\S]+?return 0f;/)[0];
   for (const x of [SLIDE.out, SLIDE.out + SLIDE.hold, SLIDE.out + SLIDE.hold + SLIDE.back]) assert.ok(slide.includes(`${+x.toFixed(3)}f`), `${x}`);
   assert.ok(RENDERER.includes(`/ ${PUFF_LIFE}f;`), 'PUFF_LIFE');

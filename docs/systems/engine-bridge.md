@@ -2272,6 +2272,48 @@ The NaN guards, checked on the way (a NaN pixel was the first suspect):
 - `-surface-debug -1` writes a NaN (made at run time, so no compiler folds it) in the colour and normal of one pixel in
   each 64 × 64, each a glowing one; `-2` also in its glow flag. The picture stays whole, a dot at each.
 
+## Surfaces D (Unity + Puerts, 2026-10-18, issue #264)
+
+The "barely seen" gaps of docs/systems/bridge-gaps.md, each looked at against the web from the same views (the traveller's
+face aimed at with `aimed`'s views and capture.mjs `act`, the ship's rooms from `-aboard`, the lab's metals, the sequences
+`talk`, `fight`, `fight-temple`). `-js-off surfd` leaves the round out, for its before pictures. No shader variant is added:
+each is a uniform branch, a value in the material or a live vector.
+
+- **The traveller's face** (src/characters/portrait-head.js, the playable traveller's head): his blink, smile, brows,
+  brow tilt and open jaw are three's morph targets, which never crossed, so his face stood still in Unity. backend.js
+  `morphKeys` / `morphKeyDeltas` send them as the mesh's blend shapes (BridgeRenderer.FaceKeys, as the MakeHuman faces'
+  key texture), and the mirror sends a mesh's `morphTargetInfluences` as its keys' weights (op 19). What the page then
+  draws over them, the closed lid's one line at a full blink and the mouth's dark opening as he speaks, is
+  PortraitFace.hlsl (`_TripoFace` 2: the full variant's face path, so no new Lean case), in the head's fit (engine/game.js
+  gives the material `userData.portraitFace`: offset, scale, the mouth's height), its `uHeadSpeech` and `uPortraitBlink`
+  live (LIVE_VECTORS). Left: the head's pen lines and hair strokes (two PNG masks the engines' VM does not read), the
+  painted iris moving with his look (the paint is vertex colours, engine/traveller-paint.js) and the nose's side line by
+  the view.
+- **face.js's portrait face** (uPortrait, uExpression, uGaze, uIris, uHeadBall): no material in the game is made with it;
+  web only. People's eyes are Figure.hlsl's, their iris colour the eye's uColor2.
+- **A room always in shade** (uHatchPx, the ship's rooms): the least spacing of its strokes, `_SurfD.x`, the floor of
+  Surface.shader's `hsp`. Before, the main room's floor and walls were a grey blur of strokes.
+- **The plants' own lean** (uSwayPlant): the bridge's instanced plants leaned from his feet alone, every plant the same;
+  floraPlace now leans each by the web's brushLean along the trail (op 28) and its own height and kind (`_SurfD.y`, `.z`:
+  a large plant parts only its low leaves), as materials.js SWAY.
+- **The traveller cut while the lens is in him** (uCutMe × the shared uHeroCut, #324): HiraethLook sets `_HeroCut` from the
+  look's shared numbers, `_CutMe` is live, and the G-buffer pass's vertex entry puts his vertices past the clip volume
+  (the prepass too); the ShadowCaster is untouched, so his shadow stays. Not in a picture: a pinned view turns the cut off.
+- **White lines** (uLineWhite: the shade, a struck foe's first frames): the sign bit of the albedo's alpha as on the page;
+  Composite.shader's `lightOf` and 1b read it and draw the line in the paper's white (INK_WHITE).
+- **A mover** (uMover: a foe, the drone): +64 in the G-buffer's hatch.a (`_SurfD.w`); Composite's crease shading sees past
+  another mover's taps as the page's notStanding, and the lines' taps take the 64 off first.
+- **Brushed metal** (METAL_BRUSHED): already the web's, Surface.shader reading `_Metal.y`; the lab's steel, brushed steel and
+  chrome side by side match. Marked handled.
+- **The crowd's shadow casters** (crowd.js crowdDepthMaterial, no colour written): ink-spec.js carries `colorWrite`, and
+  such a shader is the port's `hidden` (nothing drawn; Unity's crowd casts its shadows from its tiers).
+
+Left of the round, "as time allows": the City-Shaft banners' glyph cells per vertex (S_VGLYPH), a lighter line from afar
+(LINE_FAR), a temple landmark's shell pattern (uShellCenter), the fires' far depth (uFarNear / uFarScale).
+
+Pictures: the changelog's v1.84 line ("the traveller's face moves as on the web"), unity-face-open, unity-face-smile,
+unity-ship-hatch, unity-brushed.
+
 ## Status
 
 - **Stage 1, the spike**: the desert, built by `createDesert` inside GodotJS, mirrored to Godot

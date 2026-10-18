@@ -138,6 +138,8 @@ namespace Hiraeth
             Shader.SetGlobalFloat("_Halftone", shared.F("uHalftone", post.F("uHalftone", 0)));
             Shader.SetGlobalFloat("_Bounce", shared.F("uBounce", post.F("uBounce", 0)));
             Shader.SetGlobalFloat("_WearLite", shared.F("uWearLite", 0));
+            // the lens inside the traveller (materials.js uHeroCut; src/host/game-host.js heroCutFrame): his own surfaces (_CutMe) left out
+            Shader.SetGlobalFloat("_HeroCut", shared.F("uHeroCut", 0));
             Shader.SetGlobalFloat("_PostLite", post.F("uPostLite", 0));
             Vector4 V4(string k, Vector4 d) { var l = post.L(k); if (l == null) return d; var v = d; for (int j = 0; j < l.Count && j < 4; j++) v[j] = Json.Num(l[j]); return v; }
             Shader.SetGlobalVector("_Haze", V4("uHaze", new Vector4(1, 1, 1, 0)));

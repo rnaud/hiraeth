@@ -67,7 +67,7 @@ namespace Hiraeth.Bridge
         // the coral-shirt traveller's overshirt (BridgeCloth: a Burst job a frame, op 17), by its id
         readonly Dictionary<int, BridgeCloth> cloths = new();
         // a material's vectors sent live (engine/mirror.js LIVE_VECTORS, in its order): op 18
-        static readonly string[] LiveVectors = { "_BoxA", "_TfBrowA", "_TfBrowB", "_TfEye", "_TfMouth", "_Mood", "_Mood2", "_WashRays", "_Door", "_HoloA", "_HoloB", "_HoloC", "_Breathe", "_VeinBox", "_SplatClock" };   // (engine/mirror.js LIVE_VECTORS)
+        static readonly string[] LiveVectors = { "_BoxA", "_TfBrowA", "_TfBrowB", "_TfEye", "_TfMouth", "_Mood", "_Mood2", "_WashRays", "_Door", "_HoloA", "_HoloB", "_HoloC", "_Breathe", "_VeinBox", "_SplatClock", "_PhSpeech", "_PhBlink", "_CutMe", "_LineWhite" };   // (engine/mirror.js LIVE_VECTORS)
         public double msCloth;
         /// <summary>The people's capes simulated here (BridgeCape: src/cape.js CAPE_HOST), by the script's id; read by its thread too.</summary>
         public static readonly System.Collections.Concurrent.ConcurrentDictionary<int, BridgeCape> Capes = new();

@@ -85,6 +85,9 @@ export function portMaterial(spec, id = 0) {
   // feet and scale: engine/mirror.js LIVE_VECTORS); its beam (uConeH) draws nothing on the page (three's additive blend
   // of an alpha of 0), so nothing here either
   if (spec.type === 'shader' && Array.isArray(u.uHoloA) && typeof u.uConeH === 'number') return { id, name: spec.name ?? '', port: 'hidden', side: 2, plain: 1 };
+  // a shader that writes no colour (src/crowd.js crowdDepthMaterial: the crowd's shadow casters, drawn in the page's shadow
+  // passes only; Unity's crowd casts its own from its tiers): nothing drawn (issue #264, surfaces D)
+  if (spec.type === 'shader' && spec.colorWrite === false) return { id, name: spec.name ?? '', port: 'hidden', side: 2, plain: 1 };
   if (spec.type === 'shader' && Array.isArray(u.uHoloA) && typeof u.uKind === 'number') {
     const v4 = (k, d) => (Array.isArray(u[k]) ? [...u[k], 0, 0, 0, 0].slice(0, 4).map(r5) : d);
     return { id, name: spec.name ?? '', port: 'holo', kind: u.uKind, color: col(u.uColor) ?? [1, 1, 1], color2: col(u.uColor2) ?? [1, 1, 1], color3: col(u.uColor3) ?? [1, 1, 1],
@@ -128,6 +131,20 @@ export function portMaterial(spec, id = 0) {
   if (v('uCracks') > 0) e.cracks = r5(v('uCracks'));
   // the coral-shirt traveller's drawn face (characters/tripo-face.js: its uniforms live, op 18)
   if (Array.isArray(u.uTfBrowA)) { e.tripoFace = 1; for (const [k, name] of [['tfBrowA', 'uTfBrowA'], ['tfBrowB', 'uTfBrowB'], ['tfEye', 'uTfEye'], ['tfMouth', 'uTfMouth']]) if (Array.isArray(u[name])) e[k] = u[name].map(r5); }
+  // the traveller's portrait head (characters/portrait-head.js, issue #264 surfaces D): its drawn blink and open mouth over the
+  // paint (PortraitFace.hlsl; _TripoFace 2: the full variant's face path), in its fit (offset, scale, the mouth's height); the
+  // mouth (uHeadSpeech) and the blink live (op 18)
+  const pf = spec.portraitFace;
+  if (Array.isArray(pf) && pf.length >= 5) Object.assign(e, { tripoFace: 2, phFit: pf.slice(0, 4).map(r5), phFit2: [r5(pf[4]), 0, 0, 0],
+    phSpeech: (Array.isArray(u.uHeadSpeech) ? u.uHeadSpeech : [0, 0, 0, 0]).map(r5), phBlink: [r5(v('uPortraitBlink')), 0, 0, 0] });
+  // (surfaces D) the least spacing of the shade's strokes (uHatchPx: a room always in shade, the ship's); the traveller's own
+  // surfaces, cut while the lens is in him (uCutMe, with the shared uHeroCut), and a line drawn white (uLineWhite), live
+  // (and an instanced plant's own height and kind, uSwayPlant: how it leans as he brushes past, with the bridge's trail)
+  const sp = Array.isArray(u.uSwayPlant) ? u.uSwayPlant : null;
+  // (and a mover's flag, uMover: a foe, the drone; Composite's crease shading sees past it as the page's does)
+  if (v('uHatchPx') > 0 || sp || v('uMover') > 0) e.surfD = [r5(v('uHatchPx')), sp ? r5(sp[0]) : 0, sp ? sp[1] : 0, v('uMover') > 0.5 ? 1 : 0];
+  if (v('uCutMe') > 0) e.cutMe = [1, 0, 0, 0];
+  if (v('uLineWhite') > 0) e.lineWhite = [1, 0, 0, 0];
   // a makers' box (MAKERS_BOX: boxes/model.js): its ray and clock, size, the marks' and the ray's colours
   if (spec.defines?.MAKERS_BOX) { e.box = 1; for (const [k, name] of [['boxA', 'uBoxA'], ['boxB', 'uBoxB'], ['boxMark', 'uBoxMark'], ['boxLight', 'uBoxLight']]) if (Array.isArray(u[name])) e[k] = u[name].map(r5); }   // (the coral-shirt traveller: linear colours, turned to display values in the shader)
   if (Array.isArray(u.uShade)) e.shade = u.uShade.map(r5);

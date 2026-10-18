@@ -187,7 +187,11 @@ namespace Hiraeth
             if (m.Has("windows")) mat.SetFloat("_Windows", m.F("windows"));
             foreach (var (k, p, d) in new[] { ("detail", "_Detail", Vector4.zero), ("shade", "_Shade", new Vector4(0, -1, 1, 0)), ("lining", "_Lining", Vector4.zero),
                 ("boxA", "_BoxA", new Vector4(0.6f, 0.35f, 0, 0)), ("boxB", "_BoxB", new Vector4(0.5f, 0.5f, 0.5f, 0.5f)), ("boxMark", "_BoxMark", Vector4.one), ("boxLight", "_BoxLight", Vector4.one),
-                ("tfBrowA", "_TfBrowA", Vector4.zero), ("tfBrowB", "_TfBrowB", new Vector4(0, 0, 1, 0)), ("tfEye", "_TfEye", Vector4.zero), ("tfMouth", "_TfMouth", new Vector4(0.0195f, 0, 0, 0)), ("fluidBase", "_FluidBase", new Vector4(0.373f, 0.722f, 0.416f, 1)) })
+                ("tfBrowA", "_TfBrowA", Vector4.zero), ("tfBrowB", "_TfBrowB", new Vector4(0, 0, 1, 0)), ("tfEye", "_TfEye", Vector4.zero), ("tfMouth", "_TfMouth", new Vector4(0.0195f, 0, 0, 0)), ("fluidBase", "_FluidBase", new Vector4(0.373f, 0.722f, 0.416f, 1)),
+                // (issue #264, surfaces D: the portrait head's fit, mouth and blink, PortraitFace.hlsl; the hatch's least spacing; the
+                // traveller's surfaces cut while the lens is in him; a line drawn white)
+                ("phFit", "_PhFit", new Vector4(0, 0, 0, 1)), ("phFit2", "_PhFit2", Vector4.zero), ("phSpeech", "_PhSpeech", Vector4.zero), ("phBlink", "_PhBlink", Vector4.zero),
+                ("surfD", "_SurfD", Vector4.zero), ("cutMe", "_CutMe", Vector4.zero), ("lineWhite", "_LineWhite", Vector4.zero) })
             {
                 var l = m.L(k);
                 if (l == null) continue;

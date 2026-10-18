@@ -1,6 +1,6 @@
 {
  "recorded": "2026-10-18",
- "sha": "fd1f78064",
+ "sha": "a091c0498",
  "how": "node scripts/unity-compare/sequences.mjs web [ids] && node scripts/unity-compare/sequences.mjs record",
  "sequences": {
   "moment-desert.flow": {
@@ -24,7 +24,8 @@
      "objects": {
       "ink": 1478,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "veil": 4
      },
      "cam": [
@@ -59,7 +60,8 @@
      "objects": {
       "ink": 1478,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "veil": 4
      },
      "cam": [
@@ -94,7 +96,8 @@
      "objects": {
       "ink": 1478,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "veil": 1
      },
      "cam": [
@@ -126,9 +129,10 @@
      "menu": null,
      "playing": null,
      "objects": {
-      "ink": 1575,
+      "ink": 1577,
       "print": 1,
-      "shader": 2
+      "hidden": 1,
+      "shader": 1
      },
      "cam": [
       168,
@@ -156,15 +160,16 @@
      "menu": null,
      "playing": null,
      "objects": {
-      "ink": 1581,
+      "ink": 1582,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "doorlight": 1
      },
      "cam": [
-      164.2,
+      164.3,
       3.3,
-      296.2,
+      296.1,
       55
      ],
      "player": [
@@ -189,9 +194,10 @@
      "menu": null,
      "playing": null,
      "objects": {
-      "ink": 1580,
+      "ink": 1581,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "doorlight": 1
      },
      "cam": [
@@ -222,13 +228,14 @@
      "menu": null,
      "playing": null,
      "objects": {
-      "ink": 1580,
+      "ink": 1581,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "doorlight": 1
      },
      "cam": [
-      164.2,
+      164.1,
       3.3,
       296.2,
       55
@@ -254,9 +261,10 @@
      "menu": null,
      "playing": null,
      "objects": {
-      "ink": 1581,
+      "ink": 1582,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "doorlight": 1
      },
      "cam": [
@@ -294,8 +302,9 @@
      },
      "objects": {
       "ink": 1662,
-      "shader": 3,
-      "print": 1
+      "shader": 2,
+      "print": 1,
+      "hidden": 1
      },
      "cam": [
       93,
@@ -329,7 +338,8 @@
      "objects": {
       "ink": 1644,
       "print": 1,
-      "shader": 2
+      "hidden": 1,
+      "shader": 1
      },
      "cam": [
       91.8,
@@ -367,8 +377,9 @@
      "objects": {
       "ink": 1652,
       "planet": 1,
-      "shader": 4,
-      "print": 1
+      "shader": 3,
+      "print": 1,
+      "hidden": 1
      },
      "cam": [
       86.6,
@@ -406,8 +417,9 @@
      "objects": {
       "ink": 1650,
       "planet": 1,
-      "shader": 4,
-      "print": 1
+      "shader": 3,
+      "print": 1,
+      "hidden": 1
      },
      "cam": [
       86.9,
@@ -445,9 +457,9 @@
      "objects": {
       "ink": 1650,
       "planet": 1,
-      "shader": 4,
+      "shader": 3,
       "print": 1,
-      "hidden": 3,
+      "hidden": 4,
       "holo": 1
      },
      "cam": [
@@ -486,9 +498,9 @@
      "objects": {
       "ink": 1651,
       "planet": 1,
-      "shader": 4,
+      "shader": 3,
       "print": 1,
-      "hidden": 3,
+      "hidden": 4,
       "holo": 1
      },
      "cam": [
@@ -523,9 +535,9 @@
      "objects": {
       "ink": 1648,
       "planet": 1,
-      "shader": 4,
+      "shader": 3,
       "print": 1,
-      "hidden": 3,
+      "hidden": 4,
       "holo": 1
      },
      "cam": [
@@ -560,9 +572,9 @@
      "objects": {
       "ink": 1651,
       "planet": 1,
-      "shader": 4,
+      "shader": 3,
       "print": 1,
-      "hidden": 3,
+      "hidden": 4,
       "holo": 1
      },
      "cam": [
@@ -597,7 +609,8 @@
      "objects": {
       "ink": 1635,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "holo": 1
      },
      "cam": [
@@ -636,14 +649,14 @@
      "objects": {
       "ink": 1636,
       "print": 1,
-      "shader": 2,
-      "hidden": 3,
+      "hidden": 4,
+      "shader": 1,
       "holo": 1
      },
      "cam": [
       18,
       2607.3,
-      161.6,
+      161.7,
       56
      ],
      "player": [
@@ -676,7 +689,8 @@
      "objects": {
       "ink": 1635,
       "print": 1,
-      "shader": 2
+      "hidden": 1,
+      "shader": 1
      },
      "cam": [
       87.1,
@@ -714,7 +728,8 @@
      "objects": {
       "ink": 1634,
       "print": 1,
-      "shader": 2
+      "hidden": 1,
+      "shader": 1
      },
      "cam": [
       87.1,
@@ -748,7 +763,8 @@
      "objects": {
       "ink": 1508,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "wisp": 1
      },
      "cam": [
@@ -783,7 +799,8 @@
      "objects": {
       "ink": 1555,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "wisp": 1,
       "mote": 1
      },
@@ -821,9 +838,10 @@
       "stage": "settle"
      },
      "objects": {
-      "ink": 1554,
+      "ink": 1555,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "wisp": 1,
       "mote": 1
      },
@@ -859,7 +877,8 @@
      "objects": {
       "ink": 1577,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "wisp": 1,
       "mote": 1
      },
@@ -895,7 +914,8 @@
      "objects": {
       "ink": 1577,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "wisp": 1,
       "mote": 1
      },
@@ -931,7 +951,8 @@
      "objects": {
       "ink": 1580,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "wisp": 1,
       "mote": 1
      },
@@ -971,8 +992,9 @@
      "objects": {
       "ink": 1618,
       "planet": 1,
-      "shader": 4,
+      "shader": 3,
       "print": 1,
+      "hidden": 1,
       "wisp": 1,
       "mote": 1
      },
@@ -1012,8 +1034,9 @@
      "objects": {
       "ink": 1650,
       "planet": 1,
-      "shader": 4,
+      "shader": 3,
       "print": 1,
+      "hidden": 1,
       "wisp": 1,
       "mote": 1
      },
@@ -1026,7 +1049,7 @@
      "player": [
       91.8,
       17.8,
-      159
+      159.1
      ],
      "late": false
     },
@@ -1053,8 +1076,9 @@
      "objects": {
       "ink": 1641,
       "planet": 1,
-      "shader": 4,
+      "shader": 3,
       "print": 1,
+      "hidden": 1,
       "wisp": 1,
       "mote": 1
      },
@@ -1081,7 +1105,8 @@
      "objects": {
       "ink": 1568,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "wisp": 1,
       "mote": 1
      },
@@ -1105,6 +1130,7 @@
     {
      "beat": "start",
      "hud": {
+      "tool": true,
       "cine": {
        "bars": true,
        "lids": false,
@@ -1121,7 +1147,8 @@
      "objects": {
       "ink": 1499,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "veil": 2
      },
      "cam": [
@@ -1156,7 +1183,8 @@
      "objects": {
       "ink": 1501,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "veil": 8
      },
      "cam": [
@@ -1191,7 +1219,8 @@
      "objects": {
       "ink": 1496,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "veil": 2
      },
      "cam": [
@@ -1230,7 +1259,8 @@
      "objects": {
       "ink": 1553,
       "print": 1,
-      "shader": 2
+      "hidden": 1,
+      "shader": 1
      },
      "cam": [
       227.3,
@@ -1264,7 +1294,8 @@
      "objects": {
       "ink": 1539,
       "print": 1,
-      "shader": 2
+      "hidden": 1,
+      "shader": 1
      },
      "cam": [
       219.4,
@@ -1299,12 +1330,13 @@
      "objects": {
       "ink": 1546,
       "print": 1,
-      "shader": 2
+      "hidden": 1,
+      "shader": 1
      },
      "cam": [
-      174.7,
-      58.3,
-      278.4,
+      174.4,
+      58.5,
+      277.8,
       55.3
      ],
      "player": [
@@ -1892,7 +1924,8 @@
      "objects": {
       "ink": 216,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "veil": 2,
       "pitvoid": 1
      },
@@ -1927,9 +1960,10 @@
       "stage": null
      },
      "objects": {
-      "ink": 293,
+      "ink": 294,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "veil": 5,
       "pitvoid": 1
      },
@@ -1954,9 +1988,10 @@
      "menu": null,
      "playing": null,
      "objects": {
-      "ink": 291,
+      "ink": 292,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "veil": 5,
       "pitvoid": 1
      },
@@ -1995,16 +2030,17 @@
       "stage": null
      },
      "objects": {
-      "ink": 162,
+      "ink": 177,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "veil": 1,
       "wisp": 1
      },
      "cam": [
       83.8,
       8.2,
-      91.8,
+      91.9,
       45.7
      ],
      "player": [
@@ -2032,14 +2068,15 @@
       "stage": null
      },
      "objects": {
-      "ink": 159,
+      "ink": 175,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "veil": 1,
       "wisp": 1
      },
      "cam": [
-      109.4,
+      109.3,
       38.6,
       81.4,
       32.7
@@ -2069,9 +2106,10 @@
       "stage": null
      },
      "objects": {
-      "ink": 182,
+      "ink": 195,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "veil": 4,
       "doorlight": 1,
       "wisp": 1
@@ -2325,7 +2363,8 @@
      "objects": {
       "ink": 408,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "pitvoid": 1
      },
      "cam": [
@@ -2359,15 +2398,16 @@
       "stage": null
      },
      "objects": {
-      "ink": 294,
+      "ink": 296,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "pitvoid": 1
      },
      "cam": [
       -14,
       27.6,
-      33.5,
+      33.6,
       49.2
      ],
      "player": [
@@ -2395,16 +2435,17 @@
       "stage": null
      },
      "objects": {
-      "ink": 260,
+      "ink": 261,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "pitvoid": 1
      },
      "cam": [
       1,
       45.6,
       -234.7,
-      34.2
+      34.3
      ],
      "player": [
       0,
@@ -2435,17 +2476,18 @@
       "stage": null
      },
      "objects": {
-      "ink": 216,
+      "ink": 218,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "pitvoid": 1,
       "doorlight": 1
      },
      "cam": [
       1.5,
       2.6,
-      -160.9,
-      49.3
+      -160.8,
+      49.4
      ],
      "player": [
       0,
@@ -2472,15 +2514,16 @@
       "stage": null
      },
      "objects": {
-      "ink": 232,
+      "ink": 233,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "pitvoid": 1
      },
      "cam": [
-      108.9,
+      108.8,
       -14.8,
-      -104.1,
+      -104,
       48.8
      ],
      "player": [
@@ -2508,9 +2551,10 @@
       "stage": null
      },
      "objects": {
-      "ink": 273,
+      "ink": 274,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "pitvoid": 1,
       "doorlight": 1
      },
@@ -2549,15 +2593,16 @@
       "stage": null
      },
      "objects": {
-      "ink": 208,
+      "ink": 210,
       "print": 1,
-      "shader": 2
+      "hidden": 1,
+      "shader": 1
      },
      "cam": [
       116.8,
       15.6,
       -155.8,
-      49.3
+      49.4
      ],
      "player": [
       115.7,
@@ -2584,9 +2629,10 @@
       "stage": null
      },
      "objects": {
-      "ink": 203,
+      "ink": 205,
       "print": 1,
-      "shader": 2
+      "hidden": 1,
+      "shader": 1
      },
      "cam": [
       162.5,
@@ -2619,9 +2665,10 @@
       "stage": null
      },
      "objects": {
-      "ink": 263,
+      "ink": 265,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "doorlight": 1
      },
      "cam": [
@@ -2659,9 +2706,10 @@
       "stage": null
      },
      "objects": {
-      "ink": 160,
+      "ink": 169,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "pitvoid": 1
      },
      "cam": [
@@ -2695,9 +2743,10 @@
       "stage": null
      },
      "objects": {
-      "ink": 294,
+      "ink": 304,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "pitvoid": 1
      },
      "cam": [
@@ -2731,9 +2780,10 @@
       "stage": null
      },
      "objects": {
-      "ink": 226,
+      "ink": 235,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "pitvoid": 1,
       "doorlight": 1
      },
@@ -2891,7 +2941,8 @@
      "objects": {
       "ink": 1549,
       "print": 1,
-      "shader": 2
+      "hidden": 1,
+      "shader": 1
      },
      "cam": [
       228.5,
@@ -2930,7 +2981,8 @@
      "objects": {
       "ink": 1549,
       "print": 1,
-      "shader": 2
+      "hidden": 1,
+      "shader": 1
      },
      "cam": [
       228.8,
@@ -2969,14 +3021,15 @@
      "objects": {
       "ink": 1590,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "veil": 4
      },
      "cam": [
-      229.4,
+      229.5,
       3.6,
-      389.6,
-      44.9
+      389.7,
+      44.8
      ],
      "player": [
       231.4,
@@ -3009,7 +3062,8 @@
      "objects": {
       "ink": 1591,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "veil": 4
      },
      "cam": [
@@ -3429,7 +3483,8 @@
      "objects": {
       "ink": 413,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "pitvoid": 1,
       "wisp": 1,
       "mote": 1
@@ -3500,7 +3555,8 @@
      "objects": {
       "ink": 413,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "pitvoid": 1,
       "wisp": 1,
       "mote": 1
@@ -3612,7 +3668,8 @@
      "objects": {
       "ink": 355,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "pitvoid": 1,
       "wisp": 1,
       "mote": 1
@@ -3651,7 +3708,8 @@
      "objects": {
       "ink": 355,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "pitvoid": 1,
       "wisp": 1,
       "mote": 1
@@ -3694,7 +3752,8 @@
      "objects": {
       "ink": 355,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "pitvoid": 1,
       "wisp": 1,
       "mote": 1
@@ -3765,7 +3824,8 @@
      "objects": {
       "ink": 355,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "pitvoid": 1,
       "wisp": 1,
       "mote": 1
@@ -3791,9 +3851,10 @@
      "menu": null,
      "playing": null,
      "objects": {
-      "ink": 412,
+      "ink": 411,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "pitvoid": 1,
       "wisp": 1,
       "mote": 1
@@ -4580,7 +4641,8 @@
      "objects": {
       "ink": 1643,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "wisp": 1,
       "mote": 1
      },
@@ -4610,7 +4672,8 @@
      "objects": {
       "ink": 1642,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "wisp": 1,
       "mote": 1
      },
@@ -4639,7 +4702,8 @@
      "objects": {
       "ink": 1476,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "veil": 10,
       "doorlight": 1
      },
@@ -4664,7 +4728,8 @@
      "objects": {
       "ink": 1465,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "veil": 4,
       "doorlight": 1
      },
@@ -4698,7 +4763,8 @@
      "objects": {
       "ink": 1561,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "pitvoid": 2,
       "doorlight": 1,
       "mote": 2
@@ -4729,7 +4795,8 @@
      "objects": {
       "ink": 1539,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "pitvoid": 2,
       "doorlight": 1,
       "mote": 2
@@ -4760,7 +4827,8 @@
      "objects": {
       "ink": 1558,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "pitvoid": 2,
       "doorlight": 1,
       "mote": 2
@@ -4791,7 +4859,8 @@
      "objects": {
       "ink": 1530,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "pitvoid": 1
      },
      "cam": [
@@ -5020,7 +5089,8 @@
      "objects": {
       "ink": 1571,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "wisp": 1,
       "mote": 1
      },
@@ -5045,7 +5115,8 @@
      "objects": {
       "ink": 1571,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "wisp": 1,
       "mote": 1
      },
@@ -5070,7 +5141,8 @@
      "objects": {
       "ink": 1571,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "wisp": 1,
       "mote": 1
      },
@@ -5095,7 +5167,8 @@
      "objects": {
       "ink": 1571,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "wisp": 1,
       "mote": 1
      },
@@ -5124,7 +5197,8 @@
      "objects": {
       "ink": 1576,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "wisp": 1,
       "mote": 1
      },
@@ -5149,7 +5223,8 @@
      "objects": {
       "ink": 1628,
       "print": 1,
-      "shader": 2
+      "hidden": 1,
+      "shader": 1
      },
      "cam": [
       158.6,
@@ -5172,7 +5247,8 @@
      "objects": {
       "ink": 1540,
       "print": 1,
-      "shader": 2
+      "hidden": 1,
+      "shader": 1
      },
      "cam": [
       242.6,
@@ -5195,7 +5271,8 @@
      "objects": {
       "ink": 1515,
       "print": 1,
-      "shader": 2
+      "hidden": 1,
+      "shader": 1
      },
      "cam": [
       363.7,
@@ -5218,7 +5295,8 @@
      "objects": {
       "ink": 1535,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "wisp": 1
      },
      "cam": [
@@ -5242,7 +5320,8 @@
      "objects": {
       "ink": 1476,
       "print": 1,
-      "shader": 2
+      "hidden": 1,
+      "shader": 1
      },
      "cam": [
       -377.7,
@@ -5265,7 +5344,8 @@
      "objects": {
       "ink": 1624,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "wisp": 1
      },
      "cam": [
@@ -5289,7 +5369,8 @@
      "objects": {
       "ink": 1624,
       "print": 1,
-      "shader": 2,
+      "hidden": 1,
+      "shader": 1,
       "wisp": 1
      },
      "cam": [
