@@ -1,0 +1,49 @@
+docs/systems/performance.md
+  s_5f899ba316b5dc::t_784d3810191b51 5218-5275
+engine/game.js
+  s_5f899ba316b5dc::t_f6bb9d658dccb5 169
+engine/sequence-run.mjs
+  s_5f899ba316b5dc::t_d0d61b05cc9d4d 51
+engine/stutter-routes.js
+  s_5f899ba316b5dc::t_f1728152ac600e 1-134
+engine/stutter.js
+  s_5f899ba316b5dc::t_02be01196c2b14 1-256
+engine/unity/game.js
+  s_5f899ba316b5dc::t_f154ac99e414a5 18-19,326-328,380,880-881,883-889,921-928,980,989,1210
+scripts/stutter/report.mjs
+  s_5f899ba316b5dc::t_e31cb193291dac 1-35
+scripts/stutter/run.mjs
+  s_5f899ba316b5dc::t_27d4629456fdfc 1-45
+tests/stutter-routes.test.js
+  s_5f899ba316b5dc::t_b8346625edf988 1-33
+tests/stutter.test.js
+  s_5f899ba316b5dc::t_97d062e5030b7c 1-84
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeArgs.cs
+  s_5f899ba316b5dc::t_9a309be2a9954d 176
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeLoopTimer.cs
+  s_5f899ba316b5dc::t_c3d7f502f013ba 72-87
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRenderer.cs
+  s_5f899ba316b5dc::t_14ed58351abbd9 222-228
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs
+  s_5f899ba316b5dc::t_38f45c2e147e56 76,720,730,854-855
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeStutter.cs
+  s_5f899ba316b5dc::t_f778e8913b56fa 1-148
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeStutter.cs.meta
+  s_5f899ba316b5dc::t_cf9f5465705b16 1-11
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "055e81f0ec00708f6a929f0a8a05cc88c72dfc64",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
