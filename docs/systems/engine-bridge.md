@@ -235,6 +235,16 @@ Xbox: its line now shows only with Show FPS on or `-metrics` given). Rumble: the
 `Gamepad.SetMotorSpeeds` for the pulse's length (nothing where Unity's pad has no motors); engine/game.js plays the
 web's hurt, potion, landing and knockdown patterns as main.js does. Tests: tests/engine-menus.test.js.
 
+**The title on any screen** (issue #470). The layout is the script's, made for the menus' canvas width
+(BridgeHost.MenuWidth, which BridgeMenu sets each frame: 1280 on 16:9, 960 on the Retroid's 4:3). The script sent the
+menus' state only when the state changed, so the title's first state, made before BridgeMenu's first frame with the
+default 1280 (or with the Retroid's upright panel during a cold start), stayed on screen: on the 4:3 the name sat
+160 units right of the middle and ran off the right edge. engine/unity/game.js `showMenu` now sends the state again
+whenever the canvas width changes, and BridgeMenu redraws on a change of size (the picture cropped anew). Batch check:
+`-title-shots 960x1280,1280x960,1280x720 -title-art H1 -out dir` (BridgeRunner.ScreenAs: the camera drawn into a picture
+of that size, the first from before the first frame as a cold start; unity-title-<k>-<w>x<h>.png). Test:
+tests/engine-unity.test.js ("the title's logo laid out for the screen").
+
 **The Map** (issue #343). The web's (#244, #272): the whole sheet, no list beside it, as wide as BridgeMenu's room for it
 (BridgeHost.MenuMapBox, `mapShape`: src/world-map.js mapAspect, 2.4 on 16:9, 1.7 on the Retroid's 4:3), a cursor
 (src/world-map.js MapView) the left stick moves smoothly (the controller's `menuAnalog`, EngineMenus `analog`) and the

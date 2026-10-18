@@ -1195,7 +1195,10 @@ const PAR459W = 'Issue #459: the web game in muted headless Chrome (High, 1280 �
 const WATER458 = 'Issues #264 / #458 (surfaces C): the Unity bridge in the editor’s batch run on this Mac (muted, High, 1280 × 720, -fresh -no-hud, the camera pinned at the same views as the web’s); before: the same build with -no-water-over -no-fall (the water’s pass and the falls as they were); after: this change; the web’s pictures of the same views as their own tab; 18 October; cwebp -q 72';
 const WATER458W = 'Issues #264 / #458 (surfaces C): the web game in muted headless Chrome (High, 1280 × 720, a fixed render scale) on this branch’s own Vite (port 5468), the same view as Unity’s; 18 October; cwebp -q 72';
 const DEC463 = 'Issue #463: the Unity bridge in the editor’s batch run on this Mac (scripts/unity-compare/sequences.mjs unity: muted, High, 1280 × 720), the sequence `decals`, its `tide` beat (the desert’s dry wash); before: #459’s state (the splats’ offset alone); after: this change; 18 October; cwebp -q 72';
-const DEC463W = 'Issue #463: the web game in muted headless Chrome (High, 1280 × 720) on this branch’s own Vite (port 5463), the same beat; 18 October; cwebp -q 72';
+/** (v1.84, issue #470: the title's name on the Retroid's 4:3) */
+const TITLE470 = 'Issue #470: the Unity bridge in the editor’s batch run on this Mac (muted, -title-shots 1280x960,1280x720 -title-art H1: BridgeRunner.ScreenAs drawing into a screen of that size from before the first frame, as a cold start, then a resize to 16:9); before: the same run without this change; after: this change; 18 October; cwebp -q 72';
+const TITLE470W = 'Issue #470: the web game in muted headless Chrome at 1280 × 960 (?shot=H1) on this branch’s own Vite (port 5447); 18 October; cwebp -q 72';
+const DEC463W ='Issue #463: the web game in muted headless Chrome (High, 1280 × 720) on this branch’s own Vite (port 5463), the same beat; 18 October; cwebp -q 72';
 /** (v1.84, issue #264 surfaces D) */
 const SURFD = 'Issue #264 (surfaces D): the Unity bridge in the editor’s batch run on this Mac (muted, High, 1280 × 720, -fresh -no-hud); before: the same build with -js-off surfd (this round left out); after: this change; the traveller’s face from 0.55 m with his expression set (engine/unity/game.js aimed: smile 0.8, squint 0.25, brow 0.15; surprised: brow 1, open 0.55), the ship’s main room from -aboard main; 18 October; cwebp -q 72';
 const SURFDW = 'Issue #264 (surfaces D): the web game in muted headless Chrome (High, 1280 × 720, a fixed render scale) on this branch’s own Vite (port 5469), the same view and expression; 18 October; cwebp -q 72';
@@ -1236,6 +1239,11 @@ export const CHANGELOG_MEDIA = {
       { name: 'unity-decal-river', title: 'The sand river', caption: 'The sand river’s pale ribbon and the tide lines along the dry wash, in Unity: before, broken into jagged pieces with the sand showing through; after, whole, as on the web', from: DEC463 },
       { name: 'unity-decal-river-web', only: 'after', title: 'The sand river on the web', caption: 'The same view on the web', from: DEC463W },
     ], see: 'In the Unity version, walk the desert’s dry wash and look along the sand river; the salt pan and the basin’s shore too.' },
+    { match: 'In the Unity version, the title’s name sits centred across the top on every screen', shots: [
+      { name: 'unity-title-43', title: 'The Retroid’s 4:3', caption: 'The Unity title at 1280 × 960 the first time it opens: before, the name small and pushed left, laid out for a screen it was not on; after, centred across the top as on the web', from: TITLE470 },
+      { name: 'unity-title-43-web', only: 'after', title: 'On the web', caption: 'The same title on the web at 1280 × 960', from: TITLE470W },
+      { name: 'unity-title-169', title: 'Resized to 16:9', caption: 'The same title after the screen changed to 1280 × 720: before, still laid out for 4:3, a bare strip on the right; after, laid out for the new screen', from: TITLE470 },
+    ], see: 'In the Unity version on the Retroid, open the game from cold and look at the name at the top of the title.' },
     { match: 'In the Unity version, more of the world moves and shines as on the web', shots: [
       { name: 'unity-mirror-lake', title: 'The mirror lake', caption: 'The Garden’s lake from its south shore in Unity: before, plain water, and the garden it remembers standing on the far shore; after, the shore and that garden in the water, as on the web', from: SURF264 },
       { name: 'unity-mirror-lake-web', only: 'after', title: 'The lake on the web', caption: 'The same view on the web', from: SURF264W },

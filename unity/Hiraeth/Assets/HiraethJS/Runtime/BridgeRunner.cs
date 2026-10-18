@@ -992,6 +992,20 @@ namespace Hiraeth.Bridge
             Debug.Log($"Hiraeth bridge: portrait {n}: {keep.Count} drawables, {S} px");
         }
 
+        /// <summary>A batch run's screen of another size and shape (issue #470: the Retroid's portrait first frame, then its
+        /// 4:3): the camera drawn into a picture of w × h from now on, the canvases laid out on it as on such a screen, the
+        /// shots taken at its size; 0, 0 gives the screen back.</summary>
+        public void ScreenAs(int w, int h)
+        {
+            if (cam.targetTexture == screenAs) cam.targetTexture = null;
+            if (screenAs) { screenAs.Release(); Destroy(screenAs); screenAs = null; }
+            if (w <= 0 || h <= 0) return;
+            screenAs = new RenderTexture(w, h, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB) { name = $"screen as {w}x{h}" };
+            cam.targetTexture = screenAs;
+            Debug.Log($"Hiraeth bridge: the screen as {w}x{h}");
+        }
+        RenderTexture screenAs;
+
         /// <summary>The camera's view as a PNG (the port's Batch.Render does the same in the editor).</summary>
         public void Shot(string path)
         {
@@ -1003,6 +1017,7 @@ namespace Hiraeth.Bridge
             // (a player's own screen, as it draws: the Deck's 1280 × 800; the editor's batch runs 1280 × 720, as the web's side-by-sides)
             int w = 1280, h = 720;
             if (!Application.isEditor && Screen.width > 0 && Screen.height > 0) { w = Screen.width; h = Screen.height; }
+            if (screenAs) { w = screenAs.width; h = screenAs.height; }   // (a screen of another size: ScreenAs)
             var rt = new RenderTexture(w, h, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
             var prev = cam.targetTexture;
             cam.targetTexture = rt;

@@ -567,3 +567,41 @@ test('the bridge\'s look keeps the local lights; a shot culls them to its own fr
   const shot = read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs');
   assert.match(shot, /cam\.targetTexture = rt;\s*\n\s*\/\/[^\n]*\n\s*if \(look\) \{ look\.PushLights\(\);/, 'the shot\'s lights culled once its target is set');
 });
+
+test('the title\'s logo laid out for the screen the menus have now: a cold start\'s first frames, a turn to landscape, a resize (issue #470)', async () => {
+  const file = tempPath(join(tmpdir(), `hiraeth-engine-unity-title-${process.pid}.js`));
+  await bundle('unity', { out: [file] });
+  // the menus' canvas width as BridgeMenu sets it (720 units high): 1280 until its first Update (BridgeHost's default),
+  // then the Retroid's panel upright for a frame or two (960 × 1280: 540), then its landscape 4:3 (960); then a 16:9 window
+  let width = 1280;
+  const sent = [];
+  const BridgeHost = new Proxy({
+    Now: () => performance.now(), ReadFile: null, StorageGet: () => null, StorageSet() {}, StorageRemove() {},
+    Keys: () => '', Pad: () => null, MouseLook: () => null, PadName: () => '', Platform: () => 'android', AudioRate: () => 0,
+    MenuWidth: () => width, MenuMapBox: () => '', AwayCount: () => 0, Exit() {}, Shot() {},
+    Menu(json) { sent.push(JSON.parse(json)); },
+  }, { get: (o, k) => (k in o ? o[k] : undefined) });
+  const { exports, readFile } = loadBundle(file, {}, { CS: { Hiraeth: { Bridge: { BridgeHost } } }, setTimeout: undefined, setInterval: undefined, clearTimeout: undefined, clearInterval: undefined });
+  BridgeHost.ReadFile = readFile;
+  const log = console.log, info = console.info; console.log = console.info = () => {};
+  const at = {};
+  try {
+    exports.start('{}');
+    for (const [w, frames] of [[1280, 1], [540, 2], [960, 3], [1280, 2], [960, 2]]) {
+      width = w;
+      for (let i = 0; i < frames; i++) exports.frame(1 / 60);
+      const v = sent.at(-1);
+      at[w] = v;
+      // the title's last state is laid out on the canvas it is drawn on now: the name centred, inside the screen
+      assert.equal(v?.kind, 'title', JSON.stringify(v)?.slice(0, 200));
+      const L = v.layout.logo;
+      assert.ok(Math.abs(L.x + L.w / 2 - w / 2) < 1, `the name centred on a canvas ${w} wide: ${JSON.stringify(L)}`);
+      assert.ok(L.x >= 0 && L.x + L.w <= w, `inside it: ${JSON.stringify(L)}`);
+    }
+  } finally { console.log = log; console.info = info; }
+  // the Retroid's 4:3 as the web's at 1280 × 960 (src/title-layout.js there, × 0.75 for the canvas 720 high): 86 % of the width
+  assert.ok(Math.abs(at[960].layout.logo.w - 960 * 0.86) < 1, JSON.stringify(at[960].layout.logo));
+  // and nothing sent again while the screen stays as it was
+  const n = sent.length; exports.frame(1 / 60); exports.frame(1 / 60);
+  assert.equal(sent.length, n, 'the same state not sent again');
+});

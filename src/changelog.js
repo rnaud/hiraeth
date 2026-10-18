@@ -247,6 +247,10 @@ export const CHANGELOG = [
     // ink-spec.js, engine/game.js; unity/Hiraeth PortraitFace.hlsl, Surface.shader (_TripoFace 2, _SurfD, the cut, the white line,
     // the plants' lean), Composite.shader (white lines, a mover's taps), HiraethLook (_HeroCut), WorldLoader, BridgeRenderer;
     // tests/unity-surfaces-d.test.js; docs/systems/engine-bridge.md "Surfaces D"
+    // issue #470: engine/unity/game.js showMenu (the menus' state sent again when the canvas width changes), BridgeMenu.cs
+    // (drawn again on a change of size), BridgeRunner.ScreenAs / -title-shots; tests/engine-unity.test.js;
+    // docs/systems/engine-bridge.md "The title on any screen"
+    'In the Unity version, the title’s name sits centred across the top on every screen, as on the web: on the Retroid’s 4:3 screen it opened pushed aside the first time, and a window resized or a screen turned kept the old layout.',
     'In the Unity version, the traveller’s face moves as on the web: he blinks, smiles, raises his brows and opens his mouth as he talks (it stayed still). The ship’s rooms keep their shading strokes clear instead of a grey blur; plants lean away from you along the path you walk through them; the camera pressed into the traveller leaves him out of the view; a struck foe’s lines flash white; and the shading round foes by a wall no longer darkens round them.',
   ] },
   { v: '1.83', date: '2026-10-16', items: [

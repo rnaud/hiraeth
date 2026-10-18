@@ -18,6 +18,7 @@ namespace Hiraeth.Bridge
         public Camera cam;
         RectTransform root;
         float W => root.rect.width; float H => root.rect.height;
+        float drawnW, drawnH;   // (the canvas's size at the last Draw: a change draws again)
         Dictionary<string, object> state;
         bool dirty;
 
@@ -307,6 +308,9 @@ namespace Hiraeth.Bridge
         {
             if (!root) return;
             var canvas = root.GetComponent<Canvas>();
+            // (the canvas's size: drawn again when it changes, a cold start's upright first frames, a rotation, a window
+            // resized; the script sends the title laid out for the new width too: issue #470)
+            if (W > 0 && H > 0 && (W != drawnW || H != drawnH)) { drawnW = W; drawnH = H; dirty = true; }
             if (W > 0) BridgeHost.menuWidth = W;
             if (W > 0) { var (aw, ah) = MapRoom(); var box = string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0:0},{1:0}", aw, ah); if (BridgeHost.menuMapBox != box) BridgeHost.menuMapBox = box; }
             float pd = Mathf.Max(0.2f, cam.nearClipPlane * 2);

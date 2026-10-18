@@ -417,6 +417,8 @@ namespace Hiraeth.Bridge
 
         // ---------------------------------------------------------------- a batch run's
         public static void Shot(string path) => On(() => Runner?.Shot(path));
+        /// <summary>A batch run's screen of w × h (BridgeRunner.ScreenAs, issue #470); 0, 0 the real one again.</summary>
+        public static void ScreenAs(int w, int h) => On(() => Runner?.ScreenAs(w, h));
         /// <summary>Photo mode's picture (engine/game.js, issue #264): the frame as drawn, into the app's own photos folder
         /// (Android: Android/data/&lt;package&gt;/files/photos), by the name the script gives it.</summary>
         public static void Photo(string name) => On(() =>

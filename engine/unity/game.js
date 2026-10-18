@@ -33,6 +33,7 @@ import { game as gameState } from '../../src/game-state.js';
 import { seedDebugSave } from '../../src/debug-save.js';
 import { levelById } from '../../src/levels/index.js';
 import { TITLES } from '../../src/levels/names.js';
+import { chooseShot } from '../../src/title-shots.js';
 import { VERSION } from '../../src/version.js';
 import { devMode } from '../../src/dev-gate.js';
 import { setEnginePad, setFaces, padFaces, padLabels, promptText } from '../../src/native-pad.js';
@@ -165,6 +166,8 @@ export function start(argsJson) {
     mapBox: () => { const [w, h] = String(host.MenuMapBox?.() ?? '').split(',').map(Number); return w > 0 && h > 0 ? { w, h } : null; },
     // (inside a makers' house: its map, the Start menu's House map; issue #405)
     house: () => S?.game?.houseView?.() ?? null,
+    // (-title-art H1: that painted world behind the title, as the web's ?shot=H1, to lay the two side by side)
+    shots: (o) => chooseShot({ ...o, search: args.titleArt ? `?shot=${encodeURIComponent(args.titleArt)}` : '' }),
   });
   S = { args, menus, settings, game: null, frames: 0, plan: null, results: [], keys: new Set(), lastT: 0, audioMs: 0, menuV: -1 };
   // (the pad on the title, before the game and its controller are made: the controller's menu context, as the page's)
@@ -173,7 +176,22 @@ export function start(argsJson) {
   // (-page overnighttrain:bazaar: in the second world first, on the debug save, then by a page load's way to the first; below)
   else if (pageRun(args)) begin({ slot: DEBUG_SLOT, level: pageRun(args).from, arrive: true });
   else { menus.show('title'); S.titleSound = titleSound(args, settings); updates.auto(); }   // (and the title's own check for a newer script)
+  // (-title-shots 960x1280,1280x960 -out dir: the title on screens of those sizes one after another, the first from
+  // before the first frame as a device's cold start, each photographed once settled: unity-title-<k>-<w>x<h>.png; issue #470)
+  const sizes = String(args.titleShots ?? '').split(',').map((s) => s.split('x').map(Number)).filter(([w, h]) => w > 0 && h > 0);
+  if (sizes.length && !args.boot) { S.titleShots = { sizes, k: 0, t: 0 }; host.ScreenAs?.(...sizes[0]); }
   showMenu();
+}
+
+/** -title-shots: each size a while (the title's picture streamed in, the layout sent again), photographed, then the next. */
+function titleShots() {
+  const T = S.titleShots, [w, h] = T.sizes[T.k];
+  if (++T.t < (S.args.titleWait ?? 45)) return;
+  if (S.args.out) { const file = `${S.args.out}/unity-title-${T.k}-${w}x${h}.png`; host.Shot(file); console.log(`[unity] saved ${file}`); }
+  T.t = 0;
+  if (++T.k < T.sizes.length) { host.ScreenAs?.(...T.sizes[T.k]); return; }
+  S.titleShots = null;
+  host.Exit(0);
 }
 
 /** The sound's rate (Unity's output; 0: none) and whether it renders on Unity's audio thread (the graph recorded here). */
@@ -246,8 +264,12 @@ function access() {
 /** The menu's state to Unity (BridgeMenu.cs) when it changed. */
 function showMenu() {
   const m = S?.menus;
-  if (!m || m.v === S.menuV) return;
-  S.menuV = m.v;
+  // (sent again when the menus' canvas changes width, as well as when the state does: the title is laid out for it,
+  // and its first state is made before BridgeMenu's first frame, with the default width or a cold start's upright
+  // screen; on the Retroid's 4:3 its name stayed laid out for 1280 or the portrait panel: issue #470)
+  const width = host.MenuWidth?.() || 1280;
+  if (!m || (m.v === S.menuV && width === S.menuW)) return;
+  S.menuV = m.v; S.menuW = width;
   const v = m.view();
   // (the Map's drawn ground and its sharper part zoomed in, once each: their RGBA to Unity before the state that shows
   // them, BridgeHost.MapImage)
@@ -880,6 +902,7 @@ export function frame(dt) {
   if (S?.menus && !S.game) {
     if (!S.menus.title.starting && S.titlePad) readTitleInput(dt);
     showMenu();
+    if (S.titleShots) titleShots();
     // (its timers too: the menu tune's scheduler; in a world engine/game.js runs them)
     if (S.titleSound) { page.tick(now()); pumpAudio(S.titleSound.ctx); }
     return;

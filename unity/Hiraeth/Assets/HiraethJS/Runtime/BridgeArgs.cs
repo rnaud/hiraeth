@@ -241,6 +241,11 @@ namespace Hiraeth.Bridge
             if (Flag("-hull-spawn")) args["hullSpawn"] = true;
             // (-no-title: straight into the world, as before the menus: engine/unity/game.js; a plan always is)
             if (Flag("-no-title")) args["noTitle"] = true;
+            // (-title-shots 960x1280,1280x960 [-title-wait frames]: the title on screens of those sizes in turn, the first from
+            // the first frame as a cold start, each photographed into -out: engine/unity/game.js, issue #470)
+            if (Arg("-title-shots") != null) args["titleShots"] = Arg("-title-shots");
+            if (Arg("-title-art") != null) args["titleArt"] = Arg("-title-art");   // (-title-art H1: that painted world behind it)
+            if (Arg("-title-wait") != null) args["titleWait"] = double.Parse(Arg("-title-wait"), CultureInfo.InvariantCulture);
             // (-updates-page: the Start menu's Updates page photographed as it checks and downloads, with -updates: BridgeUpdates)
             if (Flag("-updates-page")) args["updatesPage"] = true;
             // (-js-off a,b: the script's own measures turned off, a before-and-after on one build: engine/unity/game.js)
