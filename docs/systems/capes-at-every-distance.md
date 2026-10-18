@@ -40,3 +40,12 @@ front), and over the robe swung by the thighs. The figures' robe follows the thi
 people's skinned robe does on its captured walk (`CROWD_ROBE`, `crowdRobeTurn`).
 
 Cost: no new draw calls; the cloth's CPU is as before (a carried update has the same three steps).
+
+## A step of no time
+
+`Cape.update(0, …)` simulates nothing: the cloth is carried with its anchor (`follow()`, as between updates) and the
+call returns. The steps divide by their length (`1 / h`), and a step of 0 s turned every point of the cloth NaN for
+good (a NaN cloth is never "fresh", so never reset): the people's capes vanished and logged "Computed radius is NaN"
+every frame wherever a run held the clock still (`window.__stepDt`), the take-off filmed in the City-Shaft (issue
+#452). `tests/takeoff-nan.test.js` plays the take-off in four worlds in the engines' bundle with a step of 0 s after
+every step (`runSequence(…, { level, held: true })`, engine/sequence-run.mjs) and checks no mesh is left with a NaN.

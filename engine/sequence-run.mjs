@@ -25,10 +25,17 @@ export async function buildBundle() {
   return file;
 }
 
-/** One sequence in a fresh VM → { beats: [{ beat, t, late, …probe }], errors }. quiet: the worlds' chatter hushed. */
-export async function runSequence(file, id, { quiet = true, log = () => {} } = {}) {
+/**
+ * One sequence in a fresh VM → { beats: [{ beat, t, late, …probe }], errors }. quiet: the worlds' chatter hushed.
+ * level: played in another world than its own. held: a step of no time after every step (a clock held still, as a
+ * measuring run's window.__stepDt holds it), and out.nan: { radius: the "Computed radius is NaN" errors, positions: the
+ * meshes left with a NaN in their position attribute } (issue #452).
+ */
+export async function runSequence(file, id, { quiet = true, log = () => {}, level = null, held = false } = {}) {
   const c = console, said = { warn: c.warn, info: c.info, log: c.log, error: c.error };
   if (quiet) c.warn = c.info = c.log = c.error = () => {};
+  const nan = held ? { radius: 0, positions: [] } : null;
+  if (nan) { const e = c.error; c.error = (...a) => { if (/radius is NaN/.test(String(a[0]))) nan.radius++; else e(...a); }; }
   const out = { beats: [], errors: [] };
   let timers = null;
   try {
@@ -38,7 +45,7 @@ export async function runSequence(file, id, { quiet = true, log = () => {} } = {
     const B = loadBundle(file, { pads: () => [] }, { setTimeout: track(setTimeout, clearTimeout), setInterval: track(setInterval, clearInterval) }).exports;
     const seq = B.sequenceById(id);
     if (!seq) throw new Error(`no sequence ${id}`);
-    const opts = B.engineSetup(seq.setup);
+    const opts = B.engineSetup(level ? { ...seq.setup, level } : seq.setup);
     let g = null;
     const menus = new B.EngineMenus({ settings: new B.Settings(), house: () => g?.houseView?.() ?? null });
     g = await B.createGame({ ...opts, backend: backend(), menus, saves: false });
@@ -55,9 +62,14 @@ export async function runSequence(file, id, { quiet = true, log = () => {} } = {
       if (r?.keys) for (const [code, down] of r.keys) B.engineKey(g, menus, code, down);
       if (r?.record) { out.beats.push({ beat: r.record.name, t: +run.time.toFixed(2), late: r.late, ...B.probe(G) }); log(`${id} ${r.record.name}`); }
       g.frame(STEP);
+      if (held) g.frame(0);
       if (f % 4 === 0) await tick();
     }
     out.errors.push(...run.errors);
+    if (nan) {
+      g.scene.traverse((o) => { const a = o.geometry?.attributes?.position?.array; if (a && a.some((v) => Number.isNaN(v))) nan.positions.push(o.name || o.parent?.name || o.type); });
+      out.nan = nan;
+    }
   } catch (e) { out.errors.push(String(e?.stack ?? e).split('\n').slice(0, 3).join(' | ')); }
   finally { Object.assign(c, said); for (const [h, clear] of timers ?? []) clear(h); }
   return out;

@@ -304,6 +304,10 @@ export class Cape {
    * @param s.spread 0..1 open like wings (gliding), s.lift 0..1 updraft (jetpack)
    */
   update(dt, s) {
+    // (a step of no time: nothing to simulate, the cloth carried along with the anchor as between updates. The steps
+    // divide by their length: h 0 made 1/h Infinity, 0 × Infinity NaN in every point, for good (a NaN cloth is never
+    // "fresh"), and three logged "Computed radius is NaN" each frame: a held clock, window.__stepDt, issue #452)
+    if (!(dt > 0) && !s.quiet) { if (!this.hung) this.follow(); return; }
     if (this.hung) this.unhang();   // (and starts again from the drape: reset())
     this._ease = 0;
     this.unfollow();
