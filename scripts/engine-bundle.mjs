@@ -91,6 +91,17 @@ export async function unityPictures({ to = UNITY_PICTURES.to, size = UNITY_PICTU
     if (!existsSync(out) || statSync(out).mtimeMs < statSync(resolve(src, f)).mtimeMs) await sharp(resolve(src, f)).resize(size, size, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } }).png({ compressionLevel: 9 }).toFile(out);
     n++; bytes += statSync(out).size;
   }
+  // (the shops' pictures, drawn by the page as SVGs (src/shop-panel.js): the wares' flask, heart and magic cell, the
+  // chime's crystal and a fragment of the singing light, for BridgeMenu's shop cards, wallet and prices; issue #264)
+  const { warePicture, CHIME_SVG, FRAGMENT_SVG } = await import('../src/shop-panel.js');
+  const shopSrc = resolve(ROOT, 'src/shop-panel.js');
+  for (const [id, svg] of Object.entries({ 'ware-potion': warePicture('potion'), 'ware-heart': warePicture('heart'), 'ware-magic': warePicture('magic'), 'shop-chime': CHIME_SVG, 'shop-fragment': FRAGMENT_SVG })) {
+    const out = resolve(dst, `${id}.png`);
+    const [, , , bw, bh] = svg.match(/viewBox="([\d.-]+) ([\d.-]+) ([\d.]+) ([\d.]+)"/).map(Number), k = size / Math.max(bw, bh);
+    const sized = svg.replace(/^<svg[^>]*?(viewBox="[^"]*")[^>]*>/, `<svg xmlns="http://www.w3.org/2000/svg" width="${Math.round(bw * k)}" height="${Math.round(bh * k)}" $1>`);
+    if (!existsSync(out) || statSync(out).mtimeMs < statSync(shopSrc).mtimeMs) await sharp(Buffer.from(sized)).png({ compressionLevel: 9 }).toFile(out);
+    n++; bytes += statSync(out).size;
+  }
   return { n, bytes, to };
 }
 

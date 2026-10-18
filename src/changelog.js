@@ -127,6 +127,19 @@ export const CHANGELOG = [
         { where: 'the Underwater City', before: 10.24, after: 9.19 },
         { where: 'the Rose House’s fight', before: 6.88, after: 5.92 },
       ], source: 'docs/systems/performance.md, "CPU round 1 (#448)"', note: 'The same build with the change off and on in turn, six rounds of 2 s each, the median of each; the pixels of a frame drawn both ways are identical.' }] },
+    // issue #264: unity BridgeMenu.Shop.cs (src/shop-panel.css #shop: the bubble, the wallet, the wares' cards in a grid),
+    // BridgeMenu.Arcade.cs (the Arcade's board as the page's), BridgeMenu.cs DrawCard (the page's face, the dashed rules);
+    // engine/menus.js shopCols / card fields, scripts/engine-bundle.mjs (the wares' pictures as PNGs); tests/engine-menus.test.js
+    'In the Unity version, the shops, the Arcade’s board and a game’s cards look like the web’s: the keeper’s line in a speech bubble and the wares as cards with their pictures and prices, the games as inked cards with their coloured dots, and the cards in the web’s typeface with their rules in a dashed box.',
+    // issue #264 (#430's rows): engine/menus.js SETTINGS_ROWS (the page's groups, order and words; `when`), settingRows;
+    // engine/game.js applySettings (the jets' pitch); tests/engine-menus.test.js
+    'In the Unity version, Settings is laid out as on the web, in its groups (Screen and text, Camera and motion, Controls, Sound, Game) and order, and it has the web’s alien voices, run and guard, enemies and drone hints settings too.',
+    // issue #264 (#430's credits): src/ship/homecoming.js Credits (the screen's 'credits' part, creditsPart), unity
+    // BridgeHud.Credits.cs; tests/engine-finishable.test.js
+    'In the Unity version, the true ending’s credits roll up the screen on their paper page, the worlds and the people you met, as on the web, instead of being read out a line at a time.',
+    // issue #264: engine/trials.js arcadeLinks, engine/unity/game.js leaveGame; engine/game.js (a game on foot runs under its
+    // card); tests/engine-trials.test.js, tests/sequences-play.test.js
+    'In the Unity version, a game started from the Arcade offers the game before and after and the way back to the Arcade on its cards, and a fight temple’s start card shows its hall from above, as on the web.',
   ] },
   { v: '1.83', date: '2026-10-16', items: [
     // issue #406: src/temples/desert.js (ROOMS, LOGIC: hall, balcony, ballK, kS, dE, sentry in the hall, d3), pieces.js Ball

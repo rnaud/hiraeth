@@ -172,7 +172,12 @@ namespace Hiraeth.Bridge
                     float vw = B(r, "wide") ? 0 : Ui.Measure(meas, r.S("val") ?? "", cw).y;
                     rh = Mathf.Max(30, Mathf.Max(tw, vw) + 14) + (B(r, "head") ? 10 : 0);
                 }
-                else if (B(r, "on") && !string.IsNullOrEmpty(r.S("note"))) rh += 16;
+                else
+                {
+                    // (a setting's name in two lines, the page's long ones in a narrow window: the row as tall as it)
+                    if (!B(r, "head")) { var f0 = meas.font; meas.font = Ui.Sans; meas.fontSize = 14; meas.fontStyle = FontStyle.Normal; meas.lineSpacing = 1.25f; rh = Mathf.Max(40, Ui.Measure(meas, r.S("text") ?? "", w - cw - 24).y + 16); meas.font = f0; }
+                    if (B(r, "on") && !string.IsNullOrEmpty(r.S("note"))) rh += 16;
+                }
                 hs.Add(rh);
                 if (B(r, "on")) at = i;
             }

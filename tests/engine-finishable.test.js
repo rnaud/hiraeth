@@ -115,24 +115,27 @@ test('the engine keeps a world done, flies to a world never visited from the hol
   assert.ok(!h.ship.playing, `the homecoming over (${[...stages].join(' ')})`);
   assert.ok(gs.flag('ending.done'), 'ending.done set');
 
-  // Ilen met at the Lantern: the next flight home is the true ending, its end card and credits said as lines
+  // Ilen met at the Lantern: the next flight home is the true ending, its end card and the credits rolled
   gs.set('finale.met', true);
   const f = await hushed(() => B.createGame({ levelId: 'home', backend, menus: menusStub(), via: 'ship', arrive: true }));
   assert.ok(f.ship.cinematic?.final, 'the final homecoming');
-  const subs = [], fs = new Set(), fseen = {};
-  let card = null;
+  const fs = new Set(), fseen = {};
+  let card = null, roll = null, rolled = 0;
   run(f, 20 * 600, {}, () => {
     fs.add(f.ship.cinematic?.stage); answerCargo(f, fseen);
-    const t = f.screen().state.sub?.text; if (t && subs.at(-1) !== t) subs.push(t);
     card ??= f.screen().state.endCard ? JSON.parse(JSON.stringify(f.screen().state.endCard)) : null;
+    const c = f.screen().state.credits; if (c) { roll ??= JSON.parse(JSON.stringify(c)); rolled = Math.max(rolled, c.k); }
     return !f.ship.playing;
   });
   assert.ok(fs.has('card') && fs.has('credits'), [...fs].join(' '));
   assert.ok(fseen.cargo?.items.includes('Ilen'), 'Ilen in the hold');
   // (the end card drawn from the screen's 'endCard' part, issue #430: no longer said as a line)
   assert.deepEqual(card && { title: card.title, line: card.line, on: card.on }, { title: 'SOMETHING OF VALUE', line: 'for the two of them, on the hill', on: true });
-  assert.ok(subs.includes('SOMETHING OF VALUE'), subs.slice(-12).join(' | '));
-  assert.ok(subs.includes('The ship is ready whenever you are.'), 'the credits said to their end');
+  // (the credits rolled as the screen's 'credits' part, issue #430: the page's words, rolled to their end; no longer said)
+  assert.equal(roll?.title, 'SOMETHING OF VALUE', JSON.stringify(roll)?.slice(0, 200));
+  assert.ok(roll.worlds.length >= 6 && roll.worlds.every((w) => w.people.length) && roll.end === 'The ship is ready whenever you are.' && roll.mark?.length, `its worlds and their people, its last words and the mark: ${JSON.stringify(roll).slice(0, 300)}`);
+  assert.equal(rolled, 1, 'rolled to its end');
+  assert.equal(f.screen().state.credits, null, 'taken down after');
   assert.ok(!f.ship.playing && gs.flag('ending.final'), 'the true ending over');
 
   // the hoverbike found in the desert stands by the ramp in Viridel, called from the pack; with the bird's promise she

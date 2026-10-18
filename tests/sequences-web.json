@@ -1,6 +1,6 @@
 {
- "recorded": "2026-10-17",
- "sha": "99f8b033c",
+ "recorded": "2026-10-18",
+ "sha": "061752900",
  "how": "node scripts/unity-compare/sequences.mjs web [ids] && node scripts/unity-compare/sequences.mjs record",
  "sequences": {
   "moment-desert.flow": {
@@ -3427,7 +3427,7 @@
      "menu": null,
      "playing": null,
      "objects": {
-      "ink": 407,
+      "ink": 413,
       "print": 1,
       "shader": 2,
       "pitvoid": 1,
@@ -3498,7 +3498,7 @@
      },
      "playing": null,
      "objects": {
-      "ink": 407,
+      "ink": 413,
       "print": 1,
       "shader": 2,
       "pitvoid": 1,
@@ -3538,6 +3538,15 @@
        "Bloom mode",
        "Tether mode",
        "Fluid gun",
+       "Grappling hook",
+       "Ink bombs",
+       "Boomerang",
+       "Magnet glove",
+       "Ink bridge pen",
+       "Seeing lens",
+       "Spring boots",
+       "Bubble wand",
+       "Gust fan",
        "Fourth chamber",
        "Quick coil",
        "Dune fins",
@@ -3601,7 +3610,7 @@
      },
      "playing": null,
      "objects": {
-      "ink": 349,
+      "ink": 355,
       "print": 1,
       "shader": 2,
       "pitvoid": 1,
@@ -3640,7 +3649,7 @@
      },
      "playing": null,
      "objects": {
-      "ink": 349,
+      "ink": 355,
       "print": 1,
       "shader": 2,
       "pitvoid": 1,
@@ -3683,7 +3692,7 @@
      },
      "playing": null,
      "objects": {
-      "ink": 349,
+      "ink": 355,
       "print": 1,
       "shader": 2,
       "pitvoid": 1,
@@ -3754,7 +3763,7 @@
      },
      "playing": null,
      "objects": {
-      "ink": 349,
+      "ink": 355,
       "print": 1,
       "shader": 2,
       "pitvoid": 1,
@@ -3782,7 +3791,7 @@
      "menu": null,
      "playing": null,
      "objects": {
-      "ink": 406,
+      "ink": 412,
       "print": 1,
       "shader": 2,
       "pitvoid": 1,

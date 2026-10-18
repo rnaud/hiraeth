@@ -1181,8 +1181,26 @@ const PORT447U = 'Issue #447: the Unity bridge in the editor’s batch run on th
 const PORT451 = 'Issue #451: the running game in muted headless Chrome (ANGLE Metal, High, render scale 1, 1280 × 720, 10:00, the HUD hidden) on this branch’s own Vite (port 5451): the berth’s pictures with the camera pinned on the berth’s own lens (scripts/design-qc/capture.mjs --fixed-scale), the motion’s frames with the page’s clock stepped 1/30 s and held for the shot; before: the tree at 675f05cb4, the same camera; 17 October; cwebp -q 72';
 const PORT451U = 'Issue #451: the Unity bridge in the editor’s batch run on this Mac (scripts/unity-compare/sequences.mjs unity: muted, High, 1280 × 720), the same moments of the same scenes as the web’s; 17 October; cwebp -q 72';
 const portRef = (id, what) => ({ sheet: `references/space-ports/${id}/sheet-1.jpg`, caption: `The author’s pick from the reference lab: ${what}` });
+/** (v1.84, issue #264: the menus left after #423) */
+const MENUS264 = 'Issue #264: the Unity bridge in the editor’s batch run on this Mac (muted, High, -frames 1280x720): -ui shop,credits and -ui arcade (engine/ui-poses.js), the sequences `game-rings`, `fight-temple` and `menus`; before: the same views in the runs of #423, #430 and #429 (the builds before this change); 17 October; cwebp -q 72';
+const MENUS264W = 'Issue #264: the web game in muted headless Chrome (High, 1280 × 720) on this branch’s own Vite (port 5464), the same pose as Unity’s; 17 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.84': [
+    { match: 'In the Unity version, the shops, the Arcade’s board and a game’s cards look like the web’s', shots: [
+      { name: 'unity-shop', only: 'after', title: 'A shop in Unity', caption: 'Haddu’s shop in Unity: his line in a bubble, the wallet, the three wares as cards with their pictures and prices, the healing potion picked (it was a list of boxed rows)', from: MENUS264 },
+      { name: 'unity-shop-web', only: 'after', title: 'On the web', caption: 'The same shop on the web', from: MENUS264W },
+      { name: 'unity-arcade', title: 'The Arcade', caption: 'The Arcade’s board in Unity: before, the games as boxed rows; after, the web’s sheet of inked cards with their coloured dots', from: MENUS264 },
+      { name: 'unity-card', title: 'A game’s card', caption: 'The ring race’s start card in Unity: before, in a typewriter face; after, in the web’s, the rules in a dashed box, the buttons as the web’s', from: MENUS264 },
+    ], see: 'In the Unity version, open Haddu’s shop in Qanat, the board in the Arcade (D-pad ↓), or any game’s start card.' },
+    { match: 'In the Unity version, Settings is laid out as on the web', shots: [
+      { name: 'unity-settings', title: 'Settings', caption: 'The pause screen’s Settings in Unity: before, Music, Effects and Voices first in one list; after, the web’s groups and order under their headings', from: MENUS264 },
+    ], see: 'In the Unity version, press Menu (Esc) and open Settings.' },
+    { match: 'In the Unity version, the true ending’s credits roll up the screen', shots: [
+      { name: 'unity-credits', only: 'after', title: 'The credits', caption: 'The credits rolling in Unity, 18 seconds in: the paper column with the worlds and the people met (those not met pale), as on the web', from: MENUS264 },
+    ], see: 'In the Unity version, bring Ilen home after the Lantern.' },
+    { match: 'In the Unity version, a game started from the Arcade offers the game before and after', shots: [
+      { name: 'unity-fight-card', title: 'The Sunken Hall’s card', caption: 'The Sunken Hall’s start card in Unity: before, the traveller’s own view behind it; after, the hall seen from above, as on the web', from: MENUS264 },
+    ], see: 'In the Unity version, play a game from the Arcade’s board, and open the Sunken Hall by the pilgrims’ camps.' },
     { match: 'In the Unity version, the shafts of light in the skull cave and the makers’ houses are as soft', shots: [
       { name: 'unity-shafts', title: 'The skull cave', caption: 'Among the skull cave’s shafts of light in Unity: before, a white slab with a hard edge; after, a pale wash as the web’s', from: SHAFT420 },
     ], see: 'In the Unity version, go down into the skull cave behind Qanat.' },

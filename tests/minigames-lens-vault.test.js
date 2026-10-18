@@ -224,7 +224,9 @@ test('the Lens Vault in the engine: its card, the eye\'s camera, the visor, a do
   const res = menus.view().card;
   assert.equal(res.kind, 'results');
   assert.ok(JSON.stringify(plain(res)).includes('Rooms reached 2 of 4'), JSON.stringify(plain(res)).slice(0, 400));
-  menus.navigate(0, 1); menus.action('confirm');
+  // (from the Arcade, its cards go to the game before and after too, as the page's: down to Back to the Arcade)
+  for (let i = 0; i < 8 && menus.view().card.buttons.find((b) => b.on)?.label !== 'Back to the Arcade'; i++) menus.navigate(0, 1);
+  menus.action('confirm');
   await frames(g, 1);
   assert.equal(left.length, 1);
   assert.match(left[0], /level=arcade/);

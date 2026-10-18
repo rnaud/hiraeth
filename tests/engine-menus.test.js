@@ -7,6 +7,7 @@ import { readFileSync } from 'node:fs';
 globalThis.matchMedia ??= () => ({ matches: false });
 globalThis.window ??= new EventTarget();
 const { EngineMenus, SETTINGS_ROWS, START_SIDE, nextInto, settingStep, settingText } = await import('../engine/menus.js');
+const { t } = await import('../src/i18n.js');
 const { SlotStore, DEBUG_SLOT } = await import('../src/save-slots.js');
 const { ORDER } = await import('../src/levels/names.js');
 const { PANELS } = await import('../src/game-menu.js');
@@ -113,24 +114,30 @@ test('the settings: a slider steps with left / right, a switch flips with A / ×
   m.navigate(0, 1); m.navigate(0, 1); m.action('confirm');   // Settings
   let v = m.view();
   assert.equal(v.screen, 'settings');
-  assert.deepEqual(v.page.rows.map((r) => r.text), SETTINGS_ROWS.map((r) => r.label()));
-  m.navigate(-1, 0);
+  // (the page's groups and order: a heading before each group, the rows under it; the jets' and the pirates' pitch not
+  // shown before they are yours, as on the page)
+  const shown = SETTINGS_ROWS.filter((r) => !r.when);
+  assert.deepEqual(v.page.rows.map((r) => r.text), shown.map((r) => (r.group ? t(`set.group.${r.group}`) : r.label())));
+  assert.deepEqual(v.page.rows.filter((r) => r.head).map((r) => r.text), ['Screen and text', 'Camera and motion', 'Controls', 'Sound', 'Game']);
+  const rows = shown.filter((r) => !r.group), row = (k) => m.view().page.rows.filter((r) => !r.head)[rows.findIndex((r) => r.k === k)];
+  const go = (k) => { while (m.title.at.i !== rows.findIndex((r) => r.k === k)) m.navigate(0, 1); };
+  go('music'); m.navigate(-1, 0);
   assert.equal(s.music, 0.75);
-  assert.equal(m.view().page.rows[0].val, '75 %');
+  assert.equal(row('music').val, '75 %');
   // Music plays (the recorded theme for the moments, or always: src/music-moments.js), unset reads Moments
   m.navigate(0, 1);
-  assert.equal(m.view().page.rows[1].val, 'Moments');
+  assert.match(row('musicMode').val, /^Moments/);
   m.action('confirm');
   assert.equal(s.musicMode, 'always');
   assert.deepEqual(changed.at(-1), ['musicMode', 'always']);
-  assert.equal(m.view().page.rows[1].val, 'Always');
-  m.navigate(0, 1); m.navigate(0, 1); m.navigate(0, 1);   // Mute
+  assert.match(row('musicMode').val, /^Always/);
+  go('mute');
   m.action('confirm');
   assert.equal(s.mute, true);
   assert.deepEqual(changed.at(-1), ['mute', true]);
   m.action('back');
   assert.equal(m.view().screen, 'main');
-  assert.equal(settingStep(SETTINGS_ROWS[0], 1, 1), 1, 'clamped');
+  assert.equal(settingStep(SETTINGS_ROWS.find((r) => r.k === 'music'), 1, 1), 1, 'clamped');
   assert.equal(settingStep(SETTINGS_ROWS.find((r) => r.k === 'hints'), 'full', 1), 'off', 'round');
   assert.equal(settingText(SETTINGS_ROWS.find((r) => r.k === 'sensitivity'), 1.25), '1.25×');
 });
@@ -148,9 +155,9 @@ test('the Start menu: the sidebar and its page, as issue #210 has it; B in the p
   m.navigate(0, -1);
   assert.ok(m.view().side.at(-1).on, 'up from Resume: Quit to title (the sidebar wraps)');
   m.navigate(1, 0);
-  assert.equal(m.view().page.rows[0].on, true, 'right: into the page');
+  assert.equal(m.view().page.rows.find((r) => !r.head).on, true, 'right: into the page, on its first setting (Graphics, under its heading)');
   m.navigate(1, 0);
-  assert.equal(s.music, 0.85, 'a slider\'s right is its value');
+  assert.equal(s.quality, 'deck', 'a choice\'s right is its next value');
   m.action('back');
   v = m.view();
   assert.ok(v.side.find((e) => e.text === 'Settings').on, 'B: back to the page\'s entry on the sidebar');
@@ -488,7 +495,7 @@ test('the Items panel in an engine: as many tiles a row as fit, each with its pi
   assert.match(src('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.cs'), /item-pictures/);
 });
 
-test('a shop\'s sheet (issue #264): the web\'s ShopPanel\'s wares as a list, A / × asks, Buy buys, B / ○ backs out, Anselm\'s in fragments; Photo mode on the Start menu', async () => {
+test('a shop\'s sheet (issue #264): the web\'s ShopPanel\'s wares as its cards, A / × asks, Buy buys, B / ○ backs out, Anselm\'s in fragments; Photo mode on the Start menu', async () => {
   const { ShopPanel } = await import('../src/shop-panel.js');
   // Anselm's logic as src/fragment-shop.js has it: two upgrades, one he can sell, one too dear; what you hold
   const owned = new Set(), held = { n: 6 };
@@ -517,8 +524,12 @@ test('a shop\'s sheet (issue #264): the web\'s ShopPanel\'s wares as a list, A /
   assert.equal(v.ask, null);
   assert.ok(owned.has('coil') && /^1 /.test(v.wallet), 'bought: the price off what you hold');
   assert.equal(v.rows[0].state, 'owned');
+  // the cards in the page's grid, Anselm's four a row: down from the first row goes nowhere, right to the next card
+  assert.equal(v.cols, 4);
+  assert.deepEqual(v.rows.map((r) => r.card.pic), ['coil', 'lightcell']);
+  m.navigate(0, 1); assert.equal(m.view().rows.findIndex((r) => r.on), 0, 'no card under it');
   // the one too dear: asked, nothing to buy (the keeper says why); B / ○ leaves the shop
-  m.navigate(0, 1); m.action('confirm');
+  m.navigate(1, 0); m.action('confirm');
   assert.equal(m.view().ask, null);
   m.action('back');
   assert.ok(!m.open && resumed === 1 && !panel.isOpen);
@@ -585,12 +596,13 @@ test('the engine\'s settings (issue #346): the web\'s text size, plain speech ba
   assert.ok(!SETTINGS_ROWS.some((r) => r.k === 'lang'), 'no language for now');
   m.show('title'); m.navigate(0, 1); m.navigate(0, 1); m.action('confirm');
   assert.equal(m.title.screen, 'settings');
-  const at = (k) => SETTINGS_ROWS.findIndex((r) => r.k === k);
+  const pad = m.settingRows(), at = (k) => pad.findIndex((r) => r.k === k);
   const go = (k) => { while (m.title.at.i !== at(k)) m.navigate(0, 1); };
+  const rowOf = (k) => m.view().page.rows.filter((r) => !r.head)[at(k)];
   go('textSize'); m.navigate(1, 0);
   assert.equal(s.textSize, 'large');
   go('reduceMotion');
-  assert.equal(m.view().page.rows[at('reduceMotion')].val, 'Off', 'unset: as the system asks (here: no)');
+  assert.equal(rowOf('reduceMotion').val, 'Off', 'unset: as the system asks (here: no)');
   m.action('confirm');
   assert.equal(s.reduceMotion, true);
   go('rumbleLevel'); m.navigate(-1, 0);

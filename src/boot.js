@@ -58,7 +58,9 @@ const fromDebugMenu = new URLSearchParams(location.search).has('level')
   && (new URLSearchParams(location.search).has('debugsave') || cameFromDebug(document.referrer, location.search));
 if (new URLSearchParams(location.search).has('debugsave')) {
   const q = new URLSearchParams(location.search);
-  const [{ seedDebugSave, DEBUG_PARAM, SLOT_PARAM }, { game }] = await Promise.all([import('./debug-save.js'), import('./game-state.js')]);
+  // (the gadgets first: they become items as they load (src/gadgets/all.js), and the boxes' gadgets are owned only if they
+  // are items by then; seeded without them, the page's debug save lacked the hook, the bombs and the rest the engines' has)
+  const [{ seedDebugSave, DEBUG_PARAM, SLOT_PARAM }, { game }] = await Promise.all([import('./debug-save.js'), import('./game-state.js'), import('./gadgets/all.js')]);
   // (into the debug slot, or the player's slot chosen on the title's Saves screen: ?debugslot=<n>)
   seedDebugSave(q.get('level'), { state: game, slot: q.get(SLOT_PARAM) });
   q.delete(DEBUG_PARAM); q.delete(SLOT_PARAM);

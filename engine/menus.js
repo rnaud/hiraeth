@@ -36,6 +36,8 @@ import { MapView, VIEW, mapAspect } from '../src/world-map.js';
 import { chooseShot } from '../src/title-shots.js';
 import { titleLayout } from '../src/title-layout.js';
 import { MUSIC_MODES, musicMode } from '../src/music-moments.js';
+import { HINT_LEVELS } from '../src/hint-level.js';
+import { DRONE_HINTS } from '../src/companion.js';
 import { tabWindow } from '../src/world-debug.js';
 import { TAB_STRIP, verb } from '../src/dev-menu.js';
 import { drawHouseMap, HouseMapPage, HOUSE_MAP } from '../src/house-map.js';
@@ -55,30 +57,44 @@ const aside = (k) => () => t(k).match(/ \((.*)\)$/)?.[1] ?? '';
  * its rows the engines don't carry (the foes, the drone's hints, the developer's).
  */
 export const SETTINGS_ROWS = [
-  { k: 'music', label: () => t('set.music'), kind: 'range', min: 0, max: 1, step: 0.05 },
-  // (when the recorded theme plays: for the moments, or all the time; src/music-moments.js, Unity playing the recordings)
-  { k: 'musicMode', label: () => t('set.musicMode'), kind: 'choice', opts: MUSIC_MODES, name: (v) => t(`set.musicMode.${musicMode(v)}`).replace(/ \(.*$/, ''), note: () => `Moments: ${t('set.musicMode.moments').match(/\((.*)\)/)?.[1] ?? ''}` },
-  { k: 'effects', label: () => t('set.effects'), kind: 'range', min: 0, max: 1, step: 0.05 },
-  { k: 'voices', label: () => t('set.voices'), kind: 'range', min: 0, max: 1, step: 0.05 },
-  { k: 'mute', label: () => t('set.mute').replace(/ \(M\)$/, ''), kind: 'switch' },
+  // (the page's groups and order, src/ui.js SettingsMenu: its headings rows the pad passes over; its words; the language
+  // left out, the engines are in English only for now; the jets' and the pirates' pitch only once they are yours, as there)
+  { group: 'screen' },
+  // (Auto: the device's own preset, BridgeArgs.Quality: Steam Deck on the Deck's player, Handheld on Android, High elsewhere;
+  // the Steam Deck's preset as on the web's Deck app; the Unity-default plan's D7)
+  { k: 'quality', label: () => t('set.quality'), kind: 'choice', opts: ['auto', 'handheld', 'deck', 'low', 'medium', 'high'], name: (v) => (v === 'auto' ? 'Auto (this device’s own)' : t(`set.quality.${v}`)), note: 'from the next start' },
+  // (the words on the screen, a solid plain background behind speech, the frame readout: BridgeHud, issue #346)
+  { k: 'textSize', label: () => t('set.textSize'), kind: 'choice', opts: Object.keys(TEXT_SIZES), name: (v) => t(`set.textSize.${v ?? 'normal'}`) },
+  { k: 'speechBg', label: () => t('set.speechBg'), kind: 'switch' },
+  { k: 'showFps', label: () => t('set.showFps'), kind: 'switch' },
+  { group: 'camera' },
   { k: 'sensitivity', label: () => t('set.sensitivity'), kind: 'range', min: 0.3, max: 3, step: 0.05 },
   { k: 'invertY', label: () => t('set.invertY'), kind: 'switch' },
+  { k: 'invertFlight', label: () => t('set.invertFlight'), kind: 'switch', when: (m) => m.hasJets() },
   // (no hit-stop, slow motion or camera kicks: src/feel.js, through applyAccess; issue #346)
-  { k: 'reduceMotion', label: head('set.reduceMotion'), note: aside('set.reduceMotion'), kind: 'switch', value: (s) => reducedMotion(s) },
+  { k: 'reduceMotion', label: () => t('set.reduceMotion'), kind: 'switch', value: (s) => reducedMotion(s) },
   { k: 'shake', label: () => t('set.shake'), kind: 'range', min: 0, max: 1, step: 0.05 },
+  { group: 'controls' },
   // (where the printed A B X Y are: the Retroid's own "Xbox style" swaps them, src/native-pad.js setFaces)
   { k: 'padFaces', label: () => t('set.padFaces'), kind: 'choice', opts: ['auto', 'xbox', 'nintendo', 'nintendo-xbox'], name: (v) => t(`set.padFaces.${v ?? 'auto'}`) },
   // (the pad's motors: src/rumble.js, the engine's pad through BridgeHost.Rumble)
   { k: 'rumble', label: () => t('set.rumble'), kind: 'switch' },
   { k: 'rumbleLevel', label: () => t('set.rumbleLevel'), kind: 'choice', opts: ['low', 'medium', 'high'], name: (v) => t(`set.rumbleLevel.${v ?? 'medium'}`) },
-  { k: 'hints', label: () => t('set.hints').replace(/ \(.*$/, ''), kind: 'choice', opts: ['off', 'subtle', 'full'], name: (v) => t(`set.hints.${v}`) },
-  // (Auto: the device's own preset, BridgeArgs.Quality: Steam Deck on the Deck's player, Handheld on Android, High elsewhere;
-  // the Steam Deck's preset as on the web's Deck app; the Unity-default plan's D7)
-  { k: 'quality', label: () => t('set.quality'), kind: 'choice', opts: ['auto', 'handheld', 'deck', 'low', 'medium', 'high'], name: (v) => (v === 'auto' ? 'Auto (this device’s own)' : t(`set.quality.${v}`)), note: 'from the next start' },
-  // (the words on the screen, a solid plain background behind speech, the frame readout: BridgeHud, issue #346)
-  { k: 'textSize', label: head('set.textSize'), note: () => `${aside('set.textSize')()}`.replace(/, menus$/, ''), kind: 'choice', opts: Object.keys(TEXT_SIZES), name: (v) => t(`set.textSize.${v ?? 'normal'}`) },
-  { k: 'speechBg', label: () => t('set.speechBg'), kind: 'switch' },
-  { k: 'showFps', label: head('set.showFps'), kind: 'switch' },
+  { k: 'run', label: () => t('set.run'), kind: 'choice', opts: RUN_MODES, name: (v) => t(`set.run.${v ?? 'auto'}`).replace(/ \(.*$/, '') },   // (its box too narrow for the keyboard's aside)
+  { k: 'guard', label: () => t('set.guard'), kind: 'choice', opts: GUARD_MODES, name: (v) => t(`set.guard.${v ?? 'hold'}`).replace(/ \(.*$/, '') },
+  { group: 'sound' },
+  { k: 'music', label: () => t('set.music'), kind: 'range', min: 0, max: 1, step: 0.05 },
+  // (when the recorded theme plays: for the moments, or all the time; src/music-moments.js, Unity playing the recordings)
+  { k: 'musicMode', label: () => t('set.musicMode'), kind: 'choice', opts: MUSIC_MODES, name: (v) => t(`set.musicMode.${musicMode(v)}`) },
+  { k: 'effects', label: () => t('set.effects'), kind: 'range', min: 0, max: 1, step: 0.05 },
+  { k: 'voices', label: () => t('set.voices'), kind: 'range', min: 0, max: 1, step: 0.05 },
+  { k: 'alienVoices', label: () => t('set.alienVoices'), kind: 'switch' },
+  { k: 'mute', label: () => t('set.mute'), kind: 'switch' },
+  { group: 'game' },
+  { k: 'enemies', label: () => t('set.enemies'), kind: 'choice', opts: ['normal', 'gentle', 'off'], name: (v) => t(`set.enemies.${v ?? 'normal'}`).replace(/ \(.*$/, '') },
+  { k: 'piratePitch', label: () => t('set.piratePitch'), kind: 'choice', opts: ['auto', 'dive', 'climb'], name: (v) => t(`set.piratePitch.${v ?? 'auto'}`), when: (m) => m.piratesBeaten() },
+  { k: 'hints', label: () => t('set.hints'), kind: 'choice', opts: HINT_LEVELS, name: (v) => t(`set.hints.${v}`) },
+  { k: 'droneHints', label: () => t('set.droneHints'), kind: 'choice', opts: DRONE_HINTS, name: (v) => t(`set.droneHints.${v ?? 'on'}`) },
 ];
 
 /** A setting's value as the page shows it. */
@@ -165,8 +181,8 @@ export class EngineMenus {
    * @param o.saveLine  () → the line under the Start menu's heading: the save, the world, the time played
    * @param o.updates   the player's script updates (engine/unity/updates.js UnityUpdates: rows(), act(a), tick()); null: none
    */
-  constructor({ store = defaultStore, settings = null, sources = null, dev = () => true, order = ORDER, onStart = () => {}, onResume = () => {}, onQuit = () => {}, onTravel = () => null, onUse = () => {}, onTrack = () => {}, onSetting = () => {}, onPhoto = () => {}, where = () => '', version = '', itemCols = () => GEAR_COLS, mapBox = () => null, screen = () => ({ w: 1280, h: 720 }), shots = (o) => chooseShot(o), saveLine = () => '', updates = null, house = () => null } = {}) {
-    Object.assign(this, { store, settings, sources, dev, order, onStart, onResume, onQuit, onTravel, onUse, onTrack, onSetting, onPhoto, where, version, itemCols, mapBox, screen, shots, saveLine, updates, house });
+  constructor({ store = defaultStore, settings = null, sources = null, dev = () => true, order = ORDER, onStart = () => {}, onResume = () => {}, onQuit = () => {}, onTravel = () => null, onUse = () => {}, onTrack = () => {}, onSetting = () => {}, onPhoto = () => {}, where = () => '', version = '', itemCols = () => GEAR_COLS, mapBox = () => null, screen = () => ({ w: 1280, h: 720 }), shots = (o) => chooseShot(o), saveLine = () => '', updates = null, house = () => null, hasJets = () => false, piratesBeaten = () => false } = {}) {
+    Object.assign(this, { store, settings, sources, dev, order, onStart, onResume, onQuit, onTravel, onUse, onTrack, onSetting, onPhoto, where, version, itemCols, mapBox, screen, shots, saveLine, updates, house, hasJets, piratesBeaten });
     // the House map (issue #405): the house's view as the Start menu opened (house(): src/house-map.js houseView, or null
     // outside a house), the floor chosen, and its drawn floors by key (engine/raster.js: the engine shows them as the Map's)
     this.hv = null;
@@ -325,9 +341,10 @@ export class EngineMenus {
 
   /**
    * A shop's sheet (issue #264): the web's ShopPanel (src/shop-panel.js) keeps its logic, the keeper's lines and the
-   * question; here its wares are a list the pad goes down, A / × on one asks (or the keeper says why not), A / × on Buy
-   * buys, B / ○ backs out of the question, then out of the shop. Anselm's aboard (his upgrades for fragments) and every
-   * keeper's (chimes).
+   * question; here its wares are the page's cards in its grid (three a row, Anselm's four: src/shop-panel.css
+   * .shop-wares), the pad moving through them as the page's data-grid-nav, A / × on one asks (or the keeper says why
+   * not), A / × on Buy buys, B / ○ backs out of the question, then out of the shop. Anselm's aboard (his upgrades for
+   * fragments) and every keeper's (chimes).
    */
   openShop(panel, entry) {
     if (!panel?.open?.(entry)) return false;
@@ -340,9 +357,13 @@ export class EngineMenus {
   shopMove(x, y) {
     const S = this.shop, P = S.panel;
     if (P.ask) { if (x) S.on = x > 0 ? 1 : 0; return; }
-    const n = P.view().wares.length, d = y || x;
-    if (n && d) S.i = Math.max(0, Math.min(n - 1, S.i + Math.sign(d)));
+    const n = P.view().wares.length, cols = this.shopCols();
+    if (!n) return;
+    if (x && !y) S.i = Math.max(0, Math.min(n - 1, S.i + Math.sign(x)));
+    else if (y) { const j = S.i + Math.sign(y) * cols; if (j >= 0 && j < n) S.i = j; }
   }
+  /** The cards a row: the page's grid, three, Anselm's four (src/shop-panel.css .shop-wares, .fragments). */
+  shopCols() { return this.shop?.panel?.view?.().money?.cls === 'fragments' ? 4 : 3; }
   shopAction(name) {
     const S = this.shop, P = S.panel;
     if (name === 'back') { if (P.ask) P.back(); else this.close(); return; }
@@ -358,11 +379,15 @@ export class EngineMenus {
       const flag = w.flag ?? stateText(w.state), stock = w.note === undefined ? [left, have].filter(Boolean).join(' · ') : w.note;
       const price = w.state === 'soldout' || w.state === 'owned' ? '' : `${w.price} ${frag ? '✦' : '◆'}`;
       return { id: w.id, text: w.name ?? t(`shop.${w.id}.name`), sub: [plain(w.effect ?? t(`shop.${w.id}.effect`)), stock].filter(Boolean).join('\n'), val: [price, flag].filter(Boolean).join('  '),
-        state: w.state, ok: w.state === 'ok', on: i === S.i, pic: frag ? w.id : '', mark: frag ? '✦' : w.kind === 'potion' ? '◒' : w.kind === 'heart' ? '♥' : '◆' };
+        state: w.state, ok: w.state === 'ok', on: i === S.i, pic: frag ? w.id : '', mark: frag ? '✦' : w.kind === 'potion' ? '◒' : w.kind === 'heart' ? '♥' : '◆',
+        // (the page's card, src/shop-panel.js wareCard: its picture, name, what it does, its stock, its price and flag;
+        // the picture an item's own or the ware's drawing, made a PNG by scripts/engine-bundle.mjs unityPictures)
+        card: { pic: frag ? w.id : `ware-${w.kind}`, alt: frag ? 'shop-fragment' : '', name: w.name ?? t(`shop.${w.id}.name`), effect: plain(w.effect ?? t(`shop.${w.id}.effect`)),
+          stock: stock ?? '', price: w.state === 'soldout' || w.state === 'owned' ? '' : String(w.price), flag: flag ?? '' } };
     });
     const asked = v.ask ? v.wares.find((w) => w.id === v.ask) : null;
     return { v: this.v, kind: 'shop', head: v.keeper?.name ?? '', sub: v.keeper?.title ?? '', line: plain(stripTone(v.line ?? '')),
-      wallet: `${v.wallet} ${frag ? '✦' : '◆'}`, money: v.money?.title ?? '', rows,
+      wallet: `${v.wallet} ${frag ? '✦' : '◆'}`, money: v.money?.title ?? '', rows, cols: this.shopCols(), purse: String(v.wallet), coin: frag ? 'shop-fragment' : 'shop-chime',
       ask: asked ? { q: plain(v.money.ask(asked)), what: '', undone: '', no: t('shop.no'), yes: t('shop.yes'), on: S.on } : null,
       hint: asked ? '◀ ▶ choose · A / × answer · B / ○ not now' : 'A / × buy · B / ○ leave' };
   }
@@ -457,7 +482,7 @@ export class EngineMenus {
       const r = rows.length;
       rows.push(B.games.slice(k, k + cols).map((g, j) => {
         const best = B.best(g);
-        const c = { kind: 'foe', text: g.name, sub: `${g.blurb ?? ''}\n${best ? `best ${best}` : 'no best yet'}`, color: g.color ?? '#71d7cf', col: j, id: g.id };
+        const c = { kind: 'foe', text: g.name, sub: `${g.blurb ?? ''}\n${best ? `best ${best}` : 'no best yet'}`, color: g.color ?? '#71d7cf', col: j, id: g.id, blurb: g.blurb ?? '', best: best ? `best ${best}` : 'no best yet' };
         items.push({ r, k: j, c });
         return c;
       }));
@@ -488,7 +513,7 @@ export class EngineMenus {
     const on = items[A.i];
     const W = A.board.words ?? {};
     return { v: this.v, kind: 'arcade', kicker: W.kicker ?? '', head: W.title ?? '', cols: Array(cols).fill(1 / cols),
-      rows: rows.map((row, r) => row.map((c, k) => ({ kind: c.kind, text: c.text, sub: c.sub, color: c.color, col: c.col, span: 1, on: !!on && on.r === r && on.k === k }))),
+      rows: rows.map((row, r) => row.map((c, k) => ({ kind: c.kind, text: c.text, sub: c.sub, blurb: c.blurb, best: c.best, color: c.color, col: c.col, span: 1, on: !!on && on.r === r && on.k === k }))),
       hint: W.pad ?? '' };
   }
 
@@ -673,14 +698,14 @@ export class EngineMenus {
   // ------------------------------------------------------------------ the settings page (the title's and the Start menu's)
 
   settingsMove(x, y, at) {
-    const rows = this.settings ? SETTINGS_ROWS : [], n = rows.length;
+    const rows = this.settingRows(), n = rows.length;
     at.at ??= { in: 'page', i: 0 };
     if (!n) return;
     if (y) { at.at.i = (at.at.i + y + n) % n; return; }
     if (x) { const r = rows[at.at.i]; if (r) this.setSetting(r, settingStep(r, this.settingValue(r), x)); }
   }
   settingsAction(name, at, back) {
-    const rows = this.settings ? SETTINGS_ROWS : [];
+    const rows = this.settingRows();
     if (name === 'back') { back(); return; }
     if (name === 'confirm') { const r = rows[at.at?.i ?? 0]; if (r && r.kind !== 'range') this.setSetting(r, settingStep(r, this.settingValue(r), 1)); }
   }
@@ -689,8 +714,17 @@ export class EngineMenus {
   settingValue(r) { return r.value ? r.value(this.settings) : this.settings[r.k]; }
   settingsPage(at) {
     if (!this.settings) return [];
-    return SETTINGS_ROWS.map((r, i) => ({ text: r.label(), val: settingText(r, this.settingValue(r)), slider: r.kind === 'range' ? (this.settings[r.k] - r.min) / (r.max - r.min) : null, kind: r.kind, on: at?.in === 'page' && at.i === i, note: (typeof r.note === 'function' ? r.note() : r.note) ?? '' }));
+    const out = []; let i = 0;
+    for (const r of SETTINGS_ROWS) {
+      if (r.when && !r.when(this)) continue;
+      if (r.group) { out.push({ text: t(`set.group.${r.group}`), head: true }); continue; }
+      out.push({ text: r.label(), val: settingText(r, this.settingValue(r)), slider: r.kind === 'range' ? (this.settings[r.k] - r.min) / (r.max - r.min) : null, kind: r.kind, on: at?.in === 'page' && at.i === i, note: (typeof r.note === 'function' ? r.note() : r.note) ?? '' });
+      i++;
+    }
+    return out;
   }
+  /** The settings the pad moves through, in the page's order (its headings and the rows not shown left out). */
+  settingRows() { return this.settings ? SETTINGS_ROWS.filter((r) => !r.group && (!r.when || r.when(this))) : []; }
 
   // ------------------------------------------------------------------ the Updates page (the title's and the Start menu's)
 
@@ -842,9 +876,10 @@ export class EngineMenus {
   }
   startMove(x, y) {
     const S = this.start, SIDE = this.startSide(), side = SIDE.length;
-    const pageRows = this.startPageRows(), page = pageRows.length;
+    // (the settings' headings are passed over: the pad counts the settings alone)
+    const pageRows = this.startPageRows(), page = this.startPage() === 'settings' ? this.settingRows().length : pageRows.length;
     // (a slider, a switch or a choice in the page: left / right its value, as the web keeps a slider's; B goes back)
-    if (S.at.in === 'page' && x && page && this.startPage() === 'settings') { const r = SETTINGS_ROWS[S.at.i]; if (r) this.setSetting(r, settingStep(r, this.settingValue(r), x)); return; }
+    if (S.at.in === 'page' && x && page && this.startPage() === 'settings') { const r = this.settingRows()[S.at.i]; if (r) this.setSetting(r, settingStep(r, this.settingValue(r), x)); return; }
     const control = S.at.in === 'page' && x && CONTROL_ROWS.find((r) => r.k === pageRows[S.at.i]?.control);
     if (control) { this.setSetting(control, settingStep(control, this.settings[control.k], x)); return; }
     if (S.at.in === 'page' && y && !x && this.startPage() === 'updates') { this.updatesMove(y, S); return; }

@@ -252,6 +252,20 @@ test('a game that drives shows its own camera under its start card (Cistern chan
   assert.ok(Math.abs(g.camera.fov - 44) < 0.1, `the game's field of view (${g.camera.fov})`);
 });
 
+test('a game reached from the Arcade: its cards go back to the Arcade, and to the game before and after (as main.js arcadeLinks)', async () => {
+  const { exports: X } = await load();
+  const menus = new EngineMenus({});
+  const left = [];
+  const g = await quietly(() => X.createGame({ levelId: 'desert', game: 'rings', from: 'arcade', backend, menus, onLeave: (h) => left.push(h) }));
+  await run(g, 3);
+  assert.equal(menus.mode, 'card', 'the start card up');
+  const labels = menus.view().card.buttons.map((b) => b.label);
+  assert.ok(labels.includes('Previous game') && labels.includes('Next game') && labels.includes('Back to the Arcade'), labels.join(', '));
+  g.trials.runner.go(g.trials.runner.link('next').href);
+  assert.match(left.at(-1) ?? '', /game=[a-z-]+&from=arcade/, 'the next game\'s page');
+  assert.match((await import('node:fs')).readFileSync(new URL('../engine/unity/game.js', import.meta.url), 'utf8'), /if \(game && !S\.plan\) \{ playGame\(href\); return; \}/, 'the Unity side plays it');
+});
+
 test('the Canyon run steered into its walls goes on (a wall\'s sand burst read the heading before it was made)', async () => {
   const { exports: X } = await load();
   const menus = new EngineMenus({});

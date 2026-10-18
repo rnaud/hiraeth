@@ -4,6 +4,10 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.84 — 2026-10-17
 
+- In the Unity version, a game started from the Arcade offers the game before and after and the way back to the Arcade on its cards, and a fight temple’s start card shows its hall from above, as on the web.
+- In the Unity version, the true ending’s credits roll up the screen on their paper page, the worlds and the people you met, as on the web, instead of being read out a line at a time.
+- In the Unity version, Settings is laid out as on the web, in its groups (Screen and text, Camera and motion, Controls, Sound, Game) and order, and it has the web’s alien voices, run and guard, enemies and drone hints settings too.
+- In the Unity version, the shops, the Arcade’s board and a game’s cards look like the web’s: the keeper’s line in a speech bubble and the wares as cards with their pictures and prices, the games as inked cards with their coloured dots, and the cards in the web’s typeface with their rules in a dashed box.
 - In the browser and the Android app, each frame takes less work to get ready to draw on a slow processor: the world is looked over once a frame to find what is in view, instead of once for every picture the frame is made of (its shadows and the view itself). The picture is exactly the same.
 - In the Unity version, the shafts of light in the skull cave and the makers’ houses are as soft and pale as on the web, no longer bright white slabs.
 - In the Unity version, the dark of the makers’ houses’ deadly pits no longer shows through walls, and the shafts of light, the doorways’ glow, the floating motes and the recordings’ figures are hidden behind what stands in front of them again: drawn straight to the screen, they had read the scene’s depth upside down.

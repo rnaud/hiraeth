@@ -151,6 +151,8 @@ export function start(argsJson) {
       if (k === 'rumble' || k === 'rumbleLevel') rumblePlay('hurt', { h: 0.75 });   // (a taste of the new strength, as the web's page)
     },
     where: () => TITLES[S?.game?.level?.id] ?? '',
+    // (the jets' and the pirates' pitch rows: once the jets are owned, once the pirates are beaten, as the page's)
+    hasJets: () => ownedItems.has('jetpack'), piratesBeaten: () => !!gameState.flag('minigame.pirates.beaten'),
     // (the save under the Start menu's heading, as the web's: "Save 1 · The Desert · 12 min played")
     saveLine: () => `${slots.active === DEBUG_SLOT ? 'Debug save' : `Save ${slots.active}`} · ${TITLES[S?.game?.level?.id] ?? ''} · ${formatPlaytime(slots.meta?.()?.playtime ?? 0)} played${S?.game?.fragmentsLine?.() ? ` · ${S.game.fragmentsLine()}` : ''}`,   // (and the fragments', as the page's: fragmentsLine)
     // (the menus' canvas, its units: 720 high, as wide as the screen's shape; the title laid out on it)
@@ -268,7 +270,9 @@ function playGame(href) {
   host.Reboot?.(JSON.stringify({ boot: { slot: slots.active, level: from ?? S.game?.level?.id ?? 'desert', game, to: to ?? null, resolved: true } }));
 }
 function leaveGame(href) {
-  const { level, from, via } = readHref(href);
+  const { level, from, via, game } = readHref(href);
+  // (a card's Previous or Next game, from the Arcade: that game's page, as the page's link)
+  if (game && !S.plan) { playGame(href); return; }
   const to = level ?? from ?? S.gameFrom ?? 'desert';
   console.log(`[unity] back from the game to ${to}${via === 'ship' ? ', arriving by ship' : ''}`);
   // (a plan's game, the bridge's -game: it ends with it)
@@ -521,11 +525,13 @@ function makePlan(args) {
     // (-ui balloons,objective,…: the page elements of issue #430 put up one after another as the web's side does
     // (engine/ui-poses.js), each photographed a moment on (unity-ui-<piece>.png), then let go)
     steps.push({ kind: 'wait', frames: 90, secs: 3 });
-    for (const piece of String(args.ui).split(',').filter(Boolean)) {
-      steps.push({ kind: 'ui', piece }, { kind: 'wait', frames: 30, secs: piece === 'objective' ? 1.2 : piece === 'endcard' ? 2.2 : 1 });
+    // (a piece the next one carries on, shop then shopask, is not let go between them)
+    const pieces = String(args.ui).split(',').filter(Boolean);
+    pieces.forEach((piece, i) => {
+      steps.push({ kind: 'ui', piece }, { kind: 'wait', frames: 30, secs: piece === 'objective' ? 1.2 : piece === 'endcard' || piece === 'credits' ? 2.2 : 1 });
       if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-ui-${piece}.png` });
-      steps.push({ kind: 'ui', piece: 'none' }, { kind: 'wait', frames: 10 });
-    }
+      if (!pieces[i + 1]?.startsWith(piece)) steps.push({ kind: 'ui', piece: 'none' }, { kind: 'wait', frames: 10 });
+    });
   }
   if (args.warp) {
     // (-warp <title>: the take-off's warp over the view without flying, the ship's own Warp started (screen 'warp',
@@ -951,7 +957,8 @@ export function frame(dt) {
   }
   else if (step.kind === 'ui') {
     if (step.piece === 'none') { game.menus?.close?.(); S.menus?.close?.(); console.log('[unity] ui: let go'); uiPose({ THREE, player: game.player }, 'none'); }
-    else console.log(`[unity] ui ${step.piece}: ${uiPose({ THREE, player: game.player, npcs: game.npcs, ship: game.ship, items: ownedItems, level: game.level, page: false, openArcade: (b) => S.menus?.openArcade?.(b) }, step.piece)}`);
+    else console.log(`[unity] ui ${step.piece}: ${uiPose({ THREE, player: game.player, npcs: game.npcs, ship: game.ship, items: ownedItems, level: game.level, page: false, openArcade: (b) => S.menus?.openArcade?.(b),
+      openShop: (id) => S.menus?.mode === 'shop' || !!game.openShop?.(id), askShop: () => { if (S.menus?.mode !== 'shop') return false; S.menus.action('confirm'); return true; } }, step.piece)}`);
     next();
   }
   else if (step.kind === 'warp') { game.ship?.warp?.start(step.title); next(); }

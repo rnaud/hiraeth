@@ -12,7 +12,7 @@ import { screen } from '../platform.js';
 import { inputKind } from '../prompt-keys.js';
 import { exhaust, touchdownDust } from './exhaust.js';
 import { spoken } from '../story/tone.js';
-import { tokenList, leaveTokens, tombLines, credits, creditsHtml, creditLines, KIND_LABEL, choicesMade, homecomingKind, ILEN_TOKEN, FINALE_ID, marketHeard } from '../story/ending.js';
+import { tokenList, leaveTokens, tombLines, credits, creditsHtml, KIND_LABEL, choicesMade, homecomingKind, ILEN_TOKEN, FINALE_ID, marketHeard } from '../story/ending.js';
 import { HOME_SPOTS, tokenModel, REEL_AT, layTokens, laidTokens } from '../levels/home.js';
 import { LOU_AT_STONE } from '../story/home-data.js';
 /** The last recording's busts over the reel (1: life size). */
@@ -274,18 +274,20 @@ export class EndCard {
 }
 
 /**
- * The credits: a paper page rolling up the screen. Without a page (the engines), its lines said one after another as
- * subtitles (`say`, the ship's cinema), ~3.4 s each.
+ * The credits: a paper page rolling up the screen, ~70 px a second, 30 to 75 s. Without a page (the engines) the same
+ * roll is the screen's 'credits' part (BridgeHud.Parts.cs DrawCredits, issue #430): what it says, how far it has rolled
+ * (k, 0 to 1) and the makers' mark; its height reckoned here from its lines as the page's CSS lays them out, for its time.
+ * Without a page and without a screen to draw it (`say`, no part wanted), its lines said one after another as subtitles.
  */
-class Credits {
+export class Credits {
   constructor(data, say = null, page = true) {
     this.t = 0;
     this.done = false;
     if (!hasDOM(page)) {
-      this.lines = say ? creditLines(data) : [];
-      this.say = say;
-      this.shown = -1;
-      if (!this.lines.length) this.done = true;
+      this.id = ++creditRolls;
+      this.part = creditsPart(data);
+      this.dur = Math.min(75, Math.max(30, (creditsHeight(this.part) + 720) / 70));
+      screen.set('credits', { ...this.part, mark: markShape(), id: this.id, k: 0 });
       return;
     }
     if (!document.getElementById('homeward-css')) { const s = document.createElement('style'); s.id = 'homeward-css'; s.textContent = CSS; document.head.appendChild(s); }
@@ -298,11 +300,13 @@ class Credits {
     this.el.classList.add('on');
   }
   update(dt) {
-    if (this.lines && !this.done) {
+    if (this.part) {
+      if (this.done) return;
       this.t += dt;
-      const i = Math.floor(this.t / Credits.LINE);
-      if (i !== this.shown && i < this.lines.length) { this.shown = i; this.say({ text: this.lines[i] }); }
-      if (i >= this.lines.length + 1) { this.say(null); this.done = true; }
+      const k = Math.min(1, this.t / this.dur);
+      if (screen.state.credits?.id === this.id) screen.set('credits', { ...screen.state.credits, k });
+      if (k >= 1 && this.ending == null) this.ending = this.t;
+      if (this.ending != null && this.t - this.ending > 3) this.done = true;
       return;
     }
     if (!this.el || this.done) return;
@@ -314,9 +318,28 @@ class Credits {
     if (k >= 1 && !this.ending) { this.ending = this.t; }
     if (this.ending && this.t - this.ending > 3) this.done = true;
   }
-  remove() { this.el?.remove(); }
+  remove() { if (this.part && screen.state.credits?.id === this.id) screen.set('credits', null); this.el?.remove(); }
 }
-Credits.LINE = 3.4;
+let creditRolls = 0;
+
+/** The credits as the engines' part: the page's words (src/story/ending.js creditsHtml), as data. */
+export function creditsPart(c) {
+  const brought = !c.tokens?.length && c.keepsake && c.keepsake.id !== 'all'
+    ? { name: c.keepsake.name, kind: c.keepsake.kind && c.keepsake.kind !== 'nothing' ? KIND_LABEL[c.keepsake.kind] ?? c.keepsake.kind : '' } : null;
+  return { title: c.title, lead: 'A traveller went out to bring back something of value, and met these people on the way.',
+    worlds: c.worlds.map((w) => ({ title: w.title, story: w.story ?? '', people: w.people.map((p) => ({ name: p.name, title: p.title ?? '', met: !!p.met })) })),
+    home: c.home, tokens: c.tokens ?? [], brought, end: 'The ship is ready whenever you are.' };
+}
+
+/** The roll's height in CSS px as the page lays it out (#credits .roll: 560 wide, its face at 13.7 px a line of 1.5). */
+export function creditsHeight(p) {
+  const L = 20.5, wrap = (s, px = 7) => Math.max(1, Math.ceil(String(s).length * px / 480));
+  let h = 48 + 45 + 66 + 2 * L + 30;
+  for (const w of p.worlds) h += 24 + (w.story ? 17 : 0) + 10 + w.people.reduce((a, q) => a + L + (q.title ? 17 : 0) + 6, 0) + 30;
+  h += 34 + p.home.reduce((a, x) => a + wrap(x) * L + 6, 0) + 30;
+  if (p.tokens.length) h += 34 + p.tokens.length * (L + 6) + 30; else if (p.brought) h += 60;
+  return h + 40 + L + 70;
+}
 
 export class HomecomingDirector {
   constructor(ship, { kind } = {}) {

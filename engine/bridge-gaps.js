@@ -184,9 +184,9 @@ export const GAPS = {
   // ------------------------------------------------------------------ page elements (HTML) the game builds
   dom: [
     // gaps
-    { keys: ['src/ship/homecoming.js'], count: { 'src/ship/homecoming.js': 15 }, parts: ['cargo', 'endCard'], what: 'the homecoming\'s credits rolling up the screen', status: 'gap', issue: 430, visible: 1,
-      note: 'the cargo check and the end card are drawn (the cargo and endCard parts, BridgeHud.Parts.cs); the credits\' page is said as subtitles, a line at a time (tests/engine-finishable.test.js)' },
     // handled: drawn from the screen's parts, or the engines' own menus
+    { keys: ['src/ship/homecoming.js'], count: { 'src/ship/homecoming.js': 15 }, parts: ['cargo', 'endCard', 'credits'], what: 'the homecoming\'s cargo check, end card and credits rolling up the screen', status: 'handled',
+      where: 'the cargo, endCard and credits parts (src/ship/homecoming.js Credits, creditsPart), BridgeHud.Parts.cs and BridgeHud.Credits.cs (issues #430, #264: the credits were said as subtitles before)' },
     { keys: ['src/aliens/alien.js', 'src/npc.js', 'src/crowd.js'], count: { 'src/aliens/alien.js': 4, 'src/npc.js': 4, 'src/crowd.js': 4 }, parts: ['balloons'],
       what: 'the speech balloons over people as they pass (their barks)', status: 'handled', where: 'the balloons part (src/balloon-part.js: main.js and engine/game.js choose alike), BridgeHud.Parts.cs DrawBalloons (issue #430)' },
     { keys: ['src/ship/cinema.js'], count: { 'src/ship/cinema.js': 22 }, parts: ['cine', 'sub', 'objective'], what: 'a ship\'s scene: the letterbox, subtitles, hint, skip, and the homecoming\'s objective card (cinema.objective)', status: 'handled',
@@ -232,7 +232,6 @@ export const GAPS = {
     { keys: ['import:src/motion-match.js#loadMotionLibrary', 'import:src/motion-match.js#matchingSetting', 'import:src/loco-moves.js#movesSetting'], what: 'the traveller\'s motion matching and captured moves', status: 'gap', issue: 427, visible: 2,
       note: 'left out of the engines so far (engine/game.js: only the talk gestures are loaded)' },
     { keys: ['import:src/hud.js#magicHud'], what: 'the magic bar', status: 'gap', issue: 427, visible: 1, note: 'to check: the health part carries magic' },
-    { keys: ['import:src/minigames/kit/arcade.js#arcadeLinks'], what: 'a game reached from the Arcade going back to it, its cards\' previous and next', status: 'gap', issue: 427, visible: 1 },
     { keys: ['import:src/post.js#PRESETS'], what: 'the style presets\' list (main.js\'s GUI)', status: 'web-only', why: 'the page\'s lil-gui list of styles; the presets themselves are put on by src/host/game-host.js wireSky in both hosts' },
     { keys: ['import:src/weather.js#WEATHER_KINDS'], what: 'the weather\'s kinds (main.js\'s dev toggles)', status: 'handled', where: 'engine/game.js runs Weather itself; the list is for the page\'s toggles' },
     { keys: ['fn:placeToolGauge'], what: 'the fluid tool\'s gauge by the traveller', status: 'gap', issue: 427, visible: 1, note: 'to check' },
@@ -314,9 +313,7 @@ export const GAPS = {
  */
 export const STREAM_DIFFS = [
   // ---- known gaps (the first run, 2026-10-16: scripts/unity-compare/sequences.mjs)
-  { seq: 'menus', beat: 'items', keys: ['menu.rows'], what: 'the Items page lists the gadgets among the gear in the engines, after the gear on the page (another order of the same things owned)', status: 'gap', issue: 430 },
-  { seq: 'menus', beat: 'start|settings', keys: ['menu.rows'], what: 'the Settings page: the page has Language, the jets\' pitch and longer labels, the engines Music, Effects, Voices, Mute, Hints first (engine/menus.js SETTINGS_ROWS against src/ui.js SettingsMenu)', status: 'gap', issue: 430 },
-  { seq: 'fight-temple', beat: 'card', keys: ['part-:minigame', 'cam'], what: 'a fight temple\'s start card: on the page the hall seen from above with its HUD up; in the engines the traveller\'s own camera until Start', status: 'gap', issue: 264 },
+  { seq: 'menus', beat: 'start|settings', keys: ['menu.rows'], what: 'the Settings page\'s Language row; and the page\'s rows it hides until they apply (the jets\' and the pirates\' pitch, the developer panel), which its probe reads all the same', status: 'web-only', why: 'no localisation for now: the engines are in English only; the rest is the page\'s rows in its groups and order, the hidden ones shown as there once they apply (engine/menus.js SETTINGS_ROWS `when`, issue #264)' },
   // ---- web only
   { seq: 'menus|house-map', beat: 'start|settings|map', keys: ['menu.side'], what: 'the Start menu\'s "Debug: worlds"', status: 'web-only', why: 'a developer\'s entry on the page (the worlds picker); the engines\' debug saves are on the title' },
   // ---- handled

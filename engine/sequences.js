@@ -338,7 +338,7 @@ export function engineGame(g, menus = null) {
       view() {
         const v = menus?.view?.();
         if (!v) return null;
-        if (v.kind === 'start') return { kind: 'start', page: menus.startPage(), side: v.side.map((s) => clean(s.text)), rows: (v.page?.rows ?? []).map((r) => clean(r.text)) };
+        if (v.kind === 'start') return { kind: 'start', page: menus.startPage(), side: v.side.map((s) => clean(s.text)), rows: (v.page?.rows ?? []).filter((r) => !(r.head && menus.startPage() === 'settings')).map((r) => clean(r.text)) };   // (the settings' group headings: the page's h2, not its rows)
         if (v.kind === 'game') return { kind: 'game', page: v.panel, side: [], rows: menus.panel().rows.flat().map((c) => clean(c.name ?? '')) };
         // (a run's card, a shop, the foes' list: the page's own HTML on the web, compared by their screen parts)
         return null;

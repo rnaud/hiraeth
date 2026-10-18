@@ -517,7 +517,9 @@ export class MinigameRunner {
       const row = hintRow(controlsFor({ controls: d.hints }, kind), { age: this.hintAge, used: this.hintsUsed, live });
       hints = { off: !live || (row.off && !this.hintNote), items: row.items.map((i) => ({ k: keyText(i.k, { kind, teach: true }), w: i.w, gone: i.gone || row.off })), note: this.hintNote ? this.hintNoteText ?? plainHtml(this.hintNote) : '' };
     }
-    screen.set('minigame', { on: this.hudOn && !this.paused && !this.cardModel, timer, score: s, bump: this.scoreBumps ?? 0, lives: this.lives === null ? null : [this.lives, Math.max(this.livesMax ?? this.lives, this.lives)],
+    // (under the pause the clock and the score stay up, as the page's HUD does under its .mg-card.clear; under a start or
+    // results card they go)
+    screen.set('minigame', { on: this.hudOn && (this.paused || !this.cardModel), timer, score: s, bump: this.scoreBumps ?? 0, lives: this.lives === null ? null : [this.lives, Math.max(this.livesMax ?? this.lives, this.lives)],
       count: this.countState, flashes: this.flashes, hints, speed: Math.round((this._speedK ?? 0) * 20) / 20, onFoot: !this.drives });   // (onFoot: the page's mg-onfoot, src/hud-shows.js)
   }
   bumpScore() { this.scoreBumps = (this.scoreBumps ?? 0) + 1; this.scoreEl.classList.remove('bump'); void this.scoreEl.offsetWidth; this.scoreEl.classList.add('bump'); }

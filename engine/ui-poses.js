@@ -2,7 +2,7 @@
 // two can be laid side by side (Unity's -ui, engine/unity/game.js; the web's side runs this in the page): each through the
 // game's own code, which sets the screen part an engine draws and, on the page, its HTML.
 //
-//   uiPose(ctx, piece)   ctx: { THREE, player, npcs, ship, items, level, openArcade(board) }
+//   uiPose(ctx, piece)   ctx: { THREE, player, npcs, ship, items, level, openArcade(board), openShop(id), askShop() }
 //   UI_PIECES            the pieces and the world each is pictured in
 //
 // balloons   the nearest person a shout over their head, the traveller beside them facing them
@@ -11,12 +11,18 @@
 //            was dismissed), the traveller still
 // cargo      the homecoming's cargo check with three things in the hold
 // endcard    the true ending's card
+// credits    the true ending's credits, 18 s into their roll (the people of some worlds met, a thing brought home)
 // breath     the breath meter in the Underwater City (a helmet's sea), its air half gone
 // arcade     the Arcade's board of games
+// shop       Haddu's shop in the desert (src/shop-panel.js on the page, engine/menus.js shopView in an engine), its
+//            first ware asked about after a moment (shopask)
 
-import { CargoPanel, EndCard } from '../src/ship/homecoming.js';
+import { CargoPanel, EndCard, Credits } from '../src/ship/homecoming.js';
+import { credits } from '../src/story/ending.js';
+import { ORDER, TITLES } from '../src/levels/names.js';
+import { resources } from '../src/resources.js';
 
-export const UI_PIECES = { balloons: 'desert', objective: 'desert', level: 'desert', cargo: 'desert', endcard: 'desert', breath: 'underwater', arcade: 'arcade' };
+export const UI_PIECES = { balloons: 'desert', objective: 'desert', level: 'desert', cargo: 'desert', endcard: 'desert', credits: 'desert', breath: 'underwater', arcade: 'arcade', shop: 'desert', shopask: 'desert' };
 
 const HOLD = [
   { kind: 'thing', name: 'A blue stone', level: 'desert', text: 'Warm when you hold it, as if it had been in someone’s pocket.' },
@@ -50,7 +56,20 @@ export function uiPose(ctx, piece) {
     return 'open';
   }
   if (piece === 'endcard') { held = new EndCard(ctx.page ?? true); return 'up'; }
+  if (piece === 'credits') {
+    const flag = (k) => /^world\.(desert|arzach|perdide)\.done$/.test(k) || (k.startsWith('met.') && k.length % 3 !== 0);
+    held = new Credits(credits({ order: ORDER, titles: TITLES, flag, keepsake: { id: 'tooth', name: 'A rust gear tooth', kind: 'thing' } }), null, ctx.page ?? true);
+    held.t = 18; held.update(0);
+    return 'rolling';
+  }
   if (piece === 'breath') { player.breath = 0.45; return 'held'; }   // (the helmet's sea: shown while its air fills again)
+  if (piece === 'shop') {
+    // (the same wallet and pack on both sides: 60 chimes, one potion, no heart or magic bought yet)
+    const st = resources.state;
+    for (const [k, v] of [['res.chimes', 60], ['res.potions', 1], ['res.hearts.extra', 0], ['res.magic.extra', 0], ['shop.qanat.potions', null], ['shop.qanat.heart.sold', null], ['shop.qanat.magic.sold', null]]) st.set(k, v);
+    return ctx.openShop?.('qanat') ? 'open' : 'no shop';
+  }
+  if (piece === 'shopask') return ctx.openShop?.('qanat') && ctx.askShop?.() ? 'asked' : 'no shop';
   if (piece === 'arcade') return ctx.openArcade?.(ctx.level?.quickMenu) ? 'open' : 'no board';
   return `no piece ${piece}`;
 }

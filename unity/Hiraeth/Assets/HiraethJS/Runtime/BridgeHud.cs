@@ -409,6 +409,7 @@ namespace Hiraeth.Bridge
             DrawCharge(state.O("charge"));
             DrawCargo(state.O("cargo"));
             DrawEndCard(state.O("endCard"));
+            DrawCredits(state.O("credits"));   // (over the end card, as the page's z 8200: BridgeHud.Credits.cs)
             DrawEdges(state.O("edges"));
             DrawLock(Part("lock"));
             DrawWarn(On("warn") ? state.L("warn") : null);

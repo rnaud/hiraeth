@@ -200,7 +200,7 @@ namespace Hiraeth.Bridge
             askYes = Ui.Label(ask.rt, "yes", mono, Body, Ui.Ink, TextAnchor.MiddleCenter);
             cardPic = Ui.Node("pic", card.rt).gameObject.AddComponent<RawImage>(); cardPic.raycastTarget = false;
             cardMark = Ui.Label(card.rt, "mark", Ui.Sans, 64, Ui.Teal, TextAnchor.MiddleCenter);
-            BuildCard(mono);
+            BuildCard(Ui.Sans);   // (the page's face, as the rest of the menus since #423: src/minigames/kit/minigames.css)
             root.gameObject.SetActive(false);
         }
 
@@ -333,6 +333,7 @@ namespace Hiraeth.Bridge
             foreach (var l in tabs) Show(l, false);
             Show(tabLine, false);
             strip.Show(false); card.Show(false); ask.Show(false); mapBox.Show(false); cSheet.Show(false); houseBox.Show(false); Show(houseName, false);
+            if (shRoot) shRoot.gameObject.SetActive(false); if (arRoot) arRoot.gameObject.SetActive(false);   // (the shop's and the Arcade's own: BridgeMenu.Shop.cs, .Arcade.cs)
             foreach (var (pic, ring) in markPics) { Show(pic, false); Show(ring, false); }
             foreach (var (area, label) in areaPics) { Show(area, false); Show(label, false); }
             var kind = state.S("kind");
@@ -345,6 +346,7 @@ namespace Hiraeth.Bridge
             for (int i = titleUsed; i < titleButtons.Count; i++) titleButtons[i].box.Show(false);
             // the buttons' prompts, at the foot on the right
             var h = state.S("hint") ?? "";
+            if (kind == "arcade") h = "";   // (its keys at the foot of its own sheet, as the page's)
             Show(hint, h.Length > 0);
             // (on the title the version takes the corner, the buttons' prompts over it)
             if (h.Length > 0) { hint.text = h; Ui.Place(hint.rectTransform, 24, kind == "title" ? H - 52 : H - 34, W - 48, 22); }
@@ -521,61 +523,6 @@ namespace Hiraeth.Bridge
         /// each its picture (Anselm's: the items' own), name, what it does and how many, the price or why not on the
         /// right; the question over it all.
         /// </summary>
-        void DrawShop()
-        {
-            float sw = Mathf.Min(900, W - 48), sx = W / 2 - sw / 2, sy = 30, sh = H - 30 - 50;
-            Sheet(sx, sy, sw, sh, true);
-            Head(state.S("head"), sx + 24, sy + 16, sw * 0.6f);
-            Show(sub, true); sub.fontStyle = FontStyle.Italic;
-            var ss = Ui.Set(sub, state.S("sub") ?? "", sw * 0.6f);
-            Ui.Place(sub.rectTransform, sx + 24, sy + 46, sw * 0.6f, ss.y);
-            var line = state.S("line") ?? "";
-            Show(empty, line.Length > 0);
-            float top = sy + 70;
-            if (line.Length > 0)
-            {
-                empty.fontSize = Body;
-                var ls = Ui.Set(empty, "“" + line + "”", sw - 48);
-                Ui.Place(empty.rectTransform, sx + 24, top, sw - 48, ls.y);
-                top += ls.y + 12;
-            }
-            // the wallet, top right
-            Show(tabNext, true);
-            tabNext.fontSize = 22;
-            Ui.Set(tabNext, state.S("wallet") ?? "", 240);
-            Ui.Place(tabNext.rectTransform, sx + sw - 24 - 240, sy + 16, 240, 30);
-            var rows = state.L("rows") ?? new List<object>();
-            var hs = new List<float>(); int at = 0;
-            for (int i = 0; i < rows.Count; i++) { var r = rows[i] as Dictionary<string, object>; hs.Add(Fit(r, sw - 48)); if (B(r, "on")) at = i; }
-            float avail = sy + sh - 16 - top, yy = top - Scroll(hs, at, avail);
-            for (int i = 0; i < rows.Count; i++)
-            {
-                var r = rows[i] as Dictionary<string, object>;
-                float rh = hs[i];
-                if (yy + rh > top - 1 && yy < top + avail - 2)
-                {
-                    var pic = Picture(r.S("pic"));
-                    var cell = Entry(sx + 24, yy, sw - 48, rh - 6, (pic != null ? "" : (r.S("mark") ?? "") + " ") + r.S("text"), r.S("sub"), r.S("val"), B(r, "on"), dimmed: !B(r, "ok"), boxed: true);
-                    LinePicture(cell, pic, rh - 6, 44);   // (a ware's picture larger than a line's: the web's card shows it big)
-                }
-                yy += rh;
-            }
-            var ask = state.O("ask");
-            if (ask != null) DrawAsk(ask);
-
-            // (a ware as tall as its words: its name, then what it does and how many under it)
-            float Fit(Dictionary<string, object> r, float w)
-            {
-                float vw = Mathf.Min(w * 0.3f, 180), tw = w - 28 - vw - 8 - (string.IsNullOrEmpty(r.S("pic")) ? 0 : 50);
-                meas.fontSize = Body; meas.fontStyle = FontStyle.Bold; meas.lineSpacing = 1;
-                float th = Ui.Measure(meas, r.S("text") ?? "", tw).y;
-                meas.fontSize = Small; meas.fontStyle = FontStyle.Normal; meas.lineSpacing = 1.2f;
-                float sh2 = string.IsNullOrEmpty(r.S("sub")) ? 0 : Ui.Measure(meas, r.S("sub"), tw).y + 1;
-                meas.lineSpacing = 1;
-                return Mathf.Max(string.IsNullOrEmpty(r.S("pic")) ? 52 : 60, 5 + th + sh2 + 14);
-            }
-        }
-
         // ------------------------------------------------------------------ a game's card
 
         // a trial's or a game's card (engine/menus.js cardView: src/minigames/kit/runner.js cardModel; the web's
@@ -583,7 +530,7 @@ namespace Hiraeth.Bridge
         // hard ink shadow; its kicker, its name in heavy capitals, its blurb, the rules in a dashed box, the controls in two
         // columns, the options' rows, the score big and "New best!" stamped, the lines, the best, the buttons (the main one
         // gold, the pad's in bright gold with a red edge), the keys' hint at the foot
-        Ui.Box cSheet, cRules, cStamp; Label cKicker, cTitle, cLead, cText, cRulesText, cBig, cStampText, cLines, cExtra, cBest, cHint;
+        Ui.Box cSheet, cRules, cStamp; Sketch cRulesDash; Label cKicker, cTitle, cLead, cText, cRulesText, cBig, cStampText, cLines, cExtra, cBest, cHint;
         class CardButton { public Ui.Box box; public Label text, sub; }
         readonly List<CardButton> cButtons = new();
         readonly List<(Label k, Label v)> cRows = new();
@@ -593,19 +540,20 @@ namespace Hiraeth.Bridge
         void BuildCard(Font mono)
         {
             cSheet = Ui.Panel(root, "game card", Ui.Page, Ui.Ink, 2, 7, 7);
-            cKicker = Ui.Label(cSheet.rt, "kicker", mono, 12, CardKicker); Ui.Space(cKicker, 0.18f);
+            cKicker = Ui.Label(cSheet.rt, "kicker", mono, 13, CardKicker); Ui.Space(cKicker, 0.18f);
             cTitle = Ui.Label(cSheet.rt, "title", Ui.Heavy, 27, Ui.Ink, TextAnchor.UpperLeft, FontStyle.Bold, 1.1f); Ui.Space(cTitle, 0.12f);
-            cLead = Ui.Label(cSheet.rt, "lead", mono, 14, Ui.Ink, TextAnchor.UpperLeft, FontStyle.Italic, 1.35f);
-            cText = Ui.Label(cSheet.rt, "text", mono, 15, Ui.Ink, lineSpacing: 1.35f);
-            cRules = Ui.Panel(cSheet.rt, "rules", Ui.CardC, Ui.Ink, 1.5f);
-            cRulesText = Ui.Label(cRules.rt, "text", mono, 14, Ui.Ink, lineSpacing: 1.35f);
+            cLead = Ui.Label(cSheet.rt, "lead", mono, 15, Ui.Ink, TextAnchor.UpperLeft, FontStyle.Italic, 1.05f);   // (the page's line 1.4 over the face's own 1.35)
+            cText = Ui.Label(cSheet.rt, "text", mono, 15, Ui.Ink, lineSpacing: 1.05f);
+            cRules = Ui.Panel(cSheet.rt, "rules", Ui.Hex("#fbf4e2"), Ui.Ink, 0);
+            cRulesDash = Ui.Node("dashed line", cRules.rt).gameObject.AddComponent<Sketch>(); cRulesDash.raycastTarget = false;   // (.rules: 1.5px dashed)
+            cRulesText = Ui.Label(cRules.rt, "text", mono, 15, Ui.Ink, lineSpacing: 1.05f);
             cBig = Ui.Label(cSheet.rt, "big", Ui.Heavy, 48, Ui.Ink, TextAnchor.UpperLeft, FontStyle.Bold, 1f);
             cStamp = Ui.Panel(cSheet.rt, "stamp", Ui.Page, CardStamp, 3);
             cStampText = Ui.Label(cStamp.rt, "text", mono, 15, CardStamp, TextAnchor.MiddleCenter, FontStyle.Bold); Ui.Space(cStampText, 0.12f); Ui.Stretch(cStampText.rectTransform);
-            cLines = Ui.Label(cSheet.rt, "lines", mono, 14, CardDd, lineSpacing: 1.35f);
-            cExtra = Ui.Label(cSheet.rt, "extra", mono, 14, Ui.Ink, TextAnchor.UpperLeft, FontStyle.Italic, 1.35f);
-            cBest = Ui.Label(cSheet.rt, "best", mono, 13, CardMuted);
-            cHint = Ui.Label(cSheet.rt, "hint", mono, 12, CardMuted);
+            cLines = Ui.Label(cSheet.rt, "lines", mono, 14, CardDd, lineSpacing: 1.05f);
+            cExtra = Ui.Label(cSheet.rt, "extra", mono, 14, Ui.Ink, TextAnchor.UpperLeft, FontStyle.Italic, 1.05f);
+            cBest = Ui.Label(cSheet.rt, "best", mono, 14, CardMuted);
+            cHint = Ui.Label(cSheet.rt, "hint", mono, 13, CardMuted);
             cSheet.Show(false);
         }
 
@@ -624,13 +572,13 @@ namespace Hiraeth.Bridge
         {
             var c = state.O("card");
             if (c == null) return;
-            var mono = Ui.Mono;
+            var mono = Ui.Sans;
             // (the pause over the world held, barely dimmed, as the page's .mg-card.clear; the start and the results darker)
             dim.color = c.S("kind") == "paused" ? Ui.Hex("#2b211f", 0.12f) : Ui.Hex("#2b211f", 0.42f);
             sheet.Show(false);
             cSheet.Show(true);
             cSheet.rt.SetAsLastSibling();
-            float sw = Mathf.Min(B(c, "wide") ? 760 : 560, W - 40), px = 26, iw = sw - 2 * px, y = 18;
+            float sw = Mathf.Min(B(c, "wide") ? 870 : 520, W - 40), px = 26, iw = sw - 2 * px, y = 18;
             y = CardPut(cKicker, Ui.Upper(c.S("kicker")), px, y, iw) + 2;
             y = CardPut(cTitle, Ui.Upper(c.S("title")), px, y, iw - 120) + 8;
             var lead = c.O("lead");
@@ -645,6 +593,10 @@ namespace Hiraeth.Bridge
                 var rs = Ui.Set(cRulesText, rules, iw - 20);
                 Ui.Place(cRulesText.rectTransform, 10, 7, iw - 20, rs.y);
                 Ui.Place(cRules.rt, px, y, iw, rs.y + 14);
+                float rh = rs.y + 14;
+                cRulesDash.Clear();
+                cRulesDash.Path(new[] { new Vector2(0.75f, -0.75f), new Vector2(iw - 0.75f, -0.75f), new Vector2(iw - 0.75f, -rh + 0.75f), new Vector2(0.75f, -rh + 0.75f) }, 1.5f, Ui.Ink, true, 4, 3);
+                Ui.Place(cRulesDash.rectTransform, 0, 0, iw, rh);
                 y += rs.y + 14 + 10;
             }
             // the controls: what to press, then what it does (the page's dl: dt bold, dd in brown ink)
@@ -712,7 +664,7 @@ namespace Hiraeth.Bridge
                 if (i >= cButtons.Count)
                 {
                     var nb = new CardButton { box = Ui.Panel(cSheet.rt, "button" + i, Ui.CardC, Ui.Ink, 2, 3, 3, 4) };
-                    nb.text = Ui.Label(nb.box.rt, "text", mono, 15, Ui.Ink, TextAnchor.UpperCenter, FontStyle.Bold); Ui.Space(nb.text, 0.12f);
+                    nb.text = Ui.Label(nb.box.rt, "text", mono, 17, Ui.Ink, TextAnchor.UpperCenter, FontStyle.Bold); Ui.Space(nb.text, 0.12f);
                     nb.sub = Ui.Label(nb.box.rt, "sub", mono, 11, CardMuted, TextAnchor.UpperCenter);
                     cButtons.Add(nb);
                 }
@@ -720,7 +672,7 @@ namespace Hiraeth.Bridge
                 var cb = cButtons[i];
                 cb.box.Show(true);
                 bool on = B(b, "on"), main = B(b, "main");
-                string label = Ui.Upper(b.S("label")), under = b.S("sub") ?? "";
+                string label = b.S("label") ?? "", under = b.S("sub") ?? "";   // (the page's words as they are, spaced, not in capitals)
                 var ls = Ui.Measure(cb.text, label);
                 float us = under.Length > 0 ? Ui.Measure(cb.sub, under).x : 0, bw = Mathf.Max(ls.x, us) + 36, h = under.Length > 0 ? bh + 14 : bh;
                 if (bx + bw > px + iw && bx > px) { bx = px; y += rowH + 10; rowH = bh; }
@@ -765,27 +717,6 @@ namespace Hiraeth.Bridge
                 Ui.Place(line.rectTransform, sx + sw - 24 - sw * 0.55f, sy + 22, sw * 0.55f, 20);
             }
             DrawRows("foes", sx + 18, sy + 58, sw - 36, sh - 58 - 14);
-        }
-
-        /// <summary>
-        /// The Arcade's board of games (engine/menus.js arcadeView; the web's src/levels/arcade-board.js, issue #430): the
-        /// sheet with "The Arcade" over its heading, every game a boxed row in a grid as the foes' (its colour's dot, its name,
-        /// its line and its best under it), the pad's in gold, the rows scrolled to keep it in view.
-        /// </summary>
-        void DrawArcade()
-        {
-            float sw = Mathf.Min(860, W - 36), sx = W / 2 - sw / 2, sy = 16, sh = H - 16 - 46;
-            Sheet(sx, sy, sw, sh, true);
-            var k = state.S("kicker") ?? "";
-            if (k.Length > 0)
-            {
-                Show(line, true);
-                line.alignment = TextAnchor.UpperLeft; line.fontStyle = FontStyle.Normal; line.color = Ui.Hex("#8a5a3c");
-                Ui.Set(line, Ui.Upper(k), sw * 0.5f);
-                Ui.Place(line.rectTransform, sx + 24, sy + 14, sw * 0.5f, 18);
-            }
-            Head(state.S("head"), sx + 24, sy + 28, sw * 0.6f);
-            DrawRows("foes", sx + 18, sy + 72, sw - 36, sh - 72 - 14);
         }
 
         void DrawAsk(Dictionary<string, object> a)

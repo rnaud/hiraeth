@@ -1475,6 +1475,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       if (!s) return;
       setFaces(s.padFaces);
       rig.sensitivity = s.sensitivity ?? 1; rig.invertY = !!s.invertY;
+      player.invertFlight = !!s.invertFlight;   // (the jets' pitch: push forward to climb, as main.js)
       if (sound === SILENT) return;
       sound.setVolumes?.(s.music, s.effects); sound.setVoices?.(s.voices, s.alienVoices); sound.setMusicMode?.(s.musicMode);
       if (!!s.mute !== !!sound.muted) sound.toggleMute?.();
@@ -1495,9 +1496,10 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       if (menus?.open) {
         controller.update(dt, true);
         inputFrame();
-        // (a game that drives goes on under its own start or results card, its camera with it, as main.js runs the runner
-        // under its card with no input; its pause holds it, as the page's `paused`)
-        if (menus.mode === 'card' && trials?.drives && !trials.runner?.paused) { try { trials.update(dt, noInput); } catch (e) { if (!game._runFailed) { game._runFailed = true; console.warn('[game] the game failed in its update', e?.stack ?? e); } } }
+        // (a game goes on under its own start or results card, its camera with it, as main.js runs the runner under its card
+        // with no input, a game that drives and one played on foot alike: a fight temple's hall seen from above behind its
+        // card, not the traveller's own shot; its pause holds it, as the page's `paused`)
+        if (menus.mode === 'card' && trials?.running && !trials.runner?.paused) { try { trials.update(dt, noInput); } catch (e) { if (!game._runFailed) { game._runFailed = true; console.warn('[game] the game failed in its update', e?.stack ?? e); } } }
         // (whatever a gadget was doing lets go, its wheel closes: main.js gadgets.control paused under a menu)
         try { gadgets?.control(dt, noInput, true); } catch { /* said in play */ }
         // (the galactic map open: its search, the scanner moved by the stick the controller just handed it, W A S D held)

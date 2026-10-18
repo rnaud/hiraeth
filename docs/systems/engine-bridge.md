@@ -1916,6 +1916,30 @@ screen; the batch run's pictures only.
   (MapRoom follows the new sheet: tests/world-map.test.js). The menus and the HUD (hints, prompts, the conversation) are
   in the page's face, `--face` (Avenir Next, Futura, Roboto: Ui.Sans, the OS's own as the page's is), not the monospaced
   one. Left as they were: the title (already the web's), the shop, a game's cards, the star map.
+- **The menus left after #423** (#264). The shop (BridgeMenu.Shop.cs) is the page's `#shop` sheet: the keeper's name and
+  what they are, their line in a bubble with its tail, the wallet and the way out boxed at the right, the wares as the
+  page's cards in its grid (three a row, Anselm's four: engine/menus.js `shopCols`, the pad moving through them as the
+  page's grid), each its picture (the wares' flask, heart and cell and the chime and fragment icons are the page's SVGs
+  made PNGs by `scripts/engine-bundle.mjs` unityPictures, `ware-<kind>`, `shop-chime`, `shop-fragment`), name, effect,
+  stock, price and flag, the pad's lifted on a red edge, the greyed ones paler; asked, the question at the sheet's foot
+  with its key caps. The Arcade's board (BridgeMenu.Arcade.cs) is the page's: THE ARCADE over THE GAMES, the ×, the games
+  as inked cards three a row with their colour's dot, name, line and best, the pad's gold, the grid scrolled in its
+  window. A game's cards are in the page's face with the rules in a dashed box (`Sketch`), and under its pause the
+  game's clock and score stay up as on the page (src/minigames/kit/runner.js: the `minigame` part's `on`). The Settings page has the
+  page's groups (Screen and text, Camera and motion, Controls, Sound, Game: heading rows the pad passes over,
+  `settingRows`), its order and its words, with the alien voices, Run and Guard, the enemies, the drone's hints and,
+  once they apply, the jets' and the pirates' pitch; the language is left out (no localisation). The true ending's
+  credits roll up the screen as the screen's `credits` part (src/ship/homecoming.js `Credits`, `creditsPart`;
+  BridgeHud.Credits.cs), the page's paper column, not lines said as subtitles. Pictures: `-ui shop,shopask,credits`
+  (engine/ui-poses.js; the page's side through the same poses). A game played on foot (a fight temple) now runs under
+  its start card as on the page, its camera with it. The page's debug save now owns the gadgets the boxes give
+  (src/boot.js loads the gadgets before seeding it): the Items pages of both match.
+- **What a player's screen shows** (#420/#425). A shot (`-out`, a sequence's beats) draws the camera again into a
+  texture, the right way up, as the editor does: what draws over the composite into the back buffer is not in it. On
+  the Deck, gamescope photographs the screen itself: the player run in its headless backend as scripts/bench/deck-unity.sh
+  does, and beside it `GAMESCOPE_WAYLAND_DISPLAY=gamescope-<n> gamescopectl screenshot <file>.png` every half second;
+  each beat's texture picture laid beside the screen's nearest (17 October: `-sequence pits`, `skull-cave`, `temple` with
+  the release's player, the two within 0.03 to 4.8 of 255, and the web's).
 - **The knock-out card's dim** (#449). The page dims the world under "You were knocked out" (#restart: rgba(43, 33, 31,
   0.6), faded in over 0.9 s, the card a sixth of the way down with its gold button); BridgeHud drew the card alone,
   centred. DrawRestart now lays the dim under the card (0.78 in Unity's linear target, which darkens the Arena's sand as
