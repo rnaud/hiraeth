@@ -47,7 +47,7 @@ namespace Hiraeth.Bridge
         readonly Dictionary<int, float> moteSizes = new(), moteGlows = new();
         readonly Dictionary<int, Material> instMaterials = new();   // by node: a material's copy for its GPU instances (HIRAETH_INSTMAT, its own buffer)
         readonly Dictionary<int, List<Material>> copies = new();     // a material's copies (instances, crowds, grass): its live colour and glow go to them too (op 15)
-        Material CopyOf(int mid, Material m) { var c = new Material(m); if (slimNoCopies) Unslim(c); if (!copies.TryGetValue(mid, out var l)) copies[mid] = l = new List<Material>(); l.RemoveAll(x => !x); l.Add(c); return c; }
+        Material CopyOf(int mid, Material m) { var c = new Material(m); if (slimNoCopies) Unslim(c); if (m.IsKeywordEnabled("HIRAETH_FIGHT")) WorldLoader.CopySkinData(m, c); if (!copies.TryGetValue(mid, out var l)) copies[mid] = l = new List<Material>(); l.RemoveAll(x => !x); l.Add(c); return c; }
         public readonly List<Vector4> lights = new();         // the local lights (op 11), in Unity's space
         public HiraethLook look;   // a mote material's point size (life.js uSize)
         readonly Dictionary<int, Node> nodes = new();
@@ -67,7 +67,7 @@ namespace Hiraeth.Bridge
         // the coral-shirt traveller's overshirt (BridgeCloth: a Burst job a frame, op 17), by its id
         readonly Dictionary<int, BridgeCloth> cloths = new();
         // a material's vectors sent live (engine/mirror.js LIVE_VECTORS, in its order): op 18
-        static readonly string[] LiveVectors = { "_BoxA", "_TfBrowA", "_TfBrowB", "_TfEye", "_TfMouth", "_Mood", "_Mood2", "_WashRays", "_Door", "_HoloA", "_HoloB", "_HoloC", "_Breathe", "_VeinBox", "_SplatClock", "_PhSpeech", "_PhBlink", "_CutMe", "_LineWhite" };   // (engine/mirror.js LIVE_VECTORS)
+        static readonly string[] LiveVectors = { "_BoxA", "_TfBrowA", "_TfBrowB", "_TfEye", "_TfMouth", "_Mood", "_Mood2", "_WashRays", "_Door", "_HoloA", "_HoloB", "_HoloC", "_Breathe", "_VeinBox", "_SplatClock", "_PhSpeech", "_PhBlink", "_CutMe", "_LineWhite", "_See", "_SeeK", "_Blade", "_BladeB", "_BladeC" };   // (engine/mirror.js LIVE_VECTORS)
         public double msCloth;
         /// <summary>The people's capes simulated here (BridgeCape: src/cape.js CAPE_HOST), by the script's id; read by its thread too.</summary>
         public static readonly System.Collections.Concurrent.ConcurrentDictionary<int, BridgeCape> Capes = new();
@@ -288,6 +288,9 @@ namespace Hiraeth.Bridge
                 }
                 o += n * 22;
             }
+            // aFold with the bind (pack.js: the fluid sword's blade across and along, the shield's rings, a figure's folds): uv1
+            Vector2[] fold = null;
+            if ((flags & 256) != 0) { fold = new Vector2[n]; for (int i = 0; i < n; i++, o += 2) fold[i] = new Vector2(f[o], f[o + 1]); }
             var idx = new int[ni];
             for (int i = 0; i < ni; i++) idx[i] = (int)u[o + i];
             d.subs = new int[ng][]; d.subMat = new int[ng];
@@ -307,6 +310,7 @@ namespace Hiraeth.Bridge
             if (d.bind != null) mesh.SetUVs(3, d.bind);
             if (formC != null) { mesh.SetUVs(5, formC); mesh.SetUVs(6, formA); }
             if (vm != null) for (int c = 0; c < 6; c++) mesh.SetUVs(1 + c, vm[c]);
+            if (fold != null) mesh.SetUVs(1, fold);
             if (weights != null) mesh.boneWeights = weights;
             // (-uniform-layout, a test: every mesh with normals, a uv and colours, so fewer vertex layouts meet each material
             // state: if the load's stall shrinks, it was the driver making a pipeline for each (layout, state) at its first draw)
@@ -581,14 +585,17 @@ namespace Hiraeth.Bridge
             if (!lean || !m || m.shader == null || !m.shader.name.StartsWith("Hiraeth/Surface") || !m.HasProperty("_Mode")) return;
             // (a temple skin's surface is lean already: HIRAETH_SKIN, its pattern drawn only without the LEAN and PLAIN keywords)
             if (m.IsKeywordEnabled("HIRAETH_SKIN")) { leanWhy.TryGetValue("skin", out int sc); leanWhy["skin"] = sc + 1; return; }
+            // (and a foe's painted surface: HIRAETH_FIGHT, lean as a skin's, given only to a foe with none of the rare paths)
+            if (m.IsKeywordEnabled("HIRAETH_FIGHT")) { leanWhy.TryGetValue("foe", out int fc); leanWhy["foe"] = fc + 1; return; }
             int mode = (int)(m.GetFloat("_Mode") + 0.5f);
             // (the ground and the water keep their own path in a lean variant of their own, when they use no other rare one)
             string why = F(m, "_Glass") > 0 ? "glass" : F(m, "_Veil") > 0 ? "veil" : V(m, "_Dissolve").x > 0 ? "dissolve"
                 : F(m, "_Fluid") > 0.5f ? "fluid" : F(m, "_TripoFace") > 0.5f ? "face" : F(m, "_Veins") > 0 ? "veins" : F(m, "_BoxOn") > 0.5f ? "box"
-                : F(m, "_Scrub") > 0 ? "scrub" : F(m, "_SplatOn") > 0.5f ? "splat" : F(m, "_MirrorOn") > 0.5f ? "mirror" : F(m, "_FallOn") > 0.5f ? "fall" : null;
+                : F(m, "_SeeOn") > 0.5f ? "see" : F(m, "_Scrub") > 0 ? "scrub" : F(m, "_SplatOn") > 0.5f ? "splat" : F(m, "_MirrorOn") > 0.5f ? "mirror" : F(m, "_FallOn") > 0.5f ? "fall" : null;
             string kw = why != null ? null : mode == 1 ? "HIRAETH_LEAN_TERRAIN" : mode == 3 ? "HIRAETH_LEAN_WATER" : "HIRAETH_LEAN";
-            // (the scrub's strokes or the glass's cut alone, on no ground or water: the lean variant with that one path kept)
-            if (leanRare && (why == "scrub" || why == "glass") && mode != 1 && mode != 3 && RareCount(m) == 1)
+            // (the scrub's strokes or the glass's cut alone, on no ground or water: the lean variant with that one path kept; the
+            // see-through hole of a fight temple's wall, materials.js SEE_HOLE, is a cut of the same kind, drawn there too)
+            if (leanRare && (why == "scrub" || why == "glass" || why == "see") && mode != 1 && mode != 3 && RareCount(m) == 1)
                 kw = why == "scrub" ? (leanScrub ? "HIRAETH_LEAN_SCRUB" : null) : (leanGlass ? "HIRAETH_LEAN_GLASS" : null);
             bool plainOk = kw != null && plain && (int)(F(m, "_Pattern") + 0.5f) == 0 && F(m, "_Weather") <= 0 && V(m, "_Detail").x <= 0.5f && F(m, "_Patch") <= 0;
             // (and none of the people's, a picture's or the form's hatching interpolators: the slim variant, its vertices 19 floats not 28;
@@ -603,8 +610,9 @@ namespace Hiraeth.Bridge
                 m.EnableKeyword("HIRAETH_PLAIN"); leanWhy.TryGetValue("plain", out int pc); leanWhy["plain"] = pc + 1;
             }
         }
-        /// <summary>How many of the full variant's rare paths a material uses (glass, veil, dissolve, fluid, drawn face, veins, box, scrub, a fall).</summary>
-        static int RareCount(Material m) => (F(m, "_Glass") > 0 ? 1 : 0) + (F(m, "_Veil") > 0 ? 1 : 0) + (V(m, "_Dissolve").x > 0 ? 1 : 0)
+        /// <summary>How many of the full variant's rare paths a material uses (a cut: the glass's or a see-through hole's; veil, dissolve,
+        /// fluid, drawn face, veins, box, scrub, a fall).</summary>
+        static int RareCount(Material m) => (F(m, "_Glass") > 0 || F(m, "_SeeOn") > 0.5f ? 1 : 0) + (F(m, "_Veil") > 0 ? 1 : 0) + (V(m, "_Dissolve").x > 0 ? 1 : 0)
             + (F(m, "_Fluid") > 0.5f ? 1 : 0) + (F(m, "_TripoFace") > 0.5f ? 1 : 0) + (F(m, "_Veins") > 0 ? 1 : 0) + (F(m, "_BoxOn") > 0.5f ? 1 : 0) + (F(m, "_Scrub") > 0 ? 1 : 0) + (F(m, "_FallOn") > 0.5f ? 1 : 0);
         /// <summary>The lean variants with one rare path kept (HIRAETH_LEAN_SCRUB, HIRAETH_LEAN_GLASS: Surface.shader) for the scrub's
         /// and the glass's materials that use no other: on Android under Vulkan, as the slim ones (their variants are in those builds
@@ -729,7 +737,9 @@ namespace Hiraeth.Bridge
                 nodes[id] = n;
                 return;
             }
-            // (a temple skin's surface keeps its own variant, HIRAETH_SKIN, not the instances' one: its few instances baked, as before)
+            // (a temple skin's surface keeps its own variant, HIRAETH_SKIN, not the instances' one: its few instances baked, as before;
+            // the fight's surfaces, HIRAETH_FIGHT, a keyword of their own, are drawn with the instances' too: a foe's repeated parts,
+            // the chimes' crystals)
             if (n.kind == "instanced" && md != null && md.subs.Length == 1 && !(materials.TryGetValue(n.mids.Length > 0 ? n.mids[0] : 0, out var sk0) && sk0 && sk0.IsKeywordEnabled("HIRAETH_SKIN")))
             {
                 // instances drawn on the GPU (the port's InstMats: Surface.shader HIRAETH_INSTMAT, its shadow in the cascades), not baked

@@ -2273,6 +2273,55 @@ The NaN guards, checked on the way (a NaN pixel was the first suspect):
   compiler makes them x · x), the glass's and the veil's cuts (a NaN there decides a discard, it writes nothing).
 - `-surface-debug -1` writes a NaN (made at run time, so no compiler folds it) in the colour and normal of one pixel in
   each 64 × 64, each a glowing one; `-2` also in its glow flag. The picture stays whole, a dot at each.
+## The fight's surfaces, the see-through wall, the lamps' colour (2026-10-17, issue #264)
+
+The next of the surfaces Unity drew plain (engine/bridge-gaps.js), the most seen first: every fight's foes, blade and
+chimes, a fight temple's walls, the lamp-lit rooms.
+
+- **One variant for the fight's surfaces: `HIRAETH_FIGHT`** (Surface.shader, a keyword group of its own). The web's GLSL is
+  turned into HLSL by generators, as the skins' and the drawn face's are, and tests/engine-unity.test.js holds each file to
+  what its generator makes of the current GLSL:
+  - **the foes' painted surfaces** (src/foe-surface.js → `FoeSurface.hlsl`, scripts/unity-export/foe-hlsl.mjs): each
+    `#ifdef FS_*` a branch on the material's `_FoeBits`, its uniforms packed as vec4 slots (engine/foe-pack.js
+    `FOE_LAYOUT`, port-format.js `foeBits`, `foeData`) in the material's `_SkinData` buffer (the temple skins', never both
+    on one material); a brute's cracks opening as it is hurt (`uFsCracksO`) are packed again by engine/mirror.js and sent
+    as the skins' live data (op 21);
+  - **the fluid sword's blade and the guard's shield** (src/blade-shader.js → `BladeSurface.hlsl`, blade-hlsl.mjs: the GLSL
+    preprocessed once for the blade and once for the shield, both kept, `_BladeOn` 1 or 2): the currents, ripples, motes,
+    the meniscus's cut, the bow along the swing and a ring's bulge in the vertices, the light, and the outline-only soft
+    ink. `uBlade`, `uBladeB`, `uBladeC` move every swing: LIVE_VECTORS. Its across and along, `aFold`, now cross with the
+    bind (pack.js flag 256, uv1), which a figure's folds read too;
+  - **the chimes' crystal** (src/crystal-shader.js → `CrystalSurface.hlsl`, crystal-hlsl.mjs, `_CrystalOn`): `aCrystal`
+    rides in the form's slot (as the dunes' `aGlass`), its seven vectors in `_SkinData` (`CRYSTAL_LAYOUT`), each piece's
+    beat from its instance's place in the fold's slot. The field is GPU instances, so `HIRAETH_FIGHT` combines with
+    `HIRAETH_INSTMAT` (and a foe's repeated parts keep their instances); a copy gets its own buffer
+    (`WorldLoader.CopySkinData`). Left: each piece's tier glow (`aChimeGlow`, an instance attribute) does not cross, and
+    the crystal is not yet seen in a Unity picture (the `fight` beat's balls are the blot's ink drops, now glossy; the
+    `foes` sequence's felled crab is still falling apart when its picture is taken). Their shade (chimes.js
+    `blobMaterial`) has no port yet.
+- **What it costs.** The variant is lean, as a skin's (no full-variant rare paths, ground or water): WorldLoader gives it
+  only to a foe or crystal with none of those, and to the blade (its fluid is its own). BridgeRenderer.Lean leaves it
+  alone, and BridgeShaderStrip drops every combination but `HIRAETH_FIGHT` alone or with `HIRAETH_INSTMAT`, prepass or
+  not: four programs more on every platform, none of the lean, slim or plain ones touched. The foes, the blade and the
+  chimes cover a few thousand pixels of a frame; nothing else changes program.
+- **A fight temple's wall opening round him** (materials.js `SEE_HOLE`): `_SeeOn`, the point and radius `_See` and the
+  wall's share `_SeeK` (a number: LIVE_VECTORS now carry a number as a vector's x), cut beside the glass's (`GLASSK`), with
+  `SEE_LOOK`'s foot and wobble. So on the Retroid such a wall takes the glass's lean variant (`HIRAETH_LEAN_GLASS`, round
+  11; `RareCount` counts the two cuts as one), elsewhere the full one, and the prepass leaves it out only while its hole
+  is open. `-no-foe-pattern`, `-no-blade-look`: the plain looks again, a before on one build.
+- **A lamp's pool in its own colour** (`LAMP_TINT`): `_LampTint` per material and the global `_LampsOn` (HiraethLook,
+  `uLampsOn`), mixed after the local lights as the web does: a few ALU on every surface, no branch.
+- **A sequence for the foes** (engine/sequences.js `foes`): a crab, a lizard, a centipede, a brute and a moth, one at a
+  time, close, in the Arena, then a crab felled out of his reach; its stream is recorded (tests/sequences-web.json) and
+  the engines' matches it.
+- **Checked** picture against picture (the editor's batch, muted, High; the web in muted headless Chrome): `foes` (the
+  crab's star spots and mottling, the lizard's bands, the centipede's rivets, the brute's crack net and glowing veins:
+  as the web's, the small spots' pen lines heavier in the editor's 640 × 480 screen), `fight` (the blade's water and
+  edge, smeared through a cut as on the page), `fight-temple` (the front wall's hole round him), the City
+  During the Eclipse at dusk (the lamp boxes' pools amber, not white: also the "glowing box" of the first sweep). The
+  befores are the same build with `-no-foe-pattern`, `-no-blade-look`, `-no-see-hole`, `-no-lamp-tint`. Not measured
+  on the Retroid: no device in this brief; the new programs are drawn only by the foes, the blade, the chimes and a
+  fight temple's walls (the last on the glass's lean variant there).
 
 ## Surfaces D (Unity + Puerts, 2026-10-18, issue #264)
 

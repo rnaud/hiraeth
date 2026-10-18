@@ -1199,6 +1199,7 @@ const DEC463W = 'Issue #463: the web game in muted headless Chrome (High, 1280 �
 /** (v1.84, issue #264 surfaces D) */
 const SURFD = 'Issue #264 (surfaces D): the Unity bridge in the editor’s batch run on this Mac (muted, High, 1280 × 720, -fresh -no-hud); before: the same build with -js-off surfd (this round left out); after: this change; the traveller’s face from 0.55 m with his expression set (engine/unity/game.js aimed: smile 0.8, squint 0.25, brow 0.15; surprised: brow 1, open 0.55), the ship’s main room from -aboard main; 18 October; cwebp -q 72';
 const SURFDW = 'Issue #264 (surfaces D): the web game in muted headless Chrome (High, 1280 × 720, a fixed render scale) on this branch’s own Vite (port 5469), the same view and expression; 18 October; cwebp -q 72';
+const SURF264F = 'Issue #264: the Unity editor’s batch run on this Mac (scripts/unity-js-run.sh -sequence <id> or scripts/unity-compare/unity.mjs, muted, High, 1280 × 720 pictures of its 640 × 480 screen), the same build with the change switched off for the before (-no-foe-pattern, -no-blade-look, -no-see-hole, -no-lamp-tint); the web’s the same beat in muted headless Chrome on this branch’s own Vite (port 5465); 17 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.84': [
     { match: 'In the Unity version the waterfalls fall as on the web', shots: [
@@ -1264,6 +1265,23 @@ export const CHANGELOG_MEDIA = {
     { match: 'In the Unity version, a game started from the Arcade offers the game before and after', shots: [
       { name: 'unity-fight-card', title: 'The Sunken Hall’s card', caption: 'The Sunken Hall’s start card in Unity: before, the traveller’s own view behind it; after, the hall seen from above, as on the web', from: MENUS264 },
     ], see: 'In the Unity version, play a game from the Arcade’s board, and open the Sunken Hall by the pilgrims’ camps.' },
+    { match: 'In the Unity version, the foes wear the patterns painted on them', tags: ['devices', 'combat'], shots: [
+      { name: 'unity-foes-crab', title: 'A crab', caption: 'An Arena crab beside him: before, its plain blue shell; after, its cream star spots and mottling, as on the web (the spots’ pen lines heavier in the editor’s small screen)', from: SURF264F },
+      { name: 'unity-foes-crab-web', only: 'after', title: 'The crab on the web', caption: 'The same beat on the web, for comparison', from: SURF264F },
+      { name: 'unity-foes-brute', title: 'The brute', caption: 'The brute: before, its shell plain; after, the fine net of cracks and the violet veins glowing in them', from: SURF264F },
+    ], see: 'In the Unity version, open the Arena’s foe list (Tab) and call a crab, a centipede or the brute.' },
+    { match: 'In the Unity version, your sword’s blade is living water again', tags: ['devices', 'combat'], shots: [
+      { name: 'unity-blade', title: 'A cut', caption: 'A cut at a blot: before, a thin white blade; after, the blade’s turquoise water smeared through the swing, its cream currents and bright edge', from: SURF264F },
+      { name: 'unity-blade-web', only: 'after', title: 'The cut on the web', caption: 'The same beat on the web', from: SURF264F },
+    ], see: 'In the Unity version, draw the sword in the Arena and swing it.' },
+    { match: 'In the Unity version of the fight temples, a wall or pillar between you', tags: ['devices', 'combat'], shots: [
+      { name: 'unity-see-hole', title: 'The Sunken Hall', caption: 'The first wave, the front wall between him and the camera: before, whole; after, a ragged hole round him, as on the web', from: SURF264F },
+      { name: 'unity-see-hole-web', only: 'after', title: 'The Sunken Hall on the web', caption: 'The same beat on the web', from: SURF264F },
+    ], see: 'In the Unity version, start the Sunken Hall’s run and walk to the wall nearest the camera.' },
+    { match: 'In the Unity version, the lamps of the City During the Eclipse', tags: ['devices'], shots: [
+      { name: 'unity-lamps', title: 'The City During the Eclipse at dusk', caption: 'Its square at dusk: before, white pools round the lamp boxes; after, their warm amber, as on the web', from: SURF264F },
+      { name: 'unity-lamps-web', only: 'after', title: 'The square on the web', caption: 'The same view on the web', from: SURF264F },
+    ], see: 'In the Unity version, the City During the Eclipse at dusk, or the first room of the Signal Market’s makers’ house.' },
     { match: 'In the Unity version, the shafts of light in the skull cave and the makers’ houses are as soft', shots: [
       { name: 'unity-shafts', title: 'The skull cave', caption: 'Among the skull cave’s shafts of light in Unity: before, a white slab with a hard edge; after, a pale wash as the web’s', from: SHAFT420 },
     ], see: 'In the Unity version, go down into the skull cave behind Qanat.' },

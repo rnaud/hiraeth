@@ -86,7 +86,7 @@ test('the Unity side: the cut in the full Surface variant (veiled materials take
   assert.match(surface, /float _Veil;/, 'in UnityPerMaterial');
   assert.match(surface, /UNITY_BRANCH if \(LEANK && _Veil > 0\.0 && _MSurfaceDebug < 3\.5 && abs\(dot\(normalize\(i\.normal\), normalize\(toThree\(_WorldSpaceCameraPos\) - i\.worldPos\)\)\) > _Veil\) discard;/, 'the web\'s S_VEIL cut, out of the lean variants (a discard there costs every lean surface its early depth test)');
   assert.match(read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRenderer.cs'), /F\(m, "_Veil"\) > 0 \? "veil"/, 'a veiled material on the full variant, as the glass');
-  assert.match(surface, /fragEntry\(DepthVaryings i\) \{ if \(\(GLASSK && _Glass > 0\.0\) \|\| \(LEANK && \(_Dissolve\.x > 0\.0 \|\| _Veil > 0\.0[^)]*\)\)[^{}]*\) discard; \}/, 'no depth of a veil in the prepass (veiled materials are on the full variant)');
+  assert.match(surface, /fragEntry\(DepthVaryings i\) \{ if \(\(GLASSK && \(_Glass > 0\.0[^{}]*\)\) \|\| \(LEANK && \(_Dissolve\.x > 0\.0 \|\| _Veil > 0\.0[^)]*\)\)[^{}]*\) discard; \}/, 'no depth of a veil in the prepass (veiled materials are on the full variant)');
   assert.match(read('unity/Hiraeth/Assets/Hiraeth/Runtime/WorldLoader.cs'), /\("veil", "_Veil"\)/);
   const veil = read('unity/Hiraeth/Assets/Hiraeth/Shaders/Veil.shader');
   assert.match(veil, /Shader "Hiraeth\/Veil"/);

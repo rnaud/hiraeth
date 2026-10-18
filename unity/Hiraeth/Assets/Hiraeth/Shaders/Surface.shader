@@ -77,6 +77,16 @@ Shader "Hiraeth/Surface"
     _VeinBox ("Veins: the map's x0, z0, 1 / width, 1 / depth", Vector) = (0, 0, 0, 0)
     _SplatClock ("A splat's clock (x)", Vector) = (0, 0, 0, 0)
     _VeinMap ("Lorn's vein map (lorn-veins.js)", 2D) = "black" {}
+    _FoeBits ("A foe's painted features (FoeSurface.hlsl, HIRAETH_FIGHT; 0 none)", Float) = 0
+    _BladeOn ("The fluid sword's blade (1) or the shield (2) (BladeSurface.hlsl, HIRAETH_FIGHT; 0 none)", Float) = 0
+    _CrystalOn ("The chimes' crystal (CrystalSurface.hlsl, HIRAETH_FIGHT)", Float) = 0
+    _Blade ("Blade: smear, energy, breath, lite", Vector) = (0, 1, 0, 0)
+    _BladeB ("Blade: the lag (x, z), the ripple's age, where it started", Vector) = (0, 0, 99, 0.75)
+    _BladeC ("Blade: the ripple's strength, its gold, the flash, the pen's share", Vector) = (0, 0, 0, 0.5)
+    _SeeOn ("Opens round the traveller when it hides him (materials.js SEE_HOLE)", Float) = 0
+    _See ("The hole's point (three, world) and radius there (m)", Vector) = (0, -10000, 0, 3.4)
+    _SeeK ("This one's share of the hole (x: 0 solid .. 1 open)", Vector) = (0, 0, 0, 0)
+    _LampTint ("A lamp's own colour in its pool (rgb, a its share; materials.js LAMP_TINT)", Vector) = (0, 0, 0, 0)
     // (every other value of UnityPerMaterial, 0 unless a material sets it: each material its own, as the SRP Batcher wants
     // them. The arrays (_Palette, _Limbs, _FluidTones) go by a value here.)
     _NoVertexColor ("NoVertexColor", Float) = 0
@@ -162,6 +172,13 @@ Shader "Hiraeth/Surface"
     float4 _BedRef;                // x: the height the map is measured from, y: 1 once baked
     float _Drift, _SpotStep, _LineStep, _ToDisplay, _FormOn, _Veins, _BoxOn, _TripoFace;
     float _SkinBody;       // a temple skin's pattern (src/temples/skins/skin-shader.js: its number; its uniforms in _SkinData, HIRAETH_SKIN)
+    float _FoeBits;        // a foe's painted features (src/foe-surface.js: FS_* as bits; its uniforms in _SkinData, HIRAETH_FIGHT)
+    float _BladeOn;        // the fluid sword's living blade (1) or the guard's shield (2) (src/blade-shader.js, HIRAETH_FIGHT)
+    float _CrystalOn;      // the chimes' crystal (src/crystal-shader.js, HIRAETH_FIGHT; its uniforms in _SkinData)
+    float4 _Blade, _BladeB, _BladeC;   // its live numbers (blade-shader.js uBlade, uBladeB, uBladeC: LiveVectors)
+    float _SeeOn;          // a fight temple's wall or pillar that opens round him when it hides him (materials.js SEE_HOLE)
+    float4 _See, _SeeK;    // his chest (three, world) and the hole's radius there; this one's share in x (both live: LiveVectors)
+    float4 _LampTint;      // a lamp's pool in its own colour (materials.js LAMP_TINT): rgb, a its share
     float4 _Lining, _BoxA, _BoxB, _BoxMark, _BoxLight;
     float4 _Shade;         // materials.js uShade: lift, hue (-1 the world's; 2 + a flat print), hatch, strata strokes
     float _Bind;           // people (Figures.cs): the rest pose in uv3 / uv4, so their drawing rides on the body
@@ -206,6 +223,7 @@ Shader "Hiraeth/Surface"
     float3 _SkyTop, _SkyHorizon;   // (the composite's: what the metals see)
     float3 _EnvGround;             // what lies below the horizon here (materials.js uEnvGround: the world's ground)
     float _Halftone, _Bounce;   // the look's shade tones (globals)
+    float _LampsOn;             // how far the lamps' own colour shows (global: materials.js uLampsOn, src/eclipse.js dims it by day)
     TEXTURE2D(_Bed); SAMPLER(sampler_Bed);
     TEXTURE2D(_Map); SAMPLER(sampler_Map);
     TEXTURE2D(_VeinMap); SAMPLER(sampler_VeinMap);   // Lorn's crystal roots under the water (lorn-veins.js, WATER_VEINS)
@@ -337,6 +355,15 @@ Shader "Hiraeth/Surface"
       #pragma vertex vertEntry
       #pragma fragment fragEntry
       #pragma multi_compile_local _ HIRAETH_CROWD HIRAETH_PUFFS HIRAETH_INSTMAT HIRAETH_GRASS HIRAETH_FLORA HIRAETH_VMAT HIRAETH_SKIN
+      #pragma multi_compile_local _ HIRAETH_FIGHT
+      // HIRAETH_FIGHT: the fight's own surfaces, the web's GLSL in HLSL (generated). A foe's painted surface (src/foe-surface.js:
+      // bellies, mottling, rust, grain, bands, scales, spots, rivets, drips, cracks, glow, gloss; FoeSurface.hlsl), each feature a
+      // branch on the material's _FoeBits, its uniforms in _SkinData; the fluid sword's living blade and the guard's shield
+      // (src/blade-shader.js; BladeSurface.hlsl, _BladeOn): their currents, meniscus, bow along the swing, a hit's ring, light. Lean
+      // as a skin is (none of the full variant's rare paths, the ground's or the water's: WorldLoader gives it only to a foe that
+      // uses none, and to the blade, whose fluid is its own), never with a LEAN or PLAIN keyword (BridgeShaderStrip leaves those
+      // out), alone or with the GPU instances' HIRAETH_INSTMAT (a foe's repeated parts), never with the other kinds: four programs
+      // more, prepass or not, on every platform. Foes and the blade are a few thousand pixels of a frame.
       // HIRAETH_SKIN: a temple skin's surface (issue #342, src/temples/skins/skin-shader.js): its pattern, by number (_SkinBody), one
       // of the generated SkinPatterns.hlsl's bodies (each the web's own GLSL in HLSL), its uniforms the material's _SkinData. One
       // variant for every skin (lean: none of the rare paths, the ground's, the water's or a wall's marks), with the pattern only
@@ -387,17 +414,17 @@ Shader "Hiraeth/Surface"
       #if defined(HIRAETH_LEAN_SCRUB) || defined(HIRAETH_LEAN_GLASS)
         #define LEAN_ONE 1
       #endif
-      #if defined(HIRAETH_LEAN) || defined(HIRAETH_LEAN_TERRAIN) || defined(HIRAETH_LEAN_WATER) || defined(HIRAETH_SKIN) || defined(LEAN_ONE)
+      #if defined(HIRAETH_LEAN) || defined(HIRAETH_LEAN_TERRAIN) || defined(HIRAETH_LEAN_WATER) || defined(HIRAETH_SKIN) || defined(HIRAETH_FIGHT) || defined(LEAN_ONE)
         #define LEANK false
       #else
         #define LEANK true
       #endif
-      #if defined(HIRAETH_LEAN) || defined(HIRAETH_LEAN_WATER) || defined(HIRAETH_SKIN) || defined(LEAN_ONE)
+      #if defined(HIRAETH_LEAN) || defined(HIRAETH_LEAN_WATER) || defined(HIRAETH_SKIN) || defined(HIRAETH_FIGHT) || defined(LEAN_ONE)
         #define TERRAINK false
       #else
         #define TERRAINK true
       #endif
-      #if defined(HIRAETH_LEAN) || defined(HIRAETH_LEAN_TERRAIN) || defined(HIRAETH_SKIN) || defined(LEAN_ONE)
+      #if defined(HIRAETH_LEAN) || defined(HIRAETH_LEAN_TERRAIN) || defined(HIRAETH_SKIN) || defined(HIRAETH_FIGHT) || defined(LEAN_ONE)
         #define WATERK false
       #else
         #define WATERK true
@@ -427,6 +454,12 @@ Shader "Hiraeth/Surface"
       #if defined(HIRAETH_SKIN) && !defined(HIRAETH_LEAN) && !defined(HIRAETH_LEAN_TERRAIN) && !defined(HIRAETH_LEAN_WATER) && !defined(LEAN_ONE) && !defined(HIRAETH_PLAIN) && !defined(HIRAETH_PREPASS)
         #define SKINK 1
         #include "SkinPatterns.hlsl"
+      #endif
+      #if defined(HIRAETH_FIGHT) && !defined(HIRAETH_PREPASS)
+        #define FOEK 1
+        #include "FoeSurface.hlsl"
+        #include "BladeSurface.hlsl"
+        #include "CrystalSurface.hlsl"
       #endif
       // the sun's shadow maps (HiraethShadows.cs, materials.js getShadow): fine, near, far; each its matrix
       // into [0, 1] texture space, its bias (depth units), normal offset (m), texel (m), on; 4 or 9 taps
@@ -566,6 +599,12 @@ Shader "Hiraeth/Surface"
           return q;
         }
         Varyings o;
+        #if defined(FOEK)
+          // the fluid sword's blade bowed back along the swing, a wave up its edges; the shield's face bulged by a blow's ring
+          // (blade-shader.js BLADE_VERT, in three's object space)
+          UNITY_BRANCH if (_BladeOn > 1.5) v.positionOS.xyz = toThree(bladeBendDisc(toThree(v.positionOS.xyz), v.fold));
+          else if (_BladeOn > 0.5) v.positionOS.xyz = toThree(bladeBendBlade(toThree(v.positionOS.xyz), v.fold));
+        #endif
         #if defined(HIRAETH_VMAT)
           float3 posWS = TransformObjectToWorld(v.positionOS.xyz);
         #else
@@ -601,7 +640,7 @@ Shader "Hiraeth/Surface"
         o.objRel = o.objPos - toThree(camOS * scl);
         O_FOLD = v.fold;
         O_BIND = toThree(v.bind);
-        if (_DuneOn > 0.5) O_FORM = v.formC;   // (the Glass Dunes' aGlass: the silhouettes, the thin glass, the lobes; the pools)
+        if (_DuneOn > 0.5 || _CrystalOn > 0.5) O_FORM = v.formC;   // (the Glass Dunes' aGlass: the silhouettes, the thin glass, the lobes; the pools; a chime crystal's aCrystal)
         // (a billboard's aNight in the form's slot: its night colour, its glow then (NIGHT_PAINT); a splat's aSplat there, its
         // inner tone in the bind's, its phase in the fold's (splat-decal.js): pack.js unityGeometry)
         if (_NightOn > 0.5 || _SplatOn > 0.5) O_FORM = v.formC;
@@ -726,6 +765,18 @@ Shader "Hiraeth/Surface"
         #endif
         // (-surface-debug 10 and 11: the position, normal and depth from the object's own transform alone, none of the above:
         // whether a surface missing on the Xbox goes in the vertex stage; 10 with the fragment's plain values, 11 with all of it)
+        #if defined(FOEK)
+          // a chime crystal's own beat (crystal-shader.js CRYSTAL_VERT: from its place, an instance's origin), in the fold's slot
+          UNITY_BRANCH if (_CrystalOn > 0.5)
+          {
+            #if defined(HIRAETH_INSTMAT)
+              MatInst cm = _Mats[v.iid]; float3 cc = toThree(float3(cm.r0.w, cm.r1.w, cm.r2.w));
+            #else
+              float3 cc = toThree(TransformObjectToWorld(float3(0, 0, 0)));
+            #endif
+            O_FOLD = float2(frac(sin(dot(floor(cc.xz * 7.0), float2(12.9898, 78.233))) * 43758.5453) * 6.2832, 0.0);
+          }
+        #endif
         UNITY_BRANCH if (_MSurfaceDebug > 9.5)
         {
           float3 pw = TransformObjectToWorld(v.positionOS.xyz);
@@ -1063,6 +1114,28 @@ Shader "Hiraeth/Surface"
           float streak = step(abs(atan2(od.y, od.x) - 2.2), 0.09) * step(0.25, od.z) * step(od.z, 0.75);
           if (fr < 0.72 && streak < 0.5) discard;
         }
+        // a fight temple's wall opening round him when it hides him (materials.js SEE_HOLE): a cone from the eye to his chest, so
+        // the hole is a circle on the screen, only what is nearer the eye than he is, its foot kept (SEE_LOOK.foot), its edge a
+        // little uneven (SEE_LOOK.wobble). A cut as the glass's: in the full variant and the glass's lean one (BridgeRenderer.Lean)
+        UNITY_BRANCH if (GLASSK && _SeeOn > 0.5 && _SeeK.x > 0.001 && _MSurfaceDebug < 3.5)
+        {
+          float3 sEye = toThree(_WorldSpaceCameraPos), sAx = _See.xyz - sEye, sRel = i.worldPos - sEye;
+          float sL = length(sAx), sS = dot(sRel, sAx) / max(sL, 1e-4);
+          if (sS > 0.0 && sS < sL - 0.35 && i.worldPos.y > _See.y - 0.80)
+          {
+            float sR = _See.w * _SeeK.x * sS / sL;
+            float sE = length(sRel - sAx * (sS / max(sL, 1e-4))) / max(sR, 1e-4);
+            if (sE < 1.0 - 0.08 * vnoise(i.worldPos.xz * 1.7 + i.worldPos.y * 1.3)) discard;
+          }
+        }
+        // the blade's meniscus, its edge wobbling; the shield's, and its back sheet seen through (blade-shader.js BLADE_DISCARD)
+        #if defined(FOEK)
+          UNITY_BRANCH if (_BladeOn > 0.5)
+          {
+            bdFold = I_FOLD; bdBind = I_BIND; bdFragCoord = i.positionCS;
+            if (_BladeOn > 1.5) bladeCutDisc(); else bladeCutBlade();
+          }
+        #endif
         // see-through but for its rim (makeMaterial({ veil }): the City-Shaft's air pillars, Lorn II's mushrooms, the Glass
         // Dunes' lenses): where it faces the eye more squarely than the cut, nothing; its body is a wash laid over the
         // finished picture (Hiraeth/Veil). Not in the lean variants (BridgeRenderer.Lean gives a veiled material the full
@@ -1232,7 +1305,20 @@ Shader "Hiraeth/Surface"
           patInk = max(patInk, di * dUp * 1.35);
         }
         if (LEANK && _Fluid > 0.5) albedo = fluidAlbedo(albedo, I_BIND, I_FOLD, SafeNormalize(i.normal), normalize(toThree(_WorldSpaceCameraPos) - i.worldPos), i.worldPos, _Glow);
+        // the fluid sword's living blade, the guard's shield: their currents (blade-shader.js bladeFluid, fluid kind 6)
+        #if defined(FOEK)
+          UNITY_BRANCH if (_BladeOn > 0.5)
+          {
+            bdFold = I_FOLD; bdBind = I_BIND;
+            if (_BladeOn > 1.5) albedo = bladeFluidDisc(_FluidA.z); else albedo = bladeFluidBlade(_FluidA.z);
+          }
+        #endif
         albedo *= instColor;
+        // a foe's painted patterns and its glow (HIRAETH_FIGHT: foe-surface.js foeSurface, where the web calls it)
+        #if defined(FOEK)
+          fsObjPos = i.objPos; fsObjNormal = i.objNormal; fsWorldPos = i.worldPos; fsNormal = i.normal; fsFront = frontFace;
+          patInk = max(patInk, foeSurface(albedo, emit, n));
+        #endif
         // (linear colours, the coral-shirt traveller's: to the game's display values, as tripo-material.js does)
         if (_Lining.w > 0.5 && !frontFace) albedo = _Lining.rgb;   // (the overshirt's lining: tripo-material.js)
         if (_ToDisplay > 0.5) albedo = lerp(albedo * 12.92, 1.055 * pow(max(albedo, 0.0), 1.0 / 2.4) - 0.055, step(0.0031308, albedo));
@@ -1358,6 +1444,18 @@ Shader "Hiraeth/Surface"
           }
         }
         if (LEANK && _Fluid > 0.5 && _FluidA.w < 0.5) L = max(L, 0.92);   // (the round backpack's nebula is lit from within: no shade side on it)
+        #if defined(FOEK)
+          // (crystal-shader.js chimeCrystal: the chimes' facets by the live sun, their seam, edges, inner glow and lines, rim, sparkle)
+          UNITY_BRANCH if (_CrystalOn > 0.5)
+          {
+            crCrystal = I_FORM; crBeat = I_FOLD.x; crGlow = 0.0; crWorldRel = i.worldPos - toThree(_WorldSpaceCameraPos);
+            crObjRel = i.objRel; crObjPos = i.objPos; crObjNormal = i.objNormal;
+            chimeCrystal(albedo, L, emit, n);
+          }
+          foeGloss(albedo, L, n);   // (foe-surface.js: a foe's crisp highlight, once the light is known)
+          // (blade-shader.js bladeLight: the blade's rim, the sun's flecks on its ripples, its breathing glow, always lit)
+          UNITY_BRANCH if (_BladeOn > 0.5) { bdWorldRel = i.worldPos - toThree(_WorldSpaceCameraPos); bladeLight(albedo, L, emit, n); }
+        #endif
         float local = 0.0;
         // (the lights come nearest first, the unused after them with no radius (HiraethLook): the loop stops at the first of
         // those, a uniform branch, instead of measuring all eight from every pixel, issue #262)
@@ -1382,6 +1480,8 @@ Shader "Hiraeth/Surface"
           albedo *= 1.0 + 0.05 * (carve.x - carve.y);
         }
         L = max(L, _Room.w > 0.0 ? lerp(L, 0.95, smoothstep(0.06, 0.6, local)) : lerp(L, 0.97, smoothstep(0.15, 0.5, local)));
+        // a lamp's pool in its own colour (materials.js LAMP_TINT: the lamp-lit worlds' street lamps, its share dimmed by day)
+        albedo = lerp(albedo, _LampTint.rgb * lerp(0.55, 1.0, dot(albedo, float3(0.3, 0.55, 0.15))), _LampTint.a * _LampsOn * smoothstep(0.08, 0.55, local));
         if (mode == MODE_WATER && _WaterOpt.x > 0.0) L = lerp(L, max(L, 0.8), waterLit);
         float metalInk = 0.0;
         UNITY_BRANCH if (_Metal.w > 0.0)
@@ -1489,6 +1589,10 @@ Shader "Hiraeth/Surface"
         bool facePart = mode == MODE_EYE || (mode == MODE_OUTFIT && I_BIND.y > _Outfit.z && abs(I_BIND.x) < 0.16);
         // gHatch.a: glow + 2 hero + 4 figure (+ 8 soft ink) + 16 a face + 32 banked sand (post.js)
         o.hatch.a = max(max(max(_Glow, emit), smoothstep(0.15, 0.6, local) * 0.6), dEdge) + 2.0 * _Hero + 4.0 * _Figure + (facePart ? 16.0 : 0.0) + 32.0 * _Drift + 64.0 * _SurfD.w;   // (+64 a mover, uMover: Composite's crease shading sees past it)
+        #if defined(FOEK)
+          if (_BladeOn > 0.5) { o.hatch.rgb = float3(_BladeC.w, 0, 0); o.hatch.a += 8.0; return o; }   // (the blade, the shield: its outline only, half pen)
+          if (_CrystalOn > 0.5) { o.hatch.rgb = float3(_SkinData[2].a, 0, 0); o.hatch.a += 8.0; return o; }   // (a crystal: its outline only, no line between its facets)
+        #endif
         if (_BoxOn > 0.5) { o.hatch.rgb = float3(1, 0, 0); o.hatch.a += 8.0; return o; }   // (a box with no edges: its outline only)
         if (LEANK && _Fluid > 0.5 && _FluidA.w < 0.5) { o.hatch.rgb = float3(1, 0, 0); o.hatch.a += 8.0; return o; }   // (the round backpack's glass: its outline only, a full pen line, no hatching)
         #if defined(HIRAETH_GRASS)
@@ -1600,8 +1704,17 @@ Shader "Hiraeth/Surface"
         // (the lean variants have no glass, dissolve nor veil (BridgeRenderer.Lean): no discard there at all, so the depth
         // they write is known before the fragment runs (early depth, a tiled GPU's low-resolution depth), issue #262)
         // (a reflection in still water and a splat cut their shapes in the G-buffer pass: they write no depth here; both are
-        // kept on the full variant (BridgeRenderer.Lean: "mirror", "splat", "fall"), so no lean prepass carries a discard)
-        void fragEntry(DepthVaryings i) { if ((GLASSK && _Glass > 0.0) || (LEANK && (_Dissolve.x > 0.0 || _Veil > 0.0 || _SplatOn > 0.5 || _MirrorOn > 0.5 || _FallOn > 0.5))) discard; }
+        // kept on the full variant (BridgeRenderer.Lean: "mirror", "splat", "fall"), so no lean prepass carries a discard; a wall
+        // seen through round him while its hole is open (SEE_HOLE) with the glass's cut, GLASSK: the full variant or the glass's
+        // lean one, BridgeRenderer.Lean "see")
+        // (the blade and the shield, HIRAETH_FIGHT's own variant: their meniscus is cut, and their vertices bowed, in the
+        // G-buffer pass alone)
+        #if defined(HIRAETH_FIGHT)
+          #define BLADEPP (_BladeOn > 0.5)
+        #else
+          #define BLADEPP false
+        #endif
+        void fragEntry(DepthVaryings i) { if ((GLASSK && (_Glass > 0.0 || (_SeeOn > 0.5 && _SeeK.x > 0.001))) || (LEANK && (_Dissolve.x > 0.0 || _Veil > 0.0 || _SplatOn > 0.5 || _MirrorOn > 0.5 || _FallOn > 0.5)) || BLADEPP) discard; }
       #else
         // (the traveller's own surfaces while the lens is in his body, materials.js uHeroCut × uCutMe: past the clip volume, so
         // none of him is drawn; his shadow is the ShadowCaster's, kept)

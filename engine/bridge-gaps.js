@@ -65,22 +65,8 @@ export const GAPS = {
   // ------------------------------------------------------------------ materials (gathered by running every world and game)
   materials: [
     // known gaps, most seen first
-    { keys: ['define:FOE_SURFACE', 'define:FS_BELLY', 'define:FS_RUST', 'define:FS_BANDS', 'define:FS_GLOSS', 'define:FS_MOTTLE',
-      'uniform:uFsBelly', 'uniform:uFsBellyC', 'uniform:uFsBellyW', 'uniform:uFsRust', 'uniform:uFsRustC', 'uniform:uFsRustC2', 'uniform:uFs_bands',
-      'uniform:uFs_bandsC', 'uniform:uFs_bandsO', 'uniform:uFsGloss', 'uniform:uFsGlossC', 'uniform:uFsGlossW', 'uniform:uFsMottle', 'uniform:uFsMottleC',
-      // (and the furnace brute's grain, spots, drips and glowing cracks: seen at a world's build since the Engine-House's Boiler Keeper, #415)
-      'define:FS_GRAIN', 'uniform:uFsGrain', 'uniform:uFsGrainC', 'define:FS_SPOTS2', 'uniform:uFs_spots2', 'uniform:uFs_spots2C', 'uniform:uFs_spots2S', 'uniform:uFs_spots2K',
-      'define:FS_DRIPS', 'uniform:uFsDrips', 'uniform:uFsDripsC', 'define:FS_CRACKS', 'uniform:uFsCracks', 'uniform:uFsCracksC', 'uniform:uFsCracksI', 'uniform:uFsCracksV', 'uniform:uFsCracksO'],
-    what: 'the foes\' own surfaces: bellies, mottling, rust, bands, gloss (src/foe-surface.js)', status: 'gap', issue: 264, visible: 3,
-    note: 'nothing of it reaches Surface.shader: the foes are their plain colours in Unity' },
-    { keys: ['define:SEE_HOLE', 'uniform:uSee', 'uniform:uSeeK'], what: 'the hole a wall opens round the traveller when it hides him (makeMaterial seeThrough: the fight temples)', status: 'gap', issue: 264, visible: 3 },
-    { keys: ['define:BLADE_FLUID', 'define:BLADE_DISC', 'uniform:uBlade', 'uniform:uBladeB', 'uniform:uBladeC'], what: 'the sword\'s blade: its bow along the swing, the ring a hit sends along it (src/blade-shader.js)', status: 'gap', issue: 264, visible: 2,
-      note: 'the blade crosses as the fluid tool\'s surface only' },
-    { keys: ['define:CHIME_CRYSTAL', 'uniform:uCrystalCore', 'uniform:uCrystalEdge', 'uniform:uCrystalDeep', 'uniform:uCrystalA', 'uniform:uCrystalB', 'uniform:uCrystalSeam', 'uniform:uCrystalC'],
-      what: 'the chimes\' crystals: their facets, core and seams (src/crystal-shader.js)', status: 'gap', issue: 264, visible: 2, note: 'drawn in their plain colour' },
     { keys: ['shader:uCore,uDark,uFar,uTint'], what: 'the patch of shade under each chime crystal (src/chimes.js blobMaterial)', status: 'gap', issue: 264, visible: 2,
       note: 'a shader multiplied into the G-buffer, with no port: falls back to a Surface (to check: an unlit disc, or nothing)' },
-    { keys: ['define:LAMP_TINT', 'uniform:uLampTint'], what: 'the lamps\' pools in their own colour (makeMaterial lampTint)', status: 'gap', issue: 264, visible: 2 },
     { keys: ['define:S_THIN', 'uniform:uThinPx'], what: 'thin bars (masts\' struts, wires, vines) kept a pixel or two wide far off (src/thin.js)', status: 'gap', issue: 264, visible: 2, note: 'they break up into dashes far off (to check)' },
     { keys: ['define:S_VGLYPH'], what: 'the banners\' glyph cells per vertex (life.js BannerSet: the City-Shaft\'s banners)', status: 'gap', issue: 264, visible: 1 },
     { keys: ['define:LINE_FAR', 'uniform:uLineFar'], what: 'a lighter line from afar (the meadow\'s flowers, flora.js FAR_LINE)', status: 'gap', issue: 264, visible: 1 },
@@ -96,6 +82,16 @@ export const GAPS = {
     // handled
     { keys: ['define:METAL_BRUSHED'], what: 'brushed metal: fine streaks along an axis, the sun\'s highlight stretched across them', status: 'handled',
       where: 'Surface.shader metalAlbedo takes it from _Metal.y (port-format.js metal: uMetal, its brushed flag) with the web\'s arithmetic; the define only trims the web\'s program (the lab\'s steel, brushed and chrome side by side, #264 surfaces D)' },
+    { pattern: /^(define:FOE_SURFACE|define:FS_[A-Z0-9]+|uniform:uFs_?\w+)$/, what: 'the foes\' own surfaces: bellies, mottling, rust, grain, bands, scales, spots, rivets, drips, cracks, glow, gloss (src/foe-surface.js)', status: 'handled',
+      where: 'engine/foe-pack.js packs them (bits and slots, port-format.js; again live when a brute\'s cracks open, engine/mirror.js); Surface.shader HIRAETH_FIGHT, FoeSurface.hlsl (scripts/unity-export/foe-hlsl.mjs: the web\'s GLSL in HLSL)' },
+    { pattern: /^(define:BLADE_FLUID|define:BLADE_DISC|uniform:uBlade[BC]?)$/, what: 'the sword\'s blade and the shield: their currents, meniscus, bow along the swing, the ring a hit sends along it, their light (src/blade-shader.js)', status: 'handled',
+      where: 'port-format.js blade, bladeA..C (live: engine/mirror.js LIVE_VECTORS), aFold with the bind (pack.js); Surface.shader HIRAETH_FIGHT, BladeSurface.hlsl (scripts/unity-export/blade-hlsl.mjs: the web\'s GLSL in HLSL)' },
+    { pattern: /^(define:CHIME_CRYSTAL|uniform:uCrystal\w+)$/, what: 'the chimes\' crystals: their facets, core and seams (src/crystal-shader.js)', status: 'handled',
+      where: 'port-format.js crystal (its uniforms packed: engine/foe-pack.js CRYSTAL_LAYOUT), aCrystal in the form\'s slot (pack.js); Surface.shader HIRAETH_FIGHT _CrystalOn, CrystalSurface.hlsl (scripts/unity-export/crystal-hlsl.mjs), on the GPU instances (HIRAETH_INSTMAT); each piece\'s tier glow (aChimeGlow) does not cross. To check: not yet seen in a Unity picture (PICTURE_DIFFS fight chimes)' },
+    { pattern: /^(define:SEE_HOLE|uniform:uSeeK?)$/, what: 'the hole a wall opens round the traveller when it hides him (makeMaterial seeThrough: the fight temples)', status: 'handled',
+      where: 'port-format.js seeOn, see, seeK (uSee, uSeeK live: engine/mirror.js LIVE_VECTORS); Surface.shader\'s cut with the glass\'s (the glass\'s lean variant on the Retroid)' },
+    { pattern: /^(define:LAMP_TINT|uniform:uLampTint)$/, what: 'the lamps\' pools in their own colour (makeMaterial lampTint)', status: 'handled',
+      where: 'port-format.js lampTint; Surface.shader _LampTint, the global _LampsOn (HiraethLook, uLampsOn)' },
     { keys: ['shader:uColor,uGlow'], what: 'a flat colour written to the G-buffer (src/ship/approach.js: the ship\'s and the worlds\' plain parts on approach)', status: 'handled',
       where: 'port-format.js\'s Surface plain takes its uColor and uGlow, which is all it has' },
     { keys: ['define:S_BIOMES', 'define:S_RIPPLES', 'define:S_SANDINK', 'define:S_TERRAIN', 'define:S_STRATA', 'define:S_GLYPHS', 'define:S_GRID', 'define:S_CRACKS',
@@ -322,8 +318,9 @@ export const STREAM_DIFFS = [
  */
 export const PICTURE_DIFFS = [
   // ---- known gaps
-  { seq: 'fight', beat: 'cut|hit', what: 'the blade is a thin grey sword in Unity, not the page\'s blue fluid blade (src/blade-shader.js: materials\' BLADE_FLUID)', issue: 264, visible: 3 },
-  { seq: 'fight', beat: 'chimes', what: 'a dropped chime is a pale ball in Unity, not the page\'s faceted crystal (src/crystal-shader.js), its shade a dark disc', issue: 264, visible: 2 },
+  { seq: 'fight', beat: 'cut|hit', what: 'the blade is a thin grey sword in Unity, not the page\'s blue fluid blade (src/blade-shader.js: materials\' BLADE_FLUID)', issue: 264, visible: 3,
+    status: 'handled', where: 'Surface.shader HIRAETH_FIGHT, BladeSurface.hlsl (scripts/unity-export/blade-hlsl.mjs): its turquoise currents, cream streaks and edge, smeared through a cut as the page\'s' },
+  { seq: 'fight', beat: 'chimes', what: 'a dropped chime is a pale ball in Unity, not the page\'s faceted crystal (src/crystal-shader.js), its shade a dark disc (the crystal is ported, CrystalSurface.hlsl, but not yet seen in a Unity picture: the beat\'s pictures show the blot\'s ink drops, not the chimes; their shade, chimes.js blobMaterial, has no port)', issue: 264, visible: 2 },
   { seq: 'talk|moment-arzach2.bell|moment-edena.terraces', beat: 'beside|start|mid', what: 'people\'s barks, the speech balloons over their heads ("A visitor! On a bird!", "Shut it! Shut it!"), not drawn in Unity', issue: 264, visible: 2 },
   { seq: 'moment-perdide.crystal', what: 'the hearts and wallet show over the crystal\'s moment in Unity (the screen\'s health part up; none on the page or in node)', issue: 264, visible: 2 },
   // ---- handled (#264, 2026-10-17: scripts/unity-compare/sequences.mjs, before and after sheets on the issue)

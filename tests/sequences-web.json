@@ -1,6 +1,6 @@
 {
  "recorded": "2026-10-18",
- "sha": "a091c0498",
+ "sha": "5ab183a55",
  "how": "node scripts/unity-compare/sequences.mjs web [ids] && node scripts/unity-compare/sequences.mjs record",
  "sequences": {
   "moment-desert.flow": {
@@ -5383,6 +5383,184 @@
       94.9,
       14.2,
       135
+     ],
+     "late": false
+    }
+   ]
+  },
+  "foes": {
+   "beats": [
+    {
+     "beat": "crab",
+     "hud": {
+      "health": {
+       "low": false
+      },
+      "foeTab": true
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 191,
+      "print": 1,
+      "shader": 1,
+      "wisp": 1
+     },
+     "cam": [
+      0,
+      2.5,
+      10.7,
+      55
+     ],
+     "player": [
+      0,
+      0,
+      6
+     ],
+     "late": false
+    },
+    {
+     "beat": "lizard",
+     "hud": {
+      "health": {
+       "low": false
+      },
+      "foeTab": true
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 219,
+      "print": 1,
+      "shader": 1,
+      "wisp": 1
+     },
+     "cam": [
+      0,
+      2.5,
+      10.7,
+      55
+     ],
+     "player": [
+      0,
+      0,
+      6
+     ],
+     "late": false
+    },
+    {
+     "beat": "centipede",
+     "hud": {
+      "health": {
+       "low": false
+      },
+      "foeTab": true
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 369,
+      "print": 1,
+      "shader": 1,
+      "wisp": 1
+     },
+     "cam": [
+      0,
+      2.5,
+      10.7,
+      55
+     ],
+     "player": [
+      0,
+      0,
+      6
+     ],
+     "late": false
+    },
+    {
+     "beat": "brute",
+     "hud": {
+      "health": {
+       "low": false
+      },
+      "foeTab": true
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 110,
+      "print": 2,
+      "shader": 1,
+      "wisp": 1
+     },
+     "cam": [
+      0,
+      2.5,
+      10.7,
+      55
+     ],
+     "player": [
+      0,
+      0,
+      6
+     ],
+     "late": false
+    },
+    {
+     "beat": "moth",
+     "hud": {
+      "health": {
+       "low": false
+      },
+      "foeTab": true
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 253,
+      "print": 2,
+      "shader": 1,
+      "wisp": 1
+     },
+     "cam": [
+      0,
+      2.5,
+      10.7,
+      55
+     ],
+     "player": [
+      0,
+      0,
+      6
+     ],
+     "late": false
+    },
+    {
+     "beat": "chimes",
+     "hud": {
+      "health": {
+       "low": false
+      },
+      "foeTab": true
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 160,
+      "print": 2,
+      "shader": 1,
+      "wisp": 1
+     },
+     "cam": [
+      0,
+      2.5,
+      10.7,
+      55
+     ],
+     "player": [
+      0,
+      0,
+      6
      ],
      "late": false
     }

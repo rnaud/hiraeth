@@ -26,8 +26,18 @@ namespace Hiraeth.EditorTools
             var a = new ShaderKeyword(shader, "HIRAETH_LEAN_SLIM");
             // (the lean variants with one rare path kept, round 11: the same platforms, BridgeRenderer.leanRare)
             var b = new ShaderKeyword(shader, "HIRAETH_LEAN_SCRUB"); var c = new ShaderKeyword(shader, "HIRAETH_LEAN_GLASS");
+            // (the fight's surfaces, HIRAETH_FIGHT, are drawn with none of the lean or plain keywords, as a skin is (WorldLoader,
+            // BridgeRenderer.Lean), alone or with the GPU instances' HIRAETH_INSTMAT: its other combinations are never drawn, on any
+            // platform, and are left out of every build)
+            var foe = new ShaderKeyword(shader, "HIRAETH_FIGHT");
+            var notWithFoe = new[] { "HIRAETH_LEAN", "HIRAETH_LEAN_TERRAIN", "HIRAETH_LEAN_WATER", "HIRAETH_LEAN_SLIM", "HIRAETH_LEAN_SCRUB", "HIRAETH_LEAN_GLASS", "HIRAETH_PLAIN",
+                "HIRAETH_CROWD", "HIRAETH_PUFFS", "HIRAETH_GRASS", "HIRAETH_FLORA", "HIRAETH_VMAT", "HIRAETH_SKIN" };
+            var notK = new ShaderKeyword[notWithFoe.Length];
+            for (int j = 0; j < notK.Length; j++) notK[j] = new ShaderKeyword(shader, notWithFoe[j]);
             for (int i = data.Count - 1; i >= 0; i--)
             {
+                var fk = data[i].shaderKeywordSet;
+                if (fk.IsEnabled(foe)) { bool drop = false; foreach (var nk in notK) drop |= fk.IsEnabled(nk); if (drop) { data.RemoveAt(i); continue; } }
                 // (on Android, Vulkan's only: OpenGL ES 3 is the APK's fallback, BridgeRenderer.slim is off there)
                 if (keep && (BridgeArgs.Flag("-keep-slim") || data[i].shaderCompilerPlatform != ShaderCompilerPlatform.GLES3x)) continue;
                 var k = data[i].shaderKeywordSet;

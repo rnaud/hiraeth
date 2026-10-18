@@ -4,6 +4,8 @@
 //   portLook(look)      the look as the exporter writes world.json "look", for this one moment
 // (the exporter's x mirror included: directions in Unity's frame).
 
+import { foeBits, foePack, CRYSTAL_LAYOUT } from '../foe-pack.js';
+
 const r5 = (v) => +(+v).toFixed(5);
 const col = (c) => (Array.isArray(c) ? c.slice(0, 3).map(r5) : null);
 const mx = (v) => (Array.isArray(v) ? [-v[0], v[1], v[2]].map(r5) : null);
@@ -173,6 +175,17 @@ export function portMaterial(spec, id = 0) {
   // see-through but for its rim (makeMaterial({ veil }): |n·v| over it discarded in the G-buffer; its body is the wash above)
   if (v('uVeil') > 0) e.veil = r5(v('uVeil'));
   if (spec.defines?.FLUID) e.fluid = 1;
+  // the fluid sword's living blade (1) or the guard's shield (2) (src/blade-shader.js): its numbers as made, then live
+  // (engine/mirror.js LIVE_VECTORS uBlade, uBladeB, uBladeC); Surface.shader HIRAETH_FIGHT, BladeSurface.hlsl
+  if (spec.defines?.BLADE_FLUID) {
+    e.blade = spec.defines.BLADE_DISC ? 2 : 1;
+    for (const [k, name, d] of [['bladeA', 'uBlade', [0, 1, 0, 0]], ['bladeB', 'uBladeB', [0, 0, 99, 0.75]], ['bladeC', 'uBladeC', [0, 0, 0, 0.5]]]) e[k] = (Array.isArray(u[name]) ? u[name] : d).map(r5);
+  }
+  // a fight temple's wall opening round him when it hides him (materials.js SEE_HOLE): the point and radius (shared), this
+  // wall's share; both move, sent live (engine/mirror.js LIVE_VECTORS: uSee, uSeeK), Surface.shader's cut with the glass's
+  if (spec.defines?.SEE_HOLE) { e.seeOn = 1; e.see = (Array.isArray(u.uSee) ? u.uSee : [0, -1e4, 0, 3.4]).map(r5); e.seeK = [r5(v('uSeeK')), 0, 0, 0]; }
+  // a lamp's pool in its own colour (makeMaterial lampTint, LAMP_TINT): rgb, its share (the global uLampsOn dims it by day)
+  if (spec.defines?.LAMP_TINT && Array.isArray(u.uLampTint)) e.lampTint = u.uLampTint.map(r5);
   if (Array.isArray(u.uFluidBase)) e.fluidBase = u.uFluidBase.map(r5);
   if (spec.defines?.DISSOLVE) e.dissolveOn = 1;
   // the Glass Dunes' glass and the sand its light falls on (src/dune-glass-shader.js DUNE_GLASS, DUNE_POOL): Surface.shader's
@@ -201,6 +214,11 @@ export function portMaterial(spec, id = 0) {
   if (spec.defines?.FALL) Object.assign(e, { fallOn: 1, fallA: (Array.isArray(u.uFallA) ? u.uFallA : [6, 2.4, 0.18, 9]).map(r5), fallB: (Array.isArray(u.uFallB) ? u.uFallB : [0.85, 3.5, 100, 0]).map(r5) });
   // a temple skin's pattern (src/temples/skins/skin-shader.js): Surface.shader's HIRAETH_SKIN, its uniforms the material's _SkinData
   if (spec.skin?.body > 0) { e.skinPattern = spec.skin.body; e.skinData = spec.skin.data.map(r5); }
+  // a foe's painted surface (src/foe-surface.js): its features as bits, its uniforms packed (engine/foe-pack.js; Surface.shader HIRAETH_FIGHT)
+  else if (spec.defines?.FOE_SURFACE) { e.foeBits = foeBits(spec.defines); e.foeData = Array.from(foePack(u), r5); }
+  // the chimes' crystal (src/crystal-shader.js): its uniforms packed the same way (Surface.shader HIRAETH_FIGHT, _CrystalOn), aCrystal
+  // in the form's slot (pack.js)
+  else if (spec.defines?.CHIME_CRYSTAL) { e.crystal = 1; e.foeData = Array.from(foePack(u, null, CRYSTAL_LAYOUT), r5); }
   return e;
 }
 

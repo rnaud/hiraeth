@@ -606,6 +606,11 @@ namespace Hiraeth.Bridge
             HiraethLook.CullLightsToView = !BridgeArgs.Flag("-no-light-cull");
             // the temple skins' patterns (Surface.shader HIRAETH_SKIN, issue #342); -no-skin-pattern their surfaces plain, a before-and-after on one build
             WorldLoader.SkinPatterns = !BridgeArgs.Flag("-no-skin-pattern");
+            // the foes' painted surfaces (Surface.shader HIRAETH_FIGHT, issue #264); -no-foe-pattern their plain colours, a before-and-after on one build
+            WorldLoader.FoePatterns = !BridgeArgs.Flag("-no-foe-pattern");
+            WorldLoader.BladeLook = !BridgeArgs.Flag("-no-blade-look");
+            Hiraeth.HiraethLook.LampTint = !BridgeArgs.Flag("-no-lamp-tint");
+            WorldLoader.SeeHole = !BridgeArgs.Flag("-no-see-hole");   // (a fight temple's walls opening round him, SEE_HOLE; -no-see-hole whole)   // (the lamps' own colour, materials.js LAMP_TINT; -no-lamp-tint none)   // (the fluid sword's blade and the shield, HIRAETH_FIGHT; -no-blade-look the plain fluid)
             // every mesh with normals, a uv and colours on the Xbox: fewer vertex layouts, fewer pipelines its driver makes at
             // the first draw (the load's stall 24 → 15 s; the same picture); -no-uniform-layout, -uniform-layout elsewhere
 #if UNITY_WSA && !UNITY_EDITOR

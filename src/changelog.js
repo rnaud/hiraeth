@@ -145,6 +145,16 @@ export const CHANGELOG = [
     'In the Unity version, the dark of the makers’ houses’ deadly pits no longer shows through walls, and the shafts of light, the doorways’ glow, the floating motes and the recordings’ figures are hidden behind what stands in front of them again: drawn straight to the screen, they had read the scene’s depth upside down.',
     // issue #420: unity Veil.shader (a laid-over wash's alpha for the linear blend); engine/sequences.js 'skull-cave'
     'In the Unity version, the shafts of light in the skull cave and the makers’ houses are as soft and pale as on the web, no longer bright white slabs.',
+    // issue #264: unity Surface.shader HIRAETH_FIGHT, FoeSurface.hlsl (scripts/unity-export/foe-hlsl.mjs), engine/foe-pack.js;
+    // engine/sequences.js 'foes'; docs/systems/engine-bridge.md "The fight's surfaces"
+    'In the Unity version, the foes wear the patterns painted on them as on the web: the crabs’ star spots and mottling, the lizards’ scales and banded bellies, the centipede’s rivets and rust, the moths’ glowing lanterns, and the brute’s glowing cracks, which open wider as you hurt it. Before, each was its plain colours.',
+    // issue #264: unity BladeSurface.hlsl (scripts/unity-export/blade-hlsl.mjs), the blade's numbers live (engine/mirror.js), aFold
+    // with the bind (engine/unity/pack.js)
+    'In the Unity version, your sword’s blade is living water again: turquoise with cream currents and rising bubbles, a bright wavering edge, bowing back through a swing, a ring of light running along it when it hits; the guard’s shield too. Before, it was a thin grey blade.',
+    // issue #264: unity Surface.shader's see-through hole (materials.js SEE_HOLE: _See, _SeeK live), the glass's lean variant
+    'In the Unity version of the fight temples, a wall or pillar between you and the camera opens a ragged hole round you, as on the web, so a fight is never hidden behind it.',
+    // issue #264: unity Surface.shader _LampTint, HiraethLook _LampsOn (materials.js LAMP_TINT)
+    'In the Unity version, the lamps of the City During the Eclipse, the makers’ houses and the ship’s rooms pool their own warm colour on the floor round them, as on the web, instead of a white glare.',
     // issue #448: src/flat-pass.js (the passes drawn from the scene's flat list, not a walk each), main.js renderFrame;
     // tests/flat-pass.test.js; docs/systems/performance.md "CPU round 1 (#448)"
     { text: 'In the browser and the Android app, each frame takes less work to get ready to draw on a slow processor: the world is looked over once a frame to find what is in view, instead of once for every picture the frame is made of (its shadows and the view itself). The picture is exactly the same.',

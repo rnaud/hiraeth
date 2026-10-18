@@ -146,6 +146,28 @@ export const SEQUENCES = [
     ],
   },
   {
+    // the foes' painted surfaces (src/foe-surface.js, #264): five kinds of the roster one at a time, close, in the Arena (its waves
+    // stopped): the crab's bands and specks, the lizard's scales and belly, the centipede's rivets and rust, the brute's cracks,
+    // the moth's lantern glowing
+    id: 'foes', title: 'The foes\' painted surfaces', setup: { level: 'arena', fight: true },
+    beats: ['crab', 'lizard', 'centipede', 'brute', 'moth'].map((kind) => ({
+      name: kind, wait: 1.2,
+      act: (G) => {
+        const F = G.foes; F.setPractice?.(''); F.waveRest = F.packRest = 1e9; for (const f of [...F.list]) F.remove(f);
+        // (ahead and a little to the side, out from behind him)
+        const f = F.spawnKind(kind, { n: 1, dist: 3.2 })[0], h = G.player.heading ?? 0;
+        if (f) { f.pos.x += Math.cos(h) * 1.5; f.pos.z -= Math.sin(h) * 1.5; f.heading = Math.atan2(G.player.pos.x - f.pos.x, G.player.pos.z - f.pos.z); }
+      },
+    })).concat([
+      // (and the chimes a felled crab leaves, lying out of his reach: the crystals, src/crystal-shader.js)
+      { name: 'chimes', wait: 1.6, act: (G) => {
+        const F = G.foes; for (const f of [...F.list]) F.remove(f);
+        const f = F.spawnKind('crab', { n: 1, dist: 6 })[0], h = G.player.heading ?? 0;
+        if (f) { f.pos.x += Math.cos(h) * 1.2; f.pos.z -= Math.sin(h) * 1.2; F.hurt(f, 'blade', new THREE.Vector3(0, 0, 1), { damage: 99 }); }
+      } },
+    ]),
+  },
+  {
     // a makers' temple, the Buried's: in at its door, its first switch lit, a small key, the great key and the guardian's door
     id: 'temple', title: 'A makers\' temple', setup: { level: 'buried', debug: true },
     beats: [

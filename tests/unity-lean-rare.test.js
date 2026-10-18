@@ -19,12 +19,12 @@ test('the two variants drop every rare path but their own, and the ground\'s and
   assert.match(shader, /if \(GLASSK && _Glass > 0\.0 && _MSurfaceDebug < 3\.5\)/);
   assert.match(shader, /UNITY_BRANCH if \(SCRUBK && _Scrub > 0\.0\) \{/);
   // (the prepass discards for the glass alone there: the scrub's variant has no discard, its depth known before the fragment)
-  assert.match(shader, /void fragEntry\(DepthVaryings i\) \{ if \(\(GLASSK && _Glass > 0\.0\) \|\| \(LEANK && \(_Dissolve\.x > 0\.0 \|\| _Veil > 0\.0 \|\| _SplatOn > 0\.5 \|\| _MirrorOn > 0\.5 \|\| _FallOn > 0\.5\)\)\) discard; \}/);
+  assert.match(shader, /void fragEntry\(DepthVaryings i\) \{ if \(\(GLASSK && \(_Glass > 0\.0 \|\| \(_SeeOn > 0\.5 && _SeeK\.x > 0\.001\)\)\) \|\| \(LEANK && \(_Dissolve\.x > 0\.0 \|\| _Veil > 0\.0 \|\| _SplatOn > 0\.5 \|\| _MirrorOn > 0\.5 \|\| _FallOn > 0\.5\)\) \|\| BLADEPP\) discard; \}/);
   assert.equal((shader.match(/LEANK && _Scrub|LEANK && _Glass/g) ?? []).length, 0);
 });
 
 test('a material gets one only when that is its one rare path, on no ground or water', () => {
-  assert.match(renderer, /if \(leanRare && \(why == "scrub" \|\| why == "glass"\) && mode != 1 && mode != 3 && RareCount\(m\) == 1\)/);
+  assert.match(renderer, /if \(leanRare && \(why == "scrub" \|\| why == "glass" \|\| why == "see"\) && mode != 1 && mode != 3 && RareCount\(m\) == 1\)/);
   assert.match(renderer, /static int RareCount\(Material m\)/);
   for (const p of ['_Glass', '_Veil', '_Dissolve', '_Fluid', '_TripoFace', '_Veins', '_BoxOn', '_Scrub']) assert.ok(renderer.split('static int RareCount')[1].split(';')[0].includes(p), p);
 });

@@ -46,6 +46,7 @@
 // keeps one must copy it.
 import { inkSpec } from './ink-spec.js';
 import { skinPatternSpec } from '../src/temples/skins/skin-shader.js';
+import { foePack } from './foe-pack.js';
 import { survey, CHECK_ROUND, SURVEY_EVERY } from './mirror-freeze.js';
 import { updateSceneMatrices, sceneList } from './scene-matrices.js';
 import { WORLD_STAMP } from '../src/matrix-cache.js';
@@ -59,7 +60,9 @@ import { noticesOn, ownHook, attrIn } from './mirror-notices.js';
  * face's expression as its ink draws it (Humanoid.setExpression: uMood, uMood2).
  */
 export const LIVE_VECTORS = ['uBoxA', 'uTfBrowA', 'uTfBrowB', 'uTfEye', 'uTfMouth', 'uMood', 'uMood2', 'uRays', 'uDoor', 'uHoloA', 'uHoloB', 'uHoloC', 'uBreathe', 'uVeinBox', 'uSplatTime',
-  'uHeadSpeech', 'uPortraitBlink', 'uCutMe', 'uLineWhite'];   // (uRays: a light's wash, its rays' clock: src/veil.js; uDoor: a way through's glow, src/door-light.js; uHoloA..C: a recording's figure, src/ship/hologram.js)
+  'uHeadSpeech', 'uPortraitBlink', 'uCutMe', 'uLineWhite',
+  'uSee', 'uSeeK', 'uBlade', 'uBladeB', 'uBladeC'];   // (uSee, uSeeK: a fight temple's wall opening round him, materials.js SEE_HOLE, uSeeK a number; uBlade..C: the fluid sword's blade and the shield, src/blade-shader.js)
+// (uRays: a light's wash, its rays' clock: src/veil.js; uDoor: a way through's glow, src/door-light.js; uHoloA..C: a recording's figure, src/ship/hologram.js)
 const LIVE_FROM_SPEC = LIVE_VECTORS.indexOf('uMood');
 // (uBreathe: the Buried Machine's clock, src/breathe-shader.js; uVeinBox: where Lorn's vein map lies, src/lorn-veins.js; uSplatTime:
 // the splats' clock, a number sent as (t, 0, 0, 0), src/splat-decal.js; issue #264; surfaces D: the portrait head's mouth and
@@ -219,11 +222,12 @@ export class SceneMirror {
       if (moved && mid) this.backend.materialFluid(mid, F);
     }
     // a temple skin's uniforms (src/temples/skins/skin-shader.js: a bell ringing, a lamp lit), looked at every other time
-    // (by the material's own count, not the frame's)
-    if (R.skin && this.backend.materialSkin && ((m.__mirrorSkinN = (m.__mirrorSkinN ?? -1) + 1) & 1) === 0) {
-      const S = m.__mirrorSkin, now = skinPatternSpec(m, this._skinScratch)?.data;
+    // (by the material's own count, not the frame's); and a foe's painted surface whose cracks open as it is hurt
+    // (src/foe-surface.js uFsCracksO: its packed slots, engine/foe-pack.js, in the same buffer)
+    if ((R.skin || R.foe) && this.backend.materialSkin && ((m.__mirrorSkinN = (m.__mirrorSkinN ?? -1) + 1) & 1) === 0) {
+      const foe = R.foe, S = m.__mirrorSkin, now = foe ? (this._foeScratch = foePack(U, this._foeScratch)) : skinPatternSpec(m, this._skinScratch)?.data;
       if (now) {
-        this._skinScratch = now;
+        if (!foe) this._skinScratch = now;
         if (!S) m.__mirrorSkin = Float32Array.from(now);   // (as sent with the material)
         else {
           let moved = S.length !== now.length;
@@ -602,7 +606,8 @@ export { skeletonUpdate };
  * has the fluid's and a temple skin's.
  */
 function liveRecord(m, U, f, nv) {
-  const R = { at: f, of: U, col: U?.uColor ?? null, glow: null, wash: null, vw: [], vh: [], fluid: !!(U?.uFluidA && U.uFluidTones), skin: !!m.userData?.skinPattern, vein: U?.uVeinMap ?? null };
+  const R = { at: f, of: U, col: U?.uColor ?? null, glow: null, wash: null, vw: [], vh: [], fluid: !!(U?.uFluidA && U.uFluidTones), skin: !!m.userData?.skinPattern, vein: U?.uVeinMap ?? null,
+    foe: !m.userData?.skinPattern && !!m.defines?.FOE_SURFACE && !!U?.uFsCracksO };
   if (U?.uGlow) R.glow = U.uGlow; else if (U?.uWash) R.wash = U.uWash;
   if (U) for (let w = 0; w < nv; w++) { const h = U[LIVE_VECTORS[w]]; if (liveVec(h?.value)) { R.vw.push(w); R.vh.push(h); } }
   return R;

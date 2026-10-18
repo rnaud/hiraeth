@@ -134,6 +134,99 @@ test('hatching that follows the form, a box\'s marks, a lining and a face\'s key
   assert.deepEqual([ku[7], ku[8], kf[10]], [1, 2, 0.5], 'key 1: vertex 2 in y');
 });
 
+test('a foe\'s painted surface reaches the port: its features as bits, its uniforms packed, FoeSurface.hlsl made from foe-surface.js\'s own GLSL', async () => {
+  const { readFileSync } = await import('node:fs');
+  const { foeHlsl, FOE_HLSL_PATH } = await import('../scripts/unity-export/foe-hlsl.mjs');
+  const { FOE_LAYOUT, foePack } = await import('../engine/foe-pack.js');
+  const { FOE_SURFACE_FEATURES } = await import('../src/foe-surface.js');
+  assert.equal(readFileSync(FOE_HLSL_PATH, 'utf8'), foeHlsl(), 'FoeSurface.hlsl is out of date: node scripts/unity-export/foe-hlsl.mjs');
+  assert.ok(!/\b(vec[234]|mix|fract|uFs\w*|#ifdef)\b/.test(foeHlsl().replace(/\/\/.*$/gm, '')), 'no GLSL left in it');
+  const m = makeMaterial({ color: '#7a8a5a', foeSurface: { belly: { color: '#efe1c3' }, spots: { scale: 0.2 }, cracks: { open: 0.25 }, gloss: true } });
+  const p = portMaterial(inkSpec(m), 3);
+  const bit = (k) => 1 << FOE_SURFACE_FEATURES.indexOf(k);
+  assert.equal(p.foeBits, bit('belly') | bit('spots') | bit('cracks') | bit('gloss'));
+  assert.equal(p.foeData.length, FOE_LAYOUT.length * 4);
+  const at = (name) => FOE_LAYOUT.find((e) => e.name === name).slot * 4;
+  assert.equal(p.foeData[at('uFs_spots')], 0.2, 'the spots\' cell in its slot');
+  assert.equal(p.foeData[at('uFsCracksO')], 0.25, 'the cracks\' opening in its slot');
+  assert.equal(p.foeData[at('uFsFadeC') + 3], 0, 'a feature it lacks: zeros');
+  // (and packed again from the live uniforms as the mirror does: a brute's cracks opening)
+  m.uniforms.uFsCracksO.value = 0.8;
+  assert.equal(foePack(m.uniforms)[at('uFsCracksO')], Math.fround(0.8));
+  assert.equal(portMaterial(inkSpec(makeMaterial({ color: '#ffffff' })), 4).foeBits, undefined, 'a plain material has none');
+});
+
+test('the fluid sword\'s blade and the shield reach the port: BladeSurface.hlsl made from blade-shader.js\'s GLSL, their numbers live, aFold with the bind', async () => {
+  const { readFileSync } = await import('node:fs');
+  const { bladeHlsl, BLADE_HLSL_PATH } = await import('../scripts/unity-export/blade-hlsl.mjs');
+  const { LIVE_VECTORS } = await import('../engine/mirror.js');
+  assert.equal(readFileSync(BLADE_HLSL_PATH, 'utf8'), bladeHlsl(), 'BladeSurface.hlsl is out of date: node scripts/unity-export/blade-hlsl.mjs');
+  const h = bladeHlsl().replace(/\/\/.*$/gm, '');
+  assert.ok(!/\b(vec[234]|mix|fract|mat2|#ifdef|uBlade\w*|vFold|vBind)\b/.test(h), 'no GLSL left in it');
+  for (const f of ['bladeFluidBlade', 'bladeFluidDisc', 'bladeLight', 'bladeCutBlade', 'bladeCutDisc', 'bladeBendBlade', 'bladeBendDisc']) assert.match(h, new RegExp(`\\b${f}\\(`), f);
+  const blade = portMaterial(inkSpec(makeMaterial({ color: '#5fd0c8', fluid: 'blade' })), 5), shield = portMaterial(inkSpec(makeMaterial({ color: '#5fd0c8', fluid: 'blade', disc: true })), 6);
+  assert.equal(blade.blade, 1); assert.equal(shield.blade, 2);
+  assert.deepEqual(blade.bladeB, [0, 0, 99, 0.75]);
+  for (const k of ['uBlade', 'uBladeB', 'uBladeC']) assert.ok(LIVE_VECTORS.includes(k), `${k} sent live`);
+  // (the blade's across and along, aFold, go with the bind: uv1)
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0, 1, 0, 0, 0, 1, 0], 3));
+  g.setAttribute('aFold', new THREE.Float32BufferAttribute([-1, 0, 1, 0.5, 0, 1], 2));
+  const u = new Uint32Array(unityGeometry(g, { bind: true })), f = new Float32Array(u.buffer);
+  assert.equal(u[2] & 256, 256);
+  const at = 4 + 3 + 9 + 9;   // (head, one group; positions, bind)
+  assert.deepEqual(Array.from(f.subarray(at, at + 6)), [-1, 0, 1, 0.5, 0, 1]);
+  assert.equal(new Uint32Array(unityGeometry(g))[2] & 256, 0, 'only with the bind');
+});
+
+test('the chimes\' crystal reaches the port: CrystalSurface.hlsl made from crystal-shader.js\'s GLSL, its uniforms packed, aCrystal in the form\'s slot', async () => {
+  const { readFileSync } = await import('node:fs');
+  const { crystalHlsl, CRYSTAL_HLSL_PATH } = await import('../scripts/unity-export/crystal-hlsl.mjs');
+  const { CRYSTAL_LAYOUT } = await import('../engine/foe-pack.js');
+  const { crystalLook, crystalGeometry } = await import('../src/chimes.js');
+  assert.equal(readFileSync(CRYSTAL_HLSL_PATH, 'utf8'), crystalHlsl(), 'CrystalSurface.hlsl is out of date: node scripts/unity-export/crystal-hlsl.mjs');
+  assert.ok(!/\b(vec[234]|mix|fract|uCrystal\w*|vCrystal\w*)\b/.test(crystalHlsl().replace(/\/\/.*$/gm, '')), 'no GLSL left in it');
+  const m = crystalLook(), p = portMaterial(inkSpec(m), 9);
+  assert.equal(p.crystal, 1);
+  assert.equal(p.foeData.length, CRYSTAL_LAYOUT.length * 4);
+  assert.equal(p.foeData[CRYSTAL_LAYOUT.find((e) => e.name === 'uCrystalDeep').slot * 4 + 3], +m.uniforms.uCrystalDeep.value.w.toFixed(5), 'the pen\'s share in its slot');
+  const g = crystalGeometry();
+  const u = new Uint32Array(unityGeometry(g, { form: true }));
+  assert.equal(u[2] & 64, 64, 'aCrystal in the form\'s slot');
+});
+
+test('a fight temple\'s wall opening round him and a lamp\'s own colour reach the port', async () => {
+  const { SEE_HOLE } = await import('../src/materials.js');
+  const { LIVE_VECTORS } = await import('../engine/mirror.js');
+  const wall = makeMaterial({ color: '#c8b89a', seeThrough: 'test:wall' });
+  wall.uniforms.uSeeK.value = 0.4;
+  SEE_HOLE.value.set(1, 2, 3, 3.4);
+  const p = portMaterial(inkSpec(wall), 7);
+  assert.equal(p.seeOn, 1); assert.deepEqual(p.see, [1, 2, 3, 3.4]); assert.deepEqual(p.seeK, [0.4, 0, 0, 0]);
+  SEE_HOLE.value.set(0, -1e4, 0, 3.4);
+  assert.ok(LIVE_VECTORS.includes('uSee') && LIVE_VECTORS.includes('uSeeK'), 'the hole moves with him, opens and closes: sent live');
+  const lamp = portMaterial(inkSpec(makeMaterial({ color: '#c8b89a', lampTint: ['#ffd192', 0.85] })), 8);
+  assert.equal(lamp.lampTint.length, 4); assert.equal(lamp.lampTint[3], 0.85);
+  // (the shader's cut keeps the web's foot and wobble: SEE_LOOK)
+  const { SEE_LOOK } = await import('../src/materials.js');
+  const { readFileSync } = await import('node:fs');
+  const sh = readFileSync(new URL('../unity/Hiraeth/Assets/Hiraeth/Shaders/Surface.shader', import.meta.url), 'utf8');
+  assert.ok(sh.includes(`_See.y - ${SEE_LOOK.foot.toFixed(2)}`) && sh.includes(`1.0 - ${SEE_LOOK.wobble.toFixed(2)} * vnoise`), 'Surface.shader\'s see-through hole has SEE_LOOK\'s numbers');
+});
+
+test('the mirror sends a live number as a vector\'s x (a wall\'s share of the see-through hole)', async () => {
+  const { SceneMirror, LIVE_VECTORS } = await import('../engine/mirror.js');
+  const sent = [];
+  const mirror = new SceneMirror({ materialVec: (mid, w, v) => sent.push([w, ...v]), material() {} });
+  const wall = makeMaterial({ color: '#c8b89a', seeThrough: 'test:wall2' });
+  mirror.mats.set(wall, 3);
+  mirror._live(wall, 1);
+  wall.uniforms.uSeeK.value = 0.7;
+  mirror._live(wall, 2);
+  const w = LIVE_VECTORS.indexOf('uSeeK');
+  assert.deepEqual(sent.filter((s) => s[0] === w).map((s) => s.slice(1).map((x) => +x.toFixed(4))), [[0.7, 0, 0, 0]]);
+});
+
 test('the coral-shirt traveller\'s drawn face and the flask reach the port (TripoFace.hlsl made from tripo-face.js\'s own shader)', async () => {
   const { readFileSync } = await import('node:fs');
   const { tripoFaceHlsl, TRIPO_FACE_HLSL_PATH } = await import('../scripts/unity-export/tripo-face-hlsl.mjs');

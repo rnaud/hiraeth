@@ -217,7 +217,8 @@ namespace Hiraeth
                 for (int i = 0; i < l.Count && i < 4; i++) v[i] = Json.Num(l[i]);
                 mat.SetVector(p, v);
             }
-            foreach (var (k, p) in new[] { ("creases", "_Creases"), ("glass", "_Glass"), ("hero", "_Hero"), ("fluid", "_Fluid"), ("fluidDomeK", "_FluidDomeK"), ("duneOn", "_DuneOn") }) if (m.Has(k)) mat.SetFloat(p, m.F(k));
+            foreach (var (k, p) in new[] { ("creases", "_Creases"), ("glass", "_Glass"), ("hero", "_Hero"), ("fluid", "_Fluid"), ("fluidDomeK", "_FluidDomeK"), ("duneOn", "_DuneOn"), ("seeOn", "_SeeOn") }) if (m.Has(k)) mat.SetFloat(p, m.F(k));
+            if (!SeeHole) mat.SetFloat("_SeeOn", 0);   // (-no-see-hole: a fight temple's walls whole, as before, a test)
             // (issue #264, surfaces B: a billboard's night paint, a reflection in still water, Lorn's veins, a splat: port-format.js)
             foreach (var (k, p) in new[] { ("nightOn", "_NightOn"), ("mirrorOn", "_MirrorOn"), ("veinOn", "_VeinOn"), ("splatOn", "_SplatOn"), ("fallOn", "_FallOn") }) if (m.Has(k)) mat.SetFloat(p, m.F(k));
             // (three's polygon offset, the splats': Surface.shader's Offset, issue #459)
@@ -230,7 +231,8 @@ namespace Hiraeth
                 for (int i = 0; i < l.Count && i < 4; i++) v[i] = Json.Num(l[i]);
                 mat.SetVector(p, v);
             }
-            foreach (var (k, p) in new[] { ("fluidA", "_FluidA"), ("fluidB", "_FluidB"), ("fluidBox", "_FluidBox"), ("fluidDome", "_FluidDome"), ("dissolveColor", "_DissolveColor"), ("duneMint", "_DuneMint"), ("duneLime", "_DuneLime"), ("duneSil", "_DuneSil"), ("duneK", "_DuneK") })
+            foreach (var (k, p) in new[] { ("fluidA", "_FluidA"), ("fluidB", "_FluidB"), ("fluidBox", "_FluidBox"), ("fluidDome", "_FluidDome"), ("dissolveColor", "_DissolveColor"), ("duneMint", "_DuneMint"), ("duneLime", "_DuneLime"), ("duneSil", "_DuneSil"), ("duneK", "_DuneK"),
+                ("see", "_See"), ("seeK", "_SeeK"), ("lampTint", "_LampTint"), ("bladeA", "_Blade"), ("bladeB", "_BladeB"), ("bladeC", "_BladeC") })   // (the see-through hole's point and share, live too (the bridge's LiveVectors); a lamp's own colour)
             {
                 var l = m.L(k);
                 if (l == null) continue;
@@ -287,6 +289,33 @@ namespace Hiraeth
                 SetSkinData(mat, data);
                 mat.EnableKeyword("HIRAETH_SKIN");
             }
+            // a foe's painted surface (src/foe-surface.js, issue #264): its features as bits, its uniforms packed as vec4 slots in the
+            // skins' buffer (engine/foe-pack.js; Surface.shader HIRAETH_FIGHT, FoeSurface.hlsl). Lean, as a skin: only on a foe that uses
+            // none of the shader's rare paths (glass, a veil, dissolving, fluid, a drawn face, veins, a box, scrub), else as before
+            // the fluid sword's living blade (1) or the guard's shield (2) (src/blade-shader.js, issue #264): HIRAETH_FIGHT's
+            // BladeSurface.hlsl, its live numbers _Blade, _BladeB, _BladeC (its fluid is its own: the full variant's paths unneeded)
+            else if (BladeLook && m.I("blade") > 0)
+            {
+                mat.SetFloat("_BladeOn", m.I("blade"));
+                mat.EnableKeyword("HIRAETH_FIGHT");
+            }
+            // the chimes' crystal (src/crystal-shader.js): its uniforms packed the same way, aCrystal in the form's slot (_CrystalOn)
+            else if (FoePatterns && m.I("crystal") > 0 && m.L("foeData") is List<object> cd && cd.Count >= 4 && !RarePath(mat))
+            {
+                mat.SetFloat("_CrystalOn", 1);
+                var data = new float[cd.Count / 4 * 4];
+                for (int i = 0; i < data.Length; i++) data[i] = Json.Num(cd[i]);
+                SetSkinData(mat, data);
+                mat.EnableKeyword("HIRAETH_FIGHT");
+            }
+            else if (FoePatterns && m.I("foeBits") > 0 && m.L("foeData") is List<object> fd && fd.Count >= 4 && !RarePath(mat))
+            {
+                mat.SetFloat("_FoeBits", m.I("foeBits"));
+                var data = new float[fd.Count / 4 * 4];
+                for (int i = 0; i < data.Length; i++) data[i] = Json.Num(fd[i]);
+                SetSkinData(mat, data);
+                mat.EnableKeyword("HIRAETH_FIGHT");
+            }
             int side = m.I("side");
             mat.SetFloat("_Cull", side == 2 ? (float)CullMode.Off : side == 1 ? (float)CullMode.Front : (float)CullMode.Back);
             return mat;
@@ -294,6 +323,19 @@ namespace Hiraeth
 
         /// <summary>The temple skins' patterns drawn (the bridge's -no-skin-pattern: their surfaces plain, as before, a test).</summary>
         public static bool SkinPatterns = true;
+        /// <summary>The foes' painted surfaces drawn (the bridge's -no-foe-pattern: their plain colours, as before, a test).</summary>
+        public static bool FoePatterns = true;
+        /// <summary>The fluid sword's blade and the shield drawn as the web's (the bridge's -no-blade-look: the plain fluid, as before, a test).</summary>
+        public static bool BladeLook = true;
+        /// <summary>A fight temple's walls opening round the traveller (materials.js SEE_HOLE; the bridge's -no-see-hole: whole, as before, a test).</summary>
+        public static bool SeeHole = true;
+        /// <summary>Does the material use one of the Surface shader's rare paths (the full variant's: BridgeRenderer.RareCount's)?</summary>
+        static bool RarePath(Material m)
+        {
+            float F(string p) => m.HasProperty(p) ? m.GetFloat(p) : 0;
+            return F("_Glass") > 0 || F("_Veil") > 0 || (m.HasProperty("_Dissolve") && m.GetVector("_Dissolve").x > 0) || F("_Fluid") > 0.5f
+                || F("_TripoFace") > 0.5f || F("_Veins") > 0 || F("_BoxOn") > 0.5f || F("_Scrub") > 0 || F("_SeeOn") > 0.5f;
+        }
         /// <summary>The skins' buffers, by material (each material its own: released with it, or all at once).</summary>
         static readonly Dictionary<Material, ComputeBuffer> skinBuffers = new();
         /// <summary>A skin material's packed uniforms (vec4 slots): its buffer made, or filled again (the bridge's op 21, live values).</summary>
@@ -308,9 +350,17 @@ namespace Hiraeth
                 mat.SetBuffer("_SkinData", buf);
             }
             buf.SetData(data, 0, 0, n * 4);
+            skinLast[mat] = data;
+        }
+        /// <summary>The data each material's buffer was last filled with (a copy of the material, the GPU instances', gets its own).</summary>
+        static readonly Dictionary<Material, float[]> skinLast = new();
+        /// <summary>A copy of a material (BridgeRenderer.CopyOf: a foe's repeated parts, the chimes' instances) given its own buffer of the same data.</summary>
+        public static void CopySkinData(Material from, Material to)
+        {
+            if (from && to && skinLast.TryGetValue(from, out var d)) SetSkinData(to, d);
         }
         /// <summary>Every skin's buffer released (the scene torn down).</summary>
-        public static void ReleaseSkinBuffers() { foreach (var b in skinBuffers.Values) b?.Release(); skinBuffers.Clear(); }
+        public static void ReleaseSkinBuffers() { foreach (var b in skinBuffers.Values) b?.Release(); skinBuffers.Clear(); skinLast.Clear(); }
 
         GameObject Chunk(Dictionary<string, object> c, Transform parent, string name, WorldDetail detail = null)
         {

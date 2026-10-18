@@ -20,7 +20,7 @@ export async function loadSkins() {
 }
 
 // HLSL's reserved words a GLSL name may be (renamed with a trailing underscore)
-const RESERVED = new Set(['line', 'point', 'triangle', 'lineadj', 'triangleadj', 'sample', 'half', 'vector', 'matrix', 'string', 'texture', 'sampler',
+export const RESERVED = new Set(['line', 'point', 'triangle', 'lineadj', 'triangleadj', 'sample', 'half', 'vector', 'matrix', 'string', 'texture', 'sampler',
   'pass', 'technique', 'register', 'packoffset', 'snorm', 'unorm', 'shared', 'groupshared', 'static', 'cbuffer', 'tbuffer', 'compile', 'linear',
   'centroid', 'precise', 'nointerpolation', 'noperspective', 'export', 'extern', 'inline', 'interface', 'namespace', 'row_major', 'column_major',
   'globallycoherent', 'dword', 'fixed', 'min16float', 'filter', 'asm', 'auto', 'catch', 'char', 'class', 'const_cast', 'delete', 'dynamic_cast',
@@ -43,7 +43,7 @@ function args(s, i) {
   throw new Error('skin-hlsl: unbalanced brackets');
 }
 /** Rewrite every call of `name(` by f(args) (inner calls first). */
-function calls(s, name, f) {
+export function calls(s, name, f) {
   const re = new RegExp(`\\b${name}\\s*\\(`, 'g');
   let out = '', last = 0, m;
   while ((m = re.exec(s))) {

@@ -50,6 +50,8 @@ namespace Hiraeth
         /// same; the view is a frame old here, so each reach is widened by 2 m and a sixth of its distance.
         /// </summary>
         public static bool CullLightsToView;
+        /// <summary>The lamps' own colour in their pools (materials.js LAMP_TINT; the bridge's -no-lamp-tint: none, as before, a test).</summary>
+        public static bool LampTint = true;
         readonly Plane[] lightPlanes = new Plane[6];
         /// <summary>The last frame's local lights: how many went to the shader, of how many near (the bridge's shots log them).</summary>
         public static int LightsKept, LightsNear;
@@ -140,6 +142,7 @@ namespace Hiraeth
             Shader.SetGlobalFloat("_WearLite", shared.F("uWearLite", 0));
             // the lens inside the traveller (materials.js uHeroCut; src/host/game-host.js heroCutFrame): his own surfaces (_CutMe) left out
             Shader.SetGlobalFloat("_HeroCut", shared.F("uHeroCut", 0));
+            Shader.SetGlobalFloat("_LampsOn", LampTint ? shared.F("uLampsOn", 1) : 0);   // (how far the lamps' own colour shows in their pools: makeMaterial lampTint; src/eclipse.js dims it by day)
             Shader.SetGlobalFloat("_PostLite", post.F("uPostLite", 0));
             Vector4 V4(string k, Vector4 d) { var l = post.L(k); if (l == null) return d; var v = d; for (int j = 0; j < l.Count && j < 4; j++) v[j] = Json.Num(l[j]); return v; }
             Shader.SetGlobalVector("_Haze", V4("uHaze", new Vector4(1, 1, 1, 0)));

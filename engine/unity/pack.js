@@ -16,13 +16,14 @@ export function mirrorMatrix(e, eo = 0, out = new Float32Array(16), o = 0) {
 
 /**
  * A geometry for Unity, one ArrayBuffer (BridgeMeshes.cs reads it):
- *   u32 vertices, u32 indices, u32 flags (1 normal, 2 uv, 4 colour, 8 skin, 16 bind, 32 rig, 64 form axis, 128 vertex material), u32 groups,
+ *   u32 vertices, u32 indices, u32 flags (1 normal, 2 uv, 4 colour, 8 skin, 16 bind, 32 rig, 64 form axis, 128 vertex material, 256 fold), u32 groups,
  *   groups × (u32 start, u32 count, u32 material index),
  *   f32 position × 3n (x mirrored), [normal × 3n], [uv × 2n], [colour rgba × 4n],
  *   [skin index × 4n (as floats), skin weight × 4n], [bind: the rest pose, x mirrored, × 3n], [rig × 4n: 32],
  *   [form: aFormC × 4n then aFormA × 3n, three's object space as they are: 64 (src/form.js)],
  *   [vertex material: aMatC1, aMatC2, aMatC3, aMatS × 3n each, aObjP, aObjN × 3n (three's object space), aObjM × 4n: 128
  *    (materials.js S_VMAT, src/vertex-material.js: a merged mesh's material values and object frames per vertex)],
+ *   [fold: aFold × 2n, with the bind (a figure's, a fluid's: the blade's across and along, the shield's out and its sheet): 256],
  *   u32 index × m (wound for Unity).
  * colours: only when the material draws them (vertexColors); bind: for people (their outfit zones).
  */
@@ -50,10 +51,14 @@ export function unityGeometry(g, { colors = false, bind = false, rig = false, fo
   const F = form && A.aFormC?.itemSize === 4 && A.aFormA?.itemSize === 3 ? [A.aFormC.array, A.aFormA.array]
     : form && A.aGlass?.itemSize === 4 ? [A.aGlass.array, new Float32Array(n * 3)]
     : form && A.aNight?.itemSize === 4 ? [A.aNight.array, new Float32Array(n * 3)]
+    // (or the chimes' crystal's aCrystal: its corners' barycentric weights and its length, src/crystal-shader.js)
+    : form && A.aCrystal?.itemSize === 4 ? [A.aCrystal.array, new Float32Array(n * 3)]
     : splat ? [A.aSplat.array, (() => { const S2 = A.aSplat2.array, t = new Float32Array(n * 3); for (let i = 0; i < n; i++) { t[i * 3] = S2[i * 4 + 1]; t[i * 3 + 1] = S2[i * 4 + 2]; t[i * 3 + 2] = S2[i * 4 + 3]; } return t; })()] : null;
   const VM = vmat && VMAT_ATTRS.every(([k, s]) => A[k]?.itemSize === s) ? VMAT_ATTRS.map(([k]) => A[k].array) : null;
-  const flags = (N ? 1 : 0) | (UV ? 2 : 0) | (C ? 4 : 0) | (skin ? 8 : 0) | (bind ? 16 : 0) | (R ? 32 : 0) | (F ? 64 : 0) | (VM ? 128 : 0);
-  const floats = n * 3 + (N ? n * 3 : 0) + (UV ? n * 2 : 0) + (C ? n * 4 : 0) + (skin ? n * 8 : 0) + (bind ? n * 3 : 0) + (R ? n * 4 : 0) + (F ? n * 7 : 0) + (VM ? n * 22 : 0);
+  // (aFold with the bind: the fluid sword's blade, the shield, a figure's folds; Surface.shader's TEXCOORD1)
+  const FO = bind && A.aFold?.itemSize === 2 ? A.aFold.array : null;
+  const flags = (N ? 1 : 0) | (UV ? 2 : 0) | (C ? 4 : 0) | (skin ? 8 : 0) | (bind ? 16 : 0) | (R ? 32 : 0) | (F ? 64 : 0) | (VM ? 128 : 0) | (FO ? 256 : 0);
+  const floats = n * 3 + (N ? n * 3 : 0) + (UV ? n * 2 : 0) + (C ? n * 4 : 0) + (skin ? n * 8 : 0) + (bind ? n * 3 : 0) + (R ? n * 4 : 0) + (F ? n * 7 : 0) + (VM ? n * 22 : 0) + (FO ? n * 2 : 0);
   const head = 4 + groups.length * 3;
   const buf = new ArrayBuffer((head + floats + total) * 4);
   const u32 = new Uint32Array(buf), f32 = new Float32Array(buf);
@@ -77,6 +82,7 @@ export function unityGeometry(g, { colors = false, bind = false, rig = false, fo
   if (R) { const k = R.itemSize; for (let i = 0; i < n; i++) for (let c = 0; c < 4; c++) f32[o++] = c < k ? R.array[i * k + c] : 0; }
   if (F) { f32.set(F[0].subarray(0, n * 4), o); o += n * 4; f32.set(F[1].subarray(0, n * 3), o); o += n * 3; }
   if (VM) VMAT_ATTRS.forEach(([, s], j) => { f32.set(VM[j].subarray(0, n * s), o); o += n * s; });
+  if (FO) { f32.set(FO.subarray(0, n * 2), o); o += n * 2; }
   // (the mirror flips the winding: a, c, b)
   for (let t = 0; t + 2 < total; t += 3) {
     const a = idx ? idx[t] : t, b = idx ? idx[t + 1] : t + 1, c = idx ? idx[t + 2] : t + 2;
