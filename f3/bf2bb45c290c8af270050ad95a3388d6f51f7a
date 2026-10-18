@@ -1,0 +1,28 @@
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgePso.cs
+  s_5f899ba316b5dc::t_49b02ef2f453f1 40-41
+  s_5f899ba316b5dc::t_b473783fa61930 31-32,42-47,132-134,137-138,150-153
+tests/unity-pso.test.js
+  s_5f899ba316b5dc::t_3b172be9a284cb 14,85,91
+tests/unity-xbox.test.js
+  s_5f899ba316b5dc::t_acdd545acd61f3 5,235-240,243-252
+unity/Hiraeth/Assets/StreamingAssets/hiraeth-pso/Direct3D12.graphicsstate
+  s_5f899ba316b5dc::t_62b5d4f1f4b07d 1-10239
+unity/Hiraeth/Assets/StreamingAssets/hiraeth-pso/Direct3D12.graphicsstate.meta
+  s_5f899ba316b5dc::t_a642dcd38723f2 1-7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f3bf2bb45c290c8af270050ad95a3388d6f51f7a",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
