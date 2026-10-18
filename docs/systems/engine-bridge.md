@@ -1695,7 +1695,7 @@ node scripts/unity-compare/run.mjs [--worlds a,b] [--set lantern] [--skip web,un
 | A bright vertical streak down the middle; the domes' shadows lighter at dusk | the Underwater City's wide views | **open** (on that line the VM has only a points cloud 3 m from the eye) |
 | The makers' box by the stair glows white (an orange pool on the web) | the eclipse city | **open** |
 | A water tower, a signboard, a lamp post and a glowing box on the platform the web lacks | the Overnight Train | **open** |
-| The falling water a flat sheet (falling bands on the web) | the City Behind the Waterfall (WIP) | **open** |
+| The falling water a flat sheet (falling bands on the web) | the City Behind the Waterfall (WIP) | **fixed** (surfaces C: Fall.hlsl) |
 | The traveller lighter at night | the Underwater City at dusk | **open** (small) |
 | The seeing lens's overlay (post.js `uLens`) has no Unity side | any world, the lens raised | **open**, found by the uniforms' audit, not in a view |
 | One run drew the Signal Market's square all in shade | the market's crowd view | a flake (the shot before the maps were drawn); the run after as the web |
@@ -2191,8 +2191,12 @@ Left then: the water's passes, done in surfaces C (below).
   no Surface keyword. A new APK's pipeline list (BridgePso) has not been traced with it, so the first frame under water
   may compile its pipeline once.
 
-Pictures: the web and Unity from the same views (scripts/unity-compare, the City Behind the Waterfall, the Underwater
-City, Salt Harbour), the before with `-no-water-over -no-fall`; in the changelog (v1.84).
+Pictures: the web and Unity from the same views (scripts/unity-compare: the City Behind the Waterfall's curtain, its deep
+fall and under its pool; the Underwater City; the mangrove's water from above for the sparkle), the before with
+`-no-water-over -no-fall`; in the changelog (v1.84). The mean RGB gap to the web's picture fell in every view where the
+pass or a fall shows (under the pool 58 → 7, the Underwater City's wide view 12.8 → 8.3, the curtain 11.9 → 8.5) and
+held in the rest. (In these batch runs the first few views of a world came out with the follow camera, not the pin:
+four throwaway views first gave the right pictures; not looked into further.)
 
 ## Parity bits: the bird's prompt, the letterbox, a splat (2026-10-18, issue #459)
 

@@ -1191,8 +1191,25 @@ const SURF264W = 'Issue #264 (surfaces B): the web game in muted headless Chrome
 /** (v1.84, issue #459) */
 const PAR459 = 'Issue #459: the Unity bridge in the editor’s batch run on this Mac (scripts/unity-compare/sequences.mjs unity: muted, High, 1280 × 720), the sequences `grass-splats` (0.08 s after the splat), `moment-edena.terraces` (0.6 s in) and `bird`; before: main at 67bd0b800 (the letterbox: 259db13c9, its HUD laid out for the batch’s 4:3 window, three quarters of the width); after: this change; 18 October; cwebp -q 72';
 const PAR459W = 'Issue #459: the web game in muted headless Chrome (High, 1280 × 720) on this branch’s own Vite (port 5459), the same beat of the same sequence; 18 October; cwebp -q 72';
+/** (v1.84, issues #264 / #458: surfaces C, the water in Unity) */
+const WATER458 = 'Issues #264 / #458 (surfaces C): the Unity bridge in the editor’s batch run on this Mac (muted, High, 1280 × 720, -fresh -no-hud, the camera pinned at the same views as the web’s); before: the same build with -no-water-over -no-fall (the water’s pass and the falls as they were); after: this change; the web’s pictures of the same views as their own tab; 18 October; cwebp -q 72';
+const WATER458W = 'Issues #264 / #458 (surfaces C): the web game in muted headless Chrome (High, 1280 × 720, a fixed render scale) on this branch’s own Vite (port 5468), the same view as Unity’s; 18 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.84': [
+    { match: 'In the Unity version the waterfalls fall as on the web', shots: [
+      { name: 'unity-falls', title: 'The curtain', caption: 'The great curtain over the City Behind the Waterfall from its landing in Unity: before, flat sheets of one turquoise; after, its columns of four tones, the streaks and the glassy lip, as on the web', from: WATER458 },
+      { name: 'unity-falls-web', only: 'after', title: 'The curtain on the web', caption: 'The same view on the web', from: WATER458W },
+      { name: 'unity-deep-fall', title: 'The deep fall', caption: 'The small fall at the deep end in Unity: before, a flat band; after, falling in bands with its pen streaks', from: WATER458 },
+      { name: 'unity-deep-fall-web', only: 'after', title: 'The deep fall on the web', caption: 'The same view on the web', from: WATER458W },
+    ], see: 'In the Unity version, walk from the landing of the City Behind the Waterfall toward the curtain.' },
+    { match: 'In the Unity version the water looks as on the web from below and in the sun', shots: [
+      { name: 'unity-under-pool', title: 'Under water', caption: 'Under the pool at the foot of the curtain in Unity: before, the rocks and the surface as if in air; after, sunk into the water’s colour in flat bands', from: WATER458 },
+      { name: 'unity-under-pool-web', only: 'after', title: 'Under water on the web', caption: 'The same view on the web', from: WATER458W },
+      { name: 'unity-sea-look', title: 'The Underwater City', caption: 'The Underwater City’s first square in Unity: after, the caustics’ net of light playing on the floor, as on the web', from: WATER458 },
+      { name: 'unity-sea-look-web', only: 'after', title: 'The square on the web', caption: 'The same view on the web', from: WATER458W },
+      { name: 'unity-sparkle', title: 'The sun on the water', caption: 'The mangrove’s water from high over the jetty in Unity: before, plain; after, the white dashes of sun on it toward the light', from: WATER458 },
+      { name: 'unity-sparkle-web', only: 'after', title: 'The sparkle on the web', caption: 'The same view on the web', from: WATER458W },
+    ], see: 'In the Unity version, dive in the pool under the City Behind the Waterfall’s curtain, or walk the Underwater City’s squares.' },
     { match: 'In the Unity version, “ride the bird” shows over the bird', shots: [
       { name: 'unity-splat-ground', title: 'A splat', caption: 'A splat of the fluid in the Garden’s meadow in Unity, 0.08 s after it landed: before, slivers of it, the ground drawn over the rest; after, whole, as on the web', from: PAR459 },
       { name: 'unity-splat-ground-web', only: 'after', title: 'The splat on the web', caption: 'The same moment on the web (its turn and drops are drawn at random)', from: PAR459W },

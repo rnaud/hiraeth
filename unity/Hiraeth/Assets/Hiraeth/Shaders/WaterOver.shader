@@ -133,11 +133,11 @@ Shader "Hidden/Hiraeth/WaterOver"
         float fw = max(fwidth(q.x) + fwidth(q.y), 1e-4);
         UNITY_BRANCH if (_WOCaustic.z > 0.0 && N.w > 0.0 && N.y > 0.4 && dist < _WOCaustic.y)
         {
-          float line = (1.0 - smoothstep(0.035, 0.035 + fw * 1.3, net(q))) * (1.0 - smoothstep(0.2, 0.5, fw));   // (gone once finer than a few px)
+          float ln = (1.0 - smoothstep(0.035, 0.035 + fw * 1.3, net(q))) * (1.0 - smoothstep(0.2, 0.5, fw));   // (gone once finer than a few px)
           // in drifting patches, as the light comes through the waves above (never one net over everything)
           float patchK = 0.5 + 0.5 * sin(wp.x * 0.43 + _MTime * 0.13) * sin(wp.z * 0.37 - _MTime * 0.09 + wp.x * 0.11);
-          line *= smoothstep(0.55, 0.85, patchK);
-          over(acc, _WOCausticTone, line * _WOCaustic.z * smoothstep(0.4, 0.8, N.y) * lerp(0.4, 1.0, litOf(uv)) * (1.0 - smoothstep(_WOCaustic.y * 0.5, _WOCaustic.y, dist)));
+          ln *= smoothstep(0.55, 0.85, patchK);
+          over(acc, _WOCausticTone, ln * _WOCaustic.z * smoothstep(0.4, 0.8, N.y) * lerp(0.4, 1.0, litOf(uv)) * (1.0 - smoothstep(_WOCaustic.y * 0.5, _WOCaustic.y, dist)));
         }
         // ---- the way through the water: to the thing seen, or up to the surface
         float toSurf = rd.y > 1e-3 ? (_WOSurf - cam.y) / rd.y : 1e5;
