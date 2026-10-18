@@ -32,7 +32,7 @@ function bare() {
   s.profile = { root: s.S.root, scale: s.S.scale, tempo: s.S.tempo };
   s.voice = { lead: s.S.pal.lead, pluck: s.S.pal.pluck, melody: s.S.motif };
   s.ctx = { currentTime: 0 };
-  s.moments = new MusicMoments({ now: 0 });
+  s.moments = new MusicMoments({ mode: 'moments', now: 0 });
   // the recorded theme loaded and playing (as on arriving)
   s.trackBuffer = {}; s.trackGain = { gain: { value: 1, cancelScheduledValues() {}, setValueAtTime() {}, linearRampToValueAtTime() {} } };
   s.recordedTrack = { stop() {}, disconnect() {} }; s.trackOn = true;

@@ -180,7 +180,7 @@ export class Sound {
     this.muted = muted;
     this.musicVol = 0.8;
     this.fxVol = 1.0;
-    this.musicModeSetting = 'moments';   // Settings > Music: the recorded theme for the moments, or always (src/music-moments.js)
+    this.musicModeSetting = 'always';   // Settings > Music: the recorded theme always (the default, issue #474), or for the moments (src/music-moments.js)
     // the mumbled alien voices (src/story/voice.js plans them, speak() sings them)
     this.levelId = levelId;
     this.language = languageOf(levelId);
@@ -363,7 +363,7 @@ export class Sound {
   }
 
   // ------------------------------------------------------------------ the recorded theme, for the moments
-  /** Settings > Music: 'moments' (the theme for arrivals, interiors and moments, ambience between) or 'always'. */
+  /** Settings > Music: 'always' (the default) or 'moments' (the theme for arrivals, interiors and moments, ambience between). */
   setMusicMode(mode) {
     this.musicModeSetting = musicMode(mode);
     this.moments?.setMode(this.musicModeSetting);

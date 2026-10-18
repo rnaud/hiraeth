@@ -1591,7 +1591,7 @@ own graph still decides everything about them.
 - **The title**: the Unity title now has the web's sound (`makeSound('title', { title: true })`: the procedural
   menu tune, then the title's recording over it once decoded). It fades as a save is chosen and is let go once the
   world is up. The replay starts a fresh graph when a new context's destination arrives.
-- **Settings > Music plays** (Moments / Always) is in the engines' settings now (`engine/menus.js`, applied by
+- **Settings > Music plays** (Always, the default since v1.85, or Moments) is in the engines' settings now (`engine/menus.js`, applied by
   `setMusicMode`). A keepsake brings the theme back as on the web (`gameState.on('keepsake')`).
 - **What each player carries** (`BridgeBuild.Music`): the computers' players (the Deck's Linux one, the Mac's) carry
   every theme (106 MB). The APK and the Xbox's carry the ones every device does (`OnDeviceThemes`, the same as

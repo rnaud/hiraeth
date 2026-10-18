@@ -8,6 +8,11 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.85', date: '2026-10-18', items: [
+    // issue #474: src/music-moments.js (MUSIC_MODES, musicMode: Always the default), src/ui.js (musicMode, musicV: a saved
+    // Moments from before goes to Always once), src/audio.js musicModeSetting; tests/music-moments.test.js, engine-menus.test.js
+    'Each world’s own recorded music now plays the whole time you are there, out in the open as well as on arriving, indoors and at the big moments. If you liked it better the old way, with the music for the moments and quieter, lighter tunes in between, choose Moments under Settings > Music plays.',
+  ] },
   { v: '1.84', date: '2026-10-17', items: [
     // issue #439: src/costumes.js (HEADS: the 47 pieces of the 15 hat sets, HAT_SETS, HAT_SET_WORLDS, hoodShell / hoodNeck /
     // hoodEdge; each tribe's heads; the sets' colours last in dressFor), crowd-shader.js / crowd.js / Crowd.hlsl (HEAD_ID_LIMIT 128,

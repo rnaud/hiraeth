@@ -42,7 +42,7 @@ const DEFAULTS = {
   rumble: true,         // the controller's rumble (src/rumble.js): on unless turned off; nothing without a pad that can shake
   rumbleLevel: 'medium',  // its strength: low | medium | high (rumble.js LEVELS)
   music: 0.8,
-  musicMode: 'moments', // the recorded theme for arrivals, interiors and moments, ambience between (src/music-moments.js) | always
+  musicMode: 'always',  // the world's recording all the time | moments (arrivals, interiors and moments, ambience between: src/music-moments.js)
   effects: 1,
   voices: 0.8,          // the mumbled alien voices (src/story/voice.js)
   alienVoices: true,    // off: conversations go back to plain soft blips
@@ -67,6 +67,7 @@ const DEFAULTS = {
   hudV: 1,              // settings saved before v1 had the frame readout on by default: it goes off once
   padV: PAD_SCHEME,     // the pad's overrides saved before the layout's version 4 (one job per button) are brought up to date once
   deckV: 1,             // the Steam Deck before v1 started on High (its first save kept it): it goes to Auto (its own preset) once
+  musicV: 1,            // settings saved before v1 wrote Moments (then the default) into every save: they go to Always once (issue #474)
   soundV: 1,            // music, effects and voices all saved at 0 (the Deck's old bench wrote them into the player's own settings): back to the defaults once
 };
 
@@ -130,6 +131,9 @@ export function migrateSettings(saved = {}, { deck = false } = {}) {
     if (out.music === 0 && out.effects === 0 && out.voices === 0) { out.music = DEFAULTS.music; out.effects = DEFAULTS.effects; out.voices = DEFAULTS.voices; }
     out.soundV = 1;
   }
+  // (issue #474: Music plays was Moments by default, and save() writes every setting, so a saved Moments was no choice:
+  // it becomes the new default, Always, once; Moments picked again after that is kept)
+  if (!(out.musicV >= 1)) { if (out.musicMode === 'moments') out.musicMode = 'always'; out.musicV = 1; }
   // (hints: none saved before hintsV 1, the game said everything; a player starts on the new default, and can turn them back up)
   if (typeof out.hints === 'boolean') out.hints = out.hints ? 'full' : 'off';
   if (!(out.hintsV >= 1) || !HINT_LEVELS.includes(out.hints)) { out.hints = HINT_LEVELS.includes(out.hints) ? out.hints : DEFAULT_HINTS; out.hintsV = 1; }
@@ -361,7 +365,7 @@ export class SettingsMenu {
           <div class="row"><span>${t('set.rebind')}</span><button type="button" data-a="page" data-page="controls">${t('set.rebindOpen')}</button></div>
           <h2>${t('set.group.sound')}</h2>
           ${row(t('set.music'), `<input data-k="music" type="range" min="0" max="1" step="0.05">`)}
-          ${row(t('set.musicMode'), `<select data-k="musicMode"><option value="moments">${t('set.musicMode.moments')}</option><option value="always">${t('set.musicMode.always')}</option></select>`)}
+          ${row(t('set.musicMode'), `<select data-k="musicMode"><option value="always">${t('set.musicMode.always')}</option><option value="moments">${t('set.musicMode.moments')}</option></select>`)}
           ${row(t('set.effects'), `<input data-k="effects" type="range" min="0" max="1" step="0.05">`)}
           ${row(t('set.voices'), `<input data-k="voices" type="range" min="0" max="1" step="0.05">`)}
           ${row(t('set.alienVoices'), `<input data-k="alienVoices" type="checkbox">`)}

@@ -285,10 +285,11 @@ new recording made to match it (below) has its slot back:
   2:45). Made in Suno by the author on 2026-10-12 from a prompt matched to this score (D bayati, 56 BPM, solo oud with
   fretless slides, warm analog pads, a D/A drone, wind, a granular shimmer, tape echoes; no drums, no build); the
   prompt is in `public/music/manifest.json`. A new name rather than `desert.mp3`: a kept copy and the caches key on
-  the file name. What plays when, as for every world (`src/music-moments.js`): the recording for the arrival's first
+  the file name. What plays when, as for every world (`src/music-moments.js`): with Music: Always (the default since
+  v1.85) the recording all the time; with Moments, the recording for the arrival's first
   150 s, indoors (and 20 s after), and for a while after a moment; between them the score's light layers (drone, pad,
   sparse oud plucks, the shimmer, the echo), the recording fading out over 10 s over them and in over 3 s (the score
-  stops scheduling as it comes in, its notes ring out). Music: Always keeps the recording on. In the prologue nothing
+  stops scheduling as it comes in, its notes ring out). In the prologue nothing
   changes: the ship's score while you wake, nothing under the father's message, the recording as you step out.
   On a device it rides in the package (`ON_DEVICE_THEMES`), 3.8 MB.
   Measured (offline, BS.1770 on the Mac; the old `desert.mp3` and the others for scale): -16.3 LUFS integrated as
@@ -422,9 +423,9 @@ unchanged, it reads its own `music/`).
 
 ## Scoring the moments (October 2026)
 
-With a recorded theme loaded, Settings > Music plays decides when it plays. **Moments** (the default)
-keeps it for arrivals, interiors and moments, and lets the ambience carry the open world between them;
-**Always** plays it all the time, as before. `MusicMoments` (`src/music-moments.js`, pure) holds the
+With a recorded theme loaded, Settings > Music plays decides when it plays. **Always** (the default since
+v1.85, issue #474) plays it all the time, outdoors too. **Moments** (the default from v1.0 to v1.84, still a
+choice) keeps it for arrivals, interiors and moments, and lets the ambience carry the open world between them. `MusicMoments` (`src/music-moments.js`, pure) holds the
 state; `Sound.musicMomentsUpdate` (from `sound.update`, every frame) turns it into the recording's fades
 (in over 3 s, out over 10 s; a theme stopped after its fade starts again from its opening).
 
@@ -438,7 +439,15 @@ state; `Sound.musicMomentsUpdate` (from `sound.update`, every frame) turns it in
   pluck, the colour, the echo, all softer; no melody, bass or drums), over the ambience. Before the
   recording has loaded, or without one, the full procedural score plays as before.
 
-`tests/music-moments.test.js` checks the state machine and the light layers.
+**The default and older saves (issue #474).** The default lives in `src/ui.js` (`DEFAULTS.musicMode`), `src/audio.js`
+(`musicModeSetting`) and `src/music-moments.js` (`musicMode()`'s fallback for unset or unknown values, the
+`MusicMoments` constructor; `MUSIC_MODES` lists Always first, so the engine menus' choice goes round from it).
+Unity has no default of its own: `engine/unity/game.js` builds the same `Settings` and the same `Sound`.
+`Settings.save()` writes every setting, defaults included, so a saved `moments` from before v1.85 was the old
+default rather than a choice: `migrateSettings` turns it into `always` once (`musicV` 1); Moments picked after
+that is kept.
+
+`tests/music-moments.test.js` checks the state machine, the light layers, the default and the migration.
 
 ## Recorded effects: the body's foley (October 2026)
 

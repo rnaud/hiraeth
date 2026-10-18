@@ -1208,6 +1208,9 @@ const EYES473W = 'Issue #473: the same view on the web, muted headless Chrome on
 /** (v1.84, issue #465: the Deck's pipeline list traced again) */
 const PSO465 = 'Issue #465: a release Linux player of main at 509b40cc9 on the Steam Deck OLED (gamescope headless, 1280 × 800, 90 Hz, the Steam Deck preset, uncapped, muted), each launch with its own Mesa cache, TMPDIR and config emptied first; before: the shipped list (125 states), after: the re-traced one (168), both warmed with -pso-file; the longest frame of the load, Unity’s own part (the frame less the main thread’s wait on the script), from unity.log; 18 October';
 export const CHANGELOG_MEDIA = {
+  '1.85': [
+    { match: 'Each world’s own recorded music now plays the whole time you are there', see: 'Land in any world and walk out into the open: after two and a half minutes its recorded music keeps playing instead of fading out to the light synthesised tunes, and it is still there five minutes on. Settings > Music plays now reads Always; pick Moments there to have the old way back, and it stays picked.' },
+  ],
   '1.84': [
     { match: 'In the Unity version on the Steam Deck, the first launch after an update no longer freezes', numbers: [
       { title: 'The longest frame as a world loads, on an empty shader cache', unit: 'ms', better: 'lower', device: PSO465, rows: [

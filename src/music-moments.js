@@ -1,4 +1,5 @@
-// When the recorded theme plays (Settings > Music: Moments, the default): it is kept for the moments,
+// When the recorded theme plays. Settings > Music: Always (the default since v1.85, issue #474) keeps it on
+// all the time. Moments, the other choice, keeps it for the moments,
 // and ambience carries the open world between them, as in Breath of the Wild or Journey.
 //
 //  - arriving in a world, the theme plays for a while (arrival), then fades out;
@@ -8,7 +9,6 @@
 //  - after a long quiet it comes back by itself for a while (back, after one of returnAfter);
 //  - between them, the procedural score plays only its light layers (lightScore): the drone, a
 //    sparse pluck, the world's colour, a pad, softly. No melody, no drums.
-// Music: Always keeps the recording on all the time (the old way).
 //
 // MusicMoments is the pure state: cue(kind, now) and update(now, { indoor }) → { on, why }, which
 // Sound (src/audio.js musicMoments) turns into the recording's fades.
@@ -23,11 +23,12 @@ export const MUSIC_MOMENTS = {
   fadeOut: 10,           // s
 };
 
-export const MUSIC_MODES = ['moments', 'always'];
-export const musicMode = (v) => (MUSIC_MODES.includes(v) ? v : 'moments');
+export const MUSIC_MODES = ['always', 'moments'];   // (the default first: the menus' choice goes round from it)
+/** The setting read: 'moments' or 'always'; anything else (unset, unknown) is the default, Always (issue #474). */
+export const musicMode = (v) => (MUSIC_MODES.includes(v) ? v : 'always');
 
 export class MusicMoments {
-  constructor({ mode = 'moments', now = 0, rand = Math.random, T = MUSIC_MOMENTS } = {}) {
+  constructor({ mode = 'always', now = 0, rand = Math.random, T = MUSIC_MOMENTS } = {}) {
     this.T = T; this.rand = rand;
     this.mode = musicMode(mode);
     this.from = now; this.until = now + T.arrival; this.why = 'arrival';

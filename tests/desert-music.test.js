@@ -141,7 +141,7 @@ function bare() {
   s.ctx = { currentTime: 0 };
   // (the quiet's own return, after one of returnAfter [300, 480] s drawn when the first quiet starts, pinned to its
   // longest: drawn at random it could fall inside a test's later stretch and bring the theme back by itself)
-  s.moments = new MusicMoments({ now: 0, rand: () => 1 });
+  s.moments = new MusicMoments({ mode: 'moments', now: 0, rand: () => 1 });
   s.V = {}; s._echo = {}; s._luteReady = true;
   s.beat = 0; s.nextBeat = 0;
   s.played = [];

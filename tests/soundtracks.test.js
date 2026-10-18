@@ -210,7 +210,7 @@ async function quietWorld(levelId = 'incal') {
   const { MusicMoments } = await import('../src/music-moments.js');
   const ctx = new AudioContext({ sampleRate: 100 });
   ctx.decodeAudioData = async () => { const b = ctx.createBuffer(2, 1000, 100); b.getChannelData(0).fill(0.3); b.getChannelData(1).fill(0.3); return b; };
-  const moments = new MusicMoments({ now: -10000, rand: () => 0.5 });
+  const moments = new MusicMoments({ mode: 'moments', now: -10000, rand: () => 0.5 });
   moments.update(-10000 + 400);   // (the arrival over, the quiet's comeback drawn far ahead)
   return { score: true, levelId, ctx, music: ctx.createGain(), moments };
 }

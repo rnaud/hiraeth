@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.85 — 2026-10-18
+
+- Each world’s own recorded music now plays the whole time you are there, out in the open as well as on arriving, indoors and at the big moments. If you liked it better the old way, with the music for the moments and quieter, lighter tunes in between, choose Moments under Settings > Music plays.
+
 ## v1.84 — 2026-10-17
 
 - In the Unity version, the traveller’s eyes and brows are as sharp as on the web: close up and in conversations they were soft, blurred patches, and now they show the white, the iris, the pupil and its glint and the fine lash lines. People’s eyes are drawn as on the web too: a crisp ring round the iris, a clear glint, the lids open at rest and a lash line along them.

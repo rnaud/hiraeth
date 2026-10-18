@@ -148,8 +148,8 @@ test('the frame readout is off unless asked for (F, the settings, ?fps=1), and o
   const { Settings, migrateSettings } = await ui();
   globalThis.localStorage = { getItem: () => null, setItem() {} };
   try { assert.equal(new Settings().showFps, false); } finally { delete globalThis.localStorage; }
-  assert.deepEqual(migrateSettings({ showFps: true, music: 0.5 }), { music: 0.5, hudV: 1, hints: 'subtle', hintsV: 1, soundV: 1 }, 'saved before: the old default goes');
-  assert.deepEqual(migrateSettings({ showFps: true, hudV: 1, hints: 'full', hintsV: 1 }), { showFps: true, hudV: 1, hints: 'full', hintsV: 1, soundV: 1 }, 'turned on since: kept');
+  assert.deepEqual(migrateSettings({ showFps: true, music: 0.5 }), { music: 0.5, hudV: 1, hints: 'subtle', hintsV: 1, soundV: 1, musicV: 1 }, 'saved before: the old default goes');
+  assert.deepEqual(migrateSettings({ showFps: true, hudV: 1, hints: 'full', hintsV: 1 }), { showFps: true, hudV: 1, hints: 'full', hintsV: 1, soundV: 1, musicV: 1 }, 'turned on since: kept');
   // the Steam Deck started on High before its own preset: Auto once; a lighter choice is kept
   assert.equal(migrateSettings({ hudV: 1, quality: 'high' }, { deck: true }).quality, 'auto');
   assert.equal(migrateSettings({ hudV: 1, quality: 'low' }, { deck: true }).quality, 'low');
