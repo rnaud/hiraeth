@@ -231,15 +231,25 @@ export function podRing(rng, { h, y0 = 0, n = 5, rr = 4, from = 6, a0 = rng() * 
 /**
  * Glass columns of luminous water (cols: [{ x, z, r, y0, y1 }…]) with bubbles rising in them: the columns merged (solid
  * as drawn), the bubbles one InstancedMesh of small discs on the glass, moved by one mover. `near` (optional, a
- * function → a point) skips the bubbles of columns far from it. Returns { mesh, update(t) }.
+ * function → a point) skips the bubbles of columns far from it. Returns { mesh, update(t, at, later), draw(camera) }.
+ *
+ * Where a bubble is is a function of the clock alone, so a column out of the picture need not be laid out (issue #457:
+ * the Underwater City's 3 000 bubbles, 1.6-2.3 ms of the Steam Deck's script thread a frame). With `later` the game
+ * calls draw(camera) once the frame's camera is final (main.js renderFrame, engine/game.js before the mirror's frame):
+ * a column whose box is in that camera's frustum is laid out at this frame's clock there, the others keep their places
+ * until they are seen. A column that goes past `near` is laid out as it stood on its last frame within it, as before,
+ * so what one sees from afar is the same. Without `later` (a page that draws on its own) update lays out every column.
  */
 export function glassColumns(kit, M, cols, { per = 2.6, speed = 1.4, mover = true, near = 0 } = {}) {
-  const rng = mulberry32(cols.length * 977 + 3), list = [];
+  const rng = mulberry32(cols.length * 977 + 3), list = [], spans = [];
   for (const c of cols) {
     kit.add(M.column, new THREE.CylinderGeometry(c.r, c.r, c.y1 - c.y0, 18, 1, true).translate(c.x, (c.y0 + c.y1) / 2, c.z), SOLID);
     kit.add(M.frame, new THREE.CylinderGeometry(c.r * 1.12, c.r * 1.12, 0.6, 18).translate(c.x, c.y0 + 0.3, c.z), SOLID);
     kit.add(M.frame, new THREE.CylinderGeometry(c.r * 1.12, c.r * 1.12, 0.6, 18).translate(c.x, c.y1 - 0.3, c.z), SOLID);
     const n = Math.round((c.y1 - c.y0) * c.r * per);
+    // (a bubble's disc is at most 0.29 m across, on the glass at 1.01 r: the box round them all, with room)
+    const R = c.r * 1.01 + 0.5;
+    spans.push({ c, from: list.length, to: list.length + n, box: new THREE.Box3(new THREE.Vector3(c.x - R, c.y0 - 0.5, c.z - R), new THREE.Vector3(c.x + R, c.y1 + 0.5, c.z + R)), t: NaN, due: NaN, near: true });
     for (let i = 0; i < n; i++) list.push({ c, a: rng() * TAU, y: rng() * (c.y1 - c.y0 - 1), s: 0.05 + rng() * rng() * 0.24, v: speed * (0.6 + rng() * 0.8), wob: rng() * TAU });
   }
   const geo = new THREE.CircleGeometry(1, 10);
@@ -249,25 +259,48 @@ export function glassColumns(kit, M, cols, { per = 2.6, speed = 1.4, mover = tru
   kit.group.add(mesh);
   kit.noShadow?.push?.(mesh);
   const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(), _p = new THREE.Vector3(), _e = new THREE.Euler();
-  // (near > 0 and a point `at`: only the bubbles of the columns within near m of it move; the rest keep their places)
-  const update = (t, at = null) => {
-    let k = 0;
-    for (const b of list) {
-      const c = b.c;
-      if (near > 0 && at && Math.hypot(at.x - c.x, at.z - c.z) > near) { k++; continue; }
+  /** A column's bubbles laid out at the clock t. */
+  const lay = (S, t) => {
+    const c = S.c;
+    for (let k = S.from; k < S.to; k++) {
+      const b = list[k];
       const L = c.y1 - c.y0 - 0.8, yy = c.y0 + 0.4 + ((b.y + t * b.v) % L + L) % L;
       const a = b.a + Math.sin(t * 0.8 + b.wob) * 0.12;
       _p.set(c.x + Math.cos(a) * c.r * 1.01, yy, c.z + Math.sin(a) * c.r * 1.01);
       _q.setFromEuler(_e.set(0, Math.PI / 2 - a, 0));
       const s = b.s * Math.min(1, (yy - c.y0) / 1.5, (c.y1 - yy) / 1.5);
-      mesh.setMatrixAt(k++, _m.compose(_p, _q, _s.set(s, s, s)));
+      mesh.setMatrixAt(k, _m.compose(_p, _q, _s.set(s, s, s)));
     }
-    mesh.count = k;
+    S.t = t;
     mesh.instanceMatrix.needsUpdate = true;
+  };
+  // (near > 0 and a point `at`: only the bubbles of the columns within near m of it move; the rest keep their places)
+  // (later: a column within near is due at t, laid out by draw if it is seen; one that left near is laid out at the
+  // clock of its last frame within it, if it was not already)
+  const update = (t, at = null, later = false) => {
+    for (const S of spans) {
+      const c = S.c, isNear = !(near > 0 && at && Math.hypot(at.x - c.x, at.z - c.z) > near);
+      if (!later) { if (isNear) lay(S, t); S.due = NaN; S.near = isNear; continue; }
+      if (isNear) S.due = t;
+      else if (S.near && S.due === S.due && S.t !== S.due) lay(S, S.due);
+      S.near = isNear;
+    }
+    mesh.count = list.length;
+  };
+  const _f = new THREE.Frustum(), _vp = new THREE.Matrix4();
+  /** The columns due and in this camera's frustum laid out (the camera placed and its matrices made). */
+  const draw = (camera) => {
+    let f = null;
+    for (const S of spans) {
+      if (!S.near || S.due !== S.due || S.t === S.due) continue;
+      if (!f) camera.updateMatrixWorld();
+      f ??= _f.setFromProjectionMatrix(_vp.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse), THREE.WebGLCoordinateSystem, camera.reversedDepth);
+      if (f.intersectsBox(S.box)) lay(S, S.due);
+    }
   };
   update(0);
   if (mover) kit.mover(update);
-  return { mesh, update };
+  return { mesh, update, draw };
 }
 
 // ------------------------------------------------------------------ the café domes

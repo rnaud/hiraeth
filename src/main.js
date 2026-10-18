@@ -1879,6 +1879,7 @@ function renderFrame() {
   // hidden in every pass of this frame (then shown again): far pebbles and shrubs, props under
   // a pixel or two on screen, rooms off the map while the camera is elsewhere
   camera.updateMatrixWorld();
+  level.beforeDraw?.(camera);   // (the frame's camera final: what a level lays out only where it is seen, the Underwater City's bubbles)
   const frameHidden = _frameHidden; frameHidden.length = 0;
   const pxPerRad = gbuffer.height / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2));
   flora?.update(camera, preset.floraFar ?? 1, { pxPerRad, px: preset.lodPx ?? 0 });   // each species draws the plants in view near enough (the far ones coarser)
@@ -2320,7 +2321,7 @@ function frame(ts) {
   dangers.update(dt, player, { quiet: busy() || ship.playing, say: (t) => showToast(t, TEACH) });   // fire and spines (src/hazards.js)
   updateHealth(dt);
   updateKeys();
-  level.update(dt, t, { player, rig, camera, passage, hour: sky.hour, fade: (k, secs) => ship.cinema?.fade(k, true, secs) });
+  level.update(dt, t, { player, rig, camera, passage, hour: sky.hour, fade: (k, secs) => ship.cinema?.fade(k, true, secs), drawLater: true });   // (drawLater: renderFrame calls level.beforeDraw)
   dangers.voidFrame(t);
   reactiveWorld.update(dt, t, player, camera, busy() || photo.on);
   wildlife.update(dt, t, player, camera, busy() || photo.on);

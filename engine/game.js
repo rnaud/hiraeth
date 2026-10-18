@@ -1515,6 +1515,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         const tB0 = performance.now();
         mirror.time = simT;
         veilsFrame();
+        level.beforeDraw?.(camera);   // (the frame's camera final: what a level lays out only where it is seen, main.js renderFrame)
         const stats = mirror.sync(scene, camera);
         return { ms: { update: tB0 - tA, mirror: performance.now() - tB0 }, stats, frames };
       }
@@ -1534,6 +1535,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         const tB0 = performance.now();
         mirror.time = simT;
         veilsFrame();
+        level.beforeDraw?.(camera);   // (the frame's camera final: what a level lays out only where it is seen, main.js renderFrame)
         const stats = mirror.sync(scene, camera);
         return { ms: { update: tB0 - tA, mirror: performance.now() - tB0 }, stats, frames };
       }
@@ -1676,7 +1678,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       // (the ways through's light every frame, a fixed view's too: the web's bench draws them, scripts/unity-compare/)
       thresholds?.update(dt, simT, camera.position);
       if (!pinned) throughPortals(dt, simT);
-      level.update?.(dt, simT, { player, rig, camera, passage, fade: () => {} });
+      level.update?.(dt, simT, { player, rig, camera, passage, fade: () => {}, drawLater: true });   // (drawLater: level.beforeDraw is called)
       dangers.voidFrame(simT);   // (the void's rings' clock)
       lap?.('level');
       // the foes, the drops, the knock-out's card and what the page draws over the picture for them (engine/combat.js)
@@ -1747,6 +1749,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       // and his last second of steps, for the grass to part along (brush.js, as main.js: the bridge's op 28, issue #264)
       if (backend?.brushTrail) backend.brushTrail((brushTrail ??= new BrushTrail()).update(dt, player.riding ? null : player.pos, Math.hypot(player.vel.x, player.vel.z)).trail, brushTrail.bound);
       lap?.('wind');
+      // (the frame's camera final: what a level lays out only where it is seen, the Underwater City's bubbles; main.js renderFrame)
+      level.beforeDraw?.(camera);
+      lap?.('level');
       const tB = performance.now();
       mirror.time = simT;
       // (the props under the preset's pixels on screen hidden for this frame's mirror, shown again after: main.js renderFrame)

@@ -205,6 +205,9 @@ export const CROWD_LINES = [
 // (built in steps, src/load-steps.js: the game's load gives the main thread back between them)
 export function* buildUnderwater(scene) {
   const rng = mulberry32(71001);
+  // (the glass columns' bubbles: laid out once the frame's camera is final, those in view only, when the game says it
+  // will call beforeDraw: underwater-kit.js glassColumns, issue #457)
+  const bubbles = { later: false, sets: [] };
   const terrain = yield* Terrain.make({
     size: 1000, seg: 200, height: seabed,   // (5 m: the halls stand on their own floors over it)
     material: { color: UW_PAL.sand[0], color2: UW_PAL.sand[1], color3: UW_PAL.sand[2], mode: MODE_TERRAIN, ripples: true },
@@ -337,6 +340,7 @@ export function* buildUnderwater(scene) {
     // the column of luminous water from the floor up through the dome to the Crown's floor, and on to the surface
     const COLS = [{ x: COLUMN.x, z: COLUMN.z, r: COLUMN.r, y0: -0.2, y1: D.crown.y - 0.2 }];
     const columns = glassColumns(kit, M, COLS, { mover: false, near: 90 });
+    bubbles.sets.push(columns);
     kit.add(M.column, new THREE.CylinderGeometry(COLUMN.r * 0.7, COLUMN.r * 0.7, SEA_Y - D.crown.y - D.crown.r * D.crown.sy + 2, 14, 1, true).translate(COLUMN.x, D.crown.y + D.crown.r * D.crown.sy + (SEA_Y - D.crown.y - D.crown.r * D.crown.sy) / 2, COLUMN.z), drawn);
     // the lift's booth at the column's foot: a door of brass in the glass (walked into: level.portals)
     kit.add(M.frame, new THREE.BoxGeometry(3.4, 3.6, 0.5).translate(LIFT.foot[0], 1.8, COLUMN.z + COLUMN.r + 0.1), drawn);
@@ -358,7 +362,7 @@ export function* buildUnderwater(scene) {
     kit.add(M.column, new THREE.CylinderGeometry(COLUMN.r * 0.9, COLUMN.r * 0.9, c.r * c.sy, 14, 1, true).translate(c.x, c.y + (c.r * c.sy) / 2, c.z), drawn);
     for (let a = 0; a < Math.PI * 2; a += Math.PI / 3) lampPost(kit, M, c.x + Math.sin(a) * (c.r - 2), c.y, c.z + Math.cos(a) * (c.r - 2), { h: 3.2 });
     for (const a of [0.8, 2.4, 4.0, 5.6]) kit.add(M.rim, new THREE.BoxGeometry(2.0, 0.45, 0.55).rotateY(a).translate(c.x + Math.sin(a) * (c.r - 4.5), c.y + 0.22, c.z + Math.cos(a) * (c.r - 4.5)), solid);
-    kit.mover((t, at) => columns.update(t, at));
+    kit.mover((t, at) => columns.update(t, at, bubbles.later));
   }
   yield;
 
@@ -391,6 +395,7 @@ export function* buildUnderwater(scene) {
   }
   const OUT_COLS = [[-30, 72, 1.3], [30, -40, 1.5], [-34, -70, 1.4], [70, 60, 1.1], [-70, -10, 1.2], [80, -150, 1.3], [-80, -130, 1.2]].map(([x, z, r]) => ({ x, z, r, y0: H(x, z) - 0.2, y1: SEA_Y - 3 }));
   const outCols = glassColumns(kit, M, OUT_COLS, { mover: false, near: 120 });
+  bubbles.sets.push(outCols);
   for (let i = 0; i < 40; i++) {
     const a = rng() * Math.PI * 2, d = 50 + rng() * 120, x = Math.cos(a) * d * 0.9, z = -10 + Math.sin(a) * d * 1.2;
     if (air(x, H(x, z) + 1, z) || Object.values(D).some((h) => Math.hypot(x - h.x, z - h.z) < h.r + 4) || Object.values(tubes).some((t) => distToSeg(x, z, t) < t.R + 3)) continue;
@@ -593,11 +598,14 @@ export function* buildUnderwater(scene) {
         clear: [{ x: spawn.x, z: spawn.z, r: 6 }, { x: SHIP_SITE.x, z: SHIP_SITE.z, r: 18 }, { x: COLUMN.x, z: COLUMN.z + COLUMN.r + 2, r: 4 }] };
     },
     update(dt, t, ctx = {}) {
+      bubbles.later = !!ctx.drawLater;
       for (const m of kit.movers) m(t, ctx.player?.pos ?? null);
-      outCols.update(t, ctx.player?.pos ?? null);
+      outCols.update(t, ctx.player?.pos ?? null, bubbles.later);
       ways.update(t); song.update(t, dt);
       seaByHour();
     },
+    /** The frame's camera final, before anything is drawn (main.js renderFrame, engine/game.js): the bubbles in view laid out. */
+    beforeDraw(camera) { for (const b of bubbles.sets) b.draw(camera); },
   };
   // the Dock made a port: the pontoon ring on the dome's crown, pods round the city (issue #441, references/space-ports/underwater-city/sheet-1.jpg; src/levels/ports.js)
   attachPort(level, scene, UNDERWATER_PORT);
