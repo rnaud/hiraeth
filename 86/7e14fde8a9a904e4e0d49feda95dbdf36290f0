@@ -1,0 +1,31 @@
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs
+  s_5f899ba316b5dc::t_b9e893ad47dd6b 139
+unity/Hiraeth/Assets/Hiraeth/Shaders/Surface.shader
+  s_5f899ba316b5dc::t_2f47290564db31 1100,1692-1693,1695-1699
+changelog.md
+  s_5f899ba316b5dc::t_23e751da420f9a 58
+docs/systems/performance.md
+  s_5f899ba316b5dc::t_cb227b53e1b172 4531,4533-4589
+src/changelog.js
+  s_5f899ba316b5dc::t_1df3c6148b81f5 54-67
+tests/unity-black-frame.test.js
+  s_5f899ba316b5dc::t_1b531cae07595f 85-86
+tests/unity-retroid-r13.test.js
+  s_5f899ba316b5dc::t_974bcb220ae011 1-34
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "867e14fde8a9a904e4e0d49feda95dbdf36290f0",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
