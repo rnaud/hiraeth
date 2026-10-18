@@ -101,8 +101,10 @@ namespace Hiraeth.Bridge
         public void FaceKeys(string key, byte[] b, int count)
         {
             if (!meshes.TryGetValue(key, out var md) || !md.mesh) return;
-            var u = new uint[count / 4]; System.Buffer.BlockCopy(b, 0, u, 0, count - count % 4);
-            var f = new float[u.Length]; System.Buffer.BlockCopy(b, 0, f, 0, count - count % 4);
+            // (read where they lie, as Geometry's: no copies of the bytes, issue #468)
+            var words = new ReadOnlySpan<byte>(b, 0, count - count % 4);
+            ReadOnlySpan<uint> u = System.Runtime.InteropServices.MemoryMarshal.Cast<byte, uint>(words);
+            ReadOnlySpan<float> f = System.Runtime.InteropServices.MemoryMarshal.Cast<byte, float>(words);
             int o = 0, nk = (int)u[o++], nv = (int)u[o++];
             if (nv != md.mesh.vertexCount) { Debug.LogWarning($"Hiraeth bridge: keys for {key}: {nv} vertices, the mesh has {md.mesh.vertexCount}"); return; }
             md.mesh.ClearBlendShapes();
@@ -240,10 +242,11 @@ namespace Hiraeth.Bridge
         {
             Count("geometry"); Count("geometry kB", count / 1024);
             var t0 = Time.realtimeSinceStartupAsDouble;
-            var u = new uint[count / 4];
-            Buffer.BlockCopy(b, 0, u, 0, count - count % 4);
-            var f = new float[u.Length];
-            Buffer.BlockCopy(b, 0, f, 0, count - count % 4);
+            // (the bytes read as words and floats where they lie: two copies of every geometry a frame made it were the managed
+            // collections of a spawn, 20-23 in a frame when a foe's 2-14 MB came at once, issue #468)
+            var words = new ReadOnlySpan<byte>(b, 0, count - count % 4);
+            ReadOnlySpan<uint> u = System.Runtime.InteropServices.MemoryMarshal.Cast<byte, uint>(words);
+            ReadOnlySpan<float> f = System.Runtime.InteropServices.MemoryMarshal.Cast<byte, float>(words);
             int n = (int)u[0], ni = (int)u[1], flags = (int)u[2], ng = (int)u[3];
             int o = 4 + ng * 3;
             var d = new MeshData();
