@@ -1,0 +1,45 @@
+changelog.md
+  s_5f899ba316b5dc::t_358e00c3a269d3 18-19
+docs/design/space-ports.md
+  s_5f899ba316b5dc::t_73ed6562e79220 25-27,47-49,74-75
+docs/systems/cinematics.md
+  s_5f899ba316b5dc::t_d9ba2d9aeb434d 59-66
+docs/systems/worlds.md
+  s_5f899ba316b5dc::t_5c6204061822d7 2849-2860
+src/changelog-media.js
+  s_5f899ba316b5dc::t_2fe79c5a4d2828 1181-1182,1289-1306
+src/changelog.js
+  s_5f899ba316b5dc::t_c4ee9445ea9d5c 71-75
+src/levels/incal.js
+  s_5f899ba316b5dc::t_446103eb7964fd 1275
+src/levels/port-berth.js
+  s_5f899ba316b5dc::t_db9bfef5cc559f 1-59
+src/levels/port-pad.js
+  s_5f899ba316b5dc::t_9caac3442eb2c5 10,27-31,473-576,643-644,648,653
+src/levels/ports.js
+  s_5f899ba316b5dc::t_2d6b3fb46239cc 8-9,94-102,163-166,168-176
+src/ship/cinematics.js
+  s_5f899ba316b5dc::t_fc29ad43390180 21,882-892,898-900,911-912,927,947,1042,1050,1052,1065-1077,1110,1140-1141,1148,1166-1176,1187
+src/ship/ship.js
+  s_5f899ba316b5dc::t_e95707fcdfae19 421-431
+tests/port-berth.test.js
+  s_5f899ba316b5dc::t_3781c88d40332d 1-158
+tests/ports.test.js
+  s_5f899ba316b5dc::t_34098383e5d674 50
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9ec568135246f1cc6f99f7d325c4122ac85a6e0f",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
