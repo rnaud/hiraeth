@@ -142,7 +142,8 @@ export class UnityBackend {
     const colors = specs.some((s) => s?.vertexColors) || d.mids.some((m) => this.ports.get(m) === 'wisp');
     const crowd = d.kind === 'instanced' && specs.some((s) => s?.defines?.CROWD);
     const figure = !crowd && specs.some((s) => (s?.u?.uMode === 4 || s?.u?.uFigure > 0 || s?.u?.uMode === 6 || s?.defines?.FACE_PART));
-    const form = specs.some((s) => s?.defines?.S_FORM || s?.defines?.DUNE_GLASS || s?.defines?.DUNE_POOL);   // (a dune's aGlass rides in the form's slot: pack.js)
+    // (a dune's aGlass, a billboard's aNight and a splat's aSplat ride in the form's slot: pack.js)
+    const form = specs.some((s) => s?.defines?.S_FORM || s?.defines?.DUNE_GLASS || s?.defines?.DUNE_POOL || s?.defines?.NIGHT_PAINT || typeof s?.u?.uSplatTime === 'number');
     // (a merged mesh's material values per vertex: the City-Shaft's towers, S_VMAT)
     const vmat = specs.some((s) => s?.defines?.S_VMAT);
     // (the fluid's flask, hose and globs read their own rest place too: their box, the glass's height, materials.js FLUID)
@@ -247,10 +248,14 @@ export class UnityBackend {
       for (let i = 0; i < count * 8; i++) w.f(this._puff[i]);
       return;
     }
-    w.reserve(4 + count * 19);
-    w.u(OP.instances); w.i(id); w.u(count); w.u(colors ? 1 : 0);
+    // (the Buried Machine's moving parts, src/breathe-shader.js: each instance's aBreathe (phase, period, stroke, kind) after
+    // the colours, flag 2; BridgeRenderer moves them by the material's clock, _Breathe, as the web's vertex shader does)
+    const breathe = attrs?.aBreathe?.itemSize === 4 && attrs.aBreathe.array.length >= count * 4 ? attrs.aBreathe.array : null;
+    w.reserve(4 + count * 23);
+    w.u(OP.instances); w.i(id); w.u(count); w.u((colors ? 1 : 0) | (breathe ? 2 : 0));
     for (let i = 0; i < count; i++) w.matrix(mats, i * 16);
     if (colors) for (let i = 0; i < count * 3; i++) w.f(colors[i]);
+    if (breathe) for (let i = 0; i < count * 4; i++) w.f(breathe[i]);
   }
 
   /** The grass layer's per-frame uniforms (grass-shader.js: the patch's centre, three's space, and fades; the ground's two tones), when they change: op 13. */
@@ -364,6 +369,15 @@ export class UnityBackend {
     tally(this, 'matVec', b0);
   }
 
+  /**
+   * A texture a material reads besides its picture, bound after the material was sent (engine/mirror.js: Lorn's vein map,
+   * lorn-veins.js, `which` 'veins'): its pixels sent (as a map's), then named on the material (BridgeHost.MaterialTexture).
+   */
+  materialTexture(mid, which, tex) {
+    const tid = this._texture(tex);
+    if (tid && this.host.MaterialTexture) this.host.MaterialTexture(mid, which === 'veins' ? '_VeinMap' : which, tid);
+  }
+
   /** A temple skin's uniforms changed after it was sent (a bell ringing, a lamp lit: skin-shader.js's slots): op 21. */
   materialSkin(mid, data) {
     const w = this.w, b0 = w.n;
@@ -390,6 +404,21 @@ export class UnityBackend {
     const w = this.w;
     w.reserve(5);
     w.u(OP.brush); for (const x of v) w.f(x);
+  }
+
+  /** The traveller's recent path (src/brush.js BrushTrail: 14 samples and the circle they lie in), when it moves: op 28. */
+  brushTrail(trail, bound) {
+    const n = trail.length, v = this._trail ??= new Float32Array(n * 4 + 4);
+    let moved = false;
+    const put = (k, x) => { x = Math.fround(x); if (v[k] !== x) { v[k] = x; moved = true; } };
+    for (let i = 0; i < n; i++) { const s = trail[i]; put(i * 4, s.x); put(i * 4 + 1, s.y); put(i * 4 + 2, s.z); put(i * 4 + 3, s.w); }
+    put(n * 4, bound.x); put(n * 4 + 1, bound.y); put(n * 4 + 2, bound.z); put(n * 4 + 3, bound.w);
+    if (!moved && this._trailSent) return;
+    this._trailSent = true;
+    const w = this.w, b0 = w.n;
+    w.reserve(2 + v.length);
+    w.u(OP.brushTrail); for (let i = 0; i < v.length; i++) w.f(v[i]);
+    tally(this, 'brushTrail', b0);
   }
 
   bones(id, boneMatrices, n, bind, bindInverse) { const b0 = this.w.n; this._bones(id, boneMatrices, n, bind, bindInverse); tally(this, 'bones', b0); }

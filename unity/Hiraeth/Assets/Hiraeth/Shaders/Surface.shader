@@ -57,6 +57,16 @@ Shader "Hiraeth/Surface"
     _BoxMark ("Box: the marks", Vector) = (0.86, 0.93, 0.95, 1)
     _BoxLight ("Box: the ray", Vector) = (1, 0.98, 0.92, 1)
     _SkinBody ("A temple skin's pattern (SkinPatterns.hlsl; 0 none)", Float) = 0
+    _NightOn ("Night paint in the form's slot (NIGHT_PAINT)", Float) = 0
+    _SplatOn ("A splat of the fluid (splat-decal.js)", Float) = 0
+    _Breathe ("The Buried Machine's clock (BridgeRenderer.Breathe)", Vector) = (0, 1000000000, 0, 0)
+    _MirrorOn ("A reflection in still water (MIRROR)", Float) = 0
+    _VeinOn ("Lorn's veins under the water (WATER_VEINS)", Float) = 0
+    _Mirror ("Mirror: the water's height, lift, reach, shimmer", Vector) = (0, 0, 500, 1)
+    _MirrorLake ("Mirror: the lake's ellipse (x, z, rx, rz)", Vector) = (0, 0, 100000, 100000)
+    _VeinBox ("Veins: the map's x0, z0, 1 / width, 1 / depth", Vector) = (0, 0, 0, 0)
+    _SplatClock ("A splat's clock (x)", Vector) = (0, 0, 0, 0)
+    _VeinMap ("Lorn's vein map (lorn-veins.js)", 2D) = "black" {}
     // (every other value of UnityPerMaterial, 0 unless a material sets it: each material its own, as the SRP Batcher wants
     // them. The arrays (_Palette, _Limbs, _FluidTones) go by a value here.)
     _NoVertexColor ("NoVertexColor", Float) = 0
@@ -169,6 +179,12 @@ Shader "Hiraeth/Surface"
     float4 _FarDepth;
     float4 _GrassView, _GrassLod, _GrassLook;
     float _GrassMirrored;
+    // (issue #264, surfaces B: a billboard's night paint in the form's slot, NIGHT_PAINT; a reflection in still water, MIRROR:
+    // the water's height, the lift, its reach, the shimmer, and the lake's ellipse; Lorn's veins under the water, WATER_VEINS:
+    // their map's box; a splat's shape and its clock, splat-decal.js)
+    float _NightOn, _MirrorOn, _VeinOn, _SplatOn;
+    float4 _Mirror, _MirrorLake, _VeinBox, _SplatClock;
+    float4 _Breathe;       // (read by BridgeRenderer.Breathe, not the shader: the Buried Machine's parts moved a matrix an instance)
     CBUFFER_END
 
     float3 _SkyTop, _SkyHorizon;   // (the composite's: what the metals see)
@@ -176,6 +192,7 @@ Shader "Hiraeth/Surface"
     float _Halftone, _Bounce;   // the look's shade tones (globals)
     TEXTURE2D(_Bed); SAMPLER(sampler_Bed);
     TEXTURE2D(_Map); SAMPLER(sampler_Map);
+    TEXTURE2D(_VeinMap); SAMPLER(sampler_VeinMap);   // Lorn's crystal roots under the water (lorn-veins.js, WATER_VEINS)
     #include "Figure.hlsl"
     #include "Marks.hlsl"
     #include "TripoFace.hlsl"
@@ -251,6 +268,25 @@ Shader "Hiraeth/Surface"
       float4 sw = float4(fi.r0.w, fi.r2.w, _Sway * y * y / s, 0.45 * min(y * s, 1.4) / s);
       swayed = world + swayOffset(sw);
       nW = normalize((cross(c1, c2) * n.x + cross(c2, c0) * n.y + cross(c0, c1) * n.z) * sign(det));
+    }
+    // a reflection in still water, from wherever the eye is (materials.js MIRROR: the Garden's mirror lake), three space: the
+    // point mirrored in the water's plane, laid on the plane where the eye's ray to that image crosses it, lifted toward the
+    // eye by a share of its distance (the nearer image covers the farther); the eye under the water: none
+    // a splat's scale at age t (s) of a life (s): pops out with a little overshoot, holds, shrinks away (splat-decal.js splatGrowth)
+    float splatGrowth(float t, float life)
+    {
+      float grow = t < 0.14 ? sin(t / 0.14 * 3.14159265 * 0.62) / sin(3.14159265 * 0.62) * 1.12 : 1.12 - 0.12 * min(1.0, (t - 0.14) / 0.2);
+      return max(0.0, grow * (1.0 - smoothstep(life - 1.1, life, t)));
+    }
+    float3 mirrorWorld(float3 w)
+    {
+      float3 C = toThree(_WorldSpaceCameraPos);
+      float wy = _Mirror.x, h = C.y - wy;
+      float3 m = float3(w.x, min(2.0 * wy - w.y, wy - 0.01), w.z);
+      if (h <= 0.02) return C - float3(0, 1e4, 0);
+      float3 p = C + (m - C) * (h / (C.y - m.y));
+      float k = _Mirror.y * saturate(1.0 - length(m - C) / _Mirror.z);
+      return C + (p - C) * (1.0 - k);
     }
     ENDHLSL
 
@@ -499,6 +535,7 @@ Shader "Hiraeth/Surface"
           float3 posWS = TransformObjectToWorld(v.positionOS.xyz);
         #else
           float3 posWS = TransformObjectToWorld(v.positionOS.xyz) + swayOffset(v.sway);
+          if (_MirrorOn > 0.5) posWS = toThree(mirrorWorld(toThree(posWS)));   // (a reflection in still water: materials.js MIRROR)
         #endif
         float3 nWS = TransformObjectToWorldNormal(v.normalOS);
         float3 scl = float3(length(UNITY_MATRIX_M._m00_m10_m20), length(UNITY_MATRIX_M._m01_m11_m21), length(UNITY_MATRIX_M._m02_m12_m22));
@@ -530,6 +567,10 @@ Shader "Hiraeth/Surface"
         O_FOLD = v.fold;
         O_BIND = toThree(v.bind);
         if (_DuneOn > 0.5) O_FORM = v.formC;   // (the Glass Dunes' aGlass: the silhouettes, the thin glass, the lobes; the pools)
+        // (a billboard's aNight in the form's slot: its night colour, its glow then (NIGHT_PAINT); a splat's aSplat there, its
+        // inner tone in the bind's, its phase in the fold's (splat-decal.js): pack.js unityGeometry)
+        if (_NightOn > 0.5 || _SplatOn > 0.5) O_FORM = v.formC;
+        if (_SplatOn > 0.5) { O_BIND = v.formA; O_FOLD = float2(v.uv.x, 0); }
         if (_FormOn > 0.5 && v.formC.w > 0.5)
         {
           // (in three's object frame, metric: materials.js S_FORM; the position mirrored back)
@@ -585,9 +626,15 @@ Shader "Hiraeth/Surface"
           float push = str * (0.35 + 0.65 * _Wind.w * wave);
           float flutter = (0.4 + 0.6 * str) * sin(_MTime * (2.3 + 1.1 * str) + root.x * 0.53 + root.z * 0.31 + rank * 6.28);
           float2 bend = wd * (push * 0.32 + flutter * 0.1) + float2(gc, gs) * gi.b.z;
-          float2 away = root.xz - _Brush.xz; float dB = length(away);
-          float brush = (1.0 - smoothstep(0.2, 1.0, dB)) * (0.9 + 0.12 * min(_Brush.w, 5.0));
-          bend += (dB > 1e-3 ? away / dB : float2(0, 0)) * brush * 1.3;
+          // (the traveller walking through: the blades part round his last second of steps and spring back, grass-shader.js
+          // brushLean x GRASS_BRUSH; the port's own world, without the path: round his feet)
+          if (_BrushTrailOn > 0.5) bend += brushLean(root, 0.12, 0.75, 1.6) * 8.0;
+          else
+          {
+            float2 away = root.xz - _Brush.xz; float dB = length(away);
+            float brush = (1.0 - smoothstep(0.2, 1.0, dB)) * (0.9 + 0.12 * min(_Brush.w, 5.0));
+            bend += (dB > 1e-3 ? away / dB : float2(0, 0)) * brush * 1.3;
+          }
           float bl = length(bend);
           float2 off = bend * gt * gt * gh;
           float rise = gt * gh / sqrt(1.0 + bl * bl * gt * gt);
@@ -807,8 +854,56 @@ Shader "Hiraeth/Surface"
         float wl = max(inkLine(abs(dist - at1) / max(px, 1e-4), 1.3) * d1, inkLine(abs(dist - at2) / max(px, 1e-4), 1.1) * d2 * 0.8);
         return wl * near * keep * (1.0 - fleck);
       }
-      float3 waterLook(float3 p, bool front, float2 pix, float vd, out float ink, out float lit)
+      // Lorn's crystal roots under the water (water-shader.js waterVeins, WATER_VEINS: lorn-veins.js bakes _VeinMap over the
+      // basin: r how much of a vein, g, b where along it the light's bands are, a how deep it lies, of 3 m): crystal seen
+      // through the surface, faceted in violet, lavender and teal cells, finely inked, its heart lit, a teal halo, bands of
+      // light running in to the Crystal, breathing. Returns how lit it is (self-lit: the water's lit and glow).
+      float waterVeins(float3 p, float t, float px, float fres, inout float3 col, inout float ink)
       {
+        float2 wob = (float2(vnoise(p.xz * 0.21 + t * float2(0.17, 0.11)), vnoise(p.xz * 0.23 - t * float2(0.13, 0.19))) - 0.5) * 0.9;
+        float2 uv = (p.xz + wob - _VeinBox.xy) * _VeinBox.zw;
+        float4 vm = SAMPLE_TEXTURE2D(_VeinMap, sampler_VeinMap, saturate(uv));
+        float body = vm.r * step(0.0, uv.x) * step(uv.x, 1.0) * step(0.0, uv.y) * step(uv.y, 1.0);
+        float fb = fwidth(body);   // (derivatives first: uniform control flow)
+        if (body < 0.004) return 0.0;
+        float under = vm.a * 3.0, seen = exp(-under * 0.45) * (1.0 - 0.35 * fres);
+        float cell = lerp(1.3, 0.55, saturate(under * 0.6));
+        float2 q = p.xz / cell + wob * 0.5;
+        float2 n = floor(q), f = frac(q), id = n, mr = float2(0, 0);
+        float md = 8.0;
+        for (int j = -1; j <= 1; j++) for (int i = -1; i <= 1; i++)
+        {
+          float2 g = float2(i, j), r = g + hash2(n + g) - f;
+          float d = dot(r, r);
+          if (d < md) { md = d; id = n + g; mr = r; }
+        }
+        float tone = hash(id + 3.7);
+        float3 cc = tone < 0.42 ? float3(0.53, 0.49, 0.9) : (tone < 0.78 ? float3(0.7, 0.64, 0.95) : float3(0.52, 0.86, 0.8));
+        float facet = 0.9 + 0.22 * dot(mr, normalize(hash2(id + 9.1) - 0.5 + 1e-3));
+        float wave = (vm.g * 2.0 - 1.0) * cos(t * 1.5) + (vm.b * 2.0 - 1.0) * sin(t * 1.5);
+        float pulse = pow(saturate(0.5 + 0.5 * wave), 6.0);
+        float breathe = 0.84 + 0.16 * sin(t * 0.75 + p.x * 0.008 - p.z * 0.006);
+        float k = smoothstep(0.04, 0.55, body) * seen;
+        col = lerp(col, cc * facet * (breathe + 0.35 * pulse), k * 0.9);
+        float far = smoothstep(0.04, 0.2, px / cell);
+        float core = max(smoothstep(0.72, 0.97, body), far * 0.55);
+        col = lerp(col, float3(0.82, 0.99, 0.95), core * seen * (0.35 + 0.45 * pulse));
+        float halo = smoothstep(0.0, 0.15, body) * (1.0 - smoothstep(0.15, 0.5, body));
+        col = lerp(col, float3(0.6, 0.93, 0.87), halo * seen * (0.3 + 0.35 * pulse));
+        float cpx = max(px / cell * 1.6, 1e-4);
+        float nearK = 1.0 - smoothstep(0.03, 0.1, px / cell);
+        UNITY_BRANCH if (nearK > 0.0)
+        {
+          float cb = voronoiBorder(q);
+          ink = max(ink, inkLine(cb / cpx, 0.55) * k * 0.32 * nearK);
+        }
+        float edge = inkLine(abs(body - 0.3) / max(fb, 1e-4), 0.8) * step(0.45, vnoise(p.xz * 0.6 + 7.0));
+        ink = max(ink * (1.0 - k * 0.6), edge * seen * 0.4 * (1.0 - smoothstep(0.05, 0.2, px)));
+        return k * (0.85 + 0.15 * pulse);
+      }
+      float3 waterLook(float3 p, bool front, float2 pix, float vd, out float ink, out float lit, out float glow)
+      {
+        glow = 0;
         float t = _MTime;
         float2 wd = length(_Wind.xy) > 1e-4 ? normalize(_Wind.xy) : float2(1, 0);
         float str = clamp(_Wind.z, 0.15, 3.0);
@@ -827,7 +922,26 @@ Shader "Hiraeth/Surface"
         ink *= 0.75;
         lit = 0;
         if (!front) { ink *= 0.75; lit = 1; return lerp(shallow, float3(0.96, 0.98, 0.97), 0.45); }
-        if (_WaterOpt.y > 0.5) { ink *= 0.6; return _Color.rgb; }
+        if (_WaterOpt.y > 0.5)
+        {
+          ink *= 0.6;
+          UNITY_BRANCH if (_MirrorOn > 0.5)
+          {
+            // a reflection (materials.js MIRROR): only on the lake, and broken across the line of sight by thin drifting gaps
+            // where the water shows between, wider apart further off (the image's shimmer); lit as the thing is, a little lighter
+            float2 e = (p.xz - _MirrorLake.xy) / _MirrorLake.zw;
+            if (dot(e, e) > 1.0) discard;
+            float3 C = toThree(_WorldSpaceCameraPos);
+            float dist = length(p.xz - C.xz);
+            float2 look = (p.xz - C.xz) / max(dist, 1e-3);
+            float lane = dist / (0.35 + dist * 0.022);
+            float across = dot(p.xz, float2(-look.y, look.x));
+            float gap = step(0.91, frac(lane + 0.25 * sin(across * 0.21 + t * 0.6))) * step(0.55, vnoise(float2(floor(lane) * 1.7, across * 0.12 + t * 0.15)));
+            if (gap * _Mirror.w > 0.5) discard;
+            lit = 0.3;
+          }
+          return _Color.rgb;
+        }
         float3 col = dB < 1.15 ? shallow : (dB < 3.4 ? mid : deep);
         if (dB < 0.42 * clarity && known > 0.5) col = lerp(shallow, _WaterBed.rgb, 0.5);
         float causK = (1.0 - smoothstep(0.15, 0.7, dB)) * known * (1.0 - smoothstep(0.012, 0.03, px)) * clarity;
@@ -841,6 +955,8 @@ Shader "Hiraeth/Surface"
         float3 skyC = lerp(_SkyHorizon, _SkyTop, smoothstep(0.0, 0.5, V.y));
         float steps = sk > 0.62 ? 0.62 : (sk > 0.36 ? 0.3 : 0.0);
         col = lerp(col, lerp(col, skyC, 0.85), steps);
+        float veinGlow = 0.0;
+        UNITY_BRANCH if (_VeinOn > 0.5) veinGlow = waterVeins(p, t, px, fres, col, ink);   // (their light through the sky's steps)
         float slopeW = max(fd / max(px, 1e-4), 0.004);
         float shore = depth / slopeW;
         float foamM = 0.28 + 0.1 * sin(t * 0.9 + p.x * 0.7 + p.z * 0.4);
@@ -857,7 +973,8 @@ Shader "Hiraeth/Surface"
         float wavelets = contactFoam(p, t, px, wd, pix, vd, foam);
         ink = max(max(ink * (1.0 - foam), lap * 0.85), wavelets * 0.85);
         col = lerp(col, lerp(float3(0.97, 0.98, 0.95), shallow, 0.18), foam);
-        lit = foam * 0.6;
+        lit = max(foam * 0.6, veinGlow);
+        glow = veinGlow;
         return col;
       }
 
@@ -909,6 +1026,23 @@ Shader "Hiraeth/Surface"
           if (dn < dth) discard;
           dEdge = 1.0 - smoothstep(0.0, _Dissolve.y, dn - dth);
         }
+        // a splat of the fluid (splat-decal.js splatMaterial): its lumpy blob and drops in its own plane (the form's slot: x, y,
+        // born, life; its phase in the fold's), grown and shrunk by its age on the splats' clock; the inner blob in its second
+        // tone (the bind's slot). Not in the lean variants (BridgeRenderer.Lean: a splat's material is on the full one)
+        float splatInner = 0.0;
+        UNITY_BRANCH if (LEANK && _SplatOn > 0.5)
+        {
+          static const float3 SPLAT_DROPS[5] = { float3(1.42758, 0.00021, 0.15202), float3(-1.08066, 1.06783, 0.19883), float3(0.80030, 0.98156, 0.12455),
+            float3(0.43918, -1.24239, 0.18699), float3(-1.29538, 0.05786, 0.13925) };   // (splat-decal.js SPLAT_DROPS; tests/unity-surfaces-b.test.js)
+          float2 sp = I_FORM.xy;
+          float sAge = _SplatClock.x - I_FORM.z, sK = splatGrowth(sAge, I_FORM.w), sKi = splatGrowth(sAge, I_FORM.w * 0.85);
+          float sR = length(sp), sA = atan2(sp.y, sp.x), ph = I_FOLD.x;
+          float sB = 1.0 + 0.32 * (0.5 * sin(sA * 3.0 + ph) + 0.3 * sin(sA * 5.0 + ph * 2.0) + 0.14 * sin(sA * 7.0 + ph * 3.1));
+          splatInner = sR < 0.5 * sKi * sB ? 1.0 : 0.0;
+          bool sIn = sR < sK * sB;
+          for (int si = 0; si < 5; si++) sIn = sIn || length(sp - SPLAT_DROPS[si].xy * sK) < SPLAT_DROPS[si].z * sK * (1.0 + 0.15 * sin(sA * 4.0 + ph));
+          if (!sIn && splatInner < 0.5) discard;
+        }
         // (each part's coordinates and derivatives are worked out next to it, in uniform control flow, not all at the top:
         // held from there through the colour, the shadow's taps and the lights, they cost every pixel of every surface its
         // registers, and the GPU its waves in flight; the same numbers, issue #262)
@@ -951,6 +1085,8 @@ Shader "Hiraeth/Surface"
             if (dot(d, d) < best) { best = dot(d, d); instColor = _Palette[k].rgb; }
           }
         }
+        if (_NightOn > 0.5) instColor = lerp(instColor, I_FORM.rgb, _Night);
+        if (_SplatOn > 0.5) instColor = lerp(instColor, I_BIND, splatInner);   // (a splat's inner blob, its second tone)   // (by night its own colour: a billboard lit as a screen)
         float2 bw = 0;
         float slope = 1.0 - n.y;
         if (mode == MODE_TERRAIN) {
@@ -972,8 +1108,8 @@ Shader "Hiraeth/Surface"
           float w = vnoise(i.worldPos.xz * 0.012 + _MTime * 0.01);
           albedo = w > 0.55 ? _Color2.rgb : _Color.rgb;
         }
-        float waterInk = 0.0, waterLit = 0.0;
-        UNITY_BRANCH if (WATERK && mode == MODE_WATER && _WaterOpt.x > 0.0) albedo = waterLook(i.worldPos, frontFace, i.positionCS.xy, i.viewDepth, waterInk, waterLit); else if (mode == MODE_OUTFIT) {
+        float waterInk = 0.0, waterLit = 0.0, waterGlow = 0.0;
+        UNITY_BRANCH if (WATERK && mode == MODE_WATER && _WaterOpt.x > 0.0) albedo = waterLook(i.worldPos, frontFace, i.positionCS.xy, i.viewDepth, waterInk, waterLit, waterGlow); else if (mode == MODE_OUTFIT) {
           // a person's printed outfit (materials.js MODE_OUTFIT): boots, trousers, belt, tunic, skin at the neck and hands
           albedo = outfitAlbedo(I_BIND, _Color.rgb, _Color2.rgb, _Color3.rgb);
         } else if (mode == MODE_EYE) {
@@ -992,7 +1128,8 @@ Shader "Hiraeth/Surface"
           albedo += dP * min(1.0, 0.15 / max(length(dP), 1e-5)) * pk;
         }
         float patInk = 0.0;
-        float emit = skinEmit;   // lit windows at night (facade); a skin's glow
+        float emit = max(skinEmit, waterGlow);   // lit windows at night (facade); a skin's glow; what glows in the water (Lorn's veins)
+        if (_NightOn > 0.5) emit = I_FORM.w * _Night;   // (a billboard glowing, as far as it says, after dark: NIGHT_PAINT)
         int pattern = (int)(_Pattern + 0.5);
         // (the material's options are uniform over a draw: derivatives inside these branches are safe)
         if ((skip & 1) != 0 || !WALLK) pattern = 0;
@@ -1390,7 +1527,8 @@ Shader "Hiraeth/Surface"
         DepthVaryings vertEntry(Attributes v) { DepthVaryings d; d.positionCS = vert(v).positionCS; return d; }
         // (the lean variants have no glass, dissolve nor veil (BridgeRenderer.Lean): no discard there at all, so the depth
         // they write is known before the fragment runs (early depth, a tiled GPU's low-resolution depth), issue #262)
-        void fragEntry(DepthVaryings i) { if ((GLASSK && _Glass > 0.0) || (LEANK && (_Dissolve.x > 0.0 || _Veil > 0.0))) discard; }
+        // (a reflection in still water and a splat cut their shapes in the G-buffer pass: they write no depth here)
+        void fragEntry(DepthVaryings i) { if ((GLASSK && _Glass > 0.0) || (LEANK && (_Dissolve.x > 0.0 || _Veil > 0.0 || _SplatOn > 0.5)) || (WATERK && _MirrorOn > 0.5)) discard; }
       #else
         Varyings vertEntry(Attributes v) { return vert(v); }
         GBufferOut fragEntry(Varyings i, bool frontFace : SV_IsFrontFace) { return frag(i, frontFace); }

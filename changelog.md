@@ -4,6 +4,8 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.84 — 2026-10-17
 
+- In the Unity version, the worlds that have no drifting cloud shadows on the web (Lorn, Viridel, the Garden, the Signal Market and most others) have none in Unity either: Lorn’s marsh was all in shade, and Viridel’s far white tower under a cloud.
+- In the Unity version, more of the world moves and shines as on the web: the Garden’s still lake shows the far shore and the garden it remembers upside down in it, the Signal Market’s billboards turn into lit screens after dark, the Buried Machine’s great pistons slide out of the canyon walls and its vents puff steam, Lorn’s crystal veins glow under the water, the fluid’s splats pop out and shrink away instead of standing whole, and the grass parts along the last steps you took, not only round your feet.
 - In the Unity version, each frame spends less time copying the world over to Unity: only what changed is looked at again, not every building and rock. Up to 3 more frames a second in the City-Shaft and the Signal Market. And a lamp’s brief pulse in the Underwater City, which Unity used to miss, now shows.
 - In the Unity version, a game started from the Arcade offers the game before and after and the way back to the Arcade on its cards, and a fight temple’s start card shows its hall from above, as on the web.
 - In the Unity version, the true ending’s credits roll up the screen on their paper page, the worlds and the people you met, as on the web, instead of being read out a line at a time.

@@ -24,6 +24,24 @@ float _Dots;
 float _MTime;
 float4 _Wind;            // x, z downwind (three space), strength, gust
 float4 _Brush;           // the traveller's feet (three space) and speed
+// the traveller's recent path (src/brush.js BrushTrail, the bridge's op 28; issue #264): 14 samples (x, y, z three space, pace x
+// the spring's weight for its age), the circle it lies in; _BrushTrailOn 1 once the bridge sends it (the port's own: _Brush alone)
+float4 _BrushTrail[14];
+float4 _BrushBound;
+float _BrushTrailOn;
+// the lean (x, z in m, at the tip of a 1.3 m plant) of what stands at p, touched within r0..r1 of the path (brush.js BRUSH_GLSL)
+float2 brushLean(float3 p, float r0, float r1, float dy) {
+  float2 lean = float2(0, 0);
+  if (length(p.xz - _BrushBound.xy) > _BrushBound.z + r1) return lean;
+  for (int k = 0; k < 14; k++) {
+    float4 s = _BrushTrail[k];
+    float2 away = p.xz - s.xz;
+    float d = length(away);
+    if (d < 1e-4 || abs(p.y - s.y) > dy) continue;
+    lean += away * ((1.0 - smoothstep(r0, r1, d)) * s.w / d);
+  }
+  return lean;
+}
 float4 _MLights[8];      // local lights: xyz (three space), radius
 
 inline float3 toThree(float3 p) { return float3(-p.x, p.y, p.z); }

@@ -62,11 +62,13 @@ import { queueLateCollision, WORKER_TRIS } from '../src/late-collision.js';
 import { DRIFT_FITS } from '../src/sand-drifts.js';
 import { Weather } from '../src/weather.js';
 import { WindStreaks } from '../src/wind.js';
+import { BrushTrail } from '../src/brush.js';
 import { Shelter, addIndoors } from '../src/shelter.js';
 
 // The traveller's ship is indoors for the weather, as main.js registers it (src/shelter.js): no rain, sand or wisps in
 // its rooms (issue #348: the rain fell in the ship in Lorn in the Unity preview). One registration for the module,
 // asking the game that runs now (a test may make several games one after another).
+let brushTrail = null;   // (the traveller's last second of steps for the grass: src/brush.js, made at the first frame)
 let shipIndoors = null;
 addIndoors((p) => !!shipIndoors?.(p));
 // A place reached by a page load on the web (src/story/night-train.js travel: the Signal Market's halt and the Overnight
@@ -712,6 +714,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const look = wireSky({ level, U });
   const applyPreset = () => look.setPreset(look.at.preset);
   applyPreset();
+  // the world's own cloud shadows (main.js: level.defaults.cloudShadows, most worlds none: Viridel's far tower and Lorn were
+  // in a cloud's shade in Unity, lit on the page, issue #264)
+  sharedUniforms.uCloudShadows.value = level.defaults?.cloudShadows ?? 1;
   // the graphics preset's look (main.js applyDetail): the lighter weathering, no cloud shadows or crease shading where it
   // says, its shadow filter's taps
   if (Q) {
@@ -1739,6 +1744,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       try { hoverTrails?.update(dt); } catch (e) { if (!game._trailsFailed) { game._trailsFailed = true; console.warn('[game] the trails failed', e?.stack ?? e); } }
       // the traveller's feet for the plants and the grass to part round (the engine's own, a frame's worth: brush.js on the web)
       backend?.brush?.(player.pos, Math.hypot(player.vel.x, player.vel.z));
+      // and his last second of steps, for the grass to part along (brush.js, as main.js: the bridge's op 28, issue #264)
+      if (backend?.brushTrail) backend.brushTrail((brushTrail ??= new BrushTrail()).update(dt, player.riding ? null : player.pos, Math.hypot(player.vel.x, player.vel.z)).trail, brushTrail.bound);
       lap?.('wind');
       const tB = performance.now();
       mirror.time = simT;

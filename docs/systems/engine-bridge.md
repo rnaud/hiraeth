@@ -2071,6 +2071,42 @@ Checked in Unity (the editor's batch run, `-fresh -no-hud`, against main's bundl
 pictures of the same views): the kit's colours at the desert's ramp foot (`-set-flags` now takes `key=value`:
 `kit.colour.sword=ember`) and the Underside's void past its edge; the pairs are v1.83's in the changelog.
 
+## Surfaces B (Unity + Puerts, 2026-10-18, issue #264)
+
+Seven of the surfaces the port did not draw, each checked against the web from the same views (scripts/unity-compare
+unity.mjs and design-qc/capture.mjs, and the sequence `grass-splats`). None adds a shader variant: each is a uniform
+branch, a value in the material, or the CPU's.
+
+- **Reflections in still water** (materials.js MIRROR, the Garden's lake): `_MirrorOn` moves each vertex to where its
+  image is seen (`mirrorWorld` in Surface.shader's vertex stage, the web's arithmetic), and `waterLook`'s printed shape
+  keeps it inside the lake's ellipse, broken by the shimmer's gaps (discards in the water path, `_Mirror`, `_MirrorLake`).
+  A printed shape on the water (waterPrint) is no body of water: drawn with the rest, writing its depth (WorldLoader), so
+  the nearer image covers the farther. Before, the reflections were drawn where the things themselves stand (the garden
+  the lake remembers stood on the far shore).
+- **Lorn's veins** (water-shader.js WATER_VEINS): `waterVeins` in the water path (`_VeinOn`), its map sent when
+  lorn-veins.js binds it (engine/mirror.js watches `uVeinMap`; backend.js `materialTexture`, BridgeHost.MaterialTexture
+  names it `_VeinMap` on the material), its box live (`uVeinBox` in LIVE_VECTORS). Their glow is the water's emit.
+- **The Signal Market's night screens** (NIGHT_PAINT): aNight rides in the form's slot (pack.js, as the dunes' aGlass),
+  `_NightOn` mixes it in by `_Night` and glows by its alpha; such a material never takes the slim variant (it has no form
+  interpolator).
+- **The Buried Machine's moving parts** (breathe-shader.js): each instance's aBreathe goes with its matrices (op 3, flag
+  2) and BridgeRenderer.Breathe moves it in its own frame a frame, on the material's clock (`uBreathe` live, `_Breathe`):
+  a slide, a gear's turn, a puff; past the preset's distance held at its clock, as the web's. A few hundred matrices in the
+  canyon; no shader work.
+- **The splats' growth** (splat-decal.js): aSplat in the form's slot, its inner tone the axis, its phase the uv's x
+  (pack.js; only the drawn range: the corners past it are splats gone), `_SplatOn` cuts the blob and drops grown by its
+  age on the splats' clock (`uSplatTime`, sent live as a vector). Its discard puts it on the full variant (BridgeRenderer.Lean
+  "splat"), as the glass's.
+- **The grass parting along his path** (brush.js): engine/game.js keeps a BrushTrail as main.js does and sends its 14
+  samples and their circle as op 28 (`_BrushTrail`, `_BrushBound`); the grass blades lean by `brushLean`
+  (HiraethCommon.hlsl) as grass-shader.js does. The port's own worlds (no trail) keep their feet-only brush. The bridge's
+  instanced plants still have no sway of their own (the `uSwayPlant` gap).
+- **Viridel's far tower under a cloud**: not a surface. engine/game.js never took the world's `cloudShadows`
+  (main.js does): most worlds have none, and Unity drew drifting cloud shadows in all of them (Lorn's marsh all in shade).
+
+Left: the water's passes (under water, the tint, banded fog, a sea's shafts and caustics; above it, the sun's sparkle),
+a pass of their own after the composite, reading `_GNormal` (docs/systems/bridge-gaps.md).
+
 ## Status
 
 - **Stage 1, the spike**: the desert, built by `createDesert` inside GodotJS, mirrored to Godot

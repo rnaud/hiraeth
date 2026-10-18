@@ -212,6 +212,22 @@ export const SEQUENCES = [
         standAt(G, lip, pitMid(rt, 'channel')); }, wait: 2.5 },
     ],
   },
+  {
+    // the grass parting along his last second of steps (src/brush.js) and a splat of the fluid growing on the ground
+    // (src/splat-decal.js), the Garden's meadow (issue #264: in Unity the grass parted round his feet only, the splats whole)
+    id: 'grass-splats', title: 'The grass parting, a splat growing', setup: { level: 'spheres', debug: true },
+    beats: [
+      { name: 'meadow', act: (G) => { const at = G.player.pos.clone().add(new THREE.Vector3(-9, 0, 6)); at.y = G.level.ground?.heightAt?.(at.x, at.z) ?? at.y; standAt(G, at, at.clone().add(new THREE.Vector3(0, 0, -10))); }, wait: 1.5 },
+      { name: 'walk', hold: { KeyW: true }, wait: 0.9 },
+      { name: 'stop', hold: { KeyW: false }, wait: 0.25 },
+      { name: 'splat', act: (G) => {
+        const p = G.player.pos, f = new THREE.Vector3(Math.sin(G.player.heading), 0, Math.cos(G.player.heading)), at = p.clone().addScaledVector(f, 5);
+        at.y = G.level.ground?.heightAt?.(at.x, at.z) ?? p.y;
+        G.tool?.splats?.add(at, new THREE.Vector3(0, 1, 0), '#e0467a', '#ffd84a', 1.2, 6);
+      }, wait: 0.08 },
+      { name: 'splat-held', wait: 1 },
+    ],
+  },
 ];
 
 /** The traveller set down at `at`, he and the camera facing `to` (a world point). */

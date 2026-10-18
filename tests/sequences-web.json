@@ -1,6 +1,6 @@
 {
  "recorded": "2026-10-18",
- "sha": "061752900",
+ "sha": "46b0bdb54",
  "how": "node scripts/unity-compare/sequences.mjs web [ids] && node scripts/unity-compare/sequences.mjs record",
  "sequences": {
   "moment-desert.flow": {
@@ -4804,6 +4804,141 @@
       108.8,
       2400,
       -189.8
+     ],
+     "late": false
+    }
+   ]
+  },
+  "grass-splats": {
+   "beats": [
+    {
+     "beat": "meadow",
+     "hud": {
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 618,
+      "print": 1,
+      "shader": 1,
+      "wisp": 1,
+      "mote": 1
+     },
+     "cam": [
+      -9,
+      2.5,
+      10.7,
+      55
+     ],
+     "player": [
+      -9,
+      0,
+      6
+     ],
+     "late": false
+    },
+    {
+     "beat": "walk",
+     "hud": {
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 597,
+      "print": 1,
+      "shader": 1,
+      "mote": 1
+     },
+     "cam": [
+      -9,
+      2.5,
+      7.6,
+      55
+     ],
+     "player": [
+      -9,
+      0,
+      2.6
+     ],
+     "late": false
+    },
+    {
+     "beat": "stop",
+     "hud": {
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 591,
+      "print": 1,
+      "shader": 1,
+      "mote": 1
+     },
+     "cam": [
+      -9,
+      2.5,
+      6.6,
+      55
+     ],
+     "player": [
+      -9,
+      0,
+      1.9
+     ],
+     "late": false
+    },
+    {
+     "beat": "splat",
+     "hud": {
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 591,
+      "print": 1,
+      "shader": 1,
+      "mote": 1
+     },
+     "cam": [
+      -9,
+      2.5,
+      6.6,
+      55
+     ],
+     "player": [
+      -9,
+      0,
+      1.9
+     ],
+     "late": false
+    },
+    {
+     "beat": "splat-held",
+     "hud": {
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 591,
+      "print": 1,
+      "shader": 1,
+      "mote": 1
+     },
+     "cam": [
+      -9,
+      2.5,
+      6.6,
+      55
+     ],
+     "player": [
+      -9,
+      0,
+      1.9
      ],
      "late": false
     }

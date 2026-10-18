@@ -7,11 +7,11 @@ web only and why; then what the bridge handles and where. How it works: `docs/sy
 
 | Kind | Gaps | Web only | Handled |
 |---|---:|---:|---:|
-| Materials and shaders the bridge draws as something else | 25 | 1 | 9 |
-| Where the game makes its own shaders | 5 | 3 | 12 |
+| Materials and shaders the bridge draws as something else | 20 | 1 | 9 |
+| Where the game makes its own shaders | 4 | 3 | 13 |
 | Passes and scenes outside the main picture | 1 | 5 | 8 |
 | Page elements (HTML) the game builds | 0 | 4 | 23 |
-| What src/main.js sets up that engine/game.js doesn't | 5 | 7 | 31 |
+| What src/main.js sets up that engine/game.js doesn't | 4 | 7 | 31 |
 | Dev pages and tools (web only by category) | | 28 | |
 
 ## Materials and shaders the bridge draws as something else
@@ -25,16 +25,11 @@ web only and why; then what the bridge handles and where. How it works: `docs/sy
 - **the chimes' crystals: their facets, core and seams (src/crystal-shader.js)** (#264, seen in play). Drawn in their plain colour. `define:CHIME_CRYSTAL`, `uniform:uCrystalCore`, `uniform:uCrystalEdge`, `uniform:uCrystalDeep` and 4 more
 - **the patch of shade under each chime crystal (src/chimes.js blobMaterial)** (#264, seen in play). A shader multiplied into the G-buffer, with no port: falls back to a Surface (to check: an unlit disc, or nothing) `shader:uCore,uDark,uFar,uTint`
 - **the lamps' pools in their own colour (makeMaterial lampTint)** (#264, seen in play). `define:LAMP_TINT`, `uniform:uLampTint`
-- **reflections in still water from wherever the eye is (makeMaterial mirror: the Spheres' lake)** (#264, seen in play). `define:MIRROR`
-- **Lorn's lake veins (src/lorn-veins.js, water-shader.js)** (#264, seen in play). `define:WATER_VEINS`
-- **the Signal Market's billboards turning into night screens (makeMaterial nightPaint)** (#264, seen in play). `define:NIGHT_PAINT`
-- **the Buried Machine's moving parts (src/breathe-shader.js)** (#264, seen in play). Held still in Unity (to check) `define:BREATHE`, `uniform:uBreathe`
 - **thin bars (masts' struts, wires, vines) kept a pixel or two wide far off (src/thin.js)** (#264, seen in play). They break up into dashes far off (to check) `define:S_THIN`, `uniform:uThinPx`
 - **white lines round a black shape (the shade's inverted ink)** (#264, barely seen). `uniform:uLineWhite`
 - **the plants' own sway (beside the wind's uSway, which crosses)** (#264, barely seen). To check. `uniform:uSwayPlant`
 - **the banners' glyph cells per vertex (life.js BannerSet: the City-Shaft's banners)** (#264, barely seen). `define:S_VGLYPH`
 - **a lighter line from afar (the meadow's flowers, flora.js FAR_LINE)** (#264, barely seen). `define:LINE_FAR`, `uniform:uLineFar`
-- **the splats' growth on the ground (src/splat-decal.js)** (#264, barely seen). To check: shown whole or not at all. `uniform:uSplatTime`
 - **a temple landmark's shell pattern (src/temples/landmark-materials.js)** (#264, barely seen). `uniform:uShellCenter`
 - **the traveller left out of the view when the lens is inside him (materials.js uHeroCut)** (#264, barely seen). To check. `uniform:uCutMe`
 - **the faces' numbers: expression, gaze, the iris's colour, the portrait's head-ball shading** (#264, barely seen). Figure.hlsl and TripoFace.hlsl draw eyes and mouths from uMood, uEyeLook and the traveller's live vectors; these never cross (to check: each person's iris colour) `uniform:uPortrait`, `uniform:uExpression`, `uniform:uGaze`, `uniform:uIris` and 7 more
@@ -55,12 +50,11 @@ web only and why; then what the bridge handles and where. How it works: `docs/sy
 - **the patch of shade under the chimes** (#264, seen in play). Materials shader:uCore,uDark,uFar,uTint. `site:src/chimes.js:ShaderMaterial`
 - **the patch of shade under the traveller in a jump** (#264, seen in play). Engine/game.js makes no JumpShadow (host import:src/jump-shadow.js#JumpShadow) `site:src/jump-shadow.js:ShaderMaterial`
 - **the water's depth copy, its contact foam and the pass over it under water (tint, banded fog, the sun's sparkle)** (#264, seen in play). The water's surface crosses (Surface WATER); the pass over it doesn't (passes src/main.js and src/water.js) `site:src/water.js:ShaderMaterial`
-- **the splats on the ground** (#264, barely seen). A Surface, without its growth (materials uniform:uSplatTime) `site:src/splat-decal.js:ShaderMaterial`
 - **the crowd's shadow-only material** (#264, not seen). Materials shader:(none) `site:src/crowd.js:ShaderMaterial`
 
 **Web only**: the page's blit to the screen (the page's own drawing (G-buffer, composite, shadows, batching, warm-up): Unity draws with its own (BridgeRenderer, Composite.shader, BridgeShadowChunks)); the web's batches of still meshes (the web's own draw-call batching; the bridge mirrors the meshes themselves); the face's ink on an unlit material (the inspection viewer's preview only (attachPortraitPreview)).
 
-**Handled**: makeMaterial, the surface everything is drawn with (Surface.shader (port-format.js portMaterial); its unread defines and uniforms are under materials); the dust motes and the footprints (Hiraeth/Mote, Hiraeth/Print); the wind's wisps (Hiraeth/Wisp); a deadly drop's dark (Hiraeth/PitVoid); a way through's light (Hiraeth/DoorLight); the see-through surfaces' wash (Hiraeth/Veil); the fires (Hiraeth/Flame (the far depth patch: materials uFarNear)); the planets on the galactic map and the approach, a flat colour (Hiraeth/Planet; the flat colour as a Surface plain); the recordings' figures in light, their beam, the overlay's blend (Hiraeth/HoloFigure ('holo'), the beam 'hidden', the figures hung in the mirrored scene (issue #394)); the composite (the Moebius look) and the bloom (Composite.shader, Bloom.shader); the coral-shirt traveller's drawn face (TripoFace.hlsl (port-format.js tripoFace, the live vectors uTfBrowA…)); the overshirt's cloth and the garments as loaded (BridgeCloth.cs; the loaded garments' lit materials are replaced by makeMaterial before they are drawn (none reaches the bridge in any world)).
+**Handled**: makeMaterial, the surface everything is drawn with (Surface.shader (port-format.js portMaterial); its unread defines and uniforms are under materials); the dust motes and the footprints (Hiraeth/Mote, Hiraeth/Print); the wind's wisps (Hiraeth/Wisp); a deadly drop's dark (Hiraeth/PitVoid); a way through's light (Hiraeth/DoorLight); the see-through surfaces' wash (Hiraeth/Veil); the fires (Hiraeth/Flame (the far depth patch: materials uFarNear)); the planets on the galactic map and the approach, a flat colour (Hiraeth/Planet; the flat colour as a Surface plain); the recordings' figures in light, their beam, the overlay's blend (Hiraeth/HoloFigure ('holo'), the beam 'hidden', the figures hung in the mirrored scene (issue #394)); the composite (the Moebius look) and the bloom (Composite.shader, Bloom.shader); the coral-shirt traveller's drawn face (TripoFace.hlsl (port-format.js tripoFace, the live vectors uTfBrowA…)); the overshirt's cloth and the garments as loaded (BridgeCloth.cs; the loaded garments' lit materials are replaced by makeMaterial before they are drawn (none reaches the bridge in any world)); the splats on the ground (a Surface with its shape and growth (Surface.shader _SplatOn; materials uniform:uSplatTime)).
 
 ## Passes and scenes outside the main picture
 
@@ -84,7 +78,6 @@ web only and why; then what the bridge handles and where. How it works: `docs/sy
 
 - **the patch of shade under the traveller in a jump** (#427, seen in play). `import:src/jump-shadow.js#JumpShadow`
 - **the traveller's motion matching and captured moves** (#427, seen in play). Left out of the engines so far (engine/game.js: only the talk gestures are loaded) `import:src/motion-match.js#loadMotionLibrary`, `import:src/motion-match.js#matchingSetting`, `import:src/loco-moves.js#movesSetting`
-- **the grass parting along the traveller's recent path** (#264, barely seen). The engine parts it round his feet only: the brush op (engine/unity/backend.js brush, _Brush) carries one point; the trail needs its samples sent and the port's grass and plants to read them (#427 left it for the bridge) `import:src/brush.js#BrushTrail`
 - **the magic bar** (#427, barely seen). To check: the health part carries magic. `import:src/hud.js#magicHud`
 - **the fluid tool's gauge by the traveller** (#427, barely seen). To check. `fn:placeToolGauge`
 
@@ -109,10 +102,10 @@ Read from the sheets of `node scripts/unity-compare/sequences.mjs` (Unity's batc
 - **a dropped chime is a pale ball in Unity, not the page's faceted crystal (src/crystal-shader.js), its shade a dark disc** (#264, seen in play): `fight` at chimes
 - **people's barks, the speech balloons over their heads ("A visitor! On a bird!", "Shut it! Shut it!"), not drawn in Unity** (#264, seen in play): `talk|moment-arzach2.bell|moment-edena.terraces` at beside|start|mid
 - **the hearts and wallet show over the crystal's moment in Unity (the screen's health part up; none on the page or in node)** (#264, seen in play): `moment-perdide.crystal`
-- **the far white tower and the slope before it in a cloud's shadow in Unity, lit on the page (the same shadows on the game's clock now; to check: the cloud cover, Weather's uClouds)** (#264, barely seen): `moment-edena.terraces` at start
 
 **Handled**:
 
+- the far white tower and the slope before it in a cloud's shadow in Unity, lit on the page (#264): engine/game.js takes the world's own cloud shadows (level.defaults.cloudShadows, as main.js): most worlds have none, Unity drew them everywhere (Lorn all in shade); `moment-edena.terraces` at start
 - the broadcast's moment turned black in Unity from four seconds in (#264): Bloom.shader Extract leaves out a pixel that is not a number: one on the white signs (glow 0.8) spread over the whole glow buffer; `moment-bazaar.broadcast` at mid|late
 - the Map page's drawn ground missing in Unity (its marks on a plain sheet) (#264): engine/game.js mapSource puts what is in a shop's or a temple's room at its door (main.js mapAt): those rooms framed the map kilometres wide and lifted its rays over the ground; `menus|house-map` at map
 - a struck foe stayed white and glowing in Unity (its death a white flash, not its ink burst) (#264): engine/mirror.js calls an object's onAfterRender after reading its material: a foe's flash (foe-react.js installFlash) is given back; `fight` at hit|death

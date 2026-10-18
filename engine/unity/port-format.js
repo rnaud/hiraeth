@@ -154,6 +154,15 @@ export function portMaterial(spec, id = 0) {
   // aGlass go as the form's point (pack.js), which a dune material has no other use for
   if (spec.defines?.DUNE_GLASS) Object.assign(e, { duneOn: 1, duneMint: (u.uDuneMint ?? [0, 0, 0, 0]).map(r5), duneLime: (u.uDuneLime ?? [0, 0, 0, 0]).map(r5), duneSil: (u.uDuneSil ?? [0, 0, 0, 0]).map(r5), duneK: (u.uDuneK ?? [0, 0, 0, 0]).map(r5) });
   else if (spec.defines?.DUNE_POOL) Object.assign(e, { duneOn: 2, duneMint: (u.uPoolMint ?? [0, 0, 0, 0]).map(r5), duneLime: (u.uPoolLime ?? [0, 0, 0, 0]).map(r5), duneK: (u.uPoolK ?? [0, 0, 0, 0]).map(r5) });
+  // (issue #264, surfaces B) a billboard painted another way by night (materials.js NIGHT_PAINT: the Signal Market's screens):
+  // its aNight in the form's slot (pack.js); a reflection in still water (MIRROR: the Garden's lake), its water's height, lift,
+  // reach and shimmer, the lake's ellipse; Lorn's veins under the water (WATER_VEINS: the map sent apart, backend.js
+  // materialTexture, its box live); a splat of the fluid (splat-decal.js: aSplat in the form's slot, its clock live, uSplatTime)
+  if (spec.defines?.NIGHT_PAINT) e.nightOn = 1;
+  if (spec.defines?.MIRROR && Array.isArray(u.uMirror)) Object.assign(e, { mirrorOn: 1, mirror: u.uMirror.map(r5), mirrorLake: (u.uMirrorLake ?? [0, 0, 1e5, 1e5]).map(r5) });
+  if (spec.defines?.WATER_VEINS) Object.assign(e, { veinOn: 1, veinBox: (Array.isArray(u.uVeinBox) ? u.uVeinBox : [0, 0, 0, 0]).map(r5) });
+  if (spec.defines?.BREATHE && Array.isArray(u.uBreathe)) e.breathe = u.uBreathe.map((x) => Math.min(r5(x), 1e9));   // (the Buried Machine's clock: BridgeRenderer.Breathe, live)
+  if (typeof u.uSplatTime === 'number') Object.assign(e, { splatOn: 1, splatClock: [r5(u.uSplatTime), 0, 0, 0] });
   // a temple skin's pattern (src/temples/skins/skin-shader.js): Surface.shader's HIRAETH_SKIN, its uniforms the material's _SkinData
   if (spec.skin?.body > 0) { e.skinPattern = spec.skin.body; e.skinData = spec.skin.data.map(r5); }
   return e;

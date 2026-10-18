@@ -214,6 +214,16 @@ namespace Hiraeth
                 mat.SetVector(p, v);
             }
             foreach (var (k, p) in new[] { ("creases", "_Creases"), ("glass", "_Glass"), ("hero", "_Hero"), ("fluid", "_Fluid"), ("fluidDomeK", "_FluidDomeK"), ("duneOn", "_DuneOn") }) if (m.Has(k)) mat.SetFloat(p, m.F(k));
+            // (issue #264, surfaces B: a billboard's night paint, a reflection in still water, Lorn's veins, a splat: port-format.js)
+            foreach (var (k, p) in new[] { ("nightOn", "_NightOn"), ("mirrorOn", "_MirrorOn"), ("veinOn", "_VeinOn"), ("splatOn", "_SplatOn") }) if (m.Has(k)) mat.SetFloat(p, m.F(k));
+            foreach (var (k, p) in new[] { ("mirror", "_Mirror"), ("mirrorLake", "_MirrorLake"), ("veinBox", "_VeinBox"), ("splatClock", "_SplatClock"), ("breathe", "_Breathe") })
+            {
+                var l = m.L(k);
+                if (l == null) continue;
+                var v = new Vector4(0, 0, 0, 0);
+                for (int i = 0; i < l.Count && i < 4; i++) v[i] = Json.Num(l[i]);
+                mat.SetVector(p, v);
+            }
             foreach (var (k, p) in new[] { ("fluidA", "_FluidA"), ("fluidB", "_FluidB"), ("fluidBox", "_FluidBox"), ("fluidDome", "_FluidDome"), ("dissolveColor", "_DissolveColor"), ("duneMint", "_DuneMint"), ("duneLime", "_DuneLime"), ("duneSil", "_DuneSil"), ("duneK", "_DuneK") })
             {
                 var l = m.L(k);
@@ -253,7 +263,9 @@ namespace Hiraeth
                 if (wb != null && wb.Count >= 3) mat.SetVector("_WaterBed", new Vector4(Json.Num(wb[0]), Json.Num(wb[1]), Json.Num(wb[2]), 1));
                 // with the contact foam on (the default but on mobile; -noWaterContact turns it off): drawn last in the G-buffer,
                 // writing no depth, over the scene's depth (HiraethFeature)
-                if (Rendering.HiraethFeature.Settings.waterContact)
+                // (a printed shape lying on the water, waterPrint: the mirror lake's reflections, is no body of water on the page
+                // (water.js leaves it out): drawn with the rest, writing its depth, the nearer image over the farther)
+                if (Rendering.HiraethFeature.Settings.waterContact && !(wo != null && wo.Count >= 2 && Json.Num(wo[1]) > 0.5))
                 {
                     mat.renderQueue = Rendering.HiraethFeature.WaterQueue; mat.SetFloat("_ZWrite", 0);
                     Rendering.HiraethFeature.WaterSeen = true;

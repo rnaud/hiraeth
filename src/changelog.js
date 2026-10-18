@@ -167,6 +167,12 @@ export const CHANGELOG = [
         { where: 'the Underwater City, the start', before: 84.6, after: 84.4 },
         { where: 'the Underwater City, the crowd', before: 76.5, after: 77.5 },
       ], source: 'docs/systems/performance.md, "Unity mirror: only what changed (#455)"', note: 'The same player with the script before and after, two runs of each view (6 s measured), averaged; what Unity is sent is the same, byte for byte, as when it looks at everything every frame.' }] },
+    // issue #264 surfaces B: unity/Hiraeth Surface.shader (_MirrorOn mirrorWorld, _NightOn, waterVeins, _SplatOn), HiraethCommon.hlsl
+    // brushLean (op 28), BridgeRenderer.Breathe, WorldLoader; engine/unity port-format.js, pack.js, backend.js; engine/mirror.js
+    // LIVE_VECTORS; engine/sequences.js grass-splats; tests/unity-surfaces-b.test.js; docs/systems/engine-bridge.md "Surfaces B"
+    'In the Unity version, more of the world moves and shines as on the web: the Garden’s still lake shows the far shore and the garden it remembers upside down in it, the Signal Market’s billboards turn into lit screens after dark, the Buried Machine’s great pistons slide out of the canyon walls and its vents puff steam, Lorn’s crystal veins glow under the water, the fluid’s splats pop out and shrink away instead of standing whole, and the grass parts along the last steps you took, not only round your feet.',
+    // issue #264: engine/game.js takes level.defaults.cloudShadows (as main.js)
+    'In the Unity version, the worlds that have no drifting cloud shadows on the web (Lorn, Viridel, the Garden, the Signal Market and most others) have none in Unity either: Lorn’s marsh was all in shade, and Viridel’s far white tower under a cloud.',
   ] },
   { v: '1.83', date: '2026-10-16', items: [
     // issue #406: src/temples/desert.js (ROOMS, LOGIC: hall, balcony, ballK, kS, dE, sentry in the hall, d3), pieces.js Ball

@@ -32,17 +32,25 @@ export const VMAT_ATTRS = [['aMatC1', 3], ['aMatC2', 3], ['aMatC3', 3], ['aMatS'
 export function unityGeometry(g, { colors = false, bind = false, rig = false, form = false, vmat = false } = {}) {
   const A = g.attributes, P = A.position.array, n = P.length / 3;
   const N = A.normal?.itemSize === 3 ? A.normal.array : null;
-  const UV = A.uv?.itemSize === 2 ? A.uv.array : null;
+  // (a splat's aSplat and aSplat2, splat-decal.js: x, y, born, life in the form's point, the inner tone in its axis, the
+  // phase in the uv's x; only its drawn range: the corners past it are splats gone, Splats.rebuild leaves them as they were)
+  const splat = form && A.aSplat?.itemSize === 4 && A.aSplat2?.itemSize === 4 && !A.aFormC;
+  let UV = A.uv?.itemSize === 2 ? A.uv.array : null;
+  if (splat) { const S2 = A.aSplat2.array; UV = new Float32Array(n * 2); for (let i = 0; i < n; i++) UV[i * 2] = S2[i * 4]; }
   // (no colours but a per-vertex alpha, the wind's wisps: white with that alpha)
   const C = colors && A.color ? A.color : colors && A.aAlpha?.itemSize === 1 ? { itemSize: 1, alphaOnly: true, array: A.aAlpha.array } : null;
   const skin = A.skinIndex && A.skinWeight;
   const idx = g.index ?? null;
   const total = idx ? idx.length : n;
-  const groups = g.groups?.length ? g.groups : [{ start: 0, count: total, materialIndex: 0 }];
+  const drawn = splat && g.drawRange ? Math.max(0, Math.min(total, g.drawRange.count ?? total)) : total;
+  const groups = g.groups?.length ? g.groups : [{ start: 0, count: drawn, materialIndex: 0 }];
   const R = rig && A.aRig ? A.aRig : null;   // (the crowd's figure: each vertex's part, zone and code, crowd.js)
   // (or the Glass Dunes' aGlass in the form's point, its axis none: src/dune-glass-shader.js, Surface.shader _DuneOn)
+  // (or a billboard's aNight, materials.js NIGHT_PAINT: its night colour and glow; or a splat's, above)
   const F = form && A.aFormC?.itemSize === 4 && A.aFormA?.itemSize === 3 ? [A.aFormC.array, A.aFormA.array]
-    : form && A.aGlass?.itemSize === 4 ? [A.aGlass.array, new Float32Array(n * 3)] : null;
+    : form && A.aGlass?.itemSize === 4 ? [A.aGlass.array, new Float32Array(n * 3)]
+    : form && A.aNight?.itemSize === 4 ? [A.aNight.array, new Float32Array(n * 3)]
+    : splat ? [A.aSplat.array, (() => { const S2 = A.aSplat2.array, t = new Float32Array(n * 3); for (let i = 0; i < n; i++) { t[i * 3] = S2[i * 4 + 1]; t[i * 3 + 1] = S2[i * 4 + 2]; t[i * 3 + 2] = S2[i * 4 + 3]; } return t; })()] : null;
   const VM = vmat && VMAT_ATTRS.every(([k, s]) => A[k]?.itemSize === s) ? VMAT_ATTRS.map(([k]) => A[k].array) : null;
   const flags = (N ? 1 : 0) | (UV ? 2 : 0) | (C ? 4 : 0) | (skin ? 8 : 0) | (bind ? 16 : 0) | (R ? 32 : 0) | (F ? 64 : 0) | (VM ? 128 : 0);
   const floats = n * 3 + (N ? n * 3 : 0) + (UV ? n * 2 : 0) + (C ? n * 4 : 0) + (skin ? n * 8 : 0) + (bind ? n * 3 : 0) + (R ? n * 4 : 0) + (F ? n * 7 : 0) + (VM ? n * 22 : 0);
@@ -82,7 +90,7 @@ export function unityGeometry(g, { colors = false, bind = false, rig = false, fo
  * The frame's commands, one ArrayBuffer (BridgeRenderer.cs Frame reads it): a stream of
  *   1 transforms: u32 n, n × (i32 id, f32 × 16 mirrored world matrix)
  *   2 visible:    i32 id, u32 on
- *   3 instances:  i32 id, u32 count, u32 hasColour, f32 × 16 count (mirrored), [f32 × 3 count]
+ *   3 instances:  i32 id, u32 count, u32 flags (1 colours, 2 aBreathe), f32 × 16 count (mirrored), [f32 × 3 count], [f32 × 4 count]
  *   4 bones:      i32 id, u32 n, f32 × 16 n (X · Sᵢ · X: engine/skin.js, mirrored)
  *   5 camera:     f32 × 16 (mirrored camera world), f32 fov, near, far
  *   6 remove:     i32 id
@@ -95,6 +103,7 @@ export function unityGeometry(g, { colors = false, bind = false, rig = false, fo
  *                 tufts' attribute from start (flora-grass.js; aGrass's root x mirrored, aGrass2 as it is)
  *  13 grassView:  i32 id, f32 × 18: uGrassView (its centre in three's space), uGrassLod, uGrassLook, uColor, uColor2
  *  14 brush:      f32 × 4: the traveller's feet (three's space) and speed (the port's _Brush)
+ *  28 brushTrail: f32 × 4 × 14, f32 × 4: the traveller's recent path and the circle it lies in (src/brush.js; _BrushTrail, _BrushBound)
  *  15 material:   i32 material id, f32 r, g, b, glow (NaN: unchanged): a material's colour or glow, live
  *  17 cloth:      i32 cloth id, i32 the garment's geometry id, u32 steps, u32 flags (1 reset, 2 simulated), f32 targets 3N,
  *                 the cage's capsules 14K, the garment's 14K, the bones 16Bn (bind inverse folded in), the attachment 16:
@@ -124,7 +133,7 @@ export class CommandWriter {
   takeView() { this.reserve(1); this.u32[this.n++] = 0; const out = new Uint32Array(this.buf, 0, this.n); this.n = 0; return out; }
   get empty() { return this.n === 0; }
 }
-export const OP = { transforms: 1, visible: 2, instances: 3, bones: 4, camera: 5, remove: 6, skeleton: 7, vertices: 8, crowd: 9, puffs: 10, lights: 11, grass: 12, grassView: 13, brush: 14, material: 15, fluid: 16, cloth: 17, matVec: 18, keys: 19, cape: 20, skin: 21 };
+export const OP = { transforms: 1, visible: 2, instances: 3, bones: 4, camera: 5, remove: 6, skeleton: 7, vertices: 8, crowd: 9, puffs: 10, lights: 11, grass: 12, grassView: 13, brush: 14, material: 15, fluid: 16, cloth: 17, matVec: 18, keys: 19, cape: 20, skin: 21, brushTrail: 28 };
 
 /**
  * Instances as the port's Puffs.Inst (8 floats each, op 10: the footprints' decals): the position in Unity's

@@ -58,8 +58,12 @@ import { noticesOn, ownHook, attrIn } from './mirror-notices.js';
  * ray and clock (boxes/), the coral-shirt traveller's drawn face (characters/tripo-face.js: brows, eyes, mouth), a
  * face's expression as its ink draws it (Humanoid.setExpression: uMood, uMood2).
  */
-export const LIVE_VECTORS = ['uBoxA', 'uTfBrowA', 'uTfBrowB', 'uTfEye', 'uTfMouth', 'uMood', 'uMood2', 'uRays', 'uDoor', 'uHoloA', 'uHoloB', 'uHoloC'];   // (uRays: a light's wash, its rays' clock: src/veil.js; uDoor: a way through's glow, src/door-light.js; uHoloA..C: a recording's figure, src/ship/hologram.js)
+export const LIVE_VECTORS = ['uBoxA', 'uTfBrowA', 'uTfBrowB', 'uTfEye', 'uTfMouth', 'uMood', 'uMood2', 'uRays', 'uDoor', 'uHoloA', 'uHoloB', 'uHoloC', 'uBreathe', 'uVeinBox', 'uSplatTime'];   // (uRays: a light's wash, its rays' clock: src/veil.js; uDoor: a way through's glow, src/door-light.js; uHoloA..C: a recording's figure, src/ship/hologram.js)
 const LIVE_FROM_SPEC = LIVE_VECTORS.indexOf('uMood');
+// (uBreathe: the Buried Machine's clock, src/breathe-shader.js; uVeinBox: where Lorn's vein map lies, src/lorn-veins.js; uSplatTime:
+// the splats' clock, a number sent as (t, 0, 0, 0), src/splat-decal.js; issue #264)
+const liveVec = (v) => (v?.isVector4 ? v : typeof v === 'number' ? (LIVE_NUM.x = v, LIVE_NUM) : null);
+const LIVE_NUM = { x: 0, y: 0, z: 0, w: 0 };
 
 /** What a render hook is handed for the renderer: nothing it can draw with (hooks here read the scene, not it). */
 // (a drawable unchanged this many frames is "quiet": its geometry, materials and keys looked at every 4th frame, quietWalk)
@@ -181,8 +185,8 @@ export class SceneMirror {
     // the vectors that move every frame (LIVE_VECTORS: a makers' box's ray and clock, the coral-shirt traveller's drawn face)
     const VW = R.vw;
     for (let k = 0; k < VW.length; k++) {
-      const w = VW[k], A = R.vh[k].value;
-      if (!A?.isVector4) continue;
+      const w = VW[k], A = liveVec(R.vh[k].value);
+      if (!A) continue;
       // (a face's mood starts as the material was sent with it: only its moves go; the others once as they are)
       const L2 = (m.__mirrorVec ??= {})[w] ??= w >= LIVE_FROM_SPEC ? Float32Array.of(A.x, A.y, A.z, A.w) : new Float32Array(4).fill(NaN);
       if (L2[0] === Math.fround(A.x) && L2[1] === Math.fround(A.y) && L2[2] === Math.fround(A.z) && L2[3] === Math.fround(A.w)) continue;
@@ -190,6 +194,13 @@ export class SceneMirror {
       const mid = this.mats.get(m);
       m.__mirrorMovedAt = f;
       if (mid) this.backend.materialVec(mid, w, [A.x, A.y, A.z, A.w]);
+    }
+    // Lorn's vein map (lorn-veins.js: baked after the water is made, bound to it then): the texture sent and named on the
+    // material when it is bound (backend.materialTexture; issue #264)
+    const vt = R.vein !== null ? R.vein.value : null;
+    if (vt?.isTexture && vt !== m.__mirrorVeinMap && this.backend.materialTexture) {
+      const mid = this.mats.get(m);
+      if (mid) { m.__mirrorVeinMap = vt; this.backend.materialTexture(mid, 'veins', vt); }
     }
     // the traveller's fluid (fluid-tool.js): its fill, tones and clock move every frame it flows
     if (R.fluid && this.backend.materialFluid) {
@@ -587,9 +598,9 @@ export { skeletonUpdate };
  * has the fluid's and a temple skin's.
  */
 function liveRecord(m, U, f, nv) {
-  const R = { at: f, of: U, col: U?.uColor ?? null, glow: null, wash: null, vw: [], vh: [], fluid: !!(U?.uFluidA && U.uFluidTones), skin: !!m.userData?.skinPattern };
+  const R = { at: f, of: U, col: U?.uColor ?? null, glow: null, wash: null, vw: [], vh: [], fluid: !!(U?.uFluidA && U.uFluidTones), skin: !!m.userData?.skinPattern, vein: U?.uVeinMap ?? null };
   if (U?.uGlow) R.glow = U.uGlow; else if (U?.uWash) R.wash = U.uWash;
-  if (U) for (let w = 0; w < nv; w++) { const h = U[LIVE_VECTORS[w]]; if (h?.value?.isVector4) { R.vw.push(w); R.vh.push(h); } }
+  if (U) for (let w = 0; w < nv; w++) { const h = U[LIVE_VECTORS[w]]; if (liveVec(h?.value)) { R.vw.push(w); R.vh.push(h); } }
   return R;
 }
 

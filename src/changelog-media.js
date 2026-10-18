@@ -1184,8 +1184,24 @@ const portRef = (id, what) => ({ sheet: `references/space-ports/${id}/sheet-1.jp
 /** (v1.84, issue #264: the menus left after #423) */
 const MENUS264 = 'Issue #264: the Unity bridge in the editor’s batch run on this Mac (muted, High, -frames 1280x720): -ui shop,credits and -ui arcade (engine/ui-poses.js), the sequences `game-rings`, `fight-temple` and `menus`; before: the same views in the runs of #423, #430 and #429 (the builds before this change); 17 October; cwebp -q 72';
 const MENUS264W = 'Issue #264: the web game in muted headless Chrome (High, 1280 × 720) on this branch’s own Vite (port 5464), the same pose as Unity’s; 17 October; cwebp -q 72';
+const SURF264 = 'Issue #264 (surfaces B): the Unity bridge in the editor’s batch run on this Mac (muted, High, 1280 × 720, -fresh -no-hud, the camera pinned at the same views as the web’s); before: main at 46b0bdb54; after: this change; the web’s pictures of the same views in muted headless Chrome (scripts/design-qc/capture.mjs, High, a fixed render scale) as their own tab; 18 October; cwebp -q 72';
+const SURF264W = 'Issue #264 (surfaces B): the web game in muted headless Chrome (High, 1280 × 720, a fixed render scale) on this branch’s own Vite (port 5466), the same view as Unity’s; 18 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.84': [
+    { match: 'In the Unity version, more of the world moves and shines as on the web', shots: [
+      { name: 'unity-mirror-lake', title: 'The mirror lake', caption: 'The Garden’s lake from its south shore in Unity: before, plain water, and the garden it remembers standing on the far shore; after, the shore and that garden in the water, as on the web', from: SURF264 },
+      { name: 'unity-mirror-lake-web', only: 'after', title: 'The lake on the web', caption: 'The same view on the web', from: SURF264W },
+      { name: 'unity-night-screens', title: 'The market at night', caption: 'The Signal Market at 22:00 in Unity: before, the billboards in their day paint; after, lit as the night sheets’ screens', from: SURF264 },
+      { name: 'unity-night-screens-web', only: 'after', title: 'The market on the web', caption: 'The same view on the web', from: SURF264W },
+      { name: 'unity-machine-parts', title: 'The Buried Machine', caption: 'The canyon’s west wall in Unity: before, the great pistons held in their drums; after, their rods out and the vents’ steam (each on its own beat)', from: SURF264 },
+      { name: 'unity-lorn-veins', title: 'Lorn’s veins', caption: 'The Great Crystal’s roots from above in Unity: before, plain water; after, the faceted violet and teal veins under it with their light', from: SURF264 },
+      { name: 'unity-lorn-veins-web', only: 'after', title: 'The veins on the web', caption: 'The same view on the web', from: SURF264W },
+      { name: 'unity-splat', only: 'after', title: 'A splat', caption: 'A splat of the fluid in the Garden’s meadow in Unity, its lumpy blob and drops grown in place (it stood whole, its square showing, before)', from: SURF264 },
+    ], see: 'In the Unity version, stand on the Garden’s lake shore; walk the Signal Market after dark; look up at the Buried Machine’s canyon walls; fly over Lorn’s Great Crystal; shoot the fluid at the ground; run through tall grass.' },
+    { match: 'In the Unity version, the worlds that have no drifting cloud shadows', shots: [
+      { name: 'unity-cloud-shade', title: 'Lorn', caption: 'Under Lorn’s Great Crystal at noon in Unity: before, the marsh all in a cloud’s shade and hatched; after, lit as on the web', from: SURF264 },
+      { name: 'unity-cloud-shade-web', only: 'after', title: 'On the web', caption: 'The same view on the web', from: SURF264W },
+    ], see: 'In the Unity version, look across Lorn or Viridel on a clear day.' },
     { match: 'In the Unity version, the shops, the Arcade’s board and a game’s cards look like the web’s', shots: [
       { name: 'unity-shop', only: 'after', title: 'A shop in Unity', caption: 'Haddu’s shop in Unity: his line in a bubble, the wallet, the three wares as cards with their pictures and prices, the healing potion picked (it was a list of boxed rows)', from: MENUS264 },
       { name: 'unity-shop-web', only: 'after', title: 'On the web', caption: 'The same shop on the web', from: MENUS264W },

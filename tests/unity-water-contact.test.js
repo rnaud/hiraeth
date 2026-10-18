@@ -36,7 +36,7 @@ test('the foam is on (seen working, #53), off on mobile players and with -noWate
 
 test('the water is drawn last over the scene depth, writing none of its own', () => {
   assert.match(surface, /ZWrite \[_ZWrite\]/, 'the G-buffer pass takes its depth writes from the material');
-  assert.match(loader, /if \(Rendering\.HiraethFeature\.Settings\.waterContact\)\s*\{\s*mat\.renderQueue = Rendering\.HiraethFeature\.WaterQueue; mat\.SetFloat\("_ZWrite", 0\);/, 'the water materials, only with the foam on');
+  assert.match(loader, /if \(Rendering\.HiraethFeature\.Settings\.waterContact[^\n]*\)\s*\{\s*mat\.renderQueue = Rendering\.HiraethFeature\.WaterQueue; mat\.SetFloat\("_ZWrite", 0\);/, 'the water materials, only with the foam on');
   assert.match(feature, /new RenderQueueRange\(WaterQueue, WaterQueue\)/, 'the water pass draws the water queue');
   assert.match(feature, /new FilteringSettings\(RenderQueueRange\.opaque\)/, 'the opaque pass leaves it out (WaterQueue is past the opaque range)');
   const q = Number(feature.match(/WaterQueue = (\d+)/)?.[1]);

@@ -26,6 +26,7 @@ namespace Hiraeth.Bridge
             public bool batched; public int movedAt;   // (in a static batch: BridgeRenderer.StaticBatch; the frame it last moved)
             public InstGroup group; public int moves;   // (its mesh and material's other sets: drawn together, mergeInstances; how often it moved since)
             public InstMats im; public Matrix4x4[] raw = new Matrix4x4[0]; public Color[] rawCol = new Color[0]; public int rawN; public bool imDirty;   // (instanced: on the GPU, the port's HIRAETH_INSTMAT)
+            public Vector4[] breathe;   // (the Buried Machine's moving parts: each instance's aBreathe, src/breathe-shader.js; null: none)
             public List<GameObject> chunks; public MeshData chunkSrc;   // (a big still mesh's pieces for the shadow maps: BridgeShadowChunks)
         }
 
@@ -66,7 +67,7 @@ namespace Hiraeth.Bridge
         // the coral-shirt traveller's overshirt (BridgeCloth: a Burst job a frame, op 17), by its id
         readonly Dictionary<int, BridgeCloth> cloths = new();
         // a material's vectors sent live (engine/mirror.js LIVE_VECTORS, in its order): op 18
-        static readonly string[] LiveVectors = { "_BoxA", "_TfBrowA", "_TfBrowB", "_TfEye", "_TfMouth", "_Mood", "_Mood2", "_WashRays", "_Door", "_HoloA", "_HoloB", "_HoloC" };   // (engine/mirror.js LIVE_VECTORS)
+        static readonly string[] LiveVectors = { "_BoxA", "_TfBrowA", "_TfBrowB", "_TfEye", "_TfMouth", "_Mood", "_Mood2", "_WashRays", "_Door", "_HoloA", "_HoloB", "_HoloC", "_Breathe", "_VeinBox", "_SplatClock" };   // (engine/mirror.js LIVE_VECTORS)
         public double msCloth;
         /// <summary>The people's capes simulated here (BridgeCape: src/cape.js CAPE_HOST), by the script's id; read by its thread too.</summary>
         public static readonly System.Collections.Concurrent.ConcurrentDictionary<int, BridgeCape> Capes = new();
@@ -357,14 +358,21 @@ namespace Hiraeth.Bridge
         // ------------------------------------------------------------------ materials (the port's own: WorldLoader.MakeMaterial)
         // ---------------------------------------------------------------- textures: the game's canvases (issue #264)
         readonly Dictionary<int, Texture2D> textures = new();
-        readonly Dictionary<int, List<Material>> mapUsers = new();
+        readonly Dictionary<int, List<(Material mat, string prop)>> mapUsers = new();
         /// <summary>The materials drawing texture `tid`, given it (now, or once it arrives).</summary>
-        void UseMap(Material mat, int tid)
+        void UseMap(Material mat, int tid, string prop = "_Map")
         {
-            if (!mapUsers.TryGetValue(tid, out var l)) mapUsers[tid] = l = new List<Material>();
-            l.Add(mat);
-            mat.SetFloat("_MapOn", 1);
-            if (textures.TryGetValue(tid, out var t)) mat.SetTexture("_Map", t);
+            if (!mapUsers.TryGetValue(tid, out var l)) mapUsers[tid] = l = new List<(Material, string)>();
+            l.Add((mat, prop));
+            if (prop == "_Map") mat.SetFloat("_MapOn", 1);
+            if (textures.TryGetValue(tid, out var t)) mat.SetTexture(prop, t);
+        }
+        /// <summary>A texture a material reads besides its picture, bound later (engine/unity/backend.js materialTexture: Lorn's
+        /// vein map, _VeinMap), on the material and its copies.</summary>
+        public void MaterialTexture(int mid, string prop, int tid)
+        {
+            if (materials.TryGetValue(mid, out var m) && m) UseMap(m, tid, prop);
+            if (copies.TryGetValue(mid, out var cl)) foreach (var c in cl) if (c) UseMap(c, tid, prop);
         }
         /// <summary>
         /// A texture's pixels (engine/unity/backend.js _texture: a canvas the game drew, engine/raster.js, or a DataTexture's
@@ -384,7 +392,7 @@ namespace Hiraeth.Bridge
                     filterMode = nearest ? FilterMode.Point : mips ? FilterMode.Trilinear : FilterMode.Bilinear,
                 };
                 textures[tid] = t;
-                if (mapUsers.TryGetValue(tid, out var users)) foreach (var mu in users) if (mu) mu.SetTexture("_Map", t);
+                if (mapUsers.TryGetValue(tid, out var users)) foreach (var mu in users) if (mu.mat) mu.mat.SetTexture(mu.prop, t);
             }
             var px = t.GetPixelData<byte>(0);
             int row = w * 4;
@@ -568,7 +576,7 @@ namespace Hiraeth.Bridge
             // (the ground and the water keep their own path in a lean variant of their own, when they use no other rare one)
             string why = F(m, "_Glass") > 0 ? "glass" : F(m, "_Veil") > 0 ? "veil" : V(m, "_Dissolve").x > 0 ? "dissolve"
                 : F(m, "_Fluid") > 0.5f ? "fluid" : F(m, "_TripoFace") > 0.5f ? "face" : F(m, "_Veins") > 0 ? "veins" : F(m, "_BoxOn") > 0.5f ? "box"
-                : F(m, "_Scrub") > 0 ? "scrub" : null;
+                : F(m, "_Scrub") > 0 ? "scrub" : F(m, "_SplatOn") > 0.5f ? "splat" : null;
             string kw = why != null ? null : mode == 1 ? "HIRAETH_LEAN_TERRAIN" : mode == 3 ? "HIRAETH_LEAN_WATER" : "HIRAETH_LEAN";
             // (the scrub's strokes or the glass's cut alone, on no ground or water: the lean variant with that one path kept)
             if (leanRare && (why == "scrub" || why == "glass") && mode != 1 && mode != 3 && RareCount(m) == 1)
@@ -621,7 +629,7 @@ namespace Hiraeth.Bridge
 #endif
         /// <summary>No person (an outfit or eyes, creases, folds), no picture and no hatching that follows its form, not a crowd's.</summary>
         static bool Slim(Material m, int mode) => mode != 4 && mode != 6 && F(m, "_Folds") <= 0 && F(m, "_Creases") <= 0
-            && F(m, "_MapOn") <= 0.5f && F(m, "_FormOn") <= 0.5f && F(m, "_DuneOn") <= 0.5f && !m.IsKeywordEnabled("HIRAETH_CROWD")
+            && F(m, "_MapOn") <= 0.5f && F(m, "_FormOn") <= 0.5f && F(m, "_DuneOn") <= 0.5f && F(m, "_NightOn") <= 0.5f && !m.IsKeywordEnabled("HIRAETH_CROWD")
             && (slimNot == null || System.Array.TrueForAll(slimNot, k => !(k.StartsWith("mode") ? mode.ToString() == k.Substring(4) : m.IsKeywordEnabled(k))));
         // (the copies made for the GPU instances, the grass and the crowds leave the slim variant: on them it faults the Adreno's GPU,
         // round 7; tests: -slim-copies keeps it on them, -slim-on-plain gives it with HIRAETH_PLAIN too, -slim-not KW,KW,mode1 leaves
@@ -869,6 +877,7 @@ namespace Hiraeth.Bridge
         }
 
         uint[] fu = new uint[0]; float[] ff = new float[0];
+        readonly Vector4[] brushTrail = new Vector4[14];   // (src/brush.js BRUSH.samples; op 28)
         public void Frame(byte[] b, int count)
         {
             var t0 = Time.realtimeSinceStartupAsDouble;
@@ -898,13 +907,20 @@ namespace Hiraeth.Bridge
                     }
                     case 3:   // instances: baked into one mesh (in the node's own space)
                     {
-                        int id = (int)fu[o++], cnt = (int)fu[o++]; bool hasCol = fu[o++] != 0;
+                        int id = (int)fu[o++], cnt = (int)fu[o++]; uint iflags = fu[o++]; bool hasCol = (iflags & 1) != 0, hasBreathe = (iflags & 2) != 0;
                         int mo = o; o += cnt * 16; int co = o; if (hasCol) o += cnt * 3;
+                        int bo = o; if (hasBreathe) o += cnt * 4;
                         if (nodes.TryGetValue(id, out var nd) && nd.im != null)
                         {
                             if (nd.raw.Length < cnt) { nd.raw = new Matrix4x4[Mathf.Max(cnt, 64)]; nd.rawCol = new Color[nd.raw.Length]; }
                             for (int i = 0; i < cnt; i++) { nd.raw[i] = Mat(ff, mo + i * 16); nd.rawCol[i] = hasCol ? new Color(ff[co + i * 3], ff[co + i * 3 + 1], ff[co + i * 3 + 2], 1) : Color.white; }
                             nd.rawN = cnt; nd.imDirty = true;
+                            if (hasBreathe)
+                            {
+                                if (nd.breathe == null || nd.breathe.Length < nd.raw.Length) nd.breathe = new Vector4[nd.raw.Length];
+                                for (int i = 0; i < cnt; i++) nd.breathe[i] = new Vector4(ff[bo + i * 4], ff[bo + i * 4 + 1], ff[bo + i * 4 + 2], ff[bo + i * 4 + 3]);
+                            }
+                            else nd.breathe = null;
                         }
                         else if (nd != null && nd.mf && meshes.TryGetValue(nd.mesh ?? "", out var md)) { if (nd.batched) Unbatch(nd); BakeInstances(nd, md, cnt, mo, hasCol ? co : -1); }
                         break;
@@ -1066,6 +1082,16 @@ namespace Hiraeth.Bridge
                         }
                         break;
                     }
+                    case 28:   // the traveller's recent path (src/brush.js BrushTrail: 14 samples x, y, z, pace x weight; the circle it lies in)
+                    {
+                        for (int i = 0; i < brushTrail.Length; i++) brushTrail[i] = new Vector4(ff[o + i * 4], ff[o + i * 4 + 1], ff[o + i * 4 + 2], ff[o + i * 4 + 3]);
+                        o += brushTrail.Length * 4;
+                        Shader.SetGlobalVectorArray("_BrushTrail", brushTrail);
+                        Shader.SetGlobalVector("_BrushBound", new Vector4(ff[o], ff[o + 1], ff[o + 2], ff[o + 3]));
+                        o += 4;
+                        Shader.SetGlobalFloat("_BrushTrailOn", 1);
+                        break;
+                    }
                     case 21:   // a temple skin's uniforms, live (a bell ringing, a lamp lit): its packed vec4 slots (SkinPatterns.hlsl _SkinData)
                     {
                         int mid = (int)fu[o++], n = (int)fu[o++];
@@ -1214,12 +1240,13 @@ namespace Hiraeth.Bridge
                 if (n.puffs != null && !Hidden("puffs")) n.puffs.Draw(around.center, 500);
                 if (n.im == null || n.rawN == 0 || Hidden("inst")) continue;
                 // (each instance's world matrix: the node's, then its own; again when either moved)
-                bool moved = n.imDirty || n.go.transform.hasChanged;
+                bool moved = n.imDirty || n.go.transform.hasChanged || n.breathe != null;
                 if (moved)
                 {
                     var W = n.go.transform.localToWorldMatrix;
                     if (n.im.data.Length < n.rawN) n.im.data = new InstMats.Inst[n.raw.Length];
-                    for (int i = 0; i < n.rawN; i++) n.im.Set(i, W * n.raw[i], n.rawCol[i]);
+                    if (n.breathe != null) Breathe(n, W);
+                    else for (int i = 0; i < n.rawN; i++) n.im.Set(i, W * n.raw[i], n.rawCol[i]);
                     n.im.count = n.rawN; n.imDirty = false; n.go.transform.hasChanged = false;
                 }
                 // (a set of a mesh and material other sets share: drawn by their group, below)
@@ -1282,6 +1309,58 @@ namespace Hiraeth.Bridge
         /// calls (performance.md, "Unity on the Retroid, round 5").
         /// </summary>
         public static bool mergeInstances;
+        /// <summary>
+        /// The Buried Machine's moving parts (src/breathe-shader.js breatheMove, issue #264): each instance moved in its own frame
+        /// by its aBreathe (phase, period, stroke, kind: 0 a slide out along its +y and back, 1 a turn about its y, 2 a puff
+        /// swelling as it rises and thinning away) on the material's clock (_Breathe: the canyon's clock, how far from the eye
+        /// one holds still, the clock it holds at, the gears' clock), as the web's vertex shader does; here a matrix an instance.
+        /// </summary>
+        void Breathe(Node n, Matrix4x4 W)
+        {
+            Vector4 clk = new Vector4(0, 1e9f, 0, 0);
+            var mat = n.im.mat;   // (the node's copy: the live vectors reach the copies too, op 18)
+            if (mat && mat.HasProperty("_Breathe")) clk = mat.GetVector("_Breathe");   // (Surface.shader declares it)
+            Vector3 eye = InstMats.ViewEye;
+            for (int i = 0; i < n.rawN; i++)
+            {
+                var M = W * n.raw[i];
+                var b = n.breathe[i];
+                float iS = Mathf.Max(((Vector3)n.raw[i].GetColumn(0)).magnitude, 1e-4f);
+                bool still = Vector3.Distance(M.GetColumn(3), eye) >= clk.y;
+                Matrix4x4 L;
+                if (b.w < 0.5f)
+                {
+                    float clock = still ? clk.z : clk.x;
+                    L = Matrix4x4.Translate(new Vector3(0, BreatheSlide((clock + b.x) / b.y) * b.z / iS, 0));
+                }
+                else if (b.w < 1.5f)
+                {
+                    // (three's turn of p.xz by mat2(c, -s, s, c): x' = c x + s z, z' = -s x + c z; mirrored in x for Unity's frame)
+                    float clock = still ? clk.z : clk.w, a = (clock + b.x) * 2f * Mathf.PI / b.y, c = Mathf.Cos(a), s = Mathf.Sin(a);
+                    L = Matrix4x4.identity;
+                    L.m00 = c; L.m02 = -s; L.m20 = s; L.m22 = c;
+                }
+                else
+                {
+                    float clock = still ? clk.z : clk.x;
+                    float u = (clock + b.x) / b.y, k = (u - Mathf.Floor(u)) / 0.6f;   // (breathe-shader.js PUFF_LIFE)
+                    float sc = k >= 1f ? 0f : Mathf.Pow(Mathf.Min(1f, k / 0.2f), 0.6f) * (0.45f + 0.95f * k) * (k < 0.65f ? 1f : 1f - Mathf.Pow((k - 0.65f) / 0.35f, 2f));
+                    float km = Mathf.Min(k, 1f), rise = (1f - (1f - km) * (1f - km)) * b.z / iS;
+                    L = Matrix4x4.TRS(new Vector3(0, rise, 0), Quaternion.identity, new Vector3(sc, sc, sc));
+                }
+                n.im.Set(i, M * L, n.rawCol[i]);
+            }
+        }
+        /// <summary>How far out a slide is (0 in .. 1 out) at u of its period (breathe-shader.js slideOut, SLIDE).</summary>
+        static float BreatheSlide(float u)
+        {
+            u -= Mathf.Floor(u);
+            static float Sm(float t) { t = Mathf.Clamp01(t); return t * t * (3f - 2f * t); }
+            if (u < 0.2f) return Sm(u / 0.2f);
+            if (u < 0.5f) return 1f;
+            if (u < 0.7f) return 1f - Sm((u - 0.5f) / 0.2f);
+            return 0f;
+        }
         class InstGroup { public InstMats im; public bool shadow, dirty = true; public int members; public List<Node> live = new(), drawn = new(); public int mid; public Mesh mesh; public float far; public Vector3 sortedAt = Vector3.positiveInfinity; }
         readonly Dictionary<(Mesh, int, bool, float), InstGroup> instGroups = new();
         // the meshes by their bytes as the script sent them (a body's parts each build a geometry of their own, the same shape)

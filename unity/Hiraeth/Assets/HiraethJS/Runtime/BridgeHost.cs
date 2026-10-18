@@ -136,6 +136,8 @@ namespace Hiraeth.Bridge
         public static void Material(int mid, string json) => On(() => R?.Material(mid, json));
         /// <summary>A texture's pixels (a canvas the game drew: engine/unity/backend.js _texture), copied, then made a Texture2D.</summary>
         /// <summary>A picture still encoded (JPEG, PNG: a model's own, engine/boot.js engineImages), decoded here (issue #394).</summary>
+        /// <summary>A texture a material reads besides its picture, bound later (Lorn's vein map: engine/unity/backend.js materialTexture).</summary>
+        public static void MaterialTexture(int mid, string prop, int tid) => On(() => R?.MaterialTexture(mid, prop, tid));
         public static void TextureImage(int tid, object buffer, int flags) { var b = JsRuntime.Bytes(buffer, out int n); var copy = new byte[n]; System.Buffer.BlockCopy(b, 0, copy, 0, n); On(() => R?.TextureImage(tid, copy, flags)); }
         public static void Texture(int tid, object buffer, int w, int h, int flags) { var b = JsRuntime.Bytes(buffer, out int n); var copy = new byte[n]; System.Buffer.BlockCopy(b, 0, copy, 0, n); On(() => R?.Texture(tid, copy, n, w, h, flags)); }
         /// <summary>The coral-shirt traveller's overshirt, done here (BridgeCloth): its description, once (engine/cloth.js packClothDesc).</summary>
