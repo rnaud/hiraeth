@@ -1,0 +1,45 @@
+engine/game.js
+  s_5f899ba316b5dc::t_ac1d39dd066dd7 1069
+engine/mirror-notices.js
+  s_5f899ba316b5dc::t_81b614827ea802 1-70
+engine/scene-matrices.js
+  s_5f899ba316b5dc::t_dcf67f579d5cb3 50,53,86-93,109-111,115-117,130-131,137-139,226-227,230
+engine/sequence-run.mjs
+  s_5f899ba316b5dc::t_cda2623ecc986b 14
+engine/unity/backend.js
+  s_5f899ba316b5dc::t_cf40075be29295 29-30
+engine/unity/game.js
+  s_5f899ba316b5dc::t_4fd36824d0aa5f 7-8,302,306-307
+engine/unity/notices-on.js
+  s_5f899ba316b5dc::t_38ab70d660954a 1-5
+scripts/unity-compare/views.mjs
+  s_5f899ba316b5dc::t_472d279e7b23b5 41
+tests/mirror-noticed.test.js
+  s_5f899ba316b5dc::t_288201c1652909 1-178
+engine/mirror.js
+  s_e90106600ffee2::t_7c7762643384a5 5-8,53,80-82,84,110,166-171,176-178,180,182-192,195,207-209,242,265,286,293-324,374-375,377-378,383-386,393-400,402-404,411,414-420,422-427,437,450-452,461,463,465,469,474,476-478,485,491,546,552-554,556,558-559,562-566,569-570,575,578-579,584-598
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "dd09db0a2fa21635e025d2823e034c6c09d97469",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_e90106600ffee2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a378143ec01c305bd",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
