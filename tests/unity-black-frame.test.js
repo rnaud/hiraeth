@@ -20,10 +20,30 @@ test('a renderer made again keeps the ink feature drawing: Dispose lets the mate
   assert.match(dispose[1], /compositeMaterial = bloomMaterial = fxaaMaterial = smaaMaterial = upscaleMaterial = null;/,
     'a destroyed material is still there until the frame ends: Create must not keep it');
   const add = feature.slice(feature.indexOf('public override void AddRenderPasses'));
-  const made = add.indexOf('compositeMaterial = CoreUtils.CreateEngineMaterial(compositeShader)'), bail = add.indexOf('if (compositeMaterial == null) return;');
+  const made = add.indexOf('compositeMaterial = Make(compositeShader)'), bail = add.indexOf('if (compositeMaterial == null) return;');
   assert.ok(made > 0 && bail > made, 'AddRenderPasses makes the composite again before it gives up');
   // (the test's switch: the renderer made again once, after the first picture)
   assert.match(runner, /BridgeArgs\.Flag\("-renderer-rebuild"\)[^\n]*rendererDataList\.Length > 0\)\s*\{ rebuilt = true; ua\.rendererDataList\[0\]\.SetDirty\(\); \}/);
+});
+
+test('a full-screen pass whose shader failed is left out and said, never drawn into a pooled target (issue #464)', () => {
+  // (WaterOver.shader's `line` on Metal: its pass drew nothing into a target written whole with nothing loaded, and every
+  // batch picture with water in view kept the first one's, read as "the follow camera in a world's first views")
+  const usable = feature.match(/public static bool Usable\(Shader s\)\s*\{([\s\S]*?)\n {8}\}/);
+  assert.ok(usable, 'the feature checks a shader before it makes a material of it');
+  assert.match(usable[1], /s == null \|\| broken\.Contains\(s\)/);
+  assert.match(usable[1], /bool ok = s\.isSupported;/);
+  assert.match(usable[1], /#if UNITY_EDITOR\s*ok &= !UnityEditor\.ShaderUtil\.ShaderHasError\(s\);\s*#endif/);
+  assert.match(usable[1], /broken\.Add\(s\); Debug\.LogError\(/, 'said once');
+  assert.match(feature, /static Material Make\(Shader s\) => Usable\(s\) \? CoreUtils\.CreateEngineMaterial\(s\) : null;/);
+  // every full-screen material made through it: Make, and SMAA under its own Usable(ss)
+  const made = [...feature.matchAll(/CoreUtils\.CreateEngineMaterial\((\w+)\)/g)].map((m) => m[1]).sort();
+  assert.deepEqual(made, ['s', 'ss']);
+  assert.match(feature, /if \(Usable\(ss\)\)\s*\{\s*smaaMaterial = CoreUtils\.CreateEngineMaterial\(ss\);/);
+  for (const m of ['compositeMaterial', 'bloomMaterial', 'fxaaMaterial', 'waterOverMaterial', 'upscaleMaterial'])
+    assert.match(feature, new RegExp(`${m} = Make\\(`), `${m} through Make`);
+  // (the visual check says a shader error with each world, pictures or not)
+  assert.match(read('scripts/unity-compare/unity.mjs'), /\^Shader error in\|ink feature: \.\* has an error/);
 });
 
 test('the glow gathers no NaN or infinity: read by the bits, which no compiler folds', () => {

@@ -2195,8 +2195,17 @@ Pictures: the web and Unity from the same views (scripts/unity-compare: the City
 fall and under its pool; the Underwater City; the mangrove's water from above for the sparkle), the before with
 `-no-water-over -no-fall`; in the changelog (v1.84). The mean RGB gap to the web's picture fell in every view where the
 pass or a fall shows (under the pool 58 → 7, the Underwater City's wide view 12.8 → 8.3, the curtain 11.9 → 8.5) and
-held in the rest. (In these batch runs the first few views of a world came out with the follow camera, not the pin:
-four throwaway views first gave the right pictures; not looked into further.)
+held in the rest.
+
+**A broken full-screen shader keeps an old picture** (issue #464). Those batch runs' first views seemed to come out with
+the follow camera, not the pin, and four throwaway views were put first. The camera was never wrong (`-look` logs it at
+each shot: the view's eye, from the first view on). WaterOver.shader had failed to compile on Metal (`line` is an HLSL
+keyword), and its pass drew nothing into `_HiraethPageWater`, a pooled render-graph texture written whole with nothing
+loaded, so every picture with water in view kept the first one's: the spawn's, from the follow camera. The fix of the
+shader made the throwaway views unneeded. Now `HiraethFeature.Usable` makes no material of a full-screen shader that is
+unsupported or, in the editor, has a compile error (`ShaderUtil.ShaderHasError`). That pass is left out and said once,
+and `scripts/unity-compare/unity.mjs` prints the shader errors with each world. With the error put back, every view
+draws its own picture, without the water's pass.
 
 ## Parity bits: the bird's prompt, the letterbox, a splat (2026-10-18, issue #459)
 

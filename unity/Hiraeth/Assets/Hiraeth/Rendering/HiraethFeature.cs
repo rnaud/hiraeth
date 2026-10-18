@@ -35,9 +35,9 @@ namespace Hiraeth.Rendering
         public override void Create()
         {
             if (compositeShader == null) compositeShader = Shader.Find("Hidden/Hiraeth/Composite");
-            if (compositeShader != null && compositeMaterial == null) compositeMaterial = CoreUtils.CreateEngineMaterial(compositeShader);
-            var bs = Shader.Find("Hidden/Hiraeth/Bloom"); if (bs != null && bloomMaterial == null) bloomMaterial = CoreUtils.CreateEngineMaterial(bs);
-            var fs = Shader.Find("Hidden/Hiraeth/FXAA"); if (fs != null && fxaaMaterial == null) fxaaMaterial = CoreUtils.CreateEngineMaterial(fs);
+            if (compositeMaterial == null) compositeMaterial = Make(compositeShader);
+            if (bloomMaterial == null) bloomMaterial = Make(Shader.Find("Hidden/Hiraeth/Bloom"));
+            if (fxaaMaterial == null) fxaaMaterial = Make(Shader.Find("Hidden/Hiraeth/FXAA"));
             shadows = new ShadowPass { renderPassEvent = RenderPassEvent.BeforeRenderingOpaques };
             gbuffer = new GBufferPass { renderPassEvent = RenderPassEvent.BeforeRenderingOpaques };
             composite = new CompositePass { renderPassEvent = RenderPassEvent.BeforeRenderingTransparents };
@@ -50,15 +50,15 @@ namespace Hiraeth.Rendering
             if (cam.cameraType == CameraType.Preview || cam.cameraType == CameraType.Reflection) return;
             // (made here if Create ran before the shaders were imported, or kept a material its renderer's Dispose had
             // destroyed: issue #462, below)
-            if (compositeMaterial == null && compositeShader != null) compositeMaterial = CoreUtils.CreateEngineMaterial(compositeShader);
+            if (compositeMaterial == null) compositeMaterial = Make(compositeShader);
             if (compositeMaterial == null) return;
-            if (bloomMaterial == null) { var bs = Shader.Find("Hidden/Hiraeth/Bloom"); if (bs != null) bloomMaterial = CoreUtils.CreateEngineMaterial(bs); }
-            if (fxaaMaterial == null) { var fs = Shader.Find("Hidden/Hiraeth/FXAA"); if (fs != null) fxaaMaterial = CoreUtils.CreateEngineMaterial(fs); }
-            if (waterOverMaterial == null && WaterOverMode > 0) { var ws = Shader.Find("Hidden/Hiraeth/WaterOver"); if (ws != null && ws.isSupported) waterOverMaterial = CoreUtils.CreateEngineMaterial(ws); }
+            if (bloomMaterial == null) bloomMaterial = Make(Shader.Find("Hidden/Hiraeth/Bloom"));
+            if (fxaaMaterial == null) fxaaMaterial = Make(Shader.Find("Hidden/Hiraeth/FXAA"));
+            if (waterOverMaterial == null && WaterOverMode > 0) waterOverMaterial = Make(Shader.Find("Hidden/Hiraeth/WaterOver"));
             if (smaaMaterial == null && Settings.smaa && smaaArea != null && smaaSearch != null)
             {
                 var ss = smaaShader != null ? smaaShader : Shader.Find("Hidden/Hiraeth/SMAA");
-                if (ss != null && ss.isSupported)
+                if (Usable(ss))
                 {
                     smaaMaterial = CoreUtils.CreateEngineMaterial(ss);
                     smaaMaterial.SetTexture("_AreaTexture", smaaArea); smaaMaterial.SetTexture("_SearchTexture", smaaSearch);
@@ -81,10 +81,30 @@ namespace Hiraeth.Rendering
             // (Settings.upscaler; URP's own final blit otherwise)
             if (Settings.upscaler != Upscaler.Urp)
             {
-                if (upscaleMaterial == null) { var us = Shader.Find("Hidden/Hiraeth/Upscale"); if (us != null && us.isSupported) upscaleMaterial = CoreUtils.CreateEngineMaterial(us); }
+                if (upscaleMaterial == null) upscaleMaterial = Make(Shader.Find("Hidden/Hiraeth/Upscale"));
                 if (upscaleMaterial != null) { upscale.material = upscaleMaterial; renderer.EnqueuePass(upscale); }
             }
         }
+
+        /// <summary>
+        /// A full-screen pass's shader that can draw: found, supported, and (in the editor) compiled without an error. A pass
+        /// whose shader failed draws nothing into its render-graph target, a pooled texture written whole with nothing loaded,
+        /// so the picture kept whatever an earlier frame left there: in the editor's batch runs every view with water in it
+        /// came out as the first such view (WaterOver.shader's `line` on Metal, issue #464; read as "the follow camera, not
+        /// the pin", worked round with throwaway views). Such a pass is left out instead, and said once.
+        /// </summary>
+        static readonly System.Collections.Generic.HashSet<Shader> broken = new();
+        public static bool Usable(Shader s)
+        {
+            if (s == null || broken.Contains(s)) return false;
+            bool ok = s.isSupported;
+#if UNITY_EDITOR
+            ok &= !UnityEditor.ShaderUtil.ShaderHasError(s);
+#endif
+            if (!ok) { broken.Add(s); Debug.LogError($"Hiraeth: ink feature: {s.name} has an error or is not supported here; its pass is left out (issue #464)"); }
+            return ok;
+        }
+        static Material Make(Shader s) => Usable(s) ? CoreUtils.CreateEngineMaterial(s) : null;
 
         // (the references let go as well: URP makes its renderer again (a renderer asset's change, the editor now and then
         // mid-run) by disposing the old one, whose features are these same objects, then calling Create for the new one, while

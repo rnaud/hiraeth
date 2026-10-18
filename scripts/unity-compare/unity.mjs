@@ -48,5 +48,9 @@ for (const [world, { views }] of Object.entries(V.worlds)) {
   if (existsSync(log)) copyFileSync(log, join(OUT, `${world}.log`));
   const saved = (r.stdout.match(/saved /g) ?? []).length;
   console.log(`${world}: ${saved} of ${views.length} pictures in ${((Date.now() - t0) / 1000).toFixed(0)} s${saved < views.length ? `\n${r.stdout.split('\n').filter((l) => /error|Exception|failed|no temple/i.test(l)).slice(0, 8).join('\n')}` : ''}`);
+  // (a shader that failed to compile said every time, pictures or not: a full-screen pass left out changes them all, and
+  // before issue #464 one kept an earlier view's picture, read as the follow camera in the first views)
+  const shaderErrors = existsSync(log) ? [...new Set(readFileSync(log, 'utf8').split('\n').filter((l) => /^Shader error in|ink feature: .* has an error/.test(l)))] : [];
+  if (shaderErrors.length) console.log(`${world}: shader errors, its pictures are not the game's:\n${shaderErrors.slice(0, 6).join('\n')}`);
 }
 process.exit(0);
