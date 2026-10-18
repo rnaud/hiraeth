@@ -4815,3 +4815,90 @@ than two runs of one build do (mean |Δ| 0.9–4.1 against 0.6–4.5).
 30–120 m there are only 20–120 of its 560–1 530 (most are in view or far), and a quarter rate for them saved nothing
 measurable in node (0.18 ms a frame unthrottled either way), the extra view test costing what it saved. Its cost is
 `Crowd.update`'s own walk of everybody (tiers, distances, the mid tier's writes), not `simulate`.
+
+## CPU round 3 (#453): fewer and cheaper draws
+
+#446's biggest lever: three's per-draw work (~27 µs a draw at ×4). Four changes, each pixel for pixel the same picture,
+take 2–23 % of a frame's draws on Handheld (15–23 % in the Desert, the City-Shaft and the Market).
+
+### What the passes draw (Handheld, standing at each world's start, before this round)
+
+Every draw of four frames recorded at three's `renderBufferDirect`, by pass, and for each the reason static-batch.js left
+it to draw itself (`statics.why`), its path, material and geometry (scratchpad `cpu-453/drawlist.js`, `tally.py`). Per
+frame: the G-buffer 147–295 draws, the near or far shadow map 50–174, the hero map 19–20 (the traveller and his gear).
+The largest groups:
+
+| group | where | draws a pass | what it was |
+|---|---|---|---|
+| instanced meshes of one material | City-Shaft (and its crowd view) | ~98 in the G-buffer, ~97 in a shadow map | its trees: one instanced mesh per terrace, kind and eighth of the ring, all in one material |
+| a level of detail "released for room" | Market, Underwater, Lorn, Desert | 16–56 in the G-buffer, 5–32 in a shadow map | lod.js's levels are indexed, the batches of unindexed meshes can't take an indexed geometry (BatchedMesh): `addGeometry` threw, the mesh drew itself for good |
+| a material of its own ("few") | Desert, Underwater, Lorn | 38–58 in the G-buffer | the strata rocks: each its own `uStrataSize` and `uCracks` (left: see below) |
+| a material define the batches refuse | Underwater, Desert, Lorn | 5–21 in a shadow map | ROOM_LIGHT rooms, the water, makers' boxes: irrelevant under the shadow pass's override |
+| the crowd's empty draws | every world with a crowd | 2–4 a pass | crowd.js's hooks set its tiers' and its caster's count to 0 in the passes they have no part in, after three has begun the draw |
+| movers, people, late meshes, flagged | everywhere | the rest | the traveller's gear (the hero map's 19), people's bodies, things built after the batches, temple skins flagged dynamic |
+
+### The changes
+
+1. **An indexed level of detail is unrolled into a batch with no index** (static-batch.js `unrolled`, `batchCopy`): the
+   level's triangles one after the other (`toNonIndexed`, kept per geometry). The released meshes stay in their batches.
+2. **A material's instanced meshes drawn by one draw a pass** (src/instance-merge.js, run by the flat pass as it hands a
+   pass to three): instanced meshes of a material that nothing else draws, with one geometry and world matrix, are
+   replaced by an instanced mesh of the pass's own (outside the scene: no system and not the Unity mirror sees it), their
+   instances copied in when they change. In the shadow maps (depth only) each shape is merged whole. In the G-buffer only
+   runs of one shape in three's own order (screen depth, then id) are: merged by shape regardless, 13 pixels of the
+   City-Shaft changed, where two far trees meet at one depth and the later one wins the pixel. A tile source (perf.js
+   `tileSceneSteps`: count 0, its tiles its children) does not keep its tiles out.
+3. **The crowd's meshes out of the passes where they draw nothing** (main.js `crowdShadowless`, `crowdView`): its figures
+   in the shadow maps, its caster in the view, in the km-wide map and when no one is near enough, a tier holding no one.
+4. **A still mesh kept from the view's batches by its material alone casts through the shadow batch** (static-batch.js
+   `shadowReason`): it draws itself in the view and is lent to the shadow batch in the shadow passes, as the "few" meshes
+   already were.
+
+**Checked.** Each change has an in-page switch; the final frame was read back with it off and on in turn in one frozen
+frame (`renderFrame()` with requestAnimationFrame stopped, 10:00, clear, Handheld, 1280 × 633): 0 pixels differ in all
+seven #446 worlds for each of the four (the City-Shaft and the Market change once between their first two frames
+whatever the switch: off against off differs as much, every pair after is 0). The pictures were looked at
+(`cpu-453/shots/`). Tests: tests/static-batch.test.js (the unrolled level, the shadow-only meshes),
+tests/instance-merge.test.js (groups, order, runs, copies, changes, tile sources, colours). **Web only**: the Unity
+script bundle (`hiraeth.cjs`) built before and after this round is byte for byte the same (sha a9241a2c); the bridge
+mirrors the scene, where nothing changed, so the Unity object count and its frame are as before. The Steam Deck was not
+taken for this round: its Unity player runs the same script.
+
+### Measured
+
+The game running at CPU ×4 (headless Chrome on the M4 Pro, Handheld, standing at each start), the four changes off and
+on in turns in one page, 6 rounds of 2.5 s each, medians; two runs per world (the Mac's load 6–45 from other agents).
+Draws per pass are the most of 6 frames:
+
+| world | scene renders ms a frame (×4) | frame ms (×4) | fps (×4) | draws a frame | G-buffer | near map | far map |
+|---|---|---|---|---|---|---|---|
+| the Desert | 14.40 → 13.51 | 32.95 → 31.70 | 30.3 → 31.5 | 377 → 319 | 264 → 231 | 111 → 82 | 122 → 78 |
+| the City-Shaft | 12.44 → 12.04 | 31.88 → 31.49 | 31.4 → 31.8 | 435 → 359 | 279 → 255 | 143 → 93 | 180 → 80 |
+| the Signal Market | 9.93 → 8.62 | 24.77 → 23.00 | 40.4 → 43.5 | 388 → 299 | 256 → 201 | 131 → 97 | 178 → 122 |
+| Lorn | 10.11 → 9.62 | 23.04 → 22.62 | 43.4 → 44.2 | 375 → 350 | 245 → 228 | 101 → 95 | 112 → 93 |
+| the Underwater City | 8.06 → 7.38 | 20.16 → 19.27 | 49.6 → 51.9 | 342 → 301 | 233 → 209 | 93 → 69 | 121 → 97 |
+| the Rose House's fight | 6.12 → 6.03 | 20.32 → 20.37 | 49.2 → 49.1 | 180 → 176 | 103 → 103 | 57 → 50 | 46 → 46 |
+| the City-Shaft's crowd | 10.91 → 10.36 | 29.88 → 29.37 | 33.5 → 34.1 | 431 → 360 | 273 → 249 | 147 → 97 | 183 → 84 |
+
+(Draws as three counts them: the crowd's empty draws are not counted, though three did their work.) The scene's renders
+take 0.1–1.3 ms less a frame at ×4, ~13 µs a draw saved: less than #446's 27 µs, since the shadow maps' draws are the
+cheaper ones (one program) and the merged meshes' copies cost a little when the view moves. The City-Shaft's far map
+(180 → 80) is drawn on only some frames.
+
+### Left out
+
+- **The strata rocks' materials** (the Desert's 30-odd "few" draws, Lorn's and the Underwater City's): each rock has its
+  own `uStrataSize` (and `uCracks`), so no two share a batch. Reading them per mesh from the batch's values (the fourth
+  texel is free) is what materials.js's S_BATCH note warns against: a division by a varying compiles to other bits than
+  by a uniform, and the bands moved by a pixel. A picture change.
+- **Sorting the G-buffer by program**: 47 programs, 120 program changes, 202 materials in the Desert's 287 draws. Any
+  order but three's (material, depth, id) changes which of two surfaces at one depth wins a pixel (as the merge showed).
+- **Draws under a pixel** (21 of the Desert's G-buffer): culling them changes pixels (a sub-pixel triangle can still
+  cover a sample).
+- **The traveller's gear** (the hero map's 19 draws, ~20 in the G-buffer): his own meshes move with him and in several
+  materials; merging them is part-batch.js's work on a moving body, not done here.
+- **Late meshes** (things built after the batches, 20–38 in the G-buffer): the batches are made once; making them again
+  when the world adds still meshes is a round of its own.
+
+Raw: the session's scratchpad, `cpu-453/` (`drawlist.js`, `tally.py`, `list-*-base.lines`, `pix*.txt`, `shots/`,
+`tog-*.js`, `timeab.js`, `time-r1|r2-*.txt`, `timesum.py`).

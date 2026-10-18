@@ -59,6 +59,18 @@ export const CHANGELOG = [
         { where: 'the City-Shaft, its densest crowd', before: 2.76, after: 2.24 },
         { where: 'the Signal Market, where you arrive', before: 2.57, after: 2.34 },
       ], source: 'docs/systems/performance.md, "CPU round 2 (#450)": people posed a frame 7.5 → 4.2 (the City-Shaft), 7 → 4.7 (its crowd), 11 → 8.8 (the Market)' }] },
+    // issue #453: src/static-batch.js (unrolled, shadowReason), src/instance-merge.js, src/flat-pass.js, src/main.js
+    // (crowdShadowless, crowdView); tests/static-batch.test.js, tests/instance-merge.test.js; docs/systems/performance.md
+    // "CPU round 3 (#453)"
+    { text: 'In the browser and the Android app, a frame asks the graphics chip for up to 23 % fewer drawings, which helps on a slow processor: distant buildings no longer drop out of their shared batch when they switch to a simpler shape, the City-Shaft’s trees and the desert’s pebbles in one place are drawn together, the crowd no longer asks for drawings of nobody, and more still things cast their shadows together. The picture is exactly the same.',
+      numbers: [{ title: 'Drawing the world (the shadow maps and the view) at a quarter of the processor’s speed, ms a frame, before → after (two runs each)', unit: 'ms', better: 'lower', device: 'this Mac (M4 Pro), headless Chrome, the CPU slowed ×4, Handheld, 1280 × 633, standing at the start; the changes turned off and on in turns in the same page', rows: [
+        { where: 'the Desert (377 → 319 drawings a frame)', before: 14.4, after: 13.51 },
+        { where: 'the City-Shaft (435 → 359)', before: 12.44, after: 12.04 },
+        { where: 'the Signal Market (388 → 299)', before: 9.93, after: 8.62 },
+        { where: 'Lorn (375 → 350)', before: 10.11, after: 9.62 },
+        { where: 'the Underwater City (342 → 301)', before: 8.06, after: 7.38 },
+        { where: 'the City-Shaft’s densest crowd (431 → 360)', before: 10.91, after: 10.36 },
+      ], source: 'docs/systems/performance.md, "CPU round 3 (#453)": whole frames 30.3 → 31.5 fps in the Desert, 40.4 → 43.5 in the Market, 49.6 → 51.9 Underwater at ×4' }] },
     // issue #442: src/fight-temples/rules.js rollInput / rollKey, index.js (the card), session.js; src/fluid-blade.js
     // QUICK_CUT, quickSwing, rollCancels, ROLL.buffer; src/fight-temples/kill-fx.js, src/audio.js foeKill; hazards.js
     // LINGERING; tests/fight-feel.test.js; docs/design/fight-temples.md "The roll, the quick cut and readable kills"
