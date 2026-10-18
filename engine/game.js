@@ -167,7 +167,7 @@ export { ITEMS, items } from '../src/items.js';   // (the tests: the bundle's it
 export { GAMES };   // (the tests: every minigame, played on its own page: tests/bridge-gaps.test.js)
 export { Raycaster } from 'three';   // (for the tests and the tools that probe the world in the VM)
 // (the sequences, the web against the engines beat by beat: engine/sequences.js, run by engine/sequence-run.mjs and -sequence)
-export { SEQUENCES, sequenceById, SequenceRun, engineSetup, engineReady, engineGame, engineKey, probe } from './sequences.js';
+export { SEQUENCES, sequenceById, SequenceRun, mapAtOnce, engineSetup, engineReady, engineGame, engineKey, probe } from './sequences.js';
 export { ROUTES, routeById, STUTTER_RUNS } from './stutter-routes.js';   // (the stutter harness's play routes, issue #468)
 export { EngineMenus } from './menus.js';
 export { Settings } from '../src/ui.js';

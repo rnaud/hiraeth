@@ -20,6 +20,7 @@ import { CINEMATICS } from '../src/cinematics-page/catalog.js';
 import { stageCinematic, seedReviewEntry } from '../src/cinematics-page/runtime.js';
 import { screen } from '../src/platform.js';
 import { game as gameState } from '../src/game-state.js';
+import { MAP } from '../src/world-map.js';
 import { seedDebugSave } from '../src/debug-save.js';
 import { slots, slotStorage, DEBUG_SLOT } from '../src/save-slots.js';
 import { items } from '../src/items.js';
@@ -489,6 +490,15 @@ export function engineKey(g, menus, code, down) {
  * A beat runs in this order: act(G) (a dev jump; a promise is waited for), its keys tapped (down, 0.12 s, up, 0.25 s
  * apart), until(G) waited for (timeout s, then recorded `late`), after(G), wait s more, then recorded.
  */
+/**
+ * The Map drawn whole at its first look while the sequences' streams are taken (the node runner, engine/sequence-run.mjs,
+ * and the web's recorder, scripts/unity-compare/sequences.mjs): its rays and its picture are a few ms a frame in play
+ * (MAP.budget, issue #468's phase 1), so how much of it a beat saw hung on the machine's speed and load, and a stream
+ * taken on a busy machine differed from one taken on an idle one. Not for the players' runs (the stutter routes measure
+ * the budget itself).
+ */
+export function mapAtOnce() { MAP.budget = 1e6; }
+
 export class SequenceRun {
   constructor(G, seq) { Object.assign(this, { G, seq, i: 0, phase: 'act', t: 0, time: 0, events: [], busy: false, late: false, errors: [] }); G.since = 0; }
   tick(dt) {

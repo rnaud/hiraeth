@@ -49,6 +49,7 @@ export async function runSequence(file, id, { quiet = true, log = () => {}, leve
     // run, so a foe's wind-up chip in a beat is there every time or never: issue #454)
     const B = loadBundle(file, { pads: () => [] }, { setTimeout: track(setTimeout, clearTimeout), setInterval: track(setInterval, clearInterval) }, { seed }).exports;
     const seq = B.sequenceById(id) ?? B.routeById?.(id);
+    B.mapAtOnce?.();   // (the Map whole at its first look: the stream not hanging on the machine's speed)
     if (!seq) throw new Error(`no sequence ${id}`);
     const opts = B.engineSetup(level ? { ...seq.setup, level } : seq.setup);
     let g = null;

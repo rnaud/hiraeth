@@ -69,7 +69,7 @@ async function web() {
         // (a review: the page stages its cinematic itself, src/cinematics-page/runtime.js startReview)
         if (seq.setup.review) for (let i = 0; i < 240; i++) { const st = await c.ev('window.cinematicReview?.status ?? ""'); if (/^(Playing|Could not)/.test(st)) { if (st.startsWith('Could')) out.errors.push(st); break; } await sleep(250); }
         // (the module fetched again once if Vite was still optimizing a dependency: a fresh server's first page can miss it)
-        await c.ev(`(async () => { let S; try { S = await import('/engine/sequences.js'); } catch { await new Promise((r) => setTimeout(r, 1500)); S = await import('/engine/sequences.js?again'); } window.__seqM = S; window.__seqG = S.webGame(window); window.__seq = new S.SequenceRun(window.__seqG, S.sequenceById(${JSON.stringify(seq.id)})); window.__seqT = window.clock(); window.__seqR = performance.now(); return true; })()`);
+        await c.ev(`(async () => { let S; try { S = await import('/engine/sequences.js'); } catch { await new Promise((r) => setTimeout(r, 1500)); S = await import('/engine/sequences.js?again'); } window.__seqM = S; S.mapAtOnce?.(); window.__seqG = S.webGame(window); window.__seq = new S.SequenceRun(window.__seqG, S.sequenceById(${JSON.stringify(seq.id)})); window.__seqT = window.clock(); window.__seqR = performance.now(); return true; })()`);
         const pause = (on) => c.ev(`(() => { window.cinematicReview = Object.assign(window.cinematicReview ?? {}, { paused: ${on} }); return true; })()`);
         for (;;) {
           if (Date.now() - t0 > 420000) { out.errors.push('timed out'); break; }
