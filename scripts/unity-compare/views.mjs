@@ -38,7 +38,7 @@ const pick = (list, names) => names.map((n) => list.find((v) => v.name === n)).f
 const clean = (v) => ({ name: v.name, player: v.player, heading: v.heading, eye: v.eye, target: v.target, fov: v.fov ?? 55, note: v.note });
 
 // the game in a bare V8 context, for the worlds the bench has no views of and the temples' first rooms
-const UNSET = new Set(['shapeAttrs', 'quietWalk', 'listMatrices', 'stillMatrices', 'skipHidden', 'peopleLod', 'portrait', 'capeOffload', 'clothOffload', 'brush', 'materialFluid', 'materialLive', 'materialVec', 'vertices', 'then', 'photo']);
+const UNSET = new Set(['shapeAttrs', 'quietWalk', 'listMatrices', 'stillMatrices', 'skipHidden', 'noticed', 'peopleLod', 'portrait', 'capeOffload', 'clothOffload', 'brush', 'materialFluid', 'materialLive', 'materialVec', 'vertices', 'then', 'photo']);
 const backend = new Proxy({}, { get: (t, k) => (UNSET.has(k) ? undefined : () => {}) });
 let B = null;
 async function engine() {

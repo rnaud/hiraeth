@@ -26,6 +26,8 @@ export class UnityBackend {
     this.frameView = true;
     // (hidden subtrees' matrices left until they are shown or read: engine/scene-matrices.js skipHidden)
     this.skipHidden = true;
+    // (a drawable looked at again only when the notices say something of it was rewritten: engine/mirror-notices.js, issue #455)
+    this.noticed = true;
     // (a person past 30 m out of the view moved a quarter of the frames, as past 110 m: engine/game.js, src/npc.js offView)
     this.peopleLod = true;
     // (the attributes besides the points and normals that may move with a shape and still go by vertices(): the banners'

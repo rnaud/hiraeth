@@ -2,7 +2,10 @@
 //
 // The game keeps building and moving three.js objects exactly as it does on the web; nothing draws
 // them in the VM. Each frame `mirror.sync(scene, camera)` walks the scene and tells the backend
-// only what changed:
+// only what changed. (How it knows without looking at everything: the scene's list, engine/scene-matrices.js, says
+// which world matrices changed and what is shown; the notices, engine/mirror-notices.js, say which hooks and attributes
+// were rewritten; a drawable's geometry and material are read, its materials' values once a frame: `noticed`, the
+// Unity bridge's, issue #455. tests/mirror-noticed.test.js holds it to the mirror that looks at everything.)
 //
 //   geometry(gid, g)            once per geometry (and again when an attribute's version moves):
 //                               typed arrays, as three holds them (position, normal, uv, color,
@@ -47,6 +50,7 @@ import { survey, CHECK_ROUND, SURVEY_EVERY } from './mirror-freeze.js';
 import { updateSceneMatrices, sceneList } from './scene-matrices.js';
 import { WORLD_STAMP } from '../src/matrix-cache.js';
 import { skeletonUpdate } from '../src/skeleton-update.js';
+import { noticesOn, ownHook, attrIn } from './mirror-notices.js';
 
 
 /**
@@ -73,8 +77,11 @@ export class SceneMirror {
    * @param o.stillMatrices  with listMatrices: a drawable's world matrix compared with the one last sent only when it may
    *   have changed (the list made it anew, or a walk outside it did: src/matrix-cache.js WORLD_STAMP), and every 8th frame
    * @param o.skipHidden  with listMatrices: hidden subtrees' matrices left until they are shown or read (scene-matrices.js)
+   * @param o.noticed  with stillMatrices, the notices on (engine/mirror-notices.js): a drawable looked at in full only when
+   *   something of it was rewritten (its geometry, an attribute, a hook, its material), its materials' values read
+   *   every frame, its matrix compared only when the list or a walk says it may have moved (issue #455)
    */
-  constructor(backend, { forgetAfter = 120, filter = null, materialSpec = inkSpec, castsShadow = null, freeze = false, quietWalk = false, listMatrices = false, stillMatrices = false, skipHidden = false } = {}) {
+  constructor(backend, { forgetAfter = 120, filter = null, materialSpec = inkSpec, castsShadow = null, freeze = false, quietWalk = false, listMatrices = false, stillMatrices = false, skipHidden = false, noticed = false } = {}) {
     this.backend = backend;
     this.castsShadow = castsShadow;   // (o) → false: left out of the sun's shadow (the game's caster rules: shadows.js)
     this.forgetAfter = forgetAfter;
@@ -100,6 +107,7 @@ export class SceneMirror {
     this.stillMatrices = stillMatrices && listMatrices;
     this.skipHidden = skipHidden && listMatrices;
     if (this.stillMatrices) WORLD_STAMP.on = true;
+    this.noticed = noticed && this.stillMatrices && !filter && !this.freeze && noticesOn();
     this.quietWalk = quietWalk;   // (a filter may change its mind about what is inside: walked each frame)
     this._frozen = []; this._frozenDirty = false; this._checkAt = 0;
     this.time = 0;            // the game's clock (sharedUniforms.uTime), set before sync: handed to instances()   // (the bones' share timed apart: costs a clock read a skinned mesh)
@@ -155,35 +163,36 @@ export class SceneMirror {
 
   _skeletonId(sk) { return sk.__mirrorId ??= this.nextSkeleton++; }
 
-  /** A material's colour and glow as last sent (once a frame, however many drawables use it): told when they moved. */
+  /**
+   * A material's colour and glow as last sent (once a frame, however many drawables use it): told when they moved.
+   * Which of its uniforms can move (colour, glow or wash, the live vectors, the fluid, a temple skin) and their holders
+   * (the { value } objects) are kept on it and looked up again every 64 frames (or when its uniforms are another
+   * object): a material is read every frame a drawable shows it, and most hold none of the vectors (issue #455).
+   */
   _live(m, f) {
     if (m.__mirrorLiveF === f) return;
     m.__mirrorLiveF = f;
     this.census.live++;
+    const U = m.uniforms;
+    let R = m.__mirrorRec;
+    if (R === undefined || f - R.at >= 64 || R.of !== U) R = m.__mirrorRec = liveRecord(m, U, f, this.backend.materialVec ? LIVE_VECTORS.length : 0);
     // (a see-through surface's wash, src/veil.js: its alpha goes as its glow, LightShaft.fade moving it)
-    const U = m.uniforms, c = U?.uColor?.value, g = U?.uGlow ? U.uGlow.value : U?.uWash?.value?.isVector3 ? U.uWash.value.x : undefined;
+    const c = R.col !== null ? R.col.value : undefined, g = R.glow !== null ? R.glow.value : R.wash !== null && R.wash.value?.isVector3 ? R.wash.value.x : undefined;
     // the vectors that move every frame (LIVE_VECTORS: a makers' box's ray and clock, the coral-shirt traveller's drawn face)
-    if (this.backend.materialVec && U) {
-      // (which of them the material has, looked up again every 64 frames: most have none)
-      let H = m.__mirrorHas;
-      if (!H || f - H.at >= 64 || H.of !== U) {
-        H = m.__mirrorHas = { at: f, of: U, w: [] };
-        for (let w = 0; w < LIVE_VECTORS.length; w++) if (U[LIVE_VECTORS[w]]?.value?.isVector4) H.w.push(w);
-      }
-      for (let k = 0; k < H.w.length; k++) {
-        const w = H.w[k], A = U[LIVE_VECTORS[w]]?.value;
-        if (!A?.isVector4) continue;
-        // (a face's mood starts as the material was sent with it: only its moves go; the others once as they are)
-        const L2 = (m.__mirrorVec ??= {})[w] ??= w >= LIVE_FROM_SPEC ? Float32Array.of(A.x, A.y, A.z, A.w) : new Float32Array(4).fill(NaN);
-        if (L2[0] === Math.fround(A.x) && L2[1] === Math.fround(A.y) && L2[2] === Math.fround(A.z) && L2[3] === Math.fround(A.w)) continue;
-        L2[0] = A.x; L2[1] = A.y; L2[2] = A.z; L2[3] = A.w;
-        const mid = this.mats.get(m);
-        m.__mirrorMovedAt = f;
-        if (mid) this.backend.materialVec(mid, w, [A.x, A.y, A.z, A.w]);
-      }
+    const VW = R.vw;
+    for (let k = 0; k < VW.length; k++) {
+      const w = VW[k], A = R.vh[k].value;
+      if (!A?.isVector4) continue;
+      // (a face's mood starts as the material was sent with it: only its moves go; the others once as they are)
+      const L2 = (m.__mirrorVec ??= {})[w] ??= w >= LIVE_FROM_SPEC ? Float32Array.of(A.x, A.y, A.z, A.w) : new Float32Array(4).fill(NaN);
+      if (L2[0] === Math.fround(A.x) && L2[1] === Math.fround(A.y) && L2[2] === Math.fround(A.z) && L2[3] === Math.fround(A.w)) continue;
+      L2[0] = A.x; L2[1] = A.y; L2[2] = A.z; L2[3] = A.w;
+      const mid = this.mats.get(m);
+      m.__mirrorMovedAt = f;
+      if (mid) this.backend.materialVec(mid, w, [A.x, A.y, A.z, A.w]);
     }
     // the traveller's fluid (fluid-tool.js): its fill, tones and clock move every frame it flows
-    if (U?.uFluidA && U.uFluidTones && this.backend.materialFluid) {
+    if (R.fluid && this.backend.materialFluid) {
       const F = m.__mirrorFluid ??= new Float32Array(29).fill(NaN), A = U.uFluidA.value, Bv = U.uFluidB?.value, T = U.uFluidTones.value, FB = U.uFluidBase?.value;
       let moved = false;
       const put = (k, v) => { const x = Math.fround(v); if (F[k] !== x) { F[k] = x; moved = true; } };
@@ -195,9 +204,9 @@ export class SceneMirror {
       if (moved) m.__mirrorMovedAt = f;
       if (moved && mid) this.backend.materialFluid(mid, F);
     }
-    // a temple skin's uniforms (src/temples/skins/skin-shader.js: a bell ringing, a lamp lit), looked at every 4th frame
-    // (by the material's own count, not the frame's: a quiet drawable is looked at every 4th frame, quietWalk)
-    if (this.backend.materialSkin && m.userData?.skinPattern && ((m.__mirrorSkinN = (m.__mirrorSkinN ?? -1) + 1) & 1) === 0) {
+    // a temple skin's uniforms (src/temples/skins/skin-shader.js: a bell ringing, a lamp lit), looked at every other time
+    // (by the material's own count, not the frame's)
+    if (R.skin && this.backend.materialSkin && ((m.__mirrorSkinN = (m.__mirrorSkinN ?? -1) + 1) & 1) === 0) {
       const S = m.__mirrorSkin, now = skinPatternSpec(m, this._skinScratch)?.data;
       if (now) {
         this._skinScratch = now;
@@ -230,7 +239,7 @@ export class SceneMirror {
     this.ids.set(o, id);
     const kind = o.isSkinnedMesh ? 'skinned' : o.isInstancedMesh ? 'instanced' : o.isMesh && isInstGeo(o.geometry) ? 'instgeo' : o.isMesh ? 'mesh' : o.isPoints ? 'points' : o.isLine ? (o.isLineSegments ? 'segments' : 'line') : 'sprite';
     const mats = Array.isArray(o.material) ? o.material : [o.material];
-    const node = { id, object: o, matrix: new Float32Array(16).fill(NaN), shown: false, seen: -1, mw: -1, instVersion: -1, kind, geo: null, gv: -1, changedAt: this.frameNo, frozen: null, owner: this, dead: false, hook: undefined, matMovedAt: -1e9 };
+    const node = { id, object: o, matrix: new Float32Array(16).fill(NaN), shown: false, seen: -1, mw: -1, instVersion: -1, kind, geo: null, gv: -1, changedAt: this.frameNo, frozen: null, owner: this, dead: false, hook: undefined, matMovedAt: -1e9, touched: false, grec: null };
     o.__mirror = node;   // (the walk finds it on the object: no map lookups a frame)
     this.nodes.set(id, node);
     this.stats.nodes++;
@@ -253,7 +262,7 @@ export class SceneMirror {
     let t = now();
     // (the stamp the walks outside the list put on what they change from now on: src/matrix-cache.js WORLD_STAMP)
     const stamp = ++WORLD_STAMP.n;
-    const fromList = this.listMatrices ? updateSceneMatrices(scene, this.skipHidden) : (scene.updateMatrixWorld(), false);
+    const fromList = this.listMatrices ? updateSceneMatrices(scene, this.skipHidden, this.stillMatrices) : (scene.updateMatrixWorld(), false);
     camera?.updateMatrixWorld();
     const C = this.census, SL = this.listMatrices ? sceneList(scene) : null;
     if (SL) { C.listed += SL.n; C.listChanged += SL.nChanged; C.listStepped += SL.over; }
@@ -274,19 +283,45 @@ export class SceneMirror {
           const o = L.objs[i];
           W[i] = (o.isMesh || o.isPoints || o.isLine || o.isSprite ? 1 : 0) | (o.isBone && !boneCarries(o) ? 2 : 0);
         }
+        this._wlNodes = new Array(L.n).fill(null);
       }
       const { objs, end, WE } = L, W = this._wlKind;
       // (still: the list ran this frame, so its `changed` says which world matrices it changed; a drawable it did not
       // change, that no walk outside it changed since the last frame (its node's stamp older than the last frame's) and
       // whose matrix was sent or compared last frame has the matrix it had: no need to compare its 16 numbers again)
       const ch = this.stillMatrices && fromList === true ? L.changed : null, old = stamp - 1;
-      for (let i = 0, N = L.n; i < N; i++) {
-        const o = objs[i];
-        visited++;
-        if (!o.visible) { i = end[i] - 1; continue; }
-        const w = W[i];
-        if (w & 1) { drawn++; this._see(o, WE[i], f, B, perSkeleton, liveMats, scene, camera, ch !== null && ch[i] === 0 ? old : 0); }
-        if (w & 2) i = end[i] - 1;
+      if (ch !== null && L.tracked === true) {
+        // (and what the list read off each object this frame kept beside it: its visible, whether its matrices are the
+        // walk's; each drawable's node kept beside it too, so a quiet drawable that did not move is not read at all:
+        // only the mirror's own arrays and its node, issue #455)
+        const { vis, auto } = L, ND = this._wlNodes;
+        for (let i = 0, N = L.n; i < N; i++) {
+          visited++;
+          const v = vis[i];
+          if (v === 0 || (v === 2 && !objs[i].visible)) { i = end[i] - 1; continue; }
+          const w = W[i];
+          if (w & 1) {
+            drawn++;
+            let node = ND[i];
+            if (node === null || node.owner !== this || node.dead) {
+              const o = objs[i];
+              node = o.__mirror;
+              if (!node || node.owner !== this || node.dead) node = this.nodes.get(this._create(o));
+              ND[i] = node;
+            }
+            this._see(objs[i], WE[i], f, B, perSkeleton, liveMats, scene, camera, ch[i] === 0 ? old : 0, node, auto[i]);
+          }
+          if (w & 2) i = end[i] - 1;
+        }
+      } else {
+        for (let i = 0, N = L.n; i < N; i++) {
+          const o = objs[i];
+          visited++;
+          if (!o.visible) { i = end[i] - 1; continue; }
+          const w = W[i];
+          if (w & 1) { drawn++; this._see(o, WE[i], f, B, perSkeleton, liveMats, scene, camera, ch !== null && ch[i] === 0 ? old : 0); }
+          if (w & 2) i = end[i] - 1;
+        }
       }
     }
     // (an explicit stack, not a recursive closure: ~3 000 objects a frame in the desert)
@@ -336,37 +371,60 @@ export class SceneMirror {
 
   /**
    * One drawable reached by the walk this frame: made if new, shown, its geometry, hooks, materials' live values, shape
-   * keys, world matrix (e: its elements), instances and bones told the backend as they change.
+   * keys, world matrix (e: its elements), instances and bones told the backend as they change. nd: its node, when the
+   * walk keeps it; auto: whether its matrices are the walk's, as the list read it this frame (-1: read it here).
    */
-  _see(o, e, f, B, perSkeleton, liveMats, scene, camera, still = 0) {
-    let node = o.__mirror;
+  _see(o, e, f, B, perSkeleton, liveMats, scene, camera, still = 0, nd = null, auto = -1) {
+    let node = nd ?? o.__mirror;
     if (!node || node.owner !== this || node.dead) node = this.nodes.get(this._create(o));
     const id = node.id;
     // (its world matrix as last sent, without comparing: sent or compared last frame, unchanged by the list (still > 0),
     // no walk's stamp since the last frame's began, its matrices its own; every 8th frame compared anyway)
-    const cand = still > 0 && node.seen === f - 1 && node.mw < still && ((f + id) & 7) !== 0;
-    const same = cand && o.matrixAutoUpdate === true && o.matrixWorldAutoUpdate === true;
+    // (noticed: none compared for safety's sake, every 8th frame; what can move it is all known)
+    const noticed = this.noticed;
+    const cand = still > 0 && node.seen === f - 1 && node.mw < still && (noticed || ((f + id) & 7) !== 0);
+    let same = cand && (auto >= 0 ? auto === 1 : o.matrixAutoUpdate === true && o.matrixWorldAutoUpdate === true);
     if (cand && !same) this.census.ownMatrix++;   // (unchanged by the list, compared all the same: its matrix is its owner's)
     node.seen = f;
     // a drawable that has not changed for half a second (no move, geometry, shape key or material value, no render
     // hook, not skinned or instanced): its geometry, materials and keys looked at every 4th frame (staggered by its
     // id), its matrix every frame. ~3 000 objects are walked a frame and most stand still: each look touches a few
     // objects more, which on the Xbox's memory costs more than the arithmetic
-    const look = !this.quietWalk || node.hook !== false || f - node.changedAt <= QUIET_AFTER || f - (node.matMovedAt ?? -1e9) <= QUIET_AFTER || ((f + id) & 3) === 0;
+    // noticed: its geometry and material read (two reads off the object), and looked at in full only when it has a hook
+    // (or is skinned, instanced: node.hook) or shape keys, a hook was put on it (touched), its geometry is another or its
+    // record stale (an attribute or the index rewritten), or it was never looked at (grec null)
+    const geo0 = noticed ? o.geometry ?? null : null, mat0 = noticed ? o.material : null;
+    const look = noticed
+      ? node.hook !== false || node.touched || node.keys !== undefined || node.grec === null || node.grec.stale || geo0 !== node.geo
+      : !this.quietWalk || node.hook !== false || f - node.changedAt <= QUIET_AFTER || f - (node.matMovedAt ?? -1e9) <= QUIET_AFTER || ((f + id) & 3) === 0;
+    if (look) node.touched = false;
     // a geometry swapped or rewritten (cloth, a trail, a morph baked): sent again, and each node drawing it told
-    const geo = o.geometry;
-    if (look && geo && (geo !== node.geo || node.gv !== attrVersion(geo, f))) {
+    // (read only when looked at: a quiet drawable is not touched; the kinds read below are never quiet)
+    const geo = noticed ? geo0 : look ? o.geometry : null;
+    if (look && geo && (geo !== node.geo || node.gv !== attrVersion(geo, f, noticed))) {
       this._full = false;
       const gid = this._geometry(geo);
       // (told only when it is another geometry or was sent whole again: moved points alone need nothing)
       if (node.geo && (geo !== node.geo || this._full)) B.geometryOf?.(id, gid);
       node.geo = geo; node.gv = this.geoms.get(geo).version; node.changedAt = f;
     }
+    if (look && noticed) node.grec = geo?.__mirrorAttrs ?? NO_RECORD;
     // an object's own render hook (the crowd's tiers set their count in it; a face binds its keys): called as the
     // renderer would before drawing it, in the main pass (no override material)
-    if (look) node.hook = Object.prototype.hasOwnProperty.call(o, 'onBeforeRender') || node.kind === 'skinned' || node.kind === 'instanced' || node.kind === 'instgeo';
-    if (look && Object.prototype.hasOwnProperty.call(o, 'onBeforeRender')) { try { o.onBeforeRender(RENDERER_STUB, scene, camera, geo, o.material, null); } catch { /* a hook that wants a real renderer */ } }
+    const hooked = look && ownHook(o, 'onBeforeRender');
+    if (look) node.hook = hooked || node.kind === 'skinned' || node.kind === 'instanced' || node.kind === 'instgeo';
+    if (hooked) {
+      try { o.onBeforeRender(RENDERER_STUB, scene, camera, geo, o.material, null); } catch { /* a hook that wants a real renderer */ }
+      // (a hook that moved it, through a walk of its own: compared after all, as the walk that compares every one would)
+      if (noticed && same && node.mw >= still) same = false;
+    }
     if (!node.shown) { node.shown = true; node.changedAt = f; B.visible?.(id, true); }
+    if (noticed && liveMats && !look) {
+      // (its materials' values every frame: nothing tells when a colour or a glow is written; read as the walk that looks
+      // at everything reads them, at the first drawable of each in the list's order)
+      const M = mat0;
+      if (Array.isArray(M)) { for (let i = 0; i < M.length; i++) this._live(M[i], f); } else if (M) this._live(M, f);
+    }
     if (look && liveMats) {
       const M = o.material;
       let moved = -1e9;
@@ -376,7 +434,7 @@ export class SceneMirror {
     // ...and its after-hook once its material's values are read, as the renderer calls it after the draw: a hook that lends
     // its material a look for the draw (a foe's flash, foe-react.js installFlash) gives it back. (Never called before, a
     // struck foe stayed white and glowing in Unity, its flash laid on again every frame: issue #264)
-    if (look && Object.prototype.hasOwnProperty.call(o, 'onAfterRender') && Object.prototype.hasOwnProperty.call(o, 'onBeforeRender')) { try { o.onAfterRender(RENDERER_STUB, scene, camera, geo, o.material, null); } catch { /* as above */ } }
+    if (hooked && ownHook(o, 'onAfterRender')) { try { o.onAfterRender(RENDERER_STUB, scene, camera, geo, o.material, null); } catch { /* as above */ } }
     // a MakeHuman face's shape keys (face-keys.js: the mesh's own weights), when they move
     const KW = look ? o.userData.keyWeights : null;
     if (KW && B.keyWeights) {
@@ -389,7 +447,9 @@ export class SceneMirror {
     // (compared as the floats they are sent as: a double that floats can't hold is no move)
     let k = 16;
     if (!same) { k = 0; while (k < 16 && m[k] === Math.fround(e[k])) k++; this.census.compared++; }
-    if (look) this.census.looked++;
+    // (looked at: for a hook (or skinned, instanced), or for anything else: noticed, a notice or another geometry; else
+    // its recent change, or its turn in the quiet walk's every 4th frame)
+    if (look) { const C = this.census; C.looked++; if (node.hook !== false) C.lookHook++; else if (noticed || f - node.changedAt <= QUIET_AFTER || f - (node.matMovedAt ?? -1e9) <= QUIET_AFTER) C.lookOther++; }
     if (k < 16) {
       for (k = 0; k < 16; k++) m[k] = e[k];
       node.changedAt = f;
@@ -398,35 +458,37 @@ export class SceneMirror {
       this._ids[n] = id; this._mats.set(m, n * 16);
     }
     if (node.kind === 'instanced') {
+      const g = geo ?? o.geometry;
       // (and the per-instance attributes, as the crowd's figures carry their pose in: aAnim, aReact…)
-      const ia = node.instAttrs ??= instancedAttributes(geo);
+      const ia = node.instAttrs ??= instancedAttributes(g);
       let v = o.instanceMatrix.version + (o.instanceColor?.version ?? 0) * 1e6 + o.count * 1e12;
-      for (const k in ia) v += geo.attributes[k].version * 1e3;
+      for (const k in ia) v += g.attributes[k].version * 1e3;
       if (v !== node.instVersion) {
         node.instVersion = v;
         let attrs = null;
-        for (const k in ia) (attrs ??= {})[k] = { array: geo.attributes[k].array, itemSize: geo.attributes[k].itemSize };
+        for (const k in ia) (attrs ??= {})[k] = { array: g.attributes[k].array, itemSize: g.attributes[k].itemSize };
         B.instances?.(id, o.count, o.instanceMatrix.array, o.instanceColor?.array ?? null, attrs, this.time);
       }
     }
     if (node.kind === 'instgeo') {
+      const g = geo ?? o.geometry;
       // instances with no matrices (the grass): their attributes when they move (only the range rewritten), the count
-      const ia = node.instAttrs ??= instancedAttributes(geo);
-      let v = geo.instanceCount * 1e12;
-      for (const k in ia) v += geo.attributes[k].version * 1e3;
+      const ia = node.instAttrs ??= instancedAttributes(g);
+      let v = g.instanceCount * 1e12;
+      for (const k in ia) v += g.attributes[k].version * 1e3;
       if (v !== node.instVersion) {
         const first = node.instVersion === -1;
         node.instVersion = v;
         const attrs = {};
         node.sentAttr ??= {};
         for (const k in ia) {
-          const a = geo.attributes[k];
+          const a = g.attributes[k];
           if (!first && node.sentAttr[k] === a.version) continue;
           node.sentAttr[k] = a.version;
           const r = a.updateRanges?.length ? a.updateRanges.reduce((m, x) => [Math.min(m[0], x.start), Math.max(m[1], x.start + x.count)], [Infinity, -Infinity]) : null;
           attrs[k] = { array: a.array, itemSize: a.itemSize, version: a.version, range: !first && r ? [r[0], r[1] - r[0]] : null };
         }
-        B.instances?.(id, geo.instanceCount, null, null, attrs, this.time);
+        B.instances?.(id, g.instanceCount, null, null, attrs, this.time);
       }
       B.drawState?.(id, o);
     }
@@ -481,34 +543,58 @@ export class SceneMirror {
   idOf(o) { return this.ids.get(o) ?? 0; }
 }
 
-const newCensus = () => ({ listed: 0, listChanged: 0, listStepped: 0, visited: 0, drawn: 0, looked: 0, compared: 0, ownMatrix: 0, sent: 0, live: 0 });
+const newCensus = () => ({ listed: 0, listChanged: 0, listStepped: 0, visited: 0, drawn: 0, looked: 0, lookHook: 0, lookOther: 0, compared: 0, ownMatrix: 0, sent: 0, live: 0 });
 
 /**
  * A geometry's version: the sum of its attributes' versions (and its index's), times 64, plus how many
  * there are, so an attribute added or rewritten moves it. The attribute list is kept on the geometry
  * and looked at again every 32 frames (a for-in over every drawable's attributes each frame was most
- * of the walk).
+ * of the walk). With the notices on (engine/mirror-notices.js) the record is marked stale when an attribute, the
+ * index or the list is rewritten, and the list read afresh then (each attribute, its interleaved buffer, the index
+ * knows the records it is in); noticed (the noticed mirror's): the version kept until it is.
  */
-function attrVersion(geo, frame = -1) {
+function attrVersion(geo, frame = -1, noticed = false) {
   let c = geo.__mirrorAttrs;
-  if (!c || frame < 0 || frame - c.at >= 32 || c.of !== geo.attributes) {
+  if (noticed && c !== undefined && c.stale === false) return c.v;
+  if (!c || frame < 0 || frame - c.at >= 32 || c.of !== geo.attributes || c.stale) {
     const list = [];
     for (const k in geo.attributes) if (!geo.attributes[k].isInstancedBufferAttribute) list.push(geo.attributes[k]);
-    c = geo.__mirrorAttrs = { list, at: frame, of: geo.attributes, index: geo.index, epoch: c ? c.epoch + (c.index !== geo.index ? 1 : 0) : 0 };
+    // (the record kept, its list made again: a notice marks the record it was given)
+    if (!c) c = geo.__mirrorAttrs = { list, at: frame, of: geo.attributes, index: geo.index, epoch: 0, vf: undefined, v: 0, stale: true };
+    else { c.epoch += c.index !== geo.index ? 1 : 0; c.list = list; c.at = frame; c.of = geo.attributes; c.index = geo.index; c.vf = undefined; }
+    for (let i = 0; i < list.length; i++) inRecord(list[i].isInterleavedBufferAttribute ? list[i].data : list[i], c);
+    if (geo.index) inRecord(geo.index, c);
   }
   // (a new index, setIndex: a new shape, whatever its version says)
-  if (c.index !== geo.index) { c.index = geo.index; c.epoch++; }
-  else if (frame >= 0 && c.vf === frame) return c.v;   // (a geometry drawn by many: summed once a frame)
+  if (c.index !== geo.index) { c.index = geo.index; c.epoch++; if (geo.index) inRecord(geo.index, c); }
+  else if (frame >= 0 && c.vf === frame && !c.stale) return c.v;   // (a geometry drawn by many: summed once a frame)
   let v = geo.index ? geo.index.version + 1 : 0;
   const L = c.list;
   // (an interleaved attribute, as glTF loads them, keeps its version on its buffer)
   for (let i = 0; i < L.length; i++) { const a = L[i]; v += (a.isInterleavedBufferAttribute ? a.data.version : a.version) ?? 0; }
-  c.vf = frame;
+  c.vf = frame; c.stale = false;
   return (c.v = (v * 64 + L.length) + c.epoch * 1e12);
 }
+/** The record an attribute's notices go to (engine/mirror-notices.js attrTouched), with the notices on. */
+const inRecord = (a, c) => { if (noticesOn()) attrIn(a, c); };
 
 // (three's Skeleton.update from the bones' element arrays: src/skeleton-update.js, the web game's too)
 export { skeletonUpdate };
+
+/**
+ * What of a material's uniforms the mirror reads each frame (SceneMirror._live): the colour's, glow's and wash's
+ * holders, the live vectors it has (vw: their LIVE_VECTORS indices, vh: their holders; nv 0: none looked for), whether it
+ * has the fluid's and a temple skin's.
+ */
+function liveRecord(m, U, f, nv) {
+  const R = { at: f, of: U, col: U?.uColor ?? null, glow: null, wash: null, vw: [], vh: [], fluid: !!(U?.uFluidA && U.uFluidTones), skin: !!m.userData?.skinPattern };
+  if (U?.uGlow) R.glow = U.uGlow; else if (U?.uWash) R.wash = U.uWash;
+  if (U) for (let w = 0; w < nv; w++) { const h = U[LIVE_VECTORS[w]]; if (h?.value?.isVector4) { R.vw.push(w); R.vh.push(h); } }
+  return R;
+}
+
+/** The geometry record of a drawable without one (never stale). */
+const NO_RECORD = Object.freeze({ stale: false });
 
 /** A plain mesh's instanced geometry with a count of its own (the grass blades: flora-grass.js). */
 function isInstGeo(geo) { return !!geo?.isInstancedBufferGeometry && Number.isFinite(geo.instanceCount); }

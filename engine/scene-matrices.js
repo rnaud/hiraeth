@@ -47,9 +47,10 @@ const _old = new Float64Array(16);
 
 class SceneList {
   constructor(scene) {
-    this.scene = scene; this.epoch = -1; this.n = 0; this.built = 0; this.seen = -1; this.churn = 0; this.stepped = []; this.caught = 0; this.over = 0; this.nChanged = 0;
+    this.scene = scene; this.epoch = -1; this.n = 0; this.built = 0; this.seen = -1; this.churn = 0; this.stepped = []; this.caught = 0; this.over = 0; this.nChanged = 0; this.tracked = false;
     this.objs = []; this.parent = new Int32Array(0); this.end = new Int32Array(0); this.own = new Uint8Array(0); this.owns = new Int32Array(1);
     this.P = []; this.Q = []; this.S = []; this.K = []; this.M = []; this.ME = []; this.WE = []; this.changed = new Uint8Array(0);
+    this.vis = new Uint8Array(0); this.auto = new Uint8Array(0);
   }
 
   build() {
@@ -82,8 +83,14 @@ class SceneList {
     for (let i = 0; i < n; i++) owns[i + 1] = owns[i] + this.own[i];
   }
 
-  /** One frame's matrices. @return whether it ran from the list (false: the walk, the list made again after it) */
-  update(skipHidden = false) {
+  /**
+   * One frame's matrices. @return whether it ran from the list (false: the walk, the list made again after it)
+   * track (the Unity bridge's mirror, issue #455): what the frame read off each object kept beside it for the mirror,
+   * which then reads none of it again: `vis` its visible (2: not read, in an own walk's subtree: the mirror reads it
+   * itself, after the walk that may show or hide it), `auto` whether its matrices are the walk's (matrixAutoUpdate and
+   * matrixWorldAutoUpdate on; 0: its owner's).
+   */
+  update(skipHidden = false, track = false) {
     const stepped = this.stepped;
     stepped.length = 0;
     this.over = 0;   // (how many objects were stepped over this frame: the readout's)
@@ -99,10 +106,15 @@ class SceneList {
     this.churn *= 0.5;
     let nChanged = 0;
     const { objs, parent, end, own, owns, P, Q, S, K, M, ME, WE, changed } = this;
+    if (track && this.vis.length !== this.n) { this.vis = new Uint8Array(this.n); this.auto = new Uint8Array(this.n); }
+    const { vis, auto } = this;
+    this.tracked = track;
     for (let i = 0, n = this.n; i < n; i++) {
       const o = objs[i], pi = parent[i];
       const force = pi >= 0 && changed[pi] === 1;
-      if (skipHidden && o.visible === false && owns[end[i]] === owns[i]) {
+      const shown = skipHidden || track ? o.visible : true;
+      if (track) vis[i] = shown ? 1 : 0;
+      if (skipHidden && shown === false && owns[end[i]] === owns[i]) {
         // (hidden, no own walk in it: stepped over; flagged if its parent moved, so whatever reaches it next makes it)
         if (force) o.matrixWorldNeedsUpdate = true;
         stepped.push(o);
@@ -115,12 +127,16 @@ class SceneList {
         // (its own updateMatrixWorld, as the walk calls it, and its subtree with it; its children judged changed)
         updateInWalk(o, force);
         for (let j = i, e = end[i]; j < e; j++) changed[j] = 1;
+        // (and what it shows is its own: read by the mirror itself, after the walk it ran; the part batches show and hide here)
+        if (track) for (let j = i, e = end[i]; j < e; j++) { vis[j] = 2; auto[j] = 0; }
         nChanged += end[i] - i;
         i = end[i] - 1;
         continue;
       }
       let flagged = o.matrixWorldNeedsUpdate;
-      if (o.matrixAutoUpdate) {
+      const autoM = o.matrixAutoUpdate;
+      if (track) auto[i] = autoM === true && o.matrixWorldAutoUpdate === true ? 1 : 0;
+      if (autoM) {
         const p = P[i], q = Q[i], s = S[i], k = K[i];
         if (k[0] !== p.x || k[1] !== p.y || k[2] !== p.z || k[3] !== q._x || k[4] !== q._y || k[5] !== q._z || k[6] !== q._w
           || k[7] !== s.x || k[8] !== s.y || k[9] !== s.z) {
@@ -207,9 +223,9 @@ export function catchUpShown(scene) {
   return n;
 }
 
-/** The scene's matrices this frame (its list kept on it); skipHidden: hidden subtrees stepped over (above). */
-export function updateSceneMatrices(scene, skipHidden = false) {
+/** The scene's matrices this frame (its list kept on it); skipHidden: hidden subtrees stepped over; track: what it read kept (above). */
+export function updateSceneMatrices(scene, skipHidden = false, track = false) {
   if (!installed) { scene.updateMatrixWorld(); return false; }   // (no edits counted: a list could not know it is stale)
   const L = scene.__sceneList ??= new SceneList(scene);
-  return L.update(skipHidden);
+  return L.update(skipHidden, track);
 }

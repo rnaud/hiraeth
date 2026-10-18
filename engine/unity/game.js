@@ -4,6 +4,8 @@
 // BridgeRunner.cs loads this bundle and calls start(args) once and frame(dt) every frame; a batch
 // run (BridgeBatch.cs, scripts/unity-export/unity-batch.sh BridgeBatch.Run) passes its plan in args.
 import { pads, host, toHost } from './host.js';
+// (the mirror's change notices, before anything is made: engine/mirror-notices.js, issue #455)
+import './notices-on.js';
 import { createGame, makeSound } from '../game.js';
 import { page } from '../boot.js';
 import { setAudioDecoder } from '../webaudio.js';
@@ -301,10 +303,12 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
   backend.clock = () => sharedUniforms.uTime.value;   // (the shaders' time: HiraethLook.GameClock)
   backend.portraitDir = args.out ?? null;
   // (-js-off a,b: the script's own measures turned off for a before-and-after on one build: still, the mirror's still
-  // matrices; hidden, the hidden subtrees' matrices; people, the people out of view; shape, the banners' frames moved by vertices();
+  // matrices; quiet, the mirror's quiet walk; hidden, the hidden subtrees' matrices; people, the people out of view; shape, the banners' frames moved by vertices();
   // copy, the frame's commands handed over as a fresh ArrayBuffer instead of a view of the writer's (pack.js takeView); BridgeArgs passes it as `off`)
   const off = new Set(String(args.off ?? '').split(',').filter(Boolean));
   if (off.has('still')) backend.stillMatrices = false;
+  if (off.has('quiet')) backend.quietWalk = false;   // (quiet: every drawable looked at in full every frame, the mirror's own check, issue #455)
+  if (off.has('noticed')) backend.noticed = false;   // (noticed: the mirror looking at its drawables as before the notices, issue #455)
   if (off.has('hidden')) backend.skipHidden = false;
   if (off.has('people')) backend.peopleLod = false;
   if (off.has('shape')) backend.shapeAttrs = null;
