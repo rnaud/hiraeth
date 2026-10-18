@@ -284,7 +284,10 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
     bronze (`shrug`). The bolt is taken by `player.guard(from)` (any block, perfect or not: the shield's own cost and
     feedback); blocked, it flies back into the eye and the element is lit, which opens its door. Not blocked, it hurts
     (`DAMAGE.blow`, spared) and knocks you back; stepped away from once the beam locks, it misses. Its first wake says
-    how to meet it in one line (`woke`);
+    how to meet it in one line (`woke`). Its beam is drawn to the first thing of yours it meets (issue #485,
+    `src/beam-stop.js` `beamStop`): the raised shield when it would take the bolt (`player.shieldFace(from)`, the
+    block's own test), else your body (an upright cylinder, `BODY`), else `SENTRY_BEAM_PAST` m past where it aims or
+    a wall. The mesh's length is all there is, so Unity's mirror draws it the same;
   - a `Flame` with `when` (and `lid`) burns only while its condition holds, under a stone lid until then;
   - a hooded `Brazier` catches from its burning ball as the ball rolls in slow (where it is, not where it last lay);
   - a `find` element: a second chest (`{ type: 'find', item, box }`, logic.js `find` / `isFound`, the layout's

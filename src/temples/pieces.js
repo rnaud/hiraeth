@@ -21,6 +21,7 @@ import { registerLight, registerDrinker, CARRY } from '../carried-light.js';
 import { registerIron } from '../gadgets/metal.js';
 import { lensSees } from '../gadgets/hidden.js';
 import { stripTone } from '../story/tone.js';
+import { beamStop } from '../beam-stop.js';
 
 // The temple's moving and answering parts. Each piece is built by the
 // runtime (runtime.js) from a temple's layout, in the temple's local frame,
@@ -2011,7 +2012,9 @@ export class Gust {
  *      splashed: only its own bolt breaks it) }. Awake, it is a target the guard turns to (lock: src/fluid-blade.js).
  */
 export const SENTRY = { rest: 1.5, aim: 1.3, track: 0.7, speed: 12, back: 20, range: 26, eye: 1.75, hitR: 0.95, damage: DAMAGE.blow, knock: 7 };
-const _se = new THREE.Vector3(), _st = new THREE.Vector3(), _sd = new THREE.Vector3();
+const _se = new THREE.Vector3(), _st = new THREE.Vector3(), _sd = new THREE.Vector3(), _sb = new THREE.Vector3();
+/** m its beam runs on past where it aims, when nothing stops it (a sidestep: it reads as a line past you). */
+export const SENTRY_BEAM_PAST = 2;
 export class Sentry {
   constructor(rt, o) {
     this.rt = rt; this.id = o.id; this.o = o;
@@ -2130,15 +2133,26 @@ export class Sentry {
       const k = Math.min(1, this.t / c.aim);
       if (!seen) { this.state = 'rest'; this.t = 0; this.beam.visible = false; return; }
       if (k < c.track) this.chest(P, this.aimAt);
-      // the beam: from its eye to where it aims, narrowing as it locks; the eye brightening
-      const from = this.eyeWorld(_se), len = from.distanceTo(this.aimAt);
+      // the beam: from its eye to where it aims, narrowing as it locks; the eye brightening. It runs on past where it
+      // aims (BEAM_PAST) but stops on the first thing it meets: your raised shield, your body, a wall (issue #485: it
+      // ran 2 m through you, the shield up or not)
+      const from = this.eyeWorld(_se);
       this.beam.visible = true;
       this.beam.position.copy(from); this.beam.lookAt(this.aimAt);
       const r = THREE.MathUtils.lerp(0.14, 0.025, k) * (k > c.track ? 0.8 + 0.2 * Math.sin(t * 40) : 1);
-      this.beam.scale.set(r, r, len + 2);
+      this.beam.scale.set(r, r, Math.max(0.05, this.beamLength(from)));
       this.eyeMat.uniforms.uGlow.value = 0.3 + 0.7 * k;
       if (k >= 1) { this.beam.visible = false; this.fire(); this.state = 'rest'; this.t = 0; }
     }
+  }
+  /** How long its beam from `from` (its eye) is drawn toward where it aims: on past it, stopped by you or a wall (src/beam-stop.js). */
+  beamLength(from) {
+    const dir = _sb.subVectors(this.aimAt, from), len = dir.length() + SENTRY_BEAM_PAST;
+    dir.divideScalar(Math.max(len - SENTRY_BEAM_PAST, 1e-6));
+    let L = beamStop(from, dir, len, this.rt.player);
+    const wall = this.rt.physics?.rayDistance?.(from, dir, L);
+    if (Number.isFinite(wall) && wall < L) L = wall;
+    return L;
   }
   updateBolt(dt, P) {
     const F = this.flight, c = this.cfg;

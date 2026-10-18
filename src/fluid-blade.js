@@ -521,6 +521,8 @@ export class FluidBlade {
       // (the guard up now, and the way it faces: what a temple's wind asks, src/temples/pieces.js Gust `guard`)
       tool.player.guarding = () => !!this.guarding && tool.shieldOn !== false;
       tool.player.guardDir = () => this.dir;
+      // (where a beam from `from` meets the raised shield, or null: the block's own test, src/beam-stop.js)
+      tool.player.shieldFace = (from) => this.faceFor(from);
       tool.player.dodge = (from, kind, gentle) => this.dodge(from, kind, gentle);
     }
   }
@@ -549,6 +551,18 @@ export class FluidBlade {
    * front, and a charge is left to spend. Then the arm takes the blow (the block clip), the shield
    * flashes, and true; else false (it gets through).
    */
+  /** The guard would take a blow from `from` now (block's test, without its effects). */
+  covers(from) {
+    const p = this.tool.player, arc = this.guardArc;
+    return !!p && this.guarding && this.tool.shieldOn !== false && (arc ? inGuard(p.pos, arc.dir, from, arc.half) : inGuard(p.pos, this.dir, from));
+  }
+  /** Where a blow from `from` meets the shield (its hub as drawn; undrawn, the guard's point before his chest), or null: not covered. */
+  faceFor(from, out = new THREE.Vector3()) {
+    if (!this.covers(from)) return null;
+    const p = this.tool.player;
+    return this.device.root.visible ? out.copy(this.device.centre) : out.copy(p.pos).addScaledVector(p.frame?.up ?? _Y, 1.2).addScaledVector(this.dir, GUARD.reach);
+  }
+
   block(from) {
     const T = this.tool, p = T.player;
     // (the shield as drawn says what it covers; with none drawn, the guard's own arc)
@@ -1324,5 +1338,5 @@ export class FluidBlade {
     S.k = shield;   // (held where the panel says)
   }
 
-  dispose() { this.arc?.dispose(); this.group.removeFromParent(); this.frog.removeFromParent(); this.wake.dispose(); this.device.dispose(); if (this.tool.player?.guard) this.tool.player.guard = null; }
+  dispose() { this.arc?.dispose(); this.group.removeFromParent(); this.frog.removeFromParent(); this.wake.dispose(); this.device.dispose(); if (this.tool.player?.guard) this.tool.player.guard = null; if (this.tool.player?.shieldFace) this.tool.player.shieldFace = null; }
 }

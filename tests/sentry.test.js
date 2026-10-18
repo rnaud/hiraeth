@@ -115,3 +115,34 @@ test('awake, the guard turns to it from across the landing (a lock target with i
   assert.equal(lockTarget(P.pos), null, 'broken: nothing to turn to');
   clearTargets();
 });
+
+test('its beam stops at your raised shield, and at your body with the shield down: never through you (issue #485)', async () => {
+  const { beamStop, bodyHit, BODY } = await import('../src/beam-stop.js');
+  const { P, s, run } = rig();
+  // (the shield held up before his chest, toward the watcher: the guard's point, as src/fluid-blade.js faceFor gives it)
+  P.shieldFace = (from) => (P.guarding ? P.pos.clone().add(new THREE.Vector3(0, 1.2, 0)).add(from.clone().sub(P.pos).setY(0).normalize().multiplyScalar(0.45)) : null);
+  const tipOf = () => { s.beam.updateMatrixWorld(true); return new THREE.Vector3(0, 0, 1).applyMatrix4(s.beam.matrixWorld); };
+  const eye = () => s.eyeWorld(new THREE.Vector3());
+  run(SENTRY.rest + SENTRY.aim * 0.5);
+  assert.ok(s.beam.visible, 'aiming');
+  // shield down: the beam ends on his body's near side, short of his chest's middle
+  const body = tipOf(), dz = P.pos.z - body.z;
+  assert.ok(Math.abs(dz - BODY.r) < 0.12, `on his body (${dz.toFixed(2)} m before his middle)`);
+  assert.ok(eye().distanceTo(body) < eye().distanceTo(s.chest(P, new THREE.Vector3())), 'not past him');
+  // shield up: it ends at the shield, before his body
+  P.guarding = true;
+  run(1 / 60);
+  const shield = tipOf();
+  assert.ok(Math.abs(P.pos.z - shield.z - 0.45) < 0.12, `at the shield (${(P.pos.z - shield.z).toFixed(2)} m before him)`);
+  // stepped aside once it has locked: nothing in the way, it runs on past where it aimed
+  P.guarding = false;
+  run(SENTRY.aim * 0.3);
+  P.pos.x += 3;
+  run(1 / 60);
+  if (s.beam.visible) assert.ok(s.beam.scale.z > eye().distanceTo(s.aimAt), 'past the aim point');
+  // the helper itself: a ray at a body 5 m off meets it r short; one that passes beside him goes its whole length
+  const from = new THREE.Vector3(0, 1.2, 0), dir = new THREE.Vector3(0, 0, 1);
+  assert.ok(Math.abs(bodyHit(from, dir, new THREE.Vector3(0, 0, 5)) - (5 - BODY.r)) < 1e-6);
+  assert.equal(beamStop(from, dir, 9, { pos: new THREE.Vector3(2, 0, 5) }), 9);
+  assert.equal(beamStop(from, dir, 9, { pos: new THREE.Vector3(0, 0, 5), shieldFace: () => new THREE.Vector3(0, 1.2, 4.5) }), 4.5);
+});

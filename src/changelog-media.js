@@ -1209,11 +1209,17 @@ const EYES473 = 'Issue #473: the Unity editor’s batch run on this Mac (scripts
 const EYES473W = 'Issue #473: the same view on the web, muted headless Chrome on this branch (scripts/design-qc/capture.mjs, High, 1280 × 720, a fixed render scale), cropped the same way; his head turns with his idle on its own clock';
 /** (v1.84, issue #465: the Deck's pipeline list traced again) */
 const PSO465 = 'Issue #465: a release Linux player of main at 509b40cc9 on the Steam Deck OLED (gamescope headless, 1280 × 800, 90 Hz, the Steam Deck preset, uncapped, muted), each launch with its own Mesa cache, TMPDIR and config emptied first; before: the shipped list (125 states), after: the re-traced one (168), both warmed with -pso-file; the longest frame of the load, Unity’s own part (the frame less the main thread’s wait on the script), from unity.log; 18 October';
+/** (v1.85, issue #485: the Rose House watcher's beam stops at the shield) */
+const BEAM485 = 'Issue #485: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, noon, the HUD hidden) on this branch’s own Vite (port 5485), the traveller in the Rose House’s Great Hall 8 m before the watcher, its aim held (its fire switched off), the camera pinned to the side, shield down and then held (Z); before: the tree at 60438d265 (port 5487), the same view; 18 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.85': [
     { match: 'Each world’s own recorded music now plays the whole time you are there', see: 'Land in any world and walk out into the open: after two and a half minutes its recorded music keeps playing instead of fading out to the light synthesised tunes, and it is still there five minutes on. Settings > Music plays now reads Always; pick Moments there to have the old way back, and it stays picked.' },
     { match: 'The Clock-House’s and the Undertower’s last steps now point the right way', see: 'In the Glass Dunes, take what the makers left in the Clock-House and open the Quests page (J): the next step reads “Climb to what winds itself up”. In the Signal Market the Undertower’s reads “Go up to the voice in the high hall”, and walking in you hear the voice far overhead.' },
     { match: 'The fight temples’ end card no longer says your sword and shield', see: 'On a save before the Rose House (no sword, no shield yet), clear the Sunken Hall by the desert’s camps: the card reads “New colours: Ember, on the backpack now; your sword and your shield will take them once found.” Rumours of a trial’s host come only once you carry what its run wants.' },
+    { match: 'In the Rose House, the watcher’s aiming beam now stops at your shield', shots: [
+      { name: 'watcher-beam-shield-up', title: 'Shield up', size: [1280, 720], caption: 'The watcher aiming at him with his shield raised: the beam ran through the shield and him and on past; now it ends on the shield.', from: BEAM485 },
+      { name: 'watcher-beam-shield-down', title: 'Shield down', size: [1280, 720], caption: 'The same aim with his shield down: the beam ran 2 m past him; now it ends on his chest.', from: BEAM485 },
+    ] },
   ],
   '1.84': [
     { match: 'In the Unity version on the Steam Deck, the first launch after an update no longer freezes', numbers: [

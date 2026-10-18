@@ -19,6 +19,9 @@ export const CHANGELOG = [
     // fight-temples/index.js rules; src/story/rumours.js (a host's lacks(): not told of), story/index.js addHost;
     // tests/fight-temples.test.js, tests/rumours.test.js
     'The fight temples’ end card no longer says your sword and shield wear the new colours before you have them: they take them once found. And people no longer tell of a game you can’t play yet, a trial that wants the hoverbike or a gadget you haven’t found.',
+    // issue #485: src/beam-stop.js (beamStop, bodyHit), src/temples/pieces.js Sentry beamLength, src/fluid-blade.js
+    // shieldFace / covers / faceFor; tests/sentry.test.js
+    'In the Rose House, the watcher’s aiming beam now stops at your shield when you hold it up, and at you when you don’t, instead of running on through you and out the other side.',
   ] },
   { v: '1.84', date: '2026-10-17', items: [
     // issue #439: src/costumes.js (HEADS: the 47 pieces of the 15 hat sets, HAT_SETS, HAT_SET_WORLDS, hoodShell / hoodNeck /
