@@ -5527,3 +5527,57 @@ The Mac player is uncapped (a cap hides what is shorter than its frame) and four
 so its spike line is 16.7 ms: what costs it that costs them 33-100. `-bundle` plays another script without a new build
 (a fix in the shared code measured on one player). Other agents' builds load this Mac; the runs rest while the load is
 over 12, and a run's numbers move by a few ms with what else runs.
+
+### Phase 1: the Mac (2026-10-18)
+
+The macOS development player (IL2CPP, Apple M4 Pro), High, 1280 × 720, uncapped, muted; each run twice, the spike line
+16.7 ms. Other agents' builds were running on the machine; the runs rested while its load was over 15.
+
+| run | frames | p50 ms | p99 ms | max ms | > 33 ms | > 50 ms |
+|---|---|---|---|---|---|---|
+| route-city | 6426 / 6781 | 7.3 / 6.9 | 15.6 / 12.1 | 77.9 / 33.0 | 5 / 1 | 3 / 0 |
+| route-border | 6513 / 6383 | 6.0 / 6.1 | 10.4 / 9.9 | 88.6 / 50.5 | 2 / 1 | 2 / 1 |
+| route-fight | 4277 / 4600 | 3.0 / 2.6 | 10.8 / 17.0 | 123.3 / 113.0 | 2 / 2 | 2 / 2 |
+| route-menus | 2531 / 2564 | 3.4 / 3.4 | 26.4 / 23.6 | 198.0 / 175.3 | 7 / 4 | 2 / 1 |
+| route-board | 6655 / 6595 | 5.1 / 5.1 | 9.6 / 8.9 | 22.9 / 20.2 | 0 / 0 | 0 / 0 |
+| moment-desert.lit | 1564 / 1600 | 4.8 / 4.9 | 9.8 / 8.4 | 52.2 / 19.7 | 1 / 0 | 1 / 0 |
+| talk | 875 / 918 | 5.5 / 5.5 | 7.8 / 8.6 | 11.4 / 17.7 | 0 / 0 | 0 / 0 |
+| takeoff | 1435 / 1360 | 5.0 / 4.9 | 7.6 / 8.8 | 14.8 / 19.2 | 0 / 0 | 0 / 0 |
+
+**The spikes, ranked** (by the time they cost and how bad the worst is):
+
+| cause | worst | how often | where | evidence |
+|---|---|---|---|---|
+| A foe's spawn: its body built in the script, then 228 objects and 14 MB of geometry made in Unity | 69-101 ms of script, then 99-102 ms of ops, 21-23 managed collections in it | every brute or skitter spawn (each spawn builds its own geometry: a brute 2.6 MB, a skitter 0.9 MB, again for the second of a kind) | route-fight | the script frame 100 ms against its game frame 1.6 (the act); ops 102 ms, `GC.Collect` 22 ms |
+| The Map's first open: the whole picture drawn in one frame | 142-170 ms | once a world (its first open) | route-menus | the script's update 170 ms, the Map's page open. **Fixed** (below) |
+| A shader's first use (Metal) | 47-183 ms | 6 in 16 runs: the Items page 183, the Rose canyons 81, the City-Shaft 47-62, the moment 47 | menus, border, city, moment | `Shader.CreateGPUProgram`. The Mac has no pipeline list; the Deck's (#424) was traced over worlds, temples and fights, not the menus |
+| A crowd body taken on (NPC.assign: the person's build and face as a new body geometry, ~0.5 MB, their dress, a cape; then its first pose) | 33-54 ms frames: crowd +18-26 ms, people +11-26 ms | 26 + 4 over four walks, at the camps and the City-Shaft's knots | city, border | the sections; nodes 6, geometries 4, 0.5 MB sent in the frame |
+| The main thread waiting on the present | 20-44 ms | 463 frames, most in the menus | every run | `Gfx.PresentFrame`, `Gfx.WaitForPresentOnGfxThread`, the GPU's own time small: the Mac's window server and the other agents' GPU work. Not the game's; to see on a device |
+| Streaming: distant detail and the mirror making a new place's objects | 20-30 ms | 6-8 a walk | city, border | 37 nodes, 37 geometries, 2 MB in a frame; `distant detail` +3.7 ms |
+| V8's full collection | under the spike line here | 0-1 a run | border, board | gc-watch.js |
+
+**Fixed:**
+- **The Map** (src/world-map.js `drawTerrainSteps`): the picture drawn a part at a time in the rays' budget. The
+  longest frame of route-menus 198 / 175 → **28 / 29 ms**, frames over 33 ms 7 / 4 → **0 / 0**; in node's VM 69 → 23 ms.
+- **A geometry's bytes read where they lie** (BridgeRenderer.Geometry, FaceKeys: spans, not two copies): the spawn's
+  frame 21 / 23 → 17 / 15 collections, `GC.Collect` 21.8 / 20.5 → 11.8 / 16.9 ms. The frame itself (96-151 ms) is its
+  meshes' making: the spawn's 14 MB is the cause.
+
+**Tried and left out:** one crowd body taken on a frame instead of two (CROWD_BUDGET): three runs each of the city and
+the border with the same player, the old and new script (`-bundle`), gave no gain (the worst 37-40 ms before, 45-71
+after; frames over 16.7 ms 20-29 before, 17-41 after). A single body is the spike, not two at once.
+
+**Next, the causes left** (in the order of what they cost):
+- The spawn: share a foe's built geometry between the foes of one kind and skin (the second brute would send nothing),
+  and build a world's roster ahead (warmModels builds and throws them away today); the first of a kind still costs.
+- The crowd's bodies: cache a taken-on body by its build and face, or keep the pool's bodies for the people of the
+  nearest knot, so a promotion is a recolour, not a new body.
+- First uses: trace the menus' pages (the Items page, the Map) into the Deck's list; Android's list is off by default.
+
+**Phase 2, on the devices:** the same runs on the Steam Deck (Linux, Vulkan, the shipped pipeline list; the decals'
+offsets of #463 are not in it yet) and the Retroid (Android, the drawn prewarm), each spike ranked again. To see
+there: whether the present waits are the Mac's alone, how much the first uses cost under the list and the prewarm, and
+what the spawn and the crowd's bodies cost on a handheld's CPU (the Mac is four to eight times faster).
+
+Raw: the session's scratchpad, `stutter-468/` (`before/`, `after-js/`, `after-cs/`, `crowd-A/`, `crowd-B/`: each run's
+tsv, json and log, `report.md`; `compare.mjs`).
