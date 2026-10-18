@@ -1214,6 +1214,15 @@ export const CHANGELOG_MEDIA = {
       { name: 'unity-eyes-2m', title: 'At a conversation’s distance', caption: 'His face at 2 m, eight times: before, blurred whites; after, a dark iris and pupil in each eye', from: EYES473 },
       { name: 'unity-eyes-people', title: 'People', caption: 'A woman of the camps at 2 m, four times: after, the iris ringed by a pen circle, the lids at rest open and a lash line along them, as the web draws people’s eyes (she walks: the two pictures are moments apart)', from: EYES473 },
     ], see: 'In the Unity version, stand close to the traveller with the camera turned to his face, or talk to someone: his eyes have their iris, pupil and glint.' },
+    { match: 'On the Xbox, the Unity preview reaches the Desert about 7 seconds sooner', numbers: [
+      { title: 'Launch to the world’s first frame on the Xbox, straight into the world (no title), before → after', unit: 's', better: 'lower',
+        device: 'Xbox Series X, the Unity preview (Direct3D 12), 4K TV, muted; the mean of two launches before and three after', rows: [
+          { where: 'the Desert, cold', before: 48.4, after: 41.1 },
+          { where: 'the Desert, warm', before: 47.8, after: 39.9 },
+          { where: 'the City-Shaft, cold', before: 45.4, after: 45.9 },
+          { where: 'the City-Shaft, warm', before: 44.9, after: 45.4 },
+        ], source: 'docs/systems/performance.md, "The Xbox\'s load, round four"',
+        note: 'Cold: the app’s D3D12 caches removed first. These launches skipped the title; in play the warm-up starts as the title appears, so time spent there is not lost.' }] },
     { match: 'In the Unity version the waterfalls fall as on the web', shots: [
       { name: 'unity-falls', title: 'The curtain', caption: 'The great curtain over the City Behind the Waterfall from its landing in Unity: before, flat sheets of one turquoise; after, its columns of four tones, the streaks and the glassy lip, as on the web', from: WATER458 },
       { name: 'unity-falls-web', only: 'after', title: 'The curtain on the web', caption: 'The same view on the web', from: WATER458W },

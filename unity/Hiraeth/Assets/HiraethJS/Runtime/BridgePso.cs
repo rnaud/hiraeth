@@ -29,7 +29,8 @@ namespace Hiraeth.Bridge
     /// - -pso-file &lt;path&gt;: that collection warmed in place of the shipped one (a refreshed list tried without a build).
     /// - -pso-at start: warmed at once, before the script's engine is made (as first measured: the engine then came after it).
     /// - The Xbox's (Direct3D12.graphicsstate, issue #443): only the first views' states (the desert's and the City-Shaft's
-    ///   spawn, traced on a development player), warmed XboxBatch at a time from the title on, beside the script's build.
+    ///   spawn, traced on a development player), warmed XboxBatch at a time from the title on, beside the script's build,
+    ///   no new batch once the world is mirrored.
     /// - -no-pso: no warm-up (the pipelines made at their first draw, as before). BridgePrewarm's drawn triangles are left
     ///   for a launch without a collection.
     /// </summary>

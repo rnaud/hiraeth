@@ -3883,6 +3883,76 @@ The round's starting points (35.9 / 35.1 s Desert, 38.8 / 38.2 s City-Shaft) wer
 slower to its first frame with the drawn prewarm on: 45.0 / 52.9 s Desert, 42.7 / 50.2 s City-Shaft, with more to build
 and more pipelines. With this change it is 44.1 / 44.1 s and 42.7 / 41.9 s.
 
+## The Xbox's load, round four: what the pipelines cost, and the first views warmed a few at a time (issue #443, 2026-10-18)
+
+Round three left the world's first frame waiting 25-28 s on the GPU's pipelines (PSOs), cold or warm. This round tried
+four levers in turn and kept one of them.
+
+**How it was measured.** The Xbox Series X ran `rnaud.HiraethUnity` (Direct3D 12, a 4K TV, muted) with
+`-mute -level <world> -walk 15 -slow-ms 100`. The time is from the launch to the world's first frame (unity.log's
+`load: frame 1 after the first node`). Each case had two cold launches and two warm ones, Desert and City-Shaft. **Cold**
+means the app's `AC\*.dxcache*` files and `prewarm.txt` were removed first; **warm** is the next launch. The base is the
+release 1.84.2616 (main 5ab183a55); the levers were measured on a branch build (1.84.2617) with arguments. The scripts
+are in the session's scratchpad (`xbox443/`: `xrun.mjs`, `runs2.sh`, `sum.mjs`, and `psolist.mjs`, which takes a traced
+collection apart, picks from it and merges collections).
+
+| first frame, s | Desert cold | Desert warm | City-Shaft cold | City-Shaft warm |
+|---|---|---|---|---|
+| base (1.84.2616) | 48.7, 48.0 | 48.1, 47.4 | 45.4, 45.3 | 44.9, 44.9 |
+| (b) the first views' list, all at once (`WarmUp`) | 55.5, 64.8 | 62.7, 45.8 | 58.3, 58.6 | 50.1, 58.0 |
+| (c) the same list, 7 at a time (`WarmUpProgressively`) | **40.5, 40.3** | **39.5, 42.0** | 45.6, 46.0 | 44.9, 45.2 |
+| (c) 32 at a time | 39.7, 40.0 | 40.0, 39.4 | 45.8, 46.0 | 45.9, 43.6 |
+| (d) `-no-lean`: the Surface shader's full variant only | 38.6, 38.9 | 38.5, 38.3 | 49.1, 49.4 | 48.3, 48.4 |
+| (c) shipped, 7 at a time, as the list came (1.84.2617, branch) | 43.7, 44.3, 40.5 | 43.5, 44.1 | 45.0, 53.0 | 44.8, 52.3 |
+| **(c) shipped, no batch once the world is mirrored, shared states first (1.84.2618, branch)** | **41.2, 41.6, 40.6** | **39.9, 39.7, 40.2** | **45.9, 45.9, 45.8** | **45.3, 45.6, 45.4** |
+
+**(a) Nothing that would shorten a pipeline survives a launch.** The app's `AC` folder holds two D3D12 caches (SQLite,
+their data still in the `-wal`). `F4EB2D6C….dxcache` (54-81 entries, 1.3-3.6 MB) holds the runtime's DXBC → DXIL
+translations of Unity's shaders: DXBC containers with DXIL inside, the largest 311 KB, which is the Surface shader. The
+driver's own cache (`52264C4C…_VEN_1414&DEV_D000….dxcache`) holds a single 800-byte header entry after every run, so
+the driver keeps none of the pipelines it compiles. Unity's own D3D12 PSO disk cache (UnityPlayer.dll's
+`dx12_pso_cache.bin` / `dx12_pso_cache_lib.bin`, a `D3D12PipelineLibrary`) is never written either. That holds after
+clean quits too: the benches quit through `Application.Quit`, and UnityPlayer.log ends with the device's teardown. A test
+build passed Unity's own flags through `AppCallbacks::AddCommandLineArg`, read from `LocalState\unity-args.txt`. That
+path works: `-nolog` stopped Unity's log. But `-force-d3d12-single-pso-disk-cache` wrote no cache, and
+`-max-async-pso-job-count 7` changed nothing (48.3 s against 48.7). That build step was not kept.
+
+**What a pipeline costs.** A development player (`-pso-trace`, the spawn left still for 50 s) traced 37 states at the
+Desert's first view and 39 at the City-Shaft's: 61 in all, 15 shared. Each costs ~0.8 s at its first draw: the Desert's
+30 s wait for 37. Warmed on the workers, they took longer, not shorter. `WarmUp` made the 61 in 31 s on seven workers,
+~3.5 core-seconds each. Made progressively, they took 38-41 s whatever the batch. **The console's driver makes them
+one after another however many threads ask.** No parallel warm-up can beat ~0.7 s a state.
+
+**(b) The list, warmed all at once, made the load longer:** 46-65 s. `WarmUp` holds the main thread until every state
+is made: the loading screen froze, and the script's world build, which needs the main thread, waited 31 s. The world's
+first frame then still waited 0.1-18 s. The states it lacked changed from run to run.
+
+**(c) Kept: the same list, a few at a time.** `WarmUpProgressively(7)` keeps the loading screen and the title at 51-60
+fps, with one 3 s hitch, while the script builds the world beside it. The City-Shaft's own states are last in the list,
+and the warm-up slows its script by ~2.5 s. Shipped as it was first measured, the warm-up ran to the end of the list
+after the world was mirrored. The City-Shaft's first frame then waited behind the Desert's states: 53 s in two launches
+of four. So the shipped warm-up starts no batch once the world has mirrored nodes (`BridgePso.Tick`'s `worldUp`). The
+world's first frame then makes only the states it draws, at most seven in flight before it. The list now puts the 15
+states both views share first, then the Desert's, then the City-Shaft's. **On the final build the Desert's first frame
+comes 7.3 s sooner cold (48.4 → 41.1 s) and 7.9 s sooner warm (47.8 → 39.9 s). The City-Shaft is 0.5 s later (45.4 →
+45.9 s cold, 44.9 → 45.4 s warm). On the title the warm-up ends at ~45 s: 57-60 fps until 30 s, one 3 s hitch, then
+21-31 fps until it is done.** The batch has to stay small. One batch of the whole list held the
+main thread for 31 s, like `WarmUp`. With 32 at a time, the second batch held the title for 23 s. Seven, one for each of
+Unity's job workers, never held it. In play the warm-up starts at ~5 s, as the title appears, so every second spent on
+the title or in the save menu is ~1.4 more states made before the world asks for them. These runs skip the title
+(`-level`), so they are the worst case. BridgePso warms the shipped `hiraeth-pso/Direct3D12.graphicsstate` seven at a
+time on the Xbox only (`XboxBatch`; `-pso-progressive N` sets the batch, 0 all at once). To refresh the list, run a
+development build with `-mute -level <world> -idle 30 -pso-trace` for each world, take the traces, and merge them with
+`psolist.mjs union`.
+
+**(d) Fewer variants: measured, not kept.** `-no-lean` draws every Surface material on the full variant. That gave a
+Desert 9.5 s sooner but a City-Shaft 3.5 s later, and the walk paid for it on the GPU: the City-Shaft fell from 45 to
+34 fps (GPU 16 → 28 ms), and the Desert's dynamic resolution dropped from 0.82-0.87 to 0.67-0.72. `-one-variant` (no
+keywords, a wrong picture) gave the same Desert time as `-no-lean`, 38.6 s. At the Desert's spawn, 20 of its 37 states
+are Surface states. They come from 4 vertex layouts (the uniform layout leaves the crowd's, the skinned meshes' and the
+instanced ones apart) and from culling on or off, which Direct3D 12 bakes into the pipeline. Fewer of those, rather
+than fewer keywords, is where a next round could cut.
+
 ## The Steam Deck, round 11: three levers that change what is simulated (issue #111, 2026-10-15)
 
 After round 10 four worlds were still under 60 at native resolution, CPU-bound (JS 18-22 ms). The author approved three

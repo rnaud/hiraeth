@@ -24,6 +24,9 @@ export const CHANGELOG = [
         { where: 'the Desert', before: 53.1, after: 44.1 },
         { where: 'the City-Shaft', before: 50.9, after: 41.9 },
       ], source: 'docs/systems/performance.md, "The Xbox\'s load, round three"' }] },
+    // issue #443: unity/Hiraeth BridgePso (XboxBatch, WarmUpProgressively, -pso-progressive), StreamingAssets/hiraeth-pso/
+    // Direct3D12.graphicsstate; tests/unity-xbox.test.js, tests/unity-pso.test.js; docs/systems/performance.md "The Xbox's load, round four"
+    'On the Xbox, the Unity preview reaches the Desert about 7 seconds sooner, cold or warm: it starts preparing the first views’ graphics while the title shows, a few at a time, so the title and the loading screen stay smooth. The City-Shaft loads about as before.',
     // issue #404 round 10: unity/Hiraeth InstLod.cs (each instanced mesh's coarser levels, made on a worker thread, picked by
     // their stray in pixels), InstMats (Wildlife.cs) DrawLevels / CastLevels; tests/unity-instance-lod.test.js;
     // docs/systems/performance.md "Unity on the Retroid, round 10"
