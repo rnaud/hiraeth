@@ -1,0 +1,19 @@
+engine/bridge-gaps.js
+  s_4f549306ae12eb::t_5993c14f7f61db 285
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "74a1bac1e284ac7c86d663b5a7de3f5795c7d354",
+  "prompts": {},
+  "sessions": {
+    "s_4f549306ae12eb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a4c1831809933fa80",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
