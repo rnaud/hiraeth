@@ -138,3 +138,17 @@ test('a shape whose object frames move with it (the banners: aObjP, aObjN) goes 
     assert.deepEqual(calls, [], 'nothing again when nothing moved');
   }
 });
+
+test('the mirror\'s census (the bench\'s -split, issue #455): the frame\'s work against what changed', () => {
+  const A = world(11), m = new SceneMirror(recorder().B, { quietWalk: true, listMatrices: true, stillMatrices: true, skipHidden: true });
+  const cam = new THREE.PerspectiveCamera();
+  for (let f = 1; f <= 6; f++) m.sync(A.scene, cam);
+  m.profile();
+  for (let f = 1; f <= 4; f++) { A.meshes[0].position.x += 1; m.sync(A.scene, cam); }
+  const { census: c } = m.profile();
+  assert.equal(c.listed, A.scene.__sceneList.n, 'every object of the list');
+  assert.ok(c.drawn >= A.meshes.length && c.drawn <= c.visited, JSON.stringify(c));
+  assert.ok(c.sent >= 1 && c.sent <= c.compared && c.compared < c.drawn, `one moved a frame, a few compared, not all: ${JSON.stringify(c)}`);
+  assert.ok(c.listChanged >= 1 && c.listChanged < c.listed, JSON.stringify(c));
+  assert.equal(m.profile().census.drawn, 0, 'read once: the next profile starts again');
+});

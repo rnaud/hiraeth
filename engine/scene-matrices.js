@@ -47,7 +47,7 @@ const _old = new Float64Array(16);
 
 class SceneList {
   constructor(scene) {
-    this.scene = scene; this.epoch = -1; this.n = 0; this.built = 0; this.seen = -1; this.churn = 0; this.stepped = []; this.caught = 0; this.over = 0;
+    this.scene = scene; this.epoch = -1; this.n = 0; this.built = 0; this.seen = -1; this.churn = 0; this.stepped = []; this.caught = 0; this.over = 0; this.nChanged = 0;
     this.objs = []; this.parent = new Int32Array(0); this.end = new Int32Array(0); this.own = new Uint8Array(0); this.owns = new Int32Array(1);
     this.P = []; this.Q = []; this.S = []; this.K = []; this.M = []; this.ME = []; this.WE = []; this.changed = new Uint8Array(0);
   }
@@ -97,6 +97,7 @@ class SceneList {
       return false;
     }
     this.churn *= 0.5;
+    let nChanged = 0;
     const { objs, parent, end, own, owns, P, Q, S, K, M, ME, WE, changed } = this;
     for (let i = 0, n = this.n; i < n; i++) {
       const o = objs[i], pi = parent[i];
@@ -114,6 +115,7 @@ class SceneList {
         // (its own updateMatrixWorld, as the walk calls it, and its subtree with it; its children judged changed)
         updateInWalk(o, force);
         for (let j = i, e = end[i]; j < e; j++) changed[j] = 1;
+        nChanged += end[i] - i;
         i = end[i] - 1;
         continue;
       }
@@ -140,7 +142,9 @@ class SceneList {
         o.matrixWorldNeedsUpdate = false;
       }
       changed[i] = ch;
+      nChanged += ch;
     }
+    this.nChanged = nChanged;   // (how many world matrices changed this frame, or may have: an own walk's subtree)
     return true;
   }
 }

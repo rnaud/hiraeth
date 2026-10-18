@@ -92,6 +92,8 @@ export class SceneMirror {
     this._cam = new Float32Array(16);
     this.stats = { nodes: 0, drawn: 0, moved: 0, geometries: 0, materials: 0, uploadedBytes: 0, skipped: 0 };
     this.prof = { matrices: 0, walk: 0, bones: 0, tail: 0, frame: 0, frames: 0 };
+    // (what the frame's work was against what changed, summed over the profile's frames: the bench's -split, issue #455)
+    this.census = newCensus();
     this.profiling = false;
     this.freeze = freeze && !filter;
     this.listMatrices = listMatrices;
@@ -157,6 +159,7 @@ export class SceneMirror {
   _live(m, f) {
     if (m.__mirrorLiveF === f) return;
     m.__mirrorLiveF = f;
+    this.census.live++;
     // (a see-through surface's wash, src/veil.js: its alpha goes as its glow, LightShaft.fade moving it)
     const U = m.uniforms, c = U?.uColor?.value, g = U?.uGlow ? U.uGlow.value : U?.uWash?.value?.isVector3 ? U.uWash.value.x : undefined;
     // the vectors that move every frame (LIVE_VECTORS: a makers' box's ray and clock, the coral-shirt traveller's drawn face)
@@ -252,6 +255,8 @@ export class SceneMirror {
     const stamp = ++WORLD_STAMP.n;
     const fromList = this.listMatrices ? updateSceneMatrices(scene, this.skipHidden) : (scene.updateMatrixWorld(), false);
     camera?.updateMatrixWorld();
+    const C = this.census, SL = this.listMatrices ? sceneList(scene) : null;
+    if (SL) { C.listed += SL.n; C.listChanged += SL.nChanged; C.listStepped += SL.over; }
     P.matrices += now() - t; t = now();
     let drawn = 0;
     this._moved = 0; this._tb = 0;
@@ -322,6 +327,7 @@ export class SceneMirror {
       B.camera?.({ world: this._cam, fov: camera.fov, near: camera.near, far: camera.far, aspect: camera.aspect, zoom: camera.zoom ?? 1 });
     }
     this.stats.drawn = drawn; this.stats.moved = n; this.stats.visited = visited;
+    C.drawn += drawn; C.sent += n; C.visited += visited;
     P.tail += now() - t; t = now();
     B.frame?.({ frame: f, stats: this.stats });
     P.frame += now() - t; P.frames++;
@@ -338,7 +344,9 @@ export class SceneMirror {
     const id = node.id;
     // (its world matrix as last sent, without comparing: sent or compared last frame, unchanged by the list (still > 0),
     // no walk's stamp since the last frame's began, its matrices its own; every 8th frame compared anyway)
-    const same = still > 0 && node.seen === f - 1 && node.mw < still && ((f + id) & 7) !== 0 && o.matrixAutoUpdate === true && o.matrixWorldAutoUpdate === true;
+    const cand = still > 0 && node.seen === f - 1 && node.mw < still && ((f + id) & 7) !== 0;
+    const same = cand && o.matrixAutoUpdate === true && o.matrixWorldAutoUpdate === true;
+    if (cand && !same) this.census.ownMatrix++;   // (unchanged by the list, compared all the same: its matrix is its owner's)
     node.seen = f;
     // a drawable that has not changed for half a second (no move, geometry, shape key or material value, no render
     // hook, not skinned or instanced): its geometry, materials and keys looked at every 4th frame (staggered by its
@@ -380,7 +388,8 @@ export class SceneMirror {
     const m = node.matrix;
     // (compared as the floats they are sent as: a double that floats can't hold is no move)
     let k = 16;
-    if (!same) { k = 0; while (k < 16 && m[k] === Math.fround(e[k])) k++; }
+    if (!same) { k = 0; while (k < 16 && m[k] === Math.fround(e[k])) k++; this.census.compared++; }
+    if (look) this.census.looked++;
     if (k < 16) {
       for (k = 0; k < 16; k++) m[k] = e[k];
       node.changedAt = f;
@@ -441,6 +450,12 @@ export class SceneMirror {
     const P = this.prof, k = Math.max(P.frames, 1), out = {};
     for (const key of ['matrices', 'walk', 'bones', 'tail', 'frame']) out[key] = +(P[key] / k).toFixed(3);
     out.frames = P.frames;
+    // (a frame's average: objects in the list, their world matrices changed, stepped over hidden; walked, drawables
+    // reached, looked at in full, matrices compared, matrices sent; materials whose live values were read)
+    const C = this.census;
+    out.census = {};
+    for (const key in C) out.census[key] = +(C[key] / k).toFixed(1);
+    this.census = newCensus();
     this.prof = { matrices: 0, walk: 0, bones: 0, tail: 0, frame: 0, frames: 0 };
     return out;
   }
@@ -465,6 +480,8 @@ export class SceneMirror {
   /** The id an object was given (0 if it was never drawn). */
   idOf(o) { return this.ids.get(o) ?? 0; }
 }
+
+const newCensus = () => ({ listed: 0, listChanged: 0, listStepped: 0, visited: 0, drawn: 0, looked: 0, compared: 0, ownMatrix: 0, sent: 0, live: 0 });
 
 /**
  * A geometry's version: the sum of its attributes' versions (and its index's), times 64, plus how many
