@@ -1,0 +1,56 @@
+tests/game-host.test.js
+  s_5f899ba316b5dc::t_e82f67c2a4d0e3 9,121-146
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs
+  s_5f899ba316b5dc::t_bd09533c02bd4a 972-974,999
+src/characters/traveller-b3.js
+  s_5f899ba316b5dc::t_2373dc2b1b1159 50-52
+src/main.js
+  s_5f899ba316b5dc::t_d1286aa6c08ca4 534,749
+engine/game.js
+  s_5f899ba316b5dc::t_0ef2c8c65b617d 457
+engine/sequences.js
+  s_5f899ba316b5dc::t_d57e4b94a85a45 231-250,253-261
+tests/unity-letterbox.test.js
+  s_5f899ba316b5dc::t_c06d0e74925a60 1-53
+docs/systems/engine-bridge.md
+  s_5f899ba316b5dc::t_b2ad764adefcfb 1809,1814-1816,2005-2007
+  s_5f899ba316b5dc::t_d4fa97ed23c0f4 1723,2008,2113-2135
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHud.cs
+  s_5f899ba316b5dc::t_658b87e452f67c 158,176-195,215-223,385-388
+src/host/game-host.js
+  s_5f899ba316b5dc::t_b71b3912edca1d 43,188-190,193,204-209,213-218
+changelog.md
+  s_5f899ba316b5dc::t_bd6c28bf5f7ad3 7
+engine/ink-spec.js
+  s_5f899ba316b5dc::t_b6691259b6f1a1 7,45
+engine/unity/port-format.js
+  s_5f899ba316b5dc::t_f5ac01c4d7e6d5 166-169
+src/changelog-media.js
+  s_5f899ba316b5dc::t_64596f1c69adbb 1189-1191,1194-1200
+src/changelog.js
+  s_5f899ba316b5dc::t_926fb15dbb67c2 192-196
+tests/sequences-web.json
+  s_5f899ba316b5dc::t_a57459dbb3afe4 3,4946-5115
+tests/unity-splat.test.js
+  s_5f899ba316b5dc::t_9ece2b7ee6c0c9 1-40
+unity/Hiraeth/Assets/Hiraeth/Runtime/WorldLoader.cs
+  s_5f899ba316b5dc::t_ad71e2a1efec1b 219-220
+unity/Hiraeth/Assets/Hiraeth/Shaders/Surface.shader
+  s_5f899ba316b5dc::t_7e1428ddaf8abb 62-63,302-304,1044
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5bfdd5e88bc3c67c2007c873cb11c417db8be6e0",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
