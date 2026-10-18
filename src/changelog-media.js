@@ -361,6 +361,8 @@ const FELLOW_FROM = 'headless Chrome (muted, High, 10:00, clear) against this br
 const ART = { commit: 'afc7dfb0', before: '7dd178f7^' };
 /** (v1.84, issue #440: the ember wisp drawn to its picked sheet) */
 const WISP440 = { commit: '92892113d', before: '92892113d^' };
+/** (v1.84, issue #472: the marsh wisp in its own sheet's colours) */
+const WISP472 = { commit: '4b813174a', before: '4b813174a^' };
 /** The roster's batch 3 (v1.13): its bodies at their commit, the stand-ins before them at batch 3's parent. */
 const B3 = { commit: '5a1659cd', before: '890913ce' };
 /** The roster's batch 4 (the machines): the after at the batch's own commit, the before (the stand-ins) at main's before it. */
@@ -1398,6 +1400,11 @@ export const CHANGELOG_MEDIA = {
       { name: 'art-wisp-windup', title: 'The fireball’s tell', caption: 'Held at 80 % of the fireball’s wind-up: before, the clam’s lids parted; after, the petals opened wide like a flower round the swollen coal', ...WISP440, view: { foe: { id: 'wisp@moonfoundry', yaw: 1.2, pitch: 0.12, pose: 'fireball', at: 0.8 } }, reference: REF('wisp', 1, 'the ember wisp, its fireball wind-up on the right') },
       { name: 'art-wisp-marsh', title: 'Lorn II', caption: 'Lorn II’s marsh wisp on the new body, its own green colours and pale lichen stars', ...WISP440, view: { foe: { id: 'wisp@perdide2', yaw: 0.45, pitch: 0.12 } }, reference: REF('wisp', 1, 'the ember wisp, its body (the marsh wisp’s own sheet waits in the lab)') },
     ], see: 'Debug → the Arena (or the Moon Foundry, Lorn II, the Eclipse): an ember wisp floats over the warm places; stand off and watch it open before it throws.' },
+    { match: 'Lorn II’s marsh wisp now wears the colours of its own design sheet', shots: [
+      { name: 'art-wisp-marsh-472', title: 'Three-quarter', caption: 'Lorn II’s marsh wisp at rest: before, small six-pointed stars, a pale ring of light and cream eyes; after, lichen rosettes over half of its mossy petals, a brass band and plain ink drips', ...WISP472, view: { foe: { id: 'wisp@perdide2', yaw: 0.45, pitch: 0.12 } }, reference: REF('wisp', 4, 'the marsh wisp (Lorn II)') },
+      { name: 'art-wisp-marsh-472-front', title: 'Front', caption: 'From the front, its two pale green eyes either side of the seam and the coal glimpsed in it', ...WISP472, view: { foe: { id: 'wisp@perdide2', yaw: 0, pitch: 0.08 } }, reference: REF('wisp', 4, 'the marsh wisp (Lorn II), the front view on the left') },
+      { name: 'art-wisp-marsh-472-windup', title: 'The fireball’s tell', caption: 'Held at 80 % of the fireball’s wind-up: before, a lime-yellow coal; after, the cold pale-green marsh-light of the sheet', ...WISP472, view: { foe: { id: 'wisp@perdide2', yaw: 1.2, pitch: 0.12, pose: 'fireball', at: 0.8 } }, reference: REF('wisp', 4, 'the marsh wisp, its fireball wind-up on the right') },
+    ], see: 'In the Arena, open FOES (K), go to Lorn II and choose the ember wisp; or meet one in Lorn II’s marsh.' },
     { match: 'The City Floating in Space’s Pier is a real port now', shots: [
       { name: 'port-pier', title: 'The Pier', caption: 'The Pier from the south-east, by the ramp: before, the plain docks of v1.83; after, the blue hoop cradles hung off the rim with a sky-boat in each, the red bands on the deck, the lamp-mast and the harbour hut by the bridge', from: PORT441, reference: portRef('space-city', 'the Pier port, its hoop cradle and its boats') },
       { name: 'port-pier-gate', title: 'From the bridge', caption: 'The Pier from over the bridge to the Gate: the hoops either side of the bridge’s mouth, the hut and the mast at its head', from: PORT441 },

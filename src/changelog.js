@@ -106,6 +106,9 @@ export const CHANGELOG = [
     // issue #440: src/enemies/plans/ember.js (the bud: petals on hinges, the ring, the cup, the drips; EMBER.open, sit),
     // skins.js and surfaces.js wisp; tests/fireball.test.js; docs/design/enemy-roster.md row 22
     'The ember wisp has its real body now, drawn from its design sheet: a pointed bud of four glossy black ink petals edged in gold, closed round its glowing coal, with a thin ring of light round its waist, two lilac eyes and three drips of ink hanging beneath. Before it throws its fireball, the petals open wide like a flower round the coal as it swells white-hot. Knocked down by its own fire, it rests just above the ground with its petals hanging open.',
+    // issue #472: src/enemies/skins.js wisp.perdide2 (palette from wisp/sheet-4.jpg, the 'brass' prop), plans/ember.js
+    // (a brass ring; the drips' own material under lichen), surfaces.js wisp.perdide2
+    'Lorn II’s marsh wisp now wears the colours of its own design sheet: mossy green-black petals patched with pale lichen rosettes, a brass band round its waist in place of the ring of light, plain ink drips, pale green eyes and a cold green marsh-light for a coal.',
     // issue #441: src/levels/ports.js (each city's port as data), src/levels/port-pad.js (the shared kit: pad layers,
     // pieces, craft in flight, attachPort), src/levels/port-craft.js (the craft), the nine levels, content.js (the staff);
     // tests/ports.test.js; docs/systems/worlds.md "Space ports"
