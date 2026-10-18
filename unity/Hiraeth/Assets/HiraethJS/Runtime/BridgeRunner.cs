@@ -466,6 +466,8 @@ namespace Hiraeth.Bridge
 #endif
             // (-no-bloom, -no-fxaa: the ink look's glow and its smoothing off, tests of the GPU's frame)
             if (BridgeArgs.Flag("-no-bloom")) Hiraeth.Rendering.HiraethFeature.Settings.bloom = false;
+            // (-no-water-over: the water's pass over the page left out, under water and the sun's sparkle; a test of its cost, #458)
+            if (BridgeArgs.Flag("-no-water-over")) Hiraeth.Rendering.HiraethFeature.Settings.waterOver = false;
             if (BridgeArgs.Flag("-no-fxaa")) Hiraeth.Rendering.HiraethFeature.Settings.fxaa = false;
             // the distant shimmer (issue #218; docs/systems/rendering.md "Far lines that would alias"): SMAA in place of FXAA at
             // Handheld, as the web's Handheld (-aa fxaa|smaa|none another); -no-ink-far, -no-hatch-aa: the far lines' fade and
@@ -538,6 +540,7 @@ namespace Hiraeth.Bridge
             BridgeRenderer.zTestAlways = BridgeArgs.Flag("-ztest-always");
             // (-no-veil, a test: the see-through surfaces as before issue #263, their rims uncut and no washes over them)
             BridgeRenderer.noVeil = BridgeArgs.Flag("-no-veil");
+            BridgeRenderer.noFall = BridgeArgs.Flag("-no-fall");
             // (-no-water-contact: the water in the G-buffer's own pass, no copy of the scene's depth; the console has no command line
             // for HiraethFeature's -noWaterContact)
             if (BridgeArgs.Flag("-no-water-contact")) Hiraeth.Rendering.HiraethFeature.Settings.waterContact = false;
@@ -866,6 +869,35 @@ namespace Hiraeth.Bridge
             var w = d.O("weather");
             if (w != null) { Shader.SetGlobalFloat("_Rain", w.F("rain")); Shader.SetGlobalFloat("_RainNear", w.F("rainNear")); Shader.SetGlobalFloat("_Storm", w.F("storm")); }
         }
+
+        /// <summary>
+        /// The water's pass over the page (issue #458; engine/game.js waterOver, src/water.js Waters.overState): under = -1
+        /// nothing, 0 the sun's sparkle on the water in view, 1 under water with the look of the water the camera is in
+        /// (water.js underLook, three's space); lite: the preset draws no sparkle (Surface.shader marks no glints). Drawn by
+        /// HiraethFeature's WaterOver pass after the composite (Hidden/Hiraeth/WaterOver); -no-water-over leaves it out.
+        /// </summary>
+        public void Water(string json)
+        {
+            var d = string.IsNullOrEmpty(json) ? null : Json.Parse(json) as Dictionary<string, object>;
+            float under = d == null ? -1 : d.F("under", -1);
+            Shader.SetGlobalFloat("_WaterLite", d != null ? d.F("lite") : 0);
+            Hiraeth.Rendering.HiraethFeature.WaterOverMode = under < -0.5f ? 0 : under < 0.5f ? 1 : 2;
+            Shader.SetGlobalFloat("_WOUnder", under > 0.5f ? 1 : 0);
+            if (under < 0.5f) return;
+            Vector4 V(string k, int n) { var l = d.L(k); var v = Vector4.zero; if (l != null) for (int i = 0; i < n && i < l.Count; i++) v[i] = Json.Num(l[i]); return v; }
+            Shader.SetGlobalFloat("_WOSurf", d.F("surf"));
+            Shader.SetGlobalFloat("_WOFogStart", d.F("fogStart"));
+            Shader.SetGlobalVector("_WOTint", V("tint", 3)); Shader.SetGlobalVector("_WODeep", V("deep", 3));
+            Shader.SetGlobalVector("_WOFog", V("fog", 4)); Shader.SetGlobalVector("_WOShaftDir", V("shaftDir", 4)); Shader.SetGlobalVector("_WOShaftTone", V("shaftTone", 4));
+            Shader.SetGlobalVector("_WOCaustic", V("caustic", 4)); Shader.SetGlobalVector("_WOCausticTone", V("causticTone", 3));
+            var sh = d.L("shafts");
+            if (sh != null)
+            {
+                for (int i = 0; i < woShafts.Length && i * 4 + 3 < sh.Count; i++) woShafts[i] = new Vector4(Json.Num(sh[i * 4]), Json.Num(sh[i * 4 + 1]), Json.Num(sh[i * 4 + 2]), Json.Num(sh[i * 4 + 3]));
+                Shader.SetGlobalVectorArray("_WOShafts", woShafts);
+            }
+        }
+        readonly Vector4[] woShafts = new Vector4[25];   // (water.js SEA_SHAFTS)
 
         void LateUpdate() { Shader.SetGlobalFloat("_FlameTime", Time.time); }
 

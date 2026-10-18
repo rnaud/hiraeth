@@ -171,6 +171,8 @@ export function portMaterial(spec, id = 0) {
   // without it the ground hid them, or not, frame by frame). Only theirs so far: the ground's other decals that have one
   // (sand drifts, salt, the crash's scorch…) would each be a new raster state for the Retroid's prewarmed pipelines
   if (spec.offset && typeof u.uSplatTime === 'number') e.offset = spec.offset.map(r5);
+  // a falling sheet of water (src/waterfall-shader.js FALL): Surface.shader's _FallOn, its uv in the form's slot (Fall.hlsl)
+  if (spec.defines?.FALL) Object.assign(e, { fallOn: 1, fallA: (Array.isArray(u.uFallA) ? u.uFallA : [6, 2.4, 0.18, 9]).map(r5), fallB: (Array.isArray(u.uFallB) ? u.uFallB : [0.85, 3.5, 100, 0]).map(r5) });
   // a temple skin's pattern (src/temples/skins/skin-shader.js): Surface.shader's HIRAETH_SKIN, its uniforms the material's _SkinData
   if (spec.skin?.body > 0) { e.skinPattern = spec.skin.body; e.skinData = spec.skin.data.map(r5); }
   return e;

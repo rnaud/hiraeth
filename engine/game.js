@@ -23,6 +23,7 @@ import { levelById, LEVELS } from '../src/levels/index.js';
 import { CONTENT, ERRANDS } from '../src/levels/content.js';
 import { Physics, dropBuriedFloraSteps } from '../src/physics.js';
 import { Waters, BreathMeter, breathShown } from '../src/water.js';
+import { waterShared } from '../src/water-shader.js';
 import { Ship } from '../src/ship/ship.js';
 import { CallScreen } from '../src/ship/portrait.js';
 // (the console's round screen is drawn in the VM, engine/raster.js, and sent to the GPU each time: smaller and 10 times a second)
@@ -737,6 +738,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // says, its shadow filter's taps
   if (Q) {
     sharedUniforms.uWearLite.value = Q.lowDetail || Q.postLite ? 1 : 0;
+    waterShared.uWaterLite.value = Q.lowDetail || Q.postLite ? 1 : 0;   // (no sun's sparkle on the water there: main.js applyDetail)
     if (!Q.cloudShadows) sharedUniforms.uCloudShadows.value = 0;
     if (!Q.ao && U.uAO) U.uAO.value = 0;
     if (U.uPostLite) U.uPostLite.value = Q.postLite ? 1 : 0;
@@ -1360,6 +1362,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     /** A pointer delta (pixels), as the mouse turns the camera on the page. */
     look(dx, dy) { rig.look(dx, dy); },
     pin(v) { pinned = v ? pin(v) : null; },
+    /** The water's pass over the page this frame (src/water.js Waters.overState: the tint and haze under water, the sun's
+     * sparkle above it), plain numbers in three's space; under -1 when it draws nothing; lite: the preset has no sparkle. */
+    waterOver() { const s = waters.overState(camera), lite = waterShared.uWaterLite.value; return s ? { ...s, lite } : { under: -1, lite }; },
     /** The frame's look: the sun and the preset's uniforms (LOOK_KEYS) as plain numbers. */
     lookParams() {
       for (const k of LOOK_KEYS) { const u = U[k] ?? sharedUniforms[k]; if (u) lookOut[k] = plainValue(u.value); }
@@ -1768,6 +1773,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       // and his last second of steps, for the grass to part along (brush.js, as main.js: the bridge's op 28, issue #264)
       if (backend?.brushTrail) backend.brushTrail((brushTrail ??= new BrushTrail()).update(dt, player.riding ? null : player.pos, Math.hypot(player.vel.x, player.vel.z)).trail, brushTrail.bound);
       lap?.('wind');
+      // the camera kept off the water's surface, under it or over it (main.js; what the pass over the page draws: waterOver)
+      waters.keepCamera(camera, player.swim?.under ? 'under' : 'over');
       // (the frame's camera final: what a level lays out only where it is seen, the Underwater City's bubbles; main.js renderFrame)
       level.beforeDraw?.(camera);
       lap?.('level');

@@ -29,7 +29,7 @@ namespace Hiraeth.Rendering
         ShadowPass shadows;
         CompositePass composite;
         UpscalePass upscale;
-        Material compositeMaterial, bloomMaterial, fxaaMaterial, smaaMaterial, upscaleMaterial;
+        Material compositeMaterial, bloomMaterial, fxaaMaterial, smaaMaterial, upscaleMaterial, waterOverMaterial;
         static bool logged;
 
         public override void Create()
@@ -54,6 +54,7 @@ namespace Hiraeth.Rendering
             if (compositeMaterial == null) return;
             if (bloomMaterial == null) { var bs = Shader.Find("Hidden/Hiraeth/Bloom"); if (bs != null) bloomMaterial = CoreUtils.CreateEngineMaterial(bs); }
             if (fxaaMaterial == null) { var fs = Shader.Find("Hidden/Hiraeth/FXAA"); if (fs != null) fxaaMaterial = CoreUtils.CreateEngineMaterial(fs); }
+            if (waterOverMaterial == null && WaterOverMode > 0) { var ws = Shader.Find("Hidden/Hiraeth/WaterOver"); if (ws != null && ws.isSupported) waterOverMaterial = CoreUtils.CreateEngineMaterial(ws); }
             if (smaaMaterial == null && Settings.smaa && smaaArea != null && smaaSearch != null)
             {
                 var ss = smaaShader != null ? smaaShader : Shader.Find("Hidden/Hiraeth/SMAA");
@@ -71,6 +72,8 @@ namespace Hiraeth.Rendering
             composite.bloom = bloom && Settings.bloom ? bloomMaterial : null;
             composite.fxaa = fxaa && Settings.fxaa ? fxaaMaterial : null;
             composite.smaa = useSmaa ? smaaMaterial : null;
+            // (the water's pass over the page, on the frames the engine asks for it: under water, or sparkling water in view)
+            composite.water = Settings.waterOver && WaterOverMode > 0 && WorldDetail.DrawsWorld(cam) ? waterOverMaterial : null;
             renderer.EnqueuePass(shadows);
             renderer.EnqueuePass(gbuffer);
             renderer.EnqueuePass(composite);
@@ -89,9 +92,13 @@ namespace Hiraeth.Rendering
         // feature added no passes: the picture black but for the HUD and the motes, issue #462)
         protected override void Dispose(bool disposing)
         {
-            CoreUtils.Destroy(compositeMaterial); CoreUtils.Destroy(bloomMaterial); CoreUtils.Destroy(fxaaMaterial); CoreUtils.Destroy(smaaMaterial); CoreUtils.Destroy(upscaleMaterial);
-            compositeMaterial = bloomMaterial = fxaaMaterial = smaaMaterial = upscaleMaterial = null;
+            CoreUtils.Destroy(compositeMaterial); CoreUtils.Destroy(bloomMaterial); CoreUtils.Destroy(fxaaMaterial); CoreUtils.Destroy(smaaMaterial); CoreUtils.Destroy(upscaleMaterial); CoreUtils.Destroy(waterOverMaterial);
+            compositeMaterial = bloomMaterial = fxaaMaterial = smaaMaterial = upscaleMaterial = null; waterOverMaterial = null;
         }
+
+        /// <summary>The water's pass over the page this frame (Hidden/Hiraeth/WaterOver, issue #458), as the engine said it
+        /// (BridgeRunner.Water, src/water.js Waters.overState): 0 none, 1 the sun's sparkle on the water, 2 under water.</summary>
+        public static int WaterOverMode;
 
         /// <summary>How the picture made at the render scale reaches the screen (issue #392; the bridge's -upscale): URP's own
         /// final blit (bilinear), or our UpscalePass: FSR 1 (EASU, then RCAS), Snapdragon GSR 1, or a plain bilinear copy.</summary>
@@ -128,6 +135,8 @@ namespace Hiraeth.Rendering
         public static class Settings
         {
             public static bool fxaa = true, bloom = true;   // (bloom: the glow, a test switch: the bridge's -no-bloom)
+            /// <summary>The water's pass over the page (WaterOverMode; the bridge's -no-water-over off, a test of its cost).</summary>
+            public static bool waterOver = true;
             /// <summary>SMAA in place of FXAA (when fxaa is on): the handheld's (the bridge's Handheld preset; -aa smaa|fxaa),
             /// as the web's Handheld (perf.js aa: 'smaa'); the far lines flickered less with it at the Retroid's frame (#225, #218).</summary>
             public static bool smaa;
@@ -470,7 +479,10 @@ namespace Hiraeth.Rendering
 
         class CompositePass : ScriptableRenderPass
         {
-            public Material material, bloom, fxaa, smaa;
+            public Material material, bloom, fxaa, smaa, water;
+            class WaterData { public Material mat; public TextureHandle page, a, n; public float flip; public MaterialPropertyBlock mpb; }
+            readonly MaterialPropertyBlock waterMpb = new();
+            static readonly int IdPage = Shader.PropertyToID("_WOPage");
             class PassData { public Material mat; public TextureHandle a, n, h, b1, b2; public bool hasBloom; public float flip, gflip; }
             // (each pass its own property block: a material's properties are read when the command buffer
             // runs, so five passes sharing one material would all see the last pass's source)
@@ -586,7 +598,8 @@ namespace Hiraeth.Rendering
                 // ---- the page (into its own target when FXAA or SMAA follows; SMAA never straight into the back buffer)
                 var useSmaa = smaa != null && !ToScreen(res, cam);
                 TextureHandle target = res.activeColorTexture;
-                if (fxaa != null || useSmaa)
+                bool aa = fxaa != null || useSmaa;
+                if (aa || water != null)
                 {
                     var cd = cam.cameraTargetDescriptor; cd.msaaSamples = 1; cd.depthBufferBits = 0; cd.depthStencilFormat = GraphicsFormat.None;
                     target = UniversalRenderer.CreateRenderGraphTexture(rg, cd, "_HiraethPage", false, FilterMode.Bilinear);
@@ -594,7 +607,7 @@ namespace Hiraeth.Rendering
                 using (var builder = rg.AddRasterRenderPass<PassData>("Hiraeth ink composite", out var pass, Sampler("Hiraeth ink composite")))
                 {
                     pass.mat = material; pass.a = g.albedo; pass.n = g.normal; pass.h = g.hatch; pass.b1 = b1; pass.b2 = b2; pass.hasBloom = b1.IsValid();
-                    pass.flip = fxaa == null && !useSmaa && ToScreen(res, cam) ? 1 : 0;
+                    pass.flip = !aa && water == null && ToScreen(res, cam) ? 1 : 0;
                     pass.gflip = ToScreen(res, cam) ? 1 : 0;
                     builder.UseTexture(g.albedo); builder.UseTexture(g.normal); builder.UseTexture(g.hatch);
                     if (pass.hasBloom) { builder.UseTexture(b1); builder.UseTexture(b2); }
@@ -609,6 +622,33 @@ namespace Hiraeth.Rendering
                         ctx.cmd.DrawProcedural(Matrix4x4.identity, d.mat, 0, MeshTopology.Triangles, 3, 1);
                     });
                 }
+                // ---- the water's pass over the page (water.js WaterPass): the page copied with its layers laid over it in the
+                // web's display values, into the anti-aliasing's source (or the camera's target when none follows)
+                if (water != null)
+                {
+                    HiraethLook.SetCameraUniforms(water, cam.camera, W, H);
+                    var dst = res.activeColorTexture;
+                    if (aa)
+                    {
+                        var cd = cam.cameraTargetDescriptor; cd.msaaSamples = 1; cd.depthBufferBits = 0; cd.depthStencilFormat = GraphicsFormat.None;
+                        dst = UniversalRenderer.CreateRenderGraphTexture(rg, cd, "_HiraethPageWater", false, FilterMode.Bilinear);
+                    }
+                    using (var builder = rg.AddRasterRenderPass<WaterData>("Hiraeth water over", out var pass, Sampler("Hiraeth water over")))
+                    {
+                        pass.mat = water; pass.page = target; pass.a = g.albedo; pass.n = g.normal; pass.mpb = waterMpb;
+                        pass.flip = !aa && ToScreen(res, cam) ? 1 : 0;
+                        builder.UseTexture(target); builder.UseTexture(g.albedo); builder.UseTexture(g.normal);
+                        builder.SetRenderAttachment(dst, 0, AccessFlags.WriteAll);   // (every pixel written: nothing to load)
+                        builder.AllowGlobalStateModification(true);
+                        builder.SetRenderFunc((WaterData d, RasterGraphContext ctx) =>
+                        {
+                            d.mpb.SetTexture(IdPage, d.page); d.mpb.SetTexture(IdA, d.a); d.mpb.SetTexture(IdN, d.n); d.mpb.SetFloat(IdFlip, d.flip);
+                            ctx.cmd.DrawProcedural(Matrix4x4.identity, d.mat, 0, MeshTopology.Triangles, 3, 1, d.mpb);
+                        });
+                    }
+                    target = dst;
+                }
+                if (!aa) return;
                 if (useSmaa) Smaa(rg, target, res.activeColorTexture, W, H);
                 else if (fxaa != null)
                 {

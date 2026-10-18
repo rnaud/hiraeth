@@ -441,10 +441,30 @@ export class Waters {
    * marks it in the normals' length: drawn here it gets no ink outline).
    */
   renderOver(renderer, camera, { tNormal, tAlbedo, target, toon = 0.5 } = {}) {
-    this.sound?.underwater?.(this.camUnder ? (this.camUnder.glass ? 0.3 : 1) : 0);
-    const sun = sharedUniforms.uSunDir.value.y > 0.02 && waterShared.uWaterLite.value < 0.5;   // (no sparkle on the handheld's low detail)
-    if (!this.camUnder && !(sun && this.inView)) return;
+    if (!this.overMode()) return;
     (this.pass ??= new WaterPass()).render(renderer, camera, { tNormal, tAlbedo, target, toon, under: this.camUnder });
+  }
+
+  /**
+   * What the pass over the page draws this frame (after keepCamera): 'under' (the tint and haze), 'sparkle' (the sun's
+   * glints on the water in view) or null (no pass); and the sound muffled under water.
+   */
+  overMode() {
+    this.sound?.underwater?.(this.camUnder ? (this.camUnder.glass ? 0.3 : 1) : 0);
+    if (this.camUnder) return 'under';
+    const sun = sharedUniforms.uSunDir.value.y > 0.02 && waterShared.uWaterLite.value < 0.5;   // (no sparkle on the handheld's low detail)
+    return sun && this.inView ? 'sparkle' : null;
+  }
+
+  /**
+   * The pass over the page for an engine that draws it itself (engine/game.js waterOver; the Unity bridge's
+   * WaterOver.shader): null when it draws nothing, { under: 0 } for the sparkle, else { under: 1, ...underLook }.
+   */
+  overState(camera) {
+    const mode = this.overMode();
+    if (!mode) return null;
+    if (mode === 'sparkle') return { under: 0 };
+    return { under: 1, ...underLook(this.camUnder, camera.position, sharedUniforms.uSunDir.value, (this._over ??= {}), (this._overSh ??= new Float32Array(SEA_SHAFTS * 4))) };
   }
 
   /** The over-the-page pass, made now if this world has water (so the loading screen compiles it: main.js). */
@@ -676,6 +696,51 @@ export function seaShafts(o, cx, cz, out = new Float32Array(SEA_SHAFTS * 4)) {
 }
 
 /**
+ * The pass over the page's numbers for the water the camera is under (`under`: keepCamera's { y, body }), plain arrays
+ * (WaterPass.setUnder makes its uniforms of them; the engines send them to theirs: Waters.overState):
+ *   surf  the surface's height; tint, deep  the water's colours near and far; fog  density, bands, least, most;
+ *   fogStart  m of clear water; shafts  SEA_SHAFTS × [x, z, half width, strength] round `cam` (null: none);
+ *   shaftDir  their way down (unit) and reach; shaftTone  rgb and strength (0: the generic shafts, < 0: none);
+ *   caustic  cells a metre, range, strength (0: none), speed; causticTone  rgb.
+ * What a body does not use stays in `out` as it was (as the uniforms kept it).
+ */
+export function underLook(under, cam, sunDir, out = {}, sh = new Float32Array(SEA_SHAFTS * 4)) {
+  out.surf = under.y;
+  out.shaftDir ??= [0, -1, 0, 60]; out.shaftTone ??= [0.92, 0.98, 0.96, 0]; out.caustic ??= [0.5, 30, 0, 0.6]; out.causticTone ??= _c.set('#e4fbf4').toArray();
+  out.shafts = null;
+  const sea = under.body?.sea, m = under.body?.mat?.uniforms;
+  if (!sea) {
+    out.fog = [SEA_LOOK.density, SEA_LOOK.bands, SEA_LOOK.min, SEA_LOOK.max];
+    out.fogStart = 0;
+    out.shaftTone[3] = 0; out.caustic[2] = 0;
+    if (m) { out.tint = m.uColor.value.toArray(); out.deep = m.uColor.value.clone().multiplyScalar(0.5).toArray(); }
+    else { out.tint = _c.set('#5aa6a8').toArray(); out.deep = _c.set('#2a5560').toArray(); }
+    return out;
+  }
+  const o = { ...SEA_LOOK, ...sea };
+  out.tint = _c.set(o.tint).toArray(); out.deep = _c.set(o.deep).toArray();
+  out.fog = [o.density, o.bands, o.min, o.max];
+  out.fogStart = o.start;
+  const sf = o.shafts;
+  if (sf) {
+    out.shafts = seaShafts(sf, cam.x, cam.z, sh);
+    // (they slant away from the sun: its way through the water, steeper than in the air)
+    const hl = Math.hypot(sunDir.x, sunDir.z) || 1, lean = sf.lean ?? 0.3;
+    const d = _v.set((-sunDir.x / hl) * lean, -1, (-sunDir.z / hl) * lean).normalize();
+    out.shaftDir = [d.x, d.y, d.z, sf.reach ?? 60];
+    _c.set(sf.tone ?? '#eafbf6');
+    out.shaftTone = [_c.r, _c.g, _c.b, sf.strength ?? 0.2];
+  } else out.shaftTone[3] = -1;
+  const ca = o.caustics;
+  if (ca) {
+    out.caustic = [ca.scale ?? 0.5, ca.range ?? 30, ca.strength ?? 0.5, ca.speed ?? 0.6];
+    out.causticTone = _c.set(ca.tone ?? '#e4fbf4').toArray();
+  } else out.caustic[2] = 0;
+  return out;
+}
+const _v = new THREE.Vector3();
+
+/**
  * Drawn with alpha over the finished page. Under water: everything sinks into
  * the water's colour in flat bands with distance, a little darker the deeper
  * you look (the surface overhead stays bright: the water shader draws it from
@@ -825,40 +890,18 @@ class WaterPass {
     this.scene.add(quad);
     this.camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
     this._sh = new Float32Array(SEA_SHAFTS * 4);
+    this._look = {};
   }
-  /** The uniforms for the water the camera is under (`under`: keepCamera's { y, body }). */
+  /** The uniforms for the water the camera is under (`under`: keepCamera's { y, body }): underLook's numbers. */
   setUnder(camera, under) {
-    const U = this.material.uniforms;
-    U.uSurf.value = under.y;
-    const sea = under.body?.sea, m = under.body?.mat?.uniforms;
-    if (!sea) {
-      U.uFog.value.set(SEA_LOOK.density, SEA_LOOK.bands, SEA_LOOK.min, SEA_LOOK.max);
-      U.uFogStart.value = 0;
-      U.uShaftTone.value.w = 0; U.uCaustic.value.z = 0;
-      if (m) { U.uTint.value.copy(m.uColor.value); U.uDeep.value.copy(m.uColor.value).multiplyScalar(0.5); }
-      else { U.uTint.value.set('#5aa6a8'); U.uDeep.value.set('#2a5560'); }
-      return;
-    }
-    const o = { ...SEA_LOOK, ...sea };
-    U.uTint.value.set(o.tint); U.uDeep.value.set(o.deep);
-    U.uFog.value.set(o.density, o.bands, o.min, o.max);
-    U.uFogStart.value = o.start;
-    const sh = o.shafts;
-    if (sh) {
-      const v = seaShafts(sh, camera.position.x, camera.position.z, this._sh);
-      U.uShafts.value.forEach((u, i) => u.fromArray(v, i * 4));
-      // (they slant away from the sun: its way through the water, steeper than in the air)
-      const sun = sharedUniforms.uSunDir.value, hl = Math.hypot(sun.x, sun.z) || 1, lean = sh.lean ?? 0.3;
-      U.uShaftDir.value.set((-sun.x / hl) * lean, -1, (-sun.z / hl) * lean, 0).normalize();
-      U.uShaftDir.value.w = sh.reach ?? 60;
-      _c.set(sh.tone ?? '#eafbf6');
-      U.uShaftTone.value.set(_c.r, _c.g, _c.b, sh.strength ?? 0.2);
-    } else U.uShaftTone.value.w = -1;
-    const ca = o.caustics;
-    if (ca) {
-      U.uCaustic.value.set(ca.scale ?? 0.5, ca.range ?? 30, ca.strength ?? 0.5, ca.speed ?? 0.6);
-      U.uCausticTone.value.set(ca.tone ?? '#e4fbf4');
-    } else U.uCaustic.value.z = 0;
+    const U = this.material.uniforms, L = underLook(under, camera.position, sharedUniforms.uSunDir.value, this._look, this._sh);
+    U.uSurf.value = L.surf;
+    U.uTint.value.fromArray(L.tint); U.uDeep.value.fromArray(L.deep);
+    U.uFog.value.fromArray(L.fog);
+    U.uFogStart.value = L.fogStart;
+    if (L.shafts) U.uShafts.value.forEach((u, i) => u.fromArray(L.shafts, i * 4));
+    U.uShaftDir.value.fromArray(L.shaftDir); U.uShaftTone.value.fromArray(L.shaftTone);
+    U.uCaustic.value.fromArray(L.caustic); U.uCausticTone.value.fromArray(L.causticTone);
   }
   render(renderer, camera, { tNormal, tAlbedo, target, toon, under }) {
     const U = this.material.uniforms;

@@ -177,7 +177,7 @@ namespace Hiraeth.Bridge
         /// <summary>What the frame's ops made (BridgeMetrics logs it with a slow frame and the load's first frames: which kind of
         /// thing Unity's first render of it stalls on), taken and cleared each frame.</summary>
         public static readonly Dictionary<string, int> Made = new();
-        public static bool oneVariant, uniformLayout, fullLayout, zTestAlways, noVeil;
+        public static bool oneVariant, uniformLayout, fullLayout, zTestAlways, noVeil, noFall;
         public static string cullTest;
         /// <summary>Tests of the GPU's frame (issue #262): -hide kinds (skinned, mesh, inst, grass, crowd, puffs, points: not drawn),
         /// -census (what is drawn, by kind, logged every 300 frames).</summary>
@@ -549,6 +549,7 @@ namespace Hiraeth.Bridge
             int map = m.I("map");
             if (map > 0) UseMap(materials[mid], map);
             if (noVeil && materials[mid].HasProperty("_Veil")) materials[mid].SetFloat("_Veil", 0);
+            if (noFall && materials[mid].HasProperty("_FallOn")) materials[mid].SetFloat("_FallOn", 0);   // (-no-fall: the falls a flat sheet, as before #264's surfaces C)
             specs[materials[mid]] = json;
             // (-cull off|flip, a test for the Xbox's see-through picture: every Surface material's culling off, or the other face)
             if (cullTest != null && materials[mid].HasProperty("_Cull"))
@@ -584,7 +585,7 @@ namespace Hiraeth.Bridge
             // (the ground and the water keep their own path in a lean variant of their own, when they use no other rare one)
             string why = F(m, "_Glass") > 0 ? "glass" : F(m, "_Veil") > 0 ? "veil" : V(m, "_Dissolve").x > 0 ? "dissolve"
                 : F(m, "_Fluid") > 0.5f ? "fluid" : F(m, "_TripoFace") > 0.5f ? "face" : F(m, "_Veins") > 0 ? "veins" : F(m, "_BoxOn") > 0.5f ? "box"
-                : F(m, "_Scrub") > 0 ? "scrub" : F(m, "_SplatOn") > 0.5f ? "splat" : F(m, "_MirrorOn") > 0.5f ? "mirror" : null;
+                : F(m, "_Scrub") > 0 ? "scrub" : F(m, "_SplatOn") > 0.5f ? "splat" : F(m, "_MirrorOn") > 0.5f ? "mirror" : F(m, "_FallOn") > 0.5f ? "fall" : null;
             string kw = why != null ? null : mode == 1 ? "HIRAETH_LEAN_TERRAIN" : mode == 3 ? "HIRAETH_LEAN_WATER" : "HIRAETH_LEAN";
             // (the scrub's strokes or the glass's cut alone, on no ground or water: the lean variant with that one path kept)
             if (leanRare && (why == "scrub" || why == "glass") && mode != 1 && mode != 3 && RareCount(m) == 1)
@@ -602,9 +603,9 @@ namespace Hiraeth.Bridge
                 m.EnableKeyword("HIRAETH_PLAIN"); leanWhy.TryGetValue("plain", out int pc); leanWhy["plain"] = pc + 1;
             }
         }
-        /// <summary>How many of the full variant's rare paths a material uses (glass, veil, dissolve, fluid, drawn face, veins, box, scrub).</summary>
+        /// <summary>How many of the full variant's rare paths a material uses (glass, veil, dissolve, fluid, drawn face, veins, box, scrub, a fall).</summary>
         static int RareCount(Material m) => (F(m, "_Glass") > 0 ? 1 : 0) + (F(m, "_Veil") > 0 ? 1 : 0) + (V(m, "_Dissolve").x > 0 ? 1 : 0)
-            + (F(m, "_Fluid") > 0.5f ? 1 : 0) + (F(m, "_TripoFace") > 0.5f ? 1 : 0) + (F(m, "_Veins") > 0 ? 1 : 0) + (F(m, "_BoxOn") > 0.5f ? 1 : 0) + (F(m, "_Scrub") > 0 ? 1 : 0);
+            + (F(m, "_Fluid") > 0.5f ? 1 : 0) + (F(m, "_TripoFace") > 0.5f ? 1 : 0) + (F(m, "_Veins") > 0 ? 1 : 0) + (F(m, "_BoxOn") > 0.5f ? 1 : 0) + (F(m, "_Scrub") > 0 ? 1 : 0) + (F(m, "_FallOn") > 0.5f ? 1 : 0);
         /// <summary>The lean variants with one rare path kept (HIRAETH_LEAN_SCRUB, HIRAETH_LEAN_GLASS: Surface.shader) for the scrub's
         /// and the glass's materials that use no other: on Android under Vulkan, as the slim ones (their variants are in those builds
         /// only: BridgeShaderStrip), -lean-rare elsewhere, -no-lean-rare off, -no-lean-scrub / -no-lean-glass one of them

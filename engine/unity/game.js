@@ -881,6 +881,7 @@ export function frame(dt) {
   const r = game.frame(dt);
   showMenu();
   backend.lights(game.localLights());
+  backend.water(game.waterOver?.());   // (the water's pass over the page: under it the tint and haze, above it the sun's sparkle)
   const tL = now();
   // (the look moves with the hour and the place: read every 4th frame is enough)
   if (S.frames % 4 === 0) backend.look(JSON.stringify(portLook(game.fullLook())));

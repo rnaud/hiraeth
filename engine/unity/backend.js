@@ -500,6 +500,17 @@ export class UnityBackend {
     tally(this, 'lights', b0);
   }
 
+  /**
+   * The water's pass over the page (src/water.js Waters.overState, three's space: WaterOver.shader works in it), when it
+   * changed: '' none, else its numbers (BridgeHost.Water). A sea's shafts move only as the camera crosses their lattice's cells.
+   */
+  water(state) {
+    const json = state ? JSON.stringify(state, (k, v) => (v instanceof Float32Array ? Array.from(v, (x) => +x.toFixed(3)) : typeof v === 'number' ? +v.toFixed(4) : v)) : '';
+    if (json === this._water) return;
+    this._water = json;
+    this.host.Water?.(json);   // (an older build's host has none: no pass, as before)
+  }
+
   /** The look in the port's own format (port-format.js portLook), when it changed. */
   look(json) { if (json !== this._look) { this._look = json; this.host.Look(json); this.stats.looks = (this.stats.looks ?? 0) + 1; } }
 }

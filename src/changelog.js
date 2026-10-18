@@ -212,6 +212,14 @@ export const CHANGELOG = [
     // ink-spec.js offset, WorldLoader; traveller-b3.js noSplat; engine/sequences.js bird, splat; tests/unity-splat.test.js,
     // tests/unity-letterbox.test.js, tests/game-host.test.js
     'In the Unity version, “ride the bird” shows over the bird when you stand by it, as on the web; a scene’s black bars slide in as slowly and smoothly as on the web’s; and the fluid’s splats lie whole on the ground the moment they land (the ground hid them, in part or all, a beat longer).',
+    // issue #264 surfaces C: unity/Hiraeth Fall.hlsl (src/waterfall-shader.js fallLook), Surface.shader _FallOn (full variant:
+    // BridgeRenderer.Lean "fall"), WorldLoader, engine/unity/port-format.js; tests/unity-surfaces-c.test.js;
+    // docs/systems/engine-bridge.md "Surfaces C: the water"
+    'In the Unity version the waterfalls fall as on the web: the great curtain over the City Behind the Waterfall and its small deep fall stream down in bands of teal, turquoise and white with pen streaks, glassy at the lip and misty at the foot, with slits you can see through; the Buried Machine’s oil fall, Viridel’s stair fall and the Glass Dunes’ sand falls too. They were flat sheets.',
+    // issue #458: unity/Hiraeth WaterOver.shader (src/water.js WaterPass), HiraethFeature CompositePass, BridgeRunner.Water;
+    // Surface.shader waterLook's glints (WATER_MARK); src/water.js underLook / overState; engine/game.js keepCamera, waterOver;
+    // engine/unity/backend.js water; tests/unity-surfaces-c.test.js; docs/systems/engine-bridge.md "Surfaces C: the water"
+    'In the Unity version the water looks as on the web from below and in the sun: under water the view sinks into the water’s colour in flat bands, and in the Underwater City pale shafts of light come down from the sea’s surface and caustics play on the floors, behind the halls’ glass too; above water the sun glints in white dashes on the water toward it (not on the Handheld, Steam Deck and Xbox presets, as on the web). Sounds are muffled under water there too, and the camera no longer stops half in, half out of the water.',
   ] },
   { v: '1.83', date: '2026-10-16', items: [
     // issue #406: src/temples/desert.js (ROOMS, LOGIC: hall, balcony, ballK, kS, dE, sentry in the hall, d3), pieces.js Ball

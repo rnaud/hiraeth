@@ -106,6 +106,9 @@ Shader "Hiraeth/Surface"
     _DuneLime ("DuneLime", Vector) = (0, 0, 0, 0)
     _DuneSil ("DuneSil", Vector) = (0, 0, 0, 0)
     _DuneK ("DuneK", Vector) = (0, 0, 0, 0)
+    _FallOn ("A falling sheet of water (waterfall-shader.js FALL)", Float) = 0
+    _FallA ("FallA", Vector) = (0, 0, 0, 0)
+    _FallB ("FallB", Vector) = (0, 0, 0, 0)
     _Dissolve ("Dissolve", Vector) = (0, 0, 0, 0)
     _DissolveColor ("DissolveColor", Vector) = (0, 0, 0, 0)
     _TfBrowA ("TfBrowA", Vector) = (0, 0, 0, 0)
@@ -187,6 +190,7 @@ Shader "Hiraeth/Surface"
     float _NightOn, _MirrorOn, _VeinOn, _SplatOn;
     float4 _Mirror, _MirrorLake, _VeinBox, _SplatClock;
     float4 _Breathe;       // (read by BridgeRenderer.Breathe, not the shader: the Buried Machine's parts moved a matrix an instance)
+    float _FallOn; float4 _FallA, _FallB;   // a falling sheet of water (Fall.hlsl, waterfall-shader.js): speed, column, gaps, mist; ink, lip, height, seed
     CBUFFER_END
 
     float3 _SkyTop, _SkyHorizon;   // (the composite's: what the metals see)
@@ -198,6 +202,7 @@ Shader "Hiraeth/Surface"
     #include "Figure.hlsl"
     #include "Marks.hlsl"
     #include "TripoFace.hlsl"
+    #include "Fall.hlsl"
     #if defined(HIRAETH_VMAT)
       // a merged mesh's material values per vertex (materials.js S_VMAT): every read below takes the vertex's, set in frag
       static float4 vmColor, vmColor2, vmColor3;
@@ -557,7 +562,7 @@ Shader "Hiraeth/Surface"
         float3 camOS = mul(UNITY_MATRIX_I_M, float4(_WorldSpaceCameraPos, 1.0)).xyz;
         O_FORM = 0;
         // (a picture's uv where the form's point would be: a material with a map has no S_FORM; w 0 keeps the form's hatching off)
-        if (_MapOn > 0.5) O_FORM = float4(v.uv, 0, 0);
+        if (_MapOn > 0.5 || _FallOn > 0.5) O_FORM = float4(v.uv, 0, 0);   // (a fall's uv in metres too: Fall.hlsl)
         #if defined(HIRAETH_VMAT)
           // (each merged object's own frame: materials.js S_VMAT; the camera in its frame, its turn about y undone)
           o.vm1 = v.vm1; o.vm2 = v.vm2; o.vm3 = v.vm3;
@@ -906,6 +911,10 @@ Shader "Hiraeth/Surface"
         ink = max(ink * (1.0 - k * 0.6), edge * seen * 0.4 * (1.0 - smoothstep(0.05, 0.2, px)));
         return k * (0.85 + 0.15 * pulse);
       }
+      // the sun's sparkle (water-shader.js): a glint's share at this pixel, sent in the normal's length (frag, WATER_MARK) for
+      // the pass over the page to paint white (WaterOver.shader); not here, where the composite would ink round it
+      static float waterGlint = 0.0;
+      float _WaterLite;   // (global: the preset's low detail, no sparkle; BridgeRunner.Water, main.js applyDetail)
       float3 waterLook(float3 p, bool front, float2 pix, float vd, out float ink, out float lit, out float glow)
       {
         glow = 0;
@@ -980,6 +989,20 @@ Shader "Hiraeth/Surface"
         col = lerp(col, lerp(float3(0.97, 0.98, 0.95), shallow, 0.18), foam);
         lit = max(foam * 0.6, veinGlow);
         glow = veinGlow;
+        // the sparkle: dashes of sun toward the sun (horizontal on the page), twinkling, in world-fixed cells (a power of two
+        // metres, ~16 px along the view), a dash in each lying across the view
+        UNITY_BRANCH if (_SunDir.y > 0.02 && _WaterOpt.w > 0.0 && _WaterLite < 0.5)
+        {
+          float path = smoothstep(0.88, 0.995, dot(float3(-V.x, V.y, -V.z), _SunDir));
+          float3 cf = toThree(-UNITY_MATRIX_V[2].xyz);
+          float2 side = normalize(float2(-cf.z, cf.x) + 1e-5), along = float2(side.y, -side.x);
+          float cs = exp2(floor(log2(max(px * 16.0, 0.05))));
+          float2 gq = p.xz / cs, id = floor(gq), f = frac(gq) - 0.5 - (hash2(id + 1.3) - 0.5) * 0.3;
+          float2 fl = float2(dot(f, side), dot(f, along));
+          float h = hash(id + floor(t * 2.3 + hash(id + 3.1) * 7.0) * 0.137);
+          float len = 0.14 + 0.22 * hash(id + 9.7);
+          waterGlint = step(abs(fl.y), 0.08) * step(abs(fl.x), len) * step(1.0 - path * 0.55 * _WaterOpt.w, h) * (1.0 - foam);
+        }
         return col;
       }
 
@@ -1048,6 +1071,9 @@ Shader "Hiraeth/Surface"
           for (int si = 0; si < 5; si++) sIn = sIn || length(sp - SPLAT_DROPS[si].xy * sK) < SPLAT_DROPS[si].z * sK * (1.0 + 0.15 * sin(sA * 4.0 + ph));
           if (!sIn && splatInner < 0.5) discard;
         }
+        // a falling sheet of water (Fall.hlsl): its slits see-through. Not in the lean variants (BridgeRenderer.Lean "fall")
+        FallLook fall = (FallLook)0;
+        UNITY_BRANCH if (LEANK && _FallOn > 0.5) { fall = fallLook(I_FORM.xy); if (fall.gap > 0.5) discard; }
         // (each part's coordinates and derivatives are worked out next to it, in uniform control flow, not all at the top:
         // held from there through the colour, the shadow's taps and the lights, they cost every pixel of every surface its
         // registers, and the GPU its waves in flight; the same numbers, issue #262)
@@ -1340,10 +1366,13 @@ Shader "Hiraeth/Surface"
 
         albedo = lerp(albedo, _DissolveColor.rgb, dEdge);
         L = lerp(L, 1.0, dEdge);
+        if (LEANK && _FallOn > 0.5) { albedo = fall.albedo; L = 1.0; }   // (the sheet is its own light: materials.js FALL)
         GBufferOut o;
         o.albedoLight = float4(albedo, saturate(L) + 2.0 * _LineStep);   // (the line's weight and colour over it: materials.js LINE)
         o.normalDepth = float4(n, _FarDepth.x > 0 && i.viewDepth > _FarDepth.x ? _FarDepth.x + (i.viewDepth - _FarDepth.x) * _FarDepth.y : i.viewDepth);
         o.hatch = 0;
+        // (the water marks itself by its normal's length, its glints on top: water-shader.js WATER_MARK, read by WaterOver.shader)
+        if (WATERK && mode == MODE_WATER && _WaterOpt.x > 0.0 && frontFace && _WaterOpt.y < 0.5) o.normalDepth.xyz *= 1.012 + 0.05 * waterGlint;
 
         // drawn detail (gHatch.b)
         float detail = skinInk;
@@ -1427,6 +1456,7 @@ Shader "Hiraeth/Surface"
         }
         detail = max(detail, patInk);
         detail = max(detail, metalInk);
+        detail = max(detail, fall.ink);   // (a fall's pen streaks)
         // (packed over the detail: the material's spot-black step x4, weathered +16; materials.js SPOT, WEATHER)
         o.hatch.b = detail + 4.0 * _SpotStep + (_Weather > 0.0 ? 16.0 : 0.0);
         bool facePart = mode == MODE_EYE || (mode == MODE_OUTFIT && I_BIND.y > _Outfit.z && abs(I_BIND.x) < 0.16);
@@ -1543,8 +1573,8 @@ Shader "Hiraeth/Surface"
         // (the lean variants have no glass, dissolve nor veil (BridgeRenderer.Lean): no discard there at all, so the depth
         // they write is known before the fragment runs (early depth, a tiled GPU's low-resolution depth), issue #262)
         // (a reflection in still water and a splat cut their shapes in the G-buffer pass: they write no depth here; both are
-        // kept on the full variant (BridgeRenderer.Lean: "mirror", "splat"), so no lean prepass carries a discard)
-        void fragEntry(DepthVaryings i) { if ((GLASSK && _Glass > 0.0) || (LEANK && (_Dissolve.x > 0.0 || _Veil > 0.0 || _SplatOn > 0.5 || _MirrorOn > 0.5))) discard; }
+        // kept on the full variant (BridgeRenderer.Lean: "mirror", "splat", "fall"), so no lean prepass carries a discard)
+        void fragEntry(DepthVaryings i) { if ((GLASSK && _Glass > 0.0) || (LEANK && (_Dissolve.x > 0.0 || _Veil > 0.0 || _SplatOn > 0.5 || _MirrorOn > 0.5 || _FallOn > 0.5))) discard; }
       #else
         Varyings vertEntry(Attributes v) { return vert(v); }
         GBufferOut fragEntry(Varyings i, bool frontFace : SV_IsFrontFace) { return frag(i, frontFace); }

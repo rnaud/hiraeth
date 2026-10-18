@@ -215,10 +215,10 @@ namespace Hiraeth
             }
             foreach (var (k, p) in new[] { ("creases", "_Creases"), ("glass", "_Glass"), ("hero", "_Hero"), ("fluid", "_Fluid"), ("fluidDomeK", "_FluidDomeK"), ("duneOn", "_DuneOn") }) if (m.Has(k)) mat.SetFloat(p, m.F(k));
             // (issue #264, surfaces B: a billboard's night paint, a reflection in still water, Lorn's veins, a splat: port-format.js)
-            foreach (var (k, p) in new[] { ("nightOn", "_NightOn"), ("mirrorOn", "_MirrorOn"), ("veinOn", "_VeinOn"), ("splatOn", "_SplatOn") }) if (m.Has(k)) mat.SetFloat(p, m.F(k));
+            foreach (var (k, p) in new[] { ("nightOn", "_NightOn"), ("mirrorOn", "_MirrorOn"), ("veinOn", "_VeinOn"), ("splatOn", "_SplatOn"), ("fallOn", "_FallOn") }) if (m.Has(k)) mat.SetFloat(p, m.F(k));
             // (three's polygon offset, the splats': Surface.shader's Offset, issue #459)
             if (m.L("offset") is List<object> off && off.Count == 2) { mat.SetFloat("_OffsetFactor", Json.Num(off[0])); mat.SetFloat("_OffsetUnits", Json.Num(off[1])); }
-            foreach (var (k, p) in new[] { ("mirror", "_Mirror"), ("mirrorLake", "_MirrorLake"), ("veinBox", "_VeinBox"), ("splatClock", "_SplatClock"), ("breathe", "_Breathe") })
+            foreach (var (k, p) in new[] { ("mirror", "_Mirror"), ("mirrorLake", "_MirrorLake"), ("veinBox", "_VeinBox"), ("splatClock", "_SplatClock"), ("breathe", "_Breathe"), ("fallA", "_FallA"), ("fallB", "_FallB") })
             {
                 var l = m.L(k);
                 if (l == null) continue;

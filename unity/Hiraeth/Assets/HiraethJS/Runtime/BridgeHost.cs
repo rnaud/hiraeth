@@ -163,6 +163,8 @@ namespace Hiraeth.Bridge
         }
         public static void Frame(object buffer) { var b = JsRuntime.Bytes(buffer, out int n); On(() => R?.Frame(b, n)); }
         public static void Look(string json) => On(() => Runner?.Look(json));
+        /// <summary>The water's pass over the page when it changed (engine/unity/backend.js water: src/water.js overState).</summary>
+        public static void Water(string json) => On(() => Runner?.Water(json));
         /// <summary>The game's clock (materials.js uTime), each frame: the shaders' time is the page's (HiraethLook.GameClock).</summary>
         public static void Clock(double t) => HiraethLook.GameClock = (float)t;   // (a static: the script runs off the main thread)
         /// <summary>A conversation's portrait (engine/unity/backend.js portrait): drawn into texture n for the panel's chip.</summary>

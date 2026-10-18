@@ -63,6 +63,10 @@ box as it rises). Each gets its own copy of the material, drawn from both sides.
   lens: `keepCamera`, after the rig); under it, `renderOver` sinks the page into
   the water's colour in three flat bands with distance, with slow light shafts
   looking up, and the sound goes through a low-pass (`audio.js underwater`).
+  `Waters.overMode` says what that pass draws this frame (under, the sparkle or nothing) and muffles the sound;
+  `underLook` turns the water the camera is in into plain numbers (WaterPass's uniforms are set from them), and
+  `Waters.overState` hands them to an engine that draws the pass itself: in Unity, `WaterOver.shader` after the
+  composite (docs/systems/engine-bridge.md, "Surfaces C: the water").
 
 **Swimming** (`src/swim.js`, `swimFrame` called by `player.update` before walking;
 `SWIM` holds the numbers):

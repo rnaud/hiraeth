@@ -2160,8 +2160,39 @@ branch, a value in the material, or the CPU's.
 - **Viridel's far tower under a cloud**: not a surface. engine/game.js never took the world's `cloudShadows`
   (main.js does): most worlds have none, and Unity drew drifting cloud shadows in all of them (Lorn's marsh all in shade).
 
-Left: the water's passes (under water, the tint, banded fog, a sea's shafts and caustics; above it, the sun's sparkle),
-a pass of their own after the composite, reading `_GNormal` (docs/systems/bridge-gaps.md).
+Left then: the water's passes, done in surfaces C (below).
+
+## Surfaces C: the water (Unity + Puerts, 2026-10-18, issues #264, #458)
+
+- **The waterfalls' falling water** (src/waterfall-shader.js FALL): `Fall.hlsl` is the web's `fallLook` line for line
+  (the columns of four tones fixed across the sheet, their breaks streaming down, the pen streaks in their lanes, the
+  slits, the glassy lip, the billowing mist; tests/unity-surfaces-c.test.js holds its numbers to the web's). port-format.js
+  sends `fallOn`, `fallA`, `fallB`; the sheet's uv in metres rides in the form's slot (as a picture's), the sheet is its own
+  light (`L` 1) and its streaks are drawn detail. Its slits discard, so a fall goes on the full variant
+  (BridgeRenderer.Lean "fall", RareCount) and the depth prepass leaves it out, as a splat's or a reflection's: no lean
+  prepass carries a discard. A uniform branch, no new variant. `-no-fall` draws them flat again (a before).
+- **The pass over the page** (src/water.js WaterPass): engine/game.js now keeps the camera off the water's surface as
+  main.js does (`keepCamera`, which also notes whether the camera is under water or sees water) and sends
+  `waterOver()` (water.js `Waters.overState`: under -1 nothing, 0 the sun's sparkle, 1 under water with `underLook`'s
+  numbers: the surface, tint, deep, the banded fog, a sea's 25 shafts round the camera, their slant from the sun, the
+  caustics) through backend.js `water` when it changes (`BridgeHost.Water`, BridgeRunner.Water: globals `_WO*`). The
+  same call muffles the sound under water, which the engines never did. `HiraethFeature.CompositePass` then draws
+  `Hidden/Hiraeth/WaterOver` after the composite, before FXAA / SMAA, only on those frames (`WaterOverMode`): a copy of the
+  page with the web's layers over it in display values (the page holds linear ones, so a blend in the target would have
+  thickened the haze), reading `_GNormal` and `_GAlbedo`'s light. Into the anti-aliasing's source, or straight into the
+  camera's target the other way up when none follows. `-no-water-over` leaves it out.
+- **The sun's sparkle**: Surface.shader's `waterLook` marks its glints in the normal's length (water-shader.js
+  WATER_MARK: 1.012, plus 0.05 a glint) as the web's water does, and the pass paints them white where the water is lit.
+  Gated as the web's: the sun up, the material's sparkle on, and not on a preset with low detail or the light post
+  (`waterShared.uWaterLite`, now set by engine/game.js from the preset, sent as `lite`: `_WaterLite`): so the Retroid's
+  Handheld draws neither the glints nor the pass above water. Under water the pass runs on every preset, as the web's
+  (the Underwater City's halls under their glass included: a sea's look holds behind glass, `sea.glass`).
+- Variants: one new shader of one variant (WaterOver, in the builds' always-included list and Batch.RuntimeShaders);
+  no Surface keyword. A new APK's pipeline list (BridgePso) has not been traced with it, so the first frame under water
+  may compile its pipeline once.
+
+Pictures: the web and Unity from the same views (scripts/unity-compare, the City Behind the Waterfall, the Underwater
+City, Salt Harbour), the before with `-no-water-over -no-fall`; in the changelog (v1.84).
 
 ## Parity bits: the bird's prompt, the letterbox, a splat (2026-10-18, issue #459)
 
