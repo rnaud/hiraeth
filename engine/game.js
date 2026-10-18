@@ -131,7 +131,8 @@ import { createBoxes, migrateSave } from '../src/boxes/index.js';
 import { installAudio } from './webaudio.js';
 import { setView, inView } from '../src/motion-kit/view.js';
 import { padFaces, setFaces, confirmKey, backKey } from '../src/native-pad.js';
-import { attachMotion } from '../src/motion-match.js';
+import { attachMotion, matchingSetting } from '../src/motion-match.js';
+import { movesSetting } from '../src/loco-moves.js';
 import { ShopPanel } from '../src/shop-panel.js';
 import { resources } from '../src/resources.js';
 import { Gadgets } from '../src/gadgets/index.js';
@@ -155,7 +156,7 @@ import { gatherPoints, questList, applyQuestJump, landingSpot, godLanding } from
 import { GAMES } from '../src/minigames/index.js';
 import { DEBUG_SLOT } from '../src/save-slots.js';
 import { wallOpenings } from '../src/wall-openings.js';
-import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip, wireCompanion, wireCamera, wireHero, heroCutFrame, cameraFollow, wireBenches, wireTrails, wireOpenings, wireEdge, wireSky, wirePotion, wireNudges, fragmentsLine, wireHealth, hurtReactions, wireAmbush } from '../src/host/game-host.js';
+import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip, wireCompanion, wireCamera, wireHero, heroCutFrame, cameraFollow, wireBenches, wireTrails, wireOpenings, wireEdge, wireSky, wirePotion, wireNudges, fragmentsLine, wireHealth, hurtReactions, wireAmbush, toolGauge, wireJumpShade } from '../src/host/game-host.js';
 
 export { page };
 export { readHref } from './trials.js';   // (the tests: a game page's address)
@@ -314,7 +315,7 @@ export const LOOK_VECTORS = new Set(['uWind', 'uHaze', 'uSpot', 'uSpotTone', 'uH
   // (the sky's own: the eclipse, src/eclipse.js; the Lantern's light, src/story/lantern-sky.js; space, src/levels/space-city-kit.js)
   'uEclipse', 'uCorona', 'uEclipseGlow', 'uEclipseDir', 'uLantern', 'uSpace', 'uSpaceTone', 'uSpaceSun', 'uSpaceNight']);
 
-export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', quality = null, log = () => {}, menus = null, start = null, arrive = false, hullSpawn = false, settings = null, gestures = true, via = null, prologue = false, onTravel = null, aboard = null, scenes = false, fight = false, game: gameId = null, from = null, to: transitTo = null, onGame = null, onLeave = null, trials: withTrials = false, onPage = null, arrival = null, saves = true, defer = true, far: farOn = true, lod: lodOn = false, skies = true, onStage = null } = {}) {
+export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', quality = null, log = () => {}, menus = null, start = null, arrive = false, hullSpawn = false, settings = null, gestures = true, moves = true, matching = null, via = null, prologue = false, onTravel = null, aboard = null, scenes = false, fight = false, game: gameId = null, from = null, to: transitTo = null, onGame = null, onLeave = null, trials: withTrials = false, onPage = null, arrival = null, back = null, saves = true, defer = true, far: farOn = true, lod: lodOn = false, skies = true, onStage = null } = {}) {
   const T = {};
   // (the fight, engine/combat.js, made once the traveller and his tool are)
   let combat = null;
@@ -343,9 +344,15 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const content = CONTENT[levelId];
   // start the loads the way main.js does: the clips, the traveller, the bodies
   const animLib = loadAnimationLibrary().catch((e) => { log('animation library failed', e); return null; });
-  // the conversations' gestures (issue #197: public/anim/gestures.glb, src/talk-gesture.js), the only captured motion the
-  // engines load (not the walks, the moves, nor the matching database); `gestures` false (-gestures 0) without them
-  const gesturesP = gestures ? new GLTFLoader().loadAsync('anim/gestures.glb').catch((e) => { log('gestures unavailable', e?.message ?? e); return null; }) : null;
+  // the captured motion, as main.js loads it (src/motion-match.js loadMotionLibrary): the conversations' gestures (issue
+  // #197: public/anim/gestures.glb, src/talk-gesture.js; `gestures` false, -js-off gestures, without them), the people's
+  // own walks and the traveller's captured moves (walks.glb, moves.glb: his jumps, idles, starts and stops, src/player.js
+  // locoMoves; `moves` false, -js-off moves, without them), and the matching database only with matching switched on
+  // (locomotion.glb: off unless asked for, the dev menu's switch, matchingSetting, or `matching`, -js-on matching), as on
+  // the web, where no player has it on (issue #427, round 4: docs/systems/engine-bridge.md "Motion matching in the engines")
+  const matchOn = matching ?? matchingSetting.get();
+  const motionFiles = [...(gestures ? ['anim/gestures.glb'] : []), ...(moves ? ['anim/walks.glb', 'anim/moves.glb'] : []), ...(matchOn ? ['anim/locomotion.glb'] : [])];
+  const motionP = Promise.all(motionFiles.map((f) => new GLTFLoader().loadAsync(f).then((g) => [f, g]).catch((e) => { log(`${f} unavailable`, e?.message ?? e); return [f, null]; })));
   // the traveller as main.js has him: the coral-shirt traveller (src/characters/traveller.js), his overshirt's cloth
   // stepped on this thread (no workers in the engines' VMs: tripo-cloth.js falls back); the old suit if he can't load
   const travellerP = loadTraveller('').catch((e) => { log('traveller B3 unavailable', e?.message ?? e); return null; });
@@ -367,7 +374,11 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   DRIFT_FITS.most = DRIFT_PIECE;   // (a piece's triangles tested at most: each made on the frame's thread here)
   wallOpenings.reset();   // (one world at a time in a VM: the last one's pieces let go before the builders lay theirs)
   let level;
-  try { level = quiet(() => (meta.create ? meta.create(scene) : runSteps(meta.build(scene)))); } finally { DRIFT_FITS.later = false; DRIFT_FITS.most = Infinity; }
+  // (back from a game started from the Arcade, ?level=arcade&back=<id> on the page: in front of that game's sign, as the
+  // level reads it from the address, src/levels/arcade.js; engine/unity/game.js carries it through the reboot)
+  const loc = back && globalThis.location ? globalThis.location : null, search = loc?.search;
+  if (loc) loc.search = `?back=${encodeURIComponent(back)}`;
+  try { level = quiet(() => (meta.create ? meta.create(scene) : runSteps(meta.build(scene)))); } finally { DRIFT_FITS.later = false; DRIFT_FITS.most = Infinity; if (loc) loc.search = search; }
   level.id ??= levelId;
   // where the old walls' cracks may not run: their windows and doors, as the page (src/host/game-host.js wireOpenings)
   quiet(() => wireOpenings({ scene }));
@@ -423,12 +434,13 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     onKnockout: (why) => combat?.knockout(why),
   });
   const lib = await animLib;
-  const gestureClips = await gesturesP;
-  if (lib && gestureClips) { attachMotion(lib, gestureClips); stamp('gestures'); }
+  const motion = await motionP;
+  if (lib) for (const [f, g] of motion) if (g) { attachMotion(lib, g); stamp(f.replace(/^anim\/|\.glb$/g, '')); }
   if (lib) player.animator = player._animator = new Animator(lib, player.char);
-  // (the traveller's captured jumps, idles, starts and stops are in moves.glb, which the engines don't load: with the
-  // gestures in lib.motion his loops stay the library's, as before; src/player.js locoMoves)
-  if (gestureClips) player.locoMoves = false;
+  // (his captured moves as main.js has them, the save's own switch, movesSetting; without moves.glb, -js-off moves, his loops
+  // stay the library's: lib.motion holds the gestures alone; the matching once the database is in, main.js's)
+  player.locoMoves = moves && movesSetting.get();
+  if (player.animator) player.animator.matching = !!(matchOn && lib?.motion?.db);
   const humans0 = await humansP;
   // (the people's templates: MakeHuman's man and woman where the world has them, else the Quaternius pair; the traveller
   // keeps his own body)
@@ -604,6 +616,10 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // own hidden while the traveller is inside one; their lights' pulse and their sound's bed, as main.js
   const houseAir = level.temples?.length ? quiet(() => new HouseAir(level, { lowDetail: !!Q?.lowDetail, host: scene, worldMotes: { scene: { children: motePoints } } })) : null;
   const footprints = quiet(() => new Footprints(scene));
+  // off the ground, a patch of shade straight under him (src/jump-shadow.js, as main.js: wireJumpShade; Hiraeth/JumpShade)
+  const jumpShade = optional('the jump\'s shade', () => wireJumpShade({ scene, level }));
+  // the tool's crosshair and mode while aiming, its notices by him (src/ui.js ToolHud, as main.js: toolGauge; BridgeHud.Tool.cs)
+  const toolHud = toolGauge({ tool: () => tool, player, camera });
   const onStep = player.onStep;
   player.onStep = (p, heading, up, i) => {
     if (sound !== SILENT && waters.step?.(p)) return;   // (in the water: a splash, no print, as main.js)
@@ -897,7 +913,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     if (on && (pinned || talking() || (shipOn && ship.playing) || player.dead || !backend?.photo)) return;
     photo.on = !!on; photo.capture = 0;
     if (on) photo.pos.copy(camera.position);
-    for (const k of ['cue', 'prompt', 'stamina', 'health', 'keys', 'toast', 'gadget', 'gadgetWheel', 'reticle', 'gadgetMarks']) screen.set(k, null);
+    for (const k of ['cue', 'prompt', 'stamina', 'tool', 'health', 'keys', 'toast', 'gadget', 'gadgetWheel', 'reticle', 'gadgetMarks']) screen.set(k, null);
     screen.set('photo', on ? { hint: photoHint() } : null);
   }
   const _pf = new THREE.Vector3(), _pr = new THREE.Vector3();
@@ -1698,6 +1714,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         motes?.update(dt, simT, camera.position);
         houseAir?.update(dt, simT, camera, player.pos);
         footprints?.update(dt);
+        jumpShade?.update(player, physics);
+        toolHud.frame();
         // (not paused at a fixed view, as main.js doesn't pause them for the bench's: the answering plants wake as the
         // traveller stands by them, the animals go about)
         wildlife?.update(dt, simT, player, camera, busy);

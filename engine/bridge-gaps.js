@@ -141,7 +141,7 @@ export const GAPS = {
     { keys: ['site:src/chimes.js:ShaderMaterial'], count: { 'site:src/chimes.js:ShaderMaterial': 1 }, what: 'the patch of shade under the chimes', status: 'gap', issue: 264, visible: 2, note: 'materials shader:uCore,uDark,uFar,uTint' },
     { keys: ['site:src/crowd.js:ShaderMaterial'], count: { 'site:src/crowd.js:ShaderMaterial': 1 }, what: 'the crowd\'s shadow-only material', status: 'gap', issue: 264, visible: 0, note: 'materials shader:(none)' },
     { keys: ['site:src/splat-decal.js:ShaderMaterial'], count: { 'site:src/splat-decal.js:ShaderMaterial': 1 }, what: 'the splats on the ground', status: 'handled', issue: 264, where: 'a Surface with its shape and growth (Surface.shader _SplatOn; materials uniform:uSplatTime)' },
-    { keys: ['site:src/jump-shadow.js:ShaderMaterial'], count: { 'site:src/jump-shadow.js:ShaderMaterial': 1 }, what: 'the patch of shade under the traveller in a jump', status: 'gap', issue: 264, visible: 2, note: 'engine/game.js makes no JumpShadow (host import:src/jump-shadow.js#JumpShadow)' },
+    { keys: ['site:src/jump-shadow.js:ShaderMaterial'], count: { 'site:src/jump-shadow.js:ShaderMaterial': 1 }, what: 'the patch of shade under the traveller in a jump', status: 'handled', where: 'Hiraeth/JumpShade (port-format.js jumpshade: the light term under it taken away, its colour by uDark)' },
     { keys: ['site:src/water.js:ShaderMaterial'], count: { 'site:src/water.js:ShaderMaterial': 3 }, what: 'the water\'s depth copy, its contact foam and the pass over it under water (tint, banded fog, the sun\'s sparkle)', status: 'gap', issue: 264, visible: 2,
       note: 'the water\'s surface crosses (Surface WATER); the pass over it doesn\'t (passes src/main.js and src/water.js)' },
     { keys: ['site:src/pipeline.js:ShaderMaterial'], count: { 'site:src/pipeline.js:ShaderMaterial': 1 }, what: 'the page\'s blit to the screen', status: 'web-only', why: PAGE },
@@ -222,13 +222,12 @@ export const GAPS = {
   // ------------------------------------------------------------------ host wiring: main.js against engine/game.js (also #427's list)
   host: [
     // gaps
-    { keys: ['import:src/jump-shadow.js#JumpShadow'], what: 'the patch of shade under the traveller in a jump', status: 'gap', issue: 427, visible: 2 },
-    { keys: ['import:src/motion-match.js#loadMotionLibrary', 'import:src/motion-match.js#matchingSetting', 'import:src/loco-moves.js#movesSetting'], what: 'the traveller\'s motion matching and captured moves', status: 'gap', issue: 427, visible: 2,
-      note: 'left out of the engines so far (engine/game.js: only the talk gestures are loaded)' },
-    { keys: ['import:src/hud.js#magicHud'], what: 'the magic bar', status: 'gap', issue: 427, visible: 1, note: 'to check: the health part carries magic' },
+    { keys: ['import:src/motion-match.js#loadMotionLibrary'], what: 'the traveller\'s captured moves and the people\'s own walks; motion matching\'s database (only with matching switched on)', status: 'handled',
+      where: 'engine/game.js loads walks.glb and moves.glb as main.js does (locoMoves by movesSetting), the database only with matchingSetting or -js-on matching, as the page (issue #427 round 4: docs/systems/engine-bridge.md "Motion matching in the engines": on the Deck the walks and moves ~90 ms of load and ~17 MB, the database ~330 ms and ~13 MB more for what no player has on)' },
     { keys: ['import:src/post.js#PRESETS'], what: 'the style presets\' list (main.js\'s GUI)', status: 'web-only', why: 'the page\'s lil-gui list of styles; the presets themselves are put on by src/host/game-host.js wireSky in both hosts' },
     { keys: ['import:src/weather.js#WEATHER_KINDS'], what: 'the weather\'s kinds (main.js\'s dev toggles)', status: 'handled', where: 'engine/game.js runs Weather itself; the list is for the page\'s toggles' },
-    { keys: ['fn:placeToolGauge'], what: 'the fluid tool\'s gauge by the traveller', status: 'gap', issue: 427, visible: 1, note: 'to check' },
+    { keys: ['fn:placeToolGauge'], what: 'the fluid tool\'s notices by the traveller (a switch\'s mode name, the tank\'s "empty")', status: 'handled',
+      where: 'the page\'s DOM placing of #tool alone; the place itself is src/host/game-host.js toolGauge\'s, both hosts\' (round 4)' },
     { keys: ['import:src/hint-level.js#quietOr'], what: 'the hints\' quiet line for the Android pad scheme\'s notice', status: 'web-only', why: 'the notice is the Android web app\'s own pad scheme (padSchemeNotice); the scout\'s rough distance was an import nothing used' },
     // the one game setup's groups, called by both hosts (src/host/game-host.js, #427: docs/systems/engine-bridge.md "One host")
     { keys: ['shared:wireKit'], what: 'the sword and the shield only once found, the kit\'s chosen colours (backpack, sword, shield), won in the fight temples', status: 'handled', where: 'src/host/game-host.js wireKit (main.js armTool and applyKitColours before)' },
@@ -249,6 +248,10 @@ export const GAPS = {
     { keys: ['shared:wireFight', 'fn:updateRestart'], what: 'the foes and their drops, the lock-on and its camera, the flurry, the potion, the low-health cue, the knock-out\'s card', status: 'handled', where: 'src/host/game-host.js wireFight (issue #435: main.js and engine/combat.js each wired it before; the engines\' hazards bit twice a frame); the card drawn by engine/combat.js (main.js updateRestart its DOM)' },
     { keys: ['shared:wireAmbush'], what: 'the ambushes on a flight to a new world (the chime-pirates\' page on the way)', status: 'handled', where: 'src/host/game-host.js wireAmbush (issue #435): engine/game.js the ship\'s go, engine/trials.js the page\'s ways out, engine/unity/game.js the reboots on to the world' },
     { keys: ['shared:fragmentsLine', 'fn:fragmentsHtml'], what: 'the Start menu\'s line of the fragments (found, to spend, left here)', status: 'handled', where: 'src/host/game-host.js fragmentsLine (main.js before; its HTML span fragmentsHtml the page\'s); engine/unity/game.js saveLine' },
+    { keys: ['shared:toolGauge'], what: 'the fluid tool\'s crosshair and mode while aiming (red and turned on a lock, dashed when empty, a hit\'s kick), its mode\'s name a moment on a switch, "empty" as the tank runs dry, by the traveller', status: 'handled',
+      where: 'src/host/game-host.js toolGauge (issue #427, round 4): src/ui.js ToolHud\'s state to the screen\'s \'tool\' with its place, drawn by BridgeHud.Tool.cs (none in Unity before); the magic bar\'s look (its ticks, short of a shot hatched) in healthHud\'s state, drawn by BridgeHud DrawHealth' },
+    { keys: ['shared:wireJumpShade'], what: 'the patch of shade under the traveller in a jump', status: 'handled',
+      where: 'src/host/game-host.js wireJumpShade (issue #427, round 4; main.js made it alone before); Unity draws it with Hiraeth/JumpShade (port-format.js jumpshade)' },
     { keys: ['shared:wireShip'], what: 'the ship\'s place for quests, the scout and the Map\'s "Your ship" mark', status: 'handled', where: 'src/host/game-host.js wireShip (main.js level.ship before; the engines had none)' },
     // handled by the engines' own
     { keys: ['import:src/motion-kit/view.js#viewNow', 'import:src/motion-kit/view.js#inViewNow'], what: 'the people\'s offView from this frame\'s view (peopleLod, issue #450)', status: 'handled',

@@ -287,10 +287,10 @@ plan's keys (`game.key`) are the defaults and go straight in. Tests: tests/engin
 tests/accessibility.test.js (the router).
 
 **The talk gestures** (issues #197, #264): engine/game.js loads public/anim/gestures.glb onto the clip library
-(`attachMotion`), the only captured motion the engines carry, so `talkGestures.drive` plays them in conversations
-as on the web; the traveller's `locoMoves` stays off (his captured moves are in moves.glb, not loaded). Their cost
-in the VM: docs/systems/characters.md, "What it costs" (~0.02 ms a frame while talking, nothing otherwise);
-`-js-off gestures` leaves them out.
+(`attachMotion`), so `talkGestures.drive` plays them in conversations as on the web. Their cost in the VM:
+docs/systems/characters.md, "What it costs" (~0.02 ms a frame while talking, nothing otherwise); `-js-off gestures`
+leaves them out. Since #427's round 4 the people's own walks and the traveller's captured moves load beside them (below,
+"Motion matching in the engines").
 
 **Doors, caves and hatches** (issue #264, the first item of the Deck's switch to Unity): engine/game.js walks the
 level's `portals` as main.js does (`throughPortals`, after the traveller's update, not at a pinned view): a way that
@@ -2066,6 +2066,49 @@ runner's own (src/fight-temples/session.js), the same in both. Checked in Unity 
 the web's same steps: the Arena's lock, cut, low hearts and knock-out (`-level arena -fight foe,down`) and the Sunken
 Hall's run posed (`-game fight-desert -pose 4`). Left: the page dims the world behind the knock-out's card, BridgeHud
 draws the card alone.
+
+Round 4 (#427): what was still the page's alone, or never drawn in Unity.
+- `toolGauge`: the fluid tool's HUD. src/ui.js ToolHud keeps its state as data (`state`: aiming, the mode and its name,
+  waiting, locked, empty, the mode's flash, the tank's "empty" notice, a hit counted), and toolGauge publishes it each frame
+  as the screen's `tool`, with `at` (left of his shoulders, as the camera sees them) when not aiming. The page places its
+  #tool there (main.js placeToolGauge, its DOM alone); Unity had no crosshair at all, no mode name and no "empty":
+  BridgeHud.Tool.cs draws them as index.html's #tool (the ring, its cream halo, the ticks, the mode's dot; red, smaller
+  and turned 45° on a lock, faint when empty or recharging, larger for the push; a hit's kick, an empty shot's shake; the
+  mode's name in its colour, its pop and fade on a switch). src/hud-shows.js hides it as the page does (talking, the
+  letterbox, a run not on foot).
+- The magic bar: healthHud's state carries its fill and look (`magicFill`, `magicShort`, src/hud.js magicHud), which main.js
+  now draws from; BridgeHud DrawHealth draws the page's ticks between units, the fill's ink edge, its colour (#3fae9a), and
+  short of a shot the paler fill under the hatching. (Unity had a plain bar of another teal.)
+- `wireJumpShade`: the patch of shade under a jump (src/jump-shadow.js), made in both hosts; Unity draws it with
+  Hiraeth/JumpShade (port-format.js `jumpshade`): one plain shader, no keywords, one variant everywhere, the light term
+  under it taken away and the colour by `_Dark` as the page's multiply. Its (layout, material) pair is noted by
+  BridgePrewarm with the world (it is mirrored hidden), so a launch after the first has its pipeline made at the load.
+- The Arcade's links go through the shared arcadeLinks in both hosts (engine/trials.js as main.js); "Back to the Arcade"
+  (`?level=arcade&back=<id>`) lost its `back` through Unity's reboot and landed at the way in: engine/unity/game.js carries
+  it, createGame({ back }) gives the level its address, and you stand in front of the game's sign as on the page.
+- The ambush's `to` (#435) was checked through the reboot: playGame carries it into the boot, begin into launch, launch into
+  createGame's `to` (tests/engine-trials.test.js readHref).
+- Diffing the hosts' setups once more (the `new X(` and the frame's updates in main.js against engine/ and game-host.js)
+  found nothing else the game does that the engines don't: the rest is the page's (its passes, culling, DOM, dev tools).
+Checked in Unity (batch, muted, 1280 × 720, High) against the web's same poses (engine/ui-poses.js `-ui magic,magicshort,
+magicfull,magicempty,mode,aim,jump`).
+
+**Motion matching in the engines** (#427 round 4). The page loads the people's walks (walks.glb) and the traveller's captured
+moves (moves.glb: his jumps, idles, starts and stops, `locoMoves`, on by default) for every player, and the matching
+database (locomotion.glb) only when matching is switched on (the dev menu, `?mm=1`: no player has it). The engines loaded
+neither. Measured on the Steam Deck (the Linux player, the Deck's preset, the desert's spawn, gamescope headless 1280 × 800,
+two runs each, interleaved; `-js-off moves` and `-js-on matching` on one bundle):
+
+| | load to the first frame (ms) | peak RSS (MB) | frame (ms) | the traveller's update (ms) |
+|---|---|---|---|---|
+| neither (before) | 6 656 / 6 665 | 1 575 / 1 588 | 13.74 / 13.75 | 1.88 / 1.88 |
+| walks and moves | 6 735 / 6 769 | 1 594 / 1 603 | 13.44 / 13.69 | 1.85 / 1.85 |
+| and the matching database | 7 061 / 7 102 | 1 610 / 1 613 | 13.77 | 1.96 |
+
+The walks and moves cost ~90 ms of load and ~17 MB and nothing a frame, for what every web player sees: they load in the
+engines now, as main.js loads them (engine/game.js; `-js-off moves` leaves them out). The database would cost ~330 ms more
+of every load and ~13 MB for something no player sees on the web either: it stays out unless matching is switched on
+(matchingSetting, the dev menu's, or `-js-on matching`), as on the page.
 
 Checked in Unity (the editor's batch run, `-fresh -no-hud`, against main's bundle for the before and the web's
 pictures of the same views): the kit's colours at the desert's ramp foot (`-set-flags` now takes `key=value`:

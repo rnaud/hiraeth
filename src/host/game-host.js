@@ -23,6 +23,8 @@
 //   wirePotion({ game, toast }), wireNudges({ … })         the potion's glow and lesson, the world's nudges
 //   fragmentsLine({ fragments, game, items, levelId })     the Start menu's line of the fragments
 //   wireHealth, hurtReactions, wireFight, wireAmbush       the hearts, a hurt's answer, the foes and the lock-on, the pirates (#435)
+//   toolGauge({ tool, player, camera })                    the tool's crosshair and notices to the screen, placed by him
+//   wireJumpShade({ scene, level })                        the patch of shade under a jump
 //
 // tests/game-host.test.js holds each group to both hosts; scripts/bridge-gaps.mjs reports a group main.js calls and
 // engine/game.js doesn't as a host gap (engine/bridge-gaps.js `shared:`).
@@ -56,6 +58,8 @@ import { createBenches } from '../benches.js';
 import { cameraPhysics, keepLensOut } from '../carriers.js';
 import { keepHero, markHero, sharedUniforms } from '../materials.js';
 import { heroCut, jetCameraPitch, WIDE } from '../player.js';
+import { JumpShadow } from '../jump-shadow.js';
+import { screen } from '../platform.js';
 import { Foes, lockFollow, LOCK_NEAR } from '../foes.js';
 import { guardianBox } from '../lock-frame.js';
 import { hopAxis } from '../jump.js';
@@ -728,4 +732,40 @@ export function wireAmbush({ game, levelId, seen = () => false, settings = null,
       };
     },
   };
+}
+
+// ------------------------------------------------------------------ round 4 (issue #427): the tool's notices, the jump's shade
+// main.js placed the fluid tool's notices beside the traveller with its DOM (placeToolGauge) and made the jump's shade
+// itself; the engines drew neither: no crosshair, no mode's name, no "empty", no patch of shade under a jump.
+
+const _tgR = new THREE.Vector3(), _tgP = new THREE.Vector3();
+/**
+ * The fluid tool's HUD (src/ui.js ToolHud's state) to the screen's 'tool' each frame: while aiming as it is (the crosshair at
+ * the screen's centre), else with `at`, its place by the traveller (left of his shoulders, as the camera sees them: a
+ * switch's mode name, the tank's "empty"). `tool()`: the FluidTool (or null); `camera`: the view the place is taken from.
+ *   gauge.frame() → the place (a Vector3 the page projects for its #tool) or null
+ */
+export function toolGauge({ tool, player, camera }) {
+  return {
+    frame() {
+      const T = typeof tool === 'function' ? tool() : tool, st = T?.hud?.state ?? null, P = typeof player === 'function' ? player() : player;
+      if (!st || !P) { screen.set('tool', null); return null; }
+      if (st.aim) { screen.set('tool', st); return null; }
+      _tgR.setFromMatrixColumn(camera.matrixWorld, 0);
+      _tgP.copy(P.object?.position ?? P.pos).addScaledVector(P.frame?.up ?? THREE.Object3D.DEFAULT_UP, 1.45).addScaledVector(_tgR, -0.75);
+      screen.set('tool', { ...st, at: _tgP.toArray().map((v) => +v.toFixed(2)) });
+      return _tgP;
+    },
+  };
+}
+
+/**
+ * The patch of shade under the traveller off the ground (src/jump-shadow.js): jumping, falling, gliding, the jets; made
+ * with the world (kept out of the shadow casters: level.noShadow), each frame after he has moved.
+ *   shade.update(player, physics)
+ */
+export function wireJumpShade({ scene, level }) {
+  const shade = new JumpShadow(scene);
+  (level.noShadow ??= []).push(shade.mesh);
+  return shade;
 }

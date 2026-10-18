@@ -17,17 +17,17 @@
 // gadget's wheel and reticle in a conversation, the fight's ring and chips) or where the page has no such state.
 
 export const HUD_HIDES = {
-  talking: ['cue', 'health', 'keys', 'stamina', 'prompt', 'balloons', 'gadget', 'gadgetWheel', 'reticle', 'gadgetMarks', 'guardian', 'foeTab', 'lock', 'warn'],
-  bars: ['cue', 'gadget', 'gadgetWheel', 'reticle', 'gadgetMarks'],
+  talking: ['cue', 'health', 'keys', 'stamina', 'tool', 'prompt', 'balloons', 'gadget', 'gadgetWheel', 'reticle', 'gadgetMarks', 'guardian', 'foeTab', 'lock', 'warn'],
+  bars: ['cue', 'tool', 'gadget', 'gadgetWheel', 'reticle', 'gadgetMarks'],
   hudOff: ['cue', 'stamina', 'keys', 'guardian', 'foeTab', 'lock', 'warn', 'words'],
-  minigame: ['cue', 'stamina', 'prompt', 'gadget', 'gadgetWheel', 'reticle'],
+  minigame: ['cue', 'stamina', 'tool', 'prompt', 'gadget', 'gadgetWheel', 'reticle'],
 };
 /** In a game played on foot (drives: false) these stay (the page's body.minigame:not(.mg-onfoot)). */
-export const ON_FOOT_KEEPS = ['stamina'];
+export const ON_FOOT_KEEPS = ['stamina', 'tool'];
 
 /** The page's elements by the screen part they draw (the CSS check: tests/hud-shows.test.js). */
 export const HUD_ELEMENTS = {
-  '#cue': 'cue', '#health': 'health', '#keys': 'keys', '#stamina': 'stamina', '#prompt': 'prompt', '.balloon': 'balloons',
+  '#cue': 'cue', '#health': 'health', '#keys': 'keys', '#stamina': 'stamina', '#tool': 'tool', '#prompt': 'prompt', '.balloon': 'balloons',
   '#gadget-chip': 'gadget', '#gadget-wheel': 'gadgetWheel', '#gadget-reticle': 'reticle', '#gadget-marks': 'gadgetMarks',
 };
 /** The page's body classes by the state above. */

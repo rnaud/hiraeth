@@ -1175,6 +1175,7 @@ const HATS439S = 'Issue #439: the character studio’s headwear lineup (studio.h
 const hatRef = (set, what) => ({ sheet: `references/hats/${set}/sheet-1.jpg`, caption: `The author’s pick from the reference lab: ${what} (references/hats/${set})` });
 /** (v1.84, issue #441: the space ports from their picked sheets) */
 const PORT441 = 'Issue #441: the running game in muted headless Chrome (ANGLE Metal, High, render scale 1, 1280 × 720, 10:00, the HUD hidden; scripts/design-qc/capture.mjs --fixed-scale) on this branch’s own Vite (port 5441), the camera pinned in the hull’s frame round the ship; before: the tree at 16faa3b4c (its own Vite, port 5442), the same camera; 17 October; cwebp -q 72';
+const HOST427D = 'Issue #427 round 4: the Unity bridge in the editor’s batch run on this Mac (muted, High, 1280 × 720), each piece put up by -ui through engine/ui-poses.js on the debug save; before, Unity drew no crosshair, no mode name, no jump shade and a plain bar; the web’s pictures of the same poses (headless Chrome, its own Vite) beside them to check; 18 October; cwebp -q 72';
 const PORT441U = 'Issue #441: the Unity bridge in the editor’s batch run on this Mac (scripts/unity-compare/unity.mjs: muted, High, 1280 × 720, -fresh -no-hud, the same pinned camera as the web’s); 17 October; cwebp -q 72';
 const PORT447 = 'Issue #447: the running game in muted headless Chrome (ANGLE Metal, High, render scale 1, 1280 × 720, 10:00, the HUD hidden; scripts/design-qc/capture.mjs --fixed-scale) on this branch’s own Vite (port 5447), the camera pinned; before: the tree at 3e6d426a0, the same camera; the boats in flight held still by the view’s `act`; 17 October; cwebp -q 72';
 const PORT447U = 'Issue #447: the Unity bridge in the editor’s batch run on this Mac (scripts/unity-compare/unity.mjs: muted, High, 1280 × 720, the same pinned camera as the web’s); 17 October; cwebp -q 72';
@@ -1338,6 +1339,13 @@ export const CHANGELOG_MEDIA = {
       { where: 'from the ramp’s foot', before: 252, after: 257 },
     ], source: 'Issue #451: scripts/design-qc/capture.mjs on both trees (the towers baked into the port’s meshes; the cradle and its arms two meshes of their own)' }],
       see: 'Fly to the City-Shaft: after the ship sets down, watch the cradle swing it in over the rim. Fly away to see it swing out first.' },
+    { match: 'In the Unity version, the fluid gun shows what it does as on the web', shots: [
+      { name: 'unity-gun-aim', only: 'after', title: 'Aiming', caption: 'Aiming the fluid gun in Unity in the desert: the inked crosshair at the centre with the push’s name under it, as on the web', from: HOST427D },
+      { name: 'unity-magic-short', only: 'after', title: 'The magic bar', caption: 'Short of a shot (half a unit of three): the bar’s ticks, its paler fill hatched, as on the web', from: HOST427D },
+    ], see: 'In the Unity version, take up the fluid gun and aim (LT / L2); switch its mode (D-pad →) and watch its name by you; run the tank dry; spend the bar below one unit and look at it under the hearts.' },
+    { match: 'In the Unity version, a patch of shade lies under you whenever you jump', shots: [
+      { name: 'unity-jump-shade', only: 'after', title: 'Off the ground', caption: 'Held half a metre off the dunes in Unity: the round patch of shade under him, beside the sun’s shadow, as on the web', from: HOST427D },
+    ], see: 'In the Unity version, jump or glide anywhere and look under you. In the Arcade, play a game and choose Back to the Arcade: you stand in front of its sign.' },
     { match: 'In the Unity version, fights answer as on the web', see: 'In the Unity version, stand in a fire for a few seconds and count the hearts it takes (as many as on the web); fight a blot in the Arena and take a blow (the thud), pick up its chimes (the count ticks up); play the Sunken Hall; fly to a world you have never visited (the pirates come); in the Lab press R3.' },
     { match: 'The City Behind the Waterfall’s landing is a proper port now', shots: [
       { name: 'port-niche', title: 'The ledge', caption: 'The Waterfall’s shelf from over its south-west corner: before, the bare cliff past the ship’s nose; after, the docking niche cut into it, the gantry over it, puddles and moss on the stone', from: PORT447, reference: portRef('waterfall', 'the ledge, its niche, its gantry and the couriers') },

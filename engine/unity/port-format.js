@@ -38,6 +38,10 @@ export function portMaterial(spec, id = 0) {
   if (spec.type === 'shader' && typeof u.uDepth === 'number' && spec.transparent && !spec.depthWrite) {
     return { id, name: spec.name ?? '', port: 'print', depth: r5(u.uDepth), side: 2, plain: 1 };
   }
+  // the jump's shade (src/jump-shadow.js: a patch multiplied into the G-buffer, its light term taken away) → Hiraeth/JumpShade
+  if (spec.type === 'shader' && typeof u.uDark === 'number' && Object.keys(u).length === 1 && spec.transparent && !spec.depthWrite) {
+    return { id, name: spec.name ?? '', port: 'jumpshade', dark: r5(u.uDark), side: 2, plain: 1 };
+  }
   // the wind's wisps (wind.js WindStreaks: ribbons of ink with an alpha per vertex, tested against the G-buffer) → Hiraeth/Wisp
   if (spec.type === 'shader' && 'uRes' in u && 'uInk' in u && spec.transparent && !('uMode' in u) && !('uColor' in u)) {
     return { id, name: spec.name ?? '', port: 'wisp', side: 2, plain: 1 };

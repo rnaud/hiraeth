@@ -38,7 +38,7 @@ import { devMode } from '../../src/dev-gate.js';
 import { setEnginePad, setFaces, padFaces, padLabels, promptText } from '../../src/native-pad.js';
 import { keyRouter } from '../../src/remap.js';
 import { hudShows } from '../../src/hud-shows.js';
-import { uiPose } from '../ui-poses.js';
+import { uiPose, UI_KEYS } from '../ui-poses.js';
 import { items as ownedItems } from '../../src/items.js';
 
 // The scene's matrices recomposed only where something moved (src/matrix-cache.js, the web game's own, with its walks
@@ -206,7 +206,7 @@ function titleSettings(s, settings) {
  */
 function begin(choice) {
   let slot = choice.slot, level = choice.level ?? null, arrive = !!choice.arrive, start = null, prologue = false;
-  const via = choice.via ?? null, game = choice.game ?? null, came = choice.from ?? null, transit = choice.to ?? null;
+  const via = choice.via ?? null, game = choice.game ?? null, came = choice.from ?? null, transit = choice.to ?? null, back = choice.back ?? null;
   if (choice.debug) { seedDebugSave(choice.debug, { slot, state: gameState }); slot = slots.active; level = choice.debug; arrive = true; }
   else {
     slots.setActive(slot);
@@ -225,12 +225,12 @@ function begin(choice) {
   if (S.game) {
     if (S.game.level?.id === level && S.slot === slot && !arrive && !prologue && !game && !S.game.trials?.def) { S.menus.close(); return; }
     console.log(`[unity] onto save ${slot}, ${level}: the engine starts again`);
-    host.Reboot?.(JSON.stringify({ boot: { slot, level, arrive, via, game, from: came, to: transit, resolved: true } }));
+    host.Reboot?.(JSON.stringify({ boot: { slot, level, arrive, via, game, from: came, to: transit, back, resolved: true } }));
     return;
   }
   S.slot = slot;
   S.titleSound?.menuMusic(false);   // (the title's music fades as the world loads, as the page's does before it goes)
-  launch({ ...S.args, level }, { start, arrive, via, prologue, game, came, transit });
+  launch({ ...S.args, level }, { start, arrive, via, prologue, game, came, transit, back });
 }
 
 /**
@@ -272,7 +272,7 @@ function playGame(href) {
   host.Reboot?.(JSON.stringify({ boot: { slot: slots.active, level: from ?? S.game?.level?.id ?? 'desert', game, to: to ?? null, resolved: true } }));
 }
 function leaveGame(href) {
-  const { level, from, via, game } = readHref(href);
+  const { level, from, via, game, back } = readHref(href);
   // (a card's Previous or Next game, from the Arcade: that game's page, as the page's link)
   if (game && !S.plan) { playGame(href); return; }
   const to = level ?? from ?? S.gameFrom ?? 'desert';
@@ -280,7 +280,8 @@ function leaveGame(href) {
   // (a plan's game, the bridge's -game: it ends with it)
   if (S.plan) { host.Exit(0); return; }
   // (the pirates won on the way: on to the world, landing, as the page's ?level=<world>&via=ship)
-  host.Reboot?.(JSON.stringify({ boot: via === 'ship' ? { slot: slots.active, level: to, arrive: true, via: 'ship', resolved: true } : { slot: slots.active, level: to, resolved: true } }));
+  // (Back to the Arcade, ?level=arcade&back=<id>: in front of that game's sign, as the page's address puts you)
+  host.Reboot?.(JSON.stringify({ boot: via === 'ship' ? { slot: slots.active, level: to, arrive: true, via: 'ship', resolved: true } : { slot: slots.active, level: to, back: back ?? null, resolved: true } }));
 }
 
 /** Another world by the ship (its take-off done, Ship.travel's `go`): the engine starts again at that world's landing, arriving. */
@@ -297,7 +298,7 @@ function pageTo({ level, from = null }) {
   host.Reboot?.(JSON.stringify({ boot: { slot: slots.active, level, from, resolved: true } }));
 }
 
-function launch(args, { start: from = null, arrive = false, via = null, prologue = false, game = null, came = null, transit = null } = {}) {
+function launch(args, { start: from = null, arrive = false, via = null, prologue = false, game = null, came = null, transit = null, back = null } = {}) {
   const t0 = now();
   const backend = new UnityBackend(host);
   backend.clock = () => sharedUniforms.uTime.value;   // (the shaders' time: HiraethLook.GameClock)
@@ -316,6 +317,8 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
   if (off.has('portrait')) backend.portrait = null;   // (portrait: a conversation's chip without its picture, their initial instead)
   // (far: the small props past the preset's propFar drawn all the same, engine/game.js, issue #262)
   // (gestures: the conversations' captured gestures left unloaded, public/anim/gestures.glb, issue #197)
+  // (moves: the people's walks and the traveller's captured moves left unloaded, walks.glb, moves.glb; -js-on matching: the
+  // matching database loaded and the matching on, locomotion.glb: issue #427, round 4)
   // (played, the title's state kept: its menus, settings and the save chosen)
   S = { ...(S ?? {}), args, backend, game: null, frames: 0, plan: null, results: [], keys: new Set(), lastT: 0, audioMs: 0, gcs: args.gcs ? fullGcWatch() : null };
   // the sound at Unity's output rate (BridgeAudio: muted in batch runs, where it is only counted)
@@ -389,8 +392,8 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
   if (ending) { args.level = 'home'; via = 'ship'; arrive = true; }
   game ??= args.game ?? null;
   S.gameFrom = args.level ?? 'desert';
-  createGame({ levelId: args.level ?? 'desert', backend, game, from: game ? args.level ?? 'desert' : null, to: game ? transit ?? args.to ?? null : null, onGame: (href) => playGame(href), onLeave: (href) => leaveGame(href), trials: !!args.trial || !!args.fresh, quality: args.quality ?? null, people: args.people !== false, audio: rate ? { sampleRate: rate, record } : null, flags: !ending && (args.views?.length || args.play) ? BENCH_FLAGS : null, log: (...a) => console.log('[game]', ...a),
-    menus, settings: S.settings ?? null, start: from, arrive: arrive || !!args.arrive, hullSpawn: !!args.hullSpawn, gestures: !off.has('gestures'),
+  createGame({ levelId: args.level ?? 'desert', backend, back, game, from: game ? args.level ?? 'desert' : null, to: game ? transit ?? args.to ?? null : null, onGame: (href) => playGame(href), onLeave: (href) => leaveGame(href), trials: !!args.trial || !!args.fresh, quality: args.quality ?? null, people: args.people !== false, audio: rate ? { sampleRate: rate, record } : null, flags: !ending && (args.views?.length || args.play) ? BENCH_FLAGS : null, log: (...a) => console.log('[game]', ...a),
+    menus, settings: S.settings ?? null, start: from, arrive: arrive || !!args.arrive, hullSpawn: !!args.hullSpawn, gestures: !off.has('gestures'), moves: !off.has('moves'), matching: String(args.on ?? '').split(',').includes('matching') || null,
     via, prologue: prologue || !!args.prologue, onTravel: (to) => flyTo(to), aboard: aboardRooms(args)[0] ?? (starScenes.length ? 'main' : null), scenes: !!args.aboard, fight: !!args.fight || seqFight, arrival: came, onPage: (o) => pageTo(o), saves: !args.foes && !args.devmenu && !args.house && !args.ui, defer: !off.has('defer'), far: !off.has('far'), skies: !off.has('skies'), lod: String(args.on ?? '').split(',').includes('lod'), onStage: (t) => host.LoadStage?.(t) })
     .then((game) => {
       S.game = game;
@@ -532,8 +535,11 @@ function makePlan(args) {
     // (a piece the next one carries on, shop then shopask, is not let go between them)
     const pieces = String(args.ui).split(',').filter(Boolean);
     pieces.forEach((piece, i) => {
-      steps.push({ kind: 'ui', piece }, { kind: 'wait', frames: 30, secs: piece === 'objective' ? 1.2 : piece === 'endcard' || piece === 'credits' ? 2.2 : 1 });
+      // (the aim: its key held while it is up, as the web's side holds it: UI_KEYS)
+      if (UI_KEYS[piece]) steps.push({ kind: 'key', code: UI_KEYS[piece], down: true });
+      steps.push({ kind: 'ui', piece }, { kind: 'wait', frames: 30, secs: piece === 'objective' ? 1.2 : piece === 'endcard' || piece === 'credits' ? 2.2 : piece === 'mode' ? 0.4 : 1 });
       if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-ui-${piece}.png` });
+      if (UI_KEYS[piece]) steps.push({ kind: 'key', code: UI_KEYS[piece], down: false });
       if (!pieces[i + 1]?.startsWith(piece)) steps.push({ kind: 'ui', piece: 'none' }, { kind: 'wait', frames: 10 });
     });
   }
@@ -961,7 +967,7 @@ export function frame(dt) {
   }
   else if (step.kind === 'ui') {
     if (step.piece === 'none') { game.menus?.close?.(); S.menus?.close?.(); console.log('[unity] ui: let go'); uiPose({ THREE, player: game.player }, 'none'); }
-    else console.log(`[unity] ui ${step.piece}: ${uiPose({ THREE, player: game.player, npcs: game.npcs, ship: game.ship, items: ownedItems, level: game.level, page: false, openArcade: (b) => S.menus?.openArcade?.(b),
+    else console.log(`[unity] ui ${step.piece}: ${uiPose({ THREE, player: game.player, npcs: game.npcs, ship: game.ship, items: ownedItems, level: game.level, tool: game.tool, page: false, openArcade: (b) => S.menus?.openArcade?.(b),
       openShop: (id) => S.menus?.mode === 'shop' || !!game.openShop?.(id), askShop: () => { if (S.menus?.mode !== 'shop') return false; S.menus.action('confirm'); return true; } }, step.piece)}`);
     next();
   }

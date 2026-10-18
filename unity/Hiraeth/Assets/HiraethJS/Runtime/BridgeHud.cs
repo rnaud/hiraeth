@@ -399,6 +399,7 @@ namespace Hiraeth.Bridge
             DrawGuardian(Part("guardian"));
             DrawFoeTab(state.O("foeTab"), On("foeTab"));
             DrawWheel(state.O("stamina"), On("stamina"));
+            DrawTool(Part("tool"));   // (the fluid tool's crosshair and mode, its notices by the traveller: BridgeHud.Tool.cs)
             DrawTalk(d, state.Get("choice") is double c ? (int)c : 0);
             DrawGadget(Part("gadget"));
             DrawGadgetWheel(Part("gadgetWheel"));
@@ -1390,8 +1391,30 @@ namespace Hiraeth.Bridge
         static Sprite heartFill, heartLine;
         readonly List<(RectTransform rt, Image back, Image fill, Image line)> hearts = new();
         RectTransform heartRow; Image potionIcon, chimeIcon; Label potionN, chimeN;
-        Ui.Box magicBox; Image magicFill;
-        static readonly Color HeartRed = Ui.Hex("#d9503f"), HeartLow = Ui.Hex("#e8643c"), ChimeTeal = Ui.Hex("#63d3e4"), MagicTeal = Ui.Hex("#3fa7b4");
+        Ui.Box magicBox; Image magicFill, magicEdge, magicHatch; readonly List<Image> magicTicks = new();
+        // (the page's #health .magic i: #3fae9a, short of a unit #8fb9ad under its hatching, index.html)
+        static readonly Color HeartRed = Ui.Hex("#d9503f"), HeartLow = Ui.Hex("#e8643c"), ChimeTeal = Ui.Hex("#63d3e4"), MagicTeal = Ui.Hex("#3fae9a"), MagicShort = Ui.Hex("#8fb9ad");
+        static Sprite magicHatchSprite;
+        /// <summary>The page's hatching of a short bar (repeating-linear-gradient(-45deg, transparent 0 4px, ink 0.35 4px 6px)):
+        /// "/" strokes, a tile 8 px across, tiled (the page's period along the stripes' normal, 6 px, is 8.5 px across).</summary>
+        static Sprite MagicHatch()
+        {
+            if (magicHatchSprite) return magicHatchSprite;
+            const int n = 8;
+            var t = new Texture2D(n, n, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Repeat, filterMode = FilterMode.Bilinear, name = "hatch" };
+            var px = new Color32[n * n];
+            for (int y = 0; y < n; y++)
+                for (int x = 0; x < n; x++)
+                {
+                    // (4 × 4 samples a texel: covered where (x - y) mod 8 falls in the stroke's third)
+                    float cov = 0;
+                    for (int sy = 0; sy < 4; sy++)
+                        for (int sx = 0; sx < 4; sx++) { float u = x + (sx + 0.5f) / 4 - (y + (sy + 0.5f) / 4); u = ((u % n) + n) % n; cov += u < n / 3f ? 1 : 0; }
+                    px[y * n + x] = new Color32(255, 255, 255, (byte)(cov / 16 * 255));
+                }
+            t.SetPixels32(px); t.Apply(false, true);
+            return magicHatchSprite = Sprite.Create(t, new Rect(0, 0, n, n), new Vector2(0.5f, 0.5f), 100, 0, SpriteMeshType.FullRect);
+        }
 
         /// <summary>A heart (filled, or its ink outline) from the page's own path (src/hud.js HEART, its 20 × 18.4 box, y
         /// down), its curves cut into a polygon: 40 × 37 px, a pixel's coverage by its distance to the outline.</summary>
@@ -1501,14 +1524,29 @@ namespace Hiraeth.Bridge
                 chimeN.fontSize = Mathf.RoundToInt(hh * 0.8f);
                 Ui.Place(chimeN.rectTransform, x + hh * 1.05f, 0, s.x + 4, hh);
             }
-            // the magic bar: as long as its units, filled to the reserve's level
+            // the magic bar (the page's #health .magic): as long as its units, a tick between each, filled to the reserve's level
+            // with its ink edge; short of a unit (a shot's cost), paler and hatched (src/hud.js healthHud magicFill, magicShort)
             bool magic = h.Get("magic") is double;
             magicBox.Show(magic);
             if (magic)
             {
-                float units = Mathf.Max(1, h.F("magicMax", 3)), bw = hh * 2.35f * units, bh = hh * 0.5f;
+                int units = Mathf.Max(1, Mathf.RoundToInt(h.F("magicMax", 3)));
+                float bw = hh * 2.35f * units, bh = hh * 0.5f, iw = bw - 4, ih = bh - 4;
+                float fill = h.Get("magicFill") is double mf ? Mathf.Clamp01((float)mf) : Mathf.Clamp01(h.F("magic") / units), fw = iw * fill;
+                bool shortOf = h.Get("magicShort") is bool sh ? sh : h.F("magic") < 1 - 1e-6f;
                 Ui.Place(magicBox.rt, 0, hh + hh * 0.22f, bw, bh);
-                Ui.Place(magicFill.rectTransform, 0, 0, Mathf.Max(0, (bw - 4) * Mathf.Clamp01(h.F("magic") / units)), bh - 4);
+                Ui.Place(magicFill.rectTransform, 0, 0, fw, ih);
+                magicFill.color = shortOf ? MagicShort : MagicTeal;
+                Show(magicHatch, shortOf && fw > 0);
+                Show(magicEdge, fw > 0 && fw < iw);
+                Ui.Place(magicEdge.rectTransform, fw, 0, Mathf.Min(2, iw - fw), ih);
+                while (magicTicks.Count < units - 1) magicTicks.Add(Ui.Rect(magicBox.fill.rectTransform, new Color(Ui.Ink.r, Ui.Ink.g, Ui.Ink.b, 0.75f), 0, "tick"));
+                for (int i = 0; i < magicTicks.Count; i++)
+                {
+                    bool on = i < units - 1;
+                    Show(magicTicks[i], on);
+                    if (on) Ui.Place(magicTicks[i].rectTransform, iw * (i + 1) / units - 1.5f, 0, 1.5f, ih);
+                }
             }
             Ui.Place(heartRow, 16, 12, 400, hh * 2);
         }
@@ -1525,6 +1563,9 @@ namespace Hiraeth.Bridge
             chimeN = Ui.Label(heartRow, "chimes", Ui.Mono, 17, Ui.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             magicBox = Ui.Panel(heartRow, "magic", Cream, Ui.Ink, 2, 1.5f, 1.5f, 6);
             magicFill = Ui.Rect(magicBox.fill.rectTransform, MagicTeal, 0, "level");
+            magicHatch = Ui.Fill(magicFill.rectTransform, new Color(Ui.Ink.r, Ui.Ink.g, Ui.Ink.b, 0.35f), 0, "hatch");
+            magicHatch.sprite = MagicHatch(); magicHatch.type = Image.Type.Tiled;
+            magicEdge = Ui.Rect(magicBox.fill.rectTransform, Ui.Ink, 0, "edge");
             magicBox.Show(false);
         }
 

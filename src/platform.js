@@ -56,6 +56,9 @@ export const audio = {
  *   prompt    { text, key, at: [x, y, z] }       "E talk to Ama", floating over them (story/index.js placePrompt)
  *   health    { value, low }                     the bar while hurt (hud.js healthHud)
  *   stamina   { value, winded, at: [x, y, z] }   the wheel by the traveller (hud.js staminaHud)
+ *   tool      { aim, mode, name, wait, lock, empty, flash, gauge, hits, hit, at? }  the fluid tool's crosshair and mode while
+ *             aiming; its mode's name a moment on a switch, "empty" as the tank runs dry, by the traveller (at) when not aiming
+ *             (ui.js ToolHud, host/game-host.js toolGauge)
  *   keys      { small, big }                     the key counter while in a temple: small keys in hand, the great key (hud.js keysHud)
  *   dialogue  { name, title, color, text, shown, done, speaker, choices: [{ text, tone, index }], more }
  *   choice    the answer a pad has picked (an engine's: the page focuses a button instead)
@@ -89,7 +92,7 @@ export const audio = {
  * `version` moves whenever a part changes, so a renderer reads it only then.
  */
 export const screen = {
-  state: { cue: null, toast: null, prompt: null, health: null, stamina: null, keys: null, dialogue: null, choice: null, cine: null, sub: null, photo: null, gadget: null, gadgetWheel: null, reticle: null, gadgetMarks: null, carry: null, boxCard: null, charge: null, warp: null, foeTab: null, words: null, drums: null, hunt: null, fishing: null, pirates: null, visor: null },
+  state: { cue: null, toast: null, prompt: null, health: null, stamina: null, tool: null, keys: null, dialogue: null, choice: null, cine: null, sub: null, photo: null, gadget: null, gadgetWheel: null, reticle: null, gadgetMarks: null, carry: null, boxCard: null, charge: null, warp: null, foeTab: null, words: null, drums: null, hunt: null, fishing: null, pirates: null, visor: null },
   version: 0,
   _keys: {},
   set(part, value) {

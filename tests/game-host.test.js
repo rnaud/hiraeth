@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { readFileSync } from 'node:fs';
-import { wireKit, wireDangers, wirePeople, wireChemistry, wireVehicles, wireLessons, wireCompanion, wireCamera, heroCutFrame, cameraFollow, wireBenches, wireEdge, wireOpenings, wireSky, wirePotion, wireNudges, fragmentsLine, wireHealth, hurtReactions, wireAmbush } from '../src/host/game-host.js';
+import { wireKit, wireDangers, wirePeople, wireChemistry, wireVehicles, wireLessons, wireCompanion, wireCamera, heroCutFrame, cameraFollow, wireBenches, wireEdge, wireOpenings, wireSky, wirePotion, wireNudges, fragmentsLine, wireHealth, hurtReactions, wireAmbush, toolGauge } from '../src/host/game-host.js';
 import { ERRANDS } from '../src/levels/content.js';
 import { hazardCount } from '../src/hazards.js';
 import * as THREE from 'three';
@@ -268,11 +268,12 @@ test('the fragments\' line: nothing before the first, then found, to spend once 
 
 test('both hosts call the same groups (src/host/game-host.js), and engine/game.js no longer arms the tool its own way', () => {
   const main = readFileSync('src/main.js', 'utf8'), engine = readFileSync('engine/game.js', 'utf8');
-  for (const g of ['wireKit', 'wireDangers', 'wirePeople', 'wireChemistry', 'wireMount', 'wireVehicles', 'wireLessons', 'wireShip', 'wireCamera', 'wireHero', 'heroCutFrame', 'cameraFollow', 'wireBenches', 'wireTrails', 'wireOpenings', 'wireEdge', 'wireSky', 'wirePotion', 'wireNudges', 'fragmentsLine', 'wireHealth', 'hurtReactions', 'wireAmbush']) {
+  for (const g of ['wireKit', 'wireDangers', 'wirePeople', 'wireChemistry', 'wireMount', 'wireVehicles', 'wireLessons', 'wireShip', 'wireCamera', 'wireHero', 'heroCutFrame', 'cameraFollow', 'wireBenches', 'wireTrails', 'wireOpenings', 'wireEdge', 'wireSky', 'wirePotion', 'wireNudges', 'fragmentsLine', 'wireHealth', 'hurtReactions', 'wireAmbush', 'toolGauge', 'wireJumpShade']) {
     assert.match(main, new RegExp(`\\b${g}\\(`), `main.js calls ${g}`);
     assert.match(engine, new RegExp(`\\b${g}\\(`), `engine/game.js calls ${g}`);
   }
   assert.doesNotMatch(main, /const armTool\b/);
+  assert.doesNotMatch(main, /new JumpShadow\(|magicHud\(/, 'nor main.js\'s own jump shade and magic bar (round 4)');
   assert.doesNotMatch(engine, /tool\.swordOn\s*=/);
 });
 
@@ -316,6 +317,23 @@ test('in the engines\' build: the sword hangs on him only once found and wears t
   v.level.veils?.scene?.traverse((o) => { if (/deadly void/.test(o.name)) voidMesh = o; });
   assert.ok(voidMesh, 'the world\'s void in the veils the engine mirrors');
   assert.ok([...ports.values()].some((p) => p.port === 'pitvoid' && Math.abs(p.min[0]) > 500), 'sent as the port\'s pitvoid (its box the world\'s width)');
+  // round 4: the patch of shade under a jump (wireJumpShade, sent as the port's jumpshade; none in the engines before), and
+  // the tool's notices to the screen by him (toolGauge: the mode's name on a switch; no 'tool' part in the engines before)
+  ports.clear();
+  const j = await quiet(() => B.createGame({ levelId: 'desert', backend, people: false, flags: { 'prologue.done': true, 'item.backpack': true } }));
+  quiet(() => { for (let i = 0; i < 3; i++) j.frame(1 / 30); });
+  let shade = null;
+  j.scene.traverse((o) => { if (o.name === 'jump shadow') shade = o; });
+  assert.ok(shade && !shade.visible, 'the jump\'s shade, hidden on the ground');
+  j.player.teleport(j.player.pos.clone().add(new THREE.Vector3(0, 3, 0)), j.player.frame.up, new THREE.Vector3(0, 0, 1));
+  quiet(() => j.frame(1 / 30));
+  assert.ok(shade.visible && shade.scale.x > 0.2, `under him in the air (${shade.scale.x})`);
+  assert.ok([...ports.values()].some((p) => p.port === 'jumpshade' && p.dark === 0.75), 'sent as the port\'s jumpshade');
+  j.tool.modeFlash = 1;
+  quiet(() => j.frame(1 / 30));
+  const T = j.screen().state.tool;
+  assert.ok(T && !T.aim && T.flash > 0 && T.name, `the mode's name a moment (${JSON.stringify(T)})`);
+  assert.ok(Array.isArray(T.at) && Math.abs(T.at[1] - (j.player.object?.position ?? j.player.pos).y - 1.45) < 0.2, 'by his shoulders');
 });
 
 test('wireCompanion: the prologue\'s drone handed over to the scout; Plumb\'s first word starts the village\'s quest and sends it off (issue #434)', async () => {
@@ -368,6 +386,43 @@ test('the hearts on the screen (wireHealth): shown after a hurt or a chime and w
   for (let i = 0; i < 30; i++) f = health.frame(0.1, { player });
   assert.equal(f.wallet, before + 40);
   assert.equal(health.frame(0.1, { player, quiet: true }).hp, null, 'quiet in a scene');
+});
+
+test('the tool\'s notices (toolGauge): aiming at the screen\'s centre, else by his shoulders; the magic bar\'s look in the hearts\' state (round 4)', async () => {
+  const { screen } = await import('../src/platform.js');
+  globalThis.matchMedia ??= () => ({ matches: false }); globalThis.window ??= new EventTarget();
+  const { ToolHud } = await import('../src/ui.js');
+  const hud = new ToolHud(null);
+  const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 100);
+  camera.position.set(0, 2, 5); camera.updateMatrixWorld();
+  const player = { pos: new THREE.Vector3(), frame: { up: new THREE.Vector3(0, 1, 0) } };
+  const G = toolGauge({ tool: () => ({ hud }), player, camera });
+  hud.update({ on: false, ready: true, owned: true });
+  assert.equal(G.frame(), null);
+  assert.equal(screen.state.tool, null, 'nothing to say: nothing');
+  hud.update({ on: true, charges: 2, ready: true, aimKind: 'target', hit: 'target', mode: 'stun', modeName: 'stilling' });
+  assert.equal(G.frame(), null, 'aiming: at the centre');
+  assert.deepEqual({ ...screen.state.tool }, { aim: true, mode: 'stun', name: 'stilling', wait: false, lock: true, empty: false, flash: 0, gauge: false, hits: 1, hit: 'target' });
+  hud.update({ on: false, ready: true, owned: true, modeFlash: 0.6, modeName: 'fluid', mode: 'shoot' });
+  const at = G.frame();
+  assert.ok(at && Math.abs(at.y - 1.45) < 1e-6 && at.x < -0.7, 'left of his shoulders, as the camera sees them');
+  assert.equal(screen.state.tool.flash, 0.6);
+  assert.deepEqual(screen.state.tool.at, [-0.75, 1.45, 0]);
+  // (the tank run dry: "empty" by him for a moment, then nothing)
+  hud.update({ on: false, ready: false, owned: true, dry: true, modeName: 'empty', now: 10 });
+  G.frame();
+  assert.equal(screen.state.tool.gauge, true);
+  assert.equal(screen.state.tool.name, 'empty');
+  hud.update({ on: false, ready: false, owned: true, dry: true, modeName: 'empty', now: 14 });
+  G.frame();
+  assert.equal(screen.state.tool, null, 'gone after GAUGE_DRY');
+  // the magic bar as the hearts' state carries it (src/hud.js healthHud: magicFill, magicShort, as the page's .magic draws them)
+  const health = wireHealth({ game: {}, tool: () => ({ owned: true, dry: false, reserve: { level: 0.5, max: 3 } }) });
+  const hp = health.frame(0.1, { player: { health: 1, hearts: 3, maxHearts: 3 } }).hp;
+  assert.deepEqual([hp.magic, hp.magicMax, hp.magicFill, hp.magicShort], [0.5, 3, 0.167, true], 'short of a shot: hatched');
+  const full = wireHealth({ game: {}, tool: () => ({ owned: true, dry: false, reserve: { level: 2.4, max: 4 } }) }).frame(0.1, { player: { health: 0.5, hearts: 1.5, maxHearts: 3 } }).hp;
+  assert.deepEqual([full.magicFill, full.magicShort], [0.6, false]);
+  assert.equal(wireHealth({ game: {}, tool: () => ({ owned: true, dry: true, reserve: { level: 0, max: 3 } }) }).frame(0.1, { player: { health: 0.5, hearts: 1.5, maxHearts: 3 } }).hp.magic, undefined, 'the tank dry: no bar');
 });
 
 test('a hurt\'s answer (hurtReactions): the thud under the hit and its cry, the hearts shown, the lesson; the knockdown\'s heavier thud; the fade up again', () => {

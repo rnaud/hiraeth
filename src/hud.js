@@ -95,7 +95,8 @@ export function healthHud({ health = 1, hearts = null, max = 3, magic = null, ma
   const on = fader.update(dt, share < 0.999 || !!down || spending || !!combat) && !quiet;
   if (!on) return null;
   const out = { value: +share.toFixed(3), low: h <= 1 + 1e-9 && h < max, hearts: +h.toFixed(2), max };
-  if (magic !== null) Object.assign(out, { magic: +magic.toFixed(2), magicMax });
+  // (the bar's fill and its look, as the page draws it: magicHud, so every host draws the same bar: hatched short of a unit)
+  if (magic !== null) { const M = magicHud(magic, magicMax); Object.assign(out, { magic: +magic.toFixed(2), magicMax, magicFill: +M.fill.toFixed(3), magicShort: M.short }); }
   if (potions !== null) Object.assign(out, { potions, infinite: !!infinite });
   if (chimes !== null) out.chimes = chimes;
   return out;

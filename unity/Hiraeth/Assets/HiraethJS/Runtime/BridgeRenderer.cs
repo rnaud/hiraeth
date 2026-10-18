@@ -529,6 +529,14 @@ namespace Hiraeth.Bridge
                 materials[mid] = pl;
                 return;
             }
+            if (m.S("port") == "jumpshade")
+            {
+                // the patch of shade under a jump (src/jump-shadow.js): the light term under it taken away, its colour by _Dark
+                var jm = new Material(Shader.Find("Hiraeth/JumpShade")) { name = "jump shade (bridge)" };
+                jm.SetFloat("_Dark", m.F("dark", 0.75f));
+                materials[mid] = jm;
+                return;
+            }
             if (m.S("port") == "print")
             {
                 var pm = new Material(Shader.Find("Hiraeth/Print")) { name = "prints (bridge)" };

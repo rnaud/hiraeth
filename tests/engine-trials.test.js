@@ -265,6 +265,20 @@ test('a game reached from the Arcade: its cards go back to the Arcade, and to th
   g.trials.runner.go(g.trials.runner.link('next').href);
   assert.match(left.at(-1) ?? '', /game=[a-z-]+&from=arcade/, 'the next game\'s page');
   assert.match((await import('node:fs')).readFileSync(new URL('../engine/unity/game.js', import.meta.url), 'utf8'), /if \(game && !S\.plan\) \{ playGame\(href\); return; \}/, 'the Unity side plays it');
+  // Back to the Arcade (?level=arcade&back=rings): the engine starts again in front of that game's sign, as the page's
+  // address puts you (issue #427: engine/unity/game.js carries `back` through the reboot)
+  const { arcadeLinks, ARCADE_RING } = await import('../src/minigames/kit/arcade.js');
+  assert.equal(X.readHref(arcadeLinks('arcade', 'rings').quit.href).back, 'rings', 'its Quit: in front of its sign');
+  // (the signs stand on the ring, their stands ARCADE_RING.stand in from it; the way in is past the ring, to the south)
+  const stand = ARCADE_RING.radius - ARCADE_RING.stand, gate = [0, ARCADE_RING.radius + 2.5];
+  const a = await quietly(() => X.createGame({ levelId: 'arcade', back: 'rings', backend, menus: new EngineMenus({}) }));
+  await run(a, 2);
+  const pa = a.player.pos;
+  assert.ok(Math.abs(Math.hypot(pa.x, pa.z) - stand) < 1 && Math.hypot(pa.x - gate[0], pa.z - gate[1]) > 3, `in front of a sign (${pa.x.toFixed(1)}, ${pa.z.toFixed(1)})`);
+  const b = await quietly(() => X.createGame({ levelId: 'arcade', backend, menus: new EngineMenus({}) }));
+  await run(b, 2);
+  assert.ok(Math.hypot(b.player.pos.x - gate[0], b.player.pos.z - gate[1]) < 1.5, `without it: at the way in (${b.player.pos.x.toFixed(1)}, ${b.player.pos.z.toFixed(1)})`);
+  assert.match((await import('node:fs')).readFileSync(new URL('../engine/unity/game.js', import.meta.url), 'utf8'), /level: to, back: back \?\? null/, 'the Unity side carries it');
 });
 
 test('the Canyon run steered into its walls goes on (a wall\'s sand burst read the heading before it was made)', async () => {

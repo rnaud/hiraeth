@@ -121,7 +121,7 @@ test('the health bar and the stamina wheel show while it matters and fade a mome
   assert.equal(healthHud({ hearts: 2, quiet: true }, new Fader(3), 0.1), null, 'not over a scene or photo mode');
   assert.equal(healthHud({ hearts: 3, magic: 3, magicMax: 3 }, new Fader(3), 0.1), null, 'whole, the bar full: nothing');
   assert.deepEqual(healthHud({ hearts: 3, magic: 1.4, magicMax: 3, potions: 0, infinite: true }, new Fader(3), 0.1),
-    { value: 1, low: false, hearts: 3, max: 3, magic: 1.4, magicMax: 3, potions: 0, infinite: true }, 'the magic bar spending or refilling: shown, with the potion');
+    { value: 1, low: false, hearts: 3, max: 3, magic: 1.4, magicMax: 3, magicFill: 0.467, magicShort: false, potions: 0, infinite: true }, 'the magic bar spending or refilling: shown, with the potion (its fill and look as the page draws it)');
   assert.ok(healthHud({ hearts: 3, combat: true }, new Fader(3), 0.1), 'a fight on: shown');
   assert.equal(staminaHud({ stamina: 0.5 }, 0), null, 'the wheel: only while it has time left');
   assert.deepEqual(staminaHud({ stamina: 0.5, winded: true }, 0.9), { value: 0.5, winded: true });

@@ -2,7 +2,7 @@
 // two can be laid side by side (Unity's -ui, engine/unity/game.js; the web's side runs this in the page): each through the
 // game's own code, which sets the screen part an engine draws and, on the page, its HTML.
 //
-//   uiPose(ctx, piece)   ctx: { THREE, player, npcs, ship, items, level, openArcade(board), openShop(id), askShop() }
+//   uiPose(ctx, piece)   ctx: { THREE, player, npcs, ship, items, level, tool, openArcade(board), openShop(id), askShop() }
 //   UI_PIECES            the pieces and the world each is pictured in
 //
 // balloons   the nearest person a shout over their head, the traveller beside them facing them
@@ -14,6 +14,13 @@
 // credits    the true ending's credits, 18 s into their roll (the people of some worlds met, a thing brought home)
 // breath     the breath meter in the Underwater City (a helmet's sea), its air half gone
 // arcade     the Arcade's board of games
+// magic      the magic bar part spent (1.6 of 3), a heart and a half gone so the hearts show (issue #427, round 4)
+// magicshort the bar short of a shot (0.5 of 3): paler and hatched
+// magicfull  the bar full (the hearts short, so it shows)
+// magicempty the tank run dry: no bar, "empty" a moment beside the traveller
+// mode       the gun's mode switched: its name a moment beside the traveller (the tool's modeFlash)
+// aim        aiming (the host holds the aim, KeyR): the crosshair at the centre and the mode's name under it
+// jump       the traveller held 0.5 m off the ground, falling: the jump's patch of shade under him
 // shop       Haddu's shop in the desert (src/shop-panel.js on the page, engine/menus.js shopView in an engine), its
 //            first ware asked about after a moment (shopask)
 
@@ -22,18 +29,46 @@ import { credits } from '../src/story/ending.js';
 import { ORDER, TITLES } from '../src/levels/names.js';
 import { resources } from '../src/resources.js';
 
-export const UI_PIECES = { balloons: 'desert', objective: 'desert', level: 'desert', cargo: 'desert', endcard: 'desert', credits: 'desert', breath: 'underwater', arcade: 'arcade', shop: 'desert', shopask: 'desert' };
+export const UI_PIECES = { balloons: 'desert', objective: 'desert', level: 'desert', cargo: 'desert', endcard: 'desert', credits: 'desert', breath: 'underwater', arcade: 'arcade', shop: 'desert', shopask: 'desert',
+  magic: 'desert', magicshort: 'desert', magicfull: 'desert', magicempty: 'desert', mode: 'desert', aim: 'desert', jump: 'desert' };
+/** The pieces a host poses by holding a key while they are up: the aim (KeyR, src/bindings.js KEYS.aim). */
+export const UI_KEYS = { aim: 'KeyR' };
 
 const HOLD = [
   { kind: 'thing', name: 'A blue stone', level: 'desert', text: 'Warm when you hold it, as if it had been in someone’s pocket.' },
   { kind: 'song', name: 'The ferryman’s tune', level: 'arzach', text: 'Four notes, the last one held.' },
   { kind: 'item', name: 'Backpack', text: 'Carries the fluid tool and whatever you find.' },
 ];
-let held = null;
+let held = null, undo = null;
 
 export function uiPose(ctx, piece) {
-  const { THREE, player, npcs = [], ship, items } = ctx;
+  const { THREE, player, npcs = [], ship, items, tool = null } = ctx;
   held?.remove?.(); held = null;
+  undo?.(); undo = null;
+  // (the magic bar and the tool's notices: the reserve held where it is put, its refill's clock stopped, a heart and a half
+  // gone so the hearts and the bar show; let go, all as it was)
+  if (piece === 'jump') {
+    // (each frame put back where he was put, falling: his update runs, then he is held there off the ground)
+    const at = player.pos.clone(), up = player.pos.clone().addScaledVector(player.frame.up, 0.5), update = player.update;
+    player.update = function (...a) { const r = update.apply(this, a); this.pos.copy(up); this.vel.set(0, 0, 0); this.onGround = false; this.object?.position.copy(up); return r; };
+    player.pos.copy(up);
+    undo = () => { player.update = update; player.teleport?.(at, player.frame.up, player.frame.fwd); };
+    return 'held up';
+  }
+  if (/^magic/.test(piece) || piece === 'mode' || piece === 'aim') {
+    const R = tool?.reserve;
+    if (!R) return 'no tool';
+    const was = { level: R.level, since: R.since, hearts: player.hearts, empty: tool.state?.flag?.('tool.empty') ?? null, gun: tool.forceGun };
+    undo = () => { R.level = was.level; R.since = was.since; if (was.hearts != null) player.hearts = was.hearts; tool.state?.set?.('tool.empty', was.empty); tool.forceGun = was.gun; };
+    // (the gun found and in hand, as a game on foot lends it: src/minigames/kit/onfoot.js; the debug save keeps the gun)
+    if (piece === 'aim') { (items ?? tool.items)?.grant?.('gun'); tool.forceGun = true; }
+    const level = { magic: 1.6, magicshort: 0.5, magicempty: 0 }[piece] ?? R.max;
+    R.level = Math.min(R.max, level); R.since = -1e6;
+    if (/^magic/.test(piece)) player.hearts = Math.max(0.5, (player.maxHearts ?? 3) - 1.5);
+    if (piece === 'magicempty') tool.state?.set?.('tool.empty', true);
+    if (piece === 'mode') tool.modeFlash = 1;
+    return `${R.level.toFixed(1)} of ${R.max}`;
+  }
   if (piece === 'balloons') {
     const n = npcs.filter((p) => !p.pooled && p.def?.id && p.object?.visible).sort((a, b) => a.pos.distanceTo(player.pos) - b.pos.distanceTo(player.pos))[0];
     if (!n) return 'no one here';

@@ -623,6 +623,9 @@ export class TouchControls {
 export class ToolHud {
   constructor(el = document.getElementById('tool')) {
     this.el = el;
+    /** What it shows, for every host (the screen's 'tool': src/host/game-host.js toolGauge publishes it with its place):
+     *  null, or { aim, mode, name, wait, lock, empty, flash (1 → 0 over the mode's flash), gauge, hits, hit ('target' | 'empty') } */
+    this.state = null; this.hits = 0; this.hitKind = '';
     if (!el) return;
     el.innerHTML = '<div class="cross"><i></i><i></i><i></i><i></i></div><div class="mode"><b>fluid</b></div>';
     this.cross = el.querySelector('.cross');
@@ -630,9 +633,11 @@ export class ToolHud {
     this.last = ''; this.lastBody = '';
   }
   update({ on, charges = 3, ready, aimKind, hit, owned = true, mode = 'shoot', modeName = 'fluid', modes = 1, modeFlash = 0, dry = false, now = performance.now() / 1000 }) {
-    if (!this.el) return;
     const flash = modeFlash > 0 && !on;
     const gauge = !on && !flash && this.gaugeShown({ owned, dry, now });
+    if (on && (hit === 'target' || hit === 'empty')) { this.hits++; this.hitKind = hit; }
+    this.state = on || flash || gauge ? { aim: !!on, mode, name: modeName, wait: !ready, lock: aimKind === 'target', empty: !charges, flash: flash ? +modeFlash.toFixed(3) : 0, gauge: !!gauge, hits: this.hits, hit: this.hitKind } : null;
+    if (!this.el) return;
     const bodyKey = `${on}|${owned}|${modes > 1}|${flash}|${gauge}`;
     if (bodyKey !== this.lastBody) {
       this.lastBody = bodyKey;

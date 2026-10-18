@@ -18,7 +18,7 @@ import { ObservatoryQuest } from './observatory.js';
 import { Scout, nextObjective, findText, HINT, FIND } from './scout.js';
 import { guardianHint, openHint, Struggle } from './temples/hints.js';
 import { quietOr } from './hint-level.js';
-import { cueText, Cue, PlaceName, staminaHud, findSummary, heartsSvg, magicHud, keysHud, KEY_SVG, GREAT_KEY_SVG } from './hud.js';
+import { cueText, Cue, PlaceName, staminaHud, findSummary, heartsSvg, keysHud, KEY_SVG, GREAT_KEY_SVG } from './hud.js';
 import { resources } from './resources.js';
 import { screen } from './platform.js';
 import { inputKind, keyText } from './prompt-keys.js';
@@ -55,7 +55,6 @@ import { BrushTrail } from './brush.js';
 import { Cascade, FINE_CASCADE, NEAR_CASCADE, ShadowCuller, shadowVariants, shadowDirection, farPassSkips, selfLitSkips, VIEW_SLACK, viewOf, viewLeft, heroExtent, nearDue, farDue, nearEveryNow } from './shadows.js';
 import { Flock, Motes, Footprints } from './life.js';
 import { HouseAir } from './temples/air.js';
-import { JumpShadow } from './jump-shadow.js';
 import { Sound } from './audio.js';
 import { Weather, WEATHER_KINDS } from './weather.js';
 import { Shelter, addIndoors } from './shelter.js';
@@ -134,7 +133,7 @@ import { queueHost, takeHosts } from './minigames/kit/hosts.js';
 import { MinigameRunner } from './minigames/kit/runner.js';
 import { levelMetaFor } from './minigames/kit/world.js';
 import { lendTool } from './minigames/kit/onfoot.js';
-import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip, wireCompanion, wireCamera, wireHero, heroCutFrame, cameraFollow, wireBenches, wireTrails, wireOpenings, wireEdge, wireSky, wirePotion, wireNudges, fragmentsLine, wireHealth, hurtReactions, wireFight, wireAmbush } from './host/game-host.js';
+import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip, wireCompanion, wireCamera, wireHero, heroCutFrame, cameraFollow, wireBenches, wireTrails, wireOpenings, wireEdge, wireSky, wirePotion, wireNudges, fragmentsLine, wireHealth, hurtReactions, wireFight, wireAmbush, toolGauge, wireJumpShade } from './host/game-host.js';
 import { arcadeLinks } from './minigames/kit/arcade.js';
 import { talkAllowed } from './ship/landing.js';
 import { ShopPanel } from './shop-panel.js';
@@ -487,14 +486,15 @@ function updateHealth(dt) {
   const { hp, wallet: walletShown } = health.frame(dt, { player, fighting: !!fight?.foes.fighting, quiet: ship.playing || photo.on });
   screen.set('health', hp);
   if (!hpEl) return;
-  const R = tool.owned && !tool.dry ? tool.reserve : null, pot = resources.potions, wallet = resources.chimes;
+  const pot = resources.potions, wallet = resources.chimes;
   hpEl.classList.toggle('on', !!hp);
   if (!hp) return;
   const key = `${hp.hearts}|${hp.max}|${hp.low}`;
   if (key !== hpKey) { hpKey = key; hpHearts.innerHTML = heartsSvg(hp.hearts, hp.max, { low: hp.low }); }
-  const M = magicHud(R?.level, R?.max), mk = R ? `${M.units}|${M.short}` : 'none';
-  if (mk !== hpMagicKey) { hpMagicKey = mk; hpMagic.classList.toggle('none', !R); hpMagic.classList.toggle('short', M.short); hpMagic.style.setProperty('--units', M.units); }
-  if (R) hpMagicFill.style.width = `${(M.fill * 100).toFixed(1)}%`;
+  // (the magic bar as wireHealth's state says it, src/hud.js healthHud: the engines draw the same)
+  const magic = hp.magic != null, mk = magic ? `${hp.magicMax}|${hp.magicShort}` : 'none';
+  if (mk !== hpMagicKey) { hpMagicKey = mk; hpMagic.classList.toggle('none', !magic); hpMagic.classList.toggle('short', !!hp.magicShort); hpMagic.style.setProperty('--units', hp.magicMax); }
+  if (magic) hpMagicFill.style.width = `${(hp.magicFill * 100).toFixed(1)}%`;
   const pk = `${pot.infinite}|${pot.count}`;
   if (pk !== hpPotionKey) { hpPotionKey = pk; hpPotionN.textContent = pot.infinite ? '∞' : `${pot.count}`; hpPotion.classList.toggle('none', !pot.infinite && pot.count <= 0); }
   const wn = Math.round(walletShown);
@@ -583,8 +583,7 @@ const houseAir = level.temples?.length ? new HouseAir(level, { lowDetail: () => 
 overlays.houseAir = houseAir;
 houseAir?.setTarget(gbuffer.textures[1], post.uniforms.uRes.value.x, post.uniforms.uRes.value.y, post.uniforms.uPixelRatio.value);
 const footprints = new Footprints(scene);   // prints take the colour of whatever they land on
-const jumpShadow = new JumpShadow(scene);    // off the ground: a patch of shade straight under you (src/jump-shadow.js)
-(level.noShadow ??= []).push(jumpShadow.mesh);
+const jumpShadow = wireJumpShade({ scene, level });    // off the ground: a patch of shade straight under you (src/jump-shadow.js; src/host/game-host.js)
 resize();
 if (footprints) player.onStep = (p, heading, up) => footprints.add(p, heading, up);
 
@@ -1619,13 +1618,14 @@ function updateHud() {
   placeToolGauge();
   audioCfg.mute = sound.muted;
 }
-const toolEl = document.getElementById('tool'), _tgP = new THREE.Vector3(), _tgR = new THREE.Vector3();
+const toolEl = document.getElementById('tool'), _tgP = new THREE.Vector3();
+let toolHud = null;   // (the screen's 'tool' and its place by the traveller: src/host/game-host.js toolGauge, the engines' too)
 function placeToolGauge() {
+  const at = (toolHud ??= toolGauge({ tool: () => tool, player, camera })).frame();
   if (!toolEl) return;
   const b = document.body.classList, free = !b.contains('aiming') && (b.contains('tool-gauge') || b.contains('modeflash'));
-  if (!free) { if (toolEl.style.left) toolEl.style.left = toolEl.style.top = ''; return; }
-  _tgR.setFromMatrixColumn(camera.matrixWorld, 0);
-  _tgP.copy(player.object?.position ?? player.pos).addScaledVector(player.frame.up, 1.45).addScaledVector(_tgR, -0.75).project(camera);
+  if (!free || !at) { if (toolEl.style.left) toolEl.style.left = toolEl.style.top = ''; return; }
+  _tgP.copy(at).project(camera);
   if (_tgP.z > 1) return;
   toolEl.style.left = `${((_tgP.x * 0.5 + 0.5) * innerWidth).toFixed(1)}px`;
   toolEl.style.top = `${((-_tgP.y * 0.5 + 0.5) * innerHeight - 40).toFixed(1)}px`;
