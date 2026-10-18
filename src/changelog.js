@@ -254,6 +254,10 @@ export const CHANGELOG = [
     // (drawn again on a change of size), BridgeRunner.ScreenAs / -title-shots; tests/engine-unity.test.js;
     // docs/systems/engine-bridge.md "The title on any screen"
     'In the Unity version, the title’s name sits centred across the top on every screen, as on the web: on the Retroid’s 4:3 screen it opened pushed aside the first time, and a window resized or a screen turned kept the old layout.',
+    // issue #465: unity/Hiraeth StreamingAssets/hiraeth-pso/Vulkan.graphicsstate traced again (168 states of 52 variants),
+    // scripts/bench/deck-pso-trace.mjs (the detours, the moves pass, the decals' sequences); docs/systems/performance.md
+    // "The Deck's pipeline list traced again (#465)"
+    'In the Unity version on the Steam Deck, the first launch after an update no longer freezes for three and a half seconds just after a world with foes appears: what the game needs to draw the foes, the water from below, the waterfalls, the shade under a jump and the marks on the ground is now made ready while the world loads (that one loading takes 2–3 seconds longer).',
     'In the Unity version, the traveller’s face moves as on the web: he blinks, smiles, raises his brows and opens his mouth as he talks (it stayed still). The ship’s rooms keep their shading strokes clear instead of a grey blur; plants lean away from you along the path you walk through them; the camera pressed into the traveller leaves him out of the view; a struck foe’s lines flash white; and the shading round foes by a wall no longer darkens round them.',
     // issue #471: src/soundtracks.js (setThemeWait, a late theme cued as an arrival), engine/unity/music.js themeArrival,
     // engine/unity/game.js; unity/Hiraeth BridgeArgs.cs StreamingFile.Read (a folder's file read as one inside the APK);

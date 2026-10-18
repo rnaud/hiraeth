@@ -430,17 +430,27 @@ a release player, so the check is the cold launch's longest frame in unity.log (
 **Refreshing it** (after a new shader, keyword, world or render pass; on the Mac, the Deck at steamdeck.local):
 
 ```sh
+# in a fresh worktree, once: Puerts and its IL2CPP glue (git-ignored; without them the player starts with no script)
+scripts/unity-js-setup.sh && scripts/unity-export/unity-batch.sh BridgeBuild.Il2cpp
+node scripts/engine-bundle.mjs unity
 # a development player: Unity traces in no other (the Linux sysroot: docs/systems/unity.md)
 scripts/unity-export/unity-batch.sh BridgeBuild.Linux -development -out Builds/bridge-linux-dev/hiraeth-js.x86_64
 scripts/bench/deck-unity.sh put unity/Hiraeth/Builds/bridge-linux-dev u-psodev
-node scripts/bench/deck-pso-trace.mjs --unity u-psodev --out <dir> --fresh 1 --lock <dir>
+node scripts/unity-compare/views.mjs <dir>/side-views.json --worlds mangrove,waterfall,saltharbour,antennas,eclipse,fallenring,underside
+node scripts/bench/deck-pso-trace.mjs --unity u-psodev --out <dir> --fresh 1 --lock <dir> --views-file <dir>/side-views.json
 scripts/bench/deck-unity.sh rm u-psodev
 ```
 
 Per world it runs three launches with `-pso-trace`, in a profile, Mesa cache and TMPDIR of the bench's own:
-- the bench views (deck-engines.mjs's), each once, then the walk;
+- the bench views (deck-engines.mjs's), each once, then the walk. The detours have no bench views, so theirs come
+  from `--views-file`: views.mjs's spawn and wide look, at noon and at dusk. Views under the water or at a waterfall
+  are added by hand where a world has them;
 - the first temple's first room and the ship's rooms;
 - a fight: a blot, knocked out, the guardian woken.
+
+In the desert, the Underwater City and the City Behind the Waterfall (`--moves`), a fourth launch aims and fires the
+fluid tool and holds a jump in the air (`-play tool -ui jump`, for the jump's shade). In the desert, two more launches
+play the sequences `decals` and `splat`: the ground's decals in their offset states (#463).
 
 Each launch adds to the same trace on the Deck. It is saved 20 s after the world settles, every 30 s while it grows,
 and at the exit. A launch that dies at the start (the rare SIGSEGV after `InitializeOrResetSwapChain`) is run

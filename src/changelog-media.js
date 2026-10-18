@@ -1205,8 +1205,25 @@ const SURFDW = 'Issue #264 (surfaces D): the web game in muted headless Chrome (
 const SURF264F = 'Issue #264: the Unity editor’s batch run on this Mac (scripts/unity-js-run.sh -sequence <id> or scripts/unity-compare/unity.mjs, muted, High, 1280 × 720 pictures of its 640 × 480 screen), the same build with the change switched off for the before (-no-foe-pattern, -no-blade-look, -no-see-hole, -no-lamp-tint); the web’s the same beat in muted headless Chrome on this branch’s own Vite (port 5465); 17 October; cwebp -q 72';
 const EYES473 = 'Issue #473: the Unity editor’s batch run on this Mac (scripts/unity-js-run.sh -level desert -views, muted, High, 1280 × 720, the desert’s noon), the face cropped and enlarged, nearest neighbour; before, the same build with -js-off eyepaint and the people’s eyes as they were (Figure.hlsl at the branch’s base) (18 October)';
 const EYES473W = 'Issue #473: the same view on the web, muted headless Chrome on this branch (scripts/design-qc/capture.mjs, High, 1280 × 720, a fixed render scale), cropped the same way; his head turns with his idle on its own clock';
+/** (v1.84, issue #465: the Deck's pipeline list traced again) */
+const PSO465 = 'Issue #465: a release Linux player of main at 509b40cc9 on the Steam Deck OLED (gamescope headless, 1280 × 800, 90 Hz, the Steam Deck preset, uncapped, muted), each launch with its own Mesa cache, TMPDIR and config emptied first; before: the shipped list (125 states), after: the re-traced one (168), both warmed with -pso-file; the longest frame of the load, Unity’s own part (the frame less the main thread’s wait on the script), from unity.log; 18 October';
 export const CHANGELOG_MEDIA = {
   '1.84': [
+    { match: 'In the Unity version on the Steam Deck, the first launch after an update no longer freezes', numbers: [
+      { title: 'The longest frame as a world loads, on an empty shader cache', unit: 'ms', better: 'lower', device: PSO465, rows: [
+        { where: 'Desert, a fight (foes on)', before: '3528–3583', after: '41–93' },
+        { where: 'Underwater City, a fight', before: 3495, after: 25 },
+        { where: 'Desert, views, the tool, a jump', before: '20–54', after: '45–81' },
+        { where: 'Underwater City under the sea, the same', before: '39–41', after: '20–26' },
+        { where: 'City Behind the Waterfall, under its pool', before: '31–42', after: '26–43' },
+      ], source: 'docs/systems/performance.md, “The Deck’s pipeline list traced again (#465)”' },
+      { title: 'The world’s first frame after launch, on an empty shader cache (once after an update)', unit: 's', better: 'lower', device: PSO465, rows: [
+        { where: 'Desert', before: '26.0–26.3', after: '28.2–29.2' },
+        { where: 'Underwater City', before: '22.6–23.2', after: '24.8–25.9' },
+        { where: 'City Behind the Waterfall', before: '21.3–21.6', after: '23.8–24.2' },
+        { where: 'Desert, a fight, the cache warm (every later launch)', before: 12.8, after: 12.9 },
+      ], source: 'docs/systems/performance.md, “The Deck’s pipeline list traced again (#465)”' },
+    ], see: 'In the Unity version on the Steam Deck, after an update, land in the desert where the foes roam: the world comes up without a frozen moment.' },
     { match: 'Each world’s own recorded music now plays the first time you land there', see: 'On the Xbox or in the Android app, fly to a world you have not visited since installing: a little while after landing (about ten seconds on a good connection) its own recorded music fades in and the synthesised score gives way to it, instead of the score playing until you leave.' },
     { match: 'In the Unity version, the traveller’s eyes and brows are as sharp as on the web', tags: ['characters'], shots: [
       { name: 'unity-eyes-close', title: 'Close up', caption: 'His face at 0.85 m, three quarters, three times: before, the eyes soft grey-brown smudges from his vertex colours; after, the white, the iris, the pupil and its glint and the lash lines, as on the web', from: EYES473 },

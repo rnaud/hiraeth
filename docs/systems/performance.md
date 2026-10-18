@@ -5344,4 +5344,71 @@ rooms and the Incal.
 - **The Deck** (the traced list, `hiraeth-pso/Vulkan.graphicsstate`): its states hold the depth bias, and the list was
   traced before the decals had one, so their pipelines are made at first sight until it is traced again
   (`scripts/bench/deck-pso-trace.mjs`, docs/steam-deck.md "The pipeline list"). Not done here: it needs the Deck.
-  Android's list (off by default) the same.
+  Android's list (off by default) the same. (Traced again in #465, below.)
+
+## The Deck's pipeline list traced again (#465, 2026-10-18)
+
+Since the list of round 14, these shaders and states are new:
+- the decals' offset states (#463);
+- the water's pass over the page, `Hidden/Hiraeth/WaterOver`, and the waterfalls' falling water (#458);
+- `Hiraeth/JumpShade` (#427 round 4);
+- surfaces D's `HIRAETH_FIGHT` keyword: the foes', the blade's and the crystals' looks in the Surface shader (#264).
+
+`scripts/bench/deck-pso-trace.mjs` was run again on the Deck OLED with a development Linux player of main at
+509b40cc9. The trace now also covers:
+- the seven detours (`--views-file`: views.mjs's views, plus the City Behind the Waterfall's curtain, deep fall and
+  view under its pool, and the mangrove's water from above);
+- a launch with the tool fired and a jump held (`-play tool -ui jump`) in the desert, the Underwater City and the City
+  Behind the Waterfall;
+- the `decals` and `splat` sequences in the desert.
+
+**The list: 125 states of 44 variants → 168 of 52** (589 KB).
+- New: WaterOver (1), JumpShade (4), and the door light's `Hiraeth/DoorLight` (2, not in the old list).
+- The Surface shader's states went from 82 to 116: the fight variants (7 states of 5 variants), the decals' offset
+  states, the falls' variant and the water's glints.
+- The Veil's states went from 8 to 10.
+- 10 states of the old list were not drawn again (6 of the Surface shader's, 4 of the Veil's). They no longer match a
+  state the game draws, so they were dropped.
+- Growth: the desert's six launches gave 60 and the bench worlds up to the Glass Dunes 158. The Underwater City added
+  3 and the City Behind the Waterfall 4; every other world 0–2.
+- `tests/unity-pso.test.js` passes on it.
+
+**Cold launches.** A release player of the same code, warming the old list or the new one (both with `-pso-file`).
+Once per world with no list at all (`-no-pso`) as the reference. Before every launch its own Mesa cache, TMPDIR and
+config were emptied.
+- The views launches ran the world's views, then the tool fired, then a jump held.
+- The fight launches had no views, so the world's foes were on as in play: a blot locked on and cut, knocked out, the
+  guardian woken.
+- `-slow-ms 20`. The times below are Unity's own part of a frame: the frame less the main thread's wait on the script.
+
+| launch (runs: old / new) | longest frame of the load, Unity's part, ms: none → old → new | after the load: frames over 50 ms, old / new | after the load: frames over 20 ms with no GC in them (longest), none / old / new |
+|---|---|---|---|
+| Desert, views, tool, jump (3 / 3) | 10 708 → 20–54 → 45–81 | 0 / 0 | 0 / 3 (31) / 1 (30) |
+| Underwater City, under the sea, the same (3 / 3) | 9 793 → 39–41 → 20–26 | 0 / 0 | 2 (23) / 2 (29) / 2 (31) |
+| City Behind the Waterfall, under its pool, the same (3 / 3) | 10 143 → 31–42 → 26–43 | 0 / 0 | 2 (31) / 3 (32) / 1 (31) |
+| **Desert, a fight (2 / 2)** | 10 624 → **3 528–3 583** → **41–93** | 0 / 0 | 1 (20) / 2 (27) / 2 (28) |
+| **Underwater City, a fight (1 / 1)** | 9 657 → **3 495** → **25** | 0 / 0 | 2 (36) / 2 (32) / 1 (29) |
+
+| first node after launch, s (cold) | old list | new list |
+|---|---|---|
+| Desert (views) | 26.0–26.3 | 28.2–29.2 |
+| Underwater City (views) | 22.6–23.2 | 24.8–25.9 |
+| City Behind the Waterfall | 21.3–21.6 | 23.8–24.2 |
+| the warm-up done, after the start | 14.9–15.5 | 17.0–18.3 |
+| Desert, a fight, warm (Mesa's cache kept from the run before) | 12.8 | 12.9 |
+
+**What it says.**
+- **With the old list, a world with foes froze for 3.5 s on a cold cache, just after it appeared.** The foes' new
+  fight variants were not in it, so their pipelines were made at their first draw. With the new list that frame is
+  25–93 ms. The bench's views did not show this: they turn the foes off.
+- **No first-sight hitch elsewhere, with either list.** The desert, the Underwater City and the City Behind the
+  Waterfall had no frame over 50 ms after the load, with the tool, the decals and a jump. The frames over 20 ms are
+  gen-0 GCs. The few without one are 21–32 ms, with both lists and with none.
+- The water's pass, the falls, the jump's shade and the decals' states are small: even with no list, their first
+  sight cost at most 36 ms. Without any list, what freezes is the load's last frame (9.7–10.7 s), as round 14 found.
+- **The cost:** on an empty cache the warm-up takes 2.1–2.8 s longer (8 more variants, the fight ones the largest), so
+  the world's first frame comes 1.6–3.3 s later. On a warm cache the first frame is the same (12.8 → 12.9 s).
+- Android's list (off by default) is not traced again. That needs the Retroid, which another agent held.
+
+Raw: the session's scratchpad, `pso-465/`: `trace2/` the launches of this list, `final*/` and `warm-*/` the runs;
+`summary.cjs` and `compare.cjs`. An earlier trace and runs from before surfaces D landed are in `trace/` and `cold*/`.

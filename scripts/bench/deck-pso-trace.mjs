@@ -2,10 +2,13 @@
 // player (BridgeBuild.Linux -development, copied over with deck-unity.sh put) run with -pso-trace over every world, its
 // trace gathered launch after launch in a profile of the bench's own, then fetched into the project:
 //   node scripts/bench/deck-pso-trace.mjs --unity <dev player name on the Deck> --out <dir here> [--lock <dir>]
-//        [--worlds desert,arzach,…] [--fresh 1] (the Deck's trace emptied first) [--passes views,temples,fights]
+//        [--worlds desert,arzach,…] [--fresh 1] (the Deck's trace emptied first) [--passes views,temples,fights,moves]
+//        [--views-file <{ worlds: { <id>: { views } } }>] (views of worlds the bench has none of: the detours) [--moves desert,…]
 // Each world: its bench views once and its walk (viewpoints.json's desert, viewpoints-worlds.json's others: deck-engines.mjs's);
 // its first temple's first room and the ship's rooms; a fight (a blot, knocked out, the guardian woken: no views, so
-// the bench's flags leave the foes on). Then <out>/Vulkan.graphicsstate and, unless --no-copy 1, the project's
+// the bench's flags leave the foes on); in the --moves worlds (the desert, the Underwater City, the City Behind the
+// Waterfall), a jump held in the air (-ui jump: Hiraeth/JumpShade), the fluid tool aimed and fired (its splat), and the
+// sequences of the ground's decals and a splat (-sequence decals, splat: the desert's, once). Then <out>/Vulkan.graphicsstate and, unless --no-copy 1, the project's
 // unity/Hiraeth/Assets/StreamingAssets/hiraeth-pso/Vulkan.graphicsstate. Mesa's cache and TMPDIR are the bench's own.
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, writeFileSync, readFileSync, rmdirSync, existsSync, copyFileSync } from 'node:fs';
@@ -17,8 +20,11 @@ const DECK = process.env.DECK ?? 'deck@steamdeck.local';
 const NAME = String(opt.unity ?? ''), OUT = resolve(String(opt.out ?? 'deck-pso-trace'));
 if (!NAME) { console.log('usage: node scripts/bench/deck-pso-trace.mjs --unity <dev player name on the Deck> --out <dir>'); process.exit(1); }
 const VP = viewpoints(), PW = JSON.parse(readFileSync(resolve(ROOT, 'scripts/bench/viewpoints-worlds.json'), 'utf8')).worlds;
-const WORLDS = String(opt.worlds ?? ['desert', ...Object.keys(PW)].join(',')).split(',');
-const PASSES = String(opt.passes ?? 'views,temples,fights').split(',');
+// (the detours' views, scripts/unity-compare/views.mjs's or a scratch file's, beside the bench's)
+const EXTRA = opt['views-file'] ? JSON.parse(readFileSync(resolve(String(opt['views-file'])), 'utf8')).worlds : {};
+const WORLDS = String(opt.worlds ?? ['desert', ...new Set([...Object.keys(PW), ...Object.keys(EXTRA)])].join(',')).split(',');
+const PASSES = String(opt.passes ?? 'views,temples,fights,moves').split(',');
+const MOVES = String(opt.moves ?? 'desert,underwater,waterfall').split(',');
 const BENCH = '/home/deck/.local/share/hiraeth-bench-engines/pso-trace';
 const TRACE = `${BENCH}/config/unity3d/rnaud/Hiraeth JS/pso-trace.graphicsstate`;
 const ssh = (cmd) => spawnSync('ssh', ['-o', 'BatchMode=yes', DECK, cmd], { encoding: 'utf8', maxBuffer: 1 << 26 });
@@ -42,11 +48,14 @@ async function launch(world, pass, views, args) {
 }
 
 for (const w of WORLDS) {
-  const W = w === 'desert' ? { views: VP.views, paths: VP.paths } : PW[w];
+  const W = EXTRA[w] ?? (w === 'desert' ? { views: VP.views, paths: VP.paths } : PW[w]);
   if (PASSES.includes('views') && W) await launch(w, 'views', [...W.views.map((v) => ({ ...v, world: w })), ...(W.paths ?? []).map((p) => ({ ...p, world: w }))], []);
   // (a temple that is not there ends the plan: the first only, and none at Home)
   if (PASSES.includes('temples') && w !== 'home') await launch(w, 'temples', [{ name: 'temple0', world: w, temple: 0 }], ['-aboard', 'main,console']);
   if (PASSES.includes('fights') && w !== 'home') await launch(w, 'fights', [], ['-fight', 'foe,down,guardian']);
+  if (PASSES.includes('moves') && MOVES.includes(w)) await launch(w, 'moves', [], ['-play', 'tool', '-ui', 'jump']);
+  // (the ground's decals, each in its offset state, #463, and a splat in its own: engine/sequences.js, the desert's)
+  if (PASSES.includes('moves') && w === 'desert') for (const s of ['decals', 'splat']) await launch(w, s, [], ['-sequence', s]);
 }
 const got = ssh(`cat "${TRACE}"`).stdout;
 writeFileSync(`${OUT}/Vulkan.graphicsstate`, got);
