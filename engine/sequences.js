@@ -276,7 +276,9 @@ export const SEQUENCES = [
     // shore, the crash's scorch and its scrapes, each looked at from its edge nearest the start
     id: 'decals', title: 'The ground\'s decals', setup: { level: 'desert', debug: true },
     beats: [
-      { name: 'start', act: (G) => { G.decalFrom = G.player.pos.clone(); }, wait: 0.5 },
+      // (a hair of look input first: the debug save is before the backpack, so the desert's first steps would print
+      // "Look around…" after 6 s still, at a beat the machine's speed picks; looked at, it never comes)
+      { name: 'start', act: (G) => { G.rig.look(1e-6, 0); G.decalFrom = G.player.pos.clone(); }, wait: 0.5 },
       decalBeat('drift', (m) => m.uniforms?.uDrift?.value === 1),
       decalBeat('salt', colourIs('#f1ece0')),
       decalBeat('tide', colourIs('#efe6d3')),

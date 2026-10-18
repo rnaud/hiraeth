@@ -1,6 +1,6 @@
 {
  "recorded": "2026-10-18",
- "sha": "5ab183a55",
+ "sha": "509b40cc9",
  "how": "node scripts/unity-compare/sequences.mjs web [ids] && node scripts/unity-compare/sequences.mjs record",
  "sequences": {
   "moment-desert.flow": {
