@@ -42,6 +42,15 @@ export const CHANGELOG = [
         { where: 'Underwater, the arrival view', before: 57.8, after: 60.0 },
         { where: 'Underwater, the wide view', before: 52.1, after: 54.3 },
       ], source: 'docs/systems/performance.md, "Unity on the Retroid, round 11"' }] },
+    // issue #456 round 12: unity/Hiraeth HiraethCommon.hlsl rockCracks / voronoiBorder (the web's early-outs);
+    // tests/unity-retroid-r12.test.js; docs/systems/performance.md "Unity on the Retroid, round 12"
+    { text: 'In the Unity version on handhelds, Lorn runs smoother where you arrive: the cracks on the forest’s far trunks, too small to draw there, are no longer worked out pixel by pixel, as the browser version already did, so the picture is the same. On the Retroid Pocket 5 the arrival view runs at 46 frames a second instead of 44, and the view toward the keepers at 50 instead of 48.',
+      numbers: [{ title: 'Lorn on the Retroid, frames a second, before → after', unit: 'fps', better: 'higher', device: 'Retroid Pocket 5, the Unity version, Handheld preset (FSR 1 at 0.67 of 1280 × 960), muted', rows: [
+        { where: 'the arrival view', before: 43.6, after: 46.1 },
+        { where: 'the first crowd', before: 47.5, after: 50.4 },
+        { where: 'the second crowd', before: 60.1, after: 60.1 },
+        { where: 'the wide view', before: 60.1, after: 60.1 },
+      ], source: 'docs/systems/performance.md, "Unity on the Retroid, round 12"' }] },
     // issue #450: src/ragdoll.js (groundHitAt, RAG.reuse, rayAt / rayTop / rayH / rayN / rayBase), src/physics.js groundHit /
     // baseHit; tests/ragdoll.test.js; docs/systems/animation.md "Ragdolls", docs/systems/performance.md "CPU round 2 (#450)"
     { text: 'Being knocked over no longer makes the game stutter on a slow processor: the falling body looks for the ground under each limb once a frame instead of twice in every small step, and falls exactly as before. With this Mac’s processor slowed four times, as a stand-in for a handheld’s, a tumble down the City-Shaft takes 0.7 ms of each frame instead of 3.8.',

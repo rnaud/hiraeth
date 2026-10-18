@@ -547,6 +547,7 @@ Shader "Hiraeth/Surface"
       };
 
       float _MSurfaceDebug;   // (global: BridgeRunner -surface-debug)
+      float _MFarDebug;       // (global: BridgeRunner -far-debug D, a test: the pixels past D m on -surface-debug 9's plain values, round 12)
       float _MSurfaceSkip;    // (global: BridgeRunner -surface-skip N, a test of what each part costs the GPU (issue #262), the
                               // parts left out by bit: 1 patterns, 2 weathering, 4 pen detail, 8 colour patches, 16 hatching,
                               // 32 the sun's shadow, 64 the local lights, 128 the ground's marks, 256 the shade's tone)
@@ -1046,7 +1047,7 @@ Shader "Hiraeth/Surface"
         float3 posWS = toThree(i.worldPos);   // (Unity's space, for the shadow maps: the same numbers as the varying it was)
         // (-surface-debug 9: nothing of the shader but its plain colour, normal and view depth, at once: whether a surface that
         // goes missing on the Xbox is drawn at all)
-        UNITY_BRANCH if ((_MSurfaceDebug > 8.5 && _MSurfaceDebug < 10.5) || _MSurfaceDebug > 11.5)
+        UNITY_BRANCH if ((_MSurfaceDebug > 8.5 && _MSurfaceDebug < 10.5) || _MSurfaceDebug > 11.5 || (_MFarDebug > 0.0 && i.viewDepth > _MFarDebug))
         {
           GBufferOut d;
           d.albedoLight = float4(_Color.rgb, 1); d.normalDepth = float4(SafeNormalize(i.normal), i.viewDepth); d.hatch = 0;

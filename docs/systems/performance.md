@@ -4471,6 +4471,66 @@ scrub's prepass has no discard at all. Like the slim variants they are in Androi
   the City-Shaft, a far-pixel branch would have to leave the picture as it is).
 
 To repeat: round 9's scripts with `--conds "off=-no-lean-rare|on="`.
+### Unity on the Retroid, round 12: Lorn's far trunks, the fragment taken apart (issue #456, 2026-10-18)
+
+The same device, preset and bench as round 11 (Handheld, FSR 1 at 0.67 of 1280 × 960, muted, the frame readout on; warm
+launches, conditions interleaved world by world, one APK with a switch: `off` is `-crack-full`).
+
+**Where Lorn's time goes** (GPU ms; the first three columns on main's APK of 17 October, build 2570, the rest on this branch):
+
+| view | as is | every Surface pixel plain (`-surface-debug 9`) | that, and the meshes past 300 m hidden | the meshes past 300 m hidden |
+|---|---|---|---|---|
+| Lorn, start | 20.5 | 13.5 | 11.9 | 16.2 |
+| Lorn, crowd | 18.9 | 12.7 | 10.8 | 15.8 |
+| City-Shaft, wide | 22.7 | 16.2 | 13.3 | – |
+
+- **It is the Surface fragment, ~7 ms of Lorn's start** (6.5 of the City-Shaft's wide view). The far meshes' geometry (their
+  vertices, the prepass, the G-buffer's raster) is only 1.6-2.9 ms, and the vertex stage nothing (`-surface-debug 12` 13.3):
+  impostors, cards or levels of detail for the far trunks would buy little; their pixels' shading is the cost.
+- **The fragment's stages at Lorn's start** (`-frag-cut N`, a test build: the plain values from the Nth checkpoint on, after
+  this round's change): the normal 13.9, the albedo and a wall's marks +1.3, the sun's shadow and the light +1.9, the local
+  lights and the G-buffer's first targets +1.2, the drawn detail (the ground's marks) +1.3, the hatching and the shade's tone
+  +1.8 (21.4 in all). The far pixels (past 300 m, `-far-debug 300`) are 2.2 ms of it. Each part left out (`-surface-skip`)
+  changes the picture: the patterns 1.0, the hatching 1.0, the shadow lookup 1.1, the local lights 0.6, the tone 0.1.
+- **The shadow maps are not Lorn's lever:** the far map every 8th frame, the near map at 1 024, smaller casters left out
+  (`-shadow-min 3 -shadow-min-far 3`) each within 0.1 ms.
+
+**What it does** (HiraethCommon.hlsl `rockCracks`, `voronoiBorder`): the trunks' rock cracks (`pattern: 'cracks'`) searched
+their Voronoi cells on every pixel, though the line fades out past ~0.2 cracks a pixel (every trunk past ~140 m) and half the
+cells are gaps. The web's `rockCracks` skips the search there and stops after the first ring of cells when the two nearest put
+the border beyond the line's reach; the port now does the same (without an early return in a branch: HLSLcc's GLSL for Vulkan
+lost a variable to one, "undeclared identifier", in a first build). The ink of the skipped pixels was 0 already: the same
+picture. `-crack-full` the full search, a test.
+
+| view | off: fps (1 % low, GPU ms) | off again | on | on again |
+|---|---|---|---|---|
+| Lorn start | 43.6 (30.3, 22.8) | 43.6 (37.1, 22.8) | **46.1** (33.4, 21.5) | 46.3 (31.2, 21.4) |
+| Lorn crowd | 47.5 (33.7, 20.8) | 47.5 (36.1, 20.9) | **50.4** (32.0, 19.6) | 50.4 (33.9, 19.7) |
+| Lorn crowd2 | 60.1 (45.0, 13.9) | 60.1 (54.9, 14.1) | 60.1 (55.3, 13.9) | 60.1 (55.8, 13.8) |
+| Lorn wide | 60.1 (52.8, 12.5) | 60.1 (52.8, 12.6) | 60.1 (53.3, 12.6) | 60.1 (55.7, 12.5) |
+| City-Shaft start | 50.3 (32.6, 18.8) | 50.5 (32.1, 18.7) | 50.5 (27.2, 18.6) | 50.3 (29.2, 18.7) |
+| City-Shaft crowd | 60.1 (51.0, 13.3) | 60.1 (50.1, 13.3) | 60.1 (52.4, 13.4) | 60.1 (51.1, 13.3) |
+| City-Shaft crowd2 | 57.0 (38.4, 16.5) | 56.9 (37.3, 16.6) | 57.2 (41.9, 16.4) | 56.9 (30.6, 16.4) |
+| City-Shaft wide | 38.1 (29.4, 25.1) | 38.1 (31.7, 25.1) | 38.2 (32.0, 25.1) | 38.3 (32.1, 25.0) |
+
+- **Lorn's start 43.6 → 46.1 fps, its crowd 47.5 → 50.4 (1.2-1.3 ms of GPU)**, repeated. Underwater, the Floating city, the
+  Signal Market and the desert (no cracked trunks) the same within 0.1 ms (19.0 / 19.0, 18.5 / 18.4, 18.0 / 18.0, 13.7 / 13.7).
+- **The pictures** (`diff.mjs`, pixels differing by more than 24): two runs off differ by 0.08-2.9 % per view, two runs on
+  by 0.09-2.2 %, off against on by 0.07-2.3 %, view by view within that spread (the motes, the birds, the people). Enlarged
+  crops of the far trunks in Lorn's start and crowd views are the same.
+- **Tried and left out: an organic marks' variant** (`HIRAETH_ORGANIC`, a fragment keyword beside `HIRAETH_PLAIN` for the
+  lean materials whose only marks are cracks, leaves and the organic pen detail, the built walls' code compiled out: Lorn's
+  three trunk and root materials, 434 renderers). Alone it bought 0.1-0.4 ms (22.4 / 20.5 against 22.8 / 20.8), and on top of
+  the cracks' skip nothing (21.4 against 21.5): more variants for no gain.
+- **The water's pass over the page** (`-no-water-over`, #458: under water and the sun's sparkle) costs Underwater 0.4-0.6 ms
+  (start 19.0 → 18.4-18.5, crowd 18.9 → 18.4, crowd2 15.1 → 14.5, wide 20.9 → 20.5; 52.2 → 53.8 fps at the start), twice.
+- **Main slowed down since round 11.** With the same switches, main's APK of 18 October measures Lorn's start at 22.8 ms
+  against 20.4-20.5 on 17 October's (2570), the City-Shaft's wide view 25.1 against 22.4-22.7, Underwater's wide view 20.9
+  against 18.4, and the Signal Market 18.0 against 15.9 (medians of
+  its views). Round 12's numbers are on the slower main; the cause (what landed since build 2570) is not yet found.
+
+To repeat: round 11's scripts with `--conds "off=-crack-full|on="`; `-far-debug D` (the pixels past D m plain, a test).
+
 ## CPU per frame (#446)
 
 **The question** (the author, 2026-10-17): the game scales badly on weak CPUs. Is too much done on the CPU, and what

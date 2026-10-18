@@ -142,25 +142,35 @@ float inkLine(float distPx, float widthPx) {
   float w = widthPx * _PixelRatio * 0.5;
   return 1.0 - smoothstep(w - 0.6, w + 0.6, distPx);
 }
-float voronoiBorder(float2 x) {
+// (reach: past it the caller draws nothing (its line's half-width and edge); a pixel whose two nearest cells' bound puts the
+// border farther than that gets reach back without the second search, as the web's voronoiBorder; 1e9 the full search)
+float voronoiBorder(float2 x, float reach) {
   float2 n = floor(x), f = frac(x), mg = float2(0, 0), mr = float2(0, 0);
-  float md = 8.0;
+  float md = 8.0, md2 = 8.0;
   for (int j = -1; j <= 1; j++)
     for (int i = -1; i <= 1; i++) {
       float2 g = float2(i, j);
       float2 r = g + hash2(n + g) - f;
       float d = dot(r, r);
-      if (d < md) { md = d; mr = r; mg = g; }
+      if (d < md) { md2 = md; md = d; mr = r; mg = g; }
+      else if (d < md2) md2 = d;
     }
-  md = 8.0;
-  for (int j2 = -2; j2 <= 2; j2++)
-    for (int i2 = -2; i2 <= 2; i2++) {
-      float2 g = mg + float2(i2, j2);
-      float2 r = g + hash2(n + g) - f;
-      if (dot(mr - r, mr - r) > 1e-5) md = min(md, dot(0.5 * (mr + r), normalize(r - mr)));
-    }
-  return md;
+  // (no early return: HLSLcc's GLSL for Vulkan lost a variable to one in a branch)
+  float border = reach;
+  UNITY_BRANCH if (0.5 * (min(sqrt(md2), 1.0) - sqrt(md)) <= reach)
+  {
+    md = 8.0;
+    for (int j2 = -2; j2 <= 2; j2++)
+      for (int i2 = -2; i2 <= 2; i2++) {
+        float2 g = mg + float2(i2, j2);
+        float2 r = g + hash2(n + g) - f;
+        if (dot(mr - r, mr - r) > 1e-5) md = min(md, dot(0.5 * (mr + r), normalize(r - mr)));
+      }
+    border = md;
+  }
+  return border;
 }
+float voronoiBorder(float2 x) { return voronoiBorder(x, 1e9); }
 
 float facade(float3 wp, float3 n, float3 nv, inout float3 alb) {
   float vert = 1.0 - smoothstep(0.25, 0.4, abs(n.y));
@@ -209,12 +219,24 @@ float leaves(float3 op) {
   float d = abs(length(c) - 0.3);
   return inkLine(d / max(fq.x, fq.y), 0.9) * step(0.0, c.y) * step(0.35, hash(id + 5.0)) * (1.0 - smoothstep(0.12, 0.3, max(fq.x, fq.y)));
 }
+float _MCrackFull;   // 1: the cracks' cell search on every pixel, as before round 12 (the bridge's -crack-full, a test)
+// Rock cracks (materials.js rockCracks): as the web's, no cell search where nothing is drawn: in a gap of the cracks, too far
+// off (Lorn's forest of trunks past ~140 m, the Retroid's GPU, docs/systems/performance.md "Unity on the Retroid, round 12"),
+// or farther from a border than the line reaches. The same picture: those pixels' ink was 0 already.
 float rockCracks(float3 op) {
   float2 q = (op.xy + op.zx * 0.6) * 0.9;
   float fwq = max(max(fwidth(q.x), fwidth(q.y)), 1e-5);
-  float d = voronoiBorder(q) / fwq;
   float gaps = smoothstep(0.35, 0.55, vnoise(q * 2.3 + 11.0));
-  return inkLine(d, 0.9) * gaps * (1.0 - smoothstep(0.08, 0.2, fwq));
+  float fade = 1.0 - smoothstep(0.08, 0.2, fwq);
+  bool full = _MCrackFull > 0.5;
+  float ink = 0.0;
+  UNITY_BRANCH if (full || gaps * fade > 0.0)
+  {
+    // (inkLine(d, 0.9) is 0 from 0.45 px x the pixel ratio + 0.6 px off a border)
+    float d = voronoiBorder(q, full ? 1e9 : (0.45 * _PixelRatio + 0.6) * fwq * 1.01) / fwq;
+    ink = inkLine(d, 0.9) * gaps * fade;
+  }
+  return ink;
 }
 float fissures(float2 q, float fwq) {
   float u = q.x / 9.0 + (vnoise(float2(q.y * 0.06, q.x * 0.05)) - 0.5) * 0.5;
