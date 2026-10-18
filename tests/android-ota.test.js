@@ -7,7 +7,7 @@ import { tempDir } from '../scripts/temp-dirs.mjs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { nativeApi, webMinNative, desktopApi, deckEngineSwitch, gameBuild, LAST_RUN_NUMBER_BUILD, latestJson, webJson, webDecision, staleWebZips, releasePage, releaseNotes } from '../scripts/release-info.mjs';
+import { nativeApi, webMinNative, desktopApi, gameBuild, LAST_RUN_NUMBER_BUILD, latestJson, webJson, webDecision, staleWebZips, releasePage, releaseNotes } from '../scripts/release-info.mjs';
 import { CHANGELOG, lineText } from '../src/changelog.js';
 
 const java = (name) => readFileSync(new URL(`../android/app/src/main/java/com/rnaud/hiraeth/${name}`, import.meta.url), 'utf8');
@@ -79,11 +79,8 @@ test('web.json: version, build number, the zip\'s sha256, its URL, size, notes a
   assert.deepEqual(JSON.parse(run('web-json', '14', zip, 'https://x/web-14.zip')),
     { version: CHANGELOG[0].v, build: 14, sha256: sha, zip: 'https://x/web-14.zip', minNative: webMinNative(), size: 16, notes: releaseNotes() });
   assert.equal(webJson({ build: 14, version: '1', zip: 'u', file: zip, native: 4, desktop: 2, notes: [] }).minDesktop, 2, 'the Deck runtime level, for the site\'s web.json');
-  // the Deck's kill switch for the Unity player: in web.json only while scripts/steam-deck/engine-switch.json says 'web'
-  assert.equal(webJson({ build: 14, version: '1', zip: 'u', file: zip, native: 4, deckEngine: 'web', notes: [] }).deckEngine, 'web');
-  assert.equal('deckEngine' in webJson({ build: 14, version: '1', zip: 'u', file: zip, native: 4, deckEngine: deckEngineSwitch('{"deckEngine": null}'), notes: [] }), false);
-  assert.equal(deckEngineSwitch('{"deckEngine": "unity"}'), undefined, 'it only ever turns Unity off');
-  assert.equal(deckEngineSwitch(), undefined, 'off in the repository: each Deck keeps its engine');
+  // no kill switch puts the Deck on the web any more (issue #484): web.json never carries deckEngine
+  assert.equal('deckEngine' in webJson({ build: 14, version: '1', zip: 'u', file: zip, native: 4, deckEngine: 'web', notes: [] }), false);
   assert.deepEqual(releaseNotes(), [...CHANGELOG[0].items].reverse().slice(0, 12).map(lineText), 'the newest changelog lines (their words, the last added first), for the settings');
   assert.deepEqual(JSON.parse(run('latest-json', '14', 'https://x/a.apk')), { code: 14, name: CHANGELOG[0].v, apk: 'https://x/a.apk', native: nativeApi() });
   assert.deepEqual(latestJson({ build: 3, version: '1', apk: 'u', native: 2 }), { code: 3, name: '1', apk: 'u', native: 2 });

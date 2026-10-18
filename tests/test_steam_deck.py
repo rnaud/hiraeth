@@ -328,7 +328,7 @@ class ContentUpdateTests(unittest.TestCase):
             return 'quit', 0, True
         with patch.object(deck, 'start_updater'), patch('sys.stderr', io.StringIO()):
             with self.assertRaises(SystemExit):
-                deck.launch(self.root, [], run=run)
+                deck.launch(self.root, [], run=run, engine='web')
         self.assertEqual(seen['env'], str(self.root / 'web/601'))
 
     def test_installs_a_package_downloaded_by_hand(self):
@@ -457,16 +457,16 @@ class SettingsUpdateTests(unittest.TestCase):
         relaunched = []
         with patch.object(deck, 'start_updater'), patch('sys.stderr', io.StringIO()), patch.dict(os.environ, {}, clear=False):
             os.environ.pop('HIRAETH_RESTARTED_FOR', None)
-            deck.launch(self.root, ['--x'], run=run, relaunch=relaunched.append)
+            deck.launch(self.root, ['--x'], run=run, relaunch=relaunched.append, engine='web')
             self.assertEqual(os.environ['HIRAETH_RESTARTED_FOR'], '601')
         self.assertEqual(calls, [str(self.root)])
         # (an install elsewhere than the usual folder is launched again there)
-        self.assertEqual(relaunched[0][1:], [str((self.root / 'current').resolve() / 'resources/app/deck.py'), '--launch',
+        self.assertEqual(relaunched[0][1:], [str((self.root / 'current').resolve() / 'resources/app/deck.py'), '--launch-web',
                                              '--root', str(self.root), '--x'])
         with patch.object(deck, 'ROOT', self.root), patch.object(deck, 'start_updater'), patch('sys.stderr', io.StringIO()), \
                 patch.dict(os.environ, {}, clear=False):
-            deck.launch(self.root, ['--x'], run=run, relaunch=relaunched.append)
-        self.assertEqual(relaunched[1][2:], ['--launch', '--x'])
+            deck.launch(self.root, ['--x'], run=run, relaunch=relaunched.append, engine='web')
+        self.assertEqual(relaunched[1][2:], ['--launch-web', '--x'])
         self.assertFalse((self.root / '.restart').exists())
         self.assertIn('Restarting into the update', (self.root / 'launch.log').read_text())
 
@@ -639,7 +639,7 @@ class LaunchTests(unittest.TestCase):
             return ('ended', -5, True)
         with patch.object(deck, 'start_updater'), patch('sys.stderr', io.StringIO()):
             with self.assertRaises(SystemExit) as done:
-                deck.launch(self.root, [], run=run)
+                deck.launch(self.root, [], run=run, engine='web')
         self.assertEqual(done.exception.code, 1)
         self.assertEqual(modes, ['gl'])
         self.assertEqual(list(json.loads((self.root / 'gpu.json').read_text()).values()), ['gl'])
@@ -683,7 +683,7 @@ class LaunchTests(unittest.TestCase):
                 patch.dict(os.environ, {**env, 'XDG_CURRENT_DESKTOP': 'gamescope'}, clear=True):
             for _ in range(2):
                 with self.assertRaises(SystemExit) as done:
-                    deck.launch(self.root, [], run=run)
+                    deck.launch(self.root, [], run=run, engine='web')
                 self.assertEqual(done.exception.code, 0)
         self.assertEqual(modes, ['gl', 'vulkan', 'vulkan'])
         self.assertEqual(json.loads((self.root / 'gpu.json').read_text()), {'1001:gamescope': 'vulkan'})
@@ -692,7 +692,7 @@ class LaunchTests(unittest.TestCase):
     def test_nothing_working_returns_to_steam(self):
         with patch.object(deck, 'start_updater'), patch('sys.stderr', io.StringIO()):
             with self.assertRaises(SystemExit) as done:
-                deck.launch(self.root, [], run=lambda command, env, ready, log: ('retry', -5, False))
+                deck.launch(self.root, [], run=lambda command, env, ready, log: ('retry', -5, False), engine='web')
         self.assertEqual(done.exception.code, 1)
         self.assertIn('Gave up', (self.root / 'launch.log').read_text())
 
@@ -1112,8 +1112,8 @@ class LaunchUnityTests(unittest.TestCase):
 
 
 class EngineTests(unittest.TestCase):
-    """The engine the "Hiraeth" shortcut starts (docs/plans/unity-default-portables.md, D9): web until the switch,
-    the Unity player watched with fallbacks to the player before and to the web, and web.json's kill switch."""
+    """What the "Hiraeth" shortcut starts (docs/plans/unity-default-portables.md, D9; issue #484): the Unity player,
+    watched, with a fallback to the player before and then an error dialog, never the web game."""
 
     setUp_base = SteamDeckTests.setUp
     bundle = SteamDeckTests.bundle
@@ -1128,6 +1128,17 @@ class EngineTests(unittest.TestCase):
         self.updater = patch.object(deck, 'start_updater')
         self.updater.start()
         self.addCleanup(self.updater.stop)
+        # the dialogs the launcher shows (wait_for_unity's bar, unity_failed's error), and no network for the player
+        self.errors, self.busy = [], []
+
+        def busy(_text):
+            self.busy.append('open')
+            return lambda: self.busy.append('closed')
+        for name, fake in (('show_error', self.errors.append), ('busy_dialog', busy),
+                           ('update_unity', lambda _root: (_ for _ in ()).throw(OSError('offline')))):
+            patcher = patch.object(deck, name, side_effect=fake)
+            patcher.start()
+            self.addCleanup(patcher.stop)
 
     def players(self):
         """Two players installed: the one before (first) and the current one (second)."""
@@ -1166,75 +1177,116 @@ class EngineTests(unittest.TestCase):
                 code = done.code
         return ran, code, (self.root / 'launch.log').read_text()
 
-    def test_the_default_is_unity_since_the_switch(self):
-        # (D19: an install with no engine.json, new or from before the switch, starts the Unity player)
+    def test_the_hiraeth_shortcut_only_ever_starts_unity(self):
+        # (issue #484: no setting, no remote switch and no fallback put "Hiraeth" on the web game)
         _, current = self.players()
         self.assertEqual(deck.DEFAULT_ENGINE, 'unity')
-        self.assertEqual(deck.choose_engine(self.root), ('unity', 'the default'))
+        self.assertEqual(deck.choose_engine(self.root)[0], 'unity')
         ran, code, log = self.launch({current: ('quit', 0, True)})
         self.assertEqual((ran, code), ([current], 0))
-        self.assertIn('Engine unity (the default)', log)
+        self.assertIn('Engine unity', log)
         self.assertEqual((deck.local_state(self.root)['engine'], deck.local_state(self.root)['engineSetting']), ('unity', 'unity'))
-        # the web kept for good: its shortcut, and engine.json 'web' for a Deck that wants it back
-        ran, _, _ = self.launch({}, engine='web')
-        self.assertEqual(ran, [('web', 'gl')])
-        deck.set_engine(self.root, 'web')
-        ran, _, log = self.launch({})
-        self.assertEqual(ran, [('web', 'gl')])
-        self.assertIn('Engine web (engine.json)', log)
+        # an engine.json from an earlier runtime's --engine web no longer counts
+        (self.root / 'engine.json').write_text(json.dumps({'engine': 'web'}))
+        ran, _, _ = self.launch({current: ('quit', 0, True)})
+        self.assertEqual(ran, [current])
+        self.assertEqual(deck.engine_setting(self.root), 'unity')
+        # nor does web.json's old kill switch (deckEngine 'web'), nor its last reading on the disk
+        (self.root / 'engine-remote.json').write_text(json.dumps({'deckEngine': 'web'}))
+        manifest = {'build': 700, 'version': '1.8', 'sha256': '0' * 64, 'zip': deck.CONTENT_URL + 'web-700.zip',
+                    'minDesktop': 1, 'size': 10, 'deckEngine': 'web'}
+        deck.validate_content_manifest(manifest)   # (a web.json that still has the field is still taken)
+        with patch.object(deck, 'get_content_manifest', return_value=manifest), \
+                patch.object(deck, 'install_content', return_value=False) as install:
+            self.assertFalse(deck.content_update(self.root))
+        install.assert_called_once_with(self.root, manifest)
+        ran, _, _ = self.launch({current: ('quit', 0, True)})
+        self.assertEqual(ran, [current])
+        self.assertFalse(hasattr(deck, 'remote_engine') or hasattr(deck, 'set_engine'), 'the switch and --engine are gone')
+        self.assertEqual(self.errors, [])
 
     def test_the_unity_engine_starts_the_current_player(self):
         before, current = self.players()
-        deck.set_engine(self.root, 'unity')
         ran, code, log = self.launch({current: ('quit', 0, True)})
         self.assertEqual((ran, code), ([current], 0))
         self.assertEqual(deck.unity_health(self.root), {current: 'ok'})
-        self.assertIn('Engine unity (engine.json)', log)
-        with self.assertRaises(ValueError):
-            deck.set_engine(self.root, 'flash')
 
-    def test_a_player_that_never_draws_falls_back_to_the_one_before_then_to_the_web(self):
+    def test_a_player_that_never_draws_falls_back_to_the_one_before_then_says_so_never_the_web(self):
         before, current = self.players()
-        deck.set_engine(self.root, 'unity')
         hung = ('retry', -9, False)
         ran, code, log = self.launch({current: hung, before: hung})
-        self.assertEqual((ran, code), ([current, before, ('web', 'gl')], 0))
+        self.assertEqual((ran, code), ([current, before], 1))
         self.assertEqual(deck.unity_health(self.root), {current: 'failed', before: 'failed'})
-        self.assertIn('Starting the web runtime instead', log)
-        # remembered: the next launch goes to the web without waiting on them again
-        ran, code, log = self.launch({})
-        self.assertEqual(ran, [('web', 'gl')])
+        self.assertIn('no web fallback', log)
+        self.assertNotIn('web runtime', log)
+        self.assertEqual(len(self.errors), 1, 'a dialog says the game could not start')
+        self.assertIn('could not start', self.errors[0])
+        self.assertIn(str(self.root / 'launch.log'), self.errors[0])
+        # with nothing else to go to, the next launch tries them again (a slow first start is not the end)
+        ran, code, log = self.launch({current: ('quit', 0, True), before: hung})
+        self.assertEqual((ran, code), ([current], 0))
         self.assertIn('failed to start before', log)
-        # a new player build gets its own chance
+        self.assertEqual(deck.unity_health(self.root)[current], 'ok')
+        # a new player build gets its own chance first
         newest, _ = self.install()
         ran, _, _ = self.launch({newest['sha256'][:12]: ('quit', 0, True)})
         self.assertEqual(ran, [newest['sha256'][:12]])
 
     def test_a_crashing_player_hands_over_to_the_one_before_which_is_kept(self):
         before, current = self.players()
-        deck.set_engine(self.root, 'unity')
         ran, code, _ = self.launch({current: ('retry', -11, True), before: ('quit', 0, True)})
         self.assertEqual((ran, code), ([current, before], 0))
         ran, _, _ = self.launch({before: ('ended', -9, True)})
-        self.assertEqual(ran, [before], 'the failed current one is skipped from then on')
+        self.assertEqual(ran, [before], 'the failed current one is skipped while another is there')
         self.assertEqual(deck.unity_health(self.root), {current: 'failed', before: 'ok'})
 
     def test_closing_before_the_first_frame_is_not_a_failure(self):
         _, current = self.players()
-        deck.set_engine(self.root, 'unity')
         ran, code, _ = self.launch({current: ('quit', 0, False)})
         self.assertEqual((ran, code), ([current], 0))
         self.assertEqual(deck.unity_health(self.root), {})
 
-    def test_no_player_yet_starts_the_web(self):
-        deck.set_engine(self.root, 'unity')
-        ran, code, log = self.launch({})
-        self.assertEqual((ran, code), ([('web', 'gl')], 0))
-        self.assertIn('No Unity player installed yet', log)
+    def test_no_player_yet_downloads_it_first(self):
+        release, fetch = self.player()
+        manifest = deck.unity_manifest(release)
+        sha = manifest['sha256'][:12]
+        with patch.object(deck, 'update_unity', side_effect=lambda root: deck.install_unity(root, manifest, fetch)):
+            ran, code, log = self.launch({sha: ('quit', 0, True)})
+        self.assertEqual((ran, code), ([sha], 0))
+        self.assertIn('No Unity player installed yet: downloading it', log)
+        self.assertEqual(self.busy, ['open', 'closed'], 'a dialog with a bar while it downloads')
+        self.assertEqual(self.errors, [])
 
-    def test_the_web_shortcut_starts_the_web_whatever_the_engine(self):
+    def test_no_player_and_no_network_says_so_never_the_web(self):
+        ran, code, log = self.launch({})
+        self.assertEqual((ran, code), ([], 1))
+        self.assertIn('could not be downloaded', log)
+        self.assertEqual(len(self.errors), 1)
+        self.assertEqual(self.busy, ['open', 'closed'])
+
+    def test_waiting_on_the_background_download(self):
+        # (the background update holds the download's lock: install_unity returns False until it is done)
+        release, fetch = self.player()
+        manifest = deck.unity_manifest(release)
+        calls = []
+
+        def busy(root):
+            calls.append(1)
+            if len(calls) == 3:   # (the background download finished meanwhile)
+                deck.install_unity(root, manifest, fetch)
+            return False
+        log = []
+        self.assertTrue(deck.wait_for_unity(self.root, log.append, install=busy, sleep=lambda _s: None, dialog=lambda _t: lambda: None))
+        self.assertEqual(len(calls), 3)
+        # and it gives up at its deadline
+        shutil.rmtree(self.root / 'unity')
+        self.assertFalse(deck.wait_for_unity(self.root, log.append, install=lambda _root: False, wait_seconds=0,
+                                             sleep=lambda _s: None, dialog=lambda _t: lambda: None))
+        self.assertIn('gave up waiting', log[-1])
+
+    def test_the_web_shortcut_starts_the_web(self):
+        # ("Hiraeth (web)", the player's own choice: the only way to the web game)
         _, current = self.players()
-        deck.set_engine(self.root, 'unity')
         ran, _, log = self.launch({}, engine='web')
         self.assertEqual(ran, [('web', 'gl')])
         self.assertIn('Engine web (the web shortcut)', log)
@@ -1243,32 +1295,6 @@ class EngineTests(unittest.TestCase):
             deck.launch(self.root, [], run=lambda *a, **k: ('restart', 76, True), relaunch=relaunched.append, engine='web')
             deck.launch(self.root, [], run=lambda *a, **k: ('restart', 76, True), relaunch=relaunched.append)
         self.assertEqual([argv[2] for argv in relaunched], ['--launch-web', '--launch'])
-
-    def test_the_kill_switch_in_web_json_turns_unity_off_for_everyone(self):
-        _, current = self.players()
-        deck.set_engine(self.root, 'unity')
-        manifest = {'build': 700, 'version': '1.8', 'sha256': '0' * 64, 'zip': deck.CONTENT_URL + 'web-700.zip',
-                    'minDesktop': 1, 'size': 10, 'deckEngine': 'web'}
-        deck.validate_content_manifest(manifest)   # (today's updaters take the field)
-        with patch.object(deck, 'get_content_manifest', return_value=manifest), \
-                patch.object(deck, 'install_content', return_value=False) as install:
-            self.assertFalse(deck.content_update(self.root))
-        install.assert_called_once_with(self.root, manifest)
-        self.assertEqual(deck.choose_engine(self.root)[0], 'web')
-        ran, _, log = self.launch({current: ('quit', 0, True)})
-        self.assertEqual(ran, [('web', 'gl')])
-        self.assertIn('switched off', log)
-        self.assertEqual(deck.engine_setting(self.root), 'unity', 'the setting stays: the switch is lifted remotely')
-        # lifted (the field gone): Unity again from the next launch
-        deck.remember_remote_engine(self.root, {k: v for k, v in manifest.items() if k != 'deckEngine'})
-        ran, _, _ = self.launch({current: ('quit', 0, True)})
-        self.assertEqual(ran, [current])
-        # nonsense in the field changes nothing; and it never forces Unity on a web install
-        deck.remember_remote_engine(self.root, {**manifest, 'deckEngine': 'flash'})
-        self.assertIsNone(deck.remote_engine(self.root))
-        deck.set_engine(self.root, 'web')
-        deck.remember_remote_engine(self.root, {**manifest, 'deckEngine': 'unity'})
-        self.assertEqual(deck.choose_engine(self.root)[0], 'web')
 
     def test_the_watchdog_reads_the_ready_file_or_the_players_log(self):
         ready, output = self.home / '.unity-ready', self.home / 'player.log'
@@ -1293,11 +1319,46 @@ class EngineTests(unittest.TestCase):
 
     def test_the_players_last_log_is_kept(self):
         _, current = self.players()
-        deck.set_engine(self.root, 'unity')
         (self.root / 'unity-data').mkdir(exist_ok=True)
         (self.root / 'unity-data/player.log').write_text('the last run')
         self.launch({current: ('quit', 0, True)})
         self.assertEqual((self.root / 'unity-data/player-prev.log').read_text(), 'the last run')
+
+
+class LauncherDialogTests(unittest.TestCase):
+    """The dialogs the launcher shows itself when the Unity player isn't there yet or doesn't start (issue #484)."""
+
+    def test_the_dialogs(self):
+        which = {'zenity': '/usr/bin/zenity'}.get
+        command = deck.dialog_command('zenity', 'error', 'Hiraeth could not start.')
+        self.assertEqual(command[:2], ['zenity', '--error'])
+        self.assertIn('--no-markup', command)
+        self.assertEqual(command[-1], '--text=Hiraeth could not start.')
+        self.assertIn('--no-cancel', deck.dialog_command('zenity', 'busy', 'x'))
+        self.assertEqual(deck.dialog_command('kdialog', 'error', 'x'), ['kdialog', '--title', 'Hiraeth', '--error', 'x'])
+        self.assertIsNone(deck.dialog_command('kdialog', 'busy', 'x'))
+        self.assertEqual(deck.find_dialog_tool(lambda tool: tool == 'kdialog'), 'kdialog')
+        self.assertIsNone(deck.find_dialog_tool(lambda _tool: None))
+        # shown and waited for, without Steam's overlay preload
+        seen = {}
+
+        class Process:
+            stdin = io.BytesIO()
+
+            def __init__(self, command, env, **kwargs):
+                seen.update(command=command, env=env, stdin=kwargs.get('stdin'))
+
+            def wait(self, _seconds):
+                seen['waited'] = True
+        with patch.dict(os.environ, {'LD_PRELOAD': '/steam/gameoverlayrenderer.so:/other.so'}):
+            self.assertTrue(deck.show_error('x', popen=Process, which=which))
+        self.assertEqual((seen['command'][1], seen['waited'], seen['env']['LD_PRELOAD']), ('--error', True, '/other.so'))
+        close = deck.busy_dialog('x', popen=Process, which=which)
+        self.assertEqual(seen['command'][1], '--progress')
+        close()
+        # no tool: nothing shown, the launch goes on (its log says it)
+        self.assertFalse(deck.show_error('x', popen=Process, which=lambda _tool: None))
+        deck.busy_dialog('x', popen=Process, which=lambda _tool: None)()
 
 
 class EngineShortcutTests(unittest.TestCase):
@@ -1311,14 +1372,20 @@ class EngineShortcutTests(unittest.TestCase):
 
     def setUp(self):
         self.setUp_base()
-        web_engine(self)   # (an install from before the switch, then set to unity: what the update does to it)
+        web_engine(self)   # (an install from before the switch, then switched to unity: what the update does to it)
         self.vdf = self.config / 'shortcuts.vdf'
+
+    def switched(self):
+        """The switch reached the install: the engine unity, as it is on every Deck now (issue #484)."""
+        patcher = patch.object(deck, 'DEFAULT_ENGINE', 'unity')
+        patcher.start()
+        self.addCleanup(patcher.stop)
 
     def test_an_existing_install_swaps_its_preview_into_the_web_fallback(self):
         deck.add_shortcut(self.config, self.root)   # (today's install: Hiraeth and Hiraeth (Unity))
         main, preview = self.by_exe('launch')[0], self.by_exe('launch-unity')[0]
         self.assertFalse(deck.shortcut_stale(self.config, self.root))
-        deck.set_engine(self.root, 'unity')
+        self.switched()
         self.assertTrue(deck.shortcut_stale(self.config, self.root, preview=False))
         self.assertTrue(deck.add_shortcut(self.config, self.root))
         self.assertEqual(self.by_exe('launch'), [main], 'the game\'s shortcut untouched: its id, playtime and art')
@@ -1330,12 +1397,6 @@ class EngineShortcutTests(unittest.TestCase):
         self.assertEqual(len(self.entries()), 2)
         self.assertFalse(deck.shortcut_stale(self.config, self.root))
         self.assertFalse(deck.add_shortcut(self.config, self.root))
-        # back to web (the author's switch undone): the same shortcut is the Unity preview again
-        deck.set_engine(self.root, 'web')
-        self.assertTrue(deck.add_shortcut(self.config, self.root))
-        back = self.by_exe('launch-unity')
-        self.assertEqual((deck.field(back[0], 'AppName'), deck.field(back[0], 'appid')), ('Hiraeth (Unity)', deck.field(preview, 'appid')))
-        self.assertFalse(self.by_exe('launch-web'))
 
     def test_a_name_and_icon_the_player_chose_survive_the_swap(self):
         deck.add_shortcut(self.config, self.root)
@@ -1349,7 +1410,7 @@ class EngineShortcutTests(unittest.TestCase):
         self.assertEqual((deck.field(web, 'AppName'), deck.field(web, 'icon')), ('My test', '/my/icon.png'))
 
     def test_a_fresh_account_under_unity_gets_hiraeth_and_the_web_fallback(self):
-        deck.set_engine(self.root, 'unity')
+        self.switched()
         self.assertTrue(deck.add_shortcut(self.config, self.root))
         self.assertEqual([deck.field(value, 'AppName') for _, value in self.entries()], ['Hiraeth', 'Hiraeth (web)'])
         self.assertEqual(deck.field(self.by_exe('launch')[0], 'appid'), deck.shortcut_appid(self.root))
@@ -1359,7 +1420,7 @@ class EngineShortcutTests(unittest.TestCase):
     def test_the_update_swaps_only_while_steam_is_closed_and_offers_the_fallback_once(self):
         deck.add_shortcut(self.config, self.root, preview=False)   # (an account that removed the preview)
         deck.remember_preview(self.root, [self.config])
-        deck.set_engine(self.root, 'unity')
+        self.switched()
         with patch.object(deck, 'steam_running', return_value=True):
             deck.steam_entry(self.root, [self.config])
         self.assertFalse(self.by_exe('launch-web'))
@@ -1382,7 +1443,7 @@ class EngineShortcutTests(unittest.TestCase):
         deck.add_shortcut(self.config, self.root)
         preview = deck.unity_appid(self.root)
         deck.install_art(self.root, [self.config], app)
-        deck.set_engine(self.root, 'unity')
+        self.switched()
         deck.add_shortcut(self.config, self.root)
         self.assertEqual(deck.install_art(self.root, [self.config], app), 5)
         for suffix in deck.WEB_ART:
@@ -1396,7 +1457,7 @@ class EngineShortcutTests(unittest.TestCase):
         self.assertTrue((applications / 'hiraeth-unity.desktop').exists())
         self.assertFalse((applications / 'hiraeth-web.desktop').exists())
         self.assertTrue((self.root / 'launch-web').read_text().rstrip().endswith('--launch-web "$@"'), 'written already')
-        deck.set_engine(self.root, 'unity')
+        self.switched()
         deck.write_launchers(self.root, home=self.home)
         entry = (applications / 'hiraeth-web.desktop').read_text()
         self.assertIn('Name=Hiraeth (web)\n', entry)

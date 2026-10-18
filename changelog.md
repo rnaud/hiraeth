@@ -11,6 +11,7 @@ The same release notes shown in the game (press **N** or open settings).
 - The fight temples’ end card no longer says your sword and shield wear the new colours before you have them: they take them once found. And people no longer tell of a game you can’t play yet, a trial that wants the hoverbike or a gadget you haven’t found.
 - In Lorn, locking on to a bellows toad near a bank or a rise in the ground no longer freezes the game. As the toad looked for high ground to spit from, its search broke and the game stopped.
 - The Clock-House’s and the Undertower’s last steps now point the right way: their guardians wait upstairs, and the steps used to say go down.
+- On the Steam Deck, Hiraeth now always starts the Unity version. It no longer slips into the older web version when the Unity one is slow to start or not downloaded yet: a first start downloads it with a progress bar on the screen, and if it truly cannot start, a message says so and you are back in your library. The web version is still there as its own Hiraeth (web) shortcut, for when you choose it.
 - Each world’s own recorded music now plays the whole time you are there, out in the open as well as on arriving, indoors and at the big moments. If you liked it better the old way, with the music for the moments and quieter, lighter tunes in between, choose Moments under Settings > Music plays.
 
 ## v1.84 — 2026-10-17

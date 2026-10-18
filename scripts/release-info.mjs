@@ -24,7 +24,6 @@ import { CHANGELOG, lineText, newestFirst } from '../src/changelog.js';
 const BUNDLES_JAVA = fileURLToPath(new URL('../android/app/src/main/java/com/rnaud/hiraeth/WebBundles.java', import.meta.url));
 const DESKTOP_MAIN = fileURLToPath(new URL('../desktop/main.mjs', import.meta.url));
 const XBOX_BUNDLES = fileURLToPath(new URL('../xbox/Hiraeth/WebBundles.cs', import.meta.url));
-const DECK_ENGINE = fileURLToPath(new URL('./steam-deck/engine-switch.json', import.meta.url));
 const REPO = fileURLToPath(new URL('..', import.meta.url));
 
 const constant = (source, re, what) => {
@@ -97,13 +96,6 @@ export function unityDecision(manifest, { unity, current, bad = [] }) {
 }
 
 /**
- * The Steam Deck's kill switch for the Unity player (web.json's deckEngine, read by deck.py's remote_engine):
- * scripts/steam-deck/engine-switch.json's deckEngine 'web' turns the Unity player off on every Deck whose engine is
- * Unity, from the launch after its next update check, until it is null again (docs/steam-deck.md, "The engine").
- */
-export const deckEngineSwitch = (source = readFileSync(DECK_ENGINE, 'utf8')) => (JSON.parse(source).deckEngine === 'web' ? 'web' : undefined);
-
-/**
  * Builds up to 117 were numbered by the Android workflow's run (versionCode = run number).
  * From then on a build is numbered by its commit (gameBuild), the same in every workflow.
  */
@@ -144,12 +136,11 @@ export const releaseNotes = (entry = CHANGELOG[0], max = 12) => newestFirst(entr
  * Xbox app it needs (XboxApi).
  * `size`, `notes` and `page` are for the settings (apps from before NATIVE_API 4 ignore them).
  */
-export function webJson({ build, version, zip, file, native = webMinNative(), desktop, xbox, deckEngine, notes = releaseNotes() }) {
+export function webJson({ build, version, zip, file, native = webMinNative(), desktop, xbox, notes = releaseNotes() }) {
   const sha256 = createHash('sha256').update(readFileSync(file)).digest('hex');
   const page = releasePage(zip);
   return {
     version, build, sha256, zip, minNative: native, ...(desktop ? { minDesktop: desktop } : {}), ...(xbox ? { minXbox: xbox } : {}),
-    ...(deckEngine ? { deckEngine } : {}),
     size: statSync(file).size, notes, ...(page ? { page } : {}),
   };
 }
