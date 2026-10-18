@@ -1,0 +1,21 @@
+engine/sequences.js
+  s_5f899ba316b5dc::t_6576f513040e36 279-281
+tests/sequences-web.json
+  s_5f899ba316b5dc::t_35b47738d9bcc0 3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a1e890b26e32e50137943974e82570431d86c495",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
