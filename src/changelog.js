@@ -59,6 +59,20 @@ export const CHANGELOG = [
         { where: 'the second crowd', before: 60.1, after: 60.1 },
         { where: 'the wide view', before: 60.1, after: 60.1 },
       ], source: 'docs/systems/performance.md, "Unity on the Retroid, round 12"' }] },
+    // issue #469: unity/Hiraeth Surface.shader (the fragment's test switches on uniforms alone: -far-debug removed, the NaN
+    // test's pixel check inside its branch), BridgeRunner; tests/unity-retroid-r13.test.js; docs/systems/performance.md
+    // "Unity on the Retroid, round 13"
+    { text: 'In the Unity version on handhelds, every world runs smoother again: a test left in the shader for measuring had made every pixel of the world a little slower to draw. On the Retroid Pocket 5 the City-Shaft’s wide view runs at 41 frames a second instead of 39, the Signal Market’s arrival at 54 instead of 51, Lorn’s arrival at 48 instead of 46 and Underwater’s wide view at 51 instead of 48. The picture is the same.',
+      numbers: [{ title: 'The slowest views on the Retroid, frames a second, before → after', unit: 'fps', better: 'higher', device: 'Retroid Pocket 5, the Unity version, Handheld preset (FSR 1 at 0.67 of 1280 × 960), muted', rows: [
+        { where: 'the City-Shaft, the wide view', before: 38.6, after: 40.9 },
+        { where: 'the City-Shaft, the arrival view', before: 50.7, after: 52.8 },
+        { where: 'the Signal Market, the arrival view', before: 51.4, after: 54.5 },
+        { where: 'the Signal Market, the wide view', before: 55.2, after: 58.9 },
+        { where: 'Lorn, the arrival view', before: 46.3, after: 48.3 },
+        { where: 'Lorn, the first crowd', before: 50.1, after: 52.6 },
+        { where: 'Underwater, the arrival view', before: 52.3, after: 55.5 },
+        { where: 'Underwater, the wide view', before: 47.8, after: 50.8 },
+      ], source: 'docs/systems/performance.md, "Unity on the Retroid, round 13"' }] },
     // issue #450: src/ragdoll.js (groundHitAt, RAG.reuse, rayAt / rayTop / rayH / rayN / rayBase), src/physics.js groundHit /
     // baseHit; tests/ragdoll.test.js; docs/systems/animation.md "Ragdolls", docs/systems/performance.md "CPU round 2 (#450)"
     { text: 'Being knocked over no longer makes the game stutter on a slow processor: the falling body looks for the ground under each limb once a frame instead of twice in every small step, and falls exactly as before. With this Mac’s processor slowed four times, as a stand-in for a handheld’s, a tumble down the City-Shaft takes 0.7 ms of each frame instead of 3.8.',

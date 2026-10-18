@@ -136,9 +136,7 @@ namespace Hiraeth.Bridge
             Shader.SetGlobalFloat("_MSurfaceDebug", BridgeArgs.Arg("-surface-debug") is string sdv && int.TryParse(sdv, out int sdi) ? sdi : 0);
             // (-surface-skip N: parts of the Surface shader left out by bit, a test of what each costs the GPU: Surface.shader)
             Shader.SetGlobalFloat("_MSurfaceSkip", BridgeArgs.Arg("-surface-skip") is string ssv && int.TryParse(ssv, out int ssi) ? ssi : 0);
-            // (-far-debug D: the Surface pixels past D m on -surface-debug 9's plain values, a test of what the far pixels' shading
-            // costs; -crack-full: the rock cracks' cell search on every pixel, as before round 12: docs/systems/performance.md)
-            Shader.SetGlobalFloat("_MFarDebug", BridgeArgs.Arg("-far-debug") is string fdv && float.TryParse(fdv, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float fdf) ? fdf : 0);
+            // (-crack-full: the rock cracks' cell search on every pixel, as before round 12: docs/systems/performance.md)
             Shader.SetGlobalFloat("_MCrackFull", BridgeArgs.Flag("-crack-full") ? 1 : 0);
             scene = new GameObject("Mirrored scene").AddComponent<BridgeRenderer>();
             scene.transform.SetParent(transform, false);

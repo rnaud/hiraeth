@@ -82,7 +82,8 @@ test('the G-buffer\'s normals have no NaN where a normal has no length', () => {
 });
 
 test('the test switch -surface-debug -1 / -2 writes a NaN made at run time, off by default', () => {
-  assert.match(surface, /UNITY_BRANCH if \(_MSurfaceDebug < -0\.5 && all\(fmod\(floor\(i\.positionCS\.xy\), 64\.0\) == 32\.0\)\)/);
+  // (the switch alone in the branch, the pixel's test inside it: a branch on a uniform, issue #469)
+  assert.match(surface, /UNITY_BRANCH if \(_MSurfaceDebug < -0\.5\)\n\s+\{\n\s+if \(all\(fmod\(floor\(i\.positionCS\.xy\), 64\.0\) == 32\.0\)\)/);
   assert.match(surface, /float nan = asfloat\(asuint\(_MSurfaceDebug\) \| 0x7fc00000u\);/);
   assert.match(runner, /SetGlobalFloat\("_MSurfaceDebug", BridgeArgs\.Arg\("-surface-debug"\) is string sdv && int\.TryParse\(sdv, out int sdi\) \? sdi : 0\)/);
 });

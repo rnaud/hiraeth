@@ -4598,8 +4598,65 @@ picture. `-crack-full` the full search, a test.
   against 20.4-20.5 on 17 October's (2570), the City-Shaft's wide view 25.1 against 22.4-22.7, Underwater's wide view 20.9
   against 18.4, and the Signal Market 18.0 against 15.9 (medians of
   its views). Round 12's numbers are on the slower main; the cause (what landed since build 2570) is not yet found.
+  (Found in round 13: mostly this round's own `-far-debug`, 1.1-1.5 ms on every Surface pixel; now removed.)
 
-To repeat: round 11's scripts with `--conds "off=-crack-full|on="`; `-far-debug D` (the pixels past D m plain, a test).
+To repeat: round 11's scripts with `--conds "off=-crack-full|on="`; `-far-debug D` (the pixels past D m plain, a test; removed
+in round 13, it cost every pixel).
+
+### Unity on the Retroid, round 13: main's slowdown since build 2570 (issue #469, 2026-10-18)
+
+The same device, preset and bench as rounds 11-12 (Handheld, FSR 1 at 0.67 of 1280 × 960, muted, the frame readout on; warm
+launches, the APKs interleaved world by world). Every APK built on this Mac from the commit named (build 2570 is 675f05cb4).
+
+**Two traps in the bench first.**
+- **The script over the air.** The Unity APK plays a newer script it downloaded (BridgeUpdates: `bundle/<build>/` in its
+  files) over its own: an old APK ran today's script (`unknown op 28`, nothing drawn, 5 ms of GPU). Every run now passes
+  `-bundle none` (updates held, the packaged script).
+- **A Library copied from another worktree.** Its IL2CPP output (`Library/Bee`) names the other worktree's paths, and the
+  players it built hung at their start (after "Product Name", before the window). `Library/Bee` deleted and built again.
+
+**Where the time went** (GPU ms, City-Shaft wide / the Signal Market's median view; the commits in order):
+
+| build | City-Shaft wide | Signal Market | what landed |
+|---|---|---|---|
+| 2570 (675f05cb4) | 22.4 | 15.9 | |
+| 259db13c9 | 22.4 | 15.8 | the CPU rounds (#448, #450, #453, #455, #454), #420, #425: nothing |
+| 46767d246 | 22.8 | 16.4 | surfaces B (1530aa15e) and its prepass fix: +0.3-0.5 |
+| 1fe06c1ee | 23.0 | 16.5 | #459, #461, #460, #457, #462: +0.1-0.2 |
+| b2d6f9f04 | 23.1 | 16.6 | surfaces C (87fa1d204): +0.1 |
+| 35fed228e (2617) | 23.2 | 16.6 | #463, #464, surfaces D, #466: +0.1 |
+| d5973bf82 (main, 2620) | 24.8 | 17.9 | round 12 (1839980b3), surfaces A, #470: **+1.3-1.6** |
+
+- **Round 12's `-far-debug` was most of it.** Its test (the pixels past D m plain) joined the fragment's first branch, the way
+  out of `-surface-debug 9`, with `i.viewDepth > _MFarDebug`: a uniform branch became one on the pixel's own depth, at the top
+  of the fragment, with a return in it, so every pixel of every Surface material paid for it (~1.1-1.5 ms, every world).
+  Round 12 measured its change against `-crack-full` on the same APK, which carried the test in both. The test is gone; the
+  fragment's switches branch on their uniform alone (the NaN test of #462, `-surface-debug -1`, now tests the pixel inside its
+  branch: ~0.1 ms). `tests/unity-retroid-r13.test.js` holds both. Surfaces A (`_LampTint`, `HIRAETH_FIGHT`) costs nothing
+  measurable (its build against 2617's: the same within 0.1 ms once the test is out). Polygon offset from a material property
+  (#459) costs nothing (a build without it: the same).
+- **The rest, 0.7-0.9 ms, is the surfaces rounds' new paths,** each 0.1-0.5 ms, all in the Surface fragment (`-surface-debug
+  12`, the plain fragment, measures surfaces B's build the same as the one before it): the night paint, the splats, the
+  mirror, the veins, the sparkle, the safe normals. Each draws something the web draws; no single one to take back.
+
+| view | main: fps (1 % low, GPU ms) | main again | this round | this round again |
+|---|---|---|---|---|
+| City-Shaft start | 50.7 (31.5, 18.7) | 50.5 (32.3, 18.5) | **52.8** (29.0, 17.6) | 52.8 (35.3, 17.7) |
+| City-Shaft crowd2 | 57.0 (40.7, 16.5) | 56.6 (33.9, 16.6) | 59.3 (35.9, 15.8) | 59.4 (46.4, 15.8) |
+| City-Shaft wide | 38.6 (32.8, 24.8) | 38.5 (31.9, 24.8) | **40.9** (32.5, 23.3) | 40.9 (28.5, 23.3) |
+| Signal Market start | 51.4 (43.9, 19.0) | 51.5 (44.6, 19.0) | **54.5** (41.8, 17.9) | 54.4 (41.5, 18.0) |
+| Signal Market wide | 55.2 (48.3, 18.0) | 55.2 (49.2, 18.0) | **58.9** (52.8, 16.9) | 58.9 (52.8, 16.9) |
+| Lorn start | 46.3 (31.6, 21.4) | 45.9 (36.7, 21.6) | **48.3** (38.5, 20.5) | 48.2 (33.8, 20.6) |
+| Lorn crowd | 50.1 (40.7, 19.8) | 49.8 (39.5, 19.9) | **52.6** (35.0, 18.8) | 52.7 (43.1, 18.9) |
+| Underwater start | 52.3 (45.6, 19.0) | 52.3 (46.3, 19.0) | **55.5** (42.7, 17.9) | 55.5 (49.4, 17.9) |
+| Underwater wide | 47.8 (35.1, 20.8) | 47.7 (42.8, 20.9) | **50.8** (45.9, 19.6) | 50.7 (32.2, 19.6) |
+
+(The crowds at 60 stay there; every view's GPU 0.3-1.4 ms lower.) **The pictures** (`diff.mjs`): two runs of main differ by
+0.10-2.1 % per view, two runs of this round by 0.15-2.5 %, main against this round by 0.04-3.1 %, view by view within that
+spread but Lorn's crowd (3.1 % against 2.1-2.5: the beetles, birds and a walker, moving; the forest and the ground the same).
+Against build 2570 the City-Shaft's wide view is now 23.3 ms against 22.4, the Signal Market 16.7 against 15.9.
+
+To repeat: round 11's scripts (`ab.mjs` with `-bundle none`, `--apk` per build, worlds outer and APKs inner).
 
 ## CPU per frame (#446)
 
