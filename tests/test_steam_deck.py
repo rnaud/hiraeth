@@ -225,8 +225,6 @@ class ContentUpdateTests(unittest.TestCase):
         self.assertEqual((game / 'index.html').read_text(), '<html>game 601</html>')
         self.assertEqual(json.loads((game / 'bundle.json').read_text())['build'], 601)
         self.assertEqual(deck.choose_content(self.root, self.current), game)
-        self.assertEqual(deck.game_env(game)['HIRAETH_GAME'], str(game))
-        self.assertNotIn('HIRAETH_GAME', deck.game_env(None))
         self.assertFalse(deck.install_content(self.root, manifest, fetch), 'already here')
         self.assertFalse(list((self.root / 'web').glob('.download-*')))
 
@@ -314,22 +312,6 @@ class ContentUpdateTests(unittest.TestCase):
                                        unity=lambda: False, art=lambda: False)
         self.assertEqual(failures, ['runtime'])
         self.assertTrue((self.root / 'web/601/index.html').is_file())
-
-    def test_launch_serves_the_downloaded_game_and_pins_it(self):
-        manifest, fetch = self.content(601)
-        deck.install_content(self.root, manifest, fetch)
-        seen = {}
-
-        def run(command, env, ready, log):
-            seen['env'] = env.get('HIRAETH_GAME')
-            with (self.root / 'web/601/.in-use').open('a') as lock:
-                with self.assertRaises(BlockingIOError):
-                    fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            return 'quit', 0, True
-        with patch.object(deck, 'start_updater'), patch('sys.stderr', io.StringIO()):
-            with self.assertRaises(SystemExit):
-                deck.launch(self.root, [], run=run, engine='web')
-        self.assertEqual(seen['env'], str(self.root / 'web/601'))
 
     def test_installs_a_package_downloaded_by_hand(self):
         runtime, _ = self.bundle(3001)
@@ -446,42 +428,10 @@ class SettingsUpdateTests(unittest.TestCase):
             deck.progress('done', 0, 0, done=True)
         self.assertEqual(json.loads(file.read_text())['step'], 'done')
 
-    def test_restart_now_launches_again_into_the_update(self):
-        calls = []
-
-        def run(command, env, ready, log):
-            calls.append(env['HIRAETH_ROOT'])
-            self.assertEqual(env['HIRAETH_PYTHON'], sys.executable)
-            (self.root / '.restart').write_text('601\n')
-            return 'restart', deck.RESTART_EXIT, True
-        relaunched = []
-        with patch.object(deck, 'start_updater'), patch('sys.stderr', io.StringIO()), patch.dict(os.environ, {}, clear=False):
-            os.environ.pop('HIRAETH_RESTARTED_FOR', None)
-            deck.launch(self.root, ['--x'], run=run, relaunch=relaunched.append, engine='web')
-            self.assertEqual(os.environ['HIRAETH_RESTARTED_FOR'], '601')
-        self.assertEqual(calls, [str(self.root)])
-        # (an install elsewhere than the usual folder is launched again there)
-        self.assertEqual(relaunched[0][1:], [str((self.root / 'current').resolve() / 'resources/app/deck.py'), '--launch-web',
-                                             '--root', str(self.root), '--x'])
-        with patch.object(deck, 'ROOT', self.root), patch.object(deck, 'start_updater'), patch('sys.stderr', io.StringIO()), \
-                patch.dict(os.environ, {}, clear=False):
-            deck.launch(self.root, ['--x'], run=run, relaunch=relaunched.append, engine='web')
-        self.assertEqual(relaunched[1][2:], ['--launch-web', '--x'])
-        self.assertFalse((self.root / '.restart').exists())
-        self.assertIn('Restarting into the update', (self.root / 'launch.log').read_text())
-
     def test_the_restart_exit_is_not_a_crash(self):
         how = deck.run_game([sys.executable, '-c', f'import sys; sys.exit({deck.RESTART_EXIT})'], dict(os.environ),
                             self.home / '.ready', log=lambda _line: None)
         self.assertEqual(how[:2], ('restart', deck.RESTART_EXIT))
-
-
-def web_engine(test):
-    """An install on the web engine (engine.json 'web', as every install was before the switch, D19): the preview's
-    shortcut and art, the web fallback's swap from there."""
-    patcher = patch.object(deck, 'DEFAULT_ENGINE', 'web')
-    patcher.start()
-    test.addCleanup(patcher.stop)
 
 
 class SteamArtTests(unittest.TestCase):
@@ -491,7 +441,6 @@ class SteamArtTests(unittest.TestCase):
 
     def setUp(self):
         self.setUp_base()
-        web_engine(self)
         self.app = self.home / 'app'
         for name in deck.STEAM_ART.values():
             (self.app / name).parent.mkdir(parents=True, exist_ok=True)
@@ -501,12 +450,10 @@ class SteamArtTests(unittest.TestCase):
     def test_the_shortcuts_app_id_names_the_art(self):
         appid = deck.shortcut_appid(self.root)
         self.assertEqual(appid, zlib.crc32((f'"{self.root / "launch"}"' + 'Hiraeth').encode()) | 0x80000000)
-        preview = deck.unity_appid(self.root)
-        self.assertEqual(deck.shortcut_appids(self.config, self.root), [appid, preview])
-        self.assertEqual(deck.install_art(self.root, [self.config], self.app), 10, 'the game\'s art for both shortcuts')
+        self.assertEqual(deck.shortcut_appids(self.config, self.root), [appid])
+        self.assertEqual(deck.install_art(self.root, [self.config], self.app), 5)
         grid = sorted(path.name for path in (self.config / 'grid').iterdir())
-        self.assertEqual(grid, sorted(f'{id}{suffix}' for id in (appid, preview) for suffix in ('p.png', '.png', '_hero.png', '_logo.png', '_icon.png')))
-        self.assertEqual((self.config / f'grid/{preview}p.png').read_bytes(), b'art steam/portrait.png')
+        self.assertEqual(grid, sorted(f'{appid}{suffix}' for suffix in ('p.png', '.png', '_hero.png', '_logo.png', '_icon.png')))
         self.assertEqual((self.config / f'grid/{appid}p.png').read_bytes(), b'art steam/portrait.png')
         self.assertEqual((self.config / f'grid/{appid}_icon.png').read_bytes(), b'art game/icons/icon-512.png')
         self.assertEqual(deck.install_art(self.root, [self.config], self.app), 0, 'nothing to do the second time')
@@ -517,7 +464,7 @@ class SteamArtTests(unittest.TestCase):
         (self.config / f'grid/{appid}_hero.png').write_bytes(b'the player\'s own hero')
         for name in deck.STEAM_ART.values():
             (self.app / name).write_bytes(f'new art {name}'.encode())
-        self.assertEqual(deck.install_art(self.root, [self.config], self.app), 4 + 5, 'all but the player\'s, the preview\'s too')
+        self.assertEqual(deck.install_art(self.root, [self.config], self.app), 4, 'all but the player\'s')
         self.assertEqual((self.config / f'grid/{appid}_hero.png').read_bytes(), b'the player\'s own hero')
         self.assertEqual((self.config / f'grid/{appid}.png').read_bytes(), b'new art steam/wide.png')
 
@@ -540,7 +487,7 @@ class SteamArtTests(unittest.TestCase):
         entry = self.entry()
         self.assertEqual((deck.field(entry, 'AppName'), deck.field(entry, 'icon')), ('Hiraeth', str(self.root / 'icon.png')))
         self.assertEqual(deck.field(entry, 'appid'), deck.shortcut_appid(self.root), 'the same id: its playtime and artwork stay')
-        self.assertEqual(len(deck.field(deck.parse_vdf((self.config / 'shortcuts.vdf').read_bytes()), 'shortcuts')), 2, 'no duplicate (the game, the preview)')
+        self.assertEqual(len(deck.field(deck.parse_vdf((self.config / 'shortcuts.vdf').read_bytes()), 'shortcuts')), 1, 'no duplicate')
         self.assertFalse(deck.shortcut_stale(self.config, self.root))
         self.assertFalse(deck.add_shortcut(self.config, self.root))
 
@@ -579,7 +526,7 @@ class SteamArtTests(unittest.TestCase):
 
 
 class LaunchTests(unittest.TestCase):
-    """Gaming Mode never left black: no Steam overlay in Chromium, a watched start, fallbacks, a clean exit."""
+    """Gaming Mode never left black: a watched start (run_game: the Unity player's), a clean exit, the update apart."""
 
     setUp_base = SteamDeckTests.setUp
     bundle = SteamDeckTests.bundle
@@ -592,21 +539,6 @@ class LaunchTests(unittest.TestCase):
 
     def script(self, body):
         return [sys.executable, '-c', 'import os, sys, time, subprocess\n' + body]
-
-    def test_steam_overlay_is_kept_out_of_chromium(self):
-        steam = '/home/deck/.local/share/Steam'
-        base = {'LD_PRELOAD': f'{steam}/ubuntu12_32/gameoverlayrenderer.so:{steam}/ubuntu12_64/gameoverlayrenderer.so',
-                'HOME': '/home/deck', 'HIRAETH_GPU': 'stale'}
-        env = deck.game_env(None, 'vulkan', self.ready, base=base)
-        self.assertNotIn('LD_PRELOAD', env)
-        self.assertEqual((env['HIRAETH_GPU'], env['HIRAETH_READY'], env['HOME']), ('vulkan', str(self.ready), '/home/deck'))
-        self.assertNotIn('HIRAETH_GAME', env)
-        self.assertEqual(deck.without_overlay(f'/opt/libfoo.so {steam}/ubuntu12_64/gameoverlayrenderer.so'), '/opt/libfoo.so')
-
-    def test_gaming_mode_is_told_from_the_desktop(self):
-        self.assertEqual(deck.session_kind({'XDG_CURRENT_DESKTOP': 'gamescope', 'DISPLAY': ':1'}), 'gamescope')
-        self.assertEqual(deck.session_kind({'GAMESCOPE_WAYLAND_DISPLAY': 'gamescope-0'}), 'gamescope')
-        self.assertEqual(deck.session_kind({'XDG_CURRENT_DESKTOP': 'KDE', 'WAYLAND_DISPLAY': 'wayland-0'}), 'desktop')
 
     def test_a_game_that_shows_its_window_and_closes_is_done(self):
         how = deck.run_game(self.script(f'open({str(self.ready)!r}, "w").write("1")\ntime.sleep(0.5)'),
@@ -630,20 +562,6 @@ class LaunchTests(unittest.TestCase):
         how = deck.run_game(self.script(f'open({str(self.ready)!r}, "w").write("1")\nos.kill(os.getpid(), 9)'),
                             dict(os.environ), self.ready, played_seconds=30, log=lambda _line: None)
         self.assertEqual(how[0], 'retry')
-
-    def test_launch_after_a_late_crash_keeps_the_way_that_drew(self):
-        modes = []
-
-        def run(command, env, ready, log):
-            modes.append(env['HIRAETH_GPU'])
-            return ('ended', -5, True)
-        with patch.object(deck, 'start_updater'), patch('sys.stderr', io.StringIO()):
-            with self.assertRaises(SystemExit) as done:
-                deck.launch(self.root, [], run=run, engine='web')
-        self.assertEqual(done.exception.code, 1)
-        self.assertEqual(modes, ['gl'])
-        self.assertEqual(list(json.loads((self.root / 'gpu.json').read_text()).values()), ['gl'])
-        self.assertIn('Ended (gl, exit -5)', (self.root / 'launch.log').read_text())
 
     def test_the_retry_exit_asks_for_the_next_way_to_draw(self):
         how = deck.run_game(self.script(f'sys.exit({deck.RETRY_EXIT})'), dict(os.environ), self.ready, log=lambda _line: None)
@@ -672,30 +590,6 @@ class LaunchTests(unittest.TestCase):
         closer.join()
         self.assertEqual(how[:2], ('quit', 0))
 
-    def test_launch_falls_back_and_remembers_what_worked(self):
-        modes = []
-
-        def run(command, env, ready, log):
-            modes.append(env['HIRAETH_GPU'])
-            return ('retry', -11, False) if env['HIRAETH_GPU'] == 'gl' else ('quit', 0, True)
-        env = {key: value for key, value in os.environ.items() if key not in ('GAMESCOPE_WAYLAND_DISPLAY', 'XDG_CURRENT_DESKTOP')}
-        with patch.object(deck, 'start_updater'), patch('sys.stderr', io.StringIO()), \
-                patch.dict(os.environ, {**env, 'XDG_CURRENT_DESKTOP': 'gamescope'}, clear=True):
-            for _ in range(2):
-                with self.assertRaises(SystemExit) as done:
-                    deck.launch(self.root, [], run=run, engine='web')
-                self.assertEqual(done.exception.code, 0)
-        self.assertEqual(modes, ['gl', 'vulkan', 'vulkan'])
-        self.assertEqual(json.loads((self.root / 'gpu.json').read_text()), {'1001:gamescope': 'vulkan'})
-        self.assertIn('Starting (vulkan)', (self.root / 'launch.log').read_text())
-
-    def test_nothing_working_returns_to_steam(self):
-        with patch.object(deck, 'start_updater'), patch('sys.stderr', io.StringIO()):
-            with self.assertRaises(SystemExit) as done:
-                deck.launch(self.root, [], run=lambda command, env, ready, log: ('retry', -5, False), engine='web')
-        self.assertEqual(done.exception.code, 1)
-        self.assertIn('Gave up', (self.root / 'launch.log').read_text())
-
     def test_the_update_runs_outside_the_game(self):
         # in its own systemd unit, so Steam doesn't wait for a download before it counts the game closed
         current = (self.root / 'current').resolve()
@@ -720,15 +614,15 @@ class LaunchTests(unittest.TestCase):
         self.assertTrue(popen.call_args.kwargs['start_new_session'])
 
 
-class PreviewShortcutTests(unittest.TestCase):
-    """The second Steam shortcut, "Hiraeth (Unity)" ("Hiraeth (Unity preview)" before 1.73), beside the game's (issue #146)."""
+class OneShortcutTests(unittest.TestCase):
+    """One Steam shortcut, "Hiraeth" (issue #484): the second shortcuts the Deck had, "Hiraeth (Unity)" (issue #146) and
+    then "Hiraeth (web)" (D19), leave shortcuts.vdf at the next update that finds Steam closed, and never come back."""
 
     setUp_base = SteamDeckTests.setUp
     bundle = SteamDeckTests.bundle
 
     def setUp(self):
         self.setUp_base()
-        web_engine(self)
         self.vdf = self.config / 'shortcuts.vdf'
 
     def entries(self):
@@ -737,18 +631,15 @@ class PreviewShortcutTests(unittest.TestCase):
     def by_exe(self, launcher):
         return [value for _, value in self.entries() if deck.field(value, 'Exe') == f'"{self.root / launcher}"']
 
-    def test_a_fresh_account_gets_both_shortcuts(self):
+    def second(self, launcher, name, appid, icon):
+        return [('appid', appid), ('AppName', name), ('Exe', f'"{self.root / launcher}"'), ('icon', icon), ('LastPlayTime', 5)]
+
+    def test_a_fresh_account_gets_only_hiraeth(self):
         self.assertTrue(deck.add_shortcut(self.config, self.root))
-        main, preview = self.by_exe('launch'), self.by_exe('launch-unity')
-        self.assertEqual((len(main), len(preview), len(self.entries())), (1, 1, 2))
-        self.assertEqual(deck.field(main[0], 'AppName'), 'Hiraeth')
-        self.assertEqual(deck.field(preview[0], 'AppName'), 'Hiraeth (Unity)')
-        self.assertEqual(deck.field(preview[0], 'icon'), str(self.root / 'icon-unity.png'))
-        # the game's id exactly as before; the preview's from its own launcher and name
-        self.assertEqual(deck.field(main[0], 'appid'), zlib.crc32((f'"{self.root / "launch"}"' + 'Hiraeth').encode()) | 0x80000000)
-        self.assertEqual(deck.field(preview[0], 'appid'),
-                         zlib.crc32((f'"{self.root / "launch-unity"}"' + 'Hiraeth (Unity)').encode()) | 0x80000000)
-        self.assertNotEqual(deck.shortcut_appid(self.root), deck.unity_appid(self.root))
+        self.assertEqual([deck.field(value, 'AppName') for _, value in self.entries()], ['Hiraeth'])
+        main = self.by_exe('launch')[0]
+        self.assertEqual(deck.field(main, 'appid'), zlib.crc32((f'"{self.root / "launch"}"' + 'Hiraeth').encode()) | 0x80000000)
+        self.assertEqual(deck.field(main, 'icon'), str(self.root / 'icon.png'))
         self.assertFalse(deck.shortcut_stale(self.config, self.root))
         self.assertFalse(deck.add_shortcut(self.config, self.root))
 
@@ -758,108 +649,90 @@ class PreviewShortcutTests(unittest.TestCase):
         self.vdf.write_bytes(original)
         self.assertTrue(deck.add_shortcut(self.config, self.root))
         self.assertEqual(self.entries()[0], other)
-        self.assertEqual([deck.field(value, 'AppName') for _, value in self.entries()], ['Other', 'Hiraeth', 'Hiraeth (Unity)'])
+        self.assertEqual([deck.field(value, 'AppName') for _, value in self.entries()], ['Other', 'Hiraeth'])
         self.assertEqual(next(self.config.glob('*.bak')).read_bytes(), original)
 
-    def test_an_account_with_only_the_game_gets_the_preview_once(self):
-        deck.add_shortcut(self.config, self.root, preview=False)
+    def test_the_web_and_unity_shortcuts_leave_steam_while_it_is_closed(self):
+        deck.add_shortcut(self.config, self.root)
         main = self.by_exe('launch')[0]
         deck.set_field(main, 'AppName', 'My own name', lambda _old: True)
         main.append(('LaunchOptions2', 'the player\'s'))
-        document = deck.parse_vdf(self.vdf.read_bytes())
-        deck.field(document, 'shortcuts')[0] = ('0', main)
-        self.vdf.write_bytes(deck.encode_vdf(document))
-        self.assertFalse(self.by_exe('launch-unity'))
+        other = [('appid', 7), ('AppName', 'Other'), ('Exe', '"/other"')]
+        web = self.second('launch-web', 'Hiraeth (web)', 3000000001, str(self.root / 'icon-web.png'))
+        preview = self.second('launch-unity', 'My Unity test', 3000000002, '/my/icon.png')   # (named by the player: still ours)
+        self.vdf.write_bytes(deck.encode_vdf([('shortcuts', [('0', other), ('1', main), ('2', web), ('3', preview)])]))
+        before = self.vdf.read_bytes()
         self.assertTrue(deck.shortcut_stale(self.config, self.root))
-        self.assertFalse(deck.shortcut_stale(self.config, self.root, preview=False))
-        # Steam running: nothing written
+        # Steam running: nothing written (it rewrites shortcuts.vdf from memory as it exits)
         with patch.object(deck, 'steam_running', return_value=True):
             deck.steam_entry(self.root, [self.config])
-        self.assertFalse(self.by_exe('launch-unity'))
-        before = self.vdf.read_bytes()
+        self.assertEqual(self.vdf.read_bytes(), before)
         self.assertTrue(deck.steam_entry(self.root, [self.config]))
-        self.assertEqual(len(self.by_exe('launch-unity')), 1)
-        self.assertEqual(self.by_exe('launch')[0], main, 'the player\'s edits to the game\'s shortcut stay')
+        self.assertEqual(self.entries(), [('0', other), ('1', main)], 'the player\'s edits to the game\'s shortcut stay')
         self.assertIn(before, [path.read_bytes() for path in self.config.glob('*.bak')])
-        # the player removes the preview: the background update leaves it removed
-        document = deck.parse_vdf(self.vdf.read_bytes())
-        entries = deck.field(document, 'shortcuts')
-        entries[:] = [(key, value) for key, value in entries if deck.field(value, 'Exe') != f'"{self.root / "launch-unity"}"']
-        self.vdf.write_bytes(deck.encode_vdf(document))
+        self.assertFalse(deck.shortcut_stale(self.config, self.root))
+        # and never added again: the next updates and the installer leave it at one
+        backups = len(list(self.config.glob('*.bak')))
         deck.steam_entry(self.root, [self.config])
-        self.assertFalse(self.by_exe('launch-unity'))
+        self.assertFalse(deck.add_shortcut(self.config, self.root))
+        self.assertEqual((len(self.entries()), len(list(self.config.glob('*.bak')))), (2, backups))
+        self.assertFalse(self.by_exe('launch-web') or self.by_exe('launch-unity'))
 
     def test_an_account_without_the_game_gets_nothing_from_the_update(self):
+        web = self.second('launch-web', 'Hiraeth (web)', 3000000001, '')
+        self.vdf.write_bytes(deck.encode_vdf([('shortcuts', [('0', web)])]))
+        before = self.vdf.read_bytes()
+        deck.steam_entry(self.root, [self.config])
+        self.assertEqual(self.vdf.read_bytes(), before, 'only an account that has Hiraeth is touched by the update')
         self.vdf.write_bytes(deck.encode_vdf([('shortcuts', [])]))
         deck.steam_entry(self.root, [self.config])
         self.assertEqual(self.entries(), [])
 
+    def test_the_installer_takes_them_out_too(self):
+        web = self.second('launch-web', 'Hiraeth (web)', 3000000001, '')
+        self.vdf.write_bytes(deck.encode_vdf([('shortcuts', [('0', web)])]))
+        self.assertTrue(deck.shortcut_stale(self.config, self.root))
+        self.assertTrue(deck.add_shortcut(self.config, self.root))
+        self.assertEqual([deck.field(value, 'AppName') for _, value in self.entries()], ['Hiraeth'])
+
     def test_the_launchers_and_desktop_entries(self):
         runtime, fetch = self.bundle(1001)
         deck.install_update(self.root, runtime, fetch)
+        applications = self.home / '.local/share/applications'
+        applications.mkdir(parents=True)
+        for name in ('hiraeth-unity.desktop', 'hiraeth-web.desktop'):
+            (applications / name).write_text('[Desktop Entry]\n')
+        for name in ('icon-unity.png', 'icon-web.png'):
+            (self.root / name).write_bytes(b'badged')
         deck.write_launchers(self.root, home=self.home)
-        script = (self.root / 'launch-unity').read_text()
-        self.assertTrue((self.root / 'launch-unity').stat().st_mode & 0o111)
-        self.assertIn('/current/resources/app/deck.py', script)
-        self.assertTrue(script.rstrip().endswith('--launch-unity "$@"'))
-        self.assertTrue((self.root / 'launch').read_text().rstrip().endswith(' --launch "$@"'))
-        entry = (self.home / '.local/share/applications/hiraeth-unity.desktop').read_text()
-        self.assertIn('Name=Hiraeth (Unity)\n', entry)
-        self.assertIn(f'Exec="{self.root / "launch-unity"}"', entry)
-        self.assertIn('Name=Hiraeth\n', (self.home / '.local/share/applications/hiraeth.desktop').read_text())
-        # each its own icon: the game's, and the preview's badged one (the game's where a runtime has none)
-        self.assertIn(f'Icon={self.root / "icon-unity.png"}\n', entry)
-        self.assertIn(f'Icon={self.root / "icon.png"}\n', (self.home / '.local/share/applications/hiraeth.desktop').read_text())
-        self.assertEqual((self.root / 'icon-unity.png').read_bytes(), b'icon')
-        badged = self.root / 'current/resources/app/steam/unity/icon.png'
-        badged.parent.mkdir(parents=True)
-        badged.write_bytes(b'icon with a Unity badge')
-        deck.write_launchers(self.root, home=self.home)
-        self.assertEqual((self.root / 'icon-unity.png').read_bytes(), b'icon with a Unity badge')
+        for launcher in ('launch', 'launch-unity', 'launch-web'):
+            script = (self.root / launcher).read_text()
+            self.assertTrue((self.root / launcher).stat().st_mode & 0o111)
+            self.assertIn('/current/resources/app/deck.py', script)
+            # (a second shortcut Steam still shows, until the next update with Steam closed: the Unity player too)
+            self.assertTrue(script.rstrip().endswith(' --launch "$@"'), launcher)
+        self.assertEqual(sorted(path.name for path in applications.iterdir()), ['hiraeth.desktop'])
+        entry = (applications / 'hiraeth.desktop').read_text()
+        self.assertIn('Name=Hiraeth\n', entry)
+        self.assertIn(f'Exec="{self.root / "launch"}"', entry)
+        self.assertIn(f'Icon={self.root / "icon.png"}\n', entry)
+        self.assertFalse((self.root / 'icon-unity.png').exists() or (self.root / 'icon-web.png').exists())
         self.assertEqual((self.root / 'icon.png').read_bytes(), b'icon')
 
-    def test_the_preview_under_its_old_name_and_the_games_icon_is_renamed_and_given_its_own(self):
-        deck.add_shortcut(self.config, self.root)
-        document = deck.parse_vdf(self.vdf.read_bytes())
-        preview = [value for _, value in deck.field(document, 'shortcuts') if deck.field(value, 'Exe') == f'"{self.root / "launch-unity"}"'][0]
-        appid = deck.field(preview, 'appid')
-        deck.set_field(preview, 'AppName', 'Hiraeth (Unity preview)', lambda _old: True)
-        deck.set_field(preview, 'icon', str(self.root / 'icon.png'), lambda _old: True)
-        self.vdf.write_bytes(deck.encode_vdf(document))
-        self.assertTrue(deck.shortcut_stale(self.config, self.root, preview=False))
-        with patch.object(deck, 'steam_running', return_value=True):   # (Steam open: left for the next update)
-            deck.steam_entry(self.root, [self.config])
-        self.assertEqual(deck.field(self.by_exe('launch-unity')[0], 'AppName'), 'Hiraeth (Unity preview)')
-        self.assertTrue(deck.steam_entry(self.root, [self.config]))
-        renamed = self.by_exe('launch-unity')[0]
-        self.assertEqual((deck.field(renamed, 'AppName'), deck.field(renamed, 'icon')), ('Hiraeth (Unity)', str(self.root / 'icon-unity.png')))
-        self.assertEqual(deck.field(renamed, 'appid'), appid, 'the same id: its artwork and playtime stay')
-        self.assertEqual(deck.field(self.by_exe('launch')[0], 'AppName'), 'Hiraeth')
-        self.assertFalse(deck.shortcut_stale(self.config, self.root))
-
-    def test_a_name_and_icon_the_player_gave_the_preview_are_kept(self):
-        deck.add_shortcut(self.config, self.root)
-        document = deck.parse_vdf(self.vdf.read_bytes())
-        preview = [value for _, value in deck.field(document, 'shortcuts') if deck.field(value, 'Exe') == f'"{self.root / "launch-unity"}"'][0]
-        deck.set_field(preview, 'AppName', 'Unity test', lambda _old: True)
-        deck.set_field(preview, 'icon', '/my/icon.png', lambda _old: True)
-        self.vdf.write_bytes(deck.encode_vdf(document))
-        self.assertFalse(deck.shortcut_stale(self.config, self.root))
-        self.assertFalse(deck.add_shortcut(self.config, self.root))
-        kept = self.by_exe('launch-unity')[0]
-        self.assertEqual((deck.field(kept, 'AppName'), deck.field(kept, 'icon')), ('Unity test', '/my/icon.png'))
-
-    def test_the_preview_shows_its_own_badged_art_the_game_its_own(self):
+    def test_only_hiraeth_gets_library_art(self):
         app = self.home / 'app'
-        for name in [*deck.STEAM_ART.values(), *deck.UNITY_ART.values()]:
+        for name in deck.STEAM_ART.values():
             (app / name).parent.mkdir(parents=True, exist_ok=True)
             (app / name).write_bytes(f'art {name}'.encode())
         deck.add_shortcut(self.config, self.root)
-        game, preview = deck.shortcut_appid(self.root), deck.unity_appid(self.root)
-        self.assertEqual(deck.install_art(self.root, [self.config], app), 10)
-        for suffix in deck.STEAM_ART:
-            self.assertEqual((self.config / f'grid/{game}{suffix}').read_bytes(), f'art {deck.STEAM_ART[suffix]}'.encode())
-            self.assertEqual((self.config / f'grid/{preview}{suffix}').read_bytes(), f'art {deck.UNITY_ART[suffix]}'.encode())
+        document = deck.parse_vdf(self.vdf.read_bytes())
+        deck.field(document, 'shortcuts').append(('1', self.second('launch-web', 'Hiraeth (web)', 3000000001, '')))
+        self.vdf.write_bytes(deck.encode_vdf(document))   # (Steam open: the web shortcut still there)
+        game = deck.shortcut_appid(self.root)
+        self.assertEqual(deck.install_art(self.root, [self.config], app), 5)
+        self.assertEqual(sorted(path.name for path in (self.config / 'grid').iterdir()),
+                         sorted(f'{game}{suffix}' for suffix in deck.STEAM_ART))
+        self.assertFalse(hasattr(deck, 'UNITY_ART') or hasattr(deck, 'WEB_ART'))
 
 
 class RemoveOldInstallTests(unittest.TestCase):
@@ -869,7 +742,6 @@ class RemoveOldInstallTests(unittest.TestCase):
 
     def setUp(self):
         self.setUp_base()
-        web_engine(self)
         self.legacy = self.home / '.local/share/moebius-deck'
         (self.legacy / 'versions/1903001').mkdir(parents=True)
         (self.legacy / 'unity-data').mkdir()
@@ -899,7 +771,7 @@ class RemoveOldInstallTests(unittest.TestCase):
         report = deck.remove_old_install(self.root, home=self.home, configs=[self.config], stamp='t')
         backup = self.root / 'removed-moebius-deck-t'
         self.assertEqual(report['backup'], str(backup))
-        self.assertEqual(self.names(), ['Other game', 'Hiraeth', 'Hiraeth (Unity)'], 'the old two gone; ours and the other kept')
+        self.assertEqual(self.names(), ['Other game', 'Hiraeth'], 'the old two gone; ours and the other kept')
         self.assertEqual([s['appid'] for s in report['shortcuts']], [2165417005, 4192644511])
         self.assertEqual((backup / '123/shortcuts.vdf').read_bytes(), self.before, 'shortcuts.vdf as it was')
         self.assertEqual(sorted(p.name for p in (self.config / 'grid').iterdir()), ['21654170050.png', '7p.png'], 'only those two ids\' art moved')
@@ -1054,63 +926,6 @@ class UnityPlayerTests(unittest.TestCase):
                                              unity=offline, art=lambda: False, with_unity=False), [])
 
 
-class LaunchUnityTests(unittest.TestCase):
-    """--launch-unity: the installed player, pinned, its own data folder and a cache that lasts."""
-
-    setUp_base = SteamDeckTests.setUp
-    bundle = SteamDeckTests.bundle
-    player = UnityPlayerTests.player
-    install = UnityPlayerTests.install
-
-    def setUp(self):
-        self.setUp_base()
-        self.count = 0
-        runtime, fetch = self.bundle(1001)
-        deck.install_update(self.root, runtime, fetch)
-
-    def launch(self, install=None):
-        seen = {}
-
-        def run(command, env, cwd, keep, output):
-            seen.update(command=command, env=env, cwd=cwd)
-            with (cwd / '.in-use').open('a') as lock:
-                with self.assertRaises(BlockingIOError):
-                    fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        with patch('sys.stderr', io.StringIO()):
-            deck.launch_unity(self.root, ['-level', 'desert'], run=run, updater=lambda *_: 'child',
-                              install=install or (lambda _root: self.fail('installed already')))
-        return seen
-
-    def test_the_players_environment_and_arguments(self):
-        manifest, _ = self.install()
-        seen = self.launch()
-        player = (self.root / 'unity/current').resolve()
-        self.assertEqual(seen['cwd'], player)
-        self.assertEqual(seen['env']['TMPDIR'], str(self.root / 'unity-cache'))
-        self.assertEqual(seen['env']['XDG_CONFIG_HOME'], str(self.root / 'unity-data'))
-        self.assertTrue((self.root / 'unity-cache').is_dir() and (self.root / 'unity-data').is_dir())
-        self.assertEqual(seen['command'], [str(player / 'hiraeth-js.x86_64'), '-screen-fullscreen', '1', '-screen-width', '1280',
-                                           '-screen-height', '800', '-logFile', str(self.root / 'unity-data/player.log'),
-                                           '-level', 'desert'])
-        self.assertNotIn('-mute', seen['command'])
-        self.assertIn('Starting', (self.root / 'unity-launch.log').read_text())
-        self.assertEqual(deck.local_state(self.root)['unity'], manifest['sha256'][:12])
-
-    def test_no_player_yet_installs_it_first(self):
-        seen = self.launch(install=lambda root: self.install()[1])
-        self.assertTrue(seen['command'][0].endswith('/hiraeth-js.x86_64'))
-        self.assertIn('downloading', (self.root / 'unity-launch.log').read_text())
-
-    def test_no_player_and_no_network_exits_with_a_line(self):
-        def offline(_root):
-            raise OSError('offline')
-        with self.assertRaises(SystemExit) as done:
-            self.launch(install=offline)
-        self.assertEqual(done.exception.code, 1)
-        self.assertIn('not installed', (self.root / 'unity-launch.log').read_text())
-        self.assertEqual(deck.local_state(self.root)['unity'], '')
-
-
 class EngineTests(unittest.TestCase):
     """What the "Hiraeth" shortcut starts (docs/plans/unity-default-portables.md, D9; issue #484): the Unity player,
     watched, with a fallback to the player before and then an error dialog, never the web game."""
@@ -1147,15 +962,12 @@ class EngineTests(unittest.TestCase):
         second, _ = self.install()
         return first['sha256'][:12], second['sha256'][:12]
 
-    def launch(self, results, engine=None):
-        """One launch with a fake run: results maps 'web' or a player's sha12 to what run_game returns.
+    def launch(self, results):
+        """One launch with a fake run: results maps a player's sha12 to what run_game returns.
         @return (what ran in order, the exit code, the launch log)"""
         ran = []
 
         def run(command, env, ready, log, **kwargs):
-            if 'HIRAETH_GPU' in env:
-                ran.append(('web', env['HIRAETH_GPU']))
-                return results.get('web', ('quit', 0, True))
             player = kwargs['cwd']
             ran.append(player.name)
             self.assertEqual(command[0], str(player / deck.UNITY_PLAYER))
@@ -1172,7 +984,7 @@ class EngineTests(unittest.TestCase):
         code = None
         with patch('sys.stderr', io.StringIO()):
             try:
-                deck.launch(self.root, [], run=run, relaunch=lambda _argv: None, engine=engine)
+                deck.launch(self.root, [], run=run, relaunch=lambda _argv: None)
             except SystemExit as done:
                 code = done.code
         return ran, code, (self.root / 'launch.log').read_text()
@@ -1180,7 +992,6 @@ class EngineTests(unittest.TestCase):
     def test_the_hiraeth_shortcut_only_ever_starts_unity(self):
         # (issue #484: no setting, no remote switch and no fallback put "Hiraeth" on the web game)
         _, current = self.players()
-        self.assertEqual(deck.DEFAULT_ENGINE, 'unity')
         self.assertEqual(deck.choose_engine(self.root)[0], 'unity')
         ran, code, log = self.launch({current: ('quit', 0, True)})
         self.assertEqual((ran, code), ([current], 0))
@@ -1190,7 +1001,7 @@ class EngineTests(unittest.TestCase):
         (self.root / 'engine.json').write_text(json.dumps({'engine': 'web'}))
         ran, _, _ = self.launch({current: ('quit', 0, True)})
         self.assertEqual(ran, [current])
-        self.assertEqual(deck.engine_setting(self.root), 'unity')
+        self.assertEqual(deck.local_state(self.root)['engineSetting'], 'unity')
         # nor does web.json's old kill switch (deckEngine 'web'), nor its last reading on the disk
         (self.root / 'engine-remote.json').write_text(json.dumps({'deckEngine': 'web'}))
         manifest = {'build': 700, 'version': '1.8', 'sha256': '0' * 64, 'zip': deck.CONTENT_URL + 'web-700.zip',
@@ -1202,7 +1013,8 @@ class EngineTests(unittest.TestCase):
         install.assert_called_once_with(self.root, manifest)
         ran, _, _ = self.launch({current: ('quit', 0, True)})
         self.assertEqual(ran, [current])
-        self.assertFalse(hasattr(deck, 'remote_engine') or hasattr(deck, 'set_engine'), 'the switch and --engine are gone')
+        for gone in ('remote_engine', 'set_engine', 'game_env', 'GPU_MODES', 'launch_unity', 'second_shortcut'):
+            self.assertFalse(hasattr(deck, gone), f'{gone}: the web launch, its switches and the second shortcut are gone')
         self.assertEqual(self.errors, [])
 
     def test_the_unity_engine_starts_the_current_player(self):
@@ -1218,7 +1030,7 @@ class EngineTests(unittest.TestCase):
         self.assertEqual((ran, code), ([current, before], 1))
         self.assertEqual(deck.unity_health(self.root), {current: 'failed', before: 'failed'})
         self.assertIn('no web fallback', log)
-        self.assertNotIn('web runtime', log)
+        self.assertNotIn('web', log.replace('no web fallback', ''))
         self.assertEqual(len(self.errors), 1, 'a dialog says the game could not start')
         self.assertIn('could not start', self.errors[0])
         self.assertIn(str(self.root / 'launch.log'), self.errors[0])
@@ -1284,18 +1096,33 @@ class EngineTests(unittest.TestCase):
                                              sleep=lambda _s: None, dialog=lambda _t: lambda: None))
         self.assertIn('gave up waiting', log[-1])
 
-    def test_the_web_shortcut_starts_the_web(self):
-        # ("Hiraeth (web)", the player's own choice: the only way to the web game)
-        _, current = self.players()
-        ran, _, log = self.launch({}, engine='web')
-        self.assertEqual(ran, [('web', 'gl')])
-        self.assertIn('Engine web (the web shortcut)', log)
-        relaunched = []
-        with patch('sys.stderr', io.StringIO()), patch.object(deck, 'ROOT', self.root):
-            deck.launch(self.root, [], run=lambda *a, **k: ('restart', 76, True), relaunch=relaunched.append, engine='web')
-            deck.launch(self.root, [], run=lambda *a, **k: ('restart', 76, True), relaunch=relaunched.append)
-        self.assertEqual([argv[2] for argv in relaunched], ['--launch-web', '--launch'])
+    def test_the_old_shortcuts_launchers_start_unity(self):
+        # (launch-web and launch-unity as earlier runtimes wrote them: deck.py --launch-web / --launch-unity)
+        started = []
+        with patch.object(deck.platform, 'system', return_value='Linux'), patch.object(deck.platform, 'machine', return_value='x86_64'), \
+                patch.object(deck, 'launch', side_effect=lambda root, extra: started.append(extra)):
+            for flag in ('--launch', '--launch-web', '--launch-unity'):
+                with patch.object(sys, 'argv', ['deck.py', flag, '--root', str(self.root), '-x']):
+                    deck.main()
+        self.assertEqual(started, [['-x']] * 3)
 
+    def test_restart_now_launches_again_into_the_update(self):
+        _, current = self.players()
+        (self.root / '.restart').write_text('601\n')   # (the settings' Restart now, before the player's exit 76)
+        relaunched = []
+        restart = lambda *a, **k: ('restart', deck.RESTART_EXIT, True)
+        with patch('sys.stderr', io.StringIO()), patch.dict(os.environ, {}, clear=False):
+            os.environ.pop('HIRAETH_RESTARTED_FOR', None)
+            deck.launch(self.root, ['--x'], run=restart, relaunch=relaunched.append)
+            self.assertEqual(os.environ['HIRAETH_RESTARTED_FOR'], '601')
+        # (an install elsewhere than the usual folder is launched again there)
+        self.assertEqual(relaunched[0][1:], [str((self.root / 'current').resolve() / 'resources/app/deck.py'), '--launch',
+                                             '--root', str(self.root), '--x'])
+        with patch.object(deck, 'ROOT', self.root), patch('sys.stderr', io.StringIO()), patch.dict(os.environ, {}, clear=False):
+            deck.launch(self.root, ['--x'], run=restart, relaunch=relaunched.append)
+        self.assertEqual(relaunched[1][2:], ['--launch', '--x'])
+        self.assertFalse((self.root / '.restart').exists())
+        self.assertIn(f'Restarting into the update (Unity {current})', (self.root / 'launch.log').read_text())
     def test_the_watchdog_reads_the_ready_file_or_the_players_log(self):
         ready, output = self.home / '.unity-ready', self.home / 'player.log'
         script = 'import sys, time\n'
@@ -1359,113 +1186,6 @@ class LauncherDialogTests(unittest.TestCase):
         # no tool: nothing shown, the launch goes on (its log says it)
         self.assertFalse(deck.show_error('x', popen=Process, which=lambda _tool: None))
         deck.busy_dialog('x', popen=Process, which=lambda _tool: None)()
-
-
-class EngineShortcutTests(unittest.TestCase):
-    """One shortcut (D10): "Hiraeth" keeps its id, playtime and art and starts the engine; the second shortcut is the
-    other engine, the Unity preview swapping into "Hiraeth (web)" when the engine becomes unity, and back."""
-
-    setUp_base = SteamDeckTests.setUp
-    bundle = SteamDeckTests.bundle
-    entries = PreviewShortcutTests.entries
-    by_exe = PreviewShortcutTests.by_exe
-
-    def setUp(self):
-        self.setUp_base()
-        web_engine(self)   # (an install from before the switch, then switched to unity: what the update does to it)
-        self.vdf = self.config / 'shortcuts.vdf'
-
-    def switched(self):
-        """The switch reached the install: the engine unity, as it is on every Deck now (issue #484)."""
-        patcher = patch.object(deck, 'DEFAULT_ENGINE', 'unity')
-        patcher.start()
-        self.addCleanup(patcher.stop)
-
-    def test_an_existing_install_swaps_its_preview_into_the_web_fallback(self):
-        deck.add_shortcut(self.config, self.root)   # (today's install: Hiraeth and Hiraeth (Unity))
-        main, preview = self.by_exe('launch')[0], self.by_exe('launch-unity')[0]
-        self.assertFalse(deck.shortcut_stale(self.config, self.root))
-        self.switched()
-        self.assertTrue(deck.shortcut_stale(self.config, self.root, preview=False))
-        self.assertTrue(deck.add_shortcut(self.config, self.root))
-        self.assertEqual(self.by_exe('launch'), [main], 'the game\'s shortcut untouched: its id, playtime and art')
-        self.assertFalse(self.by_exe('launch-unity'))
-        web = self.by_exe('launch-web')
-        self.assertEqual(len(web), 1)
-        self.assertEqual((deck.field(web[0], 'AppName'), deck.field(web[0], 'icon'), deck.field(web[0], 'appid')),
-                         ('Hiraeth (web)', str(self.root / 'icon-web.png'), deck.field(preview, 'appid')))
-        self.assertEqual(len(self.entries()), 2)
-        self.assertFalse(deck.shortcut_stale(self.config, self.root))
-        self.assertFalse(deck.add_shortcut(self.config, self.root))
-
-    def test_a_name_and_icon_the_player_chose_survive_the_swap(self):
-        deck.add_shortcut(self.config, self.root)
-        document = deck.parse_vdf(self.vdf.read_bytes())
-        preview = [value for _, value in deck.field(document, 'shortcuts') if deck.field(value, 'Exe') == f'"{self.root / "launch-unity"}"'][0]
-        deck.set_field(preview, 'AppName', 'My test', lambda _old: True)
-        deck.set_field(preview, 'icon', '/my/icon.png', lambda _old: True)
-        self.vdf.write_bytes(deck.encode_vdf(document))
-        self.assertTrue(deck.add_shortcut(self.config, self.root, engine='unity'))
-        web = self.by_exe('launch-web')[0]
-        self.assertEqual((deck.field(web, 'AppName'), deck.field(web, 'icon')), ('My test', '/my/icon.png'))
-
-    def test_a_fresh_account_under_unity_gets_hiraeth_and_the_web_fallback(self):
-        self.switched()
-        self.assertTrue(deck.add_shortcut(self.config, self.root))
-        self.assertEqual([deck.field(value, 'AppName') for _, value in self.entries()], ['Hiraeth', 'Hiraeth (web)'])
-        self.assertEqual(deck.field(self.by_exe('launch')[0], 'appid'), deck.shortcut_appid(self.root))
-        self.assertEqual(deck.field(self.by_exe('launch-web')[0], 'appid'), deck.web_appid(self.root))
-        self.assertNotIn(deck.web_appid(self.root), (deck.shortcut_appid(self.root), deck.unity_appid(self.root)))
-
-    def test_the_update_swaps_only_while_steam_is_closed_and_offers_the_fallback_once(self):
-        deck.add_shortcut(self.config, self.root, preview=False)   # (an account that removed the preview)
-        deck.remember_preview(self.root, [self.config])
-        self.switched()
-        with patch.object(deck, 'steam_running', return_value=True):
-            deck.steam_entry(self.root, [self.config])
-        self.assertFalse(self.by_exe('launch-web'))
-        deck.steam_entry(self.root, [self.config])
-        self.assertEqual(len(self.by_exe('launch-web')), 1, 'the web fallback offered once under unity')
-        self.assertEqual(deck.preview_offered(self.root, 'unity'), {str(self.config)})
-        # removed by the player: stays removed
-        document = deck.parse_vdf(self.vdf.read_bytes())
-        entries = deck.field(document, 'shortcuts')
-        entries[:] = [(key, value) for key, value in entries if deck.field(value, 'Exe') != f'"{self.root / "launch-web"}"']
-        self.vdf.write_bytes(deck.encode_vdf(document))
-        deck.steam_entry(self.root, [self.config])
-        self.assertFalse(self.by_exe('launch-web'))
-
-    def test_the_swapped_shortcut_shows_the_web_art_in_place_of_ours(self):
-        app = self.home / 'app'
-        for name in [*deck.STEAM_ART.values(), *deck.UNITY_ART.values(), *deck.WEB_ART.values()]:
-            (app / name).parent.mkdir(parents=True, exist_ok=True)
-            (app / name).write_bytes(f'art {name}'.encode())
-        deck.add_shortcut(self.config, self.root)
-        preview = deck.unity_appid(self.root)
-        deck.install_art(self.root, [self.config], app)
-        self.switched()
-        deck.add_shortcut(self.config, self.root)
-        self.assertEqual(deck.install_art(self.root, [self.config], app), 5)
-        for suffix in deck.WEB_ART:
-            self.assertEqual((self.config / f'grid/{preview}{suffix}').read_bytes(), f'art {deck.WEB_ART[suffix]}'.encode())
-
-    def test_the_launchers_follow_the_engine(self):
-        runtime, fetch = self.bundle(1001)
-        deck.install_update(self.root, runtime, fetch)
-        applications = self.home / '.local/share/applications'
-        deck.write_launchers(self.root, home=self.home)
-        self.assertTrue((applications / 'hiraeth-unity.desktop').exists())
-        self.assertFalse((applications / 'hiraeth-web.desktop').exists())
-        self.assertTrue((self.root / 'launch-web').read_text().rstrip().endswith('--launch-web "$@"'), 'written already')
-        self.switched()
-        deck.write_launchers(self.root, home=self.home)
-        entry = (applications / 'hiraeth-web.desktop').read_text()
-        self.assertIn('Name=Hiraeth (web)\n', entry)
-        self.assertIn(f'Exec="{self.root / "launch-web"}"', entry)
-        self.assertIn(f'Icon={self.root / "icon-web.png"}\n', entry)
-        self.assertFalse((applications / 'hiraeth-unity.desktop').exists())
-        self.assertTrue((self.root / 'launch-unity').exists(), 'kept: a shortcut Steam hasn\'t swapped yet still starts')
-        self.assertIn('Name=Hiraeth\n', (applications / 'hiraeth.desktop').read_text())
 
 
 if __name__ == '__main__':

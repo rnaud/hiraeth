@@ -11,10 +11,11 @@ Two kinds of update, both checked in the background at each launch:
   steam-deck GitHub release; a package downloaded by hand installs with --from (docs/steam-deck.md).
 
 And a third, its own component: the Unity bridge's Linux player (the unity-linux GitHub release),
-unpacked to unity/<sha>/, with its own data folder. The "Hiraeth" shortcut only ever starts the Unity player
-(issue #484), watched as Electron is: the player before it gets one try, and when none starts the launcher says so
-in a dialog and returns to Steam, never to the web game. The second shortcut, "Hiraeth (web)" (--launch-web), is
-the web runtime, started only by the player's own choice.
+unpacked to unity/<sha>/, with its own data folder. Steam has one shortcut, "Hiraeth", and it only ever starts the
+Unity player (issue #484), watched: the player before it gets one try, and when none starts the launcher says so in
+a dialog and returns to Steam. Nothing starts the web build (Electron) any more: the runtime package still carries
+it, as the vehicle of this updater, the installer and the library artwork. The second shortcuts the Deck had
+("Hiraeth (Unity)", then "Hiraeth (web)") leave shortcuts.vdf at the next update that finds Steam closed.
 
 Standard-library only; no root, FUSE, Proton, or SteamOS system changes.
 """
@@ -57,25 +58,18 @@ UNITY_ASSET_URL = 'https://github.com/rnaud/hiraeth/releases/download/unity-linu
 UNITY_PLAYER = 'hiraeth-js.x86_64'
 # (the build's own leftovers, not for shipping: never unpacked)
 UNITY_SKIP = ('_BackUpThisFolder_ButDontShipItWithYourGame', '_BurstDebugInformation_DoNotShip')
-# The two Steam shortcuts, each known by its launcher (its Exe): the game, and the Unity preview
-MAIN_NAME, UNITY_NAME = 'Hiraeth', 'Hiraeth (Unity)'
+# The Steam shortcut, known by its launcher (its Exe)
+MAIN_NAME = 'Hiraeth'
 OLD_NAMES = (None, '')   # (a shortcut without a name gets the game's)
-# (the preview's shortcut under the name it had, or none: renamed; a name the player chose stays. Until 1.73 both
-#  shortcuts showed the game's icon and art, and the two were told apart only by "(Unity preview)")
-OLD_UNITY_NAMES = (None, '', 'Hiraeth (Unity preview)')
-# The preview's own icon, beside the game's (write_launchers: the runtime's steam/unity/icon.png, a Unity badge on it)
-UNITY_ICON = 'icon-unity.png'
-# Which engine the "Hiraeth" shortcut starts (docs/steam-deck.md, "The engine"): unity, always, since issue #484. No
-# setting, no remote switch and no fallback put it on the web: an engine.json from before (--engine web) is ignored.
-# The engine still names the second shortcut's layout (second_shortcut): 'web' only for installs from before the switch
-# (D19, their Unity preview shortcut, swapped into "Hiraeth (web)" by the next update that finds Steam closed).
-ENGINES = ('web', 'unity')
-DEFAULT_ENGINE = 'unity'
-# ... and once it is unity, the second shortcut starts the web runtime: its launcher, name and WEB-badged icon
-WEB_NAME = 'Hiraeth (web)'
-WEB_ICON = 'icon-web.png'
-# (the names the second shortcut has had: one of them is ours to change when it swaps engines, any other the player's)
-SECOND_NAMES = (*OLD_UNITY_NAMES, UNITY_NAME, WEB_NAME)
+# The second shortcuts the Deck had beside it, known by their launchers too: the Unity preview ("Hiraeth (Unity)",
+# launch-unity, until the switch, D19) and the web build ("Hiraeth (web)", launch-web, after it). Issue #484: Steam
+# keeps "Hiraeth" alone; add_shortcut takes these out of shortcuts.vdf, and their launchers start the Unity player
+# meanwhile (a shortcut Steam still shows, while it runs, starts the game). Their icons, ours, are removed with them.
+OLD_LAUNCHERS = ('launch-unity', 'launch-web')
+OLD_ICONS = ('icon-unity.png', 'icon-web.png')
+# What the "Hiraeth" shortcut starts (docs/steam-deck.md, "The engine"): the Unity player, always, since issue #484. No
+# setting, no remote switch, no fallback and no second shortcut put the Deck on the web: an engine.json from before
+# (--engine web) is ignored.
 # The Unity player's watched start: no first frame by then is a failed start (its load on the Deck builds the whole
 # world before the first frame: ~25 s measured; the pipeline cache cold after a reboot adds to it)
 UNITY_READY_SECONDS = 120
@@ -179,7 +173,7 @@ def steam_configs(home):
 
 
 def shortcut_exe(root, launcher='launch'):
-    """A shortcut's identity: its stable executable (launch: the game; launch-unity: the Unity preview)."""
+    """A shortcut's identity: its stable executable (launch: the game; OLD_LAUNCHERS: the second shortcuts it had)."""
     return f'"{root / launcher}"'
 
 
@@ -188,19 +182,10 @@ def our_entries(entries, exe):
             if isinstance(value, list) and field(value, 'exe') == exe]
 
 
-def second_shortcut(engine):
-    """The shortcut beside "Hiraeth": the engine it doesn't start. (its launcher, name, icon, and the launcher it
-    replaces: one shortcut that swaps its Exe when the engine changes, keeping its app id, playtime and art's place)"""
-    if engine == 'unity':
-        return 'launch-web', WEB_NAME, WEB_ICON, 'launch-unity'
-    return 'launch-unity', UNITY_NAME, UNITY_ICON, 'launch-web'
-
-
-def add_shortcut(config, root, preview=True, engine=None):
-    """The game's shortcut and the second one (second_shortcut: the Unity preview while the engine is web,
-    "Hiraeth (web)" once it is unity) in one account's shortcuts.vdf (one write, backed up first).
-    preview: add the second when the account lacks it (the background update offers it once per account
-    and engine, so one the player removed stays removed). @return whether the file changed"""
+def add_shortcut(config, root):
+    """The game's shortcut in one account's shortcuts.vdf, and none other of ours: the second shortcuts the Deck had
+    (OLD_LAUNCHERS, "Hiraeth (Unity)" or "Hiraeth (web)") are taken out (issue #484), whatever name the player gave
+    them. One write, backed up first. @return whether the file changed"""
     if steam_running():
         raise RuntimeError('Exit Steam completely before adding the shortcut, then run the installer again.')
     path = config / 'shortcuts.vdf'
@@ -220,24 +205,10 @@ def add_shortcut(config, root, preview=True, engine=None):
     if not ours:
         add_entry(entries, shortcut_exe(root), root, MAIN_NAME, shortcut_appid(root))
         changed = True
-    launcher, name, icon_name, swapped = second_shortcut(engine or engine_setting(root))
-    second_icon = str(root / icon_name)
-    # the engine changed: the other engine's shortcut becomes this one (its id, playtime and place kept); a name
-    # or icon of ours follows, one the player gave it stays
-    ours_icons = ('', icon, str(root / UNITY_ICON), str(root / WEB_ICON))
-    for entry in our_entries(entries, shortcut_exe(root, swapped)):
-        set_field(entry, 'Exe', shortcut_exe(root, launcher), lambda _old: True)
-        set_field(entry, 'AppName', name, lambda old: old in SECOND_NAMES)
-        set_field(entry, 'icon', second_icon, lambda old: old in ours_icons)
-        changed = True
-    seconds = our_entries(entries, shortcut_exe(root, launcher))
-    old_names = OLD_UNITY_NAMES if launcher == 'launch-unity' else OLD_NAMES
-    for entry in seconds:
-        changed |= set_field(entry, 'AppName', name, lambda old: old in old_names)
-        changed |= set_field(entry, 'icon', second_icon, lambda old: not old or old == icon)
-    if not seconds and preview:
-        appid = unity_appid(root) if launcher == 'launch-unity' else web_appid(root)
-        add_entry(entries, shortcut_exe(root, launcher), root, name, appid, icon_name)
+    old = {shortcut_exe(root, launcher) for launcher in OLD_LAUNCHERS}
+    kept = [(key, value) for key, value in entries if not (isinstance(value, list) and field(value, 'exe') in old)]
+    if len(kept) != len(entries):
+        entries[:] = [(str(i), value) for i, (_, value) in enumerate(kept)]
         changed = True
     if not changed:
         return False
@@ -274,22 +245,16 @@ def add_entry(entries, exe, root, name, appid, icon='icon.png'):
     entries[:] = [(str(i), value) for i, (_, value) in enumerate(entries)]
 
 
-def shortcut_stale(config, root, preview=True, engine=None):
-    """Whether this account lacks our shortcut, or has it under the old name or without an icon; or has the
-    other engine's second shortcut (to swap); or (preview) lacks the second (second_shortcut), or has it under
-    its old name (or none) or the game's icon (or none)."""
+def shortcut_stale(config, root):
+    """Whether this account lacks our shortcut, or has it under the old name or without an icon, or still has one of
+    the second shortcuts the Deck had (OLD_LAUNCHERS: to take out)."""
     try:
         entries = field(parse_vdf((config / 'shortcuts.vdf').read_bytes()), 'shortcuts')
     except (OSError, ValueError):
         return True
-    launcher, _name, _icon, swapped = second_shortcut(engine or engine_setting(root))
-    old_names = OLD_UNITY_NAMES if launcher == 'launch-unity' else OLD_NAMES
     ours = our_entries(entries, shortcut_exe(root))
-    seconds = our_entries(entries, shortcut_exe(root, launcher))
     return (not ours or any(field(value, 'AppName') in OLD_NAMES or not field(value, 'icon') for value in ours)
-            or bool(our_entries(entries, shortcut_exe(root, swapped)))
-            or (preview and not seconds)
-            or any(field(value, 'AppName') in old_names or field(value, 'icon') in (None, '', str(root / 'icon.png')) for value in seconds))
+            or any(our_entries(entries, shortcut_exe(root, launcher)) for launcher in OLD_LAUNCHERS))
 
 
 def fetch_manifest(url):
@@ -591,23 +556,6 @@ def without_overlay(preload):
     return ':'.join(kept)
 
 
-def game_env(game, gpu=None, ready=None, base=None):
-    """Electron's environment: HIRAETH_GAME names the downloaded game to serve, HIRAETH_GPU the way
-    to draw (GPU_MODES), HIRAETH_READY the file it touches once its window is up (desktop/main.mjs)."""
-    env = {key: value for key, value in (os.environ if base is None else base).items()
-           if key not in ('HIRAETH_GAME', 'HIRAETH_GPU', 'HIRAETH_READY', 'LD_PRELOAD')}
-    preload = without_overlay((os.environ if base is None else base).get('LD_PRELOAD'))
-    if preload:
-        env['LD_PRELOAD'] = preload
-    if game:
-        env['HIRAETH_GAME'] = str(game)
-    if gpu:
-        env['HIRAETH_GPU'] = gpu
-    if ready:
-        env['HIRAETH_READY'] = str(ready)
-    return env
-
-
 def prune_content(root, keep=2):
     """Keep the newest two games and any one in use."""
     for _, path in sorted(content_builds(root).items(), reverse=True)[keep:]:
@@ -670,12 +618,6 @@ def content_update(root):
 
 
 # ---------------------------------------------------------------- the engine: unity
-
-def engine_setting(root):
-    """The engine the "Hiraeth" shortcut starts: DEFAULT_ENGINE, unity (issue #484: an engine.json asking for the web,
-    written by the --engine of earlier runtimes, no longer counts; the file is left as it was)."""
-    return DEFAULT_ENGINE
-
 
 def choose_engine(root):
     """What the "Hiraeth" shortcut starts: the Unity player, whatever engine.json or web.json say. @return (engine, why)"""
@@ -832,30 +774,13 @@ STEAM_ART = {'p.png': 'steam/portrait.png', '.png': 'steam/wide.png', '_hero.png
              '_logo.png': 'steam/logo.png', '_icon.png': 'game/icons/icon-512.png'}
 # ... and the Unity preview's: the same with a Unity badge (scripts/steam-art.mjs unity), the game's where a runtime
 # has none yet
-UNITY_ART = {'p.png': 'steam/unity/portrait.png', '.png': 'steam/unity/wide.png', '_hero.png': 'steam/unity/hero.png',
-             '_logo.png': 'steam/unity/logo.png', '_icon.png': 'steam/unity/icon.png'}
-# ... and "Hiraeth (web)"'s, once the engine is unity: a WEB badge (scripts/steam-art.mjs web)
-WEB_ART = {'p.png': 'steam/web/portrait.png', '.png': 'steam/web/wide.png', '_hero.png': 'steam/web/hero.png',
-           '_logo.png': 'steam/web/logo.png', '_icon.png': 'steam/web/icon.png'}
-
-
 def shortcut_appid(root):
     """The app id Steam gives our shortcut (add_shortcut writes it; Steam names its artwork after it),
     from its launcher and the game's name: the id stays stable."""
     return zlib.crc32((f'"{root / "launch"}"' + MAIN_NAME).encode()) | 0x80000000
 
 
-def unity_appid(root):
-    """The Unity preview's: Steam's scheme too, from its own launcher and name (never the game's id)."""
-    return zlib.crc32((shortcut_exe(root, 'launch-unity') + UNITY_NAME).encode()) | 0x80000000
-
-
-def web_appid(root):
-    """A new "Hiraeth (web)"'s (an account that had no Unity preview to swap): from its own launcher and name."""
-    return zlib.crc32((shortcut_exe(root, 'launch-web') + WEB_NAME).encode()) | 0x80000000
-
-
-def shortcut_appids(config, root, launchers=('launch', 'launch-unity', 'launch-web')):
+def shortcut_appids(config, root, launchers=('launch',)):
     """Our shortcuts' app ids in one account, read from its shortcuts.vdf (by their stable executables)."""
     try:
         document = parse_vdf((config / 'shortcuts.vdf').read_bytes())
@@ -867,8 +792,7 @@ def shortcut_appids(config, root, launchers=('launch', 'launch-unity', 'launch-w
 
 
 def install_art(root, configs, app=None):
-    """Steam's library artwork for our shortcuts (the Unity preview's own, badged: UNITY_ART), in each account's
-    config/grid/: files only, never
+    """Steam's library artwork for our shortcut, in each account's config/grid/: files only, never
     shortcuts.vdf, so it is safe while Steam runs (it shows them once it restarts). Artwork the player
     chose in Steam (a file there that isn't one we wrote) is kept. @return how many files changed"""
     app = app or root / 'current/resources/app'
@@ -879,14 +803,9 @@ def install_art(root, configs, app=None):
         ours = set()
     changed = 0
     for config in configs:
-        targets = [(appid, STEAM_ART) for appid in shortcut_appids(config, root, ('launch',))]
-        targets += [(appid, UNITY_ART) for appid in shortcut_appids(config, root, ('launch-unity',))]
-        targets += [(appid, WEB_ART) for appid in shortcut_appids(config, root, ('launch-web',))]
-        for appid, art in targets:
-            for suffix, name in art.items():
+        for appid in shortcut_appids(config, root):
+            for suffix, name in STEAM_ART.items():
                 source = app / name
-                if not source.is_file():
-                    source = app / STEAM_ART[suffix]   # (a runtime from before the preview's own art)
                 if not source.is_file():
                     continue
                 data = source.read_bytes()
@@ -921,7 +840,7 @@ def local_state(root):
     # the Unity preview's player, its sha256's first 12 ('' before one is installed; the panel ignores it)
     state['unity'] = ((unity_installed(root) or {}).get('sha256') or '')[:12]
     # the engine the next launch starts (choose_engine): unity, always
-    state['engine'], state['engineSetting'] = choose_engine(root)[0], engine_setting(root)
+    state['engine'] = state['engineSetting'] = choose_engine(root)[0]
     game = choose_content(root, current)
     if game:
         try:
@@ -954,54 +873,25 @@ def status(root, content=None, runtime=None):
     return state
 
 
-def offered_file(root, engine=None):
-    """Where the accounts given the second shortcut are kept: the Unity preview's (unity-shortcut.json) while the
-    engine is web, "Hiraeth (web)"'s (web-shortcut.json) once it is unity, so each is offered once."""
-    return root / ('web-shortcut.json' if (engine or engine_setting(root)) == 'unity' else 'unity-shortcut.json')
-
-
-def preview_offered(root, engine=None):
-    """The accounts (their config folders) the second shortcut was given to."""
-    try:
-        return set(json.loads(offered_file(root, engine).read_text()))
-    except (OSError, ValueError, TypeError):
-        return set()
-
-
-def remember_preview(root, configs, engine=None):
-    offered = preview_offered(root, engine)
-    if not {str(config) for config in configs} <= offered:
-        atomic_write(offered_file(root, engine), json.dumps(sorted(offered | {str(config) for config in configs})).encode())
-
-
 def steam_entry(root, configs):
-    """Our shortcuts' artwork and, while Steam is closed (it rewrites shortcuts.vdf from memory as it
-    exits), in accounts that have the game's shortcut: its name and icon if it has the old name, and the
-    Unity preview's shortcut, once (one the player removed stays removed; the installer adds it again).
-    @return whether anything changed"""
+    """Our shortcut's artwork and, while Steam is closed (it rewrites shortcuts.vdf from memory as it exits), in
+    accounts that have the game's shortcut: its name and icon if it has the old name, and the second shortcuts the
+    Deck had taken out (shortcut_stale, add_shortcut). @return whether anything changed"""
     renamed = False
     if not steam_running():
-        engine = engine_setting(root)
-        offered, given = preview_offered(root, engine), []
         for config in configs:
-            if not shortcut_appids(config, root, ('launch',)):
+            if not shortcut_appids(config, root):
                 continue
-            preview = str(config) not in offered
             try:
-                if shortcut_stale(config, root, preview, engine):
-                    renamed |= add_shortcut(config, root, preview, engine)
+                if shortcut_stale(config, root):
+                    renamed |= add_shortcut(config, root)
             except (RuntimeError, ValueError, OSError):
                 continue   # (Steam started meanwhile, or files we won't touch: next time)
-            if preview:
-                given.append(config)
-        if given:
-            remember_preview(root, given, engine)
     return install_art(root, configs) > 0 or renamed
 
 
 def steam_refresh(root):
-    """The background update's Steam step: the launchers (launch-unity is new to installs from before
-    the preview), then steam_entry."""
+    """The background update's Steam step: the launchers, then steam_entry."""
     try:
         write_launchers(root)
     except OSError as error:
@@ -1123,41 +1013,30 @@ def desktop_entry(name, command, icon):
     return f'[Desktop Entry]\nType=Application\nName={name}\nExec="{command}"\nIcon={icon}\nTerminal=false\nCategories=Game;\n'.encode()
 
 
-def write_launchers(root, home=None, engine=None):
-    """launch (the game's shortcut: the engine's), launch-unity (the Unity preview's) and launch-web (the web
-    shortcut's), their icons, and the desktop entries of launch and of the second shortcut (second_shortcut)."""
+def write_launchers(root, home=None):
+    """launch (the game's shortcut), its icon and its desktop entry. The second shortcuts' launchers (OLD_LAUNCHERS)
+    start the Unity player too, until Steam has let go of their entries; their desktop entries and icons go."""
     applications = (home or Path.home()) / '.local/share/applications'
     deck = shlex.quote(str(root / 'current/resources/app/deck.py'))
     app = root / 'current/resources/app'
     atomic_write(root / 'icon.png', (app / 'game/icons/icon-512.png').read_bytes())
-    # (the second shortcut's own icons, a UNITY or WEB badge on the game's: the game's where a runtime has none yet)
-    for icon, art in ((UNITY_ICON, UNITY_ART), (WEB_ICON, WEB_ART)):
-        badged = app / art['_icon.png']
-        atomic_write(root / icon, (badged if badged.is_file() else app / 'game/icons/icon-512.png').read_bytes())
-    for launcher, flag in (('launch', '--launch'), ('launch-unity', '--launch-unity'), ('launch-web', '--launch-web')):
-        # (every launcher, whatever the engine: a shortcut Steam hasn't swapped yet still starts)
-        atomic_write(root / launcher, f'#!/bin/sh\nexec python3 {deck} {flag} "$@"\n'.encode(), 0o755)
-    second, name, icon, swapped = second_shortcut(engine or engine_setting(root))
-    entries = {'launch-unity': 'hiraeth-unity.desktop', 'launch-web': 'hiraeth-web.desktop'}
+    for launcher in ('launch', *OLD_LAUNCHERS):
+        atomic_write(root / launcher, f'#!/bin/sh\nexec python3 {deck} --launch "$@"\n'.encode(), 0o755)
     atomic_write(applications / 'hiraeth.desktop', desktop_entry(MAIN_NAME, root / 'launch', root / 'icon.png'), 0o755)
-    atomic_write(applications / entries[second], desktop_entry(name, root / second, root / icon), 0o755)
-    (applications / entries[swapped]).unlink(missing_ok=True)
+    for entry in ('hiraeth-unity.desktop', 'hiraeth-web.desktop'):
+        (applications / entry).unlink(missing_ok=True)
+    for icon in OLD_ICONS:
+        (root / icon).unlink(missing_ok=True)
 
 
 # ---------------------------------------------------------------- launching
 
-# How Chromium draws, tried in turn while the game doesn't come up: the GPU as Electron picks it
-# (ANGLE on OpenGL), ANGLE on Vulkan, then software. desktop/main.mjs reads HIRAETH_GPU.
-GPU_MODES = ('gl', 'vulkan', 'software')
-RETRY_EXIT = 75      # desktop/main.mjs: its GPU process keeps crashing, try the next mode
-RESTART_EXIT = 76    # desktop/main.mjs: the settings' Restart now, into the update (launched again)
-READY_SECONDS = 30   # no window by then: Electron hangs (a helper process died as it started)
+# The watched start's exits and times (run_game; the Unity player's own are UNITY_READY_SECONDS and UNITY_STOP_SECONDS)
+RETRY_EXIT = 75      # (Electron's, from before #484: its GPU process kept crashing; a failed start)
+RESTART_EXIT = 76    # the settings' Restart now, into the update (launched again: BridgeRunner, as main.mjs did)
+READY_SECONDS = 30   # no first frame by then: a hang
 STOP_SECONDS = 5     # Steam's Exit Game (a signal): this long to close, then killed with its helpers
-PLAYED_SECONDS = 60  # a window up this long has drawn: a crash or kill after it is not the way to draw's fault
-
-
-def session_kind(env):
-    return 'gamescope' if env.get('GAMESCOPE_WAYLAND_DISPLAY') or env.get('XDG_CURRENT_DESKTOP') == 'gamescope' else 'desktop'
+PLAYED_SECONDS = 60  # up this long has drawn: a crash or kill after it is not a failed start
 
 
 def signal_group(group, number):
@@ -1177,7 +1056,7 @@ def group_alive(group):
 
 def run_game(command, env, ready, ready_seconds=READY_SECONDS, stop_seconds=STOP_SECONDS, played_seconds=PLAYED_SECONDS, log=print,
              check=None, stop_signal=signal.SIGINT, cwd=None):
-    """Electron (or the Unity player) in its own process group, watched until it ends; none of its processes
+    """The Unity player in its own process group, watched until it ends; none of its processes
     outlives it (Steam counts the game running, a black screen in Gaming Mode, while any of them does).
     ready: the file it touches once its window is up; check: another way to tell (the player's log).
     @return (how, code, shown): how is 'quit' (it closed, or Steam closed it), 'retry' (it crashed
@@ -1242,30 +1121,6 @@ def run_game(command, env, ready, ready_seconds=READY_SECONDS, stop_seconds=STOP
     return 'retry', code, shown
 
 
-def gpu_start(root, key):
-    """The way to draw that worked last for this runtime build and session kind (gpu.json)."""
-    try:
-        mode = json.loads((root / 'gpu.json').read_text()).get(key)
-    except (OSError, ValueError, AttributeError):
-        mode = None
-    return GPU_MODES.index(mode) if mode in GPU_MODES else 0
-
-
-def gpu_remember(root, key, mode):
-    build = key.split(':')[0] + ':'
-    try:
-        data = json.loads((root / 'gpu.json').read_text())
-        data = {name: value for name, value in data.items() if name.startswith(build)} if isinstance(data, dict) else {}
-    except (OSError, ValueError):
-        data = {}
-    if data.get(key) != mode:
-        data[key] = mode
-        try:
-            atomic_write(root / 'gpu.json', json.dumps(data).encode())
-        except OSError:
-            pass
-
-
 def start_updater(root, current):
     """The background update, in its own systemd unit when it can: outside the game's process tree,
     so Steam doesn't wait for a download to finish before it counts the game closed (a black screen in
@@ -1290,12 +1145,12 @@ def start_updater(root, current):
     return 'child'
 
 
-def launch(root, arguments, run=run_game, relaunch=None, engine=None):
-    """The game: the Unity player for "Hiraeth" (engine None), Electron for "Hiraeth (web)" (engine 'web'), watched
+def launch(root, arguments, run=run_game, relaunch=None):
+    """The game: the Unity player, watched
     (run_game), until it closes; the settings' Restart now launches again (relaunch: this same process
     becomes the new current runtime's launcher, so Steam keeps tracking the game, and the next pin takes
     the update)."""
-    restart = launch_once(root, arguments, run, engine)
+    restart = launch_once(root, arguments, run)
     marker = root / '.restart'
     try:
         wanted = marker.read_text().strip()
@@ -1304,16 +1159,15 @@ def launch(root, arguments, run=run_game, relaunch=None, engine=None):
         wanted = ''
     # (the update the settings restarted for: if it isn't what runs next, they don't offer it again)
     os.environ['HIRAETH_RESTARTED_FOR'] = wanted or str(restart)
-    flag = '--launch-web' if engine == 'web' else '--launch'
-    command = [sys.executable, str((root / 'current').resolve() / 'resources/app/deck.py'), flag,
+    command = [sys.executable, str((root / 'current').resolve() / 'resources/app/deck.py'), '--launch',
                *(['--root', str(root)] if root != ROOT else []), *arguments]
     (relaunch or (lambda argv: os.execv(argv[0], argv)))(command)
 
 
-def launch_once(root, arguments, run=run_game, engine=None):
-    """One launch: the Unity player for "Hiraeth" (launch_unity_watched; none starts: unity_failed, a dialog and
-    exit 1, never the web game), Electron for "Hiraeth (web)" alone (engine 'web'). Exits the process when the game
-    closes or can't draw. @return the runtime build that ran, when the settings asked to restart into an update"""
+def launch_once(root, arguments, run=run_game):
+    """One launch: the Unity player (launch_unity_watched); none starts: unity_failed, a dialog and exit 1, never the
+    web game (issue #484). Exits the process when the game closes. @return the runtime build that ran, when the
+    settings asked to restart into an update"""
     # Resolve before starting the updater. This process runs its immutable build;
     # the background update only affects the next launch. Saves live elsewhere.
     # Hold the short activation lock, never the potentially long download lock.
@@ -1323,11 +1177,7 @@ def launch_once(root, arguments, run=run_game, engine=None):
         current = (root / 'current').resolve(strict=True)
         pin = (current / '.in-use').open('a')
         fcntl.flock(pin, fcntl.LOCK_SH)
-        game = choose_content(root, current)
-        game_pin = (game / '.in-use').open('a') if game else open(os.devnull)
-        if game:
-            fcntl.flock(game_pin, fcntl.LOCK_SH)
-    with pin, game_pin, (root / 'launch.log').open('a' if restarted else 'w') as record:
+    with pin, (root / 'launch.log').open('a' if restarted else 'w') as record:
         def log(line):
             print(f'Hiraeth: {line}', file=sys.stderr, flush=True)
             record.write(f'{time.strftime("%Y-%m-%d %H:%M:%S")} {line}\n')
@@ -1337,42 +1187,13 @@ def launch_once(root, arguments, run=run_game, engine=None):
                 start_updater(root, current)
         except OSError as error:
             log(f'No update check ({error}).')
-        # Keep the pins until Electron exits, so updates cannot remove its assets.
+        # Keep the runtime's pin until the player exits, so updates cannot remove this updater.
         build = json.loads((current / 'resources/app/build.json').read_text()).get('build', 0)
-        why = 'the web shortcut'
-        if engine != 'web':
-            engine, why = choose_engine(root)
-        log(f'Engine {engine} ({why}).')
-        if engine == 'unity':
-            if launch_unity_watched(root, arguments, run, log) == 'restart':
-                return build
-            unity_failed(root, log)
-        key = f'{build}:{session_kind(os.environ)}'
-        ready = root / f'.ready-{os.getpid()}'
-        log(f'Runtime {build}, {session_kind(os.environ)}, game {game or "packaged"}.')
-        for mode in GPU_MODES[gpu_start(root, key):]:
-            log(f'Starting ({mode}).')
-            env = game_env(game, mode, ready)
-            # the settings' Updates section (desktop/deck-updates.mjs) runs this updater on this install
-            env.update(HIRAETH_ROOT=str(root), HIRAETH_PYTHON=sys.executable)
-            how, code, shown = run([str(current / 'hiraeth'), *arguments], env, ready, log=log)
-            if how == 'restart':
-                log(f'Restarting into the update ({mode}).')
-                gpu_remember(root, key, mode)
-                return build
-            if how == 'quit':
-                log(f'Closed ({mode}, exit {code}).')
-                if shown:
-                    gpu_remember(root, key, mode)
-                sys.exit(code)
-            if how == 'ended':
-                log(f'Ended ({mode}, exit {code}) after it had drawn: not tried another way.')
-                gpu_remember(root, key, mode)
-                sys.exit(1)
-            log(f'Did not run ({mode}, exit {code}, window {"shown" if shown else "never shown"}).')
-        # nothing worked: back to Steam's library rather than a black screen
-        log('Gave up: no way to draw worked.')
-        sys.exit(1)
+        engine, why = choose_engine(root)
+        log(f'Engine {engine} ({why}), runtime {build}.')
+        if launch_unity_watched(root, arguments, run, log) == 'restart':
+            return build
+        unity_failed(root, log)
 
 
 def unity_env(root, base=None):
@@ -1626,58 +1447,11 @@ def unity_failed(root, log, show=None):
     sys.exit(1)
 
 
-def exec_player(command, env, cwd, keep, output):
-    """Become the player, so Steam tracks it (and its Exit Game reaches it) directly; the pin's lock
-    (keep) and the log (output, its stdout and stderr) go with it."""
-    os.set_inheritable(keep.fileno(), True)
-    os.dup2(output.fileno(), 1)
-    os.dup2(output.fileno(), 2)
-    os.chdir(cwd)
-    os.execve(command[0], command, env)
-
-
-def launch_unity(root, arguments, run=exec_player, install=update_unity, updater=start_updater):
-    """The Unity preview's shortcut: the installed player (installed first if it isn't yet), pinned so an
-    update never removes it while it runs, with its own data folder and a lasting cache."""
-    for folder in ('unity-cache', 'unity-data'):
-        (root / folder).mkdir(parents=True, exist_ok=True)
-    record = (root / 'unity-launch.log').open('w')
-
-    def log(line):
-        print(f'Hiraeth (Unity preview): {line}', file=sys.stderr, flush=True)
-        record.write(f'{time.strftime("%Y-%m-%d %H:%M:%S")} {line}\n')
-        record.flush()
-    if unity_installed(root) is None:
-        log('No Unity player yet: downloading it (about 300 MB)…')
-        try:
-            install(root)
-        except Exception as error:
-            log(f'Download failed ({error}).')
-    try:   # (the background update, as the game's launch starts it: the runtime, the game, this player)
-        updater(root, (root / 'current').resolve(strict=True))
-    except OSError as error:
-        log(f'No update check ({error}).')
-    (root / 'unity').mkdir(parents=True, exist_ok=True)
-    with (root / 'unity/state.lock').open('a') as state:
-        fcntl.flock(state, fcntl.LOCK_SH)
-        if unity_installed(root) is None:
-            log('The Unity player is not installed (no network, or the background update is still downloading it): try again later.')
-            record.close()
-            sys.exit(1)
-        player = (root / 'unity/current').resolve(strict=True)
-        pin = (player / '.in-use').open('a')
-        fcntl.flock(pin, fcntl.LOCK_SH)
-    command = unity_command(player, root, arguments)
-    log(f'Starting {player.name}: {shlex.join(command)}')
-    with pin, record:   # (exec_player never returns: the player holds them from here)
-        run(command, unity_env(root), player, pin, record)
-
-
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--launch', action='store_true')
-    parser.add_argument('--launch-unity', action='store_true', help='the Unity preview (launch-unity)')
-    parser.add_argument('--launch-web', action='store_true', help='the web runtime, whatever the engine (launch-web)')
+    # (the launchers of the second shortcuts the Deck had, written by earlier runtimes: the game too, issue #484)
+    parser.add_argument('--launch-unity', '--launch-web', dest='launch', action='store_true', help=argparse.SUPPRESS)
     parser.add_argument('--update', action='store_true')
     parser.add_argument('--register-steam', action='store_true')
     parser.add_argument('--from', dest='source', metavar='DIR',
@@ -1696,12 +1470,6 @@ def main():
         parser.error('This package requires Linux x86-64 (Steam Deck).')
     if args.launch:
         launch(root, extra)
-        return
-    if args.launch_web:
-        launch(root, extra, engine='web')
-        return
-    if args.launch_unity:
-        launch_unity(root, extra)
         return
     if extra:
         parser.error('Unknown arguments: ' + ' '.join(extra))
@@ -1749,7 +1517,6 @@ def main():
     # accounts that have the shortcut as it should be need nothing from Steam, only the artwork
     missing = [config for config in configs if shortcut_stale(config, ROOT)]
     if not missing:
-        remember_preview(ROOT, configs)
         changed = install_art(ROOT, configs)
         print('Hiraeth is installed and in Steam' + (' with its library artwork: restart Steam to see it.' if changed else '.'), flush=True)
         return
@@ -1763,7 +1530,6 @@ def main():
         time.sleep(2)  # allow Steam to finish flushing its configuration
     for config in configs:
         add_shortcut(config, ROOT)
-    remember_preview(ROOT, configs)
     install_art(ROOT, configs)
     print('Hiraeth is installed and added to Steam. Reopen Steam or return to Gaming Mode. Updates download while you play and apply next launch.', flush=True)
 

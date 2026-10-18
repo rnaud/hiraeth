@@ -93,22 +93,8 @@ test('Steam\'s library artwork: every image at Steam\'s size, in the package, na
   const deck = read('../scripts/steam-deck/deck.py');
   const dict = (name) => Object.fromEntries([...deck.match(new RegExp(`^${name} = \\{[^}]*\\}`, 'm'))[0].matchAll(/'([p_a-z]*\.png)': '([\w/-]+\.png)'/g)].map((m) => [m[1], m[2]]));
   assert.deepEqual(dict('STEAM_ART'), GRID);
-  // the Unity preview's own, the same pictures badged (steam-art.mjs unity): the same names in Steam's grid, the same sizes
-  const unity = dict('UNITY_ART');
-  assert.deepEqual(Object.keys(unity).sort(), Object.keys(GRID).sort());
-  for (const [suffix, file] of Object.entries(unity)) {
-    assert.match(file, /^steam\/unity\//);
-    if (suffix !== '_icon.png') assert.deepEqual(size(file.slice('steam/'.length)), size(GRID[suffix].slice('steam/'.length)), file);
-  }
-  assert.deepEqual(size('unity/icon.png'), [512, 512]);
-  // ... and the web fallback's, once the engine is Unity (steam-art.mjs: WEB), the same way
-  const web = dict('WEB_ART');
-  assert.deepEqual(Object.keys(web).sort(), Object.keys(GRID).sort());
-  for (const [suffix, file] of Object.entries(web)) {
-    assert.match(file, /^steam\/web\//);
-    if (suffix !== '_icon.png') assert.deepEqual(size(file.slice('steam/'.length)), size(GRID[suffix].slice('steam/'.length)), file);
-  }
-  assert.deepEqual(size('web/icon.png'), [512, 512]);
+  // (issue #484: one shortcut, the game's art alone; the badged art of the second shortcuts is no longer written)
+  assert.doesNotMatch(deck, /^(UNITY|WEB)_ART = /m);
   assert.deepEqual(Object.keys(GRID).sort(), ['.png', '_hero.png', '_icon.png', '_logo.png', 'p.png']);
   assert.match(read('../scripts/package-steam-deck.mjs'), /cp\('desktop\/steam', `\$\{output\}\/source\/steam`/);
 });

@@ -45,9 +45,10 @@ export const CHANGELOG = [
         { where: 'second run', before: 142.4, after: 88.5 },
       ], source: 'docs/systems/performance.md, "Stutters", phase 2' }] },
     // issue #484: scripts/steam-deck/deck.py (choose_engine: unity always, no --engine / deckEngine kill switch;
-    // launch_unity_watched, wait_for_unity, unity_failed, show_error / busy_dialog); release-info.mjs webJson; tests/test_steam_deck.py
-    { text: 'On the Steam Deck, Hiraeth now always starts the Unity version. It no longer slips into the older web version when the Unity one is slow to start or not downloaded yet: a first start downloads it with a progress bar on the screen, and if it truly cannot start, a message says so and you are back in your library. The web version is still there as its own Hiraeth (web) shortcut, for when you choose it.',
-      see: 'On the Steam Deck, start Hiraeth from the library: it opens the Unity version every time. Hiraeth (web) beside it is the only way to the web version.' },
+    // launch_unity_watched, wait_for_unity, unity_failed, show_error / busy_dialog; add_shortcut / shortcut_stale take
+    // launch-web and launch-unity out of shortcuts.vdf, no Electron launch); release-info.mjs webJson; tests/test_steam_deck.py
+    { text: 'On the Steam Deck, Hiraeth is now one game in your library and always starts the Unity version. It no longer slips into the older web version when the Unity one is slow to start or not downloaded yet: a first start downloads it with a progress bar on the screen, and if it truly cannot start, a message says so and you are back in your library. The Hiraeth (web) shortcut leaves your library the next time the game updates while Steam is closed.',
+      see: 'On the Steam Deck, start Hiraeth from the library: it opens the Unity version every time. After an update with Steam closed (or a restart of the Deck), Hiraeth (web) is no longer in the library.' },
   ] },
   { v: '1.84', date: '2026-10-17', items: [
     // issue #439: src/costumes.js (HEADS: the 47 pieces of the 15 hat sets, HAT_SETS, HAT_SET_WORLDS, hoodShell / hoodNeck /

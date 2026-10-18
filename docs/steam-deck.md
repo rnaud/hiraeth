@@ -2,11 +2,14 @@
 
 Since the switch (v1.79, docs/plans/unity-default-portables.md D19) the **Hiraeth** shortcut starts the
 Unity bridge's Linux player ("The engine", below): the same game's JavaScript drawn by Unity, faster in
-every world (docs/systems/performance.md, "The Steam Deck, round 12"). It only ever starts the Unity player
-(issue #484): when no player starts, a dialog says so and Steam's library comes back, never the web game. The web
-build stays beside it as **Hiraeth (web)**, started only from its own shortcut.
+every world (docs/systems/performance.md, "The Steam Deck, round 12"). Since issue #484 it is the Deck's only
+shortcut and it only ever starts the Unity player: when no player starts, a dialog says so and Steam's library comes
+back. Nothing on the Deck starts the web build any more (the **Hiraeth (Unity)** and **Hiraeth (web)** shortcuts
+it had are taken out of Steam: "One shortcut", below).
 
-The web build packages the web game with Electron for Linux x86-64.
+The runtime package is still the web build packaged with Electron for Linux x86-64, as the vehicle of `deck.py` (the
+installer and updater), the library artwork and the icon; the sections on Electron below describe how the web build
+ran, up to v1.84.
 Chromium renders the existing Three.js game; all assets are bundled for offline
 play. It runs natively on Linux without Proton, root access, FUSE, or changes to
 SteamOS's read-only system. It is distributed as a non-Steam game, not through
@@ -38,7 +41,10 @@ dimming or sleeping while it runs (`powerSaveBlocker`).
 
 ## Launching (`deck.py --launch`)
 
-Steam starts `launch`, which execs `deck.py --launch`, which runs Electron and watches it
+(Up to v1.84, with the web build. Steam's `launch` now starts the Unity player: "The engine", below; `run_game`, the
+watched start and the clean exit are the player's.)
+
+Steam started `launch`, which execs `deck.py --launch`, which ran Electron and watched it
 (`run_game`). Gaming Mode must never be left on a black screen:
 
 - **No Steam overlay in Chromium.** Steam preloads `gameoverlayrenderer.so` (`LD_PRELOAD`) into
@@ -126,8 +132,8 @@ that finds Steam closed (`steam_entry`). The grid files use the shortcut's `appi
 
 ## The Unity preview (issue #146)
 
-(How the Unity player came to the Deck, before the switch. Its download, its folders and its launch below are
-still how the player is installed and run; what changed at the switch is which shortcut starts it: "The engine".)
+(How the Unity player came to the Deck, before the switch. Its download and its folders below are still how the
+player is installed; its own shortcut and `--launch-unity` are gone since #484: "The engine".)
 
 A second shortcut, **Hiraeth (Unity)** ("Hiraeth (Unity preview)" until 1.73), starts the Unity bridge's Linux player (IL2CPP,
 Vulkan; `docs/systems/unity.md`, measured in `docs/systems/performance.md`, "The Steam Deck, round
@@ -175,8 +181,8 @@ build stays the main shortcut, unchanged.
 (issue #484): the **Hiraeth** shortcut starts the Unity player whatever is on the Deck. The ways it used to end up in
 the web game are gone: the `--engine web` setting (an `engine.json` from before is ignored, left on the disk), web.json's
 `deckEngine` kill switch (`engine-switch.json`, `engine-remote.json`: no longer written or read), the watched start's
-last step to Electron, and the web at once while no player was installed. The web runtime stays as the package that
-carries `deck.py` and as **Hiraeth (web)**, the second shortcut, which starts it only when the player picks it.
+last step to Electron, the web at once while no player was installed, and the **Hiraeth (web)** shortcut ("One
+shortcut", below). The web runtime stays only as the package that carries `deck.py`; nothing launches it.
 
 - **The frame rate.** The player runs with vsync, held to the display's refresh (90 Hz on the OLED, 60 on the LCD;
   `BridgeRunner`, `QualitySettings.vSyncCount = 1`; `-vsync 0` uncapped). Uncapped, the worlds that run above 90
@@ -209,17 +215,17 @@ carries `deck.py` and as **Hiraeth (web)**, the second shortcut, which starts it
 - **Its own data.** The player's saves and settings stay in `unity-data/` (`XDG_CONFIG_HOME`, `store.json`; the
   previous run's log kept as `player-prev.log`), the web's in `~/.config/hiraeth`. No migration between the two
   (the author's choice for now; the importer is D5): after the switch **Hiraeth** starts a new journey in the
-  Unity player, and the journey played on the web is where it was under **Hiraeth (web)**.
-- **One shortcut.** **Hiraeth** (Exe `launch`: its app id, playtime and artwork) starts the Unity player. The second
-  shortcut is **Hiraeth (web)** (`launch-web`, `deck.py --launch-web`: Electron). Installs from before the switch
-  had **Hiraeth (Unity)** there (`launch-unity`, the preview, unwatched; the code still calls that layout the engine
-  `web`). At the switch, the same Steam entry swaps its Exe (`second_shortcut`, `add_shortcut`): its app id,
-  playtime and place stay, a name or icon we gave it follows (`Hiraeth (web)`, `icon-web.png`, the WEB-badged art,
-  `scripts/steam-art.mjs` → `desktop/steam/web/`, `WEB_ART`), one the player chose stays. That edits
-  `shortcuts.vdf`, so it happens with Steam closed: the installer, `--register-steam`, or a
-  background update that finds Steam closed (`steam_entry`); until then the old entry still works (all three
-  launchers are always written). An account that had removed the preview is offered the web shortcut once
-  (`web-shortcut.json`). The desktop entries follow (`hiraeth-web.desktop` replaces `hiraeth-unity.desktop`).
+  Unity player; the journey played on the web stays in `~/.config/hiraeth`, which no shortcut opens since #484.
+- **One shortcut** (issue #484). **Hiraeth** (Exe `launch`: its app id, playtime and artwork) is the Deck's only
+  shortcut. The second ones it had, **Hiraeth (Unity)** (`launch-unity`, until the switch) and **Hiraeth (web)**
+  (`launch-web`, after it), are known by their Exe (`OLD_LAUNCHERS`, whatever the player named them) and taken out
+  of `shortcuts.vdf` by `add_shortcut`, backed up first, and never added again. That edits `shortcuts.vdf`, so it
+  happens with Steam closed: the installer, `--register-steam`, or a background update that finds Steam closed
+  (`steam_entry`, `shortcut_stale`). Until then their launchers start the Unity player too (`write_launchers`
+  writes all three as `deck.py --launch`, and `--launch-web` / `--launch-unity` from earlier runtimes' launchers
+  mean `--launch`). Their desktop entries (`hiraeth-web.desktop`, `hiraeth-unity.desktop`) and icons
+  (`icon-web.png`, `icon-unity.png`) go at the next update; their library artwork stays in `config/grid/`, unused.
+  The web build's journey stays in `~/.config/hiraeth`, untouched, but no shortcut reaches it.
 - **Downloads.** The settings' Download (`--update --progress`) takes the player too
   (its bar, `desktop/deck-updates.mjs`, still sums the runtime and the game only: it sits full while the player
   downloads; the Updates section in Unity, D13, is where that belongs).
@@ -353,15 +359,14 @@ while the repository is public): launch the game twice before the repository goe
 `build.json` stays exactly `{build, version}`, as those updaters check.
 
 - Game files: `~/.local/share/hiraeth-deck/`
-- Save data and settings: `~/.config/hiraeth/` (separate from browser/Android saves)
+- Save data and settings: `unity-data/` (the Unity player's); `~/.config/hiraeth/` (the web build's, up to v1.84)
 - Downloaded game updates: `~/.local/share/hiraeth-deck/web/<build>/`
 - Update and launch diagnostics: `~/.local/share/hiraeth-deck/update.log`, `launch.log`
-- The Unity preview: its player in `~/.local/share/hiraeth-deck/unity/`, its saves and logs in
-  `unity-data/`, its pipeline cache in `unity-cache/`, `unity-launch.log`
+- The Unity player: in `~/.local/share/hiraeth-deck/unity/`, its saves and logs in
+  `unity-data/`, its pipeline cache in `unity-cache/`
 - The engine: `unity-health.json` (each player build's watched start; `engine.json` and `engine-remote.json` from
   before #484 are ignored)
-- Desktop launchers: `~/.local/share/applications/hiraeth.desktop`, `hiraeth-unity.desktop` (`hiraeth-web.desktop`
-  in its place once the engine is unity)
+- Desktop launcher: `~/.local/share/applications/hiraeth.desktop`
 
 For a manual update or to retry Steam registration, rerun the installation command.
 For registration without downloading, run:
@@ -474,5 +479,5 @@ Do not add `--no-sandbox` to the installed shortcut. That flag is used only in C
 
 Remove the shortcut through Steam's **Manage → Remove non-Steam game from your
 library**. With the game closed, delete `~/.local/share/hiraeth-deck` and
-`~/.local/share/applications/hiraeth.desktop` (and `hiraeth-unity.desktop`) to uninstall. Keep
-`~/.config/hiraeth` to preserve progress.
+`~/.local/share/applications/hiraeth.desktop` to uninstall (the Unity player's progress is in
+`~/.local/share/hiraeth-deck/unity-data/`: copy it out first to keep it). `~/.config/hiraeth` holds the web build's.
