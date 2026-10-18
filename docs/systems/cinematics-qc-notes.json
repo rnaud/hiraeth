@@ -1,525 +1,525 @@
 {
- "exported": "2026-10-13T18:00:00.000Z",
+ "exported": "2026-10-18T16:00:00.000Z",
  "notes": {
   "prologue": {
    "verdict": "Needs work",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 4/5, interest 5/5. As before: the script waits at the walk (it can't press the voicemail), so the frames stop at the cockpit; the docked drone sits on his tank in every shot from behind. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 4/5, interest 5/5. As before: the script waits at the walk (it can't press the voicemail), so the frames hold the cabin from 21 s on; Plumb's new beat (#434) and the walk down the ramp not reached. Not a fault",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "desert.flow": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 4/5. First run: did not play on the review page (its staging stood him by the lever that went with issue #158: \"reading postAt of undefined\"); every desert film was also staged with the tree already lit (the old-save step read the seeded ship.powered as a save past the tree) Fixed: Staged beside the drain's debris; the desert's films on a save with its quest's version.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "desert.fill": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 4/5. The script's pop at 5.9 s is the cut from close on the glass to over his shoulder (a size change, accepted); the docked drone beside his face in D. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. The script's pop at 5.9 s is the cut from close on the glass to over his shoulder (a size change, accepted, as v1.66)",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "desert.lit": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 4.5/5, interest 5/5. New (#239). First runs: refused on the review page (fell to the generic branch, then the tree already lit by the old-save step). By eye: A is his back against the trunk, the stone going into the roots unseen; then the spark up the bark and the long crane to the whole tree, strong; no face shot (by design); villagers' speech bubbles over C. Fixed: Staged as in play: the water up and seen, the stone in his pack, at the roots' front; the desert seed fixed.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 4.5/5, interest 5/5. As v1.66: A his back against the trunk; villagers' speech bubbles over C (diegetic)",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "arzach.bird": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 5/5. The drone on his shoulder beside his face in C. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. The traveller's head cut by the bottom of B as the bird comes over (minor); the docked drone no longer by his face (#294)",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "arzach2.bell": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 5/5. First run: the review page played Vael's bird instead (merged world: staged by the level, not the part). Then: staged on the rope's foot, the rope ran down through his face in D. Fixed: Staged by the part (W.parts.arzach2), an arm's length from the rope; D filmed from the side the rope is not on (clearSide)",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "perdide.crystal": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 4/5. The drone beside his face in D. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "perdide2.pools": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5 → 4.5/5, interest 4/5. First run: the review page played the crystal's film (merged world). Then: the lit pools' glow blows out the lower third of his face shot. Fixed: Staged by the part (W.parts.perdide2)",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "edena.terraces": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 5/5. — (a villager's \"Get off the slope!\" bubble in C, diegetic) Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "incal.lodestar": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 4/5. —. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "glassdunes.clock": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 4 → 5/5. Three panels in 7.2 s (under the moments' 8–10 s), the cogs of its beat only small in A. Fixed: A fourth panel: low by a great cog turning in the sand, the house past it (cogShot); 9.2 s.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. Two seconds (B) on one clock hand against the dark face read as a near-empty frame (minor)",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "buried.wheel": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 5/5. —. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "spheres.chord": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 4/5. —. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "bazaar.broadcast": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 4/5. First run: his face shot was a flat wall (48 frames grazing): the review staged him on the square, not at the console up the tower where you play it. Fixed: Staged at the console.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "underwater.whales": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 4.5/5, interest 4/5. Three panels in 7.6 s; B the whale in the dark sea, three frames nearly empty (by design, but hard to read) Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 4.5/5, interest 4/5. Four panels now (#295), 9.6 s; the whale's panels in the dark sea read as half-empty frames (5 of 10), by design but hard to read",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "moonfoundry.moon": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 4/5. Three panels in 7.4 s; \"every hung moon turns to it\" not shown (one moon in B) Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "verdict": "Needs work",
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 3/5, interest 4/5. New: A, the wide from the floor (MOON.BACK 32 m from the door), is inside a solid: 52 frames, the first 2.6 s a flat navy face with orange bars. Something solid stands where the lens is set now: since v1.66 the Casting-House was rebuilt (#416, #383) and a port added at the landing (#441). D's face shot half a dark wall. Four panels now (#295)",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "spacecity.cables": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 4/5. Three panels in 7.4 s. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "verdict": "Needs work",
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 3.5/5, interest 3.5/5. New: B (3-5 s), the cables drawing taut, is filled by a teal wall: the beat is not seen. A third of A is the same wall. The script scores it 5 (not inside, not grazing): by eye. Four panels now (#295)",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "lantern.arrive": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 5/5. The last line's subtitle fades over his chest in the face shot. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "homecoming.first": {
    "verdict": "Needs work",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 4 → 3.5/5, interest 4 → 3/5. After the landing, ~70 s of cargo lines over one held two-shot (him and the ship), Lou's head cut by the frame's corner. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 4/5, interest 4/5. Times out at 120 s, as before. The cargo lines now cut between angles (#296 fixed: interest 3 → 4). The face shot at 51 s and 120 s puts the hull's scar right behind his head, a dark blot (minor); the warp reads as a blank cream frame at 17 s (by design)",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "homecoming.final": {
    "verdict": "Needs work",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 4 → 3.5/5, interest 4/5. At the slab, his arm and back fill a third of the frame for ~35 s; Lou's close cut at the chest. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 4/5, interest 4/5. Times out at 120 s, as before. The slab's angles now frame everyone (#296 fixed); Lou's close at 86 s has the top of her head under the bar, and the hull's scar sits behind his head in the face shots (minor)",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "home.homage": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 4/5. —. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "home.windowSeat": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5 → 4/5, interest 4/5. The reverse angle has a white, unlit patch on the wall at the left (a see-through or unshaded face); his head touches the top bar as he stands. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 4.5/5, interest 4/5. The white patch is gone (#298); in the first angle he stands in the window's ring, his head close under the bar at 9 s (minor)",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "call.1": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5 → 4.5/5, interest 4/5. Multi-angle now; the closing punch-in from the same spot (fov 49 → 36) reads as a jump cut. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "call.2": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 4/5. —. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "call.3": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 4/5. —. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "call.4": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 4/5. —. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "call.5": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 4/5. — (a 10.7 s hold, on the busts) Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "call.6": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5 → 4.5/5, interest 4/5. The closing punch-in reads as a jump cut; the drone beside his face in the close. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "call.7": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 4/5. — (45 s, was 77) Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "call.8": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5 → 4.5/5, interest 4/5. The closing punch-in (36.1 s) reads as a jump cut. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "call.9": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5 → 4.5/5, interest 4/5. The closing punch-in reads as a jump cut. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "call.10": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 3 → 4/5. — (four angles now, was one push-in) Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "call.11": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5 → 4.5/5, interest 3 → 4/5. The closing punch-in reads as a jump cut. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "call.12": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 3 → 4/5. —; skip ends it in 1.6 s. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "call.ilen": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5 → 4.5/5, interest 4/5. Two punch-ins (24.6, 52.1 s) from the same spot. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "call.ilen.after": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 4/5. —. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "call.trace": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 4/5. —. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "call.part.arzach2": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 3 → 4/5. — (short, to the point, four angles) Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. The script counts one shot: its cuts are eased moves now (#297), four angles by eye",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "call.part.perdide2": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5 → 4.5/5, interest 3 → 4/5. The closing punch-in reads as a jump cut. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "arrival.desert": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 4/5. — (the touchdown's dust fills the lower frame a second, as in every arrival); skip ends it in 2.2 s and sets him at the ramp's foot. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "arrival.arzach": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 4/5. —. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "arrival.perdide": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 4/5. —. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "arrival.edena": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 4/5. —. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "arrival.underwater": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 4/5. — (dark water reads as near-empty frames, by design) Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "arrival.incal": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 4/5. — (the dust puffs hide the ship's lower half in the touchdown shot) Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 4.5/5, interest 4/5. The first landing now comes down wide over the port (#327, #441), 24.5 s; the hand-back frame has a grey slab across him, the follow camera behind a post at the ramp's foot (minor)",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "arrival.glassdunes": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 4/5. —. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "arrival.buried": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 4/5. —. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "arrival.moonfoundry": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 4/5. —. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. The first landing comes down wide under the foundry's roof (#327); at touchdown (14 s) the dust still reads as a row of beige boulders for a frame (#299's settle, minor)",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "arrival.spheres": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 4/5. —. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "arrival.spacecity": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 4/5. First run: 3.7 s of black frames in the descent (7–10 s): the lens's height came back NaN over the void (the terrain answers NaN there, and `??` let it through) Fixed: Ship.groundAt / floorAt fall back on a finite ground.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "arrival.bazaar": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 4/5. —. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "arrival.mangrove": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 4/5. — (night: near-empty frames by design) Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "arrival.waterfall": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 4/5. —. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "arrival.saltharbour": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 4/5. —. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "arrival.antennas": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 4/5. —. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "arrival.eclipse": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 4/5. — (the dust puffs fill the lower half of the touchdown shot) Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "arrival.fallenring": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 4/5. —. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "arrival.underside": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 4/5. —. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "arrival.home": {
    "verdict": "Needs work",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 4/5, interest 3/5. As before: waits on the cargo check, one held look out of the windshield. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 4/5, interest 3/5. As before: waits on the cargo check, one held look out of the windshield",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "arrival.lantern": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 4/5. —. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "takeoff": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 4/5. —. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "box.desert.backpack": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 5/5. —. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "box.desert.lift": {
    "verdict": "Pass",
-   "text": "Re-run 2026-10-14 (issues #292, #293, #334) under every boxPlan (shoulder, left, side, high): tech 5/5, interest 4/5. The opening had his back at arm’s length and his head above the frame: the lens now rises over his shoulder until his head and the chest are both in (keepHead with a subject); the close keeps him in (#293). Fixed: the opening’s framing, the closing shot.",
-   "updated": "2026-10-14T06:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 4.5/5, interest 4/5. As v1.66: in the small round room his back and tank fill the left half of every frame; the closing frame has him at the edge",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "box.desert.gun": {
    "verdict": "Pass",
-   "text": "Re-run 2026-10-14 (issues #293, #334) under every boxPlan: tech 5/5, interest 4/5. The opening’s head was at the top edge; the cut back to play after trying it was a 0.7–0.9 m jump (a pop under shoulder, side and high): now a 0.6 s blend where play’s lens is that near. Fixed: the opening’s framing, the hand-back.",
-   "updated": "2026-10-14T06:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "box.desert.star": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 5/5. —. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "box.desert.temple.sword": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 4/5, interest 4/5. First look: the closing close-up puts his face low in the bottom-right corner, half under the bar. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "box.desert.temple.shield": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 3.5/5, interest 4/5. First look: the closing frame is an empty corner of the room (floor and wall, no traveller, no chest) Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "box.incal.soles": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-09 (v1.3: closing beats): tech 5/5, interest 4/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one side (from the box’s side, then from where it stood at the item and his face); v1.3: a closing beat by kind, here keep (the item turned over in his hand and pocketed).",
-   "updated": "2026-10-09T22:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "box.incal.temple.jetpack": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-09 (v1.3: closing beats): tech 5/5, interest 5/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one left (over his left shoulder); v1.3: a closing beat by kind, here try (the item tried once).",
-   "updated": "2026-10-09T22:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "box.incal.sunglass": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 4.5/5, interest 4/5. First look (new in v1.52): the opening shots frame his legs and the chest; his head cut by the top bar in the close. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "box.incal.bridge": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-09 (v1.3: closing beats): tech 5/5, interest 5/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one left (over his left shoulder); v1.3: a closing beat by kind, here try (the item tried once).",
-   "updated": "2026-10-09T22:00:00.000Z"
+   "verdict": "Needs work",
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 4/5, interest 5/5. New: the health HUD shows through the scene (the script's hudLeaks: health); his head under the top bar at 8 s",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "box.arzach.hush": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-09 (v1.3: closing beats): tech 5/5, interest 4/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one side (from the box’s side, then from where it stood at the item and his face); v1.3: a closing beat by kind, here keep (the item turned over in his hand and pocketed).",
-   "updated": "2026-10-09T22:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "box.arzach.temple.glider": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-09 (v1.3: closing beats): tech 5/5, interest 5/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one side (from the box’s side, then from where it stood at the item and his face); v1.3: a closing beat by kind, here try (the item tried once).",
-   "updated": "2026-10-09T22:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "box.arzach.hook": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 5/5. —. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "box.arzach2.scarf": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-09 (v1.3: closing beats): tech 5/5, interest 4/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one left (over his left shoulder); v1.3: a closing beat by kind, here keep (the item turned over in his hand and pocketed).",
-   "updated": "2026-10-09T22:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "box.arzach2.temple.bell": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-09 (v1.3: closing beats): tech 5/5, interest 5/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one shoulder (over his right shoulder, as before); v1.3: a closing beat by kind, here play (the item plays a few notes).",
-   "updated": "2026-10-09T22:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "box.garage.level": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-09 (v1.3: closing beats): tech 5/5, interest 4/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one shoulder (over his right shoulder, as before); v1.3: a closing beat by kind, here keep (the item turned over in his hand and pocketed).",
-   "updated": "2026-10-09T22:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "box.garage.temple.coil": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-09 (v1.3: closing beats): tech 5/5, interest 5/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one shoulder (over his right shoulder, as before); v1.3: a closing beat by kind, here fit (the item fitted to the pack).",
-   "updated": "2026-10-09T22:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "box.buried.resin": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-09 (v1.3: closing beats): tech 5/5, interest 4/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one high (from above his shoulder, down on the box); v1.3: a closing beat by kind, here keep (the item turned over in his hand and pocketed).",
-   "updated": "2026-10-09T22:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "box.buried.temple.cell": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-09 (v1.3: closing beats): tech 5/5, interest 5/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one high (from above his shoulder, down on the box); v1.3: a closing beat by kind, here fit (the item fitted to the pack).",
-   "updated": "2026-10-09T22:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "box.buried.monocle": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-09 (v1.3: closing beats): tech 5/5, interest 5/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one left (over his left shoulder); v1.3: a closing beat by kind, here try (the item tried once).",
-   "updated": "2026-10-09T22:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "box.edena.pouch": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-09 (v1.3: closing beats): tech 5/5, interest 4/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one high (from above his shoulder, down on the box); v1.3: a closing beat by kind, here keep (the item turned over in his hand and pocketed).",
-   "updated": "2026-10-09T22:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. The script's near-empty frames are the meadow's flat pink ground from above (accepted)",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "box.edena.temple.bloom": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-09 (v1.3: closing beats): tech 5/5, interest 5/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one shoulder (over his right shoulder, as before); v1.3: a closing beat by kind, here try (the item tried once).",
-   "updated": "2026-10-09T22:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "box.edena.bubble": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-09 (v1.3: closing beats): tech 5/5, interest 5/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one side (from the box’s side, then from where it stood at the item and his face); v1.3: a closing beat by kind, here try (the item tried once).",
-   "updated": "2026-10-09T22:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "box.spheres.shell": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-09 (v1.3: closing beats): tech 5/5, interest 5/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one left (over his left shoulder); v1.3: a closing beat by kind, here point (the item points him to the nearest shut box).",
-   "updated": "2026-10-09T22:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "box.spheres.temple.lens": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 5/5. — (on its dais, as fixed in v1.6) Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "box.spheres.bomb": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-09 (v1.3: closing beats): tech 5/5, interest 5/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one left (over his left shoulder); v1.3: a closing beat by kind, here try (the item tried once).",
-   "updated": "2026-10-09T22:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "box.perdide.reed": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-09 (v1.3: closing beats): tech 5/5, interest 4/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one side (from the box’s side, then from where it stood at the item and his face); v1.3: a closing beat by kind, here keep (the item turned over in his hand and pocketed).",
-   "updated": "2026-10-09T22:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "box.perdide.temple.stun": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-09 (v1.3: closing beats): tech 5/5, interest 5/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one high (from above his shoulder, down on the box); v1.3: a closing beat by kind, here try (the item tried once).",
-   "updated": "2026-10-09T22:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "box.perdide.fan": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-09 (v1.3: closing beats): tech 5/5, interest 5/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one high (from above his shoulder, down on the box); v1.3: a closing beat by kind, here try (the item tried once).",
-   "updated": "2026-10-09T22:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "box.perdide2.moss": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-09 (v1.3: closing beats): tech 5/5, interest 4/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one side (from the box’s side, then from where it stood at the item and his face); v1.3: a closing beat by kind, here keep (the item turned over in his hand and pocketed).",
-   "updated": "2026-10-09T22:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "box.perdide2.temple.lantern": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-09 (v1.3: closing beats): tech 5/5, interest 4/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one high (from above his shoulder, down on the box); v1.3: a closing beat by kind, here keep (the item turned over in his hand and pocketed).",
-   "updated": "2026-10-09T22:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "box.perdide2.boomerang": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-09 (v1.3: closing beats): tech 5/5, interest 5/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one shoulder (over his right shoulder, as before); v1.3: a closing beat by kind, here try (the item tried once).",
-   "updated": "2026-10-09T22:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "box.bazaar.temple.echo": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-09 (v1.3: closing beats): tech 5/5, interest 5/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one shoulder (over his right shoulder, as before); v1.3: a closing beat by kind, here play (the item plays a few notes).",
-   "updated": "2026-10-09T22:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "box.moonfoundry.court": {
    "verdict": "Pass",
-   "text": "Re-run 2026-10-14 (issues #292, #293, #334) under every boxPlan: tech 5/5, interest 4/5. Opens from inside the alcove (#292), no blank frame; his head kept in the opening (#334); a forced side plan, which had framed only the chest’s flank, now has him in profile with the chest. Fixed: the lens and the room, the opening’s framing.",
-   "updated": "2026-10-14T06:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. The yards' boxes open from inside their alcove now (#292 fixed): no bars, no blank frame",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "box.moonfoundry.bellows": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 4/5. —. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "box.moonfoundry.temple.tongs": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 4/5. —. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "box.spacecity.court": {
    "verdict": "Pass",
-   "text": "Re-run 2026-10-14 (issues #292, #293, #334) under every boxPlan: tech 5/5, interest 4/5. As the founders’ court: from inside the alcove, his head kept in the opening. Fixed: the lens and the room, the opening’s framing.",
-   "updated": "2026-10-14T06:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. #292 fixed: no bars, no blank frame (by the script; the Moon Foundry's court seen by eye)",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "box.spacecity.starthread": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5 → 4.5/5, interest 4/5. Through the opening (0–6 s) the roof's parapet hides him to the chest and most of the chest. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "box.spacecity.temple.tether": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 4/5. —. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "box.underwater.court": {
    "verdict": "Pass",
-   "text": "Re-run 2026-10-14 (issues #292, #293, #334) under every boxPlan: tech 5/5, interest 4/5. As the founders’ court: from inside the alcove, his head kept in the opening. Fixed: the lens and the room, the opening’s framing.",
-   "updated": "2026-10-14T06:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. #292 fixed: no bars, no blank frame (by the script; the Moon Foundry's court seen by eye)",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "box.underwater.pearl": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5 → 4/5, interest 4/5. A dark green rail cuts across the frame through the opening (1–5 s); the close is the back of his head. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "box.underwater.temple.horn": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 4/5. —. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   },
   "trailer": {
    "verdict": "Pass",
-   "text": "QC pass 2026-10-13 (v1.66, docs/audits/cinematics-v1.66.md): tech 5/5, interest 5/5. Frames only (scrubbed at 0, 6, 15, 21 s): at 15 s the rider sits cut by the frame's right edge; at 21 s a spire stands through the bird's wing. Fixed: —.",
-   "updated": "2026-10-13T18:00:00.000Z"
+   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. No problem found.",
+   "updated": "2026-10-18T16:00:00.000Z"
   }
  }
 }

@@ -17,7 +17,7 @@ The pass below is the v1.6 baseline (2026-10-09, 91 cinematics). The review page
 Items 45, Travel 22, Recordings 17, World moments 17, Story 5, Trailer 1). The second full pass, v1.66
 (2026-10-13, 80 run and 27 boxes carried over), is its own report: [docs/audits/cinematics-v1.66.md](../audits/cinematics-v1.66.md)
 (4.51: tech 4.79, interest 4.24), summed up under "The second full pass (v1.66)" below; the table here stays the
-v1.6 pass's, and the verdicts file (`cinematics-qc-notes.json`) holds the latest verdict for each of the 107.
+v1.6 pass's, and the verdicts file (`cinematics-qc-notes.json`) holds the latest verdict for each (the v1.85 pass, 104).
 
 ## The script: `scripts/cinematics-qc.mjs`
 
@@ -251,6 +251,14 @@ report, its table (v1.6 → v1.66 per row), pictures and proposed issues: [cinem
   small rooms; the docked drone beside his face in every close-up; the three-panel climaxes of the whales, the moon
   and the cables; the homecomings' held cargo shot; the recordings' jump-cut punch-in; the window seat's white
   patch; the arrivals' dust.
+
+### The third full pass (v1.85)
+
+On 2026-10-18 (issue #467), the same script and rules: all 104 on the review page run (in two runs: a network outage
+stopped the first after 25), no fixes. The report and its table: [cinematics-v1.85.md](../audits/cinematics-v1.85.md)
+(4.57: tech 4.89, interest 4.25). Every v1.66 issue (#292, #294–#299) held. New: the fourteen temple endings (v1.79) are
+not on the review page (#490); the Moon Foundry's climax opens inside a solid and the Floating City's cables are hidden by
+a wall, both worlds rebuilt round their films since (#491); the City-Shaft's bridge box shows the health HUD (#501).
 
 ### The table
 

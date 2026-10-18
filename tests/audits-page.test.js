@@ -89,7 +89,7 @@ test('the score tables are read from the real reports: criteria, totals, "before
   assert.deepEqual([desert.from, desert.to, desert.delta], [4, 4.11, 0.11], 'matched with v1.49\'s row by name');
   assert.deepEqual(desert.criteria.find((c) => c.name === 'Spacing'), { name: 'Spacing', from: 4, to: 5 }, 'and its criteria by header');
 
-  const cine = byId('cinematics-v1.66');   // (the newest pass carries the review page's verdicts, issue #226)
+  const cine = byId('cinematics-v1.85');   // (the newest pass carries the review page's verdicts, issue #467)
   const ct = cine.scoreTables.find((x) => x.rows.length > 80);
   assert.ok(ct, 'the cinematics table');
   assert.equal(ct.scoreCols.length, 2, 'tech and interest (not the length or the cuts)');
