@@ -1,0 +1,55 @@
+docs/systems/bridge-gaps.md
+  s_5f899ba316b5dc::t_6e26306afea0bd 10-11,14,57,108
+engine/bridge-gaps.js
+  s_5f899ba316b5dc::t_642c4a2a2d2d8e 143,331-332
+engine/game.js
+  s_5f899ba316b5dc::t_76a51febe154d1 65,71,717-719,1747-1748
+engine/mirror.js
+  s_5f899ba316b5dc::t_99f3313f715ca8 61,63-66,198-199,201-204
+engine/sequences.js
+  s_5f899ba316b5dc::t_5b2388d07ede4b 215-230
+engine/unity/backend.js
+  s_5f899ba316b5dc::t_473a02e7ad576e 145-146,251-255,258,372-380,409-423
+engine/unity/pack.js
+  s_5f899ba316b5dc::t_ad40bc6bd84b14 35-39,45-46,49,51-53,93,106,136
+engine/unity/port-format.js
+  s_5f899ba316b5dc::t_e6a8a774823f90 157-165
+tests/sequences-web.json
+  s_5f899ba316b5dc::t_47d164ff30d956 3,4811-4945
+unity/Hiraeth/Assets/Hiraeth/Runtime/WorldLoader.cs
+  s_5f899ba316b5dc::t_bec198e9ab2d1c 217-226,266-268
+unity/Hiraeth/Assets/Hiraeth/Shaders/HiraethCommon.hlsl
+  s_5f899ba316b5dc::t_97ae778f55257a 27-44
+unity/Hiraeth/Assets/Hiraeth/Shaders/Surface.shader
+  s_5f899ba316b5dc::t_dd62124dea755b 60-62,175-180,188,265-283,531,563-566,622-630,850-854,856-899,918-937,951-952,969-970,1022-1038,1081-1082,1104-1105,1124-1125,1523-1524
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHost.cs
+  s_5f899ba316b5dc::t_52f79d6774316a 139-140
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRenderer.cs
+  s_5f899ba316b5dc::t_b5158f625873f9 29,70,361,363,365-375,395,579,632,880,910,912,918-923,1085-1094,1243,1248-1249,1312-1363
+tests/unity-surfaces-b.test.js
+  s_46bf855598f4b0::t_33066e493c1ecf 1-81
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "753d07fd79382bdc05739ec47ad21303cf6601f3",
+  "prompts": {},
+  "sessions": {
+    "s_46bf855598f4b0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-aa078ec70aa8a7907",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
