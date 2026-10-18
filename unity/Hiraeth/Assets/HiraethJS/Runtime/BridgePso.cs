@@ -28,6 +28,8 @@ namespace Hiraeth.Bridge
     ///   file), saved 20 s after the world has settled, every 30 s after while it grows, and at the exit.
     /// - -pso-file &lt;path&gt;: that collection warmed in place of the shipped one (a refreshed list tried without a build).
     /// - -pso-at start: warmed at once, before the script's engine is made (as first measured: the engine then came after it).
+    /// - The Xbox's (Direct3D12.graphicsstate, issue #443): only the first views' states (the desert's and the City-Shaft's
+    ///   spawn, traced on a development player), warmed XboxBatch at a time from the title on, beside the script's build.
     /// - -no-pso: no warm-up (the pipelines made at their first draw, as before). BridgePrewarm's drawn triangles are left
     ///   for a launch without a collection.
     /// </summary>
@@ -35,6 +37,14 @@ namespace Hiraeth.Bridge
     {
         static GraphicsStateCollection warm, trace, pending;
         static JobHandle job;
+        /// <summary>
+        /// States warmed a batch (WarmUpProgressively), the next batch once the last is made, instead of all at once (0):
+        /// on the Xbox, where WarmUp held the main thread until every state was made (the script's world build waiting on
+        /// it) and its driver makes them one after another at ~0.7 s each however many workers ask; progressively, the
+        /// loading screen and the script go on beside it (issue #443). -pso-progressive N sets it (0: all at once).
+        /// </summary>
+        public const int XboxBatch = 7;
+        static int progressive;
         static double startedAt, settledAt = -1, savedAt = -1;
         static int savedCount = -1;
         static bool said, exited;
@@ -119,10 +129,13 @@ namespace Hiraeth.Bridge
             var t0 = Time.realtimeSinceStartupAsDouble;
             try
             {
-                job = c.WarmUp(default(JobHandle));
+                progressive = int.TryParse(BridgeArgs.Arg("-pso-progressive"), out int pn) ? Math.Max(0, pn)
+                    : Application.platform == RuntimePlatform.WSAPlayerX64 ? XboxBatch : 0;
+                job = progressive > 0 ? c.WarmUpProgressively(progressive, default(JobHandle)) : c.WarmUp(default(JobHandle));
                 JobHandle.ScheduleBatchedJobs();
                 warm = c;
-                Debug.Log($"Hiraeth bridge: pso: warming {c.totalGraphicsStateCount} states of {c.variantCount} variants on the workers, {(t0 - startedAt) * 1000:0} ms after the start (scheduled in {(Time.realtimeSinceStartupAsDouble - t0) * 1000:0} ms)");
+                string how = progressive > 0 ? progressive + " at a time" : "all at once";
+                Debug.Log($"Hiraeth bridge: pso: warming {c.totalGraphicsStateCount} states of {c.variantCount} variants on the workers, {how}, {(t0 - startedAt) * 1000:0} ms after the start (scheduled in {(Time.realtimeSinceStartupAsDouble - t0) * 1000:0} ms)");
             }
             catch (Exception e) { Debug.LogWarning("Hiraeth bridge: pso: " + e.Message); warm = null; }
         }
@@ -134,7 +147,10 @@ namespace Hiraeth.Bridge
         public static void Tick(bool engineMade)
         {
             if (pending != null && engineMade) Warm();
-            if (warm != null && !said && (job.IsCompleted || warm.isWarmedUp))
+            // (progressively: the next N once the last N are made, a frame at a time)
+            if (warm != null && !said && progressive > 0 && job.IsCompleted && !warm.isWarmedUp)
+            { job.Complete(); job = warm.WarmUpProgressively(progressive, default(JobHandle)); JobHandle.ScheduleBatchedJobs(); }
+            if (warm != null && !said && (progressive > 0 ? warm.isWarmedUp : job.IsCompleted || warm.isWarmedUp))
             {
                 said = true;
                 job.Complete();

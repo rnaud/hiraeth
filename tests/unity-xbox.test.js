@@ -2,7 +2,7 @@
 // package's own identity, Puerts' QuickJS chosen where there is no V8, and the numbers written to LocalState.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { UNITY_RELEASES, unityNotes } from '../scripts/release-info.mjs';
 
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
@@ -232,12 +232,24 @@ test('the GPU\'s pipelines warmed on the job system\'s workers from a traced col
   assert.match(read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMetrics.cs'), /BridgePso\.Settled\(\)/);
 });
 
-test('the Xbox ships no pipeline list and draws no prewarm unless -draw-prewarm: each made its load longer (issue #16, round three)', () => {
-  // (round three: the traced list's 158 states warmed in 78-87 s on the workers, the load 39-47 s longer; the drawn
-  // prewarm held a warm launch's main thread ~25 s, 8-9 s longer than without it)
+test('the Xbox ships only its first views\' pipelines, warmed a few at a time, and draws no prewarm unless -draw-prewarm (issues #16, #443)', () => {
+  // (#16 round three: the whole traced list, 158 states, warmed at once in 78-87 s, the main thread held and the load
+  // 39-47 s longer; the drawn prewarm held a warm launch's main thread ~25 s. #443: the driver makes the states one after
+  // another at ~0.7 s each however many workers ask, so only the desert's and the City-Shaft's first views, a few at a
+  // time, the title and the script's build going on beside them; one batch of the whole list, or a second batch of 32,
+  // held the main thread to the end again)
   const runner = read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs');
   assert.match(runner, /Application\.platform == RuntimePlatform\.WSAPlayerX64 && !BridgeArgs\.Flag\("-draw-prewarm"\)\)\s*\{ BridgePrewarm\.On = false;/);
-  assert.ok(!existsSync(new URL('../unity/Hiraeth/Assets/StreamingAssets/hiraeth-pso/Direct3D12.graphicsstate', import.meta.url)), 'no Direct3D 12 list: its warm-up was slower than the first draws');
+  const list = JSON.parse(read('unity/Hiraeth/Assets/StreamingAssets/hiraeth-pso/Direct3D12.graphicsstate'));
+  assert.equal(list.m_DeviceRenderer, 18, 'Direct3D 12 (GfxDeviceRenderer 18)');
+  assert.equal(list.m_RuntimePlatform, 19, 'RuntimePlatform.WSAPlayerX64');
+  const states = list.m_VariantInfoMap.reduce((n, x) => n + x.second.graphicsStateInfoSet.length, 0);
+  assert.ok(states >= 30 && states <= 80, `${states} states: the first views only (each ~0.7 s of the driver's one core)`);
+  const pso = read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgePso.cs');
+  assert.match(pso, /public const int XboxBatch = 7;/);
+  assert.match(pso, /Application\.platform == RuntimePlatform\.WSAPlayerX64 \? XboxBatch : 0/);
+  assert.match(pso, /WarmUpProgressively\(progressive, default\(JobHandle\)\)/);
+  assert.match(pso, /progressive > 0 && job\.IsCompleted && !warm\.isWarmedUp/, 'the next batch only once the last is made');
 });
 
 test('the engine finishes distant detail after the first frame, as the web does: the City-Shaft\'s trees-in-houses check off the load (issue #16)', () => {

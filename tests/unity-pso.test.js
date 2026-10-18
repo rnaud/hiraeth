@@ -11,6 +11,7 @@ const ROOT = new URL('../', import.meta.url);
 const read = (p) => readFileSync(new URL(p, ROOT), 'utf8');
 const LIST = 'unity/Hiraeth/Assets/StreamingAssets/hiraeth-pso/Vulkan.graphicsstate';
 const ANDROID = 'unity/Hiraeth/Assets/StreamingAssets/hiraeth-pso/Android/Vulkan.graphicsstate';
+const XBOX = 'unity/Hiraeth/Assets/StreamingAssets/hiraeth-pso/Direct3D12.graphicsstate';
 
 /** every .shader under the project's Assets: its name, its .meta's GUID, the keywords its pragmas declare */
 function projectShaders() {
@@ -81,13 +82,13 @@ test('the slim lean variants are built into Android\'s players only, and given o
   for (const f of ['fold : TEXCOORD7', 'bind : TEXCOORD9', 'form : TEXCOORD12']) assert.match(s, new RegExp(`#if !defined\\(SLIMV\\)\\s*float\\d ${f}`));
 });
 
-for (const [who, file] of [['the Deck\'s', LIST], ['Android\'s', ANDROID]])
+for (const [who, file] of [['the Deck\'s', LIST], ['Android\'s', ANDROID], ['the Xbox\'s', XBOX]])
 test(`every variant in ${who} list still names a shader, GUID and keywords the project has (else: trace it again)`, () => {
   const shaders = projectShaders();
   const c = JSON.parse(read(file));
   for (const { second: x } of c.m_VariantInfoMap) {
     const s = shaders.get(x.shaderName);
-    if (!s) { assert.match(x.shaderName, /^(UI\/Default|Hidden\/Internal-|Hidden\/TextCore\/|Hidden\/Universal\/)/, `${x.shaderName}: no such shader in the project (renamed? docs/steam-deck.md, "The pipeline list")`); continue; }
+    if (!s) { assert.match(x.shaderName, /^(UI\/Default|Hidden\/Internal|Hidden\/TextCore\/|Hidden\/Universal\/)/, `${x.shaderName}: no such shader in the project (renamed? docs/steam-deck.md, "The pipeline list")`); continue; }
     assert.equal(x.shaderAssetGUID, s.guid, `${x.shaderName}: its GUID (${s.path}.meta) changed`);
     for (const k of x.keywordNames.split(' ').filter(Boolean)) assert.ok(s.kws.has(k), `${x.shaderName}: keyword ${k} is no longer declared`);
   }
