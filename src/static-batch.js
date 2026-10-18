@@ -115,9 +115,24 @@ export function compact(src) {
   return c;
 }
 
-/** A copy of a geometry for a batch: the attributes named (or all), an index if the batch has one, the id per vertex. */
+const unrolledOf = new WeakMap();
+/**
+ * An indexed geometry's triangles one after the other, with no index (three's toNonIndexed: the same vertices in the
+ * same order, triangle by triangle). Kept per geometry. A batch of meshes with no index takes a level of detail this
+ * way: lod.js's levels are indexed, and a batch's geometries must all have an index or none (BatchedMesh), so each
+ * level swapped in sent its mesh back to drawing itself for good, a draw in each pass (issue #453).
+ */
+export function unrolled(src) {
+  let u = unrolledOf.get(src);
+  if (!u) unrolledOf.set(src, (u = src.toNonIndexed()));
+  return u;
+}
+
+/** A copy of a geometry for a batch: the attributes named (or all), an index if the batch has one (unrolled if it has
+ *  none), the id per vertex. */
 export function batchCopy(geometry, id, names = null, indexed = !!geometry.index) {
-  const src = compact(geometry);
+  let src = compact(geometry);
+  if (src.index && !indexed) src = unrolled(src);
   const g = new THREE.BufferGeometry();
   for (const k of names ?? Object.keys(src.attributes)) g.setAttribute(k, src.attributes[k]);
   const n = src.attributes.position.count;
@@ -216,7 +231,7 @@ class Tables {
   }
 }
 
-const vertsOf = (g) => compact(g).attributes.position.count;   // (what a copy takes: compact)
+const vertsOf = (g, indexed = true) => { const c = compact(g); return !indexed && c.index ? c.index.count : c.attributes.position.count; };   // (what a copy takes: compact, unrolled into a batch with no index)
 const indicesOf = (g) => { const c = compact(g); return c.index ? c.index.count : c.attributes.position.count; };
 
 /** A batch of still meshes: entries { o, id, … }; `want(e)` says whether a pass draws one. */
@@ -252,9 +267,10 @@ class StillBatch extends THREE.BatchedMesh {
     let gid = it.geo.get(g);
     if (gid !== undefined) return gid;
     if (later) { (this.later ??= new Set()).add(it); return -2; }
-    if (vertsOf(g) > this.unusedVertexCount || indicesOf(g) > this.unusedIndexCount) {
+    const nv = vertsOf(g, this.indexed);
+    if (nv > this.unusedVertexCount || indicesOf(g) > this.unusedIndexCount) {
       // (the levels of detail outgrew the room left for them: half as much again, copied over: one upload)
-      try { this.setGeometrySize(Math.ceil(this._maxVertexCount * 1.5) + vertsOf(g), Math.ceil(this._maxIndexCount * 1.5) + indicesOf(g)); } catch { return -1; }
+      try { this.setGeometrySize(Math.ceil(this._maxVertexCount * 1.5) + nv, Math.ceil(this._maxIndexCount * 1.5) + indicesOf(g)); } catch { return -1; }
     }
     try { gid = this.addGeometry(batchCopy(g, it.e.id, this.names, this.indexed)); } catch { return -1; }
     it.geo.set(g, gid);

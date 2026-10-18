@@ -146,6 +146,33 @@ test('a level of detail that outgrows the batch\'s room grows it at the update, 
   assert.ok(it.cur >= 0);
 });
 
+test('an indexed level of detail swapped into a batch with no index is unrolled into it, not sent back to drawing itself (issue #453)', () => {
+  const scene = new THREE.Scene();
+  const a = makeMaterial({ color: '#aa3322', key: 'test.static.unroll' });
+  const meshes = [];
+  for (let i = 0; i < 4; i++) { const m = new THREE.Mesh(box().toNonIndexed(), a); m.position.set(i * 3, 0, -10); scene.add(m); meshes.push(m); }
+  const S = new StaticBatches(scene);
+  const b = S.view[0], cam = camera();
+  assert.equal(b.geometry.index, null, 'a batch of meshes with no index has none');
+  scene.updateMatrixWorld(true);
+  b.onBeforeRender(null, scene, cam);
+  const lod = new THREE.SphereGeometry(1, 8, 6);   // (lod.js's levels are indexed)
+  meshes[0].geometry = lod;
+  b.onBeforeRender(null, scene, cam);
+  S.update();
+  b.onBeforeRender(null, scene, cam);
+  const e = S.entries.find((x) => x.o === meshes[0]), it = b.items.find((x) => x.e === e);
+  assert.equal(e.out, false, 'still drawn by its batch');
+  assert.equal(S.stats.released, 0);
+  assert.equal(meshes[0].layers.mask, 0, 'its own draws still off');
+  const gi = b._geometryInfo[it.cur];
+  assert.equal(it.cur, it.geo.get(lod));
+  assert.equal(gi.vertexCount, lod.index.count, 'one vertex per corner of each triangle');
+  // (the triangles as the index drew them, in its order)
+  const P = b.geometry.attributes.position.array, src = lod.attributes.position.array, I = lod.index.array;
+  for (let k = 0; k < I.length; k++) for (let j = 0; j < 3; j++) assert.equal(P[(gi.vertexStart + k) * 3 + j], src[I[k] * 3 + j]);
+});
+
 test('a moved mesh is followed; a material changed beyond its colours sends its meshes back to drawing themselves', () => {
   const W = world();
   const S = new StaticBatches(W.scene, { keep: [W.mover] });
