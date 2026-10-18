@@ -10,7 +10,7 @@ export const QUEST = {
   outro: 'The Clockwork Foreman keeps the right time again, and every clock in the dunes ticks in step.',
   find: 'Find the Clock-House east of the valley',
   gadget: 'Find what the makers left in the Clock-House',
-  keeper: 'Go down to what winds itself up',
+  keeper: 'Climb to what winds itself up',
 };
 
 export const PEOPLE = {
@@ -29,17 +29,17 @@ export const PEOPLE = {
         hello: {
           say: ["~neutral~ Hold still while I count… No. That one’s wrong too. I wind every clock in both camps each morning.",
             "~solemn~ That’s *the Clock-House*. It stood here before the sand turned to glass, the old ones say. Or the glass came round it. Nobody agrees.",
-            "~sad~ Its works set the pace for these dunes. They jolted when the singing light passed. Every clock in the camps stopped. Something underneath has been winding tighter ever since."],
+            "~sad~ Its works set the pace for these dunes. They jolted when the singing light passed. Every clock in the camps stopped. Something at the top has been winding tighter ever since."],
           do: { set: { 'met.wim': true } },
           choices: [
-            { text: '~neutral~ I’ll go down and look.', do: { start: 'temple.garage' }, goto: 'go' },
+            { text: '~neutral~ I’ll go in and look.', do: { start: 'temple.garage' }, goto: 'go' },
             { text: '~curious~ Winding itself up?', goto: 'winding' },
             { text: '~playful~ I’ll let you count.', end: true },
           ],
         },
         winding: {
           say: ["~whisper~ Put your ear to the drum at night. Springs straining. A clock wound past its patience.", "~solemn~ The kiln-keepers call it *the Foreman*. They say it’s always right. They said that before it began doing this."],
-          choices: [{ text: '~neutral~ I’ll go down and look.', do: { start: 'temple.garage' }, goto: 'go' }, { text: '~solemn~ Past its patience. I know the feeling.', end: true }],
+          choices: [{ text: '~neutral~ I’ll go in and look.', do: { start: 'temple.garage' }, goto: 'go' }, { text: '~solemn~ Past its patience. I know the feeling.', end: true }],
         },
         go: {
           say: ["~neutral~ *The door under the clock.* Unlocked. Nobody here locks anything. The glass keeps what it wants.",

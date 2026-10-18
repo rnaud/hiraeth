@@ -1212,6 +1212,7 @@ const PSO465 = 'Issue #465: a release Linux player of main at 509b40cc9 on the S
 export const CHANGELOG_MEDIA = {
   '1.85': [
     { match: 'Each world’s own recorded music now plays the whole time you are there', see: 'Land in any world and walk out into the open: after two and a half minutes its recorded music keeps playing instead of fading out to the light synthesised tunes, and it is still there five minutes on. Settings > Music plays now reads Always; pick Moments there to have the old way back, and it stays picked.' },
+    { match: 'The Clock-House’s and the Undertower’s last steps now point the right way', see: 'In the Glass Dunes, take what the makers left in the Clock-House and open the Quests page (J): the next step reads “Climb to what winds itself up”. In the Signal Market the Undertower’s reads “Go up to the voice in the high hall”, and walking in you hear the voice far overhead.' },
   ],
   '1.84': [
     { match: 'In the Unity version on the Steam Deck, the first launch after an update no longer freezes', numbers: [

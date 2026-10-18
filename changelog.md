@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.85 — 2026-10-18
 
+- The Clock-House’s and the Undertower’s last steps now point the right way: their guardians wait upstairs, and the steps used to say go down.
 - Each world’s own recorded music now plays the whole time you are there, out in the open as well as on arriving, indoors and at the big moments. If you liked it better the old way, with the music for the moments and quieter, lighter tunes in between, choose Moments under Settings > Music plays.
 
 ## v1.84 — 2026-10-17

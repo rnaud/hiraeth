@@ -8,7 +8,7 @@ export const QUEST = {
   outro: 'The First Sign has its whole line back, and the silent tower speaks it, once a night.',
   find: 'Go down under the silent tower',
   gadget: 'Find what the makers left under the silent tower',
-  keeper: 'Go down to the voice under the tower',
+  keeper: 'Go up to the voice in the high hall',
 };
 
 export const PEOPLE = {

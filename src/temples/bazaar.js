@@ -1283,7 +1283,7 @@ export const BAZAAR_TEMPLE = {
   // its futuristic look inside (issue #342): src/temples/skins/undertower.js
   skin: undertowerSkin,
   local: { person: 'hobb', out: 6, side: 6 },
-  enterLine: 'Under the silent tower it is cold and dry and very old. Somewhere far down, a voice says one word, and waits, and says it again.',
+  enterLine: 'Under the silent tower it is cold and dry and very old. Somewhere far overhead, a voice says one word, and waits, and says it again.',
   pitLine: 'You climb back up out of the cables, to the last glyph stone.',
   onResolved(rt) { rt.notice('Up in the square, the silent tower’s crown is lit. At night it speaks.', 'resolved.out'); },
   // (issue #418) a blast in the house is a sound: its boom, a note the hourglass's sand keeps (and the Choir's black horn
