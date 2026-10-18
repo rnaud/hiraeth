@@ -1,0 +1,59 @@
+changelog.md
+  s_5f899ba316b5dc::t_2919eccc835f81 7
+docs/systems/bridge-gaps.md
+  s_5f899ba316b5dc::t_55636fe2fcc78f 10,32,35,37
+docs/systems/engine-bridge.md
+  s_5f899ba316b5dc::t_41a824d2d75e91 2189-2230
+engine/bridge-gaps.js
+  s_5f899ba316b5dc::t_703f7908807a09 89-95,98-99
+engine/game.js
+  s_5f899ba316b5dc::t_c872dbb57ebdf2 240-242
+engine/ink-spec.js
+  s_5f899ba316b5dc::t_61e8d1c555cf93 45,49-50
+engine/mirror.js
+  s_5f899ba316b5dc::t_3a818ed39c51b5 61-62,65-67,452-454
+engine/unity/backend.js
+  s_5f899ba316b5dc::t_b81c0d7a85c962 53-55,70,83-84,540-569
+engine/unity/game.js
+  s_5f899ba316b5dc::t_cc473e3b6d4dde 317
+engine/unity/port-format.js
+  s_5f899ba316b5dc::t_497844df55bc07 83-85,129-142
+src/changelog-media.js
+  s_5f899ba316b5dc::t_ab5cef4ee0a75f 1194-1196,1199-1207
+src/changelog.js
+  s_5f899ba316b5dc::t_5b727a3f3f6b2a 215-220
+tests/unity-surfaces-b.test.js
+  s_5f899ba316b5dc::t_d264f027dc0e3d 63
+tests/unity-surfaces-d.test.js
+  s_5f899ba316b5dc::t_a46d991f5dbdb0 1-125
+unity/Hiraeth/Assets/Hiraeth/Runtime/HiraethLook.cs
+  s_5f899ba316b5dc::t_c3d705f3393000 141-142
+unity/Hiraeth/Assets/Hiraeth/Runtime/WorldLoader.cs
+  s_5f899ba316b5dc::t_8b2920ed742de3 190-194
+unity/Hiraeth/Assets/Hiraeth/Shaders/Composite.shader
+  s_5f899ba316b5dc::t_069959cd5f3456 133-134,199-201,219,560-562,590,683,712,719-720
+unity/Hiraeth/Assets/Hiraeth/Shaders/PortraitFace.hlsl
+  s_5f899ba316b5dc::t_ee909057c77b2a 1-35
+unity/Hiraeth/Assets/Hiraeth/Shaders/PortraitFace.hlsl.meta
+  s_5f899ba316b5dc::t_1bb06af2d0cd79 1-7
+unity/Hiraeth/Assets/Hiraeth/Shaders/Surface.shader
+  s_5f899ba316b5dc::t_ad8359f089dda4 54-62,186-187,211-212,283-295,1214-1215,1368,1458,1481,1558,1565-1567
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRenderer.cs
+  s_5f899ba316b5dc::t_bb8324c3ae8ffc 70
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8a95573f6905ebe78e4cca98875b394ff636386a",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
