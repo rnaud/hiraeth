@@ -211,11 +211,12 @@ for (const [world, id, name, kind] of [['arzach', 'fight-arzach', 'The Wind Cloi
     await run(g, 30);
     assert.equal(plain(S.hazards.list)[0].kind, kind);
     // (only the one begun in the second room: the wave he fights in the first starts its own room's hazards at random.
-    // The hazard runs on the real clock, not the frames': a fast runner's 600 frames are 8 s of it, a slow one's 30;
-    // so wait on the clock, up to 40 s)
+    // The hazard runs on the game's clock, the frames' dt (trials.update → the session → hazards.update), so wait on
+    // frames, up to 40 s of the game's time, whatever the runner's load: issue #454)
     const mine = () => S.hazards.list.filter((h) => h.ri === 1).length;
-    for (const until = Date.now() + 40000; mine() && Date.now() < until;) await run(g, 10);
-    assert.equal(mine(), 0, `and gone (${JSON.stringify(plain(S.hazards.list))})`);
+    let waited = 0;
+    for (; mine() && waited < 1200; waited += 10) await run(g, 10);
+    assert.equal(mine(), 0, `and gone after ${waited} frames (${JSON.stringify(plain(S.hazards.list))})`);
     g.trials.runner.ctx.finish({ lines: ['Rooms cleared 4 of 4'] });
     await run(g, 60);
     assert.equal(menus.view().card.kind, 'results');

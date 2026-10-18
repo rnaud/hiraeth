@@ -25,13 +25,16 @@ export async function buildBundle() {
   return file;
 }
 
+/** The VM's Math.random seed: each sequence plays one run of what the game draws at random. */
+export const SEED = 454;
+
 /**
  * One sequence in a fresh VM → { beats: [{ beat, t, late, …probe }], errors }. quiet: the worlds' chatter hushed.
  * level: played in another world than its own. held: a step of no time after every step (a clock held still, as a
  * measuring run's window.__stepDt holds it), and out.nan: { radius: the "Computed radius is NaN" errors, positions: the
- * meshes left with a NaN in their position attribute } (issue #452).
+ * meshes left with a NaN in their position attribute } (issue #452). seed: the VM's Math.random seed (issue #454).
  */
-export async function runSequence(file, id, { quiet = true, log = () => {}, level = null, held = false } = {}) {
+export async function runSequence(file, id, { quiet = true, log = () => {}, level = null, held = false, seed = SEED } = {}) {
   const c = console, said = { warn: c.warn, info: c.info, log: c.log, error: c.error };
   if (quiet) c.warn = c.info = c.log = c.error = () => {};
   const nan = held ? { radius: 0, positions: [] } : null;
@@ -42,7 +45,9 @@ export async function runSequence(file, id, { quiet = true, log = () => {}, leve
     // (the VM's timers kept, and cleared once the sequence is over: a world's intervals would keep node running)
     const T = new Set(), track = (f, clear) => (...a) => { const h = f(...a); T.add([h, clear]); return h; };
     timers = T;
-    const B = loadBundle(file, { pads: () => [] }, { setTimeout: track(setTimeout, clearTimeout), setInterval: track(setInterval, clearInterval) }).exports;
+    // (Math.random seeded: what a world draws at random, a fight temple's waves and where its foes rise, the same every
+    // run, so a foe's wind-up chip in a beat is there every time or never: issue #454)
+    const B = loadBundle(file, { pads: () => [] }, { setTimeout: track(setTimeout, clearTimeout), setInterval: track(setInterval, clearInterval) }, { seed }).exports;
     const seq = B.sequenceById(id);
     if (!seq) throw new Error(`no sequence ${id}`);
     const opts = B.engineSetup(level ? { ...seq.setup, level } : seq.setup);

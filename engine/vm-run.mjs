@@ -14,13 +14,17 @@ const BUILTINS = ['Math', 'Object', 'Array', 'Number', 'String', 'Boolean', 'Sym
 /**
  * Load a bundle into a fresh context. host: the engine host's members (engine/platform.js);
  * globals: more of the context's globals before the bundle runs (a stand-in for Puerts' CS).
+ * seed: the context's Math.random made a fixed sequence from it (mulberry32), so a run drawn at random (a fight
+ * temple's waves and spawns) is the same run every time.
  * Returns its exports, the context, and readFile (public/ files as ArrayBuffers of that context).
  */
-export function loadBundle(file, host = {}, globals = {}) {
+export function loadBundle(file, host = {}, globals = {}, { seed = null } = {}) {
   const code = readFileSync(resolve(ROOT, file), 'utf8');
   const ctx = { console, setTimeout, clearTimeout, setInterval, clearInterval, ...globals };
   ctx.globalThis = ctx;
   vm.createContext(ctx);
+  // (the context's own Math, not node's: the host's Math.random stays as it was)
+  if (seed != null) vm.runInContext(`(() => { let s = ${seed >>> 0}; Math.random = () => { s = (s + 0x6d2b79f5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; })()`, ctx);
   // (the bytes in the context's own ArrayBuffer: three checks `instanceof ArrayBuffer`)
   const readFile = (p) => { try { const b = readFileSync(resolve(ROOT, 'public', p)); const U8 = vm.runInContext('Uint8Array', ctx); return new U8(b).buffer; } catch { return null; } };
   ctx.__HIRAETH_HOST__ = { engine: 'node-vm', readFile, ...host };
