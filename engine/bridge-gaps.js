@@ -281,7 +281,7 @@ export const GAPS = {
       'import:src/pipeline.js#setSubject', 'import:src/post.js#createBloom', 'import:src/post.js#DEBUG_VIEWS', 'import:src/shadows.js#Cascade', 'import:src/shadows.js#FINE_CASCADE', 'import:src/shadows.js#NEAR_CASCADE',
       'import:src/shadows.js#ShadowCuller', 'import:src/shadows.js#shadowVariants', 'import:src/shadows.js#shadowDirection', 'import:src/shadows.js#farPassSkips', 'import:src/shadows.js#VIEW_SLACK',
       'import:src/shadows.js#viewOf', 'import:src/shadows.js#viewLeft', 'import:src/shadows.js#heroExtent', 'import:src/shadows.js#nearDue', 'import:src/shadows.js#farDue', 'import:src/shadows.js#nearEveryNow',
-      'fn:shadowTexels', 'fn:heroPass', 'fn:shadowPass', 'fn:tinyShadowCasters', 'fn:glowCasters', 'fn:shrinkInto', 'fn:blankCapture', 'import:src/static-batch.js#StaticBatches', 'import:src/static-batch.js#opaqueSort',
+      'fn:shadowTexels', 'fn:heroPass', 'fn:shadowPass', 'fn:tinyShadowCasters', 'fn:glowCasters', 'fn:crowdShadowless', 'fn:crowdCaster', 'fn:crowdView', 'fn:shrinkInto', 'fn:blankCapture', 'import:src/static-batch.js#StaticBatches', 'import:src/static-batch.js#opaqueSort',
       'import:src/materials.js#setEnvGround', 'import:src/water-shader.js#waterShared', 'import:src/blade-shader.js#BLADE_QUALITY', 'import:src/blade-shader.js#bladeLiteFor', 'import:src/breathe-shader.js#breatheDetail'],
     what: 'the page\'s render pipeline and its shaders\' settings', status: 'web-only', why: PAGE },
     { keys: ['import:src/warm-shaders.js#warmShadersSliced', 'import:src/warm-shaders.js#firstUse', 'import:src/warm-shaders.js#settle', 'import:src/warm-shaders.js#programKind', 'import:src/warm-shaders.js#oneAtATime',

@@ -1836,6 +1836,29 @@ function shadowPass(c, reach, hide = [], kept = false) {
   for (const o of off) o.visible = true;
 }
 
+// The crowd's meshes in the passes where crowd.js's hooks leave them nothing to draw (count 0), out of those passes: a
+// draw of no instances still costs three a whole draw (issue #453). In the shadow maps its figures, and its shadow
+// caster when no one is near enough to cast (hidden with the frame's shadowHidden); the caster in a map a km wide or
+// more; in the view the caster, and the figures' tiers holding no one.
+const crowdPasses = { on: true, tiers: crowd ? [crowd.mid, crowd.far, crowd.dist].filter(Boolean) : [], list: [] };   // (on: measuring)
+const crowdShadowless = () => {
+  const L = crowdPasses.list; L.length = 0;
+  if (!crowdPasses.on || !crowd) return L;
+  for (const t of crowdPasses.tiers) L.push(t.mesh);
+  if (crowd.nShadow === 0) L.push(crowd.shadow);
+  return L;
+};
+const crowdCaster = (cam) => (crowdPasses.on && crowd && crowd.shadow.visible && !(cam.isOrthographicCamera && cam.right - cam.left < 1000) ? [crowd.shadow] : []);
+const crowdViewHidden = [];
+function crowdView(hide) {
+  if (!hide) { for (const o of crowdViewHidden) o.visible = true; crowdViewHidden.length = 0; return; }
+  if (!crowdPasses.on || !crowd) return;
+  const out = crowdViewHidden;
+  if (crowd.shadow.visible) out.push(crowd.shadow);
+  for (const t of crowdPasses.tiers) if (t.n === 0 && t.mesh.visible) out.push(t.mesh);
+  for (const o of out) o.visible = false;
+}
+
 /** The whole pipeline for one view: shadows, G-buffer, composite, overlays. */
 const _subjUp = new THREE.Vector3(0, 1, 0);
 const _frameHidden = [], _shadowHidden = [];   // (the frame's hidden lists, kept from frame to frame: issue #448)
@@ -1882,7 +1905,7 @@ function renderFrame() {
   scene.overrideMaterial = shadowOverride;
   statics?.shadowsBegin();
   const shadowHidden = _shadowHidden; shadowHidden.length = 0;
-  for (const list of [level.noShadow ?? [], player.gear?.noShadow ?? [], tinyShadowCasters(), glowCasters()])
+  for (const list of [level.noShadow ?? [], player.gear?.noShadow ?? [], tinyShadowCasters(), glowCasters(), crowdShadowless()])
     for (const o of list) if (o.visible) { o.visible = false; shadowHidden.push(o); }
   shadowCull.begin(camera, shadowDir, { vertical: !level.gravityAt });
   const camToPlayer = camera.position.distanceTo(player.pos);
@@ -1903,7 +1926,9 @@ function renderFrame() {
     const small = farPassSkips(tiled.small, cascades.far.texel);
     for (const o of small) o.visible = false;
     if (preset.lodPx) lod.shadowPass(cascades.far.texel);   // nor detail finer than a texel of it
-    shadowPass(cascades.far, camera.far, [], true);
+    const caster = crowdCaster(cascades.far.cam);
+    for (const o of caster) o.visible = false;
+    shadowPass(cascades.far, camera.far, caster, true);
     lod.viewPass();
     for (const o of small) o.visible = true;
   }
@@ -1913,12 +1938,14 @@ function renderFrame() {
   for (const o of shadowHidden) o.visible = true;
 
   // 2. G-buffer (clearing to 0 marks sky pixels with depth 0)
+  crowdView(true);   // (what of the crowd draws nothing in the view, out of it)
   camera.updateMatrixWorld();
   renderer.setRenderTarget(gbuffer);
   renderer.setClearColor(0x000000, 0);
   renderer.clear();
   waters.renderGBuffer(renderer, scene, camera, gbuffer);   // (the water drawn last over the scene's depth: its contact foam, src/water.js)
   bloom.render(renderer);   // the glowing surfaces, for the halos
+  crowdView(false);
 
   // 3. Moebius composite
   U.uInvProj.value.copy(camera.projectionMatrixInverse);
@@ -2598,7 +2625,7 @@ window.contactAudit = async (o = {}) => {
   return r;
 };
 Object.assign(window, { flatPass, motes, houseAir, waters, flora, blades, bloom, shelter, items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, fragments, story, journal, errands, expedition, scout, plumb, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife, foes, chimes, potionDrops, lowHealth, resources, itemIcons, gadgets,
-  storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, passage, doorWalk, warmDraw, boxes, benches, devMenu, slots, paused, quitToTitle, clock: () => simT, sharedUniforms, cascades, shadowCull, applyQuality, preset: () => preset, frameStats, renderFrame, lod: () => lod, skinnedLods, interiorCull });
+  storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, passage, doorWalk, warmDraw, boxes, benches, devMenu, slots, paused, quitToTitle, clock: () => simT, sharedUniforms, cascades, shadowCull, applyQuality, preset: () => preset, frameStats, renderFrame, crowdPasses, lod: () => lod, skinnedLods, interiorCull });
 
 if (['keeper','elder'].includes(query.get('guardianReview'))) {
   const {startGuardianReview} = await import('./guardian-review.js');
