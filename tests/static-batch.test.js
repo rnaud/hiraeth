@@ -216,6 +216,26 @@ test('the shadow passes: the lone still mesh lends its shadow to the batch', () 
   assert.ok(S.view.every((b) => b.visible));
 });
 
+test('a mesh kept from the view\'s batches by its material alone casts through the shadow batch (issue #453)', () => {
+  const W = world();
+  const other = new THREE.Mesh(box(), new THREE.MeshBasicMaterial()); other.position.set(0, 0, -30); W.scene.add(other);
+  const see = new THREE.Mesh(box(), new THREE.MeshBasicMaterial({ transparent: true })); W.scene.add(see);
+  const held = new THREE.Mesh(box(), new THREE.MeshBasicMaterial()); W.mover.add(held);
+  const S = new StaticBatches(W.scene, { keep: [W.mover] });
+  assert.ok(S.entries.some((e) => e.o === other && !e.view), 'in the shadow batch, in no view batch');
+  assert.ok(!S.entries.some((e) => e.o === see || e.o === held), 'not a see-through one, nor one a mover holds');
+  assert.notEqual(other.layers.mask, 0, 'drawing itself in the view');
+  S.shadowsBegin();
+  assert.equal(other.layers.mask, 0, 'its own draw off in the shadow passes');
+  const cam = new THREE.OrthographicCamera(-50, 50, 50, -50, 0.1, 100); cam.updateMatrixWorld();
+  W.scene.updateMatrixWorld(true);
+  S.shadow.onBeforeRender(null, W.scene, cam);
+  assert.ok(S.shadow.list.some((it) => it.e.o === other), 'drawn by the shadow batch');
+  S.shadowsEnd();
+  assert.notEqual(other.layers.mask, 0);
+  assert.equal(staticReason(other), 'not surface');
+});
+
 test('numbersOf reads every number of a uniform value', () => {
   assert.deepEqual(numbersOf(new THREE.Color(1, 0.5, 0), []), [1, 0.5, 0]);
   assert.deepEqual(numbersOf([new THREE.Vector2(1, 2), 3], []), [1, 2, 3]);

@@ -63,6 +63,29 @@ export function staticReason(o) {
   if (o.onBeforeRender !== THREE.Object3D.prototype.onBeforeRender) return 'onBeforeRender';
   return '';
 }
+/**
+ * Why this mesh can't cast through the shadow batch ('' if it can, before the movers are judged): a shadow pass draws
+ * every mesh with its override material (depth only), so the mesh's own material only has to be one that the override
+ * replaces, opaque and shown; the rest as staticReason. A mesh the view's batches can't take for its material alone (a
+ * define of its own, another shader) still casts through this one (issue #453).
+ */
+export function shadowReason(o) {
+  if (!o.isMesh || o.isSkinnedMesh || o.isInstancedMesh || o.isBatchedMesh || o.isPoints || o.isLine) return 'kind';
+  const m = o.material, g = o.geometry, ud = o.userData;
+  if (!m || Array.isArray(m)) return 'materials';
+  if (m.transparent || m.allowOverride === false || m.visible === false || m.wireframe) return 'material state';
+  if (!g?.attributes?.position || Object.keys(g.morphAttributes).length) return 'geometry';
+  if (g.drawRange.start !== 0 || g.drawRange.count !== Infinity) return 'draw range';
+  for (const x of Object.values(g.attributes)) if (x.isInterleavedBufferAttribute || x.isInstancedBufferAttribute) return 'attributes';
+  if (g.attributes[BATCH_ID]) return 'attributes';
+  if (!o.frustumCulled) return 'unculled';
+  if (ud.dynamic || ud.noBatch || ud.batch) return 'flagged';
+  if (o.onBeforeRender !== THREE.Object3D.prototype.onBeforeRender) return 'onBeforeRender';
+  return '';
+}
+/** The reasons a mesh is kept from the view's batches by its material alone (it may still cast through the shadow batch). */
+const MATERIAL_ONLY = (why) => why.startsWith('define ') || why === 'not surface' || why === 'material hooks';
+
 /** Could this mesh be drawn by a static batch (before the movers are judged)? */
 export const staticCandidate = (o) => staticReason(o) === '';
 
@@ -223,6 +246,7 @@ class Tables {
   setMatrix(id, m) { this.matrices.image.data.set(m.elements, id * 16); this.matrices.needsUpdate = true; }
   setValues(id, mat) {
     const U = mat.uniforms, d = this.values.image.data, at = id * 16;
+    if (!mat.userData?.surface || !U.uColor2) return;   // (a mesh that only casts through the shadow batch: no values read)
     const c = (k, j) => { const x = U[k].value; d[at + j] = x.r; d[at + j + 1] = x.g; d[at + j + 2] = x.b; };
     c('uColor', 0);
     c('uColor2', 4);
@@ -443,17 +467,22 @@ export class StaticBatches {
     const keepSet = new Set(keep.filter(Boolean));
     const kept = (o) => { for (let p = o; p; p = p.parent) if (keepSet.has(p) || p.userData?.noBatch || p.userData?.dynamic) return true; return false; };
     root.updateMatrixWorld(true);
-    const groups = new Map(), all = [];
+    const groups = new Map(), all = [], shadowOnly = [];
     root.traverse((o) => {
       if (!o.isMesh) return;
       const why = staticReason(o) || (kept(o.parent) ? 'mover' : '');
-      if (why) { this.why.set(o, why); return; }
+      if (why) {
+        this.why.set(o, why);
+        if (MATERIAL_ONLY(why) && shadowReason(o) === '' && !kept(o.parent)) { shadowOnly.push(o); this.why.set(o, why + ' (casts through the batch)'); }
+        return;
+      }
       const k = `${restKey(o.material)}|${attributeKey(o.geometry)}|${o.renderOrder}|${o.layers.mask}`;
       let g = groups.get(k);
       if (!g) groups.set(k, (g = []));
       g.push(o);
       all.push(o);
     });
+    all.push(...shadowOnly);   // (in no view batch: drawing themselves in the view, cast through the shadow batch)
     this.tables = new Tables(all.length);
     this.entries = all.map((o, id) => ({ o, id, mat: o.material, mask: o.layers.mask, mw: o.matrixWorld.clone(), we: o.matrixWorld.elements, moves: 0, out: false, view: null, sphere: new THREE.Sphere(), sphereOf: null, z: 0, lent: false }));
     const byObj = new Map(this.entries.map((e) => [e.o, e]));
