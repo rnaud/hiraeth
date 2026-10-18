@@ -42,6 +42,7 @@ import { Chemistry } from '../chemistry.js';
 import { birdAnswers, promisedBird } from '../bird.js';
 import { bikeComes, parkedBike, trailVehicles, trailVehicle } from '../bike-worlds.js';
 import { Trail } from '../trail.js';
+import { registerInteractable, PRIORITY } from '../interact.js';
 import { wallOpenings } from '../wall-openings.js';
 import { EdgeInk } from '../edge.js';
 import { PRESETS } from '../post.js';
@@ -188,10 +189,12 @@ export function wireMount({ levelId, level, flag }) {
  *   - hoverbikes and skiffs skim over any water (bike.js groundAt, the waters' floor);
  *   - rooms off the map, reached through doorways (the desert's chambers, the cave in the giant's chest, ~1 km up): no
  *     whistling the mount or hailing a cab into them (it would come to the same x, z far below and wait there), nor
- *     from inside the ship (player.opts.canSummon).
+ *     from inside the ship (player.opts.canSummon);
+ *   - E boards the nearest vehicle, and its prompt floats by it ("ride the bird", "get in the cab"), sharing the interact
+ *     button with talking, nearest wins (src/interact.js; the engines boarded but showed no prompt before: issue #459).
  * → { rooms, inRoom() }: the rooms off the map (the page culls by them).
  */
-export function wireVehicles({ bikeHere = false, player, physics, level, scene, waters = null, ship = null }) {
+export function wireVehicles({ bikeHere = false, player, physics, level, scene, waters = null, ship = null, items = null }) {
   if (bikeHere && player.mount?.kind !== 'bike') {
     const bike = parkedBike(physics, level.spawn, level.spawnHeading ?? 0);
     scene.add(bike.object);
@@ -202,7 +205,19 @@ export function wireVehicles({ bikeHere = false, player, physics, level, scene, 
   const rooms = (level.portals ?? []).filter((p) => p.to && !p.toUp && p.to.y - (ground?.heightAt?.(p.to.x, p.to.z) ?? p.to.y) > 200).map((p) => p.to);
   const inRoom = () => rooms.some((r) => r.distanceToSquared(player.pos) < 90 * 90);
   player.opts.canSummon = () => !inRoom() && !ship?.inside;
+  // (as far as the vehicle lets you board from: a cab hovering beside a terrace is further off than a bike; measured to
+  // its side, not its middle: a cab is four metres long, and a passer-by at your shoulder was nearer than its centre)
+  registerInteractable({ id: 'vehicle', priority: PRIORITY.vehicle, range: 9, at: () => player.nearestVehicle()?.pos,
+    prompt: () => boardPrompt(player.nearestVehicle(), level.mountName, !!items?.has?.('backpack')),
+    distance: (p) => { const v = p.nearestVehicle(); const d = v && !p.boarding && !p.unboarding ? v.pos.distanceTo(p.pos) : Infinity; return d <= (v?.boardDistance ?? 6) ? Math.max(0.2, d - (v.halfWidth ?? 0)) : Infinity; },
+    use: () => player.interact() });
   return { rooms, inRoom };
+}
+
+/** The vehicle's prompt: "get in the cab", "ride the bird" (the world's mount by its name), a bike unpowered without the pack. */
+export function boardPrompt(v, mountName, pack) {
+  if (v?.kind === 'taxi') return 'get in the cab';
+  return v?.powered && !pack ? `ride the ${mountName ?? v?.kind} (it needs power)` : `ride the ${mountName ?? v?.kind ?? 'mount'}`;
 }
 
 // ------------------------------------------------------------------ what the save's events say and start

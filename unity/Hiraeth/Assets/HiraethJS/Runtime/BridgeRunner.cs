@@ -969,6 +969,9 @@ namespace Hiraeth.Bridge
             if (look) { look.PushLights(); Debug.Log($"Hiraeth bridge: lights at {Path.GetFileName(path)}: {HiraethLook.LightsKept} of {HiraethLook.LightsNear} near"); }
             // (the HUD's letters: a dynamic font rasterises new ones on a canvas rebuild, so build, draw, and again)
             scene.FinishFrame();
+            // (the HUD laid out for the picture's size, not the editor's 4:3 window: issue #459)
+            bool relaid = Application.isEditor && hud && (Screen.width != w || Screen.height != h);
+            if (relaid) hud.Relayout();
             Canvas.ForceUpdateCanvases();
             scene.DrawCrowds(); cam.Render();
             Canvas.ForceUpdateCanvases();
@@ -993,6 +996,7 @@ namespace Hiraeth.Bridge
             }
             RenderTexture.active = null;
             cam.targetTexture = prev;
+            if (relaid) hud.Relayout();
             Destroy(rt); Destroy(tex);
         }
 

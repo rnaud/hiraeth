@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { readFileSync } from 'node:fs';
-import { wireKit, wireDangers, wirePeople, wireChemistry, wireVehicles, wireLessons, wireCompanion, wireCamera, heroCutFrame, cameraFollow, wireBenches, wireEdge, wireOpenings, wireSky, wirePotion, wireNudges, fragmentsLine, wireHealth, hurtReactions, wireAmbush, toolGauge } from '../src/host/game-host.js';
+import { wireKit, wireDangers, wirePeople, wireChemistry, wireVehicles, boardPrompt, wireLessons, wireCompanion, wireCamera, heroCutFrame, cameraFollow, wireBenches, wireEdge, wireOpenings, wireSky, wirePotion, wireNudges, fragmentsLine, wireHealth, hurtReactions, wireAmbush, toolGauge } from '../src/host/game-host.js';
 import { ERRANDS } from '../src/levels/content.js';
 import { hazardCount } from '../src/hazards.js';
 import * as THREE from 'three';
@@ -116,6 +116,32 @@ test('the vehicles: hover ones skim the water, no calls into a room off the map 
   assert.equal(player.opts.canSummon(), false, 'not from the room');
   player.pos.set(0, 0, 0); ship.inside = true;
   assert.equal(player.opts.canSummon(), false, 'nor from inside the ship');
+});
+
+test('the vehicles: E boards the nearest, its prompt by it, in both hosts (issue #459: the engines showed none)', async () => {
+  const { allInteractables, clearInteractables } = await import('../src/interact.js');
+  clearInteractables();
+  const bird = { kind: 'bird', pos: new THREE.Vector3(2, 0, 0) };
+  let boarded = 0;
+  const player = { pos: new THREE.Vector3(), vehicles: [bird], opts: {}, nearestVehicle: () => bird, interact: () => { boarded++; } };
+  wireVehicles({ player, physics: null, level: { mountName: 'bird' }, scene: null, items: { has: () => false } });
+  const e = allInteractables().find((x) => x.id === 'vehicle');
+  assert.ok(e, 'the vehicle\'s entry is registered');
+  assert.equal(e.prompt(), 'ride the bird');
+  assert.ok(e.distance(player) < 3, 'near enough to board');
+  player.pos.set(40, 0, 0);
+  assert.equal(e.distance(player), Infinity, 'too far');
+  e.use();
+  assert.equal(boarded, 1);
+  assert.equal(boardPrompt({ kind: 'taxi' }), 'get in the cab');
+  assert.equal(boardPrompt({ kind: 'bike', powered: true }, 'hoverbike', false), 'ride the hoverbike (it needs power)');
+  assert.equal(boardPrompt({ kind: 'bike', powered: true }, 'hoverbike', true), 'ride the hoverbike');
+  for (const f of ['../src/main.js', '../engine/game.js']) {
+    const src = readFileSync(new URL(f, import.meta.url), 'utf8');
+    assert.doesNotMatch(src, /id: 'vehicle'/, `${f}: the vehicle's entry is the host's`);
+    assert.match(src, /wireVehicles\(\{[^}]*items/, `${f} passes the items`);
+  }
+  clearInteractables();
 });
 
 test('the lessons: Plumb\'s clock and notes, a keepsake\'s theme, the upgrades kept with the items', () => {

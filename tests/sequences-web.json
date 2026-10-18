@@ -1,6 +1,6 @@
 {
  "recorded": "2026-10-18",
- "sha": "46b0bdb54",
+ "sha": "67bd0b800",
  "how": "node scripts/unity-compare/sequences.mjs web [ids] && node scripts/unity-compare/sequences.mjs record",
  "sequences": {
   "moment-desert.flow": {
@@ -4939,6 +4939,176 @@
       -9,
       0,
       1.9
+     ],
+     "late": false
+    }
+   ]
+  },
+  "bird": {
+   "beats": [
+    {
+     "beat": "call",
+     "hud": {
+      "prompt": {
+       "text": "ride the bird",
+       "key": "E"
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 642,
+      "print": 1,
+      "shader": 1,
+      "wisp": 1,
+      "mote": 1
+     },
+     "cam": [
+      0,
+      2.5,
+      4.7,
+      55
+     ],
+     "player": [
+      0,
+      0,
+      0
+     ],
+     "late": false
+    },
+    {
+     "beat": "beside",
+     "hud": {
+      "prompt": {
+       "text": "ride the bird",
+       "key": "E"
+      },
+      "gadget": "gun"
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 565,
+      "print": 1,
+      "shader": 1,
+      "wisp": 1,
+      "mote": 1
+     },
+     "cam": [
+      3.8,
+      2.5,
+      -2.4,
+      55
+     ],
+     "player": [
+      -1,
+      0,
+      -2.4
+     ],
+     "late": false
+    }
+   ]
+  },
+  "splat": {
+   "beats": [
+    {
+     "beat": "still",
+     "hud": {},
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 1571,
+      "print": 1,
+      "shader": 2,
+      "wisp": 1,
+      "mote": 1
+     },
+     "cam": [
+      96.7,
+      16,
+      162.9,
+      55
+     ],
+     "player": [
+      96.7,
+      13.5,
+      167.6
+     ],
+     "late": false
+    },
+    {
+     "beat": "at-0.08",
+     "hud": {},
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 1571,
+      "print": 1,
+      "shader": 2,
+      "wisp": 1,
+      "mote": 1
+     },
+     "cam": [
+      96.7,
+      16,
+      162.9,
+      55
+     ],
+     "player": [
+      96.7,
+      13.5,
+      167.6
+     ],
+     "late": false
+    },
+    {
+     "beat": "at-0.3",
+     "hud": {},
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 1571,
+      "print": 1,
+      "shader": 2,
+      "wisp": 1,
+      "mote": 1
+     },
+     "cam": [
+      96.7,
+      16,
+      162.9,
+      55
+     ],
+     "player": [
+      96.7,
+      13.5,
+      167.6
+     ],
+     "late": false
+    },
+    {
+     "beat": "at-1",
+     "hud": {},
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 1571,
+      "print": 1,
+      "shader": 2,
+      "wisp": 1,
+      "mote": 1
+     },
+     "cam": [
+      96.7,
+      16,
+      162.9,
+      55
+     ],
+     "player": [
+      96.7,
+      13.5,
+      167.6
      ],
      "late": false
     }

@@ -4,7 +4,7 @@
 //
 //   inkSpec(material) → {
 //     type: 'ink' | 'basic' | 'shader' | 'other',  // makeMaterial's G-buffer surface, a plain colour, another shader
-//     name, side (0 front, 1 back, 2 double), transparent, opacity, vertexColors, depthWrite, depthTest,
+//     name, side (0 front, 1 back, 2 double), transparent, opacity, vertexColors, depthWrite, depthTest, offset ([factor, units]),
 //     visible (false: three draws nothing with it: a shaft of light's mesh, drawn only as its wash),
 //     defines: { METAL: 1, … },
 //     skin: { body, data }  (a temple skin's surface: its pattern's number, its uniforms as vec4 slots; skin-shader.js)
@@ -42,6 +42,7 @@ export function inkSpec(m) {
     vertexColors: !!m.vertexColors, depthWrite: m.depthWrite !== false, depthTest: m.depthTest !== false, visible: m.visible !== false, blending: m.blending ?? 1,
     defines: {}, u: {},
   };
+  if (m.polygonOffset) spec.offset = [m.polygonOffsetFactor ?? 0, m.polygonOffsetUnits ?? 0];   // (pulled in front in depth: the splats)
   if (m.userData?.albedoLinear) spec.albedoLinear = true;
   if (Array.isArray(m.userData?.lining)) spec.lining = m.userData.lining.slice(0, 3);   // (back faces in this colour: the overshirt's lining)   // (its colours linear: the shader turns them to display values)
   // a temple skin's pattern (src/temples/skins/skin-shader.js): its number and its uniforms packed, as the engines draw it

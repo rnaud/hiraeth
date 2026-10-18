@@ -1188,8 +1188,18 @@ const MENUS264 = 'Issue #264: the Unity bridge in the editor’s batch run on th
 const MENUS264W = 'Issue #264: the web game in muted headless Chrome (High, 1280 × 720) on this branch’s own Vite (port 5464), the same pose as Unity’s; 17 October; cwebp -q 72';
 const SURF264 = 'Issue #264 (surfaces B): the Unity bridge in the editor’s batch run on this Mac (muted, High, 1280 × 720, -fresh -no-hud, the camera pinned at the same views as the web’s); before: main at 46b0bdb54; after: this change; the web’s pictures of the same views in muted headless Chrome (scripts/design-qc/capture.mjs, High, a fixed render scale) as their own tab; 18 October; cwebp -q 72';
 const SURF264W = 'Issue #264 (surfaces B): the web game in muted headless Chrome (High, 1280 × 720, a fixed render scale) on this branch’s own Vite (port 5466), the same view as Unity’s; 18 October; cwebp -q 72';
+/** (v1.84, issue #459) */
+const PAR459 = 'Issue #459: the Unity bridge in the editor’s batch run on this Mac (scripts/unity-compare/sequences.mjs unity: muted, High, 1280 × 720), the sequences `grass-splats` (0.08 s after the splat), `moment-edena.terraces` (0.6 s in) and `bird`; before: main at 67bd0b800 (the letterbox: 259db13c9, its HUD laid out for the batch’s 4:3 window, three quarters of the width); after: this change; 18 October; cwebp -q 72';
+const PAR459W = 'Issue #459: the web game in muted headless Chrome (High, 1280 × 720) on this branch’s own Vite (port 5459), the same beat of the same sequence; 18 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.84': [
+    { match: 'In the Unity version, “ride the bird” shows over the bird', shots: [
+      { name: 'unity-splat-ground', title: 'A splat', caption: 'A splat of the fluid in the Garden’s meadow in Unity, 0.08 s after it landed: before, slivers of it, the ground drawn over the rest; after, whole, as on the web', from: PAR459 },
+      { name: 'unity-splat-ground-web', only: 'after', title: 'The splat on the web', caption: 'The same moment on the web (its turn and drops are drawn at random)', from: PAR459W },
+      { name: 'unity-letterbox', title: 'The black bars', caption: 'Viridel’s terraces moment 0.6 s in, in Unity: before, the bars already down at their full height (and short of the picture’s right side in the batch’s pictures); after, still sliding in, as on the web', from: PAR459 },
+      { name: 'unity-letterbox-web', only: 'after', title: 'The bars on the web', caption: 'The same moment on the web', from: PAR459W },
+      { name: 'unity-ride-bird', only: 'after', title: 'Ride the bird', caption: 'The bird landed beside you in the Garden of Spheres, in Unity: its E over it (there was none)', from: PAR459 },
+    ], see: 'In the Unity version, whistle the bird down in the Garden of Spheres and walk up to it; watch the black bars come down as Viridel’s terraces moment starts; shoot the fluid at the ground.' },
     { match: 'In the Unity version, more of the world moves and shines as on the web', shots: [
       { name: 'unity-mirror-lake', title: 'The mirror lake', caption: 'The Garden’s lake from its south shore in Unity: before, plain water, and the garden it remembers standing on the far shore; after, the shore and that garden in the water, as on the web', from: SURF264 },
       { name: 'unity-mirror-lake-web', only: 'after', title: 'The lake on the web', caption: 'The same view on the web', from: SURF264W },

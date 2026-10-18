@@ -47,6 +47,9 @@ export function* createTravellerB3Steps(char,{gltf,data,report,head:headAsset,ha
    }}
   }});
   cloth.garment.name='TravellerB3Overshirt';cloth.underlayer.name='TravellerB3Trousers';cloth.innerShirt.name='TravellerB3InnerShirt';
+  // (never a surface for a splat to paint (src/splat-decal.js DrawnSurfaces): the engines' offloaded overshirt is a plain mesh,
+  // not a skinned one, and its 3 600 triangles filled a splat's gather by his feet, the ground left out: issue #459)
+  for(const m of [cloth.garment,cloth.underlayer,cloth.innerShirt])if(m)m.userData.noSplat=true;
   yield;
   if(headAsset){
    // The source neck/face starts above the scarf. Keep the collar and remove

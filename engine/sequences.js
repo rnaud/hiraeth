@@ -228,7 +228,36 @@ export const SEQUENCES = [
       { name: 'splat-held', wait: 1 },
     ],
   },
+  {
+    // the bird by you in the Garden of Spheres (issue #459: the web floated "ride the bird" over it, the engines nothing):
+    // whistled down, landed, the traveller set down beside it facing it
+    id: 'bird', title: 'The bird landed beside you', setup: { level: 'spheres', debug: true },
+    beats: [
+      { name: 'call', act: (G) => G.player.callMount(), until: (G) => !!G.player.mount?.landed && G.player.mount.pos.distanceTo(G.player.pos) < 30, timeout: 40, wait: 0.5 },
+      { name: 'beside', act: (G) => { const b = G.player.mount, at = b.pos.clone().add(new THREE.Vector3(2.4, 0, 0)); at.y = b.pos.y; standAt(G, at, b.pos); }, wait: 1.2 },
+    ],
+  },
+  {
+    // a splat in front of him, frame by frame (issue #459: in Unity not drawn 0.08 s after it came, there by 1 s): put
+    // down by the tool's own Splats on the ground ahead, as a glob's landing does
+    id: 'splat', title: 'A splat as it comes', setup: { level: 'desert', debug: true },
+    beats: [
+      { name: 'still', act: (G) => standAt(G, G.player.pos.clone(), G.player.pos.clone().add(new THREE.Vector3(0, 0, 4))), wait: 1.5 },
+      { name: 'at-0.08', act: splatAhead, wait: 0.08 },
+      { name: 'at-0.3', wait: 0.22 },
+      { name: 'at-1', wait: 0.7 },
+    ],
+  },
 ];
+
+/** A splat on the ground 4 m before the traveller and 2 m to his side, in view (the tool's Splats.add, as a glob landing there). */
+function splatAhead(G) {
+  const p = G.player.pos, h = G.player.heading ?? 0, c = Math.cos(h), s = Math.sin(h);
+  const at = new THREE.Vector3(p.x + s * 4 + c * 2, p.y, p.z + c * 4 - s * 2);
+  const g = G.player.physics?.groundAt?.(at.x, at.y + 5, at.z);
+  if (Number.isFinite(g)) at.y = g;
+  G.tool.splats.add(at, new THREE.Vector3(0, 1, 0), '#e2493b', '#f6d24a', 1.2);
+}
 
 /** The traveller set down at `at`, he and the camera facing `to` (a world point). */
 function standAt(G, at, to) {

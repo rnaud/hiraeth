@@ -531,7 +531,7 @@ player.vehicles.push(...(level.vehicles ?? []));
 const dangers = wireDangers({ scene, level });
 // the bike by the ramp where the bird is the mount, the hover vehicles skimming water, no calls into the rooms off the
 // map (src/host/game-host.js wireVehicles, the engines' too)
-const { rooms: offMapRooms } = wireVehicles({ bikeHere, player, physics, level, scene, waters, ship });
+const { rooms: offMapRooms } = wireVehicles({ bikeHere, player, physics, level, scene, waters, ship, items });
 await slice();
 setStep('assets wait');
 const lib = await animLib;
@@ -745,12 +745,7 @@ game.on('shop:open', ({ shop } = {}) => {
   if (e) setTimeout(() => { if (!shopPanel.isOpen && !storyRt.dialogue.open) { document.body.classList.add('shopping'); shopPanel.open(e); } }, 60);
 });
 await slice();
-// E: boarding a vehicle and turning a lens share the interact button with talking (nearest wins)
-// (as far as the vehicle lets you board from: a cab hovering beside a terrace is further off than a bike)
-registerInteractable({ id: 'vehicle', priority: PRIORITY.vehicle, range: 9, at: () => player.nearestVehicle()?.pos,
-  prompt: () => { const v = player.nearestVehicle(); return v?.kind === 'taxi' ? 'get in the cab' : v?.powered && !items.has('backpack') ? `ride the ${level.mountName ?? v?.kind} (it needs power)` : `ride the ${level.mountName ?? v?.kind ?? 'mount'}`; },
-  // (measured to its side, not its middle: a cab is four metres long, and a passer-by at your shoulder was nearer than its centre)
-  distance: (p) => { const v = p.nearestVehicle(); const d = v && !p.boarding && !p.unboarding ? v.pos.distanceTo(p.pos) : Infinity; return d <= (v?.boardDistance ?? 6) ? Math.max(0.2, d - (v.halfWidth ?? 0)) : Infinity; }, use: () => player.interact() });
+// E: turning a lens shares the interact button with talking and boarding (nearest wins; the vehicle's: wireVehicles)
 // (the lens's prompt floats over its dial, its beams' count with it: issue #350, a world object's prompt by the object)
 const _lensAt = new THREE.Vector3();
 if (expedition) registerInteractable({ id: 'lens', priority: PRIORITY.use, range: 1, prompt: () => expedition.hud(player).replace(/^E \(X \/ □\) /, ''),

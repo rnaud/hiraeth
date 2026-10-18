@@ -155,6 +155,7 @@ namespace Hiraeth.Bridge
         Image cineRed, cineFade, barTop, barBot;
         Ui.Box subBox, cineHint, skipBox; Label subText, cineHintText, skipText; Image skipTrack, skipFill;
         float fadeA, barH, redA; int subId = -1; float subT;
+        float barFrom, barTo, barT = 1;   // (the letterbox's way in or out: from, to, its share of the 1.1 s done)
         static readonly Color CineInk = Ui.Hex("#2b211f"), CinePaper = Ui.Hex("#fff6dc"), SubPaper = new Color(247 / 255f, 236 / 255f, 210 / 255f, 0.95f);
         const int SubSize = 21;
 
@@ -170,6 +171,26 @@ namespace Hiraeth.Bridge
             skipBox = Ui.Panel(root, "cine skip", new Color(43 / 255f, 33 / 255f, 31 / 255f, 0.82f), Color.clear, 0);
             skipText = Ui.Label(skipBox.rt, "text", mono, 12, HintInk0, TextAnchor.MiddleLeft);
             skipTrack = Ui.Rect(skipBox.rt, HintInk, 0, "track"); skipFill = Ui.Rect(skipTrack.rectTransform, Ui.Gold, 0, "fill");
+        }
+
+        const float BarSecs = 1.1f;   // (src/ship/cinema.js: #cine .bar's transition)
+        /// <summary>A CSS cubic-bezier(x1, y1, x2, y2) timing function at x (0..1): the curve's t for x found by Newton's
+        /// steps (bisection where they stall), its y there.</summary>
+        public static float CssEase(float x, float x1, float y1, float x2, float y2)
+        {
+            if (x <= 0) return 0; if (x >= 1) return 1;
+            float Bz(float t, float a, float b) => ((1 - 3 * b + 3 * a) * t + (3 * b - 6 * a)) * t * t + 3 * a * t;
+            float t = x;
+            for (int i = 0; i < 8; i++)
+            {
+                float e = Bz(t, x1, x2) - x, d = (3 * (1 - 3 * x2 + 3 * x1)) * t * t + 2 * (3 * x2 - 6 * x1) * t + 3 * x1;
+                if (Mathf.Abs(e) < 1e-5f) return Bz(t, y1, y2);
+                if (Mathf.Abs(d) < 1e-6f) break;
+                t -= e / d;
+            }
+            float lo = 0, hi = 1; t = x;
+            for (int i = 0; i < 30; i++) { float e = Bz(t, x1, x2) - x; if (Mathf.Abs(e) < 1e-5f) break; if (e > 0) hi = t; else lo = t; t = (lo + hi) / 2; }
+            return Bz(t, y1, y2);
         }
 
         void DrawCine(Dictionary<string, object> c, Dictionary<string, object> sub)
@@ -191,7 +212,15 @@ namespace Hiraeth.Bridge
             // all black in Unity once his eyes were open, issue #394)
             bool eyes = c != null && c.Get("eyes") is bool ey && ey;
             float to = eyes || lid < 1 ? 0.505f - (0.505f - 0.11f) * lid : lids ? 0.505f : bars ? 0.11f : 0;
-            barH = lids || eyes || lid < 1 ? to : Mathf.MoveTowards(barH, to, dt / 1.1f * 0.2f);
+            // (in and out as the page's CSS transition: 1.1 s on cubic-bezier(.6, 0, .3, 1), from wherever it was, started
+            // again when the target moves; it went at an even pace in 0.6 s before, narrower than the web's a beat in and
+            // wider a beat after, issue #459)
+            if (lids || eyes || lid < 1) { barH = barFrom = barTo = to; barT = 1; }
+            else {
+                if (to != barTo) { barFrom = barH; barTo = to; barT = 0; }
+                barT = Mathf.Min(1, barT + dt / BarSecs);
+                barH = Mathf.LerpUnclamped(barFrom, barTo, CssEase(barT, 0.6f, 0f, 0.3f, 1f));
+            }
             Show(barTop, barH > 0.001f); Show(barBot, barH > 0.001f);
             Ui.Place(barTop.rectTransform, 0, 0, W, barH * H); Ui.Place(barBot.rectTransform, 0, H - barH * H, W, barH * H);
             // the hint under the top bar
@@ -353,6 +382,10 @@ namespace Hiraeth.Bridge
         static readonly bool oldPlace = BridgeArgs.Flag("-hud-old");
         void Update() { if (oldPlace) Draw(); }
         void LateUpdate() { if (!oldPlace) Draw(); }
+        /// <summary>Laid out again at once for the canvas's size now: a batch shot (BridgeRunner.Shot) draws 1280 × 720 while
+        /// the editor's batch window is 4:3, and the HUD stood where the window had it, the letterbox, the subtitles and the
+        /// skip stopping at three quarters of the picture's width (issue #459).</summary>
+        public void Relayout() { Canvas.ForceUpdateCanvases(); Draw(); Canvas.ForceUpdateCanvases(); }
         // (-no-hud: nothing of the HUD drawn, the picture alone, as the web's side-by-sides hide the page: scripts/unity-compare/)
         static readonly bool noHud = BridgeArgs.Flag("-no-hud");
         Dictionary<string, object> shows;

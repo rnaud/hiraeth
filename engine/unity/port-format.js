@@ -167,6 +167,10 @@ export function portMaterial(spec, id = 0) {
   if (spec.defines?.WATER_VEINS) Object.assign(e, { veinOn: 1, veinBox: (Array.isArray(u.uVeinBox) ? u.uVeinBox : [0, 0, 0, 0]).map(r5) });
   if (spec.defines?.BREATHE && Array.isArray(u.uBreathe)) e.breathe = u.uBreathe.map((x) => Math.min(r5(x), 1e9));   // (the Buried Machine's clock: BridgeRenderer.Breathe, live)
   if (typeof u.uSplatTime === 'number') Object.assign(e, { splatOn: 1, splatClock: [r5(u.uSplatTime), 0, 0, 0] });
+  // three's polygon offset, Surface.shader's Offset: the splats lie on the ground itself, pulled in front in depth (issue #459:
+  // without it the ground hid them, or not, frame by frame). Only theirs so far: the ground's other decals that have one
+  // (sand drifts, salt, the crash's scorch…) would each be a new raster state for the Retroid's prewarmed pipelines
+  if (spec.offset && typeof u.uSplatTime === 'number') e.offset = spec.offset.map(r5);
   // a temple skin's pattern (src/temples/skins/skin-shader.js): Surface.shader's HIRAETH_SKIN, its uniforms the material's _SkinData
   if (spec.skin?.body > 0) { e.skinPattern = spec.skin.body; e.skinData = spec.skin.data.map(r5); }
   return e;

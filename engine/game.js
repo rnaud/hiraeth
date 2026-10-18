@@ -466,7 +466,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   player.vehicles.push(...(level.vehicles ?? []));
   // the bike by the ramp where the bird is the mount (Viridel, #376: the engines had none), the hover vehicles skimming
   // water (they sank in the engines), no calls into the rooms off the map nor from inside the ship (wireVehicles)
-  wireVehicles({ bikeHere, player, physics, level, scene, waters, ship });
+  wireVehicles({ bikeHere, player, physics, level, scene, waters, ship, items: gear });
   // every fire drawn in the world burns while you stand in it, and a world's deadly void under its kill height, as the
   // page (src/host/game-host.js wireDangers: the engines registered no fire's and drew no void before, #427); the void's
   // wash hangs in level.veils, drawn by the port's Hiraeth/PitVoid

@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.84 — 2026-10-17
 
+- In the Unity version, “ride the bird” shows over the bird when you stand by it, as on the web; a scene’s black bars slide in as slowly and smoothly as on the web’s; and the fluid’s splats lie whole on the ground the moment they land (the ground hid them, in part or all, a beat longer).
 - Arriving in the City-Shaft, the game’s check that no far-off tree stands inside a house takes about half the time, with the same trees in the end: on the Steam Deck it is done half a minute after you arrive instead of nearly a minute, and the frames it slowed are back to full speed that much sooner.
 - The game’s own work each frame is lighter on slow processors: the Underwater City’s rising bubbles are only worked out where you can see them, and the posing of the traveller and the people walks their skeletons faster. In the Unity version on the Steam Deck that is up to 7 more frames a second in the Underwater City and up to 2 more in the other worlds.
 - In the Unity version, the worlds that have no drifting cloud shadows on the web (Lorn, Viridel, the Garden, the Signal Market and most others) have none in Unity either: Lorn’s marsh was all in shade, and Viridel’s far white tower under a cloud.

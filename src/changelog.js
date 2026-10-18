@@ -207,6 +207,11 @@ export const CHANGELOG = [
         { where: 'the web ×4: the checks done, after the first frame', before: 114, after: 72 },
         { where: 'the web ×4: their script time in all', before: 10.6, after: 6.7 },
       ], source: 'docs/systems/performance.md, "The buried-tree checks (#460)"', note: 'The same player (and page) with the script before and after, standing at the start; the checks share each frame’s 2 ms as before, so the frames while they run are as before (on the Deck 74–79 fps) and the ones after they end faster (from 31 s to 54 s: 80 → 94 fps). The same trees dropped in all fourteen worlds, and what Unity is sent the same, frame for frame.' }] },
+    // issue #459: src/host/game-host.js wireVehicles (the vehicle's interactable, boardPrompt); unity/Hiraeth BridgeHud.cs (the
+    // letterbox on the page's 1.1 s cubic-bezier, CssEase; Relayout for a batch shot), Surface.shader Offset, port-format.js /
+    // ink-spec.js offset, WorldLoader; traveller-b3.js noSplat; engine/sequences.js bird, splat; tests/unity-splat.test.js,
+    // tests/unity-letterbox.test.js, tests/game-host.test.js
+    'In the Unity version, “ride the bird” shows over the bird when you stand by it, as on the web; a scene’s black bars slide in as slowly and smoothly as on the web’s; and the fluid’s splats lie whole on the ground the moment they land (the ground hid them, in part or all, a beat longer).',
   ] },
   { v: '1.83', date: '2026-10-16', items: [
     // issue #406: src/temples/desert.js (ROOMS, LOGIC: hall, balcony, ballK, kS, dE, sentry in the hall, d3), pieces.js Ball

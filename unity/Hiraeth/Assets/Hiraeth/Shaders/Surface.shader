@@ -59,6 +59,8 @@ Shader "Hiraeth/Surface"
     _SkinBody ("A temple skin's pattern (SkinPatterns.hlsl; 0 none)", Float) = 0
     _NightOn ("Night paint in the form's slot (NIGHT_PAINT)", Float) = 0
     _SplatOn ("A splat of the fluid (splat-decal.js)", Float) = 0
+    _OffsetFactor ("Polygon offset, factor (three's polygonOffset: the splats, issue #459)", Float) = 0
+    _OffsetUnits ("Polygon offset, units", Float) = 0
     _Breathe ("The Buried Machine's clock (BridgeRenderer.Breathe)", Vector) = (0, 1000000000, 0, 0)
     _MirrorOn ("A reflection in still water (MIRROR)", Float) = 0
     _VeinOn ("Lorn's veins under the water (WATER_VEINS)", Float) = 0
@@ -297,6 +299,9 @@ Shader "Hiraeth/Surface"
       Cull [_Cull]
       ZWrite [_ZWrite]
       ZTest [_MZTest]
+      // (pulled in front in depth as three's polygon offset does: a splat lies exactly on the ground, which hid it, or not,
+      // frame by frame; 0 for everything else)
+      Offset [_OffsetFactor], [_OffsetUnits]
 
       HLSLPROGRAM
       #pragma target 4.5
@@ -1036,7 +1041,7 @@ Shader "Hiraeth/Surface"
             float3(0.43918, -1.24239, 0.18699), float3(-1.29538, 0.05786, 0.13925) };   // (splat-decal.js SPLAT_DROPS; tests/unity-surfaces-b.test.js)
           float2 sp = I_FORM.xy;
           float sAge = _SplatClock.x - I_FORM.z, sK = splatGrowth(sAge, I_FORM.w), sKi = splatGrowth(sAge, I_FORM.w * 0.85);
-          float sR = length(sp), sA = atan2(sp.y, sp.x), ph = I_FOLD.x;
+          float sR = length(sp), sA = sR > 1e-6 ? atan2(sp.y, sp.x) : 0.0, ph = I_FOLD.x;   // (atan2(0, 0) at the very middle: NaN on Metal, and the bloom spreads it over the whole picture, black)
           float sB = 1.0 + 0.32 * (0.5 * sin(sA * 3.0 + ph) + 0.3 * sin(sA * 5.0 + ph * 2.0) + 0.14 * sin(sA * 7.0 + ph * 3.1));
           splatInner = sR < 0.5 * sKi * sB ? 1.0 : 0.0;
           bool sIn = sR < sK * sB;

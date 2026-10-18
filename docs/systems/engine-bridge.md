@@ -1720,8 +1720,7 @@ at the cockpit's point and E pressed). Since #429 this is the `opening` sequence
 | settle | no "✦ BRING BACK SOMETHING OF VALUE" | src/story/charge.js `showChargeCard` lettered it in the page only; it is the screen's `charge` part too (`{ id, mark, text, ms }`), BridgeHud `DrawCharge` letters it on its paper band, the capitals closing up, the ink line and its gold dot |
 | every beat with him | the sword's hilt on his back from the first step | engine/game.js never set `tool.swordOn` / `shieldOn` (main.js `armTool`): unset is armed, so the sword hung there (and cut) before the Rose House gave it. Set from the items each frame, as the page |
 
-Left as they are: the batch's HUD is laid out for its 4:3 window while the shot is 16:9, so in these pictures the
-letterbox, the subtitles and the skip stop at three quarters of the width (a player's own screen is right); the HUD's
+Left as they are: the HUD's
 mono type against the page's; his hair darker close up (the ink's spot blacks, not the opening's). A slice of the
 hologram torn sideways in one picture is the page's own spike of glitch, at random. Tests: tests/engine-hologram.test.js
 (the eyes, no sword, the prompt in the walk, the figures as `'holo'` with his encoded picture, the beam hidden, the live
@@ -1807,12 +1806,14 @@ side and compares them beat by beat.
   it, the same names on both sides: `webGame(window)` (the page's globals, its Start menu and game menu) and
   `engineGame(game, menus)` (engine/game.js, engine/menus.js); `engineKey` routes a key as the Unity host routes the
   player's.
-- **The sequences** (29): the opening (#394's seventeen beats), every world's filmed moment (17, the catalog's "World
+- **The sequences** (35): the opening (#394's seventeen beats), every world's filmed moment (17, the catalog's "World
   moments"), a makers' box, the ship's arrival (by step) and takeoff, the Start menu and its pages (Items, Map, Quests,
   Settings), the House map (the Start menu's page inside the Buried's makers' house, issue #405), a fight in the Arena (a blot spawned, lock-on, a cut, a hit, its
   death, its chimes), a makers' temple (the Buried's: in at the door, a switch, a small key, the great key and the
   guardian's door), a fight temple's first wave (the Sunken Hall), two minigames (the rings, the ski: card, count, run,
-  pause), a conversation with choices (Teo: two pages, his answers, the first chosen).
+  pause), a conversation with choices (Teo: two pages, his answers, the first chosen); the grass parting and a splat in
+  the Garden (`grass-splats`, #264); the bird whistled down beside you in the Garden of Spheres (its "ride the bird"
+  prompt) and a splat put down before you in the desert, at 0.08, 0.3 and 1 s (issue #459).
 - **The state stream**: `probe(G)` at each beat, as data: the screen's parts (src/platform.js `screen`, and what the page
   draws of the fight in its own HTML: the lock, the warnings, the knock-out card, the foes' tab) and what each says; the
   menu open, its page, its sidebar and rows; what plays (the prologue's stage, a moment, a ship's step, a box's phase);
@@ -2001,8 +2002,10 @@ the engines' build of the game to see it there. Moved so far:
 - `wireMount`, `wireVehicles` (both hosts had their own copy): the bird's promise and the hoverbike as the world's mount,
   set before the traveller is made; once he is, the bike parked by the ramp where the bird is the mount (Viridel,
   #376), every hover vehicle skimming the water (the waters' floor), and no calls into the rooms off the map nor from
-  inside the ship (`canSummon`; the page culls by the rooms it returns). The engines had no parked bike, and their
-  bikes and skiffs sank into water.
+  inside the ship (`canSummon`; the page culls by the rooms it returns), and E boarding the nearest vehicle with its
+  prompt floating by it ("ride the bird", "get in the cab": the interactable `vehicle`, `boardPrompt`). The engines had
+  no parked bike, their bikes and skiffs sank into water, and they boarded without a prompt (issue #459: the page alone
+  registered it).
 - `wireLessons` (both hosts had their own copy): what the save's events say and start: a gadget found and its line
   after its box's card, a keepsake's recorded theme, the trials' upgrades to the gadgets' tuning, Plumb's clock and
   notes.
@@ -2159,6 +2162,29 @@ branch, a value in the material, or the CPU's.
 
 Left: the water's passes (under water, the tint, banded fog, a sea's shafts and caustics; above it, the sun's sparkle),
 a pass of their own after the composite, reading `_GNormal` (docs/systems/bridge-gaps.md).
+
+## Parity bits: the bird's prompt, the letterbox, a splat (2026-10-18, issue #459)
+
+- **"ride the bird"**: the vehicle's interactable (E boards the nearest vehicle, its prompt by it: "ride the bird", "get
+  in the cab", a bike "(it needs power)") was registered by main.js alone, so the engines boarded without a prompt. It is
+  `wireVehicles`'s now (src/host/game-host.js, `boardPrompt`; the items passed for the pack). Sequence `bird`.
+- **The letterbox**: BridgeHud's bars went down at an even pace in 0.6 s; the page's #cine .bar takes 1.1 s on
+  cubic-bezier(.6, 0, .3, 1), from wherever it was. `CssEase` is that curve (tests/unity-letterbox.test.js holds it to
+  the page's CSS): 0.6 s into Viridel's terraces moment the bar is 59 px of 720 in Unity, 62 on the web (79 before).
+  The height was always the page's 11 %: what looked narrower was the batch's pictures, the HUD laid out for the editor's
+  4:3 window while the shot is 1280 × 720, so the bars, subtitles and skip stopped at three quarters of the width.
+  BridgeRunner.Shot now lays the HUD out for the picture's size (`BridgeHud.Relayout`, in the editor only) and back.
+- **A splat a beat late**: not the bridge's batching, the draw range or the clock (the splat's geometry and its clock
+  reach Unity in the frame it is made: engine-side traces). The splats lie exactly on the surface they hit, and the web
+  pulls them in front of it with three's polygon offset (-2, -4), which never reached Unity: the ground hid them, whole
+  or in part, as the depth test fell frame by frame (`grass-splats`: slivers at 0.08 s and 1.08 s). ink-spec.js reads
+  the offset, port-format.js sends it with the splats' material (only theirs: the ground's other decals that have one
+  would each be a new raster state for the Retroid's prewarmed pipelines), WorldLoader sets `_OffsetFactor`,
+  `_OffsetUnits` and Surface.shader's G-buffer pass draws with `Offset [_OffsetFactor], [_OffsetUnits]` (0 for every
+  other material). A splat's very middle no longer takes atan2(0, 0) (NaN on Metal; the bloom spreads one such pixel
+  over the whole picture, black). And the traveller's cloth is `noSplat`: the engines' overshirt, offloaded to
+  BridgeCloth, is a plain mesh there, and its 3 600 triangles once filled a splat's gather by his feet so that the
+  ground was left out of it.
 
 ## Status
 
