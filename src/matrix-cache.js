@@ -58,6 +58,8 @@ const _old = new Float64Array(16);
  * traveller's rig was walked forced six or seven times a frame, 373 objects multiplied each time, unmoved).
  */
 export function updateMatrixWorldCached(force) {
+  // (a walk entered from outside one, over a subtree that has not changed since its last walk: down its list, issue #457)
+  if (walking === 0 && EDITS.on) { const L = listFor(this); if (L !== null) { L.walk(this, force); return; } }
   const counted = walking === 0 && (force === true || this.parent !== null);
   if (counted) { force = true; forcedWalk++; }
   try {
@@ -91,6 +93,124 @@ export function updateMatrixWorldCached(force) {
     walking++;
     try { for (let i = 0, l = children.length; i < l; i++) children[i].updateMatrixWorld(changed); } finally { walking--; }
   } finally { if (counted) forcedWalk--; }
+}
+
+/**
+ * The scene graph's edits (Object3D's add, remove and attach count them: engine/scene-matrices.js watchSceneEdits, which
+ * sets `on`). While they are counted, a subtree walked again and again (a rig, from its root, its pelvis, its arm: the
+ * traveller's 1 000 visits a frame, a person's 200-300) is walked down a list of it made once (SubtreeList), not by the
+ * walk's own recursion, until the next edit anywhere.
+ */
+export const EDITS = { n: 0, on: false };
+
+// Why a list (issue #457, the Steam Deck's script thread): each visit of the recursion reads a dozen properties
+// (parent, matrixAutoUpdate, position, quaternion, scale, _pqs, children, its updateMatrixWorld…) off an object whose
+// shape is one of hundreds (meshes, groups, bones, each with what the game hung on it), so in V8 every one of them is a
+// megamorphic read: the walks were ~10 % of the script there, for the people and the traveller. The list holds what
+// does not change between edits (each object's position, quaternion and scale, the numbers its matrix was composed from,
+// its matrix and world matrix, its parent in the list, its subtree's end) in arrays of one kind each, as
+// engine/scene-matrices.js does for the whole scene; a visit then reads three flags off the object itself
+// (matrixAutoUpdate, matrixWorldNeedsUpdate, matrixWorldAutoUpdate), and the same matrices come out in the same order.
+// The list of a subtree is made on its second walk after an edit (the first is the recursion, which also brings every
+// object's remembered parent, _mcParent, up to date, so no object in a list was given another parent since it was
+// made); one whose objects are not their listed parents' children (a holder lending its children to a render: the hero
+// map's scene, a passage's) or too small to pay for its look-up is walked as before. The lists are kept in a WeakMap,
+// not on the objects (#455: a property put on three's objects slows every other read of them).
+
+const LISTS = new WeakMap();
+/** Under this many objects a subtree is walked by the recursion: its list costs more than it saves. */
+const LIST_MIN = 8;
+
+class SubtreeList {
+  constructor() { this.epoch = -1; this.ok = false; this.n = 0; this.kids = null; this.kidCount = 0; }
+
+  /** Listed depth first, as the recursion visits (each object after its parent; end[i] one past i's subtree). */
+  build(root) {
+    const objs = [], parent = [], end = [];
+    let ok = true;
+    const walk = (o, p) => {
+      const i = objs.length;
+      objs.push(o); parent.push(p); end.push(0);
+      if (p >= 0 && o.parent !== objs[p]) ok = false;   // (a child lent: its world matrix is its own parent's)
+      const ch = o.children;
+      for (let k = 0; k < ch.length; k++) walk(ch[k], i);
+      end[i] = objs.length;
+    };
+    walk(root, -1);
+    const n = this.n = objs.length;
+    this.ok = ok && n >= LIST_MIN;
+    this.kids = root.children; this.kidCount = root.children.length;
+    if (!this.ok) { this.objs = null; return; }
+    this.objs = objs; this.parent = Int32Array.from(parent); this.end = Int32Array.from(end);
+    this.own = new Uint8Array(n); this.changed = new Uint8Array(n);
+    const P = this.P = new Array(n), Q = this.Q = new Array(n), S = this.S = new Array(n), K = this.K = new Array(n);
+    const M = this.M = new Array(n), MW = this.MW = new Array(n), WE = this.WE = new Array(n);
+    for (let i = 0; i < n; i++) {
+      const o = objs[i];
+      P[i] = o.position; Q[i] = o.quaternion; S[i] = o.scale;
+      K[i] = o._pqs ??= new Float64Array(10).fill(NaN);
+      M[i] = o.matrix; MW[i] = o.matrixWorld; WE[i] = o.matrixWorld.elements;
+      // (its own updateMatrixWorld: a camera, a skinned mesh, the part batches; called as the recursion calls it. Not
+      // the root's: the walk is in it already, through super)
+      this.own[i] = i > 0 && o.updateMatrixWorld !== updateMatrixWorldCached ? 1 : 0;
+    }
+  }
+
+  /** root.updateMatrixWorld(force), as the recursion would make it. */
+  walk(root, force) {
+    const counted = force === true || root.parent !== null;
+    if (counted) { force = true; forcedWalk++; }
+    walking++;
+    try {
+      const { objs, parent, end, own, P, Q, S, K, M, MW, WE, changed } = this;
+      for (let i = 0, n = this.n; i < n; i++) {
+        const o = objs[i];
+        const f = i === 0 ? !!force : changed[parent[i]] === 1;
+        if (own[i] === 1) {
+          // (its own walk, and its subtree with it, as the recursion hands it over)
+          o.updateMatrixWorld(f);
+          i = end[i] - 1;
+          continue;
+        }
+        if (o.matrixAutoUpdate) {
+          const p = P[i], q = Q[i], s = S[i], k = K[i];
+          if (k[0] !== p.x || k[1] !== p.y || k[2] !== p.z || k[3] !== q._x || k[4] !== q._y || k[5] !== q._z || k[6] !== q._w
+            || k[7] !== s.x || k[8] !== s.y || k[9] !== s.z) {
+            k[0] = p.x; k[1] = p.y; k[2] = p.z; k[3] = q._x; k[4] = q._y; k[5] = q._z; k[6] = q._w; k[7] = s.x; k[8] = s.y; k[9] = s.z;
+            M[i].compose(p, q, s);
+            o.matrixWorldNeedsUpdate = true;
+          }
+        } else if (forcedWalk > 0) o.matrixWorldNeedsUpdate = true;
+        let ch = 0;
+        const needs = o.matrixWorldNeedsUpdate;
+        if (needs || f) {
+          if (o.matrixWorldAutoUpdate === true) {
+            const w = WE[i];
+            if (needs) ch = 1;
+            else for (let k = 0; k < 16; k++) _old[k] = w[k];
+            if (i === 0) {
+              if (root.parent === null) MW[0].copy(M[0]);
+              else MW[0].multiplyMatrices(root.parent.matrixWorld, M[0]);
+            } else MW[i].multiplyMatrices(MW[parent[i]], M[i]);
+            if (ch === 0) for (let k = 0; k < 16; k++) if (_old[k] !== w[k]) { ch = 1; break; }
+            if (ch === 1 && WORLD_STAMP.on) { const nd = o.__mirror; if (nd) nd.mw = WORLD_STAMP.n; }
+          } else ch = 1;
+          o.matrixWorldNeedsUpdate = false;
+        }
+        changed[i] = ch;
+      }
+    } finally { walking--; if (counted) forcedWalk--; }
+  }
+}
+
+/** The list to walk `o`'s subtree down, or null: walk it by the recursion (an edit since its last walk, not worth one). */
+function listFor(o) {
+  let L = LISTS.get(o);
+  if (L === undefined) { LISTS.set(o, L = new SubtreeList()); L.epoch = EDITS.n; return null; }
+  if (L.epoch !== EDITS.n) { L.epoch = EDITS.n; L.objs = null; L.kids = null; return null; }   // (this walk by the recursion, the list made at the next)
+  if (L.kids === null) L.build(o);
+  else if (L.kids !== o.children || L.kidCount !== o.children.length) { L.kids = null; return null; }   // (a holder's children swapped)
+  return L.ok ? L : null;
 }
 
 /**

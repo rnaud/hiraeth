@@ -29,17 +29,17 @@
 // renderFrame, the web game's Steam Deck preset, issue #111), makes each subtree stepped over this frame
 // that is shown now as the walk would have, so nothing is drawn a frame where it was when it was hidden.
 import * as THREE from 'three';
-import { updateMatrixWorldCached, updateInWalk } from '../src/matrix-cache.js';
+import { updateMatrixWorldCached, updateInWalk, EDITS } from '../src/matrix-cache.js';
 
-let epoch = 0;
 let installed = false;
 /** Count the scene graph's changes (once: add, remove and attach on Object3D's prototype). */
 export function watchSceneEdits(proto = THREE.Object3D.prototype) {
   if (installed) return;
   installed = true;
+  if (proto === THREE.Object3D.prototype) EDITS.on = true;   // (and the rigs' walks go down lists of their own between edits: src/matrix-cache.js)
   for (const name of ['add', 'remove', 'attach']) {
     const plain = proto[name];
-    proto[name] = function (...args) { epoch++; return plain.apply(this, args); };
+    proto[name] = function (...args) { EDITS.n++; return plain.apply(this, args); };
   }
 }
 
@@ -94,6 +94,7 @@ class SceneList {
     const stepped = this.stepped;
     stepped.length = 0;
     this.over = 0;   // (how many objects were stepped over this frame: the readout's)
+    const epoch = EDITS.n;
     if (this.epoch !== epoch) {
       this.scene.updateMatrixWorld();
       // (edits frame after frame, a burst of things spawned: the walk alone until they stop, not the list made again
@@ -200,7 +201,7 @@ function mul(te, ae, be) {
  */
 export function sceneList(scene) {
   const L = scene.__sceneList;
-  return L && L.epoch === epoch ? L : null;
+  return L && L.epoch === EDITS.n ? L : null;
 }
 
 /**
