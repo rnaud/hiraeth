@@ -16,7 +16,8 @@
 // The gadgets (src/gadgets/, issue #344): every one registered as an item first, as main.js does, then made per world.
 // The trials and the games (engine/trials.js): a world's challenges, its games' signs and their hosts, and a run's
 // runner; createGame({ game }) plays a game's own page (its arena, or the world it is played in), as ?game=<id>.
-import { page } from './boot.js';
+import { page, encodedPicture } from './boot.js';
+import { ENCODED_TEXTURES } from './encoded-textures.js';
 import '../src/gadgets/all.js';   // (first after the page's stand-ins: the gadgets become items before anything reads ITEMS)
 import * as THREE from 'three';
 import { levelById, LEVELS } from '../src/levels/index.js';
@@ -111,6 +112,7 @@ import { WorldMap, MAP, mapBounds, zoomBounds, mapMarks, scaleBar } from '../src
 import { houseHere, houseView } from '../src/house-map.js';
 import { interiorAt } from '../src/interior-kit.js';
 import { fillUnfound, portraitPaint } from './traveller-paint.js';
+import { PORTRAIT_EYE_PAINT } from '../src/characters/portrait-head.js';
 import { PixelCanvas } from './raster.js';
 import { GIVERS_NOTE } from '../src/story/signature.js';
 import { items as gear, ITEMS } from '../src/items.js';
@@ -241,6 +243,11 @@ function engineColours(ch, { gltf, colors, headColors }) {
     // (and the fit its drawn blink and open mouth are measured in: port-format.js portraitFace, Unity's PortraitFace.hlsl)
     const F = head.userData.portraitHeadFit;
     if (F) head.material.userData.portraitFace = [...F.offset, F.scale, F.mouthY];
+    // (and his painted eyes and brows at the texture's own detail, issue #473: a few vertices across an iris drew them
+    // blurred; scripts/tripo/bake-eye-paint.mjs, Unity's PortraitFace.hlsl reads it by the head's fit as the page reads uMap)
+    const EYES = 'characters/traveller-v1/head-v3/eye-paint.png';
+    if (F && !ENCODED_TEXTURES.has(EYES)) { const t = encodedPicture(EYES); if (t) ENCODED_TEXTURES.set(EYES, t); }
+    if (F && ENCODED_TEXTURES.has(EYES)) { head.material.userData.portraitEyePaint = EYES; head.material.userData.portraitEyeBox = PORTRAIT_EYE_PAINT.box.slice(); }
   }
   // the old collar lining tucked under the portrait's neck, in its skin (traveller-b3.js fitB3NeckMaterial: a display
   // colour over the paint by b3NeckSkin; without it a black patch at the foot of his neck in Unity's close-ups)

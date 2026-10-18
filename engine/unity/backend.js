@@ -4,6 +4,7 @@
 // (pack.js CommandWriter) handed to C# once a frame (unity/Hiraeth/Assets/HiraethJS: BridgeHost,
 // BridgeRenderer). The frame is mirrored in x on the way (pack.js), as the port's exporter does.
 import { unityGeometry, CommandWriter, OP, mirrorMatrix, crowdInstances, puffInstances } from './pack.js';
+import { ENCODED_TEXTURES } from '../encoded-textures.js';
 import { portMaterial } from './port-format.js';
 import { skinMatrices } from '../skin.js';
 import { packClothDesc } from '../cloth.js';
@@ -81,7 +82,10 @@ export class UnityBackend {
     this.specs.set(mid, spec);
     const pm = portMaterial(spec, mid);
     // (-js-off surfd: issue #264's surfaces D left out, its before pictures)
-    if (this.surfacesD === false) for (const k of ['phFit', 'phFit2', 'phSpeech', 'phBlink', 'surfD', 'cutMe', 'lineWhite']) { if (k === 'phFit' && pm.phFit) pm.tripoFace = 0; delete pm[k]; }
+    if (this.surfacesD === false) for (const k of ['phFit', 'phFit2', 'phSpeech', 'phBlink', 'surfD', 'cutMe', 'lineWhite', 'phEyeBox', 'phEye']) { if (k === 'phFit' && pm.phFit) pm.tripoFace = 0; delete pm[k]; }
+    // (the portrait head's eye paint, issue #473: its picture, named on the material once it is made; -js-off eyepaint: the before)
+    const eyePaint = pm.phEyeBox && this.eyePaint !== false ? ENCODED_TEXTURES.get(m?.userData?.portraitEyePaint) : null;
+    if (!eyePaint) { delete pm.phEyeBox; delete pm.phEye; }
     if (pm.port) this.ports.set(mid, pm.port);
     // a picture on it (makeMaterial's map: a canvas the game drew, engine/raster.js, or a DataTexture's bytes): sent first,
     // the material names it (BridgeRenderer.Texture, the Surface shader's _Map)
@@ -90,6 +94,7 @@ export class UnityBackend {
     const tid = tex ? this._texture(tex) : 0;
     if (tid) pm.map = tid;
     this.host.Material(mid, JSON.stringify(pm));
+    if (eyePaint) this.materialTexture(mid, '_EyePaint', eyePaint);
   }
 
   /**

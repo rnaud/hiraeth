@@ -2347,9 +2347,26 @@ each is a uniform branch, a value in the material or a live vector.
   draws over them, the closed lid's one line at a full blink and the mouth's dark opening as he speaks, is
   PortraitFace.hlsl (`_TripoFace` 2: the full variant's face path, so no new Lean case), in the head's fit (engine/game.js
   gives the material `userData.portraitFace`: offset, scale, the mouth's height), its `uHeadSpeech` and `uPortraitBlink`
-  live (LIVE_VECTORS). Left: the head's pen lines and hair strokes (two PNG masks the engines' VM does not read), the
-  painted iris moving with his look (the paint is vertex colours, engine/traveller-paint.js) and the nose's side line by
-  the view.
+  live (LIVE_VECTORS). Left: the head's pen lines and hair strokes (two PNG masks the engines' VM does not read) and the
+  nose's side line by the view.
+- **His eyes at the texture's detail** (issue #473). The page paints his eyes and brows from the head's 2048 px JPEG
+  (wearPortraitHeadFace's `uMap`); Unity had them from his vertex colours (engine/traveller-paint.js), about eleven
+  vertices across an eye and two or three across an iris, so they read blurred and low resolution next to the web's.
+  `node scripts/tripo/bake-eye-paint.mjs` front-projects the JPEG once into the head's fit over PORTRAIT_EYE_PAINT's box
+  (both eyes, their lash lines and the brows: 544 × 214 px, the JPEG's own density there, ~1 150 px a fit unit; the hair's
+  share in alpha), `eye-paint.png` beside the head (the players carry it: BridgeBuild). engine/game.js reads it encoded
+  (boot.js `encodedPicture`, kept in engine/encoded-textures.js by its name: the material's userData holds the name, a
+  string, as three copies userData through JSON in a clone), the backend names it `_EyePaint` on the head's material after it (`materialTexture`,
+  decoded by Unity: BridgeHost.TextureImage, trilinear, anisotropy 4, mips) with its box (`_PhEyeBox`), and
+  PortraitFace.hlsl `portraitEyePaint` reads it by the bind position (which rides the vertices as the page's UV does: the
+  blink's blend shapes carry the lids' paint) and works it as the page's shader works `uMap` there: the iris moved with his
+  look (`uHeadEye`, live as `_PhEye`), the warm blotches and baked marks to the one skin, the far tone
+  (PORTRAIT_EYES_FAR), the hair inked. Cost: one RGBA32 texture, 455 KB (606 KB with its mips), and two samples a pixel on his
+  face. `-js-off eyepaint` draws the before. tests/unity-eye-paint.test.js.
+  People's eyes (Figure.hlsl `eyeIris`, `eyeball`) had kept an older port of eyes.js: a soft rim, a bigger pupil, the
+  catchlight only from 7 px, the lid at rest a third of the way down (0.18) and no lash line. They are the web's now
+  (the pen circle at 0.8, the pupil 0.4, the catchlight from 3 to 5.5 px, the lid at 0.42, the lash line heavier toward
+  the outer corner); the same test holds them to the web's numbers.
 - **face.js's portrait face** (uPortrait, uExpression, uGaze, uIris, uHeadBall): no material in the game is made with it;
   web only. People's eyes are Figure.hlsl's, their iris colour the eye's uColor2.
 - **A room always in shade** (uHatchPx, the ship's rooms): the least spacing of its strokes, `_SurfD.x`, the floor of

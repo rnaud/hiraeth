@@ -37,6 +37,10 @@ export const PORTRAIT_FACE_INK = Object.freeze({
 // white and the iris as they share it, a shade darker than the skin: a small mark in proportion to the head. Faces of
 // 1 m and 4 m at 1080p (178 and 31 px) are drawn as before.
 export const PORTRAIT_EYES_FAR = Object.freeze({ face: [14, 26], zone: [.074, .040], tone: [.72, .475, .335], brow: [.6, .4, .28] });
+// The painted eyes and brows for the engines (issue #473; scripts/tripo/bake-eye-paint.mjs, eye-paint.png): the head's
+// own texture front-projected into source-front space over `box` (x0, y0, x1, y1) at `size` px, about the JPEG's own
+// density there; Unity's PortraitFace.hlsl reads them from it as the page reads uMap (its vertex colours drew them blurred).
+export const PORTRAIT_EYE_PAINT = Object.freeze({ box: [-.235, .475, .235, .66], size: [544, 214] });
 // side (#276): the nose's side line lies on the mesh's own edge between the nose's narrow front and its side wall
 // (face-landmarks.mjs noseSide, x from the nostrils' ridge, y its height); seen from nearly in profile that front is
 // edge-on and the line runs a millimetre inside the nose's outline, a doubled contour, so on its own side it gives

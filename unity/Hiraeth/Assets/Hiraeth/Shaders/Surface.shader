@@ -57,6 +57,9 @@ Shader "Hiraeth/Surface"
     _PhFit2 ("Portrait head: the mouth's height", Vector) = (0, 0, 0, 0)
     _PhSpeech ("Portrait head: mouth (live)", Vector) = (0, 0, 0, 0)
     _PhBlink ("Portrait head: blink (live)", Vector) = (0, 0, 0, 0)
+    _PhEyeBox ("Portrait head: the eye paint's box (x0, y0, x1, y1; 0: none)", Vector) = (0, 0, 0, 0)
+    _PhEye ("Portrait head: the iris's offset with his look (live)", Vector) = (0, 0, 0, 0)
+    _EyePaint ("Portrait head: his painted eyes and brows (eye-paint.png)", 2D) = "black" {}
     _SurfD ("Hatch least spacing (px), plant height, large plant, mover", Vector) = (0, 0, 0, 0)
     _CutMe ("The traveller's own: cut while the lens is in him (live)", Vector) = (0, 0, 0, 0)
     _LineWhite ("Its lines drawn white (live)", Vector) = (0, 0, 0, 0)
@@ -205,6 +208,7 @@ Shader "Hiraeth/Surface"
     float4 _TfBrowA, _TfBrowB, _TfEye, _TfMouth;
     // (PortraitFace.hlsl's: the traveller's portrait head; and surfaces D's: the hatch's least spacing, the traveller cut, a white line)
     float4 _PhFit, _PhFit2, _PhSpeech, _PhBlink, _SurfD, _CutMe, _LineWhite;
+    float4 _PhEyeBox, _PhEye;   // (the portrait head's eye paint, issue #473)
     // (the passes' own that a material sets: the crowd's clock, the puffs' far fade, the grass's view)
     float _CrowdTime;
     float _MapOn;          // a picture over the colour (materials.js uMap: the game's canvases, BridgeRenderer.Texture), its uv in form.xy
@@ -227,6 +231,8 @@ Shader "Hiraeth/Surface"
     TEXTURE2D(_Bed); SAMPLER(sampler_Bed);
     TEXTURE2D(_Map); SAMPLER(sampler_Map);
     TEXTURE2D(_VeinMap); SAMPLER(sampler_VeinMap);   // Lorn's crystal roots under the water (lorn-veins.js, WATER_VEINS)
+    #define HIRAETH_EYE_PAINT_DECLARED
+    TEXTURE2D(_EyePaint); SAMPLER(sampler_EyePaint);   // the portrait head's painted eyes and brows (PortraitFace.hlsl, issue #473)
     #include "Figure.hlsl"
     #include "Marks.hlsl"
     #include "TripoFace.hlsl"

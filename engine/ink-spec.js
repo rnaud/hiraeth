@@ -48,6 +48,8 @@ export function inkSpec(m) {
   if (Array.isArray(m.userData?.lining)) spec.lining = m.userData.lining.slice(0, 3);   // (back faces in this colour: the overshirt's lining)   // (its colours linear: the shader turns them to display values)
   // the traveller's portrait head (src/characters/portrait-head.js): its fit (offset, scale, the mouth's height), engine/game.js's
   if (Array.isArray(m.userData?.portraitFace)) spec.portraitFace = m.userData.portraitFace.slice(0, 5);
+  // (and the box its eye paint covers, in the head's fit: the picture itself goes as a texture, backend.js material)
+  if (Array.isArray(m.userData?.portraitEyeBox)) spec.portraitEyeBox = m.userData.portraitEyeBox.slice(0, 4);
   // a temple skin's pattern (src/temples/skins/skin-shader.js): its number and its uniforms packed, as the engines draw it
   const skin = skinPatternSpec(m);
   if (skin) spec.skin = { body: skin.body, data: Array.from(skin.data) };

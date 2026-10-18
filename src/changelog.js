@@ -256,6 +256,12 @@ export const CHANGELOG = [
     // engine/unity/game.js; unity/Hiraeth BridgeArgs.cs StreamingFile.Read (a folder's file read as one inside the APK);
     // tests/soundtracks.test.js; docs/systems/audio.md "The themes on a device"
     'Each world’s own recorded music now plays the first time you land there, on the Xbox and in the Android app too, where it is downloaded the first time it is needed: it comes in as soon as it has arrived, faded in. Before, the Unity version played the game’s synthesised score for your whole first visit to every world but the Desert, and the Android app could wait minutes for the next moment to bring it in.',
+    // issue #473: scripts/tripo/bake-eye-paint.mjs (public/characters/traveller-v1/head-v3/eye-paint.png, portrait-head.js
+    // PORTRAIT_EYE_PAINT), engine/boot.js encodedPicture, engine/game.js, ink-spec.js, port-format.js (phEyeBox, phEye),
+    // backend.js (_EyePaint, -js-off eyepaint), mirror.js LIVE_VECTORS uHeadEye; unity/Hiraeth PortraitFace.hlsl
+    // portraitEyePaint, Surface.shader, WorldLoader, BridgeRenderer, BridgeBuild; tests/unity-eye-paint.test.js;
+    // docs/systems/engine-bridge.md "His eyes at the texture's detail"
+    'In the Unity version, the traveller’s eyes and brows are as sharp as on the web: close up and in conversations they were soft, blurred patches, and now they show the white, the iris, the pupil and its glint and the fine lash lines. People’s eyes are drawn as on the web too: a crisp ring round the iris, a clear glint, the lids open at rest and a lash line along them.',
   ] },
   { v: '1.83', date: '2026-10-16', items: [
     // issue #406: src/temples/desert.js (ROOMS, LOGIC: hall, balcony, ballK, kS, dE, sentry in the hall, d3), pieces.js Ball

@@ -46,10 +46,13 @@ float4 eyeIris(float2 e, float px, float3 iris, float3 white)
   float r = length(e);
   float cover = 1.0 - smoothstep(1.0 - aa, 1.0 + aa * 0.5, r);
   float3 c = lerp(lerp(iris, EYE_INK, 0.6), iris, nearK);
-  c = lerp(c, c * 0.62, smoothstep(0.68, 0.96, r) * nearK);
-  c = lerp(c, EYE_INK, (1.0 - smoothstep(0.44 - aa, 0.44 + aa, r)) * nearK);
-  float hl = 1.0 - smoothstep(0.16 - aa, 0.16 + aa, length(e - float2(-0.28, 0.3)));
-  c = lerp(c, white, hl * smoothstep(4.0, 7.0, rpx));
+  // (as src/eyes.js EYE_GLSL since its warmer faces, issue #473: a flat iris ringed by a crisp darker pen circle, the
+  // pupil a round dot, and a clear catchlight from a few pixels across; the port had kept the older soft rim, a bigger
+  // pupil and a catchlight only from 7 px, so people's eyes read softer than the web's)
+  c = lerp(c, lerp(iris, EYE_INK, 0.72), smoothstep(0.8 - aa, 0.8 + aa, r) * nearK);
+  c = lerp(c, EYE_INK, (1.0 - smoothstep(0.4 - aa, 0.4 + aa, r)) * nearK);
+  float hl = 1.0 - smoothstep(0.17 - aa, 0.17 + aa, length(e - float2(-0.26, 0.3)));
+  c = lerp(c, lerp(white, float3(1.0, 1.0, 1.0), 0.6), hl * smoothstep(3.0, 5.5, rpx));
   return float4(c, cover);
 }
 
@@ -67,9 +70,13 @@ float3 eyeball(float3 b, float3 white, float3 iris, float3 skin)
   float4 ir = eyeIris(e, px, iris, white);
   float3 c = lerp(white, ir.rgb, ir.a * step(0.0, dot(d, g)));
   c = lerp(lerp(iris, EYE_INK, 0.7), c, smoothstep(0.8, 1.8, 1.0 / max(px, 1e-4)));
-  float lid = lerp(0.18, -0.62, _EyeLook.w), dy = d.y - lid, fy = max(fwidth(d.y), 1e-4);
+  // (the lid at rest out of sight under the raised rim, humanoid.js UPPER_LID, as the web's: 0.42; the port's 0.18 drew it
+  // a third of the way down, sleepy; and the lash line the web draws along it, a crisp pen line heavier toward the outer
+  // corner, lighter on a young face, at the page's pixel ratio of 1)
+  float lid = lerp(0.42, -0.62, _EyeLook.w), dy = d.y - lid, fy = max(fwidth(d.y), 1e-4);
   c = lerp(c, skin, smoothstep(-fy * 0.5, fy * 0.5, dy));
-  c = lerp(c, EYE_INK, (1.0 - smoothstep(fy * 0.7, fy * 1.7, abs(dy))) * step(0.02, _EyeLook.w));
+  float lash = fy * (1.15 + 0.5 * smoothstep(-0.6, 0.8, d.x * side)) * (1.0 - 0.35 * _Mood2.z);
+  c = lerp(c, EYE_INK, (1.0 - smoothstep(lash - fy * 0.6, lash + fy * 0.6, -dy)) * step(dy, fy * 0.5));
   return c;
 }
 

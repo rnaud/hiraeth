@@ -297,7 +297,7 @@ test('the shadow maps\' movers culled per cascade by the engine and drawn as ren
 
 test('the Unity players carry every character file the bundle reads (the traveller\'s head-v3 too), and the shadow lists keep each cascade\'s smallest caster', () => {
   const build = read('unity/Hiraeth/Assets/HiraethJS/Editor/BridgeBuild.cs');
-  assert.match(build, /"characters\/traveller-v1\/head-v3", new\[\] \{ "model\.glb", "colors\.json", "hair-ink\.png" \}/);
+  assert.match(build, /"characters\/traveller-v1\/head-v3", new\[\] \{ "model\.glb", "colors\.json", "hair-ink\.png", "eye-paint\.png" \}/);   // (eye-paint.png: his eyes in Unity, issue #473)
   // (the traveller's body, every file src/characters/traveller-b3.js loadTravellerB3 fetches from his folder: on a device
   // the repository's public/ isn't there, BridgeRunner.PublicRoots, and without them he fell back to the old explorer)
   const b3 = read('src/characters/traveller-b3.js'), wants = [...b3.matchAll(/folder\+'([\w.-]+)'|json\('([\w.-]+)'\)/g)].map((m) => m[1] ?? m[2]);

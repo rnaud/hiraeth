@@ -139,6 +139,10 @@ export function portMaterial(spec, id = 0) {
   const pf = spec.portraitFace;
   if (Array.isArray(pf) && pf.length >= 5) Object.assign(e, { tripoFace: 2, phFit: pf.slice(0, 4).map(r5), phFit2: [r5(pf[4]), 0, 0, 0],
     phSpeech: (Array.isArray(u.uHeadSpeech) ? u.uHeadSpeech : [0, 0, 0, 0]).map(r5), phBlink: [r5(v('uPortraitBlink')), 0, 0, 0] });
+  // (its painted eyes and brows from their own picture, issue #473: the box it covers in the fit, and the iris's offset
+  // with his look, uHeadEye, live)
+  if (e.phFit && Array.isArray(spec.portraitEyeBox) && spec.portraitEyeBox.length === 4) Object.assign(e, { phEyeBox: spec.portraitEyeBox.map(r5),
+    phEye: (Array.isArray(u.uHeadEye) ? u.uHeadEye : [0, 0, 0, 0]).map(r5) });
   // (surfaces D) the least spacing of the shade's strokes (uHatchPx: a room always in shade, the ship's); the traveller's own
   // surfaces, cut while the lens is in him (uCutMe, with the shared uHeroCut), and a line drawn white (uLineWhite), live
   // (and an instanced plant's own height and kind, uSwayPlant: how it leans as he brushes past, with the bridge's trail)

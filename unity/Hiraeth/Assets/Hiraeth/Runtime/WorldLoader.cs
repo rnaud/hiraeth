@@ -191,6 +191,7 @@ namespace Hiraeth
                 // (issue #264, surfaces D: the portrait head's fit, mouth and blink, PortraitFace.hlsl; the hatch's least spacing; the
                 // traveller's surfaces cut while the lens is in him; a line drawn white)
                 ("phFit", "_PhFit", new Vector4(0, 0, 0, 1)), ("phFit2", "_PhFit2", Vector4.zero), ("phSpeech", "_PhSpeech", Vector4.zero), ("phBlink", "_PhBlink", Vector4.zero),
+                ("phEyeBox", "_PhEyeBox", Vector4.zero), ("phEye", "_PhEye", Vector4.zero),   // (its eye paint's box and the iris's offset, issue #473)
                 ("surfD", "_SurfD", Vector4.zero), ("cutMe", "_CutMe", Vector4.zero), ("lineWhite", "_LineWhite", Vector4.zero) })
             {
                 var l = m.L(k);

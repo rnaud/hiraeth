@@ -26,6 +26,20 @@ GLTFLoader.prototype.load = function (url, onLoad, onProgress, onError) {
 export const ENCODED_PICTURES = ['characters/father-v1/'];
 
 /**
+ * A picture file of the game's (under public/) kept encoded, for the engine to decode (BridgeHost.TextureImage): a Texture
+ * whose userData.encoded holds its bytes, or null when the host has no such file. (The portrait head's eye paint, issue #473.)
+ */
+export function encodedPicture(path, mime = 'image/png') {
+  let b = null;
+  try { b = host.readFile?.(publicPath(path)) ?? null; } catch (e) { b = null; }
+  if (!b) return null;
+  const t = new THREE.Texture();
+  t.image = { width: 1, height: 1, data: null };
+  t.userData.encoded = { bytes: (b instanceof ArrayBuffer ? new Uint8Array(b) : new Uint8Array(b.buffer, b.byteOffset, b.byteLength)).slice(), mime };
+  return t;
+}
+
+/**
  * A model's pictures (a glTF's images in its own buffer: the father's generated body, src/characters/father-v1.js) kept
  * encoded, as the VM decodes no JPEG or PNG (three's loader wants an Image or an ImageBitmap): a Texture whose
  * userData.encoded holds the bytes and their type, which the Unity backend hands to Unity to decode
