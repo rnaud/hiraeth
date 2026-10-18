@@ -514,9 +514,11 @@ export class Physics {
    * ray that escapes to open space, or first meets a front face (the outside
    * of something, or a room seen from within), means it's free.
    */
-  embedded(p, far = 400) {
+  embedded(p, far = 400, col = null) {
     if (!this.bvh) return false;
     for (const d of AXES) {
+      // (up, on a column many points of a tree share: its one ray answers for every point under its first hit)
+      if (col && d === AXES[0]) { const r = col.up(this, p, far); if (r === FREE) return false; if (r === BACK) continue; }
       _ray.origin.copy(p);
       _ray.direction.copy(d);
       const hit = this.bvh.raycastFirst(_ray, THREE.DoubleSide, 0, far);
@@ -537,8 +539,9 @@ export class Physics {
    * overhang above an open slope, can look like solid to embedded() alone:
    * the faces' sides lie, the count does not.) For deciding to remove things.
    */
-  buried(p, far = 1000) {
-    if (!this.embedded(p)) return false;
+  buried(p, far = 1000) { return this.embedded(p) && this.sure(p, far); }
+  /** buried() once embedded() has said yes: the count of surfaces crossed (dropBuriedInstances asks its own collider between). */
+  sure(p, far = 1000) {
     // above the terrain, over a solid whose floor is under it: a landmark half sunk in the dunes,
     // whose inside is out in the open air here (the terrain is not in the BVH)
     if (this.base && p.y > this.base.heightAt(p.x, p.z) && p.y - this.rayDistance(p, AXES[5], far) < this.base.heightAt(p.x, p.z)) return false;
@@ -684,6 +687,43 @@ function compositeBVH(physics) {
 // up first: in the open it escapes to the sky, so most checks cost one ray
 const AXES = [new THREE.Vector3(0, 1, 0), new THREE.Vector3(1, 0, 0), new THREE.Vector3(-1, 0, 0),
   new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, -1), new THREE.Vector3(0, -1, 0)];
+
+/** What a column's up ray says of a point (Physics.embedded): free, or a back face first (the other axes to ask). */
+const FREE = 0, BACK = 1;
+/** A first hit closer than this above a point is its own ray's to find (the column's could differ in the last float). */
+const COL_MARGIN = 0.05;
+/**
+ * One up ray for the points of a tree that stand on one vertical line (its axis, or a point of its ring, at each of its
+ * heights; issue #460): cast from the first point asked with `span` m more reach, its first hit is every higher point's
+ * first hit too (nothing lies between them, or that ray would have met it), so embedded()'s up axis is answered from it:
+ * free (out to the sky, or the underside of something with no back face beside it) or a back face first. A point off the
+ * line, below the first, out of the span, or with the hit within COL_MARGIN above it casts its own ray. The late
+ * collision's pieces the higher points' rays could meet were made by the column's ray (src/late-collision.js touchRay:
+ * a vertical ray makes its square's).
+ */
+export class UpColumn {
+  constructor(span = 0) { this.span = span; this.x = NaN; this.z = NaN; this.y0 = 0; this.far = 0; this.t = Infinity; this.res = FREE; }
+  /** (Physics.embedded: FREE, BACK, or null for a point the column cannot answer for) */
+  up(physics, p, far) {
+    if (Number.isNaN(this.x)) {
+      this.x = p.x; this.z = p.z; this.y0 = p.y; this.far = far;
+      _ray.origin.copy(p);
+      _ray.direction.copy(AXES[0]);
+      const hit = physics.bvh.raycastFirst(_ray, THREE.DoubleSide, 0, far + this.span);
+      this.t = hit ? hit.distance : Infinity;
+      // (as embedded(): a back face first, or a front one with a back one coplanar with it: a floor flush on a street)
+      this.res = !hit ? FREE : hit.face.normal.y > 0 || physics.bvh.raycast(_ray, THREE.DoubleSide, 0, hit.distance + 0.02).some((h) => h.face.normal.y > 0) ? BACK : FREE;
+    }
+    if (p.x !== this.x || p.z !== this.z || far !== this.far) return null;
+    const off = p.y - this.y0;
+    if (!(off >= 0 && off <= this.span)) return null;
+    if (this.t === Infinity) return FREE;
+    const t = this.t - off;
+    if (off > 0 && t <= COL_MARGIN) return null;
+    return t > far ? FREE : this.res;
+  }
+}
+
 const _esA = new THREE.Vector3(), _esB = new THREE.Vector3(), _esC = new THREE.Vector3(), _esD = new THREE.Vector3(), _esE = new THREE.Vector3();
 const _swD = new THREE.Vector3(), _swP = new THREE.Vector3(), _swN = new THREE.Vector3();
 
@@ -761,14 +801,25 @@ export function* dropBuriedInstancesSteps(mesh, physics, heights, { all = false,
   mesh.updateMatrixWorld();
   const gb = geoBox(mesh.geometry);
   const cx = (gb.min.x + gb.max.x) / 2, cz = (gb.min.z + gb.max.z) / 2;
+  // (a whole Physics: embedded, own collider, sure in that order, and the columns; a stand-in with buried or embedded alone as before)
+  const split = typeof physics.sure === 'function' && typeof physics.embedded === 'function' && !!physics.bvh;
+  const cols = split && heights.length > 1 ? Array.from({ length: 5 }, () => new UpColumn()) : [];
+  const hMin = Math.min(...heights), hMax = Math.max(...heights);
   /** Is instance i buried (its world matrix in _dbW)? */
   const buried = (i) => {
     _dbB.copy(gb).applyMatrix4(_dbW).expandByScalar(0.15);
-    // (its own collider asked first: a few short rays, where buried() casts a dozen through the world, and a point in a
-    // tree's own trunk is inside something, its own: Incal's grove took 7 s of its load)
-    const at = (x, h, z) => { _dbX.set(x, h, z).applyMatrix4(_dbW); return !ownCollider(physics, _dbX, _dbB) && (physics.buried ?? physics.embedded).call(physics, _dbX); };
+    // (a stand-in: its own collider asked first, then buried(). A whole Physics, issue #460: embedded() first, then its
+    // own collider (a few short rays, where buried()'s count casts long ones through the world: a point in a tree's own
+    // trunk is inside something, its own; Incal's grove took 7 s of its load), then the rest of buried(), sure(): the same
+    // answer, as each is a plain test of the point, but embedded() says no for nearly every point (mostly one ray up), so
+    // the other two are asked of one point in twenty; and each vertical line of points, the axis and each of the ring's
+    // four, shares one up ray, UpColumn. The City-Shaft's checks: 4.6 s → 2.4 s in node's VM.)
+    const at = !split ? (x, h, z) => { _dbX.set(x, h, z).applyMatrix4(_dbW); return !ownCollider(physics, _dbX, _dbB) && (physics.buried ?? physics.embedded).call(physics, _dbX); }
+      : (x, h, z, c) => { _dbX.set(x, h, z).applyMatrix4(_dbW); return physics.embedded(_dbX, undefined, c) && !ownCollider(physics, _dbX, _dbB) && physics.sure(_dbX); };
+    const span = (hMax - hMin) * Math.hypot(_dbW.elements[4], _dbW.elements[5], _dbW.elements[6]) + 0.01;
+    for (const c of cols) { c.span = span; c.x = NaN; }
     // (on its axis; with a ring, also round it: a crown pushed through a wall beside its trunk)
-    const inside = (h) => at(cx, h, cz) || (ring > 0 && (at(cx + ring, h, cz) || at(cx - ring, h, cz) || at(cx, h, cz + ring) || at(cx, h, cz - ring)));
+    const inside = (h) => at(cx, h, cz, cols[0]) || (ring > 0 && (at(cx + ring, h, cz, cols[1]) || at(cx - ring, h, cz, cols[2]) || at(cx, h, cz + ring, cols[3]) || at(cx, h, cz - ring, cols[4])));
     // (or wholly under the terrain, which is not in the BVH: a rock under a mesa)
     const top = _dbB.max.y - 0.15, H = (x, z) => physics.base.heightAt(x, z) - 0.6 > top;   // (the drawn terrain is a coarser mesh than heightAt: a margin)
     const under = !!physics.base && H((_dbB.min.x + _dbB.max.x) / 2, (_dbB.min.z + _dbB.max.z) / 2) && H(_dbB.min.x, _dbB.min.z) && H(_dbB.max.x, _dbB.min.z) && H(_dbB.min.x, _dbB.max.z) && H(_dbB.max.x, _dbB.max.z);
