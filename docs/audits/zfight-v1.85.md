@@ -2,7 +2,7 @@
 
 <!-- audit-scores
 overall: none
-headline: the worlds 6828 (v1.66) → 6475 sites; one new cluster: the Glass Dunes 2 → 268, the city under the sand rebuilt (#393/#426) with its jutting rooms flush on each other; every temple at or under its baseline, five of them well under
+headline: 14 of 14 temples at or under their baselines, five of them well under; the worlds 6828 (v1.66) → 6475 sites; one new cluster: the Glass Dunes 2 → 268, the city under the sand rebuilt (#393/#426) with its jutting rooms flush on each other
 date: 2026-10-18
 -->
 
