@@ -45,7 +45,7 @@ export const WORLDS = {
   // (v1.40: the City Floating in Space before the Signal Market: drones off the cables, moths round the lamps, rollers on the bridges)
   spacecity: { stage: 3, budget: [4, 6], lead: 'drone', roster: { drone: 4, moth: 3, roller: 3 }, temple: ['machine', 'drone'] },
   bazaar: { stage: 4, lead: 'lizard', roster: { lizard: 4, moth: 1.5, crab: 1.5, bell: 3, marionette: 2.5, hound: 3.5 }, late: ['marionette'] },
-  // the side worlds (all still being made; their tables are set as each world is vetted)
+  // the side worlds (all discarded, names.js DISCARDED: their tables stay as they are)
   mangrove: { stage: 2, lead: 'heron', roster: { heron: 4, rootknot: 3, hound: 2, roller: 2 } },
   waterfall: { stage: 2, lead: 'toad', roster: { toad: 4, centipede: 2, brute: 2, rootknot: 2 } },
   saltharbour: { stage: 2, lead: 'crab', roster: { crab: 4, roller: 3, bell: 2, marionette: 1 } },

@@ -15,7 +15,7 @@ import { standGround } from '../src/carriers.js';
 import { StepLag } from '../src/locomotion.js';
 import { builtWorld, quiet } from './built-worlds.js';
 import { Player } from '../src/player.js';
-import { MERGED, ORDER } from '../src/levels/names.js';
+import { MERGED, ORDER, isDiscarded } from '../src/levels/names.js';
 import { FRAGMENTS, FRAGMENTS_PER_WORLD } from '../src/fragments-data.js';
 import { flood, reachCell, seaWhyNot, spotWhyNot, standWhyNot } from './fragments-reach.js';
 
@@ -191,6 +191,8 @@ const KNOWN = {
   spacecity: { sink: 20, hover: 0, inside: 113, walk: 0 },   // (v1.68: sink 16 -> 20, issue #274: the samples moved once the Mooring-House's keys were in little chests, 28 -> 33 of them on the same Mooring-House trims as before, none on a chest; the City Floating in Space: decks, parapets, bridges, houses, chimneys and pipe stacks solid; the awnings, washing, lamps on the walls and the diners drawn only, and the machinery under the islands where the bridges' arches meet it)
   overnighttrain: { sink: 2, hover: 0, inside: 1, walk: 1 },   // (the Overnight Train: shells, floors, furniture, porches, rails, roof walks and planters solid as drawn; a drawn sitter at a dining table, the tail's closed porch)
 };
+// (the discarded worlds, src/levels/names.js DISCARDED, are left out of the sweep: their known counts kept as they were)
+const SWEPT = Object.keys(KNOWN).filter((id) => !isDiscarded(id));
 const audits = new Map();
 function audit(id) {
   if (audits.has(id)) return audits.get(id);
@@ -215,7 +217,7 @@ test('Vael and Vael II: what you climb and stand on is the drawn rock (no stand-
 
 test('every riding disc and pressure plate in every world is drawn flush with the top you stand on', () => {
   let flat = 0;
-  for (const id of Object.keys(KNOWN)) {
+  for (const id of SWEPT) {
     const r = audit(id);
     const solids = r.level.dynamic?.() ?? [];
     flat += solids.filter((v) => v.solid?.flat).length;
@@ -226,8 +228,8 @@ test('every riding disc and pressure plate in every world is drawn flush with th
 });
 
 test('no world grows new places where the feet sink into or hover over what is drawn, or a climber goes inside it', () => {
-  for (const [id, k] of Object.entries(KNOWN)) {
-    const r = audit(id), c = r.counts;
+  for (const id of SWEPT) {
+    const k = KNOWN[id], r = audit(id), c = r.counts;
     const over = (n, known) => n > Math.ceil(known * 1.34) + 10;
     assert.ok(!over(c['feet sink'] ?? 0, k.sink), `${id}: feet sink ${c['feet sink']} (known ${k.sink})\n${formatContact(r)}`);
     assert.ok(!over(c['feet hover'] ?? 0, k.hover), `${id}: feet hover ${c['feet hover']} (known ${k.hover})\n${formatContact(r)}`);
@@ -305,7 +307,7 @@ test('the real traveller rides a rising disc with his soles on its top (feet, th
 // "toNonIndexed(): BufferGeometry is already non-indexed" a boot across five worlds: geometries that are
 // non-indexed already, a polyhedron, were asked to be). Every world, built as the game builds them.
 test('the worlds build without three.js warnings', () => {
-  const warned = Object.keys(KNOWN).flatMap((id) => builtWorld(id).warned.map((m) => `${id}: ${m}`));
+  const warned = SWEPT.flatMap((id) => builtWorld(id).warned.map((m) => `${id}: ${m}`));
   assert.deepEqual([...new Set(warned)], [], `${warned.length} warnings`);
 });
 

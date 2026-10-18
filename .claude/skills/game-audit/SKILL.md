@@ -25,7 +25,7 @@ Send two or three Explore agents at once, each given **the previous audit's find
 recheck one by one** (fixed, partly, not, or worse), with file:line evidence:
 
 1. **Story, progression, pacing:** themes 1, 4, 5 and 6. This covers the route and ending rules, quests,
-   choices, moments, collectibles, the detour worlds, and the time to the first fluid moment.
+   choices, moments, collectibles, and the time to the first fluid moment.
 2. **Feel, UX, senses, quality:** themes 2, 3 and 7–12. This covers onboarding, wayfinding, the HUD and
    menus, audio, combat, settings and accessibility, localisation, performance numbers, tests, and
    sharing and discovery.
@@ -39,7 +39,7 @@ node .claude/skills/game-audit/capture.mjs <scratchpad>/audit-shots
 ```
 
 The script captures the default plan: a first-time player's title, a new game idling for about 70 s,
-settings, the twelve route worlds in their order (`ORDER`, `src/levels/names.js`; no WIP detours), Home,
+settings, the twelve route worlds in their order (`ORDER`, `src/levels/names.js`; never the seven discarded side worlds, `DISCARDED`), Home,
 the Lantern (the finale) and the Arena. Add a plan file for anything new since the last
 audit. Read every picture, and read `report.json` for page errors and boot times.
 

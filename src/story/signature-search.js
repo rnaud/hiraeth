@@ -12,7 +12,7 @@
 // A world is charted (no search) when it is the first one (where the ship came down), you have been there or
 // stand in it, it is done, or it was found. Old saves keep every world they had charted: the
 // migration (src/save-migrate.js step 6) marks the worlds they knew as found. The detours
-// (CHARTED_SIDE), the Lantern and home are charted outright; the worlds still being made (WIP)
+// (CHARTED_SIDE), the Lantern and home are charted outright; the discarded worlds (DISCARDED)
 // are never on the map at all.
 //
 // Fair and quick: the cue reaches across nearly half the chart, the lock spot is the size of a

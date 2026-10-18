@@ -9,7 +9,7 @@ import {
   buildRows, pickHref, cardHtml, probePages, restoreLast, LAST_KEY, DEBUG_NOTE,
 } from '../src/world-picker.js';
 import { LEVELS } from '../src/levels/index.js';
-import { ORDER, WIP } from '../src/levels/names.js';
+import { ORDER, DISCARDED } from '../src/levels/names.js';
 import { DEBUG_MENU_HREF } from '../src/debug-back.js';
 import { gitBuildInfo } from '../vite.config.js';
 
@@ -20,7 +20,7 @@ test('every world is in exactly one section: the route in story order, the place
   assert.deepEqual(s.play.map((l) => l.id), ORDER, 'Play: the route, in story order');
   assert.ok(s.rooms.length >= 4 && s.rooms.every((l) => l.dev), 'Test rooms: the dev rooms');
   for (const id of ['arena', 'arcade', 'lab', 'references', 'shadows']) assert.ok(s.rooms.some((l) => l.id === id), id);
-  assert.ok(s.progress.every((l) => WIP.includes(l.id)), 'Worlds in progress: names.js WIP');
+  assert.ok(s.progress.every((l) => DISCARDED.includes(l.id)), 'Worlds in progress: names.js DISCARDED');
   assert.deepEqual(s.places.slice(0, 2).map((l) => l.id), ['home', 'lantern']);
   // (the dismissed worlds, src/levels/dismissed/, are in no section: not levels any more)
   for (const id of ['atelier', 'garage', 'arzach2', 'perdide2']) assert.ok(!LEVELS.some((l) => l.id === id), id);

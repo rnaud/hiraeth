@@ -14,7 +14,7 @@
 //        [--warmup 2] [--res 1280x720] [--extras 0] [--wip 1] [--root <a checkout with its dist/ built>] [--out file.json]
 //        PORT (default 5492; Chrome's is PORT + 1)
 // --root measures another build (an older commit's `git archive` with its own dist/) with this checkout's views,
-// for an A/B in one session. The default worlds leave out the ones still being made (WIP, src/levels/names.js):
+// for an A/B in one session. The default worlds leave out the discarded ones (DISCARDED, src/levels/names.js):
 // --wip 1 measures them too, or name them in --worlds.
 import { spawn } from 'node:child_process';
 import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -35,7 +35,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const VW = JSON.parse(readFileSync(join(ROOT, 'scripts/bench/viewpoints-worlds.json'), 'utf8')).worlds;
 const VD = JSON.parse(readFileSync(join(ROOT, 'scripts/bench/viewpoints.json'), 'utf8')).views;
-const route = await import(join(ROOT, 'src/levels/names.js')), WIP = arg('wip', '0') === '1' ? [] : route.WIP ?? [];
+const route = await import(join(ROOT, 'src/levels/names.js')), WIP = arg('wip', '0') === '1' ? [] : route.DISCARDED ?? route.WIP ?? [];
 const ids = [...(route.ORDER ?? []), ...(route.SIDE ?? []), 'home', 'lantern', 'arena'].filter((id) => !WIP.includes(id));
 const WORLDS = (arg('worlds') ?? [...new Set(ids)].join(',')).split(',').filter(Boolean);
 const viewsOf = (id) => (id === 'desert' ? VD : VW[id]?.views ?? []).filter((v) => v.eye && v.target).slice(0, 4);

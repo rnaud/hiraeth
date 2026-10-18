@@ -8,12 +8,12 @@ import * as THREE from 'three';
 import { Physics } from '../src/physics.js';
 import { auditContact, formatContact } from '../src/contact-audit.js';
 import { LEVELS } from '../src/levels/index.js';
-import { ORDER, SIDE } from '../src/levels/names.js';
+import { ORDER, SIDE, isDiscarded } from '../src/levels/names.js';
 
 const quiet = (f) => { const w = console.warn, l = console.log, i = console.info; console.warn = console.log = console.info = () => {}; try { return f(); } finally { console.warn = w; console.log = l; console.info = i; } };
-// (by default the route, the side worlds and Home, as the game lists them now: the old hand-made list still named the
+// (by default the route, the side worlds that are not discarded (names.js DISCARDED: none now) and Home, as the game lists them now: the old hand-made list still named the
 // merged worlds' parts, arzach2 and perdide2, and stopped at the first; visual-v1.66)
-const ids = process.argv.slice(2).length ? process.argv.slice(2) : [...ORDER, ...SIDE, 'home'].filter((id) => LEVELS.some((l) => l.id === id));
+const ids = process.argv.slice(2).length ? process.argv.slice(2) : [...ORDER, ...SIDE, 'home'].filter((id) => !isDiscarded(id) && LEVELS.some((l) => l.id === id));
 const TOP = +(process.env.TOP ?? 12);
 const COST = !!process.env.COST;
 /**

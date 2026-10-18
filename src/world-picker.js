@@ -9,7 +9,7 @@
 //   Play            Continue, then the route's worlds in story order (each in the debug save)
 //   Story places    the worlds off the route that are finished (Home, the Lantern; the Atelier was dismissed in October 2026)
 //   Test rooms      the rooms for trying things (levels with dev: true)
-//   Worlds in progress   the worlds still being made (names.js WIP)
+//   Worlds in progress   the discarded worlds (names.js DISCARDED; the heading kept)
 //   Games           the minigames, each with its best
 //   Pages           the game's other pages (a dev server's own marked, and only there)
 //   This build      version, build number, commit, where it runs
@@ -17,7 +17,7 @@
 // Typing filters it (a box in the header; Enter opens the first match); on a controller LB / RB jump
 // between sections and Y opens the filter. The item last opened gets the focus back on the way back.
 
-import { ORDER, WIP } from './levels/names.js';
+import { ORDER, DISCARDED } from './levels/names.js';
 import { GAMES, gameHref } from './minigames/index.js';
 import { bestScore, formatScore } from './minigames/kit/scores.js';
 import { scoreDef } from './minigames/kit/flow.js';
@@ -120,7 +120,7 @@ const PLACES = ['home', 'lantern'];
  * The worlds by section (pure): the route in story order, the story places, the test rooms, the worlds in
  * progress. Every level is in exactly one.
  */
-export function worldSections(levels, { order = ORDER, wip = WIP } = {}) {
+export function worldSections(levels, { order = ORDER, wip = DISCARDED } = {}) {
   const byId = new Map(levels.map((l) => [l.id, l]));
   const play = order.map((id) => byId.get(id)).filter(Boolean);
   const rooms = levels.filter((l) => l.dev && !order.includes(l.id));

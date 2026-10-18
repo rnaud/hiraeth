@@ -21,7 +21,7 @@ in [story.md](story.md)); `?level=<id>` and the dev menu still open any world. E
 | 7 | **The Buried Machine** (`buried`) | a machine under the dunes | climb, jetpack |
 | 8 | **The Garden of Spheres** (`spheres`) | spheres that answer | walk, climb |
 | 9 | **The Signal Market** (`bazaar`) | a market where everything talks | walk, taxis (with a pass) |
-| – | **The White Mangrove** (`mangrove`, off the route) | a village in the white roots | walk, climb, swim |
+| – | *discarded:* **The White Mangrove** (`mangrove`) and the six other side worlds | debug menu only | see "Merged and dismissed worlds", `DISCARDED` |
 | – | *dismissed:* **The Sealed Hangar** (`garage`), **The Atelier** (`atelier`) | kept whole in `src/levels/dismissed/` | see "Merged and dismissed worlds" |
 
 Since October 2026 the route has nine places: the two second takes were merged into their originals and the
@@ -1143,6 +1143,18 @@ reused elsewhere. `src/levels/names.js` says what became of each id:
   merged part or a dismissed world resumes in the world that holds it now (where it stood, shifted into the merged
   world's frame; a dismissed world's save at its replacement's landing), its `world.*.done` and quest flags kept, its
   journal pages folded into the merged world's. `tests/save-migrate.test.js` covers every case.
+- **`DISCARDED`** (`isDiscarded`; the author's decision of 2026-10-18, issue #503): the seven side worlds, the White
+  Mangrove (`mangrove`), the City Behind the Waterfall (`waterfall`), the Salt Harbour (`saltharbour`), the Forest of
+  Antennas (`antennas`), the City During the Eclipse (`eclipse`), the Fallen Ring (`fallenring`) and the Underside
+  (`underside`). Built in a rush in October 2026 and never vetted, they are given up as they stand: they stay on
+  `SIDE` and in the Debug menu (the worlds list's "Worlds in progress", the dev menu, `?level=<id>`), with their
+  code, assets and recordings where they are, but they are off the galactic map (`CHARTED_SIDE` is empty) and the
+  Sightings page, and they get no work unless the author asks. The sweeps leave them out by default (naming one
+  still runs it): the perf audit's `fps.mjs`, the visual audit's views, the cinematics QC (their arrivals), the Unity
+  visual check's views (`scripts/unity-compare/views.mjs`), the Deck's pipeline trace (`deck-pso-trace.mjs`, and the
+  Waterfall's moves), `contact-report.mjs`, `bridge-gaps.mjs`, `world-thumbs.mjs`, the character shots, and the tests
+  that sweep every world (the contact audit, the benches, the soundtracks, the Lantern's sky). Unlike a `DISMISSED`
+  world, a discarded one keeps its place in the Debug menu and its modules in `src/levels/`.
 
 **Vael** (`src/levels/arzach.js`) is built in the sky stones' frame: Vael II's plateaus and cloud sea stay where
 they were (`buildSkyStones(scene, terrain, { merged: true })`, `src/levels/arzach2.js`) and Vael's plain is laid

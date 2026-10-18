@@ -25,15 +25,19 @@ import { tempDir, ownProcess, viteCacheDir } from './temp-dirs.mjs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { isDiscarded } from '../src/levels/names.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
 // ------------------------------------------------------------------ pure logic (tests/cinematics-qc.test.js)
 
-/** The catalog entries asked for: --only ids (a trailing '*' is a prefix), --group a collection name. */
+/**
+ * The catalog entries asked for: --only ids (a trailing '*' is a prefix), --group a collection name. The discarded
+ * worlds' (src/levels/names.js DISCARDED: their arrivals) are left out unless --only names them.
+ */
 export function pickEntries(catalog, { only = null, group = null } = {}) {
   return catalog.filter((e) => (!group || e.group === group)
-    && (!only || only.some((o) => glob(o).test(e.id))));
+    && (only ? only.some((o) => glob(o).test(e.id)) : !isDiscarded(e.world)));
 }
 /** An --only pattern as a whole-id match: `*` any run of letters, anywhere (`box.*.court`, `box.desert*`). */
 const glob = (o) => new RegExp('^' + o.split('*').map((s) => s.replace(/[.+?^$()|[\]\\{}]/g, '\\$&')).join('.*') + '$');

@@ -46,8 +46,8 @@ node .claude/skills/perf-audit/fps.mjs --preset high     --out <scratch>/fps-hig
 node .claude/skills/perf-audit/fps.mjs --preset handheld --out <scratch>/fps-handheld.json
 ```
 
-This covers every route world, Home, the Lantern and the Arena; the detours still being made (`WIP`,
-`src/levels/names.js`) are left out unless `--wip 1` or `--worlds` names them. For each world it records:
+This covers every route world, Home, the Lantern and the Arena; the discarded detours (`DISCARDED`,
+`src/levels/names.js`, all seven side worlds) are left out unless `--wip 1` or `--worlds` names them. For each world it records:
 - the load (navigation to the game booted);
 - at each benchmark view: the frame time's median, 95th percentile and worst, the fps, draw calls,
   triangles, shader programs and the JS heap.

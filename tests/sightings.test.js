@@ -132,11 +132,11 @@ test('after the Lantern every thread has its answer, in Ilen’s words', async (
 });
 
 test('the page counts only traces that can be met: none in a world still being made (all seven side worlds)', async () => {
-  const { WIP, SUB: SUBS } = await import('../src/levels/names.js');
+  const { DISCARDED, SUB: SUBS } = await import('../src/levels/names.js');
   const { game } = await freshGame();
   const counted = sightingsData({ game }).flatMap((t) => t.entries.map((e) => SIGHTINGS.find((s) => s.id === e.id)));
   for (const s of counted) {
-    assert.ok(!WIP.includes(s.world), `${s.id}: in ${s.world}, which nobody can reach yet`);
+    assert.ok(!DISCARDED.includes(s.world), `${s.id}: in ${s.world}, which nobody can reach yet`);
     assert.ok(ROUTE_PARTS.includes(s.world) || Object.hasOwn(SUBS, s.world), `${s.id}: in a route world or one reached from it`);
   }
   // the detour traces still to be met: the Overnight Train's chalk mark, met by its own flag in its world's content

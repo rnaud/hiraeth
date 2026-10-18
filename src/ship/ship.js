@@ -369,7 +369,7 @@ export class Ship {
       relay: () => this.relay(),
       finale: () => finaleOpen({ flag: (k) => game.flag(k), completed: this.completed() }),   // the Lantern, past the market (src/story/ending.js)
       tower: () => towerDue({ flag: (k) => game.flag(k), completed: this.completed() }),   // after the first homecoming: the market's silent tower is the goal
-      side: deps.side ?? CHARTED_SIDE,   // (the finished worlds off the route, never the ones still being made: src/levels/names.js WIP)
+      side: deps.side ?? CHARTED_SIDE,   // (the finished worlds off the route, never the discarded ones: src/levels/names.js DISCARDED)
       onTravel: (id) => this.travel(id),
       sound: () => this.sound,
       // the signature search charted a world (src/story/signature-search.js)

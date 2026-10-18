@@ -25,8 +25,8 @@ test('the Lantern’s light: in no sky before the seventh world, then in every w
   }
   assert.equal(lanternSky({ level: ORDER[LIGHT_FROM], completed: LIGHT_FROM }).strength, LIGHT_MIN, 'faint in the seventh');
   assert.ok(last >= 0.99, 'at its brightest by the last world');
-  // every world's sky, the route's and the detours', in the half the sun and the moon never cross, clear of the skyline
-  for (const id of [...ORDER, 'mangrove', 'overnighttrain']) {
+  // every world's sky, the route's and the night train's (not the discarded detours: names.js DISCARDED), in the half the sun and the moon never cross, clear of the skyline
+  for (const id of [...ORDER, 'overnighttrain']) {
     const L = lanternSky({ level: id, completed: 8 });
     assert.ok(L && L.az > 210 && L.az < 390 - 30 && L.el >= 15 && L.el <= 25, `${id}: ${JSON.stringify(L)}`);
   }

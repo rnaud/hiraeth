@@ -61,8 +61,9 @@ try {
   }
   console.log(world,'captured');
  }
- // Screen a reproducible sample of all 25 world costume families and the actual traveller.
- const allWorlds=[...worlds,'mangrove','saltharbour','waterfall','antennas','atelier','glassdunes','underwater','eclipse','fallenring','moonfoundry','underside','spacecity','overnighttrain'];
+ // Screen a reproducible sample of the world costume families and the actual traveller (not the discarded side worlds',
+ // src/levels/names.js DISCARDED).
+ const allWorlds=[...worlds,'atelier','glassdunes','underwater','moonfoundry','spacecity','overnighttrain'];
  for(const world of travellerOnly?[]:allWorlds){
   await c.send('Page.navigate',{url:`http://127.0.0.1:5488/studio.html?who=crowd&world=${world}&lineup=crowd&count=4&seed=1&source=makehuman&view=full&anim=game:walk`});
   for(let i=0;i<240;i++){if(await c.ev('!!window.studio && studio.people().length>=4').catch(()=>false))break;await sleep(250);}

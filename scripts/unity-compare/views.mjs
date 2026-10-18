@@ -20,7 +20,7 @@ import { fileURLToPath } from 'node:url';
 import { bundle } from '../engine-bundle.mjs';
 import { loadBundle } from '../../engine/vm-run.mjs';
 import { tempPath } from '../temp-dirs.mjs';
-import { ORDER, SIDE } from '../../src/levels/names.js';
+import { ORDER, SIDE, isDiscarded } from '../../src/levels/names.js';
 import { lanternSky } from '../../src/story/lantern-sky.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
@@ -28,8 +28,8 @@ const args = process.argv.slice(2), arg = (n, d) => { const i = args.indexOf(`--
 const OUT = resolve(args[0] && !args[0].startsWith('--') ? args[0] : join(ROOT, 'output/unity-compare/views.json'));
 const SET = arg('set', 'main');
 export const NOON = 12, DUSK = 18.6;
-/** The worlds the check walks: the route, the detours, home, the Lantern and the night train. */
-export const WORLDS = [...ORDER, ...SIDE, 'home', 'lantern', 'overnighttrain'];
+/** The worlds the check walks: the route, the detours (not the discarded ones: names.js DISCARDED, all seven now), home, the Lantern and the night train. */
+export const WORLDS = [...ORDER, ...SIDE.filter((id) => !isDiscarded(id)), 'home', 'lantern', 'overnighttrain'];
 const only = arg('worlds')?.split(',');
 
 const bench = JSON.parse(readFileSync(join(ROOT, 'scripts/bench/viewpoints-worlds.json'), 'utf8')).worlds;

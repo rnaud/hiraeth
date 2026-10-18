@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { Physics } from '../src/physics.js';
 import { LEVELS } from '../src/levels/index.js';
 import { CONTENT, ORDER } from '../src/levels/content.js';
-import { SIDE, WIP, SUB, isSub } from '../src/levels/names.js';
+import { SIDE, DISCARDED, SUB, isSub } from '../src/levels/names.js';
 import { mapEntries } from '../src/ship/starmap.js';
 import { TR } from '../src/levels/overnight-train-kit.js';
 import { RUN, CYCLE, BRAKE_D, runAt, planRun, stationOffset, bandShift } from '../src/levels/overnight-train-run.js';
@@ -25,7 +25,7 @@ const along = (a, b, n) => Array.from({ length: n + 1 }, (_, i) => [a[0] + (b[0]
 test('the Overnight Train: a sub-level of the Signal Market (its night halt), off the route and off the ship\'s map', () => {
   const L = LEVELS.find((l) => l.id === 'overnighttrain');
   assert.ok(L && L.hidden && !L.dev, 'a world, not on the route');
-  assert.ok(!ORDER.includes('overnighttrain') && !SIDE.includes('overnighttrain') && !WIP.includes('overnighttrain'), 'neither the route, a detour, nor unfinished');
+  assert.ok(!ORDER.includes('overnighttrain') && !SIDE.includes('overnighttrain') && !DISCARDED.includes('overnighttrain'), 'neither the route, a detour, nor unfinished');
   assert.ok(isSub('overnighttrain') && SUB.overnighttrain === 'bazaar' && ORDER.includes(SUB.overnighttrain), 'reached from a route world: the Signal Market');
   assert.equal(CONTENT.overnighttrain, TRAIN_CONTENT);
   assert.ok(TRAIN_CONTENT.story.manual, 'no beacon of its own: the night mail leads there');

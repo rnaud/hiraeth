@@ -14,6 +14,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { serve, chrome, shoot, DEFAULT_VIEW } from './changelog-shots.mjs';
 import { LEVELS } from '../src/levels/index.js';
+import { isDiscarded } from '../src/levels/names.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const PORT = Number(process.env.PORT ?? 5430);
@@ -36,7 +37,8 @@ export const THUMB_VIEWS = {
 const tryView = process.env.THUMB_VIEW ? JSON.parse(process.env.THUMB_VIEW) : {};
 
 const only = process.argv[2]?.split(',');
-const ids = LEVELS.map((l) => l.id).filter((id) => !only || only.includes(id));
+// (every world, or those named; the discarded ones, src/levels/names.js DISCARDED, keep their pictures unless named)
+const ids = LEVELS.map((l) => l.id).filter((id) => (only ? only.includes(id) : !isDiscarded(id)));
 const work = tempDir('hiraeth-thumbs-');
 const server = await serve(ROOT);
 const c = await chrome();

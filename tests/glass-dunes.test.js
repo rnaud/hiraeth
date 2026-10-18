@@ -144,14 +144,14 @@ const built = async () => {
 
 test('the Glass Dunes: on the route in the Sealed Hangar’s place, with its temple, its people and its relics', async () => {
   const { LEVELS } = await import('../src/levels/index.js');
-  const { ORDER, SIDE, WIP, TITLES, DISMISSED } = await import('../src/levels/names.js');
+  const { ORDER, SIDE, DISCARDED, TITLES, DISMISSED } = await import('../src/levels/names.js');
   const { CONTENT } = await import('../src/levels/content.js');
   const { mapEntries } = await import('../src/ship/starmap.js');
   const { TEMPLE_HOME, templesIn } = await import('../src/temples/index.js');
   const meta = LEVELS.find((l) => l.id === 'glassdunes');
   assert.ok(meta && !meta.hidden && meta.title === TITLES.glassdunes);
   // (October 2026: the Hangar left the route, the Glass Dunes took its slot and its temple, src/levels/names.js)
-  assert.ok(ORDER.includes('glassdunes') && !SIDE.includes('glassdunes') && !WIP.includes('glassdunes'), 'on the route, finished, charted');
+  assert.ok(ORDER.includes('glassdunes') && !SIDE.includes('glassdunes') && !DISCARDED.includes('glassdunes'), 'on the route, finished, charted');
   assert.equal(ORDER.indexOf('glassdunes'), ORDER.indexOf('incal') + 1, 'after the City-Shaft, where the Hangar was');
   assert.equal(DISMISSED.garage, 'glassdunes', 'a save left in the Hangar wakes here');
   assert.equal(TEMPLE_HOME.garage, 'glassdunes');

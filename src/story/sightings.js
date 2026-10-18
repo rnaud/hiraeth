@@ -17,7 +17,7 @@
 // Each is saved as the flag sight.<id> (in the save, like every flag), so it stays met.
 
 import { DETOUR_SIGHTINGS } from './sightings-detours.js';
-import { isWip, partOf } from '../levels/names.js';
+import { isDiscarded, partOf } from '../levels/names.js';
 // (the Sealed Hangar's three, Lune's and Clemence's, left with the dismissed world in October 2026: they cannot be met
 // now; a save that met them keeps their flags. Kept in src/levels/dismissed/hangar/sightings.js.)
 
@@ -130,12 +130,12 @@ export function recordSightings(game, { toast = () => {} } = {}) {
 /**
  * The Sightings page: [{ id, name, ask, answer, found, of, entries: [{ id, line, who, world, found }] }], one a
  * thread, in order (`answer`: { line, who } once the Lantern is done, else null). A sighting not met yet keeps its
- * world's name only if the world is known (`known(id)`); one in a world still being made (src/levels/names.js WIP:
- * all seven side worlds now) is left out until met, so the page counts only what can be found.
+ * world's name only if the world is known (`known(id)`); one in a discarded world (src/levels/names.js DISCARDED:
+ * all seven side worlds) is left out until met, so the page counts only what can be found.
  */
-export function sightingsData({ game, known = () => true, titles = {}, list = SIGHTINGS, wip = isWip } = {}) {
+export function sightingsData({ game, known = () => true, titles = {}, list = SIGHTINGS, wip = isDiscarded } = {}) {
   return THREADS.map((t) => {
-    // (a world still being made is off the map: its slots are left out, unless already met there)
+    // (a discarded world is off the map: its slots are left out, unless already met there)
     const entries = list.filter((s) => s.thread === t.id && (!wip(s.world) || seen(s.id, game))).map((s) => {
       const found = seen(s.id, game);
       // (a merged world's part is named by its world: the sky stones' are Vael's, src/levels/names.js MERGED)

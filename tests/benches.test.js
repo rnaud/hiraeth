@@ -23,7 +23,7 @@ const { Player, CAPSULE } = await import('../src/player.js');
 const { Physics } = await import('../src/physics.js');
 const { createBenches, BENCH, benchGeometry, benchFraming } = await import('../src/benches.js');
 const { BENCHES, BENCH_STYLES } = await import('../src/benches-data.js');
-const { ORDER, SIDE } = await import('../src/levels/names.js');
+const { ORDER, SIDE, isDiscarded } = await import('../src/levels/names.js');
 const { bestInteractable, updateInteract, clearInteractables } = await import('../src/interact.js');
 const { PAD } = await import('../src/bindings.js');
 const { badgeLine } = await import('../src/prompt-keys.js');
@@ -62,7 +62,7 @@ function frame(S, dt, input = {}, e = false, rigAt = V(8, 3, 8)) {
 const run = (S, secs, input, e) => { for (let t = 0; t < secs; t += 1 / 60) frame(S, 1 / 60, input, e); };
 
 test('every world on the route and off it has one to three benches, each with a view, a way it faces and its world’s style', () => {
-  for (const id of [...ORDER, ...SIDE]) {
+  for (const id of [...ORDER, ...SIDE].filter((w) => !isDiscarded(w))) {   // (not the discarded worlds: names.js DISCARDED)
     const list = BENCHES[id];
     assert.ok(list?.length >= 1 && list.length <= 3, `${id}: ${list?.length ?? 0} benches`);
     for (const b of list) {

@@ -225,7 +225,7 @@ test('an install from before (every theme in its bundle) keeps them from there, 
 
   // the next update: only the desert's in the bundle, the site out of reach
   const next = net({ [local('desert-bayati.mp3')]: 'desert' }, { offline: true });
-  for (const levelId of ['edena', 'incal', 'home', 'lantern', 'mangrove', 'desert']) {
+  for (const levelId of ['edena', 'incal', 'home', 'lantern', 'bazaar', 'desert']) {
     const s = soundFor(levelId);
     assert.equal(await loadSoundtrack(s, next.fetcher, { here: ANDROID, store, downloader: quick({ here: ANDROID, store, fetcher: next.fetcher }) }), true, levelId);
     assert.equal(s.trackFrom, levelId === 'desert' ? 'bundle' : 'stored', levelId);

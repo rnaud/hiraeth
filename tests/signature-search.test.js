@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { cueStrength, searchStep, scanStart, searchArmed, cues, wander, WANDER, lockRadius, routeChart, chartedWorlds, isCharted, foundFlag, regionFor, findableNote, signatureNotes, SEARCH, SEARCH_LINE, foundLine } from '../src/story/signature-search.js';
 import { mapEntries } from '../src/ship/starmap.js';
 import { migrateFlags } from '../src/save-migrate.js';
-import { ORDER, WIP, CHARTED_SIDE } from '../src/levels/names.js';
+import { ORDER, DISCARDED, CHARTED_SIDE } from '../src/levels/names.js';
 import { parseLine } from '../src/story/tone.js';
 
 const set = (...ids) => (id) => ids.includes(id);
@@ -79,7 +79,7 @@ test('progression: the route opens worlds in the same order, a new one is findab
   assert.deepEqual(chartedWorlds({ order: ORDER, current: 'desert' }), ['desert']);
 });
 
-test('the map: findable worlds are neither named nor choosable; detours, WIP and home as before', () => {
+test('the map: findable worlds are neither named nor choosable; detours, DISCARDED and home as before', () => {
   const levels = ORDER.map((id) => ({ id, title: id.toUpperCase() }));
   const e = mapEntries({ order: ORDER, levels, flag: flags({}), journal: null, current: 'desert', home: false, side: CHARTED_SIDE });
   const by = Object.fromEntries(e.map((x) => [x.id, x]));
@@ -87,7 +87,7 @@ test('the map: findable worlds are neither named nor choosable; detours, WIP and
   assert.ok(by.arzach.findable && !by.arzach.known, 'to find');
   assert.ok(by.perdide.findable && !by.perdide.known);
   assert.ok(!by.incal.known && !by.incal.findable, 'further on: a faint dot');
-  for (const id of WIP) assert.ok(!by[id], `${id} (still being made) is never on the map`);
+  for (const id of DISCARDED) assert.ok(!by[id], `${id} (still being made) is never on the map`);
   const after = mapEntries({ order: ORDER, levels, flag: flags({ [foundFlag('arzach')]: true }), journal: null, current: 'desert', home: false });
   assert.ok(after.find((x) => x.id === 'arzach').known, 'found: charted and choosable');
 });

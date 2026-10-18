@@ -367,12 +367,12 @@ carries on from there; the world is still done, and its keepsake given, when the
   a click, A / × and B / ○). The press that asks never answers: held keys repeat
   (`e.repeat`), the pad needs a fresh A, and a Yes within 150 ms of the question is ignored.
   B or Esc in the question says no and leaves the map open.
-- **Only finished worlds are charted** (playtest 2026-10-08): `WIP` in `src/levels/names.js` lists the
-  worlds still being made (the twelve detours built in October 2026, never vetted or finished). The ship's
-  map is given `CHARTED_SIDE` (the detours minus `WIP`, none for now) instead of `SIDE`, and the Sightings
-  page leaves out the slots of a `WIP` world unless one was already met there. The worlds list (L, Debug),
-  the dev menu (\`) and `?level=<id>` still open every world. To release a detour, play it through and
-  take it out of `WIP`: the map charts it from then on. `tests/menus-settings.test.js`.
+- **Only finished worlds are charted** (playtest 2026-10-08): `DISCARDED` in `src/levels/names.js` (once
+  `WIP`) lists the seven side worlds built in October 2026, never vetted, and discarded by the author on
+  2026-10-18 (worlds.md, "Merged and dismissed worlds", `DISCARDED`). The ship's map is given `CHARTED_SIDE`
+  (the detours minus `DISCARDED`, none now) instead of `SIDE`, and the Sightings page leaves out the slots of
+  a discarded world unless one was already met there. The worlds list (L, Debug), the dev menu (\`) and
+  `?level=<id>` still open every world. `tests/menus-settings.test.js`.
 - **The gates are gone:** the stone gates (`Gate` in `quest.js`), the page-turn transition
   and the edge crossings (`via=gate`, `via=edge`) were removed; the scout's last objective is
   "Back to the ship". Ship sites no longer keep clear of the old gate spots; the City-Shaft and the market,
@@ -1090,10 +1090,10 @@ world holds one more.
   there. Once the Lantern is done (`answered(game)`: `finale.met`, `world.lantern.done` or `ending.final`) the
   page shows it under the thread's name, in her words, and a note's strip says the answer instead of the
   question.
-- **Only what can be found is counted.** All seven side worlds are `WIP` (src/levels/names.js), off the map, so
+- **Only what can be found is counted.** All seven side worlds are `DISCARDED` (src/levels/names.js), off the map, so
   their traces are left off the page until met (`sightingsData`); what it counts is on the route or in a world
   reached from it (the Overnight Train's chalk mark). The threads are finished on the main route, at the
-  Lantern; a side world's trace comes back on the page when the world leaves `WIP`.
+  Lantern.
 - Tests: `tests/sightings.test.js` (every route sighting is keyed on a real line or flag; written down
   once, with a word, and kept in the save; an old save written quietly; the page; the answers after the
   Lantern; nothing counted in a world nobody can reach), and

@@ -150,7 +150,7 @@ export async function gatherMaterials({ worlds = null, games = null, log = () =>
   const { tempPath } = await import('./temp-dirs.mjs');
   const { portMaterial, unmappedKey } = await import('../engine/unity/port-format.js');
   const { LIVE_VECTORS } = await import('../engine/mirror.js');
-  const { LEVELS } = await import('../src/levels/index.js');
+  const { LEVELS } = await import('../src/levels/index.js'), { isDiscarded } = await import('../src/levels/names.js');
   // (sent besides the port's material: the live colour and glow, the moving vectors, the picture: engine/mirror.js, backend.js)
   const LIVE = new Set([...LIVE_VECTORS, 'uColor', 'uGlow', 'uWash', 'uMap', 'uHasMap']);
   const file = tempPath(join(tmpdir(), `hiraeth-bridge-gaps-${process.pid}.js`));
@@ -197,7 +197,8 @@ export async function gatherMaterials({ worlds = null, games = null, log = () =>
   log = say;
   c.warn = c.info = c.log = c.error = () => {};
   try {
-    for (const L of LEVELS) if (!worlds || worlds.includes(L.id)) await play(L.id, { levelId: L.id });
+    // (every world, or those named; not the discarded ones unless named: src/levels/names.js DISCARDED)
+    for (const L of LEVELS) if (worlds ? worlds.includes(L.id) : !isDiscarded(L.id)) await play(L.id, { levelId: L.id });
     // the opening (the father's hologram, the wake), as a new game starts it
     if (!worlds || worlds.includes('prologue')) await play('prologue', { levelId: 'desert', prologue: true });
     for (const G of B.GAMES ?? []) if (!games || games.includes(G.id)) await play(`game ${G.id}`, { levelId: G.world ?? 'desert', game: G.id, from: G.world ?? 'desert' });

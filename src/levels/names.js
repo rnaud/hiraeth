@@ -37,24 +37,25 @@ export const TITLES = {
 // (October 2026, the author's level changes: Vael and Vael II became one world, Lorn and Lorn II too; the
 // Sealed Hangar left the route for the Glass Dunes, which took its temple: MERGED, DISMISSED, PARTS below.)
 export const ORDER = ['desert', 'arzach', 'perdide', 'edena', 'underwater', 'incal', 'glassdunes', 'buried', 'moonfoundry', 'spheres', 'spacecity', 'bazaar'];
-// the worlds off the route: never needed on the way home (no story to follow); charted on the ship's map once
-// they leave WIP (CHARTED_SIDE), which all seven are on now
+// the worlds off the route: never needed on the way home (no story to follow). All seven are DISCARDED, so the
+// ship's map charts none of them (CHARTED_SIDE is empty)
 export const SIDE = ['mangrove', 'waterfall', 'saltharbour', 'antennas', 'eclipse', 'fallenring', 'underside'];
-// the worlds still being made: built in a rush in October 2026 and never vetted or finished. The galactic
-// map leaves them off (CHARTED_SIDE) and the Sightings page leaves their slots out; the worlds list (Debug)
-// and the dev menu still open them, and ?level=<id>. A world leaves this list once it has been played
-// through and signed off, and it is charted on the map from then on.
-export const WIP = ['mangrove', 'waterfall', 'saltharbour', 'antennas', 'eclipse', 'fallenring', 'underside'];
-/** Is this world still being made (not shown to players)? */
-export const isWip = (id) => WIP.includes(id);
+// the discarded worlds (the author's decision, 2026-10-18, #503): the seven side worlds, built in a rush in October
+// 2026 and never vetted or finished, are given up. They stay as they are, reachable from the debug menu only (the
+// worlds list (Debug), the dev menu and ?level=<id>): off the galactic map (CHARTED_SIDE) and the Sightings page,
+// left out of the QC, audit and bench sweeps, and they get no work unless the author asks for it. Unlike a DISMISSED
+// world (below) they keep their place in the Debug menu and their code where it is.
+export const DISCARDED = ['mangrove', 'waterfall', 'saltharbour', 'antennas', 'eclipse', 'fallenring', 'underside'];
+/** Was this world discarded (debug menu only, never shown to players, left out of the sweeps)? */
+export const isDiscarded = (id) => DISCARDED.includes(id);
 // the sub-levels: places off the ship's map, reached by a way through from a route world's quest, with the world they
 // belong to (the Overnight Train: the Signal Market's night halt, its bell; the night mail, src/story/night-train.js).
 // Not on the route, not on the map; ?level=<id> and the worlds list still open them.
 export const SUB = { overnighttrain: 'bazaar' };
 /** Is this a sub-level (reached from another world, not by the ship)? */
 export const isSub = (id) => Object.hasOwn(SUB, id);
-// the detours a player sees on the galactic map: the ones off the route that are finished
-export const CHARTED_SIDE = SIDE.filter((id) => !isWip(id));
+// the detours a player sees on the galactic map: the ones off the route that are not discarded (none now)
+export const CHARTED_SIDE = SIDE.filter((id) => !isDiscarded(id));
 // a world that follows another's story is only charted once that one is done (Vael II waited for the bird's
 // promise until it became part of Vael: none now; src/story/route.js still reads it)
 export const AFTER = {};

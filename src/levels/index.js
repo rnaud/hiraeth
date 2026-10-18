@@ -87,13 +87,13 @@ export const LEVELS = [
     moves: 'market streets · skybridges · glide · taxis',
   },
   {
-    // off the route (names.js SIDE), no story to follow; still being made (names.js WIP): off the ship's map until signed off
+    // off the route (names.js SIDE), no story to follow; discarded (names.js DISCARDED, 2026-10-18): off the ship's map, debug menu only
     id: 'mangrove', create: createMangrove, build: buildMangrove, hidden: true,
     title: TITLES.mangrove, source: 'a village in the white roots',
     blurb: 'Bone-white trees stand on arching roots in a black lake, and people live in them. Walk the lantern-lit planks, climb to the decks round the trunks, and look down: the lake glows like a second sky.',
     moves: 'walk · climb · swim',
   },  {
-    // off the route (names.js SIDE), no story to follow; still being made (names.js WIP): off the ship's map until signed off
+    // off the route (names.js SIDE), no story to follow; discarded (names.js DISCARDED, 2026-10-18): off the ship's map, debug menu only
     id: 'saltharbour', create: createSaltHarbour, build: buildSaltHarbour, hidden: true,
     title: TITLES.saltharbour, source: 'a street of ships in the salt',
     blurb: 'Huge old ships stand on their keels in a dry white salt basin, and people live in them. Walk the street between their hulls under the sailcloth, climb the stair to a deck, and cross the gangway to the next.',
@@ -101,14 +101,14 @@ export const LEVELS = [
   },
 
   {
-    // off the route (names.js SIDE), no story to follow; still being made (names.js WIP): off the ship's map until signed off
+    // off the route (names.js SIDE), no story to follow; discarded (names.js DISCARDED, 2026-10-18): off the ship's map, debug menu only
     id: 'waterfall', create: createWaterfall, build: buildWaterfall, hidden: true,
     title: TITLES.waterfall, source: 'a city behind a curtain of water',
     blurb: 'A long cavern city hidden behind a towering waterfall. Terraced streets of rounded houses, amber lamps in the deep quarter, and balconies behind slits in the water, looking out over a sunlit valley.',
     moves: 'walk · climb · swim',
   },
   {
-    // off the route (names.js SIDE), no story to follow; still being made (names.js WIP): off the ship's map until signed off
+    // off the route (names.js SIDE), no story to follow; discarded (names.js DISCARDED, 2026-10-18): off the ship's map, debug menu only
     id: 'antennas', create: createAntennas, build: buildAntennas, hidden: true,
     title: TITLES.antennas, source: 'a plain of listening masts',
     blurb: 'Abandoned masts by the thousand on a plain of violet grass, great dishes turned up like flowers, birds nesting in them. Walk to the workshops under the immense receiver and climb the stair to the observation deck.',
@@ -122,14 +122,14 @@ export const LEVELS = [
     moves: 'walk · climb · the lift',
   },
   {
-    // off the route (names.js SIDE), no story to follow; still being made (names.js WIP): off the ship's map until signed off
+    // off the route (names.js SIDE), no story to follow; discarded (names.js DISCARDED, 2026-10-18): off the ship's map, debug menu only
     id: 'eclipse', create: createEclipse, build: buildEclipse, hidden: true,
     title: TITLES.eclipse, source: 'a city at noon under a black sun',
     blurb: 'A city of white domes and round towers at midday, the moon over the sun: the lamps lit, people eating outside by lantern light, pale figures leaning from the walls. Walk the Lantern Square, climb the Great Stair and the tiers of the bowl, and look out over the lit city on the plain.',
     moves: 'walk · climb',
   },
   {
-    // off the route (names.js SIDE), no story to follow; still being made (names.js WIP): off the ship's map until signed off
+    // off the route (names.js SIDE), no story to follow; discarded (names.js DISCARDED, 2026-10-18): off the ship's map, debug menu only
     id: 'fallenring', create: createFallenRing, build: buildFallenRing, hidden: true,
     title: TITLES.fallenring, source: 'a ring that fell from the sky',
     blurb: 'The pieces of a broken orbital ring lie across a sage-green plain: arches higher than the clouds, tubes in the grass with villages along their feet, broken ends open on the streets inside. Walk among the grazing herds and climb onto the long tube’s crest.',
@@ -143,7 +143,7 @@ export const LEVELS = [
     moves: 'walk · climb',
   },
   {
-    // off the route (names.js SIDE), no story to follow; still being made (names.js WIP): off the ship's map until signed off
+    // off the route (names.js SIDE), no story to follow; discarded (names.js DISCARDED, 2026-10-18): off the ship's map, debug menu only
     id: 'underside', create: createUnderside, build: buildUnderside, hidden: true,
     title: TITLES.underside, source: 'a town hung under a shelf of rock',
     blurb: 'A shelf of white rock juts out over a sea of cloud, and a town hangs under it: round white houses stuck to the rock, timber decks slung on rods, long red banners falling toward the cloud. Go down the great stair, walk the galleries under the shelf to its tip, and climb back up the timber stair.',

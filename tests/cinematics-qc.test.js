@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { pickEntries, timeoutFor, spread, quatAngle, analyse, inkDensity, scoreTechnical, formatReport } from '../scripts/cinematics-qc.mjs';
 import { CINEMATICS } from '../src/cinematics-page/catalog.js';
+import { isDiscarded } from '../src/levels/names.js';
 
 const Q0 = [0, 0, 0, 1];
 /** A run of samples at 60 fps: idle, then `secs` playing with the camera moving along x, then idle. */
@@ -20,7 +21,8 @@ test('picks entries by id, prefix and group from the review page\'s list', () =>
   // (a star anywhere: the yards' boxes, issue #292's `--only box.*.court`)
   assert.deepEqual(pickEntries(CINEMATICS, { only: ['box.*.court'] }).map((e) => e.id).sort(), ['box.moonfoundry.court', 'box.spacecity.court', 'box.underwater.court']);
   assert.equal(pickEntries(CINEMATICS, { group: 'World moments' }).length, CINEMATICS.filter((e) => e.group === 'World moments').length);
-  assert.equal(pickEntries(CINEMATICS).length, CINEMATICS.length);
+  assert.equal(pickEntries(CINEMATICS).length, CINEMATICS.filter((e) => !isDiscarded(e.world)).length, 'all but the discarded worlds\' (names.js DISCARDED)');
+  assert.deepEqual(pickEntries(CINEMATICS, { only: ['arrival.mangrove'] }).map((e) => e.id), ['arrival.mangrove'], 'unless asked for by name');
   assert.ok(timeoutFor({ id: 'prologue' }) > timeoutFor({ id: 'desert.flow' }));
 });
 

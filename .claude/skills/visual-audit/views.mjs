@@ -26,7 +26,8 @@ const PORT = Number(process.env.PORT ?? 5494), CDP = PORT + 1;
 if (PORT === 5173 || CDP === 5173) throw new Error('5173 is the author’s own dev server: pick another PORT');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const names = await import(join(ROOT, 'src/levels/names.js'));
-const WORLDS = (arg('worlds') ?? [...new Set([...names.ORDER, ...names.SIDE, 'home', 'lantern'])].join(',')).split(',').filter(Boolean);
+// (not the discarded worlds by default, names.js DISCARDED; --worlds still opens them)
+const WORLDS = (arg('worlds') ?? [...new Set([...names.ORDER, ...names.SIDE.filter((id) => !names.isDiscarded(id)), 'home', 'lantern'])].join(',')).split(',').filter(Boolean);
 const VW = JSON.parse(readFileSync(join(ROOT, 'scripts/bench/viewpoints-worlds.json'), 'utf8')).worlds;
 const VD = JSON.parse(readFileSync(join(ROOT, 'scripts/bench/viewpoints.json'), 'utf8')).views;
 const ONLY = arg('views', '').split(',').filter(Boolean);

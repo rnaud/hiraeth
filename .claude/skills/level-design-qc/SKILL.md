@@ -114,7 +114,8 @@ Node 22.12 or newer on PATH (CI uses 24; Zed's bundled node works).
 node scripts/level-design/audit.mjs <scratch>/level [--worlds desert,arzach] [--cell 6]
 ```
 
-Node only, no browser, a second or few per world, read-only against the game: each route world is built as
+Node only, no browser, a second or few per world, read-only against the game (the route only by default: never
+the seven discarded side worlds, `DISCARDED` in src/levels/names.js): each route world is built as
 the play-through builds it (`tests/playthrough-agent.js` `loadWorld`: the level, its temple, collision, the
 story with its people and quests, the makers' boxes). It gathers the **places**: the ship, named people, every
 quest stage's marker, the makers' boxes, the temple's door, the trial's stone and the makers' run, doors and

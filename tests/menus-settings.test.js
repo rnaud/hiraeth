@@ -5,7 +5,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { ORDER, SIDE, WIP, CHARTED_SIDE, isWip } from '../src/levels/names.js';
+import { ORDER, SIDE, DISCARDED, CHARTED_SIDE, isDiscarded, isDismissed } from '../src/levels/names.js';
 import { mapEntries } from '../src/ship/starmap.js';
 import { padDirection, padConfirm, padCancel, padOpen, padReset, padStep, opensOnly, sideStep } from '../src/menu-pad.js';
 import { devMode } from '../src/dev-gate.js';
@@ -15,16 +15,18 @@ const levels = [...ORDER, ...SIDE].map((id) => ({ id, title: id }));
 
 // ------------------------------------------------------------------ the galactic map: finished worlds only
 
-test('the worlds still being made are off the galactic map, and still in the worlds list and the dev menu', () => {
-  assert.ok(WIP.length > 0 && WIP.every((id) => SIDE.includes(id)), 'WIP worlds are detours off the route');
-  assert.ok(ORDER.every((id) => !isWip(id)), 'every route world is finished');
-  assert.deepEqual(CHARTED_SIDE, SIDE.filter((id) => !WIP.includes(id)));
+test('the discarded worlds are off the galactic map, and still in the worlds list and the dev menu', () => {
+  // (issue #503, 2026-10-18: the seven side worlds are discarded, debug menu only; not DISMISSED, which leaves the menu too)
+  assert.deepEqual([...DISCARDED].sort(), ['antennas', 'eclipse', 'fallenring', 'mangrove', 'saltharbour', 'underside', 'waterfall']);
+  assert.ok(DISCARDED.every((id) => SIDE.includes(id) && !isDismissed(id)), 'discarded worlds are detours off the route, kept in the Debug menu');
+  assert.ok(ORDER.every((id) => !isDiscarded(id)), 'every route world is finished');
+  assert.deepEqual(CHARTED_SIDE, SIDE.filter((id) => !DISCARDED.includes(id)));
   // the ship's map uses the charted detours by default
   const ship = src('src/ship/ship.js');
   assert.match(ship, /side: deps\.side \?\? CHARTED_SIDE/);
   assert.doesNotMatch(ship, /\?\? SIDE\b/);
   const shown = mapEntries({ order: ORDER, levels, side: CHARTED_SIDE, flag: () => false, journal: null, current: 'desert', home: false });
-  assert.ok(shown.every((e) => !isWip(e.id)), 'no world still being made on the chart');
+  assert.ok(shown.every((e) => !isDiscarded(e.id)), 'no discarded world on the chart');
   assert.ok(ORDER.every((id) => shown.some((e) => e.id === id)), 'the route is all there');
   // ... and reachable for the author: the worlds list (L, Debug) and the dev menu take every level
   const main = src('src/main.js');
@@ -32,17 +34,17 @@ test('the worlds still being made are off the galactic map, and still in the wor
   assert.match(main, /new DevMenu\(\{ levelId, levels: LEVELS,/);
 });
 
-test('the Sightings page leaves out the slots of the worlds still being made, unless already met there', async () => {
+test('the Sightings page leaves out the slots of the discarded worlds, unless already met there', async () => {
   const store = new Map();
   const { GameState } = await import('../src/game-state.js');
   const game = new GameState({ getItem: (k) => store.get(k) ?? null, setItem: (k, v) => store.set(k, v), removeItem: (k) => store.delete(k) });
   const { sightingsData, SIGHTINGS, sightingFlag } = await import('../src/story/sightings.js');
-  const wipOne = SIGHTINGS.find((s) => isWip(s.world));
+  const wipOne = SIGHTINGS.find((s) => isDiscarded(s.world));
   assert.ok(wipOne, 'there are detour sightings to hide');
   const ids = (data) => data.flatMap((t) => t.entries.map((e) => e.id));
   const before = ids(sightingsData({ game }));
-  assert.ok(before.every((id) => !isWip(SIGHTINGS.find((s) => s.id === id).world)), 'no ? slot for an unreachable world');
-  assert.ok(SIGHTINGS.filter((s) => !isWip(s.world)).every((s) => before.includes(s.id)), 'every route sighting still counted');
+  assert.ok(before.every((id) => !isDiscarded(SIGHTINGS.find((s) => s.id === id).world)), 'no ? slot for an unreachable world');
+  assert.ok(SIGHTINGS.filter((s) => !isDiscarded(s.world)).every((s) => before.includes(s.id)), 'every route sighting still counted');
   game.set(sightingFlag(wipOne.id), true);
   assert.ok(ids(sightingsData({ game })).includes(wipOne.id), 'one met (the dev menu took you there) is kept');
 });

@@ -56,9 +56,10 @@ node .claude/skills/visual-audit/views.mjs <scratch>/visual [--worlds …] [--ho
 
 The script covers every world's benchmark views (up to 3, from `scripts/bench/viewpoints-worlds.json`; the desert's
 from `viewpoints.json`) at dawn, noon, dusk and night, plus up to 6 interiors per world: just past each door, cave or
-portal, at noon. A world without views there (the Underwater City, the Moon Foundry, the City Floating in Space and
-the detours, so far) gets one view, the camera as it boots; to cover it properly, add views to
-`viewpoints-worlds.json` (by hand, or `scripts/bench/android-worlds.mjs --pick 1` on the Android bench). Each picture
+portal, at noon. A world without views there (the Underwater City, the Moon Foundry and the City Floating in Space, so
+far) gets one view, the camera as it boots; to cover it properly, add views to
+`viewpoints-worlds.json` (by hand, or `scripts/bench/android-worlds.mjs --pick 1` on the Android bench). The discarded side worlds (`DISCARDED`, src/levels/names.js) are left out unless
+`--worlds` names them. Each picture
 is measured, and flagged for:
 - crushed blacks;
 - blown whites;
@@ -136,7 +137,8 @@ before), world after world with a rest between; it never leaves a Chrome behind.
 world (`ORDER` in src/levels/names.js) at **Handheld and High** (Handheld's 4 spot taps are where the blocks showed):
 about 10 minutes a world and preset. Per world it takes the **known spots** of past bugs (`KNOWN` in the script: the
 Qanat tree's stairs, the cave under the giant, the Givers' Hearth, his own shadow by the ship's ramp (one view from
-the sun's side: `shadow`), and for the contact foam Lorn's tree in the water and two detours' pools; add each new
+the sun's side: `shadow`), and for the contact foam Lorn's tree in the water (and two discarded detours' pools, kept
+for `--worlds`); add each new
 bug's spot there) and finds up to `--auto` more round the ways in (`level.portals`' `to`), the benchmark views and
 the spawn: **stairs** (risers in a ground profile), a **room corner** (two walls square to each other), **walls**,
 inside first. The pure logic is `scripts/visual-probes/lib.mjs` (`tests/visual-probes.test.js`: each function is

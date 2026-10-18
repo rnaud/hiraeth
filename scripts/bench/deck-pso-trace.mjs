@@ -6,14 +6,15 @@
 //        [--views-file <{ worlds: { <id>: { views } } }>] (views of worlds the bench has none of: the detours) [--moves desert,…]
 // Each world: its bench views once and its walk (viewpoints.json's desert, viewpoints-worlds.json's others: deck-engines.mjs's);
 // its first temple's first room and the ship's rooms; a fight (a blot, knocked out, the guardian woken: no views, so
-// the bench's flags leave the foes on); in the --moves worlds (the desert, the Underwater City, the City Behind the
-// Waterfall), a jump held in the air (-ui jump: Hiraeth/JumpShade), the fluid tool aimed and fired (its splat), and the
+// the bench's flags leave the foes on); in the --moves worlds (the desert and the Underwater City; the City Behind the
+// Waterfall's was dropped once it was discarded, names.js DISCARDED), a jump held in the air (-ui jump: Hiraeth/JumpShade), the fluid tool aimed and fired (its splat), and the
 // sequences of the ground's decals and a splat (-sequence decals, splat: the desert's, once). Then <out>/Vulkan.graphicsstate and, unless --no-copy 1, the project's
 // unity/Hiraeth/Assets/StreamingAssets/hiraeth-pso/Vulkan.graphicsstate. Mesa's cache and TMPDIR are the bench's own.
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, writeFileSync, readFileSync, rmdirSync, existsSync, copyFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { options, viewpoints, sleep, ROOT } from './lib.mjs';
+import { isDiscarded } from '../../src/levels/names.js';
 
 const opt = options();
 const DECK = process.env.DECK ?? 'deck@steamdeck.local';
@@ -22,9 +23,10 @@ if (!NAME) { console.log('usage: node scripts/bench/deck-pso-trace.mjs --unity <
 const VP = viewpoints(), PW = JSON.parse(readFileSync(resolve(ROOT, 'scripts/bench/viewpoints-worlds.json'), 'utf8')).worlds;
 // (the detours' views, scripts/unity-compare/views.mjs's or a scratch file's, beside the bench's)
 const EXTRA = opt['views-file'] ? JSON.parse(readFileSync(resolve(String(opt['views-file'])), 'utf8')).worlds : {};
-const WORLDS = String(opt.worlds ?? ['desert', ...new Set([...Object.keys(PW), ...Object.keys(EXTRA)])].join(',')).split(',');
+// (not the discarded worlds by default, src/levels/names.js DISCARDED: --worlds still names them)
+const WORLDS = String(opt.worlds ?? ['desert', ...new Set([...Object.keys(PW), ...Object.keys(EXTRA)])].filter((id) => !isDiscarded(id)).join(',')).split(',');
 const PASSES = String(opt.passes ?? 'views,temples,fights,moves').split(',');
-const MOVES = String(opt.moves ?? 'desert,underwater,waterfall').split(',');
+const MOVES = String(opt.moves ?? 'desert,underwater').split(',');   // (the City Behind the Waterfall's left out: discarded, names.js DISCARDED)
 const BENCH = '/home/deck/.local/share/hiraeth-bench-engines/pso-trace';
 const TRACE = `${BENCH}/config/unity3d/rnaud/Hiraeth JS/pso-trace.graphicsstate`;
 const ssh = (cmd) => spawnSync('ssh', ['-o', 'BatchMode=yes', DECK, cmd], { encoding: 'utf8', maxBuffer: 1 << 26 });

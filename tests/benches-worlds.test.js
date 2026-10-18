@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { builtWorld, quiet } from './built-worlds.js';
 
-const { ORDER, SIDE } = await import('../src/levels/names.js');
+const { ORDER, SIDE, isDiscarded } = await import('../src/levels/names.js');
 const { BENCHES } = await import('../src/benches-data.js');
 const { createBenches, benchFraming, BENCH } = await import('../src/benches.js');
 const { Waters } = await import('../src/water.js');
@@ -24,7 +24,7 @@ export const RACE_CLEAR = 30;
 
 test('every world’s benches stand on solid, flat, dry ground outdoors, clear round and over the seat, their shot clear, their seat stood on', () => {
   const bad = [];
-  for (const id of [...ORDER, ...SIDE]) {
+  for (const id of [...ORDER, ...SIDE].filter((w) => !isDiscarded(w))) {   // (not the discarded worlds: names.js DISCARDED)
     globalThis.location = { search: `?level=${id}` };
     const { scene, level, physics } = builtWorld(id);
     const waters = quiet(() => new Waters(scene, { physics, drops: false }));

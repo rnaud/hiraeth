@@ -174,22 +174,22 @@ test('the title\'s recording takes over from the procedural tune on the menu bus
 });
 
 // Issue #471: every place the game takes you resolves to a recording that is there (the registry, its merged parts and
-// sub-levels, the side worlds, home and the Lantern, the worlds a minigame is played in), and only the developers'
-// worlds play the procedural score alone.
+// sub-levels, home and the Lantern, the worlds a minigame is played in), and only the developers' worlds play the
+// procedural score alone. (The discarded side worlds, names.js DISCARDED, are left out: they get no work.)
 test('every level in the registry resolves to an existing recording, with its record and its engine level', async () => {
   const { LEVELS, levelById } = await import('../src/levels/index.js');
-  const { ORDER, SIDE, SUB, MERGED, PARTS } = await import('../src/levels/names.js');
+  const { ORDER, SUB, MERGED, PARTS, isDiscarded } = await import('../src/levels/names.js');
   const { THEME_LEVELS } = await import('../src/theme-levels.js');
   const { GAMES } = await import('../src/minigames/index.js');
   const { readFileSync } = await import('node:fs');
   const manifest = JSON.parse(readFileSync(new URL('../public/music/manifest.json', import.meta.url), 'utf8'));
   const recorded = new Set(manifest.tracks.map((t) => t.file));
   const ids = new Set([
-    ...LEVELS.filter((l) => !l.dev).map((l) => l.id), ...ORDER, ...SIDE, ...Object.keys(SUB), ...Object.values(SUB),
+    ...LEVELS.filter((l) => !l.dev && !isDiscarded(l.id)).map((l) => l.id), ...ORDER, ...Object.keys(SUB), ...Object.values(SUB),
     ...Object.keys(MERGED), ...Object.values(PARTS).flat(), 'home', 'lantern',
     ...GAMES.map((g) => g.world).filter(Boolean),
   ]);
-  assert.ok(ids.size >= 22, `${ids.size} places`);
+  assert.ok(ids.size >= 17, `${ids.size} places`);   // (24 with the seven discarded side worlds)
   for (const id of ids) {
     // (the id a page's Sound is made with: main.js's levelById(...).id; a merged part's is the world it joined)
     const level = levelById(id);
@@ -201,7 +201,7 @@ test('every level in the registry resolves to an existing recording, with its re
     assert.ok(THEME_LEVELS[file] > 0, `${id}: ${file} has no level for the engines (scripts/theme-levels.mjs)`);
   }
   // (and the developers' worlds are the only levels without one)
-  for (const l of LEVELS) if (!SOUNDTRACKS[l.id]) assert.ok(l.dev, `${l.id} plays no recording`);
+  for (const l of LEVELS) if (!SOUNDTRACKS[l.id] && !isDiscarded(l.id)) assert.ok(l.dev, `${l.id} plays no recording`);
 });
 
 /** A world's sound as loadSoundtrack sees it, on the in-memory Web Audio, its arrival moment long over. */

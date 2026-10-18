@@ -57,6 +57,7 @@ const KNOWN = {
   // where things stand in water: the contact foam (water.js renderGBuffer reads the last frame's depth, reprojected);
   // Lorn's is in the Deep Wood (Lorn II's own [134.3, -139.2], shifted by names.js PART_OFFSET.perdide2 since the merge)
   perdide: [{ name: 'tree-in-water', kind: 'water', player: [134.3, 0, -619.2], eye: [134.3, 3, -612.2], target: [134.3, 0.2, -621] }],
+  // (two discarded detours' pools, names.js DISCARDED: measured only when --worlds names them)
   waterfall: [{ name: 'pool-ledge', kind: 'water', player: [-69.3, -17, 25.9], eye: [-65.8, -14, 32], target: [-70.2, -16.8, 24.4] }],
   mangrove: [{ name: 'roots-in-water', kind: 'water', player: [-146.5, 0, -72.7], eye: [-140.5, 3, -69.2], target: [-148.1, 0.2, -73.6] }],
 };

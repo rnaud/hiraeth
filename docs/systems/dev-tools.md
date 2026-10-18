@@ -13,7 +13,7 @@ page in sections, each a heading with one line, in this order (`menuSections`):
 | **Play** | Continue (the world this save was left in), then the route's worlds (`ORDER`) in story order, each in the debug save |
 | **Story places** | the finished worlds off the route: Home, the Lantern, the Atelier (in your save) |
 | **Test rooms** | the `dev: true` levels: the Lab, the Arena, the Gadget Yard, the Arcade, the References, the Shadow Room (`?level=shadows`: rendering.md, "The Shadow Room and the shadow QC") |
-| **Worlds in progress** | the `WIP` worlds (off the galactic map) |
+| **Worlds in progress** | the `DISCARDED` worlds (the seven side worlds, debug menu only, off the galactic map: worlds.md) |
 | **Games** | the minigames (`gamesRow`), each with its best |
 | **Pages** | `PAGES` (What's new, Audits, Items, Creatures & spirits, Character studio, Music & sounds (`music.html`, docs/systems/audio.md "The music page"), Motion, Lore (`lore.html`, docs/systems/lore-page.md), Cinematics, Trailer, and References, `references.html`, tagged "reference material"), `MAYBE_PAGES` (pages listed once they answer, `probePages`; none now) and on the dev server `DEV_PAGES` (the reference lab, tagged "dev server"; a build never lists it) |
 | **This build** | version, build number and commit (`__HIRAETH_BUILD__`, defined by `vite.config.js` `gitBuildInfo`; the Android / Deck app's build line in the app), dev server or build, and the debug save's note |
