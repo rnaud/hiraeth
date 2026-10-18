@@ -1,0 +1,26 @@
+{
+  "created": "2026-10-18",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "A design sheet for the great key of an ancient makers' temple, the one key that opens the guardian's door, clearly different from the temple's small keys (a plain ring, a shaft and two bits). The great key is larger and ceremonial: a bow shaped as the makers' open-corner mark, a heavy brass and pale stone shaft with a channel of soft teal light running along it, a ward of several stepped bits like a small staircase, a slow glow at its heart. Ancient high technology, not organic: clean machined surfaces, inlaid lines, worn edges. Show it front, side and three-quarter, beside a small key for scale and contrast, and once rising out of its open chest in a column of light. Moebius ligne claire, fine pen contours, sparse hatching, flat pastel gouache on cream paper, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, organic or plant forms.",
+      "from": null,
+      "refs": [
+        "references/makers-mark/selected-2026-10-15/corner.jpeg",
+        "references/temples/future/clock-house/sheet-1.jpg",
+        "references/Core Objects/Makers Chest/reference-1.jpeg"
+      ],
+      "ar": "3:2",
+      "date": "2026-10-18",
+      "batch": "2026-10-18-21-12-23-7200",
+      "candidate": "openai/1",
+      "sha256": "c634f753b5f13e66357c59f222ab0e8ba7a25b1c2fb9c7b8ba7e050b288bcd31",
+      "bytes": 199649,
+      "costUSD": 0.041
+    }
+  ]
+}
