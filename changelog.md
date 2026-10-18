@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.84 — 2026-10-17
 
+- Each world’s own recorded music now plays the first time you land there, on the Xbox and in the Android app too, where it is downloaded the first time it is needed: it comes in as soon as it has arrived, faded in. Before, the Unity version played the game’s synthesised score for your whole first visit to every world but the Desert, and the Android app could wait minutes for the next moment to bring it in.
 - In the Unity version, the traveller’s face moves as on the web: he blinks, smiles, raises his brows and opens his mouth as he talks (it stayed still). The ship’s rooms keep their shading strokes clear instead of a grey blur; plants lean away from you along the path you walk through them; the camera pressed into the traveller leaves him out of the view; a struck foe’s lines flash white; and the shading round foes by a wall no longer darkens round them.
 - In the Unity version, the title’s name sits centred across the top on every screen, as on the web: on the Retroid’s 4:3 screen it opened pushed aside the first time, and a window resized or a screen turned kept the old layout.
 - In the Unity version, the marks lying on the desert’s ground are drawn whole, as on the web: the sand river’s pale ribbon, the tide lines along the dry wash, the salt pan, the basin’s wet shore, the sand banked against things and the crash’s scrapes no longer break into jagged pieces with the ground showing through.

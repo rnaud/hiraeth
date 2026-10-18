@@ -398,9 +398,18 @@ unchanged, it reads its own `music/`).
   from its start. A full disk only means it tries later.
 - **A world's theme** (`loadSoundtrack`, `src/soundtracks.js`): the bundle's (`music/<file>`), else the
   kept copy (`themeSources`); a copy that doesn't decode is dropped for the download to fetch again.
-  Neither: the procedural score plays, and the theme comes in when the download lands it, through the
-  moments (`trackOn` false, so `Sound.musicMomentsUpdate` starts and fades it in at the next moment the
-  theme plays, `src/music-moments.js`), never on top of what is playing.
+  Neither: the procedural score plays until the download lands it, and then the theme takes over at once:
+  `startTrack` cues an arrival moment (`src/music-moments.js`), so `Sound.musicMomentsUpdate` fades it in over
+  3 s and the score steps aside. (Until issue #471 it waited for the next moment, minutes away when the
+  arrival's 150 s were over.) Held back (the prologue's ship) it waits for the release.
+- **In Unity** (the APK and the Xbox package, which carry only the desert's and the title's) the player
+  downloads the themes itself (`BridgeMusic.Fetch`, into `persistentDataPath/public/music`, the world's
+  first). The engines have no page store, so `loadSoundtrack` waits through `setThemeWait`:
+  `engine/unity/music.js` `themeArrival` looks for the file every 5 s where the game's fetch reads
+  (`BridgeRunner.PublicRoots`) and hands it over as above. Until issue #471 nothing waited: every world but
+  the desert played the procedural score for its whole first visit, its recording only from the next load.
+  Inside the APK a downloaded file is read as a file (`StreamingFile.Read`), not asked of UnityWebRequest
+  as a bare path.
 - **Installs from before** (every theme in the bundle): the download takes each from the bundle first
   and keeps it, without a request to the site (see `docs/systems/android.md`, "The music, downloaded
   once", for the one update that has to carry them for that).

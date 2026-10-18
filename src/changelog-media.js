@@ -1205,6 +1205,7 @@ const SURFDW = 'Issue #264 (surfaces D): the web game in muted headless Chrome (
 const SURF264F = 'Issue #264: the Unity editor’s batch run on this Mac (scripts/unity-js-run.sh -sequence <id> or scripts/unity-compare/unity.mjs, muted, High, 1280 × 720 pictures of its 640 × 480 screen), the same build with the change switched off for the before (-no-foe-pattern, -no-blade-look, -no-see-hole, -no-lamp-tint); the web’s the same beat in muted headless Chrome on this branch’s own Vite (port 5465); 17 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.84': [
+    { match: 'Each world’s own recorded music now plays the first time you land there', see: 'On the Xbox or in the Android app, fly to a world you have not visited since installing: a little while after landing (about ten seconds on a good connection) its own recorded music fades in and the synthesised score gives way to it, instead of the score playing until you leave.' },
     { match: 'In the Unity version the waterfalls fall as on the web', shots: [
       { name: 'unity-falls', title: 'The curtain', caption: 'The great curtain over the City Behind the Waterfall from its landing in Unity: before, flat sheets of one turquoise; after, its columns of four tones, the streaks and the glassy lip, as on the web', from: WATER458 },
       { name: 'unity-falls-web', only: 'after', title: 'The curtain on the web', caption: 'The same view on the web', from: WATER458W },

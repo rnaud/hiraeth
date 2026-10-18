@@ -9,8 +9,8 @@ import './notices-on.js';
 import { createGame, makeSound } from '../game.js';
 import { page } from '../boot.js';
 import { setAudioDecoder } from '../webaudio.js';
-import { musicDecoder, pollMusic, themeDownloads } from './music.js';
-import { SOUNDTRACKS } from '../../src/soundtracks.js';
+import { musicDecoder, pollMusic, themeArrival, themeDownloads } from './music.js';
+import { SOUNDTRACKS, setThemeWait } from '../../src/soundtracks.js';
 import { UnityBackend } from './backend.js';
 import { portLook } from './port-format.js';
 import { sharedUniforms } from '../../src/materials.js';
@@ -54,6 +54,7 @@ let S = null;
 const now = () => host.Now();
 // (the recorded music: Unity decodes the MP3s the shim can't, BridgeMusic.cs; engine/unity/music.js)
 setAudioDecoder(musicDecoder(host));
+setThemeWait(themeArrival());   // (a theme this player downloads: played as soon as it is there, issue #471)
 // the sound kept this far ahead of what Unity has played (BridgeAudio.cs's ring): frames
 const AUDIO_AHEAD = 0.12;
 // a run at fixed views starts from the web bench's save (scripts/bench/web-page.mjs prepareStorage): the backpack found

@@ -172,3 +172,102 @@ test('the title\'s recording takes over from the procedural tune on the menu bus
   late.menuOn = true; late._disposed = true;
   assert.equal(late.playTitleTheme(buffer), false, 'disposed: nothing starts');
 });
+
+// Issue #471: every place the game takes you resolves to a recording that is there (the registry, its merged parts and
+// sub-levels, the side worlds, home and the Lantern, the worlds a minigame is played in), and only the developers'
+// worlds play the procedural score alone.
+test('every level in the registry resolves to an existing recording, with its record and its engine level', async () => {
+  const { LEVELS, levelById } = await import('../src/levels/index.js');
+  const { ORDER, SIDE, SUB, MERGED, PARTS } = await import('../src/levels/names.js');
+  const { THEME_LEVELS } = await import('../src/theme-levels.js');
+  const { GAMES } = await import('../src/minigames/index.js');
+  const { readFileSync } = await import('node:fs');
+  const manifest = JSON.parse(readFileSync(new URL('../public/music/manifest.json', import.meta.url), 'utf8'));
+  const recorded = new Set(manifest.tracks.map((t) => t.file));
+  const ids = new Set([
+    ...LEVELS.filter((l) => !l.dev).map((l) => l.id), ...ORDER, ...SIDE, ...Object.keys(SUB), ...Object.values(SUB),
+    ...Object.keys(MERGED), ...Object.values(PARTS).flat(), 'home', 'lantern',
+    ...GAMES.map((g) => g.world).filter(Boolean),
+  ]);
+  assert.ok(ids.size >= 22, `${ids.size} places`);
+  for (const id of ids) {
+    // (the id a page's Sound is made with: main.js's levelById(...).id; a merged part's is the world it joined)
+    const level = levelById(id);
+    assert.ok(level, `${id}: a level`);
+    const file = SOUNDTRACKS[level.id];
+    assert.ok(file, `${id} (${level.id}): no recording in SOUNDTRACKS`);
+    assert.ok(statSync(new URL(`../public/music/${file}`, import.meta.url)).size > 100000, `${id}: ${file} is not in public/music`);
+    assert.ok(recorded.has(file), `${id}: ${file} has no record in manifest.json`);
+    assert.ok(THEME_LEVELS[file] > 0, `${id}: ${file} has no level for the engines (scripts/theme-levels.mjs)`);
+  }
+  // (and the developers' worlds are the only levels without one)
+  for (const l of LEVELS) if (!SOUNDTRACKS[l.id]) assert.ok(l.dev, `${l.id} plays no recording`);
+});
+
+/** A world's sound as loadSoundtrack sees it, on the in-memory Web Audio, its arrival moment long over. */
+async function quietWorld(levelId = 'incal') {
+  const { AudioContext } = await import('../engine/webaudio.js');
+  const { MusicMoments } = await import('../src/music-moments.js');
+  const ctx = new AudioContext({ sampleRate: 100 });
+  ctx.decodeAudioData = async () => { const b = ctx.createBuffer(2, 1000, 100); b.getChannelData(0).fill(0.3); b.getChannelData(1).fill(0.3); return b; };
+  const moments = new MusicMoments({ now: -10000, rand: () => 0.5 });
+  moments.update(-10000 + 400);   // (the arrival over, the quiet's comeback drawn far ahead)
+  return { score: true, levelId, ctx, music: ctx.createGain(), moments };
+}
+const missing = async () => ({ ok: false, status: 404 });
+const ENGINE = { protocol: 'engine:', host: 'hiraeth' };
+
+test('a theme an engine\'s player downloads takes over as soon as it is there (issue #471)', async () => {
+  const sound = await quietWorld('incal');
+  let asked = null;
+  const wait = async (file, o) => { asked = file; assert.equal(o.gone(), false); return { arrayBuffer: async () => new ArrayBuffer(8) }; };
+  // (an engine: its location is engine://, no IndexedDB, so no page store)
+  assert.equal(await loadSoundtrack(sound, missing, { here: ENGINE, store: null, wait }), true);
+  assert.equal(asked, 'incal.mp3');
+  assert.equal(sound.trackFrom, 'site');
+  assert.ok(sound.trackBuffer, 'the recording is ready');
+  // and the moments bring it in now, not at the next moment minutes away
+  assert.equal(sound.moments.playing(sound.ctx.currentTime), true, 'cued at once');
+  assert.equal(sound.moments.why, 'arrival');
+});
+
+test('a page on a device: a download landing after the arrival hands over to the recording at once (issue #471)', async () => {
+  const sound = await quietWorld('underwater');
+  const downloader = { prefer() {}, arrived: async () => ({ arrayBuffer: async () => new ArrayBuffer(8) }) };
+  const store = { get: async () => null, put: async () => {}, delete: async () => {} };
+  assert.equal(await loadSoundtrack(sound, missing, { here: { protocol: 'hiraeth:', host: 'game' }, store, downloader }), true);
+  assert.equal(sound.trackFrom, 'site');
+  assert.equal(sound.moments.playing(sound.ctx.currentTime), true);
+});
+
+test('held back (the prologue\'s ship), a downloaded theme waits for the release', async () => {
+  const sound = await quietWorld('desert');
+  sound.themeHeld = true;
+  const wait = async () => ({ arrayBuffer: async () => new ArrayBuffer(8) });
+  assert.equal(await loadSoundtrack(sound, missing, { here: ENGINE, store: null, wait }), true);
+  assert.equal(sound.moments.playing(sound.ctx.currentTime), false);
+});
+
+test('the site reads its own files only: no wait there', async () => {
+  const sound = await quietWorld('incal');
+  const warn = console.warn; console.warn = () => {};
+  try {
+    const wait = async () => { throw new Error('the site never waits for a download'); };
+    assert.equal(await loadSoundtrack(sound, missing, { here: { protocol: 'https:', host: 'hiraeth.example.org' }, wait }), false);
+  } finally { console.warn = warn; }
+});
+
+test('Unity\'s wait looks again until its player has downloaded the theme, and stops when the world is gone', async () => {
+  const { themeArrival } = await import('../engine/unity/music.js');
+  let tries = 0;
+  const fetcher = async (url) => {
+    assert.match(String(url), /music\/spheres\.mp3$/);
+    return ++tries < 3 ? { ok: false, status: 404 } : { ok: true, headers: { get: () => 'audio/mpeg' }, blob: async () => ({ size: 9 }) };
+  };
+  const wait = themeArrival({ fetcher, every: 0, sleep: async () => {} });
+  assert.deepEqual(await wait('spheres.mp3', {}), { size: 9 });
+  assert.equal(tries, 3);
+  let gone = false;
+  const never = themeArrival({ fetcher: missing, sleep: async () => { gone = true; } });
+  assert.equal(await never('spheres.mp3', { gone: () => gone }), null);
+});

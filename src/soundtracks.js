@@ -139,18 +139,27 @@ export async function loadTitleTheme(sound, fetcher = globalThis.fetch, { here =
   return false;
 }
 
+let themeWait = null;
+/**
+ * Where a theme comes from when it is neither in the bundle nor kept and there is no page store: an engine's player
+ * downloads it itself (Unity's BridgeMusic.Fetch), and `wait(file, { signal, gone })` resolves with its Blob once it is
+ * there (null when the world is gone first). Before issue #471 nothing waited: the world played the procedural score
+ * for its whole visit, the recording only from the next load.
+ */
+export function setThemeWait(wait) { themeWait = wait ?? null; }
+
 /** The theme files, once each (home and the Lantern share one). */
 export const THEME_FILES = [...new Set(Object.values(SOUNDTRACKS))];
 
 /**
  * Keep procedural music until a recording has loaded and decoded successfully: the bundle's, or the one a
  * device kept (src/music-store.js themeSources). On a device without it yet, the background download
- * (themeDownloader) fetches this world's first, and it comes in on the next moment the theme plays
- * (src/music-moments.js), faded, not on top of what is playing.
+ * (themeDownloader) fetches this world's first; in an engine its player does (setThemeWait). Either way it takes
+ * over as soon as it arrives, faded in as on arriving (an arrival moment, src/music-moments.js; issue #471).
  * @param o.here the page's location, o.store the kept themes (default: IndexedDB on a device), o.downloader
- *   the page's background download (default: startThemeDownload)
+ *   the page's background download (default: startThemeDownload), o.wait an engine's wait (default: setThemeWait's)
  */
-export async function loadSoundtrack(sound, fetcher = globalThis.fetch, { here = globalThis.location, store, downloader } = {}) {
+export async function loadSoundtrack(sound, fetcher = globalThis.fetch, { here = globalThis.location, store, downloader, wait = themeWait } = {}) {
   const file = SOUNDTRACKS[sound.levelId];
   if (!sound.score || !file || !fetcher) return false;
   const ctx = sound.ctx;
@@ -178,13 +187,18 @@ export async function loadSoundtrack(sound, fetcher = globalThis.fetch, { here =
       const ok = await play(blob, from, keep);
       if (ok !== false) return !!ok;
     }
+    // not here yet: the score plays meanwhile, and the recording takes over the moment it arrives (issue #471)
+    let blob = null;
     if (device && store) {
-      // not here yet: the background download brings it (this world's first); the score plays meanwhile
+      // a page on a device: the background download brings it (this world's first)
       downloader ??= startThemeDownload(THEME_FILES, { first: file });
       downloader.prefer?.(file);
-      const blob = await downloader.arrived(file, abort?.signal);
-      if (blob && !sound._disposed) { const ok = await play(blob, 'site', false); if (ok !== false) return !!ok; }
+      blob = await downloader.arrived(file, abort?.signal);
+    } else if (wait) {
+      // an engine whose player downloads it itself (Unity's APK and Xbox package: engine/unity/music.js themeArrival)
+      blob = await wait(file, { signal: abort?.signal, gone: () => !!sound._disposed });
     }
+    if (blob && !sound._disposed) { const ok = await play(blob, 'site', false); if (ok !== false) return !!ok; }
     if (!sound._disposed) console.warn('Recorded soundtrack unavailable; keeping the procedural score.', lastError ?? file);
     return false;
   } catch (error) {
@@ -202,7 +216,13 @@ function startTrack(sound, decoded, { late = false } = {}) {
   gain.connect(sound.music);
   sound.trackGain = gain;
   // (Sound.musicMomentsUpdate starts it, faded, when a moment wants it; held back, the prologue in the ship: issue #149)
-  if (late || sound.themeHeld) { sound.trackOn = false; return; }
+  // (a recording that arrived while the score played, downloaded: it takes over now, faded in as on arriving, not at
+  // the next moment minutes away; issue #471)
+  if (late || sound.themeHeld) {
+    sound.trackOn = false;
+    if (late && !sound.themeHeld) sound.moments?.cue?.('arrival', ctx.currentTime);
+    return;
+  }
   const source = ctx.createBufferSource();
   source.buffer = sound.trackBuffer;
   source.loop = true;

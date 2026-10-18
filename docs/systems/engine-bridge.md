@@ -1597,7 +1597,7 @@ own graph still decides everything about them.
   every theme (106 MB). The APK and the Xbox's carry the ones every device does (`OnDeviceThemes`, the same as
   `src/music-store.js` `ON_DEVICE_THEMES`). Those two download the rest once into `persistentDataPath/public/music`
   (`BridgeMusic.Fetch`, from 8 s after the world is up, one at a time, the world played first; a failure waits two
-  minutes; never in batch runs). `PublicRoots` reads that folder too, so a downloaded theme plays from the next world's load.
+  minutes; never in batch runs). `PublicRoots` reads that folder too, and the world waiting for its theme looks for it there every 5 s (`themeArrival`, `setThemeWait`), so it fades in as soon as it has arrived (issue #471; before, only from the next world's load).
 
 Memory: only the clips asked for are loaded (the title's, the world's, a cue), streamed, released when the engine
 reboots into the next world. Tests: tests/engine-music.test.js (the shim's places and gains, recorded and replayed

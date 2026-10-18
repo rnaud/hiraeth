@@ -284,7 +284,9 @@ namespace Hiraeth.Bridge
 
         public static byte[] Read(string path)
         {
-            if (!InArchive) return File.Exists(path) ? File.ReadAllBytes(path) : null;
+            // (a folder's file read as one, inside the APK too: the themes downloaded into persistentDataPath (BridgeMusic.Fetch)
+            // were asked of UnityWebRequest as a bare path there; issue #471)
+            if (!InArchive || !path.Contains("://")) return File.Exists(path) ? File.ReadAllBytes(path) : null;
             using var req = UnityWebRequest.Get(path);
             var op = req.SendWebRequest();
             while (!op.isDone) { }

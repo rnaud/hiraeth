@@ -5,7 +5,7 @@
 // downloaded once as the web app does (src/music-store.js).
 import { fetchedPath } from '../platform.js';
 import { THEME_FILES } from '../../src/soundtracks.js';
-import { ON_DEVICE_THEMES } from '../../src/music-store.js';
+import { ON_DEVICE_THEMES, themeSources } from '../../src/music-store.js';
 import { SHEET_SITE } from '../../src/levels/reference-sheets.js';
 
 const pending = new Map();   // Unity's clip id → the decodes waiting on it [{ resolve, reject, path }]
@@ -52,4 +52,22 @@ export function themeDownloads(first = null) {
   if (first && files.includes(first)) files.sort((a, b) => (a === first ? -1 : b === first ? 1 : 0));
   const site = SHEET_SITE.replace(/\/?$/, '/');
   return { list: files.map((f) => `${f} ${site}music/${f}`).join(';'), carried: ON_DEVICE_THEMES.join(',') };
+}
+
+/**
+ * The wait for a theme this player is downloading (src/soundtracks.js setThemeWait; issue #471): the world's own theme
+ * is fetched first (themeDownloads), into a folder the game's fetch reads (BridgeRunner.PublicRoots), so it is looked
+ * for there every `every` ms until it is, and played at once (before, only from the next world's load: a first visit
+ * heard the procedural score all through). Resolves with its Blob, or null once the world is gone.
+ */
+export function themeArrival({ fetcher = (...a) => globalThis.fetch(...a), every = 5000, sleep = (ms) => new Promise((r) => { const t = setTimeout(r, ms); t?.unref?.(); }) } = {}) {
+  return async (file, { signal, gone = () => false } = {}) => {
+    for (;;) {
+      await sleep(every);
+      if (signal?.aborted || gone()) return null;
+      try {
+        for await (const { blob } of themeSources(file, { store: null, fetcher })) return blob;
+      } catch { /* not readable yet */ }
+    }
+  };
 }

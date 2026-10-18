@@ -252,6 +252,10 @@ export const CHANGELOG = [
     // docs/systems/engine-bridge.md "The title on any screen"
     'In the Unity version, the title’s name sits centred across the top on every screen, as on the web: on the Retroid’s 4:3 screen it opened pushed aside the first time, and a window resized or a screen turned kept the old layout.',
     'In the Unity version, the traveller’s face moves as on the web: he blinks, smiles, raises his brows and opens his mouth as he talks (it stayed still). The ship’s rooms keep their shading strokes clear instead of a grey blur; plants lean away from you along the path you walk through them; the camera pressed into the traveller leaves him out of the view; a struck foe’s lines flash white; and the shading round foes by a wall no longer darkens round them.',
+    // issue #471: src/soundtracks.js (setThemeWait, a late theme cued as an arrival), engine/unity/music.js themeArrival,
+    // engine/unity/game.js; unity/Hiraeth BridgeArgs.cs StreamingFile.Read (a folder's file read as one inside the APK);
+    // tests/soundtracks.test.js; docs/systems/audio.md "The themes on a device"
+    'Each world’s own recorded music now plays the first time you land there, on the Xbox and in the Android app too, where it is downloaded the first time it is needed: it comes in as soon as it has arrived, faded in. Before, the Unity version played the game’s synthesised score for your whole first visit to every world but the Desert, and the Android app could wait minutes for the next moment to bring it in.',
   ] },
   { v: '1.83', date: '2026-10-16', items: [
     // issue #406: src/temples/desert.js (ROOMS, LOGIC: hall, balcony, ballK, kS, dE, sentry in the hall, d3), pieces.js Ball
