@@ -1,0 +1,65 @@
+docs/systems/bridge-gaps.md
+  s_5f899ba316b5dc::t_55636fe2fcc78f 31,34,36
+  s_5f899ba316b5dc::t_76026754ec3cb9 10
+unity/Hiraeth/Assets/Hiraeth/Shaders/PortraitFace.hlsl
+  s_5f899ba316b5dc::t_ee909057c77b2a 1-35
+tests/unity-surfaces-b.test.js
+  s_5f899ba316b5dc::t_d264f027dc0e3d 63
+engine/unity/game.js
+  s_5f899ba316b5dc::t_cc473e3b6d4dde 317
+engine/ink-spec.js
+  s_5f899ba316b5dc::t_61e8d1c555cf93 45,49-50
+changelog.md
+  s_5f899ba316b5dc::t_2919eccc835f81 7
+src/changelog-media.js
+  s_5f899ba316b5dc::t_ab5cef4ee0a75f 1199-1201,1218-1226
+engine/mirror.js
+  s_5f899ba316b5dc::t_3a818ed39c51b5 61-62,65-67,452-454
+engine/unity/port-format.js
+  s_5f899ba316b5dc::t_497844df55bc07 88-90,134-147
+unity/Hiraeth/Assets/Hiraeth/Shaders/Composite.shader
+  s_5f899ba316b5dc::t_069959cd5f3456 133-134,199-201,219,560-562,590,683,712,719-720
+src/changelog.js
+  s_5f899ba316b5dc::t_5b727a3f3f6b2a 226-231
+tests/sequences-web.json
+  s_5f899ba316b5dc::t_bc2a2cbdd61734 3,5201,5226-5227,5250-5251,5274-5275,5298-5299,5323-5324,5347-5348,5372-5373
+  s_5f899ba316b5dc::t_acaae9ed9bc853 27-28,63-64,99-100,132,134-135,163,165-166,170,172,197,199-200,231,233-234,238,264,266-267,305-307,341-342,380-382,420-422,460,462,501,503,538,540,575,577,612-613,652-653,659,692-693,731-732,766-767,802-803,841,843-844,880-881,917-918,954-955,995,997,1037,1039,1052,1079,1081,1108-1109,1133,1150-1151,1186-1187,1222-1223,1262-1263,1297-1298,1333-1334,1337-1339,1927-1928,1963,1965-1966,1991,1993-1994,2033,2035-2036,2043,2071,2073-2074,2079,2109,2111-2112,2366-2367,2401,2403-2404,2410,2438,2440-2441,2448,2479,2481-2482,2489-2490,2517,2519-2520,2524,2526,2554,2556-2557,2596,2598-2599,2605,2632,2634-2635,2668,2670-2671,2709,2711-2712,2746,2748-2749,2783,2785-2786,2944-2945,2984-2985,3024-3025,3029,3031-3032,3065-3066,3486-3487,3558-3559,3671-3672,3711-3712,3755-3756,3827-3828,3854,3856-3857,4644-4645,4675-4676,4705-4706,4731-4732,4766-4767,4798-4799,4830-4831,4862-4863,5092-5093,5118-5119,5144-5145,5170-5171,5200
+docs/systems/engine-bridge.md
+  s_5f899ba316b5dc::t_41a824d2d75e91 2275-2316
+unity/Hiraeth/Assets/Hiraeth/Shaders/Surface.shader
+  s_5f899ba316b5dc::t_ad8359f089dda4 54-62,189-190,216-217,288-300,1242-1243,1397,1490,1513,1598,1605-1607
+unity/Hiraeth/Assets/Hiraeth/Runtime/HiraethLook.cs
+  s_5f899ba316b5dc::t_c3d705f3393000 141-142
+unity/Hiraeth/Assets/Hiraeth/Shaders/PortraitFace.hlsl.meta
+  s_5f899ba316b5dc::t_1bb06af2d0cd79 1-7
+unity/Hiraeth/Assets/Hiraeth/Runtime/WorldLoader.cs
+  s_5f899ba316b5dc::t_8b2920ed742de3 190-194
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRenderer.cs
+  s_5f899ba316b5dc::t_bb8324c3ae8ffc 70
+engine/unity/backend.js
+  s_5f899ba316b5dc::t_b81c0d7a85c962 53-55,70,83-84,551-580
+engine/game.js
+  s_5f899ba316b5dc::t_c872dbb57ebdf2 241-243
+tests/occlusion-taps.test.js
+  s_5f899ba316b5dc::t_4ada2b618871b9 32
+tests/unity-surfaces-d.test.js
+  s_5f899ba316b5dc::t_a46d991f5dbdb0 1-125
+engine/bridge-gaps.js
+  s_5f899ba316b5dc::t_703f7908807a09 88-94,97-98
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5ab183a55f9827680f0c077244e9d0b82cbec1b1",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
