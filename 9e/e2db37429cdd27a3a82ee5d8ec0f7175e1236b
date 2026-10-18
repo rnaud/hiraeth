@@ -1,0 +1,29 @@
+changelog.md
+  s_5f899ba316b5dc::t_1367a2f2764b0a 55
+docs/systems/performance.md
+  s_5f899ba316b5dc::t_be81d64b4d0654 3886-3955
+docs/systems/xbox.md
+  s_5f899ba316b5dc::t_82af5417899392 184-187,400
+src/changelog-media.js
+  s_5f899ba316b5dc::t_ad7cb5c50b81dd 1204-1212
+src/changelog.js
+  s_5f899ba316b5dc::t_7133fb59e799e0 27-29
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgePso.cs
+  s_5f899ba316b5dc::t_b9075d757c374d 32-33
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9ee2db37429cdd27a3a82ee5d8ec0f7175e1236b",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
