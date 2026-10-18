@@ -59,7 +59,7 @@ docs/systems/reference-lab.md): text alone, Gemini and OpenAI,
 `node scripts/gen-reference.mjs --from docs/design/enemy-roster-prompts.md#wisp` (and `#wisp/v2`, `#wisp/v3`). The
 author picks in the lab's Pick mode; the pick becomes `sheet-1.jpg` in the archetype's folder. The alternate skin is
 run afterwards with that sheet as its base (`#wisp/alt --refs <the picked sheet-1>`): batch 2026-10-17-18-05-08-badb
-(OpenAI, two candidates), waiting for the author's pick.
+(OpenAI, two candidates); the author picked `openai/1`, saved as `sheet-4.jpg`.
 
 ## What a picked sheet must keep (for the rework)
 

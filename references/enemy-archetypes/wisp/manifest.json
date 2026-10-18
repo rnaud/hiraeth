@@ -52,6 +52,26 @@
       "sha256": "08795c777bfde5ad3bc0f9b1608e996ea9561e1976fa5ef40030a0e32962e4e2",
       "bytes": 201524,
       "costUSD": 0.041
+    },
+    {
+      "file": "sheet-4.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Use the attached sheet only for the creature's shape, anatomy, proportions and poses; repaint it completely in a new colour scheme that reads as a different colour at a glance: none of the attached sheet's colours may remain. The same ember wisp, the same four ink petals closed into a bud round the coal, the thin ring round its waist and the three ink drips hanging beneath, redrawn as Lorn II's marsh wisp: mossy dark green-black petals with pale lichen, the ring brass, the coal a cold green marsh-light, pale green eyes. Front, side and three-quarter views and the opened wind-up on plain cream paper, black silhouette below, small cloaked traveller with a round jade backpack for scale. Moebius science-fiction ligne claire, exquisite fine pen contours, sparse hatching, flat pastel gouache, cream paper grain, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, scenery, collage.",
+      "from": "docs/design/enemy-roster-prompts.md#wisp/alt",
+      "refs": [
+        "references/enemy-archetypes/wisp/sheet-1.jpg"
+      ],
+      "ar": "3:2",
+      "date": "2026-10-17",
+      "batch": "2026-10-17-18-05-08-badb",
+      "candidate": "openai/1",
+      "sha256": "fafc3cf6e0509c3671daecd808c9f66d0ccc8c9d55e4822328ae70e15a23e4f6",
+      "bytes": 167140,
+      "costUSD": 0.041,
+      "skin": "marsh wisp (Lorn II), alternate"
     }
   ]
 }
