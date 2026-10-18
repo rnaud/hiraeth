@@ -194,6 +194,16 @@ export const CHANGELOG = [
         { where: 'the Underwater City, the start', before: 85.7, after: 90.9 },
         { where: 'the Underwater City, the crowd', before: 79.1, after: 86.5 },
       ], source: 'docs/systems/performance.md, "The game\'s update on the Deck (#457)"', note: 'The same player with the script before and after, two runs of each view (6 s measured), averaged; what Unity is sent is the same, frame for frame, except the bubbles out of view, which are no longer moved.' }] },
+    // issue #460: src/physics.js dropBuriedInstancesSteps (embedded, own collider, sure; UpColumn), Physics.sure;
+    // tests/buried-columns.test.js; docs/systems/performance.md "The buried-tree checks (#460)"
+    { text: 'Arriving in the City-Shaft, the game’s check that no far-off tree stands inside a house takes about half the time, with the same trees in the end: on the Steam Deck it is done half a minute after you arrive instead of nearly a minute, and the frames it slowed are back to full speed that much sooner.',
+      numbers: [{ title: 'The City-Shaft after the load, before → after (two runs each, averaged)', unit: 's', better: 'lower', device: 'Steam Deck, the Unity version (Linux player), 1280 × 800, uncapped; this Mac (M4 Pro), headless Chrome, the CPU slowed ×4, High', rows: [
+        { where: 'the Deck: the checks done, after the first frame', before: 54, after: 31 },
+        { where: 'the Deck: their script time in all', before: 12.2, after: 7.2 },
+        { where: 'the Deck: the near ones, before the first frame', before: 1.64, after: 1.12 },
+        { where: 'the web ×4: the checks done, after the first frame', before: 114, after: 72 },
+        { where: 'the web ×4: their script time in all', before: 10.6, after: 6.7 },
+      ], source: 'docs/systems/performance.md, "The buried-tree checks (#460)"', note: 'The same player (and page) with the script before and after, standing at the start; the checks share each frame’s 2 ms as before, so the frames while they run are as before (on the Deck 74–79 fps) and the ones after they end faster (from 31 s to 54 s: 80 → 94 fps). The same trees dropped in all fourteen worlds, and what Unity is sent the same, frame for frame.' }] },
   ] },
   { v: '1.83', date: '2026-10-16', items: [
     // issue #406: src/temples/desert.js (ROOMS, LOGIC: hall, balcony, ballK, kS, dE, sentry in the hall, d3), pieces.js Ball

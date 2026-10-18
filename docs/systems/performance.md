@@ -5111,3 +5111,87 @@ the feet's rays), the traveller (1.4–2 ms), the City-Shaft's distant detail wh
 would shorten it, not lighten its frames), 'life' and 'story' (0.6–1.4 ms each, spread over a dozen systems), the crowd
 (up to 1.1). Raw: the session's scratchpad, `deck-457/` (`deck/<tag>/<world>-r<n>/unity-bench.json`, `deck-sum.mjs`,
 `table.mjs`, `vm/` with the profiles, `groups.mjs`, `streams/`, `compare/`).
+
+## The buried-tree checks (#460)
+
+**The question** (#457): after the City-Shaft loads, its queued distant detail (src/deferred.js), the checks that no tree
+of its clumps stands in a house (src/levels/incal.js, `dropBuriedInstancesSteps` at the trunk, middle and crown, each with
+a ring of four points 0.9 m round it), is 17 600 jobs at the queue's 2 ms a frame: 2.8 ms of the Deck's script thread
+while it lasts. Make it cheaper, or do it once, with the same trees shown.
+
+### What a check cost
+
+Counted in node's VM (the engines' bundle, the world built as engine/game.js builds it, the queue run to the end): the
+City-Shaft's 14 750 queued checks asked 110 000 points; 4.3 % of them were embedded() (six axis rays all leaving through
+a back face), 0.2 % buried. Each point first asked its own collider (`ownCollider`: up to four 80 m side rays,
+166 000 rays in all), then embedded() (an up ray, then, as it meets the underside of something above, every hit up to it
+for a coplanar back face). 4.6 s of the queue's work, 429 000 first-hit rays and 110 000 all-hit ones.
+
+### What changed
+
+1. **embedded() first.** With a whole Physics a point asks embedded() first, then its own collider, then the rest of
+   buried() (`Physics.sure`: the count of surfaces crossed, split out of buried()). Each is a plain test of the point, so
+   the answer is the same in any order; embedded() says no for 96 % of points, so the side rays and the long counting rays
+   are asked of a few. (A stand-in physics without `sure`, as the tests make, keeps the old order.)
+2. **One up ray a vertical line** (`UpColumn`). A tree's points stand on five vertical lines (its axis and each point of
+   its ring), three heights on each. The first point asked casts the up ray with the span of the heights added to its
+   reach; nothing lies between it and a higher point on the line, or that ray would have met it, so its first hit is the
+   higher points' first hit too, and embedded()'s up axis is answered from it (free: out to the sky, or the underside of
+   something with no back face beside it; or a back face first, and the other axes asked as before). A point off the line
+   (a leaning tree: the line is checked by its x and z, bit for bit), below the first, out of the span, or with the hit
+   within 5 cm above it casts its own ray. The late collision's pieces a higher point's ray could meet were made by the
+   column's ray (a vertical ray makes its square's, src/late-collision.js touchRay).
+
+Tried and left out: the coplanar check as a short ray round the first hit (`near` = its distance − 2 cm), exact on the
+level's BVH but not on a moving collider seen through its scale (a cab's), and the side rays shared along a row (a tree's
+ring turns with it, so its points rarely lie on a world axis). Not done: the result kept per world (the checks meet the
+cabs where they are when they run, and a first visit would still pay), or in a worker (the engines have none; the page's
+BVH worker has no scene).
+
+### Exact
+
+- **The same trees, every world.** The engines' bundle in node's VM (Math.random seeded), each of the fourteen worlds
+  built and its queue run to the end, every instanced mesh's matrices hashed: the same, before and after, in all fourteen
+  (the City-Shaft's 1 409 instances dropped, the Desert's 4 862, …). On the web (headless Chrome, unthrottled), each
+  world loaded until its queue was empty: every still, walk-through instanced mesh's dropped instances the same in all
+  fourteen; the rest of the pictures differ only by what moves (people, birds, cabs, smoke, cloud shadows), as two runs of
+  the same build do.
+- **What Unity receives** (scripts/unity-compare/mirror-stream.mjs, the bundle before against after): the City-Shaft's
+  600-frame walk and its bench views, and the Desert's walk, byte for byte the same in every frame (the queue's jobs run
+  in the same frames: the recording's clock is a step a call).
+- `tests/buried-columns.test.js`: four seeded towns (closed houses, one-sided floors and roofs either way up, slabs flush on
+  the street, a house on a house, floors far up at the edge of the 400 m reach, invisible trunks under trees), 500 trees
+  each with the City-Shaft's heights and ring and 500 tufts with dropBuriedFlora's, dropped as the old order drops them;
+  and 3 000 columns' answers against a ray from each point. Each of its guards taken out (the coplanar check, the margin,
+  the span and its check, the far check, the line check, the own collider) fails it.
+- The sequence tests and the full hook pass.
+
+### Measured
+
+The City-Shaft, standing at the start (the #446 view), from the load on. In node's VM the queue's checks take 4.6 → 2.4 s
+(the other worlds' are 0–30 ms; the heavy deferred work elsewhere is the drifts' collision, the Buried Machine's 1.3 s,
+another kind).
+
+**Steam Deck**, the u-rel264 Linux player copied to its own folder, only `hiraeth.cjs` swapped (before: main with #457;
+after: this), gamescope headless 1280 × 800, uncapped, muted, the start view eighteen times over (2 s settle + 6 s
+measured each, the first 2.5 minutes), `-bench 6 -split`, two runs each in turn, averaged:
+
+| | before | after |
+|---|---|---|
+| near checks before the first frame | 1.64 s | 1.12 s |
+| the queue's script time in all | 12.2 s | 7.2 s |
+| views with `distant detail` working (2.7–2.8 ms a frame) | t01–t07 (~54 s) | t01–t04 (~31 s) |
+| fps, views t01–t03 (both working) | 74.0 / 79.2 / 79.0 | 74.4 / 78.7 / 79.4 |
+| fps, views t05–t07 (before still working) | 74.7 / 81.0 / 83.3 | 95.4 / 95.6 / 92.3 |
+| fps, all 18 views | 87.1 | 89.0 |
+
+While the checks run a frame costs what it did (they take the queue's 2 ms share); they end sooner. After both are done the
+views swing between 85 and 100 fps in both, with the crowd and the cabs.
+
+**The web**, this Mac, headless Chrome, the CPU slowed ×4, High, two runs each in turn: the load 15.0 → 15.6 s (noise: the
+near checks are a small part of it), the queue empty 114 → 72 s after the first frame, its script time 10.6 → 6.7 s
+(the page's BVH is the quicker SAH one, #300, so the rays saved are worth less than in the engines); fps ~30 in both while
+it runs (the slowed thread's frame), 33–35 after it in either.
+
+Raw: the session's scratchpad, `deck-460/` (`trees.mjs` the VM's hashes and times, `web-check.mjs` and `web2/` the page's,
+`thr/` the throttled runs, `deck/` and `deck-sum.mjs`, `ms-*.json` the streams, `mutate.mjs`).
