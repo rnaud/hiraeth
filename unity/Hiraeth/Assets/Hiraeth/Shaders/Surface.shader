@@ -269,7 +269,7 @@ Shader "Hiraeth/Surface"
       float y = max(q.y, 0.0);
       float4 sw = float4(fi.r0.w, fi.r2.w, _Sway * y * y / s, 0.45 * min(y * s, 1.4) / s);
       swayed = world + swayOffset(sw);
-      nW = normalize((cross(c1, c2) * n.x + cross(c2, c0) * n.y + cross(c0, c1) * n.z) * sign(det));
+      nW = SafeNormalize((cross(c1, c2) * n.x + cross(c2, c0) * n.y + cross(c0, c1) * n.z) * (det < 0.0 ? -1.0 : 1.0));   // (not sign(det): a plant flat in one axis, det 0, kept its normal, issue #462)
     }
     // a reflection in still water, from wherever the eye is (materials.js MIRROR: the Garden's mirror lake), three space: the
     // point mirrored in the water's plane, laid on the plane where the eye's ray to that image crosses it, lifted toward the
@@ -671,7 +671,7 @@ Shader "Hiraeth/Surface"
           MatInst mi = _Mats[v.iid];
           float3 q = v.positionOS.xyz;
           posWS = float3(dot(mi.r0.xyz, q) + mi.r0.w, dot(mi.r1.xyz, q) + mi.r1.w, dot(mi.r2.xyz, q) + mi.r2.w);
-          nWS = normalize(float3(dot(mi.r0.xyz, v.normalOS), dot(mi.r1.xyz, v.normalOS), dot(mi.r2.xyz, v.normalOS)));
+          nWS = SafeNormalize(float3(dot(mi.r0.xyz, v.normalOS), dot(mi.r1.xyz, v.normalOS), dot(mi.r2.xyz, v.normalOS)));
           o.positionCS = TransformWorldToHClip(posWS);
           o.worldPos = toThree(posWS); o.normal = toThree(nWS);
           o.instColor = mi.col.rgb * v.color.rgb;
@@ -723,8 +723,8 @@ Shader "Hiraeth/Surface"
       // the strokes' triplanar weights: sharp on a faceted surface, straight down on the ground
       float3 strokeWeights(float3 on, int mode)
       {
-        float3 tw = pow(abs(normalize(on)), 3.0);
-        tw /= (tw.x + tw.y + tw.z);
+        float3 tw = pow(abs(SafeNormalize(on)), 3.0);
+        tw /= max(tw.x + tw.y + tw.z, 1e-6);
         if (_Flat > 0.5) {
           float3 a = abs(on);
           tw = a.x > a.y && a.x > a.z ? float3(1, 0, 0) : (a.y > a.z ? float3(0, 1, 0) : float3(0, 0, 1));
@@ -768,7 +768,7 @@ Shader "Hiraeth/Surface"
           c = lerp(base, lerp(tone, seen, warm ? 0.14 : 0.42), refl);
         }
         float brushed = _Metal.y;
-        float3 Bo = cross(_BrushAxis.xyz, normalize(objN));
+        float3 Bo = cross(_BrushAxis.xyz, SafeNormalize(objN));
         float u = dot(objPos, normalize(Bo + 1e-5)) * 70.0, along = dot(objPos, _BrushAxis.xyz);
         float fu = max(fwidth(u), 1e-4);
         float st = vnoise(float2(u, along * 3.0)) * 0.6 + vnoise(float2(u * 0.31 + 5.0, along * 0.8)) * 0.4;
@@ -1002,7 +1002,7 @@ Shader "Hiraeth/Surface"
         UNITY_BRANCH if ((_MSurfaceDebug > 8.5 && _MSurfaceDebug < 10.5) || _MSurfaceDebug > 11.5)
         {
           GBufferOut d;
-          d.albedoLight = float4(_Color.rgb, 1); d.normalDepth = float4(normalize(i.normal), i.viewDepth); d.hatch = 0;
+          d.albedoLight = float4(_Color.rgb, 1); d.normalDepth = float4(SafeNormalize(i.normal), i.viewDepth); d.hatch = 0;
           return d;
         }
         int mode = (int)(_Mode + 0.5);
@@ -1054,11 +1054,13 @@ Shader "Hiraeth/Surface"
         float3 facetO = cross(ddx(i.objRel), ddy(i.objRel));
         float3 on = _Flat > 0.5 ? facetO : i.objNormal;
 
-        float3 n = normalize(i.normal);
+        // (SafeNormalize: a normal of no length, a mesh's zero normal or a facet's derivatives gone to 0 on a sliver, is 0, not
+        // NaN, in the G-buffer; issue #462)
+        float3 n = SafeNormalize(i.normal);
         float3 viewT = toThree(_WorldSpaceCameraPos) - i.worldPos;
         if (_Flat > 0.5) {
           float3 rel = i.worldPos - toThree(_WorldSpaceCameraPos);
-          n = normalize(cross(ddx(rel), ddy(rel)));
+          n = SafeNormalize(cross(ddx(rel), ddy(rel)));
           if (dot(n, viewT) < 0.0) n = -n;
         }
         #if !defined(HIRAETH_GRASS)
@@ -1077,7 +1079,7 @@ Shader "Hiraeth/Surface"
           // a few kilometres up wobbles by a thousandth, and the patterns' coordinates along a wall, dot(p, the wall's way), with
           // it: their pixel's size, fwidth, twice the web's, every thin lit line half as bright)
           float3 skinN = n;
-          if (_Flat > 0.5) { skinN = normalize(toThree(TransformObjectToWorldNormal(toThree(facetO)))); if (dot(skinN, viewT) < 0.0) skinN = -skinN; }
+          if (_Flat > 0.5) { skinN = SafeNormalize(toThree(TransformObjectToWorldNormal(toThree(facetO)))); if (dot(skinN, viewT) < 0.0) skinN = -skinN; }
           albedo = skinSurface((int)(_SkinBody + 0.5), i.worldPos, i.objPos, i.objNormal, i.skinUV, i.positionCS, skinN, _Color.rgb, skinInk, skinEmit);
         }
         #endif
@@ -1129,7 +1131,7 @@ Shader "Hiraeth/Surface"
         UNITY_BRANCH if (WALLK && _Patch > 0.0 && i.viewDepth < 380.0 && (skip & 8) == 0)
         {
           float pk = 1.0 - smoothstep(260.0, 380.0, i.viewDepth);
-          float3 dP = albedo * (wallPatch(i.worldPos, normalize(i.normal), _Patch, float3(wfqA.x, wfy, wfqB.x)) - 1.0);
+          float3 dP = albedo * (wallPatch(i.worldPos, SafeNormalize(i.normal), _Patch, float3(wfqA.x, wfy, wfqB.x)) - 1.0);
           albedo += dP * min(1.0, 0.15 / max(length(dP), 1e-5)) * pk;
         }
         float patInk = 0.0;
@@ -1138,7 +1140,7 @@ Shader "Hiraeth/Surface"
         int pattern = (int)(_Pattern + 0.5);
         // (the material's options are uniform over a draw: derivatives inside these branches are safe)
         if ((skip & 1) != 0 || !WALLK) pattern = 0;
-        UNITY_BRANCH if (pattern == 1) patInk = facadeMarks(i.worldPos, n, normalize(i.normal), albedo, emit);
+        UNITY_BRANCH if (pattern == 1) patInk = facadeMarks(i.worldPos, n, SafeNormalize(i.normal), albedo, emit);
         else if (pattern == 2) patInk = roofTiles(i.worldPos);
         else if (pattern == 3) patInk = leaves(i.objPos);
         else if (pattern == 4) patInk = rockCracks(i.objPos);
@@ -1152,7 +1154,7 @@ Shader "Hiraeth/Surface"
           float litK = smoothstep(0.02, 0.15, dot(n, _SunDir));
           float wi = 0.0;
           // (the world's step for a metre along the wall in each frame, held off edge-on; a facade's windows kept clear)
-          float3 wT = normalize(float3(-n.z, 0.0, n.x) + float3(1e-5, 0.0, 0.0)), wNv = normalize(i.normal);
+          float3 wT = normalize(float3(-n.z, 0.0, n.x) + float3(1e-5, 0.0, 0.0)), wNv = SafeNormalize(i.normal);
           bool wFacade = pattern == 1;
           if (wb < 0.999)
           {
@@ -1178,7 +1180,7 @@ Shader "Hiraeth/Surface"
           float di = detailLod(facingX ? wqB : wqA, facingX ? wfqB : wfqA, _Detail.y, dSeed, _Detail.x > 1.5);
           patInk = max(patInk, di * dUp * 1.35);
         }
-        if (LEANK && _Fluid > 0.5) albedo = fluidAlbedo(albedo, I_BIND, I_FOLD, normalize(i.normal), normalize(toThree(_WorldSpaceCameraPos) - i.worldPos), i.worldPos, _Glow);
+        if (LEANK && _Fluid > 0.5) albedo = fluidAlbedo(albedo, I_BIND, I_FOLD, SafeNormalize(i.normal), normalize(toThree(_WorldSpaceCameraPos) - i.worldPos), i.worldPos, _Glow);
         albedo *= instColor;
         // (linear colours, the coral-shirt traveller's: to the game's display values, as tripo-material.js does)
         if (_Lining.w > 0.5 && !frontFace) albedo = _Lining.rgb;   // (the overshirt's lining: tripo-material.js)
@@ -1228,7 +1230,7 @@ Shader "Hiraeth/Surface"
         UNITY_BRANCH if (_Plates > 0.5 && _Grid > 0.0)
         {
           float plateTone;
-          float3 pq = i.objPos / max(_Grid, 1e-3), pfw = fwidth(pq), pw = pow(abs(normalize(on)), 6.0); pw /= (pw.x + pw.y + pw.z);
+          float3 pq = i.objPos / max(_Grid, 1e-3), pfw = fwidth(pq), pw = pow(abs(SafeNormalize(on)), 6.0); pw /= max(pw.x + pw.y + pw.z, 1e-6);
           plateInk = plateLines(pq, pfw, pw, plateTone);
           albedo *= 1.0 + 0.09 * plateTone;
         }
@@ -1322,7 +1324,7 @@ Shader "Hiraeth/Surface"
         float3 carve = 0.0;
         UNITY_BRANCH if (_Glyphs > 0.0)
         {
-          float3 gg = i.objPos / max(_Glyphs, 1e-3), ggfw = fwidth(gg), cw = pow(abs(normalize(on)), 6.0); cw /= (cw.x + cw.y + cw.z);
+          float3 gg = i.objPos / max(_Glyphs, 1e-3), ggfw = fwidth(gg), cw = pow(abs(SafeNormalize(on)), 6.0); cw /= max(cw.x + cw.y + cw.z, 1e-6);
           if (cw.y < 0.5) carve = glyphCarve(cw.x > cw.z ? gg.zy : gg.xy, cw.x > cw.z ? ggfw.zy : ggfw.xy);
           L = lerp(L, min(L, _Toon - 0.14), carve.y);
           albedo *= 1.0 + 0.05 * (carve.x - carve.y);
@@ -1349,7 +1351,7 @@ Shader "Hiraeth/Surface"
         // fine there, issue #262)
         UNITY_BRANCH if (_Grid > 0.0)
         {
-          float3 gq = i.objPos / max(_Grid, 1e-3), gfw = fwidth(gq), gw = pow(abs(normalize(on)), 6.0); gw /= (gw.x + gw.y + gw.z);
+          float3 gq = i.objPos / max(_Grid, 1e-3), gfw = fwidth(gq), gw = pow(abs(SafeNormalize(on)), 6.0); gw /= max(gw.x + gw.y + gw.z, 1e-6);
           if (_Grid > 0.0) detail = _Plates > 0.5 ? plateInk : gridLines(gq, gfw, gw);
         }
         detail = max(detail, carve.z * 0.62);   // (the carved inscriptions' outline: above)
@@ -1390,7 +1392,7 @@ Shader "Hiraeth/Surface"
         } else if (mode == MODE_STRATA) {
           float faceX = abs(on.x) > abs(on.z) ? i.objPos.z : i.objPos.x;
           float fissFw = fwidth(faceX) / 9.0;
-          if (abs(normalize(on).y) < 0.6)
+          if (abs(SafeNormalize(on).y) < 0.6)
           {
             detail = max(detail, fissures(float2(faceX, i.objPos.y), fissFw) * 0.85);
             if (_Cracks > 0.0) detail = max(detail, faceCracks(float2(faceX, i.objPos.y), fissFw * 9.0, _Cracks) * 1.7);   // (over 1: a pen line)
@@ -1413,13 +1415,13 @@ Shader "Hiraeth/Surface"
           detail = max(detail, inkLine(d, lerp(1.3, 0.7, I_FOLD.y)) * run * step(0.25, h2 + 0.3));
         }
         // the people: the suit's creases (creases.js) and the face (materials.js faceInk)
-        if (_Creases > 0.0) detail = max(detail, outfitCreases(I_BIND, normalize(i.objNormal), clamp((_Toon - L) / _Toon, 0.0, 1.0)));
+        if (_Creases > 0.0) detail = max(detail, outfitCreases(I_BIND, SafeNormalize(i.objNormal), clamp((_Toon - L) / _Toon, 0.0, 1.0)));
         if (mode == MODE_OUTFIT)
         {
           float fwBind = max(fwidth(I_BIND.y), fwidth(I_BIND.x));
           if (I_BIND.y > _Outfit.z && abs(I_BIND.x) < 0.16)
           {
-            float frontal = smoothstep(0.15, 0.45, normalize(i.objNormal).z);
+            float frontal = smoothstep(0.15, 0.45, SafeNormalize(i.objNormal).z);
             detail = max(detail, 2.0 * faceInk(float2(abs(I_BIND.x), I_BIND.y - _Face.x), fwBind, frontal, I_BIND.x));   // (over 1: a pen line, darker)
           }
         }
@@ -1482,9 +1484,9 @@ Shader "Hiraeth/Surface"
           float3 strataP = _StrataObject > 0.5 ? i.objPos : i.worldPos;
           float2 strataCo = float2(strataP.y + (vnoise(strataP.xz * 0.04) - 0.5) * _StrataSize * 0.9 + (vnoise(float2(faceX * 0.05, strataP.y * 0.1)) - 0.5) * 1.6, faceX);
           float strataFw = fwidth(strataCo.x);
-          if (L >= _Toon && i.viewDepth < 700.0 && abs(normalize(on).y) < 0.7)
+          if (L >= _Toon && i.viewDepth < 700.0 && abs(SafeNormalize(on).y) < 0.7)
           {
-          float upright = 1.0 - smoothstep(0.45, 0.7, abs(normalize(on).y));
+          float upright = 1.0 - smoothstep(0.45, 0.7, abs(SafeNormalize(on).y));
           float runs = smoothstep(0.42, 0.66, vnoise(float2(strataCo.y * 0.09, strataCo.x * 0.55)));
           o.hatch.r = max(o.hatch.r, strokes(strataCo, strataFw, hsp * 1.25, 0.85) * runs * upright * _Shade.w);
           }
@@ -1523,6 +1525,14 @@ Shader "Hiraeth/Surface"
             float3 v = sd == 4 ? float3(_Glass, _Dissolve.x, _Fluid) : sd == 5 ? float3(_Veins, _BoxOn, _Scrub) : sd == 7 ? float3(skinEmit, skinInk, _SkinBody / 128.0) : float3(_TripoFace, _Mode * 0.25, _WaterOpt.x);
             o.albedoLight = float4(saturate(v), 1); o.hatch = 0;
           }
+        }
+        // (-surface-debug -1, issue #462's test: a NaN, made at run time so no compiler folds it, in the colour and the normal
+        // of one pixel in every 64 x 64, each a glowing one (-2: its glow flag a NaN too); the glow and the composite must keep
+        // the rest of the picture)
+        UNITY_BRANCH if (_MSurfaceDebug < -0.5 && all(fmod(floor(i.positionCS.xy), 64.0) == 32.0))
+        {
+          float nan = asfloat(asuint(_MSurfaceDebug) | 0x7fc00000u);
+          o.albedoLight.rgb = nan; o.normalDepth.xyz = nan; o.hatch.a = _MSurfaceDebug < -1.5 ? nan : 1.0;
         }
         return o;
       }
@@ -1583,7 +1593,7 @@ Shader "Hiraeth/Surface"
           {
             MatInst mi = _Mats[v.iid]; float3 q = v.positionOS.xyz;
             posWS = float3(dot(mi.r0.xyz, q) + mi.r0.w, dot(mi.r1.xyz, q) + mi.r1.w, dot(mi.r2.xyz, q) + mi.r2.w);
-            nWS = normalize(float3(dot(mi.r0.xyz, v.normalOS), dot(mi.r1.xyz, v.normalOS), dot(mi.r2.xyz, v.normalOS)));
+            nWS = SafeNormalize(float3(dot(mi.r0.xyz, v.normalOS), dot(mi.r1.xyz, v.normalOS), dot(mi.r2.xyz, v.normalOS)));
           }
         #endif
         float4 positionCS = TransformWorldToHClip(ApplyShadowBias(posWS, nWS, _LightDirection));

@@ -48,8 +48,10 @@ namespace Hiraeth.Rendering
         {
             var cam = renderingData.cameraData.camera;
             if (cam.cameraType == CameraType.Preview || cam.cameraType == CameraType.Reflection) return;
+            // (made here if Create ran before the shaders were imported, or kept a material its renderer's Dispose had
+            // destroyed: issue #462, below)
+            if (compositeMaterial == null && compositeShader != null) compositeMaterial = CoreUtils.CreateEngineMaterial(compositeShader);
             if (compositeMaterial == null) return;
-            // (made here if Create ran before the shaders were imported)
             if (bloomMaterial == null) { var bs = Shader.Find("Hidden/Hiraeth/Bloom"); if (bs != null) bloomMaterial = CoreUtils.CreateEngineMaterial(bs); }
             if (fxaaMaterial == null) { var fs = Shader.Find("Hidden/Hiraeth/FXAA"); if (fs != null) fxaaMaterial = CoreUtils.CreateEngineMaterial(fs); }
             if (smaaMaterial == null && Settings.smaa && smaaArea != null && smaaSearch != null)
@@ -81,7 +83,15 @@ namespace Hiraeth.Rendering
             }
         }
 
-        protected override void Dispose(bool disposing) { CoreUtils.Destroy(compositeMaterial); CoreUtils.Destroy(bloomMaterial); CoreUtils.Destroy(fxaaMaterial); CoreUtils.Destroy(smaaMaterial); CoreUtils.Destroy(upscaleMaterial); }
+        // (the references let go as well: URP makes its renderer again (a renderer asset's change, the editor now and then
+        // mid-run) by disposing the old one, whose features are these same objects, then calling Create for the new one, while
+        // a material destroyed in play is still there until the frame's end; Create kept it, and from the next frame the
+        // feature added no passes: the picture black but for the HUD and the motes, issue #462)
+        protected override void Dispose(bool disposing)
+        {
+            CoreUtils.Destroy(compositeMaterial); CoreUtils.Destroy(bloomMaterial); CoreUtils.Destroy(fxaaMaterial); CoreUtils.Destroy(smaaMaterial); CoreUtils.Destroy(upscaleMaterial);
+            compositeMaterial = bloomMaterial = fxaaMaterial = smaaMaterial = upscaleMaterial = null;
+        }
 
         /// <summary>How the picture made at the render scale reaches the screen (issue #392; the bridge's -upscale): URP's own
         /// final blit (bilinear), or our UpscalePass: FSR 1 (EASU, then RCAS), Snapdragon GSR 1, or a plain bilinear copy.</summary>

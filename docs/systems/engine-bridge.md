@@ -2181,10 +2181,39 @@ a pass of their own after the composite, reading `_GNormal` (docs/systems/bridge
   the offset, port-format.js sends it with the splats' material (only theirs: the ground's other decals that have one
   would each be a new raster state for the Retroid's prewarmed pipelines), WorldLoader sets `_OffsetFactor`,
   `_OffsetUnits` and Surface.shader's G-buffer pass draws with `Offset [_OffsetFactor], [_OffsetUnits]` (0 for every
-  other material). A splat's very middle no longer takes atan2(0, 0) (NaN on Metal; the bloom spreads one such pixel
-  over the whole picture, black). And the traveller's cloth is `noSplat`: the engines' overshirt, offloaded to
+  other material). A splat's very middle no longer takes atan2(0, 0) (NaN on Metal; the black pictures seen then were
+  something else: "A black picture" below). And the traveller's cloth is `noSplat`: the engines' overshirt, offloaded to
   BridgeCloth, is a plain mesh there, and its 3 600 triangles once filled a splat's gather by his feet so that the
   ground was left out of it.
+
+## A black picture: the renderer made again (2026-10-18, issue #462)
+
+Now and then a batch run went black from its second picture on, the HUD and the motes still drawn (grass-splats from its
+`walk` beat, the desert's `splat`); a rerun was fine. Not a NaN: each black run's log has URP's renderer made again during
+the first picture ("GPU Resident Drawer disposed / created", which no good run has). URP does that by disposing the old
+renderer, whose features are the same objects, then calling `Create` for the new one. HiraethFeature's `Dispose`
+destroyed its materials, but a material destroyed in play is still there until the frame's end, so `Create` kept it; from
+the next frame `compositeMaterial` was gone and `AddRenderPasses` added no passes at all (no G-buffer, no composite).
+`Dispose` now lets the references go and `AddRenderPasses` makes the composite again if it is missing.
+`-renderer-rebuild` (the bridge) marks the renderer dirty once, after the first picture: before the fix every picture
+after it was black, after it none (grass-splats). The pictures of the fix: issue #462.
+
+The NaN guards, checked on the way (a NaN pixel was the first suspect):
+
+- **One NaN pixel no longer reaches the glow** (Bloom.shader's Extract, the only gather of the scene; the blurs and the
+  composite read nothing else wide): a pixel is taken only if `|c|` is under 65000 by its bits
+  (`(asuint(c) & 0x7fffffff) < 0x477de800`), which no NaN or infinity is and no fast-maths compiler can fold, where it had
+  `c == c`. Without any guard one NaN pixel blacks a block of the glow's size (~60 px), never the whole picture. The
+  composite, FXAA and the upscaler write 8-bit targets (HDR off), where a NaN is written as 0: a black pixel, as WebGL's.
+- **Where the Surface shader made one**: `atan2(0, 0)` (0 / 0 under Metal's fast maths) at the centre of any pattern,
+  now 0 for every file included after HiraethCommon.hlsl (`hiraethAtan2`, a macro: the skins' rings, the veins, the
+  people's pleats, a splat's middle); a normal of no length (a mesh's zero normal, a facet's derivatives gone to 0) by
+  `SafeNormalize` (the G-buffer's normal, the facet normals, the strokes' triplanar weights and their sums, the
+  instanced meshes' normals); a plant flat in one axis (`sign(det)` 0 in floraPlace). Checked and left: the local
+  lights' `dl / d` (0 only on the light's exact point), `pow(x, 2.0)` of negatives in Figure.hlsl and Crowd.hlsl (the
+  compiler makes them x · x), the glass's and the veil's cuts (a NaN there decides a discard, it writes nothing).
+- `-surface-debug -1` writes a NaN (made at run time, so no compiler folds it) in the colour and normal of one pixel in
+  each 64 × 64, each a glowing one; `-2` also in its glow flag. The picture stays whole, a dot at each.
 
 ## Status
 

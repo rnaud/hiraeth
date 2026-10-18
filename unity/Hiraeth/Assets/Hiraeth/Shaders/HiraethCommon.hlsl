@@ -10,6 +10,15 @@
 #define MODE_STRATA 2
 #define MODE_WATER 3
 
+// atan2 with no NaN at (0, 0), for everything included after this (the Surface shader, its patterns and the people; issue
+// #462): Metal's fast maths works atan2(0, 0) out as 0 / 0, and the G-buffer's one NaN pixel at a pattern's very centre is
+// written as is (a splat's middle once blacked the whole picture through the glow, #459). x moved to 1 where both are 0,
+// so it is 0 there as GLSL's; the same everywhere else.
+float hiraethAtan2(float y, float x) { return atan2(y, x + step(abs(x) + abs(y), 0.0)); }
+float2 hiraethAtan2(float2 y, float2 x) { return atan2(y, x + step(abs(x) + abs(y), 0.0)); }
+float3 hiraethAtan2(float3 y, float3 x) { return atan2(y, x + step(abs(x) + abs(y), 0.0)); }
+#define atan2(y, x) hiraethAtan2(y, x)
+
 // the shared uniforms (materials.js sharedUniforms), set every frame by HiraethLook.cs
 float3 _SunDir;          // three space, towards the light
 float _Toon;             // 0.5: the two-tone threshold

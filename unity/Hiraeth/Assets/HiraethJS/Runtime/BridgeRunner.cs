@@ -998,7 +998,12 @@ namespace Hiraeth.Bridge
             cam.targetTexture = prev;
             if (relaid) hud.Relayout();
             Destroy(rt); Destroy(tex);
+            // (-renderer-rebuild, issue #462's test: URP's renderer made again once, after the first picture, as the editor did
+            // now and then mid-run; the pictures after it must be drawn as before, not black)
+            if (!rebuilt && BridgeArgs.Flag("-renderer-rebuild") && GraphicsSettings.currentRenderPipeline is UniversalRenderPipelineAsset ua && ua.rendererDataList.Length > 0)
+            { rebuilt = true; ua.rendererDataList[0].SetDirty(); }
         }
+        bool rebuilt;
 
         /// <summary>The script asks to start again (BridgeHost.Reboot): done at the next frame's start, its frame waited for.</summary>
         public void Reboot(string json)

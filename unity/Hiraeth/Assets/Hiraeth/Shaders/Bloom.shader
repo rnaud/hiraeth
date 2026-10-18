@@ -42,9 +42,11 @@ Shader "Hidden/Hiraeth/Bloom"
             a -= 8.0 * step(7.5, a); a -= 4.0 * step(3.5, a); a -= 2.0 * step(1.5, a);
             float e = smoothstep(0.62, 0.9, a);
             // (a pixel that isn't a number, a glowing facet seen edge on, would spread over the whole blur and black out the
-            // picture: the Signal Market's white signs, issue #264; left out, as WebGL's blending clamps it away)
+            // picture: the Signal Market's white signs, issue #264; left out, as WebGL's blending clamps it away. Read by its
+            // bits, |c| under 65000 (0x477de800), which no NaN or infinity is: Metal's fast maths took c == c for true and
+            // let one through, issue #462. The glow's only gather of the scene: the blurs and the composite read it alone)
             float3 c = _GAlbedo.Load(int3(p, 0)).rgb * e;
-            if (e > 0.0 && all(c == c) && all(c < 65000.0)) { sum += c; mx = max(mx, c); }
+            if (e > 0.0 && all((asuint(c) & 0x7fffffffu) < 0x477de800u)) { sum += c; mx = max(mx, c); }
           }
         return float4(lerp(sum / 16.0, mx, 0.5), 1.0);
       }
