@@ -11,7 +11,8 @@
 // is told once; a world has at most RUMOUR.active of them open at a time. The save keeps them (flags, below).
 //
 //   const r = new Rumours({ world, game, level, rng })   one a world (src/story/index.js)
-//   r.addHost({ id, name, title, object, at })            a game's host as the story places them
+//   r.addHost({ id, name, title, object, at, lacks? })    a game's host as the story places them (lacks(): what its run
+//                                                         wants that he hasn't got; never told of till it is '')
 //   r.offer(person, at) → '~tone~ line' | null            a line for this talk (and the rumour told), or none
 //   r.update(dt, pos)                                     places and hosts walked by count as found
 //   r.marks() → [{ id, key, kind: 'rumour', x, z, r, label, by, target }]   the Map's circles (engine-neutral: main.js, engine/game.js)
@@ -103,7 +104,8 @@ export function rumourTargets({ world, flags = {}, sights = [], hosts = [] }) {
   for (const h of hosts) {
     const key = `host.${h.id}`, at = ptOf(h.at);
     if (!at) continue;
-    out.push({ key, kind: 'host', at, host: h, label: h.object ? cap(h.name) : `${h.name}’s game`, found: !!(flags[`met.${h.id}`] || flags[seenKey(world, key)]) });
+    // (waiting: the run wants what he hasn't got, its host's lacks(): not told of till it can be had, issue #480)
+    out.push({ key, kind: 'host', at, host: h, label: h.object ? cap(h.name) : `${h.name}’s game`, found: !!(flags[`met.${h.id}`] || flags[seenKey(world, key)]), waiting: !!h.lacks?.() });
   }
   for (const s of sights) {
     const key = `sight.${slug(s.name)}`;
@@ -183,7 +185,7 @@ export class Rumours {
     this.t = 0;
   }
   get flags() { return this.game?.data?.flags ?? {}; }
-  /** A game's host as the story stands them (src/story/index.js host): { id (their talk's), name, title, object, at }. */
+  /** A game's host as the story stands them (src/story/index.js host): { id (their talk's), name, title, object, at, lacks? }. */
   addHost(h) { if (h?.id && !this.hosts.some((x) => x.id === h.id)) this.hosts.push(h); }
   targets() { return rumourTargets({ world: this.world, flags: this.flags, sights: this.sights, hosts: this.hosts }); }
   /** Told and not found yet. */
@@ -199,7 +201,7 @@ export class Rumours {
     if (this.active().length >= RUMOUR.active) return null;
     if (this.rng() >= RUMOUR.chance) return null;
     const from = ptOf(at) ?? this.landmarks[0]?.at ?? { x: 0, y: 0, z: 0 }, f = this.flags;
-    const open = this.targets().filter((t) => !t.found && !f[toldKey(this.world, t.key)] && flat(t.at, from) > RUMOUR.here)
+    const open = this.targets().filter((t) => !t.found && !t.waiting && !f[toldKey(this.world, t.key)] && flat(t.at, from) > RUMOUR.here)
       .map((t) => ({ t, d: flat(t.at, from) })).sort((a, b) => a.d - b.d);
     if (!open.length) return null;
     // (what they would know of: near them; the nearest few when nothing is)

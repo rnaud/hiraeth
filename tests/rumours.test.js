@@ -191,3 +191,18 @@ test('the Map: a rumour is a soft circle, labelled, its mark at the circle’s m
   assert.match(cs, /Mark\("area"\)/);
   assert.match(readFileSync(new URL('../engine/map-marks.js', import.meta.url), 'utf8'), /\barea: \{/);
 });
+
+test('a host is not told of while its run wants what he hasn’t got (issue #480: “It wants the hoverbike.”)', () => {
+  const w = 'desert', flags = {}, game = fakeGame(flags), L = level(w);
+  FRAGMENTS[w].forEach((_, i) => { flags[`frag.${w}.${i}`] = true; });
+  let wants = 'It wants the hoverbike.';
+  const at = { x: FRAGMENTS[w][0][0] + 60, y: FRAGMENTS[w][0][1], z: FRAGMENTS[w][0][2] };
+  const r = new Rumours({ world: w, game, level: L, rng: () => 0, hosts: [{ id: 'host.race', name: 'Yusra', title: 'who races the dunes', at, lacks: () => wants }] });
+  for (const t of r.targets()) if (t.kind === 'sight') flags[seenKey(w, t.key)] = true;   // (only the host left to tell of)
+  const sefa = { id: 'sefa', name: 'Sefa', talk: { listen: ['~happy~ Hello.'] } }, from = { x: at.x + 80, y: 0, z: at.z };
+  assert.equal(r.targets().find((t) => t.kind === 'host').waiting, true);
+  assert.equal(r.offer(sefa, from), null, 'not before the run can be had');
+  wants = '';
+  const line = r.offer(sefa, from);
+  assert.ok(line && line.includes('Yusra'), `told once it can be had: ${line}`);
+});

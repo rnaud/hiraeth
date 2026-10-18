@@ -96,6 +96,19 @@ function aimMarks() {
   return Object.assign(g, { chevron, target, reticle });
 }
 
+/**
+ * The end card's colours line (issue #480): the colours go on what the traveller carries (his own things, not the run's
+ * lent kit), and wait for the rest; `has(id)` the save's items. One line.
+ */
+export function coloursLine(name, has = () => true) {
+  const KIT = [['backpack', 'the backpack'], ['sword', 'the sword'], ['shield', 'the shield']];
+  const and = (xs) => (xs.length > 1 ? `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}` : xs[0]);
+  const own = KIT.filter(([id]) => has(id)).map(([, w]) => w), rest = KIT.filter(([id]) => !has(id)).map(([, w]) => w.replace('the ', 'your '));
+  if (!rest.length) return `New colours: ${name}, for ${and(own)}. Wearing them now; change them in Items.`;
+  if (!own.length) return `New colours: ${name}, for ${and(rest)}, once you have them.`;
+  return `New colours: ${name}, on ${and(own)} now; ${and(rest)} will take them once found.`;
+}
+
 export function startFightTemple(ctx) {
   const { player, camera, level, sfx, sound, tool, foes, rig, physics, state } = ctx;
   const F = level.fight, def = F.def, rooms = def.rooms;
@@ -104,6 +117,7 @@ export function startFightTemple(ctx) {
   // harsh for a crowd this size: how many strike at once, how hard)
   const stageWas = foes?.stage;
   if (foes && def.stage != null) foes.stage = def.stage;
+  const own = tool?.items ?? null;   // (the save's own things, before the run lends its kit: the end card's colours, coloursLine)
   const giveBack = lendTool(tool, { mode: 'shoot' });   // (the save's own bar; the plain shot in hand, the push a press of X / D-pad → away)
   const spawn = new THREE.Vector3(...def.spawn);
   standAt(player, spawn, Math.PI, rig, ISO.yaw);
@@ -473,7 +487,7 @@ export function startFightTemple(ctx) {
     const rank = rankFor({ secs: runClock, lost: run.lost }, def.par);
     run.rank = rank;
     ctx.finish({ title: `${def.name} cleared · rank ${rank}`, lines: [
-      fresh ? `New colours: ${pal.name}, for the backpack, the sword and the shield. Wearing them now; change them in Items.` : `${pal.name}: yours already (Items, Colours)`,
+      fresh ? coloursLine(pal.name, (id) => own?.has?.(id) ?? true) : `${pal.name}: yours already (Items, Colours)`,
       `Rank ${rank} · ${clock(runClock)} (par ${clock(def.par ?? 240)}) · hearts lost ${+run.lost.toFixed(2)}`,
       `Foes felled ${run.kills} · gorged ${run.gorged} of ${run.gorgedOf} · longest chain ${run.bestChain}`,
       `Hearts found ${run.hearts} · fury ${run.furies}× · chimes ${run.chimes}${gentle ? ' · gentle foes' : ''}`,

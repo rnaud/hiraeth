@@ -387,7 +387,7 @@ export function createStory(o) {
     const def = hostTalk(H, spot.play, { later, name: spot.name, lacks: spot.lacks });
     def.id ??= `host.${spot.id}`;
     if (H.object) {
-      rumours.addHost({ id: def.id, name: H.name ?? 'the makers’ post', title: '', object: true, at: spot.at });
+      rumours.addHost({ id: def.id, name: H.name ?? 'the makers’ post', title: '', object: true, at: spot.at, lacks: spot.lacks });
       const at = spot.at.clone(), look = at.clone().addScaledVector(UP, 1.9);
       return registerInteractable({
         id: `host.${spot.id}`, priority: PRIORITY.use, range: spot.range ?? 3.2, prompt: def.prompt, whileRiding: !!spot.whileRiding,
@@ -396,7 +396,7 @@ export function createStory(o) {
         use: () => dialogue.start(def, null, at, look),
       });
     }
-    rumours.addHost({ id: def.id, name: H.name ?? spot.name, title: H.object ? '' : H.title ?? '', object: !!H.object, at: spot.at });
+    rumours.addHost({ id: def.id, name: H.name ?? spot.name, title: H.object ? '' : H.title ?? '', object: !!H.object, at: spot.at, lacks: spot.lacks });
     const stand = hostStand(spot.at, spot.heading ?? 0, H.stand);
     const g = physics?.groundAt?.(stand.x, stand.y + 2.5, stand.z, 6);
     if (Number.isFinite(g)) stand.y = g;

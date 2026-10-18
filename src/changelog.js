@@ -15,6 +15,10 @@ export const CHANGELOG = [
     // issue #478: src/temples/garage-data.js, bazaar-data.js (keeper), bazaar.js enterLine, Wim's lines;
     // tests/keeper-direction.test.js (each keeper step's and enter line's up or down against the guardian's hall)
     'The Clock-House’s and the Undertower’s last steps now point the right way: their guardians wait upstairs, and the steps used to say go down.',
+    // issue #480: src/fight-temples/session.js coloursLine (the save's own items, read before the run lends its kit),
+    // fight-temples/index.js rules; src/story/rumours.js (a host's lacks(): not told of), story/index.js addHost;
+    // tests/fight-temples.test.js, tests/rumours.test.js
+    'The fight temples’ end card no longer says your sword and shield wear the new colours before you have them: they take them once found. And people no longer tell of a game you can’t play yet, a trial that wants the hoverbike or a gadget you haven’t found.',
   ] },
   { v: '1.84', date: '2026-10-17', items: [
     // issue #439: src/costumes.js (HEADS: the 47 pieces of the 15 hat sets, HAT_SETS, HAT_SET_WORLDS, hoodShell / hoodNeck /

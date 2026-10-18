@@ -1213,6 +1213,7 @@ export const CHANGELOG_MEDIA = {
   '1.85': [
     { match: 'Each world’s own recorded music now plays the whole time you are there', see: 'Land in any world and walk out into the open: after two and a half minutes its recorded music keeps playing instead of fading out to the light synthesised tunes, and it is still there five minutes on. Settings > Music plays now reads Always; pick Moments there to have the old way back, and it stays picked.' },
     { match: 'The Clock-House’s and the Undertower’s last steps now point the right way', see: 'In the Glass Dunes, take what the makers left in the Clock-House and open the Quests page (J): the next step reads “Climb to what winds itself up”. In the Signal Market the Undertower’s reads “Go up to the voice in the high hall”, and walking in you hear the voice far overhead.' },
+    { match: 'The fight temples’ end card no longer says your sword and shield', see: 'On a save before the Rose House (no sword, no shield yet), clear the Sunken Hall by the desert’s camps: the card reads “New colours: Ember, on the backpack now; your sword and your shield will take them once found.” Rumours of a trial’s host come only once you carry what its run wants.' },
   ],
   '1.84': [
     { match: 'In the Unity version on the Steam Deck, the first launch after an update no longer freezes', numbers: [
