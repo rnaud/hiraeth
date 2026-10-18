@@ -69,6 +69,22 @@ namespace Hiraeth.Bridge
             Array.Clear(ms, 0, ms.Length);
             return s;
         }
+        /// <summary>How many steps are timed (BridgeStutter's room for a frame's).</summary>
+        public static int Count => names.Length;
+        /// <summary>
+        /// The frame's steps since the last call copied into `into` (Count long), the window's sums kept, nothing allocated
+        /// (BridgeStutter, a frame at a time); false when not installed. Not with TakeFrame as well: each takes the frame.
+        /// </summary>
+        public static bool TakeFrameInto(double[] into)
+        {
+            if (!Installed || into.Length < ms.Length) return false;
+            for (int i = 0; i < ms.Length; i++) { window[i] += ms[i]; into[i] = ms[i]; }
+            windowFrames++;
+            Array.Clear(ms, 0, ms.Length);
+            return true;
+        }
+        /// <summary>The longest of a frame's steps taken by TakeFrameInto ("name 12.3", the longest first).</summary>
+        public static string Top(double[] frame, int top) => Top(frame, 1, top, 0.05);
         /// <summary>The window's steps, ms a frame on average, the longest first; the window starts again.</summary>
         public static string TakeWindow(int top, double atLeast = 0.1)
         {

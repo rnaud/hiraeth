@@ -73,6 +73,7 @@ namespace Hiraeth.Bridge
                 catch (Exception e) { Debug.LogError("Hiraeth bridge: the command line: " + e.Message); failed = true; Exit(2); return; }
             firstArgs = args;
             if (BridgeMetrics.Wanted()) gameObject.AddComponent<BridgeMetrics>().runner = this;
+            if (BridgeStutter.Wanted()) gameObject.AddComponent<BridgeStutter>().runner = this;
             if (!JsRuntime.Available) { Debug.LogError("Hiraeth bridge: Puerts is not installed (scripts/unity-js-setup.sh)"); failed = true; return; }
             QualitySettings.vSyncCount = 0; Application.targetFrameRate = -1;
 #if UNITY_ANDROID && !UNITY_EDITOR
@@ -723,6 +724,7 @@ namespace Hiraeth.Bridge
                 BridgeHost.Snapshot();
                 nextDt = Time.unscaledDeltaTime;
                 done = false;
+                framesLet++;
                 go.Set();
                 try { BridgeHost.RunTaken(last); }
                 catch (Exception e) { Debug.LogError("Hiraeth bridge: " + (e.InnerException ?? e)); failed = true; Exit(5); }
@@ -732,6 +734,7 @@ namespace Hiraeth.Bridge
             try
             {
                 if (tickJs) js.Tick();
+                framesLet++;
                 js.Eval($"Hiraeth.frame({Time.unscaledDeltaTime.ToString(System.Globalization.CultureInfo.InvariantCulture)})", "frame");
                 MarkReady();
             }
@@ -855,6 +858,8 @@ namespace Hiraeth.Bridge
         public double waitMs;
         /// <summary>The same wait summed for good, and the script's own time on its thread (ms; BridgeMetrics reads them).</summary>
         public double waitMsTotal, scriptMsTotal;
+        /// <summary>The script frames let go so far (Hiraeth.frame's calls on the script's thread: BridgeStutter's join with the script's own record).</summary>
+        public int framesLet;
         // (Puerts' Tick, not with QuickJS in an IL2CPP player: on the Xbox the first Tick after the start crashed, an access
         // violation in Puerts' IL2CPP glue (its pending-kill cleanup), on the script's thread and before that on the sound's.
         // Without it the script objects C# let go are only freed with the engine: a leak a measuring session can afford.

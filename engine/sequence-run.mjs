@@ -48,7 +48,7 @@ export async function runSequence(file, id, { quiet = true, log = () => {}, leve
     // (Math.random seeded: what a world draws at random, a fight temple's waves and where its foes rise, the same every
     // run, so a foe's wind-up chip in a beat is there every time or never: issue #454)
     const B = loadBundle(file, { pads: () => [] }, { setTimeout: track(setTimeout, clearTimeout), setInterval: track(setInterval, clearInterval) }, { seed }).exports;
-    const seq = B.sequenceById(id);
+    const seq = B.sequenceById(id) ?? B.routeById?.(id);
     if (!seq) throw new Error(`no sequence ${id}`);
     const opts = B.engineSetup(level ? { ...seq.setup, level } : seq.setup);
     let g = null;

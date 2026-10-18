@@ -5469,3 +5469,61 @@ config were emptied.
 
 Raw: the session's scratchpad, `pso-465/`: `trace2/` the launches of this list, `final*/` and `warm-*/` the runs;
 `summary.cjs` and `compare.cjs`. An earlier trace and runs from before surfaces D landed are in `trace/` and `cold*/`.
+
+## Stutters (#468)
+
+Hitches, single long frames and frame-time spikes on the Unity players, not the mean: what was happening at each and why.
+
+### The harness
+
+- **Unity's side**, `BridgeStutter.cs` (`-stutter <prefix>`). Every frame of the main thread is kept in memory and
+  written once, as the player quits, to `<prefix>.unity.tsv`. A row holds:
+  - the frame's length, from one Update to the next;
+  - the main thread's wait on the script (the ops it applies meanwhile counted apart), and the script thread's own time;
+  - the managed collections, and what the mirror made (BridgeRenderer's counts, the geometries' kB);
+  - FrameTimingManager's CPU main / render and GPU times. They come a few frames late, as Unity gives them.
+  - the profiler's markers that say why a frame is long: a shader's first use (`Shader.CreateGPUProgram`), uploads,
+    loads, instantiation, `GC.Collect`, the waits on the render thread and the present. A development player has them
+    (`BridgeBuild.Mac -development`); a release one has the counters only.
+  - for a frame from 25 ms on, the engine's longest steps (BridgeLoopTimer).
+  Nothing is allocated a frame but the rows' room.
+- **The script's side**, `StutterLog` (engine/stutter.js, from engine/unity/game.js with the same flag), written to
+  `<prefix>.js.json`. A row a script frame holds:
+  - the game's update, the mirror, the whole script frame (the plan's step in it: a route's spawn is made there);
+  - the game's sections (engine/game.js `sectionsOn`): crowd, people, foes, story…;
+  - what it handed over: command kB, nodes, geometries and kB;
+  - V8's full collections (gc-watch.js).
+  Its events are what was happening: a world loading, a region's name on the screen, a spawn, a scene, a conversation,
+  a menu and its page, a way through, and the route's beats.
+- **The join**: each Unity row names the script frame it waited on (BridgeRunner `framesLet`, the script's own count of
+  `Hiraeth.frame`'s calls). The load before the first played frame, and its next 2 s, are kept apart.
+- **The cause** of a frame over the spike line (`causeOf`), in this order:
+  - when the main thread waited on the script: a V8 full collection, else the section that grew most over its median,
+    else the mirror making objects, else the route's own act, else a pause V8 took outside the script's measured work,
+    else the host calls' marshalling;
+  - else Unity's own: a managed collection (when `GC.Collect` says it took the time), a shader's or a pipeline's first
+    use, uploads, a synchronous load, instantiation, the ops applied (objects made), the GPU, the wait on the present,
+    else the engine's longest step.
+  `rank` groups the spikes of every run by cause, by the time they cost over each run's median.
+- **The routes** (engine/stutter-routes.js), real play on the keys. They are played by the sequences' runner
+  (`-sequence <id>`), not compared with the web's stream.
+  - `route-city`: the City-Shaft's ring, at a walk and a run, past its knots of people.
+  - `route-border`: the desert from the ramp into the Rose canyons (the region's name), through the camps to Qanat's
+    tree.
+  - `route-fight`: the Arena, a pack of blots, a machine, then a brute and skitters, locked on, cut, killed.
+  - `route-menus`: the Start menu and the game menu's pages, the Map among them, twice.
+  - `route-board`: up the desert ship's ramp to the cockpit and back down.
+  - With them, sequences that already play the rest: `moment-desert.lit` (a cinematic), `talk` (a conversation),
+    `takeoff`.
+  - `tests/stutter-routes.test.js` plays the fight and the boarding in node; `tests/stutter.test.js` checks the reading.
+
+```sh
+scripts/unity-export/unity-batch.sh BridgeBuild.Mac -development        # under the Unity build lock
+node scripts/stutter/run.mjs [ids…] --repeat 2 --out <dir> [--extra "-bundle <hiraeth.cjs>"]   # MAX_LOAD (12) rests
+node scripts/stutter/report.mjs <dir> --spike 16.7                      # <dir>/report.md, report.json
+```
+
+The Mac player is uncapped (a cap hides what is shorter than its frame) and four to eight times the handhelds' speed,
+so its spike line is 16.7 ms: what costs it that costs them 33-100. `-bundle` plays another script without a new build
+(a fix in the shared code measured on one player). Other agents' builds load this Mac; the runs rest while the load is
+over 12, and a run's numbers move by a few ms with what else runs.

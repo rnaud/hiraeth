@@ -15,6 +15,8 @@ import { UnityBackend } from './backend.js';
 import { portLook } from './port-format.js';
 import { sharedUniforms } from '../../src/materials.js';
 import { fullGcWatch } from './gc-watch.js';
+import { StutterLog, stutterState } from '../stutter.js';
+import { routeById } from '../stutter-routes.js';
 import { panSteps } from './pan.js';
 import { WorldLabels } from '../../src/minigames/kit/labels.js';
 import * as THREE from 'three';
@@ -345,7 +347,9 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
   // (moves: the people's walks and the traveller's captured moves left unloaded, walks.glb, moves.glb; -js-on matching: the
   // matching database loaded and the matching on, locomotion.glb: issue #427, round 4)
   // (played, the title's state kept: its menus, settings and the save chosen)
-  S = { ...(S ?? {}), args, backend, game: null, frames: 0, plan: null, results: [], keys: new Set(), lastT: 0, audioMs: 0, gcs: args.gcs ? fullGcWatch() : null };
+  S = { ...(S ?? {}), args, backend, game: null, frames: 0, plan: null, results: [], keys: new Set(), lastT: 0, audioMs: 0, gcs: args.gcs || args.stutter ? fullGcWatch() : null,
+    // (-stutter <prefix>: every script frame and what was happening, written once at the end: engine/stutter.js, issue #468)
+    stutter: args.stutter ? new StutterLog() : null };
   // the sound at Unity's output rate (BridgeAudio: muted in batch runs, where it is only counted)
   const rate = soundRate(args);
   // (rendered on Unity's audio thread where it has one: the graph recorded here, BridgeHost.AudioBatch)
@@ -397,7 +401,7 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
   if (args.opening) args.sequence = 'opening';
   let seqFight = false;
   if (args.sequence) {
-    const seq = sequenceById(String(args.sequence));
+    const seq = sequenceById(String(args.sequence)) ?? routeById(String(args.sequence));   // (a stutter route plays as a sequence: engine/stutter-routes.js)
     if (!seq) { console.log(`[unity] no sequence ${args.sequence}`); host.Exit(2); return; }
     const o = engineSetup(seq.setup);
     args.level = o.levelId; prologue = !!o.prologue; arrive = !!o.arrive; via = o.via ?? null; game = o.game ?? null; seqFight = !!o.fight;
@@ -897,7 +901,16 @@ function pumpAudio(ctx) {
   S.audioMs += now() - t0;
 }
 
+// (Hiraeth.frame's calls, every one: BridgeRunner's framesLet counts the same, the stutter record's join, issue #468)
+let calls = 0;
 export function frame(dt) {
+  calls++;
+  if (!S?.stutter) { playFrame(dt); return; }
+  // (the whole script frame, the plan's step with it: a route's spawn is made there, after the game's own frame)
+  const t0 = now();
+  try { playFrame(dt); } finally { S.stutter.whole(calls, now() - t0); }
+}
+function playFrame(dt) {
   S?.menus?.tick?.();   // (a rebinding on the Controls page left waiting: kept as it was, engine/menus.js)
   pollMusic(host);   // (the recordings Unity has decoded since: their decodeAudioData answered)
   // the title, before a world: only its menu (the world loading behind it once chosen) and its music
@@ -930,7 +943,14 @@ export function frame(dt) {
   const lastT = S.lastT; S.lastT = tA;
   S.frames++;
   // (-v8-gcs: each of V8's full collections said with its frame, beside the late frames in unity.log; gc-watch.js)
-  if (S.gcs) { const f = S.gcs.check(); if (f) console.log(`[unity] V8 full GC ${S.gcs.count} at frame ${S.frames}, ${f} frames after the last`); }
+  const fullGc = S.gcs ? S.gcs.check() : 0;
+  if (fullGc && (S.args.gcs || !S.stutter)) console.log(`[unity] V8 full GC ${S.gcs.count} at frame ${S.frames}, ${fullGc} frames after the last`);
+  if (S.stutter) {
+    if (!game.sectionsOn) { game.sectionsOn = true; game.sections?.(); }
+    // (the region's name as the screen says it, every few frames: the cue's place kind, src/hud.js PlaceName)
+    const cue = scr.state?.cue, region = cue?.kind === 'place' ? String(cue.text ?? '') : '';
+    S.stutter.frame({ n: calls, r, backend, vm: tB - tA, sections: game.sections?.() ?? null, fullGc, state: S.frames % 3 === 0 ? stutterState(game, S.menus) : S.stutter.state, region });
+  }
   const P = S.plan;
   if (!P) return;
   const step = P.steps[P.i];
@@ -982,7 +1002,7 @@ export function frame(dt) {
     // player's arrive (engineKey), each beat photographed and what the screen shows logged as one line of JSON)
     if (!P.seq) {
       P.G = engineGame(game, S.menus);
-      P.seq = new SequenceRun(P.G, sequenceById(step.id));
+      P.seq = new SequenceRun(P.G, sequenceById(step.id) ?? routeById(step.id));
       const r = engineReady(P.G, P.seq.seq.setup);
       if (r?.then) { P.staging = true; r.then((ok) => { P.staging = false; if (ok === false) console.log('[unity] seq: the cinematic refused to start'); }, (e) => { P.staging = false; console.log(`[unity] seq: staging failed ${e?.message ?? e}`); }); }
       return;
@@ -991,6 +1011,7 @@ export function frame(dt) {
     const r = P.seq.tick(Math.min(dt, 0.05));
     if (r?.keys) for (const [code, down] of r.keys) engineKey(game, S.menus, code, down);
     if (r?.record) {
+      S.stutter?.event(r.record.name);
       console.log(`[unity] seq ${step.id} ${r.record.name} ${JSON.stringify({ beat: r.record.name, t: +P.seq.time.toFixed(2), late: r.late, ...probe(P.G) })}`);
       if (S.args.out) { P.steps.splice(P.i, 0, { kind: 'shot', file: `${S.args.out}/unity-${step.id}-${r.record.name}.png` }); P.wait = 0; }
     }
@@ -1211,6 +1232,7 @@ export function frame(dt) {
     console.log(`[unity] saved ${step.file}`);
     next();
   } else if (step.kind === 'done') {
+    if (S.stutter) host.WriteText(`${S.args.stutter}.js.json`, S.stutter.json());
     if (S.args.out && S.results.length) host.WriteText(`${S.args.out}/unity-bench.json`, JSON.stringify({ engine: 'unity', results: S.results, backend: backend.stats }, null, 1));
     console.log(`[unity] done after ${S.frames} frames; ${JSON.stringify(backend.stats)}`);
     host.Exit(0);

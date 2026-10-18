@@ -173,6 +173,7 @@ namespace Hiraeth.Bridge
             if (outDir != null) args["out"] = (Path.IsPathRooted(outDir) ? outDir : Path.GetFullPath(Path.Combine(root ?? Environment.GetEnvironmentVariable("PWD") ?? Directory.GetCurrentDirectory(), outDir))).Replace('\\', '/');
             if (Arg("-bench") != null) args["bench"] = double.Parse(Arg("-bench"), CultureInfo.InvariantCulture);
             if (Flag("-split")) args["split"] = true;
+            if (Arg("-stutter") is string stp && stp.Length > 0) args["stutter"] = System.IO.Path.GetFullPath(stp);   // (every frame recorded: BridgeStutter, engine/stutter.js, issue #468)
             // (-pan N, -pan-step deg: each view's pictures as it turns a fixed step a frame, the distant shimmer's: issue #218)
             if (Arg("-pan") != null) args["pan"] = double.Parse(Arg("-pan"), CultureInfo.InvariantCulture);
             if (Arg("-pan-step") != null) args["panStep"] = double.Parse(Arg("-pan-step"), CultureInfo.InvariantCulture);

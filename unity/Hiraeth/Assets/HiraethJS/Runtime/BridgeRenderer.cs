@@ -219,7 +219,13 @@ namespace Hiraeth.Bridge
                    + (lean ? "; the lean variants, and the full one's reasons: " + string.Join(", ", System.Linq.Enumerable.Select(leanWhy, kv => $"{kv.Key} {kv.Value}")) : "");
         }
         static readonly List<string> madeNames = new();
-        static void Count(string k, int by = 1) { Made.TryGetValue(k, out int v); Made[k] = v + by; }
+        static void Count(string k, int by = 1)
+        {
+            Made.TryGetValue(k, out int v); Made[k] = v + by;
+            if (k.EndsWith(" kB", StringComparison.Ordinal)) MadeKbTotal += by; else MadeTotal += by;
+        }
+        /// <summary>What the mirror made (geometries, textures, materials, nodes, shown again) and the geometries' kB, summed for good (BridgeStutter reads them a frame).</summary>
+        public static int MadeTotal, MadeKbTotal;
         public static string TakeMade()
         {
             if (Made.Count == 0) return "";
