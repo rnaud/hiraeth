@@ -1,0 +1,25 @@
+scripts/unity-compare/unity.mjs
+  s_5f899ba316b5dc::t_33e6655de00995 51-54
+unity/Hiraeth/Assets/Hiraeth/Rendering/HiraethFeature.cs
+  s_5f899ba316b5dc::t_3ab0bf2d6b8aaf 38-40,53,55-57,61,84,89-108
+tests/unity-black-frame.test.js
+  s_5f899ba316b5dc::t_19b6c9f88b19ab 23,29-48
+docs/systems/engine-bridge.md
+  s_5f899ba316b5dc::t_4e4f1aad3145aa 2198-2208
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "82708d3ef2da3ab3f4f887578ea3d1679b9a2328",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
