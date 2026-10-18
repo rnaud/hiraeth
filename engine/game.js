@@ -1582,6 +1582,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       if (deferred?.pending) { deferred.run(player.pos); if (!deferred.pending) log(`distant detail: all done, ${deferred.done} jobs in ${Math.round(deferred.ms)} ms`); }   // (a share a frame, nearest first)
       // (the flora's checks: only the guard's while the drifts' pieces are still being made, then a share a frame)
       if (floraLater !== deferred && floraLater.pending) { floraLater.run(player.pos, physics.late.pending ? 0 : DEFER.budget); if (!floraLater.pending) log(`the flora's checks: all done, ${floraLater.done} in ${Math.round(floraLater.ms)} ms`); }
+      lap?.('distant detail');   // (the load's queued work, DEFER.budget ms a frame until it is done: not the people's)
       // (the backend's peopleLod, the Unity bridge's: a person past 30 m out of the last frame's view, with room round them
       // for their shadow and the camera's turn, is moved a quarter of the frames as past 110 m, src/npc.js offView)
       const lod = !!backend?.peopleLod;
