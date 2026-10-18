@@ -353,6 +353,15 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
     slots.setActive(DEBUG_SLOT); gameState.reload(); gameState.reset();
     try { slotStorage.removeItem('hiraeth.journal.v1'); } catch { /* none */ }
   }
+  // (-aboard alone: the rooms on the debug save the web's ?aboard= shots boot (scripts/design-qc/capture.mjs: past the
+  // prologue, the backpack worn), emptied first as theirs is. Given as createGame's `flags` instead, as -views has them, the
+  // ship's scenes would be off; left as it was, the run drew whatever save the last one left, the desert's debug save from
+  // before Qanat's shrine, and the traveller stood aboard without his backpack where the web's wore it: issue #466)
+  if (args.aboard && !args.ending && !starScenes.length) {
+    slots.setActive(DEBUG_SLOT); gameState.reload(); gameState.reset();
+    try { slotStorage.removeItem('hiraeth.journal.v1'); } catch { /* none */ }
+    Object.assign(gameState.data.flags, BENCH_FLAGS);
+  }
   // (-set-flags a,b,k=v: on the debug save, those flags set first: the hoverbike found, the bird's promise, a kit's colour
   // chosen (kit.colour.sword=ember), for a world's picture)
   if (args.setFlags) {

@@ -366,7 +366,9 @@ the arrival). main.js's closing page once every story is told and every small th
 `?aboard=cockpit|main|cabin|hold` does (main.js; `ship.roomSpot`), and `game.goAboard(room)` moves him there later
 ('console': at the voicemail behind the console's tail). The bridge's `-aboard cockpit,main,cabin,hold,console -out dir`
 photographs each (`unity-aboard-<room>.png`; at the console E is pressed and the message, or "No new messages.",
-photographed too), its ship attached without the menus (`scenes`: the hull hidden from the sun inside, the rooms'
+photographed too), on the debug save emptied and set as the web's `?aboard=` shots boot (past the prologue, the
+backpack worn: before #466 it drew whatever save the last run left, and the traveller stood aboard without his
+backpack), its ship attached without the menus (`scenes`: the hull hidden from the sun inside, the rooms'
 tight camera), to lay beside the web's `?aboard=` shots at 1280 × 720. Making them found the hold half outside the
 ship on the web and in the engines alike: `Ship.isInside` turned away points over 20 m from the ship's origin, from
 before the rooms were doubled (#338), and the hold reaches 26 m, so its back half had the weather in it and the rig's
