@@ -40,14 +40,22 @@ test('a crowded block keeps its jutting rooms off the walks it is given', () => 
   assert.ok(buckets(free).some((b) => b.mat === F.lit), 'some openings are lamplit');
 });
 
-test('a pale floor is solid, follows the ground a few centimetres over it and casts no shadow', () => {
-  const ground = { heightAt: (x, z) => Math.sin(x * 0.1) * 2 + z * 0.05 };
+test('a pale floor is solid, follows the ground a few centimetres over it, never dipping into it, and casts no shadow', () => {
+  // (the ground folds between the floor's corners, as the sand's own triangles do: ridges every 4 m, midway between two
+  // of the floor's corners; each corner stands over the highest ground a little round it, issue #498)
+  const ground = { heightAt: (x, z) => 0.05 * Math.abs(((x % 4) + 4) % 4 - 2) + z * 0.05 };
   const kit = kitOf(ground), M = mats(kit);
   paleFloor(kit, M.stone, ground, { x: 0, z: 0, w: 30, d: 20, lift: 0.06 });
   const [b] = [...kit.buckets.values()];
   assert.equal(b.solid, true); assert.equal(b.shadow, false);
   const p = b.list[0].attributes.position;
-  for (let i = 0; i < p.count; i += 7) assert.ok(Math.abs(p.getY(i) - ground.heightAt(p.getX(i), p.getZ(i)) - 0.06) < 1e-4);
+  for (let i = 0; i < p.count; i += 3) {
+    const tri = [0, 1, 2].map((k) => [p.getX(i + k), p.getY(i + k), p.getZ(i + k)]);
+    for (const [u, v] of [[1 / 3, 1 / 3], [0.5, 0], [0, 0.5], [0.5, 0.5], [0, 0]]) {
+      const q = [0, 1, 2].map((k) => tri[0][k] * (1 - u - v) + tri[1][k] * u + tri[2][k] * v), gap = q[1] - ground.heightAt(q[0], q[2]);
+      assert.ok(gap > 0.02 && gap < 0.3, `the floor ${gap.toFixed(3)} m over the ground at ${q[0].toFixed(1)}, ${q[2].toFixed(1)}`);
+    }
+  }
 });
 
 test('crystal columns carry the glass data on every vertex (Unity has no constant attributes)', () => {

@@ -1,4 +1,4 @@
-import { crowdedBlock } from './glass-dunes-masses.js';
+import { crowdedBlock, planeBook } from './glass-dunes-masses.js';
 import { stairFlight } from './levels/eclipse-kit.js';
 import { box,terrace,windingStair,opening } from './glass-dunes-architecture.js';
 import { stoneBridge } from './glass-dunes-civic-kit.js';
@@ -24,7 +24,7 @@ export function buildBuriedStreets(kit,M){
   // Retain the two original approaches to the west gallery, now enclosed by houses.
   box(kit,M.violet,-18,3.8,-7,4,.4,16);
   for(const x of [-18,-10])stairFlight(kit,{step:x===-18?M.blue:M.coral,stone:x===-18?M.blue:M.coral},{x,z:27,y0:0,y1:4,w:4,run:.55,rise:.18,cheek:.6});
-  box(kit,M.plum,-18,3.8,8,4,.4,14);box(kit,M.violet,-14,3.8,13,12,.4,4);
+  box(kit,M.plum,-18,3.8,8,4,.4,14);box(kit,M.violet,-13.98,3.82,12.98,11.96,.4,3.96);   // (2 cm over and inside the plum walk it crosses: issue #498)
   const routes=[],walks=[];
   windingStair(kit,{stone:M.blue,step:M.blue},routes,[[-18,4,0],[-18,6,-5],[-18,8,-11]],{w:3.2,thin:true,outer:false});
   terrace(kit,M.blue,{x:-18,z:-11,y:7.4,h:.6,rx:2.7,rz:2.2});
@@ -44,6 +44,7 @@ export function buildBuriedStreets(kit,M){
   for(const r of routes)for(let i=1;i<r.via.length;i++)for(let t=0;t<=1;t+=.2)samples.push(r.via[i-1].map((v,k)=>v+(r.via[i][k]-v)*t));
   for(const [a,b] of walks)for(let t=0;t<=1;t+=.1)samples.push(a.map((v,k)=>v+(b[k]-v)*t));
   const clear=(x,y,z,r)=>samples.some(([sx,sy,sz])=>Math.hypot(x-sx,z-sz)<r+2.2&&y<sy+3.5&&y>sy-8);
-  rows.forEach(([x,z,w,d,h,color,yaw],i)=>{const facingX=Math.abs(Math.sin(yaw))>.5;crowdedBlock(kit,{...B,wall:M[color]},{x,z,w:facingX?d:w,d:facingX?w:d,h:44+(i*7)%15,yaw,seed:300+i,lit:.3,clear});});
+  const planes=planeBook();   // (one for the street: no room in another block's plane, issue #498)
+  rows.forEach(([x,z,w,d,h,color,yaw],i)=>{const facingX=Math.abs(Math.sin(yaw))>.5;crowdedBlock(kit,{...B,wall:M[color]},{x,z,w:facingX?d:w,d:facingX?w:d,h:44+(i*7)%15,yaw,seed:300+i,lit:.3,clear,planes});});
   return{routes,walks,windowMaterial:M.windowLight};
 }

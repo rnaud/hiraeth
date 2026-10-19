@@ -3,6 +3,7 @@ import { mulberry32 } from './noise.js';
 import { GLASS_ATTR } from './dune-glass-shader.js';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { MODE_TERRAIN } from './materials.js';
+import { Z_GAP } from './temples/kit.js';
 
 // ---------------------------------------------------------------------------
 // The Glass Dunes' big masses (issue #393): the pieces the reference plates are
@@ -31,9 +32,11 @@ export function massMaterials(kit, M, { hole = '#34403f', lit = '#f2b85a', rock 
 }
 
 /** An opening on a wall (a dark recess, or a lit window): a thin plate standing just proud of the face. */
-export function hole(kit, mat, x, y, z, yaw, w, h, { arch = false } = {}) {
-  kit.add(mat, place(new THREE.BoxGeometry(w, h, 0.04), x, y + h / 2, z, yaw), OPEN);
-  if (arch) kit.add(mat, place(new THREE.CylinderGeometry(w / 2, w / 2, 0.04, 8, 1, false, 0, Math.PI).rotateX(Math.PI / 2).rotateZ(-Math.PI / 2), x, y + h, z, yaw), OPEN);
+export function hole(kit, mat, x, y, z, yaw, w, h, { arch = false, lean = 0 } = {}) {
+  // (lean: its top tipped in by that angle, lying on a wall that leans; x, y, z its foot's middle all the same)
+  const tip = (g) => g.rotateX(-lean).translate(0, h / 2 * (Math.cos(lean) - 1), -h / 2 * Math.sin(lean));
+  kit.add(mat, place(tip(new THREE.BoxGeometry(w, h, 0.04)), x, y + h / 2, z, yaw), OPEN);
+  if (arch) kit.add(mat, place(tip(new THREE.CylinderGeometry(w / 2, w / 2, 0.04, 8, 1, false, 0, Math.PI).rotateX(Math.PI / 2).rotateZ(-Math.PI / 2).translate(0, h / 2, 0)), x, y + h / 2, z, yaw), OPEN);
 }
 
 /** Rounded merlons round a circle (the plates' scalloped tops) on a corbelled lip. */
@@ -71,27 +74,30 @@ export function roundTower(kit, M, { x, y, z, r, h, seed = 1, upper = 0, windows
   const rng = mulberry32(seed);
   kit.add(M.stone, place(new THREE.CylinderGeometry(r * 0.94, r * 1.04, h, 16, 3), x, y + h / 2, z));
   // a girdle part-way up: the plates' towers are built in courses
-  if (h > 18) kit.add(M.trim, place(new THREE.CylinderGeometry(r * 1.0, r * 1.0, 0.8, 16), x, y + h * (0.45 + rng() * 0.15), z));
+  const band = h > 18 ? y + h * (0.45 + rng() * 0.15) : null;
+  if (band !== null) kit.add(M.trim, place(new THREE.CylinderGeometry(r * 1.0, r * 1.0, 0.8, 16), x, band, z));
   scallopRing(kit, M.stone, x, y + h, z, r * 0.94, { rng, size: Math.max(0.8, r * 0.2) });
-  openingsRound(kit, M, x, y, z, r, h, rng, windows);
+  openingsRound(kit, M, x, y, z, r, h, rng, windows, band);
   if (upper) {
     const r2 = r * (0.5 + rng() * 0.15), h2 = upper, dx = (rng() - 0.5) * r * 0.5, dz = (rng() - 0.5) * r * 0.5;
     kit.add(M.stone, place(new THREE.CylinderGeometry(r2 * 0.92, r2, h2, 14, 2), x + dx, y + h + 1.4 + h2 / 2, z + dz));
     scallopRing(kit, M.stone, x + dx, y + h + 1.4 + h2, z + dz, r2 * 0.92, { rng, size: Math.max(0.7, r2 * 0.2) });
-    openingsRound(kit, M, x + dx, y + h + 1.4, z + dz, r2, h2, rng, windows * 0.6);
+    openingsRound(kit, M, x + dx, y + h + 1.4, z + dz, r2, h2, rng, windows * 0.6, null, [r2, r2 * 0.92]);
     return y + h + 1.4 + h2 + 2.4;
   }
   return y + h + 2.4;
 }
 
-function openingsRound(kit, M, x, y, z, r, h, rng, k) {
-  // (on the middle of a face of the 16-sided drum, just proud of it, so the opening lies on the wall)
-  const rows = Math.floor((h - 3) / 4.2);
+function openingsRound(kit, M, x, y, z, r, h, rng, k, band = null, [r0, r1] = [r * 1.04, r * 0.94]) {
+  // (on the middle of a face of the 16-sided drum (r0 at its foot, r1 at its top), 3 cm proud of it and leaning with it,
+  // so the opening lies on the wall and never in its plane; none across the girdle: issue #498)
+  const rows = Math.floor((h - 3) / 4.2), c = Math.cos(Math.PI / 16), lean = Math.atan2((r0 - r1) * c, h);
   for (let j = 0; j < rows; j++) for (let i = 0; i < 16; i++) {
     if (rng() > k * 0.55) continue;
-    const a = (i + 0.5) / 16 * TAU, yy = y + 3 + j * 4.2 + rng() * 0.8, rr = r * (1.04 - 0.1 * ((yy - y) / h)) * Math.cos(Math.PI / 16) + 0.012;
-    const lit = rng() < 0.12;
-    hole(kit, lit ? M.lit : M.hole, x + Math.sin(a) * rr, yy, z + Math.cos(a) * rr, a, 0.6 + rng() * 0.35, 1.0 + rng() * 0.7, { arch: rng() < 0.5 });
+    const a = (i + 0.5) / 16 * TAU, yy = y + 3 + j * 4.2 + rng() * 0.8, rr = (r0 + (r1 - r0) * ((yy - y) / h)) * c + 0.03 / Math.cos(lean);
+    const lit = rng() < 0.12, w = 0.6 + rng() * 0.35, hh = 1.0 + rng() * 0.7, arch = rng() < 0.5;
+    if (band !== null && yy < band + 0.5 && yy + hh + (arch ? w / 2 : 0) > band - 0.5) continue;
+    hole(kit, lit ? M.lit : M.hole, x + Math.sin(a) * rr, yy, z + Math.cos(a) * rr, a, w, hh, { arch, lean });
   }
 }
 
@@ -134,44 +140,78 @@ function openingsBox(kit, M, x, y, z, w, d, h, yaw, rng, k) {
 }
 
 /**
+ * The planes a street's faces already lie in (issue #498): `taken(faces, box)` when one of the faces ([normal, offset])
+ * lies within 6 mm of a plane booked by a piece whose box (min x, y, z, max x, y, z) meets this one's, facing either
+ * way; `add(faces, box)` books them. A street's blocks share one, so a room is set clear of the next block's too.
+ */
+export function planeBook(gap = 0.006) {
+  const book = new Map();
+  const canon = (n, o) => {
+    const big = Math.abs(n[0]) >= Math.abs(n[1]) && Math.abs(n[0]) >= Math.abs(n[2]) ? 0 : Math.abs(n[1]) >= Math.abs(n[2]) ? 1 : 2, s = n[big] < 0 ? -1 : 1;
+    return [n.map((v) => Math.round(v * s * 200)).join(','), o * s];
+  };
+  const meet = (a, b) => a[0] <= b[3] && b[0] <= a[3] && a[1] <= b[4] && b[1] <= a[4] && a[2] <= b[5] && b[2] <= a[5];
+  return {
+    taken: (faces, box) => faces.some(([n, o]) => { const [k, d] = canon(n, o); return (book.get(k) ?? []).some((e) => Math.abs(e.d - d) < gap && meet(e.box, box)); }),
+    add(faces, box) { for (const [n, o] of faces) { const [k, d] = canon(n, o); if (!book.has(k)) book.set(k, []); book.get(k).push({ d, box }); } },
+  };
+}
+
+/**
  * A street block of the buried city: a core with rooms stacked out of it at every storey (boxes of
  * all sizes jutting from the faces, set back and overhanging), small lit and dark openings, balconies.
  * front: the yaw its street face looks along (+z turned by yaw).
  */
-export function crowdedBlock(kit, M, { x, y = 0, z, w, d, h, yaw = 0, seed = 1, lit = 0.25, from = 4.5, clear = null }) {
+export function crowdedBlock(kit, M, { x, y = 0, z, w, d, h, yaw = 0, seed = 1, lit = 0.25, from = 4.5, clear = null, planes = planeBook() }) {
   const rng = mulberry32(seed), c = Math.cos(yaw), s = Math.sin(yaw);
   const at = (u, v) => [x + u * c + v * s, z - u * s + v * c];
   const wall = M.wall ?? M.stone;
   kit.add(wall, place(new THREE.BoxGeometry(w * 0.74, h, d * 0.74), x, y + h / 2, z, yaw));
   // the ground storey: the whole footprint, a door and a few openings
   kit.add(wall, place(new THREE.BoxGeometry(w * 0.94, from, d * 0.94), x, y + from / 2, z, yaw));
+  // (no two rooms share a plane, issue #498: the rooms of a storey stand Z_GAP over one another's feet and the ground
+  // storey's roof, and each room of a face reaches into the core to its own depth, a few centimetres from the last;
+  // their feet, flush, and their ends, all at one depth in the core, were the city's 197 z-fights. What is left to
+  // chance, a room's face, ledge or opening landing in another's plane, is set a few millimetres clear of it: planes)
+  const deep = [0, 0, 0, 0];
+  planes.add([[[0, 1, 0], y + h]], [x - w, y + h - 1, z - w, x + w, y + h + 1, z + w]);
   for (let yy = y + from; yy < y + h - 3; yy += 2.6 + rng() * 3.4) {
+    let k = 0;
     // rooms jutting from each face, as far as the footprint's edge or a little over: the street face most
-    for (const [face, len, depth, n] of [[0, w, d, 3], [Math.PI, w, d, 1], [Math.PI / 2, d, w, 2], [-Math.PI / 2, d, w, 2]]) {
+    for (const [fi, [face, len, depth, n]] of [[0, w, d, 3], [Math.PI, w, d, 1], [Math.PI / 2, d, w, 2], [-Math.PI / 2, d, w, 2]].entries()) {
       const count = Math.round(n * (0.4 + rng()));
       for (let i = 0; i < count; i++) {
-        const bw = 1.8 + rng() * Math.min(6.5, len * 0.42), bh = 2 + rng() * 5.5;
-        const outer = depth / 2 + rng() * 0.7, bd = outer - depth * 0.37 + 0.2;
-        const u = (rng() - 0.5) * (len - bw), a = yaw + face, nx = Math.sin(a), nz = Math.cos(a), tx = Math.cos(a), tz = -Math.sin(a);
-        const off = outer - bd / 2;
+        let bw = 1.8 + rng() * Math.min(6.5, len * 0.42), bh = 2 + rng() * 5.5;
+        let outer = depth / 2 + rng() * 0.7, u = (rng() - 0.5) * (len - bw);
+        const inner = depth * 0.37 - 0.2 - (deep[fi]++ % 12) * Z_GAP * 1.5, yb = yy + ++k * Z_GAP;
+        const a = yaw + face, nx = Math.sin(a), nz = Math.cos(a), tx = Math.cos(a), tz = -Math.sin(a);
+        // its faces' planes: [normal, offset] (its outer face, its opening's and its ledge's; its sides, its ledge's; its top)
+        const N = [nx, 0, nz], T = [tx, 0, tz], U = [0, 1, 0], o0 = x * nx + z * nz, t0 = x * tx + z * tz;
+        const faces = () => [[N, o0 + outer], [N, o0 + outer + 0.032], [N, o0 + outer + 0.25],
+          ...[-1, 1].flatMap((sd) => [[T, t0 + u + sd * bw / 2], [T, t0 + u + sd * (bw / 2 + 0.25)]]), [U, yb + bh]];
+        // (its box, ledge and all, a little grown: the pieces it could meet)
+        const box = () => { const r = Math.max(bw / 2, (outer - inner) / 2) + 0.6, cx = x + nx * (outer + inner) / 2 + tx * u, cz = z + nz * (outer + inner) / 2 + tz * u; return [cx - r, yb - 0.6, cz - r, cx + r, yb + bh + 0.3, cz + r]; };
+        for (let n = 0; n < 40 && planes.taken(faces(), box()); n++) { outer += 0.007; u += 0.007; bh += 0.007; }
+        planes.add(faces(), box());
+        const bd = outer - inner, off = outer - bd / 2;
         const px = x + nx * off + tx * u, pz = z + nz * off + tz * u;
         if (clear && clear(px, yy, pz, Math.max(bw, bd) / 2)) continue;   // (over a walk: left out)
         const mat = rng() < 0.3 ? M.trim : wall;
-        kit.add(mat, place(new THREE.BoxGeometry(bw, bh, bd), px, yy + bh / 2, pz, a));
+        kit.add(mat, place(new THREE.BoxGeometry(bw, bh, bd), px, yb + bh / 2, pz, a));
         // its opening: dark, or lamplit amber
         if (rng() < 0.7) {
           const ow = 0.45 + rng() * 0.45, oh = 0.7 + rng() * 1.0;
-          hole(kit, rng() < lit ? M.lit : M.hole, px + nx * (bd / 2 + 0.012) + tx * (rng() - 0.5) * Math.max(0, bw - 1.2), yy + 0.5 + rng() * Math.max(0.2, bh - oh - 1), pz + nz * (bd / 2 + 0.012), a, ow, oh);
+          hole(kit, rng() < lit ? M.lit : M.hole, px + nx * (bd / 2 + 0.012) + tx * (rng() - 0.5) * Math.max(0, bw - 1.2), yb + 0.5 + rng() * Math.max(0.2, bh - oh - 1), pz + nz * (bd / 2 + 0.012), a, ow, oh);
         }
         // a slab under it now and then: a ledge
-        if (rng() < 0.2) kit.add(M.trim, place(new THREE.BoxGeometry(bw + 0.5, 0.3, bd + 0.5), px, yy - 0.15, pz, a));
+        if (rng() < 0.2) kit.add(M.trim, place(new THREE.BoxGeometry(bw + 0.5, 0.3, bd + 0.5), px, yb - 0.15, pz, a));
       }
     }
   }
   // a door and small openings in the street face's ground storey
   const nx = Math.sin(yaw), nz = Math.cos(yaw), tx = Math.cos(yaw), tz = -Math.sin(yaw), fo = d * 0.47 + 0.012;
   hole(kit, M.door ?? M.hole, x + nx * fo + tx * (rng() - 0.5) * w * 0.5, y, z + nz * fo + tz * (rng() - 0.5) * w * 0.5, yaw, 1.3, 2.6);
-  for (let i = 0; i < 3; i++) if (rng() < 0.6) { const u = (rng() - 0.5) * w * 0.8; hole(kit, rng() < lit ? M.lit : M.hole, x + nx * fo + tx * u, y + 1.4, z + nz * fo + tz * u, yaw, 0.5, 0.8); }
+  for (let i = 0; i < 3; i++) if (rng() < 0.6) { const u = (rng() - 0.5) * w * 0.8, f = fo + (i + 1) * Z_GAP; hole(kit, rng() < lit ? M.lit : M.hole, x + nx * f + tx * u, y + 1.4, z + nz * f + tz * u, yaw, 0.5, 0.8); }   // (each Z_GAP off the door and the last: they overlap)
   // a ragged top: boxes of different heights
   for (let i = 0; i < 5; i++) {
     const bw = w * (0.18 + rng() * 0.3), bd = d * (0.18 + rng() * 0.3), bh = 1.5 + rng() * 6;
@@ -214,9 +254,9 @@ export function rockDwelling(kit, M, { x, y, z, w, d, h, yaw = 0, seed = 1, door
     lump(kit, rng() < 0.3 ? M.trim : M.rock, px, y + h - r * 0.35, pz, r * 0.95, r * (0.8 + rng() * 0.7), r * 0.9, seed * 13 + i);
   }
   const fx = Math.sin(yaw), fz = Math.cos(yaw), tx = Math.cos(yaw), tz = -Math.sin(yaw);
-  const face = (u, yy, ww, hh, mat, arch) => hole(kit, mat, x + fx * (d / 2 + 0.012) + tx * u, yy, z + fz * (d / 2 + 0.012) + tz * u, yaw, ww, hh, { arch });
+  const face = (u, yy, ww, hh, mat, arch, k = 0) => hole(kit, mat, x + fx * (d / 2 + 0.012 + k * Z_GAP) + tx * u, yy, z + fz * (d / 2 + 0.012 + k * Z_GAP) + tz * u, yaw, ww, hh, { arch });   // (k: each window Z_GAP off the last, they may overlap)
   if (door) face((rng() - 0.5) * w * 0.4, y, 1.3, 2.5, M[door] ?? M.hole, rng() < 0.4);
-  for (let i = 0; i < windows; i++) face((rng() - 0.5) * w * 0.75, y + 3.2 + rng() * Math.max(0.5, h - 5), 0.55 + rng() * 0.3, 0.8 + rng() * 0.5, rng() < 0.15 ? M.gold ?? M.lit : M.hole, false);
+  for (let i = 0; i < windows; i++) face((rng() - 0.5) * w * 0.75, y + 3.2 + rng() * Math.max(0.5, h - 5), 0.55 + rng() * 0.3, 0.8 + rng() * 0.5, rng() < 0.15 ? M.gold ?? M.lit : M.hole, false, i + 1);
 }
 
 /**
@@ -275,13 +315,24 @@ export const floorMaterial = (kit, [c1, c2, c3]) => kit.mat({ color: c1, color2:
  */
 export function paleFloor(kit, mat, ground, { x, z, w, d, yaw = 0, cell = 2, lift = 0.06, round = 0.35, clear = null }) {
   const nx = Math.ceil(w / cell), nz = Math.ceil(d / cell), c = Math.cos(yaw), s = Math.sin(yaw);
-  const pos = [], idx = [], keep = [];
+  const pos = [], idx = [], keep = [], cu = w / nx, cv = d / nz;
+  // (each corner over the highest ground a quarter of a cell round it, issue #498: the ground's own triangles are larger
+  // than the floor's and fold across them, so a floor laid on the ground at its corners alone dipped 2 cm into it at the
+  // folds; this way it keeps 2-3 cm clear everywhere and rides at most some 20 cm over a hollow)
+  const over = (u, v) => {
+    let top = -Infinity;
+    for (let a = -2; a <= 2; a++) for (let b = -2; b <= 2; b++) {
+      const uu = u + a / 8 * cu, vv = v + b / 8 * cv;
+      top = Math.max(top, ground.heightAt(x + uu * c + vv * s, z - uu * s + vv * c));
+    }
+    return top;
+  };
   for (let j = 0; j <= nz; j++) for (let i = 0; i <= nx; i++) {
     const u = (i / nx - 0.5) * w, v = (j / nz - 0.5) * d, px = x + u * c + v * s, pz = z - u * s + v * c;
     // a superellipse: the corners rounded off so the floor has no hard rectangle
     const e = Math.pow(Math.abs(2 * u / w), 2 / round) + Math.pow(Math.abs(2 * v / d), 2 / round);
     keep.push(e <= 1 && !(clear && clear(px, pz)));
-    pos.push(px, ground.heightAt(px, pz) + lift, pz);
+    pos.push(px, over(u, v) + lift, pz);
   }
   for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) {
     const a = j * (nx + 1) + i, b = a + 1, cc = a + nx + 1, dd = cc + 1;

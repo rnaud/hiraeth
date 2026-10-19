@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { ruinedHouse } from './glass-dunes-ruins.js';
 import { box, terrace, dwelling, opening, ribbonWall, arcPoints } from './glass-dunes-architecture.js';
+import { Z_GAP } from './temples/kit.js';
 
 /** A stone span with a flat walking deck and an arched, load-bearing underside. */
 export function stoneBridge(kit,M,{from,to,w=3.5,drop=4,rail=.6,scallop=0}) {
@@ -9,7 +10,8 @@ export function stoneBridge(kit,M,{from,to,w=3.5,drop=4,rail=.6,scallop=0}) {
   for(let i=48;i>=0;i--){const t=i/48;sh.lineTo((t-.5)*len,-.65-drop*(t*2-1)**2);}
   sh.closePath();
   const yaw=-Math.atan2(dz,dx),cx=(from[0]+to[0])/2,cz=(from[2]+to[2])/2;
-  kit.add(M.stone,new THREE.ExtrudeGeometry(sh,{depth:w,bevelEnabled:false,curveSegments:32}).translate(0,from[1],-w/2).rotateY(yaw).translate(cx,0,cz));
+  // (its deck 2 Z_GAP under its ends, issue #498: they lie on a terrace, a block or a stair's last tread, Z_GAP down)
+  kit.add(M.stone,new THREE.ExtrudeGeometry(sh,{depth:w,bevelEnabled:false,curveSegments:32}).translate(0,from[1]-2*Z_GAP,-w/2).rotateY(yaw).translate(cx,0,cz));
   const nx=-dz/len,nz=dx/len;
   for(const side of [-1,1]) ribbonWall(kit,M.stone,[from,to].map(p=>[p[0]+nx*side*(w/2-.18),p[1],p[2]+nz*side*(w/2-.18)]),{width:.38,height:rail,scallop});
   return [from,to];

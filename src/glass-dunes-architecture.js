@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { mulberry32 } from './noise.js';
 import { GLASS_ATTR } from './dune-glass-shader.js';
+import { Z_GAP } from './temples/kit.js';
 
 // Geometry shared by the three selected-reference spaces. All visible walking
 // surfaces are the actual colliders; the builders return routes for traversal QA.
@@ -52,7 +53,9 @@ export function windingStair(kit,M,routes,points,{w=3.1,inner=false,outer=true,r
     const na=new THREE.Vector3(ta.z,0,-ta.x).normalize(),nb=new THREE.Vector3(tb.z,0,-tb.x).normalize();
     const A=a.clone().addScaledVector(na,-w/2),B=a.clone().addScaledVector(na,w/2),C=b.clone().addScaledVector(nb,w/2),D=b.clone().addScaledVector(nb,-w/2),at=p.length/3;
     // A tread and its supporting riser are one closed volume.
-    for(const y of [thin?b.y-thickness:base,b.y])for(const q of [A,B,C,D])p.push(q.x,y,q.z);
+    // (the last tread Z_GAP under its top, issue #498: it lies on a landing, a terrace or a bridge's deck of another stone)
+    const t=i===n-1?b.y-Z_GAP:b.y;
+    for(const y of [thin?t-thickness:base,t])for(const q of [A,B,C,D])p.push(q.x,y,q.z);
     for(const f of [[4,7,6,5],[0,1,2,3],[0,4,5,1],[1,5,6,2],[2,6,7,3],[3,7,4,0]])ix.push(at+f[0],at+f[1],at+f[2],at+f[0],at+f[2],at+f[3]);
     if(i%Math.max(1,Math.floor(n/viaSamples))===0)via.push([a.x,b.y,a.z]);
   }
@@ -86,7 +89,8 @@ export function opening(kit,M,{x,y,z,yaw=0,w=1.05,h=2.8,paint='ochre',window=fal
   kit.add(M[paint],put(new THREE.BoxGeometry(w-.13,h-.14,.07).translate(0,h/2,.09)));
   if(!window)for(let i=-1;i<=1;i++)kit.add(M.woodline,put(new THREE.BoxGeometry(.025,h-.2,.02).translate(i*w*.24,h/2,.14)));
   // Uneven stone jambs make the recess part of the wall instead of a black sticker.
-  for(const s of [-1,1])kit.add(M.trim,put(new THREE.BoxGeometry(.12,h+.22,.18).translate(s*(w/2+.11),h/2,.02)));
+  // (their backs Z_GAP in front of the recess's, issue #498: both lay in one plane where a curved wall leaves them bare)
+  for(const s of [-1,1])kit.add(M.trim,put(new THREE.BoxGeometry(.12,h+.22,.16).translate(s*(w/2+.11),h/2,.03)));
   kit.add(M.trim,put(new THREE.BoxGeometry(w+.4,.16,.2).translate(0,h+.1,.02)));
 }
 

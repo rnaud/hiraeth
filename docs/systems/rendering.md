@@ -1419,6 +1419,26 @@ city under the sand rebuilt in #393/#426: `crowdedBlock`'s jutting rooms flush o
 edena 7, spheres 8, perdide 11, bazaar 74, underwater 43, moonfoundry 238, spacecity 19: 6475 in all. The temples at or
 under their baselines (the Warden's Well 8 of 39, the Belfry 3 of 10, the Undertower 3 of 8).
 
+**v1.86, 2026-10-19** (issue #498): glassdunes 268 → **0**, the Clock-House 1 → 0. In the city under the sand,
+`crowdedBlock` (src/glass-dunes-masses.js) sets the rooms of a storey `Z_GAP` over one another's feet (and the ground
+storey's roof), gives each room of a face its own depth into the core (their buried ends all lay in one plane, which the
+finder saw from inside the core, among the rooms' ends), sets the street face's windows `Z_GAP` off the door and each
+other, and books every room's faces in a `planeBook` the street's blocks share: a face (or its ledge's, its window's)
+landing within 6 mm of a booked plane of a piece it could meet is moved a few millimetres. Elsewhere: a winding stair's
+last tread `Z_GAP` under its top and a bridge's deck `2 × Z_GAP` under its ends (they lay on terraces, blocks and each
+other: architecture.js, civic-kit.js), the court's high walk 4 cm over the terrace it runs along, an opening's jambs
+backed off its recess's back, the pearl city's tower windows leaning with their tapered walls and kept off the girdle,
+the kiosk's posts 2 cm under its roof. The pale floors (`paleFloor`) stand on the highest ground a quarter cell round
+each corner: laid on the sand at their corners alone they dipped 2 cm into it where the ground's 4 m triangles fold
+under their 2 m cells (now 2.6-23 cm over it). **The finder** now measures two near-parallel faces where they overlap
+(`coplanarOverlaps`: the shared part's corners against the other face's plane): 300 m from the origin, faces tilted a
+hair apart have offsets (`n·p`) within 4 mm while lying centimetres apart, which counted the court's floor, 6 cm over
+the sand, as three sites and the Clock-House's dial as one. With the old finder the Glass Dunes counts 4 after these
+fixes, those four. `tests/zfight.test.js` holds the Glass Dunes to none (`WORLD_ZFIGHT_BASELINE`). Measured in the game
+(muted headless Chrome, High, 1280 × 720, up the city's lane from its stair, the camera moved 2 mm between two
+pictures): pixels changing by more than 24 levels 0.52 → 0.25 % (a striped wall of rooms gone; the rest is the lamps'
+glow and the motes); the court's terrace and the ledges' view the same before and after (0.25 %, 0.13 %).
+
 ## The Shadow Room and the shadow QC (`?level=shadows`, `.claude/skills/shadow-qc`; October 2026)
 
 Issue #67: a room for complex shadow situations, and a check of the shadows in motion with the traveller.

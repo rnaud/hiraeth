@@ -35,7 +35,7 @@ export function ruinedHouse(kit,M,{x,z,y=0,w,d,h,seed=0}){
   for(const side of [-1,1])ruinedFacade(kit,M,{x:x+side*w/2,z,y,w:d,h:h*(side<0?1:.78),yaw:side*Math.PI/2,seed:seed+side+5,door:false});
   if(seed%2===0){
     box(kit,M.trim,x+w*.18,y+h*.47,z+d/2+.6,w*.37,.4,1.5);
-    box(kit,M.stone,x+w*.33,y+h*.47+1.5,z+d/2+.75,.7,3,1.25);
+    box(kit,M.stone,x+w*.33,y+h*.47+1.5,z+d/2+.75,.66,3,1.25);   // (its sides off the balcony's ends: issue #498)
   }
   // Fallen fragments stay within the shell, so the adjacent walking lanes remain clear.
   for(let i=0;i<5;i++){

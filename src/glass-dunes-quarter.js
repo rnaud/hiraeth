@@ -165,7 +165,7 @@ function courtyard(kit,M,ground,glassMat,stairs){
  windingStair(kit,R,stairs,east,{w:3.3,outer:false});
  const west=[[c.x-3,base,c.z+5],[c.x-3,base+1.5,c.z-4],[c.x-3,base+3,c.z-12]];windingStair(kit,R,stairs,west,{w:4,outer:false});
  terrace(kit,R.trim,{x:c.x+12,z:c.z-59,y:base-2,h:14,rx:27,rz:22});
- windingStair(kit,R,stairs,[p(23.9,3,-16),p(28,6,-25),p(30,12,-33),p(30,12,-46),p(22,12,-47)],{w:4.2,thin:true,thickness:1,outer:false});
+ windingStair(kit,R,stairs,[p(23.9,3,-16),p(28,6,-25),p(30,12.04,-33),p(30,12.04,-46),p(22,12.04,-47)],{w:4.2,thin:true,thickness:1,outer:false});   // (4 cm over the back terrace it runs along, not in its top: issue #498)
  // a broad stair straight up the middle to the back terrace, as the plate's
  windingStair(kit,R,stairs,[p(1,3,-25),p(1,7.5,-32),p(1,12,-40)],{w:7,inner:false,outer:false});
  // the left mass: the dark cave mouth (a plum-dark recess in a rock arch), rock piled round and over it

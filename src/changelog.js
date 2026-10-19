@@ -118,6 +118,11 @@ export const CHANGELOG = [
     // issue #541: src/ragdoll.js Ragdoll.step (in the air the body's momentum kept: the limits' pushes no longer add up
     // to a sideways swim); tests/ragdoll.test.js
     'Knocked off a high ledge, your limp body now falls the way it was going instead of drifting sideways as it tumbles, so it no longer swings back under the ledge it fell from and lands on the ground below as it should.',
+    // issue #498: src/glass-dunes-masses.js (crowdedBlock's rooms set apart, planeBook; paleFloor; the towers' openings
+    // leaning with their walls), glass-dunes-architecture.js (the stairs' last tread, the openings' jambs), civic-kit.js
+    // (the bridges' decks), streets.js, quarter.js, ruins.js, shop-fronts.js (the kiosk's posts); scripts/zfight/lib.mjs
+    // (two faces measured where they overlap); tests/zfight.test.js (the Glass Dunes held at none), glass-dunes-masses.test.js
+    'The city under the Glass Dunes’ sand no longer shimmers as you walk its lanes: the rooms jutting from its houses, their ledges and windows no longer lie in one another’s faces, and the same goes for the stairs and bridges where they meet a terrace, the pale floors over the sand and the pearl city’s tower windows.',
   ] },
   { v: '1.85', date: '2026-10-18', items: [
     // issue #474: src/music-moments.js (MUSIC_MODES, musicMode: Always the default), src/ui.js (musicMode, musicV: a saved

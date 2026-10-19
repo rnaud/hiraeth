@@ -1291,6 +1291,7 @@ const UNITY264M = 'Issue #264: the Unity editor’s batch run on this Mac (node 
 const WEB264M = 'Issue #264: the web game in muted headless Chrome on this branch’s own Vite (port 5264, node scripts/unity-compare/sequences.mjs web start-pages,menus), 1280 × 720, the same beats; 19 October; webp q 72';
 /** (v1.86, issues #528, #529: the temple endings filmed through their keepers) */
 const FIN528 = 'Issues #528, #529: the cinematics QC (scripts/cinematics-qc.mjs --group "Temple endings") in muted headless Chrome (High, 1280 × 720, the frames kept at 960 × 540) on this branch’s own Vite (port 5428), each ending staged by the review page (in the arena between the keeper and the way out, the keeper woken and calmed); before: the branch’s base with #490 and #491, after: the fix, the same panel of the film; 19 October';
+const DUNES498 = 'Issue #498: muted headless Chrome (High, 1280 × 720) against this branch’s own Vite (port 5498), the Glass Dunes at 10:00, standing on the stair in the city under the sand, looking up its lane; each picture taken twice, the camera moved 2 mm to the side between them, and the pixels that changed by more than 24 levels painted red (the rest dimmed); before: the tree at e3df11da4, the same views (0.52 % of the picture changed; after, 0.25 %, the lamps’ glow and the drifting motes); 19 October; cwebp -q 60';
 export const CHANGELOG_MEDIA = {
   '1.86': [
     { match: 'In the Unity version, the Controls page shows your keys and buttons on caps', tags: ['devices'], shots: [
@@ -1387,6 +1388,9 @@ export const CHANGELOG_MEDIA = {
       { name: 'finale-listener-529', title: 'The Whale-House: after the film', size: [960, 540], caption: 'The camera handed back: before, under the Listener’s shell, him half hidden; after, beside him with the shell to one side.', from: FIN528 },
     ], see: 'Calm any makers’ house’s guardian and watch its film; or open Debug → Cinematics and play the Temple endings (finale.perdide, finale.incal, finale.perdide2, finale.edena, finale.underwater).' },
     { match: 'Knocked off a high ledge, your limp body now falls the way it was going', see: 'Get knocked off a high ledge (a foe’s blow at a cliff’s edge, or a hard landing that tumbles you on over the edge) and watch the fall: the body carries on out the way it was thrown, turning over, and comes to rest on the ground at the bottom. Before, a long tumble could drift it many metres sideways, even back in under the cliff it fell from.' },
+    { match: 'The city under the Glass Dunes’ sand no longer shimmers', shots: [
+      { name: 'dunes-city-flicker-498', title: 'Up the lane', caption: 'Looking up the lane from the stair, the camera moved 2 mm between two pictures, what changed in red: before, a wall of jutting rooms high up striped (two rooms in one plane); after, only the lamps’ glow and a few motes', from: DUNES498 },
+    ], see: 'Go down through the sinkhole by the Clock-House into the city, climb the stair up the lane and look up at the rooms jutting over it while you walk: their faces and undersides hold still.' },
   ],
   '1.85': [
     { match: 'In the Unity version, flowers far across Viridel’s meadow', tags: ['devices'], shots: [

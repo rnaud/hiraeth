@@ -109,8 +109,8 @@ export function overlapOf(t1, t2, n) {
   const r = clipPolygon(p, q);
   if (r.length < 3) return { area: 0, at: null };
   const cx = r.reduce((s, x) => s + x[0], 0) / r.length, cy = r.reduce((s, x) => s + x[1], 0) / r.length;
-  const d = dot(n, t1.a), [U, W] = B;
-  return { area: Math.abs(area2(r)), at: [U[0] * cx + W[0] * cy + n[0] * d, U[1] * cx + W[1] * cy + n[1] * d, U[2] * cx + W[2] * cy + n[2] * d] };
+  const d = dot(n, t1.a), [U, W] = B, world = ([x, y]) => [U[0] * x + W[0] * y + n[0] * d, U[1] * x + W[1] * y + n[1] * d, U[2] * x + W[2] * y + n[2] * d];
+  return { area: Math.abs(area2(r)), at: world([cx, cy]), corners: r.map(world) };
 }
 
 /**
@@ -174,6 +174,11 @@ export function coplanarOverlaps(tris, { eps = 0.004, cos = 0.9995, minArea = 0.
         if (!hit(A.box, B.box)) continue;
         const ov = overlapOf(A.t, B.t, A.n), ar = ov.area;
         if (ar < 1e-5) continue;
+        // (two faces nearly parallel far from the world's origin can have offsets within eps and still lie centimetres
+        // apart where they overlap: the shared part's corners measured from B's own plane, all beyond eps on one side,
+        // is no fight; issue #498, a floor 6 cm over the sand 300 m out)
+        const gaps = ov.corners.map((q) => dot(B.n, q) - B.d);
+        if (gaps.every((g) => g > eps) || gaps.every((g) => g < -eps)) continue;
         const [m1, m2] = [A.t, B.t].sort((x, y) => (`${x.mesh}|${x.mat}` < `${y.mesh}|${y.mat}` ? -1 : 1));
         // (one site per pair of looks per few metres: a temple's walls are one merged mesh, its trims another)
         const ctr = A.t.a.map((x, q) => Math.floor((x + A.t.b[q] + A.t.c[q]) / 3 / site));

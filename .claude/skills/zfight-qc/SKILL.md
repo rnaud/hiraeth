@@ -16,7 +16,7 @@ paint over a course of stone): it shows.
 - `lib.mjs` (pure): `trianglesOf(root)` (every visible static mesh's triangles in world space, each with its look: the
   material, and for the temples' vertex-coloured paint the colour too), `coplanarOverlaps(tris)` (bucketed by plane:
   two looks whose planes are within `eps` 4 mm, parallel, facing the same way or either drawn double-sided, and
-  sharing more than `minArea` 0.05 m² once projected into the plane: one **site** per pair of looks per 3 m),
+  sharing more than `minArea` 0.05 m² once projected into the plane, and within `eps` of each other where they overlap (v1.86: two faces tilted a hair apart far from the origin can share an offset and lie centimetres apart): one **site** per pair of looks per 3 m),
   `visibleSites(sites, ray, { stand })` (only those someone could see: from places to stand round each site, a floor
   under them, no ceiling on their head, not inside a wall, a clear line to the site on the side its faces look out of;
   inside a temple's box only in a room, under its roof with walls all round). A face whose material has
@@ -68,7 +68,7 @@ layout's (a slab placed flush on a wall's face).
 `tests/zfight.test.js` holds every temple to its count (`ZFIGHT_BASELINE`), the Rose House at none. Lower a
 baseline when a fix lands; a new site in a temple fails the test with where it is and the command to list them.
 The worlds outside the temples are counted by `audit.mjs` and reported in docs/systems/rendering.md "Z-fighting";
-only the City Floating in Space is held to a count (`WORLD_ZFIGHT_BASELINE`), and the market in the air, the canyon
+the City Floating in Space and the Glass Dunes (none, v1.86) are held to a count (`WORLD_ZFIGHT_BASELINE`), and the market in the air, the canyon
 street and the furrows to none of their own (a world takes seconds to build, the City-Shaft minutes).
 
 A site the finder reports is not always one you can see: it takes a face as seen when nothing is within 5 cm in front

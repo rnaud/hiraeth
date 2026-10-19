@@ -314,7 +314,7 @@ export const FRONTS = {
     B.add(sage, archWall(4.8, 3.1, 0.3, { door: B.door({ w: 1.3, h: 2.3, x: -1.5 }), windows: [{ w: 2.3, h: 1.2, x: 1.0, y: 1.0 }] }), { plates: true });
     B.add(sage, block(5.6, 3.4, 4.0, 0, -0.2, -2.3), { plates: true });
     B.add(sage2, block(5.8, 0.9, 4.2, 0, -1.1, -2.2));
-    for (const z of [-0.33, -4.27]) for (const s of [-1, 1]) B.add(sage2, new THREE.CylinderGeometry(0.35, 0.35, 3.4, 10).translate(s * 2.62, 1.5, z));
+    for (const z of [-0.33, -4.27]) for (const s of [-1, 1]) B.add(sage2, new THREE.CylinderGeometry(0.35, 0.35, 3.38, 10).translate(s * 2.62, 1.49, z));   // (their tops 2 cm under the cabin's, issue #498)
     B.add(sage2, block(5.7, 0.25, 4.1, 0, 3.2, -2.3));
     lit(B, 1.3, 2.3, -1.5, 0, -0.28, { arch: false });
     lit(B, 2.3, 1.2, 1.0, 1.0, -0.28, { arch: false, color: '#f2d39a' });
