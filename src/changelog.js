@@ -161,6 +161,12 @@ export const CHANGELOG = [
     // seeing the house, D's side by its backdrop), spacecity-moments.js (A kept seeing the house, capstanShot in the
     // tripod's gap); tests/moments-moonfoundry.test.js, moments-spacecity.test.js (no solid between a lens and its subject)
     'The Moon Foundry’s and the City Floating in Space’s big moments show what happens again. Out of the Casting-House, the film no longer opens on two seconds of a dark wall: it starts wide on the house and its tower from out on the floor. Over the Mooring-House, the cables drawing taut are filmed from under the great tripod, between its legs, instead of through one of them, and the first shot no longer presses against the house’s wall.',
+    // issues #528, #529: src/temples/finale.js (keeperBox: the keeper's drawn body, walked on to its rest and turned; A
+    // arced, swung and lifted until it has the whole keeper; B by the purse with the keeper beyond, never through it or
+    // him; C and D out of its body; washes / FILM_HUSH; the hand-back out of its body), src/chimes.js purseSpot (the
+    // purse short of the keeper's body), src/temples/pieces.js Sunbeam hush / cone, src/story/moment.js behindHim
+    // (avoid); tests/temple-finale.test.js (A–C: a lens out of solids and the body that sees its subject)
+    'The films that end each makers’ house no longer look through the guardian. The shot of what it leaves you shows the chimes on the floor with the guardian beyond them, where it used to be filmed from inside its leaves, its moss or a wall; the chimes now land in the open in front of it rather than under it. The Lampless’s wings and the Listener’s shell no longer fill the first shot, the Gardener is no longer washed pale by its sunbeam in the wide over its hall, and after the Whale-House’s film the camera comes back beside you rather than under the Listener’s shell.',
   ] },
   { v: '1.84', date: '2026-10-17', items: [
     // issue #439: src/costumes.js (HEADS: the 47 pieces of the 15 hat sets, HAT_SETS, HAT_SET_WORLDS, hoodShell / hoodNeck /

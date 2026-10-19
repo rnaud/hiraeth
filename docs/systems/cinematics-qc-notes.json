@@ -523,73 +523,73 @@
   },
   "finale.desert": {
    "verdict": "Pass",
-   "text": "QC 2026-10-19 (v1.85, the first look, #490): tech 4/5, interest 3/5. the Keeper whole in A, him small beside it; B, the reward, low on the floor: the purse a speck on bare floor (#528); C high over the cistern, the glyphs up; D the way up sinking open. Every one plays its 11 s cleanly, with no console errors.",
-   "updated": "2026-10-19T08:30:00.000Z"
+   "text": "QC 2026-10-19 (v1.85, #528/#529: the lens kept out of the keeper’s drawn body; before → after by eye from --group \"Temple endings\"): tech 4 → 4.5, interest 3 → 3.5. A the Keeper whole; B was a speck of purse on bare floor, now the chimes, him on the right and the Keeper beyond; C, D clean; hand-back behind him, clear. Every one plays its 11 s; the one console error in this run is the dev server’s BVH worker outside its allow list (a worktree’s node_modules), not the film.",
+   "updated": "2026-10-19T08:00:00.000Z"
   },
   "finale.incal": {
-   "verdict": "Needs work",
-   "text": "QC 2026-10-19 (v1.85, the first look, #490): tech 3.5/5, interest 3/5. A the warden whole, a pillar filling a quarter of the frame at 2-3 s; B, the reward, low on the floor: the lens inside a solid for the whole panel, 48 frames, a bare floor (#528); C and D clean. Every one plays its 11 s cleanly, with no console errors.",
-   "updated": "2026-10-19T08:30:00.000Z"
+   "verdict": "Pass",
+   "text": "QC 2026-10-19 (v1.85, #528/#529: the lens kept out of the keeper’s drawn body; before → after by eye from --group \"Temple endings\"): tech 3.5 → 4, interest 3. B was the lens inside a solid for 48 frames, a bare floor; now out of solids, the warden on its legs beyond the chimes (its body over the top of the frame). A still has a pillar over a quarter of the frame at 2–3 s. Every one plays its 11 s; the one console error in this run is the dev server’s BVH worker outside its allow list (a worktree’s node_modules), not the film.",
+   "updated": "2026-10-19T08:00:00.000Z"
   },
   "finale.arzach2": {
    "verdict": "Pass",
-   "text": "QC 2026-10-19 (v1.85, the first look, #490): tech 5/5, interest 4/5. the Cloud-Mother whole in A; B, the reward, low on the floor: the purse a speck by a boulder (#528); C high over the hall, D the high door sinking. Every one plays its 11 s cleanly, with no console errors.",
-   "updated": "2026-10-19T08:30:00.000Z"
+   "text": "QC 2026-10-19 (v1.85, #528/#529: the lens kept out of the keeper’s drawn body; before → after by eye from --group \"Temple endings\"): tech 5 → 5, interest 4. B was a speck by a boulder; now the boulder, the chimes and the Cloud-Mother over them. A, C, D clean. Every one plays its 11 s; the one console error in this run is the dev server’s BVH worker outside its allow list (a worktree’s node_modules), not the film.",
+   "updated": "2026-10-19T08:00:00.000Z"
   },
   "finale.spheres": {
    "verdict": "Pass",
-   "text": "QC 2026-10-19 (v1.85, the first look, #490): tech 4.5/5, interest 3/5. the Echo whole in A; B, the reward, low on the floor: the keeper's feet at the top, glass plates, the purse a speck (#528); C and D clean. Every one plays its 11 s cleanly, with no console errors.",
-   "updated": "2026-10-19T08:30:00.000Z"
+   "text": "QC 2026-10-19 (v1.85, #528/#529: the lens kept out of the keeper’s drawn body; before → after by eye from --group \"Temple endings\"): tech 4.5 → 4.5, interest 3. B now him and the Echo’s legs beyond the chimes (him at the frame’s edge); A, C, D clean. Every one plays its 11 s; the one console error in this run is the dev server’s BVH worker outside its allow list (a worktree’s node_modules), not the film.",
+   "updated": "2026-10-19T08:00:00.000Z"
   },
   "finale.buried": {
    "verdict": "Pass",
-   "text": "QC 2026-10-19 (v1.85, the first look, #490): tech 4/5, interest 3/5. the Tooth-Warden whole in A; B, the reward, low on the floor: its body fills the top half (#528); C and D clean. Every one plays its 11 s cleanly, with no console errors.",
-   "updated": "2026-10-19T08:30:00.000Z"
+   "text": "QC 2026-10-19 (v1.85, #528/#529: the lens kept out of the keeper’s drawn body; before → after by eye from --group \"Temple endings\"): tech 4 → 4.5, interest 3. B was its body over the top half; now the Tooth-Warden beyond him, legs and body (close in some runs, as it walks on to its rest). A, C, D clean. Every one plays its 11 s; the one console error in this run is the dev server’s BVH worker outside its allow list (a worktree’s node_modules), not the film.",
+   "updated": "2026-10-19T08:00:00.000Z"
   },
   "finale.perdide2": {
-   "verdict": "Needs work",
-   "text": "QC 2026-10-19 (v1.85, the first look, #490): tech 4/5, interest 3/5. A runs into the Lampless's wings, which fill the frame at 1-3 s (#529); B, the reward, low on the floor: a bare floor, the purse a speck (#528); D dark, 6 of 23 frames nearly empty by the script, readable by eye. Every one plays its 11 s cleanly, with no console errors.",
-   "updated": "2026-10-19T08:30:00.000Z"
+   "verdict": "Pass",
+   "text": "QC 2026-10-19 (v1.85, #528/#529: the lens kept out of the keeper’s drawn body; before → after by eye from --group \"Temple endings\"): tech 4 → 4.5, interest 3 → 3.5. A was the Lampless’s wings filling the frame at 1–3 s; now the whole of it in the air under the lamp from 15 m (#529). B him and the chimes, the moth at the top edge (it floats high). D dark as before. Every one plays its 11 s; the one console error in this run is the dev server’s BVH worker outside its allow list (a worktree’s node_modules), not the film.",
+   "updated": "2026-10-19T08:00:00.000Z"
   },
   "finale.perdide": {
-   "verdict": "Needs work",
-   "text": "QC 2026-10-19 (v1.85, the first look, #490): tech 3/5, interest 3/5. A the Mother Snapper whole; B, the reward, low on the floor: its leaves fill the whole panel for 2.4 s (#528); C and D clean. Every one plays its 11 s cleanly, with no console errors.",
-   "updated": "2026-10-19T08:30:00.000Z"
+   "verdict": "Pass",
+   "text": "QC 2026-10-19 (v1.85, #528/#529: the lens kept out of the keeper’s drawn body; before → after by eye from --group \"Temple endings\"): tech 3 → 4.5, interest 3 → 4. B was 2.4 s inside the Mother Snapper’s leaves; now the chimes in the open by him, her leaves and bulb whole beyond (the purse lands short of her body). A, C, D clean. Every one plays its 11 s; the one console error in this run is the dev server’s BVH worker outside its allow list (a worktree’s node_modules), not the film.",
+   "updated": "2026-10-19T08:00:00.000Z"
   },
   "finale.arzach": {
    "verdict": "Pass",
-   "text": "QC 2026-10-19 (v1.85, the first look, #490): tech 5/5, interest 4/5. the Elder opening her wings in A, him small at her feet; B, the reward, low on the floor: her feet and the purse, good; C and D clean. Every one plays its 11 s cleanly, with no console errors.",
-   "updated": "2026-10-19T08:30:00.000Z"
+   "text": "QC 2026-10-19 (v1.85, #528/#529: the lens kept out of the keeper’s drawn body; before → after by eye from --group \"Temple endings\"): tech 5 → 5, interest 4. B now him by the chimes and the Elder’s wings and feet beyond. A, C, D clean. Every one plays its 11 s; the one console error in this run is the dev server’s BVH worker outside its allow list (a worktree’s node_modules), not the film.",
+   "updated": "2026-10-19T08:00:00.000Z"
   },
   "finale.garage": {
    "verdict": "Pass",
-   "text": "QC 2026-10-19 (v1.85, the first look, #490): tech 4.5/5, interest 3/5. the Foreman whole in A; B, the reward, low on the floor: its underside fills the top half (#528); C and D clean. Every one plays its 11 s cleanly, with no console errors.",
-   "updated": "2026-10-19T08:30:00.000Z"
+   "text": "QC 2026-10-19 (v1.85, #528/#529: the lens kept out of the keeper’s drawn body; before → after by eye from --group \"Temple endings\"): tech 4.5 → 5, interest 3 → 3.5. B was its underside over the top half; now the Foreman whole beyond him and the chimes. A, C, D clean. Every one plays its 11 s; the one console error in this run is the dev server’s BVH worker outside its allow list (a worktree’s node_modules), not the film.",
+   "updated": "2026-10-19T08:00:00.000Z"
   },
   "finale.edena": {
-   "verdict": "Needs work",
-   "text": "QC 2026-10-19 (v1.85, the first look, #490): tech 3/5, interest 3/5. A the Gardener whole; B, the reward, low on the floor: its green body fills the whole panel (#528); C the Gardener drawn see-through (#529); D clean. Every one plays its 11 s cleanly, with no console errors.",
-   "updated": "2026-10-19T08:30:00.000Z"
+   "verdict": "Pass",
+   "text": "QC 2026-10-19 (v1.85, #528/#529: the lens kept out of the keeper’s drawn body; before → after by eye from --group \"Temple endings\"): tech 3 → 4.5, interest 3 → 3.5. B was the Gardener’s green body filling the panel; now him and the chimes with its mound beyond. C was the Gardener washed pale by its sunbeam (the shaft’s wash between lens and keeper); now that wash is hushed while the film looks through it, the Gardener solid (#529). A, D clean. Every one plays its 11 s; the one console error in this run is the dev server’s BVH worker outside its allow list (a worktree’s node_modules), not the film.",
+   "updated": "2026-10-19T08:00:00.000Z"
   },
   "finale.bazaar": {
    "verdict": "Pass",
-   "text": "QC 2026-10-19 (v1.85, the first look, #490): tech 4/5, interest 3/5. the First Sign whole in A; B, the reward, low on the floor: dark struts fill the lower half (#528); C and D clean. Every one plays its 11 s cleanly, with no console errors.",
-   "updated": "2026-10-19T08:30:00.000Z"
+   "text": "QC 2026-10-19 (v1.85, #528/#529: the lens kept out of the keeper’s drawn body; before → after by eye from --group \"Temple endings\"): tech 4 → 4, interest 3. B was dark struts over the lower half; now him (a third of the frame, left) with the First Sign’s base and pole beyond. A lifted 8 m for its 16 m height, whole; C, D clean. Every one plays its 11 s; the one console error in this run is the dev server’s BVH worker outside its allow list (a worktree’s node_modules), not the film.",
+   "updated": "2026-10-19T08:00:00.000Z"
   },
   "finale.spacecity": {
    "verdict": "Pass",
-   "text": "QC 2026-10-19 (v1.85, the first look, #490): tech 4.5/5, interest 3/5. the Anchor-Warden whole in A; B, the reward, low on the floor: its arm across the top, the purse a speck (#528); C and D clean. Every one plays its 11 s cleanly, with no console errors.",
-   "updated": "2026-10-19T08:30:00.000Z"
+   "text": "QC 2026-10-19 (v1.85, #528/#529: the lens kept out of the keeper’s drawn body; before → after by eye from --group \"Temple endings\"): tech 4.5 → 4.5, interest 3. B was its arm across the top; now the Anchor-Warden whole beyond him. Hand-back beside it, clear. A, C, D clean. Every one plays its 11 s; the one console error in this run is the dev server’s BVH worker outside its allow list (a worktree’s node_modules), not the film.",
+   "updated": "2026-10-19T08:00:00.000Z"
   },
   "finale.moonfoundry": {
    "verdict": "Pass",
-   "text": "QC 2026-10-19 (v1.85, the first look, #490): tech 4/5, interest 3/5. the Last Founder whole in A; B, the reward, low on the floor: its body fills the top half (#528); C and D clean. Every one plays its 11 s cleanly, with no console errors.",
-   "updated": "2026-10-19T08:30:00.000Z"
+   "text": "QC 2026-10-19 (v1.85, #528/#529: the lens kept out of the keeper’s drawn body; before → after by eye from --group \"Temple endings\"): tech 4 → 4.5, interest 3 → 3.5. B was its body over the top half; now the Last Founder whole beyond him and the chimes. A, C, D clean. Every one plays its 11 s; the one console error in this run is the dev server’s BVH worker outside its allow list (a worktree’s node_modules), not the film.",
+   "updated": "2026-10-19T08:00:00.000Z"
   },
   "finale.underwater": {
-   "verdict": "Needs work",
-   "text": "QC 2026-10-19 (v1.85, the first look, #490): tech 3.5/5, interest 3/5. the Listener's shell fills A from 2 s (#529); B, the reward, low on the floor: the shell's underside fills the top half (#528); C and D clean; the hand-back behind the shell, him half hidden (#529). Every one plays its 11 s cleanly, with no console errors.",
-   "updated": "2026-10-19T08:30:00.000Z"
+   "verdict": "Pass",
+   "text": "QC 2026-10-19 (v1.85, #528/#529: the lens kept out of the keeper’s drawn body; before → after by eye from --group \"Temple endings\"): tech 3.5 → 4, interest 3. A was the Listener’s shell filling the frame from 2 s; now arced 5 m higher, the shell whole bar its tip at 2 s (#529). The hand-back was under the shell, him half hidden; now beside him, the shell to one side (#529). B still has the shell’s underside over the top half, him small at the left: the weakest B. Every one plays its 11 s; the one console error in this run is the dev server’s BVH worker outside its allow list (a worktree’s node_modules), not the film.",
+   "updated": "2026-10-19T08:00:00.000Z"
   }
  }
 }

@@ -11,7 +11,7 @@ import { Guardian, guardianBar } from './boss.js';
 import { Mark, Pit, Platform, Updraft, MapChest } from './pieces.js';
 import { housePlan, roomAt } from './house-plan.js';
 import { Veils } from '../veil.js';
-import { FINALE } from './finale.js';
+import { FINALE, keeperBox } from './finale.js';
 import { pitVoid, PIT_VOID } from '../pit-void.js';
 
 // One temple, alive: its rooms (built by the world's layout with the kit and
@@ -315,7 +315,7 @@ export class TempleRuntime {
     try { this.onFinale?.(this); } catch (e) { console.warn(`temple ${this.id}: its ending could not play`, e); }
     this.applyDoors();
     this.game.set(`temple.${this.id}.done`, true);
-    this.game.emit('temple:resolved', { id: this.id, pos: this.guardian?.model?.pos?.clone?.() ?? null });   // (pos: where it settled: its purse, src/chimes.js)
+    this.game.emit('temple:resolved', { id: this.id, pos: this.guardian?.model?.pos?.clone?.() ?? null, body: this.guardian?.model ? keeperBox(this.guardian.model) : null });   // (pos: where it settled, body: its drawn box: its purse, src/chimes.js purseSpot)
     this.def.onResolved?.(this);
   }
   applyDoors() {

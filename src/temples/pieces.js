@@ -2493,10 +2493,14 @@ export class Sunbeam {
     const s = this.want();
     this.at = (s?.pos ?? this.from).clone(); this.r = s?.r ?? 0.1; this.n = (s?.n ?? UP).clone();
     this.k = s ? 1 : 0;
+    // (its wash dimmed while a film looks through it at a keeper: hush the share wanted, eased; finale.js, #529)
+    this.hush = 1; this._hush = 1;
     this._a = V(); this._b = V(); this._c = V();
   }
   /** The spot it falls on now (the first whose condition holds; o.pick() → its index, when the temple decides), or null. */
   want() { if (this.o.pick) return this.spots[this.o.pick()] ?? null; return this.spots.find((p) => !p.when || this.rt.logic.check(p.when)) ?? null; }
+  /** Its shaft now, as a cone: { top, rTop, bottom, rBottom } (world), or null when it is shut (the finale's lenses look past it). */
+  cone() { return this.k > 0.02 ? { top: this.from, rTop: this.w * 0.45, bottom: this.at, rBottom: this.r * 0.95 } : null; }
   /** Is a point (world) in its light now (in the pool, within r, settled there)? */
   lights(p, pad = 0) { return this.k > 0.9 && !this.moving && Math.hypot(p.x - this.at.x, p.z - this.at.z) < this.r + pad && Math.abs(p.y - this.at.y) < 3; }
   update(dt, t) {
@@ -2510,6 +2514,7 @@ export class Sunbeam {
       this.r += ((s.r ?? 2) - this.r) * Math.min(1, dt * 3);
       this.n.lerp(s.n, Math.min(1, dt * 3)).normalize();
     }
+    this._hush += (this.hush - this._hush) * Math.min(1, dt * 3);
     const k = this.k;
     for (const sl of this.slats) sl.rotation.x = k * 1.15;   // (open: the slats turned edge-on to the sun)
     const show = k > 0.02;
@@ -2522,7 +2527,7 @@ export class Sunbeam {
     this.pool.scale.set(this.r * k, 1, this.r * k);
     this.poolMat.uniforms.uGlow.value = 0.45 + 0.3 * k + 0.05 * Math.sin(t * 1.3);
     // the shaft: from the louvre's opening (level, in the roof) to the pool's rim (flat on what it lights)
-    this.shaft.set(this.from, this.w * 0.45, this._c.copy(this.at).addScaledVector(this.n, 0.06), this.r * 0.95, { topN: UP, bottomN: this.n }).fade(k);
+    this.shaft.set(this.from, this.w * 0.45, this._c.copy(this.at).addScaledVector(this.n, 0.06), this.r * 0.95, { topN: UP, bottomN: this.n }).fade(k * this._hush);
     this.light.set(this.at.x, this.at.y + 2, this.at.z, 7 * k);
   }
 }

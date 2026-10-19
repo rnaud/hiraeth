@@ -92,7 +92,8 @@ export class Moment {
    * @param o.beats    [{ t, line?, secs?, run? }] in time order
    * @param o.dur      its length (default: the shots')
    * @param o.stage    { shot(s), release(blend), bars(on), hud(on), say(line, o), skipTag(on), physics?, player?, game? }
-   * @param o.behind   true: the follow camera goes back behind him at its usual pitch at the end
+   * @param o.behind   true: the follow camera goes back behind him at its usual pitch at the end; { avoid: Box3 }: and
+   *                   swung round him, the least it can, until its lens is out of that box (a keeper's body: behindHim)
    * @param o.grace    s before a skip counts (the press that started it, mashed, must not end it)
    * @param o.onStart(m), o.onFrame(m, t, dt), o.onEnd(m, skipped)
    */
@@ -192,7 +193,7 @@ export class Moment {
     try { S.say?.(null); } catch {}
     // `behind`: the follow camera put back behind him at its usual pitch before the blend to it (a moment
     // started by looking steeply up left the arm pitched up, the lens jammed against his head: the QC pass)
-    if (this.behind) try { S.behind?.(); } catch {}
+    if (this.behind) try { S.behind?.(this.behind === true ? undefined : this.behind); } catch {}
     try { S.release?.(skipped ? 0.5 : this.blendOut); } catch {}
     try { S.bars?.(false); S.hud?.(true); S.skipTag?.(false); } catch {}
     try { this.onEnd?.(this, !!skipped); } catch (e) { console.warn(`moment ${this.id ?? ''}: its end failed`, e); }
@@ -211,11 +212,35 @@ export function skipLabel(doc = typeof document !== 'undefined' ? document : nul
  * The world's moments: one at a time, on the ship's camera and Cinema.
  * @param o { ship (shot, release, cinema, playing, busy()), game, player, physics, quiet?() }
  */
-/** The follow camera behind the traveller at its usual pitch (a moment's `behind: true`, at its end). */
-export function behindHim(rig, player) {
+/**
+ * The follow camera behind the traveller at its usual pitch (a moment's `behind: true`, at its end). `avoid` (a Box3,
+ * or a function giving one at the end: a keeper's body, src/temples/finale.js): the arm swung round him, the smallest turn first, until neither its lens nor
+ * the arm out to it is inside the box (the Whale-House's film handed back behind the Listener's shell, him half hidden
+ * under it: the cinematics QC, v1.85, #529); the turn farthest from it when none is clear.
+ */
+export const BEHIND_TURNS = [0, 0.4, -0.4, 0.8, -0.8, 1.2, -1.2, 1.6, -1.6, 2.1, -2.1, 2.6, -2.6, Math.PI];
+const _bo = new THREE.Vector3(), _bd = new THREE.Vector3(), _bh = new THREE.Vector3(), _br = new THREE.Ray();
+export function behindHim(rig, player, { avoid = null, margin = 0.6 } = {}) {
   if (!rig || !player) return false;
-  rig.yaw = (player.heading ?? 0) + Math.PI;
+  const yaw0 = (player.heading ?? 0) + Math.PI;
+  rig.yaw = yaw0;
   rig.pitch = rig.pitch0 ?? 0.13;
+  const near = typeof avoid === 'function' ? avoid() : avoid;   // (a function: the body as it stands at the end)
+  if (!near || near.isEmpty?.() || !player.pos) return true;
+  const box = near.clone().expandByScalar(margin), arm = (rig.dist ?? 4.8) + 0.5, cp = Math.cos(rig.pitch), sp = Math.sin(rig.pitch);
+  _bo.copy(player.pos).y += 1.5;   // (about the rig's look point: his shoulders)
+  let best = null;
+  for (const turn of BEHIND_TURNS) {
+    const yaw = yaw0 + turn;
+    _bd.set(Math.sin(yaw) * cp, sp, Math.cos(yaw) * cp);
+    _br.set(_bo, _bd);
+    // (his shoulders inside it, under a body that reaches over him: the first arm whose lens is out of it)
+    const hit = box.containsPoint(_bo) ? (box.containsPoint(_bh.copy(_bo).addScaledVector(_bd, arm)) ? 0 : Infinity)
+      : _br.intersectBox(box, _bh) ? _bh.distanceTo(_bo) : Infinity;
+    if (hit >= arm) { rig.yaw = yaw; return true; }
+    if (!best || hit > best.hit) best = { yaw, hit };
+  }
+  rig.yaw = best.yaw;
   return true;
 }
 
@@ -252,7 +277,7 @@ export class MomentStage {
     return {
       shot: (c) => s.shot(c), release: (b) => s.release(b), bars: (on) => C.bars?.(on), hud: (on) => C.hud?.(on),
       say: (line, o) => C.say?.(line, o), skipTag: tag, physics: this.physics, player: this.player, game: this.game,
-      behind: () => behindHim(s.rig, this.player),
+      behind: (o) => behindHim(s.rig, this.player, o),
     };
   }
 
