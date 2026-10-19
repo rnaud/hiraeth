@@ -7,11 +7,14 @@ import colorsys, json, math
 import bmesh
 import bpy
 from mathutils import Vector
+from finish import edge_order, face_order
 
 LABELS = ['skin', 'shirt', 'tee', 'trousers', 'boots', 'scarf', 'head']
 HEAD_CUT = 1.515      # traveller-b3.js: B3's own head goes above this (head-v3 replaces it)
 SEAM_SMOOTH = 25
 OPENING = 0.13       # the shirt's front opening, either side of the middle (pass 3)
+OPENING_LOW = 0.04   # pass 4: wider below the waist, where the panels part (the trousers there went to the shirt)
+COLLAR_Z = 1.46      # the tee's collar at the back of the neck starts above this (pass 4)
 HEM = None           # the shirt's hem height at a point round the hips (set by label_faces)      # how far the labels' scores diffuse before the cut (more: straighter, rounder seams)
 
 
@@ -115,6 +118,11 @@ def label_faces(ob, colors):
                     w = max(votes, key=votes.get)
                     for k in comp:
                         lab[k] = w
+    # pass 4: the cream collar at the back of the neck (B3 paints it the scarf's sand or the tee's cream), cut
+    # off from the rest of the tee by the scarf and the shirt's collar, is the tee's (the clean-ups below gave
+    # it to the shirt, and it went pink)
+    collar = {f.index for f in bm.faces if lab[f.index] in ('tee', 'scarf') and
+              (lambda c: c.z > COLLAR_Z and abs(c.x) < 0.12 and c.y > 0)(M @ f.calc_center_median())}
     # pass 3: the tee, the trousers and the scarf are each one piece of cloth; their other islands (B3's
     # cream paint inside the shirt's back, say) are holes in whatever is round them, and join it
     # pass 3: cream paint on the shirt is the shirt's own, not the tee or the trousers showing through a hole:
@@ -131,7 +139,7 @@ def label_faces(ob, colors):
     hem = [min(raw[(k - 1) % 24], raw[k], raw[(k + 1) % 24]) for k in range(24)]
     flipped = 0
     for i, (c, l) in enumerate(zip(cs, lab)):
-        if l in ('tee', 'trousers') and c.z < 1.2 and abs(c.x) < 0.3 and not (c.y < 0 and abs(c.x) < OPENING) and hem[sect(c)] and c.z > hem[sect(c)] + 0.012:
+        if l in ('tee', 'trousers') and c.z < 1.2 and abs(c.x) < 0.3 and not (c.y < 0 and abs(c.x) < OPENING + (OPENING_LOW if c.z < 1.0 else 0.0)) and hem[sect(c)] and c.z > hem[sect(c)] + 0.012:
             lab[i] = 'shirt'
             flipped += 1
     print('B3: hem by sector %s; %d cream faces above it are the shirt' % ([round(h, 2) for h in hem], flipped))
@@ -209,6 +217,9 @@ def label_faces(ob, colors):
                 w = max(votes, key=votes.get)
                 for k in comp:
                     lab[k] = w
+    for i in collar:
+        lab[i] = 'tee'
+    print('B3: %d faces of the tee\'s collar kept' % len(collar))
     bm.free()
     return lab
 
@@ -248,9 +259,9 @@ def smooth_cut(ob, lab):
         others = [LABELS.index(x) for x in left if x != L]
         left.remove(L)
         fval = lambda v: S[v][li] - max(S[v][k] for k in others)
-        edges = {e for f in remaining for e in f.edges}
+        edges = edge_order({e for f in remaining for e in f.edges})   # (pass 4: in a fixed order: a set of BMEdges iterates by address, and the cut came out different every run)
         made = set()
-        for e in list(edges):
+        for e in edges:
             a, b = e.verts
             fa, fb = fval(a), fval(b)
             if fa * fb < 0 and abs(fa - fb) > 1e-9:
@@ -267,7 +278,7 @@ def smooth_cut(ob, lab):
                 S[nv_][li] = max(S[nv_][k] for k in others)
                 made.add(nv_)
         new_faces = set()
-        for f in list(remaining):
+        for f in face_order(remaining):
             if not f.is_valid:
                 continue
             zero = [v for v in f.verts if v in made]

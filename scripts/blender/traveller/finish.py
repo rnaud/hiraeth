@@ -44,6 +44,20 @@ def get_kind(me):
     return out
 
 
+def _key(co):
+    return tuple(round(c, 6) for c in co)
+
+
+def edge_order(edges):
+    """Edges in an order fixed by where they are (pass 4: a set of BMEdges iterates by memory address, so the
+    cuts split their triangles in another order every run and the build was not repeatable)."""
+    return sorted(edges, key=lambda e: sorted((_key(e.verts[0].co), _key(e.verts[1].co))))
+
+
+def face_order(faces):
+    return sorted(faces, key=lambda f: _key(f.calc_center_median()))
+
+
 def smoothstep(a, b, x):
     t = min(1.0, max(0.0, (x - a) / (b - a)))
     return t * t * (3 - 2 * t)
@@ -81,9 +95,44 @@ def boundary_loops(bm):
     return loops
 
 
-def tidy(o, min_faces=150, hole=0.10, relax=6):
-    """Crumbs (islands under `min_faces`) go; holes shorter round than `hole` are closed; each boundary is
-    relaxed along the surface (its verts toward their neighbours on the edge, put back on the surface)."""
+PINS = None   # pass 4: the seams left as cut (pin_seams)
+
+
+def pin_seams(a, b, where=lambda c: True, tol=1e-5):
+    """Pass 4: the open edges `a` and `b` share as cut (B3's one surface cut in two along its colour: the tee's
+    hem on the trousers in the shirt's open front), where `where(point)`, are left as cut: not relaxed, no
+    lip, no band (each piece's edge relaxed and turned in on its own opened a slit there, the backing and ink
+    showing through). Returns how many verts are pinned."""
+    from mathutils.kdtree import KDTree
+    global PINS
+
+    def bnd(o):
+        bm = bmesh.new()
+        bm.from_mesh(o.data)
+        out = [v.co.copy() for v in bm.verts if v.is_boundary]
+        bm.free()
+        return out
+    pb = bnd(b)
+    kb = KDTree(max(1, len(pb)))
+    for i, q in enumerate(pb):
+        kb.insert(q, i)
+    kb.balance()
+    pts = [p for p in bnd(a) if where(p) and kb.find(p)[2] < tol]
+    PINS = KDTree(max(1, len(pts)))
+    for i, q in enumerate(pts):
+        PINS.insert(q, i)
+    PINS.balance()
+    return len(pts)
+
+
+def pinned(co, tol=1e-5):
+    return PINS is not None and PINS.find(co)[0] is not None and PINS.find(co)[2] < tol
+
+
+def tidy(o, min_faces=150, hole=0.10, relax=6, keep=None):
+    """Crumbs (islands under `min_faces`, but those with a face where `keep(centre)`) go; holes shorter round
+    than `hole` are closed; each boundary is relaxed along the surface (its verts toward their neighbours on
+    the edge, put back on the surface)."""
     bm = bmesh.new()
     bm.from_mesh(o.data)
     uvl = bm.loops.layers.uv.active
@@ -102,7 +151,7 @@ def tidy(o, min_faces=150, hole=0.10, relax=6):
                         seen.add(h)
                         comp.append(h)
                         todo.append(h)
-        if len(comp) < min_faces:
+        if len(comp) < min_faces and not (keep and any(keep(f.calc_center_median()) for f in comp)):
             gone += comp
     bmesh.ops.delete(bm, geom=gone, context='FACES')
     bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context='VERTS')
@@ -137,7 +186,7 @@ def tidy(o, min_faces=150, hole=0.10, relax=6):
             for i, v in enumerate(run):
                 if not closed and (i == 0 or i == n - 1):
                     continue
-                if sum(1 for e in v.link_edges if e.is_boundary) != 2:
+                if sum(1 for e in v.link_edges if e.is_boundary) != 2 or pinned(v.co):
                     continue
                 a, b = run[i - 1], run[(i + 1) % n]
                 target = v.co * 0.5 + (a.co + b.co) * 0.25
@@ -294,7 +343,7 @@ def hem(o, covers, width=0.04, depth=0.003, lip_only=False):
                 return True
         return False
 
-    bnd = [e for e in bm.edges if e.is_boundary]
+    bnd = [e for e in bm.edges if e.is_boundary and not (pinned(e.verts[0].co) and pinned(e.verts[1].co))]
     cov = {}
     for e in bnd:
         for v in e.verts:
@@ -372,8 +421,8 @@ def hem(o, covers, width=0.04, depth=0.003, lip_only=False):
             f[kl] = BAND
         # trim the band's far side along d = width
         made = set()
-        edges = {e for f in new_faces for e in f.edges}
-        for e in list(edges):
+        edges = edge_order({e for f in new_faces for e in f.edges})
+        for e in edges:
             a, b = e.verts
             fa, fb = dd.get(a, 1.0), dd.get(b, 1.0)
             if fa * fb < 0:
@@ -733,10 +782,17 @@ def put_swatches(objs, swatch_faces, swatch_of, size, top):
     return where
 
 
-def clean_paint(px, ids, garments, ink=0.33, soft=0.05):
+# how far a texel's chroma may be from its garment's own before it counts as another garment's paint (pass 4:
+# the tee's at 0.05 took B3's own greenish-grey shading for foreign paint and turned it grey and blotchy)
+FOREIGN = {'shirt': 0.10, 'skin': 0.10, 'tee': 0.11}
+
+
+def clean_paint(px, ids, garments, ink=0.33, soft=0.05, keep=None):
     """Each garment's foreign paint (texels whose chroma is far from the garment's own, ink lines apart)
-    takes the garment's chroma, keeping its lightness. px: HxWx4 sRGB; ids: HxW object index (-1 none).
-    garments: index -> name."""
+    takes the garment's chroma, at its own lightness held inside the garment's own range (pass 4: B3's cream
+    at the shirt's opening and hem turned pale pink at its own lightness; the shirt's coral on the tee, grey).
+    px: HxWx4 sRGB; ids: HxW object index (-1 none). garments: index -> name. keep: HxW bool, B3's paint
+    left as it is there."""
     rgb = px[..., :3]
     Y = rgb @ np.array([0.299, 0.587, 0.114])
     cb = rgb[..., 2] - Y
@@ -750,13 +806,56 @@ def clean_paint(px, ids, garments, ink=0.33, soft=0.05):
         lit = m & (Y > ink)
         base_cb, base_cr = np.median(cb[lit]), np.median(cr[lit])
         dist = np.hypot(cb - base_cb, cr - base_cr)
-        thr = {'shirt': 0.10, 'skin': 0.10}.get(name, 0.05)
-        k = np.clip((dist - thr) / soft, 0, 1) * m * (Y > ink * 0.8)
-        new = np.stack([Y + base_cr, Y - 0.299 / 0.587 * base_cr - 0.114 / 0.587 * base_cb, Y + base_cb], -1)
+        thr = FOREIGN.get(name, 0.05)
+        own = lit & (dist < thr)
+        lo, hi = (np.percentile(Y[own], 3), np.percentile(Y[own], 97)) if own.sum() > 100 else (0.0, 1.0)
+        k = np.clip((dist - thr) / soft, 0, 1) * m * (Y > ink * 0.8) * (1 if keep is None else ~keep)
+        Yk = np.clip(Y, lo, hi)
+        new = np.stack([Yk + base_cr, Yk - 0.299 / 0.587 * base_cr - 0.114 / 0.587 * base_cb, Yk + base_cb], -1)
         out = out * (1 - k[..., None]) + np.clip(new, 0, 1) * k[..., None]
         report[name] = round(float(k[m].mean()) * 100, 1)
     px[..., :3] = out
     return report
+
+
+# the skin the game shows: portrait-head.js draws head-v3's face and neck in this one flat colour (phSkin,
+# sRGB), and traveller-b3.js the neck lining under it (fitB3NeckMaterial)
+GAME_SKIN = (0.79, 0.525, 0.37)
+
+
+def even_skin(px, ids, parts, target=GAME_SKIN, ink=0.30, also=None):
+    """Pass 4: one skin tone. B3's forearms and hands (pale, 208 164 129), head-v3's face and neck (orange,
+    209 125 70) and the body under them all take `target` (the game's skin), each texel keeping its lightness
+    against its part's median (B3's painted shading stays, its ink lines too). parts: index -> 'head' (only
+    its warm texels: not the eyes, brows, lips' ink or stubble), 'skin' or 'body'; `also` (HxW bool) is his skin
+    on another part (the shin, the boots' piece)."""
+    rgb = px[..., :3]
+    Y = rgb @ np.array([0.299, 0.587, 0.114])
+    t = np.array(target)
+    tY = float(t @ np.array([0.299, 0.587, 0.114]))
+    r, g, b = rgb[..., 0], rgb[..., 1], rgb[..., 2]
+    # (portrait-head.js's own test for its warm skin)
+    warm = (smooth(0.06, 0.17, r - g) * smooth(0.12, 0.25, r - b) * smooth(0.28, 0.62, r))
+    out = rgb.copy()
+    report = {}
+    masks = [(kind, ids == gi) for gi, kind in parts.items()] + ([('shin', also)] if also is not None else [])
+    for kind, m in masks:
+        if not m.any():
+            continue
+        k = (warm if kind == 'head' else np.ones_like(Y)) * m * smooth(ink * 0.8, ink, Y)
+        sel = m & (k > 0.5)
+        med = float(np.median(Y[sel])) if sel.any() else tY
+        ratio = np.clip(Y / max(med, 1e-3), 0.55, 1.15)
+        new = np.clip(t[None, None, :] * ratio[..., None], 0, 1)
+        out = out * (1 - k[..., None]) + new * k[..., None]
+        report[kind] = [int(round(x * 255)) for x in np.median(rgb[sel], 0)] if sel.any() else None
+    px[..., :3] = out
+    return report
+
+
+def smooth(a, b, x):
+    t = np.clip((x - a) / (b - a), 0, 1)
+    return t * t * (3 - 2 * t)
 
 
 def garment_base(px, ids, gi, ink=0.33):
@@ -773,8 +872,8 @@ def _split_on(bm, faces, val, kl=None, kind=None):
     """Cut `faces` along val(v) = 0 (edges split where it changes sign, faces joined across); returns the
     verts made on the line. val: dict vert -> float, filled in for the new verts."""
     made = set()
-    edges = {e for f in faces for e in f.edges}
-    for e in list(edges):
+    edges = edge_order({e for f in faces for e in f.edges})
+    for e in edges:
         a, b = e.verts
         fa, fb = val.get(a, 1.0), val.get(b, 1.0)
         if fa * fb < 0:
@@ -822,10 +921,31 @@ def _drop_crumbs(bm, kl, kind, size):
     return len(crumbs)
 
 
-def trim_under(o, shell, zmin, reach=0.08, smooth=30, keep=None):
+def shell_edges(shell, step=0.004, where=None):
+    """A KD tree of points every `step` along the shell's open edges (those with `where(midpoint)`)."""
+    from mathutils.kdtree import KDTree
+    pts = []
+    bm = bmesh.new()
+    bm.from_mesh(shell.data)
+    for e in bm.edges:
+        if e.is_boundary and (where is None or where((e.verts[0].co + e.verts[1].co) / 2)):
+            a, b = e.verts[0].co, e.verts[1].co
+            n = max(1, int((b - a).length / step))
+            pts += [a.lerp(b, i / n) for i in range(n + 1)]
+    bm.free()
+    kd = KDTree(max(1, len(pts)))
+    for i, q in enumerate(pts):
+        kd.insert(q, i)
+    kd.balance()
+    return kd
+
+
+def trim_under(o, shell, zmin, reach=0.08, smooth=30, keep=None, margin=0.0, edge=None):
     """B3's own surface of `o` that lies under `shell` (a ray out along the face normal meets it within
-    `reach`) above `zmin` goes (`keep(centre)` spares a region), cut along a smoothed line: under the shirt
-    the backing is the garment, and B3's scraps there (fused to the shirt, torn) are gone."""
+    `reach`, at least `margin` in from the shell's open edges where `edge(point)`) above `zmin` goes (`keep(centre)` spares a
+    region), cut along a smoothed line: under the shirt the backing is the garment, and B3's scraps there
+    (fused to the shirt, torn) are gone. (Pass 4: the margin keeps the cut, its lip and the backing deep under
+    the shirt, out of sight through its open front.)"""
     bm = bmesh.new()
     bm.from_mesh(o.data)
     bm.normal_update()
@@ -833,13 +953,15 @@ def trim_under(o, shell, zmin, reach=0.08, smooth=30, keep=None):
     b2 = bmesh.new()
     b2.from_mesh(shell.data)
     tree = BVHTree.FromBMesh(b2)
+    edges = shell_edges(shell, where=edge) if margin else None
     surf = [f for f in bm.faces if f[kl] == SURFACE]
     drop = set()
     for f in surf:
         c = f.calc_center_median()
         if c.z < zmin or (keep and keep(c)):
             continue
-        if tree.ray_cast(c + f.normal * 0.002, f.normal, reach)[0] is not None:
+        hit = tree.ray_cast(c + f.normal * 0.002, f.normal, reach)
+        if hit[0] is not None and (not margin or edges.find(hit[0])[2] > margin):
             drop.add(f)
     # a score on the verts (1 kept), smoothed, cut at 0.5
     sv = {v for f in surf for v in f.verts}
@@ -862,12 +984,20 @@ def trim_under(o, shell, zmin, reach=0.08, smooth=30, keep=None):
     return {'dropped': len(gone) + crumbs}
 
 
-def taper(o, width=0.05, lift=0.002):
+def taper(o, width=0.05, lift=0.002, shell=None):
     """B3's surface of `o` eased down onto its own backing near its cut edges (within `width` of an edge
-    that lies over the backing): no ledge where B3's cloth ends over the backing."""
+    that lies over the backing): no ledge where B3's cloth ends over the backing. With `shell`, only the
+    edges under it (pass 4: in the shirt's open front the tee's hem, pulled onto the backing, zigzagged)."""
     bm = bmesh.new()
     bm.from_mesh(o.data)
+    bm.normal_update()
     kl = bm.faces.layers.int['p3']
+    stree = None
+    if shell is not None:
+        sb = bmesh.new()
+        sb.from_mesh(shell.data)
+        stree = BVHTree.FromBMesh(sb)
+        sb.free()
     back = bmesh.new()
     back.from_mesh(o.data)
     klb = back.faces.layers.int['p3']
@@ -883,6 +1013,8 @@ def taper(o, width=0.05, lift=0.002):
         if e.is_boundary and all(f[kl] == SURFACE for f in e.link_faces):
             for v in e.verts:
                 hit = tree.find_nearest(v.co, 0.03)
+                if stree is not None and stree.ray_cast(v.co + v.normal * 0.001, v.normal, 0.08)[0] is None:
+                    continue
                 if hit[0] is not None and v not in d:
                     d[v] = 0.0
                     heapq.heappush(heap, (0.0, id(v), v))
@@ -928,7 +1060,11 @@ def clamp_backing(o, shells, gap=0.008, reach=0.04, rounds=4):
     for s in shells:
         b2 = bmesh.new()
         b2.from_mesh(s.data)
-        trees.append(BVHTree.FromBMesh(b2))
+        k2 = b2.faces.layers.int.get('p3')
+        if k2 is not None:   # (another garment's cloth only: not its backing or the inside of its hems)
+            bmesh.ops.delete(b2, geom=[f for f in b2.faces if f[k2] not in (SURFACE, LIP)], context='FACES')
+        if b2.faces:
+            trees.append(BVHTree.FromBMesh(b2))
         b2.free()
     vs = [v for v in bm.verts if v.link_faces and all(f[kl] == BACKING for f in v.link_faces)]
     moved = 0
@@ -992,3 +1128,91 @@ def drop_hidden_backing(o, reach=0.03):
     bm.free()
     surf.free()
     return {'dropped': len(gone)}
+
+
+# ---------------------------------------------------------------- pass 4: the waist in the open front
+
+def _cloth_tree(objs, kinds=(SURFACE, LIP, BAND)):
+    """One BVH of the given kinds of faces of every object in `objs` (a garment's cloth, not its backing)."""
+    bm = bmesh.new()
+    for o in objs:
+        b2 = bmesh.new()
+        b2.from_mesh(o.data)
+        k2 = b2.faces.layers.int.get('p3')
+        if k2 is not None:
+            bmesh.ops.delete(b2, geom=[f for f in b2.faces if f[k2] not in kinds], context='FACES')
+        me = bpy.data.meshes.new('_cloth_tmp')
+        b2.to_mesh(me)
+        b2.free()
+        bm.from_mesh(me)
+        bpy.data.meshes.remove(me)
+    return BVHTree.FromBMesh(bm), bm
+
+
+def pull_inside(o, others, body, gap=0.005, rounds=3):
+    """The backing verts of `o` kept under every garment's cloth, judged from the body out (not along their
+    own normals: a flap of backing folded over the shirt's hem faces any way): the segment from the nearest
+    point of `body` to the vert must not cross the cloth of `others`; where it does, the vert comes back to
+    `gap` under the first crossing. Taubin-relaxed between rounds."""
+    tree, tb = _cloth_tree([o] + list(others), kinds=(SURFACE, LIP))   # (its own B3 cloth too)
+    bb = bmesh.new()
+    bb.from_mesh(body.data)
+    btree = BVHTree.FromBMesh(bb)
+    bm = bmesh.new()
+    bm.from_mesh(o.data)
+    kl = bm.faces.layers.int['p3']
+    vs = [v for v in bm.verts if v.link_faces and all(f[kl] == BACKING for f in v.link_faces)]
+    moved = set()
+    for r in range(rounds):
+        for v in vs:
+            q = btree.find_nearest(v.co, 0.25)[0]
+            if q is None:
+                continue
+            d = v.co - q
+            L = d.length
+            if L < 1e-4:
+                continue
+            d /= L
+            hit = tree.ray_cast(q, d, L)
+            if hit[0] is not None and hit[3] < L:
+                v.co = q + d * max(hit[3] * 0.5, hit[3] - gap)
+                moved.add(v)
+        if r < rounds - 1:
+            for f in (0.5, -0.53):
+                new = {}
+                for v in vs:
+                    nb = [e.other_vert(v) for e in v.link_edges if (e.is_boundary or not v.is_boundary)]
+                    if nb:
+                        new[v] = v.co + (sum((w.co for w in nb), Vector()) / len(nb) - v.co) * f
+                for v, p in new.items():
+                    v.co = p
+    bm.to_mesh(o.data)
+    bm.free()
+    bb.free()
+    tb.free()
+    return {'pulled': len(moved)}
+
+
+def drop_exposed_backing(o, others, reach=0.5):
+    """Backing faces of `o` that nothing covers (a ray out from the face's middle and from each corner, along
+    its normal, meets no garment's cloth, its own included, within `reach`) go: the backing is only there
+    under other cloth (pass 4: flaps of it stood out past the shirt's hem, in front of its panels)."""
+    tree, tb = _cloth_tree([o] + list(others))
+    bm = bmesh.new()
+    bm.from_mesh(o.data)
+    bm.normal_update()
+    kl = bm.faces.layers.int['p3']
+    gone = []
+    for f in bm.faces:
+        if f[kl] != BACKING:
+            continue
+        pts = [f.calc_center_median()] + [v.co for v in f.verts]
+        if all(tree.ray_cast(p + f.normal * 0.001, f.normal, reach)[0] is None for p in pts):
+            gone.append(f)
+    bmesh.ops.delete(bm, geom=gone, context='FACES')
+    bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context='VERTS')
+    crumbs = _drop_crumbs(bm, kl, BACKING, 12)
+    bm.to_mesh(o.data)
+    bm.free()
+    tb.free()
+    return {'dropped': len(gone), 'crumbs': crumbs}

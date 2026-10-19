@@ -2141,11 +2141,39 @@ sockets, the atlas's swatches, the draw groups, what comes out through the shirt
 - **Cost:** about 85 k triangles (phase 2: 85.6 k): head 17 k, hair 9 k, shirt 24.6 k (hems 4 k of
   it), trousers 13 k, body 6 k. The GLB is 6.1 MB (the atlas 1.35 MB JPEG); `tests/traveller-blender.test.js`
   checks the triangles, the one atlas, the joinable draw groups and the shoulder.
-- **Still not good:** B3's painted shading on the tee reads a little greyer and blotchier than B3's
-  (its greenish shadows turned to the tee's own hue); a few cream flecks remain at the shirt's front and
-  back hem; the top of the trousers (the backing, seen with the shirt off) is plain and has two points at
-  the waist; the body's colour runs from head-v3's orange neck to B3's paler forearms; the build is not
-  bit-for-bit repeatable (a vert or two moves between runs).
+- **Left for pass 4:** the tee greyer and blotchier than B3's, cream flecks at the shirt's front and back
+  hem, the body's colour running from head-v3's orange neck to B3's paler forearms.
+
+**Pass 4: the open front, the tee, one skin** (the author's decision 1A, 2026-10-19; the head stays
+head-v3, the game still draws B3 until this reads at least as well side by side).
+
+- **The shirt's open front and hem.** The flecks were the backing (`F.BACKING`) out through the shirt and
+  lying over B3's tee and trousers at the waist. Now the backing is held under every garment's cloth, its
+  own and the others' (`clamp_backing` against them all; `pull_inside` judges from the body out, since a
+  flap folded over the hem faces any way), and backing that nothing covers goes (`drop_exposed_backing`).
+  Where the tee's hem meets the trousers in the open front (B3's one surface, cut in two) the two edges stay
+  as cut, edge on edge (`pin_seams`: no relax, no lip, no band; turned in on their own they opened a slit
+  with ink round it). The taper onto the backing works only under the shirt; the trousers' front under the
+  open panels is B3's own cloth (not trimmed), and the shirt's opening is taken 4 cm wider below the waist
+  (`b3cut.OPENING_LOW`) so the trousers there are not called the shirt. In the atlas a garment's foreign
+  paint takes its own colour at a lightness held inside the garment's own range (`clean_paint`): B3's
+  cream at the opening and hem went pale pink at its own lightness; now the coral reaches the hem lip.
+- **The tee and its collar.** The tee's chroma threshold went 0.05 → 0.11 (`FOREIGN`): B3's own
+  greenish-grey shading stays, only coral and skin paint is foreign. The cream collar at the back of the
+  neck is B3's paint on the shirt's collar stand; it is kept as painted (`COLLAR_KEEP`, a flag baked with
+  the part ids), and the tee's own collar faces stay the tee's (`b3cut.COLLAR_Z`, `tidy(keep=…)`).
+- **One skin.** Everything he shows of himself takes the game's skin, `portrait-head.js`'s flat phSkin
+  (sRGB 201 134 94, what the game draws his face and neck in and the B3 neck lining under it), each texel
+  keeping its lightness against its part's median (`even_skin`): head-v3's warm texels (209 125 70 before),
+  B3's forearms and hands (208 165 130), the body, and the shin over the boots' tops that the cut gave the
+  boots (`SHIN_Z`). B3's own neck under the chin, which the cut gave the scarf (a grey ring), goes; head-v3's
+  neck is there.
+- **Repeatable.** The cuts split their triangles in an order fixed by position (`edge_order`): a set of
+  BMEdges iterates by address, and every run cut differently. Two runs now give the same manifest.
+- **Still not as good as B3:** a few small cream slivers where the shirt's left panel meets the trousers,
+  and small ticks at the ends of the tee's hem by the panels' edges; the shin just over the boots shows a
+  streak or two of B3's paint; hair and face as pass 3 (head-v3, decision 2A). Running, the lifted thigh still
+  pushes the trousers through the shirt's front hem (the cloth solver's job).
 
 **Phase 1's pieces, still used:**
 

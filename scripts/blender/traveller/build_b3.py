@@ -41,7 +41,7 @@ NAMES = {'shirt': 'Shirt', 'tee': 'Tee', 'trousers': 'Trousers', 'boots': 'Boots
 LAYER = {'Skin': 0, 'Tee': 1, 'Trousers': 1, 'Boots': 1, 'Shirt': 2, 'Scarf': 3}
 # pass 3: the garments over each piece (its edges under them get a lip, not a band) and each hem's band width
 # (the skin closes the sleeves' cuffs and the boots' tops: no band needed there)
-COVERS = {'Skin': ['Shirt', 'Trousers', 'Boots'], 'Tee': ['Shirt', 'Scarf'], 'Trousers': ['Shirt'], 'Boots': ['Trousers', 'Skin'],
+COVERS = {'Skin': ['Shirt', 'Trousers', 'Boots'], 'Tee': ['Shirt', 'Scarf', 'Trousers'], 'Trousers': ['Shirt', 'Tee'], 'Boots': ['Trousers', 'Skin'],
           'Shirt': ['Scarf', 'Skin'], 'Scarf': ['Head']}
 HEM_WIDTH = {'Shirt': 0.03, 'Trousers': 0.03, 'Tee': 0.025, 'Boots': 0.02, 'Scarf': 0.025}
 ATLAS = (4096, 2048)       # one texture for every part (B3's and head-v3's 2048 maps repacked, the body, swatches)
@@ -50,6 +50,9 @@ BODY_RATIO = 0.55         # the base body's share of its subdivided faces kept (
 HAIR_SCALE = 0.8          # the hair's islands against the face's (dark curls: the face gets the texels)
 BODY_SCALE = 0.32          # the body's islands, in 2048-texel units (it is plain skin, mostly hidden)
 INSIDE = 0.45              # a garment's inside: its own colour this much as light
+SHIN_Z = 0.177              # pass 4: the boots' faces above this are his shin (B3 paints it skin)
+COLLAR_KEEP = (1.40, 0.14)   # pass 4: the back of the shirt's collar stand (above, within): B3's cream paint kept
+TRIM_MARGIN = 0.03         # pass 4: B3's tee and trousers under the shirt go only this far in from its open front
 # the dressed default's draws: parts in one group share the material, the skeleton and their attributes, so
 # a loader can join them (BufferGeometryUtils.mergeGeometries / Unity's CombineMeshes) after culling the body
 DRAWS = {'body': ['Body', 'Skin'], 'head': ['Head', 'Hair'], 'clothes': ['Shirt', 'Tee', 'Trousers', 'Boots', 'Scarf']}
@@ -88,12 +91,32 @@ def atlas(every, outfit, head, hair, body):
     px = F.image_array(img)
     # which part each texel is
     ids_img = bpy.data.images.new('traveller-atlas-ids', W, H, alpha=False, float_buffer=True)
-    F.bake(every, ids_img, lambda o: F.emission_material('id_' + o.name, F.flat_source((every.index(o) + 1, 0, 0))), margin=8)
-    ids = np.rint(F.image_array(ids_img)[..., 0]).astype(int)
+    # (and, in green, B3's paint kept as it is: pass 4, the cream collar at the back of the neck, painted on the
+    # shirt's collar stand, went pink as foreign paint; in blue, his skin on another part: the shin over the
+    # boots' tops, which the cut gave the boots, went their pale grey)
+    for o in every:
+        a = o.data.color_attributes.new('bake_id', 'FLOAT_COLOR', 'CORNER')
+        vals = []
+        for p in o.data.polygons:
+            c = p.center
+            collar = o.name == 'Shirt' and c.z > COLLAR_KEEP[0] and c.y > -0.025 and math.hypot(c.x, c.y - 0.02) < COLLAR_KEEP[1]
+            shin = o.name == 'Boots' and c.z > SHIN_Z
+            vals += [every.index(o) + 1, 1.0 if collar or shin else 0.0, 1.0 if shin else 0.0, 1.0] * p.loop_total
+        a.data.foreach_set('color', vals)
+    F.bake(every, ids_img, lambda o: F.emission_material('id_' + o.name, F.attr_source('bake_id')), margin=8)
+    idpx = F.image_array(ids_img)
+    ids = np.rint(idpx[..., 0]).astype(int)
+    as_painted = idpx[..., 1] > 0.5
+    shin = idpx[..., 2] > 0.5
     bpy.data.images.remove(ids_img)
+    for o in every:
+        o.data.color_attributes.remove(o.data.color_attributes['bake_id'])
     cloth = {every.index(o) + 1: o.name.lower() for o in every if o.get('kind') in ('garment', 'skin')}
-    cleaned = F.clean_paint(px, ids, cloth)
+    cleaned = F.clean_paint(px, ids, cloth, keep=as_painted)
     print('paint cleaned (% of each part\'s texels):', cleaned)
+    # pass 4: one skin tone, the game's (B3's pale forearms and head-v3's orange neck were two)
+    skin_was = F.even_skin(px, ids, {every.index(o) + 1: o.get('kind') for o in every if o.get('kind') in ('head', 'skin', 'body')}, also=shin)
+    print('skin made even (each part\'s median before):', skin_was)
     base = {o.name: F.garment_base(px, ids, every.index(o) + 1) for o in every}
     swatch = {}
     for (name, what), (x0, y0, s) in where.items():
@@ -148,7 +171,8 @@ def atlas(every, outfit, head, hair, body):
     hair.shape_key_add(name='Basis', from_mix=False)
     for kb in head.data.shape_keys.key_blocks[1:]:
         hair.shape_key_add(name=kb.name, from_mix=False).value = 0.0
-    return {'size': [W, H], 'swatches': swatch, 'cleaned': cleaned}
+    return {'size': [W, H], 'swatches': swatch, 'cleaned': cleaned, 'skin': [int(round(x * 255)) for x in F.GAME_SKIN],
+            'skinBefore': skin_was}
 
 
 def flat(name, rgb):
@@ -243,6 +267,21 @@ def main():
             bm = bmesh.new()
             bm.from_mesh(o.data)
             bmesh.ops.delete(bm, geom=[f for f in bm.faces if (lambda c: c.z > 1.478 and math.hypot(c.x, c.y - 0.02) < 0.065)(f.calc_center_median())], context='FACES')
+            # pass 4: and B3's own neck round it, painted skin, that the cut gave the scarf (a grey ring under
+            # the chin; the game paints it skin: traveller-b3.js, oldNeck): its colour told by the same test
+            tex = F.image_array(F.tex_of(o, o.data.polygons[0]))
+            uvl = bm.loops.layers.uv.active
+
+            def b3_neck(f):
+                c = f.calc_center_median()
+                if c.z < 1.45 or math.hypot(c.x, c.y - 0.02) > 0.085:
+                    return False
+                uv = sum((l[uvl].uv for l in f.loops), Vector((0, 0))) / len(f.loops)
+                r, g, b = (max(1e-3, x) for x in F.sample(tex, uv))
+                return 0.70 < g / r < 0.85 and g / b > 1.17
+            gone = [f for f in bm.faces if b3_neck(f)]
+            print('scarf: %d faces of B3\'s neck go' % len(gone))
+            bmesh.ops.delete(bm, geom=gone, context='FACES')
             bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context='VERTS')
             bm.to_mesh(o.data)
             bm.free()
@@ -254,10 +293,14 @@ def main():
         o['layer'] = LAYER[o.name]
         o['source'] = 'traveller-b3'
         outfit[o.name] = o
+    # pass 4: in the shirt's open front the tee's hem and the trousers' top stay as cut, edge on edge (B3's one
+    # surface there; each relaxed and turned in on its own, they opened a slit with the backing and ink in it)
+    print('seam pinned (verts):', F.pin_seams(outfit['Tee'], outfit['Trousers'], where=lambda c: c.y < 0 and abs(c.x) < 0.2))
     # pass 3: the cut's crumbs, pinholes and zigzag edges cleaned; B3's imported normals dropped (the hems
     # below add faces; smooth normals are recomputed, the cut and hem edges kept sharp)
     for o in outfit.values():
-        print('tidy', o.name, F.tidy(o, min_faces=30 if o.name == 'Skin' else 150))
+        print('tidy', o.name, F.tidy(o, min_faces=30 if o.name == 'Skin' else 150,
+                                     keep=(lambda c: c.z > b3cut.COLLAR_Z and c.y > 0) if o.name == 'Tee' else None))
         with bpy.context.temp_override(object=o, active_object=o, selected_objects=[o]):
             bpy.ops.mesh.customdata_custom_splitnormals_clear()
         for p in o.data.polygons:
@@ -349,24 +392,36 @@ def main():
     for name, zmin in (('Tee', 0.90), ('Trousers', 0.78)):
         o = outfit[name]
         # (just under the shirt's hem B3's trousers stay: the hem is open below, they show there; the tee's
-        # collar stays: it shows over the shirt's at the back of the neck)
-        window = (lambda c: c.z < b3cut.HEM(c) + 0.04) if name == 'Trousers' else (lambda c: c.z > 1.36)
-        print('trim', name, F.trim_under(o, outfit['Shirt'], zmin, keep=window), F.tidy(o, min_faces=60, hole=0.0, relax=10),
-              F.clamp_backing(o, [outfit['Shirt']]), F.taper(o), F.drop_hidden_backing(o))
-
-    # (the body drawn in again: the trims and the taper moved the cloth over it)
-    dressed = [outfit[n] for n in ('Shirt', 'Tee', 'Trousers', 'Boots', 'Scarf', 'Skin')]
-    inside_smooth(body, dressed, gap=0.008, rounds=4)
-    inside(body, dressed, gap=0.004, reach=0.03)   # (what is still out, in a deep fold, vert by vert)
+        # collar stays: it shows over the shirt's at the back of the neck; pass 4: so do the trousers' front
+        # under the shirt's open panels, real cloth (the backing in its place showed past the panels' edges))
+        window = (lambda c: c.z < b3cut.HEM(c) + 0.04 or (c.y < -0.03 and abs(c.x) < 0.2)) if name == 'Trousers' else (lambda c: c.z > 1.36)
+        print('trim', name, F.trim_under(o, outfit['Shirt'], zmin, keep=window, margin=TRIM_MARGIN,
+                                       edge=lambda c: c.y < -0.02 and abs(c.x) < 0.2 and 0.86 < c.z < 1.40), F.tidy(o, min_faces=60, hole=0.0, relax=10),
+              F.clamp_backing(o, [outfit['Shirt']]), F.taper(o, shell=outfit['Shirt']), F.drop_hidden_backing(o))
 
     # ---- pass 3: what lies under the shirt moves with it (no tee through the shoulder)
     print('under shirt: tee', F.under(outfit['Tee'], outfit['Shirt']))
     print('under shirt: trousers', F.under(outfit['Trousers'], outfit['Shirt'], reach=0.04))
+    # ---- pass 4: the backing under every garment's cloth, its own and the others' (it came out through the
+    # shirt's front panel and back hem, and lay over B3's tee and trousers at the waist in the open front)
+    for name in ('Tee', 'Trousers'):
+        print('backing settled', name, F.clamp_backing(outfit[name], [outfit[n] for n in ('Shirt', 'Tee', 'Trousers', 'Scarf') if n != name],
+                                                         gap=0.005, reach=0.03, rounds=5),
+              F.pull_inside(outfit[name], [outfit[n] for n in ('Shirt', 'Tee', 'Trousers', 'Scarf') if n != name], body))
+
+    # (the body drawn in again: the trims, the taper and the backing moved the cloth over it)
+    dressed = [outfit[n] for n in ('Shirt', 'Tee', 'Trousers', 'Boots', 'Scarf', 'Skin')]
+    inside_smooth(body, dressed, gap=0.008, rounds=4)
+    inside(body, dressed, gap=0.004, reach=0.03)   # (what is still out, in a deep fold, vert by vert)
 
     # ---- the cut edges: open ones hemmed (a lip and a dark band inside), covered ones a lip
     for name, o in outfit.items():
         covers = [head if c == 'Head' else outfit[c] for c in COVERS[name]]
         print('hem', name, F.hem(o, covers, width=HEM_WIDTH.get(name, 0.03), lip_only=name == 'Skin'))
+
+    # pass 4: backing nothing covers (flaps past the shirt's hem) goes
+    for name in ('Tee', 'Trousers'):
+        print('backing exposed', name, F.drop_exposed_backing(outfit[name], [o for n, o in outfit.items() if n != name] + [head]))
 
     sockets = R.sockets(arm, root)
     areas = G.body_areas(body, J)

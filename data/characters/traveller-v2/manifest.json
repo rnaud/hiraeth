@@ -576,8 +576,8 @@
   },
   "Skin": {
    "kind": "skin",
-   "triangles": 2608,
-   "vertices": 1348,
+   "triangles": 2611,
+   "vertices": 1351,
    "materials": {
     "traveller": "atlas"
    },
@@ -592,8 +592,8 @@
   },
   "Shirt": {
    "kind": "garment",
-   "triangles": 24588,
-   "vertices": 12614,
+   "triangles": 24475,
+   "vertices": 12548,
    "materials": {
     "traveller": "atlas"
    },
@@ -606,8 +606,8 @@
   },
   "Boots": {
    "kind": "garment",
-   "triangles": 6496,
-   "vertices": 3357,
+   "triangles": 6505,
+   "vertices": 3363,
    "materials": {
     "traveller": "atlas"
    },
@@ -622,8 +622,8 @@
   },
   "Trousers": {
    "kind": "garment",
-   "triangles": 13219,
-   "vertices": 6898,
+   "triangles": 13588,
+   "vertices": 7166,
    "materials": {
     "traveller": "atlas"
    },
@@ -640,8 +640,8 @@
   },
   "Tee": {
    "kind": "garment",
-   "triangles": 4510,
-   "vertices": 2534,
+   "triangles": 4460,
+   "vertices": 2499,
    "materials": {
     "traveller": "atlas"
    },
@@ -653,8 +653,8 @@
   },
   "Scarf": {
    "kind": "garment",
-   "triangles": 1607,
-   "vertices": 853,
+   "triangles": 1225,
+   "vertices": 653,
    "materials": {
     "traveller": "atlas"
    },
@@ -811,7 +811,7 @@
     73
    ],
    "Trousers.backing": [
-    238,
+    237,
     220,
     193
    ],
@@ -831,18 +831,45 @@
     89
    ],
    "Scarf.inside": [
-    101,
-    87,
-    70
+    103,
+    90,
+    72
    ]
   },
   "cleaned": {
    "skin": 0.5,
-   "shirt": 11.0,
-   "boots": 7.3,
-   "trousers": 1.1,
-   "tee": 7.0,
+   "shirt": 9.1,
+   "boots": 0.8,
+   "trousers": 2.5,
+   "tee": 1.9,
    "scarf": 2.3
+  },
+  "skin": [
+   201,
+   134,
+   94
+  ],
+  "skinBefore": {
+   "head": [
+    209,
+    125,
+    70
+   ],
+   "body": [
+    209,
+    157,
+    119
+   ],
+   "skin": [
+    208,
+    165,
+    130
+   ],
+   "shin": [
+    210,
+    167,
+    132
+   ]
   }
  },
  "draws": {
@@ -862,61 +889,61 @@
    "Scarf"
   ]
  },
- "triangles": 85076,
+ "triangles": 84912,
  "underShirt": {
   "verts": {
-   "Tee": 1086,
-   "Trousers": 599
+   "Tee": 1069,
+   "Trousers": 698
   },
   "outThroughShirt": {
    "lowered": {
     "Tee": {
-     "out": 1,
-     "deepestMm": 10.8
+     "out": 0,
+     "deepestMm": 0.0
     },
     "Trousers": {
-     "out": 4,
-     "deepestMm": 27.4
+     "out": 3,
+     "deepestMm": 26.9
     }
    },
    "idle": {
     "Tee": {
-     "out": 3,
-     "deepestMm": 19.9
+     "out": 0,
+     "deepestMm": 0.0
     },
     "Trousers": {
      "out": 3,
-     "deepestMm": 38.8
+     "deepestMm": 27.7
     }
    },
    "jog-a": {
     "Tee": {
-     "out": 10,
-     "deepestMm": 35.7
+     "out": 7,
+     "deepestMm": 11.0
     },
     "Trousers": {
-     "out": 16,
-     "deepestMm": 39.5
+     "out": 21,
+     "deepestMm": 35.5
     }
    },
    "jog-b": {
     "Tee": {
-     "out": 5,
-     "deepestMm": 29.7
+     "out": 3,
+     "deepestMm": 30.9
     },
     "Trousers": {
-     "out": 13,
-     "deepestMm": 38.2
+     "out": 21,
+     "deepestMm": 38.8
     }
    },
    "sprint": {
     "Tee": {
-     "out": 8,
-     "deepestMm": 37.4
+     "out": 1,
+     "deepestMm": 1.1
     },
     "Trousers": {
-     "out": 17,
-     "deepestMm": 34.1
+     "out": 23,
+     "deepestMm": 39.0
     }
    }
   }

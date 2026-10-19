@@ -17,10 +17,7 @@
    "triangles": 9792,
    "vertices": 5007,
    "hides": [
-    "knee.L",
-    "knee.R",
-    "thigh.L",
-    "thigh.R"
+    "knee.R"
    ],
    "layer": 1,
    "materials": {
@@ -30,7 +27,7 @@
   "Puttees": {
    "kind": "garment",
    "triangles": 4454,
-   "vertices": 2361,
+   "vertices": 2358,
    "hides": [
     "shin.L",
     "shin.R"
@@ -42,8 +39,8 @@
   },
   "Jacket": {
    "kind": "garment",
-   "triangles": 19936,
-   "vertices": 10105,
+   "triangles": 19925,
+   "vertices": 10101,
    "hides": [
     "belly",
     "forearm_upper.L",
@@ -58,8 +55,8 @@
   },
   "PilotBoots": {
    "kind": "garment",
-   "triangles": 6496,
-   "vertices": 3357,
+   "triangles": 6505,
+   "vertices": 3363,
    "hides": [
     "ankle.L",
     "ankle.R",
@@ -92,8 +89,6 @@
   "shin.R",
   "shin_lower.L",
   "shin_lower.R",
-  "thigh.L",
-  "thigh.R",
   "upperarm.L",
   "upperarm.R"
  ],
@@ -142,7 +137,7 @@
    2048,
    2048
   ],
-  "texelsPerMetre": 1087,
+  "texelsPerMetre": 1094,
   "swatches": {
    "Puttees.inside": [
     102,
@@ -213,30 +208,30 @@
    ]
   }
  },
- "triangles": 40678,
+ "triangles": 40676,
  "fit": {
   "Jodhpurs": {
-   "fitLeft": 30,
+   "fitLeft": 56,
    "hem": {
     "open": 0,
     "covered": 224
    }
   },
   "Puttees": {
-   "fitLeft": 13,
+   "fitLeft": 14,
    "hem": {
-    "open": 196,
-    "covered": 28,
+    "open": 198,
+    "covered": 26,
     "band": 213,
-    "lips": 196
+    "lips": 198
    }
   },
   "Jacket": {
-   "fitLeft": 107,
+   "fitLeft": 177,
    "hem": {
     "open": 272,
     "covered": 0,
-    "band": 1376,
+    "band": 1371,
     "lips": 272
    }
   }
@@ -245,7 +240,7 @@
   "under": {
    "Skin>Jodhpurs": 0,
    "Skin>Puttees": 0,
-   "Jodhpurs>Puttees": 523,
+   "Jodhpurs>Puttees": 522,
    "Skin>Jacket": 40,
    "Jodhpurs>Jacket": 672
   },
@@ -312,8 +307,8 @@
      "deepestMm": 0.0
     },
     "Jodhpurs>Jacket": {
-     "out": 11,
-     "deepestMm": 8.0
+     "out": 9,
+     "deepestMm": 5.5
     }
    },
    "jog-b": {
@@ -356,8 +351,8 @@
      "deepestMm": 0.0
     },
     "Jodhpurs>Jacket": {
-     "out": 10,
-     "deepestMm": 6.4
+     "out": 9,
+     "deepestMm": 6.9
     }
    }
   }
