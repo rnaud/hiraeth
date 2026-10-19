@@ -5660,3 +5660,46 @@ What is ready for the next sitting:
 - The order that keeps the comparison fair: the first uses before the trace (no list, then `-pso` with the old list),
   then the trace, then `-pso-file <new list>` (and `-pso-progressive N`) with a no-list run again as the control for
   what the driver learnt from the trace.
+## The fight temples' load, and what is shared between levels (issues #505, #506, 2026-10-18)
+
+**Where a fight temple's load goes.** `scripts/load-breakdown.mjs --worlds game:fight-desert` (new: a `game:<id>` opens
+a minigame's page, `?game=<id>`) on the Mac (headless Chrome, ANGLE Metal, High, 1280 × 720, no GPU disk cache: every
+program compiled cold; the machine shared, load 18-30), against the desert, ms after main.js began:
+
+| | sketching | inking | waking | mixing the inks | after modules | programs (surface) |
+|---|---|---|---|---|---|---|
+| Desert | 1165-1389 | 401-496 | 1117-1308 | 1318-1502 | 3.9-4.8 s | 102 (70) |
+| Sunken Hall, before | 39-44 | 176-427 | 527-744 | 883-1401 | 1.7-2.7 s | **107 (86)** |
+| Sunken Hall, after | 38-48 | 211-398 | 560-726 | **606-742** | 1.5-1.8 s | **68 (47)** |
+| Lift Depot, before | 40-63 | 246-313 | 582-636 | 890-1178 | 1.8-2.2 s | 107 (86) |
+| Lift Depot, after | 51-54 | 311-716 | 681-1192 | 799-1042 | 1.9-3.2 s (load 45) | 72 (51) |
+
+- **The hall itself is cheap**: built in 30-40 ms, its collisions 0.1 s. The traveller (0.25-0.3 s) and the sound and
+  tool (0.2 s) are every world's.
+- **The waste: every foe in the game warmed.** A fight temple's level answers to the Arena's id (minigames/kit/world.js
+  `levelMetaFor`), and `Foes.rosterKinds` warms every kind for the Arena: 23 bodies built and their programs compiled
+  before the first frame, for the four or five a temple fields. The hall compiled more programs than the whole desert.
+  Now the hall's level names its run's kinds (`level.foes.warm`, `fightKinds` in src/fight-temples/rules.js, from the
+  drawn run's waves) and main.js warms those: 39 programs fewer (8.3 MB of fragment GLSL), "mixing the inks" a third
+  shorter. On a GPU where a program costs 0.65-4 s to compile (the Xbox's ANGLE on D3D, "Where a load goes"), that is
+  the bulk of it. Tests: `tests/fight-load.test.js`.
+- **The engines** (node, engine/game.js, `createGame({ game: 'fight-desert' })`): the temple's script build is 0.5-0.85 s
+  (the desert's 4.8-6.7 s); the traveller is half of it. The engines warm no foe bodies (Unity warms its pipeline lists),
+  so the fix is the web's. The Unity editor's batch run was not measured: the build lock was held by another agent.
+- **What is left.** Going in and coming out are each a page load: the way back into the world is that world's whole
+  load again (the desert's 4-5 s here). The hall also builds a ship nobody sees (85 ms here, 47 ms in the engines).
+
+**Shader caches: per level or shared.**
+- **The web.** three.js keeps its programs per page, and every world (and every game's page) is a page of its own, so
+  they go with it. What survives a world change is the browser's: Chrome keeps compiled programs in its GPU disk cache
+  (and ANGLE's blob cache), keyed by the program's source, across pages and sessions, so a program the desert and the
+  hall share is compiled once and read back after. These runs turn that cache off on purpose; a player's warm loads
+  are the "Cold and warm loads" section's.
+- **Unity.** Its compiled variants and pipelines live as long as the app; a world change (a reboot of the script) keeps
+  them, so they are shared across levels within a session. Across launches it is the driver's: the Xbox in Developer
+  Mode keeps nothing (#443: the first views warmed a few at a time during the title), the Deck's Mesa cache keeps all
+  and the traced list (#465, one list for every world) warms it on a cold cache; the Retroid draws its prewarm, its
+  list off. The Deck's list was traced in the worlds, the temples and a fight, not in a fight temple: the hall's
+  surfaces are the same Surface shader (its see-through hole is a uniform, not a keyword), but a missing state would
+  be made at its first draw. A `fight-temples` pass in `scripts/bench/deck-pso-trace.mjs` would cover it.
+

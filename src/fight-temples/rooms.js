@@ -8,7 +8,7 @@ import * as THREE from 'three';
 import { makeMaterial, MODE_TERRAIN, MODE_STRATA } from '../materials.js';
 import { Terrain } from '../world.js';
 import { arenaLevel } from '../minigames/kit/world.js';
-import { WALL, ISO, wallBoxes, doorGap, inRoom } from './rules.js';
+import { WALL, ISO, wallBoxes, doorGap, inRoom, fightKinds } from './rules.js';
 import { dressHall, pillarModel } from './dress.js';
 
 /** How far (x, z) is outside the nearest room or doorway (0 inside one), and the way out from it: { d, nx, nz }. */
@@ -210,7 +210,7 @@ export function* buildHall(scene, def) {
     features: { mount: false, wind: false, jetpack: false, climb: false },
     // (src/foes.js: the game's own, on whatever the setting; no ink for the blade's growth, no chimes of their own (the
     // session drops its loot); the world's own foes: their desert skins and stage, partAt)
-    foes: { own: true, wild: false, noInk: true, chimes: false, partAt: () => def.world },
+    foes: { own: true, wild: false, noInk: true, chimes: false, partAt: () => def.world, warm: fightKinds(def) },   // (warm: the run's kinds only, #505)
     fight: { def, cuttables, gates, springs, altar, rooms: def.rooms, inRoom },
   });
 }

@@ -273,6 +273,12 @@ export function release(waiting, standing, cap = CROWD.cap, burst = CROWD.burst)
 }
 
 /** Every foe a temple fields over its run (the table's whole count, for the score lines and the tests). */
+/**
+ * Every kind of foe a run's rooms bring (its waves', drawn or the table's): what the load warms (src/foes.js warmModels,
+ * main.js), and no more. Issue #505: the hall's level answers to the Arena's id, so the warm had built and compiled
+ * every kind in the game, 23 bodies and their programs, for the four or five a temple fields.
+ */
+export const fightKinds = (def) => [...new Set(def.rooms.flatMap((r) => (r.waves ?? []).flatMap((w) => w.map(([kind]) => kind))))];
 export const totalFoes = (def, o = {}) => def.rooms.reduce((a, r) => a + roomWaves(r, o).reduce((b, w) => b + w.length, 0), 0);
 
 // ------------------------------------------------------------------ the loot

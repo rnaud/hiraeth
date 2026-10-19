@@ -85,6 +85,9 @@ export const CHANGELOG = [
     // issue #510: engine/unity/game.js (launch: BridgeHost.Loading), unity/Hiraeth BridgeRunner (Await yields while a world
     // loads), BridgeHud.Loading.cs, BridgeMusic.Fetch; tests/engine-unity.test.js
     'In the Unity version, choosing Continue or a save on the title now shows the loading screen, the pen turning and what is being prepared, instead of the title freezing until the world appears.',
+    // issue #505: src/fight-temples/rules.js fightKinds, rooms.js level.foes.warm, main.js foes.warmModels(level.foes?.warm);
+    // scripts/load-breakdown.mjs game:<id>; tests/fight-load.test.js; docs/systems/performance.md "The fight temples' load"
+    'The fight temples load faster. While loading, each one got every kind of foe in the game ready, though only four or five come up in it; now it readies just those, so the graphics card has a third fewer shaders to learn.',
   ] },
   { v: '1.84', date: '2026-10-17', items: [
     // issue #439: src/costumes.js (HEADS: the 47 pieces of the 15 hat sets, HAT_SETS, HAT_SET_WORLDS, hoodShell / hoodNeck /

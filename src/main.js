@@ -2455,7 +2455,7 @@ await slice();
 // the foes this world can field (every kind in the Arena), in the scene for the warm passes only (src/foes.js warmModels;
 // v1.42, issue #1: a kind's first appearance compiled 1-5 programs mid-fight, 100-200 ms frames in the Arena's waves;
 // v1.41 measured it). Taken out again before the first frame; their materials keep the programs alive for the foes.
-const foeWarm = foes.on ? foes.warmModels() : null;
+const foeWarm = foes.on ? foes.warmModels(level.foes?.warm) : null;   // (a level may name its kinds: a fight temple its run's, #505)
 if (foeWarm) { foeWarm.group.position.set(0, -1e4, 0); scene.add(foeWarm.group); }
 {
   const t0 = performance.now();

@@ -1241,6 +1241,8 @@ const WEB513 = 'Issue #513: the web game in muted headless Chrome on this branch
 /** (v1.85, issue #510: the loading screen after the title in Unity) */
 const UNITY510 = 'Issue #510: the Unity editor’s batch run on this Mac (scripts/unity-js-run.sh -title-go 60 -title-art H1 -loading-shot, muted, 1280 × 720): the debug save’s desert chosen on the title; before: the branch’s base, the last picture drawn while the world was built (the main thread waited on the script’s frame); after: as the build wakes the people; 18 October; cwebp -q 72';
 const WEB510 = 'Issue #510: the web game in muted headless Chrome on this branch’s own Vite (port 5461), 1280 × 720, 0.8 s after Continue on the title; 18 October; cwebp -q 72';
+/** (v1.85, issue #505: a fight temple's load) */
+const LOAD505 = 'Issue #505: scripts/load-breakdown.mjs on this Mac (M4 Pro, headless muted Chrome on ANGLE Metal, High, 1280 × 720, the GPU disk cache off so every shader compiles cold), a ?game=fight-<world> page from a build of this branch, before: the same build warming every foe; two runs of three each, the machine shared with other agents (load 18-45), so read the ranges for shape';
 export const CHANGELOG_MEDIA = {
   '1.85': [
     { match: 'In the Unity version, the first room of every makers’ house is as light as on the web', tags: ['temples', 'devices'], shots: [
@@ -1264,6 +1266,21 @@ export const CHANGELOG_MEDIA = {
       { name: 'foe-eyes-brute-left', title: 'Brute', size: [1280, 720], caption: 'Lorn’s wood cutter, you off to its left: its brass eye slides over in the boss of its belt and its body twists to you.', from: EYES508 },
       { name: 'foe-eyes-wisp-right', title: 'Wisp', size: [1280, 720], caption: 'The cinder wisp, you off to its right: its two eyes slide over its petals toward you.', from: EYES508 },
     ], see: 'In the desert or Salt Harbour, walk round a crab that has seen you: its eye stalks lean after you. Let it lose you, and they look where it goes again.' },
+    { match: 'The fight temples load faster', numbers: [
+      { title: 'Shaders compiled before a fight temple’s first frame', unit: 'programs', better: 'lower', device: LOAD505, rows: [
+        { where: 'The Sunken Hall (desert)', before: 107, after: 68 },
+        { where: 'The Lift Depot (City-Shaft)', before: 107, after: 72 },
+        { where: 'The desert itself, for scale', before: 102, after: 102 },
+      ], source: 'docs/systems/performance.md, “The fight temples’ load”' },
+      { title: 'The loading screen’s “mixing the inks…”, a fight temple', unit: 's', better: 'lower', device: LOAD505, rows: [
+        { where: 'The Sunken Hall', before: '0.88–1.40', after: '0.61–0.74' },
+        { where: 'The Lift Depot', before: '0.89–1.18', after: '0.80–1.04' },
+      ], source: 'docs/systems/performance.md, “The fight temples’ load”' },
+      { title: 'The whole load after the page’s scripts', unit: 's', better: 'lower', device: LOAD505, rows: [
+        { where: 'The Sunken Hall', before: '1.67–2.71', after: '1.47–1.80' },
+        { where: 'The desert, for scale', before: '3.9–4.8', after: '3.9–4.8' },
+      ], source: 'docs/systems/performance.md, “The fight temples’ load”' },
+    ] },
     { match: 'Each world’s own recorded music now plays the whole time you are there', see: 'Land in any world and walk out into the open: after two and a half minutes its recorded music keeps playing instead of fading out to the light synthesised tunes, and it is still there five minutes on. Settings > Music plays now reads Always; pick Moments there to have the old way back, and it stays picked.' },
     { match: 'The Clock-House’s and the Undertower’s last steps now point the right way', see: 'In the Glass Dunes, take what the makers left in the Clock-House and open the Quests page (J): the next step reads “Climb to what winds itself up”. In the Signal Market the Undertower’s reads “Go up to the voice in the high hall”, and walking in you hear the voice far overhead.' },
     { match: 'Riding the bird in Vael, her wings no longer shimmer as they beat', shots: [

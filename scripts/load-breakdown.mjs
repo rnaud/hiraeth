@@ -12,6 +12,7 @@
 //              status, log and uniforms queried), and that upload (buffers, textures), ms
 //
 //   node scripts/load-breakdown.mjs [--worlds desert,garage,lantern] [--preset high] [--json out.json]
+//     (a world `game:<id>` opens a minigame's page, ?game=<id>: game:fight-desert, the desert's fight temple)
 //     [--dump dir]       writes each world's programs (their final GLSL, as the driver got it) to dir/<world>.json,
 //                        for scripts/xbox-shaders.mjs to time on the console
 //     [--slow ms]        simulates a slow shader compiler (the Xbox's ANGLE on D3D11): a program links in
@@ -275,7 +276,7 @@ export async function measure(world, { base, preset = PRESET, slow = SLOW, dump 
     await c.send('Page.addScriptToEvaluateOnNewDocument', { source: PROBE(slow, xbox ? !WARM && (arg('salt') ?? true) : (arg('salt') ?? false)) });
     if (!xbox && arg('cpu')) await c.send('Emulation.setCPUThrottlingRate', { rate: Number(arg('cpu')) });   // (the handheld recipe: the main thread slowed n times)
     const t0 = Date.now();
-    await c.send('Page.navigate', { url: `${page}?level=${world}${arg('query') ? `&${arg('query')}` : ''}` });
+    await c.send('Page.navigate', { url: `${page}?${world.startsWith('game:') ? `game=${world.slice(5)}` : `level=${world}`}${arg('query') ? `&${arg('query')}` : ''}` });
     let up = false;
     while (!up && Date.now() - t0 < LIMIT) { try { up = await c.ev('!!window.__hiraethBooted', 10000); } catch { /* loading */ } if (!up) await sleep(250); }
     if (!up) throw new Error(`${world}: no first frame in ${LIMIT / 1000} s (${c.errors.slice(-1)[0] ?? 'no error'})`);

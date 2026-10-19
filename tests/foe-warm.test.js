@@ -34,7 +34,7 @@ test('warmModels: every kind\'s body, batched as in play, out of the world and o
 test('the loading work warms them (v1.42, issue #1): in the scene for the surfaces\' and shadows\' passes, out before the first frame', async () => {
   const { readFileSync } = await import('node:fs');
   const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
-  const made = main.indexOf('foes.warmModels()'), surfaces = main.indexOf("setStep('surfaces')"), shadows = main.indexOf("setStep('shadows')"), first = main.indexOf('await firstUse(renderer, slice)'), gone = main.indexOf('foeWarm?.dispose()'), passage = main.indexOf("setStep('passage')");
+  const made = main.indexOf('foes.warmModels(level.foes?.warm)'), surfaces = main.indexOf("setStep('surfaces')"), shadows = main.indexOf("setStep('shadows')"), first = main.indexOf('await firstUse(renderer, slice)'), gone = main.indexOf('foeWarm?.dispose()'), passage = main.indexOf("setStep('passage')");
   assert.ok(made > 0 && made < surfaces, 'made before the surfaces are compiled');
   assert.ok(main.slice(made, surfaces).includes('scene.add(foeWarm.group)'), 'and put in the scene');
   assert.ok(shadows > surfaces && first > shadows && gone > first && gone < passage, 'taken out after the programs\' first use, before the passage draws and the first frame');
