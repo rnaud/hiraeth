@@ -1,0 +1,95 @@
+.claude/skills/cinematics-qc/SKILL.md
+  s_5f899ba316b5dc::t_c07f6c941a970c 43-44
+.claude/skills/game-audit/SKILL.md
+  s_5f899ba316b5dc::t_aec86e9832ce12 28,42
+.claude/skills/level-design-qc/SKILL.md
+  s_5f899ba316b5dc::t_b9d9de18bb6ba1 117-118
+.claude/skills/perf-audit/SKILL.md
+  s_5f899ba316b5dc::t_c2fa7ad06f50db 49-50
+.claude/skills/perf-audit/fps.mjs
+  s_5f899ba316b5dc::t_f9ed0a0c88300f 17,38
+.claude/skills/visual-audit/SKILL.md
+  s_5f899ba316b5dc::t_341f59d21d3d34 59-62,140-141
+.claude/skills/visual-audit/probes.mjs
+  s_5f899ba316b5dc::t_a97a668b7b2d78 60
+.claude/skills/visual-audit/views.mjs
+  s_5f899ba316b5dc::t_86c750d10bc768 29-30
+docs/README.md
+  s_5f899ba316b5dc::t_7def9019529725 61
+docs/systems/dev-tools.md
+  s_5f899ba316b5dc::t_9d7281e9eb11d1 16
+docs/systems/story.md
+  s_5f899ba316b5dc::t_988540b627b625 370-375,1093,1096
+docs/systems/worlds.md
+  s_5f899ba316b5dc::t_0e75c21efd15e2 24,1146-1157
+scripts/bench/deck-pso-trace.mjs
+  s_5f899ba316b5dc::t_ced43ad37ffc50 9-10,17,26-27,29
+scripts/bridge-gaps.mjs
+  s_5f899ba316b5dc::t_c35432d610771c 153,200-201
+scripts/character-quality-shots.mjs
+  s_5f899ba316b5dc::t_73d7e1bff96404 64-66
+scripts/cinematics-qc.mjs
+  s_5f899ba316b5dc::t_c287fb20470bcd 28,34-37,40
+scripts/contact-report.mjs
+  s_5f899ba316b5dc::t_e44e8e52e58247 11,14,16
+scripts/unity-compare/views.mjs
+  s_5f899ba316b5dc::t_7e222a9fead042 23,31-32
+scripts/world-thumbs.mjs
+  s_5f899ba316b5dc::t_b3ea3aa743de84 17,40-41
+src/foe-worlds.js
+  s_5f899ba316b5dc::t_784bacdf05a024 48
+src/levels/index.js
+  s_5f899ba316b5dc::t_e176c3883bd49f 90,96,104,111,125,132,146
+src/levels/names.js
+  s_5f899ba316b5dc::t_5ae5a3aca6c1cd 40-41,43-50,57-58
+src/ship/ship.js
+  s_5f899ba316b5dc::t_e117b7a1e37662 372
+src/story/sightings.js
+  s_5f899ba316b5dc::t_9086f01939a4c8 20,133-134,136,138
+src/story/signature-search.js
+  s_5f899ba316b5dc::t_6b4793bf3fc1dc 15
+src/world-picker.js
+  s_5f899ba316b5dc::t_5391bf23142b2a 12,20,123
+tests/benches-worlds.test.js
+  s_5f899ba316b5dc::t_6484d19f31f56a 11,27
+tests/benches.test.js
+  s_5f899ba316b5dc::t_e88fbc482c17a5 26,65
+tests/cinematics-qc.test.js
+  s_5f899ba316b5dc::t_d59e6061cae571 5,24-25
+tests/contact-audit.test.js
+  s_5f899ba316b5dc::t_0de13e68c4790b 18,194-195,220,231-232,310
+tests/glass-dunes.test.js
+  s_5f899ba316b5dc::t_635f86a18e578d 147,154
+tests/lantern-path.test.js
+  s_5f899ba316b5dc::t_fbb19896c14a0b 28-29
+tests/menus-settings.test.js
+  s_5f899ba316b5dc::t_952eb32c5c0c86 8,18-23,29,37,42,46-47
+tests/music-store.test.js
+  s_5f899ba316b5dc::t_0bdfc7f046a977 228
+tests/overnight-train-world.test.js
+  s_5f899ba316b5dc::t_4b76117200466b 7,28
+tests/sightings.test.js
+  s_5f899ba316b5dc::t_386716398c732b 135,139
+tests/signature-search.test.js
+  s_5f899ba316b5dc::t_108c4e1cef3dd1 7,82,90
+tests/soundtracks.test.js
+  s_5f899ba316b5dc::t_312f7d46cf1b3c 177-178,181,188,192,204
+tests/world-picker.test.js
+  s_5f899ba316b5dc::t_df016362c392e6 12,23
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ec19c1d53d1edd6df212f94c5b38c692fe889062",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
