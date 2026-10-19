@@ -5901,6 +5901,72 @@ the Items page's first opening, 34 ms (`Shader.CreateGPUProgram` 12 ms). Last ro
 [object Promise]`, two or three times, 2.4-2.9 s into the world's build, after its ship and before its gestures (issue
 #537). Raw: the session's scratchpad, `retroid-525b/` (`ab/shadow/`, `sheets/e1-e2/`, `cold-nolist/`, `trace/`,
 `texture-537/`).
+
+### The Retroid again: the shadow map's size, Android's list re-traced, the load (issue #525, 2026-10-19 evening)
+
+A development APK of main at e4757bbf3 (build 2737: #264's ChimeShade, #538's Composite, #500's shader check, #537's fix).
+The Retroid, Unity, Handheld, muted, as in the section above.
+
+**At the start.** #500's check finds every shader it looks up by name (`Hiraeth: shaders found by name: all 21`, each
+"found" with `-shader-log`, ChimeShade among them); the only shader lines left are URP's own four post passes, stripped
+as before (depth of field, Panini: not used). #537: no `Couldn't load texture` line in any launch this round (12 warm
+world launches, 12 cold stutter runs, the trace's 52), against two or three in every launch at build 2677.
+
+**The near map's size, every frame** (`-shadow-near-size`, `ab.mjs`, warm launches, the three sizes interleaved; the
+City-Shaft twice). fps (1 % low, GPU ms):
+
+| view | 2048² (now) | 1536² | 1024² |
+|---|---|---|---|
+| City-Shaft start | 49.3 / 49.3 (25.3, 18.7) | 50.0 / 50.3 (26.4, 18.5) | 51.0 / 50.7 (28.2, 18.1) |
+| City-Shaft crowd | 60.1 / 60.1 | 60.1 / 60.1 | 60.1 / 60.1 |
+| City-Shaft crowd2 | 52.5 / 52.7 (26.5, 17.4) | 53.7 / 53.7 (35.4, 17.1) | 54.4 / 54.2 (33.5, 16.9) |
+| City-Shaft wide | 38.2 / 38.1 (24.4, 24.2) | 38.7 / 38.9 (24.9, 23.8) | 39.5 / 39.4 (23.3, 23.3) |
+| Signal Market start / crowd / crowd2 / wide | 50.3 / 60.1 / 51.7 / 52.8 | 51.2 / 60.1 / 52.2 / 53.8 | 49.6 / 60.1 / 55.0 / 54.0 |
+| Floating city start / crowd / crowd2 / wide | 45.3 / 59.7 / 52.9 / 48.2 | 45.5 / 59.8 / 52.9 / 48.2 | 45.4 / 59.8 / 52.8 / 48.3 |
+
+- 1536² wins back 0.5-1.2 fps in the City-Shaft and 1024² 1.1-1.9 (the GPU 0.3-0.9 ms), the same in both rounds: about
+  half to three quarters of the 2.1-2.4 fps that every frame cost there. The Signal Market gains 0-3 fps, noisily (its
+  start lost 0.7 at 1024²); the Floating city nothing.
+- **No view crosses its refresh**: every view under 60 at 2048² is still under it at 1024², and the views at 60 stay.
+  The shadows lose detail at 1024² (`sheets/2048-1024/`: the railing's dashed shadow and the sign's outline coarser).
+- **So the Retroid keeps 2048².** The author's rule shrinks the map when a device misses its rate with shadows every
+  frame; here the shrink gives the rate back nowhere (the City-Shaft is GPU-bound at 38-54 fps whatever the map), so
+  2 fps are not worth half the shadow's texels.
+
+**Android's pipeline list traced again** (`android-pso-trace.mjs --fresh 1`, every world not discarded, 52 launches in 38
+minutes, all to their end): 224 states / 81 variants → **220 / 82**. Hiraeth/Surface 52/177 → 52/172 (five states gone with
+the old shaders), Hiraeth/DoorLight 1 → 2 (#502's LightAdd state), Hiraeth/Veil 1/5 → 2/6, Internal-GUITextureClip gone;
+Composite (5) and the rest unchanged. ChimeShade is in neither (preloaded, #500, and never drawn in a traced view). The
+list in the project is the new one: it is the game as it is now. Android still warms none by default.
+
+**A cold start's first uses** (`run-android.mjs route-border route-city route-menus talk --cold 1`):
+
+| set | first frame s | the load frozen s (frames over 1 s) | longest load frame ms | first uses once playing |
+|---|---|---|---|---|
+| no list, build 2677 (morning) | 13.7 / 16.0 / 14.6 / 14.6 | 10.0-10.9 (3) | 4069-4918 | Items 34 ms |
+| no list, build 2737 | 13.9 / 18.2 / 14.8 / 14.7 | 10.2-12.5 (3) | 4251-6294 | Items 35, the border 35, talk 44 ms |
+| the old list, 7 at a time | 12.1 / 14.2 / 12.0 / 12.0 | 4.8-6.7 (1) | 4807-6680 | Items 35, talk 54 ms |
+| the new list, 7 at a time | 12.3 / 14.6 / 12.3 / 12.0 | 4.8-7.2 (1) | 4797-7172 | Items 42, talk 54 ms |
+
+The lists bring the first frame 1.7-3.6 s sooner but leave one frame of 4.8-7.2 s (over Android's 5 s), and the new
+list does no better than the old: so the default stays without one, as in 5791a036b.
+
+**The Items page's first opening is not covered** by either list: 34-42 ms in every set (`Shader.CreateGPUProgram`
+12-15 ms). The warm-up, 7 states at a time, had done 56 of 220 when the world came; the rest are left to their first
+draws, the Items page's among them. Warming them all before the world is the 7 s frame above.
+
+**The load, build 2677 → 2737** (asked after the author found the levels quick): the same. Warm launches (`ab.mjs`):
+the City-Shaft's first frame 9.4-9.5 s → 9.3-9.5 s, settled 12.0-13.1 → 11.9-12.1 s; the Signal Market's 6.7 → 6.6-6.7
+and 7.6-7.9 → 7.5-7.8 s; the Floating city's 6.7 → 6.7 and 7.5 → 7.5-7.7 s. The game's own stamps inside that (the
+level, physics, ship, gestures, traveller, people, near detail: `[game] built`) are within 0.1-0.2 s of the morning's,
+the City-Shaft's ready 5.7-5.8 s, the other two 2.9-3.1 s. Cold launches (no Unity pipeline cache: the first after an
+install, the stutter runs) are where the time is: the level stamp alone 6.8-9.9 s against 1.9 s warm (the shaders'
+programs made as the level's materials come), the first after this install 20.6 s to settled. Of the changes since
+61212e6be, none shows in these numbers: #500 took out shader copies the player never asked for (the package smaller, the load the same), #537's skipped pictures cost
+milliseconds (the warning, not a load), and the shipped list is not warmed by default. #527's loading screen changes
+what is seen during the load, not its length; a load from the title inside a running app (warm caches, the bridge
+already started: 2.4 s less) is the quickest, and was not timed here. Raw: the session's scratchpad, `retroid-525c/`
+(`startup.log`, `ab/size*/`, `sheets/2048-1024/`, `trace/`, `cold-*/`, `tools/loadcmp.mjs`).
 ## What the Unity packages carry (issue #500, 2026-10-19)
 
 The perf audit of v1.85 found the Unity APK 49 % bigger than v1.66's (88.6 → 131.9 MB on the release) and the Linux

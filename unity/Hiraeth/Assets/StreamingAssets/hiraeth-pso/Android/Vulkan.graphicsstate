@@ -125,7 +125,7 @@
                 "passIndex": 0,
                 "graphicsStateInfoSet": [
                     {
-                        "vertexLayout": 8873043693396743205,
+                        "vertexLayout": 15159586126747858615,
                         "renderPass": 14385111753063879123,
                         "renderState": 14693167734986563443,
                         "subPassIndex": 0,
@@ -144,26 +144,7 @@
                         "nonfilteringSamplerBindings": 0
                     },
                     {
-                        "vertexLayout": 12306633591975202468,
-                        "renderPass": 14385111753063879123,
-                        "renderState": 14693167734986563443,
-                        "subPassIndex": 0,
-                        "topology": 0,
-                        "forceCullMode": -1,
-                        "shadingRateCombinerPrimitive": 0,
-                        "shadingRateCombinerFragment": 0,
-                        "baseShadingRate": 0,
-                        "depthBias": 0.0,
-                        "slopeDepthBias": 0.0,
-                        "userBackface": false,
-                        "appBackface": false,
-                        "wireframe": false,
-                        "invertProjectionMatrix": true,
-                        "unfilterableTextureBindings": 0,
-                        "nonfilteringSamplerBindings": 0
-                    },
-                    {
-                        "vertexLayout": 11582929990943207109,
+                        "vertexLayout": 2519674490688740538,
                         "renderPass": 14385111753063879123,
                         "renderState": 15649462741326987297,
                         "subPassIndex": 0,
@@ -182,9 +163,9 @@
                         "nonfilteringSamplerBindings": 0
                     },
                     {
-                        "vertexLayout": 4095113331533823664,
+                        "vertexLayout": 7177819305202089949,
                         "renderPass": 14385111753063879123,
-                        "renderState": 14693167734986563443,
+                        "renderState": 15649462741326987297,
                         "subPassIndex": 0,
                         "topology": 0,
                         "forceCullMode": -1,
@@ -201,7 +182,26 @@
                         "nonfilteringSamplerBindings": 0
                     },
                     {
-                        "vertexLayout": 14583826611678982205,
+                        "vertexLayout": 2002243699597225601,
+                        "renderPass": 14385111753063879123,
+                        "renderState": 731866314027150305,
+                        "subPassIndex": 0,
+                        "topology": 0,
+                        "forceCullMode": -1,
+                        "shadingRateCombinerPrimitive": 0,
+                        "shadingRateCombinerFragment": 0,
+                        "baseShadingRate": 0,
+                        "depthBias": 0.0,
+                        "slopeDepthBias": 0.0,
+                        "userBackface": false,
+                        "appBackface": false,
+                        "wireframe": false,
+                        "invertProjectionMatrix": true,
+                        "unfilterableTextureBindings": 0,
+                        "nonfilteringSamplerBindings": 0
+                    },
+                    {
+                        "vertexLayout": 9138810169967319381,
                         "renderPass": 14385111753063879123,
                         "renderState": 15649462741326987297,
                         "subPassIndex": 0,
@@ -239,64 +239,7 @@
                         "nonfilteringSamplerBindings": 0
                     },
                     {
-                        "vertexLayout": 11582929990943207109,
-                        "renderPass": 14385111753063879123,
-                        "renderState": 14693167734986563443,
-                        "subPassIndex": 0,
-                        "topology": 0,
-                        "forceCullMode": -1,
-                        "shadingRateCombinerPrimitive": 0,
-                        "shadingRateCombinerFragment": 0,
-                        "baseShadingRate": 0,
-                        "depthBias": 0.0,
-                        "slopeDepthBias": 0.0,
-                        "userBackface": false,
-                        "appBackface": false,
-                        "wireframe": false,
-                        "invertProjectionMatrix": true,
-                        "unfilterableTextureBindings": 0,
-                        "nonfilteringSamplerBindings": 0
-                    },
-                    {
-                        "vertexLayout": 4188980477741300679,
-                        "renderPass": 14385111753063879123,
-                        "renderState": 14693167734986563443,
-                        "subPassIndex": 0,
-                        "topology": 0,
-                        "forceCullMode": -1,
-                        "shadingRateCombinerPrimitive": 0,
-                        "shadingRateCombinerFragment": 0,
-                        "baseShadingRate": 0,
-                        "depthBias": 0.0,
-                        "slopeDepthBias": 0.0,
-                        "userBackface": false,
-                        "appBackface": false,
-                        "wireframe": false,
-                        "invertProjectionMatrix": true,
-                        "unfilterableTextureBindings": 0,
-                        "nonfilteringSamplerBindings": 0
-                    },
-                    {
-                        "vertexLayout": 8873043693396743205,
-                        "renderPass": 14385111753063879123,
-                        "renderState": 15649462741326987297,
-                        "subPassIndex": 0,
-                        "topology": 0,
-                        "forceCullMode": -1,
-                        "shadingRateCombinerPrimitive": 0,
-                        "shadingRateCombinerFragment": 0,
-                        "baseShadingRate": 0,
-                        "depthBias": 0.0,
-                        "slopeDepthBias": 0.0,
-                        "userBackface": false,
-                        "appBackface": false,
-                        "wireframe": false,
-                        "invertProjectionMatrix": true,
-                        "unfilterableTextureBindings": 0,
-                        "nonfilteringSamplerBindings": 0
-                    },
-                    {
-                        "vertexLayout": 17991942959368073417,
+                        "vertexLayout": 5275912817003887966,
                         "renderPass": 14385111753063879123,
                         "renderState": 14693167734986563443,
                         "subPassIndex": 0,
@@ -334,83 +277,7 @@
                         "nonfilteringSamplerBindings": 0
                     },
                     {
-                        "vertexLayout": 4188980477741300679,
-                        "renderPass": 14385111753063879123,
-                        "renderState": 15649462741326987297,
-                        "subPassIndex": 0,
-                        "topology": 0,
-                        "forceCullMode": -1,
-                        "shadingRateCombinerPrimitive": 0,
-                        "shadingRateCombinerFragment": 0,
-                        "baseShadingRate": 0,
-                        "depthBias": 0.0,
-                        "slopeDepthBias": 0.0,
-                        "userBackface": false,
-                        "appBackface": false,
-                        "wireframe": false,
-                        "invertProjectionMatrix": true,
-                        "unfilterableTextureBindings": 0,
-                        "nonfilteringSamplerBindings": 0
-                    },
-                    {
-                        "vertexLayout": 15665998408738659976,
-                        "renderPass": 14385111753063879123,
-                        "renderState": 14693167734986563443,
-                        "subPassIndex": 0,
-                        "topology": 0,
-                        "forceCullMode": -1,
-                        "shadingRateCombinerPrimitive": 0,
-                        "shadingRateCombinerFragment": 0,
-                        "baseShadingRate": 0,
-                        "depthBias": 0.0,
-                        "slopeDepthBias": 0.0,
-                        "userBackface": false,
-                        "appBackface": false,
-                        "wireframe": false,
-                        "invertProjectionMatrix": true,
-                        "unfilterableTextureBindings": 0,
-                        "nonfilteringSamplerBindings": 0
-                    },
-                    {
-                        "vertexLayout": 15665998408738659976,
-                        "renderPass": 14385111753063879123,
-                        "renderState": 9851983653688950819,
-                        "subPassIndex": 0,
-                        "topology": 0,
-                        "forceCullMode": -1,
-                        "shadingRateCombinerPrimitive": 0,
-                        "shadingRateCombinerFragment": 0,
-                        "baseShadingRate": 0,
-                        "depthBias": 0.0,
-                        "slopeDepthBias": 0.0,
-                        "userBackface": false,
-                        "appBackface": false,
-                        "wireframe": false,
-                        "invertProjectionMatrix": true,
-                        "unfilterableTextureBindings": 0,
-                        "nonfilteringSamplerBindings": 0
-                    },
-                    {
-                        "vertexLayout": 11736547423179325410,
-                        "renderPass": 14385111753063879123,
-                        "renderState": 15649462741326987297,
-                        "subPassIndex": 0,
-                        "topology": 0,
-                        "forceCullMode": -1,
-                        "shadingRateCombinerPrimitive": 0,
-                        "shadingRateCombinerFragment": 0,
-                        "baseShadingRate": 0,
-                        "depthBias": 0.0,
-                        "slopeDepthBias": 0.0,
-                        "userBackface": false,
-                        "appBackface": false,
-                        "wireframe": false,
-                        "invertProjectionMatrix": true,
-                        "unfilterableTextureBindings": 0,
-                        "nonfilteringSamplerBindings": 0
-                    },
-                    {
-                        "vertexLayout": 12306633591975202468,
+                        "vertexLayout": 5275912817003887966,
                         "renderPass": 14385111753063879123,
                         "renderState": 731866314027150305,
                         "subPassIndex": 0,
@@ -429,45 +296,7 @@
                         "nonfilteringSamplerBindings": 0
                     },
                     {
-                        "vertexLayout": 12306633591975202468,
-                        "renderPass": 14385111753063879123,
-                        "renderState": 9851983653688950819,
-                        "subPassIndex": 0,
-                        "topology": 0,
-                        "forceCullMode": -1,
-                        "shadingRateCombinerPrimitive": 0,
-                        "shadingRateCombinerFragment": 0,
-                        "baseShadingRate": 0,
-                        "depthBias": 0.0,
-                        "slopeDepthBias": 0.0,
-                        "userBackface": false,
-                        "appBackface": false,
-                        "wireframe": false,
-                        "invertProjectionMatrix": true,
-                        "unfilterableTextureBindings": 0,
-                        "nonfilteringSamplerBindings": 0
-                    },
-                    {
-                        "vertexLayout": 11736547423179325410,
-                        "renderPass": 14385111753063879123,
-                        "renderState": 14693167734986563443,
-                        "subPassIndex": 0,
-                        "topology": 0,
-                        "forceCullMode": -1,
-                        "shadingRateCombinerPrimitive": 0,
-                        "shadingRateCombinerFragment": 0,
-                        "baseShadingRate": 0,
-                        "depthBias": 0.0,
-                        "slopeDepthBias": 0.0,
-                        "userBackface": false,
-                        "appBackface": false,
-                        "wireframe": false,
-                        "invertProjectionMatrix": true,
-                        "unfilterableTextureBindings": 0,
-                        "nonfilteringSamplerBindings": 0
-                    },
-                    {
-                        "vertexLayout": 12306633591975202468,
+                        "vertexLayout": 5275912817003887966,
                         "renderPass": 14385111753063879123,
                         "renderState": 15649462741326987297,
                         "subPassIndex": 0,
@@ -486,9 +315,199 @@
                         "nonfilteringSamplerBindings": 0
                     },
                     {
-                        "vertexLayout": 15665998408738659976,
+                        "vertexLayout": 9920960081214955224,
                         "renderPass": 14385111753063879123,
-                        "renderState": 731866314027150305,
+                        "renderState": 15649462741326987297,
+                        "subPassIndex": 0,
+                        "topology": 0,
+                        "forceCullMode": -1,
+                        "shadingRateCombinerPrimitive": 0,
+                        "shadingRateCombinerFragment": 0,
+                        "baseShadingRate": 0,
+                        "depthBias": 0.0,
+                        "slopeDepthBias": 0.0,
+                        "userBackface": false,
+                        "appBackface": false,
+                        "wireframe": false,
+                        "invertProjectionMatrix": true,
+                        "unfilterableTextureBindings": 0,
+                        "nonfilteringSamplerBindings": 0
+                    },
+                    {
+                        "vertexLayout": 2356946272236105049,
+                        "renderPass": 14385111753063879123,
+                        "renderState": 14693167734986563443,
+                        "subPassIndex": 0,
+                        "topology": 0,
+                        "forceCullMode": -1,
+                        "shadingRateCombinerPrimitive": 0,
+                        "shadingRateCombinerFragment": 0,
+                        "baseShadingRate": 0,
+                        "depthBias": 0.0,
+                        "slopeDepthBias": 0.0,
+                        "userBackface": false,
+                        "appBackface": false,
+                        "wireframe": false,
+                        "invertProjectionMatrix": true,
+                        "unfilterableTextureBindings": 0,
+                        "nonfilteringSamplerBindings": 0
+                    },
+                    {
+                        "vertexLayout": 1015631276646597899,
+                        "renderPass": 14385111753063879123,
+                        "renderState": 15649462741326987297,
+                        "subPassIndex": 0,
+                        "topology": 0,
+                        "forceCullMode": -1,
+                        "shadingRateCombinerPrimitive": 0,
+                        "shadingRateCombinerFragment": 0,
+                        "baseShadingRate": 0,
+                        "depthBias": 0.0,
+                        "slopeDepthBias": 0.0,
+                        "userBackface": false,
+                        "appBackface": false,
+                        "wireframe": false,
+                        "invertProjectionMatrix": true,
+                        "unfilterableTextureBindings": 0,
+                        "nonfilteringSamplerBindings": 0
+                    },
+                    {
+                        "vertexLayout": 2002243699597225601,
+                        "renderPass": 14385111753063879123,
+                        "renderState": 15649462741326987297,
+                        "subPassIndex": 0,
+                        "topology": 0,
+                        "forceCullMode": -1,
+                        "shadingRateCombinerPrimitive": 0,
+                        "shadingRateCombinerFragment": 0,
+                        "baseShadingRate": 0,
+                        "depthBias": 0.0,
+                        "slopeDepthBias": 0.0,
+                        "userBackface": false,
+                        "appBackface": false,
+                        "wireframe": false,
+                        "invertProjectionMatrix": true,
+                        "unfilterableTextureBindings": 0,
+                        "nonfilteringSamplerBindings": 0
+                    },
+                    {
+                        "vertexLayout": 5275912817003887966,
+                        "renderPass": 14385111753063879123,
+                        "renderState": 9851983653688950819,
+                        "subPassIndex": 0,
+                        "topology": 0,
+                        "forceCullMode": -1,
+                        "shadingRateCombinerPrimitive": 0,
+                        "shadingRateCombinerFragment": 0,
+                        "baseShadingRate": 0,
+                        "depthBias": 0.0,
+                        "slopeDepthBias": 0.0,
+                        "userBackface": false,
+                        "appBackface": false,
+                        "wireframe": false,
+                        "invertProjectionMatrix": true,
+                        "unfilterableTextureBindings": 0,
+                        "nonfilteringSamplerBindings": 0
+                    },
+                    {
+                        "vertexLayout": 2002243699597225601,
+                        "renderPass": 14385111753063879123,
+                        "renderState": 9851983653688950819,
+                        "subPassIndex": 0,
+                        "topology": 0,
+                        "forceCullMode": -1,
+                        "shadingRateCombinerPrimitive": 0,
+                        "shadingRateCombinerFragment": 0,
+                        "baseShadingRate": 0,
+                        "depthBias": 0.0,
+                        "slopeDepthBias": 0.0,
+                        "userBackface": false,
+                        "appBackface": false,
+                        "wireframe": false,
+                        "invertProjectionMatrix": true,
+                        "unfilterableTextureBindings": 0,
+                        "nonfilteringSamplerBindings": 0
+                    },
+                    {
+                        "vertexLayout": 1015631276646597899,
+                        "renderPass": 14385111753063879123,
+                        "renderState": 14693167734986563443,
+                        "subPassIndex": 0,
+                        "topology": 0,
+                        "forceCullMode": -1,
+                        "shadingRateCombinerPrimitive": 0,
+                        "shadingRateCombinerFragment": 0,
+                        "baseShadingRate": 0,
+                        "depthBias": 0.0,
+                        "slopeDepthBias": 0.0,
+                        "userBackface": false,
+                        "appBackface": false,
+                        "wireframe": false,
+                        "invertProjectionMatrix": true,
+                        "unfilterableTextureBindings": 0,
+                        "nonfilteringSamplerBindings": 0
+                    },
+                    {
+                        "vertexLayout": 16515461844901019009,
+                        "renderPass": 14385111753063879123,
+                        "renderState": 15649462741326987297,
+                        "subPassIndex": 0,
+                        "topology": 0,
+                        "forceCullMode": -1,
+                        "shadingRateCombinerPrimitive": 0,
+                        "shadingRateCombinerFragment": 0,
+                        "baseShadingRate": 0,
+                        "depthBias": 0.0,
+                        "slopeDepthBias": 0.0,
+                        "userBackface": false,
+                        "appBackface": false,
+                        "wireframe": false,
+                        "invertProjectionMatrix": true,
+                        "unfilterableTextureBindings": 0,
+                        "nonfilteringSamplerBindings": 0
+                    },
+                    {
+                        "vertexLayout": 9920960081214955224,
+                        "renderPass": 14385111753063879123,
+                        "renderState": 14693167734986563443,
+                        "subPassIndex": 0,
+                        "topology": 0,
+                        "forceCullMode": -1,
+                        "shadingRateCombinerPrimitive": 0,
+                        "shadingRateCombinerFragment": 0,
+                        "baseShadingRate": 0,
+                        "depthBias": 0.0,
+                        "slopeDepthBias": 0.0,
+                        "userBackface": false,
+                        "appBackface": false,
+                        "wireframe": false,
+                        "invertProjectionMatrix": true,
+                        "unfilterableTextureBindings": 0,
+                        "nonfilteringSamplerBindings": 0
+                    },
+                    {
+                        "vertexLayout": 2356946272236105049,
+                        "renderPass": 14385111753063879123,
+                        "renderState": 15649462741326987297,
+                        "subPassIndex": 0,
+                        "topology": 0,
+                        "forceCullMode": -1,
+                        "shadingRateCombinerPrimitive": 0,
+                        "shadingRateCombinerFragment": 0,
+                        "baseShadingRate": 0,
+                        "depthBias": 0.0,
+                        "slopeDepthBias": 0.0,
+                        "userBackface": false,
+                        "appBackface": false,
+                        "wireframe": false,
+                        "invertProjectionMatrix": true,
+                        "unfilterableTextureBindings": 0,
+                        "nonfilteringSamplerBindings": 0
+                    },
+                    {
+                        "vertexLayout": 3563758043146501864,
+                        "renderPass": 14385111753063879123,
+                        "renderState": 14693167734986563443,
                         "subPassIndex": 0,
                         "topology": 0,
                         "forceCullMode": -1,
@@ -524,9 +543,9 @@
                         "nonfilteringSamplerBindings": 0
                     },
                     {
-                        "vertexLayout": 15665998408738659976,
+                        "vertexLayout": 606729846214585111,
                         "renderPass": 14385111753063879123,
-                        "renderState": 15649462741326987297,
+                        "renderState": 14693167734986563443,
                         "subPassIndex": 0,
                         "topology": 0,
                         "forceCullMode": -1,
@@ -543,9 +562,9 @@
                         "nonfilteringSamplerBindings": 0
                     },
                     {
-                        "vertexLayout": 16335724101636864633,
+                        "vertexLayout": 2002243699597225601,
                         "renderPass": 14385111753063879123,
-                        "renderState": 15649462741326987297,
+                        "renderState": 14693167734986563443,
                         "subPassIndex": 0,
                         "topology": 0,
                         "forceCullMode": -1,
@@ -562,26 +581,7 @@
                         "nonfilteringSamplerBindings": 0
                     },
                     {
-                        "vertexLayout": 1049669483836887324,
-                        "renderPass": 14385111753063879123,
-                        "renderState": 15649462741326987297,
-                        "subPassIndex": 0,
-                        "topology": 0,
-                        "forceCullMode": -1,
-                        "shadingRateCombinerPrimitive": 0,
-                        "shadingRateCombinerFragment": 0,
-                        "baseShadingRate": 0,
-                        "depthBias": 0.0,
-                        "slopeDepthBias": 0.0,
-                        "userBackface": false,
-                        "appBackface": false,
-                        "wireframe": false,
-                        "invertProjectionMatrix": true,
-                        "unfilterableTextureBindings": 0,
-                        "nonfilteringSamplerBindings": 0
-                    },
-                    {
-                        "vertexLayout": 13046464002156780374,
+                        "vertexLayout": 606729846214585111,
                         "renderPass": 14385111753063879123,
                         "renderState": 15649462741326987297,
                         "subPassIndex": 0,
@@ -713,21 +713,21 @@
         {
             "first": {
                 "serializedVersion": "2",
-                "Hash": "cff84efb983ffceff3e7542426a52f3f"
+                "Hash": "99e05383f9299cd9d79e4617afabde9c"
             },
             "second": {
-                "shaderName": "Hidden/Internal-GUITextureClip",
-                "shaderAssetGUID": "ad00782baad4dfc4fbf1e757e42f175b",
+                "shaderName": "Hiraeth/Surface",
+                "shaderAssetGUID": "dccbcbdaf7e8e40fc8838263ea79921d",
                 "shaderAssetLocalIdentifierInFile": 4800000,
-                "keywordNames": "",
+                "keywordNames": "HIRAETH_GRASS HIRAETH_LEAN HIRAETH_PLAIN",
                 "subShaderIndex": 0,
                 "passIndex": 0,
                 "graphicsStateInfoSet": [
                     {
-                        "vertexLayout": 12942693649073953960,
-                        "renderPass": 12744539502807141212,
-                        "renderState": 17905316057205185287,
-                        "subPassIndex": 0,
+                        "vertexLayout": 2002243699597225601,
+                        "renderPass": 14385111753063879123,
+                        "renderState": 14693167734986563443,
+                        "subPassIndex": 1,
                         "topology": 0,
                         "forceCullMode": -1,
                         "shadingRateCombinerPrimitive": 0,
@@ -738,7 +738,7 @@
                         "userBackface": false,
                         "appBackface": false,
                         "wireframe": false,
-                        "invertProjectionMatrix": false,
+                        "invertProjectionMatrix": true,
                         "unfilterableTextureBindings": 0,
                         "nonfilteringSamplerBindings": 0
                     }
@@ -872,7 +872,7 @@
                     {
                         "vertexLayout": 1178411232534206369,
                         "renderPass": 12454302622998347800,
-                        "renderState": 15305972633634727204,
+                        "renderState": 9397574595326434525,
                         "subPassIndex": 0,
                         "topology": 0,
                         "forceCullMode": -1,
@@ -940,26 +940,7 @@
                 "passIndex": 0,
                 "graphicsStateInfoSet": [
                     {
-                        "vertexLayout": 8738288455163577218,
-                        "renderPass": 14385111753063879123,
-                        "renderState": 14693167734986563443,
-                        "subPassIndex": 0,
-                        "topology": 0,
-                        "forceCullMode": -1,
-                        "shadingRateCombinerPrimitive": 0,
-                        "shadingRateCombinerFragment": 0,
-                        "baseShadingRate": 0,
-                        "depthBias": 0.0,
-                        "slopeDepthBias": 0.0,
-                        "userBackface": false,
-                        "appBackface": false,
-                        "wireframe": false,
-                        "invertProjectionMatrix": true,
-                        "unfilterableTextureBindings": 0,
-                        "nonfilteringSamplerBindings": 0
-                    },
-                    {
-                        "vertexLayout": 5857020084080299928,
+                        "vertexLayout": 1015631276646597899,
                         "renderPass": 14385111753063879123,
                         "renderState": 15649462741326987297,
                         "subPassIndex": 0,
@@ -978,26 +959,7 @@
                         "nonfilteringSamplerBindings": 0
                     },
                     {
-                        "vertexLayout": 8738288455163577218,
-                        "renderPass": 14385111753063879123,
-                        "renderState": 15649462741326987297,
-                        "subPassIndex": 0,
-                        "topology": 0,
-                        "forceCullMode": -1,
-                        "shadingRateCombinerPrimitive": 0,
-                        "shadingRateCombinerFragment": 0,
-                        "baseShadingRate": 0,
-                        "depthBias": 0.0,
-                        "slopeDepthBias": 0.0,
-                        "userBackface": false,
-                        "appBackface": false,
-                        "wireframe": false,
-                        "invertProjectionMatrix": true,
-                        "unfilterableTextureBindings": 0,
-                        "nonfilteringSamplerBindings": 0
-                    },
-                    {
-                        "vertexLayout": 186168531054516363,
+                        "vertexLayout": 606729846214585111,
                         "renderPass": 14385111753063879123,
                         "renderState": 14693167734986563443,
                         "subPassIndex": 0,
@@ -1016,7 +978,45 @@
                         "nonfilteringSamplerBindings": 0
                     },
                     {
-                        "vertexLayout": 186168531054516363,
+                        "vertexLayout": 606729846214585111,
+                        "renderPass": 14385111753063879123,
+                        "renderState": 15649462741326987297,
+                        "subPassIndex": 0,
+                        "topology": 0,
+                        "forceCullMode": -1,
+                        "shadingRateCombinerPrimitive": 0,
+                        "shadingRateCombinerFragment": 0,
+                        "baseShadingRate": 0,
+                        "depthBias": 0.0,
+                        "slopeDepthBias": 0.0,
+                        "userBackface": false,
+                        "appBackface": false,
+                        "wireframe": false,
+                        "invertProjectionMatrix": true,
+                        "unfilterableTextureBindings": 0,
+                        "nonfilteringSamplerBindings": 0
+                    },
+                    {
+                        "vertexLayout": 1015631276646597899,
+                        "renderPass": 14385111753063879123,
+                        "renderState": 14693167734986563443,
+                        "subPassIndex": 0,
+                        "topology": 0,
+                        "forceCullMode": -1,
+                        "shadingRateCombinerPrimitive": 0,
+                        "shadingRateCombinerFragment": 0,
+                        "baseShadingRate": 0,
+                        "depthBias": 0.0,
+                        "slopeDepthBias": 0.0,
+                        "userBackface": false,
+                        "appBackface": false,
+                        "wireframe": false,
+                        "invertProjectionMatrix": true,
+                        "unfilterableTextureBindings": 0,
+                        "nonfilteringSamplerBindings": 0
+                    },
+                    {
+                        "vertexLayout": 15545302938630461835,
                         "renderPass": 14385111753063879123,
                         "renderState": 15649462741326987297,
                         "subPassIndex": 0,
@@ -1445,114 +1445,6 @@
         {
             "first": {
                 "serializedVersion": "2",
-                "Hash": "82a9d9996add9fa3b2d20bc1a36ed825"
-            },
-            "second": {
-                "shaderName": "Hiraeth/Surface",
-                "shaderAssetGUID": "dccbcbdaf7e8e40fc8838263ea79921d",
-                "shaderAssetLocalIdentifierInFile": 4800000,
-                "keywordNames": "HIRAETH_LEAN_TERRAIN HIRAETH_PLAIN",
-                "subShaderIndex": 0,
-                "passIndex": 0,
-                "graphicsStateInfoSet": [
-                    {
-                        "vertexLayout": 10875585429415429375,
-                        "renderPass": 14385111753063879123,
-                        "renderState": 731866314027150305,
-                        "subPassIndex": 1,
-                        "topology": 0,
-                        "forceCullMode": -1,
-                        "shadingRateCombinerPrimitive": 0,
-                        "shadingRateCombinerFragment": 0,
-                        "baseShadingRate": 0,
-                        "depthBias": 0.0,
-                        "slopeDepthBias": 0.0,
-                        "userBackface": false,
-                        "appBackface": false,
-                        "wireframe": false,
-                        "invertProjectionMatrix": true,
-                        "unfilterableTextureBindings": 0,
-                        "nonfilteringSamplerBindings": 0
-                    },
-                    {
-                        "vertexLayout": 1028296151090122696,
-                        "renderPass": 14385111753063879123,
-                        "renderState": 15649462741326987297,
-                        "subPassIndex": 1,
-                        "topology": 0,
-                        "forceCullMode": -1,
-                        "shadingRateCombinerPrimitive": 0,
-                        "shadingRateCombinerFragment": 0,
-                        "baseShadingRate": 0,
-                        "depthBias": 0.0,
-                        "slopeDepthBias": 0.0,
-                        "userBackface": false,
-                        "appBackface": false,
-                        "wireframe": false,
-                        "invertProjectionMatrix": true,
-                        "unfilterableTextureBindings": 0,
-                        "nonfilteringSamplerBindings": 0
-                    },
-                    {
-                        "vertexLayout": 10875585429415429375,
-                        "renderPass": 14385111753063879123,
-                        "renderState": 15649462741326987297,
-                        "subPassIndex": 1,
-                        "topology": 0,
-                        "forceCullMode": -1,
-                        "shadingRateCombinerPrimitive": 0,
-                        "shadingRateCombinerFragment": 0,
-                        "baseShadingRate": 0,
-                        "depthBias": 0.0,
-                        "slopeDepthBias": 0.0,
-                        "userBackface": false,
-                        "appBackface": false,
-                        "wireframe": false,
-                        "invertProjectionMatrix": true,
-                        "unfilterableTextureBindings": 0,
-                        "nonfilteringSamplerBindings": 0
-                    }
-                ]
-            }
-        },
-        {
-            "first": {
-                "serializedVersion": "2",
-                "Hash": "96d9e40366cfffb63b45cc1bea2025b6"
-            },
-            "second": {
-                "shaderName": "Hidden/TextCore/Distance Field SSD",
-                "shaderAssetGUID": "ca9956d58bc62d9479adf7d083c66d77",
-                "shaderAssetLocalIdentifierInFile": 4800000,
-                "keywordNames": "",
-                "subShaderIndex": 0,
-                "passIndex": 0,
-                "graphicsStateInfoSet": [
-                    {
-                        "vertexLayout": 14464719835752807428,
-                        "renderPass": 12744539502807141212,
-                        "renderState": 13576802146252363573,
-                        "subPassIndex": 0,
-                        "topology": 0,
-                        "forceCullMode": -1,
-                        "shadingRateCombinerPrimitive": 0,
-                        "shadingRateCombinerFragment": 0,
-                        "baseShadingRate": 0,
-                        "depthBias": 0.0,
-                        "slopeDepthBias": 0.0,
-                        "userBackface": false,
-                        "appBackface": false,
-                        "wireframe": false,
-                        "invertProjectionMatrix": false,
-                        "unfilterableTextureBindings": 0,
-                        "nonfilteringSamplerBindings": 0
-                    }
-                ]
-            }
-        },
-        {
-            "first": {
-                "serializedVersion": "2",
                 "Hash": "7e99f43109e174efb824949c5f758203"
             },
             "second": {
@@ -1645,6 +1537,41 @@
         {
             "first": {
                 "serializedVersion": "2",
+                "Hash": "96d9e40366cfffb63b45cc1bea2025b6"
+            },
+            "second": {
+                "shaderName": "Hidden/TextCore/Distance Field SSD",
+                "shaderAssetGUID": "ca9956d58bc62d9479adf7d083c66d77",
+                "shaderAssetLocalIdentifierInFile": 4800000,
+                "keywordNames": "",
+                "subShaderIndex": 0,
+                "passIndex": 0,
+                "graphicsStateInfoSet": [
+                    {
+                        "vertexLayout": 14464719835752807428,
+                        "renderPass": 12744539502807141212,
+                        "renderState": 13576802146252363573,
+                        "subPassIndex": 0,
+                        "topology": 0,
+                        "forceCullMode": -1,
+                        "shadingRateCombinerPrimitive": 0,
+                        "shadingRateCombinerFragment": 0,
+                        "baseShadingRate": 0,
+                        "depthBias": 0.0,
+                        "slopeDepthBias": 0.0,
+                        "userBackface": false,
+                        "appBackface": false,
+                        "wireframe": false,
+                        "invertProjectionMatrix": false,
+                        "unfilterableTextureBindings": 0,
+                        "nonfilteringSamplerBindings": 0
+                    }
+                ]
+            }
+        },
+        {
+            "first": {
+                "serializedVersion": "2",
                 "Hash": "a7e1ce9ce5beeb03863abc35693236ba"
             },
             "second": {
@@ -1680,20 +1607,58 @@
         {
             "first": {
                 "serializedVersion": "2",
-                "Hash": "99e05383f9299cd9d79e4617afabde9c"
+                "Hash": "82a9d9996add9fa3b2d20bc1a36ed825"
             },
             "second": {
                 "shaderName": "Hiraeth/Surface",
                 "shaderAssetGUID": "dccbcbdaf7e8e40fc8838263ea79921d",
                 "shaderAssetLocalIdentifierInFile": 4800000,
-                "keywordNames": "HIRAETH_GRASS HIRAETH_LEAN HIRAETH_PLAIN",
+                "keywordNames": "HIRAETH_LEAN_TERRAIN HIRAETH_PLAIN",
                 "subShaderIndex": 0,
                 "passIndex": 0,
                 "graphicsStateInfoSet": [
                     {
-                        "vertexLayout": 2002243699597225601,
+                        "vertexLayout": 10875585429415429375,
                         "renderPass": 14385111753063879123,
-                        "renderState": 14693167734986563443,
+                        "renderState": 731866314027150305,
+                        "subPassIndex": 1,
+                        "topology": 0,
+                        "forceCullMode": -1,
+                        "shadingRateCombinerPrimitive": 0,
+                        "shadingRateCombinerFragment": 0,
+                        "baseShadingRate": 0,
+                        "depthBias": 0.0,
+                        "slopeDepthBias": 0.0,
+                        "userBackface": false,
+                        "appBackface": false,
+                        "wireframe": false,
+                        "invertProjectionMatrix": true,
+                        "unfilterableTextureBindings": 0,
+                        "nonfilteringSamplerBindings": 0
+                    },
+                    {
+                        "vertexLayout": 1028296151090122696,
+                        "renderPass": 14385111753063879123,
+                        "renderState": 15649462741326987297,
+                        "subPassIndex": 1,
+                        "topology": 0,
+                        "forceCullMode": -1,
+                        "shadingRateCombinerPrimitive": 0,
+                        "shadingRateCombinerFragment": 0,
+                        "baseShadingRate": 0,
+                        "depthBias": 0.0,
+                        "slopeDepthBias": 0.0,
+                        "userBackface": false,
+                        "appBackface": false,
+                        "wireframe": false,
+                        "invertProjectionMatrix": true,
+                        "unfilterableTextureBindings": 0,
+                        "nonfilteringSamplerBindings": 0
+                    },
+                    {
+                        "vertexLayout": 10875585429415429375,
+                        "renderPass": 14385111753063879123,
+                        "renderState": 15649462741326987297,
                         "subPassIndex": 1,
                         "topology": 0,
                         "forceCullMode": -1,
@@ -1818,7 +1783,7 @@
                 "passIndex": 0,
                 "graphicsStateInfoSet": [
                     {
-                        "vertexLayout": 8738288455163577218,
+                        "vertexLayout": 606729846214585111,
                         "renderPass": 14385111753063879123,
                         "renderState": 15649462741326987297,
                         "subPassIndex": 0,
@@ -1853,7 +1818,7 @@
                 "passIndex": 0,
                 "graphicsStateInfoSet": [
                     {
-                        "vertexLayout": 740171004740663918,
+                        "vertexLayout": 12755827957881246032,
                         "renderPass": 14385111753063879123,
                         "renderState": 15649462741326987297,
                         "subPassIndex": 0,
@@ -1872,7 +1837,7 @@
                         "nonfilteringSamplerBindings": 0
                     },
                     {
-                        "vertexLayout": 12306633591975202468,
+                        "vertexLayout": 2519674490688740538,
                         "renderPass": 14385111753063879123,
                         "renderState": 15649462741326987297,
                         "subPassIndex": 0,
@@ -1891,7 +1856,7 @@
                         "nonfilteringSamplerBindings": 0
                     },
                     {
-                        "vertexLayout": 11736547423179325410,
+                        "vertexLayout": 5275912817003887966,
                         "renderPass": 14385111753063879123,
                         "renderState": 15649462741326987297,
                         "subPassIndex": 0,
@@ -1910,7 +1875,7 @@
                         "nonfilteringSamplerBindings": 0
                     },
                     {
-                        "vertexLayout": 16335724101636864633,
+                        "vertexLayout": 606729846214585111,
                         "renderPass": 14385111753063879123,
                         "renderState": 15649462741326987297,
                         "subPassIndex": 0,
@@ -1929,7 +1894,7 @@
                         "nonfilteringSamplerBindings": 0
                     },
                     {
-                        "vertexLayout": 1049669483836887324,
+                        "vertexLayout": 9138810169967319381,
                         "renderPass": 14385111753063879123,
                         "renderState": 15649462741326987297,
                         "subPassIndex": 0,
@@ -1964,7 +1929,7 @@
                 "passIndex": 0,
                 "graphicsStateInfoSet": [
                     {
-                        "vertexLayout": 8738288455163577218,
+                        "vertexLayout": 606729846214585111,
                         "renderPass": 14385111753063879123,
                         "renderState": 15649462741326987297,
                         "subPassIndex": 0,
@@ -1983,7 +1948,7 @@
                         "nonfilteringSamplerBindings": 0
                     },
                     {
-                        "vertexLayout": 186168531054516363,
+                        "vertexLayout": 1015631276646597899,
                         "renderPass": 14385111753063879123,
                         "renderState": 15649462741326987297,
                         "subPassIndex": 0,
@@ -2042,6 +2007,117 @@
         {
             "first": {
                 "serializedVersion": "2",
+                "Hash": "b9cab17417b902ba8070d819a1b45d64"
+            },
+            "second": {
+                "shaderName": "Hiraeth/Veil",
+                "shaderAssetGUID": "703c0e499fc042cd9c17465f3c82c28a",
+                "shaderAssetLocalIdentifierInFile": 4800000,
+                "keywordNames": "",
+                "subShaderIndex": 0,
+                "passIndex": 1,
+                "graphicsStateInfoSet": [
+                    {
+                        "vertexLayout": 3633328445689846823,
+                        "renderPass": 12454302622998347800,
+                        "renderState": 11484678727985037407,
+                        "subPassIndex": 0,
+                        "topology": 0,
+                        "forceCullMode": -1,
+                        "shadingRateCombinerPrimitive": 0,
+                        "shadingRateCombinerFragment": 0,
+                        "baseShadingRate": 0,
+                        "depthBias": 0.0,
+                        "slopeDepthBias": 0.0,
+                        "userBackface": false,
+                        "appBackface": false,
+                        "wireframe": false,
+                        "invertProjectionMatrix": true,
+                        "unfilterableTextureBindings": 0,
+                        "nonfilteringSamplerBindings": 0
+                    },
+                    {
+                        "vertexLayout": 3633328445689846823,
+                        "renderPass": 12454302622998347800,
+                        "renderState": 14087465304714772326,
+                        "subPassIndex": 0,
+                        "topology": 0,
+                        "forceCullMode": -1,
+                        "shadingRateCombinerPrimitive": 0,
+                        "shadingRateCombinerFragment": 0,
+                        "baseShadingRate": 0,
+                        "depthBias": 0.0,
+                        "slopeDepthBias": 0.0,
+                        "userBackface": false,
+                        "appBackface": false,
+                        "wireframe": false,
+                        "invertProjectionMatrix": true,
+                        "unfilterableTextureBindings": 0,
+                        "nonfilteringSamplerBindings": 0
+                    },
+                    {
+                        "vertexLayout": 3633328445689846823,
+                        "renderPass": 12454302622998347800,
+                        "renderState": 15305972633634727204,
+                        "subPassIndex": 0,
+                        "topology": 0,
+                        "forceCullMode": -1,
+                        "shadingRateCombinerPrimitive": 0,
+                        "shadingRateCombinerFragment": 0,
+                        "baseShadingRate": 0,
+                        "depthBias": 0.0,
+                        "slopeDepthBias": 0.0,
+                        "userBackface": false,
+                        "appBackface": false,
+                        "wireframe": false,
+                        "invertProjectionMatrix": true,
+                        "unfilterableTextureBindings": 0,
+                        "nonfilteringSamplerBindings": 0
+                    },
+                    {
+                        "vertexLayout": 235578897188125187,
+                        "renderPass": 12454302622998347800,
+                        "renderState": 11484678727985037407,
+                        "subPassIndex": 0,
+                        "topology": 0,
+                        "forceCullMode": -1,
+                        "shadingRateCombinerPrimitive": 0,
+                        "shadingRateCombinerFragment": 0,
+                        "baseShadingRate": 0,
+                        "depthBias": 0.0,
+                        "slopeDepthBias": 0.0,
+                        "userBackface": false,
+                        "appBackface": false,
+                        "wireframe": false,
+                        "invertProjectionMatrix": true,
+                        "unfilterableTextureBindings": 0,
+                        "nonfilteringSamplerBindings": 0
+                    },
+                    {
+                        "vertexLayout": 235578897188125187,
+                        "renderPass": 12454302622998347800,
+                        "renderState": 14087465304714772326,
+                        "subPassIndex": 0,
+                        "topology": 0,
+                        "forceCullMode": -1,
+                        "shadingRateCombinerPrimitive": 0,
+                        "shadingRateCombinerFragment": 0,
+                        "baseShadingRate": 0,
+                        "depthBias": 0.0,
+                        "slopeDepthBias": 0.0,
+                        "userBackface": false,
+                        "appBackface": false,
+                        "wireframe": false,
+                        "invertProjectionMatrix": true,
+                        "unfilterableTextureBindings": 0,
+                        "nonfilteringSamplerBindings": 0
+                    }
+                ]
+            }
+        },
+        {
+            "first": {
+                "serializedVersion": "2",
                 "Hash": "36dbd6d7e42bace36a5b3fe18126b002"
             },
             "second": {
@@ -2053,7 +2129,7 @@
                 "passIndex": 0,
                 "graphicsStateInfoSet": [
                     {
-                        "vertexLayout": 4944023994933507972,
+                        "vertexLayout": 2002243699597225601,
                         "renderPass": 14385111753063879123,
                         "renderState": 14693167734986563443,
                         "subPassIndex": 0,
@@ -2219,6 +2295,41 @@
         {
             "first": {
                 "serializedVersion": "2",
+                "Hash": "7223e01b48b36f2089b1e37c9f950ded"
+            },
+            "second": {
+                "shaderName": "Hidden/Hiraeth/Upscale",
+                "shaderAssetGUID": "1bce41e326444e9aa25f6d4787cb6a4a",
+                "shaderAssetLocalIdentifierInFile": 4800000,
+                "keywordNames": "",
+                "subShaderIndex": 0,
+                "passIndex": 1,
+                "graphicsStateInfoSet": [
+                    {
+                        "vertexLayout": 15807068410263000910,
+                        "renderPass": 17532860260877579292,
+                        "renderState": 17623681824384884761,
+                        "subPassIndex": 0,
+                        "topology": 0,
+                        "forceCullMode": -1,
+                        "shadingRateCombinerPrimitive": 0,
+                        "shadingRateCombinerFragment": 0,
+                        "baseShadingRate": 0,
+                        "depthBias": 0.0,
+                        "slopeDepthBias": 0.0,
+                        "userBackface": false,
+                        "appBackface": false,
+                        "wireframe": false,
+                        "invertProjectionMatrix": false,
+                        "unfilterableTextureBindings": 0,
+                        "nonfilteringSamplerBindings": 0
+                    }
+                ]
+            }
+        },
+        {
+            "first": {
+                "serializedVersion": "2",
                 "Hash": "7ca3366020a99759e7e7f40f272b7e9f"
             },
             "second": {
@@ -2288,41 +2399,6 @@
                     },
                     {
                         "vertexLayout": 15665998408738659976,
-                        "renderPass": 1496738454113501784,
-                        "renderState": 5139698867707353204,
-                        "subPassIndex": 0,
-                        "topology": 0,
-                        "forceCullMode": -1,
-                        "shadingRateCombinerPrimitive": 0,
-                        "shadingRateCombinerFragment": 0,
-                        "baseShadingRate": 0,
-                        "depthBias": 0.0,
-                        "slopeDepthBias": 0.0,
-                        "userBackface": false,
-                        "appBackface": false,
-                        "wireframe": false,
-                        "invertProjectionMatrix": true,
-                        "unfilterableTextureBindings": 0,
-                        "nonfilteringSamplerBindings": 0
-                    }
-                ]
-            }
-        },
-        {
-            "first": {
-                "serializedVersion": "2",
-                "Hash": "7863f59b0fc20f266747c4a6888bd6c2"
-            },
-            "second": {
-                "shaderName": "Hiraeth/Surface",
-                "shaderAssetGUID": "dccbcbdaf7e8e40fc8838263ea79921d",
-                "shaderAssetLocalIdentifierInFile": 4800000,
-                "keywordNames": "HIRAETH_LEAN_WATER HIRAETH_PLAIN",
-                "subShaderIndex": 0,
-                "passIndex": 1,
-                "graphicsStateInfoSet": [
-                    {
-                        "vertexLayout": 12306633591975202468,
                         "renderPass": 1496738454113501784,
                         "renderState": 5139698867707353204,
                         "subPassIndex": 0,
@@ -2438,20 +2514,20 @@
         {
             "first": {
                 "serializedVersion": "2",
-                "Hash": "7223e01b48b36f2089b1e37c9f950ded"
+                "Hash": "7863f59b0fc20f266747c4a6888bd6c2"
             },
             "second": {
-                "shaderName": "Hidden/Hiraeth/Upscale",
-                "shaderAssetGUID": "1bce41e326444e9aa25f6d4787cb6a4a",
+                "shaderName": "Hiraeth/Surface",
+                "shaderAssetGUID": "dccbcbdaf7e8e40fc8838263ea79921d",
                 "shaderAssetLocalIdentifierInFile": 4800000,
-                "keywordNames": "",
+                "keywordNames": "HIRAETH_LEAN_WATER HIRAETH_PLAIN",
                 "subShaderIndex": 0,
                 "passIndex": 1,
                 "graphicsStateInfoSet": [
                     {
-                        "vertexLayout": 15807068410263000910,
-                        "renderPass": 17532860260877579292,
-                        "renderState": 17623681824384884761,
+                        "vertexLayout": 12306633591975202468,
+                        "renderPass": 1496738454113501784,
+                        "renderState": 5139698867707353204,
                         "subPassIndex": 0,
                         "topology": 0,
                         "forceCullMode": -1,
@@ -2463,7 +2539,7 @@
                         "userBackface": false,
                         "appBackface": false,
                         "wireframe": false,
-                        "invertProjectionMatrix": false,
+                        "invertProjectionMatrix": true,
                         "unfilterableTextureBindings": 0,
                         "nonfilteringSamplerBindings": 0
                     }
@@ -2673,7 +2749,7 @@
                 "passIndex": 0,
                 "graphicsStateInfoSet": [
                     {
-                        "vertexLayout": 1343579544338320095,
+                        "vertexLayout": 10028712230151497822,
                         "renderPass": 14385111753063879123,
                         "renderState": 14693167734986563443,
                         "subPassIndex": 0,
@@ -2742,25 +2818,6 @@
                 "subShaderIndex": 0,
                 "passIndex": 1,
                 "graphicsStateInfoSet": [
-                    {
-                        "vertexLayout": 11736547423179325410,
-                        "renderPass": 1496738454113501784,
-                        "renderState": 5139698867707353204,
-                        "subPassIndex": 0,
-                        "topology": 0,
-                        "forceCullMode": -1,
-                        "shadingRateCombinerPrimitive": 0,
-                        "shadingRateCombinerFragment": 0,
-                        "baseShadingRate": 0,
-                        "depthBias": 0.0,
-                        "slopeDepthBias": 0.0,
-                        "userBackface": false,
-                        "appBackface": false,
-                        "wireframe": false,
-                        "invertProjectionMatrix": true,
-                        "unfilterableTextureBindings": 0,
-                        "nonfilteringSamplerBindings": 0
-                    },
                     {
                         "vertexLayout": 1026278871061560939,
                         "renderPass": 1496738454113501784,
@@ -2956,9 +3013,9 @@
                 "passIndex": 0,
                 "graphicsStateInfoSet": [
                     {
-                        "vertexLayout": 7698449149795037070,
+                        "vertexLayout": 2002243699597225601,
                         "renderPass": 14385111753063879123,
-                        "renderState": 15649462741326987297,
+                        "renderState": 731866314027150305,
                         "subPassIndex": 0,
                         "topology": 0,
                         "forceCullMode": -1,
@@ -2975,9 +3032,9 @@
                         "nonfilteringSamplerBindings": 0
                     },
                     {
-                        "vertexLayout": 15665998408738659976,
+                        "vertexLayout": 7698449149795037070,
                         "renderPass": 14385111753063879123,
-                        "renderState": 731866314027150305,
+                        "renderState": 15649462741326987297,
                         "subPassIndex": 0,
                         "topology": 0,
                         "forceCullMode": -1,
@@ -3151,7 +3208,7 @@
                 "passIndex": 0,
                 "graphicsStateInfoSet": [
                     {
-                        "vertexLayout": 12306633591975202468,
+                        "vertexLayout": 12755827957881246032,
                         "renderPass": 14385111753063879123,
                         "renderState": 14693167734986563443,
                         "subPassIndex": 0,
@@ -3170,7 +3227,7 @@
                         "nonfilteringSamplerBindings": 0
                     },
                     {
-                        "vertexLayout": 1049669483836887324,
+                        "vertexLayout": 2519674490688740538,
                         "renderPass": 14385111753063879123,
                         "renderState": 15649462741326987297,
                         "subPassIndex": 0,
@@ -3189,7 +3246,64 @@
                         "nonfilteringSamplerBindings": 0
                     },
                     {
+                        "vertexLayout": 2002243699597225601,
+                        "renderPass": 14385111753063879123,
+                        "renderState": 15649462741326987297,
+                        "subPassIndex": 0,
+                        "topology": 0,
+                        "forceCullMode": -1,
+                        "shadingRateCombinerPrimitive": 0,
+                        "shadingRateCombinerFragment": 0,
+                        "baseShadingRate": 0,
+                        "depthBias": 0.0,
+                        "slopeDepthBias": 0.0,
+                        "userBackface": false,
+                        "appBackface": false,
+                        "wireframe": false,
+                        "invertProjectionMatrix": true,
+                        "unfilterableTextureBindings": 0,
+                        "nonfilteringSamplerBindings": 0
+                    },
+                    {
+                        "vertexLayout": 5275912817003887966,
+                        "renderPass": 14385111753063879123,
+                        "renderState": 14693167734986563443,
+                        "subPassIndex": 0,
+                        "topology": 0,
+                        "forceCullMode": -1,
+                        "shadingRateCombinerPrimitive": 0,
+                        "shadingRateCombinerFragment": 0,
+                        "baseShadingRate": 0,
+                        "depthBias": 0.0,
+                        "slopeDepthBias": 0.0,
+                        "userBackface": false,
+                        "appBackface": false,
+                        "wireframe": false,
+                        "invertProjectionMatrix": true,
+                        "unfilterableTextureBindings": 0,
+                        "nonfilteringSamplerBindings": 0
+                    },
+                    {
                         "vertexLayout": 7698449149795037070,
+                        "renderPass": 14385111753063879123,
+                        "renderState": 15649462741326987297,
+                        "subPassIndex": 0,
+                        "topology": 0,
+                        "forceCullMode": -1,
+                        "shadingRateCombinerPrimitive": 0,
+                        "shadingRateCombinerFragment": 0,
+                        "baseShadingRate": 0,
+                        "depthBias": 0.0,
+                        "slopeDepthBias": 0.0,
+                        "userBackface": false,
+                        "appBackface": false,
+                        "wireframe": false,
+                        "invertProjectionMatrix": true,
+                        "unfilterableTextureBindings": 0,
+                        "nonfilteringSamplerBindings": 0
+                    },
+                    {
+                        "vertexLayout": 1015631276646597899,
                         "renderPass": 14385111753063879123,
                         "renderState": 15649462741326987297,
                         "subPassIndex": 0,
@@ -3227,64 +3341,7 @@
                         "nonfilteringSamplerBindings": 0
                     },
                     {
-                        "vertexLayout": 15665998408738659976,
-                        "renderPass": 14385111753063879123,
-                        "renderState": 15649462741326987297,
-                        "subPassIndex": 0,
-                        "topology": 0,
-                        "forceCullMode": -1,
-                        "shadingRateCombinerPrimitive": 0,
-                        "shadingRateCombinerFragment": 0,
-                        "baseShadingRate": 0,
-                        "depthBias": 0.0,
-                        "slopeDepthBias": 0.0,
-                        "userBackface": false,
-                        "appBackface": false,
-                        "wireframe": false,
-                        "invertProjectionMatrix": true,
-                        "unfilterableTextureBindings": 0,
-                        "nonfilteringSamplerBindings": 0
-                    },
-                    {
-                        "vertexLayout": 16335724101636864633,
-                        "renderPass": 14385111753063879123,
-                        "renderState": 15649462741326987297,
-                        "subPassIndex": 0,
-                        "topology": 0,
-                        "forceCullMode": -1,
-                        "shadingRateCombinerPrimitive": 0,
-                        "shadingRateCombinerFragment": 0,
-                        "baseShadingRate": 0,
-                        "depthBias": 0.0,
-                        "slopeDepthBias": 0.0,
-                        "userBackface": false,
-                        "appBackface": false,
-                        "wireframe": false,
-                        "invertProjectionMatrix": true,
-                        "unfilterableTextureBindings": 0,
-                        "nonfilteringSamplerBindings": 0
-                    },
-                    {
-                        "vertexLayout": 740171004740663918,
-                        "renderPass": 14385111753063879123,
-                        "renderState": 14693167734986563443,
-                        "subPassIndex": 0,
-                        "topology": 0,
-                        "forceCullMode": -1,
-                        "shadingRateCombinerPrimitive": 0,
-                        "shadingRateCombinerFragment": 0,
-                        "baseShadingRate": 0,
-                        "depthBias": 0.0,
-                        "slopeDepthBias": 0.0,
-                        "userBackface": false,
-                        "appBackface": false,
-                        "wireframe": false,
-                        "invertProjectionMatrix": true,
-                        "unfilterableTextureBindings": 0,
-                        "nonfilteringSamplerBindings": 0
-                    },
-                    {
-                        "vertexLayout": 4188980477741300679,
+                        "vertexLayout": 9138810169967319381,
                         "renderPass": 14385111753063879123,
                         "renderState": 15649462741326987297,
                         "subPassIndex": 0,
@@ -3343,21 +3400,21 @@
         {
             "first": {
                 "serializedVersion": "2",
-                "Hash": "ec541717d26108aee41e0032c22ea788"
+                "Hash": "1d3d8840f7bb7242e22814b53c9a2acc"
             },
             "second": {
-                "shaderName": "Hiraeth/Surface",
-                "shaderAssetGUID": "dccbcbdaf7e8e40fc8838263ea79921d",
+                "shaderName": "Hiraeth/DoorLight",
+                "shaderAssetGUID": "78c03ff058a64793a2b3cb1461794932",
                 "shaderAssetLocalIdentifierInFile": 4800000,
-                "keywordNames": "HIRAETH_LEAN_SLIM HIRAETH_VMAT",
+                "keywordNames": "",
                 "subShaderIndex": 0,
-                "passIndex": 0,
+                "passIndex": 1,
                 "graphicsStateInfoSet": [
                     {
-                        "vertexLayout": 12113443583670447016,
-                        "renderPass": 14385111753063879123,
-                        "renderState": 15649462741326987297,
-                        "subPassIndex": 1,
+                        "vertexLayout": 1178411232534206369,
+                        "renderPass": 12454302622998347800,
+                        "renderState": 10191581635494263077,
+                        "subPassIndex": 0,
                         "topology": 0,
                         "forceCullMode": -1,
                         "shadingRateCombinerPrimitive": 0,
@@ -3388,6 +3445,60 @@
                 "subShaderIndex": 0,
                 "passIndex": 0,
                 "graphicsStateInfoSet": []
+            }
+        },
+        {
+            "first": {
+                "serializedVersion": "2",
+                "Hash": "8635a9d8e6d30828c527e95e9081418c"
+            },
+            "second": {
+                "shaderName": "Hiraeth/Surface",
+                "shaderAssetGUID": "dccbcbdaf7e8e40fc8838263ea79921d",
+                "shaderAssetLocalIdentifierInFile": 4800000,
+                "keywordNames": "HIRAETH_LEAN HIRAETH_PLAIN HIRAETH_PREPASS HIRAETH_VMAT",
+                "subShaderIndex": 0,
+                "passIndex": 0,
+                "graphicsStateInfoSet": [
+                    {
+                        "vertexLayout": 1026278871061560939,
+                        "renderPass": 14385111753063879123,
+                        "renderState": 15649462741326987297,
+                        "subPassIndex": 0,
+                        "topology": 0,
+                        "forceCullMode": -1,
+                        "shadingRateCombinerPrimitive": 0,
+                        "shadingRateCombinerFragment": 0,
+                        "baseShadingRate": 0,
+                        "depthBias": 0.0,
+                        "slopeDepthBias": 0.0,
+                        "userBackface": false,
+                        "appBackface": false,
+                        "wireframe": false,
+                        "invertProjectionMatrix": true,
+                        "unfilterableTextureBindings": 0,
+                        "nonfilteringSamplerBindings": 0
+                    },
+                    {
+                        "vertexLayout": 1026278871061560939,
+                        "renderPass": 14385111753063879123,
+                        "renderState": 14693167734986563443,
+                        "subPassIndex": 0,
+                        "topology": 0,
+                        "forceCullMode": -1,
+                        "shadingRateCombinerPrimitive": 0,
+                        "shadingRateCombinerFragment": 0,
+                        "baseShadingRate": 0,
+                        "depthBias": 0.0,
+                        "slopeDepthBias": 0.0,
+                        "userBackface": false,
+                        "appBackface": false,
+                        "wireframe": false,
+                        "invertProjectionMatrix": true,
+                        "unfilterableTextureBindings": 0,
+                        "nonfilteringSamplerBindings": 0
+                    }
+                ]
             }
         },
         {
@@ -3447,79 +3558,6 @@
         {
             "first": {
                 "serializedVersion": "2",
-                "Hash": "8635a9d8e6d30828c527e95e9081418c"
-            },
-            "second": {
-                "shaderName": "Hiraeth/Surface",
-                "shaderAssetGUID": "dccbcbdaf7e8e40fc8838263ea79921d",
-                "shaderAssetLocalIdentifierInFile": 4800000,
-                "keywordNames": "HIRAETH_LEAN HIRAETH_PLAIN HIRAETH_PREPASS HIRAETH_VMAT",
-                "subShaderIndex": 0,
-                "passIndex": 0,
-                "graphicsStateInfoSet": [
-                    {
-                        "vertexLayout": 1026278871061560939,
-                        "renderPass": 14385111753063879123,
-                        "renderState": 15649462741326987297,
-                        "subPassIndex": 0,
-                        "topology": 0,
-                        "forceCullMode": -1,
-                        "shadingRateCombinerPrimitive": 0,
-                        "shadingRateCombinerFragment": 0,
-                        "baseShadingRate": 0,
-                        "depthBias": 0.0,
-                        "slopeDepthBias": 0.0,
-                        "userBackface": false,
-                        "appBackface": false,
-                        "wireframe": false,
-                        "invertProjectionMatrix": true,
-                        "unfilterableTextureBindings": 0,
-                        "nonfilteringSamplerBindings": 0
-                    },
-                    {
-                        "vertexLayout": 1026278871061560939,
-                        "renderPass": 14385111753063879123,
-                        "renderState": 14693167734986563443,
-                        "subPassIndex": 0,
-                        "topology": 0,
-                        "forceCullMode": -1,
-                        "shadingRateCombinerPrimitive": 0,
-                        "shadingRateCombinerFragment": 0,
-                        "baseShadingRate": 0,
-                        "depthBias": 0.0,
-                        "slopeDepthBias": 0.0,
-                        "userBackface": false,
-                        "appBackface": false,
-                        "wireframe": false,
-                        "invertProjectionMatrix": true,
-                        "unfilterableTextureBindings": 0,
-                        "nonfilteringSamplerBindings": 0
-                    },
-                    {
-                        "vertexLayout": 4944023994933507972,
-                        "renderPass": 14385111753063879123,
-                        "renderState": 14693167734986563443,
-                        "subPassIndex": 0,
-                        "topology": 0,
-                        "forceCullMode": -1,
-                        "shadingRateCombinerPrimitive": 0,
-                        "shadingRateCombinerFragment": 0,
-                        "baseShadingRate": 0,
-                        "depthBias": 0.0,
-                        "slopeDepthBias": 0.0,
-                        "userBackface": false,
-                        "appBackface": false,
-                        "wireframe": false,
-                        "invertProjectionMatrix": true,
-                        "unfilterableTextureBindings": 0,
-                        "nonfilteringSamplerBindings": 0
-                    }
-                ]
-            }
-        },
-        {
-            "first": {
-                "serializedVersion": "2",
                 "Hash": "abcd0c3d98845dbafcdd27f0785ea420"
             },
             "second": {
@@ -3531,7 +3569,7 @@
                 "passIndex": 0,
                 "graphicsStateInfoSet": [
                     {
-                        "vertexLayout": 12306633591975202468,
+                        "vertexLayout": 2002243699597225601,
                         "renderPass": 14385111753063879123,
                         "renderState": 14693167734986563443,
                         "subPassIndex": 0,
@@ -3550,28 +3588,28 @@
                         "nonfilteringSamplerBindings": 0
                     },
                     {
-                        "vertexLayout": 15665998408738659976,
-                        "renderPass": 14385111753063879123,
-                        "renderState": 14693167734986563443,
-                        "subPassIndex": 0,
-                        "topology": 0,
-                        "forceCullMode": -1,
-                        "shadingRateCombinerPrimitive": 0,
-                        "shadingRateCombinerFragment": 0,
-                        "baseShadingRate": 0,
-                        "depthBias": 0.0,
-                        "slopeDepthBias": 0.0,
-                        "userBackface": false,
-                        "appBackface": false,
-                        "wireframe": false,
-                        "invertProjectionMatrix": true,
-                        "unfilterableTextureBindings": 0,
-                        "nonfilteringSamplerBindings": 0
-                    },
-                    {
-                        "vertexLayout": 15665998408738659976,
+                        "vertexLayout": 2002243699597225601,
                         "renderPass": 14385111753063879123,
                         "renderState": 15649462741326987297,
+                        "subPassIndex": 0,
+                        "topology": 0,
+                        "forceCullMode": -1,
+                        "shadingRateCombinerPrimitive": 0,
+                        "shadingRateCombinerFragment": 0,
+                        "baseShadingRate": 0,
+                        "depthBias": 0.0,
+                        "slopeDepthBias": 0.0,
+                        "userBackface": false,
+                        "appBackface": false,
+                        "wireframe": false,
+                        "invertProjectionMatrix": true,
+                        "unfilterableTextureBindings": 0,
+                        "nonfilteringSamplerBindings": 0
+                    },
+                    {
+                        "vertexLayout": 5275912817003887966,
+                        "renderPass": 14385111753063879123,
+                        "renderState": 14693167734986563443,
                         "subPassIndex": 0,
                         "topology": 0,
                         "forceCullMode": -1,
@@ -3663,6 +3701,41 @@
         {
             "first": {
                 "serializedVersion": "2",
+                "Hash": "ec541717d26108aee41e0032c22ea788"
+            },
+            "second": {
+                "shaderName": "Hiraeth/Surface",
+                "shaderAssetGUID": "dccbcbdaf7e8e40fc8838263ea79921d",
+                "shaderAssetLocalIdentifierInFile": 4800000,
+                "keywordNames": "HIRAETH_LEAN_SLIM HIRAETH_VMAT",
+                "subShaderIndex": 0,
+                "passIndex": 0,
+                "graphicsStateInfoSet": [
+                    {
+                        "vertexLayout": 12113443583670447016,
+                        "renderPass": 14385111753063879123,
+                        "renderState": 15649462741326987297,
+                        "subPassIndex": 1,
+                        "topology": 0,
+                        "forceCullMode": -1,
+                        "shadingRateCombinerPrimitive": 0,
+                        "shadingRateCombinerFragment": 0,
+                        "baseShadingRate": 0,
+                        "depthBias": 0.0,
+                        "slopeDepthBias": 0.0,
+                        "userBackface": false,
+                        "appBackface": false,
+                        "wireframe": false,
+                        "invertProjectionMatrix": true,
+                        "unfilterableTextureBindings": 0,
+                        "nonfilteringSamplerBindings": 0
+                    }
+                ]
+            }
+        },
+        {
+            "first": {
+                "serializedVersion": "2",
                 "Hash": "0c86a9eee429ec15cce862c59238589a"
             },
             "second": {
@@ -3709,7 +3782,7 @@
                 "passIndex": 0,
                 "graphicsStateInfoSet": [
                     {
-                        "vertexLayout": 8738288455163577218,
+                        "vertexLayout": 606729846214585111,
                         "renderPass": 14385111753063879123,
                         "renderState": 15649462741326987297,
                         "subPassIndex": 0,
@@ -3743,25 +3816,6 @@
                 "subShaderIndex": 0,
                 "passIndex": 1,
                 "graphicsStateInfoSet": [
-                    {
-                        "vertexLayout": 11736547423179325410,
-                        "renderPass": 1496738454113501784,
-                        "renderState": 5139698867707353204,
-                        "subPassIndex": 0,
-                        "topology": 0,
-                        "forceCullMode": -1,
-                        "shadingRateCombinerPrimitive": 0,
-                        "shadingRateCombinerFragment": 0,
-                        "baseShadingRate": 0,
-                        "depthBias": 0.0,
-                        "slopeDepthBias": 0.0,
-                        "userBackface": false,
-                        "appBackface": false,
-                        "wireframe": false,
-                        "invertProjectionMatrix": true,
-                        "unfilterableTextureBindings": 0,
-                        "nonfilteringSamplerBindings": 0
-                    },
                     {
                         "vertexLayout": 740171004740663918,
                         "renderPass": 1496738454113501784,
@@ -3895,60 +3949,6 @@
         {
             "first": {
                 "serializedVersion": "2",
-                "Hash": "dd863e62d7b608c758653516912837e7"
-            },
-            "second": {
-                "shaderName": "Hiraeth/Surface",
-                "shaderAssetGUID": "dccbcbdaf7e8e40fc8838263ea79921d",
-                "shaderAssetLocalIdentifierInFile": 4800000,
-                "keywordNames": "HIRAETH_INSTMAT HIRAETH_LEAN",
-                "subShaderIndex": 0,
-                "passIndex": 0,
-                "graphicsStateInfoSet": [
-                    {
-                        "vertexLayout": 1015631276646597899,
-                        "renderPass": 14385111753063879123,
-                        "renderState": 15649462741326987297,
-                        "subPassIndex": 1,
-                        "topology": 0,
-                        "forceCullMode": -1,
-                        "shadingRateCombinerPrimitive": 0,
-                        "shadingRateCombinerFragment": 0,
-                        "baseShadingRate": 0,
-                        "depthBias": 0.0,
-                        "slopeDepthBias": 0.0,
-                        "userBackface": false,
-                        "appBackface": false,
-                        "wireframe": false,
-                        "invertProjectionMatrix": true,
-                        "unfilterableTextureBindings": 0,
-                        "nonfilteringSamplerBindings": 0
-                    },
-                    {
-                        "vertexLayout": 606729846214585111,
-                        "renderPass": 14385111753063879123,
-                        "renderState": 15649462741326987297,
-                        "subPassIndex": 1,
-                        "topology": 0,
-                        "forceCullMode": -1,
-                        "shadingRateCombinerPrimitive": 0,
-                        "shadingRateCombinerFragment": 0,
-                        "baseShadingRate": 0,
-                        "depthBias": 0.0,
-                        "slopeDepthBias": 0.0,
-                        "userBackface": false,
-                        "appBackface": false,
-                        "wireframe": false,
-                        "invertProjectionMatrix": true,
-                        "unfilterableTextureBindings": 0,
-                        "nonfilteringSamplerBindings": 0
-                    }
-                ]
-            }
-        },
-        {
-            "first": {
-                "serializedVersion": "2",
                 "Hash": "d0ce25a8792f43f38e40848404d3d02c"
             },
             "second": {
@@ -4022,41 +4022,6 @@
         {
             "first": {
                 "serializedVersion": "2",
-                "Hash": "f9eea82558144b9d448ba2a9e8366c08"
-            },
-            "second": {
-                "shaderName": "Hidden/Hiraeth/Upscale",
-                "shaderAssetGUID": "1bce41e326444e9aa25f6d4787cb6a4a",
-                "shaderAssetLocalIdentifierInFile": 4800000,
-                "keywordNames": "",
-                "subShaderIndex": 0,
-                "passIndex": 0,
-                "graphicsStateInfoSet": [
-                    {
-                        "vertexLayout": 15807068410263000910,
-                        "renderPass": 16754535890307923933,
-                        "renderState": 17623681824384884761,
-                        "subPassIndex": 0,
-                        "topology": 0,
-                        "forceCullMode": -1,
-                        "shadingRateCombinerPrimitive": 0,
-                        "shadingRateCombinerFragment": 0,
-                        "baseShadingRate": 0,
-                        "depthBias": 0.0,
-                        "slopeDepthBias": 0.0,
-                        "userBackface": false,
-                        "appBackface": false,
-                        "wireframe": false,
-                        "invertProjectionMatrix": true,
-                        "unfilterableTextureBindings": 0,
-                        "nonfilteringSamplerBindings": 0
-                    }
-                ]
-            }
-        },
-        {
-            "first": {
-                "serializedVersion": "2",
                 "Hash": "dcbe4ff1a7afbb15c175fe18770e9549"
             },
             "second": {
@@ -4092,6 +4057,95 @@
         {
             "first": {
                 "serializedVersion": "2",
+                "Hash": "f9eea82558144b9d448ba2a9e8366c08"
+            },
+            "second": {
+                "shaderName": "Hidden/Hiraeth/Upscale",
+                "shaderAssetGUID": "1bce41e326444e9aa25f6d4787cb6a4a",
+                "shaderAssetLocalIdentifierInFile": 4800000,
+                "keywordNames": "",
+                "subShaderIndex": 0,
+                "passIndex": 0,
+                "graphicsStateInfoSet": [
+                    {
+                        "vertexLayout": 15807068410263000910,
+                        "renderPass": 16754535890307923933,
+                        "renderState": 17623681824384884761,
+                        "subPassIndex": 0,
+                        "topology": 0,
+                        "forceCullMode": -1,
+                        "shadingRateCombinerPrimitive": 0,
+                        "shadingRateCombinerFragment": 0,
+                        "baseShadingRate": 0,
+                        "depthBias": 0.0,
+                        "slopeDepthBias": 0.0,
+                        "userBackface": false,
+                        "appBackface": false,
+                        "wireframe": false,
+                        "invertProjectionMatrix": true,
+                        "unfilterableTextureBindings": 0,
+                        "nonfilteringSamplerBindings": 0
+                    }
+                ]
+            }
+        },
+        {
+            "first": {
+                "serializedVersion": "2",
+                "Hash": "f186e4b59723af5c5f1a81d5406fd62a"
+            },
+            "second": {
+                "shaderName": "Hiraeth/Surface",
+                "shaderAssetGUID": "dccbcbdaf7e8e40fc8838263ea79921d",
+                "shaderAssetLocalIdentifierInFile": 4800000,
+                "keywordNames": "HIRAETH_LEAN HIRAETH_PLAIN HIRAETH_VMAT",
+                "subShaderIndex": 0,
+                "passIndex": 0,
+                "graphicsStateInfoSet": [
+                    {
+                        "vertexLayout": 12349292342678991697,
+                        "renderPass": 14385111753063879123,
+                        "renderState": 14693167734986563443,
+                        "subPassIndex": 1,
+                        "topology": 0,
+                        "forceCullMode": -1,
+                        "shadingRateCombinerPrimitive": 0,
+                        "shadingRateCombinerFragment": 0,
+                        "baseShadingRate": 0,
+                        "depthBias": 0.0,
+                        "slopeDepthBias": 0.0,
+                        "userBackface": false,
+                        "appBackface": false,
+                        "wireframe": false,
+                        "invertProjectionMatrix": true,
+                        "unfilterableTextureBindings": 0,
+                        "nonfilteringSamplerBindings": 0
+                    },
+                    {
+                        "vertexLayout": 12349292342678991697,
+                        "renderPass": 14385111753063879123,
+                        "renderState": 15649462741326987297,
+                        "subPassIndex": 1,
+                        "topology": 0,
+                        "forceCullMode": -1,
+                        "shadingRateCombinerPrimitive": 0,
+                        "shadingRateCombinerFragment": 0,
+                        "baseShadingRate": 0,
+                        "depthBias": 0.0,
+                        "slopeDepthBias": 0.0,
+                        "userBackface": false,
+                        "appBackface": false,
+                        "wireframe": false,
+                        "invertProjectionMatrix": true,
+                        "unfilterableTextureBindings": 0,
+                        "nonfilteringSamplerBindings": 0
+                    }
+                ]
+            }
+        },
+        {
+            "first": {
+                "serializedVersion": "2",
                 "Hash": "0bbf7821493683b8a001123721b568b7"
             },
             "second": {
@@ -4107,6 +4161,110 @@
                         "renderPass": 1496738454113501784,
                         "renderState": 5139698867707353204,
                         "subPassIndex": 0,
+                        "topology": 0,
+                        "forceCullMode": -1,
+                        "shadingRateCombinerPrimitive": 0,
+                        "shadingRateCombinerFragment": 0,
+                        "baseShadingRate": 0,
+                        "depthBias": 0.0,
+                        "slopeDepthBias": 0.0,
+                        "userBackface": false,
+                        "appBackface": false,
+                        "wireframe": false,
+                        "invertProjectionMatrix": true,
+                        "unfilterableTextureBindings": 0,
+                        "nonfilteringSamplerBindings": 0
+                    }
+                ]
+            }
+        },
+        {
+            "first": {
+                "serializedVersion": "2",
+                "Hash": "2ca71f437e734c949672da85538dd08f"
+            },
+            "second": {
+                "shaderName": "Hiraeth/Surface",
+                "shaderAssetGUID": "dccbcbdaf7e8e40fc8838263ea79921d",
+                "shaderAssetLocalIdentifierInFile": 4800000,
+                "keywordNames": "HIRAETH_PREPASS HIRAETH_SKIN",
+                "subShaderIndex": 0,
+                "passIndex": 0,
+                "graphicsStateInfoSet": []
+            }
+        },
+        {
+            "first": {
+                "serializedVersion": "2",
+                "Hash": "dd863e62d7b608c758653516912837e7"
+            },
+            "second": {
+                "shaderName": "Hiraeth/Surface",
+                "shaderAssetGUID": "dccbcbdaf7e8e40fc8838263ea79921d",
+                "shaderAssetLocalIdentifierInFile": 4800000,
+                "keywordNames": "HIRAETH_INSTMAT HIRAETH_LEAN",
+                "subShaderIndex": 0,
+                "passIndex": 0,
+                "graphicsStateInfoSet": [
+                    {
+                        "vertexLayout": 1015631276646597899,
+                        "renderPass": 14385111753063879123,
+                        "renderState": 15649462741326987297,
+                        "subPassIndex": 1,
+                        "topology": 0,
+                        "forceCullMode": -1,
+                        "shadingRateCombinerPrimitive": 0,
+                        "shadingRateCombinerFragment": 0,
+                        "baseShadingRate": 0,
+                        "depthBias": 0.0,
+                        "slopeDepthBias": 0.0,
+                        "userBackface": false,
+                        "appBackface": false,
+                        "wireframe": false,
+                        "invertProjectionMatrix": true,
+                        "unfilterableTextureBindings": 0,
+                        "nonfilteringSamplerBindings": 0
+                    },
+                    {
+                        "vertexLayout": 606729846214585111,
+                        "renderPass": 14385111753063879123,
+                        "renderState": 15649462741326987297,
+                        "subPassIndex": 1,
+                        "topology": 0,
+                        "forceCullMode": -1,
+                        "shadingRateCombinerPrimitive": 0,
+                        "shadingRateCombinerFragment": 0,
+                        "baseShadingRate": 0,
+                        "depthBias": 0.0,
+                        "slopeDepthBias": 0.0,
+                        "userBackface": false,
+                        "appBackface": false,
+                        "wireframe": false,
+                        "invertProjectionMatrix": true,
+                        "unfilterableTextureBindings": 0,
+                        "nonfilteringSamplerBindings": 0
+                    }
+                ]
+            }
+        },
+        {
+            "first": {
+                "serializedVersion": "2",
+                "Hash": "3e6f4671bb983cf7c7d95fc3771ab4ad"
+            },
+            "second": {
+                "shaderName": "Hiraeth/Surface",
+                "shaderAssetGUID": "dccbcbdaf7e8e40fc8838263ea79921d",
+                "shaderAssetLocalIdentifierInFile": 4800000,
+                "keywordNames": "HIRAETH_CROWD HIRAETH_LEAN HIRAETH_PLAIN",
+                "subShaderIndex": 0,
+                "passIndex": 0,
+                "graphicsStateInfoSet": [
+                    {
+                        "vertexLayout": 4370008670830236469,
+                        "renderPass": 14385111753063879123,
+                        "renderState": 14693167734986563443,
+                        "subPassIndex": 1,
                         "topology": 0,
                         "forceCullMode": -1,
                         "shadingRateCombinerPrimitive": 0,
@@ -4618,21 +4776,6 @@
         {
             "first": {
                 "serializedVersion": "2",
-                "Hash": "2ca71f437e734c949672da85538dd08f"
-            },
-            "second": {
-                "shaderName": "Hiraeth/Surface",
-                "shaderAssetGUID": "dccbcbdaf7e8e40fc8838263ea79921d",
-                "shaderAssetLocalIdentifierInFile": 4800000,
-                "keywordNames": "HIRAETH_PREPASS HIRAETH_SKIN",
-                "subShaderIndex": 0,
-                "passIndex": 0,
-                "graphicsStateInfoSet": []
-            }
-        },
-        {
-            "first": {
-                "serializedVersion": "2",
                 "Hash": "3d7fd2b36e491da482fb3097ac34c45c"
             },
             "second": {
@@ -4683,95 +4826,6 @@
                     },
                     {
                         "vertexLayout": 338481981864872910,
-                        "renderPass": 14385111753063879123,
-                        "renderState": 14693167734986563443,
-                        "subPassIndex": 1,
-                        "topology": 0,
-                        "forceCullMode": -1,
-                        "shadingRateCombinerPrimitive": 0,
-                        "shadingRateCombinerFragment": 0,
-                        "baseShadingRate": 0,
-                        "depthBias": 0.0,
-                        "slopeDepthBias": 0.0,
-                        "userBackface": false,
-                        "appBackface": false,
-                        "wireframe": false,
-                        "invertProjectionMatrix": true,
-                        "unfilterableTextureBindings": 0,
-                        "nonfilteringSamplerBindings": 0
-                    }
-                ]
-            }
-        },
-        {
-            "first": {
-                "serializedVersion": "2",
-                "Hash": "5af764e6cf28ebc45da41dd8bd5eb477"
-            },
-            "second": {
-                "shaderName": "Hiraeth/Planet",
-                "shaderAssetGUID": "4faa21d112cb44e54ae135e41152d8ef",
-                "shaderAssetLocalIdentifierInFile": 4800000,
-                "keywordNames": "",
-                "subShaderIndex": 0,
-                "passIndex": 0,
-                "graphicsStateInfoSet": [
-                    {
-                        "vertexLayout": 3633328445689846823,
-                        "renderPass": 14385111753063879123,
-                        "renderState": 14693167734986563443,
-                        "subPassIndex": 1,
-                        "topology": 0,
-                        "forceCullMode": -1,
-                        "shadingRateCombinerPrimitive": 0,
-                        "shadingRateCombinerFragment": 0,
-                        "baseShadingRate": 0,
-                        "depthBias": 0.0,
-                        "slopeDepthBias": 0.0,
-                        "userBackface": false,
-                        "appBackface": false,
-                        "wireframe": false,
-                        "invertProjectionMatrix": true,
-                        "unfilterableTextureBindings": 0,
-                        "nonfilteringSamplerBindings": 0
-                    },
-                    {
-                        "vertexLayout": 3633328445689846823,
-                        "renderPass": 14385111753063879123,
-                        "renderState": 14693167734986563443,
-                        "subPassIndex": 0,
-                        "topology": 0,
-                        "forceCullMode": -1,
-                        "shadingRateCombinerPrimitive": 0,
-                        "shadingRateCombinerFragment": 0,
-                        "baseShadingRate": 0,
-                        "depthBias": 0.0,
-                        "slopeDepthBias": 0.0,
-                        "userBackface": false,
-                        "appBackface": false,
-                        "wireframe": false,
-                        "invertProjectionMatrix": true,
-                        "unfilterableTextureBindings": 0,
-                        "nonfilteringSamplerBindings": 0
-                    }
-                ]
-            }
-        },
-        {
-            "first": {
-                "serializedVersion": "2",
-                "Hash": "3e6f4671bb983cf7c7d95fc3771ab4ad"
-            },
-            "second": {
-                "shaderName": "Hiraeth/Surface",
-                "shaderAssetGUID": "dccbcbdaf7e8e40fc8838263ea79921d",
-                "shaderAssetLocalIdentifierInFile": 4800000,
-                "keywordNames": "HIRAETH_CROWD HIRAETH_LEAN HIRAETH_PLAIN",
-                "subShaderIndex": 0,
-                "passIndex": 0,
-                "graphicsStateInfoSet": [
-                    {
-                        "vertexLayout": 4370008670830236469,
                         "renderPass": 14385111753063879123,
                         "renderState": 14693167734986563443,
                         "subPassIndex": 1,
@@ -4849,11 +4903,11 @@
         {
             "first": {
                 "serializedVersion": "2",
-                "Hash": "57af1f22476ea0e7a7a6c7d74529e0dc"
+                "Hash": "5af764e6cf28ebc45da41dd8bd5eb477"
             },
             "second": {
-                "shaderName": "Hiraeth/Veil",
-                "shaderAssetGUID": "703c0e499fc042cd9c17465f3c82c28a",
+                "shaderName": "Hiraeth/Planet",
+                "shaderAssetGUID": "4faa21d112cb44e54ae135e41152d8ef",
                 "shaderAssetLocalIdentifierInFile": 4800000,
                 "keywordNames": "",
                 "subShaderIndex": 0,
@@ -4861,117 +4915,6 @@
                 "graphicsStateInfoSet": [
                     {
                         "vertexLayout": 3633328445689846823,
-                        "renderPass": 12454302622998347800,
-                        "renderState": 11484678727985037407,
-                        "subPassIndex": 0,
-                        "topology": 0,
-                        "forceCullMode": -1,
-                        "shadingRateCombinerPrimitive": 0,
-                        "shadingRateCombinerFragment": 0,
-                        "baseShadingRate": 0,
-                        "depthBias": 0.0,
-                        "slopeDepthBias": 0.0,
-                        "userBackface": false,
-                        "appBackface": false,
-                        "wireframe": false,
-                        "invertProjectionMatrix": true,
-                        "unfilterableTextureBindings": 0,
-                        "nonfilteringSamplerBindings": 0
-                    },
-                    {
-                        "vertexLayout": 3633328445689846823,
-                        "renderPass": 12454302622998347800,
-                        "renderState": 14087465304714772326,
-                        "subPassIndex": 0,
-                        "topology": 0,
-                        "forceCullMode": -1,
-                        "shadingRateCombinerPrimitive": 0,
-                        "shadingRateCombinerFragment": 0,
-                        "baseShadingRate": 0,
-                        "depthBias": 0.0,
-                        "slopeDepthBias": 0.0,
-                        "userBackface": false,
-                        "appBackface": false,
-                        "wireframe": false,
-                        "invertProjectionMatrix": true,
-                        "unfilterableTextureBindings": 0,
-                        "nonfilteringSamplerBindings": 0
-                    },
-                    {
-                        "vertexLayout": 3633328445689846823,
-                        "renderPass": 12454302622998347800,
-                        "renderState": 15305972633634727204,
-                        "subPassIndex": 0,
-                        "topology": 0,
-                        "forceCullMode": -1,
-                        "shadingRateCombinerPrimitive": 0,
-                        "shadingRateCombinerFragment": 0,
-                        "baseShadingRate": 0,
-                        "depthBias": 0.0,
-                        "slopeDepthBias": 0.0,
-                        "userBackface": false,
-                        "appBackface": false,
-                        "wireframe": false,
-                        "invertProjectionMatrix": true,
-                        "unfilterableTextureBindings": 0,
-                        "nonfilteringSamplerBindings": 0
-                    },
-                    {
-                        "vertexLayout": 235578897188125187,
-                        "renderPass": 12454302622998347800,
-                        "renderState": 11484678727985037407,
-                        "subPassIndex": 0,
-                        "topology": 0,
-                        "forceCullMode": -1,
-                        "shadingRateCombinerPrimitive": 0,
-                        "shadingRateCombinerFragment": 0,
-                        "baseShadingRate": 0,
-                        "depthBias": 0.0,
-                        "slopeDepthBias": 0.0,
-                        "userBackface": false,
-                        "appBackface": false,
-                        "wireframe": false,
-                        "invertProjectionMatrix": true,
-                        "unfilterableTextureBindings": 0,
-                        "nonfilteringSamplerBindings": 0
-                    },
-                    {
-                        "vertexLayout": 235578897188125187,
-                        "renderPass": 12454302622998347800,
-                        "renderState": 14087465304714772326,
-                        "subPassIndex": 0,
-                        "topology": 0,
-                        "forceCullMode": -1,
-                        "shadingRateCombinerPrimitive": 0,
-                        "shadingRateCombinerFragment": 0,
-                        "baseShadingRate": 0,
-                        "depthBias": 0.0,
-                        "slopeDepthBias": 0.0,
-                        "userBackface": false,
-                        "appBackface": false,
-                        "wireframe": false,
-                        "invertProjectionMatrix": true,
-                        "unfilterableTextureBindings": 0,
-                        "nonfilteringSamplerBindings": 0
-                    }
-                ]
-            }
-        },
-        {
-            "first": {
-                "serializedVersion": "2",
-                "Hash": "f186e4b59723af5c5f1a81d5406fd62a"
-            },
-            "second": {
-                "shaderName": "Hiraeth/Surface",
-                "shaderAssetGUID": "dccbcbdaf7e8e40fc8838263ea79921d",
-                "shaderAssetLocalIdentifierInFile": 4800000,
-                "keywordNames": "HIRAETH_LEAN HIRAETH_PLAIN HIRAETH_VMAT",
-                "subShaderIndex": 0,
-                "passIndex": 0,
-                "graphicsStateInfoSet": [
-                    {
-                        "vertexLayout": 10875585429415429375,
                         "renderPass": 14385111753063879123,
                         "renderState": 14693167734986563443,
                         "subPassIndex": 1,
@@ -4990,29 +4933,10 @@
                         "nonfilteringSamplerBindings": 0
                     },
                     {
-                        "vertexLayout": 12349292342678991697,
+                        "vertexLayout": 3633328445689846823,
                         "renderPass": 14385111753063879123,
                         "renderState": 14693167734986563443,
-                        "subPassIndex": 1,
-                        "topology": 0,
-                        "forceCullMode": -1,
-                        "shadingRateCombinerPrimitive": 0,
-                        "shadingRateCombinerFragment": 0,
-                        "baseShadingRate": 0,
-                        "depthBias": 0.0,
-                        "slopeDepthBias": 0.0,
-                        "userBackface": false,
-                        "appBackface": false,
-                        "wireframe": false,
-                        "invertProjectionMatrix": true,
-                        "unfilterableTextureBindings": 0,
-                        "nonfilteringSamplerBindings": 0
-                    },
-                    {
-                        "vertexLayout": 12349292342678991697,
-                        "renderPass": 14385111753063879123,
-                        "renderState": 15649462741326987297,
-                        "subPassIndex": 1,
+                        "subPassIndex": 0,
                         "topology": 0,
                         "forceCullMode": -1,
                         "shadingRateCombinerPrimitive": 0,
@@ -5380,7 +5304,7 @@
                 "passIndex": 1,
                 "graphicsStateInfoSet": [
                     {
-                        "vertexLayout": 14583826611678982205,
+                        "vertexLayout": 13573822249369203742,
                         "renderPass": 1496738454113501784,
                         "renderState": 5139698867707353204,
                         "subPassIndex": 0,
@@ -5418,45 +5342,26 @@
                         "nonfilteringSamplerBindings": 0
                     },
                     {
-                        "vertexLayout": 16335724101636864633,
-                        "renderPass": 1496738454113501784,
-                        "renderState": 5139698867707353204,
-                        "subPassIndex": 0,
-                        "topology": 0,
-                        "forceCullMode": -1,
-                        "shadingRateCombinerPrimitive": 0,
-                        "shadingRateCombinerFragment": 0,
-                        "baseShadingRate": 0,
-                        "depthBias": 0.0,
-                        "slopeDepthBias": 0.0,
-                        "userBackface": false,
-                        "appBackface": false,
-                        "wireframe": false,
-                        "invertProjectionMatrix": true,
-                        "unfilterableTextureBindings": 0,
-                        "nonfilteringSamplerBindings": 0
-                    },
-                    {
-                        "vertexLayout": 13573822249369203742,
-                        "renderPass": 1496738454113501784,
-                        "renderState": 5139698867707353204,
-                        "subPassIndex": 0,
-                        "topology": 0,
-                        "forceCullMode": -1,
-                        "shadingRateCombinerPrimitive": 0,
-                        "shadingRateCombinerFragment": 0,
-                        "baseShadingRate": 0,
-                        "depthBias": 0.0,
-                        "slopeDepthBias": 0.0,
-                        "userBackface": false,
-                        "appBackface": false,
-                        "wireframe": false,
-                        "invertProjectionMatrix": true,
-                        "unfilterableTextureBindings": 0,
-                        "nonfilteringSamplerBindings": 0
-                    },
-                    {
                         "vertexLayout": 1049669483836887324,
+                        "renderPass": 1496738454113501784,
+                        "renderState": 5139698867707353204,
+                        "subPassIndex": 0,
+                        "topology": 0,
+                        "forceCullMode": -1,
+                        "shadingRateCombinerPrimitive": 0,
+                        "shadingRateCombinerFragment": 0,
+                        "baseShadingRate": 0,
+                        "depthBias": 0.0,
+                        "slopeDepthBias": 0.0,
+                        "userBackface": false,
+                        "appBackface": false,
+                        "wireframe": false,
+                        "invertProjectionMatrix": true,
+                        "unfilterableTextureBindings": 0,
+                        "nonfilteringSamplerBindings": 0
+                    },
+                    {
+                        "vertexLayout": 16335724101636864633,
                         "renderPass": 1496738454113501784,
                         "renderState": 5139698867707353204,
                         "subPassIndex": 0,
@@ -5532,6 +5437,41 @@
                         "vertexLayout": 5857020084080299928,
                         "renderPass": 1496738454113501784,
                         "renderState": 5139698867707353204,
+                        "subPassIndex": 0,
+                        "topology": 0,
+                        "forceCullMode": -1,
+                        "shadingRateCombinerPrimitive": 0,
+                        "shadingRateCombinerFragment": 0,
+                        "baseShadingRate": 0,
+                        "depthBias": 0.0,
+                        "slopeDepthBias": 0.0,
+                        "userBackface": false,
+                        "appBackface": false,
+                        "wireframe": false,
+                        "invertProjectionMatrix": true,
+                        "unfilterableTextureBindings": 0,
+                        "nonfilteringSamplerBindings": 0
+                    }
+                ]
+            }
+        },
+        {
+            "first": {
+                "serializedVersion": "2",
+                "Hash": "57af1f22476ea0e7a7a6c7d74529e0dc"
+            },
+            "second": {
+                "shaderName": "Hiraeth/Veil",
+                "shaderAssetGUID": "703c0e499fc042cd9c17465f3c82c28a",
+                "shaderAssetLocalIdentifierInFile": 4800000,
+                "keywordNames": "",
+                "subShaderIndex": 0,
+                "passIndex": 0,
+                "graphicsStateInfoSet": [
+                    {
+                        "vertexLayout": 3633328445689846823,
+                        "renderPass": 12454302622998347800,
+                        "renderState": 9397574595326434525,
                         "subPassIndex": 0,
                         "topology": 0,
                         "forceCullMode": -1,
@@ -5643,108 +5583,6 @@
                 ],
                 "vertexStrides": [
                     68,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0
-                ],
-                "vertexStreamCount": 2
-            }
-        },
-        {
-            "first": 11582929990943207109,
-            "second": {
-                "vertexChannelsInfo": [
-                    {
-                        "stream": 0,
-                        "offset": 0,
-                        "format": 0,
-                        "dimension": 3
-                    },
-                    {
-                        "stream": 0,
-                        "offset": 0,
-                        "format": 0,
-                        "dimension": 0
-                    },
-                    {
-                        "stream": 0,
-                        "offset": 0,
-                        "format": 0,
-                        "dimension": 0
-                    },
-                    {
-                        "stream": 0,
-                        "offset": 0,
-                        "format": 0,
-                        "dimension": 0
-                    },
-                    {
-                        "stream": 1,
-                        "offset": 0,
-                        "format": 2,
-                        "dimension": 4
-                    },
-                    {
-                        "stream": 1,
-                        "offset": 0,
-                        "format": 2,
-                        "dimension": 4
-                    },
-                    {
-                        "stream": 1,
-                        "offset": 0,
-                        "format": 2,
-                        "dimension": 4
-                    },
-                    {
-                        "stream": 1,
-                        "offset": 0,
-                        "format": 2,
-                        "dimension": 4
-                    },
-                    {
-                        "stream": 0,
-                        "offset": 0,
-                        "format": 0,
-                        "dimension": 0
-                    },
-                    {
-                        "stream": 0,
-                        "offset": 0,
-                        "format": 0,
-                        "dimension": 0
-                    },
-                    {
-                        "stream": 0,
-                        "offset": 0,
-                        "format": 0,
-                        "dimension": 0
-                    },
-                    {
-                        "stream": 0,
-                        "offset": 0,
-                        "format": 0,
-                        "dimension": 0
-                    },
-                    {
-                        "stream": 0,
-                        "offset": 0,
-                        "format": 0,
-                        "dimension": 0
-                    },
-                    {
-                        "stream": 0,
-                        "offset": 0,
-                        "format": 0,
-                        "dimension": 0
-                    }
-                ],
-                "vertexStrides": [
-                    12,
                     0,
                     0,
                     0,
@@ -6573,6 +6411,108 @@
             }
         },
         {
+            "first": 5275912817003887966,
+            "second": {
+                "vertexChannelsInfo": [
+                    {
+                        "stream": 0,
+                        "offset": 0,
+                        "format": 0,
+                        "dimension": 3
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 12,
+                        "format": 0,
+                        "dimension": 3
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 0,
+                        "format": 0,
+                        "dimension": 0
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 0,
+                        "format": 0,
+                        "dimension": 0
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 24,
+                        "format": 0,
+                        "dimension": 2
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 24,
+                        "format": 0,
+                        "dimension": 2
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 24,
+                        "format": 0,
+                        "dimension": 2
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 24,
+                        "format": 0,
+                        "dimension": 2
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 24,
+                        "format": 0,
+                        "dimension": 2
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 24,
+                        "format": 0,
+                        "dimension": 2
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 24,
+                        "format": 0,
+                        "dimension": 2
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 24,
+                        "format": 0,
+                        "dimension": 2
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 0,
+                        "format": 0,
+                        "dimension": 0
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 0,
+                        "format": 0,
+                        "dimension": 0
+                    }
+                ],
+                "vertexStrides": [
+                    32,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                ],
+                "vertexStreamCount": 1
+            }
+        },
+        {
             "first": 4511578536044677011,
             "second": {
                 "vertexChannelsInfo": [
@@ -6777,6 +6717,108 @@
             }
         },
         {
+            "first": 2356946272236105049,
+            "second": {
+                "vertexChannelsInfo": [
+                    {
+                        "stream": 0,
+                        "offset": 0,
+                        "format": 0,
+                        "dimension": 3
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 12,
+                        "format": 0,
+                        "dimension": 3
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 0,
+                        "format": 0,
+                        "dimension": 0
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 0,
+                        "format": 0,
+                        "dimension": 0
+                    },
+                    {
+                        "stream": 3,
+                        "offset": 0,
+                        "format": 2,
+                        "dimension": 4
+                    },
+                    {
+                        "stream": 3,
+                        "offset": 0,
+                        "format": 2,
+                        "dimension": 4
+                    },
+                    {
+                        "stream": 3,
+                        "offset": 0,
+                        "format": 2,
+                        "dimension": 4
+                    },
+                    {
+                        "stream": 1,
+                        "offset": 0,
+                        "format": 0,
+                        "dimension": 3
+                    },
+                    {
+                        "stream": 1,
+                        "offset": 0,
+                        "format": 0,
+                        "dimension": 3
+                    },
+                    {
+                        "stream": 1,
+                        "offset": 0,
+                        "format": 0,
+                        "dimension": 3
+                    },
+                    {
+                        "stream": 1,
+                        "offset": 0,
+                        "format": 0,
+                        "dimension": 3
+                    },
+                    {
+                        "stream": 1,
+                        "offset": 0,
+                        "format": 0,
+                        "dimension": 3
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 0,
+                        "format": 0,
+                        "dimension": 0
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 0,
+                        "format": 0,
+                        "dimension": 0
+                    }
+                ],
+                "vertexStrides": [
+                    24,
+                    12,
+                    32,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                ],
+                "vertexStreamCount": 4
+            }
+        },
+        {
             "first": 8738288455163577218,
             "second": {
                 "vertexChannelsInfo": [
@@ -6879,7 +6921,7 @@
             }
         },
         {
-            "first": 1343579544338320095,
+            "first": 9138810169967319381,
             "second": {
                 "vertexChannelsInfo": [
                     {
@@ -6902,57 +6944,57 @@
                     },
                     {
                         "stream": 0,
+                        "offset": 0,
+                        "format": 0,
+                        "dimension": 0
+                    },
+                    {
+                        "stream": 0,
                         "offset": 24,
                         "format": 0,
-                        "dimension": 4
+                        "dimension": 2
                     },
                     {
                         "stream": 0,
-                        "offset": 0,
+                        "offset": 24,
                         "format": 0,
-                        "dimension": 0
+                        "dimension": 2
                     },
                     {
                         "stream": 0,
-                        "offset": 0,
+                        "offset": 24,
                         "format": 0,
-                        "dimension": 0
+                        "dimension": 2
                     },
                     {
                         "stream": 0,
-                        "offset": 40,
+                        "offset": 32,
                         "format": 0,
-                        "dimension": 4
+                        "dimension": 3
                     },
                     {
                         "stream": 0,
-                        "offset": 0,
+                        "offset": 32,
                         "format": 0,
-                        "dimension": 0
+                        "dimension": 3
                     },
                     {
                         "stream": 0,
-                        "offset": 0,
+                        "offset": 32,
                         "format": 0,
-                        "dimension": 0
+                        "dimension": 3
                     },
                     {
                         "stream": 0,
-                        "offset": 0,
+                        "offset": 32,
                         "format": 0,
-                        "dimension": 0
+                        "dimension": 3
                     },
                     {
                         "stream": 0,
-                        "offset": 0,
+                        "offset": 32,
                         "format": 0,
-                        "dimension": 0
-                    },
-                    {
-                        "stream": 0,
-                        "offset": 0,
-                        "format": 0,
-                        "dimension": 0
+                        "dimension": 3
                     },
                     {
                         "stream": 0,
@@ -6968,7 +7010,7 @@
                     }
                 ],
                 "vertexStrides": [
-                    56,
+                    44,
                     0,
                     0,
                     0,
@@ -6981,7 +7023,7 @@
             }
         },
         {
-            "first": 16335724101636864633,
+            "first": 9920960081214955224,
             "second": {
                 "vertexChannelsInfo": [
                     {
@@ -6992,9 +7034,15 @@
                     },
                     {
                         "stream": 0,
-                        "offset": 12,
+                        "offset": 0,
                         "format": 0,
-                        "dimension": 3
+                        "dimension": 0
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 0,
+                        "format": 0,
+                        "dimension": 0
                     },
                     {
                         "stream": 0,
@@ -7005,56 +7053,50 @@
                     {
                         "stream": 1,
                         "offset": 0,
-                        "format": 0,
+                        "format": 2,
                         "dimension": 4
                     },
                     {
                         "stream": 1,
-                        "offset": 16,
-                        "format": 0,
-                        "dimension": 2
+                        "offset": 0,
+                        "format": 2,
+                        "dimension": 4
                     },
                     {
                         "stream": 1,
-                        "offset": 16,
-                        "format": 0,
-                        "dimension": 2
+                        "offset": 0,
+                        "format": 2,
+                        "dimension": 4
                     },
                     {
                         "stream": 1,
-                        "offset": 16,
-                        "format": 0,
-                        "dimension": 2
+                        "offset": 0,
+                        "format": 2,
+                        "dimension": 4
                     },
                     {
                         "stream": 1,
-                        "offset": 24,
-                        "format": 0,
-                        "dimension": 3
+                        "offset": 0,
+                        "format": 2,
+                        "dimension": 4
                     },
                     {
-                        "stream": 0,
+                        "stream": 1,
                         "offset": 0,
-                        "format": 0,
-                        "dimension": 0
+                        "format": 2,
+                        "dimension": 4
                     },
                     {
-                        "stream": 0,
+                        "stream": 1,
                         "offset": 0,
-                        "format": 0,
-                        "dimension": 0
+                        "format": 2,
+                        "dimension": 4
                     },
                     {
-                        "stream": 0,
+                        "stream": 1,
                         "offset": 0,
-                        "format": 0,
-                        "dimension": 0
-                    },
-                    {
-                        "stream": 0,
-                        "offset": 0,
-                        "format": 0,
-                        "dimension": 0
+                        "format": 2,
+                        "dimension": 4
                     },
                     {
                         "stream": 0,
@@ -7070,16 +7112,16 @@
                     }
                 ],
                 "vertexStrides": [
-                    24,
-                    36,
-                    32,
+                    12,
+                    0,
+                    0,
                     0,
                     0,
                     0,
                     0,
                     0
                 ],
-                "vertexStreamCount": 3
+                "vertexStreamCount": 2
             }
         },
         {
@@ -7284,6 +7326,108 @@
                     0
                 ],
                 "vertexStreamCount": 2
+            }
+        },
+        {
+            "first": 16335724101636864633,
+            "second": {
+                "vertexChannelsInfo": [
+                    {
+                        "stream": 0,
+                        "offset": 0,
+                        "format": 0,
+                        "dimension": 3
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 12,
+                        "format": 0,
+                        "dimension": 3
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 0,
+                        "format": 0,
+                        "dimension": 0
+                    },
+                    {
+                        "stream": 1,
+                        "offset": 0,
+                        "format": 0,
+                        "dimension": 4
+                    },
+                    {
+                        "stream": 1,
+                        "offset": 16,
+                        "format": 0,
+                        "dimension": 2
+                    },
+                    {
+                        "stream": 1,
+                        "offset": 16,
+                        "format": 0,
+                        "dimension": 2
+                    },
+                    {
+                        "stream": 1,
+                        "offset": 16,
+                        "format": 0,
+                        "dimension": 2
+                    },
+                    {
+                        "stream": 1,
+                        "offset": 24,
+                        "format": 0,
+                        "dimension": 3
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 0,
+                        "format": 0,
+                        "dimension": 0
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 0,
+                        "format": 0,
+                        "dimension": 0
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 0,
+                        "format": 0,
+                        "dimension": 0
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 0,
+                        "format": 0,
+                        "dimension": 0
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 0,
+                        "format": 0,
+                        "dimension": 0
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 0,
+                        "format": 0,
+                        "dimension": 0
+                    }
+                ],
+                "vertexStrides": [
+                    24,
+                    36,
+                    32,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                ],
+                "vertexStreamCount": 3
             }
         },
         {
@@ -7797,6 +7941,108 @@
             }
         },
         {
+            "first": 10028712230151497822,
+            "second": {
+                "vertexChannelsInfo": [
+                    {
+                        "stream": 0,
+                        "offset": 0,
+                        "format": 0,
+                        "dimension": 3
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 12,
+                        "format": 0,
+                        "dimension": 3
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 0,
+                        "format": 0,
+                        "dimension": 0
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 24,
+                        "format": 0,
+                        "dimension": 4
+                    },
+                    {
+                        "stream": 1,
+                        "offset": 0,
+                        "format": 2,
+                        "dimension": 4
+                    },
+                    {
+                        "stream": 1,
+                        "offset": 0,
+                        "format": 2,
+                        "dimension": 4
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 40,
+                        "format": 0,
+                        "dimension": 4
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 40,
+                        "format": 0,
+                        "dimension": 4
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 40,
+                        "format": 0,
+                        "dimension": 4
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 40,
+                        "format": 0,
+                        "dimension": 4
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 40,
+                        "format": 0,
+                        "dimension": 4
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 40,
+                        "format": 0,
+                        "dimension": 4
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 0,
+                        "format": 0,
+                        "dimension": 0
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 0,
+                        "format": 0,
+                        "dimension": 0
+                    }
+                ],
+                "vertexStrides": [
+                    56,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                ],
+                "vertexStreamCount": 1
+            }
+        },
+        {
             "first": 2002243699597225601,
             "second": {
                 "vertexChannelsInfo": [
@@ -7989,6 +8235,108 @@
                 ],
                 "vertexStrides": [
                     48,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                ],
+                "vertexStreamCount": 1
+            }
+        },
+        {
+            "first": 12755827957881246032,
+            "second": {
+                "vertexChannelsInfo": [
+                    {
+                        "stream": 0,
+                        "offset": 0,
+                        "format": 0,
+                        "dimension": 3
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 12,
+                        "format": 0,
+                        "dimension": 3
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 0,
+                        "format": 0,
+                        "dimension": 0
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 0,
+                        "format": 0,
+                        "dimension": 0
+                    },
+                    {
+                        "stream": 1,
+                        "offset": 0,
+                        "format": 2,
+                        "dimension": 4
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 24,
+                        "format": 0,
+                        "dimension": 2
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 24,
+                        "format": 0,
+                        "dimension": 2
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 32,
+                        "format": 0,
+                        "dimension": 3
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 32,
+                        "format": 0,
+                        "dimension": 3
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 32,
+                        "format": 0,
+                        "dimension": 3
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 32,
+                        "format": 0,
+                        "dimension": 3
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 32,
+                        "format": 0,
+                        "dimension": 3
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 0,
+                        "format": 0,
+                        "dimension": 0
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 0,
+                        "format": 0,
+                        "dimension": 0
+                    }
+                ],
+                "vertexStrides": [
+                    44,
                     0,
                     0,
                     0,
@@ -9633,6 +9981,108 @@
             }
         },
         {
+            "first": 15545302938630461835,
+            "second": {
+                "vertexChannelsInfo": [
+                    {
+                        "stream": 0,
+                        "offset": 0,
+                        "format": 0,
+                        "dimension": 3
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 12,
+                        "format": 0,
+                        "dimension": 3
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 0,
+                        "format": 0,
+                        "dimension": 0
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 24,
+                        "format": 0,
+                        "dimension": 4
+                    },
+                    {
+                        "stream": 1,
+                        "offset": 0,
+                        "format": 2,
+                        "dimension": 4
+                    },
+                    {
+                        "stream": 1,
+                        "offset": 0,
+                        "format": 2,
+                        "dimension": 4
+                    },
+                    {
+                        "stream": 1,
+                        "offset": 0,
+                        "format": 2,
+                        "dimension": 4
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 40,
+                        "format": 0,
+                        "dimension": 3
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 40,
+                        "format": 0,
+                        "dimension": 3
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 40,
+                        "format": 0,
+                        "dimension": 3
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 40,
+                        "format": 0,
+                        "dimension": 3
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 40,
+                        "format": 0,
+                        "dimension": 3
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 0,
+                        "format": 0,
+                        "dimension": 0
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 0,
+                        "format": 0,
+                        "dimension": 0
+                    }
+                ],
+                "vertexStrides": [
+                    52,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                ],
+                "vertexStreamCount": 1
+            }
+        },
+        {
             "first": 14686914917164639529,
             "second": {
                 "vertexChannelsInfo": [
@@ -9735,108 +10185,6 @@
             }
         },
         {
-            "first": 4944023994933507972,
-            "second": {
-                "vertexChannelsInfo": [
-                    {
-                        "stream": 0,
-                        "offset": 0,
-                        "format": 0,
-                        "dimension": 3
-                    },
-                    {
-                        "stream": 0,
-                        "offset": 12,
-                        "format": 0,
-                        "dimension": 3
-                    },
-                    {
-                        "stream": 0,
-                        "offset": 0,
-                        "format": 0,
-                        "dimension": 0
-                    },
-                    {
-                        "stream": 0,
-                        "offset": 0,
-                        "format": 0,
-                        "dimension": 0
-                    },
-                    {
-                        "stream": 0,
-                        "offset": 0,
-                        "format": 0,
-                        "dimension": 0
-                    },
-                    {
-                        "stream": 0,
-                        "offset": 0,
-                        "format": 0,
-                        "dimension": 0
-                    },
-                    {
-                        "stream": 0,
-                        "offset": 0,
-                        "format": 0,
-                        "dimension": 0
-                    },
-                    {
-                        "stream": 0,
-                        "offset": 0,
-                        "format": 0,
-                        "dimension": 0
-                    },
-                    {
-                        "stream": 0,
-                        "offset": 0,
-                        "format": 0,
-                        "dimension": 0
-                    },
-                    {
-                        "stream": 0,
-                        "offset": 0,
-                        "format": 0,
-                        "dimension": 0
-                    },
-                    {
-                        "stream": 0,
-                        "offset": 0,
-                        "format": 0,
-                        "dimension": 0
-                    },
-                    {
-                        "stream": 0,
-                        "offset": 0,
-                        "format": 0,
-                        "dimension": 0
-                    },
-                    {
-                        "stream": 0,
-                        "offset": 0,
-                        "format": 0,
-                        "dimension": 0
-                    },
-                    {
-                        "stream": 0,
-                        "offset": 0,
-                        "format": 0,
-                        "dimension": 0
-                    }
-                ],
-                "vertexStrides": [
-                    24,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0
-                ],
-                "vertexStreamCount": 1
-            }
-        },
-        {
             "first": 10875585429415429375,
             "second": {
                 "vertexChannelsInfo": [
@@ -9927,6 +10275,108 @@
                 ],
                 "vertexStrides": [
                     24,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                ],
+                "vertexStreamCount": 2
+            }
+        },
+        {
+            "first": 16515461844901019009,
+            "second": {
+                "vertexChannelsInfo": [
+                    {
+                        "stream": 0,
+                        "offset": 0,
+                        "format": 0,
+                        "dimension": 3
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 12,
+                        "format": 0,
+                        "dimension": 3
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 0,
+                        "format": 0,
+                        "dimension": 0
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 0,
+                        "format": 0,
+                        "dimension": 0
+                    },
+                    {
+                        "stream": 1,
+                        "offset": 0,
+                        "format": 2,
+                        "dimension": 4
+                    },
+                    {
+                        "stream": 1,
+                        "offset": 0,
+                        "format": 2,
+                        "dimension": 4
+                    },
+                    {
+                        "stream": 1,
+                        "offset": 0,
+                        "format": 2,
+                        "dimension": 4
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 24,
+                        "format": 0,
+                        "dimension": 3
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 24,
+                        "format": 0,
+                        "dimension": 3
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 24,
+                        "format": 0,
+                        "dimension": 3
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 24,
+                        "format": 0,
+                        "dimension": 3
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 24,
+                        "format": 0,
+                        "dimension": 3
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 0,
+                        "format": 0,
+                        "dimension": 0
+                    },
+                    {
+                        "stream": 0,
+                        "offset": 0,
+                        "format": 0,
+                        "dimension": 0
+                    }
+                ],
+                "vertexStrides": [
+                    36,
                     0,
                     0,
                     0,
@@ -15859,6 +16309,118 @@
     ],
     "m_RenderStateMap": [
         {
+            "first": 10191581635494263077,
+            "second": {
+                "renderState": {
+                    "blendState": {
+                        "rt": [
+                            {
+                                "writeMask": 14,
+                                "srcBlend": 1,
+                                "dstBlend": 1,
+                                "srcBlendAlpha": 1,
+                                "dstBlendAlpha": 1,
+                                "blendOp": 0,
+                                "blendOpAlpha": 0
+                            },
+                            {
+                                "writeMask": 15,
+                                "srcBlend": 1,
+                                "dstBlend": 0,
+                                "srcBlendAlpha": 1,
+                                "dstBlendAlpha": 0,
+                                "blendOp": 0,
+                                "blendOpAlpha": 0
+                            },
+                            {
+                                "writeMask": 15,
+                                "srcBlend": 1,
+                                "dstBlend": 0,
+                                "srcBlendAlpha": 1,
+                                "dstBlendAlpha": 0,
+                                "blendOp": 0,
+                                "blendOpAlpha": 0
+                            },
+                            {
+                                "writeMask": 15,
+                                "srcBlend": 1,
+                                "dstBlend": 0,
+                                "srcBlendAlpha": 1,
+                                "dstBlendAlpha": 0,
+                                "blendOp": 0,
+                                "blendOpAlpha": 0
+                            },
+                            {
+                                "writeMask": 15,
+                                "srcBlend": 1,
+                                "dstBlend": 0,
+                                "srcBlendAlpha": 1,
+                                "dstBlendAlpha": 0,
+                                "blendOp": 0,
+                                "blendOpAlpha": 0
+                            },
+                            {
+                                "writeMask": 15,
+                                "srcBlend": 1,
+                                "dstBlend": 0,
+                                "srcBlendAlpha": 1,
+                                "dstBlendAlpha": 0,
+                                "blendOp": 0,
+                                "blendOpAlpha": 0
+                            },
+                            {
+                                "writeMask": 15,
+                                "srcBlend": 1,
+                                "dstBlend": 0,
+                                "srcBlendAlpha": 1,
+                                "dstBlendAlpha": 0,
+                                "blendOp": 0,
+                                "blendOpAlpha": 0
+                            },
+                            {
+                                "writeMask": 15,
+                                "srcBlend": 1,
+                                "dstBlend": 0,
+                                "srcBlendAlpha": 1,
+                                "dstBlendAlpha": 0,
+                                "blendOp": 0,
+                                "blendOpAlpha": 0
+                            }
+                        ],
+                        "separateMRTBlend": 0,
+                        "alphaToMask": 0
+                    },
+                    "rasterState": {
+                        "cullMode": 0,
+                        "depthBias": 0,
+                        "slopeScaledDepthBias": 0.0,
+                        "depthClip": 1,
+                        "conservative": 0
+                    },
+                    "depthState": {
+                        "depthWrite": 0,
+                        "depthFunc": 8
+                    },
+                    "stencilState": {
+                        "stencilEnable": 0,
+                        "readMask": 255,
+                        "writeMask": 255,
+                        "padding": 0,
+                        "stencilFuncFront": 8,
+                        "stencilPassOpFront": 0,
+                        "stencilFailOpFront": 0,
+                        "stencilZFailOpFront": 0,
+                        "stencilFuncBack": 8,
+                        "stencilPassOpBack": 0,
+                        "stencilFailOpBack": 0,
+                        "stencilZFailOpBack": 0
+                    },
+                    "stencilRef": 0,
+                    "mask": 15
+                }
+            }
+        },
+        {
             "first": 13576802146252363573,
             "second": {
                 "renderState": {
@@ -17214,6 +17776,118 @@
                                 "dstBlend": 10,
                                 "srcBlendAlpha": 5,
                                 "dstBlendAlpha": 10,
+                                "blendOp": 0,
+                                "blendOpAlpha": 0
+                            },
+                            {
+                                "writeMask": 15,
+                                "srcBlend": 1,
+                                "dstBlend": 0,
+                                "srcBlendAlpha": 1,
+                                "dstBlendAlpha": 0,
+                                "blendOp": 0,
+                                "blendOpAlpha": 0
+                            },
+                            {
+                                "writeMask": 15,
+                                "srcBlend": 1,
+                                "dstBlend": 0,
+                                "srcBlendAlpha": 1,
+                                "dstBlendAlpha": 0,
+                                "blendOp": 0,
+                                "blendOpAlpha": 0
+                            },
+                            {
+                                "writeMask": 15,
+                                "srcBlend": 1,
+                                "dstBlend": 0,
+                                "srcBlendAlpha": 1,
+                                "dstBlendAlpha": 0,
+                                "blendOp": 0,
+                                "blendOpAlpha": 0
+                            },
+                            {
+                                "writeMask": 15,
+                                "srcBlend": 1,
+                                "dstBlend": 0,
+                                "srcBlendAlpha": 1,
+                                "dstBlendAlpha": 0,
+                                "blendOp": 0,
+                                "blendOpAlpha": 0
+                            },
+                            {
+                                "writeMask": 15,
+                                "srcBlend": 1,
+                                "dstBlend": 0,
+                                "srcBlendAlpha": 1,
+                                "dstBlendAlpha": 0,
+                                "blendOp": 0,
+                                "blendOpAlpha": 0
+                            },
+                            {
+                                "writeMask": 15,
+                                "srcBlend": 1,
+                                "dstBlend": 0,
+                                "srcBlendAlpha": 1,
+                                "dstBlendAlpha": 0,
+                                "blendOp": 0,
+                                "blendOpAlpha": 0
+                            },
+                            {
+                                "writeMask": 15,
+                                "srcBlend": 1,
+                                "dstBlend": 0,
+                                "srcBlendAlpha": 1,
+                                "dstBlendAlpha": 0,
+                                "blendOp": 0,
+                                "blendOpAlpha": 0
+                            }
+                        ],
+                        "separateMRTBlend": 0,
+                        "alphaToMask": 0
+                    },
+                    "rasterState": {
+                        "cullMode": 0,
+                        "depthBias": 0,
+                        "slopeScaledDepthBias": 0.0,
+                        "depthClip": 1,
+                        "conservative": 0
+                    },
+                    "depthState": {
+                        "depthWrite": 0,
+                        "depthFunc": 8
+                    },
+                    "stencilState": {
+                        "stencilEnable": 0,
+                        "readMask": 255,
+                        "writeMask": 255,
+                        "padding": 0,
+                        "stencilFuncFront": 8,
+                        "stencilPassOpFront": 0,
+                        "stencilFailOpFront": 0,
+                        "stencilZFailOpFront": 0,
+                        "stencilFuncBack": 8,
+                        "stencilPassOpBack": 0,
+                        "stencilFailOpBack": 0,
+                        "stencilZFailOpBack": 0
+                    },
+                    "stencilRef": 0,
+                    "mask": 15
+                }
+            }
+        },
+        {
+            "first": 9397574595326434525,
+            "second": {
+                "renderState": {
+                    "blendState": {
+                        "rt": [
+                            {
+                                "writeMask": 14,
+                                "srcBlend": 2,
+                                "dstBlend": 1,
+                                "srcBlendAlpha": 2,
+                                "dstBlendAlpha": 1,
                                 "blendOp": 0,
                                 "blendOpAlpha": 0
                             },
