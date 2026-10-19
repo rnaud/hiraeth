@@ -8,17 +8,22 @@ atlas, its own GLB; the body, his skin piece (hands, forearms, ankles), the head
 The outfit's module (outfit_<id with _>.py) gives PIECES (each piece's layer, what it is fitted over, the
 garments over it, its hem, its subdivision, its gap), BUILDERS (a bmesh from the base body's cage and the
 joints), ZONES (each piece's material slots), BOOTS (the default's boots kept, recoloured) and paint() (a
-texel's colour from its rest position and normal). Here, the same steps for every outfit:
+texel's colour from its rest position and normal); optionally (#544) RELIEF (tailor.py ops per piece: its
+volume), PROPS (gloves, a can: tailor.py), SHADE (inkpaint.py's options per piece; None: not shaded),
+KEEP_AREAS (body areas drawn though covered). Here, the same steps for every outfit:
 
 1. each piece built from the cage, subdivided, then fitted outside what lies under it (the body, his skin
-   piece, the pieces listed in `outside`) as a smooth field, `gap` clear, and relaxed;
+   piece, the pieces listed in `outside`) as a smooth field, `gap` clear, and relaxed; then its RELIEF
+   (quilting, raised pockets and straps, wound turns, pile), before the pieces over it are fitted; then
+   the PROPS, built on what is made;
 2. weighted from what it covers: each vertex the inverse-distance mix of the nearest verts of the body and
    his skin piece (so a sleeve over his forearm bends with that forearm), smoothed, four bones;
 3. unwrapped, hemmed (finish.hem: open edges turned in with a dark band inside, edges under another piece a lip);
 4. the body areas it hides measured (garments.hidden_areas: 97 % covered);
 5. one atlas (2048 square): each piece's islands at one texel density, the bands' swatches in a strip on top;
-   its colour painted per texel from the rest-pose position and normal Cycles bakes for it, the kept boots
-   baked from the base atlas and recoloured;
+   its colour painted per texel from the rest-pose position and normal Cycles bakes for it, then shaded by
+   the shared painter (inkpaint.py: occlusion, valleys, fold strokes, hatching), the kept boots baked from
+   the base atlas and recoloured;
 6. the GLB (the rig and the pieces, one material) and manifest.json, with the triangles and what pokes
    through what in the lowered pose and frames of the game's idle, jog and sprint (poses.py)."""
 import bpy, bmesh, importlib, json, math, os, sys
@@ -30,7 +35,7 @@ from mathutils.kdtree import KDTree
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 REPO = os.path.abspath(os.path.join(HERE, '..', '..', '..'))
-import garments as G, rig as R, finish as F, poses as PZ
+import garments as G, rig as R, finish as F, poses as PZ, tailor as T, inkpaint as IP
 
 argv = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
 arg = lambda n, d=None: argv[argv.index(n) + 1] if n in argv else d
@@ -105,7 +110,11 @@ def fit_outside(ob, shells, gap, reach=0.08, rounds=6):
                 if hit[0] is None:
                     continue
                 q, n = hit[0], hit[1]
-                d = (v.co - q).dot(n)
+                off = v.co - q
+                d = off.dot(n)
+                if (off.length > gap and abs(d) < 0.5 * off.length) or d < -0.025:
+                    continue   # (#544) beside a shell's open edge, or across a thin one, not in it: the collar's
+                    #            front over the body's open neck had been pushed back through the head's neck
                 if d < gap and (gap - d) > need[v.index].length:
                     need[v.index] = n * (gap - d + 0.0015)
                     hold[v.index] = 0.6
@@ -292,7 +301,31 @@ def main():
         ob['outfit'] = S.ID
         made[name] = ob
         report[name] = {'fitLeft': left}
+        # its volume (tailor.py: quilting, raised pockets and straps, wound turns, pile), before what goes over it
+        ops = getattr(S, 'RELIEF', {}).get(name)
+        if ops:
+            report[name]['relief'] = T.run(ops, ob, J)
+            print('relief', name, json.dumps(report[name]['relief']))
         print('piece', name, tris(ob), 'tris; verts still within the gap:', left)
+    # props (tailor.py: gloves over his hands, a rigid can on its strap): built on what is made, weighted
+    # from the hand they cover or all on one bone
+    prop_weights = {}
+    ctx = {'cage': cage, 'J': J, 'skin': skin, 'body': body, 'made': made, 'arm': arm, 'bones': BONES}
+    for name, spec in getattr(S, 'PROPS', {}).items():
+        res = spec['build'](ctx)
+        bm, w = res if isinstance(res, tuple) else (res, None)
+        mats = [flat(f'{S.ID}.{name}.{z}', S.PAL[z]) for z in S.ZONES[name]]
+        ob = mesh_object(name, bm, coll, mats)
+        bm.free()
+        if spec.get('levels'):
+            subdivide(ob, spec['levels'])
+        ob['kind'] = 'garment'
+        ob['layer'] = spec.get('layer', 3)
+        ob['outfit'] = S.ID
+        made[name] = ob
+        prop_weights[name] = w
+        report[name] = {'prop': spec.get('bone') or 'weighted'}
+        print('prop', name, tris(ob), 'tris')
     # the kept boots, their own weights, hems and UVs (into the base atlas, read for their colour)
     src = bpy.data.objects['Boots']
     boots = src.copy()
@@ -304,7 +337,15 @@ def main():
     boots['outfit'] = S.ID
 
     # 2. weights: from the body and his skin piece (a sleeve over his forearm bends with it)
+    PROPS = getattr(S, 'PROPS', {})
     for name, ob in made.items():
+        if name in PROPS:
+            if PROPS[name].get('bone'):
+                R.rigid(arm, ob, PROPS[name]['bone'])
+            else:
+                R.set_weights(ob, prop_weights[name] or T.nearest_weights([body, skin], ob, BONES))
+                R.bind(arm, ob)
+            continue
         sample = (lambda p: Vector((p.x, p.y, max(p.z, 1.03))) if abs(p.x) < 0.22 else p) if name == 'Jacket' else None
         weight_from(arm, [body, skin], ob, sample=sample)
 
@@ -314,8 +355,10 @@ def main():
         F.set_kind(ob.data, [F.SURFACE] * len(ob.data.polygons))
     every = {**made, S.BOOTS: boots}
     for name, ob in made.items():
-        spec = S.PIECES[name]
-        covers = [every[c] for c in spec['covers'] if c in every]
+        spec = S.PIECES.get(name) or PROPS[name]
+        if spec.get('hem') is None:
+            continue
+        covers = [every[c] for c in spec.get('covers', []) if c in every]
         report[name]['hem'] = F.hem(ob, covers, width=spec['hem'])
         for p in ob.data.polygons:
             p.use_smooth = True
@@ -334,7 +377,11 @@ def main():
         hides[name], hit = hidden_areas(body, ob, areas)
         hits.append(hit)
     union = [any(h[i] for h in hits) for i in range(len(per))]
-    outfit_hides = sorted(set(G.covered_areas(areas, union)) | set(base_manifest['parts']['Skin']['hides']) | set(getattr(S, 'EXTRA_HIDES', [])))
+    # (KEEP_AREAS: areas drawn even when covered: a stand collar leaves the neck, seen from above, into it)
+    keep_areas = set(getattr(S, 'KEEP_AREAS', []))
+    hides = {n: [a for a in h if a not in keep_areas] for n, h in hides.items()}
+    outfit_hides = sorted((set(G.covered_areas(areas, union)) | set(base_manifest['parts']['Skin']['hides'])
+                           | set(getattr(S, 'EXTRA_HIDES', []))) - keep_areas)
 
     # 5. the atlas
     objs = list(every.values())
@@ -372,6 +419,15 @@ def main():
     for o in objs:
         for s, m in zip(o.material_slots, saved[o]):
             s.material = m
+    # the shared painter's shadow (inkpaint.py): per vertex ao, concavity, facing down; baked per texel
+    SHADE = getattr(S, 'SHADE', {})
+    shaded = [o for o in objs if o.name != S.BOOTS and SHADE.get(o.name, {}) is not None]
+    occluders = [body, cut_skin, boots] + [bpy.data.objects[n] for n in ('Head',) if n in bpy.data.objects]
+    vs = IP.vertex_shade(shaded, occluders)
+    for o in objs:
+        IP.store(o, vs.get(o.name, np.tile([1.0, 0.0, 0.0], (len(o.data.vertices), 1))))
+    SH = float_bake(objs, lambda o: F.emission_material('shade_' + o.name, F.attr_source('shade')), 'shade')
+    print('shade', {o.name: [round(float(x), 3) for x in vs[o.name].mean(0)] for o in shaded})
     # the kept boots' own paint, from the base atlas
     base_img = next(i for i in bpy.data.images if i.name.startswith('traveller-atlas'))
     bimg = bpy.data.images.new('boots-src', SIZE, SIZE, alpha=False)
@@ -379,6 +435,7 @@ def main():
     bpx = F.image_array(bimg)[..., :3].copy()
     bpy.data.images.remove(bimg)
 
+    shading = {}
     px = np.ones((SIZE, SIZE, 4))
     px[..., :3] = np.array([0.5, 0.5, 0.5])
     base_col = {}
@@ -395,7 +452,20 @@ def main():
             px[m, :3] = np.clip(src * (target / np.maximum(med, 1e-3)), 0, 1)
             base_col[o.name] = target
         else:
-            px[m, :3] = S.paint(o.name, zone[m], P[m], N[m], J)
+            col = S.paint(o.name, zone[m], P[m], N[m], J)
+            if o in shaded:
+                opts = dict(SHADE.get(o.name, {}))
+                folds = opts.pop('folds', None)
+                base = col
+                col, sh = IP.shade(col, P[m], N[m], SH[m], np.array(S.PAL['ink']) / 255, opts,
+                                   folds(P[m], N[m], zone[m], J) if folds else None)
+                # what the painter did: the mean shadow, the share of texels in shadow deep enough to hatch,
+                # and how much the colour moved (0..1, mean over the texels)
+                o_ = dict(IP.DEFAULT, **opts)
+                shading[o.name] = {'shadow': round(float(sh.mean()), 3),
+                                   'hatched': round(float((sh > o_['hatch_from']).mean()), 3),
+                                   'change': round(float(np.abs(col - base).mean()), 4)}
+            px[m, :3] = col
             base_col[o.name] = np.array(S.PAL[S.ZONES[o.name][0]]) / 255
     swatch = {}
     for (name, what), (x0, y0, s) in where.items():
@@ -429,7 +499,7 @@ def main():
         me.uv_layers['atlas'].name = 'UVMap'
         me.materials.clear()
         me.materials.append(mat)
-        for a in [a.name for a in me.attributes if a.name in ('label', 'nx', 'ny', 'nz', 'part')]:
+        for a in [a.name for a in me.attributes if a.name in ('label', 'nx', 'ny', 'nz', 'part', 'shade')]:
             me.attributes.remove(me.attributes[a])
 
     # 6. the GLB: the rig and the pieces
@@ -446,6 +516,7 @@ def main():
 
     # what pokes through what, posed: his skin and each inner piece against what is over it
     pairs = [(i, o) for o, spec in S.PIECES.items() for i in ['Skin'] + spec['outside']]
+    pairs += [(name, o) for name, spec in PROPS.items() for o in spec.get('under', [])]
     pieces = {**every, 'Skin': cut_skin, 'Body': body}
     PZ.reset(arm)
     idx = {(i, o): PZ.under_set(pieces[i], pieces[o]) for i, o in pairs}
@@ -464,7 +535,8 @@ def main():
         'base': 'data/characters/traveller-v2/traveller.glb',
         'keeps': ['Body', 'Skin', 'Head', 'Hair'],
         'parts': {o.name: {'kind': 'garment', 'triangles': tris(o), 'vertices': len(o.data.vertices), 'hides': hides[o.name],
-                           'layer': o.get('layer', 1), 'materials': {mat.name: 'atlas'}} for o in objs},
+                           'layer': o.get('layer', 1), 'materials': {mat.name: 'atlas'},
+                           **({'prop': PROPS[o.name].get('bone') or 'weighted'} if o.name in PROPS else {})} for o in objs},
         'hides': outfit_hides,
         # his skin piece's triangles left out under this outfit: boxes in the game's frame (x mirrored)
         'skinCut': [{'absx': b['absx'], 'y': b['z']} for b in getattr(S, 'SKIN_CUT', [])],
@@ -472,6 +544,7 @@ def main():
         'atlas': {'size': [SIZE, SIZE], 'texelsPerMetre': texels, 'swatches': swatch, 'palette': S.PAL},
         'triangles': sum(tris(o) for o in objs),
         'fit': report,
+        'shading': shading,
         'pokes': {'under': {f'{i}>{o}': len(ix) for (i, o), ix in idx.items()}, 'posed': pokes},
     }
     json.dump(manifest, open(os.path.join(OUT, 'manifest.json'), 'w'), indent=1)

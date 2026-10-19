@@ -169,7 +169,7 @@ test('the test page cycles his own clothes, the glider pilot, the lamplighter (#
 test('the lamplighter: its jacket, trousers and tall boots, none of his skin through them, near the pilot\'s triangles', () => {
   const m = JSON.parse(readFileSync(DIR + 'outfits/lamplighter/manifest.json', 'utf8'));
   const pilot = JSON.parse(readFileSync(DIR + 'outfits/glider-pilot/manifest.json', 'utf8'));
-  assert.deepEqual(Object.keys(m.parts).sort(), ['BootShafts', 'Jacket', 'LampBoots', 'LampTrousers']);
+  assert.deepEqual(Object.keys(m.parts).sort(), ['BootShafts', 'Gloves', 'Jacket', 'LampBoots', 'LampTrousers', 'OilCan']);
   assert.ok(m.reference.startsWith('references/characters/traveller-outfits/lamplighter/'));
   // the tall boots' shafts hide his shins, the jacket his arms, the trousers his thighs and knees
   for (const a of ['shin.L', 'shin.R', 'upperarm.L', 'upperarm.R', 'thigh.L', 'knee.R']) assert.ok(m.hides.includes(a), a);
@@ -179,4 +179,41 @@ test('the lamplighter: its jacket, trousers and tall boots, none of his skin thr
   }
   assert.ok(Math.abs(m.triangles - pilot.triangles) < 0.15 * pilot.triangles, `${m.triangles} against the pilot's ${pilot.triangles}`);
   for (const k of ['indigo', 'lamp', 'charcoal', 'brass']) assert.ok(m.atlas.palette[k], `palette ${k}`);
+});
+
+// #544: volume, props and the shared painter (scripts/blender/traveller/tailor.py, inkpaint.py)
+const jointsOf = (g, name) => {
+  const bones = g.json.skins[0].joints.map((j) => g.json.nodes[j].name);
+  const p = g.meshes[name].mesh.primitives[0];
+  const w = g.accessor(p.attributes.WEIGHTS_0), j = g.accessor(p.attributes.JOINTS_0), pos = g.accessor(p.attributes.POSITION);
+  const out = [];
+  for (let i = 0; i < w.length; i += 4) {
+    const used = {};
+    for (let k = 0; k < 4; k++) if (w[i + k] > 0.01) used[bones[j[i + k]]] = w[i + k];
+    out.push({ used, y: pos[(i / 4) * 3 + 1] });
+  }
+  return out;
+};
+
+test('the lamplighter\'s props: gloves weighted to his hands, the oil can to the hip and thigh, his hands\' skin cut', () => {
+  const m = JSON.parse(readFileSync(DIR + 'outfits/lamplighter/manifest.json', 'utf8'));
+  const g = glb(DIR + 'outfits/lamplighter/' + m.glb);
+  // (each glove vert has its hand vert's weights: a trace of spine_03 at his right wrist is the base skin's own)
+  for (const v of jointsOf(g, 'Gloves')) {
+    for (const [b, x] of Object.entries(v.used)) if (x > 0.05) assert.match(b, /^(hand|lowerarm|thumb|index|middle|ring|pinky)_/, `a glove vert on ${b}`);
+  }
+  const can = jointsOf(g, 'OilCan');
+  for (const v of can) for (const b of Object.keys(v.used)) assert.ok(['pelvis', 'thigh_l'].includes(b), `the can on ${b}`);
+  // the can itself (everything below the strap's foot, y < 0.8 in the game's frame) all on the thigh: rigid
+  const low = can.filter((v) => v.y < 0.78);
+  assert.ok(low.length > 200, `${low.length} can verts`);
+  for (const v of low) assert.deepEqual(Object.keys(v.used), ['thigh_l']);
+  // his hands' skin goes under the gloves: none of his skin piece's triangles past the wrist stays
+  const skin = baseGlb.meshes.Skin.mesh.primitives[0];
+  const pos = baseGlb.accessor(skin.attributes.POSITION);
+  const kept = cutByBoxes(baseGlb.accessor(skin.indices), pos, m.skinCut);
+  for (let i = 0; i < kept.length; i++) assert.ok(Math.abs(pos[kept[i] * 3]) < 0.7, 'a hand triangle kept under the gloves');
+  assert.equal(m.parts.OilCan.prop, 'weighted');
+  assert.ok(m.parts.Gloves.triangles < 3000 && m.parts.OilCan.triangles < 1500, 'props kept light');
+  assert.equal(m.pokes.posed.sprint['Gloves>Jacket'].out, 0, 'the gloves\' cuffs stay under the sleeves');
 });

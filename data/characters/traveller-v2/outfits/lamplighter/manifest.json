@@ -27,7 +27,7 @@
   },
   "BootShafts": {
    "kind": "garment",
-   "triangles": 5822,
+   "triangles": 5824,
    "vertices": 3040,
    "hides": [],
    "layer": 2,
@@ -37,8 +37,8 @@
   },
   "Jacket": {
    "kind": "garment",
-   "triangles": 19567,
-   "vertices": 9935,
+   "triangles": 21374,
+   "vertices": 10823,
    "hides": [
     "belly",
     "chest",
@@ -51,6 +51,31 @@
    "materials": {
     "outfit_lamplighter": "atlas"
    }
+  },
+  "Gloves": {
+   "kind": "garment",
+   "triangles": 2016,
+   "vertices": 1064,
+   "hides": [
+    "hand.L",
+    "hand.R"
+   ],
+   "layer": 1,
+   "materials": {
+    "outfit_lamplighter": "atlas"
+   },
+   "prop": "weighted"
+  },
+  "OilCan": {
+   "kind": "garment",
+   "triangles": 796,
+   "vertices": 404,
+   "hides": [],
+   "layer": 3,
+   "materials": {
+    "outfit_lamplighter": "atlas"
+   },
+   "prop": "weighted"
   },
   "LampBoots": {
    "kind": "garment",
@@ -97,7 +122,7 @@
   {
    "absx": [
     0.2,
-    0.64
+    1.0
    ],
    "y": [
     1.15,
@@ -130,6 +155,8 @@
    "LampTrousers",
    "BootShafts",
    "Jacket",
+   "Gloves",
+   "OilCan",
    "LampBoots"
   ]
  },
@@ -138,7 +165,7 @@
    2048,
    2048
   ],
-  "texelsPerMetre": 1136,
+  "texelsPerMetre": 1025,
   "swatches": {
    "BootShafts.inside": [
     22,
@@ -149,6 +176,11 @@
     24,
     29,
     51
+   ],
+   "Gloves.inside": [
+    56,
+    34,
+    20
    ],
    "LampBoots.inside": [
     21,
@@ -201,35 +233,116 @@
     46,
     45,
     48
+   ],
+   "glove": [
+    124,
+    76,
+    44
+   ],
+   "strap": [
+    104,
+    66,
+    40
    ]
   }
  },
- "triangles": 42678,
+ "triangles": 47299,
  "fit": {
   "LampTrousers": {
-   "fitLeft": 67,
+   "fitLeft": 61,
    "hem": {
     "open": 0,
     "covered": 208
    }
   },
   "BootShafts": {
-   "fitLeft": 9,
+   "fitLeft": 0,
    "hem": {
-    "open": 211,
-    "covered": 13,
-    "band": 447,
-    "lips": 211
+    "open": 212,
+    "covered": 12,
+    "band": 448,
+    "lips": 212
    }
   },
   "Jacket": {
-   "fitLeft": 177,
+   "fitLeft": 25,
+   "relief": {
+    "_quilting": {
+     "cuts": 992,
+     "puffed": 4772
+    },
+    "_toggles": {
+     "0": {
+      "cuts": 48,
+      "raised": 14
+     },
+     "1": {
+      "cuts": 60,
+      "raised": 10
+     },
+     "2": {
+      "cuts": 62,
+      "raised": 5
+     },
+     "3": {
+      "cuts": 64,
+      "raised": 14
+     },
+     "4": {
+      "cuts": 64,
+      "raised": 10
+     }
+    },
+    "_armband": {
+     "cuts": 160,
+     "raised": 252
+    }
+   },
    "hem": {
     "open": 272,
     "covered": 0,
-    "band": 1578,
+    "band": 1443,
     "lips": 272
    }
+  },
+  "Gloves": {
+   "prop": "weighted",
+   "hem": {
+    "open": 11,
+    "covered": 35,
+    "band": 51,
+    "lips": 11
+   }
+  },
+  "OilCan": {
+   "prop": "weighted"
+  }
+ },
+ "shading": {
+  "LampTrousers": {
+   "shadow": 0.07,
+   "hatched": 0.001,
+   "change": 0.0042
+  },
+  "BootShafts": {
+   "shadow": 0.252,
+   "hatched": 0.377,
+   "change": 0.0174
+  },
+  "Jacket": {
+   "shadow": 0.066,
+   "hatched": 0.02,
+   "change": 0.0068
+  },
+  "Gloves": {
+   "shadow": 0.159,
+   "hatched": 0.159,
+   "change": 0.0156
+  },
+  "OilCan": {
+   "shadow": 0.326,
+   "hatched": 0.416,
+   "change": 0.0472
   }
  },
  "pokes": {
@@ -237,8 +350,9 @@
    "Skin>LampTrousers": 0,
    "Skin>BootShafts": 0,
    "LampTrousers>BootShafts": 112,
-   "Skin>Jacket": 38,
-   "LampTrousers>Jacket": 672
+   "Skin>Jacket": 0,
+   "LampTrousers>Jacket": 649,
+   "Gloves>Jacket": 53
   },
   "posed": {
    "lowered": {
@@ -259,6 +373,10 @@
      "deepestMm": 0.0
     },
     "LampTrousers>Jacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Gloves>Jacket": {
      "out": 0,
      "deepestMm": 0.0
     }
@@ -283,6 +401,10 @@
     "LampTrousers>Jacket": {
      "out": 0,
      "deepestMm": 0.0
+    },
+    "Gloves>Jacket": {
+     "out": 0,
+     "deepestMm": 0.0
     }
    },
    "jog-a": {
@@ -303,8 +425,12 @@
      "deepestMm": 0.0
     },
     "LampTrousers>Jacket": {
-     "out": 5,
-     "deepestMm": 5.3
+     "out": 9,
+     "deepestMm": 10.4
+    },
+    "Gloves>Jacket": {
+     "out": 0,
+     "deepestMm": 0.0
     }
    },
    "jog-b": {
@@ -327,6 +453,10 @@
     "LampTrousers>Jacket": {
      "out": 0,
      "deepestMm": 0.0
+    },
+    "Gloves>Jacket": {
+     "out": 0,
+     "deepestMm": 0.0
     }
    },
    "sprint": {
@@ -347,8 +477,12 @@
      "deepestMm": 0.0
     },
     "LampTrousers>Jacket": {
-     "out": 8,
-     "deepestMm": 11.1
+     "out": 11,
+     "deepestMm": 9.7
+    },
+    "Gloves>Jacket": {
+     "out": 0,
+     "deepestMm": 0.0
     }
    }
   }
