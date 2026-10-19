@@ -1,0 +1,25 @@
+data/characters/traveller-v2/outfits/glider-pilot/manifest.json
+  s_5f899ba316b5dc::t_1679a05cc7a919 92-93
+data/characters/traveller-v2/outfits/lamplighter/manifest.json
+  s_5f899ba316b5dc::t_f37628b156fec4 21,30,40-41,57-58,141,207,210,217,219-222,226,230,306-307,350-351
+scripts/blender/traveller/outfit_glider_pilot.py
+  s_5f899ba316b5dc::t_7e74cda3750585 138-141
+scripts/blender/traveller/outfit_lamplighter.py
+  s_5f899ba316b5dc::t_51282bb696bc21 146-148
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5fae6a9272f903f52031962fe4e2a18c2cda6c7e",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
