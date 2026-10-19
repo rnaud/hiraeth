@@ -2179,6 +2179,16 @@ collar, ribbed cuffs and band, patch pockets, a strap and a roundel on the back;
 puttees; his own boots in brown. 40.7 k triangles (jacket 19.9 k, jodhpurs 9.8 k, puttees 4.5 k, boots
 6.5 k) against the default's 50.4 k; one 2048² atlas (2.3 MB GLB); previews in `outfits/glider-pilot/previews/`.
 
+**The second: the lamplighter** (issue #542; `references/characters/traveller-outfits/lamplighter/`, sheet-1 =
+the lab's openai/1): a short quilted indigo jacket (the quilting painted as stitched bands, rings round the
+sleeves), a stand-up collar, lamp-yellow piping down the front, round the hem, the cuffs and the collar's
+top, five brass toggles, a yellow armband on his left upper arm; slim charcoal trousers with a yellow side
+stripe; tall black boots: his own boots in black under shafts of their own (`BootShafts`, over the
+trousers) with a turned-down cuff. 42.6 k triangles (jacket 19.5 k, trousers 10.8 k, shafts 5.8 k, boots
+6.5 k); his skin through nothing in any pose. Its hides are measured but for the hips (94 %: a lump of the
+base body at his right front hip stands proud of the slim trousers). Left out from the sheet: the gloves (a
+mesh over his fingers) and the oil can at the hip (a rigid prop).
+
 **Building one** (`scripts/blender/traveller/outfit.sh <id> [--previews]`, a minute; `outfit.py` does the
 steps, `outfit_<id>.py` says what the outfit is):
 
@@ -2222,3 +2232,6 @@ The models live in `data/`, so the built page only says it needs the dev server.
 game's ink shades it); the jacket's band can pinch over the jodhpurs at a sprint (up to 8 mm, 10 verts); the
 puttees' spiral reads as rings from a distance; the boots' top edge, inside the puttees, is ragged; the
 default's body was drawn in for the default's clothes, so a tight outfit may need its own hides.
+**(Lamplighter):** no gloves or oil can; the quilting is paint, not puffed geometry; the jacket's hem
+pinches over the trousers at a jog and a sprint (up to 9 mm, 9 verts); the shoulders bunch a little with
+the arms lowered.

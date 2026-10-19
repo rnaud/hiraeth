@@ -161,3 +161,22 @@ test('swapping takes the old garments off, puts the new on, and applies the hide
   assert.throws(() => planOutfit(stubList, stub, {}, 'nobody'), /no outfit/);
   assert.throws(() => hiddenAreaSet(stub.areas, ['elbow']), /no body area/);
 });
+
+test('the test page cycles his own clothes, the glider pilot, the lamplighter (#542)', () => {
+  assert.deepEqual(list.outfits.map((o) => o.id), ['default', 'glider-pilot', 'lamplighter']);
+});
+
+test('the lamplighter: its jacket, trousers and tall boots, none of his skin through them, near the pilot\'s triangles', () => {
+  const m = JSON.parse(readFileSync(DIR + 'outfits/lamplighter/manifest.json', 'utf8'));
+  const pilot = JSON.parse(readFileSync(DIR + 'outfits/glider-pilot/manifest.json', 'utf8'));
+  assert.deepEqual(Object.keys(m.parts).sort(), ['BootShafts', 'Jacket', 'LampBoots', 'LampTrousers']);
+  assert.ok(m.reference.startsWith('references/characters/traveller-outfits/lamplighter/'));
+  // the tall boots' shafts hide his shins, the jacket his arms, the trousers his thighs and knees
+  for (const a of ['shin.L', 'shin.R', 'upperarm.L', 'upperarm.R', 'thigh.L', 'knee.R']) assert.ok(m.hides.includes(a), a);
+  assert.ok(!m.hides.includes('neck'), 'the stand collar leaves his neck');
+  for (const [pose, pairs] of Object.entries(m.pokes.posed)) {
+    for (const [pair, r] of Object.entries(pairs)) if (pair.startsWith('Skin>')) assert.equal(r.out, 0, `${pose}: his skin through ${pair}`);
+  }
+  assert.ok(Math.abs(m.triangles - pilot.triangles) < 0.15 * pilot.triangles, `${m.triangles} against the pilot's ${pilot.triangles}`);
+  for (const k of ['indigo', 'lamp', 'charcoal', 'brass']) assert.ok(m.atlas.palette[k], `palette ${k}`);
+});

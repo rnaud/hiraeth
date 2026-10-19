@@ -4,6 +4,7 @@
  "manifest": "manifest.json",
  "outfits": [
   { "id": "default", "name": "His own clothes" },
-  { "id": "glider-pilot", "name": "Glider pilot", "dir": "outfits/glider-pilot/" }
+  { "id": "glider-pilot", "name": "Glider pilot", "dir": "outfits/glider-pilot/" },
+  { "id": "lamplighter", "name": "Lamplighter", "dir": "outfits/lamplighter/" }
  ]
 }
