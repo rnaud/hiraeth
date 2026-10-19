@@ -25,7 +25,8 @@ test('the chimes\' shade goes as its own port, with the page\'s numbers', () => 
   assert.deepEqual(e.tint, [t.r, t.g, t.b].map((x) => +x.toFixed(5)));
   assert.equal(e.dark, BLOB.dark); assert.equal(e.core, BLOB.core); assert.equal(e.far, BLOB.far);
   assert.match(RENDERER, /m\.S\("port"\) == "chimeshade"[\s\S]{0,400}Shader\.Find\("Hiraeth\/ChimeShade"\)[\s\S]{0,500}"_Dark"[\s\S]{0,80}"_Core"[\s\S]{0,80}"_Far"/);
-  assert.match(read('unity/Hiraeth/Assets/Hiraeth/Editor/Batch.cs'), /"Hiraeth\/ChimeShade"/, 'kept in a build (Shader.Find)');
+  // (the list a build keeps, since #500 RuntimeShaders.Names, the player checking each at its start)
+  assert.match(read('unity/Hiraeth/Assets/Hiraeth/Runtime/RuntimeShaders.cs'), /"Hiraeth\/ChimeShade"/, 'kept in a build (Shader.Find)');
 });
 
 test('the shader is the page\'s decal: the albedo blended by its strength, the light term and the other targets kept', () => {

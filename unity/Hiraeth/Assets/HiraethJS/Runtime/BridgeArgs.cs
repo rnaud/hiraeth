@@ -245,7 +245,10 @@ namespace Hiraeth.Bridge
             // (-title-shots 960x1280,1280x960 [-title-wait frames]: the title on screens of those sizes in turn, the first from
             // the first frame as a cold start, each photographed into -out: engine/unity/game.js, issue #470)
             if (Arg("-title-shots") != null) args["titleShots"] = Arg("-title-shots");
-            if (Arg("-title-art") != null) args["titleArt"] = Arg("-title-art");   // (-title-art H1: that painted world behind it)
+            if (Arg("-title-art") != null) args["titleArt"] = Arg("-title-art");
+            // (-screen 960x720: the whole run on a screen of that size, the Retroid's 4:3, its menus laid out on it and its shots
+            // taken at it: engine/unity/game.js, BridgeRunner.ScreenAs; issue #264, the Items tiles a row)
+            if (Arg("-screen") != null) args["screen"] = Arg("-screen");   // (-title-art H1: that painted world behind it)
             if (Arg("-title-wait") != null) args["titleWait"] = double.Parse(Arg("-title-wait"), CultureInfo.InvariantCulture);
             // (-title-go frames [-out dir]: on the title that long, then the debug save's desert chosen as its Debug row does, the
             // load after it photographed until the world plays: engine/unity/game.js titleGo, issue #510)

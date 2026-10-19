@@ -134,6 +134,9 @@ function forPad(json, remap) {
 export function start(argsJson) {
   const args = JSON.parse(argsJson || '{}');
   platformPad();
+  // (-screen 960x720: the whole run on a screen of that shape, the Retroid's 4:3: its menus, its shots; issue #264)
+  const [sw, sh] = String(args.screen ?? '').split('x').map(Number);
+  if (sw > 0 && sh > 0) host.ScreenAs?.(sw, sh);
   if (planned(args)) { launch(args); return; }
   // played: the title first (engine/menus.js; src/title.js on the web), the world loaded once a save is chosen; a reboot
   // (Quit to title onto another save, Travel here: BridgeRunner.Reboot) comes back with its choice made (`boot`)

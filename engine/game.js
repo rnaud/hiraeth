@@ -941,8 +941,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // photos folder), B / ○, View or Menu leaves it. From the Start menu's Photo mode, View + D-pad ↑, or P.
   const photo = { on: false, capture: 0, saved: 0, pos: new THREE.Vector3() };
   const photoHint = () => (padInHand()
-    ? `Left stick fly · right stick look · LB / RB down / up · ${confirmKey()} save · ${backKey()} exit`
-    : 'WASD fly · mouse look · Q / E down / up · Shift faster · Enter save · P exit');
+    ? `Left stick fly · right stick look · LB/RB down/up · ${confirmKey()} save · ${backKey()} exit`
+    // (the keys' line as the page's #photo, hint.photo: but its H panel, the page's developer panel, none here; issue #264)
+    : 'PHOTO MODE · WASD + Q/E fly · mouse look · SHIFT fast · ENTER save PNG · P exit');
   function setPhoto(on) {
     if (on && (pinned || talking() || (shipOn && ship.playing) || player.dead || !backend?.photo)) return;
     photo.on = !!on; photo.capture = 0;

@@ -1,6 +1,6 @@
 {
   "recorded": "2026-10-19",
-  "sha": "86bcdf95a",
+  "sha": "668fadee2",
   "how": "node scripts/unity-compare/sequences.mjs web [ids] && node scripts/unity-compare/sequences.mjs record",
   "sequences": {
     "moment-desert.flow": {
@@ -2603,16 +2603,17 @@
             "stage": null
           },
           "objects": {
-            "ink": 210,
+            "ink": 234,
             "print": 1,
             "hidden": 1,
-            "chimeshade": 1
+            "chimeshade": 1,
+            "doorlight": 1
           },
           "cam": [
-            116.8,
-            15.6,
-            -155.8,
-            49.4
+            89.5,
+            5.4,
+            -141.8,
+            49.3
           ],
           "player": [
             115.7,
@@ -2675,16 +2676,16 @@
             "stage": null
           },
           "objects": {
-            "ink": 265,
+            "ink": 250,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
             "doorlight": 1
           },
           "cam": [
-            115.6,
+            114.4,
             1.6,
-            -152.6,
+            -153.7,
             34.3
           ],
           "player": [
@@ -2716,17 +2717,18 @@
             "stage": null
           },
           "objects": {
-            "ink": 169,
+            "ink": 265,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
-            "pitvoid": 1
+            "pitvoid": 1,
+            "doorlight": 1
           },
           "cam": [
-            96.6,
-            26.1,
-            -169.5,
-            51.4
+            111.5,
+            22.5,
+            -141.5,
+            51.3
           ],
           "player": [
             96,
@@ -2753,16 +2755,17 @@
             "stage": null
           },
           "objects": {
-            "ink": 304,
+            "ink": 440,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
-            "pitvoid": 1
+            "pitvoid": 1,
+            "doorlight": 1
           },
           "cam": [
-            115.8,
-            56.7,
-            -184.7,
+            101.2,
+            48,
+            -189,
             52.7
           ],
           "player": [
@@ -2790,7 +2793,7 @@
             "stage": null
           },
           "objects": {
-            "ink": 235,
+            "ink": 227,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -5684,8 +5687,8 @@
           "objects": {
             "ink": 135,
             "print": 1,
-            "shader": 1,
-            "wisp": 1
+            "wisp": 1,
+            "chimeshade": 1
           },
           "cam": [
             10.8,
@@ -5710,8 +5713,8 @@
           "objects": {
             "ink": 130,
             "print": 1,
-            "shader": 1,
-            "wisp": 1
+            "wisp": 1,
+            "chimeshade": 1
           },
           "cam": [
             10.8,
@@ -5739,8 +5742,8 @@
           "objects": {
             "ink": 353,
             "print": 1,
-            "shader": 1,
-            "wisp": 1
+            "wisp": 1,
+            "chimeshade": 1
           },
           "cam": [
             10.8,
@@ -5769,8 +5772,8 @@
           "objects": {
             "ink": 395,
             "print": 1,
-            "shader": 1,
-            "wisp": 1
+            "wisp": 1,
+            "chimeshade": 1
           },
           "cam": [
             10.8,
@@ -5799,8 +5802,8 @@
           "objects": {
             "ink": 387,
             "print": 1,
-            "shader": 1,
-            "wisp": 1
+            "wisp": 1,
+            "chimeshade": 1
           },
           "cam": [
             12.2,
@@ -5829,8 +5832,8 @@
           "objects": {
             "ink": 391,
             "print": 1,
-            "shader": 1,
-            "wisp": 1
+            "wisp": 1,
+            "chimeshade": 1
           },
           "cam": [
             11.7,
@@ -5842,6 +5845,426 @@
             0,
             0,
             4.5
+          ],
+          "late": false
+        }
+      ]
+    },
+    "start-pages": {
+      "beats": [
+        {
+          "beat": "play",
+          "hud": {
+            "gadget": "gun"
+          },
+          "menu": null,
+          "playing": null,
+          "objects": {
+            "ink": 412,
+            "print": 1,
+            "hidden": 1,
+            "chimeshade": 1,
+            "pitvoid": 1,
+            "wisp": 1,
+            "mote": 1
+          },
+          "cam": [
+            0,
+            1.8,
+            92.8,
+            55
+          ],
+          "player": [
+            0,
+            0,
+            88
+          ],
+          "late": false
+        },
+        {
+          "beat": "controls",
+          "hud": {
+            "gadget": "gun"
+          },
+          "menu": {
+            "kind": "start",
+            "page": "controls",
+            "side": [
+              "Resume",
+              "Items",
+              "Quests",
+              "Map",
+              "Settings",
+              "Controls",
+              "Photo mode",
+              "What's new",
+              "Debug: worlds",
+              "Quit to title"
+            ],
+            "rows": [
+              "Forward",
+              "Back",
+              "Left",
+              "Right",
+              "Run",
+              "Jump",
+              "Use, talk",
+              "Fluid sword",
+              "Guard",
+              "Evade",
+              "Lock on",
+              "Aim the gadget in hand",
+              "Use the gadget (shoot, throw)",
+              "The gadget’s next mode",
+              "Plumb finds the objective",
+              "Use the gadget in hand",
+              "Next gadget",
+              "Whistle, echo shell",
+              "Drink a potion",
+              "Items, quests, worlds",
+              "Menu",
+              "This page",
+              "Photo mode",
+              "Mute",
+              "Jump",
+              "Evade",
+              "Use, talk",
+              "Whistle, echo shell",
+              "Fluid sword",
+              "Guard",
+              "Aim the gadget in hand",
+              "Use the gadget in hand (shoot, throw)",
+              "Run",
+              "Lock on (no foe near: the camera behind you)",
+              "Gadgets and glove modes (held: the wheel)",
+              "Drink a potion",
+              "Call your mount",
+              "Plumb finds the objective (or a hint)",
+              "Move · run",
+              "Look",
+              "Jump · double jump (the lift valve) · wings (once found)",
+              "Jets (once found): fly like a plane",
+              "Climb",
+              "Use, talk, get on / off",
+              "In a cab (it drives itself)",
+              "Fluid blade (again: the next swing) · guard (at the blow: parry) · evade · lock on",
+              "Charged cut (held: the swing, then the charge; let go to cut) · in the air: two cuts, then a plunge",
+              "Locked on: back flip · side hop (just before a blow: time slows)",
+              "Choose the gadget in hand (the fluid gun is one, once found)",
+              "Aim the gadget in hand · use it (shoot, throw) · the glove's next mode",
+              "Drink a healing potion (two hearts back)",
+              "Dive · rise (in water)",
+              "Plumb finds your objective (a guardian's fight, a makers' house: a hint)",
+              "Bell-note whistle, echo shell (once found)",
+              "Items, quests, worlds · menu · this page",
+              "Photo mode · frame readout · what's new",
+              "Mute",
+              "Debug: the fight's hitboxes · the controller's inputs",
+              "Move · run",
+              "Look · zoom",
+              "Jump · double jump (the lift valve) · wings",
+              "Use, talk, pick up, get on",
+              "Evade (stick direction, or backstep)",
+              "Fluid blade (again: the next swing) · guard (at the blow: parry)",
+              "Charged cut (held: the swing, then the charge; let go to cut) · in the air: two cuts, then a plunge",
+              "Lock on to a foe (again: the next, then let go) · no foe near: the camera behind you",
+              "Locked on: back flip · side hop (just before a blow: time slows)",
+              "Plumb finds your objective (a guardian's fight, a makers' house: a hint)",
+              "Choose the gadget in hand, or a glove mode (the game waits while the wheel is open)",
+              "Aim the gadget in hand · use it (shoot, throw)",
+              "The glove's modes (fluid, push, and those found): each its own slot on the wheel",
+              "Drink a healing potion (two hearts back)",
+              "Jets: fly like a plane",
+              "Bell-note whistle, echo shell (once found)",
+              "Call your mount, hail a taxi",
+              "Items, quests and worlds · menu",
+              "Their panels (items, quests, worlds, people)",
+              "Photo mode",
+              "Riding",
+              "In a cab (it drives itself)",
+              "Swimming",
+              "Talking",
+              "In menus",
+              "Debug: the dev menu (teleports, god mode, cinematics, hitboxes)",
+              "Move · look",
+              "Jump · use",
+              "Jets (once found)",
+              "Run",
+              "Plumb finds your objective",
+              "Choose the gadget in hand (once found)",
+              "Aim · use the gadget in hand · its mode (the gun’s push is one)",
+              "Blade · guard (hold it) · evade · lock on",
+              "Locked on: back flip · side hop",
+              "Drink a healing potion",
+              "Items, quests and worlds · menu · photo mode"
+            ]
+          },
+          "playing": null,
+          "objects": {
+            "ink": 412,
+            "print": 1,
+            "hidden": 1,
+            "chimeshade": 1,
+            "pitvoid": 1,
+            "wisp": 1,
+            "mote": 1
+          },
+          "cam": [
+            0,
+            1.8,
+            92.8,
+            55
+          ],
+          "player": [
+            0,
+            0,
+            88
+          ],
+          "late": false
+        },
+        {
+          "beat": "news",
+          "hud": {
+            "gadget": "gun"
+          },
+          "menu": {
+            "kind": "start",
+            "page": "news",
+            "side": [],
+            "rows": [
+              "v1.86",
+              "In the Unity version, the Controls page shows your keys and buttons on caps, two to a line, as on the web; the thing in your hand carries its red IN USE tag in Items; and photo mode’s line of keys reads as the web’s.",
+              "A new controller layout. Hold D-pad ↑ for the wheel: every gadget and each of the glove’s modes now has its own slot, and the game waits while you choose, so no foe hits you meanwhile. A tap of D-pad ↑ takes back your last pick, so push and fluid are a tap apart. D-pad → now calls Plumb to find your objective (or a hint in a guardian’s fight), riding too, and RS only locks on: with no foe near, it turns the camera behind you.",
+              "In the Mooring-House you now see the Anchor-Warden from the first hall, through the bars of its gate, and when it is stopped the gate opens and you walk back out into the hall where you began. Its floor is reached by a great door off the Cord Loft. Where it stood, past the west door, the Anchor Hold keeps a spare anchor out over a well: pull it home with the tether to draw back the moorers’ gate’s bar.",
+              "In the Builders’ Greenhouse the bloom is found first, on a mound in the middle of the great glass hall, and the whole house is about it from there: the Cold Frame’s door is a flower-door in the sun, its trays hold seeds to bring the sun to, and the Seed Chamber’s seed wants the water sent up before it grows and opens the way on.",
+              "The Lamp-House runs in a new order. The Kennel’s door now wakes to a glowing orb you roll across the first hall, so its keepers and their small key come before the bubble wand. With the wand, the great key in the Wick Room is yours half-way through, in the dark, and the great lamp is lit on the way back.",
+              "Pressing lock-on (RS / Tab) in a fight temple now answers: the aim’s ring flashes under the foe your blade will take, with the lock’s tick, and the first time a line says the right stick or the mouse aims in there.",
+              "The sign on each fight temple room’s floor is now the makers’ mark in a faint square. It was two dark rings, the very shape of the foes’ ring attacks, under every fight.",
+              "In the fight temples a hazard that starts near the edge of the screen (a pool of oil, a falling load, a breaking tile, an ink geyser) now draws the view toward it so you see it coming, and one still out of sight gets a marker at the screen’s edge, as a foe winding up out of sight does.",
+              "In the fight temples you no longer lose yourself in the crowd: when foes cover you or close in round you, an inked ring with a gold mark over your head shows where you are.",
+              "Plumb now has a word the first time you come near a fight temple’s gate, Sabri in the desert and Teasel in Lorn mention the ink under the old floors, and Items names each colour after the place you won it, as in Ember · the Sunken Hall.",
+              "In the Unity version, the City-Shaft’s banners keep their pale colours and glyphs when they wave, where they turned into dark slabs, and the makers’ towers, the Rose House’s red one first, show their cut stone blocks as on the web.",
+              "In the Unity version, the Rose House’s lit circuits glow orange up its walls as on the web, instead of thin brown lines: a line of light two pixels wide no longer has the pen’s outline drawn over it, here or anywhere else.",
+              "People now tell you of a fight temple as the old floor the ink comes up through and the person waiting by its door, not as a game, and your map names it by the place.",
+              "The fight temples now belong to the story: the makers built them over springs where the dark wells up, and the people by their doors want their mill, their cranes or their gardens back, and say so. A run ends with the place going quiet and its keeper coming back in, before your time and rank, and the ember shard’s double cuts are now the blade running bright.",
+              "v1.85",
+              "On Gentle, the fight temples’ hazards that take a quarter heart (a gust, the eyes’ flash, the toll, the dark, the shade, a broken tile, burning oil) now hurt only every other time. They were meant to take half as much on Gentle, but half of a quarter heart came back as a whole one.",
+              "In the Kiln Yard, the Glass Dunes’ fight temple, a tile about to break now shows it: its edge glows and a dark star of cracks spreads across it. The thin white cracks it had were all but invisible on the pale glass, and the breaking tiles took more hearts than anything else in there.",
+              "In the Mooring-House, the great key’s last ring hangs on the house’s great cable: while the moored room is up, it is hauled out of reach under the roof, and you have to send the room down without you to bring it back within reach. The cables and chains in the house now hang from the roof, instead of stopping in mid-air.",
+              "In the Footprint, the seeing lens now shows you where to look. Raise it as you leave the Lens Chamber: the walker’s prints lead round the balcony to the foot of the hidden spiral, and it shows as soon as you look at it from there. The walker’s print is on the wall again by the chasm of hidden stones, and the first drop opens just outside the Hall of Spheres’ door, where you can see it from the puzzle that opens it.",
+              "In the Unity version too, the loading screen’s bar fills as the world is prepared, with the small line under it saying what is taking the time.",
+              "In Vael, the makers’ box with the wind-silk scarf is no longer lost under the cloud, where it fell when its stack of balanced stones was moved. It now sits on top of Tiv’s stack on the great table’s west rim, in sight of the riders’ halfway stone.",
+              "In Lorn, the way to the rebuilt Hush-House is easy to find again: a lit crystal now crowns its tower, seen from the Great Crystal across the swamp, and the keepers’ stakes run from the crystal cave’s south mouth along the house’s shore to its steps, not out over the open water.",
+              "People no longer start in the middle of a plant: in Viridel Mira stood inside a ribbon plant, in the desert Marrow and in Lorn Tansy had a flower growing right where they stood. Plants now keep off the spots people start from and the paths they walk.",
+              "The flowers, fans and fungi that answer you no longer grow on roofs: in Lorn they stood on the Hush-House’s round roof, in the Garden of Spheres on the pyramid’s top, in Viridel on a stall, and on buildings in the Glass Dunes. They grow on the ground now, and the plants of the Sky Stones no longer stand on the slabs and sand banks of Vael’s plain.",
+              "The Moon Foundry’s and the City Floating in Space’s big moments show what happens again. Out of the Casting-House, the film no longer opens on two seconds of a dark wall: it starts wide on the house and its tower from out on the floor. Over the Mooring-House, the cables drawing taut are filmed from under the great tripod, between its legs, instead of through one of them, and the first shot no longer presses against the house’s wall.",
+              "Each world’s recorded music plays louder, about twice as loud as before: it had been sitting well under the footsteps, the blade and the voices, so a fight or a conversation drowned it. Now the music holds its own under them, as the sounds were meant to sit, and nothing in it distorts.",
+              "A house’s great key now looks the part: its bow is the makers’ mark in brass and pale stone, a soft teal light runs down its shaft and its ward steps like a little staircase. Finding it, or the house’s map, now brings up a card as a makers’ box does, the key held over its chest until you go on.",
+              "The hearts and the key count no longer show over a makers’ box as it opens, as they did in the City-Shaft’s Ash Store after its fight: every box’s scene, like every other scene, keeps the screen clear whatever your health.",
+              "In the Unity version, a conversation’s answers are marked as on the web: with a controller, the A button on the answer you are on and a small arrow by the others, instead of the keyboard’s numbers.",
+              "Switching the glove’s modes, each one now has a sound of its own: a wet rise for fluid, a low whump for push, a soft rising pair for bloom and a taut twang for tether, besides stilling’s high chirp and ember’s warm one. The stilling shot, the hook’s reel, the magnet glove and the spring boots no longer play the very same sound every time, and the push, the bombs and the boots’ stomp are less deafening, the lens and the boots’ wound-up ping quieter, and the boots’ winding easier to hear.",
+              "In the Garden of Spheres, the grass tufts no longer flicker as you turn the camera. They were drawn in black ink and read as dark clumps, and their thin outlines came and went with every small move; now they are green, outlined in a darker green, and the Garden’s small flowers take a lighter line from afar as Viridel’s do.",
+              "In the chime pirates you can now boost (RB) and brake (LB) to meet the rocks and mines sooner or later, on a gauge that fills again. Gunboats, bombers and whole waves of fighters leave gold drops: fly through them for rapid fire, a spread shot and then the storm guns, until a hit takes you back to the twin bolts. The roll is on B and X.",
+              "The chime pirates’ flights now differ from one world to the next: a minefield strung across the way, an ice belt drifting across it and a field of old wrecks, each with fighters in formations of its own and a sky of its own. Your ship is drawn smaller, so there is room to dodge round it; it no longer shimmers as the fight starts, and the fight sounds shorter and cleaner instead of ringing on.",
+              "People in capes coming into sight no longer make the game catch for a moment, most of all on the Retroid: a cape now settles over a few frames instead of all in one. Walking through the camps and the City-Shaft, the frames over 50 ms on the Retroid fell from 12 to 4.",
+              "Shadows keep up with whatever casts them again on the Handheld, Low, Steam Deck and Xbox settings, and in the Unity version on the Steam Deck and handhelds. The shadows close to you were redrawn only every second or fourth frame there, so yours and the foes’ trailed a step behind and moved in jerks. Only the shadows of the far scenery, which barely moves, are still redrawn less often.",
+              "The loading screen now tells you what it is doing and why it takes the time. Under the turning pen a bar fills as each part is done, and a small line says what that part is: dressing the traveller, the walls learning where you can’t walk, teaching the graphics card the world’s light (slowest the first time).",
+              "The fight temples load faster. While loading, each one got every kind of foe in the game ready, though only four or five come up in it; now it readies just those, so the graphics card has a third fewer shaders to learn.",
+              "In the Unity version, choosing Continue or a save on the title now shows the loading screen, the pen turning and what is being prepared, instead of the title freezing until the world appears.",
+              "In the Unity version, the makers’ mark in a conversation or a speech balloon is the game’s own open-corner mark, as on the web, not a different sign.",
+              "In the Unity version, the menus show the controller’s buttons as the web does: a small button inside the one it presses (A in the entry you are on, B in Resume and Back, LB and RB on the side tabs), and the prompts at the foot as buttons too, instead of their names written out. On the Retroid they carry its own names.",
+              "Out in the open, the wings carry you about a quarter further on still air. Inside the makers’ houses they glide as before.",
+              "The gun’s push sends the makers’ balls much further: about half the pushes for a long roll. Push from further back for a gentle nudge onto a nearby plate.",
+              "In Vael, the rider’s call you play on the bone flute to bring the bird down is quieter: it now sits with the world’s music instead of ringing out over it.",
+              "The fireflies drifting in the dark of Lorn’s Lamp-House are fewer, smaller and softer: little sparks again, not a hall of floating lamps.",
+              "Creatures and machines now look at you once they have noticed you: the crab’s eye stalks lean your way, the toad’s eyes turn in their sockets, the lizard, the hound and the heron turn their heads, the wisp’s eyes slide over its petals and the brute’s brass eye follows you round as its body twists to you. Left alone, they look where they are going.",
+              "The Unity version is a smaller download: the Android app is 111 MB instead of 130, and the Steam Deck’s download 186 MB instead of 429. The game’s shaders were packed twice, the second copy never read, and the Deck’s archive carried the build’s working files, which it never installed.",
+              "On the Quests page, the quest you are tracking now stands out, framed in red with a TRACKING tag, and the quest you are on shows the button to track it instead (A on a controller, Enter on the keyboard).",
+              "In the games’ menus (the start card, the pause, the results), the button you are on is now the one drawn in colour, filled red as in the other menus. Retry, Start or Resume no longer look picked when they aren’t: a red edge at their left says which one Enter presses.",
+              "Lorn’s skiff is solid end to end: its bow, its stern and the float off its side stop at the small crystals rising from the water instead of sailing through them. Its sail is set out over the side now, so it no longer runs through your face as you ride.",
+              "In the Unity version, D-pad ↓ calls your mount again: in Lorn the skiff comes over to you, as it always did on the web.",
+              "The hearts no longer stay up over a world’s filmed moment because a foe was chasing you as it began.",
+              "In the Unity version, the chimes a felled foe leaves lie on a soft violet patch of shade, as on the web, not on a white disc.",
+              "In the Unity version, flowers far across Viridel’s meadow are drawn in the light line they have on the web, not as black blots of ink; the cables and vines under the City in Space’s platforms stay whole lines far off instead of breaking into dashes; and the Whale-House’s great shell has its spiral and the seams of its chambers.",
+              "In the Unity version, the first room of every makers’ house is as light as on the web: the glow of the way you came in by brightens it as it does there, where before the whole room came out grey and dim. And Lorn’s lake has its pale shallows along the shores again, the water darkening as it deepens.",
+              "On the Steam Deck, Hiraeth is now one game in your library and always starts the Unity version. It no longer slips into the older web version when the Unity one is slow to start or not downloaded yet: a first start downloads it with a progress bar on the screen, and if it truly cannot start, a message says so and you are back in your library. The Hiraeth (web) shortcut leaves your library the next time the game updates while Steam is closed.",
+              "Foes arriving no longer freeze the game for a moment, most of all on the Retroid and in the Unity version: every foe of a kind now shares one body shape instead of building its own, and the foes a world can field are prepared while it loads. When a brute and a swarm of skitters come in, the longest frame on the Retroid is about half what it was.",
+              "Opening the Map for the first time in a world no longer freezes the game for a moment: its ground is drawn a little each frame while the page says how far along it is. In the Unity version the longest frame of a trip through the menus and the Map went from about 190 ms to 29.",
+              "Riding the bird in Vael, her wings no longer shimmer as they beat. Their feathers took turns in two tones, and seen from the saddle each wing was a bundle of thin lines crawling with every stroke; now each row of feathers is one tone.",
+              "In the Rose House, the watcher’s aiming beam now stops at your shield when you hold it up, and at you when you don’t, instead of running on through you and out the other side.",
+              "The fight temples’ end card no longer says your sword and shield wear the new colours before you have them: they take them once found. And people no longer tell of a game you can’t play yet, a trial that wants the hoverbike or a gadget you haven’t found.",
+              "In Lorn, locking on to a bellows toad near a bank or a rise in the ground no longer freezes the game. As the toad looked for high ground to spit from, its search broke and the game stopped.",
+              "Edda at the night halt, Nima and Ossa in the City-Shaft get to the point: the letter or the splinter comes within four or five pages instead of nine to twelve, and the rest is there if you ask. Madame Sel and Wen are a little shorter too, and the Signal Market’s first step now says whom you are looking for: “Hear Madame Sel out by the landing”.",
+              "The Clock-House’s and the Undertower’s last steps now point the right way: their guardians wait upstairs, and the steps used to say go down.",
+              "Each world’s own recorded music now plays the whole time you are there, out in the open as well as on arriving, indoors and at the big moments. If you liked it better the old way, with the music for the moments and quieter, lighter tunes in between, choose Moments under Settings > Music plays.",
+              "v1.84",
+              "In the Unity version, the traveller’s eyes and brows are as sharp as on the web: close up and in conversations they were soft, blurred patches, and now they show the white, the iris, the pupil and its glint and the fine lash lines. People’s eyes are drawn as on the web too: a crisp ring round the iris, a clear glint, the lids open at rest and a lash line along them.",
+              "Each world’s own recorded music now plays the first time you land there, on the Xbox and in the Android app too, where it is downloaded the first time it is needed: it comes in as soon as it has arrived, faded in. Before, the Unity version played the game’s synthesised score for your whole first visit to every world but the Desert, and the Android app could wait minutes for the next moment to bring it in.",
+              "In the Unity version, the traveller’s face moves as on the web: he blinks, smiles, raises his brows and opens his mouth as he talks (it stayed still). The ship’s rooms keep their shading strokes clear instead of a grey blur; plants lean away from you along the path you walk through them; the camera pressed into the traveller leaves him out of the view; a struck foe’s lines flash white; and the shading round foes by a wall no longer darkens round them.",
+              "In the Unity version on the Steam Deck, the first launch after an update no longer freezes for three and a half seconds just after a world with foes appears: what the game needs to draw the foes, the water from below, the waterfalls, the shade under a jump and the marks on the ground is now made ready while the world loads (that one loading takes 2–3 seconds longer).",
+              "In the Unity version, the title’s name sits centred across the top on every screen, as on the web: on the Retroid’s 4:3 screen it opened pushed aside the first time, and a window resized or a screen turned kept the old layout.",
+              "In the Unity version, the marks lying on the desert’s ground are drawn whole, as on the web: the sand river’s pale ribbon, the tide lines along the dry wash, the salt pan, the basin’s wet shore, the sand banked against things and the crash’s scrapes no longer break into jagged pieces with the ground showing through.",
+              "In the Unity version the water looks as on the web from below and in the sun: under water the view sinks into the water’s colour in flat bands, and in the Underwater City pale shafts of light come down from the sea’s surface and caustics play on the floors, behind the halls’ glass too; above water the sun glints in white dashes on the water toward it (not on the Handheld, Steam Deck and Xbox presets, as on the web). Sounds are muffled under water there too, and the camera no longer stops half in, half out of the water.",
+              "In the Unity version the waterfalls fall as on the web: the great curtain over the City Behind the Waterfall and its small deep fall stream down in bands of teal, turquoise and white with pen streaks, glassy at the lip and misty at the foot, with slits you can see through; the Buried Machine’s oil fall, Viridel’s stair fall and the Glass Dunes’ sand falls too. They were flat sheets.",
+              "In the Unity version, “ride the bird” shows over the bird when you stand by it, as on the web; a scene’s black bars slide in as slowly and smoothly as on the web’s; and the fluid’s splats lie whole on the ground the moment they land (the ground hid them, in part or all, a beat longer).",
+              "Arriving in the City-Shaft, the game’s check that no far-off tree stands inside a house takes about half the time, with the same trees in the end: on the Steam Deck it is done half a minute after you arrive instead of nearly a minute, and the frames it slowed are back to full speed that much sooner.",
+              "The game’s own work each frame is lighter on slow processors: the Underwater City’s rising bubbles are only worked out where you can see them, and the posing of the traveller and the people walks their skeletons faster. In the Unity version on the Steam Deck that is up to 7 more frames a second in the Underwater City and up to 2 more in the other worlds.",
+              "In the Unity version, the worlds that have no drifting cloud shadows on the web (Lorn, Viridel, the Garden, the Signal Market and most others) have none in Unity either: Lorn’s marsh was all in shade, and Viridel’s far white tower under a cloud.",
+              "In the Unity version, more of the world moves and shines as on the web: the Garden’s still lake shows the far shore and the garden it remembers upside down in it, the Signal Market’s billboards turn into lit screens after dark, the Buried Machine’s great pistons slide out of the canyon walls and its vents puff steam, Lorn’s crystal veins glow under the water, the fluid’s splats pop out and shrink away instead of standing whole, and the grass parts along the last steps you took, not only round your feet.",
+              "In the Unity version, each frame spends less time copying the world over to Unity: only what changed is looked at again, not every building and rock. Up to 3 more frames a second in the City-Shaft and the Signal Market. And a lamp’s brief pulse in the Underwater City, which Unity used to miss, now shows.",
+              "In the Unity version, a game started from the Arcade offers the game before and after and the way back to the Arcade on its cards, and a fight temple’s start card shows its hall from above, as on the web.",
+              "In the Unity version, the true ending’s credits roll up the screen on their paper page, the worlds and the people you met, as on the web, instead of being read out a line at a time.",
+              "In the Unity version, Settings is laid out as on the web, in its groups (Screen and text, Camera and motion, Controls, Sound, Game) and order, and it has the web’s alien voices, run and guard, enemies and drone hints settings too.",
+              "In the Unity version, the shops, the Arcade’s board and a game’s cards look like the web’s: the keeper’s line in a speech bubble and the wares as cards with their pictures and prices, the games as inked cards with their coloured dots, and the cards in the web’s typeface with their rules in a dashed box.",
+              "In the browser and the Android app, each frame takes less work to get ready to draw on a slow processor: the world is looked over once a frame to find what is in view, instead of once for every picture the frame is made of (its shadows and the view itself). The picture is exactly the same.",
+              "In the Unity version, the lamps of the City During the Eclipse, the makers’ houses and the ship’s rooms pool their own warm colour on the floor round them, as on the web, instead of a white glare.",
+              "In the Unity version of the fight temples, a wall or pillar between you and the camera opens a ragged hole round you, as on the web, so a fight is never hidden behind it.",
+              "In the Unity version, your sword’s blade is living water again: turquoise with cream currents and rising bubbles, a bright wavering edge, bowing back through a swing, a ring of light running along it when it hits; the guard’s shield too. Before, it was a thin grey blade.",
+              "In the Unity version, the foes wear the patterns painted on them as on the web: the crabs’ star spots and mottling, the lizards’ scales and banded bellies, the centipede’s rivets and rust, the moths’ glowing lanterns, and the brute’s glowing cracks, which open wider as you hurt it. Before, each was its plain colours.",
+              "In the Unity version, the shafts of light in the skull cave and the makers’ houses are as soft and pale as on the web, no longer bright white slabs.",
+              "In the Unity version, the dark of the makers’ houses’ deadly pits no longer shows through walls, and the shafts of light, the doorways’ glow, the floating motes and the recordings’ figures are hidden behind what stands in front of them again: drawn straight to the screen, they had read the scene’s depth upside down.",
+              "In the Unity version, the world dims behind the “You were knocked out” card as it does on the web, and the card sits high with its gold Restart button.",
+              "In the Unity version, the menus look like the web’s: the pause screen’s yellow side with PAUSED in big lettering and its buttons in thick ink, the settings on ruled paper with their sliders, switches and boxes, the game menu’s tabs, quest cards and strip on a warm desk, and every menu, hint and conversation in the web’s own typeface instead of a typewriter’s.",
+              "In the Unity version, the use button over a person or a thing is the round button alone, as on the web, instead of a dark strip, and a hint that names a button shows the button as a badge before its words.",
+              "In the Unity version, a world loads behind the same inked page as on the web, the pen turning in its rings and a line saying what is being drawn, where the screen used to stay black.",
+              "In the Unity version, a new game no longer hands you the desert’s hoverbike as the opening ends. It lies under Marrow’s tarp in the hollow by the red rag again, and finding it starts its errand, as on the web. A save that was given it that way gets it back under the tarp.",
+              "The City Floating in Space’s sky-boats are longer and rounder, as on their design: a nine-metre capsule with its top and its belly in two colours, a long low cabin with lit windows, portholes down each side, two lamps in the nose and a fin and a screw at the tail. The boats moored in the Pier’s hoops sit inside them.",
+              "The City Behind the Waterfall’s landing is a proper port now, closer to its design: a docking niche is cut into the cliff ahead of your ship, its arch opening on a lit hall with a loading dock and steps up to it, a gantry bolted over it with a crate on its cable, crates on the dock and at its foot, puddles and moss on the wet stone, and a second courier parked beside the first. Tully waits by the niche.",
+              "In the Unity version, the hearts and the potion look as on the web: a part-filled heart fills by its quarters with thin lines between them (it filled round like a clock), its glint and shadow as on the web, the last heart pulsing when you are low; the potion beside them is the corked flask with its red draught (it was a red blob), its count in the web’s heavy figures, faded when you have none.",
+              "In the Unity version, a patch of shade lies under you whenever you jump, fall or glide, so you can judge where you will land, as on the web. The traveller’s captured jumps, idles, starts and stops and the people’s own walks play there too, and “Back to the Arcade” puts you in front of the game you just played.",
+              "In the Unity version, the fluid gun shows what it does as on the web: aiming puts the inked crosshair in the middle of the screen with the mode’s name under it, red and turned on what it would lock, faint when the tank is empty, kicking on a hit; a mode switch shows its name beside you a moment, and a tank run dry says “empty” there. The magic bar has its ticks between units and turns pale and hatched when there is not enough left for a shot.",
+              "In the Unity version, fights answer as on the web: fire and spines burn at the web’s rate (they bit twice as fast), a blow lands with a dull thud under the cry, the hearts stay up for the whole fight, the chimes count up into the wallet, the fight temples and the games shake the camera on a hit, the chime-pirates meet the ship on its first flight to a new world, and in the Lab RS and LS hop between the worlds’ rooms.",
+              "On the City-Shaft’s rim your ship now sets down into a lacquered cradle hung between two tall towers: the cradle, swung out toward the shaft, swings it in over the rim’s paving, rocks past its place and settles before the ramp opens. When you leave, it swings the ship out again and it lifts off from the cradle.",
+              "In the Underwater City your ship now comes down the Dock’s lock: it sets down on the lift’s coral plate high between four teal columns banded in brass, and the lock lowers it onto the dome before the ramp opens. When you leave, the lock lifts it up again and it takes off from there.",
+              "Each port has someone who runs it: Orla keeps the Pier’s harbour book, Faro wardens the City-Shaft’s rim docks, Ludo logs the Signal Market’s call-signs, Mabyn keeps the Float Yard’s tally, Cato walks ships in on the Eclipse city’s esplanade, Tully keeps the Waterfall’s ledge and Dace loads the Buried Machine’s freight.",
+              "The cities off the route have ports as well: rows of lamp-topped pylons and a mirror tower on the Eclipse city’s esplanade, stakes and old mooring ropes round your ship on Salt Harbour’s salt with a mast crane and a sand-skiff, a gantry and couriers on the Waterfall’s ledge, and a rust-orange crane with an ore bucket at the Buried Machine’s freight stage.",
+              "The Underwater City and the Glass Dunes have ports too. On the Dock’s dome a coral pontoon ring with brass rims lies under your ship, with a little cupola and two pods moored, and round pods glide between the domes. In the Glass Dunes your ship stands on a pale stone landing disc in a yard of ochre canvases, racks of green glass floats, float-sledges and a glass skiff.",
+              "The City-Shaft and the Signal Market have space ports round your ship. On the shaft’s rim, lacquered pink and lilac cradles reach out over the drop either side of your way to the edge, a gantry crane lowers a crate into the shaft, and three cabs wait at a stand. In the Market your ship stands on a ruled apron under a tall board of call-signs, one board dark, with a courier, a yellow walker and a hauler parked by it.",
+              "The City Floating in Space’s Pier is a real port now, drawn after its picked design: red bands round the deck, blue iron hoops hung off its rim with a moorer’s boat in three of them, a lamp-mast and the harbour hut by the bridge, and round-bellied sky-boats crossing the dark. It replaces the plain docks of the last version.",
+              "Lorn II’s marsh wisp now wears the colours of its own design sheet: mossy green-black petals patched with pale lichen rosettes, a brass band round its waist in place of the ring of light, plain ink drips, pale green eyes and a cold green marsh-light for a coal.",
+              "The ember wisp has its real body now, drawn from its design sheet: a pointed bud of four glossy black ink petals edged in gold, closed round its glowing coal, with a thin ring of light round its waist, two lilac eyes and three drips of ink hanging beneath. Before it throws its fireball, the petals open wide like a flower round the coal as it swells white-hot. Knocked down by its own fire, it rests just above the ground with its petals hanging open.",
+              "In the Unity version, the camera and the world round you behave as on the web too: the camera stays out of the cabs and carriers instead of passing through them; riding the bike or the bird, the camera takes the ride’s own view, and on the jets it comes round behind and tips with you, pulling back the faster you fly; the benches are there to sit on; the hoverbike and the skiff leave their glowing trails behind them; leaning on a world’s edge, the wind streams in round you and the ink shimmers where you touch it; in the Lab each biome room puts on its own world’s look, planets and hour; a potion’s hearts come back in a warm glow, and the first time you are hurt short of hearts you are told how to drink one; where a world wants to show you the way at once, the drone points it out; and the Start menu counts the fragments of the singing light you have found.",
+              "Inside the makers’ houses the wings now glide heavy: they open as a brake and come down steeply, with a lower, duller flap, so a running jump, the double jump and a glide no longer carry you over a chasm before its bridge or gate is open. Out in the world they glide as before, and moving air still carries them indoors: the columns, the gusts, the Warden’s Well’s draught out to its high ledge, and in the Aerie the breath of the Wind Well, the Eyrie’s gap, the Gulf and the Roost, so their glides work as they did.",
+              "A roll takes you through every hazard of the fight temples unharmed: gusts, millstones, ore carts, falling loads, the eyes’ flash and the toll as well as slag, oil, broken glass, the dark and the shade. Rolling across burning ground no longer flashes as a perfect dodge.",
+              "Foes felled in the fight temples are easy to see from up there: the blow throws the body back about a metre and it goes down quicker, a ring flashes on the floor, ink splashes out with a wet thump, and a star of ink stays where it fell for a few seconds before it dries away. When many fall at once each leaves its stain, but only a few ring and splash.",
+              "In the fight temples a roll cuts a swing off: pressed while the sword is drawn back or following through, you roll at once. Pressed during the cut itself, the cut lands and the roll comes the moment it ends.",
+              "In the fight temples the sword is about a third quicker: each cut of the combo draws back and follows through faster, the three cuts taking 1.2 s instead of 1.7 s, and the pause after the third is shorter.",
+              "In the fight temples the roll is on the button printed B on every controller: B on Xbox and PlayStation pads, and the bottom button on a pad or handheld with Nintendo letters, like the Retroid, where the button printed A used to roll. A does nothing in there.",
+              "In the browser and the Android app, a frame asks the graphics chip for up to 23 % fewer drawings, which helps on a slow processor: distant buildings no longer drop out of their shared batch when they switch to a simpler shape, the City-Shaft’s trees and the desert’s pebbles in one place are drawn together, the crowd no longer asks for drawings of nobody, and more still things cast their shadows together. The picture is exactly the same.",
+              "On the Handheld setting, people out of your view more than 30 m away move on a quarter of the frames, as on the Steam Deck, and catch up the moment they come back into view, so nobody you can see is ever a step behind, even when you swing the camera round fast. With this Mac’s processor slowed four times, the people take about half a millisecond less of each frame in the City-Shaft.",
+              "Being knocked over no longer makes the game stutter on a slow processor: the falling body looks for the ground under each limb once a frame instead of twice in every small step, and falls exactly as before. With this Mac’s processor slowed four times, as a stand-in for a handheld’s, a tumble down the City-Shaft takes 0.7 ms of each frame instead of 3.8.",
+              "In the Unity version on handhelds, every world runs smoother again: a test left in the shader for measuring had made every pixel of the world a little slower to draw. On the Retroid Pocket 5 the City-Shaft’s wide view runs at 41 frames a second instead of 39, the Signal Market’s arrival at 54 instead of 51, Lorn’s arrival at 48 instead of 46 and Underwater’s wide view at 51 instead of 48. The picture is the same.",
+              "In the Unity version on handhelds, Lorn runs smoother where you arrive: the cracks on the forest’s far trunks, too small to draw there, are no longer worked out pixel by pixel, as the browser version already did, so the picture is the same. On the Retroid Pocket 5 the arrival view runs at 46 frames a second instead of 44, and the view toward the keepers at 50 instead of 48.",
+              "In the Unity version on handhelds, the City-Shaft’s trees and Underwater’s glass are drawn with a lighter version of their shader that gives the same picture. On the Retroid Pocket 5 the City-Shaft’s wide view, the slowest of the game there, runs at 42 frames a second instead of 38, its arrival view at 54 instead of 51, and Underwater’s arrival reaches 60.",
+              "In the Unity version on handhelds, the City-Shaft runs smoother where you arrive: its far trees across the shaft are drawn with fewer triangles, too few pixels to see the difference. On the Retroid Pocket 5 the arrival view runs at 51 frames a second instead of 45.",
+              "On the Xbox, the Unity preview reaches the Desert about 7 seconds sooner, cold or warm: it starts preparing the first views’ graphics while the title shows, a few at a time, so the title and the loading screen stay smooth. The City-Shaft loads about as before.",
+              "On the Xbox, the Unity preview reaches the world about 9 seconds sooner each time you start it after the first: 44 s to the Desert instead of 53, 42 s to the City-Shaft instead of 51.",
+              "Your ship’s little drone has a name now, Plumb, and its lines say so. In the opening you see it wake in its charging cradle by the hatch and come to your shoulder; you walk down the ramp, not run, and once outside Plumb says your best bet is the village on the horizon, where someone might help you both recharge, and flies off toward it. After that it speaks up only when you seem lost: where to go next, a word on what waits in a makers’ house after a long while on one step, or a guardian’s weak point as a fight drags on. Never two lines within the minute, and Hints off quiets it.",
+              "Every people now wears hats of its own, modelled from the design sheets picked for each world: pale lacquered hats on the City-Shaft’s rim, patched caps and goggle bands in its middle levels and rag hoods at the bottom; caps that leave the listeners’ ears clear; woven reed hats and moss hoods in Lorn; plain turbans, tasselled caps, porters’ head-pads and printed scarves in the Signal Market; the pilgrims’ headcloths with their cord and modest straw cones in the desert; bell wimples at the monastery; padded dome hoods and lamp hats in the mine; and so on in every world, each in its sheet’s colours. As many people wear a hat as before, and the same people.",
+              "v1.83",
+              "The Clock-House is built round a great hall now, the Winding Well, 64 m across, and the hour is the house’s state. In its middle the Escapement’s stair turns with the great clock’s hand: at two its arm meets the north door, at four the Pendulum Hall’s high door, at six the Striking Room’s loft. Roll the counterweight home to wind the clock, then turn the hand on at a lever by the stair, on its top, on every ledge or on the Escapement’s landing. A clock face in every room says the hour, and the hour track, the Clockmaker’s clock and the gallery’s eyes count from it. In the Clock Gallery the eyes sit behind shutters now: hook the ring under the great clock to run its striking train, then throw the boomerang. Every ledge’s edge is a safe drop back to the hall’s floor.",
+              "On the Steam Deck, Exit Game closes Hiraeth at once, even while a world is loading: it used to leave a black screen for four seconds or more while the game crashed on its way out.",
+              "The City Floating in Space has a little space port on its Pier while the real one is being designed: a landing ring painted round your ship, two docks reaching out over the void either side of the bridge with a moorer’s craft in each, and small craft circling slowly over the city.",
+              "In the Unity version, the Signal Market’s broadcast no longer goes black, the Map draws its ground, a struck foe flashes and falls to its ink instead of staying white, his face close up is clean of ink blotches, Vael’s walls have fine cracks instead of dark drips, the builders’ walls in Edena carry their carved inscriptions again, the dark band round his shirt is gone, the temples’ key counter is a key, and the 3-2-1 is its proper size. In the ring race and the ski run the view now widens as you pick up speed, as it was meant to.",
+              "Inside the makers’ houses the spring boots only hop: they won’t wind there, and a bounce goes no higher, so a launch can no longer carry you up onto a gallery or over a gap before its puzzle opens the way. Jump and press again in the air to stomp, as before. Out in the world they still throw you fourteen metres up.",
+              "A new game in the Arcade, The Lens Vault: a test of another way to play, through your own eyes. Your glove is an arm that shoots (hold the trigger for a charged shot), LT locks on and the stick circles the foe, and Y raises a lens that reads what it is held on, a line about each. Four rooms of a makers’ vault: a door that opens to a shot, one only to a charged shot, one sealed until you read its lock, and a round hall to clear at the end.",
+              "The Whale-House is built round a great hall now, the Sounding Hall, 76 m long, and the tide is the house’s state. Turn a valve to let the sea in or out: in, it fills every wing at once, lifts you to ledges you could not reach and fills the tank behind its glass, so a stomp by the glass carries through the water to the ear inside; out, it bares the hall’s deep floor and the doors in it, which hold the sea back while it is in. A gauge and a lamp in every room show where the tide stands, there is a valve by every landing, and you swim in it: up through the Shell Room to its ledge, across the Sound to the dais. On the gallery, pull the stone weight off its post with the grappling hook, set it by the dish and stomp, then drop through the gap in the great horn’s pipes into the Sound.",
+              "Inside the makers’ houses the grappling hook only catches what the makers set there for it: their rings, the weights, the bells and your foes. Bare stone won’t hold it any more, so it can’t pull you up past a puzzle onto a ledge or across a chasm; aim at a wall and the reticle turns to a cross that says “won’t hold”. Out in the world it still takes any wall or ledge in reach.",
+              "A new foe, the ember wisp: a dark shell round a glowing coal that floats out of your reach and throws slow balls of fire at you. Watch its shell open and its coal swell, then cut the ball just as it reaches you: it flies back and knocks the wisp out of the air, stunned and low enough to cut. A perfect parry sends it back too. You meet them over the Moon Foundry’s furnaces, as marsh lights in Lorn’s deep wood, in the city during the eclipse, in the Pour Floor and in the Arena. Its body is a first sketch until its drawing is chosen.",
+              "People come in more shapes and sizes: thin as a rake, slim, broad-shouldered, stout and properly round, and taller and shorter than before, so a crowd no longer looks like one person over and over. Each world has its own mix: the desert’s pilgrims and Vael’s silent ones run lean, the market, the harbour and the foundry sturdier. Clothes, capes and robes fit every shape, and the fuller people hold their arms a little out from their sides.",
+              "The Undertower, the last makers’ house, is rebuilt as the exam of your whole journey, round a great hall: the Great Well, 64 m long, its floor, its gallery and its high balcony all seen at once. Its state is the line: pull a relay lever by any hub to let the First Sign’s one word into the makers’ cables, or shut it out. While the house speaks, its lift, its cable doors and its bellows run and a great horn says the word; while it is quiet, the horns on the cables can hear. Every older tool has its step, each with the hourglass: knock a counterweight off its walkway and ride it back up, hook the high counterweight down and ride it to the balcony, see the listening pillars over the chasm only through the lens, catch a bomb’s boom in the sand for the Choir’s black horn, and give the bellows the First Sign’s word so their draught carries your wings up to the great key. Heaps of old cable catch your drops back to the hub. And the First Sign now stops between its two fights: it floods the cables with its word, so shut it out, then give it the rest of its line, one word at a time.",
+              "The Hush-House in Lorn has no fight any more. The Choir is now a great hall: from the way in you see its floor, the gallery up its side with the great key’s cage, and the great door in its far wall. The small key is the Pendulum Gallery’s song: still the three in turn from the far landing and its cage sinks, and the pendulums rest so you can walk back. By the great key a marked drop takes you down into a black pool on the Choir’s floor, and the great door wants the Choir’s crystals hushed, highest first. The Mother Snapper is never fought: she is blind and strikes at sounds, so walk near her, never run; still the crystals jangling over her, then sing her the makers’ lullaby, smallest first. The first note grows at her root, under her head: make a sound somewhere else and she turns away.",
+              "The Founders’ Belfry is built round a great hall now, the Great Belfry, 66 m long with a gallery round three sides, and its founders’ bell is the house’s state. Ring it at a lever and the stones it holds come down all through the house: the great stone to the floor, the porch’s door, the Hall of Echoes’ bridge. Still it, and once its hum fades they fall up again, the spur to the Ringers’ Walk with them. A lamp in every room glows warm while it rings and cold while it is still, there is a lever by every hub, and upstairs the porch’s and the Hall of Echoes’ bells ring it or still it with the hook. The great key now lies free on its ledge high in the hall, and from there you can jump down to the gallery and on to the floor.",
+              "The Engine-House in the Buried Machine is rebuilt round a great hall, the Engine Hall, 70 m long with a gallery round two sides, and its engine now drives one shaft at a time. Pull a clutch lever by any of its hubs and the power goes up to the pistons and the hammer of the upper floor, or down to the lower floor’s; two lamps in every room show which, amber above and blue below. The chest is guarded now: in the Boiler Room waits the Boiler Keeper, a huge furnace brute whose slam sends a quake along the floor and leaves its fists stuck, the same lesson the Tooth-Warden asks later. The Governor Room moved behind the chest, the Crank Hall behind a bulkhead that rises only with the power upstairs, and in the Furnace the two east pistons stand only while you hold their clutch with the grappling hook, so the bombs and the hook work together. A marked drop from the gallery takes you back to the floor.",
+              "The Mooring-House in the City Floating in Space is built round a great hall now, the Mooring Hall, open to the stars, and its moored room is the house’s state: a round room on a cable that docks low by the east landing or high between the gallery’s two halves. Pull a dock’s ring with the tether to call it home, or turn its capstan to ride it up or down, or step off before it goes. Every weight in the house hangs on the same cable: with the room low the Lamp Shaft’s counterweight lifts off its grating and the void’s breath blows, with the room high the loft’s ring comes down into reach, and a lamp in every room burns amber or blue to say which. The great key’s cage now hangs from a ring only the seeing lens shows, a new Chain Locker holds the west door’s chain, and a marked drop off the gallery sets you down softly on the east landing.",
+              "The Casting-House in the Moon Foundry pours now. Its first hall is the Pouring Hall, 72 m long, a gallery round three sides and a great crucible hung over its far end, pouring molten iron into channels across the floor. Turn a tap by any of its hubs to stop the pour or let it in, and a gauge in every room shows which. While it pours the channels glow and burn (step in and you’re thrown out), and the heat-gates shut with iron spilling down them; cold, the gates open and the channels are dry lanes. A stone moon in a mould with the pour let in round it is cast, and a cast door stays open: in the Mould Room, on the stair’s landing, the furnace’s bridge and at last the Founders’ Door. The Weighing Hall is needed now: the Sand Room’s small key opens the way down to it, and its great key, freed once the great scale’s two pans weigh (an iron moon and a stone weight you pull down with the grappling hook), opens the Founders’ Door. From the gallery a gap drops you into a bed of moulding sand by the hub.",
+              "The Warden’s Well in the City-Shaft breathes now. Pull a lever by any of its hubs and the whole tower breathes out or in, and a gauge in every room shows which: breathing out, its draughts rise and stones stand in the Vane Room’s chasm; breathing in, the draughts die and a ring comes down on its chain in the crown. Its upper floors are rings round an open core, so from the crown you look 57 m straight down to the fan’s chest, and a drop down the core or the Flue lands you softly; the Flue’s valve lets you out into the Bellows Chamber. Two small keys open two doors at the hub, in either order; the great key waits across the Vane Room’s chasm for the fan; each disc on the Turning Floors rides on its own vane; and the crown’s eye wakes only while you pull its ring with the grappling hook and its great vane turns in the fan’s gust.",
+              "The Lamp-House turns on its great lamp now. Its first hall is the Lamp Hall, 64 m long, a gallery along one wall and the great lamp hanging cold in the middle. Kindle it with a bubble of light from its balcony and open its shutters at a lever: its light runs out through the house, the Kennel’s door and the Lamp Passage’s open to it, and a curtain of it bars the Wick Room. Shut them again, at the lever by every hub, and the curtain falls and the moss-stones in the Dark Gallery rise. On the far side of the gallery, hook the ring on the lamp’s pipe and send the far door’s lamp a bubble of the light that pours out. The gallery drops you straight back to the hall’s floor.",
+              "The Aerie in Vael is rebuilt round a great hall: the Wind Well is almost twice as wide, with a gallery round it halfway up, so you see its floor, the gallery and the high balcony at once, and a long narrow passage leads to it. Before the wings there is a new room, the Fledgery: roll its stone into the hole in its floor, and it drops onto a grate in the passage below and the wind lifts the Wing Chamber’s shutter. A marked drop off the gallery lands you softly back on the well’s floor, and from the Eyrie’s ledge you now look down a wide well onto the Moult before you go in.",
+              "The Builders’ Greenhouse is built round a great hall now, the Palm House, 78 m long under a glass vault, with a gallery round three sides and a bridge across its middle, and the builders’ water is the house’s state. Turn a sluice wheel to send the water up into the high troughs or let it down into the low channels; a gauge in every room shows where it stands, and seeds grow only where it runs. The Cold Frame’s disc rides up on its water to the gallery, the cistern on the floor breaks the fall when you drop from the gallery, and a vine grown down from the bridge stays: a climb back up for good. In the Seed Vault, pull the stone weight off its high ledge with the grappling hook to bring the sun to the seed.",
+              "In the Unity version, more of the game works as it does on the web: the sword and the shield hang on the traveller only once you have found them, and foes come out of the wilds only once you carry the sword; the backpack, the sword and the shield wear the colours you won in the fight temples; fires burn you when you walk into them, spread from bramble to bramble on the wind and send the animals running, and the animals keep off the ship; where the bird answers your call, the hoverbike still waits by the ship’s ramp, and it skims over water; the deadly dark shows below a world’s edge; people give you their errands to carry, and the Quests page lists them; whoever talks near you says it with their face; and the Map marks your ship.",
+              "In the Unity version, everything the web game shows on the screen now shows there too: people’s speech balloons over their heads, the homecoming’s objective, cargo check and end card, the breath meter under water, the brass level and the Arcade’s board of games. The cargo check now waits for you to press A as it does on the web, and the hints, prompts and hearts come and go at the same moments as on the web.",
+              "The Rose House is built round a Great Hall now, 84 m long, with a balcony up one side. From the door you see the cistern’s door at its far end, the watcher asleep before it, and a little chest in a cage beside a locked door: the house’s first small key. Find the way up to the balcony, take the Givers’ blade there, and cut the ball into the hole so it drops onto the plate by the cage, then jump down after it. The key opens the east wing, and the watcher now guards the cistern’s door in the hall."
+            ]
+          },
+          "playing": null,
+          "objects": {
+            "ink": 412,
+            "print": 1,
+            "hidden": 1,
+            "chimeshade": 1,
+            "pitvoid": 1,
+            "wisp": 1,
+            "mote": 1
+          },
+          "cam": [
+            0,
+            1.8,
+            92.8,
+            55
+          ],
+          "player": [
+            0,
+            0,
+            88
+          ],
+          "late": false
+        },
+        {
+          "beat": "photo",
+          "hud": {
+            "gadget": "gun"
+          },
+          "menu": null,
+          "playing": null,
+          "objects": {
+            "ink": 410,
+            "print": 1,
+            "hidden": 1,
+            "chimeshade": 1,
+            "pitvoid": 1,
+            "wisp": 1,
+            "mote": 1
+          },
+          "cam": [
+            0,
+            1.8,
+            92.8,
+            55
+          ],
+          "player": [
+            0,
+            0,
+            88
+          ],
+          "late": false
+        },
+        {
+          "beat": "back",
+          "hud": {
+            "gadget": "gun"
+          },
+          "menu": null,
+          "playing": null,
+          "objects": {
+            "ink": 411,
+            "print": 1,
+            "hidden": 1,
+            "chimeshade": 1,
+            "pitvoid": 1,
+            "wisp": 1,
+            "mote": 1
+          },
+          "cam": [
+            0,
+            1.8,
+            92.8,
+            55
+          ],
+          "player": [
+            0,
+            0,
+            88
           ],
           "late": false
         }

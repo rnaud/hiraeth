@@ -613,8 +613,9 @@ test('the title\'s logo laid out for the screen the menus have now: a cold start
     Now: () => performance.now(), ReadFile: null, StorageGet: () => null, StorageSet() {}, StorageRemove() {},
     Keys: () => '', Pad: () => null, MouseLook: () => null, PadName: () => '', Platform: () => 'android', AudioRate: () => 0,
     MenuWidth: () => width, MenuMapBox: () => '', AwayCount: () => 0, Exit() {}, Shot() {},
-    Menu(json) { sent.push(JSON.parse(json)); },
+    Menu(json) { sent.push(JSON.parse(json)); }, ScreenAs(w, h) { screens.push([w, h]); },
   }, { get: (o, k) => (k in o ? o[k] : undefined) });
+  const screens = [];
   const { exports, readFile } = loadBundle(file, {}, { CS: { Hiraeth: { Bridge: { BridgeHost } } }, setTimeout: undefined, setInterval: undefined, clearTimeout: undefined, clearInterval: undefined });
   BridgeHost.ReadFile = readFile;
   const log = console.log, info = console.info; console.log = console.info = () => {};
@@ -638,4 +639,10 @@ test('the title\'s logo laid out for the screen the menus have now: a cold start
   // and nothing sent again while the screen stays as it was
   const n = sent.length; exports.frame(1 / 60); exports.frame(1 / 60);
   assert.equal(sent.length, n, 'the same state not sent again');
+  // -screen 960x720: a batch run on a screen of that shape from its start (the Retroid's 4:3; the sequences' 1280 × 720, not
+  // the editor's 4:3 window: issue #264); none asked, none made
+  assert.deepEqual(screens, []);
+  console.log = console.info = () => {};
+  try { exports.start(JSON.stringify({ screen: '960x720' })); } finally { console.log = log; console.info = info; }
+  assert.deepEqual(screens, [[960, 720]]);
 });

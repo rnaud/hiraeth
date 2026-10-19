@@ -52,6 +52,9 @@ export const CHANGELOG = [
     // swapBack, wheel()), src/main.js and engine/game.js (the wheel pauses), src/player.js CameraRig.recentre, src/remap.js
     // migratePad; tests/gadgets.test.js, bindings.test.js, controller.test.js, accessibility.test.js, engine-gadgets.test.js
     'A new controller layout. Hold D-pad ↑ for the wheel: every gadget and each of the glove’s modes now has its own slot, and the game waits while you choose, so no foe hits you meanwhile. A tap of D-pad ↑ takes back your last pick, so push and fluid are a tap apart. D-pad → now calls Plumb to find your objective (or a hint in a guardian’s fight), riding too, and R3 only locks on: with no foe near, it turns the camera behind you.',
+    // issue #264: unity/…/BridgeMenu.Pause.cs (PauseRows: the verbs to rebind two a line on caps), BridgeMenu.cs (the
+    // tile's IN USE pill), engine/game.js photoHint (the page's hint.photo); tests/engine-menus.test.js
+    'In the Unity version, the Controls page shows your keys and buttons on caps, two to a line, as on the web; the thing in your hand carries its red IN USE tag in Items; and photo mode’s line of keys reads as the web’s.',
   ] },
   { v: '1.85', date: '2026-10-18', items: [
     // issue #474: src/music-moments.js (MUSIC_MODES, musicMode: Always the default), src/ui.js (musicMode, musicV: a saved

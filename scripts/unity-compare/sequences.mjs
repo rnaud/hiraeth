@@ -10,7 +10,7 @@
 //   node scripts/unity-compare/sequences.mjs unity [ids,…] [--out dir]    Unity's pictures and stream (<out>/unity, unity.json)
 //   node scripts/unity-compare/sequences.mjs sheet [--out dir]            the sheets and the report from what is there
 //   node scripts/unity-compare/sequences.mjs record [--out dir]           the web's stream as the test's (tests/sequences-web.json)
-// PORT (the web's Vite, default 5429; never 5173), MAX_LOAD (25: waits while the 1-minute load is over it), LOCK (the Unity
+// SIZE (both sides' screen, default 1280x720; 960x720 the Retroid's 4:3), PORT (the web's Vite, default 5429; never 5173), MAX_LOAD (25: waits while the 1-minute load is over it), LOCK (the Unity
 // build lock, default .local-tools/handoff/unity-build.lock of the main checkout). Default out: output/sequences/<sha>.
 import { spawnSync, execSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync, rmSync, copyFileSync } from 'node:fs';
@@ -30,6 +30,8 @@ const picked = SEQUENCES.filter((s) => !ids || ids.includes(s.id));
 const sha = execSync('git rev-parse --short HEAD', { cwd: ROOT }).toString().trim();
 const OUT = resolve(arg('out', join(ROOT, 'output/sequences', sha)));
 const MAX_LOAD = +(process.env.MAX_LOAD ?? 25);
+// (SIZE=960x720: the web's page that size, as SCREEN=960x720 has Unity's: the Retroid's 4:3 side by side, issue #264)
+const SIZE = String(process.env.SIZE ?? '1280x720').split('x').map(Number);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const load = () => +execSync('uptime').toString().match(/load averages?:\s*([\d.]+)/)[1];
 const rest = async () => { while (load() > MAX_LOAD) { console.log(`load ${load()}: resting`); await sleep(60000); } };
@@ -38,7 +40,7 @@ const readJson = (f, d = {}) => (existsSync(f) ? JSON.parse(readFileSync(f, 'utf
 const keep = (file, res) => writeFileSync(file, JSON.stringify({ ...readJson(file), ...res }, null, 1));
 
 // ------------------------------------------------------------------ the web
-const KEYS = { KeyE: ['e', 69], KeyF: ['f', 70], KeyW: ['w', 87], KeyJ: ['j', 74], Tab: ['Tab', 9], Space: [' ', 32], Enter: ['Enter', 13], Escape: ['Escape', 27], Digit1: ['1', 49], Digit2: ['2', 50], ShiftLeft: ['Shift', 16] };
+const KEYS = { KeyE: ['e', 69], KeyP: ['p', 80], KeyN: ['n', 78], KeyF: ['f', 70], KeyW: ['w', 87], KeyJ: ['j', 74], Tab: ['Tab', 9], Space: [' ', 32], Enter: ['Enter', 13], Escape: ['Escape', 27], Digit1: ['1', 49], Digit2: ['2', 50], ShiftLeft: ['Shift', 16] };
 
 async function web() {
   const PORT = Number(process.env.PORT ?? 5429);
@@ -56,7 +58,7 @@ async function web() {
   const res = {};
   try {
     for (const seq of picked) {
-      const c = await chrome({ size: [1280, 720] });
+      const c = await chrome({ size: SIZE });
       const out = (res[seq.id] = { beats: [], errors: [] });
       const t0 = Date.now();
       try {
@@ -74,7 +76,7 @@ async function web() {
         for (;;) {
           if (Date.now() - t0 > 420000) { out.errors.push('timed out'); break; }
           // (the game's own clock, but the page's while a menu holds the game still: the menus' beats wait in real time)
-          const r = await c.ev(`(() => { const now = window.clock(), real = performance.now(), held = !!(window.menu?.open || window.journal?.open || window.minigame?.paused);
+          const r = await c.ev(`(() => { const now = window.clock(), real = performance.now(), held = !!(window.menu?.open || window.journal?.open || window.minigame?.paused || document.getElementById('changelog')?.classList.contains('open'));
             const dt = Math.max(0, Math.min(0.25, held ? (real - window.__seqR) / 1000 : now - window.__seqT)); window.__seqT = now; window.__seqR = real; const r = window.__seq.tick(dt);
             // (the page's CSS fades and pops on the same clock: headless Chrome draws slowly, the game's time ran at a
             // fraction of the wall's and the transitions ran ahead, the take-off's warp card whole a beat early, issue #264)
@@ -135,7 +137,10 @@ async function unity() {
     await takeLock();
     const t0 = Date.now();
     try {
-      spawnSync(join(ROOT, 'scripts/unity-js-run.sh'), [`seq-${seq.id}`, '-sequence', seq.id, '-out', dir, '-quality', 'high'],
+      // (-screen: the camera drawn into a 1280 × 720 screen all along, not the editor's 4:3 batch window: the menus were laid
+      // out for that window's 960 units and photographed at the left of a 1280 picture, six Items tiles a row, issue #264;
+      // SCREEN=960x720 photographs the Retroid's 4:3)
+      spawnSync(join(ROOT, 'scripts/unity-js-run.sh'), [`seq-${seq.id}`, '-sequence', seq.id, '-out', dir, '-quality', 'high', '-screen', process.env.SCREEN ?? process.env.SIZE ?? '1280x720'],
         { cwd: ROOT, env: { ...process.env, LIMIT: process.env.LIMIT ?? '600', TAIL: '5' }, encoding: 'utf8' });
     } finally { giveLock(); }
     const log = join(ROOT, `output/engine-bridge/unity-seq-${seq.id}.log`), out = (res[seq.id] = { beats: [], errors: [] });
@@ -171,7 +176,7 @@ async function sheet() {
   const overRows = [];
   for (const seq of SEQUENCES) {
     if (!W[seq.id] && !U[seq.id]) continue;
-    const rows = [], Wd = 640, Hd = 360, LAB = 28, beats = seq.beats.map((b) => b.name);
+    const rows = [], Wd = 640, Hd = Math.round(640 * SIZE[1] / SIZE[0]), LAB = 28, beats = seq.beats.map((b) => b.name);
     scores[seq.id] = {};
     for (const [i, b] of beats.entries()) {
       const a = pic('web', seq.id, b), u = pic('unity', seq.id, b);

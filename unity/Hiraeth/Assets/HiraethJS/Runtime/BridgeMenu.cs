@@ -30,7 +30,7 @@ namespace Hiraeth.Bridge
         readonly List<Cell> cells = new();
         int used;
         // the Items panel's tiles (as the web's .slot: the picture on its paper in an ink frame, the name under it)
-        class Tile { public Ui.Box box; public RawImage pic; public Label mark, name, inUse; public Image ring; }
+        class Tile { public Ui.Box box, tag; public RawImage pic; public Label mark, name, inUse; public Image ring; }
         readonly List<Tile> tiles = new();
         int tilesUsed;
         // the items' pictures (public/item-pictures as PNGs: scripts/engine-bundle.mjs unityPictures), each read once
@@ -186,6 +186,7 @@ namespace Hiraeth.Bridge
             stripName = Ui.Label(strip.rt, "name", mono, Body, Ui.Ink, TextAnchor.UpperLeft, FontStyle.Bold);
             stripSub = Ui.Label(strip.rt, "sub", mono, Small, Muted, TextAnchor.UpperLeft, FontStyle.Italic);
             stripDesc = Ui.Label(strip.rt, "desc", mono, Small, Ui.Ink);
+            stripDesc.verticalOverflow = VerticalWrapMode.Truncate;   // (one line in the strip: a long one ran out under it on 4:3, issue #264)
             stripAct = Ui.Label(strip.rt, "act", mono, Small, Ui.Red, TextAnchor.UpperRight, FontStyle.Bold);
             card = Ui.Panel(root, "full", Ui.Paper, Ui.Ink, 2.5f, 6, 6);
             cardTitle = Ui.Label(card.rt, "title", mono, 26, Ui.Ink, TextAnchor.UpperLeft, FontStyle.Bold);
@@ -279,8 +280,11 @@ namespace Hiraeth.Bridge
                 t.mark = Ui.Label(t.box.rt, "mark", Ui.Sans, 40, Ui.Teal, TextAnchor.MiddleCenter);
                 t.name = Ui.Label(t.box.rt, "name", Ui.Sans, Tiny, Ui.Ink, TextAnchor.UpperCenter, FontStyle.Bold, 1.1f);
                 t.name.verticalOverflow = VerticalWrapMode.Truncate;
-                t.inUse = Ui.Label(t.box.rt, "inUse", Ui.Sans, 10, Ui.Paper, TextAnchor.MiddleCenter, FontStyle.Bold);
-                t.inUse.text = "in use";
+                // (the thing in hand's tag: the page's .slot em, a red pill on the tile's foot in paper capitals; was paper
+                // letters on the paper, unseen: issue #264)
+                t.tag = Ui.Panel(t.box.rt, "inUse", Ui.Red, Ui.Ink, 1.5f, 0, 0, 6);
+                t.inUse = Ui.Label(t.tag.rt, "text", Ui.Sans, 10, Ui.Paper, TextAnchor.MiddleCenter, FontStyle.Bold);
+                t.inUse.text = "IN USE"; Ui.Space(t.inUse, 0.08f);
                 tiles.Add(t);
             }
             var tile = tiles[tilesUsed++];
@@ -298,8 +302,8 @@ namespace Hiraeth.Bridge
             if (tex != null) { tile.pic.texture = tex; float ps = side * 0.86f; Ui.Place(tile.pic.rectTransform, (side - ps) / 2, (side - ps) / 2, ps, ps); }
             Show(tile.mark, tex == null && !empty);
             if (tex == null && !empty) { tile.mark.text = c.S("mark") ?? "✧"; tile.mark.fontSize = Mathf.RoundToInt(side * 0.42f); Ui.Place(tile.mark.rectTransform, 0, 0, side, side); }
-            Show(tile.inUse, inUse);
-            if (inUse) { Ui.Place(tile.inUse.rectTransform, side / 2 - 28, side - 8, 56, 15); }
+            tile.tag.Show(inUse);
+            if (inUse) { tile.tag.rt.SetAsLastSibling(); Ui.Place(tile.tag.rt, side / 2 - 29, side - 11, 58, 15); Ui.Place(tile.inUse.rectTransform, 0, 0, 58, 15); }
             Show(tile.name, !empty);
             if (!empty) { tile.name.text = c.S("text") ?? ""; Ui.Place(tile.name.rectTransform, (side - w) / 2 + lift, side + 5 + lift, w, 30); }
         }
@@ -865,7 +869,7 @@ namespace Hiraeth.Bridge
                 Ui.Place(stripName.rectTransform, 20, 10, ns.x, ns.y);
                 Ui.Set(stripSub, s.S("sub"), sw * 0.4f);
                 Ui.Place(stripSub.rectTransform, 34 + ns.x, 13, sw * 0.4f, 18);
-                Ui.Set(stripDesc, s.S("desc"), sw - 220);
+                Ui.Set(stripDesc, s.S("desc"), sw - 240);
                 Ui.Place(stripDesc.rectTransform, 20, 32, sw - 240, 24);
                 var act = s.S("act") ?? "";
                 // what A / × does: its glyph, then the words (the page's .gm-act; issue #517), or the button's name before them

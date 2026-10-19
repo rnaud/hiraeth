@@ -162,16 +162,27 @@ namespace Hiraeth.Bridge
         void HideRows() { for (int i = prowUsed; i < prows.Count; i++) prows[i].rt.gameObject.SetActive(false); }
 
         /// <summary>The page's rows (src/menus.css .fullmenu .row): its words at the left, its control at the right in 46% of
-        /// the width, a dashed line under it, the pad's tinted; plain rows (every control, What's new) as two columns of words.</summary>
+        /// the width, a dashed line under it, the pad's tinted; plain rows (every control, What's new) as two columns of words.
+        /// The Controls page's verbs to rebind two to a line, each one's key or button on a cap (src/ui.js rebindHtml, the
+        /// page's .rebind grid: issue #264; they were a choice's box each, one to a line).</summary>
         void PauseRows(List<object> rows, float x, float y, float w, float h)
         {
-            var hs = new List<float>(); int at = 0;
-            float cw = w * 0.46f;
+            // the lines: a row each, or two verbs to rebind side by side
+            var lines = new List<(int a, int b)>();
             for (int i = 0; i < rows.Count; i++)
             {
-                var r = rows[i];
+                if (Rebind(rows[i]) && i + 1 < rows.Count && Rebind(rows[i + 1])) { lines.Add((i, i + 1)); i++; }
+                else lines.Add((i, -1));
+            }
+            var hs = new List<float>(); int at = 0;
+            float cw = w * 0.46f;
+            for (int li = 0; li < lines.Count; li++)
+            {
+                var (a, b) = lines[li];
+                var r = rows[a];
                 float rh = 40;
-                if (B(r, "plain"))
+                if (Rebind(r)) rh = 46 + (OnNote(r) || (b >= 0 && OnNote(rows[b])) ? 16 : 0);
+                else if (B(r, "plain"))
                 {
                     float tw = B(r, "wide") ? Ui.Measure(meas, r.S("text") ?? "", w - 12).y : Ui.Measure(meas, r.S("text") ?? "", w - cw - 24).y;
                     float vw = B(r, "wide") ? 0 : Ui.Measure(meas, r.S("val") ?? "", cw).y;
@@ -181,22 +192,31 @@ namespace Hiraeth.Bridge
                 {
                     // (a setting's name in two lines, the page's long ones in a narrow window: the row as tall as it)
                     if (!B(r, "head")) { var f0 = meas.font; meas.font = Ui.Sans; meas.fontSize = 14; meas.fontStyle = FontStyle.Normal; meas.lineSpacing = 1.25f; rh = Mathf.Max(40, Ui.Measure(meas, r.S("text") ?? "", w - cw - 24).y + 16); meas.font = f0; }
-                    if (B(r, "on") && !string.IsNullOrEmpty(r.S("note"))) rh += 16;
+                    if (OnNote(r)) rh += 16;
                 }
                 hs.Add(rh);
-                if (B(r, "on")) at = i;
+                if (B(r, "on") || (b >= 0 && B(rows[b], "on"))) at = li;
             }
-            float yy = y - Scroll(hs, at, h);
-            for (int i = 0; i < rows.Count; i++)
+            float yy = y - Scroll(hs, at, h), half = (w - 24) / 2;
+            for (int li = 0; li < lines.Count; li++)
             {
-                var r = rows[i] as Dictionary<string, object>;
-                float rh = hs[i];
-                if (yy >= y - 1 && yy + rh <= y + h + 2) PauseRowAt(r, x, yy, w, rh, cw);   // (whole rows)
+                var (a, b) = lines[li];
+                float rh = hs[li];
+                if (yy >= y - 1 && yy + rh <= y + h + 2)   // (whole lines)
+                {
+                    var r = rows[a] as Dictionary<string, object>;
+                    if (Rebind(r)) { PauseRowAt(r, x, yy, half, rh, 0, cap: true); if (b >= 0) PauseRowAt(rows[b] as Dictionary<string, object>, x + half + 24, yy, half, rh, 0, cap: true); }
+                    else PauseRowAt(r, x, yy, w, rh, cw);
+                }
                 yy += rh;
             }
         }
 
-        void PauseRowAt(Dictionary<string, object> r, float x, float y, float w, float rh, float cw)
+        /// <summary>A verb to rebind, its key (rebindKey) or its pad button (rebind): engine/menus.js startPageRows.</summary>
+        static bool Rebind(object r) => r is Dictionary<string, object> d && (d.ContainsKey("rebind") || d.ContainsKey("rebindKey"));
+        static bool OnNote(object r) => B(r, "on") && !string.IsNullOrEmpty(r.S("note"));
+
+        void PauseRowAt(Dictionary<string, object> r, float x, float y, float w, float rh, float cw, bool cap = false)
         {
             var row = Row();
             Ui.Place(row.rt, x, y, w, rh);
@@ -213,7 +233,9 @@ namespace Hiraeth.Bridge
             row.text.fontStyle = head ? FontStyle.Bold : FontStyle.Normal;
             row.text.color = head ? PauseMuted : PauseInk;
             Ui.Space(row.text, head ? 0.2f : 0);
-            float textW = wide || head ? w - 12 : w - cw - 24;
+            // (a verb's cap: as wide as the page's .rebind kbd, its words in the rest of its half)
+            float capW = Mathf.Clamp(w * 0.3f, 92, 124);
+            float textW = cap ? w - capW - 18 : wide || head ? w - 12 : w - cw - 24;
             var tsz = Ui.Set(row.text, head ? Ui.Upper(r.S("text")) : r.S("text") ?? "", textW);
             float ty = head ? 10 + (rh - 10 - tsz.y) / 2 : plain ? 7 : (rh - tsz.y - (on && !string.IsNullOrEmpty(r.S("note")) ? 16 : 0)) / 2;
             Ui.Place(row.text.rectTransform, 6, ty, textW, tsz.y);
@@ -224,10 +246,26 @@ namespace Hiraeth.Bridge
             float cx = w - 6 - cw, mid = (rh - (note.Length > 0 ? 16 : 0)) / 2;
             bool slider = r.Get("slider") is double;
             bool box = !plain && !slider && kind != "switch" && val.Length > 0, sw = kind == "switch";
-            row.valBox.Show(box); row.check.Show(sw);
+            row.valBox.Show(box || cap); row.check.Show(sw && !cap);
+            row.valBox.SetShadow(cap ? 4 : 0, cap ? 4 : 0);
             row.track.enabled = row.fill.enabled = row.dot.enabled = slider;
             Show(row.val, !sw && !slider && val.Length > 0);
-            if (slider)
+            if (cap)
+            {
+                // the key or button on a cap: bold capitals on paper in a thick ink line on a hard ink shadow (the page's
+                // kbd), the pad's lifted onto gold; a moved one's letters red, as the page marks it
+                Show(row.val, true);
+                float ch = 32, lift = on ? 2 : 0;
+                Ui.Place(row.valBox.rt, w - 6 - capW - lift, mid - ch / 2 - lift, capW, ch);
+                row.valBox.SetFill(on ? PauseSide : PauseBox);
+                row.val.transform.SetParent(row.valBox.rt, false);
+                row.val.alignment = TextAnchor.MiddleLeft; row.val.fontStyle = FontStyle.Bold; row.val.color = B(r, "moved") ? PauseRed : PauseInk;
+                row.val.fontSize = val.Length > 12 ? 11 : 13;
+                Ui.Set(row.val, Ui.Upper(val), capW - 16);
+                Ui.Place(row.val.rectTransform, 10, 0, capW - 16, ch);
+                row.valArrow.text = "";
+            }
+            else if (slider)
             {
                 float k = Mathf.Clamp01((float)(double)r.Get("slider"));
                 Ui.Place(row.track.rectTransform, cx, mid - 3, cw, 6);
@@ -245,7 +283,8 @@ namespace Hiraeth.Bridge
             else if (box)
             {
                 Ui.Place(row.valBox.rt, cx, mid - 15, cw, 30);
-                row.val.alignment = TextAnchor.MiddleLeft; row.val.fontSize = 14; row.val.color = PauseInk;
+                row.val.alignment = TextAnchor.MiddleLeft; row.val.fontSize = 14; row.val.color = PauseInk; row.val.fontStyle = FontStyle.Normal;
+                row.valBox.SetFill(PauseBox);
                 row.val.transform.SetParent(row.valBox.rt, false);
                 Ui.Set(row.val, val, cw - 30);
                 Ui.Place(row.val.rectTransform, 10, 0, cw - 30, 30);
@@ -256,7 +295,7 @@ namespace Hiraeth.Bridge
             {
                 // (a plain row's value: the button a control is on, a date; a moved verb's button in red, as the web marks it)
                 row.val.transform.SetParent(row.rt, false);
-                row.val.alignment = TextAnchor.UpperRight; row.val.fontSize = head ? 12 : 13;
+                row.val.alignment = TextAnchor.UpperRight; row.val.fontSize = head ? 12 : 13; row.val.fontStyle = FontStyle.Normal;
                 row.val.color = B(r, "moved") ? PauseRed : head ? PauseMuted : PauseInk;
                 var vs = Ui.Set(row.val, val, cw);
                 Ui.Place(row.val.rectTransform, cx, plain ? 7 + (head ? 10 : 0) : mid - vs.y / 2, cw, vs.y);

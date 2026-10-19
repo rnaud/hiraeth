@@ -715,3 +715,23 @@ test('the buttons as the page\'s glyphs, not their names (issue #517): the promp
   assert.match(cs, /state\?\.O\("glyphs"\)\?\.O\(role\)/);
   for (const call of [/PutGlyph\(e\.box\.rt, "ok"/, /PutGlyph\(n\.box\.rt, "back"/, /g \? "lb" : null/, /PutGlyph\(gmClose\.rt, "back"/, /PutGlyph\(strip\.rt, "ok"/, /PutGlyph\(parent, role/]) assert.match(cs, call);
 });
+
+test('the Start menu\'s pages as the page draws them in Unity (issue #264): the keys and buttons on caps two to a line, the thing in hand\'s red tag, photo mode\'s keys in the page\'s words', () => {
+  // Controls: each verb to rebind with its key or button on a cap, two verbs a line (src/ui.js rebindHtml's grid)
+  const pause = src('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.Pause.cs');
+  assert.match(pause, /static bool Rebind\(object r\) => .*"rebind".*"rebindKey"/);
+  assert.match(pause, /PauseRowAt\(rows\[b\] as Dictionary<string, object>, x \+ half \+ 24, yy, half, rh, 0, cap: true\)/);
+  const m = new EngineMenus({ store: memStore(), settings: settingsStub() });
+  m.show('start');
+  const i = m.startSide().findIndex((e) => e.page === 'controls');
+  m.start.page = 'controls'; m.start.at = { in: 'side', i };
+  const rows = m.view().page.rows;
+  assert.ok(rows.filter((r) => 'rebind' in r).length >= 10, 'the pad\'s verbs, each a row with its button');
+  // Items: the thing in hand's IN USE, a red pill on its tile's foot (the page's .slot em), not paper letters on paper
+  assert.match(src('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.cs'), /t\.tag = Ui\.Panel\(t\.box\.rt, "inUse", Ui\.Red, Ui\.Ink/);
+  // photo mode's keys: the page's line (index.html #photo, hint.photo) but its developer panel's H
+  const hint = t('hint.photo').replace(' · H panel', '');
+  assert.ok(src('engine/game.js').includes(`'${hint}'`), hint);
+  // -screen WxH: a Unity batch run on a screen of that shape (the sequences' 1280 × 720, the Retroid's 960 × 720)
+  assert.match(src('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeArgs.cs'), /Arg\("-screen"\)/);
+});

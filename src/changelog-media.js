@@ -1280,8 +1280,19 @@ const SPAWN496 = 'Issue #496: the running game in muted headless Chrome (ANGLE M
 /** (v1.85, issue #476: Lorn's Hush-House in sight again, Vael's scarf box on Tiv's stack) */
 const WAY476 = 'Issue #476: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, the HUD hidden, scripts/design-qc/capture.mjs) on this branch’s own Vite (port 5447), Lorn at its evening hour (18.4), Vael at 10; before: the tree at 73ccce501, the same views; 19 October; cwebp -q 72';
 const CRACK482 = 'Issue #482: the Kiln Yard (?game=fight-glassdunes&seed=4821) in muted headless Chrome (ANGLE Metal, High, 1280 × 720) on this branch’s own Vite (port 5482), the foes taken away, three tiles started breaking round him (the session’s hazards.start) and the frame taken 0.45 s into their 1.1 s warning, from the fight temple’s own camera; before: the same build with hazards.js as it was at a90acbcb9; 19 October; cwebp -q 45';
+/** (v1.86, issue #264: the Start menu's pages in Unity as the page draws them) */
+const UNITY264M = 'Issue #264: the Unity editor’s batch run on this Mac (node scripts/unity-compare/sequences.mjs unity start-pages,menus: the Signal Market on the debug save, muted, High, a 1280 × 720 screen, -screen 1280x720); before: main at 89e4d28c2, the same run; 19 October; webp q 72 (the photo mode’s strip cropped from the top)';
+const WEB264M = 'Issue #264: the web game in muted headless Chrome on this branch’s own Vite (port 5264, node scripts/unity-compare/sequences.mjs web start-pages,menus), 1280 × 720, the same beats; 19 October; webp q 72';
 export const CHANGELOG_MEDIA = {
   '1.86': [
+    { match: 'In the Unity version, the Controls page shows your keys and buttons on caps', tags: ['devices'], shots: [
+      { name: 'unity-controls-264', title: 'Controls', size: [1280, 720], caption: 'The Controls page in Unity: before, each key in a choice’s box, one verb a line; after, on caps two verbs a line, as on the web', from: UNITY264M },
+      { name: 'unity-controls-264-web', only: 'after', title: 'Controls on the web', size: [1280, 720], caption: 'The same page on the web', from: WEB264M },
+      { name: 'unity-inuse-264', title: 'Items', size: [1280, 720], caption: 'Items in Unity: before, the fluid gun’s tile only edged in red; after, its red IN USE tag on the tile’s foot', from: UNITY264M },
+      { name: 'unity-inuse-264-web', only: 'after', title: 'Items on the web', size: [1280, 720], caption: 'The same panel on the web', from: WEB264M },
+      { name: 'unity-photo-264', title: 'Photo mode', size: [1280, 120], caption: 'Photo mode’s line of keys in Unity: before, its own words; after, the web’s (but its developer panel’s H)', from: UNITY264M },
+      { name: 'unity-photo-264-web', only: 'after', title: 'Photo mode on the web', size: [1280, 120], caption: 'The same line on the web', from: WEB264M },
+    ], see: 'In the Unity version, open the Start menu’s Controls; in Items, look at the thing in your hand; press P for photo mode.' },
     { match: 'The fight temples now belong to the story', tags: ['story'], shots: [
       { name: 'fight-story-end', title: 'The end card', size: [1280, 720], caption: 'The Sunken Hall won: before, the scores alone; after, the place speaks first (“The ink sinks back into the floor. Wafa comes down the stair.”) and the shard’s boost is the bright blade.', from: STORY483 },
       { name: 'fight-story-start', title: 'The start card', size: [1280, 720], caption: 'The Sunken Hall’s start card: before, “four rooms of them”; after, what the place is and what comes up in it, and foes sent back into the floor.', from: STORY483 },

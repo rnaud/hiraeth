@@ -157,7 +157,9 @@ the same entries in the same order, moved through by the web's own rules, and `v
   mute, the camera's sensitivity and Y, Reduce motion and Camera shake (src/feel.js through `applyAccess`), the
   controller buttons, Rumble and its strength, hints, Graphics (read by BridgeArgs.Quality at the next start),
   Text size, the plain speech background and Show FPS (issue #346; below, "The title and the settings"); the web's
-  Language is left out (no other language for now). Controls: the pad's list (ui.js `controlsList`).
+  Language is left out (no other language for now). Controls: the pad's list (ui.js `controlsList`); its verbs to
+  rebind drawn two to a line, each key or button on a cap as the page's rebind grid (BridgeMenu.Pause.cs `PauseRows`,
+  issue #264). In Items the thing in hand carries the page's red IN USE pill on its tile's foot.
 - **the game menu** (View / Select, J): the five panels (`PANELS`, Quests first), their rows from game-menu.js's
   own builders fed by `game.menuSources()` (src/game-menu-data.js `menuSources` with the engine's parts: the
   journal's record from the save, `engineJournal`; the quests, the charge, the items owned, the boxes; the Map's
@@ -1878,9 +1880,10 @@ side and compares them beat by beat.
   it, the same names on both sides: `webGame(window)` (the page's globals, its Start menu and game menu) and
   `engineGame(game, menus)` (engine/game.js, engine/menus.js); `engineKey` routes a key as the Unity host routes the
   player's.
-- **The sequences** (35): the opening (#394's seventeen beats), every world's filmed moment (17, the catalog's "World
+- **The sequences** (39): the opening (#394's seventeen beats), every world's filmed moment (17, the catalog's "World
   moments"), a makers' box, the ship's arrival (by step) and takeoff, the Start menu and its pages (Items, Map, Quests,
-  Settings), the House map (the Start menu's page inside the Buried's makers' house, issue #405), a fight in the Arena (a blot spawned, lock-on, a cut, a hit, its
+  Settings), its other entries (`start-pages`: Controls with its rebinding, What's new, Photo mode in and out; issue
+  #264), the House map (the Start menu's page inside the Buried's makers' house, issue #405), a fight in the Arena (a blot spawned, lock-on, a cut, a hit, its
   death, its chimes), a makers' temple (the Buried's: in at the door, a switch, a small key, the great key and the
   guardian's door), a fight temple's first wave (the Sunken Hall), two minigames (the rings, the ski: card, count, run,
   pause), a conversation with choices (Teo: two pages, his answers, the first chosen); the grass parting and a splat in
@@ -1912,7 +1915,11 @@ side and compares them beat by beat.
   animations run on the game's clock), the engines' stream in
   node, Unity's batch run a sequence at a time (`scripts/unity-js-run.sh seq-<id> -sequence <id> -out <dir>`: the debug
   save seeded as the sequence says; each beat's picture and its probe as a `[unity] seq <id> <beat> {…}` line) under
-  `.local-tools/handoff/unity-build.lock`, resting while the load is over 25; then a sheet a sequence
+  `.local-tools/handoff/unity-build.lock` (held by another as a file or a directory: waited for), resting while the
+  load is over 25; Unity's camera drawn into a screen of the web's size all along (`-screen 1280x720`, BridgeRunner
+  `ScreenAs`: without it the menus were laid out for the editor's 4:3 batch window, 960 units, and photographed in the
+  left of a 1280 picture, six Items tiles a row where a 16:9 screen has nine; issue #264). `SIZE=960x720` runs both
+  sides on the Retroid's 4:3 (the page that size, Unity's `-screen`); then a sheet a sequence
   (`sheets/<id>.jpg`, web left, Unity right, each beat's SSIM and its unlisted differences), `overview.jpg` (a row a
   sequence) and `report.md` (SSIM per beat, the three streams against each other). Out: `output/sequences/<sha>/`.
   `web`, `engine`, `unity`, `sheet` and `record` run one step; a list of ids runs those sequences only. The whole run

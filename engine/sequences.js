@@ -143,6 +143,18 @@ export const SEQUENCES = [
     ],
   },
   {
+    // the Start menu's other entries (issue #264): Controls with its rebinding, What's new (the page's own panel, N; the
+    // engines' Start menu page) and Photo mode (P), in and out
+    id: 'start-pages', title: 'Controls, What\'s new and Photo mode', setup: { level: 'bazaar', debug: true },
+    beats: [
+      { name: 'play', wait: 1.5 },
+      { name: 'controls', act: (G) => G.menu.open('start', 'controls'), wait: 0.5 },
+      { name: 'news', act: (G) => { G.menu.close(); G.menu.open('start', 'news'); }, wait: 0.5 },
+      { name: 'photo', act: (G) => G.menu.close(), keys: tap('KeyP'), wait: 0.8 },
+      { name: 'back', keys: tap('KeyP'), wait: 0.8 },
+    ],
+  },
+  {
     // the House map (issue #405, src/house-map.js): the Start menu's page inside a makers' house, its floor drawn
     id: 'house-map', title: 'The House map', setup: { level: 'buried', debug: true },
     beats: [
@@ -440,6 +452,7 @@ const stageWindow = (G) => ({ storyRt: G.story, story: G.storyPage, ship: G.ship
  * (window.menu, src/ui.js SettingsMenu) and its game menu (window.journal.menu, src/game-menu.js GameMenu).
  */
 export function webGame(w) {
+  const newsOpen = () => !!w.document.getElementById('changelog')?.classList.contains('open');
   return {
     side: 'web', win: w,
     scene: w.scene, camera: w.camera, player: w.player, rig: w.rig, level: w.level, ship: w.ship, boxes: w.boxes,
@@ -456,12 +469,21 @@ export function webGame(w) {
     extraScenes: () => [w.level?.veils?.scene, w.wind?.scene, w.motes?.scene, ...(w.houseAir?.scenes?.() ?? []), HOLO.live() ? HOLO.scene : null].filter(Boolean),
     menu: {
       open(kind, page = null) {
-        if (kind === 'start') w.menu.toggle(true, page ?? 'settings');
+        // (What's new: on the page its own panel over the game, N or the Start menu's entry: src/changelog.js Changelog)
+        if (kind === 'start' && page === 'news') { if (!newsOpen()) w.dispatchEvent(new w.KeyboardEvent('keydown', { code: 'KeyN' })); }
+        else if (kind === 'start') w.menu.toggle(true, page ?? 'settings');
         else w.journal.toggle(true, page);
       },
-      close() { if (w.menu.open) w.menu.toggle(false); if (w.journal.open) w.journal.toggle(false); },
+      close() { if (w.menu.open) w.menu.toggle(false); if (w.journal.open) w.journal.toggle(false); if (newsOpen()) w.dispatchEvent(new w.KeyboardEvent('keydown', { code: 'KeyN' })); },
       view() {
         const txt = (el) => clean(el?.textContent);
+        // (What's new: its versions as the engines' page has them, the newest four (engine/menus.js NEWS_VERSIONS), a
+        // heading then its lines)
+        if (newsOpen()) {
+          const rows = [...w.document.querySelectorAll('#changelog .list section')].slice(0, 4)
+            .flatMap((s) => [clean(s.querySelector('h2')?.firstChild?.textContent), ...[...s.querySelectorAll('li')].map(txt)]);
+          return { kind: 'start', page: 'news', side: [], rows };
+        }
         if (w.menu.open) {
           const el = w.menu.el, page = w.menu.current;
           const side = [...el.querySelectorAll('.menu-nav button')].filter((b) => !b.hidden).map(txt);
