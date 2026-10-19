@@ -18,6 +18,10 @@ export const CHANGELOG = [
     // issue #264: BridgeMenu.Chrome.cs DrawQuests (goal, marks, DONE), engine/menus.js itemColsFor, the strip without its
     // description, engine/game.js mapSource's fragments note; tests/engine-menus.test.js
     'In the Unity version, the Quests page lists the quests you finished close together under Done and shows each quest’s goal on its card, Items fits as many to a row as the web, and the Map says how many fragments you found there.',
+    // issue #264: BridgeMenu.Chrome.cs JournalAt (the page's #journal: tabs, sides, sheet, body, strip), BridgeMenu.cs
+    // DrawMap (the body; the ground inside the 2.5 line), engine/map-marks.js giver; src/main.js setPhoto (body.photo,
+    // screen 'photo'), src/hud-shows.js HUD_HIDES.photo; tests/engine-menus.test.js, hud-shows.test.js
+    'In the Unity version, the game menu’s sheet, tabs and strip sit where the web’s do, so the Map is as large as on the web and its ground in the same place, and someone with a quest for you is marked as on the web. On the web, photo mode no longer shows the gadget in your hand in the corner of your pictures.',
   ] },
   { v: '1.86', date: '2026-10-19', items: [
     // issue #483: src/story/hosts-data.js (the fight hosts' second lines), src/fight-temples/<world>.js (blurb, quiet),

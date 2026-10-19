@@ -11,6 +11,8 @@
 //     bars      a ship's scene has its letterbox up and you don't walk through it (cine.bars; the page's body.cine-on)
 //     hudOff    a ship's scene has the game's HUD off and you don't walk through it (cine.hud false; cinema.hud(false))
 //     minigame  a run is under way (screen 'minigame'; the page's body.minigame), `onFootKeeps` kept in a game on foot
+//     photo     photo mode (screen 'photo'; the page's body.photo): the gadget's chip, wheel and marks (the engines' setPhoto
+//               clears the rest; issue #264)
 //   hudShows(state)  { part: false } for each part hidden now (a part not named shows whenever it is set)
 //
 // The page's CSS rules are all in the table; the table hides a few more where the page's own scripts do instead (the
@@ -21,6 +23,7 @@ export const HUD_HIDES = {
   bars: ['cue', 'tool', 'gadget', 'gadgetWheel', 'reticle', 'gadgetMarks'],
   hudOff: ['cue', 'health', 'stamina', 'keys', 'guardian', 'foeTab', 'lock', 'warn', 'words', 'self'],
   minigame: ['cue', 'stamina', 'tool', 'prompt', 'gadget', 'gadgetWheel', 'reticle'],
+  photo: ['gadget', 'gadgetWheel', 'reticle', 'gadgetMarks'],
 };
 /** In a game played on foot (drives: false) these stay (the page's body.minigame:not(.mg-onfoot)). */
 export const ON_FOOT_KEEPS = ['stamina', 'tool'];
@@ -31,7 +34,7 @@ export const HUD_ELEMENTS = {
   '#gadget-chip': 'gadget', '#gadget-wheel': 'gadgetWheel', '#gadget-reticle': 'reticle', '#gadget-marks': 'gadgetMarks',
 };
 /** The page's body classes by the state above. */
-export const HUD_CLASSES = { talking: 'talking', 'cine-on': 'bars', minigame: 'minigame' };
+export const HUD_CLASSES = { talking: 'talking', 'cine-on': 'bars', minigame: 'minigame', photo: 'photo' };
 
 /**
  * A scene holds the screen (issue #501): its letterbox up or the HUD off, and you don't walk through it. The hearts
@@ -55,6 +58,7 @@ export function hudShows(s = {}) {
     bars: !!c?.bars && !walk,
     hudOff: !!c && c.hud === false && !walk,
     minigame: !!mg,
+    photo: !!s.photo,
   };
   const out = {};
   for (const [state, parts] of Object.entries(HUD_HIDES)) {

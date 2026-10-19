@@ -2690,6 +2690,34 @@ run, `-screen 1280x720`; and `SIZE=960x720` for the Retroid's 4:3), and what was
 Left as they are: the page's developer entry (Debug: worlds) and its Language row (no localisation), and the page's
 keyboard glyphs where Unity shows the pad's (the input in hand).
 
+## The Map's sheet and the photo beat (2026-10-19, issue #264)
+
+The last two of the round above:
+
+- **The game menu's frame where the page's is.** Unity's own frame put the sheet 70 units down and left 112 under it
+  for the strip and a line of the buttons' prompts, so the Map's sheet was shorter than the page's (its ground placed
+  and scaled otherwise: SSIM 0.19 at 1280 × 720). `BridgeMenu.JournalAt(W, H)` (BridgeMenu.Chrome.cs) is the page's
+  `#journal` (src/game-menu.css) worked out for the screen: its padding (2.2vh, 2.4vw, 2.4vh), the tabs' row as tall as
+  the open tab (4.2vh lettered, 1vh above and under) with the pills in its middle and 1vw apart, the gap (1.6vh), the
+  strip (`.gm-info`, 7vh, 3.8vw in from the frame), the side tabs (0.7vw a side round the name, 52 % of the stage up to
+  300) and the sheet between them, and its body (3 px in, 2.4vh and 2.2vw of padding): the Map is drawn in that body,
+  and its shape asked of it less the 10 px shadow (`MapRoom`, as the page's `mapBoxAspect`), the ground and the marks
+  inside the sheet's 2.5 line (the page's padding box). The close button is at the frame's padding, 5.4vh tall. The
+  game menu has no line of prompts under its strip any more, as the page's (its buttons are on its side tabs, its
+  close, the zoom and the strip). tests/engine-menus.test.js reads `JournalAt` as JavaScript and holds it to the page's
+  boxes at 1280 × 720 and 960 × 720. Someone with a quest for you (`giver`, engine/map-marks.js) is the page's ◉ as
+  Chrome draws it: a thin inked ring round a large gold dot, in its gold ring.
+  The Map beat: SSIM 0.19 → 0.68 at 1280 × 720, 0.17 → 0.64 at 960 × 720; Quests 0.52 → 0.85 and Items 0.33 → 0.46
+  with the same frame.
+- **The photo beat** (`start-pages`): the engines' setPhoto refuses photo mode without a host that can save a picture
+  (`backend.photo`), and the node runner's backend left it out, so node stayed in play while Unity went into photo
+  mode. On the web photo mode was on but not in the screen's state (main.js drew `#photo` alone) and the gadget's chip
+  stayed in the corner of every picture: the page's `body.photo #gadget-chip` rule was never used, as nothing set
+  `body.photo`. Now the node runner's backend has a `photo` (it does nothing), main.js `setPhoto` sets `body.photo` and
+  the screen's `photo` part (its keys' line), and photo mode is a state of src/hud-shows.js (`HUD_HIDES.photo`: the
+  gadget's chip, wheel, reticle and marks, the page's `body.photo` rules). The three streams agree at the beat; the
+  web's stream recorded again.
+
 ## Status
 
 - **Stage 1, the spike**: the desert, built by `createDesert` inside GodotJS, mirrored to Godot

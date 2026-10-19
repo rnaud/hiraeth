@@ -29,8 +29,9 @@ export const MAP_MARKS = {
   quest: { size: 1, svg: svg(`<path d="M0 -11 L9 0 L0 11 L-9 0 Z" fill="none" stroke="${INK}" stroke-width="4.6" stroke-linejoin="round"/><path d="M0 -11 L9 0 L0 11 L-9 0 Z" fill="none" stroke="${GOLD}" stroke-width="2.4" stroke-linejoin="round"/>`) },
   person: { size: 1, svg: svg(`<circle r="6" fill="${TEAL}" stroke="${INK}" stroke-width="1"/>`) },
   box: { size: 1, svg: svg(`<rect x="-8" y="-8" width="16" height="16" fill="none" stroke="${GREEN}" stroke-width="2.6"/><rect x="-8" y="-8" width="16" height="16" fill="none" stroke="${INK}" stroke-width="0.8"/><rect x="-4" y="-4" width="8" height="8" fill="${GREEN}" stroke="${INK}" stroke-width="0.8"/>`) },
-  // (someone with a word for you, not met: a gold ring round the gold dot, the ring 1.5 × the mark)
-  giver: { size: 1.5, svg: svg(`${ring(13.5, GOLD, 2.4)}<circle r="8" fill="none" stroke="${INK}" stroke-width="4.4"/><circle r="8" fill="none" stroke="${GOLD}" stroke-width="2.4"/><circle r="3.6" fill="${GOLD}" stroke="${INK}" stroke-width="1"/>`) },
+  // (someone with a word for you, not met: the page's ◉ in gold, a thin inked ring round a large gold dot, in its gold ring
+  // at 0.85, 1.5 × the mark; as the page draws them at 1280 × 720, issue #264: the dot was small in a thick ring)
+  giver: { size: 1.5, svg: svg(`${ring(12, 'rgba(242,197,75,0.85)', 1.8)}<circle r="6" fill="none" stroke="${INK}" stroke-width="1.5"/><circle r="6" fill="none" stroke="${GOLD}" stroke-width="0.5"/><circle r="3.9" fill="${GOLD}" stroke="${INK}" stroke-width="0.7"/>`) },
   // (a rumour, issue #340: a small plum ? at its circle's middle; its circle is `area`, drawn as large as the rumour's
   // circle on the sheet, a soft plum fill and a dashed rim, as src/game-menu.css .gm-area)
   rumour: { size: 1, svg: svg(`<text y="6.5" text-anchor="middle" font-family="Georgia, serif" font-weight="bold" font-size="19" fill="${PLUM}" stroke="${INK}" stroke-width="0.8">?</text>`) },

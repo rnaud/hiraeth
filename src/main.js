@@ -1539,6 +1539,10 @@ function setPhoto(on) {
   if (on) photo.pos.copy(camera.position);
   gui.domElement.style.display = on ? 'none' : '';
   photoHint.classList.toggle('open', on);
+  // (the gadget's chip, wheel and marks gone with the rest of the HUD, src/hud-shows.js HUD_HIDES.photo; and photo mode a
+  // part of the screen's state as the engines' is, its keys' line: it showed the chip in every picture, issue #264)
+  document.body.classList.toggle('photo', on);
+  screen.set('photo', on ? { hint: photoHint.textContent } : null);
 }
 const _pf = new THREE.Vector3(), _pr = new THREE.Vector3();
 function photoUpdate(dt, input) {

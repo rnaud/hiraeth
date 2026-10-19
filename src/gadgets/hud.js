@@ -33,7 +33,7 @@ html.reduce-motion #gadget-chip.flash { animation: gchip-still 0.6s ease-out; }
 @keyframes gchip-still { 0% { box-shadow: 0 0 0 5px #f2c54b; } 100% { box-shadow: 2px 2px 0 rgba(43, 33, 31, 0.6); } }
 body:not(.nofps) #fps:not(:empty) ~ #gadget-chip { top: calc(48px + var(--safe-top, 0px)); }   /* (the frame readout, when asked for, keeps the corner) */
 body.touch #gadget-chip { pointer-events: auto; right: calc(56px + var(--safe-right, 0px)); }   /* (beside the menu's button; tapped: the next gadget) */
-body.talking #gadget-chip, body.photo #gadget-chip { display: none; }
+body.talking #gadget-chip, body.photo #gadget-chip, body.photo #gadget-reticle, body.photo #gadget-wheel, body.photo #gadget-marks { display: none; }
 body.cine-on #gadget-chip, body.cine-on #gadget-reticle, body.cine-on #gadget-wheel, body.cine-on #gadget-marks { display: none !important; }   /* (a cinematic: its letterbox is up, src/ship/cinema.js) */
 #gadget-reticle { position: fixed; left: 0; top: 0; z-index: 31; pointer-events: none; display: none; width: 34px; height: 34px; margin: -17px 0 0 -17px; }
 #gadget-reticle.on { display: block; }

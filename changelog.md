@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.87 — 2026-10-19
 
+- In the Unity version, the game menu’s sheet, tabs and strip sit where the web’s do, so the Map is as large as on the web and its ground in the same place, and someone with a quest for you is marked as on the web. On the web, photo mode no longer shows the gadget in your hand in the corner of your pictures.
 - In the Unity version, the Quests page lists the quests you finished close together under Done and shows each quest’s goal on its card, Items fits as many to a row as the web, and the Map says how many fragments you found there.
 - In the Unity version, What’s new opens over the game in its own panel and B closes it, and the Start menu shows your fragments on a line of their own, the version beside Settings and CONTROLS over “Your keys”, as on the web.
 - In the Unity version, Anselm’s shop opens over a darkened hold with its names and prices in heavy letters and every flag inside its box, as on the web, and a conversation’s box is as tall from its first page as when its answers come up.

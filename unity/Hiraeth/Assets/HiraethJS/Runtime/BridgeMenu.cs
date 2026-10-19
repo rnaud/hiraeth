@@ -359,6 +359,9 @@ namespace Hiraeth.Bridge
             var h = state.S("hint") ?? "";
             if (kind == "arcade") h = "";   // (its keys at the foot of its own sheet, as the page's)
             if (kind == "start" && B(state, "news")) h = "";   // (What's new: its Close at the panel's foot, as the page's)
+            // (the game menu: its buttons on its side tabs, its close, the Map's zoom and the strip, as the page's #journal, which
+            // has no line under the strip; the strip is where the page's is now and the line ran over it, issue #264)
+            if (kind != "title" && kind != "start" && kind != "shop" && kind != "card" && kind != "foes" && kind != "starmap") h = "";
             // (the title's own entries carry the confirm glyph, the one the pad is on: no line under them, as the page's)
             if (kind == "title" && (state.S("screen") == "main" || state.S("starting") != null)) h = "";
             // the prompts as the buttons' glyphs and their words (issue #517); an older script's as words
@@ -862,7 +865,7 @@ namespace Hiraeth.Bridge
             var panel = state.S("panel");
             var house = state.O("house");
             if (person != null) DrawPerson(person, px, top, pw, bottom - top);
-            else if (panel == "map") DrawMap(px, top, pw, bottom - top);
+            else if (panel == "map") DrawMap(journal.bodyX, journal.bodyY, journal.bodyW, journal.bodyH);   // (the sheet's body, as the page's .gm-body)
             else if (panel == "house" && house != null) DrawHouse(house, px, top + 8, pw, bottom - top - 16);
             else DrawRows(panel, px, top, pw, bottom - top);
             // the strip: the cell's name, what it is, and what A / × does
@@ -872,20 +875,22 @@ namespace Hiraeth.Bridge
                 strip.Show(true);
                 // (the page's .gm-info: the name and what it is, on one line, and what A / × does; no more: the page's
                 // strip says only that, issue #264, where Unity's had the thing's description under it)
-                Ui.Place(strip.rt, sx, gStripY, sw, 50);
+                // (where the page's .gm-info is: JournalAt, BridgeMenu.Chrome.cs)
+                float stw = gStripW, sth = gStripH, mid = sth / 2;
+                Ui.Place(strip.rt, gStripX, gStripY, stw, sth);
                 StripLook();
-                var ns = Ui.Set(stripName, Ui.Upper(s.S("name")), sw * 0.5f);
-                Ui.Place(stripName.rectTransform, 20, 25 - ns.y / 2, ns.x, ns.y);
-                Ui.Set(stripSub, s.S("sub"), sw * 0.4f);
-                Ui.Place(stripSub.rectTransform, 34 + ns.x, 25 - ns.y / 2 + 3, sw * 0.4f, 18);
+                var ns = Ui.Set(stripName, Ui.Upper(s.S("name")), stw * 0.5f);
+                Ui.Place(stripName.rectTransform, 20, mid - ns.y / 2, ns.x, ns.y);
+                Ui.Set(stripSub, s.S("sub"), stw * 0.4f);
+                Ui.Place(stripSub.rectTransform, 34 + ns.x, mid - ns.y / 2 + 3, stw * 0.4f, 18);
                 Show(stripDesc, false);
                 var act = s.S("act") ?? "";
                 // what A / × does: its glyph, then the words (the page's .gm-act; issue #517), or the button's name before them
                 bool g = state.O("glyphs") != null && act.Length > 0;
                 stripAct.text = act.Length > 0 ? (g ? act : Key("ok", "A") + "  " + act) : "";
                 stripAct.alignment = TextAnchor.MiddleRight;
-                Ui.Place(stripAct.rectTransform, sw - 20 - 190, 14, 176, 22);
-                if (g) PutGlyph(strip.rt, "ok", sw - 20 - 14 - Ui.Measure(stripAct, act).x - 6 - GlyphHeight(Small), 25, Small);
+                Ui.Place(stripAct.rectTransform, stw - 20 - 190, mid - 11, 176, 22);
+                if (g) PutGlyph(strip.rt, "ok", stw - 20 - 14 - Ui.Measure(stripAct, act).x - 6 - GlyphHeight(Small), mid, Small);
             }
             if (full != null) DrawFull(full);
         }
@@ -1015,7 +1020,7 @@ namespace Hiraeth.Bridge
         }
 
         /// <summary>The room the game menu has for the Map (DrawGame's panel less the sheet's shadow), in the canvas' units.</summary>
-        (float w, float h) MapRoom() => (W - 2 * Mathf.Max(56, W * 0.056f) - 36 - 10, H - 70 - 112 - 26 - 10);   // (GameFrame's sheet, BridgeMenu.Chrome.cs)
+        (float w, float h) MapRoom() { var j = JournalAt(W, H); return (j.bodyW - 10, j.bodyH - 10); }   // (the sheet's body less its shadow, as the page's mapBoxAspect: JournalAt, BridgeMenu.Chrome.cs)
 
         /// <summary>
         /// The Map as the web's (src/game-menu.js mapPanel and mapPaint, issue #343): the whole sheet at the map's own shape
@@ -1031,6 +1036,9 @@ namespace Hiraeth.Bridge
             float mw = Mathf.Min(w - 10, (h - 10) * aspect), mh = mw / aspect;
             mapBox.Show(true);
             Ui.Place(mapBox.rt, x + (w - 10 - mw) / 2, y + (h - 10 - mh) / 2, mw, mh);
+            // (what is on it inside its 2.5 line, as the page's: the ground and the marks span its padding box)
+            mapClip.offsetMin = new Vector2(2.5f, 2.5f); mapClip.offsetMax = new Vector2(-2.5f, -2.5f);
+            mw -= 5; mh -= 5;
             // the view: the plane z times the sheet, its top left at (u0, v0) of the map
             float z = Mathf.Max(1, m?.F("z", 1) ?? 1), u0 = m?.F("u0") ?? 0, v0 = m?.F("v0") ?? 0;
             Ui.Place(mapPlane, -u0 * z * mw, -v0 * z * mh, z * mw, z * mh);

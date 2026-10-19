@@ -48,6 +48,10 @@ test('hudShows: the parts hidden now, from the screen\'s state', () => {
   assert.equal(hudShows({ minigame: { on: true, onFoot: true } }).stamina, undefined);
   // photo mode's keys in the cue's strip over a run
   assert.equal(hudShows({ minigame: { on: true }, photo: { hint: 'P' } }).cue, undefined);
+  // photo mode (issue #264): the gadget's chip gone on both sides (the page's body.photo, which nothing set before)
+  assert.equal(hudShows({ photo: { hint: 'P' }, gadget: { id: 'gun' } }).gadget, false);
+  assert.match(read('src/main.js'), /classList\.toggle\('photo', on\)/);
+  assert.match(read('src/main.js'), /screen\.set\('photo'/);
 });
 
 test('BridgeHud asks the table: no part drawn under conditions of its own (issue #430)', () => {

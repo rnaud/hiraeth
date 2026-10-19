@@ -1296,6 +1296,9 @@ const DUNES475 = 'Issue #475: muted headless Chrome (High, 1280 × 720) against 
 /** (v1.87, issue #264: the menus' and the hold's last differences in Unity) */
 const UNITY264L = 'Issue #264: the Unity editor’s batch run on this Mac (node scripts/unity-compare/sequences.mjs unity menus,start-pages,hold: the Signal Market and Arzach’s ship on the debug save, muted, High, -screen 1280x720); before: main at 7242b165f, after: this change; 19 October; cwebp -q 72';
 const WEB264L = 'Issue #264: the web game in muted headless Chrome on this branch’s own Vite (port 5265, node scripts/unity-compare/sequences.mjs web menus,start-pages,hold), 1280 × 720, the same beats; 19 October; cwebp -q 72';
+/** (v1.87, issue #264: the game menu's sheet where the page's is, the photo beat) */
+const UNITY264F = 'Issue #264: the Unity editor’s batch run on this Mac (node scripts/unity-compare/sequences.mjs unity menus,start-pages: the Signal Market on the debug save, muted, High, -screen 1280x720); before: 0dc6dd8bd (the round before), after: this change; 19 October; cwebp -q 72';
+const WEB264F = 'Issue #264: the web game in muted headless Chrome on this branch’s own Vite (port 5266, node scripts/unity-compare/sequences.mjs web menus,start-pages), 1280 × 720, the same beats; before: 0dc6dd8bd; 19 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.87': [
     { match: 'In the Unity version, Anselm’s shop opens over a darkened hold', tags: ['devices'], shots: [
@@ -1318,6 +1321,12 @@ export const CHANGELOG_MEDIA = {
       { name: 'unity-map-264', title: 'The Map', size: [1280, 720], caption: 'The Map in Unity: after, the world’s name in spaced capitals and the fragments found here in its note, as on the web', from: UNITY264L },
       { name: 'unity-map-264-web', only: 'after', title: 'On the web', size: [1280, 720], caption: 'The same map on the web', from: WEB264L },
     ], see: 'In the Unity version, open the game menu (View) on a save with finished quests: Quests, then Items and the Map.' },
+    { match: 'In the Unity version, the game menu’s sheet, tabs and strip sit where the web’s do', tags: ['devices'], shots: [
+      { name: 'unity-mapsheet-264', title: 'The Map', size: [1280, 720], caption: 'The Map in Unity: before, the sheet shorter than the web’s, its ground placed and scaled otherwise, a line of buttons under the strip; after, the sheet, the tabs and the strip where the web’s are, the ground with them (SSIM with the web 0.19 → 0.68; on a 4:3 screen 0.17 → 0.64)', from: UNITY264F },
+      { name: 'unity-mapsheet-264-web', only: 'after', title: 'On the web', size: [1280, 720], caption: 'The same Map on the web', from: WEB264F },
+      { name: 'web-photo-264', title: 'Photo mode on the web', size: [1280, 720], caption: 'Photo mode on the web: before, the gadget in hand still in the top right corner of the picture; after, gone with the rest of the HUD', from: WEB264F },
+      { name: 'web-photo-264-unity', only: 'after', title: 'In Unity', size: [1280, 720], caption: 'The same moment in Unity, where it was already gone', from: UNITY264F },
+    ], see: 'In the Unity version, open the game menu (View) and its Map. On the web, press P for photo mode and look at the top right corner.' },
   ],
   '1.86': [
     { match: 'In the Unity version, the Controls page shows your keys and buttons on caps', tags: ['devices'], shots: [

@@ -739,7 +739,7 @@ export const TOLERANCE = { cam: 3, fov: 4, player: 2.5 };
  */
 export function shownHud(hud) {
   const c = hud.cine && typeof hud.cine === 'object' ? hud.cine : null, walk = !!c?.walk;
-  const on = { talking: 'dialogue' in hud, bars: !!c?.bars && !walk, hudOff: !!c && c.hud === false && !walk, minigame: 'minigame' in hud };
+  const on = { talking: 'dialogue' in hud, bars: !!c?.bars && !walk, hudOff: !!c && c.hud === false && !walk, minigame: 'minigame' in hud, photo: 'photo' in hud };
   const out = { ...hud };
   for (const [state, parts] of Object.entries(HUD_HIDES)) if (on[state]) for (const p of parts) delete out[p];
   // (people's barks come when chance has them say something: the page's and the engines' never at the same moment)

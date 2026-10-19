@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
 import { loadBundle } from './vm-run.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const UNSET = new Set(['shapeAttrs', 'quietWalk', 'listMatrices', 'stillMatrices', 'skipHidden', 'noticed', 'peopleLod', 'portrait', 'capeOffload', 'clothOffload', 'brush', 'materialFluid', 'materialLive', 'materialVec', 'vertices', 'then', 'photo']);
+const UNSET = new Set(['shapeAttrs', 'quietWalk', 'listMatrices', 'stillMatrices', 'skipHidden', 'noticed', 'peopleLod', 'portrait', 'capeOffload', 'clothOffload', 'brush', 'materialFluid', 'materialLive', 'materialVec', 'vertices', 'then']);   // (photo: a no-op here, so P enters photo mode as on the page and in Unity, issue #264)
 const backend = () => new Proxy({}, { get: (t, k) => (UNSET.has(k) ? undefined : () => {}) });
 const tick = () => new Promise((r) => setTimeout(r, 5));
 export const STEP = 1 / 30;

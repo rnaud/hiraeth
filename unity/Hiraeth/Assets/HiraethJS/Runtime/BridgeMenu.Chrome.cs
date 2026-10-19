@@ -21,7 +21,48 @@ namespace Hiraeth.Bridge
         class GmTab { public Ui.Box box; public Label text; }
         readonly List<GmTab> gmTabs = new();
         GmTab gmPrev, gmNext;
-        float gStripY;
+        float gStripY, gStripX, gStripW, gStripH;
+
+        /// <summary>
+        /// The page's #journal laid out on this screen (src/game-menu.css: its clamps of vh and vw, a unit here being the
+        /// page's CSS px): the tabs' row, the stage with its side tabs and the sheet, the sheet's body (its padding inside its
+        /// 3 px line: the Map's room, src/game-menu.js mapBoxAspect) and the strip (.gm-info) under it. Unity's own frame
+        /// (the sheet from 70 down, 112 left under it) made the Map's sheet shorter than the page's, so its ground was placed
+        /// and scaled otherwise (SSIM 0.19 at 1280 × 720; issue #264). Checked against the page's boxes at 1280 × 720 and
+        /// 960 × 720 (tests/engine-menus.test.js).
+        /// </summary>
+        public struct Journal
+        {
+            public float pt, ps, gap, tabsH, pillH, stageY, stageH, prevW, nextW, sideH, sheetX, sheetW, bodyX, bodyY, bodyW, bodyH, infoX, infoY, infoW, infoH, closeH;
+        }
+
+        public static Journal JournalAt(float W, float H)
+        {
+            float vh = H / 100f, vw = W / 100f;
+            var j = new Journal();
+            j.pt = Mathf.Clamp(2.2f * vh, 6, 26); float pb = Mathf.Clamp(2.4f * vh, 8, 26);
+            j.ps = Mathf.Clamp(2.4f * vw, 8, 40);
+            j.gap = Mathf.Clamp(1.6f * vh, 5, 16);
+            // (.gm-tab.on: its title face 4.2vh a line, 1vh above and under, its 2.5 line; the pills 1.8vh, 0.9vh, 2)
+            j.tabsH = Mathf.Clamp(4.2f * vh, 16, 34) + 2 * Mathf.Clamp(vh, 5, 9) + 4.4f;
+            j.pillH = Mathf.Clamp(1.8f * vh, 10, 13) + 2 * Mathf.Clamp(0.9f * vh, 4, 8) + 4;
+            j.closeH = Mathf.Clamp(5.4f * vh, 28, 42);
+            j.infoH = Mathf.Clamp(7 * vh, 30, 56);
+            j.stageY = j.pt + j.tabsH + j.gap;
+            j.stageH = H - j.pt - pb - j.tabsH - j.infoH - 2 * j.gap;
+            // (.gm-side: its padding 0.7vw a side, its 2.5 line on three, the vertical name and the glyph ~20 across)
+            float sp = 2 * Mathf.Clamp(0.7f * vw, 4, 9) + 2.5f;
+            j.prevW = sp + 20.5f; j.nextW = sp + 19f;
+            j.sideH = Mathf.Min(0.52f * j.stageH, 300);
+            j.sheetX = j.ps + j.prevW; j.sheetW = W - 2 * j.ps - j.prevW - j.nextW;
+            float padV = Mathf.Clamp(2.4f * vh, 8, 26), padH = Mathf.Clamp(2.2f * vw, 10, 32);
+            j.bodyX = j.sheetX + 3 + padH; j.bodyY = j.stageY + 3 + padV;
+            j.bodyW = j.sheetW - 6 - 2 * padH; j.bodyH = j.stageH - 6 - 2 * padV;
+            float im = Mathf.Clamp(3.8f * vw, 28, 56);
+            j.infoX = j.ps + im; j.infoW = W - 2 * (j.ps + im); j.infoY = j.stageY + j.stageH + j.gap;
+            return j;
+        }
+        Journal journal;
 
         void BuildGameFrame()
         {
@@ -59,16 +100,17 @@ namespace Hiraeth.Bridge
             if (!gmRoot) BuildGameFrame();
             gmRoot.gameObject.SetActive(true); gmRules.gameObject.SetActive(true);
             dim.color = Desk;
-            // the sheet (.gm-sheet: 2.5 px of ink, a hard shadow), between the side tabs
-            sx = Mathf.Max(56, W * 0.056f); sw = W - sx * 2;
-            float sy = 70, sh = H - 70 - 112;   // (the strip under it, the buttons' prompts under that)
+            // the sheet (.gm-sheet: 3 px of ink, a hard shadow), between the side tabs, where the page's is (JournalAt)
+            var j = journal = JournalAt(W, H);
+            sx = j.sheetX; sw = j.sheetW;
+            float sy = j.stageY, sh = j.stageH;
             Ui.Place(sheet.rt, sx, sy, sw, sh);
             sheet.Show(true); sheet.SetFill(GmPaper); sheet.SetShadow(8, 8);
             int nr = Mathf.FloorToInt((sh - 6) / 28f);
             while (gmRuleLines.Count < nr) gmRuleLines.Add(Ui.Rect(gmRules, GmRule, 0, "rule"));
-            for (int i = 0; i < gmRuleLines.Count; i++) { gmRuleLines[i].enabled = i < nr; if (i < nr) Ui.Place(gmRuleLines[i].rectTransform, sx + 3, sy + 27 + i * 28, sw - 6, 1); }
+            for (int i = 0; i < gmRuleLines.Count; i++) { gmRuleLines[i].enabled = i < nr; if (i < nr) Ui.Place(gmRuleLines[i].rectTransform, sx + 3, sy + 3 + 27 + i * 28, sw - 6, 1); }
             top = sy + 16; bottom = sy + sh - 10;
-            gStripY = sy + sh + 12;
+            gStripX = j.infoX; gStripY = j.infoY; gStripW = j.infoW; gStripH = j.infoH;
             // the tabs over it, centred: the open one a gold card lettered in the title face, the others pills
             var t = state.O("tabs");
             var names = t?.L("names") ?? new List<object>();
@@ -87,11 +129,15 @@ namespace Hiraeth.Bridge
                 widths.Add(w); total += w;
             }
             for (int i = names.Count; i < gmTabs.Count; i++) gmTabs[i].box.Show(false);
-            float gap = 14, x = W / 2 - (total + gap * Mathf.Max(0, names.Count - 1)) / 2;
+            // (.gm-tabs: 1vw apart, the open one 1vw more either side; its row as tall as the open one, the pills in its middle)
+            float gap = Mathf.Clamp(W / 100f, 4, 14), om = Mathf.Clamp(W / 100f, 4, 12);
+            total += 2 * om;
+            float x = W / 2 - (total + gap * Mathf.Max(0, names.Count - 1)) / 2;
             for (int i = 0; i < names.Count; i++)
             {
                 var tab = gmTabs[i]; bool open = i == cur;
-                float h = open ? 46 : 30, y = open ? 14 : 22;
+                float h = open ? j.tabsH : j.pillH, y = open ? j.pt : j.pt + (j.tabsH - j.pillH) / 2;
+                if (open) x += om;
                 Ui.Place(tab.box.rt, x, y, widths[i], h);
                 tab.box.SetFill(open ? GmGold : GmPill);
                 tab.box.border.color = open ? GmInk : GmPillLine;
@@ -100,15 +146,15 @@ namespace Hiraeth.Bridge
                 var outline = tab.text.GetComponent<Outline>();
                 if (open && !outline) { outline = tab.text.gameObject.AddComponent<Outline>(); outline.effectColor = GmInk; outline.effectDistance = new Vector2(1.5f, -1.5f); var sh2 = tab.text.gameObject.AddComponent<Shadow>(); sh2.effectColor = GmInk; sh2.effectDistance = new Vector2(3, -3); }
                 foreach (var fx in tab.text.GetComponents<Shadow>()) fx.enabled = open;
-                x += widths[i] + gap;
+                x += widths[i] + gap + (open ? om : 0);
             }
             // the sides: the panel either side and its button (.gm-side), the one the cursor rests on gold
             Show(tabPrev, false); Show(tabNext, false); Show(tabLine, false);
-            float tabH = Mathf.Min(300, sh * 0.55f), tabY = sy + sh / 2 - tabH / 2, tabW = sx - 10;
+            float tabH = j.sideH, tabY = sy + sh / 2 - tabH / 2;
             // (the buttons as the page's glyphs, LB / RB under the arrows: issue #517; the words where the view has no glyphs)
             bool g = state.O("glyphs") != null;
-            SideTabAt(gmPrev, 6, tabY, tabW, tabH, "◀\n" + (g ? " " : Key("prev", "LB")) + "\n\n" + Vertical(names, cur - 1), edge < 0, g ? "lb" : null);
-            SideTabAt(gmNext, W - 6 - tabW, tabY, tabW, tabH, "▶\n" + (g ? " " : Key("next", "RB")) + "\n\n" + Vertical(names, cur + 1), edge > 0, g ? "rb" : null);
+            SideTabAt(gmPrev, j.ps, tabY, j.prevW, tabH, "◀\n" + (g ? " " : Key("prev", "LB")) + "\n\n" + Vertical(names, cur - 1), edge < 0, g ? "lb" : null);
+            SideTabAt(gmNext, W - j.ps - j.nextW, tabY, j.nextW, tabH, "▶\n" + (g ? " " : Key("next", "RB")) + "\n\n" + Vertical(names, cur + 1), edge > 0, g ? "rb" : null);
             // the way out at the top right (.gm-close: B / Esc's glyph and ✕ on a paper pill)
             GmClose(g);
         }
@@ -123,8 +169,9 @@ namespace Hiraeth.Bridge
             }
             gmClose.Show(g);
             if (!g) return;
-            float h = 38, gw = GlyphHeight(16), w = 10 + gw + 6 + 20 + 10;
-            Ui.Place(gmClose.rt, W - 18 - w, 18, w, h);
+            // (.gm-close: 5.4vh tall, at the frame's padding from the top and the right)
+            float h = journal.closeH, gw = GlyphHeight(16), w = 10 + gw + 6 + 20 + 10;
+            Ui.Place(gmClose.rt, W - journal.ps - w, journal.pt, w, h);
             PutGlyph(gmClose.rt, "back", 10, h / 2, 16);
             Ui.Place(gmCloseX.rectTransform, 10 + gw + 6, 0, 20, h);
             gmCloseX.text = "✕";

@@ -788,3 +788,31 @@ test('the Start menu\'s pages as the page draws them in Unity (issue #264): the 
   // -screen WxH: a Unity batch run on a screen of that shape (the sequences' 1280 × 720, the Retroid's 960 × 720)
   assert.match(src('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeArgs.cs'), /Arg\("-screen"\)/);
 });
+
+test('Unity\'s game menu is laid out where the page\'s #journal is (BridgeMenu.Chrome.cs JournalAt; issue #264, the Map 0.19)', () => {
+  // (the C# function read as JavaScript: its Mathf.Clamp and float literals)
+  const cs = src('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.Chrome.cs');
+  const body = cs.slice(cs.indexOf('public static Journal JournalAt(float W, float H)'), cs.indexOf('Journal journal;'));
+  const js = body.slice(body.indexOf('{') + 1, body.lastIndexOf('}'))
+    .replace(/new Journal\(\)/, '{}').replace(/\bvar\b|\bfloat\b/g, 'let').replace(/Mathf\.Clamp\(/g, 'clamp(').replace(/Mathf\.Min\(/g, 'Math.min(').replace(/(\d)f\b/g, '$1');
+  const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+  const at = new Function('W', 'H', 'clamp', js);
+  // the page's boxes (muted headless Chrome, the Signal Market's Map on the debug save, getBoundingClientRect)
+  const page = {
+    1280: { stage: [76, 564.9], prev: [30.7, 40.9], next: [1209.8, 39.5], side: 293.7, sheet: [71.6, 1138.2], body: [102.8, 96.3, 1075.8, 524.3], info: [79.3, 652.3, 1121.3, 50.4], tabOn: [15.8, 48.6], pill: 29.9, close: 38.9 },
+    960: { stage: [76, 564.9], prev: [23, 36.5], next: [902, 35], side: 293.7, sheet: [59.5, 842.5], body: [83.6, 96.3, 794.3, 524.3], info: [59.5, 652.3, 841, 50.4], tabOn: [15.8, 48.6], pill: 29.9, close: 38.9 },
+  };
+  for (const [w, p] of Object.entries(page)) {
+    const j = at(+w, 720, clamp), near = (a, b, what) => assert.ok(Math.abs(a - b) < 1.2, `${w} × 720 ${what}: ${a.toFixed(1)}, the page ${b}`);
+    near(j.stageY, p.stage[0], 'stage y'); near(j.stageH, p.stage[1], 'stage h');
+    near(j.ps, p.prev[0], 'prev x'); near(j.prevW, p.prev[1], 'prev w'); near(+w - j.ps - j.nextW, p.next[0], 'next x'); near(j.nextW, p.next[1], 'next w'); near(j.sideH, p.side, 'side h');
+    near(j.sheetX, p.sheet[0], 'sheet x'); near(j.sheetW, p.sheet[1], 'sheet w');
+    near(j.bodyX, p.body[0], 'body x'); near(j.bodyY, p.body[1], 'body y'); near(j.bodyW, p.body[2], 'body w'); near(j.bodyH, p.body[3], 'body h');
+    near(j.infoX, p.info[0], 'strip x'); near(j.infoY, p.info[1], 'strip y'); near(j.infoW, p.info[2], 'strip w'); near(j.infoH, p.info[3], 'strip h');
+    near(j.pt, p.tabOn[0], 'tabs y'); near(j.tabsH, p.tabOn[1], 'tabs h'); near(j.pillH, p.pill, 'pill h'); near(j.closeH, p.close, 'close h');
+  }
+  // the Map drawn in that body, its shape asked of it less the sheet's shadow (the page's mapBoxAspect)
+  const menu = src('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.cs');
+  assert.match(menu, /DrawMap\(journal\.bodyX, journal\.bodyY, journal\.bodyW, journal\.bodyH\)/);
+  assert.match(menu, /MapRoom\(\) \{ var j = JournalAt\(W, H\); return \(j\.bodyW - 10, j\.bodyH - 10\); \}/);
+});
