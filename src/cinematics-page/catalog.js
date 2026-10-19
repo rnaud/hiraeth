@@ -1,11 +1,15 @@
 import { PLACEMENTS } from '../boxes/placements.js';
 import { WORLD_MOMENTS } from '../story/film.js';
-import { TITLES, ORDER, SIDE, partOf, isDismissed } from '../levels/names.js';
+import { TITLES, ORDER, SIDE, partOf, isDismissed, worldFor } from '../levels/names.js';
+import { FINALES } from '../temples/finale.js';
 import { CALL_COUNT, PART_CALLS, recordingLabel } from '../story/calls.js';
 export const CINEMATICS = [
   { id: 'prologue', world: 'desert', group: 'Story', title: 'The landing · prologue', query: { prologue: '1' } },
   // (a merged world's part's moments play in the world that carries it; a dismissed world's are not played: src/levels/names.js)
   ...Object.entries(WORLD_MOMENTS).filter(([world]) => !isDismissed(world)).flatMap(([world, moments]) => moments.map(m => ({ ...m, world: partOf(world), group: 'World moments', title: m.beat }))),
+  // (every makers' house's ending, filmed as its guardian is resolved: src/temples/finale.js, #366; played in the world
+  //  the house stands in now, the Clock-House in the Glass Dunes: off the page until the QC of v1.85, #490)
+  ...Object.entries(FINALES).map(([temple, f]) => ({ id: `finale.${temple}`, temple, world: worldFor(temple), group: 'Temple endings', title: f.beat })),
   { id: 'lantern.arrive', world: 'lantern', group: 'World moments', title: 'The light returns to the Lantern' },
   ...['first', 'final'].map((kind, i) => ({ id: `homecoming.${kind}`, world: 'home', group: 'Story', title: `${kind === 'first' ? 'First' : 'Final'} homecoming`, query: { ending: String(i + 1) } })),
   ...['homage', 'windowSeat'].map(id => ({ id: `home.${id}`, world: 'home', group: 'Story', title: id === 'homage' ? 'At the stone' : 'The window seat' })),

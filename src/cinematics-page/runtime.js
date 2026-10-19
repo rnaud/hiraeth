@@ -7,6 +7,7 @@ import { ENDING_WORLDS } from '../story/ending.js';
 import { ORDER, TITLES } from '../levels/names.js';
 import { BELL } from '../story/arzach2-moments.js';
 import { DESERT_QUEST_V } from '../story/desert-data.js';
+import { wayOut, finaleFlag } from '../temples/finale.js';
 const selected = () => CINEMATICS.find(e => e.id === new URLSearchParams(location.search).get('cinematicReview'));
 export async function seedReview() {
   const e = selected();
@@ -23,6 +24,8 @@ export function seedReviewEntry(e) {
   //  reads the seeded ship.powered as a save past the tree and lights it before the stone is set: the QC, v1.66)
   if (e.world === 'desert') game.data.flags['desert.quest.v'] = DESERT_QUEST_V;
   if (e.item) { game.data.flags[`item.${e.item}`] = 0; game.data.flags[`box.${e.boxId}`] = false; }
+  // (a house's ending: inside it, its guardian not yet resolved, its film not yet seen; the logic's store, .boss)
+  if (e.temple) Object.assign(game.data.flags, { [`temple.${e.temple}.entered`]: true, [`temple.${e.temple}.done`]: false, [`temple.${e.temple}.boss`]: null, [finaleFlag(e.temple)]: false });
   game.save();
 }
 export async function startReview(w) {
@@ -101,6 +104,26 @@ export async function stageCinematic(w, e) {
     }
     place(box.at ?? box.pos ?? box.parts.root.position, V(0, 0, 2)); await settle();
     ok = w.boxes.open(box.id);
+  } else if (e.temple) {
+    // a house's ending (src/temples/finale.js), as play has it: in its arena between the keeper and the way out, every
+    // door of the way in open (the logic forced: the puzzles behind you done), the keeper woken and resolved, which
+    // plays the film (runtime.js onBossResolved → the story's onFinale). The QC of v1.85 found them off the page (#490)
+    const T = w.level.temples?.find((t) => t.id === e.temple) ?? (w.level.temple?.id === e.temple ? w.level.temple : null);
+    const G = T?.guardian, way = T && wayOut(T);
+    if (!G?.model?.pos || !way) throw new Error(`No guardian or way out in ${e.temple}`);
+    const L = T.logic;
+    for (const [id, el] of Object.entries(L.def.elements)) {
+      if (id === way.id || id === T.def.arenaDoor || el.type !== 'door' || JSON.stringify(el.opens ?? {}).includes('resolved')) continue;
+      L.force(id, true);
+    }
+    T.applyDoors();
+    const c = G.model.pos, door = way.piece.group.position;
+    const dir = V(door.x - c.x, 0, door.z - c.z).normalize();
+    place(c.clone().addScaledVector(dir, Math.min(6, G.arena.r * 0.5)).setY(G.arena.y + 0.1));
+    w.player.heading = Math.atan2(-dir.x, -dir.z);
+    await settle(); await settle();
+    G.wake(); G.resolve();
+    ok = w.storyRt.moments.current?.id === `temple.${e.temple}.finale`;
   } else if (e.id === 'lantern.arrive') { place(w.level.lantern.spots.isle); if (!W.state.arrived) W.arrive(); }
   else if (e.world === 'home') W[e.id.split('.')[1]]();
   else {

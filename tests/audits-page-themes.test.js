@@ -120,7 +120,8 @@ test('the parsers on the real reports: each kind\'s items add up to its overall'
   // (v1.48: the three new worlds' makers' courts, a chest each behind its gate: 3 more)
   // (v1.52: the City-Shaft's light-down chest on the bottom terrace, issue #169: 1 more, not reviewed yet)
   // (v1.65: the Desert's tree lit, filmed from afar, issue #239: 1 more)
-  assert.equal(group('cinematics', 'Verdicts').rows.reduce((n, r) => n + r.value, 0), 104, 'the QC notes\' verdicts (less v1.80\'s three court boxes gone, issue #375: their gadgets earned in the temples): the 91, v1.38\'s two new chests, less v1.39\'s five gone, v1.40\'s twelve, v1.43\'s two part recordings, v1.44\'s two, less v1.45\'s ember chest (with the gun now), v1.48\'s three court chests, v1.52\'s light-down chest');
+  // (v1.85: the fourteen temple endings on the review page and looked at, issue #490: 14 more)
+  assert.equal(group('cinematics', 'Verdicts').rows.reduce((n, r) => n + r.value, 0), 118, 'the QC notes\' verdicts (v1.85\'s fourteen temple endings; less v1.80\'s three court boxes gone, issue #375: their gadgets earned in the temples): the 91, v1.38\'s two new chests, less v1.39\'s five gone, v1.40\'s twelve, v1.43\'s two part recordings, v1.44\'s two, less v1.45\'s ember chest (with the gun now), v1.48\'s three court chests, v1.52\'s light-down chest');
 
   const perf = theme('perf');
   // (perf-v1.85, issue #467: the Retroid and the Deck each a row, not measured; High's p95 and the loads within now)

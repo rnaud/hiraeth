@@ -6,6 +6,7 @@ import { readFileSync } from 'node:fs';
 import { WORLD_MOMENTS } from '../src/story/film.js';
 import { PLACEMENTS } from '../src/boxes/placements.js';
 import { ORDER, SIDE, isDismissed } from '../src/levels/names.js';
+import { FINALES } from '../src/temples/finale.js';
 test('review covers every registered moment, item box and destination without duplicate links', () => {
   const ids = new Set(CINEMATICS.map(e => e.id));
   assert.equal(ids.size, CINEMATICS.length);
@@ -13,6 +14,14 @@ test('review covers every registered moment, item box and destination without du
   for (const m of Object.entries(WORLD_MOMENTS).filter(([w]) => !isDismissed(w)).flatMap(([, ms]) => ms)) assert.ok(ids.has(m.id), m.id);
   for (const b of Object.entries(PLACEMENTS).filter(([w]) => !isDismissed(w)).flatMap(([, bs]) => bs)) assert.ok(ids.has(`box.${b.id}`), b.id);
   for (const world of [...ORDER, ...SIDE, 'home', 'lantern']) assert.ok(ids.has(`arrival.${world}`));
+  // every makers' house's ending, in a group of its own, played in the world the house stands in (the QC of v1.85, #490:
+  // the fourteen were off the page, so never reviewed)
+  const endings = CINEMATICS.filter((e) => e.group === 'Temple endings');
+  assert.deepEqual(endings.map((e) => e.temple).sort(), Object.keys(FINALES).sort());
+  assert.equal(endings.length, 14, 'the fourteen houses');
+  for (const e of endings) assert.equal(e.id, `finale.${e.temple}`);
+  assert.equal(endings.find((e) => e.temple === 'garage').world, 'glassdunes', 'the Clock-House in the Glass Dunes');
+  assert.equal(endings.find((e) => e.temple === 'arzach2').world, 'arzach', 'the Founders’ Belfry in Vael');
   for (const e of CINEMATICS.filter(e => e.id !== 'trailer')) assert.equal(new URL(reviewURL(e), 'https://example.com/game/').searchParams.get('cinematicReview'), e.id);
 });
 test('review storage never writes through to a player save and starts fresh on replay', () => {
@@ -73,4 +82,28 @@ test('the staging films each merged part\'s own climax, and the desert\'s at the
   const cast = await stage('bazaar.broadcast', { bazaar: { film: {}, play: () => { played++; } } }, { signal: { places: { console: console_ } } });
   assert.equal(played, 1);
   assert.ok(cast.at[0].distanceTo(console_) < 2, 'by the console');
+});
+
+// A house's ending staged as play has it (#490): in its arena between the keeper and the way out, the doors of the way in
+// forced open (the way out and the arena's door left to the house and its film), the keeper woken and resolved.
+test('the staging plays a house\'s ending from its arena, the way in open, the keeper resolved', async () => {
+  const THREE = await import('three');
+  const { stageCinematic } = await import('../src/cinematics-page/runtime.js');
+  globalThis.requestAnimationFrame ??= (f) => setTimeout(f, 0);
+  const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
+  const forced = {}, calls = [], at = [];
+  const pieces = { way: { group: { position: V(0, 0, 20) } }, d1: { group: { position: V(30, 0, 0) } } };
+  const moments = { current: null };
+  const T = {
+    id: 'desert', def: { arenaDoor: 'arena' },
+    logic: { def: { elements: { way: { type: 'door', opens: { resolved: true } }, d1: { type: 'door', opens: { lit: 'b1' } }, arena: { type: 'door', opens: null }, b1: { type: 'brazier' } } }, force: (id, open) => { forced[id] = open; } },
+    piece: (id) => pieces[id], applyDoors: () => calls.push('doors'),
+    guardian: { model: { pos: V(0, 0, 0) }, arena: { center: V(), r: 16, y: 0 }, wake: () => calls.push('wake'), resolve: () => { calls.push('resolve'); moments.current = { id: 'temple.desert.finale' }; } },
+  };
+  const w = { THREE, level: { temples: [T] }, storyRt: { world: {}, moments }, player: { teleport: (p) => at.push(p.clone()), pos: V() } };
+  const ok = await stageCinematic(w, CINEMATICS.find((e) => e.id === 'finale.desert'));
+  assert.equal(ok, true, 'its film plays');
+  assert.deepEqual(forced, { d1: true }, 'the way in open; the way out and the arena\'s door left to the house');
+  assert.deepEqual(calls, ['doors', 'wake', 'resolve']);
+  assert.ok(at[0].distanceTo(V(0, 0, 6)) < 0.2, 'in the arena, between the keeper and the way out');
 });

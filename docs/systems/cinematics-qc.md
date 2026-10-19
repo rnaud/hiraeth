@@ -260,6 +260,25 @@ stopped the first after 25), no fixes. The report and its table: [cinematics-v1.
 not on the review page (#490); the Moon Foundry's climax opens inside a solid and the Floating City's cables are hidden by
 a wall, both worlds rebuilt round their films since (#491); the City-Shaft's bridge box shows the health HUD (#501).
 
+**The follow-up (2026-10-19, #490, #491).**
+- **The two climaxes.** Both were brought back to tech 5. `moonfoundry.moon`'s A had been pulled into the jib over the
+  door. `spacecity.cables`'s A had been pulled against a ledge, and its B filmed a leg of the tripod.
+- **How they were fixed.** A world's hand-set lens is now checked against the world as built. The new film.js pieces
+  are `sightClear`, `clearShot` and `openCloseUp` (docs/systems/cinematics.md). The capstan's panel moved into the gap
+  between the tripod's legs.
+- **The other moments.** A `--group "World moments"` run matched the v1.85 pass.
+- **The temple endings.** The fourteen are now on the review page and in the script, as `finale.<temple>` in their own
+  group "Temple endings". `runtime.js` stages each one:
+  - in its arena, between the keeper and the way out;
+  - the doors of the way in forced open;
+  - the keeper woken and resolved.
+- **Their first look.** Every one plays its 11 s cleanly. Panel B (the reward, low by the purse) is the weak one:
+  - In the Hush-House and the Greenhouse it is filmed wholly through the keeper's own body.
+  - In the Warden's Well the lens is inside a solid.
+  - Elsewhere the body covers half the frame, or the purse is a speck (#528).
+  - The Lampless and the Listener fill panel A, and the Gardener is drawn see-through in C (#529).
+- **Verdicts.** The fourteen are in `cinematics-qc-notes.json`: 9 Pass, 5 Needs work.
+
 ### The table
 
 Tech: the script's score on the first run (its heuristics, rescored with the final rules) → the score

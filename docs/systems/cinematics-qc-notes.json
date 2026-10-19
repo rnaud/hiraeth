@@ -1,5 +1,5 @@
 {
- "exported": "2026-10-18T16:00:00.000Z",
+ "exported": "2026-10-19T08:30:00.000Z",
  "notes": {
   "prologue": {
    "verdict": "Needs work",
@@ -77,14 +77,14 @@
    "updated": "2026-10-18T16:00:00.000Z"
   },
   "moonfoundry.moon": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 3/5, interest 4/5. New: A, the wide from the floor (MOON.BACK 32 m from the door), is inside a solid: 52 frames, the first 2.6 s a flat navy face with orange bars. Something solid stands where the lens is set now: since v1.66 the Casting-House was rebuilt (#416, #383) and a port added at the landing (#441). D's face shot half a dark wall. Four panels now (#295)",
-   "updated": "2026-10-18T16:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC 2026-10-19 (v1.85, #491 fixed): tech 5/5, interest 4/5. Before, A sat inside the jib over the door: the moment's pull-in met it 2 m from its look, giving 52 frames of a navy face with orange bars. Now A is checked by film.js clearShot (MOON.NEAR), and it opens wide on the house and its tower from out on the floor. D's side is picked by its backdrop (openCloseUp). Out of the door the house is still behind his face, and that is by design: he stands at its door. B and C unchanged",
+   "updated": "2026-10-19T08:30:00.000Z"
   },
   "spacecity.cables": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 3.5/5, interest 3.5/5. New: B (3-5 s), the cables drawing taut, is filled by a teal wall: the beat is not seen. A third of A is the same wall. The script scores it 5 (not inside, not grazing): by eye. Four panels now (#295)",
-   "updated": "2026-10-18T16:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC 2026-10-19 (v1.85, #491 fixed): tech 5/5, interest 4/5. Before, B was filmed through a leg of the Mooring-House's tripod and the spindle's flare, a teal wall. Now capstanShot sits in the gap between two legs, under the spindle: the capstan turns and the cables leave it with their lamps lighting. A was a metre from the house's wall because the pull-in met a ledge. Now clearShot keeps it, lifted 4 m over the apron's rim, wide from out over the void",
+   "updated": "2026-10-19T08:30:00.000Z"
   },
   "lantern.arrive": {
    "verdict": "Pass",
@@ -520,6 +520,76 @@
    "verdict": "Pass",
    "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. No problem found.",
    "updated": "2026-10-18T16:00:00.000Z"
+  },
+  "finale.desert": {
+   "verdict": "Pass",
+   "text": "QC 2026-10-19 (v1.85, the first look, #490): tech 4/5, interest 3/5. the Keeper whole in A, him small beside it; B, the reward, low on the floor: the purse a speck on bare floor (#528); C high over the cistern, the glyphs up; D the way up sinking open. Every one plays its 11 s cleanly, with no console errors.",
+   "updated": "2026-10-19T08:30:00.000Z"
+  },
+  "finale.incal": {
+   "verdict": "Needs work",
+   "text": "QC 2026-10-19 (v1.85, the first look, #490): tech 3.5/5, interest 3/5. A the warden whole, a pillar filling a quarter of the frame at 2-3 s; B, the reward, low on the floor: the lens inside a solid for the whole panel, 48 frames, a bare floor (#528); C and D clean. Every one plays its 11 s cleanly, with no console errors.",
+   "updated": "2026-10-19T08:30:00.000Z"
+  },
+  "finale.arzach2": {
+   "verdict": "Pass",
+   "text": "QC 2026-10-19 (v1.85, the first look, #490): tech 5/5, interest 4/5. the Cloud-Mother whole in A; B, the reward, low on the floor: the purse a speck by a boulder (#528); C high over the hall, D the high door sinking. Every one plays its 11 s cleanly, with no console errors.",
+   "updated": "2026-10-19T08:30:00.000Z"
+  },
+  "finale.spheres": {
+   "verdict": "Pass",
+   "text": "QC 2026-10-19 (v1.85, the first look, #490): tech 4.5/5, interest 3/5. the Echo whole in A; B, the reward, low on the floor: the keeper's feet at the top, glass plates, the purse a speck (#528); C and D clean. Every one plays its 11 s cleanly, with no console errors.",
+   "updated": "2026-10-19T08:30:00.000Z"
+  },
+  "finale.buried": {
+   "verdict": "Pass",
+   "text": "QC 2026-10-19 (v1.85, the first look, #490): tech 4/5, interest 3/5. the Tooth-Warden whole in A; B, the reward, low on the floor: its body fills the top half (#528); C and D clean. Every one plays its 11 s cleanly, with no console errors.",
+   "updated": "2026-10-19T08:30:00.000Z"
+  },
+  "finale.perdide2": {
+   "verdict": "Needs work",
+   "text": "QC 2026-10-19 (v1.85, the first look, #490): tech 4/5, interest 3/5. A runs into the Lampless's wings, which fill the frame at 1-3 s (#529); B, the reward, low on the floor: a bare floor, the purse a speck (#528); D dark, 6 of 23 frames nearly empty by the script, readable by eye. Every one plays its 11 s cleanly, with no console errors.",
+   "updated": "2026-10-19T08:30:00.000Z"
+  },
+  "finale.perdide": {
+   "verdict": "Needs work",
+   "text": "QC 2026-10-19 (v1.85, the first look, #490): tech 3/5, interest 3/5. A the Mother Snapper whole; B, the reward, low on the floor: its leaves fill the whole panel for 2.4 s (#528); C and D clean. Every one plays its 11 s cleanly, with no console errors.",
+   "updated": "2026-10-19T08:30:00.000Z"
+  },
+  "finale.arzach": {
+   "verdict": "Pass",
+   "text": "QC 2026-10-19 (v1.85, the first look, #490): tech 5/5, interest 4/5. the Elder opening her wings in A, him small at her feet; B, the reward, low on the floor: her feet and the purse, good; C and D clean. Every one plays its 11 s cleanly, with no console errors.",
+   "updated": "2026-10-19T08:30:00.000Z"
+  },
+  "finale.garage": {
+   "verdict": "Pass",
+   "text": "QC 2026-10-19 (v1.85, the first look, #490): tech 4.5/5, interest 3/5. the Foreman whole in A; B, the reward, low on the floor: its underside fills the top half (#528); C and D clean. Every one plays its 11 s cleanly, with no console errors.",
+   "updated": "2026-10-19T08:30:00.000Z"
+  },
+  "finale.edena": {
+   "verdict": "Needs work",
+   "text": "QC 2026-10-19 (v1.85, the first look, #490): tech 3/5, interest 3/5. A the Gardener whole; B, the reward, low on the floor: its green body fills the whole panel (#528); C the Gardener drawn see-through (#529); D clean. Every one plays its 11 s cleanly, with no console errors.",
+   "updated": "2026-10-19T08:30:00.000Z"
+  },
+  "finale.bazaar": {
+   "verdict": "Pass",
+   "text": "QC 2026-10-19 (v1.85, the first look, #490): tech 4/5, interest 3/5. the First Sign whole in A; B, the reward, low on the floor: dark struts fill the lower half (#528); C and D clean. Every one plays its 11 s cleanly, with no console errors.",
+   "updated": "2026-10-19T08:30:00.000Z"
+  },
+  "finale.spacecity": {
+   "verdict": "Pass",
+   "text": "QC 2026-10-19 (v1.85, the first look, #490): tech 4.5/5, interest 3/5. the Anchor-Warden whole in A; B, the reward, low on the floor: its arm across the top, the purse a speck (#528); C and D clean. Every one plays its 11 s cleanly, with no console errors.",
+   "updated": "2026-10-19T08:30:00.000Z"
+  },
+  "finale.moonfoundry": {
+   "verdict": "Pass",
+   "text": "QC 2026-10-19 (v1.85, the first look, #490): tech 4/5, interest 3/5. the Last Founder whole in A; B, the reward, low on the floor: its body fills the top half (#528); C and D clean. Every one plays its 11 s cleanly, with no console errors.",
+   "updated": "2026-10-19T08:30:00.000Z"
+  },
+  "finale.underwater": {
+   "verdict": "Needs work",
+   "text": "QC 2026-10-19 (v1.85, the first look, #490): tech 3.5/5, interest 3/5. the Listener's shell fills A from 2 s (#529); B, the reward, low on the floor: the shell's underside fills the top half (#528); C and D clean; the hand-back behind the shell, him half hidden (#529). Every one plays its 11 s cleanly, with no console errors.",
+   "updated": "2026-10-19T08:30:00.000Z"
   }
  }
 }

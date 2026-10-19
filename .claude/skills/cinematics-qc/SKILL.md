@@ -37,7 +37,9 @@ Read first:
 ## 1. Every cinematic is on the review page
 
 `src/cinematics-page/catalog.js` derives the list (`CINEMATICS`) from the registries:
-`WORLD_MOMENTS` (src/story/film.js), `PLACEMENTS` (boxes), the routes (arrivals), the calls. A new
+`WORLD_MOMENTS` (src/story/film.js), `PLACEMENTS` (boxes), the routes (arrivals), the calls, the temple endings
+(`FINALES`, src/temples/finale.js: `finale.<temple>`, group "Temple endings", staged in the arena with the keeper
+resolved). A new
 cinematic that isn't derived must be added there, with its staging in `runtime.js`
 (`startReview`), and `tests/cinematics-page.test.js` must still pass. If it isn't on the page it
 isn't reviewed. The discarded side worlds' arrivals (`DISCARDED`, src/levels/names.js) stay on the page but
