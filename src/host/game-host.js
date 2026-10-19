@@ -254,7 +254,7 @@ export function wireLessons({ game, items, levelId, gadgets = () => null, sound 
 /**
  * Plumb, the drone (issue #434; src/companion.js, src/scout.js): handed over by the prologue's drone, it escorts you
  * (game 'drone:out'); each frame after the scout, the first person near (its opening line), the goal and the place it
- * names, the makers' house you are in and its step, the guardian's phase, then its line and the ping's flight (its first
+ * names, the first Blade Gate near (issue #483), the makers' house you are in and its step, the guardian's phase, then its line and the ping's flight (its first
  * word, "the village on the horizon", starts the desert's quest: 'drone:village', src/story/desert.js).
  *   const plumbStep = wireCompanion({ game, plumb, scout, level, player, npcs, struggle })
  *   plumbStep(dt, { canSpeak, fight })   → its line as the cue shows it ('' none); the host puts it up
@@ -272,6 +272,11 @@ export function wireCompanion({ game, plumb = null, scout = null, level, player,
       if (!metAnyone) for (const n of npcs) {
         if (!n.def?.id || n.pooled || !n.object?.visible) continue;
         if (n.pos.distanceTo(player.pos) < 8) { plumb.note('person'); break; }
+      }
+      // the first Blade Gate near (a fight temple's door: its host stands beside it, src/story/hosts-data.js FIGHT_STAND)
+      if (!game.flag?.('drone.said.bladegate')) for (const n of npcs) {
+        if (!n.def?.id?.startsWith?.('host.fight-') || n.pooled || !n.object?.visible) continue;
+        if (n.pos.distanceTo(player.pos) < 12) { plumb.note('bladegate'); break; }
       }
     }
     const hint = level.temple ? guardianHint(level.temple) : null, secs = struggle?.t ?? 0;

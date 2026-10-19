@@ -1,7 +1,7 @@
 // Plumb, the drone's own mind (src/companion.js): the lost watch, the opening's lines, the setting, its moods.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { Companion, LostWatch, Opening, LOST, DRONE_LINES, OPENING, DRONE_HINTS, droneSay, shown, DRONE_NAME, FOLLOWS, OPENING_POINTS,
+import { Companion, LostWatch, Opening, LOST, DRONE_LINES, OPENING, ONCE, DRONE_HINTS, droneSay, shown, DRONE_NAME, FOLLOWS, OPENING_POINTS,
   PLACE_LINES, PLACE_MAX, placeOf, HOUSE_LINES, HOUSE, GAP, StepWatch, FightWatch, droneWorld, withPlace } from '../src/companion.js';
 import { STRUGGLE } from '../src/hint-level.js';
 import { parseLine } from '../src/story/tone.js';
@@ -132,7 +132,7 @@ test('the first time it finds you lost it says the pointer line; after that the 
 });
 
 test('every line carries a tone, is short, and never names a button (the R3 line is the hint system\'s, #151)', () => {
-  const all = [...OPENING.map((k) => DRONE_LINES[k]), ...['still', 'away', 'circling'].flatMap((k) => DRONE_LINES[k]),
+  const all = [...OPENING.map((k) => DRONE_LINES[k]), ...ONCE.map((k) => DRONE_LINES[k]), ...['still', 'away', 'circling'].flatMap((k) => DRONE_LINES[k]),
     ...Object.values(PLACE_LINES).flat(), ...Object.values(HOUSE_LINES)];
   assert.ok(all.length >= 30);
   for (const l of all) {
@@ -240,4 +240,25 @@ test('droneWorld: the guardian first, else the house you are in and its next ste
   assert.deepEqual(droneWorld({ level: { temples: [rt] }, pos: { x: 0, y: 0, z: 0 } }), { fight: null, house: { step: 'buried.sw2', type: 'switch' } });
   assert.deepEqual(droneWorld({ level: { temple: rt }, pos: { x: 0, y: 0, z: 0 }, hint: { id: 'buried.1' }, secs: 12 }), { fight: { id: 'buried.1', secs: 12 }, house: null });
   assert.deepEqual(droneWorld({ level: { temples: [{ ...rt, inside: () => false }] }, pos: { x: 0, y: 0, z: 0 } }), { fight: null, house: null });
+});
+
+test('the first Blade Gate near: its line once per save, as its host comes within 12 m (issue #483)', async () => {
+  const { wireCompanion } = await import('../src/host/game-host.js');
+  const flags = {};
+  const game = { data: { flags }, flag: (k) => flags[k], set: (k, v) => { flags[k] = v; }, on() {}, emit() {} };
+  const plumb = new Companion({ state: game, hints: () => 'subtle' });
+  const P = (x) => ({ x, y: 0, z: 0, distanceTo(o) { return Math.hypot(this.x - o.x, this.y - o.y, this.z - o.z); } });
+  const host = { def: { id: 'host.fight-desert', name: 'Wafa' }, pos: P(30), object: { visible: true } };
+  const player = { pos: P(0) };
+  flags['met.someone'] = true;   // (the opening's person line already had)
+  const step = wireCompanion({ game, plumb, level: {}, player, npcs: [host] });
+  let said = [];
+  for (let k = 0; k < 6; k++) said.push(step(0.5));
+  assert.ok(!said.some((s) => s.includes('Makers’ gate')), 'not from 30 m');
+  host.pos = P(9);
+  said = []; for (let k = 0; k < 6; k++) said.push(step(0.5));
+  assert.equal(said.filter((s) => s.includes('Makers’ gate')).length, 1, said.join(' | '));
+  assert.equal(flags['drone.said.bladegate'], true);
+  said = []; for (let k = 0; k < 6; k++) said.push(step(0.5));
+  assert.ok(!said.some((s) => s.includes('Makers’ gate')), 'once');
 });

@@ -17,7 +17,7 @@
 //               stepping out of the ship the first time (the village on the horizon, someone there to
 //               help us recharge: then it flies off toward it, issue #434), the first person near, the
 //               first chest, the first time you are lost (the R3 line after the first talk is the hint
-//               system's, issue #151: these say nothing of the button).
+//               system's, issue #151: these say nothing of the button), the first Blade Gate near (issue #483).
 //
 // One rate limit over all of it: never two of its own lines within GAP s (the opening's excepted).
 //
@@ -52,12 +52,16 @@ export const DRONE_LINES = {
   person: '~whisper~ Someone’s there. Go and say hello.',
   chest: '~happy~ Oh, that’s a good one. Keep it.',
   pointer: '~playful~ This way. Ask me any time.',
+  // the first Blade Gate near (a fight temple's door, its host beside it; issue #483: the makers' sign for kept out)
+  bladegate: '~curious~ Makers’ gate. Blades mean keep out. Something got in.',
   // lost, by why it thinks so (in turn)
   still: ['~curious~ Lost? A little. This way.', '~playful~ Scenic route? The goal is over here.'],
   away: ['~curious~ Wrong way, I think. Look.', '~neutral~ Further and further. It’s back here.'],
   circling: ['~tired~ That rock again. Over here.', '~playful~ My petals are dizzy. This way.'],
 };
 export const OPENING = ['out', 'recharge', 'person', 'chest', 'pointer'];
+/** Lines said once per save as the opening's are, later in the journey (flags drone.said.<id>). */
+export const ONCE = ['bladegate'];
 /** An opening line that brings the next with it (said in turn). */
 export const FOLLOWS = { out: 'recharge' };
 /** An opening line after which it flies off toward the goal, and why (main.js: 'village' starts the desert's quest, issue #434). */
@@ -222,7 +226,7 @@ export class Opening {
   said(id) { return !!this.state?.flag?.(`drone.said.${id}`); }
   /** The moment happened: its line waits to be said (once), and any that follow it. */
   note(id) {
-    for (let k = id; k; k = FOLLOWS[k]) if (OPENING.includes(k) && !this.said(k) && !this.queue.includes(k)) this.queue.push(k);
+    for (let k = id; k; k = FOLLOWS[k]) if ((OPENING.includes(k) || ONCE.includes(k)) && !this.said(k) && !this.queue.includes(k)) this.queue.push(k);
   }
   /** The next line to say now (marked said), or ''. `this.last` is its id. */
   take() {

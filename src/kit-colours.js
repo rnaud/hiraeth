@@ -26,42 +26,44 @@ const toneList = (T) => [T.cream, T.deep, T.pale, T.gold, T.base, T.light];
 export const KIT_COLOURS = [
   { id: 'makers', name: 'Makers’ jade', world: null, pack: PACK_BASE, water: SWORD_TONES },
   // the desert's Sunken Hall: ember and saffron, the burning tree's colours (src/fight-temples/desert.js)
-  { id: 'ember', name: 'Ember', world: 'desert', pack: { brass: '#d8843e', brassDark: '#8e4a2c', canvas: '#b8613c', canvasDark: '#8c432a', cloth: '#f0c45a', leather: '#4e2f22' },
+  { id: 'ember', name: 'Ember', world: 'desert', house: 'the Sunken Hall', pack: { brass: '#d8843e', brassDark: '#8e4a2c', canvas: '#b8613c', canvasDark: '#8c432a', cloth: '#f0c45a', leather: '#4e2f22' },
     water: { base: '#e8703a', cream: '#ffe0a6', deep: '#a8382a', pale: '#ffc890', gold: '#f6c14a', light: '#fff2dc' } },
   // Vael's Wind Cloister: the riders' slate, blue-grey brass and white water (src/fight-temples/arzach.js)
-  { id: 'slate', name: 'Rider’s slate', world: 'arzach', pack: { brass: '#8f9cab', brassDark: '#55606f', canvas: '#c9cdd2', canvasDark: '#8e96a0', cloth: '#9fd6ee', leather: '#3a3f4a' },
+  { id: 'slate', name: 'Rider’s slate', world: 'arzach', house: 'the Wind Cloister', pack: { brass: '#8f9cab', brassDark: '#55606f', canvas: '#c9cdd2', canvasDark: '#8e96a0', cloth: '#9fd6ee', leather: '#3a3f4a' },
     water: { base: '#e8f2f8', cream: '#ffffff', deep: '#7f9fb8', pale: '#cfe6f2', gold: '#9fd6ee', light: '#ffffff' } },
   // Lorn's Drowned Mill: reed green and the mill's rust (src/fight-temples/perdide.js)
-  { id: 'reed', name: 'Reed and rust', world: 'perdide', pack: { brass: '#a8643a', brassDark: '#6e3c24', canvas: '#7e9a52', canvasDark: '#5a7038', cloth: '#d8b04a', leather: '#3e2e22' },
+  { id: 'reed', name: 'Reed and rust', world: 'perdide', house: 'the Drowned Mill', pack: { brass: '#a8643a', brassDark: '#6e3c24', canvas: '#7e9a52', canvasDark: '#5a7038', cloth: '#d8b04a', leather: '#3e2e22' },
     water: { base: '#7fd0b8', cream: '#e6f4d8', deep: '#3f7a6a', pale: '#b6e6d2', gold: '#c9a24a', light: '#f2fff8' } },
   // the Moon Foundry's Pour Floor: moon slag, ivory brass and molten water (src/fight-temples/moonfoundry.js)
-  { id: 'slag', name: 'Moon slag', world: 'moonfoundry', pack: { brass: '#e8dcc4', brassDark: '#a99a86', canvas: '#5a4a4a', canvasDark: '#3a2e2e', cloth: '#ff8a3e', leather: '#2a2228' },
+  { id: 'slag', name: 'Moon slag', world: 'moonfoundry', house: 'the Pour Floor', pack: { brass: '#e8dcc4', brassDark: '#a99a86', canvas: '#5a4a4a', canvasDark: '#3a2e2e', cloth: '#ff8a3e', leather: '#2a2228' },
     water: { base: '#ff8a3e', cream: '#fff0c8', deep: '#b8432e', pale: '#ffc890', gold: '#ffd36a', light: '#fff6e0' } },
   // Viridel's Seed Vault: green glass and the eyes' light (src/fight-temples/edena.js)
-  { id: 'leafglass', name: 'Leafglass', world: 'edena', pack: { brass: '#b8d8a8', brassDark: '#6a8a5a', canvas: '#eef0e6', canvasDark: '#b4bca8', cloth: '#8fd86a', leather: '#3e5a4a' },
+  { id: 'leafglass', name: 'Leafglass', world: 'edena', house: 'the Seed Vault', pack: { brass: '#b8d8a8', brassDark: '#6a8a5a', canvas: '#eef0e6', canvasDark: '#b4bca8', cloth: '#8fd86a', leather: '#3e5a4a' },
     water: { base: '#c8f0b0', cream: '#f4ffe8', deep: '#4a8a4a', pale: '#e0f8d0', gold: '#8fd86a', light: '#ffffff' } },
   // the City-Shaft's Lift Depot: the cabs' yellow on iron (src/fight-temples/incal.js)
-  { id: 'cab', name: 'Cab yellow', world: 'incal', pack: { brass: '#e8b83a', brassDark: '#9a7424', canvas: '#5a5f6a', canvasDark: '#3e424c', cloth: '#ffd36a', leather: '#1e2028' },
+  { id: 'cab', name: 'Cab yellow', world: 'incal', house: 'the Lift Depot', pack: { brass: '#e8b83a', brassDark: '#9a7424', canvas: '#5a5f6a', canvasDark: '#3e424c', cloth: '#ffd36a', leather: '#1e2028' },
     water: { base: '#ffd36a', cream: '#fff6d0', deep: '#b8862a', pale: '#ffe8a0', gold: '#e8b83a', light: '#fffbe8' } },
   // the Buried Machine's Tooth Gallery: brass and the canyon's rust (src/fight-temples/buried.js)
-  { id: 'brass', name: 'Brass tooth', world: 'buried', pack: { brass: '#c9a24a', brassDark: '#7a5a2a', canvas: '#b88a5a', canvasDark: '#6e4e34', cloth: '#ffb347', leather: '#2a2018' },
+  { id: 'brass', name: 'Brass tooth', world: 'buried', house: 'the Tooth Gallery', pack: { brass: '#c9a24a', brassDark: '#7a5a2a', canvas: '#b88a5a', canvasDark: '#6e4e34', cloth: '#ffb347', leather: '#2a2018' },
     water: { base: '#ffb347', cream: '#fff0c8', deep: '#a8642a', pale: '#ffd8a0', gold: '#c9a24a', light: '#fff6e0' } },
   // the Signal Market's Back Rooms: the signs' neon (src/fight-temples/bazaar.js)
-  { id: 'neon', name: 'Signal neon', world: 'bazaar', pack: { brass: '#62c3c9', brassDark: '#2e7a80', canvas: '#6a5a7a', canvasDark: '#3a3050', cloth: '#ff5fa2', leather: '#1e1a2a' },
+  { id: 'neon', name: 'Signal neon', world: 'bazaar', house: 'the Back Rooms', pack: { brass: '#62c3c9', brassDark: '#2e7a80', canvas: '#6a5a7a', canvasDark: '#3a3050', cloth: '#ff5fa2', leather: '#1e1a2a' },
     water: { base: '#ff5fa2', cream: '#ffe0f0', deep: '#a82a6a', pale: '#ffb0d4', gold: '#62c3c9', light: '#fff4fa' } },
   // the Underwater City's Flooded Gallery: pearl and the sea (src/fight-temples/underwater.js)
-  { id: 'pearl', name: 'Pearl and tide', world: 'underwater', pack: { brass: '#e8eef0', brassDark: '#9ab0b8', canvas: '#3f7a8a', canvasDark: '#2a5462', cloth: '#7fe0e8', leather: '#14202e' },
+  { id: 'pearl', name: 'Pearl and tide', world: 'underwater', house: 'the Flooded Gallery', pack: { brass: '#e8eef0', brassDark: '#9ab0b8', canvas: '#3f7a8a', canvasDark: '#2a5462', cloth: '#7fe0e8', leather: '#14202e' },
     water: { base: '#7fe0e8', cream: '#f0fcff', deep: '#2a7a8a', pale: '#c8f4f8', gold: '#e8eef0', light: '#ffffff' } },
   // the Glass Dunes' Kiln Yard: amber glass and the kiln's glow (src/fight-temples/glassdunes.js)
-  { id: 'furnace', name: 'Furnace glass', world: 'glassdunes', pack: { brass: '#d6a94a', brassDark: '#8a6a2a', canvas: '#9cc8bc', canvasDark: '#5a8a7e', cloth: '#ff9a4a', leather: '#203038' },
+  { id: 'furnace', name: 'Furnace glass', world: 'glassdunes', house: 'the Kiln Yard', pack: { brass: '#d6a94a', brassDark: '#8a6a2a', canvas: '#9cc8bc', canvasDark: '#5a8a7e', cloth: '#ff9a4a', leather: '#203038' },
     water: { base: '#ffb060', cream: '#fff0d8', deep: '#c85a2a', pale: '#ffd8a8', gold: '#bfe8dc', light: '#fffaf0' } },
   // the Garden of Spheres' Quiet Orchard: dusk over the lawns (src/fight-temples/spheres.js)
-  { id: 'orchard', name: 'Orchard dusk', world: 'spheres', pack: { brass: '#c9b08a', brassDark: '#7a6a4a', canvas: '#6a9a5a', canvasDark: '#4a6a3e', cloth: '#f4c86a', leather: '#2a2a3a' },
+  { id: 'orchard', name: 'Orchard dusk', world: 'spheres', house: 'the Quiet Orchard', pack: { brass: '#c9b08a', brassDark: '#7a6a4a', canvas: '#6a9a5a', canvasDark: '#4a6a3e', cloth: '#f4c86a', leather: '#2a2a3a' },
     water: { base: '#a8a0e8', cream: '#f4f0ff', deep: '#4a4a8a', pale: '#d0ccf4', gold: '#f4c86a', light: '#ffffff' } },
   // the City Floating in Space's Oil Exchange: lamp oil and its flame (src/fight-temples/spacecity.js)
-  { id: 'lampoil', name: 'Lamp oil', world: 'spacecity', pack: { brass: '#f0c06a', brassDark: '#9a7a3a', canvas: '#3a3a50', canvasDark: '#22223a', cloth: '#ff9a3a', leather: '#1a1a28' },
+  { id: 'lampoil', name: 'Lamp oil', world: 'spacecity', house: 'the Oil Exchange', pack: { brass: '#f0c06a', brassDark: '#9a7a3a', canvas: '#3a3a50', canvasDark: '#22223a', cloth: '#ff9a3a', leather: '#1a1a28' },
     water: { base: '#f0c06a', cream: '#fff8e0', deep: '#a8622a', pale: '#ffe0a0', gold: '#ff9a3a', light: '#fffcf0' } },
 ];
+/** A colour as Items names it: by the house it came from (issue #483: "Ember · the Sunken Hall"); the makers' by itself. */
+export const colourName = (c) => (c?.house ? `${c.name} · ${c.house}` : c?.name ?? '');
 export const colourById = (id) => KIT_COLOURS.find((c) => c.id === id) ?? null;
 export const colourOfWorld = (world) => KIT_COLOURS.find((c) => c.world === world) ?? null;
 
@@ -102,7 +104,7 @@ export function unlockColours(state, id, { wear = true } = {}) {
 export function coloursData(state) {
   const won = wonColours(state);
   if (won.length < 2) return null;
-  return PIECES.map((piece) => ({ piece, name: PIECE_NAME[piece], colour: colourById(chosenColour(state, piece)).name, of: won.length, swatch: colourById(chosenColour(state, piece)).water.base }));
+  return PIECES.map((piece) => ({ piece, name: PIECE_NAME[piece], colour: colourName(colourById(chosenColour(state, piece))), of: won.length, swatch: colourById(chosenColour(state, piece)).water.base }));
 }
 
 // ------------------------------------------------------------------ painting them on

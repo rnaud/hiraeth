@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.86 — 2026-10-19
 
+- Plumb now has a word the first time you come near a fight temple’s gate, Sabri in the desert and Teasel in Lorn mention the ink under the old floors, and Items names each colour after the place you won it, as in Ember · the Sunken Hall.
 - People now tell you of a fight temple as the old floor the ink comes up through and the person waiting by its door, not as a game, and your map names it by the place.
 - The fight temples now belong to the story: the makers built them over springs where the dark wells up, and the people by their doors want their mill, their cranes or their gardens back, and say so. A run ends with the place going quiet and its keeper coming back in, before your time and rank, and the ember shard’s double cuts are now the blade running bright.
 

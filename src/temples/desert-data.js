@@ -15,7 +15,7 @@ export const PEOPLE = {
   sabri: {
     id: 'sabri', name: 'Sabri', title: 'who digs wells', color: '#5fb7ad', voice: 1.12, kind: 'f',
     palette: { cloak: '#5fb7ad', lining: '#2b211f', cloth: '#e6b86f', legs: '#5a4a3a', hat: '#f3ead8', hair: '#3a2a22' }, head: 'wrap', cape: 0,
-    lines: ["~tired~ Another dry well. Excellent hole, though.", "~curious~ Seen the rose-stone house east of here?", "~neutral~ Dig. Listen. Mostly hear myself digging."],
+    lines: ["~tired~ Another dry well. Excellent hole, though.", "~curious~ Seen the rose-stone house east of here?", "~neutral~ Dig. Listen. Mostly hear myself digging.", "~neutral~ West of the camps, ink comes up through a makers’ floor. Not water. I don’t dig there."],
     talk: {
       entry: [
         { if: { flag: 'temple.desert.done' }, node: 'after' },

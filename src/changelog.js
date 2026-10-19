@@ -16,6 +16,9 @@ export const CHANGELOG = [
     // issue #483: src/story/rumours-data.js RUMOUR_FIGHT_LINES, rumours.js (a fight host: h.fight), story/index.js addHost;
     // tests/rumours.test.js
     'People now tell you of a fight temple as the old floor the ink comes up through and the person waiting by its door, not as a game, and your map names it by the place.',
+    // issue #483: src/companion.js (ONCE: bladegate), host/game-host.js wireCompanion; src/temples/desert-data.js (Sabri),
+    // perdide-data.js (Teasel); src/kit-colours.js colourName (house); tests/fight-temples-story.test.js, companion.test.js
+    'Plumb now has a word the first time you come near a fight temple’s gate, Sabri in the desert and Teasel in Lorn mention the ink under the old floors, and Items names each colour after the place you won it, as in Ember · the Sunken Hall.',
   ] },
   { v: '1.85', date: '2026-10-18', items: [
     // issue #474: src/music-moments.js (MUSIC_MODES, musicMode: Always the default), src/ui.js (musicMode, musicV: a saved

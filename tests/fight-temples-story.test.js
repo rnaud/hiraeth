@@ -8,6 +8,10 @@ import { readdirSync } from 'node:fs';
 import { HOSTS } from '../src/story/hosts-data.js';
 import { TONES, parseLine } from '../src/story/tone.js';
 import { fightTempleGame } from '../src/fight-temples/index.js';
+import { colourById, colourName, coloursData, unlockColours } from '../src/kit-colours.js';
+import { PEOPLE as DESERT_PEOPLE } from '../src/temples/desert-data.js';
+import { PEOPLE as LORN_PEOPLE } from '../src/temples/perdide-data.js';
+import { DRONE_LINES, ONCE } from '../src/companion.js';
 
 const dir = new URL('../src/minigames/', import.meta.url);
 const GAMES = await Promise.all(readdirSync(dir).filter((f) => /^fight-\w+\.js$/.test(f)).map(async (f) => (await import(new URL(f, dir))).default));
@@ -38,4 +42,18 @@ test('the rules card: foes go back into the floor, nobody is "felled"', () => {
   const { rules } = fightTempleGame(GAMES[0].table);
   assert.match(rules, /back into the floor/);
   assert.doesNotMatch(rules, /felled/);
+});
+
+test('Items names each colour by the house it came from (issue #483: “Ember · the Sunken Hall”)', () => {
+  for (const g of GAMES) assert.equal(colourName(colourById(g.table.colours)), `${colourById(g.table.colours).name} · the ${g.table.name.replace(/^The /, '')}`);
+  assert.equal(colourName(colourById('makers')), 'Makers’ jade');
+  const flags = {}, s = { data: { flags }, flag: (k) => flags[k], set: (k, v) => { flags[k] = v; return v; } };
+  unlockColours(s, 'ember');   // (won: worn at once)
+  assert.equal(coloursData(s).find((r) => r.piece === 'shield').colour, 'Ember · the Sunken Hall');
+});
+
+test('the small hooks: Sabri and Teasel speak of the ink, Plumb names the Blade Gate once (issue #483)', () => {
+  assert.ok(DESERT_PEOPLE.sabri.lines.some((l) => /ink comes up/i.test(l) && TONES.includes(parseLine(l).tone)));
+  assert.ok(LORN_PEOPLE.teasel.lines.some((l) => /Gert’s mill/.test(l) && TONES.includes(parseLine(l).tone)));
+  assert.ok(ONCE.includes('bladegate') && /keep out/.test(DRONE_LINES.bladegate));
 });

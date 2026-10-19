@@ -199,7 +199,8 @@ mine.
 
 **The reward.** Taking the reliquary wins the world's colours (`unlockColours`: the save's `kit.colours.<id>`) and
 wears them on every piece at once; the results say so. In Items, a Colours strip over the gear: a button a piece
-(backpack, sword, shield), A / × the next colour won for it (`kit.colour.<piece>`). A palette paints the backpack's
+(backpack, sword, shield), A / × the next colour won for it (`kit.colour.<piece>`), each named by the house it came
+from (`colourName`: "Ember · the Sunken Hall", issue #483). A palette paints the backpack's
 brass, its canvas plate, the cloth at its neck and its straps (the fluid keeps its gun mode's colour), and the
 sword's and the shield's water (`src/kit-colours.js`).
 

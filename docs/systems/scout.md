@@ -105,6 +105,9 @@ The drone has a name, Plumb, and a character (`lore/characters/plumb.md`).
   first chest opened, said once its scene is over), `pointer` (the first time it
   finds you lost, in place of a lost line). None names a button: the R3 line
   after the first talk is the hint system's (issue #151).
+  Later, once per save the same way (`ONCE`): `bladegate`, the first time a fight temple's host (and so its
+  Blade Gate) is within 12 m: "Makers' gate. Blades mean keep out. Something got in." (issue #483; the check is
+  `wireCompanion`'s, shared by the web and the engines).
 
 The setting "Drone hints" (`settings.droneHints`: on | fewer | off) and Hints
 off (`droneSay`) quiet the lines and the pointing; the ping on request stays. The lines (`DRONE_LINES`) carry their tones and show on the cue
