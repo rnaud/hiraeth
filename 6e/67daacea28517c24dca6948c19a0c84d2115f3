@@ -1,0 +1,61 @@
+changelog.md
+  s_5f899ba316b5dc::t_82b6d6eac72f98 39-40
+docs/systems/bridge-gaps.md
+  s_5f899ba316b5dc::t_905b7ce030a8ae 10-11,25,35,69,74-75
+docs/systems/engine-bridge.md
+  s_5f899ba316b5dc::t_f5368d3b62c187 1730-1732,2447,2453-2504
+engine/bridge-gaps.js
+  s_5f899ba316b5dc::t_d339ca2e8adeee 76-88,96,140,330-331,333-335
+engine/sequences.js
+  s_5f899ba316b5dc::t_5f862b3d32b1ca 172-173
+engine/unity/backend.js
+  s_5f899ba316b5dc::t_28100996bcdccb 155
+engine/unity/pack.js
+  s_5f899ba316b5dc::t_f10e7f307a8fb1 52-53
+engine/unity/port-format.js
+  s_5f899ba316b5dc::t_44e85625859560 48-52,158-169
+src/changelog-media.js
+  s_5f899ba316b5dc::t_0268eefd8d6705 1226-1227,1280-1291
+src/changelog.js
+  s_5f899ba316b5dc::t_d7e78b789a2239 73-79
+tests/sequences-web.json
+  s_5f899ba316b5dc::t_d221722e11b9d1 3,28,64,100,135,166,200,234,267,305-306,343,381-382,422-423,463-464,505-506,543-544,581-582,620,660,700,739,774,810,851,888,925,962,1002-1003,1045-1046,1088-1089,1119,1161,1197,1233,1273,1308,1344,1384,1422,1460,1503,1540,1577,1615,1617,1620,1650,1652,1685,1687,1693,1726,1762,1798,1837,1873,1898,1938,1976,2004,2046,2084,2122,2164,2199,2234,2273,2308,2337,2377,2414,2451,2492,2530,2567,2609,2645,2681,2722,2759,2796,2841,2876,2911,2955,2995,3035,3076,3120,3159-3160,3201,3238,3276-3277,3306,3352-3353,3391,3429,3468,3500,3572,3685,3725,3769,3841,3870,3906,3955,3987,4019,4048,4078,4108,4137,4166,4195,4229,4261,4293,4325,4357,4383,4412,4442,4467,4492,4517,4546,4572,4598,4624,4658,4689,4719,4745,4780,4812,4844,4876,4906,4933,4959,4985,5011,5045,5076,5106,5132,5158,5184,5214,5240,5264,5288,5312,5337,5361,5386,5419,5448,5477,5504-5506,5533-5535,5562-5564,5568,5570,5574,5576-5600,5602,5624,5657
+tests/unity-chime-shade.test.js
+  s_5f899ba316b5dc::t_162470423113e9 1-57
+tests/unity-decals.test.js
+  s_5f899ba316b5dc::t_47a932f028706f 37,40
+tests/unity-retroid-batches.test.js
+  s_5f899ba316b5dc::t_50d15c2f93bbbf 20
+tests/unity-retroid-gpu.test.js
+  s_5f899ba316b5dc::t_8d237f87ccc5c5 26
+tests/unity-surfaces-e.test.js
+  s_5f899ba316b5dc::t_fa225a49cd8a3b 1-117
+unity/Hiraeth/Assets/Hiraeth/Editor/Batch.cs
+  s_5f899ba316b5dc::t_b585a1f56da75e 200
+unity/Hiraeth/Assets/Hiraeth/Runtime/WorldLoader.cs
+  s_5f899ba316b5dc::t_fe39b098e198b5 183,195-197
+unity/Hiraeth/Assets/Hiraeth/Shaders/ChimeShade.shader
+  s_5f899ba316b5dc::t_e137540659b54b 1-72
+unity/Hiraeth/Assets/Hiraeth/Shaders/ChimeShade.shader.meta
+  s_5f899ba316b5dc::t_441ec886772072 1-9
+unity/Hiraeth/Assets/Hiraeth/Shaders/Surface.shader
+  s_5f899ba316b5dc::t_e827ab2f3b6fbb 66-69,215-218,260-261,623-641,814-829,1147-1149,1153-1156,1255-1270,1573,1581
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRenderer.cs
+  s_5f899ba316b5dc::t_dab352b896c3fd 556-566,623-624,841-848,1475
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6e67daacea28517c24dca6948c19a0c84d2115f3",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
