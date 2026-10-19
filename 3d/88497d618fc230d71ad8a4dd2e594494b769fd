@@ -1,0 +1,33 @@
+.claude/skills/combat-review/SKILL.md
+  s_5f899ba316b5dc::t_562b4fad6533fa 97-114
+.claude/skills/combat-review/fight-temples.mjs
+  s_5f899ba316b5dc::t_144fecf18bd861 1-241
+docs/README.md
+  s_5f899ba316b5dc::t_c28bd337800fcf 26-27
+docs/audits/combat-fight-temples-v1.85.md
+  s_5f899ba316b5dc::t_28e4dbd097fdf9 1-232
+src/audits-page/parse.js
+  s_5f899ba316b5dc::t_693321d5c29567 23
+src/audits-page/themes.js
+  s_5f899ba316b5dc::t_5bd7e6d182b75b 19,109
+tests/audits-page-themes.test.js
+  s_5f899ba316b5dc::t_2f9fc85c27282e 101-105
+tests/audits-page.test.js
+  s_5f899ba316b5dc::t_2a5f8c827c9213 112-126
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3d88497d618fc230d71ad8a4dd2e594494b769fd",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
