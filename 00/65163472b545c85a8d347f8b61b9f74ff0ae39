@@ -1,0 +1,35 @@
+changelog.md
+  s_5f899ba316b5dc::t_67f4d602283b64 10
+docs/systems/temples.md
+  s_5f899ba316b5dc::t_e0d58ab39cad0a 775-794
+src/boxes/placements.js
+  s_5f899ba316b5dc::t_824dab0cdcbee1 185-187,189
+src/changelog-media.js
+  s_5f899ba316b5dc::t_aca90572a1ac43 1278-1283
+src/changelog.js
+  s_5f899ba316b5dc::t_acb3b9c2c53045 26-30
+src/temples/edena-data.js
+  s_5f899ba316b5dc::t_3e03f6ee74b43a 53-55,59-60
+src/temples/edena.js
+  s_5f899ba316b5dc::t_2a385065036014 37-39,45-46,48-50,116,149-156,162-166,182-185,341-342,642-645,647,650,653-654,807-812,815-819,863-864,869-871,874,993
+tests/greenhouse-water.test.js
+  s_5f899ba316b5dc::t_44709870688a75 5-6,14,84,98-108,110,125-126,128,130,132,162-177,181,185-189
+tests/temples.test.js
+  s_5f899ba316b5dc::t_ac789a648d287a 67-73,290-291,298,473,483-494,502,517-518
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0065163472b545c85a8d347f8b61b9f74ff0ae39",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
