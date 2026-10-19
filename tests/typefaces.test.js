@@ -25,6 +25,7 @@ const MONO_OK = {
   'src/levels/references.js': 'the References, the author’s reference level',
   'src/levels/reference-picker.js': 'the References’ list of views',
   'src/levels/arcade.js': 'the Arcade’s score board, a machine’s screen in the world',
+  'src/characters/outfit-page.js': 'the outfits test page’s readout of draws and triangles, a dev page',
   'src/ship/portrait.js': 'the ship’s console screen (NO POWER, the reel’s date stamp), a machine’s screen in the world',
 };
 
