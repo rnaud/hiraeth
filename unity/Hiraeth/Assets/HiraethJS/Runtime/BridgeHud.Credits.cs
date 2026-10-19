@@ -111,6 +111,9 @@ namespace Hiraeth.Bridge
                 var kind = brought.S("kind") ?? "";
                 y = CreditsLine($"Brought home: <b>{brought.S("name")}</b>{(kind.Length > 0 ? $" <i>({kind})</i>" : "")}", y, iw, body, FontStyle.Normal, CreditsInk) + 10;
             }
+            // (how many fragments of the singing light were carried home, never of how many: issue #481, #519)
+            var splinters = c.S("splinters") ?? "";
+            if (splinters.Length > 0) y = CreditsLine($"<i>{splinters}</i>", y + 20, iw, body, FontStyle.Normal, CreditsInk) + 10;
             y = CreditsLine(c.S("end"), y + 40, iw, body, FontStyle.Normal, CreditsInk, 0.1f);
             for (int i = crUsed; i < crLabels.Count; i++) Show(crLabels[i], false);
             float h = y + 70;

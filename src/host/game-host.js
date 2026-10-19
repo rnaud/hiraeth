@@ -504,14 +504,15 @@ export function wireNudges({ game, scout, quiet, noticeBusy }) {
 
 // ------------------------------------------------------------------ the fragments' line
 /**
- * In the Start menu, under where you are: the fragments of the singing light all told, how many you hold to spend with
- * Anselm once he is met (src/fragment-shop.js), how many are left in this world, once one is found; '' before.
+ * In the Start menu, under where you are: the fragments of the singing light found, and how many you hold to spend with
+ * Anselm once he is met (src/fragment-shop.js), once one is found; '' before. Never how many there are, nor how many are
+ * left here (issue #519: "I shouldn't be able to tell how many fragments of light there are in total").
  */
-export function fragmentsLine({ fragments, game, items, levelId }) {
+export function fragmentsLine({ fragments, game, items }) {
   const c = fragments?.counts?.();
   if (!c?.found) return '';
-  const w = c.worlds?.[levelId], held = game.flag('frag.met') ? fragmentPurse(game.data.flags, (id) => items.has(id)).held : null;
-  return `✧ ${c.found} of ${c.total} fragments of the singing light${held != null ? ` · ${held} to spend` : ''}${w ? ` · ${w.left ? `${w.left} left here` : 'none left here'}` : ''}`;
+  const held = game.flag('frag.met') ? fragmentPurse(game.data.flags, (id) => items.has(id)).held : null;
+  return `✧ ${c.found} fragment${c.found === 1 ? '' : 's'} found${held != null ? ` · ${held} to spend` : ''}`;
 }
 
 // ------------------------------------------------------------------ the fight (issue #435)

@@ -148,8 +148,9 @@ hide: `docs/story-bible.md`, "The fragments of the singing light".
   light's signature beats in threes), bobbing; a small light of its own on the ground round it (`level.lights`, radius
   ~3 m). Within `FRAGMENT.sing` (26 m) it sings faintly from where it is every `singEvery` (3.4 s): three soft notes of the
   light's theme an octave up (`Sound.fragmentSong`, placed with `Sound.spot`, louder nearer). Muted with the game.
-- **Taking one.** Walk within `FRAGMENT.take` (1.5 m): it is yours. The toast: *A fragment of the singing light · 12 of 288 ·
-  3 left in Lorn*; the theme's rise (`Sound.fragmentTaken`); `game.emit('fragment', { world, i, found, total, left })`.
+- **Taking one.** Walk within `FRAGMENT.take` (1.5 m): it is yours. The toast: *A fragment of the singing light · 12 found*
+  (`fragmentToast`: never of how many, nor how many are left, v1.86, issue #519; it said *12 of 288 · 3 left in Lorn*
+  before); the theme's rise (`Sound.fragmentTaken`); `game.emit('fragment', { world, i, found, total, left })`.
 - **The save.** `frag.<world>.<i>` for each found; `frag.met` once the scientist is met; `frag.finder.off` when the
   finder is switched off. `src/save-migrate.js` step 22 starts an older save at zero (any `frag.*` goes). Step 23
   (v1.61, `FRAGMENTS_MOVED_228`): a save keeps its count world by world; a found flag on a slot that moved goes to an
@@ -192,10 +193,14 @@ studies light, and has been on the lookout for the fragments since the night the
   voicemail button, the holo table, the hatch; held, it stays the ship's as you walk off); in the hold it is yours,
   and his talk opens, his shop with it. The web game and the engines share the ship (engine/game.js filters E
   through `ship.input` too). `tests/ship.test.js` (E in the hold passes through; by the table it opens the map).
-- **His talk** is built from the save each time it opens (`thrumTalk`): his count, found and held (*Twelve of 288. Four
-  to spend.*), how many still hide in this world, the three worlds with most left; then *Show me what you have* (his
-  shop, below) or, asked, where they hide (*Up high. Behind things. At the ends of paths.*). His balloon shows while
-  you hold enough for one you can have (`affordable`).
+- **His talk** is built from the save each time it opens (`thrumTalk`): his count, found and held (*Twelve so far. Four
+  to spend.*), and a loose word for the world you are in (`hereLine`: *Lorn still sings loud* while more than half are
+  still to find there, *A little singing left in Lorn* under that, *It’s gone quiet here* once all are found); never how
+  many there are, nor a world's number, nor where most are left (v1.86, issue #519: it said *Twelve of 288*, *Three still
+  hide here* and *Most left: …* before). Then *Show me what you have* (his shop, below), or, asked, where they hide (*Up
+  high. Behind things. At the ends of paths.*), or, with the tune bought, *Play me the light's tune*. The first time he
+  has his chart (100 found) he says so (*I've been plotting where they ring. Want it?*, `thrum.chart.told`). His balloon
+  shows while you hold enough for one you can have (`affordable`).
 - **The People page** lists him under the Desert (where the ship came down), his story growing with each upgrade.
 
 ## His shop: the upgrades for fragments (v1.62, issue #185; `src/fragment-shop.js`, `src/items.js` `fragments`)
@@ -229,22 +234,66 @@ is held.
 The table values live in `src/trials/upgrades.js FRAGMENT_TUNES` (the blade, the guard), `src/resources.js` (the heart, the
 chamber) and `src/boxes/effects.js LIGHT` (the wings, the boots).
 
-## At the Lantern (v1.61, #229)
+## What the rest buy (v1.86, issue #481)
+
+The game audit at v1.85: "192 of the 288 fragments buy nothing, and the ending never counts them". The seven upgrades
+keep their prices (96 in all, #317); his shop grows past them with things that aren't numbers (`THRUM_WARES` in
+src/fragment-shop.js: flags, not items; each offered once enough are **found**, `after`, so spending never takes one off
+his shelf again). 96 + 110 = 206 to spend (`ALL_PRICES`); the rest, about 80 for someone who finds everything, are simply
+carried home, and found (never held) is what the ending counts.
+
+| Price | Ware | Offered | What it is |
+|---|---|---|---|
+| 5 × 6 | His notebook, a page at a time (`page`, flags `thrum.page.1`–`6`) | a page for every 20 found (*Not written yet* till then) | his story on the People page, a page per purchase (src/story/people-book.js): a lens-grinder's boy, the night every lens rang, the ticking box, his guesses crossed out; he never learns what the light was |
+| 15 | The hold's lamp (`lamp`, `thrum.lamp`) | 60 found | his jar lit (`jar.lamp`): a glow in it and a light in the hold whose reach grows with every fragment found, past the jar's 24 (`lampReach`: 2.2 m + 0.035 a fragment, at most 9) |
+| 40 | Anselm's chart (`chart`, `thrum.chart`, issue #520) | 100 found | the Map marks each fragment still to find in the world you are in (below) |
+| 25 | The light's tune (`tune`, `thrum.tune`) | 150 found | *Play me the light's tune* in his talk: `thrum:tune`, the light's theme whole (`Sound.lightTheme`); the music page has had it under Tunes since issue #270 |
+
+The panel shows them after the upgrades, named by their own keys (`thrum.<id>.name`, his notebook's next page by its
+number), *Yours* once bought; he has a line for each (`THRUM_SHOP_LINES`). The engines draw them as the page's cards
+(engine/menus.js reads the panel's view), a fragment for their picture.
+
+## Anselm's chart (v1.86, issue #520)
+
+The author: "A later unlock with Anselm should be to give me a map of all the light fragments." Bought (40, once 100 are
+found: after every upgrade can be had, about four worlds' worth for a thorough player), the Map marks each fragment of the
+world you are in not found yet, a small pale splinter (`chartMarks(fragments, game)` in src/fragments.js; `mapMarks({
+fragments })` in src/world-map.js, kind `fragment`, after the rumours; the page's `.mk-fragment`, the engines'
+`MAP_MARKS.fragment`, drawn by BridgeMenu.cs at 0.7 × a mark). Taken ones are not shown. On the Worlds page a world
+whose fragments are all found says *✧ the song is quiet here* (`quiet`, only with the chart). Early on they are found by
+looking, by their song and by the finder; the chart is for clearing a world once its ways are known.
+
+## At the Lantern (v1.61, #229; v1.86, #481)
 
 When Ilen owns up to the light (`src/story/lantern-data.js`, the `light` node), one line answers the fragments by how
-many you picked up (`SPLINTERS`: none, some, every one; conditions over `fragmentCounts`): *Nobody stops for them* /
-*I can hear them from here, in your hold* / *Then it's whole again.*
+many you picked up (`SPLINTERS`: none, a few (under a third), many (a third to two thirds), most (over two thirds),
+every one; conditions over `fragmentCounts`, the thresholds never said): *Nobody stops for them* / *A few. I can hear
+them from here* / *a whole handful of my song* / *You kept nearly all of it* / *Then it's whole again.*
 
-## Where the count shows
+## The true ending counts them (v1.86, #481)
 
-- **The game menu's Worlds page**: over the cards, *Fragments of the singing light: 12 of 288*; on each world's card
-  *✧ 3 left* or *✧ all 24* (once the first is found).
-- **The Start menu** (Menu / Start): under where you are, *✧ 12 of 288 fragments of the singing light · 4 to spend · 3 left here* (`fragmentsLine` in main.js; *to spend* once Anselm is met).
-- **On the ship**: Anselm's count when you talk to him (found and held), his shop's wallet (held), and his jar (found).
+- **The credits** close on *You carried home 130 splinters of her song.* (`splinterLine` in src/story/ending.js; the
+  page's `.splinters`, the engines' `creditsPart(c).splinters`, drawn by BridgeHud.Credits.cs). A count, never of how many.
+- **His lamp**, if bought: at the stone Anselm carries it up and sets it in the round window (`tombLines` ctx `lamp`), and
+  after the true ending it stands under the round window by her lamp, its glow and its light's reach the share found
+  (src/levels/home-houses.js `splinters`).
+
+## Where the count shows (found, never of how many: v1.86, issue #519)
+
+The author: "I shouldn't be able to tell how many fragments of light there are in total." Internally the count stays
+24 a world (the data, the docs, the story bible and the tests keep it); nothing the player sees says it.
+- **The game menu's Worlds page**: over the cards, *✧ Fragments of the singing light: 12 found*; on each world's card
+  *✧ 5 found here* (once the first is found); with the chart, *✧ the song is quiet here* for a world all found (and its
+  fact ticked; never without the chart).
+- **The Start menu** (Menu / Start): under where you are, *✧ 12 fragments found · 4 to spend* (`fragmentsLine` in
+  src/host/game-host.js, the engines' save line too; *to spend* once Anselm is met).
+- **The Map**: *✧ Fragments of the singing light found here: 5* in its corner.
+- **On the ship**: Anselm's count when you talk to him (found and held, and his word for the world), his shop's wallet
+  (held), and his jar (found). The finder's beeps, the rumours and the jar never named a total.
 
 ## Tests
 
-- `tests/fragments.test.js`: the data and the prices (288 all told, 24 a world; the prices as they were, 96 for all seven, never later than the milestones), his count read from the total (and in words to thirty), the counts, a
+- `tests/fragments.test.js`: the data and the prices (288 all told, 24 a world; the prices as they were, 96 for all seven, never later than the milestones), his count with no total (v1.86: nowhere the player sees, the toast, the Worlds page, the Start menu, his talk), the wares past the upgrades (offered by the count found, a page at a time, the tune played), the chart's marks on the Map, Ilen's five steps, the credits' count and his lamp, the counts, a
   fragment taken (saved, gone, its light out), its song only near, the finder's beeps by distance and its switch, the
   meeting, his count and his shop (held against found, buying, the gear an upgrade needs, the panel with his lines),
   an old save's upgrades and what it holds, the upgrades' numbers, the menu, the migration, the people book, his place

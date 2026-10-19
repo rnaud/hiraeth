@@ -427,6 +427,8 @@ class Magnet {
     if (hit) { this.point.copy(hit.point); this.normal.copy(hit.normal); }
     else { this.normal.subVectors(hand, at).normalize(); this.point.copy(at).addScaledVector(this.normal, c.spot?.radius ?? 0.5); }
     this.held = c; this.state = 'pull'; this.t = 0; this.best = Infinity; this.since = 0;
+    // (what it pulled you to: a makers' small lock's iron disc answers it, src/boxes/locks.js)
+    this.ctx.game?.emit?.('magnet:pull', { object: c.spot?.object ?? null });
     reelTarget(this.point, this.normal, P.frame.up, this.goal);
     if (P.climbing) P.stopClimb?.(false);
     this._jumpHeld = true;

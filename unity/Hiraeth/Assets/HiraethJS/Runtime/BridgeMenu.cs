@@ -1142,7 +1142,7 @@ namespace Hiraeth.Bridge
         }
 
         /// <summary>A mark's side on the sheet, of the web's mark (engine/map-marks.js MAP_MARKS size).</summary>
-        static float MarkSize(string kind) => kind switch { "you" => 1.3f, "goal" => 1.6f, "giver" => 1.5f, "rumour" => 0.8f, _ => 1f };
+        static float MarkSize(string kind) => kind switch { "you" => 1.3f, "goal" => 1.6f, "giver" => 1.5f, "rumour" => 0.8f, "fragment" => 0.7f, _ => 1f };
 
         void DrawPerson(Dictionary<string, object> p, float x, float y, float w, float h)
         {

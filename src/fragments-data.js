@@ -372,5 +372,10 @@ export function fragmentCounts(flags = {}) {
     worlds[id] = { found: n, total: list.length, left: list.length - n, title: TITLES[id] ?? id };
     found += n;
   }
-  return { found, total: FRAGMENT_TOTAL, worlds };
+  // (`chart`: Anselm's chart bought, issue #520: the Map marks the fragments still to find, the Worlds page says when a
+  // world has gone quiet; the total itself is never shown to the player, issue #519)
+  return { found, total: FRAGMENT_TOTAL, worlds, chart: !!flags[CHART_FLAG] };
 }
+
+/** Anselm's chart (issue #520, src/fragment-shop.js): bought, the Map marks every fragment still hiding in the world. */
+export const CHART_FLAG = 'thrum.chart';

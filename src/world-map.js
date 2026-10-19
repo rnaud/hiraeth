@@ -19,6 +19,7 @@
 //                                 (n: rays across and down, or [across, down] for a map wider than tall)
 //   drawTerrain(ctx, grid, size)  ink and paper (a canvas 2D context; size: the short side, px)
 //   new WorldMap({ sample, size }) → .view(bounds) → { canvas, done, progress }; .pump(ms) (while the menu is open)
+//   mapMarks({ …, fragments })    with Anselm's chart (issue #520): each fragment still to find, kind 'fragment'
 //   mapMarks({ …, rumours })      the marks, and the rumours' circles (issue #340, src/story/rumours.js): kind 'rumour', at the
 //                                 circle's middle (never the thing's place), its radius across (ru) and down (rv) the map
 //   new MapView()                 the Map panel's view (issue #244): a cursor the left stick moves, zoomed in and out
@@ -329,7 +330,7 @@ export class WorldMap {
  * its height. The traveller first, then the way on, the other quests, the ship and the temples, then the people, the
  * boxes and the rumours, nearest first.
  */
-export function mapMarks({ you = null, ship = null, goal = null, quests = [], givers = [], temples = [], people = [], boxes = [], rumours = [], bounds }) {
+export function mapMarks({ you = null, ship = null, goal = null, quests = [], givers = [], temples = [], people = [], boxes = [], rumours = [], fragments = [], bounds }) {
   const far = (p) => (you ? Math.hypot(p.x - you.x, p.z - you.z) : 0);
   const sub = (p, what) => {
     if (!you) return what;
@@ -375,7 +376,10 @@ export function mapMarks({ you = null, ship = null, goal = null, quests = [], gi
     m.on = m.u + m.ru >= 0 && m.u - m.ru <= 1 && m.v + m.rv >= 0 && m.v - m.rv <= 1;
     rest.push(m);
   }
-  const rank = { goal: 0, giver: 1, quest: 1, ship: 2, temple: 3, person: 4, box: 5, rumour: 6 };
+  // (Anselm's chart, bought: every fragment of the singing light still hiding here, a small soft mark, issue #520; never
+  // one without it, and never one already found)
+  fragments.forEach((f, i) => { if (Number.isFinite(f?.x) && Number.isFinite(f?.z)) rest.push(mark(`fragment.${f.i ?? i}`, 'fragment', f, 'A fragment of the singing light', 'on Anselm’s chart')); });
+  const rank = { goal: 0, giver: 1, quest: 1, ship: 2, temple: 3, person: 4, box: 5, rumour: 6, fragment: 7 };
   rest.sort((a, b) => rank[a.kind] - rank[b.kind] || a.d - b.d);
   return [...out, ...rest];
 }

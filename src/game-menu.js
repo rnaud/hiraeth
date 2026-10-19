@@ -261,7 +261,8 @@ export function worldFacts(w) {
   const [rn, rm] = w.relics ?? [0, 0];
   if (rm) facts.push({ on: rn >= rm, text: t('gm.w.relics', { n: rn, m: rm }), list: (w.relicList ?? []).map((x) => (x.found ? x.name : '?')) });
   if (w.boxes) facts.push({ on: w.boxes[0] >= w.boxes[1], text: t('gm.w.boxes', { n: w.boxes[0], m: w.boxes[1] }) });
-  if (w.fragments) facts.push({ on: w.fragments[0] >= w.fragments[1], text: t('gm.fragments', { n: w.fragments[0], m: w.fragments[1] }) });
+  // (found here, never of how many, issue #519; ticked, "quiet", only with Anselm's chart, #520: `quiet`)
+  if (w.fragments) facts.push({ on: !!w.fragments.quiet, text: w.fragments.quiet ? t('gm.fragQuiet') : t('gm.fragHereLong', { n: w.fragments.found }) });
   if (w.people?.length) facts.push({ on: true, text: t('gm.w.people', { n: w.people.length }), list: w.people });
   return facts;
 }
@@ -284,10 +285,10 @@ export function worldsPanel(list = []) {
   const card = (w, i) => `<button class="wcard${w.current ? ' here' : ''}${w.told ? ' told' : ''}" ${cellAttrs(i, 0)}>
       <span class="pic">${w.thumb ? `<img src="${esc(w.thumb)}" alt="" onerror="this.remove()">` : ''}<b class="num">${w.n ?? i + 1}</b>${w.current ? `<em class="tag">${t('gm.hereTag')}</em>` : ''}</span>
       <span class="wtext"><span class="wname">${esc(w.title)}${w.travel ? `<em class="wtravel">${t('gm.travel')}</em>` : ''}</span>
-      <span class="wfacts"><span class="${w.told ? 'on' : ''}">${t(w.told ? 'gm.toldMark' : 'gm.notToldMark')}</span><span>◆ ${w.relics?.[0] ?? 0}/${w.relics?.[1] ?? 0}</span>${w.boxes ? `<span>▣ ${w.boxes[0]}/${w.boxes[1]}</span>` : ''}${w.fragments ? `<span class="frag" title="${esc(t('gm.fragments', { n: w.fragments[0], m: w.fragments[1] }))}">${w.fragments[0] >= w.fragments[1] ? t('gm.fragAll', { n: w.fragments[1] }) : t('gm.fragLeft', { n: w.fragments[1] - w.fragments[0] })}</span>` : ''}</span>
+      <span class="wfacts"><span class="${w.told ? 'on' : ''}">${t(w.told ? 'gm.toldMark' : 'gm.notToldMark')}</span><span>◆ ${w.relics?.[0] ?? 0}/${w.relics?.[1] ?? 0}</span>${w.boxes ? `<span>▣ ${w.boxes[0]}/${w.boxes[1]}</span>` : ''}${w.fragments ? `<span class="frag">${w.fragments.quiet ? t('gm.fragQuiet') : t('gm.fragHere', { n: w.fragments.found })}</span>` : ''}</span>
       <span class="wblurb">${esc(w.blurb ?? '')}</span></span></button>`;
   // (the fragments of the singing light, all told, once the first is found: worldsData's `fragmentsAll`)
-  const all = list.fragmentsAll?.found ? `<p class="gm-fragments">${t('gm.fragments', { n: list.fragmentsAll.found, m: list.fragmentsAll.total })}</p>` : '';
+  const all = list.fragmentsAll?.found ? `<p class="gm-fragments">${t('gm.fragments', { n: list.fragmentsAll.found })}</p>` : '';
   const html = `${all}<div class="gm-worlds">${list.map(card).join('') || `<p class="none">${t('gm.noWorlds')}</p>`}</div>`;
   return { html, rows };
 }
@@ -347,6 +348,7 @@ const MARK_SYM = {
   goal: '<i>✦</i>', temple: '<svg viewBox="-10 -10 20 20" aria-hidden="true"><path d="M-8 8 V-1 L0 -8 L8 -1 V8 Z"/><path d="M-3 8 V2 H3 V8" fill="none"/></svg>',
   person: '<i>●</i>', box: '<i>▣</i>', quest: '<i>◇</i>', giver: '<i>◉</i>',   // (giver: someone with a quest for you, not met yet: issue #273)
   rumour: '<i>?</i>',   // (a rumour: in its soft circle, issue #340)
+  fragment: '<i>✧</i>',   // (a fragment of the singing light still to find: Anselm's chart, issue #520)
 };
 
 /**

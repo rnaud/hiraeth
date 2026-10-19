@@ -281,14 +281,16 @@ test('the nudges: a world\'s ping, not over a scene; one that waits comes once t
   setHintLevel('subtle');
 });
 
-test('the fragments\' line: nothing before the first, then found, to spend once Anselm is met, left here', () => {
+test('the fragments\' line: nothing before the first, then found, to spend once Anselm is met; never of how many (issue #519)', () => {
   const flags = {}, game = { data: { flags }, flag: (k) => flags[k] };
   const items = { has: () => false };
   const at = (found, left) => ({ counts: () => ({ found, total: 40, worlds: { desert: { left } } }) });
   assert.equal(fragmentsLine({ fragments: at(0, 3), game, items, levelId: 'desert' }), '');
-  assert.equal(fragmentsLine({ fragments: at(2, 1), game, items, levelId: 'desert' }), '✧ 2 of 40 fragments of the singing light · 1 left here');
+  assert.equal(fragmentsLine({ fragments: at(2, 1), game, items, levelId: 'desert' }), '✧ 2 fragments found');
+  assert.equal(fragmentsLine({ fragments: at(1, 1), game, items, levelId: 'desert' }), '✧ 1 fragment found');
   flags['frag.met'] = true;
-  assert.match(fragmentsLine({ fragments: at(2, 0), game, items, levelId: 'desert' }), /to spend · none left here$/);
+  assert.match(fragmentsLine({ fragments: at(2, 0), game, items, levelId: 'desert' }), /^✧ 2 fragments found · \d+ to spend$/);
+  assert.doesNotMatch(fragmentsLine({ fragments: at(2, 0), game, items, levelId: 'desert' }), /40|left/);
   assert.equal(fragmentsLine({ fragments: null, game, items, levelId: 'desert' }), '');
 });
 

@@ -44,7 +44,7 @@ for (const id of ORDER) {
     if (C) {
       const court = level.finds?.courts?.[part];
       assert.ok(court, `${part}: the court is built`);
-      assert.equal(court.gadget, C.gadget);
+      assert.equal(court.needs, C.needs ?? C.gadget);
       const [x, y, z] = court.box.at;
       const g = physics.groundAt(x, y + 1.5, z, 4);
       assert.ok(Math.abs(g - y) < 0.2, `the box stands on the pavement (${g.toFixed(2)} vs ${y.toFixed(2)})`);

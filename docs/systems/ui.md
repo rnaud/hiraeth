@@ -596,8 +596,9 @@ of the menu does. Code: `src/world-map.js` (the ground and the marks, pure but f
   found yet (v1.76, issue #340, `rumours`: a soft plum circle on the map's plane, `.gm-area`, round where the thing
   should be but never centred on it, a small ? with the rumour's short name under it: docs/systems/story.md,
   "Rumours"). Something inside a temple's or a shop's room (built far from the ground) is drawn at its door
-  (`mapAt`). Never a fragment of the singing light itself, nor a box still closed. No name is written on the map at
-  rest but a rumour's.
+  (`mapAt`). Never a fragment of the singing light itself (unless Anselm's chart is bought: v1.86, issue #520, a small
+  ✧ for each still hiding in the world, kind `fragment`, src/fragments.js `chartMarks`; docs/systems/fragments.md), nor
+  a box still closed. No name is written on the map at rest but a rumour's.
 - **No list; a cursor, a zoom** (v1.65, issue #244: "using the left stick should move around the map. There should
   be no list under it. I should be able to zoom in and out ... Hovering over an item tells me what it is"): the map is
   the whole sheet. `MapView` (src/world-map.js) holds a cursor (a small ink ring, gold over a mark) and a zoom, 1 to
@@ -615,7 +616,7 @@ of the menu does. Code: `src/world-map.js` (the ground and the marks, pure but f
   (`detailWindow`: half as wide again as the view, on a grid of a quarter view; `mapSource({ detail })` →
   `detail: { canvas, u0, v0, s }`, laid over the whole map's canvas; the last `MAP.keep` kept). Each opening of the
   menu starts on the whole map, the cursor on the traveller. The fragments found here are counted in a corner once
-  the first is found (as the Worlds panel does).
+  the first is found (as the Worlds panel does: how many found, never of how many, issue #519).
 - **The data** stays as it was for an engine's menus (engine/menus.js reuses `mapPanel`): `mapPanel(data)` still
   returns `{ html, rows }` with a row a mark (`act: 'zoom'`) and takes `zoom` (a mark's id) as before; new and
   optional are `data.span` (m across the whole map), `data.detail`, `data.aspect` (its width over its height,

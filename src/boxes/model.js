@@ -550,6 +550,16 @@ function spliceModel() {
   g.rotation.z = 0.25;
   return g;
 }
+function sandglassModel() {
+  // a twist of paper, open at the top, a heap of pale sand in it, a few grains falling slowly
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.ConeGeometry(0.07, 0.16, 10, 1, true).rotateX(Math.PI), flatM('#efe2c4')));
+  g.add(new THREE.Mesh(new THREE.SphereGeometry(0.058, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2).translate(0, 0.075, 0), flatM('#e2b85c', { glow: 0.2 })));
+  for (let i = 0; i < 3; i++) g.add(new THREE.Mesh(new THREE.SphereGeometry(0.009, 6, 4).translate(0.02 * (i - 1), 0.13 + i * 0.03, 0.01), flatM('#f2d48a', { glow: 0.5 })));
+  g.add(new THREE.Mesh(new THREE.TorusGeometry(0.068, 0.006, 4, 20).rotateX(Math.PI / 2).translate(0, 0.08, 0), flatM('#2f8f9a')));
+  g.rotation.set(0.2, 0.4, 0.15);
+  return g;
+}
 function sunglassModel() {
   // a round pocket mirror in a brass rim, a short handle, the glass catching the light
   const g = new THREE.Group();
@@ -615,7 +625,7 @@ const MODELS = {
   bloom: bloomModel, echo: echoModel, level: levelModel,
   soles: solesModel, hush: hushModel, shell: shellModel, moss: mossModel, pouch: pouchModel, scarf: scarfModel, reed: reedModel, resin: resinModel, cabpass: passModel,
   tongs: tongsModel, tether: tetherModel, horn: hornModel, pearl: pearlModel, bellows: bellowsModel, starthread: starthreadModel,
-  divercap: capModel, founderspin: pinModel, courierribbon: ribbonModel, floatbead: floatbeadModel, keeper: keeperModel, splice: spliceModel, sunglass: sunglassModel,
+  divercap: capModel, founderspin: pinModel, courierribbon: ribbonModel, floatbead: floatbeadModel, keeper: keeperModel, splice: spliceModel, sunglass: sunglassModel, sandglass: sandglassModel,
 };
 
 /** An item's model from elsewhere (the gadgets bring their own: src/gadgets/registry.js). */

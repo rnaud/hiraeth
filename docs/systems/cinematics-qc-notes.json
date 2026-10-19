@@ -471,6 +471,11 @@
    "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. No problem found.",
    "updated": "2026-10-18T16:00:00.000Z"
   },
+  "box.bazaar.court": {
+   "verdict": "Not reviewed",
+   "text": "New in v1.86 (issue #518): the Signal Market's court box, behind its alcove's gate as the other yards'. Not through a QC pass yet.",
+   "updated": "2026-10-19T09:00:00.000Z"
+  },
   "box.moonfoundry.court": {
    "verdict": "Pass",
    "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. The yards' boxes open from inside their alcove now (#292 fixed): no bars, no blank frame",

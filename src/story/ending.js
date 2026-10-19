@@ -365,6 +365,8 @@ export function tombLines(tokens = [], ctx = {}) {
     }
     lines.push(S('~solemn~ (Ilen kneels and sets something small on the slab: the recording that reached her.)', { token: ILEN_TOKEN, ilen: true }));
     lines.push(IL('~solemn~ Your message came the whole way, Dad. I kept it.'));
+    // (Anselm's lamp, bought for fragments: carried out and set in the round window, its glow the count's: issue #481)
+    if (ctx.lamp) lines.push(S('~solemn~ (Anselm carries his lamp up from the ship and sets it in the round window. Every splinter you found glows in it.)', { lamp: true }));
     lines.push(...ilenOnChoices(ch));
     lines.push(YOU('~whisper~ It isn’t what you asked for. It’s what we have.'));
     if (ctx.lou) {
@@ -440,7 +442,7 @@ function peopleOfPart(world) {
  * @param o { order, titles: { id: level title }, storyTitles: { id: story title }, flag(k), keepsake (ALL, or an older save's), tokens (tokenList) }
  * @returns { title, worlds: [{ id, title, story, done, people: [{ name, title, met }] }], home: [lines], keepsake, tokens: [names] }
  */
-export function credits({ order = Object.keys(WORLD_DATA), titles = {}, storyTitles = {}, flag = () => undefined, keepsake = null, tokens = [] } = {}) {
+export function credits({ order = Object.keys(WORLD_DATA), titles = {}, storyTitles = {}, flag = () => undefined, keepsake = null, tokens = [], splinters = 0 } = {}) {
   const worlds = order.filter((id) => WORLD_DATA[id]).map((id) => ({
     id, title: titles[id] ?? id, story: storyTitles[id] ?? '', done: !!flag(`world.${id}.done`),
     people: peopleOf(id).map((p) => ({ ...p, met: !!flag(`met.${p.id}`) })),
@@ -451,8 +453,14 @@ export function credits({ order = Object.keys(WORLD_DATA), titles = {}, storyTit
   home.push('Lou, who drew every world, and Aunt Tove, and Moustache, in the small house');
   if (flag('ending.final') || flag('finale.met')) home.push('and Ilen, who heard him, and answered, and came home');
   else if (flag('calls.ilen.told')) home.push('and Ilen, wherever she is');
-  return { title: 'SOMETHING OF VALUE', worlds, home, keepsake, tokens: tokens.map((t) => t.name) };
+  return { title: 'SOMETHING OF VALUE', worlds, home, keepsake, tokens: tokens.map((t) => t.name), splinters };
 }
+
+/**
+ * The count the true ending's credits carry (issue #481: "the ending never counts them"): how many fragments of the
+ * singing light were found, never of how many (issue #519). '' for none.
+ */
+export const splinterLine = (n) => (n > 0 ? `You carried home ${n === 1 ? 'one splinter' : `${n} splinters`} of her song.` : '');
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -470,6 +478,7 @@ export function creditLines(c) {
   out.push(`At home: ${c.home.join('; ')}`);
   if (c.tokens?.length) out.push(`Left on the stone: ${c.tokens.join(', ')}`);
   else if (c.keepsake && c.keepsake.id !== 'all') out.push(`Brought home: ${c.keepsake.name}`);
+  if (splinterLine(c.splinters)) out.push(splinterLine(c.splinters));
   out.push('The ship is ready whenever you are.');
   return out;
 }
@@ -488,6 +497,7 @@ export function creditsHtml(c) {
     <section class="home"><h3>At home</h3><ul>${c.home.map((h) => `<li class="met"><b>${esc(h)}</b></li>`).join('')}</ul></section>
     ${c.tokens?.length ? `<section class="stone"><h3>Left on the stone</h3><ul>${c.tokens.map((n) => `<li class="met">${esc(n)}</li>`).join('')}</ul></section>`
     : c.keepsake && c.keepsake.id !== 'all' ? `<p class="brought">Brought home: <b>${esc(c.keepsake.name)}</b>${c.keepsake.kind && c.keepsake.kind !== 'nothing' ? ` <i>(${esc(KIND_LABEL[c.keepsake.kind] ?? c.keepsake.kind)})</i>` : ''}</p>` : ''}
+    ${splinterLine(c.splinters) ? `<p class="splinters">${esc(splinterLine(c.splinters))}</p>` : ''}
     <p class="end">The ship is ready whenever you are.</p>
   </div>`;
 }

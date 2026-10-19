@@ -582,30 +582,57 @@ gadget on arrival.
 
 ## In the worlds: the makers' courts (v0.98, `src/finds/courts.js`)
 
-Since v1.80 (issues #375, #377: docs/design/gadget-temples.md) no court's box holds a gadget: the gadgets are earned in
-the temples, and each court's box holds what that temple gave before (the whistle, the lantern, the bellows, the coil, the
-fourth chamber, the glyph lens), or no box stands (Vael II, the City-Shaft, the Glass Dunes, the Signal Market). The
-court and its bay stay, the gadget's own puzzle for when you have it. Before, one gadget in each route world after the
-desert, in the route's order, each in a makers' box at the front of a **makers' court**: a slab of the makers' pale stone (`COURT`: 21 × 24.5 m, a blue band inlaid round it, the glyph
-by the box, a skirt down into the ground) carrying that gadget's own Yard bay (its `yard(kit)`, the banner and
-statue left out, the bomb bay's pen of blots too). So the tool is useful the moment it is found, and the bay's
-pots of ink and its gate are the reward for using it.
+**Since v1.86** (issue #518, the author: "Little chests should always be a rewards for puzzles completion. And I should
+have all the tools available at that moment in the game to open them"): every court is a puzzle of a tool you have when
+you reach its world (`needs`, an item: earned there or in a world before it in the route's order), and its box waits
+behind what that puzzle opens (`boxAt`, the court's frame: the alcove behind a gate, `alcove()`, or the Garden's far
+tower). The new bays (`BAYS`) open their gate for good once solved (`latch`), so nobody is shut in with the box: a
+plate up a climb that stays down once pressed (`latch` on the plate), every one of several plates (`all`), or makers'
+seals (`kit.seal`: a disc on a post whose eye lights when the right thing hits it, `test(mode, info)`, and goes dark
+again after `hold` s; the gate's `when()` asks them). `tests/little-chests.test.js` checks the rule over every world on
+the route, builds each court and drives the new gates.
 
-| World | The court's bay | Its box since v1.80 | The gadget is earned in |
+| World | The court's bay (since v1.86) | Its box | The tool, earned in |
 |---|---|---|---|
-| Vael | grappling hook | the bell-note whistle | the Founders' Belfry (Vael II) |
-| Vael II | spring boots | none | the Whale-House (the Underwater City) |
-| Lorn | gust fan | the Warden's bellows | the Warden's Well (the City-Shaft) |
-| Lorn II | boomerang | the quick coil | the Clock-House (the Glass Dunes) |
-| Viridel | bubble wand | the lantern charm | the Lamp-House (Lorn II) |
-| City-Shaft | ink bridge pen | none | the Warden's Well's Ash Store |
-| Glass Dunes | magnet glove | none | the Casting-House (the Moon Foundry) |
-| Buried Machine | seeing lens | the glyph lens | the Footprint (the Garden of Spheres) |
-| Garden of Spheres | ink bombs | the fourth chamber | the Engine-House (the Buried Machine) |
-| Signal Market | recall hourglass | none | the Undertower (the Signal Market) |
-| Underwater City (v1.48) | bubble wand, already yours: the divers' court, a dome of its own off the Plaza | float a crate over the pit's wall onto its plate |
-| Moon Foundry (v1.48) | magnet glove, already yours: the founders' yard on the apron | lift the iron crate out of its cage, set it in the pit |
-| City Floating in Space (v1.48) | grappling hook, already yours: the moorers' yard on the Yard, an island west of the Gate | reel the crate off its pillar, push it onto the plate |
+| Vael | `ringers`: two pull-rings on sheer posts, 6 m up: tug both with the hook | the bell-note whistle | the hook, the Founders' Belfry (Vael) |
+| Vael's sky stones | `riders`: a 10.5 m tower to climb, 15 m off a sheer 6.5 m pillar with a plate on its cap: glide to it (it was the spring boots' bay, four worlds on, with no box) | the wind-silk scarf (from the balanced stack's top) | the wings, the Aerie (Vael) |
+| Lorn | `hush`: jaws over the alcove's gate, their eye on the lintel: still them (the gust fan's, four worlds on, before) | the Warden's bellows | the stilling mode, the Hush-House (Lorn) |
+| Lorn's Deep Wood | `lamps`: two sheer 6.2 m poles, a plate on each cap: float up to both in a bubble (the boomerang's, three worlds on, before) | the quick coil | the bubble wand, the Lamp-House (Lorn) |
+| Viridel | the bubble wand's Yard bay: a crate floated onto the ledge's plate; the box in the bay's own alcove (it stood at the front edge) | the lantern charm | the bubble wand (Lorn) |
+| City-Shaft | `span`: a 6 m tower to climb, 11 m off a sheer one as tall with a plate on its cap: draw a bridge (the pen's bay had no box) | the soft-fall soles (from the rim pillar's top) | the ink bridge pen, the Warden's Well (the City-Shaft) |
+| Glass Dunes | `clock`: three eyes on posts, each shut 3 s after it is struck: wake all three in one throw of the boomerang (the magnet glove's, two worlds on, with no box, before) | the brass level (from the glass mound's top) | the boomerang, the Clock-House (the Glass Dunes) |
+| Buried Machine | the ink bombs' Yard bay (swapped with the Garden's): the box in the alcove behind its cracked wall | the glyph lens | the ink bombs, the Engine-House (the Buried Machine) |
+| Garden of Spheres | `glass` (the seeing lens's, swapped with the Buried Machine's): two 6 m towers, a plank bridge that is a lie, the true path of glass only the lens holds up; the box on the far tower, which can't be climbed | the fourth chamber | the seeing lens, the Footprint (the Garden) |
+| Signal Market | `sand`: a crate at the lip of a sheer 6.5 m ledge, a plate at its back: knock it down, ride it back up with the recall hourglass (no box before) | the pinch of slow sand, a new charm: the hourglass reaches 48 m instead of 32 (`CHARM_TUNES.sandglass`) | the recall hourglass, the Undertower (the Signal Market) |
+| Underwater City (v1.48) | `divers`: float a crate over the pit's wall onto its plate | the float-bead | the bubble wand (Lorn) |
+| Moon Foundry (v1.48) | `founders`: lift the iron crate out of its cage, set it in the pit | the founders' keeper | the magnet glove (the Moon Foundry) |
+| City Floating in Space (v1.48) | `moorers`: reel the crate off its pillar, push it onto the plate | the moorer's splice | the hook (Vael) |
+
+From v1.80 (issues #375, #377: docs/design/gadget-temples.md) to v1.85 no court's box held a gadget, and most stood at
+the court's front edge, ungated, beside a bay for a gadget earned worlds later (or no box stood: Vael II, the City-Shaft,
+the Glass Dunes, the Signal Market). Before v1.80, one gadget in each route world after the desert, in the route's order,
+each in a makers' box at the front of a **makers' court**: a slab of the makers' pale stone (`COURT`: 21 × 24.5 m, a blue
+band inlaid round it, the glyph by the box, a skirt down into the ground) carrying that gadget's own Yard bay (its
+`yard(kit)`, the banner and statue left out, the bomb bay's pen of blots too).
+
+**The small locks** (v1.86, issue #518, src/boxes/locks.js): the little chests out on climbs (a spire's cap, a roof, a
+tree's canopy) were gifts for the climb alone; each now has a small lock beside it that one tool answers, a tool you have
+by then (`lock: { tool }` on its placement; shut and quiet till then, its `sealed` line on E; `lock.<box id>` saved once
+answered; the climbs' tops whose chest moved into a court are left as they are: a fragment there must stand on ground
+the walker's flood reaches, docs/systems/fragments.md, and a climb-only top isn't):
+
+| Chest | World | The lock | The tool |
+|---|---|---|---|
+| `desert.star` | the Desert | two iron braziers either side, lit with ember | ember (the gun, the Givers' Hearth) |
+| `arzach.hush` | Vael | two pull-rings on posts, tugged with the hook | the hook |
+| `perdide.reed` | Lorn | a dark lamp on a sheer 6.2 m pole beside it: float up to it | the bubble wand |
+| `perdide2.moss` | Lorn | stone jaws snapping over its lid: a stilling glob holds them open | the stilling mode |
+| `edena.pouch` | Viridel | a budded seal in front of it: a bloom glob opens it | bloom |
+| `underwater.pearl` | the Underwater City | a plate in front of it: stomp it | the spring boots |
+| `buried.resin` | the Buried Machine | a cracked stone cap over it: an ink bomb's blast (`gadget:blast`) | the ink bombs |
+| `moonfoundry.bellows` | the Moon Foundry | an iron disc on a post: the glove pulls you to it (`magnet:pull`) | the magnet glove |
+| `spheres.shell` | the Garden of Spheres | the chest itself shows only through the lens (its writing read: `lens.read.lock.<id>`), and stays once seen | the seeing lens |
+| `spacecity.starthread` | the Floating city | a ring on a post, pulled with the tether | tether mode |
 
 - **The three worlds of v1.40** (v1.48, issue #101): their temples bring new tools, so their courts are of a gadget
   found worlds before, with a bay of their own (`bay`: `BAYS` in src/finds/courts.js, the Yard's pieces in another

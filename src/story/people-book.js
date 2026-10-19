@@ -197,6 +197,17 @@ export const BOOK = {
       [f('item.lightwing'), 'For eighteen he threaded light through your wings.'],
       [f('item.lightstep'), 'For twenty-three he set them in your boot heels.'],
       [f('item.lightguard'), 'For thirty he ringed your guard.'],
+      // (his notebook, bought a page at a time for five fragments each, a page for every twenty found: v1.86, issue #481,
+      // src/fragment-shop.js THRUM_WARES. He never learns what the light was: only Ilen says that)
+      [f('thrum.page.1'), 'His notebook, page one: he was a lamp-grinder’s boy who ground lenses for lighthouses, and kept the bad ones to look at the sky through.'],
+      [f('thrum.page.2'), 'Page two: the night the light went over, every lens in his workshop rang at once, the same note, and three of them cracked.'],
+      [f('thrum.page.3'), 'Page three: he built the ticking box from the cracked ones. It ticks faster near a splinter. He followed it out of his town and never went back.'],
+      [f('thrum.page.4'), 'Page four: he thinks the light is looking for someone. He has crossed out every guess at who.'],
+      [f('thrum.page.5'), 'Page five: a list of every place he has heard one ring, most of them crossed out, yours ticked.'],
+      [f('thrum.page.6'), 'The last page: he will never know what it was. He writes that he doesn’t mind. Someone heard it, and that was enough.'],
+      [f('thrum.lamp'), 'He made his jar a lamp. It lights the hold, a little brighter with every fragment you bring.'],
+      [f('thrum.chart'), 'He sold you his chart of where they ring. Your Map marks them now.'],
+      [f('thrum.tune'), 'He worked the light’s whole tune into his box, and plays it when you ask.'],
     ], ['In your ship’s hold, by the crates, with his jar of fragments.']),
   ],
   arzach: [

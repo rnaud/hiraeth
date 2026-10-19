@@ -19,7 +19,7 @@ test('picks entries by id, prefix and group from the review page\'s list', () =>
   assert.deepEqual(pickEntries(CINEMATICS, { only: ['desert.flow'] }).map((e) => e.id), ['desert.flow']);
   assert.ok(pickEntries(CINEMATICS, { only: ['box.desert*'] }).every((e) => e.id.startsWith('box.desert')));
   // (a star anywhere: the yards' boxes, issue #292's `--only box.*.court`)
-  assert.deepEqual(pickEntries(CINEMATICS, { only: ['box.*.court'] }).map((e) => e.id).sort(), ['box.moonfoundry.court', 'box.spacecity.court', 'box.underwater.court']);
+  assert.deepEqual(pickEntries(CINEMATICS, { only: ['box.*.court'] }).map((e) => e.id).sort(), ['box.bazaar.court', 'box.moonfoundry.court', 'box.spacecity.court', 'box.underwater.court']);
   assert.equal(pickEntries(CINEMATICS, { group: 'World moments' }).length, CINEMATICS.filter((e) => e.group === 'World moments').length);
   assert.equal(pickEntries(CINEMATICS).length, CINEMATICS.filter((e) => !isDiscarded(e.world)).length, 'all but the discarded worlds\' (names.js DISCARDED)');
   assert.deepEqual(pickEntries(CINEMATICS, { only: ['arrival.mangrove'] }).map((e) => e.id), ['arrival.mangrove'], 'unless asked for by name');

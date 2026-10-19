@@ -11,8 +11,8 @@
 // Flags: frag.met (the first meeting had), frag.<world>.<i> (src/fragments-data.js), frag.finder.off; met.thrum,
 // talks.thrum (the panel's). Items: src/items.js FRAGMENT_ITEMS; what you hold: src/fragment-shop.js.
 
-import { fragmentCounts } from '../fragments-data.js';
-import { fragmentPurse, affordable } from '../fragment-shop.js';
+import { fragmentCounts, CHART_FLAG } from '../fragments-data.js';
+import { fragmentPurse, affordable, THRUM_WARES } from '../fragment-shop.js';
 import { TITLES } from '../levels/names.js';
 
 // (in words to thirty: a world's count is 24 since v1.70, issue #317; over that, figures)
@@ -40,6 +40,12 @@ export const THRUM_SHOP_LINES = {
   lightwing: ['~happy~ Done. Your wings fly faster and sink slower.'],
   lightstep: ['~neutral~ Done. You’ll run longer and get your breath back quicker.'],
   lightguard: ['~surprised~ Done. Blocking costs you half what it did.'],
+  // (his wares that aren't upgrades, v1.86, issue #481: src/fragment-shop.js THRUM_WARES)
+  wait: ['~playful~ I haven’t written the next page yet. Bring me more first.', '~neutral~ Still writing it. A few more fragments.'],
+  page: ['~playful~ There. Don’t read it while I’m watching.', '~neutral~ Another page. It’s mostly about the light.'],
+  lamp: ['~happy~ My jar, made a lamp. Every one you bring makes it brighter.'],
+  chart: ['~curious~ Where they ring, every one I’ve heard. Your Map has them now.'],
+  tune: ['~happy~ The whole tune, as the light sang it. Ask me and I’ll play it.'],
   bye: ['~happy~ Bring me more.', '~curious~ Keep an ear out. They hum when you’re close.'],
 };
 
@@ -57,17 +63,33 @@ export const THRUM = {
   lines: GREETING_LINES,
 };
 
-/** His count, in his words: how many found, how many to spend, and where most still hide (`here`: the world you are in). */
+/** What he says of the world you are in: a loose word for how much still sings here, never a number (issue #519). */
+export function hereLine(w, here) {
+  if (!w?.total) return null;
+  const share = w.left / w.total;
+  if (!w.left) return '~happy~ It’s gone quiet here. You’ve listened well.';
+  if (share > 0.5) return `~curious~ ${cap(inLine(here))} still sings loud.`;
+  return `~neutral~ A little singing left in ${inLine(here)}.`;
+}
+
+/**
+ * His count, in his words: how many found so far, how many to spend, and a loose word for the world you are in. Never
+ * how many there are, nor a list of where most are left (issue #519: "I shouldn't be able to tell how many fragments of
+ * light there are in total"). `here`: the world you are in.
+ */
 export function tallyLines(flags = {}, here = null, has = (id) => !!flags[`item.${id}`]) {
   const c = fragmentCounts(flags), { held } = fragmentPurse(flags, has);
-  const out = [`~neutral~ ${c.found ? cap(say(c.found)) : 'None'} of ${c.total}${c.found ? '' : ' yet'}${c.found >= c.total ? ', every one there is' : ''}. ${held ? `${cap(say(held))} to spend.` : 'None to spend.'}`];
-  const left = Object.entries(c.worlds).filter(([, w]) => w.left > 0);
+  const out = [`~neutral~ ${c.found ? `${cap(say(c.found))} so far.` : 'None yet.'} ${held ? `${cap(say(held))} to spend.` : 'None to spend.'}`];
   const hw = here && c.worlds[here];
-  if (hw) out.push(hw.left ? `~curious~ ${cap(say(hw.left))} still hide${hw.left === 1 ? 's' : ''} here, in ${inLine(here)}.` : `~happy~ None left here, in ${inLine(here)}. You’ve had them all.`);
-  const most = left.filter(([id]) => id !== here).sort((a, b) => b[1].left - a[1].left).slice(0, 3);
-  if (most.length) out.push(`~neutral~ Most left: ${most.map(([id, w]) => `${inLine(id)}, ${w.left}`).join('; ')}.`);
+  const h = hereLine(hw, here);
+  if (h) out.push(h);
+  // (his chart, offered once 100 are found: he says so the first time, issue #520)
+  if (chartNews(flags)) out.push('~curious~ I’ve been plotting where they ring. Want it? It’s on my shelf.');
   return out;
 }
+/** His chart is on his shelf and he hasn't said so yet (issue #520). */
+const chartNews = (flags) => !flags[CHART_FLAG] && !flags['thrum.chart.told'] && fragmentCounts(flags).found >= CHART_AFTER;
+const CHART_AFTER = THRUM_WARES.find((w) => w.id === 'chart').after;
 
 /**
  * His talk, built from the save each time it opens (src/story/scientist.js): the meeting if not had, else his count
@@ -101,11 +123,18 @@ export function thrumTalk(flags = {}, { here = null, has = (id) => !!flags[`item
     },
     // ---------------------------------------------------------------- aboard
     hello: {
+      ...(chartNews(flags) ? { do: { set: { 'thrum.chart.told': true } } } : {}),
       say: tallyLines(flags, here, has),
       choices: [
         { text: '~curious~ Show me what you have.', do: { emit: ['shop:open', { shop: 'thrum' }] }, end: true },
         { text: '~curious~ Where do they hide?', goto: 'where' },
+        // (the light's tune, bought: he plays it whole, aboard, issue #481; src/story/scientist.js plays it)
+        { text: '~happy~ Play me the light’s tune.', if: { flag: 'thrum.tune' }, goto: 'tune' },
       ],
+    },
+    tune: {
+      do: { emit: ['thrum:tune', {}] },
+      say: ['~happy~ (He turns a brass key on his box, and the light’s song comes out of it, whole.)'],
     },
     where: {
       say: ['~neutral~ Off the main paths: up high, behind things, at the dead ends.', '~playful~ Listen, too. They hum, quietly, when you’re near one.'],

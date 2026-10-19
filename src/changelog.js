@@ -84,6 +84,27 @@ export const CHANGELOG = [
           { where: 'the Kiln Yard: breaking tiles, never rolling', before: 4.5, after: 2.38 },
         ], source: '.claude/skills/combat-review/fight-temples.mjs; issue #533', note: 'The rolling bot steps into a lamp’s light or off the oil as it warns, but it chases the nearest foe back over burning ground; its Flooded Gallery run after was stuck on two crabs for a while in the dark.' }],
       see: 'In the Flooded Gallery, when the lamps flicker, walk into a lamp’s circle: the dark now gives you over a second to get there before it bites.' },
+    // issues #481, #519, #520: src/fragments.js (fragmentToast, chartMarks), src/host/game-host.js fragmentsLine, src/game-menu.js,
+    // src/game-menu-data.js, src/story/scientist-data.js tallyLines / hereLine; tests/fragments.test.js
+    { text: 'The game no longer tells you how many fragments of the singing light there are. Picking one up, the Worlds page, the Start menu and Anselm now say how many you have found, and Anselm tells you roughly how much still sings in the world you are in.',
+      see: 'Pick up a fragment: the note says how many you have found. Open the Worlds page or the Start menu (Menu / Start), or talk to Anselm in the hold: no count of how many there are anywhere.' },
+    // issues #481, #520: src/fragment-shop.js THRUM_WARES, src/story/scientist.js (the lamp, the tune), src/story/people-book.js,
+    // src/world-map.js (kind 'fragment'), engine/map-marks.js, BridgeMenu.cs; tests/fragments.test.js
+    { text: 'Anselm has more to sell once his upgrades are yours: his notebook, a page at a time, a lamp for the hold that grows brighter with every fragment, the light’s whole tune, and, once you have found a hundred, his chart: your Map then marks every fragment still hiding in the world you are in.',
+      see: 'With twenty fragments found, talk to Anselm in the hold and choose “Show me what you have”: his notebook’s first page is on his shelf. With a hundred, his chart; buy it and open the Map (Menu, then LB / RB to the Map): a small ✧ for each fragment still hiding there.' },
+    // issue #481: src/story/lantern-data.js SPLINTERS (none, few, many, most, all), src/story/ending.js (tombLines' lamp,
+    // credits' splinterLine), src/ship/homecoming.js, src/levels/home-houses.js, BridgeHud.Credits.cs; tests/fragments.test.js
+    { text: 'The ending now counts the fragments: Ilen answers in more steps for how many you brought, Anselm’s lamp goes in the round window at the true ending if you bought it, and the credits say how many splinters of her song you carried home.',
+      see: 'At the Lantern, Ilen speaks of the splinters in your hold by how many you found. At the true ending the credits close on how many you carried home, and with his lamp bought it glows under the round window.' },
+    // issue #518: src/finds/courts.js (COURTS needs / boxAt, BAYS ringers, riders, hush, lamps, span, clock, glass, sand),
+    // src/gadgets/yard-kit.js (seal, gate all / when / latch), src/gadgets/world.js, src/boxes/placements.js; tests/little-chests.test.js
+    { text: 'Every makers’ court’s chest now waits behind a gate its puzzle opens, and every court’s puzzle uses a tool you already have when you reach that world. Four courts that had no chest now have one, among them a new charm in the Signal Market that lets the recall hourglass reach further.',
+      see: 'In Lorn, go to the makers’ court east of the landing: the chest sits behind jaws over a gate; still them with the stilling mode. In Vael, tug the two rings high on the court’s posts with the hook.' },
+    // issue #518: src/boxes/locks.js, src/boxes/index.js (ready, sealed), src/gadgets/magnet.js (magnet:pull); tests/little-chests.test.js
+    { text: 'The little chests on high places now have a small lock beside them that one of your tools opens: braziers to light with ember, rings to tug with the hook, jaws to still, a bud to bloom, a plate to stomp, a cracked cap to blast, an iron disc for the magnet glove, a ring for the tether, a lamp to float up to, and one chest only the seeing lens can show.',
+      see: 'Climb to the roof just inside Qanat’s main gate: the chest there sits between two cold braziers; light both with ember and it opens.' },
+    // issue #518: src/boxes/placements.js (incal.soles, arzach2.scarf, garage.level now court boxes, their ids kept)
+    'The soft-fall soles, the wind-silk scarf and the brass level are no longer on top of their climbs: they wait in the makers’ courts of the City-Shaft, Vael’s sky stones and the Glass Dunes.',
   ] },
   { v: '1.85', date: '2026-10-18', items: [
     // issue #474: src/music-moments.js (MUSIC_MODES, musicMode: Always the default), src/ui.js (musicMode, musicV: a saved

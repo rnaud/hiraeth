@@ -4,6 +4,7 @@ import { makeMaterial } from '../materials.js';
 import { gadgetById } from '../gadgets/registry.js';
 import { YardKit } from '../gadgets/yard-kit.js';
 import { shiftAt, offsetOf } from '../levels/names.js';
+import { ghostPath, ghostBridge } from '../gadgets/hidden.js';
 
 // The makers' courts (docs/systems/gadgets.md, "In the worlds"): one in each route world after the desert,
 // a paved square of the makers' pale stone where a box holds a gadget, and round it the very things that
@@ -29,42 +30,166 @@ import { shiftAt, offsetOf } from '../levels/names.js';
 // is hit `level.targets`, the lanterns `level.flammables`. The box stands at the court's front, facing the
 // way you come (src/boxes/placements.js, `site: courtBox`).
 //
-// Each court: { gadget, at: [x, z], y: the ground's top there (the pavement sits on it), toward: [x, z] (the
-// court's front faces it; default the spawn) }, in its part's own coordinates (a merged world moves a part's:
+// v1.86 (issue #518, the author: "Little chests should always be a rewards for puzzles completion. And I should have all
+// the tools available at that moment in the game to open them"): #375 had left most courts' boxes at their front edge,
+// ungated, beside a bay for a gadget earned worlds later, and four bays with no box. Now every court is a puzzle of a
+// tool you have when you reach its world (`needs`: an item; the route's order checks it, tests/boxes.test.js), and its
+// box waits behind what that puzzle opens (`boxAt`): Vael's two pull-rings for the hook and its sky stones' glide for the
+// wings, Lorn's jaws for the stilling and its Deep Wood's poles for the bubble wand, Viridel's ledge plate, the
+// City-Shaft's span for the bridge pen, the Glass Dunes' three eyes in one throw of the boomerang, the Buried Machine's
+// cracked wall for the bombs and the Garden's glass path for the seeing lens (the two swapped bays), the Signal Market's
+// ledge for the recall hourglass.
+//
+// Each court: { needs, gadget, at: [x, z], y: the ground's top there (the pavement sits on it), toward: [x, z] (the
+// court's front faces it; default the spawn), bay (BAYS: a bay of its own), boxAt (the box, in the court's frame) },
+// in its part's own coordinates (a merged world moves a part's:
 // courtOf, src/levels/names.js PART_OFFSET); keyed by the part (the old world) it was made for, the Sealed
 // Hangar's by the Glass Dunes, where it went with the First Garage. The box's hint and note are its
 // placement's (placements.js).
 
+/** The box in the alcove behind a bay's gate (alcove below), in the court's frame. */
+const ALCOVE = [-5, 0, -7.4];
 export const COURTS = {
-  arzach: { gadget: 'hook', at: [-124, -16], y: 23.1 },
-  arzach2: { gadget: 'springs', at: [-22, -60], y: 40.8, toward: [0, 22] },   // (facing the plateau's old landing: the ship comes down on Vael's plain now)
-  perdide: { gadget: 'fan', at: [80, 8], y: 2.3 },
-  perdide2: { gadget: 'boomerang', at: [86, -136], y: 0.6, toward: [0, 0] },   // (facing the Deep Wood's way in, its island)
-  edena: { gadget: 'bubble', at: [-70, -64], y: 0 },
-  incal: { gadget: 'bridge', at: [362, 10], y: 200 },
-  // (the Sealed Hangar's, at [-86, 120] on its plain until October 2026: it went to the Glass Dunes with the First Garage)
-  glassdunes: { gadget: 'magnet', at: [60, -140], y: null, toward: [10, -60] },
-  buried: { gadget: 'monocle', at: [-200, 12], y: 3 },
-  spheres: { gadget: 'bomb', at: [-58, -70], y: 1.1 },
-  bazaar: { gadget: 'recall', at: [86, 66], y: 0 },
+  // (v1.86, issue #518: two pull-rings high on sheer posts, tugged with the hook (Vael's Founders' Belfry))
+  arzach: { needs: 'hook', gadget: 'hook', at: [-124, -16], y: 23.1, bay: 'ringers', boxAt: ALCOVE },
+  // (the spring boots' bay until v1.86, the boots four worlds on; the wings', Vael's Aerie's, now: a glide to a sheer pillar)
+  arzach2: { needs: 'glider', at: [-22, -60], y: 40.8, toward: [0, 22], bay: 'riders', boxAt: ALCOVE },   // (facing the plateau's old landing: the ship comes down on Vael's plain now)
+  // (the gust fan's until v1.86, the fan four worlds on; the stilling's, the Hush-House's, now: jaws across the alcove)
+  perdide: { needs: 'stun', at: [80, 8], y: 2.3, bay: 'hush', boxAt: ALCOVE },
+  // (the boomerang's until v1.86, three worlds on; the bubble wand's, the Lamp-House's, now: two lamps on sheer poles)
+  perdide2: { needs: 'bubble', gadget: 'bubble', at: [86, -136], y: 0.6, toward: [0, 0], bay: 'lamps', boxAt: ALCOVE },   // (facing the Deep Wood's way in, its island)
+  // (the bubble wand's own Yard bay: its box in the bay's alcove, behind the gate the ledge's plate opens)
+  edena: { needs: 'bubble', gadget: 'bubble', at: [-70, -64], y: 0, boxAt: [2.5, 0, -8.1] },
+  incal: { needs: 'bridge', gadget: 'bridge', at: [362, 10], y: 200, bay: 'span', boxAt: ALCOVE },
+  // (the Sealed Hangar's, at [-86, 120] on its plain until October 2026: it went to the Glass Dunes with the First Garage;
+  // the magnet glove's until v1.86, the glove two worlds on; the boomerang's, the Clock-House's, now)
+  glassdunes: { needs: 'boomerang', gadget: 'boomerang', at: [60, -140], y: null, toward: [10, -60], bay: 'clock', boxAt: ALCOVE },
+  // (the seeing lens's until v1.86, the lens two worlds on: swapped with the Garden's; the ink bombs' Yard bay now, the
+  // Engine-House's, its box in the alcove behind the cracked wall)
+  buried: { needs: 'bomb', gadget: 'bomb', at: [-200, 12], y: 3, boxAt: [-2.6, 0, -7.9] },
+  // (the bombs' until v1.86; the seeing lens's now, the Footprint's: its box on the far tower, over the glass path)
+  spheres: { needs: 'monocle', gadget: 'monocle', at: [-58, -70], y: 1.1, bay: 'glass', boxAt: [6.5, 6, -6] },
+  // (a box at last, v1.86: a crate on a sheer ledge, knocked down and sent back up with the recall hourglass)
+  bazaar: { needs: 'recall', gadget: 'recall', at: [86, 66], y: 0, bay: 'sand', boxAt: ALCOVE },
   // (v1.48, issue #101: the three of v1.40, a gadget you have by then, a bay of their own and the box behind its gate)
-  underwater: { gadget: 'bubble', at: [-90, -108], y: 0, toward: [-60, -108], bay: 'divers', boxAt: [-5, 0, -7.4] },   // (its own dome west of the Plaza, the tube's door east)
-  moonfoundry: { gadget: 'magnet', at: [-56, 86], y: null, toward: [0, 94], bay: 'founders', boxAt: [-5, 0, -7.4] },   // (on the apron west of the way in)
-  spacecity: { gadget: 'hook', at: [-77, 30], y: 0, toward: [-40, 30], bay: 'moorers', boxAt: [-5, 0, -7.4] },   // (the Yard, its island west of the Gate)
+  underwater: { needs: 'bubble', gadget: 'bubble', at: [-90, -108], y: 0, toward: [-60, -108], bay: 'divers', boxAt: ALCOVE },   // (its own dome west of the Plaza, the tube's door east)
+  moonfoundry: { needs: 'magnet', gadget: 'magnet', at: [-56, 86], y: null, toward: [0, 94], bay: 'founders', boxAt: ALCOVE },   // (on the apron west of the way in)
+  spacecity: { needs: 'hook', gadget: 'hook', at: [-77, 30], y: 0, toward: [-40, 30], bay: 'moorers', boxAt: ALCOVE },   // (the Yard, its island west of the Gate)
 };
 
 /**
  * The bays of the courts whose gadget you already have (`bay`): the same pieces as a Yard bay (src/gadgets/yard-kit.js),
  * another puzzle, and an alcove at the back whose gate the puzzle holds open, the box inside it (`boxAt`).
  */
-function alcove(kit, plates) {
-  // walls either side, a roof, a back wall; its gate across the front, open while any of `plates` is pressed
+function alcove(kit, plates, gate = {}) {
+  // walls either side, a roof, a back wall; its gate across the front, open while any of `plates` is pressed (or as
+  // `gate` says: every plate, `all`; something else, `when()`; for good once open, `latch`: src/gadgets/yard-kit.js)
   kit.block([0.6, 2.8, 3.6], [-7.3, 1.4, -7.4]); kit.block([0.6, 2.8, 3.6], [-2.7, 1.4, -7.4]); kit.block([5.2, 0.4, 3.6], [-5, 3, -7.4]);
   kit.block([5.2, 2.8, 0.6], [-5, 1.4, -9.5]);
   kit.lamp([-3.4, 3.2, -6]);
-  kit.gate([4, 2.6, 0.25], [-5, 1.3, -5.45], { plates });
+  kit.gate([4, 2.6, 0.25], [-5, 1.3, -5.45], { plates, ...gate });
 }
+/** A block nobody can climb (src/physics.js: baked noClimb): the courts' sheer pillars. */
+const sheer = (kit, size, c, o = {}) => { const m = kit.block(size, c, { mat: 'pale', ...o }); m.userData.noClimb = true; return m; };
+/** A plate up a climb that stays down once pressed (src/gadgets/world.js `latch`). */
+const latchPlate = (kit, at, o = {}) => { const i = kit.plate(at, o); kit.spec.plates[i].latch = true; return i; };
 export const BAYS = {
+  /**
+   * The ringers' court (Vael, the grappling hook, v1.86): two pull-rings on the caps of sheer posts, 6 m up; tug each with
+   * the hook (they stay rung) and the gate opens for good.
+   */
+  ringers(kit) {
+    const rings = [[1.5, -7.5], [6.5, -2]].map(([x, z]) => {
+      sheer(kit, [0.9, 6, 0.9], [x, 3, z]);
+      return kit.seal([x, 6, z], { height: 0.25, test: (mode, info) => info?.mode === 'hook' });
+    });
+    alcove(kit, [], { when: () => rings.every((r) => r.isLit()), latch: true });
+    // a ring on a tall pole in the open, an ink pot on its cap: swing up to it
+    kit.pole([-1, 0, 3.5], 8);
+    kit.anchor([-1, 7.8, 4.66], { normal: [0, 0, 1] });
+    kit.pickup([-1, 8, 3.5], { amount: 2 });
+  },
+  /**
+   * The riders' court (Vael's sky stones, the wings, v1.86): a tower to climb, 10.5 m, and 15 m off a sheer pillar, 6.5 m,
+   * a plate on its cap: glide across from the tower's top and land on it, and the gate opens for good.
+   */
+  riders(kit) {
+    kit.block([3, 10.5, 3], [8, 5.25, -7.5]);
+    kit.lamp([8, 10.5, -7.5]);
+    sheer(kit, [2.2, 6.5, 2.2], [-3.5, 3.25, 3]);
+    const plate = latchPlate(kit, [-3.5, 6.5, 3], { radius: 0.85 });
+    alcove(kit, [plate], { latch: true });
+  },
+  /**
+   * The hush court (Lorn, the stilling mode, v1.86): jaws of teeth hang over the alcove's gate, their eye on the lintel;
+   * a stilling glob holds them open for good.
+   */
+  hush(kit) {
+    const jaws = kit.seal([-5, 3.2, -5.1], { accepts: ['stun'], test: (mode) => mode === 'stun', height: 0.05, post: false });
+    alcove(kit, [], { when: () => jaws.isLit(), latch: true });
+    // the jaws' teeth along the lintel (ink, hanging)
+    for (let k = 0; k < 7; k++) kit.block([0.18, 0.5, 0.18], [-6.6 + k * 0.53, 2.55, -5.25], { mat: 'ink' });
+    kit.crate([3, 0.45, -3]); kit.crate([4.2, 0.45, -2.2]);
+    kit.lamp([6, 0, -8]);
+  },
+  /**
+   * The lamp court (Lorn's Deep Wood, the bubble wand, v1.86): two sheer poles, 6.2 m (over a double jump's 4.8), a plate
+   * on each cap: float up to each in a bubble and stand on it; both pressed (they stay down), the gate opens for good.
+   */
+  lamps(kit) {
+    const plates = [[2, -6.5], [7, -1.5]].map(([x, z]) => {
+      sheer(kit, [1.3, 6.2, 1.3], [x, 3.1, z]);
+      kit.lamp([x + 0.45, 6.2, z - 0.45]);
+      return latchPlate(kit, [x - 0.15, 6.2, z + 0.15], { radius: 0.55 });
+    });
+    alcove(kit, plates, { all: true, latch: true });
+    kit.crate([-1, 0.45, 2.5]);
+  },
+  /**
+   * The span court (the City-Shaft, the bridge pen, v1.86): a tower to climb, 6 m, and 11 m off a sheer one as tall with a
+   * plate on its cap: draw a bridge across and step on it, and the gate opens for good.
+   */
+  span(kit) {
+    kit.block([3, 6, 3], [7.5, 3, -7.5]);
+    kit.lamp([8.4, 6, -8.4]);
+    sheer(kit, [2.6, 6, 2.6], [-1, 3, 3.5]);
+    const plate = latchPlate(kit, [-1, 6, 3.5], { radius: 0.85 });
+    alcove(kit, [plate], { latch: true });
+  },
+  /**
+   * The clock court (the Glass Dunes, the boomerang, v1.86): three eyes on posts in an arc, each shut again 3 s after it
+   * is struck: wake all three in one throw (lock on to each), and the gate opens for good.
+   */
+  clock(kit) {
+    const eyes = [[1, -8.5], [5, -6.5], [7.5, -2]].map(([x, z]) => kit.seal([x, 0, z], { test: (mode, info) => info?.source === 'boomerang', hold: 3 }));
+    alcove(kit, [], { when: () => eyes.every((e) => e.isLit()), latch: true });
+    kit.crate([-1, 0.45, 3]);
+  },
+  /**
+   * The glass court (the Garden of Spheres, the seeing lens, v1.86): two towers 6 m tall, 13 m apart; a plank bridge
+   * straight across is a lie (it is not there under the glass), the true way a path of glass winding behind it, held up
+   * only while the lens is. The box waits on the far tower, which can't be climbed.
+   */
+  glass(kit) {
+    const H = 6;
+    kit.block([2.6, H, 2.8], [-6.5, H / 2, -6]);
+    kit.steps([-6.5, 0, 2.6], H, { width: 1.8, rise: 0.5, run: 0.72 });
+    sheer(kit, [2.8, H, 3], [6.5, H / 2, -6], { mat: 'stone' });
+    ghostBridge(kit.group, [-5.2, H, -5.6], [5.1, H, -5.6], { illusion: true, material: kit.mats.wood, sag: 0.25, posts: false, width: 1.3 });
+    ghostPath(kit.group, [[-5.2, H, -7.0], [-3.2, H + 0.15, -8.4], [-0.8, H + 0.3, -9.1], [1.8, H + 0.3, -8.9], [3.8, H + 0.15, -8.0], [5.1, H, -7.0]], { width: 1.5, depth: 1.6, id: 'court.spheres.path' });
+  },
+  /**
+   * The sand court (the Signal Market, the recall hourglass, v1.86): a ledge 6.5 m up, sheer, a crate at its lip and a plate
+   * at its back: knock the crate down, stand on it and send it back up along its own fall, step on the plate, and the gate
+   * opens for good.
+   */
+  sand(kit) {
+    sheer(kit, [5, 6.5, 3.6], [5.5, 3.25, -8]);
+    kit.crate([5.5, 6.95, -6.65]);
+    const plate = latchPlate(kit, [6.5, 6.5, -8.9], { radius: 0.7 });
+    kit.lamp([3.6, 6.5, -9.2]);
+    alcove(kit, [plate], { latch: true });
+  },
   /** The divers' court (the bubble wand): a pit walled round 3.2 m high; float a crate up over its wall and pop the bubble. */
   divers(kit) {
     const pit = [3.5, -6.5], h = 3.2;
@@ -173,17 +298,19 @@ function pavement(group) {
  * `clear(scene, circles)` scales away the world's own trees and rocks standing where the court is.
  */
 export function attachCourt(levelId, scene, level, { clear = null, courts = COURTS } = {}) {
-  const c = courtOf(levelId, courts), def = c && gadgetById(c.gadget);
+  const c = courtOf(levelId, courts), def = c?.gadget ? gadgetById(c.gadget) : null;
+  // (a bay of its own needs no gadget's: the wings' and the stilling's courts, issue #518)
   const build = c?.bay ? BAYS[c.bay] : def?.yard;
-  if (!c || !def || !build || !level) return null;
+  if (!c || !build || !level || (c.gadget && !def)) return null;
   const frame = courtFrame(c, level);
   const yard = new YardKit(scene);
   const kit = yard.bay(frame.origin, frame.yaw);
-  kit.gadget = def.id;
+  const tool = def?.id ?? c.needs;
+  kit.gadget = tool;
   kit.flag = () => {};   // (the Yard's banner and statue: not out in a world, where the box is the sign)
-  kit.group.name = `Makers’ court (${def.id})`;
+  kit.group.name = `Makers’ court (${tool})`;
   pavement(kit.group);
-  try { build.call(def, kit); } catch (e) { console.warn('makers’ court', def.id, e); }
+  try { build.call(def, kit); } catch (e) { console.warn('makers’ court', tool, e); }
   kit.group.updateMatrixWorld(true);
   const { gadgetYard: spec, targets, flammables } = yard.out();
   spec.pen = null;   // (the Yard's pen of blots: out here the wilds have their own)
@@ -196,7 +323,7 @@ export function attachCourt(levelId, scene, level, { clear = null, courts = COUR
   (level.targets ??= []).push(...targets);
   (level.flammables ??= []).push(...flammables);
   const box = c.boxAt ? courtBoxAt(frame, c.boxAt) : courtBoxSite(frame);
-  const court = { id: levelId, gadget: def.id, frame, box, group: kit.group };
+  const court = { id: levelId, gadget: tool, needs: c.needs ?? tool, frame, box, group: kit.group };
   (level.finds ??= {}).court = court;
   (level.finds.courts ??= {})[levelId] = court;
   const circle = { x: frame.origin.x - Math.sin(frame.yaw) * (COURT.back - COURT.front) / 2, z: frame.origin.z - Math.cos(frame.yaw) * (COURT.back - COURT.front) / 2, r: COURT.clear };

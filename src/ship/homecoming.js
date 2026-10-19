@@ -13,12 +13,13 @@ import { screen } from '../platform.js';
 import { inputKind } from '../prompt-keys.js';
 import { exhaust, touchdownDust } from './exhaust.js';
 import { spoken } from '../story/tone.js';
-import { tokenList, leaveTokens, tombLines, credits, creditsHtml, KIND_LABEL, choicesMade, homecomingKind, ILEN_TOKEN, FINALE_ID, marketHeard } from '../story/ending.js';
+import { tokenList, leaveTokens, tombLines, credits, creditsHtml, splinterLine, KIND_LABEL, choicesMade, homecomingKind, ILEN_TOKEN, FINALE_ID, marketHeard } from '../story/ending.js';
 import { HOME_SPOTS, tokenModel, REEL_AT, layTokens, laidTokens } from '../levels/home.js';
 import { LOU_AT_STONE } from '../story/home-data.js';
 /** The last recording's busts over the reel (1: life size). */
 const REEL_HOLO = 0.6;
 import { items as ownedItems } from '../items.js';
+import { fragmentCounts } from '../fragments-data.js';
 import { CONTENT, ORDER } from '../levels/content.js';
 
 // The homecoming (src/story/ending.js): the ship's last scene, played in the
@@ -103,6 +104,7 @@ body.touch #homeward footer span { display: none; }
 #credits li.unmet { opacity: .32; }
 #credits .home h3 { color: #c8483a; }
 #credits .brought { margin: 30px 0 10px; }
+#credits .splinters { margin: 20px 0 10px; font-style: italic; }
 #credits .end { margin-top: 40px; letter-spacing: .1em; }
 `;
 
@@ -327,7 +329,7 @@ export function creditsPart(c) {
     ? { name: c.keepsake.name, kind: c.keepsake.kind && c.keepsake.kind !== 'nothing' ? KIND_LABEL[c.keepsake.kind] ?? c.keepsake.kind : '' } : null;
   return { title: c.title, lead: 'A traveller went out to bring back something of value, and met these people on the way.',
     worlds: c.worlds.map((w) => ({ title: w.title, story: w.story ?? '', people: w.people.map((p) => ({ name: p.name, title: p.title ?? '', met: !!p.met })) })),
-    home: c.home, tokens: c.tokens ?? [], brought, end: 'The ship is ready whenever you are.' };
+    home: c.home, tokens: c.tokens ?? [], brought, splinters: splinterLine(c.splinters), end: 'The ship is ready whenever you are.' };
 }
 
 /** The roll's height in CSS px as the page lays it out (#credits .roll: 560 wide, its face at 13.7 px a line of 1.5). */
@@ -337,6 +339,7 @@ export function creditsHeight(p) {
   for (const w of p.worlds) h += 24 + (w.story ? 17 : 0) + 10 + w.people.reduce((a, q) => a + L + (q.title ? 17 : 0) + 6, 0) + 30;
   h += 34 + p.home.reduce((a, x) => a + wrap(x) * L + 6, 0) + 30;
   if (p.tokens.length) h += 34 + p.tokens.length * (L + 6) + 30; else if (p.brought) h += 60;
+  if (p.splinters) h += 20 + L + 10;
   return h + 40 + L + 70;
 }
 
@@ -496,7 +499,7 @@ export class HomecomingDirector {
       }
       case 'tomb': {
         if (game.flag('calls.ilen.told') || this.final) game.set('ending.ilen', true);   // (named at the stone: src/story/home.js doesn't again)
-        this.lines = tombLines(this.items, { final: this.final, ilenTold: !!game.flag('calls.ilen.told'), lou: !!this.family?.lou, choices: choicesMade((k) => game.flag(k)), drawn: !!game.flag('home.lou.drawing') });
+        this.lines = tombLines(this.items, { final: this.final, ilenTold: !!game.flag('calls.ilen.told'), lou: !!this.family?.lou, choices: choicesMade((k) => game.flag(k)), drawn: !!game.flag('home.lou.drawing'), lamp: !!game.flag('thrum.lamp') });
         // (each on their spot, under the cut to the stone: the angles are framed on them there, and standing where the
         //  walk left them, up to a metre off, Lou and Ilen came across the frame's edges: QC v1.66, issue #296)
         this.placeLou(true);
@@ -528,7 +531,7 @@ export class HomecomingDirector {
         this.s.holo?.clear();
         this.card?.fade();
         setTimeout(() => { this.card?.remove(); this.card = null; }, 1800);
-        this.credits = new Credits(credits({ order: [...(this.s.order ?? ORDER), FINALE_ID], titles: { [FINALE_ID]: 'The Lantern', ...this.titles }, storyTitles: this.storyTitles, flag: (q) => game.flag(q), keepsake: this.chosen, tokens: this.slab }), (line) => C.say(line), this.page);
+        this.credits = new Credits(credits({ order: [...(this.s.order ?? ORDER), FINALE_ID], titles: { [FINALE_ID]: 'The Lantern', ...this.titles }, storyTitles: this.storyTitles, flag: (q) => game.flag(q), keepsake: this.chosen, tokens: this.slab, splinters: fragmentCounts(game.data?.flags ?? {}).found }), (line) => C.say(line), this.page);
         s.sound?.chime?.();
         break;
     }

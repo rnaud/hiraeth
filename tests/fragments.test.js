@@ -8,10 +8,11 @@ import * as THREE from 'three';
 import fs from 'node:fs';
 import { readFileSync } from 'node:fs';
 await import('./register-gadgets.js');
-const { FRAGMENTS, FRAGMENT_TOTAL, FRAGMENTS_PER_WORLD, fragmentCounts, fragKey } = await import('../src/fragments-data.js');
+const { FRAGMENTS, FRAGMENT_TOTAL, FRAGMENTS_PER_WORLD, fragmentCounts, fragKey, CHART_FLAG } = await import('../src/fragments-data.js');
 const { createFragments, FRAGMENT, finderInterval, finderPitch } = await import('../src/fragments.js');
 const { THRUM, THRUM_TALK, THRUM_SHOP_LINES, thrumPerson, tallyLines } = await import('../src/story/scientist-data.js');
-const { PRICES, FragmentShop, fragmentPurse, thrumWares, affordable } = await import('../src/fragment-shop.js');
+const PRICES_MOD = await import('../src/fragment-shop.js');
+const { PRICES, FragmentShop, fragmentPurse, thrumWares, affordable } = PRICES_MOD;
 const { shopHtml, upgradeWare, shopMoney, ShopPanel } = await import('../src/shop-panel.js');
 const { setupScientist, meetSpot, ABOARD, JAR_MAX } = await import('../src/story/scientist.js');
 const { ITEMS, FRAGMENT_ITEMS, items } = await import('../src/items.js');
@@ -26,7 +27,8 @@ const { BLADE } = await import('../src/fluid-blade.js');
 const { syncUpgrades } = await import('../src/trials/upgrades.js');
 const { LIGHT } = await import('../src/boxes/effects.js');
 const { worldsData, itemsData } = await import('../src/game-menu-data.js');
-const { worldsPanel } = await import('../src/game-menu.js');
+const { worldsPanel, worldFacts } = await import('../src/game-menu.js');
+const { fragmentsLine } = await import('../src/host/game-host.js');
 const { PERSON } = await import('../src/story/people-book.js');
 const { buildItemModel } = await import('../src/boxes/model.js');
 
@@ -140,7 +142,7 @@ test('a fragment walked into is yours: saved, counted, gone, its light out; it s
   assert.equal(f.grp.visible, false);
   assert.equal(lights.length, 23);
   assert.deepEqual(events, [{ world: 'edena', i: 2, found: 1, total: 288, left: 23 }]);
-  assert.match(toasts[0], /fragment of the singing light · 1 of 288 · 23 left in Viridel/);
+  assert.equal(toasts[0], 'A fragment of the singing light · 1 found', 'how many found, never of how many, nor how many left (issue #519)');
   // a world built again with it found: not there
   const again = createFragments({ levelId: 'edena', scene: new THREE.Scene(), player, game, items: its, lights: [] });
   assert.equal(again.list[2].grp.visible, false);
@@ -199,8 +201,9 @@ test('Anselm Thrum: met at the first fragment, a few words, then aboard; his cou
   assert.equal(ctx2.game.flag('frag.met'), true);
   // aboard, with one: his count and what you hold; one answer opens his shop
   const c1 = talk(person, ctx, ['Where do they hide']);
-  assert.match(c1.said, /One of 288\. One to spend\./);
-  assert.match(c1.said, /Twenty-three still hide here, in the Desert\./);
+  assert.match(c1.said, /One so far\. One to spend\./);
+  assert.match(c1.said, /The Desert still sings loud\./, 'a loose word for the world, never a number (issue #519)');
+  assert.doesNotMatch(c1.said, /288|twenty-three|still hide|Most left/i);
   assert.match(c1.said, /up high, behind things, at the dead ends/);
   assert.equal(person.fresh(), false, 'no balloon: nothing you can buy yet');
   const opened = [];
@@ -211,17 +214,20 @@ test('Anselm Thrum: met at the first fragment, a few words, then aboard; his cou
   Object.assign(ctx.game.data.flags, found(3));
   assert.equal(affordable(ctx.game.data.flags, ctx.items.has), 'finder');
   assert.equal(person.fresh(), true, 'his balloon: enough for something');
-  assert.match(tallyLines(found(FRAGMENT_TOTAL), null, () => false).join(' '), /every one there is/);
-  assert.doesNotMatch(tallyLines(found(96), null, () => false).join(' '), /every one there is/, 'the old 96 is not all of them (issue #317)');
+  // (issue #519: "I shouldn't be able to tell how many fragments of light there are in total": his count says how many
+  // found and how many to spend, and a loose word for the world you are in; never the total, never a world's number)
   const none = tallyLines({}, null, () => false).join(' ');
-  assert.match(none, /None of 288 yet\. None to spend\./, 'the zero count reads as words (issue #282)');
-  // (his count reads the total from the data, never a number written into his lines: issue #317)
-  assert.ok(none.includes(`of ${FRAGMENT_TOTAL} yet`));
-  assert.doesNotMatch(fs.readFileSync(new URL('../src/story/scientist-data.js', import.meta.url), 'utf8'), /\b96\b/);
+  assert.match(none, /None yet\. None to spend\./, 'the zero count reads as words (issue #282)');
+  for (const n of [1, 30, 96, 150, FRAGMENT_TOTAL]) {
+    const said = tallyLines(found(n), 'desert', () => false).join(' ');
+    assert.doesNotMatch(said, new RegExp(`of ${FRAGMENT_TOTAL}|every one there is|\\d+ left|still hide`), `${n}: no total`);
+  }
   const thirty = tallyLines({ ...found(30) }, 'arzach', () => false).join(' ');
-  assert.match(thirty, /Thirty of 288\. Thirty to spend\./);
-  assert.match(thirty, /Eighteen still hide here, in Vael\./, 'a world’s count in words, to twenty-four and more');
-  assert.doesNotMatch(none, /\bNo of\b/);
+  assert.match(thirty, /Thirty so far\. Thirty to spend\./);
+  assert.match(thirty, /Vael still sings loud\./, 'more than half still to find: loud');
+  assert.match(tallyLines({ ...found(40) }, 'arzach', () => false).join(' '), /A little singing left in Vael\./, 'less than half: a little');
+  assert.match(tallyLines({ ...found(24) }, 'desert', () => false).join(' '), /gone quiet here/, 'all found: quiet');
+  assert.doesNotMatch(fs.readFileSync(new URL('../src/story/scientist-data.js', import.meta.url), 'utf8'), /\b(96|288)\b/);
   // every line he says, toned (the meeting, the count, the shop)
   const all = [...Object.values(THRUM_TALK.nodes).flatMap((n) => [n.say].flat()), ...Object.values(THRUM_TALK.nodes).flatMap((n) => (n.choices ?? []).map((c) => c.text)), ...THRUM.lines, ...Object.values(THRUM_SHOP_LINES).flat()];
   for (const l of all) assert.ok(parseLine(l).explicit, `toned: ${l}`);
@@ -344,16 +350,27 @@ test('the upgrades change real numbers: hearts 3 → 4, the blade ×1.5, the bar
   assert.match(ITEMS.lightguard.text, /half a unit/);
 });
 
-test('the menu: each world you know with how many are left, and the count all told', () => {
+test('the menu: each world you know with how many found there, and the count all told; never how many there are (issue #519)', () => {
   const levels = ORDER.map((id) => ({ id, title: id }));
   const none = worldsData({ levels, order: ORDER, fragments: fragmentCounts({}) });
   assert.equal(none[0].fragments, null, 'nothing shown before the first');
   const list = worldsData({ levels, order: ORDER, known: (id) => id === 'desert' || id === 'arzach', fragments: fragmentCounts({ ...found(25) }) });
-  assert.deepEqual(list.map((w) => w.fragments), [[24, 24], [1, 24]]);
+  assert.deepEqual(list.map((w) => w.fragments), [{ found: 24, quiet: false }, { found: 1, quiet: false }], 'a world all found is not said to be, without the chart');
   const { html } = worldsPanel(list);
-  assert.match(html, /Fragments of the singing light: 25 of 288/);
-  assert.match(html, /✧ all 24/);
-  assert.match(html, /✧ 23 left/);
+  assert.match(html, /Fragments of the singing light: 25 found/);
+  assert.match(html, /✧ 24 found here/);
+  assert.match(html, /✧ 1 found here/);
+  assert.doesNotMatch(html, /288|\b24 left|all 24|23 left|of 24/, 'no total, no "left"');
+  const facts = worldFacts(list[0]);
+  assert.ok(!facts.find((f) => /Fragments/.test(f.text)).on, 'not ticked done without the chart');
+  // with Anselm's chart (issue #520): a world all found has gone quiet
+  const charted = worldsData({ levels, order: ORDER, known: (id) => id === 'desert' || id === 'arzach', fragments: fragmentCounts({ ...found(25), [CHART_FLAG]: true }) });
+  assert.deepEqual(charted.map((w) => w.fragments), [{ found: 24, quiet: true }, { found: 1, quiet: false }]);
+  assert.match(worldsPanel(charted).html, /the song is quiet here/);
+  // the Start menu's line: found and to spend (src/host/game-host.js, the engines' too)
+  const { game, items: its } = fresh({ ...found(12), 'frag.met': true, 'item.finder': true });
+  const line = fragmentsLine({ fragments: { counts: () => fragmentCounts(game.data.flags) }, game, items: its });
+  assert.equal(line, '✧ 12 fragments found · 9 to spend');
 });
 
 test('the save: an old save starts at zero, the scientist still to meet (the fragments’ step)', () => {
@@ -445,19 +462,41 @@ test('the save: the fragments re-placed in v1.66 into the places of interest kee
   assert.equal(fragmentCounts(full).worlds.spheres.found, 8);
 });
 
-test('the Lantern: Ilen knows the fragments for her song, one line by how many you found (none, some, every one)', async () => {
+test('the Lantern: Ilen knows the fragments for her song, one line by how many you found (none, a few, many, most, every one: issue #481)', async () => {
   const { PEOPLE } = await import('../src/story/lantern-data.js');
   const lines = (n) => {
     const ctx = fresh(found(n));
     return talk(PEOPLE.ilen, ctx, ['Ilen?', 'Your brother', 'They died', 'No. Mum kept']).said;
   };
-  const none = lines(0), some = lines(12), all = lines(FRAGMENT_TOTAL);
-  assert.match(none, /Nobody stops for them\./); assert.doesNotMatch(none, /in your hold|whole again/);
-  assert.match(some, /I can hear them from here, in your hold\./); assert.doesNotMatch(some, /Nobody stops|whole again/);
-  assert.match(all, /Then it’s whole again\./); assert.doesNotMatch(all, /Nobody stops|in your hold/);
-  assert.match(all, /It was mine\. My answer\./, 'right after she owns up to the light');
-  // and her answer is the node's last page, so "Your answer?" follows what she has just said (issue #226, quest QC rule 5)
-  for (const said of [none, some, all]) assert.ok(said.indexOf('My answer. I’m sorry.') > Math.max(said.indexOf('Nobody stops'), said.indexOf('in your hold'), said.indexOf('whole again')));
+  const third = FRAGMENT_TOTAL / 3;
+  const said = { none: lines(0), few: lines(12), many: lines(Math.round(third * 1.5)), most: lines(Math.round(third * 2.5)), all: lines(FRAGMENT_TOTAL) };
+  const MARK = { none: /Nobody stops for them\./, few: /A few\. I can hear them from here/, many: /a whole handful of my song/, most: /You kept nearly all of it\./, all: /Then it’s whole again\./ };
+  for (const [k, s] of Object.entries(said)) {
+    for (const [j, re] of Object.entries(MARK)) (j === k ? assert.match : assert.doesNotMatch)(s, re, `${k}: ${j}'s line ${j === k ? '' : 'not '}said`);
+    // her answer is the node's last page, so "Your answer?" follows what she has just said (issue #226, quest QC rule 5)
+    assert.ok(s.indexOf('My answer. I’m sorry.') > s.search(MARK[k]), `${k}: her answer after it`);
+  }
+  // the thresholds at their edges: a third is many, two thirds is many, a hair over is most
+  assert.match(lines(Math.ceil(third)), MARK.many);
+  assert.match(lines(Math.floor(third) - 1), MARK.few);
+  assert.match(lines(Math.floor(third * 2) + 1), MARK.most);
+});
+
+test('the true ending counts them: the credits say how many were carried home, never of how many; his lamp goes in the round window (issue #481)', async () => {
+  const { credits, creditLines, creditsHtml, tombLines, splinterLine } = await import('../src/story/ending.js');
+  const { creditsPart } = await import('../src/ship/homecoming.js');
+  assert.equal(splinterLine(0), '');
+  assert.equal(splinterLine(1), 'You carried home one splinter of her song.');
+  assert.equal(splinterLine(130), 'You carried home 130 splinters of her song.');
+  const c = credits({ order: ['desert'], splinters: 130 });
+  assert.ok(creditLines(c).includes('You carried home 130 splinters of her song.'));
+  assert.match(creditsHtml(c), /You carried home 130 splinters of her song\./);
+  assert.equal(creditsPart(c).splinters, 'You carried home 130 splinters of her song.', 'the engines\' page too (BridgeHud.Credits.cs)');
+  for (const s of [creditLines(c).join(' '), creditsHtml(c)]) assert.doesNotMatch(s, /288|of \d+ splinters/);
+  assert.equal(creditsPart(credits({ order: ['desert'] })).splinters, '', 'none found: no line');
+  const lamp = tombLines([], { final: true, lamp: true }).find((l) => l.lamp);
+  assert.equal(lamp?.tone, 'solemn', 'his lamp, set in the round window, toned');
+  assert.ok(!tombLines([], { final: true }).some((l) => l.lamp), 'not without it');
 });
 
 test('the people book: Anselm Thrum, his story growing with each upgrade, at its price', () => {
@@ -555,4 +594,73 @@ test('Marrow on the first fragment hedges, in the desert’s word: the light “
   assert.match(said, /Something the light dropped when it passed, I’d say/, 'a witness reports before believing (lore/voice-guide.md)');
   assert.doesNotMatch(said, /went over|A splinter of the light/, 'not told as fact, nor in another people’s words');
   assert.match(said, /\*forty paces from your ramp\*/, 'still says where');
+});
+
+test('what the rest buy (issue #481): his notebook a page at a time, his lamp, his chart, the tune; offered by the count found, spent never off it', () => {
+  const { THRUM_WARES, ALL_PRICES, pagesOwned } = PRICES_MOD;
+  assert.equal(ALL_PRICES, 206, 'the seven upgrades (96) and the rest (110): 206 to spend');
+  assert.ok(ALL_PRICES < FRAGMENT_TOTAL, 'some carried home for the ending, unspent');
+  const wares = (flags, has = () => false) => Object.fromEntries(thrumWares(flags, has).filter((w) => w.ware).map((w) => [w.id, w]));
+  assert.deepEqual(Object.keys(wares(found(19))), [], 'none before 20 found');
+  assert.deepEqual(Object.keys(wares(found(20))), ['page']);
+  assert.deepEqual(Object.keys(wares(found(60))), ['page', 'lamp']);
+  assert.deepEqual(Object.keys(wares(found(100))), ['page', 'lamp', 'chart']);
+  assert.deepEqual(Object.keys(wares(found(150))), ['page', 'lamp', 'chart', 'tune']);
+  // buying: a page at a time, a page for every 20 found; the price off what you hold, the count found untouched
+  const { game, items: its } = fresh({ ...found(45), 'frag.met': true });
+  const shop = new FragmentShop({ game, items: its });
+  assert.equal(shop.buy('page').ok, true);
+  assert.equal(shop.buy('page').ok, true);
+  assert.equal(pagesOwned(game.data.flags), 2);
+  const third = shop.buy('page');
+  assert.deepEqual([third.ok, third.state], [false, 'wait'], 'the third page waits for 60 found');
+  assert.equal(fragmentPurse(game.data.flags, its.has).held, 35);
+  assert.equal(fragmentCounts(game.data.flags).found, 45, 'found never goes down');
+  // the panel names them, the next page by its number
+  const w = upgradeWare(shop.view().find((x) => x.id === 'page'));
+  assert.match(w.name, /page 3/);
+  assert.equal(w.flag, 'Not written yet');
+  // the chart (issue #520): offered once 100 are found, 40; he says so the first time; bought, the Map marks the rest
+  Object.assign(game.data.flags, found(100));
+  const said = tallyLines(game.data.flags, 'desert', its.has).join(' ');
+  assert.match(said, /plotting where they ring/);
+  const person = thrumPerson({ flags: () => game.data.flags, has: its.has, here: 'desert' });
+  talk(person, { game, items: its, quests: new Quests({ game }) });
+  assert.doesNotMatch(tallyLines(game.data.flags, 'desert', its.has).join(' '), /plotting/, 'said once, the first time he has it');
+  assert.equal(shop.buy('chart').ok, true);
+  assert.equal(game.flag(CHART_FLAG), true);
+  for (const id of ['wait', 'page', 'lamp', 'chart', 'tune']) for (const l of THRUM_SHOP_LINES[id]) assert.ok(parseLine(l).explicit, `${id}: toned`);
+  assert.equal(THRUM_WARES.find((x) => x.id === 'chart').price, 40);
+  // the tune: an answer in his talk once bought
+  Object.assign(game.data.flags, found(150));
+  assert.equal(shop.buy('tune').ok, true);
+  const played = [];
+  game.on('thrum:tune', () => played.push(1));
+  talk(person, { game, items: its, quests: new Quests({ game }) }, ['Play me']);
+  assert.equal(played.length, 1, 'he plays it');
+  // his notebook on the People page, a page at a time
+  const p = PERSON.get('thrum');
+  const heard = (flags) => p.story.filter((s) => typeof s === 'string' || (s[0]?.flag && flags[s[0].flag])).length;
+  assert.equal(heard({ 'thrum.page.1': true, 'thrum.page.2': true }) - heard({}), 2);
+});
+
+test('Anselm’s chart (issue #520): the Map marks each fragment still to find in the world, once bought; none before, none found', async () => {
+  const { chartMarks } = await import('../src/fragments.js');
+  const { mapMarks } = await import('../src/world-map.js');
+  const { MAP_MARKS } = await import('../engine/map-marks.js');
+  const { game, items: its } = fresh({ 'frag.met': true, [fragKey('edena', 3)]: true });
+  const F = createFragments({ levelId: 'edena', scene: new THREE.Scene(), player: { pos: V(), hidden: false }, game, items: its, lights: [] });
+  assert.deepEqual(chartMarks(F, game), [], 'without the chart: never a fragment on the Map');
+  game.set(CHART_FLAG, true);
+  const marks = chartMarks(F, game);
+  assert.equal(marks.length, 23, 'every one still hiding, not the one found');
+  assert.ok(!marks.some((m) => m.i === 3));
+  const xs = marks.map((m) => m.x), zs = marks.map((m) => m.z);
+  const bounds = { x0: Math.min(...xs) - 10, z0: Math.min(...zs) - 10, w: Math.max(...xs) - Math.min(...xs) + 20, h: Math.max(...zs) - Math.min(...zs) + 20 };
+  const drawn = mapMarks({ you: { x: 0, z: 0, dx: 0, dz: 1 }, fragments: marks, bounds }).filter((m) => m.kind === 'fragment');
+  assert.equal(drawn.length, 23);
+  assert.ok(drawn.every((m) => m.name && m.u >= 0 && m.u <= 1), 'named, on the sheet');
+  assert.ok(MAP_MARKS.fragment?.svg, 'the engines draw it too (engine/map-marks.js, BridgeMenu.cs)');
+  // both hosts' Map sources pass them
+  for (const f of ['../src/main.js', '../engine/game.js']) assert.match(fs.readFileSync(new URL(f, import.meta.url), 'utf8'), /fragments: chartMarks\(fragments,/);
 });

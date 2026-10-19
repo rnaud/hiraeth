@@ -169,8 +169,11 @@ class BayKit {
     this.spec.plates.push({ pos: w, radius, mass, things, object: null });
     return this.spec.plates.length - 1;
   }
-  /** Bars across an opening (size [w, h, d] centred at `c`), sinking into the ground while any of `plates` is pressed. */
-  gate(size, c, { plates = [] } = {}) {
+  /**
+   * Bars across an opening (size [w, h, d] centred at `c`), sinking into the ground while any of `plates` is pressed
+   * (`all`: every one of them); or while `when()` holds; `latch`: once open, open for good (src/gadgets/world.js).
+   */
+  gate(size, c, { plates = [], all = false, when = null, latch = false } = {}) {
     const [w, h, d] = size, g = new THREE.Group(), parts = [];
     for (let x = -w / 2 + 0.2; x <= w / 2 - 0.15; x += 0.42) parts.push(new THREE.CylinderGeometry(0.07, 0.07, h, 6).translate(x, 0, 0).toNonIndexed());
     parts.push(new THREE.BoxGeometry(w, 0.18, d).translate(0, h / 2 - 0.09, 0).toNonIndexed(), new THREE.BoxGeometry(w, 0.18, d).translate(0, -h / 2 + 0.3, 0).toNonIndexed());
@@ -178,8 +181,38 @@ class BayKit {
     loose(g);
     g.position.copy(v3(c));
     this.add(g);
-    this.spec.gates.push({ object: g, travel: h - 0.05, plates });
+    this.spec.gates.push({ object: g, travel: h - 0.05, plates: when ? null : plates, all, when, latch });
     return g;
+  }
+  /**
+   * A makers' seal (issue #518, the courts' puzzles): a pale stone disc on a post (`height`), an eye in it that lights
+   * when the right thing hits it: `test(mode, info)` (the fluid gun's modes need listing in `accepts`); `hold` s: it goes
+   * dark again after so long (null: lit for good). Returns its state ({ lit }), for a gate's `when`.
+   */
+  seal(at, { accepts = [], test = () => true, hold = null, height = 1.6, post = true } = {}) {
+    const g = new THREE.Group(); g.position.copy(v3(at));
+    if (post) g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, height, 8).translate(0, height / 2, 0), this.mats.ink));
+    const face = new THREE.Group(); face.position.y = height + 0.3;
+    face.add(new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 0.12, 20).rotateX(Math.PI / 2), this.mats.pale));
+    face.add(new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.04, 4, 20).translate(0, 0, 0.065), this.mats.teal));
+    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.12, 10, 8).translate(0, 0, 0.06), this.mats.lampOff);
+    face.add(eye);
+    g.add(face);
+    g.traverse((m) => { m.userData.noCollide = true; });
+    this.add(g);
+    const world = this.at([at[0], (at[1] ?? 0) + height + 0.3, at[2]]);
+    const state = { lit: false, until: Infinity };
+    const set = (on) => { state.lit = on; eye.material = on ? this.mats.lampOn : this.mats.lampOff; };
+    // (lit now: and gone dark again once its `hold` runs out; a gate's `when` asks every frame)
+    state.isLit = () => { if (state.lit && performance.now() / 1000 > state.until) set(false); return state.lit; };
+    this.yard.targets.push({ kind: 'seal', radius: 0.5, position: () => world, accepts,
+      onHit: (mode, point, dir, info) => {
+        if (!test(mode, info)) return false;
+        set(true);
+        state.until = hold == null ? Infinity : performance.now() / 1000 + hold;
+        return true;
+      } });
+    return state;
   }
   /** A round target on a post (local `at` on the ground): anything that hits it (fluid, hook, a blast) flips it and lights its lamp. */
   target(at, { height = 1.8 } = {}) {

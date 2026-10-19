@@ -2,7 +2,8 @@
 // Lorn's rebuilt Hush-House steer by something again (its crown crystal over the spires' island, the keepers' stakes
 // back on its shore), the Lamp-House is in sight from where the saucer is looked into, and Vael's two loners (the
 // scarf's makers' box, left in the cloud when its stack moved, and the riders' halfway stone) have neighbours: the box
-// on Tiv's stack on the great table's west rim, toward the halfway stone. Checked as the audit's own rays see it
+// on Tiv's stack on the great table's west rim, toward the halfway stone (the box since behind the sky stone court's
+// gate, issue #518; the stack still the neighbour). Checked as the audit's own rays see it
 // (scripts/level-design/audit.mjs: the collision, then the terrain under the ray) and with its own measures (lib.mjs).
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -91,19 +92,19 @@ test('Lorn (issue #476): from where the saucer is looked into, off its rim, the 
   } finally { W.dispose(); }
 });
 
-test('Vael (issue #476): the scarf’s makers’ box sits on Tiv’s stack on the great table, a neighbour to Tiv and to the riders’ halfway stone', () => {
+test('Vael (issue #476): Tiv’s stack on the great table is a neighbour to Tiv and to the riders’ halfway stone (the scarf’s box behind the sky stone court’s gate since #518)', () => {
   globalThis.location = { search: '?level=arzach' };
   const W = A.loadWorld('arzach');
   try {
     const S = W.level.arzach2.tivStack, box = W.boxes.list.find((b) => b.id === 'arzach2.scarf');
-    assert.ok(S && box?.pos, 'the stack and its box');
-    assert.ok(box.pos.distanceTo(S.top) < 1.5, `on the stack’s top stone (${box.pos.distanceTo(S.top).toFixed(1)} m off)`);
+    assert.ok(S && box?.pos, 'the stack and the scarf’s box');
+    assert.ok(box.pos.distanceTo(S.top) > 1.5, 'the box no longer on the stack’s top (issue #518: in the court on the first sky stone)');
     assert.ok(S.top.y - S.foot.y > 20, 'a teetering climb');
     assert.ok(Math.abs(S.foot.y - W.physics.groundAt(S.foot.x, S.foot.y + 0.5, S.foot.z, 3)) < 1.2, 'its foot on the great table');
-    // neither is a loner (the audit: 150 m from anything at a run): the box by Tiv, the halfway stone by the box
+    // neither is a loner (the audit: 150 m from anything at a run): the stack by Tiv, the halfway stone by the stack
     const lonely = lonelyFor(), tiv = A.objectiveAt(W, 'tiv'), halfway = sightOf(W.level, 'the riders’ halfway stone').at;
-    assert.ok(box.pos.distanceTo(tiv) < lonely, `the box ${box.pos.distanceTo(tiv).toFixed(0)} m from Tiv`);
-    assert.ok(box.pos.distanceTo(halfway) < lonely, `the halfway stone ${box.pos.distanceTo(halfway).toFixed(0)} m from the box`);
+    assert.ok(S.top.distanceTo(tiv) < lonely, `the stack ${S.top.distanceTo(tiv).toFixed(0)} m from Tiv`);
+    assert.ok(S.top.distanceTo(halfway) < lonely, `the halfway stone ${S.top.distanceTo(halfway).toFixed(0)} m from the stack`);
     // and the stack in sight from the halfway stone, over the cloud
     assert.equal(blocker(W, V(halfway.x, halfway.y + EYE, halfway.z), S.top.clone().add(V(0, -3, 0))), null, 'the stack from the halfway stone');
   } finally { W.dispose(); }

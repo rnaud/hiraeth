@@ -2,8 +2,7 @@ import * as THREE from 'three';
 import { makeMaterial } from './materials.js';
 import { game as sharedGame } from './game-state.js';
 import { items as sharedItems } from './items.js';
-import { FRAGMENTS, fragKey, fragmentCounts } from './fragments-data.js';
-import { TITLES } from './levels/names.js';
+import { FRAGMENTS, fragKey, fragmentCounts, CHART_FLAG } from './fragments-data.js';
 
 // The fragments of the singing light (docs/systems/fragments.md, issue #196): small splinters of the light's song
 // hidden in every world on the route (src/fragments-data.js), out of the way. Each floats a little over its spot,
@@ -43,6 +42,19 @@ export function finderInterval(d, F = FRAGMENT.finder) {
 export const finderPitch = (d, F = FRAGMENT.finder) => 1500 - 700 * Math.max(0, Math.min(1, d / F.range));
 
 const UP = new THREE.Vector3(0, 1, 0);
+
+/**
+ * The Map's marks of Anselm's chart (issue #520: "A later unlock with Anselm should be to give me a map of all the light
+ * fragments"): every fragment of this world still to find, { i, x, z }, once the chart is bought; none before (the Map
+ * never shows one without it: docs/systems/ui.md, The Map).
+ */
+export function chartMarks(fragments, game = sharedGame) {
+  if (!fragments?.list || !game?.flag?.(CHART_FLAG)) return [];
+  return fragments.list.filter((f) => !f.found).map((f) => ({ i: f.i, x: f.pos.x, z: f.pos.z }));
+}
+
+/** The toast as one is taken: how many found so far, and nothing of how many there are (issue #519). */
+export const fragmentToast = (found) => `A fragment of the singing light · ${found} found`;
 
 /** The fragments of this world, made and hidden where they are. */
 export function createFragments({ levelId, scene, physics = null, level = null, player, sound = null, game = sharedGame, items = sharedItems, toast = () => {}, lights = null }) {
@@ -92,9 +104,9 @@ export function createFragments({ levelId, scene, physics = null, level = null, 
     const c = fragmentCounts(game.data?.flags ?? {}), here = c.worlds[levelId] ?? { left: list.filter((x) => !x.found).length };
     sound?.fragmentTaken?.({ pos: f.pos });
     sound?.musicCue?.('moment', { delay: 1.2 });
-    const title = (TITLES[levelId] ?? 'this world').replace(/^The /, 'the ');
-    const where = here.left ? `${here.left} left in ${title}` : `none left in ${title}`;
-    toast(`A fragment of the singing light · ${c.found} of ${c.total} · ${where}`);
+    // (how many found, never how many there are: issue #519, the author: "I shouldn't be able to tell how many fragments
+    // of light there are in total")
+    toast(fragmentToast(c.found));
     const e = { world: levelId, i, found: c.found, total: c.total, left: here.left };
     game.emit('fragment', e);
     return e;

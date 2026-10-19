@@ -35,6 +35,9 @@ export const MAP_MARKS = {
   // circle on the sheet, a soft plum fill and a dashed rim, as src/game-menu.css .gm-area)
   rumour: { size: 1, svg: svg(`<text y="6.5" text-anchor="middle" font-family="Georgia, serif" font-weight="bold" font-size="19" fill="${PLUM}" stroke="${INK}" stroke-width="0.8">?</text>`) },
   area: { size: 1, svg: svg(`<defs><radialGradient id="g"><stop offset="0" stop-color="${PLUM}" stop-opacity="0.26"/><stop offset="0.7" stop-color="${PLUM}" stop-opacity="0.12"/><stop offset="1" stop-color="${PLUM}" stop-opacity="0.04"/></radialGradient></defs><circle r="15.4" fill="url(#g)"/>${ring(15.4, 'rgba(138,79,125,0.75)', 0.5, '1.6 1.2')}`) },
+  // (a fragment of the singing light still to find, Anselm's chart (issue #520): a small pale splinter, inked, as the shop's
+  // FRAGMENT_SVG; 0.7 × the mark)
+  fragment: { size: 0.7, svg: svg(`<path d="M0 -12 L5.5 -1.5 L0 12 L-5.5 -1.5 Z" fill="#dff7ff" stroke="${INK}" stroke-width="1.8" stroke-linejoin="round"/><path d="M0 -12 V12 M-5.5 -1.5 H5.5" fill="none" stroke="#7fb8c9" stroke-width="1"/>`) },
   // (the mark under the cursor: a red ring 2.1 × the mark)
   sel: { size: 2.1, svg: svg(`${ring(14.6, RED, 2.2)}`) },
   // (the cursor: an ink ring on a paper halo, a dot in its middle; gold on its ink halo over a mark; 1.06 × the mark)

@@ -61,12 +61,17 @@ export const QUESTS = [
 ];
 
 const told = { flag: 'calls.ilen.told' };
-// how many fragments of the singing light he picked up on the way: none, some, or every one
+// how many fragments of the singing light he picked up on the way: none, a few (under a third), many (a third to two
+// thirds), most (over two thirds), or every one (v1.86, issue #481: four steps and all, where there were three; the
+// thresholds are the game's own, never said to the player, issue #519)
 const fragsFound = (ctx) => fragmentCounts(ctx?.game?.data?.flags ?? {}).found;
+const share = (ctx) => fragsFound(ctx) / fragmentCounts().total;
 export const SPLINTERS = {
   none: (ctx) => fragsFound(ctx) === 0,
-  some: (ctx) => fragsFound(ctx) > 0 && fragsFound(ctx) < fragmentCounts().total,
-  all: (ctx) => fragsFound(ctx) >= fragmentCounts().total,
+  few: (ctx) => fragsFound(ctx) > 0 && share(ctx) < 1 / 3,
+  many: (ctx) => share(ctx) >= 1 / 3 && share(ctx) <= 2 / 3,
+  most: (ctx) => share(ctx) > 2 / 3 && share(ctx) < 1,
+  all: (ctx) => share(ctx) >= 1,
 };
 // what he tells her he brought: each once (`finale.told.<what>`, set by its node), in either of the two nodes that ask
 const untold = (k, extra) => ({ all: [{ not: { flag: `finale.told.${k}` } }, ...(extra ? [extra] : [])] });
@@ -154,7 +159,9 @@ export const PEOPLE = {
           say: [
             '~solemn~ (She looks past you, at the scorch along the hull. She looks at it a long time.) A light did that. A singing one.',
             { text: '~whisper~ It sheds as it sings, you know. Splinters of the song, all along the way. Nobody stops for them.', if: SPLINTERS.none },
-            { text: '~whisper~ You picked up after it. I can hear them from here, in your hold. Bits of my song.', if: SPLINTERS.some },
+            { text: '~whisper~ You picked up after it. A few. I can hear them from here, in your hold. Bits of my song.', if: SPLINTERS.few },
+            { text: '~curious~ You picked up after it. I can hear them from here, a whole handful of my song, humming in your hold.', if: SPLINTERS.many },
+            { text: '~surprised~ You kept nearly all of it. (She listens toward the ship.) I can almost hear the whole tune in your hold.', if: SPLINTERS.most },
             { text: '~surprised~ Every splinter it shed? (She listens toward the ship.) Then it’s whole again. First time since it left me.', if: SPLINTERS.all },
             '~sad~ It was mine. My answer. I’m sorry.',
             // (her answer last, so "Your answer?" follows it: issue #226's quest QC, answers follow what was just said)

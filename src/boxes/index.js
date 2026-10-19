@@ -11,6 +11,7 @@ import { partsOf, shiftAt } from '../levels/names.js';
 import { migrateTemples } from '../temples/migrate.js';
 import { HUM } from '../story/hum.js';
 import { hintsFor } from '../hint-level.js';
+import { buildLock, lockFlag, LOCK_SEALED } from './locks.js';
 
 // Item boxes: the makers' chests (docs/story-bible.md, "The boxes"), the same in every world (model.js, chest.js):
 // a rounded cream shell with the makers' star on its top, a brass band and a jade lens in its front; in the temples,
@@ -198,8 +199,9 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
   const opened = (b) => !!g.flag(`box.${b.id}`);
   // a world's own box is spent once opened, or once you have its item anyway; a fallback only while you have it
   const spent = (b) => (b.fallback ? items.has(b.item) : opened(b) || items.has(b.item));
-  // a placement may wait for something first (`ready(game, items)`: the lift valve's chest, till the pool has filled your tank)
-  const ready = (b) => !b.place.ready || !!b.place.ready(g, items);
+  // a placement may wait for something first (`ready(game, items)`: the lift valve's chest, till the pool has filled your tank;
+  // a small lock beside it, `lock`, till it is answered: src/boxes/locks.js, issue #518)
+  const ready = (b) => (!b.place.ready || !!b.place.ready(g, items)) && (!b.place.lock || !!g.flag(lockFlag(b.id)));
 
   function build() {
     const anc = typeof anchor === 'function' ? anchor() : anchor;
@@ -233,11 +235,13 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
         id: `box.${p.id}`, priority: PRIORITY.use + 1, range: 3.2,
         prompt: 'open',
         at: () => (b._at ??= V()).set(b.pos.x, b.pos.y + (parts.size.h + 0.1) * BOX_SCALE + 0.5, b.pos.z),
-        enabled: () => !spent(b) && !current && !player?.riding,
+        enabled: () => !spent(b) && !current && !player?.riding && parts.root.visible,   // (a chest only the lens shows: not till seen, src/boxes/locks.js)
         distance: (pl) => (Math.abs(pl.pos.y - b.pos.y) < 2 ? flat(pl.pos, b.pos) : Infinity),
         // (a box that waits for something first, the placement's `ready`: shut and quiet till then, its `sealed` said on E)
-        use: () => (ready(b) ? api.open(b.id) : (toast(p.sealed ?? 'The chest is shut fast, and silent.'), sound?.boxAnswer?.(0.15))),
+        use: () => (ready(b) ? api.open(b.id) : (toast(p.sealed ?? LOCK_SEALED[p.lock?.tool] ?? 'The chest is shut fast, and silent.'), sound?.boxAnswer?.(0.15))),
       });
+      // its small lock beside it (src/boxes/locks.js, issue #518)
+      if (p.lock) b.lock = buildLock(b, p.lock, { scene, physics, game: g, sound, player });
       quests?.locate?.(`box.${p.id}`, () => b.pos);
       setSpentLook(b, spent(b));
       list.push(b);
@@ -270,6 +274,7 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
       b.parts.root.removeFromParent(); b.beacon?.removeFromParent();
       b.off?.();
       if (b.collider) physics.removeCollider?.(b.collider);
+      b.lock?.dispose();
       const i = lights.indexOf(b.light); if (i >= 0) lights.splice(i, 1);
     }
     list.length = 0;
@@ -408,6 +413,7 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
       // the reactions: star, seam, light, hum, shudder
       let hum = 0, far = 0;   // (far: the hum itself, heard from further off: src/story/hum.js)
       const pp = player?.pos;
+      for (const b of list) if (b.lock && !b.isSpent) b.lock.update(dt, t);
       for (const b of list) {
         const P = b.parts, M = P.mats;
         const playing = current?.box === b;

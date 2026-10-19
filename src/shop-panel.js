@@ -49,10 +49,11 @@ export function shopMoney(kind = 'chimes') {
  * (`icon(id)`: the items page's, or null), and its state in one line: fitted, what it needs first, or too dear.
  */
 export function upgradeWare(w, icon = () => null) {
-  const url = icon(w.id);
-  return { ...w, name: ITEMS[w.id]?.name ?? w.id, effect: t(`thrum.${w.id}`), note: '',
+  const url = w.ware ? null : icon(w.id);
+  // (his wares that aren't upgrades, issue #481: named and said by their own keys; his notebook's next page by its number)
+  return { ...w, name: w.ware ? t(`thrum.${w.id}.name`, { n: w.page ?? 1 }) : ITEMS[w.id]?.name ?? w.id, effect: t(`thrum.${w.id}`), note: '',
     pic: url ? `<img class="ware-img" src="${esc(url)}" alt="">` : FRAGMENT_PIC,
-    flag: w.state === 'owned' ? t('shop.fitted') : w.state === 'needs' ? t(`shop.needs.${w.needs}`) : w.state === 'short' ? t('shop.fragShort') : '' };
+    flag: w.state === 'owned' ? t(w.ware ? 'shop.bought' : 'shop.fitted') : w.state === 'needs' ? t(`shop.needs.${w.needs}`) : w.state === 'short' ? t('shop.fragShort') : w.state === 'wait' ? t('shop.fragWait') : '' };
 }
 
 /** A ware's picture: an inked drawing in the HUD's own style (the flask, a heart, a magic cell). */

@@ -8,6 +8,7 @@ import { PEN } from '../gadgets/bridge.js';
 import { MAG } from '../gadgets/magnet.js';
 import { BOMB } from '../gadgets/bomb.js';
 import { HISTORY } from '../gadgets/history.js';
+import { RECALL } from '../gadgets/recall.js';
 import { RIDE_SPEED } from '../bike.js';
 import { BLADE } from '../fluid-blade.js';
 import { MAGIC_COST } from '../resources.js';
@@ -41,6 +42,7 @@ export const CHARM_TUNES = {
   keeper: [MAG, 'pull', 24],
   splice: [HOOK, 'pull', 34],
   sunglass: [PEN, 'life', PEN.life * 1.5],   // (issue #169: the City-Shaft's mirrors' chest)
+  sandglass: [RECALL, 'range', 48],   // (v1.86, issue #518: the Signal Market's court, a box at last)
 };
 const CHARM_BASE = Object.fromEntries(Object.entries(CHARM_TUNES).map(([id, [t, k]]) => [id, t[k]]));
 // (the bubble you float in yourself lasts longer too)

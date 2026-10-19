@@ -27,6 +27,12 @@ const UP = new THREE.Vector3(0, 1, 0);
 export const ABOARD = { at: [1.55, 0, 19.75], heading: -2.4, jar: [1.2, 0.71, 20.52] };   // (the hold moved aft and grew: issue #195; the ship twice the size, #338: z 9.45 / 10.22 before)
 /** At most this many splinters in his jar. */
 export const JAR_MAX = 24;
+/**
+ * His lamp (v1.86, issue #481: bought for fragments, src/fragment-shop.js THRUM_WARES 'lamp'): the jar lit, a light in
+ * the hold whose reach grows with every fragment found, past the jar's 24 (`lampReach(found)`, m), and a glow in the jar.
+ */
+export const LAMP = { base: 2.2, per: 0.035, max: 9 };
+export const lampReach = (found) => Math.min(LAMP.max, LAMP.base + LAMP.per * Math.max(0, found));
 /** How far off the one who met you goes. */
 const FIELD_GONE = 40;
 
@@ -71,10 +77,19 @@ function buildJar() {
     m.visible = false;
     g.add(m); bits.push(m);
   }
-  return { group: g, show(n) { bits.forEach((b, i) => { b.visible = i < n; }); } };
+  // (his lamp: a glow in the jar, larger with the count; hidden until it is bought)
+  const glow = new THREE.Mesh(new THREE.SphereGeometry(0.06, 12, 8), makeMaterial({ color: '#fff3c4', glow: 1, flat: true }));
+  glow.position.y = 0.17;
+  glow.visible = false;
+  g.add(glow);
+  return {
+    group: g, glow,
+    show(n) { bits.forEach((b, i) => { b.visible = i < n; }); },
+    lamp(on, found = 0) { glow.visible = on; glow.scale.setScalar(on ? 0.6 + 0.9 * Math.min(1, found / 200) : 1); },
+  };
 }
 
-export function setupScientist({ levelId, scene, physics, level, ship = null, npcs = [], lib = null, humans = null, game, items = sharedItems, talkable, dialogue = null, player = null }) {
+export function setupScientist({ levelId, scene, physics, level, ship = null, npcs = [], lib = null, humans = null, game, items = sharedItems, talkable, dialogue = null, player = null, sound = null }) {
   if (!game) return null;
   const flags = () => game.data?.flags ?? {};
   const def = thrumPerson({ flags, has: (id) => items.has(id), here: levelId });
@@ -110,11 +125,22 @@ export function setupScientist({ levelId, scene, physics, level, ship = null, np
     jar.group.position.set(...ABOARD.jar);
     m.group.add(jar.group);
     rt.jar = jar;
-    jar.show(Math.min(JAR_MAX, fragmentCounts(flags()).found));
+    const found = fragmentCounts(flags()).found;
+    jar.show(Math.min(JAR_MAX, found));
+    jar.lamp(!!game.flag('thrum.lamp'), found);
   };
+  // his lamp's light in the hold (bought: issue #481), where the jar is, its reach the count's
+  const lampLight = new THREE.Vector4(0, -1e5, 0, 0);
+  const lights = level ? (level.lights ??= []) : null;
+  const _jp = new THREE.Vector3();
+  const lampOn = () => !!rt.jar && !!game.flag('thrum.lamp');
+  // (the light's tune, bought: he plays it whole when asked, issue #481)
+  const offTune = game.on?.('thrum:tune', () => sound?.lightTheme?.({ vol: 0.9 }));
+  const offBought = game.on?.('thrum:bought', (e) => { if (e?.ware === 'lamp') rt.jar?.lamp(true, fragmentCounts(flags()).found); });
   if (game.flag('frag.met')) board();
   const offFrag = game.on?.('fragment', (e) => {
     rt.jar?.show(Math.min(JAR_MAX, e.found));
+    if (lampOn()) rt.jar.lamp(true, e.found);
     if (!game.flag('frag.met')) rt.pending = true;
   });
 
@@ -137,6 +163,15 @@ export function setupScientist({ levelId, scene, physics, level, ship = null, np
 
   rt.update = () => {
     if (rt.pending && !dialogue?.open && !ship?.playing) rt.meet();
+    if (lights) {
+      const on = lampOn() && !rt.aboard?.away;
+      const k = lights.indexOf(lampLight);
+      if (on) {
+        rt.jar.group.getWorldPosition(_jp);
+        lampLight.set(_jp.x, _jp.y + 0.6, _jp.z, lampReach(fragmentCounts(flags()).found));
+        if (k < 0) lights.push(lampLight);
+      } else if (k >= 0) lights.splice(k, 1);
+    }
     // (the meeting's talk opened: he is met however it ended, so he is aboard from now on, in every world)
     if (rt.meeting && !dialogue?.open) { rt.meeting = false; if (!game.flag('frag.met')) game.set('frag.met', true); }
     if (rt.aboard) {
@@ -154,7 +189,11 @@ export function setupScientist({ levelId, scene, physics, level, ship = null, np
       if (!dialogue?.open && game.flag('frag.met') && (far || aboardNow)) { drop(rt.field); rt.field = null; }
     }
   };
-  rt.dispose = () => { offFrag?.(); rt.jar?.group.removeFromParent(); };
+  rt.dispose = () => {
+    offFrag?.(); offTune?.(); offBought?.(); rt.jar?.group.removeFromParent();
+    const k = lights?.indexOf(lampLight) ?? -1;
+    if (k >= 0) lights.splice(k, 1);
+  };
   return rt;
 }
 

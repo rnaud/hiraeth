@@ -294,6 +294,7 @@ body.touch #journal .gm-full .fback::before { content: '◀'; margin-right: 6px;
 #journal .gm-area { position: absolute; border-radius: 50%; pointer-events: none; box-sizing: border-box;
   background: radial-gradient(closest-side, rgba(138, 79, 125, 0.34), rgba(138, 79, 125, 0.18) 72%, rgba(138, 79, 125, 0.08));
   border: 2px dashed rgba(110, 56, 100, 0.85); }
+#journal .mk.mk-fragment i { color: #3f8fa6; font-size: clamp(8px, 1.7vh, 13px); -webkit-text-stroke: 0.5px var(--ink); }   /* (Anselm's chart, issue #520) */
 #journal .mk.mk-rumour { z-index: 1; }
 #journal .mk.mk-rumour i { color: #8a4f7d; font-weight: bold; font-size: clamp(11px, 2.4vh, 18px); -webkit-text-stroke: 0.6px var(--ink); }
 #journal .mk.mk-rumour b { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); font: italic bold clamp(9px, 1.6vh, 12px)/1.1 var(--face); color: #5b2f52; white-space: nowrap; padding: 0 4px; background: rgba(251, 244, 226, 0.78); border-radius: 3px; }

@@ -142,7 +142,7 @@ import { ShopPanel } from '../src/shop-panel.js';
 import { resources } from '../src/resources.js';
 import { Gadgets } from '../src/gadgets/index.js';
 import { createItemEffects } from '../src/boxes/effects.js';
-import { createFragments } from '../src/fragments.js';
+import { createFragments, chartMarks } from '../src/fragments.js';
 import { keyText } from '../src/prompt-keys.js';
 import { carryHooks } from '../src/carry.js';
 import { BodyFoley } from '../src/foley.js';
@@ -1203,6 +1203,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       boxes: (boxes?.list ?? []).filter((b) => b.opened?.()).map((b) => ({ id: b.id, name: ITEMS[b.item]?.name ? `${ITEMS[b.item].name}’s box` : null, ...xz(mapAt(b.pos)) })),
       // (the rumours told and not found yet, as main.js mapSource: issue #340)
       rumours: story?.rumours?.marks?.() ?? [],
+      // (Anselm's chart, bought: every fragment still to find here, as main.js mapSource: issue #520)
+      fragments: chartMarks(fragments, gameState),
     };
     const whole = mapWhole.bounds;
     // (a mark zoomed on: a third of the whole map round it, its own ground drawn, as main.js mapSource)

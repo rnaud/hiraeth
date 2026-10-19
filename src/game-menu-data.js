@@ -77,11 +77,12 @@ export function worldsData({ data = {}, levels = [], order = [], known = () => t
       // (its full view, issue #213: the relics by name once found, a ? for the rest; the people met there)
       relicList: (L.relicNames ?? []).map((name, k) => ({ name, found: !!data.relics?.[id]?.[k] })), people: people(id) ?? [],
       travel: id !== current && !!travel(id),
-      // (the fragments of the singing light found here and how many are left, once the first is found: src/fragments.js)
-      fragments: fragments?.found && fragments.worlds?.[id]?.total ? [fragments.worlds[id].found, fragments.worlds[id].total] : null };
+      // (the fragments of the singing light found here, once the first is found: src/fragments.js. Never how many there are
+      // (issue #519); `quiet`: every one here found, said only with Anselm's chart (issue #520))
+      fragments: fragments?.found && fragments.worlds?.[id]?.total ? { found: fragments.worlds[id].found, quiet: !!fragments.chart && fragments.worlds[id].found >= fragments.worlds[id].total } : null };
   });
-  // (and all told, the worlds you don't know yet too: worldsPanel's line over the cards)
-  if (fragments) Object.defineProperty(list, 'fragmentsAll', { value: { found: fragments.found, total: fragments.total } });
+  // (and all told, the worlds you don't know yet too: worldsPanel's line over the cards; found only)
+  if (fragments) Object.defineProperty(list, 'fragmentsAll', { value: { found: fragments.found } });
   return list;
 }
 

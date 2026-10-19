@@ -193,6 +193,11 @@ export const ITEMS = {
     name: 'Moorer’s splice', kind: 'charm',
     text: 'A splice of the moorers’ cable, its strands still humming. The grappling hook reels you in a third faster.',
   },
+  // (v1.86, issue #518: the Signal Market's makers' court, behind the gate its recall puzzle opens)
+  sandglass: {
+    name: 'Pinch of slow sand', kind: 'charm',
+    text: 'A twist of paper holding sand that falls a little too slowly. The recall hourglass reaches half as far again: 48 m instead of 32.',
+  },
   // (issue #169) the City-Shaft's light that goes down: in the makers' chest the mirrors' sun reaches on the bottom terrace
   // (src/boxes/placements.js incal.sunglass), a little more for the bridge pen, the shaft's gadget (src/trials/upgrades.js CHARM_TUNES)
   sunglass: {

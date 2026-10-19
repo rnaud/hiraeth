@@ -226,14 +226,19 @@ export class GadgetWorld {
     const P = this.player;
     for (const pl of this.plates) {
       const near = (p, h = 1.2) => Math.hypot(p.x - pl.pos.x, p.z - pl.pos.z) < pl.radius && Math.abs(p.y - pl.pos.y) < h;
-      const on = (!pl.things && !!P && !P.ride && near(P.pos, 0.6)) || this.props.some((p) => p.object.visible && !p.held && p.mass >= (pl.mass ?? 1) && near(p.pos, p.h + 0.4));   // (one held up, by the magnet, a bubble, the hook, weighs nothing on it)
+      // (`latch`: once pressed it stays down, a makers' court's plate up a climb: src/finds/courts.js, issue #518)
+      const on = (pl.latch && pl.on) || (!pl.things && !!P && !P.ride && near(P.pos, 0.6)) || this.props.some((p) => p.object.visible && !p.held && p.mass >= (pl.mass ?? 1) && near(p.pos, p.h + 0.4));   // (one held up, by the magnet, a bubble, the hook, weighs nothing on it)
       if (on !== pl.on) { pl.on = on; sfx.click(this.sound, on); pl.onChange?.(on); }
       pl.k = THREE.MathUtils.damp(pl.k ?? 0, on ? 1 : 0, 14, dt);
       if (pl.object) pl.object.position.y = pl.pos.y - 0.08 * pl.k;
     }
     for (const g of this.gates) {
       // (`held`: kept open whatever its plates say: the cinematics review staging a box behind it, as play leaves it)
-      const want = g.held ?? (g.plates ? (g.plates.some((i) => this.plates[i]?.on) ? 1 : 0) : g.want ?? 0);
+      // (`all`: every one of its plates pressed, not any; `when()`: opened by something else, a makers' court's seals;
+      // `latch`: once open it stays open: src/finds/courts.js, issue #518)
+      const pressed = g.plates ? (g.all ? g.plates.every((i) => this.plates[i]?.on) : g.plates.some((i) => this.plates[i]?.on)) : false;
+      let want = g.held ?? (g.when ? (g.when() ? 1 : 0) : g.plates ? (pressed ? 1 : 0) : g.want ?? 0);
+      if (g.latch) { if (want) g.latched = true; if (g.latched) want = 1; }
       g.open = THREE.MathUtils.clamp(g.open + Math.sign(want - g.open) * g.speed * dt / g.travel, 0, 1);
       g.object.position.copy(g.base).addScaledVector(_Y, -g.travel * g.open);
       g.object.updateMatrixWorld();

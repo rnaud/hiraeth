@@ -56,12 +56,20 @@ test('every trial’s first finish is something to use at once: no gadget from f
   }
 });
 
-test('a gadget’s bay in each makers’ court; its box, where it has one, a gift in the open (issue #375: the gadgets are earned in the temples)', () => {
-  const gadgets = Object.values(COURTS).filter((c) => !c.bay).map((c) => c.gadget);
-  assert.deepEqual(new Set(gadgets), new Set(GADGETS.filter((g) => g.id !== 'gun').map((g) => g.id)), 'every gadget’s bay once (but the fluid gun, the desert\'s main quest\'s own)');
-  assert.equal(gadgets.length, 10);
+test('a makers’ court in each world after the desert, each a puzzle of a tool you have there, its box behind its gate (issues #375, #518)', () => {
   const at = (w) => ORDER.indexOf(partOf(w));
   for (const [w, c] of Object.entries(COURTS)) {
+    assert.ok(ROUTE_PARTS.includes(w), `${w}: on the route`);
+    assert.ok(c.needs && ITEMS[c.needs], `${w}: wants a tool (${c.needs})`);
+    assert.ok(c.boxAt, `${w}: its box behind what its puzzle opens`);
+    const own = PLACEMENTS[w].find((p) => p.court === w) ?? Object.values(PLACEMENTS).flat().find((p) => p.court === w);
+    assert.ok(own?.hint && ITEMS[own.item] && ITEMS[own.item].kind !== 'gadget', `${w}: its box holds a gift, never a gadget, with a hint`);
+    assert.ok(Object.values(PLACEMENTS).flat().some((p) => p.temple && (p.item === c.needs)) || ITEMS.gun.with?.includes(c.needs), `${w}: its ${c.needs} earned in a temple`);
+    void at;
+  }
+  // spread along the route: no more than one court a place, and every place after the desert has a court
+  assert.deepEqual(Object.keys(COURTS).sort(), ROUTE_PARTS.filter((w) => w !== 'desert').sort());
+  if (false) for (const [w, c] of Object.entries(COURTS)) {
     assert.ok(ROUTE_PARTS.includes(w), `${w}: on the route`);
     // (a court whose gadget moved into a temple: its box, if any, holds a gift in the open, never a gadget)
     const own = PLACEMENTS[w].find((p) => p.court);

@@ -100,7 +100,7 @@ import { buildItemModel } from './boxes/model.js';
 import { Flammables, flammableSpots } from './flammable.js';
 import { createChallenges } from './trials/index.js';
 import { createBoxes, migrateSave } from './boxes/index.js';
-import { createFragments } from './fragments.js';
+import { createFragments, chartMarks } from './fragments.js';
 import { createItemEffects } from './boxes/effects.js';
 import { setView, viewNow, inViewNow } from './motion-kit/view.js';
 import { GADGETS } from './gadgets/all.js';   // (first: the gadgets become items before anything reads ITEMS)
@@ -845,8 +845,8 @@ const fragments = createFragments({ levelId, scene, physics, level, player, soun
 const benches = wireBenches({ levelId, scene, physics, level, player, sound, rig });   // (the engines' too)
 // (his light-stitched heart: one more for good, and the hearts filled, as a heart container does)
 items.on((id, owned) => { if (id === 'lightheart') { player.setMaxHearts(resources.maxHearts); if (owned) player.restore(player.maxHearts); health.show(); } });
-// (in the Start menu, under where you are: the fragments all told, how many you hold to spend with Anselm once he is met
-// (src/fragment-shop.js), and how many are left in this world, once one is found)
+// (in the Start menu, under where you are: the fragments found and how many you hold to spend with Anselm once he is met
+// (src/fragment-shop.js), once one is found; never how many there are, issue #519)
 // (src/host/game-host.js fragmentsLine, the engines' Start menu too)
 const fragmentsHtml = () => { const t = fragmentsLine({ fragments, game, items, levelId }); return t ? `<span class="frag">${t}</span>` : ''; };
 await slice();
@@ -960,6 +960,8 @@ function mapSource({ zoom = null, detail = null, aspect = 1 } = {}) {
     boxes: (boxes.list ?? []).filter((b) => b.opened()).map((b) => ({ id: b.id, name: ITEMS[b.item]?.name ? `${ITEMS[b.item].name}’s box` : null, ...mapAt(b.pos) })),
     // (the rumours told and not found yet: a soft circle round each, issue #340, src/story/rumours.js)
     rumours: storyRt.rumours?.marks?.() ?? [],
+    // (Anselm's chart, bought: every fragment still to find here, issue #520)
+    fragments: chartMarks(fragments, game),
   };
   const whole = mapWhole.bounds, focus = zoom && mapMarks({ ...raw, bounds: whole }).find((m) => m.id === zoom);
   const bounds = focus ? zoomBounds(whole, { x: whole.x0 + focus.u * whole.w, z: whole.z0 + focus.v * whole.h }) : whole;
@@ -974,7 +976,7 @@ function mapSource({ zoom = null, detail = null, aspect = 1 } = {}) {
   const frag = fragments.counts(), here = frag.worlds?.[levelId];
   return { world: LEVELS.find((l) => l.id === levelId)?.title ?? '', marks: mapMarks({ ...raw, bounds }), canvas: view.canvas, progress: view.progress, zoom: focus ? zoom : null,
     scale: scaleBar(bounds.w), span: bounds.w, aspect: bounds.w / bounds.h, detail: part,
-    note: [givers.length ? GIVERS_NOTE : '', frag.found && here?.total ? tr('gm.fragments', { n: here.found, m: here.total }) : ''].filter(Boolean).join(' · ') };
+    note: [givers.length ? GIVERS_NOTE : '', frag.found && here?.total ? tr('gm.fragHereLong', { n: here.found }) : ''].filter(Boolean).join(' · ') };
 }
 // a keepsake just earned: a toast says what the father's charge gained
 game.on('keepsake', (k) => { const line = chargeHud(charge(), { kept: k.name }); if (line) showToast(line); });

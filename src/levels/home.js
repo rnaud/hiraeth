@@ -8,6 +8,7 @@ import { game } from '../game-state.js';
 import { items } from '../items.js';
 import { buildItemModel } from '../boxes/model.js';
 import { tokenList, ILEN_TOKEN } from '../story/ending.js';
+import { fragmentCounts } from '../fragments-data.js';
 import { addIndoors } from '../shelter.js';
 import { Cloths, HangingCloth } from '../hanging-cloth.js';
 import { buildParentsHouse, buildFamilyHouse } from './home-houses.js';
@@ -293,7 +294,9 @@ export function* buildHome(scene) {
 
   // ---------------------------------------------------------- the round house (the parents'): walked into, dark and still
   yield;
-  const parents = buildParentsHouse(scene, { centre: HOME_SPOTS.house.clone().setY(H(HOME_SPOTS.house.x, HOME_SPOTS.house.z)), doorZ: HOME_SPOTS.door.z, mat, lit: !!game.flag('ending.final') });
+  const parents = buildParentsHouse(scene, { centre: HOME_SPOTS.house.clone().setY(H(HOME_SPOTS.house.x, HOME_SPOTS.house.z)), doorZ: HOME_SPOTS.door.z, mat, lit: !!game.flag('ending.final'),
+    // (Anselm's lamp in the round window, when bought: its glow the share of the fragments found, issue #481)
+    splinters: game.flag('thrum.lamp') ? (({ found, total }) => found / total)(fragmentCounts(game.data?.flags ?? {})) : null });
   lights.push(...parents.lights);
   movers.push((t) => parents.dust(t));
   yield;
