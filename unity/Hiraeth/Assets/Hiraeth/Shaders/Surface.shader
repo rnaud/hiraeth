@@ -63,6 +63,10 @@ Shader "Hiraeth/Surface"
     _SurfD ("Hatch least spacing (px), plant height, large plant, mover", Vector) = (0, 0, 0, 0)
     _CutMe ("The traveller's own: cut while the lens is in him (live)", Vector) = (0, 0, 0, 0)
     _LineWhite ("Its lines drawn white (live)", Vector) = (0, 0, 0, 0)
+    _ThinPx ("Thin bars kept this many pixels wide (materials.js S_THIN; their axis points in the form's slot)", Float) = 0
+    _ShellCenter ("A temple landmark's shell: its centre (three, world); w 1 on (landmark-materials.js nacre)", Vector) = (0, 0, 0, 0)
+    _VGlyph ("A merged mesh's glyph cells per vertex, the grid's (materials.js S_VGLYPH: the banners)", Float) = 0
+    _LineFar ("A lighter line from afar: its step, from, to (m); w 1 on (materials.js LINE_FAR)", Vector) = (0, 0, 0, 0)
     _BoxA ("Box: ray, glow, star reach, clock", Vector) = (0.6, 0.35, 0.4, 0)
     _BoxB ("Box: half size, centre height", Vector) = (0.5, 0.5, 0.5, 0.5)
     _BoxMark ("Box: the marks", Vector) = (0.86, 0.93, 0.95, 1)
@@ -208,6 +212,10 @@ Shader "Hiraeth/Surface"
     float4 _TfBrowA, _TfBrowB, _TfEye, _TfMouth;
     // (PortraitFace.hlsl's: the traveller's portrait head; and surfaces D's: the hatch's least spacing, the traveller cut, a white line)
     float4 _PhFit, _PhFit2, _PhSpeech, _PhBlink, _SurfD, _CutMe, _LineWhite;
+    float4 _ShellCenter;   // a temple landmark's shell (src/temples/landmark-materials.js nacre, uShellCenter): its centre, w 1 on
+    float _VGlyph;         // the banners' glyph cells per vertex, the grid's (materials.js S_VGLYPH, life.js BannerSet; HIRAETH_VMAT)
+    float _ThinPx;         // thin bars (src/thin.js, S_THIN): the least width they are drawn, in pixels; each vertex's axis point in formC
+    float4 _LineFar;       // a lighter line from afar (materials.js LINE_FAR, the meadow's flowers): step, from, to (m), w 1 on
     float4 _PhEyeBox, _PhEye;   // (the portrait head's eye paint, issue #473)
     // (the passes' own that a material sets: the crowd's clock, the puffs' far fade, the grass's view)
     float _CrowdTime;
@@ -249,6 +257,8 @@ Shader "Hiraeth/Surface"
       #define _StrataSize vmStrataSize
       #define _Grid vmGrid
       #define _Flat vmFlat
+      static float vmGlyphs;   // (the glyphs' cells: the material's, or the grid's per vertex, S_VGLYPH)
+      #define _Glyphs vmGlyphs
     #endif
 
     struct Attributes
@@ -610,6 +620,25 @@ Shader "Hiraeth/Surface"
           UNITY_BRANCH if (_BladeOn > 1.5) v.positionOS.xyz = toThree(bladeBendDisc(toThree(v.positionOS.xyz), v.fold));
           else if (_BladeOn > 0.5) v.positionOS.xyz = toThree(bladeBendBlade(toThree(v.positionOS.xyz), v.fold));
         #endif
+        #if !defined(HIRAETH_VMAT)
+          // a thin bar (a mast's strut, a wire, a vine: src/thin.js, materials.js S_THIN) kept at least _ThinPx pixels wide
+          // however far off: pushed out from its axis point (formC, three's object frame) where it would be thinner, so it never
+          // breaks into pixels that come and go as it slides under them; a perspective view only (a shadow map's draws it as
+          // it is). A uniform branch, no interpolator (issue #264)
+          UNITY_BRANCH if (_ThinPx > 0.0 && v.formC.w > 0.5 && abs(UNITY_MATRIX_P._m32) > 0.5)
+          {
+            float3 axO = toThree(v.formC.xyz);
+            #if defined(HIRAETH_INSTMAT)
+              MatInst ti = _Mats[v.iid];
+              float3 axW = float3(dot(ti.r0.xyz, axO) + ti.r0.w, dot(ti.r1.xyz, axO) + ti.r1.w, dot(ti.r2.xyz, axO) + ti.r2.w);
+            #else
+              float3 axW = TransformObjectToWorld(axO);
+            #endif
+            float tr = length(v.positionOS.xyz - axO);
+            float want = _ThinPx * length(axW - _WorldSpaceCameraPos) / max(abs(UNITY_MATRIX_P._m11) * _ScreenParams.y, 1e-4);
+            if (tr > 1e-5 && want > tr) v.positionOS.xyz = axO + (v.positionOS.xyz - axO) * (want / tr);
+          }
+        #endif
         #if defined(HIRAETH_VMAT)
           float3 posWS = TransformObjectToWorld(v.positionOS.xyz);
         #else
@@ -782,6 +811,22 @@ Shader "Hiraeth/Surface"
             O_FOLD = float2(frac(sin(dot(floor(cc.xz * 7.0), float2(12.9898, 78.233))) * 43758.5453) * 6.2832, 0.0);
           }
         #endif
+        // a lighter line from afar (materials.js LINE_FAR, the meadow's flowers): a whole plant at a time, each at its own
+        // distance between _LineFar.y and .z (a hash of where it stands, the web's, in three's frame), so a meadow turns over
+        // plant by plant; the flag rides the instance tint's red (+4: a tint is never over 2), taken off in frag. A uniform
+        // branch, no interpolator more (issue #264)
+        UNITY_BRANCH if (_LineFar.w > 0.5)
+        {
+          #if defined(HIRAETH_INSTMAT)
+            float3 lfAt = float3(_Mats[v.iid].r0.w, _Mats[v.iid].r1.w, _Mats[v.iid].r2.w);
+          #elif defined(HIRAETH_FLORA)
+            float3 lfAt = float3(_Flora[v.iid].r0.w, _Flora[v.iid].r1.w, _Flora[v.iid].r2.w);
+          #else
+            float3 lfAt = TransformObjectToWorld(float3(0, 0, 0));
+          #endif
+          float lfK = frac(sin(dot(floor(toThree(lfAt).xz * 4.0), float2(12.9898, 78.233))) * 43758.5453);
+          if (distance(lfAt, _WorldSpaceCameraPos) >= lerp(_LineFar.y, _LineFar.z, lfK)) o.instColor.r += 4.0;
+        }
         UNITY_BRANCH if (_MSurfaceDebug > 9.5)
         {
           float3 pw = TransformObjectToWorld(v.positionOS.xyz);
@@ -1099,9 +1144,16 @@ Shader "Hiraeth/Surface"
 
       GBufferOut frag(Varyings i, bool frontFace : SV_IsFrontFace)
       {
+        // (a lighter line from afar: the vertex stage's flag, +4 on the tint's red; materials.js LINE_FAR)
+        float lineStepHere = _LineStep;
+        UNITY_BRANCH if (_LineFar.w > 0.5 && i.instColor.r > 3.0) { i.instColor.r -= 4.0; lineStepHere = _LineFar.x; }
         #if defined(HIRAETH_VMAT)
           vmColor = float4(i.vm1.xyz, 1); vmColor2 = float4(i.vm2.xyz, 1); vmColor3 = float4(i.vm3.xyz, 1);
           vmStrataSize = i.vm1.w; vmGrid = i.vm2.w; vmFlat = i.vm3.w;
+          // (the banners: each one's glyph cells its own grid, per vertex, materials.js S_VGLYPH; else the material's)
+          #undef _Glyphs
+          vmGlyphs = _VGlyph > 0.5 ? i.vm2.w : _Glyphs;
+          #define _Glyphs vmGlyphs
         #endif
         float3 posWS = toThree(i.worldPos);   // (Unity's space, for the shadow maps: the same numbers as the varying it was)
         // (-surface-debug 9: nothing of the shader but its plain colour, normal and view depth, at once: whether a surface that
@@ -1200,6 +1252,22 @@ Shader "Hiraeth/Surface"
         #endif   // (glTFast's skinned bodies read as back faces; the exported people do not)
 
         float3 albedo = _Color.rgb;
+        // a temple landmark's shell (landmark-materials.js nacre: the Underwater City's nautilus): fine sutures in a log spiral
+        // round its centre and the chambers' seams across them, a little darker and in the pen's detail; not on the plain
+        // variant (BridgeRenderer.Lean keeps such a material off it). A uniform branch (issue #264)
+        float shellInk = 0.0;
+        UNITY_BRANCH if (WALLK && _ShellCenter.w > 0.5)
+        {
+          float2 shellP = (i.worldPos.xy - _ShellCenter.xy) / float2(20.0, 25.0);
+          float shellR = length(shellP), shellA = atan2(shellP.y, shellP.x);
+          float shellTurn = (shellA + 4.5 * log(max(shellR, 0.045))) / 6.283185;
+          float shellCell = (shellA + shellR * 0.8) * 24.0 / 6.283185;
+          float shellFw = max(fwidth(shellTurn), 0.0001), cellFw = max(fwidth(shellCell), 0.0001);
+          float shellSeam = 1.0 - smoothstep(0.001, 0.001 + shellFw, abs(frac(shellTurn) - 0.5));
+          float shellChamber = (1.0 - smoothstep(0.003, 0.003 + cellFw, abs(frac(shellCell) - 0.5))) * smoothstep(0.2, 0.35, shellR);
+          shellInk = max(shellSeam, shellChamber * 0.48) * smoothstep(0.04, 0.09, shellR);
+          albedo *= 1.0 - shellInk * 0.17;
+        }
         if (_MapOn > 0.5) albedo *= SAMPLE_TEXTURE2D(_Map, sampler_Map, I_FORM.xy).rgb;   // (materials.js: uColor × the map, as the web's)
         // a temple skin's pattern (HIRAETH_SKIN): where the web's body replaces vec3 albedo = uColor; its pen lines start the
         // surface's detail, its glow its emit (skin-shader.js spliceSkin)
@@ -1502,7 +1570,7 @@ Shader "Hiraeth/Surface"
         L = lerp(L, 1.0, dEdge);
         if (LEANK && _FallOn > 0.5) { albedo = fall.albedo; L = 1.0; }   // (the sheet is its own light: materials.js FALL)
         GBufferOut o;
-        o.albedoLight = float4(albedo, saturate(L) + 2.0 * _LineStep);   // (the line's weight and colour over it: materials.js LINE)
+        o.albedoLight = float4(albedo, saturate(L) + 2.0 * lineStepHere);   // (the line's weight and colour over it: materials.js LINE, LINE_FAR)
         if (_LineWhite.x > 0.5) o.albedoLight.a = -1.0 - o.albedoLight.a;   // (a white line, uLineWhite: the sign bit, Composite 1b)
         o.normalDepth = float4(n, _FarDepth.x > 0 && i.viewDepth > _FarDepth.x ? _FarDepth.x + (i.viewDepth - _FarDepth.x) * _FarDepth.y : i.viewDepth);
         o.hatch = 0;
@@ -1510,7 +1578,7 @@ Shader "Hiraeth/Surface"
         if (WATERK && mode == MODE_WATER && _WaterOpt.x > 0.0 && frontFace && _WaterOpt.y < 0.5) o.normalDepth.xyz *= 1.012 + 0.05 * waterGlint;
 
         // drawn detail (gHatch.b)
-        float detail = skinInk;
+        float detail = max(skinInk, shellInk * 0.13);
         // (the grid's and the glyphs' coordinates only on a material that draws either: a uniform branch, its derivatives
         // fine there, issue #262)
         UNITY_BRANCH if (_Grid > 0.0)

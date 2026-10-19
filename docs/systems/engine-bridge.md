@@ -1721,6 +1721,9 @@ node scripts/unity-compare/run.mjs [--worlds a,b] [--set lantern] [--skip web,un
 | One run drew the Signal Market's square all in shade | the market's crowd view | a flake (the shot before the maps were drawn); the run after as the web |
 | Every temple's first room 7-15 ΔE darker and greyer (v1.85 audit) | every makers' house, its first room seen through the way in | **fixed** (#502, below) |
 | Lorn's lake one flat teal, no pale shallows along the shores | Lorn's wide view | **fixed** (#502: the water's bed map) |
+| The room's lamp a size bigger or smaller on each side, the sand by the door lit or not (its flicker, each side's clock) | the Rose House's first room | **fixed** in the check (#264: a fixed view holds a house's lights, `HouseAir.still`) |
+| The wall pipes dashed glowing orange on the web, plain thin brown lines in Unity | the Rose House's first room | **open** (found 2026-10-19) |
+| A pale see-through panel under the top ring a dark slab in Unity | the City-Shaft, under its top ring's banners | **open** (found 2026-10-19) |
 
 Run it again on every Unity release, before the Deck's and the Retroid's defaults move to it.
 
@@ -2438,11 +2441,63 @@ each is a uniform branch, a value in the material or a live vector.
 - **The crowd's shadow casters** (crowd.js crowdDepthMaterial, no colour written): ink-spec.js carries `colorWrite`, and
   such a shader is the port's `hidden` (nothing drawn; Unity's crowd casts its shadows from its tiers).
 
-Left of the round, "as time allows": the City-Shaft banners' glyph cells per vertex (S_VGLYPH), a lighter line from afar
+Left of the round, "as time allows" (done in the next, "Surfaces E" below): the City-Shaft banners' glyph cells per vertex (S_VGLYPH), a lighter line from afar
 (LINE_FAR), a temple landmark's shell pattern (uShellCenter), the fires' far depth (uFarNear / uFarScale).
 
 Pictures: the changelog's v1.84 line ("the traveller's face moves as on the web"), unity-face-open, unity-face-smile,
 unity-ship-hatch, unity-brushed.
+
+## Surfaces E, the chimes' shade, a moment's hearts (Unity + Puerts, 2026-10-19, issue #264)
+
+The next parity round (engine/bridge-gaps.js), the most seen first, each looked at web against Unity from the same views
+(scripts/unity-compare unity.mjs and design-qc/capture.mjs; the sequences `foes` and `moment-perdide.crystal`). The befores
+are main's build (5791a036b) on the same views. tests/unity-surfaces-e.test.js, unity-chime-shade.test.js, foes-held.test.js.
+
+- **A lighter line from afar** (materials.js LINE_FAR, flora.js FAR_LINE: Viridel's meadow flowers): `_LineFar` (step, from,
+  to, on). Surface.shader's vertex stage flags a whole plant at once by the web's hash of where it stands (its instance's
+  place, `_Mats` / `_Flora`, or its object's), at its own distance between from and to; the flag rides the tint's red (+4,
+  taken off in frag), so no interpolator more; frag takes the far step for `albedoLight.a`. Before, every far flower was
+  a black blot of ink; now pale as on the web (Viridel's start: SSIM 0.907 → 0.918, the crowd's 0.947 → 0.957). This is
+  also the far hairline #504's Garden tufts were waiting on.
+- **Thin bars** (src/thin.js, S_THIN: the City in Space's cables and vines, the Moon Foundry's crane struts): aThin rides
+  in the form's slot (pack.js, backend.js), `_ThinPx` the least width; the vertex is pushed out from its axis point by the
+  web's arithmetic, a perspective view only (a shadow map's ortho camera draws it as it is). Before, the cables under the
+  platforms broke into dashes; now whole lines (the City in Space's wide view: SSIM 0.896 → 0.935, worst cell ΔE 3.8 → 1.7).
+- **Static batches** (Android) bake points into the world and leave an object's frame behind: a mesh whose vertex stage
+  reads it (a far line, thin bars) is never batched (`BridgeRenderer.NeedsOrigin`).
+- **A landmark's shell** (landmark-materials.js nacre, uShellCenter: the Whale-House's nautilus): `_ShellCenter`, the web's
+  log-spiral sutures and chambers in frag (a uniform branch; such a material never takes HIRAETH_PLAIN). Before a bare
+  shell, now its spiral (SSIM 0.89 → 0.948).
+- **The banners' glyph cells per vertex** (S_VGLYPH, life.js BannerSet): `_VGlyph`; in HIRAETH_VMAT the glyphs' cell is
+  each banner's own grid (`vmGlyphs`), not the first banner's. Not in a picture yet: the views tried under the top ring
+  found its hanging moss, not a banner.
+- **The smoke column's far depth** (story/flames.js SmokeColumn uFarNear, uFarScale): port-format.js `farDepth` → the
+  Surface's `_FarDepth`, which the port's own column already used: the desert's plume is fogged as on the web.
+- **The chimes' shade** (chimes.js blobMaterial): port `chimeshade` → **Hiraeth/ChimeShade**, the page's G-buffer decal
+  (the albedo blended toward its violet by its strength, the instance's in its tint's red; the light term, normals and
+  marks kept; faded out by uFar; Offset -3, -3), on the GPU instances. No discard (a pixel outside the disc blends by 0),
+  no depth or shadow pass. Before, a white disc under each crystal (a Surface); now the violet patch. The `foes` sequence
+  has a beat `chimes-rest`, the crystals at rest; seen in Unity, the crystals are the page's (CrystalSurface.hlsl).
+- **The hearts over Lorn's crystal moment** were not the bridge's: Foes.update held still (`paused`: a scene, a
+  conversation, a menu) kept `fighting` at its last value, so a toad that was chasing as the moment began kept the hearts
+  and the wallet up for the whole of it. In the batch run the world plays a few seconds longer before the staging, and
+  the toad had woken. Held, nothing fights you now (src/foes.js), on the page and in the engines: in Unity's run the hearts
+  are gone from the moment's second beat on (its first, 0.6 s in, still shows them fading: wireHealth's 3 s). Left: the toad
+  and a walker are in Unity's shot of the cave and not in the page's (engine/bridge-gaps.js PICTURE_DIFFS).
+- **The Rose House's gold prism** was sand banked by the door at the edge of the room lamp's pool, and the lamp flickers
+  (src/temples/air.js lightPulse, ±12 % of its reach): each side's picture caught it at its own phase, the pool a size
+  bigger or smaller and the sand in it or not. A fixed view now holds a house's lights at their reach as built
+  (`HouseAir.still`: engine/game.js `pin`, design-qc/capture.mjs): the room's pair SSIM 0.858 → 0.919, worst cell ΔE 6.3 → 2.3.
+- **The room's motes** show in Unity (the house's air, Hiraeth/Mote): two layers, the embers' glow and the rose sand, as
+  on the web; each side's own drift.
+
+Cost on the Retroid (not measured: no device in this round). No variant is added to the Surface: the far line and thin
+bars are a uniform branch in the vertex stage (a few ALU on a vertex of such a material, nothing elsewhere), the shell a
+uniform branch in frag behind WALLK (not in the plain variant), the banners one select in HIRAETH_VMAT's frag. Two
+programs more in all, Hiraeth/ChimeShade with and without the instances, drawn only where chimes lie (a disc a crystal,
+a few hundred pixels); their pipeline states are new (the PSO lists recorded before miss them until traced again). A
+mesh with a far line or thin bars is drawn on its own rather than in a static batch: a few draws more in Viridel's meadow
+(its flowers are GPU instances already) and the City in Space's and the Moon Foundry's rigging.
 
 ## The author's Unity notes of 18 October
 

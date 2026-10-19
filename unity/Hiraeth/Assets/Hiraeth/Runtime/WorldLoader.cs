@@ -180,7 +180,7 @@ namespace Hiraeth
             if (m.I("plain") == 1) mat.SetFloat("_Glow", 1);
             // the web's newer surface marks (materials.js): weathering, pen detail, colour across a wall, plating, the
             // window share, banked sand, the shade (lift, hue, hatch, strata strokes), the spot and line steps
-            foreach (var (k, p) in new[] { ("weather", "_Weather"), ("patch", "_Patch"), ("plates", "_Plates"), ("drift", "_Drift"), ("spotStep", "_SpotStep"), ("lineStep", "_LineStep"), ("toDisplay", "_ToDisplay"), ("form", "_FormOn"), ("veins", "_Veins"), ("box", "_BoxOn"), ("tripoFace", "_TripoFace"), ("cracks", "_Cracks"), ("veil", "_Veil") })
+            foreach (var (k, p) in new[] { ("weather", "_Weather"), ("patch", "_Patch"), ("plates", "_Plates"), ("drift", "_Drift"), ("spotStep", "_SpotStep"), ("lineStep", "_LineStep"), ("toDisplay", "_ToDisplay"), ("form", "_FormOn"), ("veins", "_Veins"), ("box", "_BoxOn"), ("tripoFace", "_TripoFace"), ("cracks", "_Cracks"), ("veil", "_Veil"), ("thinPx", "_ThinPx"), ("vglyph", "_VGlyph") })
                 if (m.Has(k)) mat.SetFloat(p, m.F(k));
             // a merged mesh's material values per vertex (materials.js S_VMAT): the shader's variant that reads them
             if (m.I("vmat") == 1) mat.EnableKeyword("HIRAETH_VMAT");
@@ -192,7 +192,9 @@ namespace Hiraeth
                 // traveller's surfaces cut while the lens is in him; a line drawn white)
                 ("phFit", "_PhFit", new Vector4(0, 0, 0, 1)), ("phFit2", "_PhFit2", Vector4.zero), ("phSpeech", "_PhSpeech", Vector4.zero), ("phBlink", "_PhBlink", Vector4.zero),
                 ("phEyeBox", "_PhEyeBox", Vector4.zero), ("phEye", "_PhEye", Vector4.zero),   // (its eye paint's box and the iris's offset, issue #473)
-                ("surfD", "_SurfD", Vector4.zero), ("cutMe", "_CutMe", Vector4.zero), ("lineWhite", "_LineWhite", Vector4.zero) })
+                ("surfD", "_SurfD", Vector4.zero), ("cutMe", "_CutMe", Vector4.zero), ("lineWhite", "_LineWhite", Vector4.zero),
+                // (issue #264: a lighter line from afar, LINE_FAR: its step, the distances it turns over between, w on)
+                ("lineFar", "_LineFar", Vector4.zero), ("shellCenter", "_ShellCenter", Vector4.zero), ("farDepth", "_FarDepth", Vector4.zero) })
             {
                 var l = m.L(k);
                 if (l == null) continue;

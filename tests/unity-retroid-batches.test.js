@@ -17,7 +17,7 @@ test('the still meshes in static batches on Android, once the script has made no
   assert.match(sb, /n\.batched \|\| n\.kind != "mesh" \|\| n\.smr \|\| !\(n\.r is MeshRenderer\) \|\| !n\.r\.enabled \|\| n\.chunks != null/, 'plain meshes only, not those cut into shadow pieces');
   assert.match(sb, /now - n\.movedAt < 120/, 'not one that moved in the last 2 s');
   assert.match(sb, /md\.keys > 0 \|\| md\.unchunked/, 'nor with shape keys or points that move');
-  assert.match(sb, /if \(!Opaque\(n\.r\)\) continue;/);
+  assert.match(sb, /if \(!Opaque\(n\.r\) \|\| NeedsOrigin\(n\.r\)\) continue;/, 'nor one whose vertex stage reads its own frame (a far line, thin bars: #264)');
   assert.match(sb, /StaticBatchingUtility\.Combine\(gos\.ToArray\(\), gameObject\);/);
   assert.match(runner, /if \(BridgeArgs\.Flag\("-no-static-batch"\)\) BridgeRenderer\.staticBatch = false;/);
 });

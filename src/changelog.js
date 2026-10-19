@@ -79,6 +79,13 @@ export const CHANGELOG = [
     // uBedBox, uBedRef), Surface.shader waterDepth; scripts/design-qc/capture.mjs (the pinned eye for the frame's updates);
     // tests/unity-light-add.test.js, tests/unity-water-bed.test.js
     'In the Unity version, the first room of every makers’ house is as light as on the web: the glow of the way you came in by brightens it as it does there, where before the whole room came out grey and dim. And Lorn’s lake has its pale shallows along the shores again, the water darkening as it deepens.',
+    // issue #264 (surfaces E): engine/unity/port-format.js (lineFar, thinPx, shellCenter, vglyph, farDepth), pack.js and
+    // backend.js (aThin in the form's slot), Surface.shader (_LineFar, _ThinPx, _ShellCenter, _VGlyph), WorldLoader.cs,
+    // BridgeRenderer.cs (NeedsOrigin: no static batch); tests/unity-surfaces-e.test.js
+    'In the Unity version, flowers far across Viridel’s meadow are drawn in the light line they have on the web, not as black blots of ink; the cables and vines under the City in Space’s platforms stay whole lines far off instead of breaking into dashes; and the Whale-House’s great shell has its spiral and the seams of its chambers.',
+    // issue #264: unity/Hiraeth ChimeShade.shader (chimes.js blobMaterial's G-buffer decal), port-format.js chimeshade,
+    // BridgeRenderer.cs; engine/sequences.js foes 'chimes-rest'; tests/unity-chime-shade.test.js
+    'In the Unity version, the chimes a felled foe leaves lie on a soft violet patch of shade, as on the web, not on a white disc.',
     // issue #264: src/foes.js (Foes.update held: nothing is fighting you); tests/foes-held.test.js
     { text: 'The hearts no longer stay up over a world’s filmed moment because a foe was chasing you as it began.',
       see: 'Let a foe chase you and then start one of a world’s filmed moments (in Lorn, the crystal cave’s ring): the hearts fade as it begins and stay down over it.' },

@@ -1223,6 +1223,8 @@ const BEAM485 = 'Issue #485: the running game in muted headless Chrome (ANGLE Me
 const BIRD489 = 'Issue #489: the web game in muted headless Chrome (Medium, 1280 × 720) on this branch’s own Vite (port 5489), Vael, the bird ridden and gliding level, the game stepped 1/60 s a frame by hand, four frames in a row read back from the canvas; before: the branch’s base; the wing cropped, twice size, nearest neighbour; 18 October; cwebp -q 72';
 /** (v1.85, issue #502: a temple's first room and Lorn's lake in Unity) */
 const ROOMS502 = 'Issue #502: the Unity editor’s batch run on this Mac (scripts/unity-compare/unity.mjs, muted, High, 1280 × 720, -fresh -no-hud, noon, clear); before: main at af5f80258; after: this change; 18 October; cwebp -q 72';
+const GAPS264E = 'Issue #264 (surfaces E, the chimes\' shade): the Unity editor\u2019s batch run on this Mac (scripts/unity-compare/unity.mjs and sequences.mjs, muted, High, 1280 × 720, -fresh -no-hud, noon, clear); before: main at 5791a036b; after: this change; the chimes a 480 × 270 crop round the crystal at rest (the sequence foes, beat chimes-rest) scaled up; 19 October; cwebp -q 72';
+const GAPS264EW = 'Issue #264: the same view on the web, muted headless Chrome on this branch (scripts/design-qc/capture.mjs and sequences.mjs, High, 1280 × 720, a fixed render scale); cwebp -q 72';
 const ROOMS502W = 'Issue #502: the same view on the web, muted headless Chrome on this branch (scripts/design-qc/capture.mjs, High, 1280 × 720, a fixed render scale), the frame’s updates from the pinned eye; cwebp -q 72';
 /** (v1.85, issue #508: foes' eyes on the traveller) */
 const EYES508 = 'Issue #508: the creatures gallery (enemies.html, the game’s own body through Foes.look) in muted headless Chrome (ANGLE Metal, 1280 × 720) on this branch’s own Vite (port 5508), the foe noticed (provoked, a watcher), its 1.5 s idle drawn frame by frame, the traveller 4 m off where the caption says; before: the same build with the gaze switched off (each eye at rest); 18 October; cwebp -q 72';
@@ -1286,6 +1288,18 @@ export const CHANGELOG_MEDIA = {
     ], see: 'In a fight temple, press R3 (or Tab): the lock’s tick sounds and the ring under the foe your blade will take flashes; with none in front of you the tick falls and a ring goes out round you.' },
   ],
   '1.85': [
+    { match: 'In the Unity version, flowers far across Viridel’s meadow', tags: ['devices'], shots: [
+      { name: 'unity-far-flowers', title: 'Viridel’s meadow', caption: 'From the landing: before, the flowers 25 m off and further black blots; after, their lighter line, as the web’s (SSIM 0.907 → 0.918)', from: GAPS264E },
+      { name: 'unity-far-flowers-web', only: 'after', title: 'Viridel’s meadow on the web', caption: 'The same view on the web', from: GAPS264EW },
+      { name: 'unity-thin-cables', title: 'The City in Space', caption: 'From up and back over the platforms: before, the cables under them broken into dashes; after, whole lines (SSIM 0.896 → 0.935)', from: GAPS264E },
+      { name: 'unity-thin-cables-web', only: 'after', title: 'The City in Space on the web', caption: 'The same view on the web', from: GAPS264EW },
+      { name: 'unity-whale-shell', title: 'The Whale-House', caption: 'Its nautilus from below: before, a bare shell; after, its spiral and the chambers\' seams (SSIM 0.89 → 0.948)', from: GAPS264E },
+      { name: 'unity-whale-shell-web', only: 'after', title: 'The Whale-House on the web', caption: 'The same view on the web', from: GAPS264EW },
+    ], see: 'In the Unity version, look out over Viridel’s meadow from the landing, or over the City in Space’s platforms from above; swim up to the Whale-House’s shell.' },
+    { match: 'In the Unity version, the chimes a felled foe leaves', tags: ['devices'], shots: [
+      { name: 'unity-chime-shade', title: 'A chime at rest', caption: 'Close up, a felled crab\'s chime in the Arena: before, a white disc under it; after, the violet patch of shade', from: GAPS264E },
+      { name: 'unity-chime-shade-web', only: 'after', title: 'On the web', caption: 'The same moment on the web', from: GAPS264EW },
+    ] },
     { match: 'A house’s great key now looks the part', tags: ['temples'], shots: [
       { name: 'great-key-486', title: 'The great key', caption: 'Out of its chest in the Aerie: before, a longer small key with a second ring; after, the makers’ mark for a bow, brass and pale stone, a teal light down the shaft and a stepped ward', from: GREATKEY486,
         reference: { sheet: 'references/objects/great-key/sheet-1.jpg', caption: 'The author’s pick: the great key, from the reference lab (references/objects/great-key)' } },

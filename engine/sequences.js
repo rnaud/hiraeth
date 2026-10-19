@@ -184,6 +184,8 @@ export const SEQUENCES = [
         const f = F.spawnKind('crab', { n: 1, dist: 6 })[0], h = G.player.heading ?? 0;
         if (f) { f.pos.x += Math.cos(h) * 1.2; f.pos.z -= Math.sin(h) * 1.2; F.hurt(f, 'blade', new THREE.Vector3(0, 0, 1), { damage: 99 }); }
       } },
+      // (and a while later, the crystals at rest on the sand, each with its patch of shade under it: chimes.js blobMaterial)
+      { name: 'chimes-rest', wait: 3 },
     ]),
   },
   {

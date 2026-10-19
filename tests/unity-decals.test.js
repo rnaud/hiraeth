@@ -34,9 +34,10 @@ test('the decals with an offset in src/ are the ones this issue counted (a new o
   const found = files.filter((f) => /polygonOffsetFactor\s*[:=]\s*-/.test(read(f))).sort();
   assert.deepEqual(found, ['src/chimes.js', 'src/desert-dunes.js', 'src/desert-vistas.js', 'src/desert-water.js', 'src/jump-shadow.js', 'src/life.js',
     'src/levels/incal.js', 'src/sand-drifts.js', 'src/ship/crash.js', 'src/splat-decal.js', 'src/temples/boss.js'].sort());
-  // (the footprints, the jump's shade: their own shaders' Offset; the chimes' shade has no port yet, engine/bridge-gaps.js)
+  // (the footprints, the jump's shade, the chimes' shade: their own shaders' Offset, as the web's)
   assert.match(read('unity/Hiraeth/Assets/Hiraeth/Shaders/Print.shader'), /Offset -2, -2/);
   assert.match(read('unity/Hiraeth/Assets/Hiraeth/Shaders/JumpShade.shader'), /Offset -3, -3/);
+  assert.match(read('unity/Hiraeth/Assets/Hiraeth/Shaders/ChimeShade.shader'), /Offset -3, -3/);
 });
 
 test('BridgePrewarm keys a pair by its offset, so a decal\'s pipeline is warmed apart from the plain one', () => {

@@ -553,6 +553,17 @@ namespace Hiraeth.Bridge
                 materials[mid] = jm;
                 return;
             }
+            if (m.S("port") == "chimeshade")
+            {
+                // the patch of shade under each chime crystal (src/chimes.js blobMaterial, issue #264): the albedo blended toward its
+                // tint by its strength (the instance's tint's red), faded out by _Far; drawn on the GPU instances (InstMats)
+                var cm = new Material(Shader.Find("Hiraeth/ChimeShade")) { name = "chime shade (bridge)" };
+                var ct = m.L("tint");
+                if (ct != null && ct.Count >= 3) cm.SetVector("_Tint", new Vector4(Json.Num(ct[0]), Json.Num(ct[1]), Json.Num(ct[2]), 1));
+                cm.SetFloat("_Dark", m.F("dark", 0.6f)); cm.SetFloat("_Core", m.F("core", 0.55f)); cm.SetFloat("_Far", m.F("far", 45f));
+                materials[mid] = cm;
+                return;
+            }
             if (m.S("port") == "print")
             {
                 var pm = new Material(Shader.Find("Hiraeth/Print")) { name = "prints (bridge)" };
@@ -609,7 +620,8 @@ namespace Hiraeth.Bridge
             // see-through hole of a fight temple's wall, materials.js SEE_HOLE, is a cut of the same kind, drawn there too)
             if (leanRare && (why == "scrub" || why == "glass" || why == "see") && mode != 1 && mode != 3 && RareCount(m) == 1)
                 kw = why == "scrub" ? (leanScrub ? "HIRAETH_LEAN_SCRUB" : null) : (leanGlass ? "HIRAETH_LEAN_GLASS" : null);
-            bool plainOk = kw != null && plain && (int)(F(m, "_Pattern") + 0.5f) == 0 && F(m, "_Weather") <= 0 && V(m, "_Detail").x <= 0.5f && F(m, "_Patch") <= 0;
+            bool plainOk = kw != null && plain && (int)(F(m, "_Pattern") + 0.5f) == 0 && F(m, "_Weather") <= 0 && V(m, "_Detail").x <= 0.5f && F(m, "_Patch") <= 0
+                && V(m, "_ShellCenter").w <= 0.5f;   // (a landmark's shell sutures: drawn with a wall's marks, issue #264)
             // (and none of the people's, a picture's or the form's hatching interpolators: the slim variant, its vertices 19 floats not 28;
             // never with HIRAETH_PLAIN: the two together stall the Retroid's frame for ~330 ms again and again, round 7; the ground is
             // always plain, so the plain lean materials' only)
@@ -825,6 +837,14 @@ namespace Hiraeth.Bridge
             if (n.chunks != null) { BridgeShadowChunks.Detach(n.chunks, n.r); n.chunks = null; n.chunkSrc = null; chunked.Remove(n); }
             if (!BridgeShadowChunks.On || n.kind != "mesh" || !n.shadow || !(n.r is MeshRenderer) || md == null || md.bones >= 0 || md.keys > 0 || md.unchunked || !BridgeShadowChunks.Wants(md.mesh)) return;
             n.chunks = BridgeShadowChunks.Attach(n.go, n.r, md.mesh); n.chunkSrc = md; chunked.Add(n);
+        }
+        /// <summary>A material that reads its object's own frame in the vertex stage (issue #264): a lighter line from afar
+        /// (LINE_FAR: where the object stands) or thin bars (S_THIN: each vertex's axis point, in the object's frame). A static
+        /// batch bakes the points into the world and leaves both behind, so such a mesh is drawn on its own.</summary>
+        static bool NeedsOrigin(Renderer r)
+        {
+            foreach (var m in r.sharedMaterials) if (m && ((m.HasProperty("_LineFar") && m.GetVector("_LineFar").w > 0.5f) || (m.HasProperty("_ThinPx") && m.GetFloat("_ThinPx") > 0))) return true;
+            return false;
         }
         static bool Opaque(Renderer r)
         {
@@ -1452,7 +1472,7 @@ namespace Hiraeth.Bridge
             {
                 if (n.batched || n.kind != "mesh" || n.smr || !(n.r is MeshRenderer) || !n.r.enabled || n.chunks != null || !n.go || !n.mf || !n.mf.sharedMesh || !n.mf.sharedMesh.isReadable) continue;
                 if (now - n.movedAt < 120 || !meshes.TryGetValue(n.mesh ?? "", out var md) || md.keys > 0 || md.unchunked || md.mesh != n.mf.sharedMesh) continue;
-                if (!Opaque(n.r)) continue;
+                if (!Opaque(n.r) || NeedsOrigin(n.r)) continue;
                 gos.Add(n.go); picked.Add((n, md));
             }
             if (gos.Count < 2) return;

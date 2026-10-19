@@ -45,6 +45,11 @@ export function portMaterial(spec, id = 0) {
   if (spec.type === 'shader' && typeof u.uDepth === 'number' && spec.transparent && !spec.depthWrite) {
     return { id, name: spec.name ?? '', port: 'print', depth: r5(u.uDepth), side: 2, plain: 1 };
   }
+  // the patch of shade under each chime crystal (src/chimes.js blobMaterial: a G-buffer decal, the albedo blended toward its
+  // tint by its strength, the instance's in its colour's red, faded out by uFar) → the bridge's Hiraeth/ChimeShade (issue #264)
+  if (spec.type === 'shader' && typeof u.uCore === 'number' && typeof u.uDark === 'number' && typeof u.uFar === 'number' && Array.isArray(u.uTint) && spec.transparent && !spec.depthWrite) {
+    return { id, name: spec.name ?? '', port: 'chimeshade', tint: col(u.uTint), dark: r5(u.uDark), core: r5(u.uCore), far: r5(u.uFar), side: 2, plain: 1 };
+  }
   // the jump's shade (src/jump-shadow.js: a patch multiplied into the G-buffer, its light term taken away) → Hiraeth/JumpShade
   if (spec.type === 'shader' && typeof u.uDark === 'number' && Object.keys(u).length === 1 && spec.transparent && !spec.depthWrite) {
     return { id, name: spec.name ?? '', port: 'jumpshade', dark: r5(u.uDark), side: 2, plain: 1 };
@@ -150,6 +155,18 @@ export function portMaterial(spec, id = 0) {
   // (and a mover's flag, uMover: a foe, the drone; Composite's crease shading sees past it as the page's does)
   if (v('uHatchPx') > 0 || sp || v('uMover') > 0) e.surfD = [r5(v('uHatchPx')), sp ? r5(sp[0]) : 0, sp ? sp[1] : 0, v('uMover') > 0.5 ? 1 : 0];
   if (v('uCutMe') > 0) e.cutMe = [1, 0, 0, 0];
+  // a lighter line from afar (makeMaterial({ lineFar }), LINE_FAR: the meadow's flowers, flora.js FAR_LINE): its step, the
+  // distances it turns over between (each plant at its own, by a hash of where it stands), w 1 on (issue #264)
+  // thin bars kept a least width on screen (makeMaterial({ thin: px }), S_THIN, src/thin.js: masts' struts, wires, vines): the
+  // pixels; each vertex's axis point rides in the form's slot (pack.js aThin)
+  // a temple landmark's shell (src/temples/landmark-materials.js nacre: its sutures round uShellCenter); the banners' glyph
+  // cells per vertex (S_VGLYPH, life.js BannerSet: the grid's, HIRAETH_VMAT); the smoke column's far depth (story/flames.js:
+  // past uFarNear its depth written compressed by uFarScale, so the fog and the line fade treat it as nearer)
+  if (Array.isArray(u.uShellCenter)) e.shellCenter = [...u.uShellCenter.slice(0, 3).map(r5), 1];
+  if (spec.defines?.S_VGLYPH) e.vglyph = 1;
+  if (typeof u.uFarNear === 'number' && typeof u.uFarScale === 'number') e.farDepth = [r5(u.uFarNear), r5(u.uFarScale), 0, 0];
+  if (spec.defines?.S_THIN && v('uThinPx') > 0) e.thinPx = r5(v('uThinPx'));
+  if (spec.defines?.LINE_FAR && Array.isArray(u.uLineFar)) e.lineFar = [...u.uLineFar.slice(0, 3).map(r5), 1];
   if (v('uLineWhite') > 0) e.lineWhite = [1, 0, 0, 0];
   // a makers' box (MAKERS_BOX: boxes/model.js): its ray and clock, size, the marks' and the ray's colours
   if (spec.defines?.MAKERS_BOX) { e.box = 1; for (const [k, name] of [['boxA', 'uBoxA'], ['boxB', 'uBoxB'], ['boxMark', 'uBoxMark'], ['boxLight', 'uBoxLight']]) if (Array.isArray(u[name])) e[k] = u[name].map(r5); }   // (the coral-shirt traveller: linear colours, turned to display values in the shader)

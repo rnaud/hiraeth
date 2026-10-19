@@ -10,7 +10,7 @@ namespace Hiraeth
     /// </summary>
     public static class RuntimeShaders
     {
-        public static readonly string[] Names = { "Hiraeth/Surface", "Hiraeth/Planet", "Hiraeth/UIText", "Hiraeth/Wisp", "Hiraeth/Mote", "Hiraeth/Print", "Hiraeth/JumpShade", "Hiraeth/Flame", "Hiraeth/Hologram", "Hiraeth/Veil", "Hiraeth/PitVoid", "Hiraeth/DoorLight", "Hiraeth/HoloFigure",
+        public static readonly string[] Names = { "Hiraeth/Surface", "Hiraeth/Planet", "Hiraeth/UIText", "Hiraeth/Wisp", "Hiraeth/Mote", "Hiraeth/Print", "Hiraeth/JumpShade", "Hiraeth/Flame", "Hiraeth/ChimeShade", "Hiraeth/Hologram", "Hiraeth/Veil", "Hiraeth/PitVoid", "Hiraeth/DoorLight", "Hiraeth/HoloFigure",
             "Hidden/Hiraeth/Composite", "Hidden/Hiraeth/Bloom", "Hidden/Hiraeth/FXAA", "Hidden/Hiraeth/SMAA", "Hidden/Hiraeth/Upscale", "Hidden/Hiraeth/WaterOver", "UI/Default" };
 
         /// <summary>

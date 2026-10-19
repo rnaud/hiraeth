@@ -152,7 +152,7 @@ export class UnityBackend {
     const crowd = d.kind === 'instanced' && specs.some((s) => s?.defines?.CROWD);
     const figure = !crowd && specs.some((s) => (s?.u?.uMode === 4 || s?.u?.uFigure > 0 || s?.u?.uMode === 6 || s?.defines?.FACE_PART));
     // (a dune's aGlass, a billboard's aNight, a splat's aSplat and a chime crystal's aCrystal ride in the form's slot: pack.js)
-    const form = specs.some((s) => s?.defines?.S_FORM || s?.defines?.DUNE_GLASS || s?.defines?.DUNE_POOL || s?.defines?.NIGHT_PAINT || s?.defines?.CHIME_CRYSTAL || typeof s?.u?.uSplatTime === 'number');
+    const form = specs.some((s) => s?.defines?.S_FORM || s?.defines?.S_THIN || s?.defines?.DUNE_GLASS || s?.defines?.DUNE_POOL || s?.defines?.NIGHT_PAINT || s?.defines?.CHIME_CRYSTAL || typeof s?.u?.uSplatTime === 'number');
     // (a merged mesh's material values per vertex: the City-Shaft's towers, S_VMAT)
     const vmat = specs.some((s) => s?.defines?.S_VMAT);
     // (the fluid's flask, hose and globs read their own rest place too: their box, the glass's height, materials.js FLUID)

@@ -49,6 +49,8 @@ export function unityGeometry(g, { colors = false, bind = false, rig = false, fo
   // (or the Glass Dunes' aGlass in the form's point, its axis none: src/dune-glass-shader.js, Surface.shader _DuneOn)
   // (or a billboard's aNight, materials.js NIGHT_PAINT: its night colour and glow; or a splat's, above)
   const F = form && A.aFormC?.itemSize === 4 && A.aFormA?.itemSize === 3 ? [A.aFormC.array, A.aFormA.array]
+    // (or a thin bar's aThin, src/thin.js S_THIN: the point of its axis each vertex stands round, three's object frame, w 1)
+    : form && A.aThin?.itemSize === 4 ? [A.aThin.array, new Float32Array(n * 3)]
     : form && A.aGlass?.itemSize === 4 ? [A.aGlass.array, new Float32Array(n * 3)]
     : form && A.aNight?.itemSize === 4 ? [A.aNight.array, new Float32Array(n * 3)]
     // (or the chimes' crystal's aCrystal: its corners' barycentric weights and its length, src/crystal-shader.js)
