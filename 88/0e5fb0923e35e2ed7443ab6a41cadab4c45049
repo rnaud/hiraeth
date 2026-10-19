@@ -1,0 +1,21 @@
+scripts/stutter/run-android.mjs
+  s_b5a45d62209de7::t_f93509d9f75c4f 1-64
+scripts/stutter/run-deck.mjs
+  s_b5a45d62209de7::t_b90bb9150546ad 1-54
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "880e5fb0923e35e2ed7443ab6a41cadab4c45049",
+  "prompts": {},
+  "sessions": {
+    "s_b5a45d62209de7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a95795a430dffc59c",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

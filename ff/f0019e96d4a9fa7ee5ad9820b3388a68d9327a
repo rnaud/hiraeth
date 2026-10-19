@@ -1,0 +1,33 @@
+engine/game.js
+  s_5f899ba316b5dc::t_bd71f279fb0d3d 791-797,1529
+src/foes.js
+  s_5f899ba316b5dc::t_745c449acf934d 5-7,1750-1751,2043-2053,2095,2101-2102,2112-2117,2132,2440,3508
+src/foe-shapes.js
+  s_b5a45d62209de7::t_6f2fad448771cc 1-72
+tests/foe-shapes.test.js
+  s_b5a45d62209de7::t_523681f18d355d 1-71
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "fff0019e96d4a9fa7ee5ad9820b3388a68d9327a",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_b5a45d62209de7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a95795a430dffc59c",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
