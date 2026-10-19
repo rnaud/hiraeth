@@ -61,6 +61,11 @@ worlds, photo mode, the scout, the sketchbook or lock-on; the game buttons (A / 
 reach the game through the merged controls only while it runs. **Quit** goes back to `?level=<from>` (the
 place saved as you left), or to the worlds list.
 
+**The cards' buttons** (issue #507): the main one (Start, Resume, Retry, a win's Fly on: what Enter presses) is
+marked only by a red edge at its left; the one the pad or the arrows are on is the one highlight, filled red with its
+words in paper and lifted, as the Start menu's entries (`kit/minigames.css`; BridgeMenu.cs `BuildCard` the same from
+the card's `on` and `main`). A main button drawn filled, as before, looked picked wherever the focus was.
+
 **In the engines** (the Unity build, issue #264): the same runner, made by engine/trials.js as main.js makes it; what it
 draws on the page is data too, its HUD the screen's `minigame` part (`publish`) and its card `cardModel`, which the
 Unity bridge draws (BridgeHud.cs, BridgeMenu.cs through engine/menus.js's card): docs/systems/engine-bridge.md, "The

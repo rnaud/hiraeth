@@ -59,6 +59,9 @@ export const CHANGELOG = [
     // issue #514: src/levels/perdide.js buildSkiff (SKIFF_SHEET: the sail and its boom sheeted out; SKIFF_HULL), src/bike.js
     // Hoverbike.hull / sweepHull; tests/skiff.test.js
     'Lorn’s skiff is solid end to end: its bow, its stern and the float off its side stop at the small crystals rising from the water instead of sailing through them. Its sail is set out over the side now, so it no longer runs through your face as you ride.',
+    // issue #507: src/minigames/kit/minigames.css (the main button edged, the focused one filled red), unity BridgeMenu.cs
+    // BuildCard; tests/minigame-card-focus.test.js
+    'In the games’ menus (the start card, the pause, the results), the button you are on is now the one drawn in colour, filled red as in the other menus. Retry, Start or Resume no longer look picked when they aren’t: a red edge at their left says which one Enter presses.',
   ] },
   { v: '1.84', date: '2026-10-17', items: [
     // issue #439: src/costumes.js (HEADS: the 47 pieces of the 15 hat sets, HAT_SETS, HAT_SET_WORLDS, hoodShell / hoodNeck /

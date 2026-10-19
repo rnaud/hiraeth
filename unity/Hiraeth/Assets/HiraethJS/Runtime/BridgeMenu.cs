@@ -533,13 +533,15 @@ namespace Hiraeth.Bridge
         // src/minigames/kit/minigames.css .mg-card .sheet): the start card, the pause, the results, on the game's paper with a
         // hard ink shadow; its kicker, its name in heavy capitals, its blurb, the rules in a dashed box, the controls in two
         // columns, the options' rows, the score big and "New best!" stamped, the lines, the best, the buttons (the main one
-        // gold, the pad's in bright gold with a red edge), the keys' hint at the foot
+        // marked by a red edge at its left, the pad's filled red, lifted, its words in paper: the main menus' look, issue #507),
+        // the keys' hint at the foot
         Ui.Box cSheet, cRules, cStamp; Sketch cRulesDash; Label cKicker, cTitle, cLead, cText, cRulesText, cBig, cStampText, cLines, cExtra, cBest, cHint;
-        class CardButton { public Ui.Box box; public Label text, sub; }
+        class CardButton { public Ui.Box box; public Label text, sub; public Image accent; }
         readonly List<CardButton> cButtons = new();
         readonly List<(Label k, Label v)> cRows = new();
         readonly List<(Ui.Box box, Label label, Label val, Label hint)> cOpts = new();
-        static readonly Color CardKicker = Ui.Hex("#8a5a3c"), CardDd = Ui.Hex("#4a3b33"), CardMuted = Ui.Hex("#6b5a4e"), CardStamp = Ui.Hex("#d9643a");
+        static readonly Color CardKicker = Ui.Hex("#8a5a3c"), CardDd = Ui.Hex("#4a3b33"), CardMuted = Ui.Hex("#6b5a4e"), CardStamp = Ui.Hex("#d9643a"),
+            CardRed = Ui.Hex("#c8483a"), CardOnInk = Ui.Hex("#fff6dc");
 
         void BuildCard(Font mono)
         {
@@ -670,6 +672,7 @@ namespace Hiraeth.Bridge
                     var nb = new CardButton { box = Ui.Panel(cSheet.rt, "button" + i, Ui.CardC, Ui.Ink, 2, 3, 3, 4) };
                     nb.text = Ui.Label(nb.box.rt, "text", mono, 17, Ui.Ink, TextAnchor.UpperCenter, FontStyle.Bold); Ui.Space(nb.text, 0.12f);
                     nb.sub = Ui.Label(nb.box.rt, "sub", mono, 11, CardMuted, TextAnchor.UpperCenter);
+                    nb.accent = Ui.Rect(nb.box.rt, CardRed, 0, "edge");
                     cButtons.Add(nb);
                 }
                 var b = buttons[i] as Dictionary<string, object>;
@@ -684,9 +687,15 @@ namespace Hiraeth.Bridge
                 cb.text.text = label; Ui.Place(cb.text.rectTransform, 0, 9, bw, ls.y);
                 Show(cb.sub, under.Length > 0);
                 if (under.Length > 0) { cb.sub.text = under; Ui.Place(cb.sub.rectTransform, 0, 9 + ls.y + 2, bw, 14); }
-                cb.box.SetFill(on ? Ui.Hex("#ffd866") : main ? Ui.Gold : Ui.CardC);
-                cb.box.border.color = on ? Ui.Red : Ui.Ink;
-                Ui.Place(cb.box.rt, bx - (on ? 1 : 0), y - (on ? 1 : 0), bw, h);
+                // (the pad's the one highlight, filled red; the main one only a red edge at its left: issue #507)
+                cb.box.SetFill(on ? CardRed : Ui.CardC);
+                cb.box.border.color = Ui.Ink;
+                cb.box.SetShadow(on ? 5 : 3, on ? 5 : 3);
+                cb.text.color = on ? CardOnInk : Ui.Ink;
+                cb.sub.color = on ? CardOnInk : CardMuted;
+                Show(cb.accent, main);
+                if (main) { cb.accent.color = on ? Ui.Ink : CardRed; Ui.Place(cb.accent.rectTransform, 0, 0, 7, h); }
+                Ui.Place(cb.box.rt, bx - (on ? 2 : 0), y - (on ? 2 : 0), bw, h);
                 bx += bw + 10;
             }
             for (int i = buttons.Count; i < cButtons.Count; i++) cButtons[i].box.Show(false);
