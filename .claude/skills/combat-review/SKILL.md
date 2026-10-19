@@ -94,6 +94,24 @@ Method notes:
   (`?level=<world>&debugsave=1`, the dev menu's temple jump, or `level.temples` and `player.teleport`), mid wind-up and at
   the strike, and the lock from the game's camera.
 
+### The fight temples (`fight-temples.mjs`, since v1.85)
+
+The twelve fight temples (`src/fight-temples/`, docs/design/fight-temples.md) are a combat of their own: a fixed
+isometric camera, the roll on B / ○, no jump, the wide cut (`WIDE_CUT`) and the quicker combo (`QUICK_CUT`), waves of
+light foes (`LIGHT_HP`, `LIGHT_HARM`: their first attack only), gorged and tough ones, a hazard a world, ranks and par
+times. Play them, don't read them:
+
+| script | purpose | key flags | writes |
+|---|---|---|---|
+| `fight-temples.mjs <out>` | each temple played through in headless Chrome (`?game=fight-<world>&seed=<n>`) by a scripted traveller on the game's own keys, with the hearts he has on arriving in that world (`lib.mjs heartsOnArrival`): the clear time against par and the rank, the hearts lost by cause (each kind, each hazard), the knock-outs (refilled, so the run goes on), the wind-ups as seen, blows a minute, the crowd, each room's time and harm, frame times, the page's errors (Tab pressed now and then: the lock must do nothing in here) | `--worlds desert,bazaar` `--bot skilled\|masher` (skilled: rolls out of blows due in 0.22 s and out of the hazard; masher: walks in and cuts) `--gentle` `--seed 4821` `--cap 420`; PORT 5482, CDP 5483 | `fight-<bot>.json`, `shots/` (each room at its fullest, each hazard's first warning, the results card) |
+
+Score each temple as a whole on the same six criteria as a foe (its waves as one foe: the telegraphs of what it fields
+and its hazard's warning; the answers the room asks for; the use of its space and hazard; harm against hearts on
+arrival; its look and hazard as its identity; how its kinds combine), and judge the curve by the hearts lost against
+the hearts on arrival, temple by temple along the route (`src/levels/names.js` `ORDER`). The script's sticks go on the
+keyboard object past its proxy (`main.js latchedInput` latches anything set through it to `true`): a right stick of
+`true` aimed the cut at NaN and froze the page.
+
 ## 2. The rubric, per foe (1-5 each)
 
 | | 1 | 3 | 5 |

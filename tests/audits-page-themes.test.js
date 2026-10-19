@@ -98,6 +98,11 @@ test('the parsers on the real reports: each kind\'s items add up to its overall'
   const temples = group('temple-design', 'Temples').rows;
   assert.equal(temples.length, 14, 'the fourteen temples (v1.48; not a changed temples\' table)');
   assert.ok(near(avg(temples.map((r) => r.value)), theme('temple-design').latest.overall));
+  // the fight temples' combat (issue #482): a kind of its own beside combat, its card after it, a row a fight temple
+  const fights = group('combat-fight-temples', 'Temples').rows;
+  assert.equal(fights.length, 12, 'the twelve fight temples (v1.85)');
+  assert.ok(near(avg(fights.map((r) => r.value)), theme('combat-fight-temples').latest.overall));
+  assert.equal(THEME_ORDER.indexOf('combat-fight-temples'), THEME_ORDER.indexOf('combat') + 1, 'its card beside the combat review\'s');
   assert.ok(temples.some((r) => r.alt === 'arzach2'), 'the temple\'s id is its alternative key');
   assert.equal(group('game', 'Themes').rows.length, 12);
   const areas = group('dialogue', 'Areas').rows;

@@ -109,6 +109,21 @@ test('the score tables are read from the real reports: criteria, totals, "before
   const mean26 = (tableMean(c6.scoreTables[0]) * 15 + tableMean(g6) * 11) / 26;
   assert.ok(Math.abs(mean26 - c6.overall) < 0.01, 'its block\'s overall');
 
+  // the fight temples' combat review (issue #482): a kind of its own, a row a temple, the measures not read as scores,
+  // a score changed by a fix read as before and after
+  const ft = byId('combat-fight-temples-v1.85');
+  assert.equal(ft.kind, 'combat-fight-temples');
+  assert.equal(ft.kindName, 'Fight temples');
+  const [temples] = ft.scoreTables;
+  assert.equal(temples.rows.length, 12);
+  assert.deepEqual(temples.criteria.map((c) => temples.header[c]), ['read', 'counter', 'space', 'fair', 'identity', 'combines']);
+  assert.equal(temples.header[temples.primary], 'total');
+  const kiln = temples.rows.find((r) => r.label === 'The Kiln Yard');
+  assert.deepEqual(kiln.scores[temples.primary], { value: 3.33, before: 3 });
+  assert.deepEqual(kiln.scores[temples.header.indexOf('read')], { value: 4, before: 2 });
+  assert.ok(Math.abs(tableMean(temples) - ft.overall) < 0.01, 'the block\'s overall is the twelve totals\' mean');
+  assert.ok(!ft.scoreTables.some((t) => t.scoreCols.some((c) => /hearts|lost|clear|crowd|blows/.test(t.header[c]))), 'the measures are not scores');
+
   assert.equal(byId('visual-v1.4').scoreTables.length, 0, 'the visual audit has no scores (its counts column is not one)');
   assert.deepEqual(byId('visual-v1.0').severities, { noticeable: 2, 'only when looking': 1 });
 });
