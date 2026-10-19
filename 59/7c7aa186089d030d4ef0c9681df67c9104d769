@@ -1,0 +1,55 @@
+changelog.md
+  s_5f899ba316b5dc::t_dbb890dbc90927 5-11
+docs/systems/bridge-gaps.md
+  s_5f899ba316b5dc::t_5e0ad2a90a7305 13,54
+docs/systems/minigames.md
+  s_5f899ba316b5dc::t_1863ca8d1b4d7d 569-590
+engine/bridge-gaps.js
+  s_5f899ba316b5dc::t_b05f562f06dda9 200
+engine/sequences.js
+  s_5f899ba316b5dc::t_9d8d70492302ef 70-84,208-222
+src/changelog-media.js
+  s_5f899ba316b5dc::t_4feca33938af3f 1260-1261,1263-1277
+src/changelog.js
+  s_5f899ba316b5dc::t_943992351000f1 11-21
+src/fight-temples/rooms.js
+  s_5f899ba316b5dc::t_b0472b31150b0f 13,49-71,131,187-190
+src/fight-temples/self-mark.js
+  s_5f899ba316b5dc::t_2356be15448131 1-59
+src/fight-temples/session.js
+  s_5f899ba316b5dc::t_9c22120812b3e6 14-18,36-37,147-149,152-156,158,161-165,235-246,551-553,635-637,640,646-649,668-670
+src/fight-temples/view.js
+  s_5f899ba316b5dc::t_5e8fb8406fdb05 1-162
+src/foes.js
+  s_5f899ba316b5dc::t_345f469ace1d40 1835-1836,2736,2747-2753,2758-2765
+src/hud-shows.js
+  s_5f899ba316b5dc::t_107f790a0f900c 20,22
+src/platform.js
+  s_5f899ba316b5dc::t_f1572f32ce376b 90-91,97
+tests/fight-view.test.js
+  s_5f899ba316b5dc::t_f97acb972c282a 1-212
+tests/sequences-web.json
+  s_5f899ba316b5dc::t_7030cb6e063fe8 3,5635-5809
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHud.Self.cs
+  s_5f899ba316b5dc::t_3ecfd04db57af6 1-44
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHud.cs
+  s_5f899ba316b5dc::t_0e3ef53617c318 451,671
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHud.Self.cs.meta
+  s_5f899ba316b5dc::t_e7a621a2c0010d 1-2
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "597c7aa186089d030d4ef0c9681df67c9104d769",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
