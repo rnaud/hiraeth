@@ -473,6 +473,9 @@ function finishVael(scene, terrain, S, V) {
     lights: [...shop.lights, ...S.lights],
     shops: [shop, ...S.shops],   // (src/story/shops.js: the keepers behind their counters; main.js: the shop panel)
     floraAvoid: (x, z, r = 0) => !!avoidV?.(x, z, r) || !!avoidS?.(x, z, r),
+    // the sky stones' rock tables are the world's own ground there, high over the cloud (src/plant-ground.js builtTop:
+    // a plant may stand on them, never on a roof or a small raised top)
+    plantGround: (x, y, z) => z > SKY_STONES.plainEdge(x) - 40,
     ground: terrain,
     spawn,
     partSpawns: { arzach2: S.spawn },   // (where the sky stones' own landing was, on their first plateau: their creatures live round it)

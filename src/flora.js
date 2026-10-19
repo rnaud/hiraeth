@@ -8,6 +8,7 @@ import { SPECIES } from './flora-species.js';
 import { farLevel, farSide } from './lod.js';
 import { runSteps } from './load-steps.js';
 import { kitTrialsFor } from './trials/kit-data.js';
+import { builtTop } from './plant-ground.js';
 
 // Flora: every world's own plants, growing in clumps (src/flora-species.js draws them).
 //
@@ -19,7 +20,8 @@ import { kitTrialsFor } from './trials/kit-data.js';
 // The ground (buildFlora): heightfield worlds take the terrain, the others (the City-Shaft
 // rim, the Hangar plateau, the Sky Stones) cast a ray down onto the real geometry. A plant
 // only grows on open, gentle ground: not under a roof or a rock, not on a slope or in deep
-// water, not on the paths, buildings or story places a level marks (level.floraAvoid), and
+// water, not on a roof or any built top (src/plant-ground.js builtTop: in the ray-cast parts too,
+// issue #497), not on the paths, buildings or story places a level marks (level.floraAvoid), and
 // not where people stand, boxes and relics wait, or the ship lands (the keep list).
 //
 // Drawing: one InstancedMesh per species, refilled from the 32 m cells in view within the
@@ -303,6 +305,8 @@ function growPart({ part: world, species, level, physics, keep, density, why }) 
         if (ray(x, y + 1.2, z, _d, r)) return no('crowded');
       }
     }
+    // (last, on the few spots left: not on a roof, a slab or a small raised top, where the ground is meshes: issue #497)
+    if (world.ray && builtTop(physics, level, x, y, z)) return no('built top');
     return y;
   };
   const accept = (x, z, sp, region) => {

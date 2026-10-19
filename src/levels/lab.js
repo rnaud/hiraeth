@@ -509,6 +509,9 @@ export function* buildLab(scene) {
     flora,
     wildlife,
     floraAvoid,
+    // (each room's sculpted ground is its world in miniature, raised or not: src/plant-ground.js builtTop then keeps
+    // plants only off small raised tops)
+    plantGround: (x, y, z) => !!roomAt(x, z),
     grassFields,
     roomAt,
     unsafe: (p) => { const r = roomAt(p.x, p.z); return !!r?.def.unsafe?.(new THREE.Vector3(p.x - r.centre.x, p.y - r.centre.y, p.z - r.centre.z), (x, z) => r.H(x, z)); },

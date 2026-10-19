@@ -6,6 +6,7 @@ import { registerTarget } from './targets.js';
 import { slotStorage } from './save-slots.js';
 import { runSteps } from './load-steps.js';
 import { batchParts } from './part-batch.js';
+import { builtTop } from './plant-ground.js';
 
 const UP = new THREE.Vector3(0,1,0);
 const FLUID_DEFAULT=['#52c8cf','#966ede'];   // the fluid's first tones (fluid-tool.js), if a hit brings none
@@ -246,6 +247,7 @@ export class ReactiveWorld {
         let pos=hit?.point;
         if(up.y>.99){const ground=level.ground.heightAt(proposed.x,proposed.z);if(Number.isFinite(ground)&&(!pos||ground>pos.y))pos=new THREE.Vector3(proposed.x,ground,proposed.z);}
         if(!pos||level.unsafe?.(pos)||level.keepClear?.(pos)||level.paved?.(pos))continue;   // (keepClear: a floor kept bare, the Arena's; paved: a town's streets and squares, src/paved.js)
+        if(this.onBuilt(pos,up)){this.offRoofs=(this.offRoofs??0)+1;continue;}   // (not on a roof, a stall or a pyramid's crown: issue #497, src/plant-ground.js)
         this.addNode(pos,up,`${level.id}:${i}`,rotation,j);
       }
     }
@@ -301,7 +303,7 @@ export class ReactiveWorld {
         const away=rays.t1.clone().multiplyScalar(room.lean[0]).addScaledVector(rays.t2,room.lean[1]);
         const moved=pos.clone().addScaledVector(away,obj.reach*obj.root.scale.x*.8+.4);
         const hit=this.physics.rayHit(moved.clone().addScaledVector(up,3),up.clone().negate(),8);
-        if(!hit||this.level.unsafe?.(hit.point)){this.dropped=(this.dropped??0)+1;return false;}
+        if(!hit||this.level.unsafe?.(hit.point)||this.onBuilt(hit.point,up)){this.dropped=(this.dropped??0)+1;return false;}
         pos=hit.point;
       }
     }
@@ -310,6 +312,8 @@ export class ReactiveWorld {
     this.nodes.push({pos:pos.clone().addScaledVector(up,1.3),foot:pos.clone(),radius:this.theme.radius,cluster,obj,up:up.clone(),rotation:rotation.clone(),rays});
     return true;
   }
+  /** Is this spot the top of something built (a plant's spot only: a screen hangs where it likes)? Upright worlds only. */
+  onBuilt(pos,up){return this.theme.kind!=='screen'&&this.theme.kind!=='machine'&&up.y>.99&&builtTop(this.physics,this.level,pos.x,pos.y,pos.z);}
   /** The petals' reach awake and the bloom's height (m), for bloomRoom. */
   bloomSize(obj){return {reach:obj.reach*obj.root.scale.x,height:1.2*obj.root.scale.y,quiet:this.theme.shy?1:BLOOM.quiet};}
   /**

@@ -43,6 +43,19 @@ player. Geometry is grouped within each object, distant clusters are hidden,
 and spores share a pool capped at 72. Menus and photo mode pause reactions.
 The new scenery has no collision so it does not block established routes.
 
+**Never on a roof** (v1.85, issue #497; `src/plant-ground.js` `builtTop`). The flowers, fans and fungi are seeded round
+the people, the relics, the goal and the spawn, each dropped onto the first surface a ray from 10 m up meets: under an
+overhang that was the roof over whoever stood there (the Hush-House's disc in Lorn, a stall in Viridel, the pyramid's
+crown in the Garden of Spheres, the Glass Dunes' buildings). A spot is now refused when it is the top of something
+built: in a world with a heightfield, anything more than 0.35 m over the terrain (`GROUND_LIFT`: a pavement still
+counts as ground), unless the level calls that spot its own raised ground (`level.plantGround`: Vael's sky stones, the
+Lab's rooms); there, and in a world with no heightfield, a small raised top (a drop of over 1.2 m within 3 m on two
+sides of eight, `TOP_EDGE`) is still refused. The flora's ray-cast parts (`FLORA_WORLDS` `ray`: the City-Shaft's rim,
+the sky stones, the market's gutters) ask the same last of all, which took the Sky Stones' plants off the slabs and sand
+banks of Vael's plain. Roof gardens drawn on purpose (the City-Shaft's villas, the floating city's roofs, the night
+train's carriages) are the levels' own drawing, not scattered, and stay. Tests: `tests/plant-ground.test.js` (every
+world of the route: no responsive plant and no flora on a built top).
+
 Verification includes reaction/cooldown/occlusion/memory tests, placement checks
 against every world's actual collision geometry, and browser checks of plant
 and screen behavior. Performance on a physical iPhone still needs confirmation.

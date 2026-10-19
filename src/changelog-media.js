@@ -1267,6 +1267,8 @@ const CINE491 = 'Issue #491: the cinematics QC (scripts/cinematics-qc.mjs) in mu
 const FIGHT534 = 'Issue #534: muted headless Chrome (High, 1280 × 720) against this branch’s own Vite (port 5534; the tree before it on 5535), ?game=fight-<world>&seed=7, every wave felled to the last room, the traveller set in its middle (nothing hurting him, the moths’ flash off), 16 more foes brought up, the three nearest stood round him (one between him and the camera), the temple’s hazard lent at the frame’s edge (a pool of oil 6.5 m down the screen; a sign on the far wall); pictures 0.5 s (and 1.1 s) on, and a tenth of a second after Tab; the crowds differ a little between the two loads; 19 October; cwebp -q 52';
 const PARITY538 = 'Issue #538: the Unity editor’s batch run on this Mac (scripts/unity-compare/unity.mjs, muted, High, 1280 × 720, -fresh -no-hud, noon, clear); before: main with the #264 round (5570377f2); after: this change; 19 October; cwebp -q 72';
 const PARITY538W = 'Issue #538: the same view on the web, muted headless Chrome on this branch (scripts/design-qc/capture.mjs, High, 1280 × 720, a fixed render scale); cwebp -q 72';
+/** (v1.85, issue #497: the responsive plants off the roofs) */
+const ROOF497 = 'Issue #497: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, 10:00, clear, the HUD hidden, the camera pinned) on this branch’s own Vite (port 5496); before: the tree at 647c5fc31 (port 5497), the same view; 19 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.86': [
     { match: 'The fight temples now belong to the story', tags: ['story'], shots: [
@@ -1446,6 +1448,11 @@ export const CHANGELOG_MEDIA = {
       { name: 'cables-capstan-491', title: 'The cables drawing taut', size: [960, 540], caption: 'The panel of the capstan over the Mooring-House: before, a teal leg of the tripod filling the frame; after, from between two legs, the capstan turning and the cables leaving it, their lamps lighting.', from: CINE491 },
       { name: 'cables-wide-491', title: 'The City Floating in Space, the first shot', size: [960, 540], caption: 'The wide on the Mooring-House: before, the lens a metre from its wall, a leg and the sky; after, from out over the void, the house on its island under the tripod.', from: CINE491 },
     ], see: 'Resolve the Last Founder in the Moon Foundry, or the Anchor-Warden in the City Floating in Space, and walk out of the house: the film shows the house, then the moon on its hook or the capstan and its cables. Or open Debug → Cinematics and play moonfoundry.moon or spacecity.cables.' },
+    { match: 'The flowers, fans and fungi that answer you no longer grow on roofs', shots: [
+      { name: 'plants-roof-lorn', title: 'Lorn', caption: 'The Hush-House’s round roof in Lorn: before, two fungi growing on it; after, bare', from: ROOF497 },
+      { name: 'plants-roof-spheres', title: 'The Garden of Spheres', caption: 'The pyramid’s top in the Garden of Spheres: before, a flower by the relic and one on the slope; after, none', from: ROOF497 },
+      { name: 'plants-roof-viridel', title: 'Viridel', caption: 'A stall in Viridel: before, a pink flower on its roof; after, only the two on the grass beside it', from: ROOF497 },
+    ], see: 'In Lorn, look over the Hush-House’s round roof; in the Garden of Spheres, climb the pyramid; in Viridel, look at the stalls’ roofs: no flower or fungus grows up there.' },
   ],
   '1.84': [
     { match: 'In the Unity version on the Steam Deck, the first launch after an update no longer freezes', numbers: [

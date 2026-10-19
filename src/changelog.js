@@ -197,6 +197,9 @@ export const CHANGELOG = [
     // seeing the house, D's side by its backdrop), spacecity-moments.js (A kept seeing the house, capstanShot in the
     // tripod's gap); tests/moments-moonfoundry.test.js, moments-spacecity.test.js (no solid between a lens and its subject)
     'The Moon Foundry’s and the City Floating in Space’s big moments show what happens again. Out of the Casting-House, the film no longer opens on two seconds of a dark wall: it starts wide on the house and its tower from out on the floor. Over the Mooring-House, the cables drawing taut are filmed from under the great tripod, between its legs, instead of through one of them, and the first shot no longer presses against the house’s wall.',
+    // issue #497: src/plant-ground.js builtTop (GROUND_LIFT, TOP_EDGE, level.plantGround: Vael's sky stones, the Lab's rooms),
+    // src/reactive-world.js onBuilt, src/flora.js (its ray-cast parts); tests/plant-ground.test.js
+    'The flowers, fans and fungi that answer you no longer grow on roofs: in Lorn they stood on the Hush-House’s round roof, in the Garden of Spheres on the pyramid’s top, in Viridel on a stall, and on buildings in the Glass Dunes. They grow on the ground now, and the plants of the Sky Stones no longer stand on the slabs and sand banks of Vael’s plain.',
   ] },
   { v: '1.84', date: '2026-10-17', items: [
     // issue #439: src/costumes.js (HEADS: the 47 pieces of the 15 hat sets, HAT_SETS, HAT_SET_WORLDS, hoodShell / hoodNeck /
