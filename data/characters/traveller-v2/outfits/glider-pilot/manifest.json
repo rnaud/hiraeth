@@ -1,0 +1,365 @@
+{
+ "source": "scripts/blender/traveller/outfit.py --outfit glider-pilot (issue #540)",
+ "id": "glider-pilot",
+ "name": "Glider pilot",
+ "reference": "references/characters/traveller-outfits/glider-pilot/sheet-1.jpg",
+ "glb": "glider-pilot.glb",
+ "base": "data/characters/traveller-v2/traveller.glb",
+ "keeps": [
+  "Body",
+  "Skin",
+  "Head",
+  "Hair"
+ ],
+ "parts": {
+  "Jodhpurs": {
+   "kind": "garment",
+   "triangles": 9792,
+   "vertices": 5007,
+   "hides": [
+    "knee.L",
+    "knee.R",
+    "thigh.L",
+    "thigh.R"
+   ],
+   "layer": 1,
+   "materials": {
+    "outfit_glider-pilot": "atlas"
+   }
+  },
+  "Puttees": {
+   "kind": "garment",
+   "triangles": 4454,
+   "vertices": 2361,
+   "hides": [
+    "shin.L",
+    "shin.R"
+   ],
+   "layer": 2,
+   "materials": {
+    "outfit_glider-pilot": "atlas"
+   }
+  },
+  "Jacket": {
+   "kind": "garment",
+   "triangles": 19936,
+   "vertices": 10105,
+   "hides": [
+    "belly",
+    "forearm_upper.L",
+    "forearm_upper.R",
+    "upperarm.L",
+    "upperarm.R"
+   ],
+   "layer": 2,
+   "materials": {
+    "outfit_glider-pilot": "atlas"
+   }
+  },
+  "PilotBoots": {
+   "kind": "garment",
+   "triangles": 6496,
+   "vertices": 3357,
+   "hides": [
+    "ankle.L",
+    "ankle.R",
+    "foot.L",
+    "foot.R"
+   ],
+   "layer": 1,
+   "materials": {
+    "outfit_glider-pilot": "atlas"
+   }
+  }
+ },
+ "hides": [
+  "ankle.L",
+  "ankle.R",
+  "belly",
+  "chest",
+  "foot.L",
+  "foot.R",
+  "forearm_lower.L",
+  "forearm_lower.R",
+  "forearm_upper.L",
+  "forearm_upper.R",
+  "hand.L",
+  "hand.R",
+  "hips",
+  "knee.L",
+  "knee.R",
+  "shin.L",
+  "shin.R",
+  "shin_lower.L",
+  "shin_lower.R",
+  "thigh.L",
+  "thigh.R",
+  "upperarm.L",
+  "upperarm.R"
+ ],
+ "skinCut": [
+  {
+   "absx": [
+    0.2,
+    0.64
+   ],
+   "y": [
+    1.15,
+    1.6
+   ]
+  },
+  {
+   "absx": [
+    0.0,
+    0.4
+   ],
+   "y": [
+    -1.0,
+    0.45
+   ]
+  },
+  {
+   "absx": [
+    0.0,
+    0.2
+   ],
+   "y": [
+    0.7,
+    1.15
+   ]
+  }
+ ],
+ "draws": {
+  "clothes": [
+   "Jodhpurs",
+   "Puttees",
+   "Jacket",
+   "PilotBoots"
+  ]
+ },
+ "atlas": {
+  "size": [
+   2048,
+   2048
+  ],
+  "texelsPerMetre": 1087,
+  "swatches": {
+   "Puttees.inside": [
+    102,
+    94,
+    76
+   ],
+   "Jacket.inside": [
+    100,
+    77,
+    37
+   ],
+   "PilotBoots.inside": [
+    56,
+    39,
+    23
+   ]
+  },
+  "palette": {
+   "mustard": [
+    222,
+    172,
+    82
+   ],
+   "rib": [
+    104,
+    106,
+    62
+   ],
+   "fleece": [
+    234,
+    221,
+    194
+   ],
+   "olive": [
+    128,
+    126,
+    80
+   ],
+   "puttee": [
+    226,
+    208,
+    170
+   ],
+   "leather": [
+    116,
+    74,
+    42
+   ],
+   "roundel": [
+    146,
+    184,
+    192
+   ],
+   "ink": [
+    44,
+    36,
+    30
+   ],
+   "brass": [
+    196,
+    160,
+    84
+   ],
+   "boot": [
+    124,
+    86,
+    52
+   ]
+  }
+ },
+ "triangles": 40678,
+ "fit": {
+  "Jodhpurs": {
+   "fitLeft": 30,
+   "hem": {
+    "open": 0,
+    "covered": 224
+   }
+  },
+  "Puttees": {
+   "fitLeft": 13,
+   "hem": {
+    "open": 196,
+    "covered": 28,
+    "band": 213,
+    "lips": 196
+   }
+  },
+  "Jacket": {
+   "fitLeft": 107,
+   "hem": {
+    "open": 272,
+    "covered": 0,
+    "band": 1376,
+    "lips": 272
+   }
+  }
+ },
+ "pokes": {
+  "under": {
+   "Skin>Jodhpurs": 0,
+   "Skin>Puttees": 0,
+   "Jodhpurs>Puttees": 523,
+   "Skin>Jacket": 40,
+   "Jodhpurs>Jacket": 672
+  },
+  "posed": {
+   "lowered": {
+    "Skin>Jodhpurs": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>Puttees": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Jodhpurs>Puttees": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>Jacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Jodhpurs>Jacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   },
+   "idle": {
+    "Skin>Jodhpurs": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>Puttees": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Jodhpurs>Puttees": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>Jacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Jodhpurs>Jacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   },
+   "jog-a": {
+    "Skin>Jodhpurs": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>Puttees": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Jodhpurs>Puttees": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>Jacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Jodhpurs>Jacket": {
+     "out": 11,
+     "deepestMm": 8.0
+    }
+   },
+   "jog-b": {
+    "Skin>Jodhpurs": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>Puttees": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Jodhpurs>Puttees": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>Jacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Jodhpurs>Jacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   },
+   "sprint": {
+    "Skin>Jodhpurs": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>Puttees": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Jodhpurs>Puttees": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>Jacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Jodhpurs>Jacket": {
+     "out": 10,
+     "deepestMm": 6.4
+    }
+   }
+  }
+ }
+}
