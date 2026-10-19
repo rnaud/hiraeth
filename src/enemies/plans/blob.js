@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { materials, add, pivot, pair, lerp, ease, eyeColor, finish, V } from './kit.js';
+import { gazePart } from '../gaze.js';
 
 // Plan 20, the blob (docs/systems/procedural-animation.md §4): the ink blot (docs/design/enemy-roster.md,
 // archetype 18), the rusher and the game's first teacher, drawn to its sheets (references/enemy-archetypes/blot/:
@@ -68,10 +69,12 @@ export function blotModel(skin) {
   const eyes = pair((s) => { const x = s * 0.15, y = 0.3, z = Math.sqrt(Math.max(0, radiusAt(y) ** 2 - x * x)) - 0.01; const e = pivot(body, x, y, z);
     e.lookAt(V(x * 2.2, y, z + 1)); add(e, new THREE.SphereGeometry(0.078, 12, 8).scale(1, 1, 0.35), eyeM); add(e, new THREE.SphereGeometry(0.03, 8, 6).scale(1, 1, 0.4), pupilM, 0, 0, 0.026); return e; });
   const mouth = pivot(body, 0, 0.55, 0.3);   // (where the spit gathers)
+  // its eyes on you once it has noticed you, on its way before (src/enemies/gaze.js, issue #508)
+  const gaze = eyes.map((e) => gazePart(g, e.children[1], { slide: 0.032 }));   // (the pupils, across the whites)
   finish(g);
   let phase = Math.random(), up = 1, last = null, coil = 0, rear = 0;
   return {
-    group: g, body, parts: [drop, ...drips, rim, ...eyes], eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.ink, P.shine ?? '#3b3350', P.edge],
+    group: g, gaze, body, parts: [drop, ...drips, rim, ...eyes], eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.ink, P.shine ?? '#3b3350', P.edge],
     tell: (id) => (id === 'spit' ? mouth : eyes[0]),
     anim(f, c) {
       const id = f.atk?.id, dt = c.dt, wind = f.state === 'wind', strike = f.state === 'strike';

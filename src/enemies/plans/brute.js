@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { Rig, planLeg } from '../../motion-kit/rig.js';
 import { PLANS } from '../../motion-kit/plans.js';
 import { materials, add, tubeGeometry, many, skinBy, pivot, pair, lerp, ease, eyeColor, finish, V, outerPoints, lowestIn } from './kit.js';
+import { gazePart } from '../gaze.js';
 
 // Plan 8, the giant slow brute (docs/systems/procedural-animation.md §4): the furnace brute (docs/design/enemy-roster.md,
 // archetype 17), drawn to its sheets (references/enemy-archetypes/brute/: sheet-1 Lorn II's wood cutter, sheet-2 the
@@ -38,6 +39,8 @@ const EGG = [[0.001, 1.36], [0.5, 1.42], [0.82, 1.58], [1.02, 1.85], [1.14, 2.2]
 const DEPTH = 0.84;   // (the egg's depth to its width: the sheet's side view)
 const radiusAt = (y) => { for (let i = 1; i < EGG.length; i++) if (EGG[i].y >= y) { const a = EGG[i - 1], b = EGG[i]; return lerp(a.x, b.x, (y - a.y) / Math.max(1e-6, b.y - a.y)); } return 0.001; };
 const _v = new THREE.Vector3();
+/** The share of its gaze (src/enemies/gaze.js) its torso twists by: it has no head to turn. */
+export const GAZE_TWIST = 0.4;
 
 // Its arms reach the ground, and hanging straight they went through it: its fingers 37 cm under at rest, the Lorn saw's
 // blade 51-62 cm (issue #332). Each frame, once its arms are posed, the hand's lowest points (its fist, the curled
@@ -175,6 +178,9 @@ export function bruteModel(skin) {
     add(lad, new THREE.CircleGeometry(0.28, 14).rotateX(-Math.PI / 2), coreM, 0, -1.33, 0.75);
     extras.push(lad);
   }
+  // its eyes on you once it has noticed you, on its way before (src/enemies/gaze.js, issue #508)
+  // (headless: the brass eye in the boss of its belt slides toward you, and its torso twists to you: anim)
+  const gaze = [gazePart(g, core, { slide: props.has('door') ? 0.03 : 0.065 })];
   const rig = new Rig({ plan: PLANS.brute, group: g, body, legs });
   for (const a of arms) a.reach = outerPoints(a.fist);   // (before the merge: the fingers, the blade, the ladle)
   // (one draw per material for the hull and every limb: skinned on the kit's joints)
@@ -188,7 +194,7 @@ export function bruteModel(skin) {
   let raise = 0, bend = 0, back = 0, swing = 0, wake = 0, glow = 0, twitchT = 0;
   const twitch = [0, 0];
   return {
-    group: g, body: hull, rig, parts, eyeMat: coreM, base: P.core, size: skin.scale, skin: skin.id, tones: [P.body, P.brass, P.tar],
+    group: g, gaze, body: hull, rig, parts, eyeMat: coreM, base: P.core, size: skin.scale, skin: skin.id, tones: [P.body, P.brass, P.tar],
     tell: (id) => (id === 'hurl' ? arms[1].fist : arms[0].fist),
     anim(f, c) {
       const id = f.atk?.id, dt = c.dt, wind = f.state === 'wind', strike = f.state === 'strike';
@@ -209,6 +215,7 @@ export function bruteModel(skin) {
       const slump = 1 - wake;
       hull.position.set(o.x, o.y - slump * 0.12, o.z);
       hull.rotation.set(o.pitch + slump * 0.16, o.yaw, o.roll);
+      hull.rotation.y += (f.gaze?.yaw ?? 0) * GAZE_TWIST * wake;   // (its torso twisted toward where it looks: it has no head)
       // the arms swing against the legs as it walks (by the distance walked, so the swing follows its pace)
       const walk = Math.sin(rig.walked * 1.45) * Math.min(1, Math.hypot(rig.vel.x, rig.vel.z) / 1.2) * 0.22;
       const [A, B] = arms;   // (A: the right arm (x < 0), B: the left)

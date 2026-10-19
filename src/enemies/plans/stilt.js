@@ -3,6 +3,7 @@ import { Rig, planLeg } from '../../motion-kit/rig.js';
 import { PLANS } from '../../motion-kit/plans.js';
 import { SecondOrder } from '../../motion-kit/spring.js';
 import { materials, add, tube, tubeGeometry, many, pivot, pair, lerp, ease, eyeColor, finish, V } from './kit.js';
+import { gazePart } from '../gaze.js';
 
 // Plan 7, the stilt-walker (docs/systems/procedural-animation.md §4): the stilt heron (docs/design/enemy-roster.md,
 // archetype 6), drawn to its sheets (references/enemy-archetypes/heron/: sheet-1 the Desert's cistern heron, sheet-2
@@ -100,6 +101,8 @@ export function heronModel(skin) {
     legs.push(leg);
   }
   const rig = new Rig({ plan: PLANS.stilt, group: g, body, legs });
+  // its eyes on you once it has noticed you, on its way before (src/enemies/gaze.js, issue #508)
+  const gaze = [gazePart(g, head, { mode: 'turn', yaw: 0.7, up: 0.35, down: 0.45 })];   // (the head turns: its eyes are fixed on it)
   finish(g);
   const parts = [...shell, ...segs, head, ...wings, ...legs.map((l) => l.root)];
   // the high body's own sway (StiltMotor's hub): a pendulum over the feet that lags a turn, a stop and a blow
@@ -107,7 +110,7 @@ export function heronModel(skin) {
   let wCoil = 0, wStrike = 0, wDown = 0, lift = 0, flare = 0, topple = 0, prevV = 0, prevH = null, fish = 0, spin = 0, fly = 0, crouch = 0;
   const w = { rest: 1, coil: 0, strike: 0, down: 0 };
   return {
-    group: g, body: torso, rig, parts, eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.body, P.leg, P.band ?? P.bill],
+    group: g, gaze, body: torso, rig, parts, eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.body, P.leg, P.band ?? P.bill],
     tell: (id) => (id === 'sweep' ? legs[1].foot : id === 'buffet' ? (wings[1] ?? head) : tip),
     anim(f, c) {
       const id = f.atk?.id, dt = c.dt, wind = f.state === 'wind', strike = f.state === 'strike';

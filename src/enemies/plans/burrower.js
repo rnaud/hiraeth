@@ -4,6 +4,7 @@ import { PathTrail, Wave } from '../../motion-kit/chain.js';
 import { PoseBlend } from '../../motion-kit/pose.js';
 import { SecondOrder } from '../../motion-kit/spring.js';
 import { materials, add, tube, pivot, pair, lerp, ease, eyeColor, finish } from './kit.js';
+import { gazePart } from '../gaze.js';
 
 // Plan 15, the burrower (docs/systems/procedural-animation.md §4): the mound worm (docs/design/enemy-roster.md,
 // archetype 12), the ambusher. Under the ground, a moving mound with a dorsal fin and a wake of smaller mounds
@@ -68,6 +69,8 @@ export function wormModel(skin) {
   const finH = props.has('fin') ? 1.2 : 0.95;
   const fin = add(g, new THREE.ConeGeometry(0.4, finH, 4).scale(0.35, 1, 1), finM, 0, finH * 0.45, 0);
   const ripple = add(g, new THREE.RingGeometry(0.84, 1, 28).rotateX(-Math.PI / 2), M.mat('ripple', P.fin, { flat: true, side: THREE.DoubleSide }), 0, 0.05, 0);
+  // its eyes on you once it has noticed you, on its way before (src/enemies/gaze.js, issue #508)
+  const gaze = eyes.map((e) => gazePart(g, e, { slide: 0.02 }));
   finish(g);
   const trail = new PathTrail({ spacing: 0.08, length: PL.spine.mounds * PL.spine.spacing + 1 });
   const pose = new PoseBlend({ poses: Object.fromEntries(Object.entries(PL.poses).map(([k, p]) => [k, { ...p }])), style: PL.style });
@@ -76,7 +79,7 @@ export function wormModel(skin) {
   const wave = new Wave(Math.random());
   let shiver = 0, swell = 0, spin = 0, up = 0;
   return {
-    group: g, body: column, parts: [...rings.map((r) => r.p), fin, sail, ...mounds], eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.body, P.sand, P.ring],
+    group: g, gaze, body: column, parts: [...rings.map((r) => r.p), fin, sail, ...mounds], eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.body, P.sand, P.ring],
     trail, mounds,
     tell: (id) => (id === 'erupt' ? fin : face),
     anim(f, c) {

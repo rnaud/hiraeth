@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { Rig, planLeg } from '../../motion-kit/rig.js';
 import { PLANS } from '../../motion-kit/plans.js';
 import { materials, add, tube, rod, pivot, pair, lerp, ease, eyeColor, finish, V } from './kit.js';
+import { gazePart } from '../gaze.js';
 
 // Plan 1, the multi-legged walker (docs/systems/procedural-animation.md §4): the shellback crab
 // (docs/design/enemy-roster.md, archetype 1), drawn to its sheets (references/enemy-archetypes/crab/: sheet-1 the
@@ -104,7 +105,10 @@ export function crabModel(skin) {
   }
   // two black eyes on thin stalks, rising from the shell's front between the arms (they swivel and sink)
   const stalkAt = (s) => { const x = s * 0.12, z = SHELL_R * deep * 0.62; return [x, onShell(x, z).y - 0.03, z]; };
-  const stalks = pair((s) => { const st = pivot(body, ...stalkAt(s)); rod(st, [0, 0, 0], [0, 0.3, 0.02], 0.022, legM, 0.016); add(st, new THREE.SphereGeometry(0.062, 10, 8), eyeM, 0, 0.34, 0.02); add(st, new THREE.SphereGeometry(0.03, 6, 4), legM, 0, 0.29, 0.02); return st; });
+  const stalkEyes = [];
+  const stalks = pair((s) => { const st = pivot(body, ...stalkAt(s)); rod(st, [0, 0, 0], [0, 0.3, 0.02], 0.022, legM, 0.016); stalkEyes.push(add(st, new THREE.SphereGeometry(0.062, 10, 8), eyeM, 0, 0.34, 0.02)); add(st, new THREE.SphereGeometry(0.03, 6, 4), legM, 0, 0.29, 0.02); return st; });
+  // (they lean toward you once it has noticed you, toward its way before: src/enemies/gaze.js)
+  const gaze = stalks.map((st) => gazePart(g, st, { mode: 'lean', lean: 0.5, yaw: 0.9 }));
   if (beetle) for (const s of [-1, 1]) tube(body, [[s * 0.12, 0.2, 0.9], [s * 0.3, 0.55, 1.25], [s * 0.55, 0.75, 1.45], [s * 0.75, 0.72, 1.6]], 0.014, darkM);
   // the arms: a shoulder on the shell's upper flank, an upper arm out and up to the elbow, a forearm up to the wrist,
   // and an upright pincer over the shell: a fat hand and two fingers whose tips take the claw's colour, the opening
@@ -146,8 +150,8 @@ export function crabModel(skin) {
   const parts = [shell, rim, belly, ...seams, ...stalks, ...claws.map((c) => c.shoulder), ...dress, ...legs.map((l) => l.root)];
   let side = 0, sink = 0, spin = 0, flip = 0;
   return {
-    group: g, body, rig, parts, eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.shell, P.under, P.claw],
-    tell: (id) => (id === 'snap' ? claws[1].tip : id === 'burrow' ? stalks[0].children[1] : shellTop),
+    group: g, body, rig, parts, eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.shell, P.under, P.claw], gaze,
+    tell: (id) => (id === 'snap' ? claws[1].tip : id === 'burrow' ? stalkEyes[0] : shellTop),
     anim(f, c) {
       const id = f.atk?.id, dt = c.dt, wind = f.state === 'wind', strike = f.state === 'strike';
       const flipped = f.flipped > 0;

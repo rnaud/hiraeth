@@ -4,6 +4,7 @@ import { PLANS } from '../../motion-kit/plans.js';
 import { SecondOrder } from '../../motion-kit/spring.js';
 import { VerletChain } from '../../motion-kit/chain.js';
 import { materials, add, tubeGeometry, many, skinBy, pivot, pair, lerp, ease, smooth, finish, V, outerPoints, lowestIn, frameIn } from './kit.js';
+import { gazePart } from '../gaze.js';
 
 // Plan 9, the humanoid spirit (docs/systems/procedural-animation.md §4, the kit's `humanoid`): the shade
 // (docs/design/enemy-roster.md, archetype 19), drawn to its sheets (references/enemy-archetypes/shade/: sheet-1 Lorn II's
@@ -262,20 +263,22 @@ export function shadeModel(skin) {
   const pool = add(g, new THREE.CircleGeometry(0.55, 18).rotateX(-Math.PI / 2), poolM, 0, 0.03, 0); pool.visible = false;
   // (the boots, their brass and the dark cloth over the knees one mesh, each tinted its own colour; the lining and the
   // smoke one: fewer draws, as many looks)
+  // its eyes on you once it has noticed you, on its way before (src/enemies/gaze.js, issue #508)
+  const gaze = [gazePart(g, eyes, { mode: 'slide', slide: 0.02 })];   // (in the dark of the hood)
   const [, faceS, , , , swordS, smokeS] = skinBy(g, [
     { from: [cloakB], into: cloakM }, { from: [faceB, liningB], into: faceM }, { from: [hoodB], into: hoodM }, { from: [stripB], into: stripM },
     { from: [bootB, brassB, innerB], into: bootM }, { from: [swordB], into: swordM }, { from: [smokeB], into: smokeM },
   ]);
   finish(g);
   // (nothing casts a shadow that wouldn't show in one: the eyes, the pool, the smoke, the ribbons)
-  for (const o of [smokeS, faceS, ribbons, pool, ...eyes.children]) if (o) o.castShadow = false;
+  for (const o of [smokeS, faceS, ribbons, pool, ...gaze[0].node.children]) if (o) o.castShadow = false;
   const parts = [hull, head, drape, ...arms.flatMap((a) => [a.sh, a.el, a.hand]), ...legs.map((l) => l.root)];
   // the cloak's lag and the hood's turn: springs
   const lagP = new SecondOrder(1.4, 0.35, 0), lagR = new SecondOrder(1.4, 0.35, 0), look = new SecondOrder(2.5, 0.7, 0);
   let drawn = 0, sink = 0, rise = 1, prevX = null, prevZ = 0, prevH = 0, swing = 0;
   const local = new THREE.Vector3();
   return {
-    group: g, body: hull, rig, parts, eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.cloak, P.smoke, P.face],
+    group: g, gaze, body: hull, rig, parts, eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.cloak, P.smoke, P.face],
     tell: (id) => (id === 'step' ? hull : sword),
     anim(f, c) {
       const id = f.atk?.id, dt = Math.max(c.dt, 1e-4), wind = f.state === 'wind', strike = f.state === 'strike';

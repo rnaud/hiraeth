@@ -1222,6 +1222,8 @@ const BIRD489 = 'Issue #489: the web game in muted headless Chrome (Medium, 1280
 /** (v1.85, issue #502: a temple's first room and Lorn's lake in Unity) */
 const ROOMS502 = 'Issue #502: the Unity editor’s batch run on this Mac (scripts/unity-compare/unity.mjs, muted, High, 1280 × 720, -fresh -no-hud, noon, clear); before: main at af5f80258; after: this change; 18 October; cwebp -q 72';
 const ROOMS502W = 'Issue #502: the same view on the web, muted headless Chrome on this branch (scripts/design-qc/capture.mjs, High, 1280 × 720, a fixed render scale), the frame’s updates from the pinned eye; cwebp -q 72';
+/** (v1.85, issue #508: foes' eyes on the traveller) */
+const EYES508 = 'Issue #508: the creatures gallery (enemies.html, the game’s own body through Foes.look) in muted headless Chrome (ANGLE Metal, 1280 × 720) on this branch’s own Vite (port 5508), the foe noticed (provoked, a watcher), its 1.5 s idle drawn frame by frame, the traveller 4 m off where the caption says; before: the same build with the gaze switched off (each eye at rest); 18 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.85': [
     { match: 'In the Unity version, the first room of every makers’ house is as light as on the web', tags: ['temples', 'devices'], shots: [
@@ -1238,6 +1240,13 @@ export const CHANGELOG_MEDIA = {
     { match: 'On the Quests page, the quest you are tracking now stands out', shots: [
       { name: 'quests-tracking', size: [1280, 720], caption: 'The Quests page with the cursor on The Tree That Drinks: Teo’s Drum, the one tracked, had only a small tag; now it is framed in red, TRACKING, and the cursor’s quest says A TRACK on itself.', from: QUESTS516 },
     ] },
+    { match: 'Creatures and machines now look at you once they have noticed you', shots: [
+      { name: 'foe-eyes-crab-cam', title: 'Crab', size: [1280, 720], caption: 'The salt crab, you standing where the camera is: before, its eye stalks straight up; now they lean your way.', from: EYES508 },
+      { name: 'foe-eyes-toad-right', title: 'Toad', size: [1280, 720], caption: 'The bellows toad, you off to its right: before, its eyes stared ahead; now they turn in their sockets to you.', from: EYES508 },
+      { name: 'foe-eyes-lizard-right', title: 'Lizard', size: [1280, 720], caption: 'The horn lizard, you off to its right: before, its head pointed ahead; now it turns its head to you.', from: EYES508 },
+      { name: 'foe-eyes-brute-left', title: 'Brute', size: [1280, 720], caption: 'Lorn’s wood cutter, you off to its left: its brass eye slides over in the boss of its belt and its body twists to you.', from: EYES508 },
+      { name: 'foe-eyes-wisp-right', title: 'Wisp', size: [1280, 720], caption: 'The cinder wisp, you off to its right: its two eyes slide over its petals toward you.', from: EYES508 },
+    ], see: 'In the desert or Salt Harbour, walk round a crab that has seen you: its eye stalks lean after you. Let it lose you, and they look where it goes again.' },
     { match: 'Each world’s own recorded music now plays the whole time you are there', see: 'Land in any world and walk out into the open: after two and a half minutes its recorded music keeps playing instead of fading out to the light synthesised tunes, and it is still there five minutes on. Settings > Music plays now reads Always; pick Moments there to have the old way back, and it stays picked.' },
     { match: 'The Clock-House’s and the Undertower’s last steps now point the right way', see: 'In the Glass Dunes, take what the makers left in the Clock-House and open the Quests page (J): the next step reads “Climb to what winds itself up”. In the Signal Market the Undertower’s reads “Go up to the voice in the high hall”, and walking in you hear the voice far overhead.' },
     { match: 'Riding the bird in Vael, her wings no longer shimmer as they beat', shots: [

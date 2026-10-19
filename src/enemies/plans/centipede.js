@@ -8,6 +8,7 @@ import { twoBone, aim } from '../../motion-kit/ik.js';
 import { SecondOrder } from '../../motion-kit/spring.js';
 import { slopeAlong } from '../slope.js';
 import { materials, add, tube, rod, pivot, pair, lerp, ease, eyeColor, finish, V } from './kit.js';
+import { gazePart } from '../gaze.js';
 
 // Plan 3, the centipede (docs/systems/procedural-animation.md §4): the ring centipede (docs/design/enemy-roster.md,
 // archetype 3), the trapper. A long segmented body, about 5 m, with a heavy crab-like head and two pincers; coiled at
@@ -92,6 +93,8 @@ export function centipedeModel(skin) {
   const trail = new PathTrail({ spacing: 0.06, length: 0.6 + N * SP + 1 });
   const pose = new PoseBlend({ poses: Object.fromEntries(Object.entries(PL.poses).map(([k, p]) => [k, { ...p }])), style: PL.style });
   const roll = new SecondOrder(PL.body.spring.f, PL.body.spring.z, PL.body.spring.r);
+  // its eyes on you once it has noticed you, on its way before (src/enemies/gaze.js, issue #508)
+  const gaze = eyes.map((e) => gazePart(g, e, { slide: 0.035 }));
   finish(g);
   const segPos = Array.from({ length: N }, () => new THREE.Vector3()), segDir = Array.from({ length: N }, () => new THREE.Vector3(0, 0, 1));
   const spine = Array.from({ length: N + 1 }, () => new THREE.Vector3());   // (head and segments in the foes' space: Foes.corral's wall)
@@ -105,7 +108,7 @@ export function centipedeModel(skin) {
     return { x: head0.x + (Math.sin(a) * bx + (1 - Math.cos(a)) * lx) * R, z: head0.z + (Math.sin(a) * bz + (1 - Math.cos(a)) * lz) * R };
   };
   return {
-    group: g, body: head, rig, parts: [skull, ...pincers, ...segs.map((s) => s.seg), ...legs.map((l) => l.root)], eyeMat: eyeM, base: P.eye, size: 1, skin: skin.id, tones: [P.plate, P.under, P.head],
+    group: g, gaze, body: head, rig, parts: [skull, ...pincers, ...segs.map((s) => s.seg), ...legs.map((l) => l.root)], eyeMat: eyeM, base: P.eye, size: 1, skin: skin.id, tones: [P.plate, P.under, P.head],
     spine,
     tell: (id) => (id === 'ring' ? eyes[0] : tip),
     anim(f, c) {

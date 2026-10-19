@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { Rig, planLeg } from '../../motion-kit/rig.js';
 import { PLANS } from '../../motion-kit/plans.js';
 import { materials, add, tube, tubeGeometry, many, pivot, pair, lerp, ease, eyeColor, finish, V } from './kit.js';
+import { gazePart } from '../gaze.js';
 
 // Plan 12, the tentacled (docs/systems/procedural-animation.md §4): the root knot (docs/design/enemy-roster.md,
 // archetype 8), drawn to its sheets (references/enemy-archetypes/rootknot/: sheet-1 Lorn's reed knot, sheet-2 Lorn II's
@@ -68,11 +69,13 @@ export function rootknotModel(skin) {
   const humps = Array.from({ length: 6 }, (_, i) => { const h = add(heave, new THREE.SphereGeometry(1, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2).scale(0.32, 0.2, 0.42), darkM, 0, 0, 0); h.visible = false; return h; });
   const line = add(g, new THREE.CylinderGeometry(0.05, 0.08, 1, 6).translate(0, 0.5, 0), rootM); line.visible = false;
   const rig = new Rig({ plan: PLANS.tentacled, group: g, body, legs });
+  // its eyes on you once it has noticed you, on its way before (src/enemies/gaze.js, issue #508)
+  const gaze = eyes.map((e) => gazePart(g, e, { slide: 0.04 }));
   finish(g);
   const parts = [bulb, capP, ...eyes, skirt, ...legs.map((l) => l.root)];
   let turn = 0, tip = 0, plunge = 0, coil = 0, shudder = 0, droop = 0;
   return {
-    group: g, body: core, rig, parts, eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.cap, P.bulb, P.root], spore: P.spore,
+    group: g, gaze, body: core, rig, parts, eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.cap, P.bulb, P.root], spore: P.spore,
     tell: (id) => (id === 'puff' ? capP : id === 'lash' ? front[0].foot : front[1].foot),
     anim(f, c) {
       const id = f.atk?.id, dt = c.dt, wind = f.state === 'wind', strike = f.state === 'strike';

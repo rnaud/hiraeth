@@ -4,6 +4,7 @@ import { FollowChain, VerletChain, Wave } from '../../motion-kit/chain.js';
 import { PoseBlend } from '../../motion-kit/pose.js';
 import { SecondOrder } from '../../motion-kit/spring.js';
 import { materials, add, rod, pivot, pair, lerp, ease, eyeColor, finish } from './kit.js';
+import { gazePart } from '../gaze.js';
 
 // Plan 13, the flyer (docs/systems/procedural-animation.md §4): the signal moth (docs/design/enemy-roster.md,
 // archetype 10), the disruptor. Drawn to its picked sheet (references/enemy-archetypes/moth/sheet-1.jpg, the Deep
@@ -108,6 +109,8 @@ export function mothModel(skin) {
   const legRods = legs.map(() => Array.from({ length: 3 }, (_, j) => seg(0.012 - j * 0.003, 0.01 - j * 0.003, ribM)));
   const knees = legs.map(() => Array.from({ length: 2 }, () => { const b = new THREE.Mesh(new THREE.SphereGeometry(0.016, 6, 4), ribM); holder.add(b); return b; }));
   const hooks = legs.map(() => { const h = new THREE.Mesh(new THREE.TorusGeometry(0.03, 0.006, 4, 8, Math.PI * 1.3), ribM); holder.add(h); return h; });
+  // its eyes on you once it has noticed you, on its way before (src/enemies/gaze.js, issue #508)
+  const gaze = [gazePart(g, head, { mode: 'turn', yaw: 0.7, up: 0.4, down: 0.5 })];   // (the hooded head turns: its eyes are fixed on it)
   finish(g);
   const wave = new Wave(Math.random());
   const pose = new PoseBlend({ poses: Object.fromEntries(Object.entries(PL.poses).map(([k, p]) => [k, { ...p }])), style: PL.style });
@@ -117,7 +120,7 @@ export function mothModel(skin) {
   const inFoes = (o, out) => { _m.identity(); for (let x = o; x && x !== g; x = x.parent) { if (x.matrixAutoUpdate) x.updateMatrix(); _m.premultiply(x.matrix); } return out.setFromMatrixPosition(_m.premultiply(g.matrix)); };
   const place = (rods, pts) => rods.forEach((m, j) => { m.position.copy(pts[j]); _a.subVectors(pts[j + 1], pts[j]); const l = _a.length(); m.scale.set(1, Math.max(1e-3, l), 1); if (l > 1e-6) m.quaternion.setFromUnitVectors(UP, _a.divideScalar(l)); });
   return {
-    group: g, body, wave, wings: wings.map((w) => w.strips[0].children[0]), parts: [lantern, head, ...wings.map((w) => w.root)], eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.wing, P.body, P.spot],
+    group: g, gaze, body, wave, wings: wings.map((w) => w.strips[0].children[0]), parts: [lantern, head, ...wings.map((w) => w.root)], eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.wing, P.body, P.spot],
     tell: (id) => (id === 'flash' ? wings[1].strips[S - 2] : head),
     /** Going down (src/enemies/defeat.js): its wings stop beating and fold back over its body as it spirals down. */
     defeat(f, c, u) {

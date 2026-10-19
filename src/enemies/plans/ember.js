@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { materials, add, merged, tubeGeometry, skinBy, pivot, ease, eyeColor, finish } from './kit.js';
+import { gazePart } from '../gaze.js';
 
 // Plan 22, the ember bud: the ember wisp (issue #398; docs/design/fireball-foe.md), the bombardier, drawn to its picked
 // sheet (references/enemy-archetypes/wisp/sheet-1.jpg, issue #440): a false flower of light. Four curved petals of
@@ -103,12 +104,14 @@ export function wispModel(skin) {
       new THREE.SphereGeometry(0.055, 10, 8).scale(1, 1.4, 1).translate(0, -len + 0.01, 0)]), dripB);
     return p;
   });
+  // its eyes on you once it has noticed you, on its way before (src/enemies/gaze.js, issue #508)
+  const gaze = eyes.map((e) => gazePart(g, e, { slide: 0.045 }));   // (each eye slides over its petal)
   const [inkMesh, edgeMesh, dripMesh] = skinBy(g, [{ from: [inkB], into: inkM }, { from: [edgeB], into: edgeM }, ...(dripM ? [{ from: [dripB], into: dripM }] : [])]);
   finish(g);
   const prev = { x: null, z: 0, state: 'idle' };
   let open = 0, clench = 0, kick = 0, glowK = 0;
   return {
-    group: g, body, parts: [inkMesh, edgeMesh, dripMesh, core].filter(Boolean), eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.shell, P.core, P.fire],
+    group: g, gaze, body, parts: [inkMesh, edgeMesh, dripMesh, core].filter(Boolean), eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.shell, P.core, P.fire],
     tell: () => core,
     /** Where the ball leaves it: the coal, in the world. */
     mouthAt: (out = new THREE.Vector3()) => { g.updateMatrixWorld(true); return core.getWorldPosition(out); },

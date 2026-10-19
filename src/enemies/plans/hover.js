@@ -3,6 +3,7 @@ import { PLANS } from '../../motion-kit/plans.js';
 import { PoseBlend } from '../../motion-kit/pose.js';
 import { SecondOrder, quantise } from '../../motion-kit/spring.js';
 import { materials, add, many, skinBy, pivot, lerp, ease, eyeColor, finish, V } from './kit.js';
+import { gazePart } from '../gaze.js';
 
 // Plan 13 for a machine, the hovering machine (docs/systems/procedural-animation.md §4, the kit's `hover`): the ring
 // drone (docs/design/enemy-roster.md, archetype 16), drawn to its sheets (references/enemy-archetypes/drone/: sheet-1 the
@@ -110,6 +111,8 @@ export function droneModel(skin) {
   // (one draw a material for every moving part: skinned on their own pivots)
   const stripeB = props.has('stripe') ? M.mat('stripeBuild', P.accent) : null;
   const tintB = tints.map((t, i) => (t ? M.mat(`plateTint${i}`, t) : null)).filter(Boolean);
+  // its eyes on you once it has noticed you, on its way before (src/enemies/gaze.js, issue #508)
+  const gaze = [gazePart(g, eyes, { mode: 'slide', slide: 0.05 })];   // (within the cloud's drift: anim)
   skinBy(g, [{ from: [plateB, ...tintB], into: plateM }, { from: [rimB, ...(stripeB ? [stripeB] : [])], into: rimM }, { from: [darkB, ventB], into: darkM }, { from: [brassB], into: brassM }, { from: [smokeB], into: smokeM }]);
   finish(g);
   const parts = [...plates, ...gaps, ...arms.map((a) => a.sh)];
@@ -120,7 +123,7 @@ export function droneModel(skin) {
   const prev = { x: null, z: 0 };
   let part = 0, lock = 0, reach = 0, polish = Math.random() * 6;
   return {
-    group: g, body, parts, eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.plate, P.rim, P.smoke], line, harpoon,
+    group: g, gaze, body, parts, eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.plate, P.rim, P.smoke], line, harpoon,
     tell: (id) => (id === 'harpoon' ? harpoon : plates[1]),
     anim(f, c) {
       const id = f.atk?.id, dt = Math.max(c.dt, 1e-4), wind = f.state === 'wind', strike = f.state === 'strike';

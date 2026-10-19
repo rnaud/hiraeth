@@ -4,6 +4,7 @@ import { PoseBlend } from '../../motion-kit/pose.js';
 import { SecondOrder, SecondOrderAngle, quantise } from '../../motion-kit/spring.js';
 import { TrackDrive } from '../../motion-kit/machines.js';
 import { materials, add, many, merged, skinBy, pivot, pair, lerp, ease, eyeColor, finish, V } from './kit.js';
+import { gazePart } from '../gaze.js';
 
 // Plan 17, the tracked machine (docs/systems/procedural-animation.md §4, the kit's `tracked`): the crucible cart
 // (docs/design/enemy-roster.md, archetype 14), drawn to its sheets (references/enemy-archetypes/cart/: sheet-1 the Sealed
@@ -175,6 +176,8 @@ export function cartModel(skin) {
     const bagM = M.mat('bag', P.canvas);
     many(chassis, [new THREE.BoxGeometry(0.9, 0.42, 0.6).translate(-0.3, 1.0, 0.1), new THREE.BoxGeometry(0.6, 0.32, 0.5).translate(0.45, 0.98, -0.2)], bagM);
   }
+  // its eyes on you once it has noticed you, on its way before (src/enemies/gaze.js, issue #508)
+  const gaze = [gazePart(g, face, { mode: 'slide', slide: 0.06 })];   // (in the column of smoke)
   skinBy(g, [{ from: [smokeB, smokeHi], into: smokeM }, { from: [hullM], into: M.mat('hull', P.body, { color2: P.body2, vertexColors: true }) },
     { from: [brassM], into: M.mat('brass', P.brass, { metal: 'brass', color: P.brass, vertexColors: true }) }, { from: [darkM], into: M.mat('dark', P.dark, { flat: true, vertexColors: true }) },
     { from: [potM], into: M.mat('pot', P.pot, { color2: P.pot2, vertexColors: true }) }, { from: [beltB[0]], into: beltM[0] }, { from: [beltB[1]], into: beltM[1] }]);
@@ -201,7 +204,7 @@ export function cartModel(skin) {
   };
   placeWheels();
   return {
-    group: g, body: chassis, parts, eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.body, P.pot, P.smoke],
+    group: g, gaze, body: chassis, parts, eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.body, P.pot, P.smoke],
     tell: (id) => (id === 'ram' ? sides[0] : lip),
     anim(f, c) {
       const id = f.atk?.id, dt = Math.max(c.dt, 1e-4), wind = f.state === 'wind', strike = f.state === 'strike';

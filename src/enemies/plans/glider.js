@@ -4,6 +4,7 @@ import { FollowChain, Wave } from '../../motion-kit/chain.js';
 import { PoseBlend } from '../../motion-kit/pose.js';
 import { SecondOrder, SecondOrderAngle } from '../../motion-kit/spring.js';
 import { materials, add, rod, pivot, pair, lerp, ease, eyeColor, finish, V } from './kit.js';
+import { gazePart } from '../gaze.js';
 
 // Plan 14, the winged glider (docs/systems/procedural-animation.md §4): the sky ray (docs/design/enemy-roster.md,
 // archetype 11), the air striker. A broad flat diamond against the sky with a long whip tail; two little horns at its
@@ -86,6 +87,8 @@ export function rayModel(skin) {
   const barb = add(holder, new THREE.ConeGeometry(0.04, 0.2, 4), tailM);
   const beads = Array.from({ length: tailN }, (_, i) => add(holder, new THREE.SphereGeometry(lerp(0.06, 0.02, i / tailN), 6, 4), tailM));   // (the segmented whip)
   const mist = props.has('mist') ? Array.from({ length: 4 }, (_, i) => add(holder, new THREE.SphereGeometry(0.16 - i * 0.025, 8, 6), M.mat('mist', '#ffffff', { flat: true }))) : [];
+  // its eyes on you once it has noticed you, on its way before (src/enemies/gaze.js, issue #508)
+  const gaze = eyes.map((e) => gazePart(g, e, { slide: 0.02 }));
   finish(g);
   const wave = new Wave(Math.random());
   const pose = new PoseBlend({ poses: Object.fromEntries(Object.entries(PL.poses).map(([k, p]) => [k, { ...p }])), style: PL.style });
@@ -93,7 +96,7 @@ export function rayModel(skin) {
   const prev = { x: null, z: 0, speed: 0, heading: 0 };
   let sweepK = 0, raise = 0, lashK = 0, grounded = 0;
   return {
-    group: g, body, wave, tail, wings: wings.map((w) => w.strips[0].children[0]), parts: [ridge, ...wings.map((w) => w.sweep), ...rods], eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.top, P.under, P.spots],
+    group: g, gaze, body, wave, tail, wings: wings.map((w) => w.strips[0].children[0]), parts: [ridge, ...wings.map((w) => w.sweep), ...rods], eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.top, P.under, P.spots],
     tell: (id) => (id === 'lash' ? barb : id === 'draft' ? wings[1].strips[S - 1] : lobe),
     anim(f, c) {
       const id = f.atk?.id, dt = Math.max(c.dt, 1e-4), wind = f.state === 'wind', strike = f.state === 'strike';

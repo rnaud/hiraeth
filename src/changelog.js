@@ -65,6 +65,9 @@ export const CHANGELOG = [
     // issue #516: src/game-menu.js questsPanel (trackPrompt, the TRACKING tag), game-menu.css .qcard.tracked / .qtrack,
     // engine/menus.js gameView (track), unity BridgeMenu.Chrome.cs QuestCard; tests/quests-tracking.test.js
     'On the Quests page, the quest you are tracking now stands out, framed in red with a TRACKING tag, and the quest you are on shows the button to track it instead (A / × on a controller, Enter on the keyboard).',
+    // issue #508: src/enemies/gaze.js (gazePart, gazeAim, gazeApply), Foes.look, each plan's `gaze`; brute.js GAZE_TWIST;
+    // tests/foe-gaze.test.js, tests/foe-gaze-mirror.test.js; docs/systems/foes.md "Eyes on the traveller"
+    'Creatures and machines now look at you once they have noticed you: the crab’s eye stalks lean your way, the toad’s eyes turn in their sockets, the lizard, the hound and the heron turn their heads, the wisp’s eyes slide over its petals and the brute’s brass eye follows you round as its body twists to you. Left alone, they look where they are going.',
   ] },
   { v: '1.84', date: '2026-10-17', items: [
     // issue #439: src/costumes.js (HEADS: the 47 pieces of the 15 hat sets, HAT_SETS, HAT_SET_WORLDS, hoodShell / hoodNeck /

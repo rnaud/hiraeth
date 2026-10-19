@@ -4,6 +4,7 @@ import { VerletChain, Wave } from '../../motion-kit/chain.js';
 import { PoseBlend } from '../../motion-kit/pose.js';
 import { SecondOrder } from '../../motion-kit/spring.js';
 import { materials, add, pivot, lerp, ease, eyeColor, finish } from './kit.js';
+import { gazePart } from '../gaze.js';
 
 // Plan 11, the floater (docs/systems/procedural-animation.md §4): the lantern jelly (docs/design/enemy-roster.md,
 // archetype 9), the support. A floating bell-cap with long trailing threads and two or three glowing lanterns hanging
@@ -92,6 +93,8 @@ export function jellyModel(skin) {
   // the ward's thread of light: a glowing rod from a lantern to the foe it guards (in the foes' space)
   const wardM = M.own('ward', P.light, { glow: 1 });
   const wardRods = Array.from({ length: NL }, () => { const m = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 1, 5).translate(0, 0.5, 0), wardM); m.visible = false; holder.add(m); return m; });
+  // its eyes on you once it has noticed you, on its way before (src/enemies/gaze.js, issue #508)
+  const gaze = eyes.map((e) => gazePart(g, e, { slide: 0.05 }));
   finish(g);
   // (the threads and the lanterns rest on the ground themselves as it comes down: the defeat's grounding leaves them be)
   holder.traverse((o) => { o.userData.noGround = true; });
@@ -104,7 +107,7 @@ export function jellyModel(skin) {
   const inFoes = (o, out) => { _m.identity(); for (let x = o; x && x !== g; x = x.parent) { if (x.matrixAutoUpdate) x.updateMatrix(); _m.premultiply(x.matrix); } return out.setFromMatrixPosition(_m.premultiply(g.matrix)); };
   const place = (rods, pts) => rods.forEach((m, j) => { m.position.copy(pts[j]); _a.subVectors(pts[j + 1], pts[j]); const l = _a.length(); m.scale.set(1, Math.max(1e-3, l), 1); if (l > 1e-6) m.quaternion.setFromUnitVectors(UP, _a.divideScalar(l)); });
   return {
-    group: g, body, wave, parts: [cap, rim, ...lanterns.map((l) => l.lamp)], eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.bell, P.light, P.thread],
+    group: g, gaze, body, wave, parts: [cap, rim, ...lanterns.map((l) => l.lamp)], eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.bell, P.light, P.thread],
     tell: (id) => (id === 'curtain' ? rim : lanterns[0].lamp),
     // (where lantern i hangs, in the foes' space: the ward's thread of light runs from it, and is cut half-way: Foes.support)
     lanternAt: (i, out = new THREE.Vector3()) => out.copy(lanterns[Math.min(i, NL - 1)].lamp.position),

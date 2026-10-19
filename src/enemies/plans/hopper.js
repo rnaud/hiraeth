@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { Rig, planLeg } from '../../motion-kit/rig.js';
 import { PLANS } from '../../motion-kit/plans.js';
 import { materials, add, tube, rod, many, pivot, pair, lerp, ease, eyeColor, finish, V, outerPoints, lowestIn } from './kit.js';
+import { gazePart } from '../gaze.js';
 
 // Plan 5, the hopper (docs/systems/procedural-animation.md §4): the bellows toad (docs/design/enemy-roster.md,
 // archetype 4), drawn to its sheets (references/enemy-archetypes/toad/: sheet-1 Lorn's spore toad, sheet-2 the
@@ -117,6 +118,8 @@ export function toadModel(skin) {
   const rig = new Rig({ plan: PLANS.hopper, group: g, body, legs });
   const bellyPts = outerPoints(trunk, (o) => o.parent === trunk);   // (its own body's outer points: its belly kept off the ground)
   const mouthTip = pivot(head, 0, 0.0, 0.6);   // (where the glob leaves, and its glow gathers)
+  // its eyes on you once it has noticed you, on its way before (src/enemies/gaze.js, issue #508)
+  const gaze = eyes.map(({ e }) => gazePart(g, e, { mode: 'turn', yaw: 0.6, up: 0.3, down: 0.35 }));   // (each eye turns in its socket, its lid with it)
   finish(g);
   const parts = [pear, belly, head, sac, ...haunches, ...dress, ...legs.map((l) => l.root)];
   // the hop: where its drawn body is (it lags the mind's position by up to a hop, then leaps ahead of it)
@@ -126,7 +129,7 @@ export function toadModel(skin) {
   let hop = null, ground = r * 0.7, squash = 0, crouch = 0, swell = 0, flip = 0, rear = 0, started = false, tumble = 0;
   const _w = V();
   return {
-    group: g, body: trunk, rig, parts, eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.skin, P.belly, P.sac], spore: P.glob,
+    group: g, gaze, body: trunk, rig, parts, eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.skin, P.belly, P.sac], spore: P.glob,
     tell: (id) => (id === 'flop' ? legs[2].foot : mouthTip),
     anim(f, c) {
       const id = f.atk?.id, dt = c.dt, wind = f.state === 'wind', strike = f.state === 'strike';

@@ -3,6 +3,7 @@ import { Rig, planLeg } from '../../motion-kit/rig.js';
 import { PLANS } from '../../motion-kit/plans.js';
 import { VerletChain } from '../../motion-kit/chain.js';
 import { materials, add, tube, rod, pivot, pair, lerp, ease, eyeColor, finish, V } from './kit.js';
+import { gazePart } from '../gaze.js';
 
 // Plan 6, the quadruped beast (docs/systems/procedural-animation.md §4), one rig in two archetypes
 // (docs/design/enemy-roster.md, the build plan's "one quadruped plan, two skins of the rig"), each drawn to its sheets
@@ -164,12 +165,14 @@ export function lizardModel(skin) {
   const coil = new THREE.Group(); coil.name = 'tail coil'; g.add(coil);
   tube(coil, spiralPoints(0.21), 0.072, hideM, 0.016);
   const soot = props.has('soot');
+  // its eyes on you once it has noticed you, on its way before (src/enemies/gaze.js, issue #508)
+  const gaze = [gazePart(g, head, { mode: 'turn', yaw: 0.55, up: 0.3, down: 0.35 })];   // (the head turns: its eyes are fixed on it)
   finish(g);
   const parts = [trunk, chestM, ...spots, neck, ...beads, coil, ...legs.map((l) => l.root)];
   const tw = new THREE.Vector3(), td = new THREE.Vector3(), tip = new THREE.Vector3(), dir = new THREE.Vector3();
   let rear = 0, flat = 0, swing = 0, swell = 0, lift = 0;
   return {
-    group: g, body, rig, parts, eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.hide, P.belly, P.horn],
+    group: g, gaze, body, rig, parts, eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.hide, P.belly, P.horn],
     tell: (id) => (id === 'blare' ? mouth : id === 'whip' ? beads[8] : head),
     anim(f, c) {
       const id = f.atk?.id, dt = c.dt, wind = f.state === 'wind', strike = f.state === 'strike';
@@ -316,10 +319,12 @@ export function houndModel(skin) {
   const risingCrown = pivot(rising, 0, 0.1, -0.03); risingCrown.scale.setScalar(0.85);
   antlerCrown(risingCrown, props, antlerM, glintM);
   const poolEyes = pair((s) => add(rising, new THREE.SphereGeometry(0.045, 8, 6).scale(1, 0.6, 1), eyeM, s * 0.08, 0.07, 0.15));
+  // its eyes on you once it has noticed you, on its way before (src/enemies/gaze.js, issue #508)
+  const gaze = [gazePart(g, head, { mode: 'turn', yaw: 0.55, up: 0.3, down: 0.35 }), gazePart(g, rising, { mode: 'turn', yaw: 0.5, up: 0.3, down: 0.3 })];   // (the head, and the one rising from its pool)
   finish(g);
   let solid = 1, crouch = 0, rake = 0, coil = 0;
   return {
-    group: g, body, rig, parts: [], mane, eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, shadowy: true, tones: [P.ink, P.rim, P.antler],
+    group: g, gaze, body, rig, parts: [], mane, eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, shadowy: true, tones: [P.ink, P.rim, P.antler],
     tell: (id) => (id === 'rake' ? tines[0] : head),
     anim(f, c) {
       const id = f.atk?.id, dt = c.dt, wind = f.state === 'wind', strike = f.state === 'strike';

@@ -3,6 +3,7 @@ import { PLANS } from '../../motion-kit/plans.js';
 import { SecondOrder } from '../../motion-kit/spring.js';
 import { PoseBlend } from '../../motion-kit/pose.js';
 import { materials, add, tubeGeometry, many, skinBy, pivot, pair, lerp, ease, smooth, eyeColor, finish } from './kit.js';
+import { gazePart } from '../gaze.js';
 
 // Plan 16, the roller (docs/systems/procedural-animation.md §4, the kit's `roller`): the pearl roller
 // (docs/design/enemy-roster.md, archetype 7), drawn to its sheets (references/enemy-archetypes/roller/: sheet-1 the
@@ -110,6 +111,8 @@ export function rollerModel(skin) {
     base.rotation.set(1.3, 0, -s * 0.5);
     return base;
   });
+  // its eyes on you once it has noticed you, on its way before (src/enemies/gaze.js, issue #508)
+  const gaze = stalks.map(({ tip }) => gazePart(g, tip, { mode: 'turn', yaw: 0.8, up: 0.5, down: 0.5 }));   // (each eyeball turns on its stalk's tip)
   skinBy(g, [{ from: [footB, stalkB, ballB], into: footM }, { from: [pupilB], into: eyeM }]);   // (the pupils one mesh: their colour tells its state)
   finish(g);
   const parts = [shell, spin, foot, head, ...stalks.map((x) => x.base)];
@@ -118,7 +121,7 @@ export function rollerModel(skin) {
   const tuckS = new SecondOrder(PL.shell.tuck.f, PL.shell.tuck.z, PL.shell.tuck.r);
   let prevX = null, prevZ = 0, angle = 0, ripple = 0, glow = 0, speed0 = 0, sinkS = 0, turned = 0, rolled = 0, runK = 0, slid = 0;
   return {
-    group: g, body: shell, parts, eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.shell, P.band, P.foot],
+    group: g, gaze, body: shell, parts, eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.shell, P.band, P.foot],
     tell: () => spin,
     /** How far its spin has turned (rad) and how far it has rolled: the roll is locked to the distance (tests). */
     get spin() { return angle; },

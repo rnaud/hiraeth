@@ -531,6 +531,32 @@ and 62 cm under even on flat ground, the shade's smoke 18, the roller's sole and
   rootknot's roots 1.8, the hound 1.6; most 0-1); every brute skin's hands and saw over the ground. The hound sinking into
   its shadow pool is its own.
 
+### Eyes on the traveller (v1.85, issue #508, `src/enemies/gaze.js`)
+
+A foe that has noticed you looks at you: chasing, winding up, striking, getting its breath back, a watcher watching you go,
+a shy one backing off (`watchingHim`). Idle, wandering or going home, it looks where it is going: the way it moved
+(eased), else its heading, a little under level (`GAZE.low`). Stunned, dying or more than `GAZE.far` (45 m) away, it does not.
+
+- **Aimed before the pose, turned after it** (`Foes.look`): `gazeAim` sets `f.gaze.at` (your chest, `GAZE.chest` over your
+  feet, or a point `GAZE.ahead` on its way) and `f.gaze.yaw` (from its heading, eased: the headless brute twists its
+  torso by `GAZE_TWIST` of it before its legs are solved); after `model.anim`, `gazeApply` moves `model.gaze`'s eyes.
+- **An eye** (`gazePart(root, obj, o)`, at the build): `turn` (an eyeball with a pupil, or a head with its eyes fixed on
+  it: the toad's eyes in their sockets, the roller's eyeballs on their stalks, the lizard's, hound's, heron's and moth's
+  heads), `lean` (the crab's stalks lean to you), `slide` (a spot with no pupil slides over its surface: the blot's
+  pupils across their whites, the wisp's eyes on its petals, the brute's brass eye in the boss of its belt, the shade's
+  in its hood, the drone's and the cart's in their smoke, the jelly's, ray's, centipede's, root knot's and worm's). A
+  group gets an inner group holding its contents, so the group's own pose stays its anim's; a mesh is slid (nothing
+  else may move it). Each has a reach (`yaw`, `up`, `down`, rad; a target behind it holds the eye at the edge on its
+  side) and eases at `GAZE.rate` (9/s).
+- **Cheap, and shared shapes kept**: per eye one inverse of its host's world matrix as last drawn (eyes on one joint
+  share it) and a few angles; no new mesh, so no new draw. Only transforms move, never a geometry (the foes of one kind
+  and skin draw the same geometries, #468), so the eyes cross the bridge to Unity as world matrices (a skinned eye as
+  its bone's, the roller's).
+- Not given eyes that follow: the skitters (two tiny dots and their glints in a swarm), the tripod and the bell walker
+  (their eyes behind glass or under the bell's lip), the marionette (no eyes).
+- `tests/foe-gaze.test.js`: eighteen archetypes look at you within their reach, held at its edge behind them, no
+  geometry rewritten; idle, back to their way, leading a sideways drift; noticed again, back on you.
+
 ## The guardians' staged fights (v1.6, `src/temples/boss.js`)
 
 All eleven shared one template before (three attacks, two phases, 1.4-1.7 s floor telegraphs). Each is now a fight

@@ -39,6 +39,7 @@ import { FoeReact, applyReact, restoreBody, installFlash, splashTones } from './
 import { DEFEATS, startDefeat, defeatPose, defeatRoot, dimEyes, groundStart, groundDefeat } from './enemies/defeat.js';
 import { bodyReach } from './foe-body.js';
 import { readSlope, slopeOf, tiltRoot } from './enemies/slope.js';
+import { GAZE, gazeAim, gazeApply } from './enemies/gaze.js';
 import { Fireball, FIREBALL, aimAt, catchable } from './fireballs.js';
 
 // Foes (docs/systems/foes.md): the first things in the game that fight back.
@@ -3328,7 +3329,11 @@ export class Foes {
       // its legs are solved (beforeLegs), the rest after its pose. Going down, the plane it fell on holds.
       const SL = f.dying ? f.slope ?? null : readSlope(f, this.physics, dt);
       M.rig?.setSlope?.(SL, SL ? slopeOf(f).upright ?? 0 : 0);
+      // its eyes on you once it has noticed you, else on its way (src/enemies/gaze.js, issue #508): aimed before its
+      // pose (a headless brute twists toward it), turned after it
+      if (M.gaze) gazeAim(f, this.player, dt);
       M.anim(f, kit);
+      if (M.gaze && f.dist < GAZE.far) gazeApply(M.gaze, f.gaze.at, dt, !f.gaze.watching);
       if (SL && !M.rig) tiltRoot(g, SL);
       if (f.possessed && M.eyeMat?.uniforms?.uColor) M.eyeMat.uniforms.uColor.value.set(POSSESS_EYE);   // (driven by strings: its eyes go black)
       if (f.react && !M.rig) applyReact(f.react, M.body, DP?.body ?? null);   // (a body with no legs to solve: after its pose)
