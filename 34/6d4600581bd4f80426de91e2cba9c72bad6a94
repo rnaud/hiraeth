@@ -1,0 +1,29 @@
+references/characters/traveller-outfits/glider-pilot/manifest.json
+  s_5f899ba316b5dc::t_54fc3a78b18827 1-45
+docs/design/traveller-outfit-prompts.md
+  s_827ec071a68b8c::t_30e1686284017c 1-48
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "346d4600581bd4f80426de91e2cba9c72bad6a94",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_827ec071a68b8c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ac0a4573d477e033f",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
