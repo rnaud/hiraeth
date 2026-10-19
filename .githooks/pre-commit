@@ -31,7 +31,8 @@ fi
 out=$(node --test --test-concurrency="${TEST_CONCURRENCY:-4}" "$@" 2>&1)
 status=$?
 if [ $status -ne 0 ]; then
-  printf '%s\n' "$out" | grep -E '^not ok|^[ℹ#] (pass|fail)' | tail -20
+  # (Node 22 marks a failure 'not ok' in TAP, Node 24 '✖' in spec: show both, with the assertion under each)
+  printf '%s\n' "$out" | grep -E -A6 '^not ok|^✖|^[ℹ#] (pass|fail)' | tail -40
   echo "pre-commit: tests failed, commit stopped"
   exit 1
 fi
