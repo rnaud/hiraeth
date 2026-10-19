@@ -1,0 +1,31 @@
+changelog.md
+  s_5f899ba316b5dc::t_8aa70e339c169c 7
+docs/systems/minigames.md
+  s_5f899ba316b5dc::t_ccbecaec77ade0 64-68
+src/changelog-media.js
+  s_5f899ba316b5dc::t_6d5ca5a862b4e6 1212-1213,1220-1222
+src/changelog.js
+  s_5f899ba316b5dc::t_fecb4a526e343f 31-33
+src/minigames/kit/minigames.css
+  s_5f899ba316b5dc::t_1b60f3d9911cb7 66-72,85
+tests/minigame-card-focus.test.js
+  s_5f899ba316b5dc::t_b3ec6bbabdfc7d 1-61
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.cs
+  s_5f899ba316b5dc::t_c6749cd97c3e1e 536-537,539,543-544,675,690-698
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "490c4867b171483711e5aaa6eb75f0e7a71d4bc2",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
