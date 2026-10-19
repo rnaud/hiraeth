@@ -1,0 +1,43 @@
+src/main.js
+  s_5f899ba316b5dc::t_ec92547da439d6 10,675-677,681,1022
+tests/plant-ground.test.js
+  s_5f899ba316b5dc::t_4f697a9d72191b 1,9,17-22,69-116
+src/reactive-world.js
+  s_5f899ba316b5dc::t_67db8264d6fe6a 367-386
+src/npc.js
+  s_5f899ba316b5dc::t_99aaed1adb867c 30,1098-1103,1105,1108,1112-1114,1135-1137,1140-1150
+engine/game.js
+  s_5f899ba316b5dc::t_a78bc080b1cfff 60,497-500,503,514,614
+src/flora.js
+  s_5f899ba316b5dc::t_043098a288c261 11,189-197,199-202,276-277
+src/changelog.js
+  s_5f899ba316b5dc::t_81946f840b2689 173-176
+src/plant-ground.js
+  s_5f899ba316b5dc::t_fef3fd219f1ec0 1-3,12-14,44-102
+tests/makehuman-worlds.test.js
+  s_5f899ba316b5dc::t_3bb45abb33bfb5 424
+src/crowd.js
+  s_5f899ba316b5dc::t_c3937a44880ae0 714
+src/changelog-media.js
+  s_5f899ba316b5dc::t_f40701395d0248 1268-1269,1426-1429
+docs/systems/living-world.md
+  s_5f899ba316b5dc::t_db6c92fb17b61b 59-69
+changelog.md
+  s_5f899ba316b5dc::t_f92abe4fb1ccda 13-14
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0f0a75778f336cb4bcfaccf5cd7c94ccc15fc014",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
