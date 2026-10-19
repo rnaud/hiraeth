@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.85 — 2026-10-18
 
+- Each world’s recorded music plays louder, about twice as loud as before: it had been sitting well under the footsteps, the blade and the voices, so a fight or a conversation drowned it. Now the music holds its own under them, as the sounds were meant to sit, and nothing in it distorts.
 - A house’s great key now looks the part: its bow is the makers’ mark in brass and pale stone, a soft teal light runs down its shaft and its ward steps like a little staircase. Finding it, or the house’s map, now brings up a card as a makers’ box does, the key held over its chest until you go on.
 - The hearts and the key count no longer show over a makers’ box as it opens, as they did in the City-Shaft’s Ash Store after its fight: every box’s scene, like every other scene, keeps the screen clear whatever your health.
 - In the Unity version, a conversation’s answers are marked as on the web: with a controller, the A button on the answer you are on and a small arrow by the others, instead of the keyboard’s numbers.

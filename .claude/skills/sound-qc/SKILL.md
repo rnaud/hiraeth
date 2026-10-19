@@ -75,9 +75,9 @@ Levels are K-weighted (the curve LUFS is measured through), the loudest 50 ms, i
 
 ## 4. Reading it, and the usual causes
 
-- **everything too loud by about the same**: the music's level, not the sounds (the recordings play about 7 dB under
-  the procedural score round 1 balanced the effects to, issue #499): read the "against the procedural score" line for
-  each sound's own fault.
+- **everything too loud by about the same**: the music's level, not the sounds (the recordings played about 7 dB under
+  the procedural score round 1 balanced the effects to, issue #499; raised 6 dB in #530, src/soundtracks.js THEME_RMS,
+  so about 1 dB under now): read the "against the procedural score" line for each sound's own fault.
 - **missing in the engines only**: the call is made in src/main.js (BodyFoley, interactHooks, onDrink, waters): wire
   the same in engine/game.js. Check it there with the drive (the `press` column fills in).
 - **too quiet in the engines only**: the browser hears a recorded take, the engines its synth stand-in (the hurt's was

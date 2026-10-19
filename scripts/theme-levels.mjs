@@ -1,6 +1,6 @@
 // The recorded themes' balance for the engines (docs/systems/audio.md, "The recordings in Unity"): the gain the web's
-// prepareSoundtrack gives each file (src/soundtracks.js: -27 dB RMS with a peak cap, measured on the tail joined to the
-// opening), measured once here and written to src/theme-levels.js. An engine decodes and streams the MP3 itself
+// prepareSoundtrack gives each file (src/soundtracks.js: THEME_RMS dB RMS, -21 since issue #530, with a peak cap,
+// measured on the tail joined to the opening), measured once here and written to src/theme-levels.js. An engine decodes and streams the MP3 itself
 // (engine/webaudio.js NativeAudioBuffer) and never holds its samples in the script, so it can't measure them there.
 //
 //   node scripts/theme-levels.mjs        # macOS: afconvert decodes the MP3s
@@ -12,7 +12,7 @@ import { tempDir, removeTemp } from './temp-dirs.mjs';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { AudioContext } from '../engine/webaudio.js';
-import { prepareSoundtrack } from '../src/soundtracks.js';
+import { prepareSoundtrack, THEME_RMS, THEME_PEAK } from '../src/soundtracks.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const MUSIC = join(ROOT, 'public', 'music');
@@ -35,7 +35,7 @@ function readWav(path) {
   throw new Error(`${path}: no data`);
 }
 
-/** The gain prepareSoundtrack applies to this file. */
+/** The gain prepareSoundtrack applies to this file, and the loudest sample it gives (its peak after the gain). */
 export function themeLevel(path, tmp) {
   const wav = join(tmp, 'x.wav');
   execFileSync('afconvert', ['-f', 'WAVE', '-d', 'LEF32', path, wav]);
@@ -49,24 +49,34 @@ export function themeLevel(path, tmp) {
   const a = buf.getChannelData(0), o = out.getChannelData(0), from = buf.length - out.length;
   let best = from;
   for (let k = from; k < out.length; k++) if (Math.abs(a[k]) > Math.abs(a[best])) best = k;
-  return o[best] / a[best];
+  let peak = 0;
+  for (let c = 0; c < out.numberOfChannels; c++) for (const v of out.getChannelData(c)) peak = Math.max(peak, Math.abs(v));
+  return { gain: o[best] / a[best], peak };
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const tmp = tempDir('theme-levels-');
-  const levels = {};
+  const levels = {}, peaks = {};
   try {
     for (const f of readdirSync(MUSIC).filter((x) => x.endsWith('.mp3')).sort()) {
-      levels[f] = +themeLevel(join(MUSIC, f), tmp).toFixed(4);
-      console.log(`${f}: ${levels[f]} (${(20 * Math.log10(levels[f])).toFixed(1)} dB)`);
+      const { gain, peak } = themeLevel(join(MUSIC, f), tmp);
+      levels[f] = +gain.toFixed(4); peaks[f] = +(20 * Math.log10(peak)).toFixed(1);
+      console.log(`${f}: ${levels[f]} (${(20 * Math.log10(levels[f])).toFixed(1)} dB), its loudest sample ${peaks[f]} dBFS`);
     }
   } finally { removeTemp(tmp); }
   const body = Object.entries(levels).map(([k, v]) => `  '${k}': ${v},`).join('\n');
-  writeFileSync(join(ROOT, 'src', 'theme-levels.js'), `// Made by scripts/theme-levels.mjs: the gain src/soundtracks.js prepareSoundtrack gives each recording (-27 dB RMS with a
-// peak cap, its tail joined to its opening), for the engines, which decode and stream the MP3s themselves and never hold
-// their samples (engine/webaudio.js NativeAudioBuffer). Run it again when a recording is added or replaced.
+  const peakBody = Object.entries(peaks).map(([k, v]) => `  '${k}': ${v},`).join('\n');
+  writeFileSync(join(ROOT, 'src', 'theme-levels.js'), `// Made by scripts/theme-levels.mjs: the gain src/soundtracks.js prepareSoundtrack gives each recording (THEME_RMS dB RMS
+// with a peak cap, its tail joined to its opening), for the engines, which decode and stream the MP3s themselves and never
+// hold their samples (engine/webaudio.js NativeAudioBuffer). Run it again when a recording is added or replaced, or the
+// target changes (tests/soundtracks.test.js fails while THEME_TARGET is not src/soundtracks.js's).
+export const THEME_TARGET = { rms: ${THEME_RMS}, peak: ${THEME_PEAK} };
 export const THEME_LEVELS = {
 ${body}
+};
+// each recording's loudest sample at that gain, dBFS (under the cap, 20 log10(THEME_PEAK): nothing clips)
+export const THEME_PEAKS = {
+${peakBody}
 };
 `);
   console.log(`src/theme-levels.js: ${Object.keys(levels).length} recordings`);

@@ -337,7 +337,7 @@ local; the others are downloaded once: "The themes on a device" below).
 `manifest.json` records each Suno source and musical direction. Only the current
 world loads after audio starts. Decode/download failures retain the procedural
 score, including on engine bridges without an audio decoder. The title has its
-own recording (below). Recordings are balanced to -27 dB RMS (with a peak cap), with the last
+own recording (below). Recordings are balanced to -21 dB RMS (-27 until #530; with a peak cap), with the last
 two seconds crossfaded into the opening for looping, then faded in over two seconds.
 They use the existing music bus: volume, mute, menu hush, musician ducking,
 underwater filtering and background suspension still apply. Ambience, bands and
@@ -363,7 +363,7 @@ near-silence at the start (whole MP3 frames dropped, its Xing/LAME header fixed,
 - **Start**: `new Sound('title', { score: false, titleTheme: true })` (`src/title.js`). The procedural menu
   music (`MENU_SCORE`, `menuMusic`) plays from the title's first sound; `Sound.start` also calls
   `loadTitleTheme`, which reads `music/title.mp3` (`themeSources`: the bundle's file, on the web the site's),
-  decodes it and balances and joins it like a world's theme (`prepareSoundtrack`: -27 dB RMS with a peak cap,
+  decodes it and balances and joins it like a world's theme (`prepareSoundtrack`: -21 dB RMS with a peak cap,
   the last two seconds crossfaded into the opening).
 - **Takeover** (`Sound.playTitleTheme`): the recording loops on the menu bus, faded in over two seconds while the
   procedural tune (its own gain, `menuSynth`, and its small room) fades out under it; its scheduler stops once
@@ -377,7 +377,8 @@ near-silence at the start (whole MP3 frames dropped, its Xing/LAME header fixed,
 - **On a device** it is in the package (`ON_DEVICE_THEMES`): it is the first thing a launch
   plays, so it must not wait for the background download.
 - Level on the menu bus (measured in headless Chrome, music at 0.8): the procedural tune about -27 dBFS, the
-  recording about -34, the same level as a world's recording on the music bus.
+  recording about -34 until #530, about -28 since (the recordings' target -27 → -21 dB RMS), the same level as a
+  world's recording on the music bus.
   Tests: `tests/soundtracks.test.js`.
 
 ## The themes on a device (October 2026)
@@ -905,3 +906,46 @@ gain (src/theme-levels.js), once round its loop; the procedural score is the fal
 
 All 116 rows OK against the score, browser and engines (was 96 / 116); against the recording 26 / 116 web, 29 / 116
 engines (was 25 and 28), the rest #530's.
+
+### The music raised (#530, 19 October 2026)
+
+The author's call on the music's level above: raise the recordings about 6 dB. `prepareSoundtrack`
+(src/soundtracks.js) now brings each recording to `THEME_RMS` = **-21 dB RMS** (was -27), the peak cap `THEME_PEAK`
+(0.8, -1.9 dBFS at the loudest sample) kept. `node scripts/theme-levels.mjs` measured the engines' gains at it
+(src/theme-levels.js `THEME_LEVELS`, which Unity's streamed recordings play at) and writes beside them the target it
+measured at (`THEME_TARGET`) and each recording's loudest sample at its gain (`THEME_PEAKS`). Every gain rose 6.0 dB:
+none of the 26 meets the cap (the loudest sample of all, the waterfall's, -5.8 dBFS; home's -11.2; at the music bus and
+the master another -5.1 dB). tests/soundtracks.test.js fails while the file was measured at another target, a
+recording's peak is over the cap or would clip on the music bus, or the desert's gain is not about 6 dB over its old one.
+
+**The master's compressor doesn't take it back.** Its threshold is -18 dBFS (src/audio.js), and the #531 work found it
+squeezes the loud effects. The music sits under it:
+- Chrome's own DynamicsCompressorNode, offline: the first 90 s of the recording through the music bus (0.62 × 0.8),
+  its reverb send and the master (0.9), with and without the compressor (in the scratchpad, not kept). With it, the RMS
+  rose +6.05 dB in the desert, +6.05 in the bazaar and +5.92 at home. Its peaks now reach -12 dBFS, inside its 30 dB soft
+  knee, and the knee's make-up gain lifts everything by about 1.8 dB both before and after.
+- The engines' compressor (engine/webaudio.js: a hard-knee peak follower) squeezes home's louder peaks a little: the QC
+  measures the desert +5.9, the bazaar +5.6, home +4.7.
+- Unity streams the recording itself at its level times the gains on its way, outside the graph's compressor
+  (engine/webaudio.js `reach`): the full +6 dB.
+
+The sound QC against the recording (`node .claude/skills/sound-qc/run.mjs`, the same commit before and after):
+
+| | before (-27) | after (-21) | at -20 (measured, not taken) |
+|---|---|---|---|
+| the desert's recording, p95 of 50 ms (the reference) | -31.6 dBFS | **-25.7** | -25.0 |
+| the bazaar's recording | -30.4 | -24.8 | -24.0 |
+| home's recording | -29.1 | -24.4 | -23.5 |
+| (the procedural score: desert, bazaar, home) | -24.6, -24.4, -26.0 | the same | the same |
+| a conversation's voice over the music | +9.5 dB | **+3.6** | +2.9 |
+| a fight's loudest moment over the music (limit +8) | +11.6 dB | **+5.7** | +5.0 |
+| rows OK, browser | 26 / 116 | **103 / 116** | 113 / 116 |
+| rows OK, engines | 29 / 116 | **106 / 116** | 114 / 116 |
+| against the procedural score | 116 / 116 | 116 / 116 | 116 / 116 |
+
+Nothing clips: no sound's sample over -1 dBFS; the fight's loudest moment peaks at -6.3 dBFS, as before; ducking under a
+conversation -4.3 dB, as before. The 13 rows still out are all "too loud" by 0.3 to 1.3 dB. The desert's recording
+still sits 1.1 dB under the score the effects were balanced to: the double jump's lift +2.8 (band to +2), the gun's
+shot +2.2, the fan +2.3, the heavy third in the browser +3.0, its landing +5.3, the bomb +5.2, the flurry +4.6, a
+quest's step and a cleared room +4.3, the heartbeat -5.2 (to -6), the boomerang's aim -5.6, its catch -7.9 and a swim
+stroke in the browser -7.9 (to -8). A -20 target (7 dB) clears all but three of them; the author asked for about 6.

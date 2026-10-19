@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { prepareSoundtrack, loadSoundtrack, SOUNDTRACKS } from '../src/soundtracks.js';
+import { prepareSoundtrack, loadSoundtrack, SOUNDTRACKS, THEME_RMS, THEME_PEAK } from '../src/soundtracks.js';
 import { AudioContext } from '../engine/webaudio.js';
 import { statSync } from 'node:fs';
 
@@ -11,8 +11,36 @@ test('recordings join the tail to the opening and balance loudness', () => {
   const result = prepareSoundtrack(ctx, original);
   assert.equal(result.length, 800);
   assert.equal(result.numberOfChannels, 2);
-  assert.ok(Math.abs(result.getChannelData(0)[0] - 10 ** (-27 / 20)) < 1e-6);
+  assert.ok(Math.abs(result.getChannelData(0)[0] - 10 ** (THEME_RMS / 20)) < 1e-6);
   assert.equal(original.getChannelData(0)[0], 0.5);
+});
+
+// Issue #530: the recordings played 6 to 7 dB under the procedural score the effects and voices were balanced against.
+test('the recordings\' target is -21 dB RMS, never past the peak cap, and the engines\' levels were measured at it', async () => {
+  assert.equal(THEME_RMS, -21);
+  assert.equal(THEME_PEAK, 0.8);
+  // a loud, peaky track: the cap holds its loudest sample at THEME_PEAK, under the RMS target's gain
+  const ctx = new AudioContext({ sampleRate: 100 });
+  const original = ctx.createBuffer(2, 1000, 100);
+  for (let ch = 0; ch < 2; ch++) { const d = original.getChannelData(ch); d.fill(0.01); d[500] = 1; }
+  const out = prepareSoundtrack(ctx, original);
+  let peak = 0;
+  for (let ch = 0; ch < 2; ch++) for (const v of out.getChannelData(ch)) peak = Math.max(peak, Math.abs(v));
+  assert.ok(Math.abs(peak - THEME_PEAK) < 1e-6, `capped at ${peak}`);
+  // src/theme-levels.js made at this target (scripts/theme-levels.mjs), every recording under the cap
+  const { THEME_TARGET, THEME_LEVELS, THEME_PEAKS } = await import('../src/theme-levels.js');
+  assert.deepEqual(THEME_TARGET, { rms: THEME_RMS, peak: THEME_PEAK }, 'run node scripts/theme-levels.mjs');
+  const cap = 20 * Math.log10(THEME_PEAK);
+  for (const [f, g] of Object.entries(THEME_LEVELS)) {
+    assert.ok(f in THEME_PEAKS, `${f}: its peak`);
+    assert.ok(THEME_PEAKS[f] <= cap + 0.05, `${f}: its loudest sample ${THEME_PEAKS[f]} dBFS, over the cap ${cap.toFixed(1)}`);
+    // at the music bus (0.62 at full Music) and the master (0.9), still well under -1 dBFS
+    assert.ok(THEME_PEAKS[f] + 20 * Math.log10(0.62 * 0.9) < -1, `${f} clips on the music bus`);
+    assert.ok(g > 0 && g <= 4, `${f}: ${g}`);
+  }
+  // the desert's (Music: Always plays it from the start) about 6 dB over the -27 it had: 0.3458 before
+  const was = 0.3458, now = THEME_LEVELS['desert-bayati.mp3'];
+  assert.ok(Math.abs(20 * Math.log10(now / was) - 6) < 0.2, `the desert raised ${(20 * Math.log10(now / was)).toFixed(1)} dB`);
 });
 
 test('title screen and unmapped levels do not fetch music', async () => {
@@ -128,7 +156,7 @@ test('loadTitleTheme hands the balanced, looped recording over; a failure keeps 
   assert.ok(urls[0].endsWith(`music/${TITLE_THEME}`), urls[0]);
   assert.equal(given.length, 1);
   assert.equal(given[0].length, 800, 'the last two seconds joined to the opening');
-  assert.ok(Math.abs(given[0].getChannelData(0)[0] - 10 ** (-27 / 20)) < 1e-6, 'balanced like the worlds\' themes');
+  assert.ok(Math.abs(given[0].getChannelData(0)[0] - 10 ** (THEME_RMS / 20)) < 1e-6, 'balanced like the worlds\' themes');
 
   const warn = console.warn;
   console.warn = () => {};

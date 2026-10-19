@@ -137,6 +137,14 @@ export const CHANGELOG = [
     // 'temple:found'), src/boxes/index.js announce (the box's card, no scene); tests/key-chests.test.js
     { text: 'A house’s great key now looks the part: its bow is the makers’ mark in brass and pale stone, a soft teal light runs down its shaft and its ward steps like a little staircase. Finding it, or the house’s map, now brings up a card as a makers’ box does, the key held over its chest until you go on.',
       see: 'In any makers’ house, open the great key’s chest or the map’s: the card comes up with what you found; press A / × to go on.' },
+    // issue #530: src/soundtracks.js THEME_RMS (-27 → -21 dB RMS, the peak cap THEME_PEAK kept), src/theme-levels.js
+    // (scripts/theme-levels.mjs: THEME_TARGET, THEME_PEAKS); tests/soundtracks.test.js; docs/systems/audio.md "The music raised (#530)"
+    { text: 'Each world’s recorded music plays louder, about twice as loud as before: it had been sitting well under the footsteps, the blade and the voices, so a fight or a conversation drowned it. Now the music holds its own under them, as the sounds were meant to sit, and nothing in it distorts.',
+      numbers: [{ title: 'The music against the sounds over it, in the desert (the loudest moments of each, dB; the game’s sound rendered offline, muted)', unit: 'dB', better: 'lower', device: 'any (the sound QC: rendered offline)', rows: [
+        { where: 'a conversation’s voice over the music', before: 9.5, after: 3.6 },
+        { where: 'a fight’s loudest moment over the music (the limit: 8)', before: 11.6, after: 5.7 },
+      ], source: 'docs/systems/audio.md, "The music raised (#530)"' }],
+      see: 'In the desert, stand still and listen to the music, then fight the foes near the landing, or talk to someone: the music stays heard under the blows and the voice. The Music slider (Settings, Sound) still sets it as before.' },
   ] },
   { v: '1.84', date: '2026-10-17', items: [
     // issue #439: src/costumes.js (HEADS: the 47 pieces of the 15 hat sets, HAT_SETS, HAT_SET_WORLDS, hoodShell / hoodNeck /

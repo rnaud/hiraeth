@@ -64,6 +64,16 @@ export async function loadCue(sound, id, fetcher = globalThis.fetch, { here = gl
   return false;
 }
 
+/**
+ * The recordings' balance: each brought to THEME_RMS dB RMS (its tail joined to its opening), never past THEME_PEAK at
+ * its loudest sample. -27 until issue #530: the Suno themes then played 6 to 7 dB under the procedural score the
+ * effects and the voices were balanced against (the desert -31.6 dBFS against -24.6), so every effect sat over them.
+ * At -21 none of them meets the cap (the loudest sample of all, the waterfall's, -5.8 dBFS against the cap's -1.9:
+ * src/theme-levels.js THEME_PEAKS); scripts/theme-levels.mjs measures the engines' gains with this.
+ */
+export const THEME_RMS = -21;
+export const THEME_PEAK = 0.8;
+
 /** Join the last two seconds to the opening and balance the score beneath speech. */
 export function prepareSoundtrack(ctx, original) { return runSteps(prepareSoundtrackSteps(ctx, original)); }
 
@@ -89,7 +99,7 @@ export function* prepareSoundtrackSteps(ctx, original) {
     }
   }
   const rms = Math.sqrt(sum / (length * original.numberOfChannels));
-  const gain = rms > 0 ? Math.min(10 ** (-27 / 20) / rms, 0.8 / peak, 4) : 1;
+  const gain = rms > 0 ? Math.min(10 ** (THEME_RMS / 20) / rms, THEME_PEAK / peak, 4) : 1;
   for (let ch = 0; ch < buffer.numberOfChannels; ch++) {
     const data = buffer.getChannelData(ch);
     for (let i = 0; i < data.length; i++) { data[i] *= gain; if (i % CHUNK === CHUNK - 1) yield; }
