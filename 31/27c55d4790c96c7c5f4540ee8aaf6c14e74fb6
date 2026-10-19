@@ -1,0 +1,43 @@
+changelog.md
+  s_5f899ba316b5dc::t_67fdbf1b7d959f 7
+docs/systems/engine-bridge.md
+  s_5f899ba316b5dc::t_63f52c5830fe77 2615-2642
+engine/sequences.js
+  s_5f899ba316b5dc::t_ac1af5e3f1e99b 240-261,495-496,508-510,531
+src/changelog-media.js
+  s_5f899ba316b5dc::t_adbfa6ff51a12c 1217-1219,1291-1294
+src/changelog.js
+  s_5f899ba316b5dc::t_9722b3e8207de0 105-108
+src/main.js
+  s_5f899ba316b5dc::t_f170bf65e8f1d2 2661
+src/ship/ship.js
+  s_5f899ba316b5dc::t_74e7a28cec71fc 36-37,579-581,869
+src/story/scientist.js
+  s_5f899ba316b5dc::t_48d3f8d88adee3 127-130
+tests/fragments.test.js
+  s_5f899ba316b5dc::t_4da44ebd1fa3f6 542-543
+tests/sequences-play.test.js
+  s_5f899ba316b5dc::t_660236d19d4768 15
+tests/sequences-ship.test.js
+  s_5f899ba316b5dc::t_293ecbab742bd5 1-19
+tests/sequences-web.json
+  s_5f899ba316b5dc::t_527dc5dbd51434 5037,5103,5211,5412,5616,5683,5858,6114,6115
+tests/ship.test.js
+  s_5f899ba316b5dc::t_8c5cd89c34edfa 670-690
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3127c55d4790c96c7c5f4540ee8aaf6c14e74fb6",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
