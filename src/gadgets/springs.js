@@ -93,9 +93,10 @@ function springModel() {
 }
 
 /** Their sounds (the game's synth). */
+const vary = (s, spread = 0.06) => (s?.vary?.(spread) ?? 1);   // (no two takes alike: sound QC, issue #531)
 export const springSfx = {
-  wind(s, k) { const t = s?.ctx?.currentTime; if (t == null) return; s.burst(t, { dur: 0.03, type: 'bandpass', freq: 1400 + 1600 * k, q: 5, vol: 0.035 }); },
-  full(s) { const t = s?.ctx?.currentTime; if (t == null) return; s.sweep(t, 1250, 1240, 0.18, 0.05, 'triangle'); s.sweep(t, 1760, 1750, 0.14, 0.03, 'triangle'); },
+  wind(s, k) { const t = s?.ctx?.currentTime; if (t == null) return; s.burst(t, { dur: 0.03, type: 'bandpass', freq: 1400 + 1600 * k, q: 5, vol: 0.085 }); },
+  full(s) { const t = s?.ctx?.currentTime; if (t == null) return; const v = vary(s), g = 0.56 * vary(s, 0.12); s.sweep(t, 1250 * v, 1240 * v, 0.18, 0.05 * g, 'triangle'); s.sweep(t, 1760 * v, 1750 * v, 0.14, 0.03 * g, 'triangle'); },
   boing(s, chain = 0, k = 1) {
     const t = s?.ctx?.currentTime; if (t == null) return;
     const p = 1 + chain * 0.18;
@@ -110,10 +111,11 @@ export const springSfx = {
   drop(s) { const t = s?.ctx?.currentTime; if (t == null) return; s.sweep(t, 900, 160, 0.3, 0.06, 'sawtooth'); s.burst(t, { dur: 0.3, type: 'highpass', freq: 2400, q: 0.5, vol: 0.05, rate: 1.4 }); },
   stomp(s) {
     const t = s?.ctx?.currentTime; if (t == null) return;
-    s.sweep(t, 120, 38, 0.45, 0.4);
-    s.burst(t, { dur: 0.4, type: 'lowpass', freq: 520, q: 0.6, vol: 0.32, rate: 0.5 });
-    s.burst(t + 0.05, { dur: 0.6, type: 'lowpass', freq: 240, q: 0.5, vol: 0.16, rate: 0.35 });
-    s.sweep(t + 0.04, 260, 520, 0.12, 0.05, 'triangle');
+    const v = vary(s, 0.08), k = 0.42;   // (down into the impact band: it stood 5.5 dB over, issue #531)
+    s.sweep(t, 120 * v, 38, 0.45, 0.4 * k);
+    s.burst(t, { dur: 0.4, type: 'lowpass', freq: 520 * v, q: 0.6, vol: 0.32 * k, rate: 0.5 * v });
+    s.burst(t + 0.05, { dur: 0.6, type: 'lowpass', freq: 240 * v, q: 0.5, vol: 0.16 * k, rate: 0.35 });
+    s.sweep(t + 0.04, 260 * v, 520 * v, 0.12, 0.05 * k, 'triangle');
   },
 };
 

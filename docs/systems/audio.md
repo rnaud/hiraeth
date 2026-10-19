@@ -866,3 +866,42 @@ gain (src/theme-levels.js), once round its loop; the procedural score is the fal
   hook back empty, the magnet's let-go and the boots wound full over the ui and foley bands; the boots winding is quiet
   (-30.3).
 - Unchanged: nothing missing, ducking -4.3 dB, the fight's peak -6.3 dBFS, no sample over -1 dBFS.
+
+**The gadgets fixed (#531, 19 October 2026).** The 20 rows, judged against the procedural score (the music's level is
+#530 and untouched). Shared code (src/audio.js, src/gadgets/), so the engines and Unity play the same.
+- `fluidMode`: a chirp per mode: fluid a wet rising sine (longer), push a low whump under a dull click, stilling high
+  and glassy, ember low and warm, bloom a soft rising pair (880, then 1320 Hz), tether a taut sawtooth twang. The
+  shared click is quieter (0.05 to 0.02): it set every mode's brightness and level, so the chirps could not be told apart.
+- Varied (`Sound.vary`, and in src/gadgets a `vary(s)` that is 1 without a Sound): the stilling shot (pitch, gain, the
+  second note's timing), the hook's reel (pitch, gain, the clicks' spacing and 5 to 7 of them), the magnet's grab, hum,
+  shove and let-go, the boots wound full; also the hook fired and back empty, the push, the bomb, the boots' stomp.
+- Levels: push ×0.3, the bomb ×0.4, the stomp ×0.42 (the fx bus compresses the loud ones: a cut of 10 dB in gain gives
+  about 5 dB), the hook fired ×0.68, back empty ×0.5, the magnet's shove ×0.55 and let-go ×0.54, the boots wound full
+  ×0.56, the lens raised ×0.46 and lowered ×0.63, stilling's chirp 0.048 to 0.026; the boots winding ×2.4.
+- tests/sound-qc.test.js renders the 21 (with ember) as the QC does and holds them to OK and the six modes apart.
+
+| row | level before → after (dB vs the score) | spread before → after (dB / brightness %) | verdict before → after |
+|---|---|---|---|
+| glove: fluid | -6.5 → -7.6 | 0.3 / 38.4 → 0.1 / 40.4 | alike → OK |
+| glove: push | -6.5 → -9.4 | 0.3 / 38.4 → 0.2 / 7.8 | alike → OK |
+| glove: stilling | -4.6 → -9.8 | 0.2 / 33.4 → 0.2 / 33.9 | too loud → OK |
+| glove: bloom | -6.5 → -9.9 | 0.3 / 38.4 → 0.3 / 13.6 | alike → OK |
+| glove: tether | -6.5 → -9.3 | 0.3 / 38.4 → 0.2 / 11.4 | alike → OK |
+| the stilling shot | +0.4 → -0.1 | 0 / 1 → 1.9 / 27.6 | repetitive → OK |
+| the push | +5.1 → -0.1 | 0.1 / 6.6 → 1.0 / 4.2 | too loud → OK |
+| the hook fired | +2.9 → -1.3 | 0.2 / 3.8 → 1.6 / 0.9 | too loud → OK |
+| the hook reeling in | -2.5 → -3.6 | 0.1 / 0.5 → 1.7 / 3.6 | repetitive → OK |
+| the hook back empty | -5.2 → -11.7 | 0.1 / 2.6 → 1.5 / 5.1 | too loud → OK |
+| a bomb going off | +6.1 → +4.2 | 0.2 / 7.4 → 0.3 / 16.6 | too loud → OK |
+| the magnet's grab | -4.4 → -5.3 | 0.2 / 1.2 → 1.8 / 2.0 | repetitive → OK |
+| the magnet's hum | -9.5 → -10.5 | 0 / 1.1 → 1.9 / 11.4 | repetitive → OK |
+| the magnet's shove | +4.6 → -0.2 | 0.2 / 1.4 → 1.4 / 3.2 | too loud → OK |
+| the magnet letting go | -5.6 → -11.8 | 0 / 0.4 → 1.8 / 1.7 | too loud → OK |
+| the boots winding | -30.3 → -23.4 | 3.9 / 13.6 → 4.1 / 10.9 | too quiet → OK |
+| the boots wound full | -4.0 → -9.4 | 0.1 / 1.8 → 1.6 / 3.4 | too loud → OK |
+| the boots' stomp | +5.5 → +3.5 | 0.2 / 11.7 → 0.2 / 7.5 | too loud → OK |
+| the lens raised | -2.2 → -8.5 | 0 / 7.2 → 0.1 / 6.1 | too loud → OK |
+| the lens lowered | -5.8 → -9.5 | 0 / 2.3 → 0 / 3.3 | too loud → OK |
+
+All 116 rows OK against the score, browser and engines (was 96 / 116); against the recording 26 / 116 web, 29 / 116
+engines (was 25 and 28), the rest #530's.

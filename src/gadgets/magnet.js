@@ -550,15 +550,16 @@ class Magnet {
 
 // ------------------------------------------------------------------ its sounds (the game's synth: src/audio.js)
 const now = (s) => (s?.ctx ? s.ctx.currentTime : null);
+const vary = (s, spread = 0.06) => (s?.vary?.(spread) ?? 1);   // (no two takes alike: sound QC, issue #531)
 export const snd = {
   /** The field: a low electric hum (k: louder, higher, while it pulls). */
-  hum(s, k = 1) { const t = now(s); if (t == null) return; s.sweep(t, 92 * k, 96 * k, 0.34, 0.035, 'sawtooth'); s.sweep(t, 184 * k, 190 * k, 0.3, 0.015, 'square'); },
+  hum(s, k = 1) { const t = now(s); if (t == null) return; const f = k * vary(s), g = vary(s, 0.15); s.sweep(t, 92 * f, 96 * f, 0.34, 0.035 * g, 'sawtooth'); s.sweep(t, 184 * f, 190 * f, 0.3, 0.015 * g, 'square'); },
   /** It takes hold: a clank, and the field coming up. */
-  grab(s, machine = false) { const t = now(s); if (t == null) return; s.burst(t, { dur: 0.06, type: 'bandpass', freq: machine ? 900 : 1300, q: 2, vol: 0.14 }); s.sweep(t, 140, 320, 0.25, 0.06, 'sawtooth'); },
+  grab(s, machine = false) { const t = now(s); if (t == null) return; const v = vary(s), g = vary(s, 0.15); s.burst(t, { dur: 0.06, type: 'bandpass', freq: (machine ? 900 : 1300) * v, q: 2, vol: 0.14 * g }); s.sweep(t, 140 * v, 320 * v, 0.25, 0.06 * g, 'sawtooth'); },
   /** Let go: the field drops away. */
-  drop(s) { const t = now(s); if (t == null) return; s.sweep(t, 300, 90, 0.25, 0.05, 'sawtooth'); },
+  drop(s) { const t = now(s); if (t == null) return; const v = vary(s); s.sweep(t, 300 * v, 90 * v, 0.25, 0.027 * vary(s, 0.15), 'sawtooth'); },
   /** A tap: a shove of the field, a thump of air. */
-  shove(s) { const t = now(s); if (t == null) return; s.sweep(t, 220, 70, 0.22, 0.12, 'square'); s.burst(t, { dur: 0.12, type: 'lowpass', freq: 600, q: 0.7, vol: 0.14 }); },
+  shove(s) { const t = now(s); if (t == null) return; const v = vary(s), g = 0.55 * vary(s, 0.12); s.sweep(t, 220 * v, 70 * v, 0.22, 0.12 * g, 'square'); s.burst(t, { dur: 0.12, type: 'lowpass', freq: 600 * v, q: 0.7, vol: 0.14 * g }); },
   /** Nothing to take: a crackle. */
   fizz(s) { const t = now(s); if (t == null) return; for (let i = 0; i < 4; i++) s.burst(t + i * 0.03, { dur: 0.02, type: 'highpass', freq: 3000 + i * 500, q: 1, vol: 0.04 }); },
   /** Fixed metal: a heavy clamp of iron on iron. */

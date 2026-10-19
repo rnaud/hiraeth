@@ -114,8 +114,9 @@ function cacheModel() {
 
 /** The lens's own sounds (the game's synth: src/audio.js sweep / burst). */
 export const lensSfx = {
-  up(s) { const t = s?.ctx?.currentTime; if (t == null) return; s.sweep(t, 1500, 2300, 0.22, 0.05, 'sine'); s.sweep(t + 0.04, 2250, 3400, 0.3, 0.025, 'sine'); s.burst(t, { dur: 0.05, type: 'bandpass', freq: 3000, q: 3, vol: 0.04 }); },
-  down(s) { const t = s?.ctx?.currentTime; if (t == null) return; s.sweep(t, 1900, 1200, 0.16, 0.035, 'sine'); },
+  // (both 4 to 7 dB down into the ui band, issue #531)
+  up(s) { const t = s?.ctx?.currentTime; if (t == null) return; s.sweep(t, 1500, 2300, 0.22, 0.023, 'sine'); s.sweep(t + 0.04, 2250, 3400, 0.3, 0.0115, 'sine'); s.burst(t, { dur: 0.05, type: 'bandpass', freq: 3000, q: 3, vol: 0.018 }); },
+  down(s) { const t = s?.ctx?.currentTime; if (t == null) return; s.sweep(t, 1900, 1200, 0.16, 0.022, 'sine'); },
   clouded(s) { const t = s?.ctx?.currentTime; if (t == null) return; s.sweep(t, 900, 500, 0.35, 0.04, 'triangle'); s.burst(t, { dur: 0.3, type: 'highpass', freq: 4200, q: 0.4, vol: 0.03 }); },
   found(s) { if (s?.chime) s.chime(); },
 };

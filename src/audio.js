@@ -2104,7 +2104,7 @@ export class Sound {
   fluidShoot(mode = 'shoot') {
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
-    if (mode === 'stun') { this.sweep(t, 1400, 2600, 0.14, 0.08, 'sine'); this.sweep(t + 0.03, 2100, 900, 0.2, 0.04, 'triangle'); return; }
+    if (mode === 'stun') { const v = this.vary(0.06), g = this.vary(0.12); this.sweep(t, 1400 * v, 2600 * v, 0.14, 0.08 * g, 'sine'); this.sweep(t + 0.03 * this.vary(0.3), 2100 * v, 900 * v, 0.2, 0.04 * g, 'triangle'); return; }
     if (mode === 'fire') { this.burst(t, { dur: 0.22, type: 'bandpass', freq: 600, q: 0.6, vol: 0.2, rate: 0.7 }); this.sweep(t, 180, 520, 0.16, 0.1, 'sawtooth'); return; }
     const v = this.vary(0.06);
     this.sweep(t, 260 * v, 720 * v, 0.11, 0.13);
@@ -2112,14 +2112,29 @@ export class Sound {
     this.burst(t, { dur: 0.09, type: 'bandpass', freq: 1100 * v, q: 1.1, vol: 0.12, rate: 0.8 * v });
   }
 
-  /** The gun mode switches: a click and a rising (stilling: high, glassy; ember: low, warm) chirp. */
+  /**
+   * The glove's mode changed: a click, and a chirp of its own so the ear knows which (issue #531): fluid a wet rising
+   * sine; push a low whump; stilling high and glassy; ember low and warm; bloom a soft rising pair; tether a taut twang.
+   */
   fluidMode(mode = 'shoot') {
     if (!this.ctx) return;
-    const t = this.ctx.currentTime;
+    const t = this.ctx.currentTime, at = t + 0.02;
     const v = this.vary(0.03);
-    this.burst(t, { dur: 0.03, type: 'highpass', freq: 3000 * v, q: 1, vol: 0.05 });
-    const f = mode === 'stun' ? [1500, 2400] : mode === 'fire' ? [300, 700] : [600, 1100];
-    this.sweep(t + 0.02, f[0] * v, f[1] * v, 0.12, 0.048, mode === 'fire' ? 'triangle' : 'sine');
+    // (the click quieter than it was: the chirp says the mode; push's a dull one, under its whump)
+    this.burst(t, mode === 'push' ? { dur: 0.04, type: 'lowpass', freq: 900 * v, q: 1, vol: 0.05 } : { dur: 0.03, type: 'highpass', freq: 3000 * v, q: 1, vol: 0.02 });
+    if (mode === 'push') {
+      this.sweep(at, 210 * v, 70 * v, 0.16, 0.035);
+      this.burst(at, { dur: 0.09, type: 'lowpass', freq: 480 * v, q: 0.7, vol: 0.022, rate: 0.6 });
+    } else if (mode === 'bloom') {
+      this.sweep(at, 880 * v * 0.97, 880 * v, 0.14, 0.03);
+      this.sweep(at + 0.1, 1320 * v * 0.97, 1320 * v, 0.2, 0.026);
+    } else if (mode === 'tether') {
+      this.sweep(at, 520 * v, 470 * v, 0.32, 0.03, 'sawtooth');
+      this.sweep(at, 1040 * v, 950 * v, 0.14, 0.012, 'triangle');
+    } else {
+      const f = mode === 'stun' ? [1500, 2400] : mode === 'fire' ? [300, 700] : [600, 1100];
+      this.sweep(at, f[0] * v, f[1] * v, mode === 'shoot' ? 0.2 : 0.12, mode === 'stun' ? 0.026 : 0.04, mode === 'fire' ? 'triangle' : 'sine');
+    }
   }
 
   /** The backpack clicks into a vehicle's socket (on) and comes back out: a clack and a hum rising or falling. */
@@ -2576,10 +2591,10 @@ export class Sound {
   /** Push: a deep whump with a rush of spray. */
   fluidPush() {
     if (!this.ctx) return;
-    const t = this.ctx.currentTime;
-    this.sweep(t, 160, 48, 0.28, 0.3);
-    this.burst(t, { dur: 0.32, type: 'bandpass', freq: 700, q: 0.6, vol: 0.24, rate: 0.6 });
-    this.burst(t + 0.04, { dur: 0.25, type: 'highpass', freq: 2600, q: 0.5, vol: 0.07, rate: 1.2 });
+    const t = this.ctx.currentTime, v = this.vary(0.06), g = 0.3 * this.vary(0.1);   // (down into the action band: it stood 5 dB over, issue #531)
+    this.sweep(t, 160 * v, 48 * v, 0.28, 0.3 * g);
+    this.burst(t, { dur: 0.32, type: 'bandpass', freq: 700 * v, q: 0.6, vol: 0.24 * g, rate: 0.6 * v });
+    this.burst(t + 0.04, { dur: 0.25, type: 'highpass', freq: 2600 * v, q: 0.5, vol: 0.07 * g, rate: 1.2 });
   }
 
   /** Boost: a pressurised gush going up. */

@@ -123,6 +123,10 @@ export const CHANGELOG = [
     // issue #504: src/levels/spheres.js (TUFT_LINE, the tufts' normals up), src/flora.js FAR_LINE (the Garden too);
     // tests/ink-pass.test.js; docs/systems/rendering.md "Stable in motion"
     'In the Garden of Spheres, the grass tufts no longer flicker as you turn the camera. They were drawn in black ink and read as dark clumps, and their thin outlines came and went with every small move; now they are green, outlined in a darker green, and the Garden’s small flowers take a lighter line from afar as Viridel’s do.',
+    // issue #531: src/audio.js fluidMode (a chirp per mode), fluidShoot('stun'), fluidPush; src/gadgets/sfx.js (hook, bomb),
+    // magnet.js snd, springs.js springSfx, lens.js lensSfx (vary, levels); tests/sound-qc.test.js; docs/systems/audio.md
+    { text: 'Switching the glove’s modes, each one now has a sound of its own: a wet rise for fluid, a low whump for push, a soft rising pair for bloom and a taut twang for tether, besides stilling’s high chirp and ember’s warm one. The stilling shot, the hook’s reel, the magnet glove and the spring boots no longer play the very same sound every time, and the push, the bombs and the boots’ stomp are less deafening, the lens and the boots’ wound-up ping quieter, and the boots’ winding easier to hear.',
+      see: 'With the glove, switch through its modes (RT / R2 held, then the D-pad) and listen for which one you are on; with the hook, the magnet glove or the spring boots, use them several times over.' },
   ] },
   { v: '1.84', date: '2026-10-17', items: [
     // issue #439: src/costumes.js (HEADS: the 47 pieces of the 15 hat sets, HAT_SETS, HAT_SET_WORLDS, hoodShell / hoodNeck /
