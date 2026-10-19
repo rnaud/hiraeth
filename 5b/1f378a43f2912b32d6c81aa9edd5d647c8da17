@@ -1,0 +1,29 @@
+changelog.md
+  s_5f899ba316b5dc::t_f15baa6db38736 12
+docs/systems/movement.md
+  s_5f899ba316b5dc::t_6e411af8a44a1a 269-271
+engine/game.js
+  s_5f899ba316b5dc::t_a3ae3d86593d32 975-977
+src/changelog-media.js
+  s_5f899ba316b5dc::t_1b477438e771a6 1239
+src/changelog.js
+  s_5f899ba316b5dc::t_62fdd4c675aa9e 57-58
+tests/engine-call.test.js
+  s_5f899ba316b5dc::t_58b1a2fa29940a 1-40
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5b1f378a43f2912b32d6c81aa9edd5d647c8da17",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
