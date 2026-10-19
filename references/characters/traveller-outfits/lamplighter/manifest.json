@@ -1,0 +1,45 @@
+{
+  "created": "2026-10-19",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Character turnaround model sheet for a science fiction exploration game: the same slim young man as in the reference picture, same face and messy short black curly hair, uncovered, wearing a night lamplighter's uniform instead of his usual clothes, drawn three times full-body side by side at the same scale on a plain cream background: front view, side view, back view, standing straight, arms a little away from the body. A short quilted indigo jacket ending at the hips, its quilting in wide horizontal bands, a stand-up collar and cuffs piped in lamp-yellow, a row of brass toggles down the front, a lamp-yellow armband on the left sleeve, slim charcoal trousers tucked into tall black boots with a turned-down cuff, short brown leather gloves, a small brass oil can hanging from a strap at the hip. Simple, fitted, game-ready clothing with clear colour blocks that read from above. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, deep indigo and lamp yellow, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, hat, hood, helmet, goggles, mask, cape.",
+      "from": "docs/design/traveller-outfit-prompts.md#lamplighter",
+      "refs": [
+        "lore/references/traveller/reference-1.jpg"
+      ],
+      "ar": "16:9",
+      "date": "2026-10-19",
+      "batch": "2026-10-19-18-11-36-8569",
+      "candidate": "openai/1",
+      "sha256": "9d7716bb6aeeef03b8ac4feb5633a50753d4c003c73d3d756d82bbb6a3b7d67b",
+      "bytes": 114061,
+      "costUSD": 0.041,
+      "why": "built in Blender (#542): the clearest construction of the four: the quilting in even horizontal bands front and back, lamp-yellow piping on the stand collar, the front edges, the hem and the cuffs, five brass toggles, the armband on his left upper arm, slim charcoal trousers with a yellow side stripe, tall black boots with a turned-down cuff; all fitted pieces that layer on his body without a cloth sim"
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "gemini",
+      "providerLabel": "Google Gemini (Nano Banana)",
+      "model": "gemini-nano-banana-2.1",
+      "prompt": "Character turnaround model sheet for a science fiction exploration game: the same slim young man as in the reference picture, same face and messy short black curly hair, uncovered, wearing a night lamplighter's uniform instead of his usual clothes, drawn three times full-body side by side at the same scale on a plain cream background: front view, side view, back view, standing straight, arms a little away from the body. A short quilted indigo jacket ending at the hips, its quilting in wide horizontal bands, a stand-up collar and cuffs piped in lamp-yellow, a row of brass toggles down the front, a lamp-yellow armband on the left sleeve, slim charcoal trousers tucked into tall black boots with a turned-down cuff, short brown leather gloves, a small brass oil can hanging from a strap at the hip. Simple, fitted, game-ready clothing with clear colour blocks that read from above. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, deep indigo and lamp yellow, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, hat, hood, helmet, goggles, mask, cape.",
+      "from": "docs/design/traveller-outfit-prompts.md#lamplighter",
+      "refs": [
+        "lore/references/traveller/reference-1.jpg"
+      ],
+      "ar": "16:9",
+      "date": "2026-10-19",
+      "batch": "2026-10-19-18-11-36-8569",
+      "candidate": "gemini/1",
+      "sha256": "545ae09d6dc1a8c4ecb3b32ac110498607b339b0c3cf767d6a30860350185c20",
+      "bytes": 677485,
+      "costUSD": 0.0336,
+      "why": "the same outfit in five views, the three-quarters for the build (the piping and toggles from the side, the boots' cuff from behind)"
+    }
+  ]
+}
