@@ -93,7 +93,7 @@ test('the Unity side: the cut in the full Surface variant (veiled materials take
   assert.match(veil, /if \(scene > 0\.0 && scene < i\.d \+ 0\.08\) discard;/, 'tested against the G-buffer\'s depth as the web\'s (VEIL.depthEps)');
   assert.match(veil, /"Queue" = "Transparent\+30"/, 'over the ink composite');
   const guid = /guid: ([0-9a-f]{32})/.exec(read('unity/Hiraeth/Assets/Hiraeth/Shaders/Veil.shader.meta'))[1];
-  assert.ok(read('unity/Hiraeth/ProjectSettings/GraphicsSettings.asset').includes(`guid: ${guid}, type: 3}`), 'always included: Shader.Find finds it in a player');
+  assert.ok(read('unity/Hiraeth/ProjectSettings/ProjectSettings.asset').includes(`guid: ${guid}, type: 3}`), 'preloaded (BridgeBuild.KeepShaders, issue #500): Shader.Find finds it in a player');
   const br = read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRenderer.cs');
   assert.match(br, /m\.S\("port"\) == "veil"/);
   assert.match(br, /m\.HasProperty\("_WashAlpha"\)\) m\.SetFloat\("_WashAlpha", lg\)/, 'op 15\'s glow is a wash\'s alpha');

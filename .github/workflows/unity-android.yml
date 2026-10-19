@@ -588,13 +588,17 @@ jobs:
           KEY: ${{ steps.librarysave.outputs.key }}
         run: scripts/unity-ci-cache-prune.sh unity-library-linux- "$KEY"
 
-      # (gzip on every core, pigz: the same .tar.gz the Deck's installer reads, 300 MB, in seconds instead of 35)
+      # (gzip on every core, pigz: the same .tar.gz the Deck's installer reads, in seconds instead of 35. Without the
+      # build's own leftovers, which the Deck's installer never unpacks (scripts/steam-deck/deck.py UNITY_SKIP): IL2CPP's
+      # C++ and GameAssembly's symbols were 950 of the player's 1300 MB, most of the download (issue #500))
       - name: The Linux player packed
         run: |
           t0=$(date +%s)
-          if command -v pigz > /dev/null; then tar -I pigz -cf "$RUNNER_TEMP/hiraeth-unity-linux.tar.gz" -C "$PROJECT/Builds" bridge-linux
-          else tar czf "$RUNNER_TEMP/hiraeth-unity-linux.tar.gz" -C "$PROJECT/Builds" bridge-linux; fi
+          skip="--exclude=*_BackUpThisFolder_ButDontShipItWithYourGame --exclude=*_BurstDebugInformation_DoNotShip"
+          if command -v pigz > /dev/null; then tar -I pigz $skip -cf "$RUNNER_TEMP/hiraeth-unity-linux.tar.gz" -C "$PROJECT/Builds" bridge-linux
+          else tar czf "$RUNNER_TEMP/hiraeth-unity-linux.tar.gz" $skip -C "$PROJECT/Builds" bridge-linux; fi
           ls -l "$RUNNER_TEMP/hiraeth-unity-linux.tar.gz"; echo "packed in $(($(date +%s) - t0)) s"
+          du -sm "$PROJECT/Builds/bridge-linux"/* "$PROJECT/Builds/bridge-linux"/*_Data/* | sort -n | tail -12
 
       # The gate before the Steam Deck can take it (the Unity-default plan's D12): the unit suite passed on this commit
       # (tests.yml: scripts/wait-tests.sh); failing, nothing is published and the Decks keep the player they have. (A

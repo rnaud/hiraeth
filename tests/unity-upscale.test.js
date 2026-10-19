@@ -64,7 +64,7 @@ test('the shader: AMD\'s FSR 1 from the core package, Qualcomm\'s SGSR 1 with it
   // (the shader in the build: found by name at run time)
   assert.match(read('unity/Hiraeth/Assets/Hiraeth/Editor/Batch.cs'), /"Hidden\/Hiraeth\/Upscale"/);
   const guid = read('unity/Hiraeth/Assets/Hiraeth/Shaders/Upscale.shader.meta').match(/guid: (\w+)/)[1];
-  assert.match(read('unity/Hiraeth/ProjectSettings/GraphicsSettings.asset'), new RegExp(`guid: ${guid}, type: 3`));
+  assert.match(read('unity/Hiraeth/ProjectSettings/ProjectSettings.asset'), new RegExp(`guid: ${guid}, type: 3`));
 });
 
 test('placement (a): the G-buffer and the glow at gbufferScale, the composite\'s lines at the page\'s pixels', () => {

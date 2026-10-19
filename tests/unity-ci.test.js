@@ -56,7 +56,7 @@ test('the workflow caches what makes a warm build short', () => {
   assert.ok(linuxBody.indexOf('sudo rm -rf "$PROJECT/Library"') < linuxBody.indexOf('id: playerfresh'));
   assert.match(workflow, /FRESH: \$\{\{ steps\.playerfresh\.outcome == 'success' && '-fresh' \|\| '' \}\}/);
   // (the Linux player packed with every core, the same .tar.gz)
-  assert.match(workflow, /tar -I pigz -cf "\$RUNNER_TEMP\/hiraeth-unity-linux\.tar\.gz"/);
+  assert.match(workflow, /tar -I pigz \$skip -cf "\$RUNNER_TEMP\/hiraeth-unity-linux\.tar\.gz"/);   // (without the build's leftovers: issue #500)
   // Gradle's downloads: keyed on Unity's version and the packages, saved when that moved, the older deleted
   assert.match(workflow, /~\/\.gradle\/caches/);
   assert.match(workflow, /key: unity-gradle-\$\{\{ env\.UNITY_VERSION \}\}-\$\{\{ hashFiles\(/);

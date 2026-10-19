@@ -60,7 +60,7 @@ namespace Hiraeth.EditorTools
             Music();
             if (!File.Exists(Path.Combine(Application.streamingAssetsPath, "hiraeth-js", "hiraeth.cjs"))) throw new Exception("no bundle: node scripts/engine-bundle.mjs unity");
             AssetDatabase.Refresh();
-            typeof(Batch).GetMethod("IncludeShaders", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)?.Invoke(null, null);
+            KeepShaders();
             if (!File.Exists(BridgeBatch.ScenePath)) BridgeBatch.BuildScene();
             PlayerSettings.companyName = "rnaud";
             PlayerSettings.bundleVersion = Arg("-version", "0.1");
@@ -69,6 +69,51 @@ namespace Hiraeth.EditorTools
             PlayerSettings.stripEngineCode = false;   // (components no scene holds, added at run time)
             foreach (var t in new[] { NamedBuildTarget.Android, NamedBuildTarget.Standalone, NamedBuildTarget.WindowsStoreApps })
                 PlayerSettings.SetManagedStrippingLevel(t, ManagedStrippingLevel.Minimal);
+        }
+
+        /// <summary>
+        /// The shaders the game finds by name at run time (Batch.RuntimeShaders, Shader.Find) kept in the player as preloaded
+        /// assets (PlayerSettings.preloadedAssets: loaded at the start, before the scene, as the always-included ones were),
+        /// and the project's own shaders taken out of the graphics settings' "Always Included Shaders" (issue #500). Unity
+        /// wrote each always-included shader of the project twice: into globalgamemanagers.assets, where Shader.Find gets
+        /// it, and into Resources/unity_builtin_extra, all of them under one object id (4800000, a shader asset's id in its
+        /// own file), so only the last was readable there: 19 MB of the 130 MB APK were dead copies (performance.md,
+        /// "What the Unity packages carry"). Unity's own shaders (UI/Default) stay always included.
+        /// </summary>
+        public static void KeepShaders()
+        {
+            static bool Ours(UnityEngine.Object o) => o != null && AssetDatabase.GetAssetPath(o).StartsWith("Assets/");
+            var keep = new List<UnityEngine.Object>();
+            var builtin = new List<Shader>();
+            foreach (var n in Batch.RuntimeShaders)
+            {
+                var sh = Shader.Find(n);
+                if (!sh) { Debug.LogWarning($"Hiraeth: no shader {n}"); continue; }
+                if (Ours(sh)) keep.Add(sh); else builtin.Add(sh);
+            }
+            var so = new SerializedObject(GraphicsSettings.GetGraphicsSettings());
+            var arr = so.FindProperty("m_AlwaysIncludedShaders");
+            var have = new HashSet<UnityEngine.Object>();
+            for (int i = arr.arraySize - 1; i >= 0; i--)
+            {
+                var o = arr.GetArrayElementAtIndex(i).objectReferenceValue;
+                if (!Ours(o)) { have.Add(o); continue; }
+                if (!keep.Contains(o)) keep.Add(o);   // (one of ours that was always included and isn't in the list: preloaded too)
+                arr.GetArrayElementAtIndex(i).objectReferenceValue = null;
+                arr.DeleteArrayElementAtIndex(i);
+            }
+            foreach (var sh in builtin)
+            {
+                if (have.Contains(sh)) continue;
+                arr.InsertArrayElementAtIndex(arr.arraySize);
+                arr.GetArrayElementAtIndex(arr.arraySize - 1).objectReferenceValue = sh;
+            }
+            so.ApplyModifiedPropertiesWithoutUndo();
+            var pre = PlayerSettings.GetPreloadedAssets().Where(o => o != null && !(o is Shader)).ToList();
+            pre.AddRange(keep);
+            PlayerSettings.SetPreloadedAssets(pre.ToArray());
+            AssetDatabase.SaveAssets();
+            Debug.Log($"Hiraeth: {keep.Count} shaders preloaded, none of ours always included (issue #500)");
         }
 
         /// <summary>The recordings every device carries (src/music-store.js ON_DEVICE_THEMES; tests/engine-music.test.js checks they agree).</summary>

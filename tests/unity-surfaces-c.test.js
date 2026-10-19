@@ -117,5 +117,5 @@ test('the bridge sends the pass\'s numbers when they change, and the frame draws
   assert.match(FEATURE, /"Hiraeth water over"/);
   assert.match(read(`${U}Hiraeth/Editor/Batch.cs`), /"Hidden\/Hiraeth\/WaterOver"/, 'kept in the builds');
   const guid = read(`${U}Hiraeth/Shaders/WaterOver.shader.meta`).match(/guid: (\w+)/)[1];
-  assert.ok(read('unity/Hiraeth/ProjectSettings/GraphicsSettings.asset').includes(guid), 'always included');
+  assert.ok(read('unity/Hiraeth/ProjectSettings/ProjectSettings.asset').includes(guid), 'preloaded (issue #500)');
 });

@@ -91,7 +91,7 @@ test('Unity: SMAA in place of FXAA at Handheld, in a shader of its own that ever
   const runner = unity('Assets/HiraethJS/Runtime/BridgeRunner.cs');
   assert.ok(runner.includes('BridgeArgs.Arg("-aa", BridgeArgs.Quality == "handheld" ? "smaa" : "fxaa")'));
   const guid = unity('Assets/Hiraeth/Shaders/SMAA.shader.meta').match(/guid: (\w+)/)[1];
-  assert.ok(unity('ProjectSettings/GraphicsSettings.asset').includes(`guid: ${guid}, type: 3}`), 'always included');
+  assert.ok(unity('ProjectSettings/ProjectSettings.asset').includes(`guid: ${guid}, type: 3}`), 'preloaded (issue #500)');
   const rend = unity('Assets/Settings/PC_Renderer.asset');
   assert.ok(rend.includes(`smaaShader: {fileID: 4800000, guid: ${guid}, type: 3}`));
   assert.match(rend, /smaaArea: \{fileID: 2800000, guid: \w{32}, type: 3\}/);
