@@ -120,5 +120,7 @@ export function menuSources(o) {
     },
     // (the world you are in, from above: main.js draws it, src/world-map.js)
     map: (arg) => o.map?.(arg) ?? null,
+    // (inside a makers' house: its map's view, src/house-map.js houseView; null outside one: issue #405, #487)
+    house: () => o.house?.() ?? null,
   };
 }

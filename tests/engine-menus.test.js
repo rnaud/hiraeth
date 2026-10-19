@@ -167,17 +167,19 @@ test('the Start menu: the sidebar and its page, as issue #210 has it; B in the p
   m.action('back');
   assert.equal(m.mode, null, 'B on the sidebar: resumed');
   assert.equal(resumed, 1);
-  // Items, Quests and Map open the game menu there; Quit to title
+  // no Items, Quests, Map or House map: the game menu's alone (View / Select, issue #487); Select opens it from here
+  assert.deepEqual(START_SIDE.map((e) => e.id).filter((id) => ['items', 'quests', 'map', 'house'].includes(id)), []);
   m.show('start');
-  m.navigate(0, 1); m.action('confirm');
+  m.action('select');
   assert.equal(m.mode, 'game');
-  assert.equal(m.view().panel, 'items');
+  assert.equal(m.view().panel, 'quests');
+  // Quit to title
   m.show('start');
   m.navigate(0, -1); m.action('confirm');
   assert.equal(quit, 1);
   // Controls: the pad's list
   m.show('start');
-  for (let i = 0; i < 5; i++) m.navigate(0, 1);
+  for (let i = START_SIDE.findIndex((e) => e.id === 'controls'); i > 0; i--) m.navigate(0, 1);
   m.action('confirm');
   v = m.view();
   assert.equal(v.page.title, 'Your buttons (controller)');

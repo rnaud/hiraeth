@@ -5,15 +5,17 @@
 //   - the title: Continue (the save played last) or New game, Saves, Settings; Saves lists the three slots (X / □
 //     deletes, asked first), Back, and the folded Debug row (src/title.js debugSavesHtml, issue #227): opened, the slot
 //     it writes and every world of the route (src/debug-save.js seedDebugSave);
-//   - the Start menu (Menu / Esc): a sidebar (Resume, Items, Quests, Map, Settings, Controls, Quit to title) and its
+//   - the Start menu (Menu / Esc): a sidebar (Resume, Settings, Controls, Photo mode, What's new, Quit to title) and its
 //     page, left / right between them and up / down round each (src/menu-pad.js sideStep, issue #210), a slider's
-//     left / right its value, B / ○ in the page back to the sidebar first; inside a makers' house, House map after Map
-//     (issue #405, src/house-map.js): its page the floor drawn (a picture by its key, sent as the Map's are), LB / RB a floor;
+//     left / right its value, B / ○ in the page back to the sidebar first (the items, quests and maps are the game
+//     menu's alone since issue #487);
 //   - the dev menu (L3 + R3, F2, `; issue #387): src/dev-menu.js DevMenu's tabs and acts, drawn as the game menu's sheet
 //     (kind 'game', panel 'dev'), LB / RB (◀ ▶) a tab, up / down its rows, A / × the row;
 //   - the game menu (View / Select, J): its five panels (src/game-menu.js PANELS, MenuState, the panels' own rows from
 //     itemsPanel, questsPanel, mapPanel, worldsPanel, peoplePanel), turned with LB / RB, the cursor's moves and the
-//     side tabs as there (moveCursor), A / × a thing's full view, a quest tracked, a person's page.
+//     side tabs as there (moveCursor), A / × a thing's full view, a quest tracked, a person's page; inside a makers'
+//     house a sixth, House map, after Map (issue #405, #487; src/game-menu.js panelsFor, housePanel): the floor drawn
+//     (a picture by its key, sent as the Map's are), ▲ ▼ a floor.
 // The engine hands it the controller's menu actions (src/controller.js, context 'menu': confirm, back, tabPrev,
 // tabNext, start, select, x) and directions, or keys; `view()` is what to draw, its `v` moving when it changes.
 //
@@ -23,7 +25,7 @@
 import { slots as defaultStore, SLOT_COUNT, DEBUG_SLOT, formatPlaytime, formatDate, progressLine } from '../src/save-slots.js';
 import { ORDER, TITLES } from '../src/levels/names.js';
 import { t } from '../src/i18n.js';
-import { MenuState, PANELS, DEFAULT_PANEL, ACT, itemsPanel, questsPanel, worldsPanel, peoplePanel, mapPanel, worldFacts, CARRY_COL, GEAR_COLS, PEOPLE_COLS, KIND_MARK } from '../src/game-menu.js';
+import { MenuState, PANELS, DEFAULT_PANEL, ACT, panelsFor, itemsPanel, questsPanel, worldsPanel, peoplePanel, mapPanel, housePanel, worldFacts, CARRY_COL, GEAR_COLS, PEOPLE_COLS, KIND_MARK } from '../src/game-menu.js';
 import { sideStep } from '../src/menu-pad.js';
 import { controlsList, REBIND_PAD, REBIND_KEYS, PAD_RAW_ROWS, TEXT_SIZES, reducedMotion } from '../src/ui.js';
 import { PAD_VERBS, BUTTON_NAME, KEYS } from '../src/bindings.js';
@@ -114,12 +116,12 @@ export function settingStep(row, v, dir) {
   return +Math.min(row.max, Math.max(row.min, n)).toFixed(3);
 }
 
-/** The Start menu's sidebar: its entries and what each does (src/ui.js SettingsMenu render, in the game; photo mode issue #264). */
+/**
+ * The Start menu's sidebar: its entries and what each does (src/ui.js SettingsMenu render, in the game; photo mode issue
+ * #264). No Items, Quests, Map or House map: those are the game menu's (View / Select) alone since issue #487.
+ */
 export const START_SIDE = [
   { id: 'resume', label: () => t('menu.resume') },
-  { id: 'items', label: () => t('menu.items'), panel: 'items' },
-  { id: 'quests', label: () => t('menu.quests'), panel: 'quests' },
-  { id: 'map', label: () => t('menu.map'), panel: 'map' },
   { id: 'settings', label: () => t('menu.settings'), page: 'settings' },
   { id: 'controls', label: () => t('menu.controls'), page: 'controls' },
   { id: 'photo', label: () => t('menu.photo') },
@@ -132,8 +134,6 @@ export const START_SIDE = [
  * engine/unity/updates.js, BridgeUpdates.cs; the Unity-default plan's D13). The title has it too, under Settings.
  */
 export const UPDATES_SIDE = { id: 'updates', label: () => 'Updates', page: 'updates' };
-/** The House map entry, after Map, only inside a makers' house (issue #405, src/house-map.js; src/ui.js has it too). */
-export const HOUSE_SIDE = { id: 'house', label: () => t('menu.house'), page: 'house' };
 
 /** The Controls page's own choices over the rebinding (src/ui.js: run and guard held or toggled). */
 export const CONTROL_ROWS = [
@@ -146,10 +146,10 @@ const verbName = (v, kind = 'pad') => { const k = `verb.${v}.${kind}`, s = t(k);
 /** Is the keyboard in hand (the body's 'controller' class unset, as engine/game.js's InputMode keeps it; none: the pad)? */
 const keysInHand = () => { const b = globalThis.document?.body?.classList; return !!b && !b.contains?.('controller'); };
 
-const BUILDERS = { items: itemsPanel, quests: questsPanel, map: mapPanel, worlds: worldsPanel, people: peoplePanel };
+const BUILDERS = { items: itemsPanel, quests: questsPanel, map: mapPanel, worlds: worldsPanel, people: peoplePanel, house: housePanel };
 /** Each panel's columns across the sheet, as the page lays them out (the cells' `col`; a cell's `span` columns wide). */
 const COLS = { quests: [0.64, 0.36], items: Array(GEAR_COLS).fill(1 / GEAR_COLS),   // (the items': as many as fit, itemGrid)
-  worlds: [1], people: Array(PEOPLE_COLS).fill(1 / PEOPLE_COLS), map: [1] };
+  worlds: [1], people: Array(PEOPLE_COLS).fill(1 / PEOPLE_COLS), map: [1], house: [1] };
 /** A menu's prompt with its confirm (written "A / ×") and back ("B / ○") as the pad in hand has them (native-pad.js). */
 export const menuKeys = (s) => {
   const ok = confirmKey(), back = backKey();
@@ -206,8 +206,8 @@ export class EngineMenus {
    */
   constructor({ store = defaultStore, settings = null, sources = null, dev = () => true, order = ORDER, onStart = () => {}, onResume = () => {}, onQuit = () => {}, onTravel = () => null, onUse = () => {}, onTrack = () => {}, onSetting = () => {}, onPhoto = () => {}, where = () => '', version = '', itemCols = () => GEAR_COLS, mapBox = () => null, screen = () => ({ w: 1280, h: 720 }), shots = (o) => chooseShot(o), saveLine = () => '', updates = null, house = () => null, hasJets = () => false, piratesBeaten = () => false } = {}) {
     Object.assign(this, { store, settings, sources, dev, order, onStart, onResume, onQuit, onTravel, onUse, onTrack, onSetting, onPhoto, where, version, itemCols, mapBox, screen, shots, saveLine, updates, house, hasJets, piratesBeaten });
-    // the House map (issue #405): the house's view as the Start menu opened (house(): src/house-map.js houseView, or null
-    // outside a house), the floor chosen, and its drawn floors by key (engine/raster.js: the engine shows them as the Map's)
+    // the House map (issue #405, #487): the house's view as the game menu opened (house(): src/house-map.js houseView, or
+    // null outside a house), the floor chosen, and its drawn floors by key (engine/raster.js: the engine shows them as the Map's)
     this.hv = null;
     this.housePage = new HouseMapPage();
     this.housePics = new Map();
@@ -246,8 +246,13 @@ export class EngineMenus {
     }
     if (mode === 'start') {
       this.start = { at: { in: 'side', i: 0 }, page: 'settings', back: -1 };
+    }
+    if (mode === 'game') {
+      // (inside a makers' house its House map after Map, on the floor you stand on: issue #405, #487)
       try { this.hv = this.house?.() ?? null; } catch (e) { this.hv = null; console.warn(`[menus] the house's map: ${e?.message ?? e}`); }
       this.housePage.reset(this.hv);
+      this.state.panels = panelsFor(this.hv);
+      this.state.at.house = { r: 0, c: 0 };   // (on the floor, not a side tab)
     }
     if (mode === 'game') { this.state.show(panel ?? DEFAULT_PANEL); this.full = null; this.person = null; this.zoom = null; this.mapFresh = true; this.startAt(); }
     this.changed();
@@ -786,14 +791,13 @@ export class EngineMenus {
 
   /** The Start menu's sidebar: START_SIDE, and Updates before Quit to title in a player that has them. */
   startSide() {
-    const map = START_SIDE.findIndex((e) => e.id === 'map');
-    const side = this.hv ? [...START_SIDE.slice(0, map + 1), HOUSE_SIDE, ...START_SIDE.slice(map + 1)] : START_SIDE;
+    const side = START_SIDE;
     if (!this.hasUpdates()) return side;
     const quit = side.findIndex((e) => e.id === 'quit');
     return [...side.slice(0, quit), UPDATES_SIDE, ...side.slice(quit)];
   }
 
-  startPage() { return ['controls', 'news'].includes(this.start.page) || (this.start.page === 'updates' && this.hasUpdates()) || (this.start.page === 'house' && this.hv) ? this.start.page : 'settings'; }
+  startPage() { return ['controls', 'news'].includes(this.start.page) || (this.start.page === 'updates' && this.hasUpdates()) ? this.start.page : 'settings'; }
   /**
    * The House map's picture of a floor (src/house-map.js drawHouseMap into engine/raster.js's PixelCanvas), by its key:
    * drawn once a floor while the menu is open (the last few kept), sent to the engine as the Map's ground is.
@@ -811,7 +815,6 @@ export class EngineMenus {
   housePicture(key) { return this.housePics.get(key)?.canvas ?? null; }
   startPageRows() {
     const page = this.startPage(), at = this.start.at, on = (i) => at.in === 'page' && at.i === i;
-    if (page === 'house') return [];
     if (page === 'controls') return this.controlsRows().map((r, i) => ({ ...r, on: on(i) }));
     if (page === 'news') return this.newsRows().map((r, i) => ({ ...r, on: on(i) }));
     if (page === 'updates') return this.updatesRows(at);
@@ -919,8 +922,6 @@ export class EngineMenus {
     const S = this.start, SIDE = this.startSide();
     if (name === 'start') { this.close(); return; }
     if (name === 'select') { this.show('game'); return; }
-    // (LB / RB on the House map: the floor below, the floor above)
-    if ((name === 'tabPrev' || name === 'tabNext') && this.startPage() === 'house' && this.hv) { this.housePage.turn(this.hv, name === 'tabPrev' ? -1 : 1); return; }
     if (S.at.in === 'page') {
       if (name === 'back') { S.back = S.at.i; S.at = { in: 'side', i: Math.max(0, SIDE.findIndex((e) => e.page === this.startPage())) }; return; }
       if (name === 'confirm' && this.startPage() === 'updates') this.updatesConfirm(S.at.i);
@@ -939,8 +940,6 @@ export class EngineMenus {
     if (name !== 'confirm') return;
     const e = SIDE[S.at.i];
     if (e.id === 'resume') this.close();
-    else if (e.panel) this.show('game', e.panel);
-    else if (e.page === 'house') S.page = e.page;   // (its page has nothing to move to: the floors are LB / RB's)
     else if (e.page) { S.page = e.page; S.at = { in: 'page', i: e.page === 'updates' ? this.updatesFirst() : 0 }; }
     else if (e.id === 'quit') { this.mode = null; this.onQuit(); }
     else if (e.id === 'photo') { this.close(); this.onPhoto(); }
@@ -953,7 +952,7 @@ export class EngineMenus {
     const id = this.state.panel.id, src = this.sources;
     let data = null;
     try {
-      data = id === 'people' ? src?.people?.(this.person) : id === 'map' ? src?.map?.({ zoom: null, detail: this.mapDetailWanted(), aspect: this.mapShape() }) : src?.[id]?.();
+      data = id === 'house' ? { view: this.hv, floor: this.hv ? this.housePage.floor(this.hv) : null } : id === 'people' ? src?.people?.(this.person) : id === 'map' ? src?.map?.({ zoom: null, detail: this.mapDetailWanted(), aspect: this.mapShape() }) : src?.[id]?.();
     } catch (e) { console.warn(`[menus] the ${id} panel's data: ${e?.message ?? e}`); }
     data ??= id === 'worlds' ? [] : id === 'map' ? { world: '', marks: [] } : {};
     if (id === 'map') this.mapSync(data);
@@ -1020,6 +1019,8 @@ export class EngineMenus {
     if (this.full) { if (x) this.fullStep(x); return; }
     // (the Map: the D-pad, the arrows, WASD move its cursor a step; the stick moves it smoothly, analog)
     if (this.onMap) { this.mapView.move(Math.sign(x) * VIEW.step, Math.sign(y) * VIEW.step); this.mapTouched(); return; }
+    // (the House map: ▲ ▼ the floor above / below, held at the ends; ◀ ▶ to the side tabs, as on the page)
+    if (this.state.panel.id === 'house' && y && !x) { if (this.hv) this.housePage.turn(this.hv, -Math.sign(y)); return; }
     const p = this.panel();
     if (p.id === 'people' && this.person && x) { const d = p.data?.person; const to = x > 0 ? d?.nextId : d?.prevId; if (to) this.person = to; return; }
     const r = this.state.move(p.rows, x, y);
@@ -1122,24 +1123,18 @@ export class EngineMenus {
   startView() {
     const S = this.start, page = this.startPage();
     const keysFirst = page === 'controls' && this.keysFirst();
-    const title = { controls: t(keysFirst ? 'rebind.keysTitle' : 'rebind.padTitle'), news: `${t('menu.news')}  v${CHANGELOG[0].v}`, updates: UPDATES_SIDE.label(), house: `${this.hv?.name ?? ''} · ${t('menu.house')}` }[page] ?? t('menu.settings');
+    const title = { controls: t(keysFirst ? 'rebind.keysTitle' : 'rebind.padTitle'), news: `${t('menu.news')}  v${CHANGELOG[0].v}`, updates: UPDATES_SIDE.label() }[page] ?? t('menu.settings');
     const hint = this.rebinding ? (this.rebinding.kind === 'keys' ? `${t('rebind.pressKey')} · Esc keeps it` : `${t('rebind.pressButton')} · Menu keeps it`)
-      : page === 'house' ? `LB / RB floor · B / ○ ${S.at.in === 'page' ? 'back' : 'resume'}`
       : S.at.in !== 'page' ? 'A / × choose · ▶ the page · B / ○ resume'
       : page === 'news' ? '▲ ▼ read · B / ○ back' : page === 'updates' ? 'A / × choose · B / ○ back' : page === 'controls' ? 'A / × change · ◀ ▶ adjust · B / ○ back' : '◀ ▶ adjust · A / × change · B / ○ back';
     const view = { v: this.v, kind: 'start', brand: t('menu.paused'), head: this.where() || '', sub: '', line: this.saveLine?.() ?? '',
       side: this.startSide().map((e, i) => ({ text: e.label(), on: S.at.in === 'side' && S.at.i === i, sel: e.page === page })),
       page: { title, note: page === 'controls' && this.settings ? t(keysFirst ? 'rebind.keysHow' : 'rebind.padHow') : '', rows: this.startPageRows() }, hint };
-    // the House map: its floors' tabs (LB / RB), the one shown, its picture by key, the picture's shape (issue #405)
-    if (page === 'house' && this.hv) {
-      const hv = this.hv, floor = this.housePage.floor(hv), i = hv.floors.findIndex((f) => f.id === floor);
-      view.page.house = { key: this.houseKey(hv, floor), tabs: hv.floors.map((f) => f.label), here: hv.floors.findIndex((f) => f.id === hv.here), i, name: hv.floors[i]?.name ?? '', aspect: +(HOUSE_MAP.w / HOUSE_MAP.h).toFixed(4), prev: hv.floors.length > 1 ? 'LB' : '', next: hv.floors.length > 1 ? 'RB' : '' };
-    }
     return view;
   }
   gameView() {
     const p = this.panel(), at = this.state.cursor(), cell = this.state.cell(p.rows);
-    const names = PANELS.map((x) => x.name);
+    const names = this.state.panels.map((x) => x.name);
     const grid = p.id === 'items' ? this.itemGrid() : null;
     const rows = p.rows.map((row, r) => row.map((c, k) => ({
       text: c.name ?? '', sub: c.sub ?? '', col: c.col ?? k, span: grid && c.kind !== 'item' ? (c.col === 0 ? grid.carry : grid.cols - grid.carry) : 1,
@@ -1193,6 +1188,14 @@ export class EngineMenus {
       view.rows = [];
       view.strip = { name: hit?.name ?? d.world ?? '', sub: hit?.sub ?? '', desc: '', act: V.z >= VIEW.maxZoom - 1e-3 ? ACT.whole : ACT.zoom };
       view.hint = `LT / RT zoom · A / × ${V.z >= VIEW.maxZoom - 1e-3 ? ACT.whole.toLowerCase() : ACT.zoom.toLowerCase()} · LB / RB turn · B / ○ ${V.zoomed ? ACT.whole.toLowerCase() : 'close'}`;
+    }
+    if (p.id === 'house' && this.hv) {
+      // the House map: its floors' tabs, the one shown, its picture by key, the picture's shape (issue #405, #487); the
+      // floors are ▲ ▼'s here (LB / RB turn the panels), so no LB / RB at the tabs' ends
+      const hv = this.hv, floor = this.housePage.floor(hv), i = hv.floors.findIndex((f) => f.id === floor);
+      view.house = { key: this.houseKey(hv, floor), tabs: hv.floors.map((f) => f.label), here: hv.floors.findIndex((f) => f.id === hv.here), i, name: hv.floors[i]?.name ?? '', house: hv.name ?? '', aspect: +(HOUSE_MAP.w / HOUSE_MAP.h).toFixed(4), prev: '', next: '' };
+      view.rows = [];
+      view.hint = `${hv.floors.length > 1 ? '▲ ▼ floor · ' : ''}LB / RB turn · B / ○ close`;
     }
     if (p.id === 'people' && p.data?.person) {
       const d = p.data.person;

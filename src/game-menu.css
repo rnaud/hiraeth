@@ -333,6 +333,18 @@ body:not(.controller) #journal .gm-mapzoom button .glyph { display: none; }
 #journal .gm-mapnote { position: absolute; z-index: 3; left: 16px; bottom: calc(14px + 2.6em); margin: 0; padding: 2px 6px; background: rgba(251, 244, 226, 0.85); border-radius: 3px; font-size: calc(clamp(10px, 1.7vh, 13px) * var(--ts, 1)); color: #3f8fa6; font-weight: bold; pointer-events: none; }
 #journal[data-panel="map"] .gm-body { overflow: hidden; }
 
+/* the House map (issue #405, src/house-map.js; the game menu's since #487): a tab a floor (▲ ▼), the floor drawn in ink on paper */
+#journal[data-panel="house"] .gm-body { overflow: hidden; display: flex; }
+#journal .gm-house { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+#journal .hm-floors { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 clamp(6px, 1.4vh, 12px); }
+#journal .hm-floors .hm-house { margin-right: 8px; font: 500 calc(clamp(10px, 1.75vh, 13px) * var(--ts, 1))/1.2 var(--face); letter-spacing: 0.3em; text-transform: uppercase; }
+#journal .hm-floors button { position: relative; min-width: 3.2em; padding: 4px 10px; font-weight: 700; letter-spacing: 0.06em; background: var(--paper); border: 2px solid var(--ink); border-radius: 6px; box-shadow: 2px 2px 0 var(--ink); }
+#journal .hm-floors button.on { background: var(--gold); }
+#journal .hm-floors .hm-here { position: absolute; top: -5px; right: -5px; width: 10px; height: 10px; border-radius: 50%; background: var(--red); border: 2px solid var(--ink); }
+#journal .hm-floors .glyph { margin: 0 2px; }
+#journal .hm-floors .hm-name { margin-left: 6px; font-style: italic; opacity: 0.7; }
+#journal .hm-map { display: block; flex: 0 1 auto; align-self: center; width: auto; height: auto; max-width: calc(100% - 6px); max-height: calc(100% - 6px); min-height: 0; border: 2.5px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); background: #f6ecd3; box-sizing: border-box; }
+
 /* the strip at the bottom: what the cursor is on (its name and what it is, one line: the words are in its full
    view, issue #213), and the button that does something here */
 :is(#journal, #devmenu) .gm-info {

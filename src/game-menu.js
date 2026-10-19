@@ -1,4 +1,4 @@
-// The game menu (View / Select, J, the touch ❏; the Start menu's Items, Quests and Map): since October
+// The game menu (View / Select, J, the touch ❏; the only way to the items, quests and maps since issue #487): since October
 // 2026 it takes the sketchbook's place. After the pause screen of Ocarina of Time, drawn in the
 // game's own ink and paper: five panels side by side, turned with the shoulder buttons (LB / L1,
 // RB / R1; Q / E or [ ] on a keyboard; the tabs and the side arrows with a mouse or a finger), the
@@ -29,6 +29,8 @@
 //               opens one: what you know of them, where they are now, what passed between you; B / ○ back
 //               to the cards (src/story/people-book.js). The cards' grid moves by where the cards are on the
 //               screen (gridStep, src/menu-pad.js: data-grid-nav), so it is right at any width; the items too.
+//   House map   inside a makers' house only, after Map (issue #405; here since #487, the Start menu's before): the
+//               house floor by floor (src/house-map.js), ▲ ▼ the floor above / below (LB / RB turn the panels here)
 //
 // The Sketchbook panel (the Sightings, the story pages, the relics' and errands' sketches) went in v1.62 (issue #213:
 // "the sketchbook is confusing about its purpose, I don't know why it's there at all"). The journal still keeps what
@@ -44,9 +46,18 @@ import { gridStep } from './menu-pad.js';
 import { t, onLanguage } from './i18n.js';
 import { chimeIcon } from './chime-icon.js';
 import { MapView, VIEW, mapAspect } from './world-map.js';
+import { drawHouseMap, HouseMapPage, HOUSE_MAP } from './house-map.js';
 
 // (the names in the language now: src/i18n.js; the menu opens on the first, Quests: issue #213)
 export const PANELS = ['quests', 'map', 'items', 'worlds', 'people'].map((id) => ({ id, get name() { return t(`gm.${id}`); } }));
+/** The House map's panel, after Map, only inside a makers' house (issue #405; the Start menu's page until #487). */
+export const HOUSE_PANEL = { id: 'house', get name() { return t('gm.house'); } };
+/** The panels with the house's view `house` (src/house-map.js houseView) or without one (null: outside a house). */
+export function panelsFor(house = null) {
+  if (!house) return PANELS;
+  const at = PANELS.findIndex((p) => p.id === 'map') + 1;
+  return [...PANELS.slice(0, at), HOUSE_PANEL, ...PANELS.slice(at)];
+}
 /** The panel the menu opens on (View / Select, J, the touch ❏): the quests (issue #213). */
 export const DEFAULT_PANEL = 'quests';
 /** The people's cards: this many a row (as the cursor counts them without a page; on one, where they are drawn). */
@@ -373,7 +384,24 @@ export function mapPanel({ world = '', marks = [], canvas = null, progress = 0, 
   return { html, rows, canvas, detail: d };
 }
 
-const BUILDERS = { items: itemsPanel, quests: questsPanel, map: mapPanel, worlds: worldsPanel, people: peoplePanel };
+/**
+ * House map: { view (src/house-map.js houseView), floor (the floor shown: HouseMapPage.floor) } → the house's floors as
+ * tabs (the traveller's marked) over the floor drawn (a canvas the menu draws: drawHouseMap). One cell, the floor shown:
+ * ▲ ▼ go a floor up or down (GameMenu.navigate, engine/menus.js gameMove), ◀ ▶ off it to the side tabs.
+ */
+export function housePanel({ view = null, floor = null } = {}) {
+  if (!view?.floors?.length) return { html: `<p class="none">${t('gm.house.none')}</p>`, rows: [] };
+  const on = view.floors.find((f) => f.id === floor) ?? view.floors[0];
+  const rows = [[{ col: 0, kind: 'floor', id: on.id, name: on.name, sub: view.name, desc: '', act: null }]];
+  const up = view.floors.length > 1 ? glyph('dpad', { key: '▲ ▼' }) : '';
+  const html = `<div class="gm-house">
+    <nav class="hm-floors"><b class="hm-house">${esc(view.name)}</b>${view.floors.map((f) => `<button type="button" data-floor="${esc(f.id)}"${f.id === on.id ? ' class="on"' : ''} title="${esc(f.name)}">${esc(f.label)}${f.id === view.here ? '<i class="hm-here" aria-label="you are here"></i>' : ''}</button>`).join('')}${up}<span class="hm-name">${esc(on.name)}</span></nav>
+    <canvas class="hm-map" width="${HOUSE_MAP.w}" height="${HOUSE_MAP.h}"></canvas>
+  </div>`;
+  return { html, rows };
+}
+
+const BUILDERS = { items: itemsPanel, quests: questsPanel, map: mapPanel, worlds: worldsPanel, people: peoplePanel, house: housePanel };
 const MAP_SHADOW = 10;   // px: the map sheet's ink shadow and border, kept inside the page (src/game-menu.css)
 
 /** The verb A / × does on a cell ('' if nothing). */
@@ -417,7 +445,8 @@ export function fullHtml(cell, { prev = null, next = null, note = null } = {}) {
 export class GameMenu {
   /**
    * @param el      the menu's root (index.html #journal)
-   * @param o.sources { items(), quests(), map({ zoom, detail, aspect }), worlds(), people(open) } → each panel's data (src/game-menu-data.js)
+   * @param o.sources { items(), quests(), map({ zoom, detail, aspect }), worlds(), people(open), house() } → each panel's data
+   *                  (src/game-menu-data.js; house(): the makers' house you are in, its map's view, or null)
    * @param o.onTrack (id) a quest chosen (the scout finds it) · o.onUse (id) an item used (a gun mode, a gadget, a switch)
    * @param o.onTravel (id) "Travel here" on a world: null if the ship goes, else the line why not (shown in the full view)
    * @param o.onClose () the ✕, B / ○ or Esc (Journal.toggle(false))
@@ -433,11 +462,13 @@ export class GameMenu {
     this.gridAt = null;     // (the cards' cursor while a page is open)
     this.mapView = new MapView();   // the Map panel's view: its cursor and zoom (src/world-map.js, issue #244)
     this.mapData = null;    // (what the map source gave last: its marks, the whole map's span)
+    this.hv = null;         // the House map (issue #405, #487): the house's view as the menu opened (null: outside a house)
+    this.housePage = new HouseMapPage();   // (its floor shown: the traveller's each time it opens)
     if (!el) return;
     el.classList.add('gamemenu');
     el.innerHTML = `
       <div class="gm pad-raw" role="dialog" aria-label="${t('gm.label')}">
-        <nav class="gm-tabs">${PANELS.map((p) => `<button class="gm-tab" data-panel="${p.id}">${p.name}</button>`).join('')}</nav>
+        <nav class="gm-tabs"></nav>
         <button class="gm-close close" aria-label="${t('gm.close')}">${glyph('back', { key: 'Esc' })}✕</button>
         <div class="gm-stage">
           <button class="gm-side prev" data-go="-1"><span class="arrow">◀</span>${glyph('lb', { key: 'Q' })}<span class="nm"></span></button>
@@ -448,17 +479,20 @@ export class GameMenu {
       </div>`;
     this.body = el.querySelector('.gm-body');
     this.fullEl = el.querySelector('.gm-full');
+    this.drawTabs();
     // (the window resized, a handheld turned: the Map at its box's new shape)
     if (typeof window !== 'undefined') window.addEventListener?.('resize', () => this.mapFit());
     // (a new language: the tabs' and the close button's words; the panels are drawn again as they open)
     onLanguage(() => {
-      for (const b of el.querySelectorAll('.gm-tab')) b.textContent = PANELS.find((p) => p.id === b.dataset.panel)?.name ?? b.textContent;
+      this.drawTabs();
       el.querySelector('.gm')?.setAttribute('aria-label', t('gm.label'));
       el.querySelector('.gm-close')?.setAttribute('aria-label', t('gm.close'));
     });
     el.addEventListener('click', (e) => {
       const z = e.target.closest?.('[data-map-zoom]');
       if (z) { this.mapZoomBy(+z.dataset.mapZoom > 0 ? VIEW.wheel : 1 / VIEW.wheel); return; }
+      const fl = e.target.closest?.('[data-floor]');   // (the House map: a floor's tab)
+      if (fl) { if (this.hv && this.housePage.pick(this.hv, fl.dataset.floor)) this.render(); return; }
       const tg = e.target.closest?.('[data-at], [data-go], [data-panel], [data-step], [data-full-step], [data-full-use], .fback, .gm-close');
       if (!tg) return;
       if (tg.classList.contains('gm-close')) { this.onClose?.(); return; }
@@ -520,6 +554,12 @@ export class GameMenu {
 
   get panel() { return this.state.panel.id; }
 
+  /** The tabs across the top: the panels there are now (the House map's inside a makers' house). */
+  drawTabs() {
+    const nav = this.el?.querySelector('.gm-tabs');
+    if (nav) nav.innerHTML = this.state.panels.map((p) => `<button class="gm-tab" data-panel="${p.id}">${p.name}</button>`).join('');
+  }
+
   /** Build the current panel's cells from its source and draw it. */
   render() {
     const id = this.panel;
@@ -528,7 +568,8 @@ export class GameMenu {
     // (the Map's shape: the page's box for it, as last measured: issue #272)
     if (id === 'map') this._mapAspect = this.mapBoxAspect() ?? this._mapAspect ?? 1;
     const arg = id === 'people' ? this.person : id === 'map' ? { zoom: null, detail: this.mapView.detailWindow(), aspect: this._mapAspect } : undefined;
-    try { data = this.sources[id]?.(arg) ?? null; } catch (e) { console.warn('game menu', id, e); }
+    if (id === 'house') data = { view: this.hv, floor: this.hv ? this.housePage.floor(this.hv) : null };   // (the view as the menu opened)
+    else try { data = this.sources[id]?.(arg) ?? null; } catch (e) { console.warn('game menu', id, e); }
     if (id === 'people' && this.person && !data?.person) { this.person = null; if (this.gridAt) this.state.at.people = this.gridAt; }
     this.detail = id === 'people' ? data?.person ?? null : null;
     const { html, rows, start, canvas, detail } = BUILDERS[id](data ?? undefined);
@@ -559,6 +600,9 @@ export class GameMenu {
     // (the map's ground: the canvas the world's map drew, src/world-map.js)
     if (canvas && canvas.nodeType === 1) this.body.querySelector('.gm-mapimg')?.appendChild(canvas);
     if (detail?.canvas?.nodeType === 1) this.body.querySelector('.gm-mapdetail')?.appendChild(detail.canvas);
+    // (the House map: the floor shown drawn in ink on paper, src/house-map.js)
+    const hc = id === 'house' && data?.view ? this.body.querySelector('canvas.hm-map') : null;
+    if (hc?.getContext) drawHouseMap(hc.getContext('2d'), data.view, data.floor);
     this.body.scrollTop = 0;
     this.drawFull();
     this.paint();
@@ -594,7 +638,13 @@ export class GameMenu {
   }
 
   open(panel = null) {
-    // (View / Select, J, the touch ❏: the Quests, issue #213; the Start menu's Items, Quests and Map their own)
+    // (View / Select, J, the touch ❏: the Quests, issue #213; a panel asked for its own)
+    // (inside a makers' house, its House map after Map, on the traveller's floor: issue #405, #487)
+    try { this.hv = this.sources.house?.() ?? null; } catch (e) { this.hv = null; console.warn('game menu house', e); }
+    this.housePage.reset(this.hv);
+    this.state.panels = panelsFor(this.hv);
+    this.state.at.house = { r: 0, c: 0 };   // (on the floor, not a side tab)
+    this.drawTabs();
     this.leavePerson(); this.full = null; this._mapFresh = true; this.state.show(panel ?? DEFAULT_PANEL); this.render();
     // (drawn while the menu was still hidden: once it shows, the cursor's cell scrolled into view)
     // (and the Map, drawn before its box could be measured: again at the box's shape, issue #272)
@@ -621,6 +671,8 @@ export class GameMenu {
     }
     // the Map: the D-pad, the arrows, WASD move its cursor a step (the stick moves it smoothly: mapAnalog)
     if (this.panel === 'map') { this.mapView.move(Math.sign(dx) * VIEW.step, Math.sign(dy) * VIEW.step); this.mapPaint(); return; }
+    // the House map: ▲ ▼ the floor above / below (held at the top and the bottom); ◀ ▶ to the side tabs
+    if (this.panel === 'house' && dy && !dx) { if (this.houseTurn(-Math.sign(dy))) this.render(); return; }
     if (this.gridMove(dx, dy)) return;
     if (this.state.move(this.rows, Math.sign(dx), Math.sign(dy)) === 'turn') this.render();
     else this.paint();
@@ -647,6 +699,9 @@ export class GameMenu {
     this.select(r, c);
     return true;
   }
+
+  /** The House map: the floor above (d 1) or below (-1). False at the top or the bottom (or outside a house). */
+  houseTurn(d) { return !!this.hv && this.housePage.turn(this.hv, d); }
 
   // ---- the full view (issue #213)
 

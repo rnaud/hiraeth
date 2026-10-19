@@ -266,14 +266,13 @@ test('the scout\'s find says the current quest as its overall goal over its next
   assert.match(main, /findSummary\(\{ goal: findGoal\(t\), step: findText\(/);
 });
 
-test('the Start menu opens the game menu on its Items and Quests, has a Controls page, and H opens Controls', async () => {
+test('the Start menu has no Items, Quests or maps (the game menu\'s alone: issue #487), has a Controls page, and H opens Controls', async () => {
   const ui = src('src/ui.js'), main = src('src/main.js');
-  assert.match(ui, /<button data-a="book" data-panel="items">\$\{t\('menu\.items'\)\}\$\{F\}<\/button><button data-a="book" data-panel="quests">\$\{t\('menu\.quests'\)\}\$\{F\}<\/button>/);   // (F: the confirm glyph on the focused entry, src/pad-glyphs.js)
-  assert.match(ui, /if \(a === 'book'\) \{ this\.toggle\(false\); onBook\?\.\(at\.dataset\.panel\); \}/);
+  assert.doesNotMatch(ui, /data-a="book"|onBook|menu\.items|menu\.quests|menu\.map|menu\.house|data-page="house"/);
+  assert.doesNotMatch(main, /onBook/);
   assert.match(ui, /go\('controls', t\('menu\.controls'\)\)/);
   assert.doesNotMatch(ui, /questlog/, 'no quest log page of its own any more');
   assert.match(ui, /e\.code === 'KeyH' && !isBusy\(\)\) \{ if \(this\.open && this\.current === 'controls'\) this\.toggle\(false\); else this\.toggle\(true, 'controls'\); \}/);
-  assert.match(main, /onBook: \(panel\) => journal\.toggle\(true, panel\)/);
   assert.match(main, /onTrack: \(id\) => storyRt\.quests\.choose\(id\)/);   // (chosen: src/story/quests.js choose)
   // menuNavigate moves onto [data-nav] (the quests) as well as buttons and inputs
   const mk = (name, nav = false) => ({ name, disabled: false, getClientRects: () => [1], focus() { globalThis.document.activeElement = this; }, scrollIntoView() {}, nav });

@@ -221,7 +221,7 @@ test('the game draws the map: its source, its rays only while the Map shows, no 
   assert.match(source, /filter\(\(b\) => b\.opened\(\)\)/, 'only the boxes opened');
   assert.match(source, /game\.flag\(`met\.\$\{n\.def\.id\}`\)/, 'only the people met');
   assert.match(wm, /Never a fragment of the singing light/);
-  assert.match(src('src/ui.js'), /data-panel="map">\$\{t\('menu\.map'\)\}/, 'the Start menu has a Map entry too');
+  assert.doesNotMatch(src('src/ui.js'), /data-panel="map"|menu\.map/, 'the Map is the game menu\'s alone (issue #487: none in the Start menu)');
 });
 
 // ------------------------------------------------------------------ issue #272: the map as wide as the page

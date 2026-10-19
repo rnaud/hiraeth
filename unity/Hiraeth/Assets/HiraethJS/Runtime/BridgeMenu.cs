@@ -63,7 +63,7 @@ namespace Hiraeth.Bridge
         Ui.Box card; Label cardTitle, cardSub, cardText, cardFacts, cardUse, cardSteps;
         Ui.Box ask; Label askQ, askWhat, askNo, askYes;
         Ui.Box mapBox;
-        // the House map (issue #405, src/house-map.js): inside a makers' house, the Start menu's page: a floor drawn in the
+        // the House map (issue #405, src/house-map.js): inside a makers' house, the game menu's panel (#487): a floor drawn in the
         // script (engine/menus.js houseKey, sent as the Map's ground is, BridgeHost.MapImage) in its paper frame
         Ui.Box houseBox; RawImage houseImg; Label houseName;
 
@@ -808,11 +808,12 @@ namespace Hiraeth.Bridge
             }
         }
 
-        // ------------------------------------------------------------------ the Start menu
+        // ------------------------------------------------------------------ the House map
 
         /// <summary>
-        /// The House map's page (src/ui.js drawHouse, issue #405): a tab a floor (1F, 2F, B1…; the one shown gold, LB / RB at
-        /// the ends, a red dot on the one you stand on), the floor's name, and the floor's picture under them in its paper frame.
+        /// The game menu's House map (src/game-menu.js housePanel, issue #405, #487): a tab a floor (1F, 2F, B1…; the one shown
+        /// gold, a red dot on the one you stand on; ▲ ▼ a floor, so no LB / RB at the ends unless the view names them), the
+        /// floor's name, and the floor's picture under them in its paper frame.
         /// </summary>
         void DrawHouse(Dictionary<string, object> h, float x, float y, float w, float hh)
         {
@@ -824,7 +825,7 @@ namespace Hiraeth.Bridge
             for (int i = 0; i < tabsL.Count; i++)
             {
                 string label = (tabsL[i] as string ?? "") + (i == here ? " •" : "");
-                float tw = 34 + label.Length * 12;   // (wide enough for its label on one line: 1F, B1, 1F •)
+                float tw = 44 + label.Length * 14;   // (wide enough for its label on one line, bold when shown: 1F, B1, 1F •)
                 var c = Entry(tx, y, tw, th, label, null, null, i == at, size: Body, boxed: true);
                 if (i == at) c.box.SetFill(Ui.Gold);
                 tx += tw + 6;
@@ -855,8 +856,10 @@ namespace Hiraeth.Bridge
             var person = state.O("person");
             var full = state.O("full");
             var panel = state.S("panel");
+            var house = state.O("house");
             if (person != null) DrawPerson(person, px, top, pw, bottom - top);
             else if (panel == "map") DrawMap(px, top, pw, bottom - top);
+            else if (panel == "house" && house != null) DrawHouse(house, px, top + 8, pw, bottom - top - 16);
             else DrawRows(panel, px, top, pw, bottom - top);
             // the strip: the cell's name, what it is, and what A / × does
             var s = state.O("strip");

@@ -3461,7 +3461,7 @@ export class Key {
 }
 
 /** The house's map's chest (issue #405): what it says once opened (a tone, as every line: src/story/tone.js). */
-export const MAP_CHEST = { line: '~happy~ The house’s map. Menu shows its rooms now.', name: 'The House’s Map', found: '~happy~ Menu shows its rooms now.' };
+export const MAP_CHEST = { line: '~happy~ The house’s map. View shows its rooms now.', name: 'The House’s Map', found: '~happy~ View shows its rooms now.' };
 /** The great key's chest (issue #486): its card's name and line (a tone), and the line said where no card shows. */
 export const GREAT_KEY_CHEST = { line: '~solemn~ The house’s great key. It opens the guardian’s door.', name: 'The Great Key', found: '~solemn~ It opens the guardian’s door.' };
 export class MapChest extends Key {

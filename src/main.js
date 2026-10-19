@@ -895,6 +895,8 @@ Object.assign(journal.menu, {
     mode: () => ({ mode: tool.owned ? tool.mode : null, modes: tool.owned ? tool.modes : [], gadget: gadgets?.equipped ?? null, gadgets: gadgets?.owned() ?? [] }), boxes: () => boxes.counts(), errandDefs: ERRANDS, done: worldDone,
     fragments: () => fragments.counts(), toggles: () => ({ finder: fragments.finderOn() }), colours: () => kit.colours(),
     icon: (id) => itemIcons.get(id), map: (o) => mapSource(o),
+    // (inside a makers' house: its map, the game menu's House map after Map; issue #405, #487, src/house-map.js)
+    house: () => { const rt = houseHere(level, player); return rt ? houseView(rt, { game, player }) : null; },
     // (the Worlds page's "Travel here": a world you have been to, with the ship powered: src/fast-travel.js, issue #213)
     travel: (id) => fastTravel.can({ to: id, from: levelId, seen: (w) => journal.seen(w), flag: (k) => game.flag(k) }) }),
   onTrack: (id) => storyRt.quests.choose(id),
@@ -1326,13 +1328,10 @@ const changelog = new Changelog({ onBeforeRestart: saveBeforeRestart });
 const menu = new SettingsMenu(settings, {
   sound,
   onNews: () => changelog.toggle(true),
-  onBook: (panel) => journal.toggle(true, panel),   // (its Items and Quests: the game menu, on that panel)
   onPhoto: () => setPhoto(true),   // (photo mode from the menu: the only way on a touch screen; View + D-pad ↑ on a pad, P)
   onDebug: () => showPicker(true),
   hasJets: () => items.has('jetpack'),   // (the jets' pitch row: the debug jets only, issue #122)
   piratesBeaten: () => !!game.flag('minigame.pirates.beaten'),   // (the chime pirates' pitch row: once beaten, issue #224)
-  // (inside a makers' house: its map, the House map page; issue #405, src/house-map.js)
-  house: () => { const rt = houseHere(level, player); return rt ? houseView(rt, { game, player }) : null; },
   onQuit: () => quitToTitle(),
   onBeforeRestart: saveBeforeRestart,
   // where you are, at the top of the Start menu
@@ -1721,7 +1720,6 @@ const controller = new Controller({
     if ((name === 'tabPrev' || name === 'tabNext') && menuRoot() === picker) debugMenu.jump(name === 'tabPrev' ? -1 : 1);   // (the Debug menu: the section before / after)
     if (name === 'y' && menuRoot() === picker) debugMenu.focusSearch();   // (and Y its filter)
     if ((name === 'tabPrev' || name === 'tabNext') && menuRoot() === devMenu.el) devMenu.pad(name);   // (the dev menu: its tab before / after)
-    if ((name === 'tabPrev' || name === 'tabNext') && menu.open && menu.current === 'house') menu.houseTurn(name === 'tabPrev' ? -1 : 1);   // (the House map: the floor below / above)
     if (name === 'confirm') {
       const root = menuRoot();
       if (root.id === 'dialogue') { const f = document.activeElement; if (f?.dataset?.i !== undefined && root.contains(f)) f.click(); else storyRt.dialogue.next(); }

@@ -1,6 +1,6 @@
 {
   "recorded": "2026-10-19",
-  "sha": "668fadee2",
+  "sha": "dd368dbc3",
   "how": "node scripts/unity-compare/sequences.mjs web [ids] && node scripts/unity-compare/sequences.mjs record",
   "sequences": {
     "moment-desert.flow": {
@@ -3497,7 +3497,7 @@
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 413,
+            "ink": 411,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -3528,9 +3528,6 @@
             "page": "settings",
             "side": [
               "Resume",
-              "Items",
-              "Quests",
-              "Map",
               "Settings",
               "Controls",
               "Photo mode",
@@ -3569,7 +3566,7 @@
           },
           "playing": null,
           "objects": {
-            "ink": 413,
+            "ink": 411,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -3598,7 +3595,13 @@
           "menu": {
             "kind": "game",
             "page": "items",
-            "side": [],
+            "side": [
+              "Quests",
+              "Map",
+              "Items",
+              "Worlds",
+              "People"
+            ],
             "rows": [
               "Magic-fluid backpack",
               "Givers’ blade",
@@ -3682,7 +3685,7 @@
           },
           "playing": null,
           "objects": {
-            "ink": 355,
+            "ink": 353,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -3711,7 +3714,13 @@
           "menu": {
             "kind": "game",
             "page": "map",
-            "side": [],
+            "side": [
+              "Quests",
+              "Map",
+              "Items",
+              "Worlds",
+              "People"
+            ],
             "rows": [
               "You",
               "Hobb, by the Undertower",
@@ -3722,7 +3731,7 @@
           },
           "playing": null,
           "objects": {
-            "ink": 355,
+            "ink": 353,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -3751,7 +3760,13 @@
           "menu": {
             "kind": "game",
             "page": "quests",
-            "side": [],
+            "side": [
+              "Quests",
+              "Map",
+              "Items",
+              "Worlds",
+              "People"
+            ],
             "rows": [
               "Something of Value",
               "The Tree That Drinks",
@@ -3766,7 +3781,7 @@
           },
           "playing": null,
           "objects": {
-            "ink": 355,
+            "ink": 353,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -3797,9 +3812,6 @@
             "page": "settings",
             "side": [
               "Resume",
-              "Items",
-              "Quests",
-              "Map",
               "Settings",
               "Controls",
               "Photo mode",
@@ -3838,7 +3850,7 @@
           },
           "playing": null,
           "objects": {
-            "ink": 355,
+            "ink": 353,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -3904,7 +3916,7 @@
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 233,
+            "ink": 236,
             "print": 2,
             "chimeshade": 1,
             "pitvoid": 1,
@@ -3934,26 +3946,23 @@
             "gadget": "gun"
           },
           "menu": {
-            "kind": "start",
+            "kind": "game",
             "page": "house",
             "side": [
-              "Resume",
-              "Items",
               "Quests",
               "Map",
               "House map",
-              "Settings",
-              "Controls",
-              "Photo mode",
-              "What's new",
-              "Debug: worlds",
-              "Quit to title"
+              "Items",
+              "Worlds",
+              "People"
             ],
-            "rows": []
+            "rows": [
+              "Ground floor"
+            ]
           },
           "playing": null,
           "objects": {
-            "ink": 233,
+            "ink": 236,
             "print": 2,
             "chimeshade": 1,
             "pitvoid": 1,
@@ -3985,7 +3994,7 @@
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 233,
+            "ink": 236,
             "print": 2,
             "chimeshade": 1,
             "pitvoid": 1,
@@ -5860,7 +5869,7 @@
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 412,
+            "ink": 411,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -5891,9 +5900,6 @@
             "page": "controls",
             "side": [
               "Resume",
-              "Items",
-              "Quests",
-              "Map",
               "Settings",
               "Controls",
               "Photo mode",
@@ -5956,7 +5962,7 @@
               "Dive · rise (in water)",
               "Plumb finds your objective (a guardian's fight, a makers' house: a hint)",
               "Bell-note whistle, echo shell (once found)",
-              "Items, quests, worlds · menu · this page",
+              "Map, items, quests, worlds · menu · this page",
               "Photo mode · frame readout · what's new",
               "Mute",
               "Debug: the fight's hitboxes · the controller's inputs",
@@ -5977,8 +5983,8 @@
               "Jets: fly like a plane",
               "Bell-note whistle, echo shell (once found)",
               "Call your mount, hail a taxi",
-              "Items, quests and worlds · menu",
-              "Their panels (items, quests, worlds, people)",
+              "Map, items, quests and worlds · menu",
+              "Their panels (quests, map, items, worlds, people; a makers’ house’s map inside one)",
               "Photo mode",
               "Riding",
               "In a cab (it drives itself)",
@@ -5996,12 +6002,12 @@
               "Blade · guard (hold it) · evade · lock on",
               "Locked on: back flip · side hop",
               "Drink a healing potion",
-              "Items, quests and worlds · menu · photo mode"
+              "Map, items, quests and worlds · menu · photo mode"
             ]
           },
           "playing": null,
           "objects": {
-            "ink": 412,
+            "ink": 411,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -6033,6 +6039,7 @@
             "side": [],
             "rows": [
               "v1.86",
+              "The Start menu (Menu) is shorter: Items, Quests and Map are in the game menu (View) alone, where they already were. Inside a makers’ house, its map is now a tab of that menu too, after Map, and ▲ ▼ go up and down its floors.",
               "In the Unity version, the Controls page shows your keys and buttons on caps, two to a line, as on the web; the thing in your hand carries its red IN USE tag in Items; and photo mode’s line of keys reads as the web’s.",
               "A new controller layout. Hold D-pad ↑ for the wheel: every gadget and each of the glove’s modes now has its own slot, and the game waits while you choose, so no foe hits you meanwhile. A tap of D-pad ↑ takes back your last pick, so push and fluid are a tap apart. D-pad → now calls Plumb to find your objective (or a hint in a guardian’s fight), riding too, and RS only locks on: with no foe near, it turns the camera behind you.",
               "In the Mooring-House you now see the Anchor-Warden from the first hall, through the bars of its gate, and when it is stopped the gate opens and you walk back out into the hall where you began. Its floor is reached by a great door off the Cord Loft. Where it stood, past the west door, the Anchor Hold keeps a spare anchor out over a well: pull it home with the tether to draw back the moorers’ gate’s bar.",
@@ -6189,7 +6196,7 @@
           },
           "playing": null,
           "objects": {
-            "ink": 412,
+            "ink": 411,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -6218,7 +6225,7 @@
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 410,
+            "ink": 411,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,

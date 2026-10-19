@@ -222,7 +222,7 @@ export const GAPS = {
     { keys: ['src/passage.js'], count: { 'src/passage.js': 3 }, parts: ['passage'], what: 'a way through\'s cover', status: 'handled', where: 'the passage part, BridgeHud.cs' },
     { keys: ['src/quest.js'], count: { 'src/quest.js': 2 }, what: 'the journal and the toast', status: 'handled', where: 'the toast part; the journal\'s Quests page in engine/menus.js' },
     { keys: ['src/game-menu.js', 'src/ui.js', 'src/title.js', 'src/shop-panel.js', 'src/changelog.js', 'src/ship/starmap.js'],
-      count: { 'src/game-menu.js': 8, 'src/ui.js': 12, 'src/title.js': 6, 'src/shop-panel.js': 4, 'src/changelog.js': 5, 'src/ship/starmap.js': 10 },
+      count: { 'src/game-menu.js': 9, 'src/ui.js': 10, 'src/title.js': 6, 'src/shop-panel.js': 4, 'src/changelog.js': 5, 'src/ship/starmap.js': 10 },
       what: 'the game menu, the Start menu and settings, the title, the shops, What\'s new, the galactic map', status: 'handled', where: 'engine/menus.js and engine/starmap.js, BridgeMenu.cs and BridgeMenu.StarMap.cs' },
     { keys: ['src/platform.js'], count: { 'src/platform.js': 1 }, what: 'page.byId, the page\'s elements by id', status: 'handled', where: 'engine/platform.js stands in for the page' },
     { keys: ['part:carry'], what: 'what the traveller carries (src/carry.js)', status: 'handled', where: 'nothing to draw: the web draws nothing from the part either (the thing is in his hands, in the scene)' },

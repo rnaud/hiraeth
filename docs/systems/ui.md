@@ -328,10 +328,11 @@ before / after pictures, numbers or how to see it ([changelog.md](changelog.md))
   copied into slot 1 once (`migrate()`); the old keys are left as they were, so an older
   build (an over-the-air update rolled back) still finds its save.
 - **Pause menus**: Menu / Start (O, Esc) opens the Start menu, now full screen (Resume,
-  Items, Quests, What's new, Quit to title, where you are and the time played, the settings,
+  Settings, Controls, Photo mode, What's new, Quit to title, where you are and the time played, the settings,
   and "Restart this save from the prologue", which asks inline rather than with
-  `confirm()` and forgets only this slot). View / Select (J) opens the game menu (below; its
-  Items and Quests entries open it on that panel). Start and
+  `confirm()` and forgets only this slot). View / Select (J) opens the game menu (below): the items, the quests,
+  the map and a makers' house's map are there alone since issue #487 (the Start menu had Items, Quests, Map and
+  House map entries too, the author: "they are already in the select menu"). Start and
   Select work over a conversation or one of the ship's scenes too (holding B still skips a
   scene). While one of them (or What's new) is open, `frame()` skips the world entirely:
   player, people, crowds, wildlife, vehicles, the ship's scenes and the world's clock
@@ -428,8 +429,8 @@ panels, the cursor, the page), `src/game-menu-data.js` (what fills them, from th
 `src/game-menu.css`, `src/item-icons.js`; tests: `tests/game-menu.test.js`.
 
 - **Opening it**: whatever opened the sketchbook — View / Select, J, the touch ❏ — on the **Quests**
-  (`DEFAULT_PANEL`, v1.58, issue #213: "default menu should be the quest one"), and the Start menu's Items,
-  Quests and Map (on that panel). It draws into `#journal`: `Journal.toggle(on, panel)` in `src/quest.js`
+  (`DEFAULT_PANEL`, v1.58, issue #213: "default menu should be the quest one"); the Start menu no longer opens
+  it on a panel (issue #487). It draws into `#journal`: `Journal.toggle(on, panel)` in `src/quest.js`
   opens it; the journal still keeps the relics, story pages, errands and the observatory. It pauses the
   game like the Start menu; each panel keeps its cursor.
 - **Panels** (`PANELS`), side by side in a ring, in this order since v1.58: **Quests**, **Map** (below),
@@ -694,11 +695,16 @@ sits at the hearts' place and moves under them while they show (`#health.on ~ #k
 and the count swells (`got`). `screen.keys` (platform.js) carries `{ small, big }` for an engine; the Unity bridge
 draws "KEY ×N" under its health bar (BridgeHud.cs `DrawKeys`). Tests: `tests/key-chests.test.js`.
 
-## The House map (issue #405)
+## The House map (issue #405, #487)
 
-Inside a makers' house the Start menu has **House map** after Map (src/ui.js `drawHouse`, `houseTurn`; main.js
-`house`): the house's name, a tab a floor (1F, 2F, B1; a red dot on yours) with LB / RB (Q / E) at their ends, the
-floor's name, and the floor drawn on a canvas in ink and paper (src/house-map.js `drawHouseMap`). The rooms you have
+Inside a makers' house the game menu (View / Select, J) has a **House map** panel after Map (src/game-menu.js
+`panelsFor`, `housePanel`, `GameMenu.houseTurn`; the house's view from `sources.house()`, main.js, taken as the menu
+opens). Until issue #487 it was a page of the Start menu ("the house map should only be available to the select
+menu"); nothing else opens it now. The panel: the house's name, a tab a floor (1F, 2F, B1; a red dot on yours, a tap
+picks one), ▲ ▼ beside them, the floor's name, and the floor drawn on a canvas in ink and paper (src/house-map.js
+`drawHouseMap`). ▲ ▼ (the D-pad, the arrows, W / S) go a floor up or down, held at the top and the bottom; LB / RB
+(Q / E) turn the panels as everywhere in the game menu; ◀ ▶ rest on the side tabs, then turn. It opens on your floor
+each time. The strip names the floor and the house. The rooms you have
 stood in are solid; once the house's little map chest is open, the rest show faint; before it, only those you have
 seen. The traveller, the doors, the great key's and the guardian's are marked; the key along the foot says which is
 which. The engines draw the same picture (engine/menus.js `houseKey`, BridgeMenu.cs `DrawHouse`). How the plan is

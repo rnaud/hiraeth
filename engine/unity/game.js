@@ -171,7 +171,7 @@ export function start(argsJson) {
     itemCols: () => Math.max(4, Math.min(12, Math.floor(((host.MenuWidth?.() || 1280) - 72) / 128))),
     // (the room BridgeMenu's sheet has for the Map, its units: "w,h"; the map is drawn as wide as it, issue #272)
     mapBox: () => { const [w, h] = String(host.MenuMapBox?.() ?? '').split(',').map(Number); return w > 0 && h > 0 ? { w, h } : null; },
-    // (inside a makers' house: its map, the Start menu's House map; issue #405)
+    // (inside a makers' house: its map, the game menu's House map; issue #405, #487)
     house: () => S?.game?.houseView?.() ?? null,
     // (-title-art H1: that painted world behind the title, as the web's ?shot=H1, to lay the two side by side)
     shots: (o) => chooseShot({ ...o, search: args.titleArt ? `?shot=${encodeURIComponent(args.titleArt)}` : '' }),
@@ -309,7 +309,7 @@ function showMenu() {
   const v = m.view();
   // (the Map's drawn ground and its sharper part zoomed in, once each: their RGBA to Unity before the state that shows
   // them, BridgeHost.MapImage)
-  for (const key of [v?.map?.ground, v?.map?.detail?.key, v?.page?.house?.key]) {
+  for (const key of [v?.map?.ground, v?.map?.detail?.key, v?.house?.key]) {
     if (!key || (S.mapsSent ??= new Set()).has(key)) continue;
     const pic = S.game?.mapPicture?.(key) ?? m.housePicture?.(key);   // (the House map's floors: engine/menus.js, issue #405)
     if (pic && host.MapImage) { host.MapImage(key, toHost(pic.data.buffer), pic.width, pic.height); S.mapsSent.add(key); }
@@ -656,8 +656,8 @@ function makePlan(args) {
   }
   if (args.house) {
     // (-house id: the House map, issue #405: the traveller at the house's way in (or by the mark of -house-room), half its
-    // rooms seen, its map found, the Start menu on House map, each floor photographed (unity-house-<id>-<floor>.png, to lay
-    // beside the web's), RB between them)
+    // rooms seen, its map found, the game menu on House map, each floor photographed (unity-house-<id>-<floor>.png, to lay
+    // beside the web's), ▲ between them)
     steps.push({ kind: 'wait', frames: 120, secs: 4 }, { kind: 'house', id: String(args.house) }, { kind: 'wait', frames: 40, secs: 1.5 }, { kind: 'house', open: true });
   }
   if (args.devmenu) {
@@ -1135,14 +1135,15 @@ function playFrame(dt) {
       rt.logic.find('map');
       console.log(`[unity] in ${rt.def.name} by the mark of ${m.room}: inside ${rt.inside(game.player.pos)}`);
     } else {
-      M.show('start');
-      const side = M.startSide(), i = side.findIndex((e) => e.id === 'house');
-      if (i >= 0) { M.start.at = { in: 'side', i }; M.start.page = 'house'; M.changed(); }
-      const floors = M.hv?.floors ?? [];
-      if (floors.length) M.housePage.pick(M.hv, floors[0].id);   // (from the lowest floor up, RB each time)
-      console.log(`[unity] the House map: ${i >= 0 ? floors.map((f) => f.label).join(' ') : 'not offered'}`);
+      M.show('game', 'house');
+      const on = M.state.panel.id === 'house';
+      const floors = on ? M.hv?.floors ?? [] : [];
+      if (floors.length) { M.housePage.pick(M.hv, floors[0].id); M.changed(); }   // (from the lowest floor up, ▲ each time)
+      console.log(`[unity] the House map: ${on ? floors.map((f) => f.label).join(' ') : 'not offered'}`);
       const more = [];
-      floors.forEach((f) => more.push({ kind: 'wait', frames: 10, secs: 0.4 }, ...(S.args.out ? [{ kind: 'shot', file: `${S.args.out}/unity-house-${rt.id}-${f.id}.png` }] : []), { kind: 'menu', act: 'tabNext' }));
+      floors.forEach((f) => more.push({ kind: 'wait', frames: 10, secs: 0.4 }, ...(S.args.out ? [{ kind: 'shot', file: `${S.args.out}/unity-house-${rt.id}-${f.id}.png` }] : []), { kind: 'menu', x: 0, y: -1 }));
+      // (then Menu: the Start menu, which has no House map, Items, Quests or Map since issue #487)
+      more.push({ kind: 'menu', act: 'start' }, { kind: 'wait', frames: 10, secs: 0.4 }, ...(S.args.out ? [{ kind: 'shot', file: `${S.args.out}/unity-house-${rt.id}-start.png` }] : []));
       P.steps.splice(P.i + 1, 0, ...more);
     }
     next();

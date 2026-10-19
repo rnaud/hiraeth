@@ -2174,12 +2174,13 @@ ways in) maps as it is:
   a storey) is kept as `temple.<id>.been.<room>`; the way in and the rooms where something was done count too (a
   save from before).
 
-The Start menu's **House map** (only inside a house, after Map) draws a floor at a time: the rooms seen washed and
+The game menu's **House map** (View / Select; only inside a house, a panel after Map; the Start menu's page until
+issue #487) draws a floor at a time: the rooms seen washed and
 inked, the rest faint and dashed once the map is yours (none of them before), the ways up hatched with their arrows,
 a floor below's tall walls thin, the doors shut (brown) or open (empty), a lock's keyhole until its key is in, the
 great key's door a gold diamond, the guardian's door ringed in red and its hall marked, you as the world map's red
-arrow, and the key along the foot. A tab a floor (1F the ground floor, 2F up, B1 down), LB / RB (Q / E) between them,
-on your own floor each time it opens. A house deeper than wide is turned a quarter, its way in on the left.
+arrow, and the key along the foot. A tab a floor (1F the ground floor, 2F up, B1 down), ▲ ▼ between them (LB / RB
+turn the game menu's panels), on your own floor each time it opens. A house deeper than wide is turned a quarter, its way in on the left.
 
 ## Several boxes, drawn and solid (issue #358, `tests/temple-kit-both.test.js`)
 

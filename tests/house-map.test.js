@@ -1,10 +1,11 @@
 // The house's map (issue #405, recommendation G5 of docs/design/temple-best-practices.md; src/house-map.js,
 // src/temples/house-plan.js): a little chest in every makers' house holds its map, off the way on in the first third of
-// the house; the Start menu's House map shows the house floor by floor from its own plan (the rooms stood in solid, the
+// the house; the game menu's House map (View / Select; the Start menu's until issue #487) shows the house floor by floor from its own plan (the rooms stood in solid, the
 // rest faint once the map is yours, none before), the traveller, the doors and the guardian's; what is seen is saved.
 // The scout's ping is as it was: it never points at the map's chest. The engines' menus (engine/menus.js) show the same.
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import './register-gadgets.js';
 import './playthrough-agent.js';   // (its little DOM: a temple's pieces draw their glyphs on a canvas)
 import * as THREE from 'three';
@@ -21,7 +22,8 @@ import { meetsWith } from '../src/resources.js';
 
 globalThis.matchMedia ??= () => ({ matches: false });
 globalThis.window ??= new EventTarget();
-const { EngineMenus, HOUSE_SIDE, START_SIDE } = await import('../engine/menus.js');
+const { EngineMenus, START_SIDE } = await import('../engine/menus.js');
+const { GameMenu, PANELS, panelsFor, housePanel } = await import('../src/game-menu.js');
 
 const memGame = () => { const flags = {}; const ev = []; return { flags, ev, flag: (k) => flags[k], set: (k, v) => { flags[k] = v; }, emit: (e, p) => ev.push([e, p]), on: () => () => {} }; };
 const built = new Map();
@@ -184,7 +186,52 @@ test('the House map page: LB / RB a floor, held at the ends, back on yours each 
   assert.ok(ink > 2000, `walls inked (${ink} px)`);
 });
 
-test('the engines\' Start menu: House map after Map inside a house only, its page a floor\'s picture by key, LB / RB a floor (engine/menus.js)', () => {
+test('the House map is the game menu\'s alone (issue #487): a panel after Map inside a house only, ▲ ▼ a floor, ◀ ▶ to the side tabs; none in the Start menu (src/game-menu.js)', () => {
+  const { rt } = build('incal');
+  const game = memGame();
+  rt.game = game;
+  rt.logic.find('map');
+  const m = rt.marks.find((k) => k.room === rt.def.logic.entry);
+  let inside = true;
+  const house = () => (inside ? houseView(rt, { game, player: { pos: m.spot.clone(), heading: 0 } }) : null);
+  assert.equal(panelsFor(null), PANELS);
+  const v = house();
+  assert.deepEqual(panelsFor(v).map((p) => p.id), ['quests', 'map', 'house', 'items', 'worlds', 'people'], 'after Map');
+  // the panel: the floors' tabs, the one shown, a canvas for its drawing; one cell (the strip names the floor)
+  const P = housePanel({ view: v, floor: v.floors[1].id });
+  assert.equal(P.rows.length, 1);
+  assert.equal(P.rows[0][0].id, v.floors[1].id);
+  assert.equal(P.rows[0][0].sub, v.name);
+  assert.match(P.html, /<canvas class="hm-map" width="960" height="600">/);
+  assert.equal((P.html.match(/data-floor=/g) ?? []).length, v.floors.length);
+  assert.equal(housePanel({ view: null }).rows.length, 0);
+  // the menu (no page): opened inside the house it has the panel, on your floor; ▲ ▼ a floor, held at the ends
+  const menu = new GameMenu(null, { sources: { house } });
+  menu.open('house');
+  assert.equal(menu.panel, 'house');
+  assert.equal(menu.state.cell(menu.rows).id, v.here, 'on the floor you stand on');
+  menu.navigate(0, -1);
+  assert.equal(menu.state.cell(menu.rows).id, v.floors[1].id, '▲ the floor above');
+  menu.navigate(0, 1); menu.navigate(0, 1);
+  assert.equal(menu.state.cell(menu.rows).id, v.floors[0].id, '▼ held at the bottom');
+  menu.navigate(1, 0);
+  assert.equal(menu.state.cursor().edge, 1, '▶ onto the side tab');
+  menu.navigate(1, 0);
+  assert.equal(menu.panel, 'items', 'and once more turns');
+  menu.open('house');
+  assert.equal(menu.state.cell(menu.rows).id, v.here, 'back on your floor each time it opens');
+  // outside a house: no panel, and asking for it opens on the Quests
+  inside = false;
+  menu.open('house');
+  assert.ok(!menu.state.panels.some((p) => p.id === 'house'));
+  assert.notEqual(menu.panel, 'house');
+  // the Start menu has none of it
+  assert.ok(!START_SIDE.some((e) => ['items', 'quests', 'map', 'house'].includes(e.id)));
+  const ui = readFileSync(new URL('../src/ui.js', import.meta.url), 'utf8');
+  assert.doesNotMatch(ui, /house-map|HouseMap|drawHouse|onBook/, 'src/ui.js\'s Start menu: no house map, no Items / Quests / Map');
+});
+
+test('the engines\' game menu: House map after Map inside a house only, a floor\'s picture by key, ▲ ▼ a floor, none in the Start menu (engine/menus.js)', () => {
   const { rt } = build('incal');
   const game = memGame();
   rt.game = game;
@@ -193,31 +240,38 @@ test('the engines\' Start menu: House map after Map inside a house only, its pag
   let inside = true;
   const menus = new EngineMenus({ store: { list: () => [] }, house: () => (inside ? houseView(rt, { game, player: { pos: m.spot.clone(), heading: 0 } }) : null) });
   menus.show('start');
+  assert.ok(!menus.view().side.some((e) => /map|items|quests/i.test(e.text)), 'the Start menu: no Items, Quests, Map or House map');
+  menus.action('select');
   let view = menus.view();
-  const names = view.side.map((e) => e.text);
-  assert.equal(names[names.indexOf(START_SIDE.find((e) => e.id === 'map').label()) + 1], HOUSE_SIDE.label(), 'after Map');
-  // onto it: its page
-  const at = names.indexOf(HOUSE_SIDE.label());
-  for (let i = 0; i < at; i++) menus.navigate(0, 1);
+  assert.equal(view.kind, 'game');
+  const names = view.tabs.names;
+  assert.equal(names[names.indexOf('Map') + 1], 'House map', 'after Map');
+  menus.action('tabNext'); menus.action('tabNext');   // (Quests → Map → House map)
   view = menus.view();
-  const H = view.page.house;
-  assert.ok(H, 'the House map page');
+  assert.equal(view.panel, 'house');
+  const H = view.house;
+  assert.ok(H, 'the House map');
   assert.deepEqual(H.tabs, ['1F', '2F', '3F', '4F', '5F', '6F']);
   assert.equal(H.i, 0);
+  assert.equal(H.prev, '', 'no LB / RB at the tabs\' ends: they turn the panels here');
   const pic = menus.housePicture(H.key);
   assert.ok(pic && pic.width === HOUSE_MAP.w && pic.height === HOUSE_MAP.h && pic.data.length === HOUSE_MAP.w * HOUSE_MAP.h * 4, 'its picture');
-  assert.match(view.hint, /LB \/ RB/);
-  menus.action('tabNext');
+  assert.match(view.hint, /▲ ▼ floor/);
+  assert.ok(view.hints.some((h) => h.g.includes('dpad') && h.text === 'floor'), 'the D-pad\'s glyph');
+  menus.navigate(0, -1);
   view = menus.view();
-  assert.equal(view.page.house.i, 1, 'RB: the floor above');
-  assert.notEqual(view.page.house.key, H.key, 'its own picture');
-  menus.action('tabPrev');
-  assert.equal(menus.view().page.house.i, 0);
+  assert.equal(view.house.i, 1, '▲ the floor above');
+  assert.notEqual(view.house.key, H.key, 'its own picture');
+  menus.navigate(0, 1);
+  assert.equal(menus.view().house.i, 0);
+  menus.action('tabNext');
+  assert.equal(menus.view().panel, 'items', 'RB: the next panel');
   menus.close();
-  // outside a house: no entry
+  // outside a house: no panel
   inside = false;
-  menus.show('start');
-  assert.ok(!menus.view().side.some((e) => e.text === HOUSE_SIDE.label()));
+  menus.show('game', 'house');
+  assert.ok(!menus.view().tabs.names.includes('House map'));
+  assert.notEqual(menus.view().panel, 'house');
 });
 
 test('the traveller is inside a house: houseHere finds it; outside none', () => {

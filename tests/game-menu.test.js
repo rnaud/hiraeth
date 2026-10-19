@@ -118,7 +118,7 @@ test('the menu without a page: open on a panel, move, turn with the shoulders; A
   // opened again with no panel asked (View / Select, J): the Quests (issue #213)
   m.open(); assert.equal(m.panel, 'quests');
   m.show('items'); m.open(); assert.equal(m.panel, 'quests', 'whatever was left showing');
-  m.open('items'); assert.equal(m.panel, 'items', 'the Start menu\'s Items: its own');
+  m.open('items'); assert.equal(m.panel, 'items', 'a panel asked for: its own');
 });
 
 test('the keyboard in the menu: Q / E and [ ] turn the panels, the arrows and WASD move, Enter uses', () => {
@@ -253,8 +253,8 @@ test('nothing the sketchbook held is lost: the menu reads the gear, the charge, 
     assert.ok(wire.includes(part), `the menu reads ${part}`);
   assert.doesNotMatch(main, /journal\.sections/, 'no sketchbook sections any more');
   assert.match(main, /if \(journal\.open\) itemIcons\.pump\(\);/, 'the items\' pictures are drawn while the menu is open');
-  // the Start menu's Items and Quests open it there; the touch ❏ (J) opens it too
-  assert.match(main, /onBook: \(panel\) => journal\.toggle\(true, panel\)/);
+  // the touch ❏ (J) opens it; the Start menu no longer does (its Items, Quests and Map went: issue #487)
+  assert.doesNotMatch(main, /onBook:/);
   assert.match(src('src/ui.js'), /data-press="KeyJ" class="b-book"/);
   assert.match(src('index.html'), /<div id="journal"><\/div>/);
   assert.match(src('src/boot.js'), /import '\.\/game-menu\.css';/);

@@ -130,7 +130,8 @@ export const SEQUENCES = [
     beats: [atStep('seal', 0, 1), atStep('lift', 1, 2), atStep('away', 1, 4.6), atStep('stars', 2, 0.8)],
   },
   {
-    // the Start menu and its pages (src/ui.js SettingsMenu and src/game-menu.js on the web, engine/menus.js in the engines)
+    // the Start menu and its pages (src/ui.js SettingsMenu on the web, engine/menus.js in the engines; no Items, Quests or
+    // Map there since issue #487), and the game menu's (src/game-menu.js) Items, Map and Quests
     id: 'menus', title: 'The Start menu and its pages', setup: { level: 'bazaar', debug: true },
     beats: [
       { name: 'play', wait: 1.5 },
@@ -155,11 +156,12 @@ export const SEQUENCES = [
     ],
   },
   {
-    // the House map (issue #405, src/house-map.js): the Start menu's page inside a makers' house, its floor drawn
+    // the House map (issue #405, src/house-map.js): the game menu's panel inside a makers' house (the Start menu's page until
+    // issue #487), its floor drawn
     id: 'house-map', title: 'The House map', setup: { level: 'buried', debug: true },
     beats: [
       { name: 'inside', act: (G) => { const a = temple(G, 'buried').arrival, h = a.heading; G.player.teleport(a.pos.clone(), new THREE.Vector3(0, 1, 0), new THREE.Vector3(Math.sin(h), 0, Math.cos(h))); G.player.heading = h; G.rig.yaw = h + Math.PI; }, wait: 2 },
-      { name: 'map', act: (G) => G.menu.open('start', 'house'), wait: 1.5 },
+      { name: 'map', act: (G) => G.menu.open('game', 'house'), wait: 1.5 },
       { name: 'closed', act: (G) => G.menu.close(), wait: 0.6 },
     ],
   },
@@ -492,7 +494,8 @@ export function webGame(w) {
         }
         if (w.journal.open) {
           const M = w.journal.menu;
-          return { kind: 'game', page: M.panel, side: [], rows: (M.rows ?? []).flat().map((c) => clean(c.name ?? '')) };
+          // (side: the panels' tabs, the House map's among them inside a makers' house: issue #487)
+          return { kind: 'game', page: M.panel, side: M.state.panels.map((p) => clean(p.name)), rows: (M.rows ?? []).flat().map((c) => clean(c.name ?? '')) };
         }
         return null;
       },
@@ -523,7 +526,7 @@ export function engineGame(g, menus = null) {
         const v = menus?.view?.();
         if (!v) return null;
         if (v.kind === 'start') return { kind: 'start', page: menus.startPage(), side: v.side.map((s) => clean(s.text)), rows: (v.page?.rows ?? []).filter((r) => !(r.head && menus.startPage() === 'settings')).map((r) => clean(r.text)) };   // (the settings' group headings: the page's h2, not its rows)
-        if (v.kind === 'game') return { kind: 'game', page: v.panel, side: [], rows: menus.panel().rows.flat().map((c) => clean(c.name ?? '')) };
+        if (v.kind === 'game') return { kind: 'game', page: v.panel, side: v.tabs.names.map(clean), rows: menus.panel().rows.flat().map((c) => clean(c.name ?? '')) };
         // (a run's card, a shop, the foes' list: the page's own HTML on the web, compared by their screen parts)
         return null;
       },

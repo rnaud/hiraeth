@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.86 — 2026-10-19
 
+- The Start menu (Menu) is shorter: Items, Quests and Map are in the game menu (View) alone, where they already were. Inside a makers’ house, its map is now a tab of that menu too, after Map, and ▲ ▼ go up and down its floors.
 - In the Unity version, the Controls page shows your keys and buttons on caps, two to a line, as on the web; the thing in your hand carries its red IN USE tag in Items; and photo mode’s line of keys reads as the web’s.
 - A new controller layout. Hold D-pad ↑ for the wheel: every gadget and each of the glove’s modes now has its own slot, and the game waits while you choose, so no foe hits you meanwhile. A tap of D-pad ↑ takes back your last pick, so push and fluid are a tap apart. D-pad → now calls Plumb to find your objective (or a hint in a guardian’s fight), riding too, and R3 only locks on: with no foe near, it turns the camera behind you.
 - In the Mooring-House you now see the Anchor-Warden from the first hall, through the bars of its gate, and when it is stopped the gate opens and you walk back out into the hall where you began. Its floor is reached by a great door off the Cord Loft. Where it stood, past the west door, the Anchor Hold keeps a spare anchor out over a well: pull it home with the tether to draw back the moorers’ gate’s bar.

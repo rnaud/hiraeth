@@ -153,8 +153,6 @@ namespace Hiraeth.Bridge
             var pn = page?.S("note") ?? "";
             Show(pauseNote, pn.Length > 0);
             if (pn.Length > 0) { var ns = Ui.Set(pauseNote, pn, pw); Ui.Place(pauseNote.rectTransform, px, py, pw, ns.y); py += ns.y + 8; }
-            var house = page?.O("house");
-            if (house != null) { DrawHouse(house, px - 14, py, pw + 14, H - py - 44); HideRows(); return; }
             PauseRows(page?.L("rows") ?? new List<object>(), px, py, pw, H - py - 48);   // (over the buttons' prompts)
             HideRows();
         }

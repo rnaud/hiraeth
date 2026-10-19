@@ -150,7 +150,8 @@ the same entries in the same order, moved through by the web's own rules, and `v
   makes the slot active and reads the game state again (`game.reload()`: it was read at import, from the slot
   last played), then loads its world: the save's place in it (main.js "continue where you left off"), or the foot
   of the ship's ramp (`ship.arrivalSpot()`, a new save, another world) in the world `-level` names (the desert).
-- **the Start menu** (Menu / Esc): Resume, Items, Quests, Map, Settings, Controls, Quit to title on a sidebar,
+- **the Start menu** (Menu / Esc): Resume, Settings, Controls, Photo mode, What's new, Quit to title on a sidebar (no
+  Items, Quests, Map or House map since issue #487: they are the game menu's alone),
   its page beside it (`sideStep`, issue #210: right into the page, left back, up / down round each; a slider's,
   a switch's or a choice's left / right its value; B / ○ in the page back to the sidebar first), the save under
   its heading as the web's ("Save 1 · The Desert · 12 min played", `saveLine`). Settings: music, effects, voices,
@@ -166,12 +167,14 @@ the same entries in the same order, moved through by the web's own rules, and `v
   marks from world-map.js `mapMarks`, the ground not drawn), the cursor by `MenuState` / `moveCursor` (a row's
   end rests on the side tab, once more turns), LB / RB turn, A / × a thing's full view (its use: a gun mode),
   a quest tracked, a person's page (← → the next), Travel here.
-- **the House map** (issue #405): inside a makers' house the Start menu has it after Map (`HOUSE_SIDE`; the house's
-  view taken as the menu opens, `house()`: engine/game.js `houseView`); its page carries `house: { key, tabs, i,
-  here, name, aspect }`, the floor drawn by src/house-map.js into engine/raster.js's PixelCanvas (`houseKey`,
-  `housePicture`) and sent as the Map's ground is (BridgeHost.MapImage); LB / RB a floor. BridgeMenu.cs `DrawHouse`
-  lays out the tabs and the picture. `-house <id> [-house-room r] [-house-turn rad] -out dir` photographs each floor
-  (`unity-house-<id>-<floor>.png`).
+- **the House map** (issue #405, #487): inside a makers' house the game menu has a panel for it after Map
+  (src/game-menu.js `panelsFor`; the house's view taken as the game menu opens, `house()`: engine/game.js
+  `houseView`); the Start menu has none since issue #487 (nor Items, Quests or Map: `START_SIDE`). The game view
+  carries `house: { key, tabs, i, here, name, house, aspect }`, the floor drawn by src/house-map.js into
+  engine/raster.js's PixelCanvas (`houseKey`, `housePicture`) and sent as the Map's ground is (BridgeHost.MapImage);
+  ▲ ▼ a floor, LB / RB the panels. BridgeMenu.cs `DrawGame` draws it with `DrawHouse` (the tabs and the picture).
+  `-house <id> [-house-room r] [-house-turn rad] -out dir` photographs each floor (`unity-house-<id>-<floor>.png`)
+  and then the Start menu (`unity-house-<id>-start.png`).
 - **the dev menu** (L3 + R3, F2, `; issue #387): src/dev-menu.js's tabs on the game menu's sheet (panel `'dev'`),
   its world rows carried out by engine/game.js (teleports, god mode, the frame readout, cheats, quest stages, the
   hour); `-devmenu` photographs each tab (docs/systems/dev-tools.md, "The dev menu").
@@ -1881,9 +1884,10 @@ side and compares them beat by beat.
   `engineGame(game, menus)` (engine/game.js, engine/menus.js); `engineKey` routes a key as the Unity host routes the
   player's.
 - **The sequences** (39): the opening (#394's seventeen beats), every world's filmed moment (17, the catalog's "World
-  moments"), a makers' box, the ship's arrival (by step) and takeoff, the Start menu and its pages (Items, Map, Quests,
-  Settings), its other entries (`start-pages`: Controls with its rebinding, What's new, Photo mode in and out; issue
-  #264), the House map (the Start menu's page inside the Buried's makers' house, issue #405), a fight in the Arena (a blot spawned, lock-on, a cut, a hit, its
+  moments"), a makers' box, the ship's arrival (by step) and takeoff, the Start menu and the game menu's pages (Items, Map, Quests,
+  Settings), the Start menu's other entries (`start-pages`: Controls with its rebinding, What's new, Photo mode in and
+  out; issue #264), the House map (the game menu's panel inside the Buried's makers' house, issue #405, #487; the game
+  menu's beats carry its tabs as `side`), a fight in the Arena (a blot spawned, lock-on, a cut, a hit, its
   death, its chimes), a makers' temple (the Buried's: in at the door, a switch, a small key, the great key and the
   guardian's door), a fight temple's first wave (the Sunken Hall), two minigames (the rings, the ski: card, count, run,
   pause), a conversation with choices (Teo: two pages, his answers, the first chosen); the grass parting and a splat in

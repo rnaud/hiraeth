@@ -55,6 +55,10 @@ export const CHANGELOG = [
     // issue #264: unity/…/BridgeMenu.Pause.cs (PauseRows: the verbs to rebind two a line on caps), BridgeMenu.cs (the
     // tile's IN USE pill), engine/game.js photoHint (the page's hint.photo); tests/engine-menus.test.js
     'In the Unity version, the Controls page shows your keys and buttons on caps, two to a line, as on the web; the thing in your hand carries its red IN USE tag in Items; and photo mode’s line of keys reads as the web’s.',
+    // issue #487: src/ui.js (the Start menu without Items, Quests, Map, House map), src/game-menu.js (HOUSE_PANEL,
+    // panelsFor, housePanel), engine/menus.js (START_SIDE, the game view's house), BridgeMenu.cs DrawGame;
+    // tests/house-map.test.js, engine-menus.test.js, hud.test.js
+    'The Start menu (Menu) is shorter: Items, Quests and Map are in the game menu (View) alone, where they already were. Inside a makers’ house, its map is now a tab of that menu too, after Map, and ▲ ▼ go up and down its floors.',
   ] },
   { v: '1.85', date: '2026-10-18', items: [
     // issue #474: src/music-moments.js (MUSIC_MODES, musicMode: Always the default), src/ui.js (musicMode, musicV: a saved
