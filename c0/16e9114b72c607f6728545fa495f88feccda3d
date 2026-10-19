@@ -1,0 +1,43 @@
+changelog.md
+  s_5f899ba316b5dc::t_b3ec0c4d35988f 13
+docs/systems/cinematics-qc-notes.json
+  s_5f899ba316b5dc::t_a4f96fe974de21 526-527,530-532,536-537,541-542,546-547,550-552,555-557,561-562,566-567,570-572,576-577,581-582,586-587,590-592
+docs/systems/cinematics-qc.md
+  s_5f899ba316b5dc::t_6b2982f4e8a3a3 281-288
+docs/systems/cinematics.md
+  s_5f899ba316b5dc::t_81dbeac17889e3 368-372,391-399,403-404
+src/changelog-media.js
+  s_5f899ba316b5dc::t_caf27b06332afc 1264-1265,1410-1416
+src/changelog.js
+  s_5f899ba316b5dc::t_7cb876e1d160b8 168-173
+src/chimes.js
+  s_5f899ba316b5dc::t_63d0fff7f3fe1b 213-236,242-243,254,258
+src/host/game-host.js
+  s_5f899ba316b5dc::t_82094e36a7aeb9 70,600-601
+src/story/moment.js
+  s_5f899ba316b5dc::t_26821d93179346 95-96,196,215-223,225-226,228-243,280
+src/temples/finale.js
+  s_5f899ba316b5dc::t_e3afdaf42b0d1b 2-3,116-212,216-217,225-253,255-278,282-283,286-289,291-311,313,315-316,318-323,326-371,379-389,396,398,401,405,423,426,443-448,453
+src/temples/pieces.js
+  s_5f899ba316b5dc::t_2ecda9a592d48d 2496-2497,2502-2503,2517,2530
+src/temples/runtime.js
+  s_5f899ba316b5dc::t_3c36207d561809 14,318
+tests/temple-finale.test.js
+  s_5f899ba316b5dc::t_795ac22995f306 12-15,109-159,228-237
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c016e9114b72c607f6728545fa495f88feccda3d",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
