@@ -980,8 +980,13 @@ test('the Mooring-House (issue #417): the moored room high or low is the houseâ€
   const W = new TempleLogic(L, { has: (i) => ['gun', 'tether', 'monocle'].includes(i) });
   W.moveDrum('bK', L.elements.bK.plateAt);
   assert.equal(W.find('kB'), false, 'the ball home, the ring not pulled');
+  // (issue #477) the ring hangs on the house's cable: within reach only with the room low
   W.light('rL');
-  assert.equal(W.find('kB'), true, 'and with the ring');
+  assert.equal(W.isLit('rL'), false, 'the room high: the ring hauled up out of reach');
+  assert.deepEqual(L.elements.rL.when, LOW);
+  W.moveDrum('mooring', 0); W.update();
+  W.light('rL');
+  assert.equal(W.find('kB'), true, 'the room low, and with the ring');
   assert.equal(L.elements.bK.plateAt, PERCH.plateAt);
   for (const [extra, past] of [[{}, false], [{ 'drum.ballS': 0.143, 'open.gN': true, checkpoint: 'ante' }, true]]) {
     const g = new GameState(null);

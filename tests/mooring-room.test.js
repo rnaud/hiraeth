@@ -256,6 +256,17 @@ test('the Mooring-House on foot (issue #417): the capstan’s lever for the Lamp
   LENS_VIEW.k = 1; LENS_VIEW.eye.copy(P.pos).add(V(0, 1.7, 0)); LENS_VIEW.dir.subVectors(rL.center, LENS_VIEW.eye).normalize();
   frame(); LENS_VIEW.k = 0; frame();
   assert.ok(said(/Through the lens/) && ringTarget.enabled(), 'the lens shows it, and it stays');
+  // (issue #477, the twist: the ring hangs on the house's cable the other way round from the loft's: hauled up under the
+  // roof while the room is high, so he sends the room down without him from the gallery, and comes back)
+  assert.ok(rt.kit.local(rL.center).y > PERCH.ringUp - 0.5, 'the ring hangs high under the roof: the room is high');
+  assert.equal(tether(rL), false, 'out of the tether’s reach');
+  assert.equal(walk(perch(13), { max: 10 }) && walk(moor(-14), { max: 10 }) && walk(L(G.e + 3, BS, ROOM.z), { tol: 0.5 }) && walk(L(ROOM.x + 1.3, BS, ROOM.z), { tol: 0.4 }), true, `back to the room’s capstan (${where()})`);
+  assert.equal(use('mooring'), 'down', 'turned');
+  assert.equal(walk(L(G.e + 3.5, BS, ROOM.z), { tol: 0.5, max: 3 }), true, `stepped off before it goes (${where()})`);
+  assert.ok(docked(0), 'it sinks to the low dock without him');
+  assert.equal(walk(L(MH.x1 - 3, BS, MOOR.z)) && walk(moor(-14), { max: 10 }) && walk(perch(13), { max: 10 }) && walk(perch(11.5, 0.5), { tol: 0.5 }) && walk(perch(PERCH.lip + 0.7, PERCH.ring[1]), { tol: 0.5 }), true, `under the chain again (${where()})`);
+  wait(2.6);
+  assert.ok(Math.abs(rt.kit.local(rL.center).y - PERCH.ring[2]) < 0.3, 'the ring has come down');
   assert.ok(tether(rL), 'pulled');
   wait(1.5);
   assert.equal(walk(rt.piece('kB').pos, { tol: 1.2 }), true, `to the great key (${where()})`);
@@ -267,12 +278,9 @@ test('the Mooring-House on foot (issue #417): the capstan’s lever for the Lamp
   wait(30, () => cradle.s < 0.2 && cradle.wait > 0.8);
   assert.equal(walk(L(qx, BS, qz), { tol: 0.5, run: false, max: 6 }), true, `onto the cradle (${where()})`);
   assert.ok(wait(20, () => P.onGround && local().y < 1), `ridden down to the hall’s floor (${where()})`);
-  // ---- the Chain Locker: its shutter wants the room low: called home from the east landing
+  // ---- the Chain Locker: its shutter wants the room low (sent down for the great key's ring: still low)
   assert.equal(walk(L(0, 0, 44)) && walk(L(0, 0, LOFT.z - 12)) && walk(L(-14, 0, LOFT.z)) && walk(L(MH.x1 - 3, 0, LOFT.z)), true, `back through the loft (${where()})`);
-  assert.equal(rt.logic.isOpen('dL'), false, 'the locker’s shutter is down: the room is high');
-  assert.equal(walk(L(G.e + 3.2, 0, ROOM.z + 5.4), { tol: 0.5 }), true);
-  assert.ok(tether(ringL) && docked(0), 'the room called home: low');
-  assert.equal(rt.logic.isOpen('dL'), true, 'the shutter rises');
+  assert.ok(docked(0) && rt.logic.isOpen('dL'), 'the room low: the locker’s shutter is up');
   assert.equal(walk(L(LOCKER.door, 0, MH.z1 - 3)) && walk(L(LOCKER.door, 0, MH.z1 + 4)), true, `into the Chain Locker (${where()})`);
   // push the ball OUT along its rail over the well into the far cup: its weight brings the west door's ring down
   const rK = rt.piece('rK');

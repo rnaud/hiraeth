@@ -212,6 +212,13 @@ export const CHANGELOG = [
     // issue #527: engine/unity/game.js (onLoad → BridgeHost.LoadProgress), unity/Hiraeth BridgeHost.cs, BridgeHud.Loading.cs;
     // tests/engine-unity.test.js
     'In the Unity version too, the loading screen’s bar fills as the world is prepared, with the small line under it saying what is taking the time.',
+    // issue #477: src/temples/spheres.js (the walker's trail, TRAIL / trailPrints, the Mural's wall: false; Spiral.lookAt;
+    // the chasm's print `hold`; AT.dropA -120° → -82°), scripts/temple-design/rules.mjs (a clue is no piece to centre);
+    // tests/footprint-floors.test.js
+    'In the Footprint, the seeing lens now shows you where to look. Raise it as you leave the Lens Chamber: the walker’s prints lead round the balcony to the foot of the hidden spiral, and it shows as soon as you look at it from there. The walker’s print is on the wall again by the chasm of hidden stones, and the first drop opens just outside the Hall of Spheres’ door, where you can see it from the puzzle that opens it.',
+    // issue #477: src/temples/spacecity.js (rL when: LOW, its Hoist, PERCH.ringUp; stretch's own scratch vector);
+    // tests/mooring-room.test.js, tests/temples.test.js
+    'In the Mooring-House, the great key’s last ring hangs on the house’s great cable: while the moored room is up, it is hauled out of reach under the roof, and you have to send the room down without you to bring it back within reach. The cables and chains in the house now hang from the roof, instead of stopping in mid-air.',
   ] },
   { v: '1.84', date: '2026-10-17', items: [
     // issue #439: src/costumes.js (HEADS: the 47 pieces of the 15 hat sets, HAT_SETS, HAT_SET_WORLDS, hoodShell / hoodNeck /

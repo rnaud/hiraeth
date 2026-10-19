@@ -170,9 +170,10 @@ export function templeRules({ logic, pieces = [], spaces = [], order = null, gua
     const w = p.o.w ?? 4.4, h = p.o.h ?? 6;
     if (w < rules.door.w[0] - 1e-6 || w > rules.door.w[1] + 1e-6 || h < rules.door.h[0] - 1e-6 || h > rules.door.h[1] + 1e-6) add('door', l.a, `${l.door} (${l.a} → ${l.b}): ${w} × ${h} m, wants ${rules.door.w.join('-')} × ${rules.door.h.join('-')}`);
   }
-  // the puzzle's pieces, in the middle of their room
+  // the puzzle's pieces, in the middle of their room (not a clue: it is read where it is drawn, on a wall or along a floor,
+  // not worked; the Footprint's walker's prints, issue #477)
   for (const [id, e] of Object.entries(E)) {
-    if (!isPuzzleElement(e) || !e.room || kinds[e.room] === 'guardian') continue;
+    if (!isPuzzleElement(e) || e.type === 'clue' || !e.room || kinds[e.room] === 'guardian') continue;
     const s = spaceFor[e.room], p = byId.get(id);
     if (!s || !p) continue;
     const out = piecePoints(p).filter((q) => !inMiddle(s, q, rules));

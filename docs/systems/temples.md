@@ -692,6 +692,23 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   the solver's, the rules' (none broken), the way back's, z-fights 2 → 0. Old saves: past the old far door, the new
   doors as done and the great key in the great door (`migrate.js` spheres v4); one that stood in the old rooms, to its
   last mark.
+- **The Footprint made readable** (v1.85, issue #477; `docs/audits/temple-design-v1.85.md`: seven of its ten steps at
+  1.5 or under). Played through, the lens's reveal did not read from its locks: the spiral showed only to a lens raised
+  into the well's middle (its one point, 18 m over F2, out of a level look's cone), and the murals that said which stones
+  hold were two rooms and 50–93 m back. The puzzles are as they were; the cues moved to the locks:
+  - **The walker's trail** (`trail`, a `Mural` with `wall: false`, `trailPrints()`, `TRAIL`): through the lens, prints on
+    from the Lens Chamber's floor out of its door and round F2's balcony (r 16.8, stepping over the second drop's pool) to
+    the spiral's foot, the last two turned to the well. The spiral's clue (`clue: 'trail'`, room `bal2`).
+  - **The spiral seen from where you stand** (`Spiral.lookAt`): its middle, its two landings and the stones a quarter and
+    three quarters up, so a lens raised at the trail's end, or from the rim looking down, shows it.
+  - **The print again by the chasm** (`hold`, a small `Mural` on the Hall of the Unseen's near wall): the stones' clue in
+    their own room (`br1`'s `clue: 'hold'`).
+  - **The first drop in sight of its puzzle** (`AT.dropA` -120° → -82°): the rim's iris now opens just outside the Hall
+    of Spheres' door, seen through it; F1's pool under it moved with it.
+  The rules' "pieces in the middle" leaves a clue out (it is read where it is drawn, not worked: `rules.mjs`). Audit:
+  mean obviousness 1.8 → 2.55, steps at 1.5 or under 7 → 4 (`dT`, `dL`, `dR`, `d4`: keys a floor or more away, the
+  house's structure), non-obvious 3 (capped while more than one step is obscure), the curve 5 → 4 (the reveals' measured
+  difficulty was their clues' distance: 4.25 → 2.25 for the chasm), the score 4.33 → 4.22.
 - **The Aerie round a great hall** (v1.83, issue #407; the approved best practices, `docs/design/temple-best-practices.md`
   G4 and G6 and its Aerie row). The Wind Well is the house's great hall: 62 m across where it was 36 (`WELL.r` 31), its
   three floors seen at once: the floor (the hub), the **Feather Gallery**, a ring 7 m wide round the wall 16 m up
@@ -835,6 +852,15 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   Anchor-Warden; its walls; a save left under way), `tests/temples.test.js` (the logic both ways, the state's doors, the
   saves), `temple-playthrough` (the room set at a lever or called at a dock's ring with the tether; walked in with the lens),
   `carry`, `temple-design`, `temple-maps` (`makers.js`: "Send the moored room up / Bring it down"), `house-map`, `zfight`.
+- **The Mooring-House's last twist** (v1.85, issue #477: its curve had flattened, 5 → 3, the tether's uses one context).
+  The great key's ring on the balcony (`rL`, only the lens shows) hangs on the house's cable the other way round from the
+  loft's: hauled up under the roof while the room is high (`PERCH.ringUp`, a `Hoist`), down within the tether's reach with
+  the room low (`when: LOW`). Ball home, ring seen, the cage still holds and the balcony's gauge says why: back on the
+  gallery, turn the room's capstan and step off (the Rope Store's lesson), and come back. Audit: the great key's step 3 →
+  5.5 in complexity, the curve 3 → 4 (first third 2.44, last 3.88), the score 4.22 → 4.33; no step newly obscure (2.5).
+  With it, `stretch` (the cables' and chains' drawing) got its own scratch vector: called with the shared one as the
+  cable's foot, it drew the moored room's cable, the rings' chains and the shaft's counterweight's off by the house's
+  middle, so the rings hung from nothing.
 - **The Lamp-House round its Lamp Hall, its great lamp the house's state** (v1.83, issue #410; the approved
   recommendations: `docs/design/temple-best-practices.md`, G1, G2, G4, G6). The Hall of Dark Pools is the **Lamp Hall**
   (`ROOMS.pools`, its id kept), 36 by 64 m under 34, its **gallery** (`GALLERY`, the room `hallUp`) along the west wall

@@ -16,6 +16,8 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.85 — 2026-10-18
 
+- In the Mooring-House, the great key’s last ring hangs on the house’s great cable: while the moored room is up, it is hauled out of reach under the roof, and you have to send the room down without you to bring it back within reach. The cables and chains in the house now hang from the roof, instead of stopping in mid-air.
+- In the Footprint, the seeing lens now shows you where to look. Raise it as you leave the Lens Chamber: the walker’s prints lead round the balcony to the foot of the hidden spiral, and it shows as soon as you look at it from there. The walker’s print is on the wall again by the chasm of hidden stones, and the first drop opens just outside the Hall of Spheres’ door, where you can see it from the puzzle that opens it.
 - In the Unity version too, the loading screen’s bar fills as the world is prepared, with the small line under it saying what is taking the time.
 - In Vael, the makers’ box with the wind-silk scarf is no longer lost under the cloud, where it fell when its stack of balanced stones was moved. It now sits on top of Tiv’s stack on the great table’s west rim, in sight of the riders’ halfway stone.
 - In Lorn, the way to the rebuilt Hush-House is easy to find again: a lit crystal now crowns its tower, seen from the Great Crystal across the swamp, and the keepers’ stakes run from the crystal cave’s south mouth along the house’s shore to its steps, not out over the open water.

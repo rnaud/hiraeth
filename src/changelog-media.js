@@ -1235,6 +1235,8 @@ const PUSH522 = 'Every temple built in node as the game builds it (scripts/ball-
 /** (v1.85, issue #523: the wings on still air) */
 const GLIDE523 = 'The game’s own Player (src/player.js) in node at 60 Hz over a flat ground with the backpack, the wings and the double jump, no wind; before: GLIDE_SINK 2.4 / 1.3, after: 1.9 / 1.05';
 /** (v1.85, issue #521: the Lamp-House's sparks) */
+const LENS477 = 'Issue #477: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, noon, the HUD hidden) on this branch’s own Vite (port 5461), the traveller in the Footprint, the camera pinned, the seeing lens raised in the page; before: the tree at 283d7c22d, the same views; 19 October; cwebp -q 72';
+const RING477 = 'Issue #477: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, noon, the HUD hidden) on this branch’s own Vite (port 5461), the traveller in the Mooring-House, the camera pinned, the lens’s ring already seen (its save flag); before: the tree at 283d7c22d, the same views; 19 October; cwebp -q 72';
 const SPARK521 = 'Issue #521: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, a fixed render scale, noon, the HUD hidden) on this branch’s own Vite (port 5521), the traveller in the Lamp-House’s Hall of Dark Pools, the camera pinned behind him, Math.random seeded the same for both; before: the sparks as they were (40, 0.035, glow 1) set in the page; 18 October; cwebp -q 72';
 /** (v1.85, issue #517: the menus' button glyphs in Unity) */
 const UNITY517 = 'Issue #517: the Unity editor’s batch run on this Mac (scripts/unity-js-run.sh, muted, 1280 × 720 pictures of its 640 × 480 screen: -title-go with -title-art H1 for the title, -sequence menus -quality high for the Items page); before: the branch’s base; 18 October; cwebp -q 72';
@@ -1476,6 +1478,17 @@ export const CHANGELOG_MEDIA = {
       { name: 'unity-loading-bar', title: 'Waking the people', caption: 'The desert loading in Unity from the title: before, the pen and the stage’s line alone; after, the bar filled as far as the load has come, and why this part takes the time', from: UNITY527 },
       { name: 'unity-loading-bar-web', only: 'after', title: 'On the web', caption: 'The web’s loading screen at the same stage', from: WEB527 },
     ], see: 'In the Unity version, choose Continue on the title, or travel to another world: the bar under the pen fills step by step, and the line under it changes as the load goes.' },
+    { match: 'In the Footprint, the seeing lens now shows you where to look', tags: ['temples'], shots: [
+      { name: 'footprint-trail', title: 'Out of the Lens Chamber', caption: 'The lens raised on F2’s balcony by the Lens Chamber’s door: before, nothing; after, the walker’s prints round the balcony, past the pool, to the spiral’s foot, and the spiral showing.', from: LENS477 },
+      { name: 'footprint-spiral-foot', title: 'At the spiral’s foot', caption: 'The lens raised at the balcony’s edge, looking out over the well: before, nothing (the spiral showed only to a lens turned up into the well’s middle); after, its first stones.', from: LENS477 },
+      { name: 'footprint-unseen-hold', title: 'By the chasm', caption: 'The near ledge of the Hall of the Unseen through the lens: after, the walker’s print on the wall, over a stone carrying the same.', from: LENS477 },
+      { name: 'footprint-iris', title: 'The first drop', caption: 'From the Hall of Spheres, through its door: after, the first drop’s iris open on the rim just outside (before, round the well out of sight).', from: LENS477 },
+    ], see: 'In the Footprint, take the seeing lens from the Lens Chamber and raise it as you walk out: follow the prints to the balcony’s edge and look out over the well.' },
+    { match: 'In the Mooring-House, the great key’s last ring hangs on the house’s great cable', tags: ['temples'], shots: [
+      { name: 'mooring-ring', title: 'The room up', caption: 'The great key’s ring over the Capstan Hall, from the balcony, the moored room high: before, hanging within reach; after, hauled up under the roof on its chain.', from: RING477 },
+      { name: 'mooring-ring-low', only: 'after', title: 'The room down', caption: 'The same view with the moored room sent down: the ring hangs within the tether’s reach.', from: RING477 },
+      { name: 'mooring-loft-chain', title: 'The loft’s ring', caption: 'The Cord Loft’s ring, the room high: before, it hung from nothing; after, from its chain up to the roof.', from: RING477 },
+    ], see: 'In the Mooring-House, pull the balcony’s ball home and look for the ring through the lens: it hangs high. Go back to the gallery, turn the room’s capstan and step off, then come back.' },
   ],
   '1.84': [
     { match: 'In the Unity version on the Steam Deck, the first launch after an update no longer freezes', numbers: [

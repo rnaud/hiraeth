@@ -104,7 +104,7 @@ const DEG = Math.PI / 180;
  * the open hole through the rim and F1's balcony onto F2's), the piers to the great lift (south: you come in facing it),
  * the spiral's two ends (north), the gaps cut in F1's balcony either side of its east arc (their bridges, bW).
  */
-export const AT = { dropA: -120 * DEG, dropB: -60 * DEG, holeR: 2.2, poolR: 17, pier: Math.PI, spiral: 0, gaps: [45 * DEG, 135 * DEG], gapW: 10 * DEG };
+export const AT = { dropA: -82 * DEG, dropB: -60 * DEG, holeR: 2.2, poolR: 17, pier: Math.PI, spiral: 0, gaps: [45 * DEG, 135 * DEG], gapW: 10 * DEG };
 /**
  * Each hall's floor from wall to wall (its walls stand outside it), its floor's height and its ceiling's; the round halls'
  * middles and radii. The Still Pool and the Hall of the Unseen stand on their pits' floors (`y`): their near ledges `near`
@@ -204,10 +204,14 @@ export const LOGIC = {
     // stone, eye or door, it stays; a print shows only while it looks)
     chest: { type: 'gadget', room: 'lens', item: 'monocle' },
     mural: { type: 'clue', room: 'lens' },                                   // the walker's print on the wall, through the lens
-    spiral: { type: 'bridge', opens: { item: 'monocle' }, clue: 'mural' },   // the spiral up the well, only the lens shows
+    // (issue #477) the clues at the locks: the walker's trail from the Lens Chamber's door round F2's balcony to the
+    // spiral's foot, and the print again by the chasm's near ledge, both through the lens
+    trail: { type: 'clue', room: 'bal2' },
+    hold: { type: 'clue', room: 'unseen' },
+    spiral: { type: 'bridge', opens: { item: 'monocle' }, clue: 'trail' },   // the spiral up the well, only the lens shows
     // the Hall of the Unseen: the stones only the lens shows, the print's hold; on the far landing a sphere's groove past two
     // plain prints and the walker's, which only the lens shows; an eye only the lens shows on a pillar out of the chasm
-    br1: { type: 'bridge', room: 'unseen', opens: { item: 'monocle' }, clue: 'mural' },
+    br1: { type: 'bridge', room: 'unseen', opens: { item: 'monocle' }, clue: 'hold' },
     s2: { type: 'switch', room: 'unseenFar', needs: ['monocle'] },
     pf1: { type: 'plate', room: 'unseenFar' },
     p4: { type: 'plate', room: 'unseenFar' },
@@ -310,9 +314,11 @@ class Resonator {
 }
 
 /**
- * What the lens shows in the Lens Chamber (o.id 'mural', the clue of the stones over the chasm): on the wall, the
+ * What the lens shows in the Lens Chamber (o.id 'mural', the teaching of the house's idea): on the wall, the
  * walker's print, three toes, with a stepping stone under it carrying the same; over the floor, the walker's prints
- * from the dais toward the way on. Without the lens, plain wall and floor.
+ * from the dais toward the way on. Without the lens, plain wall and floor. (issue #477) The same kind, `wall: false`, is
+ * the trail of prints on F2's balcony to the spiral's foot (o.id 'trail'); a small one by the chasm's near ledge
+ * (o.id 'hold', `size`) says again at the lock which stones hold.
  */
 class Mural {
   constructor(rt, o) {
@@ -322,10 +328,12 @@ class Mural {
     const parts = [];
     // (on the wall: facing yaw, standing up; the big print over a stone carrying the small one)
     const up = (g, x, y, z, yaw) => g.rotateX(-Math.PI / 2).rotateY(Math.PI).rotateY(yaw).translate(x, y, z);
-    const [x, y, z] = o.at, yaw = o.yaw ?? 0, fx = Math.sin(yaw) * 0.04, fz = Math.cos(yaw) * 0.04;
-    parts.push(up(printGeometry(3, 2.6), x + fx, y + 1.2, z + fz, yaw));
-    parts.push(up(new THREE.PlaneGeometry(2.2, 0.12).rotateX(Math.PI / 2), x + fx, y - 0.9, z + fz, yaw));
-    parts.push(up(printGeometry(3, 0.9), x + fx, y - 0.4, z + fz, yaw));
+    const [x, y, z] = o.at, yaw = o.yaw ?? 0, fx = Math.sin(yaw) * 0.04, fz = Math.cos(yaw) * 0.04, k = o.size ?? 1;
+    if (o.wall !== false) {
+      parts.push(up(printGeometry(3, 2.6 * k), x + fx, y + 1.2 * k, z + fz, yaw));
+      parts.push(up(new THREE.PlaneGeometry(2.2 * k, 0.12).rotateX(Math.PI / 2), x + fx, y - 0.9 * k, z + fz, yaw));
+      parts.push(up(printGeometry(3, 0.9 * k), x + fx, y - 0.4 * k, z + fz, yaw));
+    }
     // the prints on the floor, from the dais toward the way on
     for (const [px, pz, a] of o.prints ?? []) parts.push(printGeometry(3, 0.9).rotateY(a).translate(px, (o.floor ?? 0) + 0.03, pz));
     this.mesh = new THREE.Mesh(mergeGeometries(parts.map((g) => { if (g.attributes.uv) g.deleteAttribute('uv'); if (g.attributes.normal) g.deleteAttribute('normal'); return g.index ? g.toNonIndexed() : g; })), this.mat);
@@ -337,6 +345,25 @@ class Mural {
     this.mesh.visible = lensUp(this.rt);   // (while the lens is up: issue #377)
     if (this.mesh.visible) this.mat.uniforms.uGlow.value = 0.55 + 0.2 * Math.sin(t * 1.3);
   }
+}
+
+/**
+ * (issue #477) The walker's trail on F2's balcony, through the lens: [x, z, heading] local, from the Lens Chamber's
+ * doorway round the well (r `TRAIL.r`) to the spiral's foot, a print every `stride` m, left and right `side` m apart,
+ * none in the second drop's pool; the last two turned in toward the well's middle.
+ */
+export const TRAIL = { r: 16.8, stride: 1.7, side: 0.45, from: -88, to: -7 };
+export function trailPrints() {
+  const out = [], R = WELL.r, [px, pz] = round(AT.dropB, AT.poolR), clear = AT.holeR + 1.2;
+  for (let x = -(R + 6.2), i = 0; x < -(R - 1.5); x += TRAIL.stride, i++) out.push([x, WZ + (i % 2 ? TRAIL.side : -TRAIL.side), Math.PI / 2]);
+  const a0 = TRAIL.from * DEG, a1 = TRAIL.to * DEG, n = Math.round(((a1 - a0) * TRAIL.r) / TRAIL.stride);
+  for (let i = 0; i <= n; i++) {
+    const a = a0 + ((a1 - a0) * i) / n, r = TRAIL.r + (i % 2 ? TRAIL.side : -TRAIL.side), [x, z] = round(a, r);
+    if (Math.hypot(x - px, z - pz) < clear) continue;
+    out.push([x, z, Math.atan2(Math.cos(a), -Math.sin(a))]);
+  }
+  for (const r of [15.6, 14.6]) { const a = (TRAIL.to + 3) * DEG, [x, z] = round(a, r); out.push([x, z, Math.atan2(WELL.x - x, WZ - z)]); }
+  return out;
 }
 
 const NOTES = ['#f6c84e', '#a8e6ee', '#e8b9c4'];
@@ -601,7 +628,14 @@ class Spiral {
     this.root.visible = false;
   }
   init(physics) { this.physics = physics; }
-  seen() { return revealed(this.rt, this.id, this.mid); }
+  // (issue #477: its middle over the well, and its two landings and the stones a quarter and three quarters up: the lens
+  // raised where the walker's trail ends at its foot, or looking down from the rim, shows it, not only looking up into
+  // the well's middle)
+  seen() { return (this.at ??= this.lookAt()).some((p) => revealed(this.rt, this.id, p)); }
+  lookAt() {
+    const K = this.rt.kit, S = this.steps, q = (i) => K.world(S[i].x, S[i].top + 1, S[i].z);
+    return [this.mid, ...this.ends.map(([x, z], i) => K.world(x, (i ? this.o.y1 : this.o.y0) + 1, z)), q(Math.floor(S.length / 4)), q(Math.floor((S.length * 3) / 4))];
+  }
   update(dt, t) {
     const seen = this.seen();
     this.root.visible = seen;
@@ -769,6 +803,10 @@ function layout(rt) {
   K.both(M.wall, box(0.8, 6.4, 4.8, LE.x - 7.4, F2 + 3.2, LE.z));
   K.both(M.trim, box(1.2, 0.4, 5.2, LE.x - 7.4, F2 + 6.6, LE.z));
   add(Mural, { id: 'mural', at: [LE.x - 6.98, F2 + 3.6, LE.z], yaw: Math.PI / 2, floor: F2, prints: [[LE.x + 4.2, LE.z + 0.9, Math.PI / 2 + 0.15], [LE.x + 5.8, LE.z - 0.7, Math.PI / 2 - 0.1], [LE.x + 7.4, LE.z + 0.8, Math.PI / 2 + 0.1], [LE.x + 9.0, LE.z - 0.6, Math.PI / 2 - 0.05], [LE.x + 10.6, LE.z + 0.7, Math.PI / 2 + 0.1], [LE.x + 12.2, LE.z - 0.5, Math.PI / 2]] });
+  // (issue #477) and on out: the walker's trail through the doorway and round F2's balcony to the spiral's foot, stepping
+  // over the second drop's pool, its last two prints turned to the well where the first stone waits: through the lens,
+  // where to raise it again (the spiral was shown only to a lens raised into the well's middle, seen from nowhere)
+  add(Mural, { id: 'trail', at: [-(R - 0.6), F2, WZ], wall: false, floor: F2, prints: trailPrints() });
   add(Door, { id: 'dL', at: [-(R + 0.7), F2, WZ], yaw: Math.PI / 2, w: D.w, h: D.h, lamps: [{ drumOn: ['ball3', 'p3'] }] });
   add(Mark, { room: 'lens', at: [LE.x + 8, F2, LE.z - 8], yaw: -Math.PI * 0.75 });
 
@@ -786,6 +824,9 @@ function layout(rt) {
   // the chasm's lips, broken rock hanging under the ledges' edges
   for (let i = 0; i < 12; i++) for (const [x, s] of [[Q0, 1], [Q1, -1]]) K.add(M.stone, T(new THREE.IcosahedronGeometry(0.9 + (i % 3) * 0.35, 0).scale(0.8, 1.6, 1.2), [x + s * 0.35, F2 - 1.4 - (i % 2) * 0.8, UN.z0 + 1.15 + i * 2.7], [0.3 * i, i, 0]));
   add(Pit, { room: 'unseen', min: [Q0, UN.y - 2, UN.z0 - 1], max: [Q1, F2 - 3, UN.z1 + 1] });
+  // (issue #477) by the near ledge, the walker's print again through the lens, small, over a stone carrying the same:
+  // the rule said where the chasm is, not only two rooms back in the Lens Chamber
+  add(Mural, { id: 'hold', at: [U0 + 0.06, F2 + 3.2, WZ + 6.5], yaw: Math.PI / 2, size: 0.6 });
   add(LensStones, { id: 'br1', cells: STONES.map(([c, along, toes]) => ({ x: U0 + along, z: WZ + c, toes, real: toes === 3 })), y: F2, size: 3, a: [Q0, F2, WZ], b: [Q1, F2, WZ] });
   const EX = Q0 + 3, EZ = WZ - 8;
   K.both(M.wall, box(2.4, 7.6 + uy, 2.4, EX, F2 + (7.6 - uy) / 2, EZ));

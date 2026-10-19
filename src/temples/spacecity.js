@@ -52,7 +52,9 @@ import { mooringHouseSkin } from './skins/mooring-house.js';
 //                        home again, the only way back east
 //   the moorers' gate    (the small key) from the gallery's east half to the Capstan Hall's balcony: the great key's
 //                        cage, a ball out on a cable-rail pulled home and (G2: the tether and an older tool at once) a
-//                        ring hung over the hall only the seeing lens shows, pulled; the cradle down to the hub
+//                        ring hung over the hall only the seeing lens shows, pulled; the cradle down to the hub. (#477:
+//                        the ring hangs on the house's cable the other way round from the loft's: down within reach with
+//                        the room LOW, so you send the room down without you from the gallery and come back: the twist)
 //   the Chain Locker     north off the east landing: its shutter rises with the room low. Push its ball OUT along its
 //                        rail over the well, and its weight brings the ring of the west door's chain down within
 //                        reach: pull it (push, then pull)
@@ -163,8 +165,9 @@ STORE.zone = { min: [STORE.x - STORE.w / 2, 10, STORE.z - STORE.d / 2], max: [ST
 /** (v1.53) The balcony's cable-rail in the Capstan Hall (v1.77: out from the balcony's lip toward the middle, over the
  * floor, `side` m beside the moorers' radial): the footstone `home` m from the hall's middle, the rail `rail` m on
  * inward (as long as it was round the wall); the balcony's lip at `lip`; the cradle and the great key on it; (v1.83) the
- * ring only the lens shows, hung in the air past the lip (d, side, height). */
-export const PERCH = { home: 9.4, rail: 4.476, side: 2.5, lip: 8, cradle: [6.0, -4.0], key: [14, -4], ring: [5.6, -1.2, 15.2] };
+ * ring only the lens shows, hung in the air past the lip (d, side, height; issue #477: its height with the room low, `ringUp`
+ * hauled up under the roof while the room is high). */
+export const PERCH = { home: 9.4, rail: 4.476, side: 2.5, lip: 8, cradle: [6.0, -4.0], key: [14, -4], ring: [5.6, -1.2, 15.2], ringUp: 25 };
 /** (the footstone 0.9 m in from the rail's home end: its stop along the groove) */
 PERCH.plateAt = +(0.9 / (PERCH.rail + 0.9)).toFixed(3);
 /** (v1.83) Where the house's state is set by hand: the capstan's lever in the Capstan Hall, the lever on the west landing's
@@ -252,7 +255,10 @@ export const LOGIC = {
     // that only the seeing lens shows (the Footprint's), pulled
     bK: { type: 'drum', room: 'perch', plate: 'pK', plateAt: PERCH.plateAt, start: 1, needs: ['tether'] },
     pK: { type: 'plate', room: 'perch' },
-    rL: { type: 'switch', room: 'perch', needs: ['tether', 'monocle'] },
+    // (issue #477, the house's last twist before its guardian: the ring hangs on the far side of the capstan's cable from
+    // the loft's, so it comes down within the tether's reach with the room LOW, not high: send the room down without you
+    // from the gallery, and come back)
+    rL: { type: 'switch', room: 'perch', needs: ['tether', 'monocle'], when: LOW },
     kB: { type: 'key', kind: 'big', room: 'perch', when: { all: [{ drumOn: ['bK', 'pK'] }, { lit: 'rL' }] } },
     // the east landing's ball, out on its cable-rail over the void: pulled home, and the room high, the gangway hangs taut
     ballD: { type: 'drum', room: 'drift', plate: 'pD', plateAt: 0.125, start: 1, needs: ['tether'] },
@@ -355,11 +361,14 @@ function line(rt, mat, r = 0.06) {
   rt.root.add(m);
   return m;
 }
+// (issue #477: its own scratch vector: called with _md as `a` (the moored room's cable, the rings' chains, the shaft's
+// counterweight's), it took a - a's difference for the cable's foot and drew every one of them off by the house's middle)
+const _ms = V();
 function stretch(m, a, b) {
-  _md.subVectors(b, a);
-  const L = _md.length();
+  _ms.subVectors(b, a);
+  const L = _ms.length();
   m.position.copy(a);
-  m.quaternion.copy(_mq.setFromUnitVectors(_mu, _md.divideScalar(Math.max(L, 1e-4))));
+  m.quaternion.copy(_mq.setFromUnitVectors(_mu, _ms.divideScalar(Math.max(L, 1e-4))));
   m.scale.set(1, Math.max(0.01, L), 1);
 }
 /** The angle (rad) between two headings, -π..π. */
@@ -790,7 +799,9 @@ function wings(rt, K, M, { BS, rail, cable, iron, brass, cableM }) {
   // cage go (with the ball home)
   const [gx, gz] = at(P.ring[0], P.ring[1]);
   add(Switch, { id: 'rL', at: [gx, P.ring[2], gz], yaw: MOOR_A, size: 0.85, pull: true, hidden: true, wrong: 'The ring swings on its chain. It wants pulling, not wetting.' });
-  cable([gx, P.ring[2] + 0.9, gz], [gx, 27.6, gz], 0, 0.06);
+  // (issue #477) on the house's cable: hauled up under the roof while the room is high, down within the tether's reach
+  // with the room low (the loft's ring the other way round)
+  add(Hoist, { piece: 'rL', when: LOW, up: P.ringUp, down: P.ring[2], top: 27.6 });
   cable([gx, 27.6, gz], [kx, 27.6, kz], 1.4, 0.06);
   cable([kx, 27.6, kz], [kx, Y + 3.2, kz], 0, 0.06);
 }
