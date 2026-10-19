@@ -40,6 +40,11 @@ export const SPHERES_SONG = [[0, 1], [2, 1], [4, 2], [5, 2], [4, 1], [2, 1], [1,
 export const AMBIENT_WIND = 0.22;
 // The mount's whistle (and a taxi's hail): its tone's peak level on the effects bus.
 export const WHISTLE = 0.03;
+// Vael's rider's call on the bone flute (tune(): how you call the bird there, every time): its notes' level on the
+// effects bus. (0.16 until issue #488, "in Vael the whistle is too loud": -21 dB at its loudest 100 ms, over the
+// world's music (-27 dB RMS) and 9 dB over the mount's whistle; now about -29, with them. The master's compressor
+// (threshold -18, a soft knee) squeezes the top: the level falls much less than the gain.)
+export const CALL_TUNE = 0.028;
 
 // Each world's score lives in src/score.js (its mode, tempo, instruments, leitmotif, and the
 // father's theme in it); its instruments in src/score-voices.js. Here: the ground under your
@@ -1699,7 +1704,7 @@ export class Sound {
    * A short tune on an instrument, on the effects bus (something you play, not the score):
    * notes [[Hz, beats]], a beat `beat` s. Vael's rider's call on the flute (src/story/arzach-data.js).
    */
-  tune(notes, beat = 0.22, kind = 'flute', vol = 0.16) {
+  tune(notes, beat = 0.22, kind = 'flute', vol = CALL_TUNE) {
     if (!this.ctx) return false;
     let t = this.ctx.currentTime + 0.05;
     for (const [f, beats] of notes) { const d = beats * beat; this.instrument(kind, f, t, d, vol, this.fx); t += d; }

@@ -493,7 +493,8 @@ small bank of CC0 recordings (`public/sfx/`, 74 mono MP3s at 64 kb/s, about 360 
   (the Spheres' little worlds) counts as ground.
 - **The levels** (the game's own Sound rendered by engine/webaudio.js, the loudest 100 ms in dBFS;
   `tests/sound-mix.test.js` keeps them): the desert wind calm about -54, gusting while walking -47, a
-  sandstorm -40 (`AMBIENT_WIND` 0.22); the mount's whistle -30 (`WHISTLE`), the train's -31; the water
+  sandstorm -40 (`AMBIENT_WIND` 0.22); the mount's whistle -30 (`WHISTLE`), the train's -31; Vael's rider's call
+  on the flute (`tune`, `CALL_TUNE`; issue #488) -29, -21 before; the water
   welling up (`waterRise`) -36; a synthesised footstep about -42 and the music about -27 for reference.
 - **`waterRise({ dur, vol })`**: water or oil welling up: slowed noise through a low-pass that opens and
   surges, with small sine bubbles gliding up an octave; the desert's cave channel and city well and the

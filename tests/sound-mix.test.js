@@ -99,6 +99,15 @@ test('the mount\'s whistle and the train\'s are no longer the loudest things in 
   assert.ok(train < -29, `the train's whistle ${train.toFixed(1)} dB`);
 });
 
+test('Vael\'s rider\'s call on the flute sits with the music and the mount\'s whistle, not over them (issue #488)', async () => {
+  const { RIDER_CALL, RIDER_CALL_BEAT } = await import('../src/story/arzach-data.js');
+  const call = loudest((s) => s.tune(RIDER_CALL, RIDER_CALL_BEAT), 'arzach');
+  const mount = loudest((s) => s.whistle('mount'), 'arzach');
+  // (before: -21.2 dB, over the world's music, about -27 dB RMS, and 9 dB over the mount's whistle)
+  assert.ok(call < -27 && call > -34, `the rider's call ${call.toFixed(1)} dB`);
+  assert.ok(Math.abs(call - mount) < 3, `beside the mount's whistle (${mount.toFixed(1)} dB)`);
+});
+
 test('water welling up: a soft gurgle, well under the old whoosh, with no click', () => {
   const water = loudest((s) => s.waterRise());
   const whoosh = loudest((s) => s.whoosh());

@@ -70,6 +70,8 @@ export const CHANGELOG = [
     'Creatures and machines now look at you once they have noticed you: the crab’s eye stalks lean your way, the toad’s eyes turn in their sockets, the lizard, the hound and the heron turn their heads, the wisp’s eyes slide over its petals and the brute’s brass eye follows you round as its body twists to you. Left alone, they look where they are going.',
     // issue #521: src/temples/air.js HOUSE_AIR.perdide2 (its sparks: 26 not 40, 0.028 not 0.035, glow 0.75, alpha 0.75)
     'The fireflies drifting in the dark of Lorn’s Lamp-House are fewer, smaller and softer: little sparks again, not a hall of floating lamps.',
+    // issue #488: src/audio.js CALL_TUNE (tune(): 0.16 → 0.028); tests/sound-mix.test.js
+    'In Vael, the rider’s call you play on the bone flute to bring the bird down is quieter: it now sits with the world’s music instead of ringing out over it.',
   ] },
   { v: '1.84', date: '2026-10-17', items: [
     // issue #439: src/costumes.js (HEADS: the 47 pieces of the 15 hat sets, HAT_SETS, HAT_SET_WORLDS, hoodShell / hoodNeck /
