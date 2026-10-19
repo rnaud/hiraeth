@@ -1,0 +1,39 @@
+tests/ink-pass.test.js
+  s_5f899ba316b5dc::t_867251d0b3402b 58,65-79
+src/levels/spheres.js
+  s_5f899ba316b5dc::t_a1d43206d1b62a 102-107,993-996,1004,1015
+docs/systems/rendering.md
+  s_5f899ba316b5dc::t_3fc1dc3d8242a8 1016-1033
+src/flora.js
+  s_5f899ba316b5dc::t_fafb94eb8c8cc0 36
+src/changelog-media.js
+  s_5f899ba316b5dc::t_383b262ea0835d 1252-1253,1365-1370
+src/changelog.js
+  s_5f899ba316b5dc::t_f42ff2652fd406 123-125
+changelog.md
+  s_863a0c69d732fd::t_651b002430cd44 7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "61212e6bef3d7abe5ccdcbff8b3ab2c0388f6d97",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_863a0c69d732fd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a87b828d5cd693297",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
