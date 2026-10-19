@@ -1,0 +1,47 @@
+changelog.md
+  s_5f899ba316b5dc::t_8bb30286f77888 13
+docs/steam-deck.md
+  s_5f899ba316b5dc::t_7709753c606be9 5-12,44-47,135-136,184-185,218-228,362,365-366,369,482-483
+scripts/steam-deck/deck.py
+  s_5f899ba316b5dc::t_6d802ad737c9ab 14-18,61-62,64-72,176,185-188,208-211,248-250,257,783,795,806-807,843,877-879,883,886-887,894,1016-1018,1023-1024,1026-1029,1034-1037,1039,1059,1148-1149,1153,1162,1167-1170,1180,1190,1192-1196,1453-1454
+src/changelog.js
+  s_5f899ba316b5dc::t_9c880b7b914141 32-35
+tests/test_steam_deck.py
+  s_5f899ba316b5dc::t_d0513efaa40989 453-454,456,467,490,529,617-619,634-637,639-642,652,655-656,660-664,666,669,671,673-675,677-679,682-686,691-697,701-706,708-719,722,724,728-735,774,965-966,987,1004,1016-1017,1033,1099-1109,1111,1113-1125
+tests/android-ota.test.js
+  s_190b291bccfb9a::t_feff6e0ac38aa6 204,214-215
+tests/deck-runtime.test.js
+  s_345c60cad61fdb::t_43e41ca6f4054e 96-97
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "fac07a690f155d6fc62811be4fa861391f016030",
+  "prompts": {},
+  "sessions": {
+    "s_190b291bccfb9a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a4b261f88a94aa9aa",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_345c60cad61fdb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ad1ecc91fe3591024",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
