@@ -1,0 +1,53 @@
+changelog.md
+  s_5f899ba316b5dc::t_d2f7e88685d0e8 7
+docs/systems/bridge-gaps.md
+  s_5f899ba316b5dc::t_aaf37dde1655de 52,92
+docs/systems/engine-bridge.md
+  s_5f899ba316b5dc::t_c7fa34553a51bc 2432-2447
+engine/bridge-gaps.js
+  s_5f899ba316b5dc::t_608d5e519a492d 211,344-345
+engine/menus.js
+  s_5f899ba316b5dc::t_889470792d7328 32-33,158-179,1096-1098
+tests/engine-menus.test.js
+  s_5f899ba316b5dc::t_680a18bf2f06b9 677-717
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.Chrome.cs
+  s_5f899ba316b5dc::t_b0f44c3f8ead7e 108-130,140,147-151
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.Glyphs.cs
+  s_5f899ba316b5dc::t_cfaf16cb6575db 1-149
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.Glyphs.cs.meta
+  s_5f899ba316b5dc::t_61446ef3c9f5e2 1-2
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.Pause.cs
+  s_5f899ba316b5dc::t_ae13c807508336 139-144
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.Shop.cs
+  s_5f899ba316b5dc::t_f6884c5bc4d43f 60,62-63,112,177-178,194,197
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.cs
+  s_5f899ba316b5dc::t_ae824bd69802ce 332,354-360,362,426-428,430,432,512-519,809-810,819,862-867,1175-1181
+src/changelog-media.js
+  s_359a11c67e12ca::t_fc83b08326ca3d 1221-1223,1250-1255
+src/changelog.js
+  s_359a11c67e12ca::t_142591b35b4013 62-64
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f62376f86abead72dcf3d3f32484d72aea1729a5",
+  "prompts": {},
+  "sessions": {
+    "s_359a11c67e12ca": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a9aa843ccf0eebb60",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
