@@ -438,7 +438,7 @@ export class Dialogue {
     // the camera cuts straight to the two-shot (frameCamera picks it on the next frame, after onOpen
     // has made room between the two): no swing round from the follow camera
     this.blend = 1; this._shot = null; this._across = null; this._cutAt = this.clock;
-    this.game.set(`met.${person.id}`, true);
+    if (!person.companion) this.game.set(`met.${person.id}`, true);   // (Plumb, your own drone, is nobody you meet: issue #543)
     this.game.emit('dialogue:start', { npc, id: person.id });
     this.onOpen(person, npc);
     // the portrait: a data URL, or { src, background } (just them against a flat colour: src/story/portrait-bg.js);

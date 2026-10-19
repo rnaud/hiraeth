@@ -25,7 +25,7 @@ import { screen } from './platform.js';
 import { sceneHolds } from './hud-shows.js';
 import { inputKind, keyText } from './prompt-keys.js';
 import { FirstSteps } from './first-steps.js';
-import { installScoutHint, scoutHintLine, SCOUT_HINT_SHOW } from './scout-hint.js';
+import { installScoutHint, scoutHintLine, SCOUT_HINT_SHOW, plumbHintDue, plumbHintLine } from './scout-hint.js';
 import { t as tr } from './i18n.js';
 import { Wildlife } from './wildlife.js';
 import { createGBuffer, createComposeTarget, createBlit, createSmaa, aaOf, setSubject } from './pipeline.js';
@@ -812,7 +812,9 @@ const droneSaid = { text: '', until: 0 };   // (its line on the cue: before the 
 wireLessons({ game, items, levelId, gadgets: () => gadgets, sound, toast: (t) => showToast(t), plumb });
 // Plumb each frame (src/host/game-host.js wireCompanion, the engines' too): its escort out of the prologue, the first
 // person near, its hints when you look lost, its first word (issue #434)
-const plumbStep = wireCompanion({ game, plumb, scout, level, player, npcs, struggle });
+// (something critical: at your shoulder with its mark, the button opens its talk; the first time, the button's line: issue #543)
+const plumbStep = wireCompanion({ game, plumb, scout, level, player, npcs, struggle, sound, dialogue: () => storyRt.dialogue,
+  teach: () => { if (plumbHintDue(game)) { scoutTeach.line = plumbHintLine; scoutTeach.left = SCOUT_HINT_SHOW; } } });
 /** Plumb, each frame (after the scout's own update): its line on the cue, a moment. */
 function updatePlumb(dt) {
   const now = performance.now();
@@ -827,8 +829,8 @@ function updatePlumb(dt) {
 // after the first conversation, once a save: the scout's button finds the next quest (src/scout-hint.js, issue #151;
 // apart from the drone's own lines: a ping of your own before it counts as learnt)
 // (on the cue at the bottom, for SCOUT_HINT_SHOW s of its own: the toasts at the top are the quest's just then)
-const scoutTeach = { left: 0, at: 0 };
-const scoutHint = installScoutHint({ game, show: () => { scoutTeach.left = SCOUT_HINT_SHOW; },
+const scoutTeach = { left: 0, at: 0, line: scoutHintLine };   // (line: the scout's, or Plumb's talk's, issue #543)
+const scoutHint = installScoutHint({ game, show: () => { scoutTeach.line = scoutHintLine; scoutTeach.left = SCOUT_HINT_SHOW; },
   usable: () => !ship.inside && !ship.playing && !minigame && !minigameDef && game.flag('prologue.done') && !!scout.getTarget?.() });
 // (a nudge that `wait`s, the way on from a place reached (Vael's riders' gate, issue #349), comes once the notices
 //  and the talk are done, within 30 s, instead of not at all)
@@ -1137,7 +1139,7 @@ const input = new Proxy({}, { set(o, k, v) { if (v) tapped.add(k); o[k] = v; ret
 const latchedInput = () => { const o = { ...input }; for (const k of tapped) o[k] = true; tapped.clear(); return o; };
 window.addEventListener('keydown', (e) => {
   input[e.code] = true;
-  if (e.code === 'KeyQ' && !e.repeat && !busy() && !photo.on && !ship.playing) { scoutHint.pinged(); scout.ping(); }
+  if (e.code === 'KeyQ' && !e.repeat && !busy() && !photo.on && !ship.playing) { scoutHint.pinged(); if (!plumbStep.press()) scout.ping(); }   // (Plumb's talk first, when it has something to tell you: issue #543)
   if (e.code === 'Space') e.preventDefault();
 });
 window.addEventListener('keyup', (e) => (input[e.code] = false));
@@ -1626,7 +1628,7 @@ function updateHud() {
   // the scout's button, once after the first conversation (src/scout-hint.js): its seconds count only while it shows
   if (scoutTeach.left > 0) {
     const sdt = scoutTeach.at ? Math.min(0.1, (now - scoutTeach.at) / 1000) : 0; scoutTeach.at = now;
-    if (!teach && !found && !text && !place && !quiet && !ship.playing) { teach = scoutHintLine(); scoutTeach.left -= sdt; }
+    if (!teach && !found && !text && !place && !quiet && !ship.playing) { teach = scoutTeach.line(); scoutTeach.left -= sdt; }
   }
   cue.set(found || text || place || teach, said ? '' : found ? scoutSaid.kind : text || !place ? '' : 'place');
   // (the tank's gauge, when it shows without the crosshair, sits beside the traveller: left of the shoulders)
@@ -1757,7 +1759,7 @@ const controller = new Controller({
     }
     // D-pad →: Plumb finds the objective (Q; src/scout.js), on foot and riding; a guardian's fight or a makers' house: a
     // hint (Scout.getHint, docs/systems/boss-hints.md). Its own button since v1.86 (issue #512: R3 only locks on)
-    if (name === 'scout' && !ship.playing && !photo.on) { scoutHint.pinged(); scout.ping(); }
+    if (name === 'scout' && !ship.playing && !photo.on) { scoutHint.pinged(); if (!plumbStep.press()) scout.ping(); }   // (Plumb's talk first: issue #543)
     if (name === 'l3' && level.jump) level.jump(-1);
     if (name === 'worldDebug' && (devMenu.open || !busy() || menuRoot() === picker)) devMenu.toggle();   // L3 + R3: the dev menu (F2, `; the hitbox overlay is in its Toggles, and F4)
     // the free View + D-pad chords (src/bindings.js FREE): a 'padchord' event any system may listen for

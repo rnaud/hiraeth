@@ -435,3 +435,33 @@ test('escort (issue #434): handed over by the prologue, it rides at your shoulde
   assert.equal(b.scout.phase,'away','gone when its time is up');
   assert.equal(b.scout.escort(5),true,'and it can come again');
 });
+
+test('something to tell you (issue #543): at your shoulder it hops, turns to you, the mark over it; the talk before your face, in a scene too', async () => {
+  const { HAIL, TALK } = await import('../src/scout.js');
+  const {scout,player,finds}=fixture();
+  player.heading=0;
+  scout.escort(HAIL.secs+1); scout.hail(true);
+  let top=-Infinity, low=Infinity;
+  for(let i=0;i<60*3;i++){ scout.update(1/60); if(i>60){ const h=scout.object.position.y-scout.appearSpot(v()).y; top=Math.max(top,h); low=Math.min(low,h); } }
+  assert.equal(scout.mark.visible,true,'the mark');
+  assert.ok(Math.abs(scout.mark.position.y-scout.object.position.y-HAIL.over)<0.05,'over it');
+  assert.ok(top-low>HAIL.hop*0.4,`it hops (${(top-low).toFixed(3)} m)`);
+  const toYou=v().subVectors(player.pos,scout.object.position).setY(0).normalize(), facing=v(0,0,1).applyQuaternion(scout.object.quaternion).setY(0).normalize();
+  assert.ok(facing.dot(toYou)>0.5,'turned to you');
+  scout.hail(false); scout.update(1/60);
+  assert.equal(scout.mark.visible,false,'no mark once heard');
+  // the talk: before your face, open, through a pause and a scene ("gone": its own talk is the one in the shot)
+  scout.hail(true);
+  const at=scout.talk().clone();
+  assert.equal(scout.phase,'talk'); assert.equal(scout.mark.visible,false);
+  const flat=Math.hypot(at.x-player.pos.x,at.z-player.pos.z);
+  assert.ok(Math.abs(flat-TALK.out)<0.01,`${flat.toFixed(2)} m before you`);
+  for(let i=0;i<120;i++) scout.update(1/60,true,true);
+  assert.equal(scout.phase,'talk'); assert.equal(scout.object.visible,true);
+  assert.ok(scout.object.position.distanceTo(at)<TALK.bob*2+0.01,'it floats there');
+  // the talk over: the ping sends it off to the objective as ever
+  scout.ping();
+  assert.equal(scout.phase,'seek');
+  for(let i=0;i<600&&!finds.length;i++) scout.update(1/60);
+  assert.equal(finds.length,1);
+});

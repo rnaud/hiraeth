@@ -46,3 +46,15 @@ export function installScoutHint({ game, usable = () => true, show, level = hint
     off,
   };
 }
+
+// Plumb's talk (issue #543): the first time Plumb comes to your shoulder with something to tell you (its mark over it),
+// one line on the cue that the same button hears it, once a save (flag teach.plumb; hints subtle or full).
+export const PLUMB_TAUGHT = 'teach.plumb';
+/** The line, for the input in hand ("D-pad → talks to Plumb"). */
+export const plumbHintLine = (kind) => keyText(t('teach.plumb'), { kind, teach: true });
+/** Whether to say it now (and it counts as said): never said, hints not off. */
+export function plumbHintDue(state, level = hintLevel()) {
+  if (state.flag(PLUMB_TAUGHT) || !hintsFor('teach', level)) return false;
+  state.set(PLUMB_TAUGHT, true);
+  return true;
+}

@@ -6534,6 +6534,130 @@
           "late": false
         }
       ]
+    },
+    "plumb-talk": {
+      "beats": [
+        {
+          "beat": "mark",
+          "hud": {
+            "cue": "Q talks to Plumb"
+          },
+          "menu": null,
+          "playing": null,
+          "objects": {
+            "ink": 1580,
+            "print": 1,
+            "hidden": 1,
+            "chimeshade": 1,
+            "wisp": 1,
+            "mote": 1
+          },
+          "cam": [
+            94.3,
+            16,
+            163.5,
+            55
+          ],
+          "player": [
+            96.7,
+            13.5,
+            167.6
+          ],
+          "late": false
+        },
+        {
+          "beat": "talk",
+          "hud": {
+            "dialogue": {
+              "name": "Plumb",
+              "text": "Makers’ gate. Blades mean keep out.",
+              "choices": []
+            }
+          },
+          "menu": null,
+          "playing": null,
+          "objects": {
+            "ink": 1593,
+            "print": 1,
+            "hidden": 1,
+            "chimeshade": 1,
+            "wisp": 1,
+            "mote": 1
+          },
+          "cam": [
+            94.1,
+            15.4,
+            169.3,
+            55
+          ],
+          "player": [
+            96.7,
+            13.5,
+            167.6
+          ],
+          "late": false
+        },
+        {
+          "beat": "page",
+          "hud": {
+            "dialogue": {
+              "name": "Plumb",
+              "text": "Something got in.",
+              "choices": []
+            }
+          },
+          "menu": null,
+          "playing": null,
+          "objects": {
+            "ink": 1593,
+            "print": 1,
+            "hidden": 1,
+            "chimeshade": 1,
+            "wisp": 1,
+            "mote": 1
+          },
+          "cam": [
+            94.1,
+            15.4,
+            169.3,
+            55
+          ],
+          "player": [
+            96.7,
+            13.5,
+            167.6
+          ],
+          "late": false
+        },
+        {
+          "beat": "flight",
+          "hud": {
+            "cue": "Marrow, by your ship · 14 m"
+          },
+          "menu": null,
+          "playing": null,
+          "objects": {
+            "ink": 1578,
+            "print": 1,
+            "hidden": 1,
+            "chimeshade": 1,
+            "wisp": 1,
+            "mote": 1
+          },
+          "cam": [
+            94.3,
+            16,
+            163.5,
+            55
+          ],
+          "player": [
+            96.7,
+            13.5,
+            167.6
+          ],
+          "late": false
+        }
+      ]
     }
   }
 }

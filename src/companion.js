@@ -21,6 +21,10 @@
 //
 // One rate limit over all of it: never two of its own lines within GAP s (the opening's excepted).
 //
+// What matters (CRITICAL, issue #543: lost, a house's step, the Blade Gate) it does not put on the cue: it waits at your
+// shoulder with a mark until its button opens a talk in the dialogue box (pending, take(); src/host/game-host.js
+// wireCompanion), then flies as above. The rest (the opening's chatter, a guardian's hints) stays on the cue.
+//
 // The setting "Drone hints" (src/ui.js droneHints: on | fewer | off) sets how often it speaks up:
 // fewer waits twice as long and rests twice as long between two; off, it says nothing on its own
 // (the lines and the pointing; it still finds what you ask for).
@@ -31,9 +35,11 @@
 //   plumb.note('chest')                    an opening moment happened (said when it can be)
 //   plumb.update(dt, { active, canSpeak, pos, goal, place, house, fight })
 //       →  { say: text | '', point: reason | null, id }   point: fly the ping's flight (main.js scout.ping())
+//       or { say: '', point: null, hail: { id, line, pages, point } }   something critical: a talk waits (plumb.pending)
+//   plumb.take() / plumb.drop()            the talk had (the button) / let go (unanswered)
 
 import { hintLevel, STRUGGLE } from './hint-level.js';
-import { stripTone } from './story/tone.js';
+import { stripTone, parseLine } from './story/tone.js';
 
 export const DRONE_HINTS = ['on', 'fewer', 'off'];
 export const DEFAULT_DRONE_HINTS = 'on';
@@ -66,6 +72,45 @@ export const ONCE = ['bladegate'];
 export const FOLLOWS = { out: 'recharge' };
 /** An opening line after which it flies off toward the goal, and why (main.js: 'village' starts the desert's quest, issue #434). */
 export const OPENING_POINTS = { recharge: 'village' };
+
+/**
+ * What Plumb has to tell you rather than mention (issue #543): these it does not put on the cue at the top. It comes out of its
+ * light at your shoulder with a mark over it and a call (src/scout.js hail), and waits; Plumb's button (D-pad →, Q) then opens a
+ * short talk with it in the dialogue box, and after the talk it flies toward the goal as the button always does.
+ *   still, away, circling   you look lost (the first time: the pointer line): where the goal is
+ *   house                   a long time on one step in a makers' house: what waits there
+ *   bladegate               danger: the first Blade Gate near (a fight temple's door)
+ * Everything else stays on the cue: the opening's chatter (it comes before the button is taught, and its flight starts the
+ * desert's quest by itself), and a guardian's hints (a fight is no time to talk).
+ */
+export const CRITICAL = ['still', 'away', 'circling', 'house', 'bladegate'];
+/** How long it waits at your shoulder with the mark (s), unanswered, before it lets it go. */
+export const HAIL = { secs: 40 };
+/** Plumb as the dialogue box shows it: its name, its colour (the chip behind its portrait), a small high voice. */
+export const PLUMB_PERSON = { id: 'plumb', name: DRONE_NAME, color: '#70a8c8', voice: 1.3, kind: 'f', scale: 0.6, companion: true };
+/** The fewest words on a page of its talk: a shorter sentence goes with the one after it (or before, at the end). */
+export const PAGE_WORDS = 3;
+/**
+ * A line as the talk's pages (one to three), each with the line's tone: split at its sentences, a sentence of fewer than
+ * PAGE_WORDS words kept with the next ("Lost? A little." / "The giant's skull: this way."; "That plate wants a weight. Look."
+ * stays one page).
+ */
+export function talkPages(line) {
+  const { tone, text } = parseLine(line);
+  const words = (s) => s.split(/\s+/).filter(Boolean).length;
+  const sentences = text.match(/[^.?!…]+[.?!…]+[’”']?|[^.?!…]+$/g)?.map((s) => s.trim()).filter(Boolean) ?? [text];
+  const pages = [];
+  let cur = '';
+  for (const s of sentences) {
+    cur = cur ? `${cur} ${s}` : s;
+    if (words(cur) >= PAGE_WORDS) { pages.push(cur); cur = ''; }
+  }
+  if (cur) { if (pages.length) pages[pages.length - 1] += ` ${cur}`; else pages.push(cur); }
+  while (pages.length > 3) pages.splice(-2, 2, `${pages.at(-2)} ${pages.at(-1)}`);
+  return pages.map((p) => `~${tone}~ ${p}`);
+}
+/** The talk as the dialogue box takes it (src/story/dialogue.js start): Plumb, saying the pages, no answers. */
+export const plumbTalk = (pages) => ({ ...PLUMB_PERSON, talk: { nodes: { plumb: { say: pages, listen: true } } } });
 
 /**
  * Lost, with the place it means named ({place}: the objective's label, when it is a place: placeOf). Each template
@@ -250,7 +295,12 @@ export class Companion {
     this.house = new StepWatch(); this.fight = new FightWatch();
     this.seen = new Set(); this.turn = { still: 0, away: 0, circling: 0 };
     this.gap = 0;   // s until it may say another line of its own (GAP)
+    this.pending = null;   // what it waits at your shoulder to tell you (CRITICAL): { id, line, pages, point }
   }
+  /** The talk it waits to have (taken: no longer pending), or null. */
+  take() { const p = this.pending; this.pending = null; return p; }
+  /** Let it go unsaid (unanswered too long). */
+  drop() { this.pending = null; }
   get say() { return droneSay(this.setting(), this.hints()); }
   progress() { this.lost.reset(); }
   note(id) { if (this.say !== 'off') this.opening.note(id); }
@@ -271,19 +321,27 @@ export class Companion {
    */
   update(dt, { active = true, canSpeak = true, pos, goal = null, place = null, house = null, fight = null } = {}) {
     const say = this.say;
-    if (say === 'off') this.opening.drop();
+    if (say === 'off') { this.opening.drop(); this.pending = null; }
     if (dt > 0) this.gap = Math.max(0, this.gap - dt);
-    const quiet = this.gap > 0;
-    const spoke = (r) => { this.gap = GAP[say] ?? GAP.on; return r; };
+    const quiet = this.gap > 0 || !!this.pending;   // (waiting to tell you something: nothing else of its own meanwhile)
+    // something critical (CRITICAL) is not said on the cue: it waits to be asked ({ hail }: the host brings it to your
+    // shoulder with its mark; take() when the button is pressed)
+    const spoke = (r) => {
+      this.gap = GAP[say] ?? GAP.on;
+      const id = r.id ?? r.point;
+      if (!r.say || !CRITICAL.includes(id)) return r;
+      this.pending = { id, line: r.say, pages: talkPages(r.say), point: r.point ?? null };
+      return { say: '', point: null, hail: this.pending };
+    };
     // a guardian's fight: the next of its hints, by itself, once the struggle has gone on (the hint's line is the ping's)
     if (this.fight.update({ id: fight?.id ?? null, secs: fight?.secs ?? 0, say, canSpeak: canSpeak && !quiet })) return spoke({ say: '', point: 'hint' });
     // a makers' house: a long time on one step (the lost watch rests inside: the house's own watch is the one)
     if (this.house.update(dt, { step: house?.step ?? null, active: !!house && active && canSpeak && !quiet, say })) return spoke({ say: houseLine(house.type), point: 'house' });
     const why = this.lost.update(dt, { active: active && canSpeak && !house && !quiet, pos, goal, say, seen: this.seen });
     if (why) return spoke({ say: this.lostLine(why, place), point: why });
-    if (canSpeak && say !== 'off') {
+    if (canSpeak && say !== 'off' && !this.pending) {
       const line = this.opening.take();
-      if (line) { const id = this.opening.last; return { say: line, point: OPENING_POINTS[id] ?? null, id }; }
+      if (line) { const id = this.opening.last, r = { say: line, point: OPENING_POINTS[id] ?? null, id }; return CRITICAL.includes(id) ? spoke(r) : r; }
     }
     return { say: '', point: null };
   }

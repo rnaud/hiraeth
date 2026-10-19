@@ -52,8 +52,8 @@ import * as THREE from 'three';
 import { gadgetFoundLine } from '../gadgets/index.js';
 import { syncUpgrades } from '../trials/upgrades.js';
 import { keyText } from '../prompt-keys.js';
-import { placeOf, droneWorld, shown as droneShown } from '../companion.js';
-import { ESCORT } from '../scout.js';
+import { placeOf, droneWorld, shown as droneShown, HAIL, PLUMB_PERSON, plumbTalk } from '../companion.js';
+import { ESCORT, TALK } from '../scout.js';
 import { guardianHint } from '../temples/hints.js';
 import { createBenches } from '../benches.js';
 import { cameraPhysics, keepLensOut } from '../carriers.js';
@@ -256,15 +256,34 @@ export function wireLessons({ game, items, levelId, gadgets = () => null, sound 
  * (game 'drone:out'); each frame after the scout, the first person near (its opening line), the goal and the place it
  * names, the first Blade Gate near (issue #483), the makers' house you are in and its step, the guardian's phase, then its line and the ping's flight (its first
  * word, "the village on the horizon", starts the desert's quest: 'drone:village', src/story/desert.js).
- *   const plumbStep = wireCompanion({ game, plumb, scout, level, player, npcs, struggle })
+ *   const plumbStep = wireCompanion({ game, plumb, scout, level, player, npcs, struggle, sound, dialogue: () => storyRt.dialogue, teach })
  *   plumbStep(dt, { canSpeak, fight })   → its line as the cue shows it ('' none); the host puts it up
+ *   plumbStep.press()                    Plumb's button (D-pad →, Q): true when it opened Plumb's talk (else the host pings)
  * `plumb` null (a host without the help): only the escort.
+ *
+ * Something critical (src/companion.js CRITICAL, issue #543) is not put on the cue: Plumb comes out of its light at your
+ * shoulder (an escort), hops and turns to you with its mark over it (src/scout.js hail) and calls (sound.drone('call'));
+ * the first time, `teach()` (the host puts the button's line on the cue, once a save). Plumb's button then opens the talk
+ * in the dialogue box (its pages, its portrait and name: `plumbNpc`), and when it ends Plumb flies toward the goal (the
+ * ping). Unanswered for HAIL.secs, it lets it go; a scene or a fight puts it away, and it comes again after.
  */
-export function wireCompanion({ game, plumb = null, scout = null, level, player, npcs = [], struggle = null }) {
+export function wireCompanion({ game, plumb = null, scout = null, level, player, npcs = [], struggle = null, sound = null, dialogue = () => null, teach = null }) {
   if (scout) game.on('drone:out', (e) => scout.escort(ESCORT.secs, e?.pos ?? null));
   const at = { goalT: 0, goal: null, lookT: 0, place: null, world: { fight: null, house: null }, names: null };
-  return (dt, { canSpeak = true, fight = false } = {}) => {
+  // the talk (issue #543): raised at your shoulder (up), how long it has waited; the talk under way
+  const hail = { up: false, shown: 0, talking: null, opening: null };
+  const OPEN_FRAMES = 2;
+  const lower = () => { if (hail.up) { hail.up = false; scout?.hail?.(false); } };
+  const npc = scout?.talk ? plumbNpc(scout, player) : null;
+  game.on?.('dialogue:end', (e) => {
+    if (e?.id !== PLUMB_PERSON.id || !hail.talking) return;
+    hail.talking = null;
+    plumb?.progress();
+    scout?.ping();   // (then off toward the goal, as the button does: the find's line, the flare, the marker)
+  });
+  const step = (dt, { canSpeak = true, fight = false } = {}) => {
     if (!plumb) return '';
+    open();
     // the first person near (the opening's line): now and then
     if ((at.lookT -= dt) <= 0) {
       at.lookT = 0.5;
@@ -293,7 +312,70 @@ export function wireCompanion({ game, plumb = null, scout = null, level, player,
       house: at.world.house, fight: hint ? { id: hint.id, secs } : null });
     if (r.point === 'village') game.emit('drone:village');
     if (r.point) scout?.ping();   // (out toward the goal, a look, the flare, home; in a guardian's fight, the hint)
+    // something to tell you: at your shoulder with its mark, until the button, a scene, a fight, or HAIL.secs unanswered
+    if (plumb.pending && scout?.hail) {
+      if (!hail.up) {
+        const free = !scout.out || scout.phase === 'escort';
+        if (canSpeak && !fight && free && !player.ride && !hail.talking) {
+          if (scout.phase === 'escort') scout.escortT = Math.max(scout.escortT ?? 0, HAIL.secs + 1);
+          else scout.escort(HAIL.secs + 1);
+          scout.hail(true); hail.up = true; hail.shown = 0;
+          sound?.drone?.('call');
+          teach?.();
+        }
+      } else if (fight || scout.phase !== 'escort') { lower(); if (fight) scout.home?.(); }   // (put away: raised again after)
+      else if ((hail.shown += dt) > HAIL.secs) { lower(); plumb.drop(); }   // (not wanted: let go)
+    } else lower();
     return r.say ? droneShown(r.say) : '';
+  };
+  /** Plumb's button: Plumb's talk when it has something to tell you (and the dialogue box is free), else false. */
+  // (it is put before your face at once, the talk opened OPEN_FRAMES frames later: an engine's portrait is drawn from
+  // the drawn scene, which has the drone where it was until the frame is over; Unity's chip was empty)
+  step.press = () => {
+    if (hail.opening) return true;
+    if (!plumb?.pending || !hail.up || !npc) return false;
+    const d = dialogue?.();
+    if (!d || d.open) return false;
+    hail.opening = { said: plumb.take(), frames: OPEN_FRAMES };
+    lower();
+    scout.talk();
+    return true;
+  };
+  const open = () => {
+    const o = hail.opening;
+    if (!o || --o.frames > 0) return;
+    hail.opening = null;
+    const d = dialogue?.();
+    hail.talking = o.said;
+    if (!d || d.open || !d.start(plumbTalk(o.said.pages), npc)) { hail.talking = null; scout.ping(); }   // (no talk after all: the ping)
+  };
+  Object.defineProperty(step, 'hailing', { get: () => hail.up });
+  return step;
+}
+
+/**
+ * Plumb as the one you talk to (src/story/index.js: the two-shot, its portrait, the traveller turned to it): the drone
+ * where it hovers (src/scout.js talk), its face the drone itself, `pos` the point under it at your feet' level (the shot
+ * and the spacing take a person's feet), and its portrait close on it from your side. It has no body to move about.
+ */
+export function plumbNpc(scout, player) {
+  const feet = new THREE.Vector3(), eye = new THREE.Vector3(), look = new THREE.Vector3(), d = new THREE.Vector3(), side = new THREE.Vector3();
+  const upOf = () => player.frame?.up ?? THREE.Object3D.DEFAULT_UP;
+  return {
+    def: PLUMB_PERSON, object: scout.object, person: { size: PLUMB_PERSON.scale }, talkGap: TALK.out,
+    get pos() { const o = scout.object.position, up = upOf(); return feet.copy(o).addScaledVector(up, d.subVectors(player.pos, o).dot(up)); },
+    faceAt: (out) => out.copy(scout.object.position),
+    portraitShot: () => {
+      const up = upOf();
+      look.copy(scout.object.position);
+      d.subVectors(player.pos, look); d.addScaledVector(up, -d.dot(up));
+      if (d.lengthSq() < 1e-6) d.set(0, 0, 1);
+      d.normalize();
+      side.crossVectors(up, d);
+      eye.copy(look).addScaledVector(d, 0.85).addScaledVector(side, 0.18).addScaledVector(up, 0.1);
+      return { look, eye };
+    },
+    express: (f) => scout.express?.(f),
   };
 }
 

@@ -3,7 +3,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { installScoutHint, scoutHintLine, scoutHintDue, SCOUT_TAUGHT } from '../src/scout-hint.js';
+import { installScoutHint, scoutHintLine, scoutHintDue, SCOUT_TAUGHT, plumbHintDue, plumbHintLine, PLUMB_TAUGHT } from '../src/scout-hint.js';
 import { setLanguage } from '../src/i18n.js';
 
 /** A save as GameState is: flags, set, on / emit (no storage). */
@@ -77,9 +77,20 @@ test('the line names the scout\'s button for the hands on the game, in one line'
 
 test('main.js says it on the cue and counts Q and D-pad → as learnt; the drone\'s lines are apart', () => {
   const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
-  assert.match(main, /installScoutHint\(\{ game, show: \(\) => \{ scoutTeach\.left = SCOUT_HINT_SHOW; \}/);
-  assert.match(main, /teach = scoutHintLine\(\)/, 'on the cue, in the input in hand as it is then');
-  assert.equal((main.match(/scoutHint\.pinged\(\); scout\.ping\(\)/g) ?? []).length, 2, 'Q and D-pad →');
+  assert.match(main, /installScoutHint\(\{ game, show: \(\) => \{ scoutTeach\.line = scoutHintLine; scoutTeach\.left = SCOUT_HINT_SHOW; \}/);
+  assert.match(main, /teach = scoutTeach\.line\(\)/, 'on the cue, in the input in hand as it is then (the scout\'s line, or Plumb\'s talk\'s: issue #543)');
+  // (Plumb's talk first when it has something to tell you, issue #543; else the ping as ever)
+  assert.equal((main.match(/scoutHint\.pinged\(\); if \(!plumbStep\.press\(\)\) scout\.ping\(\)/g) ?? []).length, 2, 'Q and D-pad →');
   const src = readFileSync(new URL('../src/scout-hint.js', import.meta.url), 'utf8');
   assert.doesNotMatch(src, /from '\.\/drone\.js'/);
+});
+
+test('Plumb\'s talk (issue #543): the button\'s line the first time it comes with something to tell, once a save, never with hints off', () => {
+  const g = fakeGame();
+  assert.equal(plumbHintDue(g, 'subtle'), true);
+  assert.equal(g.flag(PLUMB_TAUGHT), true);
+  assert.equal(plumbHintDue(g, 'subtle'), false, 'once');
+  assert.equal(plumbHintDue(fakeGame(), 'off'), false);
+  assert.equal(plumbHintLine('keys'), 'Q talks to Plumb');
+  assert.match(plumbHintLine('pad'), /^D-pad → talks to Plumb$/);
 });

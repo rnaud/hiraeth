@@ -40,7 +40,7 @@ const readJson = (f, d = {}) => (existsSync(f) ? JSON.parse(readFileSync(f, 'utf
 const keep = (file, res) => writeFileSync(file, JSON.stringify({ ...readJson(file), ...res }, null, 1));
 
 // ------------------------------------------------------------------ the web
-const KEYS = { KeyE: ['e', 69], KeyP: ['p', 80], KeyN: ['n', 78], KeyF: ['f', 70], KeyW: ['w', 87], KeyJ: ['j', 74], Tab: ['Tab', 9], Space: [' ', 32], Enter: ['Enter', 13], Escape: ['Escape', 27], Digit1: ['1', 49], Digit2: ['2', 50], ShiftLeft: ['Shift', 16] };
+const KEYS = { KeyE: ['e', 69], KeyQ: ['q', 81], KeyP: ['p', 80], KeyN: ['n', 78], KeyF: ['f', 70], KeyW: ['w', 87], KeyJ: ['j', 74], Tab: ['Tab', 9], Space: [' ', 32], Enter: ['Enter', 13], Escape: ['Escape', 27], Digit1: ['1', 49], Digit2: ['2', 50], ShiftLeft: ['Shift', 16] };
 
 async function web() {
   const PORT = Number(process.env.PORT ?? 5429);

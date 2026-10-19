@@ -22,6 +22,9 @@ export const CHANGELOG = [
     // DrawMap (the body; the ground inside the 2.5 line), engine/map-marks.js giver; src/main.js setPhoto (body.photo,
     // screen 'photo'), src/hud-shows.js HUD_HIDES.photo; tests/engine-menus.test.js, hud-shows.test.js
     'In the Unity version, the game menu’s sheet, tabs and strip sit where the web’s do, so the Map is as large as on the web and its ground in the same place, and someone with a quest for you is marked as on the web. On the web, photo mode no longer shows the gadget in your hand in the corner of your pictures.',
+    // issue #543: src/companion.js (CRITICAL, talkPages, pending), src/scout.js (hail, the mark, talk), host/game-host.js
+    // wireCompanion (press, plumbNpc), src/scout-hint.js teach.plumb, audio.js drone('call'); tests/companion.test.js, scout.test.js
+    'Plumb now talks to you: when it has something important to say (you seem lost, a makers’ house has you stuck, a gate means danger), it comes to your shoulder with a red mark and a chirp instead of a line at the top of the screen. Press its button (D-pad → or Q) to hear it in the dialogue box, then it flies off to show you the way.',
   ] },
   { v: '1.86', date: '2026-10-19', items: [
     // issue #483: src/story/hosts-data.js (the fight hosts' second lines), src/fight-temples/<world>.js (blurb, quiet),

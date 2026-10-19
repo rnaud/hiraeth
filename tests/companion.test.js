@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Companion, LostWatch, Opening, LOST, DRONE_LINES, OPENING, ONCE, DRONE_HINTS, droneSay, shown, DRONE_NAME, FOLLOWS, OPENING_POINTS,
-  PLACE_LINES, PLACE_MAX, placeOf, HOUSE_LINES, HOUSE, GAP, StepWatch, FightWatch, droneWorld, withPlace } from '../src/companion.js';
+  PLACE_LINES, PLACE_MAX, placeOf, HOUSE_LINES, HOUSE, GAP, StepWatch, FightWatch, droneWorld, withPlace, CRITICAL, HAIL, talkPages, plumbTalk, PLUMB_PERSON, PAGE_WORDS } from '../src/companion.js';
 import { STRUGGLE } from '../src/hint-level.js';
 import { parseLine } from '../src/story/tone.js';
 
@@ -123,12 +123,13 @@ test('the first time it finds you lost it says the pointer line; after that the 
   assert.equal(c.lostLine('still'), DRONE_LINES.still[0]);
   assert.equal(c.lostLine('still'), DRONE_LINES.still[1]);
   assert.equal(c.lostLine('away'), DRONE_LINES.away[0]);
-  // the whole run: lost after the threshold, a line and a point
+  // the whole run: lost after the threshold, something to tell you (not on the cue: a talk waiting, issue #543), then the flight
   const d = new Companion({ state: state(), hints: () => 'subtle' });
   let r = null;
-  for (let t = 0; t < LOST.after.on + 10 && !r?.point; t += 0.25) r = d.update(0.25, { pos: { x: 12 + Math.cos(t), y: 12, z: 12 + Math.sin(t) }, goal: { x: 80, y: 12, z: 12 } });
-  assert.ok(r.point);
-  assert.equal(r.say, DRONE_LINES.pointer);
+  for (let t = 0; t < LOST.after.on + 10 && !r?.hail; t += 0.25) r = d.update(0.25, { pos: { x: 12 + Math.cos(t), y: 12, z: 12 + Math.sin(t) }, goal: { x: 80, y: 12, z: 12 } });
+  assert.deepEqual([r.say, r.point], ['', null], 'nothing on the cue');
+  assert.equal(r.hail.line, DRONE_LINES.pointer);
+  assert.ok(CRITICAL.includes(r.hail.id) && r.hail.point, 'a lost reason, and the flight after the talk');
 });
 
 test('every line carries a tone, is short, and never names a button (the R3 line is the hint system\'s, #151)', () => {
@@ -197,9 +198,8 @@ test('a makers\' house: a long time on one step, a line about what waits there, 
   // the companion: inside, the house's line and the ping's flight to the step
   const c = new Companion({ state: state(), hints: () => 'subtle' });
   let r = null;
-  for (let t = 0; t < HOUSE.after.on + 5 && !r?.point; t += 0.5) r = c.update(0.5, { pos: { x: Math.cos(t), y: 0, z: 0 }, goal: { x: 9, y: 0, z: 0 }, house: { step: 'h.p1', type: 'plate' } });
-  assert.equal(r.point, 'house');
-  assert.equal(r.say, HOUSE_LINES.plate);
+  for (let t = 0; t < HOUSE.after.on + 5 && !r?.hail; t += 0.5) r = c.update(0.5, { pos: { x: Math.cos(t), y: 0, z: 0 }, goal: { x: 9, y: 0, z: 0 }, house: { step: 'h.p1', type: 'plate' } });
+  assert.deepEqual([r.hail.id, r.hail.point, r.hail.line, r.say], ['house', 'house', HOUSE_LINES.plate, '']);
 });
 
 test('a guardian: its hints offered by themselves as the struggle goes on, once a threshold, fewer from the second', () => {
@@ -229,7 +229,8 @@ test('never chatty: no two of its own lines within GAP, whatever asks', () => {
   const said = [];
   for (let t = 0; t < 1200; t += 0.5) {
     const r = c.update(0.5, { pos: { x: 12 + Math.cos(t), y: 12, z: 12 }, goal: { x: 90, y: 12, z: 12 }, fight: t > 600 ? { id: 'g.0', secs: t - 600 } : null, house: t > 300 && t <= 600 ? { step: `s${Math.floor(t / 400)}`, type: 'switch' } : null });
-    if (r.point || r.say) said.push(t);
+    if (r.point || r.say || r.hail) said.push(t);
+    if (r.hail) c.take();   // (answered: the talk had)
   }
   assert.ok(said.length >= 3, `it spoke (${said.join(', ')})`);
   for (let i = 1; i < said.length; i++) assert.ok(said[i] - said[i - 1] >= GAP.on, `${said[i - 1]} then ${said[i]}`);
@@ -252,13 +253,149 @@ test('the first Blade Gate near: its line once per save, as its host comes withi
   const player = { pos: P(0) };
   flags['met.someone'] = true;   // (the opening's person line already had)
   const step = wireCompanion({ game, plumb, level: {}, player, npcs: [host] });
-  let said = [];
-  for (let k = 0; k < 6; k++) said.push(step(0.5));
-  assert.ok(!said.some((s) => s.includes('Makers’ gate')), 'not from 30 m');
+  // (danger: something to tell you, issue #543: a talk waiting, never on the cue)
+  const told = [];
+  const run = () => { for (let k = 0; k < 6; k++) { assert.equal(step(0.5), ''); const p = plumb.take(); if (p) told.push(p); } };
+  run();
+  assert.equal(told.length, 0, 'not from 30 m');
   host.pos = P(9);
-  said = []; for (let k = 0; k < 6; k++) said.push(step(0.5));
-  assert.equal(said.filter((s) => s.includes('Makers’ gate')).length, 1, said.join(' | '));
+  run();
+  assert.equal(told.length, 1);
+  assert.equal(told[0].id, 'bladegate');
+  assert.match(told[0].line, /Makers’ gate/);
   assert.equal(flags['drone.said.bladegate'], true);
-  said = []; for (let k = 0; k < 6; k++) said.push(step(0.5));
-  assert.ok(!said.some((s) => s.includes('Makers’ gate')), 'once');
+  run();
+  assert.equal(told.length, 1, 'once');
+});
+
+// ---- Plumb talks (issue #543): something critical waits at your shoulder; its button opens a talk, then the flight
+
+test('a talk\'s pages: one to three, each with the line\'s tone and a few words, every critical line', () => {
+  assert.deepEqual(talkPages('~curious~ Lost? A little. The giant’s skull: this way.'), ['~curious~ Lost? A little.', '~curious~ The giant’s skull: this way.']);
+  assert.deepEqual(talkPages('~curious~ That plate wants a weight. Look.'), ['~curious~ That plate wants a weight. Look.'], 'a short last sentence stays with the one before');
+  assert.deepEqual(talkPages(DRONE_LINES.bladegate), ['~curious~ Makers’ gate. Blades mean keep out.', '~curious~ Something got in.']);
+  const critical = [DRONE_LINES.pointer, DRONE_LINES.bladegate, ...['still', 'away', 'circling'].flatMap((k) => [...DRONE_LINES[k], ...PLACE_LINES[k].map((l) => withPlace(l, 'The giant’s skull'))]), ...Object.values(HOUSE_LINES)];
+  for (const l of critical) {
+    const pages = talkPages(l);
+    assert.ok(pages.length >= 1 && pages.length <= 3, `${l}: ${pages.length} pages`);
+    for (const p of pages) {
+      const { text, tone, explicit } = parseLine(p);
+      assert.ok(explicit && tone === parseLine(l).tone, `${p}: the line's tone`);
+      const n = text.split(/\s+/).filter(Boolean).length;
+      assert.ok(n <= 9 && (n >= PAGE_WORDS || pages.length === 1), `${p}: ${n} words`);
+    }
+    assert.equal(pages.map((p) => parseLine(p).text).join(' '), parseLine(l).text, 'the whole line, nothing lost');
+  }
+  const t = plumbTalk(['~curious~ Lost? A little.']);
+  assert.equal(t.name, 'Plumb'); assert.equal(t.id, PLUMB_PERSON.id); assert.ok(t.companion);
+  assert.ok(t.talk.nodes.plumb.listen, 'no answers: the next press closes it');
+});
+
+test('the critical queue: one talk waits, nothing else of its own meanwhile; taken, dropped, or gone with the setting', () => {
+  assert.deepEqual(CRITICAL, ['still', 'away', 'circling', 'house', 'bladegate']);
+  const s = state(), c = new Companion({ state: s, hints: () => 'subtle' });
+  s.set('met.x', true);
+  c.note('bladegate');
+  const r = c.update(0.5, { pos: { x: 0, y: 0, z: 0 } });
+  assert.equal(r.say, ''); assert.equal(r.hail.id, 'bladegate'); assert.equal(c.pending, r.hail);
+  // the opening's chatter and the lost watch wait while it does
+  c.note('chest');
+  for (let t = 0; t < LOST.after.on + 60; t += 0.5) {
+    const q = c.update(0.5, { pos: { x: Math.cos(t), y: 0, z: Math.sin(t) }, goal: { x: 80, y: 0, z: 0 } });
+    assert.ok(!q.say && !q.point && !q.hail, `${t}: quiet while a talk waits`);
+  }
+  assert.equal(c.take().id, 'bladegate'); assert.equal(c.pending, null);
+  assert.equal(c.update(0.5, { pos: { x: 0, y: 0, z: 0 } }).say, DRONE_LINES.chest, 'then the chatter, on the cue as before');
+  // the opening's own lines stay on the cue (they come before the button is taught)
+  const o = new Companion({ state: state(), hints: () => 'subtle' });
+  o.note('out');
+  assert.equal(o.update(0.5, { pos: { x: 0, y: 0, z: 0 } }).say, DRONE_LINES.out);
+  assert.equal(o.pending, null);
+  // the setting off lets it go
+  let setting = 'on';
+  const d = new Companion({ state: state(), setting: () => setting, hints: () => 'subtle' });
+  d.state.set('met.x', true); d.note('bladegate'); d.update(0.5, { pos: { x: 0, y: 0, z: 0 } });
+  assert.ok(d.pending);
+  setting = 'off'; d.update(0.5, { pos: { x: 0, y: 0, z: 0 } });
+  assert.equal(d.pending, null);
+});
+
+/** wireCompanion with a stand-in scout, dialogue box and sound (what the hosts give it). */
+async function talkRig() {
+  const { wireCompanion } = await import('../src/host/game-host.js');
+  const THREE = await import('three');
+  const { GameState } = await import('../src/game-state.js');
+  const game = new GameState({ getItem: () => null, setItem: () => {} });
+  game.set('met.someone', true);
+  const calls = [];
+  const scout = {
+    out: false, phase: 'away', escortT: 0, hailing: false, object: new THREE.Object3D(),
+    escort(s) { this.out = true; this.phase = 'escort'; this.escortT = s; calls.push('escort'); return true; },
+    hail(on) { this.hailing = on; calls.push(on ? 'hail' : 'unhail'); },
+    talk() { this.phase = 'talk'; calls.push('talk'); }, ping() { this.phase = 'seek'; calls.push('ping'); return true; },
+    home() { this.phase = 'leave'; calls.push('home'); }, express() {},
+    getTarget: () => ({ id: 'q', label: 'The giant’s skull', position: new THREE.Vector3(80, 0, 0) }),
+  };
+  const box = { open: false, said: null, start(person, npc) { this.open = true; this.said = { person, npc }; return true; }, close() { this.open = false; game.emit('dialogue:end', { id: this.said.person.id }); } };
+  const sounds = [], taught = [];
+  const plumb = new Companion({ state: game, hints: () => 'subtle' });
+  const player = { pos: new THREE.Vector3(), frame: { up: new THREE.Vector3(0, 1, 0) } };
+  const step = wireCompanion({ game, plumb, scout, level: {}, player, npcs: [], struggle: { t: 0 }, sound: { drone: (k) => sounds.push(k) }, dialogue: () => box, teach: () => taught.push(1) });
+  return { step, scout, box, sounds, taught, calls, plumb, game };
+}
+
+test('Plumb\'s button with nothing to tell: false, the host pings as before', async () => {
+  const { step, calls } = await talkRig();
+  for (let k = 0; k < 4; k++) assert.equal(step(0.5), '');
+  assert.equal(step.press(), false);
+  assert.equal(step.hailing, false);
+  assert.deepEqual(calls, [], 'the scout untouched');
+});
+
+test('something critical: at your shoulder with its mark and a call; the button opens its talk, then the flight', async () => {
+  const { step, scout, box, sounds, taught, calls, plumb } = await talkRig();
+  plumb.note('bladegate');
+  assert.equal(step(0.5), '', 'nothing on the cue');
+  assert.deepEqual(calls, ['escort', 'hail']);
+  assert.ok(scout.escortT > HAIL.secs, 'it waits at your shoulder');
+  assert.deepEqual(sounds, ['call']); assert.equal(taught.length, 1);
+  assert.equal(step.hailing, true);
+  // the button: the talk in the dialogue box, Plumb's name and pages, its stand-in to frame and portray
+  assert.equal(step.press(), true);
+  assert.equal(scout.phase, 'talk', 'before your face at once');
+  assert.equal(box.open, false, 'the talk a frame or two later (an engine\'s portrait draws the drone where it is drawn)');
+  assert.equal(step.press(), true, 'a second press meanwhile does not ping');
+  step(1 / 60); step(1 / 60);
+  assert.equal(box.open, true);
+  assert.equal(box.said.person.name, 'Plumb');
+  assert.deepEqual(box.said.person.talk.nodes.plumb.say, talkPages(DRONE_LINES.bladegate));
+  assert.equal(box.said.npc.object, scout.object);
+  assert.ok(box.said.npc.portraitShot().eye, 'a portrait of it');
+  assert.equal(plumb.pending, null); assert.equal(scout.hailing, false); assert.equal(scout.phase, 'talk');
+  assert.equal(step.press(), false, 'pressed again mid-talk: nothing new');
+  box.close();
+  assert.equal(calls.at(-1), 'ping', 'the talk over, it flies toward the goal as the button does');
+});
+
+test('unanswered it lets the talk go; a scene puts it away and it comes again; never over another talk', async () => {
+  const { step, scout, box, calls, plumb } = await talkRig();
+  plumb.note('bladegate');
+  step(0.5);
+  // a scene: the scout hidden (away): the mark is lowered and raised again once it can be
+  scout.phase = 'away'; scout.out = false;
+  step(0.5);
+  assert.equal(step.hailing, false); assert.ok(plumb.pending);
+  step(0.5, { canSpeak: false });
+  assert.equal(step.hailing, false, 'not while something else is up');
+  step(0.5);
+  assert.equal(step.hailing, true, 'back at your shoulder');
+  assert.equal(calls.filter((c) => c === 'escort').length, 2);
+  // the dialogue box busy: the button pings as before
+  box.open = true;
+  assert.equal(step.press(), false);
+  box.open = false;
+  // unanswered
+  for (let t = 0; t <= HAIL.secs + 1; t += 0.5) step(0.5);
+  assert.equal(plumb.pending, null); assert.equal(step.hailing, false);
+  assert.equal(step.press(), false);
 });

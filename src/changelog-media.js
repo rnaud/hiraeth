@@ -1299,6 +1299,7 @@ const WEB264L = 'Issue #264: the web game in muted headless Chrome on this branc
 /** (v1.87, issue #264: the game menu's sheet where the page's is, the photo beat) */
 const UNITY264F = 'Issue #264: the Unity editor’s batch run on this Mac (node scripts/unity-compare/sequences.mjs unity menus,start-pages: the Signal Market on the debug save, muted, High, -screen 1280x720); before: 0dc6dd8bd (the round before), after: this change; 19 October; cwebp -q 72';
 const WEB264F = 'Issue #264: the web game in muted headless Chrome on this branch’s own Vite (port 5266, node scripts/unity-compare/sequences.mjs web menus,start-pages), 1280 × 720, the same beats; before: 0dc6dd8bd; 19 October; cwebp -q 72';
+const PLUMB543 = 'Issue #543: muted headless Chrome (High, 1280 × 720, 10:00, clear) on a Vite of its own (port 5543), the Desert by the ship on a save past the prologue, the lost watch run past its threshold (window.plumb.lost); before: 2285338a6, after: this change, Q pressed for the talk; 19 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.87': [
     { match: 'In the Unity version, Anselm’s shop opens over a darkened hold', tags: ['devices'], shots: [
@@ -1327,6 +1328,10 @@ export const CHANGELOG_MEDIA = {
       { name: 'web-photo-264', title: 'Photo mode on the web', size: [1280, 720], caption: 'Photo mode on the web: before, the gadget in hand still in the top right corner of the picture; after, gone with the rest of the HUD', from: WEB264F },
       { name: 'web-photo-264-unity', only: 'after', title: 'In Unity', size: [1280, 720], caption: 'The same moment in Unity, where it was already gone', from: UNITY264F },
     ], see: 'In the Unity version, open the game menu (View) and its Map. On the web, press P for photo mode and look at the top right corner.' },
+    { match: 'Plumb now talks to you: when it has something important to say', tags: ['story'], shots: [
+      { name: 'plumb-talk-543', title: 'Lost in the dunes', size: [1280, 720], caption: 'Lost by the ship: before, Plumb’s line at the top of the screen as it flies off; after, Plumb at his shoulder with its red mark, and the button’s line the first time', from: PLUMB543 },
+      { name: 'plumb-talk-543-box', only: 'after', title: 'Its talk', size: [1280, 720], caption: 'The button pressed: Plumb before his face, its portrait and name in the dialogue box; the talk over, it flies off toward the goal', from: PLUMB543 },
+    ], see: 'Wander about in the Desert without going anywhere for a few minutes, then press D-pad → (Q) when Plumb comes to your shoulder with its red mark.' },
   ],
   '1.86': [
     { match: 'In the Unity version, the Controls page shows your keys and buttons on caps', tags: ['devices'], shots: [

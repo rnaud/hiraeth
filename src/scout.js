@@ -63,6 +63,24 @@ export const APPEAR = {
   wink: 0.3,      // s: shrinking into the light, and gone
   light: 0.17,    // m: the light's radius at its brightest
 };
+/**
+ * Something to tell you (issue #543, src/companion.js CRITICAL): at your shoulder (an escort), it hops now and then and
+ * turns to you, a mark over it (an inked "!" of its glow, warm red); Plumb's button opens the talk.
+ */
+export const HAIL = {
+  over: 0.42,     // m: the mark over the drone (clear of its antenna)
+  size: 0.15,     // m: the mark's scale (about 0.3 m tall: as big as the drone, seen from behind you)
+  every: 1.7,     // s between two hops
+  hop: 0.11,      // m: how high it hops
+  colour: '#e2643c',
+};
+/** The talk (issue #543): it hovers before your face, facing you, while the dialogue box shows its pages. */
+export const TALK = {
+  out: 1.05,      // m in front of your head (nearer than a person stands, src/story/spacing.js talkSpace: it is small)
+  near: 0.7,      // m at the least, against a wall
+  below: 0.12,    // m under your eyes' height
+  bob: 0.035,     // m: its idle float; and as much again on each syllable it says
+};
 const _d = new THREE.Vector3(), _w = new THREE.Vector3(), _a = new THREE.Vector3(), _n = new THREE.Vector3(), _f = new THREE.Vector3();
 const _s = new THREE.Vector3(), _p = new THREE.Vector3(), _o = new THREE.Vector3(), _m = new THREE.Matrix4(), _q = new THREE.Quaternion();
 const _h = new THREE.Vector3(), _ax = new THREE.Vector3(), _qt = new THREE.Quaternion(), _z = new THREE.Vector3(0, 0, 1);
@@ -263,6 +281,8 @@ export class Scout {
     Object.assign(this.light.userData, { noCollide: true, dynamic: true, castShadow: false });
     this.light.visible = false; scene.add(this.light);
     this.lightK = 0;
+    this.scene = scene; this._mark = null;
+    this.hailing = false; this.mouth = 0;
     // a thin glowing trail behind it, so it's easy to follow by eye
     this.trail = new Trail(scene, { radius: 0.07, life: 1.5, offset: 1.2 });
     this.trail.mesh.visible = false;
@@ -348,6 +368,44 @@ export class Scout {
     this.object.visible = !this.player.hidden;
     return true;
   }
+  /** It has something to tell you (on) or not any more: the mark over it and its hops while it rides at your shoulder (HAIL). */
+  hail(on = true) { this.hailing = !!on; if (!on && this._mark) this._mark.visible = false; }
+  /**
+   * The mark over it when it has something to tell you (HAIL): a bar and a dot, its glow in warm red, in the scene. Made
+   * the first time it is wanted (a scene that never needs it, a fight temple's, stays as it was: its streams with it).
+   */
+  get mark() {
+    if (this._mark) return this._mark;
+    const mat = makeMaterial({ color: HAIL.colour, glow: 1, flat: true });
+    const m = this._mark = new THREE.Group();
+    const bar = new THREE.Mesh(new THREE.OctahedronGeometry(1, 0).scale(0.32, 1, 0.32).translate(0, 1.05, 0), mat);
+    const dot = new THREE.Mesh(new THREE.OctahedronGeometry(0.3, 0), mat);
+    m.add(bar, dot);
+    for (const o of [m, bar, dot]) Object.assign(o.userData, { noCollide: true, dynamic: true, castShadow: false });
+    m.visible = false; this.scene.add(m);
+    return m;
+  }
+  /**
+   * The talk (issue #543): it is before your face (TALK), open, facing you, until a ping sends it off (or home()). It is
+   * put there at once: the conversation's camera cuts to the two-shot. Returns where it hovers.
+   */
+  talk() {
+    const p = this.player, up = p.frame.up, fwd = _f2;
+    if (p.frame.dir && p.heading != null) p.frame.dir(p.heading, fwd); else fwd.set(Math.sin(p.heading ?? 0), 0, Math.cos(p.heading ?? 0));
+    fwd.addScaledVector(up, -fwd.dot(up));
+    if (fwd.lengthSq() < 1e-6) fwd.set(up.y, -up.x, 0);
+    fwd.normalize();
+    const head = _lh.copy(p.pos).addScaledVector(up, HEAD - TALK.below);
+    const wall = this.obstacle(head, fwd, TALK.out + RADIUS)?.distance ?? Infinity;
+    this.talkAt = (this.talkAt ?? new THREE.Vector3()).copy(head).addScaledVector(fwd, Math.max(TALK.near, Math.min(TALK.out, wall - RADIUS)));
+    this.phase = 'talk'; this.hail(false); this.target = null; this.hinting = null; this.found = false;
+    this.vel.set(0, 0, 0); this.stuck = this.over = 0; this.fade = null; this.leaveT = null; this.mouth = 0;
+    this.object.position.copy(this.talkAt); this.object.scale.setScalar(1); this.fold.snap(true); this.growT = APPEAR.grow; this.setLight(0);
+    this.object.visible = !this.player.hidden;
+    return this.talkAt;
+  }
+  /** While it talks: how open its "mouth" is (src/story/dialogue.js faces(): its syllables), a little bob on each. */
+  express(f) { this.mouth = f?.speaking ? f.mouth ?? 0 : 0; }
   /** Send it away now (a find cut short, or done): it rises, folds and winks out. */
   home() { if (this.phase !== 'away' && this.phase !== 'leave' && this.phase !== 'shrug') { this.phase = 'leave'; this.leaveT = 0; this.fade = null; } }
   /**
@@ -506,15 +564,17 @@ export class Scout {
     const up = this.player.frame.up;
     if (this.player.pos.distanceTo(this.previousPlayer) > 45 && this.out) this.hide();   // (a teleport: it stays behind)
     this.previousPlayer.copy(this.player.pos);
-    if (gone && this.out) this.hide();
+    if (gone && this.out && this.phase !== 'talk') this.hide();   // (its own talk, issue #543: it is the one in the shot)
+    if (this._mark && (this.phase !== 'escort' || !this.hailing)) this._mark.visible = false;
     this.object.visible = this.out && !this.player.hidden;
     if (!paused) this.flare.update(dt);
     // the trail: laid while it flies (not while it grows, nor as it winks out), left to dissolve once it is gone
     const flying = this.phase === 'seek' || this.phase === 'point' || (this.phase === 'leave' && this.leaveT < APPEAR.leave);
     this.trail.update(dt, flying && this.fade === null && !this.player.hidden ? this.object.position : null);
     if (this.phase === 'away') { if (!this.trail.samples.length) this.trail.mesh.visible = false; return; }
-    if (paused) return;
+    if (paused && this.phase !== 'talk') return;   // (a talk is a pause for the rest: it is the one talking)
     this.elapsed += dt;
+    if (this.phase === 'talk') { this.talkFrame(dt, up); return; }
     if (this.phase === 'shrug') {
       // nothing to find: out of its light, folded, the eye opens, it shakes itself, no, and winks back in
       this.shrugT += dt;
@@ -620,13 +680,40 @@ export class Scout {
       const p = this.player, fwd = _f;
       if (p.frame?.dir && p.heading != null) p.frame.dir(p.heading, fwd); else fwd.set(Math.sin(p.heading ?? 0), 0, Math.cos(p.heading ?? 0));
       this.aim = (this._aim ??= new THREE.Vector3()).copy(fwd);
-      this.fly(this.appearSpot(_d2), Math.max(6, pSpeed + 4), up, dt, pv);
+      const spot = this.appearSpot(_d2);
+      if (this.hailing) {
+        // something to tell you: it turns to you and hops now and then (HAIL), the mark over it
+        const k = (this.elapsed % HAIL.every) / HAIL.every;
+        spot.addScaledVector(up, k < 0.3 ? Math.sin((k / 0.3) * Math.PI) * HAIL.hop : 0);
+        this.aim.subVectors(_lh.copy(p.pos).addScaledVector(up, HEAD), this.object.position);
+      }
+      this.fly(spot, Math.max(6, pSpeed + 4), up, dt, pv);
       this.aim = null;
+    }
+    if (this.hailing) {
+      const g = this.object.scale.x, pulse = 1 + 0.12 * Math.sin(this.elapsed * 6);
+      this.mark.visible = g > 0.6 && !this.player.hidden;
+      this.mark.position.copy(this.object.position).addScaledVector(up, HAIL.over * g);
+      this.mark.quaternion.setFromUnitVectors(_y1, up).multiply(_qt.setFromAxisAngle(_y1, this.elapsed * 2.4));
+      this.mark.scale.setScalar(HAIL.size * g * pulse);
     }
     if (this.escortT <= 0) this.home();
     this.fold.update(dt, open, true);
     const acc = _a.subVectors(this.vel, lastVel).divideScalar(Math.max(dt, 1e-3)).applyQuaternion(_q3.copy(this.object.quaternion).invert());
     this.drone.pose(this.fold, dt, _lean.set(acc.x, acc.z));
+    this.ring.visible = false;
+    this.updateBeam(dt, false);
+  }
+  /** Talking (issue #543): before your face, open, facing you, floating, a little bob on each syllable it says. */
+  talkFrame(dt, up) {
+    const p = this.player;
+    this.mouth *= Math.exp(-6 * dt);
+    this.object.position.copy(this.talkAt).addScaledVector(up, Math.sin(this.elapsed * 2.2) * TALK.bob + this.mouth * TALK.bob);
+    this.uprightAlong(_f.subVectors(_lh.copy(p.pos).addScaledVector(up, HEAD), this.object.position), up, _q);
+    this.object.quaternion.slerp(_q, 1 - Math.exp(-10 * dt));
+    this.lens.quaternion.slerp(_qt.identity(), 1 - Math.exp(-10 * dt));
+    this.fold.update(dt, true, true);
+    this.drone.pose(this.fold, dt, _lean.set(0, 0));
     this.ring.visible = false;
     this.updateBeam(dt, false);
   }

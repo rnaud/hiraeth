@@ -92,7 +92,7 @@ import { HouseAir } from '../src/temples/air.js';
 import { Scout, nextObjective, findText, HINT, FIND } from '../src/scout.js';
 import { ObservatoryQuest } from '../src/observatory.js';
 import { FirstSteps } from '../src/first-steps.js';
-import { installScoutHint, scoutHintLine, SCOUT_HINT_SHOW } from '../src/scout-hint.js';
+import { installScoutHint, scoutHintLine, SCOUT_HINT_SHOW, plumbHintDue, plumbHintLine } from '../src/scout-hint.js';
 import { Companion, shown as droneShown } from '../src/companion.js';
 import { registerInteractable, PRIORITY } from '../src/interact.js';
 import { applyEclipse } from '../src/eclipse.js';
@@ -718,13 +718,15 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const plumb = help ? new Companion({ state: gameState, setting: () => settings?.droneHints ?? 'on' }) : null;
   const droneSaid = { text: '', until: 0 };
   // (Plumb each frame, as the page: src/host/game-host.js wireCompanion, issue #434)
-  const plumbStep = wireCompanion({ game: gameState, plumb, scout, level, player, npcs, struggle });
+  // (something critical: at your shoulder with its mark, the button opens its talk in the dialogue box; issue #543)
+  const plumbStep = wireCompanion({ game: gameState, plumb, scout, level, player, npcs, struggle, sound: sound !== SILENT ? sound : null, dialogue: () => story?.dialogue ?? null,
+    teach: () => { if (plumbHintDue(gameState)) { scoutTeach.line = plumbHintLine; scoutTeach.left = SCOUT_HINT_SHOW; } } });
   // what the save's events say and start: a gadget found and its line after its card, a keepsake's theme, the trials'
   // upgrades to the gadgets' tuning (before the gadgets are made), Plumb's clock and notes (src/host/game-host.js
   // wireLessons, as the page)
   wireLessons({ game: gameState, items: gear, levelId, gadgets: () => gadgets, sound: sound !== SILENT ? sound : null, toast: (t) => toast(t), plumb });
-  const scoutTeach = { left: 0, at: 0 };
-  const scoutHint = help ? installScoutHint({ game: gameState, show: () => { scoutTeach.left = SCOUT_HINT_SHOW; },
+  const scoutTeach = { left: 0, at: 0, line: scoutHintLine };   // (the scout's line, or Plumb's talk's: issue #543)
+  const scoutHint = help ? installScoutHint({ game: gameState, show: () => { scoutTeach.line = scoutHintLine; scoutTeach.left = SCOUT_HINT_SHOW; },
     usable: () => !(shipOn && (ship.inside || ship.playing)) && !trials?.running && gameState.flag('prologue.done') && !!scout?.getTarget?.() }) : null;
   const firstSteps = help && levelId === 'desert' && !gameState.flag('item.backpack') ? new FirstSteps(gameState) : null;
   const firstStepsAt = new THREE.Vector3(NaN, 0, 0);
@@ -988,7 +990,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       if ((name === 'lock' || name === 'l3') && level.jump && !pinned) { level.jump(name === 'lock' ? 1 : -1); return; }   // (the Lab: R3 / L3 hop to the next / previous world's room, as main.js)
       if (name === 'lock' && !pinned && !(shipOn && ship.playing)) { if (!combat?.lock() && !trials?.running) rig.recentre?.(player.heading); return; }
       // D-pad →: Plumb finds the objective, on foot and riding (a guardian's fight, a makers' house: a hint), as main.js and Q
-      if (name === 'scout' && !pinned && !talking() && !(shipOn && ship.playing) && scout && !trials?.running) { scoutHint?.pinged(); scout.ping?.(); return; }
+      if (name === 'scout' && !pinned && !talking() && !(shipOn && ship.playing) && scout && !trials?.running) { scoutHint?.pinged(); if (!plumbStep.press()) scout.ping?.(); return; }   // (Plumb's talk first: issue #543)
       if (name === 'potion' && combat && !pinned && !talking() && !(shipOn && ship.playing)) { combat.drink(); return; }
       // D-pad ↓ (the mount's call: there is none in the Arena): its list of foes, as main.js's quickMenu
       if (name === 'call' && foeList && !pinned && !talking()) { menus.openFoes(foeList); return; }
@@ -1070,7 +1072,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       teach = firstSteps.update(Math.min(0.1, dt), { active: open, moved: moved < 5 ? moved : 0 });
       if (quiet || (shipOn && ship.playing)) teach = '';
     }
-    if (scoutTeach.left > 0 && !teach && !found && !text && !place && !quiet && !(shipOn && ship.playing)) { teach = scoutHintLine(); scoutTeach.left -= Math.min(0.1, dt); }
+    if (scoutTeach.left > 0 && !teach && !found && !text && !place && !quiet && !(shipOn && ship.playing)) { teach = scoutTeach.line(); scoutTeach.left -= Math.min(0.1, dt); }
     cue.set(found || text || place || teach, said ? '' : found ? scoutSaid.kind : text || !place ? '' : 'place');
     // (aboard, the ship's E floats by what it is for, the prologue's voicemail button too: src/ship/ship.js promptTag, issue #350)
     const sceneTag = story && shipOn && ship.playing && !pinned ? ship.promptTag() : null;
@@ -1799,7 +1801,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         trials?.world(dt, simT);   // the trials' wind columns, the makers' runs' moving pieces, the signs (src/trials/)
       } catch (e) { if (!game._lifeFailed) { game._lifeFailed = true; console.warn('[game] a system failed in its update', e?.stack ?? e); } }
       lap?.('life');
-      if (ctl.KeyQ && !qWasDown && scout && !busy && !trials?.running) { scoutHint?.pinged(); scout.ping?.(); }
+      if (ctl.KeyQ && !qWasDown && scout && !busy && !trials?.running) { scoutHint?.pinged(); if (!plumbStep.press()) scout.ping?.(); }
       qWasDown = !!ctl.KeyQ;
       // the sound's wind, rain and steps (main.js: sound.update; the gust as wind.js's)
       if (sound !== SILENT) {

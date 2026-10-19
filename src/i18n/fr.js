@@ -526,6 +526,7 @@ export const FR = {
   'teach.look': 'Regardez autour de vous avec {input}',
   'teach.jump': 'Sautez avec {input}',
   'teach.scout': '{key:scout} montre où est votre prochaine quête',
+  'teach.plumb': '{key:scout} pour parler à Plumb',
   'teach.nudgeMove': 'Regardez autour de vous : déplacez-vous avec {move}, regardez avec {look}',
   'teach.nudgeConsole': 'Un message clignote sur la console près de la table holo, au milieu du vaisseau',
   'teach.filled': 'L\'eau s\'engouffre et le réservoir vide se remplit : cyan, violet, et le corail du bassin du géant. Il fera marcher les vieilles machines maintenant. Près du bassin, la porte des bâtisseurs répond d\'un bourdonnement.',

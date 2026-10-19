@@ -45,5 +45,13 @@ against a guardian, as the struggle goes on, the next of its hints by itself.
 Never two of its own lines within 45 s (90 on fewer), cooldowns on each; the
 "Drone hints" setting (on / fewer / off) and Hints off quiet it.
 
+**How it says what matters (issue #543):** the lost lines, a makers' house's
+step and the first Blade Gate are not called out at the top of the screen. It
+comes to the traveller's shoulder, turns to him and hops, a red mark over it,
+with a chirp, and waits; asked (its button), it says it to his face in the
+dialogue box, its own name and portrait, one to three short pages in the line's
+tone, then flies off to show the way. Its chatter (the opening's lines) and a
+guardian's hints stay quick lines at the top.
+
 **Do not:** let it joke over a quiet scene, comment on a conversation, name a
 button (the hint system teaches the controls), or speak twice in a minute.

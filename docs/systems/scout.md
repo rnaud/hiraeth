@@ -175,3 +175,54 @@ Tests: tests/companion.test.js (the name, the first word, places, the house, the
 (escort), tests/prologue-drone.test.js (the beat, the walk, the hand-over), tests/desert-story.test.js (the quest on its
 word). In the engines the same code runs (engine/game.js's `updatePlumb`); the opening's sequence has the beat's three
 beats, the walk and the line (`plumb`).
+
+## Plumb talks to you (v1.87, issue #543)
+
+The author: "Plumb should talk to you like a real character, not just a hint at the top of the screen (when it has
+something critical to tell you, with the same button we use to ping Plumb to go to the next quest marker)."
+
+**What counts as critical** (`src/companion.js` `CRITICAL`): the lines of its own that send you somewhere.
+
+| id | when | example |
+|---|---|---|
+| `still`, `away`, `circling` | you look lost (the lost watch; the first time, the pointer line) | "Lost? A little." / "The giant's skull: this way." |
+| `house` | minutes on one step of a makers' house (`StepWatch`) | "That plate wants a weight. Look." |
+| `bladegate` | danger: the first fight temple's Blade Gate within 12 m (`ONCE`) | "Makers' gate. Blades mean keep out." / "Something got in." |
+
+Everything else of Plumb's stays on the cue as before: the opening's chatter (`out`, `recharge`, `person`, `chest`:
+they come before the button is taught, and `recharge`'s flight starts the desert's quest by itself) and a guardian's
+hints, by themselves or asked for (a fight is no time for a conversation). Other characters are unchanged.
+
+**The flow** (`src/host/game-host.js` `wireCompanion`, the web and the engines alike):
+
+1. A critical line is not put on the cue. `Companion.update` keeps it as `pending` (`{ id, line, pages, point }`) and
+   returns `{ hail }`; while one waits, nothing else of its own is said (the lost and house watches and the opening's
+   chatter wait; a guardian's hint does not).
+2. When nothing else is up (the host's `canSpeak`), not in a fight and not riding, Plumb comes out of its light at your
+   shoulder (an escort, `Scout.escort`) and `Scout.hail(true)`: it turns to you and hops every 1.7 s, a red inked "!"
+   of its glow over it (`HAIL`, `scout.mark`, a mesh in the scene so the engines draw it too), and calls
+   (`sound.drone('call')`, two rising chirps). The first time in a save the cue says "{key:scout} talks to Plumb"
+   (`src/scout-hint.js` `plumbHintDue`, `teach.plumb`; hints subtle or full).
+3. Plumb's button (D-pad →, Q, the touch ping) asks `plumbStep.press()` first: with a talk waiting it opens it in
+   the dialogue box and returns true; otherwise false and the host pings exactly as before. The talk is a
+   listen-only conversation (`plumbTalk`): Plumb's name and colour (`PLUMB_PERSON`), its line in one to three pages
+   (`talkPages`: split at its sentences, none under three words), each with the line's tone. `Scout.talk()` puts the
+   drone 1.05 m before your face (`TALK`), open and facing you, floating, a little bob on each syllable (`express`,
+   from the talk's faces); `plumbNpc` is its stand-in for the conversation: the two-shot frames it, the traveller
+   turns to it, and its portrait is drawn close on the drone from your side (the engines draw the same kept objects).
+   A talk with Plumb sets no `met.` flag (`person.companion`).
+4. When the talk closes (`dialogue:end`, id `plumb`) Plumb flies toward the goal: `scout.ping()`, the find's line,
+   the flare and the marker, as the button always does.
+5. Unanswered for `HAIL.secs` (40 s) it lets the talk go and winks out. A scene, a teleport or a ping of a world's own
+   puts it away (and a fight sends it home); it comes back to your shoulder after, the talk still waiting.
+
+The talk opens two frames after the press (`OPEN_FRAMES`): the drone is put before your face at once, and an engine
+draws a portrait from the scene as last sent to it, so Unity's chip was empty when both came in one frame. The mark
+is made the first time it is wanted (`Scout.mark`): one made with every scout shifted the engines' seeded run of a
+fight temple (the `fight-crowd` sequence's foe warnings).
+
+Tests: `tests/companion.test.js` (the pages, the queue, the button with and without a talk, put away and let go),
+`tests/scout.test.js` (the hops, the mark, the talk's spot through a scene), `tests/scout-hint.test.js` (the button's
+line), and the `plumb-talk` sequence (`engine/sequences.js`, `tests/sequences-plumb.test.js`): the engines' stream held
+to the web's beat by beat (the mark with nothing of Plumb's on the cue, its two pages under its name, the find after);
+run in Unity's batch too on 19 October, its four beats the web's, the mark, the box and the portrait drawn.

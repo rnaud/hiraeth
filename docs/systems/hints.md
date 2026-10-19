@@ -46,3 +46,10 @@ next quest is": Q, D-pad → (its own button since v1.86, issue #512; R3 only lo
 or ping. A `teach` line: subtle and full, never off. Said once a save (`teach.scout`, set when it is said); a ping
 of your own first (Q, D-pad →) counts as learnt. It is the game's prompt, independent of the drone's own lines.
 `tests/scout-hint.test.js`.
+
+## Plumb's talk, the first time (issue #543, v1.87)
+
+The first time Plumb comes to your shoulder with something critical to tell you (its red mark: docs/systems/scout.md,
+"Plumb talks to you"), the cue says "{key:scout} talks to Plumb" for 6 s, once a save (`teach.plumb`; a `teach`
+line: subtle and full). The critical lines themselves (lost, a makers' house's step, a Blade Gate) are no longer on
+the cue: they are Plumb's talk, opened with that button.

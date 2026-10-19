@@ -530,6 +530,7 @@ export const EN = {
   'teach.look': 'Look around with {input}',
   'teach.jump': 'Jump with {input}',
   'teach.scout': '{key:scout} shows where your next quest is',
+  'teach.plumb': '{key:scout} talks to Plumb',
   'teach.nudgeMove': 'Look around: move with {move}, look with {look}',
   'teach.nudgeConsole': 'A message blinks on the console by the holo table, mid-ship',
   'teach.filled': 'The empty tank fills. The makers’ door by the pool hums back.',

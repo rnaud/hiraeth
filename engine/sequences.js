@@ -272,6 +272,19 @@ export const SEQUENCES = [
     ],
   },
   {
+    // Plumb talks (issue #543): something critical to tell you (the first Blade Gate's line, said as if near it) brings it
+    // to your shoulder with its red mark, nothing on the cue; Q opens its talk in the dialogue box (its name, its portrait);
+    // the talk turned past, it flies toward the goal
+    id: 'plumb-talk', title: 'Plumb\'s talk', setup: { level: 'desert', debug: true },
+    beats: [
+      { name: 'mark', act: (G) => { G.state.set('met.x', true); G.state.set('drone.said.bladegate', false); G.plumb.gap = 0; G.plumb.note('bladegate'); },
+        until: (G) => !!G.scout?.mark?.visible, timeout: 30, wait: 1.2 },
+      { name: 'talk', keys: tap('KeyQ'), until: (G) => !!G.story?.dialogue?.open, timeout: 5, wait: 1.5 },
+      { name: 'page', keys: tap('Space'), wait: 1.2 },
+      { name: 'flight', keys: tap('Space'), until: (G) => !G.story?.dialogue?.open, timeout: 5, wait: 1.5 },
+    ],
+  },
+  {
     // the makers' mark in a line (issue #513: Unity drew "⁖⌒" where the page draws the shared open-corner mark): Bako's
     // listen line about it (src/story/desert-data.js), said as his whole talk for once
     id: 'mark', title: 'The makers\' mark in a conversation', setup: { level: 'desert', debug: true },
@@ -481,6 +494,7 @@ export function webGame(w) {
     side: 'web', win: w,
     scene: w.scene, camera: w.camera, player: w.player, rig: w.rig, level: w.level, ship: w.ship, boxes: w.boxes,
     story: w.storyRt, storyPage: w.story, npcs: w.npcs, gadgets: w.gadgets, tool: w.tool, foes: w.foes, trials: w.trials, items: w.items, state: gameState,
+    scout: w.scout, plumb: w.plumb,
     get minigame() { return w.minigame ?? null; },
     // (the screen's state, and what the page draws of the fight in its own HTML that the engines send as parts:
     // engine/combat.js 'lock', 'warn', 'restart'; the web's #foe-lock, #foe-warn, #restart)
@@ -536,6 +550,7 @@ export function engineGame(g, menus = null) {
     side: 'engine', game: g,
     scene: g.scene, camera: g.camera, player: g.player, rig: g.rig, level: g.level, ship: g.ship, boxes: g.boxes,
     story: g.story, storyPage: g.storyPage, npcs: g.npcs, gadgets: g.gadgets, tool: g.tool, foes: g.foes, trials: g.trials, items, state: gameState,
+    scout: g.scout, plumb: g.plumb,
     get minigame() { return g.trials?.runner ?? null; },
     screen: () => { const st = g.screen().state; return { ...st, lock: st.lock ? true : null, warn: st.warn?.length ? true : null, restart: st.restart ? true : null }; },
     extraScenes: () => [],

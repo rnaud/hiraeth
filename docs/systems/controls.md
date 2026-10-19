@@ -455,7 +455,7 @@ The author's decision of 19 October 2026 on the proposal in issue #511 (`PAD_SCH
 | **D-pad ↑ tap** | D-pad ↑ | **the last pick back** (a gadget or a mode: push and fluid, a tap apart); none yet: the next gadget. A tap never pauses |
 | D-pad ↓ | D-pad ↓ | call the mount / hail a taxi |
 | D-pad ← | D-pad ← | drink a healing potion |
-| **D-pad →** | D-pad → | **Plumb finds the objective**; a makers' house or a guardian's fight: a hint (docs/systems/boss-hints.md). Riding too |
+| **D-pad →** | D-pad → | **Plumb finds the objective**; a makers' house or a guardian's fight: a hint (docs/systems/boss-hints.md). Riding too. Plumb at your shoulder with its red mark: its talk first (v1.87, docs/systems/scout.md) |
 | View | Select | the game menu; View + ↑ photo mode; View + ↓ / ← / → free |
 | Menu | Start | the Start menu |
 | L3 + R3 | L3 + R3 | the dev menu |
