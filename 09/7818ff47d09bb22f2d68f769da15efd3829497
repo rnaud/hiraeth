@@ -1,0 +1,39 @@
+src/game-menu.css
+  s_5f899ba316b5dc::t_b4db07342270fd 161-171
+tests/quests-tracking.test.js
+  s_5f899ba316b5dc::t_9c69be271c943a 1-56
+src/changelog-media.js
+  s_5f899ba316b5dc::t_c7eaa544db91b1 1216-1217,1238-1240
+engine/menus.js
+  s_5f899ba316b5dc::t_eada361b6058ff 1122
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.Chrome.cs
+  s_5f899ba316b5dc::t_ead73adb563d73 141-144,147-148,162-164,173-175,182-199
+src/game-menu.js
+  s_5f899ba316b5dc::t_b2e57ee1dc7eb8 201-206,230
+tests/game-menu.test.js
+  s_5f899ba316b5dc::t_68b56245f981f7 207
+src/changelog.js
+  s_5f899ba316b5dc::t_64302eba9681ec 65-67
+src/i18n/en.js
+  s_5f899ba316b5dc::t_2dbc565eb02490 371
+docs/systems/ui.md
+  s_5f899ba316b5dc::t_df7c3f5d56943a 441-444,951
+changelog.md
+  s_5f899ba316b5dc::t_6f710652a93532 7-8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "097818ff47d09bb22f2d68f769da15efd3829497",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
