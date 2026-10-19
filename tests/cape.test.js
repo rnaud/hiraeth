@@ -28,6 +28,20 @@ const still = (caps) => ({ up: UP, vel: V(), wind: V(), floor: V(), capsules: ca
 const world = (cape, i, out = V()) => out.set(cape.p[i], cape.p[i + 1], cape.p[i + 2]).applyMatrix4(cape.mesh.matrixWorld);
 const maxGap = (a, b) => { let m = 0; for (let i = 0; i < a.length; i++) m = Math.max(m, Math.abs(a[i] - b[i])); return m; };
 
+test('a bake not forced is done a share a call, one cape at a time; its drape is the forced bake’s (#468)', () => {
+  resetDrapes();
+  const a = rig(), b = rig(), caps = body();
+  a.cape.bake(still(caps), { force: true });
+  const whole = a.cape.drape.slice();
+  resetDrapes();
+  const c = rig();
+  // (a share a call: the first calls say not yet, the drape comes with the last; another cape waits meanwhile)
+  const calls = [];
+  for (let k = 0; k < 10 && !c.cape.drape; k++) { calls.push(c.cape.bake(still(caps))); if (k === 0) assert.equal(b.cape.bake(still(caps)), false, 'the other waits'); }
+  assert.ok(calls.length > 2 && calls.at(-1) === true && calls.slice(0, -1).every((r) => r === false), JSON.stringify(calls));
+  assert.ok(maxGap(whole, c.cape.drape) < 1e-4, `the same drape: ${maxGap(whole, c.cape.drape)}`);
+});
+
 test('a baked drape is where the cloth comes to rest on the body, and cheap enough to bake on the fly', () => {
   resetDrapes();
   const { cape } = rig(), caps = body();

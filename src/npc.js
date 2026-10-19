@@ -675,7 +675,9 @@ export class NPC {
       this.object.updateMatrixWorld(true);
       this.vel.set(Math.sin(this.heading) * speed, 0, Math.cos(this.heading) * speed);
       const s = this.clothState(player, speed);
-      if (!this.cape.drape && !this.cape.ready) this.cape.bake({ ...s, capsules: this.clothCapsules(null) }, { key: this.drapeKey(undefined, s.field) });   // (the shared drape: never with the traveller in it)   // starts settled, no drop
+      // (its drape baked a share a frame, Cape.bake: the cloth waits for it, then starts settled, no drop)
+      const baking = (!this.cape.drape && !this.cape.ready) || this.cape._baked > 0;
+      if (baking && !this.cape.bake({ ...s, capsules: this.clothCapsules(null) }, { key: this.drapeKey(undefined, s.field) })) return;   // (the shared drape: never with the traveller in it)
       // (not every frame: the cloth carried along with the body between its updates, and all the
       // time since lived, so it neither streams out behind nor lets the legs through: Cape.update)
       s.carry = every > 1 ? 1 : 0;

@@ -5767,3 +5767,32 @@ is ~3.1-3.3 ms.
 
 If one of them falls under its refresh, the lever to try first is the near map's size (2048² on the Deck's Unity:
 `-shadow-near-size 2048`), not its rate.
+### The cape fix on the Retroid (issue #525, 2026-10-19)
+
+Phase 2's third cause was the people's capes, baked as they come in sight. Here it is measured with its fix. `Cape.bake`,
+when not forced, does `BAKE.share` (2) of its 7 settling updates a call, one cape at a time: the one under way goes on at
+its next call, the others wait for it, and an abandoned one stops holding them after `BAKE_HOLD_MS`. `NPC.updateCape`
+lets the cloth wait for its drape. Forced bakes (a crowd body's, as it is taken on) stay whole, and the drape is the
+whole bake's (tests/cape.test.js).
+
+The setup: the same development APK (build 2650, the stutter work on main at ec19c1d53), with its packaged script
+replaced by hand (`--bundle`). The foes-only script ran against the foes + cape one, route-border and route-city twice
+each, back to back.
+
+| run | frames over 33 ms, before → after | over 50 ms | max ms |
+|---|---|---|---|
+| route-border 1 | 9 → 6 | 5 → 0 | 66.1 → 42.8 |
+| route-border 2 | 9 → 9 | 4 → 1 | 60.7 → 51.5 |
+| route-city 1 | 15 → 18 | 1 → 2 | 60.7 → 59.8 |
+| route-city 2 | 12 → 15 | 2 → 1 | 58.9 → 53.6 |
+
+- **The people's spikes**: 9 → 2 spikes, **358 → 80 ms lost**, and the worst went from 66 to 60 ms. The camps' spikes
+  are gone. The two left are in the City-Shaft, at +21 ms over the section's median, not a bake's +50-59.
+- **Frames over 50 ms: 12 → 4.** Frames over 33 ms do not fall (45 → 48). The bakes' frames come down under 50 ms, but
+  not all of them under 33. The crowd's spikes (11 → 15, 309 → 335 ms lost), the present waits and the mirror's objects
+  move within the runs' spread. All the spikes together: about 1230 → 1115 ms lost.
+- It lands for the long frames. What is left over 33 ms on these routes is the crowd's restyle (phase 2's "tried and
+  left out"), the present waits and streaming.
+
+Raw: the session's scratchpad, `retroid-525/` (`retroid-foes/`, `retroid-cape/`: each run's tsv, json and log, and
+`report.md`).

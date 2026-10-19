@@ -102,6 +102,15 @@ export const CHANGELOG = [
         { where: 'Steam Deck preset, the Arena’s roster', before: 7.6, after: 9.5 },
       ], source: 'docs/systems/performance.md, "Shadows every frame (#492)"', note: 'The Steam Deck, the Retroid and the Xbox are still to be measured.' }],
       see: 'On Handheld or Steam Deck (Settings, Graphics), run past a low wall or a post in the sun and watch your shadow at your feet: it moves with you, smoothly, instead of a step behind. In a fight, the foes’ shadows stay under their feet as they leap.' },
+    // issue #525 (#468's cape fix): src/cape.js (Cape.bake a share a frame, BAKE.share, BAKE_HOLD_MS), src/npc.js updateCape;
+    // tests/cape.test.js; docs/systems/performance.md "Stutters", the cape fix on the Retroid
+    { text: 'People in capes coming into sight no longer make the game catch for a moment, most of all on the Retroid: a cape now settles over a few frames instead of all in one. Walking through the camps and the City-Shaft, the frames over 50 ms on the Retroid fell from 12 to 4.',
+      numbers: [{ title: 'Walking through the desert’s camps and the City-Shaft (two runs each), frames over 50 ms and the time the people’s updates cost over their usual, before → after', unit: '', better: 'lower', device: 'Retroid Pocket Nova, the Unity version (Handheld, a development build), muted',
+        rows: [
+        { where: 'frames over 50 ms, the desert’s camps', before: 9, after: 1 },
+        { where: 'frames over 50 ms, the City-Shaft', before: 3, after: 3 },
+        { where: 'the people’s spikes, ms lost (all four runs)', before: 358, after: 80 },
+      ], source: 'docs/systems/performance.md, "Stutters", the cape fix on the Retroid' }] },
   ] },
   { v: '1.84', date: '2026-10-17', items: [
     // issue #439: src/costumes.js (HEADS: the 47 pieces of the 15 hat sets, HAT_SETS, HAT_SET_WORLDS, hoodShell / hoodNeck /

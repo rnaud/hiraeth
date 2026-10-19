@@ -63,13 +63,14 @@ export const CLOTH = { hMax: 1 / 30, maxSteps: 6, maxDt: 1 / 10, lag: 1 };
 export const CAPE_HOST = { offload: null };
 const DRAPES = new Map();          // drape key → Float32Array (anchor space), shared
 const BAKE_GAP_MS = 12;            // at most one bake every ~frame
-let lastBake = -1e9;
+let lastBake = -1e9, baking = null;   // (baking: the cape whose bake is under way, Cape.bake)
+const BAKE_HOLD_MS = 120;          // (an unfinished bake holds the others this long after its last share)
 // a bake: the cloth's own steps, heavily damped so it comes to rest in a few (within ~2 cm of
 // letting it fall for seconds), the colliders once a step: ~1 ms
-const BAKE = { steps: 3, damp: 0.6, iters: 5, n: 7 };
+const BAKE = { steps: 3, damp: 0.6, iters: 5, n: 7, share: 2 };   // (share: its updates a call, Cape.bake)
 const now = () => (typeof performance !== 'undefined' ? performance.now() : Date.now());
 /** Tests: forget the shared drapes and the bake budget. */
-export function resetDrapes() { DRAPES.clear(); lastBake = -1e9; }
+export function resetDrapes() { DRAPES.clear(); lastBake = -1e9; baking = null; }
 
 // what a seated cape falls onto: the seat's top under the hips, its edges, the ground beyond
 const FIELD = { half: 0.96, step: 0.12, probe: 0.2, drop: 2.5, edge: 0.1 };
@@ -521,14 +522,23 @@ export class Cape {
    */
   bake(s, { key = null, force = false } = {}) {
     const k = key === null ? null : `${this.cut}|${key}`;
-    if (k && DRAPES.has(k)) { this.drape = DRAPES.get(k); this._ownDrape = false; return true; }
+    if (k && DRAPES.has(k)) { this.drape = DRAPES.get(k); this._ownDrape = false; this._baked = 0; return true; }
     const t = now();
-    if (!force && t - lastBake < BAKE_GAP_MS) return false;
+    // (one bake at a time: the one under way goes on at each call, its cape's next frame; another waits for it, and
+    // for the gap after it. A bake left unfinished, its cape no longer asking, stops holding the others after a while)
+    const mine = baking === this;
+    if (!force && !mine && (t - lastBake < BAKE_GAP_MS || (baking && t - lastBake < BAKE_HOLD_MS))) return false;
     lastBake = t;
     const still = { up: s.up, floor: s.floor, field: s.field ?? null, capsules: s.capsules, vel: ZERO, wind: ZERO, quiet: true };
-    this.drape = null; this._ownDrape = false;
-    this.ready = false;
-    for (let i = 0, n = s.field ? SEATED.bake : BAKE.n; i < n; i++) this.update(1 / 30, still);
+    // (a share of the settling a call, BAKE.share of its updates, the rest at the next calls: one bake was a 40-60 ms frame
+    // of the Retroid's script as people came into sight, issue #468; forced, all of it now. The cloth is not drawn
+    // moving meanwhile: the callers wait for it, false till it is done)
+    if (!this._baked) { this.drape = null; this._ownDrape = false; this.ready = false; }
+    const n = s.field ? SEATED.bake : BAKE.n, upto = force ? n : Math.min(n, (this._baked ?? 0) + BAKE.share);
+    for (let i = this._baked ?? 0; i < upto; i++) this.update(1 / 30, still);
+    this._baked = upto < n ? upto : 0;
+    baking = upto < n ? this : null;
+    if (upto < n) return false;
     this.capture();
     if (k) { DRAPES.set(k, this.drape); this._ownDrape = false; }
     this.geo.attributes.position.needsUpdate = true;
