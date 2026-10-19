@@ -1,0 +1,9 @@
+{
+ "about": "The traveller's outfits on the Blender rebuild (issue #540): src/characters/outfits.js dresses him from this list; docs/systems/characters.md, 'Outfits'. 'default' is the base GLB's own garments; any other is built by scripts/blender/traveller/outfit.sh <id> into its dir.",
+ "base": "traveller.glb",
+ "manifest": "manifest.json",
+ "outfits": [
+  { "id": "default", "name": "His own clothes" },
+  { "id": "glider-pilot", "name": "Glider pilot", "dir": "outfits/glider-pilot/" }
+ ]
+}

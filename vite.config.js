@@ -39,6 +39,10 @@ export const BUILD_INPUT = {
   serendipity: fileURLToPath(new URL('./serendipity.html', import.meta.url)),
   // the temple maps (src/temple-maps/: each temple's plan, lock-and-key graph, solution and numbers, issue #396)
   temples: fileURLToPath(new URL('./temples.html', import.meta.url)),
+  // the outfits test page (issue #540: the game with the Blender traveller and an outfit picker; it opens
+  // index.html?outfits=, src/characters/outfit-page.js; its models, data/characters/traveller-v2/, are the dev
+  // server's alone: the built page says so)
+  outfits: fileURLToPath(new URL('./outfits.html', import.meta.url)),
 };
 const modules = existsSync('node_modules') ? realpathSync('node_modules') : null;
 /**

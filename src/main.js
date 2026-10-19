@@ -566,7 +566,8 @@ if (generatedTraveller) {
   player.humanoid = player.character.humanoid;
   // his levels of detail when the camera is far enough (characters/traveller-lod.js: built in a worker,
   // the full meshes until then and up close), picked each frame with the people's (skinnedLods)
-  buildTravellerLod(player.character).then((lod) => { if (lod) player.character.lod = skinnedLods.add(lod); });
+  // (not on the outfits page, ?outfits: its far levels would be B3's, characters/outfit-page.js)
+  if (!query.has('outfits')) buildTravellerLod(player.character).then((lod) => { if (lod) player.character.lod = skinnedLods.add(lod); });
 } else if (humanT) {
   const travellerTemplate = await new GLTFLoader().loadAsync(`${import.meta.env.BASE_URL}anim/traveller.glb`).then(g => g.scene).catch(() => null);
   if (travellerTemplate) {
@@ -2663,6 +2664,12 @@ Object.assign(window, { flatPass, motes, houseAir, waters, flora, blades, bloom,
 if (['keeper','elder'].includes(query.get('guardianReview'))) {
   const {startGuardianReview} = await import('./guardian-review.js');
   startGuardianReview({level,player,sound,rig,kind:query.get('guardianReview')});
+}
+
+// the outfits test page (outfits.html → ?outfits=<id>, issue #540): the v2 traveller, an outfit picker
+if (query.has('outfits')) {
+  const { startOutfitPage } = await import('./characters/outfit-page.js');
+  startOutfitPage({ player, input, frameStats });
 }
 
 if(query.get('characterReview')==='b3'){

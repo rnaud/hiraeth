@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hiraeth · Outfits</title>
+<!-- The outfits test page (issue #540; docs/systems/characters.md, "Outfits"): the game in a world (the desert
+     unless ?level=<id>) with the traveller drawn as the Blender rebuild and an outfit picker (?outfit=<id> to start
+     in one; U cycles). It is the game's own page, index.html?level=<world>&outfits=<id>
+     (src/characters/outfit-page.js). Dev server only: the models it loads live in data/, not in the build. -->
+<style>body{margin:0;background:#efe6d2;color:#302b25;font:15px system-ui;display:grid;place-items:center;align-content:center;gap:8px;height:100vh}</style>
+</head>
+<body data-debug-back>
+<h1 class="debug-room"><a href="./index.html" title="Back to the game">Hiraeth</a> · Outfits</h1>
+<p id="msg">Opening the game with the outfit picker…</p>
+<script type="module">
+const q = new URLSearchParams(location.search);
+const n = new URLSearchParams({ level: q.get('level') ?? 'desert', outfits: q.get('outfit') ?? 'default' });
+location.replace(`./index.html?${n}`);
+</script>
+<script type="module" src="/src/debug-back-page.js"></script>
+</body>
+</html>

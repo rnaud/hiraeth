@@ -2166,23 +2166,59 @@ sockets, the atlas's swatches, the draw groups, what comes out through the shirt
 - `build.py` still makes phase 1's all-modelled version (MakeHuman's head with eyes and brows apart,
   lofted clothes), not kept in the repository.
 
-### Outfits
+### Outfits (issue #540)
 
-A new outfit is new garment meshes on the same body and skeleton; the body never changes.
+An outfit is a set of garments on the same body, skin piece, head and skeleton; the body never changes. The
+default is the base GLB's own (`outfits.default` in its manifest); every other outfit is its own GLB, atlas
+and manifest in `data/characters/traveller-v2/outfits/<id>/`, listed in `data/characters/traveller-v2/outfits.json`.
+Web only for now: nothing in the game draws v2; the test page below does, and the Unity port doesn't.
 
-1. **Model** each piece as its own mesh over the base body (or, as phase 2 does, cut it from an approved
-   generated character: `b3cut.py`, labels by colour, a smooth cut, a lip on each edge) in its rest pose (T-pose), in its own layer
-   (1 next to the skin, 2 over that, 3 outermost), never closer than about 5 mm to the layer under it.
-   In `garments.py` that is a builder cut from the body's cage (`cut`: the parts and heights it covers),
-   grown out (`inflate`), with its hems, cuffs and collar extruded, added to `SPEC` and `BUILDERS`;
-   modelled by hand, keep quads and the cage's loops at the elbows and knees.
-2. **Weight** it: a piece cut from a skinned source keeps its own weights; otherwise from the body: `rig.transfer_weights` (the nearest body verts' mix, then smoothed). Where
-   a piece hangs away from the limb under it (a long hem, a cape, a skirt), give it a `sample` that reads
-   the weights from where it hangs from (the hips), not from what it covers (the thighs). Then look at it
-   posed (`previews.py --only posed`) and clean by hand where it pinches.
-3. **Mask:** nothing to set by hand: the build measures which body areas each piece covers and writes
-   them to the manifest. Check the list (an area only partly covered stays drawn); split an area in
-   `garments.area_of` if a new hem line cuts one in two.
-4. **Materials:** none of its own: its UVs go into the atlas with the rest (`atlas`, pass 3), its inside
-   and any flat parts as swatches; add it to `COVERS`, `HEM_WIDTH` and the clothes' draw group in
-   `DRAWS` (build_b3.py).
+**The first: the glider pilot** (references: five lab sheets, `docs/design/traveller-outfit-prompts.md`; the
+pick in `references/characters/traveller-outfits/glider-pilot/`): a cropped mustard flight jacket with a fleece
+collar, ribbed cuffs and band, patch pockets, a strap and a roundel on the back; olive jodhpurs; cream
+puttees; his own boots in brown. 40.7 k triangles (jacket 19.9 k, jodhpurs 9.8 k, puttees 4.5 k, boots
+6.5 k) against the default's 50.4 k; one 2048² atlas (2.3 MB GLB); previews in `outfits/glider-pilot/previews/`.
+
+**Building one** (`scripts/blender/traveller/outfit.sh <id> [--previews]`, a minute; `outfit.py` does the
+steps, `outfit_<id>.py` says what the outfit is):
+
+1. **Pieces** (`BUILDERS`, in the order they layer): each a bmesh cut from the base body's quad cage
+   (`garments.cut`: its parts and heights; the cage's loops at the elbows and knees), grown out (`inflate`
+   or by hand), its collar, cuffs and bands extruded (`garments.extrude`), each region a material slot
+   (`ZONES`: the jacket's shell, rib and fleece). `PIECES` gives each its layer, what it is fitted over
+   (`outside`), the garments over it (`covers`: their edges get a lip, not a band), its hem band, its
+   subdivision and the gap it keeps. A garment kept from the default (the glider pilot's boots) is copied
+   and recoloured (`BOOTS`).
+2. **Fit** (`fit_outside`): each piece pushed outside the body, his skin piece and the pieces under it, by
+   `gap`, as a smooth field, then relaxed. His skin piece's triangles under the new sleeves and puttees go
+   (`SKIN_CUT`, boxes in the rest pose; the manifest's `skinCut` in the game's frame): B3's forearms came
+   through the sleeves otherwise.
+3. **Weights** from the nearest verts of the body and his skin piece (a sleeve bends with the forearm under
+   it); a band below the waist samples the waist (`sample`).
+4. **Hems** (`finish.hem`), **hides** (each piece's areas covered 97 %, rays out to 20 cm: the base body
+   is drawn in under the default's loose clothes) plus `EXTRA_HIDES` where two pieces cover an area
+   between them (the glider pilot's chest and hips).
+5. **Paint**: Cycles bakes each texel's rest position and normal; `paint()` colours them (the sheet's
+   palette, its pockets, strap, zip, roundel, rib and the puttees' spiral, drawn as functions of the
+   surface). Inside bands are swatches.
+6. **Checks** in the manifest: the triangles, and what comes through what (his skin, the jodhpurs) in the
+   lowered pose and the game's idle, jog and sprint (`poses.py`); `tests/traveller-outfits.test.js` checks
+   the list, the skeleton by name, the weights, the hide lists, the triangles (never past the default's),
+   pokes under 1.5 cm, and the swap.
+
+**Wearing one** (`src/characters/outfits.js`): `Wardrobe.wear(id)` joins the outfit's garments into one draw
+and the body (its hidden areas' triangles left out) with his skin piece (its `skinCut` left out) into
+another, takes the last outfit's draws off and puts these on; `planOutfit`, `cullByArea`, `cutByBoxes` are
+the pure parts.
+
+**The test page:** `outfits.html` (dev server; `?level=<world>`, `?outfit=<id>`) opens
+`index.html?level=desert&outfits=default`: the game, walkable as ever, with the traveller drawn as v2
+(`src/characters/outfit-page.js`: the GLBs' skins renumbered onto his skeleton by bone name, the game's ink
+material; the game's portrait head kept with its drawn face; B3's body, cloth and far levels put away). A
+panel picks the outfit (U cycles) and the world; a corner shows his draws and triangles and the frame's.
+The models live in `data/`, so the built page only says it needs the dev server.
+
+**Still wrong (glider pilot):** the paint is flat colour and lines, no folds or hatching of its own (the
+game's ink shades it); the jacket's band can pinch over the jodhpurs at a sprint (up to 8 mm, 10 verts); the
+puttees' spiral reads as rings from a distance; the boots' top edge, inside the puttees, is ragged; the
+default's body was drawn in for the default's clothes, so a tight outfit may need its own hides.

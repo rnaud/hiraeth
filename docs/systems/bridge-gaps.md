@@ -12,7 +12,7 @@ web only and why; then what the bridge handles and where. How it works: `docs/sy
 | Passes and scenes outside the main picture | 0 | 5 | 9 |
 | Page elements (HTML) the game builds | 0 | 4 | 24 |
 | What src/main.js sets up that engine/game.js doesn't | 0 | 7 | 35 |
-| Dev pages and tools (web only by category) | | 28 | |
+| Dev pages and tools (web only by category) | | 29 | |
 
 ## Materials and shaders the bridge draws as something else
 
@@ -90,4 +90,4 @@ Read from the sheets of `node scripts/unity-compare/sequences.mjs` (Unity's batc
 
 ## Dev pages and tools
 
-Their own HTML pages or developer tools, never in a player's game, not looked at for shaders, passes or page elements: `src/studio/`, `src/audits-page/`, `src/reference-lab/`, `src/changelog-page/`, `src/references-page/`, `src/serendipity-page/`, `src/temple-maps/`, `src/enemies/page.js`, `src/cinematics-page/`, `src/music-page/`, `src/motion/`, `src/notes-page/`, `src/makers-mark/page.js`, `src/makers-mark/runtime.js`, `src/items-page/`, `src/lore-page/`, `src/trailer/`, `src/levels/reference-picker.js`, `src/levels/references.js`, `src/guardian-review.js`, `src/character-review.js`, `src/dev-menu.js`, `src/foe-spawner.js`, `src/hitbox-overlay.js`, `src/input-display.js`, `src/debug-back.js`, `src/changelog-media.js`, `src/gait-course.js`.
+Their own HTML pages or developer tools, never in a player's game, not looked at for shaders, passes or page elements: `src/studio/`, `src/audits-page/`, `src/reference-lab/`, `src/changelog-page/`, `src/references-page/`, `src/serendipity-page/`, `src/temple-maps/`, `src/enemies/page.js`, `src/cinematics-page/`, `src/music-page/`, `src/motion/`, `src/notes-page/`, `src/makers-mark/page.js`, `src/makers-mark/runtime.js`, `src/characters/outfit-page.js`, `src/items-page/`, `src/lore-page/`, `src/trailer/`, `src/levels/reference-picker.js`, `src/levels/references.js`, `src/guardian-review.js`, `src/character-review.js`, `src/dev-menu.js`, `src/foe-spawner.js`, `src/hitbox-overlay.js`, `src/input-display.js`, `src/debug-back.js`, `src/changelog-media.js`, `src/gait-course.js`.
