@@ -217,3 +217,30 @@ test('the lamplighter\'s props: gloves weighted to his hands, the oil can to the
   assert.ok(m.parts.Gloves.triangles < 3000 && m.parts.OilCan.triangles < 1500, 'props kept light');
   assert.equal(m.pokes.posed.sprint['Gloves>Jacket'].out, 0, 'the gloves\' cuffs stay under the sleeves');
 });
+
+test('the outfits have volume: the quilting, the raised pockets and straps, the puttees\' turns, the fleece', () => {
+  const lamp = JSON.parse(readFileSync(DIR + 'outfits/lamplighter/manifest.json', 'utf8'));
+  const pilot = JSON.parse(readFileSync(DIR + 'outfits/glider-pilot/manifest.json', 'utf8'));
+  assert.ok(lamp.fit.Jacket.relief._quilting.puffed > 2000, 'the lamplighter\'s bands puffed');
+  for (const k of ['_toggles', '_armband']) assert.ok(lamp.fit.Jacket.relief[k], k);
+  const r = pilot.fit.Jacket.relief._jacket_relief;
+  for (const k of ['pocket0', 'pocket1', 'flap0', 'flap1', 'strap', 'backStrap', 'sleevePocket']) assert.ok(r[k].raised > 0, `${k} raised`);
+  assert.ok(r.fleece.fleece > 500, 'the fleece collar has its pile');
+  assert.ok(pilot.fit.Puttees.relief._puttee_relief.rings >= 40, 'the puttees wound in turns');
+  for (const k of ['belt', 'harness0', 'harness3']) assert.ok(pilot.fit.Jodhpurs.relief._jodhpur_relief[k].raised > 0, k);
+});
+
+test('the shared painter shaded every new garment (folds, occlusion, hatching), the kept boots left as they were', () => {
+  for (const o of others) {
+    const m = JSON.parse(readFileSync(DIR + o.dir + 'manifest.json', 'utf8'));
+    const kept = Object.keys(m.parts).filter((n) => /Boots$/.test(n) && !m.fit[n]);
+    for (const name of Object.keys(m.parts)) {
+      if (kept.includes(name)) { assert.ok(!m.shading[name], `${o.id}: ${name} kept as it was`); continue; }
+      const s = m.shading[name];
+      assert.ok(s, `${o.id}: ${name} shaded`);
+      assert.ok(s.shadow > 0.01 && s.change > 0.002, `${o.id}: ${name} has shading (${JSON.stringify(s)})`);
+      // moderate: the game's ink material lights the clothes again
+      assert.ok(s.change < 0.08, `${o.id}: ${name} not muddied (${s.change})`);
+    }
+  }
+});

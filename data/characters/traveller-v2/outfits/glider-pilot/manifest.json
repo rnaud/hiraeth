@@ -14,8 +14,8 @@
  "parts": {
   "Jodhpurs": {
    "kind": "garment",
-   "triangles": 9792,
-   "vertices": 5007,
+   "triangles": 11012,
+   "vertices": 5617,
    "hides": [
     "knee.R"
    ],
@@ -26,8 +26,8 @@
   },
   "Puttees": {
    "kind": "garment",
-   "triangles": 4454,
-   "vertices": 2358,
+   "triangles": 6636,
+   "vertices": 3396,
    "hides": [
     "shin.L",
     "shin.R"
@@ -39,8 +39,8 @@
   },
   "Jacket": {
    "kind": "garment",
-   "triangles": 19925,
-   "vertices": 10101,
+   "triangles": 21179,
+   "vertices": 10726,
    "hides": [
     "belly",
     "forearm_upper.L",
@@ -139,7 +139,7 @@
    2048,
    2048
   ],
-  "texelsPerMetre": 1094,
+  "texelsPerMetre": 1035,
   "swatches": {
    "Puttees.inside": [
     102,
@@ -210,41 +210,127 @@
    ]
   }
  },
- "triangles": 40676,
+ "triangles": 45332,
  "fit": {
   "Jodhpurs": {
    "fitLeft": 56,
+   "relief": {
+    "_jodhpur_relief": {
+     "belt": {
+      "cuts": 384,
+      "raised": 223
+     },
+     "buckle": {
+      "cuts": 67,
+      "raised": 24
+     },
+     "harness0": {
+      "cuts": 123,
+      "raised": 53
+     },
+     "harness1": {
+      "cuts": 114,
+      "raised": 43
+     },
+     "harness2": {
+      "cuts": 111,
+      "raised": 44
+     },
+     "harness3": {
+      "cuts": 110,
+      "raised": 39
+     }
+    }
+   },
    "hem": {
     "open": 0,
     "covered": 224
    }
   },
   "Puttees": {
-   "fitLeft": 14,
+   "fitLeft": 0,
+   "relief": {
+    "_puttee_relief": {
+     "cuts": 2652,
+     "rings": 49
+    }
+   },
    "hem": {
-    "open": 198,
-    "covered": 26,
-    "band": 213,
-    "lips": 198
+    "open": 102,
+    "covered": 10,
+    "band": 350,
+    "lips": 102
    }
   },
   "Jacket": {
-   "fitLeft": 177,
+   "fitLeft": 19,
+   "relief": {
+    "_jacket_relief": {
+     "pocket0": {
+      "cuts": 122,
+      "raised": 106
+     },
+     "flap0": {
+      "cuts": 124,
+      "raised": 78
+     },
+     "pocket1": {
+      "cuts": 122,
+      "raised": 106
+     },
+     "flap1": {
+      "cuts": 124,
+      "raised": 78
+     },
+     "strap": {
+      "cuts": 290,
+      "raised": 217
+     },
+     "backStrap": {
+      "cuts": 188,
+      "raised": 129
+     },
+     "sleevePocket": {
+      "cuts": 77,
+      "raised": 33
+     },
+     "fleece": {
+      "fleece": 1257
+     }
+    }
+   },
    "hem": {
-    "open": 272,
+    "open": 274,
     "covered": 0,
-    "band": 1371,
-    "lips": 272
+    "band": 1271,
+    "lips": 274
    }
+  }
+ },
+ "shading": {
+  "Jodhpurs": {
+   "shadow": 0.097,
+   "hatched": 0.007,
+   "change": 0.0099
+  },
+  "Puttees": {
+   "shadow": 0.021,
+   "hatched": 0.013,
+   "change": 0.0047
+  },
+  "Jacket": {
+   "shadow": 0.075,
+   "hatched": 0.074,
+   "change": 0.0155
   }
  },
  "pokes": {
   "under": {
    "Skin>Jodhpurs": 0,
    "Skin>Puttees": 0,
-   "Jodhpurs>Puttees": 522,
+   "Jodhpurs>Puttees": 548,
    "Skin>Jacket": 40,
-   "Jodhpurs>Jacket": 672
+   "Jodhpurs>Jacket": 676
   },
   "posed": {
    "lowered": {
@@ -310,7 +396,7 @@
     },
     "Jodhpurs>Jacket": {
      "out": 9,
-     "deepestMm": 5.5
+     "deepestMm": 5.3
     }
    },
    "jog-b": {
@@ -353,8 +439,8 @@
      "deepestMm": 0.0
     },
     "Jodhpurs>Jacket": {
-     "out": 9,
-     "deepestMm": 6.9
+     "out": 10,
+     "deepestMm": 7.8
     }
    }
   }

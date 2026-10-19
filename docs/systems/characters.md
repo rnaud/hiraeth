@@ -2204,18 +2204,24 @@ Web only for now: nothing in the game draws v2; the test page below does, and th
 **The first: the glider pilot** (references: five lab sheets, `docs/design/traveller-outfit-prompts.md`; the
 pick in `references/characters/traveller-outfits/glider-pilot/`): a cropped mustard flight jacket with a fleece
 collar, ribbed cuffs and band, patch pockets, a strap and a roundel on the back; olive jodhpurs; cream
-puttees; his own boots in brown. 40.7 k triangles (jacket 19.9 k, jodhpurs 9.8 k, puttees 4.5 k, boots
-6.5 k) against the default's 50.4 k; one 2048² atlas (2.3 MB GLB); previews in `outfits/glider-pilot/previews/`.
+puttees; his own boots in brown. Since #544: the fleece collar full and lying on his shoulders with a pile,
+the pockets and their flaps, the chest and back straps, the sleeve's pocket, the belt and the harness straps
+raised, the jodhpurs' flare as the sheet's, the puttees wound in slanting turns. 45.3 k triangles (jacket
+21.2 k, jodhpurs 11.0 k, puttees 6.6 k, boots 6.5 k) against the default's 50.3 k; one 2048² atlas;
+previews in `outfits/glider-pilot/previews/`.
 
 **The second: the lamplighter** (issue #542; `references/characters/traveller-outfits/lamplighter/`, sheet-1 =
 the lab's openai/1): a short quilted indigo jacket (the quilting painted as stitched bands, rings round the
 sleeves), a stand-up collar, lamp-yellow piping down the front, round the hem, the cuffs and the collar's
 top, five brass toggles, a yellow armband on his left upper arm; slim charcoal trousers with a yellow side
 stripe; tall black boots: his own boots in black under shafts of their own (`BootShafts`, over the
-trousers) with a turned-down cuff. 42.6 k triangles (jacket 19.5 k, trousers 10.8 k, shafts 5.8 k, boots
-6.5 k); his skin through nothing in any pose. Its hides are measured but for the hips (94 %: a lump of the
-base body at his right front hip stands proud of the slim trousers). Left out from the sheet: the gloves (a
-mesh over his fingers) and the oil can at the hip (a rigid prop).
+trousers) with a turned-down cuff. Since #544: the quilting puffed between stitched rows (five bands across
+the front, six down the back, rings round the sleeves), a tall stand collar closed at the throat, the
+toggles and the armband raised, short brown gloves and the brass oil can on its strap at his left hip.
+47.3 k triangles (jacket 21.4 k, trousers 10.8 k, shafts 5.8 k, gloves 2.0 k, can 0.8 k, boots 6.5 k); his
+skin through nothing in any pose. Its hides are measured but for the hips (94 %: a lump of the base body at
+his right front hip stands proud of the slim trousers); the collar covers the neck's area, but the neck
+stays drawn (`KEEP_AREAS`: from above he is seen into the collar).
 
 **Building one** (`scripts/blender/traveller/outfit.sh <id> [--previews]`, a minute; `outfit.py` does the
 steps, `outfit_<id>.py` says what the outfit is):
@@ -2242,7 +2248,47 @@ steps, `outfit_<id>.py` says what the outfit is):
 6. **Checks** in the manifest: the triangles, and what comes through what (his skin, the jodhpurs) in the
    lowered pose and the game's idle, jog and sprint (`poses.py`); `tests/traveller-outfits.test.js` checks
    the list, the skeleton by name, the weights, the hide lists, the triangles (never past the default's),
-   pokes under 1.5 cm, and the swap.
+   pokes under 1.5 cm, the props' weights, the relief and the shading, and the swap.
+
+**Volume, props and shading (issue #544; shared by every outfit).** The first two outfits were flat: colour
+and lines, the game's ink doing all the shading. Three optional names in an outfit's module, run by
+`outfit.py`, use two shared modules; a new outfit gets the painter with no code at all:
+
+- `RELIEF = {piece: [op, ...]}` (`tailor.py`): run on a piece right after it is fitted, before the pieces
+  over it fit over it; each op is called `op(ob, J)` and its report lands in the manifest's `fit.<piece>.relief`
+  (an outfit's own function wrapping tailor ops is an op too). An op cuts the mesh where a crisp edge is
+  wanted (`tailor.cut`: bisect planes through the faces near the feature only) and moves verts out along
+  their normals:
+  - `quilt([(axis, rows, where)], puff)`: puffed bands between stitch rows; `axis` across the bands (an
+    `axis[0] < 0` reads `|x|`, so one family serves both sleeves), `rows` the stitch rows, `where(P)` 0..1;
+  - `raised(shape, height, facing=, where=)` with `rect(c, u, v, hu, hv)`, `strap(a, b, normal, hw)` or
+    `ring(centre, axis, hw)`: a pocket, a flap, a strap, a band, standing proud on a step (its outline cut
+    twice); `facing` keeps it to the side it is on;
+  - `wound(axis_of, z0, z1, pitch, depth, ring_step, starts)`: a wound cloth's turns (rings cut, each turn a
+    ramp over the one below; `starts=2` slants them as the glider pilot's sheet);
+  - `fleece(mat=, amp, thick, scale)`: a pile on a material slot.
+- `PROPS = {name: spec}`: built after the pieces from `spec['build'](ctx)` (`ctx`: cage, J, skin, body, made,
+  arm, bones), returning a bmesh or `(bmesh, weights per vert)`; `spec['bone']` makes it rigid on one bone
+  (`rig.rigid`); `hem` (None: closed), `layer`, `covers`, `under` (pieces it lies under: their pokes are
+  measured). `tailor.glove(skin, xmin, ...)` + `copy_weights` give gloves over his hands from his skin piece
+  (each vert the hand vert's weights; the outfit's `SKIN_CUT` then cuts the hands); `lathe`, `torus`,
+  `ribbon` build a rigid prop and its strap. The lamplighter's can is rigid on `thigh_l` (on the pelvis the
+  game's idle swung his thigh 3 cm into it), its strap blended from the pelvis to the thigh.
+- `SHADE = {piece: {...} | None}` (`inkpaint.py`): after `paint()`, every piece but the kept boots is shaded:
+  per vertex, in the rest pose, the occlusion (everything, the head included, rays to 6 cm), the valleys
+  (a vert below its ring's mean) and facing down are baked through the atlas; the paint is darkened by
+  them (`tone`, 0.30: moderate, the game's ink material lights the clothes again) and hatched where the
+  shadow is deep (`hatch`, `hatch_from`, `spacing`, `width`: 45° pen strokes in the plane the texel faces,
+  broken into dashes). `folds(P, N, zone, J)` returns pen strokes where the cloth gathers:
+  `inkpaint.limb_strokes` with `elbow_folds(J)` / `knee_folds(J)`, `drapes` (a full trouser's long lines),
+  `gathers` (over a band). The manifest's `shading` says, per piece, the mean shadow, the share hatched,
+  and how far the colour moved. `inkpaint.band`, `rgb`, `Canvas` are the helpers every `paint()` repeats.
+
+Other fixes there: `fit_outside` no longer pushes a vert that lies beside a shell's open edge or more than
+2.5 cm across a thin one (the body's open neck had pushed the collar back through the head's neck), and
+both jackets' shoulder caps are thinner (they spread out broad when the arms came down).
+Left as they are: the sheets' own fold drawings are not projected onto the garments (the sheets' poses and
+proportions differ from his rest pose; the folds are drawn as strokes instead).
 
 **Wearing one** (`src/characters/outfits.js`): `Wardrobe.wear(id)` joins the outfit's garments into one draw
 and the body (its hidden areas' triangles left out) with his skin piece (its `skinCut` left out) into
