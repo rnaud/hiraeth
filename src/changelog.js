@@ -33,6 +33,10 @@ export const CHANGELOG = [
     'The sign on each fight temple room’s floor is now the makers’ mark in a faint square. It was two dark rings, the very shape of the foes’ ring attacks, under every fight.',
     // issue #534: Foes.lockAnswer (session.js), view.js LOCK_ANSWER; the lock's own tick (audio.js lockOn)
     'Pressing lock-on (R3 / Tab) in a fight temple now answers: the aim’s ring flashes under the foe your blade will take, with the lock’s tick, and the first time a line says the right stick or the mouse aims in there.',
+    // issue #477 (the houses' shapes): src/temples/perdide2.js (the Kennel's pool-orb oK / pK / lK, KENNEL_ORB; dK no longer
+    // LIT); tests/lamp-house.test.js, tests/temples.test.js; docs/systems/temples.md "The Lamp-House's shape"
+    { text: 'The Lamp-House runs in a new order. The Kennel’s door now wakes to a glowing orb you roll across the first hall, so its keepers and their small key come before the bubble wand. With the wand, the great key in the Wick Room is yours half-way through, in the dark, and the great lamp is lit on the way back.',
+      see: 'In the Lamp-House, light the pool nearest the Kennel’s door, let the orb beside it drink its light, and roll the orb up the floor into its socket before it fades.' },
   ] },
   { v: '1.85', date: '2026-10-18', items: [
     // issue #474: src/music-moments.js (MUSIC_MODES, musicMode: Always the default), src/ui.js (musicMode, musicV: a saved

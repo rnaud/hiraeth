@@ -31,8 +31,8 @@ import { lampHouseSkin } from './skins/lamp-house.js';
 // room, the one fight in the Kennel.
 // Since v1.83 (issue #410, docs/design/temple-best-practices.md: G1, G2, G4, G6) the house turns on its GREAT LAMP, hung in
 // the middle of the Lamp Hall: lit or dark, the house's one state (the drum `lamp`, saved), and the house's ways show
-// in one or the other. Lit, the lamp's light runs out along the makers' pipes: the Kennel's lamp-door and the Lamp
-// Passage's door open to it, a curtain of it bars the Wick Room, the moss-stones in the Dark Gallery shrink from it, and
+// in one or the other. Lit, the lamp's light runs out along the makers' pipes: the Lamp Passage's door opens to it (the
+// Kennel's lamp-door did too until #477), a curtain of it bars the Wick Room, the moss-stones in the Dark Gallery shrink from it, and
 // on the gallery's far floor it pours out of its pipe, a light a bubble may take. Dark, the curtain falls and the
 // moss-stones rise. Kindled once with a bubble of light from its balcony, it is set at a lever by every hub (the Lamp
 // Hall's floor and its gallery, the Lantern Chamber), and on the far floor with the hook at its pipe's ring (an older
@@ -44,11 +44,14 @@ import { lampHouseSkin } from './skins/lamp-house.js';
 //                           floors seen at once, the hub of both. The great lamp hangs in its middle, cold. Three
 //                           pool-lamps for the Root Stair's door: two on the floor, the third up on a loft of roots out
 //                           from the west wall, its pool far back from the edge: out of sight from the floor (climb to
-//                           find it). East off it the Kennel and the Wick Room
+//                           find it). (#477) A pool-orb rests by the nearer floor pool: lit by it and rolled up the
+//                           floor to its socket, its lamp wakes the Kennel's lamp-door (the orb taught here, before the
+//                           wand). East off it the Kennel and the Wick Room
 //   the Kennel              (v1.49, issue #23: east off the hall, an arena, the house's one fight) where the keepers of
-//                           the house's lamps were kept, dark; its lamp-door opens to the great lamp's light (v1.83),
-//                           and shuts behind you while they stand round its middle. Won, the small key's cage sinks: the
-//                           Wick Room's grille, along the hall, takes it
+//                           the house's lamps were kept, dark; its lamp-door opens to the hall's pool-orb (#477; to the
+//                           great lamp's light v1.83-v1.85), and shuts behind you while they stand round its middle.
+//                           Won, before the wand, the small key's cage sinks: the Wick Room's grille, along the hall,
+//                           takes it
 //   the Root Stair          a dark pool across its middle, and no way over it: moss-stones lie sunk in it, dark until
 //                           the lamp in their socket wakes, and only light wakes it. A pool-orb waits on the near floor
 //                           beside a small pool, its groove across the floor to the socket. Light the pool, let the orb
@@ -195,6 +198,8 @@ export const ROOT_WAY = { x0: 14, z: 81 + S, y: 9, ledge: [14, 77 + S, 18.5, 86.
  * pool-lamp's light reaches a bubble (m); the Lantern Chamber's fount (local: its foot).
  */
 export const POOL_LIGHT = 3.5;
+/** (issue #477) The Kennel's pool-orb on the Lamp Hall's floor: its groove's x, and its z from the orb's rest by the pool s1 to the socket. */
+export const KENNEL_ORB = [3.7, 31.5, 43.5];
 export const FOUNT = [-2.4, 9, 132 + S];
 /**
  * (issue #410) The Dark Gallery's far floor ([x, z from the far lip]): the far door's lamp on its post, the basin the great
@@ -236,6 +241,17 @@ export const LOGIC = {
   elements: {
     s1: { type: 'switch', room: 'pools' }, s2: { type: 'switch', room: 'pools' }, s3: { type: 'switch', room: 'loft' },
     d1: { type: 'door', opens: { all: [{ lit: 's1' }, { lit: 's2' }, { lit: 's3' }] }, latch: true },
+    // (issue #477, the house reshaped: the Kennel before the wand, the great key straight after it, the great lamp on the way
+    // back) the Kennel's lamp-door wakes to a pool-orb: on the hall's floor, the orb drinks the near pool's light (s1, one of
+    // the Root Stair door's three) and is rolled to its socket before it fades; the socket's lamp catches, and the door opens
+    // for good. The orb taught here, before the Root Stair's (the test) and the Wick Room's two at once (the twist). Its
+    // keepers beaten, the small key's cage sinks: for the Wick Room's grille
+    oK: { type: 'drum', room: 'pools', plate: 'pK', plateAt: 1, start: 0 },   // the Kennel's pool-orb, rolled to its socket
+    pK: { type: 'plate', room: 'pools' },                            // its socket
+    lK: { type: 'switch', room: 'pools' },                            // the socket's lamp: it wakes to a glowing orb
+    dK: { type: 'door', opens: { all: [{ lit: 's1' }, { drumOn: ['oK', 'pK'] }, { lit: 'lK' }] }, latch: true },
+    arK: { type: 'arena', room: 'kennel' },
+    kS: { type: 'key', kind: 'small', room: 'kennel', when: { lit: 'arK' } },
     // (v1.77) the small pool, the pool-orb and its socket in the middle of the Root Stair's floor
     s5: { type: 'switch', room: 'roots' },                            // the small pool by the orb: its light for the orb
     orb5: { type: 'drum', room: 'roots', plate: 'p5', plateAt: 1, start: 0 },   // a pool-orb, rolled to the socket
@@ -253,11 +269,6 @@ export const LOGIC = {
     // It catches behind its shutters; a lever opens them (the state, `lamp`, below)
     s8: { type: 'switch', room: 'hallUp' },
     lG: { type: 'switch', room: 'hallUp', needs: ['bubble'], when: { lit: 's8' } },
-    // the Kennel: its lamp-door opens to the great lamp's light, for good; its keepers beaten in the dark, the small key's
-    // cage sinks
-    arK: { type: 'arena', room: 'kennel' },
-    kS: { type: 'key', kind: 'small', room: 'kennel', when: { lit: 'arK' } },
-    dK: { type: 'door', opens: LIT, latch: true },
     // (issue #410) the Wick Room's way in: barred by a curtain of the great lamp's light while it is lit
     cur: { type: 'door', opens: DARK },
     // the Lamp Passage's door: a lamp-door, open for good once the great lamp has lit it
@@ -717,10 +728,10 @@ function wings(rt, K, M, { root, pool }) {
   // ---- the Kennel
   K.corridor([PO.x1 + 1.2, Kn.z], [KR.x0 - 0.6, Kn.z], 0, { w: D.w, h: D.h });
   K.hall({ x: Kn.x, z: Kn.z, w: Kn.w, d: Kn.d, y: 0, h: KR.top, roof: 'oculus', oculus: 0.25, doors: [{ side: 'w', at: 0, w: D.w, h: D.h }] });
-  // (issue #410) a lamp-door: it opens to the great lamp's light, for good (and shuts behind you while they stand)
-  // (in the hall's wall, in sight of the great lamp)
-  add(Door, { id: 'dK', at: [PO.x1 + 0.6, 0, Kn.z], yaw: Math.PI / 2, w: D.w, h: D.h, lamps: [LIT] });
-  add(LampWord, { at: [PO.x1 - 2, 0, Kn.z], r: 5, when: { not: { open: 'dK' } }, said: 'The Kennel’s lamp-door is cold. It wants the great lamp’s light.' });
+  // a lamp-door: (issue #477) it opens to the lamp of the pool-orb's socket on the hall's floor, for good (and shuts behind
+  // you while they stand)
+  add(Door, { id: 'dK', at: [PO.x1 + 0.6, 0, Kn.z], yaw: Math.PI / 2, w: D.w, h: D.h, lamps: [{ lit: 'lK' }] });
+  add(LampWord, { at: [PO.x1 - 2, 0, Kn.z], r: 5, when: { not: { open: 'dK' } }, said: 'The Kennel’s lamp-door is cold. It wakes with the lamp by the orb’s socket, out on the floor.' });
   add(LampGauge, { room: 'kennel', at: [KR.x0 + 3, 0, Kn.z + 7] });
   // the keepers' old stalls along the north and south walls, a bar over each front; four columns round the middle to
   // fight round
@@ -810,6 +821,21 @@ function layout(rt) {
     add(Switch, { id, at: [x, y + 0.9, z], yaw: 0, size: 0.9, light: POOL_LIGHT });   // (lit, a light a bubble takes: issue #377)
   };
   pool('s1', 7, 0, 30); pool('s2', -1, 0, 45);
+  // (issue #477) the Kennel's pool-orb: at rest by the near pool (s1), its groove north up the floor to its socket and the
+  // socket's lamp on a post, whose light opens the Kennel's lamp-door (in sight of it, across the floor)
+  {
+    const [ox, z0, z1] = KENNEL_ORB;
+    K.add(M.dark, box(1.0, 0.04, z1 - z0 + 0.6, ox, 0.02, (z0 + z1) / 2));
+    for (const sd of [-1, 1]) K.both(M.trim, box(0.25, 0.12, z1 - z0 + 0.6, ox + sd * 0.75, 0.06, (z0 + z1) / 2));
+    add(Ball, { id: 'oK', a: [ox, 0.04, z0], b: [ox, 0.04, z1], r: 0.9, lock: true,
+      lamp: { id: 'lK', reach: 0, pool: { id: 's1', at: [7, 0.9, 30], reach: 4.6 }, hold: 2, lasts: 25,
+        caught: 'The orb drinks the pool’s light and glows, for a while.',
+        dark: 'The orb settles in the socket, dark, and the socket tips it back out. Its lamp wants light.',
+        woke: 'The glowing orb settles in the socket, and its lamp catches. Across the floor, the Kennel’s lamp-door wakes.' } });
+    add(Plate, { id: 'pK', at: [ox, 0, z1], r: 1.0 });
+    lampPost(K, M, ox, 0, z1 + 1.6);
+    add(LightEar, { id: 'lK', at: [ox, 0, z1 + 1.6], reach: 0 });   // (only the glowing orb wakes it)
+  }
   const LO = { x0: PO.x0 - 0.1, ...LOFT }, [lox, loz] = mid(LO);
   K.climbable('the loft of roots: climbed from the Lamp Hall\'s floor to the third pool', () => {
     K.both(M.wallGlyph, box(LO.x1 - LO.x0, LO.top, LO.z1 - LO.z0, lox, LO.top / 2, loz));

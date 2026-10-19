@@ -758,7 +758,7 @@ test('the Aerie reworked (issue #407): a step before the wings (the Fledgery’s
   assert.equal(fresh.flag('temple.arzach.drum.bD'), undefined, 'before the wings: the new step still to do');
 });
 
-test('the Lamp-House (issues #23, #410): the great lamp lit or dark the house’s one state: kindled once from its balcony, then set at a lever by every hub or with the hook at its pipe’s ring; the Kennel off its first hall lit, the Wick Room dark, the moss-stones risen in the dark; the far door’s lamp a bubble of the great lamp’s light; old saves past the gallery find it open', () => {
+test('the Lamp-House (issues #23, #410, #477): the great lamp lit or dark the house’s one state: kindled once from its balcony, then set at a lever by every hub or with the hook at its pipe’s ring; the Kennel off its first hall woken by a pool-orb before the wand, the Wick Room dark, the moss-stones risen in the dark; the far door’s lamp a bubble of the great lamp’s light; old saves past the gallery find it open', () => {
   const L = TEMPLES.perdide2.def.logic, items = ['backpack', 'gun', 'doublejump', 'sword', 'shield', 'glider', 'hook', 'stun'];
   for (const reverse of [false, true]) { const r = solve(L, { items, reverse }); assert.equal(r.done, true, r.log.join(' / ')); }
   const noWick = solve(L, { items, forbid: ['lW2'] });
@@ -774,16 +774,27 @@ test('the Lamp-House (issues #23, #410): the great lamp lit or dark the house’
   const without = (w) => solve(L, { items: items.filter((i) => i !== w) });
   assert.ok(!without('hook').done && !without('hook').stuck.includes('lamp'), 'the far door wants the hook too, an older tool (G2)');
   const noWand = solve(L, { items, withhold: ['bubble'] });
-  assert.ok(!noWand.done && !noWand.order.includes('gallery') && !noWand.order.includes('kennel'), 'without the wand the great lamp stays cold: no Kennel, no Lamp Passage');
+  assert.ok(!noWand.done && !noWand.order.includes('gallery') && !noWand.order.includes('wickKey'), 'without the wand the great lamp stays cold: no Lamp Passage, and the great key stays behind its grille');
+  // (issue #477, the house reshaped: the Kennel before the wand, its lamp-door woken by a pool-orb on the hall's floor; the
+  // great key straight after the wand, in the dark; the great lamp on the way back)
+  assert.ok(noWand.order.includes('kennel') && noWand.logic.isFound('kS'), 'the Kennel won before the wand: its small key in hand');
+  assert.deepEqual(L.elements.dK.opens, { all: [{ lit: 's1' }, { drumOn: ['oK', 'pK'] }, { lit: 'lK' }] }, 'its lamp-door wakes to the hall’s pool-orb');
+  const first = solve(L, { items });
+  assert.ok(first.order.indexOf('kennel') < first.order.indexOf('lantern') && first.order.indexOf('wickKey') < first.order.indexOf('gallery'), `the Kennel before the wand, the great key before the Lamp Passage (${first.order.join(' ')})`);
+  const noOrb = solve(L, { items, forbid: ['oK'] });
+  assert.ok(!noOrb.order.includes('kennel') && !noOrb.done, 'without the hall’s orb the Kennel stays shut');
   // the state's ways: lit, the lamp-doors (for good) and the curtain; dark, the curtain gone and the moss-stones up for good
   const S = new TempleLogic(L, { has: (i) => [...items, 'bubble'].includes(i) });
   S.update();
   assert.ok(S.isOpen('cur') && !S.isOpen('dK') && !S.isOpen('d2') && !S.isOpen('br1'), 'cold: the house dark, the Wick Room open, the lamp-doors shut, the moss-stones still');
+  // (issue #477) the Kennel's lamp-door: the orb in its socket, its lamp lit, and the near pool
+  S.store.set('lit.s1', true); S.moveDrum('oK', 1); S.light('lK'); S.update();
+  assert.ok(S.isOpen('dK') && !S.isOpen('d2'), 'the orb’s lamp: the Kennel open, the Lamp Passage still shut');
   // (its levers will not open the shutters on a cold lamp: GreatLamp.toggle, tests/lamp-house.test.js)
   S.store.set('lit.s8', true); S.light('lG'); S.update();
-  assert.ok(S.isLit('lG') && S.isOpen('cur') && !S.isOpen('dK'), 'kindled behind shut shutters: still dark');
+  assert.ok(S.isLit('lG') && S.isOpen('cur') && !S.isOpen('d2'), 'kindled behind shut shutters: still dark');
   S.moveDrum('lamp', 1); S.update();
-  assert.ok(S.isOpen('dK') && S.isOpen('d2') && !S.isOpen('cur') && !S.isOpen('br1'), 'lit: the Kennel’s and the Lamp Passage’s doors, the curtain across the Wick Room, the moss-stones sunk');
+  assert.ok(S.isOpen('d2') && !S.isOpen('cur') && !S.isOpen('br1'), 'lit: the Lamp Passage’s door, the curtain across the Wick Room, the moss-stones sunk');
   S.moveDrum('lamp', 0); S.update();
   assert.ok(S.isOpen('dK') && S.isOpen('d2') && S.isOpen('cur') && S.isOpen('br1'), 'dark: the lamp-doors stay open, the curtain falls, the moss-stones rise');
   S.moveDrum('lamp', 1); S.update();

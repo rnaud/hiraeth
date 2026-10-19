@@ -913,6 +913,24 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   saves), `tests/temple-playthrough.test.js` (the lamp set at a lever, the valve's ring hooked from its `from`; the house
   walked in with the hook). Old saves: `migrate.js` perdide2 v5 (past the Lamp Passage's door: the ledge's door open and
   the great lamp kindled and lit; past the far door: its lamp lit; one that stood inside: to its last mark).
+- **The Lamp-House's shape: the great key mid-way, then the way back** (v1.86, issue #477; shape 2 of the four shapes
+  proposed on the issue: the houses had converged on one order, "a few base steps, the chest, combinations, the great key,
+  the guardian", and the Lamp-House read 69 % like the Engine-House). The Kennel moves before the wand, the great key comes
+  straight after it, and the great lamp is kindled on the way back:
+  - **The Kennel's lamp-door wakes to a pool-orb** on the Lamp Hall's floor (`oK`, `pK`, `lK`; `KENNEL_ORB`: its groove up
+    the floor from the near pool `s1`, the Root Stair door's, to a socket whose lamp is on a post in sight of the door).
+    Light the pool, let the orb drink, roll it home before it fades. The orb is taught here, tested over the Root Stair's
+    pool, twisted in the Wick Room (two at once, with bubbles). The great lamp no longer opens the Kennel: lit, it opens
+    the Lamp Passage alone. The Kennel's small key is in hand before the wand.
+  - **The great key straight after the wand**: down the ledge's door (`dC`), off the gallery's edge, the Wick Room in the
+    dark (its curtain down: the lamp still cold), the two orbs and the small key in the grille. Then up the keepers' door,
+    the ledge back to the balcony, the great lamp kindled and lit (the Lamp Passage open, the Wick Room curtained behind
+    you), darkened again for the moss-stones, the far floor, the far door.
+  Audit: skeleton `BBXCGXXBLLK` → `BBXXCGLXBLK`, 69 % → 62 % like its nearest (the Engine-House), identity 2 → 3; nine steps,
+  combinations 5, curve 4 (first third 2.33, last 3.5), the score 4.33 → 4.44; rules broken: none. No save is moved (a lamp
+  lit before opened the Kennel's door for good). Tests: `tests/lamp-house.test.js` (the walk in the new order: the orb
+  rolled for real, the Kennel before the wand, the great key in the dark, the lamp kindled on the way back),
+  `tests/temples.test.js` (the order, the orb wanted).
 - **The Founders' Belfry round the Great Belfry, its bell the house's state** (v1.83, issue #408; the approved
   recommendations: `docs/design/temple-best-practices.md`, G1, G4, G6). The Stone Stair is gone: past the Hall of Stones
   the **Great Belfry** (`ROOMS.nave`), 40 by 66 m under 32, its gallery 8 m up round three sides (`GALLERY`: the north

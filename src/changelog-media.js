@@ -1235,6 +1235,7 @@ const PUSH522 = 'Every temple built in node as the game builds it (scripts/ball-
 /** (v1.85, issue #523: the wings on still air) */
 const GLIDE523 = 'The game’s own Player (src/player.js) in node at 60 Hz over a flat ground with the backpack, the wings and the double jump, no wind; before: GLIDE_SINK 2.4 / 1.3, after: 1.9 / 1.05';
 /** (v1.85, issue #521: the Lamp-House's sparks) */
+const SHAPES477 = 'Issue #477 (the houses’ shapes): the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, noon, the HUD hidden) on this branch’s own Vite (port 5477), the camera pinned with scripts/design-qc/capture.mjs; before: the tree at ee46a67b3, the same views; 19 October; cwebp -q 72';
 const LENS477 = 'Issue #477: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, noon, the HUD hidden) on this branch’s own Vite (port 5461), the traveller in the Footprint, the camera pinned, the seeing lens raised in the page; before: the tree at 283d7c22d, the same views; 19 October; cwebp -q 72';
 const RING477 = 'Issue #477: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, noon, the HUD hidden) on this branch’s own Vite (port 5461), the traveller in the Mooring-House, the camera pinned, the lens’s ring already seen (its save flag); before: the tree at 283d7c22d, the same views; 19 October; cwebp -q 72';
 const SPARK521 = 'Issue #521: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, a fixed render scale, noon, the HUD hidden) on this branch’s own Vite (port 5521), the traveller in the Lamp-House’s Hall of Dark Pools, the camera pinned behind him, Math.random seeded the same for both; before: the sparks as they were (40, 0.035, glow 1) set in the page; 18 October; cwebp -q 72';
@@ -1309,6 +1310,10 @@ export const CHANGELOG_MEDIA = {
     { match: 'Pressing lock-on (R3 / Tab) in a fight temple now answers', tags: ['combat', 'controls'], shots: [
       { name: 'fight-lock-534', title: 'Tab pressed', caption: 'The Flooded Gallery, a tenth of a second after Tab: before, nothing; after, the aim’s ring flashed out under the crab it takes, and the line that says how to aim in there (the first press only)', from: FIGHT534 },
     ], see: 'In a fight temple, press R3 (or Tab): the lock’s tick sounds and the ring under the foe your blade will take flashes; with none in front of you the tick falls and a ring goes out round you.' },
+    { match: 'The Lamp-House runs in a new order', tags: ['temples'], shots: [
+      { name: 'lamp-kennel-orb', title: 'The Lamp Hall', caption: 'The first hall’s floor by the near pool, the Kennel’s lamp-door on the left: after, the pool-orb’s groove up the floor to its socket and lamp, which wake the Kennel’s door.', from: SHAPES477 },
+      { name: 'lamp-kennel-door', title: 'From the socket', caption: 'Looking back across the floor at the Kennel’s lamp-door: after, the socket’s lamp-post in the foreground, the door it wakes beyond.', from: SHAPES477 },
+    ] },
   ],
   '1.85': [
     { match: 'In the Unity version, flowers far across Viridel’s meadow', tags: ['devices'], shots: [
