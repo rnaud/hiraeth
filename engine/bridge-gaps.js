@@ -197,6 +197,7 @@ export const GAPS = {
     { keys: ['src/minigames/lens-vault.js'], count: { 'src/minigames/lens-vault.js': 2 }, parts: ['visor'], what: 'the Lens Vault\'s visor: hearts, ARM / LENS tab, reticle, lock brackets, lens marks and reading card (issue #382)', status: 'handled', where: 'the visor part, BridgeHud.Games.cs DrawVisor' },
     { keys: ['src/foes.js', 'src/lock-reticle.js', 'src/low-health.js', 'src/flurry.js'], count: { 'src/foes.js': 5, 'src/lock-reticle.js': 2, 'src/low-health.js': 1, 'src/flurry.js': 1 },
       parts: ['warn', 'lock', 'edges'], what: 'the foes\' warning chips, the blinding flash, the lock-on ring, the low-health and flurry edges', status: 'handled', where: 'the warn, lock and edges parts, BridgeHud.cs' },
+    { keys: ['src/fight-temples/self-mark.js'], count: { 'src/fight-temples/self-mark.js': 2 }, parts: ['self'], what: 'the traveller\'s ring in a fight temple\'s crowd (issue #534)', status: 'handled', where: 'the self part, BridgeHud.Self.cs DrawSelf' },
     { keys: ['src/temples/runtime.js'], count: { 'src/temples/runtime.js': 5 }, parts: ['guardian'], what: 'the guardian\'s bar', status: 'handled', where: 'the guardian part, BridgeHud.cs DrawGuardian' },
     { keys: ['src/passage.js'], count: { 'src/passage.js': 3 }, parts: ['passage'], what: 'a way through\'s cover', status: 'handled', where: 'the passage part, BridgeHud.cs' },
     { keys: ['src/quest.js'], count: { 'src/quest.js': 2 }, what: 'the journal and the toast', status: 'handled', where: 'the toast part; the journal\'s Quests page in engine/menus.js' },

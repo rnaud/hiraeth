@@ -4,6 +4,10 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.86 — 2026-10-19
 
+- Pressing lock-on (R3 / Tab) in a fight temple now answers: the aim’s ring flashes under the foe your blade will take, with the lock’s tick, and the first time a line says the right stick or the mouse aims in there.
+- The sign on each fight temple room’s floor is now the makers’ mark in a faint square. It was two dark rings, the very shape of the foes’ ring attacks, under every fight.
+- In the fight temples a hazard that starts near the edge of the screen (a pool of oil, a falling load, a breaking tile, an ink geyser) now draws the view toward it so you see it coming, and one still out of sight gets a marker at the screen’s edge, as a foe winding up out of sight does.
+- In the fight temples you no longer lose yourself in the crowd: when foes cover you or close in round you, an inked ring with a gold mark over your head shows where you are.
 - Plumb now has a word the first time you come near a fight temple’s gate, Sabri in the desert and Teasel in Lorn mention the ink under the old floors, and Items names each colour after the place you won it, as in Ember · the Sunken Hall.
 - People now tell you of a fight temple as the old floor the ink comes up through and the person waiting by its door, not as a game, and your map names it by the place.
 - The fight temples now belong to the story: the makers built them over springs where the dark wells up, and the people by their doors want their mill, their cranes or their gardens back, and say so. A run ends with the place going quiet and its keeper coming back in, before your time and rank, and the ember shard’s double cuts are now the blade running bright.

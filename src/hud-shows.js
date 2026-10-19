@@ -17,9 +17,9 @@
 // gadget's wheel and reticle in a conversation, the fight's ring and chips) or where the page has no such state.
 
 export const HUD_HIDES = {
-  talking: ['cue', 'health', 'keys', 'stamina', 'tool', 'prompt', 'balloons', 'gadget', 'gadgetWheel', 'reticle', 'gadgetMarks', 'guardian', 'foeTab', 'lock', 'warn'],
+  talking: ['cue', 'health', 'keys', 'stamina', 'tool', 'prompt', 'balloons', 'gadget', 'gadgetWheel', 'reticle', 'gadgetMarks', 'guardian', 'foeTab', 'lock', 'warn', 'self'],
   bars: ['cue', 'tool', 'gadget', 'gadgetWheel', 'reticle', 'gadgetMarks'],
-  hudOff: ['cue', 'health', 'stamina', 'keys', 'guardian', 'foeTab', 'lock', 'warn', 'words'],
+  hudOff: ['cue', 'health', 'stamina', 'keys', 'guardian', 'foeTab', 'lock', 'warn', 'words', 'self'],
   minigame: ['cue', 'stamina', 'tool', 'prompt', 'gadget', 'gadgetWheel', 'reticle'],
 };
 /** In a game played on foot (drives: false) these stay (the page's body.minigame:not(.mg-onfoot)). */

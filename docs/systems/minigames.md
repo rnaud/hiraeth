@@ -566,6 +566,28 @@ cleared in about 100 s, 144 of 145 felled, then stuck on a tripod past the wall;
 the session's logic, so the engine's runner plays it as is (`tests/engine-trials.test.js` runs a wave there); the
 floating words (`WorldLabels`, DOM) stay web-only.
 
+### Reading the crowd from the iso camera (v1.86, issue #534)
+
+`src/fight-temples/view.js`, pure; the session wires it. The combat review found four things the camera hid:
+
+- **The traveller lost in his crowd.** Hidden by the foes' bodies (`hiddenShare`: half his heights behind a body,
+  each foe a column of balls) or hemmed in (`crowdAround`: three bodies' edges within 1.2 m), he gets an inked ring
+  round him with a gold chevron over his head, drawn on the HUD over whatever covers him (`self-mark.js`: an SVG on the
+  page; the screen's `self` part, `{ at, head, k, size }`, drawn by `BridgeHud.Self.cs` in Unity). A HUD mark, not a
+  silhouette pass: the bridge draws the same thing from the same part, with no depth trick to port.
+- **Hazards starting at the edge.** Every hazard and geyser warning now is a point on the floor (`telegraphs`: a
+  spot, a sign, a cart's or a millstone's lane head, where a lane crosses him). The nearest within 15 m draws the
+  view (`frameIso`, eased in `placeCamera`): shifted toward it and pulled back at most 1.25×, so its middle sits
+  inside 0.62 of the screen and he inside 0.5 (any way round him up to about 14 m). Those still off the frame are
+  handed to the foes' own edge chips (`Foes.extraWarn` → `warnings`, the `warn` part in the engines).
+- **The floor sigil** was two ink rings round each room's middle, the shape of the foes' ring attacks: now the
+  makers' mark (`story/sign-text.js glyphGeometry`, never redrawn) in a square frame, its ink faded 55 % toward the
+  floor, no glow (`rooms.js SIGIL`, `sigilColor`, `sigilModel`).
+- **The lock button.** There is no lock in here (the aim's cone takes the foe), so R3 / Tab is answered
+  (`Foes.lockAnswer`): the aim's ring under the foe it takes flashes 1.9× and settles in 0.35 s with the lock's own
+  tick (`sound.lockOn`, rising; falling, and a ring out round him, when the cone is empty), and the first press of a
+  run says how to aim. Never a lock: the view never leaves the iso line. Tests: `tests/fight-view.test.js`.
+
 ## The Lens Vault (`lens-vault.js`, the rules in `lens-vault-rules.js`; issue #382)
 
 A test of another way to play, asked for as "an FPS with a Metroid Prime vibe": through the traveller's own eyes, a

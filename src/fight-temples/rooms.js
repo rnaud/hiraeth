@@ -10,6 +10,7 @@ import { Terrain } from '../world.js';
 import { arenaLevel } from '../minigames/kit/world.js';
 import { WALL, ISO, wallBoxes, doorGap, inRoom, fightKinds } from './rules.js';
 import { dressHall, pillarModel } from './dress.js';
+import { glyphGeometry } from '../story/sign-text.js';
 
 /** How far (x, z) is outside the nearest room or doorway (0 inside one), and the way out from it: { d, nx, nz }. */
 export function outside(def, x, z) {
@@ -43,6 +44,29 @@ export function hallHeight(def, x, z, H = WALL.h, B = BANK) {
   const far = (H - 0.15) * Math.min(1, d / (WALL.t / 2)) + dune(2);
   const near = (H - 0.15) * smooth(B.trench, B.trench + B.ramp, d) + dune(B.trench + B.ramp);
   return far + (near - far) * w;
+}
+
+/**
+ * Each room's floor sigil (issue #534): it was two ink rings round the room's middle, the very shape the foes' ring
+ * attacks and the hazards' telegraphs draw, sitting under every fight. Now the makers' mark (the shared one:
+ * story/sign-text.js glyphGeometry) in a square frame, upright on the screen, faint: its ink `mix` of the way to the
+ * floor's colour, no glow. `size`: the frame's side, a share of the room's shorter side; `line` its stroke (m).
+ */
+export const SIGIL = { mix: 0.55, size: 0.42, line: 0.12, mark: 0.5 };
+/** The sigil's colour: the palette's light ink faded toward its floor. */
+export function sigilColor(P, S = SIGIL) {
+  return '#' + new THREE.Color(P.inkLite).lerp(new THREE.Color(P.floor), S.mix).getHexString();
+}
+/** A room's sigil, its middle at the origin (flat on the floor): the square frame and the mark in it. */
+export function sigilModel(side, mat, S = SIGIL) {
+  const g = new THREE.Group(), a = side / 2, w = S.line;
+  for (const [x, z, sx, sz] of [[0, -a, side + w, w], [0, a, side + w, w], [-a, 0, w, side], [a, 0, w, side]]) {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(sx, sz).rotateX(-Math.PI / 2), mat); m.position.set(x, 0, z); g.add(m);
+  }
+  // (the frame square to the walls; the mark laid flat with its top toward the screen's top: rules.js screenUp, ISO.yaw)
+  g.add(new THREE.Mesh(glyphGeometry(side * S.mark, 0.01).rotateX(-Math.PI / 2).rotateY(ISO.yaw), mat));
+  g.traverse((o) => { o.userData.noCollide = true; });
+  return g;
 }
 
 /** The box of a mesh standing on its foot (full height), in the world. */
@@ -104,6 +128,7 @@ export function* buildHall(scene, def) {
   const GLYPH = { color: P.glyph, flat: true, glow: 0.6 };
   const stone = makeMaterial(STONE);
   const ink = makeMaterial({ color: P.ink, flat: true }), inkLite = makeMaterial({ color: P.inkLite, flat: true, glow: 0.25 });
+  const sigil = makeMaterial({ color: sigilColor(P), flat: true });
   const group = new THREE.Group(); group.name = def.name;
   const cuttables = [];
   // (each wall and pillar its own materials, seen through on their own: materials.js SEE_HOLE, session.js; `see` their shares)
@@ -159,9 +184,10 @@ export function* buildHall(scene, def) {
       const lip = new THREE.Mesh(new THREE.TorusGeometry(rr + 0.15, 0.22, 5, 36).rotateX(Math.PI / 2), stone); lip.position.set(x, 0.1, z);
       for (const o of [pool, lip]) { o.userData.noCollide = true; group.add(o); }
     }
-    // a sigil drawn in ink on each room's floor: two rings and a cross
-    const cx = (r.x[0] + r.x[1]) / 2, cz = (r.z[0] + r.z[1]) / 2, R = Math.min(r.x[1] - r.x[0], r.z[1] - r.z[0]) * 0.3;
-    if (!r.basin) for (const [r0, r1] of [[R, R + 0.14], [R * 0.55, R * 0.55 + 0.1]]) { const m = new THREE.Mesh(new THREE.RingGeometry(r0, r1, 64).rotateX(-Math.PI / 2), inkLite); m.position.set(cx, 0.045, cz); m.userData.noCollide = true; group.add(m); }
+    // a sigil drawn faintly on each room's floor: the makers' mark in a square frame (SIGIL; it was two rings, the shape
+    // of the foes' ring attacks, issue #534)
+    const cx = (r.x[0] + r.x[1]) / 2, cz = (r.z[0] + r.z[1]) / 2, side = Math.min(r.x[1] - r.x[0], r.z[1] - r.z[0]) * SIGIL.size;
+    if (!r.basin) { const m = sigilModel(side, sigil); m.position.set(cx, 0.045, cz); group.add(m); }
   });
   // the altar in the sanctum: a low stepped plinth (walked onto), the reliquary rises on it
   let altar = null;

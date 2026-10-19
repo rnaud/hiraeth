@@ -1261,6 +1261,8 @@ const UNITY526 = 'Issue #526: the Unity editor’s batch run on this Mac (node s
 const WEB526 = 'Issue #526: the web game in muted headless Chrome on this branch’s own Vite (port 5462, node scripts/unity-compare/sequences.mjs web talk), 1280 × 720, the same pad faked in hand; 19 October; cwebp -q 72';
 /** (v1.85, issue #491: two climaxes that filmed walls) */
 const CINE491 = 'Issue #491: the cinematics QC (scripts/cinematics-qc.mjs) in muted headless Chrome (High, 1280 × 720, the frames kept at 960 × 540) on this branch’s own Vite (port 5431), each climax staged by the review page (out of the house once its guardian is done, a few steps from its door); before: the branch’s base, after: the fix, the same frame of the film; 19 October';
+/** (v1.86, issue #534: the fight temples read from the iso camera) */
+const FIGHT534 = 'Issue #534: muted headless Chrome (High, 1280 × 720) against this branch’s own Vite (port 5534; the tree before it on 5535), ?game=fight-<world>&seed=7, every wave felled to the last room, the traveller set in its middle (nothing hurting him, the moths’ flash off), 16 more foes brought up, the three nearest stood round him (one between him and the camera), the temple’s hazard lent at the frame’s edge (a pool of oil 6.5 m down the screen; a sign on the far wall); pictures 0.5 s (and 1.1 s) on, and a tenth of a second after Tab; the crowds differ a little between the two loads; 19 October; cwebp -q 52';
 export const CHANGELOG_MEDIA = {
   '1.86': [
     { match: 'The fight temples now belong to the story', tags: ['story'], shots: [
@@ -1269,6 +1271,19 @@ export const CHANGELOG_MEDIA = {
     ], see: 'Talk to the person by any fight temple’s door (Wafa, west of the desert’s pilgrims’ camps): the second line says what they want back. Win the run: the card’s first line is the place’s.' },
     { match: 'Plumb now has a word the first time you come near a fight temple’s gate', see: 'On a save that has not met one yet, walk up to any fight temple’s gatehouse (in the desert, west of the pilgrims’ camps): within a dozen steps of its host Plumb says “Makers’ gate. Blades mean keep out. Something got in.”, once. Walk past Sabri at Qanat’s camps or Teasel by Lorn’s reeds to hear their new lines; win a fight temple’s colours and open Items: the Colours strip reads “Ember · the Sunken Hall”.' },
     { match: 'People now tell you of a fight temple', see: 'In a world whose fight temple you have not found, ask the people who only chat: one may tell you of the ink coming up through an old makers’ floor and who waits by its door; the circle on your map is named after the place (“The Sunken Hall”).' },
+    { match: 'In the fight temples you no longer lose yourself in the crowd', tags: ['combat'], shots: [
+      { name: 'fight-self-534', title: 'Under the crabs', caption: 'The Flooded Gallery’s whale-watch, three crabs stood round him: before, nothing of him shows but a glint of his blade; after, his ring and its gold mark over the crabs', from: FIGHT534 },
+    ], see: 'In any fight temple, let a crowd close round you (a crab pack in the Flooded Gallery hides you best): the ring comes up round you, and goes once you are clear.' },
+    { match: 'In the fight temples a hazard that starts near the edge of the screen', tags: ['combat'], shots: [
+      { name: 'fight-frame-534', title: 'Oil at the edge', caption: 'The Oil Exchange’s clearing house, a pool of oil lit 6.5 m down the screen from him: before, half of it under the screen’s bottom edge; after, the view drawn toward it and back a little, the whole pool in sight, he still near the middle', from: FIGHT534 },
+      { name: 'fight-edge-534', title: 'A sign out of sight', caption: 'The Signal Market’s counting house, a sign starting to toll on the far wall, past the top of the screen: after, its marker at the top edge (pink, the temple’s own), as a foe winding up out of sight has', from: FIGHT534 },
+    ], see: 'In the Oil Exchange or the Lift Depot, stand near a wall facing the room: a pool or a load starting behind you pulls the view to it. In the Signal Market, a sign tolling past the top of the screen shows a marker at the edge.' },
+    { match: 'The sign on each fight temple room’s floor is now the makers’ mark', tags: ['combat'], shots: [
+      { name: 'fight-sigil-534', title: 'The floor’s sign', caption: 'The Sunken Hall’s sanctum in a full wave: before, two dark rings under the crowd, the shape of a ring attack; after, a faint square round the makers’ mark', from: FIGHT534 },
+    ] },
+    { match: 'Pressing lock-on (R3 / Tab) in a fight temple now answers', tags: ['combat', 'controls'], shots: [
+      { name: 'fight-lock-534', title: 'Tab pressed', caption: 'The Flooded Gallery, a tenth of a second after Tab: before, nothing; after, the aim’s ring flashed out under the crab it takes, and the line that says how to aim in there (the first press only)', from: FIGHT534 },
+    ], see: 'In a fight temple, press R3 (or Tab): the lock’s tick sounds and the ring under the foe your blade will take flashes; with none in front of you the tick falls and a ring goes out round you.' },
   ],
   '1.85': [
     { match: 'A house’s great key now looks the part', tags: ['temples'], shots: [

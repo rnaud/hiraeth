@@ -11,6 +11,11 @@
 // updateAimPoint wrapped for the run). The walls and pillars between the camera and him are seen through (SEE: a hole with
 // a hand-cut edge opens in them round him, materials.js SEE_HOLE). The button printed B rolls (B / ○; the bottom one with Nintendo letters: rules.js rollInput, #442; ROLL; jumping is disabled here), and the blade's cut
 // takes every foe in a wider, longer cone (WIDE_CUT); both only here (issue #365).
+//
+// Reading the crowd (issue #534, view.js): a hazard or a geyser warning near him draws the view toward it and back a
+// little (frameIso), and one still off the frame gets a marker at the screen's edge (Foes.extraWarn: the foes' own
+// chips); hidden by the foes' bodies he gets an inked ring over them (self-mark.js); R3 / Tab, with no lock in here,
+// flashes the aim's ring with the lock's tick (Foes.lockAnswer).
 
 import * as THREE from 'three';
 import { makeMaterial, SEE_HOLE } from '../materials.js';
@@ -28,6 +33,8 @@ import {
   GORGED, FURY, GEYSER, geyserSpots, rankFor, clock, rollInput, rollKey,
 } from './rules.js';
 import { padFaces } from '../native-pad.js';
+import { frameIso, telegraphs, nearestTelegraph, FRAME, LOCK_ANSWER, answerScale } from './view.js';
+import { SelfMark } from './self-mark.js';
 
 const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0);
 /** A light foe's blows: this share of its kind's (many of them, each felled in a cut or two, each hurting less). */
@@ -137,13 +144,25 @@ export function startFightTemple(ctx) {
   ctx.setFov(ISO.fov);
   const look = player.pos.clone().setY(player.pos.y + ISO.look);
   const offset = isoOffset(ISO, new THREE.Vector3());
+  // (the framing toward the nearest telegraph, eased: view.js frameIso; `tells` this frame's, the hazards' and geysers')
+  const framed = { dx: 0, dz: 0, zoom: 1 }, aimAt = new THREE.Vector3();
+  let tells = [];
   function placeCamera(dt) {
     followIso(look, player.pos, player.vel, dt);
-    camera.position.copy(look).add(offset);
+    const want = frameIso(player.pos, nearestTelegraph(tells, player.pos), camera.aspect || 16 / 9);
+    const e = 1 - Math.exp(-(want.zoom > 1 || want.dx || want.dz ? FRAME.ease : FRAME.back) * dt);
+    framed.dx += (want.dx - framed.dx) * e; framed.dz += (want.dz - framed.dz) * e; framed.zoom += (want.zoom - framed.zoom) * e;
+    aimAt.set(look.x + framed.dx, look.y, look.z + framed.dz);
+    camera.position.copy(aimAt).addScaledVector(offset, framed.zoom);
     camera.up.set(0, 1, 0);
-    camera.lookAt(look);
+    camera.lookAt(aimAt);
     camera.updateMatrixWorld();
   }
+  // the hazards still off the frame marked at its edge, as a foe winding up out of sight is (src/foes.js warnings)
+  const tellTone = def.palette.glyph ?? '#e8703a';
+  if (foes) foes.extraWarn = () => tells.map((p) => ({ pos: new THREE.Vector3(p.x, 0.3, p.z), k: p.k, tone: tellTone }));
+  // the traveller found in his crowd: a ring over the foes that hide him
+  const selfMark = new SelfMark(camera);
   // the walls and pillars solid (a Retry: all of them again), the gates shut, their colliders movers
   const setSee = (c, k) => { c.k = k; const v = seeOpen(k) * (c.kind === 'pillar' ? SEE.pillar : 1); for (const u of c.see ?? []) u.value = v; };
   for (const c of F.cuttables) setSee(c, 0);
@@ -213,6 +232,18 @@ export function startFightTemple(ctx) {
     gunPick = pickTarget(player.pos, aimDir, live, { range: AIM.gun, cone: AIM.cone * 0.8 });
   }
   const targetOf = (f) => (f ? (f._isoT ??= { position: () => f.chest, aim: () => f.aim ?? f.chest, enabled: () => f.alive && f.dead === undefined, lock: true, radius: (f.def.radius ?? 0.5) + 0.15 }) : null);
+  // R3 / Tab: no lock in here (it would turn the view off the iso line), so the press is answered: the aim's ring
+  // flashes under the foe it takes and the lock's tick sounds (none in the cone: a ring goes out round him and the
+  // tick falls); the first press of a run also says how to aim (view.js LOCK_ANSWER)
+  let answerT = -1, answerTold = false;
+  if (foes) foes.lockAnswer = () => {
+    const tgt = tool?.k > 0.3 ? gunPick ?? pick : pick;
+    answerT = 0;
+    sound?.lockOn?.(!!tgt);
+    if (!tgt) tool?.rings?.add({ from: _v.set(player.pos.x, 0.1, player.pos.z), dir: _up, reach: 0.02, r0: 0.5, r1: LOCK_ANSWER.ring, life: LOCK_ANSWER.secs, color: '#f6a94a', thick: 1 });
+    if (!answerTold) { answerTold = true; ctx.flash(LOCK_ANSWER.line, '', 2.6); }
+    return tgt ?? true;   // (truthy: answered, so no scout's ping either)
+  };
   const lockOn0 = tool?.lockOn;
   if (tool) tool.lockOn = () => targetOf(tool.k > 0.3 ? gunPick ?? pick : pick) ?? lockOn0?.() ?? null;
   const aimPoint0 = tool?.updateAimPoint, aimOwn = !!tool && Object.hasOwn(tool, 'updateAimPoint');
@@ -519,6 +550,9 @@ export function startFightTemple(ctx) {
       for (const f of near) foes?.hurt?.(f, 'blade', _w.set(f.pos.x - player.pos.x + 1e-3, 0, f.pos.z - player.pos.z).normalize(), { damage: 99 });
       return near.length > 0;
     },
+    /** (the checks: the ring round him in a crowd, self-mark.js; the framing toward a telegraph, view.js) */
+    get self() { return selfMark; },
+    get framed() { return { ...framed, tells: tells.length }; },
     /** (the checks: the kills' marks, kill-fx.js) */
     get kills() { return kills; },
     update(dt, inp, { live, raw, t: clockNow }) {
@@ -600,15 +634,21 @@ export function startFightTemple(ctx) {
         player.pos.x = THREE.MathUtils.clamp(player.pos.x, r.x[0] + 0.4, r.x[1] - 0.4);
         player.pos.z = THREE.MathUtils.clamp(player.pos.z, r.z[0] + 0.4, r.z[1] - 0.4);
       }
-      // the camera on its line, the walls in the way seen through, the aim's marks
+      // the camera on its line (drawn toward a telegraph near him), the walls in the way seen through, the aim's marks,
+      // the ring round him when the foes hide him
+      tells = live && !over && run.phase === 'fight' ? telegraphs(hz.list, rooms, player.pos, filling, GEYSER.warn) : [];
       placeCamera(Math.min(dt, 0.1));
       seeThrough(dt);
+      selfMark.update(dt, player, mine.filter((f) => f.alive && f.dead === undefined).map((f) => ({ pos: f.pos, radius: (f.def.radius ?? 0.5) * (f.gorged ? GORGED.scale : f.tough ? 1.12 : 1), height: f.def.height ?? 1 })), !live || over);
       const p = player.pos, y = 0.06;
       marks.chevron.position.set(p.x + aimDir.x * 1.1, y, p.z + aimDir.z * 1.1);
       marks.chevron.rotation.y = Math.atan2(aimDir.x, aimDir.z);
       const tgt = tool?.k > 0.3 ? gunPick ?? pick : pick;
       marks.target.visible = !!tgt && live;
-      if (tgt) { marks.target.position.set(tgt.pos.x, y + 0.01, tgt.pos.z); const s = Math.max(0.8, (tgt.def.radius ?? 0.6) * 1.3); marks.target.scale.setScalar(s); }
+      if (answerT >= 0 && (answerT += dt) > LOCK_ANSWER.secs) answerT = -1;
+      const flashK = answerScale(answerT);
+      if (tgt) { marks.target.position.set(tgt.pos.x, y + 0.01, tgt.pos.z); const s = Math.max(0.8, (tgt.def.radius ?? 0.6) * 1.3); marks.target.scale.setScalar(s * flashK); }
+      marks.chevron.scale.setScalar(flashK);
       marks.reticle.visible = source === 'mouse' && live;
       if (source === 'mouse') { const u = screenUp(ISO, _v), r = screenRight(ISO, _w); marks.reticle.position.set(p.x + r.x * reticle.x + u.x * reticle.y, y, p.z + r.z * reticle.x + u.z * reticle.y); }
       marks.chevron.visible = live;
@@ -627,6 +667,9 @@ export function startFightTemple(ctx) {
       pending = []; filling.length = 0;
       hz.clear();
       kills.dispose();
+      selfMark.dispose();
+      tells = [];
+      if (foes) { delete foes.lockAnswer; delete foes.extraWarn; }
       keepBlade();
       if (blade) blade.slashTones = null;
       movers.forEach((m) => m && physics?.removeCollider?.(m));

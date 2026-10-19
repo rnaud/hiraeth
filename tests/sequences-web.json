@@ -1,6 +1,6 @@
 {
  "recorded": "2026-10-19",
- "sha": "de53fc52b",
+ "sha": "86bcdf95a",
  "how": "node scripts/unity-compare/sequences.mjs web [ids] && node scripts/unity-compare/sequences.mjs record",
  "sequences": {
   "moment-desert.flow": {
@@ -5631,6 +5631,181 @@
       165.5,
       1.2,
       293.3
+     ],
+     "late": false
+    }
+   ]
+  },
+  "fight-crowd": {
+   "beats": [
+    {
+     "beat": "card",
+     "hud": {
+      "minigame": true
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 135,
+      "print": 1,
+      "shader": 1,
+      "wisp": 1
+     },
+     "cam": [
+      10.8,
+      24.4,
+      15.3,
+      31
+     ],
+     "player": [
+      0,
+      0,
+      4.5
+     ],
+     "late": false
+    },
+    {
+     "beat": "count",
+     "hud": {
+      "minigame": true
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 130,
+      "print": 1,
+      "shader": 1,
+      "wisp": 1
+     },
+     "cam": [
+      10.8,
+      24.4,
+      15.3,
+      31
+     ],
+     "player": [
+      0,
+      0,
+      4.5
+     ],
+     "late": false
+    },
+    {
+     "beat": "wave",
+     "hud": {
+      "health": {
+       "low": false
+      },
+      "minigame": true
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 353,
+      "print": 1,
+      "shader": 1,
+      "wisp": 1
+     },
+     "cam": [
+      10.8,
+      24.4,
+      15.3,
+      31
+     ],
+     "player": [
+      0,
+      0,
+      4.5
+     ],
+     "late": false
+    },
+    {
+     "beat": "hemmed",
+     "hud": {
+      "health": {
+       "low": false
+      },
+      "self": true,
+      "minigame": true
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 395,
+      "print": 1,
+      "shader": 1,
+      "wisp": 1
+     },
+     "cam": [
+      10.8,
+      24.4,
+      15.3,
+      31
+     ],
+     "player": [
+      0,
+      0,
+      4.5
+     ],
+     "late": false
+    },
+    {
+     "beat": "pool",
+     "hud": {
+      "health": {
+       "low": false
+      },
+      "self": true,
+      "minigame": true
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 387,
+      "print": 1,
+      "shader": 1,
+      "wisp": 1
+     },
+     "cam": [
+      12.2,
+      24.4,
+      16.7,
+      31
+     ],
+     "player": [
+      0,
+      0,
+      4.5
+     ],
+     "late": false
+    },
+    {
+     "beat": "lock",
+     "hud": {
+      "health": {
+       "low": false
+      },
+      "self": true,
+      "minigame": true
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 391,
+      "print": 1,
+      "shader": 1,
+      "wisp": 1
+     },
+     "cam": [
+      11.7,
+      24.4,
+      16.2,
+      31
+     ],
+     "player": [
+      0,
+      0,
+      4.5
      ],
      "late": false
     }

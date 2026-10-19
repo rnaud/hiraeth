@@ -1832,6 +1832,8 @@ export class Foes {
    */
   cycleLock() {
     const P = this.player, cam = this.camera;
+    // (a place with no lock of its own answers the press itself: the fight temples' aim, issue #534)
+    if (this.lockAnswer) return this.lockAnswer();
     if (this.lockSlip > 0) { this.lock = null; return null; }   // (a moth's dust: the lock won't take)
     const fwd = cam ? cam.getWorldDirection(new THREE.Vector3()) : null;
     // those ahead of the camera first, nearest the middle of the view and nearest you (a buried ray too: the
@@ -2731,7 +2733,7 @@ export class Foes {
     const cam = this.camera, fwd = cam.getWorldDirection(_w), out = this.list.filter((f) => f.alive && f.state === 'wind');
     let n = 0;
     // (the markers as numbers too, for a screen with no page: the engines' HUD, engine/combat.js; x, y -1..1 as projected)
-    const view = this.warnView = [];
+    this.warnView = [];
     for (const f of out) {
       const c = f.chest, ahead = _v.subVectors(c, cam.position).dot(fwd) > 0;
       const p = c.clone().project(cam);
@@ -2742,12 +2744,23 @@ export class Foes {
       const spot = warnSpot(p.x, p.y, ahead, hidden);
       if (!spot) continue;
       const { x, y } = spot;
-      view.push({ x, y, k: f.k, tone: f.def.tone ?? '#8e64d6' });
-      const chip = this.chips[n] ?? (this.chips[n] = this.warnEl.appendChild(Object.assign(document.createElement('div'), { className: 'foe-chip' })));
-      chip.style.cssText = `position:absolute;left:${(x * 0.5 + 0.5) * 100}%;top:${(0.5 - y * 0.5) * 100}%;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;border:3px solid #2b211f;background:radial-gradient(circle, ${f.def.tone ?? '#8e64d6'} ${Math.round(f.k * 70)}%, rgba(247,236,210,0.85) ${Math.round(f.k * 70) + 1}%);box-shadow:2px 2px 0 #2b211f`;
-      n++;
+      n = this.warnChip(n, x, y, f.k, f.def.tone ?? '#8e64d6');
+    }
+    // (and what else winds up out of sight: a fight temple's hazards, issue #534; [{ pos, k, tone }] on the floor)
+    for (const w of this.extraWarn?.() ?? []) {
+      const ahead = _v.subVectors(w.pos, cam.position).dot(fwd) > 0, p = w.pos.clone().project(cam);
+      const spot = warnSpot(p.x, p.y, ahead, false);
+      if (spot) n = this.warnChip(n, spot.x, spot.y, w.k, w.tone ?? '#e8703a');
     }
     for (let i = n; i < (this.chips?.length ?? 0); i++) this.chips[i].style.display = 'none';
+  }
+
+  /** One marker at the screen's edge (x, y -1..1), filling to k with its tone: the page's chip n and the engines' view. */
+  warnChip(n, x, y, k, tone) {
+    this.warnView.push({ x, y, k, tone });
+    const chip = this.chips[n] ?? (this.chips[n] = this.warnEl.appendChild(Object.assign(document.createElement('div'), { className: 'foe-chip' })));
+    chip.style.cssText = `position:absolute;left:${(x * 0.5 + 0.5) * 100}%;top:${(0.5 - y * 0.5) * 100}%;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;border:3px solid #2b211f;background:radial-gradient(circle, ${tone} ${Math.round(k * 70)}%, rgba(247,236,210,0.85) ${Math.round(k * 70) + 1}%);box-shadow:2px 2px 0 #2b211f`;
+    return n + 1;
   }
 
   /** Is f's body hidden from the camera by the world (a physics ray from the camera to its chest)? */

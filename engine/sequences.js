@@ -67,6 +67,21 @@ const MARK_LINE = '~curious~ An open corner beside a shorter upright, on your ba
 const temple = (G, id) => (G.level.temples ?? []).find((t) => t.id === id) ?? null;
 /** A minigame's start card's main button, a pause, as a pad's Menu (src/minigames/kit/runner.js padAction). */
 const padStart = (G) => G.minigame?.padAction?.('start');
+/** A fight temple's run: more foes up, and the three nearest him stood round him, stunned (sequence 'fight-crowd'). */
+function hemIn(G) {
+  const S = G.minigame?.session, P = G.player;
+  if (!S || !P) throw new Error('no fight temple run');
+  S.crowd(4);
+  const near = (G.foes?.list ?? []).filter((f) => f.alive).sort((a, b) => a.pos.distanceTo(P.pos) - b.pos.distanceTo(P.pos)).slice(0, 3);
+  near.forEach((f, i) => { const [dx, dz] = [[0.6, 0.6], [-1.1, 0.5], [0.5, -1.2]][i]; f.pos.set(P.pos.x + dx, P.pos.y, P.pos.z + dz); f.model?.group?.position.copy(f.pos); f.stunned = 9; });
+}
+/** A pool of oil lent to the run's room, 6.5 m down the screen from him (the fight temples' iso camera: +x +z). */
+function lendPool(G) {
+  const S = G.minigame?.session, P = G.player, R = S?.def?.rooms?.[S.run.room];
+  if (!R) throw new Error('no fight temple room');
+  R.hazard = { kind: 'spill', every: 999, n: 1 };
+  S.hazards.start(S.run.room, { spot: [P.pos.x + 4.6, P.pos.z + 4.6] });
+}
 /** A run of a game's page: its card, the count, the run held a while on `hold`, the pause. */
 const gameBeats = (hold) => [
   { name: 'card', wait: 1 },
@@ -188,6 +203,21 @@ export const SEQUENCES = [
       { name: 'card', wait: 1 },
       { name: 'count', act: padStart, wait: 0.8 },
       { name: 'wave', until: (G) => G.minigame?.session?.run?.phase === 'fight' && G.minigame.session.run.standing >= 1, timeout: 40, wait: 1.5 },
+    ],
+  },
+  {
+    // the same run read from the iso camera (issue #534, src/fight-temples/view.js): three foes stood round him (his ring,
+    // the screen's 'self' part), a pool of oil lent to the room 6.5 m down the screen from him (the view drawn toward it),
+    // then Tab (no lock: the aim's ring flashed, the line said once); all placed from where he stands, so the run's own
+    // layout (drawn from a seed of its own on each side) does not move them
+    id: 'fight-crowd', title: 'A fight temple\'s crowd from the iso camera', setup: { level: 'desert', game: 'fight-desert' },
+    beats: [
+      { name: 'card', wait: 1 },
+      { name: 'count', act: padStart, wait: 0.8 },
+      { name: 'wave', until: (G) => G.minigame?.session?.run?.phase === 'fight' && G.minigame.session.run.standing >= 1, timeout: 40, wait: 1 },
+      { name: 'hemmed', act: hemIn, wait: 0.6 },
+      { name: 'pool', act: lendPool, wait: 1 },
+      { name: 'lock', keys: tap('Tab'), wait: 0.2 },
     ],
   },
   { id: 'game-rings', title: 'A minigame: the rings', setup: { level: 'desert', game: 'rings' }, beats: gameBeats('Space') },

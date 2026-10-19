@@ -448,6 +448,7 @@ namespace Hiraeth.Bridge
             DrawEdges(state.O("edges"));
             DrawLock(Part("lock"));
             DrawWarn(On("warn") ? state.L("warn") : null);
+            DrawSelf(Part("self"));
             DrawRestart(state.O("restart"));
             DrawWarp(state.O("warp"));
             DrawPassage(state.O("passage"));
@@ -667,6 +668,7 @@ namespace Hiraeth.Bridge
         {
             if (!triFill) triFill = Arrow(false);
             if (!triLine) triLine = Arrow(true);
+            BuildSelf();   // (the traveller's ring in a fight temple's crowd: BridgeHud.Self.cs, issue #534)
             lockRoot = Ui.Node("lock-on", root);
             for (int i = 0; i < 4; i++)
             {

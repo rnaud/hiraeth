@@ -19,6 +19,15 @@ export const CHANGELOG = [
     // issue #483: src/companion.js (ONCE: bladegate), host/game-host.js wireCompanion; src/temples/desert-data.js (Sabri),
     // perdide-data.js (Teasel); src/kit-colours.js colourName (house); tests/fight-temples-story.test.js, companion.test.js
     'Plumb now has a word the first time you come near a fight temple’s gate, Sabri in the desert and Teasel in Lorn mention the ink under the old floors, and Items names each colour after the place you won it, as in Ember · the Sunken Hall.',
+    // issue #534 (the fight temples read from the iso camera): src/fight-temples/view.js (hiddenShare, crowdAround),
+    // self-mark.js, BridgeHud.Self.cs (the screen's 'self' part); tests/fight-view.test.js
+    'In the fight temples you no longer lose yourself in the crowd: when foes cover you or close in round you, an inked ring with a gold mark over your head shows where you are.',
+    // issue #534: view.js telegraphs, frameIso (session.js placeCamera), Foes.extraWarn (the foes' edge markers)
+    'In the fight temples a hazard that starts near the edge of the screen (a pool of oil, a falling load, a breaking tile, an ink geyser) now draws the view toward it so you see it coming, and one still out of sight gets a marker at the screen’s edge, as a foe winding up out of sight does.',
+    // issue #534: rooms.js SIGIL, sigilColor, sigilModel (the shared makers' mark, story/sign-text.js)
+    'The sign on each fight temple room’s floor is now the makers’ mark in a faint square. It was two dark rings, the very shape of the foes’ ring attacks, under every fight.',
+    // issue #534: Foes.lockAnswer (session.js), view.js LOCK_ANSWER; the lock's own tick (audio.js lockOn)
+    'Pressing lock-on (R3 / Tab) in a fight temple now answers: the aim’s ring flashes under the foe your blade will take, with the lock’s tick, and the first time a line says the right stick or the mouse aims in there.',
   ] },
   { v: '1.85', date: '2026-10-18', items: [
     // issue #474: src/music-moments.js (MUSIC_MODES, musicMode: Always the default), src/ui.js (musicMode, musicV: a saved
