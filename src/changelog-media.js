@@ -1212,6 +1212,7 @@ const PSO465 = 'Issue #465: a release Linux player of main at 509b40cc9 on the S
 /** (v1.85, issue #514: Lorn's skiff, its sail and its hull) */
 const SKIFF514 = 'Issue #514: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, 10 o’clock, clear, the HUD hidden) on this branch’s own Vite (port 5472), ?level=perdide&debugsave=1; before: the tree at fb6b3ee94 (port 5474), the same view; 18 October; cwebp -q 72';
 /** (v1.85, issue #507: the games' cards show the focus, not the main button) */
+const FRAG481 = 'Issues #481, #518–#520: headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5481), a save set by the script, the camera pinned on a court’s frame or a chest’s; before: the tree at 77ea9504a, the same views; 19 October; cwebp -q 72';
 const CARD507 = 'Issue #507: the Ring Race’s page (?game=rings) in muted headless Chrome (ANGLE Metal, High, 1280 × 720) on this branch’s own Vite (port 6507), a pad in hand, the run ended by the page’s script and the focus moved to Quit; before: the tree at fb6b3ee94, the same view; 18 October; cwebp -q 72';
 /** (v1.86, issue #483: the fight temples in the story: their cards) */
 const STORY483 = 'Issue #483: the Sunken Hall’s page (?game=fight-desert&seed=7) in muted headless Chrome (ANGLE Metal, High, 1280 × 720) on this branch’s own Vite (port 5483), the start card as it opened, then the run won by the page’s script (each room’s foes put down, the traveller set on the altar); before: the tree at c694911e8, the same run.';
@@ -1349,6 +1350,26 @@ export const CHANGELOG_MEDIA = {
       { name: 'unity-start-menu-487', title: 'Unity: the Start menu', caption: 'The Unity version’s Start menu in the same house: before, Items, Quests, Map and House map on its side; after, none of them', from: MENU487U },
       { name: 'unity-house-map-487', title: 'Unity: the House map', caption: 'The Unity version’s House map: before, the Start menu’s page; after, the game menu’s tab, as on the web', from: MENU487U },
     ], see: 'In a makers’ house with its map found, press View: the House map is the tab after Map; ▲ ▼ change floor. Press Menu: the Start menu has only Resume, Settings, Controls, Photo mode, What’s new and Quit to title.' },
+    { match: 'The game no longer tells you how many fragments of the singing light there are', shots: [
+      { name: 'fragment-worlds', title: 'The Worlds page', caption: 'Thirty found: “30 of 288” and “all 24” before; “30 found” and “24 found here” after', from: FRAG481 },
+    ] },
+    { match: 'Anselm has more to sell once his upgrades are yours', shots: [
+      { name: 'thrum-shop', only: 'after', title: 'His shop', caption: 'With 150 found: his notebook’s next page after the upgrades, then the hold’s lamp, his chart and the light’s tune', from: FRAG481 },
+      { name: 'chart-map', only: 'after', title: 'The chart on the Map', caption: 'Viridel’s Map with his chart: a small ✧ where each fragment still hides', from: FRAG481 },
+    ] },
+    { match: 'Every makers’ court’s chest now waits behind a gate', shots: [
+      { name: 'court-lorn', title: 'Lorn’s court', caption: 'Before, the chest at the court’s front edge beside pinwheels for the gust fan, four worlds on; after, behind jaws over a gate that the stilling mode holds open', from: FRAG481 },
+      { name: 'court-vael', title: 'Vael’s court', caption: 'Before, the chest at the front edge; after, behind a gate opened by tugging the two rings high on their posts with the hook', from: FRAG481 },
+      { name: 'court-skystones', only: 'after', title: 'The sky stones’ court', caption: 'Climb the tall tower, glide to the plate on the sheer pillar: the scarf’s gate opens', from: FRAG481 },
+      { name: 'court-spheres', only: 'after', title: 'The Garden’s court', caption: 'The chest on the far tower, reached only by the glass path the seeing lens holds up', from: FRAG481 },
+    ] },
+    { match: 'The little chests on high places now have a small lock', shots: [
+      { name: 'lock-star', title: 'Qanat’s roof', caption: 'The pale star’s chest, now between two braziers to light with ember', from: FRAG481 },
+      { name: 'lock-hush', title: 'Vael’s needle spire', caption: 'The hush-cloth’s chest between two pull-rings for the hook', from: FRAG481 },
+      { name: 'lock-moss', only: 'after', title: 'The root arch', caption: 'Stone jaws over the glow-moss pin’s chest, for the stilling mode', from: FRAG481 },
+      { name: 'lock-reed', only: 'after', title: 'The crystal lookout', caption: 'A dark lamp on a sheer pole by the breathing reed’s chest: float up to it in a bubble', from: FRAG481 },
+      { name: 'lock-resin', only: 'after', title: 'The chimney stack', caption: 'A cracked cap over the resin’s chest, for an ink bomb', from: FRAG481 },
+    ] },
   ],
   '1.85': [
     { match: 'In the Unity version, flowers far across Viridel’s meadow', tags: ['devices'], shots: [
