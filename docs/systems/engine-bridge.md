@@ -2593,6 +2593,14 @@ not the whole geometry a frame), and draw their colours.
   `inputKind`, native-pad.js `confirmKey` in Xbox / PlayStation form, printed for the pad in hand by engine/unity/game.js
   `forPad`), published again when the hands change; BridgeHud's `DrawTalk` draws the badge (the cue's `MakeBadge`, without
   its ring) or the mark. Test: tests/dialogue-answer-key.test.js.
+- **The loading screen's bar and why line** (#527, after the page's #506). Under the line, as the page's `.bar` and
+  `.why` (src/load-page.js): engine/game.js `onLoad({ line, why, p })` at its stages and steps, which engine/unity/game.js
+  hands to `BridgeHost.LoadProgress(p, why)` (the furthest kept, emptied as a load begins); once the world is built the
+  bar goes to the page's "surfaces" step (Unity's first frame, its pipelines), and full as that frame plays, while the
+  screen fades. BridgeHud.Loading draws the red fill in its ink frame (183 × 10, eased as the page's 0.4 s transition,
+  never past where the load is) and the why line, 0.72 opaque, the pen, line, bar and why line centred together as the
+  page's grid. `-loading-shot-at sketching,inking,waking,mixing` photographs each of those stages (`<file>-<stage>.png`).
+  Test: tests/engine-unity.test.js (the progress sent after the screen went up, never back, full before it fades).
 
 ## Status
 

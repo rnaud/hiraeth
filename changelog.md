@@ -16,6 +16,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.85 — 2026-10-18
 
+- In the Unity version too, the loading screen’s bar fills as the world is prepared, with the small line under it saying what is taking the time.
 - In Vael, the makers’ box with the wind-silk scarf is no longer lost under the cloud, where it fell when its stack of balanced stones was moved. It now sits on top of Tiv’s stack on the great table’s west rim, in sight of the riders’ halfway stone.
 - In Lorn, the way to the rebuilt Hush-House is easy to find again: a lit crystal now crowns its tower, seen from the Great Crystal across the swamp, and the keepers’ stakes run from the crystal cave’s south mouth along the house’s shore to its steps, not out over the open water.
 - People no longer start in the middle of a plant: in Viridel Mira stood inside a ribbon plant, in the desert Marrow and in Lorn Tansy had a flower growing right where they stood. Plants now keep off the spots people start from and the paths they walk.

@@ -12,6 +12,7 @@ import { setAudioDecoder } from '../webaudio.js';
 import { musicDecoder, pollMusic, themeArrival, themeDownloads } from './music.js';
 import { SOUNDTRACKS, setThemeWait } from '../../src/soundtracks.js';
 import { UnityBackend } from './backend.js';
+import { loadShare, LOAD_WHY } from '../../src/load-page.js';
 import { portLook } from './port-format.js';
 import { sharedUniforms } from '../../src/materials.js';
 import { fullGcWatch } from './gc-watch.js';
@@ -466,9 +467,13 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
   S.gameFrom = args.level ?? 'desert';
   createGame({ levelId: args.level ?? 'desert', backend, back, game, from: game ? args.level ?? 'desert' : null, to: game ? transit ?? args.to ?? null : null, onGame: (href) => playGame(href), onLeave: (href) => leaveGame(href), trials: !!args.trial || !!args.fresh, quality: args.quality ?? null, people: args.people !== false, audio: rate ? { sampleRate: rate, record } : null, flags: !ending && (args.views?.length || args.play) ? BENCH_FLAGS : null, log: (...a) => console.log('[game]', ...a),
     menus, settings: S.settings ?? null, start: from, arrive: arrive || !!args.arrive, hullSpawn: !!args.hullSpawn, gestures: !off.has('gestures'), moves: !off.has('moves'), matching: String(args.on ?? '').split(',').includes('matching') || null,
-    via, prologue: prologue || !!args.prologue, onTravel: (to) => flyTo(to), aboard: aboardRooms(args)[0] ?? (starScenes.length ? 'main' : null), scenes: !!args.aboard, fight: !!args.fight || seqFight, arrival: came, onPage: (o) => pageTo(o), saves: !args.foes && !args.devmenu && !args.house && !args.ui, defer: !off.has('defer'), far: !off.has('far'), skies: !off.has('skies'), lod: String(args.on ?? '').split(',').includes('lod'), onStage: (t) => host.LoadStage?.(t) })
+    via, prologue: prologue || !!args.prologue, onTravel: (to) => flyTo(to), aboard: aboardRooms(args)[0] ?? (starScenes.length ? 'main' : null), scenes: !!args.aboard, fight: !!args.fight || seqFight, arrival: came, onPage: (o) => pageTo(o), saves: !args.foes && !args.devmenu && !args.house && !args.ui, defer: !off.has('defer'), far: !off.has('far'), skies: !off.has('skies'), lod: String(args.on ?? '').split(',').includes('lod'), onStage: (t) => host.LoadStage?.(t),
+    // (the bar under the line and why this part takes the time, src/load-page.js: BridgeHud.Loading draws them, issue #527)
+    onLoad: (o) => host.LoadProgress?.(o.p, o.why ?? '') })
     .then((game) => {
       S.game = game;
+      // (built: what is left is Unity's own first frame, its pipelines for this world's look; the bar full once it has played)
+      if (S.loadingWorld) host.LoadProgress?.(loadShare('mixing', 'surfaces'), LOAD_WHY.surfaces);
       // (the title's sound let go: the world's own plays from here; the themes this package lacks fetched once, BridgeMusic)
       if (S.titleSound) { S.titleSound.dispose(); S.titleSound = null; }
       if (rate && !planned(args)) { const d = themeDownloads(SOUNDTRACKS[game.level?.id] ?? null); host.MusicFetch?.(d.list, d.carried); }
@@ -963,7 +968,7 @@ function playFrame(dt) {
   if (!S.plan) readInput(game);
   const r = game.frame(dt);
   showMenu();
-  if (S.loadingWorld) { S.loadingWorld = false; host.Loading?.(false); }   // (its first frame played: the loading screen fades)
+  if (S.loadingWorld) { S.loadingWorld = false; host.LoadProgress?.(1, ''); host.Loading?.(false); }   // (its first frame played: the loading screen fades)
   if (S.titleGo) titleGo();
   backend.lights(game.localLights());
   backend.water(game.waterOver?.());   // (the water's pass over the page: under it the tint and haze, above it the sun's sparkle)

@@ -209,6 +209,9 @@ export const CHANGELOG = [
     'In Lorn, the way to the rebuilt Hush-House is easy to find again: a lit crystal now crowns its tower, seen from the Great Crystal across the swamp, and the keepers’ stakes run from the crystal cave’s south mouth along the house’s shore to its steps, not out over the open water.',
     // issue #476: src/levels/arzach2.js (TIV_STACK), src/boxes/placements.js arzach2.scarf; tests/level-design-hush-house.test.js
     'In Vael, the makers’ box with the wind-silk scarf is no longer lost under the cloud, where it fell when its stack of balanced stones was moved. It now sits on top of Tiv’s stack on the great table’s west rim, in sight of the riders’ halfway stone.',
+    // issue #527: engine/unity/game.js (onLoad → BridgeHost.LoadProgress), unity/Hiraeth BridgeHost.cs, BridgeHud.Loading.cs;
+    // tests/engine-unity.test.js
+    'In the Unity version too, the loading screen’s bar fills as the world is prepared, with the small line under it saying what is taking the time.',
   ] },
   { v: '1.84', date: '2026-10-17', items: [
     // issue #439: src/costumes.js (HEADS: the 47 pieces of the 15 hat sets, HAT_SETS, HAT_SET_WORLDS, hoodShell / hoodNeck /

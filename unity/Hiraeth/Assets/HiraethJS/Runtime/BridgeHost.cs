@@ -232,7 +232,18 @@ namespace Hiraeth.Bridge
         /// <summary>A played world being built (engine/unity/game.js launch, until its first frame: from the title's choice too),
         /// under the loading screen (BridgeHud.Loading), Unity drawing on meanwhile (BridgeRunner); issue #510.</summary>
         public static volatile bool WorldLoading;
-        public static void Loading(bool on) { WorldLoading = on; Wake.Set(); }   // (the main thread waiting on the frame: told at once)
+        public static void Loading(bool on) { if (on) LoadReset(); WorldLoading = on; Wake.Set(); }   // (the main thread waiting on the frame: told at once)
+        /// <summary>How far the load is (0-1) and why its step takes the time (engine/game.js onLoad, src/load-page.js
+        /// loadProgress), from the script's thread; the loading screen's bar never goes back within a load (issue #527).</summary>
+        public static volatile float LoadP;
+        public static volatile string LoadWhy;
+        public static void LoadProgress(double p, string why)
+        {
+            if (p > LoadP) LoadP = (float)System.Math.Min(1, p);
+            if (!string.IsNullOrEmpty(why)) LoadWhy = why;
+        }
+        /// <summary>A new load: the bar empty, no why line (a world chosen on the title, a boot).</summary>
+        public static void LoadReset() { LoadP = 0; LoadWhy = null; }
         /// <summary>The menus' state (engine/menus.js view(): the title, the Start menu, the game menu; "null" none open), for BridgeMenu.</summary>
         /// <summary>The menus' canvas width in its units (720 high: 1280 on 16:9, 960 on the Retroid's 4:3), set by BridgeMenu; how many item tiles fit a row.</summary>
         public static float MenuWidth() => menuWidth;

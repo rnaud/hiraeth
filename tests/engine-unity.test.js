@@ -19,6 +19,7 @@ import { capePacketWords } from '../engine/cape-job.js';
 import { buildFlask } from '../src/fluid-tool.js';
 import { AudioReplay } from '../engine/webaudio.js';
 import { tempPath } from '../scripts/temp-dirs.mjs';
+import { LOAD_WHY } from '../src/load-page.js';
 
 THREE.ColorManagement.enabled = false;
 const X = new THREE.Matrix4().makeScale(-1, 1, 1);
@@ -376,6 +377,7 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
   let closedAt = 0;
   const stages = [];   // (the loading screen's lines, BridgeHud.Loading.cs: issue #424)
   const loading = [];   // (the world's load from the title's choice, under the loading screen: issue #510)
+  const progress = [];   // (the bar and the why line under the loading screen's line: issue #527)
   const cloths = {}, capes = {};
   const clothWords = (id) => { const c = cloths[id]; return 3 * c.N + 28 * c.K + 16 * c.B + 16; };
   // the sound (BridgeAudio.cs): a ring Unity drains at its rate, topped up by the script each frame
@@ -404,6 +406,7 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
     // (gone away at frame 76, BridgeRunner.Away: the Steam button, a suspend; back, the game waits under the Start menu)
     AwayCount: () => (closedAt && calls.Frame >= closedAt + 6 ? 1 : 0),
     LoadStage(t) { stages.push(t); },
+    LoadProgress(p, why) { progress.push({ p, why, loading: loading.length, stages: stages.length }); },
     Loading(on) { loading.push({ on, frames: calls.Frame, menus: menus.length, stages: stages.length }); },
     MenuWidth: () => 960, MenuMapBox: () => '878,508', PadName: () => 'Retroid Pocket Controller', Platform: () => 'android', Pad: () => null, MouseLook: () => null, Shot() {}, WriteText() {}, LastFrameCpuMs: () => 0, LastFrameGpuMs: () => 0, Exit() {},
     AudioRate: () => 48000, AudioQueued: () => sound.queued,
@@ -434,12 +437,29 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
   assert.deepEqual(loading.map((l) => l.on), [true, false], JSON.stringify(loading));
   assert.ok(loading[0].menus >= 1 && loading[0].frames === 0 && loading[0].stages === 0, JSON.stringify(loading[0]));
   assert.ok(loading[1].frames >= 1 && loading[1].stages === 4, JSON.stringify(loading[1]));
+  // and how far it has come, with why (engine/game.js onLoad, src/load-page.js; BridgeHost.LoadProgress, issue #527): from
+  // the start, after the screen went up, never back, through every stage, full as the world's first frame plays, before
+  // the screen fades; the why lines the page's own
+  assert.ok(progress.length >= 10 && progress.every((x) => x.loading === 1), JSON.stringify(progress));
+  assert.ok(progress[0].p === 0 && progress[0].stages === 1, JSON.stringify(progress[0]));
+  progress.forEach((x, i) => assert.ok(typeof x.p === 'number' && x.p >= 0 && x.p <= 1 && (!i || x.p >= progress[i - 1].p), `the bar went back: ${JSON.stringify(progress)}`));
+  assert.equal(progress.at(-1).p, 1);
+  assert.ok(progress.some((x) => x.why === LOAD_WHY.world) && progress.some((x) => x.why === LOAD_WHY.batches) && progress.some((x) => x.why === LOAD_WHY.surfaces), JSON.stringify(progress.map((x) => x.why)));
+  assert.ok(progress.every((x) => x.why === '' || Object.values(LOAD_WHY).includes(x.why)), JSON.stringify(progress.map((x) => x.why)));
   const runner = readFileSync(new URL('../unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs', import.meta.url), 'utf8');
   assert.match(runner, /\(!booted \|\| BridgeHost\.WorldLoading\) && !bootBlocking/, 'Unity draws on (the loading screen, the Xbox\'s pipelines warming) while the world builds');
   const hudLoad = readFileSync(new URL('../unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHud.Loading.cs', import.meta.url), 'utf8');
   assert.match(hudLoad, /if \(world && !loadWorld\)/);
   assert.match(runner, /if \(yieldToLoad && BridgeHost\.WorldLoading\) \{ awaitYielded = true; return true; \}/, 'not waited out on the title as the build begins');
   assert.match(hudLoad, /overrideSorting = true/, 'over the title\'s canvas');
+  // the C# draws it: the bar's red fill as far as BridgeHost.LoadP (eased, never past it), the why line from LoadWhy;
+  // BridgeHost keeps the furthest and empties both as a load begins
+  assert.match(hudLoad, /loadBarFill = Ui\.Rect\(loadBar, LoadNib/);
+  assert.match(hudLoad, /loadShown = Mathf\.Min\(p, /);
+  assert.match(hudLoad, /var why = BridgeHost\.LoadWhy/);
+  const hostCs = readFileSync(new URL('../unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHost.cs', import.meta.url), 'utf8');
+  assert.match(hostCs, /public static void LoadProgress\(double p, string why\)\s*\{\s*if \(p > LoadP\)/);
+  assert.match(hostCs, /public static void Loading\(bool on\) \{ if \(on\) LoadReset\(\);/);
   // the title first, gone once the world was ready; the Start menu over the world, and closed again
   assert.deepEqual(menus.filter((k, i) => k !== menus[i - 1]), ['title', null, 'start', null, 'game', null, 'start'], JSON.stringify(menus));
   // the game menu's panels filled from the world running (engine/game.js menuSources): the father's charge, the map's marks

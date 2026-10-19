@@ -1245,6 +1245,9 @@ const WEB513 = 'Issue #513: the web game in muted headless Chrome on this branch
 /** (v1.85, issue #510: the loading screen after the title in Unity) */
 const UNITY510 = 'Issue #510: the Unity editor’s batch run on this Mac (scripts/unity-js-run.sh -title-go 60 -title-art H1 -loading-shot, muted, 1280 × 720): the debug save’s desert chosen on the title; before: the branch’s base, the last picture drawn while the world was built (the main thread waited on the script’s frame); after: as the build wakes the people; 18 October; cwebp -q 72';
 const WEB510 = 'Issue #510: the web game in muted headless Chrome on this branch’s own Vite (port 5461), 1280 × 720, 0.8 s after Continue on the title; 18 October; cwebp -q 72';
+/** (v1.85, issue #527: the loading screen's bar and why line in Unity) */
+const UNITY527 = 'Issue #527: the Unity editor’s batch run on this Mac (scripts/unity-js-run.sh -title-go 60 -title-art H1 -loading-shot -loading-shot-at waking, muted, 1280 × 720): the debug save’s desert chosen on the title, as the build wakes the people, the bar drawn where it is easing to; before: issue #510’s picture of the same moment; 19 October; cwebp -q 72';
+const WEB527 = 'Issue #527: the web game in muted headless Chrome on this branch’s own Vite (port 5462), 1280 × 720, ?level=desert, the main thread slowed 6 times, 0.45 s after the page said it was waking the people; 19 October; cwebp -q 72';
 /** (v1.85, issue #506: the loading page) */
 const GREATKEY486 = 'Issue #486: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, 10:00) on this branch’s own Vite (port 5486) and the tree before it (3071e1f88, port 5488), the Aerie (?level=arzach), its chest opened (openIt) with the camera pinned before it and the key turned to the same angle; the card shots with the HUD shown, the notices cleared before the chest opened; 19 October; cwebp -q 72';
 const LOADPAGE506 = 'Issue #506: a build of this branch in muted headless Chrome on this Mac (High, 1280 × 720 window, the main thread slowed 6 times to catch the step), ?game=fight-desert, the screen taken as the load reached the shaders’ step; before: the same page with the bar and the new line hidden (the screen as it was); cwebp -q 72';
@@ -1469,6 +1472,10 @@ export const CHANGELOG_MEDIA = {
       { name: 'tiv-stack-476', title: 'From Tiv’s cairn', size: [1280, 720], caption: 'The great table’s west rim from Tiv’s cairn: before, empty; after, Tiv’s stack of five balanced stones, the makers’ box on its top.', from: WAY476 },
       { name: 'tiv-stack-halfway-476', title: 'From the halfway stone', size: [1280, 720], caption: 'The great table from the riders’ halfway stone over the cloud: the stack stands on its rim.', from: WAY476 },
     ], see: 'In Vael, fly the bird to the great table where Tiv stacks his cairn and climb the tall pile of stones on its west rim: the box is on the top stone.' },
+    { match: 'In the Unity version too, the loading screen’s bar fills', shots: [
+      { name: 'unity-loading-bar', title: 'Waking the people', caption: 'The desert loading in Unity from the title: before, the pen and the stage’s line alone; after, the bar filled as far as the load has come, and why this part takes the time', from: UNITY527 },
+      { name: 'unity-loading-bar-web', only: 'after', title: 'On the web', caption: 'The web’s loading screen at the same stage', from: WEB527 },
+    ], see: 'In the Unity version, choose Continue on the title, or travel to another world: the bar under the pen fills step by step, and the line under it changes as the load goes.' },
   ],
   '1.84': [
     { match: 'In the Unity version on the Steam Deck, the first launch after an update no longer freezes', numbers: [
