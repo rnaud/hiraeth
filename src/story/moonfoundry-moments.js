@@ -1,4 +1,4 @@
-import { V, UP, closeUp } from './film.js';
+import { V, UP, clearShot, openCloseUp } from './film.js';
 
 // The Moon Foundry's climax, filmed (src/story/moment.js): once per save, skippable, never in the way (when it can't
 // play, nothing is lost: the Casting-House's change shows all the same, src/temples/moonfoundry.js).
@@ -16,8 +16,8 @@ import { V, UP, closeUp } from './film.js';
 //
 // Show, don't tell: the traveller says nothing, and reacts with his face only (m.look 'smirk').
 
-/** s per panel; SMIRK: s into D before his mouth goes up; BACK: how far from the door A stands (m); TURN: s before C the hung moons start round. */
-export const MOON = { A: 2.6, B: 2.4, C: 2.4, D: 2.2, SMIRK: 0.8, BACK: 32, TURN: 0.8, swellAt: 0.7 };
+/** s per panel; SMIRK: s into D before his mouth goes up; BACK: how far from the door A stands (m); TURN: s before C the hung moons start round; NEAR: m round A's look that are the house itself, not in its way (film.js clearShot). */
+export const MOON = { A: 2.6, B: 2.4, C: 2.4, D: 2.2, SMIRK: 0.8, BACK: 32, TURN: 0.8, NEAR: 4, swellAt: 0.7 };
 export const MOMENTS = [{ id: 'moonfoundry.moon', flag: 'moonfoundry.moment.moon', beat: 'the last moon is lifted out of its mould onto a hook, and every hung moon turns to it' }];
 
 /**
@@ -40,6 +40,7 @@ export function liftShot(O, at, dur = MOON.B) {
 
 export function setupMoonFoundryMoments(ctx, { rt, level }) {
   const { player, sound, moments, toast = () => {} } = ctx;
+  const physics = ctx.physics ?? moments?.physics ?? null;
   const off = { moon: () => false };
   if (!moments || !rt?.outside?.door) return off;
 
@@ -53,21 +54,24 @@ export function setupMoonFoundryMoments(ctx, { rt, level }) {
     // (the change: the whole moon on its way to the hook, the hung moons' turn: src/temples/moonfoundry.js)
     const ch = rt.change, newMoon = ch?.moon ?? null;
     const lift = O.foot && O.hook && O.kit ? liftShot(O, () => newMoon?.getWorldPosition(V(0, 0, 0)) ?? null) : null;
+    const sight = { physics, roots: [rt.root], near: MOON.NEAR };
     const B0 = MOON.A, C0 = B0 + (lift ? MOON.B : 0), D0 = C0 + MOON.C;
     const m = moments.play({
       id: 'moonfoundry.moon', flag: 'moonfoundry.moment.moon', dur: D0 + MOON.D,
       shots: [
-        // A: wide, out on the floor: the house's tower, him small at its door
-        { dur: MOON.A, from: { pos: door.clone().addScaledVector(out, MOON.BACK).addScaledVector(side, -10).addScaledVector(UP, 5), look: top, fov: 50 },
-          to: { pos: door.clone().addScaledVector(out, MOON.BACK - 5).addScaledVector(side, -8).addScaledVector(UP, 5.5), look: top, fov: 46 } },
+        // A: wide, out on the floor: the house's tower, him small at its door (kept seeing it: the jib over the door
+        // caught the moment's pull-in 2 m from its look, and the lens sat inside it for 2.6 s, QC v1.85, #491)
+        clearShot({ dur: MOON.A, from: { pos: door.clone().addScaledVector(out, MOON.BACK).addScaledVector(side, -10).addScaledVector(UP, 5), look: top, fov: 50 },
+          to: { pos: door.clone().addScaledVector(out, MOON.BACK - 5).addScaledVector(side, -8).addScaledVector(UP, 5.5), look: top, fov: 46 } }, sight),
         // B: under the jib, the last moon rising onto its hook
         ...(lift ? [{ dur: MOON.B, clear: false, from: (t) => lift.from(t) }] : []),
         // C: up at the hung moon from the floor on the house's side of it, far enough to see it whole on its hook as it
         // turns toward the house (from under it, 37 m off, it filled the frame: the cinematics QC, v1.43)
         { dur: MOON.C, clear: false, from: { pos: hung.clone().addScaledVector(toHouse, 52).setY(floor + 4), look: hung, fov: 46 },
           to: { pos: hung.clone().addScaledVector(toHouse, 47).setY(floor + 5), look: hung.clone().addScaledVector(UP, 2), fov: 44 } },
-        // D: his face, turned up to it
-        { dur: MOON.D, clear: false, from: closeUp(player, { angle: 0.5, dur: MOON.D }) },
+        // D: his face, turned up to it, from the side of him with the floor behind (against the house it was half a dark
+        // wall: QC v1.85, #491)
+        { dur: MOON.D, clear: false, from: openCloseUp(player, { dur: MOON.D, sight }) },
       ],
       beats: [
         { t: MOON.swellAt, run: () => sound?.swell?.('father', top.clone()) },

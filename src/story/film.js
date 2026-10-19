@@ -107,3 +107,99 @@ export function riseLook(eye, target, fov, { top = 0.5, foot = 0.62, max = 48 } 
   const c = Math.cos(el) * dist;
   return { look: V(eye.x + (dx / flat) * c, eye.y + Math.sin(el) * dist, eye.z + (dz / flat) * c), fov };
 }
+
+const _rc = new THREE.Raycaster();
+/**
+ * Can a lens at `pos` see `at`? False when a solid or a drawn surface stands between them, short of the subject's own
+ * `near` m round `at` (its own façade, a jib over its door: the subject, not in its way). `physics` (the colliders,
+ * both sides: a lens inside a solid meets its back face at once) and `roots` (drawn meshes the colliders don't all
+ * follow: a house's skin, its floating plates; nothing hidden or see-through), each optional; `skip`: objects that
+ * never block (the subject's own mesh, him).
+ */
+export function sightClear(pos, at, { physics = null, roots = [], near = 3, skip = [] } = {}) {
+  const d = pos.distanceTo(at) - near;
+  if (d <= 0.3) return true;
+  const dir = V(at.x - pos.x, at.y - pos.y, at.z - pos.z).normalize();
+  if (physics?.rayDistance && physics.rayDistance(pos, dir, d) < d) return false;
+  if (!roots.length) return true;
+  _rc.set(pos, dir); _rc.near = 0; _rc.far = d;
+  const shown = (o) => { for (let q = o; q; q = q.parent) if (!q.visible || skip.includes(q)) return false; return true; };
+  for (const h of _rc.intersectObjects(roots.filter(Boolean), true)) {
+    const mat = Array.isArray(h.object.material) ? h.object.material[0] : h.object.material;
+    if (h.object.isMesh && !mat?.transparent && mat?.visible !== false && shown(h.object)) return false;
+  }
+  return true;
+}
+
+/** Turns tried (radians, the smallest first) and lifts (m) when a shot is blocked: clearShot. */
+export const CLEAR_TURNS = [0, 0.26, -0.26, 0.52, -0.52, 0.79, -0.79, 1.05, -1.05, 1.31, -1.31, 1.57, -1.57];
+export const CLEAR_LIFTS = [0, 4, 8];
+
+/**
+ * A shot of frames `{ from, to? }` (not functions) kept seeing its subject: each end's lens and the middle of its move
+ * are checked (sightClear, to `subject` or the look); when one is blocked, the whole move is swung round the subject's
+ * upright by the smallest turn (CLEAR_TURNS) and, failing that, lifted (CLEAR_LIFTS) until all three see it. Its
+ * frames turn as one (lens and look), so the subject keeps its place in the frame. A house rebuilt round a lens set
+ * by hand (the Moon Foundry's and the floating city's climaxes filmed walls: the cinematics QC, v1.85, #491) then
+ * moves the shot, not the picture into a wall. Returns a new shot (`clear: false`: checked here; `cleared`: the turn
+ * and lift used), or the shot as it was when nothing clears (the moment's own pull-in still applies).
+ */
+export function clearShot(shot, { subject = null, ...o } = {}) {
+  const ends = [shot.from, shot.to ?? shot.from];
+  const at = (f) => subject ?? f.look;
+  const c = subject ?? ends[0].look;
+  const swing = (p, a, lift) => {
+    const x = p.x - c.x, z = p.z - c.z, s = Math.sin(a), k = Math.cos(a);
+    return V(c.x + x * k + z * s, p.y + lift, c.z - x * s + z * k);
+  };
+  for (const lift of CLEAR_LIFTS) for (const a of CLEAR_TURNS) {
+    const fr = ends.map((f) => ({ ...f, pos: swing(f.pos, a, lift), look: swing(f.look, a, lift * 0.5) }));
+    const mid = { pos: fr[0].pos.clone().lerp(fr[1].pos, 0.5), look: fr[0].look.clone().lerp(fr[1].look, 0.5) };
+    if (![fr[0], mid, fr[1]].every((f) => sightClear(f.pos, subject ? at(f) : f.look, o))) continue;
+    if (!a && !lift) return { ...shot, clear: false, cleared: { turn: 0, lift: 0 } };
+    return { ...shot, from: fr[0], ...(shot.to ? { to: fr[1] } : {}), clear: false, cleared: { turn: a, lift } };
+  }
+  return shot;
+}
+
+/**
+ * How far past `at`, seen from `pos`, the first surface behind it stands (the backdrop's distance; Infinity: open
+ * sky or far off): physics' colliders and `roots`' drawn meshes, as sightClear.
+ */
+export function backdrop(pos, at, { physics = null, roots = [], far = 40 } = {}) {
+  const dir = V(at.x - pos.x, at.y - pos.y, at.z - pos.z).normalize(), from = at.clone().addScaledVector(dir, 0.6);
+  let d = physics?.rayDistance ? physics.rayDistance(from, dir, far) : Infinity;
+  if (roots.length) {
+    _rc.set(from, dir); _rc.near = 0; _rc.far = Math.min(far, d);
+    const h = _rc.intersectObjects(roots.filter(Boolean), true).find((x) => {
+      const mat = Array.isArray(x.object.material) ? x.object.material[0] : x.object.material;
+      if (!x.object.isMesh || mat?.transparent || mat?.visible === false) return false;
+      for (let q = x.object; q; q = q.parent) if (!q.visible) return false;
+      return true;
+    });
+    if (h) d = Math.min(d, h.distance);
+  }
+  return d >= far ? Infinity : d + 0.6;
+}
+
+/**
+ * closeUp, its side picked when the panel starts: of `angles` (the first is the one wanted), the first whose
+ * backdrop behind his face is at least `open` m off, else the farthest. Beside a house's wall, a three-quarter face
+ * against the wall was half a dark wall (the Moon Foundry's climax: the cinematics QC, v1.85, #491); the other side
+ * of him, or a little more round, has the floor and the sky behind. `sight`: { physics, roots } (backdrop).
+ */
+export function openCloseUp(player, { angles = [0.5, -0.5, 0.9, -0.9], open = 12, sight = {}, ...o } = {}) {
+  const shots = angles.map((angle) => closeUp(player, { ...o, angle }));
+  let pick = null;
+  return (t) => {
+    if (!pick) {
+      let best = -1;
+      for (const s of shots) {
+        const f = s(0), d = backdrop(f.pos, f.look, sight);
+        if (d >= open) { pick = s; break; }
+        if (d > best) { best = d; pick = s; }
+      }
+    }
+    return pick(t);
+  };
+}

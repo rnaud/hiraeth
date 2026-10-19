@@ -2593,16 +2593,17 @@
       "stage": null
      },
      "objects": {
-      "ink": 210,
+      "ink": 234,
       "print": 1,
       "hidden": 1,
-      "shader": 1
+      "shader": 1,
+      "doorlight": 1
      },
      "cam": [
-      116.8,
-      15.6,
-      -155.8,
-      49.4
+      89.7,
+      5.4,
+      -141.9,
+      49.2
      ],
      "player": [
       115.7,
@@ -2665,16 +2666,16 @@
       "stage": null
      },
      "objects": {
-      "ink": 265,
+      "ink": 250,
       "print": 1,
       "hidden": 1,
       "shader": 1,
       "doorlight": 1
      },
      "cam": [
-      115.6,
+      114.4,
       1.6,
-      -152.6,
+      -153.7,
       34.3
      ],
      "player": [
@@ -2706,17 +2707,18 @@
       "stage": null
      },
      "objects": {
-      "ink": 169,
+      "ink": 274,
       "print": 1,
       "hidden": 1,
       "shader": 1,
-      "pitvoid": 1
+      "pitvoid": 1,
+      "doorlight": 1
      },
      "cam": [
-      96.6,
-      26.1,
-      -169.5,
-      51.4
+      111.5,
+      22.5,
+      -141.5,
+      51.3
      ],
      "player": [
       96,
@@ -2743,16 +2745,17 @@
       "stage": null
      },
      "objects": {
-      "ink": 304,
+      "ink": 450,
       "print": 1,
       "hidden": 1,
       "shader": 1,
-      "pitvoid": 1
+      "pitvoid": 1,
+      "doorlight": 1
      },
      "cam": [
-      115.8,
-      56.7,
-      -184.7,
+      101.2,
+      48,
+      -189,
       52.7
      ],
      "player": [

@@ -1259,6 +1259,8 @@ const HUD501 = 'Issue #501: the cinematics QC (scripts/cinematics-qc.mjs --only 
 /** (v1.85, issue #526: the answers' A in Unity's dialogue box) */
 const UNITY526 = 'Issue #526: the Unity editor’s batch run on this Mac (node scripts/unity-compare/sequences.mjs unity talk: the talk sequence, Teo’s answers in the desert, muted, High, 1280 × 720), an Xbox pad faked in hand for the run (navigator.getGamepads, the right stick nudged once); before: the tree at 3ff90091b, the same run; 19 October; cwebp -q 72';
 const WEB526 = 'Issue #526: the web game in muted headless Chrome on this branch’s own Vite (port 5462, node scripts/unity-compare/sequences.mjs web talk), 1280 × 720, the same pad faked in hand; 19 October; cwebp -q 72';
+/** (v1.85, issue #491: two climaxes that filmed walls) */
+const CINE491 = 'Issue #491: the cinematics QC (scripts/cinematics-qc.mjs) in muted headless Chrome (High, 1280 × 720, the frames kept at 960 × 540) on this branch’s own Vite (port 5431), each climax staged by the review page (out of the house once its guardian is done, a few steps from its door); before: the branch’s base, after: the fix, the same frame of the film; 19 October';
 export const CHANGELOG_MEDIA = {
   '1.86': [
     { match: 'The fight temples now belong to the story', tags: ['story'], shots: [
@@ -1398,6 +1400,11 @@ export const CHANGELOG_MEDIA = {
     { match: 'The hearts and the key count no longer show over a makers’ box as it opens', shots: [
       { name: 'box-scene-hud', title: 'The bridge pen’s box', size: [960, 444], caption: 'The City-Shaft’s bridge pen box opening on a phone, hurt from the Ash Store’s fight: before, the key count at the top left, the hearts on behind the letterbox; after, only the scene and Skip', from: HUD501 },
     ], see: 'In the City-Shaft, win the Ash Store’s fight with a heart missing and open the box it leaves: nothing of the HUD shows until the box’s card is gone.' },
+    { match: 'The Moon Foundry’s and the City Floating in Space’s big moments show what happens again', shots: [
+      { name: 'moon-climax-491', title: 'The Moon Foundry, the first shot', size: [960, 540], caption: 'A second into the film out of the Casting-House: before, the lens inside the jib over the door, a navy face with orange bars for 2.6 s; after, the house and its tower from out on the floor, the jib and its hook over the door.', from: CINE491 },
+      { name: 'cables-capstan-491', title: 'The cables drawing taut', size: [960, 540], caption: 'The panel of the capstan over the Mooring-House: before, a teal leg of the tripod filling the frame; after, from between two legs, the capstan turning and the cables leaving it, their lamps lighting.', from: CINE491 },
+      { name: 'cables-wide-491', title: 'The City Floating in Space, the first shot', size: [960, 540], caption: 'The wide on the Mooring-House: before, the lens a metre from its wall, a leg and the sky; after, from out over the void, the house on its island under the tripod.', from: CINE491 },
+    ], see: 'Resolve the Last Founder in the Moon Foundry, or the Anchor-Warden in the City Floating in Space, and walk out of the house: the film shows the house, then the moon on its hook or the capstan and its cables. Or open Debug → Cinematics and play moonfoundry.moon or spacecity.cables.' },
   ],
   '1.84': [
     { match: 'In the Unity version on the Steam Deck, the first launch after an update no longer freezes', numbers: [

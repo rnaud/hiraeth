@@ -249,6 +249,17 @@ mid-shot (`renderer.info.programs` unchanged). Tests: `tests/moments-<world>.tes
 once at the climax, the traveller held, the panels framing what they should, no lines, the swell, a
 skip landing the same, no ship: as before) and `tests/world-moments.test.js` (the registry).
 
+**A shot that keeps seeing its subject (v1.85, #491).** A lens set by hand goes stale when its world is rebuilt
+round it: the Moon Foundry's wide sat inside the jib over the Casting-House's door (the moment's pull-in, a ray
+from the look out to the lens, met the jib 2 m from the look and put the lens in it), and the floating city's
+capstan panel filmed a leg of the Mooring-House's new tripod. film.js has the pieces for it, all shared with the
+engines: `sightClear(pos, at, { physics, roots, near, skip })` (nothing solid, or drawn by `roots`, between a lens
+and its subject, short of the subject's own `near` m), `clearShot(shot, { subject, ...sight })` (a shot of plain
+frames checked at both ends and its middle; when blocked, swung round the subject's upright by the smallest turn,
+then lifted, until clear; it returns the shot with `clear: false`, the pull-in no longer needed), `backdrop` and
+`openCloseUp` (the face shot on the side of him with the most room behind his head). The two climaxes' tests
+hold every lens of A–C to `sightClear` against the world as built now, its houses and its port.
+
 - **Vael** (`arzach.moment.bird`, 10.2 s), the rider's flute played: A, low behind him and off his
   side, the haze where the call goes, a speck far out answering with a cry; B, a long lens from
   beside him panning up as she comes down out of the haze, wings wide (the world's motif), the horizon

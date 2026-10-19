@@ -132,8 +132,28 @@ test('four panels in 8–10 s, the face last (QC v1.66, issue #295): over the ca
   }
   assert.ok(at(B0 + 0.2).lit < 0.2 && at(C0 + C.C - 0.2).lit > 0.6, `the lamps light out along them through B and C (${at(B0 + 0.2).lit.toFixed(2)} → ${at(C0 + C.C - 0.2).lit.toFixed(2)})`);
   assert.ok(rec.at(-1).lit > 0.99 || LAMP_RUN.end > len, 'all lit by the end');
-  const shot = capstanShot(top);
-  assert.ok(shot.from.pos.distanceTo(top) > 15, 'B far enough back to see them leave');
+  const shot = capstanShot(top, ENDS, rt0.outside.kit.yaw);
+  assert.ok(shot.from.pos.distanceTo(top) > 10, 'B far enough back to see them leave');
+  // nothing solid or drawn between any lens and what it films, with the house as it stands now (its tripod, the
+  // spindle's flare) and the landing's port (the QC of v1.85, #491: B was a teal wall, A filmed the façade from 1 m)
+  const { sightClear } = await import('../src/story/film.js');
+  const sight = { physics, roots: [rt0.root, scene] };
+  /** What stands in the way (for the message). */
+  const what = (pos, p, near) => {
+    const d = pos.distanceTo(p) - near, dir = p.clone().sub(pos).normalize(), ray = new THREE.Raycaster(pos, dir, 0, d);
+    const h = ray.intersectObject(scene, true).find((x) => x.object.isMesh && !x.object.material?.transparent && x.object.material?.visible !== false);
+    const ph = physics.rayDistance(pos, dir, d);
+    return `${h ? `${h.object.name || h.object.parent?.name} at ${h.distance.toFixed(1)} m` : 'no drawn surface'}; ${ph < d ? `a collider at ${ph.toFixed(1)} m` : 'no collider'}`;
+  };
+  const D0 = C0 + C.C, door = rt0.outside.door.at.clone().add(V(0, 12, 0));
+  for (const r of rec.filter((x) => x.t < D0 - 0.1 && [B0, C0].every((b) => Math.abs(x.t - b) > 0.1))) {
+    const s = r.shot, i = r.t < B0 ? 0 : r.t < C0 ? 1 : 2;
+    assert.ok(!physics.embedded(s.pos), `${'ABC'[i]} at ${r.t.toFixed(1)} s: the lens in the open`);
+    const subject = [s.look, top, s.look][i];
+    const near = [C.NEAR, 2, 4][i], skip = [];
+    assert.ok(sightClear(s.pos, subject, { ...sight, near, skip }), `${'ABC'[i]} at ${r.t.toFixed(1)} s: nothing between the lens and what it films (${what(s.pos, subject, near)})`);
+  }
+  for (const t of [0.1, B0 - 0.1]) assert.ok(at(t).shot.pos.distanceTo(door) > 20, `A at ${t} s: wide, from out over the void (${at(t).shot.pos.distanceTo(door).toFixed(1)} m; it was 1.3 m)`);
   const last = rec.at(-1).shot, face = w.player.pos.clone().add(V(0, 1.62, 0));
   assert.ok(last.look.distanceTo(face) < 0.4 && last.pos.distanceTo(face) < 2, 'the last panel on his face');
 });

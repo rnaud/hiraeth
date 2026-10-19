@@ -157,6 +157,10 @@ export const CHANGELOG = [
         { where: 'a fight’s loudest moment over the music (the limit: 8)', before: 11.6, after: 5.7 },
       ], source: 'docs/systems/audio.md, "The music raised (#530)"' }],
       see: 'In the desert, stand still and listen to the music, then fight the foes near the landing, or talk to someone: the music stays heard under the blows and the voice. The Music slider (Settings, Sound) still sets it as before.' },
+    // issue #491: src/story/film.js (sightClear, clearShot, backdrop, openCloseUp), moonfoundry-moments.js (A kept
+    // seeing the house, D's side by its backdrop), spacecity-moments.js (A kept seeing the house, capstanShot in the
+    // tripod's gap); tests/moments-moonfoundry.test.js, moments-spacecity.test.js (no solid between a lens and its subject)
+    'The Moon Foundry’s and the City Floating in Space’s big moments show what happens again. Out of the Casting-House, the film no longer opens on two seconds of a dark wall: it starts wide on the house and its tower from out on the floor. Over the Mooring-House, the cables drawing taut are filmed from under the great tripod, between its legs, instead of through one of them, and the first shot no longer presses against the house’s wall.',
   ] },
   { v: '1.84', date: '2026-10-17', items: [
     // issue #439: src/costumes.js (HEADS: the 47 pieces of the 15 hat sets, HAT_SETS, HAT_SET_WORLDS, hoodShell / hoodNeck /

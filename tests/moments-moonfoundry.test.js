@@ -140,6 +140,27 @@ test('four panels in 8–10 s, the face last (QC v1.66, issue #295): the last mo
   for (const t of [C0 + 0.2, D0 - 0.2]) assert.ok(inFrame(at(t).shot, hungAt), `C at ${t.toFixed(1)} s: the hung moon in frame`);
   assert.ok(Math.abs(at(D0 - 0.1).yaw[0] - at(C0 + 0.1).yaw[0]) > 0.25, `it turns through C (${(at(D0 - 0.1).yaw[0] - at(C0 + 0.1).yaw[0]).toFixed(2)} rad)`);
   assert.ok(hung.every((h, i) => Math.abs(at(D0 - 0.1).yaw[i] - yaw0[i]) > 0.25), 'every hung moon');
+  // nothing solid between any lens and what it films, in the house as it stands now, its ports and jib (the QC of
+  // v1.85, #491: the jib over the door caught A's pull-in, the lens sat in it for 2.6 s, a navy face with orange bars)
+  const { sightClear } = await import('../src/story/film.js');
+  const sight = { physics, roots: [rt0.root, scene] };
+  // (C films a hung moon from 50 m: its own body, a collider, is no wall)
+  const moonR = Math.max(...hung.map((h) => new THREE.Box3().setFromObject(h.group).getSize(V(0, 0, 0)).y / 2));
+  /** What stands in the way (for the message). */
+  const what = (pos, p, near) => {
+    const d = pos.distanceTo(p) - near, dir = p.clone().sub(pos).normalize(), ray = new THREE.Raycaster(pos, dir, 0, d);
+    const h = ray.intersectObject(scene, true).find((x) => x.object.isMesh && !x.object.material?.transparent && x.object.material?.visible !== false);
+    const ph = physics.rayDistance(pos, dir, d);
+    return `${h ? `${h.object.name || h.object.parent?.name} at ${h.distance.toFixed(1)} m` : 'no drawn surface'}; ${ph < d ? `a collider at ${ph.toFixed(1)} m` : 'no collider'}`;
+  };
+  for (const r of rec.filter((x) => x.t < D0 - 0.1 && [B0, C0].every((b) => Math.abs(x.t - b) > 0.1))) {
+    const s = r.shot, i = r.t < B0 ? 0 : r.t < C0 ? 1 : 2;
+    assert.ok(!physics.embedded(s.pos), `${'ABC'[i]} at ${r.t.toFixed(1)} s: the lens in the open, not inside a solid`);
+    const subject = [s.look, r.moon, hungAt][i];
+    const near = [MOON.NEAR, 2, moonR + 2][i], skip = [ch.moon, ...hung.map((h) => h.group)];
+    assert.ok(sightClear(s.pos, subject, { ...sight, near, skip }), `${'ABC'[i]} at ${r.t.toFixed(1)} s: nothing between the lens and what it films (${what(s.pos, subject, near)})`);
+  }
+  for (const t of [0.1, B0 - 0.1]) assert.ok(at(t).shot.pos.distanceTo(at(t).shot.look) > 20, `A at ${t} s: wide, from out on the floor (${at(t).shot.pos.distanceTo(at(t).shot.look).toFixed(1)} m; it was 2 m, in the jib)`);
   // D: his face, last
   const last = rec.at(-1).shot, face = w.player.pos.clone().add(V(0, 1.62, 0));
   assert.ok(last.look.distanceTo(face) < 0.4 && last.pos.distanceTo(face) < 2, 'the last panel on his face');
