@@ -76,6 +76,9 @@ export const CHANGELOG = [
     'The gun’s push sends the makers’ balls much further: about half the pushes for a long roll. Push from further back for a gentle nudge onto a nearby plate.',
     // issue #523: src/player.js GLIDE_SINK (still air out in the world: 2.4 → 1.9, flaring 1.3 → 1.05; houses as they were); tests/glide-open.test.js
     'Out in the open, the wings carry you about a quarter further on still air. Inside the makers’ houses they glide as before.',
+    // issue #517: engine/menus.js hintParts, glyphLabels (src/pad-glyphs.js padGlyphs); unity/Hiraeth BridgeMenu.Glyphs.cs
+    // and its callers (the title, the Start menu, the game menu, the shop); tests/engine-menus.test.js
+    'In the Unity version, the menus show the controller’s buttons as the web does: a small button inside the one it presses (A in the entry you are on, B in Resume and Back, LB and RB on the side tabs), and the prompts at the foot as buttons too, instead of their names written out. On the Retroid they carry its own names.',
   ] },
   { v: '1.84', date: '2026-10-17', items: [
     // issue #439: src/costumes.js (HEADS: the 47 pieces of the 15 hat sets, HAT_SETS, HAT_SET_WORLDS, hoodShell / hoodNeck /

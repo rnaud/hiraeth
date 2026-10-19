@@ -2429,6 +2429,22 @@ Left of the round, "as time allows": the City-Shaft banners' glyph cells per ver
 Pictures: the changelog's v1.84 line ("the traveller's face moves as on the web"), unity-face-open, unity-face-smile,
 unity-ship-hatch, unity-brushed.
 
+## The author's Unity notes of 18 October
+
+- **The buttons' glyphs in the menus** (#517, "I don't see actual button icons, just the name of the button"). The page puts a
+  pad button inside the menus' buttons (src/pad-glyphs.js `.glyph`: an ink key, round for A B X Y, a rounded square for the
+  others, the letter in the pad's own colour, Xbox's green A and red B); Unity wrote "LB/RB turn · A choose · B close" as
+  words at the foot. Every menu view now carries `glyphs`, the page's own labels for the pad in hand (engine/menus.js
+  `glyphLabels`: src/pad-glyphs.js `padGlyphs` from native-pad.js `padLabels`, so the Retroid's handheld names, L1 / R1,
+  Select / Start, as in the Android app) and `hints`, the prompt line in parts (`hintParts`: each segment's buttons by role
+  and its words). BridgeMenu.Glyphs.cs draws the page's glyph (`PutGlyph`: its size from the words', `--glyph-min` 1.6 % of
+  the height, the face buttons 1.7 em round): the confirm one inside the title's entry the pad is on (no line under the
+  title, as the page's), Back's in Resume and in the saves' Back, the confirm one in the Start menu's entry the pad is on,
+  LB / RB in the game menu's side tabs, the way out (B ✕) at its top right, the strip's and a thing's use, the House map's
+  floor tabs, the shop's buttons; the line at the foot as glyphs and words. A script without them keeps the words (an
+  older bundle over the air). No picture to load: the glyphs are uGUI shapes and the type the menus already use.
+  Test: tests/engine-menus.test.js ("the buttons as the page's glyphs").
+
 ## Status
 
 - **Stage 1, the spike**: the desert, built by `createDesert` inside GodotJS, mirrored to Godot

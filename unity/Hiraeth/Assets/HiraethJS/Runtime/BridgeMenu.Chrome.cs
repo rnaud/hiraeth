@@ -105,8 +105,29 @@ namespace Hiraeth.Bridge
             // the sides: the panel either side and its button (.gm-side), the one the cursor rests on gold
             Show(tabPrev, false); Show(tabNext, false); Show(tabLine, false);
             float tabH = Mathf.Min(300, sh * 0.55f), tabY = sy + sh / 2 - tabH / 2, tabW = sx - 10;
-            SideTabAt(gmPrev, 6, tabY, tabW, tabH, "◀\n" + Key("prev", "LB") + "\n\n" + Vertical(names, cur - 1), edge < 0);
-            SideTabAt(gmNext, W - 6 - tabW, tabY, tabW, tabH, "▶\n" + Key("next", "RB") + "\n\n" + Vertical(names, cur + 1), edge > 0);
+            // (the buttons as the page's glyphs, LB / RB under the arrows: issue #517; the words where the view has no glyphs)
+            bool g = state.O("glyphs") != null;
+            SideTabAt(gmPrev, 6, tabY, tabW, tabH, "◀\n" + (g ? " " : Key("prev", "LB")) + "\n\n" + Vertical(names, cur - 1), edge < 0, g ? "lb" : null);
+            SideTabAt(gmNext, W - 6 - tabW, tabY, tabW, tabH, "▶\n" + (g ? " " : Key("next", "RB")) + "\n\n" + Vertical(names, cur + 1), edge > 0, g ? "rb" : null);
+            // the way out at the top right (.gm-close: B / Esc's glyph and ✕ on a paper pill)
+            GmClose(g);
+        }
+
+        Ui.Box gmClose; Label gmCloseX;
+        void GmClose(bool g)
+        {
+            if (gmClose == null)
+            {
+                gmClose = Ui.Panel(gmRoot, "close", Ui.Hex("#fffaf0"), GmInk, 2, 3, 3, 18);
+                gmCloseX = Ui.Label(gmClose.rt, "x", Ui.Sans, 20, GmInk, TextAnchor.MiddleCenter, FontStyle.Bold, 1f);
+            }
+            gmClose.Show(g);
+            if (!g) return;
+            float h = 38, gw = GlyphHeight(16), w = 10 + gw + 6 + 20 + 10;
+            Ui.Place(gmClose.rt, W - 18 - w, 18, w, h);
+            PutGlyph(gmClose.rt, "back", 10, h / 2, 16);
+            Ui.Place(gmCloseX.rectTransform, 10 + gw + 6, 0, 20, h);
+            gmCloseX.text = "✕";
         }
 
         static string Vertical(List<object> names, int i)
@@ -116,13 +137,18 @@ namespace Hiraeth.Bridge
             return string.Join("\n", n.ToCharArray());
         }
 
-        void SideTabAt(GmTab t, float x, float y, float w, float h, string text, bool at)
+        void SideTabAt(GmTab t, float x, float y, float w, float h, string text, bool at, string glyph = null)
         {
             t.box.Show(w > 24);
             Ui.Place(t.box.rt, x, y, w, h);
             t.box.SetFill(at ? GmGold : Ui.Hex("#f6ecd3"));
             t.text.fontSize = 12; t.text.lineSpacing = 1.05f;
             t.text.text = text;
+            if (glyph == null || w <= 24) return;
+            // the glyph on the second line (the words are centred: their top from their height, a line each)
+            int lines = text.Split('\n').Length;
+            float th = Ui.Measure(t.text, text, w).y, pitch = th / Mathf.Max(1, lines), top = h / 2 - th / 2;
+            CentreGlyph(t.box.rt, glyph, w / 2, top + pitch * 1.5f, 13);
         }
 
         /// <summary>The strip under the sheet (.gm-strip): white in an ink line on its hard shadow, the name in spaced capitals,

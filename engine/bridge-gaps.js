@@ -208,7 +208,7 @@ export const GAPS = {
     // web only
     { keys: ['src/title-paint.js'], count: { 'src/title-paint.js': 5 }, what: 'the title\'s first paint', status: 'web-only', why: 'a drawing shown while the page loads its WebGL; the engines start on their own splash' },
     { keys: ['src/native-app.js', 'src/update-panel.js'], count: { 'src/native-app.js': 2, 'src/update-panel.js': 1 }, what: 'the Android app\'s shell and the web\'s update panel', status: 'web-only', why: 'the web build\'s (Capacitor); the Unity players update through BridgeUpdates and their Updates page' },
-    { keys: ['src/pad-glyphs.js'], count: { 'src/pad-glyphs.js': 1 }, what: 'the pad glyphs\' style sheet', status: 'web-only', why: 'CSS for the page\'s glyphs; BridgeHud draws its own' },
+    { keys: ['src/pad-glyphs.js'], count: { 'src/pad-glyphs.js': 1 }, what: 'the pad glyphs\' style sheet', status: 'web-only', why: 'CSS for the page\'s glyphs; BridgeHud draws its own, BridgeMenu.Glyphs.cs the menus\' from padGlyphs\'s labels (issue #517)' },
     { keys: ['src/world-picker.js'], count: { 'src/world-picker.js': 12 }, what: 'the world picker (?level)', status: 'web-only', why: 'the page\'s list of worlds; the engines choose by -level and the Worlds page' },
   ],
 
@@ -341,4 +341,5 @@ export const PICTURE_DIFFS = [
   { seq: 'box', what: 'a dark band round his shirt at the waist in Unity, close up', issue: 264, status: 'handled', where: 'engine/traveller-paint.js fillUnfound: the overshirt\'s cut vertices take their neighbours\' colour, not black' },
   { seq: 'fight-temple|game-*', beat: 'count', what: 'the count\'s numeral larger in Unity', issue: 264, status: 'handled', where: 'BridgeHud.cs the 3-2-1 at 84 (GO at 72): the condensed face stands taller than the page\'s Futura' },
   { seq: 'temple', what: 'the key counter a "KEY ×0" box in Unity, the page\'s a key glyph', issue: 264, status: 'handled', where: 'BridgeHud.cs KeyGlyph: the page\'s KEY_SVG and GREAT_KEY_SVG drawn, ×N beside them' },
-];
+  { seq: 'menus', what: 'the buttons\' names written as words in Unity\'s menus ("LB/RB turn · A choose · B close"), the page\'s glyphs in its buttons', issue: 517, status: 'handled',
+    where: 'BridgeMenu.Glyphs.cs: the page\'s .glyph for the pad in hand (engine/menus.js glyphLabels, src/pad-glyphs.js padGlyphs), in the title\'s and the Start menu\'s entries, the side tabs, the strip, the way out, the shop, and the prompt line (hintParts)' },];

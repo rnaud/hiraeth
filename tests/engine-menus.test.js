@@ -674,3 +674,44 @@ test('the Arena\'s list of foes as a page of the menus: its rows, the pad over t
   // drawn by BridgeMenu (DrawFoes: the rows' grid, the filter at the right)
   assert.match(src('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.cs'), /else if \(kind == "foes"\) DrawFoes\(\)/);
 });
+
+test('the buttons as the page\'s glyphs, not their names (issue #517): the prompt line\'s parts, the labels for the pad in hand, BridgeMenu draws them', async () => {
+  const { hintParts, glyphLabels } = await import('../engine/menus.js');
+  const { setEnginePad } = await import('../src/native-pad.js');
+  const { padGlyphs } = await import('../src/pad-glyphs.js');
+  // the line in parts: each its buttons' roles (src/pad-glyphs.js) and what they do; words without a button kept as words
+  assert.deepEqual(hintParts('LT / RT zoom · A / × zoom in · LB / RB turn · B / ○ close'),
+    [{ g: ['lt', 'rt'], text: 'zoom' }, { g: ['ok'], text: 'zoom in' }, { g: ['lb', 'rb'], text: 'turn' }, { g: ['back'], text: 'close' }]);
+  assert.deepEqual(hintParts('A / × choose · ▶ the page · B / ○ resume').map((p) => p.g), [['ok'], ['dpad'], ['back']]);
+  assert.deepEqual(hintParts('Press a button · Menu keeps it'), [{ g: [], text: 'Press a button' }, { g: ['menu'], text: 'keeps it' }]);
+  assert.deepEqual(hintParts('X / □ delete'), [{ g: ['x'], text: 'delete' }]);
+  // every menu's view carries them, and the glyphs' labels: the web's own (padGlyphs) for the pad in hand
+  const ids = [];
+  const win = globalThis.window;
+  win.navigator = { getGamepads: () => ids.map((id) => ({ id })) };
+  win.location ??= { search: '' };
+  try {
+    ids.push('Retroid Pocket Controller'); setEnginePad({ layout: 'android', family: '' });
+    const m = new EngineMenus({ store: memStore([[1, 'desert']]), sources: sources() });
+    m.show('game', 'quests');
+    const v = m.view();
+    assert.deepEqual(v.hints, hintParts('LB / RB turn · A / × choose · B / ○ close'));
+    // the Retroid's handheld names, as the web's in the Android app: L1 / R1, Select / Start, the printed A confirming
+    assert.deepEqual([v.glyphs.ok.text, v.glyphs.back.text, v.glyphs.lb.text, v.glyphs.rb.text, v.glyphs.view.text, v.glyphs.menu.text], ['A', 'B', 'L1', 'R1', 'Select', 'Start']);
+    assert.deepEqual(v.glyphs, glyphLabels());
+    // an Xbox: its letters in their own colours, the face buttons round
+    ids[0] = 'unity pad'; setEnginePad({ layout: 'standard', family: 'xbox' });
+    const x = new EngineMenus({ store: memStore([[1, 'desert']]) });
+    x.show('title');
+    const xv = x.view();
+    const web = padGlyphs({ family: 'xbox', faces: 'xbox', layout: 'standard' });
+    assert.deepEqual([xv.glyphs.ok.text, xv.glyphs.ok.colour, xv.glyphs.ok.round, xv.glyphs.lb.text, xv.glyphs.lb.round], ['A', web.ok.colour, true, 'LB', false]);
+    assert.equal(xv.glyphs.back.colour, '#c8483a');
+  } finally { setEnginePad(null); delete win.navigator; }
+  // BridgeMenu draws them: the line's parts, the confirm one in the title's entry the pad is on, Back's in Resume and Back,
+  // LB / RB in the game menu's side tabs, the strip's and a thing's use, the shop's buttons
+  const cs = ['BridgeMenu.cs', 'BridgeMenu.Glyphs.cs', 'BridgeMenu.Pause.cs', 'BridgeMenu.Chrome.cs', 'BridgeMenu.Shop.cs'].map((f) => src(`unity/Hiraeth/Assets/HiraethJS/Runtime/${f}`)).join('\n');
+  assert.match(cs, /state\.L\("hints"\)/);
+  assert.match(cs, /state\?\.O\("glyphs"\)\?\.O\(role\)/);
+  for (const call of [/PutGlyph\(e\.box\.rt, "ok"/, /PutGlyph\(n\.box\.rt, "back"/, /g \? "lb" : null/, /PutGlyph\(gmClose\.rt, "back"/, /PutGlyph\(strip\.rt, "ok"/, /PutGlyph\(parent, role/]) assert.match(cs, call);
+});

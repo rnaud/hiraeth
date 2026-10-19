@@ -29,7 +29,8 @@ import { controlsList, REBIND_PAD, REBIND_KEYS, PAD_RAW_ROWS, TEXT_SIZES, reduce
 import { PAD_VERBS, BUTTON_NAME, KEYS } from '../src/bindings.js';
 import { padFor, padConflicts, padRename, capturePad, keyFor, keyLabel, keyConflicts, captureKey, RESERVED_KEYS, RUN_MODES, GUARD_MODES } from '../src/remap.js';
 import { CHANGELOG, lineText, newestFirst } from '../src/changelog.js';
-import { confirmKey, backKey } from '../src/native-pad.js';
+import { confirmKey, backKey, padLabels } from '../src/native-pad.js';
+import { padGlyphs } from '../src/pad-glyphs.js';
 import { stockText, stateText } from '../src/shop-panel.js';
 import { stripTone } from '../src/story/tone.js';
 import { MapView, VIEW, mapAspect } from '../src/world-map.js';
@@ -154,6 +155,28 @@ export const menuKeys = (s) => {
   const ok = confirmKey(), back = backKey();
   return ok === 'A / ×' ? s : String(s ?? '').replace(/A \/ ×|B \/ ○/g, (k) => (k === 'A / ×' ? ok : back));
 };
+// a prompt's buttons (written by position, Xbox / PlayStation form, as the menus' hints are) → the glyphs' roles
+// (src/pad-glyphs.js GLYPH_ROLES); the arrows are the D-pad's
+const HINT_KEYS = [['A / ×', ['ok']], ['B / ○', ['back']], ['X / □', ['x']], ['Y / △', ['y']], ['LB / RB', ['lb', 'rb']], ['LT / RT', ['lt', 'rt']],
+  ['LB', ['lb']], ['RB', ['rb']], ['LT', ['lt']], ['RT', ['rt']], ['◀ ▶', ['dpad']], ['▲ ▼', ['dpad']], ['▶', ['dpad']], ['◀', ['dpad']], ['Menu', ['menu']], ['View', ['view']]];
+/**
+ * A menu's prompt line as the buttons' glyphs and what each does (issue #517: Unity wrote the buttons' names where the
+ * page draws their glyphs): "A / × choose · LB / RB turn · Esc keeps it" → [{ g: ['ok'], text: 'choose' },
+ * { g: ['lb', 'rb'], text: 'turn' }, { g: [], text: 'Esc keeps it' }]. The roles' labels are the view's `glyphs`.
+ */
+export function hintParts(hint) {
+  return String(hint ?? '').split(' · ').filter(Boolean).map((seg) => {
+    for (const [k, g] of HINT_KEYS) if (seg.startsWith(`${k} `)) return { g, text: seg.slice(k.length + 1) };
+    return { g: [], text: seg };
+  });
+}
+/** The glyphs' labels for the pad in hand (src/pad-glyphs.js padGlyphs, from what native-pad.js says the prompts are drawn for). */
+export function glyphLabels() {
+  const L = padLabels();
+  const out = {};
+  for (const [role, l] of Object.entries(padGlyphs({ family: L.family, faces: L.faces, layout: L.layout }))) out[role] = { text: l.text, colour: l.colour || '', round: l.round, scale: l.scale ?? 1 };
+  return out;
+}
 /** The cells that carry a thing's picture (the Items panel's gear, what you carry, the keepsakes). */
 const PICTURED = new Set(['item', 'pack', 'keepsake']);
 const plain = (s) => String(s ?? '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
@@ -1070,6 +1093,9 @@ export class EngineMenus {
     const v = this.mode === 'title' ? this.titleView() : this.mode === 'start' ? this.startView() : this.mode === 'shop' ? this.shopView() : this.mode === 'card' ? this.cardView() : this.mode === 'foes' ? this.foesView() : this.mode === 'arcade' ? this.arcadeView() : this.mode === 'starmap' ? { v: this.v, hint: '', ...this.star.view() } : this.mode === 'dev' ? this.devView() : this.gameView();
     // (the menus' own confirm and back are the buttons printed A and B whatever the layout, as on the web: with Nintendo
     // letters the right and the bottom ones; the prompts' "A / ×" written by position, src/native-pad.js confirmKey)
+    // (and as the buttons' glyphs, the page's: src/pad-glyphs.js; issue #517)
+    v.hints = hintParts(v.hint);
+    v.glyphs = glyphLabels();
     v.hint = menuKeys(v.hint);
     v.keys = { ok: confirmKey(), back: backKey(), prev: 'LB', next: 'RB' };
     return v;

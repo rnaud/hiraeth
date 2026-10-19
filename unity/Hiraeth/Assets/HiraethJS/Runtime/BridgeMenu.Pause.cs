@@ -136,7 +136,12 @@ namespace Hiraeth.Bridge
                 n.edge.enabled = sel && !on;
                 Ui.Place(n.edge.rectTransform, 2.5f, 2.5f, 6, bh - 5);
                 n.text.text = Ui.Upper(e.S("text"));
-                Ui.Place(n.text.rectTransform, 14 + (sel && !on ? 6 : 0), 0, bw - 28, bh);
+                // the buttons' glyphs (src/ui.js, issue #517): Resume carries Back's (B / Esc goes back to the game), the
+                // entry the pad is on the confirm one, at the right
+                float gs = n.text.fontSize, gx = bw - 12 - GlyphHeight(gs);
+                bool first = navUsed == 1;
+                float gw = first ? PutGlyph(n.box.rt, "back", gx, bh / 2, gs) : on ? PutGlyph(n.box.rt, "ok", gx, bh / 2, gs) : 0;
+                Ui.Place(n.text.rectTransform, 14 + (sel && !on ? 6 : 0), 0, bw - 28 - (gw > 0 ? gw + 6 : 0), bh);
                 y += bh + gap;
             }
             for (int i = navUsed; i < navs.Count; i++) navs[i].box.Show(false);

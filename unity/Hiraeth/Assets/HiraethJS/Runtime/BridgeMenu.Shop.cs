@@ -57,8 +57,10 @@ namespace Hiraeth.Bridge
         }
 
         /// <summary>A button's key cap (the page's .glyph: the key's name in a small inked box), at (x, y) of `parent`; its width.</summary>
-        float ShopCap(RectTransform parent, string key, float x, float midY)
+        float ShopCap(RectTransform parent, string role, string key, float x, float midY)
         {
+            // (the pad's button as the page's glyph inside it, src/shop-panel.js glyph('back') / glyph('ok'): issue #517)
+            if (state.O("glyphs") != null) { float gw = PutGlyph(parent, role, x, midY, 15); if (gw > 0) return gw; }
             if (shCapsUsed >= shCaps.Count)
             {
                 var b = Ui.Panel(shRoot, "cap" + shCaps.Count, Ui.Hex("#fffaf0"), ShopInk, 1.5f, 0, 2, 3);
@@ -107,7 +109,7 @@ namespace Hiraeth.Bridge
             var coin = Picture(state.S("coin") ?? "shop-chime");
             // the way out, then the wallet, at the right
             shCloseText.text = "✕";
-            float capW = ShopCap(shClose.rt, Key("back", "B"), 9, 16), cw = 9 + capW + 6 + Ui.Measure(shCloseText, "✕").x + 10;
+            float capW = ShopCap(shClose.rt, "back", Key("back", "B"), 9, 16), cw = 9 + capW + 6 + Ui.Measure(shCloseText, "✕").x + 10;
             Ui.Place(shCloseText.rectTransform, 9 + capW + 6, 0, 20, 33);
             Ui.Place(shClose.rt, sw - px - cw, y, cw, 33);
             var purse = state.S("purse") ?? "";
@@ -172,8 +174,8 @@ namespace Hiraeth.Bridge
                 Ui.Place(shAskQ.rectTransform, 16, 12, aw - 32, qs.y);
                 int on = ask.I("on");
                 float bh = 38, byy = 12 + qs.y + 10;
-                float yw = ShopAskButton(shYes, shYesText, Key("ok", "A"), ask.S("yes"), byy, bh, on == 1, ShopGold);
-                float nw = ShopAskButton(shNo, shNoText, Key("back", "B"), ask.S("no"), byy, bh, on == 0, ShopCard);
+                float yw = ShopAskButton(shYes, shYesText, "ok", Key("ok", "A"), ask.S("yes"), byy, bh, on == 1, ShopGold);
+                float nw = ShopAskButton(shNo, shNoText, "back", Key("back", "B"), ask.S("no"), byy, bh, on == 0, ShopCard);
                 float bx = (aw - yw - 12 - nw) / 2;
                 Ui.Place(shYes.rt, bx, byy, yw, bh);
                 Ui.Place(shNo.rt, bx + yw + 12, byy, nw, bh);
@@ -189,10 +191,10 @@ namespace Hiraeth.Bridge
         }
 
         /// <summary>One of the question's buttons: its key cap and its word, gold for Buy; the pad's ringed in red. Its width.</summary>
-        float ShopAskButton(Ui.Box b, Label text, string key, string word, float y, float h, bool on, Color fill)
+        float ShopAskButton(Ui.Box b, Label text, string role, string key, string word, float y, float h, bool on, Color fill)
         {
             b.Show(true);
-            float cap = ShopCap(b.rt, key, 16, h / 2);
+            float cap = ShopCap(b.rt, role, key, 16, h / 2);
             var ws = Ui.Measure(text, word ?? "");
             text.text = word ?? "";
             Ui.Place(text.rectTransform, 16 + cap + 7, 0, ws.x + 4, h);

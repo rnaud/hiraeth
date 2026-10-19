@@ -1232,6 +1232,9 @@ const PUSH522 = 'Every temple built in node as the game builds it (scripts/ball-
 const GLIDE523 = 'The game’s own Player (src/player.js) in node at 60 Hz over a flat ground with the backpack, the wings and the double jump, no wind; before: GLIDE_SINK 2.4 / 1.3, after: 1.9 / 1.05';
 /** (v1.85, issue #521: the Lamp-House's sparks) */
 const SPARK521 = 'Issue #521: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, a fixed render scale, noon, the HUD hidden) on this branch’s own Vite (port 5521), the traveller in the Lamp-House’s Hall of Dark Pools, the camera pinned behind him, Math.random seeded the same for both; before: the sparks as they were (40, 0.035, glow 1) set in the page; 18 October; cwebp -q 72';
+/** (v1.85, issue #517: the menus' button glyphs in Unity) */
+const UNITY517 = 'Issue #517: the Unity editor’s batch run on this Mac (scripts/unity-js-run.sh, muted, 1280 × 720 pictures of its 640 × 480 screen: -title-go with -title-art H1 for the title, -sequence menus -quality high for the Items page); before: the branch’s base; 18 October; cwebp -q 72';
+const WEB517 = 'Issue #517: the web game in muted headless Chrome on this branch’s own Vite (port 5461), 1280 × 720, the title’s painted world H1, the body’s controller class set (a pad in hand); 18 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.85': [
     { match: 'In the Unity version, the first room of every makers’ house is as light as on the web', tags: ['temples', 'devices'], shots: [
@@ -1299,6 +1302,12 @@ export const CHANGELOG_MEDIA = {
         { where: 'A running jump, the double jump at its top, then the wings, on the level', before: 46.6, after: 56.2 },
       ], source: 'tests/glide-open.test.js; docs/systems/gadgets.md, “The wings in the makers’ houses”' },
     ], see: 'Out in any world with the wings, jump off a high place and hold jump with the stick let go: you sail about a quarter further before landing. Inside a makers’ house the glide is as steep as before.' },
+    { match: 'In the Unity version, the menus show the controller’s buttons as the web does', shots: [
+      { name: 'unity-title-glyph', title: 'The title', caption: 'The title in Unity: before, “A choose” written at the bottom right; after, the A button inside Continue, as on the web', from: UNITY517 },
+      { name: 'unity-title-glyph-web', only: 'after', title: 'The title on the web', caption: 'The same title on the web with a controller in hand', from: WEB517 },
+      { name: 'unity-menu-glyphs', title: 'The Items page', caption: 'The game menu in Unity: before, LB, RB and “A look closer” as words and the prompts written out at the foot; after, the buttons drawn: LB and RB on the side tabs, A before “look closer”, B and ✕ at the top right, the prompts as buttons', from: UNITY517 },
+      { name: 'unity-menu-glyphs-web', only: 'after', title: 'The Items page on the web', caption: 'The same page on the web with a controller in hand (a newer save: four things carried)', from: WEB517 },
+    ], see: 'In the Unity version, open the title, the Start menu (Menu) or the game menu (View) with a controller: the buttons are drawn in the buttons they press.' },
   ],
   '1.84': [
     { match: 'In the Unity version on the Steam Deck, the first launch after an update no longer freezes', numbers: [
