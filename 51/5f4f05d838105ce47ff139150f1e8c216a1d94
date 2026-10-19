@@ -1,0 +1,25 @@
+unity/Hiraeth/Assets/Hiraeth/Editor/Batch.cs
+  s_865d2270de4257::t_0daa8380738706 201
+.github/workflows/unity-android.yml
+  s_865d2270de4257::t_905de7a8e203cd 591-593,597-599,601
+unity/Hiraeth/Assets/HiraethJS/Editor/BridgeBuild.cs
+  s_865d2270de4257::t_a181ac806df62b 63,74-118
+unity/Hiraeth/ProjectSettings/ProjectSettings.asset
+  s_865d2270de4257::t_4bae2ae53bc667 153-172
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "515f4f05d838105ce47ff139150f1e8c216a1d94",
+  "prompts": {},
+  "sessions": {
+    "s_865d2270de4257": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-aa869f586a4f6f556",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
