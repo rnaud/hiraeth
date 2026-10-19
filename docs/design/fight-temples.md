@@ -220,7 +220,7 @@ table: add the new one to them.
 The desert's geysers are spots under him; the other worlds' hazards run on **lanes** (`src/fight-temples/hazards.js`): a
 strip the whole room long, `w` wide (2.4–3.4 m), across the room at `at`, going `dir` along it. A room's table:
 `hazard: { kind, every, n, lanes: [{ along: 'x' | 'z', at, w, dir }] }`. Every `every` s of a wave (the last wave
-`HAZARD.last` 0.75 of it, Gentle 1.6 times as rarely and half the harm) `n` lanes go, the one he stands in (else the
+`HAZARD.last` 0.75 of it, Gentle 1.6 times as rarely and half the harm; a quarter heart, the least a hurt can be, is not halved but every other one spared on Gentle: `GENTLE_HURT`, issue #482) `n` lanes go, the one he stands in (else the
 nearest him) first (`pickLanes`). Each kind warns on the floor, then acts, and a roll's i-frames take him through, as a
 blow's (`player.dodge`); every kind hurts the foes in it too, so the crowd can be led in. The first room of a temple has
 none: it teaches the crowd; there are more, and sooner, deeper in (the tests hold both).
@@ -236,7 +236,7 @@ none: it teaches the crowd; there are more, and sooner, deeper in (the tests hol
 | `toll` (the Signal Market) | a sign on a wall (`hazard.signs`) flickers on, 1 s | a ring of sound spreads from it at 6 m/s across the room | its edge passing him: a flinch, a quarter heart | its edge passing: stunned 1 s and a cut |
 | `spill` (the City Floating in Space) | a pool of oil spreads on the deck under him and near him, a spark at its rim, 1.4 s | it burns 3 s | a quarter heart a tick (0.8 s) in it | a cut a tick; flyers above it |
 | `shade` (the Garden of Spheres) | its edge glows on the side it will come from, 1 s (`hazard.lanes`: only `along` and `dir`) | a 4 m band of shade sweeps the room end to end at 2.4 m/s | a quarter heart a tick (1.2 s) in it | in it they can't be aimed at (`phased`) |
-| `crack` (the Glass Dunes) | the floor's 2 m glass tiles drawn; a tile under him and tiles near him crack white, 1.1 s | they break: pits to the kilns' glow, 3.5 s | a quarter heart a tick (0.9 s) in one | a cut a tick |
+| `crack` (the Glass Dunes) | the floor's 2 m glass tiles drawn; a tile under him and tiles near him crack, 1.1 s: its edge lit in the glyph's tone (flickering faster in the last half), a dark star of cracks spreading across it (a white star until v1.85, all but unseen on the pale glass: issue #482) | they break: pits to the kilns' glow, 3.5 s | a quarter heart a tick (0.9 s) in one | a cut a tick |
 | `dark` (the Underwater City) | the room's lamps (`hazard.lamps`, posts with globes, their discs drawn) flicker faster, 1.2 s | the room goes dark 3.6 s: the floor black but for the discs (2.4 m) | out of the light a quarter heart a second (0.6 s first) | in a lamp's disc a cut a second |
 
 `drop` and `toll` have no lanes (`ON_LANES`): a load is begun on `{ spot }`, a toll on `{ sign }` (the signs farthest from

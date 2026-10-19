@@ -19,8 +19,8 @@
 //          its edge passing him flinches him (a little harm), every foe it passes stunned and cut
 //   dark   (the Underwater City)    the room's lamps flicker, then go out but for the discs of light under them: out of
 //          the light the cold of the deep takes a little of him each second; foes caught in a lamp's disc are scalded
-//   crack  (the Glass Dunes)        a glass tile of the floor under him (and near him) cracks white, then breaks: a pit
-//          to the kiln's glow, half a heart a tick to him in it, a cut a tick to the foes in it, until it glazes over
+//   crack  (the Glass Dunes)        a glass tile of the floor under him (and near him) cracks (its edge lit, a dark star across it), then breaks: a pit
+//          to the kiln's glow, a quarter heart a tick to him in it, a cut a tick to the foes in it, until it glazes over
 //   shade  (the Garden of Spheres)  a band of the trees' shade sweeps the room end to end as a sphere rolls overhead: in
 //          it the hounds bite (a little harm a tick) and the foes in it can't be aimed at; keep to the light
 //   spill  (the City Floating in Space) a pool of lamp-oil spreads on the deck under him and near him, a spark at its rim,
@@ -50,6 +50,16 @@ export const HAZARD = {
   last: 0.75, gentle: 1.6,
 };
 
+/**
+ * Gentle's half of a hazard's harm under `least` (the smallest hurt there is: a quarter heart, resources.js quarters)
+ * would come back a whole `least`: on Gentle every other such hurt is spared instead (roomHazards hurtHim).
+ */
+export const GENTLE_HURT = { least: 0.25 };
+/**
+ * A breaking tile's warning (the Glass Dunes' `crack`): its edge a frame `frame` m wide in the glyph's tone, steady
+ * until `steady` of the warning and flickering faster after, and a star of cracks `crack` m wide in the ink's tone.
+ */
+export const CRACK_WARN = { frame: 0.14, crack: 0.11, steady: 0.55 };
 /** The hazards that lie on the ground and tick (their harm's names): a roll through them is no perfect dodge. */
 export const LINGERING = new Set(['slag', 'crack', 'spill', 'dark', 'shade']);
 
@@ -280,9 +290,16 @@ export function roomHazards(env) {
 
   // (a roll's i-frames take him through any of it, issue #442: a blow (a gust, a stone, a cart, a flash, a load, the toll)
   // swallowed is a perfect dodge; lingering ground (slag, a pit, oil, the dark, the shade) crossed in a roll is only crossed)
+  // (Gentle halves the harm, but a hurt is counted in quarters (resources.js quarters): half of a quarter heart came back
+  // a whole quarter, so the quarter-heart hazards (a gust, the flash, the toll, every tick of the dark, the shade, a pit,
+  // the oil) hurt on Gentle as on Normal (the combat review of the fight temples, issue #482). There every other one is
+  // spared instead: half the harm over a run, the flinch kept.)
+  let spare = false;
   function hurtHim(kind, at, amount) {
     if (player.dead || player.dodge?.(at, LINGERING.has(kind) ? 'burn' : 'strike', gentle)) return false;
-    player.hurt?.(amount * (gentle ? 0.5 : 1), kind);
+    const harm = amount * (gentle ? 0.5 : 1);
+    if (gentle && harm < GENTLE_HURT.least - 1e-9 && (spare = !spare)) { player.flinch?.(); env.onHit?.(kind); return true; }
+    player.hurt?.(harm, kind);
     player.flinch?.();
     env.onHit?.(kind);
     return true;
@@ -298,9 +315,17 @@ export function roomHazards(env) {
       const [x, z] = target.spot;
       g.position.set(x, 0, z);
       if (kind === 'crack') {
-        // a white star of cracks on the tile, then the pit
+        // the tile's edge lit in the glyph's tone, a dark star of cracks spreading across it, then the pit (the combat
+        // review, issue #482: the white star it was, 5 cm wide, was all but unseen on the pale glass from the iso camera,
+        // and the tiles took more hearts than any other hazard)
         a.cracks = [];
-        for (let i = 0; i < 6; i++) { const m = new THREE.Mesh(new THREE.BoxGeometry(0.9 + (i % 3) * 0.25, 0.02, 0.05).translate(0.45, 0, 0), pale); m.rotation.y = (i / 6) * Math.PI * 2 + 0.3; m.position.y = 0.06; m.renderOrder = 2; m.scale.x = 0.05; g.add(m); a.cracks.push(m); }
+        for (let i = 0; i < 6; i++) { const m = new THREE.Mesh(new THREE.BoxGeometry(0.9 + (i % 3) * 0.25, 0.02, CRACK_WARN.crack).translate(0.45, 0, 0), dark); m.rotation.y = (i / 6) * Math.PI * 2 + 0.3; m.position.y = 0.06; m.renderOrder = 2; m.scale.x = 0.05; m.userData.warn = 'crack'; g.add(m); a.cracks.push(m); }
+        a.frame = new THREE.Group();
+        const s = H.tile - CRACK_WARN.frame, f = CRACK_WARN.frame;
+        for (const [x, z, w, d] of [[0, -s / 2, s + f, f], [0, s / 2, s + f, f], [-s / 2, 0, f, s - f], [s / 2, 0, f, s - f]]) {
+          const m = new THREE.Mesh(new THREE.PlaneGeometry(w, d).rotateX(-Math.PI / 2), hot); m.position.set(x, 0.065, z); m.renderOrder = 2; m.userData.warn = 'crack'; a.frame.add(m);
+        }
+        g.add(a.frame);
         a.pit = new THREE.Mesh(new THREE.PlaneGeometry(H.tile - 0.1, H.tile - 0.1).rotateX(-Math.PI / 2), slag); a.pit.position.y = 0.07; a.pit.visible = false; a.pit.renderOrder = 2; g.add(a.pit);
         a.core = new THREE.Mesh(new THREE.PlaneGeometry(H.tile * 0.5, H.tile * 0.5).rotateX(-Math.PI / 2), slag2); a.core.position.y = 0.075; a.core.visible = false; a.core.renderOrder = 2; g.add(a.core);
       } else {
@@ -502,14 +527,14 @@ export function roomHazards(env) {
     }
     if (a.kind === 'crack' || a.kind === 'spill') {
       const [x, z] = a.lane.spot, k = Math.min(1, a.t / H.warn);
-      if (a.kind === 'crack') for (const m of a.cracks) m.scale.x = 0.05 + 0.95 * k;
+      if (a.kind === 'crack') { for (const m of a.cracks) m.scale.x = 0.05 + 0.95 * k; a.frame.visible = !a.opened && (k < CRACK_WARN.steady || Math.floor(a.t * (8 + 16 * k)) % 2 === 0); }
       else { a.oil.scale.setScalar(0.1 + 0.9 * Math.sqrt(k)); a.spark.visible = k > 0.7 && Math.floor(a.t * 18) % 2 === 0; }
       if (!blowing) return a.t;
       const tb = a.t - H.warn;
       if (!a.opened) {
         a.opened = true;
         env.sfx?.splash?.(); env.sound?.foeWarn?.('ink');
-        if (a.kind === 'crack') { for (const m of a.cracks) m.visible = false; a.pit.visible = a.core.visible = true; }
+        if (a.kind === 'crack') { for (const m of a.cracks) m.visible = false; a.frame.visible = false; a.pit.visible = a.core.visible = true; }
         else { a.oil.visible = false; a.spark.visible = false; a.fire.visible = a.fire2.visible = true; }
       }
       if (a.fire2) a.fire2.scale.setScalar(1 + 0.15 * Math.sin(a.t * 9));

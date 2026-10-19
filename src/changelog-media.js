@@ -1279,6 +1279,7 @@ const ROOF497 = 'Issue #497: the running game in muted headless Chrome (ANGLE Me
 const SPAWN496 = 'Issue #496: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, 10:00, clear, the HUD hidden, the camera pinned) on this branch’s own Vite (port 5496), the person put back on the first point of their walk and held there; before: the tree at f5fc64f0f (port 5497), the same view; 19 October; cwebp -q 72';
 /** (v1.85, issue #476: Lorn's Hush-House in sight again, Vael's scarf box on Tiv's stack) */
 const WAY476 = 'Issue #476: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, the HUD hidden, scripts/design-qc/capture.mjs) on this branch’s own Vite (port 5447), Lorn at its evening hour (18.4), Vael at 10; before: the tree at 73ccce501, the same views; 19 October; cwebp -q 72';
+const CRACK482 = 'Issue #482: the Kiln Yard (?game=fight-glassdunes&seed=4821) in muted headless Chrome (ANGLE Metal, High, 1280 × 720) on this branch’s own Vite (port 5482), the foes taken away, three tiles started breaking round him (the session’s hazards.start) and the frame taken 0.45 s into their 1.1 s warning, from the fight temple’s own camera; before: the same build with hazards.js as it was at a90acbcb9; 19 October; cwebp -q 45';
 export const CHANGELOG_MEDIA = {
   '1.86': [
     { match: 'The fight temples now belong to the story', tags: ['story'], shots: [
@@ -1346,6 +1347,9 @@ export const CHANGELOG_MEDIA = {
       { name: 'great-key-card-486', title: 'The great key’s card', caption: 'Before: the key gone into the counter, its line waiting among the notices; after, the card a makers’ box shows, the key held over its chest', from: GREATKEY486 },
       { name: 'map-card-486', title: 'The map’s card', caption: 'Before: a line at the top of the screen; after, the card, the map held over its chest', from: GREATKEY486 },
     ] },
+    { match: 'In the Kiln Yard, the Glass Dunes’ fight temple, a tile about to break now shows it', shots: [
+      { name: 'kiln-crack-482', size: [1280, 720], caption: 'Three tiles about to break, half a second into their warning: before, a thin white star on each, lost on the pale glass; after, each tile’s edge glowing in the yard’s orange and a dark star across it.', from: CRACK482 },
+    ], see: 'In the Glass Dunes, play the Kiln Yard (the fight temple by the north camp’s awnings) and stand still in the second room once the fight starts: the tile under you lights at its edges before it breaks.' },
     { match: 'In the Unity version, the first room of every makers’ house is as light as on the web', tags: ['temples', 'devices'], shots: [
       { name: 'unity-temple-edena', title: 'Viridel’s house', caption: 'Its first room seen through the way in: before, grey walls and floor (ΔE 9.8 against the web); after, as light as the web’s (ΔE 0.7)', from: ROOMS502 },
       { name: 'unity-temple-edena-web', only: 'after', title: 'Viridel’s house on the web', caption: 'The same view on the web', from: ROOMS502W },

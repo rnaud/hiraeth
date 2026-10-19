@@ -19,6 +19,8 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.85 — 2026-10-18
 
+- On Gentle, the fight temples’ hazards that take a quarter heart (a gust, the eyes’ flash, the toll, the dark, the shade, a broken tile, burning oil) now hurt only every other time. They were meant to take half as much on Gentle, but half of a quarter heart came back as a whole one.
+- In the Kiln Yard, the Glass Dunes’ fight temple, a tile about to break now shows it: its edge glows and a dark star of cracks spreads across it. The thin white cracks it had were all but invisible on the pale glass, and the breaking tiles took more hearts than anything else in there.
 - In the Mooring-House, the great key’s last ring hangs on the house’s great cable: while the moored room is up, it is hauled out of reach under the roof, and you have to send the room down without you to bring it back within reach. The cables and chains in the house now hang from the roof, instead of stopping in mid-air.
 - In the Footprint, the seeing lens now shows you where to look. Raise it as you leave the Lens Chamber: the walker’s prints lead round the balcony to the foot of the hidden spiral, and it shows as soon as you look at it from there. The walker’s print is on the wall again by the chasm of hidden stones, and the first drop opens just outside the Hall of Spheres’ door, where you can see it from the puzzle that opens it.
 - In the Unity version too, the loading screen’s bar fills as the world is prepared, with the small line under it saying what is taking the time.

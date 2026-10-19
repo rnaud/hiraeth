@@ -234,6 +234,19 @@ export const CHANGELOG = [
     // issue #477: src/temples/spacecity.js (rL when: LOW, its Hoist, PERCH.ringUp; stretch's own scratch vector);
     // tests/mooring-room.test.js, tests/temples.test.js
     'In the Mooring-House, the great key’s last ring hangs on the house’s great cable: while the moored room is up, it is hauled out of reach under the roof, and you have to send the room down without you to bring it back within reach. The cables and chains in the house now hang from the roof, instead of stopping in mid-air.',
+    // issue #482 (the combat review of the fight temples): src/fight-temples/hazards.js CRACK_WARN (the tile's edge in the
+    // glyph's tone, a dark star of cracks); tests/fight-temples-worlds.test.js
+    'In the Kiln Yard, the Glass Dunes’ fight temple, a tile about to break now shows it: its edge glows and a dark star of cracks spreads across it. The thin white cracks it had were all but invisible on the pale glass, and the breaking tiles took more hearts than anything else in there.',
+    // issue #482: src/fight-temples/hazards.js GENTLE_HURT, hurtHim (every other quarter-heart hurt spared on Gentle);
+    // tests/fight-temples-worlds.test.js; docs/audits/combat-fight-temples-v1.85.md "Gentle, before and after"
+    { text: 'On Gentle, the fight temples’ hazards that take a quarter heart (a gust, the eyes’ flash, the toll, the dark, the shade, a broken tile, burning oil) now hurt only every other time. They were meant to take half as much on Gentle, but half of a quarter heart came back as a whole one.',
+      numbers: [{ title: 'Hearts lost to the quarter-heart hazards on Gentle, a run never rolling (the same seed), before → after', unit: 'hearts', better: 'lower', device: 'Mac (Apple M4 Pro), headless Chrome, Medium',
+        rows: [
+          { where: 'the Flooded Gallery: the dark', before: 4.25, after: 2 },
+          { where: 'the Kiln Yard: breaking tiles', before: 3.5, after: 1.75 },
+          { where: 'the Back Rooms: the toll', before: 2.25, after: 1 },
+        ], source: 'docs/audits/combat-fight-temples-v1.85.md, "Gentle, before and after"' }],
+      see: 'Set Enemies to Gentle and play the Back Rooms in the Signal Market: let the toll’s ring pass you without rolling, again and again. Every other ring only makes you flinch.' },
   ] },
   { v: '1.84', date: '2026-10-17', items: [
     // issue #439: src/costumes.js (HEADS: the 47 pieces of the 15 hat sets, HAT_SETS, HAT_SET_WORLDS, hoodShell / hoodNeck /

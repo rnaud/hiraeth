@@ -24,7 +24,7 @@ import { TONES } from '../src/story/tone.js';
 import {
   ISO, isoOffset, SEE, sightPoints, inTheWay, easeSee, seeOpen, seeHoleCuts, segmentHitsBox, WALL, wallBoxes, doorGap, inRoom, roomAt, roomWaves, totalFoes,
 } from '../src/fight-temples/rules.js';
-import { HAZARD, ON_LANES, laneRect, inLane, alongLane, lanePoint, laneLength, pickLanes, hazardEvery, tollReach, tileOf, inLight, shadeBand } from '../src/fight-temples/hazards.js';
+import { HAZARD, ON_LANES, laneRect, inLane, alongLane, lanePoint, laneLength, pickLanes, hazardEvery, tollReach, tileOf, inLight, shadeBand, GENTLE_HURT, CRACK_WARN } from '../src/fight-temples/hazards.js';
 import { buildHall, hallHeight, outside } from '../src/fight-temples/rooms.js';
 import { farSpots } from '../src/fight-temples/dress.js';
 import { startFightTemple } from '../src/fight-temples/session.js';
@@ -210,7 +210,7 @@ test('the lanes: a strip the room long; along it from its head the way it goes; 
 });
 
 /** A run in node, as tests/fight-temples.test.js's: the hall built, its world's foes made by Foes (not moved). */
-function simulate(D, { flags = {} } = {}) {
+function simulate(D, { flags = {}, gentle = false } = {}) {
   const scene = new THREE.Scene();
   const level = runSteps(buildHall(scene, D));
   const pos = new THREE.Vector3(...D.spawn);
@@ -221,7 +221,7 @@ function simulate(D, { flags = {} } = {}) {
     hurt(n, why) { hurts.push([why, n]); }, flinch() {}, dodge() { return this.rolling; },
     respawn: (p) => pos.copy(p), restore(h) { this.hearts = Math.min(this.maxHearts, this.hearts + h); }, restart() {},
   };
-  const foes = new Foes({ scene, level, levelId: 'arena', physics: null, player, settings: { enemies: 'normal' } });
+  const foes = new Foes({ scene, level, levelId: 'arena', physics: null, player, settings: { enemies: gentle ? 'gentle' : 'normal' } });
   const state = save(flags);
   const out = { finished: null, drops: 0, added: [] };
   const ctx = {
@@ -325,3 +325,80 @@ for (const game of GAMES) {
     g.S.end();
   });
 }
+
+// ------------------------------------------------------------------ issue #482: the combat review of the fight temples
+/** A run in node walked to its second room (the first cleared as its foes come up), the hazards cleared: { g, r }. */
+function toRoom1(D, o = {}) {
+  const g = simulate(D, o);
+  g.tick();
+  for (let k = 0; k < 6000 && g.S.run.room === 0; k++) { g.tick(); for (const f of g.foes.list) if (f.alive) f.state = 'dead'; }
+  const r = D.rooms[1];
+  g.player.pos.set((r.x[0] + r.x[1]) / 2, 0, (r.z[0] + r.z[1]) / 2);
+  g.tick();
+  g.S.hazards.clear();
+  return { g, r };
+}
+
+test('Gentle: a quarter-heart hazard is spared every other time (half a quarter heart came back a whole one); a half-heart one is halved', () => {
+  // the Back Rooms' toll: a quarter heart as its ring passes him
+  const D = fightBazaar.table, H = HAZARD.toll;
+  assert.ok(H.harm * 0.5 < GENTLE_HURT.least, 'the toll is one of them');
+  const hits = (gentle) => {
+    const { g, r } = toRoom1(D, { gentle });
+    const sign = r.hazard.signs[0], mid = [(r.x[0] + r.x[1]) / 2, (r.z[0] + r.z[1]) / 2], d = Math.hypot(mid[0] - sign[0], mid[1] - sign[1]);
+    const at = [sign[0] + ((mid[0] - sign[0]) / d) * 4, sign[1] + ((mid[1] - sign[1]) / d) * 4];
+    g.hurts.length = 0;
+    for (let i = 0; i < 4; i++) {
+      g.S.hazards.start(1, { sign });
+      for (let k = 0; k < 150; k++) { g.player.pos.set(at[0], 0, at[1]); g.player.vel.set(0, 0, 0); for (const f of g.foes.list) if (f.alive) f.state = 'dead'; g.tick(); }
+      g.S.hazards.clear();
+    }
+    g.S.end();
+    return g.hurts.filter(([why]) => why === 'toll');
+  };
+  assert.equal(hits(false).length, 4, 'Normal: every toll that crosses him hurts');
+  const soft = hits(true);
+  assert.equal(soft.length, 2, `Gentle: every other one (${JSON.stringify(soft)})`);
+  // the City-Shaft's loads: half a heart, a quarter on Gentle, every one
+  const I = fightIncal.table;
+  const { g, r } = toRoom1(I, { gentle: true });
+  const spot = [(r.x[0] + r.x[1]) / 2, (r.z[0] + r.z[1]) / 2];
+  g.hurts.length = 0;
+  for (let i = 0; i < 2; i++) {
+    g.S.hazards.start(1, { spot });
+    for (let k = 0; k < 120; k++) { g.player.pos.set(spot[0], 0, spot[1]); g.player.vel.set(0, 0, 0); for (const f of g.foes.list) if (f.alive) f.state = 'dead'; g.tick(); }
+    g.S.hazards.clear();
+  }
+  g.S.end();
+  assert.deepEqual(g.hurts.filter(([why]) => why === 'drop').map(([, n]) => n), [HAZARD.drop.harm * 0.5, HAZARD.drop.harm * 0.5]);
+});
+
+test('the Kiln Yard: a breaking tile warns with its edge lit in the glyph’s tone and a dark star across it, clear on the pale glass', () => {
+  const D = fightGlassdunes.table, P = D.palette;
+  const { g, r } = toRoom1(D);
+  const spot = tileOf(r, (r.x[0] + r.x[1]) / 2, (r.z[0] + r.z[1]) / 2);
+  const before = new Set(g.out.added);
+  g.S.hazards.start(1, { spot });
+  const warn = [];
+  for (const o of g.out.added) if (!before.has(o)) o.traverse((m) => { if (m.userData.warn === 'crack') warn.push(m); });
+  const colour = (m) => m.material.uniforms.uColor.value;
+  const lum = (c) => 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
+  const frame = warn.filter((m) => m.geometry.type === 'PlaneGeometry'), cracks = warn.filter((m) => m.geometry.type === 'BoxGeometry');
+  assert.equal(frame.length, 4, 'its four edges');
+  assert.equal(cracks.length, 6, 'its star of cracks');
+  for (const m of frame) assert.ok(colour(m).equals(new THREE.Color(P.glyph)), 'the edge in the glyph’s tone');
+  for (const m of cracks) {
+    assert.ok(colour(m).equals(new THREE.Color(P.ink)), 'the cracks in the ink’s tone');
+    assert.ok(m.geometry.parameters.depth >= CRACK_WARN.crack - 1e-9 && CRACK_WARN.crack >= 0.1, 'wide enough to be seen from the iso camera');
+  }
+  // against the pale glass (its floor's tone): the cracks far darker, the edge a strong colour on it
+  const floor = new THREE.Color(P.floor), ink = new THREE.Color(P.ink), glyph = new THREE.Color(P.glyph);
+  assert.ok(lum(floor) - lum(ink) > 0.5, `the cracks dark on the glass (${lum(floor).toFixed(2)} against ${lum(ink).toFixed(2)})`);
+  assert.ok(glyph.getHSL({}).s - floor.getHSL({}).s > 0.4, 'the edge a strong colour on it');
+  // while it warns the edge shows (steady, then flickering); once broken it is gone, the pit there
+  for (let k = 0; k < 6; k++) g.tick();
+  assert.ok(frame[0].parent.visible, 'shown at first');
+  for (let k = 0; k < Math.ceil(HAZARD.crack.warn * 30) + 4; k++) g.tick();
+  assert.ok(!frame[0].parent.visible, 'gone once it breaks');
+  g.S.end();
+});
