@@ -624,6 +624,11 @@ export class Dialogue {
       // with a pad the confirm button's badge on the one it would pick (› on the others); `key` in Xbox / PlayStation
       // form, which the engines print as the pad in hand does (engine/unity/game.js forPad)
       answerKey: { kind: inputKind(), key: confirmKey() },
+      // the room the page's panel keeps (render: .dlg-ghost, .dlg-choices.waiting): the node's longest page, laid out
+      // unseen under the one shown, and the answers still to come, so an engine's panel is as tall as the page's from the
+      // first page on (issue #264: Unity's grew when the answers came)
+      ghost: (r.pages ?? []).reduce((a, b) => (b.length > a.length ? b : a), full),
+      ahead: choices.length ? [] : r.choicesAhead().map((c) => c.text),
     });
   }
 

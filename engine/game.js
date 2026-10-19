@@ -143,6 +143,7 @@ import { resources } from '../src/resources.js';
 import { Gadgets } from '../src/gadgets/index.js';
 import { createItemEffects } from '../src/boxes/effects.js';
 import { createFragments, chartMarks } from '../src/fragments.js';
+import { t as tr } from '../src/i18n.js';
 import { keyText } from '../src/prompt-keys.js';
 import { carryHooks } from '../src/carry.js';
 import { BodyFoley } from '../src/foley.js';
@@ -1217,8 +1218,11 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       const d = worldMap.view({ x0: whole.x0 + detail.u0 * whole.w, z0: whole.z0 + detail.v0 * whole.h, w: detail.s * whole.w, h: detail.s * whole.h }, MAP.zoomCells);
       part = { ...detail, canvas: d.canvas, done: d.done, progress: d.progress };
     }
+    // (the note: the givers', and the fragments found here once the first is found, as main.js mapSource; issue #264)
+    const frag = fragments?.counts?.(), here = frag?.worlds?.[levelId];
     return { world: TITLES[levelId] ?? level.title ?? '', marks: mapMarks({ ...raw, bounds }), canvas: v.canvas, progress: v.progress, zoom: focus ? zoom : null,
-      scale: scaleBar(bounds.w), span: bounds.w, aspect: bounds.w / bounds.h, detail: part, note: givers.length ? GIVERS_NOTE : '' };
+      scale: scaleBar(bounds.w), span: bounds.w, aspect: bounds.w / bounds.h, detail: part,
+      note: [givers.length ? GIVERS_NOTE : '', frag?.found && here?.total ? tr('gm.fragHereLong', { n: here.found }) : ''].filter(Boolean).join(' · ') };
   }
   /** The Map's ground being drawn: its rays for `ms` this frame (the Map open), as main.js pausedFrame does. */
   function pumpMap(ms = MAP.budget) {

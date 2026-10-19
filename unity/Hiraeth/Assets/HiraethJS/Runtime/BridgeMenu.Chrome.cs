@@ -181,7 +181,7 @@ namespace Hiraeth.Bridge
                 q.ring = Ui.Panel(root, "quest ring" + qcards.Count, Color.clear, Ui.Hex("#d9643a"), 2.5f, 0, 0, 8);
                 q.box = Ui.Panel(root, "quest" + qcards.Count, QWhite, GmInk, 2, 4, 4, 3);
                 q.edge = Ui.Rect(q.box.rt, GmRed, 0, "edge"); q.edgeLine = Ui.Rect(q.box.rt, GmInk, 0, "edge line");
-                q.name = Ui.Label(q.box.rt, "name", Ui.Sans, 17, GmInk, TextAnchor.UpperLeft, FontStyle.Bold);
+                q.name = Ui.Label(q.box.rt, "name", Ui.Sans, 16, GmInk, TextAnchor.UpperLeft, FontStyle.Bold); Ui.Space(q.name, 0.04f);   // (.qhead b: 2.3vh, 16 at most)
                 q.sub = Ui.Label(q.box.rt, "sub", Ui.Sans, 13, QMuted, TextAnchor.UpperLeft, FontStyle.Italic);
                 q.next = Ui.Label(q.box.rt, "next", Ui.Sans, 11, GmRed, TextAnchor.UpperLeft, FontStyle.Bold); Ui.Space(q.next, 0.14f);
                 q.step = Ui.Label(q.box.rt, "step", Ui.Sans, 14, GmInk, TextAnchor.UpperLeft, FontStyle.Bold);
@@ -204,7 +204,7 @@ namespace Hiraeth.Bridge
             if (on) Ui.Place(k.ring.rt, x - lift - 7, y - lift - 7, w - 6 + 14, h + 14);
             k.edge.color = kind == "charge" ? GmGold : kind == "errand" ? QTeal : kind == "quest" ? GmRed : QPlain;
             Ui.Place(k.edge.rectTransform, 2, 2, 7, h - 4); Ui.Place(k.edgeLine.rectTransform, 9, 2, 2, h - 4);
-            float tx = 24, tw = w - 6 - tx - 14, ty = 10;
+            float tx = 24, tw = w - 6 - tx - 14, ty = 14;
             // (at the right of the name: TRACKING on the tracked one, A / × TRACK on the pad's when it can be tracked)
             k.tag.Show(tracked);
             if (tracked)
@@ -222,11 +222,13 @@ namespace Hiraeth.Bridge
                 Ui.Place(k.prompt.rectTransform, w - 6 - 14 - ps.x, ty + 1, ps.x, 18);
                 tw -= ps.x + 8;
             }
-            var mark = kind == "charge" ? "<color=#d9a21b>✧</color> " : kind == "errand" ? "<color=#3a9a9c>✉</color> " : tracked ? "◆ " : "";
-            var ns = Ui.Set(k.name, mark + (c.S("text") ?? ""), tw); Ui.Place(k.name.rectTransform, tx, ty, tw, ns.y); ty += ns.y + 2;
-            var sub = c.S("sub") ?? "";
+            // (the page's marks: the charge's ✦ in gold, an errand's ✉ in teal, a quest's ◆ (the main story's) or ◇ in red)
+            var mark = kind == "charge" ? "<color=#d9a21b>✦</color>  " : kind == "errand" ? "<color=#277e86>✉</color>  " : kind == "quest" ? (B(c, "main") ? "<color=#c8483a>◆</color>  " : "<color=#c8483a>◇</color>  ") : "";
+            var ns = Ui.Set(k.name, mark + (c.S("text") ?? ""), tw); Ui.Place(k.name.rectTransform, tx, ty, tw, ns.y); ty += ns.y + 8;
+            // (under it its goal in italics, the page's .goal; what kind of quest it is is the strip's)
+            var sub = c.S("goal") is string g0 && g0.Length > 0 ? g0 : c.S("sub") ?? "";
             Show(k.sub, sub.Length > 0);
-            if (sub.Length > 0) { var ss = Ui.Set(k.sub, sub, tw); Ui.Place(k.sub.rectTransform, tx, ty, tw, ss.y); ty += ss.y + 4; }
+            if (sub.Length > 0) { var ss = Ui.Set(k.sub, sub, tw); Ui.Place(k.sub.rectTransform, tx, ty, tw, ss.y); ty += ss.y + 8; }
             var step = c.S("step") ?? "";
             Show(k.next, step.Length > 0); Show(k.step, step.Length > 0);
             if (step.Length > 0)
@@ -237,11 +239,102 @@ namespace Hiraeth.Bridge
             }
         }
 
+        // the Quests panel as the page's two columns (src/game-menu.css .gm-quests: the cards, then the aside .qdone at
+        // minmax(150px, 30%) after a clamp(14px, 2.8vw, 40px) gap): the cards one under another, each as tall as its words,
+        // and the quests ended in their own column, a short line each under DONE, "and n more" after the done and after the
+        // failed. They were cells of the cards' rows, so the first ended lines stood a card's height apart (issue #264).
+        class QLine { public RectTransform rt; public Image fill; public Label text; public Sketch dash; }
+        readonly List<QLine> qdLines = new();
+        readonly List<Label> qdMores = new();
+        Label qdHead;
+        int qdUsed, qdMoreUsed;
+
+        void DrawQuests(List<object> rows, List<float> colX, float x, float y, float w, float h)
+        {
+            var cards = new List<Dictionary<string, object>>(); var ended = new List<Dictionary<string, object>>();
+            foreach (var o in rows)
+                if (o is List<object> row)
+                    foreach (var c in row) if (c is Dictionary<string, object> d) (d.S("kind") == "ended" ? ended : cards).Add(d);
+            // (the page's sheet keeps a little more paper round its quests than the rows' panels: 11 in, 8 down)
+            x += 11; w -= 22; y += 8; h -= 8;
+            float colGap = Mathf.Clamp(W * 0.028f, 14, 40), rightW = Mathf.Max(150, w * 0.3f), leftW = w - rightW - colGap;
+            // the cards (.qlist: a gap of clamp(8px, 1.8vh, 16px)), scrolled to the pad's
+            float gap = Mathf.Clamp(H * 0.018f, 8, 16);
+            var hs = new List<float>(); int at = 0;
+            for (int i = 0; i < cards.Count; i++) { hs.Add(QuestCardH(cards[i], leftW) + gap); if (B(cards[i], "on")) at = i; }
+            float yy = y - Scroll(hs, at, h);
+            for (int i = 0; i < cards.Count; i++)
+            {
+                if (yy >= y - 1 && yy + hs[i] - gap <= y + h + 2) QuestCard(x, yy, leftW + 6, hs[i] - gap, cards[i]);
+                yy += hs[i];
+            }
+            // the ended (.qdone): its heading (the panel's h2: 1.75vh, spaced 0.34em, capitals), then a line each
+            var dv = state.O("done");
+            float rx = x + leftW + colGap, ry = y;
+            if (!qdHead) { qdHead = Ui.Label(root, "done head", Ui.Sans, 13, GmInk, TextAnchor.UpperLeft, FontStyle.Normal); Ui.Space(qdHead, 0.34f); }
+            Show(qdHead, true);
+            var hz = Ui.Set(qdHead, Ui.Upper(dv?.S("head") ?? "Done"), rightW);
+            Ui.Place(qdHead.rectTransform, rx, ry, rightW, hz.y); ry += hz.y + 9;
+            void More(string text)
+            {
+                if (string.IsNullOrEmpty(text) || ry + 19 > y + h) return;
+                if (qdMoreUsed >= qdMores.Count) qdMores.Add(Ui.Label(root, "more" + qdMores.Count, Ui.Sans, 11, Ui.Hex("#2b211f", 0.6f), TextAnchor.UpperLeft));
+                var m = qdMores[qdMoreUsed++]; Show(m, true);
+                Ui.Set(m, text, rightW - 16); Ui.Place(m.rectTransform, rx + 8, ry + 3, rightW - 16, 16); ry += 19;
+            }
+            var none = dv?.S("none") ?? "";
+            if (ended.Count == 0 && none.Length > 0) More(none);
+            bool failedSeen = false;
+            foreach (var c in ended)
+            {
+                bool failed = c.S("done") == "failed";
+                if (failed && !failedSeen) { failedSeen = true; More(dv?.S("more")); }
+                // (.ended: clamp(3px, 0.7vh, 6px) 8px, 1.9vh words, a dashed line under it; the pad's gold)
+                const float lh = 30;
+                if (ry + lh > y + h) break;
+                if (qdUsed >= qdLines.Count)
+                {
+                    var n = new QLine { rt = Ui.Node("ended" + qdLines.Count, root) };
+                    n.fill = Ui.Fill(n.rt, GmGold, 0, "at");
+                    n.text = Ui.Label(n.rt, "text", Ui.Sans, 13, GmInk, TextAnchor.MiddleLeft);
+                    n.dash = Ui.Node("dash", n.rt).gameObject.AddComponent<Sketch>(); n.dash.raycastTarget = false;
+                    qdLines.Add(n);
+                }
+                var l = qdLines[qdUsed++]; l.rt.gameObject.SetActive(true);
+                Ui.Place(l.rt, rx, ry, rightW, lh);
+                l.fill.enabled = B(c, "on");
+                l.text.text = (failed ? "<color=#9a4a32><b>·</b></color>  " : "<color=#2f7a55><b>✓</b></color>  ") + (c.S("text") ?? "");
+                Ui.Place(l.text.rectTransform, 8, 0, rightW - 16, lh - 1);
+                l.dash.Clear(); l.dash.Path(new[] { new Vector2(0, 0.5f), new Vector2(rightW, 0.5f) }, 1, Ui.Hex("#2b211f", 0.3f), false, 4, 3);
+                Ui.Place(l.dash.rectTransform, 0, lh - 1, rightW, 1);
+                ry += lh;
+            }
+            More(failedSeen ? dv?.S("moreFailed") : dv?.S("more"));
+        }
+
+        /// <summary>A quest card's height as QuestCard lays it out: its name, what it is, its next step, 10 above and below.</summary>
+        float QuestCardH(Dictionary<string, object> c, float w)
+        {
+            float tw = w - 24 - 14, hh = 14;
+            var f0 = meas.font; meas.font = Ui.Sans; meas.lineSpacing = 1; meas.fontStyle = FontStyle.Bold; meas.fontSize = 16;
+            hh += Ui.Measure(meas, c.S("text") ?? "", tw).y + 8;
+            var sub = c.S("goal") is string g0 && g0.Length > 0 ? g0 : c.S("sub") ?? "";
+            if (sub.Length > 0) { meas.fontStyle = FontStyle.Italic; meas.fontSize = 13; hh += Ui.Measure(meas, sub, tw).y + 8; }
+            var step = c.S("step") ?? "";
+            if (step.Length > 0) { meas.fontStyle = FontStyle.Bold; meas.fontSize = 14; hh += Ui.Measure(meas, step, tw - 40).y; }
+            meas.font = f0; meas.fontSize = Small; meas.fontStyle = FontStyle.Normal;
+            return Mathf.Max(56, hh + 15);
+        }
+
         /// <summary>The journal's own pieces off when another menu is drawn.</summary>
         void HideGameFrame()
         {
             for (int i = 0; i < qcards.Count; i++) { qcards[i].box.Show(false); qcards[i].ring.Show(false); }
             qcardsUsed = 0;
+            foreach (var l in qdLines) l.rt.gameObject.SetActive(false);
+            foreach (var m in qdMores) Show(m, false);
+            if (qdHead) Show(qdHead, false);
+            qdUsed = 0; qdMoreUsed = 0;
             if (!gmRoot) return;
             gmRoot.gameObject.SetActive(false); gmRules.gameObject.SetActive(false);
             sheet.SetShadow(6, 6); sheet.SetFill(Ui.Page);

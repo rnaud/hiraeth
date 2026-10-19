@@ -1780,7 +1780,9 @@ namespace Hiraeth.Bridge
             // (a {glyph}: a gap in the words, the shared makers' mark in it: BridgeHud.Mark.cs, issue #513)
             var body = RichMarked(shown) + (done ? "" : "<color=#2b211f99>▍</color>");
             Ui.Set(dlgText, body, cw);
-            float textH = Mathf.Max(Body * 2.9f, Ui.Measure(dlgText, RichMarked(text), cw).y);
+            // (as tall as the node's longest page, the page's .dlg-ghost: the panel keeps its size as the pages turn)
+            var ghost = d.S("ghost") ?? "";
+            float textH = Mathf.Max(Body * 2.9f, Ui.Measure(dlgText, RichMarked(text), cw).y, ghost.Length > text.Length ? Ui.Measure(dlgText, RichMarked(ghost), cw).y : 0);
             Ui.Place(dlgText.rectTransform, padL, padT + 4, cw, textH);
             var markPic = MarkPicture(d.L("mark"));
             dlgMarks.Lay(dlgText, body, new Vector2(cw, textH), markPic);
@@ -1828,7 +1830,15 @@ namespace Hiraeth.Bridge
                 Ui.Place(box.rt, padL, y, cw, bh);
                 y += bh + 3;
             }
-            if (choices.Count > 0) y -= 3;
+            // (the answers still to come: their room kept on the pages before them, the page's .dlg-choices.waiting, so the
+            // panel stands as tall from the first page and the answers come up in place; issue #264)
+            var ahead = choices.Count == 0 ? d.L("ahead") : null;
+            if (ahead != null && ahead.Count > 0 && dlgChoices.Count > 0)
+            {
+                var tx0 = dlgChoices[0].text; tx0.fontSize = AnswerSize;
+                foreach (var a in ahead) { var s0 = Ui.Measure(tx0, RichMarked(PlainKeepingMark(a as string ?? "")), cw - keyW); y += Mathf.Max(AnswerSize * 1.4f, s0.y) + 6 + 3; }
+            }
+            if (choices.Count > 0 || (ahead?.Count ?? 0) > 0) y -= 3;
             float ph = Mathf.Max(5.2f * Em, y + padB);
             Ui.Place(dlg, W / 2 - pw / 2, H - 26 - ph, pw, ph);
             Ui.Place(dlgPanel.rt, 0, 0, pw, ph);

@@ -544,7 +544,9 @@ export function engineGame(g, menus = null) {
         if (!menus) return;
         if (kind === 'start') {
           menus.show('start');
-          if (page && page !== 'settings') { const i = menus.startSide().findIndex((e) => e.page === page); if (i >= 0) { menus.start.page = page; menus.start.at = { in: 'side', i }; } }
+          // (What's new chosen, as the page's entry opens its panel: in it, BridgeMenu's panel over the game; the others shown
+          // from the sidebar)
+          if (page && page !== 'settings') { const i = menus.startSide().findIndex((e) => e.page === page); if (i >= 0) { menus.start.page = page; menus.start.at = page === 'news' ? { in: 'page', i: 0 } : { in: 'side', i }; } }
           menus.changed();
         } else menus.show('game', page);
       },

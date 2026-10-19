@@ -43,7 +43,7 @@ namespace Hiraeth.Bridge
             shTailPatch = Ui.Rect(s, ShopCard, 0, "tail's inside");
             shWallet = Ui.Panel(s, "wallet", ShopCard, ShopInk, 1.5f);
             shCoin = Ui.Node("coin", shWallet.rt).gameObject.AddComponent<RawImage>(); shCoin.raycastTarget = false;
-            shPurse = Ui.Label(shWallet.rt, "count", Ui.Heavy, 18, ShopInk, TextAnchor.MiddleLeft, FontStyle.Bold, 1f);
+            shPurse = Ui.Label(shWallet.rt, "count", Ui.SansHeavy, 17, ShopInk, TextAnchor.MiddleLeft, Ui.SansHeavyStyle, 1f);   // (1.25em at 800)
             shClose = Ui.Panel(s, "close", ShopCard, ShopInk, 1.5f);
             shCloseText = Ui.Label(shClose.rt, "x", Ui.Sans, 16, ShopInk, TextAnchor.MiddleLeft, FontStyle.Normal, 1f);
             shDimWares = Ui.Rect(s, Ui.Hex("#f7ecd2", 0.5f), 0, "the wares held back");
@@ -83,13 +83,13 @@ namespace Hiraeth.Bridge
                 var r = c.box.rt;
                 c.pic = Ui.Node("pic", r).gameObject.AddComponent<RawImage>(); c.pic.raycastTarget = false;
                 c.mark = Ui.Label(r, "mark", Ui.Sans, 40, ShopInk, TextAnchor.MiddleCenter);
-                c.name = Ui.Label(r, "name", Ui.Sans, 15, ShopInk, TextAnchor.UpperCenter, FontStyle.Bold, 1.1f); Ui.Space(c.name, 0.03f);
+                c.name = Ui.Label(r, "name", Ui.SansHeavy, 15, ShopInk, TextAnchor.UpperCenter, Ui.SansHeavyStyle, 1.04f); Ui.Space(c.name, Ui.SansHeavyStyle == FontStyle.Bold ? 0.07f : 0.03f);   // (bold set a little wider where there is no heavy cut: the page's 800 is, and wraps "Light-tempered / edge")   // (.ware-name: 1.1em at 800, the page's 1.4 line)
                 c.effect = Ui.Label(r, "effect", Ui.Sans, 13, Ui.Hex("#2b211f", 0.85f), TextAnchor.UpperCenter, FontStyle.Normal, 1.04f);
                 c.stock = Ui.Label(r, "stock", Ui.Sans, 12, Ui.Hex("#2b211f", 0.7f), TextAnchor.UpperCenter, FontStyle.Normal, 1.04f);
                 c.coin = Ui.Node("coin", r).gameObject.AddComponent<RawImage>(); c.coin.raycastTarget = false;
-                c.price = Ui.Label(r, "price", Ui.Heavy, 18, ShopInk, TextAnchor.MiddleLeft, FontStyle.Bold, 1f);
+                c.price = Ui.Label(r, "price", Ui.SansHeavy, 18, ShopInk, TextAnchor.MiddleLeft, Ui.SansHeavyStyle, 1f);   // (.ware-price: 1.3em at 800)
                 c.flag = Ui.Panel(r, "flag", ShopSheet, ShopInk, 1.5f);
-                c.flagText = Ui.Label(c.flag.rt, "text", Ui.Sans, 12, ShopInk, TextAnchor.MiddleCenter, FontStyle.Bold, 1f);
+                c.flagText = Ui.Label(c.flag.rt, "text", Ui.Sans, 12, ShopInk, TextAnchor.MiddleCenter, FontStyle.Bold, 1.04f);
                 Ui.Stretch(c.flagText.rectTransform);
                 shCards.Add(c);
             }
@@ -102,8 +102,8 @@ namespace Hiraeth.Bridge
             shRoot.gameObject.SetActive(true);
             shRoot.SetAsLastSibling();
             sheet.Show(false);
-            // (the page lays its sheet over the world as it is, the room still lit round it)
-            dim.color = Color.clear;
+            // (the page's #shop: the world under a 42 % veil of ink round the sheet; it was left clear, the room lit as in play)
+            dim.color = Ui.Hex("#2b211f", 0.42f);
             shCapsUsed = 0;
             float sw = Mathf.Min(868, W - 40), px = 18, iw = sw - px * 2, y = 16;
             var coin = Picture(state.S("coin") ?? "shop-chime");
@@ -121,15 +121,16 @@ namespace Hiraeth.Bridge
             // the keeper, and their line in a bubble under the name
             float lw = sw - px - cw - 14 - ww - 14 - px;
             var ns = Ui.Set(shName, state.S("head") ?? "", lw);
-            Ui.Place(shName.rectTransform, px, y + 4, ns.x + 4, ns.y);
+            ns.y = Mathf.Max(ns.y, 26);   // (the page's line: 1.35em at 1.4)
+            Ui.Place(shName.rectTransform, px, y, ns.x + 4, ns.y);
             var ts = Ui.Set(shTitle, state.S("sub") ?? "", lw - ns.x - 10);
-            Ui.Place(shTitle.rectTransform, px + ns.x + 10, y + 4 + (ns.y - ts.y) / 2 + 2, ts.x + 4, ts.y);
-            float by = y + 4 + ns.y + 8;
+            Ui.Place(shTitle.rectTransform, px + ns.x + 10, y + (ns.y - ts.y) / 2 + 2, ts.x + 4, ts.y);
+            float by = y + ns.y + 8;
             var line = state.S("line") ?? "";
             shBubble.Show(line.Length > 0); shTail.Show(line.Length > 0); Show(shTailPatch, line.Length > 0);
             if (line.Length > 0)
             {
-                var ls = Ui.Set(shLine, line, lw - 22);
+                var ls = Ui.Set(shLine, line, lw - 22); ls.y = Mathf.Max(ls.y, 19);
                 Ui.Place(shLine.rectTransform, 11, 7, lw - 22, ls.y);
                 Ui.Place(shBubble.rt, px, by, lw, ls.y + 14);
                 // (the page's ::before: a 10 px square turned 45° about its middle, half over the bubble's top edge, its lower
@@ -231,14 +232,18 @@ namespace Hiraeth.Bridge
             var ss = stock.Length > 0 ? (place ? Ui.Set(c.stock, stock, iw) : Ui.Measure(c.stock, stock, iw)) : Vector2.zero;
             if (place) { Show(c.stock, stock.Length > 0); if (stock.Length > 0) Ui.Place(c.stock.rectTransform, 10, y, iw, ss.y); }
             if (stock.Length > 0) y += ss.y + 4;
-            float footH = 27;
+            // the foot (.ware-foot: at least 1.9em, the price then the flag, centred): the flag in the room the price leaves,
+            // its words wrapping in it as the page's do ("Not enough / fragments"), the foot as tall as it
+            string price = d.S("price") ?? "", flag = d.S("flag") ?? "";
+            float prw = price.Length > 0 ? Ui.Measure(c.price, price).x : 0, cw0 = price.Length > 0 ? 17 : 0;
+            float pricePart = price.Length > 0 ? cw0 + 4 + prw + (flag.Length > 0 ? 8 : 0) : 0;
+            float flw = flag.Length > 0 ? Mathf.Min(Ui.Measure(c.flagText, flag).x + 14, iw - pricePart) : 0;
+            float flh = flag.Length > 0 ? Mathf.Max(20, Ui.Measure(c.flagText, flag, flw - 12).y + 4) : 0;
+            float footH = Mathf.Max(27, flh + 6);
             if (place)
             {
-                // the foot at the card's bottom (the page's grid row 1fr pushes it down): the price, then the flag
-                string price = d.S("price") ?? "", flag = d.S("flag") ?? "";
-                float prw = price.Length > 0 ? Ui.Measure(c.price, price).x : 0, cw0 = price.Length > 0 ? 17 : 0;
-                float flw = flag.Length > 0 ? Ui.Measure(c.flagText, flag).x + 14 : 0;
-                float total = (price.Length > 0 ? cw0 + 4 + prw : 0) + (price.Length > 0 && flag.Length > 0 ? 8 : 0) + flw;
+                // the foot at the card's bottom (the page's grid row 1fr pushes it down)
+                float total = pricePart + flw;
                 float fx = cardW / 2 - total / 2, fy = rowH - 10 - footH;
                 Show(c.coin, price.Length > 0 && coin != null); Show(c.price, price.Length > 0);
                 if (price.Length > 0)
@@ -254,7 +259,8 @@ namespace Hiraeth.Bridge
                     bool dark = st == "soldout" || st == "owned";
                     c.flag.SetFill(dark ? ShopInk : ShopSheet); c.flagText.color = dark ? ShopSheet : ShopInk;
                     c.flagText.text = flag;
-                    Ui.Place(c.flag.rt, fx, fy + footH / 2 - 10, flw, 20);
+                    Ui.Place(c.flag.rt, fx, fy + footH / 2 - flh / 2, flw, flh);
+                    Ui.Place(c.flagText.rectTransform, 6, 0, flw - 12, flh);
                 }
                 c.box.SetFill(on ? ShopOn : grey ? ShopGrey : ShopCard);
                 c.box.border.color = on ? ShopRed : ShopInk;

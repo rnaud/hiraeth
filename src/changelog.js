@@ -8,6 +8,17 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.87', date: '2026-10-19', items: [
+    // issue #264: BridgeMenu.Shop.cs (the 42 % veil, Ui.SansHeavy, flags wrapped), src/story/dialogue.js publish (ghost,
+    // ahead), BridgeHud.cs DrawTalk; scripts/unity-compare/sequences.mjs hold
+    'In the Unity version, Anselm’s shop opens over a darkened hold with its names and prices in heavy letters and every flag inside its box, as on the web, and a conversation’s box is as tall from its first page as when its answers come up.',
+    // issue #264: engine/menus.js startView (news, page.tag, page.sub, saved), startAction (B closes What's new),
+    // engine/unity/game.js (the sequences' save line), BridgeMenu.Pause.cs DrawNews; tests/engine-menus.test.js
+    'In the Unity version, What’s new opens over the game in its own panel and B closes it, and the Start menu shows your fragments on a line of their own, the version beside Settings and CONTROLS over “Your keys”, as on the web.',
+    // issue #264: BridgeMenu.Chrome.cs DrawQuests (goal, marks, DONE), engine/menus.js itemColsFor, the strip without its
+    // description, engine/game.js mapSource's fragments note; tests/engine-menus.test.js
+    'In the Unity version, the Quests page lists the quests you finished close together under Done and shows each quest’s goal on its card, Items fits as many to a row as the web, and the Map says how many fragments you found there.',
+  ] },
   { v: '1.86', date: '2026-10-19', items: [
     // issue #483: src/story/hosts-data.js (the fight hosts' second lines), src/fight-temples/<world>.js (blurb, quiet),
     // fight-temples/index.js rules, session.js (the end card's place line and title, the shard's bright blade);

@@ -23,7 +23,7 @@ import { WorldLabels } from '../../src/minigames/kit/labels.js';
 import * as THREE from 'three';
 import { installMatrixCache } from '../../src/matrix-cache.js';
 import { watchSceneEdits } from '../scene-matrices.js';
-import { EngineMenus } from '../menus.js';
+import { EngineMenus, itemColsFor } from '../menus.js';
 import { UnityUpdates } from './updates.js';
 import { STARMAP_SCENES, STARMAP_BASE, poseStarMap } from '../starmap.js';
 import { sequenceById, SequenceRun, engineSetup, engineReady, engineGame, engineKey, probe } from '../sequences.js';
@@ -131,6 +131,11 @@ function forPad(json, remap) {
   return promptText(json, { ...L, remap });
 }
 
+/** The world's name over the Start menu's save line (the page's #menu-where). */
+const where = () => TITLES[S?.game?.level?.id] ?? '';
+/** The line under the Start menu's heading, as the web's: "Save 1 · The Desert · 12 min played", and the fragments' (fragmentsLine). */
+const saveLine = () => `${slots.active === DEBUG_SLOT ? 'Debug save' : `Save ${slots.active}`} · ${TITLES[S?.game?.level?.id] ?? ''} · ${formatPlaytime(slots.meta?.()?.playtime ?? 0)} played${S?.game?.fragmentsLine?.() ? ` · ${S.game.fragmentsLine()}` : ''}`;
+
 export function start(argsJson) {
   const args = JSON.parse(argsJson || '{}');
   platformPad();
@@ -160,15 +165,15 @@ export function start(argsJson) {
       if (!S?.game && S?.titleSound) titleSettings(S.titleSound, settings);
       if (k === 'rumble' || k === 'rumbleLevel') rumblePlay('hurt', { h: 0.75 });   // (a taste of the new strength, as the web's page)
     },
-    where: () => TITLES[S?.game?.level?.id] ?? '',
+    where,
     // (the jets' and the pirates' pitch rows: once the jets are owned, once the pirates are beaten, as the page's)
     hasJets: () => ownedItems.has('jetpack'), piratesBeaten: () => !!gameState.flag('minigame.pirates.beaten'),
     // (the save under the Start menu's heading, as the web's: "Save 1 · The Desert · 12 min played")
-    saveLine: () => `${slots.active === DEBUG_SLOT ? 'Debug save' : `Save ${slots.active}`} · ${TITLES[S?.game?.level?.id] ?? ''} · ${formatPlaytime(slots.meta?.()?.playtime ?? 0)} played${S?.game?.fragmentsLine?.() ? ` · ${S.game.fragmentsLine()}` : ''}`,   // (and the fragments', as the page's: fragmentsLine)
+    saveLine,
     // (the menus' canvas, its units: 720 high, as wide as the screen's shape; the title laid out on it)
     screen: () => ({ w: host.MenuWidth?.() || 1280, h: 720 }),
     // (the Items panel's tiles a row: as many of ~128 units as the sheet holds, BridgeMenu's canvas 720 high)
-    itemCols: () => Math.max(4, Math.min(12, Math.floor(((host.MenuWidth?.() || 1280) - 72) / 128))),
+    itemCols: () => itemColsFor(host.MenuWidth?.() || 1280, 720),
     // (the room BridgeMenu's sheet has for the Map, its units: "w,h"; the map is drawn as wide as it, issue #272)
     mapBox: () => { const [w, h] = String(host.MenuMapBox?.() ?? '').split(',').map(Number); return w > 0 && h > 0 ? { w, h } : null; },
     // (inside a makers' house: its map, the game menu's House map; issue #405, #487)
@@ -454,7 +459,7 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
   // the dev menu is one of the menus too, with the player's settings for its frame readout)
   const menus = S.menus ?? (ending || starScenes.length ? new EngineMenus({ store: slots, screen: () => ({ w: host.MenuWidth?.() || 1280, h: 720 }) })
     // (a sequence's menus are drawn: its Start menu's pages are beats; S.menus is what BridgeMenu is sent)
-    : args.sequence ? (S.menus = new EngineMenus({ store: slots, settings: new Settings(), house: () => S?.game?.houseView?.() ?? null, screen: () => ({ w: host.MenuWidth?.() || 1280, h: 720 }), itemCols: () => Math.max(4, Math.min(12, Math.floor(((host.MenuWidth?.() || 1280) - 72) / 128))), mapBox: () => { const [w, h] = String(host.MenuMapBox?.() ?? '').split(',').map(Number); return w > 0 && h > 0 ? { w, h } : null; } }))
+    : args.sequence ? (S.menus = new EngineMenus({ store: slots, settings: new Settings(), where, saveLine, version: `v${VERSION}`, house: () => S?.game?.houseView?.() ?? null, screen: () => ({ w: host.MenuWidth?.() || 1280, h: 720 }), itemCols: () => itemColsFor(host.MenuWidth?.() || 1280, 720), mapBox: () => { const [w, h] = String(host.MenuMapBox?.() ?? '').split(',').map(Number); return w > 0 && h > 0 ? { w, h } : null; } }))
     : args.foes || args.devmenu || args.house || args.ui ? (S.menus = new EngineMenus({ dev: () => false, house: () => S?.game?.houseView?.() ?? null, screen: () => ({ w: host.MenuWidth?.() || 1280, h: 720 }) })) : null);
   if (args.devmenu && !S.settings) S.settings = new Settings();
   if (starScenes.length) S.menus = menus;   // (shown: BridgeMenu draws the map)

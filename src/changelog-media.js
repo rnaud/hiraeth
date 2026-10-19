@@ -1293,7 +1293,32 @@ const WEB264M = 'Issue #264: the web game in muted headless Chrome on this branc
 const FIN528 = 'Issues #528, #529: the cinematics QC (scripts/cinematics-qc.mjs --group "Temple endings") in muted headless Chrome (High, 1280 × 720, the frames kept at 960 × 540) on this branch’s own Vite (port 5428), each ending staged by the review page (in the arena between the keeper and the way out, the keeper woken and calmed); before: the branch’s base with #490 and #491, after: the fix, the same panel of the film; 19 October';
 const DUNES498 = 'Issue #498: muted headless Chrome (High, 1280 × 720) against this branch’s own Vite (port 5498), the Glass Dunes at 10:00, standing on the stair in the city under the sand, looking up its lane; each picture taken twice, the camera moved 2 mm to the side between them, and the pixels that changed by more than 24 levels painted red (the rest dimmed); before: the tree at e3df11da4, the same views (0.52 % of the picture changed; after, 0.25 %, the lamps’ glow and the drifting motes); 19 October; cwebp -q 60';
 const DUNES475 = 'Issue #475: muted headless Chrome (High, 1280 × 720) against this branch’s own Vite (port 5498), the Glass Dunes at 17:00, standing in the red cleft looking out by its arch, and at the folded ravine’s north end looking down the prism crossings; before: the tree at 36551ddf5, the same views; the maps from scripts/level-design/audit.mjs --worlds glassdunes before and after (the critical path dark, the leading lines orange); 19 October; cwebp -q 72 (the maps -q 80)';
+/** (v1.87, issue #264: the menus' and the hold's last differences in Unity) */
+const UNITY264L = 'Issue #264: the Unity editor’s batch run on this Mac (node scripts/unity-compare/sequences.mjs unity menus,start-pages,hold: the Signal Market and Arzach’s ship on the debug save, muted, High, -screen 1280x720); before: main at 7242b165f, after: this change; 19 October; cwebp -q 72';
+const WEB264L = 'Issue #264: the web game in muted headless Chrome on this branch’s own Vite (port 5265, node scripts/unity-compare/sequences.mjs web menus,start-pages,hold), 1280 × 720, the same beats; 19 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '1.87': [
+    { match: 'In the Unity version, Anselm’s shop opens over a darkened hold', tags: ['devices'], shots: [
+      { name: 'unity-shop-264', title: 'Anselm’s shop', size: [1280, 720], caption: 'Anselm’s shop in Unity: before, over the lit hold, the names and prices bold, “Not enough fragments” spilling out of its box; after, the hold darkened round it, the names and prices heavy, the flags wrapped in their boxes (SSIM with the web 0.41 → 0.55)', from: UNITY264L },
+      { name: 'unity-shop-264-web', only: 'after', title: 'On the web', size: [1280, 720], caption: 'The same shop on the web', from: WEB264L },
+      { name: 'unity-talk-264', title: 'His first page', size: [1280, 720], caption: 'Anselm’s first page: before, the box only as tall as the line, growing when the answers came; after, as tall as with its answers, as on the web (SSIM 0.82 → 0.92)', from: UNITY264L },
+      { name: 'unity-talk-264-web', only: 'after', title: 'On the web', size: [1280, 720], caption: 'The same page on the web', from: WEB264L },
+    ], see: 'In the Unity version, talk to Anselm in the ship’s hold and choose “Show me what you have.”' },
+    { match: 'In the Unity version, What’s new opens over the game', tags: ['devices'], shots: [
+      { name: 'unity-news-264', title: 'What’s new', size: [1280, 720], caption: 'What’s new in Unity: before, a page of the Start menu beside its sidebar; after, its own panel over the game with See what changed and Close (SSIM 0.18 → 0.45)', from: UNITY264L },
+      { name: 'unity-news-264-web', only: 'after', title: 'On the web', size: [1280, 720], caption: 'The same panel on the web', from: WEB264L },
+      { name: 'unity-controls-head-264', title: 'Controls', size: [1280, 720], caption: 'The Start menu’s Controls in Unity: before, YOUR KEYS (KEYBOARD) as its title and no save under PAUSED; after, CONTROLS over “Your keys (keyboard)”, the save, the world and the fragments under PAUSED, and the side’s foot', from: UNITY264L },
+      { name: 'unity-controls-head-264-web', only: 'after', title: 'On the web', size: [1280, 720], caption: 'The same page on the web', from: WEB264L },
+    ], see: 'In the Unity version, open the Start menu (Menu): look under PAUSED, open Controls, then choose What’s new and close it with B.' },
+    { match: 'In the Unity version, the Quests page lists the quests you finished', tags: ['devices'], shots: [
+      { name: 'unity-quests-264', title: 'Quests', size: [1280, 720], caption: 'Quests in Unity: before, the finished quests spaced a card’s height apart, the cards saying what kind of quest they are; after, a tight list under DONE with “and 53 more”, each card its goal (SSIM 0.43 → 0.52)', from: UNITY264L },
+      { name: 'unity-quests-264-web', only: 'after', title: 'On the web', size: [1280, 720], caption: 'The same page on the web', from: WEB264L },
+      { name: 'unity-items-264', title: 'Items', size: [1280, 720], caption: 'Items in Unity: before, nine tiles a row and a line of description under the strip; after, eight as on the web, the strip the name alone (SSIM 0.08 → 0.33)', from: UNITY264L },
+      { name: 'unity-items-264-web', only: 'after', title: 'On the web', size: [1280, 720], caption: 'The same panel on the web', from: WEB264L },
+      { name: 'unity-map-264', title: 'The Map', size: [1280, 720], caption: 'The Map in Unity: after, the world’s name in spaced capitals and the fragments found here in its note, as on the web', from: UNITY264L },
+      { name: 'unity-map-264-web', only: 'after', title: 'On the web', size: [1280, 720], caption: 'The same map on the web', from: WEB264L },
+    ], see: 'In the Unity version, open the game menu (View) on a save with finished quests: Quests, then Items and the Map.' },
+  ],
   '1.86': [
     { match: 'In the Unity version, the Controls page shows your keys and buttons on caps', tags: ['devices'], shots: [
       { name: 'unity-controls-264', title: 'Controls', size: [1280, 720], caption: 'The Controls page in Unity: before, each key in a choice’s box, one verb a line; after, on caps two verbs a line, as on the web', from: UNITY264M },

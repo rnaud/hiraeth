@@ -25,7 +25,7 @@
 import { slots as defaultStore, SLOT_COUNT, DEBUG_SLOT, formatPlaytime, formatDate, progressLine } from '../src/save-slots.js';
 import { ORDER, TITLES } from '../src/levels/names.js';
 import { t } from '../src/i18n.js';
-import { MenuState, PANELS, DEFAULT_PANEL, ACT, panelsFor, itemsPanel, questsPanel, worldsPanel, peoplePanel, mapPanel, housePanel, worldFacts, CARRY_COL, GEAR_COLS, PEOPLE_COLS, KIND_MARK } from '../src/game-menu.js';
+import { MenuState, PANELS, DEFAULT_PANEL, ACT, panelsFor, itemsPanel, questsPanel, worldsPanel, peoplePanel, mapPanel, housePanel, worldFacts, CARRY_COL, GEAR_COLS, PEOPLE_COLS, KIND_MARK, ENDED } from '../src/game-menu.js';
 import { sideStep } from '../src/menu-pad.js';
 import { controlsList, REBIND_PAD, REBIND_KEYS, PAD_RAW_ROWS, TEXT_SIZES, reducedMotion } from '../src/ui.js';
 import { PAD_VERBS, BUTTON_NAME, KEYS } from '../src/bindings.js';
@@ -142,6 +142,17 @@ export const CONTROL_ROWS = [
 ];
 /** How many versions What's new lists (the newest first, as the web's changelog panel; the rest on the web's page). */
 export const NEWS_VERSIONS = 4;
+
+/**
+ * The Items panel's tiles a row on a menu canvas w × h (BridgeMenu's units), as the page's grid fits them
+ * (src/game-menu.css .gm-items .grid: auto-fill of --tile, clamp(62px, min(15.5vh, 9.6vw), 132px), 1vw apart, in the
+ * sheet's room between its side tabs): eight at 1280 × 720 as on the web, where the engines had nine (issue #264).
+ */
+export function itemColsFor(w = 1280, h = 720) {
+  const tile = Math.min(132, Math.max(62, Math.min(0.155 * h, 0.096 * w))), gap = Math.min(14, Math.max(6, 0.01 * w));
+  const room = w - 2 * Math.max(56, 0.056 * w) - 66;
+  return Math.max(4, Math.min(12, Math.floor((room + gap) / (tile + gap))));
+}
 const verbName = (v, kind = 'pad') => { const k = `verb.${v}.${kind}`, s = t(k); return s === k ? t(`verb.${v}`) : s; };
 /** Is the keyboard in hand (the body's 'controller' class unset, as engine/game.js's InputMode keeps it; none: the pad)? */
 const keysInHand = () => { const b = globalThis.document?.body?.classList; return !!b && !b.contains?.('controller'); };
@@ -923,6 +934,8 @@ export class EngineMenus {
     if (name === 'start') { this.close(); return; }
     if (name === 'select') { this.show('game'); return; }
     if (S.at.in === 'page') {
+      // (What's new is the page's own panel over the game, src/changelog.js: its Close, B / ○, goes back to the game)
+      if (name === 'back' && this.startPage() === 'news') { this.close(); return; }
       if (name === 'back') { S.back = S.at.i; S.at = { in: 'side', i: Math.max(0, SIDE.findIndex((e) => e.page === this.startPage())) }; return; }
       if (name === 'confirm' && this.startPage() === 'updates') this.updatesConfirm(S.at.i);
       if (name === 'confirm' && this.startPage() === 'settings') this.settingsAction('confirm', S, () => {});
@@ -1123,13 +1136,19 @@ export class EngineMenus {
   startView() {
     const S = this.start, page = this.startPage();
     const keysFirst = page === 'controls' && this.keysFirst();
-    const title = { controls: t(keysFirst ? 'rebind.keysTitle' : 'rebind.padTitle'), news: `${t('menu.news')}  v${CHANGELOG[0].v}`, updates: UPDATES_SIDE.label() }[page] ?? t('menu.settings');
+    // (the page's h1 and the small version beside it, its span: SETTINGS v1.86, WHAT'S NEW v1.86; the Controls page's
+    // CONTROLS over its rebinding's own heading, the h2 "Your keys (keyboard)": src/ui.js controlsHtml, rebindHtml)
+    const title = { controls: t('ctl.title'), news: t('menu.news'), updates: UPDATES_SIDE.label() }[page] ?? t('menu.settings');
+    const tag = page === 'news' ? `v${CHANGELOG[0].v}` : page === 'settings' && this.version ? this.version : '';
+    const sub = page === 'controls' ? t(keysFirst ? 'rebind.keysTitle' : 'rebind.padTitle') : '';
     const hint = this.rebinding ? (this.rebinding.kind === 'keys' ? `${t('rebind.pressKey')} · Esc keeps it` : `${t('rebind.pressButton')} · Menu keeps it`)
       : S.at.in !== 'page' ? 'A / × choose · ▶ the page · B / ○ resume'
       : page === 'news' ? '▲ ▼ read · B / ○ back' : page === 'updates' ? 'A / × choose · B / ○ back' : page === 'controls' ? 'A / × change · ◀ ▶ adjust · B / ○ back' : '◀ ▶ adjust · A / × change · B / ○ back';
-    const view = { v: this.v, kind: 'start', brand: t('menu.paused'), head: this.where() || '', sub: '', line: this.saveLine?.() ?? '',
-      side: this.startSide().map((e, i) => ({ text: e.label(), on: S.at.in === 'side' && S.at.i === i, sel: e.page === page })),
-      page: { title, note: page === 'controls' && this.settings ? t(keysFirst ? 'rebind.keysHow' : 'rebind.padHow') : '', rows: this.startPageRows() }, hint };
+    const view = { v: this.v, kind: 'start', brand: t('menu.paused'), head: this.where() || '', sub: '', line: this.saveLine?.() ?? '', saved: t('menu.saved'),   // (the side's foot, the page's .saved)
+      // (What's new, chosen: the page's changelog panel over the game, no sidebar: `news`, BridgeMenu.Pause.cs DrawNews)
+      news: page === 'news' && S.at.in === 'page',
+      side: page === 'news' && S.at.in === 'page' ? [] : this.startSide().map((e, i) => ({ text: e.label(), on: S.at.in === 'side' && S.at.i === i, sel: e.page === page })),
+      page: { id: page, title, tag, sub, note: page === 'controls' && this.settings ? t(keysFirst ? 'rebind.keysHow' : 'rebind.padHow') : '', rows: this.startPageRows() }, hint };
     return view;
   }
   gameView() {
@@ -1144,6 +1163,8 @@ export class EngineMenus {
       here: c.kind === 'world' && /here/i.test(c.sub ?? ''), off: c.kind === 'mark' && !c.mark?.on,
       // (a quest's next step under it, as the page's card shows it)
       step: ['quest', 'charge', 'errand'].includes(c.kind) ? plain(c.q?.step) : '',
+      // (and its goal in italics between, and its mark: the main story's ◆, an errand's ◇, as the page's .qcard; issue #264)
+      goal: ['quest', 'charge', 'errand'].includes(c.kind) ? plain(c.q?.goal) : '', main: !!c.q?.main,
     })));
     if (grid) {
       // the slots still to find, drawn after the gear but not named (src/game-menu.js itemsPanel), never the cursor's
@@ -1159,6 +1180,12 @@ export class EngineMenus {
       empty: p.rows.length ? '' : plain(BUILDERS[p.id](p.data).html.match(/<p class="none">([^<]*)<\/p>/)?.[1] ?? ''),
       strip: cell ? { name: cell.name ?? '', sub: cell.sub ?? '', desc: plain(cell.desc), act: cell.act ? ACT[cell.act] : '' } : null,
       hint: this.full ? 'B / ○ back · ◀ ▶ the next' : 'LB / RB turn · A / × choose · B / ○ close' };
+    // (the quests' "done" list: its own column under its heading, a line each, "and n more" after the done and after the
+    // failed, as the page's aside .qdone, not a cell of the cards' rows; issue #264)
+    if (p.id === 'quests') {
+      const d = p.data ?? {}, more = (l = []) => (l.length > ENDED ? t('gm.more', { n: l.length - ENDED }) : '');
+      view.done = { head: t('gm.done'), more: more(d.done), moreFailed: more(d.failed), none: (d.done?.length || d.failed?.length) ? '' : t('gm.noneYet') };
+    }
     if (p.id === 'items') { view.slots = p.data?.slots ?? 0; view.gear = (p.data?.gear ?? []).length; view.chimes = p.data?.chimes ?? null; }
     if (p.id === 'map') {
       // the map is the whole sheet (no list under it, issue #244): its ground (the engine's picture by its key,

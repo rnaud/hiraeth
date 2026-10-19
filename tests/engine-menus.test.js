@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs';
 
 globalThis.matchMedia ??= () => ({ matches: false });
 globalThis.window ??= new EventTarget();
-const { EngineMenus, SETTINGS_ROWS, START_SIDE, nextInto, settingStep, settingText } = await import('../engine/menus.js');
+const { EngineMenus, itemColsFor, SETTINGS_ROWS, START_SIDE, nextInto, settingStep, settingText } = await import('../engine/menus.js');
 const { t } = await import('../src/i18n.js');
 const { SlotStore, DEBUG_SLOT } = await import('../src/save-slots.js');
 const { ORDER } = await import('../src/levels/names.js');
@@ -182,7 +182,8 @@ test('the Start menu: the sidebar and its page, as issue #210 has it; B in the p
   for (let i = START_SIDE.findIndex((e) => e.id === 'controls'); i > 0; i--) m.navigate(0, 1);
   m.action('confirm');
   v = m.view();
-  assert.equal(v.page.title, 'Your buttons (controller)');
+  assert.equal(v.page.title, 'CONTROLS');   // (the page's h1, its rebinding's own heading under it: src/ui.js controlsHtml)
+  assert.equal(v.page.sub, 'Your buttons (controller)');
   assert.ok(v.page.rows.filter((r) => r.plain && !r.head).length > 5, 'every control under the rebinding');
 });
 
@@ -289,13 +290,63 @@ test('What\'s new in the Start menu (issue #264): the newest versions\' lines, n
   for (let i = START_SIDE.findIndex((e) => e.id === 'news'); i > 0; i--) m.navigate(0, 1);
   m.action('confirm');
   const v = m.view();
-  assert.match(v.page.title, new RegExp(`v${CHANGELOG[0].v.replace('.', '\\.')}`));
+  assert.equal(v.page.title, 'What\'s new');
+  assert.equal(v.page.tag, `v${CHANGELOG[0].v}`);   // (the version small beside the title, as the page's h1 span)
   assert.equal(v.page.rows[0].text, `v${CHANGELOG[0].v}`);
   assert.ok(v.page.rows[0].head);
   assert.equal(v.page.rows[1].text, lineText(newestFirst(CHANGELOG[0])[0]).replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim());
   assert.ok(v.page.rows.filter((r) => r.head).length >= 2);
   m.navigate(0, 1);
   assert.ok(m.view().page.rows[1].on, 'down: the next line (the page scrolls with it)');
+  // chosen, it is the page's changelog panel over the game (no sidebar: BridgeMenu's DrawNews), and B / ○ closes it
+  // back to the game, as the page's Close (issue #264)
+  assert.equal(m.view().news, true);
+  assert.deepEqual(m.view().side, []);
+  m.action('back');
+  assert.equal(m.mode, null);
+  // shown from the sidebar (the pad on its entry), it is a page beside it as before
+  m.show('start');
+  for (let i = START_SIDE.findIndex((e) => e.id === 'news'); i > 0; i--) m.navigate(0, 1);
+  assert.equal(m.view().news, false);
+  assert.ok(m.view().side.length > 3);
+});
+
+test('the Start menu\'s headings as the page\'s (issue #264): SETTINGS with its version, CONTROLS over its rebinding\'s heading, the side\'s foot', () => {
+  const m = new EngineMenus({ store: memStore(), settings: settingsStub(), version: 'v9.9', saveLine: () => 'Debug save · The Desert · 2 min played' });
+  m.show('start');
+  let v = m.view();
+  assert.equal(v.page.title, 'Settings');
+  assert.equal(v.page.tag, 'v9.9');
+  assert.equal(v.line, 'Debug save · The Desert · 2 min played');
+  assert.equal(v.saved, 'Your progress is saved as you play.');
+  for (let i = START_SIDE.findIndex((e) => e.id === 'controls'); i > 0; i--) m.navigate(0, 1);
+  v = m.view();
+  assert.equal(v.page.id, 'controls');
+  assert.equal(v.page.title, 'CONTROLS');
+  assert.match(v.page.sub, /^Your (buttons|keys)/);
+  assert.equal(v.page.tag, '');
+});
+
+test('the Quests panel\'s cards and its done list as the page\'s (issue #264): the goal and the mark on each card, DONE over the ended, "and n more"', () => {
+  const src = sources();
+  const q = src.quests();
+  q.done = Array.from({ length: 9 }, (_, i) => ({ id: `d${i}`, title: `Done ${i}`, outro: '' }));
+  q.failed = [{ id: 'f0', title: 'Lost', outro: '' }];
+  const m = new EngineMenus({ store: memStore(), sources: { ...src, quests: () => q } });
+  m.show('game', 'quests');
+  const v = m.view();
+  const water = v.rows.flat().find((c) => c.text === 'Water');
+  assert.equal(water.goal, 'Find water');
+  assert.equal(water.main, true);
+  assert.deepEqual(v.done, { head: 'Done', more: 'and 3 more', moreFailed: '', none: '' });
+  const ended = v.rows.flat().filter((c) => c.kind === 'ended');
+  assert.equal(ended.length, 7, 'six done and one failed, as the page lists them');
+});
+
+test('the Items panel\'s tiles a row as the page\'s grid fits them (issue #264): eight on 1280 × 720, fewer on 4:3', () => {
+  assert.equal(itemColsFor(1280, 720), 8);
+  assert.ok(itemColsFor(960, 720) < 8 && itemColsFor(960, 720) >= 6);
+  assert.ok(itemColsFor(1920, 720) > 8);
 });
 
 /** Sources for the game menu as menuSources gives them, small. */

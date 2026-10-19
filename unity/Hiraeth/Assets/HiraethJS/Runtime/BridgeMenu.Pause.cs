@@ -21,7 +21,7 @@ namespace Hiraeth.Bridge
             PauseTeal = Ui.Hex("#22677a"), PauseMuted = Ui.Hex("#5e4b45"), PauseTrack = Ui.Hex("#2b211f", 0.14f);
 
         RectTransform pauseRoot, pauseRules; Image pauseSide, pauseSideEdge, pauseSideShade;
-        Label pauseBrand, pauseWhere, pauseLine, pauseTitle, pauseNote;
+        Label pauseBrand, pauseWhere, pauseLine, pauseFrag, pauseSaved, pauseTitle, pauseTag, pauseSub, pauseNote;
         readonly List<Image> rules = new();
         class NavButton { public Ui.Box box; public Image edge; public Label text; }
         readonly List<NavButton> navs = new();
@@ -45,10 +45,19 @@ namespace Hiraeth.Bridge
             var o2 = pauseBrand.gameObject.AddComponent<Outline>(); o2.effectColor = PauseInk; o2.effectDistance = new Vector2(-2, 2);
             var sh = pauseBrand.gameObject.AddComponent<Shadow>(); sh.effectColor = PauseInk; sh.effectDistance = new Vector2(5, -5);
             pauseWhere = Ui.Label(pauseRoot, "where", Ui.Sans, 15, PauseInk, TextAnchor.UpperLeft, FontStyle.Bold);
-            pauseLine = Ui.Label(pauseRoot, "line", Ui.Sans, 13, PauseInk, TextAnchor.UpperLeft, FontStyle.Normal, 1.4f);
+            pauseLine = Ui.Label(pauseRoot, "line", Ui.Sans, 13, PauseInk, TextAnchor.UpperLeft, FontStyle.Normal, 1.1f);
+            // (the fragments of the singing light on a line of their own in teal, the page's .where .frag; and the side's
+            // foot, .saved: "Your progress is saved as you play.", 0.85em at 0.7)
+            pauseFrag = Ui.Label(pauseRoot, "fragments", Ui.Sans, 13, PauseTeal, TextAnchor.UpperLeft, FontStyle.Normal, 1.1f);
+            pauseSaved = Ui.Label(pauseRoot, "saved", Ui.Sans, 12, Ui.Hex("#2b211f", 0.7f), TextAnchor.LowerLeft, FontStyle.Normal);
             pauseTitle = Ui.Label(pauseRoot, "title", Ui.Sans, 23, PauseInk, TextAnchor.UpperLeft, FontStyle.Bold);
             Ui.Space(pauseTitle, 0.16f);
-            pauseNote = Ui.Label(pauseRoot, "note", Ui.Sans, 13, PauseMuted, TextAnchor.UpperLeft, FontStyle.Italic);
+            // (the version beside the title, the h1's span: --type-s at 0.92, normal, 0.6 opacity; the Controls page's rebinding
+            // heading under it, the page's h2: 2.1vh, bold, 0.08em)
+            pauseTag = Ui.Label(pauseRoot, "tag", Ui.Sans, 13, Ui.Hex("#2b211f", 0.6f), TextAnchor.LowerLeft, FontStyle.Normal);
+            pauseSub = Ui.Label(pauseRoot, "sub", Ui.Sans, 15, PauseInk, TextAnchor.UpperLeft, FontStyle.Bold);
+            Ui.Space(pauseSub, 0.08f);
+            pauseNote = Ui.Label(pauseRoot, "note", Ui.Sans, 12, Ui.Hex("#2b211f", 0.65f), TextAnchor.UpperLeft, FontStyle.Normal);   // (the page's p.keys: 0.85em at 0.65, upright)
             pauseRoot.gameObject.SetActive(false);
         }
 
@@ -88,9 +97,110 @@ namespace Hiraeth.Bridge
             var row = prows[prowUsed++]; row.rt.gameObject.SetActive(true); return row;
         }
 
+        // ---------------------------------------------------------------- What's new, as the page's changelog panel
+        // (src/changelog.js Changelog, index.html #changelog): chosen from the Start menu, the menu gives way to a paper panel
+        // over the world under a 45 % veil of ink, 46em wide: WHAT'S NEW in the title face with the version beside it, then
+        // each version's heading and date over a rule, its lines as bullets, and at the foot See what changed and Close (B /
+        // Esc). It was a page of the Start menu beside its sidebar (issue #264).
+        RectTransform nwRoot; Ui.Box nwPanel, nwPics, nwClose; Label nwTitle, nwTag, nwPicsText, nwCloseText;
+        class NewsLine { public Label text, date, dot; public Image rule; }
+        readonly List<NewsLine> nwLines = new();
+
+        void DrawNews(Dictionary<string, object> page)
+        {
+            if (!nwRoot)
+            {
+                nwRoot = Ui.Stretch(Ui.Node("news (the web's changelog panel)", root));
+                nwRoot.SetSiblingIndex(dim.transform.GetSiblingIndex() + 1);
+                nwPanel = Ui.Panel(nwRoot, "panel", Ui.Hex("#f7ecd2"), PauseInk, 2, 7, 7);
+                nwTitle = Ui.Label(nwPanel.rt, "title", Ui.Heavy, 21, PauseInk, TextAnchor.UpperLeft, FontStyle.Bold, 1f); Ui.Space(nwTitle, 0.1f);
+                nwTag = Ui.Label(nwPanel.rt, "version", Ui.Sans, 13, Ui.Hex("#2b211f", 0.6f), TextAnchor.LowerLeft);
+                nwPics = Ui.Panel(nwPanel.rt, "see what changed", Ui.Hex("#fffaf0"), PauseInk, 2);
+                nwPicsText = Ui.Label(nwPics.rt, "text", Ui.Sans, 14, PauseInk, TextAnchor.MiddleCenter); Ui.Stretch(nwPicsText.rectTransform);
+                nwClose = Ui.Panel(nwPanel.rt, "close", Ui.Hex("#fffaf0"), PauseInk, 2);
+                nwCloseText = Ui.Label(nwClose.rt, "text", Ui.Sans, 14, PauseInk, TextAnchor.MiddleLeft);
+            }
+            nwRoot.gameObject.SetActive(true);
+            pauseRoot.gameObject.SetActive(false);
+            dim.color = Ui.Hex("#2b211f", 0.45f);
+            // (width min(46em, 94vw) at the page's --type-s; padding 1.5em 1.8em)
+            float em = 13.7f, pw = Mathf.Min(46 * em, W * 0.94f), padX = 1.8f * em, padY = 1.5f * em, iw = pw - padX * 2;
+            float ph = H - 34, top = (H - ph) / 2;
+            Ui.Place(nwPanel.rt, W / 2 - pw / 2, top, pw, ph);
+            var ts = Ui.Set(nwTitle, Ui.Upper(page?.S("title") ?? "What's new"), iw);
+            Ui.Place(nwTitle.rectTransform, padX, padY, ts.x + 4, ts.y);
+            var tag = page?.S("tag") ?? "";
+            var gs = Ui.Set(nwTag, tag, iw - ts.x - 10);
+            Ui.Place(nwTag.rectTransform, padX + ts.x + 10, padY + ts.y - gs.y - 1, gs.x + 4, gs.y);
+            // the buttons at the foot, on the right: See what changed, then Close with B / Esc's glyph
+            float bh = 32, by = ph - padY - bh;
+            nwCloseText.text = "Close";
+            float gw = state.O("glyphs") != null ? PutGlyph(nwClose.rt, "back", 10, bh / 2, 14) : 0;
+            if (gw <= 0) { nwCloseText.text = Key("back", "B") + "  Close"; }
+            float cw = 12 + (gw > 0 ? gw + 6 : 0) + Ui.Measure(nwCloseText, nwCloseText.text).x + 12;
+            Ui.Place(nwCloseText.rectTransform, 12 + (gw > 0 ? gw + 6 : 0) - (gw > 0 ? 0 : 2), 0, cw, bh);
+            Ui.Place(nwClose.rt, pw - padX - cw, by, cw, bh);
+            nwPicsText.text = "See what changed";
+            float sw0 = Ui.Measure(nwPicsText, nwPicsText.text).x + 26;
+            Ui.Place(nwPics.rt, pw - padX - cw - 8 - sw0, by, sw0, bh);
+            // the list: each version's heading (h2: 1.08em bold, its date 0.85em at 0.6, a rule under), its lines bulleted
+            // (li: margin 3, 18 in), scrolled to the line the pad is on
+            float ly = padY + ts.y + 10, lh = by - 12 - ly;   // (h1's margin 10, then each h2's 14 over it)
+            var rows = page?.L("rows") ?? new List<object>();
+            var hs = new List<float>(); int at = 0;
+            var fx = new List<NewsLine>();
+            for (int i = 0; i < rows.Count; i++)
+            {
+                var r = rows[i] as Dictionary<string, object>;
+                while (nwLines.Count <= i)
+                {
+                    var n = new NewsLine { text = Ui.Label(nwPanel.rt, "line" + nwLines.Count, Ui.Sans, 14, PauseInk, TextAnchor.UpperLeft, FontStyle.Normal, 1.07f) };
+                    n.date = Ui.Label(nwPanel.rt, "date", Ui.Sans, 13, Ui.Hex("#2b211f", 0.6f), TextAnchor.LowerLeft);
+                    n.dot = Ui.Label(nwPanel.rt, "dot", Ui.Sans, 14, PauseInk, TextAnchor.UpperLeft); n.dot.text = "•";
+                    n.rule = Ui.Rect(nwPanel.rt, PauseInk, 0, "rule");
+                    nwLines.Add(n);
+                }
+                bool head = B(r, "head");
+                var l = nwLines[i];
+                l.text.fontSize = head ? 15 : 14; l.text.fontStyle = head ? FontStyle.Bold : FontStyle.Normal;
+                float h = head ? 14 + Ui.Measure(l.text, r.S("text") ?? "", iw).y + 5 : Ui.Measure(l.text, r.S("text") ?? "", iw - 18).y + 6;
+                hs.Add(h);
+                if (B(r, "on")) at = i;
+            }
+            float yy = ly - Scroll(hs, at, lh);
+            for (int i = 0; i < nwLines.Count; i++)
+            {
+                var l = nwLines[i];
+                bool shown = i < rows.Count && yy >= ly - 1 && yy + hs[i] <= ly + lh + 2;
+                Show(l.text, shown); Show(l.dot, false); Show(l.date, false); Show(l.rule, false);
+                if (i >= rows.Count) continue;
+                var r = rows[i] as Dictionary<string, object>;
+                if (shown)
+                {
+                    if (B(r, "head"))
+                    {
+                        float hy = yy + 14;
+                        var hs2 = Ui.Set(l.text, r.S("text") ?? "", iw); Ui.Place(l.text.rectTransform, padX, hy, hs2.x + 4, hs2.y);
+                        var date = r.S("val") ?? "";
+                        Show(l.date, date.Length > 0);
+                        if (date.Length > 0) { var ds = Ui.Set(l.date, date, iw); Ui.Place(l.date.rectTransform, padX + hs2.x + 6, hy, ds.x + 4, hs2.y); }
+                        Show(l.rule, true); Ui.Place(l.rule.rectTransform, padX, hy + hs2.y + 1, iw, 1);
+                    }
+                    else
+                    {
+                        var s2 = Ui.Set(l.text, r.S("text") ?? "", iw - 18); Ui.Place(l.text.rectTransform, padX + 18, yy + 3, iw - 18, s2.y);
+                        Show(l.dot, true); Ui.Place(l.dot.rectTransform, padX + 4, yy + 3, 12, 20);
+                    }
+                }
+                yy += hs[i];
+            }
+        }
+
         void DrawPause()
         {
             if (!pauseRoot) BuildPause();
+            if (B(state, "news")) { DrawNews(state.O("page")); return; }
+            if (nwRoot) nwRoot.gameObject.SetActive(false);
             pauseRoot.gameObject.SetActive(true);
             navUsed = 0; prowUsed = 0;
             sheet.Show(false);
@@ -111,14 +221,22 @@ namespace Hiraeth.Bridge
             var ln = state.S("line") ?? "";
             int cut = ln.IndexOf(" · ");
             string save = cut > 0 ? ln.Substring(0, cut) : ln, rest = cut > 0 ? ln.Substring(cut + 3) : "";
+            int fcut = rest.IndexOf(" · ✧");
+            string frag = fcut >= 0 ? rest.Substring(fcut + 3) : "";
+            if (fcut >= 0) rest = rest.Substring(0, fcut);
             var ws = Ui.Set(pauseWhere, save, sideW - pad * 2);
             Ui.Place(pauseWhere.rectTransform, pad, y, sideW - pad * 2, ws.y); y += ws.y;
             Show(pauseLine, rest.Length > 0);
-            if (rest.Length > 0) { var ls = Ui.Set(pauseLine, rest, sideW - pad * 2); Ui.Place(pauseLine.rectTransform, pad, y, sideW - pad * 2, ls.y); y += ls.y; }
+            if (rest.Length > 0) { var ls = Ui.Set(pauseLine, rest, sideW - pad * 2); Ui.Place(pauseLine.rectTransform, pad, y + 2, sideW - pad * 2, ls.y); y += ls.y + 2; }
+            Show(pauseFrag, frag.Length > 0);
+            if (frag.Length > 0) { var fs = Ui.Set(pauseFrag, frag, sideW - pad * 2); Ui.Place(pauseFrag.rectTransform, pad, y + 2, sideW - pad * 2, fs.y); y += fs.y + 2; }
+            var saved = state.S("saved") ?? "";
+            Show(pauseSaved, saved.Length > 0);
+            if (saved.Length > 0) { Ui.Set(pauseSaved, saved, sideW - pad * 2); Ui.Place(pauseSaved.rectTransform, pad, H - 16 - 20, sideW - pad * 2, 20); }
             y += 16;
             // the entries: as tall as the page's (2.4vh letters, 1.4vh padding), closer where they would run off the screen
             var side = state.L("side") ?? new List<object>();
-            float bh = 48, gap = 9, avail = H - 16 - y;
+            float bh = 48, gap = 9, avail = H - 16 - (saved.Length > 0 ? 28 : 0) - y;
             if (side.Count > 0 && side.Count * (bh + gap) > avail) { float k = avail / (side.Count * (bh + gap)); bh = Mathf.Max(30, bh * k); gap = Mathf.Max(4, gap * k); }
             float bw = sideW - pad * 2 - 6;
             foreach (var o in side)
@@ -149,7 +267,15 @@ namespace Hiraeth.Bridge
             var page = state.O("page");
             float px = sideW + 3 + Mathf.Clamp(W * 0.04f, 14, 64), pw = Mathf.Min(760, W - px - Mathf.Clamp(W * 0.04f, 14, 64)), py = top;
             var ts = Ui.Set(pauseTitle, Ui.Upper(page?.S("title") ?? ""), pw);
-            Ui.Place(pauseTitle.rectTransform, px, py, pw, ts.y); py += ts.y + 12;
+            Ui.Place(pauseTitle.rectTransform, px, py, pw, ts.y);
+            var tag = page?.S("tag") ?? "";
+            Show(pauseTag, tag.Length > 0);
+            if (tag.Length > 0) { float tw = Ui.Measure(pauseTitle, pauseTitle.text).x; var gs = Ui.Set(pauseTag, tag, pw - tw - 10); Ui.Place(pauseTag.rectTransform, px + tw + 10, py + ts.y - gs.y - 4, gs.x + 4, gs.y); }
+            py += ts.y + 12;
+            var sub = page?.S("sub") ?? "";
+            Show(pauseSub, sub.Length > 0);
+            // (the page's h2 under its h1: a margin of 2.2vh over it; its p.keys 14 under it)
+            if (sub.Length > 0) { var ss = Ui.Set(pauseSub, sub, pw); Ui.Place(pauseSub.rectTransform, px, py + 4, pw, ss.y); py += ss.y + 4 + 14; }
             var pn = page?.S("note") ?? "";
             Show(pauseNote, pn.Length > 0);
             if (pn.Length > 0) { var ns = Ui.Set(pauseNote, pn, pw); Ui.Place(pauseNote.rectTransform, px, py, pw, ns.y); py += ns.y + 8; }

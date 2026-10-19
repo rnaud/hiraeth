@@ -2647,6 +2647,49 @@ scenes' state (the cinema, the star map's options, the hologram's two meshes) is
 (world creation 1.2–2.1× the Mac's: performance.md, round 6) that is no measurable load and a few draws near the ship;
 not measured on the device this round.
 
+## The menus' and the hold's last differences (2026-10-19, issue #264)
+
+The `menus`, `start-pages` and `hold` sequences again, web against Unity (muted headless Chrome; Unity's editor batch
+run, `-screen 1280x720`; and `SIZE=960x720` for the Retroid's 4:3), and what was still different:
+
+- **The shop beat's camera** was the harness's, not the game's: once the batch run drew a 1280 × 720 screen
+  (`-screen`, above) the hold behind Anselm's sheet is framed as on the web. What was left was the sheet: the page lays
+  `#shop` over the world under a 42 % veil of ink (BridgeMenu.Shop.cs left the room lit), its ware names, prices and
+  wallet in the face at weight 800 (`Ui.SansHeavy`: Avenir Next Heavy, Roboto Black or Segoe UI Black where the system
+  has one; else the face in bold, set a little wider, so "Light-tempered / edge" wraps as on the page), and a flag that
+  does not fit beside its price wraps inside its box ("Not enough / fragments"), the foot as tall as it. SSIM 0.41 → see
+  the round's sheets.
+- **The conversation's panel** keeps the page's room (src/story/dialogue.js `publish`: `ghost`, the node's longest
+  page, and `ahead`, the answers still to come, as the page's `.dlg-ghost` and `.dlg-choices.waiting`): BridgeHud's
+  panel is as tall from the first page as when its answers come, where it grew under them.
+- **The sequences' Start menu** is made with the save line, the world and the version as the game's
+  (engine/unity/game.js `saveLine`, `where`, shared by both), so its pictures say "Debug save · The Signal Market · …"
+  under PAUSED as the web's.
+- **The Start menu as the page's** (BridgeMenu.Pause.cs): the fragments on a line of their own in teal (`.where
+  .frag`), "Your progress is saved as you play." at the side's foot (`saved`), the version beside SETTINGS (`page.tag`,
+  the h1's span), the Controls page titled CONTROLS with its rebinding's own heading under it ("Your keys (keyboard)":
+  `page.sub`, the page's h2; it was the title) and its note upright and faint as the page's `p.keys`.
+- **What's new**, chosen, is the page's changelog panel over the world (`view.news`, DrawNews: WHAT'S NEW and its
+  version, each version's heading, date and rule, its lines bulleted, See what changed and Close at the foot), no
+  sidebar, and B / ○ closes it back to the game as the page's Close. Shown from the sidebar (the pad on its entry) it
+  stays a page beside it. The stream's `menu.side` difference at `start-pages.news` is gone with it.
+- **The Quests panel** draws the page's two columns (BridgeMenu.Chrome.cs DrawQuests): the cards one under another,
+  each as tall as its words, with its goal in italics (`goal`, the page's `.goal`: it showed what kind of quest it was,
+  which is the strip's) and its mark (the charge's ✦, an errand's ✉, the main story's ◆, another's ◇); and the ended in
+  their own column under DONE, a line each 30 high on a dashed rule, "and n more" after the done and after the failed
+  (`view.done`). They were cells of the cards' rows, so the first ended lines stood a card's height apart.
+- **The game menu's strip** says only the name, what it is and what A / × does, as the page's (its description under
+  them was Unity's alone).
+- **Items** fits as many tiles a row as the page's grid does (engine/menus.js `itemColsFor`: auto-fill of the page's
+  `--tile` in the sheet's room): eight on 1280 × 720 (Unity had nine), seven on 960 × 720 (six), the tiles no bigger
+  than the page's; GEAR spaced over "62 of 66", the chimes at the right.
+- **The Map**: the world's name in the page's spaced capitals (`.gm-mapname`), and its note says the fragments found
+  here once the first is found, as main.js `mapSource` (engine/game.js now too: "✧ Fragments of the singing light
+  found here: n").
+
+Left as they are: the page's developer entry (Debug: worlds) and its Language row (no localisation), and the page's
+keyboard glyphs where Unity shows the pad's (the input in hand).
+
 ## Status
 
 - **Stage 1, the spike**: the desert, built by `createDesert` inside GodotJS, mirrored to Godot

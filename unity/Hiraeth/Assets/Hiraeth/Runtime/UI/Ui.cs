@@ -27,6 +27,12 @@ namespace Hiraeth
         public static Font Sans => sans ??= OsFont("sans", "Avenir Next", "Avenir Next Regular", "Futura", "Helvetica Neue", "Roboto", "Segoe UI", "Arial");
         public static Font Light => light ??= OsFont("light", "Avenir Next Ultra Light", "Avenir Next UltraLight", "Avenir Next Light", "Helvetica Neue Thin", "Helvetica Neue Light", "Roboto Thin", "Roboto Light", "Segoe UI Light", "Avenir Next", "Arial");
         public static Font Heavy => heavy ??= OsFont("heavy", "Futura Condensed ExtraBold", "Futura Bold", "Futura-Bold", "Avenir Next Heavy", "Avenir Next Condensed Heavy", "Arial Black", "Roboto Black", "Impact", "Arial");
+        // (the page's face at weight 800, its heavy words: a shop's ware names, prices and wallet; where the system has no heavy
+        // cut of it, the face itself, drawn bold: SansHeavyStyle)
+        static Font sansHeavy;
+        public static Font SansHeavy => sansHeavy ??= HasFont("Avenir Next Heavy", "Roboto Black", "Segoe UI Black") is string n ? OsFont("sans heavy", n, "Avenir Next Heavy") : Sans;
+        public static FontStyle SansHeavyStyle => SansHeavy == Sans ? FontStyle.Bold : FontStyle.Normal;
+        static string HasFont(params string[] names) { installed ??= new HashSet<string>(Font.GetOSInstalledFontNames()); return names.FirstOrDefault(installed.Contains); }
         static HashSet<string> installed;
         static Font OsFont(string what, params string[] names)
         {

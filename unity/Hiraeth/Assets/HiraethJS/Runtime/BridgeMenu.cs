@@ -59,7 +59,7 @@ namespace Hiraeth.Bridge
         // the game menu's tabs, the strip at the foot, a thing full screen, a question, the map's marks
         readonly List<Label> tabs = new();
         Label tabPrev, tabNext; Image tabLine;
-        Ui.Box strip; Label stripName, stripSub, stripDesc, stripAct;
+        Ui.Box strip; Label stripName, stripSub, stripDesc, stripAct, gearChimes;
         Ui.Box card; Label cardTitle, cardSub, cardText, cardFacts, cardUse, cardSteps;
         Ui.Box ask; Label askQ, askWhat, askNo, askYes;
         Ui.Box mapBox;
@@ -163,7 +163,8 @@ namespace Hiraeth.Bridge
             mapDrawing = Ui.Label(mapClip, "drawing", mono, Body, Muted, TextAnchor.MiddleCenter, FontStyle.Italic);
             mapNone = Ui.Label(mapClip, "none", mono, Small, Ui.Ink, TextAnchor.MiddleCenter, FontStyle.Italic);
             mapNameBox = Ui.Panel(mapClip, "name", Ui.Hex("#fbf4e2", 0.85f), Ui.Ink, 0, 0, 0, 3);
-            mapName = Ui.Label(mapNameBox.rt, "text", mono, 16, Ui.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+            // (the page's .gm-mapname, an h2: 1.75vh at 500, spaced 0.34em, in capitals; issue #264)
+            mapName = Ui.Label(mapNameBox.rt, "text", Ui.Sans, 13, Ui.Ink, TextAnchor.MiddleLeft, FontStyle.Normal); Ui.Space(mapName, 0.34f);
             mapNorth = Ui.Node("north", mapClip).gameObject.AddComponent<RawImage>(); mapNorth.raycastTarget = false;
             mapScaleBox = Ui.Panel(mapClip, "scale", Ui.Hex("#fbf4e2", 0.85f), Ui.Ink, 0, 0, 0, 3);
             mapBar = Ui.Rect(mapScaleBox.rt, Ui.Ink, 0, "scaleBar");
@@ -347,6 +348,8 @@ namespace Hiraeth.Bridge
             var kind = state.S("kind");
             HideGameFrame();   // (the journal's desk and tabs: BridgeMenu.Chrome.cs, drawn again by DrawGame)
             if (pauseRoot && kind != "start") pauseRoot.gameObject.SetActive(false);   // (the Start menu's own page: BridgeMenu.Pause.cs)
+            if (nwRoot && kind != "start") nwRoot.gameObject.SetActive(false);
+            if (gearChimes) Show(gearChimes, false);   // (the Items panel's wallet: DrawRows)   // (What's new's panel: BridgeMenu.Pause.cs DrawNews)
             if (smRoot && kind != "starmap") { Show(smRoot, false); smView = null; smCv = -1; }
             if (kind == "title") DrawTitle(); else if (kind == "start") DrawPause(); else if (kind == "shop") DrawShop(); else if (kind == "card") DrawCard(); else if (kind == "foes") DrawFoes(); else if (kind == "arcade") DrawArcade(); else if (kind == "starmap") DrawStarMap(); else DrawGame();
             for (int i = used; i < cells.Count; i++) cells[i].box.Show(false);
@@ -355,6 +358,7 @@ namespace Hiraeth.Bridge
             // the buttons' prompts, at the foot on the right
             var h = state.S("hint") ?? "";
             if (kind == "arcade") h = "";   // (its keys at the foot of its own sheet, as the page's)
+            if (kind == "start" && B(state, "news")) h = "";   // (What's new: its Close at the panel's foot, as the page's)
             // (the title's own entries carry the confirm glyph, the one the pad is on: no line under them, as the page's)
             if (kind == "title" && (state.S("screen") == "main" || state.S("starting") != null)) h = "";
             // the prompts as the buttons' glyphs and their words (issue #517); an older script's as words
@@ -866,21 +870,22 @@ namespace Hiraeth.Bridge
             if (s != null && person == null)
             {
                 strip.Show(true);
-                Ui.Place(strip.rt, sx, gStripY, sw, 58);
+                // (the page's .gm-info: the name and what it is, on one line, and what A / × does; no more: the page's
+                // strip says only that, issue #264, where Unity's had the thing's description under it)
+                Ui.Place(strip.rt, sx, gStripY, sw, 50);
                 StripLook();
                 var ns = Ui.Set(stripName, Ui.Upper(s.S("name")), sw * 0.5f);
-                Ui.Place(stripName.rectTransform, 20, 10, ns.x, ns.y);
+                Ui.Place(stripName.rectTransform, 20, 25 - ns.y / 2, ns.x, ns.y);
                 Ui.Set(stripSub, s.S("sub"), sw * 0.4f);
-                Ui.Place(stripSub.rectTransform, 34 + ns.x, 13, sw * 0.4f, 18);
-                Ui.Set(stripDesc, s.S("desc"), sw - 240);
-                Ui.Place(stripDesc.rectTransform, 20, 32, sw - 240, 24);
+                Ui.Place(stripSub.rectTransform, 34 + ns.x, 25 - ns.y / 2 + 3, sw * 0.4f, 18);
+                Show(stripDesc, false);
                 var act = s.S("act") ?? "";
                 // what A / × does: its glyph, then the words (the page's .gm-act; issue #517), or the button's name before them
                 bool g = state.O("glyphs") != null && act.Length > 0;
                 stripAct.text = act.Length > 0 ? (g ? act : Key("ok", "A") + "  " + act) : "";
                 stripAct.alignment = TextAnchor.MiddleRight;
-                Ui.Place(stripAct.rectTransform, sw - 20 - 190, 9, 176, 22);
-                if (g) PutGlyph(strip.rt, "ok", sw - 20 - 14 - Ui.Measure(stripAct, act).x - 6 - GlyphHeight(Small), 20, Small);
+                Ui.Place(stripAct.rectTransform, sw - 20 - 190, 14, 176, 22);
+                if (g) PutGlyph(strip.rt, "ok", sw - 20 - 14 - Ui.Measure(stripAct, act).x - 6 - GlyphHeight(Small), 25, Small);
             }
             if (full != null) DrawFull(full);
         }
@@ -899,18 +904,23 @@ namespace Hiraeth.Bridge
                 Ui.Place(empty.rectTransform, x + 14, y + 10, w - 28, 60);
                 return;
             }
+            if (panel == "quests") { DrawQuests(rows, colX, x, y, w, h); return; }   // (its two columns: BridgeMenu.Chrome.cs)
             if (panel == "items")
             {
                 // the gear's count and the wallet over the tiles
-                Show(sub, true); sub.fontStyle = FontStyle.Bold;
-                var chimes = state.Get("chimes") is double ch ? $"   ·   {ch:0} chimes" : "";
-                Ui.Set(sub, $"GEAR  {state.I("gear")}/{state.I("slots")}{chimes}", w);
-                Ui.Place(sub.rectTransform, x + 6, y - 2, w, 18);
-                y += 20; h -= 20;
+                // (the page's h2: GEAR spaced out, "62 of 66" fainter beside it; the chimes at the right in bold)
+                Show(sub, true); sub.fontStyle = FontStyle.Normal;
+                Ui.Set(sub, $"G E A R    <color=#2b211f99>{state.I("gear")} of {state.I("slots")}</color>", w);
+                Ui.Place(sub.rectTransform, x + 8, y + 4, w, 18);
+                if (!gearChimes) gearChimes = Ui.Label(root, "chimes", Ui.Sans, 13, Ui.Ink, TextAnchor.UpperRight, FontStyle.Bold);
+                Show(gearChimes, state.Get("chimes") is double);
+                if (state.Get("chimes") is double ch) { gearChimes.text = $"{ch:0} chimes"; Ui.Place(gearChimes.rectTransform, x, y + 4, w - 10, 18); }
+                y += 28; h -= 28;
             }
             // a row's height by what is in it
             // (the gear's tiles: as wide as a column lets them, up to the web's 132 px, their names under them)
-            float side = Mathf.Clamp(w / Mathf.Max(1, cols.Count) - 14, 56, 132);
+            // (and no bigger than the page's --tile: clamp(62px, min(15.5vh, 9.6vw), 132px), issue #264)
+            float side = Mathf.Min(Mathf.Clamp(w / Mathf.Max(1, cols.Count) - 14, 56, 132), Mathf.Clamp(Mathf.Min(H * 0.155f, W * 0.096f), 62, 132));
             float RowH(List<object> row)
             {
                 var k = (row.Count > 0 ? row[0] : null).S("kind");
@@ -1114,7 +1124,7 @@ namespace Hiraeth.Bridge
             // the world's name, top left; north, top right
             var world = m?.S("world") ?? "";
             mapNameBox.Show(world.Length > 0);
-            if (world.Length > 0) { var ws = Ui.Set(mapName, world, mw * 0.6f); Ui.Place(mapName.rectTransform, 8, 2, ws.x, 22); Ui.Place(mapNameBox.rt, 12, 10, ws.x + 16, 26); }
+            if (world.Length > 0) { var ws = Ui.Set(mapName, Ui.Upper(world), mw * 0.6f); Ui.Place(mapName.rectTransform, 8, 2, ws.x, 22); Ui.Place(mapNameBox.rt, 12, 10, ws.x + 16, 26); }
             mapNorth.texture = Mark("north"); Show(mapNorth, mapNorth.texture != null);
             Ui.Place(mapNorth.rectTransform, mw - 14 - cs, 12, cs, cs);
             // the scale bar, bottom left: a round length, its ink and paper quarters
