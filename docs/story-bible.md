@@ -620,6 +620,53 @@ gunship goes off into the dark ("The dark is wide, and we are patient."). They t
 is the flight, and the ship lands where it was going. Later flights to a world already known are quiet. Never on the way home, nor
 to the Lantern.
 
+## The spring-houses: the fight temples (built: src/fight-temples/, src/story/hosts-data.js; docs/design/fight-temples.md)
+
+**What they are.** The dark has always seeped up through the worlds: loose ink with no shape of its own. It takes
+a shape it has seen nearby (a blot in the desert, a hound in the spheres' shade), or it climbs into an old machine.
+In a few places it wells up instead of seeping, and over each of those the makers laid a floor of panelled
+stone with a basin in it, an **ink spring**. At the door they set a small gatehouse, the **Blade Gate**: two
+crossed blades over a shield. That is the makers' sign for *kept out*, and it is a warning, not a boast. In the
+deepest room, on an altar, they left a **reliquary**. Ancient high tech like their houses: clean cuts, lit
+inlays, glyph bands, nothing grown.
+
+**Built over.** People forgot what the floors were for and built on them: Gert's mill, Ulric's crane depot, Wenna's
+walled gardens, the market's back rooms. In the desert the dunes swallowed the hall and nobody built on it at all.
+Each world has its own name for its house (the Sunken Hall, the Drowned Mill…), and nobody but the makers ever
+called them spring-houses.
+
+**Why now.** The floors held for as long as the makers' gifts kept their houses. When the keeping went wrong
+(often the night the light passed, as with the temples' keepers) the springs opened, and the dark came up into
+rooms people still used. The hosts date it by their own night and say what they saw: "Every dusk, more." Nobody
+out there says the light did it, and it didn't.
+
+**Why many, and why ink.** Everything that comes up out of a spring is ink wearing a shape, even what looks like
+a heron or a worm. Cut, it goes back to ink, and the floor drinks it: the stain dries into the stone's colour.
+Nothing living is hurt in a spring-house, so the makers' gentleness holds. The temples' keepers are *calmed*; a
+spring is *cleared*, and it never stays clear. The dark comes up again, never the same way twice, which is why
+a host will always ask again.
+
+**The hosts.** Each is someone whose work was in the building on top: a miller, a crane driver, a lamp-trimmer, a
+sister who sweeps the cloister. They are not guides. They know nothing of the makers' plan, and what they want is
+their place back. Wafa is the only one who never worked there: she keeps watch so the camps' children stay out.
+
+**Why the traveller fights.** Nobody orders him in. Someone who can't go in asks him, and he can. The run lends
+the kit, so a traveller with empty hands can still answer.
+
+**The reward, and the father's charge.** The reliquary holds the colours of the place: Ember in the desert, Reed and
+rust in Lorn, Cab yellow in the City-Shaft. They go on the pack, the blade and the shield, so the kit becomes a
+record of the journey, as the tank does. The colours are exactly what the father means by "something of value":
+a prize you can show. The quieter thing is the host going back to work: the mill grinds and the cranes move.
+Every spring-house offers both, as every world does.
+
+**The way home.** The colours go home on his back. At the stone Lou sees them before she sees anything else.
+
+**In their words (as built, issue #483).** The hosts never send him to "the altar": each says what the floor does and
+what they want back ("Clear it and I'll grind again."). The start card says what the place was and what comes up in
+it, not how many rooms. A run ends *quiet*, not *cleared*: the end card's first line is the place's ("The ink sinks
+back into the floor. Wafa comes down the stair."), the scores under it. Foes "go back to ink"; the shard's boost is
+the blade running bright, never "fury".
+
 ## The detours' traces (built: src/story/sightings-detours.js, each world's content)
 
 While the side worlds are still being made (all seven are `WIP`, off the map), their traces are left off the

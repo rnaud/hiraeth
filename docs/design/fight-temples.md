@@ -9,6 +9,9 @@ from high above at a fixed angle, through a few linked rooms of many weak foes. 
 optional, replayable for a best time, and it pays in looks: a world's colours for the backpack, the sword and the
 shield. The makers' temples and the fights in the open are untouched.
 
+In the story they are the makers' **spring-houses**, floors laid over the places where the dark wells up, built over and
+forgotten; the hosts want their places back (`docs/story-bible.md`, "The spring-houses", issue #483).
+
 **Built: the desert's, the Sunken Hall** (v1.76). How to play it: in the desert walk west from the pilgrims' camps
 to the gatehouse with the crossed blades on its roof (128, 300; the Blade Gate, issue #384) and ask Wafa, who keeps watch by it; or Debug → Games →
 The Sunken Hall (`?game=fight-desert`), or the Arcade's sign.
