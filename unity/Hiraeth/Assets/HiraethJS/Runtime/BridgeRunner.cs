@@ -811,14 +811,35 @@ namespace Hiraeth.Bridge
         /// flat skies dark dots; the ink lines are as crisp at 0.6.</summary>
         public const string HandheldSharpness = "0.6";
         static bool dynOn; static float dynMin = 0.75f;   // (set by Experiments, once the screen is chosen)
+        static bool dynHand; static float dynHandMax, dynHandMin;   // (Handheld's on Android: HandheldDyn)
         static void DynamicResolutionSettings()
         {
+            var inv = System.Globalization.CultureInfo.InvariantCulture;
             dynOn = Uhd.On ? !BridgeArgs.Flag("-no-dyn-res") : BridgeArgs.Flag("-dyn-res");
-            dynMin = BridgeArgs.Arg("-dyn-res-min") is string dr && float.TryParse(dr, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float drv) ? Mathf.Clamp(drv, 0.5f, 1f) : Uhd.On ? Uhd.MinScale : 0.75f;
+            dynMin = BridgeArgs.Arg("-dyn-res-min") is string dr && float.TryParse(dr, System.Globalization.NumberStyles.Float, inv, out float drv) ? Mathf.Clamp(drv, 0.5f, 1f) : Uhd.On ? Uhd.MinScale : 0.75f;
+#if UNITY_ANDROID && !UNITY_EDITOR
+            // (Handheld on a screen up to the Retroid's, FSR 1 taking the picture to it: the scale follows the GPU's frame, from
+            // the preset's 0.67 down to 0.5 (issue #404); -no-dyn-res holds 0.67, -render-scale and -ink-full hold their own;
+            // -dyn-res-min / -dyn-res-max its range)
+            var urp = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
+            dynHand = urp != null && BridgeArgs.Quality == "handheld" && HandheldUpscale(Screen.width, Screen.height) != null
+                && BridgeArgs.Arg("-render-scale") == null && !BridgeArgs.Flag("-ink-full") && !BridgeArgs.Flag("-no-dyn-res") && !BridgeArgs.Flag("-dyn-res");
+#endif
+            if (dynHand)
+            {
+                var u = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
+                dynHandMax = BridgeArgs.Arg("-dyn-res-max") is string dx && float.TryParse(dx, System.Globalization.NumberStyles.Float, inv, out float dxv) ? Mathf.Clamp(dxv, 0.3f, 1f) : u.renderScale;
+                dynHandMin = Mathf.Min(dynHandMax, BridgeArgs.Arg("-dyn-res-min") is string dn && float.TryParse(dn, System.Globalization.NumberStyles.Float, inv, out float dnv) ? Mathf.Clamp(dnv, 0.3f, 1f) : HandheldDyn.Min);
+                u.renderScale = dynHandMax;
+                Debug.Log($"Hiraeth bridge: dynamic resolution {dynHandMin:0.###}-{dynHandMax:0.###} by the GPU's frame, {HandheldDyn.Count(dynHandMax, dynHandMin)} levels");
+            }
         }
         double dynSum; int dynN; float dynAt;
+        // (Handheld's: the last frames' GPU ms for the step down, the longer mean for the step up, frames ignored after a change)
+        readonly float[] dynWin = new float[HandheldDyn.Window]; int dynWinN, dynLevel, dynSkip; double dynUpSum; int dynUpN;
         void DynamicResolution()
         {
+            if (dynHand) { HandheldResolution(); return; }
             if (!dynOn || !booted || gpuMs <= 0) return;
             dynSum += gpuMs; dynN++;
             if (dynN < 30) return;
@@ -833,6 +854,41 @@ namespace Hiraeth.Bridge
             urp.renderScale = next; dynAt = Time.realtimeSinceStartup;
             Uhd.SetPixelRatio(next);
             Debug.Log($"Hiraeth bridge: render scale {s:0.00} -> {next:0.00} (the GPU {g:0.0} ms)");
+        }
+        /// <summary>
+        /// Handheld's dynamic resolution on Android (issue #404; HandheldDyn has the rule): every HandheldDyn.Window frames the
+        /// GPU's median, over DownMs (and 0.3 s since the last change) a step down as far as AimMs needs; every second the
+        /// GPU's mean, under UpMs at the next level up (and 2 s since the last change) a step up. The frames right after a change
+        /// are not counted (the GPU's timings come a few frames late).
+        /// </summary>
+        void HandheldResolution()
+        {
+            if (!booted || gpuMs <= 0) return;
+            if (dynSkip > 0) { dynSkip--; return; }
+            float g = (float)gpuMs, now = Time.realtimeSinceStartup;
+            dynWin[dynWinN++] = g; dynUpSum += g; dynUpN++;
+            int next = dynLevel;
+            if (dynWinN == dynWin.Length)
+            {
+                dynWinN = 0;
+                System.Array.Sort(dynWin);
+                float med = (dynWin[HandheldDyn.Window / 2 - 1] + dynWin[HandheldDyn.Window / 2]) * 0.5f;
+                if (now - dynAt > HandheldDyn.DownAfter) next = HandheldDyn.Down(dynLevel, med, dynHandMax, dynHandMin);
+                if (next != dynLevel) g = med;
+            }
+            if (next == dynLevel && dynUpN >= HandheldDyn.UpFrames)
+            {
+                float mean = (float)(dynUpSum / dynUpN); dynUpSum = 0; dynUpN = 0;
+                if (now - dynAt > HandheldDyn.UpAfter) next = HandheldDyn.Up(dynLevel, mean, dynHandMax, dynHandMin);
+                if (next != dynLevel) g = mean;
+            }
+            if (next == dynLevel) return;
+            var urp = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
+            if (urp == null) return;
+            float s = urp.renderScale;
+            urp.renderScale = HandheldDyn.Level(next, dynHandMax, dynHandMin);
+            dynLevel = next; dynAt = now; dynSkip = HandheldDyn.Skip; dynWinN = 0; dynUpSum = 0; dynUpN = 0;
+            Debug.Log($"Hiraeth bridge: render scale {s:0.000} -> {urp.renderScale:0.000} (the GPU {g:0.0} ms)");
         }
         /// <summary>
         /// The managed heap's collections, tests (issue #113: a stall of 30-60 ms every ~3 s at the City-Shaft, whose
@@ -1187,6 +1243,7 @@ namespace Hiraeth.Bridge
         Unity.Profiling.ProfilerRecorder[] renderRec;
         static readonly string[] RenderStatNames = { "SetPass Calls Count", "Triangles Count", "Vertices Count" };
         readonly double[] renderSum = new double[3];
+        double renderScaleSum;
         int renderN;
         void SampleRenderStats()
         {
@@ -1196,15 +1253,16 @@ namespace Hiraeth.Bridge
                 for (int i = 0; i < renderRec.Length; i++) renderRec[i] = Unity.Profiling.ProfilerRecorder.StartNew(Unity.Profiling.ProfilerCategory.Render, RenderStatNames[i]);
             }
             for (int i = 0; i < renderRec.Length; i++) renderSum[i] += renderRec[i].Valid ? renderRec[i].LastValue : -1;
+            renderScaleSum += GraphicsSettings.currentRenderPipeline is UniversalRenderPipelineAsset ua ? ua.renderScale : 1f;   // (the dynamic resolution's, issue #404)
             renderN++;
         }
-        /// <summary>The frames' mean SetPass calls, triangles and vertices since the last call (JSON).</summary>
+        /// <summary>The frames' mean SetPass calls, triangles, vertices and render scale since the last call (JSON).</summary>
         public string RenderStats()
         {
             int n = Mathf.Max(renderN, 1);
-            var s = string.Format(System.Globalization.CultureInfo.InvariantCulture, "{{\"setpass\":{0:0},\"tris\":{1:0},\"verts\":{2:0},\"frames\":{3}}}",
-                renderSum[0] / n, renderSum[1] / n, renderSum[2] / n, renderN);
-            System.Array.Clear(renderSum, 0, renderSum.Length); renderN = 0;
+            var s = string.Format(System.Globalization.CultureInfo.InvariantCulture, "{{\"setpass\":{0:0},\"tris\":{1:0},\"verts\":{2:0},\"frames\":{3},\"scale\":{4:0.###}}}",
+                renderSum[0] / n, renderSum[1] / n, renderSum[2] / n, renderN, renderScaleSum / n);
+            System.Array.Clear(renderSum, 0, renderSum.Length); renderScaleSum = 0; renderN = 0;
             return s;
         }
 
@@ -1237,6 +1295,43 @@ namespace Hiraeth.Bridge
             if (!On) return;
             HiraethLook.PixelRatio = Mathf.Max(1f, 2160f / 1440f * renderScale);
             Shader.SetGlobalFloat("_PixelRatio", HiraethLook.PixelRatio);
+        }
+    }
+    /// <summary>
+    /// Handheld's dynamic resolution on Android (issue #404; BridgeRunner.HandheldResolution runs it): the render scale on
+    /// evenly spaced levels from the preset's (0.67 on the Retroid: level 0) down to Min, at most MaxStep apart (a change
+    /// makes URP's targets again, so a few levels, not a slider). The GPU's ms at another scale is guessed as a share of the
+    /// frame following the pixels and the rest fixed (Predict): on the Retroid 0.67 → 0.5 took the City-Shaft's start from
+    /// 19.1 to 14.8 ms (round 14), about half of it with the pixels. Down: when the median of the last Window frames is
+    /// over DownMs, to the highest level whose guess (Share) is under AimMs, at least one level. Up: one level, when the
+    /// mean of the last second, guessed with the larger ShareUp (so as not to overshoot), stays under UpMs there. 60 Hz's
+    /// frame is 16.7 ms; between UpMs and DownMs the scale holds, so it doesn't pump.
+    /// </summary>
+    public static class HandheldDyn
+    {
+        public const float Min = 0.5f, MaxStep = 0.045f;
+        public const float DownMs = 15.5f, AimMs = 14.8f, UpMs = 14f, Share = 0.5f, ShareUp = 0.65f;
+        public const int Window = 12, UpFrames = 60, Skip = 6;
+        public const float DownAfter = 0.3f, UpAfter = 2f;
+        /// <summary>How many levels from max to min (both included).</summary>
+        public static int Count(float max, float min) => max - min < 0.001f ? 1 : Mathf.CeilToInt((max - min) / MaxStep - 0.001f) + 1;
+        /// <summary>Level i's scale (0 is max, Count - 1 is min).</summary>
+        public static float Level(int i, float max, float min) { int n = Count(max, min); return n <= 1 ? max : max - (max - min) * Mathf.Clamp(i, 0, n - 1) / (n - 1); }
+        /// <summary>The GPU's ms at scale `to`, from `ms` at `from`: the share k with the pixels, the rest fixed.</summary>
+        public static float Predict(float ms, float from, float to, float k) => ms * (1 - k + k * (to * to) / (from * from));
+        public static int Down(int i, float ms, float max, float min)
+        {
+            int n = Count(max, min);
+            if (ms <= DownMs || i >= n - 1) return i;
+            float s = Level(i, max, min);
+            int j = i + 1;
+            while (j < n - 1 && Predict(ms, s, Level(j, max, min), Share) > AimMs) j++;
+            return j;
+        }
+        public static int Up(int i, float ms, float max, float min)
+        {
+            if (i <= 0) return i;
+            return Predict(ms, Level(i, max, min), Level(i - 1, max, min), ShareUp) < UpMs ? i - 1 : i;
         }
     }
 }

@@ -1300,6 +1300,9 @@ const WEB264L = 'Issue #264: the web game in muted headless Chrome on this branc
 const UNITY264F = 'Issue #264: the Unity editor’s batch run on this Mac (node scripts/unity-compare/sequences.mjs unity menus,start-pages: the Signal Market on the debug save, muted, High, -screen 1280x720); before: 0dc6dd8bd (the round before), after: this change; 19 October; cwebp -q 72';
 const WEB264F = 'Issue #264: the web game in muted headless Chrome on this branch’s own Vite (port 5266, node scripts/unity-compare/sequences.mjs web menus,start-pages), 1280 × 720, the same beats; before: 0dc6dd8bd; 19 October; cwebp -q 72';
 const PLUMB543 = 'Issue #543: muted headless Chrome (High, 1280 × 720, 10:00, clear) on a Vite of its own (port 5543), the Desert by the ship on a save past the prologue, the lost watch run past its threshold (window.plumb.lost); before: 2285338a6, after: this change, Q pressed for the talk; 19 October; cwebp -q 72';
+const RETROID404 = 'Retroid Pocket Nova (Adreno 740, Vulkan), the Unity build at Handheld, FSR 1 to 1280 × 960, 60 Hz, the near shadow map 2048² every frame, muted; before, the render scale held at 0.67 (-no-dyn-res), after, dynamic 0.67 → 0.5; the same APK (build 2740), interleaved world by world';
+const SRC404 = 'the bridge’s own bench (-views -bench 6 -bundle none, unity-bench.json) on the device, 19 October; docs/systems/performance.md, “Unity on the Retroid, round 14”';
+const DYN404 = 'Issue #404: the bench’s own shots on the Retroid (the views after their 6 s), the same APK with -no-dyn-res (before) and as shipped (after); 19 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.87': [
     { match: 'In the Unity version, Anselm’s shop opens over a darkened hold', tags: ['devices'], shots: [
@@ -1332,6 +1335,32 @@ export const CHANGELOG_MEDIA = {
       { name: 'plumb-talk-543', title: 'Lost in the dunes', size: [1280, 720], caption: 'Lost by the ship: before, Plumb’s line at the top of the screen as it flies off; after, Plumb at his shoulder with its red mark, and the button’s line the first time', from: PLUMB543 },
       { name: 'plumb-talk-543-box', only: 'after', title: 'Its talk', size: [1280, 720], caption: 'The button pressed: Plumb before his face, its portrait and name in the dialogue box; the talk over, it flies off toward the goal', from: PLUMB543 },
     ], see: 'Wander about in the Desert without going anywhere for a few minutes, then press D-pad → (Q) when Plumb comes to your shoulder with its red mark.' },
+    { match: 'In the Unity version on the Retroid and other small Android handhelds, the picture drops', tags: ['perf', 'devices'], shots: [
+      { name: 'unity-dynres-desert-404', title: 'The Desert’s spawn', size: [1280, 960], caption: 'The Retroid’s own picture at the Desert’s spawn: before, drawn at 0.67 of the screen, 49 frames a second; after, at 0.5 where the GPU needs it, 60 a second, a little softer (FSR 1 to the screen in both)', from: DYN404 },
+      { name: 'unity-dynres-lorn-404', title: 'Lorn’s start', size: [1280, 960], caption: 'Lorn’s start: before, 0.67, 45 frames a second; after, 0.5, 56 a second', from: DYN404 },
+    ], numbers: [
+      { title: 'Frames a second at the bench’s views (the worst ones)', unit: 'fps', better: 'higher', device: RETROID404, rows: [
+        { where: 'the Desert’s spawn', before: 49.3, after: 60.1 },
+        { where: 'the Desert’s camps', before: 54.2, after: 60.1 },
+        { where: 'the City-Shaft’s start', before: 49.7, after: 59.7 },
+        { where: 'the City-Shaft, crowd 2', before: 53.1, after: 60.1 },
+        { where: 'the City-Shaft, wide', before: 38.4, after: 48.1 },
+        { where: 'the Signal Market’s start', before: 49.8, after: 60.1 },
+        { where: 'the Signal Market, wide', before: 52.3, after: 60.1 },
+        { where: 'Lorn’s start', before: 44.5, after: 55.7 },
+        { where: 'Lorn’s crowd', before: 49.1, after: 60.1 },
+        { where: 'Underwater, wide', before: 47.7, after: 60.1 },
+        { where: 'the Floating city’s start', before: 45.5, after: 56.9 },
+        { where: 'the Floating city, wide', before: 47.7, after: 60.1 },
+      ], source: SRC404 },
+      { title: 'The GPU’s time a frame', unit: 'ms', better: 'lower', device: 'the same', rows: [
+        { where: 'the Desert’s spawn', before: 19.8, after: 16.0 },
+        { where: 'the City-Shaft’s start', before: 18.6, after: 14.8 },
+        { where: 'the City-Shaft, wide', before: 24.0, after: 18.7 },
+        { where: 'Lorn’s start', before: 22.3, after: 17.6 },
+        { where: 'the Floating city’s start', before: 21.9, after: 17.0 },
+      ], source: SRC404 },
+    ], see: 'In the Unity version on the Retroid, stand at the Signal Market’s gate or by the ship in the Desert: the picture stays smooth at 60 frames a second where it dipped to about 50, a touch softer there and as sharp as before where little is in view.' },
   ],
   '1.86': [
     { match: 'In the Unity version, the Controls page shows your keys and buttons on caps', tags: ['devices'], shots: [

@@ -4658,6 +4658,82 @@ Against build 2570 the City-Shaft's wide view is now 23.3 ms against 22.4, the S
 
 To repeat: round 11's scripts (`ab.mjs` with `-bundle none`, `--apk` per build, worlds outer and APKs inner).
 
+### Unity on the Retroid, round 14: dynamic resolution under FSR (issue #404, 2026-10-19)
+
+The same device, preset and bench as rounds 11-13 (Handheld, FSR 1 to 1280 × 960, the near shadow map 2048² every
+frame, muted, the frame readout on; warm launches, `-bench 6 -bundle none`, the conditions interleaved world by world).
+One release APK of this branch (build 2740) with a switch: `fixed` is `-no-dyn-res` (0.67 held, as shipped before).
+
+**What it does** (BridgeRunner `HandheldResolution`, the rule in `HandheldDyn`). On Android's Handheld on a screen up to
+the Retroid's (where FSR 1 takes the picture to the screen), the render scale follows the GPU's frame on five levels from
+the preset's 0.67 down to 0.5 (0.67, 0.628, 0.585, 0.543, 0.5: a change makes URP's targets again, so a few levels, not a
+slider). Every 12 frames, if the median GPU time is over 15.5 ms, it steps down as far as a guess of 14.8 ms needs (the
+guess: half of the frame follows the pixels, the rest is fixed; the City-Shaft's start measured 19.1 → 14.8 ms for 0.67
+→ 0.5). Every second, if the mean guessed at the next level up (with 0.65 of it following the pixels, so as not to
+overshoot) stays under 14 ms, it steps up one level, at most every 2 s. The 6 frames after a change are not counted (the
+GPU's timings come late). Between the two the scale holds: over the 25 views it changed 27 times, every step down in
+the first second after the bench moved to a heavier view, every step up a light view climbing back a level every 2 s,
+and never a step down after a step up in the same view. The 1 % lows (the views' medians) went up in every world, so a
+change costs no visible hitch. `-no-dyn-res` holds 0.67; `-render-scale` and `-ink-full` hold their own; `-dyn-res-min` /
+`-dyn-res-max` its range; the Xbox's `-dyn-res` unchanged. Each bench view now reports its mean render scale
+(`rs.scale`, RenderStats) and the frame readout shows it. The Thor (a larger screen, 0.5 already, bilinear) is unchanged.
+
+| view: fps (1 % low, GPU ms, scale) | 0.67 held (before) | dynamic, 0.67 → 0.5 (now) | dynamic, 0.67 → 0.45 |
+|---|---|---|---|
+| Desert spawn | 49.3 (33.2, 19.8, 0.67) | **60.1** (45.5, 16.0, 0.50) | 60.1 (47.3, 14.7, 0.45) |
+| Desert qanat-tree / camps / dunes / cave | 60.1 / 54.2 / 60.1 / 60.1 | 60.1 / **60.1** / 60.1 / 60.1 (0.54 / 0.50 / 0.57 / 0.66) | 60.1 / 60.1 / 60.1 / 60.1 |
+| City-Shaft start | 49.7 (24.8, 18.6, 0.67) | **59.7** (35.3, 14.8, 0.50) | 60.1 (34.7, 14.4, 0.45) |
+| City-Shaft crowd | 60.1 (42.1, 13.8, 0.67) | 60.1 (41.9, 12.6, 0.55) | 60.1 (40.8, 12.3, 0.53) |
+| City-Shaft crowd2 | 53.1 (28.1, 17.3, 0.67) | **60.1** (42.9, 14.8, 0.54) | 59.4 (35.1, 15.2, 0.58) |
+| City-Shaft wide | 38.4 (24.8, 24.0, 0.67) | **48.1** (30.8, 18.7, 0.50) | 47.9 (29.8, 18.8, 0.45) |
+| Signal Market start | 49.8 (32.3, 20.1, 0.67) | **60.1** (42.4, 14.7, 0.50) | 60.1 (42.0, 13.9, 0.45) |
+| Signal Market crowd / crowd2 / wide | 60.2 / 51.7 / 52.3 | 60.1 / **60.1** / **60.1** (0.59 / 0.50 / 0.50) | 60.3 / 60.1 / 60.1 |
+| Lorn start | 44.5 (29.6, 22.3, 0.67) | **55.7** (35.0, 17.6, 0.50) | 57.7 (36.6, 17.0, 0.45) |
+| Lorn crowd | 49.1 (31.5, 20.0, 0.67) | **60.1** (43.9, 15.9, 0.50) | 60.1 (44.0, 14.6, 0.45) |
+| Lorn crowd2 / wide | 60.1 / 60.1 | 60.1 / 60.1 (0.57 / 0.67) | 60.1 / 60.1 |
+| Underwater start | 52.7 (46.6, 18.8, 0.67) | **60.1** (52.8, 14.3, 0.50) | 60.1 (52.0, 13.9, 0.45) |
+| Underwater crowd | 53.3 (27.5, 18.6, 0.67) | **59.8** (32.5, 14.1, 0.50) | 59.8 (31.8, 13.3, 0.45) |
+| Underwater crowd2 | 60.1 (54.6, 15.0, 0.67) | 60.1 (53.6, 13.3, 0.54) | 60.1 (54.5, 13.3, 0.53) |
+| Underwater wide | 47.7 (44.1, 20.9, 0.67) | **60.1** (56.3, 15.6, 0.50) | 60.1 (53.1, 14.7, 0.45) |
+| Floating city start | 45.5 (35.0, 21.9, 0.67) | **56.9** (41.6, 17.0, 0.50) | 59.2 (42.3, 16.5, 0.45) |
+| Floating city crowd / crowd2 / wide | 59.9 / 53.3 / 47.7 | 60.1 / **60.1** / **60.1** (0.50 each) | 60.1 / 60.1 / 60.1 |
+
+- **22 of the 25 views hold 60** (59.7-60.3), against 10 at 0.67 held. Left under it: the City-Shaft's wide view (48),
+  Lorn's start (56) and the Floating city's start (57), all three at the floor. The device ran warmer than in the shadow
+  round (#525's 0.67 numbers: the City-Shaft's start 50.4 against 49.7 here, its wide view 38.9 against 38.4); an earlier
+  run of the first tuning the same evening measured the same held column within 0.1-3 fps (and the same three views left).
+- **A floor of 0.45** buys Lorn's start 2 fps and the Floating city's start 2.3 (57.7, 59.2), and nothing in the
+  City-Shaft's wide view (18.8 ms at 0.45 against 18.7 at 0.5: the pixels are no longer its cost). Not the default: the
+  picture is softer again for two views; `-dyn-res-min 0.45` to try it.
+- **The pictures** (the bench's own shots after each view, scale and fps in the labels, 200 % crops of the busiest ink;
+  the session's scratchpad `retroid-404/sheets/fixed-dyn/` for the seven worst views, `dyn-dyn45/` for the floor): at 0.5
+  the picture is softer and the ink a little heavier (it is drawn in render pixels, as on the Thor at 0.5), the lines still
+  whole under FSR. The light views keep 0.54-0.67.
+
+**What the City-Shaft's wide view costs at 0.5** (`-render-scale 0.5`, then each switch; GPU ms, the start view beside):
+
+| at 0.5 | wide | start |
+|---|---|---|
+| as is | 18.7 (48.3 fps) | 14.7 |
+| the plain meshes hidden (`-hide mesh`) | 11.9 | 11.4 |
+| every Surface pixel plain (`-surface-debug 9`) | 14.4 | 12.3 |
+| the meshes past 300 m hidden (`-hide-far 300`) | 15.6 | 12.6 |
+| no shadow maps (`-no-shadows -no-urp-shadows`, a measure only) | 15.6 | 12.6 |
+| the near map at 1024² | 17.9 | 14.3 |
+| the skinned people and the crowd hidden | 17.4 | 13.4 |
+| the GPU instances hidden | 17.5 | 14.1 |
+
+It needs ~2.1 ms to reach 60. Fewer pixels no longer give it (0.45 the same); the 1024² map gives 0.8 (50 fps, and the
+shadows coarser); no single part gives it without changing the picture. **Proposed next**, by these numbers: the far
+meshes' Surface fragment (past 300 m: 3.1 ms here, most of it the rings' and terraces' shading, round 12's "far pixel"
+branch without its per-pixel cost: a far variant or LOD material for the big still meshes, chosen per renderer by
+distance rather than per pixel), then the plain meshes' fragment (4.3 ms over the whole view). Not done in this round.
+
+To repeat (the session's scratchpad, `retroid-404/tools/`): `ab.mjs <tag> --worlds … --conds "fixed=-no-dyn-res|dyn=|dyn45=-dyn-res-min 0.45" --shots 1`,
+`table.mjs <tag> fixed,dyn,dyn45 --views` (the scale per view from `rs.scale`), `sheet.mjs <tag> fixed dyn <out> world:view,…`.
+Tests: `tests/unity-dynres.test.js` (HandheldDyn run as JavaScript over modelled views: the heavy go down at once, the
+light stay, nothing pumps).
+
 ## CPU per frame (#446)
 
 **The question** (the author, 2026-10-17): the game scales badly on weak CPUs. Is too much done on the CPU, and what

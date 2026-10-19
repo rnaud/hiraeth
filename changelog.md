@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.87 — 2026-10-19
 
+- In the Unity version on the Retroid and other small Android handhelds, the picture drops to a slightly softer resolution where the GPU can’t keep up and comes back where it can, so 22 of the 25 measured views now run at 60 frames a second instead of 10 (the City-Shaft looking across, Lorn’s start and the Floating city’s start are still under it).
 - Plumb now talks to you: when it has something important to say (you seem lost, a makers’ house has you stuck, a gate means danger), it comes to your shoulder with a red mark and a chirp instead of a line at the top of the screen. Press its button (D-pad → or Q) to hear it in the dialogue box, then it flies off to show you the way.
 - In the Unity version, the game menu’s sheet, tabs and strip sit where the web’s do, so the Map is as large as on the web and its ground in the same place, and someone with a quest for you is marked as on the web. On the web, photo mode no longer shows the gadget in your hand in the corner of your pictures.
 - In the Unity version, the Quests page lists the quests you finished close together under Done and shows each quest’s goal on its card, Items fits as many to a row as the web, and the Map says how many fragments you found there.

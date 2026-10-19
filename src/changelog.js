@@ -25,6 +25,9 @@ export const CHANGELOG = [
     // issue #543: src/companion.js (CRITICAL, talkPages, pending), src/scout.js (hail, the mark, talk), host/game-host.js
     // wireCompanion (press, plumbNpc), src/scout-hint.js teach.plumb, audio.js drone('call'); tests/companion.test.js, scout.test.js
     'Plumb now talks to you: when it has something important to say (you seem lost, a makers’ house has you stuck, a gate means danger), it comes to your shoulder with a red mark and a chirp instead of a line at the top of the screen. Press its button (D-pad → or Q) to hear it in the dialogue box, then it flies off to show you the way.',
+    // issue #404: unity/…/BridgeRunner.cs HandheldResolution, HandheldDyn (the render scale by the GPU's frame, 0.67 → 0.5,
+    // under FSR 1); RenderStats' scale; tests/unity-dynres.test.js; docs/systems/performance.md "round 14"
+    'In the Unity version on the Retroid and other small Android handhelds, the picture drops to a slightly softer resolution where the GPU can’t keep up and comes back where it can, so 22 of the 25 measured views now run at 60 frames a second instead of 10 (the City-Shaft looking across, Lorn’s start and the Floating city’s start are still under it).',
   ] },
   { v: '1.86', date: '2026-10-19', items: [
     // issue #483: src/story/hosts-data.js (the fight hosts' second lines), src/fight-temples/<world>.js (blurb, quiet),

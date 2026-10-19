@@ -199,7 +199,8 @@ namespace Hiraeth.Bridge
                 for (int k = 0; k < 3; k++) shByAt[k] = HiraethShadows.drawsBy[k];
                 shPrepAt = HiraethShadows.msPrepare; shRecAt = HiraethShadows.msRecord; shDrawsAt = HiraethShadows.drawsTotal;
                 string t = timed > 0 ? $"cpu main {cpuMain / timed:0.0} render {cpuRender / timed:0.0} gpu {gpu / timed:0.0} ms" : "no frame timing";
-                readout = $"{fps:0.0} fps · {p50:0.0} ms (p95 {p95:0.0}, max {max:0}) · {t} · script {script / n:0.0} wait {wait / n:0.0} ms · {nodes} nodes";
+                float rs = UnityEngine.Rendering.GraphicsSettings.currentRenderPipeline is UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset ra ? ra.renderScale : 1f;
+                readout = $"{fps:0.0} fps · {p50:0.0} ms (p95 {p95:0.0}, max {max:0}) · {t} · scale {rs:0.00} · script {script / n:0.0} wait {wait / n:0.0} ms · {nodes} nodes";
                 // (where the main thread's frame goes: the scripts' part (the wait on the script and the ops applied in it), URP's
                 // part before its first context, its contexts, and after them to the next Update; FrameTimingManager's whole CPU
                 // frame and its wait on the present; ops still held back by -ops-cap)
