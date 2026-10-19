@@ -1,0 +1,43 @@
+src/minigames/pirates.js
+  s_5f899ba316b5dc::t_86f8df676b8534 28,38-63,69,165-176,205-219,291-302,308-310,325-328,330-331,334-337,343,345-348,356,376,381,507-513,558,571-572,709-721,776-781,789,853,857-872,882,928,1132-1136,1148-1150,1196,1225-1226,1250,1254,1269-1291,1323-1325,1336-1338,1346,1353
+tests/engine-games-hud.test.js
+  s_5f899ba316b5dc::t_b6c114e86f665e 124-131
+src/changelog.js
+  s_5f899ba316b5dc::t_3ac101e55aeed6 114-122
+src/ambush.js
+  s_5f899ba316b5dc::t_c0d1316c040bb8 74-77
+tests/pirates-levels.test.js
+  s_5f899ba316b5dc::t_bc03f4fe39128b 1-223
+tests/pirates-feel.test.js
+  s_5f899ba316b5dc::t_a171372e1f6ef9 31,36
+docs/systems/minigames.md
+  s_5f899ba316b5dc::t_bcd970174a1af3 746,763,807,886-990,1009-1010
+src/minigames/pirates-rules.js
+  s_5f899ba316b5dc::t_620c27eb639c1d 37-46,57-79,157-254,304,310-343,349,353-354,357,359-363,385-389,401-404,408-419,446-448,454,490,492,505-507,510,529,590,592,595-596,601-602,667,681-701,813,831,842-843,846-849,861,938-939,943-994,1077-1082
+src/minigames/pirates-sfx.js
+  s_5f899ba316b5dc::t_dfcd19feb5e608 1-10,37-41,45-47,51-53,58-59,81-84,86-90,92,94-98,106-110,112,114-117,120-122,125-130,132-135,137,139-145,147-153,155,157,159-161,163-183
+tests/pirates-boost-guns.test.js
+  s_5f899ba316b5dc::t_9cbb9bb2086829 1-174
+src/changelog-media.js
+  s_5f899ba316b5dc::t_d02a65939c0b69 1248-1251,1299-1310
+tests/pirates.test.js
+  s_5f899ba316b5dc::t_2d8f5d82025ef2 176,185,188-193,418-419,446-447
+changelog.md
+  s_5f899ba316b5dc::t_e6aaadc306605e 7-8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d067f8d926f508e9eeab67df52bbddea713e794f",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
