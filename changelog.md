@@ -4,10 +4,11 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.85 — 2026-10-18
 
+- The loading screen now tells you what it is doing and why it takes the time. Under the turning pen a bar fills as each part is done, and a small line says what that part is: dressing the traveller, the walls learning where you can’t walk, teaching the graphics card the world’s light (slowest the first time).
+- The fight temples load faster. While loading, each one got every kind of foe in the game ready, though only four or five come up in it; now it readies just those, so the graphics card has a third fewer shaders to learn.
 - In the Unity version, choosing Continue or a save on the title now shows the loading screen, the pen turning and what is being prepared, instead of the title freezing until the world appears.
 - In the Unity version, the makers’ mark in a conversation or a speech balloon is the game’s own open-corner mark, as on the web, not a different sign.
 - In the Unity version, the menus show the controller’s buttons as the web does: a small button inside the one it presses (A in the entry you are on, B in Resume and Back, LB and RB on the side tabs), and the prompts at the foot as buttons too, instead of their names written out. On the Retroid they carry its own names.
-- The fight temples load faster. While loading, each one got every kind of foe in the game ready, though only four or five come up in it; now it readies just those, so the graphics card has a third fewer shaders to learn.
 - Out in the open, the wings carry you about a quarter further on still air. Inside the makers’ houses they glide as before.
 - The gun’s push sends the makers’ balls much further: about half the pushes for a long roll. Push from further back for a gentle nudge onto a nearby plate.
 - In Vael, the rider’s call you play on the bone flute to bring the bird down is quieter: it now sits with the world’s music instead of ringing out over it.

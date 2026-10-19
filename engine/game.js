@@ -159,6 +159,7 @@ import { gatherPoints, questList, applyQuestJump, landingSpot, godLanding } from
 import { GAMES } from '../src/minigames/index.js';
 import { DEBUG_SLOT } from '../src/save-slots.js';
 import { wallOpenings } from '../src/wall-openings.js';
+import { loadProgress } from '../src/load-page.js';
 import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip, wireCompanion, wireCamera, wireHero, heroCutFrame, cameraFollow, wireBenches, wireTrails, wireOpenings, wireEdge, wireSky, wirePotion, wireNudges, fragmentsLine, wireHealth, hurtReactions, wireAmbush, toolGauge, wireJumpShade } from '../src/host/game-host.js';
 
 export { page };
@@ -327,7 +328,7 @@ export const LOOK_VECTORS = new Set(['uWind', 'uHaze', 'uSpot', 'uSpotTone', 'uH
   // (the sky's own: the eclipse, src/eclipse.js; the Lantern's light, src/story/lantern-sky.js; space, src/levels/space-city-kit.js)
   'uEclipse', 'uCorona', 'uEclipseGlow', 'uEclipseDir', 'uLantern', 'uSpace', 'uSpaceTone', 'uSpaceSun', 'uSpaceNight']);
 
-export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', quality = null, log = () => {}, menus = null, start = null, arrive = false, hullSpawn = false, settings = null, gestures = true, moves = true, matching = null, via = null, prologue = false, onTravel = null, aboard = null, scenes = false, fight = false, game: gameId = null, from = null, to: transitTo = null, onGame = null, onLeave = null, trials: withTrials = false, onPage = null, arrival = null, back = null, saves = true, defer = true, far: farOn = true, lod: lodOn = false, skies = true, waterBed = true, onStage = null } = {}) {
+export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', quality = null, log = () => {}, menus = null, start = null, arrive = false, hullSpawn = false, settings = null, gestures = true, moves = true, matching = null, via = null, prologue = false, onTravel = null, aboard = null, scenes = false, fight = false, game: gameId = null, from = null, to: transitTo = null, onGame = null, onLeave = null, trials: withTrials = false, onPage = null, arrival = null, back = null, saves = true, defer = true, far: farOn = true, lod: lodOn = false, skies = true, waterBed = true, onStage = null, onLoad = null } = {}) {
   const T = {};
   // (the fight, engine/combat.js, made once the traveller and his tool are)
   let combat = null;
@@ -351,8 +352,13 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   if (!meta) throw new Error(`no level ${levelId}`);
   if (gameDef) levelId = meta.id;
   // the loading screen's line as the build goes, main.js's stages (issue #424: BridgeHud's loading screen says it)
-  const stage = (text) => { try { onStage?.(text); } catch { /* a host without one */ } };
-  stage(`sketching ${String(meta.title ?? 'the world').toLowerCase()}…`);
+  // (and with it, as the page's, why this part takes the time and how far the load is: src/load-page.js, issue #506;
+  //  onLoad({ line, why, p }) at each stage and at the steps between, `step`; onStage once a stage, as before)
+  const progress = loadProgress();
+  const tell = (o) => { try { onLoad?.(o); } catch { /* a host without one */ } };
+  const stage = (text) => { try { onStage?.(text); } catch { /* a host without one */ } tell(progress.stage(text)); };
+  const step = (name) => tell(progress.step(name));
+  stage(`sketching ${String(meta.title ?? 'the world').toLowerCase()}…`); step('world');
   const content = CONTENT[levelId];
   // start the loads the way main.js does: the clips, the traveller, the bodies
   const animLib = loadAnimationLibrary().catch((e) => { log('animation library failed', e); return null; });
@@ -394,7 +400,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   level.id ??= levelId;
   // where the old walls' cracks may not run: their windows and doors, as the page (src/host/game-host.js wireOpenings)
   quiet(() => wireOpenings({ scene }));
-  stamp('level'); stage('inking the collisions…');
+  stamp('level'); stage('inking the collisions…'); step('bake');
   const physics = new Physics(scene, level.ground?.heightAt ? level.ground : null);
   physics.noClimbZones = level.noClimb ?? null;   // (walls not to be climbed, ladders climbed for free: main.js)
   physics.ladders = level.ladders ?? null;
@@ -404,7 +410,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // parts merged only while small: no worker here, a merge is built in the frame)
   { const n = deferred ? queueLateCollision(physics, deferred, DRIFT_FITS.pending.splice(0), { mergeMax: WORKER_TRIS }) : 0; if (n) log(`collision: ${n} pieces of the drifts' to make later`); }
   quiet(() => (level.initSteps ? runSteps(level.initSteps(physics, { defer: deferred })) : level.init?.(physics)));
-  stamp('physics');
+  stamp('physics'); step('ship');
   const waters = quiet(() => new Waters(scene, { physics }));
   // trees and shrubs that landed inside a house or a rock left out, as main.js: near the first view before it, the rest
   // after (src/physics.js dropBuriedFloraSteps; the engines never ran it before issue #385). In a queue of their own,
@@ -423,7 +429,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // the ship's place for the quests that say "return to the ship", the scout and the Map's "Your ship" mark, as the page
   // (src/host/game-host.js wireShip: the engines' Map had no ship, #429's sequences)
   wireShip({ level, ship });
-  stamp('ship');
+  stamp('ship'); step('reactive');
   // the bird's promise and the hoverbike in the worlds after the desert (src/host/game-host.js wireMount, as the page)
   const { bikeHere } = wireMount({ levelId, level, flag: (k) => gameState.flag(k) });
   // the potion's glow as the hearts come back, its lesson the first time a hurt leaves you short, as the page
@@ -483,7 +489,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // page (src/host/game-host.js wireDangers: the engines registered no fire's and drew no void before, #427); the void's
   // wash hangs in level.veils, drawn by the port's Hiraeth/PitVoid
   const dangers = wireDangers({ scene, level });
-  stamp('traveller'); stage('waking the people…');
+  stamp('traveller'); stage('waking the people…'); step('sound, tool');
   const npcs = [];
   if (people && content?.npcs?.length && humans && lib) {
     const near = quiet(() => spawnNPCs(scene, physics, content.npcs, { lib, humans }));
@@ -580,7 +586,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         capture: backend.portrait ? (eye, look, w, h, o) => portraitCapture(eye, look, w, h, o) : null, lib, humans, toast, tool, isNight: () => { try { return sky.hour < 6.4 || sky.hour > 19.3; } catch { return false; } }, ship, drone: () => null }));
     } catch (e) { log('the story failed to start', e?.message ?? e); }
   }
-  stamp('people');
+  stamp('people'); step('story');
   // the shops (main.js: talking to a keeper, "Show me what you have", or E at their counter; Anselm's aboard): the web's
   // ShopPanel keeps their logic, its sheet is the menus' 'shop' (engine/menus.js openShop; BridgeMenu.cs DrawShop),
   // opened once the conversation that asked for it has closed (issue #264)
@@ -718,7 +724,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // page (src/host/game-host.js wireNudges: the engines heard no 'scout:ping' before)
   const nudges = optional('the nudges', () => wireNudges({ game: gameState, scout, quiet: () => !!ship?.playing || !!story?.dialogue?.open, noticeBusy }));
   stamp('life');
-  stamp('flora');
+  stamp('flora'); step('wildlife, foes');
 
   // the camera rig, on the page's stand-in canvas
   // (its view of the world: the cabs as drawn, the lens kept out of them, as the page: src/host/game-host.js wireCamera;
@@ -1278,7 +1284,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     const L = physics.late;
     log(`distant detail: ${n} jobs done near in ${Math.round(performance.now() - t)} ms, ${queues.reduce((s, q) => s + q.pending, 0)} after the first frame${L ? ` (the drifts' collision: ${L.made} pieces made, ${L.forced} by a query, in ${Math.round(L.ms)} ms; ${L.pending} after)` : ''}${crowd?.pending ? `; ${crowd.pending} walks still to come` : ''}`);
   }
-  stamp('near detail'); stage('mixing the inks…');
+  stamp('near detail'); stage('mixing the inks…'); step('batches');
   // the first frame's camera (a game that drives: its own, which its session set as it was made; main.js never runs the
   // rig for it, so the start card shows the game's view: the cistern court from above, not the traveller's follow camera)
   if (!trials?.drives) rig.update(player.pos, 0, player.frame);

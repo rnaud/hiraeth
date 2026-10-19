@@ -88,6 +88,9 @@ export const CHANGELOG = [
     // issue #505: src/fight-temples/rules.js fightKinds, rooms.js level.foes.warm, main.js foes.warmModels(level.foes?.warm);
     // scripts/load-breakdown.mjs game:<id>; tests/fight-load.test.js; docs/systems/performance.md "The fight temples' load"
     'The fight temples load faster. While loading, each one got every kind of foe in the game ready, though only four or five come up in it; now it readies just those, so the graphics card has a third fewer shaders to learn.',
+    // issue #506: src/load-page.js (LOAD_PLAN, LOAD_WHY, loadProgress), index.html #loading .bar / .why, main.js stage /
+    // setStep, engine/game.js onStage(line, { why, p }); tests/load-page.test.js
+    'The loading screen now tells you what it is doing and why it takes the time. Under the turning pen a bar fills as each part is done, and a small line says what that part is: dressing the traveller, the walls learning where you can’t walk, teaching the graphics card the world’s light (slowest the first time).',
   ] },
   { v: '1.84', date: '2026-10-17', items: [
     // issue #439: src/costumes.js (HEADS: the 47 pieces of the 15 hat sets, HAT_SETS, HAT_SET_WORLDS, hoodShell / hoodNeck /

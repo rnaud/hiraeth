@@ -229,6 +229,11 @@
       #loading .ring { fill: none; stroke: #2b211f; stroke-width: 2.2; stroke-dasharray: 18 9; }
       #loading .r2 { stroke-dasharray: 4 7; opacity: 0.6; }
       #loading .nib { fill: #c8483a; stroke: #2b211f; stroke-width: 2; }
+      /* the bar under the line (src/load-page.js, issue #506): an inked rule filled with the nib's red as the steps go
+         (a transform, so it moves on the compositor too); under it, smaller, why this part takes the time */
+      #loading .bar { width: 180px; height: 7px; margin-top: -6px; border: 1.6px solid currentColor; border-radius: 4px; overflow: hidden; }
+      #loading .bar i { display: block; width: 100%; height: 100%; background: #c8483a; transform: scaleX(0); transform-origin: left; transition: transform 0.4s ease-out; }
+      #loading .why { margin-top: -8px; min-height: 1.4em; max-width: min(30em, 86vw); text-align: center; font-size: 0.85em; opacity: 0.72; }
       @keyframes spin { to { transform: rotate(360deg); } }
 
       .balloon {
@@ -521,6 +526,8 @@
         <path class="nib" d="M60 14 L66 34 L60 40 L54 34 Z" />
       </svg></div>
       <div class="msg" data-t="load.sketching">sketching the world…</div>
+      <div class="bar" aria-hidden="true"><i></i></div>
+      <div class="why"></div>
     </div>
     <script>if (/[?&](via=ship|game=pirates)(&|$)/.test(location.search)) document.getElementById('loading').classList.add('space');</script>
     <div id="journal"></div>

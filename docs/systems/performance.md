@@ -5703,3 +5703,10 @@ program compiled cold; the machine shared, load 18-30), against the desert, ms a
   surfaces are the same Surface shader (its see-through hole is a uniform, not a keyword), but a missing state would
   be made at its first draw. A `fight-temples` pass in `scripts/bench/deck-pso-trace.mjs` would cover it.
 
+
+**The loading page** (src/load-page.js): under the turning pen, the stage's line as before, an inked bar that fills
+with the load's real steps (main.js `setStep`; each step's share of a typical load, `LOAD_PLAN`), and, smaller, why
+this part takes the time (`LOAD_WHY`: "teaching the graphics card this world's light, slowest the first time"). The
+engines tell the same: engine/game.js `onLoad({ line, why, p })` at its stages and steps (`onStage` still once a
+stage). Unity's `BridgeHud.Loading` (#510) draws the line; the bar and the why line are for it to draw from `onLoad`
+(engine/unity/game.js to hand it to the host beside `host.LoadStage`). Tests: `tests/load-page.test.js`.

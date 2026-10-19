@@ -1241,6 +1241,8 @@ const WEB513 = 'Issue #513: the web game in muted headless Chrome on this branch
 /** (v1.85, issue #510: the loading screen after the title in Unity) */
 const UNITY510 = 'Issue #510: the Unity editor’s batch run on this Mac (scripts/unity-js-run.sh -title-go 60 -title-art H1 -loading-shot, muted, 1280 × 720): the debug save’s desert chosen on the title; before: the branch’s base, the last picture drawn while the world was built (the main thread waited on the script’s frame); after: as the build wakes the people; 18 October; cwebp -q 72';
 const WEB510 = 'Issue #510: the web game in muted headless Chrome on this branch’s own Vite (port 5461), 1280 × 720, 0.8 s after Continue on the title; 18 October; cwebp -q 72';
+/** (v1.85, issue #506: the loading page) */
+const LOADPAGE506 = 'Issue #506: a build of this branch in muted headless Chrome on this Mac (High, 1280 × 720 window, the main thread slowed 6 times to catch the step), ?game=fight-desert, the screen taken as the load reached the shaders’ step; before: the same page with the bar and the new line hidden (the screen as it was); cwebp -q 72';
 /** (v1.85, issue #505: a fight temple's load) */
 const LOAD505 = 'Issue #505: scripts/load-breakdown.mjs on this Mac (M4 Pro, headless muted Chrome on ANGLE Metal, High, 1280 × 720, the GPU disk cache off so every shader compiles cold), a ?game=fight-<world> page from a build of this branch, before: the same build warming every foe; two runs of three each, the machine shared with other agents (load 18-45), so read the ranges for shape';
 export const CHANGELOG_MEDIA = {
@@ -1266,6 +1268,9 @@ export const CHANGELOG_MEDIA = {
       { name: 'foe-eyes-brute-left', title: 'Brute', size: [1280, 720], caption: 'Lorn’s wood cutter, you off to its left: its brass eye slides over in the boss of its belt and its body twists to you.', from: EYES508 },
       { name: 'foe-eyes-wisp-right', title: 'Wisp', size: [1280, 720], caption: 'The cinder wisp, you off to its right: its two eyes slide over its petals toward you.', from: EYES508 },
     ], see: 'In the desert or Salt Harbour, walk round a crab that has seen you: its eye stalks lean after you. Let it lose you, and they look where it goes again.' },
+    { match: 'The loading screen now tells you what it is doing', shots: [
+      { name: 'loading-page', title: 'Mixing the inks', size: [1280, 633], caption: 'Going into the Sunken Hall, at the shaders’ step: before, the pen and the stage’s line alone; after, the bar filled as far as the load has come, and why this part takes the time.', from: LOADPAGE506 },
+    ], see: 'Go into any world, or a fight temple through its door: the bar under the pen fills step by step, and the line under it changes as the load goes.' },
     { match: 'The fight temples load faster', numbers: [
       { title: 'Shaders compiled before a fight temple’s first frame', unit: 'programs', better: 'lower', device: LOAD505, rows: [
         { where: 'The Sunken Hall (desert)', before: 107, after: 68 },

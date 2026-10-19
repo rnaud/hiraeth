@@ -125,6 +125,7 @@ import { Thresholds, THRESHOLD } from './thresholds.js';
 import { DoorWalk } from './door-walk.js';
 import { Veils } from './veil.js';
 import { slicer, gatedSlicer, runStepsAsync, gpuPacer, nextFrame, loadWatchdog } from './load-steps.js';
+import { loadProgress } from './load-page.js';
 import { warmShadersSliced as warmSliced, firstUse, settle, programKind, oneAtATime } from './warm-shaders.js';
 import { waterShared } from './water-shader.js';
 import { gameById, GAMES } from './minigames/index.js';
@@ -155,6 +156,12 @@ installSkeletonUpdate();
 // Loading: each stage updates the inked loading screen, then yields a frame
 // so it can paint (its pen animation runs on the compositor meanwhile).
 const loadMsg = document.querySelector('#loading .msg');
+// (under it, why this part takes the time, and the bar moving with the steps: src/load-page.js, issue #506)
+const loadWhy = document.querySelector('#loading .why'), loadBar = document.querySelector('#loading .bar i');
+const progress = loadProgress(({ why, p }) => {
+  if (loadWhy && loadWhy.textContent !== why) loadWhy.textContent = why;
+  if (loadBar) loadBar.style.transform = `scaleX(${p.toFixed(3)})`;
+});
 const tLoad = performance.now();
 window.__loadT0 = tLoad;   // (when the modules had loaded and this one began: scripts/load-breakdown.mjs's "modules")
 let tStage = tLoad, lastMsg = 'start', loadStep = '';
@@ -172,6 +179,7 @@ const setStep = (name) => {
   const t = performance.now();
   if (loadStep) loadSteps.push(`${loadStep} ${(t - tStep).toFixed(0)}`);
   loadStep = name; tStep = t;
+  progress.step(name);
 };
 // (kept in the page too, for a harness that can't read the console: the Android bench's GeckoView, the console's relay)
 const loadLog = window.__loadLog = [];
@@ -183,6 +191,7 @@ const stage = (msg) => {
   if (loadSteps.length) console.info(`load steps: ${lastMsg} ${loadSteps.splice(0).join(' · ')}`);
   tStage = performance.now(); lastMsg = msg; loadStep = '';
   if (loadMsg) loadMsg.textContent = msg;
+  progress.stage(msg);
   if (titleHold) titleHold.stage = msg;   // (the title's progress mark, while it waits for the load)
   // (a frame so the screen paints, or a moment if no frame comes: a window not shown may run none)
   return nextFrame().then(() => new Promise((r) => setTimeout(() => { slice.reset(); r(); }, 0)));
