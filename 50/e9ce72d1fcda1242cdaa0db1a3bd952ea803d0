@@ -1,0 +1,31 @@
+changelog.md
+  s_5f899ba316b5dc::t_8732699d6cc00c 7
+docs/systems/movement.md
+  s_5f899ba316b5dc::t_5936d472c883ac 391-396
+src/bike.js
+  s_5f899ba316b5dc::t_be5e668f08a209 27,182-185,252-269,390,435
+src/changelog-media.js
+  s_5f899ba316b5dc::t_65471f42f1e891 1212-1213,1226-1230
+src/changelog.js
+  s_5f899ba316b5dc::t_b70fdcfe03d8e7 27-29
+src/levels/perdide.js
+  s_5f899ba316b5dc::t_c180f4d4c8a7e7 141-143,146,149-151,193-194,207,210-219
+tests/skiff.test.js
+  s_5f899ba316b5dc::t_e757d5684b15ec 1-66
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "50e9ce72d1fcda1242cdaa0db1a3bd952ea803d0",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
