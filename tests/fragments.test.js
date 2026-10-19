@@ -539,6 +539,8 @@ test('aboard the real ship: he stands on the deck of the hold, inside its rooms,
   const { reached } = flood({ physics, level }, from, { cell: 0.5, rise: RISE.jump * 0.4, drop: 1, radius: 20, targets: [p], near: 1.4 });
   assert.ok(reached[0], 'walked to from the hatch, on the deck');
   assert.equal(S.jar.group.children.filter((c) => c.visible).length - 6, 3, 'three splinters in his jar');
+  // (his jar drawn with the rooms: hidden with them when the camera is too far off to see in, issue #264's Retroid cost)
+  assert.ok(ship.parked.indoor.includes(S.jar.group), 'the jar among the rooms\' indoor pieces');
 });
 
 test('the first fragment brings him beside you; once met he is aboard, in the hold, with his jar', () => {

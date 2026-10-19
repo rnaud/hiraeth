@@ -33,6 +33,8 @@ export const RAMP_IN = { near: 2.4, speed: 1.2 };
  * with the stick, so 0.06 is ~1.5 m/s, under the walk clip's top (walkAt, 1.52 m/s): a walk, not a jog.
  */
 export const AUTO_WALK = 0.06;
+/** How long the autopilot walks before it gives up (s of the game's time, at any frame rate). */
+export const AUTO_GIVE_UP = 30;
 import { PrologueDirector, ArrivalDirector, TakeoffDirector, CallDirector, OBJECTIVE } from './cinematics.js';
 
 // The traveller's ship: the angular family ship, home between worlds (src/ship/hull.js, docs/systems/ship.md).
@@ -574,7 +576,9 @@ export class Ship {
       const a = this.auto, P = this.player;
       let tgt = a.points[a.i];
       while (tgt && Math.hypot(P.pos.x - tgt.x, P.pos.z - tgt.z) < 0.55) tgt = a.points[++a.i];
-      if (!tgt || (a.t += 1 / 60) > 30) {
+      // (its safety net, 30 s of the game's time, counted in update: counted a sixtieth a call it ran out after 15 s at
+      // 120 frames a second, and the Unity editor's ~300 left him halfway down the ramp at the opening's end, issue #264)
+      if (!tgt || a.t > AUTO_GIVE_UP) {
         const done = a.onDone;
         this.auto = null;
         done?.();
@@ -862,6 +866,7 @@ export class Ship {
    */
   update(dt, t, raw = {}, { photo = false } = {}) {
     const P = this.player;
+    if (this.auto) this.auto.t += dt;
     const inside = !!this.modelOf(P.pos);
     if (inside !== this.inside) {
       this.inside = inside;

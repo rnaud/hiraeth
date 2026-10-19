@@ -2619,6 +2619,34 @@ not the whole geometry a frame), and draw their colours.
   page's grid. `-loading-shot-at sketching,inking,waking,mixing` photographs each of those stages (`<file>-<stage>.png`).
   Test: tests/engine-unity.test.js (the progress sent after the screen went up, never back, full before it fades).
 
+## The hold, Anselm's shop and the opening, web against Unity (2026-10-19, issue #264)
+
+The ship's interior (#195/#234), the talk gestures (#197) and the opening on a new save were already in the engines
+(above: "The ship and its scenes", "The opening"; characters.md for the gestures); this round checks them picture
+against picture. A sequence `hold` (engine/sequences.js; tests/sequences-ship.test.js): Arzach's debug save (the
+desert's fragments found, so Anselm is met and aboard), walked into the ramp from 4 m out, up it on the ship's autopilot
+and in, before Anselm by the crates, his talk paged to its answers, "Show me what you have", his shop. The probe reads
+an open shop on both sides as a menu (`shopView`: kind 'shop', its id, its wares by name; the page's ShopPanel is now
+on `window` as `shopPanel`). All eight beats match the web's stream in node and in Unity, and the pictures match (SSIM
+0.81–0.96) but at the shop, whose sheet the menus draw (BridgeMenu's, not this round's) over a hold the web's camera
+frames differently (0.29). Anselm gestures as he talks on both sides (a different clip each, as picked at random).
+
+The opening's last beat found a bug of every host: the ship's autopilot counted its 30 s safety net a sixtieth of a
+second a call, so above 60 frames a second it gave up early: at the Unity editor's ~300 the traveller stopped at the
+foot of the ramp after the step out, the camera in its railing, where the web walks him on to the desert's first view
+(and on a 120 Hz screen it had 15 s). It now counts the game's seconds in `Ship.update` (`AUTO_GIVE_UP`;
+tests/ship.test.js).
+
+**What it costs** (the engines' bundle in node, Arzach at the ramp's foot, four runs): the gestures are 29 clips on
+the library (64 against 35), no measurable heap (98.3–98.5 MB with, 98.2–98.4 without) nor load time (3.3–4.3 s
+either way, the machine's noise), 229 KB in the build; ~0.02 ms a frame while talking (characters.md). The ship
+attached adds Anselm (32 meshes, 4 drawn at once by his level of detail) and his jar (6 brass pieces and a splinter for
+each fragment brought, up to 24): ~34 draws while the camera is within the rooms' 48 m, and since this round the jar
+hides with the rooms beyond it (it was drawn through the hull from anywhere the ship was in view: m.indoor); its
+scenes' state (the cinema, the star map's options, the hologram's two meshes) is a few hundred KB. On the Retroid
+(world creation 1.2–2.1× the Mac's: performance.md, round 6) that is no measurable load and a few draws near the ship;
+not measured on the device this round.
+
 ## Status
 
 - **Stage 1, the spike**: the desert, built by `createDesert` inside GodotJS, mirrored to Godot

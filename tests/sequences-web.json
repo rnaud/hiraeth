@@ -6276,6 +6276,270 @@
           "late": false
         }
       ]
+    },
+    "hold": {
+      "beats": [
+        {
+          "beat": "ramp",
+          "hud": {
+            "gadget": "gun"
+          },
+          "menu": null,
+          "playing": null,
+          "objects": {
+            "ink": 2009,
+            "basic": 1,
+            "planet": 1,
+            "shader": 2,
+            "print": 1,
+            "chimeshade": 1,
+            "wisp": 1
+          },
+          "cam": [
+            -241.3,
+            57.5,
+            -1102.4,
+            55
+          ],
+          "player": [
+            -245.7,
+            55.1,
+            -1104.3
+          ],
+          "late": false
+        },
+        {
+          "beat": "walk-in",
+          "hud": {
+            "gadget": "gun"
+          },
+          "menu": null,
+          "playing": null,
+          "objects": {
+            "ink": 2008,
+            "basic": 1,
+            "planet": 1,
+            "shader": 2,
+            "print": 1,
+            "chimeshade": 1,
+            "wisp": 1
+          },
+          "cam": [
+            -244.8,
+            57.8,
+            -1103.9,
+            55
+          ],
+          "player": [
+            -249.3,
+            55.3,
+            -1106
+          ],
+          "late": false
+        },
+        {
+          "beat": "aboard",
+          "hud": {
+            "gadget": "gun"
+          },
+          "menu": null,
+          "playing": null,
+          "objects": {
+            "ink": 1930,
+            "basic": 1,
+            "print": 1,
+            "chimeshade": 1,
+            "wisp": 1
+          },
+          "cam": [
+            -265.9,
+            65,
+            -1114,
+            65
+          ],
+          "player": [
+            -267.8,
+            63.1,
+            -1115
+          ],
+          "late": false
+        },
+        {
+          "beat": "anselm",
+          "hud": {
+            "prompt": {
+              "text": "talk to Anselm Thrum",
+              "key": "E"
+            },
+            "gadget": "gun",
+            "balloons": true
+          },
+          "menu": null,
+          "playing": null,
+          "objects": {
+            "ink": 1926,
+            "basic": 1,
+            "print": 1,
+            "chimeshade": 1,
+            "wisp": 1
+          },
+          "cam": [
+            -264,
+            64.9,
+            -1131.8,
+            65
+          ],
+          "player": [
+            -265.3,
+            63.1,
+            -1133.4
+          ],
+          "late": false
+        },
+        {
+          "beat": "talk",
+          "hud": {
+            "dialogue": {
+              "name": "Anselm Thrum",
+              "text": "Twenty-four so far. Nine to spend.",
+              "choices": []
+            },
+            "gadget": "gun"
+          },
+          "menu": null,
+          "playing": null,
+          "objects": {
+            "ink": 1971,
+            "basic": 1,
+            "print": 1,
+            "chimeshade": 1,
+            "wisp": 1
+          },
+          "cam": [
+            -262,
+            65,
+            -1134.8,
+            65
+          ],
+          "player": [
+            -265.3,
+            63.1,
+            -1133.4
+          ],
+          "late": false
+        },
+        {
+          "beat": "gesture",
+          "hud": {
+            "dialogue": {
+              "name": "Anselm Thrum",
+              "text": "Vael still sings loud.",
+              "choices": [
+                "Show me what you have.",
+                "Where do they hide?"
+              ]
+            },
+            "gadget": "gun"
+          },
+          "menu": null,
+          "playing": null,
+          "objects": {
+            "ink": 1970,
+            "basic": 1,
+            "print": 1,
+            "chimeshade": 1,
+            "wisp": 1
+          },
+          "cam": [
+            -262,
+            65,
+            -1134.8,
+            65
+          ],
+          "player": [
+            -265.3,
+            63.1,
+            -1133.4
+          ],
+          "late": false
+        },
+        {
+          "beat": "choices",
+          "hud": {
+            "dialogue": {
+              "name": "Anselm Thrum",
+              "text": "Vael still sings loud.",
+              "choices": [
+                "Show me what you have.",
+                "Where do they hide?"
+              ]
+            },
+            "gadget": "gun"
+          },
+          "menu": null,
+          "playing": null,
+          "objects": {
+            "ink": 1970,
+            "basic": 1,
+            "print": 1,
+            "chimeshade": 1,
+            "wisp": 1
+          },
+          "cam": [
+            -262,
+            65,
+            -1134.8,
+            65
+          ],
+          "player": [
+            -265.3,
+            63.1,
+            -1133.4
+          ],
+          "late": false
+        },
+        {
+          "beat": "shop",
+          "hud": {
+            "gadget": "gun"
+          },
+          "menu": {
+            "kind": "shop",
+            "page": "thrum",
+            "side": [],
+            "rows": [
+              "Fragment finder",
+              "Light-stitched heart",
+              "Light-tempered edge",
+              "Light chamber",
+              "Light-veined wings",
+              "Light-soled boots",
+              "Light-rimmed guard",
+              "His notebook, page 1"
+            ]
+          },
+          "playing": null,
+          "objects": {
+            "ink": 1942,
+            "basic": 1,
+            "print": 1,
+            "chimeshade": 1,
+            "wisp": 1
+          },
+          "cam": [
+            -264,
+            64.9,
+            -1131.8,
+            65
+          ],
+          "player": [
+            -265.3,
+            63.1,
+            -1133.4
+          ],
+          "late": false
+        }
+      ]
     }
   }
 }

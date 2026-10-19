@@ -1214,6 +1214,9 @@ const SKIFF514 = 'Issue #514: the running game in muted headless Chrome (ANGLE M
 /** (v1.85, issue #507: the games' cards show the focus, not the main button) */
 const FRAG481 = 'Issues #481, #518–#520: headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5481), a save set by the script, the camera pinned on a court’s frame or a chest’s; before: the tree at 77ea9504a, the same views; 19 October; cwebp -q 72';
 const CARD507 = 'Issue #507: the Ring Race’s page (?game=rings) in muted headless Chrome (ANGLE Metal, High, 1280 × 720) on this branch’s own Vite (port 6507), a pad in hand, the run ended by the page’s script and the focus moved to Quit; before: the tree at fb6b3ee94, the same view; 18 October; cwebp -q 72';
+/** (v1.86, issue #264: the opening's step out in Unity, scripts/unity-compare/sequences.mjs 'opening', its 'plumb' beat) */
+const STEPOUT264 = 'Issue #264: the Unity editor’s batch run on this Mac (scripts/unity-compare/sequences.mjs unity opening, muted, High, 1280 × 720), the opening’s plumb beat; before: main at 89e4d28c2; after: this change; 19 October; cwebp -q 72';
+const STEPOUT264W = 'Issue #264: the same beat on the web, muted headless Chrome (scripts/unity-compare/sequences.mjs web opening, 1280 × 720); cwebp -q 72';
 /** (v1.86, issue #483: the fight temples in the story: their cards) */
 const STORY483 = 'Issue #483: the Sunken Hall’s page (?game=fight-desert&seed=7) in muted headless Chrome (ANGLE Metal, High, 1280 × 720) on this branch’s own Vite (port 5483), the start card as it opened, then the run won by the page’s script (each room’s foes put down, the traveller set on the altar); before: the tree at c694911e8, the same run.';
 /** (v1.85, issue #516: the Quests page marks the tracked quest and says how to track another) */
@@ -1296,6 +1299,10 @@ export const CHANGELOG_MEDIA = {
       { name: 'unity-photo-264', title: 'Photo mode', size: [1280, 120], caption: 'Photo mode’s line of keys in Unity: before, its own words; after, the web’s (but its developer panel’s H)', from: UNITY264M },
       { name: 'unity-photo-264-web', only: 'after', title: 'Photo mode on the web', size: [1280, 120], caption: 'The same line on the web', from: WEB264M },
     ], see: 'In the Unity version, open the Start menu’s Controls; in Items, look at the thing in your hand; press P for photo mode.' },
+    { match: 'On screens faster than 60 frames a second, and in the Unity version, your first steps out of the ship', tags: ['devices'], shots: [
+      { name: 'unity-stepout', title: 'Plumb’s first word, in Unity', size: [1280, 720], caption: 'The opening’s end, as Plumb names the village on the horizon: before, the ship’s walk gave up at the foot of the ramp (the Unity editor runs at ~300 frames a second) and the camera sat in the ramp’s railing; after, he is walked out to the desert’s first view', from: STEPOUT264 },
+      { name: 'unity-stepout-web', only: 'after', title: 'The same beat on the web', size: [1280, 720], caption: 'The same beat on the web, where it always ended there', from: STEPOUT264W },
+    ], see: 'Start a new game on a screen faster than 60 Hz (or in the Unity version) and let the opening play to its end: after the landing the ship walks you down the ramp and out toward the village.' },
     { match: 'The fight temples now belong to the story', tags: ['story'], shots: [
       { name: 'fight-story-end', title: 'The end card', size: [1280, 720], caption: 'The Sunken Hall won: before, the scores alone; after, the place speaks first (“The ink sinks back into the floor. Wafa comes down the stair.”) and the shard’s boost is the bright blade.', from: STORY483 },
       { name: 'fight-story-start', title: 'The start card', size: [1280, 720], caption: 'The Sunken Hall’s start card: before, “four rooms of them”; after, what the place is and what comes up in it, and foes sent back into the floor.', from: STORY483 },

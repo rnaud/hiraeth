@@ -124,6 +124,10 @@ export function setupScientist({ levelId, scene, physics, level, ship = null, np
     const jar = buildJar();
     jar.group.position.set(...ABOARD.jar);
     m.group.add(jar.group);
+    // (drawn with the rooms, only with the camera near enough to see in: src/ship/ship.js update, m.indoor; its 30 pieces
+    // were drawn from anywhere the ship was in view, through its hull)
+    m.indoor?.push(jar.group);
+    if (m.indoorShown !== undefined) jar.group.visible = m.indoorShown;
     rt.jar = jar;
     const found = fragmentCounts(flags()).found;
     jar.show(Math.min(JAR_MAX, found));

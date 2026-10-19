@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.86 — 2026-10-19
 
+- On screens faster than 60 frames a second, and in the Unity version, your first steps out of the ship at the end of the opening no longer stop short at the foot of the ramp with the camera caught in its railing: the ship walks you out to your first view of the desert, as at 60.
 - The soft-fall soles, the wind-silk scarf and the brass level are no longer on top of their climbs: they wait in the makers’ courts of the City-Shaft, Vael’s sky stones and the Glass Dunes.
 - The little chests on high places now have a small lock beside them that one of your tools opens: braziers to light with ember, rings to tug with the hook, jaws to still, a bud to bloom, a plate to stomp, a cracked cap to blast, an iron disc for the magnet glove, a ring for the tether, a lamp to float up to, and one chest only the seeing lens can show.
 - Every makers’ court’s chest now waits behind a gate its puzzle opens, and every court’s puzzle uses a tool you already have when you reach that world. Four courts that had no chest now have one, among them a new charm in the Signal Market that lets the recall hourglass reach further.

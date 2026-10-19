@@ -250,6 +250,28 @@ export const SEQUENCES = [
     ],
   },
   {
+    // the ship's hold and Anselm's shop (issue #264, #195/#234: the engines never attached the ship, so the ramp led
+    // nowhere): walked into the ramp from 4 m out, up it on the ship's autopilot and in, then before Anselm by the
+    // crates, his talk (and its gestures, #197: public/anim/gestures.glb), "Show me what you have", his shop. Arzach's
+    // debug save: the desert's fragments found, so he is met and aboard (the desert's has none before it)
+    id: 'hold', title: 'The ship\'s hold and Anselm\'s shop', setup: { level: 'arzach', debug: true },
+    beats: [
+      { name: 'ramp', act: (G) => { const S = G.ship, out = S.rampFoot.clone().sub(S.hinge).setY(0).normalize(); standAt(G, S.rampFoot.clone().addScaledVector(out, 4), S.hinge); }, wait: 1.2 },
+      { name: 'walk-in', hold: { KeyW: true }, until: (G) => !!G.ship.auto, timeout: 8, wait: 0.6 },
+      { name: 'aboard', hold: { KeyW: false }, until: (G) => G.ship.inside && !G.ship.auto, timeout: 20, wait: 1.2 },
+      { name: 'anselm', act: (G) => {
+        const n = G.story.scientist?.aboard;
+        if (!n) throw new Error('Anselm is not aboard');
+        const at = n.pos.clone().add(new THREE.Vector3(Math.sin(n.heading), 0, Math.cos(n.heading)).multiplyScalar(1.6));
+        standAt(G, at, n.pos);
+      }, wait: 1.2 },
+      { name: 'talk', keys: tap('KeyE'), until: (G) => !!G.story?.dialogue?.open, timeout: 5, wait: 1.5 },
+      { name: 'gesture', keys: tap('Space'), wait: 1.5 },
+      { name: 'choices', until: (G) => (G.screen().dialogue?.choices?.length ?? 0) > 0, timeout: 6, wait: 0.5 },   // (the gesture's line is the one with the answers since #519's shorter count: a Space here would take the first)
+      { name: 'shop', keys: tap('Digit1'), until: (G) => !G.story?.dialogue?.open, timeout: 5, wait: 1.5 },
+    ],
+  },
+  {
     // the makers' mark in a line (issue #513: Unity drew "⁖⌒" where the page draws the shared open-corner mark): Bako's
     // listen line about it (src/story/desert-data.js), said as his whole talk for once
     id: 'mark', title: 'The makers\' mark in a conversation', setup: { level: 'desert', debug: true },
@@ -492,6 +514,8 @@ export function webGame(w) {
           const rows = [...el.querySelectorAll(`.panel[data-page="${page}"] label.row > span:first-child, .panel[data-page="${page}"] li > span:first-child`)].map(txt);
           return { kind: 'start', page, side, rows };
         }
+        // (a keeper's shop: the page's own HTML, its wares by name, as the engines' 'shop' sheet: shopView)
+        if (w.shopPanel?.isOpen) return shopView(w.shopPanel);
         if (w.journal.open) {
           const M = w.journal.menu;
           // (side: the panels' tabs, the House map's among them inside a makers' house: issue #487)
@@ -502,6 +526,9 @@ export function webGame(w) {
     },
   };
 }
+
+/** A shop open (src/shop-panel.js ShopPanel, the page's and the engines' alike): its id and its wares' names. */
+const shopView = (P) => ({ kind: 'shop', page: P.entry?.shop?.id ?? null, side: [], rows: P.view().wares.map((x) => clean(x.name ?? x.label ?? '')) });
 
 /** The engines' game (engine/game.js createGame) as a sequence sees it, with the menus the host made (engine/menus.js). */
 export function engineGame(g, menus = null) {
@@ -523,6 +550,7 @@ export function engineGame(g, menus = null) {
       },
       close() { menus?.close(); },
       view() {
+        if (menus?.mode === 'shop' && menus.shop?.panel?.isOpen) return shopView(menus.shop.panel);
         const v = menus?.view?.();
         if (!v) return null;
         if (v.kind === 'start') return { kind: 'start', page: menus.startPage(), side: v.side.map((s) => clean(s.text)), rows: (v.page?.rows ?? []).filter((r) => !(r.head && menus.startPage() === 'settings')).map((r) => clean(r.text)) };   // (the settings' group headings: the page's h2, not its rows)

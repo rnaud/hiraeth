@@ -105,6 +105,10 @@ export const CHANGELOG = [
       see: 'Climb to the roof just inside Qanat’s main gate: the chest there sits between two cold braziers; light both with ember and it opens.' },
     // issue #518: src/boxes/placements.js (incal.soles, arzach2.scarf, garage.level now court boxes, their ids kept)
     'The soft-fall soles, the wind-silk scarf and the brass level are no longer on top of their climbs: they wait in the makers’ courts of the City-Shaft, Vael’s sky stones and the Glass Dunes.',
+    // issue #264: src/ship/ship.js (the autopilot's 30 s counted in the game's seconds, AUTO_GIVE_UP, not a sixtieth a
+    // frame); engine/sequences.js 'hold' (the ship's hold and Anselm's shop, web against Unity); tests/ship.test.js,
+    // tests/sequences-ship.test.js
+    'On screens faster than 60 frames a second, and in the Unity version, your first steps out of the ship at the end of the opening no longer stop short at the foot of the ramp with the camera caught in its railing: the ship walks you out to your first view of the desert, as at 60.',
   ] },
   { v: '1.85', date: '2026-10-18', items: [
     // issue #474: src/music-moments.js (MUSIC_MODES, musicMode: Always the default), src/ui.js (musicMode, musicV: a saved

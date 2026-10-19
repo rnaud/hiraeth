@@ -12,7 +12,7 @@ import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tempDir, removeTemp } from '../scripts/temp-dirs.mjs';
 
-checkSequences((s) => !s.id.startsWith('moment-') && s.id !== 'opening');
+checkSequences((s) => !s.id.startsWith('moment-') && s.id !== 'opening' && s.id !== 'hold');   // (the hold: tests/sequences-ship.test.js)
 
 test('every entry of the sequences\' list says its status, why or where, and a gap its issue', () => assert.deepEqual(checkList(), []));
 

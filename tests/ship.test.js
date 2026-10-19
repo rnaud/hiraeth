@@ -667,3 +667,24 @@ test('the ground under the ship\'s lenses is never NaN, over a void too', () => 
   assert.equal(Ship.prototype.groundAt.call({ ...voidShip, physics: { groundAt: () => 7 } }, 20, 83), 7, 'a collider first');
   assert.equal(Ship.prototype.groundAt.call({ ...voidShip, site: {} }, 0, 0), 0);
 });
+
+test('the autopilot gives up after its 30 s of the game\'s time at any frame rate (issue #264: in the Unity editor\'s ~300 frames a second it gave up halfway down the ramp)', async () => {
+  const { AUTO_GIVE_UP } = await import('../src/ship/ship.js');
+  const scene = new THREE.Scene();
+  scene.add(new THREE.Mesh(new THREE.PlaneGeometry(800, 800).rotateX(-Math.PI / 2)));
+  const physics = new Physics(scene);
+  const level = { spawn: v(0, 0, 60), ground: { heightAt: () => 0 }, lights: [], shipSite: { x: 0, z: 0, heading: Math.PI / 2 } };
+  const ship = quiet(() => new Ship({ scene, physics, level, levelId: 'test', content: { npcs: [], relics: { spots: [] } } }));
+  ship.player = new Player(physics);
+  ship.player.pos.set(0, 0, 60);
+  ship.rig = { yaw: 0, pitch: 0.2 };
+  ship.camera = new THREE.PerspectiveCamera();
+  let done = 0;
+  ship.autopilot([v(0, 0, 400)], () => { done++; }, { walk: true });   // (too far to reach in the time)
+  const run = (dt, secs) => { for (let i = 0; i < Math.round(secs / dt); i++) { ship.input({}); ship.update(dt, 0, {}); } };
+  run(1 / 300, AUTO_GIVE_UP / 2);   // (4 500 frames: a sixtieth counted a frame would have been 75 s)
+  assert.ok(ship.auto, 'still walking after half its time at 300 frames a second');
+  run(1 / 30, AUTO_GIVE_UP / 2 + 1);
+  assert.equal(ship.auto, null, 'given up after its 30 s');
+  assert.equal(done, 1);
+});
