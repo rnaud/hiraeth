@@ -1,0 +1,99 @@
+docs/systems/performance.md
+  s_5f899ba316b5dc::t_784d3810191b51 5472-5529
+  s_5f899ba316b5dc::t_4ba3c9e935da93 5530-5583
+  s_5f899ba316b5dc::t_b7ff9f7cfff363 5584-5645
+  s_5f899ba316b5dc::t_2c487618fd82a3 5646-5662
+  s_5f899ba316b5dc::t_691f92053c720c 5663-5675
+engine/game.js
+  s_5f899ba316b5dc::t_f6bb9d658dccb5 171
+  s_5f899ba316b5dc::t_bd71f279fb0d3d 791-797,1538
+  s_5f899ba316b5dc::t_6b527bcf3167a1 170
+engine/sequence-run.mjs
+  s_5f899ba316b5dc::t_d0d61b05cc9d4d 51
+  s_5f899ba316b5dc::t_142371da82804e 52
+engine/stutter-routes.js
+  s_5f899ba316b5dc::t_f1728152ac600e 1-134
+engine/stutter.js
+  s_5f899ba316b5dc::t_02be01196c2b14 1-256
+engine/unity/game.js
+  s_5f899ba316b5dc::t_f154ac99e414a5 18-19,350-352,404,904-905,907-913,946-953,1005,1014,1235
+scripts/stutter/report.mjs
+  s_5f899ba316b5dc::t_e31cb193291dac 1-35
+scripts/stutter/run.mjs
+  s_5f899ba316b5dc::t_27d4629456fdfc 1-45
+tests/stutter-routes.test.js
+  s_5f899ba316b5dc::t_b8346625edf988 1-33
+tests/stutter.test.js
+  s_5f899ba316b5dc::t_97d062e5030b7c 1-84
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeArgs.cs
+  s_5f899ba316b5dc::t_9a309be2a9954d 176
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeLoopTimer.cs
+  s_5f899ba316b5dc::t_c3d7f502f013ba 72-87
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRenderer.cs
+  s_5f899ba316b5dc::t_14ed58351abbd9 224-230
+  s_5f899ba316b5dc::t_7072be14a041a6 104-107,245-249
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs
+  s_5f899ba316b5dc::t_38f45c2e147e56 76,727,737,861-862
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeStutter.cs
+  s_5f899ba316b5dc::t_f778e8913b56fa 1-148
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeStutter.cs.meta
+  s_5f899ba316b5dc::t_cf9f5465705b16 1-11
+src/world-map.js
+  s_5f899ba316b5dc::t_6335c8dbc4b9d6 160-170,196-201,203,208,222,243,245,247,256,305-312,314-315
+tests/world-map.test.js
+  s_5f899ba316b5dc::t_eed93f7a75c85e 5,8,311-332
+tests/unity-geometry-copies.test.js
+  s_5f899ba316b5dc::t_25404988013a0a 1-19
+scripts/stutter/run-android.mjs
+  s_b5a45d62209de7::t_f93509d9f75c4f 1-64
+scripts/stutter/run-deck.mjs
+  s_b5a45d62209de7::t_b90bb9150546ad 1-54
+src/foes.js
+  s_5f899ba316b5dc::t_745c449acf934d 5-7,1750-1751,2043-2053,2095,2101-2102,2112-2117,2132,2440,3508
+src/foe-shapes.js
+  s_b5a45d62209de7::t_6f2fad448771cc 1-72
+tests/foe-shapes.test.js
+  s_b5a45d62209de7::t_523681f18d355d 1-71
+changelog.md
+  s_5f899ba316b5dc::t_abf7403cdca99f 12
+  s_5f899ba316b5dc::t_7f23468f1e7035 7
+src/changelog.js
+  s_5f899ba316b5dc::t_ee68e67a622f94 39-46
+  s_5f899ba316b5dc::t_d4660813a5b583 62-70
+engine/sequences.js
+  s_5f899ba316b5dc::t_70636faa3040dc 23,493-501
+scripts/unity-compare/sequences.mjs
+  s_5f899ba316b5dc::t_f3cb4743ff09ec 72
+tests/sequences-map.test.js
+  s_5f899ba316b5dc::t_2ca7674e00209b 1-21
+src/cape.js
+  s_5f899ba316b5dc::t_f2dc7434c62ced 66-67,70,73,525,527-530,533-541
+tests/cape.test.js
+  s_5f899ba316b5dc::t_71d8cfe4cb5ef6 31-44
+src/npc.js
+  s_5f899ba316b5dc::t_bf8b8a17553976 678-680
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1bf45792c3265ea1e10b9e4a98b7226b81b0a2ec",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_b5a45d62209de7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a95795a430dffc59c",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
