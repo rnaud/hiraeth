@@ -82,9 +82,9 @@ test('a landmark\'s shell: its centre crosses, the web\'s sutures and chambers, 
   for (const k of ['(vWorldPos.xy-uShellCenter.xy)/vec2(20.0,25.0)', 'shellTurn=(shellA+4.5*log(max(shellR,.045)))/6.283185', 'shellCell=(shellA+shellR*.8)*24.0/6.283185',
     'max(shellSeam,shellChamber*.48)*smoothstep(.04,.09,shellR)', 'albedo=uColor*(1.0-shellInk*.17)', 'float detail = shellInk*.13;']) assert.ok(web.includes(k), k);
   for (const k of ['(i.worldPos.xy - _ShellCenter.xy) / float2(20.0, 25.0)', 'shellTurn = (shellA + 4.5 * log(max(shellR, 0.045))) / 6.283185', 'shellCell = (shellA + shellR * 0.8) * 24.0 / 6.283185',
-    'max(shellSeam, shellChamber * 0.48) * smoothstep(0.04, 0.09, shellR)', 'albedo *= 1.0 - shellInk * 0.17;', 'float detail = max(skinInk, shellInk * 0.13);']) assert.ok(SURFACE.includes(k), k);
+    'max(shellSeam, shellChamber * 0.48) * smoothstep(0.04, 0.09, shellR)', 'albedo *= 1.0 - shellInk * 0.17;', 'float detail = max(max(skinInk, shellInk * 0.13), stoneInk);']) assert.ok(SURFACE.includes(k), k);
   assert.match(SURFACE, /UNITY_BRANCH if \(WALLK && _ShellCenter\.w > 0\.5\)/);
-  assert.match(RENDERER, /&& V\(m, "_ShellCenter"\)\.w <= 0\.5f;/, 'never HIRAETH_PLAIN, which has no wall marks');
+  assert.match(RENDERER, /&& V\(m, "_ShellCenter"\)\.w <= 0\.5f\b/, 'never HIRAETH_PLAIN, which has no wall marks');
 });
 
 test('the banners\' glyph cells: each banner\'s own grid, per vertex (S_VGLYPH)', () => {

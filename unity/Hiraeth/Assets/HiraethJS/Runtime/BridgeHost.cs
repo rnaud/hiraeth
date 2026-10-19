@@ -162,6 +162,8 @@ namespace Hiraeth.Bridge
 #endif
         }
         public static void Frame(object buffer) { var b = JsRuntime.Bytes(buffer, out int n); On(() => R?.Frame(b, n)); }
+        /// <summary>Does op 8 read a vertex-material mesh's object frames (flag 8: the City-Shaft's banners as they wave, issue #538)?</summary>
+        public static bool VertexFrames() => true;
         public static void Look(string json) => On(() => Runner?.Look(json));
         /// <summary>The water's pass over the page when it changed (engine/unity/backend.js water: src/water.js overState).</summary>
         public static void Water(string json) => On(() => Runner?.Water(json));

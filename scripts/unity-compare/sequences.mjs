@@ -118,7 +118,9 @@ async function engine() {
 const LOCK = process.env.LOCK ?? '/Users/anf/projects/moebius/.local-tools/handoff/unity-build.lock';
 async function takeLock() {
   for (;;) {
-    try { writeFileSync(LOCK, `sequences.mjs (#429) pid ${process.pid} ${new Date().toISOString()}\n`, { flag: 'wx' }); return; } catch { console.log(`the Unity lock is held: ${existsSync(LOCK) ? readFileSync(LOCK, 'utf8').trim() : ''}; waiting`); await sleep(60000); }
+    // (held as a file, or as a directory with an `owner` file: unity.mjs's form, which read as a file threw EISDIR)
+    const holder = () => { try { return readFileSync(LOCK, 'utf8').trim(); } catch { try { return readFileSync(join(LOCK, 'owner'), 'utf8').trim(); } catch { return ''; } } };
+    try { writeFileSync(LOCK, `sequences.mjs (#429) pid ${process.pid} ${new Date().toISOString()}\n`, { flag: 'wx' }); return; } catch { console.log(`the Unity lock is held: ${holder()}; waiting`); await sleep(60000); }
   }
 }
 const giveLock = () => { try { if (readFileSync(LOCK, 'utf8').includes(`pid ${process.pid} `)) rmSync(LOCK); } catch { /* gone */ } };

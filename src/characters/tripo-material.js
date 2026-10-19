@@ -6,6 +6,7 @@ export function makeReviewInkMaterial(mesh, { lining = false, clothInk = null } 
  const original=mesh.material;
  const mat=makeMaterial({color:original.color,map:original.map,vertexColors:original.vertexColors,side:original.side,figure:true,...mesh.userData.inkShade,line:mesh.userData.inkLine,lineTint:mesh.userData.inkTint}).clone();
  Object.assign(mat.uniforms,SU);
+ mat.userData.tripoInk=true;   // (its patches' mark: engine/ink-spec.js `patched`, the bridge's gaps list, issue #538)
  const repair=!!mesh.geometry.attributes.trouserRepair;
  if(repair){
   mat.vertexShader=mat.vertexShader.replace('out vec2 vTextureUV;', 'out vec2 vTextureUV;\nin float trouserRepair; out float vRepair;').replace('vTextureUV = uv;', 'vTextureUV = uv; vRepair = trouserRepair;');

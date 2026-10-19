@@ -9,6 +9,8 @@ The same release notes shown in the game (press **N** or open settings).
 - In the fight temples a hazard that starts near the edge of the screen (a pool of oil, a falling load, a breaking tile, an ink geyser) now draws the view toward it so you see it coming, and one still out of sight gets a marker at the screen’s edge, as a foe winding up out of sight does.
 - In the fight temples you no longer lose yourself in the crowd: when foes cover you or close in round you, an inked ring with a gold mark over your head shows where you are.
 - Plumb now has a word the first time you come near a fight temple’s gate, Sabri in the desert and Teasel in Lorn mention the ink under the old floors, and Items names each colour after the place you won it, as in Ember · the Sunken Hall.
+- In the Unity version, the City-Shaft’s banners keep their pale colours and glyphs when they wave, where they turned into dark slabs, and the makers’ towers, the Rose House’s red one first, show their cut stone blocks as on the web.
+- In the Unity version, the Rose House’s lit circuits glow orange up its walls as on the web, instead of thin brown lines: a line of light two pixels wide no longer has the pen’s outline drawn over it, here or anywhere else.
 - People now tell you of a fight temple as the old floor the ink comes up through and the person waiting by its door, not as a game, and your map names it by the place.
 - The fight temples now belong to the story: the makers built them over springs where the dark wells up, and the people by their doors want their mill, their cranes or their gardens back, and say so. A run ends with the place going quiet and its keeper coming back in, before your time and rank, and the ember shard’s double cuts are now the blade running bright.
 

@@ -1265,6 +1265,8 @@ const WEB526 = 'Issue #526: the web game in muted headless Chrome on this branch
 const CINE491 = 'Issue #491: the cinematics QC (scripts/cinematics-qc.mjs) in muted headless Chrome (High, 1280 × 720, the frames kept at 960 × 540) on this branch’s own Vite (port 5431), each climax staged by the review page (out of the house once its guardian is done, a few steps from its door); before: the branch’s base, after: the fix, the same frame of the film; 19 October';
 /** (v1.86, issue #534: the fight temples read from the iso camera) */
 const FIGHT534 = 'Issue #534: muted headless Chrome (High, 1280 × 720) against this branch’s own Vite (port 5534; the tree before it on 5535), ?game=fight-<world>&seed=7, every wave felled to the last room, the traveller set in its middle (nothing hurting him, the moths’ flash off), 16 more foes brought up, the three nearest stood round him (one between him and the camera), the temple’s hazard lent at the frame’s edge (a pool of oil 6.5 m down the screen; a sign on the far wall); pictures 0.5 s (and 1.1 s) on, and a tenth of a second after Tab; the crowds differ a little between the two loads; 19 October; cwebp -q 52';
+const PARITY538 = 'Issue #538: the Unity editor’s batch run on this Mac (scripts/unity-compare/unity.mjs, muted, High, 1280 × 720, -fresh -no-hud, noon, clear); before: main with the #264 round (5570377f2); after: this change; 19 October; cwebp -q 72';
+const PARITY538W = 'Issue #538: the same view on the web, muted headless Chrome on this branch (scripts/design-qc/capture.mjs, High, 1280 × 720, a fixed render scale); cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.86': [
     { match: 'The fight temples now belong to the story', tags: ['story'], shots: [
@@ -1272,6 +1274,16 @@ export const CHANGELOG_MEDIA = {
       { name: 'fight-story-start', title: 'The start card', size: [1280, 720], caption: 'The Sunken Hall’s start card: before, “four rooms of them”; after, what the place is and what comes up in it, and foes sent back into the floor.', from: STORY483 },
     ], see: 'Talk to the person by any fight temple’s door (Wafa, west of the desert’s pilgrims’ camps): the second line says what they want back. Win the run: the card’s first line is the place’s.' },
     { match: 'Plumb now has a word the first time you come near a fight temple’s gate', see: 'On a save that has not met one yet, walk up to any fight temple’s gatehouse (in the desert, west of the pilgrims’ camps): within a dozen steps of its host Plumb says “Makers’ gate. Blades mean keep out. Something got in.”, once. Walk past Sabri at Qanat’s camps or Teasel by Lorn’s reeds to hear their new lines; win a fight temple’s colours and open Items: the Colours strip reads “Ember · the Sunken Hall”.' },
+    { match: 'In the Unity version, the Rose House’s lit circuits glow orange', tags: ['devices', 'temples'], shots: [
+      { name: 'unity-rose-circuits', title: 'The Rose House’s first room', caption: 'Its right-hand wall (the top right of the view, 640 × 360 scaled up): before, the circuits thin brown lines, their pen outline drawn over them; after, glowing orange as on the web (the room’s SSIM 0.929 → 0.963)', from: PARITY538 },
+      { name: 'unity-rose-circuits-web', only: 'after', title: 'On the web', caption: 'The same view on the web', from: PARITY538W },
+    ], see: 'In the Unity version, walk into the Rose House and look at the walls of its first room.' },
+    { match: 'In the Unity version, the City-Shaft’s banners keep their pale colours', tags: ['devices'], shots: [
+      { name: 'unity-shaft-banner', title: 'A banner under the City-Shaft’s top ring', caption: 'Close, from 12 m: before, a dark slab; after, its pale blue and its glyphs as on the web (SSIM 0.870 → 0.921, mean ΔE 5.0 → 3.2)', from: PARITY538 },
+      { name: 'unity-shaft-banner-web', only: 'after', title: 'On the web', caption: 'The same view on the web', from: PARITY538W },
+      { name: 'unity-rose-stone', title: 'The Rose House', caption: 'Its red tower from the dunes (640 × 360 round it, scaled up): before, bare red with a few patches; after, its courses of cut blocks, each its own tone, as on the web', from: PARITY538 },
+      { name: 'unity-rose-stone-web', only: 'after', title: 'The Rose House on the web', caption: 'The same view on the web', from: PARITY538W },
+    ], see: 'In the Unity version, look up at the banners hanging under the City-Shaft’s top ring, or at the Rose House’s red tower from the desert.' },
     { match: 'People now tell you of a fight temple', see: 'In a world whose fight temple you have not found, ask the people who only chat: one may tell you of the ink coming up through an old makers’ floor and who waits by its door; the circle on your map is named after the place (“The Sunken Hall”).' },
     { match: 'In the fight temples you no longer lose yourself in the crowd', tags: ['combat'], shots: [
       { name: 'fight-self-534', title: 'Under the crabs', caption: 'The Flooded Gallery’s whale-watch, three crabs stood round him: before, nothing of him shows but a glint of his blade; after, his ring and its gold mark over the crabs', from: FIGHT534 },

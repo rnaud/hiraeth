@@ -3009,6 +3009,21 @@ const cache = new Map();
  * @param {boolean} [o.nightPaint] compile the NIGHT_PAINT block: the geometry's aNight attribute (vec4: rgb its colour by
  *                              night, a how far it glows then) takes over from its colour as uNight comes up (the Signal Market)
  */
+/**
+ * How a surface material's shader is no longer makeMaterial's own: 'fragment' or 'vertex' (its text rewritten after it was
+ * made, a replace() as landmark-materials.js stone() does), 'compile' (an onBeforeCompile of its own). The engines draw
+ * makeMaterial's surface from its defines and uniforms, so a pattern spliced in this way reaches them only through a port
+ * of its own: scripts/bridge-gaps.mjs names each patched kind (engine/ink-spec.js `patched`, issue #538). [] for none.
+ */
+export function surfacePatches(m) {
+  const out = [];
+  if (!m?.uniforms?.uMode) return out;
+  if (m.fragmentShader !== fragmentShader) out.push('fragment');
+  if (m.vertexShader !== vertexShader) out.push('vertex');
+  if (Object.prototype.hasOwnProperty.call(m, 'onBeforeCompile')) out.push('compile');
+  return out;
+}
+
 export function makeMaterial(o) {
   const key = JSON.stringify({ ...o, map: o.map?.uuid });
   if (cache.has(key)) return cache.get(key);

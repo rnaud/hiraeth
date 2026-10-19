@@ -132,6 +132,11 @@ Shader "Hidden/Hiraeth/Composite"
       // the light term under a material's line step (materials.js LINE: gAlbedoLight.a = L + 2 x step)
       // (a white line, makeMaterial({ lineWhite }), is stored in the sign bit: −(1 + L + 2 × step); issue #264, surfaces D)
       float lightOf(float a) { a = a < 0.0 ? -a - 1.0 : a; return a - 2.0 * floor(a * 0.5); }
+      // gSliver (set by each inkLines, read by 1a on inked pixels only: post.js, issue #538): how far this pixel differs from
+      // its neighbours on BOTH sides across: x the nearer neighbour's depth across (the sky far), y its own depth, z the
+      // smaller normal difference across, w the smaller colour difference. Nearer than both, or a crease or a colour edge on
+      // both sides: a feature a kernel or two wide (a stem, a far petal, a lit circuit), which its line keeps off (INK_SIZE)
+      static float4 gSliver;
       // x depth edge, y crease, z colour edge, w shadow edge; minDepth the nearest surface in the kernel, near.xy where it
       // is, near.z the signed Laplacian of 1/z (over 0: a depth edge's far side, whose line is the surface's in front)
       float4 inkLines(float2 uv, float w, bool interior, out float minDepth, out float3 near)
@@ -149,6 +154,8 @@ Shader "Hidden/Hiraeth/Composite"
         float lap = abs(i1 + i2 - 2.0 * ic) + abs(i3 + i4 - 2.0 * ic);
         float dEdge = smoothstep(_DepthThresh, _DepthThresh * 1.6, lap / max(mx, 1e-7));
         near.z = (i1 + i2 + i3 + i4 - 4.0 * ic) / max(mx, 1e-7);
+        float4 nf = lerp((float4)1e7, float4(n1.w, n2.w, n3.w, n4.w), step(1e-6, float4(n1.w, n2.w, n3.w, n4.w)));
+        gSliver = float4(max(min(nf.x, nf.y), min(nf.z, nf.w)), c.w, 0.0, 0.0);
         float nEdge = 0.0;
         if (c.w > 0.0 && interior) {
           float d1 = n1.w > 0.0 ? 1.0 - dot(c.xyz, n1.xyz) : 0.0;
@@ -156,12 +163,15 @@ Shader "Hidden/Hiraeth/Composite"
           float d3 = n3.w > 0.0 ? 1.0 - dot(c.xyz, n3.xyz) : 0.0;
           float d4 = n4.w > 0.0 ? 1.0 - dot(c.xyz, n4.xyz) : 0.0;
           nEdge = smoothstep(_NormalThresh, _NormalThresh * 1.5, max(max(d1, d2), max(d3, d4)));
+          gSliver.z = max(min(d1, d2), min(d3, d4));
         }
         float aEdge = 0.0, sEdge = 0.0;
         if (c.w > 0.0 && interior && (_AlbedoEdges > 0.0 || _ShadowEdges > 0.0)) {
           float4 a = tA(uv), a1 = tA(uv + float2(px.x, 0)), a2 = tA(uv - float2(px.x, 0)), a3 = tA(uv + float2(0, px.y)), a4 = tA(uv - float2(0, px.y));
-          float da = max(max(length(a.rgb - a1.rgb), length(a.rgb - a2.rgb)), max(length(a.rgb - a3.rgb), length(a.rgb - a4.rgb)));
+          float4 dq = float4(length(a.rgb - a1.rgb), length(a.rgb - a2.rgb), length(a.rgb - a3.rgb), length(a.rgb - a4.rgb));
+          float da = max(max(dq.x, dq.y), max(dq.z, dq.w));
           aEdge = smoothstep(0.08, 0.14, da) * _AlbedoEdges;
+          gSliver.w = max(min(dq.x, dq.y), min(dq.z, dq.w)) * step(1e-3, _AlbedoEdges);
           float s = step(_Toon, lightOf(a.a));
           float ds = max(max(abs(s - step(_Toon, lightOf(a1.a))), abs(s - step(_Toon, lightOf(a2.a)))), max(abs(s - step(_Toon, lightOf(a3.a))), abs(s - step(_Toon, lightOf(a4.a)))));
           sEdge = ds * _ShadowEdges * (1.0 - _Flatten);
@@ -651,18 +661,41 @@ Shader "Hidden/Hiraeth/Composite"
         float inW = weight * lerp(1.0, 0.75, _LineVary) * lerp(1.0, 0.85 + 0.3 * sn.w, _LineVary);
         float2 sd = (uv - _Subject.xy) * float2(_Res.x / _Res.y, 1.0);
         float subj = (1.0 - smoothstep(_Subject.w * 0.7, _Subject.w, length(sd))) * (1.0 - smoothstep(1.5, 4.0, abs(probeD - _Subject.z)));
+        // (not the web's frameK, post.js INK_SIZE.frame, the lines thinned on a frame under 900 CSS px tall: measured at 1280 x
+        // 720 against the web it gained nothing (twelve views' mean SSIM 0.9228 with it, 0.9238 without) and would thin every
+        // line on the handhelds; issue #538)
         silW = lerp(silW, 0.65, heroNear);
         euv = lerp(euv, uv, heroNear);
         float nearD2;
         float3 ownK, ownK2;
         float4 eS, eI;
-        if (_PostLite > 0.5) { eI = inkLines(euv, lerp(silW, inW, 0.5) * _PixelRatio, true, nearD2, ownK); eS = eI; nearD = nearD2; }
-        else { eS = inkLines(euv, silW * _PixelRatio, false, nearD, ownK); eI = inkLines(euv, inW * _PixelRatio, true, nearD2, ownK2); }
+        float4 slS, slI;   // (gSliver of each kernel)
+        if (_PostLite > 0.5) { eI = inkLines(euv, lerp(silW, inW, 0.5) * _PixelRatio, true, nearD2, ownK); eS = eI; nearD = nearD2; slS = gSliver; slI = gSliver; }
+        else { eS = inkLines(euv, silW * _PixelRatio, false, nearD, ownK); slS = gSliver; eI = inkLines(euv, inW * _PixelRatio, true, nearD2, ownK2); slI = gSliver; }
         nearD = min(nearD, nearD2);
         float3 wpL = _CamWorld._m03_m13_m23 + rd * min(probeD, 5000.0) / max(dot(rd, -camZ), 0.2);
         float gapN = vnoise(float2(wpL.x + wpL.y * 0.7, wpL.z - wpL.y * 0.4) * 0.9);
         float broken = lerp(1.0, smoothstep(0.22, 0.34, gapN), _LineVary * (1.0 - subj) * smoothstep(3.0, 12.0, probeD));
         float ink = saturate(max(max(eS.x, eI.y * broken), max(eI.z * 0.85 * broken, eI.w * 0.8 * (1.0 - face) * (1.0 - castPot))));
+
+        // ---- 1a. lines by the size of what they draw (post.js INK_SIZE; rendering.md "Ink lines by size on screen"; never
+        // ported before issue #538: the Rose House's lit circuits were eaten by their own line). On a sliver (this pixel
+        // differs from both sides: a stem, a petal, a lit line a kernel or two wide) the line keeps off and its colour shows;
+        // beside a depth edge, where the shape in front is no thicker than one or three kernels, the line is lighter
+        if (ink > 0.02 && hero < 0.5 && !isSky) {
+          // (a kernel under a render pixel is drawn a pixel wide: it carries its coverage instead, down to minAlpha)
+          ink *= clamp(_PixelRatio * 1.60, 0.70, 1.0);
+          float sD = slS.y > 0.0 ? smoothstep(0.040, 0.100, (slS.x - slS.y) / slS.y) : 0.0;
+          float sI = max(slI.y > 0.0 ? smoothstep(0.040, 0.100, (slI.x - slI.y) / slI.y) : 0.0,
+            max(smoothstep(_NormalThresh, _NormalThresh * 1.5, slI.z), smoothstep(0.08, 0.14, slI.w)));
+          ink *= lerp(1.0, 0.30, max(sD * eS.x, sI * max(eI.y, eI.z)) / max(ink, 1e-3));
+          if (ownK.z > 0.5 * _DepthThresh && eS.x > 0.02) {
+            float2 dk = ownK.xy - euv;
+            float da = tN(ownK.xy + dk).w, db = tN(ownK.xy + 3.0 * dk).w;
+            float2 back = smoothstep(0.040, 0.100, (lerp((float2)1e7, float2(da, db), step(1e-6, float2(da, db))) - nearD) / max(nearD, 1e-3));
+            ink *= lerp(1.0, 0.45, max(back.x, 0.5 * back.y));
+          }
+        }
 
         // ---- 1c. lines on detail under a pixel (post.js INK_FAR; rendering.md "Far lines that would alias", issues #225, #218):
         // where the worlds' finest drawn detail (0.25 m) is a pixel or two across, its lines are drawn lighter (silhouettes

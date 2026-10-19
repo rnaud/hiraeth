@@ -1722,8 +1722,8 @@ node scripts/unity-compare/run.mjs [--worlds a,b] [--set lantern] [--skip web,un
 | Every temple's first room 7-15 ΔE darker and greyer (v1.85 audit) | every makers' house, its first room seen through the way in | **fixed** (#502, below) |
 | Lorn's lake one flat teal, no pale shallows along the shores | Lorn's wide view | **fixed** (#502: the water's bed map) |
 | The room's lamp a size bigger or smaller on each side, the sand by the door lit or not (its flicker, each side's clock) | the Rose House's first room | **fixed** in the check (#264: a fixed view holds a house's lights, `HouseAir.still`) |
-| The wall pipes dashed glowing orange on the web, plain thin brown lines in Unity | the Rose House's first room | **open** (found 2026-10-19) |
-| A pale see-through panel under the top ring a dark slab in Unity | the City-Shaft, under its top ring's banners | **open** (found 2026-10-19) |
+| The wall pipes dashed glowing orange on the web, plain thin brown lines in Unity | the Rose House's first room | **fixed** (#538: the composite's ink lines by size, below) |
+| A pale see-through panel under the top ring a dark slab in Unity | the City-Shaft, under its top ring's banners | **fixed** (#538: a banner, black once it waved, below) |
 
 Run it again on every Unity release, before the Deck's and the Retroid's defaults move to it.
 
@@ -1797,7 +1797,9 @@ gone, and on a counted file with a site more or fewer. scripts/bridge-gaps.mjs g
 - **materials**, by running the engines' bundle (engine/game.js) in node in every world, the opening and every
   minigame (about a minute), each material put through the port's own `portMaterial` with its uniforms and defines
   watched: a shader with no port of its own (`shader:<its uniforms>`), one of three's lit materials (`three:<type>`),
-  and makeMaterial's defines and uniforms the port never reads (`define:…`, `uniform:…`: Unity never gets them).
+  and makeMaterial's defines and uniforms the port never reads (`define:…`, `uniform:…`: Unity never gets them); and since
+  #538 a surface whose shader text was rewritten after makeMaterial, or at compile (`patch:…`, src/materials.js
+  surfacePatches: a pattern in no define or uniform, as landmark-materials.js stone() was).
   port-format.js no longer falls back in silence either: such a material is kept in `unmapped` and said once
   (`[bridge gap] no port for …`), in the Unity player's log too.
 - **shaders**: each file's `ShaderMaterial`s, `onBeforeCompile`s and lit materials, counted.
@@ -2498,6 +2500,57 @@ programs more in all, Hiraeth/ChimeShade with and without the instances, drawn o
 a few hundred pixels); their pipeline states are new (the PSO lists recorded before miss them until traced again). A
 mesh with a far line or thin bars is drawn on its own rather than in a static batch: a few draws more in Viridel's meadow
 (its flowers are GPU instances already) and the City in Space's and the Moon Foundry's rigging.
+
+## Lit lines, the banners, the landmarks' stone (Unity + Puerts, 2026-10-19, issue #538)
+
+What the #264 round left, each looked at web against Unity from the same views (scripts/unity-compare unity.mjs and
+design-qc/capture.mjs: the Rose House's first room, its red tower from the dunes, the City-Shaft's top-ring banners from
+afar and from 12 m), the befores main with the #264 round (5570377f2). tests/unity-ink-size.test.js,
+unity-banners-vmat.test.js, unity-landmark-stone.test.js.
+
+- **The Rose House's circuits** (thin brown lines in Unity, glowing orange on the web) were not the skin: the G-buffers
+  matched to a level (`-debug-view 2` and 5 against the page's `params.debug`). The Unity composite never had the web's
+  *ink lines by the size of what they draw* (post.js INK_SIZE, v1.34, "1a"): on a sliver, a pixel that differs from both
+  its neighbours across (a lit line two pixels wide, a stem, a far petal), the pen line keeps off and its colour shows;
+  beside a depth edge whose shape in front is a kernel or three thick, the line is lighter; a kernel under a render pixel
+  carries its coverage. Unity inked the circuit's own pixels and left one lit pixel of three. Composite.shader now keeps
+  each kernel's `gSliver` as the web does and runs 1a with INK_SIZE's numbers (the room: SSIM 0.929 → 0.963), its
+  circuits dashed and glowing as on the web. Not ported: INK_SIZE's `frameK`
+  (lines thinned under 900 CSS px tall): at 1280 × 720 it gained nothing (the twelve views of Viridel and the desert, mean
+  SSIM 0.9208 before, 0.9228 with it, 0.9238 without) and would thin every line on the handhelds.
+- **The City-Shaft's "see-through panel"** was one of its banners (life.js BannerSet: one merged mesh, each banner's colour
+  and glyph cells per vertex, S_VMAT and S_VGLYPH). A banner that waves moves its object-space points too (aObjP, aObjN),
+  so the bridge sent the whole geometry again, and `geometryOf` made the variant without the vertex material: every
+  banner's colour 0, a dark slab. The node keeps its `vmat` now; and op 8 (vertices) carries a vertex-material mesh's
+  object frames (flag 8, BridgeRenderer's uv4 and uv5, `BridgeHost.VertexFrames`), so a waving banner sends its points,
+  normals and frames (12 floats a vertex, 2310 vertices in the City-Shaft) instead of the whole geometry a frame; a player
+  without `VertexFrames` takes the whole geometry, as before. The banner from 12 m: SSIM 0.870 → 0.921, mean ΔE 5.0 → 3.2;
+  the top ring from afar 0.940 → 0.960. This is also the S_VGLYPH banners' first picture: their glyphs are the web's.
+- **The landmarks' cut stone** (landmark-materials.js stone(): the Rose House's red tower, the towers' cream, ochre, slate)
+  splices its pattern into makeMaterial's shader text with no uniform, so the gaps list never saw it, and Unity drew the
+  bare colour. ink-spec.js reads its course, width and wear from `userData.landmarkStone` (`spec.stone`), port-format.js
+  sends `stone` → `_Stone`, and Surface.shader draws the web's staggered joints, a tone a block, the grain and worn veins,
+  its joints in the pen's detail: a uniform branch behind WALLK, kept off the plain variant (BridgeRenderer.Lean). The tower
+  from the dunes: SSIM 0.954 → 0.957 (fine detail at 256 px; the blocks are plain in the pictures).
+- **So a patch can't hide again**: src/materials.js `surfacePatches(m)` says when a surface's shader text is no longer
+  makeMaterial's own ('fragment', 'vertex': rewritten after it was made; 'compile': an onBeforeCompile of its own), and
+  ink-spec.js puts it in the spec as `patched` with the marks the patch left in its userData. scripts/bridge-gaps.mjs notes
+  each as `patch:<kind>:<marks>`, so an unlisted one fails tests/bridge-gaps.test.js; a patch with no mark is `?`, which no
+  entry lists. The first run's eight (the skins, the shell, the stone, the smoke's far depth, the splats, the generated
+  characters' ink) are listed with where Unity draws them; the splats and the characters' ink got their marks
+  (`userData.splat`, `tripoInk`).
+- **Lorn's cave** (moment-perdide.crystal): the toad and the walker are not the wilds' pack (the staging begins a few frames
+  after the world; packRest still 8 s). They are the guards of the relic 2.6 m from where the staging puts him
+  (foes.perdide.r0), risen in the staging's two frames: the page and the bundle in node read that spot as tame (a person
+  within the wilds' distance), Unity's run as wild; not the people's LOD (`-js-off people` the same). Left in PICTURE_DIFFS.
+- Seen on the way and left: the City-Shaft's tiled walls a pale blue on the web, grey-green in Unity.
+
+Cost on the Retroid (not measured: no device in this round). No variant or pipeline state is added to the Surface (the
+stone a uniform branch behind WALLK: a few ALU and two value noises on a landmark's pixels, nothing elsewhere). The
+composite's program changes (its pipeline states are new: the PSO lists recorded before miss it until traced again): every
+pixel's two kernels keep their sliver numbers (a few min / max), an inked pixel does 1a's ~20 ALU, and a silhouette's far
+side two more depth taps. The City-Shaft's waving banners cost less to send than before (their points, normals and frames,
+not the whole geometry a frame), and draw their colours.
 
 ## The author's Unity notes of 18 October
 

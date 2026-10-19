@@ -9,6 +9,8 @@
 //                         three:<type>           one of three's lit materials (Lambert, Standard…)
 //                         define:<D>, uniform:<u>  a define or uniform of makeMaterial's surface the port never reads,
 //                                                (engine/unity/port-format.js), so Unity never gets it
+//                         patch:<kind>:<marks>   a surface whose shader text isn't makeMaterial's own (src/materials.js
+//                                                surfacePatches: fragment, vertex, compile), by the marks in its userData
 //              shaders    site:<file>:<kind>     a ShaderMaterial, an onBeforeCompile, a lit material made in that file
 //              passes     <file>: <call>         a scene of its own, a renderer.render, an object's own render(renderer)
 //              dom        <file>                 the page elements that file builds; part:<name> a screen part
@@ -79,11 +81,23 @@ export const GAPS = {
     { pattern: /^(define:S_THIN|uniform:uThinPx)$/, what: 'thin bars (masts\' struts, wires, vines) kept a pixel or two wide far off (src/thin.js)', status: 'handled',
       where: 'port-format.js thinPx; aThin in the form\'s slot (pack.js, backend.js); Surface.shader vert pushes the vertex out from its axis point by the web\'s least width (a perspective view only); never in a static batch (BridgeRenderer.NeedsOrigin)' },
     { pattern: /^define:S_VGLYPH$/, what: 'the banners\' glyph cells per vertex (life.js BannerSet: the City-Shaft\'s banners)', status: 'handled',
-      where: 'port-format.js vglyph → _VGlyph: Surface.shader HIRAETH_VMAT reads each banner\'s glyph cells from its grid per vertex (vmGlyphs)' },
+      where: 'port-format.js vglyph → _VGlyph: Surface.shader HIRAETH_VMAT reads each banner\'s glyph cells from its grid per vertex (vmGlyphs); seen in a picture since #538, the pale banner under the top ring (it drew black: backend.js geometryOf sent a waved banner again without its vertex material)' },
     { pattern: /^(define:LINE_FAR|uniform:uLineFar)$/, what: 'a lighter line from afar (the meadow\'s flowers, flora.js FAR_LINE)', status: 'handled',
       where: 'port-format.js lineFar → _LineFar: Surface.shader vert flags a whole plant by the web\'s hashed distance (its instance\'s place), frag takes its far step; never in a static batch (BridgeRenderer.NeedsOrigin)' },
     { pattern: /^uniform:uShellCenter$/, what: 'a temple landmark\'s shell pattern (src/temples/landmark-materials.js nacre: the Whale-House\'s nautilus)', status: 'handled',
       where: 'port-format.js shellCenter → _ShellCenter: Surface.shader frag, the web\'s sutures and chambers (a uniform branch, not on the plain variant: BridgeRenderer.Lean)' },
+    // (issue #538: a surface whose shader text was rewritten after makeMaterial, or at compile, named by the marks its patch
+    // left in its userData (engine/ink-spec.js `patched`): what it draws is in no define or uniform, so it is listed here)
+    { keys: ['patch:fragment:landmarkStone'], what: 'a temple landmark\'s cut stone: staggered courses of blocks, a tone a block, worn veins (src/temples/landmark-materials.js stone(): the Rose House\'s red stone, the towers\' cream, ochre and slate)', status: 'handled',
+      where: 'ink-spec.js stone → port-format.js stone → _Stone: Surface.shader frag, the web\'s joints, tones and veins (a uniform branch, not on the plain variant: BridgeRenderer.Lean)' },
+    { keys: ['patch:fragment:nacre'], what: 'a temple landmark\'s shell, spliced into the surface\'s text (landmark-materials.js nacre)', status: 'handled', where: 'its uShellCenter, _ShellCenter (above)' },
+    { pattern: /^patch:fragment:\w+Skin,skinPattern$/, what: 'the temple skins\' surfaces, spliced into the surface\'s text (src/temples/skins/skin-shader.js spliceSkin)', status: 'handled',
+      where: 'skinPatternSpec: the pattern\'s number and uniforms as _SkinData; SkinPatterns.hlsl (scripts/skin-hlsl.mjs, the same GLSL in HLSL), Surface.shader HIRAETH_SKIN' },
+    { keys: ['patch:fragment:farDepth'], what: 'the smoke column\'s far depth, spliced into the surface\'s text (src/story/flames.js)', status: 'handled', where: 'its uFarNear and uFarScale, _FarDepth (below)' },
+    { keys: ['patch:fragment+vertex:splat'], what: 'the splats\' growth (src/splat-decal.js: the blob and its drops cut by their age)', status: 'handled', where: 'aSplat in the form\'s slot (pack.js), _SplatOn (surfaces B)' },
+    { pattern: /^patch:fragment(\+vertex)?:(albedoLinear,)?(lining,|portraitEyeBox,portraitEyePaint,portraitFace,)?tripoInk$/,
+      what: 'the generated characters\' ink (src/characters/tripo-material.js: their linear colours turned to display values, the trousers\' repaired band, the overshirt\'s lining; the traveller, the Keeper, the Elder)', status: 'handled',
+      where: 'engine/game.js engineColours and the guardians\' sampled colours: vertex colours (display values, or linear with albedoLinear → toDisplay), the repaired band baked in, the lining (_Lining); his face PortraitFace.hlsl' },
     { pattern: /^uniform:uFar(Near|Scale)$/, what: 'the fires\' far depth (src/story/flames.js SmokeColumn: past uFarNear its depth written compressed)', status: 'handled',
       where: 'port-format.js farDepth → the Surface\'s _FarDepth (as Puffs.cs had for the port\'s own column)' },
     { keys: ['define:METAL_BRUSHED'], what: 'brushed metal: fine streaks along an axis, the sun\'s highlight stretched across them', status: 'handled',
@@ -332,7 +346,7 @@ export const PICTURE_DIFFS = [
   { seq: 'talk|moment-arzach2.bell|moment-edena.terraces', beat: 'beside|start|mid', what: 'people\'s barks, the speech balloons over their heads ("A visitor! On a bird!", "Shut it! Shut it!"), not drawn in Unity', issue: 264, visible: 2 },
   { seq: 'moment-perdide.crystal', what: 'the hearts and wallet show over the crystal\'s moment in Unity (the screen\'s health part up; none on the page or in node)', issue: 264,
     status: 'handled', where: 'src/foes.js: held still by a scene, nothing is fighting you (Foes.update kept `fighting` at its last value: a toad chasing as the moment began kept the hearts up); now gone from the mid beat on, the first beat still fading (wireHealth\'s 3 s)' },
-  { seq: 'moment-perdide.crystal', what: 'a bellows toad and a walker in Unity\'s shot of the cave, hiding him; none in the page\'s (the batch run\'s world plays a few seconds longer before the staging, and the wilds\' pack comes in)', issue: 264, visible: 2 },
+  { seq: 'moment-perdide.crystal', what: 'a bellows toad and a walker in Unity\'s shot of the cave, hiding him; none in the page\'s. Not the wilds\' pack (#538: the staging begins a few frames after the world, packRest 8 s): the guards of the relic 2.6 m from where the staging puts him (foes.perdide.r0), risen in the staging\'s two frames; the page and the bundle in node read that spot as tame (a person within the wilds\' distance), Unity\'s run as wild. Not the people\'s LOD (-js-off people: the same)', issue: 538, visible: 2 },
   // ---- handled (#264, 2026-10-17: scripts/unity-compare/sequences.mjs, before and after sheets on the issue)
   { seq: 'moment-edena.terraces', beat: 'start', what: 'the far white tower and the slope before it in a cloud\'s shadow in Unity, lit on the page', issue: 264, status: 'handled',
     where: 'engine/game.js takes the world\'s own cloud shadows (level.defaults.cloudShadows, as main.js): most worlds have none, Unity drew them everywhere (Lorn all in shade)' },

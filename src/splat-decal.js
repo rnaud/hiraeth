@@ -509,6 +509,7 @@ export function splatMaterial() {
     defines: { ...base.defines },
   });
   mat.vertexColors = true;
+  mat.userData.splat = true;   // (its patch's mark: engine/ink-spec.js `patched`, the bridge's gaps list, issue #538)
   // on the surface itself: pulled in front of it in depth, not lifted off it
   mat.polygonOffset = true; mat.polygonOffsetFactor = -2; mat.polygonOffsetUnits = -4;
   return mat;

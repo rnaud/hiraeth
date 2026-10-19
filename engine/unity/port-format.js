@@ -163,6 +163,9 @@ export function portMaterial(spec, id = 0) {
   // cells per vertex (S_VGLYPH, life.js BannerSet: the grid's, HIRAETH_VMAT); the smoke column's far depth (story/flames.js:
   // past uFarNear its depth written compressed by uFarScale, so the fog and the line fade treat it as nearer)
   if (Array.isArray(u.uShellCenter)) e.shellCenter = [...u.uShellCenter.slice(0, 3).map(r5), 1];
+  // a temple landmark's cut stone (landmark-materials.js stone(): spliced into the web's shader text with no uniform, read
+  // from its userData by ink-spec.js; issue #538): its course, block width and wear, w 1 on
+  if (Array.isArray(spec.stone) && spec.stone[0] > 0 && spec.stone[1] > 0) e.stone = [...spec.stone.slice(0, 3), 1];
   if (spec.defines?.S_VGLYPH) e.vglyph = 1;
   if (typeof u.uFarNear === 'number' && typeof u.uFarScale === 'number') e.farDepth = [r5(u.uFarNear), r5(u.uFarScale), 0, 0];
   if (spec.defines?.S_THIN && v('uThinPx') > 0) e.thinPx = r5(v('uThinPx'));

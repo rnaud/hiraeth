@@ -194,7 +194,9 @@ namespace Hiraeth
                 ("phEyeBox", "_PhEyeBox", Vector4.zero), ("phEye", "_PhEye", Vector4.zero),   // (its eye paint's box and the iris's offset, issue #473)
                 ("surfD", "_SurfD", Vector4.zero), ("cutMe", "_CutMe", Vector4.zero), ("lineWhite", "_LineWhite", Vector4.zero),
                 // (issue #264: a lighter line from afar, LINE_FAR: its step, the distances it turns over between, w on)
-                ("lineFar", "_LineFar", Vector4.zero), ("shellCenter", "_ShellCenter", Vector4.zero), ("farDepth", "_FarDepth", Vector4.zero) })
+                ("lineFar", "_LineFar", Vector4.zero), ("shellCenter", "_ShellCenter", Vector4.zero), ("farDepth", "_FarDepth", Vector4.zero),
+                // (issue #538: a temple landmark's cut stone, landmark-materials.js stone(): course, width, wear, w on)
+                ("stone", "_Stone", Vector4.zero) })
             {
                 var l = m.L(k);
                 if (l == null) continue;

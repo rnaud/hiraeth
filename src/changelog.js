@@ -16,6 +16,11 @@ export const CHANGELOG = [
     // issue #483: src/story/rumours-data.js RUMOUR_FIGHT_LINES, rumours.js (a fight host: h.fight), story/index.js addHost;
     // tests/rumours.test.js
     'People now tell you of a fight temple as the old floor the ink comes up through and the person waiting by its door, not as a game, and your map names it by the place.',
+    // issue #538: unity/…/Composite.shader 1a (post.js INK_SIZE: slivers keep their colour, frameK), tests/unity-ink-size.test.js
+    'In the Unity version, the Rose House’s lit circuits glow orange up its walls as on the web, instead of thin brown lines: a line of light two pixels wide no longer has the pen’s outline drawn over it, here or anywhere else.',
+    // issue #538: engine/unity/backend.js (geometryOf keeps vmat; op 8 carries aObjP, aObjN), BridgeRenderer.cs, BridgeHost.VertexFrames;
+    // landmark-materials.js stone() → ink-spec.js stone → _Stone, Surface.shader; tests/unity-banners-vmat.test.js, unity-landmark-stone.test.js
+    'In the Unity version, the City-Shaft’s banners keep their pale colours and glyphs when they wave, where they turned into dark slabs, and the makers’ towers, the Rose House’s red one first, show their cut stone blocks as on the web.',
     // issue #483: src/companion.js (ONCE: bladegate), host/game-host.js wireCompanion; src/temples/desert-data.js (Sabri),
     // perdide-data.js (Teasel); src/kit-colours.js colourName (house); tests/fight-temples-story.test.js, companion.test.js
     'Plumb now has a word the first time you come near a fight temple’s gate, Sabri in the desert and Teasel in Lorn mention the ink under the old floors, and Items names each colour after the place you won it, as in Ember · the Sunken Hall.',

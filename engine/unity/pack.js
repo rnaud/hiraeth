@@ -104,8 +104,10 @@ export function unityGeometry(g, { colors = false, bind = false, rig = false, fo
  *   6 remove:     i32 id
  *   9 crowd:      i32 id, u32 count, f32 time, count × 32 floats (FarCrowd.cs Inst: at (Unity, yaw), anim, react,
  *                 look0, look1, dress, body, scale): the crowd's figures, posed in the port's Crowd.hlsl
- *   8 vertices:   i32 geometry id, u32 n, u32 flags (1 normals, 2 alpha, 4 colours), f32 × 3n positions (mirrored), [f32 × 3n
- *                 normals], [f32 × n alpha], [f32 × 4n colours RGBA]: cloth, the wind's wisps, the flames' flicker
+ *   8 vertices:   i32 geometry id, u32 n, u32 flags (1 normals, 2 alpha, 4 colours, 8 object frames), f32 × 3n positions
+ *                 (mirrored), [f32 × 3n normals], [f32 × n alpha], [f32 × 4n colours RGBA], [f32 × 3n aObjP, f32 × 3n aObjN:
+ *                 a vertex-material mesh's object frames, three's, as unityGeometry packs them]: cloth, the wind's wisps,
+ *                 the flames' flicker, the City-Shaft's banners
  *   7 skeleton:   i32 skeleton id, u32 n, f32 × 16 n (bone world × inverse bind, mirrored): the bones its meshes share
  *  12 grass:      i32 id, u32 count, u32 which (0 aGrass, 1 aGrass2, 2 the count alone), u32 start, u32 n, f32 × 4 n: the
  *                 tufts' attribute from start (flora-grass.js; aGrass's root x mirrored, aGrass2 as it is)

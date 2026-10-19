@@ -15,7 +15,7 @@ namespace Hiraeth.Bridge
     /// </summary>
     public class BridgeRenderer : MonoBehaviour
     {
-        class MeshData { public Mesh mesh; public Vector3[] pos, nrm; public Color[] col; public Vector2[] uv; public Vector3[] bind; public int[][] subs; public int[] subMat; public int bones = -1; public int keys; public bool unchunked; public Mesh shape; public List<Node> batchedBy; }   // (shape: the first mesh made from the same bytes: instance groups)
+        class MeshData { public Mesh mesh; public Vector3[] pos, nrm; public Color[] col; public Vector2[] uv; public Vector3[] bind; public List<Vector4> vmP, vmN; public int[][] subs; public int[] subMat; public int bones = -1; public int keys; public bool unchunked; public Mesh shape; public List<Node> batchedBy; }   // (shape: the first mesh made from the same bytes: instance groups)
         class Node
         {
             public GameObject go; public string kind, mesh; public int[] mids; public MeshFilter mf; public Renderer r;
@@ -318,7 +318,7 @@ namespace Hiraeth.Bridge
             if (d.col != null) mesh.SetColors(d.col);
             if (d.bind != null) mesh.SetUVs(3, d.bind);
             if (formC != null) { mesh.SetUVs(5, formC); mesh.SetUVs(6, formA); }
-            if (vm != null) for (int c = 0; c < 6; c++) mesh.SetUVs(1 + c, vm[c]);
+            if (vm != null) { for (int c = 0; c < 6; c++) mesh.SetUVs(1 + c, vm[c]); d.vmP = vm[3]; d.vmN = vm[4]; }   // (its object frames kept: op 8 moves them, issue #538)
             if (fold != null) mesh.SetUVs(1, fold);
             if (weights != null) mesh.boneWeights = weights;
             // (-uniform-layout, a test: every mesh with normals, a uv and colours, so fewer vertex layouts meet each material
@@ -621,7 +621,8 @@ namespace Hiraeth.Bridge
             if (leanRare && (why == "scrub" || why == "glass" || why == "see") && mode != 1 && mode != 3 && RareCount(m) == 1)
                 kw = why == "scrub" ? (leanScrub ? "HIRAETH_LEAN_SCRUB" : null) : (leanGlass ? "HIRAETH_LEAN_GLASS" : null);
             bool plainOk = kw != null && plain && (int)(F(m, "_Pattern") + 0.5f) == 0 && F(m, "_Weather") <= 0 && V(m, "_Detail").x <= 0.5f && F(m, "_Patch") <= 0
-                && V(m, "_ShellCenter").w <= 0.5f;   // (a landmark's shell sutures: drawn with a wall's marks, issue #264)
+                && V(m, "_ShellCenter").w <= 0.5f   // (a landmark's shell sutures: drawn with a wall's marks, issue #264)
+                && V(m, "_Stone").w <= 0.5f;   // (and a landmark's cut stone, issue #538)
             // (and none of the people's, a picture's or the form's hatching interpolators: the slim variant, its vertices 19 floats not 28;
             // never with HIRAETH_PLAIN: the two together stall the Retroid's frame for ~330 ms again and again, round 7; the ground is
             // always plain, so the plain lean materials' only)
@@ -1004,8 +1005,9 @@ namespace Hiraeth.Bridge
                     }
                     case 8:   // a geometry's points (and normals, alpha, colours) moved: cloth, the flames, in place
                     {
-                        int gid = (int)fu[o++], n = (int)fu[o++]; uint vf = fu[o++]; bool hasN = (vf & 1) != 0, hasA = (vf & 2) != 0, hasC = (vf & 4) != 0;
+                        int gid = (int)fu[o++], n = (int)fu[o++]; uint vf = fu[o++]; bool hasN = (vf & 1) != 0, hasA = (vf & 2) != 0, hasC = (vf & 4) != 0, hasF = (vf & 8) != 0;
                         int po = o; o += n * 3; int no = o; if (hasN) o += n * 3; int ao = o; if (hasA) o += n; int co = o; if (hasC) o += n * 4;
+                        int fo = o; if (hasF) o += n * 6;   // (a vertex-material mesh's object-space points and normals: the banners, issue #538)
                         if (byGeometry.TryGetValue(gid, out var list))
                             foreach (var md in list)
                             {
@@ -1019,6 +1021,17 @@ namespace Hiraeth.Bridge
                                 if (hasC && md.col != null) for (int i = 0; i < n; i++) md.col[i] = new Color(ff[co + i * 4], ff[co + i * 4 + 1], ff[co + i * 4 + 2], ff[co + i * 4 + 3]);
                                 if (hasA && md.col != null) for (int i = 0; i < n; i++) md.col[i].a = ff[ao + i];
                                 if ((hasA || hasC) && md.col != null) md.mesh.SetColors(md.col);
+                                if (hasF && md.vmP != null && md.vmN != null && md.vmP.Count == n)
+                                {
+                                    // (uv4 its object-space point, its turn kept in w; uv5 its object-space normal: as the geometry first sent them)
+                                    for (int i = 0; i < n; i++)
+                                    {
+                                        int kp = fo + i * 3, kn = fo + n * 3 + i * 3;
+                                        md.vmP[i] = new Vector4(ff[kp], ff[kp + 1], ff[kp + 2], md.vmP[i].w);
+                                        md.vmN[i] = new Vector4(ff[kn], ff[kn + 1], ff[kn + 2], 0);
+                                    }
+                                    md.mesh.SetUVs(4, md.vmP); md.mesh.SetUVs(5, md.vmN);
+                                }
                                 md.mesh.RecalculateBounds();
                             }
                         break;

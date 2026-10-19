@@ -13,10 +13,13 @@
 //
 // The shared uniforms (sun, shadows, wind, time: sharedUniforms in src/materials.js) are left out:
 // they are the frame's, sent once a frame, not each material's.
-import { sharedUniforms } from '../src/materials.js';
+import { sharedUniforms, surfacePatches } from '../src/materials.js';
 import { skinPatternSpec } from '../src/temples/skins/skin-shader.js';
 
 const SHARED = new Set(Object.keys(sharedUniforms));
+/** Whose a patched surface is: the marks its patch left in its userData (landmarkStone, nacre, skinPattern…), else its name, else '?'. */
+const PLAIN_MARKS = new Set(['cacheKey', 'sharesProgram', 'surface']);   // (makeMaterial's own, on every surface)
+const patchOwner = (m) => Object.keys(m.userData ?? {}).filter((k) => m.userData[k] && !PLAIN_MARKS.has(k)).sort().join(',') || m.name || '?';
 
 /** A uniform's value as numbers: a number, [r, g, b], [x, y(, z, w)], a matrix's 9 / 16, an array of them flattened; null for textures. */
 export function plainValue(v) {
@@ -53,6 +56,13 @@ export function inkSpec(m) {
   // a temple skin's pattern (src/temples/skins/skin-shader.js): its number and its uniforms packed, as the engines draw it
   const skin = skinPatternSpec(m);
   if (skin) spec.skin = { body: skin.body, data: Array.from(skin.data) };
+  // a temple landmark's cut stone (src/temples/landmark-materials.js stone(): its course, block width and wear, issue #538)
+  const st = m.userData?.landmarkStone;
+  if (st) spec.stone = [st.course, st.width, st.wear].map((x) => +(+x).toFixed(3));
+  // (a surface whose shader text is no longer makeMaterial's own, src/materials.js surfacePatches: which part, and whose by
+  // the marks in its userData; scripts/bridge-gaps.mjs lists each, so a pattern spliced in with no port can't hide)
+  const patches = surfacePatches(m);
+  if (patches.length) spec.patched = `${patches.join('+')}:${patchOwner(m)}`;
   if (m.defines) for (const [k, v] of Object.entries(m.defines)) spec.defines[k] = typeof v === 'number' ? v : v === '' || v === true ? 1 : String(v);
   if (m.uniforms) {
     spec.type = m.uniforms.uMode ? 'ink' : 'shader';

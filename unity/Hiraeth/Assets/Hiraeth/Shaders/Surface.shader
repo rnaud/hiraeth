@@ -65,6 +65,7 @@ Shader "Hiraeth/Surface"
     _LineWhite ("Its lines drawn white (live)", Vector) = (0, 0, 0, 0)
     _ThinPx ("Thin bars kept this many pixels wide (materials.js S_THIN; their axis points in the form's slot)", Float) = 0
     _ShellCenter ("A temple landmark's shell: its centre (three, world); w 1 on (landmark-materials.js nacre)", Vector) = (0, 0, 0, 0)
+    _Stone ("A temple landmark's cut stone: course, block width (m), wear; w 1 on (landmark-materials.js stone)", Vector) = (0, 0, 0, 0)
     _VGlyph ("A merged mesh's glyph cells per vertex, the grid's (materials.js S_VGLYPH: the banners)", Float) = 0
     _LineFar ("A lighter line from afar: its step, from, to (m); w 1 on (materials.js LINE_FAR)", Vector) = (0, 0, 0, 0)
     _BoxA ("Box: ray, glow, star reach, clock", Vector) = (0.6, 0.35, 0.4, 0)
@@ -213,6 +214,7 @@ Shader "Hiraeth/Surface"
     // (PortraitFace.hlsl's: the traveller's portrait head; and surfaces D's: the hatch's least spacing, the traveller cut, a white line)
     float4 _PhFit, _PhFit2, _PhSpeech, _PhBlink, _SurfD, _CutMe, _LineWhite;
     float4 _ShellCenter;   // a temple landmark's shell (src/temples/landmark-materials.js nacre, uShellCenter): its centre, w 1 on
+    float4 _Stone;         // a temple landmark's cut stone (landmark-materials.js stone(), no uniform on the web): course, width, wear, w 1 on
     float _VGlyph;         // the banners' glyph cells per vertex, the grid's (materials.js S_VGLYPH, life.js BannerSet; HIRAETH_VMAT)
     float _ThinPx;         // thin bars (src/thin.js, S_THIN): the least width they are drawn, in pixels; each vertex's axis point in formC
     float4 _LineFar;       // a lighter line from afar (materials.js LINE_FAR, the meadow's flowers): step, from, to (m), w 1 on
@@ -1268,6 +1270,29 @@ Shader "Hiraeth/Surface"
           shellInk = max(shellSeam, shellChamber * 0.48) * smoothstep(0.04, 0.09, shellR);
           albedo *= 1.0 - shellInk * 0.17;
         }
+        // a temple landmark's cut stone (landmark-materials.js stone(): the Rose House's red stone, the towers' cream and ochre):
+        // staggered courses of blocks in world metres, a tone a block, a grain and worn veins, the joints a little darker and in
+        // the pen's detail, filtered by the pixel's size. The web splices it into its shader's text (no uniform: issue #538);
+        // the same arithmetic, a uniform branch, not on the plain variant (BridgeRenderer.Lean)
+        float stoneInk = 0.0;
+        UNITY_BRANCH if (WALLK && _Stone.w > 0.5)
+        {
+          float3 stoneN = abs(SafeNormalize(i.normal));
+          float2 stoneP = stoneN.y > 0.7 ? i.worldPos.xz : float2(stoneN.x > stoneN.z ? i.worldPos.z : i.worldPos.x, i.worldPos.y);
+          float stoneRow = floor(stoneP.y / _Stone.x);
+          float stoneOffset = hash(float2(stoneRow, 19.3)) * 0.65;
+          float2 stoneQ = stoneP / _Stone.yx + float2(stoneOffset, 0.0);
+          float2 stoneCell = floor(stoneQ), stoneF = frac(stoneQ);
+          float2 stoneFW = max(fwidth(stoneQ), 0.0001);
+          float2 stoneEdge = min(stoneF, 1.0 - stoneF);
+          float stoneJoints = max(1.0 - smoothstep(0.006, 0.006 + stoneFW.y, stoneEdge.y), 1.0 - smoothstep(0.004, 0.004 + stoneFW.x, stoneEdge.x));
+          stoneJoints *= 1.0 - smoothstep(0.3, 0.8, max(stoneFW.x, stoneFW.y));
+          float stoneGrain = vnoise(stoneP * 1.7) - 0.5;
+          float stoneTone = (hash(stoneCell + 23.8) - 0.5) * 0.065 + stoneGrain * _Stone.z * 0.08;
+          float stoneVein = (1.0 - smoothstep(0.0, 0.035, abs(vnoise(stoneP * 0.23) - 0.48))) * _Stone.z;
+          albedo = _Color.rgb * (1.0 + stoneTone - stoneJoints * 0.055 - stoneVein * 0.08);
+          stoneInk = stoneJoints * 0.075 + stoneVein * 0.045;
+        }
         if (_MapOn > 0.5) albedo *= SAMPLE_TEXTURE2D(_Map, sampler_Map, I_FORM.xy).rgb;   // (materials.js: uColor × the map, as the web's)
         // a temple skin's pattern (HIRAETH_SKIN): where the web's body replaces vec3 albedo = uColor; its pen lines start the
         // surface's detail, its glow its emit (skin-shader.js spliceSkin)
@@ -1578,7 +1603,7 @@ Shader "Hiraeth/Surface"
         if (WATERK && mode == MODE_WATER && _WaterOpt.x > 0.0 && frontFace && _WaterOpt.y < 0.5) o.normalDepth.xyz *= 1.012 + 0.05 * waterGlint;
 
         // drawn detail (gHatch.b)
-        float detail = max(skinInk, shellInk * 0.13);
+        float detail = max(max(skinInk, shellInk * 0.13), stoneInk);
         // (the grid's and the glyphs' coordinates only on a material that draws either: a uniform branch, its derivatives
         // fine there, issue #262)
         UNITY_BRANCH if (_Grid > 0.0)

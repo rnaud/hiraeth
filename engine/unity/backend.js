@@ -36,6 +36,9 @@ export class UnityBackend {
     this.shapeAttrs = ['aObjP', 'aObjN'];
     // (an IL2CPP player takes buffers boxed, { b }: BridgeHost.BoxBuffers)
     this.toHost = host.BoxBuffers?.() ? (b) => ({ b }) : (b) => b;
+    // (a vertex-material mesh's object frames moved with its points go in op 8 (flag 8) where the C# reads them; an older
+    // player's does not, and takes the whole geometry again, as before issue #538)
+    this.vertexFrames = !!host.VertexFrames?.();
     this.geoms = new Map();    // gid → the mirror's geometry (uploaded per variant when a node needs it)
     this.sent = new Set();     // the variants sent: `${gid}:${colours}:${bind}`
     this.sentGids = new Set(); // (and the geometries they come from)
@@ -187,7 +190,9 @@ export class UnityBackend {
       return;
     }
     this.nodes ??= new Map();
-    this.nodes.set(id, { gid: d.gid, colors, bind: figure || fluid || d.kind === 'skinned', kind: d.kind, form, hidden });
+    // (vmat kept with it: a merged mesh's geometry sent again, the City-Shaft's banners each frame they wave, keeps its
+    // material values per vertex; without them its variant had none, and the banners drew black, issue #538)
+    this.nodes.set(id, { gid: d.gid, colors, bind: figure || fluid || d.kind === 'skinned', kind: d.kind, form, hidden, vmat });
     // (a see-through surface's wash, Hiraeth/Veil, a deadly drop's dark, Hiraeth/PitVoid, and the wind's wisps cast no
     // shadow: the page draws them over the ink)
     const over = d.mids.some((m) => OVER.has(this.ports.get(m)));
@@ -205,7 +210,7 @@ export class UnityBackend {
     if (!n) return;
     n.gid = gid;
     if (n.hidden) return;
-    const mesh = this._variant(gid, n.colors, n.bind, false, n.form);
+    const mesh = this._variant(gid, n.colors, n.bind, false, n.form, n.vmat);
     if (mesh) this.host.SetMesh(id, mesh);
   }
 
@@ -442,17 +447,23 @@ export class UnityBackend {
 
   /** A geometry's points and normals moved (cloth): into the frame's buffer, for every variant of it sent (op 8). */
   vertices(gid, pos, nrm, n, alpha = null, col = null, moved = null) {
-    // (aObjP / aObjN moved too, shapeAttrs: only a vertex-material variant (':v', unityGeometry vmat) draws them; one sent
-    // means the whole geometry again, false; the others take the points and normals alone)
-    if (moved && [...(this.sentOf.get(gid) ?? [])].some((k) => k.endsWith(':v'))) return false;
-    const b0 = this.w.n; this._vertices(gid, pos, nrm, n, alpha, col); tally(this, 'vertices', b0);
+    // (aObjP / aObjN moved too, shapeAttrs: only a vertex-material variant (':v', unityGeometry vmat) draws them: they go
+    // with the points (flag 8: the City-Shaft's banners each frame they wave, issue #538); a player that can't read them
+    // takes the whole geometry again, false; the other variants take the points and normals alone)
+    let frames = null;
+    if (moved && [...(this.sentOf.get(gid) ?? [])].some((k) => k.endsWith(':v'))) {
+      const A = this.geoms.get(gid)?.attributes;   // (the mirror's: the geometry's own arrays, written in place)
+      if (!this.vertexFrames || A?.aObjP?.itemSize !== 3 || A?.aObjN?.itemSize !== 3) return false;
+      frames = [A.aObjP.array, A.aObjN.array];
+    }
+    const b0 = this.w.n; this._vertices(gid, pos, nrm, n, alpha, col, frames); tally(this, 'vertices', b0);
     return true;
   }
-  _vertices(gid, pos, nrm, n, alpha = null, col = null) {
+  _vertices(gid, pos, nrm, n, alpha = null, col = null, frames = null) {
     if (!this.sentGids.has(gid)) return;
     const w = this.w;
-    w.reserve(4 + n * 11);
-    w.u(OP.vertices); w.i(gid); w.u(n); w.u((nrm ? 1 : 0) | (alpha ? 2 : 0) | (col ? 4 : 0));
+    w.reserve(4 + n * 11 + (frames ? n * 6 : 0));
+    w.u(OP.vertices); w.i(gid); w.u(n); w.u((nrm ? 1 : 0) | (alpha ? 2 : 0) | (col ? 4 : 0) | (frames ? 8 : 0));
     for (let i = 0; i < n; i++) { w.f(-pos[i * 3]); w.f(pos[i * 3 + 1]); w.f(pos[i * 3 + 2]); }
     if (nrm) for (let i = 0; i < n; i++) { w.f(-nrm[i * 3]); w.f(nrm[i * 3 + 1]); w.f(nrm[i * 3 + 2]); }
     if (alpha) for (let i = 0; i < n; i++) w.f(alpha[i]);
@@ -461,7 +472,9 @@ export class UnityBackend {
       const k = col.itemSize, src = col.array, s = col.normalized && !(src instanceof Float32Array) ? 1 / (src instanceof Uint8Array ? 255 : 65535) : 1;
       for (let i = 0; i < n; i++) { w.f(src[i * k] * s); w.f(src[i * k + 1] * s); w.f(src[i * k + 2] * s); w.f(k === 4 ? src[i * k + 3] * s : 1); }
     }
-    this.stats.vertexBytes = (this.stats.vertexBytes ?? 0) + n * 24;
+    // (a vertex-material mesh's object-space points and normals, three's frame as unityGeometry packs them: its uv4, uv5)
+    if (frames) for (const a of frames) for (let i = 0; i < n * 3; i++) w.f(a[i]);
+    this.stats.vertexBytes = (this.stats.vertexBytes ?? 0) + n * (frames ? 48 : 24);
   }
 
   /** A skeleton's bones, world matrices (three's boneMatrices), mirrored: once a frame for every mesh it moves. */

@@ -23,7 +23,7 @@ test('the plain variant: a fragment keyword of its own, every wall mark behind i
 
 test('the bridge gives a lean material the plain variant only when it has none of a wall\'s marks, on Android by default', () => {
   const br = read('HiraethJS/Runtime/BridgeRenderer.cs');
-  assert.match(br, /bool plainOk = kw != null && plain && \(int\)\(F\(m, "_Pattern"\) \+ 0\.5f\) == 0 && F\(m, "_Weather"\) <= 0 && V\(m, "_Detail"\)\.x <= 0\.5f && F\(m, "_Patch"\) <= 0\n\s+&& V\(m, "_ShellCenter"\)\.w <= 0\.5f;/);
+  assert.match(br, /bool plainOk = kw != null && plain && \(int\)\(F\(m, "_Pattern"\) \+ 0\.5f\) == 0 && F\(m, "_Weather"\) <= 0 && V\(m, "_Detail"\)\.x <= 0\.5f && F\(m, "_Patch"\) <= 0\n\s+&& V\(m, "_ShellCenter"\)\.w <= 0\.5f[^\n]*\n\s+&& V\(m, "_Stone"\)\.w <= 0\.5f;/);
   assert.match(br, /if \(plainOk\)\s+\{\s+m\.EnableKeyword\("HIRAETH_PLAIN"\)/);
   assert.match(br, /public static bool plain =\n#if UNITY_ANDROID && !UNITY_EDITOR\n\s+true;\n#else\n\s+false;\n#endif/);
   const runner = read('HiraethJS/Runtime/BridgeRunner.cs');

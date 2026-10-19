@@ -171,6 +171,9 @@ export async function gatherMaterials({ worlds = null, games = null, log = () =>
     get: (t, k) => (k === 'material' ? (mid, spec) => {
       const U = new Set(), D = new Set();
       const pm = portMaterial({ ...spec, u: tracked(spec.u, U), defines: tracked(spec.defines, D) }, mid);
+      // (a surface whose shader text was rewritten after makeMaterial, or at compile: what it draws is in no define or uniform,
+      // so only its own entry says whether the port draws it, issue #538: landmark-materials.js stone() hid this way)
+      if (spec.patched) note(`patch:${spec.patched}`, spec.name);
       if (pm.port) return;
       if (spec.type === 'shader' || spec.type === 'other') { note(unmappedKey(spec), spec.name); return; }
       if (spec.type !== 'ink') return;   // (a plain colour: the Surface's plain, its picture sent: handled)
