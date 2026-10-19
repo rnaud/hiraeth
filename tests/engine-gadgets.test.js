@@ -107,4 +107,20 @@ test('the engine has the gadgets and the wallet, and a box opens on its card (is
   // a key pressed: the keyboard is in hand again
   await run(g, 1, { KeyW: true }); await run(g, 1, { KeyW: false });
   assert.equal(g.inputKind, 'keys');
+
+  // issue #486: a house's map, found, shows the same card (the shared boxes' announce), held till Enter
+  const rt = (g.level?.temples ?? [g.level?.temple]).find((t) => t?.id === 'desert');
+  assert.ok(rt, 'the desert\'s house built in the engine');
+  const map = rt.pieces.find((p) => p.o?.map);
+  g.player.pos.copy(map.pos);
+  assert.ok(map.openIt(), 'the map\'s chest opens');
+  for (let i = 0; i < 4 * 20 && !S.boxCard?.card; i++) await run(g, 1);
+  assert.equal(S.boxCard?.name, 'The House’s Map', JSON.stringify(S.boxCard));
+  assert.ok(g.boxPlaying, 'the game waits on it');
+  await run(g, 40);
+  assert.ok(map.opening && map.key.visible, 'the map held over its chest');
+  g.key('Enter', true); g.key('Enter', false);
+  await run(g, 4 * 20);
+  assert.ok(!g.boxPlaying && S.boxCard === null, 'Enter put it away');
+  assert.equal(map.opening, null, 'and its opening ran on to its end');
 });

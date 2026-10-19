@@ -133,6 +133,10 @@ export const CHANGELOG = [
     // issue #501: src/hud-shows.js sceneHolds (a scene's letterbox or HUD off, not walked through; health in HUD_HIDES.hudOff),
     // src/host/game-host.js wireHealth, main.js / engine/game.js keys; tests/box-hud.test.js
     'The hearts and the key count no longer show over a makers’ box as it opens, as they did in the City-Shaft’s Ash Store after its fight: every box’s scene, like every other scene, keeps the screen clear whatever your health.',
+    // issue #486: src/temples/pieces.js (greatKeyGeometry, GREAT_KEY, GREAT_KEY_CHEST, MAP_CHEST, Key announce: event
+    // 'temple:found'), src/boxes/index.js announce (the box's card, no scene); tests/key-chests.test.js
+    { text: 'A house’s great key now looks the part: its bow is the makers’ mark in brass and pale stone, a soft teal light runs down its shaft and its ward steps like a little staircase. Finding it, or the house’s map, now brings up a card as a makers’ box does, the key held over its chest until you go on.',
+      see: 'In any makers’ house, open the great key’s chest or the map’s: the card comes up with what you found; press A / × to go on.' },
   ] },
   { v: '1.84', date: '2026-10-17', items: [
     // issue #439: src/costumes.js (HEADS: the 47 pieces of the 15 hat sets, HAT_SETS, HAT_SET_WORLDS, hoodShell / hoodNeck /

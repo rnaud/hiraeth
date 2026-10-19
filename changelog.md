@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.85 — 2026-10-18
 
+- A house’s great key now looks the part: its bow is the makers’ mark in brass and pale stone, a soft teal light runs down its shaft and its ward steps like a little staircase. Finding it, or the house’s map, now brings up a card as a makers’ box does, the key held over its chest until you go on.
 - The hearts and the key count no longer show over a makers’ box as it opens, as they did in the City-Shaft’s Ash Store after its fight: every box’s scene, like every other scene, keeps the screen clear whatever your health.
 - In the Unity version, a conversation’s answers are marked as on the web: with a controller, the A button on the answer you are on and a small arrow by the others, instead of the keyboard’s numbers.
 - Switching the glove’s modes, each one now has a sound of its own: a wet rise for fluid, a low whump for push, a soft rising pair for bloom and a taut twang for tether, besides stilling’s high chirp and ember’s warm one. The stilling shot, the hook’s reel, the magnet glove and the spring boots no longer play the very same sound every time, and the push, the bombs and the boots’ stomp are less deafening, the lens and the boots’ wound-up ping quieter, and the boots’ winding easier to hear.

@@ -1242,6 +1242,7 @@ const WEB513 = 'Issue #513: the web game in muted headless Chrome on this branch
 const UNITY510 = 'Issue #510: the Unity editor’s batch run on this Mac (scripts/unity-js-run.sh -title-go 60 -title-art H1 -loading-shot, muted, 1280 × 720): the debug save’s desert chosen on the title; before: the branch’s base, the last picture drawn while the world was built (the main thread waited on the script’s frame); after: as the build wakes the people; 18 October; cwebp -q 72';
 const WEB510 = 'Issue #510: the web game in muted headless Chrome on this branch’s own Vite (port 5461), 1280 × 720, 0.8 s after Continue on the title; 18 October; cwebp -q 72';
 /** (v1.85, issue #506: the loading page) */
+const GREATKEY486 = 'Issue #486: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, 10:00) on this branch’s own Vite (port 5486) and the tree before it (3071e1f88, port 5488), the Aerie (?level=arzach), its chest opened (openIt) with the camera pinned before it and the key turned to the same angle; the card shots with the HUD shown, the notices cleared before the chest opened; 19 October; cwebp -q 72';
 const LOADPAGE506 = 'Issue #506: a build of this branch in muted headless Chrome on this Mac (High, 1280 × 720 window, the main thread slowed 6 times to catch the step), ?game=fight-desert, the screen taken as the load reached the shaders’ step; before: the same page with the bar and the new line hidden (the screen as it was); cwebp -q 72';
 /** (v1.85, issue #505: a fight temple's load) */
 const LOAD505 = 'Issue #505: scripts/load-breakdown.mjs on this Mac (M4 Pro, headless muted Chrome on ANGLE Metal, High, 1280 × 720, the GPU disk cache off so every shader compiles cold), a ?game=fight-<world> page from a build of this branch, before: the same build warming every foe; two runs of three each, the machine shared with other agents (load 18-45), so read the ranges for shape';
@@ -1258,6 +1259,13 @@ const UNITY526 = 'Issue #526: the Unity editor’s batch run on this Mac (node s
 const WEB526 = 'Issue #526: the web game in muted headless Chrome on this branch’s own Vite (port 5462, node scripts/unity-compare/sequences.mjs web talk), 1280 × 720, the same pad faked in hand; 19 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.85': [
+    { match: 'A house’s great key now looks the part', tags: ['temples'], shots: [
+      { name: 'great-key-486', title: 'The great key', caption: 'Out of its chest in the Aerie: before, a longer small key with a second ring; after, the makers’ mark for a bow, brass and pale stone, a teal light down the shaft and a stepped ward', from: GREATKEY486,
+        reference: { sheet: 'references/objects/great-key/sheet-1.jpg', caption: 'The author’s pick: the great key, from the reference lab (references/objects/great-key)' } },
+      { name: 'small-key-486', only: 'after', title: 'A small key', caption: 'A small key out of its chest in Viridel’s house, as it was: a plain ring, a shaft and two bits', from: GREATKEY486 },
+      { name: 'great-key-card-486', title: 'The great key’s card', caption: 'Before: the key gone into the counter, its line waiting among the notices; after, the card a makers’ box shows, the key held over its chest', from: GREATKEY486 },
+      { name: 'map-card-486', title: 'The map’s card', caption: 'Before: a line at the top of the screen; after, the card, the map held over its chest', from: GREATKEY486 },
+    ] },
     { match: 'In the Unity version, the first room of every makers’ house is as light as on the web', tags: ['temples', 'devices'], shots: [
       { name: 'unity-temple-edena', title: 'Viridel’s house', caption: 'Its first room seen through the way in: before, grey walls and floor (ΔE 9.8 against the web); after, as light as the web’s (ΔE 0.7)', from: ROOMS502 },
       { name: 'unity-temple-edena-web', only: 'after', title: 'Viridel’s house on the web', caption: 'The same view on the web', from: ROOMS502W },

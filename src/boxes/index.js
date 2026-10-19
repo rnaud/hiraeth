@@ -3,7 +3,7 @@ import { game as sharedGame } from '../game-state.js';
 import { items, ITEMS } from '../items.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
 import { buildBox, buildBeacon, chestKind, BOX, BOX_SCALE, RAY_PASS } from './model.js';
-import { BoxScene } from './scene.js';
+import { BoxScene, CARD_MIN } from './scene.js';
 import { Veils } from '../veil.js';
 import { BoxCard } from './card.js';
 import { PLACEMENTS, FALLBACKS, FALLBACK_OFFSETS } from './placements.js';
@@ -29,6 +29,7 @@ import { hintsFor } from '../hint-level.js';
 //   boxes.list                        this world's boxes: { id, item, pos, yaw, spent(), opened() }
 //   boxes.open(id, { instant })       open one (instant: no scene; tests and the dev menu)
 //   boxes.skip()                      Esc / B: jump to the card, or past it
+//   boxes.announce({ name, text })    a find's card with no scene (a temple's map, its great key: event 'temple:found')
 //   boxes.reset() / boxes.openAll()   every box closed again / every box opened (dev menu)
 //   boxes.journalHtml()               "Boxes found n/m" per world, for the sketchbook ('' before the first)
 //
@@ -187,8 +188,12 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
   const card = new BoxCard({ onDismiss: () => api.dismiss(), onSkip: () => api.skip() });
   const ground = (x, z, fromY) => { const y = physics.groundAt(x, fromY, z, 6); return Number.isFinite(y) ? y : NaN; };
   let current = null;   // the playing BoxScene
+  // a temple's find announced on the box's card, no scene (issue #486: the house's map, its great key): { t, done }
+  let told = null;
+  const endTold = () => { const d = told?.done; told = null; card.scene(false); d?.(); };
   const list = [];
   const offs = [];
+  offs.push(g.on('temple:found', (e) => { if (e && !e.shown && api.announce(e)) e.shown = true; }));
 
   const opened = (b) => !!g.flag(`box.${b.id}`);
   // a world's own box is spent once opened, or once you have its item anyway; a fallback only while you have it
@@ -327,7 +332,21 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
     card,
     /** The ids of this world's box quests. */
     get quests() { return boxQuests.map((q) => q.id); },
-    busy: () => !!current,
+    busy: () => !!current || !!told,
+    /**
+     * A find's card without a scene (a temple's map or great key, pieces.js Key announce): its name and its line, the
+     * button to go on, as a box's card (CARD_MIN before a press counts). `done` once it is put away. False if a box is
+     * opening (the caller says it its own way).
+     */
+    announce({ name, text, done = null } = {}) {
+      if (current || told || !name) return false;
+      told = { t: 0, done };
+      card.scene(true);
+      card.show({ name }, { found: text ?? null });
+      return true;
+    },
+    /** The announced card's state (tests): { t } while it is up. */
+    get told() { return told; },
     get scene() { return current; },
     open(id, { instant = false } = {}) {
       const b = list.find((x) => x.id === id);
@@ -358,8 +377,11 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
       current.start();
       return true;
     },
-    skip() { current?.skip(); },
-    dismiss() { return current?.dismiss() ?? false; },
+    skip() { if (told) endTold(); else current?.skip(); },
+    dismiss() {
+      if (told) { if (told.t < CARD_MIN) return false; endTold(); return true; }
+      return current?.dismiss() ?? false;
+    },
     reset() {
       for (const k of Object.keys(g.data?.flags ?? {})) if (k.startsWith('box.')) g.set(k, undefined);
       api.rebuild();
@@ -429,9 +451,10 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
       }
       sound?.boxHum?.(current ? 0 : hum, current ? 0 : far);
       offerQuests(dt);
+      if (told) told.t += dt;
       if (current) current.update(dt, camera);   // (play's lens, where the rig has it: a hand-back near it blends, scene.js)
     },
-    dispose() { dispose(); for (const f of offs) f(); offs.length = 0; },
+    dispose() { if (told) endTold(); dispose(); for (const f of offs) f(); offs.length = 0; },
   };
   build();
   defineQuests();

@@ -21,6 +21,7 @@ import { registerLight, registerDrinker, CARRY } from '../carried-light.js';
 import { registerIron } from '../gadgets/metal.js';
 import { lensSees } from '../gadgets/hidden.js';
 import { stripTone } from '../story/tone.js';
+import { markShape } from '../makers-mark/shape.js';
 import { beamStop } from '../beam-stop.js';
 
 // The temple's moving and answering parts. Each piece is built by the
@@ -3243,13 +3244,52 @@ export class Pillars {
 
 // ---------------------------------------------------------------------------------------- marks and pits
 // ---------------------------------------------------------------------------------------- keys and coffers
-/** A key's shape (m, the bow up, along y): a ring, a shaft and its bits; a big key is longer, with a second ring. */
-function keyGeometry(big) {
-  const L = big ? 1.5 : 0.85, r = big ? 0.32 : 0.2, g = [T(new THREE.TorusGeometry(r, r * 0.28, 6, 18), [0, L / 2 + r * 0.6, 0])];
-  if (big) g.push(T(new THREE.TorusGeometry(r * 0.55, r * 0.16, 5, 14), [0, L / 2 + r * 0.6, 0]));
+/** A small key's shape (m, the bow up, along y, 0.85 m): a plain ring, a shaft and two bits. */
+export function keyGeometry() {
+  const L = 0.85, r = 0.2, g = [T(new THREE.TorusGeometry(r, r * 0.28, 6, 18), [0, L / 2 + r * 0.6, 0])];
   g.push(T(new THREE.CylinderGeometry(r * 0.16, r * 0.16, L, 8), [0, 0, 0]));
-  for (const [y, w] of big ? [[-L / 2 + 0.12, 0.42], [-L / 2 + 0.38, 0.3], [-L / 2 + 0.6, 0.22]] : [[-L / 2 + 0.1, 0.28], [-L / 2 + 0.3, 0.2]]) g.push(T(new THREE.BoxGeometry(w, 0.12, 0.08), [w / 2, y, 0]));
+  for (const [y, w] of [[-L / 2 + 0.1, 0.28], [-L / 2 + 0.3, 0.2]]) g.push(T(new THREE.BoxGeometry(w, 0.12, 0.08), [w / 2, y, 0]));
   return g;
+}
+
+/**
+ * The house's great key (issue #486, the author's pick: references/objects/great-key/sheet-1.jpg), m, the bow up, along
+ * y, its foot at -0.8 and its bow's top at 1.32: a bow in the makers' open-corner mark
+ * (the shared mark's own contours, src/makers-mark/shape.js: never redrawn), pale stone set in a brass rim; a brass
+ * collar; a pale stone shaft with a channel of soft teal light along it, front and back (the sheet's); a ward of three steps like a
+ * small staircase, the light along its edge; a brass foot. Three meshes: { brass, stone, light } (each a list of shapes).
+ */
+export const GREAT_KEY = {
+  bow: 0.7, bowY: 0.97, depth: 0.13,   // the mark's height (m), its middle's height, its stone's thickness
+  shaft: [-0.72, 0.3], r: 0.085,        // the shaft's foot and top, its radius
+  steps: [0.36, 0.27, 0.18], step: 0.1, // the ward's steps, from its foot up (width out from the shaft's middle, height each)
+  light: '#74dccb',                     // its light, the sheet's soft teal (self-lit, breathing: Key update)
+};
+export function greatKeyGeometry() {
+  const G = GREAT_KEY, s = G.bow, brass = [], stone = [], light = [];
+  // the bow: the mark, its stone proud of a brass rim a little larger all round (the same contours, bevelled out)
+  const shapes = markShape().map((ps) => new THREE.Shape(ps.map(([x, y]) => new THREE.Vector2(x * s, y * s))));
+  const extrude = (depth, bevel) => shapes.map((sh) => T(new THREE.ExtrudeGeometry(sh, { depth, bevelEnabled: !!bevel, bevelSize: bevel, bevelThickness: bevel * 0.8, bevelSegments: 1, curveSegments: 1 }), [0, G.bowY, -depth / 2]));
+  stone.push(...extrude(G.depth + 0.02, 0));
+  brass.push(...extrude(G.depth - 0.05, 0.022));
+  // the collar under the bow: brass rings, a band of the light between them
+  const [y0, y1] = G.shaft, cyl = (r, h, y, seg = 10) => T(new THREE.CylinderGeometry(r, r, h, seg), [0, y, 0]);
+  brass.push(cyl(0.13, 0.07, y1 + 0.035), cyl(0.105, 0.1, y1 + 0.12), cyl(0.13, 0.06, y1 + 0.2), cyl(0.11, 0.06, y1 + 0.26));
+  light.push(cyl(0.112, 0.035, y1 + 0.12));
+  brass.push(box(0.47, 0.045, G.depth, 0, y1 + 0.31, 0));   // (a brass sill the mark's two feet stand on)
+  // the shaft, pale stone, eight-sided; the light in a channel down its front and back
+  stone.push(cyl(G.r, y1 - y0, (y0 + y1) / 2, 8));
+  light.push(box(0.032, y1 - y0 - 0.12, G.r * 2 + 0.024, 0, (y0 + y1) / 2 + 0.02, 0));
+  // the ward: steps like a small staircase, widest at its foot; the light along the top of each
+  G.steps.forEach((w, i) => {
+    const y = y0 + 0.06 + G.step * (i + 0.5);
+    stone.push(box(w, G.step, 0.11, w / 2, y, 0));
+    light.push(box(0.05, 0.022, 0.118, w - 0.055, y + G.step / 2 - 0.02, 0));
+  });
+  brass.push(box(0.06, G.step * G.steps.length + 0.04, 0.125, G.r + 0.02, y0 + 0.06 + (G.step * G.steps.length) / 2, 0));
+  // the foot: a brass cap and a blunt point
+  brass.push(cyl(0.11, 0.06, y0 - 0.01), T(new THREE.CylinderGeometry(0.07, 0.035, 0.07, 10), [0, y0 - 0.075, 0]));
+  return { brass, stone, light };
 }
 
 /**
@@ -3299,7 +3339,12 @@ export class Key {
     this.glow = own({ color: rt.P.lamp ?? '#f6c84e', glow: 0.35, flat: true });
     this.key = new THREE.Group();
     if (o.map) this.key.add(mesh(scrollGeometry(), own({ color: rt.P.paper ?? '#efe0bd', flat: true })), mesh(scrollTies(), M.trimMat), mesh([new THREE.SphereGeometry(0.08, 8, 6).translate(0, 0.42, 0)], this.glow));
-    else this.key.add(mesh(keyGeometry(big), M.trimMat), mesh([new THREE.SphereGeometry(big ? 0.14 : 0.09, 8, 6).translate(0, (big ? 0.75 : 0.425) + (big ? 0.19 : 0.12), 0)], this.glow));
+    else if (big) {
+      // (the great key: the house's brass and pale stone, the sheet's teal light in them, the same in every house: issue #486)
+      this.glow = own({ color: GREAT_KEY.light, glow: 0.7, flat: true });
+      const K2 = greatKeyGeometry();
+      this.key.add(mesh(K2.brass, M.trimMat), mesh(K2.stone, M.stoneMat), mesh(K2.light, this.glow));
+    } else this.key.add(mesh(keyGeometry(), M.trimMat), mesh([new THREE.SphereGeometry(0.09, 8, 6).translate(0, 0.545, 0)], this.glow));
     this.key.visible = false;
     this.group.add(this.key);
     // the cage: bars round the chest, a ring over them; they sink into the floor once the key may be taken
@@ -3345,6 +3390,16 @@ export class Key {
     else this.rt.game?.emit?.('temple:key', { id: this.rt.id, el: this.id, kind: this.o.big ? 'big' : 'small' });
     return true;
   }
+  /**
+   * The find's card (the map's, the great key's): asked of whoever shows a makers' box's card (game event 'temple:found'
+   * { id, el, kind, name, text, done }: src/boxes/index.js announce). True while it is up (`done` when it is put away).
+   */
+  announce(card) {
+    const O = this.opening, ev = { id: this.rt.id, el: this.id, kind: this.o.map ? 'map' : 'big', name: card.name, text: card.found, shown: false, done: () => { O.held = false; } };
+    this.rt.game?.emit?.('temple:found', ev);
+    O.carded = !!ev.shown;
+    return O.carded;
+  }
   pose(t) {
     this.cage.position.y = -ease(this.k) * (this.cageH + 0.05);
     this.cage.visible = this.k < 0.999;
@@ -3358,7 +3413,11 @@ export class Key {
       return;
     }
     const O = this.opening, C = KEY_CHEST, sm = (a, b, x) => ease(THREE.MathUtils.clamp((x - a) / (b - a), 0, 1));
-    O.t += dt;
+    // (the map and the great key are announced as a makers' box's find is, its card, issue #486: up as the key comes
+    // clear of the light, and the key hangs there over its chest till the card is put away)
+    const card = this.o.map ? MAP_CHEST : this.o.big ? GREAT_KEY_CHEST : null;
+    if (card && !O.told && O.t >= C.rise[1]) { O.told = true; O.held = this.announce(card); }
+    O.t = O.held ? Math.min(O.t + dt, C.hang - 0.05) : O.t + dt;
     const T0 = O.t;
     // the latch clicks, it gives a little; then the halves part
     const open = sm(C.latch, C.latch + C.open, T0);
@@ -3382,13 +3441,15 @@ export class Key {
     this.key.position.set(0, lift, 0);
     this.key.rotation.y = t * 1.3 + (1 - up) * 6;
     this.key.scale.setScalar(Math.max(1e-3, ks * (0.4 + 0.6 * up) * (1 - gone)));
-    this.glow.uniforms.uGlow.value = 0.6 + 0.4 * (1 - up) + 0.3 * Math.sin(t * 6);
+    const g = 0.6 + 0.4 * (1 - up) + 0.3 * Math.sin(t * 6);
+    this.glow.uniforms.uGlow.value = this.o.big && !this.o.map ? 0.7 + 0.25 * Math.sin(t * 3) : g;   // (the great key's light breathes slowly, self-lit, never past 1)
     if (!O.rang && T0 >= C.rise[0] + 0.15) { O.rang = true; this.rt.sound?.keyGet?.(!!this.o.big); }
     if (!O.said && T0 >= C.counted) {
       O.said = true;
       const n = this.rt.logic.keys('small');
-      if (this.o.map) this.rt.notice(stripTone(this.o.line ?? MAP_CHEST.line));
-      else this.rt.notice(this.o.line ?? (this.o.big ? 'The house’s great key. It opens the guardian’s door.' : `A small key${n > 1 ? `, ${n} in hand` : ''}. It turns one lock in this house.`));
+      // (the map and the great key said on their card already; where nothing shows one, a line on the screen)
+      if (!card) this.rt.notice(this.o.line ?? `A small key${n > 1 ? `, ${n} in hand` : ''}. It turns one lock in this house.`);
+      else if (!O.carded) this.rt.notice(stripTone(this.o.line ?? card.line));
     }
     if (T0 >= C.done) {
       this.opening = null; this.lightK = 0; this.key.visible = false;
@@ -3400,7 +3461,9 @@ export class Key {
 }
 
 /** The house's map's chest (issue #405): what it says once opened (a tone, as every line: src/story/tone.js). */
-export const MAP_CHEST = { line: '~happy~ The house’s map. Menu shows its rooms now.' };
+export const MAP_CHEST = { line: '~happy~ The house’s map. Menu shows its rooms now.', name: 'The House’s Map', found: '~happy~ Menu shows its rooms now.' };
+/** The great key's chest (issue #486): its card's name and line (a tone), and the line said where no card shows. */
+export const GREAT_KEY_CHEST = { line: '~solemn~ The house’s great key. It opens the guardian’s door.', name: 'The Great Key', found: '~solemn~ It opens the guardian’s door.' };
 export class MapChest extends Key {
   /** o: { id, at: the chest's foot, yaw (its front), line }: a little chest, the house's map rolled up in it. */
   constructor(rt, o) { super(rt, { ...o, map: true, big: false }); }

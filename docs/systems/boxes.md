@@ -247,7 +247,22 @@ the gadgets already build their reveal from the model they hold (`bombBody`, `fa
 Every temple key is in a smaller makers' chest (src/temples/pieces.js `Key`; docs/systems/temples.md, "The key's
 little chest"): `buildBox(id, { scale })` sizes the shader's marks for the scale it is set down at (1.0, the great
 key's 1.3), and its short opening reuses `ChestLight` with `reach` (the column's height and top as a share of a box's)
-and `chestLamp`. Not a box: no scene, no card, no camera; the player keeps moving.
+and `chestLamp`. Not a box: no scene, no camera; the player keeps moving, a small key says itself in a toast.
+
+**The map's and the great key's card** (issue #486): those two are announced as a box's find is. As the key (or the
+map) comes clear of the light, `Key.announce` emits `'temple:found'` { id, el, kind, name, text, done }; the world's
+boxes (`createBoxes`) answer with `boxes.announce`: the box's own card (`BoxCard.show`, the screen's `boxCard`, so
+the engines draw it too) with its name and a toned line (`MAP_CHEST`, `GREAT_KEY_CHEST` in pieces.js), no scene.
+`boxes.busy()` is true while it is up (input cut, as on a box's card); A / × after `CARD_MIN` or B / Esc puts it away
+and calls `done`, and the key, held hanging over its chest till then, goes on into the counter. Where nothing shows
+the card (no boxes, a box opening), the line is a toast as before. Once per chest: a load leaves it open and quiet.
+
+**The great key's look** (issue #486, the author's pick `references/objects/great-key/sheet-1.jpg`):
+`greatKeyGeometry()` (`GREAT_KEY`): a bow in the makers' mark (the shared contours, `src/makers-mark/shape.js`
+`markShape`, extruded: pale stone proud of a bevelled brass rim), a brass collar, a pale stone shaft with a teal
+channel front and back, a ward of three steps, a brass foot; three meshes (the house's `trimMat` and `stoneMat`, a
+self-lit teal of its own, the same in every house), about 900 triangles. The small key keeps its ring, shaft and two
+bits (`keyGeometry()`).
 
 ## Where a chest stands (the rule)
 
