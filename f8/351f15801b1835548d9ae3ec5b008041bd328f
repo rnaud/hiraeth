@@ -1,0 +1,46 @@
+vite.config.js
+  s_5f899ba316b5dc::t_d1fd9114fe265e 42-45
+docs/README.md
+  s_5f899ba316b5dc::t_9f18f560420ade 52
+data/characters/traveller-v2/outfits.json
+  s_5f899ba316b5dc::t_615803135de073 1-9
+src/characters/outfits.js
+  s_5f899ba316b5dc::t_2d1303312782e8 1-131
+docs/systems/bridge-gaps.md
+  s_5f899ba316b5dc::t_68d03512a9ee83 15,93
+tests/traveller-outfits.test.js
+  s_5f899ba316b5dc::t_dcfc6f9543a516 1-163
+src/main.js
+  s_5f899ba316b5dc::t_f649b93b624ac5 569-570,2669-2674
+src/characters/outfit-page.js
+  s_5f899ba316b5dc::t_fde27cec35cc93 1-164
+docs/systems/characters.md
+  s_5f899ba316b5dc::t_2c5d38811ae639 2170,2175
+  s_5f899ba316b5dc::t_ade4b085f13b6b 2169,2171-2174,2176-2224
+outfits.html
+  s_5f899ba316b5dc::t_76a93932c6c991 1-23
+engine/bridge-gaps.js
+  s_5f899ba316b5dc::t_b5a79cbad5e90e 48
+tests/sequences-web.json
+  s_5f899ba316b5dc::t_527dc5dbd51434 5861
+  s_5f899ba316b5dc::t_544aaf2be6955a 5858-5860
+  s_5f899ba316b5dc::t_0111bde76374e7 5863-5864
+  s_5f899ba316b5dc::t_30278121b7873f 5857,5866-5871,5873,5875,5879-5880,5884-5886,5890-5893,5895-5897,6008-6009,6011,6013,6017-6018,6022-6024,6028-6031,6033-6035,6196,6197-6198,6200,6202,6206-6207,6212-6213,6217-6220,6222,6223-6227,6229,6231,6235-6236,6241-6242,6246-6249,6251,6252-6256,6258,6260,6264-6265,6270-6271
+  s_5f899ba316b5dc::t_1df21ff6b968f7 2606,2609-2610,2613-2616,2679,2686,2688,2720,2724-2725,2728-2731,2762-2763,2766-2767,2796
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f8351f15801b1835548d9ae3ec5b008041bd328f",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

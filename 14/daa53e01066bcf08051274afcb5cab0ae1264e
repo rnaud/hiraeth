@@ -1,0 +1,129 @@
+changelog.md
+  s_5f899ba316b5dc::t_59563d87926c0d 7-12
+docs/systems/bridge-gaps.md
+  s_5f899ba316b5dc::t_c6d32f0b6d5f22 53
+docs/systems/cinematics-qc-notes.json
+  s_5f899ba316b5dc::t_9da935852de568 474-478
+docs/systems/engine-bridge.md
+  s_5f899ba316b5dc::t_6175886be177c5 2128
+docs/systems/fragments.md
+  s_5f899ba316b5dc::t_5b62ed70c4d4e4 151-153,196-203,237-266,269-279,281,283-292,296
+docs/systems/gadgets.md
+  s_5f899ba316b5dc::t_dc3eaa4395d50e 585-595,597-635
+docs/systems/ui.md
+  s_5f899ba316b5dc::t_0d89d02e5303b5 599-601,619
+engine/bridge-gaps.js
+  s_5f899ba316b5dc::t_0fe89cb2cf1098 264
+engine/game.js
+  s_5f899ba316b5dc::t_9ccc6fd0563fa5 145,1206-1207
+engine/map-marks.js
+  s_5f899ba316b5dc::t_4afc354c895f9e 38-40
+src/boxes/index.js
+  s_5f899ba316b5dc::t_27cbc85c85161c 14,202-204,238,241,243-244,277,416
+src/boxes/locks.js
+  s_5f899ba316b5dc::t_e74ea34df8bb0a 1-201
+src/boxes/model.js
+  s_5f899ba316b5dc::t_f6d74760dfbd30 553-562,628
+src/changelog.js
+  s_5f899ba316b5dc::t_573529f20d3a3a 87-107
+src/finds/courts.js
+  s_5f899ba316b5dc::t_b2cdb3a0d77f52 7,33-45,50-51,53-73,75-77,84-86,90,92-95,97-192,301-302,304,308-309,311,313,326
+src/fragment-shop.js
+  s_5f899ba316b5dc::t_d00ce1a147157c 1,14-15,21-45,48-49,53-57,59-60,65-77,80,93,98-104
+src/fragments-data.js
+  s_5f899ba316b5dc::t_ad9a8eb71f4e94 375-377,379-381
+src/fragments.js
+  s_5f899ba316b5dc::t_a669556573ac94 5,46-58,107-109
+src/gadgets/magnet.js
+  s_5f899ba316b5dc::t_a7d96879d7aa51 430-431
+src/gadgets/world.js
+  s_5f899ba316b5dc::t_fd9e22b9459ed0 229-230,237-241
+src/gadgets/yard-kit.js
+  s_5f899ba316b5dc::t_369d9c1e4b2fe0 172-176,184,187-216
+src/game-menu-data.js
+  s_5f899ba316b5dc::t_dd0a40c9bfc77d 80-82,84-85
+src/game-menu.css
+  s_5f899ba316b5dc::t_32ae69d99e8a17 297
+src/game-menu.js
+  s_5f899ba316b5dc::t_6d112c40392def 264-265,288,291,351
+src/host/game-host.js
+  s_5f899ba316b5dc::t_290210c864d487 507-509,511,514-515
+src/i18n/en.js
+  s_5f899ba316b5dc::t_67f1fb0dbfc8e9 343-353,470-474
+src/i18n/fr.js
+  s_5f899ba316b5dc::t_ab9b6e716bf0c2 341-351,468-471
+src/items.js
+  s_5f899ba316b5dc::t_77005934725d7f 196-200
+src/levels/home-houses.js
+  s_5f899ba316b5dc::t_f182e335e7b2a4 91,211-218,251
+src/levels/home.js
+  s_5f899ba316b5dc::t_720f7324f7bb92 11,297-299
+src/main.js
+  s_5f899ba316b5dc::t_3501e140650a30 103,848-849,963-964,979
+src/ship/homecoming.js
+  s_5f899ba316b5dc::t_ecab3c479ec75c 16,22,107,332,342,502,534
+src/shop-panel.js
+  s_5f899ba316b5dc::t_7664273e4de19b 52-54,56
+src/story/ending.js
+  s_5f899ba316b5dc::t_be9fdcbeb6db85 368-369,445,456,459-464,481,500
+src/story/lantern-data.js
+  s_5f899ba316b5dc::t_1913b9544a9461 64-66,68,71-74,162-164
+src/story/people-book.js
+  s_5f899ba316b5dc::t_18e76f7fbbe00e 200-210
+src/story/scientist-data.js
+  s_5f899ba316b5dc::t_b313de4d87329d 14-15,43-48,66-79,82,84-87,90-92,126,131-132,135-138
+src/story/scientist.js
+  s_5f899ba316b5dc::t_65b2076a244da3 30-35,80-89,92,128-130,132-139,143,166-174,192-196
+src/temples/index.js
+  s_5f899ba316b5dc::t_e3d75de1220112 98,101-102,108
+src/trials/upgrades.js
+  s_5f899ba316b5dc::t_641a3651ee7f85 11,45
+src/world-map.js
+  s_5f899ba316b5dc::t_b908a7a67609f1 22,333,379-382
+tests/audits-page-themes.test.js
+  s_5f899ba316b5dc::t_27058d5d49b101 129-130
+tests/cinematics-qc.test.js
+  s_5f899ba316b5dc::t_f6bfdab8fd124c 22
+tests/fragments.test.js
+  s_5f899ba316b5dc::t_86fb1f308ff8f1 11,14-15,30-31,145,204-206,217-218,220-224,226-230,353,358,360-373,465,471-499,598-666
+tests/game-host.test.js
+  s_5f899ba316b5dc::t_3079cdbdf45bbb 284,289-290,292-293
+tests/level-design-hush-house.test.js
+  s_5f899ba316b5dc::t_da0b11d85f9dc3 5-6,95,100-101,104,106-107
+tests/little-chests.test.js
+  s_5f899ba316b5dc::t_498f4b9fccef0a 1-175
+tests/trials-worlds.test.js
+  s_5f899ba316b5dc::t_31fcc0cf4b8c6b 47
+tests/trials.test.js
+  s_5f899ba316b5dc::t_bb9d4488e6eded 59,62-72
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHud.Credits.cs
+  s_5f899ba316b5dc::t_fb099e8370b957 114-116
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.cs
+  s_5f899ba316b5dc::t_a7a84e48fc2cf1 1145
+src/boxes/placements.js
+  s_4368a74cb737ad::t_ed242c5fb8885c 27-34,77-80,94-98,127-130,138-141,144-151,157-158,164-168,174-175,180-183,192-196,202-205,214-217,223-226,235-239,246-250,258-262,268-271,280-284,293-297,302,306-309,317,322-325,332,337-340
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "14daa53e01066bcf08051274afcb5cab0ae1264e",
+  "prompts": {},
+  "sessions": {
+    "s_4368a74cb737ad": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ad66c16426b8e7c9c",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
