@@ -104,8 +104,11 @@ for (const [id, { views = [], paths = [] }] of Object.entries(BENCH)) {
       if (v.player) clearOfShip(`${id} ${v.name}`, W, V(...v.player));
       // (in the world as it is now: Vael's views stood in its own frame after v1.39 moved it by its part offset, 60-110 m
       // over a ravine, and every bench and the visual audit looked at a cliff; visual-v1.66)
-      const p = V(...(v.player ?? v.eye)), g = W.physics.groundAt(p.x, p.y + 3, p.z, 300);
-      assert.ok(g != null && p.y - g < 10, `${id} ${v.name}: the view's traveller stands on the world (${g == null ? 'no ground under' : `${(p.y - g).toFixed(1)} m over the ground`} at ${fmt(p)})`);
+      // (and on it, not over it: the game drops him to the ground, so Vael's crowd view, its traveller written 7.4 m over a
+      // slope, looked over his head into the sand, no one in the frame, while the frame checks below, casting from where he
+      // was written, passed: visual-v1.85 finding 4, issue #504)
+      const p = V(...(v.player ?? v.eye)), g = W.physics.groundAt(p.x, p.y + 3, p.z, 300), over = v.player ? VIEW_GROUND : 10;
+      assert.ok(g != null && p.y - g < over, `${id} ${v.name}: the view's traveller stands on the world (${g == null ? 'no ground under' : `${(p.y - g).toFixed(1)} m over the ground`} at ${fmt(p)})`);
     }
     for (const path of paths) for (const q of path.points ?? []) clearOfShip(`${id} path ${path.name}`, W, V(...q.p));
   });
@@ -121,6 +124,8 @@ for (const [id, { views = [], paths = [] }] of Object.entries(BENCH)) {
 // VIEW_NEAR.m over a third of the frame, nothing nearer than VIEW_NEAR.before of the way to the view's traveller over a
 // third of it, and the line to his chest clear (but on a wide view, where he is a speck). Glass (transparent) doesn't count.
 const VIEW_NEAR = { m: 2, before: 0.7, share: 1 / 3 };
+/** How far over the ground a view's traveller may be written (m; the rest are within 2.5 m: a bank, a lake's surface). */
+const VIEW_GROUND = 3;
 const BY_DESIGN = {   // (views left out, and why)
   'glassdunes sinkhole': 'looks in through the glass that holds the stopped minute, by design',
   'garage crowd2': 'a 16 m mound of the node-built hangar stands at its camera where the game draws open sand (checked in the game)',
