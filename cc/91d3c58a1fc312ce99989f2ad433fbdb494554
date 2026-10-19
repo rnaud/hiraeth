@@ -1,0 +1,21 @@
+docs/audits/zfight-v1.85.md
+  s_5f899ba316b5dc::t_62d5c71a0f1e1d 5
+tests/audits-page-themes.test.js
+  s_5f899ba316b5dc::t_8cf5696274bfb4 26,53,81-82,126-130,134-136,139
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "cc91d3c58a1fc312ce99989f2ad433fbdb494554",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
