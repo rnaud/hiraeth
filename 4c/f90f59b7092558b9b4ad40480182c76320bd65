@@ -1,0 +1,39 @@
+changelog.md
+  s_5f899ba316b5dc::t_09889885bf7e75 10
+docs/README.md
+  s_5f899ba316b5dc::t_32b6677bdc1a53 60
+docs/systems/performance.md
+  s_5f899ba316b5dc::t_9f6cf94cdbb96d 5472,5663-5705
+scripts/load-breakdown.mjs
+  s_5f899ba316b5dc::t_839a87d0b0cadb 15,279
+src/changelog-media.js
+  s_5f899ba316b5dc::t_1cb65248ea2d2e 1244-1245,1269-1283
+src/changelog.js
+  s_5f899ba316b5dc::t_cfd33c039bc394 88-90
+src/fight-temples/rooms.js
+  s_5f899ba316b5dc::t_190d68d0908237 11,213
+src/fight-temples/rules.js
+  s_5f899ba316b5dc::t_802ec406c366f6 276-281
+src/main.js
+  s_5f899ba316b5dc::t_e222b049a48556 2458
+tests/fight-load.test.js
+  s_5f899ba316b5dc::t_ef6819eb772c5b 1-34
+tests/foe-warm.test.js
+  s_5f899ba316b5dc::t_ba8151352767ed 37
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4cf90f59b7092558b9b4ad40480182c76320bd65",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
