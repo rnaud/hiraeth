@@ -143,8 +143,9 @@ SKIN_CUT = [{'absx': [0.20, 0.64], 'z': [1.15, 1.60]}, {'absx': [0.0, 0.40], 'z'
 # body areas left out besides the measured ones (97 % under a piece): the hips come out at 94 %, the
 # misses all on a lump of the base body at his right front hip that stands 14 mm proud of the rest
 # (drawn for the default's trousers) and comes through these slim ones; the trousers and the jacket's
-# hem cover the whole area
-EXTRA_HIDES = ['hips']
+# hem cover the whole area (still so on the pass-4 base: 93 %, the lump unchanged). The thighs too: on the
+# pass-4 base they come out at 92-97 %, every miss a vert at the crotch whose ray goes down between the legs
+EXTRA_HIDES = ['hips', 'thigh.L', 'thigh.R']
 
 BUILDERS = {'LampTrousers': trousers, 'BootShafts': boot_shafts, 'Jacket': jacket}
 

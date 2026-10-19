@@ -18,9 +18,7 @@
    "vertices": 5495,
    "hides": [
     "knee.L",
-    "knee.R",
-    "thigh.L",
-    "thigh.R"
+    "knee.R"
    ],
    "layer": 1,
    "materials": {
@@ -29,7 +27,7 @@
   },
   "BootShafts": {
    "kind": "garment",
-   "triangles": 5824,
+   "triangles": 5822,
    "vertices": 3040,
    "hides": [],
    "layer": 2,
@@ -39,8 +37,8 @@
   },
   "Jacket": {
    "kind": "garment",
-   "triangles": 19543,
-   "vertices": 9913,
+   "triangles": 19567,
+   "vertices": 9935,
    "hides": [
     "belly",
     "chest",
@@ -56,8 +54,8 @@
   },
   "LampBoots": {
    "kind": "garment",
-   "triangles": 6496,
-   "vertices": 3357,
+   "triangles": 6505,
+   "vertices": 3363,
    "hides": [
     "ankle.L",
     "ankle.R",
@@ -140,7 +138,7 @@
    2048,
    2048
   ],
-  "texelsPerMetre": 1110,
+  "texelsPerMetre": 1136,
   "swatches": {
    "BootShafts.inside": [
     22,
@@ -206,30 +204,30 @@
    ]
   }
  },
- "triangles": 42647,
+ "triangles": 42678,
  "fit": {
   "LampTrousers": {
-   "fitLeft": 44,
+   "fitLeft": 67,
    "hem": {
     "open": 0,
     "covered": 208
    }
   },
   "BootShafts": {
-   "fitLeft": 6,
+   "fitLeft": 9,
    "hem": {
-    "open": 212,
-    "covered": 12,
-    "band": 448,
-    "lips": 212
+    "open": 211,
+    "covered": 13,
+    "band": 447,
+    "lips": 211
    }
   },
   "Jacket": {
-   "fitLeft": 150,
+   "fitLeft": 177,
    "hem": {
     "open": 272,
     "covered": 0,
-    "band": 1568,
+    "band": 1578,
     "lips": 272
    }
   }
@@ -305,8 +303,8 @@
      "deepestMm": 0.0
     },
     "LampTrousers>Jacket": {
-     "out": 8,
-     "deepestMm": 7.4
+     "out": 5,
+     "deepestMm": 5.3
     }
    },
    "jog-b": {
@@ -349,8 +347,8 @@
      "deepestMm": 0.0
     },
     "LampTrousers>Jacket": {
-     "out": 9,
-     "deepestMm": 9.3
+     "out": 8,
+     "deepestMm": 11.1
     }
    }
   }

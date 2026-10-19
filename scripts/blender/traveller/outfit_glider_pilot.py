@@ -135,8 +135,10 @@ SKIN_CUT = [{'absx': [0.20, 0.64], 'z': [1.15, 1.60]}, {'absx': [0.0, 0.40], 'z'
 
 # body areas left out besides the measured ones (garments.hidden_areas wants 97 % of an area under a piece):
 # the chest's top reaches up under the collar and the hips' under the jacket's band and the jodhpurs' seat,
-# both covered by two pieces together, neither alone; the drawn-in body came out at the crotch otherwise
-EXTRA_HIDES = ['chest', 'hips']
+# both covered by two pieces together, neither alone; the drawn-in body came out at the crotch otherwise.
+# The thighs too on the pass-4 base (#493): measured under 97 %, every miss a vert at the crotch whose ray
+# goes down between the legs (pass 3's base had them measured)
+EXTRA_HIDES = ['chest', 'hips', 'thigh.L', 'thigh.R']
 
 BUILDERS = {'Jodhpurs': jodhpurs, 'Puttees': puttees, 'Jacket': jacket}
 
