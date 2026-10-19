@@ -266,7 +266,9 @@ method (outermost call only) and reads per-frame sums.
   needs power." Which call a mount gets is `callKind` (`src/bike-worlds.js`): the bike the pack's, Vael's bird the
   rider's call on the flute, the skiff and a taxi a whistle. Still one button (`call`), and nothing in a save changes
   (the bike was never an item; its call was only a sound and its words: the errand's outro, the teaching line, the
-  keyboard's controls row). `tests/bike-worlds.test.js`.
+  keyboard's controls row). `tests/bike-worlds.test.js`. The pad's D-pad ↓ is that `call` in the engines too
+  (engine/game.js sends it to `player.callMount` as main.js does; until issue #515 it only opened the Arena's and the
+  Arcade's lists there, so in Unity the pad could not call Lorn's skiff). `tests/engine-call.test.js`.
 - **Bird:** whistle in the air (falling, gliding, jumping off something
   high) and it swoops in from behind and below, faster than you fall,
   catches you and flies on. On the ground it lands beside you as before.

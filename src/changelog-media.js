@@ -1236,6 +1236,7 @@ export const CHANGELOG_MEDIA = {
       { name: 'watcher-beam-shield-up', title: 'Shield up', size: [1280, 720], caption: 'The watcher aiming at him with his shield raised: the beam ran through the shield and him and on past; now it ends on the shield.', from: BEAM485 },
       { name: 'watcher-beam-shield-down', title: 'Shield down', size: [1280, 720], caption: 'The same aim with his shield down: the beam ran 2 m past him; now it ends on his chest.', from: BEAM485 },
     ] },
+    { match: 'In the Unity version, D-pad ↓ calls your mount again', see: 'In the Unity version (the Steam Deck, the Retroid, the Xbox), land in Lorn with a controller and press D-pad ↓ on the landing: you hear the whistle and the skiff leaves its mooring off the south-west shore and pulls up beside you. The same press calls Vael’s bird, the hoverbike from your pack, or hails a cab in the cities.' },
   ],
   '1.84': [
     { match: 'In the Unity version on the Steam Deck, the first launch after an update no longer freezes', numbers: [

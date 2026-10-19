@@ -54,6 +54,8 @@ export const CHANGELOG = [
     // uBedBox, uBedRef), Surface.shader waterDepth; scripts/design-qc/capture.mjs (the pinned eye for the frame's updates);
     // tests/unity-light-add.test.js, tests/unity-water-bed.test.js
     'In the Unity version, the first room of every makers’ house is as light as on the web: the glow of the way you came in by brightens it as it does there, where before the whole room came out grey and dim. And Lorn’s lake has its pale shallows along the shores again, the water darkening as it deepens.',
+    // issue #515: engine/game.js (the pad's 'call' to player.callMount, as main.js); tests/engine-call.test.js
+    'In the Unity version, D-pad ↓ calls your mount again: in Lorn the skiff comes over to you, as it always did on the web.',
   ] },
   { v: '1.84', date: '2026-10-17', items: [
     // issue #439: src/costumes.js (HEADS: the 47 pieces of the 15 hat sets, HAT_SETS, HAT_SET_WORLDS, hoodShell / hoodNeck /

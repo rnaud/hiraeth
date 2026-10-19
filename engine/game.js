@@ -972,6 +972,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       // D-pad ↓ (the mount's call: there is none in the Arena): its list of foes, as main.js's quickMenu
       if (name === 'call' && foeList && !pinned && !talking()) { menus.openFoes(foeList); return; }
       if (name === 'call' && arcadeBoard && !pinned && !talking()) { arcadeBoard.toggle(true); return; }   // (the Arcade's board, the same)
+      // D-pad ↓ everywhere else: call the mount (Lorn's skiff, the bike from your pack, the bird) or hail a taxi, as
+      // main.js does (issue #515: the engines never routed it, so the pad could not call the boat in Unity)
+      if (name === 'call' && !pinned && !talking() && !(shipOn && ship.playing)) { player.callMount(); return; }
       // Menu / Start: the Start menu; View / Select: the game menu (main.js: settingsMenu, journal), from play or a conversation
       if (menus && !pinned && (name === 'settings' || name === 'start')) { game.save(); menus.show('start'); return; }
       if (menus && !pinned && (name === 'journal' || name === 'select')) { menus.show('game'); return; }
