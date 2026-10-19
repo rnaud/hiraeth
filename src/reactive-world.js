@@ -364,6 +364,26 @@ export class ReactiveWorld {
     }
   }
   emit(n){for(let i=0;i<8&&this.particles.length<72;i++)this.particles.push({pos:n.pos.clone(),vel:new THREE.Vector3(Math.sin(i*2.4)*.32,.4+i*.035,Math.cos(i*2.4)*.32).applyQuaternion(n.rotation??new THREE.Quaternion()),life:3.2});}
+  /**
+   * Once everyone is placed (the story's people come after the plants): a plant someone starts in the middle of is
+   * taken out (hidden, out of the field and the targets). spots: [{ x, y, z }]. Returns how many (issue #496).
+   */
+  keepOff(spots,pad=.6){
+    const gone=new Set();
+    this.field.nodes.forEach((n,i)=>{
+      const o=n.obj;if(!o.petals||!n.foot)return;
+      const r=o.reach*o.root.scale.x+pad;
+      if(spots.some(q=>q&&(q.x-n.foot.x)**2+(q.z-n.foot.z)**2<r*r&&Math.abs(q.y-n.foot.y)<2.5))gone.add(i);
+    });
+    if(!gone.size)return 0;
+    const objs=new Set();
+    for(const i of gone){const n=this.field.nodes[i];n.obj.root.visible=false;objs.add(n.obj);this.offTargets[i]?.();}
+    this.field.nodes=this.field.nodes.filter((_,i)=>!gone.has(i));
+    this.offTargets=this.offTargets.filter((_,i)=>!gone.has(i));
+    this.nodes=this.nodes.filter(n=>!objs.has(n.obj));
+    this.keptOff=(this.keptOff??0)+gone.size;
+    return gone.size;
+  }
   dispose(){this.offTargets.forEach(off=>off());this.offTargets=[];this.root.removeFromParent();}
   clear(){
     this.dirty=false;this.saved={};this.field.seen.clear();

@@ -57,6 +57,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { SceneMirror } from './mirror.js';
 import { Wildlife } from '../src/wildlife.js';
 import { ReactiveWorld } from '../src/reactive-world.js';
+import { plantClear, peopleStarts } from '../src/plant-ground.js';
 import { Flammables, flammableSpots } from '../src/flammable.js';
 import { runSteps } from '../src/load-steps.js';
 import { DeferredWork, DEFER } from '../src/deferred.js';
@@ -493,9 +494,13 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // wash hangs in level.veils, drawn by the port's Hiraeth/PitVoid
   const dangers = wireDangers({ scene, level });
   stamp('traveller'); stage('waking the people…'); step('sound, tool');
+  // the world's answering plants, fans and screens (reactive-world.js: what a shot of the fluid wakes), as main.js before
+  // the people (whose walks keep out of them: src/plant-ground.js plantClear, issue #496) and the flora (which keeps clear of them)
+  const reactiveWorld = optional('the responsive world', () => runSteps(ReactiveWorld.make(scene, level, physics, content)));
+  const plantsClear = plantClear(reactiveWorld);
   const npcs = [];
   if (people && content?.npcs?.length && humans && lib) {
-    const near = quiet(() => spawnNPCs(scene, physics, content.npcs, { lib, humans }));
+    const near = quiet(() => spawnNPCs(scene, physics, content.npcs, { lib, humans, clear: plantsClear }));
     near.forEach((n, i) => { n.def ??= content.npcs[i]; npcs.push(n); });
   }
   // the crowd (crowd.js: GPU-animated figures, the nearest few promoted to full people from a pool)
@@ -506,7 +511,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   setCalmZones(calm);
   if (people && level.crowdSpots && humans && lib) {
     const spots = { lines: level.crowdLines, ...level.crowdSpots() };
-    const clear = [...content.npcs.map((s) => ({ x: s.at[0], y: s.y, z: s.at[1], r: 3 })), ...alienSpots(levelId)];
+    const clear = [...content.npcs.map((s) => ({ x: s.at[0], y: s.y, z: s.at[1], r: 3 })), ...alienSpots(levelId), ...plantsClear];
     // (the walks worked out after the first frame with distant detail, nearest first: crowd.js buildPeopleSteps, #385)
     quiet(() => {
       const built = buildPeople(physics, spots, { seed: 11, clear, calm, defer: deferred });
@@ -606,8 +611,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const boxes = optional('the boxes', () => createBoxes({ levelId, scene, physics, level, player, sound, quests: story?.quests ?? null, toast,
     anchor: () => ship?.arrivalSpot?.() ?? null, quiet: () => !!story?.dialogue?.open,
     cam: { shot: (s) => { if (shipOn) ship.shot(s); }, release: (b) => { if (shipOn) ship.release(b); }, hud: (on) => { if (shipOn) ship.cinema.hud(on); }, bars: (on) => { if (shipOn) ship.cinema.bars(on); } } }));
-  // the world's answering plants, fans and screens (reactive-world.js: what a shot of the fluid wakes), before the flora keeps clear of them
-  const reactiveWorld = optional('the responsive world', () => runSteps(ReactiveWorld.make(scene, level, physics, content)));
+  reactiveWorld?.keepOff?.(peopleStarts(npcs, crowd));   // (no one placed by the story starts in the middle of a flower, as main.js: issue #496)
   const flora = quiet(() => buildFlora({ scene, level, levelId, physics, density: Q?.floraDensity ?? 1, keep: floraKeep({ level, content, ship, npcs, crowd, boxes, reactiveWorld }) }));
   if (flora?.collider) physics.addCollider(flora.collider);   // (the large plants solid, as main.js)
   // the small props past the preset's propFar left out of every pass, as main.js's cullFar does (issue #262): the level's

@@ -27,6 +27,7 @@ const SIDESTEP_UPPER = 'breathing_idle';
 import { Locomotion, gaitFeet, gaitStyle, poseStyle, walkFor } from './locomotion.js';
 import { SkinnedLod, skinnedLods } from './skinned-lod.js';
 import { runSteps } from './load-steps.js';
+import { CircleGrid } from './plant-ground.js';
 
 // People of the world: they walk a looping route, pause and look around,
 // turn to you when you come close, then say a line in a comic speech
@@ -1094,16 +1095,23 @@ export class NPC {
  * @param spots [{ at: [x, z] | Vector3, palette, lines, shy, radius, scale, face?, expression?, facing? }]
  */
 export function spawnNPCs(scene, physics, spots, o = {}) { return runSteps(spawnNPCsSteps(scene, physics, spots, o)); }
-/** spawnNPCs one person a step (each is a body built, dressed and posed): for a world's load (src/load-steps.js). */
-export function* spawnNPCsSteps(scene, physics, spots, { fromY = 1e4, lib = null, humans = null } = {}) {
+/**
+ * spawnNPCs one person a step (each is a body built, dressed and posed): for a world's load (src/load-steps.js).
+ * clear: [{ x, z, r }] where no point of anyone's loop may fall (the responsive world's plants: src/plant-ground.js
+ * plantClear, issue #496: a person started in the middle of a flower).
+ */
+export function* spawnNPCsSteps(scene, physics, spots, { fromY = 1e4, lib = null, humans = null, clear = [] } = {}) {
   const out = [];
+  const grid = clear.length ? new CircleGrid(clear) : null;
   for (const [k, s] of spots.entries()) {
     yield;
-    out.push(spawnOne(scene, physics, s, k, { fromY, lib, humans }));
+    out.push(spawnOne(scene, physics, s, k, { fromY, lib, humans, grid }));
   }
   return out;
 }
-function spawnOne(scene, physics, s, k, { fromY, lib, humans }) {
+/** A person's body: half its width (m), kept out of a plant's reach. */
+export const NPC_BODY = 0.35;
+function spawnOne(scene, physics, s, k, { fromY, lib, humans, grid = null }) {
   {
     const cx = s.at[0], cz = s.at[1];
     const r = s.radius ?? 14;
@@ -1124,10 +1132,22 @@ function spawnOne(scene, physics, s, k, { fromY, lib, humans }) {
       let p = null;
       for (let t = 0; t < 6 && !p; t++) {
         const d = r * (0.5 + rand() * 0.5) * (1 - t / 6);
-        const x = cx + Math.cos(a) * d, z = cz + Math.sin(a) * d, y = ground(x, z);
+        const x = cx + Math.cos(a) * d, z = cz + Math.sin(a) * d;
+        if (grid?.hits(x, z, NPC_BODY)) continue;   // (not in the middle of a plant: a step closer in instead)
+        const y = ground(x, z);
         if (y !== null) p = new THREE.Vector3(x, y, z);
       }
-      if (!p) { const y = physics.groundAt(cx, from, cz); p = new THREE.Vector3(cx, Number.isFinite(y) ? y : 0, cz); }
+      if (!p) {
+        // their own spot, or the nearest ground round it out of any plant (a flower seeded right on it: issue #496)
+        let x = cx, z = cz;
+        if (grid?.hits(cx, cz, NPC_BODY)) {
+          search: for (let d = 0.5; d <= 4; d += 0.5) for (let j = 0; j < 8; j++) {
+            const qx = cx + Math.cos(a + (j * Math.PI) / 4) * d, qz = cz + Math.sin(a + (j * Math.PI) / 4) * d;
+            if (!grid.hits(qx, qz, NPC_BODY) && ground(qx, qz) !== null) { x = qx; z = qz; break search; }
+          }
+        }
+        const y = physics.groundAt(x, from, z); p = new THREE.Vector3(x, Number.isFinite(y) ? y : 0, z);
+      }
       route.push(p);
     }
     const kind = s.kind ?? (k % 2 ? 'f' : 'm');

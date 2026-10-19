@@ -1269,6 +1269,8 @@ const PARITY538 = 'Issue #538: the Unity editor’s batch run on this Mac (scrip
 const PARITY538W = 'Issue #538: the same view on the web, muted headless Chrome on this branch (scripts/design-qc/capture.mjs, High, 1280 × 720, a fixed render scale); cwebp -q 72';
 /** (v1.85, issue #497: the responsive plants off the roofs) */
 const ROOF497 = 'Issue #497: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, 10:00, clear, the HUD hidden, the camera pinned) on this branch’s own Vite (port 5496); before: the tree at 647c5fc31 (port 5497), the same view; 19 October; cwebp -q 72';
+/** (v1.85, issue #496: people out of the plants) */
+const SPAWN496 = 'Issue #496: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, 10:00, clear, the HUD hidden, the camera pinned) on this branch’s own Vite (port 5496), the person put back on the first point of their walk and held there; before: the tree at f5fc64f0f (port 5497), the same view; 19 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.86': [
     { match: 'The fight temples now belong to the story', tags: ['story'], shots: [
@@ -1453,6 +1455,10 @@ export const CHANGELOG_MEDIA = {
       { name: 'plants-roof-spheres', title: 'The Garden of Spheres', caption: 'The pyramid’s top in the Garden of Spheres: before, a flower by the relic and one on the slope; after, none', from: ROOF497 },
       { name: 'plants-roof-viridel', title: 'Viridel', caption: 'A stall in Viridel: before, a pink flower on its roof; after, only the two on the grass beside it', from: ROOF497 },
     ], see: 'In Lorn, look over the Hush-House’s round roof; in the Garden of Spheres, climb the pyramid; in Viridel, look at the stalls’ roofs: no flower or fungus grows up there.' },
+    { match: 'People no longer start in the middle of a plant', shots: [
+      { name: 'people-spawn-viridel', title: 'Viridel', caption: 'Mira where she starts her walk in Viridel’s meadow: before, standing inside a ribbon plant; after, on the open grass', from: SPAWN496 },
+      { name: 'people-spawn-desert', title: 'The desert', caption: 'Marrow at the camps: before, a flower opening into him; after, the sand clear round him', from: SPAWN496 },
+    ], see: 'In Viridel, walk to Mira in the meadow near the landing as you arrive; in the desert, go to Marrow at the camps: no one stands inside a plant.' },
   ],
   '1.84': [
     { match: 'In the Unity version on the Steam Deck, the first launch after an update no longer freezes', numbers: [

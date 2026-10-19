@@ -56,6 +56,17 @@ banks of Vael's plain. Roof gardens drawn on purpose (the City-Shaft's villas, t
 train's carriages) are the levels' own drawing, not scattered, and stay. Tests: `tests/plant-ground.test.js` (every
 world of the route: no responsive plant and no flora on a built top).
 
+**People never start in a plant** (v1.85, issue #496; `src/plant-ground.js`). The people walk loops up to 14 m round
+their spots (`src/npc.js`), and the plants were kept off only 4 m round each spot and off the place their bodies had
+before their first frame (the origin): Mira started inside a ribbon plant in Viridel, and the responsive flowers, seeded
+round the spots, opened into Marrow and Tansy. Now: the responsive world is built before the people (main.js, and
+engine/game.js in the same order), and no point of anyone's loop falls within a flower's reach (`plantClear`, the
+`clear` of `spawnNPCs`; the crowd's `clear` too); once the story's own people are placed, a flower one of them starts in
+is taken out (`ReactiveWorld.keepOff`, `peopleStarts`); and the flora keeps off every loop's points and the way between
+them (`routeClear`) and the crowd's strollers' ways as drawn (`Crowd.walks`), its keep list filed by cell
+(`CircleGrid`). Tests: `tests/plant-ground.test.js` (every world of the route: nobody starts, and no loop turns, within a
+plant's footprint).
+
 Verification includes reaction/cooldown/occlusion/memory tests, placement checks
 against every world's actual collision geometry, and browser checks of plant
 and screen behavior. Performance on a physical iPhone still needs confirmation.

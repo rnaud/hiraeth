@@ -8,7 +8,7 @@ import { SPECIES } from './flora-species.js';
 import { farLevel, farSide } from './lod.js';
 import { runSteps } from './load-steps.js';
 import { kitTrialsFor } from './trials/kit-data.js';
-import { builtTop } from './plant-ground.js';
+import { builtTop, routeClear, CircleGrid } from './plant-ground.js';
 
 // Flora: every world's own plants, growing in clumps (src/flora-species.js draws them).
 //
@@ -186,9 +186,20 @@ export function floraKeep({ level = {}, content = {}, ship = null, npcs = [], cr
   if (ship?.site) add(ship.site.x, ship.site.z, 20);
   if (ship?.rampFoot) add(ship.rampFoot.x, ship.rampFoot.z, 8);
   for (const s of content.npcs ?? []) add(s.at?.[0], s.at?.[1], 4);
-  for (const n of npcs) { const p = n.home ?? n.object?.position; if (p) add(p.x, p.z, 3.5); }
-  // (those standing about: a stroller's start is nowhere in particular, and a walk may be worked out after the flora)
+  // everyone where they start and along the loop they walk (src/npc.js: up to 14 m round their spot; issue #496: Mira
+  // started in a ribbon plant in Viridel), or where they stand
+  for (const n of npcs) {
+    if (n.pooled) continue;
+    if (n.route?.length) { for (const c of routeClear(n.route)) add(c.x, c.z, c.r); continue; }
+    const p = n.pos ?? n.home ?? n.object?.position;
+    if (p) add(p.x, p.z, 3.5);
+  }
+  // (those standing about; the strollers along their ways as drawn, since a walk may be worked out after the flora)
   for (const p of crowd?.people ?? []) { if (p.walk) continue; const h = p.home ?? p.pos; if (h) add(h.x, h.z, 1.6); }
+  for (const w of crowd?.walks ?? []) {
+    const pts = (w.path ?? []).map((q) => (Array.isArray(q) ? { x: q[0], y: q[1], z: q[2] } : q));
+    for (const c of routeClear(pts, { r: 1.2, rw: (w.lateral ?? 1.1) + 0.3 + (w.lanes ? w.lanes * 0.45 : 0), loop: !!w.loop })) add(c.x, c.z, c.r);
+  }
   for (const b of boxes?.list ?? []) if (b.pos) add(b.pos.x, b.pos.z, 5);
   for (const s of content.relics?.spots ?? []) {
     const a = Array.isArray(s) ? s : s.at;
@@ -262,10 +273,8 @@ function growPart({ part: world, species, level, physics, keep, density, why }) 
   const heightAt = level.ground?.heightAt?.bind(level.ground);
   const water = world.water ?? -Infinity;
   const avoid = level.floraAvoid ?? (() => false);
-  const blocked = (x, z, r) => {
-    for (const k of keep) if ((k.x - x) ** 2 + (k.z - z) ** 2 < (k.r + r) ** 2) return true;
-    return avoid(x, z, r);
-  };
+  const kept = new CircleGrid(keep);   // (filed by cell: the keep list runs to thousands with everyone's loops)
+  const blocked = (x, z, r) => kept.hits(x, z, r) || avoid(x, z, r);
   const ray = (x, y, z, dir, far) => physics?.rayHit?.(_o.set(x + 1.3e-4, y, z + 2.7e-4), dir, far) ?? null;
   // the ground where a plant would stand, or null
   const slopeOk = (x, z, sp) => {

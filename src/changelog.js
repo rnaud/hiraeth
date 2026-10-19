@@ -200,6 +200,10 @@ export const CHANGELOG = [
     // issue #497: src/plant-ground.js builtTop (GROUND_LIFT, TOP_EDGE, level.plantGround: Vael's sky stones, the Lab's rooms),
     // src/reactive-world.js onBuilt, src/flora.js (its ray-cast parts); tests/plant-ground.test.js
     'The flowers, fans and fungi that answer you no longer grow on roofs: in Lorn they stood on the Hush-House’s round roof, in the Garden of Spheres on the pyramid’s top, in Viridel on a stall, and on buildings in the Glass Dunes. They grow on the ground now, and the plants of the Sky Stones no longer stand on the slabs and sand banks of Vael’s plain.',
+    // issue #496: src/plant-ground.js (plantClear, routeClear, CircleGrid, peopleStarts), src/npc.js (a loop's points out of the
+    // responsive plants), src/reactive-world.js keepOff, src/flora.js floraKeep (everyone's loop, the strollers' ways),
+    // src/crowd.js (walks), main.js / engine/game.js (the responsive world before the people); tests/plant-ground.test.js
+    'People no longer start in the middle of a plant: in Viridel Mira stood inside a ribbon plant, in the desert Marrow and in Lorn Tansy had a flower growing right where they stood. Plants now keep off the spots people start from and the paths they walk.',
   ] },
   { v: '1.84', date: '2026-10-17', items: [
     // issue #439: src/costumes.js (HEADS: the 47 pieces of the 15 hat sets, HAT_SETS, HAT_SET_WORLDS, hoodShell / hoodNeck /

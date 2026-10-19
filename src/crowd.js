@@ -711,6 +711,7 @@ export class Crowd {
     this.range = { ...CROWD_RANGE, far: spots.farMax ?? CROWD_RANGE.far, ...range };
     const t0 = typeof performance !== 'undefined' ? performance.now() : 0;
     Object.assign(this, built ?? buildPeople(physics, spots, { seed, clear }));
+    this.walks = spots.walks ?? [];   // (the strollers' ways as drawn: the flora keeps off them, src/flora.js floraKeep)
     this._built = built;
     this.buildMs = (typeof performance !== 'undefined' ? performance.now() : 0) - t0;
     this.rng = mulberry32(seed + 1);

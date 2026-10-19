@@ -421,7 +421,7 @@ test('every person of the game on a MakeHuman body by default (issue #271): each
   // the bodies the game hands out: the MakeHuman family wherever the people are made
   assert.match(main, /const peopleT = humanT && mhPeople \? \(\(await mhPeople\)\?\.humans\(\) \?\? humanT\) : humanT;/);
   const uses = {
-    'story people and walkers (NPC)': /spawnNPCsSteps\(scene, physics, content\.npcs, \{ lib, humans: peopleT \}\)/,
+    'story people and walkers (NPC)': /spawnNPCsSteps\(scene, physics, content\.npcs, \{ lib, humans: peopleT[,} ]/,
     'the crowd near (its pooled full bodies)': /crowdPool\.push\(pooledNPC\(scene, physics, \{ kind: [^}]*humans: peopleT \}\)\)/,
     'the crowd made on demand': /makeNPC: \(kind\) => pooledNPC\(scene, physics, \{ kind, lib, humans: peopleT \}\)/,
     'the story (the family, the hosts)': /createStory\(\{[^\n]*humans: peopleT/,

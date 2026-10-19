@@ -7,6 +7,7 @@ import { watchSceneEdits, updateSceneMatrices, catchUpShown } from '../engine/sc
 import { flatPasses } from './flat-pass.js';
 import { EmptyInstances } from './empty-instances.js';
 import { ReactiveWorld } from './reactive-world.js';
+import { plantClear, peopleStarts } from './plant-ground.js';
 import { Controller, mergeControls, menuNavigate } from './controller.js';
 import { padConfirm } from './menu-pad.js';
 import { PAD_SCHEME, PAD_SCHEME_KEY } from './bindings.js';
@@ -671,11 +672,13 @@ addIndoors((p) => !!ship.modelOf(p));   // the traveller's own ship
   if (stormColor) post.uniforms.uStormColor.value.set(stormColor);
 }
 setStep('npcs');
-const npcs = await runStepsAsync(spawnNPCsSteps(scene, physics, content.npcs, { lib, humans: peopleT }), slice);
+// (no one's walk starts or turns inside a responsive plant: src/plant-ground.js plantClear, issue #496)
+const plantsClear = plantClear(reactiveWorld);
+const npcs = await runStepsAsync(spawnNPCsSteps(scene, physics, content.npcs, { lib, humans: peopleT, clear: plantsClear }), slice);
 await slice();
 // city crowds: hundreds of GPU-animated people, the nearest few promoted to full NPCs (crowd.js)
 const crowdSpots = level.crowdSpots ? { lines: level.crowdLines, ...level.crowdSpots() } : null;
-const crowdClear = [...content.npcs.map((s) => ({ x: s.at[0], y: s.y, z: s.at[1], r: 3 })), ...alienSpots(levelId)];   // (and the aliens' places: src/aliens/)
+const crowdClear = [...content.npcs.map((s) => ({ x: s.at[0], y: s.y, z: s.at[1], r: 3 })), ...alienSpots(levelId), ...plantsClear];   // (and the aliens' places: src/aliens/; the responsive plants)
 const crowdT0 = performance.now();
 // (no strollers round the ship's hull and ramp, and whoever stands there idles slower: issue #84, src/npc.js SHIP_CALM)
 const shipCalm = shipCalmZones(ship.restPos, ship.rampFoot);
@@ -1016,6 +1019,7 @@ window.addEventListener('keydown', (e) => {
 // the story's places (src/flora.js); the large ones are solid
 await slice();
 setStep('flora');
+reactiveWorld?.keepOff?.(peopleStarts(npcs, crowd));   // (no one placed by the story starts in the middle of a flower: issue #496)
 const flora = await runStepsAsync(buildFloraSteps({ scene, level, levelId, physics, density: preset.floraDensity ?? 1, keep: floraKeep({ level, content, ship, npcs, crowd, boxes, reactiveWorld }) }), slice);
 if (flora) {
   tiled.small.push(...flora.small);
