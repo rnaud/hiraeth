@@ -51,7 +51,7 @@ export const QUESTS = [
       // (Nima says where the splinter is herself; Ossa keeps it at the shrine, and Dov at the palace gate is someone
       //  you pass on the way up, no stop of the quest: one person sending you to the next was a finding, issue #85.
       //  A save at the old 'palace' step goes on to 'look': src/save-migrate.js step 15)
-      { id: 'nima', text: 'Find the sweeper on the high terrace', label: 'Nima, the sweeper', flag: 'incal.nima.heard', at: 'nima' },
+      { id: 'nima', text: 'Hear Nima out on the high terrace', label: 'Nima, the sweeper', flag: 'incal.nima.heard', at: 'nima' },
       // (the way down on the wings, marked terrace by terrace: src/shaft-ways.js; the splinter in hand first skips it)
       { id: 'down', text: 'Go down the shaft by the red lamps', label: 'The lamplighters’ drops', goto: 'halfway', radius: 14, vertical: 6 },
       { id: 'ossa', text: 'Bring the splinter from the Upward Shrine', label: 'The splinter, at the Upward Shrine', flag: 'incal.splinter.given', at: 'ossa', gate: true },
@@ -134,27 +134,26 @@ export const PEOPLE = {
         { node: 'hello' },
       ],
       nodes: {
+        // (issue #479: where the splinter is can be asked from her first words, five pages in all; the light, the night
+        //  the sky rang and her sweeping are for whoever asks)
         hello: {
-          say: ['~angry~ Mind the dust. I just did that bit.',
-            "~surprised~ Looking up, are you? Careful. People will think you’re visiting. Residents look down to check who’s poorer.",
-            "~neutral~ Forty years I’ve swept these steps. Before I start, I look at the Lodestar. One small thing the palace hasn’t charged me for."],
+          say: ["~angry~ Mind the dust. I just did that bit. Looking up, are you? Careful. Residents look down, to check who’s poorer.",
+            "~sad~ Forty years I’ve looked at the *Lodestar* before I sweep. Since the night the sky rang, it’s been going out. A splinter of it fell all the way to the bottom."],
           choices: [
+            { text: '~curious~ Where did the splinter land?', if: EARLY, goto: 'where' },
+            { text: '~neutral~ I have it. It came from the shrine.', if: { all: [{ has: 'splinter' }, { not: EARLY }] }, goto: 'carry' },
+            { text: '~curious~ The night the sky rang?', goto: 'rang' },
             { text: '~curious~ What is it, the light?', goto: 'what' },
-            { text: '~neutral~ It looks dim.', goto: 'dim' },
           ],
         },
         what: {
-          say: ["~neutral~ That light is the *Lodestar*. The palace calls it a light show. The people at the bottom pray to it. Same light. Very different seats.",
-            "~sad~ It was brighter when I was a girl. A little dimmer every year, as people stopped looking up. And since the night the sky rang, it’s been going out."],
-          choices: [{ text: '~curious~ The night the sky rang?', goto: 'rang' }, { text: '~neutral~ It does look dim.', goto: 'dim' }],
-        },
-        dim: {
-          say: ["~sad~ It used to cast shadows at noon. Now it flickers. Something changed the night the sky rang."],
+          say: ["~neutral~ The palace calls it a light show. The people at the bottom pray to it. Same light. Very different seats.",
+            "~sad~ It was brighter when I was a girl. It used to cast shadows at noon. A little dimmer every year, as people stopped looking up."],
           choices: [{ text: '~curious~ The night the sky rang?', goto: 'rang' }, { text: '~curious~ Who do you sweep for?', goto: 'sweep' }],
         },
         rang: {
           say: ["~solemn~ A light flew low across the shaft, singing one note so high the lamps rang with it. Every window hummed.",
-            "~surprised~ The Lodestar answered. Then a splinter broke off and fell all the way to the bottom. I heard it singing long after I lost sight of it."],
+            "~surprised~ The Lodestar answered it, and cracked. I heard the splinter singing all the way down, long after I lost sight of it."],
           do: { set: { 'incal.rumour.light': true } },
           choices: [{ text: '~neutral~ Something drained my ship that night.', goto: 'ship' }, { text: '~curious~ Where did the piece land?', if: EARLY, goto: 'where' },
             { text: '~neutral~ I have it. It came from the shrine.', if: { all: [{ has: 'splinter' }, { not: EARLY }] }, goto: 'carry' }],
@@ -165,7 +164,7 @@ export const PEOPLE = {
           choices: [{ text: '~curious~ Where did the piece land?', if: EARLY, goto: 'where' }, { text: '~neutral~ I’ll take it up to the light.', if: { not: EARLY }, end: true }],
         },
         where: {
-          say: ["~playful~ The splinter reached the bottom. Everything does eventually. Rain, soup, hats. The lower city has an excellent collection of hats.",
+          say: ["~playful~ At the bottom. Everything lands there eventually. Rain, soup, hats. The lower city has an excellent collection of hats.",
             "~neutral~ It’s *below the smog, on the bottom terrace*, in a bowl. They built *the Upward Shrine* round it. Bring it back up to the light."],
           do: { set: { 'incal.nima.heard': true } },
           choices: [{ text: '~curious~ How do I get down?', goto: 'down' }, { text: '~neutral~ I’ll go down.', end: true }],
@@ -232,7 +231,9 @@ export const PEOPLE = {
           say: [{ if: { flag: 'incal.nima.heard' }, text: "~happy~ Down from Nima’s terrace? Good. Someone up there remembers us." },
             { if: { not: { flag: 'incal.nima.heard' } }, text: "~angry~ Here to admire the poor? Careful where you stand. Some of the scenery has washing to do." },
             "~neutral~ We built *the Upward Shrine* around the splinter that fell into Behla’s laundry. She hasn’t let us forget whose laundry."],
+          // (issue #479: the splinter can be asked for from her first words, four pages in all)
           choices: [
+            { text: '~neutral~ Let me carry the splinter back up to the light.', goto: 'give' },
             { text: '~curious~ What came down?', goto: 'splinter' },
             { text: '~curious~ Why “Upward”?', goto: 'upward' },
           ],
@@ -259,8 +260,7 @@ export const PEOPLE = {
           choices: [{ text: '~neutral~ Then let me carry it back up.', goto: 'give' }],
         },
         give: {
-          say: ["~playful~ Take it *to the palace crown, at the top*, and look up. The guards will object to your boots. Try showing them the miracle first.",
-            "~solemn~ And tell them: *we are still down here, and we are still looking*. The light ought to hear it. So should the guards.",
+          say: ["~playful~ Take it *to the palace crown, at the top*, and look up. The guards will object to your boots. Show them the miracle first. And tell them *we are still down here, still looking*.",
             "~neutral~ To get back up, light the old taxi call-lamp at the terrace edge. One old cab used to answer it."],
           do: [{ give: 'splinter' }, { set: { 'incal.splinter.given': true } }, { start: 'incal.wren' }, { stage: [Q, 'look'] }, { track: Q }],
           choices: [{ text: '~solemn~ I’ll carry it up.', end: true }],

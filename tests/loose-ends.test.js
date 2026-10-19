@@ -38,7 +38,8 @@ test('the Lodestar: fading all Nima’s life, and going out since the night the 
   const what = said(node(CITY, 'nima', 'what').say[1]);
   assert.match(what, /brighter when I was a girl/);
   assert.match(what, /every year/);
-  assert.match(what, /since the night the sky rang, it’s been going out/);
+  // (issue #479: the going out is in her first words now, where the splinter can be asked after)
+  assert.match(said(node(CITY, 'nima', 'hello').say[1]), /since the night the sky rang, it’s been going out/i);
 });
 
 // "The night the sky rang" belongs to the City-Shaft (lore/voice-guide.md; the dialogue review v1.48): every other people

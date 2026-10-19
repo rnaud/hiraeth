@@ -90,7 +90,9 @@ export const PEOPLE = {
       nodes: {
         hello: {
           say: ["~happy~ Down the ramp in one piece? Good. I’m Wen. Sit anywhere you like sand. That gives you a good choice.", "~neutral~ Today is *Tooth Day*. Once a year the great wheel turns one tooth. I’m forty-one teeth old. Jot is nine and negotiating."],
+          // (issue #479: what Hask hasn't done this year can be asked from her first words, five pages in all)
           choices: [
+            { text: '~curious~ And it turns today?', goto: 'today' },
             { text: '~curious~ What wheel?', goto: 'wheel' },
             { text: '~neutral~ I’m looking for something of value.', goto: 'value' },
           ],

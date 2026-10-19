@@ -27,6 +27,10 @@ export const CHANGELOG = [
     // issue #478: src/temples/garage-data.js, bazaar-data.js (keeper), bazaar.js enterLine, Wim's lines;
     // tests/keeper-direction.test.js (each keeper step's and enter line's up or down against the guardian's hall)
     'The Clock-House’s and the Undertower’s last steps now point the right way: their guardians wait upstairs, and the steps used to say go down.',
+    // issue #479: src/story/night-train-data.js (Edda), incal-data.js (Nima, Ossa), bazaar-data.js (Sel, the first step),
+    // buried-data.js (Wen); tests/short-talks.test.js (every quest giver within six pages the shortest way)
+    { text: 'Edda at the night halt, Nima and Ossa in the City-Shaft get to the point: the letter or the splinter comes within four or five pages instead of nine to twelve, and the rest is there if you ask. Madame Sel and Wen are a little shorter too, and the Signal Market’s first step now says whom you are looking for: “Hear Madame Sel out by the landing”.',
+      see: 'At the night halt off the Signal Market, talk to Edda and answer “Does anyone write to you?”: five pages to the letter. In the City-Shaft, Nima can be asked where the splinter landed from her first words, and Ossa can be asked for it.' },
     // issue #480: src/fight-temples/session.js coloursLine (the save's own items, read before the run lends its kit),
     // fight-temples/index.js rules; src/story/rumours.js (a host's lacks(): not told of), story/index.js addHost;
     // tests/fight-temples.test.js, tests/rumours.test.js

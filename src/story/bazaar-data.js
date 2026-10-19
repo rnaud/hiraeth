@@ -43,7 +43,7 @@ export const QUESTS = [
       // (Sel says where the cylinder is herself; Kip has it, on the second skybridge, and gives it to whoever asks for
       //  it, sent or not: one person sending you to the next was a finding, issue #85)
       // (issue #44: she meets the ship by the landing, then goes back to her crate under the tower: src/story/bazaar.js)
-      { id: 'sel', text: 'Find who kept the silent tower', label: 'Madame Sel, by the landing', flag: 'bazaar.sel.heard', at: 'sel' },
+      { id: 'sel', text: 'Hear Madame Sel out by the landing', label: 'Madame Sel, by the landing', flag: 'bazaar.sel.heard', at: 'sel' },
       // (issue #191: both climbs go up through the market in the air, its stairs and galleries up the west towers' faces)
       { id: 'kip', text: 'Get the cylinder back, on the second skybridge', label: 'The cylinder, on the second skybridge', flag: 'bazaar.kip.gave', at: 'kip', gate: true, via: 'the market in the air' },
       { id: 'tune', text: 'Light the antenna’s three bulbs at once', label: 'The antenna', flag: 'bazaar.antenna.tuned', at: 'antenna', via: 'the market in the air' },
@@ -86,8 +86,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ['~playful~ Mind the cables, love. Nobody else does.',
-            "~playful~ You noticed the quiet tower. Good. The noodle signs usually win that contest.",
+          say: ["~playful~ Mind the cables, love. Nobody else does. You noticed the quiet tower? Good. The noodle signs usually win that contest.",
             "~neutral~ I ran this tower for forty years. It received voices from space and played them to the square."],
           choices: [
             { text: '~curious~ Why did it go quiet?', goto: 'quiet' },
@@ -113,8 +112,7 @@ export const PEOPLE = {
         self: { say: ["~tired~ Forty years climbing those ledges have collected their fee from my knees. I need someone else to go up."], choices: [{ text: '~curious~ Where is it now?', goto: 'kip' }] },
         kip: {
           say: ["~neutral~ *On the second skybridge*, in Kip’s bag. Take the stalls’ stairs behind me: the galleries go all the way to it.",
-            "~playful~ Play it at *the console on the cream balcony*. Tune the antenna first: *three bulbs over the dish, lit at once*.",
-            "~neutral~ I’ll be on my crate under the tower, listening. Off you go, love."],
+            "~playful~ Tune the antenna first: *three bulbs over the dish, lit at once*. Then play it at *the console on the cream balcony*. I’ll be on my crate under the tower, listening."],
           do: { set: { 'bazaar.sel.heard': true } },
           choices: [{ text: '~solemn~ Then we listen.', end: true }],
         },

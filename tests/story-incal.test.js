@@ -142,7 +142,7 @@ test('the main quest: from the rim, down to the shrine, up to the palace, and th
   const nimaMark = quests.giverMarks().find((g) => g.person === 'nima');
   assert.ok(nimaMark && nimaMark.position.distanceTo(W.people.nima.pos) < 0.01, 'the map marks Nima');
   assert.ok(quests.openerObjective().position.distanceTo(W.people.nima.pos) < 0.01);
-  talk(PEOPLE.nima, ['It looks dim', 'The night the sky rang', 'Where did the piece']);
+  talk(PEOPLE.nima, ['The night the sky rang', 'Where did the piece']);
   step(2);
   assert.equal(quests.stage('incal.light'), 'down', 'down the lamplighters’ drops first');
   assert.ok(!/Ossa/.test(PEOPLE.nima.talk.nodes.where.say.join(' ')), 'Nima says where the splinter is, not whom to ask (issue #85)');

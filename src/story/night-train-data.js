@@ -49,29 +49,23 @@ export const PEOPLE = {
         { node: 'hello' },
       ],
       nodes: {
+        // (issue #479: five pages from the lamp to the letter, Nour's measure; who rides it and what the letter says
+        //  are for whoever asks)
         hello: {
-          say: ['~neutral~ Night mail. Mind the lamp, it’s older than the market.',
-            '~curious~ You came down the spur on purpose? Nobody does. The halt’s for the train, and the train’s for nobody.',
-            '~neutral~ I keep the lamp, and I sort what comes in for the Overnight Train. It has no address, you see. We’re its post office.'],
+          say: ['~neutral~ Night mail. Mind the lamp. I sort the post for the Overnight Train: families write to the sleepers aboard, and this halt is its post office.'],
           choices: [
-            { text: '~curious~ Mail for a train?', goto: 'mail' },
+            { text: '~curious~ Does anyone write to you?', goto: 'mireille' },
             { text: '~curious~ Who rides it?', goto: 'who' },
           ],
-        },
-        mail: {
-          say: ['~happy~ People write to the people aboard. The train slows through here once a night, and I hand the sack up to the conductor.',
-            '~sad~ And once a year a postcard comes down for me. A drawing of the plain, and one line. My grandmother’s.'],
-          choices: [{ text: '~curious~ Your grandmother?', goto: 'mireille' }],
         },
         who: {
           say: ['~whisper~ Sleepers, mostly. Some boarded so long ago they’ve stopped counting stations.',
             '~sad~ My grandmother is one of them.'],
-          choices: [{ text: '~curious~ Tell me about her.', goto: 'mireille' }],
+          choices: [{ text: '~curious~ Does she write?', goto: 'mireille' }],
         },
         mireille: {
-          say: ['~solemn~ Solange. She boarded the night I was born. To see where the plain ends, she wrote. Forty years ago.',
-            '~sad~ Every year one postcard. Never a question. I never wrote back: she never stayed anywhere long enough to have an address.',
-            '~neutral~ This year I wrote. It’s here. But I can’t leave the lamp, and the conductor only takes sacks, not people’s words.'],
+          say: ['~sad~ Once a year. A postcard from my grandmother, Solange: a drawing of the plain, one line, never a question. She boarded the night I was born, to see where the plain ends. Forty years ago.',
+            '~neutral~ This year I wrote back. It’s here. But I can’t leave the lamp, and the conductor only takes sacks, not people’s words.'],
           choices: [{ text: '~neutral~ I’ll take it to her.', goto: 'take' }, { text: '~curious~ What does it say?', goto: 'says' }],
         },
         says: {
@@ -79,10 +73,8 @@ export const PEOPLE = {
           choices: [{ text: '~neutral~ I’ll take it to her.', goto: 'take' }],
         },
         take: {
-          say: ['~surprised~ You would? Then *ring the bell on the platform*: the train stops for the bell, it has to.',
-            '~neutral~ She never sits inside. She rides *the roofs of the long tail*, at the very back, by a chalk mark.',
-            '~happy~ If she writes back, the train stops at *the market’s halt* when someone asks.',
-            '~playful~ Your ship? The porters will have it up on the landing wagon before the bell stops ringing. The night train carries ships for nothing.'],
+          say: ['~surprised~ You would? Then *ring the bell on the platform*: the train has to stop for it, and the porters load your ship for nothing.',
+            '~neutral~ She never sits inside. She rides *the roofs of the long tail*, at the very back, by a chalk mark.'],
           do: [{ stage: [Q, 'board'] }, { give: 'letter' }],
           choices: [{ text: '~neutral~ I’ll ring the bell.', end: true }],
         },

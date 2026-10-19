@@ -37,7 +37,8 @@ like this, it goes back in here.
    through a door leads somewhere in that room, never out of another room's door (issue #351: "go through the shop
    door", and nothing inside). `tests/marker-walk.test.js`.
 7. **Short talks.** A quest giver's talk is a few pages in their own voice, the essentials only (Nour from the open
-   chest to the skull: three nodes, five pages, `tests/dialogue-playtest.test.js`). Lore is for whoever asks.
+   chest to the skull: three nodes, five pages, `tests/dialogue-playtest.test.js`). Lore is for whoever asks. Every
+   giver is held to six pages the shortest way to the quest (`tests/short-talks.test.js`, issue #479).
 
 ## Run
 
