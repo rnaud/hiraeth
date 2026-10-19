@@ -1,0 +1,29 @@
+changelog.md
+  s_5f899ba316b5dc::t_965428eedffb10 7
+docs/systems/movement-and-camera.md
+  s_5f899ba316b5dc::t_dfe2bd0b36281e 574-581
+src/changelog-media.js
+  s_5f899ba316b5dc::t_b244c24cc00d49 1389
+src/changelog.js
+  s_5f899ba316b5dc::t_2752b9e4bb26de 118-120
+src/ragdoll.js
+  s_5f899ba316b5dc::t_a11e0ba332c3f6 88,126,203,206,280-290
+tests/ragdoll.test.js
+  s_5f899ba316b5dc::t_50092b0c217b04 8,213-230
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4fd9d44e548be9c4be2a9b1ea27d90daef4b7eba",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
