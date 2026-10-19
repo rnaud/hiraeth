@@ -62,7 +62,7 @@ test('the shader: AMD\'s FSR 1 from the core package, Qualcomm\'s SGSR 1 with it
   assert.match(sgsr, /#define EdgeThreshold 8\.0\/255\.0/);
   assert.match(sgsr, /half4 SGSRGamma\(half4 v\) \{ return sqrt\(max\(v, half4\(0, 0, 0, 0\)\)\); \}/);
   // (the shader in the build: found by name at run time)
-  assert.match(read('unity/Hiraeth/Assets/Hiraeth/Editor/Batch.cs'), /"Hidden\/Hiraeth\/Upscale"/);
+  assert.match(read('unity/Hiraeth/Assets/Hiraeth/Runtime/RuntimeShaders.cs'), /"Hidden\/Hiraeth\/Upscale"/);
   const guid = read('unity/Hiraeth/Assets/Hiraeth/Shaders/Upscale.shader.meta').match(/guid: (\w+)/)[1];
   assert.match(read('unity/Hiraeth/ProjectSettings/ProjectSettings.asset'), new RegExp(`guid: ${guid}, type: 3`));
 });

@@ -72,6 +72,9 @@ namespace Hiraeth.Bridge
                 try { args = BridgeArgs.FromCommandLine(); }
                 catch (Exception e) { Debug.LogError("Hiraeth bridge: the command line: " + e.Message); failed = true; Exit(2); return; }
             firstArgs = args;
+            // (the shaders the game finds by name, each looked up once: a player that lost one draws nothing with it; one
+            // line, a line each with -shader-log; issue #500)
+            if (!Application.isEditor) Hiraeth.RuntimeShaders.Check(BridgeArgs.Flag("-shader-log"));
             if (BridgeMetrics.Wanted()) gameObject.AddComponent<BridgeMetrics>().runner = this;
             if (BridgeStutter.Wanted()) gameObject.AddComponent<BridgeStutter>().runner = this;
             if (!JsRuntime.Available) { Debug.LogError("Hiraeth bridge: Puerts is not installed (scripts/unity-js-setup.sh)"); failed = true; return; }

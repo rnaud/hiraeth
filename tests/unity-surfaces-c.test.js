@@ -115,7 +115,7 @@ test('the bridge sends the pass\'s numbers when they change, and the frame draws
   assert.match(RUNNER, /BridgeArgs\.Flag\("-no-water-over"\)/);
   assert.match(FEATURE, /composite\.water = Settings\.waterOver && WaterOverMode > 0 && WorldDetail\.DrawsWorld\(cam\) \? waterOverMaterial : null;/);
   assert.match(FEATURE, /"Hiraeth water over"/);
-  assert.match(read(`${U}Hiraeth/Editor/Batch.cs`), /"Hidden\/Hiraeth\/WaterOver"/, 'kept in the builds');
+  assert.match(read(`${U}Hiraeth/Runtime/RuntimeShaders.cs`), /"Hidden\/Hiraeth\/WaterOver"/, 'kept in the builds');
   const guid = read(`${U}Hiraeth/Shaders/WaterOver.shader.meta`).match(/guid: (\w+)/)[1];
   assert.ok(read('unity/Hiraeth/ProjectSettings/ProjectSettings.asset').includes(guid), 'preloaded (issue #500)');
 });

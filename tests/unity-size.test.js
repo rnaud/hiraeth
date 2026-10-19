@@ -36,7 +36,7 @@ test('none of the project\'s shaders is always included (Unity wrote a dead copy
 
 test('every shader the game finds by name is preloaded, Unity\'s own (UI/Default) always included', () => {
   const shaders = projectShaders();
-  const list = read('unity/Hiraeth/Assets/Hiraeth/Editor/Batch.cs').match(/RuntimeShaders = \{([^}]*)\}/)[1];
+  const list = read('unity/Hiraeth/Assets/Hiraeth/Runtime/RuntimeShaders.cs').match(/Names = \{([^}]*)\}/)[1];
   const names = [...list.matchAll(/"([^"]+)"/g)].map((m) => m[1]);
   const preloaded = new Set(refs(read('unity/Hiraeth/ProjectSettings/ProjectSettings.asset'), 'preloadedAssets').map((r) => r.guid));
   for (const n of names) {
@@ -56,7 +56,7 @@ test('every shader the game finds by name is preloaded, Unity\'s own (UI/Default
   };
   runtime.forEach(walk);
   assert.ok(found.size > 10);
-  for (const n of found) if (shaders.has(n)) assert.ok(names.includes(n), `Shader.Find("${n}") is in Batch.RuntimeShaders`);
+  for (const n of found) if (shaders.has(n)) assert.ok(names.includes(n), `Shader.Find("${n}") is in RuntimeShaders.Names`);
 });
 
 test('the Linux player is packed without the build\'s leftovers (IL2CPP\'s C++ and symbols)', () => {

@@ -5938,13 +5938,24 @@ The file's table keeps one entry an id, so only the last shader written (WaterOv
 be read there: 22.0 of its 22.7 MB were bytes nothing points at (found by reading the file's object table: 48
 objects, 0.7 MB, and a 22 MB hole holding Hiraeth/Surface and the other seventeen). The build log showed it too: each
 of our shaders compiled twice per player. **The fix** (`BridgeBuild.KeepShaders`, every bridge build: Android, Linux,
-Xbox): the shaders the game finds by name (`Batch.RuntimeShaders`, SMAA added) are preloaded assets
+Xbox): the shaders the game finds by name (`RuntimeShaders.Names`, Batch.RuntimeShaders, SMAA added) are preloaded assets
 (`PlayerSettings.preloadedAssets`, loaded at the start as the always-included ones were) and the graphics settings
 always include only Unity's own (UI/Default and the rest). The build after: `unity_builtin_extra` 0.7 MB, every
 shader once in `globalgamemanagers.assets` (the same 1,769 objects, Surface the same 20.2 MB), the same variant counts
 after stripping (132 / 228 / 8 / 8), the APK 130.4 → 110.9 MB, and the APK's build 115 → 75 s. The native game's
-builds (`Batch.BuildMac`, the bench) still always include them. Not checked on a device in this change: a player that
-can't find a shader by name draws nothing, so the first device run after it lands is the check.
+builds (`Batch.BuildMac`, the bench) still always include them.
+
+**Checked in players, not the editor** (where `Shader.Find` always succeeds): two macOS development players (IL2CPP,
+`BridgeBuild.Mac -development`), one from origin/main's settings and one with the fix, both carrying the start's check
+(`RuntimeShaders.Check`: every name of `RuntimeShaders.Names` looked up as the player starts, one line, a line each with
+`-shader-log`, an error naming any missing). Their `unity_builtin_extra` 7.5 MB → 0.47 MB, `globalgamemanagers.assets`
+8.4 MB in both. Each played the same pass: the views of the desert, Underwater, the Buried Machine, the Space City and
+Home on a cleared save (`-fresh`), the desert at Handheld with SMAA and FSR 1, and the sequences menus, fight, temple,
+fight-temple, game-rings, pits, takeoff, arrival, box, talk, hoverbike and bird (90 pictures a player). In every run of
+both: "shaders found by name: all 20", the same pictures, the same log warnings (URP's depth-of-field and Panini
+shaders, stripped in both). The sheets side by side differ only by what moves (foes, sparks, toasts' timing; on the
+fresh views a mean difference of 0.1-3.6 of 255); nothing is missing. The first pass, before `-fresh`, differed in
+story state only (the second player started from the save the first one's sequences left).
 
 **The Linux player** (the Deck's download, `hiraeth-unity-linux.tar.gz`; MB unpacked):
 
