@@ -1,0 +1,358 @@
+{
+ "source": "scripts/blender/traveller/outfit.py --outfit lamplighter (issue #540)",
+ "id": "lamplighter",
+ "name": "Lamplighter",
+ "reference": "references/characters/traveller-outfits/lamplighter/sheet-1.jpg",
+ "glb": "lamplighter.glb",
+ "base": "data/characters/traveller-v2/traveller.glb",
+ "keeps": [
+  "Body",
+  "Skin",
+  "Head",
+  "Hair"
+ ],
+ "parts": {
+  "LampTrousers": {
+   "kind": "garment",
+   "triangles": 10784,
+   "vertices": 5495,
+   "hides": [
+    "knee.L",
+    "knee.R",
+    "thigh.L",
+    "thigh.R"
+   ],
+   "layer": 1,
+   "materials": {
+    "outfit_lamplighter": "atlas"
+   }
+  },
+  "BootShafts": {
+   "kind": "garment",
+   "triangles": 5824,
+   "vertices": 3040,
+   "hides": [],
+   "layer": 2,
+   "materials": {
+    "outfit_lamplighter": "atlas"
+   }
+  },
+  "Jacket": {
+   "kind": "garment",
+   "triangles": 19543,
+   "vertices": 9913,
+   "hides": [
+    "belly",
+    "chest",
+    "forearm_upper.L",
+    "forearm_upper.R",
+    "upperarm.L",
+    "upperarm.R"
+   ],
+   "layer": 2,
+   "materials": {
+    "outfit_lamplighter": "atlas"
+   }
+  },
+  "LampBoots": {
+   "kind": "garment",
+   "triangles": 6496,
+   "vertices": 3357,
+   "hides": [
+    "ankle.L",
+    "ankle.R",
+    "foot.L",
+    "foot.R"
+   ],
+   "layer": 1,
+   "materials": {
+    "outfit_lamplighter": "atlas"
+   }
+  }
+ },
+ "hides": [
+  "ankle.L",
+  "ankle.R",
+  "belly",
+  "chest",
+  "foot.L",
+  "foot.R",
+  "forearm_lower.L",
+  "forearm_lower.R",
+  "forearm_upper.L",
+  "forearm_upper.R",
+  "hand.L",
+  "hand.R",
+  "hips",
+  "knee.L",
+  "knee.R",
+  "shin.L",
+  "shin.R",
+  "shin_lower.L",
+  "shin_lower.R",
+  "thigh.L",
+  "thigh.R",
+  "upperarm.L",
+  "upperarm.R"
+ ],
+ "skinCut": [
+  {
+   "absx": [
+    0.2,
+    0.64
+   ],
+   "y": [
+    1.15,
+    1.6
+   ]
+  },
+  {
+   "absx": [
+    0.0,
+    0.4
+   ],
+   "y": [
+    -1.0,
+    0.45
+   ]
+  },
+  {
+   "absx": [
+    0.0,
+    0.2
+   ],
+   "y": [
+    0.7,
+    1.15
+   ]
+  }
+ ],
+ "draws": {
+  "clothes": [
+   "LampTrousers",
+   "BootShafts",
+   "Jacket",
+   "LampBoots"
+  ]
+ },
+ "atlas": {
+  "size": [
+   2048,
+   2048
+  ],
+  "texelsPerMetre": 1110,
+  "swatches": {
+   "BootShafts.inside": [
+    22,
+    22,
+    23
+   ],
+   "Jacket.inside": [
+    24,
+    29,
+    51
+   ],
+   "LampBoots.inside": [
+    21,
+    20,
+    22
+   ]
+  },
+  "palette": {
+   "indigo": [
+    54,
+    64,
+    114
+   ],
+   "collar": [
+    54,
+    64,
+    114
+   ],
+   "lamp": [
+    230,
+    182,
+    84
+   ],
+   "charcoal": [
+    78,
+    78,
+    84
+   ],
+   "shaft": [
+    50,
+    49,
+    52
+   ],
+   "cuff": [
+    62,
+    60,
+    62
+   ],
+   "brass": [
+    198,
+    158,
+    76
+   ],
+   "ink": [
+    28,
+    28,
+    40
+   ],
+   "boot": [
+    46,
+    45,
+    48
+   ]
+  }
+ },
+ "triangles": 42647,
+ "fit": {
+  "LampTrousers": {
+   "fitLeft": 44,
+   "hem": {
+    "open": 0,
+    "covered": 208
+   }
+  },
+  "BootShafts": {
+   "fitLeft": 6,
+   "hem": {
+    "open": 212,
+    "covered": 12,
+    "band": 448,
+    "lips": 212
+   }
+  },
+  "Jacket": {
+   "fitLeft": 150,
+   "hem": {
+    "open": 272,
+    "covered": 0,
+    "band": 1568,
+    "lips": 272
+   }
+  }
+ },
+ "pokes": {
+  "under": {
+   "Skin>LampTrousers": 0,
+   "Skin>BootShafts": 0,
+   "LampTrousers>BootShafts": 112,
+   "Skin>Jacket": 38,
+   "LampTrousers>Jacket": 672
+  },
+  "posed": {
+   "lowered": {
+    "Skin>LampTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>BootShafts": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "LampTrousers>BootShafts": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>Jacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "LampTrousers>Jacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   },
+   "idle": {
+    "Skin>LampTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>BootShafts": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "LampTrousers>BootShafts": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>Jacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "LampTrousers>Jacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   },
+   "jog-a": {
+    "Skin>LampTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>BootShafts": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "LampTrousers>BootShafts": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>Jacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "LampTrousers>Jacket": {
+     "out": 8,
+     "deepestMm": 7.4
+    }
+   },
+   "jog-b": {
+    "Skin>LampTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>BootShafts": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "LampTrousers>BootShafts": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>Jacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "LampTrousers>Jacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   },
+   "sprint": {
+    "Skin>LampTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>BootShafts": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "LampTrousers>BootShafts": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>Jacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "LampTrousers>Jacket": {
+     "out": 9,
+     "deepestMm": 9.3
+    }
+   }
+  }
+ }
+}
