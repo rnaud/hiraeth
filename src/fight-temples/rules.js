@@ -255,11 +255,14 @@ export function geyserSpots(room, at, n, rng = Math.random, G = GEYSER) {
 
 /**
  * The rank on the results (issue #368): by the hearts lost and the time against the temple's `par` (s). S: at most
- * `S.lost` lost inside par; A: at most `A.lost` inside `A.par` × par; B: at most `B.lost`; else C.
+ * `S.lost` lost inside par; A: at most `A.lost` inside `A.par` × par; B: at most `B.lost`; else C. The hearts lost are
+ * counted against `per` hearts on arrival (issue #532): a temple where he comes with `hearts` scales them by hearts / per
+ * (the Sunken Hall's 3: S at 0.3 lost; the Back Rooms' 15: S at 1.5), as its harm is (harm.js).
  */
-export const RANK = { S: { lost: 1, par: 1 }, A: { lost: 3, par: 1.3 }, B: { lost: 6, par: Infinity } };
-export function rankFor({ secs, lost }, par = 240, R = RANK) {
-  for (const k of ['S', 'A', 'B']) if (lost <= R[k].lost + 1e-9 && secs <= par * R[k].par) return k;
+export const RANK = { S: { lost: 1, par: 1 }, A: { lost: 3, par: 1.3 }, B: { lost: 6, par: Infinity }, per: 10 };
+export function rankFor({ secs, lost }, par = 240, R = RANK, hearts = R.per ?? 10) {
+  const k0 = hearts / (R.per ?? 10);
+  for (const k of ['S', 'A', 'B']) if (lost <= R[k].lost * k0 + 1e-9 && secs <= par * R[k].par) return k;
   return 'C';
 }
 /** m:ss for the results. */

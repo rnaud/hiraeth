@@ -24,7 +24,7 @@ import { TONES } from '../src/story/tone.js';
 import {
   ISO, isoOffset, SEE, sightPoints, inTheWay, easeSee, seeOpen, seeHoleCuts, segmentHitsBox, WALL, wallBoxes, doorGap, inRoom, roomAt, roomWaves, totalFoes,
 } from '../src/fight-temples/rules.js';
-import { HAZARD, ON_LANES, laneRect, inLane, alongLane, lanePoint, laneLength, pickLanes, hazardEvery, tollReach, tileOf, inLight, shadeBand, GENTLE_HURT, CRACK_WARN } from '../src/fight-temples/hazards.js';
+import { HAZARD, ON_LANES, laneRect, inLane, alongLane, lanePoint, laneLength, pickLanes, hazardEvery, tollReach, tileOf, inLight, shadeBand, CRACK_WARN } from '../src/fight-temples/hazards.js';
 import { buildHall, hallHeight, outside } from '../src/fight-temples/rooms.js';
 import { farSpots } from '../src/fight-temples/dress.js';
 import { startFightTemple } from '../src/fight-temples/session.js';
@@ -209,10 +209,13 @@ test('the lanes: a strip the room long; along it from its head the way it goes; 
   assert.equal(hazardEvery({}), 0);
 });
 
-/** A run in node, as tests/fight-temples.test.js's: the hall built, its world's foes made by Foes (not moved). */
-function simulate(D, { flags = {}, gentle = false } = {}) {
+/**
+ * A run in node, as tests/fight-temples.test.js's: the hall built, its world's foes made by Foes (not moved). `harm`: the
+ * table's harm scale (1, the hazards' own, unless given: the route's scale is tested in fight-temple-harm.test.js).
+ */
+function simulate(D, { flags = {}, gentle = false, harm = 1 } = {}) {
   const scene = new THREE.Scene();
-  const level = runSteps(buildHall(scene, D));
+  const level = runSteps(buildHall(scene, harm === null ? D : { ...D, harm }));
   const pos = new THREE.Vector3(...D.spawn);
   const hurts = [];
   const player = {
@@ -307,6 +310,7 @@ for (const game of GAMES) {
     f.hp = 20;
     const at = f.pos.clone();
     g.hurts.length = 0;
+    g.S.harm.reset();   // (the purse emptied: what the foes left in it would take or give a small tick's quarter)
     g.S.hazards.start(1, lane);
     const hold = () => { g.player.pos.set(x, 0, z); g.player.vel.set(0, 0, 0); if (kind !== 'gust') f.pos.copy(at); f.state = 'idle'; };
     for (let k = 0; k < Math.ceil(H.warn * 30) - 2; k++) { hold(); g.tick(); }
@@ -339,10 +343,10 @@ function toRoom1(D, o = {}) {
   return { g, r };
 }
 
-test('Gentle: a quarter-heart hazard is spared every other time (half a quarter heart came back a whole one); a half-heart one is halved', () => {
-  // the Back Rooms' toll: a quarter heart as its ring passes him
+test('Gentle: a quarter-heart hazard costs half over a run (the purse carries what is under a quarter, issue #532); a half-heart one is halved', () => {
+  // the Back Rooms' toll: a quarter heart as its ring passes him; on Gentle an eighth, carried over
   const D = fightBazaar.table, H = HAZARD.toll;
-  assert.ok(H.harm * 0.5 < GENTLE_HURT.least, 'the toll is one of them');
+  assert.ok(H.harm * 0.5 < 0.25, 'under a quarter on Gentle');
   const hits = (gentle) => {
     const { g, r } = toRoom1(D, { gentle });
     const sign = r.hazard.signs[0], mid = [(r.x[0] + r.x[1]) / 2, (r.z[0] + r.z[1]) / 2], d = Math.hypot(mid[0] - sign[0], mid[1] - sign[1]);
@@ -356,10 +360,12 @@ test('Gentle: a quarter-heart hazard is spared every other time (half a quarter 
     g.S.end();
     return g.hurts.filter(([why]) => why === 'toll');
   };
-  assert.equal(hits(false).length, 4, 'Normal: every toll that crosses him hurts');
-  const soft = hits(true);
-  assert.equal(soft.length, 2, `Gentle: every other one (${JSON.stringify(soft)})`);
-  // the City-Shaft's loads: half a heart, a quarter on Gentle, every one
+  const sum = (h) => h.reduce((a, [, n]) => a + n, 0);
+  const hard = hits(false), soft = hits(true);
+  assert.ok(hard.length >= 3 && Math.abs(sum(hard) - 4 * H.harm) <= 0.125 + 1e-9, `Normal: four tolls, ${4 * H.harm} hearts (${JSON.stringify(hard)})`);
+  assert.ok(Math.abs(sum(soft) - 2 * H.harm) <= 0.125 + 1e-9, `Gentle: half (${JSON.stringify(soft)})`);
+  assert.ok(soft.every(([, n]) => n === 0.25), 'paid a quarter at a time');
+  // the City-Shaft's loads: 0.4 of a heart, a fifth on Gentle, paid in quarters
   const I = fightIncal.table;
   const { g, r } = toRoom1(I, { gentle: true });
   const spot = [(r.x[0] + r.x[1]) / 2, (r.z[0] + r.z[1]) / 2];
@@ -370,7 +376,8 @@ test('Gentle: a quarter-heart hazard is spared every other time (half a quarter 
     g.S.hazards.clear();
   }
   g.S.end();
-  assert.deepEqual(g.hurts.filter(([why]) => why === 'drop').map(([, n]) => n), [HAZARD.drop.harm * 0.5, HAZARD.drop.harm * 0.5]);
+  const loads = g.hurts.filter(([why]) => why === 'drop').map(([, n]) => n);
+  assert.ok(loads.length >= 1 && Math.abs(loads.reduce((x, y) => x + y, 0) - HAZARD.drop.harm) <= 0.125 + 1e-9, `two loads on Gentle: one load's harm (${loads})`);
 });
 
 test('the Kiln Yard: a breaking tile warns with its edge lit in the glyph’s tone and a dark star across it, clear on the pale glass', () => {

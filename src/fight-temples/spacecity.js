@@ -23,7 +23,7 @@ export const SPACECITY_FIGHT = {
   sky: { script: { day: ['#6a7ab8', '#f0d8c0', '#6a6aa8', '#fff4e0', '#ffe8c8'], dusk: ['#4a4a98', '#f0a890', '#5a4a98', '#ffd8c0', '#ffc8a0'], night: ['#0a0a28', '#2a2a60', '#2a2060', '#8a8ad0', '#f2f0e6'] } },
   spawn: [0, 0, 3.5],
   par: 250,
-  lightHarm: 0.4,   // (its light foes strike at four tenths of their kind: session.js)
+  lightHarm: 0.35,   // (its light foes strike at 0.35 of their kind: session.js; its flyers strike from over the oil, issue #532)
   stage: 2,   // (the crowd fought as stage 2's: session.js; the world's own struck too many at once)
   rooms: [
     { id: 'weigh', name: 'The weigh house', x: [-7, 7], z: [-6, 6],

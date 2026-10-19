@@ -37,24 +37,27 @@ import { geyserSpots } from './rules.js';
 
 export const HAZARD = {
   gust: { warn: 1.1, secs: 0.7, push: 11, harm: 0.25, foePush: 15, buffet: 1, slam: 1, word: 'a gust' },
-  stone: { warn: 1.4, speed: 8.5, radius: 1.35, harm: 1, crush: 3, throw: 8, word: 'a millstone' },
-  pour: { warn: 1.5, secs: 3.6, flow: 14, tick: 0.7, harm: 0.5, burn: 1, cool: 0.6, word: 'a channel of slag' },
-  cart: { warn: 1.3, speed: 11, radius: 1.0, harm: 1, crush: 3, throw: 8, word: 'an ore cart' },
+  stone: { warn: 1.4, speed: 8.5, radius: 1.35, harm: 0.6, crush: 3, throw: 8, word: 'a millstone' },
+  pour: { warn: 1.5, secs: 3.6, flow: 14, tick: 0.7, harm: 0.4, burn: 1, cool: 0.6, word: 'a channel of slag' },
+  cart: { warn: 1.3, speed: 11, radius: 1.0, harm: 0.75, crush: 3, throw: 8, word: 'an ore cart' },
   bloom: { warn: 1.2, secs: 0.35, harm: 0.25, blind: 0.6, stun: 1.2, cut: 1, word: 'the eyes’ flash' },
-  drop: { warn: 1.3, radius: 1.7, harm: 0.5, crush: 3, fall: 13, lie: 1.4, word: 'a falling load' },
-  toll: { warn: 1.0, speed: 6, band: 0.7, harm: 0.25, stun: 1.0, cut: 1, word: 'the toll' },
-  dark: { warn: 1.2, secs: 3.6, light: 2.4, grace: 0.6, tick: 1.0, harm: 0.25, cut: 1, word: 'the dark' },
-  crack: { warn: 1.1, secs: 3.5, tile: 2, tick: 0.9, harm: 0.25, burn: 1, word: 'a breaking tile' },
-  shade: { warn: 1.0, speed: 2.4, band: 4, tick: 1.2, harm: 0.25, word: 'the shade' },
-  spill: { warn: 1.4, secs: 3, radius: 1.9, tick: 0.8, harm: 0.25, burn: 1, word: 'burning oil' },
+  drop: { warn: 1.3, radius: 1.7, harm: 0.4, crush: 3, fall: 13, lie: 1.4, word: 'a falling load' },
+  toll: { warn: 1.0, speed: 6, band: 0.7, harm: 0.2, stun: 1.0, cut: 1, word: 'the toll' },
+  dark: { warn: 1.2, secs: 2.6, light: 2.8, grace: 1.2, tick: 1.0, harm: 0.1, cut: 1, word: 'the dark' },
+  crack: { warn: 1.1, secs: 2.6, tile: 2, tick: 0.9, harm: 0.15, burn: 1, word: 'a breaking tile' },
+  shade: { warn: 1.0, speed: 2.4, band: 4, tick: 1.2, harm: 0.2, word: 'the shade' },
+  spill: { warn: 1.4, secs: 2.6, radius: 1.9, tick: 1.0, harm: 0.12, burn: 1, near: 3.6, apart: 3.6, word: 'burning oil' },
   last: 0.75, gentle: 1.6,
+  // (s of grace stepping into lying ground (slag, a pit, oil) before its first tick: crossed at a walk, it costs nothing)
+  enter: 0.45,
 };
-
 /**
- * Gentle's half of a hazard's harm under `least` (the smallest hurt there is: a quarter heart, resources.js quarters)
- * would come back a whole `least`: on Gentle every other such hurt is spared instead (roomHazards hurtHim).
+ * The lingering hazards against the one-shot ones (issue #533: the dark, the oil and the tiles took 8.5–11.75 hearts a
+ * run, the gusts, stones, carts and loads 0–3.5): lower ticks, a grace stepping in (HAZARD.enter), the dark shorter, its
+ * lamps' discs wider and it no quicker in the last wave (`steady`), the oil opening nearer him (on the screen).
  */
-export const GENTLE_HURT = { least: 0.25 };
+export const STEADY = new Set(['dark']);
+
 /**
  * A breaking tile's warning (the Glass Dunes' `crack`): its edge a frame `frame` m wide in the glyph's tone, steady
  * until `steady` of the warning and flickering faster after, and a star of cracks `crack` m wide in the ink's tone.
@@ -128,7 +131,7 @@ export function tollReach(room, [x, z]) {
 /** How often a room's hazard comes (s): its `every`, the last wave's sooner, Gentle's rarer; 0 none. */
 export function hazardEvery(room, { last = false, gentle = false } = {}, H = HAZARD) {
   const z = room?.hazard;
-  return z?.every ? z.every * (last ? H.last : 1) * (gentle ? H.gentle : 1) : 0;
+  return z?.every ? z.every * (last && !STEADY.has(z.kind) ? H.last : 1) * (gentle ? H.gentle : 1) : 0;
 }
 
 // ------------------------------------------------------------------ the run's side
@@ -290,16 +293,14 @@ export function roomHazards(env) {
 
   // (a roll's i-frames take him through any of it, issue #442: a blow (a gust, a stone, a cart, a flash, a load, the toll)
   // swallowed is a perfect dodge; lingering ground (slag, a pit, oil, the dark, the shade) crossed in a roll is only crossed)
-  // (Gentle halves the harm, but a hurt is counted in quarters (resources.js quarters): half of a quarter heart came back
-  // a whole quarter, so the quarter-heart hazards (a gust, the flash, the toll, every tick of the dark, the shade, a pit,
-  // the oil) hurt on Gentle as on Normal (the combat review of the fight temples, issue #482). There every other one is
-  // spared instead: half the harm over a run, the flinch kept.)
-  let spare = false;
+  // (Gentle halves the harm. A hurt is counted in quarters (resources.js quarters), and half of a quarter heart came back a
+  // whole quarter (the combat review of the fight temples, issue #482): the purse carries it over instead.)
+  // (the temple's own purse, session.js hurtBy: the harm scaled to his hearts on arrival, Gentle's half, the hurts under a
+  // quarter heart carried over (harm.js harmBank, issue #532); without it, as the hurt is given, Gentle halved)
+  const hurtBy = env.hurtBy ?? ((amount, why) => player.hurt?.(amount * (gentle ? 0.5 : 1), why));
   function hurtHim(kind, at, amount) {
     if (player.dead || player.dodge?.(at, LINGERING.has(kind) ? 'burn' : 'strike', gentle)) return false;
-    const harm = amount * (gentle ? 0.5 : 1);
-    if (gentle && harm < GENTLE_HURT.least - 1e-9 && (spare = !spare)) { player.flinch?.(); env.onHit?.(kind); return true; }
-    player.hurt?.(harm, kind);
+    hurtBy(amount, kind);
     player.flinch?.();
     env.onHit?.(kind);
     return true;
@@ -540,7 +541,7 @@ export function roomHazards(env) {
       if (a.fire2) a.fire2.scale.setScalar(1 + 0.15 * Math.sin(a.t * 9));
       if (Math.random() < 0.5) tool?.glow?.add?.({ pos: _v.set(x + (Math.random() - 0.5) * 1.6, 0.2, z + (Math.random() - 0.5) * 1.6), vel: _w.set(0, 1.5 + Math.random() * 2, 0), drag: 1, size: 0.06, life: 0.5, color: P.slag2 ?? '#ffd36a' });
       const inIt2 = (p, pad = 0) => (a.kind === 'crack' ? Math.abs(p.x - x) < H.tile / 2 + pad && Math.abs(p.z - z) < H.tile / 2 + pad : Math.hypot(p.x - x, p.z - z) < H.radius + pad);
-      if (!player.dead && inIt2(player.pos, -0.15)) { if ((a.tickHim -= dt) <= 0) { a.tickHim = H.tick; hurtHim(a.kind, _v.set(x, 0, z).clone(), H.harm); } } else a.tickHim = 0;
+      if (!player.dead && inIt2(player.pos, -0.15)) { if ((a.tickHim -= dt) <= 0) { a.tickHim = H.tick; hurtHim(a.kind, _v.set(x, 0, z).clone(), H.harm); } } else a.tickHim = Math.max(a.tickHim, HAZARD.enter);
       for (const f of live) {
         if (f.def.hover || !inIt2(f.pos, 0)) continue;
         const kk = (a.ticks.get(f) ?? 0) - dt;
@@ -607,7 +608,7 @@ export function roomHazards(env) {
       const inSlag = (p, pad) => inIt(a, p, pad) && along(a, p) < front;
       if (!player.dead && inSlag(player.pos, -0.15)) {
         if ((a.tickHim -= dt) <= 0) { a.tickHim = H.tick; const [cx, cz] = lanePoint(room, lane, along(a, player.pos)); hurtHim('slag', _v.set(cx, 0, cz).clone(), H.harm); }
-      } else a.tickHim = 0;
+      } else a.tickHim = Math.max(a.tickHim, HAZARD.enter);
       for (const f of live) {
         if (f.def.hover || !inSlag(f.pos, 0)) continue;
         const k = (a.ticks.get(f) ?? 0) - dt;
@@ -630,7 +631,7 @@ export function roomHazards(env) {
         T = 0;
         const busy = new Set(active.filter((a) => a.ri === room).map((a) => a.lane));
         const n = R.hazard.n ?? 1;
-        if (R.hazard.kind === 'drop' || R.hazard.kind === 'spill') for (const spot of geyserSpots(R, player.pos, n, Math.random, { ...DROP_SPOTS, ...(R.hazard.kind === 'spill' ? { radius: 2.1, apart: 4.4 } : {}) })) start(room, { spot });
+        if (R.hazard.kind === 'drop' || R.hazard.kind === 'spill') for (const spot of geyserSpots(R, player.pos, n, Math.random, { ...DROP_SPOTS, ...(R.hazard.kind === 'spill' ? { radius: 2.1, apart: HAZARD.spill.apart, near: HAZARD.spill.near } : {}) })) start(room, { spot });
         else if (R.hazard.kind === 'crack') {
           // (the tile under him and the tiles near him, never one already broken)
           const tiles = geyserSpots(R, player.pos, n, Math.random, { ...DROP_SPOTS, radius: 1, apart: 2.1, inset: 1 }).map(([x, z]) => tileOf(R, x, z));

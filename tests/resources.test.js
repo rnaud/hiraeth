@@ -6,7 +6,7 @@ import { HEARTS, MAGIC, MAGIC_COST, MAGIC_ITEMS, POTION, DAMAGE, HIT, quarters, 
 import { GameState } from '../src/game-state.js';
 import { migrateFlags, MIGRATED } from '../src/save-migrate.js';
 import { Reserve, FLUID } from '../src/fluid-tool.js';
-import { FOES, GENTLE } from '../src/foes.js';
+import { FOES, GENTLE, Foes, HARM_BY_STAGE } from '../src/foes.js';
 import { ATTACKS } from '../src/enemies/attacks.js';
 import { heartsSvg, heartQuarters, magicHud, healthHud, Fader } from '../src/hud.js';
 
@@ -56,7 +56,11 @@ test('Gentle halves the foes\' harm, still in quarters, never under one', () => 
   const harmOf = (d) => quarters(d * GENTLE.harm);
   assert.equal(harmOf(1), 0.5); assert.equal(harmOf(0.5), 0.25); assert.equal(harmOf(0.75), 0.25); assert.equal(harmOf(0.25), 0.25);
   // (since v1.22 the last worlds' stage raises it too, after Gentle's half: HARM_BY_STAGE, tests/archetypes.test.js)
-  assert.match(src('src/foes.js'), /harmOf\(d\) \{ return quarters\(d \* \(this\.difficulty === 'gentle' \? GENTLE\.harm : 1\) \* \(HARM_BY_STAGE\[this\.stageHere\] \?\? 1\)\); \}/);
+  // (out of a fight temple: no harmScale, harmBank or harmCap; in one, src/fight-temples/harm.js: tests/fight-temple-harm.test.js)
+  const F = Object.create(Foes.prototype);
+  Object.assign(F, { settings: { enemies: 'gentle' }, stage: 1 });
+  assert.equal(F.harmOf(1), 0.5); assert.equal(F.harmOf(0.25), 0.25, 'never under a quarter');
+  F.stage = 4; assert.equal(F.harmOf(1), quarters(GENTLE.harm * HARM_BY_STAGE[4]), 'the stage after Gentle’s half');
 });
 
 test('the forgiving rule: one blow never takes you from more than a heart to nothing; falls and drowning never take the last quarter', () => {

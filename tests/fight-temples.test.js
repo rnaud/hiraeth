@@ -225,9 +225,9 @@ test('the loot: a heart more likely when hurt and never at full; chimes from the
 });
 
 /** A run in node: the hall built, the desert's foes made by Foes (not moved), the traveller placed, every foe up felled. */
-function simulate({ gentle = false, flags = {} } = {}) {
+function simulate({ gentle = false, flags = {}, def = D } = {}) {
   const scene = new THREE.Scene();
-  const level = runSteps(buildHall(scene, D));
+  const level = runSteps(buildHall(scene, def));
   const pos = new THREE.Vector3(...D.spawn);
   const player = {
     pos, vel: new THREE.Vector3(), heading: 0, hearts: 3, maxHearts: 3, dead: false, opts: {},
@@ -356,7 +356,8 @@ test('the springs well up before the foes come out of them; a geyser bursts on h
   assert.ok(foes.list.filter((f) => f.alive).length >= 1, 'they come up once it has welled');
   S.end();
   // the hall's geysers: one under him; he stands in it, it bursts: harm; rolling through: none; the foes in it cut
-  const g = simulate();
+  // (the table's harm at its blows' own, 1: the Sunken Hall's own scale is harm.js's, tested in fight-temple-harm.test.js)
+  const g = simulate({ def: { ...D, harm: 1 } });
   const hurts = [];
   let rolling = false;
   Object.assign(g.player, { hurt: (n) => hurts.push(n), dodge: () => rolling, flinch() {} });

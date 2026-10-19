@@ -27,6 +27,7 @@ export const PERDIDE_FIGHT = {
   sky: { script: { day: ['#6aa0c8', '#e9d6bf', '#8a86c4', '#effff8', '#fff6dc'], dusk: ['#5a6aa8', '#f0a888', '#7a6aa8', '#ffd8c0', '#ffc8a0'], night: ['#141a3a', '#3a3f78', '#3d3478', '#7fd6c8', '#f2f0e6'] }, planets: [{ az: 70, el: 22, size: 16, color: '#c7a6f2', ring: 0.35 }] },
   spawn: [0, 0, 5.5],
   par: 260,
+  lightHarm: 0.35,   // (its light foes strike at 0.35 of their kind: session.js; a hundred skitters under the toads, issue #532)
   rooms: [
     { id: 'race', name: 'The mill race', x: [-6, 6], z: [-8, 8],
       springs: [[-3.5, -5.5], [3.5, -5.5], [-3.5, 1.5], [3.5, 1.5]], pillars: [],

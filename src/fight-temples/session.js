@@ -35,6 +35,7 @@ import {
 import { padFaces } from '../native-pad.js';
 import { frameIso, telegraphs, nearestTelegraph, FRAME, LOCK_ANSWER, answerScale } from './view.js';
 import { SelfMark } from './self-mark.js';
+import { fightHarm, arrivalHearts, harmBank, hazardScale, FIGHT_HARM } from './harm.js';
 
 const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0);
 /** A light foe's blows: this share of its kind's (many of them, each felled in a cut or two, each hurting less). */
@@ -124,6 +125,19 @@ export function startFightTemple(ctx) {
   // harsh for a crowd this size: how many strike at once, how hard)
   const stageWas = foes?.stage;
   if (foes && def.stage != null) foes.stage = def.stage;
+  // (the harm scaled to the hearts he has on arriving in this world, the small hurts carried over, not rounded up to a
+  // quarter heart each: harm.js, issue #532; the foes' blows and the hazards' share one purse)
+  const scale = def.harm ?? fightHarm(def.world), arrival = arrivalHearts(def.world);
+  let bank = harmBank();
+  const pay = (h) => bank(h);
+  const harmWas = foes ? { scale: foes.harmScale, bank: foes.harmBank, cap: foes.harmCap } : null;
+  if (foes) { foes.harmScale = scale; foes.harmBank = pay; foes.harmCap = FIGHT_HARM.blow; }
+  /**
+   * A hazard's hurt to him (hearts, its own): scaled, never above its own (hazardScale: the rise along the route is the
+   * foes'; a hazard is learnt once), Gentle halved, through the purse; the hearts taken.
+   */
+  const hzScale = hazardScale(scale);
+  const hurtBy = (amount, why) => { const q = pay(amount * hzScale * (gentle ? 0.5 : 1)); if (q > 0) player.hurt?.(q, why); return q; };
   const own = tool?.items ?? null;   // (the save's own things, before the run lends its kit: the end card's colours, coloursLine)
   const giveBack = lendTool(tool, { mode: 'shoot' });   // (the save's own bar; the plain shot in hand, the push on the wheel, D-pad ↑ held, or X)
   const spawn = new THREE.Vector3(...def.spawn);
@@ -188,7 +202,7 @@ export function startFightTemple(ctx) {
   const geyserMesh = () => geysers.find((g) => !g.busy) ?? (geysers[geysers.length] = { busy: false, m: ctx.add(W.geyser()) });
   let pending = [], geyserT = 0;
   // the world's own hazard in its rooms (hazards.js: Vael's gusts, Lorn's millstones, the Foundry's pour), on lanes
-  const hz = roomHazards({ ctx, def, player, foes, tool, sfx, sound, gentle, mine: () => mine });
+  const hz = roomHazards({ ctx, def, player, foes, tool, sfx, sound, gentle, mine: () => mine, hurtBy });
   // the kills made to read from up here (kill-fx.js, issue #442): thrown back, a ring, a splash, a splat that dries, a thump;
   // a body thrown is kept in the room and off the pillars
   const kills = new KillFx({ add: ctx.add, tool, sound, palette: def.palette, keep: (f) => {
@@ -373,7 +387,7 @@ export function startFightTemple(ctx) {
     // him: in it, and not rolling through it (the roll's i-frames, as a blow's)
     const d = Math.hypot(player.pos.x - at.x, player.pos.z - at.z);
     if (!player.dead && d < GEYSER.radius && !player.dodge?.(at, 'strike', gentle)) {
-      player.hurt?.(GEYSER.harm * (gentle ? 0.5 : 1), 'geyser');
+      hurtBy(GEYSER.harm, 'geyser');
       if (d > 0.05) player.vel?.addScaledVector(_w.set(player.pos.x - at.x, 0, player.pos.z - at.z).normalize(), 4);
       player.vel?.addScaledVector(_up, 3);
       player.flinch?.();
@@ -515,7 +529,7 @@ export function startFightTemple(ctx) {
     sfx.coin?.(3); sfx.gate?.();
     reward.visible = false;
     over = true;
-    const rank = rankFor({ secs: runClock, lost: run.lost }, def.par);
+    const rank = rankFor({ secs: runClock, lost: run.lost }, def.par, undefined, arrival);
     run.rank = rank;
     // (issue #483: a spring-house ends quiet, not cleared; the place speaks first, its table's `quiet`, the scores under it)
     ctx.finish({ title: `${def.name} is quiet · rank ${rank}`, lines: [
@@ -538,6 +552,8 @@ export function startFightTemple(ctx) {
       spawnT = 0; bringUp(0, Infinity);
       return mine.filter((f) => f.alive).length;
     },
+    /** (the checks, the combat review: the harm's scales here and the purse's carry; reset() empties it) */
+    harm: { scale, hazards: hzScale, arrival, get carry() { return bank.carry; }, reset() { bank = harmBank(); } },
     /** (the console, the checks: where the run is) */
     get run() { return { ...run, queue: queue.length, coming: pending.reduce((a, w) => a + w.items.length, 0), standing: mine.filter((f) => f.alive).length, source, seen: F.cuttables.filter((c) => c.k > 0.5).length, hazards: hz.count, hazardsOn: hz.active }; },
     /** (the checks: the run's own table, drawn from the theme: generate.js) */
@@ -682,6 +698,7 @@ export function startFightTemple(ctx) {
       words.dispose();
       giveBack();
       if (foes && def.stage != null) foes.stage = stageWas;
+      if (foes) { foes.harmScale = harmWas.scale; foes.harmBank = harmWas.bank; foes.harmCap = harmWas.cap; }
       if (player.dead) player.restart?.();
     },
   };

@@ -23,6 +23,8 @@ export const INCAL_FIGHT = {
   sky: { script: { day: ['#7fb2d8', '#e8e6dc', '#7f94b8', '#fff8ea', '#fff4dc'], dusk: ['#8a8fc8', '#f4a8a0', '#8a6fb8', '#ffd2c0', '#ffe2b8'], night: ['#1d2250', '#4a4a8a', '#3d3a80', '#9a9ad0', '#f2f0e6'] } },
   spawn: [0, 0, 3.5],
   par: 250,
+  lightHarm: 0.2,   // (its light foes strike at a fifth of their kind: session.js; the toads' lobs and the tripods' bolts come
+  // from afar while the lizards close in and the loads fall, issue #532)
   rooms: [
     { id: 'cabstand', name: 'The cab stand', x: [-7, 7], z: [-6, 6],
       springs: [[-4.5, -3.5], [4.5, -3.5], [-4.5, 3], [4.5, 3]], pillars: [],

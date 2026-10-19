@@ -23,6 +23,7 @@ export const SPHERES_FIGHT = {
   sky: { script: { day: ['#8fb4d8', '#f0e4cc', '#8a90c0', '#fff8ea', '#fff2d8'], dusk: ['#7a86c8', '#f4bfa0', '#8a7ab8', '#ffe0c8', '#ffd8b0'], night: ['#1a2050', '#3a4080', '#34307a', '#9aa0d8', '#f2f0e6'] } },
   spawn: [0, 0, 5],
   par: 250,
+  lightHarm: 0.35,   // (its light foes strike at 0.35 of their kind: session.js; its rollers and hounds strike hard while the shade hides them, issue #532)
   rooms: [
     { id: 'gatehouse', name: 'The gatehouse', x: [-6, 6], z: [-7, 7],
       springs: [[-3.5, -4.5], [3.5, -4.5], [-3.5, 2.5], [3.5, 2.5]], pillars: [],

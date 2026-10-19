@@ -210,7 +210,8 @@ for (const world of WORLDS) {
     localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'foes.seen': true, 'res.hearts.extra': ${hearts - 3} }, keepsakes: [] })); true`);
   const t0 = Date.now();
   await send('Page.navigate', { url: `http://127.0.0.1:${PORT}/?game=fight-${world}&seed=${SEED}` });
-  let up = false; for (let i = 0; i < 1800 && !up; i++) { up = (await ev('!!window.__hiraethBooted && !!window.minigame?.session?.run').catch(() => false)) === true; if (!up) await sleep(100); }
+  // (a cold Vite on a loaded machine can miss the first boot: one reload more before giving up)
+  let up = false; for (let i = 0; i < 3600 && !up; i++) { up = (await ev('!!window.__hiraethBooted && !!window.minigame?.session?.run').catch(() => false)) === true; if (!up) await sleep(100); if (i === 1800 && !up) await send('Page.reload', {}); }
   if (!up) { console.log(world, 'never booted'); all.push({ world, error: 'never booted', errors }); continue; }
   const load = (Date.now() - t0) / 1000;
   await sleep(1500);

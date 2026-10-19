@@ -23,7 +23,7 @@ export const GLASSDUNES_FIGHT = {
   sky: { script: { day: ['#8cc0d0', '#f2e6c8', '#8a9cb8', '#fff8e8', '#fff4d8'], dusk: ['#8a8fc8', '#f4b890', '#8a7fb8', '#ffe0c0', '#ffd8a8'], night: ['#1a2448', '#3a4a7a', '#2a3a6a', '#8ab0c8', '#f2f0e6'] } },
   spawn: [0, 0, 3.5],
   par: 250,
-  lightHarm: 0.4,   // (its light foes strike at four tenths of their kind: session.js)
+  lightHarm: 0.15,   // (its light foes strike at 0.15 of their kind: session.js; its crabs throw most blows, issue #532)
   stage: 1,   // (the crowd fought as stage 1's: session.js; the world's own struck too many at once)
   rooms: [
     { id: 'packing', name: 'The packing shed', x: [-6, 6], z: [-6, 6],

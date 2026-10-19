@@ -59,6 +59,31 @@ export const CHANGELOG = [
     // panelsFor, housePanel), engine/menus.js (START_SIDE, the game view's house), BridgeMenu.cs DrawGame;
     // tests/house-map.test.js, engine-menus.test.js, hud.test.js
     'The Start menu (Menu) is shorter: Items, Quests and Map are in the game menu (View) alone, where they already were. Inside a makers’ house, its map is now a tab of that menu too, after Map, and ▲ ▼ go up and down its floors.',
+    // issues #532, #533: src/fight-temples/harm.js (FIGHT_HARM, arrivalHearts, fightHarm, hazardScale, harmBank), session.js
+    // (the scale, the purse, hurtBy, the rank by hearts on arrival), foes.js harmOf (harmScale, harmBank, harmCap),
+    // rules.js rankFor; hazards.js HAZARD (the dark, the oil, the tiles, the slag, the shade, the toll, the stones, the carts,
+    // the loads), STEADY, enter; the tables' lightHarm; tests/fight-temple-harm.test.js; docs/design/fight-temples.md
+    { text: 'The fight temples now cost about the same share of your hearts from the first to the last, instead of the first costing the most. Each one’s blows and hazards are weighed against the hearts you can have on reaching its world: the Sunken Hall, with your first three hearts, no longer takes more than all of them, and the last ones hit harder for the hearts you bring. A small blow is no longer rounded up to a quarter heart, so the light foes really strike lightly, one blow never takes more than a heart, and the rank weighs the hearts you lost against the hearts you came with.',
+      numbers: [{ title: 'Hearts lost ÷ hearts on arrival, a run never rolling (Normal, two seeds), before → after', unit: '× hearts', better: 'lower', device: 'Mac (Apple M4 Pro), headless Chrome, Medium, Normal',
+        rows: [
+          { where: 'the Sunken Hall (3 hearts)', before: 2.75, after: 0.79 },
+          { where: 'the Drowned Mill (6)', before: 2.9, after: 0.6 },
+          { where: 'the Flooded Gallery (8)', before: 2.13, after: 0.78 },
+          { where: 'the Kiln Yard (10)', before: 1.46, after: 0.86 },
+          { where: 'the Back Rooms (15)', before: 0.61, after: 0.71 },
+        ], source: '.claude/skills/combat-review/fight-temples.mjs --bot masher, seeds 4821 and 4822; issue #532', note: 'Each run is one run: the crowd’s blows move a run’s total by a fifth either way. The skilled bot (rolling) lost 0.07–0.94 of his hearts after, 0.18–2.67 before; on Gentle the masher lost 0.08–0.2.' }],
+      see: 'Play the Sunken Hall in the desert with your first three hearts, then the Back Rooms in the Signal Market: both should leave you with hearts to spare if you roll, and neither empties your hearts if you don’t.' },
+    // issue #533: src/fight-temples/hazards.js HAZARD.dark (2.6 s, 2.8 m discs, 1.2 s grace, a tenth a tick), STEADY, crack,
+    // spill (near him), pour, shade, toll, stone, cart, drop, HAZARD.enter; harm.js hazardScale; tests/fight-temple-harm.test.js
+    { text: 'In the fight temples, the hazards that lie on the floor take far fewer hearts: the Flooded Gallery’s dark is shorter, no quicker in the last wave and its lamps light a wider circle; burning oil, breaking tiles and slag give you a moment to step off before they burn, and the oil opens nearer you, where you can see it. The toll, the millstones, the ore carts and the falling loads hurt a little less, and no hazard grows stronger in the later worlds.',
+      numbers: [{ title: 'Hearts lost to the lying hazards in a run, before → after', unit: 'hearts', better: 'lower', device: 'Mac (Apple M4 Pro), headless Chrome, Medium, Normal',
+        rows: [
+          { where: 'the Flooded Gallery: the dark, never rolling', before: 9.63, after: 1.38 },
+          { where: 'the Flooded Gallery: the dark, rolling', before: 7.5, after: 4 },
+          { where: 'the Oil Exchange: burning oil, rolling', before: 9, after: 4.5 },
+          { where: 'the Kiln Yard: breaking tiles, never rolling', before: 4.5, after: 2.38 },
+        ], source: '.claude/skills/combat-review/fight-temples.mjs; issue #533', note: 'The rolling bot steps into a lamp’s light or off the oil as it warns, but it chases the nearest foe back over burning ground; its Flooded Gallery run after was stuck on two crabs for a while in the dark.' }],
+      see: 'In the Flooded Gallery, when the lamps flicker, walk into a lamp’s circle: the dark now gives you over a second to get there before it bites.' },
   ] },
   { v: '1.85', date: '2026-10-18', items: [
     // issue #474: src/music-moments.js (MUSIC_MODES, musicMode: Always the default), src/ui.js (musicMode, musicV: a saved
@@ -248,16 +273,16 @@ export const CHANGELOG = [
     // issue #482 (the combat review of the fight temples): src/fight-temples/hazards.js CRACK_WARN (the tile's edge in the
     // glyph's tone, a dark star of cracks); tests/fight-temples-worlds.test.js
     'In the Kiln Yard, the Glass Dunes’ fight temple, a tile about to break now shows it: its edge glows and a dark star of cracks spreads across it. The thin white cracks it had were all but invisible on the pale glass, and the breaking tiles took more hearts than anything else in there.',
-    // issue #482: src/fight-temples/hazards.js GENTLE_HURT, hurtHim (every other quarter-heart hurt spared on Gentle);
+    // issue #482: src/fight-temples/hazards.js hurtHim (half of a quarter heart carried over on Gentle: since #532, harm.js harmBank);
     // tests/fight-temples-worlds.test.js; docs/audits/combat-fight-temples-v1.85.md "Gentle, before and after"
-    { text: 'On Gentle, the fight temples’ hazards that take a quarter heart (a gust, the eyes’ flash, the toll, the dark, the shade, a broken tile, burning oil) now hurt only every other time. They were meant to take half as much on Gentle, but half of a quarter heart came back as a whole one.',
+    { text: 'On Gentle, the fight temples’ hazards that take a quarter heart (a gust, the eyes’ flash, the toll, the dark, the shade, a broken tile, burning oil) now take half as much over a fight. They were meant to take half as much on Gentle, but half of a quarter heart came back as a whole one.',
       numbers: [{ title: 'Hearts lost to the quarter-heart hazards on Gentle, a run never rolling (the same seed), before → after', unit: 'hearts', better: 'lower', device: 'Mac (Apple M4 Pro), headless Chrome, Medium',
         rows: [
           { where: 'the Flooded Gallery: the dark', before: 4.25, after: 2 },
           { where: 'the Kiln Yard: breaking tiles', before: 3.5, after: 1.75 },
           { where: 'the Back Rooms: the toll', before: 2.25, after: 1 },
         ], source: 'docs/audits/combat-fight-temples-v1.85.md, "Gentle, before and after"' }],
-      see: 'Set Enemies to Gentle and play the Back Rooms in the Signal Market: let the toll’s ring pass you without rolling, again and again. Every other ring only makes you flinch.' },
+      see: 'Set Enemies to Gentle and play the Back Rooms in the Signal Market: let the toll’s ring pass you without rolling, again and again. Some rings only make you flinch, and over the fight they take half the hearts they take on Normal.' },
   ] },
   { v: '1.84', date: '2026-10-17', items: [
     // issue #439: src/costumes.js (HEADS: the 47 pieces of the 15 hat sets, HAT_SETS, HAT_SET_WORLDS, hoodShell / hoodNeck /

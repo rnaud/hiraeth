@@ -23,6 +23,8 @@ export const BAZAAR_FIGHT = {
   sky: { script: { day: ['#8fb0d8', '#f2dcc8', '#8a86c0', '#fff4e8', '#fff0dc'], dusk: ['#6a6ab0', '#f4a0a8', '#7a5aa8', '#ffd0d8', '#ffc8b0'], night: ['#141838', '#3a3070', '#3a2a70', '#ff9ad0', '#f2f0e6'] } },
   spawn: [0, 0, 3.5],
   par: 250,
+  lightHarm: 1,   // (its light foes strike as hard as their kind: session.js; its lizards' nips and the
+  // marionettes' strings are the route's lightest blows, and the last temple should be its hardest: issue #532)
   rooms: [
     { id: 'row', name: 'The shuttered row', x: [-8, 8], z: [-6, 6],
       springs: [[-5, -3.5], [5, -3.5], [-5, 3], [5, 3]], pillars: [],

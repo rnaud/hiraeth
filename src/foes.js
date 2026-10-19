@@ -2974,7 +2974,13 @@ export class Foes {
   }
   /** A strike's damage in hearts for this setting (Gentle: half), counted in quarters. */
   /** A foe's harm in hearts here: Gentle halves it; the last worlds' stage raises it (HARM_BY_STAGE); counted in quarters. */
-  harmOf(d) { return quarters(d * (this.difficulty === 'gentle' ? GENTLE.harm : 1) * (HARM_BY_STAGE[this.stageHere] ?? 1)); }
+  // (a fight temple sets `harmScale`, its own in place of the stage's, and `harmBank`, a purse that carries the hurts
+  // under a quarter heart over instead of rounding each up, and `harmCap`, the most one blow takes there:
+  // src/fight-temples/harm.js, issue #532)
+  harmOf(d) {
+    const h = Math.min(this.harmCap ?? Infinity, d * (this.difficulty === 'gentle' ? GENTLE.harm : 1) * (this.harmScale ?? HARM_BY_STAGE[this.stageHere] ?? 1));
+    return this.harmBank ? this.harmBank(h) : quarters(h);
+  }
   /** Hearts off the traveller (a blow never takes him from more than a heart to nothing: strikeDamage). */
   harm(d) { const P = this.player; P.hurt?.(strikeDamage(heartsOf(P), d), 'foe'); }
 

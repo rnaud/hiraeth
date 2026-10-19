@@ -188,9 +188,27 @@ spring wells up (an ember ring) 0.7 s before foes come out of it; a table's `{ g
 with more health that leaves a heart and an ember shard (8 s of double cuts); a room's `geysers: { every, n }` opens
 ink pools on the floor under and near him that burst after 1.25 s (half a heart, two cuts to foes in them); the last
 three of a wave stand under pillars of light; a foe out of the room is put back; the results rank the run S to C by
-the hearts lost and the time against the table's `par`. The shard's double cuts are "the blade runs bright" (never
-"fury"); the results card's first line is the place's own, the table's `quiet` ("The ink sinks back into the floor. Wafa
-comes down the stair."), the scores under it, and the run's title says the house "is quiet" (issue #483).
+the hearts lost and the time against the table's `par` (the hearts lost weighed against the hearts on arrival, below).
+The shard's double cuts are "the blade runs bright" (never "fury"); the results card's first line is the place's own,
+the table's `quiet` ("The ink sinks back into the floor. Wafa comes down the stair."), the scores under it, and the
+run's title says the house "is quiet" (issue #483).
+
+**Harm along the route** (issues #532, #533; `src/fight-temples/harm.js`). Every blow and every hazard in a temple is
+scaled by `fightHarm(world)`: the hearts a traveller has on arriving in that world (`arrivalHearts`: the start's 3 and
+every heart container sold in the worlds before it, 3 in the desert … 15 in the Signal Market; the combat review plays
+with the same), over `FIGHT_HARM.ref` (12), times a rise of `FIGHT_HARM.rise` (half) from the first world to the last.
+So each temple costs a like share of his hearts, a little more the further he is: the Sunken Hall's blows strike at a
+quarter of their own, the Back Rooms' at 1.9 times. It takes the place of the stage's `HARM_BY_STAGE` in here (`Foes`
+`harmScale`); a table's `stage` still sets how many strike at once, and its `harm` would set its scale by hand. The
+hazards take the same scale but never above their own (`hazardScale`, `FIGHT_HARM.hazards` 1): the rise is the foes',
+and a hazard learnt in one room should not cost more in the next world (at 1.6–1.9 times, the oil, the shade and the
+toll took more than the crowds of the last temples). One blow takes at most a heart in here (`FIGHT_HARM.blow`, `Foes`
+`harmCap`): at the Oil Exchange's scale a tough tripod's stamp was 1.7 hearts. A hurt
+is counted in quarter hearts, and every light blow used to round up to a quarter (half a skitter's quarter-heart nip
+too): the hurts now go through one purse a run (`harmBank`, `Foes.harmBank`, the session's `hurtBy` for the geysers and
+hazards), which carries what is under a quarter to the next hurt and pays whole quarters. So a table's `lightHarm`
+(0.4 in the Flooded Gallery, the Kiln Yard and the Oil Exchange) means four tenths, and Gentle's half is half. The rank
+counts the hearts lost against `RANK.per` (10) hearts: with 3 hearts an S is 0.3 lost, with 15 it is 1.5.
 
 **The loot.** A heart now and then (5 %, 16 % at half your hearts or fewer, never at full), drawn in as you pass; a
 chime from a light foe a quarter of the time, six from a tough one, a purse for each wave, room and the finale
@@ -220,24 +238,28 @@ table: add the new one to them.
 The desert's geysers are spots under him; the other worlds' hazards run on **lanes** (`src/fight-temples/hazards.js`): a
 strip the whole room long, `w` wide (2.4–3.4 m), across the room at `at`, going `dir` along it. A room's table:
 `hazard: { kind, every, n, lanes: [{ along: 'x' | 'z', at, w, dir }] }`. Every `every` s of a wave (the last wave
-`HAZARD.last` 0.75 of it, Gentle 1.6 times as rarely and half the harm; a quarter heart, the least a hurt can be, is not halved but every other one spared on Gentle: `GENTLE_HURT`, issue #482) `n` lanes go, the one he stands in (else the
+`HAZARD.last` 0.75 of it, but for the dark, `STEADY`; Gentle 1.6 times as rarely and half the harm, through the run's purse: above) `n` lanes go, the one he stands in (else the
 nearest him) first (`pickLanes`). Each kind warns on the floor, then acts, and a roll's i-frames take him through, as a
 blow's (`player.dodge`); every kind hurts the foes in it too, so the crowd can be led in. The first room of a temple has
 none: it teaches the crowd; there are more, and sooner, deeper in (the tests hold both).
 
+The hearts in the table are each kind's own, before the temple's scale ("Harm along the route", above). The lying
+ground (slag, a pit, oil) waits `HAZARD.enter` (0.45 s) after he steps in before its first tick, so crossing it at a
+walk costs nothing (issue #533).
+
 | kind | warns | then | him | the foes in it |
 |---|---|---|---|---|
 | `gust` (Vael) | pale chevrons run down the lane the way it will blow, 1.1 s | the wind blows 0.7 s | shoved along it 11 m/s, a quarter heart, a flinch | buffeted (a cut), carried at 15 m/s toward the wall at its end, slammed there (another) |
-| `stone` (Lorn) | the lane's edges in rust, a millstone rising at its head, 1.4 s | it rolls the length of the room at 8.5 m/s | a heart, thrown out of its way | crushed (three cuts); flyers above it |
-| `pour` (the Foundry) | the channel's rims glow, flickering faster, 1.5 s | slag runs down it at 14 m/s and lies 3.6 s, then crusts over | half a heart a tick (0.7 s) in it | a cut a tick; flyers above it |
-| `cart` (the Buried Machine) | the lamp on a cart at the rail's head blinks faster, 1.3 s (the rails drawn from the start) | the cart runs the rail at 11 m/s | a heart, thrown aside | three cuts; flyers above it |
+| `stone` (Lorn) | the lane's edges in rust, a millstone rising at its head, 1.4 s | it rolls the length of the room at 8.5 m/s | 0.6 of a heart (a heart until v1.85), thrown out of its way | crushed (three cuts); flyers above it |
+| `pour` (the Foundry) | the channel's rims glow, flickering faster, 1.5 s | slag runs down it at 14 m/s and lies 3.6 s, then crusts over | 0.4 heart a tick (0.7 s) in it, the first tick 0.45 s after stepping in (`HAZARD.enter`; half a heart until v1.85) | a cut a tick; flyers above it |
+| `cart` (the Buried Machine) | the lamp on a cart at the rail's head blinks faster, 1.3 s (the rails drawn from the start) | the cart runs the rail at 11 m/s | three quarters of a heart (a heart until v1.85), thrown aside | three cuts; flyers above it |
 | `bloom` (Viridel) | a row of sleeping eyes down the lane opens one by one from its head, 1.2 s | they flash white, 0.35 s | dazzled (`Foes.blind` 0.6 s), a quarter heart | stunned 1.2 s and a cut; moths from 1.2 m beyond its edge drawn in |
-| `drop` (the City-Shaft) | **spots**, not lanes: a ring tightens on the deck under him and round him (`geyserSpots`, 3.2 m apart), a load's shadow growing, 1.3 s | the crane's load lands, lies 1.4 s, sinks | half a heart, thrown out | three cuts to all under it |
-| `toll` (the Signal Market) | a sign on a wall (`hazard.signs`) flickers on, 1 s | a ring of sound spreads from it at 6 m/s across the room | its edge passing him: a flinch, a quarter heart | its edge passing: stunned 1 s and a cut |
-| `spill` (the City Floating in Space) | a pool of oil spreads on the deck under him and near him, a spark at its rim, 1.4 s | it burns 3 s | a quarter heart a tick (0.8 s) in it | a cut a tick; flyers above it |
-| `shade` (the Garden of Spheres) | its edge glows on the side it will come from, 1 s (`hazard.lanes`: only `along` and `dir`) | a 4 m band of shade sweeps the room end to end at 2.4 m/s | a quarter heart a tick (1.2 s) in it | in it they can't be aimed at (`phased`) |
-| `crack` (the Glass Dunes) | the floor's 2 m glass tiles drawn; a tile under him and tiles near him crack, 1.1 s: its edge lit in the glyph's tone (flickering faster in the last half), a dark star of cracks spreading across it (a white star until v1.85, all but unseen on the pale glass: issue #482) | they break: pits to the kilns' glow, 3.5 s | a quarter heart a tick (0.9 s) in one | a cut a tick |
-| `dark` (the Underwater City) | the room's lamps (`hazard.lamps`, posts with globes, their discs drawn) flicker faster, 1.2 s | the room goes dark 3.6 s: the floor black but for the discs (2.4 m) | out of the light a quarter heart a second (0.6 s first) | in a lamp's disc a cut a second |
+| `drop` (the City-Shaft) | **spots**, not lanes: a ring tightens on the deck under him and round him (`geyserSpots`, 3.2 m apart), a load's shadow growing, 1.3 s | the crane's load lands, lies 1.4 s, sinks | 0.4 of a heart (half until v1.85), thrown out | three cuts to all under it |
+| `toll` (the Signal Market) | a sign on a wall (`hazard.signs`) flickers on, 1 s | a ring of sound spreads from it at 6 m/s across the room | its edge passing him: a flinch, a fifth of a heart (a quarter until v1.85) | its edge passing: stunned 1 s and a cut |
+| `spill` (the City Floating in Space) | a pool of oil spreads on the deck under him and near him (within 3.6 m: on the screen), a spark at its rim, 1.4 s | it burns 2.6 s | 0.12 heart a tick (1 s) in it, the first 0.45 s after stepping in (v1.85, issue #533: a quarter every 0.8 s for 3 s) | a cut a tick; flyers above it |
+| `shade` (the Garden of Spheres) | its edge glows on the side it will come from, 1 s (`hazard.lanes`: only `along` and `dir`) | a 4 m band of shade sweeps the room end to end at 2.4 m/s | a fifth of a heart a tick (1.2 s) in it (a quarter until v1.85) | in it they can't be aimed at (`phased`) |
+| `crack` (the Glass Dunes) | the floor's 2 m glass tiles drawn; a tile under him and tiles near him crack, 1.1 s: its edge lit in the glyph's tone (flickering faster in the last half), a dark star of cracks spreading across it (a white star until v1.85, all but unseen on the pale glass: issue #482) | they break: pits to the kilns' glow, 2.6 s | 0.15 heart a tick (0.9 s) in one, the first 0.45 s after stepping in (v1.85, issue #533: a quarter, 3.5 s) | a cut a tick |
+| `dark` (the Underwater City) | the room's lamps (`hazard.lamps`, posts with globes, their discs drawn) flicker faster, 1.2 s | the room goes dark 2.6 s, no sooner in the last wave (`STEADY`): the floor black but for the discs (2.8 m) | out of the light a tenth of a heart a second, 1.2 s first (v1.85, issue #533: dark 3.6 s of every 5.25 in the last wave, 2.4 m discs, a quarter a second after 0.6 s) | in a lamp's disc a cut a second |
 
 `drop` and `toll` have no lanes (`ON_LANES`): a load is begun on `{ spot }`, a toll on `{ sign }` (the signs farthest from
 him first, so the ring is seen coming). Since v1.81 the gust is drawn as it blows too: fourteen long white streaks race
