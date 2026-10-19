@@ -365,11 +365,8 @@ moment on the ship's camera (letterbox, skip tag; B / ○, Menu, Esc or a tap sk
 
 - **A, keeper** (3.2 s): the guardian whole as its resolution plays out, from behind him and a little round, him small in
   the foreground, the arc drifting on; a keeper too big for its hall at that reach gets a wider lens (to 68°).
-- **B, reward** (2.4 s): low over the floor where its purse fell (the hosts' `purseAt`, `chimes.js purseSpot`: between
-  him and it, short of its drawn body, so it lies in the open), the chimes floating up, the keeper beyond. Of the
-  lenses round the purse (swung, drawn back, lifted, the look leaning toward the keeper) the first out of its body and
-  of solids, 2.6 m off him and not through him, that sees the chimes past everything (the keeper's own body too:
-  `sightClear` with it not skipped) with the keeper beyond in the frame; its lens as long as that allows (v1.85, #528).
+- **B, reward** (2.4 s): low over the floor where its purse fell (main.js `purseAt`: between him and it), the chimes
+  floating up, the keeper beyond.
 - **C, house** (2.6 s): high and wide over the arena from the side away from the way out; the house's glyphs come up
   (`rt.litWant`, eased by `TempleRuntime.glowUpdate`: `uGlow` + 0.35, back down over 2.5 s after).
 - **D, way** (2.8 s): the way out, the door whose condition is `{ resolved: true }` (`wayOut`, the nearest the arena's
@@ -388,20 +385,11 @@ wait for it (`story.waitFor` is a conversation or a moment, main.js and engine/g
 "outside" toast wait in the toasts (`cinema.held`). It can't play (no ship's camera, a scene up): the door opens at once,
 as before. A skip or a failure opens the door in `onEnd`. **Framing from data**: each lens is kept inside the house's
 bounds, clear of its drawn walls (`drawnHit`: a raycast of the house's meshes, since a wall high over a passage is drawn
-and not solid, so the moment's own collider pull-in misses it) and out of the **keeper's body** (`keeperBox`: the
-world box of its shown, opaque meshes, skinned ones posed, not a column of its radius: the Mother Snapper's leaves,
-the Lampless's wings and the Listener's shell reach far past it). Calmed, it walks on to its rest as the film plays
-(boss.js), so each panel keeps out of its body as it will stand then, moved and turned (`reachOf`). A's arc is swung
-round it and lifted until its lens sees the keeper and has the whole of it in 68° at most (`fitFov`); C is swung round
-the hall until it sees the house. A shaft of light between a lens and the keeper (a `Sunbeam`'s `cone()`, `washes`)
-is hushed to `FILM_HUSH` of its wash while the film looks through it, at once on a cut (the Greenhouse's sun washed
-the Gardener pale in C, #529). The hand-back (`behind: { avoid }`, `behindHim`): the follow camera behind him, swung
-the least it can until its arm is out of the keeper's body as it stands at the end (the Listener's shell, #529); `FINALES` holds each
+and not solid, so the moment's own collider pull-in misses it) and out of the keeper's column; `FINALES` holds each
 house's beat and its nudges (`side`, `door`, `wide`, `high`: the Mooring-House's hall view under its floating plates).
 **Unity** plays it from the same story (engine/game.js: the ship's cinema as the screen's 'cine').
 Tests: `tests/temple-finale.test.js` (all fourteen built: every panel frames its subject, from inside, not through a
-drawn wall or the keeper; A–C each a lens out of solids and the keeper's drawn body that sees its subject, B past the
-keeper's own body; the purse short of the body; the hand-back out of it; the Greenhouse's sun hushed; once; the theme cued; the door held to its panel; a skip and no ship), and
+drawn wall or the keeper; once; the theme cued; the door held to its panel; a skip and no ship), and
 `tests/engine-temple-finale.test.js` (the Aerie's in the engine bundle).
 
 ### After the v1.66 pass: framing fixes (issues #296–#299)

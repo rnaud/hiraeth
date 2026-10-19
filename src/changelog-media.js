@@ -1261,8 +1261,6 @@ const UNITY526 = 'Issue #526: the Unity editor’s batch run on this Mac (node s
 const WEB526 = 'Issue #526: the web game in muted headless Chrome on this branch’s own Vite (port 5462, node scripts/unity-compare/sequences.mjs web talk), 1280 × 720, the same pad faked in hand; 19 October; cwebp -q 72';
 /** (v1.85, issue #491: two climaxes that filmed walls) */
 const CINE491 = 'Issue #491: the cinematics QC (scripts/cinematics-qc.mjs) in muted headless Chrome (High, 1280 × 720, the frames kept at 960 × 540) on this branch’s own Vite (port 5431), each climax staged by the review page (out of the house once its guardian is done, a few steps from its door); before: the branch’s base, after: the fix, the same frame of the film; 19 October';
-/** (v1.85, issues #528, #529: the temple endings filmed through their keepers) */
-const FIN528 = 'Issues #528, #529: the cinematics QC (scripts/cinematics-qc.mjs --group "Temple endings") in muted headless Chrome (High, 1280 × 720, the frames kept at 960 × 540) on this branch’s own Vite (port 5428), each ending staged by the review page (in the arena between the keeper and the way out, the keeper woken and calmed); before: the branch’s base with #490 and #491, after: the fix, the same panel of the film; 19 October';
 export const CHANGELOG_MEDIA = {
   '1.86': [
     { match: 'The fight temples now belong to the story', tags: ['story'], shots: [
@@ -1407,13 +1405,6 @@ export const CHANGELOG_MEDIA = {
       { name: 'cables-capstan-491', title: 'The cables drawing taut', size: [960, 540], caption: 'The panel of the capstan over the Mooring-House: before, a teal leg of the tripod filling the frame; after, from between two legs, the capstan turning and the cables leaving it, their lamps lighting.', from: CINE491 },
       { name: 'cables-wide-491', title: 'The City Floating in Space, the first shot', size: [960, 540], caption: 'The wide on the Mooring-House: before, the lens a metre from its wall, a leg and the sky; after, from out over the void, the house on its island under the tripod.', from: CINE491 },
     ], see: 'Resolve the Last Founder in the Moon Foundry, or the Anchor-Warden in the City Floating in Space, and walk out of the house: the film shows the house, then the moon on its hook or the capstan and its cables. Or open Debug → Cinematics and play moonfoundry.moon or spacecity.cables.' },
-    { match: 'The films that end each makers’ house no longer look through the guardian', tags: ['temples'], shots: [
-      { name: 'finale-reward-528', title: 'The Hush-House: what it leaves you', size: [960, 540], caption: 'The panel of the chimes: before, the lens inside the Mother Snapper’s leaves, a green wall for 2.4 s; after, the chimes on the floor in front of her, him beside them and her leaves and bulb beyond.', from: FIN528 },
-      { name: 'finale-well-528', title: 'The Warden’s Well: what it leaves you', size: [960, 540], caption: 'The same panel: before, the lens inside a solid, a bare floor for the whole of it; after, the warden on its legs over its pad, the chimes at its foot.', from: FIN528 },
-      { name: 'finale-lampless-529', title: 'The Lamp-House: the first shot', size: [960, 540], caption: 'Three seconds in: before, the Lampless’s wings filling the frame; after, the whole of it in the air under the great lamp.', from: FIN528 },
-      { name: 'finale-gardener-529', title: 'The Greenhouse: the wide over the hall', size: [960, 540], caption: 'From high over the hall: before, its sunbeam laid over the Gardener, washed pale as if see-through; after, the beam’s haze held back while the film looks through it, the Gardener solid in its sunlit bed.', from: FIN528 },
-      { name: 'finale-listener-529', title: 'The Whale-House: after the film', size: [960, 540], caption: 'The camera handed back: before, under the Listener’s shell, him half hidden; after, beside him with the shell to one side.', from: FIN528 },
-    ], see: 'Calm any makers’ house’s guardian and watch its film; or open Debug → Cinematics and play the Temple endings (finale.perdide, finale.incal, finale.perdide2, finale.edena, finale.underwater).' },
   ],
   '1.84': [
     { match: 'In the Unity version on the Steam Deck, the first launch after an update no longer freezes', numbers: [

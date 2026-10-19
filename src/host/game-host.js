@@ -67,7 +67,7 @@ import { guardianBox } from '../lock-frame.js';
 import { hopAxis } from '../jump.js';
 import { lockAim } from '../fluid-tool.js';
 import { AimNudge, AIM_NUDGE, lockAimStep } from '../lock-aim.js';
-import { ChimeField, ChimeView, dropPolicy, connectDrops, purseSpot } from '../chimes.js';
+import { ChimeField, ChimeView, dropPolicy, connectDrops } from '../chimes.js';
 import { PotionDrops } from '../potion-drops.js';
 import { LowHealthCue } from '../low-health.js';
 import { resources, POTION } from '../resources.js';
@@ -597,8 +597,12 @@ export function wireFight({ scene, level, levelId, content, physics, player, too
   const groundAt = (x, y, z) => physics.groundAt(x, y + 2, z, 8);
   const chimes = new ChimeField({ groundAt, onTake: (p) => { resources.addChimes(p.value, { source: 'pickup', training: p.training }); sound?.chimePickup?.(p.value); rumblePlay('chime'); health?.show(); } });
   const chimeView = new ChimeView(scene);
-  /** A guardian's purse: scattered on the floor between it and you, short of its body (a floating guardian's is out of reach). */
-  const purseAt = (pos, body = null) => purseSpot(player.pos, pos, body);
+  /** A guardian's purse: scattered on the floor between it and you (a floating guardian's body is out of reach). */
+  const purseAt = (pos) => {
+    const P = player.pos, at = P.clone();
+    if (pos) { const dx = pos.x - P.x, dz = pos.z - P.z, d = Math.hypot(dx, dz); if (d > 0.1) at.set(P.x + (dx / d) * Math.min(3.4, d), P.y, P.z + (dz / d) * Math.min(3.4, d)); }
+    return at;
+  };
   const offs = [connectDrops(game, chimes, { policy: chimePolicy, purseAt, sound })];
   // potions a foe leaves now and then: walked over, into the pack
   const potionDrops = new PotionDrops(scene, { groundAt, onTake: () => { if (resources.addPotions(1)) { sound?.potionPickup?.(); health?.show(); toast(tr('potion.found')); rumblePlay('chime'); } } });

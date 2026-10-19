@@ -278,14 +278,6 @@ a wall, both worlds rebuilt round their films since (#491); the City-Shaft's bri
   - Elsewhere the body covers half the frame, or the purse is a speck (#528).
   - The Lampless and the Listener fill panel A, and the Gardener is drawn see-through in C (#529).
 - **Verdicts.** The fourteen are in `cinematics-qc-notes.json`: 9 Pass, 5 Needs work.
-- **Fixed (#528, #529, the same day).** Every lens keeps out of the keeper's drawn body (`keeperBox`), not a column:
-  - B frames the chimes with the keeper beyond, from out of its body, off him and never through it; the purse lands
-    short of the body (`purseSpot`). The Warden's Well's B is out of solids.
-  - A is swung and lifted until it has the whole keeper: the Lampless and the Listener no longer fill it.
-  - The Greenhouse's sunbeam is hushed while C looks through it at the Gardener; the hand-back swings out of the
-    Listener's shell.
-  - A second run by eye: 14 Pass. The weakest left: the Whale-House's B (the shell over the top half) and a pillar in
-    the Warden's Well's A.
 
 ### The table
 
