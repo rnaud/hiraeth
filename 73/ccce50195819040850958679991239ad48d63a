@@ -1,0 +1,35 @@
+data/characters/traveller-v2/manifest.json
+  s_5f899ba316b5dc::t_23bd8c55450148 2,538-539,541-542,550,553-556,558,562-565,567,571-574,576,578-585,587-590,592,594-599,601-604,606,608-615,619-620,622-623,633-634,636-637,652-653,655,691-693,703-710,716-717,786-787,791
+docs/systems/characters.md
+  s_5f899ba316b5dc::t_5dd6f36e393a43 2051-2053,2056,2061-2095,2099,2102,2111-2112,2118-2119,2124
+scripts/blender/traveller/b3cut.py
+  s_5f899ba316b5dc::t_5185f85e73e77b 1-268
+scripts/blender/traveller/build_b3.py
+  s_5f899ba316b5dc::t_d22c454a79bbfe 1-252
+scripts/blender/traveller/portrait.py
+  s_5f899ba316b5dc::t_f5a5bb29ca5af2 1-168
+scripts/blender/traveller/previews.py
+  s_5f899ba316b5dc::t_4a22ed005906b9 29,43-64,76,85,92,104,107,114,127,130,134,139,152-153,161,169,172-180
+scripts/blender/traveller/rig.py
+  s_5f899ba316b5dc::t_7ce60ab6d68444 34,64,280-281
+scripts/blender/traveller/views.py
+  s_5f899ba316b5dc::t_3f53bfa08b262c 25
+tests/traveller-blender.test.js
+  s_5f899ba316b5dc::t_3cf18e6c4962b8 1-4,29,48
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "73ccce50195819040850958679991239ad48d63a",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
