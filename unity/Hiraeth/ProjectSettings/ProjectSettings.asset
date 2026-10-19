@@ -151,6 +151,7 @@ PlayerSettings:
   tvOSBundleVersion: 1.0
   bundleVersion: 0.1
   preloadedAssets:
+  - {fileID: 4800000, guid: 0ed0f79413ea45cea9bdb0e31145a6de, type: 3}
   - {fileID: 4800000, guid: dccbcbdaf7e8e40fc8838263ea79921d, type: 3}
   - {fileID: 4800000, guid: 4faa21d112cb44e54ae135e41152d8ef, type: 3}
   - {fileID: 4800000, guid: a5523a34e0add48e5a4ff93b0e07fb6e, type: 3}

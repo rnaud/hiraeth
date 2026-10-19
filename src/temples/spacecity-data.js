@@ -10,7 +10,7 @@ export const QUEST = {
   outro: 'The Anchor-Warden has taken up its cables, and the islands of the city hold together again.',
   find: 'Find the Mooring-House north of the Towers',
   gadget: 'Find what the makers left in the Mooring-House',
-  keeper: 'Go past the Cord Loft to what lets the cables out',
+  keeper: 'Past the Cord Loft: what lets the cables out',
 };
 
 export const PEOPLE = {
