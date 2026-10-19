@@ -17,7 +17,13 @@ import { SmokeColumn } from './story/flames.js';
 //                        long streamer: where the carriers climb to count the camps' lights. The basin's one high place
 //                        (from it: both camps, the Clock-House, the breaking wave, the ship).
 //
-//   buildFloatPosts(scene, M, terrain) → { points, rack }
+//   the west posts       the same poles and floats, from the landing flat west by the giants' south end, up the red cleft
+//                        and out by its arch, down the folded ravine, through the prism crossings to the pearl city, and
+//                        from its east stair through the gap to the north camp: Fenna set them out to walk the old road by
+//                        (issue #475: the west was off every path). WEST_POSTS; the line runs on over the pearl city's
+//                        plaza between its stairs (WEST_LINE).
+//
+//   buildFloatPosts(scene, M, terrain, { posts, rack, name }) → { points, rack }
 //   buildWaveCairn(scene, M, physics-free top) → { at, wave(t) }
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -25,6 +31,16 @@ const nonIdx = (g) => (g.index ? g.toNonIndexed() : g);
 
 /** The float-posts, [x, z]: from beside the Clock-House's door to the landing flat's west side. */
 export const FLOAT_POSTS = [[104, 94], [84, 104], [62, 108], [40, 113], [18, 122], [-2, 136], [-18, 156], [-26, 178], [-18, 200]];
+/**
+ * The west posts, [x, z] (issue #475): every one on open sand 3-5 m beside the walk (none under the prism crossings'
+ * bridge), in two runs: from the landing flat to the pearl city's south stair, and from its east stair to the north camp.
+ */
+export const WEST_POSTS = [
+  [[-22, 254], [-42, 274], [-60, 291], [-87, 295], [-115, 298], [-143, 302], [-174, 315], [-196, 325], [-224, 325], [-241, 306],
+    [-241, 278], [-240, 238], [-240, 214], [-265, 205], [-293, 205], [-321, 205], [-333, 180], [-333, 152], [-333, 124], [-333, 92],
+    [-333, 64], [-330, 35], [-333, 15], [-333, -13], [-333, -41], [-333, -111]],
+  [[-273, -226], [-248, -213], [-212, -200], [-185, -193], [-142, -187], [-114, -185], [-86, -184], [-60, -183], [-32, -183]],
+];
 /** The float-blowers' rack, by the sixth post. */
 export const FLOAT_RACK = { x: 6, z: 134, yaw: 0.6 };
 /** The breaker's cairn on the breaking wave's crest, at its highest (90 m), walked up to along its back from its east foot. */
@@ -32,10 +48,10 @@ export const BREAKER_CAIRN = { x: -80, z: -236 };
 /** The wave's cairn on the frozen wave's crest (src/levels/glass-dunes.js GLASS_RIDGES 'wave'; its top found by a ray). */
 export const WAVE_CAIRN = { x: 20, z: 31 };
 
-export function buildFloatPosts(scene, M, terrain) {
+export function buildFloatPosts(scene, M, terrain, { posts = FLOAT_POSTS, rack: withRack = true, name = 'The float-posts' } = {}) {
   const poles = [], floats = [];
   const points = [];
-  FLOAT_POSTS.forEach(([x, z], i) => {
+  posts.forEach(([x, z], i) => {
     const y = terrain.heightAt(x, z), h = 2.6 + (i % 3) * 0.3;
     poles.push(nonIdx(new THREE.CylinderGeometry(0.07, 0.1, h, 5).translate(x, y + h / 2 - 0.2, z)));
     poles.push(nonIdx(new THREE.TorusGeometry(0.2, 0.04, 4, 8).rotateX(Math.PI / 2).translate(x, y + h - 0.1, z)));
@@ -45,12 +61,21 @@ export function buildFloatPosts(scene, M, terrain) {
   // the rack: two trestles and three bars, a float hung under each bar (drawn: you walk round it)
   const { x, z, yaw } = FLOAT_RACK, y = terrain.heightAt(x, z);
   const rack = [], hung = [];
+  if (!withRack) {
+    const g = new THREE.Group();
+    g.name = name;
+    const poleMesh = new THREE.Mesh(mergeGeometries(poles), M.pole), floatMesh = new THREE.Mesh(mergeGeometries(floats), M.float);
+    floatMesh.userData.noCollide = true;
+    g.add(poleMesh, floatMesh);
+    scene.add(g);
+    return { points, rack: null };
+  }
   const frame = new THREE.Matrix4().compose(V(x, y, z), new THREE.Quaternion().setFromAxisAngle(V(0, 1, 0), yaw), V(1, 1, 1));
   for (const s of [-1.6, 1.6]) for (const k of [-1, 1]) rack.push(new THREE.CylinderGeometry(0.05, 0.06, 2.2, 4).rotateX(k * 0.3).translate(s, 1.05, k * 0.32));
   for (const [bh, bz] of [[2.05, 0], [1.4, 0.36], [1.4, -0.36]]) rack.push(new THREE.CylinderGeometry(0.04, 0.04, 3.4, 4).rotateZ(Math.PI / 2).translate(0, bh, bz));
   for (let i = 0; i < 7; i++) hung.push(new THREE.IcosahedronGeometry(0.2 + (i % 3) * 0.05, 1).translate(-1.3 + i * 0.43, 1.75 - (i % 2) * 0.62, (i % 2 ? 0.36 : 0) * (i % 4 < 2 ? 1 : -1)));
   const g = new THREE.Group();
-  g.name = 'The float-posts';
+  g.name = name;
   const poleMesh = new THREE.Mesh(mergeGeometries([...poles, ...rack.map((q) => nonIdx(q).applyMatrix4(frame))]), M.pole);
   const floatMesh = new THREE.Mesh(mergeGeometries([...floats, ...hung.map((q) => nonIdx(q).applyMatrix4(frame))]), M.float);
   // (the poles collide as drawn; the floats on them are drawn only, within a hand of the poles' tops)

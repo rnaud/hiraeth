@@ -123,6 +123,10 @@ export const CHANGELOG = [
     // (the bridges' decks), streets.js, quarter.js, ruins.js, shop-fronts.js (the kiosk's posts); scripts/zfight/lib.mjs
     // (two faces measured where they overlap); tests/zfight.test.js (the Glass Dunes held at none), glass-dunes-masses.test.js
     'The city under the Glass Dunes’ sand no longer shimmers as you walk its lanes: the rooms jutting from its houses, their ledges and windows no longer lie in one another’s faces, and the same goes for the stairs and bridges where they meet a terrace, the pale floors over the sand and the pearl city’s tower windows.',
+    // issue #475: src/glass-dunes-ways.js (WEST_POSTS, buildFloatPosts' posts), src/levels/glass-dunes.js (the west posts'
+    // line, westGoals, Fenna), src/glass-dunes-west.js (the bridge, the gallery), src/story/glassdunes-people.js (Fenna,
+    // glassdunes.oldclock), glassdunes.js; tests/glass-dunes-west.test.js
+    'In the Glass Dunes a row of float-posts now leads west from the landing, through the red cleft and down the folded ravine to the pearl city, and home by the gap. Fenna, by the cleft’s arch, asks you to read the old city’s clock from its high gallery.',
   ] },
   { v: '1.85', date: '2026-10-18', items: [
     // issue #474: src/music-moments.js (MUSIC_MODES, musicMode: Always the default), src/ui.js (musicMode, musicV: a saved

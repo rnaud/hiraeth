@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.86 — 2026-10-19
 
+- In the Glass Dunes a row of float-posts now leads west from the landing, through the red cleft and down the folded ravine to the pearl city, and home by the gap. Fenna, by the cleft’s arch, asks you to read the old city’s clock from its high gallery.
 - The city under the Glass Dunes’ sand no longer shimmers as you walk its lanes: the rooms jutting from its houses, their ledges and windows no longer lie in one another’s faces, and the same goes for the stairs and bridges where they meet a terrace, the pale floors over the sand and the pearl city’s tower windows.
 - Knocked off a high ledge, your limp body now falls the way it was going instead of drifting sideways as it tumbles, so it no longer swings back under the ledge it fell from and lands on the ground below as it should.
 - The films that end each makers’ house no longer look through the guardian. The shot of what it leaves you shows the chimes on the floor with the guardian beyond them, where it used to be filmed from inside its leaves, its moss or a wall; the chimes now land in the open in front of it rather than under it. The Lampless’s wings and the Listener’s shell no longer fill the first shot, the Gardener is no longer washed pale by its sunbeam in the wide over its hall, and after the Whale-House’s film the camera comes back beside you rather than under the Listener’s shell.

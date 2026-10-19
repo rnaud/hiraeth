@@ -13,7 +13,7 @@ import { attachTemple } from '../temples/index.js';
 import { placeShop } from '../shop-world.js';
 import { SHOPS } from '../shop.js';
 import { LOCALS } from '../story/glassdunes-people.js';
-import { buildFloatPosts, buildWaveCairn, buildCairnWay, WAVE_CAIRN, BREAKER_CAIRN } from '../glass-dunes-ways.js';
+import { buildFloatPosts, buildWaveCairn, buildCairnWay, WAVE_CAIRN, BREAKER_CAIRN, WEST_POSTS } from '../glass-dunes-ways.js';
 import { buildFrozenScenes, frozenTraces } from '../glass-dunes-frozen.js';
 import { buildSandCity, cutSand, windowGlass, inCity } from '../glass-dunes-city.js';
 import { buildGlassQuarter } from '../glass-dunes-quarter.js';
@@ -230,6 +230,11 @@ export function* buildGlassDunes(scene) {
   // the float-posts from the Clock-House home to the landing flat, and the cairn on the frozen wave's crest
   // (src/glass-dunes-ways.js, the merged worlds' follow-ups: the walk back was the way out, and the basin all one level)
   const floats = buildFloatPosts(scene, M, terrain), cairn = buildWaveCairn(scene, M, crest);
+  // the west posts (issue #475): the same floats from the landing flat round by the red cleft, down the ravine and through
+  // the prism crossings to the pearl city, and from its east stair back to the north camp; the line crosses its plaza
+  const westPosts = WEST_POSTS.map((run, i) => buildFloatPosts(scene, M, terrain, { posts: run, rack: false, name: i ? 'The west posts, home' : 'The west posts' }));
+  const pearlAt = (x, z) => [x, western.pearl.base + 0.5, z];
+  const westLine = [...westPosts[0].points, western.pearl.entry, pearlAt(-330, -168), pearlAt(-300, -206), western.pearl.exit, ...westPosts[1].points];
   const breaker = buildWaveCairn(scene, M, breakerCrest, { at: BREAKER_CAIRN, name: 'The breaker’s cairn', tall: true });
   // the way up to it (src/glass-dunes-ways.js; level design audit v1.49, issue #134): the kiln's smoke by the cairn, the
   // amber-floated posts from the Clock-House's door to the breaker's east foot and up its back, the carriers' things on the way
@@ -281,6 +286,8 @@ export function* buildGlassDunes(scene) {
     atmo: () => ({ tint: [1, 1, 1], fog: 0.3, name: 'The Glass Dunes' }),
     // (the glass mound by the warm flow, GLASS_RIDGES 'mound 1': the dunes' main quest reads the Clock-House's face from its top)
     flowMound: [70, 140],
+    // (Fenna's errand, src/story/glassdunes-people.js: the prism crossings' high bridge, the pearl city's upper gallery)
+    westGoals: { bridge: western.prism.bridge, gallery: western.pearl.gallery, clock: western.pearl.clock },
     // the Clock-House's brass finial over the sand, seen from the ship's flat (scripts/level-design/audit.mjs aims at a
     // level's beacons as landmarks: the height grid's peak of the drum lies inside it, behind its own wall)
     beacons: [{ name: 'the Clock-House', top: [CLOCK_HOUSE.x, CLOCK_HOUSE.y + 30.5, CLOCK_HOUSE.z], height: 5 }, { name: 'the wave’s cairn', top: cairn.top.toArray(), height: 5 },
@@ -290,7 +297,7 @@ export function* buildGlassDunes(scene) {
     // what the level design audit reads (scripts/level-design/audit.mjs): the float-posts, the way home Wim sends you by
     // (only where it is named: the route's temple step, tests/playthrough-worlds.js); the places to stop at that are
     // neither people nor quests: the camps, the passage through the wave, the rack, the cairn
-    lines: [{ name: 'the float-posts', points: floats.points, auto: false }, { name: 'the cairn’s posts', points: up.points }],
+    lines: [{ name: 'the float-posts', points: floats.points, auto: false }, { name: 'the cairn’s posts', points: up.points }, { name: 'the west posts', points: westLine }],
     sights: [
       ...quarter.sights.map(s=>({...s,at:new THREE.Vector3(...s.at)})),
       { name: 'the west camp', at: new THREE.Vector3(GLASS_CAMPS.west.x, terrain.heightAt(GLASS_CAMPS.west.x, GLASS_CAMPS.west.z) + 0.5, GLASS_CAMPS.west.z) },
@@ -358,6 +365,8 @@ export const GLASS_CONTENT = {
     // (Aster and Corin: an errand comes to Aster from the City-Shaft, one goes from Corin to the Buried Machine: src/levels/content.js)
     { ...LOCALS.aster, at: [-118, 26], radius: 2, palette: pal('#d9b48a', { cloth: '#5a4a3a' }) },
     { ...LOCALS.corin, at: [-112, 38], radius: 2, palette: pal('#4f8a7f') },
+    // (Fenna, by the red cleft's arch where her west posts go on: the old city's clock, issue #475)
+    { ...LOCALS.fenna, at: [-234, 238], radius: 2, palette: pal('#b5523e', { cloth: '#ead6b4' }) },
     { at: [16, -186], radius: 3, palette: pal('#c98a4a', { cloth: '#3f4b44' }), lines: ['~solemn~ That glass wave over the camp broke and froze before anyone here was born. It never came down.', '~happy~ It might fall one day. We have camped under it for years, and we are in no hurry.'] },
     { at: [-66, -214], radius: 2, palette: pal('#e6d3b8'), lines: ['~curious~ The glass archways light up when the sun is low. Stand here at dusk and look through them.', '~neutral~ Beyond? More glass. It is always more glass.'], shy: true },
     // (Halden, resting by the makers' discs east of the ship: src/trials/kit-data.js kit-glassdunes speaks in his voice)

@@ -21,6 +21,17 @@ export const QUESTS = [
       { id: 'house', text: 'Go in at the Clock-House’s door', label: 'The Clock-House’s door', flag: 'temple.garage.entered', at: 'temple.garage.door' },
     ],
   },
+  // Fenna's errand (issue #475: the west lay off every path): her posts lead to the old city in the west, its clock
+  // stopped too. Its last step is a flag set on the upper gallery (src/story/glassdunes.js), so going straight there
+  // ends it; the bridge on the way is passed over then.
+  {
+    id: 'glassdunes.oldclock', title: 'The Old City’s Clock', world: 'glassdunes',
+    outro: 'Seven minutes to the hour on the old city’s clock: the Clock-House’s minute. The old city kept its time too.',
+    stages: [
+      { id: 'bridge', text: 'Cross the prism crossings’ high bridge', label: 'The prism crossings’ high bridge', goto: 'prismBridge', radius: 8, vertical: 4, at: 'prismBridge' },
+      { id: 'clock', text: 'Read the old city’s clock from its upper gallery', label: 'The pearl city’s upper gallery', flag: 'glassdunes.oldclock.read', at: 'pearlGallery' },
+    ],
+  },
 ];
 
 export const LOCALS = {
@@ -30,6 +41,31 @@ export const LOCALS = {
   // (and one goes from Corin to the Buried Machine: 'grease')
   corin: { id: 'corin', name: 'Corin', title: 'who keeps the west camp’s kiln', kind: 'm',
     lines: ['~whisper~ See the shapes in the cliffs? My grandmother said they were asleep in the glass. My mother said they were only shapes.', '~playful~ I say they are good company. They never want the last float.'] },
+  // (by the red cleft's arch, where her posts go on west: she gives the old city's clock, QUESTS above; issue #475)
+  fenna: { id: 'fenna', name: 'Fenna', title: 'who set the west posts', kind: 'f',
+    lines: ['~neutral~ The posts go on through the arch, down the ravine, as far as the old city.', '~curious~ The old city’s clock stopped too. Nobody has told me its minute.'],
+    talk: {
+      entry: [
+        { if: { flag: 'glassdunes.oldclock.read' }, node: 'after' },
+        { node: 'hello' },
+      ],
+      nodes: {
+        hello: {
+          say: ['~neutral~ I set floats on poles from the landing to the old city in the west. Walk by them, day or night.',
+            '~curious~ Its clock stopped the night the light passed, like ours. *Read it from the upper gallery*, past the prism crossings.'],
+          choices: [
+            { text: '~neutral~ I’ll read it.', end: true },
+            { text: '~curious~ Why not read it yourself?', goto: 'why' },
+          ],
+        },
+        why: { say: ['~sad~ The galleries are a long climb for these knees. I got as far as the high bridge.'], choices: [{ text: '~playful~ Then I’ll climb it.', end: true }] },
+        after: {
+          say: ['~curious~ Seven to the hour? The Clock-House’s minute. The old city kept its time by the house too.'],
+          choices: [{ text: '~neutral~ Every clock, one minute.', end: true }],
+        },
+      },
+    },
+  },
   // (resting by the makers' discs east of the ship: src/trials/kit-data.js kit-glassdunes speaks in his voice)
   // (he opens the dunes' main quest: QUESTS above; his cape the carriers' long road between the camps, issue #347)
   oren: { id: 'oren', name: 'Halden', title: 'who carries the floats', color: '#5fb7ad', voice: 0.95, kind: 'm', cape: 1.25,

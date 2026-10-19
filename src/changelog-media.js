@@ -1292,6 +1292,7 @@ const WEB264M = 'Issue #264: the web game in muted headless Chrome on this branc
 /** (v1.86, issues #528, #529: the temple endings filmed through their keepers) */
 const FIN528 = 'Issues #528, #529: the cinematics QC (scripts/cinematics-qc.mjs --group "Temple endings") in muted headless Chrome (High, 1280 × 720, the frames kept at 960 × 540) on this branch’s own Vite (port 5428), each ending staged by the review page (in the arena between the keeper and the way out, the keeper woken and calmed); before: the branch’s base with #490 and #491, after: the fix, the same panel of the film; 19 October';
 const DUNES498 = 'Issue #498: muted headless Chrome (High, 1280 × 720) against this branch’s own Vite (port 5498), the Glass Dunes at 10:00, standing on the stair in the city under the sand, looking up its lane; each picture taken twice, the camera moved 2 mm to the side between them, and the pixels that changed by more than 24 levels painted red (the rest dimmed); before: the tree at e3df11da4, the same views (0.52 % of the picture changed; after, 0.25 %, the lamps’ glow and the drifting motes); 19 October; cwebp -q 60';
+const DUNES475 = 'Issue #475: muted headless Chrome (High, 1280 × 720) against this branch’s own Vite (port 5498), the Glass Dunes at 17:00, standing in the red cleft looking out by its arch, and at the folded ravine’s north end looking down the prism crossings; before: the tree at 36551ddf5, the same views; the maps from scripts/level-design/audit.mjs --worlds glassdunes before and after (the critical path dark, the leading lines orange); 19 October; cwebp -q 72 (the maps -q 80)';
 export const CHANGELOG_MEDIA = {
   '1.86': [
     { match: 'In the Unity version, the Controls page shows your keys and buttons on caps', tags: ['devices'], shots: [
@@ -1391,6 +1392,11 @@ export const CHANGELOG_MEDIA = {
     { match: 'The city under the Glass Dunes’ sand no longer shimmers', shots: [
       { name: 'dunes-city-flicker-498', title: 'Up the lane', caption: 'Looking up the lane from the stair, the camera moved 2 mm between two pictures, what changed in red: before, a wall of jutting rooms high up striped (two rooms in one plane); after, only the lamps’ glow and a few motes', from: DUNES498 },
     ], see: 'Go down through the sinkhole by the Clock-House into the city, climb the stair up the lane and look up at the rooms jutting over it while you walk: their faces and undersides hold still.' },
+    { match: 'In the Glass Dunes a row of float-posts now leads west', shots: [
+      { name: 'dunes-west-arch-475', title: 'The cleft’s arch', caption: 'Looking out of the red cleft by its arch: before, open sand; after, the west posts going on through it and Fenna by them', from: DUNES475 },
+      { name: 'dunes-west-ravine-475', title: 'To the prism crossings', caption: 'From the folded ravine’s north end toward the prism crossings and the pearl city’s clock tower: after, the posts lead in under the bridge', from: DUNES475 },
+      { name: 'dunes-west-map-475', title: 'The map', caption: 'The level design audit’s map: before, nothing led into the west (left); after, the west posts (orange) from the landing round by the cleft, down the ravine and the crossings to the pearl city, and home by the gap. Its score 4.22 → 4.67: no loners in the west, one remote dead end left (the half-buried court)', from: DUNES475 },
+    ], see: 'From the landing walk west along the new posts: they take you into the red cleft, where Fenna stands by its arch, and on down the ravine. Climb to the pearl city’s upper gallery under its clock.' },
   ],
   '1.85': [
     { match: 'In the Unity version, flowers far across Viridel’s meadow', tags: ['devices'], shots: [

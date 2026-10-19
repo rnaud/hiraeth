@@ -533,6 +533,10 @@ export const BOOK = {
       'Marit sells what the glassworkers’ kiln can spare from a stall on the valley floor, and prices it by how long it took to cool.',
       [f('glassdunes.marit.cooling'), 'Since the clocks went wrong nobody knows how long anything took, so she guesses. Generously.'],
     ], [[f('temple.garage.done'), 'At her stall; the clocks agree now, and her kiln cools on time.'], 'At her kiln-stall on the valley floor, up from the ship.']),
+    P('fenna', 'Fenna', 'Set the west posts', [
+      'Fenna set floats on poles from the landing to the old city in the west, so there is a light to walk by, and stands by the red cleft’s arch where they go on.',
+      [f('glassdunes.oldclock.read'), 'The old city’s clock stopped at seven to the hour, the Clock-House’s minute: it kept its time by the house too.'],
+    ], ['By the red cleft’s arch, west of the landing.']),
   ],
   buried: [
     P('wen', 'Wen', 'Counts the teeth', [

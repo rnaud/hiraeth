@@ -2832,6 +2832,25 @@ grid: it reads the ground from above, and the cave's roof is in the way; the wal
 Cost, from the ship looking west (the village and the cleft now in view) and on the square: High 445 → 468, 359 → 387,
 280 → 277 draw calls; Handheld 349 → 370, 303 → 329, 226 → 228; frame times within the noise of a loaded Mac.
 
+**The west on a path (v1.86, issue #475).** The level design audit at v1.85 found the folded ravine, the prism crossings
+and the pearl city three loners 157 m apart, 280-435 m off the critical path, and nothing sending you there (4.78 →
+4.22). Now:
+- **The west posts** (`WEST_POSTS`, src/glass-dunes-ways.js; `buildFloatPosts` with its own posts and no rack: the same
+  poles and floats, two meshes): 26 from the landing flat round the giants' south end, up the red cleft and out by its
+  arch, down the ravine and through the prism crossings to the pearl city's south stair, and 9 from its east stair through
+  the gap to the north camp, each on open sand 3-5 m beside the walk. The level's `lines` carries them as **the west
+  posts**, over the pearl city's plaza between its stairs (the audit draws and follows it).
+- **Fenna** (src/story/glassdunes-people.js), who set them, stands by the cleft's arch and gives **The Old City's
+  Clock** (`glassdunes.oldclock`): cross the prism crossings' high bridge (`level.westGoals.bridge`), then read the old
+  city's clock from the upper gallery under it (`westGoals.gallery`, 24 m up; standing there sets
+  `glassdunes.oldclock.read`, so going straight there ends it). Seven minutes to the hour: the Clock-House's minute.
+- Measured (`node scripts/level-design/audit.mjs --worlds glassdunes`): 4.22 → **4.67** (spacing 3 → 5: no loners in
+  the west, the 90th percentile of nearest neighbours 127 → 95 m; loops 4 → 5: one remote dead end left, the half-buried
+  court, 279 m off the path; verticality 3 → 4: 17 % of places raised). The critical path itself is the same 437 m: the
+  west's places are 345 (the crossings) and 435 m (the city) from it as before, but within 0-30 m of the west posts and
+  within 150 m of a goal. Optional pull stays 3 (15 of 36 optional places 150 m or more from the main quest).
+  `tests/glass-dunes-west.test.js`.
+
 ## Space ports (v1.84, issue #441, `src/levels/ports.js`, `src/levels/port-pad.js`, `src/levels/port-craft.js`)
 
 Cities should have space ports (the author, 2026-10-16). The plan for every city is `docs/design/space-ports.md`; the

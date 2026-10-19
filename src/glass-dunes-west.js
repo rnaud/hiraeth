@@ -116,7 +116,8 @@ function prism(kit,M,ground,routes,walks){
   const c=[p(12,22,-12),p(12,22,-7.5),p(17,14,11),p(12,7,30),p(13,0,51)];c.at(-1)[1]=ground.heightAt(c.at(-1)[0],c.at(-1)[2])+.05;
   windingStair(kit,S,routes,c,{w:4.4,thin:true,thickness:3,inner:true,outer:false,rail:.9,railGaps:[{at:p(12,22,-12),r:7}]});
   terrace(kit,stone,{x:q.x+12,z:q.z-12,y:base+21.2,h:.8,rx:3.3,rz:3.3});
-  return{base,entry:p(0,0,63),exit:p(0,0,-94),view:{eye:p(-1,5,56),target:p(0,24,-17),fov:64}};
+  // (bridge: the high bridge's middle, Fenna's errand's first step, src/story/glassdunes-people.js)
+  return{base,entry:p(0,0,63),exit:p(0,0,-94),bridge:p(0,28,-28),view:{eye:p(-1,5,56),target:p(0,24,-17),fov:64}};
 }
 
 /**
@@ -177,7 +178,8 @@ function pearl(kit,M,ground,glassMat,routes,walks){
   const cliffs=[[[-47,52],[-47,0],[-45,-62]],[[40,-6],[44,42]],[[-46,-63],[0,-66],[40,-63]]];
   for(const [i,path] of cliffs.entries())batch.add(mat,glassRidge({H:(x,z)=>ground.heightAt(x,z),path:path.map(([x,z])=>[q.x+x,q.z+z]),height:i===2?125:98,depth:24,profile:'cliff',ends:20,seed:760+i,rows:56,step:2,folds:{width:15,amp:2.4,lean:.05,crest:.06},colours:{foot:'#3f7a70',mid:'#245a55',top:'#1b4a48',crest:'#6f9f94'}}).geo);
   batch.finish();
-  return{base,entry,exit:east,view:{eye:p(-1,5,49),target:p(0,24,-15),fov:62}};
+  // (gallery: the upper gallery's top under the stopped clock, where Fenna's errand reads it; clock: its face)
+  return{base,entry,exit:east,gallery:p(C.x,C.y,C.z),clock:[towerX,base+80.6,towerZ+1.4],view:{eye:p(-1,5,49),target:p(0,24,-15),fov:62}};
 }
 
 export function buildWesternDunes(scene,ground,glassMat){

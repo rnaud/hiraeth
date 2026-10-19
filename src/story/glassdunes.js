@@ -21,7 +21,15 @@ export function setupGlassDunes(ctx) {
   // the dunes' own main quest (v1.48, issue #101): it starts when you talk to Halden by the discs (src/story/quests.js opensWith)
   for (const q of QUESTS) quests?.define?.(q);
   if (quests?.opensWith && !quests.isStarted?.('glassdunes.minute')) quests.opensWith('glassdunes.minute', 'oren');
-  for (const n of npcs) if (['oren', 'aster', 'corin'].includes(n.def?.id)) quests?.locate?.(n.def.id, () => n.pos);
+  for (const n of npcs) if (['oren', 'aster', 'corin', 'fenna'].includes(n.def?.id)) quests?.locate?.(n.def.id, () => n.pos);
+  // Fenna's errand (issue #475): given by her at the red cleft's arch; its goals the prism crossings' high bridge and the
+  // pearl city's upper gallery under its stopped clock (src/glass-dunes-west.js)
+  const G = level?.westGoals;
+  if (G && quests?.locate) {
+    quests.locate('prismBridge', () => new THREE.Vector3(...G.bridge));
+    quests.locate('pearlGallery', () => new THREE.Vector3(...G.gallery));
+  }
+  quests?.givenBy?.('glassdunes.oldclock', 'fenna');
   // the glass mound by the warm flow (src/levels/glass-dunes.js GLASS_RIDGES 'mound 1'), its top: from it the Clock-House's face
   const M = level?.flowMound;
   if (M && quests?.locate) {
@@ -53,6 +61,11 @@ export function setupGlassDunes(ctx) {
       // (issue #166) the city under the sand, the first time you come down into it; the chamber inside the breaking
       // wave, the first time you stand in it: reaching it is reading it (src/glass-dunes-city.js, src/glass-dunes-frozen.js)
       if (player?.pos) {
+        // the old city's clock, read from its upper gallery (Fenna's errand's goal, whether she asked or not)
+        if (G && !game.flag('glassdunes.oldclock.read') && Math.hypot(player.pos.x - G.gallery[0], player.pos.z - G.gallery[2]) < 10 && Math.abs(player.pos.y - G.gallery[1]) < 3) {
+          game.set('glassdunes.oldclock.read', true);
+          toast('Over the gallery the old city’s clock reads seven minutes to the hour: the Clock-House’s minute.');
+        }
         if (!game.flag('glassdunes.city.seen') && level?.inCity?.(player.pos)) {
           game.set('glassdunes.city.seen', true);
           toast('Under the sand, a city. Its tallest tower holds up the Clock-House.');
