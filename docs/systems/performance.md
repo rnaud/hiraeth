@@ -5853,3 +5853,51 @@ To repeat: `node scripts/bench/android-pso-trace.mjs --out <dir> --fresh 1 --no-
 <the list on the device> -pso-progressive 7"]`. Run the sets back to back: the handheld sleeps after 30 minutes without
 input. Raw: `retroid-525/` (`trace/`, `cold-nolist/`, `cold-oldlist/`, `cold-newlist/`, `cold-newprog/`,
 `cold-nolist-after/`, `bin/firstuse.mjs`).
+
+### Shadows every frame on the Retroid, Unity (issues #525, #492, 2026-10-19)
+
+The near map at its new default (every frame) against `-shadow-near-every 2`, on a development APK of main at 61212e6be
+(build 2677: #492's shadows every frame and #502's LightAdd states in it). The Retroid, Unity, Handheld (FSR 1 at 857 × 643
+of 1280 × 960, the near map 2048² over 160 m), muted, the frame readout on, warm launches, `-bench 6 -bundle none`, the two
+conditions interleaved world by world (round 13's `ab.mjs`). fps (1 % low, GPU ms) per view:
+
+| view | every frame (now) | every 2nd (before) |
+|---|---|---|
+| Desert spawn | 53.7 (37.0, 18.2) | 54.7 (32.3, 18.1) |
+| Desert qanat-tree / camps / dunes / cave | 60.1 / 56.0 / 60.1 / 60.1 | 60.1 / 57.1 / 59.9 / 60.1 |
+| City-Shaft start | 50.4 (24.7, 18.3) | 52.7 (29.4, 17.6) |
+| City-Shaft crowd | 60.1 (44.1, 12.8) | 60.1 (42.7, 12.6) |
+| City-Shaft crowd2 | 56.8 (36.8, 16.0) | 59.2 (33.4, 15.8) |
+| City-Shaft wide | 38.9 (25.8, 23.6) | 41.0 (27.6, 23.3) |
+| Signal Market start / crowd / crowd2 / wide | 54.5 / 60.1 / 59.9 / 59.5 | 55.2 / 60.1 / 60.1 / 59.8 |
+| Lorn start / crowd / crowd2 / wide | 48.5 / 52.0 / 60.1 / 60.1 | 48.7 / 52.8 / 60.1 / 60.1 |
+| Underwater start / crowd / crowd2 / wide | 55.9 / 56.9 / 60.1 / 51.3 | 55.9 / 56.7 / 60.1 / 51.4 |
+| Floating city start / crowd / crowd2 / wide | 50.0 / 60.1 / 59.5 / 54.4 | 50.3 / 60.1 / 60.0 / 54.2 |
+
+- **The cost is the City-Shaft's**: 2.1-2.4 fps in three of its four views (the GPU 0.2-0.7 ms; the rest the render
+  thread's, its casters the crowds and the towers). Everywhere else it is within a view's noise (±1 fps, the GPU the same
+  to 0.1-0.3 ms).
+- **No view at its refresh fell under it** beyond the noise: the views at 60 stay at 60 (the Signal Market's crowd2 60.1 →
+  59.9, the Floating city's 60.0 → 59.5, a single long frame's worth in 6 s). The views under 60 were under it at every
+  2nd frame too (the GPU's frame, rounds 9-13).
+- **Pictures** (`diff.mjs`, every frame against every 2nd): 0.03-3.7 % of the pixels differ per view, all of it smoke,
+  people and the crowd moving between the two launches; the shadows themselves the same.
+- **So nothing set**: the Retroid keeps the near map at 2048² every frame. The smaller map (`-shadow-near-size 1536` and
+  `1024`) in the City-Shaft, the Signal Market and the Floating city was queued next and not run: the Retroid dropped off
+  USB (below). It is the lever to try if the City-Shaft's 2 fps are wanted back.
+
+**Android's pipeline list with #502's states: not finished.** `android-pso-trace.mjs --fresh 1` traced the desert (its
+views, temple, fight, moves, decals, splat, talk and menus), the City-Shaft, the Signal Market, Arzach, Arzach II and the
+Garage (196 states of 74 variants so far, against the shipped list's 224 of 81 over every world), then the handheld
+vanished from the Mac's USB during the Buried Machine's views (~08:57: no adb, no USB device on the Mac; the last line it
+logged, PowerUI's, had it plugged in). The shipped list (5791a036b) is unchanged; the default stays without a list.
+
+**A cold start's first uses, no list (as shipped), build 2677** (`run-android.mjs route-border route-city route-menus talk
+--cold 1`, right after the install): first frame 13.7-16.0 s, the load frozen 10.0-10.9 s over three frames of 4.1-4.9 s
+(round 7's and this morning's the same), no frame over 50 ms with a first use in it, and one first-use spike once playing:
+the Items page's first opening, 34 ms (`Shader.CreateGPUProgram` 12 ms). Last round's no-list runs had none there.
+
+**Seen in every launch** (all worlds, both conditions, the stutter routes): `THREE.GLTFLoader: Couldn't load texture
+[object Promise]`, two or three times, 2.4-2.9 s into the world's build, after its ship and before its gestures (issue
+#537). Raw: the session's scratchpad, `retroid-525b/` (`ab/shadow/`, `sheets/e1-e2/`, `cold-nolist/`, `trace/`,
+`texture-537/`).
