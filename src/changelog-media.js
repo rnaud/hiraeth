@@ -1320,6 +1320,11 @@ export const CHANGELOG_MEDIA = {
       { name: 'greenhouse-cold-frame', title: 'The Cold Frame', caption: 'Before, an eye on each post; after, a seed in each tray, waiting for the ball to bring the sun.', from: SHAPES477 },
       { name: 'greenhouse-seed-chamber', title: 'The Seed Chamber', caption: 'Before, the chest on its mound and a seed to try; after, one seed in the middle in its trough, which opens the north door.', from: SHAPES477 },
     ] },
+    { match: 'In the Mooring-House you now see the Anchor-Warden from the first hall', tags: ['temples'], shots: [
+      { name: 'mooring-hub-gate', title: 'The Capstan Hall, east', caption: 'Before, the hall’s east wall and the caged coffer; after, the passage to the Warden’s gate, and the Anchor-Warden behind its bars.', from: SHAPES477 },
+      { name: 'mooring-loft-door', title: 'The Cord Loft', caption: 'Before, the loft’s wall; after, a passage east to the Capstan Floor’s great door.', from: SHAPES477 },
+      { name: 'mooring-anchor-hold', title: 'Past the west door', caption: 'Before, the Capstan Floor and its Warden; after, the Anchor Hold: a well in its floor, the spare anchor-ball out over it on its cable-rail, its footstone at the rail’s home end.', from: SHAPES477 },
+    ] },
   ],
   '1.85': [
     { match: 'In the Unity version, flowers far across Viridel’s meadow', tags: ['devices'], shots: [

@@ -13,7 +13,7 @@ import assert from 'node:assert/strict';
 import './register-gadgets.js';
 import * as THREE from 'three';
 import { TEMPLE_HOME, templeOf } from '../src/temples/index.js';
-import { MH, GALLERY, EAST, WEST, ROOM, LOCKER, LOFT, FLOOR, MOOR, MOOR_A, PERCH, STORE, SHAFT_PIER, WING, LEVERS, DRIFT, STATE_LOOK, MooringGauge, ShaftWeight } from '../src/temples/spacecity.js';
+import { MH, GALLERY, EAST, WEST, ROOM, LOCKER, LOFT, FLOOR, MOOR, MOOR_A, PERCH, STORE, SHAFT_PIER, WING, LEVERS, DRIFT, STATE_LOOK, HOLD, WARDEN_GATE, BarGate, MooringGauge, ShaftWeight } from '../src/temples/spacecity.js';
 import { buildableById } from '../src/levels/buildable.js';
 import { Physics } from '../src/physics.js';
 import { Player } from '../src/player.js';
@@ -93,7 +93,7 @@ function openChest(rt, id, P) {
   assert.equal(rt.logic.isFound(id), true, `${id} taken`);
 }
 
-test('the Mooring-House on foot (issue #417): the capstan’s lever for the Lamp Shaft’s breath and the loft’s ring, the moored room called home and ridden, the gallery’s halves bridged, the Rope Store with the room sent down, the drop, the lens’s ring and the great key, the Chain Locker, the gangway, the Cable Walk, the west door and the Anchor-Warden', () => {
+test('the Mooring-House on foot (issues #417, #477): the Anchor-Warden seen through its gate’s bars from the start; the capstan’s lever for the Lamp Shaft’s breath and the loft’s ring, the moored room called home and ridden, the gallery’s halves bridged, the Rope Store with the room sent down, the drop, the lens’s ring and the great key, the Chain Locker, the gangway, the Cable Walk, the west door and the Anchor Hold’s anchor-ball, the moorers’ gate, the great key, the great door off the loft, the Anchor-Warden and its gate opened from inside', () => {
   const H = house(), { rt, P, L, walk, wait, where, local, via, stand, use, R, docked, roll, tether, pull, said, frame } = H;
   const G = GALLERY, BS = G.y, hall = (a, d, y = 0) => L(Math.sin(a) * d, y, 30 + Math.cos(a) * d);
   wait(0.5);
@@ -109,6 +109,17 @@ test('the Mooring-House on foot (issue #417): the capstan’s lever for the Lamp
 
   // ---- the Capstan Hall and the Winch Room: the counterweight rolled into its socket, the shaft's gate rises
   assert.equal(walk(L(0, 0, 18)), true, `into the hall (${where()})`);
+  // (issue #477, the guardian met early) from the hall's first visit the Anchor-Warden stands in sight beyond the bars of its
+  // gate: nothing solid from the hall's middle to the gate, nor from the gate on to the Warden; the gate is bars, shut
+  {
+    const gate = rt.piece('d7'), Wd = rt.guardian.model.pos.clone().add(V(0, 2.5, 0)), eye = L(-4, 1.7, 22), at = gate.group.position.clone().add(V(0, 1.7, 0));
+    const clear = (a, b, pad) => { const d = b.clone().sub(a), n = d.length(); return H.physics.rayDistance(a, d.normalize(), n) >= n - pad; };
+    assert.ok(gate instanceof BarGate && !rt.logic.isOpen('d7'), 'the Warden’s gate, shut: bars');
+    const past = at.clone().addScaledVector(Wd.clone().sub(at).normalize(), 1.2);
+    assert.ok(clear(eye, at, 1.0) && clear(past, Wd, 2.5), 'the Anchor-Warden in sight through its bars from the hall');
+    const toGate = Math.atan2(at.x - eye.x, at.z - eye.z), toWarden = Math.atan2(Wd.x - eye.x, Wd.z - eye.z);
+    assert.ok(Math.abs(Math.atan2(Math.sin(toGate - toWarden), Math.cos(toGate - toWarden))) < 0.12, 'and it stands behind the gate, as seen from the hall');
+  }
   assert.equal(walk(hall(-Math.PI * 3 / 4, 10)) && walk(hall(-Math.PI * 3 / 4, WING.d - 10)), true, `into the winch room (${where()})`);
   assert.equal(roll('ballW', 'pG'), true, `the counterweight in its socket (${where()})`);
   assert.equal(rt.logic.isOpen('g1'), true, 'the shaft’s gate rises');
@@ -231,17 +242,63 @@ test('the Mooring-House on foot (issue #417): the capstan’s lever for the Lamp
   wait(0.2);
   assert.ok(P.hearts === hearts && !P.down, 'unhurt');
   assert.ok(said(/billows up under the gallery/), `the breath took the fall (${where()}, ${P.lastLanding})`);
-  // and back up the cheap way: the room called home and ridden
+  // and the room called down with the low dock's ring (the Chain Locker's shutter wants it low)
   assert.equal(walk(L(G.e + 3.2, 0, ROOM.z + 5.4), { tol: 0.5 }), true, `to the low dock’s ring again (${where()})`);
   assert.ok(tether(ringL) && docked(0), 'the room comes down');
+  // ---- the Chain Locker: its shutter wants the room low
+  assert.ok(rt.logic.isOpen('dL'), 'the room low: the locker’s shutter is up');
+  assert.equal(walk(L(LOCKER.door, 0, MH.z1 - 3)) && walk(L(LOCKER.door, 0, MH.z1 + 4)), true, `into the Chain Locker (${where()})`);
+  // push the ball OUT along its rail over the well into the far cup: its weight brings the west door's ring down
+  const rK = rt.piece('rK');
+  assert.ok(rt.kit.local(rK.center).y > LOCKER.up - 0.5, 'the ring hangs high over the well');
+  assert.equal(roll('ballK', 'pK2'), true, `the ball out in the far cup (${where()})`);
+  wait(2.6);
+  assert.ok(Math.abs(rt.kit.local(rK.center).y - LOCKER.down) < 0.3, 'the ring has come down');
+  assert.equal(walk(L(LOCKER.well[2] + 1.2, 0, LOCKER.ring[1]), { tol: 0.5 }), true, `to the well's lip under the ring (${where()})`);
+  assert.ok(tether(rK), 'pulled');
+  wait(0.3);
+  assert.equal(rt.logic.isOpen('gN'), true, 'the west door’s chain lets go');
+  // ---- the gangway (taut since the ball came home with the room high: it holds) to the west landing
+  assert.equal(walk(L(LOCKER.door, 0, MH.z1 - 3)) && walk(L(EAST.lip + 2, 0, WEST.gang)), true, `to the gangway (${where()})`);
+  assert.equal(walk(L(EAST.lip - 2, 0, WEST.gang), { tol: 0.6 }) && walk(L(WEST.lip - 3, 0, WEST.gang), { tol: 0.8, max: 16 }), true, `across it to the west landing (${where()})`);
+  // ---- the Cable Walk: its catch pulled, and the room low: it hangs level up to the upper landing
+  const [kx, , kz] = WEST.catch;
+  assert.equal(walk(L(kx, 0, WEST.zN[0] + 1.2), { tol: 0.5 }), true, `to the walk's foot (${where()})`);
+  assert.ok(tether(rt.piece('rW')), 'its catch pulled');
+  wait(0.3);
+  assert.equal(rt.logic.isOpen('cw'), true, 'the room low: the walk hangs level');
+  // the west landing's lever: up, and the walk swings away; down again, and it is back
+  const [wx, , wz] = LEVERS[1].at;
+  assert.equal(walk(L(wx - 1.4, 0, wz), { tol: 0.5 }), true, `to the west landing's lever (${where()})`);
+  assert.equal(use('lvW'), 'sent');
+  assert.ok(docked(1) && !rt.logic.isOpen('cw'), 'the room high: the walk hangs slack');
+  assert.equal(use('lvW'), 'sent');
+  assert.ok(docked(0) && rt.logic.isOpen('cw'), 'low again: level');
+  wait(2.5);
+  assert.equal(walk(L(WEST.walk, 0, WEST.zN[0] + 1.5)) && walk(L(WEST.walk, WEST.yS, WEST.zS[1] - 2), { max: 12 }), true, `up the Cable Walk (${where()})`);
+  // ---- (issue #477) the west door and the Anchor Hold: the spare anchor-ball out over the well, pulled home with the tether
+  const HX = HOLD.x, HZ = HOLD.z, HY = HOLD.y;
+  assert.equal(walk(L(MH.x0 + 1.6, WEST.yS, HZ)) && walk(L(MH.x0 - 5, HY, HZ)) && walk(L(HX + HOLD.r - 3, HY, HZ)), true, `into the Anchor Hold (${where()})`);
+  assert.equal(rt.logic.drumOn('bA', 'pA'), false, 'the anchor-ball out over the well');
+  assert.equal(walk(L(HX + HOLD.rail.a + 2.4, HY, HZ + 0.8), { tol: 0.5 }), true, `behind the cable-rail's home end (${where()})`);
+  assert.equal(walk(L(HX + HOLD.well + 1.4, HY, HZ + 1.6), { tol: 0.5 }), true, `to the well's lip by the rail (${where()})`);
+  assert.equal(pull('bA', 'pA'), true, `the anchor-ball pulled home onto its footstone (${where()})`);
+  wait(1.5);
+  assert.ok(rt.logic.check(rt.logic.el('sc').opens), 'its cable draws back the moorers’ gate’s bar, across the hall');
+  // ---- back east: down the Cable Walk, over the gangway, the room called home and ridden up
+  assert.equal(walk(L(MH.x0 - 5, HY, HZ)) && walk(L(MH.x0 + 1.6, WEST.yS, HZ)) && walk(L(WEST.walk, WEST.yS, WEST.zS[1] - 2)) && walk(L(WEST.walk, 0, WEST.zN[0] + 1.5), { max: 12 }), true, `back down the Cable Walk (${where()})`);
+  assert.equal(walk(L(WEST.lip - 3, 0, WEST.gang)) && walk(L(EAST.lip - 2, 0, WEST.gang), { tol: 0.6, max: 16 }) && walk(L(EAST.lip + 2, 0, WEST.gang)), true, `back over the gangway (${where()})`);
+  assert.equal(walk(L(EAST.lip + 2, 0, ROOM.z + 9)) && walk(L(G.e + 3.2, 0, ROOM.z + 5.4), { tol: 0.5 }), true, `to the low dock’s ring (${where()})`);
+  assert.ok(tether(ringL) && docked(0), 'the room at the low dock');
   assert.equal(walk(L(G.e + 2, 0, ROOM.z), { tol: 0.5 }) && walk(L(ROOM.x + 1.3, 0, ROOM.z), { tol: 0.4 }), true);
   assert.equal(use('mooring'), 'up');
   assert.ok(docked(1));
-  // ---- the moorers' gate (its small key), the Capstan Hall's balcony: the great key's cage
+  // ---- the moorers' gate (its small key, its bar drawn), the Capstan Hall's balcony: the great key's cage
   const moor = (x) => L(x, BS, MOOR.z);
   assert.equal(walk(L(G.e + 3, BS, ROOM.z), { tol: 0.5 }) && walk(L(MH.x1 - 3, BS, MOOR.z)) && walk(moor(MOOR.gate - 1.6)), true, `to the moorers' gate (${where()})`);
   wait(2.4);
   assert.equal(rt.logic.keysIn('sc'), 1, 'the small key in it');
+  assert.ok(rt.logic.isOpen('sc'), 'and its bar drawn: it opens');
   const perch = (d, s = 0) => L(Math.sin(MOOR_A) * d + Math.cos(MOOR_A) * s, BS, 30 + Math.cos(MOOR_A) * d - Math.sin(MOOR_A) * s);
   assert.equal(walk(moor(-14), { max: 10 }) && walk(perch(13), { max: 10 }), true, `through it to the balcony (${where()})`);
   assert.equal(walk(perch(PERCH.lip + 0.6, PERCH.side + 1.9), { tol: 0.5 }), true, `to the lip beside the cable-rail (${where()})`);
@@ -278,43 +335,13 @@ test('the Mooring-House on foot (issue #417): the capstan’s lever for the Lamp
   wait(30, () => cradle.s < 0.2 && cradle.wait > 0.8);
   assert.equal(walk(L(qx, BS, qz), { tol: 0.5, run: false, max: 6 }), true, `onto the cradle (${where()})`);
   assert.ok(wait(20, () => P.onGround && local().y < 1), `ridden down to the hall’s floor (${where()})`);
-  // ---- the Chain Locker: its shutter wants the room low (sent down for the great key's ring: still low)
-  assert.equal(walk(L(0, 0, 44)) && walk(L(0, 0, LOFT.z - 12)) && walk(L(-14, 0, LOFT.z)) && walk(L(MH.x1 - 3, 0, LOFT.z)), true, `back through the loft (${where()})`);
-  assert.ok(docked(0) && rt.logic.isOpen('dL'), 'the room low: the locker’s shutter is up');
-  assert.equal(walk(L(LOCKER.door, 0, MH.z1 - 3)) && walk(L(LOCKER.door, 0, MH.z1 + 4)), true, `into the Chain Locker (${where()})`);
-  // push the ball OUT along its rail over the well into the far cup: its weight brings the west door's ring down
-  const rK = rt.piece('rK');
-  assert.ok(rt.kit.local(rK.center).y > LOCKER.up - 0.5, 'the ring hangs high over the well');
-  assert.equal(roll('ballK', 'pK2'), true, `the ball out in the far cup (${where()})`);
-  wait(2.6);
-  assert.ok(Math.abs(rt.kit.local(rK.center).y - LOCKER.down) < 0.3, 'the ring has come down');
-  assert.equal(walk(L(LOCKER.well[2] + 1.2, 0, LOCKER.ring[1]), { tol: 0.5 }), true, `to the well's lip under the ring (${where()})`);
-  assert.ok(tether(rK), 'pulled');
-  wait(0.3);
-  assert.equal(rt.logic.isOpen('gN'), true, 'the west door’s chain lets go');
-  // ---- the gangway (taut since the ball came home with the room high: it holds) to the west landing
-  assert.equal(walk(L(LOCKER.door, 0, MH.z1 - 3)) && walk(L(EAST.lip + 2, 0, WEST.gang)), true, `to the gangway (${where()})`);
-  assert.equal(walk(L(EAST.lip - 2, 0, WEST.gang), { tol: 0.6 }) && walk(L(WEST.lip - 3, 0, WEST.gang), { tol: 0.8, max: 16 }), true, `across it to the west landing (${where()})`);
-  // ---- the Cable Walk: its catch pulled, and the room low: it hangs level up to the upper landing
-  const [kx, , kz] = WEST.catch;
-  assert.equal(walk(L(kx, 0, WEST.zN[0] + 1.2), { tol: 0.5 }), true, `to the walk's foot (${where()})`);
-  assert.ok(tether(rt.piece('rW')), 'its catch pulled');
-  wait(0.3);
-  assert.equal(rt.logic.isOpen('cw'), true, 'the room low: the walk hangs level');
-  // the west landing's lever: up, and the walk swings away; down again, and it is back
-  const [wx, , wz] = LEVERS[1].at;
-  assert.equal(walk(L(wx - 1.4, 0, wz), { tol: 0.5 }), true, `to the west landing's lever (${where()})`);
-  assert.equal(use('lvW'), 'sent');
-  assert.ok(docked(1) && !rt.logic.isOpen('cw'), 'the room high: the walk hangs slack');
-  assert.equal(use('lvW'), 'sent');
-  assert.ok(docked(0) && rt.logic.isOpen('cw'), 'low again: level');
-  wait(2.5);
-  assert.equal(walk(L(WEST.walk, 0, WEST.zN[0] + 1.5)) && walk(L(WEST.walk, WEST.yS, WEST.zS[1] - 2), { max: 12 }), true, `up the Cable Walk (${where()})`);
-  // ---- the west door, the ante, the Capstan Floor: the Anchor-Warden
-  assert.equal(walk(L(MH.x0 + 1.6, WEST.yS, FLOOR.z)) && walk(L(MH.x0 - 5, FLOOR.y, FLOOR.z)) && walk(L(FLOOR.x + FLOOR.r + 3, FLOOR.y, FLOOR.z)), true, `to the Capstan Floor's door (${where()})`);
+  // ---- (issue #477) the great door off the Cord Loft, the antechamber, the Capstan Floor: the Anchor-Warden
+  const aL = Math.atan2(FLOOR.x, FLOOR.z - LOFT.z), byLoft = (d) => L(Math.sin(aL) * d, 0, LOFT.z + Math.cos(aL) * d);
+  const onFloor = (a, d) => L(FLOOR.x + Math.sin(a) * d, FLOOR.y, FLOOR.z + Math.cos(a) * d);
+  assert.equal(walk(L(0, 0, 44)) && walk(L(0, 0, LOFT.z - 8)) && walk(byLoft(8)) && walk(onFloor(FLOOR.a, FLOOR.r + 2.5)), true, `through the loft to the great door (${where()})`);
   wait(2.4);
   assert.equal(rt.logic.keysIn('d6'), 1, 'the great key in it');
-  assert.equal(walk(L(FLOOR.x + 10, FLOOR.y, FLOOR.z)), true, `onto the Capstan Floor (${where()})`);
+  assert.equal(walk(onFloor(FLOOR.a, 10)), true, `onto the Capstan Floor (${where()})`);
   const Gd = rt.guardian;
   wait(0.3);
   assert.notEqual(Gd.state, 'sleep', 'it wakes');
@@ -334,6 +361,11 @@ test('the Mooring-House on foot (issue #417): the capstan’s lever for the Lamp
   }
   assert.equal(Gd.state, 'resolved', `stopped (${Gd.meter.toFixed(2)})`);
   assert.equal(game.flag('temple.spacecity.done'), true);
+  // ---- the Warden's gate opened from inside: back out into the Capstan Hall, where the house began
+  wait(3);
+  assert.ok(rt.logic.isOpen('d7') && rt.logic.isOpen('d8'), 'its gate into the hub and its way out open');
+  P.teleport(onFloor(FLOOR.hub, 8).add(V(0, 0.1, 0)), V(0, 1, 0), V(0, 0, 1)); P.vel.set(0, 0, 0);
+  assert.equal(walk(onFloor(FLOOR.hub, FLOOR.r + 4)) && walk(hall(WARDEN_GATE.a, 10)), true, `through the gate into the Capstan Hall (${where()})`);
   game.reset();
   own();
 });

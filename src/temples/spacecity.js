@@ -6,7 +6,8 @@ import * as THREE from 'three';
 import { makeMaterial } from '../materials.js';
 import { registerTarget } from '../targets.js';
 import { glyphGeometry } from '../story/sign-text.js';
-import { TempleKit, T, box, lathe, annulus, paint } from './kit.js';
+import { TempleKit, T, box, lathe, annulus, paint, prep } from './kit.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { Door, Plate, Ball, Switch, Updraft, Platform, Bridge, Mark, Pit, Key, Weight, Coffer } from './pieces.js';
 import { Cushion } from './arzach.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
@@ -30,8 +31,10 @@ import { mooringHouseSkin } from './skins/mooring-house.js';
 //   the Landing Stage    the first mark, the way out
 //   the Capstan Hall     the hub: a tall round hall round the dead great capstan. The capstan's lever (MooringLever)
 //                        sends the room up or down from here, before the tether too. Ways off it to the two wings,
-//                        south-west and south-east, the great door north, and high up the balcony (the perch). On its
-//                        east side the caged coffer, its weight high on a mooring mast (the grappling hook): a reward
+//                        south-west and south-east, the great door north, and high up the balcony (the perch). (#477)
+//                        East, the Warden's gate: bars, and through them the Capstan Floor and the Anchor-Warden, seen
+//                        from the first visit; opened from inside at the end. On its south-east side the caged coffer,
+//                        its weight high on a mooring mast (the grappling hook): a reward
 //   the Winch Room       (south-west) the counterweight ball rolled into its socket: the Lamp Shaft's gate rises
 //   the Lamp Shaft       (south-east) the void breathes up its grating, but only with the shaft's counterweight hauled
 //                        up off it (the room low: turn the capstan); the wings ride the breath to the pier's top and
@@ -50,7 +53,8 @@ import { mooringHouseSkin } from './skins/mooring-house.js';
 //   the Rope Store       south off the gallery's west half (an arena): its shutter rises on a counterweight (the room
 //                        low), so you send the room down and stay behind; won, its small key; the room's ring calls it
 //                        home again, the only way back east
-//   the moorers' gate    (the small key) from the gallery's east half to the Capstan Hall's balcony: the great key's
+//   the moorers' gate    (the small key; #477: and its bar on the cable of the Anchor Hold's anchor-ball, pulled home)
+//                        from the gallery's east half to the Capstan Hall's balcony: the great key's
 //                        cage, a ball out on a cable-rail pulled home and (G2: the tether and an older tool at once) a
 //                        ring hung over the hall only the seeing lens shows, pulled; the cradle down to the hub. (#477:
 //                        the ring hangs on the house's cable the other way round from the loft's: down within reach with
@@ -62,7 +66,12 @@ import { mooringHouseSkin } from './skins/mooring-house.js';
 //                        across to the west landing
 //   the Cable Walk       up from the west landing to its upper part: slung from the counterweights, it hangs level only
 //                        with the room low (a lever there). The west door: the Chain Locker's ring pulled
-//   the Capstan Floor    the guardian (a robot: its meter is damage): the Anchor-Warden. When it has thrown its
+//   the Anchor Hold      (#477, where the Capstan Floor stood) a round hall over the void past the west door, a well in its
+//                        middle: the Warden's spare anchor-ball out over it on a cable-rail, pulled home with the tether,
+//                        draws back the moorers' gate's bar across the Mooring Hall
+//   the Capstan Floor    (#477: east of the Capstan Hall, between it and the Cord Loft; its great door off the loft, a
+//                        short antechamber, the way out its gate into the hub and a door east into the world)
+//                        the guardian (a robot: its meter is damage): the Anchor-Warden. When it has thrown its
 //                        anchor and its drum stalls, pull the anchor home with the tether and it jams. In its second
 //                        phase it hooks them over the bollards; in its last it pays them out over the void, out of
 //                        reach: push its capstan bars to wind them in, then pull
@@ -154,8 +163,24 @@ export const STATE_LOOK = { low: '#ffb35a', high: '#8fd8ff', glow: [0.55, 0.8] }
 export const LOCKER = { x: -35, z: MH.z1 + 1.2 + 15, w: 30, d: 30, h: 18, door: -28.5, well: [-50, 101, -38, 119], rail: 110, a: -29, b: -43.5, ring: [-39.6, 114.6], up: 14.2, down: 3.6 };
 /** The Cord Loft: its middle (z) and radius; (v1.83) its ring's heights: down within the tether's reach, hauled up. */
 export const LOFT = { z: 69, r: 17, h: 18, ring: [7.4, 15.6] };
-/** The Capstan Floor: its middle, radius, floor. */
-export const FLOOR = { x: -107, z: 46.5, r: 19, y: 6 };
+/**
+ * The Capstan Floor, the guardian's: its middle, radius, floor. (#477, the house reshaped: the guardian met early) east of
+ * the Capstan Hall, between it and the Cord Loft: from the hub's first visit the Anchor-Warden is seen through the bars of
+ * its gate (`WARDEN_GATE`), the way in is the great door off the loft (`a`: the floor's way to the loft, its gap's angle;
+ * `hub`: its way to the hub), and the gate is opened from inside at the end. (West of the Mooring Hall until v1.85: the
+ * Anchor Hold's place now, HOLD)
+ */
+export const FLOOR = { x: 40, z: 50.6, r: 19, y: 0, a: Math.atan2(-40, 18.4), hub: Math.atan2(-40, -20.6), windows: [-0.25, 0.6, 2.1, 2.95], out: 1.35 };
+/** (#477) The Capstan Hall's side of the Warden's gate: the hall's angle toward the floor. */
+export const WARDEN_GATE = { a: Math.atan2(FLOOR.x, FLOOR.z - 30) };
+/**
+ * (#477) The Anchor Hold, west of the Mooring Hall past the west door, where the Capstan Floor stood: a round hall over
+ * the void, a well in its middle (`well`: its radius), the Warden's spare anchor-ball out over it on a cable-rail (`rail`:
+ * home a, out b, x from the hold's middle, along its z; its footstone's `plate`), pulled home with the tether: its cable
+ * draws back the bar of the moorers' gate (with the Rope Store's small key).
+ */
+export const HOLD = { x: -107, z: 46.5, r: 19, y: 6, well: 4.4, rail: { a: 7.5, b: 0.4, plate: 6.5 } };
+HOLD.rail.plateAt = +((HOLD.rail.a - HOLD.rail.plate) / (HOLD.rail.a - HOLD.rail.b)).toFixed(3);
 /** (issue #356) The bars across the Capstan Floor's four windows: a rail at `rail` m and `n` bars `gap` m apart over it (the window's gap is cut by whole stones: wider than its 9 m). */
 export const WINDOW_BARS = { rail: 2.0, gap: 0.75, n: 17 };
 /** (v1.53) The Rope Store, south off the gallery (an arena, the house's one fight since v1.77); its north side the Mooring
@@ -191,6 +216,7 @@ export const LOGIC = {
     moor: { checkpoint: true, kind: 'puzzle' }, moorW: { checkpoint: true, kind: 'puzzle' },
     store: { checkpoint: true, kind: 'combat' }, perch: { kind: 'puzzle' }, locker: { checkpoint: true, kind: 'puzzle' },
     west: { checkpoint: true, kind: 'puzzle' }, westS: { checkpoint: true, kind: 'passage' },
+    hold: { checkpoint: true, kind: 'puzzle' },
     ante: { checkpoint: true, kind: 'passage' }, arena: { boss: true, kind: 'guardian' }, out: { kind: 'passage' },
   },
   links: [
@@ -212,9 +238,13 @@ export const LOGIC = {
     { a: 'drift', b: 'locker', door: 'dL' },        // the Chain Locker: its shutter on a counterweight (the room low)
     { a: 'drift', b: 'west', door: 'br2' },         // the gangway: its ball pulled home, and the room high
     { a: 'west', b: 'westS', door: 'cw' },          // the Cable Walk: level only with the room low
-    { a: 'westS', b: 'ante', door: 'gN' },          // the west door: the Chain Locker's ring pulled
+    { a: 'westS', b: 'hold', door: 'gN' },          // the west door: the Chain Locker's ring pulled. (#477) The Anchor Hold
+    // (#477, the house reshaped: the guardian met early) the great door off the Cord Loft, and the Warden's gate into the
+    // Capstan Hall: bars it is seen through from the first visit, opened from inside once it is stopped (the way out)
+    { a: 'loft', b: 'ante' },
     { a: 'ante', b: 'arena', door: 'd6' },
-    { a: 'arena', b: 'out', door: 'd7' },
+    { a: 'arena', b: 'hall', door: 'd7' },
+    { a: 'arena', b: 'out', door: 'd8' },           // (and the way out into the world, east off the floor, as every house's)
   ],
   elements: {
     // the winch's counterweight, rolled into its socket at the winch's mouth: the shaft's gate rises (its pawl holds it)
@@ -249,7 +279,11 @@ export const LOGIC = {
     arR: { type: 'arena', room: 'store' },
     kS: { type: 'key', kind: 'small', room: 'store', when: { lit: 'arR' } },
     dR: { type: 'door', opens: LOW },
-    sc: { type: 'door', lock: 'small', latch: true },              // (v1.53: the Rope Store's small key)
+    // (v1.53: the Rope Store's small key. #477: and its bar hangs on the cable of the Warden's spare anchor in the Anchor
+    // Hold, past the west door: the anchor-ball pulled home over the hold's well with the tether draws the bar back)
+    sc: { type: 'door', lock: 'small', opens: { drumOn: ['bA', 'pA'] }, latch: true },
+    bA: { type: 'drum', room: 'hold', plate: 'pA', plateAt: HOLD.rail.plateAt, start: 1, needs: ['tether'] },
+    pA: { type: 'plate', room: 'hold' },
     // the Capstan Hall's balcony: the great key's cage, a ball out along a cable-rail from its lip pulled home onto the
     // cage's footstone, and (v1.83, G2: the tether and an older tool at once) the cage's chain on a ring hung over the hall
     // that only the seeing lens shows (the Footprint's), pulled
@@ -270,9 +304,10 @@ export const LOGIC = {
     cw: { type: 'bridge', opens: { all: [LOW, { lit: 'rW' }] } },
     warden: { type: 'boss', room: 'arena', needs: ['gun', 'tether'] },
     // the Capstan Floor's doors (its great key, v1.53; shut while the Warden fights; the way out): the floor's own (v1.77:
-    // the rules measure the guardian's hall by them, its two sides)
+    // the rules measure the guardian's hall by them, its two sides). (#477) The way out is the Warden's gate into the hub
     d6: { type: 'door', lock: 'big', room: 'arena' },
     d7: { type: 'door', opens: { resolved: true }, room: 'arena' },
+    d8: { type: 'door', opens: { resolved: true }, room: 'arena' },
     // (v1.76, issue #337) the Capstan Hall's caged coffer: the plate before it sinks the cage while weighed down; the moorers'
     // weight on its cleat high on a mast, pulled down into your hands by the grappling hook (a reward: `optional`); (v1.83)
     // the cage hangs on the house's cable too: it sinks only with the counterweights down (the room high)
@@ -293,7 +328,7 @@ export const LOGIC = {
 /** (v1.76, issue #337) The Capstan Hall's coffer, east: the hall's angle and radius of the coffer, its plate, the cleat's
  * weight (its foot at `y`, `r` from the hall's middle: out of any jump's reach), the cleat under it (v1.77: on an iron
  * mast standing in the floor, `mast` from the middle: the weight in the hall's middle, off the wall). */
-export const CLEAT = { coffer: [Math.PI / 2 - 0.35, 15.6], plate: [Math.PI / 2 + 0.12, 7.4], weight: [Math.PI / 2 + 0.12, 10.0], mast: 10.9, y: 8.6 };
+export const CLEAT = { coffer: [Math.PI / 2 + 0.42, 15.6], plate: [Math.PI / 2 + 0.12, 7.4], weight: [Math.PI / 2 + 0.12, 10.0], mast: 10.9, y: 8.6 };
 
 /** The Rope Store's fight (src/temples/runtime.js updateArenas; src/foes.js places its keepers round its mark's `foes`). */
 export const ARENAS = [{
@@ -757,6 +792,26 @@ export class DockGate extends Door {
 }
 
 /**
+ * (#477) The Warden's gate between the Capstan Hall and the Capstan Floor: iron bars from the floor to the lintel on two
+ * brass rails, too close to pass and open to the eye, so the Anchor-Warden is seen from the hall's first visit; it rises
+ * into its lintel, as the docks' gates do, once the Warden is stopped (opened from inside: its logic `resolved`).
+ */
+export class BarGate extends DockGate {
+  constructor(rt, o) {
+    super(rt, o);
+    const { w = 4.4, h = 6 } = o, n = Math.round(w / 0.42);
+    this.slab.clear();
+    const bars = [], rails = [];
+    for (let i = 0; i <= n; i++) bars.push(new THREE.CylinderGeometry(0.07, 0.07, h, 6).translate(-w / 2 + (i / n) * w, h / 2, 0));
+    for (const y of [0.25, h * 0.55, h - 0.3]) rails.push(box(w + 0.1, 0.24, 0.3, 0, y, 0));
+    const iron = makeMaterial({ color: '#3d3f4c', flat: true, key: 'temple.spacecity.gatebars' });
+    const bm = new THREE.Mesh(mergeGeometries(bars.map(prep)), iron), rm = new THREE.Mesh(mergeGeometries(rails.map(prep)), rt.M.trimMat);
+    for (const m of [bm, rm]) { m.userData.noCollide = true; this.slab.add(m); }
+    this.apply();
+  }
+}
+
+/**
  * (v1.53, issue #23) The Rope Store south off the Moorers' Gallery (an arena: drums of the moorers' spare cable), and on
  * the Capstan Hall's balcony inside the moorers' gate the great key's cage and a ball out along a cable-rail, pulled home
  * onto its footstone. (v1.77, issue #336: the store 30 m square under 17 m, its keepers round its middle among the drums;
@@ -855,6 +910,7 @@ function layout(rt) {
   // ---- the Capstan Hall (the hub): the dead great capstan in the middle, its cables slack to the walls
   K.rotunda({ x: 0, z: C1, y: 0, r: R1, h: 28, seg: 54, oculus: 0.3, gaps: [
     { a: Math.PI, w: 6.6, h: PASS.h }, { a: SW, w: 7.8, h: PASS.h }, { a: SE, w: 7.8, h: PASS.h }, { a: 0, w: 6.6, h: PASS.h }, { a: MOOR_A, w: 8.4, h: PASS.h, y0: GALLERY.y },
+    { a: WARDEN_GATE.a, w: 7.8, h: PASS.h },   // (#477: the Warden's gate, east)
   ] });
   // (in the skin a bare drum of dark metal banded with teal circuits, its lid the same, its bars iron)
   K.both(SK?.drum ?? brass, T(new THREE.CylinderGeometry(2.6, 2.9, 4.2, 20), [0, 2.1, C1]));
@@ -948,9 +1004,9 @@ function layout(rt) {
   const C3 = LOFT.z;
   add(Door, { id: 'd1', at: [0, 0, C1 + R1 + 2.0], ...DOOR, lamps: [{ lit: 's1' }] });
   corridor(0, C1 + R1 + 0.7, 0, C3 - LOFT.r - 0.7, 0);
-  K.rotunda({ x: 0, z: C3, y: 0, r: LOFT.r, h: LOFT.h, seg: 39, gaps: [{ a: Math.PI, w: 6, h: PASS.h }, { a: -Math.PI / 2, w: 7.2, h: PASS.h }], oculus: 0.35 });
+  K.rotunda({ x: 0, z: C3, y: 0, r: LOFT.r, h: LOFT.h, seg: 39, gaps: [{ a: Math.PI, w: 6, h: PASS.h }, { a: -Math.PI / 2, w: 7.2, h: PASS.h }, { a: Math.atan2(FLOOR.x, FLOOR.z - C3), w: 7.6, h: PASS.h }], oculus: 0.35 });   // (and, #477, east-south-east to the great door)
   K.both(M.trim, ...chestMound(0, 0, C3));   // (issue #162: a ramped mound, no steps: src/boxes/mound.js)
-  for (const a of [0.6, 2.2, -2.4, -0.4]) for (let i = 0; i < 4; i++) K.add(cableM, T(new THREE.TorusGeometry(0.9 - (i % 2) * 0.15, 0.13, 4, 18), [Math.sin(a) * (LOFT.r - 1.4), 1.6 + i * 0.32, C3 + Math.cos(a) * (LOFT.r - 1.4)], [0, a, 0]));
+  for (const a of [0.6, 1.25, -2.4, -0.4]) for (let i = 0; i < 4; i++) K.add(cableM, T(new THREE.TorusGeometry(0.9 - (i % 2) * 0.15, 0.13, 4, 18), [Math.sin(a) * (LOFT.r - 1.4), 1.6 + i * 0.32, C3 + Math.cos(a) * (LOFT.r - 1.4)], [0, a, 0]));
   // the try: a moorers' ring on a post east of the chest, its lamp hung over it
   K.both(iron, box(0.6, 3.4, 0.6, 6.9, 1.7, C3 + 5));
   add(Switch, { id: 't0', at: [6.4, 2.6, C3 + 5], yaw: -Math.PI / 2, size: 0.8, pull: true });
@@ -974,7 +1030,7 @@ function layout(rt) {
     { side: 'e', at: C3 - MZ, ...HOLE, y0: -MH.y },                     // from the loft
     { side: 'e', at: MOOR.z - MZ, ...HOLE, y0: G.y - MH.y },             // the moorers' passage to the Capstan Hall's balcony
     { side: 's', at: STORE.x - MX, ...HOLE, y0: G.y - MH.y },            // the Rope Store
-    { side: 'w', at: FLOOR.z - MZ, ...HOLE, y0: WEST.yS - MH.y },        // the west door, on to the Capstan Floor
+    { side: 'w', at: HOLD.z - MZ, ...HOLE, y0: WEST.yS - MH.y },         // the west door, on to the Anchor Hold (the Capstan Floor until #477)
     { side: 'n', at: LOCKER.door - MX, ...HOLE, y0: -MH.y },             // the Chain Locker
   ] });
   // its floors: the gallery's halves (y 11), the east landing and its apron out to the room's shaft (y 0), the west landing's
@@ -1075,7 +1131,7 @@ function layout(rt) {
     cable([x, WEST.yN + y + 0.7, z], [x + 1.6, WEST.yN + y + 1.4, WEST.zN[0] - 1.6], 0, 0.05);
   }
   // the west door, its chain under the floors to the Chain Locker's ring
-  add(Door, { id: 'gN', at: [MH.x0 - 0.6, WEST.yS, FLOOR.z], yaw: Math.PI / 2, ...DOOR, lamps: [{ lit: 'rK' }] });
+  add(Door, { id: 'gN', at: [MH.x0 - 0.6, WEST.yS, HOLD.z], yaw: Math.PI / 2, ...DOOR, lamps: [{ lit: 'rK' }] });
   // the levers, the gauges (one in every room), the marks
   for (const lv of LEVERS) add(MooringLever, { ...lv, sets: 'mooring' });
   for (const [room, at] of [['drift', [-23.2, 0, 64.2]], ['moor', [-23.2, G.y, 31.8]], ['moorW', [MH.x0 + 2.2, G.y, 31.8]], ['west', [MH.x0 + 2.2, WEST.yN, 91.8]], ['westS', [MH.x0 + 2.2, WEST.yS, 53.8]]]) add(MooringGauge, { room, at, shows: 'mooring' });
@@ -1089,7 +1145,7 @@ function layout(rt) {
   add(Mark, { room: 'westS', at: [-62, WEST.yS, 47.5], yaw: Math.PI });
   // the moorers' gate (its small key), in the short passage east to the Capstan Hall's balcony
   corridor(MH.x1 + 0.6, MOOR.z, -Math.sqrt(R1 * R1 - (MOOR.z - C1) ** 2) - 0.8, MOOR.z, BS);
-  add(Door, { id: 'sc', at: [MOOR.gate, BS, MOOR.z], yaw: Math.PI / 2, ...DOOR });
+  add(Door, { id: 'sc', at: [MOOR.gate, BS, MOOR.z], yaw: Math.PI / 2, ...DOOR, lamps: [{ drumOn: ['bA', 'pA'] }] });   // (#477: its bar on the spare anchor's cable)
 
   // ---- (v1.83) the Chain Locker, north off the east landing: its shutter on a counterweight (the room low); a well in its
   // floor, its ball's rail out over it to the far cup, the ring of the west door's chain hung over the well
@@ -1123,27 +1179,71 @@ function layout(rt) {
     add(Mark, { room: 'locker', at: [x1 - 4, 0, z0 + 4], yaw: Math.PI });
   }
 
-  // ---- the ante and the Capstan Floor: a round floor open to the void at four great windows, a bollard before each
-  K.corridor([MH.x0 - 1.2, FLOOR.z], [FLOOR.x + FLOOR.r + 0.6, FLOOR.z], FLOOR.y, { w: 8.2, h: 10 });   // (wide and tall since issue #195: the close camera fought its walls)
-  add(Mark, { room: 'ante', at: [MH.x0 - 5.3, FLOOR.y, FLOOR.z + 3.2], yaw: Math.PI });
-  add(MooringGauge, { room: 'ante', at: [MH.x0 - 4, FLOOR.y, FLOOR.z - 3.2], shows: 'mooring' });
-  const HR = FLOOR.r, CX = FLOOR.x, CZ = FLOOR.z, FY = FLOOR.y;
-  const windows = [Math.PI / 4, -Math.PI / 4, Math.PI * 3 / 4, -Math.PI * 3 / 4];
-  K.rotunda({ x: CX, z: CZ, y: FY, r: HR, h: 20, seg: 36, oculus: 0.62, gaps: [{ a: Math.PI / 2, w: 6, h: 9.2 }, { a: -Math.PI / 2, w: 6, h: 9.2 }, ...windows.map((a) => ({ a, w: 9, h: 7 }))] });
-  rt.bollards = [];
-  for (const a of windows) {
-    // the window's rail across the gap, a bollard inside it
-    const ox = CX + Math.sin(a) * (HR + 0.5), oz = CZ + Math.cos(a) * (HR + 0.5);
-    K.both(M.trim, T(new THREE.BoxGeometry(9.6, 0.25, 0.3), [ox, FY + 1.0, oz], [0, a, 0]));
-    for (const s of [-1, 0, 1]) K.both(M.trim, T(new THREE.BoxGeometry(0.2, 1.0, 0.2), [ox + Math.cos(a) * s * 4.4, FY + 0.5, oz - Math.sin(a) * s * 4.4]));
-    // (issue #356) a second rail at 2 m and bars over it to the window's head, too close to pass: open, the wings took you
-    // out over the void and round to the Capstan Floor's walkways, and back in past its great lock (tests/door-bypass.test.js);
-    // under the bars the anchors still go out over the void and your aim reaches them
-    K.both(M.trim, T(new THREE.BoxGeometry((WINDOW_BARS.n - 1) * WINDOW_BARS.gap + 0.4, 0.25, 0.3), [ox, FY + WINDOW_BARS.rail, oz], [0, a, 0]));
+  // ---- (#477) the Anchor Hold, west past the west door where the Capstan Floor stood: a round hall over the void, open to it
+  // at four barred windows, a well in its middle; the Warden's spare anchor-ball out over the well on a cable-rail, pulled
+  // home with the tether onto its footstone: its cable draws back the bar of the moorers' gate, across the Mooring Hall
+  const HD = HOLD, HX = HD.x, HZ = HD.z, HY = HD.y, HRr = HD.r;
+  K.corridor([MH.x0 - 1.2, HZ], [HX + HRr + 0.6, HZ], HY, { w: 8.2, h: 10 });   // (wide and tall since issue #195: the close camera fought its walls)
+  const windowBars = (cx, cz, fy, r, a) => {
+    // the window's rail across the gap, and (issue #356) a second rail at 2 m and bars over it to the window's head, too
+    // close to pass: open, the wings took you out over the void and round, and back in past a great lock
+    const ox = cx + Math.sin(a) * (r + 0.5), oz = cz + Math.cos(a) * (r + 0.5);
+    K.both(M.trim, T(new THREE.BoxGeometry(9.6, 0.25, 0.3), [ox, fy + 1.0, oz], [0, a, 0]));
+    for (const s of [-1, 0, 1]) K.both(M.trim, T(new THREE.BoxGeometry(0.2, 1.0, 0.2), [ox + Math.cos(a) * s * 4.4, fy + 0.5, oz - Math.sin(a) * s * 4.4]));
+    K.both(M.trim, T(new THREE.BoxGeometry((WINDOW_BARS.n - 1) * WINDOW_BARS.gap + 0.4, 0.25, 0.3), [ox, fy + WINDOW_BARS.rail, oz], [0, a, 0]));
     for (let i = 0; i < WINDOW_BARS.n; i++) {
       const s = (i - (WINDOW_BARS.n - 1) / 2) * WINDOW_BARS.gap, h = 7 - WINDOW_BARS.rail;
-      K.both(iron, T(new THREE.CylinderGeometry(0.07, 0.07, h + 0.1, 6), [ox + Math.cos(a) * s, FY + WINDOW_BARS.rail + h / 2, oz - Math.sin(a) * s]));
+      K.both(iron, T(new THREE.CylinderGeometry(0.07, 0.07, h + 0.1, 6), [ox + Math.cos(a) * s, fy + WINDOW_BARS.rail + h / 2, oz - Math.sin(a) * s]));
     }
+  };
+  {
+    const holdWindows = [Math.PI / 4, -Math.PI / 4, Math.PI * 3 / 4, -Math.PI * 3 / 4];
+    K.rotunda({ x: HX, z: HZ, y: HY, r: HRr, h: 20, seg: 36, oculus: 0.62, floor: false, gaps: [{ a: Math.PI / 2, w: 6, h: 9.2 }, ...holdWindows.map((a) => ({ a, w: 9, h: 7 }))] });
+    for (const a of holdWindows) windowBars(HX, HZ, HY, HRr, a);
+    // its floor round the well, and the well open to the stars
+    K.both(M.floor, T(annulus(HD.well, HRr + 1.4, 0.8, 72), [HX, HY, HZ]));
+    K.add(brass, T(annulus(HD.well, HD.well + 0.5, 0.06, 48), [HX, HY + 0.03, HZ]));
+    add(Pit, { room: 'hold', min: [HX - HD.well, HY - 24, HZ - HD.well], max: [HX + HD.well, HY - 8, HZ + HD.well] });
+    // a railing round the well, open where the cable-rail crosses it (east, toward the door)
+    const R0 = HD.well + 0.35, gap = 0.3, n = 14;
+    for (let i = 0; i < n; i++) {
+      const a0 = Math.PI / 2 + gap + (i / n) * (Math.PI * 2 - 2 * gap), a1 = Math.PI / 2 + gap + ((i + 1) / n) * (Math.PI * 2 - 2 * gap);
+      rail([HX + Math.sin(a0) * R0, HZ + Math.cos(a0) * R0], [HX + Math.sin(a1) * R0, HZ + Math.cos(a1) * R0], HY);
+    }
+    // the cable-rail along the floor and on out over the well, its stop post hung under the far end, a cable down into the void
+    const { a: ra, b: rb, plate } = HD.rail, L = ra - rb + 1.4, cx = HX + (ra + rb) / 2;
+    for (const s of [-0.55, 0.55]) K.add(M.trim, box(L, 0.12, 0.12, cx, HY + 0.02, HZ + s));
+    K.add(iron, box(0.4, 1.8, 1.6, HX + rb - 1.5, HY - 0.6, HZ));
+    for (let x = HD.well - 2; x > rb; x -= 2.6) K.add(iron, box(0.14, 0.5, 1.3, HX + x, HY - 0.25, HZ));
+    cable([HX + rb - 1.5, HY - 1.4, HZ], [HX + rb - 2, HY - 20, HZ + 1], 0, 0.06);
+    add(Ball, { id: 'bA', a: [HX + ra, HY + 0.04, HZ], b: [HX + rb, HY + 0.04, HZ], r: 1.1, friction: 1.0 });
+    add(Plate, { id: 'pA', at: [HX + plate, HY, HZ], r: 1.3 });
+    // a spare anchor or two of the Warden's on the floor, chained to the wall
+    for (const [x, z, a] of [[-12, -7, 0.4], [-11, 8.5, 2.6]]) K.both(iron, T(anchorGeometry({ s: 0.55 }), [HX + x, HY, HZ + z], [0, a, Math.PI / 2]));
+    add(Mark, { room: 'hold', at: [HX + 12.5, HY, HZ - 4.5], yaw: -Math.PI / 2 });
+    add(MooringGauge, { room: 'hold', at: [HX + 12.5, HY, HZ + 5], shows: 'mooring' });
+  }
+
+  // ---- (#477) the Capstan Floor, east of the Capstan Hall between it and the Cord Loft: a round floor open to the void at
+  // four great windows, a bollard before each; the great door off the loft (a short passage, the antechamber), and the
+  // Warden's gate into the hub, bars it is seen through from the first visit, opened from inside once it is stopped
+  const HR = FLOOR.r, CX = FLOOR.x, CZ = FLOOR.z, FY = FLOOR.y;
+  const rim = (cx0, cz0, r, a) => [cx0 + Math.sin(a) * r, cz0 + Math.cos(a) * r];
+  {
+    const aL = Math.atan2(CX, CZ - C3), [lx, lz] = rim(0, C3, LOFT.r + 1.45, aL), [fx, fz] = rim(CX, CZ, HR + 1.45, FLOOR.a);   // (from wall face to wall face: no face shared with their stones, scripts/zfight)
+    corridor(lx, lz, fx, fz, 0);
+    const [mx, mz] = [(lx + fx) / 2, (lz + fz) / 2], px = Math.cos(aL), pz = -Math.sin(aL);
+    add(Mark, { room: 'ante', at: [mx + px * 2.6, FY, mz + pz * 2.6], yaw: aL + Math.PI / 2 });
+    add(MooringGauge, { room: 'ante', at: [mx - px * 3.2, FY, mz - pz * 3.2], shows: 'mooring' });
+    const [hx, hz] = rim(0, C1, R1 + 1.45, WARDEN_GATE.a), [gx, gz] = rim(CX, CZ, HR + 1.45, FLOOR.hub);
+    corridor(hx, hz, gx, gz, 0);
+  }
+  const windows = FLOOR.windows;
+  K.rotunda({ x: CX, z: CZ, y: FY, r: HR, h: 20, seg: 36, oculus: 0.62, gaps: [{ a: FLOOR.a, w: 6, h: 9.2 }, { a: FLOOR.hub, w: 6, h: 9.2 }, { a: FLOOR.out, w: 6, h: 9.2 }, ...windows.map((a) => ({ a, w: 9, h: 7 }))] });
+  rt.bollards = [];
+  for (const a of windows) {
+    windowBars(CX, CZ, FY, HR, a);
+    // under the bars the anchors still go out over the void and your aim reaches them
     const bx = CX + Math.sin(a) * (HR - 3.2), bz = CZ + Math.cos(a) * (HR - 3.2);
     K.both(iron, T(new THREE.CylinderGeometry(0.6, 0.75, 1.5, 12), [bx, FY + 0.75, bz]));
     K.add(brass, T(new THREE.CylinderGeometry(0.85, 0.85, 0.2, 12), [bx, FY + 1.55, bz]));
@@ -1152,24 +1252,29 @@ function layout(rt) {
   rt.windows = windows.map((a) => ({ a: K.heading(a), at: K.world(CX + Math.sin(a) * HR, FY, CZ + Math.cos(a) * HR) }));
   K.add(brass, T(annulus(8.0, 8.6, 0.06, 64), [CX, FY + 0.03, CZ]));
   for (let i = 0; i < 16; i++) { const a = (i / 16) * TAU; K.add(M.dark, T(new THREE.BoxGeometry(0.3, 0.05, 1.6), [CX + Math.sin(a) * 11, FY + 0.03, CZ + Math.cos(a) * 11], [0, a, 0])); }
-  add(Pit, { room: 'arena', min: [CX - HR - 30, -18, CZ - HR - 30], max: [CX + HR + 8, FY - 4, CZ + HR + 30] });
-  add(Door, { id: 'd6', at: [CX + HR + 0.7, FY, CZ], yaw: Math.PI / 2, ...DOOR, frame: { side: 1.2 } });   // (frame: the rotunda's gap is wider than the door: you jumped through beside it, issue #356)
-  add(Door, { id: 'd7', at: [CX - HR - 0.7, FY, CZ], yaw: Math.PI / 2, ...DOOR, frame: { side: 1.2 } });
-  // the way out: a short passage west to the door into the world
-  const X0 = CX - HR - 0.6, XH = 10, XW = 4.6;
-  K.slab(X0 - 9.4, CZ - XW, X0, CZ + XW, FY, 0.8);
-  K.wall(X0 - 0.8, CZ + XW, X0 - 9.4, CZ + XW, FY, XH, { t: 0.8 }); K.wall(X0 - 9.4, CZ - XW, X0 - 0.8, CZ - XW, FY, XH, { t: 0.8 });
-  K.wall(X0 - 9.4, CZ + XW, X0 - 9.4, CZ - XW, FY, XH, { t: 0.8, holes: [{ at: XW, w: 3.4, h: 5 }] });
-  K.both(M.wall, box(9.4, 0.8, 2 * XW + 0.8, X0 - 4.7, FY + XH + 0.4, CZ));
-  K.add(M.voidM, T(new THREE.PlaneGeometry(3.4, 5).translate(0, 2.5, 0), [X0 - 9.9, FY, CZ], [0, Math.PI / 2, 0]));
-  K.solid(box(0.1, 5, 4, X0 - 9.9, FY + 2.5, CZ));
+  add(Pit, { room: 'arena', min: [CX - HR - 12, -18, CZ - HR - 12], max: [CX + HR + 12, FY - 4, CZ + HR + 12] });
+  {
+    const [dx, dz] = rim(CX, CZ, HR + 0.7, FLOOR.a), [wx, wz] = rim(CX, CZ, HR + 0.7, FLOOR.hub);
+    add(Door, { id: 'd6', at: [dx, FY, dz], yaw: FLOOR.a, ...DOOR, frame: { side: 1.2 } });   // (frame: the rotunda's gap is wider than the door: you jumped through beside it, issue #356)
+    add(BarGate, { id: 'd7', at: [wx, FY, wz], yaw: FLOOR.hub, ...DOOR, frame: { side: 1.2 } });
+    // the way out: a door east, a short passage to the door into the world
+    const [ox, oz] = rim(CX, CZ, HR + 0.7, FLOOR.out), [ex, ez] = rim(CX, CZ, HR + 10.6, FLOOR.out);
+    add(Door, { id: 'd8', at: [ox, FY, oz], yaw: FLOOR.out, ...DOOR, frame: { side: 1.2 } });
+    corridor(...rim(CX, CZ, HR + 1.45, FLOOR.out), ex, ez, FY, { w: 8.6, h: 10 });
+    const [vx, vz] = rim(CX, CZ, HR + 10.2, FLOOR.out);
+    K.both(M.wall, T(new THREE.BoxGeometry(9.4, 10, 0.8), [vx + Math.sin(FLOOR.out) * 0.8, FY + 5, vz + Math.cos(FLOOR.out) * 0.8], [0, FLOOR.out, 0]));
+    K.add(M.voidM, T(new THREE.PlaneGeometry(3.4, 5).translate(0, 2.5, 0), [vx, FY, vz], [0, FLOOR.out + Math.PI, 0]));
+    K.solid(T(new THREE.BoxGeometry(4, 5, 0.1), [vx, FY + 2.5, vz], [0, FLOOR.out, 0]));
+    rt.wayOut = K.world(...(([x, z]) => [x, FY + 0.5, z])(rim(CX, CZ, HR + 9.8, FLOOR.out)));
+  }
 
   const model = anchorModel(SK?.warden);
-  model.pos.copy(K.world(CX + 4, FY, CZ));
+  // (#477: it stands facing the great door it waits for, its back to the gate the hub sees it through)
+  model.pos.copy(K.world(CX + Math.sin(FLOOR.a) * 4, FY, CZ + Math.cos(FLOOR.a) * 4));
   model.home = model.pos.clone();
-  model.heading = K.heading(Math.PI / 2);
-  model.rest = K.world(CX - 1, FY, CZ);
-  model.restHeading = K.heading(Math.PI / 2);
+  model.heading = K.heading(FLOOR.a);
+  model.rest = K.world(CX - Math.sin(FLOOR.a), FY, CZ - Math.cos(FLOOR.a));
+  model.restHeading = K.heading(FLOOR.a);
   const arena = { center: K.world(CX, FY, CZ), r: HR, y: K.world(0, FY, 0).y };
 
   // (the wings last: their marks after the others, as they were)
@@ -1177,11 +1282,11 @@ function layout(rt) {
   const W = (x, y, z) => K.world(x, y, z);
   return {
     arrival: { pos: W(0, 0.05, -4.4), heading: K.heading(0) },
-    bounds: new THREE.Box3(V(CX - HR - 14, -26, STORE.z - STORE.d / 2 - 6), V(SHAFT[0] + WING.r + 4, 34, LOCKER.z + LOCKER.d / 2 + 6)),
+    bounds: new THREE.Box3(V(HOLD.x - HOLD.r - 14, -26, STORE.z - STORE.d / 2 - 6), V(CX + HR + 6, 34, LOCKER.z + LOCKER.d / 2 + 6)),
     gadget: { at: W(0, 0.62, C3).toArray(), face: K.heading(Math.PI) },
-    exits: [{ at: W(0, 0.5, -7.6), r: 1.5 }, { at: W(X0 - 9.4, FY + 0.5, CZ), r: 1.5 }],
+    exits: [{ at: W(0, 0.5, -7.6), r: 1.5 }, { at: rt.wayOut, r: 1.5 }],
     lights: [[0, 5, -2, 10], [0, 14, C1, 26], [WINCH[0], 9, WINCH[1], 20], [SHAFT[0], 13, SHAFT[1], 20], [0, 10, C3, 20],
-      [-28, 6, 70, 18], [-50, 15, 28, 22], [-66, 9, 82, 18], [-66, 12, 50, 16], [-40, 10, 60, 24], [-30, 16, 30, 16], [LOCKER.x, 9, LOCKER.z, 20], [STORE.x, BS + 6, STORE.z, 18], [CX, FY + 8, CZ, 24]],
+      [-28, 6, 70, 18], [-50, 15, 28, 22], [-66, 9, 82, 18], [-66, 12, 50, 16], [-40, 10, 60, 24], [-30, 16, 30, 16], [LOCKER.x, 9, LOCKER.z, 20], [STORE.x, BS + 6, STORE.z, 18], [CX, FY + 8, CZ, 24], [HOLD.x, HOLD.y + 8, HOLD.z, 22]],
     guardian: { def: { ...ANCHOR_WARDEN, onHit: wardenHit, openFor: wardenOpenFor }, model, arena },
   };
 }
@@ -1327,7 +1432,7 @@ export const SPACECITY_TEMPLE = {
   // (its futuristic skin, issue #342: the look of the author's picks over the same rooms, src/temples/skins/mooring-house.js)
   skin: mooringHouseSkin,
   local: { person: 'joss', out: 7, side: 6 },
-  enterLine: 'Inside the Mooring-House the floors stop short over nothing, and under them the stars go on. Somewhere overhead, cable pays out with a long creak.',
+  enterLine: 'Inside the Mooring-House the floors stop short over nothing, and under them the stars go on. Somewhere behind iron bars, cable pays out with a long creak.',
   pitLine: 'You catch a hanging cable and haul yourself back up to the last glyph stone.',
   onResolved(rt) { rt.notice('Over the city every cable draws taut, and its lamps light one by one.', 'resolved.out'); },
   // the loft's try: its ring brings a lamp down on its cord (and nothing else)

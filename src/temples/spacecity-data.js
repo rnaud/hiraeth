@@ -10,7 +10,7 @@ export const QUEST = {
   outro: 'The Anchor-Warden has taken up its cables, and the islands of the city hold together again.',
   find: 'Find the Mooring-House north of the Towers',
   gadget: 'Find what the makers left in the Mooring-House',
-  keeper: 'Go up to what lets the cables out',
+  keeper: 'Go past the Cord Loft to what lets the cables out',
 };
 
 export const PEOPLE = {
@@ -38,7 +38,7 @@ export const PEOPLE = {
           ],
         },
         warden: {
-          say: ['~whisper~ Something at the top of the house turns the capstan back. Slowly. At night you can hear the cable paying out.',
+          say: ['~whisper~ Something in the heart of the house turns the capstan back. Slowly. At night you can hear the cable paying out.',
             '~neutral~ The old moorers called it *the Anchor-Warden*. It was built to hold on. Now it lets go.'],
           choices: [{ text: '~neutral~ I’ll go in and look.', do: { start: 'temple.spacecity' }, goto: 'go' }, { text: '~solemn~ Built to hold on. I’ll remember that.', end: true }],
         },

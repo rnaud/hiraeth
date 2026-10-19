@@ -263,3 +263,25 @@ test('the audit carries in the gadgets the route has given by then, and every te
     assert.ok(!by.moonfoundry.includes('magnet') && !by.spacecity.includes('tether'), 'never a temple’s own gadget before its chest');
   } finally { rmSync(out, { recursive: true, force: true }); }
 });
+
+// (issue #477) The houses had converged on one order ("a few base steps, the chest, combinations, the great key, the
+// guardian"): four shapes since (the gadget first, the great key mid-way, two wings, the guardian met early). No two houses
+// may read more than 70 % alike again, measured as the audit measures them (each house built, its skeleton's edit distance).
+test('no two houses read more than 70 % alike in the order of their steps (issue #477)', async () => {
+  const { spawnSync } = await import('node:child_process');
+  const { readFileSync, rmSync } = await import('node:fs');
+  const { join } = await import('node:path');
+  const { tempDir } = await import('../scripts/temp-dirs.mjs');
+  const out = tempDir('temple-alike-');
+  try {
+    const r = spawnSync(process.execPath, ['scripts/temple-design/audit.mjs', out], { encoding: 'utf8', timeout: 240000 });
+    assert.equal(r.status, 0, r.stderr.slice(-400));
+    const rep = JSON.parse(readFileSync(join(out, 'report.json'), 'utf8'));
+    const ids = rep.temples.map((t) => t.id);
+    assert.ok(ids.length >= 14, `every house measured (${ids.length})`);
+    for (const [i, a] of ids.entries()) for (const b of ids.slice(i + 1)) {
+      const sim = rep.alike[a][b], skel = (id) => rep.temples.find((t) => t.id === id).skeleton;
+      assert.ok(sim <= 0.7, `${a} ${skel(a)} and ${b} ${skel(b)}: ${Math.round(sim * 100)} % alike`);
+    }
+  } finally { rmSync(out, { recursive: true, force: true }); }
+});

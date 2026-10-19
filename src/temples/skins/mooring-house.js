@@ -75,15 +75,19 @@ export const MOORING_PLATES = [
   { round: [-28.3, 1.7], r: [6, 11], y: [10.5, 14], n: 3 },                             // the Winch Room
   { box: [-54, 21, 42, -38, 27, 90], n: 5 },                                            // the Mooring Hall, over the void (v1.83: over the moored room's top)
   { box: [-48, 13, 98, -22, 16, 122], n: 2 },                                           // the Chain Locker
-  { round: [-107, 46.5], r: [11, 15.5], y: [14.5, 19], n: 4 },                              // the Capstan Floor
+  { round: [-107, 46.5], r: [11, 15.5], y: [14.5, 19], n: 4 },                              // the Anchor Hold (the Capstan Floor until #477)
+  { round: [40, 50.6], r: [10, 14.5], y: [12.6, 16.5], n: 4 },                                  // (#477) the Capstan Floor, east of the hub
 ];
 /** The islands floating in the void round the house (the kit's local m): their middles and sizes, the cable's end on the house. */
 export const MOORING_ISLANDS = [
-  // out of the Capstan Floor's west windows
+  // out of the Anchor Hold's windows (the Capstan Floor's until #477)
   { at: [-190, 6, 72], s: 20, to: [-126, 16, 62] },
   { at: [-205, -14, 10], s: 16, to: [-124, 14, 32] },
   { at: [-165, 18, -32], s: 12, to: [-120, 20, 30] },
   { at: [-150, 34, 140], s: 14, to: [-112, 24, 64] },
+  // (#477) out of the Capstan Floor's windows, east of the hub
+  { at: [112, 2, 66], s: 18, to: [58, 12, 56] },
+  { at: [96, 22, -6], s: 14, to: [56, 14, 40] },
   // overhead, seen up through the void halls' open tops
   { at: [-40, 62, 140], s: 18, to: [-45, 21, 125.6] },
   { at: [-108, 54, 82], s: 14, to: [-78.6, 28, 80] },

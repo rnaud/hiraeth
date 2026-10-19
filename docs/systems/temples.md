@@ -881,6 +881,35 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   With it, `stretch` (the cables' and chains' drawing) got its own scratch vector: called with the shared one as the
   cable's foot, it drew the moored room's cable, the rings' chains and the shaft's counterweight's off by the house's
   middle, so the rings hung from nothing.
+- **The Mooring-House's shape: the guardian met early** (v1.86, issue #477; shape 4 of the four proposed on the issue: the
+  Mooring-House and the Casting-House read 71 % alike). The Capstan Floor moves east of the Capstan Hall, between it and
+  the Cord Loft (`FLOOR`: its middle, its gaps' angles `a` to the loft and `hub` to the hall, its windows, `out`), and the
+  house ends back where it began:
+  - **Seen from the first visit**: the hall's east wall opens on a short passage to the floor, barred by the Warden's gate
+    (`d7`, a `BarGate`: iron bars from floor to lintel on brass rails, a `DockGate` whose slab is bars; solid to the feet,
+    open to the eye). The Anchor-Warden stands beyond them from the start, facing the door it waits for.
+  - **The way in** is the great door off the Cord Loft (`d6`, the great key; the antechamber `ante` a short passage off the
+    loft's east-south-east gap, reached before the tether and empty: `tests/temples.test.js` `ANTE_EARLY`). Stopped, the
+    Warden's gate opens from inside (`opens: { resolved: true }`, the link `arena → hall`): back into the hub; a door east
+    (`d8`) is the way out into the world, as every house's.
+  - **The Anchor Hold** (`HOLD`) where the Capstan Floor stood, past the west door: a round hall over the void, barred
+    windows, a well in its middle; the Warden's spare anchor-ball (`bA`) out over the well on a cable-rail, pulled home with
+    the tether onto its footstone (`pA`), draws back the bar of the moorers' gate (`sc`: the Rope Store's small key and
+    `opens: { drumOn: ['bA', 'pA'] }`, a lamp for it on the lintel). So the west section (the Chain Locker, the gangway, the
+    Cable Walk, the west door) comes before the balcony and the great key, and the great key comes down the cradle to the
+    hub, a room from the great door. The tether outside the moored rooms, a ball's path (the v1.85 audit's edit 3).
+  - The coffer moved round the hall to the south-east (`CLEAT.coffer`), clear of the gate's passage; the skin's floating
+    plates and two islands for the new floor; the house's talk ("at the top of the house", the keeper step's "Go up", the
+    enter line's "overhead") says where it is now (`tests/keeper-direction.test.js`).
+  Audit: skeleton `XBBBCXXXXXXXXLXLK` → `KXBBBCXXXXXXXXLXLK` (the gate's K first, the hall's index), 71 % → 67 % like its
+  nearest (the Casting-House); the Casting-House 71 % → 67 %. 14 steps, 11 combinations, curve 4 (first third 2.85, last
+  4.35); the moorers' gate is a far step now (obviousness 1.0: its bar's anchor four rooms off, out of sight, a lamp on
+  the gate for it) and the chest falls to 29 % of the steps (dungeon item 5 → 4), so the score 4.33 → 4.22; identity 3
+  either side (its traversals' half point). Rules broken: none. Old saves (`migrate.js` spacecity v5): past the moorers'
+  gate, the hold's ball home; one that entered, to its last mark. Every pair of houses now reads 70 % alike or less:
+  `tests/temple-design.test.js` checks it (the audit run whole). Tests: `tests/mooring-room.test.js` (the Warden in sight
+  through its bars from the hall; the hold's ball pulled for real; the moorers' gate with its key and its bar; the great
+  door off the loft; the Warden; out through its gate into the hall), `tests/temples.test.js`.
 - **The Lamp-House round its Lamp Hall, its great lamp the house's state** (v1.83, issue #410; the approved
   recommendations: `docs/design/temple-best-practices.md`, G1, G2, G4, G6). The Hall of Dark Pools is the **Lamp Hall**
   (`ROOMS.pools`, its id kept), 36 by 64 m under 34, its **gallery** (`GALLERY`, the room `hallUp`) along the west wall

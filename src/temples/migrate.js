@@ -229,10 +229,14 @@ export const LAYOUTS = {
   // ring only the lens shows (rL), the Cable Walk's catch on a ring (rW). Past the west door (or the guardian): those rings
   // pulled, the locker's ball in its cup, the gangway taut. Past the great key: its ring pulled. A save that entered the
   // house: taken to its last mark in the new rooms
+  // v1.86 (issue #477): the Capstan Floor east of the Capstan Hall (its bars seen from the hub, its great door off the loft,
+  // the way out the gate into the hub); the Anchor Hold where it stood, its anchor-ball pulled home draws the moorers'
+  // gate's bar. Past the moorers' gate: the hold done. A save that entered: to its last mark
   spacecity: {
-    v: 4,
+    v: 5,
     steps: [
       { if: ['lit.r5', 'open.sc', 'open.gN', 'boss'], set: { 'unlocked.sc': 1, 'found.kS': true, 'lit.arR': true } },
+      { if: ['open.sc', 'found.kB', 'boss'], set: { 'drum.bA': 0.141 } },   // (HOLD.rail.plateAt: tests/temples.test.js checks)
       { if: ['open.gN', 'boss'], set: { 'unlocked.d6': 1, 'found.kB': true, 'drum.bK': 0.167 } },   // (spacecity.js PERCH.plateAt: tests/temples.test.js checks)
       { if: ['open.gN', 'boss'], set: { 'drum.ballK': 1, 'lit.rK': true, 'lit.rW': true, 'open.br2': true, 'drum.ballD': 0.125, 'open.ride': true, 'open.rideW': true } },
       { if: ['found.kB', 'open.gN', 'boss'], set: { 'lit.rL': true, 'seen.rL': true } },

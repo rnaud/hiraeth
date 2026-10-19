@@ -42,6 +42,12 @@ export const CHANGELOG = [
     // tests/greenhouse-water.test.js, tests/temples.test.js (GADGET_FIRST); docs/systems/temples.md "The Builders' Greenhouse's shape"
     { text: 'In the Builders’ Greenhouse the bloom is found first, on a mound in the middle of the great glass hall, and the whole house is about it from there: the Cold Frame’s door is a flower-door in the sun, its trays hold seeds to bring the sun to, and the Seed Chamber’s seed wants the water sent up before it grows and opens the way on.',
       see: 'In the Builders’ Greenhouse, take the bloom from the mound in the first hall and bloom the flower-door on the east side.' },
+    // issue #477: src/temples/spacecity.js (FLOOR moved east of the Capstan Hall, WARDEN_GATE and BarGate d7 opened on
+    // resolved, the great door off the loft, d8 the way out; HOLD, the Anchor Hold, bA / pA and sc opens on it; CLEAT moved),
+    // skins/mooring-house.js, spacecity-data.js, migrate.js spacecity v5; tests/mooring-room.test.js, temples.test.js,
+    // temple-design.test.js (no two houses over 70 % alike); docs/systems/temples.md "The Mooring-House's shape"
+    { text: 'In the Mooring-House you now see the Anchor-Warden from the first hall, through the bars of its gate, and when it is stopped the gate opens and you walk back out into the hall where you began. Its floor is reached by a great door off the Cord Loft. Where it stood, past the west door, the Anchor Hold keeps a spare anchor out over a well: pull it home with the tether to draw back the moorers’ gate’s bar.',
+      see: 'In the Mooring-House, look east from the Capstan Hall as you come in: the Warden stands behind the bars. Later, past the west door, tether the anchor-ball home in the Anchor Hold.' },
   ] },
   { v: '1.85', date: '2026-10-18', items: [
     // issue #474: src/music-moments.js (MUSIC_MODES, musicMode: Always the default), src/ui.js (musicMode, musicV: a saved

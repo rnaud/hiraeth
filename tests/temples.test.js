@@ -71,6 +71,9 @@ const BACK_TO = { incal: ['vaneFar'], edena: ['vault'] };
  * arena (the Builders' Greenhouse's Shade House).
  */
 const GADGET_FIRST = { edena: ['shade'] };
+/** (issue #477, the guardian met early) The Mooring-House's great door off the Cord Loft, reached before the tether: its
+ * antechamber is a passage with nothing to do, the great key the lock. */
+const ANTE_EARLY = { spacecity: ['ante'] };
 
 const worlds = new Map();
 // (a temple by its id, in the world it stands in: the First Garage's, `garage`, is the Clock-House in the Glass Dunes;
@@ -295,7 +298,8 @@ test('every built temple is solvable through its state machine, its gadget found
     assert.ok(!no.stuck.includes(boss[1].room), `${id}: the arena stays shut without ${def.gadget}`);
     // (a room the solver reaches after the chest, and a player may reach before it, whose step wants the gadget: the room the
     // gadget sends you back to, the Warden's Well's Vane Room and its great key's cage, issue #413)
-    const after = r.order.slice(at + 1).filter((room) => !(BACK_TO[id] ?? []).includes(room) && !(GADGET_FIRST[id] ?? []).includes(room));
+    const after = r.order.slice(at + 1).filter((room) => !(BACK_TO[id] ?? []).includes(room) && !(GADGET_FIRST[id] ?? []).includes(room) && !(ANTE_EARLY[id] ?? []).includes(room));
+    for (const room of ANTE_EARLY[id] ?? []) assert.ok(L.rooms[room]?.kind === 'passage' && !Object.values(L.elements).some((e) => e.room === room), `${id}: ${room}, open before the gadget, is an empty passage`);
     assert.ok(after.length >= 2 && after.every((room) => !no.stuck.includes(room)), `${id}: every room after the gadget needs it (${no.stuck.join(', ')})`);
     for (const room of BACK_TO[id] ?? []) assert.ok(Object.values(L.elements).some((e) => e.room === room && e.needs?.includes(def.gadget)), `${id}: ${room} wants the gadget`);
     // 3–6 puzzle rooms (rooms with something to do; the arena's own pieces are the fight's), a checkpoint in most; a
@@ -975,8 +979,8 @@ test('the Hush-House (v1.83, issue #409: no fight at all): the Threshold’s cry
   }
 });
 
-test('the Mooring-House (issue #417): the moored room high or low is the house’s one state; the Rope Store’s small key for the moorers’ gate, the great key on the balcony behind the lens’s ring; either order; old saves past the west door find it open', async () => {
-  const { PERCH, LOW, HIGH } = await import('../src/temples/spacecity.js');
+test('the Mooring-House (issues #417, #477): the moored room high or low is the house’s one state; the Capstan Floor by the hub, its gate opened from inside; the Anchor Hold’s anchor-ball for the moorers’ gate; the Rope Store’s small key for the moorers’ gate, the great key on the balcony behind the lens’s ring; either order; old saves past the west door find it open', async () => {
+  const { PERCH, LOW, HIGH, HOLD } = await import('../src/temples/spacecity.js');
   const L = TEMPLES.spacecity.def.logic, items = ['backpack', 'gun', 'doublejump', 'glider', 'sword', 'shield', 'monocle'];
   for (const reverse of [false, true]) { const r = solve(L, { items, reverse }); assert.equal(r.done, true, r.log.join(' / ')); }
   // (G2: the tether and the lens at once, for the great key)
@@ -987,6 +991,16 @@ test('the Mooring-House (issue #417): the moored room high or low is the house�
   const noBall = solve(L, { items, forbid: ['bK'] });
   assert.ok(noBall.logic.isFound('kS') && noBall.stuck.includes('perch') && !noBall.stuck.includes('arena'), 'without the balcony’s ball the Capstan Floor stays shut');
   assert.deepEqual(TEMPLES.spacecity.def.arenas.map((A) => A.el), ['arR']);
+  // (issue #477, the guardian met early) the Capstan Floor's gate into the hub opens from inside once the Warden is stopped,
+  // and its way in is the great door off the loft; the Anchor Hold's anchor-ball, pulled home, draws the moorers' gate's bar
+  assert.ok(L.links.some((l) => l.a === 'arena' && l.b === 'hall' && l.door === 'd7') && L.links.some((l) => l.a === 'loft' && l.b === 'ante' && !l.door), 'the floor between the hub and the loft');
+  assert.deepEqual(L.elements.d7.opens, { resolved: true });
+  assert.deepEqual(L.elements.sc.opens, { drumOn: ['bA', 'pA'] });
+  assert.equal(L.elements.bA.plateAt, HOLD.rail.plateAt);
+  const noHold = solve(L, { items, forbid: ['bA'] });
+  assert.ok(!noHold.done && noHold.order.includes('hold') && !noHold.order.includes('perch'), 'without the Anchor Hold’s ball the moorers’ gate stays shut');
+  const way = solve(L, { items }).order;
+  assert.ok(way.indexOf('hold') < way.indexOf('perch') && way.indexOf('perch') < way.indexOf('arena'), `the hold, the balcony, then the floor (${way.join(' ')})`);
   // the state: one drum of two stops, set from the hub, the room, the west landing, and with the tether at the docks
   const M = L.elements.mooring;
   assert.deepEqual(M.stops, { mLow: 0, mHigh: 1 });
@@ -1028,6 +1042,7 @@ test('the Mooring-House (issue #417): the moored room high or low is the house�
     assert.equal(B.isOpen('d6'), past, past ? 'past the west door: the Capstan Floor’s door open' : 'on the gallery: the great key still on the balcony');
     assert.ok(B.isOpen('d1') && B.isOpen('d2') && B.isOpen('br2'), 'the doors behind them open as they were');
     if (past) assert.ok(B.isOpen('gN') && B.isLit('rK') && B.isLit('rL'), 'past the west door: its ring and the lens’s ring pulled');
+    assert.ok(B.drumOn('bA', 'pA'), '(#477) past the moorers’ gate: the hold’s anchor-ball home');
   }
 });
 
