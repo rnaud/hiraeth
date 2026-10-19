@@ -1,0 +1,25 @@
+data/characters/traveller-v2/outfits/glider-pilot/manifest.json
+  s_5f899ba316b5dc::t_e56a8c345bc39e 17-18,29-30,42-43,142,213,217-244,251-257,259-262,266-301,303,305-306,310-326,331,333,399,442-443
+docs/systems/characters.md
+  s_5f899ba316b5dc::t_cdde003b0f01d0 2207-2211,2218-2224,2251-2291
+scripts/blender/traveller/outfit_glider_pilot.py
+  s_5f899ba316b5dc::t_77933afdd4cbfc 20-21,38-39,67-69,71-72,96,99-100,102,112-124,163-224,261,263-267,274-278,280-287,314-328,334,336-340,342-365
+tests/traveller-outfits.test.js
+  s_5f899ba316b5dc::t_386c9b82fce52a 220-246
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a9ceae7aa43e2705aa32027dce71a6090d69ed27",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
