@@ -5643,3 +5643,20 @@ measured under it.
 Raw: the session's scratchpad, `stutter-468-p2/` (`retroid-before/`, `retroid-after/`: each run's tsv, json and log,
 `report.md`; `title-470/` the #470 cold start; `bin/` the node probes: `geo-sent.mjs` what the mirror sends frame by
 frame, `foe-geo.mjs` a body's geometry and build time).
+
+### The Retroid's next round, ready but not run (issue #525, 2026-10-18)
+
+The cape fix's A/B (806627e02), Android's pipeline list traced again and a cold start's first uses were to be measured
+here, and none were: the APK on the device was a release build (no `-stutter` recording; every run ended "NOT
+recorded"), and the handheld locked while the development APK was built (the build took 35 minutes at a load of 50-80).
+What is ready for the next sitting:
+- A development APK of this branch (the stutter work on main at ec19c1d53, build 2650) is installed on the Retroid.
+- `run-android.mjs --cold 1` deletes Unity's own Vulkan pipeline cache (`cache/vulkan_pso_cache.bin`, on the shared
+  storage, no `run-as` needed) before each run: a first start's first uses as after an update that changes the shaders.
+  The Adreno driver keeps a cache of its own (round 7), so only the first run after an install is fully cold.
+- `android-pso-trace.mjs` traces as the Deck's (#465): the discarded worlds left out, a jump held and the tool fired in
+  the desert and the Underwater City, the decals and a splat, and the first uses the stutter runs found (the talk's first
+  line, the menus' pages and the Map: `-sequence talk`, `route-menus`).
+- The order that keeps the comparison fair: the first uses before the trace (no list, then `-pso` with the old list),
+  then the trace, then `-pso-file <new list>` (and `-pso-progressive N`) with a no-list run again as the control for
+  what the driver learnt from the trace.

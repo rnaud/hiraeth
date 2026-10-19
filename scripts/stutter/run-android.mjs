@@ -5,6 +5,8 @@
 // scripts/stutter/report.mjs (the spike line 33 ms). `-bundle none` unless --bundle names a script to play instead
 // (pushed to the app's folder): the downloaded script over the air never plays.
 //   node scripts/stutter/run-android.mjs [ids…] --out <dir> [--repeat 2] [--bundle <hiraeth.cjs>] [--extra "-js-off x"] [--tag b]
+//        [--cold 1] (Unity's own Vulkan pipeline cache, cache/vulkan_pso_cache.bin, deleted before each run: a first start's
+//        first uses, as after an update that changes the shaders; the Adreno driver's own cache cannot be emptied)
 // Only ever starts and stops com.rnaud.hiraeth.unity, and stops it after each run.
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, existsSync, writeFileSync, statSync } from 'node:fs';
@@ -35,6 +37,7 @@ for (let k = 1; k <= repeat; k++) {
   for (const run of runs) {
     const name = `${run.id}${tag ? '-' + tag : ''}-${k}`, prefix = `${DIR}/${name}`;
     sh(`rm -f ${prefix}.unity.tsv ${prefix}.js.json`);
+    if (arg('cold')) sh(`rm -f /sdcard/Android/data/${PKG}/cache/vulkan_pso_cache.bin`);
     adb('logcat', '-c');
     const plan = ['-mute', '-metrics', '-sequence', run.id, '-stutter', prefix, '-limit', arg('limit', '240'), '-bundle', bundle, ...EXTRA].join(' ');
     const t0 = Date.now();

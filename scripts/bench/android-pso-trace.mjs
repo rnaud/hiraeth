@@ -3,9 +3,13 @@
 // BUILD_ARGS=-development NO_UPLOAD=1 scripts/unity-android-release.sh), installed, run with -pso-trace over every world,
 // its trace gathered launch after launch in the app's own folder, then fetched into the project:
 //   node scripts/bench/android-pso-trace.mjs --out <dir here> [--apk <apk>] [--worlds desert,arzach,…] [--fresh 1]
-//        [--passes views,temples,fights] [--extra "-no-slim"] [--no-copy 1]
-// Each world: its bench views once and its walk (viewpoints.json's desert, viewpoints-worlds.json's others); its first
-// temple's first room and the ship's rooms; a fight (a blot, knocked out, the guardian woken). Then <out>/Vulkan.graphicsstate
+//        [--passes views,temples,fights,moves,menus] [--moves desert,underwater] [--extra "-no-slim"] [--no-copy 1]
+// Each world (not the discarded ones, src/levels/names.js DISCARDED, unless --worlds names them): its bench views once
+// and its walk (viewpoints.json's desert, viewpoints-worlds.json's others); its first temple's first room and the ship's
+// rooms; a fight (a blot, knocked out, the guardian woken). As the Deck's (#465): in the --moves worlds a jump held in
+// the air (-ui jump: Hiraeth/JumpShade) and the fluid tool aimed and fired, and in the desert the ground's decals and a
+// splat (-sequence decals, splat); and the first uses #468's stutter runs found on the Retroid (issue #525): a
+// conversation's first line and the menus' pages with the Map (-sequence talk, route-menus). Then <out>/Vulkan.graphicsstate
 // and, unless --no-copy 1, the project's unity/Hiraeth/Assets/StreamingAssets/hiraeth-pso/Android/Vulkan.graphicsstate.
 // Muted (the plan's -mute read back from the log, and no audio stream started, or the app is stopped), the frame readout
 // on (-metrics), the app stopped after each launch. It installs, starts and stops com.rnaud.hiraeth.unity only.
@@ -13,6 +17,7 @@ import { spawnSync } from 'node:child_process';
 import { mkdirSync, writeFileSync, readFileSync, existsSync, copyFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { options, viewpoints, sleep, ROOT } from './lib.mjs';
+import { isDiscarded } from '../../src/levels/names.js';
 
 const opt = options();
 const SERIAL = process.env.ANDROID_SERIAL ?? 'ea2c972a';
@@ -20,8 +25,9 @@ const ADB = process.env.ADB ?? `${process.env.HOME}/Library/Android/sdk/platform
 const PKG = 'com.rnaud.hiraeth.unity', ACT = `${PKG}/com.unity3d.player.UnityPlayerGameActivity`;
 const OUT = resolve(String(opt.out ?? 'android-pso-trace'));
 const VP = viewpoints(), PW = JSON.parse(readFileSync(resolve(ROOT, 'scripts/bench/viewpoints-worlds.json'), 'utf8')).worlds;
-const WORLDS = String(opt.worlds ?? ['desert', ...Object.keys(PW)].join(',')).split(',');
-const PASSES = String(opt.passes ?? 'views,temples,fights').split(',');
+const WORLDS = String(opt.worlds ?? ['desert', ...Object.keys(PW)].filter((id) => !isDiscarded(id)).join(',')).split(',');
+const PASSES = String(opt.passes ?? 'views,temples,fights,moves,menus').split(',');
+const MOVES = String(opt.moves ?? 'desert,underwater').split(',');
 const EXTRA = opt.extra ? String(opt.extra).split(' ').filter(Boolean) : [];
 const DEV = `/sdcard/Android/data/${PKG}/files`, TRACE = `${DEV}/pso-trace.graphicsstate`;
 const adb = (...a) => spawnSync(ADB, ['-s', SERIAL, ...a], { encoding: 'utf8', maxBuffer: 1 << 28 }).stdout ?? '';
@@ -66,6 +72,11 @@ for (const w of WORLDS) {
   // (a temple that is not there ends the plan: the first only, and none at Home)
   if (PASSES.includes('temples') && w !== 'home') await launch(w, 'temples', [{ name: 'temple0', world: w, temple: 0 }], ['-aboard', 'main,console']);
   if (PASSES.includes('fights') && w !== 'home') await launch(w, 'fights', [], ['-fight', 'foe,down,guardian']);
+  if (PASSES.includes('moves') && MOVES.includes(w)) await launch(w, 'moves', [], ['-play', 'tool', '-ui', 'jump']);
+  // (the ground's decals, each in its offset state, #463, and a splat in its own: engine/sequences.js, the desert's)
+  if (PASSES.includes('moves') && w === 'desert') for (const s of ['decals', 'splat']) await launch(w, s, [], ['-sequence', s]);
+  // (a conversation's first line, the game menu's pages and the Map: engine/sequences.js, engine/stutter-routes.js)
+  if (PASSES.includes('menus') && w === 'desert') for (const s of ['talk', 'route-menus']) await launch(w, s, [], ['-sequence', s]);
 }
 sh(`am force-stop ${PKG}`);
 adb('pull', TRACE, `${OUT}/Vulkan.graphicsstate`);
