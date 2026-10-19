@@ -45,7 +45,7 @@ test('the frozen world updates the creatures, the reactive things and the foes a
   assert.ok(readFileSync(new URL('../src/host/game-host.js', import.meta.url), 'utf8').includes('foes.update(dt, quiet);'));
   assert.ok(main.includes('f.update(dt, t, player.pos, camera.position)'));
   assert.match(readFileSync(new URL('../src/wildlife.js', import.meta.url), 'utf8'), /update\(dt, t, player, camera, paused = false\) \{\n\s*if \(paused\) return;/);
-  assert.match(readFileSync(new URL('../src/foes.js', import.meta.url), 'utf8'), /update\(dt, paused = false\) \{[\s\S]{0,400}if \(paused\) return;/);
+  assert.match(readFileSync(new URL('../src/foes.js', import.meta.url), 'utf8'), /update\(dt, paused = false\) \{[\s\S]{0,900}if \(paused\) \{[^\n]*return; \}/);   // (held: nothing fighting you, issue #264)
   // and the check hands it to the page, held unless asked (--live)
   const rec = readFileSync(new URL('../scripts/motion-check/record.mjs', import.meta.url), 'utf8');
   assert.ok(rec.includes('window.__freezeLife = ${freezeLife.toString()}') && rec.includes('window.__frozenLife = live ? [] : window.__freezeLife(window);'));

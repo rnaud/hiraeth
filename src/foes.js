@@ -2590,7 +2590,10 @@ export class Foes {
     const P = this.player;
     if (!P) return;
     if (!this.on) { for (const f of this.list) { f.model.group.visible = false; f.tele.hide(); f.glow?.hide(); } return; }
-    if (paused) return;
+    // (held still by a scene, a conversation or a menu: nothing is fighting you. The flag kept its last value before, so a
+    // toad that was chasing as a world's moment began kept the hearts and the wallet up over the whole of it: issue #264,
+    // Lorn's crystal moment in the Unity batch run, whose foes had a few seconds more to wake than the page's)
+    if (paused) { if (this.fighting) { this.fighting = false; if (typeof document !== 'undefined') document.body.classList.toggle('combat', false); } return; }
     this.clock = (this.clock ?? 0) + dt;   // (the foes' own time: seesYou's pace)
     if (this.tool?.blade) this.tool.blade.gentle = this.gentle;   // (the evade's i-frame window for this setting)
     this._people = this.peopleNow();

@@ -79,6 +79,9 @@ export const CHANGELOG = [
     // uBedBox, uBedRef), Surface.shader waterDepth; scripts/design-qc/capture.mjs (the pinned eye for the frame's updates);
     // tests/unity-light-add.test.js, tests/unity-water-bed.test.js
     'In the Unity version, the first room of every makers’ house is as light as on the web: the glow of the way you came in by brightens it as it does there, where before the whole room came out grey and dim. And Lorn’s lake has its pale shallows along the shores again, the water darkening as it deepens.',
+    // issue #264: src/foes.js (Foes.update held: nothing is fighting you); tests/foes-held.test.js
+    { text: 'The hearts no longer stay up over a world’s filmed moment because a foe was chasing you as it began.',
+      see: 'Let a foe chase you and then start one of a world’s filmed moments (in Lorn, the crystal cave’s ring): the hearts fade as it begins and stay down over it.' },
     // issue #515: engine/game.js (the pad's 'call' to player.callMount, as main.js); tests/engine-call.test.js
     'In the Unity version, D-pad ↓ calls your mount again: in Lorn the skiff comes over to you, as it always did on the web.',
     // issue #514: src/levels/perdide.js buildSkiff (SKIFF_SHEET: the sail and its boom sheeted out; SKIFF_HULL), src/bike.js
