@@ -51,6 +51,7 @@ import { survey, CHECK_ROUND, SURVEY_EVERY } from './mirror-freeze.js';
 import { updateSceneMatrices, sceneList } from './scene-matrices.js';
 import { WORLD_STAMP } from '../src/matrix-cache.js';
 import { skeletonUpdate } from '../src/skeleton-update.js';
+import { bedBytes } from './water-bed.js';
 import { noticesOn, ownHook, attrIn } from './mirror-notices.js';
 
 
@@ -61,13 +62,14 @@ import { noticesOn, ownHook, attrIn } from './mirror-notices.js';
  */
 export const LIVE_VECTORS = ['uBoxA', 'uTfBrowA', 'uTfBrowB', 'uTfEye', 'uTfMouth', 'uMood', 'uMood2', 'uRays', 'uDoor', 'uHoloA', 'uHoloB', 'uHoloC', 'uBreathe', 'uVeinBox', 'uSplatTime',
   'uHeadSpeech', 'uPortraitBlink', 'uCutMe', 'uLineWhite',
-  'uSee', 'uSeeK', 'uBlade', 'uBladeB', 'uBladeC', 'uHeadEye'];   // (uSee, uSeeK: a fight temple's wall opening round him, materials.js SEE_HOLE, uSeeK a number; uBlade..C: the fluid sword's blade and the shield, src/blade-shader.js)
+  'uSee', 'uSeeK', 'uBlade', 'uBladeB', 'uBladeC', 'uHeadEye', 'uBedBox', 'uBedRef'];   // (uSee, uSeeK: a fight temple's wall opening round him, materials.js SEE_HOLE, uSeeK a number; uBlade..C: the fluid sword's blade and the shield, src/blade-shader.js)
 // (uRays: a light's wash, its rays' clock: src/veil.js; uDoor: a way through's glow, src/door-light.js; uHoloA..C: a recording's figure, src/ship/hologram.js)
-const LIVE_FROM_SPEC = LIVE_VECTORS.indexOf('uMood');
+const LIVE_FROM_SPEC = LIVE_VECTORS.indexOf('uMood'), BED_REF = LIVE_VECTORS.indexOf('uBedRef');
 // (uBreathe: the Buried Machine's clock, src/breathe-shader.js; uVeinBox: where Lorn's vein map lies, src/lorn-veins.js; uSplatTime:
 // the splats' clock, a number sent as (t, 0, 0, 0), src/splat-decal.js; issue #264; surfaces D: the portrait head's mouth and
 // blink, characters/portrait-head.js; the traveller's own surfaces, cut while the lens is in him, materials.js uCutMe; a line
-// drawn white, uLineWhite: the shade, a struck foe's flash; uHeadEye: the portrait head's iris moved with his look, issue #473)
+// drawn white, uLineWhite: the shade, a struck foe's flash; uHeadEye: the portrait head's iris moved with his look, issue #473;
+// uBedBox: where a water's bed map lies, uBedRef (sent with the map, a Vector2 on the page): its height and the bytes' scale, #502)
 const liveVec = (v) => (v?.isVector4 ? v : typeof v === 'number' ? (LIVE_NUM.x = v, LIVE_NUM) : null);
 const LIVE_NUM = { x: 0, y: 0, z: 0, w: 0 };
 
@@ -207,6 +209,18 @@ export class SceneMirror {
     if (vt?.isTexture && vt !== m.__mirrorVeinMap && this.backend.materialTexture) {
       const mid = this.mats.get(m);
       if (mid) { m.__mirrorVeinMap = vt; this.backend.materialTexture(mid, 'veins', vt); }
+    }
+    // the bed under a water (src/water.js finishBake: a map of half floats, baked as he goes) as bytes the backend can send
+    // (engine/water-bed.js), named on the material with its height and scale (_BedRef.z 1: the bytes' square-root depth;
+    // its box goes live, uBedBox); the 1 × 1 "unknown" map before the first bake is left out (issue #502)
+    const bt = R.bed !== null ? R.bed.value : null;
+    if (bt?.isTexture && bt !== m.__mirrorBed && this.backend.materialTexture) {
+      const mid = this.mats.get(m), enc = mid ? bedBytes(bt) : null;
+      if (enc) {
+        m.__mirrorBed = bt;
+        this.backend.materialTexture(mid, '_Bed', enc);
+        this.backend.materialVec?.(mid, BED_REF, [U.uBedRef?.value?.x ?? 0, 1, 1, 0]);
+      }
     }
     // the traveller's fluid (fluid-tool.js): its fill, tones and clock move every frame it flows
     if (R.fluid && this.backend.materialFluid) {
@@ -606,7 +620,7 @@ export { skeletonUpdate };
  * has the fluid's and a temple skin's.
  */
 function liveRecord(m, U, f, nv) {
-  const R = { at: f, of: U, col: U?.uColor ?? null, glow: null, wash: null, vw: [], vh: [], fluid: !!(U?.uFluidA && U.uFluidTones), skin: !!m.userData?.skinPattern, vein: U?.uVeinMap ?? null,
+  const R = { at: f, of: U, col: U?.uColor ?? null, glow: null, wash: null, vw: [], vh: [], fluid: !!(U?.uFluidA && U.uFluidTones), skin: !!m.userData?.skinPattern, vein: U?.uVeinMap ?? null, bed: U?.uBed ?? null,
     foe: !m.userData?.skinPattern && !!m.defines?.FOE_SURFACE && !!U?.uFsCracksO };
   if (U?.uGlow) R.glow = U.uGlow; else if (U?.uWash) R.wash = U.uWash;
   if (U) for (let w = 0; w < nv; w++) { const h = U[LIVE_VECTORS[w]]; if (liveVec(h?.value)) { R.vw.push(w); R.vh.push(h); } }

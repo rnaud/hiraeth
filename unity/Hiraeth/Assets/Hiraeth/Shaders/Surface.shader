@@ -172,7 +172,7 @@ Shader "Hiraeth/Surface"
     float4 _Room;          // a room in a hull (materials.js ROOM_LIGHT, the ship's rooms): its key's direction (three, object), w its strength
     float4 _WaterOpt, _WaterBed;
     float4 _BedBox;                // x0, z0 (three space), 1 / width, 1 / depth: where the bed map lies (Waters.cs bakes it)
-    float4 _BedRef;                // x: the height the map is measured from, y: 1 once baked
+    float4 _BedRef;                // x: the height the map is measured from, y: 1 once baked, z: 1 the bridge's bytes (engine/water-bed.js)
     float _Drift, _SpotStep, _LineStep, _ToDisplay, _FormOn, _Veins, _BoxOn, _TripoFace;
     float _SkinBody;       // a temple skin's pattern (src/temples/skins/skin-shader.js: its number; its uniforms in _SkinData, HIRAETH_SKIN)
     float _FoeBits;        // a foe's painted features (src/foe-surface.js: FS_* as bits; its uniforms in _SkinData, HIRAETH_FIGHT)
@@ -884,7 +884,10 @@ Shader "Hiraeth/Surface"
         float2 uv = (p.xz - _BedBox.xy) * _BedBox.zw;
         float2 e = smoothstep(0.0, 0.03, uv) * (1.0 - smoothstep(0.97, 1.0, uv));
         known = _BedRef.y * e.x * e.y;
-        float bed = SAMPLE_TEXTURE2D_LOD(_Bed, sampler_Bed, saturate(uv), 0).r + _BedRef.x;
+        // (the bridge's map is bytes, z 1: the depth under the surface on a square-root scale, engine/water-bed.js BED_RANGE
+        // 16 m; Waters.cs's a float height over _BedRef.x, z 0. Two ALU ops, no branch: issue #502)
+        float r = SAMPLE_TEXTURE2D_LOD(_Bed, sampler_Bed, saturate(uv), 0).r;
+        float bed = _BedRef.x + lerp(r, -16.0 * r * r, _BedRef.z);
         return lerp(_WaterOpt.x, p.y - bed, known);
       }
       float waveInk(float2 p, float t, float str, float2 wd, float scale, float seed)

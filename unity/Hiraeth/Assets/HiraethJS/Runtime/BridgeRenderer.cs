@@ -67,7 +67,7 @@ namespace Hiraeth.Bridge
         // the coral-shirt traveller's overshirt (BridgeCloth: a Burst job a frame, op 17), by its id
         readonly Dictionary<int, BridgeCloth> cloths = new();
         // a material's vectors sent live (engine/mirror.js LIVE_VECTORS, in its order): op 18
-        static readonly string[] LiveVectors = { "_BoxA", "_TfBrowA", "_TfBrowB", "_TfEye", "_TfMouth", "_Mood", "_Mood2", "_WashRays", "_Door", "_HoloA", "_HoloB", "_HoloC", "_Breathe", "_VeinBox", "_SplatClock", "_PhSpeech", "_PhBlink", "_CutMe", "_LineWhite", "_See", "_SeeK", "_Blade", "_BladeB", "_BladeC", "_PhEye" };   // (engine/mirror.js LIVE_VECTORS)
+        static readonly string[] LiveVectors = { "_BoxA", "_TfBrowA", "_TfBrowB", "_TfEye", "_TfMouth", "_Mood", "_Mood2", "_WashRays", "_Door", "_HoloA", "_HoloB", "_HoloC", "_Breathe", "_VeinBox", "_SplatClock", "_PhSpeech", "_PhBlink", "_CutMe", "_LineWhite", "_See", "_SeeK", "_Blade", "_BladeB", "_BladeC", "_PhEye", "_BedBox", "_BedRef" };   // (engine/mirror.js LIVE_VECTORS)
         public double msCloth;
         /// <summary>The people's capes simulated here (BridgeCape: src/cape.js CAPE_HOST), by the script's id; read by its thread too.</summary>
         public static readonly System.Collections.Concurrent.ConcurrentDictionary<int, BridgeCape> Capes = new();
@@ -472,6 +472,9 @@ namespace Hiraeth.Bridge
                 vm.SetFloat("_Cull", vs == 2 ? (float)CullMode.Off : vs == 1 ? (float)CullMode.Front : (float)CullMode.Back);
                 // (a light's wash adds to the picture, as three's AdditiveBlending; its rays: strength, clock, how many, soft edge)
                 vm.SetFloat("_DstBlend", m.F("add") > 0.5f ? (float)BlendMode.One : (float)BlendMode.OneMinusSrcAlpha);
+                // (a light's added as the web adds it, in two blends: its multiply pass on for a light alone, Veil.shader
+                // fragMul, LightAdd.hlsl; issue #502. A wash laid over draws once, as before)
+                vm.SetShaderPassEnabled("SRPDefaultUnlit", m.F("add") > 0.5f);
                 var vr = m.L("rays");
                 if (vr != null && vr.Count == 4) vm.SetVector("_WashRays", new Vector4(Json.Num(vr[0]), Json.Num(vr[1]), Json.Num(vr[2]), Json.Num(vr[3])));
                 materials[mid] = vm;

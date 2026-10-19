@@ -1711,8 +1711,45 @@ node scripts/unity-compare/run.mjs [--worlds a,b] [--set lantern] [--skip web,un
 | The traveller lighter at night | the Underwater City at dusk | **open** (small) |
 | The seeing lens's overlay (post.js `uLens`) has no Unity side | any world, the lens raised | **open**, found by the uniforms' audit, not in a view |
 | One run drew the Signal Market's square all in shade | the market's crowd view | a flake (the shot before the maps were drawn); the run after as the web |
+| Every temple's first room 7-15 ΔE darker and greyer (v1.85 audit) | every makers' house, its first room seen through the way in | **fixed** (#502, below) |
+| Lorn's lake one flat teal, no pale shallows along the shores | Lorn's wide view | **fixed** (#502: the water's bed map) |
 
 Run it again on every Unity release, before the Deck's and the Retroid's defaults move to it.
+
+**A temple's first room and Lorn's lake (#502, 2026-10-18).** Re-measured on main after #469: the rooms still 10-15 ΔE
+dark, the lake 5.7. With every wash off (`-no-veil`; on the web `level.veils.render` emptied) the two sides' rooms were the
+same to a level: the whole difference was the way in's light (src/door-light.js), which the views see the room through.
+Two causes:
+- **The light's add.** The web adds a light to the page's sRGB values (three's AdditiveBlending); Unity added it in its
+  linear target with its alpha brought down (a^1.5, tuned for black walls), a third to a half of the web's lift over a
+  room's mid-tone walls. Now `LightAdd.hlsl` matches the web's add over every base in two blends, an affine map of the
+  linear value fitted to it (`L' = A + M L`: the first blend `DstColor One` with M − 1, the shader's SRPDefaultUnlit
+  pass, which URP draws before its UniversalForward one; then `One One` with A): within 1-8 of 255 rms for the door's
+  middle, its pool and a way's rays, against 4-30 before (tests/unity-light-add.test.js). Hiraeth/DoorLight always,
+  Hiraeth/Veil for a light's wash alone (`SetShaderPassEnabled`; a wash laid over draws once, as #420 left it).
+  Cost: one more draw of each way's light on screen, the same few ALU; its pipeline states are new (the PSO lists
+  recorded before it miss them until traced again).
+- **The web's own side.** `scripts/design-qc/capture.mjs` pinned its eye in `updateMatrixWorld` only, so what the
+  frame's updates measured from the camera was the follow camera's: a way's light fades as the eye comes within 4.5 m
+  (DOOR_LIGHT.near), and the web's rooms took it at 5.9 m (no fade) where the view's eye is 3 m off (the engines'
+  fixed views use the pinned eye). The capture now puts the pinned eye back after the rig moves it.
+The lake: the engines never baked the water's bed map (main.js does it through `waters.update`), and its half floats
+could not cross the bridge, so every body was the fallback depth, one flat tone. Now engine/game.js bakes it a few rows a
+frame (`bakeStep`, half the budget on a handheld; a fixed view all at once), and the mirror sends it as RGBA bytes
+(engine/water-bed.js: the depth under the surface on a square-root scale over 16 m, 2-6 cm a step at the bands) with
+`_BedBox` and `_BedRef` (z 1: the bytes) live; Surface.shader `waterDepth` reads it back in two ALU ops
+(tests/unity-water-bed.test.js).
+
+| view | before (main, the old web capture) | before (the web's eye fixed) | after |
+|---|---|---|---|
+| Viridel's first room | 15.0 | 9.8 | 0.7 |
+| the City-Shaft's | 14.0 | 7.7 | 2.4 |
+| the Underwater City's | 13.7 | 7.5 | 2.9 |
+| the Buried Machine's | 10.7 | 2.3 | 2.1 |
+| the Rose House's | 11.4 | 10.1 | 6.4 (its lamp's flicker: the floor's pool a size either side) |
+| Lorn's wide view | 5.7 | 5.9 | 0.9 |
+
+(ΔE (Lab) mean of the 6 × 4 grid, High, 1280 × 720, noon.)
 
 ## The opening, beat by beat (Unity + Puerts, 2026-10-16, issue #394)
 

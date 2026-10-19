@@ -23,7 +23,7 @@ import * as THREE from 'three';
 import { levelById, LEVELS } from '../src/levels/index.js';
 import { CONTENT, ERRANDS } from '../src/levels/content.js';
 import { Physics, dropBuriedFloraSteps } from '../src/physics.js';
-import { Waters, BreathMeter, breathShown } from '../src/water.js';
+import { Waters, BreathMeter, breathShown, BED } from '../src/water.js';
 import { waterShared } from '../src/water-shader.js';
 import { Ship } from '../src/ship/ship.js';
 import { CallScreen } from '../src/ship/portrait.js';
@@ -327,7 +327,7 @@ export const LOOK_VECTORS = new Set(['uWind', 'uHaze', 'uSpot', 'uSpotTone', 'uH
   // (the sky's own: the eclipse, src/eclipse.js; the Lantern's light, src/story/lantern-sky.js; space, src/levels/space-city-kit.js)
   'uEclipse', 'uCorona', 'uEclipseGlow', 'uEclipseDir', 'uLantern', 'uSpace', 'uSpaceTone', 'uSpaceSun', 'uSpaceNight']);
 
-export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', quality = null, log = () => {}, menus = null, start = null, arrive = false, hullSpawn = false, settings = null, gestures = true, moves = true, matching = null, via = null, prologue = false, onTravel = null, aboard = null, scenes = false, fight = false, game: gameId = null, from = null, to: transitTo = null, onGame = null, onLeave = null, trials: withTrials = false, onPage = null, arrival = null, back = null, saves = true, defer = true, far: farOn = true, lod: lodOn = false, skies = true, onStage = null } = {}) {
+export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', quality = null, log = () => {}, menus = null, start = null, arrive = false, hullSpawn = false, settings = null, gestures = true, moves = true, matching = null, via = null, prologue = false, onTravel = null, aboard = null, scenes = false, fight = false, game: gameId = null, from = null, to: transitTo = null, onGame = null, onLeave = null, trials: withTrials = false, onPage = null, arrival = null, back = null, saves = true, defer = true, far: farOn = true, lod: lodOn = false, skies = true, waterBed = true, onStage = null } = {}) {
   const T = {};
   // (the fight, engine/combat.js, made once the traveller and his tool are)
   let combat = null;
@@ -1204,6 +1204,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   let mapTick = 0;
   // a fixed view (the side-by-sides and the benchmark's viewpoints): the camera pinned there
   let pinned = view ? pin(view) : null;
+  if (view && waterBed) bakeAround();
   let smallCull = null;
   function pin(v) {
     const eye = new THREE.Vector3(...v.eye), target = new THREE.Vector3(...v.target);
@@ -1215,6 +1216,11 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     const q = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(eye, target, new THREE.Vector3(0, 1, 0)));
     // (a view with no place for the traveller leaves him out of the picture, as web-shots.mjs does)
     return { eye, q, fov: v.fov ?? 55, hidePlayer: v.hidePlayer ?? !v.player };
+  }
+  // a fixed view's water beds baked at once (the web's side bakes them in the seconds it waits before its picture; a
+  // batch's settle is a few quick frames): every map round the traveller that is stale, nearest first (issue #502)
+  function bakeAround() {
+    for (let k = 0; k <= waters.bodies.length && waters.bakeStep(player.pos, Infinity); k++);
   }
   // where the traveller starts when the engine plays (not a bench's views): the save's place in this world (main.js
   // "continue where you left off"), else at the foot of the ship's ramp, as arriving by ship (ship.arrivalSpot). A
@@ -1379,7 +1385,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     screen: () => screen,
     /** A pointer delta (pixels), as the mouse turns the camera on the page. */
     look(dx, dy) { rig.look(dx, dy); },
-    pin(v) { pinned = v ? pin(v) : null; },
+    pin(v) { pinned = v ? pin(v) : null; if (v && waterBed) bakeAround(); },
     /** The water's pass over the page this frame (src/water.js Waters.overState: the tint and haze under water, the sun's
      * sparkle above it), plain numbers in three's space; under -1 when it draws nothing; lite: the preset has no sparkle. */
     waterOver() { const s = waters.overState(camera), lite = waterShared.uWaterLite.value; return s ? { ...s, lite } : { under: -1, lite }; },
@@ -1792,6 +1798,10 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       // and his last second of steps, for the grass to part along (brush.js, as main.js: the bridge's op 28, issue #264)
       if (backend?.brushTrail) backend.brushTrail((brushTrail ??= new BrushTrail()).update(dt, player.riding ? null : player.pos, Math.hypot(player.vel.x, player.vel.z)).trail, brushTrail.bound);
       lap?.('wind');
+      // the bed under the water, a few rows a frame (src/water.js bakeStep, main.js's through waters.update): the shader's
+      // pale shallows, the bed through them and the deep band need it, else every body is one flat tone (issue #502;
+      // -js-off waterbed: without it). A handheld bakes in half the time a frame (uWaterLite: Handheld, the Retroid)
+      if (waterBed) waters.bakeStep(player.pos, waterShared.uWaterLite.value > 0.5 ? BED.budget / 2 : BED.budget);
       // the camera kept off the water's surface, under it or over it (main.js; what the pass over the page draws: waterOver)
       waters.keepCamera(camera, player.swim?.under ? 'under' : 'over');
       // (the frame's camera final: what a level lays out only where it is seen, the Underwater City's bubbles; main.js renderFrame)

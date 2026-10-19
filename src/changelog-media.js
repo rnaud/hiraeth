@@ -1213,8 +1213,19 @@ const PSO465 = 'Issue #465: a release Linux player of main at 509b40cc9 on the S
 const BEAM485 = 'Issue #485: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, noon, the HUD hidden) on this branch’s own Vite (port 5485), the traveller in the Rose House’s Great Hall 8 m before the watcher, its aim held (its fire switched off), the camera pinned to the side, shield down and then held (Z); before: the tree at 60438d265 (port 5487), the same view; 18 October; cwebp -q 72';
 /** (v1.85, issue #489: the bird's wings from the saddle) */
 const BIRD489 = 'Issue #489: the web game in muted headless Chrome (Medium, 1280 × 720) on this branch’s own Vite (port 5489), Vael, the bird ridden and gliding level, the game stepped 1/60 s a frame by hand, four frames in a row read back from the canvas; before: the branch’s base; the wing cropped, twice size, nearest neighbour; 18 October; cwebp -q 72';
+/** (v1.85, issue #502: a temple's first room and Lorn's lake in Unity) */
+const ROOMS502 = 'Issue #502: the Unity editor’s batch run on this Mac (scripts/unity-compare/unity.mjs, muted, High, 1280 × 720, -fresh -no-hud, noon, clear); before: main at af5f80258; after: this change; 18 October; cwebp -q 72';
+const ROOMS502W = 'Issue #502: the same view on the web, muted headless Chrome on this branch (scripts/design-qc/capture.mjs, High, 1280 × 720, a fixed render scale), the frame’s updates from the pinned eye; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.85': [
+    { match: 'In the Unity version, the first room of every makers’ house is as light as on the web', tags: ['temples', 'devices'], shots: [
+      { name: 'unity-temple-edena', title: 'Viridel’s house', caption: 'Its first room seen through the way in: before, grey walls and floor (ΔE 9.8 against the web); after, as light as the web’s (ΔE 0.7)', from: ROOMS502 },
+      { name: 'unity-temple-edena-web', only: 'after', title: 'Viridel’s house on the web', caption: 'The same view on the web', from: ROOMS502W },
+      { name: 'unity-temple-incal', title: 'The Warden’s Well', caption: 'The City-Shaft’s house: before, dim violet (ΔE 7.7); after, as the web’s (ΔE 2.4)', from: ROOMS502 },
+      { name: 'unity-temple-incal-web', only: 'after', title: 'The Warden’s Well on the web', caption: 'The same view on the web', from: ROOMS502W },
+      { name: 'unity-lorn-shallows', title: 'Lorn’s lake', caption: 'From over the landing: before, one flat teal; after, the pale shallows along the shores and the deeper water past them, as on the web (ΔE 5.9 → 0.9)', from: ROOMS502 },
+      { name: 'unity-lorn-shallows-web', only: 'after', title: 'Lorn’s lake on the web', caption: 'The same view on the web (birds and fish move on their own clock)', from: ROOMS502W },
+    ], see: 'In the Unity version, walk into any makers’ house and look back over the first room; or fly up over Lorn’s landing and look out over the lake.' },
     { match: 'Each world’s own recorded music now plays the whole time you are there', see: 'Land in any world and walk out into the open: after two and a half minutes its recorded music keeps playing instead of fading out to the light synthesised tunes, and it is still there five minutes on. Settings > Music plays now reads Always; pick Moments there to have the old way back, and it stays picked.' },
     { match: 'The Clock-House’s and the Undertower’s last steps now point the right way', see: 'In the Glass Dunes, take what the makers left in the Clock-House and open the Quests page (J): the next step reads “Climb to what winds itself up”. In the Signal Market the Undertower’s reads “Go up to the voice in the high hall”, and walking in you hear the voice far overhead.' },
     { match: 'Riding the bird in Vael, her wings no longer shimmer as they beat', shots: [

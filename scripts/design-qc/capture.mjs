@@ -76,7 +76,12 @@ const pin = (v) => `(() => { const { THREE, camera, player } = window, up = new 
   const e = new THREE.Vector3(...${JSON.stringify(v.eye)}), t = new THREE.Vector3(...${JSON.stringify(v.target)});
   window.__pin = { e, q: new THREE.Quaternion().setFromRotationMatrix(m.lookAt(e, t, up)), fov: ${v.fov ?? 60}, far: ${v.far ?? 0} };
   if (!camera.__pinned) { const base = THREE.PerspectiveCamera.prototype.updateMatrixWorld; camera.__pinned = true;
-    camera.updateMatrixWorld = function (f) { const P = window.__pin; if (P) { this.position.copy(P.e); this.quaternion.copy(P.q); if (this.fov !== P.fov || (P.far && this.far < P.far)) { this.fov = P.fov; if (P.far) this.far = P.far; this.updateProjectionMatrix(); } } return base.call(this, f); }; }
+    camera.updateMatrixWorld = function (f) { const P = window.__pin; if (P) { this.position.copy(P.e); this.quaternion.copy(P.q); if (this.fov !== P.fov || (P.far && this.far < P.far)) { this.fov = P.fov; if (P.far) this.far = P.far; this.updateProjectionMatrix(); } } return base.call(this, f); };
+    // (and as soon as the follow camera has moved, so what the frame's updates measure from the eye is measured from the
+    // pinned one, as the engines' fixed views do: a way's light fading as the eye comes near it, issue #502; before, its
+    // fade was the follow camera's, metres off, and a temple's first room seen through its way in came out lighter)
+    const rig = window.rig, rigUpdate = rig?.update;
+    if (rigUpdate) rig.update = function (...a) { const r = rigUpdate.apply(this, a); const P = window.__pin; if (P) { camera.position.copy(P.e); camera.quaternion.copy(P.q); } return r; }; }
   ${v.player ? `player.teleport?.(new THREE.Vector3(...${JSON.stringify(v.player)}), up, new THREE.Vector3(0, 0, 1));` : ''}
   ${Number.isFinite(v.heading) ? `player.heading = ${v.heading};` : ''}
   ${v.weather && v.weather !== 'clear' ? `if (window.weather) window.weather.mode = ${JSON.stringify(v.weather)};` : ''}

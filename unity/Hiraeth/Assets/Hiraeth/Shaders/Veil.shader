@@ -24,17 +24,9 @@ Shader "Hiraeth/Veil"
   SubShader
   {
     Tags { "RenderType" = "Transparent" "Queue" = "Transparent+30" "RenderPipeline" = "UniversalPipeline" }
-    Pass
-    {
-      Tags { "LightMode" = "UniversalForward" }
-      Blend SrcAlpha [_DstBlend]
-      ZWrite Off
-      ZTest Always
-      Cull [_Cull]
-      HLSLPROGRAM
-      #pragma vertex vert
-      #pragma fragment frag
+      HLSLINCLUDE
       #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+      #include "LightAdd.hlsl"
       Texture2D _GNormalTex;
       // (HiraethFeature _GFlip: drawn straight into a player's back buffer, which is the other way up from the G-buffer's
       // texture, its row read from the bottom; issue #420 / #425)
@@ -57,7 +49,8 @@ Shader "Hiraeth/Veil"
         o.cs = TransformWorldToHClip(wp); o.wp = wp; o.n = TransformObjectToWorldNormal(v.n); o.d = -TransformWorldToView(wp).z; o.uv = v.uv;
         return o;
       }
-      float4 frag(V i, bool front : SV_IsFrontFace) : SV_Target
+      // the wash at this pixel: its colour in display values, its alpha a layer
+      float4 wash(V i, bool front)
       {
         // by hand against the scene's depth: under something nearer, or on its own rim (drawn in the G-buffer), nothing
         float scene = GAt(i.cs).w;
@@ -101,16 +94,49 @@ Shader "Hiraeth/Veil"
           float k = face * fade * lerp(1.0, 0.15 + 1.1 * rays, _WashRays.x);
           a *= floor(saturate(k) * 3.0 + 0.5) / 3.0;
         }
-        // (a light adds in Unity's linear target, the web's in sRGB: over dark walls the same alpha came out far brighter
-        // (a temple's first room washed out), over a lit floor about the same; its alpha brought down between the two,
-        // measured against the web at the Rose House's, the Moon Foundry's and the Buried Machine's first rooms)
-        if (_DstBlend < 1.5) a = pow(saturate(a), 1.5);
-        // (a wash laid over, likewise: three blends it in the page's sRGB, Unity in its linear target, where a pale wash
-        // over a dark wall comes out far lighter: the skull cave's shafts of light read as white slabs, issue #420. Its alpha
-        // brought down toward the web's over the cave's walls and floor)
-        else a = pow(saturate(a), 1.15);
-        return float4(pow(saturate(col), 2.2), a);
+        return float4(col, saturate(a));
       }
+      // (a light adds in Unity's linear target, the web's in sRGB: added as the web adds it in two blends, LightAdd.hlsl,
+      // issue #502: the multiply first (fragMul, its SRPDefaultUnlit pass, on for a light's wash alone: BridgeRenderer),
+      // then the add. Before, its alpha brought down (a^1.5) for the dark walls left a temple's first room 10-15 ΔE dark)
+      float4 frag(V i, bool front : SV_IsFrontFace) : SV_Target
+      {
+        float4 w = wash(i, front);
+        if (_DstBlend < 1.5) return float4(LightAddConst(w.rgb * w.a), 1.0);
+        // (a wash laid over: three blends it in the page's sRGB, Unity in its linear target, where a pale wash over a dark
+        // wall comes out far lighter: the skull cave's shafts of light read as white slabs, issue #420. Its alpha brought
+        // down toward the web's over the cave's walls and floor)
+        return float4(pow(saturate(w.rgb), 2.2), pow(w.a, 1.15));
+      }
+      float4 fragMul(V i, bool front : SV_IsFrontFace) : SV_Target
+      {
+        float4 w = wash(i, front);
+        return float4(LightAddMul(w.rgb * w.a), 1.0);
+      }
+      ENDHLSL
+    Pass
+    {
+      Tags { "LightMode" = "SRPDefaultUnlit" }
+      Blend DstColor One
+      ColorMask RGB
+      ZWrite Off
+      ZTest Always
+      Cull [_Cull]
+      HLSLPROGRAM
+      #pragma vertex vert
+      #pragma fragment fragMul
+      ENDHLSL
+    }
+    Pass
+    {
+      Tags { "LightMode" = "UniversalForward" }
+      Blend SrcAlpha [_DstBlend]
+      ZWrite Off
+      ZTest Always
+      Cull [_Cull]
+      HLSLPROGRAM
+      #pragma vertex vert
+      #pragma fragment frag
       ENDHLSL
     }
   }

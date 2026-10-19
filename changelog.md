@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.85 — 2026-10-18
 
+- In the Unity version, the first room of every makers’ house is as light as on the web: the glow of the way you came in by brightens it as it does there, where before the whole room came out grey and dim. And Lorn’s lake has its pale shallows along the shores again, the water darkening as it deepens.
 - On the Steam Deck, Hiraeth is now one game in your library and always starts the Unity version. It no longer slips into the older web version when the Unity one is slow to start or not downloaded yet: a first start downloads it with a progress bar on the screen, and if it truly cannot start, a message says so and you are back in your library. The Hiraeth (web) shortcut leaves your library the next time the game updates while Steam is closed.
 - Foes arriving no longer freeze the game for a moment, most of all on the Retroid and in the Unity version: every foe of a kind now shares one body shape instead of building its own, and the foes a world can field are prepared while it loads. When a brute and a swarm of skitters come in, the longest frame on the Retroid is about half what it was.
 - Opening the Map for the first time in a world no longer freezes the game for a moment: its ground is drawn a little each frame while the page says how far along it is. In the Unity version the longest frame of a trip through the menus and the Map went from about 190 ms to 29.

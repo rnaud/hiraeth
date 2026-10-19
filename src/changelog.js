@@ -49,6 +49,11 @@ export const CHANGELOG = [
     // launch-web and launch-unity out of shortcuts.vdf, no Electron launch); release-info.mjs webJson; tests/test_steam_deck.py
     { text: 'On the Steam Deck, Hiraeth is now one game in your library and always starts the Unity version. It no longer slips into the older web version when the Unity one is slow to start or not downloaded yet: a first start downloads it with a progress bar on the screen, and if it truly cannot start, a message says so and you are back in your library. The Hiraeth (web) shortcut leaves your library the next time the game updates while Steam is closed.',
       see: 'On the Steam Deck, start Hiraeth from the library: it opens the Unity version every time. After an update with Steam closed (or a restart of the Deck), Hiraeth (web) is no longer in the library.' },
+    // issue #502: unity/Hiraeth LightAdd.hlsl, DoorLight.shader, Veil.shader (a light added to the picture in two blends as the
+    // web adds it), BridgeRenderer; engine/game.js (the water's bed baked), engine/water-bed.js, engine/mirror.js (_Bed,
+    // uBedBox, uBedRef), Surface.shader waterDepth; scripts/design-qc/capture.mjs (the pinned eye for the frame's updates);
+    // tests/unity-light-add.test.js, tests/unity-water-bed.test.js
+    'In the Unity version, the first room of every makers’ house is as light as on the web: the glow of the way you came in by brightens it as it does there, where before the whole room came out grey and dim. And Lorn’s lake has its pale shallows along the shores again, the water darkening as it deepens.',
   ] },
   { v: '1.84', date: '2026-10-17', items: [
     // issue #439: src/costumes.js (HEADS: the 47 pieces of the 15 hat sets, HAT_SETS, HAT_SET_WORLDS, hoodShell / hoodNeck /
