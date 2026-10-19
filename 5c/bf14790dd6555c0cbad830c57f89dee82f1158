@@ -1,0 +1,35 @@
+changelog.md
+  s_5f899ba316b5dc::t_49f0380e36c34e 10
+docs/systems/performance.md
+  s_5f899ba316b5dc::t_d25a67bcac3a97 5706-5712
+engine/game.js
+  s_5f899ba316b5dc::t_7bc1ddfea63dee 162,355-361,403,413,432,492,589,727,1287
+index.html
+  s_5f899ba316b5dc::t_3c2c9e4c43f131 232-236,529-530
+src/changelog-media.js
+  s_5f899ba316b5dc::t_ffe35c4b55c3cc 1244-1245,1271-1273
+src/changelog.js
+  s_5f899ba316b5dc::t_5ca3f70b7af2df 91-93
+src/load-page.js
+  s_5f899ba316b5dc::t_36fc93c0de1403 1-77
+src/main.js
+  s_5f899ba316b5dc::t_cb818ceaae7488 128,159-164,182,194
+tests/load-page.test.js
+  s_5f899ba316b5dc::t_930e31f99e7055 1-78
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5cbf14790dd6555c0cbad830c57f89dee82f1158",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
