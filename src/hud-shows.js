@@ -19,7 +19,7 @@
 export const HUD_HIDES = {
   talking: ['cue', 'health', 'keys', 'stamina', 'tool', 'prompt', 'balloons', 'gadget', 'gadgetWheel', 'reticle', 'gadgetMarks', 'guardian', 'foeTab', 'lock', 'warn'],
   bars: ['cue', 'tool', 'gadget', 'gadgetWheel', 'reticle', 'gadgetMarks'],
-  hudOff: ['cue', 'stamina', 'keys', 'guardian', 'foeTab', 'lock', 'warn', 'words'],
+  hudOff: ['cue', 'health', 'stamina', 'keys', 'guardian', 'foeTab', 'lock', 'warn', 'words'],
   minigame: ['cue', 'stamina', 'tool', 'prompt', 'gadget', 'gadgetWheel', 'reticle'],
 };
 /** In a game played on foot (drives: false) these stay (the page's body.minigame:not(.mg-onfoot)). */
@@ -32,6 +32,17 @@ export const HUD_ELEMENTS = {
 };
 /** The page's body classes by the state above. */
 export const HUD_CLASSES = { talking: 'talking', 'cine-on': 'bars', minigame: 'minigame' };
+
+/**
+ * A scene holds the screen (issue #501): its letterbox up or the HUD off, and you don't walk through it. The hearts
+ * and the key count are quiet then (src/host/game-host.js wireHealth, main.js updateKeys), whichever scene it is: a
+ * ship's, a world's moment or a makers' box (src/boxes/scene.js), which until then only the ship's scenes quieted.
+ * @param s  src/platform.js screen.state (or the same as plain data)
+ */
+export function sceneHolds(s = {}) {
+  const c = s.cine;
+  return !!c && !c.walk && (!!c.bars || c.hud === false);
+}
 
 /**
  * Which parts are hidden now, from the screen's state itself: { part: false }, nothing for those that show.

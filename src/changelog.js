@@ -127,6 +127,9 @@ export const CHANGELOG = [
     // magnet.js snd, springs.js springSfx, lens.js lensSfx (vary, levels); tests/sound-qc.test.js; docs/systems/audio.md
     { text: 'Switching the glove’s modes, each one now has a sound of its own: a wet rise for fluid, a low whump for push, a soft rising pair for bloom and a taut twang for tether, besides stilling’s high chirp and ember’s warm one. The stilling shot, the hook’s reel, the magnet glove and the spring boots no longer play the very same sound every time, and the push, the bombs and the boots’ stomp are less deafening, the lens and the boots’ wound-up ping quieter, and the boots’ winding easier to hear.',
       see: 'With the glove, switch through its modes (RT / R2 held, then the D-pad) and listen for which one you are on; with the hook, the magnet glove or the spring boots, use them several times over.' },
+    // issue #501: src/hud-shows.js sceneHolds (a scene's letterbox or HUD off, not walked through; health in HUD_HIDES.hudOff),
+    // src/host/game-host.js wireHealth, main.js / engine/game.js keys; tests/box-hud.test.js
+    'The hearts and the key count no longer show over a makers’ box as it opens, as they did in the City-Shaft’s Ash Store after its fight: every box’s scene, like every other scene, keeps the screen clear whatever your health.',
   ] },
   { v: '1.84', date: '2026-10-17', items: [
     // issue #439: src/costumes.js (HEADS: the 47 pieces of the 15 hat sets, HAT_SETS, HAT_SET_WORLDS, hoodShell / hoodNeck /

@@ -21,6 +21,7 @@ import { quietOr } from './hint-level.js';
 import { cueText, Cue, PlaceName, staminaHud, findSummary, heartsSvg, keysHud, KEY_SVG, GREAT_KEY_SVG } from './hud.js';
 import { resources } from './resources.js';
 import { screen } from './platform.js';
+import { sceneHolds } from './hud-shows.js';
 import { inputKind, keyText } from './prompt-keys.js';
 import { FirstSteps } from './first-steps.js';
 import { installScoutHint, scoutHintLine, SCOUT_HINT_SHOW } from './scout-hint.js';
@@ -519,7 +520,7 @@ let keysDrawn = '', keysLast = -1;
 function updateKeys() {
   const T = (level.temples ?? (level.temple ? [level.temple] : [])).find((t) => t.keyCount && Object.values(t.def?.logic?.elements ?? {}).some((e) => e.type === 'key') && t.inside(player.pos));
   const c = T?.keyCount();
-  const hud = keysHud({ inside: !!T, small: c?.small ?? 0, big: c?.big ?? false, quiet: ship.playing || photo.on });
+  const hud = keysHud({ inside: !!T, small: c?.small ?? 0, big: c?.big ?? false, quiet: ship.playing || photo.on || sceneHolds(screen.state) });
   screen.set('keys', hud);
   if (!keysEl) return;
   keysEl.classList.toggle('on', !!hud);

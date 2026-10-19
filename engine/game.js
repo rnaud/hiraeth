@@ -106,6 +106,7 @@ import { HOLO } from '../src/ship/hologram.js';
 import { feelDt, selfDt, shakeCamera, kick } from '../src/feel.js';
 import { ToolHud, SaveGame } from '../src/ui.js';
 import { screen } from '../src/platform.js';
+import { sceneHolds } from '../src/hud-shows.js';
 import { slots, slotStorage } from '../src/save-slots.js';
 import { menuSources } from '../src/game-menu-data.js';
 import { WorldMap, MAP, mapBounds, zoomBounds, mapMarks, scaleBar } from '../src/world-map.js';
@@ -1085,7 +1086,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     // the key counter while in a temple (issue #274: as main.js updateKeys; BridgeHud.cs draws it)
     const keyT = (level.temples ?? (level.temple ? [level.temple] : [])).find((t) => t.keyCount && Object.values(t.def?.logic?.elements ?? {}).some((e) => e.type === 'key') && t.inside(player.pos));
     const keyN = keyT?.keyCount();
-    screen.set('keys', keysHud({ inside: !!keyT, small: keyN?.small ?? 0, big: keyN?.big ?? false, quiet: !!pinned || busy }));
+    screen.set('keys', keysHud({ inside: !!keyT, small: keyN?.small ?? 0, big: keyN?.big ?? false, quiet: !!pinned || busy || sceneHolds(screen.state) }));   // (under a scene's letterbox: issue #501)
     // the guardian's bar while it is awake and you are in its temple (src/temples/runtime.js meterHud, a page's element on the
     // web: its name, its health or unrest, full at the start; BridgeHud.cs DrawGuardian), not while talking
     const gT = (level.temples ?? []).find((t) => t.guardian?.awake && t.inside?.(player.pos));

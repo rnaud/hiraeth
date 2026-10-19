@@ -1833,6 +1833,10 @@ BridgeHud's `On(part)` / `Part(part)` ask it: its own conditions (`free`, `hud`)
 holds the page's CSS rules (`body.talking #prompt`, `body.cine-on #gadget-chip`, `body.minigame #cue`…) to the table.
 What changed in Unity with it: the toast and the health show in a conversation and with a scene's HUD off, as the
 page's; the cue hides under a letterbox you don't walk through.
+Since #501 a scene that holds the screen (`sceneHolds`: its letterbox up or the HUD off, not walked through) quiets the
+hearts and the key count on every host, whichever scene it is (the ship's, a moment, a makers' box): only the ship's
+own (`ship.playing`) did, so the City-Shaft's bridge pen box, opened hurt after its fight, showed them. The health is in
+`HUD_HIDES.hudOff` with it; tests/box-hud.test.js plays every box's scene and holds both quiet, hurt.
 
 **Pictures**: `-ui balloons,objective,level,cargo,endcard` (with `-level`, and `-frames 1280x720` so the canvas is laid
 out at the picture's size, not the batch editor's 4:3 window) puts each piece up through engine/ui-poses.js `uiPose`

@@ -38,9 +38,9 @@ test('hudShows: the parts hidden now, from the screen\'s state', () => {
   const talk = hudShows({ dialogue: { text: 'hi' } });
   assert.equal(talk.prompt, false); assert.equal(talk.balloons, false); assert.equal(talk.cue, false);
   assert.equal(talk.toast, undefined);
-  // a ship's scene with the HUD off: the cue gone, the prompt the scene's own (the voicemail's E, issue #394) and the health as the page's
+  // a ship's scene with the HUD off: the cue gone, the prompt the scene's own (the voicemail's E, issue #394), the hearts gone
   const off = hudShows({ cine: { hud: false, bars: true } });
-  assert.equal(off.cue, false); assert.equal(off.prompt, undefined); assert.equal(off.health, undefined);
+  assert.equal(off.cue, false); assert.equal(off.prompt, undefined); assert.equal(off.health, false);   // (the hearts quiet under any scene: issue #501)
   // walked through: the cue back
   assert.equal(hudShows({ cine: { hud: false, bars: true, walk: true } }).cue, undefined);
   // a run: the cue and the prompt gone, the stamina too unless it is played on foot

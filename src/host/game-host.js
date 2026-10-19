@@ -61,6 +61,7 @@ import { keepHero, markHero, sharedUniforms } from '../materials.js';
 import { heroCut, jetCameraPitch, WIDE } from '../player.js';
 import { JumpShadow } from '../jump-shadow.js';
 import { screen } from '../platform.js';
+import { sceneHolds } from '../hud-shows.js';
 import { Foes, lockFollow, LOCK_NEAR } from '../foes.js';
 import { guardianBox } from '../lock-frame.js';
 import { hopAxis } from '../jump.js';
@@ -533,7 +534,8 @@ export function wireHealth({ game, tool = null }) {
       const R = T?.owned && !T.dry ? T.reserve : null, pot = resources.potions, wallet = resources.chimes, ticking = walletShown !== wallet;
       walletShown = walletTick(walletShown, wallet, dt);
       const hp = healthHud({ health: player.health ?? 1, hearts: player.hearts ?? null, max: player.maxHearts ?? 3, magic: R ? R.level : null, magicMax: R?.max ?? 3,
-        potions: pot.count, infinite: pot.infinite, chimes: Math.round(walletShown), wallet: ticking, combat: !!fighting, down: player.down, hurt: shown > 0, quiet }, fade, dt);
+        potions: pot.count, infinite: pot.infinite, chimes: Math.round(walletShown), wallet: ticking, combat: !!fighting, down: player.down, hurt: shown > 0,
+        quiet: quiet || sceneHolds(screen.state) }, fade, dt);   // (a scene's letterbox: every scene's, a box's too: issue #501)
       shown = 0;
       return { hp, wallet: walletShown };
     },
