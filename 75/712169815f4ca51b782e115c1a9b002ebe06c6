@@ -1,0 +1,41 @@
+changelog.md
+  s_5f899ba316b5dc::t_6f5a259ce343a7 7
+docs/design/fight-temples.md
+  s_5f899ba316b5dc::t_00ada522f547cd 202-203
+docs/systems/scout.md
+  s_5f899ba316b5dc::t_6fecd70674571b 108-110
+src/changelog-media.js
+  s_5f899ba316b5dc::t_ba4dec8f09abb4 1267
+src/changelog.js
+  s_5f899ba316b5dc::t_a648ed69d31a1b 19-21
+src/companion.js
+  s_5f899ba316b5dc::t_4dbc9cdb81874c 20,55-56,63-64,229
+src/host/game-host.js
+  s_5f899ba316b5dc::t_48cc4adf902142 257,276-280
+src/kit-colours.js
+  s_5f899ba316b5dc::t_480d960769e295 29,32,35,38,41,44,47,50,53,56,59,62,65-66,107
+src/temples/desert-data.js
+  s_5f899ba316b5dc::t_dd18396c933770 18
+src/temples/perdide-data.js
+  s_5f899ba316b5dc::t_6e22b4e8754780 17
+tests/companion.test.js
+  s_5f899ba316b5dc::t_e9d9feb6455598 4,135,244-264
+tests/fight-temples-story.test.js
+  s_5f899ba316b5dc::t_794cd26eadba68 11-14,46-59
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "75712169815f4ca51b782e115c1a9b002ebe06c6",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
