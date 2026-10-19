@@ -1,0 +1,73 @@
+changelog.md
+  s_5f899ba316b5dc::t_5e2cbb85e7ee92 5-9
+docs/design/fight-temples.md
+  s_5f899ba316b5dc::t_150466197a50c8 191-193
+docs/systems/minigames.md
+  s_5f899ba316b5dc::t_3b0e7266e68fb8 147-158
+docs/systems/story.md
+  s_5f899ba316b5dc::t_d4fd7b8a9010fe 735-736
+src/changelog-media.js
+  s_5f899ba316b5dc::t_0b38c38a6830e2 1216-1217,1263-1269
+src/changelog.js
+  s_5f899ba316b5dc::t_6632140c4b92d4 11-19
+src/fight-temples/arzach.js
+  s_5f899ba316b5dc::t_ee2c537eb8d482 17-19
+src/fight-temples/bazaar.js
+  s_5f899ba316b5dc::t_6a743b82a266b2 15-17
+src/fight-temples/buried.js
+  s_5f899ba316b5dc::t_7209cb7e1f55d2 17-19
+src/fight-temples/desert.js
+  s_5f899ba316b5dc::t_47466eeea35594 15-17
+src/fight-temples/edena.js
+  s_5f899ba316b5dc::t_da6955cc0a3d09 17-19
+src/fight-temples/glassdunes.js
+  s_5f899ba316b5dc::t_33402bebde2362 15-17
+src/fight-temples/incal.js
+  s_5f899ba316b5dc::t_317961851e77be 14-16
+src/fight-temples/index.js
+  s_5f899ba316b5dc::t_af8adba5f94f2f 26
+src/fight-temples/moonfoundry.js
+  s_5f899ba316b5dc::t_5568b9821a8fbc 23-25
+src/fight-temples/perdide.js
+  s_5f899ba316b5dc::t_4a08a948fdf1fa 18-20
+src/fight-temples/session.js
+  s_5f899ba316b5dc::t_e7665ad85a9123 373-374,383,489-491,495,563
+src/fight-temples/spacecity.js
+  s_5f899ba316b5dc::t_272c5597406ced 14-16
+src/fight-temples/spheres.js
+  s_5f899ba316b5dc::t_fd1805bf9bb9d6 15-17
+src/fight-temples/underwater.js
+  s_5f899ba316b5dc::t_7d7b35612901a8 15-17
+src/story/hosts-data.js
+  s_5f899ba316b5dc::t_257cc98783a92d 84,91,97,103,109,115,121,127,133,139,145,151
+src/story/index.js
+  s_5f899ba316b5dc::t_2f9724ed1fd35a 399-400
+src/story/rumours-data.js
+  s_5f899ba316b5dc::t_9d6974c99e08d5 207-221
+src/story/rumours.js
+  s_5f899ba316b5dc::t_bcd68e233689aa 14,29,108,152-154
+tests/fight-temples-story.test.js
+  s_5f899ba316b5dc::t_ca5559164a31fc 1-41
+tests/fight-temples-worlds.test.js
+  s_5f899ba316b5dc::t_1e1638ebc55d11 258-260
+tests/fight-temples.test.js
+  s_5f899ba316b5dc::t_4feaf678310910 287-288
+tests/rumours.test.js
+  s_5f899ba316b5dc::t_b1f1d9f4686dbc 8,34,53,60,211-223
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "98605b2aa1c6d67e8dfc09c930e84377cc48fa23",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
