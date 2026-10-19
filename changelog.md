@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.86 — 2026-10-19
 
+- In the Builders’ Greenhouse the bloom is found first, on a mound in the middle of the great glass hall, and the whole house is about it from there: the Cold Frame’s door is a flower-door in the sun, its trays hold seeds to bring the sun to, and the Seed Chamber’s seed wants the water sent up before it grows and opens the way on.
 - The Lamp-House runs in a new order. The Kennel’s door now wakes to a glowing orb you roll across the first hall, so its keepers and their small key come before the bubble wand. With the wand, the great key in the Wick Room is yours half-way through, in the dark, and the great lamp is lit on the way back.
 - Pressing lock-on (R3 / Tab) in a fight temple now answers: the aim’s ring flashes under the foe your blade will take, with the lock’s tick, and the first time a line says the right stick or the mouse aims in there.
 - The sign on each fight temple room’s floor is now the makers’ mark in a faint square. It was two dark rings, the very shape of the foes’ ring attacks, under every fight.

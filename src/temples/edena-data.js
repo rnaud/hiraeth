@@ -50,11 +50,14 @@ export const PEOPLE = {
         inside: {
           say: ['~curious~ You went in. Are the beds in there as dry as mine?', '~sad~ And the gardener?'],
           choices: [
-            { text: "~solemn~ Flower doors. Water runs off, and they stay closed.", goto: 'buds' },
+            // (issue #477: the bloom's chest stands in the Greenhouse's first hall now)
+            { if: { has: 'bloom' }, text: '~curious~ Drier. But the builders left a tool in the first hall. It tells seeds to grow.', goto: 'tool' },
+            { if: { not: { has: 'bloom' } }, text: '~solemn~ Drier. Flower doors, and a chest in the first hall I left shut.', goto: 'buds' },
             { text: '~neutral~ I’m going back.', end: true },
           ],
         },
-        buds: { say: ["~curious~ Then they need more than water. The builders had a way to wake closed buds. A tool for telling them to grow.", "~neutral~ Look inside for that tool. They wouldn’t tend a whole garden without leaving something to work with."], choices: [{ text: '~neutral~ I’ll look.', end: true }] },
+        tool: { say: ["~happy~ A tool for telling them to grow. Of course they left one. Nobody tends a garden with bare hands.", "~neutral~ Then the gardener may want the same. Gently, though."], choices: [{ text: '~neutral~ Gently.', end: true }] },
+        buds: { say: ["~curious~ Then open it. The builders wouldn’t tend a whole garden without leaving something to work with.", "~neutral~ Water won’t wake a bud. Something in there might."], choices: [{ text: '~neutral~ I’ll look.', end: true }] },
         after: {
           say: ["~surprised~ (Green fills the seed rows. Sorrel stands with soil in both hands.) Every one. This morning. I didn’t have to beg a single seed.",
             "~happy~ Look at the ruins: vines to the top, flowers below. Oro hasn’t stopped staring. Says they were always meant to look like that.",

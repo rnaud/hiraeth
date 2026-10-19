@@ -37,6 +37,11 @@ export const CHANGELOG = [
     // LIT); tests/lamp-house.test.js, tests/temples.test.js; docs/systems/temples.md "The Lamp-House's shape"
     { text: 'The Lamp-House runs in a new order. The Kennel’s door now wakes to a glowing orb you roll across the first hall, so its keepers and their small key come before the bubble wand. With the wand, the great key in the Wick Room is yours half-way through, in the dark, and the great lamp is lit on the way back.',
       see: 'In the Lamp-House, light the pool nearest the Kennel’s door, let the orb beside it drink its light, and roll the orb up the floor into its socket before it fades.' },
+    // issue #477: src/temples/edena.js (CHEST: the chest on the Palm House's floor; dE a Bud with bE; sC1 / sC2 seeds;
+    // seed0 a step, its trough; dS opens on it), edena-data.js (Sorrel's "inside"), boxes/placements.js;
+    // tests/greenhouse-water.test.js, tests/temples.test.js (GADGET_FIRST); docs/systems/temples.md "The Builders' Greenhouse's shape"
+    { text: 'In the Builders’ Greenhouse the bloom is found first, on a mound in the middle of the great glass hall, and the whole house is about it from there: the Cold Frame’s door is a flower-door in the sun, its trays hold seeds to bring the sun to, and the Seed Chamber’s seed wants the water sent up before it grows and opens the way on.',
+      see: 'In the Builders’ Greenhouse, take the bloom from the mound in the first hall and bloom the flower-door on the east side.' },
   ] },
   { v: '1.85', date: '2026-10-18', items: [
     // issue #474: src/music-moments.js (MUSIC_MODES, musicMode: Always the default), src/ui.js (musicMode, musicV: a saved

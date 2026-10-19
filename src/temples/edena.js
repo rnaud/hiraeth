@@ -34,19 +34,20 @@ import { chestMound } from '../boxes/mound.js';
 //                        the floor: the hub of both floors (`potting` its floor, `landing` its gallery). The builders' water
 //                        is the house's one state (G1: the sluice, SLUICE): up in the high troughs (the gallery's, the upper
 //                        rooms') or let down into the low channels (the floor's, the wings'), set at a sluice wheel by
-//                        either hub, a gauge in every room. On the floor an eye behind the potting benches wakes in the sun
-//                        the ball's louvre lets in, and opens the Cold Frame's door. From the gallery's east arm a drop into
+//                        either hub, a gauge in every room. (#477, the gadget first) In the middle of the floor the makers'
+//                        chest on its mound: BLOOM MODE (src/items.js 'bloom', a new gun mode), the house's first find. The
+//                        Cold Frame's door a flower-door in the vault's sun: bloom it. From the gallery's east arm a drop into
 //                        the cistern on the floor (G6); on its west arm a seed at the edge whose vine, grown down the glass,
 //                        stays: a climb back up from the floor, for good. On its north band one ball, two plates, two louvres:
 //                        the eye by the Seed Chamber's door, or the vine's seed
 //   the Shade House      (west, an arena) dark, dead pots; its door shuts behind you while its keepers stand; won, its
 //                        small key, and its north door opens into the Seed Vault
-//   the Cold Frame       (east) one louvre, one ball, two plates, an eye over each seed tray: the ball brings the sun to
-//                        one, then the other (a woken eye stays awake), and the key wants both. In its corner the disc rides
+//   the Cold Frame       (east) one louvre, one ball, two plates, a seed in each tray: the ball brings the sun to one,
+//                        then the other (a tray in flower stays so), and the key wants both. In its corner the disc rides
 //                        up its water column to the gallery, only while the water is let down
-//   the Seed Chamber     (off the gallery, past its door: two small keys and the eye) the makers' chest: BLOOM MODE
-//                        (src/items.js 'bloom', a new gun mode). A seed in a stone ring lies in the oculus's sun by the dais:
-//                        bloom it, and it flowers (a try); its north door sinks for the bloom in hand
+//   the Seed Chamber     (off the gallery, past its door: two small keys and the eye; the makers' chest until #477) a
+//                        seed in the oculus's sun in the middle, in a trough dry until the water is sent up (it comes up the
+//                        disc with the water let down): bloomed, its north door sinks
 //   the Bud Passage      the door into the Vine Gulf is a flower-door in the shade: a ball rolled onto its plate turns the
 //                        passage's louvre onto it, and with the water up a bloom glob opens it
 //   the Vine Gulf        the reference's hall: a chasm under a ribbed glass vault. The great louvre's beam falls into the
@@ -112,7 +113,7 @@ export const LOGIC = {
   id: 'edena', entry: 'threshold', gadget: 'bloom',
   // (each room's kind, issue #336: a puzzle, a fight, the chest, a passage or the guardian, never both a puzzle and a fight;
   // src/foes.js places machines only in a fight's room, round its mark's `foes`: scripts/temple-design/rules.mjs,
-  // tests/temple-rules.test.js. The Seed Chamber holds the bloom and its try. Since v1.83, issue #411, `potting` is the Palm
+  // tests/temple-rules.test.js. The Palm House's floor holds the bloom (issue #477; the Seed Chamber did). Since v1.83, issue #411, `potting` is the Palm
   // House's floor and `landing` its gallery: the ids kept, so a save's last mark holds; the Glass Stair is gone into it)
   rooms: {
     threshold: { checkpoint: true, kind: 'passage' }, potting: { checkpoint: true, kind: 'puzzle' }, shade: { checkpoint: true, kind: 'combat' }, frame: { checkpoint: true, kind: 'puzzle' },
@@ -145,20 +146,24 @@ export const LOGIC = {
     { a: 'hall', b: 'out', door: 'd5' },
   ],
   elements: {
-    // the Palm House's floor: the eye wakes only in the sun the ball's louvre lets in, and opens the Cold Frame's door
-    ball1: { type: 'drum', room: 'potting', plate: 'p1', plateAt: 1, start: 0 },
-    p1: { type: 'plate', room: 'potting' },
-    s1: { type: 'switch', room: 'potting', when: { drumOn: ['ball1', 'p1'] } },
-    dE: { type: 'door', opens: { lit: 's1' }, latch: true },
+    // (issue #477, the house reshaped: the gadget first) the makers' chest on its mound in the middle of the Palm House's
+    // floor, the second room: the bloom from the start, and the house about it from there on. (In the Seed Chamber until
+    // v1.85, the seventh room reached)
+    chest: { type: 'gadget', room: 'potting', item: 'bloom' },
+    // the Cold Frame's door a flower-door in the vault's sun (an eye the floor's ball woke until #477): bloom it, the first
+    // step a seed's, before any push
+    bE: { type: 'switch', room: 'potting', needs: ['bloom'] },
+    dE: { type: 'door', opens: { lit: 'bE' }, latch: true },
     // the Shade House: in the dark, its keepers beaten, the small key's cage sinks
     arW: { type: 'arena', room: 'shade' },
     kW: { type: 'key', kind: 'small', room: 'shade', when: { lit: 'arW' } },
     dW: { type: 'door', opens: null },
     dV: { type: 'door', opens: { lit: 'arW' }, latch: true },   // (won, its north door into the Seed Vault)
-    // the Cold Frame: one louvre, one ball, two plates, an eye over each tray; woken in the sun, an eye stays awake
-    // (the eyes before the ball: once one can wake, the marker points at it, not at the ball's other plate)
-    sC1: { type: 'switch', room: 'frame', when: { drumOn: ['ballC', 'pC1'] } },
-    sC2: { type: 'switch', room: 'frame', when: { drumOn: ['ballC', 'pC2'] } },
+    // the Cold Frame: one louvre, one ball, two plates, a tray of seeds under each (the eyes over them until #477: the bloom
+    // in hand from the start, every room after the chest wants it); bloomed in the sun, a tray stays in flower
+    // (the trays before the ball: once one can grow, the marker points at it, not at the ball's other plate)
+    sC1: { type: 'switch', room: 'frame', needs: ['bloom'], when: { drumOn: ['ballC', 'pC1'] } },
+    sC2: { type: 'switch', room: 'frame', needs: ['bloom'], when: { drumOn: ['ballC', 'pC2'] } },
     ballC: { type: 'drum', room: 'frame', stops: { pC1: 1, pC2: 0 }, start: 0.5 },
     pC1: { type: 'plate', room: 'frame' }, pC2: { type: 'plate', room: 'frame' },
     kE: { type: 'key', kind: 'small', room: 'frame', when: { all: [{ lit: 'sC1' }, { lit: 'sC2' }] } },
@@ -174,9 +179,10 @@ export const LOGIC = {
     d1: { type: 'door', lock: 'small', keys: 2, opens: { lit: 's2' }, latch: true },
     seedS: { type: 'switch', room: 'landing', needs: ['bloom'], when: { all: [{ drumOn: ['ballL', 'pL1'] }, HIGH] }, shortcut: true },   // (a shortcut: nothing waits on it, the maps' extras say so)
     vineS: { type: 'bridge', opens: { lit: 'seedS' }, latch: true },   // (the vine that stays: grown, a climb for good)
-    chest: { type: 'gadget', room: 'seed', item: 'bloom' },
-    dS: { type: 'door', opens: { item: 'bloom' }, latch: true },    // (into the Bud Passage: everything past the chest wants the bloom)
-    seed0: { type: 'switch', room: 'seed', needs: ['bloom'], try: true },     // the seed in the chamber's sun: a try, nothing waits on it (the maps' extras say so)
+    // the Seed Chamber (issue #477: the chest gone down to the Palm House): its seed in the oculus's sun on the dais, in a
+    // trough wet only with the water up (it comes up the Cold Frame's disc with the water down): bloomed, its north door sinks
+    seed0: { type: 'switch', room: 'seed', needs: ['bloom'], when: HIGH },
+    dS: { type: 'door', opens: { lit: 'seed0' }, latch: true },
     // the Bud Passage: the bud in the shade until the passage's ball turns its louvre, and dry until the water is up
     ballB: { type: 'drum', room: 'bud', plate: 'pB', plateAt: 1, start: 0 },
     pB: { type: 'plate', room: 'bud' },
@@ -332,6 +338,8 @@ export const BASIN = { x0: 1.6, x1: 11.4, z0: 57.6, z1: 70.4, rim: 0.25, water: 
  * at z `face`, looking north), its seed on the bridge.
  */
 export const VINE = { x: -5, w: 8, face: 57.2, seed: [-5, UP, 54.2] };
+/** (issue #477) The makers' chest on the Palm House's floor, its mound's middle (local x, z): the bloom the house's first find. */
+export const CHEST = [0, 33];
 /** (issue #411) The Cold Frame's disc on its water column (local m), and the landing it rides up to: [x0, z0, x1, z1]. */
 export const FRAME_LIFT = { x: 29.6, z: 30, r: 2.2, landing: [21, 26, 27.2, 34.5], door: 30 };
 
@@ -631,18 +639,19 @@ function wings(rt, K, M, { pot, pane }) {
   add(Ball, { id: 'ballC', a: [gx, 0.04, F.z - 5], b: [gx, 0.04, F.z + 5], r: 1.0 });
   add(Plate, { id: 'pC1', at: [gx, 0, F.z + 5], r: 1.2 });
   add(Plate, { id: 'pC2', at: [gx, 0, F.z - 5], r: 1.2 });
-  const shade = 'The eye stays shut, in the shade.';
-  add(Switch, { id: 'sC1', at: [ex, 4.6, F.z + ez - 0.15], yaw: Math.PI, size: 0.9, wrong: shade });
-  add(Switch, { id: 'sC2', at: [ex, 4.6, F.z - ez + 0.15], yaw: 0, size: 0.9, wrong: shade });
+  // (issue #477: a seed in the middle of each tray, under its louvre's spot; eyes on the posts woke in the sun until then)
+  const shade = 'It sprouts, pale, and folds back into its husk. The tray is in the shade.';
+  add(Seed, { id: 'sC1', at: [ex, 1.0, F.z + ez - 1.9], size: 0.8, seed: 5, shade });
+  add(Seed, { id: 'sC2', at: [ex, 1.0, F.z - ez + 1.9], size: 0.8, seed: 6, shade });
   for (const sd of [1, -1]) {
-    K.both(M.wallGlyph, box(3.2, 7, 1.0, ex, 3.5, F.z + sd * (ez + 0.5)));                 // the eye's post
+    K.both(M.wallGlyph, box(3.2, 7, 1.0, ex, 3.5, F.z + sd * (ez + 0.5)));                 // the tray's post
     K.both(M.trim, box(3.6, 0.4, 1.4, ex, 7.2, F.z + sd * (ez + 0.5)));
     K.both(M.wall, box(5, 1.0, 1.6, ex, 0.5, F.z + sd * (ez - 1.9)));                      // the tray before it
-    for (let i = 0; i < 3; i++) pot(ex - 1.6 + i * 1.6, 1.0, F.z + sd * (ez - 1.9), 0.3, true);
+    for (const i of [0, 2]) pot(ex - 1.6 + i * 1.6, 1.0, F.z + sd * (ez - 1.9), 0.3, true);
   }
   add(Sunbeam, { from: [F.x + 3, FR.top + 0.2, F.z], w: 3.0, spots: [
-    { at: [ex, 4.6, F.z + ez - 0.2], normal: [0, 0, -1], r: 1.5, when: { drumOn: ['ballC', 'pC1'] } },
-    { at: [ex, 4.6, F.z - ez + 0.2], normal: [0, 0, 1], r: 1.5, when: { drumOn: ['ballC', 'pC2'] } },
+    { at: [ex, 1.02, F.z + ez - 1.9], r: 1.5, when: { drumOn: ['ballC', 'pC1'] } },
+    { at: [ex, 1.02, F.z - ez + 1.9], r: 1.5, when: { drumOn: ['ballC', 'pC2'] } },
     { at: [F.x + 1, 0.02, F.z], r: 2.2 },
   ] });
   // (the rods from each plate along the floor to the east wall, and up it to the louvre)
@@ -795,24 +804,19 @@ function palmHouse(rt, K, M, { pot, pane }) {
   // a few great pots along the gallery, dead palms in them
   for (const [x, z] of [[-15.4, 30], [15.4, 44], [-15.4, 62], [15.4, 76], [13.6, PO.z1 - 2]]) pot(x, Y, z, 1.1, true);
 
-  // ---- the floor: a stone ball onto its plate down the west side, an eye on a pillar behind the potting benches
-  const P0 = 30, P1 = 51.5;   // (the groove 21.5 m, as it was)
-  K.add(M.dark, box(1.0, 0.04, P1 - P0 + 0.5, -6, 0.02, (P0 + P1) / 2));
-  add(Ball, { id: 'ball1', a: [-6, 0.04, P0], b: [-6, 0.04, P1], r: 1.1 });
-  add(Plate, { id: 'p1', at: [-6, 0, P1], r: 1.3 });
-  // the potting benches east of the middle, dead seedlings in rows; the eye on the pillar behind them, over the benches
+  // ---- the floor (issue #477, the house reshaped: the gadget first): the makers' chest on its mound in the middle, in the
+  // vault's sun, the house's first find; the potting benches east of it, dead seedlings in rows. (Until v1.85 a stone ball
+  // down the west side turned a louvre onto an eye behind the benches, which opened the Cold Frame's door; the chest stood in
+  // the Seed Chamber)
+  K.both(M.trim, ...chestMound(CHEST[0], 0, CHEST[1]));
+  add(Sunbeam, { from: [CHEST[0] - 1.4, PO.top - 0.4, CHEST[1] - 1.4], w: 2.6, spots: [{ at: [CHEST[0], 0.64, CHEST[1]], r: 2.0 }] });
   const EZ = 31;   // (the benches clear of the way east, at 41)
   for (const z of [EZ - 5.4, EZ, EZ + 5.4]) { K.both(M.wall, box(3.2, 1.1, 5.2, 7, 0.55, z)); for (let i = 0; i < 3; i++) pot(7, 1.1, z - 1.7 + i * 1.7, 0.35, true); }
-  K.both(M.wallGlyph, box(1.6, 8, 2.6, 10.6, 4, EZ));
-  K.both(M.trim, box(2.0, 0.4, 3.0, 10.6, 8.2, EZ));
-  add(Switch, { id: 's1', at: [9.75, 4.6, EZ], yaw: -Math.PI / 2, size: 1.0, wrong: 'The eye stays shut. It is in the shade: the builders’ eyes open only to the sun.' });
-  // the louvre over the benches: the ball's weight on its plate turns it, by the brass rod up the column line and under the
-  // vault, and its sunbeam swings off the floor onto the eye
-  add(Sunbeam, { from: [6.5, PO.top - 0.4, EZ], w: 3.2, spots: [{ at: [9.7, 4.6, EZ], normal: [-1, 0, 0], r: 1.7, when: { drumOn: ['ball1', 'p1'] } }, { at: [1.5, 0.02, EZ - 2], r: 2.4 }] });
-  K.add(M.trim, box(3.6, 0.06, 0.3, -9.4, 0.03, P1 + 1.4));                                // the rod: from the plate to the column line,
-  K.both(M.trim, box(0.3, PO.top - 0.6, 0.3, -11.3, (PO.top - 0.6) / 2, P1 + 1.4));         // up it,
-  K.add(M.trim, box(17.8, 0.3, 0.3, -2.4, PO.top - 0.6, P1 + 1.4));                         // along under the vault,
-  K.add(M.trim, box(0.3, 0.3, P1 + 1.4 - EZ, 6.5, PO.top - 0.6, (P1 + 1.4 + EZ) / 2));      // and over to the louvre
+  // the Cold Frame's door: a flower-door in the Palm House's east doorway, the vault's sun on it through a louvre over the
+  // east arm. Bloom it: the first step a seed's, before any push
+  add(Bud, { id: 'dE', bloom: 'bE', at: [PO.x1 + 0.9, 0, WING.z], yaw: Math.PI / 2, w: D.w, h: D.h,
+    opened: 'The flower-door swells in the sun and splits, and its petals fold back against the wall. The Cold Frame is open.' });
+  add(Sunbeam, { from: [PO.x1 - 6, PO.top - 0.4, WING.z], w: 3.0, spots: [{ at: [PO.x1 - 1.6, 0.02, WING.z], r: 2.2 }] });
   add(Mark, { room: 'potting', at: [-14, 0, 17], yaw: Math.PI / 2 });
   add(WaterGauge, { shows: 'sluice', room: 'potting', at: [10.4, 0, 49.2] });
   // the floor's low channel, from the cistern to the north band: wet only with the water let down
@@ -856,18 +860,18 @@ function layout(rt) {
   palmHouse(rt, K, M, { pot, pane });
   wings(rt, K, M, { pot, pane });
 
-  // ---- the corridor and the Seed Chamber (floor 18, a round hall 34 m across): the chest; its north door sinks for the bloom in hand
+  // ---- the corridor and the Seed Chamber (floor 18, a round hall 34 m across): (issue #477: the chest gone down to the Palm
+  // House) its seed in the oculus's sun in the middle, in a trough wet only with the water up: bloomed, the north door sinks
   const SE = ROOMS.seed;
   K.corridor([0, PO.z1 + 0.6], [0, C3 - SE.r], UP, { w: D.w, h: D.h });
   K.rotunda({ x: 0, z: C3, y: UP, r: SE.r, h: SE.top - UP, gaps: [{ a: Math.PI, w: D.w, h: D.h }, { a: 0, w: D.w, h: D.h }], oculus: 0.4 });
-  K.both(M.trim, ...chestMound(0, UP, C3));   // (issue #162: a ramped mound, no steps: src/boxes/mound.js)
   for (const [x, z] of [[-8, C3 - 5], [8, C3 - 5], [-8.6, C3 + 6], [8.6, C3 + 6], [-11.5, C3 - 0.5], [11.5, C3 + 0.5]]) pot(x, UP, z, 0.7, true);
-  // a seed in a stone ring, in the oculus's sun beside the dais: bloom it and it flowers (a try: nothing waits on it)
-  add(Seed, { id: 'seed0', at: [-4.2, UP, C3 + 4.2], size: 0.8, seed: 2 });
-  add(Sunbeam, { from: [-1.4, SE.top + 0.2, C3 + 1.4], w: 2.2, spots: [{ at: [-4.2, UP + 0.02, C3 + 4.2], r: 2.0 }] });
+  add(Seed, { id: 'seed0', at: [0, UP, C3], size: 1.0, seed: 2, why: whyNot(rt, null, HIGH), thirst: THIRST.high });
+  for (const [a, b] of [[-3.4, -1.2], [1.2, 3.4]]) add(Trough, { box: [a, C3 - 0.8, b, C3 + 0.8], y: UP, depth: 0.3, high: true });
+  add(Sunbeam, { from: [0, SE.top + 0.2, C3 - 1.4], w: 2.2, spots: [{ at: [0, UP + 0.02, C3], r: 2.0 }] });
   add(Mark, { room: 'seed', at: [8, UP, C3 - 8], yaw: -Math.PI * 0.75 });
   add(WaterGauge, { shows: 'sluice', room: 'seed', at: [9.5, UP, C3 - 11.5] });
-  add(Door, { id: 'dS', at: [0, UP, C3 + SE.r + 0.7], w: D.w, h: D.h, lamps: [{ item: 'bloom' }] });   // (the bloom in hand)
+  add(Door, { id: 'dS', at: [0, UP, C3 + SE.r + 0.7], w: D.w, h: D.h, lamps: [{ lit: 'seed0' }] });
 
   // ---- the Bud Passage (floor 18, a hall 30 m square), a room on: the door into the Vine Gulf is a bud in a sunbeam
   const BU = ROOMS.bud;
@@ -986,7 +990,7 @@ function layout(rt) {
   return {
     arrival: { pos: W(0, 0.05, 3.6), heading: K.heading(0) },
     bounds: new THREE.Box3(V(-54, -12, -3), V(54, 60, O1 + 2)),
-    gadget: { at: W(0, UP + 0.62, C3).toArray(), face: K.heading(Math.PI) },
+    gadget: { at: W(CHEST[0], 0.62, CHEST[1]).toArray(), face: K.heading(Math.PI) },   // (issue #477: on the Palm House's floor)
     exits: [{ at: W(0, 0.5, 0.4), r: 1.5 }, { at: W(0, 27.5, O1 - 0.4), r: 1.5 }],
     lights: [[0, 7, 6, 14], [0, 9, 30, 26], [0, 9, 64, 26], [0, 26, PZ, 34], [WING.shade.x, 8, WING.z, 22], [WING.frame.x, 10, WING.z, 24], [0, 26, C3, 18], [0, 26, A0 + 15, 20], [0, 24, G0 + 27, 32], [0, 32, GL + 5, 20], [VAULT.x, 9, VAULT.z, 22], [0, 34, CW, 30]],
     guardian: { def: { ...GARDENER, onHit: gardenerHit, openFor: gardenerOpenFor }, model, arena },

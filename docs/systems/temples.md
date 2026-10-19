@@ -789,6 +789,26 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   use button, the disc ridden, the drop into the cistern, the weight hooked down and carried, both vines climbed, the
   window's drop, the Gardener calmed; the water's look), `temples.test.js` (the logic, the migration),
   `temple-playthrough`, `temple-maps`, `house-map`, `temple-rules`, `way-back`, `zfight`.
+- **The Builders' Greenhouse's shape: the gadget first** (v1.86, issue #477; shape 1 of the four proposed on the issue,
+  the Givers' House's: the Greenhouse read 69 % like the Undertower, both opening with pushes before the chest). The
+  makers' chest stands on its mound in the middle of the Palm House's floor (`CHEST`, the second room; the redesign's rule
+  "not in the first room" holds), and the house is about the bloom from there on:
+  - **The first step a seed's, before any push**: the Cold Frame's door is a flower-door (`dE`, a `Bud` with `bE`) in the
+    Palm House's east doorway, the vault's sun on it through a louvre over the east arm: bloom it. The floor's ball, its
+    louvre and the eye behind the benches are gone.
+  - **The Cold Frame's trays**: a seed in each tray under the louvre's two spots (`sC1`, `sC2` need the bloom now; eyes on
+    the posts before), one ball, two plates, the key wants both in flower.
+  - **The Seed Chamber's seed is a step** (`seed0`, a try before): in the oculus's sun in the middle, in a trough wet only
+    with the water up. You come up the Cold Frame's disc with the water let down, so the gallery's wheel outside the door
+    sends it up first; bloomed, the north door (`dS`, the bloom in hand before) sinks.
+  - Without the bloom only the Shade House's fight is open off the hub, and the Seed Vault behind it, whose seed wants the
+    bloom (`tests/temples.test.js` `GADGET_FIRST`: the chest may be the second room; the rooms it leaves open are a fight's).
+  Audit: skeleton `XXABLCXRXXXXLK` → `CGXABXXLXXXXLK`, 69 % → 57 % like its nearest (the Givers' House), identity 2 → 3; ten
+  steps, combinations 8, curve 4 (first third 2.17, last 3.92); dungeon item 5 → 4 (the rubric wants the chest mid-way, at
+  30–65 % of the steps: this shape puts it first), so the score holds at 4.33; rules broken: none. No save is moved (the
+  chest's flag and every latch hold; a save past the eye's door kept it open). Sorrel's "inside" answer says what the first
+  hall holds. Tests: `tests/greenhouse-water.test.js` (the chest first, the flower-door bloomed, the trays, the Seed
+  Chamber's seed dry until the gallery's wheel sends the water up), `tests/temples.test.js`.
 - **The Mooring-House round its moored room** (v1.83, issue #417; the approved best practices,
   `docs/design/temple-best-practices.md` G1, G2, G4, G6 and its Mooring-House row). The Drift, the Cable Walk and the
   Balance are one great hall, the **Mooring Hall** (`MH`), 57 by 73 m, its walls 34 m up, open to the stars over its void;

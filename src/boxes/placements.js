@@ -183,10 +183,11 @@ export const PLACEMENTS = {
     { id: 'edena.pouch', item: 'pouch', at: [-52, 85.7, 66], toward: [-60, 70],
       hint: 'On the umbrella tree west of the landing',
       note: 'Up the umbrella tree west of the spawn, on its top canopy.' },
-    // the Builders' Greenhouse (src/temples/edena.js): in its round chamber over the glass stair. Bloom mode (a new
-    // gun mode) is the key to the rest: the budded doors, the vine bridge, the vine up the glass, the Gardener
+    // the Builders' Greenhouse (src/temples/edena.js): on the Palm House's floor, its first hall (issue #477: the gadget
+    // first; in the Seed Chamber before). Bloom mode (a new gun mode) is the key to the rest: the budded doors, the seed
+    // trays, the vine bridge, the vine up the glass, the Gardener
     { id: 'edena.temple.bloom', item: 'bloom', temple: 'edena', site: templeSite('edena'),
-      note: 'Inside the Builders’ Greenhouse in the meadow hollow north of the white ruins, in the round chamber over the glass stair.' },
+      note: 'Inside the Builders’ Greenhouse in the meadow hollow north of the white ruins, on a mound in the middle of its first hall, the Palm House.' },
     // the makers' court (src/finds/courts.js): the bubble wand's bay round it (a crate to float up onto the ledge's plate).
     // Its box held the bubble wand until issue #375: it is earned in Lorn's Lamp-House now, and the box holds the lantern
     // charm, the Lamp-House's old gift, back in Viridel where it was first found (its id the saves' flag)

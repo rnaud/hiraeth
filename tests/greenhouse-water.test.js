@@ -2,7 +2,8 @@
 // in the high troughs or let down into the low channels is the house's one state, set at a sluice wheel by either hub of
 // the great hall and in the Bud Passage, read on a gauge in every room; the Cold Frame's disc rides only on the water let
 // down; the drop off the gallery into the cistern; the vine that stays, grown down from the bridge, a climb back up for
-// good; the Seed Vault's weight that only the hook brings down off its ledge. The house walked through with a real
+// good; the Seed Vault's weight that only the hook brings down off its ledge; (issue #477) the bloom first, from the chest
+// on the Palm House's floor, the Cold Frame's flower-door its first step. The house walked through with a real
 // traveller: every wheel turned with the use button, every ball rolled, every climb climbed, every drop fallen. Its state
 // machine is tests/temples.test.js's, its play-through by hits tests/temple-playthrough.test.js's; this is the feet.
 import test from 'node:test';
@@ -10,7 +11,7 @@ import assert from 'node:assert/strict';
 import './register-gadgets.js';
 import * as THREE from 'three';
 import { TEMPLE_HOME, templeOf, nextSpot } from '../src/temples/index.js';
-import { ROOMS, UP, GALLERY, BASIN, VINE, VAULT, FRAME_LIFT, SLUICE, SUN, WaterGauge } from '../src/temples/edena.js';
+import { ROOMS, UP, GALLERY, BASIN, VINE, VAULT, FRAME_LIFT, SLUICE, SUN, CHEST, WaterGauge } from '../src/temples/edena.js';
 import { buildableById } from '../src/levels/buildable.js';
 import { Physics } from '../src/physics.js';
 import { Player } from '../src/player.js';
@@ -80,7 +81,7 @@ function openChest(rt, id, P) {
   assert.equal(rt.logic.isFound(id), true, `${id} taken`);
 }
 
-test('the Builders’ Greenhouse on foot (issue #411): the Palm House’s floor and gallery, the water let down for the Cold Frame’s disc and sent up for the bud, the bridge’s eye and the vine that stays, the drop into the cistern, the vault’s weight hooked down off its ledge, the window back to the hub, the climb up the vine, the Gardener calmed', () => {
+test('the Builders’ Greenhouse on foot (issues #411, #477): the bloom first, on the Palm House’s floor, the Cold Frame’s flower-door in the sun; the Palm House’s floor and gallery, the water let down for the Cold Frame’s disc and sent up for the bud, the bridge’s eye and the vine that stays, the drop into the cistern, the vault’s weight hooked down off its ledge, the window back to the hub, the climb up the vine, the Gardener calmed', () => {
   const H = house(), { rt, P, L, walk, wait, where, local, via, sight, turn, up, down, roll, climb, said, frame } = H;
   const PO = ROOMS.potting, GA = GALLERY, BR = GA.bridge, C3 = ROOMS.seed.z, A0 = ROOMS.bud.z0, G0 = ROOMS.gulf.z0, LIP = G0 + ROOMS.gulf.lip, FAR = G0 + ROOMS.gulf.far, GL = G0 + ROOMS.gulf.glass, HZ = ROOMS.hall.z - ROOMS.hall.r;
   wait(0.5);
@@ -94,14 +95,19 @@ test('the Builders’ Greenhouse on foot (issue #411): the Palm House’s floor 
   // (G1, readable everywhere: a gauge in every room but the guardian's)
   const gauges = new Set(rt.placed.filter((p) => p.cls === 'WaterGauge').map((p) => p.o.room));
   for (const r of Object.keys(rt.def.logic.rooms)) if (!['hall', 'out', 'threshold', 'vaultTop'].includes(r)) assert.ok(gauges.has(r), `a gauge in ${r}`);
-  // ---- the floor: the eye in the shade; the ball onto its plate turns the louvre; woken, the Cold Frame's door opens
-  rt.piece('s1').hit('shoot');
-  assert.equal(rt.logic.isLit('s1'), false, 'in the shade the eye stays shut');
-  assert.equal(roll('ball1', 'p1'), true, `the ball on its plate (${where()})`);
-  wait(2.5);
-  rt.piece('s1').hit('shoot');
+  // ---- (issue #477) the floor: the makers' chest on its mound in the middle, in sight from the way in: the bloom first
+  assert.equal(rt.logic.next(), 'chest', 'the scout’s first place: the chest');
+  assert.ok(sight(L(CHEST[0], 1.4, CHEST[1]), L(0, 1.7, 15)), 'the chest seen from the way in');
+  assert.equal(walk(L(CHEST[0], 0.6, CHEST[1] - 2.2), { tol: 0.8 }), true, `up onto its mound (${where()})`);
+  items.grant('bloom'); game.emit('box:opened', { id: 'edena.temple.bloom' });
+  wait(0.5);
+  assert.equal(rt.logic.store.get('gadget'), true, 'the bloom taken');
+  // the Cold Frame's flower-door in the sun: bloomed, it opens (the house's first step a seed's, before any push)
+  assert.equal(via([8, 0, 41], [13, 0, 41]), true, `before the flower-door (${where()})`);
+  assert.equal(walk(L(24, 0, 41), { max: 3 }), false, 'shut, it keeps you out');
+  rt.piece('dE').hit('bloom');
   wait(1.5);
-  assert.ok(rt.logic.isLit('s1') && rt.logic.isOpen('dE'), 'woken in the sun: the Cold Frame’s door opens');
+  assert.ok(rt.logic.isLit('bE') && rt.logic.isOpen('dE'), 'bloomed in the sun: the Cold Frame’s flower-door opens');
   // ---- the Shade House (an arena): its key, and its north door into the Seed Vault
   const keepers = [{ room: 'shade', alive: true }, { room: 'shade', alive: true }];
   rt.machines = [...(rt.machines ?? []), ...keepers];
@@ -116,12 +122,14 @@ test('the Builders’ Greenhouse on foot (issue #411): the Palm House’s floor 
   openChest(rt, 'kW', P);
   // ---- the Cold Frame: one ball, two eyes, the key; the disc dry on its column while the water is up
   assert.equal(via([-12, 0, 41], [12, 0, 41], [26, 0, 41]), true, `into the Cold Frame (${where()})`);
+  rt.piece('sC2').hit('bloom');
+  assert.equal(rt.logic.isLit('sC2'), false, 'in the shade the tray’s seed folds back');
   assert.equal(roll('ballC', 'pC1', 1), true, `the ball north (${where()})`);
-  wait(2); rt.piece('sC1').hit('shoot');
+  wait(2); rt.piece('sC1').hit('bloom');
   assert.equal(roll('ballC', 'pC2', -1), true, `the ball south (${where()})`);
-  wait(2); rt.piece('sC2').hit('shoot');
+  wait(2); rt.piece('sC2').hit('bloom');
   wait(1.5);
-  assert.ok(rt.logic.isLit('sC1') && rt.logic.isLit('sC2'), 'both eyes');
+  assert.ok(rt.logic.isLit('sC1') && rt.logic.isLit('sC2'), 'both trays in flower');
   assert.equal(walk(rt.piece('kE').pos, { tol: 1.2 }), true, `to the key (${where()})`);
   wait(0.3);
   openChest(rt, 'kE', P);
@@ -151,23 +159,34 @@ test('the Builders’ Greenhouse on foot (issue #411): the Palm House’s floor 
   assert.equal(via([13, UP, BR.z1 + 2], [15, UP, GA.n - 2], [2, UP, GA.n + 3], [0, UP, PO.z1 - 1]), true, `to the Seed Chamber's door (${where()})`);
   wait(2.5);
   assert.ok(rt.logic.keysIn('d1') === 2 && rt.logic.isOpen('d1'), 'both keys in, the eye awake: it opens');
-  // ---- the Seed Chamber: the bloom, and its try
-  assert.equal(walk(L(0, UP, C3 - 6)), true, `into the seed chamber (${where()})`);
-  items.grant('bloom'); game.emit('box:opened', { id: 'edena.temple.bloom' });
-  rt.piece('seed0').hit('bloom');
-  assert.equal(rt.logic.isLit('seed0'), true, 'in the oculus’s sun the try flowers');
-  // ---- the Bud Passage: the bud in the sun, and dry: the water is down below; its own wheel sends it up
+  // ---- (issue #477) the Seed Chamber: its seed in the oculus's sun, and dry: the water came up the disc let down. The
+  // gallery's wheel outside its door sends it up; bloomed, the north door sinks
+  assert.equal(walk(L(0, UP, C3 - 4)), true, `into the seed chamber (${where()})`);
+  assert.equal(rt.logic.isOpen('dS'), false, 'its north door shut');
+  rt.piece('seed0').hit('bloom'); wait(1);
+  assert.ok(!rt.logic.isLit('seed0') && said(/trough is dry/i), 'in the sun, but dry: it wilts, and says why');
+  const WL = SLUICE.wheels[1];
+  assert.equal(via([0, UP, PO.z1 + 2], [0, UP, PO.z1 - 1.5], [WL.at[0], UP, WL.at[2] - 1.5]), true, `to the gallery's wheel (${where()})`);
+  assert.equal(turn('wheel.landing'), 'up');
+  wait(SLUICE.run + 0.5);
+  assert.ok(up(), 'the water up in the high troughs');
+  assert.equal(via([0, UP, PO.z1 - 1.5], [0, UP, C3 - 4]), true, `back into the chamber (${where()})`);
+  rt.piece('seed0').hit('bloom'); wait(2.6);
+  assert.ok(rt.logic.isLit('seed0') && rt.logic.isOpen('dS'), 'in the sun and wet: it flowers, and the north door sinks');
+  // ---- the Bud Passage: the bud in the shade until the passage's ball turns its louvre; its own wheel (the water let down
+  // and sent up again there)
   assert.equal(walk(L(0, UP, A0 + 4)), true, `into the passage (${where()})`);
-  assert.equal(roll('ballB', 'pB', 1), true, `the passage's ball onto its plate (${where()})`);
-  wait(2.5);
-  const bud = rt.piece('d3');
-  bud.hit('bloom'); wait(1);
-  assert.ok(!rt.logic.isOpen('d3') && said(/trough at its foot is dry/i), 'in the sun, but dry: it stays shut, and says why');
   const WB = SLUICE.wheels[2];
   assert.equal(walk(L(WB.at[0] + 1.5, UP, WB.at[2]), { tol: 0.5 }), true, `to the passage's wheel (${where()})`);
+  assert.equal(turn('wheel.bud'), 'down');
   assert.equal(turn('wheel.bud'), 'up');
   wait(SLUICE.run + 0.5);
   assert.ok(up(), 'the water up in the high troughs');
+  const bud = rt.piece('d3');
+  bud.hit('bloom'); wait(1);
+  assert.ok(!rt.logic.isOpen('d3') && said(/in the shade/i), 'wet, but in the shade: it stays shut, and says why');
+  assert.equal(roll('ballB', 'pB', 1), true, `the passage's ball onto its plate (${where()})`);
+  wait(2.5);
   assert.equal(walk(L(0, UP, G0 - 4)), true, `back before the bud (${where()})`);
   bud.hit('bloom'); wait(2.6);
   assert.equal(rt.logic.isOpen('d3'), true, 'in the sun and wet, it opens');

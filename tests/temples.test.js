@@ -64,7 +64,13 @@ const BUILT = Object.keys(TEMPLES);
 /** The older houses' tools a house's late step asks for with its own (G2, issues #411, #410, #413, #412, #414, #415 and #417). */
 const OLDER = { edena: ['hook'], perdide2: ['hook'], incal: ['hook'], underwater: ['hook'], moonfoundry: ['hook'], garage: ['hook'], buried: ['hook'], spacecity: ['monocle'], bazaar: ['glider', 'hook', 'monocle', 'bomb'] };   // (the Undertower: the exam of the whole game, issue #418)
 /** Rooms the gadget sends you back to (issue #413): reached before its chest, their step wants it. */
-const BACK_TO = { incal: ['vaneFar'] };
+const BACK_TO = { incal: ['vaneFar'], edena: ['vault'] };
+/**
+ * (issue #477, the houses' shapes) A house whose gadget comes first: its chest in the second room, the hub, the house about it
+ * from there on (the Givers' House's shape). The rooms off that hub it leaves open without the gadget are its fight's, an
+ * arena (the Builders' Greenhouse's Shade House).
+ */
+const GADGET_FIRST = { edena: ['shade'] };
 
 const worlds = new Map();
 // (a temple by its id, in the world it stands in: the First Garage's, `garage`, is the Clock-House in the Glass Dunes;
@@ -281,14 +287,15 @@ test('every built temple is solvable through its state machine, its gadget found
     assert.ok(boss && L.rooms[boss[1].room]?.boss, `${id}: a guardian in its arena`);
     // mid-way: not in the first room, not in the arena; there are rooms before it and after it
     const at = r.order.indexOf(gadget[1].room);
-    assert.ok(at >= 2 && at <= r.order.length - 3, `${id}: the gadget's room comes mid-way (${r.order.join(' > ')})`);
+    assert.ok(at >= (GADGET_FIRST[id] ? 1 : 2) && at <= r.order.length - 3, `${id}: the gadget's room comes mid-way (${r.order.join(' > ')})`);
+    for (const room of GADGET_FIRST[id] ?? []) assert.equal(L.rooms[room]?.kind, 'combat', `${id}: ${room}, open off the hub without the gadget, is a fight’s room`);
     // the key: without it the arena is never reached, and nothing past the gadget's room opens
     const no = solve(L, { items: base, withhold: [def.gadget] });
     assert.equal(no.done, false, `${id}: not without ${def.gadget}`);
     assert.ok(!no.stuck.includes(boss[1].room), `${id}: the arena stays shut without ${def.gadget}`);
     // (a room the solver reaches after the chest, and a player may reach before it, whose step wants the gadget: the room the
     // gadget sends you back to, the Warden's Well's Vane Room and its great key's cage, issue #413)
-    const after = r.order.slice(at + 1).filter((room) => !(BACK_TO[id] ?? []).includes(room));
+    const after = r.order.slice(at + 1).filter((room) => !(BACK_TO[id] ?? []).includes(room) && !(GADGET_FIRST[id] ?? []).includes(room));
     assert.ok(after.length >= 2 && after.every((room) => !no.stuck.includes(room)), `${id}: every room after the gadget needs it (${no.stuck.join(', ')})`);
     for (const room of BACK_TO[id] ?? []) assert.ok(Object.values(L.elements).some((e) => e.room === room && e.needs?.includes(def.gadget)), `${id}: ${room} wants the gadget`);
     // 3–6 puzzle rooms (rooms with something to do; the arena's own pieces are the fight's), a checkpoint in most; a
@@ -463,7 +470,7 @@ test('old saves in the Clock-House as it was (a chain of rooms) are brought roun
   assert.ok(E.isOpen('d1') && E.isLit('arW') && E.keys('small') === 0, 'the Glass Stair’s door stays open behind them');
 });
 
-test('the Builders’ Greenhouse round the Palm House (issues #23, #411): either wing gives its key, the Seed Chamber’s door takes both and the bridge’s eye, the builders’ water the house’s state, solved either way round; old saves brought round', () => {
+test('the Builders’ Greenhouse round the Palm House (issues #23, #411, #477): the bloom first, on the hub’s floor; either wing gives its key, the Seed Chamber’s door takes both and the bridge’s eye, the builders’ water the house’s state, solved either way round; old saves brought round', () => {
   const L = TEMPLES.edena.def.logic, items = ['backpack', 'gun', 'doublejump', 'sword', 'shield', 'glider', 'hook', 'stun', 'bubble'];
   for (const reverse of [false, true]) { const r = solve(L, { items, reverse }); assert.equal(r.done, true, r.log.join(' / ')); }
   const noFrame = solve(L, { items, forbid: ['sC2'] });
@@ -473,7 +480,18 @@ test('the Builders’ Greenhouse round the Palm House (issues #23, #411): either
   assert.deepEqual(TEMPLES.edena.def.arenas.map((A) => A.el), ['arW']);
   // the Palm House (G4): its floor the hub (`potting`), its gallery (`landing`); up by the Cold Frame's disc, down by the drop
   // into the cistern, and back up by the vine that stays once it is grown (G6)
-  assert.ok(L.links.some((l) => l.a === 'potting' && l.b === 'frame' && l.door === 'dE') && L.elements.dE.opens.lit === 's1', 'the Cold Frame behind the eye’s door');
+  assert.ok(L.links.some((l) => l.a === 'potting' && l.b === 'frame' && l.door === 'dE') && L.elements.dE.opens.lit === 'bE', 'the Cold Frame behind its flower-door');
+  // (issue #477, the house reshaped: the gadget first) the chest on the Palm House's floor, the second room; the first step a
+  // seed's, before any push; the Cold Frame's trays and the Seed Chamber's seed want it, and only the Shade House's fight (and
+  // the vault it opens, whose seed wants the bloom) is there without it
+  assert.equal(L.elements.chest.room, 'potting');
+  assert.deepEqual(L.elements.bE.needs, ['bloom']);
+  assert.equal(L.elements.bE.when, undefined, 'the flower-door in the sun: the bloom alone');
+  for (const id of ['sC1', 'sC2', 'seed0']) assert.deepEqual(L.elements[id].needs, ['bloom'], `${id} wants the bloom`);
+  const first = solve(L, { items });
+  assert.ok(first.log.indexOf('take chest (bloom)') >= 0 && first.log.indexOf('take chest (bloom)') < first.log.findIndex((x) => /^(roll|carry)/.test(x)), `the bloom before any push (${first.log.join(' / ')})`);
+  const noBloom = solve(L, { items, withhold: ['bloom'] });
+  assert.deepEqual([...new Set(noBloom.order)].filter((r) => !['threshold', 'potting'].includes(r)).sort(), ['shade', 'vault'], `without the bloom only the fight and the vault behind it (${noBloom.order.join(' ')})`);
   assert.ok(L.links.some((l) => l.a === 'frame' && l.b === 'landing' && l.door === 'lift') && L.links.some((l) => l.a === 'landing' && l.b === 'potting' && l.oneWay), 'up by the disc, down by the drop');
   assert.ok(L.links.some((l) => l.a === 'potting' && l.b === 'landing' && l.door === 'vineS') && L.elements.vineS.latch, 'the vine that stays: a climb back up for good');
   assert.ok(L.links.some((l) => l.a === 'vaultTop' && l.b === 'potting' && l.oneWay), 'the window from the vault’s ledge: a drop back to the hub');
@@ -481,7 +499,7 @@ test('the Builders’ Greenhouse round the Palm House (issues #23, #411): either
   // Passage; the disc rides only on the water let down; the upper floor's seeds and the bud want it up, the vault's seed down
   assert.deepEqual(L.elements.sluice.stops, { wLow: 0, wHigh: 1 });
   assert.deepEqual(L.elements.sluice.rooms, ['potting', 'landing', 'bud']);
-  const wantsUp = ['seedS', 'bud1', 'seed1'], wantsDown = ['sdA'];
+  const wantsUp = ['seedS', 'bud1', 'seed1', 'seed0'], wantsDown = ['sdA'];
   for (const id of wantsUp) assert.ok(JSON.stringify(L.elements[id].when).includes('wHigh'), `${id} wants the water up`);
   for (const id of wantsDown) assert.ok(JSON.stringify(L.elements[id].when).includes('wLow'), `${id} wants the water down`);
   assert.ok(JSON.stringify(L.elements.lift.opens).includes('wLow'), 'the disc rides on the water let down');
@@ -496,7 +514,8 @@ test('the Builders’ Greenhouse round the Palm House (issues #23, #411): either
   assert.ok(!noUp.done && !noUp.logic.isOpen('lift'), 'without the water let down the disc never rides');
   // every step needed or plainly optional (the Temple maps page's extras): the map, the chamber's try, the vine that stays
   assert.equal(solve(L, { items, forbid: ['seedS'] }).done, true, 'the vine that stays is a shortcut');
-  assert.ok(L.elements.seedS.shortcut && L.elements.seed0.try, 'and says so');
+  assert.ok(L.elements.seedS.shortcut, 'and says so');
+  assert.equal(solve(L, { items, forbid: ['seed0'] }).done, false, 'the Seed Chamber’s seed is a step now (#477; a try before)');
   assert.ok(L.elements.gardener.requires.all.length === 4, 'the beds are the fight’s own first phase');
   // old saves: v5 (the Potting Hall and the Glass Stair) past the stair's door find the new door's eye woken and the Cold
   // Frame's door open; past the great key, its weight on its plate; one that was inside is taken to its last mark

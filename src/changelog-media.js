@@ -1314,6 +1314,12 @@ export const CHANGELOG_MEDIA = {
       { name: 'lamp-kennel-orb', title: 'The Lamp Hall', caption: 'The first hall’s floor by the near pool, the Kennel’s lamp-door on the left: after, the pool-orb’s groove up the floor to its socket and lamp, which wake the Kennel’s door.', from: SHAPES477 },
       { name: 'lamp-kennel-door', title: 'From the socket', caption: 'Looking back across the floor at the Kennel’s lamp-door: after, the socket’s lamp-post in the foreground, the door it wakes beyond.', from: SHAPES477 },
     ] },
+    { match: 'In the Builders’ Greenhouse the bloom is found first', tags: ['temples'], shots: [
+      { name: 'greenhouse-chest', title: 'The Palm House', caption: 'The first hall from the way in: before, a stone ball and its groove, an eye behind the benches; after, the bloom’s chest on its mound in the sun, the flower-door on the left.', from: SHAPES477 },
+      { name: 'greenhouse-flower-door', title: 'The Cold Frame’s door', caption: 'Before, a door the eye opened; after, a flower-door in a sunbeam from the vault: bloom it.', from: SHAPES477 },
+      { name: 'greenhouse-cold-frame', title: 'The Cold Frame', caption: 'Before, an eye on each post; after, a seed in each tray, waiting for the ball to bring the sun.', from: SHAPES477 },
+      { name: 'greenhouse-seed-chamber', title: 'The Seed Chamber', caption: 'Before, the chest on its mound and a seed to try; after, one seed in the middle in its trough, which opens the north door.', from: SHAPES477 },
+    ] },
   ],
   '1.85': [
     { match: 'In the Unity version, flowers far across Viridel’s meadow', tags: ['devices'], shots: [
