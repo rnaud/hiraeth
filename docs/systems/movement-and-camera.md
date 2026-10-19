@@ -571,6 +571,14 @@ any hard landing (`Player.fallHurt`), so a fatal drop is fatal even when you tum
 the ledge first. The camera keeps up with a body falling away from it: `rig.down`'s softer
 follow is only for a body that stays close.
 
+In the air the body keeps its momentum (issue #541). The joint limits (the knee's bend, the
+head over the neck) move one particle at a time, and their pushes don't cancel out: over a
+long tumble they used to swim the body sideways, up to 59 m off a 300 m drop and 15 m back
+toward the ledge (where the test's ledge double caught it and it died mid-air, a CI flake).
+Now a sub-step where nothing touched anything takes the change in the body's mass-weighted
+velocity back out of every particle, so the whole falls as a thrown body would (the drag
+alone slows it). `tests/ragdoll.test.js` checks it at 60 and 20 fps.
+
 ## The jump's shadow (`src/jump-shadow.js`)
 
 When you're off the ground (jumping, falling, gliding, the jets; not riding, swimming,

@@ -115,6 +115,9 @@ export const CHANGELOG = [
     // purse short of the keeper's body), src/temples/pieces.js Sunbeam hush / cone, src/story/moment.js behindHim
     // (avoid); tests/temple-finale.test.js (A–C: a lens out of solids and the body that sees its subject)
     'The films that end each makers’ house no longer look through the guardian. The shot of what it leaves you shows the chimes on the floor with the guardian beyond them, where it used to be filmed from inside its leaves, its moss or a wall; the chimes now land in the open in front of it rather than under it. The Lampless’s wings and the Listener’s shell no longer fill the first shot, the Gardener is no longer washed pale by its sunbeam in the wide over its hall, and after the Whale-House’s film the camera comes back beside you rather than under the Listener’s shell.',
+    // issue #541: src/ragdoll.js Ragdoll.step (in the air the body's momentum kept: the limits' pushes no longer add up
+    // to a sideways swim); tests/ragdoll.test.js
+    'Knocked off a high ledge, your limp body now falls the way it was going instead of drifting sideways as it tumbles, so it no longer swings back under the ledge it fell from and lands on the ground below as it should.',
   ] },
   { v: '1.85', date: '2026-10-18', items: [
     // issue #474: src/music-moments.js (MUSIC_MODES, musicMode: Always the default), src/ui.js (musicMode, musicV: a saved

@@ -1386,6 +1386,7 @@ export const CHANGELOG_MEDIA = {
       { name: 'finale-gardener-529', title: 'The Greenhouse: the wide over the hall', size: [960, 540], caption: 'From high over the hall: before, its sunbeam laid over the Gardener, washed pale as if see-through; after, the beam’s haze held back while the film looks through it, the Gardener solid in its sunlit bed.', from: FIN528 },
       { name: 'finale-listener-529', title: 'The Whale-House: after the film', size: [960, 540], caption: 'The camera handed back: before, under the Listener’s shell, him half hidden; after, beside him with the shell to one side.', from: FIN528 },
     ], see: 'Calm any makers’ house’s guardian and watch its film; or open Debug → Cinematics and play the Temple endings (finale.perdide, finale.incal, finale.perdide2, finale.edena, finale.underwater).' },
+    { match: 'Knocked off a high ledge, your limp body now falls the way it was going', see: 'Get knocked off a high ledge (a foe’s blow at a cliff’s edge, or a hard landing that tumbles you on over the edge) and watch the fall: the body carries on out the way it was thrown, turning over, and comes to rest on the ground at the bottom. Before, a long tumble could drift it many metres sideways, even back in under the cliff it fell from.' },
   ],
   '1.85': [
     { match: 'In the Unity version, flowers far across Viridel’s meadow', tags: ['devices'], shots: [

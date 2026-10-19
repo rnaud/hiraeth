@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.86 — 2026-10-19
 
+- Knocked off a high ledge, your limp body now falls the way it was going instead of drifting sideways as it tumbles, so it no longer swings back under the ledge it fell from and lands on the ground below as it should.
 - The films that end each makers’ house no longer look through the guardian. The shot of what it leaves you shows the chimes on the floor with the guardian beyond them, where it used to be filmed from inside its leaves, its moss or a wall; the chimes now land in the open in front of it rather than under it. The Lampless’s wings and the Listener’s shell no longer fill the first shot, the Gardener is no longer washed pale by its sunbeam in the wide over its hall, and after the Whale-House’s film the camera comes back beside you rather than under the Listener’s shell.
 - On screens faster than 60 frames a second, and in the Unity version, your first steps out of the ship at the end of the opening no longer stop short at the foot of the ramp with the camera caught in its railing: the ship walks you out to your first view of the desert, as at 60.
 - The soft-fall soles, the wind-silk scarf and the brass level are no longer on top of their climbs: they wait in the makers’ courts of the City-Shaft, Vael’s sky stones and the Glass Dunes.

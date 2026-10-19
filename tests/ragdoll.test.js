@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { Humanoid, prepareHuman } from '../src/humanoid.js';
 import { buildCharacter } from '../src/player.js';
-import { Ragdoll, Knockdown, J, JOINTS, KNOCK, RAG } from '../src/ragdoll.js';
+import { Ragdoll, Knockdown, J, JOINTS, KNOCK, RAG, toppleVelocities } from '../src/ragdoll.js';
 
 globalThis.ProgressEvent ??= class { constructor(type, init) { Object.assign(this, { type }, init); } };
 async function glb(name) {
@@ -208,6 +208,24 @@ test('the traveller: tumbling off a ledge down a long drop stays limp all the wa
   for (t = 0; t < 12 && q.down; t += 1 / 60) q.update(1 / 60, {}, 0);
   assert.ok(!q.down && q.pos.y < -24, `up at the bottom (${q.pos.y.toFixed(1)} m)`);
   assert.ok(q.hearts < q.maxHearts && q.hearts >= q.maxHearts - FALL.worst, `a little hurt (${q.hearts} hearts)`);
+});
+
+// #541: the joint limits push one particle at a time; in the air their pushes used to add up and swim a tumbling body
+// sideways (59 m off in a 300 m fall, 15 m back toward the ledge it fell from, and through it once on CI)
+test('ragdoll: tumbling through the air the body as a whole keeps its way of going (the limits never push it sideways)', () => {
+  const X = new THREE.Vector3(1, 0, 0), sky = { heightAbove: (p) => p.y + 1000, pushCapsule: () => null };
+  for (const twist of [-1, -0.4, 0.3, 1]) for (const dt of [1 / 60, 1 / 20]) {
+    const rag = new Ragdoll().startFrom(body(), toppleVelocities(X, Y, { carry: 5.4, rise: -0.4, tip: 4.8, twist }));
+    const com = () => rag.v.reduce((s, v, i) => s.addScaledVector(v, 1 / rag.w[i]), new THREE.Vector3()).divideScalar(rag.mass);
+    const v0 = com(); v0.y = 0;
+    let t = 0, worst = 0;
+    for (; t < 4; t += dt) {
+      rag.step(dt, sky, Y);
+      const v = com(); v.y = 0;
+      worst = Math.max(worst, v.distanceTo(v0.clone().multiplyScalar(Math.exp(-RAG.drag * (t + dt)))));
+    }
+    assert.ok(worst < 0.05, `twist ${twist} at 1/${Math.round(1 / dt)} s: its sideways speed only the drag's (${worst.toFixed(3)} m/s off)`);
+  }
 });
 
 // #450: one ray a point a frame (physics.groundHit: the height and the slope from one hit), the frame's later sub-steps

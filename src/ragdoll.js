@@ -85,7 +85,7 @@ export function groundNormalAt(physics, p, up, step, out) {
   return out;
 }
 
-const _gq = new THREE.Vector3();
+const _gq = new THREE.Vector3(), _cm0 = new THREE.Vector3(), _cm1 = new THREE.Vector3();
 /**
  * The height of p above the ground along up (physics.heightAbove) and the ground's normal there into outN (facing
  * up): physics.groundHit's one ray where it has it, else heightAbove and groundNormalAt (a test double).
@@ -123,6 +123,7 @@ export class Ragdoll {
     this.rayBase = new Uint8Array(N);      // ... and whether that ground was the heightfield's (physics.groundBase)
     this.rays = 0;                         // rays cast so far (a count, for the tests and the profile)
     this.w = JOINTS.map(([, , , m]) => 1 / m);
+    this.mass = JOINTS.reduce((m, j) => m + j[3], 0);
     this.r = JOINTS.map(([, , r]) => r);
     this.links = [];                       // [i, j, length, stiffness]
     this.t = 0;
@@ -199,8 +200,10 @@ export class Ragdoll {
     let touched = false;
     for (let s = 0; s < n; s++) {
       const drag = Math.exp(-RAG.drag * h);
+      _cm0.set(0, 0, 0);
       for (let i = 0; i < N; i++) {
         v[i].addScaledVector(up, -RAG.gravity * h).multiplyScalar(drag);
+        _cm0.addScaledVector(v[i], 1 / w[i]);
         prev[i].copy(x[i]);
         x[i].addScaledVector(v[i], h);
         cor[i].set(0, 0, 0);
@@ -273,6 +276,17 @@ export class Ragdoll {
             if (pushed.dot(up) > 0.5) for (const i of TRUNK) { this.contact[i] = 1; nrm[i].copy(pushed); out[i].copy(pushed); }   // lifted off a floor: that is lying on it
           }
         }
+      }
+      // in the air (nothing touched this sub-step) the body as a whole keeps its way of going: the limits move one
+      // particle at a time (the knee, the head), and their pushes added up used to swim a tumbling body sideways,
+      // up to ~10 m/s in a long fall: back under the ledge it fell from, and a fall through the cliff (#541)
+      let free = !pushed;
+      for (let i = 0; free && i < N; i++) if (this.contact[i]) free = false;
+      if (free) {
+        _cm1.set(0, 0, 0);
+        for (let i = 0; i < N; i++) _cm1.addScaledVector(_a.subVectors(x[i], prev[i]).sub(cor[i]), 1 / (w[i] * h));
+        const drift = _cm1.sub(_cm0).divideScalar(this.mass);
+        for (let i = 0; i < N; i++) x[i].addScaledVector(drift, -h);
       }
       let fastest = 0;
       for (let i = 0; i < N; i++) {
