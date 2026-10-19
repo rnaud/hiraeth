@@ -111,6 +111,15 @@ export const CHANGELOG = [
         { where: 'frames over 50 ms, the City-Shaft', before: 3, after: 3 },
         { where: 'the people’s spikes, ms lost (all four runs)', before: 358, after: 80 },
       ], source: 'docs/systems/performance.md, "Stutters", the cape fix on the Retroid' }] },
+    // issue #494: src/minigames/pirates-rules.js (LEVELS, levelFor, the pincer, wall, spiral and dive formations, the
+    // minefield's planes, the drifting hazards), pirates.js (BACKDROPS, SHIP_LENGTH / shipFit, no sun shadow from the
+    // ship, the flames' flicker), pirates-sfx.js (the game's own sounds, short, varied), ambush.js (the hazards' lines);
+    // tests/pirates-levels.test.js
+    'The chime pirates’ flights now differ from one world to the next: a minefield strung across the way, an ice belt drifting across it and a field of old wrecks, each with fighters in formations of its own and a sky of its own. Your ship is drawn smaller, so there is room to dodge round it; it no longer shimmers as the fight starts, and the fight sounds shorter and cleaner instead of ringing on.',
+    // issue #495: src/minigames/pirates-rules.js (FLY.throttle, GUNS, DROPS, pirateInput's boost and brake), pirates.js
+    // (hudNote, the drops drawn, the view and the flames on a boost, the hints), pirates-sfx.js (boost, brake, spent,
+    // upgrade, gunLost); tests/pirates-boost-guns.test.js
+    'In the chime pirates you can now boost (RB / R1) and brake (LB / L1) to meet the rocks and mines sooner or later, on a gauge that fills again. Gunboats, bombers and whole waves of fighters leave gold drops: fly through them for rapid fire, a spread shot and then the storm guns, until a hit takes you back to the twin bolts. The roll is on B / ○ and X / □.',
   ] },
   { v: '1.84', date: '2026-10-17', items: [
     // issue #439: src/costumes.js (HEADS: the 47 pieces of the 15 hat sets, HAT_SETS, HAT_SET_WORLDS, hoodShell / hoodNeck /

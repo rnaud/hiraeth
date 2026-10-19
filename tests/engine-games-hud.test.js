@@ -121,6 +121,14 @@ test('the chime pirates publish their reticle in the half-size canvas\' px (pira
   assert.ok(P.W > 100 && P.H > 100, 'the canvas size');
   assert.ok(P.ret.x > 0 && P.ret.x < P.W && P.ret.y > 0 && P.ret.y < P.H && P.ret.r > 5, JSON.stringify(P.ret));
   assert.match(P.ret.hot, /^#[0-9a-f]{6}$/);
+  // (issue #495) the gun's tier and the boost's gauge beside the missiles, in the hint row's rich text
+  const note = () => plain(g.screen().state.minigame)?.hints?.note ?? '';
+  assert.match(note(), /MISSILES .*GUN .*Twin bolts.*BOOST/, note());
+  const full = (note().match(/#71d7cf>/g) ?? []).length;
+  await run(g, 40, { ShiftLeft: true });   // (Shift boosts: the gauge drains)
+  g.key('ShiftLeft', false);
+  const left = (note().match(/#71d7cf>/g) ?? []).length;
+  assert.ok(full === 6 && left < full, `the gauge ${full} → ${left} cells`);
   await leave(g);
   assert.equal(g.screen().state.pirates, null);
 });

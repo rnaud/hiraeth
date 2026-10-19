@@ -28,12 +28,12 @@ test('the hints: one small row of a button and a word each, in the dark hint loo
         assert.ok(k && w && id, `${kind}: ${k} ${w} ${id}`);
         assert.ok(w.length <= 16 && w.split(/\s+/).length <= 3, `minimal: "${w}"`);
       }
-      assert.ok(H[kind].length <= 5, `${kind}: at most five buttons`);
+      assert.ok(H[kind].length <= 6, `${kind}: at most six buttons (five until the boost and brake, issue #495: one entry for both)`);
     }
     assert.match(H.pad[0][1], new RegExp(`↑ ${pitch}s`), 'the stick says the pitch');
     assert.ok(!H.pad.some(([k]) => /Menu/.test(k)), 'no pause in the row (the ❚❚ and Menu are everywhere)');
   }
-  assert.deepEqual(pirates.hints.pad.map((r) => r[2]), ['steer', 'fire', 'charge', 'missile', 'roll']);
+  assert.deepEqual(pirates.hints.pad.map((r) => r[2]), ['steer', 'fire', 'charge', 'missile', 'speed', 'roll']);
   // the fade: all shown at first, a used one gone after a moment, all of them after HINT_ROW.show
   const rows = pirates.hints.pad;
   let r = hintRow(rows, { age: 0.5, used: new Map() });

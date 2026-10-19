@@ -743,7 +743,7 @@ the ship goes to a world never visited: pirates come for the ship (its voice: "T
   the ship (the pirates, their shots, the bolts) is kept relative to it (`ds` ahead); the rocks, the mines and the
   repair rings hang still in space at an absolute `s`. Pure: `runStep(S, input, dt)` returns the step's events
   (`shot`, `kill`, `hurt`, `deflect`, `blast`, `lock`, `say`, `part`, `checkpoint`, `win`, `dead`, …), which the game draws.
-- **The run** (`SCRIPT`, about a minute and a half: 30 % shorter since v1.45, issue #88, the pilot's 138 s down to
+- **The run** (`SCRIPT`, the first of four levels since v1.85, issue #494, below; about a minute and a half: 30 % shorter since v1.45, issue #88, the pilot's 138 s down to
   96): skiffs in a sweeping line and in a V, raiders that overtake from under the ship and hold ahead, firing, a hauler
   laying mines, two teal repair rings, then the captain's gunship at 70 s (102 before) (`BOSS`): two brass wingtip turrets
   (bursts of aimed shots), and once both are down the armoured bridge opens (rings of slow shots, skiffs from its
@@ -760,7 +760,7 @@ the ship goes to a world never visited: pirates come for the ship (its voice: "T
   slider; v1.60, issue #230): the pips, the blink and the crunch tell it. A tap of A / × (Space, the touch ✺) fires the twin bolts; RT / R2 held streams them,
   slower; **held**, the shot charges (0.7 s, an arc filling round the ring) and locks the pirate nearest the reticle
   (`findLock`, the coral LOCK brackets): let go and the gold shot homes in and bursts (9 m: everything in it, their shots too; a bonus for each
-  kill past the first). **The barrel roll** (B / ○, LB / L1, X / □, Shift or E, the touch ↶): one quick whole turn
+  kill past the first). **The barrel roll** (B / ○, X / □, E, the touch ↶; LB / L1 and Shift until v1.85, now the brake and the boost): one quick whole turn
   (0.45 s, eased out so it snaps), a short shove aside, shots turned away while it spins. Scores: `POINTS`; a pip
   left at the end is worth 50.
 - **Missiles** (v1.65, issue #224: "add missiles on top of normal lasers"; `FLY.missile`): four a run on their own
@@ -804,7 +804,7 @@ the ship goes to a world never visited: pirates come for the ship (its voice: "T
   the calm game (Enemies off) still has none, as it has no fights anywhere.
 - **Gentler, fiercer**: the Enemies setting's gentle fires half as often and slower; each ambush met before
   (`ambushCount`) fires 6 % more often (`heat`, up to ten).
-- **Drawn cheaply, no new shader**: the family ship's own model (`buildShipModel`, a quarter size, its rooms
+- **Drawn cheaply, no new shader**: the family ship's own model (`buildShipModel`, fitted to 5.2 m since v1.85: `shipFit`, below; its rooms
   hidden); every pirate, rock, bolt, shot, spark and mote of dust is one of a few instanced meshes of the game's one
   material, coloured per instance (as the puffs and the dots are: the instancing variant every world compiles); the
   captain's gunship (`buildGunship`, v1.59, issue #206: a galleon under solar sails before; "the boss should be a space
@@ -883,6 +883,111 @@ effects, better enemy designs. Better game feel." The hints are above (one small
   combo and shards, none of the shake under Reduce motion; the trail and the buttons marked used; the curve, the brake
   and the assist).
 
+### Levels, a smaller ship, new sounds (v1.85, issue #494)
+
+The author: "The space pirate mini game should have variation between levels. Also the ship is too big, the sounds are
+bad and there is shimmering on the ship at the beginning."
+
+- **Four levels** (`LEVELS` in the rules, `BACKDROPS` on the page): each flight to a new world is one, `levelFor(to)`: the
+  route's worlds (`ROUTE_ORDER`, src/levels/names.js ORDER copied so the rules stay pure; a test holds them alike) take
+  them in turn, so two flights in a row are never alike and the first ambush (Arzach) is the run it always was; a detour
+  by its name's letters; the Arcade's game a new one each time its page opens, `?stage=<id>` for one. Every level keeps
+  the run's frame (the captain at 70 s, the checkpoints at 33 and 66, two repair rings, a bomber announced, about thirty
+  fighters and five gunboats), so each is as fair as the first and the points (and chimes) stay where they were: the
+  pilot scores 1,620–1,740 in each at 60, 30 and 20 fps (81–87 chimes; 1,610–1,670 before).
+
+  | level | formations | hazard | sky |
+  |---|---|---|---|
+  | the open drift | lines, vees | rocks in four belts | violet nebula, rock tones |
+  | the minefield | **pincers** (two columns crossing from both sides), **walls** (a row abreast over the whole box, peeling up as it comes close) | two **fields of mines**, each two planes over the whole box with one gap each (`FIELD`; a 2 × 2 cells' hole the ship clears by 1.5 m on every side; a mine is one bolt and a point) | teal-green nebula, more teal stars, slate rocks |
+  | the ice belt | **spirals** (a ring of six turning round a point as it closes, tightening) | denser belts of **ice shards drifting across** (`drift`: 6 m across, 1.2 up, a function of the run's time, the same at any frame rate) | cold blue nebula, more stars, pale blue crystals |
+  | the wreck field | **dives** (from high above, one after another, swooping across and under) | **old hulks** (bare ribs, a torn plate) **drifting up and down** 3 m as they turn | rust nebula, few stars, iron and rust hulks |
+
+  The ship says each hazard as it comes (`AMBUSH_LINES` mines, ice, wrecks, with their tones). Fair by test: the belts
+  never cover more than 45 % of the box in any 60 m, drifting or not, at three moments; each plane of mines has its gap
+  and nothing else; the new formations come into the view and go by; the pilot (which now steers for a field's gap and a
+  gun drop) wins each level at 60, 30 and 20 fps with two hits at most; an idle ship is lost in each before the captain.
+  Drawn with the same meshes: the hazards' three shapes per level (`HAZARD_SHAPES`: rock, ice, wreck), only uniforms and
+  tones differ (no new program); the mines' pool 72 (16 before).
+- **The ship is smaller** (`SHIP_LENGTH`, `shipFit`): it was drawn at a quarter of the family ship's size, 5.5 m when that
+  was a 22 m hull; the family ship grew to 52 m and the quarter with it, 13 m long, its stern 6 m in front of the camera,
+  a third of the screen. Now it is fitted to 5.2 m whatever the family ship becomes (its visible meshes measured at the
+  build, its middle on its place), about a tenth of the screen's width; the flames and the trail's nozzles at its fitted
+  stern; the hit box with it (`FLY.body` 0.8 × 0.5 × 2.4 half sizes, inside the 1.7 m across it is drawn; 1.8 × 0.9 × 3.0
+  before), the twin guns 0.6 m either side (0.9).
+- **The shimmer at the start**: found in a 30-frame burst (muted headless Chrome, High, 1280 × 720, the game stepped 1/60 s
+  a frame by hand, `?game=pirates&to=edena`, the canvas read back after each frame; a pixel jumping more than 20 levels
+  and straight back counted). It was the masts' **sun shadow crawling over the deck**: 496 flickers per 10,000 px a frame
+  on the shadow's wedge. The cascades are placed round the traveller, who waits hidden far off under the start, so the
+  ship flew in the far map's coarse texels, refreshed every few frames. Of #489's family: not z-fighting (near 0.3 m, far
+  5,000 m: depth steps of 0.04 mm at 14 m), not the camera against the ship (both on the rail, steady to a pixel). The
+  fix: the ship casts no sun shadow (its meshes in the level's `noShadow`; space has no ground to catch it). After it the
+  deck's flicker is the ink outline's own crawl at its edges, and a smaller strobe went too: the flames took a new random
+  length each frame (a flicker at the frame rate behind the ship); they waver on two sines now.
+- **The sounds** (`src/minigames/pirates-sfx.js`), checked by rendering (`scripts/sound-qc/render.mjs`, the game's own
+  Sound on the in-memory Web Audio, the synth alone as the engines play it; levels K-weighted, the loudest 50 ms against
+  the desert's score, -23.8 dBFS): nothing clipped (a fight's loudest second, bolts, shots, hits, three wrecks and a pip
+  lost, peaked at -11.1 dBFS before and -13.0 after, its loudest 50 ms +3.4 dB over the music before and +1.6 after); what was wrong was the plucks: every one rang 1.6 s whatever it was,
+  in a random place in the stereo, so a bolt's tick on a hull lasted 1.35 s at a brightness of 6.8 kHz, louder than the
+  bolts themselves, and a fight's dozens a second smeared into a ringing haze; and nothing varied (each bolt the same to
+  0.1 dB). Now each is the game's own vocabulary, short and varied (`Sound.vary`):
+
+  | sound | before (dB vs the music, length, brightness) | after | what it is now |
+  |---|---|---|---|
+  | the twin bolts | -10.9, 0.15 s, 2.5 kHz | -14.8, 0.10 s, 1.9 kHz | the gun's bloop made dry, the two guns a hair apart |
+  | a pirate fires | -13.5, 0.15 s | -17.3, 0.10 s | lower and rounder than ours |
+  | a bolt on a hull | -5.6, 1.35 s, 6.8 kHz | -15.5, 0.05 s, 2.0 kHz | the blade's knock on armour (foeArmour), small |
+  | an explosion (a fighter) | +3.1, 0.40 s | +1.1, 0.35 s | the fight temples' kill (foeKill) under a rumble; two at once, the second lighter |
+  | off the armour | -2.9, 1.35 s | -10.1, 0.20 s | the blade's glance (foeGlance) |
+  | the lock | +1.9, 1.35 s | -11.7, 0.25 s | the lock-on's two notes (`Sound.lockOn`) |
+  | no missiles | -8.1, 1.35 s | -16.0, 0.10 s | the empty tank's sputter (fluidEmpty) |
+  | a repair ring | +1.4, 1.50 s | -6.3, 0.45 s | a run of struck glass (`Sound.ting`, the chimes') |
+  | a missile back | -2.5, 1.40 s | -9.8, 0.25 s | a latch, two struck notes |
+  | a chain of kills | -3.0, 1.40 s | -10.0, 0.20 s | a struck note a step higher each one |
+  | the comms | -2.1, 1.40 s | -17.8, 0.15 s | two soft blips |
+  | the tally | -0.4, 1.20 s | -5.5, 0.30 s | a chime crystal struck (`Sound.crystalTing`) |
+  | a pip lost | +2.2, 1.05 s | +0.9, 0.25 s | a crunch and a thud over the runner's hurt |
+
+  Every one within its role's band of the sound QC (an impact -12..+5, an action -18..+2, the UI -24..-6, a cue
+  -14..+4). Not listened to: rendered and measured only (the runs are muted); the music page plays each ("Chime
+  pirates").
+- Tests: `tests/pirates-levels.test.js` (the four levels' frame and their own formations, hazards and skies; which level a
+  flight is; the pilot winning each at three frame rates and an idle ship lost; the belts never a wall while drifting,
+  the mines' gaps; the formations through the view; the page's sky per level, the ship's fitted size and hit box, no
+  shadow from it; the sounds' vocabulary, lengths, levels and a fight's peak, rendered in memory).
+
+### Boost, brake and the guns (v1.85, issue #495)
+
+The author: "Space chimes mini game should allow me to boost and slow down to avoid hazards. Enemies should drop gun
+upgrades so I become more powerful within the level (resets when hit)." Star Fox 64 had both (the C buttons' boost and
+brake, the laser upgrades); "Not done" below listed the first.
+
+- **Boost and brake** (`FLY.throttle`): **RB / R1** (Shift, the touch run toggle) boosts, **LB / L1** (Z, the guard's key; the touch ⚔)
+  brakes: the ship's speed along the rail times 1.75 or 0.5, eased in at 3.5 /s, so what hangs in space (the rocks, the
+  mines, the rings, the drops) comes on that much quicker or slower: a rock 84 m ahead is met after 1.9 s cruising, 1.2 on
+  the boost and 3.4 on the brake. The pirates fly with the ship as before, and the script runs by the clock, so the
+  run is as long either way. Both draw on one gauge (a full one lasts 2.4 s of boost, 2.9 of brake), which fills again
+  0.45 s after either is let go (3.8 s from empty); emptied, a sputter, and neither works until it is back over a
+  quarter. The feel: the view widens 6° on a boost and narrows 4° on the brake (none under Reduce motion or with Camera
+  shake at 0), the flames lengthen or shorten, the dust streams longer, the engine's hum opens; a gush up (the
+  backpack's boost) and a sigh down. The roll left LB and Shift for them (B / ○, X / □, E, the touch ↶).
+- **The gun's tiers** (`GUNS`): the twin bolts, rapid fire (a volley every 0.09 s tapped, 0.14 streamed; 0.12 and 0.2),
+  the spread shot (two more bolts fanned either side of the nose), the storm guns (quicker still, bigger bolts, a wider
+  fan). The bolts warm from pale teal to gold with the tier.
+- **The drops** (`DROPS`): a gunboat, a bomber, each of the captain's turrets, and a wave of fighters downed to the last
+  (a wave with one that got away, or rammed, leaves none) leave a gold diamond turning in a teal ring, hung in space at
+  least 34 m ahead and drifting into the box; flown within 2.8 m of it, the gun goes a tier up (its name flashed, a run
+  of struck glass); at the top tier one is worth 5 points (a token: the run's points stay where they were). **A pip of
+  hull lost takes the gun back to the twin bolts** ("Guns back to twin bolts", two falling notes); a run and a retry
+  from a checkpoint start there. The pilot meets about twelve drops a run and reaches the top tier in each level.
+- **The HUD**: beside the missiles in the hint row's strip (`hudNote`, the runner's `hintNote`, so an engine shows the
+  same in its rich text): the gun's three pips (gold while had) and its name, the gauge's six cells (teal; coral while
+  emptied). The small row says `RB / R1 · LB / L1 boost · brake` (one entry for both: six at most).
+- Tests: `tests/pirates-boost-guns.test.js` (the speeds and what comes on sooner or later, the pirates and the mines; the
+  gauge, emptied and back; the drops, taken, the tiers' rate and spread; a hit back to the first; a wave downed to the
+  last and one that got away; the HUD's strip, the controls and the hints in pad form; on the page, the view, the drop
+  drawn, the gun's word and sound).
+
 ### The controls, against Star Fox (v1.45, issue #88)
 
 The author: "the controls feel weird and not super close to Star Fox. Do an audit to understand why." What Star Fox 64
@@ -901,8 +1006,8 @@ does, what the shooter did (v1.43), and what it does now:
 | The barrel roll | a quick spin (a double tap) that turns shots away | 0.55 s, linear, a 24 m/s shove, the steering a third as strong while it spun | 0.45 s, eased out (a snap), a 14 m/s shove, the steering kept |
 | Lock-on | hold A: the reticle locks the nearest in it | locked round the ship's place | locked round the reticle at the target's distance |
 
-Not done (Star Fox has them): the boost and the brake (C buttons), and the bank held on Z / R (the roll's buttons
-do the roll here). `tests/pirates.test.js` "the feel, as Star Fox" checks the easing, the soft edge, the bank, the
+Not done (Star Fox has it): the bank held on Z / R (the roll's buttons do the roll here). The boost and the brake (its C
+buttons) came with v1.85 (issue #495, above: RB / R1 and LB / L1). `tests/pirates.test.js` "the feel, as Star Fox" checks the easing, the soft edge, the bank, the
 nose and that a bolt reaches the reticle.
 
 

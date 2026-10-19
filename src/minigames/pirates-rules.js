@@ -34,8 +34,16 @@ export const FLY = {
   aim: 0.09,                 // the nose's slope at full stick: the bolts' own way across, besides the ship's speed
   hull: 6,                   // the hull's pips
   iframe: 1.1,               // s untouchable after a hit
-  body: { u: 1.8, v: 0.9, s: 3.0 },   // the ship's half sizes (m), for what hits it
-  bolt: { speed: 170, life: 1.25, every: 0.12, auto: 0.2, r: 0.7, spread: 0.9, lead: 0.5 },   // the twin bolts; `lead`: how much of the ship's sideways speed they keep
+  // the ship's half sizes (m), for what hits it: drawn 5.2 m long since issue #494 ("the ship is too big"; pirates.js
+  // SHIP_LENGTH), 1.7 m across, its hit box a little inside that (1.8 × 0.9 × 3.0 until then)
+  body: { u: 0.8, v: 0.5, s: 2.4 },
+  bolt: { speed: 170, life: 1.25, every: 0.12, auto: 0.2, r: 0.7, spread: 0.6, lead: 0.5 },   // the twin bolts; `lead`: how much of the ship's sideways speed they keep (spread 0.9 until the ship was drawn smaller)
+  // boost and brake (issue #495: "allow me to boost and slow down to avoid hazards"; Star Fox's C buttons): the ship's
+  // speed along the rail times `boost` or `brake`, eased in at `rate` /s, the hazards hung in space (the rocks, the
+  // mines, the rings, the drops) coming on that much quicker or slower; the pirates fly with the ship as before. Both
+  // draw on one gauge (`drain` and `brakeDrain` a second of its whole), which fills again at `refill` /s `wait` s after
+  // either is let go; emptied, neither works until it is back over `min`.
+  throttle: { boost: 1.75, brake: 0.5, rate: 3.5, drain: 0.42, brakeDrain: 0.34, refill: 0.3, wait: 0.45, min: 0.25 },
   charge: { after: 0.28, full: 0.7, speed: 120, turn: 6, life: 2.4, blast: 9, dmg: 12 },   // hold to charge (s), the homing shot, its blast (m) and its harm
   roll: { dur: 0.45, cool: 0.5, push: 14 },   // the barrel roll: s, s before the next, m/s of sideways shove
   // the missiles (issue #224): a few a run on their own button, each locking the pirate nearest the reticle (a wider
@@ -45,6 +53,29 @@ export const FLY = {
   lock: { near: 12, far: 230, cone: 0.11 },     // a charged shot locks what lies within that slope of the reticle, between near and far (m ahead)
   enemyShot: { speed: 50, r: 0.9, life: 4.5 },
 };
+
+/**
+ * The guns (issue #495: "enemies should drop gun upgrades so I become more powerful within the level (resets when
+ * hit)"): the tiers a run climbs by flying through the drops (DROPS), from the twin bolts up. Each its tap's and its
+ * stream's rate (s between two volleys: FLY.bolt's every and auto at the first), the bolts' size, and from the third
+ * two more bolts fanned out either side (`fan`: their slope across, as the nose's). A pip of hull lost takes the gun
+ * back to the first tier; a run (and a retry from a checkpoint) starts there.
+ */
+export const GUNS = [
+  { id: 'twin', name: 'Twin bolts', every: 0.12, auto: 0.2, r: 0.7, fan: 0 },
+  { id: 'rapid', name: 'Rapid fire', every: 0.09, auto: 0.14, r: 0.75, fan: 0 },
+  { id: 'spread', name: 'Spread shot', every: 0.09, auto: 0.14, r: 0.8, fan: 0.055 },
+  { id: 'storm', name: 'Storm guns', every: 0.075, auto: 0.11, r: 0.95, fan: 0.075 },
+];
+/**
+ * The drops (issue #495): a gunboat, a bomber and each of the captain's turrets leave one where they go down, and so
+ * does a wave of fighters downed to the last one. A drop hangs in space a little way ahead (at least `ahead` m), drifts
+ * into the ship's box (`drift` /s) and is taken flying within `r` m of it; at the top tier it is worth `pts` (a token: the
+ * run's points, and its chimes, stay where the bolts left them).
+ */
+export const DROPS = { from: { raider: true, hauler: true, part: true, wave: true }, ahead: 34, r: 2.8, drift: 1.4, pts: 5, life: 14 };
+/** The gun's tier for a run's state (0: the twin bolts). */
+export const gunOf = (S) => GUNS[Math.max(0, Math.min(GUNS.length - 1, S?.ship?.gun ?? 0))];
 
 /**
  * Points, then chimes (issue #206: "don't show '+3 chimes', just have points and at the end they convert into
@@ -123,6 +154,104 @@ export const CHECKPOINTS = [0, ...SCRIPT.filter((e) => e.checkpoint).map((e) => 
 
 /** The rocks along the way: [s0, s1, rocks per 100 m]. Between the belts, open space (drawn closer with the script, v1.45). */
 export const BELTS = [[175, 875, 3.2], [1190, 1890, 4.6], [2100, 2450, 2.2], [2590, 2940, 3]];
+
+/**
+ * The levels (issue #494: "the space pirate mini game should have variation between levels"): each flight to a new
+ * world is one of these (levelFor), its own formations, its own hazard and its own sky (pirates.js BACKDROPS). Every
+ * one keeps the run's frame, so each is as fair as the first: the captain at 70 s, the checkpoints at 33 and 66, two
+ * repair rings, a bomber, about thirty fighters and five gunboats (the points, and the chimes, where the first left
+ * them: tests/pirates.test.js flies the pilot through each).
+ *  - the open drift: the run as it was, lines and vees, rocks in four belts;
+ *  - the minefield: fighters in pincers and walls, and two fields of mines hung across the way, each plane with one
+ *    gap (`field`: thread it, or shoot a way through);
+ *  - the ice belt: fighters circling in as they close (`spiral`), the rocks shards of ice drifting across the way
+ *    (`drift`: slow down to pick a way through);
+ *  - the wreck field: fighters diving from above (`dive`), old hulks turning over in the way, drifting up and down.
+ * `drift`: how far (m) the hazards swing across (u) and up (v) and how quickly (rad/s); `shape` what they are drawn as.
+ */
+export const LEVELS = [
+  { id: 'drift', name: 'The open drift', script: SCRIPT, belts: BELTS, shape: 'rock', drift: null },
+  { id: 'mines', name: 'The minefield', shape: 'rock', drift: null,
+    belts: [[175, 700, 2.2], [1300, 1800, 3], [2150, 2450, 2], [2600, 2940, 2.4]],
+    script: [
+      { t: 1.2, say: 'start' },
+      { t: 4, wave: 'pincer', n: 3 },
+      { t: 10, wave: 'wall', n: 6, v: 1.5 },
+      { t: 15, say: 'mines' },
+      { t: 16, field: [{ gapU: -6, gapV: 2 }, { gapU: 5, gapV: -2 }] },
+      { t: 21, wave: 'chase', n: 2 },
+      { t: 27, wave: 'vee', n: 5 },
+      { t: 30, ring: true, u: 4, v: 2 },
+      { t: 33, checkpoint: 1 },
+      { t: 34, wave: 'wall', n: 6, v: -2 },
+      { t: 40, say: 'hauler' },
+      { t: 41, wave: 'hauler', side: -1 },
+      { t: 48, field: [{ gapU: 6, gapV: 3 }, { gapU: -2, gapV: -3 }] },
+      { t: 52, wave: 'pincer', n: 3, v: 2 },
+      { t: 56, wave: 'chase', n: 3 },
+      { t: 63, ring: true, u: -4, v: -2 },
+      { t: 66, checkpoint: 2 },
+      { t: 67, say: 'captain' },
+      { t: 70, boss: true },
+    ] },
+  { id: 'ice', name: 'The ice belt', shape: 'ice', drift: { u: 6, v: 1.2, w: 0.42 },
+    belts: [[150, 950, 3.6], [1150, 1950, 4.4], [2080, 2480, 3], [2580, 2940, 3.2]],
+    script: [
+      { t: 1.2, say: 'start' },
+      { t: 4, wave: 'spiral', n: 6, u: -4, v: 1 },
+      { t: 10, wave: 'line', n: 5, side: 1 },
+      { t: 13, say: 'ice' },
+      { t: 17, wave: 'chase', n: 2 },
+      { t: 24, wave: 'spiral', n: 6, u: 4, v: -1 },
+      { t: 30, ring: true, u: -5, v: 2 },
+      { t: 33, checkpoint: 1 },
+      { t: 34, wave: 'vee', n: 6 },
+      { t: 40, say: 'hauler' },
+      { t: 41, wave: 'hauler', side: 1 },
+      { t: 49, wave: 'spiral', n: 6, u: 0, v: 2 },
+      { t: 55, wave: 'chase', n: 3 },
+      { t: 63, ring: true, u: 4, v: -2 },
+      { t: 66, checkpoint: 2 },
+      { t: 67, say: 'captain' },
+      { t: 70, boss: true },
+    ] },
+  { id: 'wrecks', name: 'The wreck field', shape: 'wreck', drift: { u: 1, v: 3, w: 0.33 },
+    belts: [[200, 850, 2.6], [1200, 1850, 3.4], [2100, 2450, 2], [2600, 2940, 2.6]],
+    script: [
+      { t: 1.2, say: 'start' },
+      { t: 4, wave: 'dive', n: 5, side: -1 },
+      { t: 10, wave: 'vee', n: 5 },
+      { t: 13, say: 'wrecks' },
+      { t: 17, wave: 'chase', n: 2 },
+      { t: 24, wave: 'dive', n: 6, side: 1 },
+      { t: 30, ring: true, u: 5, v: -2 },
+      { t: 33, checkpoint: 1 },
+      { t: 34, wave: 'pincer', n: 3 },
+      { t: 40, say: 'hauler' },
+      { t: 41, wave: 'hauler', side: -1 },
+      { t: 49, wave: 'dive', n: 6, side: -1 },
+      { t: 55, wave: 'chase', n: 3 },
+      { t: 63, ring: true, u: -4, v: 2 },
+      { t: 66, checkpoint: 2 },
+      { t: 67, say: 'captain' },
+      { t: 70, boss: true },
+    ] },
+];
+export const levelById = (id) => LEVELS.find((l) => l.id === id) ?? LEVELS[0];
+/**
+ * The level of the flight to `to` (issue #494): the worlds of the route in their order take the levels in turn (so two
+ * flights one after the other are never alike), a detour by its name's letters; the Arcade's game (no `to`) whichever
+ * `pick` gives (pirates.js: a new one each time the page opens), or `stage` (a level's id, ?stage=…) when given.
+ */
+export function levelFor(to = null, { stage = null, order = ROUTE_ORDER, pick = 0 } = {}) {
+  if (stage && LEVELS.some((l) => l.id === stage)) return levelById(stage);
+  if (!to) return LEVELS[Math.abs(Math.floor(pick)) % LEVELS.length];
+  const i = order.indexOf(to);
+  // (the route's second world, the first ambushed, flies the open drift: the run met first is the one it always was)
+  return LEVELS[(i >= 1 ? i - 1 : seedOf(to)) % LEVELS.length];
+}
+/** The route's worlds in order (src/levels/names.js ORDER, copied here so the rules stay pure: tests/pirates.test.js holds them alike). */
+export const ROUTE_ORDER = ['desert', 'arzach', 'perdide', 'edena', 'underwater', 'incal', 'glassdunes', 'buried', 'moonfoundry', 'spheres', 'spacecity', 'bazaar'];
 /** What a kill is worth. */
 export const POINTS = { skiff: 10, raider: 30, hauler: 60, mine: 5, rock: 5, turret: 150, core: 500, ring: 20, hull: 50, multi: 25 };
 /**
@@ -172,10 +301,44 @@ export function courseRocks(seed = 7, belts = BELTS, F = FLY) {
       const r = inBox ? 1.1 + Math.pow(rand(), 2) * 3.6 : 4 + rand() * 14;
       const u = inBox ? (rand() * 2 - 1) * (F.boxU + 2) : (rand() < 0.5 ? -1 : 1) * (F.boxU + r + 6 + rand() * 40);
       const v = inBox ? (rand() * 2 - 1) * (F.boxV + 1.5) : (rand() * 2 - 1) * (F.boxV + 26);
-      out.push({ s, u, v, r, kind: Math.floor(rand() * 3), tone: Math.floor(rand() * 5), hp: r < 2.2 ? 2 : Infinity, spin: (rand() - 0.5) * 1.2, hit: false });
+      out.push({ s, u, v, r, kind: Math.floor(rand() * 3), tone: Math.floor(rand() * 5), hp: r < 2.2 ? 2 : Infinity, spin: (rand() - 0.5) * 1.2, hit: false, u0: u, v0: v, ph: rand() * Math.PI * 2 });
     }
   }
   return out.sort((a, b) => a.s - b.s);
+}
+
+/**
+ * The hazards' drift (issue #494, a level's `drift`: the ice belt's shards across the way, the wreck field's hulks up
+ * and down): where each rock is at the run's time t, its swing a function of t alone (the same at any frame rate).
+ */
+export function driftRocks(S, D = S.level?.drift) {
+  if (!D) return;
+  const ahead = S.s + 420;
+  for (let i = S.rockI; i < S.rocks.length; i++) {
+    const r = S.rocks[i];
+    if (r.s > ahead) break;
+    r.u = r.u0 + D.u * Math.sin(D.w * S.t + r.ph);
+    r.v = r.v0 + D.v * Math.sin(D.w * 0.8 * S.t + r.ph * 1.7);
+  }
+}
+
+/**
+ * A field of mines hung across the way (issue #494, the minefield): for each plane, mines on a grid over the ship's box
+ * and a little past it, but for a gap (2 × 2 cells round `gapU`, `gapV`) the ship flies through; the planes `gap` m
+ * apart. Still in space (they come on as the ship flies: faster on a boost), shot down in one, worth `pts` each.
+ */
+export const FIELD = { ahead: 260, apart: 34, step: 5, pts: 1 };
+function layField(S, planes) {
+  const F = S.F, out = [];
+  planes.forEach((p, k) => {
+    const ds = FIELD.ahead + k * FIELD.apart;
+    for (let u = -F.boxU; u <= F.boxU + 0.01; u += FIELD.step) for (let v = -F.boxV; v <= F.boxV + 0.01; v += FIELD.step) {
+      if (Math.abs(u - p.gapU) < FIELD.step && Math.abs(v - p.gapV) < FIELD.step) continue;   // (the gap: a 2 × 2 cells' hole)
+      S.foes.push({ id: S.nextId++, kind: 'mine', field: true, pts: FIELD.pts, hp: 1, r: KINDS.mine.r, age: 0, flash: 0, ds, u, v, face: 'ship' });
+    }
+    out.push({ s: S.s + ds, u: p.gapU, v: p.gapV });
+  });
+  S.fields.push(...out);
 }
 
 // ------------------------------------------------------------------ a run
@@ -183,18 +346,21 @@ export function courseRocks(seed = 7, belts = BELTS, F = FLY) {
  * A new run. `seed`: the rocks' layout (seedOf(destination)); `heat` 0..: how many ambushes came before (their fire a
  * little quicker each time); `gentle`: the Enemies setting's gentle (slower shots, half as many).
  */
-export function newRun({ seed = 7, heat = 0, gentle = false, from = 0, fails = 0, score = 0 } = {}, F = FLY) {
+export function newRun({ seed = 7, heat = 0, gentle = false, from = 0, fails = 0, score = 0, level = LEVELS[0] } = {}, F = FLY) {
   // (a lost run, again: from the checkpoint at `from` s, the waves before it gone by; `fails` lost runs so far: MERCY)
   const mercy = Math.min(fails, MERCY.safe);
   const hull = F.hull + Math.min(MERCY.most, mercy * MERCY.hull);
-  const script = SCRIPT.slice();
+  const L = typeof level === 'string' ? levelById(level) : (level ?? LEVELS[0]);
+  const script = L.script.slice();
   const next = from > 0 ? script.findIndex((e) => e.t > from) : 0;
   return {
-    t: from, s: from * F.speed, F, rand: rng(seed * 7 + 3 + Math.round(from)),
+    t: from, s: from * F.speed, F, rand: rng(seed * 7 + 3 + Math.round(from)), level: L,
     ship: { u: 0, v: -1, vu: 0, vv: 0, hull, hull0: hull, iframe: from > 0 ? 1.5 : 0, roll: 0, rollDir: 1, rollCool: 0, heldT: 0, charge: 0, lock: null, boltT: 0, side: 1, bank: 0, aimU: 0, aimV: 0,
-      missiles: F.missile.count, missileCool: 0, aim: null },   // (aim: what a missile would lock now, for the HUD's bracket)
-    rocks: courseRocks(seed), rockI: 0,
-    foes: [], shots: [], bolts: [], rings: [], missiles: [],
+      missiles: F.missile.count, missileCool: 0, aim: null,   // (aim: what a missile would lock now, for the HUD's bracket)
+      // (issue #495: the speed along the rail, 1 cruising; the boost and brake's gauge, 0..1; the gun's tier: GUNS)
+      speedK: 1, meter: 1, meterWait: 0, spent: false, throttle: null, gun: 0, gunBest: 0 },
+    rocks: courseRocks(seed, L.belts), rockI: 0,
+    foes: [], shots: [], bolts: [], rings: [], missiles: [], drops: [], fields: [], waves: {},
     script, next: next < 0 ? script.length : next, nextId: 1,
     boss: null, score, kills: 0, hits: 0, fired: 0, done: null,
     from, checkpoint: from, scoreAt: score, safe: fails >= MERCY.safe,   // (scoreAt: the points at the last checkpoint, kept for a retry)
@@ -216,7 +382,11 @@ export function pirateInput(inp = {}, raw = {}, { climb = false } = {}) {
     y: (climb ? 1 : -1) * (inp.y ?? 0),
     fire,
     auto: (inp.trigger ?? 0) > 0.5,         // RT / R2 held: a stream of bolts, no charge
-    roll: !!(inp.action || inp.boost || raw.PadEvade || raw.PadGuard || raw.TouchEvade),
+    // (issue #495: RB / R1, Shift or the touch run toggle boosts; LB / L1, Z (the guard's key) or the touch ⚔ brakes. The roll left
+    // LB and Shift for them: B / ○, X / □, E, the touch ↶)
+    boost: !!(inp.boost || raw.PadBlade),
+    brake: !!(raw.PadGuard || raw.KeyZ || raw.TouchBlade),
+    roll: !!(inp.action || raw.PadEvade || raw.TouchEvade),
   };
 }
 
@@ -228,10 +398,25 @@ export function aimAt(P, ds, F = FLY) {
 
 function spawnWave(S, w) {
   const F = S.F;
-  const add = (o) => { const K = KINDS[o.kind]; const e = { id: S.nextId++, hp: K.hp, r: K.r, fireT: 0.6 + S.rand() * (K.fire || 1), age: 0, flash: 0, ...o }; S.foes.push(e); return e; };
+  // (a wave of fighters: downed to the last one, it leaves a gun drop, issue #495)
+  const wave = S.nextId;
+  if (['line', 'vee', 'pincer', 'wall', 'spiral', 'dive'].includes(w.wave) && !w.noDrop) S.waves[wave] = { n: 0, down: 0, lost: false };
+  const add = (o) => { const K = KINDS[o.kind]; const e = { id: S.nextId++, hp: K.hp, r: K.r, fireT: 0.6 + S.rand() * (K.fire || 1), age: 0, flash: 0, ...o }; if (S.waves[wave] && o.kind === 'skiff') { e.wave = wave; S.waves[wave].n++; } S.foes.push(e); return e; };
   if (w.wave === 'line') {
     // skiffs in a column, one behind the other, sweeping across the view as they close
     for (let i = 0; i < w.n; i++) add({ kind: 'skiff', path: 'line', side: w.side ?? 1, delay: i * 0.38, v0: w.v ?? 0, i, ds: 170, u: (w.side ?? 1) * 30, v: w.v ?? 0 });
+  } else if (w.wave === 'pincer') {
+    // (issue #494) two columns at once, one from either side, crossing in front of the ship
+    for (const side of [-1, 1]) for (let i = 0; i < w.n; i++) add({ kind: 'skiff', path: 'line', side, delay: i * 0.42 + (side > 0 ? 0.2 : 0), v0: (w.v ?? 0) + side * 2.5, i, ds: 170, u: side * 30, v: (w.v ?? 0) + side * 2.5 });
+  } else if (w.wave === 'wall') {
+    // (issue #494) a row abreast across the whole box, sliding in, firing, peeling up and away as it comes close
+    for (let i = 0; i < w.n; i++) { const k = i - (w.n - 1) / 2; add({ kind: 'skiff', path: 'wall', k, u0: k * (2 * F.boxU / Math.max(1, w.n - 1)) * 0.9, v0: w.v ?? 0, delay: Math.abs(k) * 0.12, ds: 200, u: k * 5, v: (w.v ?? 0) + 8 }); }
+  } else if (w.wave === 'spiral') {
+    // (issue #494) a ring of fighters turning round a point as they close: the gap in it comes round
+    for (let i = 0; i < w.n; i++) add({ kind: 'skiff', path: 'spiral', a0: (i / w.n) * Math.PI * 2, cu: w.u ?? 0, cv: w.v ?? 0, ds: 190, u: w.u ?? 0, v: w.v ?? 0 });
+  } else if (w.wave === 'dive') {
+    // (issue #494) from high above, one after another, swooping down across the way and under it
+    for (let i = 0; i < w.n; i++) add({ kind: 'skiff', path: 'dive', side: w.side ?? 1, i, delay: i * 0.45, u0: (w.side ?? 1) * (10 - i * 3.2), ds: 130, u: 0, v: 26 });
   } else if (w.wave === 'vee') {
     for (let i = 0; i < w.n; i++) { const k = i - (w.n - 1) / 2; add({ kind: 'skiff', path: 'vee', k, ds: 180 + Math.abs(k) * 7, u: k * 4.2, v: 1 + Math.abs(k) * 0.6 }); }
   } else if (w.wave === 'chase') {
@@ -258,12 +443,15 @@ export function runStep(S, inp = {}, dt = 1 / 60) {
   const F = S.F, P = S.ship, ev = [];
   if (S.done) return ev;
   S.t += dt;
-  S.s += F.speed * dt;
+  throttle(S, inp, dt, ev);
+  S.s += F.speed * P.speedK * dt;
+  driftRocks(S);
 
   // the script: waves, rings, lines, the captain
   while (S.next < S.script.length && S.script[S.next].t <= S.t) {
     const e = S.script[S.next++];
     if (e.wave) spawnWave(S, e);
+    if (e.field) layField(S, e.field);
     if (e.ring) S.rings.push({ s: S.s + 230, u: e.u ?? 0, v: e.v ?? 0, r: 3.4, taken: false });
     if (e.say) ev.push({ kind: 'say', id: e.say });
     if (e.boss) spawnBoss(S);
@@ -299,9 +487,9 @@ export function runStep(S, inp = {}, dt = 1 / 60) {
   P.iframe = Math.max(0, P.iframe - dt);
 
   // fire: a tap shoots the twin bolts; held, it charges (and locks); let go charged, the homing shot
-  const B = F.bolt;
+  const B = F.bolt, gun = gunOf(S);
   P.boltT = Math.max(0, P.boltT - dt);
-  const shoot = (every = B.every) => {
+  const shoot = (every = gun.every) => {
     if (P.boltT > 0) return;
     P.boltT = every;
     // (aim assist, issue #326: a pirate near the line of fire draws the bolts part of the way to it)
@@ -314,10 +502,12 @@ export function runStep(S, inp = {}, dt = 1 / 60) {
         vu += ((at.u + side * B.spread * 0.4 - u0) / t - vu) * A.k;
         vv += ((at.v - v0) / t - vv) * A.k;
       }
-      S.bolts.push({ ds: 2, u: u0, v: v0, vu, vv, vds: B.speed, life: B.life, charged: false });
+      S.bolts.push({ ds: 2, u: u0, v: v0, vu, vv, vds: B.speed, life: B.life, charged: false, r: gun.r, tier: P.gun });
+      // (the spread's two more, fanned out either side of the nose: issue #495)
+      if (gun.fan) S.bolts.push({ ds: 2, u: u0 + side * 0.3, v: v0, vu: P.vu * B.lead + (P.aimU + side * gun.fan) * B.speed, vv: P.vv * B.lead + P.aimV * B.speed, vds: B.speed, life: B.life * 0.8, charged: false, r: gun.r, tier: P.gun, fan: side });
     }
     S.fired++;
-    ev.push({ kind: 'shot', assisted: !!at });
+    ev.push({ kind: 'shot', assisted: !!at, tier: P.gun });
   };
   if (inp.fire && !P.fireHeld) { shoot(); P.heldT = 0; }
   if (inp.fire) {
@@ -336,7 +526,7 @@ export function runStep(S, inp = {}, dt = 1 / 60) {
     }
     P.charge = 0; P.heldT = 0; P.lock = null;
   }
-  if (inp.auto && !inp.fire) shoot(B.auto);   // (RT / R2 held: a steady stream, slower than tapping)
+  if (inp.auto && !inp.fire) shoot(gun.auto);   // (RT / R2 held: a steady stream, slower than tapping)
   P.fireHeld = !!inp.fire;
   if (P.lock && !targetAlive(S, P.lock)) P.lock = null;
 
@@ -397,14 +587,19 @@ export function runStep(S, inp = {}, dt = 1 / 60) {
   }
   S.missiles = S.missiles.filter((m) => m.life > 0);
 
-  // the rocks, the mines' and the rings' still places, the ship's knocks
+  // the rocks, the mines' and the rings' still places, the drops (issue #495), the ship's knocks
   rocksAndRings(S, ev);
+  moveDrops(S, dt, ev);
   shipHits(S, ev);
 
+  // (a fighter of a wave gone by, or rammed, and the wave leaves no drop)
+  for (const e of S.foes) if (e.wave != null && (e.gone || (e.dead && !e.downed)) && S.waves[e.wave]) S.waves[e.wave].lost = true;
   S.foes = S.foes.filter((e) => !e.dead && !e.gone);
   S.shots = S.shots.filter((b) => b.life > 0 && b.ds > -25 && b.ds < 320);
   S.bolts = S.bolts.filter((b) => b.life > 0);
   S.rings = S.rings.filter((r) => r.s - S.s > -20);
+  S.drops = S.drops.filter((d) => !d.taken && d.s - S.s > -20 && d.age < DROPS.life);
+  S.fields = S.fields.filter((f) => f.s - S.s > -20);
 
   // the end: the hull gone, or the captain sunk (or gone off) with the field clear
   if (P.hull <= 0) { S.done = 'dead'; ev.push({ kind: 'dead' }); }
@@ -469,7 +664,7 @@ function moveFoe(S, e, dt, ev) {
   const F = S.F;
   e.age += dt; e.flash = Math.max(0, e.flash - dt); e.tellK = 0;
   const t = e.age - (e.delay ?? 0);
-  if (e.kind === 'mine') { e.ds -= F.speed * dt; if (e.ds < -15) e.gone = true; return; }
+  if (e.kind === 'mine') { e.ds -= F.speed * S.ship.speedK * dt; if (e.ds < -15) e.gone = true; return; }   // (still in space: closing as fast as the ship flies, issue #495)
   if (t < 0) { e.hidden = true; return; }
   e.hidden = false;
   if (e.path === 'line') {
@@ -483,6 +678,27 @@ function moveFoe(S, e, dt, ev) {
     if (e.ds < 55) { e.u += Math.sign(e.k || 0.5) * 18 * dt; e.v += 6 * dt; }
     e.face = 'ship';
     if (e.ds < -12 || Math.abs(e.u) > 40) e.gone = true;
+  } else if (e.path === 'wall') {
+    // (issue #494) abreast, dropping into place from above, closing slowly with a sway; close in, they peel up and over
+    e.ds -= 30 * dt;
+    e.u = e.u0 + 1.6 * Math.sin(1.3 * t + e.k);
+    e.v += ((e.ds < 50 ? e.v0 + (50 - e.ds) * 0.45 : e.v0) - e.v) * Math.min(1, dt * 2.5);
+    e.face = 'ship';
+    if (e.ds < -12) e.gone = true;
+  } else if (e.path === 'spiral') {
+    // (issue #494) a ring turning round its middle as it closes, the ring tightening
+    const R = 9 - 4 * Math.min(1, t / 5), a = e.a0 + 1.5 * t;
+    e.ds = 190 - 34 * t;
+    e.u = e.cu + R * Math.cos(a); e.v = e.cv + R * 0.62 * Math.sin(a);
+    e.face = 'ship';
+    if (e.ds < -12) e.gone = true;
+  } else if (e.path === 'dive') {
+    // (issue #494) down from high above in a swoop across the way, then out under it
+    e.ds = 130 - 26 * t;
+    e.u = e.u0 - e.side * 7 * Math.sin(Math.min(Math.PI, t * 0.9));
+    e.v = 26 - 9.5 * t + 0.9 * t * t * 0.5;
+    e.face = 'ship';
+    if (e.ds < -12 || e.v < -30) e.gone = true;
   } else if (e.path === 'chase') {
     const hold = 50 + 6 * Math.sin(e.ph);
     if (!e.held) {
@@ -594,7 +810,7 @@ function moveBoss(S, dt, ev) {
       }
       ev.push({ kind: 'enemyShot', ring: true, at: c, by: 'core' });
     }
-    if ((B.skiffT -= dt) <= 0) { B.skiffT = BOSS.skiffs; spawnWave(S, { wave: 'line', n: 3, side: S.rand() < 0.5 ? -1 : 1, v: B.v }); }
+    if ((B.skiffT -= dt) <= 0) { B.skiffT = BOSS.skiffs; spawnWave(S, { wave: 'line', n: 3, side: S.rand() < 0.5 ? -1 : 1, v: B.v, noDrop: true }); }
   }
 }
 const easeOut = (k) => 1 - Math.pow(1 - clamp(k, 0, 1), 3);
@@ -612,6 +828,7 @@ function damage(S, target, dmg, ev, by = 'bolt') {
       const pts = Math.round((p.id === 'core' ? POINTS.core : POINTS.turret) * share);
       S.score += pts; S.kills++;
       ev.push({ kind: 'part', id: p.id, at: partAt(B, p), pts });
+      if (p.id !== 'core' && DROPS.from.part) drop(S, partAt(B, p), ev);
       if (p.id === 'core') { B.dying = 0.001; ev.push({ kind: 'sunk', at: partAt(B, p) }); }
       else if (B.parts.filter((q) => q.id !== 'core').every((q) => q.gone)) ev.push({ kind: 'say', id: 'open' });
     }
@@ -622,10 +839,14 @@ function damage(S, target, dmg, ev, by = 'bolt') {
   e.hp -= dmg; e.flash = 0.12;
   if (e.hp > 0) ev.push({ kind: 'hit', by, foe: e.kind, at: { ds: e.ds, u: e.u, v: e.v } });
   if (e.hp <= 0) {
-    e.dead = true;
-    const pts = Math.round((POINTS[e.kind] ?? 0) * share);
+    e.dead = true; e.downed = true;
+    const pts = Math.round((e.pts ?? POINTS[e.kind] ?? 0) * share);
     S.score += pts; S.kills++;
     ev.push({ kind: 'kill', foe: e.kind, at: { ds: e.ds, u: e.u, v: e.v }, pts, by });
+    // (issue #495: a gunboat and a bomber leave a gun drop; so does a wave of fighters downed to the last)
+    if (DROPS.from[e.kind]) drop(S, e, ev);
+    const W = e.wave != null ? S.waves[e.wave] : null;
+    if (W && !W.lost && ++W.down === W.n && DROPS.from.wave) drop(S, e, ev, 'wave');
   }
   return true;
 }
@@ -637,7 +858,7 @@ function sweep(b, ds0, at, r) {
 }
 
 function boltHits(S, b, ds0, ev) {
-  const R = b.charged ? 2.2 : S.F.bolt.r;
+  const R = b.charged ? 2.2 : (b.r ?? S.F.bolt.r);
   // the boss's parts
   if (S.boss && !S.boss.dying && S.boss.age > 1) {
     for (const p of S.boss.parts) {
@@ -714,7 +935,61 @@ function hurt(S, by, ev) {
   if (P.iframe > 0) return false;
   P.hull = Math.max(S.safe ? 1 : 0, P.hull - 1); P.iframe = S.F.iframe; S.hits++;   // (lost often enough, it holds at its last pip: MERCY)
   ev.push({ kind: 'hurt', by, hull: P.hull });
+  // (issue #495: "resets when hit": the gun back to the twin bolts)
+  if (P.gun > 0) { ev.push({ kind: 'gunLost', from: P.gun }); P.gun = 0; }
   return true;
+}
+
+/**
+ * Boost and brake (issue #495): the speed along the rail eased toward the boost's or the brake's, while the gauge
+ * lasts; the gauge drains as either is held and fills again a moment after. Events: 'boost' / 'brake' as each starts
+ * ({ on: true }) and stops, 'spent' when the gauge runs out.
+ */
+function throttle(S, inp, dt, ev) {
+  const P = S.ship, T = S.F.throttle;
+  if (!T) return;
+  if (P.spent && P.meter >= T.min) P.spent = false;
+  const want = P.spent ? null : inp.boost ? 'boost' : inp.brake ? 'brake' : null;
+  if (want !== P.throttle) {
+    if (P.throttle) ev.push({ kind: P.throttle, on: false });
+    if (want) ev.push({ kind: want, on: true });
+    P.throttle = want;
+  }
+  if (want) {
+    P.meter = Math.max(0, P.meter - dt * (want === 'boost' ? T.drain : T.brakeDrain));
+    P.meterWait = T.wait;
+    if (P.meter <= 0) { P.spent = true; ev.push({ kind: 'spent' }); }
+  } else if ((P.meterWait -= dt) <= 0) P.meter = Math.min(1, P.meter + T.refill * dt);
+  const k = want === 'boost' ? T.boost : want === 'brake' ? T.brake : 1;
+  P.speedK += (k - P.speedK) * (1 - Math.exp(-T.rate * dt));
+}
+
+/**
+ * A gun drop (issue #495) where `at` went down (rail-relative), hung in space at least DROPS.ahead m ahead of the ship
+ * (a kill close by would leave it behind), its place across kept inside the box.
+ */
+function drop(S, at, ev, from = 'kill') {
+  const F = S.F;
+  const d = { id: S.nextId++, s: S.s + Math.max(DROPS.ahead, at.ds ?? 0), u: clamp(at.u, -F.boxU * 0.85, F.boxU * 0.85), v: clamp(at.v, -F.boxV * 0.85, F.boxV * 0.85), u1: 0, v1: 0, age: 0, taken: false, from };
+  d.u1 = d.u; d.v1 = d.v;
+  S.drops.push(d);
+  ev.push({ kind: 'drop', at: { ds: d.s - S.s, u: d.u, v: d.v }, from });
+}
+/** The drops: drifting a little toward the box's middle (so one near its edge can be had), taken as the ship meets one. */
+function moveDrops(S, dt, ev) {
+  const P = S.ship;
+  for (const d of S.drops) {
+    if (d.taken) continue;
+    d.age += dt;
+    const k = 1 - Math.exp(-DROPS.drift * dt * 0.3);
+    d.u += (d.u1 * 0.6 - d.u) * k; d.v += (d.v1 * 0.6 - d.v) * k;
+    const ds = d.s - S.s;
+    if (ds < 1.5 && ds > -2.5 && Math.hypot(P.u - d.u, P.v - d.v) < DROPS.r) {
+      d.taken = true;
+      if (P.gun < GUNS.length - 1) { P.gun++; P.gunBest = Math.max(P.gunBest, P.gun); ev.push({ kind: 'upgrade', gun: P.gun, name: GUNS[P.gun].name }); }
+      else { S.score += DROPS.pts; ev.push({ kind: 'upgrade', gun: P.gun, name: GUNS[P.gun].name, pts: DROPS.pts }); }
+    }
+  }
 }
 
 /** Inside the ship's body (its half sizes grown by r)? */
@@ -799,6 +1074,12 @@ export function botInput(S, { missiles = true } = {}) {
   // a repair ring ahead, when hurt
   const ring = S.rings.find((g) => !g.taken && g.s - S.s < 160 && g.s - S.s > 0);
   if (ring && P.hull < (P.hull0 ?? S.F.hull)) { tu = ring.u; tv = ring.v; from = { u: P.u, v: P.v }; }
+  // a gun drop close ahead (issue #495), when nothing is shooting at it
+  const gift = S.drops.find((d) => !d.taken && d.s - S.s < 70 && d.s - S.s > 0);
+  if (gift && !(ring && P.hull < (P.hull0 ?? S.F.hull))) { tu = gift.u; tv = gift.v; from = { u: P.u, v: P.v }; }
+  // a field of mines ahead (issue #494): for its gap
+  const field = S.fields.find((f) => f.s - S.s < 110 && f.s - S.s > -3);
+  if (field) { tu = field.u; tv = field.v; from = { u: P.u, v: P.v }; }
   // rocks just ahead in the way: slide off them
   for (let i = S.rockI; i < S.rocks.length; i++) {
     const r = S.rocks[i], ds = r.s - S.s;

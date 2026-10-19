@@ -173,7 +173,7 @@ test('the captain: the bridge armoured until both guns are down; left alone, the
   assert.equal(core.hp, core.hp0);
 });
 
-test('the controls: the stick as the jets fly, fire from A / ×, Space or the touch ✺, the roll from B, LB, X, Shift or ↶, a missile from LT, F or the touch ◇', () => {
+test('the controls: the stick as the jets fly, fire from A / ×, Space or the touch ✺, the roll from B, X, E or ↶, a missile from LT, F or the touch ◇, the boost from RB, Shift or the run toggle, the brake from LB, Z or ⚔ (issue #495)', () => {
   assert.equal(pirateInput({ y: 1 }).y, -1, 'forward dives');
   assert.equal(pirateInput({ y: 1 }, {}, { climb: true }).y, 1, 'or climbs, as chosen in Settings once beaten');
   assert.equal(pirates.options, undefined, 'no start card (issue #224): no choice on it');
@@ -182,10 +182,15 @@ test('the controls: the stick as the jets fly, fire from A / ×, Space or the to
   assert.equal(pirateInput({ jump: true }).fire, true);
   assert.equal(pirateInput({}, { TouchFire: true }).fire, true);
   assert.equal(pirateInput({ trigger: 1 }).auto, true);
-  for (const raw of [{ PadEvade: true }, { PadGuard: true }, { TouchEvade: true }]) assert.equal(pirateInput({}, raw).roll, true);
+  for (const raw of [{ PadEvade: true }, { TouchEvade: true }]) assert.equal(pirateInput({}, raw).roll, true);
   assert.equal(pirateInput({ action: true }).roll, true);
-  assert.equal(pirateInput({ boost: true }).roll, true);
   assert.equal(pirateInput({}).roll, false);
+  // (issue #495: LB and Shift left the roll for the brake and the boost)
+  assert.equal(pirateInput({ boost: true }).roll, false);
+  assert.equal(pirateInput({}, { PadGuard: true }).roll, false);
+  for (const [inp, raw] of [[{ boost: true }, {}], [{}, { PadBlade: true }]]) assert.equal(pirateInput(inp, raw).boost, true);
+  for (const raw of [{ PadGuard: true }, { KeyZ: true }, { TouchBlade: true }]) assert.equal(pirateInput({}, raw).brake, true);
+  assert.equal(pirateInput({}).boost || pirateInput({}).brake, false);
 });
 
 test('the feel, as Star Fox: weight on the stick, a soft edge, a hard bank, the nose and the bolts where it goes (issue #88)', () => {
@@ -410,9 +415,10 @@ test('lost, the run starts again from the last checkpoint, kinder each time; fro
   assert.ok(CHECKPOINTS[CHECKPOINTS.length - 1] < SCRIPT.find((e) => e.boss).t, 'the last before the captain');
   // an idle ship passes nothing and is lost; one flown by the pilot until a checkpoint, then idle, keeps it
   const S = newRun({ seed: seedOf('incal') });
+  let kept = null;
+  while (!S.done && kept === null) { const ev = runStep(S, botInput(S), 1 / 60); if (ev.some((e) => e.kind === 'checkpoint')) kept = S.score; }
   play(S, botInput, 1 / 60, CHECKPOINTS[1] + 1);
   assert.equal(S.checkpoint, CHECKPOINTS[1]);
-  const kept = S.score;
   play(S, {}, 1 / 60);
   assert.equal(S.done, 'dead');
   assert.equal(S.scoreAt, kept, 'the points won before it are kept');
@@ -437,8 +443,8 @@ test('the game: a complete definition, its controls in Xbox / PlayStation form, 
   assert.deepEqual(checkGame(pirates), []);
   assert.equal(pirates.id, 'pirates');
   for (const [k] of pirates.controls.pad) assert.doesNotMatch(k, /\b(Space|Shift|Esc|Enter)\b/);
-  assert.deepEqual(pirates.touchButtons, ['fire', 'evade', 'guard'], 'the missile on the ◇');
-  assert.deepEqual(pirates.touchShow, ['guard']);
+  assert.deepEqual(pirates.touchButtons, ['fire', 'evade', 'guard', 'run', 'blade'], 'the missile on the ◇, the boost on the run toggle, the brake on ⚔ (issue #495)');
+  assert.deepEqual(pirates.touchShow, ['guard', 'blade']);
   // no start card (issue #224): it counts in at once, its controls as short hints at the bottom right, Xbox / PlayStation form
   assert.equal(pirates.direct, true);
   assert.ok(pirates.hints.pad.some(([k, v]) => k === 'LT / L2' && /missile/.test(v)) && pirates.hints.keys.some(([k]) => k === 'F'));
