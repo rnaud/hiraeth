@@ -1,0 +1,125 @@
+changelog.md
+  s_5f899ba316b5dc::t_ededc731bffb3c 5-7,11
+docs/game-brief.md
+  s_5f899ba316b5dc::t_ee1887014e9fdc 130
+docs/systems/boss-hints.md
+  s_5f899ba316b5dc::t_6c9e85db1dbff6 9
+docs/systems/controls.md
+  s_5f899ba316b5dc::t_48c0f78cf9bdaf 29-30,35-37,278-279,282,291,313-315,333-335,407,437-486
+docs/systems/dialogue.md
+  s_5f899ba316b5dc::t_b886aa27af7720 159
+docs/systems/engine-bridge.md
+  s_5f899ba316b5dc::t_0c79b47e38363c 498-503,1663
+docs/systems/foes.md
+  s_5f899ba316b5dc::t_93e3f51f2a514e 1033
+docs/systems/gadgets.md
+  s_5f899ba316b5dc::t_290c7586b47fcd 70-72,87,89-92,94,103,114
+docs/systems/hints.md
+  s_5f899ba316b5dc::t_0d6be7f64b4ad7 14,45,47
+docs/systems/scout.md
+  s_5f899ba316b5dc::t_0babb4be39ecd1 106,124
+docs/systems/story.md
+  s_5f899ba316b5dc::t_ccadd622f64f1e 667
+docs/systems/ui.md
+  s_5f899ba316b5dc::t_f70816b4f2fc8f 378
+engine/combat.js
+  s_5f899ba316b5dc::t_60744677fc5cf6 33
+engine/game.js
+  s_5f899ba316b5dc::t_dcae7cf0e316d2 684,791-792,972-973,980-981,983-985,1606-1618
+lore/characters/plumb.md
+  s_5f899ba316b5dc::t_31fea48cdbca11 6
+src/bindings.js
+  s_5f899ba316b5dc::t_cbd41a4590b39a 28,34,64-65,68,86,125,128
+src/changelog-media.js
+  s_5f899ba316b5dc::t_8ec959b44995c8 8678-8683
+src/changelog.js
+  s_5f899ba316b5dc::t_21907548f1cee9 11,22-26
+src/companion.js
+  s_5f899ba316b5dc::t_0eb954f503223b 2,19
+src/controller.js
+  s_5f899ba316b5dc::t_c73944fbb53779 10,12-13,18,161-162,187-188,190,198-199,203
+src/fight-temples/session.js
+  s_5f899ba316b5dc::t_93b7d034a2c33d 121
+src/fluid-tool.js
+  s_5f899ba316b5dc::t_40cb40d70fe95a 46,110,1057
+src/gadgets/gun.js
+  s_5f899ba316b5dc::t_b4dc76a3859711 4,8-10,49,51-52,54-55
+src/gadgets/hud.js
+  s_5f899ba316b5dc::t_c1730da7d7c4f8 77-80,195-198,200,207-209,211,214-215
+src/gadgets/index.js
+  s_5f899ba316b5dc::t_2d0eca24586081 30-37,77,93-100,153,189,211-214,217-230,232-275,278,285,292,294-324,328,402-404
+src/hint-level.js
+  s_5f899ba316b5dc::t_19468b514facff 16
+src/host/game-host.js
+  s_5f899ba316b5dc::t_77412cc37b5742 585
+src/hud.js
+  s_5f899ba316b5dc::t_7103a0f541d6bd 12
+src/i18n/en.js
+  s_5f899ba316b5dc::t_f26c73cfecbaa9 126-127,135-136,180,186,189,213,219-220,223-224,229-230,242,262,305,307,509,525-526,541
+src/i18n/fr.js
+  s_5f899ba316b5dc::t_7490f09e78eece 126-127,135-136,188,212,219,222-223,229,241,303,305,506,522-523,538
+src/items.js
+  s_5f899ba316b5dc::t_90ef2154a68720 54-55
+src/main.js
+  s_5f899ba316b5dc::t_4f4677289be10a 764,1142,1691-1692,1708,1744-1745,1747,1749-1751,2097,2146-2147,2378,2386-2395
+src/player.js
+  s_5f899ba316b5dc::t_cc252512f01e38 3120-3121,3321-3338,3757
+src/prompt-keys.js
+  s_5f899ba316b5dc::t_a891e79626db9d 80,82
+src/remap.js
+  s_5f899ba316b5dc::t_5d666236787b76 37-39,59
+src/scout-hint.js
+  s_5f899ba316b5dc::t_55467787524415 2,7-8,11
+src/scout.js
+  s_5f899ba316b5dc::t_93231149184947 11
+src/story/desert.js
+  s_5f899ba316b5dc::t_939b723048abc1 475
+src/story/quests.js
+  s_5f899ba316b5dc::t_a5abbf0725db8e 49,159
+src/ui.js
+  s_5f899ba316b5dc::t_c287a26d8a5abb 68,163
+tests/abilities.test.js
+  s_5f899ba316b5dc::t_327fa7aaad09b6 226-228,230-231
+tests/accessibility.test.js
+  s_5f899ba316b5dc::t_8b76b9654e60d0 152,154,156,161,167,172-184
+tests/bindings.test.js
+  s_5f899ba316b5dc::t_a7b777e6c6ce44 34,50,59,79,122-125,148,153-155
+tests/controller.test.js
+  s_5f899ba316b5dc::t_af975caa86d914 34,37,49-50,100,115,117-118,203-214
+tests/engine-gadgets.test.js
+  s_5f899ba316b5dc::t_75f39b9a1ee9e9 110,126-149
+tests/first-run.test.js
+  s_5f899ba316b5dc::t_a89a76917f5e66 61-62,82-84
+tests/fluid-tool.test.js
+  s_5f899ba316b5dc::t_69c5a48a325d60 111
+tests/gadgets-qa.test.js
+  s_5f899ba316b5dc::t_83fa7abaa5f2a6 328,338,344-347
+tests/gadgets.test.js
+  s_5f899ba316b5dc::t_ccd607a7292175 94,105-107,118-120,141,145,148,152,160,162,186,212-213,221-314
+tests/hud.test.js
+  s_5f899ba316b5dc::t_38d784fb7167e1 184,189-192,196-197,287-289
+tests/key-placeholder.test.js
+  s_5f899ba316b5dc::t_07d87aa5bfed5f 30,33-34,40,43-44,146,159
+tests/menus.test.js
+  s_5f899ba316b5dc::t_3736d1a65385e1 60-61
+tests/scout-hint.test.js
+  s_5f899ba316b5dc::t_d187640ced9547 66,74,78,82
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHud.cs
+  s_5f899ba316b5dc::t_40d19ceff29e56 1050-1051,1053-1054,1066-1068
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "15ae02f4dca689f0366257e453c8764e695d0714",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
