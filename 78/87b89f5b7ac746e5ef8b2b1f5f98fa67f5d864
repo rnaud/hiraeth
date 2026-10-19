@@ -1,0 +1,47 @@
+.claude/skills/zfight-qc/SKILL.md
+  s_5f899ba316b5dc::t_a4abf71dcd09bb 19,71
+changelog.md
+  s_5f899ba316b5dc::t_9a923c6d21b289 7
+docs/systems/rendering.md
+  s_5f899ba316b5dc::t_42f1ff780769d1 1422-1441
+scripts/zfight/lib.mjs
+  s_5f899ba316b5dc::t_b5487d0fe1a636 112-113,177-181
+src/changelog-media.js
+  s_5f899ba316b5dc::t_fb86369eb04cd6 1294,1391-1393
+src/changelog.js
+  s_5f899ba316b5dc::t_8ae322058d89f6 121-125
+src/glass-dunes-architecture.js
+  s_5f899ba316b5dc::t_fd9134b05aa9ec 4,56-58,92-93
+src/glass-dunes-civic-kit.js
+  s_5f899ba316b5dc::t_7228d45ecfa811 4,13-14
+src/glass-dunes-masses.js
+  s_5f899ba316b5dc::t_eaa0a16bdf1298 6,35-39,77-78,80,85,91-94,97-100,142-159,165,172-177,179,181,184-196,200,204,207,214,257,259,318-329,335
+src/glass-dunes-quarter.js
+  s_5f899ba316b5dc::t_b018b5845aa29e 168
+src/glass-dunes-ruins.js
+  s_5f899ba316b5dc::t_a9dffd57788707 38
+src/glass-dunes-streets.js
+  s_5f899ba316b5dc::t_68681986070b17 1,27,47-48
+src/shop-fronts.js
+  s_5f899ba316b5dc::t_c3f2a60b3630f8 317
+tests/glass-dunes-masses.test.js
+  s_5f899ba316b5dc::t_105fb9f72677e2 43-46,52-58
+tests/zfight.test.js
+  s_5f899ba316b5dc::t_46e3301e3d2565 28,36,75-92
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7887b89f5b7ac746e5ef8b2b1f5f98fa67f5d864",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
