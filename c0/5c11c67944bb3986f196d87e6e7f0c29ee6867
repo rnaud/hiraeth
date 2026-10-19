@@ -1,0 +1,54 @@
+engine/game.js
+  s_5f899ba316b5dc::t_2b82840ab28cbc 26,330,1207,1220-1224,1388,1801-1804
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRenderer.cs
+  s_5f899ba316b5dc::t_05a6e85009ac5c 70
+  s_5f899ba316b5dc::t_20eb6bedcacac3 475-477
+unity/Hiraeth/Assets/Hiraeth/Shaders/Surface.shader
+  s_5f899ba316b5dc::t_a02ec77798d23d 175,887-890
+engine/water-bed.js
+  s_5f899ba316b5dc::t_e23165f31905fc 1-46
+engine/mirror.js
+  s_5f899ba316b5dc::t_2f8b47edb63922 54,65,67,71-72,213-224,623
+changelog.md
+  s_5f899ba316b5dc::t_0b307cdb1f9d94 12
+docs/systems/bridge-gaps.md
+  s_5f899ba316b5dc::t_74ccfa6bdd0ce3 42
+docs/systems/engine-bridge.md
+  s_5f899ba316b5dc::t_2caf7cac8fa5af 1714-1715,1719-1753
+engine/bridge-gaps.js
+  s_5f899ba316b5dc::t_4b0d4c16cec2c2 122-124,139
+scripts/design-qc/capture.mjs
+  s_5f899ba316b5dc::t_9ff08e4ec91609 79-84
+src/changelog-media.js
+  s_5f899ba316b5dc::t_8869a04bc9771f 1216-1218,1221-1228
+src/changelog.js
+  s_5f899ba316b5dc::t_5ec794d618e084 52-56
+tests/unity-light-add.test.js
+  s_5f899ba316b5dc::t_bf0b49cb2e1117 1-66
+tests/unity-water-bed.test.js
+  s_5f899ba316b5dc::t_39654f45c13205 1-78
+unity/Hiraeth/Assets/Hiraeth/Shaders/DoorLight.shader
+  s_5f899ba316b5dc::t_082eec119bf906 7-8,21-79,83-84,90
+unity/Hiraeth/Assets/Hiraeth/Shaders/LightAdd.hlsl
+  s_5f899ba316b5dc::t_e9221052d38b4f 1-19
+unity/Hiraeth/Assets/Hiraeth/Shaders/LightAdd.hlsl.meta
+  s_5f899ba316b5dc::t_348006eafb7ce1 1-7
+unity/Hiraeth/Assets/Hiraeth/Shaders/Veil.shader
+  s_5f899ba316b5dc::t_5b4d9f1392095b 27,29,52-53,97-109,111-139
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c05c11c67944bb3986f196d87e6e7f0c29ee6867",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
