@@ -1,0 +1,52 @@
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.Pause.cs
+  s_5f899ba316b5dc::t_6a5f740e987495 165-167,170-176,179,181-182,184-185,195,198,200-201,203-210,215-219,236-238,249-250,253-268,286-287,298
+tests/sequences-web.json
+  s_5f899ba316b5dc::t_30f0b929fb7372 5852-6249
+  s_5f899ba316b5dc::t_1841f80b0ddea0 3,2606,2609-2610,2613-2616,2679,2686,2688,2720,2724-2725,2728-2731,2758,2762-2763,2766-2768,2796,5690-5691,5716-5717,5745-5746,5775-5776,5805-5806,5835-5836,6250-6271
+docs/systems/bridge-gaps.md
+  s_5f899ba316b5dc::t_e94d83d58b8bf8 60-63
+src/changelog-media.js
+  s_5f899ba316b5dc::t_34520ffc129717 1283-1285,1288-1295
+engine/unity/game.js
+  s_5f899ba316b5dc::t_3305a1d6945a28 137-139
+engine/game.js
+  s_5f899ba316b5dc::t_d51176b52ba0b2 944-946
+engine/bridge-gaps.js
+  s_5f899ba316b5dc::t_e541578d7751d1 329-332
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeArgs.cs
+  s_5f899ba316b5dc::t_c2d711cfec4596 248-251
+src/changelog.js
+  s_5f899ba316b5dc::t_4ae371bcd2e612 55-57
+docs/systems/engine-bridge.md
+  s_5f899ba316b5dc::t_0ec4299718faac 160-162,1883,1885-1886,1918-1922
+scripts/unity-compare/sequences.mjs
+  s_5f899ba316b5dc::t_6770bea0c1cf22 13,33-34,43,61,79,140-143,179
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.cs
+  s_5f899ba316b5dc::t_3b5cfdf6c7f9ad 33,189,283-287,305-306,872
+tests/engine-menus.test.js
+  s_5f899ba316b5dc::t_9b3f634d8256c9 718-737
+tests/engine-unity.test.js
+  s_5f899ba316b5dc::t_ef608b4bfefd04 616,618,642-647
+changelog.md
+  s_5f899ba316b5dc::t_ffbb32bc17eda7 7
+engine/sequences.js
+  s_5f899ba316b5dc::t_52ebc60ef0acb9 145-156,455,472-474,477,480-486
+tests/unity-chime-shade.test.js
+  s_5f899ba316b5dc::t_3809548543217f 28-29
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "23ac3bedac6c2c0b6702dd533415ec462401124a",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
