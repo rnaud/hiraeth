@@ -1,7 +1,7 @@
-// The traveller rebuilt in Blender (issue #493; scripts/blender/traveller/build.py, not in the game yet):
-// its GLB keeps the game's skeleton by name at the B3 fit, every part is its own mesh on that one skin,
-// each garment names the body areas it hides, the face carries the game's six keys, and the whole stays
-// within the current traveller's triangle budget.
+// The traveller rebuilt in Blender (issue #493, phase 2: scripts/blender/traveller/build_b3.py, B3's own surface
+// cut into its garments and head-v3; not in the game yet): its GLB keeps the game's skeleton by name at the B3
+// fit, every part is its own mesh on that one skin, each garment names the body areas it hides, the face
+// carries the game's six keys, and the whole stays within the current traveller's triangle budget.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -20,14 +20,13 @@ test('the GLB keeps every game bone by its own name, at the B3 fit', () => {
     const head = manifest.skeleton[name].head;
     for (let k = 0; k < 3; k++) assert.ok(Math.abs(head[k] - p[k]) < 1e-3, `${name} at ${head} not ${p}`);
   }
-  assert.ok(names.includes('eye_l') && names.includes('eye_r'), 'the eyes turn on bones of their own');
   assert.equal(gltf.skins.length, 1, 'one skin: every part on the same skeleton');
 });
 
 test('every part is its own skinned mesh', () => {
   const meshNodes = gltf.nodes.filter((n) => n.mesh !== undefined);
   const names = meshNodes.map((n) => n.name);
-  for (const part of ['Body', 'Head', 'Hair', 'Eye_L', 'Eye_R', 'Brows', 'Tee', 'Shirt', 'Trousers', 'Boots', 'Scarf']) {
+  for (const part of ['Body', 'Head', 'Hair', 'Skin', 'Tee', 'Shirt', 'Trousers', 'Boots', 'Scarf']) {
     assert.ok(names.includes(part), `part ${part}`);
     const node = meshNodes.find((n) => n.name === part);
     assert.equal(node.skin, 0, `${part} skinned`);
@@ -46,7 +45,7 @@ test('the garments name the areas they hide; the face has the game keys', () => 
     assert.ok(Array.isArray(part.hides), `${name} hides`);
     for (const a of part.hides) assert.ok(manifest.areas.includes(a), `${name}: area ${a}`);
     assert.ok(part.layer >= 1, `${name} layer`);
-    for (const key of Object.values(part.materials)) assert.ok(key, `${name}: every material has a palette key`);
+    for (const key of Object.values(part.materials)) assert.ok(key, `${name}: every material has a palette key or its source texture`);
   }
   assert.ok(manifest.parts.Shirt.hides.length > 0 && manifest.parts.Trousers.hides.length > 0);
   for (const key of ['blink', 'smile', 'brow', 'browTilt', 'asymmetry', 'open']) assert.ok(manifest.parts.Head.shapeKeys.includes(key), key);

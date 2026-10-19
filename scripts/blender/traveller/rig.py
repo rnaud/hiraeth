@@ -31,6 +31,7 @@ def child_of(name):
 
 
 def armature(d, J, eye_c, coll):
+    """eye_c: the eyes' centres for eye_l / eye_r under Head, or None for the game's 53 bones alone."""
     arm_data = bpy.data.armatures.new('TravellerRig')
     arm = bpy.data.objects.new('TravellerRig', arm_data)
     coll.objects.link(arm)
@@ -60,7 +61,7 @@ def armature(d, J, eye_c, coll):
         dirn = (b.tail - b.head).normalized()
         b.align_roll(Vector((0, -1, 0)) if abs(dirn.z) > 0.7 else Vector((0, 0, 1)))
         b.use_connect = False
-    for side in 'lr':
+    for side in ('lr' if eye_c else ''):
         b = eb.new(f'eye_{side}')
         b.head = eye_c[side]
         b.tail = eye_c[side] + Vector((0, -0.025, 0))
@@ -276,8 +277,8 @@ def sockets(arm, coll):
     for side in 'lr':
         h, m = bones[f'hand_{side}'].head_local, bones[f'middle_01_{side}'].head_local
         empty(f'socket_grip_{side}', f'hand_{side}', h.lerp(m, 0.6) + Vector((0, -0.022, 0)))
-    eye = bones['eye_l'].head_local
-    empty('socket_head', 'Head', Vector((0, eye.y + 0.07, eye.z + 0.02)))
+    h = bones['Head'].head_local
+    empty('socket_head', 'Head', Vector((0, h.y - 0.01, h.z + 0.115)))   # the skull's middle (hats)
     return out
 
 

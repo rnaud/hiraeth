@@ -2048,39 +2048,58 @@ both the accepted review and actual playable-game evidence.
 
 ## The traveller in Blender (issue #493, not in the game yet)
 
-A rebuild of the traveller as an outfit-swappable game character, made by a script so it can be remade
-and changed: `scripts/blender/traveller/` (Blender 5.2, run headless). The game still draws B3; nothing
-loads these files yet. The author picks from the previews before anything is switched over.
+The traveller as an outfit-swappable game character, made by a script so it can be remade:
+`scripts/blender/traveller/` (Blender 5.2, run headless). The game still draws B3; nothing loads these
+files yet. The author picks from the previews before anything is switched over.
 
     node scripts/blender/traveller/export-donor.mjs <work>/donor.json
-    Blender --background --factory-startup --python scripts/blender/traveller/build.py -- \
+    Blender --background --factory-startup --python scripts/blender/traveller/build_b3.py -- \
         --donor <work>/donor.json --out data/characters/traveller-v2
     Blender --background --factory-startup --python scripts/blender/traveller/previews.py -- \
         --blend data/characters/traveller-v2/traveller.blend --out <dir>
 
-`data/characters/traveller-v2/` holds the result: `traveller.blend` (the source, with the body's cage and
-the vertex groups for authoring), `traveller.glb` (every part a named mesh on one skin, shape keys, UVs)
-and `manifest.json` (the parts and their triangles, each material's palette key, the body areas each
-garment hides, the bones, the sockets).
+`data/characters/traveller-v2/` holds `traveller.blend` (the source, with the body's cage and the vertex
+groups for authoring), `traveller.glb` (every part a named mesh on one skin, shape keys, UVs, B3's and
+head-v3's own textures), `manifest.json` (the parts and their triangles, each material's palette key or
+source texture, the body areas each garment hides, the bones, the sockets) and `previews/`.
+
+**Phase 2: the look taken from the approved assets** (`build_b3.py`). The first pass modelled him
+(`build.py`: lofted clothes, MakeHuman's face) and read as generic; this one reuses what was approved.
+
+- **Garments: B3's own surface, cut** (`b3cut.py`). Each B3 vertex is labelled by its colour
+  (`colors.json`) and where it is (coral: the shirt; cream above 0.965 m: the tee, below: the trousers;
+  sand under 0.205 m: the boots; the neck band: the scarf; skin past the sleeves and at the ankles), ink
+  lines take their neighbours' label, islands under 60 faces join their surroundings, and B3's split
+  glTF verts are welded first so labels and seams cross its UV seams. The painted edges are ragged and
+  the triangles big, so the cut is not along the triangles: each label's score is diffused over the mesh
+  and the triangles are split where one label's score meets the next (UVs and weights interpolated),
+  label by label. Each piece keeps B3's folds, collar, laced boots, UVs, texture (its own copy of the
+  material, to tint alone) and B3's own skin weights on the 53 bones; each cut edge is turned in 4 mm
+  (`lip`). B3's head and the neck lining above the scarf go.
+- **Backing** where B3 has no cloth (it was fused): under the shirt, the tee's back and sleeves and the
+  trousers' top are phase 1's pieces (`garments.py`), drawn 1 cm inside the shirt, in the B3 piece's
+  colour, weighted from the body, joined to their B3 piece.
+- **Head: head-v3** with its texture and painted eyes, placed and skinned as `traveller-b3.js` does
+  (B3_HEAD_FIT; Head and neck_01 by `portrait-head.js`'s skull blend). The six game keys (`blink smile
+  brow browTilt asymmetry open`) are `portrait-head.js`'s own formulas, baked as shape keys: as small as
+  the game's (the game's shader draws the lids and mouth over them). Its hair (its hair mask's faces) is
+  its own mesh, decimated to 9 k triangles; under it the head's hair faces sink 7 mm and go dark (the
+  scalp), decimated alone.
+- **Body:** phase 1's quad body (below), weighted by bone heat, then drawn in under B3's clothes as a
+  smooth field (`inside_smooth`), in B3's skin colour. Dressed, the loader leaves out its hidden areas
+  (`outfits.default.hides`, the previews do the same); his visible hands, forearms and ankles are B3's
+  skin piece (`Skin`, kind `skin`).
+- **Cost:** about 86 k triangles (head 17 k, hair 9 k, shirt 20 k, trousers 13 k, body 11 k), under B3's
+  94 k as drawn; `tests/traveller-blender.test.js`.
+
+**Phase 1's pieces, still used:**
 
 - **One skeleton.** The game's 53 bones by their own names (`Root`, `pelvis` … `ball_r`), at the B3 fit
   (`traveller-b3-fit.js` through `export-donor.mjs`), so the clips, the hands' driver and the procedural
-  motion need no mapping; plus `eye_l` / `eye_r` under `Head` for the gaze. The game binds by name.
+  motion need no mapping (`rig.py`). The game binds by name.
 - **Body** (`body.py`): a quad cage lofted round the bones (the left half, mirrored), three loops round
   each elbow, knee and knuckle, four fingers and a thumb out of a ten-vert palm, subdivided once: every
-  face a quad. Weighted by bone heat, each finger kept to its own chain, four bones a vertex.
-- **Head** (`head.py`): MakeHuman's head (the game's own CC0 `body.bin` at his B3 face targets) for its
-  topology (loops round the eyes and mouth) and its face keys, drawn toward the approved portrait (head-v3:
-  its eyes, chin and outline), cut at the neck under the scarf where the body's ring meets it vert for vert.
-  Keys: the game's six (`blink smile brow browTilt asymmetry open`, as `portrait-head.js` names them) and
-  MakeHuman's `frown browDown squint cheekSquint eyeWide viseme_aa`.
-- **Apart from the head:** each eye (a sphere with the iris and pupil as faces, on its own bone), the
-  brows (MakeHuman's, with their share of the keys), the hair (head-v3's own locks, its hair mask's faces,
-  decimated, double-sided). Lashes stay paint (`eye-paint.png`); no teeth or tongue: the mouth is drawn.
-- **Clothes** (`garments.py`), each its own mesh, skinned to the same skeleton by the body's weights
-  carried across (inverse distance from the nearest body verts, then smoothed): the tee, the trousers
-  (turned up at mid-shin), the boots (a flat sole), the open coral shirt (sleeves rolled below the elbow,
-  a collar, the hem over the hips: its hem samples the hips' weights, not the thighs'), the scarf.
+  face a quad.
 - **Body areas.** Every body vertex has an area (`_AREA` in the GLB, `area_*` groups in the .blend:
   chest, belly, hips, neck, and per side upperarm, forearm_upper, forearm_lower, hand, thigh, knee, shin,
   shin_lower, ankle, foot). A garment hides an area when it covers 97 % of it (a ray out along each body
@@ -2089,21 +2108,20 @@ garment hides, the bones, the sockets).
 - **Kit sockets:** empties on the game's anchors (`socket_chest`, `_tank`, `_sheath`, `_lantern`,
   `_star` on spine_03 in the chest anchor's frame, `socket_grip_l/_r`, `socket_head`; traveller-kit.md).
   The flask, the sword and the glove stay built in code and hang there.
-- **Materials:** flat colour regions, each named for what it is and keyed to `TRAVELLER_PALETTE`
-  (`manifest.parts.<part>.materials`), so the palette and `colors.json`-style tints drive them.
-- **Cost:** about 53 k triangles in all (body 11 k, head 8.4 k, hair 7 k, clothes 25 k), against B3's
-  94 k near the camera; `tests/traveller-blender.test.js` keeps it under that.
+- `build.py` still makes phase 1's all-modelled version (MakeHuman's head with eyes and brows apart,
+  lofted clothes), not kept in the repository.
 
 ### Outfits
 
 A new outfit is new garment meshes on the same body and skeleton; the body never changes.
 
-1. **Model** each piece as its own mesh over the base body in its rest pose (T-pose), in its own layer
+1. **Model** each piece as its own mesh over the base body (or, as phase 2 does, cut it from an approved
+   generated character: `b3cut.py`, labels by colour, a smooth cut, a lip on each edge) in its rest pose (T-pose), in its own layer
    (1 next to the skin, 2 over that, 3 outermost), never closer than about 5 mm to the layer under it.
    In `garments.py` that is a builder cut from the body's cage (`cut`: the parts and heights it covers),
    grown out (`inflate`), with its hems, cuffs and collar extruded, added to `SPEC` and `BUILDERS`;
    modelled by hand, keep quads and the cage's loops at the elbows and knees.
-2. **Weight** it from the body: `rig.transfer_weights` (the nearest body verts' mix, then smoothed). Where
+2. **Weight** it: a piece cut from a skinned source keeps its own weights; otherwise from the body: `rig.transfer_weights` (the nearest body verts' mix, then smoothed). Where
    a piece hangs away from the limb under it (a long hem, a cape, a skirt), give it a `sample` that reads
    the weights from where it hangs from (the hips), not from what it covers (the thighs). Then look at it
    posed (`previews.py --only posed`) and clean by hand where it pinches.

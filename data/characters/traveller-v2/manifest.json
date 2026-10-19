@@ -1,5 +1,5 @@
 {
- "source": "scripts/blender/traveller/build.py (issue #493)",
+ "source": "scripts/blender/traveller/build_b3.py (issue #493, phase 2: B3 cut into its garments, head-v3)",
  "skeleton": {
   "Root": {
    "game": "Root",
@@ -451,26 +451,6 @@
    ],
    "deform": true
   },
-  "eye_l": {
-   "game": null,
-   "parent": "Head",
-   "head": [
-    0.0297,
-    1.6332,
-    0.0578
-   ],
-   "deform": true
-  },
-  "eye_r": {
-   "game": null,
-   "parent": "Head",
-   "head": [
-    -0.0297,
-    1.6332,
-    0.0578
-   ],
-   "deform": true
-  },
   "thigh_l": {
    "game": "thigh_l",
    "parent": "pelvis",
@@ -555,11 +535,11 @@
  "parts": {
   "Head": {
    "kind": "head",
-   "triangles": 8436,
-   "vertices": 4245,
+   "triangles": 16969,
+   "vertices": 11406,
    "materials": {
-    "skin": "skin",
-    "hair": "hair"
+    "tripo_material_d28e51d1-9b64-4506-8f0b-bc0f5cf4100e": "head-v3",
+    "scalp": "hair"
    },
    "shapeKeys": [
     "blink",
@@ -567,83 +547,80 @@
     "brow",
     "browTilt",
     "asymmetry",
-    "open",
-    "frown",
-    "browDown",
-    "squint",
-    "cheekSquint",
-    "eyeWide",
-    "viseme_aa"
-   ]
-  },
-  "Body": {
-   "kind": "body",
-   "triangles": 11092,
-   "vertices": 5577,
-   "materials": {
-    "skin": "skin"
-   },
-   "shapeKeys": []
-  },
-  "Eye_L": {
-   "kind": "eye",
-   "triangles": 320,
-   "vertices": 162,
-   "materials": {
-    "eye_white": "EYE_WHITE",
-    "iris": "TRAVELLER_IRIS",
-    "pupil": "dark"
-   },
-   "shapeKeys": []
-  },
-  "Eye_R": {
-   "kind": "eye",
-   "triangles": 320,
-   "vertices": 162,
-   "materials": {
-    "eye_white": "EYE_WHITE",
-    "iris": "TRAVELLER_IRIS",
-    "pupil": "dark"
-   },
-   "shapeKeys": []
-  },
-  "Brows": {
-   "kind": "brow",
-   "triangles": 1060,
-   "vertices": 712,
-   "materials": {
-    "brow": "brow"
-   },
-   "shapeKeys": [
-    "blink",
-    "smile",
-    "brow",
-    "browTilt",
-    "asymmetry",
-    "open",
-    "frown",
-    "browDown",
-    "squint",
-    "cheekSquint",
-    "eyeWide",
-    "viseme_aa"
+    "open"
    ]
   },
   "Hair": {
    "kind": "hair",
-   "triangles": 6999,
-   "vertices": 7009,
+   "triangles": 9000,
+   "vertices": 9455,
    "materials": {
-    "hair": "hair"
+    "tripo_material_d28e51d1-9b64-4506-8f0b-bc0f5cf4100e": "head-v3"
    },
    "shapeKeys": []
   },
+  "Body": {
+   "kind": "body",
+   "triangles": 11056,
+   "vertices": 5557,
+   "materials": {
+    "skin.001": "skin"
+   },
+   "shapeKeys": []
+  },
+  "Skin": {
+   "kind": "skin",
+   "triangles": 2838,
+   "vertices": 1504,
+   "materials": {
+    "b3_skin": "traveller-b3"
+   },
+   "shapeKeys": [],
+   "hides": [
+    "forearm_lower.L",
+    "forearm_lower.R",
+    "hand.L",
+    "hand.R"
+   ],
+   "layer": 0
+  },
+  "Shirt": {
+   "kind": "garment",
+   "triangles": 20132,
+   "vertices": 10328,
+   "materials": {
+    "b3_shirt": "traveller-b3"
+   },
+   "shapeKeys": [],
+   "hides": [
+    "upperarm.L",
+    "upperarm.R"
+   ],
+   "layer": 2
+  },
+  "Boots": {
+   "kind": "garment",
+   "triangles": 6281,
+   "vertices": 3192,
+   "materials": {
+    "b3_boots": "traveller-b3"
+   },
+   "shapeKeys": [],
+   "hides": [
+    "ankle.L",
+    "ankle.R",
+    "foot.L",
+    "foot.R"
+   ],
+   "layer": 1
+  },
   "Tee": {
    "kind": "garment",
-   "triangles": 4496,
-   "vertices": 2244,
+   "triangles": 5185,
+   "vertices": 2876,
    "materials": {
-    "tee": "suit"
+    "b3_tee": "traveller-b3",
+    "tee_backing": "suit"
    },
    "shapeKeys": [],
    "hides": [
@@ -653,10 +630,11 @@
   },
   "Trousers": {
    "kind": "garment",
-   "triangles": 7184,
-   "vertices": 3590,
+   "triangles": 13093,
+   "vertices": 6770,
    "materials": {
-    "trousers": "suit"
+    "b3_trousers": "traveller-b3",
+    "trousers_backing": "suit"
    },
    "shapeKeys": [],
    "hides": [
@@ -669,42 +647,12 @@
    ],
    "layer": 1
   },
-  "Boots": {
-   "kind": "garment",
-   "triangles": 3808,
-   "vertices": 1908,
-   "materials": {
-    "boot": "boot",
-    "sole": "sole"
-   },
-   "shapeKeys": [],
-   "hides": [
-    "ankle.L",
-    "ankle.R"
-   ],
-   "layer": 1
-  },
-  "Shirt": {
-   "kind": "garment",
-   "triangles": 8624,
-   "vertices": 4310,
-   "materials": {
-    "shirt": "jacket",
-    "shirt_lining": "jacketShade"
-   },
-   "shapeKeys": [],
-   "hides": [
-    "upperarm.L",
-    "upperarm.R"
-   ],
-   "layer": 2
-  },
   "Scarf": {
    "kind": "garment",
-   "triangles": 1536,
-   "vertices": 768,
+   "triangles": 1081,
+   "vertices": 619,
    "materials": {
-    "scarf": "scarf"
+    "b3_scarf": "traveller-b3"
    },
    "shapeKeys": [],
    "hides": [],
@@ -740,10 +688,11 @@
  "outfits": {
   "default": {
    "parts": [
+    "Skin",
+    "Shirt",
+    "Boots",
     "Tee",
     "Trousers",
-    "Boots",
-    "Shirt",
     "Scarf"
    ],
    "hides": [
@@ -751,11 +700,21 @@
     "ankle.R",
     "belly",
     "chest",
+    "foot.L",
+    "foot.R",
+    "forearm_lower.L",
+    "forearm_lower.R",
+    "forearm_upper.L",
+    "forearm_upper.R",
+    "hand.L",
+    "hand.R",
     "hips",
     "knee.L",
     "knee.R",
     "shin.L",
     "shin.R",
+    "shin_lower.L",
+    "shin_lower.R",
     "thigh.L",
     "thigh.R",
     "upperarm.L",
@@ -824,10 +783,10 @@
    "bone": "Head",
    "position": [
     0.0,
-    1.6532,
-    -0.0122
+    1.65,
+    -0.018
    ]
   }
  },
- "triangles": 53875
+ "triangles": 85635
 }

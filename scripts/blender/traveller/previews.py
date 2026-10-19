@@ -26,7 +26,7 @@ def arg(name, default=None):
 
 BLEND = arg('--blend', os.path.join(REPO, 'data', 'characters', 'traveller-v2', 'traveller.blend'))
 OUT = arg('--out')
-ONLY = set((arg('--only') or 'dressed,parts,compare,wire,faces').split(','))
+ONLY = set((arg('--only') or 'dressed,parts,wire,faces,posed,seams,compare').split(','))
 os.makedirs(OUT, exist_ok=True)
 bpy.ops.wm.open_mainfile(filepath=BLEND)
 sc = bpy.context.scene
@@ -40,6 +40,28 @@ for o in bpy.data.objects:
         o.hide_render = True
 
 
+def cull_body(on=True):
+    """The body as the dressed game would draw it: its triangles in the outfit's hidden areas left out."""
+    b = by.get('Body')
+    if not b or 'outfit_hides' not in b:
+        return
+    import bmesh
+    if on:
+        if 'full' not in bpy.data.meshes:
+            full = b.data.copy()
+            full.name = 'full'
+        hidden = {b.vertex_groups['area_' + a].index for a in b['outfit_hides']}
+        bm = bmesh.new()
+        bm.from_mesh(bpy.data.meshes['full'])
+        dl = bm.verts.layers.deform.active
+        gone = [f for f in bm.faces if all(any(g in hidden and w > 0.5 for g, w in v[dl].items()) for v in f.verts)]
+        bmesh.ops.delete(bm, geom=gone, context='FACES')
+        bm.to_mesh(b.data)
+        bm.free()
+    elif 'full' in bpy.data.meshes:
+        b.data = bpy.data.meshes['full'].copy()
+
+
 def show(objs):
     for o in parts:
         o.hide_render = o not in objs
@@ -51,6 +73,7 @@ def turnaround(prefix, centre=(0, 0, 0.9), height=1.95, size=(800, 1400), views=
         V.shoot(os.path.join(OUT, f'{prefix}-{name}.png'), centre, height, az, el)
 
 
+cull_body(True)
 if 'dressed' in ONLY:
     show(parts)
     turnaround('dressed')
@@ -59,13 +82,14 @@ if 'dressed' in ONLY:
         V.shoot(os.path.join(OUT, f'head-{name}.png'), (0, 0, 1.64), 0.42, az, 0)
 
 if 'parts' in ONLY:
+    cull_body(False)
     show([o for o in parts if o.get('kind') != 'garment'])
     turnaround('body', views={'front': (0, 0), 'side': (90, 0), 'back': (180, 0)})
     # exploded: each part pulled out along its own direction
     show(parts)
     moves = {'Head': (0, 0, 0.22), 'Hair': (0, 0, 0.42), 'Brows': (0, -0.16, 0.30), 'Eye_L': (0.06, -0.20, 0.26),
              'Eye_R': (-0.06, -0.20, 0.26), 'Scarf': (0, -0.05, 0.12), 'Shirt': (0.75, 0, 0), 'Tee': (-0.75, 0, 0),
-             'Trousers': (1.35, 0, 0.0), 'Boots': (-1.35, 0, 0)}
+             'Trousers': (1.35, 0, 0.0), 'Boots': (-1.35, 0, 0), 'Skin': (0, -0.45, 0)}
     saved = {}
     for name, d in moves.items():
         o = by.get(name)
@@ -77,15 +101,17 @@ if 'parts' in ONLY:
     V.shoot(os.path.join(OUT, 'exploded-three-quarter.png'), (0, 0, 1.0), 2.25, 25, 8)
     for o, m in saved.items():
         o.matrix_world = m
+    cull_body(True)
 
 if 'wire' in ONLY:
+    cull_body(False)
     show(parts)
     for o in parts:
         w = o.modifiers.new('Wire', 'WIREFRAME')
         w.thickness = 0.0008 if o.name in ('Head', 'Eye_L', 'Eye_R', 'Brows') else 0.0014
         w.use_replace = False
         w.material_offset = 50
-    show([by['Body'], by['Head'], by['Eye_L'], by['Eye_R']])
+    show([by[n] for n in ('Body', 'Head', 'Eye_L', 'Eye_R') if n in by])
     V.setup(size=(1200, 1400))
     V.shoot(os.path.join(OUT, 'wire-body-front.png'), (0, 0, 0.9), 1.95, 0, 0)
     V.setup(size=(1400, 1000))
@@ -98,18 +124,19 @@ if 'wire' in ONLY:
     V.shoot(os.path.join(OUT, 'wire-outfit-three-quarter.png'), (0, 0, 0.9), 1.95, 35, 5)
     for o in parts:
         o.modifiers.remove(o.modifiers['Wire'])
+    cull_body(True)
 
 if 'faces' in ONLY:
-    show([by['Head'], by['Eye_L'], by['Eye_R'], by['Brows'], by['Hair']])
+    show([by[n] for n in ('Head', 'Eye_L', 'Eye_R', 'Brows', 'Hair') if n in by])
     V.setup(size=(600, 640))
     keys = [k.name for k in by['Head'].data.shape_keys.key_blocks[1:]]
     for k in ['neutral'] + keys:
-        for o in (by['Head'], by['Brows']):
+        for o in [by[n] for n in ('Head', 'Brows') if n in by]:
             if o.data.shape_keys:
                 for kb in o.data.shape_keys.key_blocks[1:]:
                     kb.value = 1.0 if kb.name == k else 0.0
         V.shoot(os.path.join(OUT, f'face-{k}.png'), (0, 0, 1.635), 0.3, 12, 0)
-    for o in (by['Head'], by['Brows']):
+    for o in [by[n] for n in ('Head', 'Brows') if n in by]:
         for kb in o.data.shape_keys.key_blocks[1:]:
             kb.value = 0.0
 
@@ -122,6 +149,8 @@ if 'posed' in ONLY:
              'thigh_r': ((1, 0, 0), 14), 'neck_01': ((0, 0, 1), 12), 'Head': ((0, 0, 1), 14),
              'spine_02': ((0, 0, 1), -6), 'eye_l': ((0, 0, 1), 15), 'eye_r': ((0, 0, 1), 15)}
     for name, (axis, deg) in turns.items():
+        if name not in pb:
+            continue
         b = pb[name]
         b.rotation_mode = 'QUATERNION'
         # a turn about the armature's own axis, whatever the bone's roll
@@ -129,7 +158,7 @@ if 'posed' in ONLY:
         from mathutils import Quaternion
         q = Quaternion(M.inverted() @ Vector(axis), math.radians(deg))
         b.rotation_quaternion = q
-    for o in (by['Head'], by['Brows']):
+    for o in [by[n] for n in ('Head', 'Brows') if n in by]:
         o.data.shape_keys.key_blocks['smile'].value = 0.8
     bpy.context.view_layer.update()
     V.setup(size=(900, 1400))
@@ -137,8 +166,17 @@ if 'posed' in ONLY:
         V.shoot(os.path.join(OUT, f'posed-{name}.png'), (0, 0, 0.9), 1.95, az, 0)
     for b in pb:
         b.rotation_quaternion = (1, 0, 0, 0)
-    for o in (by['Head'], by['Brows']):
+    for o in [by[n] for n in ('Head', 'Brows') if n in by]:
         o.data.shape_keys.key_blocks['smile'].value = 0.0
+
+if 'seams' in ONLY:
+    # the cuts close up: where B3's surface was cut into its garments
+    show(parts)
+    V.setup(size=(700, 700))
+    for name, centre, h, az, el in (('sleeve', (0.47, 0, 1.36), 0.26, 0, 0), ('front', (0, 0, 1.12), 0.42, 15, 0),
+                                    ('hem-boot', (0.13, 0, 0.2), 0.34, 30, 5), ('scarf', (0, 0, 1.46), 0.28, 25, 5),
+                                    ('back-hem', (0, 0, 0.86), 0.42, 180, -10)):
+        V.shoot(os.path.join(OUT, f'seam-{name}.png'), centre, h, az, el)
 
 if 'compare' in ONLY:
     # the game's traveller today: the B3 body (its head cut, as the game cuts it) and head-v3 placed as

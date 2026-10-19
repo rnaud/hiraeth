@@ -22,7 +22,7 @@ def setup(engine='WORKBENCH', size=(900, 1400), film=False):
     if engine == 'WORKBENCH':
         sh = sc.display.shading
         sh.light = 'STUDIO'
-        sh.color_type = 'MATERIAL'
+        sh.color_type = 'TEXTURE'   # (B3's and head-v3's own textures; flat materials show their colour)
         sh.show_object_outline = True
         sh.object_outline_color = (0.08, 0.07, 0.06)
         sh.show_cavity = False
