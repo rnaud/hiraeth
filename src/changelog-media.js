@@ -1209,6 +1209,8 @@ const EYES473 = 'Issue #473: the Unity editor’s batch run on this Mac (scripts
 const EYES473W = 'Issue #473: the same view on the web, muted headless Chrome on this branch (scripts/design-qc/capture.mjs, High, 1280 × 720, a fixed render scale), cropped the same way; his head turns with his idle on its own clock';
 /** (v1.84, issue #465: the Deck's pipeline list traced again) */
 const PSO465 = 'Issue #465: a release Linux player of main at 509b40cc9 on the Steam Deck OLED (gamescope headless, 1280 × 800, 90 Hz, the Steam Deck preset, uncapped, muted), each launch with its own Mesa cache, TMPDIR and config emptied first; before: the shipped list (125 states), after: the re-traced one (168), both warmed with -pso-file; the longest frame of the load, Unity’s own part (the frame less the main thread’s wait on the script), from unity.log; 18 October';
+/** (v1.85, issue #514: Lorn's skiff, its sail and its hull) */
+const SKIFF514 = 'Issue #514: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, 10 o’clock, clear, the HUD hidden) on this branch’s own Vite (port 5472), ?level=perdide&debugsave=1; before: the tree at fb6b3ee94 (port 5474), the same view; 18 October; cwebp -q 72';
 /** (v1.85, issue #485: the Rose House watcher's beam stops at the shield) */
 const BEAM485 = 'Issue #485: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, noon, the HUD hidden) on this branch’s own Vite (port 5485), the traveller in the Rose House’s Great Hall 8 m before the watcher, its aim held (its fire switched off), the camera pinned to the side, shield down and then held (Z); before: the tree at 60438d265 (port 5487), the same view; 18 October; cwebp -q 72';
 /** (v1.85, issue #489: the bird's wings from the saddle) */
@@ -1237,6 +1239,11 @@ export const CHANGELOG_MEDIA = {
       { name: 'watcher-beam-shield-down', title: 'Shield down', size: [1280, 720], caption: 'The same aim with his shield down: the beam ran 2 m past him; now it ends on his chest.', from: BEAM485 },
     ] },
     { match: 'In the Unity version, D-pad ↓ calls your mount again', see: 'In the Unity version (the Steam Deck, the Retroid, the Xbox), land in Lorn with a controller and press D-pad ↓ on the landing: you hear the whistle and the skiff leaves its mooring off the south-west shore and pulls up beside you. The same press calls Vael’s bird, the hoverbike from your pack, or hails a cab in the cities.' },
+    { match: 'Lorn’s skiff is solid end to end', shots: [
+      { name: 'skiff-ride', title: 'Riding', size: [1280, 720], caption: 'On the skiff at its mooring, from the ride camera: the sail stood on the boat’s centreline, through him; now it is sheeted out over the side, away from the float.', from: SKIFF514 },
+      { name: 'skiff-close', title: 'Behind him', size: [1280, 720], caption: 'From just behind and above his head: before, the sail and its boom ran through his head and shoulders; after, they stand off to his right.', from: SKIFF514 },
+      { name: 'skiff-crystal', title: 'A small crystal', size: [1280, 720], caption: 'The skiff run full ahead at a lone crystal spike of the ringing grove by the stakes, on the line of its float: before, held as the float passed through it (it sailed on through); after, where it stopped, the spike against the float’s arm.', from: SKIFF514 },
+    ] },
   ],
   '1.84': [
     { match: 'In the Unity version on the Steam Deck, the first launch after an update no longer freezes', numbers: [

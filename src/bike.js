@@ -24,7 +24,7 @@ export const LANE = { speed: 0.4, current: 6 };
 const RADIUS = 0.85;
 const LIMIT = 1900;
 
-const _c = new THREE.Vector3();
+const _c = new THREE.Vector3(), _hFrom = new THREE.Vector3(), _hTo = new THREE.Vector3(), _hWant = new THREE.Vector3();
 const _tone = new THREE.Color();
 
 function part(geo, color, opts = {}) {
@@ -179,6 +179,10 @@ export class Hoverbike {
     this.seat = b.seatAnchor;
     this.jets = b.jets ?? null;          // where the hover trails stream from (body space)
     this.animate = b.animate ?? null;    // (dt, vehicle): its moving details (a rudder, a flag, a sail)
+    // what of it is solid beyond the capsule at its middle (RADIUS): [x, z, r] in its own frame (+z its bow), each a
+    // capsule of radius r swept with it, so a long hull's bow, stern and float stop at what the middle would slip by
+    // (issue #514: Lorn's skiff, 4.4 m long with a float off its side, ran its bow through the small crystals)
+    this.hull = b.hull ?? opts.hull ?? null;
     // it runs on the backpack: the tank sits in the socket while ridden
     this.powered = opts.powered ?? true;
     if (this.powered) {
@@ -243,6 +247,24 @@ export class Hoverbike {
       this.heading = Math.atan2(ref.x - sx, ref.z - sz);
     }
     this.auto = { near: ref, dx: x - ref.x, dz: z - ref.z, heading, elapsed: 0, stalled: 0 };
+  }
+
+  /**
+   * The hull's other parts (this.hull), each swept from where it was last frame (oldPos, oldHeading) to where it is
+   * now, and the vehicle moved out by what each was pushed. True if any touched something.
+   */
+  sweepHull(oldPos, oldHeading) {
+    let hit = false;
+    for (const [hx, hz, r] of this.hull) {
+      // (its +z is the way it faces, (sin h, cos h); its +x is (cos h, -sin h))
+      const at = (p, h, out) => out.set(p.x + hx * Math.cos(h) + hz * Math.sin(h), p.y, p.z - hx * Math.sin(h) + hz * Math.cos(h));
+      at(oldPos, oldHeading, _hFrom); at(this.pos, this.heading, _hTo);
+      const want = _hWant.copy(_hTo);
+      if (!sweepCapsule(this.physics, _hTo, _hFrom, r, -0.35, 1.0, this._push)) continue;
+      hit = true;
+      this.pos.x += _hTo.x - want.x; this.pos.z += _hTo.z - want.z;
+    }
+    return hit;
   }
 
   /** Find a clear, boardable spot beside the caller before teleporting. */
@@ -365,7 +387,7 @@ export class Hoverbike {
       boost = input.ShiftLeft || input.ShiftRight || !!pad?.boost;
     }
     const recalling = !ridden && !!this.auto;
-    const oldPos = this.pos.clone();
+    const oldPos = this.pos.clone(), oldHeading = this.heading;
     // (in a sand river: faster with its flow, and carried along by it: src/desert-dunes.js LANE)
     const lane = this.lane && this.grounded ? this.lane(this.pos.x, this.pos.z) : null;
     this.inLane = lane;
@@ -410,6 +432,7 @@ export class Hoverbike {
 
     // swept, so a boosted bike (or a slow frame) can't jump through a wall
     if (sweepCapsule(this.physics, this.pos, oldPos, RADIUS, -0.35, 1.0, this._push)) this.speed *= 0.6;
+    if (this.hull && this.sweepHull(oldPos, oldHeading)) this.speed *= 0.6;
     // the ground where it is now, looked for from where it came from: a long
     // drop can't skip through a roof
     const gNow = this.groundAt(this.pos.x, Math.max(oldPos.y, this.pos.y) + 0.3, this.pos.z);

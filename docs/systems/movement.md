@@ -388,7 +388,12 @@ hearts) and a fall; a temple's trap that throws you off its walkway (`src/temple
   and socket are where they were (9 draw calls, was 17).
 - **The skiff** (`buildSkiff`, Lorn): an open boat with a deck and a cream gunwale, its prow
   curled up with a swinging lantern, a teal float on outrigger arms, a striped lateen sail
-  that fills with speed and trims into turns.
+  that fills with speed and trims into turns. The sail is sheeted out over the starboard side, away from the float
+  (`SKIFF_SHEET`: 0.8 rad round the mast, never less than 0.6 however it trims), its boom with it: on the centreline it
+  stood through the rider sitting behind the mast (issue #514). Its hull is solid end to end: a Hoverbike is a capsule
+  0.85 m round its middle, so the skiff, 4.4 m long with the float 1.55 m off its side, ran its bow and float through
+  the ringing groves' thin spikes; its `hull` (`SKIFF_HULL`, `[x, z, r]` in its own frame: bow, prow, stern, the
+  float end to end, its arms) is swept with it each frame (`Hoverbike.sweepHull`). `tests/skiff.test.js`.
 - **The cabs** (`src/taxi.js`) drive themselves: nobody sits up front. A round-bellied body in
   its colour with a checker band, open on top in the middle (`CABIN`): a cabin lined in cream,
   a cream dash with a small glowing screen (the cab's voice) and a low windscreen ahead of it,

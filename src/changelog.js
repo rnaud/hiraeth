@@ -56,6 +56,9 @@ export const CHANGELOG = [
     'In the Unity version, the first room of every makers’ house is as light as on the web: the glow of the way you came in by brightens it as it does there, where before the whole room came out grey and dim. And Lorn’s lake has its pale shallows along the shores again, the water darkening as it deepens.',
     // issue #515: engine/game.js (the pad's 'call' to player.callMount, as main.js); tests/engine-call.test.js
     'In the Unity version, D-pad ↓ calls your mount again: in Lorn the skiff comes over to you, as it always did on the web.',
+    // issue #514: src/levels/perdide.js buildSkiff (SKIFF_SHEET: the sail and its boom sheeted out; SKIFF_HULL), src/bike.js
+    // Hoverbike.hull / sweepHull; tests/skiff.test.js
+    'Lorn’s skiff is solid end to end: its bow, its stern and the float off its side stop at the small crystals rising from the water instead of sailing through them. Its sail is set out over the side now, so it no longer runs through your face as you ride.',
   ] },
   { v: '1.84', date: '2026-10-17', items: [
     // issue #439: src/costumes.js (HEADS: the 47 pieces of the 15 hat sets, HAT_SETS, HAT_SET_WORLDS, hoodShell / hoodNeck /

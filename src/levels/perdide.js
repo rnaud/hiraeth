@@ -135,15 +135,20 @@ export function buildSkiff() {
   flat.add(new THREE.BoxGeometry(0.4, 0.26, 0.7), C.navy, { at: [0, 0, -0.4] });
   flat.add(new THREE.BoxGeometry(0.5, 0.12, 0.5), C.navy, { at: [0, -0.07, -1.25] });   // the tank's pedestal
   flat.add(new THREE.CylinderGeometry(0.045, 0.065, 3.5, 5), C.navy, { at: [0, 1.85, 0.6] });
-  flat.add(new THREE.CylinderGeometry(0.035, 0.035, 2.3, 4), C.navy, { at: [0, 0.75, -0.45], rot: [Math.PI / 2 - 0.12, 0, 0] });
   const sm = smooth.mesh({ smooth: true }), fl = flat.mesh();
   body.add(sm, fl);
 
-  // the sail: a lateen triangle in yellow and coral stripes, set on the mast; it fills with speed
+  // the sail: a lateen triangle in yellow and coral stripes, set on the mast; it fills with speed. It is sheeted out
+  // over the starboard side (SKIFF_SHEET), away from the float, with its boom: on the centreline it ran through the
+  // rider sitting behind the mast, his face in the middle of it (issue #514)
   const sailRig = new THREE.Group();
   sailRig.position.set(0, 0.35, 0.6);
+  sailRig.rotation.y = SKIFF_SHEET.angle;
   const sail = new Paint();
   const top = new THREE.Vector3(0, 3.25, 0), foot = new THREE.Vector3(0, 0.15, 0), clew = new THREE.Vector3(0, 0.45, -2.1);
+  // the boom, along the sail's foot from the mast to the clew
+  const boomLen = foot.distanceTo(clew);
+  sail.add(new THREE.CylinderGeometry(0.035, 0.035, boomLen, 4), C.navy, { at: foot.clone().lerp(clew, 0.5).toArray(), rot: [Math.PI / 2 + Math.atan2(clew.y - foot.y, -clew.z), 0, 0] });
   const STRIPES = 5;
   for (let i = 0; i < STRIPES; i++) {
     // bands across the sail, from the luff (the mast) to the leech
@@ -185,7 +190,8 @@ export function buildSkiff() {
   const animate = (dt, b) => {
     const flow = Math.min(1, Math.abs(b.speed) / 30);
     // the sail fills (bellies out to the lee of the turn) and flutters when slack
-    sailRig.rotation.y = THREE.MathUtils.clamp(b.yawRate * 0.25, -0.35, 0.35) + Math.sin(b.time * 7) * 0.03 * (1 - flow);
+    // (never swung back over the rider: SKIFF_SHEET.min)
+    sailRig.rotation.y = SKIFF_SHEET.angle + THREE.MathUtils.clamp(b.yawRate * 0.25, SKIFF_SHEET.min - SKIFF_SHEET.angle, 0.35) + Math.sin(b.time * 7) * 0.03 * (1 - flow);
     sailMesh.scale.x = 1 + flow * 0.5;
     sailRig.scale.z = 1 - flow * 0.08;
     flag.rotation.y = Math.sin(b.time * (4 + flow * 8)) * (0.5 - flow * 0.3);
@@ -198,8 +204,18 @@ export function buildSkiff() {
     s.a += s.v * dt;
     lantern.rotation.set(THREE.MathUtils.clamp(s.a + Math.sin(b.time * 1.6) * 0.06, -0.7, 0.7), 0, -b.bank * 0.6);
   };
-  return { root, body, seatAnchor, socket, port, lights: [under], jets, animate };
+  return { root, body, seatAnchor, socket, port, lights: [under], jets, animate, hull: SKIFF_HULL };
 }
+
+/** How far the skiff's sail is sheeted out over its starboard side (rad, round the mast), and the least it swings to. */
+export const SKIFF_SHEET = { angle: 0.8, min: 0.6 };
+/** The skiff's hull beyond the capsule at its middle (src/bike.js Hoverbike.hull, [x, z, r]): bow, stern, and the float
+ * off its side, so it stops at the small crystals rather than running its bow or float through them (issue #514). */
+export const SKIFF_HULL = [
+  [0, 1.55, 0.55], [0, 2.1, 0.3], [0, -1.4, 0.6],                       // the bow, the prow under its curl, the stern
+  [1.55, 1.2, 0.3], [1.55, 0.4, 0.3], [1.55, -0.4, 0.3], [1.55, -1.2, 0.3],   // the float, end to end
+  [1.05, 0.8, 0.22], [1.05, -0.6, 0.22],                                // its two arms, between it and the hull
+];
 
 export const CRYSTAL = ['#a99be0', '#62c3c9', '#c7a6f2', '#7fe0d0'];
 
