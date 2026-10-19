@@ -32,6 +32,7 @@ namespace Hiraeth.Bridge
         RectTransform dlg; Ui.Box dlgPanel; Sketch dlgLines, dlgMore; RectTransform chip; Image chipFill; Label chipLetter; RawImage chipPhoto;
         Ui.Box dlgTag; Label dlgName, dlgTitle, dlgText;
         readonly List<(Ui.Box box, Label num, Label text, Image line)> dlgChoices = new();
+        readonly List<Badge> dlgKeys = new();   // (an answer's confirm badge, a pad in hand: issue #526)
         /// <summary>The panel's type in canvas px (the canvas is 720 tall: index.html #dialogue's --dlg, 2.9 % of the
         /// screen's height, issue #147), and the sizes the rest of the panel takes from it (in em, as the page's):
         /// × the Text size setting (src/ui.js TEXT_SIZES, the page's --ts; issue #346): the
@@ -1780,16 +1781,36 @@ namespace Hiraeth.Bridge
             dlgMarks.Lay(dlgText, body, new Vector2(cw, textH), markPic);
             float y = padT + 4 + textH + 0.45f * Em;
             float keyW = 1.1f * Em + 0.55f * Em;
+            // (the answers' mark, the page's choiceHtml: the keyboard's number, › on a touch screen, with a pad the confirm
+            // button's badge on the answer it would pick and › on the others; issue #526: Unity drew the number always)
+            var ak = d.O("answerKey");
+            string kind = ak?.S("kind") ?? "keys", okKey = ak?.S("key") ?? "";
             for (int i = 0; i < dlgChoices.Count; i++)
             {
                 var (box, num, tx, line) = dlgChoices[i];
                 bool has = i < choices.Count;
                 Show(box, has);
+                while (dlgKeys.Count <= i) dlgKeys.Add(null);
+                bool badge = has && kind == "pad" && i == sel && okKey.Length > 0;
+                if (!badge && dlgKeys[i] != null) dlgKeys[i].rt.gameObject.SetActive(false);
                 if (!has) continue;
                 bool hi = i == sel;
-                num.text = (i + 1).ToString();
+                num.text = badge ? "" : kind == "pad" || kind == "touch" ? "›" : (i + 1).ToString();
+                num.alignment = kind == "keys" ? TextAnchor.UpperLeft : TextAnchor.UpperCenter;
                 num.fontSize = AnswerSize; tx.fontSize = AnswerSize;
-                Ui.Place(num.rectTransform, 0, 2, keyW, AnswerSize * 1.4f);
+                Ui.Place(num.rectTransform, 0, 2, kind == "keys" ? keyW : 1.1f * Em, AnswerSize * 1.4f);   // (the › centred in the page's 1.1 em column)
+                if (badge)
+                {
+                    // (#dialogue .dlg-key .key: .82 of the answer's size, 1.8 of it across, centred on the mark's column at the first line)
+                    var bg = dlgKeys[i] ??= MakeBadge(box.rt, "key");
+                    bg.rt.gameObject.SetActive(true);
+                    float px = 0.82f * AnswerSize;
+                    var ks = PlaceBadge(bg, 0, 0, okKey, px, true);
+                    float kh = Mathf.Round(1.8f * px), kw = Mathf.Max(kh, ks.x);
+                    bg.ring.enabled = bg.shadow.enabled = false;   // (in the panel: the plain ink circle, no ring)
+                    Ui.Place(bg.rt, 0.55f * Em - kw / 2, 2 + AnswerSize * 0.7f - kh / 2, kw, kh);
+                    Ui.Place(bg.pill.rectTransform, 0, 0, kw, kh);
+                }
                 var said = RichMarked(PlainKeepingMark((choices[i] as Dictionary<string, object>).S("text")));
                 var s = Ui.Set(tx, said, cw - keyW);
                 Ui.Place(tx.rectTransform, keyW, 2, s.x, s.y);

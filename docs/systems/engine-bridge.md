@@ -2468,6 +2468,12 @@ unity-ship-hatch, unity-brushed.
   now. `-title-go frames [-loading-shot file] -out dir` waits on the title, chooses the debug save's desert as its Debug row
   does and photographs the load (unity-title-go-*.png). Test: tests/engine-unity.test.js (the bundle: Loading on after the
   title's choice, before the build's first line, off after the world's first frame).
+- **A conversation's answers** (#526): the page marks each answer (src/story/dialogue.js `choiceHtml`) with the keyboard's
+  number, a › on a touch screen, and with a pad the confirm button's `.key` badge on the answer it would pick (› on the
+  others); Unity wrote the number always. The screen's `dialogue` now carries `answerKey: { kind, key }` (prompt-keys.js
+  `inputKind`, native-pad.js `confirmKey` in Xbox / PlayStation form, printed for the pad in hand by engine/unity/game.js
+  `forPad`), published again when the hands change; BridgeHud's `DrawTalk` draws the badge (the cue's `MakeBadge`, without
+  its ring) or the mark. Test: tests/dialogue-answer-key.test.js.
 
 ## Status
 

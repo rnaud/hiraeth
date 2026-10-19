@@ -620,6 +620,10 @@ export class Dialogue {
       choices: choices.map((c) => ({ text: c.text, tone: c.tone ?? null, index: c.index })),
       // (the makers' mark's own contours where a {glyph} shows it, for an engine to fill: never redrawn; issue #513)
       mark: showsMark(text, ...choices.map((c) => c.text)) ? markShape() : null,
+      // the answers' mark as the page's choiceHtml shows it (issue #526): the keyboard's number, a › on a touch screen,
+      // with a pad the confirm button's badge on the one it would pick (› on the others); `key` in Xbox / PlayStation
+      // form, which the engines print as the pad in hand does (engine/unity/game.js forPad)
+      answerKey: { kind: inputKind(), key: confirmKey() },
     });
   }
 
@@ -633,7 +637,11 @@ export class Dialogue {
     const len = this.runner.text.length;
     // the input changed hands (a pad picked up, a key moved) with a {key:…} on the page: drawn again in the new names
     const sig = keySig();
-    if (sig !== this._keySig) { const was = this._keySig; this._keySig = sig; if (was !== undefined && [this.runner.text, ...this.runner.choices().map((c) => c.text)].some(hasKeys)) this.render(); }
+    if (sig !== this._keySig) {
+      const was = this._keySig; this._keySig = sig;
+      if (was !== undefined && [this.runner.text, ...this.runner.choices().map((c) => c.text)].some(hasKeys)) this.render();
+      else if (was !== undefined) this.publish();   // (the answers' mark follows the hands: issue #526)
+    }
     // who the camera frames (src/story/coverage.js): his face while he speaks, or taking in a strong line
     const r = this.runner, done = this.revealed >= len;
     if (!done) this._doneAt = null; else this._doneAt ??= this.clock;

@@ -1253,6 +1253,9 @@ const SHIMMER494 = 'Issue #494: the web game in muted headless Chrome (ANGLE Met
 const TUFTS504 = 'Issue #504: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, 10:00, the HUD hidden) on this branch’s own Vite (port 5440), the Garden of Spheres, the camera pinned 3.2 m up by the spawn looking south-west over the lawn; before: the branch’s base (fa659f34f), the same view (the creatures wander between the two loads); 19 October; cwebp -q 72';
 /** (v1.85, issue #501: the hearts and keys quiet under every box's scene) */
 const HUD501 = 'Issue #501: the cinematics QC (scripts/cinematics-qc.mjs --only box.incal.bridge --size 844x390 --mobile) in muted headless Chrome on this branch’s own Vite (port 5361), High, a phone’s landscape screen, the City-Shaft’s bridge pen box opening after the Ash Store’s fight (hurt), 4 s in; before: the tree at cc91d3c58, the same run; 18 October; cwebp -q 80';
+/** (v1.85, issue #526: the answers' A in Unity's dialogue box) */
+const UNITY526 = 'Issue #526: the Unity editor’s batch run on this Mac (node scripts/unity-compare/sequences.mjs unity talk: the talk sequence, Teo’s answers in the desert, muted, High, 1280 × 720), an Xbox pad faked in hand for the run (navigator.getGamepads, the right stick nudged once); before: the tree at 3ff90091b, the same run; 19 October; cwebp -q 72';
+const WEB526 = 'Issue #526: the web game in muted headless Chrome on this branch’s own Vite (port 5462, node scripts/unity-compare/sequences.mjs web talk), 1280 × 720, the same pad faked in hand; 19 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.85': [
     { match: 'In the Unity version, the first room of every makers’ house is as light as on the web', tags: ['temples', 'devices'], shots: [
@@ -1370,6 +1373,10 @@ export const CHANGELOG_MEDIA = {
       { where: 'the pan', before: 21.2, after: 13.5 },
     ], source: 'docs/systems/rendering.md, "Stable in motion"' }],
       see: 'In the Garden of Spheres, stand on the lawn by the landing and turn the camera slowly: the tufts hold still instead of sparkling.' },
+    { match: 'In the Unity version, a conversation’s answers are marked as on the web', shots: [
+      { name: 'unity-answer-glyph', title: 'Teo’s answers', caption: 'A conversation’s answers in Unity with a controller in hand: before, the keyboard’s 1 and 2; after, the A button on the answer you are on and › by the other, as on the web', from: UNITY526 },
+      { name: 'unity-answer-glyph-web', only: 'after', title: 'On the web', caption: 'The same answers on the web with the controller in hand', from: WEB526 },
+    ], see: 'In the Unity version, talk to Teo by the desert’s camp fire with a controller and read on to his question: the A button marks the answer you are on.' },
     { match: 'The hearts and the key count no longer show over a makers’ box as it opens', shots: [
       { name: 'box-scene-hud', title: 'The bridge pen’s box', size: [960, 444], caption: 'The City-Shaft’s bridge pen box opening on a phone, hurt from the Ash Store’s fight: before, the key count at the top left, the hearts on behind the letterbox; after, only the scene and Skip', from: HUD501 },
     ], see: 'In the City-Shaft, win the Ash Store’s fight with a heart missing and open the box it leaves: nothing of the HUD shows until the box’s card is gone.' },
