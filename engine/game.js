@@ -168,6 +168,8 @@ export { readHref } from './trials.js';   // (the tests: a game page's address)
 export { ITEMS, items } from '../src/items.js';   // (the tests: the bundle's items, the gadgets among them, against the web's)
 export { GAMES };   // (the tests: every minigame, played on its own page: tests/bridge-gaps.test.js)
 export { Raycaster } from 'three';   // (for the tests and the tools that probe the world in the VM)
+export { GLTFLoader };   // (the tests: every model loaded as the engines load it, its pictures with them: tests/engine-gltf-pictures.test.js)
+export { ENCODED_PICTURES, COLOURED_PICTURES } from './boot.js';
 // (the sequences, the web against the engines beat by beat: engine/sequences.js, run by engine/sequence-run.mjs and -sequence)
 export { SEQUENCES, sequenceById, SequenceRun, mapAtOnce, engineSetup, engineReady, engineGame, engineKey, probe } from './sequences.js';
 export { ROUTES, routeById, STUTTER_RUNS } from './stutter-routes.js';   // (the stutter harness's play routes, issue #468)

@@ -476,6 +476,14 @@ scripts/tripo/sample-colors.mjs, sharp) go on as vertex colours when the loader 
 Unity players copy both models and their colours (BridgeBuild.cs); the Elder's skin was not copied before, so a device
 fell back to her procedural body.
 
+**A model's own pictures** (issue #537). Every GLB with a picture in its buffer is named in engine/boot.js:
+`ENCODED_PICTURES` (kept encoded for Unity to decode: the father's) or `COLOURED_PICTURES` (the coral-shirt traveller's
+body, his portrait head, the Keeper, the Elder: drawn by their colours, their picture left out quietly, so the material
+has no map). Before, those went to three's own image path, which fails in the VM (no `Blob` to build the picture's URL
+from) and logged `THREE.GLTFLoader: Couldn't load texture [object Promise]` (the URL was still the promise) on every
+load, which a dev build on the Retroid showed. A model in neither list is left out with an error naming the model and
+its picture. Test: tests/engine-gltf-pictures.test.js (every model loaded as the engines load it, and the desert).
+
 **The gadgets and the wallet** (issue #344). The web registers the gadgets as items when main.js imports
 src/gadgets/all.js (Vite's `import.meta.glob`); the engine bundle has the same glob (scripts/engine-bundle.mjs, rolldown's
 `viteImportGlobPlugin`), and engine/game.js imports it first, so the bundle's ITEMS are the web's (68 slots on the Items
