@@ -1326,6 +1326,10 @@ export const CHANGELOG_MEDIA = {
       { name: 'mooring-loft-door', title: 'The Cord Loft', caption: 'Before, the loft’s wall; after, a passage east to the Capstan Floor’s great door.', from: SHAPES477 },
       { name: 'mooring-anchor-hold', title: 'Past the west door', caption: 'Before, the Capstan Floor and its Warden; after, the Anchor Hold: a well in its floor, the spare anchor-ball out over it on its cable-rail, its footstone at the rail’s home end.', from: SHAPES477 },
     ] },
+    { match: 'A new controller layout. Hold D-pad ↑ for the wheel', tags: ['menus', 'combat'], shots: [
+      { name: 'pad-wheel', title: 'The wheel', caption: 'The wheel held open with the glove, its stilling and ember, the hook, the bombs, the boomerang and the magnet: before, the gadgets only (the glove one slot, its modes stepped through on D-pad →) and the world going on; after, each of the glove’s modes a slot of its own, tinted, and the game waiting', from: 'muted headless Chrome (High, 1280 × 720, the Desert at 10:00), Vite on port 5511, the base commit (4816717b9) and this branch, 19 October; the wheel held open with the keyboard’s B, pointed right (D)' },
+      { name: 'pad-controls', title: 'The Controls page', caption: 'The controller’s buttons: R3 the lock-on alone (with no foe near, the camera behind you), D-pad ↑ the gadgets and the glove’s modes, D-pad → Plumb', from: 'muted headless Chrome (High, 1280 × 720, the Desert at 10:00), Vite on port 5511, the base commit (4816717b9) and this branch, 19 October; the wheel held open with the keyboard’s B, pointed right (D)' },
+    ], see: 'With a controller, hold D-pad ↑ in a fight: the foes stop while the wheel is open. Pick push, then fluid, then tap D-pad ↑: you are back on push. Press D-pad → anywhere, riding too, and Plumb flies off to the objective; press R3 with no foe near and the camera swings behind you.' },
   ],
   '1.85': [
     { match: 'In the Unity version, flowers far across Viridel’s meadow', tags: ['devices'], shots: [
@@ -8785,11 +8789,5 @@ export const CHANGELOG_MEDIA = {
       { name: 'seated-robes', caption: 'Bako and Sefa seated, from in front and the side', commit: '651d9fe', view: people([{ id: 'bako' }, { id: 'bako', yaw: 1.2 }, { id: 'sefa' }, { id: 'sefa', yaw: -1.2 }]) },
     ] },
     { match: 'On the Steam Deck the game starts in Gaming Mode', see: 'On the Steam Deck, start Memento from Gaming Mode: it opens instead of staying on a black screen, and Exit Game closes it at once.' },
-  ],
-  '1.86': [
-    { match: 'A new controller layout. Hold D-pad ↑ for the wheel', tags: ['menus', 'combat'], shots: [
-      { name: 'pad-wheel', title: 'The wheel', caption: 'The wheel held open with the glove, its stilling and ember, the hook, the bombs, the boomerang and the magnet: before, the gadgets only (the glove one slot, its modes stepped through on D-pad →) and the world going on; after, each of the glove’s modes a slot of its own, tinted, and the game waiting', from: 'muted headless Chrome (High, 1280 × 720, the Desert at 10:00), Vite on port 5511, the base commit (4816717b9) and this branch, 19 October; the wheel held open with the keyboard’s B, pointed right (D)' },
-      { name: 'pad-controls', title: 'The Controls page', caption: 'The controller’s buttons: R3 the lock-on alone (with no foe near, the camera behind you), D-pad ↑ the gadgets and the glove’s modes, D-pad → Plumb', from: 'muted headless Chrome (High, 1280 × 720, the Desert at 10:00), Vite on port 5511, the base commit (4816717b9) and this branch, 19 October; the wheel held open with the keyboard’s B, pointed right (D)' },
-    ], see: 'With a controller, hold D-pad ↑ in a fight: the foes stop while the wheel is open. Pick push, then fluid, then tap D-pad ↑: you are back on push. Press D-pad → anywhere, riding too, and Plumb flies off to the objective; press R3 with no foe near and the camera swings behind you.' },
   ],
 };
