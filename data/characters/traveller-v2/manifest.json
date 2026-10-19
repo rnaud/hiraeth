@@ -1,0 +1,833 @@
+{
+ "source": "scripts/blender/traveller/build.py (issue #493)",
+ "skeleton": {
+  "Root": {
+   "game": "Root",
+   "parent": null,
+   "head": [
+    0.0,
+    0.0,
+    -0.0
+   ],
+   "deform": false
+  },
+  "pelvis": {
+   "game": "pelvis",
+   "parent": "Root",
+   "head": [
+    0.0,
+    0.955,
+    -0.043
+   ],
+   "deform": true
+  },
+  "spine_01": {
+   "game": "spine_01",
+   "parent": "pelvis",
+   "head": [
+    0.0,
+    1.055,
+    -0.045
+   ],
+   "deform": true
+  },
+  "spine_02": {
+   "game": "spine_02",
+   "parent": "spine_01",
+   "head": [
+    0.0,
+    1.185,
+    -0.043
+   ],
+   "deform": true
+  },
+  "spine_03": {
+   "game": "spine_03",
+   "parent": "spine_02",
+   "head": [
+    0.0,
+    1.32,
+    -0.044
+   ],
+   "deform": true
+  },
+  "clavicle_l": {
+   "game": "clavicle_l",
+   "parent": "spine_03",
+   "head": [
+    0.03,
+    1.409,
+    -0.044
+   ],
+   "deform": true
+  },
+  "upperarm_l": {
+   "game": "upperarm_l",
+   "parent": "clavicle_l",
+   "head": [
+    0.157,
+    1.392,
+    -0.05
+   ],
+   "deform": true
+  },
+  "lowerarm_l": {
+   "game": "lowerarm_l",
+   "parent": "upperarm_l",
+   "head": [
+    0.425,
+    1.36,
+    -0.054
+   ],
+   "deform": true
+  },
+  "hand_l": {
+   "game": "hand_l",
+   "parent": "lowerarm_l",
+   "head": [
+    0.684,
+    1.354,
+    -0.051
+   ],
+   "deform": true
+  },
+  "index_01_l": {
+   "game": "index_01_l",
+   "parent": "hand_l",
+   "head": [
+    0.753,
+    1.383,
+    -0.054
+   ],
+   "deform": true
+  },
+  "index_02_l": {
+   "game": "index_02_l",
+   "parent": "index_01_l",
+   "head": [
+    0.798,
+    1.396,
+    -0.058
+   ],
+   "deform": true
+  },
+  "index_03_l": {
+   "game": "index_03_l",
+   "parent": "index_02_l",
+   "head": [
+    0.832,
+    1.401,
+    -0.058
+   ],
+   "deform": true
+  },
+  "middle_01_l": {
+   "game": "middle_01_l",
+   "parent": "hand_l",
+   "head": [
+    0.758,
+    1.36,
+    -0.054
+   ],
+   "deform": true
+  },
+  "middle_02_l": {
+   "game": "middle_02_l",
+   "parent": "middle_01_l",
+   "head": [
+    0.808,
+    1.363,
+    -0.059
+   ],
+   "deform": true
+  },
+  "middle_03_l": {
+   "game": "middle_03_l",
+   "parent": "middle_02_l",
+   "head": [
+    0.845,
+    1.365,
+    -0.057
+   ],
+   "deform": true
+  },
+  "pinky_01_l": {
+   "game": "pinky_01_l",
+   "parent": "hand_l",
+   "head": [
+    0.738,
+    1.324,
+    -0.049
+   ],
+   "deform": true
+  },
+  "pinky_02_l": {
+   "game": "pinky_02_l",
+   "parent": "pinky_01_l",
+   "head": [
+    0.778,
+    1.31,
+    -0.054
+   ],
+   "deform": true
+  },
+  "pinky_03_l": {
+   "game": "pinky_03_l",
+   "parent": "pinky_02_l",
+   "head": [
+    0.811,
+    1.298,
+    -0.052
+   ],
+   "deform": true
+  },
+  "ring_01_l": {
+   "game": "ring_01_l",
+   "parent": "hand_l",
+   "head": [
+    0.751,
+    1.34,
+    -0.052
+   ],
+   "deform": true
+  },
+  "ring_02_l": {
+   "game": "ring_02_l",
+   "parent": "ring_01_l",
+   "head": [
+    0.8,
+    1.334,
+    -0.058
+   ],
+   "deform": true
+  },
+  "ring_03_l": {
+   "game": "ring_03_l",
+   "parent": "ring_02_l",
+   "head": [
+    0.838,
+    1.327,
+    -0.056
+   ],
+   "deform": true
+  },
+  "thumb_01_l": {
+   "game": "thumb_01_l",
+   "parent": "hand_l",
+   "head": [
+    0.699,
+    1.387,
+    -0.042
+   ],
+   "deform": true
+  },
+  "thumb_02_l": {
+   "game": "thumb_02_l",
+   "parent": "thumb_01_l",
+   "head": [
+    0.728,
+    1.421,
+    -0.035
+   ],
+   "deform": true
+  },
+  "thumb_03_l": {
+   "game": "thumb_03_l",
+   "parent": "thumb_02_l",
+   "head": [
+    0.751,
+    1.448,
+    -0.033
+   ],
+   "deform": true
+  },
+  "clavicle_r": {
+   "game": "clavicle_r",
+   "parent": "spine_03",
+   "head": [
+    -0.03,
+    1.409,
+    -0.044
+   ],
+   "deform": true
+  },
+  "upperarm_r": {
+   "game": "upperarm_r",
+   "parent": "clavicle_r",
+   "head": [
+    -0.157,
+    1.392,
+    -0.05
+   ],
+   "deform": true
+  },
+  "lowerarm_r": {
+   "game": "lowerarm_r",
+   "parent": "upperarm_r",
+   "head": [
+    -0.425,
+    1.36,
+    -0.054
+   ],
+   "deform": true
+  },
+  "hand_r": {
+   "game": "hand_r",
+   "parent": "lowerarm_r",
+   "head": [
+    -0.684,
+    1.354,
+    -0.051
+   ],
+   "deform": true
+  },
+  "index_01_r": {
+   "game": "index_01_r",
+   "parent": "hand_r",
+   "head": [
+    -0.753,
+    1.383,
+    -0.054
+   ],
+   "deform": true
+  },
+  "index_02_r": {
+   "game": "index_02_r",
+   "parent": "index_01_r",
+   "head": [
+    -0.798,
+    1.396,
+    -0.058
+   ],
+   "deform": true
+  },
+  "index_03_r": {
+   "game": "index_03_r",
+   "parent": "index_02_r",
+   "head": [
+    -0.832,
+    1.401,
+    -0.058
+   ],
+   "deform": true
+  },
+  "middle_01_r": {
+   "game": "middle_01_r",
+   "parent": "hand_r",
+   "head": [
+    -0.758,
+    1.36,
+    -0.054
+   ],
+   "deform": true
+  },
+  "middle_02_r": {
+   "game": "middle_02_r",
+   "parent": "middle_01_r",
+   "head": [
+    -0.808,
+    1.363,
+    -0.059
+   ],
+   "deform": true
+  },
+  "middle_03_r": {
+   "game": "middle_03_r",
+   "parent": "middle_02_r",
+   "head": [
+    -0.845,
+    1.365,
+    -0.057
+   ],
+   "deform": true
+  },
+  "pinky_01_r": {
+   "game": "pinky_01_r",
+   "parent": "hand_r",
+   "head": [
+    -0.738,
+    1.324,
+    -0.049
+   ],
+   "deform": true
+  },
+  "pinky_02_r": {
+   "game": "pinky_02_r",
+   "parent": "pinky_01_r",
+   "head": [
+    -0.778,
+    1.31,
+    -0.054
+   ],
+   "deform": true
+  },
+  "pinky_03_r": {
+   "game": "pinky_03_r",
+   "parent": "pinky_02_r",
+   "head": [
+    -0.811,
+    1.298,
+    -0.052
+   ],
+   "deform": true
+  },
+  "ring_01_r": {
+   "game": "ring_01_r",
+   "parent": "hand_r",
+   "head": [
+    -0.751,
+    1.34,
+    -0.052
+   ],
+   "deform": true
+  },
+  "ring_02_r": {
+   "game": "ring_02_r",
+   "parent": "ring_01_r",
+   "head": [
+    -0.8,
+    1.334,
+    -0.058
+   ],
+   "deform": true
+  },
+  "ring_03_r": {
+   "game": "ring_03_r",
+   "parent": "ring_02_r",
+   "head": [
+    -0.838,
+    1.327,
+    -0.056
+   ],
+   "deform": true
+  },
+  "thumb_01_r": {
+   "game": "thumb_01_r",
+   "parent": "hand_r",
+   "head": [
+    -0.699,
+    1.387,
+    -0.042
+   ],
+   "deform": true
+  },
+  "thumb_02_r": {
+   "game": "thumb_02_r",
+   "parent": "thumb_01_r",
+   "head": [
+    -0.728,
+    1.421,
+    -0.035
+   ],
+   "deform": true
+  },
+  "thumb_03_r": {
+   "game": "thumb_03_r",
+   "parent": "thumb_02_r",
+   "head": [
+    -0.751,
+    1.448,
+    -0.033
+   ],
+   "deform": true
+  },
+  "neck_01": {
+   "game": "neck_01",
+   "parent": "spine_03",
+   "head": [
+    0.0,
+    1.485,
+    -0.035
+   ],
+   "deform": true
+  },
+  "Head": {
+   "game": "Head",
+   "parent": "neck_01",
+   "head": [
+    0.0,
+    1.535,
+    -0.028
+   ],
+   "deform": true
+  },
+  "eye_l": {
+   "game": null,
+   "parent": "Head",
+   "head": [
+    0.0297,
+    1.6332,
+    0.0578
+   ],
+   "deform": true
+  },
+  "eye_r": {
+   "game": null,
+   "parent": "Head",
+   "head": [
+    -0.0297,
+    1.6332,
+    0.0578
+   ],
+   "deform": true
+  },
+  "thigh_l": {
+   "game": "thigh_l",
+   "parent": "pelvis",
+   "head": [
+    0.109,
+    0.931,
+    -0.039
+   ],
+   "deform": true
+  },
+  "calf_l": {
+   "game": "calf_l",
+   "parent": "thigh_l",
+   "head": [
+    0.119,
+    0.488,
+    -0.022
+   ],
+   "deform": true
+  },
+  "foot_l": {
+   "game": "foot_l",
+   "parent": "calf_l",
+   "head": [
+    0.133,
+    0.125,
+    -0.035
+   ],
+   "deform": true
+  },
+  "ball_l": {
+   "game": "ball_l",
+   "parent": "foot_l",
+   "head": [
+    0.134,
+    0.044,
+    0.089
+   ],
+   "deform": true
+  },
+  "thigh_r": {
+   "game": "thigh_r",
+   "parent": "pelvis",
+   "head": [
+    -0.109,
+    0.931,
+    -0.039
+   ],
+   "deform": true
+  },
+  "calf_r": {
+   "game": "calf_r",
+   "parent": "thigh_r",
+   "head": [
+    -0.119,
+    0.488,
+    -0.022
+   ],
+   "deform": true
+  },
+  "foot_r": {
+   "game": "foot_r",
+   "parent": "calf_r",
+   "head": [
+    -0.133,
+    0.125,
+    -0.035
+   ],
+   "deform": true
+  },
+  "ball_r": {
+   "game": "ball_r",
+   "parent": "foot_r",
+   "head": [
+    -0.134,
+    0.044,
+    0.089
+   ],
+   "deform": true
+  }
+ },
+ "parts": {
+  "Head": {
+   "kind": "head",
+   "triangles": 8436,
+   "vertices": 4245,
+   "materials": {
+    "skin": "skin",
+    "hair": "hair"
+   },
+   "shapeKeys": [
+    "blink",
+    "smile",
+    "brow",
+    "browTilt",
+    "asymmetry",
+    "open",
+    "frown",
+    "browDown",
+    "squint",
+    "cheekSquint",
+    "eyeWide",
+    "viseme_aa"
+   ]
+  },
+  "Body": {
+   "kind": "body",
+   "triangles": 11092,
+   "vertices": 5577,
+   "materials": {
+    "skin": "skin"
+   },
+   "shapeKeys": []
+  },
+  "Eye_L": {
+   "kind": "eye",
+   "triangles": 320,
+   "vertices": 162,
+   "materials": {
+    "eye_white": "EYE_WHITE",
+    "iris": "TRAVELLER_IRIS",
+    "pupil": "dark"
+   },
+   "shapeKeys": []
+  },
+  "Eye_R": {
+   "kind": "eye",
+   "triangles": 320,
+   "vertices": 162,
+   "materials": {
+    "eye_white": "EYE_WHITE",
+    "iris": "TRAVELLER_IRIS",
+    "pupil": "dark"
+   },
+   "shapeKeys": []
+  },
+  "Brows": {
+   "kind": "brow",
+   "triangles": 1060,
+   "vertices": 712,
+   "materials": {
+    "brow": "brow"
+   },
+   "shapeKeys": [
+    "blink",
+    "smile",
+    "brow",
+    "browTilt",
+    "asymmetry",
+    "open",
+    "frown",
+    "browDown",
+    "squint",
+    "cheekSquint",
+    "eyeWide",
+    "viseme_aa"
+   ]
+  },
+  "Hair": {
+   "kind": "hair",
+   "triangles": 6999,
+   "vertices": 7009,
+   "materials": {
+    "hair": "hair"
+   },
+   "shapeKeys": []
+  },
+  "Tee": {
+   "kind": "garment",
+   "triangles": 4496,
+   "vertices": 2244,
+   "materials": {
+    "tee": "suit"
+   },
+   "shapeKeys": [],
+   "hides": [
+    "belly"
+   ],
+   "layer": 1
+  },
+  "Trousers": {
+   "kind": "garment",
+   "triangles": 7184,
+   "vertices": 3590,
+   "materials": {
+    "trousers": "suit"
+   },
+   "shapeKeys": [],
+   "hides": [
+    "knee.L",
+    "knee.R",
+    "shin.L",
+    "shin.R",
+    "thigh.L",
+    "thigh.R"
+   ],
+   "layer": 1
+  },
+  "Boots": {
+   "kind": "garment",
+   "triangles": 3808,
+   "vertices": 1908,
+   "materials": {
+    "boot": "boot",
+    "sole": "sole"
+   },
+   "shapeKeys": [],
+   "hides": [
+    "ankle.L",
+    "ankle.R"
+   ],
+   "layer": 1
+  },
+  "Shirt": {
+   "kind": "garment",
+   "triangles": 8624,
+   "vertices": 4310,
+   "materials": {
+    "shirt": "jacket",
+    "shirt_lining": "jacketShade"
+   },
+   "shapeKeys": [],
+   "hides": [
+    "upperarm.L",
+    "upperarm.R"
+   ],
+   "layer": 2
+  },
+  "Scarf": {
+   "kind": "garment",
+   "triangles": 1536,
+   "vertices": 768,
+   "materials": {
+    "scarf": "scarf"
+   },
+   "shapeKeys": [],
+   "hides": [],
+   "layer": 3
+  }
+ },
+ "areas": [
+  "ankle.L",
+  "ankle.R",
+  "belly",
+  "chest",
+  "foot.L",
+  "foot.R",
+  "forearm_lower.L",
+  "forearm_lower.R",
+  "forearm_upper.L",
+  "forearm_upper.R",
+  "hand.L",
+  "hand.R",
+  "hips",
+  "knee.L",
+  "knee.R",
+  "neck",
+  "shin.L",
+  "shin.R",
+  "shin_lower.L",
+  "shin_lower.R",
+  "thigh.L",
+  "thigh.R",
+  "upperarm.L",
+  "upperarm.R"
+ ],
+ "outfits": {
+  "default": {
+   "parts": [
+    "Tee",
+    "Trousers",
+    "Boots",
+    "Shirt",
+    "Scarf"
+   ],
+   "hides": [
+    "ankle.L",
+    "ankle.R",
+    "belly",
+    "chest",
+    "hips",
+    "knee.L",
+    "knee.R",
+    "shin.L",
+    "shin.R",
+    "thigh.L",
+    "thigh.R",
+    "upperarm.L",
+    "upperarm.R"
+   ]
+  }
+ },
+ "sockets": {
+  "socket_chest": {
+   "bone": "spine_03",
+   "position": [
+    0.0,
+    0.725,
+    -0.0
+   ]
+  },
+  "socket_tank": {
+   "bone": "spine_03",
+   "position": [
+    0.0,
+    1.125,
+    -0.1886
+   ]
+  },
+  "socket_sheath": {
+   "bone": "spine_03",
+   "position": [
+    -0.205,
+    1.445,
+    -0.215
+   ]
+  },
+  "socket_lantern": {
+   "bone": "spine_03",
+   "position": [
+    0.225,
+    1.095,
+    -0.3
+   ]
+  },
+  "socket_star": {
+   "bone": "spine_03",
+   "position": [
+    -0.125,
+    1.335,
+    0.18
+   ]
+  },
+  "socket_grip_l": {
+   "bone": "hand_l",
+   "position": [
+    0.7284,
+    1.3576,
+    -0.0308
+   ]
+  },
+  "socket_grip_r": {
+   "bone": "hand_r",
+   "position": [
+    -0.7284,
+    1.3576,
+    -0.0308
+   ]
+  },
+  "socket_head": {
+   "bone": "Head",
+   "position": [
+    0.0,
+    1.6532,
+    -0.0122
+   ]
+  }
+ },
+ "triangles": 53875
+}
