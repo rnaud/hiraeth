@@ -5901,3 +5901,80 @@ the Items page's first opening, 34 ms (`Shader.CreateGPUProgram` 12 ms). Last ro
 [object Promise]`, two or three times, 2.4-2.9 s into the world's build, after its ship and before its gestures (issue
 #537). Raw: the session's scratchpad, `retroid-525b/` (`ab/shadow/`, `sheets/e1-e2/`, `cold-nolist/`, `trace/`,
 `texture-537/`).
+## What the Unity packages carry (issue #500, 2026-10-19)
+
+The perf audit of v1.85 found the Unity APK 49 % bigger than v1.66's (88.6 → 131.9 MB on the release) and the Linux
+player 43 % (300.5 → 428.8 MB), with no release naming why. Measured from the releases' own assets (v1.66, v1.75,
+v1.80, v1.85) and one build of the fix by GitHub Actions (run 39215680678, a branch: nothing published);
+`.claude/skills/perf-audit/unity-size.mjs` sorts a package into these areas (the perf audit's step 1 now runs it).
+
+**The APK** (MB in the APK, compressed as it ships):
+
+| area | v1.66 | v1.75 | v1.80 | v1.85 | after |
+|---|---|---|---|---|---|
+| shaders and settings (globalgamemanagers.assets) | 7.9 | 8.0 | 13.5 | 20.4 | 20.4 |
+| Unity's built-in resources (unity_builtin_extra) | 7.3 | 7.4 | 12.9 | **19.8** | **0.3** |
+| bodies, guardians and animations | 20.2 | 20.2 | 21.0 | 21.2 | 21.2 |
+| game code (IL2CPP: libil2cpp, metadata) | 17.2 | 17.3 | 17.4 | 17.8 | 17.8 |
+| JS bundle (hiraeth.cjs, stored uncompressed) | 11.8 | 12.9 | 14.8 | 16.0 | 16.0 |
+| engine (libunity, default resources) | 13.5 | 13.5 | 13.5 | 13.5 | 13.5 |
+| music (the themes every device carries) | 0 | 0 | 7.0 | 7.0 | 7.0 |
+| V8 (Puerts) | 5.9 | 5.9 | 5.9 | 5.9 | 5.9 |
+| pictures (title, items, star map, marks), pipeline lists, the app’s own, other | 4.6 | 7.0 | 7.7 | 8.7 | 8.7 |
+| **in all** | **88.5** | **92.1** | **113.7** | **130.4** | **110.9** |
+
+What grew, v1.66 → v1.85 (+41.9 MB): **the shaders, +25.0 MB**, half of it dead (below); the Surface shader's
+variants went 56 → 448 a pass (the fights' `HIRAETH_FIGHT`, the skins, the lean, slim, scrub and glass paths, the plain
+fragment; 132 for OpenGL ES 3 and 228 for Vulkan once stripped), and SkinPatterns.hlsl's 2,955 lines went into each.
+**The recorded music, +7.0 MB** (v1.80: the title's and the desert's themes, `BridgeBuild.OnDeviceThemes`). **The JS
+bundle, +4.2 MB** (unminified, 16.0 MB, stored: StreamingAssets aren't compressed in an APK). **The Aerie's Elder, +2.6
+MB** (`guardians/elder-v3`; the traveller's body went down 2.3 MB). The title's pictures 2.2 MB (v1.75), the
+pipeline lists 1.5 MB (v1.80, v1.85).
+
+**The dead copies.** Every shader of the project in the graphics settings' "Always Included Shaders" was written
+twice into each player: into `globalgamemanagers.assets`, where `Shader.Find` gets it, and into
+`Resources/unity_builtin_extra`, every one under the same object id, 4800000 (a shader asset's own id in its file).
+The file's table keeps one entry an id, so only the last shader written (WaterOver in v1.85, SMAA in v1.75) could ever
+be read there: 22.0 of its 22.7 MB were bytes nothing points at (found by reading the file's object table: 48
+objects, 0.7 MB, and a 22 MB hole holding Hiraeth/Surface and the other seventeen). The build log showed it too: each
+of our shaders compiled twice per player. **The fix** (`BridgeBuild.KeepShaders`, every bridge build: Android, Linux,
+Xbox): the shaders the game finds by name (`Batch.RuntimeShaders`, SMAA added) are preloaded assets
+(`PlayerSettings.preloadedAssets`, loaded at the start as the always-included ones were) and the graphics settings
+always include only Unity's own (UI/Default and the rest). The build after: `unity_builtin_extra` 0.7 MB, every
+shader once in `globalgamemanagers.assets` (the same 1,769 objects, Surface the same 20.2 MB), the same variant counts
+after stripping (132 / 228 / 8 / 8), the APK 130.4 → 110.9 MB, and the APK's build 115 → 75 s. The native game's
+builds (`Batch.BuildMac`, the bench) still always include them. Not checked on a device in this change: a player that
+can't find a shader by name draws nothing, so the first device run after it lands is the check.
+
+**The Linux player** (the Deck's download, `hiraeth-unity-linux.tar.gz`; MB unpacked):
+
+| area | v1.75 | v1.85 |
+|---|---|---|
+| IL2CPP's C++ and GameAssembly's symbols (`*_BackUpThisFolder_ButDontShipItWithYourGame`) | 940.7 | 967.2 |
+| music (every theme: the Deck plays offline from the first launch) | 0 | 106.2 |
+| game code (IL2CPP), engine, V8 | 163.2 | 165.3 |
+| JS bundle | 12.9 | 16.0 |
+| shaders and settings, Unity's built-in resources | 15.3 | 26.3 |
+| bodies, animations, pictures, pipeline lists, other | 24.7 | 27.4 |
+| **unpacked in all** | **1156.8** | **1308.3** |
+| **the archive (compressed)** | **303.6** | **428.8** |
+
+The archive carried the build's own leftovers, three quarters of what it unpacked to, which the Deck's installer never
+unpacks (`scripts/steam-deck/deck.py` `UNITY_SKIP`): they only made the download bigger. The workflow now packs without
+them (`unity-android.yml`, "The Linux player packed"), and without the dead shader copies: **428.8 → 186.1 MB**. Its
+growth since v1.75 was the music (+106 MB, all of it deliberate) and the shaders. The Xbox's package (78.6 MB) has no
+leftovers; its `unity_builtin_extra` is 5.2 MB, so about 4 MB of it goes with the fix.
+
+**Kept, for the author to decide** (each would make the APK smaller, none is waste):
+- The JS bundle stored uncompressed in the APK (16.0 MB; 4.6 MB gzipped). Compressed by Gradle (`noCompress` without
+  StreamingAssets' `.cjs`) about −11 MB, or minified about −6.5 MB (9.5 MB), at the cost of a custom Gradle template or
+  of readable stack traces.
+- OpenGL ES 3's variants beside Vulkan's (132 of Surface's 376 programs, about 7 MB unpacked): the APK's fallback for
+  phones without Vulkan.
+- The side worlds kept for the debug menu: their levels (`src/levels/reference-*`, `dismissed/`) are 0.8 MB of the JS
+  bundle; no per-world data ships in the Unity packages.
+- Unity's splash logo (1.2 MB in `globalgamemanagers.assets`): the Personal licence's.
+
+Tests: `tests/unity-size.test.js` (none of our shaders always included, every shader the run-time code finds by name
+preloaded, the Linux archive packed without the leftovers, the size tool's areas and rules). Raw: the session's
+scratchpad, `size-500/`.

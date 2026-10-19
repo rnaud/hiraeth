@@ -83,6 +83,14 @@ export const CHANGELOG = [
     'On the Quests page, the quest you are tracking now stands out, framed in red with a TRACKING tag, and the quest you are on shows the button to track it instead (A / × on a controller, Enter on the keyboard).',
     // issue #508: src/enemies/gaze.js (gazePart, gazeAim, gazeApply), Foes.look, each plan's `gaze`; brute.js GAZE_TWIST;
     // tests/foe-gaze.test.js, tests/foe-gaze-mirror.test.js; docs/systems/foes.md "Eyes on the traveller"
+    // issue #500: unity BridgeBuild.KeepShaders (the shaders preloaded, not always included: no dead copies in
+    // unity_builtin_extra), unity-android.yml (the Linux player packed without IL2CPP's leftovers);
+    // tests/unity-size.test.js; docs/systems/performance.md "What the Unity packages carry"
+    { text: 'The Unity version is a smaller download: the Android app is 111 MB instead of 130, and the Steam Deck’s download 186 MB instead of 429. The game’s shaders were packed twice, the second copy never read, and the Deck’s archive carried the build’s working files, which it never installed.',
+      numbers: [{ title: 'The Unity version’s download, before → after', unit: 'MB', better: 'lower', device: 'the release’s packages (hiraeth-unity.apk, hiraeth-unity-linux.tar.gz), built by GitHub Actions', rows: [
+        { where: 'Android (APK)', before: 130.4, after: 110.9 },
+        { where: 'Steam Deck (Linux player)', before: 428.8, after: 186.1 },
+      ], source: 'docs/systems/performance.md, "What the Unity packages carry"' }] },
     'Creatures and machines now look at you once they have noticed you: the crab’s eye stalks lean your way, the toad’s eyes turn in their sockets, the lizard, the hound and the heron turn their heads, the wisp’s eyes slide over its petals and the brute’s brass eye follows you round as its body twists to you. Left alone, they look where they are going.',
     // issue #521: src/temples/air.js HOUSE_AIR.perdide2 (its sparks: 26 not 40, 0.028 not 0.035, glow 0.75, alpha 0.75)
     'The fireflies drifting in the dark of Lorn’s Lamp-House are fewer, smaller and softer: little sparks again, not a hall of floating lamps.',

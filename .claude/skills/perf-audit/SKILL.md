@@ -39,6 +39,20 @@ Every report gives these numbers, each against the last report's (this step is n
 The APK's size is on the release: `gh release view v<version> --json assets`. Each change goes with
 the commit that made it (`git log --stat`).
 
+The Unity packages (the devices' default) are sized by what they carry, each against the last report's:
+
+```sh
+gh release download v<version> -p hiraeth-unity.apk -p hiraeth-unity-linux.tar.gz -D <scratch>
+node .claude/skills/perf-audit/unity-size.mjs <scratch>/hiraeth-unity.apk --out <scratch>/unity-apk.json --against <last unity-apk.json> --check
+node .claude/skills/perf-audit/unity-size.mjs <scratch>/hiraeth-unity-linux.tar.gz --out <scratch>/unity-linux.json --check
+```
+
+Areas: shaders and settings (globalgamemanagers.assets), Unity's built-in resources, the engine, the game's C#
+(IL2CPP), Puerts' V8, the JS bundle, music, bodies and animations, the pipeline lists, pictures. `--check` fails on
+what must not ship: the build's leftovers (IL2CPP's C++ and symbols) and a `unity_builtin_extra` over 2 MB (the
+project's shaders written into it again as dead copies, issue #500). Any area that grew names its cause; the last
+breakdown is performance.md's "What the Unity packages carry". Delete the downloads after.
+
 ## 2. Frames and loads on this Mac
 
 ```sh
