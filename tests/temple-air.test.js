@@ -95,6 +95,21 @@ test('the air is built when you first go in, shown only inside, the world\'s mot
   air.dispose(); low.dispose();
 });
 
+test('a fixed view holds the lights at their reach as built, on the web\'s capture and the engines\' pinned views alike (#264)', async () => {
+  const { level, lights } = fakeLevel();
+  const air = new HouseAir(level, { host: new THREE.Scene() });
+  const cam = { position: new THREE.Vector3(0, 2, 0) };
+  air.still = true;
+  for (const t of [1, 1.3, 2.7, 5.1]) { air.update(0.016, t, cam, new THREE.Vector3(0, 1, 0)); assert.deepEqual(lights.map((l) => l.w), [8, 6], `still at ${t}`); }
+  air.still = false;
+  air.update(0.016, 2.7, cam, new THREE.Vector3(0, 1, 0));
+  assert.ok(lights.some((l, i) => l.w !== [8, 6][i]), 'flickering again once let go');
+  air.dispose();
+  const { readFileSync } = await import('node:fs');
+  assert.match(readFileSync(new URL('../engine/game.js', import.meta.url), 'utf8'), /pin\(v\) \{[^\n]*if \(houseAir\) houseAir\.still = !!v;/);
+  assert.match(readFileSync(new URL('../scripts/design-qc/capture.mjs', import.meta.url), 'utf8'), /window\.houseAir\.still = true/);
+});
+
 test('the page draws each layer from a scene of its own, against the G-buffer it is given', () => {
   const { level } = fakeLevel('desert');
   const air = new HouseAir(level, {});

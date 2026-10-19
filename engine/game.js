@@ -1397,7 +1397,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     screen: () => screen,
     /** A pointer delta (pixels), as the mouse turns the camera on the page. */
     look(dx, dy) { rig.look(dx, dy); },
-    pin(v) { pinned = v ? pin(v) : null; if (v && waterBed) bakeAround(); },
+    // (a pinned view holds a makers' house's lights at their reach as built, as the web's capture does: their flicker's phase
+    // is each side's own clock, and moved a room's pool of light a size either side, issue #264)
+    pin(v) { pinned = v ? pin(v) : null; if (v && waterBed) bakeAround(); if (houseAir) houseAir.still = !!v; },
     /** The water's pass over the page this frame (src/water.js Waters.overState: the tint and haze under water, the sun's
      * sparkle above it), plain numbers in three's space; under -1 when it draws nothing; lite: the preset has no sparkle. */
     waterOver() { const s = waters.overState(camera), lite = waterShared.uWaterLite.value; return s ? { ...s, lite } : { under: -1, lite }; },

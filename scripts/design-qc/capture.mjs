@@ -96,7 +96,10 @@ for (const [n, world] of worlds.entries()) {
   let up = false; for (let i = 0; i < 1200 && !up; i++) { up = (await ev('!!window.__hiraethBooted && !!window.player')) === true; if (!up) await sleep(100); }
   if (!up) { console.log(`${world}: never booted`); captured.push({ world, error: 'never booted' }); continue; }
   await sleep(2500);
+  // (a makers' house's lights held at their reach as built: their flicker on each side's own clock moved a room's pool of
+  // light a size either side between the web's picture and Unity's, issue #264; engine/game.js pin holds them there too)
   await ev(`(() => { window.sound?.setVolumes?.(0, 0); window.story?.closePage?.(); if (window.weather) { window.weather.mode = 'clear'; window.weather.intensity = 0; }
+    if (window.houseAir) window.houseAir.still = true;
     const s = document.createElement('style'); s.textContent = 'body > *:not(canvas) { visibility: hidden !important; } canvas { visibility: visible !important; }'; document.head.appendChild(s); return true; })()`);
   for (const v of views.filter((x) => x.world === world)) {
     await ev(pin(v));

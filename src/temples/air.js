@@ -125,6 +125,7 @@ export class HouseAir {
     this.built = new Map();   // rt → [Motes]
     this.at = null; this.sound = null;
     this.target = null;
+    this.still = false;   // (the lights held at their reach as built: a fixed view's picture, the checks' web and engines alike)
   }
   /** The skinned houses with an air (none with ?noair=1: the house as it was, for a before and after). */
   houses() {
@@ -176,7 +177,7 @@ export class HouseAir {
     const L = rt.ownLights ?? [], P = HOUSE_AIR[rt.id].light;
     if (!L.length || !P) return;
     const base = (rt._airBase ??= L.map((l) => l.w));
-    for (let i = 0; i < L.length; i++) L[i].w = base[i] * lightPulse(P, t, i);
+    for (let i = 0; i < L.length; i++) L[i].w = base[i] * (this.still ? 1 : lightPulse(P, t, i));
   }
   /** Back as built, on the way out. */
   rest(rt) {

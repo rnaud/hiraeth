@@ -2629,7 +2629,9 @@ Each skinned house has an air, a light and a sound of its own while you are insi
   presets (the handheld, Low, the Deck) build `AIR_LOW` (half) of each. `?noair=1` leaves it out, for a before and after.
 - **The light**: the house's own lights (`rt.ownLights`, the layout's) have their reach eased by `lightPulse`
   (`flicker` a fire's, `breathe` a slow swell, `blink` a signal's two pulses and a rest, `tick` a clock's), put back
-  as built on the way out. Both renderers take the local lights from `level.lights` each frame.
+  as built on the way out. Both renderers take the local lights from `level.lights` each frame. `houseAir.still` holds
+  them at their reach as built: a fixed view's picture (engine/game.js `pin`, scripts/design-qc/capture.mjs), so the web
+  and Unity side by side catch the same pool of light (issue #264).
 - **The sound**: `houseAir.sound` goes to `Sound.update` as `house` (src/audio.js): a low roar (`roar`, `roarF`: a
   furnace, the sea), the drone (`hum` at `humF`), wind (`howl`), and `houseTick(bed)` on the score's beat in place of
   the world's ambience (`fire`, `furnace`, `forge`, `gusts`, `bells`, `drips`, `filament`, `deep`, `vanes`, `ticks`,
