@@ -1,0 +1,67 @@
+changelog.md
+  s_5f899ba316b5dc::t_aaccf9c0e58680 7
+docs/systems/engine-bridge.md
+  s_5f899ba316b5dc::t_bc60d4019b05a2 153-154,168-175,1862-1864
+docs/systems/temples.md
+  s_5f899ba316b5dc::t_34b24fe4c33858 2084-2085,2089-2090
+docs/systems/ui.md
+  s_5f899ba316b5dc::t_0103bef7d95c07 331,333-335,432-433,698,700-707
+engine/bridge-gaps.js
+  s_5f899ba316b5dc::t_422198b3279786 204
+engine/menus.js
+  s_5f899ba316b5dc::t_26280960dff06b 8,10-11,16-18,28,119-122,149,152,209-210,249-251,254-255,794,800,955,1022-1023,1126,1137,1192-1199
+engine/sequences.js
+  s_5f899ba316b5dc::t_ceedd5cfc628bf 118-119,132-133,137,443-444,475
+engine/unity/game.js
+  s_5f899ba316b5dc::t_922854bdac6f43 170,308,651-652,1130-1134,1136-1138
+src/changelog-media.js
+  s_5f899ba316b5dc::t_f0a884f12a55e6 1224-1225,1349-1354
+src/changelog.js
+  s_5f899ba316b5dc::t_2a70046dda1db5 105-108
+src/game-menu-data.js
+  s_5f899ba316b5dc::t_bd2d1c12eaf106 123-124
+src/game-menu.css
+  s_5f899ba316b5dc::t_dbcc71b220b884 336-347
+src/game-menu.js
+  s_5f899ba316b5dc::t_ee97f307253510 1,32-33,49,53-60,387-404,448-449,465-466,471,482,487,494-495,557-562,571-572,603-605,641-647,674-675,703-705
+src/i18n/en.js
+  s_5f899ba316b5dc::t_e4a4ea02a97c02 187,230,232,269,392-393
+src/i18n/fr.js
+  s_5f899ba316b5dc::t_399feb7846d7d4 186,229,231,268,390-391
+src/main.js
+  s_5f899ba316b5dc::t_947fa585b342b9 894-895
+src/temples/pieces.js
+  s_5f899ba316b5dc::t_6763d06bb77d85 3403
+src/ui.js
+  s_5f899ba316b5dc::t_3d4f17a011991f 193,195-196,209,408
+tests/engine-menus.test.js
+  s_5f899ba316b5dc::t_8cb88fb98597de 170-171,173,175-176,182
+tests/game-menu.test.js
+  s_5f899ba316b5dc::t_57a768c4887be5 121,256-257
+tests/house-map.test.js
+  s_5f899ba316b5dc::t_150c18f67bb210 3,8,25-26,189-234,243-244,246-249,251-253,256,259-261,263-268,270,272-274
+tests/hud.test.js
+  s_5f899ba316b5dc::t_1800218c1bd71f 268,270-271
+tests/sequences-web.json
+  s_5f899ba316b5dc::t_1ef9f60acc415f 3,3484,3553,3582-3588,3672,3701-3707,3718,3747-3753,3768,3837,3903,3933,3939-3941,3943-3945,3949,3981
+tests/world-map.test.js
+  s_5f899ba316b5dc::t_4e66ec3d7a706e 224
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.cs
+  s_5f899ba316b5dc::t_2c2fb13847f383 66,807,810-812,824,855,858
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f2bbf684076b01dcc1f14b320d25cc37594216f5",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
