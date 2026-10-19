@@ -5796,3 +5796,60 @@ each, back to back.
 
 Raw: the session's scratchpad, `retroid-525/` (`retroid-foes/`, `retroid-cape/`: each run's tsv, json and log, and
 `report.md`).
+
+### Android's pipeline list traced again, and a cold start's first uses (issue #525, 2026-10-19)
+
+The list was traced on the Retroid by the same development APK (build 2650: main at ec19c1d53 with the stutter work).
+`scripts/bench/android-pso-trace.mjs --fresh 1` now traces as the Deck's (#465):
+- the discarded worlds are left out (names.js `isDiscarded`);
+- a jump held and the tool fired in the desert and the Underwater City (`-play tool -ui jump`);
+- the decals and a splat;
+- a new menus pass for the first uses #468's runs found here: a conversation's first line, the game menu's pages and the
+  Map (`-sequence talk`, `route-menus`).
+
+That was 52 launches, none retried. #502's door-light and light-wash pass states (LightAdd, f02ca24eb) were not on main
+yet, so they are not in it: trace again once they land.
+
+**177 states of 63 variants → 224 of 81** (0.60 → 0.70 MB):
+
+| shader | variants / states, before → after |
+|---|---|
+| Hiraeth/Surface | 40 / 147 → 52 / 177 |
+| UI/Default, Hiraeth/UIText, Hiraeth/Print | 4 / 7 → 6 / 18 (the menus' pages, the talk) |
+| Hiraeth/DoorLight, Hiraeth/JumpShade, Hidden/Hiraeth/WaterOver, Hidden/Hiraeth/Upscale | new: 5 / 6 |
+| Hiraeth/Veil | 1 / 4 → 1 / 5 |
+| Hidden/Universal/CoreBlit | 1 / 1 → gone (no longer drawn) |
+
+**A cold start's first uses.** route-border, route-city, route-menus and talk were each played once by
+`scripts/stutter/run-android.mjs --cold 1`, which deletes Unity's own Vulkan pipeline cache before each run. Four sets
+ran back to back. The two "before" sets came before the trace, so the driver had not been taught the pipelines. The
+control (no list, after the trace) gives the same numbers as before it, so the Adreno driver kept nothing from the trace
+that changed these runs:
+
+| set | first frame s | frozen load frames (over 1 s): summed s, how many, the longest | frames over 50 ms with a first use in them | first-use spikes once playing |
+|---|---|---|---|---|
+| no list (as shipped) | 13.7-14.9 | 9.3-10.4, 3, 3.8-4.9 s | 0 | 0 |
+| the old list, `-pso` | 17.0-18.5 | 5.7-9.9, 2-3, 4.0-6.8 s | 1-3 | 0 |
+| the new list, `-pso-file` | 20.1-21.6 | 8.5-9.4, 2, 6.9-7.4 s | 1-2 | 0 |
+| the new list, `-pso-progressive 7` | 12.1-14.5 | 5.7-6.5, 1, 5.7-6.5 s | 1 | 2 (the menus 33 ms, the talk 48 ms) |
+| no list, after the trace (the control) | 13.9-16.1 | 10.1-10.9, 3-4, 4.1-4.9 s | 0 | 0 |
+
+- **There is still no first-use stall to remove on Android.** Without a list, cold, no frame after the load had a
+  pipeline's first use in it, the talk's first line and the Items page included. Phase 2's 7-8 ms first uses of those
+  were on warm launches with a different build. Round 7's finding holds.
+- **The whole list at once costs the most.** The first frame comes 5.6-6.7 s later than without one, behind a single frame
+  of about 7 s. That is past Android's 5 s for an unanswered touch.
+- **Warmed a few at a time** (`-pso-progressive 7`, the Xbox's way, #443), the first frame is the earliest of all
+  (0.4-2.4 s sooner than without a list), and the load holds still 2.8-4.4 s less. But that still comes as one frame of
+  5.7-6.5 s, over the 5 s limit, and the states left when the world comes are made at their first draws: two spikes of
+  33-48 ms once playing.
+- **So Android stays without a list by default** (`-pso`, `-pso-file`, `-pso-progressive` to try it). The traced list
+  ships in `StreamingAssets/hiraeth-pso/Android/` for those switches. Progressive is the one worth taking further, if
+  the single long frame it leaves can be split: more states per batch while the loading screen is up, or the warm-up
+  started from the title as on the Xbox.
+
+To repeat: `node scripts/bench/android-pso-trace.mjs --out <dir> --fresh 1 --no-copy 1` (or let it copy), then
+`node scripts/stutter/run-android.mjs route-border route-city route-menus talk --cold 1 --out <dir> [--extra "-pso-file
+<the list on the device> -pso-progressive 7"]`. Run the sets back to back: the handheld sleeps after 30 minutes without
+input. Raw: `retroid-525/` (`trace/`, `cold-nolist/`, `cold-oldlist/`, `cold-newlist/`, `cold-newprog/`,
+`cold-nolist-after/`, `bin/firstuse.mjs`).

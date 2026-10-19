@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.85 — 2026-10-18
 
+- People in capes coming into sight no longer make the game catch for a moment, most of all on the Retroid: a cape now settles over a few frames instead of all in one. Walking through the camps and the City-Shaft, the frames over 50 ms on the Retroid fell from 12 to 4.
 - Shadows keep up with whatever casts them again on the Handheld, Low, Steam Deck and Xbox settings, and in the Unity version on the Steam Deck and handhelds. The shadows close to you were redrawn only every second or fourth frame there, so yours and the foes’ trailed a step behind and moved in jerks. Only the shadows of the far scenery, which barely moves, are still redrawn less often.
 - The loading screen now tells you what it is doing and why it takes the time. Under the turning pen a bar fills as each part is done, and a small line says what that part is: dressing the traveller, the walls learning where you can’t walk, teaching the graphics card the world’s light (slowest the first time).
 - The fight temples load faster. While loading, each one got every kind of foe in the game ready, though only four or five come up in it; now it readies just those, so the graphics card has a third fewer shaders to learn.
@@ -17,7 +18,6 @@ The same release notes shown in the game (press **N** or open settings).
 - Creatures and machines now look at you once they have noticed you: the crab’s eye stalks lean your way, the toad’s eyes turn in their sockets, the lizard, the hound and the heron turn their heads, the wisp’s eyes slide over its petals and the brute’s brass eye follows you round as its body twists to you. Left alone, they look where they are going.
 - On the Quests page, the quest you are tracking now stands out, framed in red with a TRACKING tag, and the quest you are on shows the button to track it instead (A / × on a controller, Enter on the keyboard).
 - In the games’ menus (the start card, the pause, the results), the button you are on is now the one drawn in colour, filled red as in the other menus. Retry, Start or Resume no longer look picked when they aren’t: a red edge at their left says which one Enter presses.
-- People in capes coming into sight no longer make the game catch for a moment, most of all on the Retroid: a cape now settles over a few frames instead of all in one. Walking through the camps and the City-Shaft, the frames over 50 ms on the Retroid fell from 12 to 4.
 - Lorn’s skiff is solid end to end: its bow, its stern and the float off its side stop at the small crystals rising from the water instead of sailing through them. Its sail is set out over the side now, so it no longer runs through your face as you ride.
 - In the Unity version, D-pad ↓ calls your mount again: in Lorn the skiff comes over to you, as it always did on the web.
 - In the Unity version, the first room of every makers’ house is as light as on the web: the glow of the way you came in by brightens it as it does there, where before the whole room came out grey and dim. And Lorn’s lake has its pale shallows along the shores again, the water darkening as it deepens.
