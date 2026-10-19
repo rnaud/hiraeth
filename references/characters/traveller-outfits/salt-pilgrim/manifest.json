@@ -1,0 +1,45 @@
+{
+  "created": "2026-10-19",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Character turnaround model sheet for a science fiction exploration game: the same slim young man as in the reference picture, same face and messy short black curly hair, uncovered, wearing a desert pilgrim's travelling robes instead of his usual clothes, drawn three times full-body side by side at the same scale on a plain cream background: front view, side view, back view, standing straight, arms a little away from the body. A long sleeveless white linen over-robe open at the front and reaching the shins, edged with a band of small turquoise and terracotta geometric stitching, a hood lying down flat on his back, under it a wrapped saffron tunic with long sleeves and a wide sash of faded rose tied at the waist, loose pale trousers gathered at the ankles, flat woven sandals with straps up the ankle, a string of small salt-white beads at the wrist. Game-ready clothing with clear colour blocks that read from above. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, white, saffron and turquoise, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, hat, hood up, helmet, goggles, mask.",
+      "from": "docs/design/traveller-outfit-prompts.md#salt-pilgrim",
+      "refs": [
+        "lore/references/traveller/reference-1.jpg"
+      ],
+      "ar": "16:9",
+      "date": "2026-10-19",
+      "batch": "2026-10-19-18-11-36-15b3",
+      "candidate": "openai/1",
+      "sha256": "0173b98200b59c8498e7ca7778b3041a08f3488c60ab7309f96c44823fbe76c5",
+      "bytes": 134420,
+      "costUSD": 0.041,
+      "why": "built in Blender (#545): the clearest of the four: the open white robe edged in turquoise and terracotta triangles, its hood down on his back, the saffron wrapped tunic with full sleeves gathered at the wrist, the rose sash knotted with its ends hanging, cream trousers gathered above the ankle, laced sandals"
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "gemini",
+      "providerLabel": "Google Gemini (Nano Banana)",
+      "model": "gemini-nano-banana-2.1",
+      "prompt": "Character turnaround model sheet for a science fiction exploration game: the same slim young man as in the reference picture, same face and messy short black curly hair, uncovered, wearing a desert pilgrim's travelling robes instead of his usual clothes, drawn three times full-body side by side at the same scale on a plain cream background: front view, side view, back view, standing straight, arms a little away from the body. A long sleeveless white linen over-robe open at the front and reaching the shins, edged with a band of small turquoise and terracotta geometric stitching, a hood lying down flat on his back, under it a wrapped saffron tunic with long sleeves and a wide sash of faded rose tied at the waist, loose pale trousers gathered at the ankles, flat woven sandals with straps up the ankle, a string of small salt-white beads at the wrist. Game-ready clothing with clear colour blocks that read from above. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, white, saffron and turquoise, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, hat, hood up, helmet, goggles, mask.",
+      "from": "docs/design/traveller-outfit-prompts.md#salt-pilgrim",
+      "refs": [
+        "lore/references/traveller/reference-1.jpg"
+      ],
+      "ar": "16:9",
+      "date": "2026-10-19",
+      "batch": "2026-10-19-18-11-36-15b3",
+      "candidate": "gemini/1",
+      "sha256": "f2f4ec9a3a0a39d42143f310ad56dd4cf442c8a0708a0b914444438d27fe629f",
+      "bytes": 564889,
+      "costUSD": 0.0336,
+      "why": "the same in five views, and the robe slit at the sides: the build keeps the slits (and one up the back) so the robe's panels follow his legs in the run"
+    }
+  ]
+}

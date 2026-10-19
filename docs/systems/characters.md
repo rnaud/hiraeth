@@ -2223,6 +2223,38 @@ skin through nothing in any pose. Its hides are measured but for the hips (94 %:
 his right front hip stands proud of the slim trousers); the collar covers the neck's area, but the neck
 stays drawn (`KEEP_AREAS`: from above he is seen into the collar).
 
+**The other three** (issue #545; their sheets in `references/characters/traveller-outfits/<id>/`), with bare
+skin where the sheets show it (pass 4's body is his skin), on #544's shared volume and painter:
+
+- **The pearl diver**: a fitted sea-blue suit, short sleeves and legs with dark rolled cuffs, a cream bib
+  (painted) and cream side stripes standing proud (RELIEF), a brass collar ring (geometry: a tube extruded
+  from the neck, half levelled), a cream webbing belt with two khaki pouches, a buckle and a coil of line
+  (`DiveGear`: boxes, tori and a band, each prop rigid on what it hangs from, the belt weighted as the suit
+  under it); tall sea-green shafts with a rolled rim and a raised strap over his own boots. 45.4 k
+  triangles; nothing through anything in any pose. His upper arms and forearms, and his shins between the
+  suit and the boots, show.
+- **The moss gardener**: an ochre shirt (a collar, short sleeves rolled to a turquoise lining), a moss
+  waistcoat with a scooped neck, four patch pockets and flaps standing proud (RELIEF), a pencil and the
+  back's half-belt (props); rust shorts with turned-up hems, raised knee patches and cargo pockets; a brown
+  belt; bunched wool socks with a folded top; his own boots in brown. 47.1 k triangles; his skin through
+  nothing; the shirt through the waistcoat's armholes by up to 14 mm with the arms lowered.
+- **The salt pilgrim**: a long open white robe, its border of turquoise and terracotta triangles standing
+  proud round the hem and down the front (RELIEF), its hood a soft lump on his back; a saffron wrapped
+  tunic with full sleeves gathered at the wrist; a rose sash knotted in the robe's opening; full cream
+  trousers gathered above the ankle; sandals (`BOOTS = None`: a `Sandals` piece, his foot in his skin's
+  colour with painted straps, on a rounded sole). The robe is a skinned drape, not cloth: its skirt hung
+  from its hips as rings (`outfit_kit.skirt`: flare, folds, slits at the sides and up the back), weighted
+  from the pelvis into each thigh down its length (each of its four panels follows its own leg); the
+  tunic's skirt the same. 47.4 k triangles. Standing, nothing through anything by over 7 mm; running, the
+  trousers and the tunic come through the skirts at the front of the hips and at the slits (7–24 verts;
+  the tunic through the robe 32–53 of 4 649; the check's 4 cm reach at most), and the front panels lift
+  with the thighs like boards.
+
+Their own shared parts are in `outfit_kit.py` (boxes, tori, bands, skirts, rigid islands, weights copied
+from the piece under). `outfit.py` takes four optional things from an outfit: `BOOTS = None`, a piece's
+`sample` (where its weights are read), a piece's `checks` (pieces it is checked against, not fitted over),
+and `reweight()` (its own weights after the body's).
+
 **Building one** (`scripts/blender/traveller/outfit.sh <id> [--previews]`, a minute; `outfit.py` does the
 steps, `outfit_<id>.py` says what the outfit is):
 

@@ -1,0 +1,364 @@
+{
+ "source": "scripts/blender/traveller/outfit.py --outfit pearl-diver (issue #540)",
+ "id": "pearl-diver",
+ "name": "Pearl diver",
+ "reference": "references/characters/traveller-outfits/pearl-diver/sheet-1.jpg",
+ "glb": "pearl-diver.glb",
+ "base": "data/characters/traveller-v2/traveller.glb",
+ "keeps": [
+  "Body",
+  "Skin",
+  "Head",
+  "Hair"
+ ],
+ "parts": {
+  "DiveSuit": {
+   "kind": "garment",
+   "triangles": 27394,
+   "vertices": 13841,
+   "hides": [
+    "belly",
+    "chest",
+    "knee.L",
+    "knee.R",
+    "thigh.L",
+    "thigh.R"
+   ],
+   "layer": 1,
+   "materials": {
+    "outfit_pearl-diver": "atlas"
+   }
+  },
+  "DiveShafts": {
+   "kind": "garment",
+   "triangles": 9184,
+   "vertices": 4714,
+   "hides": [],
+   "layer": 2,
+   "materials": {
+    "outfit_pearl-diver": "atlas"
+   }
+  },
+  "DiveGear": {
+   "kind": "garment",
+   "triangles": 2364,
+   "vertices": 1200,
+   "hides": [],
+   "layer": 3,
+   "materials": {
+    "outfit_pearl-diver": "atlas"
+   }
+  },
+  "DiveBoots": {
+   "kind": "garment",
+   "triangles": 6505,
+   "vertices": 3363,
+   "hides": [
+    "ankle.L",
+    "ankle.R",
+    "foot.L",
+    "foot.R"
+   ],
+   "layer": 1,
+   "materials": {
+    "outfit_pearl-diver": "atlas"
+   }
+  }
+ },
+ "hides": [
+  "ankle.L",
+  "ankle.R",
+  "belly",
+  "chest",
+  "foot.L",
+  "foot.R",
+  "forearm_lower.L",
+  "forearm_lower.R",
+  "hand.L",
+  "hand.R",
+  "hips",
+  "knee.L",
+  "knee.R",
+  "shin_lower.L",
+  "shin_lower.R",
+  "thigh.L",
+  "thigh.R"
+ ],
+ "skinCut": [],
+ "draws": {
+  "clothes": [
+   "DiveSuit",
+   "DiveShafts",
+   "DiveGear",
+   "DiveBoots"
+  ]
+ },
+ "atlas": {
+  "size": [
+   2048,
+   2048
+  ],
+  "texelsPerMetre": 1147,
+  "swatches": {
+   "DiveSuit.inside": [
+    23,
+    37,
+    52
+   ],
+   "DiveShafts.inside": [
+    47,
+    60,
+    52
+   ],
+   "DiveBoots.inside": [
+    50,
+    64,
+    56
+   ]
+  },
+  "palette": {
+   "blue": [
+    52,
+    82,
+    116
+   ],
+   "cream": [
+    214,
+    197,
+    162
+   ],
+   "slate": [
+    58,
+    62,
+    70
+   ],
+   "brass": [
+    198,
+    152,
+    84
+   ],
+   "boot": [
+    112,
+    142,
+    124
+   ],
+   "rubber": [
+    104,
+    134,
+    116
+   ],
+   "webbing": [
+    208,
+    190,
+    154
+   ],
+   "khaki": [
+    156,
+    136,
+    96
+   ],
+   "line": [
+    200,
+    182,
+    142
+   ],
+   "ink": [
+    30,
+    34,
+    46
+   ]
+  }
+ },
+ "triangles": 45447,
+ "fit": {
+  "DiveSuit": {
+   "fitLeft": 132,
+   "relief": {
+    "_suit_relief": {
+     "side-1": {
+      "cuts": 145,
+      "raised": 172
+     },
+     "leg-1": {
+      "cuts": 222,
+      "raised": 332
+     },
+     "side1": {
+      "cuts": 145,
+      "raised": 171
+     },
+     "leg1": {
+      "cuts": 223,
+      "raised": 332
+     }
+    }
+   },
+   "hem": {
+    "open": 294,
+    "covered": 0,
+    "band": 1628,
+    "lips": 294
+   }
+  },
+  "DiveShafts": {
+   "fitLeft": 0,
+   "relief": {
+    "_shaft_relief": {
+     "cuts": 448,
+     "raised": 336
+    }
+   },
+   "hem": {
+    "open": 216,
+    "covered": 8,
+    "band": 1680,
+    "lips": 216
+   }
+  },
+  "DiveGear": {
+   "fitLeft": 4,
+   "hem": {
+    "open": 0,
+    "covered": 0
+   }
+  }
+ },
+ "shading": {
+  "DiveSuit": {
+   "shadow": 0.065,
+   "hatched": 0.073,
+   "change": 0.0105
+  },
+  "DiveShafts": {
+   "shadow": 0.067,
+   "hatched": 0.024,
+   "change": 0.0089
+  },
+  "DiveGear": {
+   "shadow": 0.339,
+   "hatched": 0.504,
+   "change": 0.0676
+  }
+ },
+ "pokes": {
+  "under": {
+   "Skin>DiveSuit": 0,
+   "Skin>DiveShafts": 0,
+   "Skin>DiveGear": 0,
+   "DiveSuit>DiveGear": 292,
+   "DiveShafts>DiveGear": 24
+  },
+  "posed": {
+   "lowered": {
+    "Skin>DiveSuit": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>DiveShafts": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>DiveGear": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "DiveSuit>DiveGear": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "DiveShafts>DiveGear": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   },
+   "idle": {
+    "Skin>DiveSuit": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>DiveShafts": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>DiveGear": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "DiveSuit>DiveGear": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "DiveShafts>DiveGear": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   },
+   "jog-a": {
+    "Skin>DiveSuit": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>DiveShafts": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>DiveGear": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "DiveSuit>DiveGear": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "DiveShafts>DiveGear": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   },
+   "jog-b": {
+    "Skin>DiveSuit": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>DiveShafts": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>DiveGear": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "DiveSuit>DiveGear": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "DiveShafts>DiveGear": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   },
+   "sprint": {
+    "Skin>DiveSuit": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>DiveShafts": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>DiveGear": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "DiveSuit>DiveGear": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "DiveShafts>DiveGear": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   }
+  }
+ }
+}

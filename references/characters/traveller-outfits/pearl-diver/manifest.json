@@ -1,0 +1,45 @@
+{
+  "created": "2026-10-19",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Character turnaround model sheet for a science fiction exploration game: the same slim young man as in the reference picture, same face and messy short black curly hair, uncovered, wearing a pearl diver's working suit instead of his usual clothes, drawn three times full-body side by side at the same scale on a plain cream background: front view, side view, back view, standing straight, arms a little away from the body. A close-fitting one-piece diving suit of deep sea-blue rubberised canvas with short sleeves and knees, pale cream stitched panels down the sides and across the chest, a low round brass collar ring at the neck, a broad cream webbing belt with two small brass-clasped pouches and a coiled line at the hip, bare forearms, rubber cuffs at the elbows, tall smooth sea-green rubber boots with a brass buckle each. Simple, fitted, game-ready clothing with clear colour blocks that read from above. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, hat, hood, helmet, goggles, mask, cape.",
+      "from": "docs/design/traveller-outfit-prompts.md#pearl-diver",
+      "refs": [
+        "lore/references/traveller/reference-1.jpg"
+      ],
+      "ar": "16:9",
+      "date": "2026-10-19",
+      "batch": "2026-10-19-18-11-36-b35b",
+      "candidate": "openai/1",
+      "sha256": "db2c7425321daad9c35f1815c6e4446e64d82b1f3b8e6c1a9b1143a7a821ebde",
+      "bytes": 129185,
+      "costUSD": 0.041,
+      "why": "built in Blender (#545): the clearest construction of the four: the cream bib over the chest dipping to a point, the cream stripe from the armpit down the outside of each leg, the dark cuffs, the brass collar ring, the cream webbing belt with two pouches and the coiled line, tall sea-green boots with a strap and buckle; short sleeves and legs that show his own skin"
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "gemini",
+      "providerLabel": "Google Gemini (Nano Banana)",
+      "model": "gemini-nano-banana-2.1",
+      "prompt": "Character turnaround model sheet for a science fiction exploration game: the same slim young man as in the reference picture, same face and messy short black curly hair, uncovered, wearing a pearl diver's working suit instead of his usual clothes, drawn three times full-body side by side at the same scale on a plain cream background: front view, side view, back view, standing straight, arms a little away from the body. A close-fitting one-piece diving suit of deep sea-blue rubberised canvas with short sleeves and knees, pale cream stitched panels down the sides and across the chest, a low round brass collar ring at the neck, a broad cream webbing belt with two small brass-clasped pouches and a coiled line at the hip, bare forearms, rubber cuffs at the elbows, tall smooth sea-green rubber boots with a brass buckle each. Simple, fitted, game-ready clothing with clear colour blocks that read from above. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, hat, hood, helmet, goggles, mask, cape.",
+      "from": "docs/design/traveller-outfit-prompts.md#pearl-diver",
+      "refs": [
+        "lore/references/traveller/reference-1.jpg"
+      ],
+      "ar": "16:9",
+      "date": "2026-10-19",
+      "batch": "2026-10-19-18-11-36-b35b",
+      "candidate": "gemini/2",
+      "sha256": "b82f824f9cf9a9b72cebfb9b7b13730fbaf24d6c4941936f0ba87cde2233440a",
+      "bytes": 512667,
+      "costUSD": 0.0336,
+      "why": "the same suit in five views, the three-quarters for the build (the ring's piping, the side panels from behind)"
+    }
+  ]
+}

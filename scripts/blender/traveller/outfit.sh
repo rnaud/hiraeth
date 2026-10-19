@@ -16,6 +16,7 @@ trap 'rm -rf "$WORK"' EXIT
 "$BLENDER" --background --factory-startup --python $HERE/outfit.py -- --outfit "$ID" --out "$OUT" --blend "$WORK/outfit.blend" \
   > "$WORK/build.log" 2>&1 || { tail -40 "$WORK/build.log"; exit 1; }
 grep -E '^(piece|skin cut|OUTFIT|POKES)' "$WORK/build.log"
+grep -q '^OUTFIT' "$WORK/build.log" || { tail -40 "$WORK/build.log"; exit 1; }   # (Blender exits 0 on a Python error)
 
 [ "${2:-}" = "--previews" ] || exit 0
 R="$WORK/renders"

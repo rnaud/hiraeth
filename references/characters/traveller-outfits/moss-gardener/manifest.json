@@ -1,0 +1,45 @@
+{
+  "created": "2026-10-19",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Character turnaround model sheet for a science fiction exploration game: the same slim young man as in the reference picture, same face and messy short black curly hair, uncovered, wearing a terrace gardener's work clothes instead of his usual clothes, drawn three times full-body side by side at the same scale on a plain cream background: front view, side view, back view, standing straight, arms a little away from the body. A fitted moss-green canvas waistcoat with many small pockets and a pencil in one, buttoned to the chest, over a short-sleeved ochre shirt; knee-length rust-brown shorts with deep side pockets and a canvas tool loop, thick cream wool socks folded over at mid-calf, chunky dark brown clogs-like work boots, cloth patches of faded turquoise at the knees and elbows, a short garden knife in a sheath at the belt. Simple, fitted, game-ready clothing with clear colour blocks that read from above. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, moss green, ochre and rust, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, hat, hood, helmet, goggles, mask, cape.",
+      "from": "docs/design/traveller-outfit-prompts.md#moss-gardener",
+      "refs": [
+        "lore/references/traveller/reference-1.jpg"
+      ],
+      "ar": "16:9",
+      "date": "2026-10-19",
+      "batch": "2026-10-19-18-11-36-3284",
+      "candidate": "openai/2",
+      "sha256": "cf8264cfda4ba039166fcf3c1b67c721f7b33890dfe6f32489c16ea99d454b34",
+      "bytes": 125711,
+      "costUSD": 0.041,
+      "why": "built in Blender (#545): the clearest of the four: the moss waistcoat with four patch pockets and a pencil, the half-belt behind, the ochre shirt's sleeves rolled to show a turquoise lining, rust shorts with turquoise knee patches and cargo pockets, folded cream socks, chunky brown boots (openai/1 put the patches on his elbows)"
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "gemini",
+      "providerLabel": "Google Gemini (Nano Banana)",
+      "model": "gemini-nano-banana-2.1",
+      "prompt": "Character turnaround model sheet for a science fiction exploration game: the same slim young man as in the reference picture, same face and messy short black curly hair, uncovered, wearing a terrace gardener's work clothes instead of his usual clothes, drawn three times full-body side by side at the same scale on a plain cream background: front view, side view, back view, standing straight, arms a little away from the body. A fitted moss-green canvas waistcoat with many small pockets and a pencil in one, buttoned to the chest, over a short-sleeved ochre shirt; knee-length rust-brown shorts with deep side pockets and a canvas tool loop, thick cream wool socks folded over at mid-calf, chunky dark brown clogs-like work boots, cloth patches of faded turquoise at the knees and elbows, a short garden knife in a sheath at the belt. Simple, fitted, game-ready clothing with clear colour blocks that read from above. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, moss green, ochre and rust, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, hat, hood, helmet, goggles, mask, cape.",
+      "from": "docs/design/traveller-outfit-prompts.md#moss-gardener",
+      "refs": [
+        "lore/references/traveller/reference-1.jpg"
+      ],
+      "ar": "16:9",
+      "date": "2026-10-19",
+      "batch": "2026-10-19-18-11-36-3284",
+      "candidate": "gemini/1",
+      "sha256": "cdd8bd7723eb5e419b3e942d13921f37b335113dcf92fa0b2eb77dd998a3cd22",
+      "bytes": 740139,
+      "costUSD": 0.0336,
+      "why": "the same in five views, the three-quarters for the build (the pockets and the back's half-belt)"
+    }
+  ]
+}

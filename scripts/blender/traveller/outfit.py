@@ -77,6 +77,8 @@ def mesh_object(name, bm, coll, mats):
 
 
 def subdivide(ob, levels):
+    if levels <= 0:        # (a piece of rigid props keeps its bevels)
+        return
     mod = ob.modifiers.new('Subdivision', 'SUBSURF')
     mod.levels = mod.render_levels = levels
     mod.boundary_smooth = 'PRESERVE_CORNERS'
@@ -326,15 +328,18 @@ def main():
         prop_weights[name] = w
         report[name] = {'prop': spec.get('bone') or 'weighted'}
         print('prop', name, tris(ob), 'tris')
-    # the kept boots, their own weights, hems and UVs (into the base atlas, read for their colour)
-    src = bpy.data.objects['Boots']
-    boots = src.copy()
-    boots.data = src.data.copy()
-    boots.name = boots.data.name = S.BOOTS
-    for c in boots.users_collection:
-        c.objects.unlink(boots)
-    coll.objects.link(boots)
-    boots['outfit'] = S.ID
+    # the kept boots, their own weights, hems and UVs (into the base atlas, read for their colour); an outfit
+    # without them (BOOTS None: the salt pilgrim's sandals) builds its own footwear as a piece
+    boots = None
+    if getattr(S, 'BOOTS', None):
+        src = bpy.data.objects['Boots']
+        boots = src.copy()
+        boots.data = src.data.copy()
+        boots.name = boots.data.name = S.BOOTS
+        for c in boots.users_collection:
+            c.objects.unlink(boots)
+        coll.objects.link(boots)
+        boots['outfit'] = S.ID
 
     # 2. weights: from the body and his skin piece (a sleeve over his forearm bends with it)
     PROPS = getattr(S, 'PROPS', {})
@@ -347,13 +352,15 @@ def main():
                 R.bind(arm, ob)
             continue
         sample = (lambda p: Vector((p.x, p.y, max(p.z, 1.03))) if abs(p.x) < 0.22 else p) if name == 'Jacket' else None
-        weight_from(arm, [body, skin], ob, sample=sample)
+        weight_from(arm, [body, skin], ob, sample=S.PIECES[name].get('sample', sample))
+        if hasattr(S, 'reweight'):     # an outfit's own weights over these (a robe's skirt, a rigid prop)
+            S.reweight(name, ob, arm, J)
 
     # 3. UVs and hems
     for name, ob in made.items():
         G.unwrap(ob)
         F.set_kind(ob.data, [F.SURFACE] * len(ob.data.polygons))
-    every = {**made, S.BOOTS: boots}
+    every = {**made, **({S.BOOTS: boots} if boots else {})}
     for name, ob in made.items():
         spec = S.PIECES.get(name) or PROPS[name]
         if spec.get('hem') is None:
@@ -422,18 +429,19 @@ def main():
     # the shared painter's shadow (inkpaint.py): per vertex ao, concavity, facing down; baked per texel
     SHADE = getattr(S, 'SHADE', {})
     shaded = [o for o in objs if o.name != S.BOOTS and SHADE.get(o.name, {}) is not None]
-    occluders = [body, cut_skin, boots] + [bpy.data.objects[n] for n in ('Head',) if n in bpy.data.objects]
+    occluders = [body, cut_skin] + ([boots] if boots else []) + [bpy.data.objects[n] for n in ('Head',) if n in bpy.data.objects]
     vs = IP.vertex_shade(shaded, occluders)
     for o in objs:
         IP.store(o, vs.get(o.name, np.tile([1.0, 0.0, 0.0], (len(o.data.vertices), 1))))
     SH = float_bake(objs, lambda o: F.emission_material('shade_' + o.name, F.attr_source('shade')), 'shade')
     print('shade', {o.name: [round(float(x), 3) for x in vs[o.name].mean(0)] for o in shaded})
     # the kept boots' own paint, from the base atlas
-    base_img = next(i for i in bpy.data.images if i.name.startswith('traveller-atlas'))
-    bimg = bpy.data.images.new('boots-src', SIZE, SIZE, alpha=False)
-    F.bake([boots], bimg, lambda o: F.emission_material('src_' + o.name, F.tex_source(base_img)), margin=6)
-    bpx = F.image_array(bimg)[..., :3].copy()
-    bpy.data.images.remove(bimg)
+    if boots:
+        base_img = next(i for i in bpy.data.images if i.name.startswith('traveller-atlas'))
+        bimg = bpy.data.images.new('boots-src', SIZE, SIZE, alpha=False)
+        F.bake([boots], bimg, lambda o: F.emission_material('src_' + o.name, F.tex_source(base_img)), margin=6)
+        bpx = F.image_array(bimg)[..., :3].copy()
+        bpy.data.images.remove(bimg)
 
     shading = {}
     px = np.ones((SIZE, SIZE, 4))
@@ -443,7 +451,7 @@ def main():
         m = pid == oi + 1
         if not m.any():
             continue
-        if o.name == S.BOOTS:
+        if boots and o.name == S.BOOTS:
             src = bpx[m]
             Y = src @ np.array([0.299, 0.587, 0.114])
             lit = Y > 0.33
@@ -515,7 +523,8 @@ def main():
         export_materials='EXPORT', export_tangents=False, export_vertex_color='NONE', export_influence_nb=4)
 
     # what pokes through what, posed: his skin and each inner piece against what is over it
-    pairs = [(i, o) for o, spec in S.PIECES.items() for i in ['Skin'] + spec['outside']]
+    # (an outfit's piece may list pieces it is checked against but not fitted over: 'checks')
+    pairs = [(i, o) for o, spec in S.PIECES.items() for i in ['Skin'] + spec['outside'] + spec.get('checks', [])]
     pairs += [(name, o) for name, spec in PROPS.items() for o in spec.get('under', [])]
     pieces = {**every, 'Skin': cut_skin, 'Body': body}
     PZ.reset(arm)
