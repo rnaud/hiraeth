@@ -1,0 +1,30 @@
+src/cape.js
+  s_5f899ba316b5dc::t_f2dc7434c62ced 66-67,70,73,525,527-530,533-541
+docs/systems/performance.md
+  s_5f899ba316b5dc::t_2c487618fd82a3 5646-5662
+  s_5f899ba316b5dc::t_691f92053c720c 5663-5675
+tests/cape.test.js
+  s_5f899ba316b5dc::t_71d8cfe4cb5ef6 31-44
+src/npc.js
+  s_5f899ba316b5dc::t_bf8b8a17553976 678-680
+changelog.md
+  s_5f899ba316b5dc::t_7f23468f1e7035 7
+src/changelog.js
+  s_5f899ba316b5dc::t_d4660813a5b583 47-55
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7890e8f14208269e00b2352a7cea2f3d2b527971",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
