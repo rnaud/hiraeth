@@ -62,6 +62,9 @@ export const CHANGELOG = [
     // issue #507: src/minigames/kit/minigames.css (the main button edged, the focused one filled red), unity BridgeMenu.cs
     // BuildCard; tests/minigame-card-focus.test.js
     'In the games’ menus (the start card, the pause, the results), the button you are on is now the one drawn in colour, filled red as in the other menus. Retry, Start or Resume no longer look picked when they aren’t: a red edge at their left says which one Enter presses.',
+    // issue #516: src/game-menu.js questsPanel (trackPrompt, the TRACKING tag), game-menu.css .qcard.tracked / .qtrack,
+    // engine/menus.js gameView (track), unity BridgeMenu.Chrome.cs QuestCard; tests/quests-tracking.test.js
+    'On the Quests page, the quest you are tracking now stands out, framed in red with a TRACKING tag, and the quest you are on shows the button to track it instead (A / × on a controller, Enter on the keyboard).',
   ] },
   { v: '1.84', date: '2026-10-17', items: [
     // issue #439: src/costumes.js (HEADS: the 47 pieces of the 15 hat sets, HAT_SETS, HAT_SET_WORLDS, hoodShell / hoodNeck /

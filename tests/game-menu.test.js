@@ -204,7 +204,7 @@ test('the Quests panel: the father\'s charge, the quests under way, then a short
   assert.deepEqual(rows.slice(1, 3).map((r) => r[0].id), ['desert.power', 'desert.drum'], 'the tracked one first');
   assert.equal(rows[0][1].kind, 'ended'); assert.equal(rows[0][1].sub, 'What happened');
   assert.match(rows[0][1].desc, /The sand won/, 'how it ended: said at the bottom when picked');
-  assert.match(html, /<em class="tag">tracked<\/em>/);
+  assert.match(html, /<em class="tag"><i class="dot">◉<\/i>tracking<\/em>/);
   // at most ENDED of each in the list
   const many = Array.from({ length: ENDED + 3 }, (_, i) => ({ id: `d${i}`, title: `Done ${i}`, outro: '' }));
   assert.match(questsPanel({ done: many }).html, /and 3 more/);

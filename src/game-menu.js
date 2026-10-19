@@ -198,6 +198,12 @@ export function itemsPanel({ gear = [], slots = 0, pack = [], keepsakes = [], ch
  * opens how it ended.
  */
 export const ENDED = 6;
+/**
+ * The tracked quest is the one drawn in red (a red frame, a TRACKING tag); on any other quest under way the cursor's
+ * card says how to track it at its right, A / × (the pad's own button: src/pad-glyphs.js) and "track", as the strip
+ * at the foot does (issue #516: "not clear which quest is currently tracking and how to track another one").
+ */
+export const trackPrompt = () => `<span class="qtrack">${glyph('ok')}${esc(t('gm.act.track'))}</span>`;
 export function questsPanel({ charge = null, active = [], errands = [], done = [], failed = [] } = {}) {
   const rows = [];
   const main = [];
@@ -221,7 +227,7 @@ export function questsPanel({ charge = null, active = [], errands = [], done = [
     const q = x.q, cls = x.kind === 'charge' ? 'charge' : x.kind === 'errand' ? 'errand' : `quest${q.tracked ? ' tracked' : ''}${q.main ? ' main' : ''}`;
     const mark = x.kind === 'charge' ? '✦' : x.kind === 'errand' ? '✉' : q.main ? '◆' : '◇';
     return `<button class="qcard ${cls}" ${at(x.kind, x.id)} data-quest="${esc(x.id)}">
-      <span class="qhead"><i class="mark">${mark}</i><b>${esc(x.name)}</b>${q.tracked ? `<em class="tag">${t('gm.trackedTag')}</em>` : ''}</span>
+      <span class="qhead"><i class="mark">${mark}</i><b>${esc(x.name)}</b>${q.tracked ? `<em class="tag"><i class="dot">◉</i>${t('gm.trackedTag')}</em>` : ''}${x.act === 'track' ? trackPrompt() : ''}</span>
       <span class="goal">${esc(q.goal)}</span>
       <span class="next"><small>${t('gm.next')}</small>${keyText(esc(q.step), { html: true })}</span></button>`;
   };

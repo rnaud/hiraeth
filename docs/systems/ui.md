@@ -438,6 +438,10 @@ panels, the cursor, the page), `src/game-menu-data.js` (what fills them, from th
   unnamed; under them what you carry for the quests and the father's keepsakes), **Worlds**, **People**.
   **Quests** (the father's charge, then each
   quest under way, the tracked one first: its title, its goal, "Next" and its step, nothing more;
+  the tracked one framed in red on a pale red paper with a ◉ TRACKING tag, and the cursor's card on any other
+  quest under way saying A / × TRACK at its right (`trackPrompt`: the pad's own button, Enter on the keyboard;
+  issue #516: "not clear which quest is currently tracking and how to track another one"; the engines' rows
+  carry `tracked` and `track` for BridgeMenu.Chrome.cs `QuestCard`);
   pending errands; on the right "Done", a short list of finished and failed titles, `ENDED` of each,
   "and n more"), **Worlds** (the worlds you know in the route's order,
   one a row since v1.58 so ↑ ↓ go between them (issue #213: "the worlds tab I can't go up and down"): their
@@ -944,7 +948,7 @@ Debug → Audits reads every audit report: `docs/audits/<kind>-v<version>.md` an
   touch screen (`body.touch`) none show. Where: the title (A beside the focused entry and save, B in Back and
   Keep, X on a save's Delete: X / □ deletes, the Controller now sends `x` and `y` in menus), the Start menu
   (B in Resume, A on the focused entry, the reset question), the journal (B in the ✕, LB / RB on the side
-  tabs; the strip keeps the confirm button's verb only, `menuPrompts`), the galactic map (B in close, A in
+  tabs; the strip keeps the confirm button's verb only, `menuPrompts`; A on the cursor's quest to track it), the galactic map (B in close, A in
   Travel and Yes, B in No), the cargo check, the restart dialog, what's new's Close, the worlds list and the
   items page. Conversations keep their answer badge (`choiceHtml`), now in the pad's own names (below).
 - **The pad's family** (`src/native-pad.js` `familyOf`, `padFamily`): from the Gamepad id, Xbox (045e,

@@ -368,7 +368,7 @@ export const EN = {
   'gm.colours': 'Colours',
   'gm.colourNext': 'A / × wears the next of your {n} colours.',
   'gm.parcel': 'A parcel to carry',
-  'gm.trackedTag': 'tracked',
+  'gm.trackedTag': 'tracking',
   'gm.next': 'Next',
   'gm.noneYet': 'None yet.',
   'gm.nothingAsked': 'Nothing asked of you yet.',

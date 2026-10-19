@@ -158,6 +158,17 @@ html.reduce-motion :is(#journal, #devmenu) [data-at].at, html.reduce-motion :is(
   color: var(--paper); background: var(--red); border: 1.5px solid var(--ink); border-radius: 6px;
 }
 #journal .qhead .tag { margin-left: auto; align-self: center; }
+/* the tracked quest (issue #516): a red frame, a pale red paper, its TRACKING tag larger with a dot; on another
+   quest the cursor's card shows A / × track at its right (src/game-menu.js trackPrompt) */
+#journal .qcard.tracked { background: #fde8dc; border-color: var(--red); box-shadow: 4px 4px 0 var(--ink), inset 0 0 0 1.5px var(--red); }
+#journal .qcard.tracked.at, #journal .qcard.tracked:hover { background: #fff1c4; }
+#journal .qcard.tracked .qhead .tag { padding: 1px 9px 1px 6px; font-size: calc(clamp(10px, 1.6vh, 12px) * var(--ts, 1)); }
+#journal .qhead .tag .dot { margin-right: 5px; font-style: normal; }
+#journal .qhead .qtrack { display: none; margin-left: auto; align-self: center; align-items: center; padding: 1px 9px 1px 3px; font-size: calc(clamp(10px, 1.6vh, 12px) * var(--ts, 1)); font-weight: bold;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink); background: var(--paper); border: 1.5px solid var(--ink); border-radius: 999px; }
+#journal .qcard.at .qhead .qtrack, #journal .qcard:hover .qhead .qtrack { display: inline-flex; }
+#journal .qhead .qtrack .glyph { height: 1.45em; min-width: 1.45em; margin-right: .4em; }   /* (no taller than the tag: the card keeps its height as the cursor comes) */
+#journal .qhead .qtrack { line-height: 1.3; }
 #journal .qcard .goal { font-style: italic; opacity: 0.8; font-size: calc(clamp(10px, 1.95vh, 13px) * var(--ts, 1)); }
 #journal .qcard .next { font-weight: bold; font-size: calc(clamp(11px, 2.05vh, 14px) * var(--ts, 1)); }
 #journal .qcard .next small { margin-right: 8px; font-size: 0.72em; letter-spacing: 0.18em; text-transform: uppercase; color: var(--red); }

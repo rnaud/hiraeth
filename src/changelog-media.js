@@ -1213,6 +1213,8 @@ const PSO465 = 'Issue #465: a release Linux player of main at 509b40cc9 on the S
 const SKIFF514 = 'Issue #514: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, 10 o’clock, clear, the HUD hidden) on this branch’s own Vite (port 5472), ?level=perdide&debugsave=1; before: the tree at fb6b3ee94 (port 5474), the same view; 18 October; cwebp -q 72';
 /** (v1.85, issue #507: the games' cards show the focus, not the main button) */
 const CARD507 = 'Issue #507: the Ring Race’s page (?game=rings) in muted headless Chrome (ANGLE Metal, High, 1280 × 720) on this branch’s own Vite (port 6507), a pad in hand, the run ended by the page’s script and the focus moved to Quit; before: the tree at fb6b3ee94, the same view; 18 October; cwebp -q 72';
+/** (v1.85, issue #516: the Quests page marks the tracked quest and says how to track another) */
+const QUESTS516 = 'Issue #516: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720) on this branch’s own Vite (port 6507), the desert on a save with Teo’s Drum tracked, Ilo’s errand and the world’s quest under way, a pad in hand, View (J) open on Quests and the cursor moved down onto The Tree That Drinks; before: the tree at fb6b3ee94, the same view; 18 October; cwebp -q 72';
 /** (v1.85, issue #485: the Rose House watcher's beam stops at the shield) */
 const BEAM485 = 'Issue #485: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, noon, the HUD hidden) on this branch’s own Vite (port 5485), the traveller in the Rose House’s Great Hall 8 m before the watcher, its aim held (its fire switched off), the camera pinned to the side, shield down and then held (Z); before: the tree at 60438d265 (port 5487), the same view; 18 October; cwebp -q 72';
 /** (v1.85, issue #489: the bird's wings from the saddle) */
@@ -1232,6 +1234,9 @@ export const CHANGELOG_MEDIA = {
     ], see: 'In the Unity version, walk into any makers’ house and look back over the first room; or fly up over Lorn’s landing and look out over the lake.' },
     { match: 'In the games’ menus (the start card, the pause, the results), the button you are on', shots: [
       { name: 'game-card-focus', size: [1280, 720], caption: 'The Ring Race’s results with the pad on Quit: Retry and Quit were both yellow; now Quit is the one filled, and Retry keeps only a red edge.', from: CARD507 },
+    ] },
+    { match: 'On the Quests page, the quest you are tracking now stands out', shots: [
+      { name: 'quests-tracking', size: [1280, 720], caption: 'The Quests page with the cursor on The Tree That Drinks: Teo’s Drum, the one tracked, had only a small tag; now it is framed in red, TRACKING, and the cursor’s quest says A TRACK on itself.', from: QUESTS516 },
     ] },
     { match: 'Each world’s own recorded music now plays the whole time you are there', see: 'Land in any world and walk out into the open: after two and a half minutes its recorded music keeps playing instead of fading out to the light synthesised tunes, and it is still there five minutes on. Settings > Music plays now reads Always; pick Moments there to have the old way back, and it stays picked.' },
     { match: 'The Clock-House’s and the Undertower’s last steps now point the right way', see: 'In the Glass Dunes, take what the makers left in the Clock-House and open the Quests page (J): the next step reads “Climb to what winds itself up”. In the Signal Market the Undertower’s reads “Go up to the voice in the high hall”, and walking in you hear the voice far overhead.' },

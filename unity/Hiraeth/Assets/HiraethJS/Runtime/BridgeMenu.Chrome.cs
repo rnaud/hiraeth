@@ -138,11 +138,14 @@ namespace Hiraeth.Bridge
 
         // a quest's card (.qcard): white in a 2 px ink line on a hard shadow, its kind's colour down its left edge (the main
         // quest red, the father's charge gold, an errand teal), its name in bold, what it is in italics, NEXT in small red
-        // capitals before its step in bold; the pad's yellow, lifted, ringed in red
-        class QCard { public Ui.Box box; public Image edge, edgeLine; public Ui.Box ring; public Label name, sub, next, step; }
+        // capitals before its step in bold; the pad's yellow, lifted, ringed in red. The tracked one framed in red on a pale
+        // red paper, a TRACKING tag at its right; on another quest under way the pad's card says A / × TRACK there
+        // (the page's .qcard.tracked and .qtrack: issue #516)
+        class QCard { public Ui.Box box; public Image edge, edgeLine; public Ui.Box ring, tag; public Label name, sub, next, step, tagText, prompt; }
         readonly List<QCard> qcards = new();
         int qcardsUsed;
-        static readonly Color QWhite = Ui.Hex("#fffaf0"), QAt = Ui.Hex("#fff1c4"), QCharge = Ui.Hex("#fff6dc"), QTeal = Ui.Hex("#3a9a9c"), QPlain = Ui.Hex("#b9a98a"), QMuted = Ui.Hex("#5e4b45");
+        static readonly Color QWhite = Ui.Hex("#fffaf0"), QAt = Ui.Hex("#fff1c4"), QCharge = Ui.Hex("#fff6dc"), QTeal = Ui.Hex("#3a9a9c"), QPlain = Ui.Hex("#b9a98a"), QMuted = Ui.Hex("#5e4b45"),
+            QTracked = Ui.Hex("#fde8dc"), QTagInk = Ui.Hex("#fbf4e2");
 
         void QuestCard(float x, float y, float w, float h, Dictionary<string, object> c)
         {
@@ -156,6 +159,9 @@ namespace Hiraeth.Bridge
                 q.sub = Ui.Label(q.box.rt, "sub", Ui.Sans, 13, QMuted, TextAnchor.UpperLeft, FontStyle.Italic);
                 q.next = Ui.Label(q.box.rt, "next", Ui.Sans, 11, GmRed, TextAnchor.UpperLeft, FontStyle.Bold); Ui.Space(q.next, 0.14f);
                 q.step = Ui.Label(q.box.rt, "step", Ui.Sans, 14, GmInk, TextAnchor.UpperLeft, FontStyle.Bold);
+                q.tag = Ui.Panel(q.box.rt, "tracking", GmRed, GmInk, 1.5f, 0, 0, 6);
+                q.tagText = Ui.Label(q.tag.rt, "text", Ui.Sans, 11, QTagInk, TextAnchor.UpperCenter, FontStyle.Bold); Ui.Space(q.tagText, 0.12f);
+                q.prompt = Ui.Label(q.box.rt, "track", Ui.Sans, 12, GmInk, TextAnchor.UpperRight, FontStyle.Bold); Ui.Space(q.prompt, 0.1f);
                 qcards.Add(q);
             }
             var k = qcards[qcardsUsed++];
@@ -164,14 +170,33 @@ namespace Hiraeth.Bridge
             string kind = c.S("kind") ?? "quest";
             float lift = on ? 2 : 0;
             Ui.Place(k.box.rt, x - lift, y - lift, w - 6, h);
-            k.box.SetFill(on ? QAt : kind == "charge" ? QCharge : QWhite);
+            bool tracked = B(c, "tracked");
+            k.box.SetFill(on ? QAt : tracked ? QTracked : kind == "charge" ? QCharge : QWhite);
+            k.box.border.color = tracked ? GmRed : GmInk;
             k.box.SetShadow(on ? 6 : 4, on ? 6 : 4);
             k.ring.Show(on);
             if (on) Ui.Place(k.ring.rt, x - lift - 7, y - lift - 7, w - 6 + 14, h + 14);
             k.edge.color = kind == "charge" ? GmGold : kind == "errand" ? QTeal : kind == "quest" ? GmRed : QPlain;
             Ui.Place(k.edge.rectTransform, 2, 2, 7, h - 4); Ui.Place(k.edgeLine.rectTransform, 9, 2, 2, h - 4);
             float tx = 24, tw = w - 6 - tx - 14, ty = 10;
-            var mark = kind == "charge" ? "<color=#d9a21b>✧</color> " : kind == "errand" ? "<color=#3a9a9c>✉</color> " : B(c, "tracked") ? "◆ " : "";
+            // (at the right of the name: TRACKING on the tracked one, A / × TRACK on the pad's when it can be tracked)
+            k.tag.Show(tracked);
+            if (tracked)
+            {
+                var tl = "◉ TRACKING"; var ts = Ui.Measure(k.tagText, tl); k.tagText.text = tl;
+                float tgw = ts.x + 16; Ui.Place(k.tag.rt, w - 6 - 14 - tgw, ty, tgw, 18); Ui.Place(k.tagText.rectTransform, 0, 2, tgw, 16);
+                tw -= tgw + 8;
+            }
+            var track = c.S("track") ?? "";
+            bool prompt = on && !tracked && track.Length > 0;
+            Show(k.prompt, prompt);
+            if (prompt)
+            {
+                var pl = Key("ok", "A") + "  " + Ui.Upper(track); var ps = Ui.Measure(k.prompt, pl); k.prompt.text = pl;
+                Ui.Place(k.prompt.rectTransform, w - 6 - 14 - ps.x, ty + 1, ps.x, 18);
+                tw -= ps.x + 8;
+            }
+            var mark = kind == "charge" ? "<color=#d9a21b>✧</color> " : kind == "errand" ? "<color=#3a9a9c>✉</color> " : tracked ? "◆ " : "";
             var ns = Ui.Set(k.name, mark + (c.S("text") ?? ""), tw); Ui.Place(k.name.rectTransform, tx, ty, tw, ns.y); ty += ns.y + 2;
             var sub = c.S("sub") ?? "";
             Show(k.sub, sub.Length > 0);
