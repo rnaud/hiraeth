@@ -1,0 +1,33 @@
+docs/systems/performance.md
+  s_5f899ba316b5dc::t_e51b252d4187ba 5941,5946-5958
+tests/unity-size.test.js
+  s_5f899ba316b5dc::t_f6fee88b2eae81 39,59
+tests/unity-surfaces-c.test.js
+  s_5f899ba316b5dc::t_512257ffd8891e 118
+tests/unity-upscale.test.js
+  s_5f899ba316b5dc::t_0eb5195a9be168 65
+unity/Hiraeth/Assets/Hiraeth/Editor/Batch.cs
+  s_5f899ba316b5dc::t_d1acb15e0baca4 199-200
+unity/Hiraeth/Assets/Hiraeth/Runtime/RuntimeShaders.cs
+  s_5f899ba316b5dc::t_d56ba0a5001d3e 1-35
+unity/Hiraeth/Assets/Hiraeth/Runtime/RuntimeShaders.cs.meta
+  s_5f899ba316b5dc::t_e1f9aa2dce8c44 1-2
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs
+  s_5f899ba316b5dc::t_a7bc726d8c6156 75-77
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "89e4d28c211465ea454c35a6586c9780596d29a7",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
