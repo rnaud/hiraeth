@@ -1,0 +1,21 @@
+.github/workflows/tests.yml
+  s_5f899ba316b5dc::t_1de00b4fc1a6c6 40
+tests/shard-timings.json
+  s_5f899ba316b5dc::t_dbbf4bc68cde0d 660,1068
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "68f2d5e546920ef1d7f5f4e7881e66662a3eb67a",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
