@@ -2444,6 +2444,14 @@ unity-ship-hatch, unity-brushed.
   floor tabs, the shop's buttons; the line at the foot as glyphs and words. A script without them keeps the words (an
   older bundle over the air). No picture to load: the glyphs are uGUI shapes and the type the menus already use.
   Test: tests/engine-menus.test.js ("the buttons as the page's glyphs").
+- **The makers' mark in a line** (#513, "the symbol for the makers doesn't match the one we have in the game"). A line's
+  `{glyph}` is the shared open-corner mark on the page (src/story/dialogue.js MOTIFS: its SVG at 1.6 em, teal); Ui.Rich wrote
+  "⁖⌒", a sign of Unity's own. The dialogue part (and a balloon's) now carries `mark`, the shared mark's contours
+  (src/makers-mark/shape.js `markShape`, the end card's too) whenever its words show it; BridgeHud.Mark.cs leaves a gap in the
+  words where `{glyph}` stands (two letters drawn clear, about the page's width), finds where the label's layout put it (a
+  TextGenerator with the label's own settings, once per text and width), and fills the mark there from the contours
+  (MarkTexture, made once), 1.05 em tall in the page's teal: the conversation's words, its answers and the balloons. Sequence
+  `mark` (Bako's line about it in the desert). Test: tests/platform.test.js ("the makers' mark in a line").
 
 ## Status
 

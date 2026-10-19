@@ -1,4 +1,5 @@
-import { MAKERS_MARK_SVG, markContours } from '../makers-mark/design.js';
+import { MAKERS_MARK_SVG } from '../makers-mark/design.js';
+import { markShape } from '../makers-mark/shape.js';
 import * as THREE from 'three';
 import { game } from '../game-state.js';
 import { DECK, HATCH_A } from './hull.js';
@@ -252,8 +253,6 @@ export class CargoPanel {
 /** The end card's words: the title, the line under the makers' mark. */
 export const END_CARD = { title: 'SOMETHING OF VALUE', line: 'for the two of them, on the hill' };
 let endCards = 0;
-/** The makers' mark as the shared one's contours (src/makers-mark/design.js), for an engine to fill: never redrawn. */
-const markShape = () => markContours(1).map((ps) => ps.map(([x, y]) => [Math.round(x * 1000) / 1000, Math.round(y * 1000) / 1000]));
 /** The end card: the title on dark paper, a moment, before the credits. */
 export class EndCard {
   constructor(page = true) {

@@ -1235,6 +1235,9 @@ const SPARK521 = 'Issue #521: the running game in muted headless Chrome (ANGLE M
 /** (v1.85, issue #517: the menus' button glyphs in Unity) */
 const UNITY517 = 'Issue #517: the Unity editor’s batch run on this Mac (scripts/unity-js-run.sh, muted, 1280 × 720 pictures of its 640 × 480 screen: -title-go with -title-art H1 for the title, -sequence menus -quality high for the Items page); before: the branch’s base; 18 October; cwebp -q 72';
 const WEB517 = 'Issue #517: the web game in muted headless Chrome on this branch’s own Vite (port 5461), 1280 × 720, the title’s painted world H1, the body’s controller class set (a pad in hand); 18 October; cwebp -q 72';
+/** (v1.85, issue #513: the makers' mark in a line in Unity) */
+const UNITY513 = 'Issue #513: the Unity editor’s batch run on this Mac (scripts/unity-js-run.sh -sequence mark -quality high, muted, 1280 × 720), the conversation’s panel cropped; before: the branch’s base; 18 October; cwebp -q 72';
+const WEB513 = 'Issue #513: the web game in muted headless Chrome on this branch’s own Vite (port 5461), 1280 × 720, Bako’s line said as the sequence says it, cropped the same way; 18 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.85': [
     { match: 'In the Unity version, the first room of every makers’ house is as light as on the web', tags: ['temples', 'devices'], shots: [
@@ -1308,6 +1311,10 @@ export const CHANGELOG_MEDIA = {
       { name: 'unity-menu-glyphs', title: 'The Items page', caption: 'The game menu in Unity: before, LB, RB and “A look closer” as words and the prompts written out at the foot; after, the buttons drawn: LB and RB on the side tabs, A before “look closer”, B and ✕ at the top right, the prompts as buttons', from: UNITY517 },
       { name: 'unity-menu-glyphs-web', only: 'after', title: 'The Items page on the web', caption: 'The same page on the web with a controller in hand (a newer save: four things carried)', from: WEB517 },
     ], see: 'In the Unity version, open the title, the Start menu (Menu) or the game menu (View) with a controller: the buttons are drawn in the buttons they press.' },
+    { match: 'In the Unity version, the makers’ mark in a conversation', shots: [
+      { name: 'unity-makers-mark', title: 'Bako’s line', caption: 'Bako speaks of the mark on your ship: before, Unity’s own “⁖⌒” sign; after, the game’s open-corner mark in its teal, as on the web', from: UNITY513 },
+      { name: 'unity-makers-mark-web', only: 'after', title: 'On the web', caption: 'The same line on the web', from: WEB513 },
+    ], see: 'In the Unity version, talk to Bako in the desert until he speaks of the open corner on your ball, or to anyone who names the makers’ mark.' },
   ],
   '1.84': [
     { match: 'In the Unity version on the Steam Deck, the first launch after an update no longer freezes', numbers: [

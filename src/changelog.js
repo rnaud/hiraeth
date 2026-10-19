@@ -79,6 +79,9 @@ export const CHANGELOG = [
     // issue #517: engine/menus.js hintParts, glyphLabels (src/pad-glyphs.js padGlyphs); unity/Hiraeth BridgeMenu.Glyphs.cs
     // and its callers (the title, the Start menu, the game menu, the shop); tests/engine-menus.test.js
     'In the Unity version, the menus show the controller’s buttons as the web does: a small button inside the one it presses (A in the entry you are on, B in Resume and Back, LB and RB on the side tabs), and the prompts at the foot as buttons too, instead of their names written out. On the Retroid they carry its own names.',
+    // issue #513: src/makers-mark/shape.js (markShape), src/story/dialogue.js publish, src/balloon-part.js; unity/Hiraeth
+    // BridgeHud.Mark.cs; engine/sequences.js 'mark'; tests/platform.test.js
+    'In the Unity version, the makers’ mark in a conversation or a speech balloon is the game’s own open-corner mark, as on the web, not a different sign.',
   ] },
   { v: '1.84', date: '2026-10-17', items: [
     // issue #439: src/costumes.js (HEADS: the 47 pieces of the 15 hat sets, HAT_SETS, HAT_SET_WORLDS, hoodShell / hoodNeck /

@@ -10,6 +10,7 @@
 import { screen } from './platform.js';
 import { keyText } from './prompt-keys.js';
 import { stripTone } from './story/tone.js';
+import { markShape, showsMark } from './makers-mark/shape.js';
 
 /**
  * Only the nearest talking person shows a balloon (main.js): none while a ship's scene or a panel has the screen
@@ -34,7 +35,9 @@ const r2 = (v) => Math.round(v * 100) / 100;
  * `kind` 'shout' for a crowd person's (placed without the page's keep-on-screen).
  */
 export function balloonData(line, at, { lift = 0, kind = '' } = {}) {
-  return { text: keyText(String(stripTone(line ?? ''))), at: [r2(at.x), r2(at.y), r2(at.z)], lift, kind };
+  const text = keyText(String(stripTone(line ?? '')));
+  // (a {glyph}: the makers' mark's own contours with it, for an engine to fill; issue #513)
+  return { text, at: [r2(at.x), r2(at.y), r2(at.z)], lift, kind, ...(showsMark(text) ? { mark: markShape() } : {}) };
 }
 
 /** The balloons up (each source's `balloonUp`, set as it placed its own) as the screen's 'balloons' part, or null. */

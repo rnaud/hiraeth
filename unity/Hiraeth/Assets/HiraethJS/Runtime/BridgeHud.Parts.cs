@@ -61,7 +61,8 @@ namespace Hiraeth.Bridge
                 if (!at.HasValue) continue;
                 float fs = TypeS, em = fs;
                 text.fontSize = Mathf.RoundToInt(fs);
-                var s = Ui.Set(text, Ui.Rich(m.S("text") ?? ""), 17 * em - 2 * 0.85f * em);   // (its tone's tag already off: balloon-part.js)
+                var said = RichMarked(m.S("text") ?? "");   // (its tone's tag already off: balloon-part.js; a {glyph} the makers' mark, issue #513)
+                var s = Ui.Set(text, said, 17 * em - 2 * 0.85f * em);
                 float bw = s.x + 2 * 0.85f * em + 4, bh = s.y + 2 * 0.5f * em + 4;
                 bool shout = m.S("kind") == "shout";
                 float x = at.Value.x - 22;
@@ -69,6 +70,8 @@ namespace Hiraeth.Bridge
                 float y = at.Value.y - m.F("lift") - 12 - bh;
                 Ui.Place(box.rt, x, y, bw, bh);
                 Ui.Place(text.rectTransform, 2 + 0.85f * em, 2 + 0.5f * em, s.x, s.y);
+                while (balloonMarks.Count <= i) balloonMarks.Add(new InlineMarks());
+                balloonMarks[i].Lay(text, said, s, MarkPicture(m.L("mark")));
                 // (the tail: border 10 px, its top in ink: a right-angled corner from 24 to 34 px along the foot, down 10 px)
                 Ui.Place(tail.rectTransform, 0, bh, 1, 1);
                 tail.Clear(); tail.Tri(new Vector2(24, 1), new Vector2(34, 1), new Vector2(24, -9), Ui.Ink);

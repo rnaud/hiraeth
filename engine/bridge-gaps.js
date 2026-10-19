@@ -342,4 +342,7 @@ export const PICTURE_DIFFS = [
   { seq: 'fight-temple|game-*', beat: 'count', what: 'the count\'s numeral larger in Unity', issue: 264, status: 'handled', where: 'BridgeHud.cs the 3-2-1 at 84 (GO at 72): the condensed face stands taller than the page\'s Futura' },
   { seq: 'temple', what: 'the key counter a "KEY ×0" box in Unity, the page\'s a key glyph', issue: 264, status: 'handled', where: 'BridgeHud.cs KeyGlyph: the page\'s KEY_SVG and GREAT_KEY_SVG drawn, ×N beside them' },
   { seq: 'menus', what: 'the buttons\' names written as words in Unity\'s menus ("LB/RB turn · A choose · B close"), the page\'s glyphs in its buttons', issue: 517, status: 'handled',
-    where: 'BridgeMenu.Glyphs.cs: the page\'s .glyph for the pad in hand (engine/menus.js glyphLabels, src/pad-glyphs.js padGlyphs), in the title\'s and the Start menu\'s entries, the side tabs, the strip, the way out, the shop, and the prompt line (hintParts)' },];
+    where: 'BridgeMenu.Glyphs.cs: the page\'s .glyph for the pad in hand (engine/menus.js glyphLabels, src/pad-glyphs.js padGlyphs), in the title\'s and the Start menu\'s entries, the side tabs, the strip, the way out, the shop, and the prompt line (hintParts)' },
+  { seq: 'mark', what: 'a sign of Unity\'s own ("⁖⌒") where the page draws the makers\' mark in a line', issue: 513, status: 'handled',
+    where: 'BridgeHud.Mark.cs: the shared mark filled from its contours (the dialogue\'s and a balloon\'s `mark`, src/makers-mark/shape.js) in a gap the words leave' },
+];

@@ -1,4 +1,5 @@
 import { MAKERS_MARK_SVG } from '../makers-mark/design.js';
+import { markShape, showsMark } from '../makers-mark/shape.js';
 import { page, screen } from '../platform.js';
 import * as THREE from 'three';
 import { parseLine, stripTone } from './tone.js';
@@ -617,6 +618,8 @@ export class Dialogue {
       portrait: (typeof shot === 'string' ? shot : shot?.src) ?? null, backdrop: (typeof shot === 'object' && shot?.background) || null,
       text, shown: n, done, more: done && !choices.length,
       choices: choices.map((c) => ({ text: c.text, tone: c.tone ?? null, index: c.index })),
+      // (the makers' mark's own contours where a {glyph} shows it, for an engine to fill: never redrawn; issue #513)
+      mark: showsMark(text, ...choices.map((c) => c.text)) ? markShape() : null,
     });
   }
 

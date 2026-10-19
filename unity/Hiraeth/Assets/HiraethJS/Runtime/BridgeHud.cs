@@ -1771,10 +1771,13 @@ namespace Hiraeth.Bridge
             // (the page whole at once, issue #147: the bundle sends it all, shown = its length; the panel 46 em wide)
             float pw = Mathf.Min(46 * Em, W - 32);
             float padL = 6.3f * Em, padR = 1.3f * Em, padT = 1.95f * Em, padB = 0.85f * Em, cw = pw - padL - padR;
-            var body = Ui.Rich(shown) + (done ? "" : "<color=#2b211f99>▍</color>");
+            // (a {glyph}: a gap in the words, the shared makers' mark in it: BridgeHud.Mark.cs, issue #513)
+            var body = RichMarked(shown) + (done ? "" : "<color=#2b211f99>▍</color>");
             Ui.Set(dlgText, body, cw);
-            float textH = Mathf.Max(Body * 2.9f, Ui.Measure(dlgText, Ui.Rich(text), cw).y);
+            float textH = Mathf.Max(Body * 2.9f, Ui.Measure(dlgText, RichMarked(text), cw).y);
             Ui.Place(dlgText.rectTransform, padL, padT + 4, cw, textH);
+            var markPic = MarkPicture(d.L("mark"));
+            dlgMarks.Lay(dlgText, body, new Vector2(cw, textH), markPic);
             float y = padT + 4 + textH + 0.45f * Em;
             float keyW = 1.1f * Em + 0.55f * Em;
             for (int i = 0; i < dlgChoices.Count; i++)
@@ -1787,8 +1790,11 @@ namespace Hiraeth.Bridge
                 num.text = (i + 1).ToString();
                 num.fontSize = AnswerSize; tx.fontSize = AnswerSize;
                 Ui.Place(num.rectTransform, 0, 2, keyW, AnswerSize * 1.4f);
-                var s = Ui.Set(tx, Ui.Rich(Text.Plain((choices[i] as Dictionary<string, object>).S("text"))), cw - keyW);
+                var said = RichMarked(PlainKeepingMark((choices[i] as Dictionary<string, object>).S("text")));
+                var s = Ui.Set(tx, said, cw - keyW);
                 Ui.Place(tx.rectTransform, keyW, 2, s.x, s.y);
+                while (choiceMarks.Count <= i) choiceMarks.Add(new InlineMarks());
+                choiceMarks[i].Lay(tx, said, s, markPic);
                 tx.color = hi ? (solid ? Color.black : Ui.Ink) : (solid ? Ui.Hex("#333333") : Muted);
                 Show(line, hi);
                 Ui.Place(line.rectTransform, keyW, 2 + s.y + 1, s.x, 2.2f);

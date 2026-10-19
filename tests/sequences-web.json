@@ -1,6 +1,6 @@
 {
- "recorded": "2026-10-18",
- "sha": "509b40cc9",
+ "recorded": "2026-10-19",
+ "sha": "de53fc52b",
  "how": "node scripts/unity-compare/sequences.mjs web [ids] && node scripts/unity-compare/sequences.mjs record",
  "sequences": {
   "moment-desert.flow": {
@@ -5561,6 +5561,73 @@
       0,
       0,
       6
+     ],
+     "late": false
+    }
+   ]
+  },
+  "mark": {
+   "beats": [
+    {
+     "beat": "beside",
+     "hud": {
+      "prompt": {
+       "text": "talk to Bako",
+       "key": "E"
+      }
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 1586,
+      "print": 1,
+      "hidden": 1,
+      "shader": 1,
+      "doorlight": 1
+     },
+     "cam": [
+      169.7,
+      3.7,
+      291.1,
+      55
+     ],
+     "player": [
+      165.5,
+      1.2,
+      293.3
+     ],
+     "late": false
+    },
+    {
+     "beat": "said",
+     "hud": {
+      "dialogue": {
+       "name": "Bako",
+       "text": "An open corner beside a shorter upright, on your ball. {glyph} Like between the giant’s eyes, out past the back gate.",
+       "choices": [
+        "leave)"
+       ]
+      }
+     },
+     "menu": null,
+     "playing": null,
+     "objects": {
+      "ink": 1559,
+      "print": 1,
+      "hidden": 1,
+      "shader": 1,
+      "wisp": 1
+     },
+     "cam": [
+      166,
+      3.3,
+      297.3,
+      55
+     ],
+     "player": [
+      165.5,
+      1.2,
+      293.3
      ],
      "late": false
     }

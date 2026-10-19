@@ -78,3 +78,37 @@ test('the cue line and the conversation set their state as they draw', () => {
   d.close();
   assert.equal(screen.state.dialogue, null, 'closed: nothing');
 });
+
+test('the makers\' mark in a line goes with the shared mark\'s own contours, for an engine to fill (issue #513)', async () => {
+  const { readFileSync } = await import('node:fs');
+  const { markContours } = await import('../src/makers-mark/design.js');
+  const { markShape } = await import('../src/makers-mark/shape.js');
+  const { balloonData } = await import('../src/balloon-part.js');
+  // the shape is the design's contours (never another drawing), to a thousandth
+  const c = markContours(1);
+  assert.equal(markShape().length, c.length);
+  markShape().forEach((ps, i) => ps.forEach(([x, y], k) => assert.ok(Math.abs(x - c[i][k][0]) < 6e-4 && Math.abs(y - c[i][k][1]) < 6e-4)));
+  screen.reset();
+  const game = new GameState({ load: false }), quests = new Quests(game, {});
+  const d = new Dialogue({ game, quests });
+  const bako = { id: 'bako', name: 'Bako', talk: { nodes: { a: { say: ['~curious~ An open corner beside a shorter upright, on your ball. {glyph} Like between the giant’s eyes.', '~playful~ Somebody signs their work.'] } }, entry: [{ node: 'a' }] } };
+  assert.ok(d.start(bako));
+  d.update(0.05);
+  assert.match(screen.state.dialogue.text, /\{glyph\}/, 'the motif kept for the engine\'s own type');
+  assert.deepEqual(screen.state.dialogue.mark, markShape());
+  d.next(); d.update(0.05);
+  assert.equal(screen.state.dialogue.mark, null, 'a page without it: none');
+  d.close();
+  // a balloon's words with it too; without, none
+  const at = { x: 0, y: 1, z: 2 };
+  assert.deepEqual(balloonData('~solemn~ The mark {glyph} again.', at).mark, markShape());
+  assert.equal('mark' in balloonData('~solemn~ No mark here.', at), false);
+  // Unity fills it in the gap the words leave (BridgeHud.Mark.cs), the conversation's, its answers' and the balloons'; not
+  // "⁖⌒", a sign of its own (Ui.Rich)
+  const cs = (f) => readFileSync(new URL(`../unity/Hiraeth/Assets/HiraethJS/Runtime/${f}`, import.meta.url), 'utf8');
+  const hud = cs('BridgeHud.cs'), parts = cs('BridgeHud.Parts.cs'), mark = cs('BridgeHud.Mark.cs');
+  assert.match(mark, /MarkTexture\(contours/);
+  assert.match(hud, /RichMarked\(shown\)/); assert.match(hud, /dlgMarks\.Lay\(dlgText/); assert.match(hud, /choiceMarks\[i\]\.Lay/);
+  assert.match(parts, /balloonMarks\[i\]\.Lay\(text, said, s, MarkPicture\(m\.L\("mark"\)\)\)/);
+  assert.doesNotMatch(hud + parts, /Ui\.Rich\(shown\)|Ui\.Rich\(m\.S\("text"\)/);
+});

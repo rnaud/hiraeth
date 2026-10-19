@@ -21,6 +21,7 @@ import { stageCinematic, seedReviewEntry } from '../src/cinematics-page/runtime.
 import { screen } from '../src/platform.js';
 import { game as gameState } from '../src/game-state.js';
 import { MAP } from '../src/world-map.js';
+import { heldBackPerson } from '../src/story/dialogue.js';
 import { seedDebugSave } from '../src/debug-save.js';
 import { slots, slotStorage, DEBUG_SLOT } from '../src/save-slots.js';
 import { items } from '../src/items.js';
@@ -60,6 +61,8 @@ function approach(G, who) {
   G.player.teleport(p, new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1));
   G.player.heading = Math.atan2(n.pos.x - p.x, n.pos.z - p.z); G.rig.yaw = G.player.heading + Math.PI;
 }
+/** Bako's line with the makers' mark in it (src/story/desert-data.js, his listen lines). */
+const MARK_LINE = '~curious~ An open corner beside a shorter upright, on your ball. {glyph} Like between the giant’s eyes, out past the back gate.';
 /** The makers' temple of this id in the world. */
 const temple = (G, id) => (G.level.temples ?? []).find((t) => t.id === id) ?? null;
 /** A minigame's start card's main button, a pause, as a pad's Menu (src/minigames/kit/runner.js padAction). */
@@ -198,6 +201,15 @@ export const SEQUENCES = [
       { name: 'page', keys: tap('Space'), wait: 1.2 },
       { name: 'choices', until: (G) => (G.screen().dialogue?.choices?.length ?? 0) > 0, timeout: 6, wait: 0.5 },
       { name: 'answer', keys: tap('Digit1'), wait: 1.5 },
+    ],
+  },
+  {
+    // the makers' mark in a line (issue #513: Unity drew "⁖⌒" where the page draws the shared open-corner mark): Bako's
+    // listen line about it (src/story/desert-data.js), said as his whole talk for once
+    id: 'mark', title: 'The makers\' mark in a conversation', setup: { level: 'desert', debug: true },
+    beats: [
+      { name: 'beside', act: (G) => approach(G, 'bako'), wait: 1.2 },
+      { name: 'said', act: (G) => { const n = G.npcs.find((x) => x.def?.id === 'bako' && !x.pooled); G.story.dialogue.start(heldBackPerson(n.def, MARK_LINE), n); }, until: (G) => !!G.story?.dialogue?.open, timeout: 5, wait: 1.5 },
     ],
   },
   {
