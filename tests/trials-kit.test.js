@@ -579,7 +579,7 @@ test('the long look: three stones out over the shaft, the ball rolled out to the
   const y0 = K.local(R.ball.center).y;
   const { pushes } = rollHome(course, R);
   assert.ok(R.home(), 'home at the end');
-  assert.ok(pushes >= 4 && pushes <= 9, `${pushes} pushes for ${R.ball.len.toFixed(0)} m`);
+  assert.ok(pushes >= 2 && pushes <= 5, `${pushes} pushes for ${R.ball.len.toFixed(0)} m`);   // (4 to 9 before issue #522's stronger push)
   assert.ok(Math.abs(K.local(R.ball.center).y - y0) < 1e-6, 'level all the way');
   assert.ok(K.local(R.ball.center).z > 33, 'at the end of the balcony');
   // the makers' mark: a steady scripted run plus slack (out behind the ball, pushing as it stops)

@@ -525,6 +525,17 @@ export class LensStones {
 /** m/s: a ball walked into rolls ahead at your pace, at most SHOVE (Ball `shove`); a cut of the sword sends it at BALL_CUT. */
 export const SHOVE = 2.6;
 export const BALL_CUT = 7.5;
+/**
+ * m/s a push of the fluid gun sends a ball along its groove: base + per × its strength (1 at the hand, 0 at its 6 m reach).
+ * (4.2 + 4.5 until issue #522, "the push gun should be stronger so I don't have to push balls so many times": a push
+ * from close behind rolls it about 1.7 times as far, and a long roll takes about 0.6 times the pushes; one from the far
+ * end of the reach about as far as before, so a ball can still be eased onto a plate mid-groove. tests/ball-push.test.js)
+ */
+export const BALL_PUSH = { base: 4.5, per: 12 };
+/** m/s at most a ball comes back off its groove's end (a quarter of its speed). */
+export const END_BOUNCE = 2.2;
+/** m/s a tether's pull draws a ball back along its groove, toward whoever pulled it: as the push was before #522. */
+export const BALL_TETHER = { base: 4.2, per: 4.5 };
 /** m/s at most an iron moon rolls in the magnet glove's field (held toward its point; a tap 1.2 times it: issue #377). */
 export const MAGNET_ROLL = 6;
 /** (issue #401) The farthest a ball with a hole at its groove's end is saved along it while it stays up there: t 1 is fallen through. */
@@ -685,7 +696,8 @@ export class Ball {
     }
     if (this.o.sings && !cone) this.sing();   // (a singing ball: a splash makes it sing, and nudges it)
     const along = dir.x * this.dir.x + dir.z * this.dir.z;
-    const k = cone ? 4.2 + 4.5 * (info.strength ?? 1) : 1.2;   // m/s: a push (or a tether's pull) rolls it a few metres, a splash nudges it
+    const K = mode === 'tether' ? BALL_TETHER : BALL_PUSH;
+    const k = cone ? K.base + K.per * (info.strength ?? 1) : 1.2;   // m/s: a push (or a tether's pull) rolls it some metres, a splash nudges it
     if (Math.abs(along) < 0.25) { this.wobble = 0.4; return true; }
     this.v += Math.sign(along) * k * Math.min(1, Math.abs(along) + 0.3);
     this.rest = false;
@@ -768,7 +780,9 @@ export class Ball {
     let t = this.t + (this.v * dt) / this.len;
     // (its groove's end over an open hatch: it drops through, issue #401)
     if (this.o.hole && t >= 1 && (!this.o.hole.gate || L.isOpen(this.o.hole.gate))) { this.t = 1; this.place(); this.startHole(); return; }
-    if (t <= 0 || t >= 1) { t = THREE.MathUtils.clamp(t, 0, 1); this.v = -this.v * 0.25; this.rt.sound?.critter?.('clack', 0.5); }
+    // (the groove's end throws it back a quarter of its speed, never faster than the hardest push did before issue #522
+    // (8.7 m/s): a plate by the end still catches a ball sent hard at it)
+    if (t <= 0 || t >= 1) { t = THREE.MathUtils.clamp(t, 0, 1); this.v = -Math.sign(this.v) * Math.min(Math.abs(this.v) * 0.25, END_BOUNCE); this.rt.sound?.critter?.('clack', 0.5); }
     // thorns across the groove: it stops against them, or, burning, burns them and rolls on
     const Th = this.o.thorns;
     if (Th && t > this.t && this.t <= Th.at + 1e-4 && t >= Th.at - 1e-4) {

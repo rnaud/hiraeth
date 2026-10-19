@@ -580,6 +580,8 @@ test('the Elder’s last phase: flown with on still air she does not follow; the
       until(() => w.on, 8);
       assert.equal(w.on, true, `the stone rolled across: the wind rises by her (${n})`);
       rolled = true;
+      // (her look up nearly over by the time the stone is home, a hard push being quick (issue #522): the next one)
+      if (G.state === 'open' && G.openFor - G.t < 2.5) until(() => G.state !== 'open', 5);
       if (G.state !== 'open') continue;
     }
     assert.ok(fly(w.foot.clone().add(V(0, 4, 0))) > 0, `ridden up the wind beside her (${n}: ${G.meter.toFixed(2)})`);

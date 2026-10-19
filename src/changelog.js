@@ -72,6 +72,8 @@ export const CHANGELOG = [
     'The fireflies drifting in the dark of Lorn’s Lamp-House are fewer, smaller and softer: little sparks again, not a hall of floating lamps.',
     // issue #488: src/audio.js CALL_TUNE (tune(): 0.16 → 0.028); tests/sound-mix.test.js
     'In Vael, the rider’s call you play on the bone flute to bring the bird down is quieter: it now sits with the world’s music instead of ringing out over it.',
+    // issue #522: src/temples/pieces.js BALL_PUSH (4.2 + 4.5 → 4.5 + 12 × strength), END_BOUNCE; tests/ball-push.test.js
+    'The gun’s push sends the makers’ balls much further: about half the pushes for a long roll. Push from further back for a gentle nudge onto a nearby plate.',
   ] },
   { v: '1.84', date: '2026-10-17', items: [
     // issue #439: src/costumes.js (HEADS: the 47 pieces of the 15 hat sets, HAT_SETS, HAT_SET_WORLDS, hoodShell / hoodNeck /

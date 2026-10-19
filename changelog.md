@@ -14,6 +14,7 @@ The same release notes shown in the game (press **N** or open settings).
 - Foes arriving no longer freeze the game for a moment, most of all on the Retroid and in the Unity version: every foe of a kind now shares one body shape instead of building its own, and the foes a world can field are prepared while it loads. When a brute and a swarm of skitters come in, the longest frame on the Retroid is about half what it was.
 - Opening the Map for the first time in a world no longer freezes the game for a moment: its ground is drawn a little each frame while the page says how far along it is. In the Unity version the longest frame of a trip through the menus and the Map went from about 190 ms to 29.
 - Riding the bird in Vael, her wings no longer shimmer as they beat. Their feathers took turns in two tones, and seen from the saddle each wing was a bundle of thin lines crawling with every stroke; now each row of feathers is one tone.
+- The gun’s push sends the makers’ balls much further: about half the pushes for a long roll. Push from further back for a gentle nudge onto a nearby plate.
 - In Vael, the rider’s call you play on the bone flute to bring the bird down is quieter: it now sits with the world’s music instead of ringing out over it.
 - The fireflies drifting in the dark of Lorn’s Lamp-House are fewer, smaller and softer: little sparks again, not a hall of floating lamps.
 - In the Rose House, the watcher’s aiming beam now stops at your shield when you hold it up, and at you when you don’t, instead of running on through you and out the other side.

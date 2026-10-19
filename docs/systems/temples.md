@@ -1759,6 +1759,20 @@ puzzles' rooms are unchanged (no jump, timing, wind, ball or checkpoint distance
 antechamber stand in its middle. `tests/room-size.test.js` holds the vestibule's size; the on-foot walks in
 `tests/temples.test.js` walk into the guardians' halls 4 m further on.
 
+## How far a push rolls a ball (issue #522)
+
+The author: "The push gun should be stronger so I don't have to push balls so many times." A push of the gun sends a
+ball along its groove at `BALL_PUSH.base + BALL_PUSH.per × strength` m/s (src/temples/pieces.js; strength 1 at the
+hand, 0 at the push's 6 m reach): 4.5 + 12 since, 4.2 + 4.5 before. From close behind (strength about 0.65) that is
+12 m/s instead of 7: about 1.7 times as far; from the far end of the reach about as soft as before, so a ball is still
+eased onto a stop mid-groove from further back. A tether's pull keeps the old figures (`BALL_TETHER`). Off a groove's end
+a ball comes back a quarter of its speed but never faster than `END_BOUNCE` (2.2 m/s, the hardest old push's): a plate
+by the end still catches a ball sent hard at it. `tests/ball-push.test.js` rolls every pushed ball of every temple onto
+each plate its puzzle wants, with the old push and the new, by a player who steps a metre back each time it rolls past:
+the rolls of two pushes or more took 85 pushes, now 51 (the longest: the Aerie's hall stone, 37.8 m, 4 → 2; Edena's
+first ball, 21.5 m, 5 → 3); a short hop to a stop mid-groove now wants the softer push from further back (the
+Clock-House's first hour, 3.7 m: 1 → 4 for that player; a careful one still lands it with one).
+
 ## Room to push every ball, and always a way back (issue #275)
 
 The author: "A lot of the 'push this ball' puzzles feel a bit cramped. In Vael I basically have to jump over them or

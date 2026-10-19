@@ -1226,6 +1226,8 @@ const ROOMS502W = 'Issue #502: the same view on the web, muted headless Chrome o
 const EYES508 = 'Issue #508: the creatures gallery (enemies.html, the game’s own body through Foes.look) in muted headless Chrome (ANGLE Metal, 1280 × 720) on this branch’s own Vite (port 5508), the foe noticed (provoked, a watcher), its 1.5 s idle drawn frame by frame, the traveller 4 m off where the caption says; before: the same build with the gaze switched off (each eye at rest); 18 October; cwebp -q 72';
 /** (v1.85, issue #488: Vael's rider's call) */
 const CALL488 = 'The game’s own Sound rendered on the engines’ in-memory Web Audio (engine/webaudio.js, 48 kHz, the noise seeded), in Vael, through the master’s compressor; the music’s level from scripts/score-features.mjs --render';
+/** (v1.85, issue #522: the push and the balls) */
+const PUSH522 = 'Every temple built in node as the game builds it (scripts/ball-room.mjs templeWorld: doors and bridges open, thorns cut), each pushed ball rolled by its own update at 60 Hz from its start onto each plate its puzzle wants; before: BALL_PUSH 4.2 + 4.5 × strength, after: 4.5 + 12';
 /** (v1.85, issue #521: the Lamp-House's sparks) */
 const SPARK521 = 'Issue #521: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, a fixed render scale, noon, the HUD hidden) on this branch’s own Vite (port 5521), the traveller in the Lamp-House’s Hall of Dark Pools, the camera pinned behind him, Math.random seeded the same for both; before: the sparks as they were (40, 0.035, glow 1) set in the page; 18 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
@@ -1277,6 +1279,16 @@ export const CHANGELOG_MEDIA = {
         { where: 'Vael’s music, its average over 10 s (for scale)', before: -26.7, after: -26.7 },
       ], source: 'tests/sound-mix.test.js; docs/systems/audio.md, “The surface underfoot, and the loud ones”' },
     ], see: 'In Vael, once you have the rider’s flute, call the bird (the call button) out on the plain: the five notes are clear but no louder than the music under them.' },
+    { match: 'The gun’s push sends the makers’ balls much further', numbers: [
+      { title: 'Pushes to roll a ball onto its plate (a player pushing from a metre behind it, a metre further back each time it rolls past)', unit: 'pushes', better: 'lower', device: PUSH522, rows: [
+        { where: 'Every temple’s rolls of two pushes or more (35)', before: 85, after: 51 },
+        { where: 'The Aerie’s hall stone, 37.8 m', before: 4, after: 2 },
+        { where: 'The Footprint’s first sphere, 13.9 m', before: 4, after: 2 },
+        { where: 'The Whale-House’s long ball, 16 m', before: 4, after: 2 },
+        { where: 'The Builders’ Greenhouse’s first ball, 21.5 m', before: 5, after: 3 },
+        { where: 'The Clock-House’s first hour, 3.7 m (a short hop: push from further back)', before: 1, after: 4 },
+      ], source: 'tests/ball-push.test.js (BALL_PUSH_TABLE=1 prints every roll); docs/systems/temples.md, “How far a push rolls a ball”' },
+    ], see: 'In any makers’ house, push a ball from just behind it: it rolls about twice as far as before. Stand back near the end of the push’s reach to ease it a short way.' },
   ],
   '1.84': [
     { match: 'In the Unity version on the Steam Deck, the first launch after an update no longer freezes', numbers: [
