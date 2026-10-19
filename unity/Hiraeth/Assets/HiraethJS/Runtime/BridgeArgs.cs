@@ -247,6 +247,9 @@ namespace Hiraeth.Bridge
             if (Arg("-title-shots") != null) args["titleShots"] = Arg("-title-shots");
             if (Arg("-title-art") != null) args["titleArt"] = Arg("-title-art");   // (-title-art H1: that painted world behind it)
             if (Arg("-title-wait") != null) args["titleWait"] = double.Parse(Arg("-title-wait"), CultureInfo.InvariantCulture);
+            // (-title-go frames [-out dir]: on the title that long, then the debug save's desert chosen as its Debug row does, the
+            // load after it photographed until the world plays: engine/unity/game.js titleGo, issue #510)
+            if (Arg("-title-go") != null) args["titleGo"] = double.Parse(Arg("-title-go"), CultureInfo.InvariantCulture);
             // (-updates-page: the Start menu's Updates page photographed as it checks and downloads, with -updates: BridgeUpdates)
             if (Flag("-updates-page")) args["updatesPage"] = true;
             // (-js-off a,b: the script's own measures turned off, a before-and-after on one build: engine/unity/game.js)

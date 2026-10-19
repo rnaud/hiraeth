@@ -5,6 +5,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { readFileSync } from 'node:fs';
 import * as THREE from 'three';
 import { mirrorMatrix, unityGeometry, CommandWriter, OP, puffInstances } from '../engine/unity/pack.js';
 import { portMaterial, portLook } from '../engine/unity/port-format.js';
@@ -374,6 +375,7 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
   const menus = [], panels = {}, grounds = [], maps = [];
   let closedAt = 0;
   const stages = [];   // (the loading screen's lines, BridgeHud.Loading.cs: issue #424)
+  const loading = [];   // (the world's load from the title's choice, under the loading screen: issue #510)
   const cloths = {}, capes = {};
   const clothWords = (id) => { const c = cloths[id]; return 3 * c.N + 28 * c.K + 16 * c.B + 16; };
   // the sound (BridgeAudio.cs): a ring Unity drains at its rate, topped up by the script each frame
@@ -402,6 +404,7 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
     // (gone away at frame 76, BridgeRunner.Away: the Steam button, a suspend; back, the game waits under the Start menu)
     AwayCount: () => (closedAt && calls.Frame >= closedAt + 6 ? 1 : 0),
     LoadStage(t) { stages.push(t); },
+    Loading(on) { loading.push({ on, frames: calls.Frame, menus: menus.length, stages: stages.length }); },
     MenuWidth: () => 960, MenuMapBox: () => '878,508', PadName: () => 'Retroid Pocket Controller', Platform: () => 'android', Pad: () => null, MouseLook: () => null, Shot() {}, WriteText() {}, LastFrameCpuMs: () => 0, LastFrameGpuMs: () => 0, Exit() {},
     AudioRate: () => 48000, AudioQueued: () => sound.queued,
     Audio(buf) { const f = new Float32Array(buf); sound.queued += f.length / 2; sound.frames += f.length / 2; for (const x of f) { if (!Number.isFinite(x)) sound.bad++; sound.sumSq += x * x; } },
@@ -426,6 +429,17 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
   assert.ok(calls.Frame >= 20, `frames: ${JSON.stringify(calls)} ${errors.join(' | ')}`);
   // the loading screen told what the build is on, main.js's stages in its order (issue #424)
   assert.deepEqual(stages, ['sketching the glass dunes…', 'inking the collisions…', 'waking the people…', 'mixing the inks…'], JSON.stringify(stages));
+  // and the screen itself up from the title's choice (the title sent first), before the build's first line, until the
+  // world's first frame has played (its commands sent): issue #510, where Unity stayed on the title's "…"
+  assert.deepEqual(loading.map((l) => l.on), [true, false], JSON.stringify(loading));
+  assert.ok(loading[0].menus >= 1 && loading[0].frames === 0 && loading[0].stages === 0, JSON.stringify(loading[0]));
+  assert.ok(loading[1].frames >= 1 && loading[1].stages === 4, JSON.stringify(loading[1]));
+  const runner = readFileSync(new URL('../unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs', import.meta.url), 'utf8');
+  assert.match(runner, /\(!booted \|\| BridgeHost\.WorldLoading\) && !bootBlocking/, 'Unity draws on (the loading screen, the Xbox\'s pipelines warming) while the world builds');
+  const hudLoad = readFileSync(new URL('../unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHud.Loading.cs', import.meta.url), 'utf8');
+  assert.match(hudLoad, /if \(world && !loadWorld\)/);
+  assert.match(runner, /if \(yieldToLoad && BridgeHost\.WorldLoading\) \{ awaitYielded = true; return true; \}/, 'not waited out on the title as the build begins');
+  assert.match(hudLoad, /overrideSorting = true/, 'over the title\'s canvas');
   // the title first, gone once the world was ready; the Start menu over the world, and closed again
   assert.deepEqual(menus.filter((k, i) => k !== menus[i - 1]), ['title', null, 'start', null, 'game', null, 'start'], JSON.stringify(menus));
   // the game menu's panels filled from the world running (engine/game.js menuSources): the father's charge, the map's marks

@@ -227,6 +227,10 @@ namespace Hiraeth.Bridge
         /// script's thread while it builds the world; BridgeHud reads it each frame (issue #424).</summary>
         public static volatile string LoadLine;
         public static void LoadStage(string text) { LoadLine = text; }
+        /// <summary>A played world being built (engine/unity/game.js launch, until its first frame: from the title's choice too),
+        /// under the loading screen (BridgeHud.Loading), Unity drawing on meanwhile (BridgeRunner); issue #510.</summary>
+        public static volatile bool WorldLoading;
+        public static void Loading(bool on) { WorldLoading = on; Wake.Set(); }   // (the main thread waiting on the frame: told at once)
         /// <summary>The menus' state (engine/menus.js view(): the title, the Start menu, the game menu; "null" none open), for BridgeMenu.</summary>
         /// <summary>The menus' canvas width in its units (720 high: 1280 on 16:9, 960 on the Retroid's 4:3), set by BridgeMenu; how many item tiles fit a row.</summary>
         public static float MenuWidth() => menuWidth;

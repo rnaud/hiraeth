@@ -250,9 +250,13 @@ namespace Hiraeth.Bridge
         /// themeDownloader's pace). A failure stops it; it tries again two minutes later. Never in batch runs.
         /// `carried`: the files the package holds where they can't be looked for (the APK's: "a.mp3,b.mp3").
         /// </summary>
+        // (from the command line, not Application.isBatchMode: the script calls Fetch on its own thread, where the editor
+        // refuses that property, "can only be called from the main thread", and a world chosen on the title failed to start
+        // in a batch run; issue #510)
+        static readonly bool Batch = Array.IndexOf(Environment.GetCommandLineArgs(), "-batchmode") >= 0;
         public void Fetch(string list, string carried)
         {
-            if (Application.isBatchMode || fetching || string.IsNullOrEmpty(list)) return;
+            if (Batch || fetching || string.IsNullOrEmpty(list)) return;
             fetching = true;
             var have = new HashSet<string>((carried ?? "").Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries));
             var items = new List<(string file, string url)>();

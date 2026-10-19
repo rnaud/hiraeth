@@ -344,12 +344,16 @@ namespace Hiraeth.Bridge
         }
 
         /// <summary>The main thread: the script's frame waited for, what it hands over applied as it comes. False: it failed or timed out.</summary>
-        bool Await(bool deferLast = false)
+        bool awaitYielded;
+        bool Await(bool deferLast = false, bool yieldToLoad = false)
         {
             while (true)
             {
                 BridgeHost.RunOps();
                 if (done) { if (!deferLast) BridgeHost.RunOps(); return !threadFailed; }
+                // (a world begun in this frame, the title's choice: Unity draws on, the loading screen, instead of waiting the
+                // build out on the title; the frame is taken up again once done, Update's path for a world loading; issue #510)
+                if (yieldToLoad && BridgeHost.WorldLoading) { awaitYielded = true; return true; }
                 BridgeHost.Wake.WaitOne(250);
                 if (BridgeQuit.Asked != 0) return true;   // (a quit asked: not waited out behind a long frame)
                 if (Time.realtimeSinceStartup > limitAt) return false;
@@ -691,7 +695,8 @@ namespace Hiraeth.Bridge
                 // while the script builds the world (Hiraeth.start: seconds), Unity goes on drawing, the script's ops and
                 // questions served a few ms a frame, instead of the main thread waiting it out in one frame: the GPU's
                 // first-draw work for what is already there, and the loading screen, go on meanwhile (-boot-blocking: as before)
-                if (!booted && !bootBlocking)
+                // (and as a world is built from the title's choice, after the title's own frames: issue #510)
+                if ((!booted || BridgeHost.WorldLoading) && !bootBlocking)
                 {
                     double until = Time.realtimeSinceStartupAsDouble + 0.008;
                     do { BridgeHost.RunOps(); if (done) break; BridgeHost.Wake.WaitOne(1); } while (Time.realtimeSinceStartupAsDouble < until);
@@ -701,8 +706,9 @@ namespace Hiraeth.Bridge
                 // the frame the script played while Unity drew the last, and the next one let go
                 var t0 = Time.realtimeSinceStartupAsDouble;
                 bool ok;
-                try { ok = Await(deferLast); }
+                try { ok = Await(deferLast, !bootBlocking); }
                 catch (Exception e) { Debug.LogError("Hiraeth bridge: " + (e.InnerException ?? e)); failed = true; Exit(5); return; }
+                if (awaitYielded) { awaitYielded = false; return; }
                 double wait = (Time.realtimeSinceStartupAsDouble - t0) * 1000;
                 waitMs += wait; waitMsTotal += wait;
                 if (gpuSplit != null) Hitch(t0, wait);
@@ -1087,6 +1093,7 @@ namespace Hiraeth.Bridge
             Rebooted = true;
             quit = true; go.Set(); BridgeHost.AudioWake.Set();
             bool stuck = thread != null && !thread.Join(5000);
+            BridgeHost.WorldLoading = false;   // (a world the last engine was building: the next says its own, issue #510)
             if (stuck) { Debug.LogWarning("Hiraeth bridge: the script's thread did not stop"); stuckScript = true; }
             if (audioThread != null && !audioThread.Join(2000)) Debug.LogWarning("Hiraeth bridge: the sound's thread did not stop");
             // (an engine still running on its thread, a downloaded script stuck in its start: left, not disposed under it)

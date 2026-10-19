@@ -199,7 +199,7 @@ test('the PlayerLoop timed step by step, a slow frame named by its steps; -no-hu
   assert.match(runner, /UNITY_WSA && !UNITY_EDITOR\s*\n\s*if \(!BridgeArgs\.Flag\("-shadows-high"\)\) HiraethShadows\.minCasterTexels = 2;/, 'the Xbox\'s own shadow settings');
   assert.match(runner, /HiraethShadows\.MainCamera = cam/, 'the bridge\'s camera keeps the cascades\' schedule');
   assert.match(runner, /uniformLayout = !BridgeArgs\.Flag\("-no-uniform-layout"\)/, 'uniform vertex layouts on the Xbox');
-  assert.match(runner, /if \(!booted && !bootBlocking\)/, 'Unity draws on while the script builds the world');
+  assert.match(runner, /if \(\(!booted \|\| BridgeHost\.WorldLoading\) && !bootBlocking\)/, 'Unity draws on while the script builds the world (from the title\'s choice too: issue #510)');
   assert.match(read('engine/unity/game.js'), /if \(args\.tour\)/);
   assert.match(runner, /Arg\("-shadow-min"\)/);
   assert.match(runner, /Flag\("-warm"\)[\s\S]*Shader\.WarmupAllShaders\(\)/);

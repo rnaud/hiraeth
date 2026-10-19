@@ -1238,6 +1238,9 @@ const WEB517 = 'Issue #517: the web game in muted headless Chrome on this branch
 /** (v1.85, issue #513: the makers' mark in a line in Unity) */
 const UNITY513 = 'Issue #513: the Unity editor’s batch run on this Mac (scripts/unity-js-run.sh -sequence mark -quality high, muted, 1280 × 720), the conversation’s panel cropped; before: the branch’s base; 18 October; cwebp -q 72';
 const WEB513 = 'Issue #513: the web game in muted headless Chrome on this branch’s own Vite (port 5461), 1280 × 720, Bako’s line said as the sequence says it, cropped the same way; 18 October; cwebp -q 72';
+/** (v1.85, issue #510: the loading screen after the title in Unity) */
+const UNITY510 = 'Issue #510: the Unity editor’s batch run on this Mac (scripts/unity-js-run.sh -title-go 60 -title-art H1 -loading-shot, muted, 1280 × 720): the debug save’s desert chosen on the title; before: the branch’s base, the last picture drawn while the world was built (the main thread waited on the script’s frame); after: as the build wakes the people; 18 October; cwebp -q 72';
+const WEB510 = 'Issue #510: the web game in muted headless Chrome on this branch’s own Vite (port 5461), 1280 × 720, 0.8 s after Continue on the title; 18 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.85': [
     { match: 'In the Unity version, the first room of every makers’ house is as light as on the web', tags: ['temples', 'devices'], shots: [
@@ -1315,6 +1318,10 @@ export const CHANGELOG_MEDIA = {
       { name: 'unity-makers-mark', title: 'Bako’s line', caption: 'Bako speaks of the mark on your ship: before, Unity’s own “⁖⌒” sign; after, the game’s open-corner mark in its teal, as on the web', from: UNITY513 },
       { name: 'unity-makers-mark-web', only: 'after', title: 'On the web', caption: 'The same line on the web', from: WEB513 },
     ], see: 'In the Unity version, talk to Bako in the desert until he speaks of the open corner on your ball, or to anyone who names the makers’ mark.' },
+    { match: 'In the Unity version, choosing Continue or a save on the title now shows the loading screen', shots: [
+      { name: 'unity-title-loading', title: 'After Continue', caption: 'The moment after choosing a save in Unity: before, the title stood frozen (3.3 s in the editor, longer on a handheld) until the world appeared; after, the loading screen, its pen turning, “waking the people…”', from: UNITY510 },
+      { name: 'unity-title-loading-web', only: 'after', title: 'On the web', caption: 'The web’s loading screen after Continue', from: WEB510 },
+    ], see: 'In the Unity version, choose Continue on the title: the paper and the turning pen come up at once, with what is being prepared under it, until the world appears.' },
   ],
   '1.84': [
     { match: 'In the Unity version on the Steam Deck, the first launch after an update no longer freezes', numbers: [

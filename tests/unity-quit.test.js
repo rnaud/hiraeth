@@ -42,7 +42,7 @@ test('every quit stops the threads, writes the saves, and ends at once when the 
 });
 
 test('a quit asked is not waited out behind the script\'s frame', () => {
-  const wait = runner.slice(runner.indexOf('bool Await('), runner.indexOf('bool Await(') + 600);
+  const wait = runner.slice(runner.indexOf('bool Await('), runner.indexOf('bool Await(') + 1000);   // (its yield to a world's load first: issue #510)
   assert.match(wait, /if \(BridgeQuit\.Asked != 0\) return true;/);
   const update = runner.slice(runner.indexOf('void Update()'), runner.indexOf('void Update()') + 800);
   assert.match(update, /if \(BridgeQuit\.Asked != 0\) \{ if \(!exiting\) Exit\(0\); return; \}/);

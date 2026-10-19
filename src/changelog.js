@@ -82,6 +82,9 @@ export const CHANGELOG = [
     // issue #513: src/makers-mark/shape.js (markShape), src/story/dialogue.js publish, src/balloon-part.js; unity/Hiraeth
     // BridgeHud.Mark.cs; engine/sequences.js 'mark'; tests/platform.test.js
     'In the Unity version, the makers’ mark in a conversation or a speech balloon is the game’s own open-corner mark, as on the web, not a different sign.',
+    // issue #510: engine/unity/game.js (launch: BridgeHost.Loading), unity/Hiraeth BridgeRunner (Await yields while a world
+    // loads), BridgeHud.Loading.cs, BridgeMusic.Fetch; tests/engine-unity.test.js
+    'In the Unity version, choosing Continue or a save on the title now shows the loading screen, the pen turning and what is being prepared, instead of the title freezing until the world appears.',
   ] },
   { v: '1.84', date: '2026-10-17', items: [
     // issue #439: src/costumes.js (HEADS: the 47 pieces of the 15 hat sets, HAT_SETS, HAT_SET_WORLDS, hoodShell / hoodNeck /

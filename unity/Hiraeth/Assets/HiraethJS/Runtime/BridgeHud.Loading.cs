@@ -16,7 +16,7 @@ namespace Hiraeth.Bridge
         static readonly Color LoadPaper = Ui.Hex("#f7ecd2"), LoadInk = Ui.Hex("#2b211f"), LoadNib = Ui.Hex("#c8483a");
         const float LoadFade = 0.8f;   // (the page's transition: opacity 0.8s)
         RectTransform loadRoot; Sketch loadPen; Label loadMsg;
-        float loadT, loadA = 1; bool loadDone;
+        float loadT, loadA = 1; bool loadDone, loadWorld;
 
         void BuildLoading()
         {
@@ -27,6 +27,8 @@ namespace Hiraeth.Bridge
             loadPen.raycastTarget = false;
             loadMsg = Ui.Label(loadRoot, "msg", Ui.Sans, 15, LoadInk, TextAnchor.UpperCenter);
             BridgeHost.LoadLine = null;   // (the last boot's line gone: this one's stages come as it builds)
+            // (over the menus too, the title among them: their canvas is drawn over the HUD's; issue #510)
+            var over = loadRoot.gameObject.AddComponent<Canvas>(); over.overrideSorting = true; over.sortingOrder = 300;
             loadMsg.text = "sketching the world…";
             // (a flight's reboot: the warp is the loading screen; a run that photographs the picture alone: none)
             // (-no-loading: none, as before issue #424, its -loading-shot still taken: the "before" of the side-by-sides)
@@ -38,7 +40,21 @@ namespace Hiraeth.Bridge
         void DrawLoading()
         {
             var r = BridgeHost.Runner;
-            bool building = r && !r.Booted;
+            bool world = BridgeHost.WorldLoading, building = (r && !r.Booted) || world;
+            // a world chosen on the title, built after the title's own frames (issue #510): the paper up again at once over the
+            // title, as the page's fresh #loading after its title has gone, its line from the start
+            // (whole even while the boot's own still fades off the title)
+            if (world && !loadWorld)
+            {
+                loadWorld = true;
+                if (!noLoading && !noHud && warpCarry == null)
+                {
+                    if (loadDone) { BridgeHost.LoadLine = null; loadMsg.text = "sketching the world…"; loadT = 0; }
+                    loadDone = false; loadA = 1;
+                    loadRoot.gameObject.SetActive(true);
+                }
+            }
+            else if (!world) loadWorld = false;
             var line = BridgeHost.LoadLine;
             // (-loading-shot <file>: a picture once the build says it is waking the people, for the side-by-sides)
             if (loadShot != null && !loadShotTaken && building && line != null && line.StartsWith("waking"))

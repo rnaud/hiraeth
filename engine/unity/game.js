@@ -183,7 +183,36 @@ export function start(argsJson) {
   // before the first frame as a device's cold start, each photographed once settled: unity-title-<k>-<w>x<h>.png; issue #470)
   const sizes = String(args.titleShots ?? '').split(',').map((s) => s.split('x').map(Number)).filter(([w, h]) => w > 0 && h > 0);
   if (sizes.length && !args.boot) { S.titleShots = { sizes, k: 0, t: 0 }; host.ScreenAs?.(...sizes[0]); }
+  if (args.titleGo && !args.boot) { S.titleGo = { at: Number(args.titleGo) || 60, t: 0, went: -1, ready: -1 }; host.ScreenAs?.(1280, 720); }
   showMenu();
+}
+
+/**
+ * -title-go frames: the title that long, then the debug save's desert chosen as the title's Debug row does
+ * (engine/menus.js begin), the load after it photographed (unity-title-go-<frames after>.png) until the world has played
+ * a while; issue #510, the loading screen from the title.
+ */
+function titleGo() {
+  const T = S.titleGo, out = S.args.out;
+  const shot = (name) => { if (out) { const file = `${out}/unity-title-go-${name}.png`; host.Shot(file); console.log(`[unity] saved ${file}`); } };
+  T.t++;
+  if (T.went < 0) {
+    // (the title as it stands, its pictures drawn and the start's loading screen faded off it, before the choice: 2.5 s
+    // at least, a batch run's frames being short)
+    T.t0 ??= now();
+    if (T.shotAt == null && T.t >= T.at && now() - T.t0 > 2500) { shot('title'); T.shotAt = T.t; }
+    if (T.shotAt == null || T.t < T.shotAt + 10) return;
+    T.went = T.t;
+    S.menus.begin({ debug: 'desert', slot: DEBUG_SLOT });
+    return;
+  }
+  const since = T.t - T.went;
+  if (S.game && T.ready < 0) { T.ready = T.t; console.log(`[unity] title-go: the world ready ${since} frames after the choice`); }
+  if (T.ready < 0) { if ([1, 3, 8, 20, 40].includes(since)) shot(since); return; }
+  const after = T.t - T.ready;
+  if (after === 1) shot('ready-1');
+  if (after === 20) shot('ready-20');
+  if (after >= 90) { shot('world'); S.titleGo = null; host.Exit(0); }
 }
 
 /** -title-shots: each size a while (the title's picture streamed in, the layout sent again), photographed, then the next. */
@@ -350,6 +379,11 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
   S = { ...(S ?? {}), args, backend, game: null, frames: 0, plan: null, results: [], keys: new Set(), lastT: 0, audioMs: 0, gcs: args.gcs || args.stutter ? fullGcWatch() : null,
     // (-stutter <prefix>: every script frame and what was happening, written once at the end: engine/stutter.js, issue #468)
     stutter: args.stutter ? new StutterLog() : null };
+  // a played world is built under the loading screen (BridgeHud.Loading.cs, the page's #loading), from the title's choice as
+  // from a start or a reboot, until its first frame has played; Unity draws on meanwhile instead of waiting on the build
+  // (BridgeRunner). Issue #510: from the title the screen stayed on the title's "…" until the world popped up.
+  S.loadingWorld = !planned(args);
+  if (S.loadingWorld) host.Loading?.(true);
   // the sound at Unity's output rate (BridgeAudio: muted in batch runs, where it is only counted)
   const rate = soundRate(args);
   // (rendered on Unity's audio thread where it has one: the graph recorded here, BridgeHost.AudioBatch)
@@ -918,6 +952,7 @@ function playFrame(dt) {
     if (!S.menus.title.starting && S.titlePad) readTitleInput(dt);
     showMenu();
     if (S.titleShots) titleShots();
+    if (S.titleGo) titleGo();
     // (its timers too: the menu tune's scheduler; in a world engine/game.js runs them)
     if (S.titleSound) { page.tick(now()); pumpAudio(S.titleSound.ctx); }
     return;
@@ -928,6 +963,8 @@ function playFrame(dt) {
   if (!S.plan) readInput(game);
   const r = game.frame(dt);
   showMenu();
+  if (S.loadingWorld) { S.loadingWorld = false; host.Loading?.(false); }   // (its first frame played: the loading screen fades)
+  if (S.titleGo) titleGo();
   backend.lights(game.localLights());
   backend.water(game.waterOver?.());   // (the water's pass over the page: under it the tint and haze, above it the sun's sparkle)
   const tL = now();

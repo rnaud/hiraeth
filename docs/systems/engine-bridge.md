@@ -2452,6 +2452,18 @@ unity-ship-hatch, unity-brushed.
   TextGenerator with the label's own settings, once per text and width), and fills the mark there from the contours
   (MarkTexture, made once), 1.05 em tall in the page's teal: the conversation's words, its answers and the balloons. Sequence
   `mark` (Bako's line about it in the desert). Test: tests/platform.test.js ("the makers' mark in a line").
+- **The loading screen from the title** (#510, "Unity is lacking a loading screen, from the main menu at least"). #424's
+  screen covered the engine's start, but the title's choice builds the world in one long script frame after the title's
+  own: Unity's main thread waited it out on the title (3.3 s in the editor, frozen) and the world popped up. engine/unity/game.js
+  `launch` now says a played world is loading (`BridgeHost.Loading(true)`, until its first frame: from the title's choice, a
+  reboot or a start alike); BridgeRunner does not wait on a frame while it is (`Await` yields, Update's path for the boot), so
+  Unity draws on, and the Xbox's pipelines go on warming beside the build (#443, BridgePso.Tick each frame); BridgeHud.Loading
+  puts the page's #loading up at once over the title (its own canvas over the menus'), the build's lines under the pen, and
+  fades it as before once the world has played its first frame. BridgeMusic.Fetch read `Application.isBatchMode` on the
+  script's thread, which the editor refuses (the batch run's world never started from the title): read from the command line
+  now. `-title-go frames [-loading-shot file] -out dir` waits on the title, chooses the debug save's desert as its Debug row
+  does and photographs the load (unity-title-go-*.png). Test: tests/engine-unity.test.js (the bundle: Loading on after the
+  title's choice, before the build's first line, off after the world's first frame).
 
 ## Status
 
