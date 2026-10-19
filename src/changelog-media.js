@@ -1224,6 +1224,8 @@ const ROOMS502 = 'Issue #502: the Unity editor’s batch run on this Mac (script
 const ROOMS502W = 'Issue #502: the same view on the web, muted headless Chrome on this branch (scripts/design-qc/capture.mjs, High, 1280 × 720, a fixed render scale), the frame’s updates from the pinned eye; cwebp -q 72';
 /** (v1.85, issue #508: foes' eyes on the traveller) */
 const EYES508 = 'Issue #508: the creatures gallery (enemies.html, the game’s own body through Foes.look) in muted headless Chrome (ANGLE Metal, 1280 × 720) on this branch’s own Vite (port 5508), the foe noticed (provoked, a watcher), its 1.5 s idle drawn frame by frame, the traveller 4 m off where the caption says; before: the same build with the gaze switched off (each eye at rest); 18 October; cwebp -q 72';
+/** (v1.85, issue #521: the Lamp-House's sparks) */
+const SPARK521 = 'Issue #521: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, a fixed render scale, noon, the HUD hidden) on this branch’s own Vite (port 5521), the traveller in the Lamp-House’s Hall of Dark Pools, the camera pinned behind him, Math.random seeded the same for both; before: the sparks as they were (40, 0.035, glow 1) set in the page; 18 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.85': [
     { match: 'In the Unity version, the first room of every makers’ house is as light as on the web', tags: ['temples', 'devices'], shots: [
@@ -1263,6 +1265,9 @@ export const CHANGELOG_MEDIA = {
       { name: 'skiff-close', title: 'Behind him', size: [1280, 720], caption: 'From just behind and above his head: before, the sail and its boom ran through his head and shoulders; after, they stand off to his right.', from: SKIFF514 },
       { name: 'skiff-crystal', title: 'A small crystal', size: [1280, 720], caption: 'The skiff run full ahead at a lone crystal spike of the ringing grove by the stakes, on the line of its float: before, held as the float passed through it (it sailed on through); after, where it stopped, the spike against the float’s arm.', from: SKIFF514 },
     ] },
+    { match: 'The fireflies drifting in the dark of Lorn’s Lamp-House', shots: [
+      { name: 'lamp-house-sparks', size: [1280, 720], caption: 'The Hall of Dark Pools behind the traveller: before, 40 sparks with wide bright halos (the nearest ones as big as lamps); after, 26, smaller, softer and a quarter see-through.', from: SPARK521 },
+    ], see: 'In Lorn’s Lamp-House, stand in the dark between the pools: the warm sparks drift and blink as small points, the near ones no bigger than a fingertip.' },
   ],
   '1.84': [
     { match: 'In the Unity version on the Steam Deck, the first launch after an update no longer freezes', numbers: [

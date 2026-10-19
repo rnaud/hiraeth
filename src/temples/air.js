@@ -44,8 +44,10 @@ export const HOUSE_AIR = {
     { count: 16, color: '#bcd4ff', size: 0.028, rise: -5, wind: [0, 0], sway: 0.05, box: 12, tall: 0.8 }],
     light: { kind: 'breathe', depth: 0.08, rate: 0.35 }, sound: { bed: 'drips', hum: 0.25, humF: 49 } },
   // the Lamp-House (Lorn's deep wood): near-black, where light wakes things: a few warm sparks, fine dust
+  // (issue #521: the sparks read as lamps, not fireflies: fewer, smaller, a softer halo (glow 0.75: a 1.6× point, not
+  // 1.8×; the colour’s lift 1.19), and a quarter see-through; they were 40, 0.035, glow 1, solid)
   perdide2: { theme: 'dark and lamplight', layers: [
-    { count: 40, color: '#ffd68c', size: 0.035, glow: 1, rise: 0.08, wind: [0.05, 0.03], sway: 0.8, box: 14 },
+    { count: 26, color: '#ffd68c', size: 0.028, glow: 0.75, alpha: 0.75, rise: 0.08, wind: [0.05, 0.03], sway: 0.8, box: 14 },
     { count: 50, color: '#8f8a9c', size: 0.03, rise: 0.01, wind: [0.1, 0.05], box: 12 }],
     light: { kind: 'breathe', depth: 0.12, rate: 0.6 }, sound: { bed: 'filament', hum: 0.4, humF: 61.7 } },
   // the Whale-House (under the sea): sage slate behind the great windows: bubbles rising, drips off the brass
