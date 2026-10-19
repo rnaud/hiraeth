@@ -1,0 +1,33 @@
+changelog.md
+  s_5f899ba316b5dc::t_ffaeab3bef8473 17
+docs/systems/temples.md
+  s_5f899ba316b5dc::t_7f0cc65c6d9ac2 1762-1775
+src/changelog-media.js
+  s_5f899ba316b5dc::t_4041f1ff804807 1229-1230,1282-1291
+src/changelog.js
+  s_5f899ba316b5dc::t_7b326688095ccb 75-76
+src/temples/pieces.js
+  s_5f899ba316b5dc::t_cc552b00a01596 528-538,699-700,783-785
+tests/ball-push.test.js
+  s_5f899ba316b5dc::t_337a78ec4ff6bd 1-84
+tests/guardian-twists.test.js
+  s_5f899ba316b5dc::t_5673b3b4a3c96e 583-584
+tests/trials-kit.test.js
+  s_5f899ba316b5dc::t_6e76a74c234a17 582
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5dd1f80b02b5611361756ad3b73953aa1795a72e",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
