@@ -74,6 +74,8 @@ export const CHANGELOG = [
     'In Vael, the rider’s call you play on the bone flute to bring the bird down is quieter: it now sits with the world’s music instead of ringing out over it.',
     // issue #522: src/temples/pieces.js BALL_PUSH (4.2 + 4.5 → 4.5 + 12 × strength), END_BOUNCE; tests/ball-push.test.js
     'The gun’s push sends the makers’ balls much further: about half the pushes for a long roll. Push from further back for a gentle nudge onto a nearby plate.',
+    // issue #523: src/player.js GLIDE_SINK (still air out in the world: 2.4 → 1.9, flaring 1.3 → 1.05; houses as they were); tests/glide-open.test.js
+    'Out in the open, the wings carry you about a quarter further on still air. Inside the makers’ houses they glide as before.',
   ] },
   { v: '1.84', date: '2026-10-17', items: [
     // issue #439: src/costumes.js (HEADS: the 47 pieces of the 15 hat sets, HAT_SETS, HAT_SET_WORLDS, hoodShell / hoodNeck /

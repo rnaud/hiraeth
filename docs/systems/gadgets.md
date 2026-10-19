@@ -464,7 +464,10 @@ Belfry's floor is a hop, by its door outside over 10 m).
 
 The fluid wings (backpack + glider, src/player.js, the wings' branch of `Player.update`) glide 15 m/s on and 2.4 m/s
 down in the open world: a running jump, the double jump at its top and the wings carried him some 45 m on the level, over
-the bridge and gate chasms of nine houses before the step meant to open them. Now, **inside a house** (`Player.inHouse`:
+the bridge and gate chasms of nine houses before the step meant to open them (since issue #523 the open world's still
+air holds them up longer: 1.9 m/s down with the stick let go, 1.05 pulled back, `GLIDE_SINK`; 189 m on from 20 m up
+where it was 150, the running jump, double jump and wings 56 m where it was 47; a house's breath, gusts and columns keep
+2.4 and 1.3, `GLIDE_SINK.house`, so its designed glides stay their length; tests/glide-open.test.js). Now, **inside a house** (`Player.inHouse`:
 the temple runtimes connected to him put themselves in `P.houses`, src/temples/runtime.js `connect`), the glide is
 heavier (`HOUSE_GLIDE`): the wings open as a brake at `speed` 6 m/s, no faster whatever the stick or the charms, and
 come down at least a metre for every `ratio` 1 m on (`glideSink(sink, speed, house)`), settling to it at `settle` 8/s

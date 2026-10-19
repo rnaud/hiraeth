@@ -38,11 +38,18 @@ export { JUMP, STEP };
  * The wings under a makers' roof (issue #436): in a house (Player.inHouse, the houses the temples' runtimes connect him
  * to) the glide comes down at least a metre for every `ratio` m it goes on, whatever the stick or the charms, so a running
  * jump, the double jump and the wings can't cross a bridge's or a gate's chasm before the step meant to open it (the open
- * world's glide: 6.25 m on for each metre down, 15 / 2.4; 12.5 with the charms). Rising air is the house's own way of
+ * world's glide: 6.25 m on for each metre down, 15 / 2.4, until issue #523, 7.9 since (GLIDE_SINK); more with the charms). Rising air is the house's own way of
  * carrying the wings: in a column (src/updraft.js) and in a gust that carries them (pieces.js Gust, P.windAt) the rule
  * gives way.
  */
 export const HOUSE_GLIDE = { ratio: 1, speed: 6, settle: 8 };
+/**
+ * The wings' sink (m/s) on still air, the stick let go (`calm`) or pulled back (`flare`; forward dives at 7 whatever).
+ * Out in the world since issue #523 ("the wings should let me glide a bit further out even when there is no wind"):
+ * 1.9 and 1.05, a quarter further for the height; under a makers' roof (`house`: in its breath, a gust, a column) as
+ * they were, 2.4 and 1.3, so the houses' designed glides stay their length (and the heavy glide, HOUSE_GLIDE, as it was).
+ */
+export const GLIDE_SINK = { calm: 1.9, flare: 1.05, house: { calm: 2.4, flare: 1.3 } };
 /** The glide's sink (m/s) at `speed` m/s on: the wings' own `sink`, steeper in a house (HOUSE_GLIDE). Pure. */
 export const glideSink = (sink, speed, house = false) => house ? Math.max(sink, speed / HOUSE_GLIDE.ratio) : sink;   // (how high a jump reaches: the desert cave's ledges are set above it, src/desert-city.js CAVE_LEDGES)
 const LIMIT = 1900;
@@ -1725,7 +1732,8 @@ export class Player {
         else if (!heavy && this.glideSpeed < 11) this.glideSpeed += (11 - this.glideSpeed) * (1 - Math.exp(-HOUSE_GLIDE.settle * dt));   // (out of it into moving air: the open world's speed again)
         const target = Math.min((f > 0 ? 30 : f < 0 ? 7 : 15) * (this.glideK ?? 1), heavy ? HOUSE_GLIDE.speed : Infinity);   // (the scientist's light-veined wings: glideK 1.2)
         this.glideSpeed += (target - this.glideSpeed) * (1 - Math.exp(-(heavy && this.glideSpeed > target ? HOUSE_GLIDE.settle : f > 0 ? 0.9 : 0.6) * dt));
-        const sink = glideSink((f > 0 ? 7 : f < 0 ? 1.3 : 2.4) * (f > 0 ? 1 : this.sinkK ?? 1), this.glideSpeed, heavy);   // (the wind-silk scarf: sinkK 0.6)
+        const GS = this.inHouse ? GLIDE_SINK.house : GLIDE_SINK;   // (the open world's longer glide, issue #523)
+        const sink = glideSink((f > 0 ? 7 : f < 0 ? GS.flare : GS.calm) * (f > 0 ? 1 : this.sinkK ?? 1), this.glideSpeed, heavy);   // (the wind-silk scarf: sinkK 0.6)
         this.glideTurn = THREE.MathUtils.lerp(this.glideTurn ?? 0, -s * 1.25, 1 - Math.exp(-4 * dt));
         this.heading += this.glideTurn * dt;
         tv.copy(F.dir(this.heading, _g6)).multiplyScalar(this.glideSpeed);

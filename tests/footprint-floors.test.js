@@ -325,6 +325,8 @@ test('the Footprint on foot, floor by floor (issue #401): the Hall of Spheres op
     assert.ok(wait(40, () => G.state === 'open'), `it sings (${n})`);
     assert.ok(rt.sing >= 0, 'one sphere answers its note');
     wait(0.1);
+    // (the lens sees 34 m: the far sphere stood 34.3–34.5 m from where the hall's walk left him, so a step toward it first)
+    if (G.phaseIndex >= 1) { const c = rt.resonators[rt.sing].center, d = Math.hypot(c.x - P.pos.x, c.z - P.pos.z); if (d > 30) walk(P.pos.clone().lerp(c.clone().setY(P.pos.y), (d - 28) / d), { tol: 0.8, max: 4 }); }
     if (G.phaseIndex >= 1) { look(rt.resonators[rt.sing].center); assert.ok(rt.resonators[rt.sing].print.visible, 'the walker’s print on the one that answers'); }
     LENS_VIEW.k = 0;
     rt.resonators[rt.sing].hit('shoot');

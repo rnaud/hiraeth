@@ -183,7 +183,7 @@ The reference pages for the four v0.30 worlds are in `references/`
   worlds, to open a striped wing.
   - You fly forward with momentum: A/D bank and turn, W dives (up to
     30 m/s), and S flares.
-  - The glide ratio is about 6:1, and the camera swings behind you.
+  - The glide ratio is about 8:1 on still air (6:1 before issue #523), and the camera swings behind you.
 
 ## World passes after the books
 

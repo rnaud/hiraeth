@@ -1228,6 +1228,8 @@ const EYES508 = 'Issue #508: the creatures gallery (enemies.html, the game’s o
 const CALL488 = 'The game’s own Sound rendered on the engines’ in-memory Web Audio (engine/webaudio.js, 48 kHz, the noise seeded), in Vael, through the master’s compressor; the music’s level from scripts/score-features.mjs --render';
 /** (v1.85, issue #522: the push and the balls) */
 const PUSH522 = 'Every temple built in node as the game builds it (scripts/ball-room.mjs templeWorld: doors and bridges open, thorns cut), each pushed ball rolled by its own update at 60 Hz from its start onto each plate its puzzle wants; before: BALL_PUSH 4.2 + 4.5 × strength, after: 4.5 + 12';
+/** (v1.85, issue #523: the wings on still air) */
+const GLIDE523 = 'The game’s own Player (src/player.js) in node at 60 Hz over a flat ground with the backpack, the wings and the double jump, no wind; before: GLIDE_SINK 2.4 / 1.3, after: 1.9 / 1.05';
 /** (v1.85, issue #521: the Lamp-House's sparks) */
 const SPARK521 = 'Issue #521: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, a fixed render scale, noon, the HUD hidden) on this branch’s own Vite (port 5521), the traveller in the Lamp-House’s Hall of Dark Pools, the camera pinned behind him, Math.random seeded the same for both; before: the sparks as they were (40, 0.035, glow 1) set in the page; 18 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
@@ -1289,6 +1291,14 @@ export const CHANGELOG_MEDIA = {
         { where: 'The Clock-House’s first hour, 3.7 m (a short hop: push from further back)', before: 1, after: 4 },
       ], source: 'tests/ball-push.test.js (BALL_PUSH_TABLE=1 prints every roll); docs/systems/temples.md, “How far a push rolls a ball”' },
     ], see: 'In any makers’ house, push a ball from just behind it: it rolls about twice as far as before. Stand back near the end of the push’s reach to ease it a short way.' },
+    { match: 'Out in the open, the wings carry you about a quarter further', numbers: [
+      { title: 'How far the wings carry the traveller on still air, over flat ground', unit: 'm', better: 'higher', device: GLIDE523, rows: [
+        { where: 'From 20 m up, the stick let go', before: 150.4, after: 189.4 },
+        { where: 'From 20 m up, the stick pulled back', before: 170.6, after: 209.6 },
+        { where: 'From 20 m up, diving (unchanged)', before: 75.5, after: 75.5 },
+        { where: 'A running jump, the double jump at its top, then the wings, on the level', before: 46.6, after: 56.2 },
+      ], source: 'tests/glide-open.test.js; docs/systems/gadgets.md, “The wings in the makers’ houses”' },
+    ], see: 'Out in any world with the wings, jump off a high place and hold jump with the stick let go: you sail about a quarter further before landing. Inside a makers’ house the glide is as steep as before.' },
   ],
   '1.84': [
     { match: 'In the Unity version on the Steam Deck, the first launch after an update no longer freezes', numbers: [
