@@ -1,0 +1,80 @@
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRenderer.cs
+  s_5f899ba316b5dc::t_20eb6bedcacac3 475-477
+  s_5f899ba316b5dc::t_05a6e85009ac5c 70
+docs/systems/bridge-gaps.md
+  s_5f899ba316b5dc::t_74ccfa6bdd0ce3 42
+tests/unity-water-bed.test.js
+  s_5f899ba316b5dc::t_39654f45c13205 1-78
+unity/Hiraeth/Assets/Hiraeth/Shaders/LightAdd.hlsl.meta
+  s_5f899ba316b5dc::t_348006eafb7ce1 1-7
+docs/systems/engine-bridge.md
+  s_5f899ba316b5dc::t_2caf7cac8fa5af 1714-1715,1719-1753
+unity/Hiraeth/Assets/Hiraeth/Shaders/DoorLight.shader
+  s_9b182e4398fa65::t_3f7cb04167fddc 67-68,72-76
+  s_5f899ba316b5dc::t_082eec119bf906 7-8,21-66,69-71,77-79,83-84,90
+unity/Hiraeth/Assets/Hiraeth/Shaders/Surface.shader
+  s_5f899ba316b5dc::t_a02ec77798d23d 175,887-890
+tests/unity-light-add.test.js
+  s_5f899ba316b5dc::t_bf0b49cb2e1117 1-66
+src/changelog-media.js
+  s_5f899ba316b5dc::t_8869a04bc9771f 1216-1218,1221-1228
+engine/game.js
+  s_5f899ba316b5dc::t_2b82840ab28cbc 26,330,1207,1220-1224,1388,1801-1804
+engine/mirror.js
+  s_5f899ba316b5dc::t_2f8b47edb63922 54,65,67,71-72,213-224,623
+src/changelog.js
+  s_5f899ba316b5dc::t_5ec794d618e084 52-56
+unity/Hiraeth/Assets/Hiraeth/Shaders/Veil.shader
+  s_9ca76055a220ed::t_d37404283958ed 98
+  s_5f899ba316b5dc::t_5b4d9f1392095b 27,29,52-53,97,99-109,111-139
+unity/Hiraeth/Assets/Hiraeth/Shaders/LightAdd.hlsl
+  s_5f899ba316b5dc::t_e9221052d38b4f 1-19
+scripts/design-qc/capture.mjs
+  s_5f899ba316b5dc::t_9ff08e4ec91609 79-84
+engine/bridge-gaps.js
+  s_5f899ba316b5dc::t_4b0d4c16cec2c2 122-124,139
+engine/water-bed.js
+  s_5f899ba316b5dc::t_e23165f31905fc 1-46
+changelog.md
+  s_8b94b2b36552a3::t_02b3c5a1f10886 7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a95c110f61c729f637eda527606053a776cbc87a",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_8b94b2b36552a3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a0fb1c175f6543fec",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9b182e4398fa65": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ac0be6cc0772d51ff",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
