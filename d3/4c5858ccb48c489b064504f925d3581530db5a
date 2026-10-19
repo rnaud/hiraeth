@@ -1,0 +1,29 @@
+data/characters/traveller-v2/outfits/lamplighter/manifest.json
+  s_5f899ba316b5dc::t_29f510ef48c0e4 30,40-41,55-79,125,158-159,168,180-184,236-245,249,252,259,261-264,268-300,304,307-345,353-355,378-381,404-407,428-433,456-459,480-485
+scripts/blender/traveller/inkpaint.py
+  s_5f899ba316b5dc::t_7175a82c0fa5cb 1-276
+scripts/blender/traveller/outfit.py
+  s_5f899ba316b5dc::t_87549a7c28bef1 11-13,16-18,24-26,38,113-117,304-308,310-328,340,342-348,358-361,380-384,422-430,438,455-468,502,519,538-539,547
+scripts/blender/traveller/outfit_lamplighter.py
+  s_5f899ba316b5dc::t_f93b7da5d0d99f 14-17,26-27,37,46-47,115-116,119-122,126,129-153,172-173,181-182,187-274,319-327,378-398,400-425
+scripts/blender/traveller/tailor.py
+  s_5f899ba316b5dc::t_60c6395e234146 1-423
+tests/traveller-outfits.test.js
+  s_5f899ba316b5dc::t_b36b40aa763f49 172,183-219
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d34c5858ccb48c489b064504f925d3581530db5a",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
