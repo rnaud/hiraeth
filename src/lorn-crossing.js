@@ -152,11 +152,12 @@ export function buildWaterWaySouth(scene, terrain) {
  * down the tube from its heart) out of the mouth and round the Hush-House's south side on the island's moss to a stake beside its steps
  * (`true`: one stands just there; v1.54, issue #179: the door stood 60 m off the stakes, and the legs to it and on from
  * it to Hollin were blind), then down the channel east of the island and over the water, past the keepers' light's west
- * side, to the shallows off Hollin's island.
+ * side, to the shallows off Hollin's island. (v1.85, issue #476: the house's widened terrace had pushed them out into the
+ * open water, 211 m from the mouth to the steps, and the walk was blind again; now they keep to its shore, just outside it.)
  */
 /** Beside the Hush-House's steps (src/temples/perdide.js SITE: its door looks east, the steps down off its porch). */
 export const STEPS_STAKE = { x: -112.0, z: 102.5 };
-export const KEEPERS_STAKES = { way: [[-199.4, 97.1], [-215.2, 50], [-182, 42], [-145, 44], [-105, 55], [-88, 82], [STEPS_STAKE.x, STEPS_STAKE.z, true], [-80, 64], [-90, 0], [-150, -80], [-64, -306], [-30, -416], [-14, -449]], every: 30 };
+export const KEEPERS_STAKES = { way: [[-199.4, 97.1], [-208, 84], [-185, 63], [-150, 57], [-112, 70], [-100, 92], [STEPS_STAKE.x, STEPS_STAKE.z, true], [-80, 64], [-90, 0], [-150, -80], [-64, -306], [-30, -416], [-14, -449]], every: 30 };
 
 /**
  * Where the stakes stand along their way, [x, z]: one every `every` metres from its start, the last at its end, and one

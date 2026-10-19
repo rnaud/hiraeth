@@ -690,6 +690,9 @@ export function* buildPerdide(scene) {
   Object.assign(level, { veins, flood, canopy });
   level.lights.push(...veins.lights, ...flood.lights, ...canopy.lights);
   level.beacons = [...level.beacons, ...canopy.beacons];
+  // (and the Hush-House's crown crystal, lit over its tower: issue #476, the walks to the rebuilt house steer by it)
+  const hushCrown = level.temples?.find((t) => t.id === 'perdide')?.outside?.crown;
+  if (hushCrown) level.beacons.push({ name: 'the Hush-House’s crown crystal', top: hushCrown.top.toArray(), height: hushCrown.height });
   level.lines = [...level.lines, { name: 'the lit vein', points: veins.lit, auto: false }];
   level.sights = [...level.sights, ...veins.sights, ...flood.sights, ...canopy.sights];
   const update = level.update;

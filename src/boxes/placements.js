@@ -128,12 +128,13 @@ export const PLACEMENTS = {
       note: 'In the makers’ court on the rise west of the landing, at its front edge. Its rings and towers are for the grappling hook, earned in the Founders’ Belfry.' },
   ],
   arzach2: [
-    // the sky stones: the top of the balanced five-stone stack on the start plateau
-    // It held the fluid wings until Vael's Aerie was built (src/temples/arzach.js): the wings are the Aerie's key
-    // now, and the stack keeps the wind-silk scarf, a gift in the open
-    { id: 'arzach2.scarf', item: 'scarf', at: [35, 65.3, -43.5], toward: [0, 22],
-      hint: 'On the balanced stack on the first sky stone',
-      note: 'The top stone of the balanced stack on the first sky stone, the plateau over the cloud south of the plain: a teetering climb.' },
+    // the sky stones: the top of Tiv's balanced five-stone stack on the great table's west rim (src/levels/arzach2.js
+    // TIV_STACK), facing the table. It held the fluid wings until Vael's Aerie was built (src/temples/arzach.js): the wings
+    // are the Aerie's key now, and the stack keeps the wind-silk scarf, a gift in the open. (Issue #476: its stack stood on
+    // the first sky stone until v1.76 moved it, and the box was left in the cloud under it, 151 m from anything.)
+    { id: 'arzach2.scarf', item: 'scarf', site: (level) => { const S = level.arzach2?.tivStack; return S && { at: S.top.toArray(), face: Math.atan2(level.arzach2.table.x - S.top.x, level.arzach2.table.z - S.top.z) }; },
+      hint: 'On Tiv’s balanced stack on the great table',
+      note: 'The top stone of Tiv’s balanced stack on the great table’s west rim, looking out at the riders’ lanterns: a teetering climb.' },
     // the Founders' Belfry (src/temples/arzach2.js): in the bell chamber half-way up. The grappling hook is the key to the
     // rest (issue #377; the bell-note whistle was here): the bells' pull-rings, so the held doors, the stones that come down
     // into a bridge, the great key's cage and the Cloud-Mother's calm. (Its id from when it held the whistle: the saves' flag)

@@ -70,6 +70,8 @@ const BELL = { x: -228, z: -239, w: 7.5, h: 30 };                 // the monaste
 const SKY = [[32, -446.3, 67.1, 2.7], [36.5, -439.5, 70.2, 2.4], [34, -433, 73.2, 2.8], [39.5, -429, 76.2, 2.4], [45, -432.5, 79.2, 2.4],
   [49, -437.5, 82.2, 2.8], [51.5, -444, 85.2, 2.4], [48.5, -450, 88.2, 2.4], [42.5, -452.5, 91.2, 3.4]];
 const CAIRN = { x: -18, z: -438 };                                 // on the great table, toward the stones
+/** Tiv's stack: on the great table's west rim (m from its middle, and the heading from it), toward the riders' halfway stone. */
+export const TIV_STACK = { r: 46, a: -2.27 };
 const CLAPPER = { x: 251, z: -503 };                               // on the floating island, before the church door
 const FACE = {};                                                   // filled in when the tower is built
 
@@ -381,6 +383,7 @@ export function* buildSkyStones(scene, terrain, { merged = false } = {}) {
 
   // ---------------------------------------------------------- balanced stones
   yield;
+  let stackTip = null;   // (the last stack's top stone: its centre across, its top)
   const stack = (x, y, z, stones, seed, mat = M.bone) => {
     const r2 = mulberry32(seed * 31 + 1);
     let yy = y;
@@ -390,6 +393,7 @@ export function* buildSkyStones(scene, terrain, { merged = false } = {}) {
       yy += r * sy * 0.92;
       add(mat, place(boulder(r, sx, sy, sz, egg, seed + yy, true, crack), x + ox, yy, z + oz, ry, 1, 1, 1, tilt, -tilt));
       yy += r * sy * 0.92;
+      stackTip = new THREE.Vector3(x + ox, yy, z + oz);
       ox += (r2() - 0.5) * r * 0.35; oz += (r2() - 0.5) * r * 0.35;
     }
     return yy;
@@ -402,6 +406,12 @@ export function* buildSkyStones(scene, terrain, { merged = false } = {}) {
   // on the plain
   stack(30, terrain.heightAt(30, -1140) - 0.5, -1140, [[6, 0.55, 0, 0.2], [5, 0.8, 0.1], [4.2, 0.7, 0, 0.24], [3.4, 0.9, 0.2], [2.2, 1, 0.25, 0.2]], 4);
   stack(-200, terrain.heightAt(-200, -1190) - 0.5, -1190, [[4, 0.6, 0], [3.4, 0.8, 0.1], [2.4, 1.1, 0.25]], 5);
+  // Tiv's stack (issue #476, level design audit v1.85): the teetering column the scarf's makers' box sits on, on the great
+  // table's west rim, looking out at the riders' halfway stone. (It stood on the first sky stone until the temple
+  // landmarks' rebuild took its column to the needle plateau and left the box in the cloud; v1.76, d56726fdb.)
+  const tr = TIV_STACK.r, ty = tableTop(TABLE, tr) - 0.5, tx = TABLE.x + Math.sin(TIV_STACK.a) * tr, tz = TABLE.z + Math.cos(TIV_STACK.a) * tr;
+  stack(tx, ty, tz, [[5.5, 0.62, 0.05, 0.2], [4.6, 0.72, 0.1], [3.8, 0.8, 0.15, 0.24], [3.2, 0.68, 0.05], [2.4, 0.9, 0.2, 0.18]], 10);
+  const tivStack = { foot: new THREE.Vector3(tx, ty + 0.5, tz), top: stackTip.clone() };
   // a tall stone column out of the cloud, with mushroom discs and stacked stones (page 2)
   yield;
   {
@@ -922,6 +932,7 @@ export function* buildSkyStones(scene, terrain, { merged = false } = {}) {
       cloud, cloudY: CLOUD_Y, floaters,
       sky: SKY.map(([x, z, top, r]) => ({ pos: new THREE.Vector3(x, top, z), r })),
       cairn: new THREE.Vector3(CAIRN.x, CAIRN.y, CAIRN.z),
+      tivStack,   // (the scarf's box on its top: src/boxes/placements.js arzach2.scarf)
       table: new THREE.Vector3(TABLE.x, tableTop(TABLE), TABLE.z),
       clapper: clapperAt,
       island: new THREE.Vector3(ISLAND.x, ISLAND.top, ISLAND.z),

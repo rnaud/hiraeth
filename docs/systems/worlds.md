@@ -2681,6 +2681,30 @@ The audit: the Floating City's long legs guided 83 → 100 %, its pull 3 of 19 �
 `tests/level-design-detours.test.js` (the void's slack, the cave walked out by its mouth, the stair-lamp clear of the
 great cable, every detour stood at on clear ground, walked to from the landing, with one toned line).
 
+## The Hush-House in sight again, and Vael's two loners (level design audit v1.85, issue #476)
+
+The temple landmarks' rebuild (v1.76, d56726fdb) widened the Hush-House's island and made it a 95 m tower, and moved
+Vael II's balanced stacks to the needle plateau. Neither change re-measured the legs and places round it.
+
+- **Lorn, the crown crystal** (src/temples/perdide.js `exterior`, `crown`): a lit crystal (14 m, glow 0.9, drawn only)
+  on the organ's flat top, given to the audit as a beacon (`the Hush-House’s crown crystal`, src/levels/perdide.js). The
+  tower itself is solid, so the audit's aim, a fifth down from a beacon's top, has to land in open air: the crystal is that
+  air. The fallen splinter → the cave's south mouth (389 m) steers by it.
+- **Lorn, the keepers' stakes back on the shore** (`KEEPERS_STAKES`): the widened terrace had pushed their way out into the
+  open water, 211 m from the mouth to the steps, more than the 1.8 times the 92 m leg a leading line may run. They keep to
+  the island's shore now, just outside the terrace and its columns (the last one through the gap before the door, so each
+  float is in sight of the next): about 150 m.
+- **Lorn, the saucer** (src/story/perdide2.js `saucerSeen`, the stage's `stands`): the audit looked from the saucer's middle,
+  inside its hull. It is looked into from off its rim (11 m), on the side you come from, where the Lamp-House's door is in
+  sight.
+- **Vael, Tiv's stack** (src/levels/arzach2.js `TIV_STACK`, `level.arzach2.tivStack`): the scarf's makers' box kept its old
+  spot when its stack moved and fell into the cloud (y −101, 151 m from anything). A five-stone stack now stands on the
+  great table's west rim toward the riders' halfway stone; the box is placed on its top stone (src/boxes/placements.js
+  `arzach2.scarf`, a `site`). It is 64 m from Tiv and 129 m from the halfway stone, so neither is a loner.
+
+Lorn 4.67 → 4.78 (wayfinding 4 → 5, 100 % of the long legs guided), Vael 4.67 → 4.78 (spacing 4 → 5, no loners).
+`tests/level-design-hush-house.test.js`.
+
 ## The Buried Machine breathes (issue #168; v1.51)
 
 The author's pick of the level explorations (#164: `references/levels/The Buried Machine/environment/explorations/

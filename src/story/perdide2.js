@@ -476,6 +476,8 @@ export function setupPerdide2(ctx) {
   // (where the pools are done and where Hollin waits at the end: for the level design audit's route, stages' `ends`, `stands`)
   quests.locate('lastPool', () => pools.at(-1)?.c ?? null);
   quests.locate('hollinEnd', () => hollinEnd);
+  // (and where the saucer is looked into: off its rim on the water, on the side you come from, the last pool's; issue #476)
+  quests.locate('saucerSeen', () => { const p = pools.at(-1)?.c; if (!p) return saucerAt; const d = V(p.x - saucerAt.x, 0, p.z - saucerAt.z).setLength(SAUCER.r + 3); return saucerAt.clone().add(d); });
   for (const [id, n] of Object.entries(people)) quests.locate(id, () => n.pos);
   // the label counts the pools
   const poolStage = quests.def(Q).stages.find((s) => s.id === 'pools');

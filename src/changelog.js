@@ -204,6 +204,11 @@ export const CHANGELOG = [
     // responsive plants), src/reactive-world.js keepOff, src/flora.js floraKeep (everyone's loop, the strollers' ways),
     // src/crowd.js (walks), main.js / engine/game.js (the responsive world before the people); tests/plant-ground.test.js
     'People no longer start in the middle of a plant: in Viridel Mira stood inside a ribbon plant, in the desert Marrow and in Lorn Tansy had a flower growing right where they stood. Plants now keep off the spots people start from and the paths they walk.',
+    // issue #476 (level design audit v1.85): src/temples/perdide.js (the crown crystal), src/levels/perdide.js (its beacon),
+    // src/lorn-crossing.js KEEPERS_STAKES, src/story/perdide2(-data).js (saucerSeen); tests/level-design-hush-house.test.js
+    'In Lorn, the way to the rebuilt Hush-House is easy to find again: a lit crystal now crowns its tower, seen from the Great Crystal across the swamp, and the keepers’ stakes run from the crystal cave’s south mouth along the house’s shore to its steps, not out over the open water.',
+    // issue #476: src/levels/arzach2.js (TIV_STACK), src/boxes/placements.js arzach2.scarf; tests/level-design-hush-house.test.js
+    'In Vael, the makers’ box with the wind-silk scarf is no longer lost under the cloud, where it fell when its stack of balanced stones was moved. It now sits on top of Tiv’s stack on the great table’s west rim, in sight of the riders’ halfway stone.',
   ] },
   { v: '1.84', date: '2026-10-17', items: [
     // issue #439: src/costumes.js (HEADS: the 47 pieces of the 15 hat sets, HAT_SETS, HAT_SET_WORLDS, hoodShell / hoodNeck /

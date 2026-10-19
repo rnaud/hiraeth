@@ -16,6 +16,8 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.85 — 2026-10-18
 
+- In Vael, the makers’ box with the wind-silk scarf is no longer lost under the cloud, where it fell when its stack of balanced stones was moved. It now sits on top of Tiv’s stack on the great table’s west rim, in sight of the riders’ halfway stone.
+- In Lorn, the way to the rebuilt Hush-House is easy to find again: a lit crystal now crowns its tower, seen from the Great Crystal across the swamp, and the keepers’ stakes run from the crystal cave’s south mouth along the house’s shore to its steps, not out over the open water.
 - People no longer start in the middle of a plant: in Viridel Mira stood inside a ribbon plant, in the desert Marrow and in Lorn Tansy had a flower growing right where they stood. Plants now keep off the spots people start from and the paths they walk.
 - The flowers, fans and fungi that answer you no longer grow on roofs: in Lorn they stood on the Hush-House’s round roof, in the Garden of Spheres on the pyramid’s top, in Viridel on a stall, and on buildings in the Glass Dunes. They grow on the ground now, and the plants of the Sky Stones no longer stand on the slabs and sand banks of Vael’s plain.
 - The Moon Foundry’s and the City Floating in Space’s big moments show what happens again. Out of the Casting-House, the film no longer opens on two seconds of a dark wall: it starts wide on the house and its tower from out on the floor. Over the Mooring-House, the cables drawing taut are filmed from under the great tripod, between its legs, instead of through one of them, and the first shot no longer presses against the house’s wall.

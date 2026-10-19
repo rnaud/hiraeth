@@ -59,8 +59,9 @@ export const QUESTS = [
       { id: 'pools', text: 'Relight the three dark pools with your fluid', label: 'A dark pool', when: (q) => (q.game.flag('perdide2.pools.lit') ?? 0) >= 3, at: 'darkPool', ends: 'lastPool' },
       // (the boat seen is the end, issue #172: Hollin, walked down to the root cave, asks what was in it when you pass, and
       //  his promise and keepsake wait with him; a save at the old 'tell' goes back to 'answer', so the end runs as you
-      //  arrive: src/save-migrate.js step 20. The water-way home is lit when it ends: src/story/perdide2.js)
-      { id: 'answer', text: 'Take the skiff to what answered; look inside', label: 'The light across the water', flag: 'perdide2.saucer.seen', at: 'saucer', home: 'the water-way' },
+      //  arrive: src/save-migrate.js step 20. The water-way home is lit when it ends: src/story/perdide2.js; and for the
+      //  audit it is looked into from off its rim, where you stand to, `stands`, not from inside its hull: issue #476)
+      { id: 'answer', text: 'Take the skiff to what answered; look inside', label: 'The light across the water', flag: 'perdide2.saucer.seen', at: 'saucer', stands: 'saucerSeen', home: 'the water-way' },
     ],
   },
   {

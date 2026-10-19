@@ -1,4 +1,4 @@
-import { landmark } from './landmarks.js';
+import { landmark, LANDMARK_SCALE } from './landmarks.js';
 import { portal } from './portal.js';
 import { stone as lmStone, ceramic as lmCeramic, metal as lmMetal, pearl as lmPearl } from './landmark-materials.js';
 import * as THREE from 'three';
@@ -770,6 +770,12 @@ function exterior(scene, level, rt) {
   const M = rt.M, sill = 1.8;
   const crystalM = makeMaterial({ color: PALETTE.glow, glow: 0.5, flat: true, key: 'temple.lorn.spire' });
   const landmarkTop = landmark(K, 'perdide', { y: sill, R, accent: crystalM });
+  // the crown crystal (issue #476, level design audit v1.85): a lit crystal stood on the organ's flat top (86 m in the
+  // drawing's frame), clear of the spires' island, so the walks to the house from the splinter and the cave's mouth have it
+  // to steer by. Drawn only: the sight rays go into it, and nobody stands up there
+  const crownM = makeMaterial({ color: PALETTE.glow, glow: 0.9, flat: true, key: 'temple.lorn.crown' });
+  const crownH = 14, crownY = sill + 86 * LANDMARK_SCALE.perdide[1] - 1 + crownH / 2;
+  K.add(crownM, T(new THREE.OctahedronGeometry(1, 0), [0, crownY, 0], [0, 0.4, 0], [2.4, crownH / 2, 2.4]));
   // A small recess under the broad canopy leaves the organ facade uninterrupted.
   const z1 = R + 3.2;
   // (a low round door framed three times in the fins' lavender, lit by the crystal's colour: src/temples/portal.js)
@@ -779,7 +785,7 @@ function exterior(scene, level, rt) {
   K.both(M.floor, box(6.4, sill * 0.5, 2, 0, sill * 0.25, z1 + 1));
   K.flush();
   const at = K.world(0, sill, R + 1.2);
-  return { door: { at, heading: yaw, ...P.door }, kit: K, base, R, sill, crystalM, top: base + landmarkTop, clear: [{ x: SITE.x, z: SITE.z, r: 54 }] };
+  return { door: { at, heading: yaw, ...P.door }, kit: K, base, R, sill, crystalM, top: base + landmarkTop, crown: { top: K.world(0, crownY + crownH / 2, 0), height: crownH }, clear: [{ x: SITE.x, z: SITE.z, r: 54 }] };
 }
 
 // ------------------------------------------------------------------ the world change: the swamp flowers

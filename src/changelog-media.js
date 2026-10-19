@@ -1271,6 +1271,8 @@ const PARITY538W = 'Issue #538: the same view on the web, muted headless Chrome 
 const ROOF497 = 'Issue #497: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, 10:00, clear, the HUD hidden, the camera pinned) on this branch’s own Vite (port 5496); before: the tree at 647c5fc31 (port 5497), the same view; 19 October; cwebp -q 72';
 /** (v1.85, issue #496: people out of the plants) */
 const SPAWN496 = 'Issue #496: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, 10:00, clear, the HUD hidden, the camera pinned) on this branch’s own Vite (port 5496), the person put back on the first point of their walk and held there; before: the tree at f5fc64f0f (port 5497), the same view; 19 October; cwebp -q 72';
+/** (v1.85, issue #476: Lorn's Hush-House in sight again, Vael's scarf box on Tiv's stack) */
+const WAY476 = 'Issue #476: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, the HUD hidden, scripts/design-qc/capture.mjs) on this branch’s own Vite (port 5447), Lorn at its evening hour (18.4), Vael at 10; before: the tree at 73ccce501, the same views; 19 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.86': [
     { match: 'The fight temples now belong to the story', tags: ['story'], shots: [
@@ -1459,6 +1461,14 @@ export const CHANGELOG_MEDIA = {
       { name: 'people-spawn-viridel', title: 'Viridel', caption: 'Mira where she starts her walk in Viridel’s meadow: before, standing inside a ribbon plant; after, on the open grass', from: SPAWN496 },
       { name: 'people-spawn-desert', title: 'The desert', caption: 'Marrow at the camps: before, a flower opening into him; after, the sand clear round him', from: SPAWN496 },
     ], see: 'In Viridel, walk to Mira in the meadow near the landing as you arrive; in the desert, go to Marrow at the camps: no one stands inside a plant.' },
+    { match: 'In Lorn, the way to the rebuilt Hush-House is easy to find again', shots: [
+      { name: 'hush-crown-476', title: 'From the splinter', size: [1280, 720], caption: 'The Hush-House’s tower from the fallen splinter by the Great Crystal, 360 m off, zoomed: before, a bare tower over the spires; after, a lit crystal on its top.', from: WAY476 },
+      { name: 'hush-stakes-476', title: 'On its shore', size: [1280, 720], caption: 'On the house’s south shore, looking toward its steps: before, the keepers’ stakes stood far out in the water; after, they run along the shore round the house’s terrace to the steps.', from: WAY476 },
+    ], see: 'In Lorn, pick up the splinter by the Great Crystal and look west: the crystal on the Hush-House’s tower glows over the swamp. Out of the crystal cave’s south mouth, follow the coral floats round the shore to its door.' },
+    { match: 'In Vael, the makers’ box with the wind-silk scarf is no longer lost', shots: [
+      { name: 'tiv-stack-476', title: 'From Tiv’s cairn', size: [1280, 720], caption: 'The great table’s west rim from Tiv’s cairn: before, empty; after, Tiv’s stack of five balanced stones, the makers’ box on its top.', from: WAY476 },
+      { name: 'tiv-stack-halfway-476', title: 'From the halfway stone', size: [1280, 720], caption: 'The great table from the riders’ halfway stone over the cloud: the stack stands on its rim.', from: WAY476 },
+    ], see: 'In Vael, fly the bird to the great table where Tiv stacks his cairn and climb the tall pile of stones on its west rim: the box is on the top stone.' },
   ],
   '1.84': [
     { match: 'In the Unity version on the Steam Deck, the first launch after an update no longer freezes', numbers: [
