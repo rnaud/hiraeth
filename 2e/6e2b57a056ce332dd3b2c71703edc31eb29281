@@ -1,0 +1,37 @@
+changelog.md
+  s_5f899ba316b5dc::t_e0f3b18cd294c0 7
+docs/systems/cinematics.md
+  s_5f899ba316b5dc::t_a927896aa42370 252-262
+src/changelog-media.js
+  s_5f899ba316b5dc::t_126a23aff3c038 1216-1217,1230-1234
+src/changelog.js
+  s_5f899ba316b5dc::t_aabbd366d26de8 52-55
+src/story/film.js
+  s_5f899ba316b5dc::t_a1f9c2fd33b9f5 110-205
+src/story/moonfoundry-moments.js
+  s_5f899ba316b5dc::t_3df781142bbc51 1,19-20,43,57,62-65,72-74
+src/story/spacecity-moments.js
+  s_5f899ba316b5dc::t_a2139088152268 1,21-22,26-31,33-34,37-43,45-46,52,65,68,73-76,78-79
+tests/moments-moonfoundry.test.js
+  s_5f899ba316b5dc::t_0ce43e5cff1175 143-163
+tests/moments-spacecity.test.js
+  s_5f899ba316b5dc::t_4e8a00f6c04018 135-156
+tests/sequences-web.json
+  s_5f899ba316b5dc::t_eb292e2969ae4b 2-3,2596,2599-2600,2603-2606,2669,2676,2678,2710,2714-2715,2718-2721,2748,2752-2753,2756-2758
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2e6e2b57a056ce332dd3b2c71703edc31eb29281",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
