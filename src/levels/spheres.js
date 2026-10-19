@@ -99,6 +99,12 @@ export const SPHERES_LOOK = { uLineWidth: 1.0, uLineVary: 0.1, uWobble: 0.12, uH
 
 /** The white stone's shade: flat, in the day's pale blue, and almost no strokes (the sheets). */
 export const WHITE_SHADE = { shadeFlat: 1, hatch: 0.08 };
+/**
+ * The grass tufts' line (issue #504): a soft thing's, in a dark shade of their own green, a hairline past 20-35 m
+ * (materials.js LINE, lineFar). In the world's black ink, each thin blade's outline came and went as the camera moved
+ * a third of a pixel: the motion check's pan flickered 21 pixels in 10 000, 15 of them on the tufts.
+ */
+export const TUFT_LINE = { line: 0.45, lineTint: 1, lineFar: { line: 0.25, lineTint: 1, from: 20, to: 35 } };
 
 // light direction the spheres' printed crescents are drawn for (morning sun from +x)
 export const CRESCENT = new THREE.Vector3(0.75, 0.42, 0.5).normalize();
@@ -984,7 +990,10 @@ export function* buildSpheres(scene) {
       x, y: H(x, z) - 0.3, z, s, sx: s * O(0.85, 1.1), sz: s * O(0.85, 1.1), sy: s * O(1.0, 1.4), ry: own() * 6, color: ['#4f6b3a', '#43603a', '#587542'][Math.floor(own() * 3)],
     }))), { solid: true }).name = 'cypresses';   // (a dense flame of a tree: it collides as drawn, where a 0.9 m post 6 m tall stood inside it)
   }
-  // grass tufts
+  // grass tufts (drawn as the sheets draw soft things: a line in a dark shade of their own green, a hairline from afar,
+  // and lit as the ground they stand in, so the blades crossing in a tuft draw no creases; in black, every thin blade's
+  // outline came and went as the camera moved a third of a pixel: the motion check's pan 21 flickering pixels per
+  // 10 000, two thirds of them the tufts; visual-v1.85 finding 3, issue #504)
   yield;
   {
     const blades = [];
@@ -992,7 +1001,7 @@ export function* buildSpheres(scene) {
       const a = (k / 5) * Math.PI * 2, t = new THREE.BufferGeometry();
       const lean = 0.25 + 0.15 * k % 2;
       t.setAttribute('position', new THREE.Float32BufferAttribute([-0.07, 0, 0, 0.07, 0, 0, lean, 0.9 + k * 0.08, 0.05], 3));
-      t.computeVertexNormals();
+      t.setAttribute('normal', new THREE.Float32BufferAttribute([0, 1, 0, 0, 1, 0, 0, 1, 0], 3));
       blades.push(t.rotateY(a));
     }
     const g = mergeGeometries(blades);
@@ -1003,7 +1012,7 @@ export function* buildSpheres(scene) {
       if (lakeE(x, z) < 1.05 || Math.abs(x) < 4 && z < 0 && z > -600) continue;
       items.push({ x, y: H(x, z) - 0.05, z, s: R(0.35, 0.7), ry: rng() * 6, color: pick(['#a9c04f', '#b5c94f', '#9fb84a']) });
     }
-    instanced(g, makeMaterial({ color: '#ffffff', side: THREE.DoubleSide }), items.filter((it) => !cleared(it.x, it.z)));
+    instanced(g, makeMaterial({ color: '#ffffff', side: THREE.DoubleSide, ...TUFT_LINE }), items.filter((it) => !cleared(it.x, it.z))).name = 'grass tufts';
   }
 
   // ==========================================================================

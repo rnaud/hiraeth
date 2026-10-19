@@ -55,11 +55,26 @@ test('a lighter line from afar (lineFar, #38): the step from afar and its distan
 
 test('the meadow’s small flowers take the far line, its large plants and other worlds’ flora don’t (flora.js FAR_LINE)', async () => {
   const { FAR_LINE } = await import('../src/flora.js');
-  assert.deepEqual(FAR_LINE.worlds, ['edena']);
+  assert.deepEqual(FAR_LINE.worlds, ['edena', 'spheres']);   // (the Garden's too since issue #504: 0.7 of its pan's flicker)
   assert.ok(FAR_LINE.from >= 20 && FAR_LINE.to > FAR_LINE.from, 'not at play distance (the 5 and 18 m views keep their ink)');
   assert.ok(lineStep(FAR_LINE) > 0, 'lighter than the world’s ink');
   const src = readFileSync(new URL('../src/flora.js', import.meta.url), 'utf8');
   assert.match(src, /farLine && !sp\.large \? \{ lineFar:/);
+});
+
+// Issue #504 (visual-v1.85 finding 3): the Garden of Spheres' grass tufts, thin blades outlined in the world's black ink,
+// flickered as the motion check's camera panned a third of a pixel a frame (21 pixels in 10 000, 15 of them the tufts).
+// Drawn as a soft thing's (a line in a dark shade of their own green, a hairline from afar) and lit as the ground (no
+// creases where a tuft's blades cross), the pan reads 13.5.
+test('the Garden\'s grass tufts take a soft line of their own green, a hairline from afar, and the ground\'s light', async () => {
+  const { TUFT_LINE } = await import('../src/levels/spheres.js');
+  const near = lineStep(TUFT_LINE), far = lineStep({ ...TUFT_LINE.lineFar });
+  assert.ok(near > 0 && TUFT_LINE.lineTint === 1, 'not the world\'s black ink: their own dark green');
+  assert.ok(TUFT_LINE.line < 1 && TUFT_LINE.lineFar.line < TUFT_LINE.line && far > near, 'a lighter line from afar');
+  assert.ok(TUFT_LINE.lineFar.from >= 15 && TUFT_LINE.lineFar.to > TUFT_LINE.lineFar.from);
+  const src = readFileSync(new URL('../src/levels/spheres.js', import.meta.url), 'utf8');
+  assert.match(src, /makeMaterial\(\{ color: '#ffffff', side: THREE\.DoubleSide, \.\.\.TUFT_LINE \}\)/);
+  assert.match(src, /t\.setAttribute\('normal', new THREE\.Float32BufferAttribute\(\[0, 1, 0, 0, 1, 0, 0, 1, 0\], 3\)\);/, 'the blades lit as the ground');
 });
 
 test('every reader of the light term takes the line step off it', () => {

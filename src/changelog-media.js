@@ -1249,6 +1249,8 @@ const LOAD505 = 'Issue #505: scripts/load-breakdown.mjs on this Mac (M4 Pro, hea
 const PIRATES494 = 'Issues #494 and #495: the web game in muted headless Chrome (ANGLE Metal, High, 1280 × 720) on this branch’s own Vite (port 6494), ?game=pirates&to=arzach (the open drift), the run flown ahead by the game’s pilot to the same second for both; before: the branch’s base (647c5fc31, port 6496); 19 October; cwebp -q 72';
 const LEVELS494 = 'Issue #494: the web game in muted headless Chrome (ANGLE Metal, High, 1280 × 720) on this branch’s own Vite (port 6494), ?game=pirates&stage=<level>, the run flown ahead by the game’s pilot (the minefield to 20 s, the ice belt to 13, the wreck field to 11); 19 October; cwebp -q 72';
 const SHIMMER494 = 'Issue #494: the web game in muted headless Chrome (ANGLE Metal, High, 1280 × 720) on this branch’s own Vite (port 6494), ?game=pirates&to=edena, the count-in, the game stepped 1/60 s a frame by hand, frames 10 to 13 read back from the canvas, the ship cropped (315 × 240, full size); before: the branch’s base (647c5fc31, port 6496); 19 October; cwebp -q 72';
+/** (v1.85, issue #504: the Garden of Spheres' grass tufts) */
+const TUFTS504 = 'Issue #504: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, 10:00, the HUD hidden) on this branch’s own Vite (port 5440), the Garden of Spheres, the camera pinned 3.2 m up by the spawn looking south-west over the lawn; before: the branch’s base (fa659f34f), the same view (the creatures wander between the two loads); 19 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.85': [
     { match: 'In the Unity version, the first room of every makers’ house is as light as on the web', tags: ['temples', 'devices'], shots: [
@@ -1360,6 +1362,12 @@ export const CHANGELOG_MEDIA = {
       { name: 'unity-title-loading', title: 'After Continue', caption: 'The moment after choosing a save in Unity: before, the title stood frozen (3.3 s in the editor, longer on a handheld) until the world appeared; after, the loading screen, its pen turning, “waking the people…”', from: UNITY510 },
       { name: 'unity-title-loading-web', only: 'after', title: 'On the web', caption: 'The web’s loading screen after Continue', from: WEB510 },
     ], see: 'In the Unity version, choose Continue on the title: the paper and the turning pen come up at once, with what is being prepared under it, until the world appears.' },
+    { match: 'In the Garden of Spheres, the grass tufts no longer flicker', shots: [
+      { name: 'garden-tufts-504', title: 'The lawn', size: [1280, 720], caption: 'The tufts on the lawn: before, black-inked and dark, every thin blade outlined; after, green with a darker green line, a hairline further off', from: TUFTS504 },
+    ], numbers: [{ title: 'The motion check’s pan in the Garden (the world held still, the camera turning a third of a pixel a frame), pixels that flicker', unit: 'per 10 000 px', better: 'lower', device: 'Mac (Apple M4 Pro), headless Chrome, High, 1728 × 1117 at DPR 2', rows: [
+      { where: 'the pan', before: 21.2, after: 13.5 },
+    ], source: 'docs/systems/rendering.md, "Stable in motion"' }],
+      see: 'In the Garden of Spheres, stand on the lawn by the landing and turn the camera slowly: the tufts hold still instead of sparkling.' },
   ],
   '1.84': [
     { match: 'In the Unity version on the Steam Deck, the first launch after an update no longer freezes', numbers: [

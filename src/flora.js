@@ -33,7 +33,7 @@ const SMALL = 1.45;
  * a small plant of these worlds is drawn in a lighter line in a dark shade of its own colour, as the `leaves` foliage,
  * so a far clump reads as flowers, not a black blot. Up close they keep the world's ink. (materials.js lineFar)
  */
-export const FAR_LINE = { worlds: ['edena'], line: 0.45, lineTint: 0.67, from: 25, to: 40 };
+export const FAR_LINE = { worlds: ['edena', 'spheres'], line: 0.45, lineTint: 0.67, from: 25, to: 40 };
 
 /** How far a plant of this height (m) is drawn (m), at floraFar = 1. */
 export const farFor = (h, large) => (large ? 420 : h < 0.45 ? 60 : h < 1.3 ? 95 : h < 2.6 ? 150 : 230);

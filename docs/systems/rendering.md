@@ -1013,6 +1013,24 @@ the City-Shaft 15.2, the Signal Market 3.0 → 4.2, Vael 1.6 → 3.3 (its spawn 
 3.3 and Lorn II 5.8 → 6.5 (merged into Vael and Lorn: the same spawn now), Lorn 4.3 → 6.5, Viridel 2.5 → 12.5, the
 Sealed Hangar 8.7 → 5.1, the Buried Machine 3.1, the Garden of Spheres 15.3 → 20.9, Home 5.9 → 10.4.
 
+Viridel's pink flock over the ship, red in the pan's heat map (visual-v1.85 finding 3, issue #504), is held: it is
+`flocks[0]` (life.js `Flock`), and stepped as the check steps it its birds move under a millimetre a frame. The pan
+(High, 1728 × 1117 at DPR 2) reads 12.8 with the flocks held, 12.9 with their `update` stopped dead, 13.1 left live
+(`--live`) and 12.1 with no birds drawn: the 0.8 left on them is their own small outlined wings stepping under a pixel
+as the camera turns (the same as the Garden's tufts, below), not a mover the freeze misses.
+
+**The Garden's grass tufts** (visual-v1.85 finding 3, issue #504): its 5 000 tufts of five single-triangle blades
+(spheres.js, `grass tufts`) were outlined in the world's black ink and lit blade by blade, so they read as dark tufts and
+each blade's outline (and the creases where a tuft's blades cross) came and went as the pan moved a third of a pixel a
+frame. They don't sway (a plain material: nothing moves them in the frozen check); they alias. Their share, the tufts
+left out: 21.2 → 6.0. Now they take a soft thing's line (`TUFT_LINE`: 0.45 in a dark shade of their own green, a
+hairline past 20-35 m, as the clouds and reeds) and the ground's light (their normals up: no creases), and the Garden's
+small flowers take Viridel's far line (flora.js `FAR_LINE`). The pan (High, 1728 × 1117 at DPR 2, the life held):
+21.2 → 13.5 (the tufts' line 21.2 → 15.3, its far hairline and the flowers' far line → 14.3, the ground's light → 13.5).
+Drawing the line still lighter (0.25 near) or blunting the blades' tips changed nothing measurable; what is left on the
+tufts is their outline at all, which the world's own grass (flora-grass.js, soft ink) fades with distance and these
+keep. In Unity the near line and the normals come through the bridge; the far hairline is `LINE_FAR`'s known gap (#264).
+
 - **Cost** (M4 Pro, ANGLE Metal, the two builds in their own pages timed in turns: 16 `renderFrame()` closed by a
   `readPixels`, 12 rounds, the boot camera and one 25 m up; paired difference median, ms): High 1728 × 1117 at
   DPR 2, the Market +0.02 / +0.18, the Buried Machine −0.30 / +0.18, Lorn II −0.11 / −0.01, the desert −0.01 /

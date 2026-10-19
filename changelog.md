@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.85 — 2026-10-18
 
+- In the Garden of Spheres, the grass tufts no longer flicker as you turn the camera. They were drawn in black ink and read as dark clumps, and their thin outlines came and went with every small move; now they are green, outlined in a darker green, and the Garden’s small flowers take a lighter line from afar as Viridel’s do.
 - In the chime pirates you can now boost (RB / R1) and brake (LB / L1) to meet the rocks and mines sooner or later, on a gauge that fills again. Gunboats, bombers and whole waves of fighters leave gold drops: fly through them for rapid fire, a spread shot and then the storm guns, until a hit takes you back to the twin bolts. The roll is on B / ○ and X / □.
 - The chime pirates’ flights now differ from one world to the next: a minefield strung across the way, an ice belt drifting across it and a field of old wrecks, each with fighters in formations of its own and a sky of its own. Your ship is drawn smaller, so there is room to dodge round it; it no longer shimmers as the fight starts, and the fight sounds shorter and cleaner instead of ringing on.
 - People in capes coming into sight no longer make the game catch for a moment, most of all on the Retroid: a cape now settles over a few frames instead of all in one. Walking through the camps and the City-Shaft, the frames over 50 ms on the Retroid fell from 12 to 4.
