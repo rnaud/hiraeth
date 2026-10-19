@@ -2052,16 +2052,17 @@ The traveller as an outfit-swappable game character, made by a script so it can 
 `scripts/blender/traveller/` (Blender 5.2, run headless). The game still draws B3; nothing loads these
 files yet. The author picks from the previews before anything is switched over.
 
-    node scripts/blender/traveller/export-donor.mjs <work>/donor.json
-    Blender --background --factory-startup --python scripts/blender/traveller/build_b3.py -- \
-        --donor <work>/donor.json --out data/characters/traveller-v2
-    Blender --background --factory-startup --python scripts/blender/traveller/previews.py -- \
-        --blend data/characters/traveller-v2/traveller.blend --out <dir>
+    scripts/blender/traveller/build.sh [--previews]
+
+rebuilds it all from scratch in about a minute (two with the previews): the donor
+(`export-donor.mjs`), the model (`build_b3.py`), and with `--previews` every sheet in `previews/`
+(`previews.py`, joined by `sheet.py`, JPEG by `sips`). `pokes.py --blend <file>` measures any pass's
+.blend for what comes out through the shirt, posed.
 
 `data/characters/traveller-v2/` holds `traveller.blend` (the source, with the body's cage and the vertex
-groups for authoring), `traveller.glb` (every part a named mesh on one skin, shape keys, UVs, B3's and
-head-v3's own textures), `manifest.json` (the parts and their triangles, each material's palette key or
-source texture, the body areas each garment hides, the bones, the sockets) and `previews/`.
+groups for authoring), `traveller.glb` (every part a named mesh on one skin, shape keys, one atlas),
+`manifest.json` (the parts and their triangles, the body areas each garment hides, the bones, the
+sockets, the atlas's swatches, the draw groups, what comes out through the shirt posed) and `previews/`.
 
 **Phase 2: the look taken from the approved assets** (`build_b3.py`). The first pass modelled him
 (`build.py`: lofted clothes, MakeHuman's face) and read as generic; this one reuses what was approved.
@@ -2089,8 +2090,62 @@ source texture, the body areas each garment hides, the bones, the sockets) and `
   smooth field (`inside_smooth`), in B3's skin colour. Dressed, the loader leaves out its hidden areas
   (`outfits.default.hides`, the previews do the same); his visible hands, forearms and ankles are B3's
   skin piece (`Skin`, kind `skin`).
-- **Cost:** about 86 k triangles (head 17 k, hair 9 k, shirt 20 k, trousers 13 k, body 11 k), under B3's
+- **Cost (phase 2):** about 86 k triangles (head 17 k, hair 9 k, shirt 20 k, trousers 13 k, body 11 k), under B3's
   94 k as drawn; `tests/traveller-blender.test.js`.
+
+**Pass 3: finished as clothes, one atlas** (the author's call, 2026-10-19; `finish.py`, `poses.py`).
+
+- **Clean cuts.** The labels are fixed before the cut: B3's cream paint on the shirt (outside its front
+  opening, above its hem, the hem's height measured round the hips in 15-degree sectors) is the shirt's,
+  not a hole showing the tee or the trousers; the tee, the trousers, the scarf and his skin each keep
+  their main piece only (the rest, opened first so a thin neck of faces lets go, joins what is round
+  it). Then each piece loses its crumbs, its pinholes are closed and its open edges relaxed along the
+  surface (`tidy`).
+- **Under the shirt the backing is the garment.** B3's tee and trousers top there were scraps fused to
+  the shirt; they go, cut along a smoothed line (`trim_under`; the tee's collar and the trousers just
+  under the hem stay), and B3's edge is eased down onto the backing (`taper`), which is drawn in under
+  the shirt as a smooth field and Taubin-relaxed (no spikes where the shirt folds, no shrinking sleeves).
+  The backing right behind B3's own cloth goes. The body is drawn in again after.
+- **Hems** (`hem`). Every open edge is turned in 3 mm (the lip, in the edge's own colour) and carried on
+  inside as a band 2–3 cm wide (`HEM_WIDTH`), the surface's own faces copied 3 mm under it, facing in, in
+  the garment's colour at 45 % (`INSIDE`): a closed border, and looking in shows dark cloth. Edges under
+  another garment (`COVERS`: the tee under the shirt, the cuffs closed by his forearms…) get the lip only.
+  Past the band a garment's inside is not modelled (single-sided: seen alone, the far side of a shirt
+  shows through).
+- **The shoulder** (`under`). What lies under the shirt (the tee, the trousers' top) takes the shirt's own
+  weights where a ray out along its normal meets the shirt (eased over six rings), and sits 4 mm under
+  it: one skin moves both. `poses.py` poses the rig in the previews' lowered-arm pose and in frames of the
+  game's own clips (ual.glb's Idle, Jog, Sprint, read from the file and carried over by each bone's world
+  rotation from rest) and counts the verts under the shirt that come out through it
+  (`manifest.underShirt`): with the arms lowered 23 tee verts came out in phase 2, 0–2 now. Running, the
+  lifted thigh still pushes the trousers through the shirt's front hem (as in phase 2): that wants the
+  shirt's cloth solver.
+- **His skin on the body** (`skin_colours`). Each body vertex near his visible skin (B3's forearms and
+  ankles, head-v3's neck) takes its colour there, where it reads as skin; the rest is filled in by
+  spreading those colours over the body, so every seam matches. The base body is collapsed to 55 % of its
+  subdivided faces (`BODY_RATIO`): it is plain skin and mostly culled dressed, and its triangles paid for
+  the hems.
+- **One atlas** (`atlas` in build_b3.py). Every part's own UVs repacked (turned as fits) into a 4096 ×
+  2048 texture: the head and hair in the left square (the hair's islands at 0.8: dark curls), the
+  garments, his skin and the body in the right, B3's and head-v3's texels kept at their size (the
+  manifest's `atlas` says so per part), a strip of flat swatches on top (each garment's inside, the
+  backing, the scalp). Cycles bakes it (emission, one sample), a second bake marks which part each texel
+  is, and each garment's foreign paint (texels whose chroma is far from the garment's own, ink lines
+  apart) takes the garment's chroma at its own lightness. One material, `traveller`, and its
+  double-sided twin `traveller_double` for the head and hair; one primitive a part. The hair carries the
+  head's six keys at zero (sparse in the GLB) and the skin piece an `_AREA` of -1 (never culled), so
+  each draw group in `manifest.draws` (body + skin, head + hair, the five garments) has one material and
+  the same attributes and joins into one draw (`BufferGeometryUtils.mergeGeometries` after culling the
+  body; Unity's `CombineMeshes`): **3 draws** dressed, against B3's 5 and phase 2's 12 primitives. The
+  garments stay separate meshes in the GLB and the .blend for outfit swaps.
+- **Cost:** about 85 k triangles (phase 2: 85.6 k): head 17 k, hair 9 k, shirt 24.6 k (hems 4 k of
+  it), trousers 13 k, body 6 k. The GLB is 6.1 MB (the atlas 1.35 MB JPEG); `tests/traveller-blender.test.js`
+  checks the triangles, the one atlas, the joinable draw groups and the shoulder.
+- **Still not good:** B3's painted shading on the tee reads a little greyer and blotchier than B3's
+  (its greenish shadows turned to the tee's own hue); a few cream flecks remain at the shirt's front and
+  back hem; the top of the trousers (the backing, seen with the shirt off) is plain and has two points at
+  the waist; the body's colour runs from head-v3's orange neck to B3's paler forearms; the build is not
+  bit-for-bit repeatable (a vert or two moves between runs).
 
 **Phase 1's pieces, still used:**
 
@@ -2128,4 +2183,6 @@ A new outfit is new garment meshes on the same body and skeleton; the body never
 3. **Mask:** nothing to set by hand: the build measures which body areas each piece covers and writes
    them to the manifest. Check the list (an area only partly covered stays drawn); split an area in
    `garments.area_of` if a new hem line cuts one in two.
-4. **Materials:** one per colour region, named for it, with its palette key in `MATERIALS` (build.py).
+4. **Materials:** none of its own: its UVs go into the atlas with the rest (`atlas`, pass 3), its inside
+   and any flat parts as swatches; add it to `COVERS`, `HEM_WIDTH` and the clothes' draw group in
+   `DRAWS` (build_b3.py).

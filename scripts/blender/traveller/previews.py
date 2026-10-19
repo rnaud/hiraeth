@@ -103,6 +103,18 @@ if 'parts' in ONLY:
         o.matrix_world = m
     cull_body(True)
 
+if 'pieces' in ONLY:
+    # each garment alone (as an outfit swap would show it), from the front, the back and from below
+    for o in GARMENTS:
+        show([o])
+        bb = [o.matrix_world @ Vector(c) for c in o.bound_box]
+        lo, hi = [min(p[k] for p in bb) for k in range(3)], [max(p[k] for p in bb) for k in range(3)]
+        centre = tuple((a + b) / 2 for a, b in zip(lo, hi))
+        h = max(hi[2] - lo[2], (hi[0] - lo[0]) * 0.75) * 1.15
+        V.setup(size=(700, 700))
+        for name, az, el in (('front', 20, 0), ('back', 200, 0), ('below', 30, -35)):
+            V.shoot(os.path.join(OUT, f'piece-{o.name.lower()}-{name}.png'), centre, h, az, el)
+
 if 'wire' in ONLY:
     cull_body(False)
     show(parts)
@@ -164,10 +176,27 @@ if 'posed' in ONLY:
     V.setup(size=(900, 1400))
     for name, az in (('front', 0), ('three-quarter', 35), ('side', 90)):
         V.shoot(os.path.join(OUT, f'posed-{name}.png'), (0, 0, 0.9), 1.95, az, 0)
+    # pass 3: the shoulder close up, arms lowered (where the tee came through the shirt)
+    V.setup(size=(700, 700))
+    for name, az, x in (('front', 20, 0.17), ('side', 80, 0.17), ('back', 200, 0.17)):
+        V.shoot(os.path.join(OUT, f'shoulder-{name}.png'), (x, 0, 1.33), 0.42, az, 5)
     for b in pb:
         b.rotation_quaternion = (1, 0, 0, 0)
     for o in [by[n] for n in ('Head', 'Brows') if n in by]:
         o.data.shape_keys.key_blocks['smile'].value = 0.0
+
+if 'clips' in ONLY:
+    # pass 3: frames of the game's own clips (idle, the jog's two passing poses, a sprint), whole and the
+    # shoulder close up
+    import poses as PZ
+    show(parts)
+    for clip in PZ.CLIPS:
+        PZ.clip(rig, clip)
+        V.setup(size=(700, 1100))
+        V.shoot(os.path.join(OUT, f'clip-{clip}.png'), (0, 0, 0.9), 1.95, 30, 0)
+        V.setup(size=(700, 700))
+        V.shoot(os.path.join(OUT, f'clip-{clip}-shoulder.png'), (0.17, 0, 1.33), 0.42, 30, 5)
+    PZ.reset(rig)
 
 if 'seams' in ONLY:
     # the cuts close up: where B3's surface was cut into its garments

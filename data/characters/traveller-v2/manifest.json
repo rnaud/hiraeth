@@ -1,5 +1,5 @@
 {
- "source": "scripts/blender/traveller/build_b3.py (issue #493, phase 2: B3 cut into its garments, head-v3)",
+ "source": "scripts/blender/traveller/build_b3.py (issue #493, pass 3: B3 cut into its garments, hemmed, head-v3, one atlas)",
  "skeleton": {
   "Root": {
    "game": "Root",
@@ -538,8 +538,7 @@
    "triangles": 16969,
    "vertices": 11406,
    "materials": {
-    "tripo_material_d28e51d1-9b64-4506-8f0b-bc0f5cf4100e": "head-v3",
-    "scalp": "hair"
+    "traveller_double": "atlas"
    },
    "shapeKeys": [
     "blink",
@@ -555,25 +554,32 @@
    "triangles": 9000,
    "vertices": 9455,
    "materials": {
-    "tripo_material_d28e51d1-9b64-4506-8f0b-bc0f5cf4100e": "head-v3"
+    "traveller_double": "atlas"
    },
-   "shapeKeys": []
+   "shapeKeys": [
+    "blink",
+    "smile",
+    "brow",
+    "browTilt",
+    "asymmetry",
+    "open"
+   ]
   },
   "Body": {
    "kind": "body",
-   "triangles": 11056,
-   "vertices": 5557,
+   "triangles": 6079,
+   "vertices": 3057,
    "materials": {
-    "skin.001": "skin"
+    "traveller": "atlas"
    },
    "shapeKeys": []
   },
   "Skin": {
    "kind": "skin",
-   "triangles": 2838,
-   "vertices": 1504,
+   "triangles": 2608,
+   "vertices": 1348,
    "materials": {
-    "b3_skin": "traveller-b3"
+    "traveller": "atlas"
    },
    "shapeKeys": [],
    "hides": [
@@ -586,10 +592,10 @@
   },
   "Shirt": {
    "kind": "garment",
-   "triangles": 20132,
-   "vertices": 10328,
+   "triangles": 24588,
+   "vertices": 12614,
    "materials": {
-    "b3_shirt": "traveller-b3"
+    "traveller": "atlas"
    },
    "shapeKeys": [],
    "hides": [
@@ -600,10 +606,10 @@
   },
   "Boots": {
    "kind": "garment",
-   "triangles": 6281,
-   "vertices": 3192,
+   "triangles": 6496,
+   "vertices": 3357,
    "materials": {
-    "b3_boots": "traveller-b3"
+    "traveller": "atlas"
    },
    "shapeKeys": [],
    "hides": [
@@ -614,27 +620,12 @@
    ],
    "layer": 1
   },
-  "Tee": {
-   "kind": "garment",
-   "triangles": 5185,
-   "vertices": 2876,
-   "materials": {
-    "b3_tee": "traveller-b3",
-    "tee_backing": "suit"
-   },
-   "shapeKeys": [],
-   "hides": [
-    "belly"
-   ],
-   "layer": 1
-  },
   "Trousers": {
    "kind": "garment",
-   "triangles": 13093,
-   "vertices": 6770,
+   "triangles": 13219,
+   "vertices": 6898,
    "materials": {
-    "b3_trousers": "traveller-b3",
-    "trousers_backing": "suit"
+    "traveller": "atlas"
    },
    "shapeKeys": [],
    "hides": [
@@ -647,12 +638,25 @@
    ],
    "layer": 1
   },
+  "Tee": {
+   "kind": "garment",
+   "triangles": 4510,
+   "vertices": 2534,
+   "materials": {
+    "traveller": "atlas"
+   },
+   "shapeKeys": [],
+   "hides": [
+    "belly"
+   ],
+   "layer": 1
+  },
   "Scarf": {
    "kind": "garment",
-   "triangles": 1081,
-   "vertices": 619,
+   "triangles": 1607,
+   "vertices": 853,
    "materials": {
-    "b3_scarf": "traveller-b3"
+    "traveller": "atlas"
    },
    "shapeKeys": [],
    "hides": [],
@@ -691,15 +695,14 @@
     "Skin",
     "Shirt",
     "Boots",
-    "Tee",
     "Trousers",
+    "Tee",
     "Scarf"
    ],
    "hides": [
     "ankle.L",
     "ankle.R",
     "belly",
-    "chest",
     "foot.L",
     "foot.R",
     "forearm_lower.L",
@@ -713,8 +716,6 @@
     "knee.R",
     "shin.L",
     "shin.R",
-    "shin_lower.L",
-    "shin_lower.R",
     "thigh.L",
     "thigh.R",
     "upperarm.L",
@@ -788,5 +789,136 @@
    ]
   }
  },
- "triangles": 85635
+ "atlas": {
+  "size": [
+   4096,
+   2048
+  ],
+  "swatches": {
+   "Head.scalp": [
+    41,
+    47,
+    42
+   ],
+   "Shirt.inside": [
+    106,
+    59,
+    50
+   ],
+   "Boots.inside": [
+    95,
+    86,
+    73
+   ],
+   "Trousers.backing": [
+    238,
+    220,
+    193
+   ],
+   "Trousers.inside": [
+    107,
+    99,
+    87
+   ],
+   "Tee.backing": [
+    240,
+    224,
+    198
+   ],
+   "Tee.inside": [
+    108,
+    101,
+    89
+   ],
+   "Scarf.inside": [
+    101,
+    87,
+    70
+   ]
+  },
+  "cleaned": {
+   "skin": 0.5,
+   "shirt": 11.0,
+   "boots": 7.3,
+   "trousers": 1.1,
+   "tee": 7.0,
+   "scarf": 2.3
+  }
+ },
+ "draws": {
+  "body": [
+   "Body",
+   "Skin"
+  ],
+  "head": [
+   "Head",
+   "Hair"
+  ],
+  "clothes": [
+   "Shirt",
+   "Tee",
+   "Trousers",
+   "Boots",
+   "Scarf"
+  ]
+ },
+ "triangles": 85076,
+ "underShirt": {
+  "verts": {
+   "Tee": 1086,
+   "Trousers": 599
+  },
+  "outThroughShirt": {
+   "lowered": {
+    "Tee": {
+     "out": 1,
+     "deepestMm": 10.8
+    },
+    "Trousers": {
+     "out": 4,
+     "deepestMm": 27.4
+    }
+   },
+   "idle": {
+    "Tee": {
+     "out": 3,
+     "deepestMm": 19.9
+    },
+    "Trousers": {
+     "out": 3,
+     "deepestMm": 38.8
+    }
+   },
+   "jog-a": {
+    "Tee": {
+     "out": 10,
+     "deepestMm": 35.7
+    },
+    "Trousers": {
+     "out": 16,
+     "deepestMm": 39.5
+    }
+   },
+   "jog-b": {
+    "Tee": {
+     "out": 5,
+     "deepestMm": 29.7
+    },
+    "Trousers": {
+     "out": 13,
+     "deepestMm": 38.2
+    }
+   },
+   "sprint": {
+    "Tee": {
+     "out": 8,
+     "deepestMm": 37.4
+    },
+    "Trousers": {
+     "out": 17,
+     "deepestMm": 34.1
+    }
+   }
+  }
+ }
 }

@@ -52,6 +52,43 @@ test('the garments name the areas they hide; the face has the game keys', () => 
 });
 
 test('the whole stays within the current traveller\'s triangles', () => {
-  // docs/systems/characters.md, B3 playable integration: 94 222 triangles near the camera
-  assert.ok(manifest.triangles < 94222, `${manifest.triangles} triangles`);
+  // docs/systems/characters.md, B3 playable integration: 94 222 triangles near the camera; pass 3 kept to
+  // phase 2's 85 635 (the hems and the backing paid for by the base body)
+  assert.ok(manifest.triangles <= 85635, `${manifest.triangles} triangles`);
+});
+
+// pass 3: one atlas, one material (and its double-sided twin for the head and hair); the dressed default
+// joins into three draws, so each draw group shares a material and the same attributes and morph targets
+test('every part draws from one atlas, in three joinable groups', () => {
+  assert.equal(gltf.images.length, 1, 'one texture');
+  assert.ok(gltf.materials.length <= 2, gltf.materials.map((m) => m.name).join());
+  const meshNodes = gltf.nodes.filter((n) => n.mesh !== undefined);
+  const prim = (name) => {
+    const ps = gltf.meshes[meshNodes.find((n) => n.name === name).mesh].primitives;
+    assert.equal(ps.length, 1, `${name}: one primitive`);
+    return ps[0];
+  };
+  const groups = Object.values(manifest.draws);
+  assert.ok(groups.length <= 3);
+  const drawn = groups.flat();
+  for (const part of manifest.outfits.default.parts) assert.ok(drawn.includes(part), `${part} in a draw`);
+  for (const group of groups) {
+    const ps = group.map(prim);
+    const key = (p) => Object.keys(p.attributes).sort().join() + '|' + (p.targets || []).length;
+    for (const p of ps) {
+      assert.equal(p.material, ps[0].material, `${group}: one material`);
+      assert.equal(key(p), key(ps[0]), `${group}: the same attributes and morph targets`);
+    }
+  }
+});
+
+test('nothing under the shirt comes out through it with the arms lowered', () => {
+  const under = manifest.underShirt.outThroughShirt;
+  // (a vert or two of over a thousand: the build is not bit-for-bit repeatable; pass 2 had 23 at the shoulder)
+  assert.ok(under.lowered.Tee.out <= 3 && under.idle.Tee.out <= 5, JSON.stringify(under.lowered));
+  // running, the lifted thigh still pushes the trousers through the shirt's front hem (as in pass 2: that
+  // wants the shirt's cloth solver); kept from getting worse
+  for (const [pose, r] of Object.entries(under)) {
+    assert.ok(r.Tee.out <= 25 && r.Trousers.out <= 40, `${pose}: ${JSON.stringify(r)}`);
+  }
 });

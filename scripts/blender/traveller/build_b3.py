@@ -21,7 +21,7 @@ from mathutils.kdtree import KDTree
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 REPO = os.path.abspath(os.path.join(HERE, '..', '..', '..'))
-import loft, body as B, head as H, garments as G, rig as R, b3cut, portrait as PH
+import loft, body as B, head as H, garments as G, rig as R, b3cut, portrait as PH, finish as F
 import build as P1   # phase 1's helpers (materials, collections, subdivision)
 
 argv = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
@@ -39,6 +39,116 @@ HAIR_TRIS = 9000
 os.makedirs(OUT, exist_ok=True)
 NAMES = {'shirt': 'Shirt', 'tee': 'Tee', 'trousers': 'Trousers', 'boots': 'Boots', 'scarf': 'Scarf', 'skin': 'Skin'}
 LAYER = {'Skin': 0, 'Tee': 1, 'Trousers': 1, 'Boots': 1, 'Shirt': 2, 'Scarf': 3}
+# pass 3: the garments over each piece (its edges under them get a lip, not a band) and each hem's band width
+# (the skin closes the sleeves' cuffs and the boots' tops: no band needed there)
+COVERS = {'Skin': ['Shirt', 'Trousers', 'Boots'], 'Tee': ['Shirt', 'Scarf'], 'Trousers': ['Shirt'], 'Boots': ['Trousers', 'Skin'],
+          'Shirt': ['Scarf', 'Skin'], 'Scarf': ['Head']}
+HEM_WIDTH = {'Shirt': 0.03, 'Trousers': 0.03, 'Tee': 0.025, 'Boots': 0.02, 'Scarf': 0.025}
+ATLAS = (4096, 2048)       # one texture for every part (B3's and head-v3's 2048 maps repacked, the body, swatches)
+ATLAS_TOP = 0.975          # the islands below this; the swatches in the strip above
+BODY_RATIO = 0.55         # the base body's share of its subdivided faces kept (pass 3)
+HAIR_SCALE = 0.8          # the hair's islands against the face's (dark curls: the face gets the texels)
+BODY_SCALE = 0.32          # the body's islands, in 2048-texel units (it is plain skin, mostly hidden)
+INSIDE = 0.45              # a garment's inside: its own colour this much as light
+# the dressed default's draws: parts in one group share the material, the skeleton and their attributes, so
+# a loader can join them (BufferGeometryUtils.mergeGeometries / Unity's CombineMeshes) after culling the body
+DRAWS = {'body': ['Body', 'Skin'], 'head': ['Head', 'Hair'], 'clothes': ['Shirt', 'Tee', 'Trousers', 'Boots', 'Scarf']}
+
+
+def atlas(every, outfit, head, hair, body):
+    """Pass 3: every part's colour in one texture through new UVs, one material (its double-sided twin on
+    the head and hair). The garments' foreign paint is turned to their own colour; the bands inside, the
+    backing and the scalp are flat swatches."""
+    import numpy as np
+    W, H = ATLAS
+    swatch_kinds = (F.BAND, F.BACKING, F.SCALP)
+    swatch_faces = {o.name: {i for i, k in enumerate(F.get_kind(o.data)) if k in swatch_kinds} for o in every}
+    kinds = {o.name: F.get_kind(o.data) for o in every}
+
+    def swatch_of(o, fi):
+        return (o.name, {F.BAND: 'inside', F.BACKING: 'backing', F.SCALP: 'scalp'}[kinds[o.name][fi]])
+
+    F.pack_uvs(every, swatch_faces, BODY_SCALE, [['Head', 'Hair'], [o.name for o in every if o.name not in ('Head', 'Hair')]], top=ATLAS_TOP,
+                scales={'hair': HAIR_SCALE})
+    where = F.put_swatches(every, swatch_faces, swatch_of, ATLAS, ATLAS_TOP)
+    # the colour
+    img = bpy.data.images.new('traveller-atlas', W, H, alpha=False)
+    src_img = {o.name: next((F.tex_of(o, p) for p in o.data.polygons if F.tex_of(o, p)), None) for o in every}
+    made = {}
+
+    def colour_mat(o):
+        if o.get('kind') == 'body':
+            return F.emission_material('bake_' + o.name, F.attr_source('skin_col'))
+        im = src_img[o.name]
+        if im.name not in made:
+            made[im.name] = F.emission_material('bake_' + im.name, F.tex_source(im))
+        return made[im.name]
+
+    F.bake(every, img, colour_mat)
+    px = F.image_array(img)
+    # which part each texel is
+    ids_img = bpy.data.images.new('traveller-atlas-ids', W, H, alpha=False, float_buffer=True)
+    F.bake(every, ids_img, lambda o: F.emission_material('id_' + o.name, F.flat_source((every.index(o) + 1, 0, 0))), margin=8)
+    ids = np.rint(F.image_array(ids_img)[..., 0]).astype(int)
+    bpy.data.images.remove(ids_img)
+    cloth = {every.index(o) + 1: o.name.lower() for o in every if o.get('kind') in ('garment', 'skin')}
+    cleaned = F.clean_paint(px, ids, cloth)
+    print('paint cleaned (% of each part\'s texels):', cleaned)
+    base = {o.name: F.garment_base(px, ids, every.index(o) + 1) for o in every}
+    swatch = {}
+    for (name, what), (x0, y0, s) in where.items():
+        if what == 'inside':
+            c = base[name] * INSIDE
+        elif what == 'backing':
+            c = base[name]
+        else:   # the scalp: the hair's own dark
+            c = np.array([41, 47, 42]) / 255
+        px[y0 - 2:y0 + s + 2, x0 - 2:x0 + s + 2, :3] = c
+        swatch[f'{name}.{what}'] = [int(round(x * 255)) for x in c]
+    img.pixels.foreach_set(px.ravel())
+    img.update()
+    # into the .blend and the GLB as a JPEG
+    path = os.path.join(OUT, '.atlas-tmp.jpg')
+    img.filepath_raw = path
+    img.file_format = 'JPEG'
+    bpy.context.scene.render.image_settings.quality = 90
+    img.save(filepath=path, quality=90)
+    bpy.data.images.remove(img)
+    img = bpy.data.images.load(path)
+    img.name = 'traveller-atlas.jpg'
+    img.pack()
+    img.filepath = '//traveller-atlas.jpg'
+    os.remove(path)
+    # one material (and its double-sided twin), the 'atlas' UVs the only ones
+    def final(name, cull):
+        m = bpy.data.materials.new(name)
+        nt = m.node_tree
+        t = nt.nodes.new('ShaderNodeTexImage')
+        t.image = img
+        nt.links.new(t.outputs[0], nt.nodes['Principled BSDF'].inputs['Base Color'])
+        nt.nodes['Principled BSDF'].inputs['Roughness'].default_value = 0.9
+        m.use_backface_culling = cull
+        m['texture'] = 'atlas'
+        return m
+    single, double = final('traveller', True), final('traveller_double', False)
+    for o in every:
+        me = o.data
+        for l in [l for l in me.uv_layers if l.name != 'atlas']:
+            me.uv_layers.remove(l)
+        me.uv_layers['atlas'].name = 'UVMap'
+        me.materials.clear()
+        me.materials.append(double if o.get('kind') in ('head', 'hair') else single)
+    for m in list(bpy.data.materials):
+        if m.users == 0:
+            bpy.data.materials.remove(m)
+    for im in list(bpy.data.images):
+        if im.users == 0:
+            bpy.data.images.remove(im)
+    # the hair carries the head's keys (all zero: sparse, nearly free) so the two join into one draw
+    hair.shape_key_add(name='Basis', from_mix=False)
+    for kb in head.data.shape_keys.key_blocks[1:]:
+        hair.shape_key_add(name=kb.name, from_mix=False).value = 0.0
+    return {'size': [W, H], 'swatches': swatch, 'cleaned': cleaned}
 
 
 def flat(name, rgb):
@@ -144,6 +254,14 @@ def main():
         o['layer'] = LAYER[o.name]
         o['source'] = 'traveller-b3'
         outfit[o.name] = o
+    # pass 3: the cut's crumbs, pinholes and zigzag edges cleaned; B3's imported normals dropped (the hems
+    # below add faces; smooth normals are recomputed, the cut and hem edges kept sharp)
+    for o in outfit.values():
+        print('tidy', o.name, F.tidy(o, min_faces=30 if o.name == 'Skin' else 150))
+        with bpy.context.temp_override(object=o, active_object=o, selected_objects=[o]):
+            bpy.ops.mesh.customdata_custom_splitnormals_clear()
+        for p in o.data.polygons:
+            p.use_smooth = True
     keep = {o.name for o in outfit.values()}
     for o in list(bpy.data.objects):
         if o.parent is None and o.type in ('ARMATURE', 'MESH') and o.name not in keep and o.name != arm.name:
@@ -158,6 +276,7 @@ def main():
     hair = PH.split_hair(head, hair_mask, parts, HAIR_TRIS, scalp)
     hair['kind'] = 'hair'
     PH.face_keys(head)
+    F.set_kind(head.data, [F.SCALP if head.data.materials[p.material_index] == scalp else F.SURFACE for p in head.data.polygons])
     head.data.materials[0]['texture'] = 'head-v3'
 
     # ---- the body: phase 1's, its neck inside head-v3's, kept under the clothes
@@ -171,18 +290,30 @@ def main():
     body.data.materials.append(flat('skin', [round(x) for x in skin_rgb]))
     body.data.materials[0]['palette'] = 'skin'
     P1.subdivide(body)
+    # pass 3: the base body is plain skin and mostly hidden dressed; collapsed to BODY_RATIO of its faces
+    # (the triangles go to the hems and the backing)
+    dec = body.modifiers.new('Decimate', 'DECIMATE')
+    dec.ratio = BODY_RATIO
+    with bpy.context.temp_override(object=body, active_object=body):
+        bpy.ops.object.modifier_apply(modifier=dec.name)
     body['kind'] = 'body'
     R.weight_body(arm, body, cage_ob)   # (bone heat on the clean body, before it is drawn in under the clothes)
     inside_smooth(body, [outfit[n] for n in ('Shirt', 'Tee', 'Trousers', 'Boots', 'Scarf', 'Skin')])
 
     # ---- backing where B3 has no cloth (under the shirt): phase 1's tee and trousers top, inside B3's
     backing = {}
-    for name, fn, keep in (('Tee', G.tee, lambda p: True), ('Trousers', G.trousers, lambda p: p.z > 0.70)):
+    for name, fn, keep in (('Tee', G.tee, lambda p: True), ('Trousers', G.trousers, lambda p: p.z > 0.76)):
         bm = fn(cage, J)
         bmesh.ops.delete(bm, geom=[f for f in bm.faces if not keep(f.calc_center_median())], context='FACES')
         o = P1.mesh_object(name + '_backing', bm, parts, [])
         P1.subdivide(o)
-        inside(o, [outfit['Shirt'], outfit[name]], gap=0.010, reach=0.08)
+        # (pass 3: drawn in as a smooth field, then relaxed and held inside: a vert-by-vert snap made spikes
+        # wherever the shirt folds)
+        # (only the shirt: B3's own scraps of the piece are cut away below, and snapping to them tore the hem)
+        inside_smooth(o, [outfit['Shirt']], gap=0.010, reach=0.08, rounds=6)
+        for _ in range(4):
+            F.relax(o, 0.5, 2)
+            inside(o, [outfit['Shirt']], gap=0.008, reach=0.08)
         # its colour: the B3 piece's own, flat (it has no place in B3's texture)
         lab_name = name.lower()
         rgb = [sum(c[k] for c in colors if b3cut.vertex_label(Vector((0, 0, 1.2 if name == 'Tee' else 0.6)), c) == lab_name) /
@@ -190,6 +321,7 @@ def main():
         m = flat(name.lower() + '_backing', [round(x) for x in rgb])
         m['palette'] = 'suit'
         o.data.materials.append(m)
+        F.set_kind(o.data, [F.BACKING] * len(o.data.polygons))
         backing[name] = o
 
     # ---- skins: B3's pieces keep their own weights; the rest from the body
@@ -198,6 +330,9 @@ def main():
         for g in list(o.vertex_groups):
             if g.name == 'Root':
                 o.vertex_groups.remove(g)
+    for o in outfit.values():
+        if 'p3' not in o.data.attributes:
+            F.set_kind(o.data, [F.SURFACE] * len(o.data.polygons))
     for name, o in backing.items():
         R.transfer_weights(arm, body, o)
         # one object a garment: the backing joins its B3 piece (a shell inside it, its own flat colour)
@@ -209,9 +344,29 @@ def main():
     bind_head = R.bind(arm, head)
     R.rigid(arm, hair, 'Head')
 
-    # ---- the cut edges turned in
-    for o in outfit.values():
-        print('lip', o.name, b3cut.lip(o))
+    # ---- pass 3: under the shirt the backing is the tee and the trousers' top; B3's torn scraps there go,
+    # and B3's edge is eased down onto the backing (no ledge when the shirt is off)
+    for name, zmin in (('Tee', 0.90), ('Trousers', 0.78)):
+        o = outfit[name]
+        # (just under the shirt's hem B3's trousers stay: the hem is open below, they show there; the tee's
+        # collar stays: it shows over the shirt's at the back of the neck)
+        window = (lambda c: c.z < b3cut.HEM(c) + 0.04) if name == 'Trousers' else (lambda c: c.z > 1.36)
+        print('trim', name, F.trim_under(o, outfit['Shirt'], zmin, keep=window), F.tidy(o, min_faces=60, hole=0.0, relax=10),
+              F.clamp_backing(o, [outfit['Shirt']]), F.taper(o), F.drop_hidden_backing(o))
+
+    # (the body drawn in again: the trims and the taper moved the cloth over it)
+    dressed = [outfit[n] for n in ('Shirt', 'Tee', 'Trousers', 'Boots', 'Scarf', 'Skin')]
+    inside_smooth(body, dressed, gap=0.008, rounds=4)
+    inside(body, dressed, gap=0.004, reach=0.03)   # (what is still out, in a deep fold, vert by vert)
+
+    # ---- pass 3: what lies under the shirt moves with it (no tee through the shoulder)
+    print('under shirt: tee', F.under(outfit['Tee'], outfit['Shirt']))
+    print('under shirt: trousers', F.under(outfit['Trousers'], outfit['Shirt'], reach=0.04))
+
+    # ---- the cut edges: open ones hemmed (a lip and a dark band inside), covered ones a lip
+    for name, o in outfit.items():
+        covers = [head if c == 'Head' else outfit[c] for c in COVERS[name]]
+        print('hem', name, F.hem(o, covers, width=HEM_WIDTH.get(name, 0.03), lip_only=name == 'Skin'))
 
     sockets = R.sockets(arm, root)
     areas = G.body_areas(body, J)
@@ -219,9 +374,16 @@ def main():
     union = [any(c[1][i] for c in cover.values()) for i in range(len(body.data.vertices))]
     body['outfit_hides'] = G.covered_areas(areas, union)   # (previews.py leaves these out, as a loader would)
     every = [head, hair, body, *outfit.values()]
+    # (the skin piece joins the body's draw: the same attributes, its area -1, never left out)
+    a = outfit['Skin'].data.attributes.new('_AREA', 'FLOAT', 'POINT')
+    a.data.foreach_set('value', [-1.0] * len(outfit['Skin'].data.vertices))
     for o in every:
         if not o.data.uv_layers:
             G.unwrap(o)
+    # ---- pass 3: his skin on the body; everything in one atlas
+    F.skin_colours(body, [(outfit['Skin'], None),
+                          (head, lambda o, pi: o.data.polygons[pi].material_index == 0 and o.data.polygons[pi].center.z < 1.56)])
+    atlas_info = atlas(every, outfit, head, hair, body)
     cage_ob.hide_render = True
     cage_ob.hide_set(True)
     src_coll.hide_render = True
@@ -230,7 +392,7 @@ def main():
     P1.OUT = OUT
     P1.export(arm, every, sockets)
     manifest = {
-        'source': 'scripts/blender/traveller/build_b3.py (issue #493, phase 2: B3 cut into its garments, head-v3)',
+        'source': 'scripts/blender/traveller/build_b3.py (issue #493, pass 3: B3 cut into its garments, hemmed, head-v3, one atlas)',
         'skeleton': R.bone_map(arm),
         'parts': {o.name: {
             'kind': o.get('kind'), 'triangles': P1.tri_count(o), 'vertices': len(o.data.vertices),
@@ -242,8 +404,22 @@ def main():
         'areas': areas['names'],
         'outfits': {'default': {'parts': list(outfit), 'hides': G.covered_areas(areas, union)}},
         'sockets': sockets,
+        'atlas': atlas_info,
+        'draws': DRAWS,
         'triangles': sum(P1.tri_count(o) for o in every),
     }
+    # pass 3: what lies under the shirt, posed (lowered arms; the game's idle, jog and sprint), against it
+    import poses as PZ
+    shirt = outfit['Shirt']
+    idx = {n: PZ.under_set(outfit[n], shirt) for n in ('Tee', 'Trousers')}
+    checks = {}
+    for pose in ['lowered'] + list(PZ.CLIPS):
+        PZ.lowered(arm) if pose == 'lowered' else PZ.clip(arm, pose)
+        checks[pose] = {n: dict(zip(('out', 'deepestMm'), (lambda r: (r[0], round(r[1] * 1000, 1)))(PZ.poke(outfit[n], shirt, i))))
+                        for n, i in idx.items()}
+    PZ.reset(arm)
+    manifest['underShirt'] = {'verts': {n: len(i) for n, i in idx.items()}, 'outThroughShirt': checks}
+    print('POKES', json.dumps(checks))
     json.dump(manifest, open(os.path.join(OUT, 'manifest.json'), 'w'), indent=1)
     print('TRAVELLER', json.dumps({k: v['triangles'] for k, v in manifest['parts'].items()}), 'total', manifest['triangles'])
 

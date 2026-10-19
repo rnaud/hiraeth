@@ -10,7 +10,9 @@ from mathutils import Vector
 
 LABELS = ['skin', 'shirt', 'tee', 'trousers', 'boots', 'scarf', 'head']
 HEAD_CUT = 1.515      # traveller-b3.js: B3's own head goes above this (head-v3 replaces it)
-SEAM_SMOOTH = 25      # how far the labels' scores diffuse before the cut (more: straighter, rounder seams)
+SEAM_SMOOTH = 25
+OPENING = 0.13       # the shirt's front opening, either side of the middle (pass 3)
+HEM = None           # the shirt's hem height at a point round the hips (set by label_faces)      # how far the labels' scores diffuse before the cut (more: straighter, rounder seams)
 
 
 def vertex_label(p, rgb):
@@ -113,6 +115,100 @@ def label_faces(ob, colors):
                     w = max(votes, key=votes.get)
                     for k in comp:
                         lab[k] = w
+    # pass 3: the tee, the trousers and the scarf are each one piece of cloth; their other islands (B3's
+    # cream paint inside the shirt's back, say) are holes in whatever is round them, and join it
+    # pass 3: cream paint on the shirt is the shirt's own, not the tee or the trousers showing through a hole:
+    # outside the shirt's front opening, anything above the shirt's hem (its lowest coral, round the hips in
+    # 15-degree sectors, each the lowest of itself and its neighbours) is the shirt
+    cs = [M @ f.calc_center_median() for f in bm.faces]
+    cy = sum(c.y for c, l in zip(cs, lab) if l == 'trousers') / max(1, sum(1 for l in lab if l == 'trousers'))
+    sect = lambda c: int((math.degrees(math.atan2(c.x, c.y - cy)) + 180) // 15) % 24
+    lows = [[] for _ in range(24)]
+    for c, l in zip(cs, lab):
+        if l == 'shirt' and 0.6 < c.z < 1.2 and abs(c.x) < 0.3:
+            lows[sect(c)].append(c.z)
+    raw = [sorted(z)[len(z) // 30] if z else 0.0 for z in lows]
+    hem = [min(raw[(k - 1) % 24], raw[k], raw[(k + 1) % 24]) for k in range(24)]
+    flipped = 0
+    for i, (c, l) in enumerate(zip(cs, lab)):
+        if l in ('tee', 'trousers') and c.z < 1.2 and abs(c.x) < 0.3 and not (c.y < 0 and abs(c.x) < OPENING) and hem[sect(c)] and c.z > hem[sect(c)] + 0.012:
+            lab[i] = 'shirt'
+            flipped += 1
+    print('B3: hem by sector %s; %d cream faces above it are the shirt' % ([round(h, 2) for h in hem], flipped))
+    global HEM
+    HEM = lambda c: hem[sect(c)] or 0.85   # (the shirt's hem height round the hips, for build_b3's trims)
+    # (opened first: a patch joined to the main piece by a thin neck of faces, across a fused hem, is cut off)
+    centre = [M @ f.calc_center_median() for f in bm.faces]
+    ERODE = 3
+    for name in ('tee', 'trousers', 'scarf', 'skin'):
+        core = {i for i, l in enumerate(lab) if l == name}
+        er = 1 if name == 'skin' else ERODE
+        for _ in range(er):
+            core = {i for i in core if all(j in core for j in nbr[i])}
+        seen = set()
+        comps = []
+        for i in core:
+            if i in seen:
+                continue
+            comp, todo = [i], [i]
+            seen.add(i)
+            while todo:
+                k = todo.pop()
+                for j in nbr[k]:
+                    if j in core and j not in seen:
+                        seen.add(j)
+                        comp.append(j)
+                        todo.append(j)
+            comps.append(comp)
+        if name == 'skin':   # his skin: the hands and forearms, the ankles; not a painted shadow on the clothes
+            keep = [c for c in comps if any(abs(centre[k].x) > 0.42 or centre[k].z < 0.3 for k in c)]
+        else:
+            keep = sorted(comps, key=len, reverse=True)[:1]
+        reach = {k for c in keep for k in c}
+        for _ in range(er + 1):
+            reach |= {j for k in reach for j in nbr[k] if lab[j] == name}
+        for i, l in enumerate(lab):
+            if l == name and i not in reach:
+                lab[i] = None
+    for _ in range(30):   # the faces let go take the label round them
+        todo = [i for i, l in enumerate(lab) if l is None]
+        if not todo:
+            break
+        for i in todo:
+            votes = {}
+            for j in nbr[i]:
+                if lab[j]:
+                    votes[lab[j]] = votes.get(lab[j], 0) + 1
+            if votes:
+                lab[i] = max(votes, key=votes.get)
+    lab = [l or 'shirt' for l in lab]
+    for name in ('tee', 'trousers', 'scarf'):
+        seen = [False] * len(lab)
+        comps = []
+        for i in range(len(lab)):
+            if seen[i] or lab[i] != name:
+                continue
+            comp, todo = [i], [i]
+            seen[i] = True
+            while todo:
+                k = todo.pop()
+                for j in nbr[k]:
+                    if not seen[j] and lab[j] == name:
+                        seen[j] = True
+                        comp.append(j)
+                        todo.append(j)
+            comps.append(comp)
+        comps.sort(key=len, reverse=True)
+        for comp in comps[1:]:
+            votes = {}
+            for k in comp:
+                for j in nbr[k]:
+                    if lab[j] != name:
+                        votes[lab[j]] = votes.get(lab[j], 0) + 1
+            if votes:
+                w = max(votes, key=votes.get)
+                for k in comp:
+                    lab[k] = w
     bm.free()
     return lab
 
