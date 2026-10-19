@@ -381,8 +381,10 @@ export class PrologueDirector {
         {
           // what passed the ship left its signature on the hull (src/story/signature.js), and he chooses to follow it:
           // said once the father's card has gone (and the pulse it tracks is heard, faintly: the hum again, from the mark)
-          const wait = Math.max(0, (this.cardUntil ?? 0) - (typeof performance !== 'undefined' ? performance.now() : 0));
-          if (wait > 0) setTimeout(() => this.landingLines(), wait + 300);
+          // (on the game's clock, the card's and the wait's: on the wall's the lines came seconds of the game later in a
+          //  VM that runs ahead of it, and late enough on a slow runner to be up over Plumb's first word; issue #539)
+          const wait = this.cardLeft();
+          if (wait > 0) this.s.cinema.after(wait + 0.3, () => this.landingLines());
           else this.landingLines();
         }
         break;
@@ -722,9 +724,13 @@ export class PrologueDirector {
   giveCharge() {
     if (game.flag(CHARGE_CARD)) return;
     game.set(CHARGE_GIVEN, true); game.set(CHARGE_CARD, true);
-    this.cardUntil = (typeof performance !== 'undefined' ? performance.now() : 0) + CHARGE_CARD_MS;
-    showChargeCard({ sound: this.s.sound });
+    const C = this.s.cinema;
+    this.cardUntil = C.clock + CHARGE_CARD_MS / 1000;
+    showChargeCard({ sound: this.s.sound, after: (ms, fn) => C.after(ms / 1000, fn) });
   }
+
+  /** Seconds of the game's time the charge's card stays up (0: gone, or never shown). */
+  cardLeft() { return Math.max(0, (this.cardUntil ?? 0) - this.s.cinema.clock); }
 
   /** The desert's first step out (the prologue's), its view if not seen yet in this save, else null. */
   firstExit() {
@@ -747,7 +753,7 @@ export class PrologueDirector {
     // skipped before the dust cleared: the charge is still given, and the objective waits for its card
     if (skipped) this.giveCharge();
     game.set(CHARGE_GIVEN, true);
-    const wait = Math.max(0, (this.cardUntil ?? 0) - (typeof performance !== 'undefined' ? performance.now() : 0));
+    const wait = this.cardLeft();
     if (skipped) {
       C.clear();
       s.auto = null;
@@ -774,14 +780,14 @@ export class PrologueDirector {
       }
       // the ship's word and his answer, after the region's name (the notices' order, src/ship/cinema.js NOTICE_ORDER;
       // issue #78: they used to come up together); no objective card after the charge's (issue #222)
-      setTimeout(() => this.landingLines(), Math.max(0, wait - 500));
+      C.after(Math.max(0, wait - 0.5), () => this.landingLines());
     } else {
       if (!this.landingSaid) C.say(null);   // (the ship's word and his answer play on as he walks out)
       C.hint(null); C.hud(true); C.bars(false);
     }
     game.set('objective', OBJECTIVE);
     game.set('ship.level', 'desert');
-    setTimeout(() => s.onReady?.(), 6800 + (skipped ? Math.max(0, wait - 500) : 0));   // after the ship's lines, never on top of them
+    C.after(6.8 + (skipped ? Math.max(0, wait - 0.5) : 0), () => s.onReady?.());   // after the ship's lines, never on top of them
   }
 }
 

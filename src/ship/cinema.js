@@ -297,6 +297,10 @@ export class Cinema {
     this.skipK = 0;
     this._subN = 0;
     this.subs = new Subtitles();
+    // the game's clock (s, advanced by update(dt)) and what waits on it (after(): never the wall's clock, so a scene's
+    // lines come at the same moment of the game on a slow machine, a fast one and the node VM; issue #539)
+    this.clock = 0;
+    this._later = [];
     this._order = [];
     this._layoutT = 0;
     this.toasts = [];        // waiting their turn (see toast())
@@ -516,8 +520,16 @@ export class Cinema {
     this._toastAt = performance.now();
   }
 
+  /** Call `fn` once `secs` of the game's time have passed (update's dt: held while the game is). */
+  after(secs, fn) { this._later.push({ at: this.clock + Math.max(0, secs), fn }); }
+
   /** Per frame: timed subtitles, waiting toasts, and a fresh layout now and then (HUD and panels come and go). */
   update(dt) {
+    this.clock += dt;
+    if (this._later.length) {
+      const due = this._later.filter((l) => l.at <= this.clock);
+      if (due.length) { this._later = this._later.filter((l) => l.at > this.clock); for (const l of due) l.fn(); }
+    }
     if (this.subs.tick(dt)) this._showLine();
     // the notices waiting their turn: lines held for the region's name, then the objective card
     if (this._held.length && (this._bars || this.mayNotice('line'))) {

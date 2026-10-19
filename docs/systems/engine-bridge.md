@@ -1889,7 +1889,10 @@ side and compares them beat by beat.
   minute each) play every sequence in the engines' bundle in node (engine/sequence-run.mjs: a fresh VM a sequence, a
   fixed 1/30 s step, the menus the Unity host makes, the VM's `Math.random` seeded, `SEED`, so what a world draws at
   random is one run every time: issue #454, a fight temple's wave drawn so that a foe winds up in the last beat failed
-  about one run in 25, by chance, not by load) and fail on a difference not named in **engine/bridge-gaps.js
+  about one run in 25, by chance, not by load; and a scene's waits on the game's clock, never the wall's: the
+  prologue's landing lines waited on the charge card by `performance.now` and `setTimeout`, so in the VM, which runs
+  ahead of the wall, they came seconds of the game later, and on a slow runner over Plumb's first word, issue #539:
+  `Cinema.after(secs, fn)` is the game-clock timer) and fail on a difference not named in **engine/bridge-gaps.js
   `STREAM_DIFFS`** (gap + issue, web-only + why, handled + where), and on an entry that matches nothing any more.
   When the web changes on purpose (a line, a page's rows), record its stream again:
   `node scripts/unity-compare/sequences.mjs web <ids>` then `node scripts/unity-compare/sequences.mjs record`.

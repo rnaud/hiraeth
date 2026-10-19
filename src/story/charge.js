@@ -126,15 +126,16 @@ export const chargeCardLine = () => CHARGE.words.replace(/\.$/, '').toUpperCase(
 
 /**
  * Letter the charge in the lower third for a few seconds (resolves when it has gone).
- * `doc` may be absent (tests, node): then it only sounds.
+ * `doc` may be absent (tests, node): then it only sounds. `after(ms, fn)`: its clock (the prologue's is the game's,
+ * src/ship/cinema.js Cinema.after, so its lines wait on the card the same on every machine; issue #539).
  */
-export function showChargeCard({ sound = null, doc = typeof document !== 'undefined' ? document : null, ms = CARD_MS } = {}) {
+export function showChargeCard({ sound = null, doc = typeof document !== 'undefined' ? document : null, ms = CARD_MS, after = (t, fn) => setTimeout(fn, t) } = {}) {
   sound?.charge?.();
   // (as the screen's 'charge' part too: an engine letters it from there, BridgeHud.cs DrawCharge; issue #394, it showed
   // nothing in Unity. `id` counts the cards, `ms` how long it stays)
   const id = (chargeCards += 1);
   screen.set('charge', { id, mark: CHARGE.mark, text: chargeCardLine(), ms });
-  setTimeout(() => { if (screen.state.charge?.id === id) screen.set('charge', null); }, ms);
+  after(ms, () => { if (screen.state.charge?.id === id) screen.set('charge', null); });
   if (!doc?.body || !doc.head) return Promise.resolve(false);
   if (!doc.getElementById('charge-card-css')) { const s = doc.createElement('style'); s.id = 'charge-card-css'; s.textContent = CSS; doc.head.appendChild(s); }
   doc.getElementById('charge-card')?.remove();
@@ -149,8 +150,8 @@ export function showChargeCard({ sound = null, doc = typeof document !== 'undefi
   void el.offsetWidth;
   el.classList.add('on');
   return new Promise((resolve) => {
-    setTimeout(() => { el.classList.add('off'); el.classList.remove('on'); }, ms - 1300);
-    setTimeout(() => { el.remove(); resolve(true); }, ms);
+    after(ms - 1300, () => { el.classList.add('off'); el.classList.remove('on'); });
+    after(ms, () => { el.remove(); resolve(true); });
   });
 }
 export const CHARGE_CARD_MS = CARD_MS;

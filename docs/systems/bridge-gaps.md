@@ -66,7 +66,6 @@ The engines' bundle played through the same sequences as the web (issue #429, `e
 - the Settings page's Language row; and the page's rows it hides until they apply (the jets' and the pirates' pitch, the developer panel), which its probe reads all the same (web only: no localisation for now: the engines are in English only; the rest is the page's rows in its groups and order, the hidden ones shown as there once they apply (engine/menus.js SETTINGS_ROWS `when`, issue #264)): `menus` at start|settings, `menu.rows`
 - the Start menu's "Debug: worlds" (web only: a developer's entry on the page (the worlds picker); the engines' debug saves are on the title): `menus|house-map` at start|settings|map, `menu.side`
 - the sky's planets (handled: sent as the look's data, not meshes (engine/game.js fullLook planets; Unity draws them in its sky)): `*`, `obj-:planet`
-- the ship's line over the hatch ends sooner in node, so the charge card comes back up (and over Plumb's beat before it, issue #434: its card times on the clock, the node VM runs ahead of it) (handled: a subtitle lasts as long as its recording is heard; the node VM has no sound, Unity plays it and shows the line as the page does (unity.json)): `opening` at drone-*|hatch|stepout*, `part-:sub`, `part~:sub`, `part+:charge`
 
 ## What the sequences' pictures show differently in Unity
 

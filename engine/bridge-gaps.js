@@ -309,7 +309,6 @@ export const STREAM_DIFFS = [
   { seq: 'menus|house-map', beat: 'start|settings|map', keys: ['menu.side'], what: 'the Start menu\'s "Debug: worlds"', status: 'web-only', why: 'a developer\'s entry on the page (the worlds picker); the engines\' debug saves are on the title' },
   // ---- handled
   { seq: '*', keys: ['obj-:planet'], what: 'the sky\'s planets', status: 'handled', where: 'sent as the look\'s data, not meshes (engine/game.js fullLook planets; Unity draws them in its sky)' },
-  { seq: 'opening', beat: 'drone-*|hatch|stepout*', keys: ['part-:sub', 'part~:sub', 'part+:charge'], what: 'the ship\'s line over the hatch ends sooner in node, so the charge card comes back up (and over Plumb\'s beat before it, issue #434: its card times on the clock, the node VM runs ahead of it)', status: 'handled', where: 'a subtitle lasts as long as its recording is heard; the node VM has no sound, Unity plays it and shows the line as the page does (unity.json)' },
 ];
 
 /**
