@@ -1289,6 +1289,8 @@ const CRACK482 = 'Issue #482: the Kiln Yard (?game=fight-glassdunes&seed=4821) i
 /** (v1.86, issue #264: the Start menu's pages in Unity as the page draws them) */
 const UNITY264M = 'Issue #264: the Unity editor’s batch run on this Mac (node scripts/unity-compare/sequences.mjs unity start-pages,menus: the Signal Market on the debug save, muted, High, a 1280 × 720 screen, -screen 1280x720); before: main at 89e4d28c2, the same run; 19 October; webp q 72 (the photo mode’s strip cropped from the top)';
 const WEB264M = 'Issue #264: the web game in muted headless Chrome on this branch’s own Vite (port 5264, node scripts/unity-compare/sequences.mjs web start-pages,menus), 1280 × 720, the same beats; 19 October; webp q 72';
+/** (v1.86, issues #528, #529: the temple endings filmed through their keepers) */
+const FIN528 = 'Issues #528, #529: the cinematics QC (scripts/cinematics-qc.mjs --group "Temple endings") in muted headless Chrome (High, 1280 × 720, the frames kept at 960 × 540) on this branch’s own Vite (port 5428), each ending staged by the review page (in the arena between the keeper and the way out, the keeper woken and calmed); before: the branch’s base with #490 and #491, after: the fix, the same panel of the film; 19 October';
 export const CHANGELOG_MEDIA = {
   '1.86': [
     { match: 'In the Unity version, the Controls page shows your keys and buttons on caps', tags: ['devices'], shots: [
@@ -1377,6 +1379,13 @@ export const CHANGELOG_MEDIA = {
       { name: 'lock-reed', only: 'after', title: 'The crystal lookout', caption: 'A dark lamp on a sheer pole by the breathing reed’s chest: float up to it in a bubble', from: FRAG481 },
       { name: 'lock-resin', only: 'after', title: 'The chimney stack', caption: 'A cracked cap over the resin’s chest, for an ink bomb', from: FRAG481 },
     ] },
+    { match: 'The films that end each makers’ house no longer look through the guardian', tags: ['temples'], shots: [
+      { name: 'finale-reward-528', title: 'The Hush-House: what it leaves you', size: [960, 540], caption: 'The panel of the chimes: before, the lens inside the Mother Snapper’s leaves, a green wall for 2.4 s; after, the chimes on the floor in front of her, him beside them and her leaves and bulb beyond.', from: FIN528 },
+      { name: 'finale-well-528', title: 'The Warden’s Well: what it leaves you', size: [960, 540], caption: 'The same panel: before, the lens inside a solid, a bare floor for the whole of it; after, the warden on its legs over its pad, the chimes at its foot.', from: FIN528 },
+      { name: 'finale-lampless-529', title: 'The Lamp-House: the first shot', size: [960, 540], caption: 'Three seconds in: before, the Lampless’s wings filling the frame; after, the whole of it in the air under the great lamp.', from: FIN528 },
+      { name: 'finale-gardener-529', title: 'The Greenhouse: the wide over the hall', size: [960, 540], caption: 'From high over the hall: before, its sunbeam laid over the Gardener, washed pale as if see-through; after, the beam’s haze held back while the film looks through it, the Gardener solid in its sunlit bed.', from: FIN528 },
+      { name: 'finale-listener-529', title: 'The Whale-House: after the film', size: [960, 540], caption: 'The camera handed back: before, under the Listener’s shell, him half hidden; after, beside him with the shell to one side.', from: FIN528 },
+    ], see: 'Calm any makers’ house’s guardian and watch its film; or open Debug → Cinematics and play the Temple endings (finale.perdide, finale.incal, finale.perdide2, finale.edena, finale.underwater).' },
   ],
   '1.85': [
     { match: 'In the Unity version, flowers far across Viridel’s meadow', tags: ['devices'], shots: [

@@ -109,6 +109,12 @@ export const CHANGELOG = [
     // frame); engine/sequences.js 'hold' (the ship's hold and Anselm's shop, web against Unity); tests/ship.test.js,
     // tests/sequences-ship.test.js
     'On screens faster than 60 frames a second, and in the Unity version, your first steps out of the ship at the end of the opening no longer stop short at the foot of the ramp with the camera caught in its railing: the ship walks you out to your first view of the desert, as at 60.',
+    // issues #528, #529: src/temples/finale.js (keeperBox: the keeper's drawn body, walked on to its rest and turned; A
+    // arced, swung and lifted until it has the whole keeper; B by the purse with the keeper beyond, never through it or
+    // him; C and D out of its body; washes / FILM_HUSH; the hand-back out of its body), src/chimes.js purseSpot (the
+    // purse short of the keeper's body), src/temples/pieces.js Sunbeam hush / cone, src/story/moment.js behindHim
+    // (avoid); tests/temple-finale.test.js (A–C: a lens out of solids and the body that sees its subject)
+    'The films that end each makers’ house no longer look through the guardian. The shot of what it leaves you shows the chimes on the floor with the guardian beyond them, where it used to be filmed from inside its leaves, its moss or a wall; the chimes now land in the open in front of it rather than under it. The Lampless’s wings and the Listener’s shell no longer fill the first shot, the Gardener is no longer washed pale by its sunbeam in the wide over its hall, and after the Whale-House’s film the camera comes back beside you rather than under the Listener’s shell.',
   ] },
   { v: '1.85', date: '2026-10-18', items: [
     // issue #474: src/music-moments.js (MUSIC_MODES, musicMode: Always the default), src/ui.js (musicMode, musicV: a saved

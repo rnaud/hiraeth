@@ -9,8 +9,10 @@ import assert from 'node:assert/strict';
 import './register-gadgets.js';
 import * as THREE from 'three';
 import { TEMPLES, TEMPLE_HOME, templeOf } from '../src/temples/index.js';
-import { FINALE, FINALES, finaleLength, finaleShots, finaleFlag, playFinale, wayOut } from '../src/temples/finale.js';
-import { Moment, MomentStage } from '../src/story/moment.js';
+import { FINALE, FINALES, finaleLength, finaleShots, finaleFlag, playFinale, wayOut, keeperBox, fitFov, washes, FILM_HUSH } from '../src/temples/finale.js';
+import { Moment, MomentStage, behindHim } from '../src/story/moment.js';
+import { sightClear } from '../src/story/film.js';
+import { purseSpot } from '../src/chimes.js';
 import { buildableById } from '../src/levels/buildable.js';
 import { Physics } from '../src/physics.js';
 import { game } from '../src/game-state.js';
@@ -104,6 +106,62 @@ for (const id of Object.keys(TEMPLES)) {
   });
 }
 
+// The cinematics QC of v1.85 (#528, #529): B filmed through the keeper's own body in most houses (the lens kept out of
+// a column of its radius, its petals, leaves, wings and shell reaching past it), A filled by the Lampless's wings and
+// the Listener's shell, the Gardener washed pale by its sun in C. In every finale, panels A–C have a lens out of
+// solids and out of the keeper's drawn body that sees its subject: A the keeper (whole, in its lens), B the purse past
+// everything (the keeper's body too, and him), C the house.
+for (const id of Object.keys(TEMPLES)) {
+  test(`${id}: A–C each have a lens out of solids and the keeper's body, that sees its subject`, () => {
+    const { rt, physics } = house(id);
+    standBy(rt);
+    const film = finaleShots(rt), M = rt.guardian.model, way = wayOut(rt);
+    const body = keeperBox(M);
+    assert.ok(!body.isEmpty(), 'the keeper has a drawn body');
+    const m = new Moment({ shots: film.shots, stage: { physics } });
+    const subject = [film.at.keeper(), film.at.reward.clone().setY(film.at.reward.y + 0.3), film.at.house];
+    const opts = [
+      { skip: [M.group, way.piece.group], near: 1 },
+      { skip: [way.piece.group], near: 0.25 },   // (the keeper's own body counts: it must not stand over the purse)
+      { skip: [M.group, way.piece.group], near: 3 },
+    ];
+    let t0 = 0;
+    for (const [i, s] of film.shots.slice(0, 3).entries()) {
+      const P = 'ABC'[i];
+      for (const k of [0.05, 0.5, 0.95]) {
+        m.t = t0 + s.dur * k;
+        const c = m.camera(), at = `${P} at ${k} (${c.pos.toArray().map((v) => v.toFixed(1))})`;
+        assert.ok(!physics.embedded(c.pos), `${at}: the lens out of solids`);
+        assert.ok(!body.clone().expandByScalar(0.3).containsPoint(c.pos), `${at}: the lens out of the keeper's body`);
+        assert.ok(sightClear(c.pos, subject[i], { physics, roots: [rt.root], ...opts[i] }), `${at}: it sees its subject`);
+        // (the keeper as it stands by then: calmed, it walks on to its rest as A plays, and the lens follows it there;
+        // the Mooring-House's Warden walks 5 m since #477, so its first place is no measure of the panel's end)
+        if (P === 'A') {
+          const now = film.bodyAt(m.t, false), look = now.getCenter(V()).setY(c.look.y), need = fitFov(c.pos, look, now);
+          assert.ok(need <= c.fov + 8, `${at}: the keeper whole in a ${c.fov.toFixed(0)}° lens (needs ${need.toFixed(0)}°)`);
+        }
+      }
+      t0 += s.dur;
+    }
+  });
+}
+
+test('the purse lands short of the keeper’s body, and the hand-back swings out of it', () => {
+  const you = V(0, 0, 0), keeper = V(0, 0, 8);
+  assert.equal(purseSpot(you, keeper).z, 3.4, 'no body: 3.4 m toward it, as before');
+  const body = new THREE.Box3(V(-4, 0, 3), V(4, 4, 13));
+  assert.ok(Math.abs(purseSpot(you, keeper, body).z - 2.2) < 1e-6, 'short of its body by 0.8 m');
+  assert.ok(Math.abs(purseSpot(you, keeper, new THREE.Box3(V(-4, 0, -1), V(4, 4, 13))).z - 0.8) < 1e-6, 'standing in its reach: at his feet');
+  // the follow camera: behind him, unless that puts the arm in the keeper's body
+  const rig = { yaw: 0, pitch: 0.4, pitch0: 0.16, dist: 4.8 }, P = { pos: V(0, 0, 0), heading: Math.PI };   // (facing -z: behind him is +z)
+  behindHim(rig, P);
+  assert.ok(Math.abs(rig.yaw - 2 * Math.PI) < 1e-9 && rig.pitch === 0.16, 'behind him at its usual pitch');
+  behindHim(rig, P, { avoid: new THREE.Box3(V(-5, 0, 2), V(5, 8, 12)) });
+  const yaw = rig.yaw, end = V(Math.sin(yaw), 0, Math.cos(yaw)).multiplyScalar(5);
+  assert.ok(end.z < 1.5, `swung clear of the body (${end.toArray().map((v) => v.toFixed(1))})`);
+  assert.ok(Math.abs(Math.atan2(Math.sin(yaw - 2 * Math.PI), Math.cos(yaw - 2 * Math.PI))) < 2.2, 'the smallest turn that clears it');
+});
+
 const fakeShip = () => {
   const s = { log: [], shots: [], playing: false, busy: () => false, auto: null };
   s.shot = (c) => s.shots.push(c);
@@ -171,4 +229,14 @@ test('a skip lands the same: the way out open, the flag set; without a ship the 
   assert.equal(n.seen.playing, false, 'no ship’s camera: nothing played');
   assert.equal(n.seen.shut.length, 0, 'the way out opened at once, as before');
   assert.deepEqual(n.sound.cues, []);
+});
+
+test('the Greenhouse: its sun hushed while the film looks through it at the Gardener, and back after (#529)', () => {
+  const { rt } = house('edena');
+  const ship = fakeShip(), seen = [];
+  ship.shot = (c) => { ship.shots.push(c); if (c.i < 3) seen.push({ hush: rt.gardenSun.hush, washes: washes(rt, c.pos, keeperBox(rt.guardian.model)).length }); };
+  resolveWith('edena', { ship });
+  assert.ok(seen.some((f) => f.washes > 0), 'a panel of A–C looks at the Gardener through its sun');
+  assert.ok(seen.every((f) => !f.washes || f.hush === FILM_HUSH), 'and the sun is hushed whenever it does');
+  assert.equal(rt.gardenSun.hush, 1, 'back to full after the film');
 });
