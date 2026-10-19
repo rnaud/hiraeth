@@ -135,7 +135,7 @@ in `dist/`, the zip (`MEDIA_FILE`), the Deck package and the Android workflow le
 server, and from the site (`https://hiraeth.alexandria-rnaud.workers.dev/changelog-media/…`) in a bundled
 game (the Android app, the Deck); offline it says the pictures are online and shows the words and numbers.
 
-Limits (tests): a picture at most 150 KB, a pair 260 KB, the folder 200 MB (raised from 30 MB to 60 MB with v1.0, to 120 MB with v1.16 in October 2026, when the enemy and temple reworks filled 60, then to 200 MB with v1.56, when the eight worlds' explorations filled 113: the pictures stay on the site, never on the devices). In practice a 1280 × 720 pair
+Limits (tests): a picture at most 150 KB, a pair 260 KB, the folder 260 MB (raised from 30 MB to 60 MB with v1.0, to 120 MB with v1.16 in October 2026, when the enemy and temple reworks filled 60, then to 200 MB with v1.56, when the eight worlds' explorations filled 113, then to 260 MB with v1.86, when the batch of 19 October filled 200: the pictures stay on the site, never on the devices). In practice a 1280 × 720 pair
 is 60–150 KB.
 
 A picture made by hand (no `view`) says where it came from in `from`: a screenshot of earlier work, or a
