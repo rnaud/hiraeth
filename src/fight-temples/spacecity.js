@@ -11,7 +11,9 @@
 export const SPACECITY_FIGHT = {
   id: 'fight-spacecity', world: 'spacecity', colours: 'lampoil',
   name: 'The Oil Exchange',
-  blurb: 'The islands’ lamp-oil depot on its rock over the dark. Its drums leak, a spark and it burns, and something has moved in among them: four decks of it.',
+  blurb: 'The islands’ lamp-oil depot on its rock over the dark. Its drums leak, a spark and it burns, and ink comes up among them.',
+  // the end card's first line, the place's own (issue #483: the place speaks first, the scores under it)
+  quiet: 'The drums stop dripping. Osric fetches his scales.',
   hour: 16.8,
   palette: { wall: '#d8c8a8', wall2: '#c8b490', wall3: '#8a7a5a', floor: '#a89a80', floor2: '#b8aa90', floor3: '#7a6e58', ink: '#1a1a28', inkLite: '#3a3a50', glyph: '#f0c06a', cap: '#8a5a3a', pale: '#fff0c8', slag: '#ff9a3a', slag2: '#ffe08a' },
   ground: { ticks: false },

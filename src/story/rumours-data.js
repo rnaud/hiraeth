@@ -204,5 +204,20 @@ export const RUMOUR_OBJECT_LINES = [
   '~curious~ Seen {host} {dir}? Something to play, they say.',
 ];
 
+/**
+ * A spring-house's host (a fight temple's, issue #483; docs/story-bible.md "The spring-houses"): not a game to win, the
+ * ink that comes up through an old floor, and who asks for help by its door. `any` world; Vael's people mime it.
+ */
+export const RUMOUR_FIGHT_LINES = {
+  any: [
+    '~whisper~ Ink comes up through an old makers’ floor {dir}. {Who} asks everyone who passes.',
+    '~solemn~ {Who} sits by a makers’ door {dir}. The dark comes up in there, they say.',
+  ],
+  arzach: [
+    '~whisper~ (A finger points {way}. Two hands well up from the ground, dark. {Who} waits there.)',
+    '~solemn~ (Two fingers crossed like blades, then a point {way}. Something comes up there. {Who} asks for help.)',
+  ],
+};
+
 /** The map's short name for a rumour of a fragment (a sight's or a host's is its own). */
 export const RUMOUR_FRAGMENT_LABEL = 'Something singing, they say';

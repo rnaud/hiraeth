@@ -14,7 +14,9 @@ const W = (along, at, dir, w = 3.4) => ({ along, at, w, dir });
 export const ARZACH_FIGHT = {
   id: 'fight-arzach', world: 'arzach', colours: 'slate',
   name: 'The Wind Cloister',
-  blurb: 'The riders’ old monastery court on the cliff over the cloud. The wind still comes through it, and something has come in with the wind: four rooms of them.',
+  blurb: 'The riders’ old monastery court on the cliff over the cloud. The wind still comes through it, and now the dark comes up out of its floor.',
+  // the end card's first line, the place's own (issue #483: the place speaks first, the scores under it)
+  quiet: 'The wind drops. Sister Maud steps in with her broom.',
   hour: 9.4,
   palette: { wall: '#e6e2d8', wall2: '#d6d2c8', wall3: '#aeb0b2', floor: '#c4c8c6', floor2: '#d8dad4', floor3: '#9aa2a8', ink: '#28304a', inkLite: '#4c5a7e', glyph: '#7fc4e6', cap: '#a9a49a', pale: '#e8f6ff', gust: '#f8fbff' },
   ground: { ticks: false },

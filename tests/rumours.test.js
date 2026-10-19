@@ -5,7 +5,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { Rumours, RUMOUR, rumourArea, rumourLine, rumourTargets, fragmentWhere, levelSights, tellsRumours, toldKey, seenKey } from '../src/story/rumours.js';
-import { RUMOUR_LINES, RUMOUR_OBJECT_LINES } from '../src/story/rumours-data.js';
+import { RUMOUR_LINES, RUMOUR_OBJECT_LINES, RUMOUR_FIGHT_LINES } from '../src/story/rumours-data.js';
 import { RUMOUR_PLACES, RUMOUR_KINDS } from '../src/story/rumour-places.js';
 import { FRAGMENTS } from '../src/fragments-data.js';
 import { HOSTS } from '../src/story/hosts-data.js';
@@ -31,6 +31,7 @@ const level = (world) => {
   return { sights: () => sights, beacons: [{ name: 'the lamp chain under the stack', top: [f[12][0], f[12][1] + 40, f[12][2] + 200] }], temples: [{ def: { name: 'The Rose House' }, outside: { door: { at: { x: f[5][0] - 300, y: 0, z: f[5][2] } } } }], ship: { pos: { x: f[6][0] + 20, y: f[6][1], z: f[6][2] + 20 } } };
 };
 const longestHost = Object.values(HOSTS).filter((h) => !h.object).sort((a, b) => (b.name + b.title).length - (a.name + a.title).length)[0];
+const longestFight = Object.entries(HOSTS).filter(([id]) => id.startsWith('fight-')).sort(([, a], [, b]) => (b.name + b.title).length - (a.name + a.title).length)[0];
 const anObject = Object.values(HOSTS).find((h) => h.object);
 
 test('every route world has its lines, and every fragment its place in the people’s words', () => {
@@ -49,13 +50,14 @@ test('every route world has its lines, and every fragment its place in the peopl
 test('every line has a tone, fills in whole and fits 120 characters, in every world, for every fragment', () => {
   for (const w of WORLDS) {
     const L = level(w), lands = [...levelSights(L), { name: 'the lamp chain under the stack', at: { x: 0, y: 0, z: 0 } }];
-    for (const tpl of [...RUMOUR_LINES[w].fragment, ...RUMOUR_LINES[w].host, ...RUMOUR_LINES[w].sight, ...RUMOUR_OBJECT_LINES]) {
+    for (const tpl of [...RUMOUR_LINES[w].fragment, ...RUMOUR_LINES[w].host, ...RUMOUR_LINES[w].sight, ...RUMOUR_OBJECT_LINES, ...(RUMOUR_FIGHT_LINES[w] ?? RUMOUR_FIGHT_LINES.any)]) {
       const p = parseLine(tpl);
       assert.ok(p.explicit && TONES.includes(p.tone), `${w}: a tone: ${tpl}`);
     }
     const targets = rumourTargets({ world: w, sights: levelSights(L), hosts: [
       { id: longestHost.id, name: longestHost.name, title: longestHost.title, at: [0, 0, 0] },
       { id: 'host.post', name: anObject?.name ?? 'The makers’ post', title: '', object: true, at: [60, 0, 0] },
+      { id: `host.${longestFight[0]}`, name: longestFight[1].name, title: longestFight[1].title, fight: 'The Sunken Hall', at: [-60, 0, 0] },
     ] });
     for (const t of targets) for (let seed = 0; seed < 3; seed++) for (const from of [{ x: t.at.x + 300, y: 0, z: t.at.z - 200 }, { x: t.at.x + 10, y: 0, z: t.at.z }]) {
       const s = rumourLine(w, t, { from, landmarks: lands, seed });
@@ -205,4 +207,17 @@ test('a host is not told of while its run wants what he hasn’t got (issue #480
   wants = '';
   const line = r.offer(sefa, from);
   assert.ok(line && line.includes('Yusra'), `told once it can be had: ${line}`);
+});
+
+test('a spring-house’s host (a fight temple’s) is told of as its door and the ink, never as a game (issue #483)', () => {
+  for (const w of ['desert', 'arzach', 'incal']) {
+    const [t] = rumourTargets({ world: w, hosts: [{ id: 'host.fight-desert', name: 'Wafa', title: 'who keeps watch on the sunken hall', fight: 'The Sunken Hall', at: [0, 0, 0] }] }).filter((x) => x.kind === 'host');
+    assert.equal(t.label, 'The Sunken Hall', 'the map names the place');
+    const own = RUMOUR_FIGHT_LINES[w] ?? RUMOUR_FIGHT_LINES.any;
+    for (let seed = 0; seed < own.length; seed++) {
+      const s = rumourLine(w, t, { from: { x: 300, y: 0, z: 0 }, seed });
+      assert.ok(own.some((tpl) => parseLine(tpl).tone === parseLine(s).tone && s.includes('Wafa')), s);
+      assert.doesNotMatch(s, /game|bet|play/i, s);
+    }
+  }
 });

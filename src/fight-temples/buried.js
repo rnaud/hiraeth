@@ -14,7 +14,9 @@ const R = (along, at, dir, w = 2.4) => ({ along, at, w, dir });
 export const BURIED_FIGHT = {
   id: 'fight-buried', world: 'buried', colours: 'brass',
   name: 'The Tooth Gallery',
-  blurb: 'A gear-house between the canyon’s teeth, its ore carts still running the rails with nobody to load them. Stay off the rails when the lamps blink: four rooms of them.',
+  blurb: 'A gear-house between the canyon’s teeth, its ore carts still running the rails with nobody to load them. Ink comes up between the rails. Off them when the lamps blink.',
+  // the end card's first line, the place's own (issue #483: the place speaks first, the scores under it)
+  quiet: 'The carts roll to a stop. Greta is already at the grease pot.',
   hour: 10.5,
   palette: { wall: '#b88a5a', wall2: '#a07548', wall3: '#6e4e34', floor: '#9a8670', floor2: '#ae9a80', floor3: '#6e5e4c', ink: '#2a2018', inkLite: '#4a3a2e', glyph: '#ffb347', cap: '#c9a24a', pale: '#ffe0b0' },
   ground: { ticks: false },

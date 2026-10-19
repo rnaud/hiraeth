@@ -12,7 +12,9 @@
 export const GLASSDUNES_FIGHT = {
   id: 'fight-glassdunes', world: 'glassdunes', colours: 'furnace',
   name: 'The Kiln Yard',
-  blurb: 'The glassworkers’ cooling sheds, floored in glass over the kilns. The glass cracks under a crowd, and there is a crowd: four sheds of it.',
+  blurb: 'The glassworkers’ cooling sheds, floored in glass over the kilns. The glass cracks under a crowd, and the ink brings one up.',
+  // the end card's first line, the place's own (issue #483: the place speaks first, the scores under it)
+  quiet: 'The glass stops ringing. Ozren goes back to his kilns.',
   hour: 15.2,
   palette: { wall: '#e8d8b0', wall2: '#d8c498', wall3: '#a8946c', floor: '#cfe9e0', floor2: '#e0f4ee', floor3: '#9cc8bc', ink: '#203038', inkLite: '#3a5a66', glyph: '#ff9a4a', cap: '#d6a94a', pale: '#fff0d8', slag: '#ff7a3a', slag2: '#ffd36a' },
   ground: { ticks: false },

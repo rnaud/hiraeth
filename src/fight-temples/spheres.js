@@ -12,7 +12,9 @@
 export const SPHERES_FIGHT = {
   id: 'fight-spheres', world: 'spheres', colours: 'orchard',
   name: 'The Quiet Orchard',
-  blurb: 'The spheres’ walled gardens at dusk, where the shade of a rolling sphere sweeps the lawns. The hounds run in it, and the gardens are full of them: four.',
+  blurb: 'The spheres’ walled gardens at dusk, where the shade of a rolling sphere sweeps the lawns. The hounds come up out of the beds and run in it.',
+  // the end card's first line, the place's own (issue #483: the place speaks first, the scores under it)
+  quiet: 'The shade passes empty. Wenna steps onto her lawn.',
   hour: 17.8,
   palette: { wall: '#ece6d8', wall2: '#ddd6c6', wall3: '#aaa494', floor: '#a8b878', floor2: '#b8c888', floor3: '#7a8a5a', ink: '#2a2a3a', inkLite: '#4a4a6a', glyph: '#f4c86a', cap: '#c9b08a', pale: '#fff0d0', shade: '#3e3a5a' },
   ground: { ticks: true },

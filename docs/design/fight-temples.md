@@ -188,7 +188,9 @@ spring wells up (an ember ring) 0.7 s before foes come out of it; a table's `{ g
 with more health that leaves a heart and an ember shard (8 s of double cuts); a room's `geysers: { every, n }` opens
 ink pools on the floor under and near him that burst after 1.25 s (half a heart, two cuts to foes in them); the last
 three of a wave stand under pillars of light; a foe out of the room is put back; the results rank the run S to C by
-the hearts lost and the time against the table's `par`.
+the hearts lost and the time against the table's `par`. The shard's double cuts are "the blade runs bright" (never
+"fury"); the results card's first line is the place's own, the table's `quiet` ("The ink sinks back into the floor. Wafa
+comes down the stair."), the scores under it, and the run's title says the house "is quiet" (issue #483).
 
 **The loot.** A heart now and then (5 %, 16 % at half your hearts or fewer, never at full), drawn in as you pass; a
 chime from a light foe a quarter of the time, six from a tough one, a purse for each wave, room and the finale

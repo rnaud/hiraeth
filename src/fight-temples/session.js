@@ -370,8 +370,8 @@ export function startFightTemple(ctx) {
         if (h.age <= 30) {
           furyT = FURY.secs; run.furies++;
           sound?.potionPickup?.(); sfx.whoosh?.();
-          words.pop(_v.copy(player.pos).setY(player.pos.y + 2.2), 'fury!', 'gold', 1.1);
-          ctx.flash(`Fury · your cuts land ${FURY.edge}× for ${FURY.secs} s`, 'good', 1.6);
+          words.pop(_v.copy(player.pos).setY(player.pos.y + 2.2), 'bright!', 'gold', 1.1);
+          ctx.flash(`The blade runs bright · cuts land ${FURY.edge}× for ${FURY.secs} s`, 'good', 1.6);   // (no "fury": the house voice's words, issue #483)
         }
         h.m.removeFromParent(); shards.splice(i, 1);
       }
@@ -380,7 +380,7 @@ export function startFightTemple(ctx) {
     furyT = Math.max(0, furyT - dt);
     BLADE.edge = furyT > 0 ? edge0 * FURY.edge : edge0;
     if (blade) blade.slashTones = furyT > 0 ? FURY.tones : null;
-    if (was !== BLADE.edge && furyT <= 0) ctx.flash('The fury fades', '', 1.0);
+    if (was !== BLADE.edge && furyT <= 0) ctx.flash('The blade dims', '', 1.0);
   }
 
   // ---------------------------------------------------------------- the last few marked, the strays put back
@@ -486,11 +486,13 @@ export function startFightTemple(ctx) {
     over = true;
     const rank = rankFor({ secs: runClock, lost: run.lost }, def.par);
     run.rank = rank;
-    ctx.finish({ title: `${def.name} cleared · rank ${rank}`, lines: [
+    // (issue #483: a spring-house ends quiet, not cleared; the place speaks first, its table's `quiet`, the scores under it)
+    ctx.finish({ title: `${def.name} is quiet · rank ${rank}`, lines: [
+      ...(def.quiet ? [def.quiet] : []),
       fresh ? coloursLine(pal.name, (id) => own?.has?.(id) ?? true) : `${pal.name}: yours already (Items, Colours)`,
       `Rank ${rank} · ${clock(runClock)} (par ${clock(def.par ?? 240)}) · hearts lost ${+run.lost.toFixed(2)}`,
       `Foes felled ${run.kills} · gorged ${run.gorged} of ${run.gorgedOf} · longest chain ${run.bestChain}`,
-      `Hearts found ${run.hearts} · fury ${run.furies}× · chimes ${run.chimes}${gentle ? ' · gentle foes' : ''}`,
+      `Hearts found ${run.hearts} · bright blade ${run.furies}× · chimes ${run.chimes}${gentle ? ' · gentle foes' : ''}`,
       ...(def.seed ? [`This run: ${def.seed} (the same rooms and waves again: ?seed=${def.seed})`] : []),
     ] });
   }
@@ -558,7 +560,7 @@ export function startFightTemple(ctx) {
           if (k > 0.7 && Math.hypot(player.pos.x - reward.position.x, player.pos.z - reward.position.z) < 1.7) takeReward();
         }
         const left = queue.length + mine.length + pending.reduce((a, w) => a + w.items.length, 0);
-        const extra = `${t - run.lastKill <= 2.5 && run.chain >= 3 ? ` · chain ×${run.chain}` : ''}${furyT > 0 ? ` · fury ${Math.ceil(furyT)} s` : ''}`;
+        const extra = `${t - run.lastKill <= 2.5 && run.chain >= 3 ? ` · chain ×${run.chain}` : ''}${furyT > 0 ? ` · bright ${Math.ceil(furyT)} s` : ''}`;
         ctx.status(run.phase === 'fight' ? `${rooms[run.room].name} · ${left} left${extra}` : run.phase === 'rest' ? `Breathe · next wave in ${Math.max(0, restT).toFixed(1)} s`
           : run.phase === 'wait' ? `On to ${rooms[run.room].name}` : run.phase === 'reward' ? 'Take the reliquary' : '');
         if (player.dead) {

@@ -8,6 +8,15 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.86', date: '2026-10-19', items: [
+    // issue #483: src/story/hosts-data.js (the fight hosts' second lines), src/fight-temples/<world>.js (blurb, quiet),
+    // fight-temples/index.js rules, session.js (the end card's place line and title, the shard's bright blade);
+    // docs/story-bible.md "The spring-houses"; tests/fight-temples-story.test.js
+    'The fight temples now belong to the story: the makers built them over springs where the dark wells up, and the people by their doors want their mill, their cranes or their gardens back, and say so. A run ends with the place going quiet and its keeper coming back in, before your time and rank, and the ember shard’s double cuts are now the blade running bright.',
+    // issue #483: src/story/rumours-data.js RUMOUR_FIGHT_LINES, rumours.js (a fight host: h.fight), story/index.js addHost;
+    // tests/rumours.test.js
+    'People now tell you of a fight temple as the old floor the ink comes up through and the person waiting by its door, not as a game, and your map names it by the place.',
+  ] },
   { v: '1.85', date: '2026-10-18', items: [
     // issue #474: src/music-moments.js (MUSIC_MODES, musicMode: Always the default), src/ui.js (musicMode, musicV: a saved
     // Moments from before goes to Always once), src/audio.js musicModeSetting; tests/music-moments.test.js, engine-menus.test.js

@@ -23,7 +23,7 @@ export function fightTempleGame(def) {
     id: def.id, order: 30,
     name: def.name,
     blurb: def.blurb,
-    rules: 'Clear the rooms one by one: the waves come up out of the ink springs, many foes at once, each felled in a cut or two. Hearts and chimes drop as they fall. The last room’s last wave is the hardest; then the reliquary on the altar holds new colours for your kit. The rooms and their waves are different on every visit. Best time kept.',
+    rules: 'Clear the rooms one by one: the waves come up out of the ink springs, many at once; a cut or two sends each back into the floor. Hearts and chimes drop as they go. The last room’s last wave is the hardest; then the reliquary on the altar holds new colours for your kit. The rooms and their waves are different on every visit. Best time kept.',
     drives: false,
     fightTemple: def.world,
     controls: {

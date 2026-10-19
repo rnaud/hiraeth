@@ -14,7 +14,9 @@ const B = (along, at, dir, w = 2.6) => ({ along, at, w, dir });
 export const EDENA_FIGHT = {
   id: 'fight-edena', world: 'edena', colours: 'leafglass',
   name: 'The Seed Vault',
-  blurb: 'The white builders’ cellars under the greenhouse, their seed beds full of sleeping eyes. Something wakes them now: four rooms of it.',
+  blurb: 'The white builders’ cellars under the greenhouse, their seed beds full of sleeping eyes. Ink comes up between the beds now, and wakes them.',
+  // the end card's first line, the place's own (issue #483: the place speaks first, the scores under it)
+  quiet: 'The eyes close. Hollis comes down with his lamp to count the seed.',
   hour: 10.8,
   palette: { wall: '#eef0e6', wall2: '#dfe4d6', wall3: '#b4bca8', floor: '#d6dccb', floor2: '#e6ecda', floor3: '#a8b298', ink: '#22302a', inkLite: '#3e5a4a', glyph: '#8fd86a', cap: '#7fa86a', pale: '#f4ffe8' },
   ground: { ticks: false },

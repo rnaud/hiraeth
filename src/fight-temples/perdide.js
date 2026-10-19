@@ -15,7 +15,9 @@ const L = (along, at, dir, w = 2.8) => ({ along, at, w, dir });
 export const PERDIDE_FIGHT = {
   id: 'fight-perdide', world: 'perdide', colours: 'reed',
   name: 'The Drowned Mill',
-  blurb: 'The reed-cutters’ old mill, its floors under a hand of water. The stones still roll in there, and the swamp’s things have moved in: four rooms of them.',
+  blurb: 'The reed-cutters’ old mill, its floors under a hand of water. The stones still roll in there, and ink comes up through the flood.',
+  // the end card's first line, the place's own (issue #483: the place speaks first, the scores under it)
+  quiet: 'The water clears. Gert puts his shoulder to the gear.',
   hour: 17.6,
   palette: { wall: '#b6a888', wall2: '#a4977a', wall3: '#7a705c', floor: '#7d8866', floor2: '#909c76', floor3: '#5e684e', ink: '#232a3c', inkLite: '#3e4c6a', glyph: '#7fd0b8', cap: '#8e5e3a', pale: '#d8f4e8' },
   ground: { ticks: false },

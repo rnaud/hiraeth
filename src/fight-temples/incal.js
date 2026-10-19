@@ -11,7 +11,9 @@
 export const INCAL_FIGHT = {
   id: 'fight-incal', world: 'incal', colours: 'cab',
   name: 'The Lift Depot',
-  blurb: 'The old cab bays on a ledge of the shaft, where the cranes still lower their loads with nobody at the levers. Mind what comes down, and what came up: four bays of them.',
+  blurb: 'The old cab bays on a ledge of the shaft, where the cranes still lower their loads with nobody at the levers. Mind what comes down, and what comes up.',
+  // the end card's first line, the place's own (issue #483: the place speaks first, the scores under it)
+  quiet: 'The chains hang still. Ulric climbs back up to his levers.',
   hour: 12.5,
   palette: { wall: '#6a707a', wall2: '#5a5f6a', wall3: '#3e424c', floor: '#8a9098', floor2: '#9aa0a8', floor3: '#6a7078', ink: '#1e2028', inkLite: '#3a4050', glyph: '#ffd36a', cap: '#e8b83a', pale: '#fff0b0' },
   ground: { ticks: false },

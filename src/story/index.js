@@ -396,7 +396,8 @@ export function createStory(o) {
         use: () => dialogue.start(def, null, at, look),
       });
     }
-    rumours.addHost({ id: def.id, name: H.name ?? spot.name, title: H.object ? '' : H.title ?? '', object: !!H.object, at: spot.at, lacks: spot.lacks });
+    rumours.addHost({ id: def.id, name: H.name ?? spot.name, title: H.object ? '' : H.title ?? '', object: !!H.object, at: spot.at, lacks: spot.lacks,
+      fight: spot.id.startsWith('fight-') ? spot.name : null });   // (a spring-house's host: told of as its door, issue #483)
     const stand = hostStand(spot.at, spot.heading ?? 0, H.stand);
     const g = physics?.groundAt?.(stand.x, stand.y + 2.5, stand.z, 6);
     if (Number.isFinite(g)) stand.y = g;

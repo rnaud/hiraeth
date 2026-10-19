@@ -20,7 +20,9 @@ const C = (along, at, dir, w = 2.4) => ({ along, at, w, dir });
 export const MOONFOUNDRY_FIGHT = {
   id: 'fight-moonfoundry', world: 'moonfoundry', colours: 'slag',
   name: 'The Pour Floor',
-  blurb: 'The casting bays under the Foundry, where the house still pours by itself. Mind the channels in the floor, and what has come to stand by the heat: four rooms of them.',
+  blurb: 'The casting bays under the Foundry, where the house still pours by itself. Mind the channels in the floor, and what comes up to stand by the heat.',
+  // the end card's first line, the place's own (issue #483: the place speaks first, the scores under it)
+  quiet: 'The bays go still. Marta takes up her tapping rod.',
   hour: 10.5,
   palette: { wall: '#e8dcc4', wall2: '#d8ccb2', wall3: '#a99a86', floor: '#bdb9b0', floor2: '#cfcac0', floor3: '#8f8a84', ink: '#2a2228', inkLite: '#5a4a4a', glyph: '#ff8a3e', cap: '#9a7a48', pale: '#ffd8a8', slag: '#ff8a3e', slag2: '#ffd36a', crust: '#6a5a50' },
   ground: { ticks: false },

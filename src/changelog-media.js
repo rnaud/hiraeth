@@ -1213,6 +1213,8 @@ const PSO465 = 'Issue #465: a release Linux player of main at 509b40cc9 on the S
 const SKIFF514 = 'Issue #514: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720, 10 o’clock, clear, the HUD hidden) on this branch’s own Vite (port 5472), ?level=perdide&debugsave=1; before: the tree at fb6b3ee94 (port 5474), the same view; 18 October; cwebp -q 72';
 /** (v1.85, issue #507: the games' cards show the focus, not the main button) */
 const CARD507 = 'Issue #507: the Ring Race’s page (?game=rings) in muted headless Chrome (ANGLE Metal, High, 1280 × 720) on this branch’s own Vite (port 6507), a pad in hand, the run ended by the page’s script and the focus moved to Quit; before: the tree at fb6b3ee94, the same view; 18 October; cwebp -q 72';
+/** (v1.86, issue #483: the fight temples in the story: their cards) */
+const STORY483 = 'Issue #483: the Sunken Hall’s page (?game=fight-desert&seed=7) in muted headless Chrome (ANGLE Metal, High, 1280 × 720) on this branch’s own Vite (port 5483), the start card as it opened, then the run won by the page’s script (each room’s foes put down, the traveller set on the altar); before: the tree at c694911e8, the same run.';
 /** (v1.85, issue #516: the Quests page marks the tracked quest and says how to track another) */
 const QUESTS516 = 'Issue #516: the running game in muted headless Chrome (ANGLE Metal, High, 1280 × 720) on this branch’s own Vite (port 6507), the desert on a save with Teo’s Drum tracked, Ilo’s errand and the world’s quest under way, a pad in hand, View (J) open on Quests and the cursor moved down onto The Tree That Drinks; before: the tree at fb6b3ee94, the same view; 18 October; cwebp -q 72';
 /** (v1.85, issue #485: the Rose House watcher's beam stops at the shield) */
@@ -1258,6 +1260,13 @@ const HUD501 = 'Issue #501: the cinematics QC (scripts/cinematics-qc.mjs --only 
 const UNITY526 = 'Issue #526: the Unity editor’s batch run on this Mac (node scripts/unity-compare/sequences.mjs unity talk: the talk sequence, Teo’s answers in the desert, muted, High, 1280 × 720), an Xbox pad faked in hand for the run (navigator.getGamepads, the right stick nudged once); before: the tree at 3ff90091b, the same run; 19 October; cwebp -q 72';
 const WEB526 = 'Issue #526: the web game in muted headless Chrome on this branch’s own Vite (port 5462, node scripts/unity-compare/sequences.mjs web talk), 1280 × 720, the same pad faked in hand; 19 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '1.86': [
+    { match: 'The fight temples now belong to the story', tags: ['story'], shots: [
+      { name: 'fight-story-end', title: 'The end card', size: [1280, 720], caption: 'The Sunken Hall won: before, the scores alone; after, the place speaks first (“The ink sinks back into the floor. Wafa comes down the stair.”) and the shard’s boost is the bright blade.', from: STORY483 },
+      { name: 'fight-story-start', title: 'The start card', size: [1280, 720], caption: 'The Sunken Hall’s start card: before, “four rooms of them”; after, what the place is and what comes up in it, and foes sent back into the floor.', from: STORY483 },
+    ], see: 'Talk to the person by any fight temple’s door (Wafa, west of the desert’s pilgrims’ camps): the second line says what they want back. Win the run: the card’s first line is the place’s.' },
+    { match: 'People now tell you of a fight temple', see: 'In a world whose fight temple you have not found, ask the people who only chat: one may tell you of the ink coming up through an old makers’ floor and who waits by its door; the circle on your map is named after the place (“The Sunken Hall”).' },
+  ],
   '1.85': [
     { match: 'A house’s great key now looks the part', tags: ['temples'], shots: [
       { name: 'great-key-486', title: 'The great key', caption: 'Out of its chest in the Aerie: before, a longer small key with a second ring; after, the makers’ mark for a bow, brass and pale stone, a teal light down the shaft and a stepped ward', from: GREATKEY486,

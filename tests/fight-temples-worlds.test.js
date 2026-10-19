@@ -255,8 +255,9 @@ for (const game of GAMES) {
     player.pos.set(D.rooms.at(-1).altar[0], 0, D.rooms.at(-1).altar[1]);
     for (let k = 0; k < 80 && !out.finished; k++) tick();
     assert.ok(out.finished && !out.finished.failed, 'won');
-    assert.match(out.finished.title, new RegExp(`^${D.name} cleared · rank [SABC]$`));
-    assert.ok(out.finished.lines[0].startsWith(`New colours: ${colourById(D.colours).name}`));
+    assert.match(out.finished.title, new RegExp(`^${D.name} is quiet · rank [SABC]$`));
+    assert.equal(out.finished.lines[0], D.quiet, 'the place speaks first');
+    assert.ok(out.finished.lines[1].startsWith(`New colours: ${colourById(D.colours).name}`));
     assert.equal(state.flag(`kit.colours.${D.colours}`), true);
     for (const p of PIECES) assert.equal(chosenColour(state, p), D.colours);
     S.end();

@@ -12,7 +12,9 @@
 export const UNDERWATER_FIGHT = {
   id: 'fight-underwater', world: 'underwater', colours: 'pearl',
   name: 'The Flooded Gallery',
-  blurb: 'Sealed halls under the glass, where the lamps are all that keep the dark of the deep out. They flicker now, and the halls are full: four of them.',
+  blurb: 'Sealed halls under the glass, where the lamps are all that keep the dark of the deep out. They flicker now, and the dark comes up through the floor.',
+  // the end card's first line, the place's own (issue #483: the place speaks first, the scores under it)
+  quiet: 'The lamps burn steady. Sabine comes in with her scissors.',
   hour: 11,
   palette: { wall: '#d8e4e6', wall2: '#c4d4d8', wall3: '#8aa4ac', floor: '#a8c0c4', floor2: '#bcd2d4', floor3: '#7a9aa2', ink: '#14202e', inkLite: '#2a4a5e', glyph: '#7fe0e8', cap: '#9ab8c0', pale: '#e8fbff' },
   ground: { ticks: false },

@@ -11,7 +11,7 @@
 // is told once; a world has at most RUMOUR.active of them open at a time. The save keeps them (flags, below).
 //
 //   const r = new Rumours({ world, game, level, rng })   one a world (src/story/index.js)
-//   r.addHost({ id, name, title, object, at, lacks? })    a game's host as the story places them (lacks(): what its run
+//   r.addHost({ id, name, title, object, at, lacks?, fight? })    a game's host as the story places them (lacks(): what its run
 //                                                         wants that he hasn't got; never told of till it is '')
 //   r.offer(person, at) → '~tone~ line' | null            a line for this talk (and the rumour told), or none
 //   r.update(dt, pos)                                     places and hosts walked by count as found
@@ -26,7 +26,7 @@
 import { FRAGMENTS } from '../fragments-data.js';
 import { compass } from '../world-map.js';
 import { parseLine } from './tone.js';
-import { RUMOUR_LINES, RUMOUR_OBJECT_LINES, RUMOUR_FRAGMENT_LABEL } from './rumours-data.js';
+import { RUMOUR_LINES, RUMOUR_OBJECT_LINES, RUMOUR_FIGHT_LINES, RUMOUR_FRAGMENT_LABEL } from './rumours-data.js';
 import { RUMOUR_PLACES, RUMOUR_KINDS } from './rumour-places.js';
 
 export const RUMOUR = {
@@ -105,7 +105,7 @@ export function rumourTargets({ world, flags = {}, sights = [], hosts = [] }) {
     const key = `host.${h.id}`, at = ptOf(h.at);
     if (!at) continue;
     // (waiting: the run wants what he hasn't got, its host's lacks(): not told of till it can be had, issue #480)
-    out.push({ key, kind: 'host', at, host: h, label: h.object ? cap(h.name) : `${h.name}’s game`, found: !!(flags[`met.${h.id}`] || flags[seenKey(world, key)]), waiting: !!h.lacks?.() });
+    out.push({ key, kind: 'host', at, host: h, label: h.object ? cap(h.name) : h.fight ?? `${h.name}’s game`, found: !!(flags[`met.${h.id}`] || flags[seenKey(world, key)]), waiting: !!h.lacks?.() });
   }
   for (const s of sights) {
     const key = `sight.${slug(s.name)}`;
@@ -149,7 +149,9 @@ export function rumourLine(world, target, { from = null, landmarks = [], seed = 
   if (!L || !target) return null;
   const at = target.at, here = from ?? at;
   const object = target.kind === 'host' && target.host?.object;
-  const templates = target.kind === 'fragment' ? L.fragment : target.kind === 'host' ? (object ? RUMOUR_OBJECT_LINES : L.host) : L.sight;
+  // (a spring-house's host, h.fight: not a game, the ink that comes up there, issue #483)
+  const fight = target.kind === 'host' && !object && target.host?.fight ? RUMOUR_FIGHT_LINES[world] ?? RUMOUR_FIGHT_LINES.any : null;
+  const templates = target.kind === 'fragment' ? L.fragment : target.kind === 'host' ? (object ? RUMOUR_OBJECT_LINES : fight ?? L.host) : L.sight;
   if (!templates?.length) return null;
   // (what fills {where} or {who}: the fullest first)
   const fills = target.kind === 'fragment' ? fragmentWhere(world, target.i, at, { landmarks, from })

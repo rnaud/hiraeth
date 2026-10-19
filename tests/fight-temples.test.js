@@ -284,7 +284,8 @@ test('a run: each room’s waves come up as he walks in, at most the crowd’s c
   player.pos.set(...D.rooms.at(-1).altar.flatMap((v, i) => (i ? [0, v] : [v])));
   tick();
   assert.ok(out.finished && !out.finished.failed, 'the run ends, won');
-  assert.match(out.finished.lines[0], /New colours: Ember/);
+  assert.equal(out.finished.lines[0], 'The ink sinks back into the floor. Wafa comes down the stair.');
+  assert.match(out.finished.lines[1], /New colours: Ember/);
   assert.match(out.finished.title, /rank [SABC]$/);
   assert.ok(out.finished.lines.some((l) => /^Rank [SABC] · \d+:\d\d \(par 4:00\) · hearts lost 0$/.test(l)), out.finished.lines.join(' | '));
   assert.ok(out.finished.lines.some((l) => /gorged \d+ of \d+/.test(l)));

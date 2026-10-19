@@ -12,7 +12,9 @@
 export const DESERT_FIGHT = {
   id: 'fight-desert', world: 'desert', colours: 'ember',
   name: 'The Sunken Hall',
-  blurb: 'A makers’ hall the dunes swallowed, by the pilgrims’ camps. The ink pools in it and the blots breed there: four rooms of them, and worse at the end.',
+  blurb: 'A makers’ hall the dunes swallowed, by the pilgrims’ camps. The ink pools in it and the blots breed there. Worse, deeper down.',
+  // the end card's first line, the place's own (issue #483: the place speaks first, the scores under it)
+  quiet: 'The ink sinks back into the floor. Wafa comes down the stair.',
   hour: 15.6,
   palette: { wall: '#d9b98c', wall2: '#c9a479', wall3: '#a98563', floor: '#e6cc9c', floor2: '#efdcb4', floor3: '#c9a27e', ink: '#2a2440', inkLite: '#4a3d6e', glyph: '#e8703a', cap: '#b48a63' },
   spawn: [0, 0, 4.5],

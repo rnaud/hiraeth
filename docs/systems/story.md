@@ -732,7 +732,8 @@ happens as an area marker (not a perfect marker)."
   engine/game.js `mapSource`): a soft plum circle (`rumourArea`: 30 to 60 m, drawn at least `RUMOUR_MIN`, 3.5 % of the
   map's longer side, so it reads on a map a kilometre wide), its middle 0.3 to 0.7 of its radius off the thing, the way
   picked by the rumour's key (the same circle every time), with a small ? and the rumour's short name ("Something singing,
-  they say", "Yusra’s game", "The first broken slab"); the cursor on it names whose word it is and about how far. The web
+  they say", "Yusra’s game", "The first broken slab"; a fight temple's host by the place's name, "The Sunken Hall", and in
+  lines of its own, `RUMOUR_FIGHT_LINES`: the ink that comes up there, never a game, issue #483); the cursor on it names whose word it is and about how far. The web
   draws the circle on the map's plane (`.gm-area`: it zooms with the ground) and the name under the mark; the engine's
   menu sends each circle's size on the sheet (`rx`, `ry`) and its name (engine/menus.js), BridgeMenu.cs DrawMap draws the
   `area` picture (engine/map-marks.js) under the marks and the name under it. After the talk a toast: *On your map: …*.

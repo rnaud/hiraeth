@@ -2,6 +2,11 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.86 — 2026-10-19
+
+- People now tell you of a fight temple as the old floor the ink comes up through and the person waiting by its door, not as a game, and your map names it by the place.
+- The fight temples now belong to the story: the makers built them over springs where the dark wells up, and the people by their doors want their mill, their cranes or their gardens back, and say so. A run ends with the place going quiet and its keeper coming back in, before your time and rank, and the ember shard’s double cuts are now the blade running bright.
+
 ## v1.85 — 2026-10-18
 
 - Each world’s recorded music plays louder, about twice as loud as before: it had been sitting well under the footsteps, the blade and the voices, so a fight or a conversation drowned it. Now the music holds its own under them, as the sounds were meant to sit, and nothing in it distorts.

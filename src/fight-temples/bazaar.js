@@ -12,7 +12,9 @@
 export const BAZAAR_FIGHT = {
   id: 'fight-bazaar', world: 'bazaar', colours: 'neon',
   name: 'The Back Rooms',
-  blurb: 'The market’s shuttered shops after hours. Up in the street the bell walker tolls, the signs on the walls ring with it, and the back rooms are full: four of them.',
+  blurb: 'The market’s shuttered shops after hours. Up in the street the bell walker tolls, the signs on the walls ring with it, and the dark comes up through the floors.',
+  // the end card's first line, the place's own (issue #483: the place speaks first, the scores under it)
+  quiet: 'The signs go dark. Lettie turns her key in the lock.',
   hour: 17.4,
   palette: { wall: '#7a6a8a', wall2: '#6a5a7a', wall3: '#4a3e5a', floor: '#857a7c', floor2: '#958a8c', floor3: '#62585c', ink: '#1e1a2a', inkLite: '#3a3050', glyph: '#ff5fa2', cap: '#62c3c9', pale: '#ffe0f0' },
   ground: { ticks: false },
