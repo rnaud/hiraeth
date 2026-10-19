@@ -10,6 +10,8 @@ import { tmpdir } from 'node:os';
 import { existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { SOUNDTRACKS } from '../../src/soundtracks.js';
+import { THEME_LEVELS } from '../../src/theme-levels.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 export const RATE = 48000;
@@ -30,13 +32,16 @@ export function readWav(buf) {
   return { rate, channels: out };
 }
 
-/** Each take of the bank decoded once (afconvert, macOS) into `cache`; null where it can't be (no afconvert: the synth). */
-export function decodedTakes(cache) {
+/**
+ * Each take of the bank (or, `from` 'public/music', each recorded theme) decoded once (afconvert, macOS) into `cache`;
+ * null where it can't be (no afconvert: the synth, the procedural score).
+ */
+export function decodedTakes(cache, from = 'public/sfx') {
   mkdirSync(cache, { recursive: true });
   const takes = new Map();
   return (name) => {
     if (takes.has(name)) return takes.get(name);
-    const mp3 = join(ROOT, 'public/sfx', name), wav = join(cache, name.replace(/\.mp3$/, '.wav'));
+    const mp3 = join(ROOT, from, name), wav = join(cache, name.replace(/\.mp3$/, '.wav'));
     let got = null;
     try {
       if (!existsSync(wav)) execFileSync('afconvert', ['-f', 'WAVE', '-d', `LEI16@${RATE}`, mp3, wav], { stdio: 'ignore' });
@@ -45,6 +50,12 @@ export function decodedTakes(cache) {
     takes.set(name, got);
     return got;
   };
+}
+
+/** A world's recorded theme and the gain the engines play it at (src/soundtracks.js, src/theme-levels.js); null: none. */
+export function themeOf(level) {
+  const file = SOUNDTRACKS[level];
+  return file ? { file, gain: THEME_LEVELS[file] ?? 1 } : null;
 }
 
 /** Math.random seeded while `fn` runs (the noise and the takes' variation the same every run). */
@@ -105,22 +116,44 @@ export async function renderer({ samples = true, cache = join(tmpdir(), 'hiraeth
     const a = await once(true), b = await once(false);
     return { pcm: a.pcm, bed: b.pcm, rate: RATE, sound: a.sound };
   };
+  const themes = decodedTakes(join(cache, 'music'), 'public/music');
   /**
-   * The world's procedural score (its scheduler stepped every 0.1 s of the render), `secs` long after `warm`, with
+   * The world's music as it plays (its scheduler stepped every 0.1 s of the render), `secs` long after `warm`, with
    * `during(s, t)` called each step (a line spoken over it, a moment's swell): the PCM and the 50 ms windows' levels.
+   * `recording`: the world's Suno theme (src/soundtracks.js SOUNDTRACKS, decoded by afconvert) at the gain the engines
+   * give it (src/theme-levels.js, the browser's prepareSoundtrack measures the same), its tail joined to its opening,
+   * playing from `at` s in (`secs` left out: once round the loop), as Music: Always plays it (issue #474: the score silent under it, its ambience on); where
+   * it can't be decoded (no afconvert), or `recording` false: the procedural score (`recorded` says which).
    */
-  const score = async (level = 'desert', { secs = 24, warm = 2, during = null, seed = 777, setup = null } = {}) => {
+  const score = async (level = 'desert', { secs = null, warm = 2, during = null, seed = 777, setup = null, recording = false, at = 0 } = {}) => {
     const s = seeded(() => new Sound(level, { score: true }), seed);
     seeded(() => s.start(), seed);
     clearInterval(s.scheduler); clearTimeout(s._preload);
-    s.soundtrack = null;   // (the recorded theme is the browser's: the procedural score is what every world has)
+    s.soundtrack = null;
+    try { s.trackAbort?.abort?.(); } catch { /* none */ }   // (its own load, by fetch: never here)
     made.push(s);
+    const T = recording ? themeOf(level) : null, d = T ? themes(T.file) : null;
+    if (d) {
+      const ctx = s.ctx, fade = Math.min(Math.floor(d.rate * 2), Math.floor(d.channels[0].length / 4)), n = d.channels[0].length - fade;
+      const b = ctx.createBuffer(d.channels.length, n, d.rate);
+      d.channels.forEach((c, i) => {
+        const o = b.getChannelData(i);
+        for (let k = 0; k < n; k++) o[k] = c[k] * T.gain;
+        for (let k = 0; k < fade; k++) { const m = k / Math.max(1, fade - 1); o[k] = (c[n + k] * (1 - m) + c[k] * m) * T.gain; }
+      });
+      // (as startTrack and musicMomentsUpdate leave it: the theme's gain at 1 into the music bus, the source looping)
+      const g = ctx.createGain(); g.gain.value = 1; g.connect(s.music);
+      const src = ctx.createBufferSource(); src.buffer = b; src.loop = true; src.connect(g); src.start(ctx.currentTime, at % b.duration);
+      Object.assign(s, { trackBuffer: b, trackGain: g, recordedTrack: src, trackOn: true });
+      secs ??= b.duration;   // (left out: the whole loop, once round)
+    }
+    secs ??= 24;
     return seeded(() => {
       setup?.(s);
       const step = 128 * Math.round((RATE * 0.1) / 128), N = Math.round(secs / 0.1), out = new Float32Array(N * step * 2);
       for (let i = 0; i < Math.round(warm / 0.1); i++) { s.update(CALM); s.listen({ x: 0, y: 0, z: 0 }, 0); s.schedule(); s.ctx.render(step); }
       for (let i = 0; i < N; i++) { s.update(CALM); s.listen({ x: 0, y: 0, z: 0 }, 0); during?.(s, i * 0.1); s.schedule(); out.set(s.ctx.render(step).subarray(0, step * 2), i * step * 2); }
-      return { pcm: out, rate: RATE, sound: s };
+      return { pcm: out, rate: RATE, sound: s, recorded: !!d, file: d ? T.file : null, gain: d ? T.gain : null };
     }, seed + 1);
   };
   const close = () => { for (const s of made) { clearInterval(s.scheduler); clearInterval(s.menuTimer); s._unlisten?.(); } made.length = 0; };

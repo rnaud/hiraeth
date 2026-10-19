@@ -113,7 +113,7 @@ function cacheModel() {
 }
 
 /** The lens's own sounds (the game's synth: src/audio.js sweep / burst). */
-const sfx = {
+export const lensSfx = {
   up(s) { const t = s?.ctx?.currentTime; if (t == null) return; s.sweep(t, 1500, 2300, 0.22, 0.05, 'sine'); s.sweep(t + 0.04, 2250, 3400, 0.3, 0.025, 'sine'); s.burst(t, { dur: 0.05, type: 'bandpass', freq: 3000, q: 3, vol: 0.04 }); },
   down(s) { const t = s?.ctx?.currentTime; if (t == null) return; s.sweep(t, 1900, 1200, 0.16, 0.035, 'sine'); },
   clouded(s) { const t = s?.ctx?.currentTime; if (t == null) return; s.sweep(t, 900, 500, 0.35, 0.04, 'triangle'); s.burst(t, { dur: 0.3, type: 'highpass', freq: 4200, q: 0.4, vol: 0.03 }); },
@@ -178,11 +178,11 @@ class Lens {
     if (!this.canUse()) return;
     // (a path fading under you: the glass goes up again on what little has cleared)
     const fading = this.entries.some((e) => e.grace != null);
-    if (this.meter < (fading ? 0.04 : LENS.again)) { this.ctx.notice?.('The glass has clouded over: it clears in a few seconds.', 'lens-clouded'); sfx.clouded(this.ctx.sound); return; }
-    this.up = true; sfx.up(this.ctx.sound);
+    if (this.meter < (fading ? 0.04 : LENS.again)) { this.ctx.notice?.('The glass has clouded over: it clears in a few seconds.', 'lens-clouded'); lensSfx.clouded(this.ctx.sound); return; }
+    this.up = true; lensSfx.up(this.ctx.sound);
   }
   release() { this.lower(); }
-  lower() { if (this.up) sfx.down(this.ctx.sound); this.up = false; }
+  lower() { if (this.up) lensSfx.down(this.ctx.sound); this.up = false; }
 
   /** The hidden things of this world (adopted as they are made: a world builds them before the lens exists). */
   adopt() {
@@ -200,7 +200,7 @@ class Lens {
     this.adopt();
     if (this.up && !this.canUse()) this.lower();
     ({ meter: this.meter, idle: this.idle } = lensMeter(this.meter, this.idle, dt, this.up, LENS.drain * (this.up && this.onGhost() ? LENS.steady : 1)));
-    if (this.up && this.meter <= 0) { this.lower(); ctx.notice?.('The glass has clouded over: it clears in a few seconds.', 'lens-clouded'); sfx.clouded(ctx.sound); }
+    if (this.up && this.meter <= 0) { this.lower(); ctx.notice?.('The glass has clouded over: it clears in a few seconds.', 'lens-clouded'); lensSfx.clouded(ctx.sound); }
     this.k = lensRaise(this.k, this.up, dt);
     // (what it sees, for the temples' hidden pieces: issue #377, src/gadgets/hidden.js LENS_VIEW)
     LENS_VIEW.k = this.k;
@@ -212,13 +212,13 @@ class Lens {
         e.rise += dt;
         e.object.position.copy(e.at).addScaledVector(_Y, riseHeight(e.rise, e.depth));
         e.object.rotation.y += dt * 0.6 * Math.max(0, 1 - e.rise);
-        if (e.rise >= 0.7 && !e.said) { e.said = true; if (e.message) ctx.notice?.(e.message, `lens-${e.id}`); sfx.found(ctx.sound); e.rise = 1; }
+        if (e.rise >= 0.7 && !e.said) { e.said = true; if (e.message) ctx.notice?.(e.message, `lens-${e.id}`); lensSfx.found(ctx.sound); e.rise = 1; }
       }
       if (e.kind === 'buried' && !e.unearthed) { e.object.visible = false; continue; }
       if (e.solidWhenSeen) {
         // lowered while you stand on it: it holds a moment, pale and flickering, then goes (ghostGrace)
         const g = ghostGrace(e.grace ?? null, { solidNow: r.solid, wasSolid: e.solid, standing: e.solid && this.standingOn(e), dt });
-        if (g.grace != null && e.grace == null) { ctx.notice?.('The path fades as the glass comes down: raise it again, or step off.', 'lens-fading'); sfx.clouded(ctx.sound); }
+        if (g.grace != null && e.grace == null) { ctx.notice?.('The path fades as the glass comes down: raise it again, or step off.', 'lens-fading'); lensSfx.clouded(ctx.sound); }
         e.grace = g.grace;
         if (g.grace != null) r.shown = Math.sin(g.grace * (10 + 18 * (1 - g.grace / LENS.grace))) > -0.4;   // (it flickers, faster as it goes)
         setSolid(ctx.physics, e, g.solid);
@@ -278,7 +278,7 @@ class Lens {
     if (e.id && ctx.game?.flag?.(`lens.read.${e.id}`)) return;
     if (e.id) ctx.game?.set?.(`lens.read.${e.id}`, true);
     ctx.notice?.(e.message, `lens-${e.id ?? e.message}`);
-    sfx.found(ctx.sound);
+    lensSfx.found(ctx.sound);
     ctx.game?.emit?.('lens:read', { id: e.id });
   }
 

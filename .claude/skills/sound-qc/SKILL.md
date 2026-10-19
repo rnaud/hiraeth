@@ -7,7 +7,8 @@ description: Check that every player action and game event in Hiraeth is answere
 
 Every press a player makes should be answered by a sound (game feel: docs/systems/audio.md, "Sound QC", the checklist
 and its sources). The QC lists the actions (scripts/sound-qc/actions.mjs, found in the code: the bindings, src/foley.js,
-src/fluid-blade.js, the tool, the gadgets, the menus, the quests), and for each says whether the game asks for a sound,
+src/fluid-blade.js, the tool and the glove's modes, the gadgets (fire, hold, switch), the foes and the fight temples,
+the menus, the quests), and for each says whether the game asks for a sound,
 how loud it comes out against the music, how soon after the press, how long, and how much its repeats differ.
 
 Nothing is played out loud: every sound is rendered to numbers on the in-memory Web Audio (engine/webaudio.js, the
@@ -16,7 +17,7 @@ shim the engines play through). No browser, no device, no port.
 ## 1. Run it
 
 ```sh
-node .claude/skills/sound-qc/run.mjs <scratch>/sound-qc [--only hit,the menus] [--no-drive] [--no-samples]   # ~4-5 min
+node .claude/skills/sound-qc/run.mjs <scratch>/sound-qc [--only hit,the menus] [--no-drive] [--no-samples] [--score-ref]   # ~6 min
 ```
 
 Node 22.12 or newer. On the shared Mac: while `uptime`'s 1-minute load is over 25, wait before running (it is one
@@ -28,7 +29,11 @@ quick loop while tuning a sound: ~1 min).
 
 1. **The code.** Each action names where the browser's game asks for its sound (`web`: files and patterns, all must
    match) and the engines' (`engine`: `'shared'` for a module engine/game.js builds too, or its own wiring there). A
-   sound wired in src/main.js only is missing in Unity until engine/game.js does the same.
+   sound wired in src/main.js only is missing in Unity until engine/game.js does the same. What the one game setup
+   wires for both hosts (src/host/game-host.js: the hurts' answers, `hurtReactions`; the fight, `wireFight`: the
+   potion, the drops, the flurry) is looked for there and in each host's use of it. tests/sound-qc.test.js fails when a
+   pattern stops matching (issue #499: a refactor had turned six heard sounds "missing"): move the pattern with the call.
+   The gadgets' sounds are their own synths in src/gadgets/ (`KIT`, actions.mjs `loadKit`), played on the Sound.
 2. **Each sound alone** (scripts/sound-qc/render.mjs): the game's own Sound, calm, its score off, the call made, two
    seconds rendered (a cue four and a half) and the same render without it subtracted (the wind's bed); six takes on
    different seeds. Twice: with the recorded takes (public/sfx/, decoded by macOS `afconvert` into
@@ -38,9 +43,13 @@ quick loop while tuning a sound: ~1 min).
    its sound on (what Unity runs), in the desert with its foes; a scenario presses keys as a player would (F the blade,
    Ctrl the guard, Alt the roll, Space, Tab, Q) and every call into the Sound is written down with its frame. The
    press column is the frame of the first call that counts, plus the sound's own onset.
-4. **The mix**: three worlds' procedural score (the reference: the desert's, the 95th percentile of its 50 ms windows),
-   a conversation's voice alone, the music bus under a conversation (ducking), a fight's loudest moment (the heavy third
-   landing as a blow lands on him).
+4. **The mix**: the reference is what plays (Music: Always, issue #474): the desert's Suno recording, decoded by
+   afconvert as the takes are, at the gain the engines give it (src/theme-levels.js; the browser's prepareSoundtrack
+   measures the same), once round its loop through the music bus, the 95th percentile of its 50 ms windows. The
+   procedural score is the fallback (no afconvert, or `--score-ref`) and is measured beside it (a Moment where no
+   recording plays); the report also counts every verdict against the score, so the music's level and a sound's own
+   are told apart. Then three worlds' recording and score, a conversation's voice alone, the music bus under a
+   conversation (ducking), a fight's loudest moment (the heavy third landing as a blow lands on him).
 
 ## 3. Thresholds (scripts/sound-qc/lib.mjs, tested by tests/sound-qc.test.js)
 
@@ -66,6 +75,9 @@ Levels are K-weighted (the curve LUFS is measured through), the loudest 50 ms, i
 
 ## 4. Reading it, and the usual causes
 
+- **everything too loud by about the same**: the music's level, not the sounds (the recordings play about 7 dB under
+  the procedural score round 1 balanced the effects to, issue #499): read the "against the procedural score" line for
+  each sound's own fault.
 - **missing in the engines only**: the call is made in src/main.js (BodyFoley, interactHooks, onDrink, waters): wire
   the same in engine/game.js. Check it there with the drive (the `press` column fills in).
 - **too quiet in the engines only**: the browser hears a recorded take, the engines its synth stand-in (the hurt's was

@@ -93,7 +93,7 @@ function springModel() {
 }
 
 /** Their sounds (the game's synth). */
-const sfx = {
+export const springSfx = {
   wind(s, k) { const t = s?.ctx?.currentTime; if (t == null) return; s.burst(t, { dur: 0.03, type: 'bandpass', freq: 1400 + 1600 * k, q: 5, vol: 0.035 }); },
   full(s) { const t = s?.ctx?.currentTime; if (t == null) return; s.sweep(t, 1250, 1240, 0.18, 0.05, 'triangle'); s.sweep(t, 1760, 1750, 0.14, 0.03, 'triangle'); },
   boing(s, chain = 0, k = 1) {
@@ -264,8 +264,8 @@ class Springs {
     const was = this.charge;
     this.charge = Math.min(1, this.charge + dt / SPRING.wind);
     this.windT = (this.windT ?? 0) - dt;
-    if (this.charge < 1 && this.windT <= 0) { this.windT = 0.07; sfx.wind(this.ctx.sound, this.charge); }
-    if (was < 1 && this.charge >= 1) sfx.full(this.ctx.sound);
+    if (this.charge < 1 && this.windT <= 0) { this.windT = 0.07; springSfx.wind(this.ctx.sound, this.charge); }
+    if (was < 1 && this.charge >= 1) springSfx.full(this.ctx.sound);
   }
   release() {
     if (this.state !== 'wind') return;
@@ -287,7 +287,7 @@ class Springs {
     this.guardOn();
     this.wob.v += 9; this.stretch = 1;
     this.dust?.add(_v.copy(P.pos).addScaledVector(up, 0.03), up, 0.8 + 0.5 * charge + 0.2 * chain);
-    sfx.boing(this.ctx.sound, chain, 0.6 + 0.4 * charge);
+    springSfx.boing(this.ctx.sound, chain, 0.6 + 0.4 * charge);
     this.ctx.game?.emit?.('gadget:spring', { chain, charge, height: launchHeight(charge, chain, house), house });
   }
 
@@ -296,7 +296,7 @@ class Springs {
     this.state = 'hang'; this.t = 0; this.armed = false;
     this.guardOn();
     P.vel.set(0, 0, 0); P._carry = true;
-    sfx.drop(this.ctx.sound);
+    springSfx.drop(this.ctx.sound);
   }
 
   /**
@@ -372,7 +372,7 @@ class Springs {
     this.state = 'idle'; this.chain = 0; this.armed = false;
     this.wob.v -= 7;
     this.dust?.add(_v.copy(P.pos).addScaledVector(up, 0.03), up, 0.9);
-    sfx.land(this.ctx.sound, 1);
+    springSfx.land(this.ctx.sound, 1);
     this.guardOff();
   }
 
@@ -400,7 +400,7 @@ class Springs {
     this.wob.v -= 14;
     this.dust?.add(_v.copy(at).addScaledVector(up, 0.03), up, 2.4);
     if (!out.broken) ctx.tool?.splats?.add?.(at, up, INK, '#3b3350', 1.6, 7);   // (a star of ink stamped on the ground, unless it gave way: the fluid tool's splats)
-    sfx.stomp(ctx.sound);
+    springSfx.stomp(ctx.sound);
     hitStop(0.06); kick(0.55);
     ctx.game?.emit?.('gadget:stomp', { at: at.clone(), ...out });
     return out;

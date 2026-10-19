@@ -836,3 +836,33 @@ time, balanced to -24.3 to -25.4 LUFS (above): the bands should be held against 
 the gadgets' own sounds (the hook, the bomb, the boomerang, the magnet, the bubble, the fan, the springs, the recall, the
 lens: each calls the Sound in src/gadgets/, none measured). Still as round 1 left it: Unity plays no recorded effect
 (engine/unity/music.js: "Only music"), so its body is the synth stand-ins.
+
+**The QC fixed (#499, 19 October 2026).** Its patterns look for what the one game setup wires where it now lives
+(src/host/game-host.js `hurtReactions` and `wireFight`, plus each host's use of them: main.js, engine/game.js,
+engine/combat.js), and tests/sound-qc.test.js fails when a pattern stops matching. The list grew from 71 to 116 rows:
+the glove's six modes, its stilling and ember shots, the push, the refill and the dock; the gadgets (switch, i.e. one
+taken in hand; each one's fire; the held ones' hum, wind, tick and scratch: the hook, the bombs, the boomerang, the magnet
+glove, the bubble wand, the fan, the spring boots, the hourglass, the lens, the pen); a foe's telegraph, a fight
+temple's wave, kill, pick-up and cleared room. The mix's reference is now the recording that plays, at the engines'
+gain (src/theme-levels.js), once round its loop; the procedural score is the fallback and is measured beside it.
+
+| | browser | engines |
+|---|---|---|
+| before (the v1.85 run, 71 rows, against the score) | 65 / 71 | 66 / 71 |
+| after, round 1's 71 rows, against the score | **71 / 71** | **71 / 71** |
+| after, all 116 rows, against the score | 96 / 116 | 96 / 116 |
+| after, all 116 rows, against the recording (the reference now) | 25 / 116 | 28 / 116 |
+
+- **The music's level (#530).** The recordings play well under the score: the desert's -31.6 dBFS (the score -24.6),
+  the bazaar's -30.4 (-24.4), home's -29.1 (-26.0). Every effect therefore sits about 7 dB further over the music than
+  round 1 balanced it, and nearly every row comes out "too loud" against the recording. The voice is +9.5 dB over the
+  music (+2.6 against the score), and a fight's loudest moment +11.6 (the limit is +8). Nothing in the sounds changed:
+  against the score, round 1's 71 rows are all OK. Whether to raise the recordings, lower the effects or re-anchor the
+  bands is the author's call.
+- **The gadgets' own (#531)**, the 20 rows not OK against the score, all of them new: the glove's modes fluid,
+  push, bloom and tether share one chirp (`fluidMode` has its own only for stilling and ember); seven synths repeat
+  (the stilling shot, the hook's reel, the magnet's grab, hum, shove and let-go, and the boots wound full); out of band:
+  the push +5.1, the bomb +6.1, the boots' stomp +5.5, the magnet's shove +4.6, the hook fired +2.9, and the lens, the
+  hook back empty, the magnet's let-go and the boots wound full over the ui and foley bands; the boots winding is quiet
+  (-30.3).
+- Unchanged: nothing missing, ducking -4.3 dB, the fight's peak -6.3 dBFS, no sample over -1 dBFS.
