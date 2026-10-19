@@ -2677,7 +2677,7 @@ export class Foes {
     // a fight on: the combat music comes in (src/audio.js), and touch shows its lock-on button
     const fighting = this.list.some((f) => f.alive && (['chase', 'wind', 'strike', 'recover'].includes(f.state)) && f.pos.distanceTo(P.pos) < 28);
     this.sound?.combat?.(fighting);
-    this.fighting = fighting || !!this.lock;   // (also the near shadow map's refresh, src/shadows.js nearEveryNow)
+    this.fighting = fighting || !!this.lock;
     if (typeof document !== 'undefined') document.body.classList.toggle('combat', this.fighting);
   }
 

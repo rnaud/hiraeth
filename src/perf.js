@@ -399,8 +399,9 @@ export class InteriorCuller {
  *  - shadow: map size per cascade (fine 24 m, near, far 2.3 km), 0 = no such cascade;
  *    hero: with no fine map, the size of the hero map (the traveller alone, round him: shadows.js HERO_CASCADE);
  *    nearExtent: half-size of the near map (m)
- *  - nearEvery / farEvery: refresh the near / far map every n-th frame; nearFight: the near map's count while a fight
- *    is on, when fewer (shadows.js nearEveryNow)
+ *  - nearEvery / farEvery: refresh the near / far map every n-th frame. The near map is every frame on every preset
+ *    (issue #492: what moves, the traveller, the foes, the people and the moving parts, casts there, and at half rate their
+ *    shadows trailed them); only the far map, the still scenery over nearExtent away, is kept over frames
  *  - crowdFar: crowd figures drawn up to (m); crowdMid: full-figure range (m)
  *  - propFar: pebbles and shrubs drawn up to (m); propPx: props smaller than this on screen (px) are skipped
  *  - postLite: one ink-line pass instead of two
@@ -428,10 +429,10 @@ export const waterContactOn = (preset) => preset?.waterContact !== false;
 export const QUALITY_PRESETS = {
   auto:     { ...FULL, label: 'Auto (adapts to keep it smooth)', scale: 1, dynamic: { min: 0.5, max: 1, low: 40, high: 56 } },
   handheld: { label: 'Handheld (Retroid, phones)', scale: 0.75, dynamic: { min: 0.5, max: 0.9, low: 34, high: 55, steady: 3, hold: 40, cpuBound: 0.85, probe: PROBE },
-    shadow: { fine: 0, hero: 1024, near: 2048, far: 2048 }, nearExtent: 160, nearEvery: 2, farEvery: 4, taps: 4,
+    shadow: { fine: 0, hero: 1024, near: 2048, far: 2048 }, nearExtent: 160, nearEvery: 1, farEvery: 4, taps: 4,
     ao: false, cloudShadows: false, lowDetail: true, crowdFar: 220, crowdMid: 40, propFar: 320, propPx: 2, postLite: true, floraFar: 0.65, floraDensity: 0.55, lodPx: 2, waterContact: false, aa: 'smaa',
     peopleLod: true },   // (people out of view past 30 m at a quarter of the frames, as the Deck: issue #450)
-  low:      { ...FULL, label: 'Low (fast)', scale: 0.7, shadow: { fine: 1024, near: 2048, far: 2048 }, nearEvery: 2, taps: 4,
+  low:      { ...FULL, label: 'Low (fast)', scale: 0.7, shadow: { fine: 1024, near: 2048, far: 2048 }, taps: 4,
     ao: false, cloudShadows: false, lowDetail: true, crowdFar: 300, crowdMid: 45, propFar: 420, propPx: 1.5, floraFar: 0.8, floraDensity: 0.75, lodPx: 1.5 },
   // the Steam Deck at its own 1280×800: the handheld's lighter recipe where the Deck's CPU pays for
   // it (crowd, props, flora, people's cloth), the full image otherwise (native resolution, crease
@@ -441,21 +442,21 @@ export const QUALITY_PRESETS = {
   // capes simulated within 14 m (clothFar; further off they hang on the body). Its own resolution always (issue #111:
   // no dynamic resolution, which only ever cost sharpness there: the GPU has room at scale 1 everywhere measured), and
   // the far map every 8th frame (the most of the shadow draws; what it shows is over 120 m off and moves little).
-  // Round 11 (issue #111, docs/systems/performance.md): the near map every 4th frame (every other one in a fight:
-  // nearFight; at once when the camera turns or moves out of the view it was drawn for), people out of view past
-  // 30 m at a quarter of the frames (peopleLod), hidden subtrees' matrices stepped over (skipHidden)
+  // Round 11 (issue #111, docs/systems/performance.md): people out of view past 30 m at a quarter of the frames
+  // (peopleLod), hidden subtrees' matrices stepped over (skipHidden); the near map every 4th frame then, every frame
+  // again since issue #492 (the foes' and moving parts' shadows trailed them)
   deck:     { label: 'Steam Deck', scale: 1, dynamic: null,
-    shadow: { fine: 0, hero: 1024, near: 4096, far: 2048 }, nearExtent: 120, nearEvery: 4, nearFight: 2, farEvery: 8, taps: 4,
+    shadow: { fine: 0, hero: 1024, near: 4096, far: 2048 }, nearExtent: 120, nearEvery: 1, farEvery: 8, taps: 4,
     ao: true, cloudShadows: false, lowDetail: true, crowdFar: 260, crowdMid: 45, propFar: 380, propPx: 1.5, postLite: false, floraFar: 0.75, floraDensity: 0.65, lodPx: 1.5, clothFar: 14,
     peopleLod: true, skipHidden: true },
   // the Xbox app (xbox/, src/xbox.js): High's full recipe at the TV's own resolution (WebView2 on the console
   // reports a pixel ratio of 1.5 at 1080p), adapting down to 0.6 when a scene is too much. Its main thread is the
   // limit (docs/systems/xbox.md, "Why 20 fps": every WebGL call costs ~5 µs there), so the Deck's shadows (no fine
-  // cascade, a whole pass of the scene a frame; the near map every other frame over a smaller square, the GPU has
+  // cascade, a whole pass of the scene a frame; the near map over a smaller square, the GPU has
   // room), no resolution dropped for a slow main thread (cpuBound, as the Deck), and an even 30 while the frames
   // are too slow for 60 (pace: frame-pace.js)
   xbox:     { ...FULL, label: 'Xbox (High, adapts)', scale: 1, dynamic: { min: 0.6, max: 1, low: 40, high: 56, steady: 3, hold: 40, cpuBound: 0.85, probe: PROBE },
-    shadow: { fine: 0, hero: 1024, near: 4096, far: 2048 }, nearExtent: 120, nearEvery: 2, farEvery: 4, pace: 'auto' },
+    shadow: { fine: 0, hero: 1024, near: 4096, far: 2048 }, nearExtent: 120, nearEvery: 1, farEvery: 4, pace: 'auto' },
   medium:   { ...FULL, label: 'Medium', scale: 1 },
   high:     { ...FULL, label: 'High (smooth lines)', scale: 1.5 },
 };

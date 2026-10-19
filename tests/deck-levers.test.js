@@ -12,7 +12,7 @@ globalThis.document ??= { createElement: el, body: el(), getElementById: () => n
 const { NPC } = await import('../src/npc.js');
 const { Physics } = await import('../src/physics.js');
 const { QUALITY_PRESETS } = await import('../src/perf.js');
-const { nearDue, farDue, nearEveryNow } = await import('../src/shadows.js');
+const { nearDue, farDue } = await import('../src/shadows.js');
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 
@@ -90,29 +90,28 @@ test('the near shadow map: every n-th frame, at once on a turn of the sun or out
   assert.equal(nearDue(1, 3, false, () => true), true, 'the camera left the view the map was culled for: drawn');
   assert.equal(nearDue(1, 1, false, never), true, 'not kept: drawn every frame, the view never asked');
   assert.equal(nearDue(0, 4, false, never), true, 'its frame: not asked');
-  // the light presets: the far map's frame never the near map's (both big passes in one frame would be a hitch)
-  for (const k of ['deck', 'handheld', 'xbox']) {
-    const P = QUALITY_PRESETS[k];
+  // a kept near map (nearEvery > 1, none of the presets since issue #492): the far map's frame never the near map's
+  for (const P of [{ nearEvery: 2, farEvery: 4 }, { nearEvery: 4, farEvery: 8 }]) {
     const both = [];
     for (let f = 0; f < 240; f++) if (nearDue(f, P.nearEvery) && farDue(f, P.nearEvery, P.farEvery)) both.push(f);
-    assert.deepEqual(both, [], `${k}: near every ${P.nearEvery}, far every ${P.farEvery}`);
+    assert.deepEqual(both, [], `near every ${P.nearEvery}, far every ${P.farEvery}`);
   }
 });
 
-test('in a fight the near map is drawn as often as nearFight says, the foes\' shadows kept to their feet', () => {
-  const D = QUALITY_PRESETS.deck;
-  assert.ok(D.nearEvery > 2, 'the Deck keeps its near map over more than one frame between fights');
-  assert.equal(nearEveryNow(D, false), D.nearEvery);
-  assert.equal(nearEveryNow(D, true), 2, 'every other frame in a fight, as before');
-  assert.equal(nearEveryNow(QUALITY_PRESETS.high, true), 1, 'a preset with no nearFight: its own count');
-  assert.equal(nearEveryNow({ nearEvery: 2, nearFight: 3 }, true), 2, 'never less often in a fight');
-  // (a fight changes the count, not the far map's frames: never the near map's either way)
-  for (const fighting of [false, true]) {
-    const n = nearEveryNow(D, fighting);
-    for (let f = 0; f < 240; f++) assert.ok(!(nearDue(f, n) && farDue(f, n, D.farEvery)), `fighting ${fighting}, frame ${f}`);
+test('the near map every frame on every preset, in a fight or not: the foes\' shadows keep to their feet (issue #492)', () => {
+  for (const [k, P] of Object.entries(QUALITY_PRESETS)) {
+    for (let f = 0; f < 64; f++) assert.equal(nearDue(f, P.nearEvery, false, () => false), true, `${k}, frame ${f}`);
+    // (the far map still comes round: every farEvery-th frame)
+    let far = 0;
+    for (let f = 0; f < 240; f++) if (farDue(f, P.nearEvery, P.farEvery, false, () => false)) far++;
+    assert.equal(far, 240 / P.farEvery, k);
   }
   const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
-  assert.match(main, /const nearEvery = nearEveryNow\(preset, foes\.fighting\)/);
-  const foes = readFileSync(new URL('../src/foes.js', import.meta.url), 'utf8');
-  assert.match(foes, /this\.fighting = fighting \|\| !!this\.lock/);
+  assert.match(main, /const nearEvery = preset\.nearEvery;/);
+  assert.doesNotMatch(main, /nearFight|nearEveryNow/);
+  // (and Unity's presets, the same schedule: unity/.../Quality.cs)
+  const unity = readFileSync(new URL('../unity/Hiraeth/Assets/Hiraeth/Runtime/Quality.cs', import.meta.url), 'utf8');
+  const counts = [...unity.matchAll(/nearEvery = (\d+);/g)].map((m) => +m[1]);
+  assert.ok(counts.length >= 4, 'every Unity preset sets its count');
+  assert.deepEqual([...new Set(counts)], [1], 'Unity: the near map every frame on every preset');
 });

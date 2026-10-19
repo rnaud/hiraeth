@@ -57,6 +57,6 @@ test('only the Xbox paces, with the Deck’s shadows', () => {
   const x = QUALITY_PRESETS.xbox;
   assert.equal(x.pace, 'auto');
   assert.deepEqual(x.shadow, QUALITY_PRESETS.deck.shadow);
-  assert.equal(x.nearEvery, 2);
+  assert.equal(x.nearEvery, 1, 'the near map every frame (issue #492)');
   assert.ok(x.dynamic.cpuBound > 0, 'a slow main thread drops no resolution');
 });

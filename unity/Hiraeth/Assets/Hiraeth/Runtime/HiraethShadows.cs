@@ -11,8 +11,8 @@ namespace Hiraeth
     /// the same number of metres, moved in whole texels and depth steps (no shimmer), the light quantised
     /// to a quarter of a degree: fine (24 m, crisp people), near (±220 m, the street round you), far
     /// (2.3 km, mesas shading the dunes). They are redrawn on the preset's schedule (Quality): the fine
-    /// and near ones every nearEvery-th frame, the far one every farEvery-th, never on the near one's
-    /// frame (all of them together when the light turns). A pass skips the casters whose shadow can't fall
+    /// one every frame, the near one every nearEvery-th (every frame on every preset: issue #492), the far one
+    /// every farEvery-th, never on a kept near one's frame (all of them together when the light turns). A pass skips the casters whose shadow can't fall
     /// in the camera's view (each sphere swept away from the sun) and those smaller than ¾ of its texel;
     /// the far pass leaves out the small prop tiles and plants and draws every mesh no finer than its
     /// texel (the levels of detail: WorldDetail). Sampled by Surface.shader (getShadow, materials.js),

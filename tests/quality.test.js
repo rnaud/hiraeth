@@ -99,11 +99,12 @@ test('the handheld steps down for missed refreshes, climbs only through clean wi
   assert.equal(windows(t, D, 0.7, rep(10, { fps: 58, missed: D.steady - 1 })), 0.7);
 });
 
-test('the handheld refreshes the near shadow map every other frame, never on the far map\'s frame', () => {
-  const H = QUALITY_PRESETS.handheld;
-  assert.equal(H.nearEvery, 2);
-  // main.js: near on frameNo % nearEvery === 0, far on frameNo % farEvery === (nearEvery > 1 ? 1 : 0)
-  for (let f = 0; f < 64; f++) assert.ok(!(f % H.nearEvery === 0 && f % H.farEvery === 1), `frame ${f}`);
+test('every preset refreshes the near shadow map every frame; only the far map, still scenery far off, is kept (issue #492)', () => {
+  for (const [k, p] of Object.entries(QUALITY_PRESETS)) {
+    assert.equal(p.nearEvery, 1, `${k}: the near map, where the traveller, the foes and the moving parts cast, every frame`);
+    assert.equal(p.nearFight, undefined, `${k}: no fight-only count left`);
+    assert.ok(p.farEvery >= 1 && p.farEvery <= 8, `${k}: the far map at least every 8th frame`);
+  }
 });
 
 test('the frame readout starts with the engine, so a screenshot says which one it was', () => {
@@ -177,9 +178,9 @@ test('the Steam Deck has its own preset, between Handheld and Medium, and Auto p
   // (issue #111: its own resolution always, no dynamic resolution: the main thread is the limit there, never the GPU)
   assert.equal(d.dynamic, null, 'scale 1 whatever the frame rate');
   assert.equal(resolveQuality('auto', { deck: true }).scale, 1);
-  // the far map less often than the other presets' (most of the shadow draws); the near one less often than the
-  // Handheld's since round 11 (issue #111), as often in a fight (nearFight: tests/deck-levers.test.js)
-  assert.ok(d.farEvery > h.farEvery && d.nearEvery > h.nearEvery && d.nearFight === h.nearEvery);
+  // the far map less often than the other presets' (most of the shadow draws); the near one every frame, as every
+  // preset's (issue #492: tests/deck-levers.test.js)
+  assert.ok(d.farEvery > h.farEvery && d.nearEvery === 1);
   assert.ok(d.crowdFar > h.crowdFar && d.propFar > h.propFar && d.propFar < m.propFar);
   assert.ok(d.floraFar > h.floraFar && d.floraFar < m.floraFar);
   // (no fine cascade: a whole pass of the scene a frame on a main thread that is the limit; a sharper near map

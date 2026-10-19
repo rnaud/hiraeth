@@ -203,7 +203,7 @@ export const heroExtent = (sinEl, H = HERO_CASCADE) => fitShadowExtent(H.r, H.he
 const _s = new THREE.Vector3(), _sph = new THREE.Sphere(), _pm = new THREE.Matrix4(), _fr = new THREE.Frustum(), _f = new THREE.Vector3(), _e = new THREE.Vector3();
 
 /**
- * A map drawn every n-th frame (the near map on the handheld presets, the far map always) is culled for the
+ * A map drawn every n-th frame (the far map; the near map too when a preset's nearEvery asks, none since issue #492) is culled for the
  * view of the frame it is drawn in, and then looked at from the next views too. Turning the camera quickly,
  * the casters whose shadows had been off screen were missing from it until it was drawn again: in the
  * City-Shaft whole towers across the pit changed their shade for a frame or three after each turn (shadows
@@ -236,13 +236,6 @@ export function viewLeft(at, camera, slack = VIEW_SLACK) {
  */
 export function nearDue(frame, every, turned = false, left = null) {
   return turned || frame % every === 0 || (every > 1 && !!left?.());
-}
-/**
- * The near map's count this frame: the preset's nearEvery, or nearFight (when set, and fewer) while a fight is on, where
- * the foes run, leap and strike within a few metres of the camera and their shadows must keep to their feet.
- */
-export function nearEveryNow(preset, fighting = false) {
-  return fighting && preset.nearFight ? Math.min(preset.nearEvery, preset.nearFight) : preset.nearEvery;
 }
 export function farDue(frame, nearEvery, farEvery, turned = false, left = null) {
   return turned || frame % farEvery === (nearEvery > 1 ? 1 : 0) || !!left?.();

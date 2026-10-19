@@ -270,7 +270,7 @@ export const GAPS = {
     { keys: ['import:src/pipeline.js#createGBuffer', 'import:src/pipeline.js#createComposeTarget', 'import:src/pipeline.js#createBlit', 'import:src/pipeline.js#createSmaa', 'import:src/pipeline.js#aaOf',
       'import:src/pipeline.js#setSubject', 'import:src/post.js#createBloom', 'import:src/post.js#DEBUG_VIEWS', 'import:src/shadows.js#Cascade', 'import:src/shadows.js#FINE_CASCADE', 'import:src/shadows.js#NEAR_CASCADE',
       'import:src/shadows.js#ShadowCuller', 'import:src/shadows.js#shadowVariants', 'import:src/shadows.js#shadowDirection', 'import:src/shadows.js#farPassSkips', 'import:src/shadows.js#VIEW_SLACK',
-      'import:src/shadows.js#viewOf', 'import:src/shadows.js#viewLeft', 'import:src/shadows.js#heroExtent', 'import:src/shadows.js#nearDue', 'import:src/shadows.js#farDue', 'import:src/shadows.js#nearEveryNow',
+      'import:src/shadows.js#viewOf', 'import:src/shadows.js#viewLeft', 'import:src/shadows.js#heroExtent', 'import:src/shadows.js#nearDue', 'import:src/shadows.js#farDue',
       'fn:shadowTexels', 'fn:heroPass', 'fn:shadowPass', 'fn:tinyShadowCasters', 'fn:glowCasters', 'fn:crowdShadowless', 'fn:crowdCaster', 'fn:crowdView', 'fn:shrinkInto', 'fn:blankCapture', 'import:src/static-batch.js#StaticBatches', 'import:src/static-batch.js#opaqueSort',
       'import:src/materials.js#setEnvGround', 'import:src/blade-shader.js#BLADE_QUALITY', 'import:src/blade-shader.js#bladeLiteFor', 'import:src/breathe-shader.js#breatheDetail'],
     what: 'the page\'s render pipeline and its shaders\' settings', status: 'web-only', why: PAGE },

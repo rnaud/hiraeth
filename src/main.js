@@ -52,7 +52,7 @@ import { skinnedLods } from './skinned-lod.js';
 import { buildFloraSteps, floraKeep, FLORA_WORLDS } from './flora.js';
 import { buildGrass } from './flora-grass.js';
 import { BrushTrail } from './brush.js';
-import { Cascade, FINE_CASCADE, NEAR_CASCADE, ShadowCuller, shadowVariants, shadowDirection, farPassSkips, selfLitSkips, VIEW_SLACK, viewOf, viewLeft, heroExtent, nearDue, farDue, nearEveryNow } from './shadows.js';
+import { Cascade, FINE_CASCADE, NEAR_CASCADE, ShadowCuller, shadowVariants, shadowDirection, farPassSkips, selfLitSkips, VIEW_SLACK, viewOf, viewLeft, heroExtent, nearDue, farDue } from './shadows.js';
 import { Flock, Motes, Footprints } from './life.js';
 import { HouseAir } from './temples/air.js';
 import { Sound } from './audio.js';
@@ -1903,7 +1903,8 @@ function renderFrame() {
 
   // 1. shadow maps. The light direction is quantised (a moving sun turns the maps in rare tiny
   // steps); when it turns, every cascade refreshes together so their hand-over stays seamless.
-  // Otherwise the near map refreshes every nearEvery-th frame, the wide one every farEvery-th.
+  // Otherwise the near map refreshes every nearEvery-th frame (every frame on every preset: what moves casts there,
+  // issue #492), the wide one, still scenery far off, every farEvery-th.
   shadowDirection(sharedUniforms.uSunDir.value, shadowDir);
   let turned = false;
   for (const c of Object.values(cascades)) turned = c.aim(shadowDir) || turned;
@@ -1917,8 +1918,8 @@ function renderFrame() {
   if (heroOn) heroPass();
   else if (cascades.fine.enabled) shadowPass(cascades.fine, camToPlayer + cascades.fine.extent * 1.8);
   // (and drawn again as soon as the view has turned or moved out of what the last one was culled for)
-  // (the light presets' near map every nearEvery-th frame, every nearFight-th while a fight is on: shadows.js nearEveryNow)
-  const nearEvery = nearEveryNow(preset, foes.fighting);
+  // (every frame on every preset since issue #492: at half rate the foes' and the moving parts' shadows trailed them)
+  const nearEvery = preset.nearEvery;
   const nearKept = nearEvery > 1;
   if (nearDue(frameNo, nearEvery, turned, () => viewLeft(cascades.near.view, camera))) {
     // (the traveller is the hero map's alone; in the near map his coarse shadow only blurred its edge)

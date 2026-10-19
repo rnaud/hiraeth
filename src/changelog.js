@@ -91,6 +91,17 @@ export const CHANGELOG = [
     // issue #506: src/load-page.js (LOAD_PLAN, LOAD_WHY, loadProgress), index.html #loading .bar / .why, main.js stage /
     // setStep, engine/game.js onStage(line, { why, p }); tests/load-page.test.js
     'The loading screen now tells you what it is doing and why it takes the time. Under the turning pen a bar fills as each part is done, and a small line says what that part is: dressing the traveller, the walls learning where you can’t walk, teaching the graphics card the world’s light (slowest the first time).',
+    // issue #492: src/perf.js QUALITY_PRESETS (nearEvery 1 on handheld, low, deck, xbox; nearFight gone), src/shadows.js
+    // (nearEveryNow gone), src/main.js renderFrame; unity/Hiraeth Quality.cs (nearEvery 1 on every preset);
+    // tests/deck-levers.test.js, quality.test.js, frame-pace.test.js, DetailTests.cs; docs/systems/performance.md "Shadows every frame"
+    { text: 'Shadows keep up with whatever casts them again on the Handheld, Low, Steam Deck and Xbox settings, and in the Unity version on the Steam Deck and handhelds. The shadows close to you were redrawn only every second or fourth frame there, so yours and the foes’ trailed a step behind and moved in jerks. Only the shadows of the far scenery, which barely moves, are still redrawn less often.',
+      numbers: [{ title: 'Time a frame takes on the Mac, the mean of 13 views (the Desert, the Incal, the Space City and the Arena’s whole roster), before → after', unit: 'ms', better: 'lower', device: 'MacBook Pro M4 Pro, headless Chrome, 1280 × 720, uncapped, muted', rows: [
+        { where: 'High (already every frame)', before: 7.44, after: 7.54 },
+        { where: 'Handheld (every 2nd frame before)', before: 8.77, after: 9.05 },
+        { where: 'Steam Deck preset (every 4th frame before)', before: 8.02, after: 9.18 },
+        { where: 'Steam Deck preset, the Arena’s roster', before: 7.6, after: 9.5 },
+      ], source: 'docs/systems/performance.md, "Shadows every frame (#492)"', note: 'The Steam Deck, the Retroid and the Xbox are still to be measured.' }],
+      see: 'On Handheld or Steam Deck (Settings, Graphics), run past a low wall or a post in the sun and watch your shadow at your feet: it moves with you, smoothly, instead of a step behind. In a fight, the foes’ shadows stay under their feet as they leap.' },
   ] },
   { v: '1.84', date: '2026-10-17', items: [
     // issue #439: src/costumes.js (HEADS: the 47 pieces of the 15 hat sets, HAT_SETS, HAT_SET_WORLDS, hoodShell / hoodNeck /

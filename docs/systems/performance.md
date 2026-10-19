@@ -30,7 +30,7 @@ Settings for a fixed full-resolution image on HiDPI phones.
   it climbs back when there's headroom. The current scale shows next to the
   fps counter.
 - **Low detail** (Low, or Auto on touch or once it has had to drop): no
-  crease shading, no cloud shadows, the near shadow cascade at half rate, and
+  crease shading, no cloud shadows, and
   villagers' capes simulated only up close.
 
 `src/perf.js` splits the terrain and the big scattered-prop sets into
@@ -5710,3 +5710,60 @@ this part takes the time (`LOAD_WHY`: "teaching the graphics card this world's l
 engines tell the same: engine/game.js `onLoad({ line, why, p })` at its stages and steps (`onStage` still once a
 stage). Unity's `BridgeHud.Loading` (#510) draws the line; the bar and the why line are for it to draw from `onLoad`
 (engine/unity/game.js to hand it to the host beside `host.LoadStage`). Tests: `tests/load-page.test.js`.
+## Shadows every frame (#492, 2026-10-19)
+
+The author: shadows at half rate look odd. **The near shadow map is redrawn every frame on every preset now**, web and
+Unity; only the far map is still kept over frames.
+
+**Where the half rate was.**
+- **The web's presets** (`src/perf.js` QUALITY_PRESETS `nearEvery`): Handheld and Low every 2nd frame, the Xbox
+  every 2nd, the Steam Deck every 4th (every 2nd in a fight: `nearFight`, shadows.js `nearEveryNow`). High, Medium and
+  Auto were already every frame. The traveller's own shadow is the hero map's on the light presets (drawn every
+  frame), but the foes, the people, the ship, the bird and every moving part cast in the near map, and their shadows
+  trailed them by a frame or three, in jerks.
+- **Unity's presets** (`unity/.../Runtime/Quality.cs` `nearEvery`, read by `HiraethShadows.PrepareTimed`): handheld,
+  deck and low every 2nd frame. Unity has no hero map, and handheld and deck have no fine map, so **on the Deck and the
+  Retroid (their defaults, BridgeArgs.Quality) the traveller's own shadow was at half rate**, as well as the foes'.
+- **Gone:** `nearFight`, `nearEveryNow` (the fight count). `nearEvery` stays as a lever for the benches (`noNear`,
+  `-shadow-near-every N`): `nearDue` / `farDue` and the kept map's view slack still work for a count over 1. Tests:
+  `tests/deck-levers.test.js` (every preset's near map due every frame, in Unity's Quality.cs too), `quality.test.js`,
+  `frame-pace.test.js`, Unity's `DetailTests.ThePresetsAreTheWebs`.
+
+**What stays at a lower rate, and why it can't be seen.** The far map (every 3rd frame on High, 4th on Handheld and the
+Xbox, 8th on the Deck). It holds what is past the near map's square (120-220 m from the traveller): terrain, mesas,
+towers. Its texel is ~1.1 m (2.3 km over 2048). Something walking there moves 0.2 m in 8 frames at 60 fps, a running
+foe under 1 m: less than one of its texels, under the 4-tap filter. It is drawn again at once when the sun turns or the
+camera turns 0.1 rad or moves 4 m (VIEW_SLACK). Something fast and far, the ship flying in, can step by a texel; nothing
+near does. Also unchanged: the people out of view past 30 m moved a quarter of the frames (`peopleLod`, with room for
+their shadow in the view), and foes past 60 m posed one frame in four (motion-kit `TIERS.farEvery`): their poses, not
+their shadow maps.
+
+**What it costs on the Mac** (`.claude/skills/perf-audit/fps.mjs --worlds desert,incal,spacecity,arena --extras 0`,
+1280×720, uncapped, muted; the build before, ec19c1d53, and after served back to back, after first then before, load
+~20). The median frame's ms per view, the mean over the 13 views:
+
+| preset | before | after | the Arena's roster | draws, median frame |
+|---|---|---|---|---|
+| High (unchanged: the noise) | 7.44 | 7.54 | 7.5 → 8.0 | the same |
+| Handheld (near every 2nd before) | 8.77 | 9.05 | 8.3 → 8.9 | the same |
+| Steam Deck preset (every 4th) | 8.02 | 9.18 | 7.6 → 9.5 | +30 to +80 a view, the roster 573 → 1 019 |
+
+The cost is the main thread's (the CPU time a frame rose by as much, the GPU's by 0-0.5 ms). An earlier run in the
+same session, before first and at a load of 25-35, read Handheld 7.88 → 9.73 and the Deck 8.84 → 8.51: the Mac's noise
+at that load is larger than the change, so only the quieter run is given.
+
+**Unity: not measured.** The worktree has no Unity Library (a full import was not made) and the build lock was held by
+another agent. Round 7 measured the near map at ~5.5-6 ms on the frames that draw it (4096², the City-Shaft, the
+Deck's Unity player): drawn every frame instead of every 2nd, ~2.8 ms more a frame on average there; at 2048² a draw
+is ~3.1-3.3 ms.
+
+**To measure on the devices** (#525):
+- the Steam Deck, web, Deck preset: `deck-worlds.mjs --sets 'before={"nearEvery":4};after={"nearEvery":1}'` over every
+  world and the Arena's fight;
+- the Steam Deck, Unity: `deck-engines.mjs --engines unity` with `-shadow-near-every 2` against the new default;
+- the Retroid, web, Handheld: `android-worlds.mjs --sets 'before={"nearEvery":2};after={"nearEvery":1}'`;
+- the Retroid, Unity, handheld: `-shadow-near-every 2` against the new default;
+- the Xbox, web (the xbox preset, `nearEvery` 2 → 1); the Xbox's Unity build is High's, already every frame.
+
+If one of them falls under its refresh, the lever to try first is the near map's size (2048² on the Deck's Unity:
+`-shadow-near-size 2048`), not its rate.

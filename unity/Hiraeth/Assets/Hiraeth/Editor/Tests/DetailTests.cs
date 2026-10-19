@@ -130,10 +130,12 @@ namespace Hiraeth.Tests
             Assert.AreEqual((2048, 4096, 2048, 1, 3, 9), (Quality.fineSize, Quality.nearSize, Quality.farSize, Quality.nearEvery, Quality.farEvery, Quality.taps));
             Quality.Set("handheld");
             Assert.AreEqual((2f, 320f, 2f, 0.65f), (Quality.lodPx, Quality.propFar, Quality.propPx, Quality.floraFar));
-            Assert.AreEqual((0, 2048, 2048, 2, 4, 4), (Quality.fineSize, Quality.nearSize, Quality.farSize, Quality.nearEvery, Quality.farEvery, Quality.taps));
+            Assert.AreEqual((0, 2048, 2048, 1, 4, 4), (Quality.fineSize, Quality.nearSize, Quality.farSize, Quality.nearEvery, Quality.farEvery, Quality.taps));
             Assert.AreEqual(160f, Quality.nearExtent);
             Quality.Set("low");
-            Assert.AreEqual((1.5f, 420f, 1.5f, 0.8f, 2, 3), (Quality.lodPx, Quality.propFar, Quality.propPx, Quality.floraFar, Quality.nearEvery, Quality.farEvery));
+            Assert.AreEqual((1.5f, 420f, 1.5f, 0.8f, 1, 3), (Quality.lodPx, Quality.propFar, Quality.propPx, Quality.floraFar, Quality.nearEvery, Quality.farEvery));
+            // (issue #492: the near map, where the traveller, the foes and the moving parts cast, every frame on every preset)
+            foreach (var p in new[] { "high", "medium", "low", "handheld", "deck" }) { Quality.Set(p); Assert.AreEqual(1, Quality.nearEvery, p); }
             Quality.Set("high");
         }
 

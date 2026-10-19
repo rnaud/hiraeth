@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.85 — 2026-10-18
 
+- Shadows keep up with whatever casts them again on the Handheld, Low, Steam Deck and Xbox settings, and in the Unity version on the Steam Deck and handhelds. The shadows close to you were redrawn only every second or fourth frame there, so yours and the foes’ trailed a step behind and moved in jerks. Only the shadows of the far scenery, which barely moves, are still redrawn less often.
 - The loading screen now tells you what it is doing and why it takes the time. Under the turning pen a bar fills as each part is done, and a small line says what that part is: dressing the traveller, the walls learning where you can’t walk, teaching the graphics card the world’s light (slowest the first time).
 - The fight temples load faster. While loading, each one got every kind of foe in the game ready, though only four or five come up in it; now it readies just those, so the graphics card has a third fewer shaders to learn.
 - In the Unity version, choosing Continue or a save on the title now shows the loading screen, the pen turning and what is being prepared, instead of the title freezing until the world appears.
