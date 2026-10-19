@@ -1,0 +1,23 @@
+data/characters/traveller-v2/outfits.json
+  s_5f899ba316b5dc::t_5e9a1906cda94b 7-8
+docs/systems/characters.md
+  s_5f899ba316b5dc::t_88ca643f34560c 2182-2191,2235-2237
+tests/traveller-outfits.test.js
+  s_5f899ba316b5dc::t_df40553796fbfb 164-182
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "cc5b78dd9ae911188a49ee1f7dcde7a150a9a360",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
