@@ -1,11 +1,13 @@
 import * as THREE from 'three';
 import { inkMat } from './kit.js';
 import { ITEMS } from '../items.js';
+import { MODES } from '../fluid-kit.js';
 
 // The fluid gun (docs/systems/gadgets.md, "The fluid gun"): the makers' glove that drinks from the backpack and
 // shoots its fluid. Since the progression rewrite (v1.38) it is a gadget like the others, found in the desert's
-// Givers' Hearth, not worn from the start: chosen with D-pad ↑ (B), it is the one LT / L2 aims and RT / R2 shoots,
-// and D-pad → (X) takes its next mode (fluid, push, and the modes found). The shooting itself is the fluid tool's
+// Givers' Hearth, not worn from the start: chosen on the wheel (hold D-pad ↑ or B), it is the one LT / L2 aims and
+// RT / R2 shoots. Each of its modes (fluid, push, and the modes found) is a slot of its own on the wheel (issue #511;
+// X on the keyboard, touch ◐, takes the next one). The shooting itself is the fluid tool's
 // (src/fluid-tool.js: it reads the triggers while the gun is in hand, `gunInHand`); this definition is what the
 // gadgets' runtime, the wheel, the chip and the boxes need of it. `trigger: 'tool'` tells the runtime to leave the
 // triggers to the tool.
@@ -44,9 +46,13 @@ class Gun {
   get trigger() { return 'tool'; }
   get aiming() { return false; }   // (the tool brings the camera over the shoulder itself)
   equip() { this.ctx.sfx?.equip?.(this.ctx.sound); }
-  /** Its modes (the fluid tool's: fluid, push, and those found), and the next one (D-pad →, X). */
+  /** Its modes (the fluid tool's: fluid, push, and those found): each a slot on the wheel; X takes the next one. */
   get modes() { return this.ctx.tool?.modes ?? []; }
+  get mode() { return this.ctx.tool?.mode ?? null; }
+  setMode(m) { return this.ctx.tool?.setMode?.(m) ?? false; }
   cycleMode() { return this.ctx.tool?.cycleMode?.(1) ?? false; }
+  /** A mode's slot on the wheel: its name and the mode's own tint (src/fluid-kit.js MODES; the glyph: index.js MODE_GLYPH). */
+  modeSlot(m) { const M = MODES[m]; return { name: `${ITEMS.gun?.name ?? 'Fluid gun'}: ${M?.label ?? m}`, tint: M?.glow ?? (m === 'shoot' ? '#9fe3d3' : null) }; }
   hud() {
     const T = this.ctx.tool;
     if (!T) return {};

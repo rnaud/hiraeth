@@ -1049,10 +1049,11 @@ namespace Hiraeth.Bridge
             var slots = w?.L("slots");
             Show(gWheel, slots != null);
             if (slots == null) return;
-            // (more than eight: a wider ring of smaller slots, as the web's .many)
+            // (more than eight: a wider ring of smaller slots, as the web's .many; more than twelve, the gadgets and the
+            // glove's modes, wider again: .lots, issue #511)
             int n = slots.Count, hi = w.I("hi", -1);
-            bool many = n > 8;
-            float size = many ? 344 : 300, R = many ? 136 : 112, C = size / 2, sd = many ? 50 : 56;
+            bool many = n > 8, lots = n > 12;
+            float size = lots ? 404 : many ? 344 : 300, R = lots ? 166 : many ? 136 : 112, C = size / 2, sd = lots ? 46 : many ? 50 : 56;
             Ui.Place(gWheel, W / 2 - C, H / 2 - C, size, size);
             Ui.Place(gWheelBack.rectTransform, 40, 40, size - 80, size - 80);
             while (gSlots.Count < n) { var d = MakeDisc(gWheel, "slot" + gSlots.Count, Ui.Mono, many ? 21 : 24); gSlots.Add(d); }
@@ -1064,7 +1065,9 @@ namespace Hiraeth.Bridge
                 var sl = slots[i] as Dictionary<string, object>;
                 float a = i / (float)n * Mathf.PI * 2, x = C + Mathf.Sin(a) * R, y = C - Mathf.Cos(a) * R;
                 float z = i == hi ? sd * (many ? 1.18f : 1.25f) : sd;
-                LayDisc(gSlots[i], x - z / 2, y - z / 2, z, 2, 3, i == hi ? Ui.Gold : Cream, BridgeMenu.Picture(sl.S("id")), sl.S("glyph"));
+                // (a glove mode's slot: its glyph on the mode's own tint, no picture: its id is 'gun.push')
+                var tint = sl.S("tint");
+                LayDisc(gSlots[i], x - z / 2, y - z / 2, z, 2, 3, i == hi ? Ui.Gold : string.IsNullOrEmpty(tint) ? Cream : Ui.Hex(tint), BridgeMenu.Picture(sl.S("id")), sl.S("glyph"));
             }
             gWheelName.rt.SetAsLastSibling();
             var s = Ui.Set(gWheelNameText, Ui.Upper(w.S("name") ?? ""), 260);

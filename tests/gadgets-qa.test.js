@@ -325,7 +325,7 @@ test('B only chooses gadgets (never the guard); Y / △ sounds the whistle whate
   assert.equal(G.equipped, 'hook');
   G.control(DT, { PadWhistle: true }); G.control(DT, { PadWhistle: true }); G.control(DT, {});
   assert.equal(rang, 3, 'a gadget in hand: Y / △ still whistles, once per press');
-  assert.deepEqual(G.wheelList().map((w) => w.id), ['hook'], 'the wheel holds the gadgets only');
+  assert.deepEqual(G.wheelList().map((w) => w.id), ['hook'], 'the wheel holds the gadgets (and glove modes), never the whistle');
   its.grant('echo');
   assert.equal(G.instrument().name, 'Bell-note whistle · echo shell');
   // (issue #377) the recall hourglass keeps a note too, and the button gives it back
@@ -335,12 +335,16 @@ test('B only chooses gadgets (never the guard); Y / △ sounds the whistle whate
   assert.equal(G.instrument().id, 'recall');
 });
 
-test('the gadget in hand gets its picture first; the wheel open draws the others, one a frame', () => {
+test('the gadget in hand gets its picture first; choose held (the wheel about to open) draws the others, one a frame', () => {
   const { G, drawn } = runtime(['hook', 'bomb', 'boomerang', 'magnet']);
   G.equip('magnet');
   G.update(DT);
   assert.deepEqual(drawn, ['magnet']);
   G.wheelOn = true;
+  for (let i = 0; i < 6; i++) G.wheel(DT, { PadGadgetPick: true });   // (the wheel open, the game waiting: main.js wheelFrame)
+  assert.deepEqual(drawn, ['magnet'], 'none while the game waits: nothing draws the world over a picture then');
+  G.control(DT, {}, true);
+  G.held.pick = true;   // (choose held: the world still runs and is drawn after each picture)
   for (let i = 0; i < 6; i++) G.update(DT);
   assert.deepEqual(drawn, ['magnet', 'hook', 'bomb', 'boomerang'], 'each once');
 });

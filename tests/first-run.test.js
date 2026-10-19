@@ -58,8 +58,8 @@ test('the debug entries are the author’s: the Developer panel setting, a dev b
   assert.match(src('docs/systems/ui.md'), /src\/dev-gate\.js/, 'documented');
 });
 
-test('teaching prompts name the input in your hands; on a pad the gun’s mode is the D-pad, never X', () => {
-  assert.equal(verbKey('mode', 'pad'), PAD.mode);
+test('teaching prompts name the input in your hands; on a pad the gun’s mode is the wheel (D-pad ↑ held), never X', () => {
+  assert.equal(verbKey('mode', 'pad'), `${PAD.mode} held`);
   assert.doesNotMatch(verbKey('mode', 'pad'), /X/);
   assert.equal(verbKey('mode', 'keys'), 'X');
   assert.equal(verbKey('aim', 'pad'), PAD.aim);
@@ -79,9 +79,9 @@ test('the pool’s first fill and the chest’s dregs name the buttons as the pl
   assert.doesNotMatch(filledText('pad'), /RT \/ R2/);
   assert.match(filledText('pad'), /hums back/, 'the chest beside the pool answers');
   items.grant('gun');
-  assert.match(filledText('pad'), /and pushes \(D-pad →\)/);
-  assert.match(filledText('pad'), /shoots \(LT \/ L2, then RT \/ R2\)/);
-  assert.match(filledText('keys'), /pushes \(X\)/);
+  assert.match(filledText('pad'), /other modes: D-pad ↑ held/);
+  assert.match(filledText('pad'), /shoot with LT \/ L2 then RT \/ R2/);
+  assert.match(filledText('keys'), /other modes: X/);
   items.revoke('gun');
   assert.match(dregsText('pad'), /dry: not a drop/, 'the chest\'s tank: dry glass, no dregs (no gun to shoot them)');
 });

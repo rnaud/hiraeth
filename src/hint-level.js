@@ -13,7 +13,7 @@
 //   objective  the quest's next step pushed onto the screen (a stage's toast)
 //                                                                       off: no   subtle: no   full: yes
 //   nudge      a line after idling or wandering                         off: no   subtle: no   full: yes
-//   puzzle     the drone's hints in a guardian's fight, asked for (Q, R3): subtle opens them one by one
+//   puzzle     the drone's hints in a guardian's fight, asked for (Q, D-pad →): subtle opens them one by one
 //              after a struggle (STRUGGLE), full at once, off never
 //
 // The scout's ping (the objective, on request) and the Controls page are not hints: they stay at

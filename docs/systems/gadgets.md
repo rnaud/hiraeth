@@ -67,9 +67,9 @@ fluid gun is one of the gadgets (`gun.js`):
 |---|---|---|---|
 | aim | LT / L2 (`PadAim`) | R, the right mouse button | ◎ (a toggle) |
 | use: shoot, throw, swing | RT / R2 (`PadFire`) | T or G, the middle mouse button, a left click while aiming | ✺ (◆ too) |
-| its next mode | D-pad → (`PadModeNext`) | X | ◐ |
-| next gadget (a tap) | D-pad ↑ (`PadGadgetPick`) | B (Shift + B: the one before) | tap the chip |
-| the wheel (held 0.32 s) | D-pad ↑ held, the right stick points (v1.41; the left one still walks, the camera holds: `wheelStick`, the controller's `stickTaken`) | B held, W A S D point | |
+| its next mode | on the wheel (each glove mode a slot, v1.86) | X | ◐ |
+| the last pick back (a tap; none yet: the next gadget) | D-pad ↑ (`PadGadgetPick`) | B | tap the chip: the next |
+| the wheel (held 0.32 s), the game waiting (v1.86) | D-pad ↑ held, the right stick points (v1.41; the camera holds: `wheelStick`, the controller's `stickTaken`) | B held, W A S D point | |
 | the bell-note whistle, the echo shell | Y / △ (`PadWhistle`) | V | ◆ with nothing in hand |
 | riding: the gadget in hand (the fan into a skiff's sail) | Y / △ (`PadRideGadget`; RT is the throttle) | T | |
 
@@ -84,11 +84,14 @@ How a gadget takes the triggers is its definition's `trigger` (`triggerKind` in 
 - `'tool'` (the fluid gun): the runtime leaves the triggers alone; the fluid tool reads them while the gun is in hand
   (`FluidTool.gunInHand`).
 
-D-pad → (X) is the gadget in hand's next mode (`Gadgets.nextMode`): the gun's are the fluid tool's own (fluid, push,
+X (touch ◐) is the gadget in hand's next mode (`Gadgets.nextMode`): the gun's are the fluid tool's own (fluid, push,
 and the modes found); a gadget with `modes` and `cycleMode()` takes its next; one without says so ("… has no
-modes"). Y / △ (V) sounds the bell-note whistle and plays the echo shell back whatever is in hand (`ring`:
+modes"). A pad has no next-mode button since v1.86 (issue #511: D-pad → is Plumb's): a gadget with `modes` and
+`setMode(m)` is one slot per mode on the wheel, and a tap of D-pad ↑ takes back the last pick, a gadget or a mode
+(`swapBack`, `slotNow`, `trackSlot`); the wheel pauses the game (`wheel()`, called by main.js and engine/game.js
+instead of the world's frame): docs/systems/controls.md, "The wheel and Plumb's button". Y / △ (V) sounds the bell-note whistle and plays the echo shell back whatever is in hand (`ring`:
 src/boxes/effects.js); the chip shows the whistle while nothing is in hand. Nothing in hand is no longer a stop of
-the round, and the wheel holds the gadgets only. B only chooses gadgets: it is not a guard key (v0.93,
+the round, and the wheel holds the gadgets and the glove's modes (never the whistle). B only chooses gadgets: it is not a guard key (v0.93,
 docs/systems/controls.md "The layout"). The game menu's Items panel takes a gadget in hand too (`onUse`). The first
 gadget found is taken in hand by itself (for a new game: the gun, in the Givers' Hearth).
 
@@ -97,7 +100,7 @@ gadget found is taken in hand by itself (for a new game: the gun, in the Givers'
 The glove the fluid comes out of (src/fluid-tool.js, docs/systems/traveller-kit.md "The fluid glove"), a gadget
 since the progression rewrite: found in the desert's Givers' Hearth (`desert.gun`, by the stone ball its push
 rolls), worn on the hand from then on. `trigger: 'tool'`: while it is the gadget in hand the fluid tool aims on LT,
-shoots (and pushes, a mode) on RT, and takes the next mode on D-pad →; with another gadget in hand the tool's
+shoots (and pushes, a mode) on RT, and its modes are slots on the wheel (X the next on the keyboard); with another gadget in hand the tool's
 triggers are quiet (`toolInput` zeroed but for the sword's buttons). Its item is in src/items.js too (kind
 `gadget`), so node's tests and the save know it without the registry; the registry replaces it with the same
 words and adds its model (`gunModel`). A game on foot lends it in hand (`tool.forceGun`,
@@ -108,7 +111,7 @@ too (src/resources.js `meetsWith`).
 **It starts in push** (issue #307, the author: "The fluid gun should default to push mode"): first got, and on every
 load, the gun holds the mode the player last chose (the flag `tool.mode`, written by `FluidTool.setMode`) while it is
 still owned, else the push (`src/fluid-kit.js` `DEFAULT_MODE`, `startMode`); saves from before #307 never kept a
-choice and start in push. Its lesson (`hint.gun`) says so: RT pushes, D-pad → the other modes. A game on foot that
+choice and start in push. Its lesson (`hint.gun`) says so: RT pushes, the other modes on the wheel (D-pad ↑ held). A game on foot that
 lends the gun sets its own mode (`lendTool`'s `mode`, shoot) and puts the player's back after.
 
 ## Played together

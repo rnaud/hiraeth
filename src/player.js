@@ -3117,6 +3117,8 @@ export const PITCH_UP_OPEN = -1.36;
 export const PITCH_UP_TIGHT = -0.62;
 export const PITCH_UP_AIM = -1.5;
 export const PITCH_DOWN = 1.3;
+/** How fast R3 turns the camera behind the traveller (CameraRig.recentre: an ease, 1/s; about a third of a second). */
+export const RECENTRE_RATE = 10;
 
 const smoothstep = (a, b, x) => { const t = THREE.MathUtils.clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
 
@@ -3316,6 +3318,24 @@ export class CameraRig {
     const k = 0.0025 * this.sensitivity;
     this.yaw -= dx * k;
     this.pitch = THREE.MathUtils.clamp(this.pitch + dy * k * (this.invertY ? -1 : 1), this.pitchUpLimit(), PITCH_DOWN);
+    if (dx || dy) this._recentre = null;   // (turned by hand: a recentre under way gives way)
+  }
+
+  /**
+   * Turn the camera behind the traveller (R3 with no foe in reach, issue #512: the souls-likes' habit), eased over a
+   * few tenths of a second; `heading` is his, in his frame (src/player.js Frame.dir). Turning it by hand stops it.
+   */
+  recentre(heading) {
+    if (!Number.isFinite(heading)) return;
+    this._recentre = heading + Math.PI;
+  }
+
+  /** A recentre under way (recentre()): the yaw eased round the shorter way, done within a hundredth of a radian. */
+  stepRecentre(dt) {
+    if (this._recentre == null || this.locked) { this._recentre = null; return; }
+    const d = Math.atan2(Math.sin(this._recentre - this.yaw), Math.cos(this._recentre - this.yaw));
+    if (Math.abs(d) < 0.01) { this.yaw += d; this._recentre = null; return; }
+    this.yaw += d * (1 - Math.exp(-RECENTRE_RATE * dt));
   }
 
   /** The lowest pitch (the steepest look up) right now: nearly straight up in the open, less close in, straight up aiming. */
@@ -3734,6 +3754,7 @@ export class CameraRig {
   /** @param frame the player's local frame (up / fwd / right) */
   update(playerPos, dt, frame) {
     this._now += dt;
+    this.stepRecentre(dt);   // (R3 with no foe in reach: behind the traveller)
     // (how fast the camera is being turned, by hand or by the lock-on, since the last frame: the arm looks ahead of it)
     const turnRate = dt > 0 && this._yawPrev != null ? Math.atan2(Math.sin(this.yaw - this._yawPrev), Math.cos(this.yaw - this._yawPrev)) / dt : 0;
     const U = frame ? frame.up : Y, Fw = frame ? frame.fwd : _zAxis, Rt = frame ? frame.right : _xAxis;

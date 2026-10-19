@@ -11,7 +11,7 @@ help goes through one setting, **Settings → Game → Hints** (`src/ui.js` `hin
 | `tip` | explanations after the fact, how to beat each foe, the world's edge, "it burns", a gadget's status said again, the ink count, where to look in the menu | no | no | yes |
 | `objective` | the quest's next step pushed onto the screen, a quest card's first step, the gold column over a world's goal | no | no | yes |
 | `nudge` | a line or a ping that comes by itself (the sphere's "give it a splash", the jets' auto-ping) | no | no | yes |
-| `puzzle` | the drone's hints in a guardian's fight, asked for (Q, R3) | never | one line opens after each stretch of struggle (`STRUGGLE`: 40, 100, 180 s in the phase) | all at once |
+| `puzzle` | the drone's hints in a guardian's fight, asked for (Q, D-pad →) | never | one line opens after each stretch of struggle (`STRUGGLE`: 40, 100, 180 s in the phase) | all at once |
 
 Not hints, at every level: the scout's ping (the objective, on request, and its marker), the Controls
 page (every control), the item cards (a new tool's card teaches its verb: `keyText(…, { teach: true })`),
@@ -42,7 +42,7 @@ the hint-level halves of `tests/first-run.test.js`, `tests/hud.test.js`, `tests/
 `src/scout-hint.js`: the first time a conversation closes (`dialogue:end`) where the scout can go somewhere (off
 the ship, not in a minigame, the prologue done, `scout.getTarget()` something), the cue at the bottom says, 1.2 s
 later and for 6 s of its own (it waits behind a find, a prompt or a region's name), "{key:scout} shows where your
-next quest is": Q, R3 (the lock-on button with no foe near; printed RS on an Xbox pad, as native-pad.js names it)
+next quest is": Q, D-pad → (its own button since v1.86, issue #512; R3 only locks on)
 or ping. A `teach` line: subtle and full, never off. Said once a save (`teach.scout`, set when it is said); a ping
-of your own first (Q, R3) counts as learnt. It is the game's prompt, independent of the drone's own lines.
+of your own first (Q, D-pad →) counts as learnt. It is the game's prompt, independent of the drone's own lines.
 `tests/scout-hint.test.js`.

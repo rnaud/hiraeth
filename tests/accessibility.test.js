@@ -149,24 +149,37 @@ test('a pad layout from before PAD_SCHEME 4 (one job per button): brought up to 
   assert.equal(padConflicts(migratePad({ potion: 'LB', guard: '↓' })).size, 0);
   assert.deepEqual(migratePad({ potion: 'R3', lock: '↓', jump: 'B', evade: 'A' }), { potion: 'R3', lock: '←', jump: 'B', evade: 'A' });
   assert.deepEqual(migratePad({ potion: '←' }), {}, 'the potion put on ← then: its default now');
-  assert.deepEqual(migratePad({ jump: '→' }), {}, 'a verb on → (free then) would share the gun mode\'s button: back to its default');
+  assert.deepEqual(migratePad({ jump: '→' }), {}, 'a verb on → (free then) would share Plumb\'s button: back to its default');
   // schemes 1–2: the mount and the next gun mode where they were; the mode before is gone, its ← the potion's
-  assert.deepEqual(migratePad({ call: 'LB', guard: '↓', modePrev: 'RB', blade: '←', modeNext: 'Y', gadget: '→' }), { call: 'LB', guard: '↓', modeNext: 'Y', whistle: '→' },
+  assert.deepEqual(migratePad({ call: 'LB', guard: '↓', modePrev: 'RB', blade: '←', modeNext: 'Y', gadget: '→' }), { call: 'LB', guard: '↓', scout: 'Y', whistle: '→' },
     'the swaps with the mount and the next mode kept; the blade on the mode before\'s ← would share the potion\'s: back to RB');
-  assert.deepEqual(migratePad({ modePrev: 'LB', modeNext: 'RB', blade: '→', jump: 'B', evade: 'A' }), { modeNext: 'RB', blade: '→', jump: 'B', evade: 'A' }, 'modePrev dropped, the rest as chosen');
+  assert.deepEqual(migratePad({ modePrev: 'LB', modeNext: 'RB', blade: '→', jump: 'B', evade: 'A' }), { scout: 'RB', blade: '→', jump: 'B', evade: 'A' }, 'modePrev dropped, the rest as chosen (the next mode\'s button is Plumb\'s since scheme 6)');
   for (const old of [{ potion: 'LB', guard: '↓' }, { call: 'LB', guard: '↓', modePrev: 'RB', blade: '←' }, { jump: '→', evade: '↓', potion: 'X', interact: '↓' }]) assert.equal(padConflicts(migratePad(old)).size, 0, JSON.stringify(old));
   const { migrateSettings } = await import('../src/ui.js');
   const m = migrateSettings({ hudV: 1, pad: { potion: 'LB', guard: '↓' } });
   assert.deepEqual(m.pad, { potion: 'LB', guard: '←' }, 'the saved settings, once');
-  assert.equal(m.padV, 5);
+  assert.equal(m.padV, 6);
   assert.deepEqual(migrateSettings({ hudV: 1, padV: 4, pad: { guard: '↓', call: 'LB' } }).pad, { guard: '↓', call: 'LB' }, 'saved since: as chosen');
   // scheme 4 (to v1.37): the top button's verb was the gadget in hand (or the whistle with none); it is the whistle now,
   // on the button chosen (using the gadget is RT's, 'fire')
   const s4 = migrateSettings({ hudV: 1, padV: 4, pad: { gadget: 'LB', guard: 'Y' } });
   assert.deepEqual(s4.pad, { whistle: 'LB', guard: 'Y' }, 'a swap of the top button stays a swap');
-  assert.equal(s4.padV, 5);
+  assert.equal(s4.padV, 6);
   assert.equal(padConflicts(s4.pad).size, 0);
   assert.deepEqual(migratePad({ gadget: '↑', pick: 'Y' }, 4), { whistle: '↑', pick: 'Y' }, "not run through the old schemes' rules");
+});
+
+test('a pad layout from before PAD_SCHEME 6 (v1.86, issues #511 / #512): the next mode\'s button is Plumb\'s, lock stays where it was moved', async () => {
+  const { migratePad } = remap;
+  assert.deepEqual(migratePad({ modeNext: 'Y', whistle: '→' }, 5), { scout: 'Y', whistle: '→' }, 'a swap of → stays a swap: Plumb takes the button the next mode had');
+  assert.deepEqual(migratePad({ lock: 'LB', guard: 'R3' }, 5), { lock: 'LB', guard: 'R3' }, 'R3 moved: the lock follows the player\'s choice');
+  assert.deepEqual(migratePad({ modeNext: '→' }, 5), {}, 'left on →: Plumb\'s default');
+  assert.deepEqual(migratePad({ modeNext: 'RB' }, 5), {}, 'the next mode on the blade\'s RB would make Plumb share it: back to the default');
+  const { migrateSettings, REBIND_PAD } = await import('../src/ui.js');
+  const m = migrateSettings({ hudV: 1, padV: 5, pad: { modeNext: 'Y', whistle: '→' } });
+  assert.deepEqual(m.pad, { scout: 'Y', whistle: '→' });
+  assert.equal(m.padV, 6);
+  assert.ok(REBIND_PAD.includes('scout') && !REBIND_PAD.includes('modeNext'), 'the Controls page moves Plumb, not a gun mode');
 });
 
 test('the key listener sends keys on as the verb\'s default key, toggles run, and hands one key to "press a key"', () => {

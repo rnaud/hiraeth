@@ -26,14 +26,15 @@ level's controls are listed in [worlds.md](worlds.md), "Levels".
 
 **The gadget in hand** (v1.38; the fluid gun is one, once found): hold right mouse (or **R**) to aim it, left
 click (or **G**) while aiming, or **T** / the middle mouse button any time, to use it (shoot, throw), and **X**
-for its next mode (the gun's: fluid, push, and those found). On a gamepad, LT aims, RT uses and D-pad → takes the
-next mode (round again after the last); on touch, use **◎ ✺ ◐**. The jets: jump held in the air (A / × on a pad
+for its next mode (the gun's: fluid, push, and those found). On a gamepad, LT aims and RT uses; the glove's modes are
+slots of their own on the wheel (hold D-pad ↑, v1.86); on touch, use **◎ ✺ ◐**. The jets: jump held in the air (A / × on a pad
 too). The paralyze ray
 freezes wildlife and people briefly. Foam darts activate things from afar: reactive scenery, observatory
 lenses within 30 m, cruising taxis and Lorn's carnivorous plants.
 
-**Gadgets** (v0.90, docs/systems/gadgets.md): **B** takes the next (Shift + B the one before; held: the
-wheel); on a pad D-pad ↑; on touch the chip in the corner. The bell-note whistle and the echo shell: **V**,
+**Gadgets** (v0.90, docs/systems/gadgets.md): **B** held opens the wheel (W A S D point; the gadgets and the
+glove's modes, the game waiting), a tap of **B** takes back the last pick; on a pad D-pad ↑ the same; on touch the
+chip in the corner takes the next. The bell-note whistle and the echo shell: **V**,
 Y / △ on a pad, whatever is in hand (◆ on touch with nothing in hand).
 
 ## Controller
@@ -274,11 +275,11 @@ Conflicts and oddities:
 | LT / L2 | **aim the gadget in hand** | | | jets: hold to aim | brake | | | |
 | RT / R2 | **use the gadget in hand** (an aiming one: at once) | | **let fly** (shoot, throw) | | throttle | | | faster |
 | L3 | run | | | as before | boost | | | |
-| R3 | lock on · **no foe in reach: the scout** | lock on, the next, let go | | **the scout** | **the scout** | | | |
-| D-pad ↑ | choose a gadget (tap: the next, held: the wheel, the right stick pointing at one since v1.41) | | | | | | navigate | |
+| R3 | lock on · no foe in reach: **the camera behind you** (v1.86; the scout until then) | lock on, the next, let go | | | (nothing; the scout until v1.85) | | | |
+| D-pad ↑ | **held: the wheel, the game waiting** (every gadget and each glove mode, the right stick points: v1.86) · **tap: the last pick back** (the next gadget until v1.85) | | | | | | navigate | |
 | D-pad ↓ | **call the mount, hail a taxi** (the Arena, the Arcade, the References: their list) | | | | | | navigate | |
 | D-pad ← | **drink a healing potion** (v1.11; View + D-pad ↓ before) | | | | | | navigate | |
-| D-pad → | **the gadget in hand's next mode** (the gun's; round again after the last; ← took the one before until v1.11) | | | | | | navigate | |
+| D-pad → | **Plumb finds the objective** (a guardian's fight, a makers' house: a hint; v1.86: the next gun mode until v1.85) | | | | Plumb | | navigate | |
 | View (on release) | the game menu | | | | the game menu | | close | **leave** |
 | View + D-pad ↑ | **photo mode** (also in the Start menu) | | | | photo mode | | | |
 | View + D-pad ↓ / ← / → | **free** (`padchord` events; in the Arena ← toggles the input display) | | | | | | | |
@@ -287,7 +288,7 @@ Conflicts and oddities:
 
 Keyboard and mouse: the **left click** swings the blade (pointer captured, not aiming; aiming, it shoots),
 F still does; Ctrl or Z guards, Alt evades, Tab locks on, Q the scout, V the whistle, B only chooses
-gadgets. The jets on a keyboard are Space held in the air. Touch keeps its buttons; photo mode is in the
+gadgets and glove modes (held the wheel, a tap the last pick back), X the glove's next mode. The jets on a keyboard are Space held in the air. Touch keeps its buttons; photo mode is in the
 Start menu.
 
 ### Why each is where it is
@@ -309,10 +310,9 @@ Start menu.
   (L3 clicked standing still called the mount, a tap of ↑ while aiming took the next gun mode, the potion
   on ↓): a button whose job depends on whether the stick is at rest or LT is held proved confusing, so it
   went back to one job per button (`PAD_SCHEME` 4).
-- **The scout on R3 when nothing can be locked on to:** R3 means "find something": a foe if one is in reach
-  (souls), else the way to the objective (Horizon's Focus). In a fight R3 always locks; out of one it never
-  needs to. It works riding and flying, where Y sent it before. (Bosses are not foes in reach: in a
-  temple, R3 asks the drone for a hint, as the ping did: docs/systems/boss-hints.md.)
+- **The scout on R3 when nothing could be locked on to (v1.11 to v1.85):** R3 meant "find something": a foe
+  in reach, else the way to the objective. It made Plumb unreachable with a foe near and one press do two
+  things, so since v1.86 Plumb has D-pad → and R3 only locks on: "The wheel and Plumb's button" below.
 - **The whistle on Y with no gadget in hand:** Y is "use what is in your hand"; with no gadget the hand
   holds the whistle (the chip shows it, the wheel's first slot says so). So the bell and the shell have a
   pad button in every fight again, one tap of D-pad ↑ (or the wheel's top) away.
@@ -330,7 +330,9 @@ Start menu.
   `pad`) are brought up to date once (`migratePad` in `src/remap.js`, from `migrateSettings`, marked
   `padV`): from schemes 1–2, the mount and the next gun mode stay where they were and the mode before is
   gone; from scheme 3 (a saved `potion` tells it), the potion keeps the button chosen and a verb the player
-  had swapped onto ↓ (the potion's place then) moves to ←, its place now, so a swap stays a swap.
+  had swapped onto ↓ (the potion's place then) moves to ←, its place now, so a swap stays a swap; from
+  schemes before 6 (v1.86), the next gun mode's verb (`modeNext`) is gone and Plumb (`scout`) takes the button
+  it had, so a player who moved it finds Plumb there (the lock stays wherever it was moved).
   Whatever still shares a button after that goes back to its default.
 
 Tests: `tests/bindings.test.js` (no button bound twice in a context; a virtual pad pressed through every
@@ -402,7 +404,7 @@ mode." The fluid gun became a gadget (docs/systems/gadgets.md, "The fluid gun"),
   `look`, `tool`; src/gadgets/index.js): the throwers take aim on LT and let fly on RT (RT alone throws at once
   where the camera looks), the held ones work on RT, the lens on either, the gun's triggers are the fluid tool's.
   With nothing in hand the triggers do nothing (but locked on with the hook owned: below). D-pad ↑ chooses (a tap the
-  next, held the wheel), D-pad → is the gadget's next mode.
+  next, held the wheel), D-pad → was the gadget's next mode (v1.86: the wheel holds the modes, → is Plumb's: below).
 - **Locked on, RT / R2 throws the hook at the foe** (v1.82, issue #399): with the hook in hand its quick throw goes at
   the locked foe instead of where the camera looks, and with nothing in hand RT throws it too. Another gadget in hand
   keeps RT, and LT then RT is still the hook's free aim, so no other prompt moved (docs/systems/gadgets.md, "The hook
@@ -432,3 +434,53 @@ mode." The fluid gun became a gadget (docs/systems/gadgets.md, "The fluid gun"),
 Tests: `tests/gadgets.test.js` (the triggers by the gadget), `tests/gadgets-qa.test.js` (the whistle),
 `tests/bindings.test.js`, `tests/controller.test.js`, `tests/accessibility.test.js` (the migration),
 `tests/jets.test.js`, `tests/fluid-tool.test.js` (the double jump), `tests/abilities.test.js`.
+
+## The wheel and Plumb's button (v1.86, issues #511, #512, #524)
+
+The author's decision of 19 October 2026 on the proposal in issue #511 (`PAD_SCHEME` 6). On foot; **bold** changed:
+
+| Button (Xbox / PS) | Retroid / Android | What it does |
+|---|---|---|
+| A / × | B (bottom) | jump; double jump; held in the air: jets / wings; locked on: back flip, side hop |
+| B / ○ | A (right) | evade |
+| X / □ | Y (left) | interact, talk, pick up, get on |
+| Y / △ | X (top) | the bell-note whistle / echo shell |
+| RB / R1 | R1 | the blade |
+| LB / L1 | L1 | guard / parry; no foe near: LB + right stick zooms |
+| LT / L2 | L2 | aim the gadget in hand |
+| RT / R2 | R2 | use it; locked on, the hook goes to the foe |
+| L3 | L3 | run |
+| **R3** | R3 | **lock on, the next, let go: nothing else.** No foe in reach: **the camera turns behind you** (`CameraRig.recentre`, eased over a third of a second, `RECENTRE_RATE`; turning it by hand stops it) |
+| **D-pad ↑ held** | D-pad ↑ | **the wheel, the game waiting**: every gadget, and each of the glove's modes as a slot of its own (together where the glove is, its glyph on the mode's tint); the right stick points, letting go of ↑ takes it in hand |
+| **D-pad ↑ tap** | D-pad ↑ | **the last pick back** (a gadget or a mode: push and fluid, a tap apart); none yet: the next gadget. A tap never pauses |
+| D-pad ↓ | D-pad ↓ | call the mount / hail a taxi |
+| D-pad ← | D-pad ← | drink a healing potion |
+| **D-pad →** | D-pad → | **Plumb finds the objective**; a makers' house or a guardian's fight: a hint (docs/systems/boss-hints.md). Riding too |
+| View | Select | the game menu; View + ↑ photo mode; View + ↓ / ← / → free |
+| Menu | Start | the Start menu |
+| L3 + R3 | L3 + R3 | the dev menu |
+
+**Riding:** R3 sends nothing (the lock-on is a foot verb); D-pad → is Plumb, as on foot. **Keyboard:** Tab locks on,
+Q calls Plumb, X still takes the glove's next mode (keys are plentiful), B held opens the same paused wheel (W A S D
+point) and a tap of B takes back the last pick. **Touch:** ◐ and ping as before; the chip still takes the next gadget.
+
+- **The game waits while the wheel is open** (Breath of the Wild's habit: choosing never costs a hit). main.js's
+  frame hands the input to `Gadgets.wheel()` (`wheelFrame`) instead of the world's frame, before the clock moves:
+  nothing moves and nothing is drawn again (the last frame stays under the wheel); engine/game.js does the same and
+  still syncs its scene. The gadgets' pictures are drawn while ↑ is held, before the wheel opens (the renderer draws
+  them, and with the world not drawn after them one would stay on the screen). A menu opened over the wheel closes it.
+- **Why a tap takes back the last pick:** with up to sixteen slots (ten gadgets and six modes), "the next, one tap at
+  a time" is no use; swapping the last two is what a tap is good for. `Gadgets.slotNow()` is the slot in hand
+  ('gun.push' for a glove mode), `trackSlot()` keeps the one before whatever moved it (the wheel, a tap, X, a find).
+- **Where the modes come from:** a gadget whose instance has `modes` (two or more) and `setMode(m)` is one slot per
+  mode (`Gadgets.modesOf`, `wheelList`); the glove's are the fluid tool's (src/gadgets/gun.js `modeSlot`: its name and
+  the mode's `glow` from src/fluid-kit.js MODES; the glyph `MODE_GLYPH`). More than twelve slots: a wider ring of
+  smaller ones (`.lots`, and BridgeHud's wheel the same).
+- **Prompts:** `{key:mode}` reads "D-pad ↑ held" on a pad (`vk.held`), so the item cards and quest lines that name
+  the glove's modes read right without a rewrite; `{key:scout}` is D-pad →.
+
+Tests: `tests/gadgets.test.js` (the wheel's mode slots, the tap's swap, the game waiting: `wheel()` reads only the
+choosing, main.js and engine/game.js stop before their clocks), `tests/engine-gadgets.test.js` (in the engine bundle: ↑
+held with the stick pushed, the traveller and the clock hold still; a mode taken on the wheel; the tap's swap),
+`tests/controller.test.js` (R3 only locks on, riding R3 sends nothing, D-pad → Plumb on foot and riding),
+`tests/bindings.test.js`, `tests/accessibility.test.js` (scheme 6's migration).

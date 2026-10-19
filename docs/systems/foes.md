@@ -1030,7 +1030,7 @@ the engines' bundle, the blade pressed on the keys).
 
 ## Controls and the lock-on
 
-- **RB / R1** (a left click, F, ⚔) swings (held, the charged cut; in the air, the air cut); **LB / L1** held (Ctrl or Z on land, 🛡) guards; **B / ○** (Alt, ↶) evades; **R3** (Tab, ◉) locks on, and with no foe in reach sends the scout (docs/systems/controls.md, "The layout").
+- **RB / R1** (a left click, F, ⚔) swings (held, the charged cut; in the air, the air cut); **LB / L1** held (Ctrl or Z on land, 🛡) guards; **B / ○** (Alt, ↶) evades; **R3** (Tab, ◉) locks on, and with no foe in reach turns the camera behind you (v1.86; Plumb has D-pad →: docs/systems/controls.md, "The wheel and Plumb's button").
 - The push is a gun mode (`MODES.push`, always owned with the backpack): fired as a shot, it throws the cone.
 - **The hook on the lock** (v1.82, issue #399): locked on, **RT / R2** throws the grappling hook at the foe (the hook in
   hand, or nothing in hand). Each kind's `hook` class says what it does: `light` yanked to you and dazed, `heavy` pinned

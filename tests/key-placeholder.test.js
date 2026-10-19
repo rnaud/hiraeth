@@ -27,19 +27,21 @@ test('keys in lines: the keyboard, with the player’s own keys', () => {
   setControlPrefs({});
 });
 
-test('keys in lines: a controller, its buttons as the player moved them; push is the D-pad, never X', () => {
+test('keys in lines: a controller, its buttons as the player moved them; push is on the wheel (D-pad ↑ held), never X', () => {
   setControlPrefs({});
   assert.equal(keyText('{key:aim} {key:fire}', { kind: 'pad' }), 'LT / L2 RT / R2');
-  assert.equal(keyText('{key:mode}', { kind: 'pad' }), 'D-pad →');
+  assert.equal(keyText('{key:mode}', { kind: 'pad' }), 'D-pad ↑ held', 'the glove\'s modes: on the wheel (issue #511)');
+  assert.equal(keyText('{key:scout}', { kind: 'pad' }), 'D-pad →', 'Plumb (issue #512)');
   assert.equal(keyText('{key:potion}', { kind: 'pad' }), 'D-pad ←');
   assert.doesNotMatch(keyText('{key:mode}', { kind: 'pad' }), /X/);
   assert.equal(keyText('{key:interact}', { kind: 'pad' }), 'X / □');
   assert.equal(keyText('{key:call}', { kind: 'pad' }), 'D-pad ↓');
   assert.equal(keyText('{key:blade} {key:guard} {key:evade}', { kind: 'pad' }), 'RB / R1 LB / L1 B / ○');
-  setControlPrefs({ pad: { jump: 'B', evade: 'A', modeNext: 'RB', potion: 'LB' } });
+  setControlPrefs({ pad: { jump: 'B', evade: 'A', pick: 'RB', scout: 'Y', whistle: '→', potion: 'LB' } });
   assert.equal(keyText('{key:jump}', { kind: 'pad' }), 'B / ○');
   assert.equal(keyText('{key:evade}', { kind: 'pad' }), 'A / ×');
-  assert.equal(keyText('{key:mode}', { kind: 'pad' }), 'RB / R1');
+  assert.equal(keyText('{key:mode}', { kind: 'pad' }), 'RB / R1 held', 'the wheel where the player moved it');
+  assert.equal(keyText('{key:scout}', { kind: 'pad' }), 'Y / △');
   assert.equal(keyText('{key:potion}', { kind: 'pad' }), 'LB / L1');
   // as HTML the name is already the bound one: .pad-raw keeps native-pad.js from renaming it a second time
   assert.equal(keyText('{key:jump}', { kind: 'pad', html: true }), '<kbd class="kp pad-raw">B / ○</kbd>');
@@ -141,7 +143,7 @@ test('no item card and no toast names a button in prose', () => {
   }
   assert.deepEqual(bad, []);
   // and the ones that teach use the placeholder, which resolves
-  assert.match(keyText(ITEMS.stun.text, { kind: 'pad', teach: true }), /In stilling mode \(D-pad →\)/);
+  assert.match(keyText(ITEMS.stun.text, { kind: 'pad', teach: true }), /In stilling mode \(D-pad ↑ held\)/);
 });
 
 test('hints subtle (the default) and off: a line keeps what it says and drops the controls it names; a card that teaches keeps them', () => {
@@ -154,7 +156,7 @@ test('hints subtle (the default) and off: a line keeps what it says and drops th
       assert.equal(keyText('Aim with {key:aim}, fire with {key:fire}. One shot a bulb.', { kind: 'keys' }), 'One shot a bulb.', 'a sentence that is only controls goes');
       assert.equal(keyText('Open your wings (hold {key:jump} as you fall): it lifts you.', { kind: 'keys' }), 'Open your wings: it lifts you.');
       assert.equal(keyText('{key:whistle} plays it back.', { kind: 'keys' }), '', 'nothing left: the toast is skipped (main.js showToast)');
-      assert.match(keyText(ITEMS.stun.text, { kind: 'pad', teach: true }), /In stilling mode \(D-pad →\)/, 'a new tool’s card still teaches');
+      assert.match(keyText(ITEMS.stun.text, { kind: 'pad', teach: true }), /In stilling mode \(D-pad ↑ held\)/, 'a new tool’s card still teaches');
       assert.equal(keysHtml('Wash it: aim with {key:aim}.'), 'Wash it.');
     }
     assert.equal(quietKeys('No keys here: none.'), 'No keys here: none.');

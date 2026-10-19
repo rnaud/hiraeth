@@ -57,7 +57,8 @@ test('the full-screen menus pause the game and bring in the menu music', () => {
   const main = src('main.js');
   assert.match(main, /const paused = \(\) => !!window\.cinematicReview\?\.paused \|\| menu\.open \|\| journal\.open \|\| changelog\.open( \|\| devMenu\.open)?( \|\| !!minigame\?\.paused)?;/);   // (and a minigame's pause card: src/minigames/kit/runner.js)
   // frame(): under a menu nothing in the world updates or draws, and the world's clock stops
-  assert.match(main, /if \(paused\(\)\) \{ pausedFrame\(\); requestAnimationFrame\(frame\); return; \}\s*simT \+= dt;\s*const t = simT;/);
+  // (the gadget wheel open: the game waits too, issue #524: wheelFrame)
+  assert.match(main, /if \(paused\(\)\) \{ pausedFrame\(\); requestAnimationFrame\(frame\); return; \}\s*(\/\/[^\n]*\n\s*)?if \(gadgets\?\.wheelOn && !busy\(\)\) \{ wheelFrame\([^\n]*\n\s*simT \+= dt;\s*const t = simT;/);
   assert.match(main, /sound\.menuMusic\(paused\(\)\)/);
   // the Start menu acts on this save only, and can quit to the title
   assert.match(main, /slots\.remove\(slots\.active\)/);

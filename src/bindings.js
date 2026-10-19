@@ -25,13 +25,13 @@ export const BUTTON_NAME = {
  */
 export const PAD_VERBS = {
   jump: 'A', evade: 'B', interact: 'X', whistle: 'Y', blade: 'RB', guard: 'LB', aim: 'LT', fire: 'RT',
-  run: 'L3', lock: 'R3', pick: '↑', potion: '←', call: '↓', modeNext: '→',
+  run: 'L3', lock: 'R3', pick: '↑', potion: '←', call: '↓', scout: '→',
 };
 
 /** The button names the prompts use for each verb (Xbox / PlayStation form), from PAD_VERBS. */
 export const PAD = {
   ...Object.fromEntries(Object.entries(PAD_VERBS).map(([v, b]) => [v, BUTTON_NAME[b]])),
-  mode: BUTTON_NAME[PAD_VERBS.modeNext], gadget: BUTTON_NAME[PAD_VERBS.fire], journal: 'View', menu: 'Menu', photo: 'View + D-pad ↑',
+  mode: BUTTON_NAME[PAD_VERBS.pick], gadget: BUTTON_NAME[PAD_VERBS.fire], journal: 'View', menu: 'Menu', photo: 'View + D-pad ↑',
 };
 
 /**
@@ -61,11 +61,11 @@ export const BINDINGS = {
     ['LT', 'aim the gadget in hand (the fluid gun, the hook, the bombs…) · locked on: on its centre, the right stick shifts the aim a little'],
     ['RT', 'use the gadget in hand: shoot, throw · while aiming: let fly'],
     ['L3', 'run, until the stick is let go'],
-    ['R3', 'lock on, the next, let go · no foe in reach: the scout finds the objective'],
-    ['↑', 'choose the gadget in hand: tap the next · hold the wheel'],
+    ['R3', 'lock on, the next, let go (nothing else) · no foe in reach: the camera turns behind you'],
+    ['↑', 'held: the wheel, the game waiting (every gadget, and each of the glove\'s modes; the right stick points, let go to take it) · a tap: the last pick back (push and fluid, a tap apart)'],
     ['↓', 'call the mount · hail a taxi (the Arena, the Arcade, the References: their list)'],
     ['←', 'drink a healing potion'],
-    ['→', 'the gadget in hand\'s next mode (the gun\'s: fluid, push…; round again after the last)'],
+    ['→', 'Plumb finds the objective · a guardian\'s fight, a makers\' house: a hint'],
     ['View', 'the game menu (items, quests, worlds)'],
     ['Menu', 'the Start menu (settings, controls)'],
     ['View + ↑', 'photo mode'],
@@ -83,7 +83,7 @@ export const BINDINGS = {
     ['RB', 'boost'],
     ['L3', 'boost'],
     ['Y', 'the gadget in hand (the gust fan, into a skiff\'s sail)'],
-    ['R3', 'the scout finds the objective'],
+    ['→', 'Plumb finds the objective'],
     ['View', 'the game menu'],
     ['Menu', 'the Start menu'],
     ['View + ↑', 'photo mode'],
@@ -122,7 +122,7 @@ export const BINDINGS = {
 export const FREE = ['View + ↓', 'View + ←', 'View + →'];
 
 /** The layout's version, kept on the device so a player from before is told once what moved (main.js). */
-export const PAD_SCHEME = 5;   // (5, v1.38: the triggers work the gadget in hand, Y whistles, A held flies the jets; 4, v1.11: one job per button; 3, v1.11's first build: double duties on L3 and D-pad ↑, the potion on ↓)
+export const PAD_SCHEME = 6;   // (6, v1.86: D-pad → is Plumb's, R3 only locks on, held D-pad ↑ the wheel with the glove's modes, the game waiting, a tap the last pick back; 5, v1.38: the triggers work the gadget in hand, Y whistles, A held flies the jets; 4, v1.11: one job per button; 3, v1.11's first build: double duties on L3 and D-pad ↑, the potion on ↓)
 export const PAD_SCHEME_KEY = 'hiraeth.padScheme';
 // (shown in the player's language: src/i18n.js teach.padScheme, the same words)
-export const PAD_SCHEME_NOTE = 'Now LT / L2 aims, RT / R2 uses, Y / △ whistles, A / × held aloft: jets.';
+export const PAD_SCHEME_NOTE = 'D-pad → calls Plumb, R3 only locks on, hold D-pad ↑: gadgets, modes.';

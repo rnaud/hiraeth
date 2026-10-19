@@ -91,7 +91,7 @@ test('choosing: the round goes through nothing in hand, and the wheel reads the 
   assert.equal(pips(2, 3), '●●○');
 });
 
-test('the pad: LT / L2 aims and RT / R2 uses the gadget in hand, Y / △ whistles, D-pad ↑ chooses, → its mode; the keyboard R, T / G and B, the mouse, touch', () => {
+test('the pad: LT / L2 aims and RT / R2 uses the gadget in hand, Y / △ whistles, D-pad ↑ chooses (→ is Plumb\'s); the keyboard R, T / G, B and X, the mouse, touch', () => {
   const pad = { index: 0, connected: true, mapping: 'standard', axes: [0, 0, 0, 0], buttons: Array.from({ length: 17 }, () => ({ pressed: false, value: 0 })) };
   const actions = [];
   const c = new Controller({ pads: () => [pad], context: () => 'game', action: (a) => actions.push(a), look() {}, navigate() {}, scroll() {} });
@@ -102,9 +102,9 @@ test('the pad: LT / L2 aims and RT / R2 uses the gadget in hand, Y / △ whistle
   assert.equal(h.PadWhistle, false); assert.equal(h.PadGadgetPick, true, 'D-pad up held');
   pad.buttons[12] = { pressed: false, value: 0 }; pad.buttons[6] = { pressed: true, value: 1 }; pad.buttons[7] = { pressed: true, value: 1 }; pad.buttons[15] = { pressed: true, value: 1 };
   const t = c.update(DT);
-  assert.ok(t.PadAim && t.PadFire && t.PadModeNext, 'LT, RT and D-pad →');
-  assert.deepEqual(actions, [], 'none of them pings or calls (src/bindings.js)');
-  const none = { aim: false, use: false, pick: false, back: false, mode: false, whistle: false, touch: false };
+  assert.ok(t.PadAim && t.PadFire && !t.PadModeNext, 'LT and RT; D-pad → no gun mode');
+  assert.deepEqual(actions, ['scout'], 'D-pad → is Plumb (issue #512); the triggers ping nothing (src/bindings.js)');
+  const none = { aim: false, use: false, pick: false, mode: false, whistle: false, touch: false };
   assert.deepEqual(gadgetInput({ KeyT: true }), { ...none, use: true });
   assert.deepEqual(gadgetInput({ PadFire: true }), { ...none, use: true }, 'RT');
   assert.deepEqual(gadgetInput({ PadAim: true }), { ...none, aim: true }, 'LT');
@@ -115,8 +115,9 @@ test('the pad: LT / L2 aims and RT / R2 uses the gadget in hand, Y / △ whistle
   assert.equal(gadgetInput({ TouchFire: true }).use, true);
   assert.deepEqual(gadgetInput({ TouchGadget: true }), { ...none, use: true, touch: true });
   assert.deepEqual(gadgetInput({ PadWhistle: true }), { ...none, whistle: true });
-  assert.deepEqual(gadgetInput({ PadModeNext: true }), { ...none, mode: true });
-  assert.deepEqual(gadgetInput({ KeyB: true, ShiftLeft: true }), { ...none, pick: true, back: true });
+  assert.deepEqual(gadgetInput({ PadModeNext: true }), none, 'no pad button for the next mode (the wheel holds the modes, issue #511)');
+  assert.deepEqual(gadgetInput({ KeyX: true }), { ...none, mode: true }, 'X: the next mode, on the keyboard');
+  assert.deepEqual(gadgetInput({ KeyB: true }), { ...none, pick: true });
   const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
   assert.match(main, /ring: \(\) => itemFx\.ring\(\)/, 'with nothing in hand the use button sounds the whistle (V)');
   assert.ok(main.indexOf('gadgets.control(') < main.indexOf('player.update(pdt, doorWalk.input(busy() ? noInput : '), 'the reel acts before the traveller moves');
@@ -137,18 +138,18 @@ function runtime({ owned = ['hook', 'bomb'], defs = null } = {}) {
   return { G, game, its, log };
 }
 
-test('one job per button: D-pad ↑ takes the next gadget aiming or not, and its wheel holds the gadgets only', () => {
+test('one job per button: D-pad ↑ chooses aiming or not, and its wheel holds the gadgets (a gadget without modes: one slot)', () => {
   const { G } = runtime();
   assert.equal(G.equipped, 'hook');
   G.control(DT, { PadGadgetPick: true, PadAim: true }); G.control(DT, { PadAim: true });
-  assert.equal(G.equipped, 'bomb', 'aiming (LT): the tap is still the next gadget');
+  assert.equal(G.equipped, 'bomb', 'aiming (LT): the tap still chooses (nothing picked before: the next gadget)');
   for (let t = 0; t < WHEEL_HOLD + 0.05; t += DT) G.control(DT, { PadGadgetPick: true });
   assert.ok(G.wheelOn);
-  assert.deepEqual(G.wheelList().map((l) => l.id), ['hook', 'bomb'], 'the gadgets only (the whistle has Y / △), no modes');
+  assert.deepEqual(G.wheelList().map((l) => l.id), ['hook', 'bomb'], 'the gadgets (the whistle has Y / △); neither has modes');
   G.control(DT, {});
 });
 
-test('the runtime: a gadget in hand is kept in the save; the use button presses, holds and lets go; a tap of choose takes the next', () => {
+test('the runtime: a gadget in hand is kept in the save; the use button presses, holds and lets go; a tap of choose takes the last back', () => {
   const { G, game, log } = runtime();
   assert.equal(G.equipped, 'hook', 'the one taken in hand');
   assert.equal(game.flag(EQUIPPED_FLAG), 'hook', 'kept in the save');
@@ -156,9 +157,9 @@ test('the runtime: a gadget in hand is kept in the save; the use button presses,
   G.control(DT, { KeyT: true }); G.control(DT, { KeyT: true }); G.control(DT, {});
   assert.deepEqual(log, ['hook press', 'hook hold', 'hook release']);
   G.control(DT, { KeyB: true }); G.control(DT, {});
-  assert.equal(G.equipped, 'bomb', 'a tap: the next');
+  assert.equal(G.equipped, 'bomb', 'a tap, nothing picked before: the next');
   G.control(DT, { KeyB: true }); G.control(DT, {});
-  assert.equal(G.equipped, 'hook', 'then round again (nothing in hand is no stop: the whistle has its own button)');
+  assert.equal(G.equipped, 'hook', 'then the last pick back (nothing in hand is no stop: the whistle has its own button)');
   // held: the wheel; the stick points at a slot, letting go takes it
   for (let t = 0; t < WHEEL_HOLD + 0.05; t += DT) G.control(DT, { KeyB: true });
   assert.ok(G.wheelOn, 'the wheel is open');
@@ -182,7 +183,7 @@ test('the runtime: a gadget in hand is kept in the save; the use button presses,
   assert.deepEqual(log, ['hook cancel', 'bomb cancel']);
 });
 
-test('the triggers by the gadget: an aiming one takes aim on LT, lets fly on RT, puts an unused aim away; RT alone is a quick use; Y whistles; → its mode', () => {
+test('the triggers by the gadget: an aiming one takes aim on LT, lets fly on RT, puts an unused aim away; RT alone is a quick use; Y whistles; X its mode', () => {
   const game = new GameState(null);
   const listeners = new Set();
   const its = { has: (id) => !!game.flag(`item.${id}`), grant(id) { game.set(`item.${id}`, true); for (const f of listeners) f(id, true); }, on(f) { listeners.add(f); return () => listeners.delete(f); } };
@@ -208,12 +209,107 @@ test('the triggers by the gadget: an aiming one takes aim on LT, lets fly on RT,
   G.equip('gun');
   assert.deepEqual(run({ PadAim: true }, { PadAim: true, PadFire: true }, {}), [], 'the gun: the fluid tool reads them');
   G.equip('dial');
-  assert.deepEqual(run({ PadModeNext: true }, { PadModeNext: true }, {}), ['dial mode'], '→: its next mode, once a press');
+  assert.deepEqual(run({ KeyX: true }, { KeyX: true }, {}), ['dial mode'], 'X: its next mode, once a press');
+  assert.deepEqual(run({ PadModeNext: true }, {}), [], 'the pad has no next-mode button (its wheel holds the modes)');
   G.equip('fan');
   const said = [];
   G.ctx.notice = (t) => said.push(t);
   run({ KeyX: true }, {});
   assert.match(said[0] ?? '', /no modes/, 'one without modes says so');
+});
+
+// ------------------------------------------------------------------ the wheel with the glove's modes (issues #511, #524)
+
+/** A runtime with a glove whose modes the fluid tool keeps (a stand-in: modes, mode, setMode), and two plain gadgets. */
+function gloveRuntime(modes = ['shoot', 'push', 'fire']) {
+  const game = new GameState(null);
+  const listeners = new Set();
+  const its = { has: (id) => !!game.flag(`item.${id}`), grant(id) { game.set(`item.${id}`, true); for (const f of listeners) f(id, true); }, on(f) { listeners.add(f); return () => listeners.delete(f); } };
+  const log = [];
+  const tool = { modes, mode: 'push', setMode(m) { if (!this.modes.includes(m) || m === this.mode) return false; this.mode = m; log.push(`mode ${m}`); return true; } };
+  const plain = (id) => ({ id, name: id, text: '', use: '', trigger: 'use', model: () => new THREE.Group(),
+    create: () => ({ press() {}, hold() {}, release() {}, cancel() {}, equip() {}, unequip() {}, control: () => log.push(`${id} control`) }) });
+  const glove = { id: 'gun', name: 'Fluid gun', text: '', use: '', trigger: 'tool', model: () => new THREE.Group(),
+    create: (ctx) => ({ get modes() { return ctx.tool.modes; }, get mode() { return ctx.tool.mode; }, setMode: (m) => ctx.tool.setMode(m), modeSlot: (m) => ({ name: `Fluid gun: ${m}`, tint: '#e8f4ff' }), cancel() {}, equip() {}, unequip() {} }) };
+  const G = new Gadgets({ defs: [plain('hook'), glove, plain('bomb')], tool, scene: new THREE.Scene(), physics: physicsOf(), player: player(), game, items: its });
+  for (const id of ['hook', 'gun', 'bomb']) its.grant(id);
+  G.equip('hook', { quiet: true });
+  return { G, tool, log };
+}
+const hold = (G, input, t = WHEEL_HOLD + 0.05) => { for (let s = 0; s < t; s += DT) G.control(DT, { ...input }); };
+/** The right stick pointed at slot i of n (the wheel's slots clockwise from the top). */
+const at = (i, n) => ({ x: Math.sin((i / n) * Math.PI * 2), y: Math.cos((i / n) * Math.PI * 2) });
+
+test('issue #511: the wheel holds every gadget and each of the glove\'s modes as a slot, together where the glove is', () => {
+  const { G, tool, log } = gloveRuntime();
+  const list = G.wheelList();
+  assert.deepEqual(list.map((l) => l.key), ['hook', 'gun.shoot', 'gun.push', 'gun.fire', 'bomb']);
+  assert.ok(list.filter((l) => l.mode).every((l) => l.tint && l.glyph && /^Fluid gun: /.test(l.name) && !l.icon), 'a mode: its glyph on its tint, no picture');
+  // held: the wheel; the right stick at the ember slot, let go: the glove in hand, in ember
+  hold(G, { PadGadgetPick: true, lookStick: { x: 0, y: 0 } });
+  assert.ok(G.wheelOn);
+  G.wheel(DT, { PadGadgetPick: true, lookStick: at(3, list.length) });
+  G.wheel(DT, { lookStick: { x: 0, y: 0 } });
+  assert.ok(!G.wheelOn);
+  assert.equal(G.equipped, 'gun');
+  assert.equal(tool.mode, 'fire');
+  assert.equal(G.slotNow(), 'gun.fire');
+  assert.ok(log.includes('mode fire'));
+  // one mode only: the glove is one slot again
+  tool.modes = ['shoot'];
+  assert.deepEqual(G.wheelList().map((l) => l.key), ['hook', 'gun', 'bomb']);
+});
+
+test('issue #511: a tap of D-pad ↑ takes back the last pick, a gadget or a mode (push and fluid, a tap apart)', () => {
+  const { G, tool } = gloveRuntime();
+  const n = G.wheelList().length;
+  const pick = (i) => { hold(G, { PadGadgetPick: true, lookStick: { x: 0, y: 0 } }); G.wheel(DT, { PadGadgetPick: true, lookStick: at(i, n) }); G.wheel(DT, { lookStick: { x: 0, y: 0 } }); };
+  const tap = () => { G.control(DT, { PadGadgetPick: true }); G.control(DT, {}); };
+  G.control(DT, {});
+  pick(2);   // the push
+  assert.equal(G.slotNow(), 'gun.push');
+  pick(1);   // the fluid
+  assert.equal(G.slotNow(), 'gun.shoot');
+  tap();
+  assert.equal(G.slotNow(), 'gun.push', 'a tap: the push back');
+  tap();
+  assert.equal(G.slotNow(), 'gun.shoot', 'and the fluid again');
+  pick(4);   // the bombs
+  tap();
+  assert.equal(G.slotNow(), 'gun.shoot', 'from a gadget back to the mode before');
+  tap();
+  assert.equal(G.equipped, 'bomb');
+  // a mode changed another way (X, the keyboard's next mode) counts as a pick too
+  G.equip('gun'); G.control(DT, {});
+  tool.setMode('fire'); G.control(DT, {});
+  tap();
+  assert.equal(G.slotNow(), 'gun.shoot', 'the mode before X moved it');
+  // the keyboard's B taps the same way
+  G.control(DT, { KeyB: true }); G.control(DT, {});
+  assert.equal(G.slotNow(), 'gun.fire');
+});
+
+test('issue #524: while the wheel is open the game waits; wheel() reads only the choosing, a menu over it closes it', () => {
+  const { G, log } = gloveRuntime();
+  hold(G, { PadGadgetPick: true, lookStick: { x: 0, y: 0 } });
+  assert.ok(G.wheelOn);
+  log.length = 0;
+  const input = { PadGadgetPick: true, lookStick: { x: 0, y: 1 }, PadFire: true, PadWhistle: true, KeyX: true };
+  for (let i = 0; i < 30; i++) assert.equal(G.wheel(DT, input), true, 'still open while ↑ is held');
+  assert.deepEqual(log, [], 'no gadget runs, nothing is used, no mode moves while the game waits');
+  assert.equal(G.wheelHi, 0, 'the stick points: the top slot');
+  // a menu opened over it (main.js pausedFrame, engine/game.js under its menus): it closes, nothing taken
+  G.control(0, {}, true);
+  assert.ok(!G.wheelOn);
+  assert.equal(G.equipped, 'hook');
+  // the frame: main.js and engine/game.js hand the wheel the input instead of the world's frame
+  const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
+  const wheelAt = main.indexOf('if (gadgets?.wheelOn && !busy()) { wheelFrame(');
+  assert.ok(wheelAt > 0 && wheelAt < main.indexOf('simT += dt;'), 'main.js: the wheel open, the frame stops before the world\'s clock moves');
+  assert.match(main, /function wheelFrame\(dt, input\) \{\n {2}gadgets\.wheel\(dt, input\);/);
+  const engine = readFileSync(new URL('../engine/game.js', import.meta.url), 'utf8');
+  const e = engine.indexOf('if (gadgets?.wheelOn && !talking() && !boxes?.busy?.()) {');
+  assert.ok(e > 0 && e < engine.indexOf('simT += dt; frames++;'), 'engine/game.js: the same, before its clock moves');
 });
 
 test('the menu shows a gadget in hand, and lets you take another', () => {

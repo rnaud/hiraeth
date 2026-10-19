@@ -685,7 +685,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   if (expedition) registerInteractable({ id: 'lens', priority: PRIORITY.use, range: 1, prompt: () => expedition.hud(player).replace(/^E \(X \/ □\) /, ''),
     at: () => { const i = expedition.nearby(player); return i >= 0 ? expedition.model.dials[i].getWorldPosition(_lensAt).add(player.frame.up) : null; },
     distance: (p) => (expedition.nearby(p) >= 0 ? 0 : Infinity), use: () => {} });
-  // the scout finds the objective (Q, R3): the cue names it and how far at once, as main.js (scoutSays); a guardian's hint
+  // the scout finds the objective (Q, D-pad →): the cue names it and how far at once, as main.js (scoutSays); a guardian's hint
   // the same way, after a struggle (src/temples/hints.js)
   const scoutSaid = { text: '', until: 0, kind: '' };
   const scoutSays = (text, secs, kind = '') => { scoutSaid.text = text; scoutSaid.kind = kind; scoutSaid.until = performance.now() + secs * 1000; };
@@ -792,7 +792,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // the way, they sing faintly near and are taken by walking into them; the first brings Anselm, who sells for them aboard
   const fragments = optional('the fragments', () => createFragments({ levelId, scene, physics, level, player, sound, game: gameState, items: gear, toast, lights: (level.lights ??= []) }));
   // the gadgets (src/gadgets/, issue #344), made as main.js makes them, after the trials' upgrades to their tuning: the one in
-  // hand on LT / RT (R, and G or T), D-pad ↑ or B to choose another (held: the wheel), D-pad → or X its mode, Y / △ (V) the
+  // hand on LT / RT (R, and G or T), D-pad ↑ or B held the wheel (the gadgets and the glove's modes, the game waiting; a tap
+  // the last pick back), X the next mode, Y / △ (V) the
   // whistle; a gadget found is in hand at once (#330). Their chip, wheel, reticle and marks are the screen's state
   // (src/gadgets/hud.js; BridgeHud.cs draws them), and what they do to a foe (the fight's foes, above).
   // the foes and the fight (engine/combat.js: src/foes.js as main.js wires it, the lock-on and its camera, the drops, the
@@ -972,15 +973,20 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     action: (name, dt) => {
       if (menus?.open) { menus.action(name); return; }
       if (trials?.padAction(name)) return;   // (a run's own: Menu pauses it, the rest not in a game; src/minigames/kit/runner.js)
+      // (the gadget wheel open, the game waiting: no lock, Plumb, potion or call meanwhile, as main.js WHEEL_HOLDS)
+      if (gadgets?.wheelOn && (name === 'lock' || name === 'scout' || name === 'potion' || name === 'call' || name === 'l3' || name === 'zoomIn' || name === 'zoomOut')) return;
       if (name === 'worldDebug') { openDev(); return; }   // L3 + R3: the dev menu (src/dev-menu.js; engine/menus.js draws it)
       if (name === 'photo') { setPhoto(!photo.on); return; }
       if (name === 'capture') { if (photo.on && !photo.capture) photo.capture = 1; return; }
       if (photo.on) return;
       if (boxes?.busy?.()) { if (name === 'confirm') { boxes.dismiss(); return; } if (name === 'back') { boxes.skip(); return; } }
       if (combat?.restartOpen) { if (name === 'confirm') combat.restart(); return; }
-      // R3: lock on to a foe, then the next, then let go; with none in reach the scout finds the objective (main.js)
+      // R3: lock on to a foe, then the next, then let go, and nothing else; with none in reach the camera turns behind you
+      // (main.js, issue #512)
       if ((name === 'lock' || name === 'l3') && level.jump && !pinned) { level.jump(name === 'lock' ? 1 : -1); return; }   // (the Lab: R3 / L3 hop to the next / previous world's room, as main.js)
-      if (name === 'lock' && combat && !pinned && !(shipOn && ship.playing)) { if (!combat.lock() && !trials?.running) scout?.ping?.(); return; }
+      if (name === 'lock' && !pinned && !(shipOn && ship.playing)) { if (!combat?.lock() && !trials?.running) rig.recentre?.(player.heading); return; }
+      // D-pad →: Plumb finds the objective, on foot and riding (a guardian's fight, a makers' house: a hint), as main.js and Q
+      if (name === 'scout' && !pinned && !talking() && !(shipOn && ship.playing) && scout && !trials?.running) { scoutHint?.pinged(); scout.ping?.(); return; }
       if (name === 'potion' && combat && !pinned && !talking() && !(shipOn && ship.playing)) { combat.drink(); return; }
       // D-pad ↓ (the mount's call: there is none in the Arena): its list of foes, as main.js's quickMenu
       if (name === 'call' && foeList && !pinned && !talking()) { menus.openFoes(foeList); return; }
@@ -1600,6 +1606,19 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         mirror.time = simT;
         veilsFrame();
         level.beforeDraw?.(camera);   // (the frame's camera final: what a level lays out only where it is seen, main.js renderFrame)
+        const stats = mirror.sync(scene, camera);
+        return { ms: { update: tB0 - tA, mirror: performance.now() - tB0 }, stats, frames };
+      }
+      // the gadget wheel open (held D-pad ↑ or B): the game waits while you choose, as main.js wheelFrame (issue #524); only
+      // the wheel reads the input, the scene is still drawn as it stands
+      if (gadgets?.wheelOn && !talking() && !boxes?.busy?.()) {
+        const pad = controller.update(realDt, true);
+        inputFrame();
+        try { gadgets.wheel(realDt, mergeControls(latched(), pad)); } catch (e) { if (!game._gadgetsFailed) { game._gadgetsFailed = true; console.warn('[game] the gadgets failed', e?.stack ?? e); } gadgets.wheelOn = false; }
+        const tB0 = performance.now();
+        mirror.time = simT;
+        veilsFrame();
+        level.beforeDraw?.(camera);
         const stats = mirror.sync(scene, camera);
         return { ms: { update: tB0 - tA, mirror: performance.now() - tB0 }, stats, frames };
       }

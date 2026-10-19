@@ -43,7 +43,7 @@ import { boostVelocity, DOUBLE_JUMP } from './jump.js';
 //            waits until you land, then refills as usual (no endless flight).
 //   glider   fluid wings bloom out of the tank while gliding (hold jump while falling)
 //   gun      the glove (a gadget): shown on the hand once found
-//   stun / fire / bloom   gun modes (X, the pad's D-pad → with the gun in hand, the touch ◐ button): the glob
+//   stun / fire / bloom   gun modes (each a slot on the gadget wheel, hold D-pad ↑ or B; X and the touch ◐ button the next): the glob
 //            stills (onHit 'stun'), burns ('fire') or grows ('bloom') instead of splashing; all
 //            modes share the bar (targets.js: who accepts which mode)
 // Vehicles run on it too: boarding a powered vehicle swings the tank off the back into
@@ -107,7 +107,7 @@ export function toolInput(c = {}) {
     blade: !!(c.KeyF || c.PadBlade || c.TouchBlade || (c.MouseLeft && !t.aim)),
     guard: !!(c.ControlLeft || c.ControlRight || c.KeyZ || c.PadGuard || c.TouchGuard),   // separate held guard: Ctrl or Z, LB / L1, touch shield
     evade: !!(c.AltLeft || c.AltRight || c.PadEvade || c.TouchEvade),   // Alt, B / ○, touch ↶
-    mode: !!(c.KeyX || c.PadModeNext),     // the next owned gun mode (X, the pad's D-pad →)
+    mode: !!c.KeyX,     // the next owned gun mode (X; a pad chooses them on the gadget wheel, src/gadgets/index.js)
   };
 }
 
@@ -1054,7 +1054,7 @@ export class FluidTool {
     const bladePress = input.blade && !this.held.blade;
     this.held.blade = input.blade;
     this.held.fire = input.fire; this.held.quick = input.quick; this.held.mode = input.mode;
-    // X / D-pad → / the touch button: the next owned gun mode, round again after the last (also while not aiming, and riding)
+    // X / the touch button: the next owned gun mode, round again after the last (also while not aiming, and riding)
     if (!paused && this._enabled && this.owned && modePress) this.cycleMode(1);
     if (!this.modes.includes(this.mode)) this.mode = this.startMode();   // (no gun yet: the push waits for it, issue #307)
     this.modeFlash = Math.max(0, this.modeFlash - dt / 1.6);

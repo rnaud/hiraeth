@@ -103,7 +103,7 @@ The drone has a name, Plumb, and a character (`lore/characters/plumb.md`).
   someone there to help us recharge; issue #434, below), `person`
   (an unmet person within 8 m before you have talked to anyone), `chest` (the
   first chest opened, said once its scene is over), `pointer` (the first time it
-  finds you lost, in place of a lost line). None names a button: the R3 line
+  finds you lost, in place of a lost line). None names a button: the D-pad → line
   after the first talk is the hint system's (issue #151).
   Later, once per save the same way (`ONCE`): `bladegate`, the first time a fight temple's host (and so its
   Blade Gate) is within 12 m: "Makers' gate. Blades mean keep out. Something got in." (issue #483; the check is
@@ -121,7 +121,7 @@ close-up (the cinematics QC v1.66). The author: "move the drone off the characte
 It should just appear when I need it." So `Scout` (`src/scout.js`) is `away` (nothing drawn: play,
 talks, portraits, menus and the studio all show him without it) until it is called:
 
-- **It comes** (`APPEAR`, phase `appear`): every ping (Q, R3, the touch ping; Plumb's own when you are
+- **It comes** (`APPEAR`, phase `appear`): every ping (Q, D-pad →, the touch ping; Plumb's own when you are
   lost; a guardian's hint; a world's nudge, `scout:ping`) brings it out of a small inked light (an
   octahedron of its glow, `scout.light`) over your left shoulder, 0.55 m to the side, 0.35 m back and
   0.5 m over your head (`appearSpot`: in the camera's view behind you, lower under a ceiling, short of

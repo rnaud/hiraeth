@@ -156,7 +156,7 @@ it now shows the page in English at once (*The panel reads at a glance*, above).
   the player reads the input in their hands: "aim with R or the right mouse button" on a
   keyboard, "LT / L2" on a controller (a Retroid's own "L2", a Nintendo-style pad's
   letters), "◎" on a touch screen, always the key or button the player bound it to
-  (`src/remap.js`). The gun's push is `{key:mode}`: the D-pad on a pad, never X.
+  (`src/remap.js`). The gun's push is `{key:mode}`: "D-pad ↑ held" on a pad (the wheel, v1.86), never X.
 - **Verbs** (`verbKey` in `src/prompt-keys.js`): `move`, `look`, `jump`, `interact`, `aim`,
   `fire`, `mode`, `blade`, `guard`, `evade`, `lock`, `call` (whistle the mount or a taxi),
   `gadget`, `whistle` (the bell-note), `thrust` (the jets), `run`, `scout`. An unknown verb

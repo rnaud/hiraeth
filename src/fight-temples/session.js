@@ -125,7 +125,7 @@ export function startFightTemple(ctx) {
   const stageWas = foes?.stage;
   if (foes && def.stage != null) foes.stage = def.stage;
   const own = tool?.items ?? null;   // (the save's own things, before the run lends its kit: the end card's colours, coloursLine)
-  const giveBack = lendTool(tool, { mode: 'shoot' });   // (the save's own bar; the plain shot in hand, the push a press of X / D-pad → away)
+  const giveBack = lendTool(tool, { mode: 'shoot' });   // (the save's own bar; the plain shot in hand, the push on the wheel, D-pad ↑ held, or X)
   const spawn = new THREE.Vector3(...def.spawn);
   standAt(player, spawn, Math.PI, rig, ISO.yaw);
   const words = new WorldLabels(camera);

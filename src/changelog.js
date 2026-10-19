@@ -48,6 +48,10 @@ export const CHANGELOG = [
     // temple-design.test.js (no two houses over 70 % alike); docs/systems/temples.md "The Mooring-House's shape"
     { text: 'In the Mooring-House you now see the Anchor-Warden from the first hall, through the bars of its gate, and when it is stopped the gate opens and you walk back out into the hall where you began. Its floor is reached by a great door off the Cord Loft. Where it stood, past the west door, the Anchor Hold keeps a spare anchor out over a well: pull it home with the tether to draw back the moorers’ gate’s bar.',
       see: 'In the Mooring-House, look east from the Capstan Hall as you come in: the Warden stands behind the bars. Later, past the west door, tether the anchor-ball home in the Anchor Hold.' },
+    // issues #511, #512, #524: src/bindings.js (PAD_SCHEME 6), src/controller.js, src/gadgets/index.js (the wheel's mode slots,
+    // swapBack, wheel()), src/main.js and engine/game.js (the wheel pauses), src/player.js CameraRig.recentre, src/remap.js
+    // migratePad; tests/gadgets.test.js, bindings.test.js, controller.test.js, accessibility.test.js, engine-gadgets.test.js
+    'A new controller layout. Hold D-pad ↑ for the wheel: every gadget and each of the glove’s modes now has its own slot, and the game waits while you choose, so no foe hits you meanwhile. A tap of D-pad ↑ takes back your last pick, so push and fluid are a tap apart. D-pad → now calls Plumb to find your objective (or a hint in a guardian’s fight), riding too, and R3 only locks on: with no foe near, it turns the camera behind you.',
   ] },
   { v: '1.85', date: '2026-10-18', items: [
     // issue #474: src/music-moments.js (MUSIC_MODES, musicMode: Always the default), src/ui.js (musicMode, musicV: a saved

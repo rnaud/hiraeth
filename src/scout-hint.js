@@ -1,14 +1,14 @@
 // After the first conversation, one line on how to find the next quest (issue #151): the scout's button
-// (Q, R3 with no foe in reach, the touch ping: src/scout.js) sends the drone to it. Said once a save (flag
+// (Q, D-pad →, the touch ping: src/scout.js) sends the drone to it. Said once a save (flag
 // teach.scout), the first time a conversation ends where the scout can fly and has somewhere to go; a ping
 // before that counts as learnt, so a player who found it alone is never told. A teaching line (src/hint-level.js
 // 'teach': hints subtle or full, never off). Apart from the drone's own lines (src/drone.js, src/temples/hints.js):
 // this is the game's prompt, on the cue at the bottom of the screen like the first steps' (main.js: the toasts at
-// the top are the new quest's just then), in the input in hand (src/prompt-keys.js {key:scout}: Q, R3, ping; the
-// cue badges R3, native-pad.js prints a handheld's own name).
+// the top are the new quest's just then), in the input in hand (src/prompt-keys.js {key:scout}: Q, D-pad →, ping; the
+// cue badges D-pad →, native-pad.js prints a handheld's own name).
 //
 //   const hint = installScoutHint({ game, usable: () => …, show: () => { /* put scoutHintLine() up */ } })
-//   hint.pinged()                       // the player sent the scout (Q, R3): learnt, never said
+//   hint.pinged()                       // the player sent the scout (Q, D-pad →): learnt, never said
 
 import { hintsFor, hintLevel } from './hint-level.js';
 import { keyText } from './prompt-keys.js';

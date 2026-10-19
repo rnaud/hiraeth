@@ -34,6 +34,9 @@ const cleanPad = (pad) => clean(pad, (v, b) => PAD_VERBS[v] && BINDABLE_BUTTONS.
 /**
  * A pad layout saved before PAD_SCHEME (src/ui.js migrateSettings, once; `from`: the scheme it was saved under, its
  * `padV`), brought up to date.
+ * - Before scheme 6 (v1.86, issues #511 and #512: the glove's modes on the wheel, Plumb on D-pad →, R3 only locks on):
+ *   'modeNext' is gone; Plumb ('scout') takes the button it had, so a player who moved the next mode keeps that button's
+ *   new job where they put it (and lock stays where it was moved).
  * - Before scheme 5 (v1.38, the progression rewrite: the triggers work the gadget in hand, the whistle has Y / △):
  *   the top button's verb was 'gadget' (the gadget in hand, or the whistle with none); it is 'whistle' now, on the
  *   button the player chose for it. (Using the gadget is RT's verb, 'fire'.)
@@ -53,6 +56,7 @@ export function migratePad(pad, from = 0) {
     delete out.modePrev;
   }
   if ('gadget' in out) { if (!('whistle' in out)) out.whistle = out.gadget; delete out.gadget; }
+  if ('modeNext' in out) { if (!('scout' in out)) out.scout = out.modeNext; delete out.modeNext; }
   for (let i = 0; i < Object.keys(PAD_VERBS).length; i++) {
     const clash = padConflicts(cleanPad(out));
     const moved = [...clash].filter((v) => v in out);

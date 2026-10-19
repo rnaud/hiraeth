@@ -664,7 +664,7 @@ giving me access to the quest for the temple first."
   on the game menu's Map (`src/world-map.js` mark kind `giver`, a gold ring that breathes: "the ship heard the light on
   them"; one the way on points at is the way on, saying so; `main.js` and `engine/game.js` mapSource), with the Map's line
   `GIVERS_NOTE`. The world's lead (the giver ranked first: the temple's local, rank 0; the openers are 1) is marked alone
-  and is what the scout (Q, R3) finds; once they have spoken, every giver still waiting is marked and the scout goes on to
+  and is what the scout (Q, D-pad →) finds; once they have spoken, every giver still waiting is marked and the scout goes on to
   the world's opening talk. They call you over (`src/story/balloons.js`: reason `quest`, a wave once).
 - **The lore** (`src/story/signature.js` `GIVERS_LINE`, said once by the ship, flag `signature.givers`): the light's
   pulse lingers, faintly, on the people it passed over (a few in every world saw it go over, low, the night before it

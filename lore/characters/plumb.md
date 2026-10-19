@@ -3,7 +3,7 @@
 **Established:** the small folding drone of the traveller's ship (`src/drone.js`
 its body, `src/scout.js` its flight, `src/companion.js` its own mind). It came
 with the father's ship and sleeps in a charging cradle on the cabin wall by the
-hatch (`src/ship/interior.js` DOCK). It finds the objective when asked (Q, R3),
+hatch (`src/ship/interior.js` DOCK). It finds the objective when asked (Q, D-pad →),
 drops a flare on it, and in a guardian's fight points at the weak point.
 
 **Name:** Plumb, after a plumb bob: the father's kind of tool, a weight on a

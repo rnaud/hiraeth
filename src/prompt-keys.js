@@ -77,9 +77,9 @@ const VERB_KEYS = {
     whistle: () => remapKey('whistle'), thrust: () => t('vk.heldInAir', { key: remapKey('jump') }), potion: () => remapKey('potion'),
     reel: () => `${remapKey('forward')} / ${remapKey('back')}` },
   pad: { move: () => t('vk.leftStick'), look: () => t('vk.rightStick'), jump: () => verbButton('jump'), interact: () => verbButton('interact'), aim: () => verbButton('aim'), fire: () => verbButton('fire'),
-    mode: () => verbButton('modeNext'),
+    mode: () => t('vk.held', { key: verbButton('pick') }),   // (the glove's modes are slots on the wheel: D-pad ↑ held, issue #511)
     blade: () => verbButton('blade'), guard: () => verbButton('guard'), evade: () => verbButton('evade'), lock: () => verbButton('lock'),
-    call: () => verbButton('call'), gadget: () => verbButton('fire'), use: () => verbButton('fire'), pick: () => verbButton('pick'), run: () => verbButton('run'), scout: () => verbButton('lock'),
+    call: () => verbButton('call'), gadget: () => verbButton('fire'), use: () => verbButton('fire'), pick: () => verbButton('pick'), run: () => verbButton('run'), scout: () => verbButton('scout'),
     whistle: () => verbButton('whistle'), thrust: () => t('vk.heldInAir', { key: verbButton('jump') }), potion: () => verbButton('potion'),
     reel: () => t('vk.leftStick') },
   touch: { move: () => t('vk.touchStick'), look: () => t('vk.touchDrag'), jump: '⤒', interact: 'E', aim: '◎', fire: '✺', mode: '◐',

@@ -9,7 +9,7 @@
 //     missing, the bar is spending or refilling, or a fight is on; the chimes beside them, and the block
 //     for a moment whenever they change (walletTick counts them up); the stamina wheel while not full
 //     (main.js, ui.js ToolHud), each lingering a moment (Fader);
-//   - the objective: the scout finds it (Q, R3: src/scout.js) and the cue says its goal over its
+//   - the objective: the scout finds it (Q, D-pad →: src/scout.js) and the cue says its goal over its
 //     next step (findSummary); the game menu's Quests panel shows the same for every quest (src/game-menu.js).
 import { badgeLine, escapeHtml, keysHtml, leadKey } from './prompt-keys.js';
 import { page, screen } from './platform.js';

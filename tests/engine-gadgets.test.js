@@ -123,4 +123,28 @@ test('the engine has the gadgets and the wallet, and a box opens on its card (is
   await run(g, 4 * 20);
   assert.ok(!g.boxPlaying && S.boxCard === null, 'Enter put it away');
   assert.equal(map.opening, null, 'and its opening ran on to its end');
+  // issues #511 and #524 in the engines: D-pad ↑ held opens the wheel with the glove's modes in it, and the game waits
+  // while it is open (engine/game.js, as main.js wheelFrame): the left stick pushed, the traveller does not move
+  const at = (pressed, axes) => { host.pads = () => [{ ...pad(pressed), axes }]; };
+  at([12], [0, -1, 0, 0]);
+  await run(g, 10);
+  assert.ok(g.gadgets.wheelOn, 'held: the wheel');
+  const slots = S.gadgetWheel?.slots ?? [];
+  assert.ok(['hook', 'gun.shoot', 'gun.push'].every((id) => slots.some((s) => s.id === id)), JSON.stringify(slots.map((s) => s.id)));
+  const still = g.player.pos.clone(), hour = g.sky.hour;
+  await run(g, 8);
+  assert.ok(g.player.pos.distanceTo(still) < 1e-6, 'the world waits: the stick pushed, he does not walk');
+  assert.equal(g.sky.hour, hour, 'the clock waits');
+  // the right stick at the fluid mode's slot, ↑ let go: the gun in hand, in that mode
+  const i = slots.findIndex((s) => s.id === 'gun.shoot'), a = (i / slots.length) * Math.PI * 2;
+  at([12], [0, 0, Math.sin(a), -Math.cos(a)]); await run(g, 2);
+  at([], [0, 0, 0, 0]); await run(g, 2);
+  assert.ok(!g.gadgets.wheelOn);
+  assert.equal(g.gadgets.equipped, 'gun');
+  assert.equal(g.tool.mode, 'shoot', 'the mode taken on the wheel');
+  // a tap of ↑ (the game never waits for it): the last pick back, and again
+  at([12], [0, 0, 0, 0]); await run(g, 1); at([], [0, 0, 0, 0]); await run(g, 1);
+  assert.equal(g.gadgets.equipped, 'hook', 'a tap: the last pick back');
+  at([12], [0, 0, 0, 0]); await run(g, 1); at([], [0, 0, 0, 0]); await run(g, 1);
+  assert.equal(g.gadgets.slotNow(), 'gun.shoot', 'and again: the fluid mode');
 });

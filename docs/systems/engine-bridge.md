@@ -495,6 +495,12 @@ is `game.useItem` (main.js onUse). The gadgets' HUD (src/gadgets/hud.js) is the 
 its id names its picture, `k` how full its count is), `gadgetWheel`, `reticle` (a world point), `gadgetMarks`; BridgeHud.cs
 draws them (`DrawGadget`, `DrawGadgetWheel`, `DrawReticle`, `DrawMarks`) with the items' pictures (BridgeMenu.Picture; the
 gadgets' are in public/item-pictures since then, scripts/item-pictures.mjs registers them).
+Since v1.86 (issues #511, #524) the wheel holds each glove mode as a slot (`gadgetWheel.slots[i].id` 'gun.push', no
+picture by that name, its glyph on `tint`: DrawGadgetWheel lays the disc on that colour, and a ring of more than twelve
+is wider, as the web's `.lots`), and while it is open engine/game.js's frame hands the input to `gadgets.wheel()` and
+only syncs the scene, as main.js's `wheelFrame`: the world waits (tests/engine-gadgets.test.js). R3 with no foe in
+reach turns the camera behind (`rig.recentre`), and D-pad → ('scout') is Plumb, riding too. BridgeHost's `ReadPad`
+already sends the whole standard pad (D-pad → is button 15), so nothing changed in C# for the buttons.
 
 **A box's card, and the pad's names in the prompts** (issue #345). A makers' box opening is busy as on the web (the
 traveller held, the controller's menu context: A / × on the card goes on, B / ○ skips; Esc, E, Enter, Space on the
@@ -1654,7 +1660,7 @@ sound-QC's, apart):
 
 - **The help on the cue**, as main.js `updateHud` stacks it: Plumb's own line first (src/companion.js `Companion`: the
   opening's lines once a save, out of the ship, the first person near, the first chest; the lost watch, its ping toward
-  the goal), then what the scout found (Q, R3: `findSummary` of the goal over the step and how far, its distance as it
+  the goal), then what the scout found (Q, D-pad →: `findSummary` of the goal over the step and how far, its distance as it
   is each frame, `FIND.say`; the shrug, a guardian's hint `◇ …` on the cue instead of a toast), then a lesson: the
   desert's first steps (src/first-steps.js: the camera after 6 s without a look, the jump after 25 m without one; any
   look through `rig.look`, the mouse or the stick, counts it as learnt) and the scout's button once after the first

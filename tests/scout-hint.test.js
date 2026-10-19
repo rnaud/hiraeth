@@ -63,7 +63,7 @@ test('a ping of your own first, or hints off: never said', () => {
 test('the line names the scout\'s button for the hands on the game, in one line', () => {
   setLanguage('en');
   const pad = scoutHintLine('pad'), keys = scoutHintLine('keys'), touch = scoutHintLine('touch');
-  assert.match(pad, /^R3\b/, `the pad's: ${pad}`);   // (src/bindings.js PAD_VERBS.lock: R3 with no foe near is the scout)
+  assert.match(pad, /^D-pad →/, `the pad's: ${pad}`);   // (src/bindings.js PAD_VERBS.scout: Plumb's own button since v1.86, issue #512)
   assert.match(keys, /^Q\b/, `the keyboard's: ${keys}`);
   assert.match(touch, /^ping\b/, `the touch screen's: ${touch}`);
   for (const l of [pad, keys, touch]) {
@@ -71,15 +71,15 @@ test('the line names the scout\'s button for the hands on the game, in one line'
     assert.ok(l.length <= 80 && !l.includes('\n'), `one short line: ${l}`);
   }
   setLanguage('fr');
-  assert.match(scoutHintLine('pad'), /^R3 montre .*prochaine quête/);
+  assert.match(scoutHintLine('pad'), /^D-pad → montre .*prochaine quête/);
   setLanguage('en');
 });
 
-test('main.js says it on the cue and counts Q and R3 as learnt; the drone\'s lines are apart', () => {
+test('main.js says it on the cue and counts Q and D-pad → as learnt; the drone\'s lines are apart', () => {
   const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
   assert.match(main, /installScoutHint\(\{ game, show: \(\) => \{ scoutTeach\.left = SCOUT_HINT_SHOW; \}/);
   assert.match(main, /teach = scoutHintLine\(\)/, 'on the cue, in the input in hand as it is then');
-  assert.equal((main.match(/scoutHint\.pinged\(\); scout\.ping\(\)/g) ?? []).length, 2, 'Q and R3');
+  assert.equal((main.match(/scoutHint\.pinged\(\); scout\.ping\(\)/g) ?? []).length, 2, 'Q and D-pad →');
   const src = readFileSync(new URL('../src/scout-hint.js', import.meta.url), 'utf8');
   assert.doesNotMatch(src, /from '\.\/drone\.js'/);
 });

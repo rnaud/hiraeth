@@ -31,10 +31,10 @@ test('walking: bottom jumps, left interacts, right evades, top whistles, D-pad d
   t.button(TOP,true); h=t.c.update(.016); assert.ok(h.PadWhistle, 'Y / △: the whistle'); t.button(TOP,false); t.c.update(.016);
   assert.deepEqual(t.actions,[], 'none of these is an action: no ping, no call');
   t.tap(13); assert.deepEqual(t.actions,['call'], 'D-pad down whistles for the mount');
-  t.tap(R3); assert.equal(t.actions.at(-1), 'lock', 'R3 locks on (main.js: with no foe in reach, the scout)');
+  t.tap(R3); assert.equal(t.actions.at(-1), 'lock', 'R3 locks on (main.js: with no foe in reach, the camera behind you)');
   t.tap(12); assert.equal(t.actions.at(-1), 'lock', 'D-pad up is not an action: it chooses a gadget (PadGadgetPick)');
   t.tap(14); assert.equal(t.actions.at(-1), 'potion', 'D-pad left drinks a potion');
-  t.tap(15); assert.equal(t.actions.at(-1), 'potion', 'D-pad right is not an action: the next gun mode (PadModeNext)');
+  t.tap(15); assert.equal(t.actions.at(-1), 'scout', 'D-pad right: Plumb finds the objective (issue #512)');
   t.tap(10); assert.deepEqual(t.actions.slice(-1), ['l3'], 'L3 standing still: no call (one job per button: it runs)');
 });
 test('View: the sketchbook on release; View held + D-pad up is photo mode, + down / left / right the free chords', () => {
@@ -46,8 +46,8 @@ test('View: the sketchbook on release; View held + D-pad up is photo mode, + dow
   t.button(12,false); t.c.update(.016); t.button(VIEW,false); t.c.update(.016);
   assert.deepEqual(t.actions,['journal','photo'], 'a chord: no sketchbook as View is let go');
   t.button(VIEW,true); t.c.update(.016); t.tap(13); t.tap(14); t.button(15,true); h=t.c.update(.016); t.button(VIEW,false); t.button(15,false); t.c.update(.016);
-  assert.ok(!h.PadModeNext, 'View + right: not the gun mode');
-  assert.deepEqual(t.actions.slice(2),['viewDown','viewLeft','viewRight'], 'no call, no potion, no gun mode under View');
+  assert.ok(!t.actions.includes('scout'), 'View + right: not Plumb');
+  assert.deepEqual(t.actions.slice(2),['viewDown','viewLeft','viewRight'], 'no call, no potion, no Plumb under View');
   const r=setup(); r.context('ride'); r.button(VIEW,true); r.c.update(.016); r.tap(12); r.button(VIEW,false); r.c.update(.016);
   assert.deepEqual(r.actions,['photo'], 'riding too');
 });
@@ -97,7 +97,7 @@ test('photo controls capture once and use shoulders for altitude', () => {
   assert.deepEqual(t.actions,['capture','photo']);
   const v=setup(); v.context('photo'); v.tap(VIEW); v.tap(13); assert.deepEqual(v.actions,['photo'], 'View leaves too; D-pad down no longer does');
 });
-test('the gadget in hand (the fluid gun is one): LT aims, RT uses it (shoots while aiming), RB swings the sword, D-pad → its mode', () => {
+test('the gadget in hand (the fluid gun is one): LT aims, RT uses it (shoots while aiming), RB swings the sword; D-pad → is Plumb\'s', () => {
   const t=setup(); t.button(RT,true);
   let input=t.c.update(.016);
   assert.ok(input.PadFire && !input.PadAim && !input.ShiftLeft, 'RT alone: no run');
@@ -112,9 +112,10 @@ test('the gadget in hand (the fluid gun is one): LT aims, RT uses it (shoots whi
   const b=setup(); b.button(LEFT,true); input=b.c.update(.016);
   assert.ok(!input.PadPush && input.KeyE, 'the left button interacts, it does not push');
   b.button(LEFT,false); b.button(14,true); input=b.c.update(.016);
-  assert.ok(!input.PadModeNext && b.actions.includes('potion'), 'D-pad left: a potion, never a gun mode');
+  assert.ok(b.actions.includes('potion') && !b.actions.includes('scout'), 'D-pad left: a potion, nothing else');
   b.button(14,false); b.button(15,true); input=b.c.update(.016);
-  assert.ok(input.PadModeNext, 'D-pad right: the next gun mode');
+  assert.deepEqual(b.actions, ['potion', 'scout'], 'D-pad right: Plumb, never a gun mode (the modes are on the wheel, issue #511)');
+  assert.ok(!('PadModeNext' in input), 'no gun-mode flag from the pad any more');
   // a light squeeze of LT is enough to aim
   const s=setup(); s.pad.buttons[LT]={pressed:false,value:.35}; assert.ok(s.c.update(.016).PadAim);
   // no aiming or firing from menus
@@ -198,4 +199,16 @@ test('in menus B steps back, Menu / Start and View / Select reach the game (paus
   assert.deepEqual(t.actions,['back','start','select']);
   const g=setup(); g.button(9,true); g.c.update(.016); g.button(9,false); g.c.update(.016); g.button(8,true); g.c.update(.016); g.button(8,false); g.c.update(.016);
   assert.deepEqual(g.actions,['settings','journal'], '(View opens the sketchbook as it is let go)');
+});
+
+test('issue #512: R3 only locks on (on foot), D-pad → is Plumb on foot and riding, and R3 riding does nothing', () => {
+  const t=setup();
+  t.tap(R3); t.tap(15);
+  assert.deepEqual(t.actions, ['lock', 'scout'], 'on foot: R3 the lock, D-pad → Plumb');
+  const r=setup(); r.context('ride');
+  r.tap(R3); assert.deepEqual(r.actions, [], 'riding: R3 sends nothing (no lock-on from the saddle, and no longer Plumb)');
+  r.tap(15); assert.deepEqual(r.actions, ['scout'], 'riding: D-pad → is Plumb, as on foot');
+  // L3 + R3 stays the dev menu, riding too, and never locks
+  const d=setup(); d.context('ride'); d.button(L3,true); d.c.update(.016); d.button(R3,true); d.c.update(.016);
+  assert.deepEqual(d.actions, ['worldDebug']);
 });

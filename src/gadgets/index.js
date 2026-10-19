@@ -27,12 +27,14 @@ import { t as tr } from '../i18n.js';
 //          is pressed, held and let go on it; the lens (`'look'`) is held up on either trigger. The fluid gun
 //          (`'tool'`) leaves both triggers to the fluid tool, which shoots while it is in hand. Locked on, with the hook in
 //          hand or nothing in hand, it throws the hook at the locked foe (issue #399, src/hook-foes.js)
-//   modes  D-pad → or X: the gadget in hand's next mode (the gun's: fluid, push and those found); one without
-//          modes says so
-//   choose D-pad ↑ or B: a tap takes the next one (Shift + B the one before), held a moment it opens the wheel:
-//          point the right stick at one (v1.41; WASD on the keyboard), let go. With a pad the left stick still walks
-//          and the camera holds while the wheel is open (main.js: the controller's stickTaken). Only gadgets: nothing
-//          in hand is no stop of the round
+//   choose D-pad ↑ or B: held a moment it opens the wheel, and the game waits while it is open (v1.86, issues #511 and
+//          #524: main.js and engine/game.js call wheel() instead of the world's frame). It holds every gadget, and each
+//          of the glove's modes as a slot of its own (a gadget whose instance has `modes` and `setMode`: the gun's fluid,
+//          push and those found); point the right stick at one (WASD on the keyboard), let go. A tap takes back the
+//          last pick, a gadget or a mode (swapBack: push and fluid, a tap apart); with none yet, the next gadget.
+//          Nothing in hand is no slot
+//   modes  X on the keyboard (touch ◐): the gadget in hand's next mode; one without modes says so. A pad has no
+//          button for it since v1.86 (D-pad → is Plumb's): its wheel holds the modes
 //   whistle Y / △ (V on the keyboard, boxes/effects.js): the bell-note whistle and the echo shell (`ring`);
 //          touch ◆ with nothing in hand too
 //
@@ -72,8 +74,7 @@ export function gadgetInput(c = {}) {
     aim,
     use: !!(c.KeyT || c.KeyG || c.MouseMiddle || c.PadFire || c.PadRideGadget || c.TouchGadget || c.TouchFire || (c.MouseLeft && aim)),
     pick: !!(c.KeyB || c.PadGadgetPick),
-    back: !!(c.ShiftLeft || c.ShiftRight) && !!c.KeyB,
-    mode: !!(c.KeyX || c.PadModeNext),
+    mode: !!c.KeyX,
     whistle: !!c.PadWhistle,
     touch: !!(c.TouchGadget),
   };
@@ -88,6 +89,14 @@ export function wheelStick(input = {}) {
   if (input.lookStick) return { x: input.lookStick.x ?? 0, y: input.lookStick.y ?? 0, walk: true };
   return { x: input.stick?.x ?? ((input.KeyD ? 1 : 0) - (input.KeyA ? 1 : 0)), y: input.stick?.y ?? ((input.KeyW ? 1 : 0) - (input.KeyS ? 1 : 0)), walk: false };
 }
+
+/**
+ * The glove's modes on the wheel (issue #511): a slot each with no picture, its glyph on the mode's own tint
+ * (src/gadgets/gun.js modeSlot, src/fluid-kit.js MODES' glow).
+ */
+export const MODE_GLYPH = { shoot: '◍', push: '»', stun: '✱', fire: '✹', bloom: '❀', tether: '∞' };
+/** A wheel slot's key: the gadget's id, or 'id.mode' for one of its modes (no colon: the Unity bridge looks a picture up by it, a file name). */
+export const slotKey = (id, mode = null) => (id ? (mode ? `${id}.${mode}` : id) : null);
 
 /** How a gadget takes the triggers (its definition's `trigger`; the ones that aim by default when they have `lower`). */
 export function triggerKind(def, inst) {
@@ -141,6 +150,7 @@ export class Gadgets {
       try { this.inst.set(d.id, d.create(this.ctx)); } catch (e) { console.warn('gadget', d.id, e); }
     }
     this.held = { use: false, pick: false, aim: false, mode: false, whistle: false }; this.pickT = 0; this.wheelOn = false; this.wheelHi = -1; this.armed = false;
+    this.slotWas = null; this.slotBefore = null;   // (the slot in hand, and the one before it: a tap of choose takes it back, swapBack)
     this.penT = 0;
     // found (a box, a quest, the dev menu, ?items=): the one just found is taken in hand at once, whatever was (issue #330,
     // the author: "When I get a new gadget it should get auto equipped"; items.grant puts it in the save's hand too, so a
@@ -176,7 +186,7 @@ export class Gadgets {
   }
   cycle(dir = 1) { return this.equip(nextGadget(this.owned(), this.equipped, dir, { none: false })); }
 
-  /** The gadget in hand's next mode (D-pad →, X): the gun's own; one without modes says so. Returns true if it changed. */
+  /** The gadget in hand's next mode (X, touch ◐): the gun's own; one without modes says so. Returns true if it changed. */
   nextMode() {
     const id = this.equipped, cur = this.current;
     if (!id || !cur) return false;
@@ -198,9 +208,103 @@ export class Gadgets {
     return null;
   }
 
-  /** What the wheel lists: the gadgets owned (the whistle has its own button now, Y / △). */
+  /** A gadget's modes as wheel slots (two or more, and a way to take one: the gun's), else null. */
+  modesOf(id) {
+    const g = this.inst.get(id), list = g?.modes;
+    return Array.isArray(list) && list.length > 1 && typeof g.setMode === 'function' ? list : null;
+  }
+
+  /**
+   * What the wheel lists: the gadgets owned (the whistle has its own button, Y / △), and a gadget with modes as one slot
+   * per mode where it would be (the glove's together on one arc, issue #511): { id, mode?, key, glyph, name, icon, tint? }.
+   */
   wheelList() {
-    return this.owned().map((id) => ({ id, glyph: this.def(id).glyph ?? '◆', name: this.def(id).name, icon: this.icon?.(id) ?? null }));
+    const out = [];
+    for (const id of this.owned()) {
+      const d = this.def(id), modes = this.modesOf(id);
+      if (!modes) { out.push({ id, key: id, glyph: d.glyph ?? '◆', name: d.name, icon: this.icon?.(id) ?? null }); continue; }
+      const g = this.inst.get(id);
+      for (const m of modes) {
+        const look = g.modeSlot?.(m) ?? {};
+        out.push({ id, mode: m, key: slotKey(id, m), glyph: look.glyph ?? MODE_GLYPH[m] ?? d.glyph ?? '◆', name: look.name ?? `${d.name}: ${m}`, icon: null, tint: look.tint ?? null });
+      }
+    }
+    return out;
+  }
+
+  /** The slot in hand now: the gadget's id, or 'id.mode' for one with modes (the gun: 'gun.push'); null for nothing. */
+  slotNow() {
+    const id = this.equipped;
+    if (!id) return null;
+    return this.modesOf(id) ? slotKey(id, this.inst.get(id).mode ?? null) : id;
+  }
+
+  /** Take a wheel slot (a gadget, or one of its modes) in hand. Returns true if anything changed. */
+  take(slot) {
+    if (!slot) return false;
+    const changed = this.equip(slot.id);
+    if (!slot.mode) return changed;
+    return !!this.inst.get(slot.id)?.setMode?.(slot.mode) || changed;
+  }
+
+  /**
+   * A tap of choose (D-pad ↑, B; issue #511): the last pick back, a gadget or a mode (push and fluid, a tap apart);
+   * with none to go back to (or no longer owned), the next gadget. Returns true if anything changed.
+   */
+  swapBack() {
+    const back = this.slotBefore && this.wheelList().find((l) => l.key === this.slotBefore);
+    if (back) return this.take(back);
+    return this.cycle(1);
+  }
+
+  /** Keep the slot before up to date, whatever moved the one in hand (the wheel, a tap, X, a find). */
+  trackSlot() {
+    const now = this.slotNow();
+    if (now === this.slotWas) return;
+    if (this.slotWas) this.slotBefore = this.slotWas;
+    this.slotWas = now;
+  }
+
+  /**
+   * The choose button, a frame: a tap takes the last pick back, held WHEEL_HOLD it opens the wheel, the stick points,
+   * letting go takes the slot. control() runs it while the world plays; while the wheel is open the game waits and
+   * main.js (engine/game.js) calls wheel() alone. Returns whether the wheel is open.
+   */
+  choose(dt, input = {}, g = gadgetInput(input)) {
+    this.trackSlot();
+    if (g.pick && !this.held.pick) this.pickT = 0;
+    if (g.pick) {
+      this.pickT += dt;
+      if (!this.wheelOn && this.pickT >= WHEEL_HOLD && this.owned().length) { this.wheelOn = true; this.wheelHi = -1; this.current?.cancel?.(); }
+    }
+    if (this.wheelOn) {
+      const list = this.wheelList(), { x: sx, y: sy, walk } = wheelStick(input);
+      const s = wheelSlot(sx, sy, list.length);
+      if (s >= 0) this.wheelHi = s;
+      this.hud.wheel(list, this.wheelHi);
+      // (the keys choose: the traveller stands still meanwhile; a pad's right stick chooses)
+      if (!walk) {
+        for (const k of ['KeyW', 'KeyA', 'KeyS', 'KeyD']) input[k] = false;
+        if ('stick' in input) input.stick = null;
+      }
+      if (!g.pick) {
+        this.wheelOn = false; this.hud.wheel(null);
+        if (this.wheelHi >= 0 && list[this.wheelHi]) this.take(list[this.wheelHi]);
+      }
+    } else if (!g.pick && this.held.pick && this.pickT < WHEEL_HOLD) this.swapBack();
+    this.held.pick = g.pick;
+    this.trackSlot();
+    return this.wheelOn;
+  }
+
+  /**
+   * The wheel open, the game waiting (issue #524: no foe hits you while you choose): main.js and engine/game.js call this
+   * instead of the world's frame. The choosing only: no picture is drawn meanwhile (the game's renderer draws them, and with
+   * the world not drawn again after it one would stay on the screen: update() draws them while choose is held, before).
+   * Returns whether the wheel is still open.
+   */
+  wheel(dt, input = {}) {
+    return this.choose(dt, input);
   }
 
   /** Before the traveller moves: the buttons, the wheel, what the gadget in hand does to him. */
@@ -212,35 +316,16 @@ export class Gadgets {
       this.held = { use: false, pick: false, aim: false, mode: false, whistle: false }; this.armed = false;
       return;
     }
-    const g = gadgetInput(input), cur = this.current;
+    const g = gadgetInput(input);
     // something carried in both hands (src/carry.js): the gadget in hand waits (an aim taken is put away)
     if (this.player?.carrying) { g.use = false; g.aim = false; }
-    // the choose button: a tap, the next one; held, the wheel
-    if (g.pick && !this.held.pick) { this.pickT = 0; }
-    if (g.pick) {
-      this.pickT += dt;
-      if (!this.wheelOn && this.pickT >= WHEEL_HOLD && this.owned().length) { this.wheelOn = true; this.wheelHi = -1; cur?.cancel?.(); }
-    }
-    if (this.wheelOn) {
-      const list = this.wheelList(), { x: sx, y: sy, walk } = wheelStick(input);
-      const s = wheelSlot(sx, sy, list.length);
-      if (s >= 0) this.wheelHi = s;
-      this.hud.wheel(list, this.wheelHi);
-      // (the keys choose: the traveller stands still meanwhile; a pad's right stick chooses and the left one still walks)
-      if (!walk) {
-        for (const k of ['KeyW', 'KeyA', 'KeyS', 'KeyD']) input[k] = false;
-        if ('stick' in input) input.stick = null;
-      }
-      if (!g.pick) {
-        this.wheelOn = false; this.hud.wheel(null);
-        if (this.wheelHi >= 0) this.equip(list[this.wheelHi].id);
-      }
-    } else if (!g.pick && this.held.pick && this.pickT < WHEEL_HOLD) this.cycle(g.back || this.held.back ? -1 : 1);
-    this.held.pick = g.pick; this.held.back = g.back;
+    // the choose button: a tap, the last pick back; held, the wheel (the game waits while it is open: wheel())
+    this.choose(dt, input, g);
+    const cur = this.current;
     // the whistle (Y / △): the bell-note whistle and the echo shell, whatever is in hand
     if (g.whistle && !this.held.whistle && !this.wheelOn) this.ring?.();
     this.held.whistle = g.whistle;
-    // D-pad → (X): the gadget in hand's next mode
+    // X (touch ◐): the gadget in hand's next mode
     if (g.mode && !this.held.mode && !this.wheelOn) this.nextMode();
     this.held.mode = g.mode;
     // the triggers, to the gadget in hand by how it takes them (triggerKind)
@@ -314,8 +399,9 @@ export class Gadgets {
       if (!url && !paused) this.drawPicture(id);
       this.hud.chip({ def: this.def(id), icon: url, ...h, key: this.useKey() });
     } else this.hud.chip(null);
-    // the wheel open: the pictures of the others, one a frame (a moment no one minds a frame's cost)
-    if (this.wheelOn && !paused) { const next = this.owned().find((g) => !this._drawn?.has(g) && !this.icon?.(g)); if (next) this.drawPicture(next); }
+    // choose held, the wheel about to open: the pictures of the others, one a frame (drawn by the game's renderer while
+    // the world is still drawn after them; once the wheel is open the game waits and nothing is drawn: wheel())
+    if (this.held.pick && !paused) { const next = this.owned().find((g) => !this._drawn?.has(g) && !this.icon?.(g)); if (next) this.drawPicture(next); }
     // (a conversation, a scene: no reticle and no locks are left on the screen)
     if (paused && !this._pausedHud) { this.hud.reticle(null); this.hud.marks?.([]); }
     this._pausedHud = paused;

@@ -7,15 +7,15 @@
 //             · X interact, talk, get on · Y the bell-note whistle / echo shell
 //             · LT aims the gadget in hand · RT uses it (shoots, throws; the fluid gun is a gadget)
 //             · RB the blade · LB held the guard (no foe near: LB + right stick zooms)
-//             · L3 run until you stop · R3 lock on (nothing to lock: the scout finds the objective)
+//             · L3 run until you stop · R3 lock on, nothing else (no foe in reach: the camera behind you)
 //             · L3 + R3 (both sticks) the dev menu (src/dev-menu.js)
-//             · D-pad ↑ choose a gadget (tap: the next; held: the wheel) · ← drink a potion
-//             · ↓ call the mount / a taxi · → the gadget in hand's next mode (one job per button)
+//             · D-pad ↑ held: the wheel, the game waiting (the gadgets and the glove's modes; tap: the last pick back)
+//             · ← drink a potion · ↓ call the mount / a taxi · → Plumb finds the objective (one job per button)
 //             · View the sketchbook (on release; View + D-pad: photo, free slots)
 //             · Menu the settings
 //   riding    RT throttle (analog) · LT brake / reverse · left stick steer, and on
 //             flyers dive (forward) / climb (back) · X hop / flap / rise
-//             · RB or L3 boost · A jump off (a hop; its speed carries you) · B get off · R3 the scout
+//             · RB or L3 boost · A jump off (a hop; its speed carries you) · B get off · D-pad → Plumb
 //   menus     the button printed A confirms, B goes back (Xbox: bottom / right; a
 //             Retroid, letters Nintendo-style: right / bottom) · View, Menu close
 //             · LB / RB the game menu's panel before / after
@@ -158,6 +158,8 @@ export class Controller {
         h.Space = down(WEST); h.JumpOff = down(SOUTH); h.KeyE = down(EAST); h.PadE = h.KeyE;
         // the top button: the gadget in hand, riding (RT is the throttle): the gust fan into a skiff's sail
         h.PadRideGadget = down(NORTH);
+        // D-pad →: Plumb finds the objective, riding as on foot (main.js 'scout')
+        if (press(RIGHT)) this.action('scout');
         this.running = false;
       } else {
         h.KeyW = left.y < -0.15; h.KeyS = left.y > 0.15;
@@ -182,10 +184,10 @@ export class Controller {
         h.PadEvade = down(EAST);   // B / ○ evades (the stick's way, or a backstep)
         // the D-pad is the quick slots (none of them while View is held: View + D-pad is its own layer, below;
         // down() leaves the D-pad out then, whatever verb is bound to it)
-        // →: the gadget in hand's next mode (the fluid gun's: fluid, push, those found), round again after the last
-        h.PadModeNext = down(RIGHT);
+        // →: Plumb finds the objective (a guardian's fight, a makers' house: a hint; main.js 'scout', src/scout.js)
+        if (press(RIGHT)) this.action('scout');
         // the top button sounds the bell-note whistle and the echo shell (src/gadgets/ ring); D-pad ↑ chooses the
-        // gadget in hand (a tap the next, held the wheel)
+        // gadget in hand (held: the wheel, the gadgets and the glove's modes, the game waiting; a tap the last pick back)
         h.PadWhistle = down(NORTH); h.PadGadgetPick = down(UP);
         // ↓ whistles for the mount, or hails a taxi (player.callMount; the References: the list of views)
         if (press(DOWN)) this.action('call');
@@ -193,12 +195,12 @@ export class Controller {
         if (press(LEFT)) this.action('potion');
       }
       if (ctx !== 'photo') {
-        // R3: lock on to the nearest foe, then the next, then let go; with no foe in reach main.js sends the
-        // scout to find the objective instead (Tab and Q on the keyboard: src/foes.js, src/scout.js).
+        // R3: lock on to the nearest foe, then the next, then let go, and nothing else (v1.86, issue #512: Plumb has D-pad
+        // →); with no foe in reach main.js turns the camera behind you (Tab on the keyboard: src/foes.js). Not riding.
         // Both sticks clicked (L3 + R3, in either order): the dev menu (src/dev-menu.js: teleports, god mode,
         // cinematics, the quest's stage, the hitbox overlay), and no lock-on
         if ((press(R3) && down(L3)) || (press(L3) && down(R3))) this.action('worldDebug');
-        else if (press(R3)) this.action('lock');
+        else if (press(R3) && ctx === 'game') this.action('lock');
         if (press(MENU)) this.action('settings');
         // View: the sketchbook, when it is let go without a D-pad press meanwhile; View held + D-pad ↑ is
         // photo mode, + ↓ / ← / → the free chords 'viewDown' / 'viewLeft' / 'viewRight' (bindings.js FREE)

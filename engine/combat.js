@@ -30,7 +30,7 @@ export function makeCombat({ scene, level, levelId, content, physics, player, to
     set padLook(fn) { F.padLook = fn; },
     get restartOpen() { return F.cardOpen; },
     knockout: (why) => F.knockout(why),
-    /** R3 / Tab: lock on to a foe, then the next, then let go; false: none in reach (the scout's ping then, as main.js). */
+    /** R3 / Tab: lock on to a foe, then the next, then let go; false: none in reach (the camera turns behind you then, as main.js; Plumb is D-pad →). */
     lock: () => F.lock(),
     /** D-pad ←: a healing potion (main.js drinkPotion). */
     drink: () => F.drink(),

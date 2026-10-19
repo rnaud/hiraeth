@@ -582,7 +582,7 @@ export function hurtReactions({ player, sound, potion = null, tool = () => null,
  * (left out: the page's body; null in the engines, which draw `low()`'s k).
  *   fight.update(dt, quiet)                        the foes, the flurry's end, the drops (quiet: a menu, a photo, a scene)
  *   fight.frame(realDt, { busy, still })           the lock's camera, after the rig (still: a photo held)
- *   fight.lock() → bool                            R3 / Tab (false: nothing in reach: the host's scout pings)
+ *   fight.lock() → bool                            R3 / Tab (false: nothing in reach: the host turns the camera behind you)
  *   fight.drink() → bool                           D-pad ←: a potion drunk, or a word why not
  *   fight.low(dt, paused) → k                      the low-health cue (0..1: the edges)
  *   fight.knockout(why); fight.card(dt, paused)    knocked out: after 1.4 s the card (null, or { open, text } on a change)

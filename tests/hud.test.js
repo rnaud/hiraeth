@@ -181,19 +181,20 @@ test('the cue sets its line only when it changes and fades it in and out', () =>
 
 // ---- the scout finds the objective: on foot and riding, R3 with no foe in reach
 
-test('R3 sends the scout on foot and riding when there is no foe to lock on to; Q on the keyboard and the touch "ping" too', () => {
+test('D-pad → sends the scout on foot and riding (R3 only locks on, issue #512); Q on the keyboard and the touch "ping" too', () => {
   const pad = { index: 0, connected: true, mapping: 'standard', axes: [0, 0, 0, 0], buttons: Array.from({ length: 17 }, () => ({ pressed: false, value: 0 })) };
   const actions = []; let ctx = 'game';
   const c = new Controller({ pads: () => [pad], context: () => ctx, action: (a) => actions.push(a), look() {}, navigate() {}, scroll() {} });
   const tap = (i) => { pad.buttons[i] = { pressed: true, value: 1 }; c.update(0.016); pad.buttons[i] = { pressed: false, value: 0 }; c.update(0.016); };
-  tap(11); assert.deepEqual(actions, ['lock'], 'on foot');
-  ctx = 'ride'; c.update(0.016); tap(11); assert.deepEqual(actions, ['lock', 'lock'], 'riding (a bike, the bird: flying too)');
-  ctx = 'photo'; c.update(0.016); tap(11); assert.equal(actions.length, 2, 'not in photo mode');
-  tap(3); assert.equal(actions.length, 2, 'Y / △ is the whistle\'s: it never pings');
+  tap(11); tap(15); assert.deepEqual(actions, ['lock', 'scout'], 'on foot: R3 the lock, D-pad → Plumb');
+  ctx = 'ride'; c.update(0.016); tap(11); tap(15); assert.deepEqual(actions, ['lock', 'scout', 'scout'], 'riding (a bike, the bird: flying too): Plumb on D-pad →, R3 nothing');
+  ctx = 'photo'; c.update(0.016); tap(11); tap(15); assert.equal(actions.length, 3, 'not in photo mode');
+  tap(3); assert.equal(actions.length, 3, 'Y / △ is the whistle\'s: it never pings');
   const main = src('src/main.js');
   // (scoutHint.pinged(): a ping of your own counts the scout's button as learnt, src/scout-hint.js)
   assert.match(main, /e\.code === 'KeyQ' && !e\.repeat && !busy\(\) && !photo\.on && !ship\.playing\) \{ scoutHint\.pinged\(\); scout\.ping\(\); \}/);
-  assert.match(main, /if \(!fight\.lock\(\) && !minigame\) \{ scoutHint\.pinged\(\); scout\.ping\(\); \}/, 'R3: nothing to lock on to, the scout');
+  assert.match(main, /if \(!fight\.lock\(\) && !minigame\) rig\.recentre\(player\.heading\);/, 'R3: nothing to lock on to, the camera behind you');
+  assert.match(main, /if \(name === 'scout' && !ship\.playing && !photo\.on\) \{ scoutHint\.pinged\(\); scout\.ping\(\); \}/, 'D-pad →: the scout');
   assert.match(src('src/host/game-host.js'), /const had = foes\.lock;\s*const got = foes\.cycleLock\(\);[\s\S]{0,600}return !!got \|\| !!had;/, '(wireFight lock: false with nothing in reach)');
   assert.match(src('src/ui.js'), /data-press="KeyQ" class="b-ping"/);
   // what it found: the cue, at once, and the quest marker for a while; nothing to find: a shrug, said
@@ -283,9 +284,9 @@ test('the Start menu opens the game menu on its Items and Quests, has a Controls
   // the Controls page: every control, the pad's in Xbox / PlayStation form, the one in your hands first
   const { controlsList, controlsHtml } = await (async () => { globalThis.matchMedia ??= () => ({ matches: false }); globalThis.window ??= new EventTarget(); return import('../src/ui.js'); })();
   const L = controlsList('A / ×', 'B / ○');
-  assert.ok(L.pad.some(([what, how]) => /scout finds/.test(what) && /R3/.test(how)));
-  assert.ok(L.keyboard.some(([what, how]) => /scout finds/.test(what) && how === 'Q'));
-  assert.ok(L.touch.some(([what, how]) => /scout finds/.test(what) && how === 'ping'));
+  assert.ok(L.pad.some(([what, how]) => /Plumb finds/.test(what) && /D-pad →/.test(how)));
+  assert.ok(L.keyboard.some(([what, how]) => /Plumb finds/.test(what) && how === 'Q'));
+  assert.ok(L.touch.some(([what, how]) => /Plumb finds/.test(what) && how === 'ping'));
   const html = controlsHtml(L, 'touch');
   assert.ok(html.indexOf('<h2>Touch</h2>') < html.indexOf('<h2>Controller</h2>'), 'a touch screen: its controls first');
 });

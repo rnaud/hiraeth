@@ -74,6 +74,10 @@ body.minigame #touch .b-gadget, body.talking #touch .b-gadget { display: none !i
 #gadget-wheel.many .slot img { width: 44px; height: 44px; }
 #gadget-wheel.many .slot.none { font-size: 11px; }
 #gadget-wheel.many .slot.hi { transform: scale(1.18); }
+#gadget-wheel.lots { width: 404px; height: 404px; margin: -202px 0 0 -202px; }
+#gadget-wheel.lots .slot { width: 46px; height: 46px; margin: -23px 0 0 -23px; font-size: 20px; }
+#gadget-wheel.lots .slot img { width: 40px; height: 40px; }
+#gadget-wheel .slot.mode { font-family: var(--face); }
 `;
 
 const at3 = (p) => [+p.x.toFixed(2), +p.y.toFixed(2), +p.z.toFixed(2)];
@@ -188,21 +192,27 @@ export class GadgetHud {
     });
   }
 
-  /** The wheel: [{ glyph, name }] round a circle (clockwise from the top), one highlighted; null hides it. */
+  /**
+   * The wheel: [{ glyph, name, icon?, tint? }] round a circle (clockwise from the top), one highlighted; null hides it.
+   * (tint: a glove mode's own colour behind its glyph, issue #511; the game waits while it is open, "paused" on it)
+   */
   wheel(list, hi = -1) {
-    screen.set('gadgetWheel', list ? { slots: list.map((l) => ({ id: l.id ?? '', glyph: l.glyph ?? '◆', name: l.name ?? '', none: !!l.none })), hi, name: hi >= 0 ? list[hi]?.name ?? '' : 'choose a gadget' } : null);
+    screen.set('gadgetWheel', list ? { slots: list.map((l) => ({ id: (l.mode ? l.key : l.id) ?? '', glyph: l.glyph ?? '◆', name: l.name ?? '', none: !!l.none, tint: l.tint ?? null })), hi, name: hi >= 0 ? list[hi]?.name ?? '' : 'choose a gadget' } : null);
     if (!this.dom) return;
     const key = list ? `${list.map((l) => l.name + (l.icon ? 1 : 0)).join(',')}|${hi}` : '';
     if (key === this.last.wheel) return;
     this.last.wheel = key;
     this.wheelEl.classList.toggle('on', !!list);
     if (!list) return;
-    // (more than eight: a wider ring of smaller slots, so ten gadgets and "nothing" never touch)
-    const n = list.length, many = n > 8, R = many ? 136 : 112, C = many ? 172 : 150;
+    // (more than eight: a wider ring of smaller slots, so ten gadgets and "nothing" never touch; more than twelve, the
+    // gadgets and the glove's six modes: wider again)
+    const n = list.length, many = n > 8, lots = n > 12, R = lots ? 166 : many ? 136 : 112, C = lots ? 202 : many ? 172 : 150;
     this.wheelEl.classList.toggle('many', many);
+    this.wheelEl.classList.toggle('lots', lots);
     this.wheelEl.innerHTML = '<div class="ring"></div>' + list.map((l, i) => {
       const a = (i / n) * Math.PI * 2, x = C + Math.sin(a) * R, y = C - Math.cos(a) * R;
-      return `<div class="slot${i === hi ? ' hi' : ''}${l.none ? ' none' : ''}" style="left:${x.toFixed(0)}px;top:${y.toFixed(0)}px">${l.icon ? `<img src="${esc(l.icon)}" alt="">` : esc(l.glyph)}</div>`;
+      const tint = l.tint && i !== hi ? `;background:${esc(l.tint)}` : '';
+      return `<div class="slot${i === hi ? ' hi' : ''}${l.none ? ' none' : ''}${l.mode ? ' mode' : ''}" style="left:${x.toFixed(0)}px;top:${y.toFixed(0)}px${tint}">${l.icon ? `<img src="${esc(l.icon)}" alt="">` : esc(l.glyph)}</div>`;
     }).join('') + `<div class="name">${esc(hi >= 0 ? list[hi].name : 'choose a gadget')}</div>`;
   }
 

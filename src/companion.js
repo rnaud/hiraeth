@@ -1,5 +1,5 @@
 // Plumb, the drone that comes when it is needed (src/scout.js flies it, src/drone.js is its body; the character:
-// lore/characters/plumb.md). Besides finding the objective when you ask (Q, R3), it has a little mind
+// lore/characters/plumb.md). Besides finding the objective when you ask (Q, D-pad →), it has a little mind
 // of its own, all here so it can be tested without a scene:
 //
 //   LostWatch   notices when you are lost: no progress (a quest step, an item, a chest, a talk) and
@@ -16,7 +16,7 @@
 //   Opening     a few lines at the start of a game, each said once per save (flags drone.said.<id>):
 //               stepping out of the ship the first time (the village on the horizon, someone there to
 //               help us recharge: then it flies off toward it, issue #434), the first person near, the
-//               first chest, the first time you are lost (the R3 line after the first talk is the hint
+//               first chest, the first time you are lost (the D-pad → line after the first talk is the hint
 //               system's, issue #151: these say nothing of the button), the first Blade Gate near (issue #483).
 //
 // One rate limit over all of it: never two of its own lines within GAP s (the opening's excepted).

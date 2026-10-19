@@ -764,7 +764,7 @@ const _lensAt = new THREE.Vector3();
 if (expedition) registerInteractable({ id: 'lens', priority: PRIORITY.use, range: 1, prompt: () => expedition.hud(player).replace(/^E \(X \/ □\) /, ''),
   at: () => { const i = expedition.nearby(player); return i >= 0 ? expedition.model.dials[i].getWorldPosition(_lensAt).add(player.frame.up) : null; },
   distance: (p) => (expedition.nearby(p) >= 0 ? 0 : Infinity), use: () => {} });
-// the scout finds the objective (Q, R3 with no foe in reach, the touch "ping"; src/scout.js): the cue names it and
+// the scout finds the objective (Q, D-pad →, the touch "ping"; src/scout.js): the cue names it and
 // how far, at once (a toast would wait its turn), and the quest marker over it shows for a while
 // (src/story/quests.js QuestMarker.reveal)
 // (`text` a string, or a function asked every frame: the find's line with its distance as it is now)
@@ -1143,7 +1143,7 @@ let eBlocked = false, wasBusy = false;
 window.addEventListener('keydown', (e) => { if (e.code === 'KeyE' && (wasBusy || busy())) eBlocked = true; });
 bindToolMouse(renderer.domElement, input);   // right button aims, left shoots, middle pushes
 renderer.domElement.addEventListener('mousedown', (e) => { if (e.button === 1) input.MouseMiddle = true; });   // the middle button: the gadget in hand (src/gadgets/)
-// the gadgets (src/gadgets/: the fluid gun, the grappling hook, the ink bombs…): LT / L2 aims and RT / R2 uses the one in hand (R and T, G), D-pad ↑ or B changes it, D-pad → or X its mode; Y / △ (V) the bell-note whistle
+// the gadgets (src/gadgets/: the fluid gun, the grappling hook, the ink bombs…): LT / L2 aims and RT / R2 uses the one in hand (R and T, G), D-pad ↑ or B held opens the wheel (the gadgets and the glove's modes, the game waiting; a tap the last pick back), X the next mode; Y / △ (V) the bell-note whistle
 // (the trials' rewards, upgrades to the gadgets' tuning while owned: wireLessons, before the gadgets are made)
 gadgets = new Gadgets({ scene, physics, player, camera, rig, sound, tool, level, foes, wind, input, relics, flammables, post: post.uniforms, boxes, notice: (t) => showToast(t, TEACH), touch: isTouch, ring: () => itemFx.ring(),
   icon: (id) => itemIcons.get(id), drawIcon: (id) => itemIcons.pump(id) });   // (the chip shows the gadget's own model, drawn once)
@@ -1692,6 +1692,8 @@ inputDisplay.listen(() => { if (devMenu.open) devMenu.refresh(); });
 const toggleInputs = () => showToast(inputDisplay.toggle() ? 'Controller inputs shown (F6).' : 'Controller inputs hidden.');
 window.addEventListener('keydown', (e) => { if (e.code === 'F6' && !e.repeat) { e.preventDefault(); toggleInputs(); } });
 window.addEventListener('padchord', (e) => { if (levelId === 'arena' && e.detail?.name === 'viewLeft') toggleInputs(); });
+/** The world's verbs the controller's actions hold back while the gadget wheel is open (the menus still open over it). */
+const WHEEL_HOLDS = new Set(['lock', 'scout', 'potion', 'call', 'l3', 'zoomIn', 'zoomOut']);
 const controller = new Controller({
   context: () => busy() ? (menuRoot() === storyRt.dialogue.el ? 'talk' : 'menu') : photo.on ? 'photo' : player.ride ? 'ride' : 'game',
   faces: () => padFaces(),
@@ -1707,6 +1709,7 @@ const controller = new Controller({
     if (menuHeard()) uiSound({ action: name });   // (a menu's confirm, back and tabs heard: src/ui-sound.js)
     if (changelog.pad(name)) return;   // (the interactive changelog over the game takes the controller: src/changelog.js)
     if (minigame && !menu.open && !journal.open && minigame.padAction(name)) return;   // (a game's cards, its pause: src/minigames/kit/runner.js)
+    if (gadgets?.wheelOn && WHEEL_HOLDS.has(name)) return;   // (the wheel open, the game waiting: no lock, Plumb, potion or call meanwhile; a D-pad rolled to a diagonal)
     if (name === 'zoomOut' || name === 'zoomIn') rig.zoom(Math.exp((name === 'zoomOut' ? 1 : -1) * dt));
     if (name === 'back') closeControllerMenu();
     // (in a menu, a conversation or a scene: Start toggles the Start menu, Select the sketchbook)
@@ -1742,11 +1745,14 @@ const controller = new Controller({
     else if (name === 'call' && !ship.playing) player.callMount();   // D-pad ↓: call the mount (the bike from your pack, the bird with her call) or hail a taxi (the keyboard's E still falls back to it)
     if (name === 'lock' && level.jump) level.jump(1);   // in the Lab, R3 / L3 hop to the next / previous world's room
     else if (name === 'lock' && !ship.playing) {
-      // R3: lock on to a foe, then the next, then let go (Tab: src/foes.js); with no foe in reach, the scout
-      // finds the objective (Q; src/scout.js), as a scan does in other games
+      // R3: lock on to a foe, then the next, then let go (Tab: src/foes.js), and nothing else (issue #512); with no foe
+      // in reach the camera turns behind you (the souls-likes' habit: CameraRig.recentre)
       // (locked on, a new verb, taught once: the hops, then, the hook owned, the hook at the lock: wireFight lock)
-      if (!fight.lock() && !minigame) { scoutHint.pinged(); scout.ping(); }
+      if (!fight.lock() && !minigame) rig.recentre(player.heading);
     }
+    // D-pad →: Plumb finds the objective (Q; src/scout.js), on foot and riding; a guardian's fight or a makers' house: a
+    // hint (Scout.getHint, docs/systems/boss-hints.md). Its own button since v1.86 (issue #512: R3 only locks on)
+    if (name === 'scout' && !ship.playing && !photo.on) { scoutHint.pinged(); scout.ping(); }
     if (name === 'l3' && level.jump) level.jump(-1);
     if (name === 'worldDebug' && (devMenu.open || !busy() || menuRoot() === picker)) devMenu.toggle();   // L3 + R3: the dev menu (F2, `; the hitbox overlay is in its Toggles, and F4)
     // the free View + D-pad chords (src/bindings.js FREE): a 'padchord' event any system may listen for
@@ -2092,7 +2098,7 @@ function missedFrames() {
   return n;
 }
 window.addEventListener('keydown', (e) => { if (e.code === 'F3' && !photo.on) { e.preventDefault(); settings.set('showFps', !settings.showFps); } });   // (F is the fluid blade)
-window.addEventListener('keydown', (e) => { if (e.code === 'Tab' && !e.repeat && !busy() && !photo.on) { e.preventDefault(); fight.lock(); } });   // lock on (R3 on a pad: src/foes.js)
+window.addEventListener('keydown', (e) => { if (e.code === 'Tab' && !e.repeat && !busy() && !photo.on) { e.preventDefault(); fight.lock(); } });   // lock on (R3 on a pad, nothing else: src/foes.js)
 // (first the engine, and a benchmark's label when it sets one: window.__benchLabel, e.g. "camps r2/3")
 const ENGINE = window.__fpsEngine = engineLabel(navigator.userAgent, location.search, window.Capacitor);
 function frameReadout(fps) {
@@ -2141,6 +2147,8 @@ function frame(ts) {
   if (hintText !== hintShown.text) { controllerHint.textContent = hintText; hintShown.text = hintText; hintShown.at = simT; }
   document.body.classList.toggle('controller-hint', controllerActive && photo.on);
   if (paused()) { pausedFrame(); requestAnimationFrame(frame); return; }
+  // the gadget wheel open (held D-pad ↑ or B): the game waits while you choose (issue #524), only the wheel reads the input
+  if (gadgets?.wheelOn && !busy()) { wheelFrame(realDt, mergeControls(latchedInput(), padInput)); requestAnimationFrame(frame); return; }
   simT += dt;
   const t = simT;   // the world's clock: it stops while a menu is open
   playClock += Math.min(rawDt, 1);
@@ -2371,11 +2379,22 @@ function frame(ts) {
  * presses made in the menu don't reach the game when it resumes.
  */
 function pausedFrame() {
+  if (gadgets?.wheelOn) gadgets.control(0, noInput, true);   // (a menu over the wheel: it closes, nothing taken)
   tapped.clear();
   if (journal.open) itemIcons.pump();
   if (journal.open && journal.menu.panel === 'map') { const gm = physics.groundMover, gk = physics.groundKind; worldMap.pump(); physics.groundMover = gm; physics.groundKind = gk; }   // (the map's rays: src/world-map.js)
   if (journal.open) pumpPortraits();
   wasBusy = true;
+  sound.update(CALM);
+}
+/**
+ * A frame with the gadget wheel open (issue #524): as under a menu nothing in the world moves (the foes, the clock, the
+ * traveller) and nothing is drawn again (the last frame stays under the wheel); the wheel reads the stick and the choose
+ * button (Gadgets.wheel) until it is let go.
+ */
+function wheelFrame(dt, input) {
+  gadgets.wheel(dt, input);
+  tapped.clear();
   sound.update(CALM);
 }
 const CALM = { speed: 0, gust: 0, storm: 0, rain: 0, rainRoof: 0, thrusting: false, riding: false, rideKind: null, rideSpeed: 0, altitude: 0 };
