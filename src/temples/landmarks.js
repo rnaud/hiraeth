@@ -19,6 +19,18 @@ export const LANDMARK_SCALE = Object.freeze({
   perdide: [1.1, 1.1, 1], edena: [1.35, 1.35, 1], incal: [1.6, 1.5, 1],
   buried: [1.25, 1.25, 1], spheres: [1.7, 1.65, 1], bazaar: [1.15, 1.2, 1],
 });
+/**
+ * The Rose House's terraces (its `case 'desert'` below): twelve elliptical tiers round its foot, the k-th from the top
+ * reaching `rz + k * step` m out along the door's axis from the house's middle (R added), `k * drop` m under the door's
+ * floor before the landmark's scale. Their top on the door's axis `along` m out from the middle (local, over the kit's
+ * base; -Infinity past them): the Givers' channel's water lies on them where they stand over the steps (issue #553).
+ */
+export const DESERT_TERRACES = { n: 12, rz: 7, step: 1.3, drop: 0.44 };
+export function desertTerraceTop(y, R, along) {
+  const T = DESERT_TERRACES, s = LANDMARK_SCALE.desert;
+  for (let k = 0; k < T.n; k++) if (Math.abs(along) <= (R + T.rz + k * T.step) * s[2]) return y - k * T.drop * s[1];
+  return -Infinity;
+}
 export function landmarkFrame(K, id, floor = 0) {
   const scale = LANDMARK_SCALE[id];
   if (!scale) return K;
@@ -107,7 +119,7 @@ function buildLandmark(K, id, { y = 0, R = 15, bottom = 0, glass = null, accent 
       const red=stone('#ef5845',{course:5.5,width:10,wear:.65}), edge=paint('#b8423d');
       // Each successive solid tier is narrower. A full-height outer drum would
       // swallow these treads, leaving the house sitting directly on the sand.
-      for(let i=0;i<12;i++)terrace(K,red,R+9+(11-i)*1.3,R+7+(11-i)*1.3,bottom,y-(11-i)*.44-bottom);
+      for(let i=0;i<12;i++)terrace(K,red,R+9+(11-i)*1.3,R+7+(11-i)*1.3,bottom,y-(11-i)*.44-bottom);   // (DESERT_TERRACES, desertTerraceTop)
       // Uneven weathered monoliths: heavy feet, narrowing shoulders, a broken crown.
       const fin=[['M',4.3,-.2],['L',23,-.2],['L',20,11],['L',17,17],['L',16,39],['L',13,55],['L',11.7,77],['L',8.5,83],['L',6.8,82],['L',6.1,65],['L',4.4,49],['L',4.3,-.2]];
       volume(K,red,fin,{y,z:0,depth:18,bevel:.6});

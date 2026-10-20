@@ -1,4 +1,4 @@
-import { landmark } from './landmarks.js';
+import { landmark, desertTerraceTop, DESERT_TERRACES, LANDMARK_SCALE } from './landmarks.js';
 import { portal } from './portal.js';
 import { stone } from './landmark-materials.js';
 import * as THREE from 'three';
@@ -650,17 +650,86 @@ function layout(rt) {
 
 
 // ------------------------------------------------------------------ outside: the Rose House in the dunes
-/** The Givers' channel from the door toward Qanat: world points every 3 m, winding a little, level down the steps, then on the sand. */
-function channelPath(from, doorY, H) {
+/**
+ * The Givers' channel's shape (issue #553): its water `lift` m over the sill and each tread, a fall over each riser (from `lip` m short of its edge)
+ * landing `fall` m out from it; on the sand, points every `step` m, its bed `bed` m over the ground, the water's middle
+ * `water` m over it and its edges `edge` m (tucked under the bed), `half` m out from the middle (the bed `bedHalf`).
+ */
+export const CHANNEL = { lift: 0.04, fall: 0.3, lip: 0.08, step: 3, bed: 0.06, water: 0.09, edge: 0.03, half: 0.8, bedHalf: 1.05 };
+/**
+ * The Givers' channel from the house's door toward Qanat (issue #553: until v1.87 it ran level out of the door for 16 m
+ * and then lay on the sand under the steps, as when the door was at the sand's height, before v1.76 raised it 6 m up a
+ * flight of steps). Down the middle of the steps it is a stair of water: over the sill, a fall over each riser onto the
+ * tread below, along it to its lip; from the steps' foot it winds on over the sand toward Qanat's east wall.
+ *   steps  world points down the steps (their heights the water's), in order
+ *   sand   world points every CHANNEL.step m on from the foot (y the ground's), to the city's edge
+ *   toward the way it runs (the steps' own heading)
+ */
+export function channelPath(O, H) {
+  const K = O.kit, S = O.stairs, from = O.door.at, C = CHANNEL;
   const toward = V(STORY.city.x - from.x, 0, STORY.city.z - from.z).normalize();
-  const pts = [from.clone().setY(doorY + 0.05)];
-  for (let i = 1; i <= 60; i++) {
-    const b = from.clone().addScaledVector(toward, i * 3);
-    b.x += Math.sin(i * 0.37) * 1.6; b.z += Math.cos(i * 0.29) * 1.6;
-    b.y = Math.max(H(b.x, b.z) + 0.3, i * 3 < 16 ? doorY + 0.06 : -1e9);
-    pts.push(b);
+  // what you walk on down the door's axis (local z): the sill, then the steps, and the house's terraces where their
+  // tiers stand over the steps near the top (src/temples/landmarks.js); level between breaks, lower after each
+  const run = (S.z1 - S.z0) / S.n;
+  const tread = (z) => z < S.z0 ? S.y0 : S.y0 + (S.y1 - S.y0) * Math.min(S.n, Math.floor((z - S.z0) / run) + 1) / S.n;
+  const surface = (z) => z < S.sillEnd ? S.sill : Math.max(tread(z), desertTerraceTop(S.y0, O.R, z));
+  const breaks = [S.door, S.sillEnd, ...Array.from({ length: S.n - 1 }, (_, i) => S.z0 + run * (i + 1)), S.z1];
+  for (let k = 0; k < DESERT_TERRACES.n; k++) { const z = (O.R + DESERT_TERRACES.rz + k * DESERT_TERRACES.step) * LANDMARK_SCALE.desert[2]; if (z > S.door && z < S.z1) breaks.push(z); }
+  breaks.sort((a, b) => a - b);
+  const runs = [];   // [from, to, height]
+  for (let i = 1; i < breaks.length; i++) {
+    const a = breaks[i - 1], b = breaks[i];
+    if (b - a < 1e-3) continue;
+    const y = surface((a + b) / 2), last = runs[runs.length - 1];
+    if (last && Math.abs(last[2] - y) < 1e-3) last[1] = b; else runs.push([a, b, y]);
   }
-  return pts;
+  const steps = [K.world(0, runs[0][2] + C.lift, runs[0][0])];
+  for (let i = 1; i < runs.length; i++) {
+    const [z, to, y] = runs[i];
+    steps.push(K.world(0, runs[i - 1][2] + C.lift, z - C.lip), K.world(0, y + C.lift, z + Math.min(C.fall, (to - z) / 2)));
+  }
+  steps.push(K.world(0, runs[runs.length - 1][2] + C.lift, S.z1 - C.lip));   // (and over the last lip onto the sand)
+  // on the sand: from the steps' foot, the wiggle growing in over the first few metres (straight off the steps)
+  const foot = K.world(0, 0, S.z1), down = Math.hypot(foot.x - from.x, foot.z - from.z);
+  const end = Math.hypot(STORY.city.x - from.x, STORY.city.z - from.z) - STORY.city.r - 4;
+  const sand = [foot.setY(H(foot.x, foot.z))];
+  for (let i = Math.floor(down / C.step) + 1; i * C.step <= end; i++) {
+    const b = from.clone().addScaledVector(toward, i * C.step), k = THREE.MathUtils.smoothstep(i * C.step, down, down + 12);
+    b.x += Math.sin(i * 0.37) * 1.6 * k; b.z += Math.cos(i * 0.29) * 1.6 * k;
+    b.y = H(b.x, b.z);
+    sand.push(b);
+  }
+  return { steps, sand, toward };
+}
+/** Points along a path on the sand every `every` m or so (a 3 m path's chords cut through the dunes' curves), each at the ground's height. */
+export function alongGround(pts, H, every = 1) {
+  const out = [pts[0].clone()];
+  for (let i = 1; i < pts.length; i++) {
+    const a = pts[i - 1], b = pts[i], m = Math.max(1, Math.ceil(Math.hypot(b.x - a.x, b.z - a.z) / every));
+    for (let k = 1; k <= m; k++) { const p = a.clone().lerp(b, k / m); p.y = H(p.x, p.z); out.push(p); }
+  }
+  return out;
+}
+/**
+ * A strip of water (or a bed) along `pts`: across it, `profile` [[offset (m, along `side`), lift (m over the point's y)], …],
+ * from one side to the other. Non-indexed, its faces up. `ends`: 'both' | 'last' | false, which ends are tucked down as
+ * low as its edges (an open end in the sand, not a sheet's cut edge over it).
+ */
+export function stripAlong(pts, side, profile, { ends = false } = {}) {
+  const P = [], low = Math.min(...profile.map(([, l]) => l)), last = pts.length - 1;
+  const tucked = (i) => (i === 0 && ends === 'both') || (i === last && !!ends);
+  const at = (i, [o, l]) => { const p = pts[i]; return [p.x + side.x * o, p.y + (tucked(i) ? low : l), p.z + side.z * o]; };
+  for (let i = 1; i < pts.length; i++) for (let j = 1; j < profile.length; j++) {
+    const a0 = at(i - 1, profile[j - 1]), a1 = at(i - 1, profile[j]), b0 = at(i, profile[j - 1]), b1 = at(i, profile[j]);
+    P.push(...a0, ...b0, ...a1, ...a1, ...b0, ...b1);
+  }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.computeVertexNormals();
+  if (g.attributes.normal.count && g.attributes.normal.getY(0) < 0) {   // (wound the other way for this side: flip each triangle)
+    const p = g.attributes.position;
+    for (let t = 0; t < p.count; t += 3) for (const c of [0, 1, 2]) { const v = p.getComponent(t + 1, c); p.setComponent(t + 1, c, p.getComponent(t + 2, c)); p.setComponent(t + 2, c, v); }
+    g.computeVertexNormals();
+  }
+  return g;
 }
 function exterior(scene, level, rt) {
   const H = (x, z) => level.ground?.heightAt?.(x, z) ?? 0;
@@ -686,13 +755,15 @@ function exterior(scene, level, rt) {
   K.both(red, box(12, dy, 6, 0, dy / 2, R + 3));
   const end = K.world(0,0,R+38), sand = H(end.x,end.z)-base+.12;
   K.stairs([0,dy,R+6],[0,sand,R+38],10.4,{rise:.32,mat:red,sides:false});
+  // (the steps as the kit lays them, for the channel's water down them: src/temples/kit.js stairs; local heights over `base`)
+  const stairs = { y0: dy, y1: sand, z0: R + 6, z1: R + 38, n: Math.max(1, Math.ceil(Math.abs(sand - dy) / 0.32)), sill: dy + 0.07, sillEnd: R + 1.9 + 4.2, door: R + 2.4 };
   for(const side of [-1,1])K.ramp([side*5.7,dy+.25,R+6],[side*5.7,sand+.25,R+38],.7,{t:.5,mat:red});
   // (the Givers' dry channel out from the door toward Qanat is the world's: src/levels/desert.js, the same path)
   K.flush();
   // the door: its threshold (world), looking out toward Qanat
   const at = K.world(0, dy, R + 2.4);
   const front = K.world(0, dy, R + 14);
-  return { door: { at, heading: yaw, ...P.door }, kit: K, base, top: base + landmarkTop, doorY, R, front, clear: [{ x: SITE.x, z: SITE.z, r: 76 }, { x: end.x, z: end.z, r: 14 }] };
+  return { door: { at, heading: yaw, ...P.door }, kit: K, base, top: base + landmarkTop, doorY, R, front, stairs, clear: [{ x: SITE.x, z: SITE.z, r: 76 }, { x: end.x, z: end.z, r: 14 }] };
 }
 
 // ------------------------------------------------------------------ the world change: water runs, fields grow
@@ -763,33 +834,23 @@ function change(scene, level, rt) {
   root.add(soil);
   const water = makeMaterial({ color: '#62c3c9', glow: 0.35, flat: true, side: THREE.DoubleSide, key: 'temple.desert.channel' });
   const strip = [];
+  // (lying in the sand, issue #553: its middle a few centimetres over the ground, its edges tucked under it, every metre;
+  // until v1.87 it hung 30 cm over the sand, sampled every 2 m)
   for (const [p0, dir, L] of chans) {
-    const n = Math.ceil(L / 2), side = V(-dir.z, 0, dir.x).multiplyScalar(0.45);
-    for (let i = 0; i < n; i++) {
-      const a = p0.clone().addScaledVector(dir, (i / n) * L), b = p0.clone().addScaledVector(dir, ((i + 1) / n) * L);
-      a.y = H(a.x, a.z) + 0.3; b.y = H(b.x, b.z) + 0.3;
-      const g = new THREE.BufferGeometry();
-      const P = [a.x - side.x, a.y, a.z - side.z, a.x + side.x, a.y, a.z + side.z, b.x - side.x, b.y, b.z - side.z, b.x + side.x, b.y, b.z + side.z];
-      g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.setIndex([0, 2, 1, 1, 2, 3]); g.computeVertexNormals();
-      strip.push(g.toNonIndexed());
-    }
+    const pts = alongGround([p0.clone().setY(H(p0.x, p0.z)), p0.clone().addScaledVector(dir, L)], H, 1);
+    strip.push(stripAlong(pts, V(-dir.z, 0, dir.x), [[-0.45, -0.05], [-0.3, 0.05], [0.3, 0.05], [0.45, -0.05]], { ends: 'both' }));
   }
-  // ---- the water running out of the house's door, down its steps and away toward the city
+  // ---- the water running out of the house's door, down its steps (a fall over each riser) and away toward the city
   const O = rt.outside;
-  if (O) {
-    const path = channelPath(O.door.at, O.doorY, H), toward = path[1].clone().sub(path[0]).setY(0).normalize();
-    const side = V(-toward.z, 0, toward.x).multiplyScalar(0.8);
-    let a = path[0];
-    for (let i = 1; i < path.length; i++) {
-      const b = path[i];
-      const g = new THREE.BufferGeometry();
-      const P = [a.x - side.x, a.y, a.z - side.z, a.x + side.x, a.y, a.z + side.z, b.x - side.x, b.y, b.z - side.z, b.x + side.x, b.y, b.z + side.z];
-      g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.setIndex([0, 2, 1, 1, 2, 3]); g.computeVertexNormals();
-      strip.push(g.toNonIndexed());
-      a = b;
-    }
+  if (O?.stairs) {
+    const { steps, sand, toward } = channelPath(O, H), side = V(-toward.z, 0, toward.x), C = CHANNEL;
+    strip.push(stripAlong(steps, side, [[-C.half, 0], [C.half, 0]]));
+    // (on the sand, in the dry channel's bed, src/levels/desert.js buildDryChannel: its edges under the bed)
+    const bank = [steps[steps.length - 1].clone().setY(steps[steps.length - 1].y - (C.water - C.bed)), ...alongGround(sand, H, 1).map((p) => p.setY(p.y + C.bed))];
+    strip.push(stripAlong(bank, side, [[-C.half, C.edge - C.bed], [-C.half * 0.75, C.water - C.bed], [C.half * 0.75, C.water - C.bed], [C.half, C.edge - C.bed]], { ends: 'last' }));
   }
   const channel = new THREE.Mesh(mergeGeometries(strip), water);
+  channel.name = 'The Givers’ channels (water)';
   channel.userData.noCollide = true;
   root.add(channel);
   // ---- creepers on the house: green vines up the drum and the fins, leaves along them

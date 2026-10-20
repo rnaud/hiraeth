@@ -28,6 +28,12 @@ export const CHANGELOG = [
     // issue #404: unity/…/BridgeRunner.cs HandheldResolution, HandheldDyn (the render scale by the GPU's frame, 0.67 → 0.5,
     // under FSR 1); RenderStats' scale; tests/unity-dynres.test.js; docs/systems/performance.md "round 14"
     'In the Unity version on the Retroid and other small Android handhelds, the picture drops to a slightly softer resolution where the GPU can’t keep up and comes back where it can, so 22 of the 25 measured views now run at 60 frames a second instead of 10 (the City-Shaft looking across, Lorn’s start and the Floating city’s start are still under it).',
+    // issue #553: src/temples/desert.js channelPath (the sill, the steps and the terraces over them, a fall over each
+    // edge), stripAlong; src/levels/desert.js buildDryChannel from the steps' foot; tests/desert-water.test.js
+    'Once the Rose House’s keeper is calm, its water runs down the middle of the house’s steps, falling over each one to the sand, instead of sticking out of the door into the air and vanishing under the stairs.',
+    // issue #553: src/desert-water.js floodGeometry, the wells' level; src/desert-landmarks.js lagoonSheet, STREAM; the
+    // fields' channels and the Givers' channel in src/temples/desert.js; tests/desert-water.test.js
+    'In the desert, water lies in its bed instead of floating over the sand: the channels by Qanat’s new fields and the one from the Rose House, the flooded salt pan, the edges of the salt lagoons and the gorge’s stream, and the water risen in the qanat wells.',
   ] },
   { v: '1.86', date: '2026-10-19', items: [
     // issue #483: src/story/hosts-data.js (the fight hosts' second lines), src/fight-temples/<world>.js (blurb, quiet),

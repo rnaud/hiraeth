@@ -17,6 +17,7 @@ import { SHOPS } from '../shop.js';
 import { buildDesertCity, desertCrowdSpots } from '../desert-city.js';
 import { LINES } from '../story/desert-data.js';
 import { attachTemple, clearInstances } from '../temples/index.js';
+import { channelPath, alongGround, stripAlong, CHANNEL } from '../temples/desert.js';
 import { buildPilgrimsRoad, buildRiderStrips, buildFieldStone } from '../desert-road.js';
 import { buildDesertHearth } from '../desert-hearth.js';
 import { buildGiantsRoad } from '../desert-giants.js';
@@ -275,29 +276,23 @@ export const createDesert = stepped(buildDesert);
  * from anything, with nothing pointing to it). Drawn only; you walk over it.
  */
 export function buildDryChannel(scene, terrain, O) {
-  if (!O?.door) return null;
+  if (!O?.door || !O.stairs) return null;
   const H = (x, z) => terrain.heightAt(x, z);
-  const from = O.door.at.clone(), toward = new THREE.Vector3(STORY.city.x - from.x, 0, STORY.city.z - from.z).normalize();
-  const steps = Math.floor((Math.hypot(STORY.city.x - from.x, STORY.city.z - from.z) - STORY.city.r - 4) / 3);
-  const bed = [], kerb = [], line = [[from.x, O.doorY, from.z]];
+  // (the house's own steps lead down from its door; the bed starts at their foot, issue #553: until v1.87 it ran level
+  // out of the door for 16 m, in the air over the steps)
+  const { steps, sand, toward } = channelPath(O, H), C = CHANNEL;
+  const kerb = [], line = [[O.door.at.x, O.doorY, O.door.at.z], ...[steps[Math.floor(steps.length / 2)], sand[0]].map((p) => [p.x, p.y, p.z])];
   const side = new THREE.Vector3(-toward.z, 0, toward.x);
-  let a = from.clone(); a.y = O.doorY + 0.03;
-  for (let i = 1; i <= steps; i++) {
-    const b = from.clone().addScaledVector(toward, i * 3);
-    b.x += Math.sin(i * 0.37) * 1.6; b.z += Math.cos(i * 0.29) * 1.6;   // (the same wiggle as the water's)
-    b.y = Math.max(H(b.x, b.z) + 0.06, i * 3 < 16 ? O.doorY + 0.03 : -1e9);
-    const w = 1.05, g = new THREE.BufferGeometry();
-    const P = [a.x - side.x * w, a.y, a.z - side.z * w, a.x + side.x * w, a.y, a.z + side.z * w, b.x - side.x * w, b.y, b.z - side.z * w, b.x + side.x * w, b.y, b.z + side.z * w];
-    g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.setIndex([0, 2, 1, 1, 2, 3]); g.computeVertexNormals();
-    bed.push(g.toNonIndexed());
+  const bed = [stripAlong(alongGround(sand, H, 1).map((p) => p.setY(p.y + C.bed)), side, [[-C.bedHalf, 0], [C.bedHalf, 0]])];
+  for (let i = 1; i < sand.length; i++) {
+    const b = sand[i];
     // a low worn stone on either bank every few metres (some long gone: the sand took them)
     for (const s of [-1, 1]) {
       if ((i * 7 + (s > 0 ? 3 : 0)) % 5 === 0) continue;
       const k = 1.35 + ((i * 13) % 5) * 0.04, x = b.x + side.x * s * k, z = b.z + side.z * s * k;
       kerb.push(new THREE.BoxGeometry(0.5, 0.32, 0.9 + (i % 3) * 0.25).rotateY(Math.atan2(toward.x, toward.z) + (i % 4 - 1.5) * 0.08).translate(x, H(x, z) + 0.08, z).toNonIndexed());
     }
-    if (i % 10 === 0 || i === steps) line.push([b.x, b.y, b.z]);   // (its line, every 30 m: the level design audit follows it)
-    a = b;
+    if (i % 10 === 0 || i === sand.length - 1) line.push([b.x, b.y + C.bed, b.z]);   // (its line, every 30 m: the level design audit follows it)
   }
   const group = new THREE.Group(); group.name = 'The Givers’ dry channel';
   for (const [list, mat] of [[bed, makeMaterial({ color: '#c49a68', flat: true, side: THREE.DoubleSide })], [kerb, makeMaterial({ color: '#d9c3a0', flat: true })]]) {

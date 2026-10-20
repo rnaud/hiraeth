@@ -43,6 +43,33 @@ export function lagoonHeight(x, z, h) {
   return THREE.MathUtils.lerp(crust - carve, h, smoothstep(0.85, 1.25, r));
 }
 export const lagoonWater = () => level() + 0.15 - 0.6;
+/**
+ * The lagoons' sheet (issue #553): a disc of `r` of the lagoons' radius at the water's height, but past `from` of it, where
+ * the crust's edge goes down to the dunes round it, never over the ground by more than its `skin` (thinning from `deep`
+ * to an edge `tuck` m under the sand): until v1.87 its edge stood up to 2.4 m over the sand on the low side.
+ */
+export const LAGOON_SHEET = { r: 1.02, from: 0.86, deep: 3, tuck: 0.1, segs: 128, rings: [0.5, 0.8, 0.86, 0.9, 0.93, 0.96, 0.98, 1] };
+export function lagoonSheet(H, wy) {
+  const S = LAGOON_SHEET, R = LAGOON.r * S.r, pos = [0, 0, 0], idx = [];
+  for (let s = 0; s < S.segs; s++) {
+    const a = s / S.segs * Math.PI * 2, ca = Math.cos(a), sa = Math.sin(a);
+    for (const f of S.rings) {
+      const r = R * f, g = H(LAGOON.x + ca * r, LAGOON.z + sa * r);
+      const skin = THREE.MathUtils.lerp(S.deep, -S.tuck, smoothstep(S.from, 1, f));
+      pos.push(ca * r, Math.min(wy, g + skin) - wy, sa * r);
+    }
+  }
+  const n = S.rings.length;
+  for (let s = 0; s < S.segs; s++) {
+    const a = 1 + s * n, b = 1 + ((s + 1) % S.segs) * n;
+    idx.push(0, b, a);
+    for (let k = 0; k < n - 1; k++) idx.push(a + k, b + k, a + k + 1, b + k, b + k + 1, a + k + 1);
+  }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals();
+  return g;
+}
+/** The gorge's stream across, bank to bank: [side, in from its edge (m), over the floor (m)] (issue #553: its banks under the floor). */
+export const STREAM = { across: [[-1, 0, -0.08], [-1, 0.6, 0.1], [1, 0.6, 0.1], [1, 0, -0.08]] };
 
 // The gorge and the umbrella grove stand on level floors cut into the rose
 // hills; the wide fade keeps the rim gentle enough to ride over.
@@ -434,16 +461,17 @@ export function buildDesertLandmarks(scene, terrain) {
       const geo = new THREE.ExtrudeGeometry(wallShape(sgn, inset, sgn * 7 + inset), { depth: y1 - y0, bevelEnabled: false }).rotateX(-Math.PI / 2).translate(0, y0, 0);
       k.both(M.rose, geo);
     }
-    // a stream down the gorge floor, following the ground
+    // a stream down the gorge floor, following the ground: its middle a little over the floor, its banks tucked under it
+    // (issue #553: until v1.87 its edges stood 12 cm over the floor, a sheet laid on the sand)
     {
-      const pos = [], idx = [], n = 60;
+      const pos = [], idx = [], n = 60, across = STREAM.across, m = across.length;
       for (let i = 0; i <= n; i++) {
         const u = -105 + 210 * i / n, c = 4 * Math.sin(u / 26), w = 3 + 1.5 * Math.sin(u / 17 + 1);
-        for (const e of [-1, 1]) {
-          const v = c + e * w, p = k.world(u, 0, v);
-          pos.push(u, terrain.heightAt(p.x, p.z) - k.origin.y + 0.12, v);
+        for (const [e, inset, lift] of across) {
+          const v = c + e * (w - inset), p = k.world(u, 0, v);
+          pos.push(u, terrain.heightAt(p.x, p.z) - k.origin.y + (i === 0 || i === n ? across[0][2] : lift), v);   // (its two ends tucked too)
         }
-        if (i < n) { const a = i * 2; idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }
+        if (i < n) for (let j = 0; j < m - 1; j++) { const a = i * m + j, b = a + m; idx.push(a, a + 1, b, a + 1, b + 1, b); }
       }
       const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals();
       k.add(M.water, g);
@@ -567,7 +595,7 @@ export function buildDesertLandmarks(scene, terrain) {
   // stepped lavender table cliff, as on the salt pages.
   {
     const s = SITES.lagoons, wy = lagoonWater(), k = new Kit(root, 'Salt lagoons', s.x, wy, s.z, 0);
-    k.add(M.water, new THREE.CircleGeometry(s.r * 1.02, 64).rotateX(-Math.PI / 2));
+    k.add(M.water, lagoonSheet((x, z) => terrain.heightAt(x, z), wy));
     for (let i = 0; i < 70; i++) {
       const a = rng() * Math.PI * 2, d = Math.sqrt(rng()) * s.r * 0.95, x = Math.cos(a) * d, z = Math.sin(a) * d;
       if (terrain.heightAt(s.x + x, s.z + z) > wy - 0.5) continue;   // only on open water

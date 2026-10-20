@@ -28,6 +28,42 @@ const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 /** The mirage: wholly there farther than `far` from the pan's middle, sunk away nearer than `near` (m). The flood: its rise (s), its depth (m). */
 export const MIRAGE = { near: 95, far: 210 };
 export const FLOOD = { secs: 30, depth: 0.3 };
+/**
+ * The flood's sheet (issue #553: until v1.87 a disc 8 m wider than the pan at its full height, hanging up to a metre over
+ * the sand where the ground round the pan falls away): spoke by spoke from the pan's middle, level at `top` to the shore
+ * (where the ground rises over it: the spoke ends half a metre into it), or, where the ground falls away from the pan's
+ * lip, thinning over the lip for a few metres (`spill`) down to an edge tucked `tuck` m under the sand. Local to `C` (its
+ * heights from `top`), so the mesh rises as one.
+ */
+export const FLOOD_SHEET = { segs: 96, out: 8, spill: 4, tuck: 0.1, rings: [0.2, 0.4, 0.6, 0.75, 0.85, 0.9, 0.94, 0.97, 1] };
+export function floodGeometry(H, C, top) {
+  const S = FLOOD_SHEET, R = SALT_PAN.r + S.out, depth = top - C.y, pos = [0, 0, 0], idx = [];
+  for (let s = 0; s < S.segs; s++) {
+    const a = s / S.segs * Math.PI * 2, ca = Math.cos(a), sa = Math.sin(a), h = (r) => H(C.x + ca * r, C.z + sa * r);
+    // the shore (the ground over the water) and the lip (the pan's level ground ends lower)
+    let shore = Infinity, lip = Infinity;
+    for (let r = 0; r <= R + S.spill; r += 0.25) {
+      const g = h(r);
+      if (g > top + 0.05) { shore = r; break; }
+      if (g < C.y - 0.02 && lip === Infinity) lip = r;
+    }
+    lip = Math.min(lip, R);   // (no lip and no shore by R: it thins away over the last few metres all the same)
+    const end = Math.min(shore + 0.5, lip + S.spill);
+    for (const f of S.rings) {
+      const r = end * f, g = h(r);
+      const skin = r <= lip ? depth : THREE.MathUtils.lerp(depth, -S.tuck, smoothstep(lip, end, r));
+      pos.push(ca * r, Math.min(top, g + skin) - top, sa * r);
+    }
+  }
+  const n = S.rings.length;
+  for (let s = 0; s < S.segs; s++) {
+    const a = 1 + s * n, b = 1 + ((s + 1) % S.segs) * n;
+    idx.push(0, b, a);
+    for (let k = 0; k < n - 1; k++) idx.push(a + k, b + k, a + k + 1, b + k, b + k + 1, a + k + 1);
+  }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals();
+  return g;
+}
 const flatGeo = (g) => { g = g.index ? g.toNonIndexed() : g; for (const k of Object.keys(g.attributes)) if (k !== 'position' && k !== 'normal') g.deleteAttribute(k); if (!g.attributes.normal) g.computeVertexNormals(); return g; };
 
 export function buildWaterMemory(scene, terrain) {
@@ -108,7 +144,9 @@ export function buildWaterMemory(scene, terrain) {
     const g0 = Math.min(...[0, 1, 2, 3, 4, 5].map((k) => H(x + Math.cos(k) * 1.9, z + Math.sin(k) * 1.9)));
     // the shaft's round wall, its rim, the dark (or the water) down inside
     parts.stone.push(new THREE.LatheGeometry([[1.15, -0.6], [1.75, -0.6], [1.8, 0.9], [1.65, 1.05], [1.2, 1.05], [1.15, 0.9]].map(([r, y]) => new THREE.Vector2(r, y)), 16).translate(x, g0, z));
-    const disc = new THREE.CircleGeometry(1.15, 16).rotateX(-Math.PI / 2).translate(x, H(x, z) + 0.04, z);
+    // (level over the highest sand inside the shaft, issue #553: at its middle's height, a sloping site's sand came up through it)
+    const inside = Math.max(H(x, z), ...[0, 1, 2, 3, 4, 5, 6, 7].map((k) => H(x + Math.cos(k * Math.PI / 4) * 1.15, z + Math.sin(k * Math.PI / 4) * 1.15)));
+    const disc = new THREE.CircleGeometry(1.15, 16).rotateX(-Math.PI / 2).translate(x, inside + 0.04, z);
     parts.dark.push(disc.clone()); parts.wet.push(disc);
     // the windcatcher beside it, toward the city: a little square tower, slots under its cap
     const wx = x - Math.cos(face) * 2.9, wz = z + Math.sin(face) * 2.9, wy = H(wx, wz);
@@ -164,18 +202,17 @@ export function buildWaterMemory(scene, terrain) {
   group.add(mirage);
 
   // ---------------------------------------------------------------- the flood: a shallow water over the whole pan
-  const flood = new THREE.Mesh(new THREE.CircleGeometry(1, 48).rotateX(-Math.PI / 2), makeMaterial({ color: '#69d3c6', color2: '#a3e4d5', mode: MODE_WATER, flat: true }));
+  const flood = new THREE.Mesh(floodGeometry(H, C, L + FLOOD.depth), makeMaterial({ color: '#69d3c6', color2: '#a3e4d5', mode: MODE_WATER, flat: true }));
   flood.name = 'The salt pan’s flood';
   flood.userData.noCollide = true; flood.userData.waterMoves = true; flood.userData.dynamic = true;
-  flood.position.set(C.x, L - 0.4, C.z); flood.scale.set(0.3, 1, 0.3);
+  flood.position.set(C.x, L - 0.4, C.z);
   flood.visible = false;
   group.add(flood);
   const st = { k: 0, mirage: 1 };
   const setFlood = (k) => {
     st.k = THREE.MathUtils.clamp(k, 0, 1);
     flood.visible = st.k > 0.001;
-    const r = (SALT_PAN.r + 8) * (0.35 + 0.65 * smoothstep(0, 0.7, st.k));
-    flood.scale.set(r, 1, r);
+    // (it rises out of the crust: laid at its full height, issue #553, its sheet under the ground until it is over the pan)
     flood.position.y = L - 0.4 + (0.4 + FLOOD.depth) * smoothstep(0, 1, st.k);
     meshes.wet.visible = st.k > 0.05; meshes.dark.visible = !meshes.wet.visible;   // (the water risen in the wells)
     mirage.visible = st.k < 0.02 && st.mirage > 0.02;

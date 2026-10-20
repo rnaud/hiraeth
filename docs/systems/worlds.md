@@ -469,6 +469,23 @@ stones along the top, scattered as the plain's pebbles are (instanced, walked th
 desert's collision enough to unsettle a fragment's footing 900 m away, `tests/contact-audit.test.js`). The contact
 audit (`window.contactAudit()`, `?batch=0`) finds nothing off within 90 m of it. `tests/desert-vistas.test.js`, and `tests/dunes.test.js` for the bank.
 
+**The desert's water in its beds** (v1.87, issue #553: "the water in the desert sits above the ground"; "the water
+coming out of the rose house seems like it's not following the stairs"). A sheet of water never shows an edge over
+the ground: either its edge meets a shore (the ground rises over it: the edge half a metre into it) or it thins over
+the ground to an edge tucked under it. The flooded salt pan (`src/desert-water.js` `floodGeometry`, `FLOOD_SHEET`: spoke
+by spoke, level to the shore, or over the pan's lip for 4 m where the ground falls away; it rises as one, out of the
+crust) and the salt lagoons (`src/desert-landmarks.js` `lagoonSheet`, `LAGOON_SHEET`: past 0.86 of the radius, never
+more than its skin over the ground) were discs whose edges hung up to 1 and 2.4 m over the sand; the gorge's stream
+(`STREAM`) tucks its banks and ends under the floor; the qanat wells' water stands over the highest sand in the shaft.
+The Givers' water once the Rose House is calm (`src/temples/desert.js` `change`): the fields' channels lie in the sand
+(their middle 5 cm over it, every metre: they hung 30 cm over it), and the house's channel (`channelPath`) comes down
+the middle of the steps, the d56726fdb raise of the door 6 m up a flight having left it running level out of the door
+for 16 m and then under the steps: over the sill, then on whatever you walk on down the door's axis (the treads, and
+the house's terraces where their tiers stand over the top steps: `landmarks.js` `desertTerraceTop`), a fall over each
+edge (`CHANNEL.lip`, `fall`), and from the steps' foot on in the dry channel's bed (`buildDryChannel` starts there). The
+open edges of every desert water within 6 cm of what is under them, and the channel's treads, falls and foot:
+`tests/desert-water.test.js`.
+
 ## The desert's walk to the Rose House, and Zahir over the hollow (level design audit v1.66, issue #278; v1.68)
 
 - **The Rose House a leg out, the gift the way home.** The main quest's step for the blade and guard comes before

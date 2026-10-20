@@ -1303,6 +1303,7 @@ const PLUMB543 = 'Issue #543: muted headless Chrome (High, 1280 × 720, 10:00, c
 const RETROID404 = 'Retroid Pocket Nova (Adreno 740, Vulkan), the Unity build at Handheld, FSR 1 to 1280 × 960, 60 Hz, the near shadow map 2048² every frame, muted; before, the render scale held at 0.67 (-no-dyn-res), after, dynamic 0.67 → 0.5; the same APK (build 2740), interleaved world by world';
 const SRC404 = 'the bridge’s own bench (-views -bench 6 -bundle none, unity-bench.json) on the device, 19 October; docs/systems/performance.md, “Unity on the Retroid, round 14”';
 const DYN404 = 'Issue #404: the bench’s own shots on the Retroid (the views after their 6 s), the same APK with -no-dyn-res (before) and as shipped (after); 19 October; cwebp -q 72';
+const WATER553 = 'Issue #553: headless Chrome on the GPU at High, 10 in the morning, clear, the camera pinned (changelog-shots.mjs shoot), the Rose House calmed and the pan flooded in the save; before b077eaf94, after its fix, 19 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.87': [
     { match: 'In the Unity version, Anselm’s shop opens over a darkened hold', tags: ['devices'], shots: [
@@ -1361,6 +1362,15 @@ export const CHANGELOG_MEDIA = {
         { where: 'the Floating city’s start', before: 21.9, after: 17.0 },
       ], source: SRC404 },
     ], see: 'In the Unity version on the Retroid, stand at the Signal Market’s gate or by the ship in the Desert: the picture stays smooth at 60 frames a second where it dipped to about 50, a touch softer there and as sharp as before where little is in view.' },
+    { match: 'Once the Rose House’s keeper is calm, its water runs down the middle', shots: [
+      { name: 'water-553-stairs-three', title: 'Down the steps', caption: 'The Rose House’s steps with its keeper calmed: before, the water ran level out of the door for 16 m, in the air over the steps, and dropped into them; after, a stream down the middle of the flight, over the sill, a fall over every step', from: WATER553 },
+      { name: 'water-553-stairs-low', title: 'From the foot', caption: 'From the foot of the steps: before, the water and its dry bed stuck out of the door and the stream came out from under the stairs; after, it comes down every step to its bed on the sand', from: WATER553 },
+    ], see: 'Calm the Rose House’s keeper (or load a save past it), come out of the door and look down the steps toward Qanat.' },
+    { match: 'In the desert, water lies in its bed instead of floating over the sand', shots: [
+      { name: 'water-553-field', title: 'Qanat’s fields', caption: 'A channel by one of Qanat’s new fields, from low: before, a ribbon of water 30 cm over the sand with its shadow under it; after, lying in the sand', from: WATER553 },
+      { name: 'water-553-flood', title: 'The salt pan', caption: 'The flooded salt pan from its edge: before, a sheet hanging up to a metre over the sand round the pan, its shadow under it; after, in the pan, its shore where the ground rises out of it', from: WATER553 },
+      { name: 'water-553-lagoon', title: 'The salt lagoons', caption: 'The salt lagoons from the low side: before, the water’s edge stood up to 2.4 m over the sand, a pale line over its own shadow; after, the water lies on the ground down to its edge', from: WATER553 },
+    ], see: 'In the desert, crouch by a channel at Qanat’s fields once the Rose House runs again, or walk to the edge of the flooded salt pan or of the salt lagoons and look along the ground.' },
   ],
   '1.86': [
     { match: 'In the Unity version, the Controls page shows your keys and buttons on caps', tags: ['devices'], shots: [
