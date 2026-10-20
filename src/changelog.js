@@ -11,6 +11,8 @@ export const CHANGELOG = [
   { v: '1.90', date: '2026-10-20', items: [
     { text: 'The caravan study has a rounder hull and broad curved cockpit. Its camp packs into a closed side hatch before lift-off, then unfolds after landing.',
       see: 'Open the caravan ship study from Debug, then try Depart and Arrive to watch the deck, canopy, furniture, laundry and landing gear stow and return.' },
+    { text: 'Repeated reference pictures now load reliably on the published References page.',
+      see: 'Open References on the website. Pictures shared by several folders keep their separate entries and display the same complete image.' },
     {
       text: 'The Salt Pilgrim’s robe and sash have more room at the waist, reducing clothing overlap as he runs.',
       see: 'Choose Salt Pilgrim in the Wardrobe, then walk and run. The open robe keeps its embroidered edges clear of the tunic more consistently.',

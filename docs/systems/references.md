@@ -71,6 +71,11 @@ part: kinds, tree, filters, address; `view.js` the HTML; `main.js` the page), `s
   Measured (October 2026): 555 pictures, 1,111 files, **69.8 MB** (thumbnails 5.5, copies 63.5, index 0.8;
   the archive 8.4 of it); 16 s to encode on an M-series Mac from nothing, 1 s from the cache; the whole site
   1,815 files, far under Workers' 20,000 (the script checks the limits).
+- **Duplicate pictures** (#594): workers in one site build share a pending encoding by content hash,
+  including its completed result. Each picture keeps its own index entry, but only one worker writes
+  the cached thumbnail, viewer image and metadata, so a copy cannot race another writer truncating
+  the same file. Encoding/cache-hit counts describe unique pictures. This is web only: reference
+  image publication does not change Unity rendering or packaged game assets.
 - **The cache**: each WebP is kept in `.cache/references-site/` (not in the repository) under its content hash and
   its settings (`<sha1>-t360q68.webp`, `-w1600q80.webp`, `<sha1>.json` the pixels); a run copies from it and encodes
   only new pictures, then drops what it did not use (removed pictures, old settings). CI keeps the folder with

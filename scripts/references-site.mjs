@@ -69,6 +69,8 @@ export async function buildReferencesSite({ root = ROOT, dist = join(root, 'dist
   await mkdir(cache, { recursive: true });
   const stats = { made: 0, hits: 0 };
   const used = new Set(), written = new Set();
+  // Keep completed promises too: later duplicate entries reuse the same result (or failure).
+  const encodings = new Map();
   let next = 0, bytes = 0;
   const worker = async () => {
     while (next < index.entries.length) {
@@ -76,7 +78,10 @@ export async function buildReferencesSite({ root = ROOT, dist = join(root, 'dist
       const buf = await readFile(join(root, e.path));
       const hash = createHash('sha1').update(buf).digest('hex').slice(0, 16);
       let made;
-      try { made = await encode(buf, hash, cache, sharp, stats); } catch (err) { log(`skipped ${e.path}: ${err.message}`); e.broken = true; continue; }
+      try {
+        if (!encodings.has(hash)) encodings.set(hash, encode(buf, hash, cache, sharp, stats));
+        made = await encodings.get(hash);
+      } catch (err) { log(`skipped ${e.path}: ${err.message}`); e.broken = true; continue; }
       for (const f of [made.t, made.w, join(cache, `${hash}.json`)]) used.add(f);
       Object.assign(e, { thumb: `${SITE_DIR}/t/${hash}.webp`, web: `${SITE_DIR}/w/${hash}.webp`, ...made.meta });
       if (written.has(hash)) continue;

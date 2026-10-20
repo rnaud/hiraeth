@@ -5,7 +5,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tempDir } from '../scripts/temp-dirs.mjs';
-import { tmpdir } from 'node:os';
+import os, { tmpdir } from 'node:os';
+import fsPromises from 'node:fs/promises';
+import { syncBuiltinESMExports } from 'node:module';
 import { join } from 'node:path';
 import sharp from 'sharp';
 import { buildReferencesSite, SITE_DIR, THUMB, WEB } from '../scripts/references-site.mjs';
@@ -36,7 +38,7 @@ test('the build: the index the page reads, a thumbnail and a web-size copy of ev
   try {
     const r = await buildReferencesSite({ root, dist, cache });
     assert.equal(r.count, 4, 'not the candidates');
-    assert.equal(r.made, 4); assert.equal(r.hits, 0);
+    assert.equal(r.made, 3); assert.equal(r.hits, 0);
     const index = JSON.parse(readFileSync(join(dist, SITE_DIR, 'index.json'), 'utf8'));
     assert.equal(index.static, true);
     assert.equal(index.count, 4);
@@ -62,17 +64,65 @@ test('the build: the index the page reads, a thumbnail and a web-size copy of ev
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
+test('concurrent duplicate pictures share one pending encoding and keep both index entries', async (t) => {
+  const root = tempDir('refsite-duplicates-');
+  const dist = join(root, 'dist'), cache = join(root, 'cache');
+  mkdirSync(join(root, 'references'), { recursive: true });
+  const source = await picture(800, 600);
+  for (const name of ['a.jpg', 'b.jpg']) writeFileSync(join(root, 'references', name), source);
+  let sourceReads = 0, encodes = 0, releaseReads;
+  const bothRead = new Promise((resolve) => { releaseReads = resolve; });
+  const readFile = fsPromises.readFile;
+  // Force two workers, and hold metadata until both source reads finish. No timing sleeps:
+  // the old implementation necessarily starts two encoders before either cache result exists.
+  t.mock.method(os, 'availableParallelism', () => 3);
+  t.mock.method(fsPromises, 'readFile', async (...args) => {
+    const result = await readFile(...args);
+    if (String(args[0]).endsWith('.jpg') && ++sourceReads === 2) releaseReads();
+    return result;
+  });
+  syncBuiltinESMExports();
+  const gatedSharp = (...args) => {
+    encodes++;
+    const image = sharp(...args), metadata = image.metadata.bind(image);
+    image.metadata = async () => { await bothRead; return metadata(); };
+    return image;
+  };
+  try {
+    const result = await buildReferencesSite({ root, dist, cache, sharp: gatedSharp });
+    assert.equal(sourceReads, 2);
+    assert.equal(encodes, 1, 'only one encoder owns the shared cache files');
+    assert.equal(result.made, 1);
+    assert.equal(result.count, 2);
+    assert.equal(result.files, 3);
+    const { entries } = JSON.parse(readFileSync(join(dist, SITE_DIR, 'index.json'), 'utf8'));
+    assert.notEqual(entries[0].path, entries[1].path);
+    assert.equal(entries[0].thumb, entries[1].thumb);
+    assert.equal(entries[0].web, entries[1].web);
+    for (const key of ['thumb', 'web']) {
+      const metadata = await sharp(join(dist, entries[0][key])).metadata();
+      assert.equal(metadata.format, 'webp');
+      assert.ok(metadata.width > 0 && metadata.height > 0);
+      await sharp(join(dist, entries[0][key])).raw().toBuffer();
+    }
+  } finally {
+    t.mock.restoreAll();
+    syncBuiltinESMExports();
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test('the cache: a rebuild encodes nothing, a new picture alone, and keeps only what it used', async () => {
   const { root, dist, cache, put } = await fixture();
   try {
     await buildReferencesSite({ root, dist, cache });
     const again = await buildReferencesSite({ root, dist, cache });
-    assert.equal(again.made, 0); assert.equal(again.hits, 4);
+    assert.equal(again.made, 0); assert.equal(again.hits, 3);
     assert.ok(existsSync(join(dist, SITE_DIR, 'index.json')));
     put('levels/Home/characters/Lou/reference-4.jpeg', await picture(640, 480, 10));
     rmSync(join(root, 'references/archive'), { recursive: true });
     const third = await buildReferencesSite({ root, dist, cache });
-    assert.equal(third.made, 1); assert.equal(third.hits, 3);
+    assert.equal(third.made, 1); assert.equal(third.hits, 2);
     assert.equal(readdirSync(cache).length, 3 * 3, 'three files a distinct picture (thumbnail, copy, pixels); the removed one\'s gone');
     const noArchive = await buildReferencesSite({ root, dist, cache, archive: false });
     assert.equal(noArchive.count, 4);
