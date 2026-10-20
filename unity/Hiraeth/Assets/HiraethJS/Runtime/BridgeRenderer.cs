@@ -1653,15 +1653,18 @@ namespace Hiraeth.Bridge
             var gos = new List<GameObject>();
             var picked = new List<(Node n, MeshData md)>();
             int now = Time.frameCount;
+            int sidedCandidates = 0; long sidedTriangles = 0;
             foreach (var n in nodes.Values)
             {
                 if (n.batched || n.kind != "mesh" || n.smr || !(n.r is MeshRenderer) || !n.r.enabled || n.chunks != null || !n.go || !n.mf || !n.mf.sharedMesh || !n.mf.sharedMesh.isReadable) continue;
                 if (now - n.movedAt < 120 || !meshes.TryGetValue(n.mesh ?? "", out var md) || md.keys > 0 || md.unchunked || (n.sidedMesh ? n.sidedMesh : md.mesh) != n.mf.sharedMesh) continue;
                 if (!Opaque(n.r) || NeedsOrigin(n.r)) continue;
-                // (a big mesh of its own takes levels of detail instead: StillLods; a few draws more, none of its triangles baked)
-                if (stillLodTris > 0 && md.subs != null && md.subs.Length == 1 && md.subs[0].Length / 3 >= stillLodTris && md.subs[0].Length / 3 <= StillMaxTris && MeshUsers(n.mesh) == 1) continue;
+                // (reserve only meshes StillLods can use; sided copies cannot follow its index changes and should still batch)
+                if (!n.sidedMesh && stillLodTris > 0 && md.subs != null && md.subs.Length == 1 && md.subs[0].Length / 3 >= stillLodTris && md.subs[0].Length / 3 <= StillMaxTris && MeshUsers(n.mesh) == 1) continue;
+                if (census && n.sidedMesh) { sidedCandidates++; for (int s = 0; s < n.sidedMesh.subMeshCount; s++) sidedTriangles += (long)n.sidedMesh.GetIndexCount(s) / 3; }
                 gos.Add(n.go); picked.Add((n, md));
             }
+            if (census) Debug.Log($"Hiraeth bridge: static batch candidates: {gos.Count}, including {sidedCandidates} sided copies / {sidedTriangles} triangles (unchanged geometry)");
             if (gos.Count < 2) return;
             var t0 = Time.realtimeSinceStartupAsDouble;
             StaticBatchingUtility.Combine(gos.ToArray(), gameObject);

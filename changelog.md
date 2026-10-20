@@ -14,6 +14,7 @@ The same release notes shown in the game (press **N** or open settings).
 - With motion matching enabled, the traveller now settles into standing after a short walk instead of holding a frozen stride with bent knees.
 - The caravan study has been rebuilt around the selected drawing, with a broad cockpit, a deeper rounded hull and separate engine pods.
 - The caravan study now has four rear boosters in two pairs, with a Bottom view for checking the underside.
+- Unity can group more stationary scenery into shared draws without reducing its detail.
 
 ## v1.89 — 2026-10-20
 

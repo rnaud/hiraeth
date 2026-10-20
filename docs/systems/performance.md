@@ -6400,3 +6400,21 @@ Raw: the session's scratchpad, `surface-536/` (`ab/p1`, `ab/p2` the two passes, 
 The six overlays now scale their target pixel into the G-buffer before reading depth. The City-Shaft's `crowd2` view at a held render scale of 0.67 reproduces the old dark region starting at pixel 857 in a 1280 × 720 photo. The corrected image has no rectangular boundary. The same before/after camera and preset were checked in the muted Mac Unity editor; the Desert also remained unchanged and was compared with the web. The interactive v1.89 changelog contains the City-Shaft pair.
 
 This adds one two-component coordinate multiplication per overlay fragment and one global scale vector per camera, with no new render pass or texture read. No frame-rate gain is claimed. Retroid and Xbox confirmation and timing still require a rebuilt native player; these editor pictures are correctness evidence, not hardware measurements. Earlier #404/#536 screenshot shading should be rechecked with this fix before judging it as a world-lighting difference.
+
+
+### Stationary one-cull copies and batching (#404, October 2026)
+
+The static batch reservation for 3,000–50,000-triangle single-user meshes did
+not exclude `sidedMesh` copies, although `StillLods` cannot simplify those copies.
+Such otherwise eligible geometry received neither optimization. The reservation
+now excludes these copies, leaving Unity free to batch their existing geometry.
+Ordinary eligible meshes retain their LOD reservation. No vertices, materials,
+ink settings, shadow flags or shadow update cadence change.
+
+`BridgeStaticBatchTests` exercises the actual native batching path with two
+converted copies, a normal large LOD candidate and a recent mover. It checks
+Unity batch membership, source geometry and shadow/material preservation. With
+`-census`, each batch attempt also reports converted-copy candidates and their
+triangle total. This is a correctness repair to optimization eligibility, not a
+measured frame-rate claim: Retroid was unavailable, and issue #404 remains open
+until fresh device measurements verify the target views and prior 60 fps views.
