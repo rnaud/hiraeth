@@ -23,14 +23,14 @@ export function fightTempleGame(def) {
     id: def.id, order: 30,
     name: def.name,
     blurb: def.blurb,
-    rules: 'Clear the rooms one by one: the waves come up out of the ink springs, many at once; a cut or two sends each back into the floor. Hearts and chimes drop as they go. The last room’s last wave is the hardest; then the reliquary on the altar holds new colours for your kit. The rooms and their waves are different on every visit. Best time kept.',
+    rules: 'Clear the rooms one by one: the waves come up out of the ink springs, many at once; a cut or two sends each back into the floor. Hearts and chimes drop as they go. Roll through a blow for three seconds of a brighter blade and one shot restored. A full charged cut or a riposte bites deeper into a gorged one. Fluid refills quickly after a short pause. The last room’s last wave is the hardest; then the reliquary on the altar holds new colours for your kit. The rooms and their waves are different on every visit. Best time kept.',
     drives: false,
     fightTemple: def.world,
     controls: {
       // (the roll on the button printed B, wherever the pad has it: rules.js rollInput, issue #442)
-      get pad() { return [['Left stick', 'walk (up the screen is up)'], ['Right stick', 'aim (the blade and the gun take the foe that way)'], ['RB / R1', 'cut (again to chain)'], ['RT / R2', 'a quick shot of fluid'], ['LB / L1', 'guard (just as a blow lands: parry)'], [rollKey(padFaces().faces), 'roll'], ['Menu', 'pause']]; },
-      keys: [['W A S D', 'walk (up the screen is up)'], ['Mouse', 'aim (the ring on the floor)'], ['Left mouse or F', 'cut (again to chain)'], ['G, or right mouse + left mouse', 'shoot the fluid'], ['Ctrl or Z', 'guard (just as a blow lands: parry)'], ['Alt', 'roll'], ['Esc', 'pause']],
-      touch: [['Stick', 'walk'], ['⚔', 'cut'], ['✺', 'a quick shot'], ['◇', 'guard'], ['↶', 'roll']],
+      get pad() { return [['Left stick', 'walk (up the screen is up)'], ['Right stick', 'aim (the blade and the gun take the foe that way)'], ['RB / R1', 'cut (again to chain; hold to charge)'], ['RT / R2', 'a quick shot of fluid'], ['LB / L1', 'guard (just as a blow lands: parry)'], [rollKey(padFaces().faces), 'roll'], ['Menu', 'pause']]; },
+      keys: [['W A S D', 'walk (up the screen is up)'], ['Mouse', 'aim (the ring on the floor)'], ['Left mouse or F', 'cut (again to chain; hold to charge)'], ['G, or right mouse + left mouse', 'shoot the fluid'], ['Ctrl or Z', 'guard (just as a blow lands: parry)'], ['Alt', 'roll'], ['Esc', 'pause']],
+      touch: [['Stick', 'walk'], ['⚔', 'cut; hold to charge'], ['✺', 'a quick shot'], ['◇', 'guard'], ['↶', 'roll']],
     },
     touchButtons: ['run', 'fire', 'blade', 'guard', 'evade'],
     score: { kind: 'time' },

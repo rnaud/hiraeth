@@ -622,6 +622,7 @@ export class FluidBlade {
     if (!this.iframes(gentle)) return false;
     if (this.dodged || kind === 'burn') return true;
     this.dodged = true;
+    if (this.rolling !== null) this.onRollDodge?.(from, kind);
     if (this.hopFrames(gentle)) this.onHopDodge?.(from, kind);   // (a hop's frames swallowed a blow: a perfect dodge too, main.js starts the flurry)
     const T = this.tool, p = T.player;
     hitStop(EVADE.perfect); kick(0.08);
@@ -1010,7 +1011,7 @@ export class FluidBlade {
     for (const h of hits) this.hitTargets.add(h.target);
     const damage = (S === CHARGE ? CHARGE.damage[this.chargeFull ? 1 : 0] : S?.damage ?? BLADE.damage[this.n] ?? 1) * (BLADE.edge ?? 1);
     const light = airLight(S), heavy = this.n === 2 || (!!S && !light);   // (the air combo's light swings count as the combo's own)
-    const info = { ...T.info(), damage, combo: S && !light ? 2 : this.n, ...(S === CHARGE ? { breaks: true } : {}), ...(S === AIR || light ? { air: true } : {}), ...(S === RIPOSTE ? { breaks: true, stagger: RIPOSTE.stagger, riposte: true } : {}), ...(S === DASH ? { dash: true, source: 'dash' } : {}) };
+    const info = { ...T.info(), damage, combo: S && !light ? 2 : this.n, ...(S === CHARGE ? { breaks: true, charged: this.chargeFull } : {}), ...(S === AIR || light ? { air: true } : {}), ...(S === RIPOSTE ? { breaks: true, stagger: RIPOSTE.stagger, riposte: true } : {}), ...(S === DASH ? { dash: true, source: 'dash' } : {}) };
     for (const h of hits) h.target.onHit?.('blade', h.point, h.dir, { ...info, mode: 'blade' });
     // a creature the blade passes through is bonked (v1.41: it was only scared off, from anywhere in the cone): knocked
     // away head over heels, dazed a moment, no harm (src/wildlife.js BONK); the cut's sphere test as for a foe with no body

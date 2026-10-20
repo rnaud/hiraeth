@@ -412,3 +412,15 @@ in its far corner from the bridges, Osric by it. The flyers are over the fire: t
 
 
 **All twelve built** (v1.82): every route world has its fight temple; the hazards' kinds are the template's for any world added later.
+
+### Move variety (issue #535)
+
+A roll whose invulnerability actually swallows a non-lingering blow earns three seconds
+of the existing bright blade (double cut damage) and restores one fluid charge, capped
+at the tank maximum. Each roll pays once; rolling through empty space or lingering
+burn does not pay. A shard's longer bright window is never shortened.
+A fully charged cut or riposte adds two damage against a gorged foe; ordinary cuts and
+unfilled charges remain unchanged. In the hall only, fluid starts refilling after
+0.8 seconds without spending, at one charge per second. The session restores all
+combat hooks and the save's normal refill rules on exit or retry. Web and Unity use
+the same blade and session code.

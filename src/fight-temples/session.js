@@ -26,6 +26,7 @@ import { WorldLabels } from '../minigames/kit/labels.js';
 import { unlockColours, colourById, applyKitColours } from '../kit-colours.js';
 import { reliquaryModel } from './rooms.js';
 import { roomHazards, HAZARD } from './hazards.js';
+import { templeCombat, TEMPLE_COMBAT } from './combat.js';
 import { KillFx } from './kill-fx.js';
 import {
   ISO, isoOffset, followIso, SEE, sightPoints, inTheWay, easeSee, seeOpen, AIM, pickTarget, stickToGround, screenUp, screenRight,
@@ -140,7 +141,7 @@ export function startFightTemple(ctx) {
   const hzScale = hazardScale(scale);
   const hurtBy = (amount, why) => { const q = pay(amount * hzScale * (gentle ? 0.5 : 1)); if (q > 0) player.hurt?.(q, why); return q; };
   const own = tool?.items ?? null;   // (the save's own things, before the run lends its kit: the end card's colours, coloursLine)
-  const giveBack = lendTool(tool, { mode: 'shoot' });   // (the save's own bar; the plain shot in hand, the push on the wheel, D-pad ↑ held, or X)
+  const giveBack = lendTool(tool, { mode: 'shoot', delay: TEMPLE_COMBAT.refillDelay, rate: TEMPLE_COMBAT.refillRate });   // (the save's own bar; the plain shot in hand, the push on the wheel, D-pad ↑ held, or X)
   const spawn = new THREE.Vector3(...def.spawn);
   standAt(player, spawn, Math.PI, rig, ISO.yaw);
   const words = new WorldLabels(camera);
@@ -196,6 +197,15 @@ export function startFightTemple(ctx) {
   const edge0 = BLADE.edge ?? 1;
   const keepBlade = tune(BLADE, { length: WIDE_CUT.length, width: WIDE_CUT.width, edge: edge0 });
   let furyT = 0;
+  const restoreCombat = templeCombat({ blade, foes, reserve: tool?.reserve,
+    active: () => !over && !player.dead && run.phase === 'fight',
+    contains: (f) => mine.includes(f),
+    reward: () => {
+      furyT = Math.max(furyT, TEMPLE_COMBAT.rollBright);
+      ctx.flash('Clean roll · the blade runs bright, one shot restored', 'good', 1.5);
+      words.pop(_v.copy(player.pos).setY(player.pos.y + 2.2), 'bright!', 'gold', 1.1);
+    },
+  });
 
   // ---------------------------------------------------------------- the floor's warnings (issue #368)
   const W = warnMarks(def.palette);
@@ -687,6 +697,7 @@ export function startFightTemple(ctx) {
       selfMark.dispose();
       tells = [];
       if (foes) { delete foes.lockAnswer; delete foes.extraWarn; }
+      restoreCombat();
       keepBlade();
       if (blade) blade.slashTones = null;
       movers.forEach((m) => m && physics?.removeCollider?.(m));

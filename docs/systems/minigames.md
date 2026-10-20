@@ -498,6 +498,18 @@ right stick or the mouse's ring aims; the blade and the gun take the foe in that
 `updateAimPoint` wrapped for the run); RT / R2 alone a quick shot. Its sign is its own gatehouse, the Blade Gate (`marker.model`, solid:
 `kit/marker.js`; since issue #384 `src/fight-temples/entrance.js`, below), its host Wafa. Score: the time to clear (a run lost keeps none). Tests: `tests/fight-temples.test.js`, `tests/fight-roll.test.js`, `tests/fight-temples-worlds.test.js`, `tests/fight-generate.test.js`. Since v1.82 every visit draws its own run from the temple's table (rooms in a new order and layout, mirrored, its waves drawn within the table's budget; a seed per run, `?seed=` to replay it): `src/fight-temples/generate.js`, the design doc's "Each run its own". Since v1.80 Vael's **Wind Cloister** too (`fight-arzach.js`), its gusts on lanes (`src/fight-temples/hazards.js`). Lorn's **Drowned Mill** (`fight-perdide.js`), its millstones. The Moon Foundry's **Pour Floor** (`fight-moonfoundry.js`), its pour. Each world's hazard, look and table: the design doc, "The hazards, the looks". Since v1.81 Viridel's **Seed Vault** (`fight-edena.js`, its bloom), the City-Shaft's **Lift Depot** (`fight-incal.js`, its loads), the Buried Machine's **Tooth Gallery** (`fight-buried.js`, its carts) and the Signal Market's **Back Rooms** (`fight-bazaar.js`, its toll). The Underwater City's **Flooded Gallery** (`fight-underwater.js`, its dark). The Glass Dunes' **Kiln Yard** (`fight-glassdunes.js`, its cracking floor). The Garden of Spheres' **Quiet Orchard** (`fight-spheres.js`, its shade). The City Floating in Space's **Oil Exchange** (`fight-spacecity.js`, its burning oil).
 
+### Rewards for deliberate moves (issue #535)
+
+`fight-temples/combat.js` installs run-scoped combat hooks: a roll that swallows a
+non-lingering blow grants three seconds of the existing bright-blade effect and
+one fluid charge (once per roll, capped at the tank maximum). Full charged cuts
+and ripostes add two base damage against that run's gorged foes. `lendTool` holds
+the refill delay at 0.8 seconds and rate at one charge per second during the run.
+The session restores the hooks and normal tank rules on exit; the shared blade
+passes `charged` only for a completely filled charge. Browser and Unity share
+these rules. `tests/fight-temple-combat.test.js` checks eligibility, damage,
+refill, inactive sessions and cleanup; the design note describes the controls.
+
 ### The fight temples' gatehouse, the Blade Gate (issue #384)
 
 "The fight temple entrances should have a small building as an entrance that looks fight themed and easily

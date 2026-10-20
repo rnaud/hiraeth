@@ -18,6 +18,7 @@ export const CHANGELOG = [
       see: 'Drag across the traveller in Wardrobe, then sweep across the galactic map to search. In What’s new, choose See what changed to open the website; return to the game when finished.' },
     { text: 'The Underwater City has much more life outside its windows: dense schools of fish, nearby mantas and great whales passing above the streets and beside the Gallery.',
       see: 'Take the sea-port lift down, then look through the Dock, Avenue, Garden and Whale Gallery windows. Schools stay outside the glass; the deep whales still respond to the Whale-House.' },
+    { text: 'Fight temples reward a clean roll with a brighter blade and a shot restored. Charged cuts and ripostes bite deeper into gorged foes, and fluid refills sooner between shots.', see: 'Enter a fight temple. Roll through a blow, then cut during the three-second bright window; hold the cut button for a full charge against a gorged foe. Pause shooting briefly to refill.' },
     { text: 'The caravan study has a rounder hull and broad curved cockpit. Its camp packs into a closed side hatch before lift-off, then unfolds after landing.',
       see: 'Open the caravan ship study from Debug, then try Depart and Arrive to watch the deck, canopy, furniture, laundry and landing gear stow and return.' },
     { text: 'Repeated reference pictures now load reliably on the published References page.',
