@@ -11,8 +11,9 @@ import { SEED } from '../engine/sequence-run.mjs';
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tempDir, removeTemp } from '../scripts/temp-dirs.mjs';
+import { FIGHTS } from './sequences-fights.js';
 
-checkSequences((s) => !s.id.startsWith('moment-') && s.id !== 'opening' && s.id !== 'hold' && s.id !== 'plumb-talk');   // (the hold: tests/sequences-ship.test.js; Plumb's talk: sequences-plumb.test.js)
+checkSequences((s) => !s.id.startsWith('moment-') && s.id !== 'opening' && s.id !== 'hold' && s.id !== 'plumb-talk' && !FIGHTS.has(s.id));   // (the hold: tests/sequences-ship.test.js; Plumb's talk: sequences-plumb.test.js; the fights and temples: sequences-fights.test.js)
 
 test('every entry of the sequences\' list says its status, why or where, and a gap its issue', () => assert.deepEqual(checkList(), []));
 
