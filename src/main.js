@@ -75,7 +75,7 @@ import { loadPeople, usesMakeHuman } from './makehuman/people.js';
 import { updateHands } from './hands.js';
 import { loadTraveller, createTraveller } from './characters/traveller.js';
 import { buildTravellerLod } from './characters/traveller-lod.js';
-import { travellerSetting, wearTravellerV2, outfitList } from './characters/traveller-v2.js';
+import { travellerSetting, outfitList } from './characters/traveller-v2.js';
 import { Changelog, VERSION } from './changelog.js';
 import { Settings, SettingsMenu, TouchControls, SaveGame, isTouch, isNativeApp, isDeckApp, isXboxApp, ToolHud } from './ui.js';
 import { xboxReadout } from './xbox.js';
@@ -325,7 +325,7 @@ const animLib = loadAnimationLibrary().catch((e) => { console.warn('animation li
 // B3 or the v2 rebuild (the debug switch, characters/traveller-v2.js; not on the outfits page, which dresses him itself)
 const travellerV2 = { ...travellerSetting.get(), dress: null, failed: null };
 if (query.has('outfits')) travellerV2.on = false;
-const traveller = loadTraveller(import.meta.env.BASE_URL).catch(e => { console.warn('Traveller B3 unavailable; using the original explorer.', e); return null; });
+const traveller = loadTraveller(import.meta.env.BASE_URL, { v2: travellerV2 }).catch(e => { console.warn('Traveller B3 unavailable; using the original explorer.', e); return null; });
 const humans = Promise.all([loadHuman('m'), loadHuman('f')]).catch((e) => { console.warn('human models failed to load', e); return null; });
 // the people on MakeHuman bodies (src/makehuman/people.js, docs/makehuman.md: every world's, ?mh=0 none):
 // the body's one file asked for now, while the rest loads
@@ -570,17 +570,14 @@ const generatedTraveller = await traveller;
 if (generatedTraveller) {
   player.character = createTraveller(player.char, generatedTraveller);
   player.humanoid = player.character.humanoid;
+  // the v2 traveller (issue #493): dressed as he is built when the switch says so (?traveller=v2 / b3, the dev menu's
+  // Traveller tab; characters/traveller.js loadTraveller fetched its models with B3's), B3 when they did not come in
+  travellerV2.dress = player.character.v2 ?? null;
+  if (travellerV2.on && !travellerV2.dress) travellerV2.failed = 'its models did not load (see the console)';
   // his levels of detail when the camera is far enough (characters/traveller-lod.js: built in a worker,
-  // the full meshes until then and up close), picked each frame with the people's (skinnedLods)
-  // (not on the outfits page, ?outfits, nor as v2: its far levels would be B3's, characters/outfit-page.js)
-  if (!query.has('outfits') && !travellerV2.on) buildTravellerLod(player.character).then((lod) => { if (lod) player.character.lod = skinnedLods.add(lod); });
-  // the v2 traveller (issue #493), behind the debug switch: ?traveller=v2 or the dev menu's Traveller tab; B3 otherwise
-  // (bounded: a slow data/ never holds the load; past 30 s the world goes on as B3 and v2 goes on him when it is in)
-  if (travellerV2.on) {
-    const dressed = wearTravellerV2(player.character, { outfit: travellerV2.outfit })
-      .then((d) => { travellerV2.dress = d; }, (e) => { console.warn('traveller v2: staying B3', e); travellerV2.failed = e.message ?? String(e); });
-    await Promise.race([dressed, new Promise((r) => setTimeout(r, 30000))]);
-  }
+  // the full meshes until then and up close), picked each frame with the people's (skinnedLods); as v2 his v2 body
+  // and clothes', following his outfit (not on the outfits page, ?outfits, which dresses him itself: outfit-page.js)
+  if (!query.has('outfits')) buildTravellerLod(player.character).then((lod) => { if (lod) player.character.lod = skinnedLods.add(lod); });
 } else if (humanT) {
   const travellerTemplate = await new GLTFLoader().loadAsync(`${import.meta.env.BASE_URL}anim/traveller.glb`).then(g => g.scene).catch(() => null);
   if (travellerTemplate) {
@@ -1020,7 +1017,7 @@ let v2Outfits = null, v2Note = null;
 const devTraveller = () => {
   if (!v2Outfits && !v2Note) {
     v2Note = 'Outfits: loading…';
-    outfitList().then((l) => { v2Outfits = l.outfits.map(({ id, name }) => ({ id, name })); v2Note = null; }, () => { v2Note = 'Outfits: the dev server only (data/ is not in the build)'; })
+    outfitList().then((l) => { v2Outfits = l.outfits.map(({ id, name }) => ({ id, name })); v2Note = null; }, () => { v2Note = 'Outfits: their list did not load'; })
       .then(() => { if (devMenu.open) devMenu.refresh(); });
   }
   const worn = travellerV2.dress?.wardrobe.worn?.id ?? travellerV2.outfit;
@@ -1972,7 +1969,8 @@ function renderFrame() {
   scene.overrideMaterial = shadowOverride;
   statics?.shadowsBegin();
   const shadowHidden = _shadowHidden; shadowHidden.length = 0;
-  for (const list of [level.noShadow ?? [], player.gear?.noShadow ?? [], tinyShadowCasters(), glowCasters(), crowdShadowless()])
+  // (and his own, read live: the v2 traveller's clothes, whose shirt's shadow is drawn as it moves, change with his outfit)
+  for (const list of [level.noShadow ?? [], player.gear?.noShadow ?? [], player.humanoid?.noShadow ?? [], tinyShadowCasters(), glowCasters(), crowdShadowless()])
     for (const o of list) if (o.visible) { o.visible = false; shadowHidden.push(o); }
   shadowCull.begin(camera, shadowDir, { vertical: !level.gravityAt });
   const camToPlayer = camera.position.distanceTo(player.pos);

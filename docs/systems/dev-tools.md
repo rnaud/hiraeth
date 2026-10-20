@@ -61,7 +61,7 @@ tabs are made afresh each time something changes (`devTabs`, pure; people move, 
 | **Toggles** | the hitbox overlay (F4), the input display (F6), the sky's clock running or still, six times of day |
 | **Items** | every item on or off, all, none (the old panel's `setItem`, `allItems`, `noItems`) |
 | **Story** | reset the boxes (their items taken back) or open them all, the story's switches (`STORY_FLAGS`), complete this world, motion matching and the captured moves, the Motion page |
-| **Traveller** | which traveller is drawn (issue #493, `characters/traveller-v2.js`; the page's only, `caps` 'traveller'): **Traveller v2** on or off (kept on this device, `travellerSetting`; switching reloads the world) and an outfit row for each of `outfits.json` (worn at once when v2 is on). Dev server only: the models are in `data/` |
+| **Traveller** | which traveller is drawn (issue #493, `characters/traveller-v2.js`; the page's only, `caps` 'traveller'): **Traveller v2** on or off (kept on this device, `travellerSetting`; switching reloads the world) and an outfit row for each of `outfits.json` (worn at once when v2 is on). The models are in `data/`, copied into the build (`scripts/traveller-v2-ship.mjs`) |
 | **Travel** | every world (`?level=<id>`, in the save played), and back to the Debug menu |
 
 A teleport (`landingSpot`, then `passage.go`: the paper sweeps across as at a door) closes the menu and sets you on

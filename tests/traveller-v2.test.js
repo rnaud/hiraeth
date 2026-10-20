@@ -129,8 +129,11 @@ test('the game draws B3 unless asked: no address, nothing kept', () => {
     assert.deepEqual(travellerSetting.get('?level=desert&outfits=default'), { on: false, outfit: 'default' }, 'the outfits page is not the switch');
     const main = readFileSync('src/main.js', 'utf8');
     assert.match(main, /const travellerV2 = \{ \.\.\.travellerSetting\.get\(\)/);
-    assert.match(main, /if \(travellerV2\.on\) \{\s*const dressed = wearTravellerV2\(player\.character/, 'v2 only when the switch is on');
-    assert.match(main, /if \(!query\.has\('outfits'\) && !travellerV2\.on\) buildTravellerLod/, 'B3 keeps its far levels');
+    assert.match(main, /loadTraveller\(import\.meta\.env\.BASE_URL, \{ v2: travellerV2 \}\)/, 'v2 loaded only when the switch is on');
+    assert.match(main, /if \(!query\.has\('outfits'\)\) buildTravellerLod/, 'his far levels, B3\'s or v2\'s');
+    const traveller = readFileSync('src/characters/traveller.js', 'utf8');
+    assert.match(traveller, /v2\?\.on\?loadTravellerV2/, 'loadTraveller fetches v2 only when asked');
+    assert.match(traveller, /if\(assets\.v2\)\{yield;dressTravellerV2\(model,assets\.v2\)\}/, 'createTraveller dresses him from what it fetched');
   } finally { delete globalThis.localStorage; }
 });
 
@@ -166,7 +169,7 @@ test('the switch takes effect: the address, the dev menu, and v2 on with B3 away
   const worn = wardrobe.wear('default');
   assert.equal(p.character.mesh.visible, false, 'B3 put away');
   for (const m of [p.character.cloth?.garment, p.character.cloth?.underlayer, p.character.cloth?.innerShirt]) if (m) assert.equal(m.visible, false);
-  assert.equal(p.character.clothEnabled, false);
+  assert.notEqual(p.character.updateCloth, p.character.b3Away.updateCloth, 'B3\'s overshirt no longer stepped');
   assert.ok(p.character.head?.visible !== false, 'the game\'s head stays');
   assert.equal(worn.draws, 2);
   for (const m of wardrobe.meshes) {

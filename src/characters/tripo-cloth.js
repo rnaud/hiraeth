@@ -76,22 +76,29 @@ export const GARMENT_GLSL=`
   vec3 garmentAt(sampler2D t, int i) { return texelFetch(t, ivec2(i, 0), 0).xyz; }
   float garmentD2(float t, vec3 x, vec3 o, vec3 a, vec3 ax, float l2) { vec3 d = x + o * t - a; vec3 q = d - clamp(dot(d, ax) / l2, 0.0, 1.0) * ax; return dot(q, q); }
 `;
-/** Patch a makeMaterial ShaderMaterial to draw the overshirt (GARMENT_GLSL), `cols` columns of cells in its cage. */
-export function garmentShader(material,cols){
+/**
+ * Patch a makeMaterial ShaderMaterial to draw the overshirt (GARMENT_GLSL), `cols` columns of cells in its cage.
+ * morphRest: the rigid rest shape is the vertex with its shape keys applied (the v2 traveller's thigh-lift keys,
+ * traveller-v2-cloth.js), not its bare position.
+ */
+export function garmentShader(material,cols,{morphRest=false}={}){
  if(material.defines?.GARMENT)return material;
- const vs=material.vertexShader,skinEnd='#include <skinning_vertex>\n    #endif\n',at=vs.indexOf(skinEnd);
+ let vs=material.vertexShader;
+ const skinStart='#include <skinbase_vertex>';
+ if(morphRest){if(!vs.includes(skinStart))throw new Error('tripo-cloth: the material\'s vertex shader changed (no skinning block)');vs=vs.replace(skinStart,'vec3 garmentRest = transformed;\n      '+skinStart);}
+ const skinEnd='#include <skinning_vertex>\n    #endif\n',at=vs.indexOf(skinEnd);
  if(at<0||!vs.includes('vObjNormal = normal / scl;'))throw new Error('tripo-cloth: the material\'s vertex shader changed (no skinning block to move the garment after)');
  const main=vs.indexOf('void main()');
- const body=garmentBody(cols);
+ const body=garmentBody(cols,morphRest);
  material.vertexShader=vs.slice(0,main)+GARMENT_GLSL+'\n  '+vs.slice(main,at+skinEnd.length)+body+vs.slice(at+skinEnd.length);
  return finishGarment(material);
 }
 /** The vertex shader's own steps (after three's skinning chunks: `transformed`, `objectNormal` skinned). */
-function garmentBody(cols){
+function garmentBody(cols,morphRest=false){
  return `    {
       // the overshirt (tripo-cloth.js garmentShader)
       float free = aCage.w, sk = 1.0 - free;
-      vec3 p = mix((uGarmentRigid * vec4(position, 1.0)).xyz, transformed, sk);
+      vec3 p = mix((uGarmentRigid * vec4(${morphRest?'garmentRest':'position'}, 1.0)).xyz, transformed, sk);
       vec3 nn = normalize(mix(mat3(uGarmentRigid) * normal, objectNormal, sk));
       if (free > 0.0) {
         int i0 = int(aCage.x + 0.5), i1 = i0 + 1, i2 = i0 + ${cols+1}, i3 = i2 + 1;
@@ -132,18 +139,18 @@ function finishGarment(material){
  * it in patches. It is left out of them (Humanoid.noShadow) and this draws it there instead, the same shape
  * (main.js shadowPass: a character's shadowCasters, each drawn with its own material).
  */
-export function garmentDepthMaterial(cols){
+export function garmentDepthMaterial(cols,{morphRest=false}={}){
  const m=new T.ShaderMaterial({side:T.DoubleSide,colorWrite:false,
   vertexShader:`#include <common>
-  #include <skinning_pars_vertex>
+  #include <skinning_pars_vertex>${morphRest?'\n  #include <morphtarget_pars_vertex>':''}
   ${GARMENT_GLSL}
   void main() {
     vec3 transformed = position;
-    vec3 objectNormal = normal;
+    vec3 objectNormal = normal;${morphRest?'\n    #include <morphtarget_vertex>\n    vec3 garmentRest = transformed;':''}
     #include <skinbase_vertex>
     #include <skinnormal_vertex>
     #include <skinning_vertex>
-${garmentBody(cols)}
+${garmentBody(cols,morphRest)}
     gl_Position = projectionMatrix * modelViewMatrix * vec4(transformed, 1.0);
   }`,
   fragmentShader:'void main() { gl_FragColor = vec4(1.0); }'});

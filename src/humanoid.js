@@ -870,15 +870,22 @@ export class Humanoid {
       return e;
     };
     this.glove.on = false;
-    let drawn = null;
+    // (the skins trimmed under it: this one, and any other drawn over the same hand, the v2 traveller's body and
+    // clothes, characters/traveller-v2.js, which swaps them with his outfit)
+    this.glove.skins = [skin];
+    this.glove.covers = G.covers;
+    const drawn = new WeakMap();
     this.glove.show = (on) => {
       on = !!on;
-      if (on === this.glove.on && skin.geometry === drawn) return;
-      if (on !== this.glove.on) for (const o of this.glove.meshes) o.visible = on;
+      const changed = on !== this.glove.on;
+      if (changed) for (const o of this.glove.meshes) o.visible = on;
       this.glove.on = on;
-      drawn = skin.geometry;
-      const e = indexOf(drawn);
-      if (e) drawn.setIndex(on ? e.gloved : e.bare);
+      for (const s of this.glove.skins) {
+        if (!changed && drawn.get(s) === s.geometry) continue;
+        drawn.set(s, s.geometry);
+        const e = indexOf(s.geometry);
+        if (e) s.geometry.setIndex(on ? e.gloved : e.bare);
+      }
     };
     return this.glove;
   }

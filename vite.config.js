@@ -6,6 +6,7 @@ import { auditsPlugin } from './scripts/audits-data.mjs';
 import { referenceLabPlugin } from './scripts/reference-lab/server.mjs';
 import { referencesPlugin } from './scripts/references-index.mjs';
 import { lorePlugin } from './scripts/lore-data.mjs';
+import { travellerV2Plugin } from './scripts/traveller-v2-ship.mjs';
 import { threeProgramKeys } from './scripts/three-program-keys.mjs';
 
 // Relative asset paths so the build works both at a site root and under
@@ -40,11 +41,11 @@ export const BUILD_INPUT = {
   // the temple maps (src/temple-maps/: each temple's plan, lock-and-key graph, solution and numbers, issue #396)
   temples: fileURLToPath(new URL('./temples.html', import.meta.url)),
   // the outfits test page (issue #540: the game with the Blender traveller and an outfit picker; it opens
-  // index.html?outfits=, src/characters/outfit-page.js; its models, data/characters/traveller-v2/, are the dev
-  // server's alone: the built page says so)
+  // index.html?outfits=, src/characters/outfit-page.js; its models, data/characters/traveller-v2/, copied into the
+  // build by travellerV2Plugin)
   outfits: fileURLToPath(new URL('./outfits.html', import.meta.url)),
   // the outfits gallery (issue #549: every outfit on the v2 traveller side by side, live, src/outfits-gallery/; its
-  // models, data/characters/traveller-v2/, are the dev server's alone: the built page says so)
+  // models, data/characters/traveller-v2/, copied into the build by travellerV2Plugin)
   'outfits-gallery': fileURLToPath(new URL('./outfits-gallery.html', import.meta.url)),
 };
 const modules = existsSync('node_modules') ? realpathSync('node_modules') : null;
@@ -94,6 +95,7 @@ export default defineConfig({
   // (the reference lab, reference-lab.html: dev server only, not built: docs/systems/reference-lab.md; the
   // references page's live index is the dev server's, the site's is written by the deploy: docs/systems/references.md)
   // (threeProgramKeys: the surfaces' programs keyed without their side, normals or colours: fewer programs to compile)
-  plugins: [threeProgramKeys(), versionModule(), dropMakeHuman(), auditsPlugin(), referenceLabPlugin(), referencesPlugin(), lorePlugin()],
+  // (travellerV2Plugin: the v2 traveller's GLBs and manifests copied from data/, which the build leaves out otherwise)
+  plugins: [threeProgramKeys(), versionModule(), dropMakeHuman(), auditsPlugin(), referenceLabPlugin(), referencesPlugin(), lorePlugin(), travellerV2Plugin()],
   server: { fs: { allow: [searchForWorkspaceRoot(process.cwd()), ...(modules ? [modules] : [])] } },
 });

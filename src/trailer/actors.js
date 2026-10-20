@@ -118,7 +118,8 @@ export function createActors(scene, level, shots, human, lib, outfit, bird) {
               a.contacts = Player.prototype.climbContacts.call(climber, dt || 1 / 30);
               person.humanoid.resetFeet(); person.humanoid.reach(a.contacts);
             }
-            if (!dt || a.lastShot !== shot || frame.local < a.lastLocal) person.character.cloth.update(0, 'rest', true);
+            // (a cut: the shirt's cloth starts again at rest; v2's own, characters/traveller-v2.js updateCloth)
+            if (!dt || a.lastShot !== shot || frame.local < a.lastLocal) { if (person.character.v2) person.character.updateCloth(0, true); else person.character.cloth.update(0, 'rest', true); }
             person.character.updateCloth(dt); a.lastShot = shot; a.lastLocal = frame.local;
           }
         } else if (taxi) {

@@ -317,7 +317,7 @@ export async function startTitleWorld({ parent, shot, settings, native = false, 
     shadowDirection(SU.uSunDir.value, shadowDir);
     for (const c of Object.values(cascades)) c.aim(shadowDir);
     scene.overrideMaterial = shadowOverride;
-    const off = hideFor([...(level.noShadow ?? []), ...noShadow, ...(player?.gear?.noShadow ?? []), ...glow]);
+    const off = hideFor([...(level.noShadow ?? []), ...noShadow, ...(player?.gear?.noShadow ?? []), ...(player?.humanoid?.noShadow ?? []), ...glow]);
     if (all) {
       cascades.near.place(ahead(Math.min(cascades.near.extent * 0.6, 140), _c)); cascades.near.render(renderer, scene);
       cascades.far.place(ahead(cascades.far.extent * 0.55, _c)); cascades.far.render(renderer, scene);

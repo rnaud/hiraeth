@@ -26,8 +26,11 @@ export const TRAVELLER_LOD = {
 
 const MASKS = ['travellerSkin', 'travellerHair', 'trouserRepair'];
 
-/** The simplifier's input from a BufferGeometry's attributes and one of its index lists (`base`): plain arrays. */
-export function lodInput(geometry, base = geometry.index, o = TRAVELLER_LOD) {
+/** The simplifier's input from a BufferGeometry's attributes and one of its index lists (`base`): plain arrays.
+ * ratios: the mesh's own levels (the v2 clothes', finer steps), else TRAVELLER_LOD's.
+ * flags: the simplifier's own, besides ErrorAbsolute (the v2 traveller's clothes: 'Permissive', collapsing across their
+ * atlas's many UV seams and hems, which otherwise stop the shirt at 5.5 k triangles; characters/traveller-v2.js). */
+export function lodInput(geometry, base = geometry.index, o = TRAVELLER_LOD, flags = [], ratios = null) {
   const A = geometry.attributes, P = A.position, n = P.count;
   const position = new Float32Array(n * 3);
   for (let i = 0; i < n; i++) { position[i * 3] = P.getX(i); position[i * 3 + 1] = P.getY(i); position[i * 3 + 2] = P.getZ(i); }
@@ -42,7 +45,7 @@ export function lodInput(geometry, base = geometry.index, o = TRAVELLER_LOD) {
     for (let c = 0; c < size; c++) weights.push(w);
     at += size;
   }
-  return { index: Uint32Array.from(base.array.subarray(0, base.count)), position, attrs, stride, weights };
+  return { index: Uint32Array.from(base.array.subarray(0, base.count)), position, attrs, stride, weights, flags, ...(ratios ? { ratios } : {}) };
 }
 
 /**
@@ -50,13 +53,13 @@ export function lodInput(geometry, base = geometry.index, o = TRAVELLER_LOD) {
  * (metres: the simplifier's absolute error, its attribute terms included), never decreasing.
  * `S` is meshoptimizer's MeshoptSimplifier (ready).
  */
-export function simplifyLevels(S, input, ratios = TRAVELLER_LOD.ratios, { keep, maxError } = TRAVELLER_LOD) {
+export function simplifyLevels(S, input, ratios = input.ratios ?? TRAVELLER_LOD.ratios, { keep, maxError } = TRAVELLER_LOD) {
   const levels = [], full = input.index.length;
   let last = full, error = 0;
   for (const r of ratios) {
     const target = Math.floor((full * r) / 3) * 3;
     if (target < 3) break;
-    const [index, e] = S.simplifyWithAttributes(input.index, input.position, 3, input.attrs, input.stride, input.weights, null, target, 1, ['ErrorAbsolute']);
+    const [index, e] = S.simplifyWithAttributes(input.index, input.position, 3, input.attrs, input.stride, input.weights, null, target, 1, ['ErrorAbsolute', ...(input.flags ?? [])]);
     if (e > maxError) break;
     if (index.length > last * keep || index.length < 3) continue;
     error = Math.max(error, e);

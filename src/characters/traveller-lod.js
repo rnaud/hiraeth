@@ -53,7 +53,7 @@ export class TravellerLod {
   request(e, base) {
     e.byBase.set(base, PENDING);
     let input;
-    try { input = lodInput(e.geometry, base); } catch (err) { e.byBase.set(base, null); return; }
+    try { input = lodInput(e.geometry, base, undefined, e.mesh.userData.lodFlags, e.mesh.userData.lodRatios); } catch (err) { e.byBase.set(base, null); return; }
     const job = Promise.resolve(this.build(input)).then(
       (levels) => e.byBase.set(base, levels?.length ? combineLevels(base, levels, e.geometry.attributes.position.count) : null),
       () => e.byBase.set(base, null));
@@ -103,6 +103,17 @@ export class TravellerLod {
     return coarse;
   }
 
+  /**
+   * The meshes with levels made exactly these (lodMeshes): the v2 traveller's outfit swaps his body and clothes
+   * for new ones (characters/traveller-v2.js); those gone are dropped, the new asked for, the rest kept.
+   */
+  track(meshes) {
+    const keep = new Set(meshes);
+    this.entries = this.entries.filter((e) => keep.has(e.mesh));
+    for (const m of meshes) if (!this.entries.some((e) => e.mesh === m)) this.add(m);
+    return this;
+  }
+
   /** Back to the full meshes (their own index lists). */
   reset() {
     for (const e of this.entries) {
@@ -115,10 +126,12 @@ export class TravellerLod {
   }
 }
 
-/** His meshes worth levels: the body, the head, the overshirt (its shadow shares its geometry). */
+/** His meshes worth levels: the body, the head, the overshirt (its shadow shares its geometry); dressed as v2
+ * (characters/traveller-v2.js), his v2 body and clothes (the shirt's cloth and its shadow share theirs) and the head. */
 export function lodMeshes(character) {
-  return [character.mesh, character.head, character.cloth?.garment]
-    .filter((m) => m?.geometry?.index && m.geometry.index.count / 3 >= TRAVELLER_LOD.minTris);
+  const v2 = character.v2State?.meshes;
+  return (v2?.length ? [...v2, character.head] : [character.mesh, character.head, character.cloth?.garment])
+    .filter((m) => m?.geometry?.index && m.geometry.index.count / 3 >= (m.userData.lodMinTris ?? TRAVELLER_LOD.minTris));
 }
 
 let worker = null, nextId = 1;

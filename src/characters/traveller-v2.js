@@ -1,31 +1,38 @@
-// The v2 traveller in the game (issue #493): the Blender rebuild (data/characters/traveller-v2/) drawn on his usual
-// skeleton and animation, behind a debug switch (?traveller=v2, or the dev menu's Traveller tab). The game draws B3
-// by default; the author decides whether to switch (decision 3A). Web only, and the dev server's only: the models
-// live in data/, which the build leaves out (the switch says so there); the Unity bridge does not draw v2.
+// The v2 traveller in the game (issue #493): the Blender rebuild (data/characters/traveller-v2/, copied into the build by
+// scripts/traveller-v2-ship.mjs) drawn on his usual skeleton and animation, behind a debug switch (?traveller=v2, or
+// the dev menu's Traveller tab). The game draws B3 by default; the author decides whether to switch (decision 3A). The
+// Unity bridge is ported on its own (#493's Unity half).
 //
 // What it does, on the game's traveller (createTraveller's, B3, whose humanoid, hands, feet and clips stay):
+// - loadTravellerV2 fetches the models beside B3's (characters/traveller.js loadTraveller), dressTravellerV2 dresses
+//   him as createTraveller builds him; wearTravellerV2 fetches then dresses (the dev menu's switch);
 // - binds every skinned mesh of the GLB (and of an outfit's GLB) to humanoid.body.skeleton by bone name (bindParts);
 // - dresses him through the Wardrobe (outfits.js): the body's hidden areas for the outfit worn culled, his skin
 //   piece's skinCut left out, the draw groups joined (body + skin, the garments: two draws, plus the game's head);
 // - drives the default clothes' thigh-lift keys (thighLift_l / _r, pass 5) each time they are drawn, from each
 //   thigh's forward swing (the manifest's `drivers`: 0 at 25 degrees, 1 at 80; ThighLift);
+// - moves the default's shirt as cloth (traveller-v2-cloth.js: B3's solver), trims his hand under the fluid glove
+//   (Humanoid.wearGlove's skins) and gives his body and clothes far levels (traveller-lod.js), following his outfit;
 // - keeps the game's own portrait head (head-v3: the asset the v2 head was made from) with its drawn face, eye paint
 //   and speech: the GLB's Head and Hair (re-UV'd onto the atlas, their face ink not re-baked, #473) are not drawn;
-// - puts B3's body, its cloth, its cloth's shadow and its far levels away.
+// - puts B3's body, its cloth and its cloth's shadow away.
 import * as T from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { Wardrobe } from './outfits.js';
 import { makeReviewInkMaterial } from './tripo-material.js';
+import { makeV2Cloth, V2_CLOTH } from './traveller-v2-cloth.js';
+import { CLOTH_HOST } from './tripo-cloth.js';
+import { lodMeshes } from './traveller-lod.js';
 import { store } from '../platform.js';
 
-export const ROOT = `${import.meta.env?.BASE_URL ?? '/'}data/characters/traveller-v2/`;
-const DEV_ONLY = '(the outfits pages and the v2 traveller run on the dev server: data/ is not in the build)';
-
+/** Where the models are, under the site's base: data/ on the dev server, copied into the build (vite.config.js). */
+export const DIR = 'data/characters/traveller-v2/';
+export const ROOT = `${import.meta.env?.BASE_URL ?? '/'}${DIR}`;
 export async function json(url) {
   const r = await fetch(url);
-  if (!r.ok) throw new Error(`${url}: HTTP ${r.status} ${DEV_ONLY}`);
+  if (!r.ok) throw new Error(`${url}: HTTP ${r.status}`);
   // (a server that answers a missing file with its index page: not JSON)
-  try { return await r.json(); } catch { throw new Error(`${url}: not found ${DEV_ONLY}`); }
+  try { return await r.json(); } catch { throw new Error(`${url}: not found`); }
 }
 
 // ------------------------------------------------------------------ the switch
@@ -135,15 +142,21 @@ export class ThighLift {
  * bones }; shared: caches several travellers share (the outfits gallery: their skeletons number the bones alike).
  * Returns { wardrobe, load(id) }: load before wearing an outfit other than the default.
  */
-export function v2Wardrobe(model, { list, baseManifest, base }, shared = { materials: new Map(), parts: new Map() }) {
+export function v2Wardrobe(model, { list, baseManifest, base, root = ROOT }, shared = { materials: new Map(), parts: new Map() }, { cloth = false } = {}) {
   const h = model.humanoid;
+  // (what follows his outfit: the shirt's cloth, the glove's trim, his far levels; model.v2State)
+  const state = (model.v2State ??= { cloth: null, meshes: [] });
+  // the cloth: the default's shirt, where this page moves it (the game: updateCloth) and no engine took it over
+  const clothOn = cloth && !CLOTH_HOST.offload;
+  const wantsCloth = (plan) => clothOn && plan.from === 'base' && plan.garments.includes(V2_CLOTH.garment);
   const skeleton = h.body.skeleton, bindMatrix = h.body.bindMatrix, parent = h.body.parent;
+  const inkOf = (src) => {
+    const m = new T.Mesh(new T.BufferGeometry(), src);
+    m.userData.inkShade = { hatch: 0.2 };
+    return makeReviewInkMaterial(m);
+  };
   const material = (src) => {
-    if (!shared.materials.has(src)) {
-      const m = new T.Mesh(new T.BufferGeometry(), src);
-      m.userData.inkShade = { hatch: 0.2 };
-      shared.materials.set(src, makeReviewInkMaterial(m));
-    }
+    if (!shared.materials.has(src)) shared.materials.set(src, inkOf(src));
     return shared.materials.get(src);
   };
   const sourceMat = { base: base.Body.material };   // (the base's single-sided atlas: the body, his skin, the default's clothes)
@@ -152,7 +165,9 @@ export function v2Wardrobe(model, { list, baseManifest, base }, shared = { mater
     base: Object.fromEntries(Object.entries(base).map(([n, p]) => [n, p.geometry])),
     make(geometry, role, plan) {
       const src = role === 'body' || plan.from === 'base' ? sourceMat.base : sourceMat[plan.from];
-      const mesh = new T.SkinnedMesh(geometry, material(src));
+      // (clothes with cloth: their own material, its shader patched by the cloth: traveller-v2-cloth.js)
+      const own = role === 'clothes' && wantsCloth(plan);
+      const mesh = new T.SkinnedMesh(geometry, own ? inkOf(src) : material(src));
       mesh.name = `TravellerV2.${role}`;
       mesh.frustumCulled = false;
       mesh.castShadow = model.mesh.castShadow;
@@ -160,33 +175,83 @@ export function v2Wardrobe(model, { list, baseManifest, base }, shared = { mater
       mesh.layers.mask = model.mesh.layers.mask;
       mesh.userData.noSplat = true;
       mesh.userData.noCollide = true;
+      // (its far levels collapse across the atlas's seams and the hems: characters/traveller-lod-core.js lodInput)
+      mesh.userData.lodFlags = ['Permissive'];
+      mesh.userData.lodMinTris = 1000;   // (his body culled under the default's clothes: 2.5 k, worth levels too)
+      // (finer steps than B3's: his clothes are one 50 k draw where B3 had a body and an overshirt, so a level between
+      // B3's keeps him at or under B3's triangles at every distance)
+      mesh.userData.lodRatios = [0.5, 0.4, 0.3, 0.22, 0.16, 0.12, 0.08, 0.05];
       mesh.bind(skeleton, bindMatrix);
       // (pass 5: the default's clothes lift off a thigh swung forward; an outfit without the keys has none)
       if (mesh.morphTargetDictionary) mesh.userData.thighLift = new ThighLift(mesh, baseManifest.drivers, h.char.root).attach();
       return mesh;
     },
+    undress(meshes) {
+      state.cloth?.dispose();
+      state.cloth = null;
+      const gone = new Set(meshes);
+      if (h.noShadow) h.noShadow.splice(0, h.noShadow.length, ...h.noShadow.filter((o) => !gone.has(o)));
+      if (h.glove?.skins) h.glove.skins = h.glove.skins.filter((o) => !gone.has(o));
+      if (model.shadowCasters) model.shadowCasters.length = 0;
+      state.meshes = [];
+    },
+    dressed(meshes, worn) {
+      state.meshes = meshes;
+      // the fluid glove (built on B3's hand, humanoid.wearGlove): his hand and any sleeve or glove of the outfit
+      // under it left out while it is worn
+      if (h.glove?.skins) { h.glove.skins.push(...meshes); if (h.glove.on) h.glove.show(true); }
+      // the shirt swings (the default's): its shadow drawn the same shape, the clothes out of the shadow passes
+      const range = worn.ranges?.[V2_CLOTH.garment];
+      if (wantsCloth(worn.plan) && range) {
+        const clothes = meshes[1];
+        state.cloth = makeV2Cloth(clothes, range);
+        if (state.cloth.shadow) {
+          (h.noShadow ??= []).push(clothes);
+          (model.shadowCasters ??= []).push(state.cloth.shadow);
+        }
+        h.char.root.updateMatrixWorld(true);
+        state.cloth.update(0, 'rest', false);
+      }
+      // his far levels follow the meshes drawn (characters/traveller-lod.js)
+      model.lod?.track?.(lodMeshes(model));
+    },
   });
   // his B3 body and its cloth put away (as they were: model.b3Away, for a side-by-side); the portrait head stays
   const away = [model.mesh, model.cloth?.garment, model.cloth?.underlayer, model.cloth?.innerShirt].filter(Boolean);
-  model.b3Away ??= { meshes: away.map((m) => [m, m.visible]), shadowCasters: [...(model.shadowCasters ?? [])] };
+  model.b3Away ??= { meshes: away.map((m) => [m, m.visible]), shadowCasters: [...(model.shadowCasters ?? [])], noShadow: [...(h.noShadow ?? [])], updateCloth: model.updateCloth };
   for (const m of away) m.visible = false;
-  model.clothEnabled = false;
+  // (its cloth's worker let go: B3's overshirt is no longer stepped; a side-by-side steps it here if it must)
+  model.cloth?.dispose?.();
   if (model.shadowCasters) model.shadowCasters.length = 0;
+  // (B3's own garment out of the shadow lists: put away, it is neither drawn nor stepped)
+  if (h.noShadow && model.cloth?.garment) h.noShadow.splice(0, h.noShadow.length, ...h.noShadow.filter((o) => o !== model.cloth.garment));
+  // each frame (Player.updateCloth): v2's shirt, not B3's put-away overshirt
+  model.updateCloth = (dt, reset = false) => {
+    const c = state.cloth;
+    if (!c) return null;
+    h.char.root.updateMatrixWorld(true);
+    if (reset) c.update(0, 'rest', false);
+    return c.update(dt, 'game', model.clothEnabled !== false);
+  };
   const load = async (id) => {
     if (id === 'default' || wardrobe.outfits[id]) return;
     if (!shared.parts.has(id)) {
       shared.parts.set(id, (async () => {
         const entry = list.outfits.find((o) => o.id === id);
         if (!entry) throw new Error(`no outfit "${id}"`);
-        const manifest = await json(ROOT + entry.dir + 'manifest.json');
-        return { manifest, parts: await loadParts(ROOT + entry.dir + manifest.glb, skeleton.bones) };
+        const manifest = await json(root + entry.dir + 'manifest.json');
+        return { manifest, parts: await loadParts(root + entry.dir + manifest.glb, skeleton.bones) };
       })());
     }
     const { manifest, parts } = await shared.parts.get(id);
+    put(id, manifest, parts);
+  };
+  /** An outfit's parts, bound already (bindParts), added at once. */
+  const put = (id, manifest, parts) => {
     sourceMat[id] = Object.values(parts)[0].material;
     wardrobe.add(id, manifest, Object.fromEntries(Object.entries(parts).map(([n, p]) => [n, p.geometry])));
   };
-  return { wardrobe, load };
+  return { wardrobe, load, put };
 }
 
 /** The list of outfits (outfits.json), fetched once. */
@@ -194,27 +259,53 @@ let listing = null;
 export const outfitList = () => (listing ??= json(ROOT + 'outfits.json').catch((e) => { listing = null; throw e; }));
 
 /**
- * The game's traveller dressed as v2 in `outfit` (the debug switch: main.js). Everything is fetched before B3 is put
- * away, so a failure (the built site, no data/) leaves him as he was. Returns { wardrobe, wear(id) } (wear: async,
- * loads an outfit the first time).
+ * What dressing him as v2 needs, fetched (loadTraveller asks for it with B3's own, characters/traveller.js): the list,
+ * the base manifest and GLB, and the outfit's when it is not the default. Binding waits for his skeleton
+ * (dressTravellerV2). base: the site's base URL.
  */
-export async function wearTravellerV2(model, { outfit = 'default' } = {}) {
-  const [list, baseManifest] = await Promise.all([outfitList(), json(ROOT + 'manifest.json')]);
-  const base = await loadParts(ROOT + list.base, model.humanoid.body.skeleton.bones);
-  const id = list.outfits.some((o) => o.id === outfit) ? outfit : 'default';
+export async function loadTravellerV2(base = import.meta.env?.BASE_URL ?? '/', { outfit = 'default' } = {}) {
+  const root = `${base}${DIR}`;
+  const [list, baseManifest] = await Promise.all([json(root + 'outfits.json'), json(root + 'manifest.json')]);
+  const entry = list.outfits.find((o) => o.id === outfit && o.dir);
+  const loader = new GLTFLoader();
+  const [baseGltf, worn] = await Promise.all([
+    loader.loadAsync(root + list.base),
+    entry ? json(root + entry.dir + 'manifest.json').then(async (manifest) => ({ id: entry.id, manifest, gltf: await loader.loadAsync(root + entry.dir + manifest.glb) })) : null,
+  ]);
+  return { root, list, baseManifest, baseGltf, outfit: worn ?? { id: 'default' } };
+}
+
+/**
+ * The game's traveller dressed as v2 from loadTravellerV2's sources, at once (createTraveller does it while it builds
+ * him: the title, the game, the films, the studio). The cloth on in a page (an engine's VM: the shirt skinned). Returns model.v2: { wardrobe, list, wear(id) }
+ * (wear: async, loads an outfit the first time).
+ */
+export function dressTravellerV2(model, sources, { cloth = typeof window !== 'undefined' } = {}) {
+  const { root, list, baseManifest, baseGltf, outfit } = sources;
+  const bones = model.humanoid.body.skeleton.bones;
   const shared = { materials: new Map(), parts: new Map() };
-  // (an outfit's GLB fetched before anything changes too)
-  if (id !== 'default') {
-    const entry = list.outfits.find((o) => o.id === id), manifest = await json(ROOT + entry.dir + 'manifest.json');
-    shared.parts.set(id, loadParts(ROOT + entry.dir + manifest.glb, model.humanoid.body.skeleton.bones).then((parts) => ({ manifest, parts })));
-    await shared.parts.get(id);
+  const base = bindParts(baseGltf, bones, list.base);
+  const { wardrobe, load, put } = v2Wardrobe(model, { list, baseManifest, base, root }, shared, { cloth });
+  // (the outfit fetched with the base: bound and added at once, no wait)
+  if (outfit?.gltf) {
+    const parts = bindParts(outfit.gltf, bones, outfit.id);
+    shared.parts.set(outfit.id, Promise.resolve({ manifest: outfit.manifest, parts }));
+    put(outfit.id, outfit.manifest, parts);
   }
-  const { wardrobe, load } = v2Wardrobe(model, { list, baseManifest, base }, shared);
-  await load(id);
-  wardrobe.wear(id);
-  model.v2 = { wardrobe, list };
-  return {
-    wardrobe, list,
+  wardrobe.wear(outfit?.gltf ? outfit.id : 'default');
+  model.v2 = {
+    wardrobe, list, put,
     async wear(next) { await load(next); return wardrobe.wear(next); },
   };
+  return model.v2;
+}
+
+/**
+ * The game's traveller dressed as v2 in `outfit`, fetched first (the dev menu's switch on a traveller built as B3).
+ * Everything is fetched before B3 is put away, so a failure (no models) leaves him as he was. Dressed already: that
+ * outfit worn. Returns model.v2 ({ wardrobe, list, wear(id) }).
+ */
+export async function wearTravellerV2(model, { outfit = 'default', cloth = typeof window !== 'undefined' } = {}) {
+  if (model.v2) { await model.v2.wear(outfit); return model.v2; }
+  return dressTravellerV2(model, await loadTravellerV2(undefined, { outfit }), { cloth });
 }

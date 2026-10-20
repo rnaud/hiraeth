@@ -27,7 +27,7 @@ test('they stand, walk and run on the game\'s own blend', () => {
   assert.ok(motionSpeed('walk', N) < motionSpeed('jog', N) && motionSpeed('jog', N) < motionSpeed('sprint', N));
 });
 
-test('a dev page: built, in the Debug menu, dressed as the outfits page dresses him, the built site\'s note', () => {
+test('a dev page: built (its models too), in the Debug menu, dressed as the outfits page dresses him, a failure said', () => {
   assert.ok(BUILD_INPUT['outfits-gallery']?.endsWith('/outfits-gallery.html'));
   assert.ok(existsSync('outfits-gallery.html'));
   assert.ok(PAGES.some((p) => p.href === 'outfits-gallery.html'), 'in the Debug menu\'s pages');
@@ -36,6 +36,7 @@ test('a dev page: built, in the Debug menu, dressed as the outfits page dresses 
   const main = readFileSync('src/outfits-gallery/main.js', 'utf8');
   assert.match(main, /v2Wardrobe\(/, 'the outfits page\'s own dressing (its ink, the robe\'s swing)');
   assert.match(main, /galleryRows\(list\)/);
-  assert.match(main, /note\(`Outfits gallery: /, 'a load that fails (the built site: no data/) is said on the page');
-  assert.match(readFileSync('src/characters/traveller-v2.js', 'utf8'), /the outfits pages and the v2 traveller run on the dev server: data\/ is not in the build/);
+  assert.match(main, /note\(`Outfits gallery: /, 'a load that fails is said on the page');
+  assert.match(main, /loadTraveller\(BASE, \{ v2: \{ on: false \} \}\)/, 'built as B3 to dress each row itself');
+  assert.match(readFileSync('vite.config.js', 'utf8'), /travellerV2Plugin\(\)/, 'the models in the build');
 });

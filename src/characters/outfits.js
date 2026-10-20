@@ -388,8 +388,10 @@ export function attachSwing(mesh, spec, ranges, { now = () => performance.now() 
  * meshes off (and frees their geometry) and puts the new ones on.
  */
 export class Wardrobe {
-  constructor({ list, baseManifest, base, outfitManifests = {}, outfits = {}, parent, make }) {
-    Object.assign(this, { list, baseManifest, base, outfitManifests, outfits, parent, make });
+  constructor({ list, baseManifest, base, outfitManifests = {}, outfits = {}, parent, make, undress = null, dressed = null }) {
+    // (undress(meshes): before the worn meshes go; dressed(meshes, worn): after the new ones are on: the v2
+    // traveller's cloth, glove and far levels follow his outfit, characters/traveller-v2.js)
+    Object.assign(this, { list, baseManifest, base, outfitManifests, outfits, parent, make, undress, dressed });
     this.worn = null;
     this.meshes = [];
   }
@@ -405,6 +407,7 @@ export class Wardrobe {
   wear(id) {
     const plan = planOutfit(this.list, this.baseManifest, this.outfitManifests, id);
     const d = dress(plan, this.baseManifest, this.base, this.outfits);
+    if (this.meshes.length) this.undress?.(this.meshes);
     for (const m of this.meshes) { m.parent?.remove(m); m.geometry.dispose(); }
     this.swing?.dispose();
     this.meshes = [this.make(d.body, 'body', plan), this.make(d.clothes, 'clothes', plan)];
@@ -414,7 +417,8 @@ export class Wardrobe {
     this.swing = plan.swing && clothes.isSkinnedMesh && clothes.skeleton ? attachSwing(clothes, plan.swing, d.ranges) : null;
     // (a swinging skirt shows its inside: that outfit's clothes drawn on both faces)
     if (this.swing && plan.swing.doubleSided && clothes.material) { clothes.material.side = T.DoubleSide; clothes.material.needsUpdate = true; }
-    this.worn = { id, plan, triangles: d.triangles.body + d.triangles.clothes, draws: this.meshes.length, culled: d.culled, swing: !!this.swing };
+    this.worn = { id, plan, triangles: d.triangles.body + d.triangles.clothes, draws: this.meshes.length, culled: d.culled, swing: !!this.swing, ranges: d.ranges };
+    this.dressed?.(this.meshes, this.worn);
     return this.worn;
   }
 

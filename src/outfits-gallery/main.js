@@ -52,7 +52,7 @@ function note(text) {
 async function start() {
   const [list, baseManifest, lib, asset] = await Promise.all([
     json(ROOT + 'outfits.json'), json(ROOT + 'manifest.json'),
-    loadAnimationLibrary(`${BASE}anim/ual.glb`), loadTraveller(BASE),
+    loadAnimationLibrary(`${BASE}anim/ual.glb`), loadTraveller(BASE, { v2: { on: false } }),   // (B3 to build on: each row dresses itself)
   ]);
   const rows = galleryRows(list);
   const viewer = new RowViewer();
