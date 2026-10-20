@@ -72,11 +72,12 @@ export const fanSfx = {
   /** the swing: the paper's snap open and a rush of air going away */
   swing(s, k = 1) {
     const t = now(s); if (t == null) return;
-    s.burst(t, { dur: 0.03, type: 'bandpass', freq: 2600, q: 3, vol: 0.07 });
-    s.burst(t + 0.045, { dur: 0.025, type: 'bandpass', freq: 2200, q: 3, vol: 0.05 });
-    s.burst(t + 0.02, { dur: 0.38, type: 'bandpass', freq: 850, q: 0.55, vol: 0.22 * k, rate: 0.75 });
-    s.burst(t + 0.05, { dur: 0.3, type: 'highpass', freq: 2400, q: 0.4, vol: 0.06 * k, rate: 1.3 });
-    s.sweep(t, 210, 80, 0.28, 0.06 * k);
+    const g = 0.944;   // (0.5 dB down: it stood 0.3 dB over the action band against the music, issue #566)
+    s.burst(t, { dur: 0.03, type: 'bandpass', freq: 2600, q: 3, vol: 0.07 * g });
+    s.burst(t + 0.045, { dur: 0.025, type: 'bandpass', freq: 2200, q: 3, vol: 0.05 * g });
+    s.burst(t + 0.02, { dur: 0.38, type: 'bandpass', freq: 850, q: 0.55, vol: 0.22 * k * g, rate: 0.75 });
+    s.burst(t + 0.05, { dur: 0.3, type: 'highpass', freq: 2400, q: 0.4, vol: 0.06 * k * g, rate: 1.3 });
+    s.sweep(t, 210, 80, 0.28, 0.06 * k * g);
   },
   /** a pinwheel whirring up */
   whirr(s) { const t = now(s); if (t == null) return; for (let i = 0; i < 7; i++) s.burst(t + i * 0.05, { dur: 0.02, type: 'bandpass', freq: 1400 + i * 120, q: 5, vol: 0.035 }); s.sweep(t, 400, 900, 0.4, 0.025, 'triangle'); },

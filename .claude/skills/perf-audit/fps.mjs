@@ -61,7 +61,18 @@ const ws = new WebSocket(tabs.find((t) => t.type === 'page').webSocketDebuggerUr
 await new Promise((r) => ws.addEventListener('open', r));
 let id = 0; const waits = new Map(), errors = [];
 ws.addEventListener('message', (m) => { const d = JSON.parse(m.data); if (d.id && waits.has(d.id)) { waits.get(d.id)(d); waits.delete(d.id); }
-  if (d.method === 'Runtime.exceptionThrown') errors.push((d.params.exceptionDetails?.exception?.description ?? '').slice(0, 200)); });
+  if (d.method === 'Runtime.exceptionThrown' && !extensions(d.params.exceptionDetails)) errors.push((d.params.exceptionDetails?.exception?.description ?? '').slice(0, 200)); });
+// (an error thrown in a Chrome extension of the headless profile is not the game's: its stack's own URL a chrome-extension://
+// one, e.g. "Cannot read properties of undefined (reading 'Config')" at chrome-extension://glnpj…/shared/shared.js, five
+// worlds of the v1.87 run, issue #566)
+function extensions(x) {
+  const ext = (u) => typeof u === 'string' && u.startsWith('chrome-extension://');
+  const frames = x?.stackTrace?.callFrames ?? [];
+  if (frames.length) return frames.every((f) => ext(f.url));
+  if (x?.url) return ext(x.url);
+  const at = [...(x?.exception?.description ?? '').matchAll(/\(?((?:chrome-extension|https?|file):\/\/[^\s):]+)/g)].map((m) => m[1]);
+  return at.length > 0 && at.every(ext);
+}
 const send = (method, params = {}) => new Promise((res) => { const i = ++id; waits.set(i, res); ws.send(JSON.stringify({ id: i, method, params })); });
 const ev = async (e) => { const d = await send('Runtime.evaluate', { expression: e, awaitPromise: true, returnByValue: true }); return d.result?.exceptionDetails ? null : d.result?.result?.value; };
 await send('Page.enable'); await send('Runtime.enable'); await send('Emulation.setFocusEmulationEnabled', { enabled: true });

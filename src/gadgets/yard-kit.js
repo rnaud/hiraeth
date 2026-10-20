@@ -141,12 +141,12 @@ class BayKit {
   crate(c, { metal = false, size = metal ? 1 : 0.9 } = {}) {
     const g = new THREE.Group(), s = size, M = this.mats;
     g.add(new THREE.Mesh(new THREE.BoxGeometry(s, s, s), metal ? M.metal : M.wood));
-    // its frame: the edges in a darker tone (wood: planks; steel: bands and rivets)
+    // its frame: the edges in a darker tone (wood: planks; steel: bands and rivets), every bar 0.012 proud of the faces it lies on (issue #566: flush, its top and bottom fought the box's)
     const e = s * 0.09, parts = [];
     for (const [ax, ay] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) {
-      parts.push(new THREE.BoxGeometry(s + 0.02, e, e).translate(0, ay * (s / 2 - e / 2), ax * (s / 2 - e / 2) + ax * 0.012));
+      parts.push(new THREE.BoxGeometry(s + 0.02, e, e).translate(0, ay * (s / 2 - e / 2) + ay * 0.012, ax * (s / 2 - e / 2) + ax * 0.012));
       parts.push(new THREE.BoxGeometry(e, s + 0.02, e).translate(ax * (s / 2 - e / 2) + ax * 0.012, 0, ay * (s / 2 - e / 2) + ay * 0.012));
-      parts.push(new THREE.BoxGeometry(e, e, s + 0.02).translate(ax * (s / 2 - e / 2) + ax * 0.012, ay * (s / 2 - e / 2), 0));
+      parts.push(new THREE.BoxGeometry(e, e, s + 0.02).translate(ax * (s / 2 - e / 2) + ax * 0.012, ay * (s / 2 - e / 2) + ay * 0.012, 0));
     }
     if (!metal) for (const z of [1, -1]) parts.push(new THREE.BoxGeometry(s * 1.05, e * 0.8, e * 0.6).rotateZ(Math.PI / 4).scale(0.95, 1, 1).translate(0, 0, z * (s / 2 + 0.01)));
     g.add(new THREE.Mesh(mergeGeometries(parts.map((p) => p.toNonIndexed())), metal ? M.rivet : M.woodDark));

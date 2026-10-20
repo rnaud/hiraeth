@@ -1316,6 +1316,8 @@ const PLACES555 = 'Issue #555: the web game in muted headless Chrome (ANGLE Meta
 const ARRIVE555 = 'Issue #555: the web game in muted headless Chrome (ANGLE Metal, High, 1280 × 720) on this branch’s own Vite (port 6555), ?game=pirates&stage=ice&to=edena, 0.8 s after the page opened; 19 October; cwebp -q 72';
 /** (v1.87, issue #564: the water's bed maps baked without stalling the desert's arrival) */
 const ARRIVAL564 = 'Issue #564: the production build in muted headless Chrome on the Mac’s GPU (ANGLE Metal, M4 Pro), no vsync, 1280 × 720, the desert’s spawn view (scripts/bench/viewpoints.json) pinned from the boot, 10:00, clear, a save past the prologue; each second counted from the boot, two runs each, before (9986aa322) and after interleaved; 20 October, load 18–27';
+/** (v1.87, issue #566: the Hush-House court's crates) */
+const CRATES566 = 'Issue #566: the design QC’s capture (scripts/design-qc/capture.mjs) in muted headless Chrome (High, 1280 × 720, 10:00, clear) on this branch’s own Vite (port 5566), Lorn, the camera pinned 6 m from the two crates and 1.2 m over their lids, the picture cropped to its middle half and enlarged; before: the tree without the fix, after: with it; 20 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.87': [
     { match: 'In the Mooring-House each lock now shows its answer from where you stand', tags: ['temples'], shots: [
@@ -1328,6 +1330,9 @@ export const CHANGELOG_MEDIA = {
       { name: 'desert-roots-561', title: 'From the roots', size: [1280, 720], caption: 'From the tree’s roots, the drinking done: after, in the arch of Qanat’s main gate, right of the camps’ smoke, the red rag at the head of its mast over the hollow', from: LEVEL561 },
       { name: 'glassdunes-court-561', title: 'The half-buried court', size: [1280, 720], caption: 'The Glass Dunes, on the way up to the breaker’s cairn: after, the carriers’ oil jars and a row of their amber posts to the half-buried court', from: LEVEL561 },
     ], see: 'In the Desert, watch the tree drink at its roots, then look south-west through the city’s gate. In the Glass Dunes, follow the amber posts north from the Clock-House’s door.' },
+    { match: 'In the Hush-House’s fight court in Lorn, the dark frames on the two crates', shots: [
+      { name: 'crates-566', title: 'The two crates', size: [1280, 720], caption: 'The crates’ lids from a little above: before, the dark frame round each lid broken and speckled where its bars lay in the lid’s own plane; after, a clean dark frame all round', from: CRATES566 },
+    ] },
     { match: 'In the Unity version, Anselm’s shop opens over a darkened hold', tags: ['devices'], shots: [
       { name: 'unity-shop-264', title: 'Anselm’s shop', size: [1280, 720], caption: 'Anselm’s shop in Unity: before, over the lit hold, the names and prices bold, “Not enough fragments” spilling out of its box; after, the hold darkened round it, the names and prices heavy, the flags wrapped in their boxes (SSIM with the web 0.41 → 0.55)', from: UNITY264L },
       { name: 'unity-shop-264-web', only: 'after', title: 'On the web', size: [1280, 720], caption: 'The same shop on the web', from: WEB264L },

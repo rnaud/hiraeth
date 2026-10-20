@@ -1445,6 +1445,11 @@ glow and the motes); the court's terrace and the ledges' view the same before an
 x flush with the box's top and bottom). The temples at or under their baselines, six well under (the Warden's Well 6 of
 39, the Belfry 1 of 10, the Undertower 3 of 8, the Lamp-House 1 of 3, the Greenhouse 1 of 2, the Whale-House 5 of 6).
 
+**Issue #566** (the audit's small fixes): the crates' frame bars along x and z set 0.012 m proud of the box's top and
+bottom as the uprights already were, so Lorn 5 → **3** (both crates gone); `ZFIGHT_BASELINE` lowered to what the temples
+hold (incal 39 → 6, arzach2 10 → 1, bazaar 8 → 3, perdide2 3 → 1, edena 2 → 1, underwater 6 → 5) and the City Floating in
+Space's `WORLD_ZFIGHT_BASELINE` 20 → 12, so a new site in any of them fails the test.
+
 ## The Shadow Room and the shadow QC (`?level=shadows`, `.claude/skills/shadow-qc`; October 2026)
 
 Issue #67: a room for complex shadow situations, and a check of the shadows in motion with the traveller.

@@ -6,12 +6,16 @@
 //                                          30 far (> 60 m); the same with the camera looking one way (the foes behind it out
 //                                          of view: src/motion-kit/view.js); a pack of 8 near with a guardian (the Keeper)
 //   --scenes                               the mixed scenes only;  --json  the rows as JSON
+//   --no-gaze                              the foes' eyes left as built (#508's gaze off: src/enemies/gaze.js); the look
+//                                          column, every foe's whole look a frame (its gaze in it, the kit's rig too), shows
+//                                          what the gaze costs beside the kit's own (issue #566)
 // Each row is the least of five runs (the machine is shared: a run is only ever slower than the kit).
 import * as THREE from 'three';
 import { foeSystem, DT } from './walk.mjs';
 import { keeperModel } from '../../src/temples/guardians.js';
 
 const view = await import('../../src/motion-kit/view.js').catch(() => null);   // (absent before kit phase 7: everything in view)
+const NO_GAZE = process.argv.includes('--no-gaze');
 const KINDS = ['crab', 'hound', 'lizard', 'tripod', 'skitter', 'brute', 'bell', 'heron', 'shade', 'machine'];
 
 /** A camera at the origin looking along +z (the game's fov, 16:9): what it sees is in view. */
@@ -26,8 +30,9 @@ function scene(list, { frames = 600, warm = 180, look = false, guardian = false 
   sys.player.pos.set(0, 0, 0);
   if (view) { if (look) view.setView(camera()); else view.clearView(); }
   const foes = list.map(({ kind, r, a }) => { const f = sys.add(kind, new THREE.Vector3(Math.sin(a) * r, 0, Math.cos(a) * r)); f.ring = { r, a }; return f; });
-  let kit = 0, legs = 0, guard = 0;
+  let kit = 0, legs = 0, guard = 0, looks = 0;
   for (const f of foes) {
+    if (NO_GAZE) f.model.gaze = null;
     const R = f.model.rig, u = R.update.bind(R), w = R.write.bind(R);
     legs += R.legs.length;
     R.update = (...x) => { const t = performance.now(); const o = u(...x); if (f.timing) kit += performance.now() - t; return o; };
@@ -42,7 +47,9 @@ function scene(list, { frames = 600, warm = 180, look = false, guardian = false 
       f.ring.a += (2 / f.ring.r) * DT;
       f.pos.set(Math.sin(f.ring.a) * f.ring.r, 0, Math.cos(f.ring.a) * f.ring.r);
       f.heading = f.ring.a + Math.PI / 2; f.state = 'chase'; f.dist = 2;
+      const t0 = performance.now();
       sys.look(f, DT);
+      if (f.timing) looks += performance.now() - t0;
     }
     if (G) {
       const a = i * DT * 0.3;
@@ -56,7 +63,7 @@ function scene(list, { frames = 600, warm = 180, look = false, guardian = false 
   sys.dispose();
   view?.clearView();
   const perFrame = ((kit + guard) / frames) * 1000;   // µs
-  return { foes: foes.length + (G ? 1 : 0), legs, perFrameUs: perFrame, perFoeUs: perFrame / (foes.length + (G ? 1 : 0)), perLegUs: perFrame / legs, guardianUs: G ? (guard / frames) * 1000 : null };
+  return { foes: foes.length + (G ? 1 : 0), legs, perFrameUs: perFrame, perFoeUs: perFrame / (foes.length + (G ? 1 : 0)), perLegUs: perFrame / legs, guardianUs: G ? (guard / frames) * 1000 : null, lookUs: (looks / frames) * 1000 };
 }
 
 // (the least of five runs: the machine is shared, and a run only ever measures slower than the kit is)
@@ -71,6 +78,6 @@ rows.push(['a pack of 8 near + the Keeper', best(near(8), { guardian: true })]);
 rows.push(['the pack + the Keeper, seen one way', best(near(8), { guardian: true, look: true })]);
 if (process.argv.includes('--json')) console.log(JSON.stringify(Object.fromEntries(rows), null, 1));
 else {
-  console.log('scene                                          foes  legs   µs/frame  µs/foe  µs/leg');
-  for (const [name, r] of rows) console.log(`${name.padEnd(46)} ${String(r.foes).padStart(4)} ${String(r.legs).padStart(5)} ${r.perFrameUs.toFixed(1).padStart(10)} ${r.perFoeUs.toFixed(2).padStart(7)} ${r.perLegUs.toFixed(2).padStart(7)}`);
+  console.log(`scene                                          foes  legs   µs/frame  µs/foe  µs/leg  look µs/frame${NO_GAZE ? '  (gaze off)' : ''}`);
+  for (const [name, r] of rows) console.log(`${name.padEnd(46)} ${String(r.foes).padStart(4)} ${String(r.legs).padStart(5)} ${r.perFrameUs.toFixed(1).padStart(10)} ${r.perFoeUs.toFixed(2).padStart(7)} ${r.perLegUs.toFixed(2).padStart(7)} ${r.lookUs.toFixed(1).padStart(14)}`);
 }

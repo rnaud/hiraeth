@@ -51,7 +51,7 @@ export const sfx = {
   /** The blast: a deep thump, a wet splatter and a rumble going away. */
   bombBlast(s, vol = 1) {
     const t = now(s); if (t == null || vol < 0.02) return;
-    const v = vary(s, 0.08), k = 0.4 * vol;   // (down into the impact band: it stood 6 dB over, issue #531)
+    const v = vary(s, 0.08), k = 0.35 * vol;   // (down into the impact band: it stood 6 dB over, issue #531; 1.2 dB more, 0.2 over against the music that plays, the master's compressor giving back most of a trim this loud, issue #566)
     s.sweep(t, 140 * v, 34, 0.55, 0.42 * k);
     s.burst(t, { dur: 0.5, type: 'lowpass', freq: 700 * v, q: 0.6, vol: 0.34 * k, rate: 0.5 * v });
     s.burst(t + 0.03, { dur: 0.35, type: 'bandpass', freq: 1500 * v, q: 0.5, vol: 0.16 * k, rate: 0.9 });

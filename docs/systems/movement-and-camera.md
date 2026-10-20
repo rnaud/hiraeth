@@ -207,6 +207,10 @@ them, his back at least 4 m from the wall): he whole on the screen 52 → 148, i
 floor and its foot and middle 42 → 148, everything including its top 7 → 122; circling each, he is never off the screen.
 The browser QC's new `snapper-lock` (the Hush-House) and `guardian-lock` (the First Sign) are green. Tests:
 `tests/camera-qc-guardians.test.js`.
+The Cistern-Keeper and the Aerie's Elder are framed by the generated bodies the game swaps in (issue #566: node can't
+fetch `/guardians/<id>/model.glb`, so sim-guardians reads the GLBs from `public/` as the motion audit's `loadSkin` does;
+before, their old procedural bodies' boxes: the Keeper's 10.2 × 8.2 × 11.6 m, now 3.3 × 7.3 × 7.8; the Elder's 12 × 9.9
+× 12, now 6.3 × 6.6 × 4.9, its top on the screen at every point instead of none).
 
 ## Aiming locked on: centred, then nudged (v1.77, issue #362; `src/lock-aim.js`)
 

@@ -14,6 +14,9 @@ import { CameraRig } from '../../src/player.js';
 import { lockFollow, STEADY } from '../../src/foes.js';
 import { guardianBox, framePoints } from '../../src/lock-frame.js';
 import { analyse } from './lib.mjs';
+import { loadSkin } from '../motion-audit/walk.mjs';
+import { createKeeperCreature } from '../../src/characters/keeper-creature.js';
+import { createElderCreature } from '../../src/characters/elder-v3-creature.js';
 
 globalThis.window ??= { addEventListener() {} };
 const dom = { addEventListener() {} };
@@ -27,6 +30,20 @@ export const GUARDIAN_ARENAS = [
   ['edena', 'edena'], ['underwater', 'underwater'], ['glassdunes', 'garage'], ['buried', 'buried'], ['moonfoundry', 'moonfoundry'],
   ['spheres', 'spheres'], ['spacecity', 'spacecity'], ['bazaar', 'bazaar'],
 ];
+
+/**
+ * The generated bodies the game swaps in once their GLB has loaded (src/temples/guardian-generated.js): node has no page
+ * to fetch `/guardians/<id>/model.glb` from, so the GLBs are read from public/ as the motion audit reads them
+ * (walk.mjs loadSkin) and swapped in here, as make() does in the game (issue #566: the Keeper and the Aerie's Elder were
+ * framed by their old procedural bodies' boxes). Keyed by the wrapper's name.
+ */
+const [keeperGltf, elderGltf] = await Promise.all([loadSkin('keeper-v1'), loadSkin('elder-v3')]);
+const GENERATED = {
+  'Cistern-Keeper': () => createKeeperCreature(keeperGltf, { gameMaterial: true }),
+  'Elder of Vael': () => createElderCreature(elderGltf, { gameMaterial: true, lod: true }),
+};
+// (the level's own fetch of them still fails in node, a moment later: its warning is about a body already swapped in)
+{ const warn = console.warn; console.warn = (...a) => { if (!String(a[0]).includes('the generated body did not load')) warn(...a); }; }
 
 const worlds = new Map();
 /** A world built once: its level and collision. */
@@ -47,6 +64,8 @@ export function guardianArena(worldId, templeId) {
   const rt = (w.level.temples ?? []).find((t) => t.id === templeId && t.guardian);
   if (!rt) throw new Error(`no guardian in ${worldId}/${templeId}`);
   const g = rt.guardian, m = g.model;
+  const make = Object.entries(GENERATED).find(([name]) => m.group?.name?.startsWith(`${name} · `))?.[1];
+  if (make && m.swap && !m.generated) quiet(() => m.swap(make()));
   m.pos.copy(m.home ?? g.arena.center);
   quiet(() => {
     g.place();

@@ -1053,7 +1053,9 @@ export class Sound {
   chime() {
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
-    [0, 2, 4, 7].forEach((d, i) => this.pluck(this.freq(d, 2), t + i * 0.12, 0.12, 'sine', this.fx));
+    // (0.098, 1.8 dB under its old 0.12: a quest's step and a cleared room stood 0.3 dB over the cue band, and the master's
+    // compressor gives back most of a trim this loud, issue #566)
+    [0, 2, 4, 7].forEach((d, i) => this.pluck(this.freq(d, 2), t + i * 0.12, 0.098, 'sine', this.fx));
   }
 
   /** A dog's bark (home's Moustache): a short rough "wuf", falling. */
@@ -1978,10 +1980,11 @@ export class Sound {
     if (!this.ctx || this.muted) return;
     const t = this.ctx.currentTime;
     // (a third of its old level: it measured over the music, and a warning that repeats sits well under it, issue #379)
-    const v = this.vary(0.03);
-    this.sweep(t, 78 * v, 44 * v, 0.16, 0.06);
-    this.sweep(t + 0.2, 70 * v, 40 * v, 0.14, 0.038);
-    this.burst(t, { dur: 0.06, type: 'lowpass', freq: 160, q: 0.7, vol: 0.022, rate: 0.6 });
+    // (and 1 dB down again in issue #566: 0.8 dB over the band against the music that plays)
+    const v = this.vary(0.03), g = 0.89;
+    this.sweep(t, 78 * v, 44 * v, 0.16, 0.06 * g);
+    this.sweep(t + 0.2, 70 * v, 40 * v, 0.14, 0.038 * g);
+    this.burst(t, { dur: 0.06, type: 'lowpass', freq: 160, q: 0.7, vol: 0.022 * g, rate: 0.6 });
   }
 
   /** A potion picked up from where a foe fell (src/potion-drops.js): the glass's clink and a small rising pair. */
@@ -2106,10 +2109,10 @@ export class Sound {
     const t = this.ctx.currentTime;
     if (mode === 'stun') { const v = this.vary(0.06), g = this.vary(0.12); this.sweep(t, 1400 * v, 2600 * v, 0.14, 0.08 * g, 'sine'); this.sweep(t + 0.03 * this.vary(0.3), 2100 * v, 900 * v, 0.2, 0.04 * g, 'triangle'); return; }
     if (mode === 'fire') { this.burst(t, { dur: 0.22, type: 'bandpass', freq: 600, q: 0.6, vol: 0.2, rate: 0.7 }); this.sweep(t, 180, 520, 0.16, 0.1, 'sawtooth'); return; }
-    const v = this.vary(0.06);
-    this.sweep(t, 260 * v, 720 * v, 0.11, 0.13);
-    this.sweep(t + 0.02, 520 * v, 1500 * v, 0.08, 0.04, 'triangle');
-    this.burst(t, { dur: 0.09, type: 'bandpass', freq: 1100 * v, q: 1.1, vol: 0.12, rate: 0.8 * v });
+    const v = this.vary(0.06), g = 0.955;   // (0.4 dB down: it stood 0.2 dB over the band against the music, issue #566)
+    this.sweep(t, 260 * v, 720 * v, 0.11, 0.13 * g);
+    this.sweep(t + 0.02, 520 * v, 1500 * v, 0.08, 0.04 * g, 'triangle');
+    this.burst(t, { dur: 0.09, type: 'bandpass', freq: 1100 * v, q: 1.1, vol: 0.12 * g, rate: 0.8 * v });
   }
 
   /**
@@ -2232,8 +2235,9 @@ export class Sound {
   fluidSlash(n = 0) {
     if (!this.ctx) return;
     const t = this.ctx.currentTime, v = this.vary(0.07), heavy = n === 2;
-    const air = heavy ? this.sample('swing-heavy', { vol: 0.85, rate: 0.88 * v }) : this.sample('swing', { vol: 0.85 + n * 0.15, rate: (1.08 - n * 0.07) * v });
-    if (this.rand() < (heavy ? 0.75 : 0.18)) this.effort(heavy ? 0.85 : 0.65);
+    // (the heavy third's recorded take and his effort over it 1.2 dB down: it stood 1 dB over the band against the music, issue #566)
+    const air = heavy ? this.sample('swing-heavy', { vol: 0.85 * 0.87, rate: 0.88 * v }) : this.sample('swing', { vol: 0.85 + n * 0.15, rate: (1.08 - n * 0.07) * v });
+    if (this.rand() < (heavy ? 0.75 : 0.18)) this.effort(heavy ? (air ? 0.85 * 0.87 : 0.85) : 0.65);
     const d = (heavy ? 0.3 : 0.2) * this.vary(0.08);
     this.swish(t, { f0: (heavy ? 420 : 800 + n * 220) * v, f1: (heavy ? 1500 : 2500 + n * 450) * v, f2: (heavy ? 300 : 600 + n * 120) * v, dur: d, vol: air ? 0.07 : 0.16, rate: 1.2 * v });
     this.sweep(t, (heavy ? 220 : 420 + n * 90) * v, (heavy ? 90 : 900 + n * 160) * v, 0.18, air ? 0.04 : 0.06, 'sawtooth');
@@ -2263,10 +2267,10 @@ export class Sound {
   /** A perfect dodge's flurry (src/flurry.js): a breath of air drawn in and a slow falling glass note as the world slows. */
   flurry() {
     if (!this.ctx) return;
-    const t = this.ctx.currentTime;
-    this.burst(t, { dur: 0.32, type: 'bandpass', freq: 1400, q: 0.8, vol: 0.09, rate: 0.6 });
-    this.sweep(t, 1900, 620, 0.9, 0.05, 'sine');
-    [12, 7].forEach((d, i) => this.pluck(this.freq(d, 2), t + 0.04 + i * 0.16, 0.05, 'sine', this.fx));
+    const t = this.ctx.currentTime, g = 0.88;   // (1.1 dB down: it stood 0.6 dB over the band against the music, issue #566)
+    this.burst(t, { dur: 0.32, type: 'bandpass', freq: 1400, q: 0.8, vol: 0.09 * g, rate: 0.6 });
+    this.sweep(t, 1900, 620, 0.9, 0.05 * g, 'sine');
+    [12, 7].forEach((d, i) => this.pluck(this.freq(d, 2), t + 0.04 + i * 0.16, 0.05 * g, 'sine', this.fx));
   }
 
   /** The dash cut (src/fluid-blade.js DASH): a low rush of air under the swing. */
@@ -2282,12 +2286,15 @@ export class Sound {
     if (!this.ctx || !hit) return;
     const t = this.ctx.currentTime, v = this.vary(0.08);
     // the ink's wet slap, and the weight behind it (a body blow: the heavy one on the third)
-    this.sample('splat', { vol: heavy ? 1.3 : 1, rate: (heavy ? 0.78 : 0.98) * v });
-    this.sample(heavy ? 'land-heavy' : 'land', { vol: heavy ? 0.75 : 0.45, rate: (heavy ? 0.92 : 1.15) * v });
+    // (the heavy one 0.9 dB down where its takes play, the browser: it stood 0.3 dB over the band there, the master's
+    // compressor giving back some of the trim; the engines' synth alone sat inside it, issue #566)
+    const took = this.sample('splat', { vol: heavy ? 1.3 * 0.9 : 1, rate: (heavy ? 0.78 : 0.98) * v });
+    this.sample(heavy ? 'land-heavy' : 'land', { vol: heavy ? 0.75 * 0.9 : 0.45, rate: (heavy ? 0.92 : 1.15) * v });
+    const g = heavy && took ? 0.9 : 1;
     // the crack of it landing (a hit, not a block or the air: bright and short, on the hit-stop's frame)
-    this.burst(t, { dur: heavy ? 0.045 : 0.03, type: 'highpass', freq: 2400 * v, q: 0.7, vol: heavy ? 0.17 : 0.13, rate: 1.3 * v });
-    this.burst(t, { dur: heavy ? 0.16 : 0.12, type: 'lowpass', freq: 900 * v, q: 0.8, vol: 0.22, rate: 0.7 * v });
-    this.sweep(t, (heavy ? 190 : 300) * v, (heavy ? 65 : 110) * v, heavy ? 0.19 : 0.12, heavy ? 0.14 : 0.1, 'triangle');
+    this.burst(t, { dur: heavy ? 0.045 : 0.03, type: 'highpass', freq: 2400 * v, q: 0.7, vol: (heavy ? 0.17 : 0.13) * g, rate: 1.3 * v });
+    this.burst(t, { dur: heavy ? 0.16 : 0.12, type: 'lowpass', freq: 900 * v, q: 0.8, vol: 0.22 * g, rate: 0.7 * v });
+    this.sweep(t, (heavy ? 190 : 300) * v, (heavy ? 65 : 110) * v, heavy ? 0.19 : 0.12, (heavy ? 0.14 : 0.1) * g, 'triangle');
   }
 
   /** The fluid shield takes a blow (src/fluid-blade.js block): a bright clang and a wet splash. */
@@ -2601,10 +2608,10 @@ export class Sound {
   fluidBoost() {
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
-    const v = this.vary(0.06);
-    this.burst(t, { dur: 0.4, type: 'bandpass', freq: 900 * v, q: 0.7, vol: 0.18, rate: 0.7 * v });
-    this.sweep(t, 140 * v, 420 * v, 0.3, 0.1, 'triangle');
-    this.sweep(t + 0.05, 600 * v, 1800 * v, 0.22, 0.025);
+    const v = this.vary(0.06), g = 0.89;   // (1 dB down: it stood 0.8 dB over the band against the music, issue #566)
+    this.burst(t, { dur: 0.4, type: 'bandpass', freq: 900 * v, q: 0.7, vol: 0.18 * g, rate: 0.7 * v });
+    this.sweep(t, 140 * v, 420 * v, 0.3, 0.1 * g, 'triangle');
+    this.sweep(t + 0.05, 600 * v, 1800 * v, 0.22, 0.025 * g);
   }
 
   /** The tank refills: a quick bubbling run up the scale (a longer, brighter one when a colour is added). */
@@ -2658,7 +2665,8 @@ export class Sound {
   /** A swimming stroke: a soft wash (the crawl's is quicker, brighter). */
   stroke(crawl = 0) {
     if (!this.ctx || this.muted) return;
-    if (this.sample('stroke', { vol: 0.8 + 0.4 * crawl, rate: 1 + 0.1 * crawl })) return;
+    // (the recorded take 0.3 dB down: it stood 0.1 dB over the foley band against the music, issue #566)
+    if (this.sample('stroke', { vol: (0.8 + 0.4 * crawl) * 0.966, rate: 1 + 0.1 * crawl })) return;
     const t = this.ctx.currentTime;
     this.burst(t, { dur: 0.22 - 0.08 * crawl, type: 'bandpass', freq: 700 + 500 * crawl + Math.random() * 200, q: 0.8, vol: 0.06 + 0.03 * crawl, rate: 0.8 });
   }

@@ -115,6 +115,23 @@ export const CHANGELOG = [
     // issue #561: src/desert-sites.js STORY.rag, src/story/desert-bike.js (the mast), src/levels/desert.js beacons;
     // src/glass-dunes-ways.js CAIRN_WAY jars and court, src/levels/glass-dunes.js; tests/desert-lookout.test.js, far-keys.test.js
     'In the Desert, the red rag over Marrow’s hollow now flies from a tall mast, which you see through Qanat’s main gate from the tree’s roots. In the Glass Dunes, the carriers have left their oil jars where the way up to the breaker’s cairn passes nearest the half-buried court, and a row of their posts leads you there.',
+    // issue #566: src/gadgets/yard-kit.js crate (the frame's bars along x and z 0.012 proud on y too);
+    // tests/zfight.test.js (the baselines lowered to the counts held)
+    { text: 'In the Hush-House’s fight court in Lorn, the dark frames on the two crates no longer flicker and stripe over their lids as you turn the camera.',
+      see: 'In Lorn, go to the fight court by the Hush-House and look across the tops of the two wooden crates from a little above them while turning the camera.' },
+    // issue #566: src/audio.js (fluidSlash, fluidSlashHit, fluidBoost, heartbeat, flurry, chime, fluidShoot, stroke),
+    // src/gadgets/sfx.js bombBlast, boomerang.js snd, fan.js fanSfx; docs/systems/audio.md "The thirteen trimmed (#566)"
+    { text: 'A dozen sounds that stood a little over the music since it was raised now sit just under it: the third, heavy swing of the blade and its blow landing, the double jump, the heartbeat at low health, a perfect dodge’s slow-down, the gun’s shot, the fan, a bomb, the boomerang’s aim and its catch, a swimming stroke, and the chime of a quest’s step or a cleared room. The music is as loud as before.',
+      numbers: [{ title: 'Each sound’s loudest moment against the music that plays, in the desert (dB; the band’s top in brackets; the game’s sound rendered offline, muted)', unit: 'dB', better: 'lower', device: 'any (the sound QC: rendered offline, the web game with its recorded takes)', rows: [
+        { where: 'the blade’s heavy third (+2)', before: 3.0, after: 1.8 },
+        { where: 'its blow landing (+5)', before: 5.3, after: 4.9 },
+        { where: 'the double jump (+2)', before: 2.8, after: 1.9 },
+        { where: 'a perfect dodge (+4)', before: 4.6, after: 3.7 },
+        { where: 'a quest’s step, a cleared room (+4)', before: 4.3, after: 3.8 },
+        { where: 'a bomb (+5)', before: 5.2, after: 4.9 },
+        { where: 'the heartbeat at low health (−6)', before: -5.2, after: -6.2 },
+      ], source: 'node .claude/skills/sound-qc/run.mjs (103 → 116 of its 116 sounds inside their bands), before at v1.87 (docs/audits/sound-v1.87.md), after on this change, 20 October; docs/systems/audio.md, “The thirteen trimmed (#566)”' }],
+      see: 'In the desert, fight the foes near the landing with the full combo, double jump, and throw a bomb, with the music on: each sound sits under the music’s loudest moments instead of jumping over them.' },
   ] },
   { v: '1.86', date: '2026-10-19', items: [
     // issue #483: src/story/hosts-data.js (the fight hosts' second lines), src/fight-temples/<world>.js (blurb, quiet),

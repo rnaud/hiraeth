@@ -949,3 +949,30 @@ still sits 1.1 dB under the score the effects were balanced to: the double jump'
 shot +2.2, the fan +2.3, the heavy third in the browser +3.0, its landing +5.3, the bomb +5.2, the flurry +4.6, a
 quest's step and a cleared room +4.3, the heartbeat -5.2 (to -6), the boomerang's aim -5.6, its catch -7.9 and a swim
 stroke in the browser -7.9 (to -8). A -20 target (7 dB) clears all but three of them; the author asked for about 6.
+
+### The thirteen trimmed (#566, 20 October 2026)
+
+The music stays where #530 put it (the author's call): the thirteen are trimmed instead, each by its overage and a
+margin. Where the master's compressor squeezes a loud sound (the chime, the bomb, the heavy third's landing) a trim
+comes back a third to a quarter as big, so those went further down until the QC read them inside their band.
+The heavy third and its landing are trimmed only where their recorded takes play (the browser); the engines' synth sat
+inside already.
+
+| action | band | before (browser / engines) | trim | after |
+|---|---|---|---|---|
+| the combo's heavy third | action, to +2 | +3.0 / -3.5 | its take and his effort 1.2 dB | +1.8 / -3.5 |
+| the double jump's lift | action, to +2 | +2.8 | 1.0 dB | +1.9 |
+| the low-health heartbeat | warn, to -6 | -5.2 | 1.0 dB | -6.2 |
+| a perfect dodge's flurry | cue, to +4 | +4.6 | 1.1 dB | +3.7 |
+| the boomerang's aim | ui, to -6 | -5.6 | 0.6 dB | -6.2 |
+| the heavy third landing | impact, to +5 | +5.3 / +4.0 | 0.9 dB where its takes play | +4.9 / +4.0 |
+| the fan swung | action, to +2 | +2.3 | 0.5 dB | +1.8 |
+| a quest's step, a room cleared (the chime) | cue, to +4 | +4.3 | 1.8 dB | +3.8 |
+| the gun's shot | action, to +2 | +2.2 | 0.4 dB | +1.8 |
+| a bomb going off | impact, to +5 | +5.2 | 1.2 dB | +4.9 |
+| a swimming stroke | foley, to -8 | -7.9 / -13.1 | its take 0.3 dB | -8.2 / -13.1 |
+| the boomerang caught | foley, to -8 | -7.9 | 0.3 dB | -8.2 |
+
+`node .claude/skills/sound-qc/run.mjs`: 103 → **116 of 116** OK in the browser, 106 → **116** in the engines (against
+the score 116 both, as before); a fight's loudest moment +5.7 → +5.4 dB over the music; the voice +3.6 and ducking
+-4.3 dB unchanged. The engines play the same synths (src/audio.js, src/gadgets/), so Unity has the same trims.

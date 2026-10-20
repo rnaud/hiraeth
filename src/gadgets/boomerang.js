@@ -544,7 +544,7 @@ export const snd = {
   /** In flight: a soft whirr, pulsing (vol by distance). */
   whirr(s, vol = 1) { const t = now(s); if (t == null || vol < 0.05) return; s.burst(t, { dur: 0.06, type: 'bandpass', freq: 1100 + Math.random() * 300, q: 2.5, vol: 0.045 * vol, rate: 1.1 }); },
   /** A lock on: a rising note, higher for each. */
-  lock(s, i = 1) { const t = now(s); if (t == null) return; const f = [660, 880, 1100][Math.min(2, i - 1)]; s.sweep(t, f, f * 1.02, 0.12, 0.06, 'triangle'); s.sweep(t + 0.05, f * 1.5, f * 1.5, 0.09, 0.03, 'sine'); },
+  lock(s, i = 1) { const t = now(s); if (t == null) return; const f = [660, 880, 1100][Math.min(2, i - 1)]; s.sweep(t, f, f * 1.02, 0.12, 0.056, 'triangle'); s.sweep(t + 0.05, f * 1.5, f * 1.5, 0.09, 0.028, 'sine'); },   // (0.6 dB down: 0.4 over the ui band against the music, issue #566)
   /** It strikes a foe: a hollow knock (a machine: a clang). */
   thock(s, metal = false) { const t = now(s); if (t == null) return; s.burst(t, { dur: 0.08, type: 'lowpass', freq: metal ? 1600 : 700, q: 1, vol: 0.18 }); if (metal) s.sweep(t, 1500, 1350, 0.25, 0.06, 'triangle'); else s.sweep(t, 260, 140, 0.1, 0.07); },
   /** It flips a switch: a bright ting. */
@@ -554,5 +554,5 @@ export const snd = {
   /** It takes hold of something to fetch. */
   fetch(s) { const t = now(s); if (t == null) return; s.sweep(t, 700, 1050, 0.12, 0.05, 'triangle'); },
   /** Back in the glove: a slap of brass in leather. */
-  catch(s) { const t = now(s); if (t == null) return; s.burst(t, { dur: 0.05, type: 'lowpass', freq: 1200, q: 0.9, vol: 0.14 }); s.sweep(t, 600, 420, 0.08, 0.05, 'triangle'); },
+  catch(s) { const t = now(s); if (t == null) return; s.burst(t, { dur: 0.05, type: 'lowpass', freq: 1200, q: 0.9, vol: 0.135 }); s.sweep(t, 600, 420, 0.08, 0.048, 'triangle'); },   // (0.3 dB down: 0.1 over the foley band, issue #566)
 };
