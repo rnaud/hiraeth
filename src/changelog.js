@@ -8,6 +8,12 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.90', date: '2026-10-20', items: [
+    {
+      text: 'The Salt Pilgrim’s robe and sash have more room at the waist, reducing clothing overlap as he runs.',
+      see: 'Choose Salt Pilgrim in the Wardrobe, then walk and run. The open robe keeps its embroidered edges clear of the tunic more consistently.',
+    },
+  ] },
   { v: '1.89', date: '2026-10-20', items: [
     'In the Wardrobe, the traveller now holds the sword upright in his hand, with the whole blade visible as you browse its colours and his outfits.',
     'The caravan ship study now uses the game’s ink, hatching and sunlight, so its surfaces read as they will in the world.',

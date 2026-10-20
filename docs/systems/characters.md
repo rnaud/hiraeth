@@ -2243,8 +2243,8 @@ head-v3, the game still draws B3 until this reads at least as well side by side)
   chest; the pearl diver's chest, 97.0 %, is listed too; the salt pilgrim's is empty, its sandals measuring
   the ankles and feet). On the slimmer belly the salt pilgrim's tunic lies 2.5 cm inside its robe at the
   hips: running, the trousers no longer come through the robe (0, were 3–10 verts) and through the tunic
-  2 verts, ≤ 7 mm, but 10–21 of the tunic's verts by the robe's front edges at the waist pass them as the
-  front panel lifts, ≤ 32 mm, under the lifted panel (were 44–64, ≤ 20 mm).
+  2 verts, ≤ 7 mm. The subsequent #591 waist-ease pass reduces the tunic's intersection with the robe
+  from 10–21 vertices at up to 32 mm to 0–4 vertices at up to 2.5 mm.
 - **His arms (#554):** bare under a short sleeve (the pearl diver, the moss gardener) the base body's upper arm
   was dented by the default's rolled sleeves and overlapped B3's forearm, which began in a step with its lip
   turned in: a fold round the forearm. The arms are refitted from their clean shape too (`ARM_ZONE`), and each
@@ -2425,6 +2425,14 @@ skin where the sheets show it (pass 4's body is his skin), on #544's shared volu
   (it hangs on from the knee). 49.7 k triangles. Running (Blender's poses, with the swing's rule): the
   trousers through the tunic 6–9 verts, ≤ 20 mm (were 20–24, ≤ 39); the tunic through the robe ≤ 21 mm;
   the trousers through the robe 3–10 verts at the groin with the knee at its highest, ≤ 31 mm.
+
+  **Waist fit (#591):** the front robe has 40 mm of smoothly tapered ease over the hip band, and the
+  sash 30 mm. Apply this after transferring weights; moving the surface before nearest-face weight
+  sampling can choose the opposite side of a tunic seam. The robe's running intersection is now at
+  most 2.5 mm across four vertices, and the sash through the robe at most 3.3 mm at one vertex.
+  One inner-tunic vertex still intersects the sash by 20.6 mm in jog-b; the static shoulder allowance
+  remains 6.4 mm. These are measured limitations, not a collision-free cloth simulation. The asset
+  remains one material and a 2048 atlas, 49,947 triangles, with the existing runtime skirt swing.
 
 **A skirt's swing** (#547; `outfit_kit.py` "a skirt's swing", `src/characters/outfits.js` `SkirtSwing`): a
 long skirt skinned to the thighs lifts like a board with each knee. An outfit can ask for a swing instead

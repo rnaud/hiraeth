@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.90 — 2026-10-20
+
+- The Salt Pilgrim’s robe and sash have more room at the waist, reducing clothing overlap as he runs.
+
 ## v1.89 — 2026-10-20
 
 - A caravan version of the traveller’s ship can be explored in a separate 3D study beside the selected drawing: a shaded porch, plants, a water tank, roof laundry and twin engines. Turn it around and compare its size with a person before the design goes into the game.

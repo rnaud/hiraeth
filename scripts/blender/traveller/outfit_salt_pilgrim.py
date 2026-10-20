@@ -514,6 +514,10 @@ def reweight(name, ob, arm, J):
         # rig is mixed over them for the checks and the previews; in the game outfits.js swings them
         spec = swing_spec(J)
         K.swing_bind(ob, K.swing_rig(arm, spec), spec, name)
+    if name in ('Robe', 'Sash'):
+        # Keep the weights sampled on the original fitted surface. Sampling after
+        # adding ease changes the sash's nearest tunic face across the hip seam.
+        _waist_ease(ob)
 
 
 def _robe_relief(ob, J):
@@ -534,6 +538,22 @@ def _robe_relief(ob, J):
 
 def _strap_ops():
     return [T.raised(shape, height=0.0026, step=0.0022, where=where) for shape, where in STRAPS]
+
+
+def _waist_ease(ob):
+    """Leave room for the wrapped tunic as the hip panels swing through a stride.
+
+    The static surface fit alone pinches the front waist against the tunic.
+    Ease only this short band, tapering to zero above and below it.
+    """
+    depth = 0.03 if ob.name == 'Sash' else 0.04
+    for v in ob.data.vertices:
+        p = v.co
+        ease = (smoothstep(0.025, -0.04, p.y)
+                * smoothstep(0.82, 0.92, p.z)
+                * smoothstep(1.10, 1.00, p.z))
+        p.y -= depth * ease
+    ob.data.update()
 
 
 # (the robe's swing: a report, no change; the sandals shaped after their fitting, then their straps)

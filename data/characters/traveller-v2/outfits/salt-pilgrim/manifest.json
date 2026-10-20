@@ -47,8 +47,8 @@
   },
   "Tunic": {
    "kind": "garment",
-   "triangles": 19627,
-   "vertices": 9995,
+   "triangles": 19757,
+   "vertices": 10079,
    "hides": [
     "belly",
     "chest",
@@ -155,7 +155,7 @@
    2048,
    2048
   ],
-  "texelsPerMetre": 832,
+  "texelsPerMetre": 826,
   "swatches": {
    "PilgrimTrousers.inside": [
     104,
@@ -231,7 +231,7 @@
    ]
   }
  },
- "triangles": 49817,
+ "triangles": 49947,
  "fit": {
   "PilgrimTrousers": {
    "fitLeft": 1,
@@ -299,10 +299,10 @@
   "Tunic": {
    "fitLeft": 79,
    "hem": {
-    "open": 111,
-    "covered": 201,
-    "band": 639,
-    "lips": 111
+    "open": 132,
+    "covered": 180,
+    "band": 707,
+    "lips": 132
    }
   },
   "Sash": {
@@ -402,38 +402,38 @@
  },
  "shading": {
   "PilgrimTrousers": {
-   "shadow": 0.273,
-   "hatched": 0.36,
-   "change": 0.0678
+   "shadow": 0.271,
+   "hatched": 0.358,
+   "change": 0.0674
   },
   "Sandals": {
-   "shadow": 0.217,
-   "hatched": 0.221,
-   "change": 0.0362
+   "shadow": 0.218,
+   "hatched": 0.222,
+   "change": 0.0363
   },
   "Tunic": {
-   "shadow": 0.294,
-   "hatched": 0.484,
-   "change": 0.0517
+   "shadow": 0.274,
+   "hatched": 0.438,
+   "change": 0.0476
   },
   "Sash": {
-   "shadow": 0.504,
-   "hatched": 0.805,
-   "change": 0.0671
+   "shadow": 0.435,
+   "hatched": 0.768,
+   "change": 0.056
   },
   "Robe": {
-   "shadow": 0.047,
-   "hatched": 0.072,
-   "change": 0.0084
+   "shadow": 0.048,
+   "hatched": 0.07,
+   "change": 0.0085
   },
   "Hood": {
    "shadow": 0.195,
-   "hatched": 0.283,
+   "hatched": 0.282,
    "change": 0.0376
   },
   "Soles": {
-   "shadow": 0.304,
-   "hatched": 0.368,
+   "shadow": 0.303,
+   "hatched": 0.367,
    "change": 0.0539
   }
  },
@@ -444,11 +444,11 @@
    "Skin>Tunic": 3,
    "PilgrimTrousers>Tunic": 431,
    "Skin>Sash": 0,
-   "Tunic>Sash": 547,
+   "Tunic>Sash": 530,
    "Skin>Robe": 0,
-   "Tunic>Robe": 4651,
-   "PilgrimTrousers>Robe": 545,
-   "Sash>Robe": 246,
+   "Tunic>Robe": 4368,
+   "PilgrimTrousers>Robe": 489,
+   "Sash>Robe": 251,
    "Skin>Hood": 0,
    "Robe>Hood": 581,
    "Tunic>Hood": 804
@@ -584,16 +584,16 @@
      "deepestMm": 0.0
     },
     "Tunic>Sash": {
-     "out": 3,
-     "deepestMm": 1.8
+     "out": 0,
+     "deepestMm": 0.0
     },
     "Skin>Robe": {
      "out": 0,
      "deepestMm": 0.0
     },
     "Tunic>Robe": {
-     "out": 13,
-     "deepestMm": 31.8
+     "out": 0,
+     "deepestMm": 0.0
     },
     "PilgrimTrousers>Robe": {
      "out": 0,
@@ -639,15 +639,15 @@
     },
     "Tunic>Sash": {
      "out": 1,
-     "deepestMm": 24.9
+     "deepestMm": 20.6
     },
     "Skin>Robe": {
      "out": 0,
      "deepestMm": 0.0
     },
     "Tunic>Robe": {
-     "out": 10,
-     "deepestMm": 30.1
+     "out": 1,
+     "deepestMm": 1.0
     },
     "PilgrimTrousers>Robe": {
      "out": 0,
@@ -692,24 +692,24 @@
      "deepestMm": 0.0
     },
     "Tunic>Sash": {
-     "out": 3,
-     "deepestMm": 1.5
+     "out": 0,
+     "deepestMm": 0.0
     },
     "Skin>Robe": {
      "out": 0,
      "deepestMm": 0.0
     },
     "Tunic>Robe": {
-     "out": 21,
-     "deepestMm": 23.1
+     "out": 4,
+     "deepestMm": 2.5
     },
     "PilgrimTrousers>Robe": {
      "out": 0,
      "deepestMm": 0.0
     },
     "Sash>Robe": {
-     "out": 0,
-     "deepestMm": 0.0
+     "out": 1,
+     "deepestMm": 3.3
     },
     "Skin>Hood": {
      "out": 0,
