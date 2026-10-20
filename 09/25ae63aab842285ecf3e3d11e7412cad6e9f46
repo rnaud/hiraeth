@@ -1,0 +1,43 @@
+changelog.md
+  s_5f899ba316b5dc::t_e8ff8c99419b47 7
+docs/systems/bridge-gaps.md
+  s_5f899ba316b5dc::t_4709fb1a5de878 15,51,92
+docs/systems/characters.md
+  s_5f899ba316b5dc::t_bf24aec02c06cd 1200-1207
+docs/systems/dev-tools.md
+  s_5f899ba316b5dc::t_2c9e1bdd218647 96-106
+engine/bridge-gaps.js
+  s_5f899ba316b5dc::t_6919c6c66da794 61,317-319
+src/air-moves.js
+  s_5f899ba316b5dc::t_31b0e68c336aea 25-28,57,60-61
+src/animator.js
+  s_5f899ba316b5dc::t_88be786267a5e2 30-35,564-565,631-645,767-768
+src/changelog-media.js
+  s_5f899ba316b5dc::t_48e90125588f7f 1364
+src/changelog.js
+  s_5f899ba316b5dc::t_bdf34c2869daae 31-34
+src/main.js
+  s_5f899ba316b5dc::t_238b0411286180 113-114,1704-1705
+src/pose-report.js
+  s_5f899ba316b5dc::t_779eaf1a41c38c 1-58
+src/talk-gesture.js
+  s_5f899ba316b5dc::t_ca354041b9d4c6 61-62,175,177,185
+tests/pose-guards.test.js
+  s_5f899ba316b5dc::t_236d5f3a51d65f 1-113
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0925ae63aab842285ecf3e3d11e7412cad6e9f46",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
