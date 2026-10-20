@@ -8,7 +8,7 @@
 //   arrivalHearts('bazaar')        → 15: the start and every heart container sold in the worlds before it
 //   const pay = harmBank(); pay(0.1) → 0, pay(0.1) → 0.25 (carried), …
 
-import { ORDER } from '../levels/names.js';
+import { ORDER, MERGED } from '../levels/names.js';
 import { SHOPS } from '../shop.js';
 import { HEARTS } from '../resources.js';
 
@@ -23,11 +23,12 @@ export const FIGHT_HARM = { ref: 12, rise: 0.5, hazards: 1, blow: 1 };
 /**
  * The hearts a traveller can have arriving in each world of the route: the start, and every heart container sold in the
  * shops of the worlds before it (src/shop.js SHOPS). What a careful player has; the combat review plays with the same
- * (scripts/combat-review/lib.mjs heartsOnArrival).
+ * (scripts/combat-review/lib.mjs heartsOnArrival). A shop in a merged world's part counts in its world (`merged`:
+ * src/levels/names.js MERGED; issue #560: the Almonry's and the Welcome-Shelf's hearts, Vael's and Lorn's, were left out).
  */
-export function arrivalTable(shops = SHOPS, order = ORDER, start = HEARTS.start) {
+export function arrivalTable(shops = SHOPS, order = ORDER, start = HEARTS.start, merged = MERGED) {
   const per = {};
-  for (const s of Object.values(shops)) per[s.world] = (per[s.world] ?? 0) + (s.wares.find((w) => w.id === 'heart')?.stock ?? 0);
+  for (const s of Object.values(shops)) { const w = merged[s.world] ?? s.world; per[w] = (per[w] ?? 0) + (s.wares.find((x) => x.id === 'heart')?.stock ?? 0); }
   const out = {}; let h = start;
   for (const w of order) { out[w] = h; h += per[w] ?? 0; }
   return out;

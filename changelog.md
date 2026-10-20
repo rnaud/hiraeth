@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.87 — 2026-10-19
 
+- From Lorn on, the fight temples now count the heart sold at the Almonry in Vael and the one at the Welcome-Shelf in Lorn among the hearts you can have on arriving, so their blows strike as hard as they were tuned to for a traveller who bought every heart: about an eighth harder than before.
 - A makers’ chest behind a court’s gate or a small lock is no longer pointed out before you have the tool that opens it. The temple’s keeper gives you its quest, the locals tell you where it is and the pale column rises over its court only once that tool is yours, most often after the same world’s makers’ house.
 - Every fragment of the singing light now sits on something instead of a bare ledge or corner: inside a ribcage, on a roof or a temple’s steps, a tower’s balcony, the high ring round the City-Shaft’s spire, a moon’s courtyard, never more than two on one place and spread over the whole world; where a world had no landmark left, a little stone cairn or plinth holds one. Most of them moved; the first one in the Desert sings at the cairn beside your ship, and people’s hints name the place. Those you already found stay found.
 - The first time you pick up a fragment of the singing light, Anselm no longer just appears beside you: you see him run in from out of sight, his brass box ticking faster as he comes, and stop beside you out of breath before he speaks. B / ○ skips it.

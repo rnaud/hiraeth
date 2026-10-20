@@ -4,6 +4,8 @@
 // damage and a cycle time, and scores each foe on the rubric from its tuning and from what the Arena run measured.
 // Every automatic score is a starting point the reviewer confirms or overrides by eye (the contact sheet, playing).
 
+import { MERGED } from '../../src/levels/names.js';
+
 /** The player's moves, from the tuning the game exports (src/fluid-blade.js, src/fluid-tool.js FLUID, src/fluid-kit.js MODES). */
 export function movesFrom({ BLADE, SWINGS, CHARGE, AIR, RIPOSTE, DASH, FLUID, MODES }) {
   // a move's length as played: its authored phases (wind, active, recover: src/fluid-blade.js attackSample) when it has
@@ -207,11 +209,12 @@ export const median = (xs) => { const s = xs.filter(Number.isFinite).sort((a, b)
 /**
  * The hearts a traveller can have arriving in each world of the route: the start, and every heart container of the shops
  * in the worlds before it bought (src/shop.js SHOPS: { world, wares: [{ id: 'heart', stock }] }); `own`: with its own
- * shop's too. An upper bound: what a careful player who buys every container has.
+ * shop's too. An upper bound: what a careful player who buys every container has. A shop in a merged world's part
+ * counts in its world (`merged`: src/levels/names.js MERGED; issue #560: the Almonry's in Vael, the Welcome-Shelf's in Lorn).
  */
-export function heartsOnArrival(SHOPS, order, start = 3) {
+export function heartsOnArrival(SHOPS, order, start = 3, merged = MERGED) {
   const per = {};
-  for (const s of Object.values(SHOPS)) per[s.world] = (per[s.world] ?? 0) + (s.wares.find((w) => w.id === 'heart')?.stock ?? 0);
+  for (const s of Object.values(SHOPS)) { const w = merged[s.world] ?? s.world; per[w] = (per[w] ?? 0) + (s.wares.find((x) => x.id === 'heart')?.stock ?? 0); }
   const out = {}; let h = start;
   for (const w of order) { out[w] = { arrival: h, own: h + (per[w] ?? 0) }; h += per[w] ?? 0; }
   return out;

@@ -3,7 +3,8 @@
 // hazards' totals under the foes' and near the one-shot hazards'.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { ORDER } from '../src/levels/names.js';
+import { ORDER, partOf } from '../src/levels/names.js';
+import { HEARTS } from '../src/resources.js';
 import { SHOPS } from '../src/shop.js';
 import { FIGHT_HARM, arrivalHearts, arrivalTable, harmScale, fightHarm, harmBank, hazardScale } from '../src/fight-temples/harm.js';
 import { HAZARD, hazardEvery, STEADY, LINGERING } from '../src/fight-temples/hazards.js';
@@ -20,6 +21,26 @@ test('the hearts on arrival: the start, then every container sold before; the sa
   assert.equal(arrivalHearts('desert'), 3);
   assert.ok(arrivalHearts('bazaar') >= 12, `the last: ${arrivalHearts('bazaar')}`);
   assert.deepEqual(arrivalTable(SHOPS, ORDER), Object.fromEntries(ORDER.map((w) => [w, review[w].arrival])));
+});
+
+test('every heart container sold on the route is counted, a merged part’s shop in its world (issue #560)', () => {
+  // (the Almonry, Vael's sky stones', and the Welcome-Shelf, Lorn's Deep Wood's, stand in parts never in ORDER; the
+  // Sealed Hangar's hatch, a dismissed world's, is sold nowhere now)
+  const heartsOf = (s) => s.wares.find((w) => w.id === 'heart')?.stock ?? 0;
+  const route = Object.values(SHOPS).filter((s) => ORDER.includes(partOf(s.world)));
+  assert.ok(route.some((s) => s.id === 'almonry') && route.some((s) => s.id === 'welcome'), 'the two parts’ shops are on the route');
+  const sold = route.reduce((n, s) => n + heartsOf(s), 0);
+  const review = L.heartsOnArrival(SHOPS, ORDER), last = ORDER.at(-1);
+  assert.equal(review[last].own, HEARTS.start + sold, `every container: ${HEARTS.start} + ${sold}`);
+  // each shop's hearts are there from the next world on, in both tables
+  for (const s of route) {
+    const i = ORDER.indexOf(partOf(s.world));
+    if (i + 1 >= ORDER.length) continue;
+    const before = route.filter((t) => ORDER.indexOf(partOf(t.world)) < i + 1).reduce((n, t) => n + heartsOf(t), 0);
+    assert.equal(arrivalHearts(ORDER[i + 1]), HEARTS.start + before, `${s.id} (${s.world}): counted by ${ORDER[i + 1]}`);
+  }
+  assert.equal(arrivalHearts('perdide'), arrivalHearts('arzach') + heartsOf(SHOPS.windshelf) + heartsOf(SHOPS.almonry), 'Vael’s two shops before Lorn');
+  assert.equal(arrivalHearts('edena'), arrivalHearts('perdide') + heartsOf(SHOPS.float) + heartsOf(SHOPS.welcome), 'Lorn’s two before Viridel');
 });
 
 test('the scale rises with the hearts and along the route: each temple costs a like share, the last a little more', () => {

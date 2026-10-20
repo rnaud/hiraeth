@@ -72,6 +72,24 @@ export const CHANGELOG = [
     // little-chests.test.js
     { text: 'A makers’ chest behind a court’s gate or a small lock is no longer pointed out before you have the tool that opens it. The temple’s keeper gives you its quest, the locals tell you where it is and the pale column rises over its court only once that tool is yours, most often after the same world’s makers’ house.',
       see: 'In Vael, before the Founders’ Belfry: the Aerie’s keeper says nothing of the chests on the needle spire and in the pale court, and no column stands over the court. Come out of the Belfry with the grappling hook and talk to them again: now they tell you of both.' },
+    // issue #560: src/fight-temples/harm.js arrivalTable, scripts/combat-review/lib.mjs heartsOnArrival (a merged part's
+    // shop in its world: src/levels/names.js MERGED); tests/fight-temple-harm.test.js
+    { text: 'From Lorn on, the fight temples now count the heart sold at the Almonry in Vael and the one at the Welcome-Shelf in Lorn among the hearts you can have on arriving, so their blows strike as hard as they were tuned to for a traveller who bought every heart: about an eighth harder than before.',
+      numbers: [
+        { title: 'The hearts you can have on arriving, before → after', unit: 'hearts', better: 'higher', device: 'src/fight-temples/harm.js arrivalTable (every heart container bought)',
+          rows: [
+            { where: 'Lorn', before: 6, after: 7 },
+            { where: 'Viridel', before: 7, after: 9 },
+            { where: 'the Glass Dunes', before: 10, after: 12 },
+            { where: 'the Signal Market', before: 15, after: 17 },
+          ], source: 'issue #560' },
+        { title: 'Hearts lost ÷ hearts on arrival, the skilled bot, one run each, before → after', unit: 'share', better: 'lower', device: 'Mac, headless Chrome, Normal',
+          rows: [
+            { where: 'the Kiln Yard (10 → 12 hearts; not cleared in 420 s before, C after)', before: 0.7, after: 0.88 },
+            { where: 'the Oil Exchange (14 → 16 hearts; C, C)', before: 0.98, after: 0.72 },
+            { where: 'the Back Rooms (15 → 17 hearts; A → B)', before: 0.33, after: 0.54 },
+          ], source: '.claude/skills/combat-review/fight-temples.mjs --bot skilled --seed 4821; issue #560', note: 'One run is one run: the crowd’s blows move a run’s total by a fifth either way. Every run after stays under all your hearts, with no knock-out, inside the 0.4–1 the v1.87 review saw from the first temple to the last.' }],
+      see: 'In the Back Rooms of the Signal Market, with every heart bought on the way: each blow now takes a little more than before, still far from all your hearts if you roll.' },
   ] },
   { v: '1.86', date: '2026-10-19', items: [
     // issue #483: src/story/hosts-data.js (the fight hosts' second lines), src/fight-temples/<world>.js (blurb, quiet),

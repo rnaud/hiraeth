@@ -195,10 +195,11 @@ run's title says the house "is quiet" (issue #483).
 
 **Harm along the route** (issues #532, #533; `src/fight-temples/harm.js`). Every blow and every hazard in a temple is
 scaled by `fightHarm(world)`: the hearts a traveller has on arriving in that world (`arrivalHearts`: the start's 3 and
-every heart container sold in the worlds before it, 3 in the desert … 15 in the Signal Market; the combat review plays
+every heart container sold in the worlds before it, a merged world's part's shop counted in its world (issue #560: the
+Almonry's in Vael, the Welcome-Shelf's in Lorn), 3 in the desert … 17 in the Signal Market; the combat review plays
 with the same), over `FIGHT_HARM.ref` (12), times a rise of `FIGHT_HARM.rise` (half) from the first world to the last.
 So each temple costs a like share of his hearts, a little more the further he is: the Sunken Hall's blows strike at a
-quarter of their own, the Back Rooms' at 1.9 times. It takes the place of the stage's `HARM_BY_STAGE` in here (`Foes`
+quarter of their own, the Back Rooms' at 2.1 times. It takes the place of the stage's `HARM_BY_STAGE` in here (`Foes`
 `harmScale`); a table's `stage` still sets how many strike at once, and its `harm` would set its scale by hand. The
 hazards take the same scale but never above their own (`hazardScale`, `FIGHT_HARM.hazards` 1): the rise is the foes',
 and a hazard learnt in one room should not cost more in the next world (at 1.6–1.9 times, the oil, the shade and the
