@@ -82,3 +82,20 @@ test('a script’s word is as wide as its English in the panel’s face (measure
 test('the dev panels keep the mono; their reasons are written', () => {
   for (const [p, why] of Object.entries(MONO_OK)) assert.ok(why.length > 8, relative('.', p));
 });
+
+// Issue #556 (the post-audit Unity check): the Unity build's HUD (the JS bridge's uGUI, BridgeHud) set a minigame's flashes
+// (the chime pirates' place names, "Finish!", "+3 s"), the gadget marks' numbers and the chimes' count in the monospace the
+// page left behind in #423; the page sets them in its face (minigames.css .mg-flash, #gadget-marks .m b, #health .chimes).
+// The mono stays only where the bridge warms it and on the gadget wheel's glyphs (symbols, drawn over its pictures).
+test('the Unity build\'s HUD sets what a player reads in the page\'s face: no monospace in the JS bridge\'s words', () => {
+  const dir = 'unity/Hiraeth/Assets/HiraethJS/Runtime';
+  const MONO_UNITY_OK = [/Warm\(Ui\.Mono\)/, /MakeDisc\(gWheel, "slot"/];
+  const bad = [];
+  for (const n of readdirSync(join(ROOT, dir)).filter((f) => f.endsWith('.cs'))) {
+    read(join(dir, n)).split('\n').forEach((l, i) => { if (/Ui\.Mono\b/.test(l) && !MONO_UNITY_OK.some((r) => r.test(l))) bad.push(`${n}:${i + 1}: ${l.trim().slice(0, 120)}`); });
+  }
+  assert.deepEqual(bad, []);
+  const hud = read(join(dir, 'BridgeHud.cs'));
+  assert.match(hud, /"mg flash"[\s\S]{0,300}Ui\.Label\(box\.rt, "text", Ui\.Sans/, 'a minigame\'s flash in the page\'s face');
+  assert.match(hud, /"chimes", Ui\.SansHeavy/, 'the chimes\' count in the face at its heavy weight, as #health .chimes');
+});

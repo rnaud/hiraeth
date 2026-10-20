@@ -1309,6 +1309,8 @@ const FRAG550 = 'Issue #550: muted headless Chrome (High, 1280 × 720, 10:00, cl
 /** (v1.87, issue #550's third pass: roofs and squares in the Signal Market and on the City-Shaft's rim) */
 const ROOF550 = 'Issue #550: muted headless Chrome (High, 1280 × 720, 10:00, clear) on a Vite of its own (port 5491; the before on a copy of main at f9d480cde, port 5495), the camera pinned at eye height on the ground 20 m off, the same eye and target before and after, the HUD hidden; 20 October; cwebp -q 72';
 const WATER553 = 'Issue #553: headless Chrome on the GPU at High, 10 in the morning, clear, the camera pinned (changelog-shots.mjs shoot), the Rose House calmed and the pan flooded in the save; before b077eaf94, after its fix, 19 October; cwebp -q 72';
+/** (v1.87, issue #556: the Unity HUD's words in the page's face) */
+const FLASH556 = 'Issue #556: the Unity editor\'s batch run (scripts/unity-compare/sequences.mjs unity game-pirates-ice: -sequence, High, a 1280 × 720 screen, muted), the sequence\'s beat at the 3-2-1\'s 1, cropped to the place\'s card; before: origin/main at fec81d291, after: this change; 20 October; cwebp -q 72';
 /** (v1.87, issue #552: straps across the chest lie on the body) */
 const STRAP552 = 'Issue #552: the game’s own captureView in muted headless Chrome (High, 1280 × 720, 10:00, clear) on a Vite of its own (port 5552), the person held still at one spot and heading, the camera 1.8 m from them; before: b077eaf94, after: this branch; 19 October; cwebp -q 72';
 const RETROID404B = 'Retroid Pocket Nova (Adreno 740, Vulkan), the Unity build at Handheld, FSR 1 to 1280 × 960 with dynamic resolution 0.67 → 0.5, the near shadow map 2048² every frame, muted; before, the levels off (-still-lod-tris 0), after, as shipped with the levels read from the cache; the same APK (build 2745), interleaved world by world, the second of two passes';
@@ -1335,6 +1337,9 @@ export const CHANGELOG_MEDIA = {
     ], see: 'Calm any makers’ house’s keeper (or open Debug → Cinematics, Temple endings): after the keeper and its chimes, its own panel, then the way out from inside the hall.' },
   ],
   '1.87': [
+    { match: 'In the Unity version, the chime pirates’ place names and a minigame’s other call-outs', tags: ['menus'], shots: [
+      { name: 'unity-flash-556', title: 'Out of the warp', size: [600, 200], caption: 'The Unity version, the chime pirates on the way to Edena, the Frost Moon’s name as the ship comes out of the warp: before, in a typewriter face; after, in the game’s own, as the web sets it', from: FLASH556 },
+    ], see: 'In the Unity version, fly the chime pirates on the way to a new world: the place’s name as you come out of the warp.' },
     { match: 'In the Mooring-House each lock now shows its answer from where you stand', tags: ['temples'], shots: [
       { name: 'mooring-westdoor-561', title: 'The west door', size: [1280, 720], caption: 'The Mooring-House’s upper west landing: before, the west door shut, its chain’s ring three rooms away in a locker off the east landing; after, the door open on the Chain Locker, its ball, its well and the far door it opens all in sight', from: LEVEL561 },
       { name: 'mooring-d1-561', title: 'The great door', size: [1280, 720], caption: 'From the great door, the Capstan Hall: after, a glazed window beside the shaft’s gate (middle), the lamp-eye that opens the door seen through it on its pier', from: LEVEL561 },

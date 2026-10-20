@@ -9,7 +9,7 @@
 //   QC_VITE_CACHE: the dev server's cache folder (default: in Chrome's throwaway profile; in a worktree whose node_modules is
 //   a link to the main checkout's, give one inside the worktree, .vite-cache/qc, or its deps cannot find three)
 // A view: { world, name, eye, target, player?, heading?, hour?, weather?, fov?, flags? (the save its world boots with), act? (an expression
-// run in the page before the shot) }.
+// run in the page before the shot), npc? (aimed at that person instead of eye and target: dist?, side?, face?, dy?) }.
 // Writes <out-dir>/<view name>.png for each view, <svg name>.png beside each SVG, and <out-dir>/captured.json (each view's
 // draw calls and triangles a frame, averaged over a second before the shot).
 import { spawn } from 'node:child_process';
@@ -72,9 +72,18 @@ if (worlds.length) {
   await send('Emulation.setDeviceMetricsOverride', { width: W, height: H, deviceScaleFactor: 1, mobile: false });
 }
 const BASE = `http://127.0.0.1:${PORT}/`;
+// (a view's `npc`: aimed at that person wherever they stand now, as the engines' fixed views aim one (engine/unity/game.js
+// aimed: the eye `dist` m off their front, `side` m aside, at their chest; `face`: at their head), the traveller left where he is)
+const npcAim = (v) => `const n = (window.npcs ?? []).find((x) => x.def?.id === ${JSON.stringify(v.npc)} && !x.pooled);
+  if (!n) return 'ERR no ${v.npc} here';
+  const p = n.pos, h = n.heading ?? 0, d = ${v.dist ?? 2.8}, side = ${v.side ?? 0.6}, el = n.object?.matrixWorld?.elements, fl = el ? Math.hypot(el[8], el[10]) : 0;
+  const fx = fl > 1e-6 ? el[8] / fl : Math.sin(h), fz = fl > 1e-6 ? el[10] / fl : Math.cos(h);
+  const head = ${v.face ? 'n.humanoid?.b?.Head?.getWorldPosition?.(p.clone())' : 'null'};
+  const t = head ? new THREE.Vector3(head.x, head.y + 0.05, head.z) : new THREE.Vector3(p.x, p.y + ${v.face ? 1.6 : 1.1}, p.z);
+  const e = new THREE.Vector3(t.x + fx * d + fz * side, ${v.face ? 't.y' : 'p.y + 1.5'} + ${v.dy ?? 0}, t.z + fz * d - fx * side);`;
 const pin = (v) => `(() => { const { THREE, camera, player } = window, up = new THREE.Vector3(0, 1, 0), m = new THREE.Matrix4();
-  const e = new THREE.Vector3(...${JSON.stringify(v.eye)}), t = new THREE.Vector3(...${JSON.stringify(v.target)});
-  window.__pin = { e, q: new THREE.Quaternion().setFromRotationMatrix(m.lookAt(e, t, up)), fov: ${v.fov ?? 60}, far: ${v.far ?? 0} };
+  ${v.npc ? npcAim(v) : `const e = new THREE.Vector3(...${JSON.stringify(v.eye)}), t = new THREE.Vector3(...${JSON.stringify(v.target)});`}
+  window.__pin = { e, q: new THREE.Quaternion().setFromRotationMatrix(m.lookAt(e, t, up)), fov: ${v.fov ?? (v.npc ? 45 : 60)}, far: ${v.far ?? 0} };
   if (!camera.__pinned) { const base = THREE.PerspectiveCamera.prototype.updateMatrixWorld; camera.__pinned = true;
     camera.updateMatrixWorld = function (f) { const P = window.__pin; if (P) { this.position.copy(P.e); this.quaternion.copy(P.q); if (this.fov !== P.fov || (P.far && this.far < P.far)) { this.fov = P.fov; if (P.far) this.far = P.far; this.updateProjectionMatrix(); } } return base.call(this, f); };
     // (and as soon as the follow camera has moved, so what the frame's updates measure from the eye is measured from the
@@ -107,6 +116,7 @@ for (const [n, world] of worlds.entries()) {
     if (v.act) { await sleep(1500); const r = await ev(v.act); if (typeof r === 'string' && r.startsWith('ERR')) console.log(`${v.name}: ${r}`); }
     await ev(`(() => { if (window.sky) { window.sky.hour = ${v.hour ?? 12}; window.sky.speed = 0; window.updateSky?.(); } return true; })()`);
     await sleep(v.player ? 3500 : 2500);   // (a teleport: the world round him streams in)
+    if (v.npc) { const r = await ev(pin(v)); if (typeof r === 'string' && r.startsWith('ERR')) console.log(`${v.name}: ${r}`); }   // (aimed again where they have walked to)
     // (the frame's draw calls and triangles over a second, from main.js frameStats: a change's cost, view by view)
     const cost = await ev(`new Promise((r) => { const f = window.frameStats, s = []; const t = setInterval(() => { if (f?.n) s.push([f.calls / f.n, f.tris / f.n]); }, 40);
       setTimeout(() => { clearInterval(t); const m = (i) => s.length ? Math.round(s.reduce((a, x) => a + x[i], 0) / s.length) : null; r({ calls: m(0), tris: m(1) }); }, 1200); })`);

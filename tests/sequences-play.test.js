@@ -5,7 +5,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { checkSequences, checkList } from './sequences-check.js';
-import { SEQUENCES, SequenceRun, compareBeat, compareStreams, listedDiff, webQuery } from '../engine/sequences.js';
+import { SEQUENCES, SequenceRun, compareBeat, compareStreams, listedDiff, webQuery, engineGameArg } from '../engine/sequences.js';
+import { LEVELS } from '../src/minigames/pirates-rules.js';
 import { loadBundle } from '../engine/vm-run.mjs';
 import { SEED } from '../engine/sequence-run.mjs';
 import { writeFileSync } from 'node:fs';
@@ -24,6 +25,20 @@ test('the sequences cover what issue #429 asks for', () => {
   assert.ok(SEQUENCES.filter((s) => s.id.startsWith('moment-')).length >= 17, 'every world\'s moment');
   for (const s of SEQUENCES) assert.equal(new Set(s.beats.map((b) => b.name)).size, s.beats.length, `${s.id}: its beats' names are its pictures' names`);
   assert.equal(webQuery({ level: 'desert', game: 'rings' }), '?level=desert&game=rings&from=desert');
+});
+
+test('a game\'s page with its address\'s words, the same on both sides: the chime pirates\' four places, each a sequence (issues #555, #556)', () => {
+  assert.equal(webQuery({ level: 'desert', game: 'pirates', stage: 'ice', to: 'edena' }), '?level=desert&game=pirates&from=desert&stage=ice&to=edena');
+  // (the Unity host's -game: the id, then the address's words, as the engines' readHref (engine/trials.js) reads them)
+  const arg = engineGameArg({ game: 'pirates', stage: 'ice', to: 'edena' });
+  assert.equal(arg, 'pirates?stage=ice&to=edena');
+  const q = new URLSearchParams(arg.split('?')[1]);
+  assert.equal(q.get('stage'), 'ice'); assert.equal(q.get('to'), 'edena');
+  assert.equal(engineGameArg({ game: 'rings' }), 'rings');
+  assert.equal(engineGameArg({ levelId: 'desert' }), null);
+  const places = SEQUENCES.filter((s) => s.id.startsWith('game-pirates-'));
+  assert.deepEqual(places.map((s) => s.setup.stage).sort(), LEVELS.map((l) => l.id).sort(), 'every place of theirs a sequence');
+  assert.ok(SEQUENCES.some((s) => s.id === 'thrum-arrival'), 'Anselm\'s arrival on the first fragment (issue #550)');
 });
 
 test('the engines\' VM seeded: its Math.random one fixed run each time, node\'s own left alone (issue #454)', () => {

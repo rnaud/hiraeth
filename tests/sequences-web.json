@@ -1,6 +1,6 @@
 {
   "recorded": "2026-10-20",
-  "sha": "9986aa322",
+  "sha": "fec81d291",
   "how": "node scripts/unity-compare/sequences.mjs web [ids] && node scripts/unity-compare/sequences.mjs record",
   "sequences": {
     "moment-desert.flow": {
@@ -6768,6 +6768,376 @@
             96.7,
             13.5,
             167.6
+          ],
+          "late": false
+        }
+      ]
+    },
+    "thrum-arrival": {
+      "beats": [
+        {
+          "beat": "taken",
+          "hud": {
+            "cine": {
+              "bars": true,
+              "lids": false,
+              "hud": false,
+              "walk": false,
+              "skip": true
+            }
+          },
+          "menu": null,
+          "playing": {
+            "what": "moment:thrum.arrival",
+            "stage": null
+          },
+          "objects": {
+            "ink": 1549,
+            "print": 1,
+            "hidden": 1,
+            "chimeshade": 1,
+            "wisp": 1
+          },
+          "cam": [
+            61,
+            21.5,
+            161.7,
+            40.5
+          ],
+          "player": [
+            59.6,
+            19.9,
+            160
+          ],
+          "late": false
+        },
+        {
+          "beat": "run",
+          "hud": {
+            "cine": {
+              "bars": true,
+              "lids": false,
+              "hud": false,
+              "walk": false,
+              "skip": true
+            }
+          },
+          "menu": null,
+          "playing": {
+            "what": "moment:thrum.arrival",
+            "stage": null
+          },
+          "objects": {
+            "ink": 1608,
+            "print": 1,
+            "hidden": 1,
+            "chimeshade": 1,
+            "wisp": 1,
+            "mote": 1
+          },
+          "cam": [
+            56.7,
+            21.7,
+            159.6,
+            40.5
+          ],
+          "player": [
+            59.6,
+            19.9,
+            160
+          ],
+          "late": false
+        },
+        {
+          "beat": "two",
+          "hud": {
+            "cine": {
+              "bars": true,
+              "lids": false,
+              "hud": false,
+              "walk": false,
+              "skip": true
+            }
+          },
+          "menu": null,
+          "playing": {
+            "what": "moment:thrum.arrival",
+            "stage": null
+          },
+          "objects": {
+            "ink": 1671,
+            "planet": 1,
+            "shader": 2,
+            "print": 1,
+            "hidden": 1,
+            "chimeshade": 1,
+            "wisp": 1,
+            "mote": 1
+          },
+          "cam": [
+            55.9,
+            21.1,
+            165.3,
+            39.8
+          ],
+          "player": [
+            59.6,
+            19.9,
+            160
+          ],
+          "late": false
+        },
+        {
+          "beat": "talk",
+          "hud": {
+            "dialogue": {
+              "name": "Anselm Thrum",
+              "text": "Out of breath, a brass box ticking in his hand.) Don’t drop it!",
+              "choices": []
+            }
+          },
+          "menu": null,
+          "playing": null,
+          "objects": {
+            "ink": 1671,
+            "planet": 1,
+            "shader": 2,
+            "print": 1,
+            "hidden": 1,
+            "chimeshade": 1,
+            "wisp": 1,
+            "mote": 1
+          },
+          "cam": [
+            55.1,
+            21.5,
+            164.9,
+            52
+          ],
+          "player": [
+            59.6,
+            19.9,
+            160
+          ],
+          "late": false
+        }
+      ]
+    },
+    "game-pirates-drift": {
+      "beats": [
+        {
+          "beat": "named",
+          "hud": {
+            "minigame": true
+          },
+          "menu": null,
+          "playing": null,
+          "objects": {
+            "ink": 75,
+            "print": 1,
+            "chimeshade": 1
+          },
+          "cam": [
+            7.4,
+            10.3,
+            14,
+            50
+          ],
+          "player": [
+            0,
+            -80,
+            60
+          ],
+          "late": false
+        },
+        {
+          "beat": "run",
+          "hud": {
+            "pirates": true,
+            "minigame": true
+          },
+          "menu": null,
+          "playing": null,
+          "objects": {
+            "ink": 71,
+            "print": 1,
+            "chimeshade": 1
+          },
+          "cam": [
+            13.8,
+            12.5,
+            -93.9,
+            50
+          ],
+          "player": [
+            0,
+            -80,
+            60
+          ],
+          "late": false
+        }
+      ]
+    },
+    "game-pirates-mines": {
+      "beats": [
+        {
+          "beat": "named",
+          "hud": {
+            "minigame": true
+          },
+          "menu": null,
+          "playing": null,
+          "objects": {
+            "ink": 75,
+            "print": 1,
+            "chimeshade": 1
+          },
+          "cam": [
+            7.4,
+            10.3,
+            14,
+            50
+          ],
+          "player": [
+            0,
+            -80,
+            60
+          ],
+          "late": false
+        },
+        {
+          "beat": "run",
+          "hud": {
+            "pirates": true,
+            "minigame": true
+          },
+          "menu": null,
+          "playing": null,
+          "objects": {
+            "ink": 70,
+            "print": 1,
+            "chimeshade": 1
+          },
+          "cam": [
+            13.8,
+            9.4,
+            -93.8,
+            50
+          ],
+          "player": [
+            0,
+            -80,
+            60
+          ],
+          "late": false
+        }
+      ]
+    },
+    "game-pirates-ice": {
+      "beats": [
+        {
+          "beat": "named",
+          "hud": {
+            "minigame": true
+          },
+          "menu": null,
+          "playing": null,
+          "objects": {
+            "ink": 75,
+            "print": 1,
+            "chimeshade": 1
+          },
+          "cam": [
+            7.4,
+            10.3,
+            14,
+            50
+          ],
+          "player": [
+            0,
+            -80,
+            60
+          ],
+          "late": false
+        },
+        {
+          "beat": "run",
+          "hud": {
+            "pirates": true,
+            "minigame": true
+          },
+          "menu": null,
+          "playing": null,
+          "objects": {
+            "ink": 71,
+            "print": 1,
+            "chimeshade": 1
+          },
+          "cam": [
+            13.8,
+            12.4,
+            -93.1,
+            50
+          ],
+          "player": [
+            0,
+            -80,
+            60
+          ],
+          "late": false
+        }
+      ]
+    },
+    "game-pirates-wrecks": {
+      "beats": [
+        {
+          "beat": "named",
+          "hud": {
+            "minigame": true
+          },
+          "menu": null,
+          "playing": null,
+          "objects": {
+            "ink": 75,
+            "print": 1,
+            "chimeshade": 1
+          },
+          "cam": [
+            7.4,
+            10.3,
+            14,
+            50
+          ],
+          "player": [
+            0,
+            -80,
+            60
+          ],
+          "late": false
+        },
+        {
+          "beat": "run",
+          "hud": {
+            "pirates": true,
+            "minigame": true
+          },
+          "menu": null,
+          "playing": null,
+          "objects": {
+            "ink": 71,
+            "print": 1,
+            "chimeshade": 1
+          },
+          "cam": [
+            13.8,
+            12.4,
+            -93.1,
+            50
+          ],
+          "player": [
+            0,
+            -80,
+            60
           ],
           "late": false
         }

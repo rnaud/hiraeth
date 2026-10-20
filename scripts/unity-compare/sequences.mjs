@@ -240,7 +240,7 @@ function record() {
   const was = readJson(FIXTURE, { sequences: {} });
   const seqs = { ...was.sequences };
   for (const [id, v] of Object.entries(W)) if (v.beats?.length) seqs[id] = { beats: v.beats.map(({ t, late, ...b }) => ({ ...b, late })) };
-  writeFileSync(FIXTURE, `${JSON.stringify({ recorded: new Date().toISOString().slice(0, 10), sha, how: 'node scripts/unity-compare/sequences.mjs web [ids] && node scripts/unity-compare/sequences.mjs record', sequences: seqs }, null, 1)}\n`);
+  writeFileSync(FIXTURE, `${JSON.stringify({ recorded: new Date().toISOString().slice(0, 10), sha, how: 'node scripts/unity-compare/sequences.mjs web [ids] && node scripts/unity-compare/sequences.mjs record', sequences: seqs }, null, 2)}\n`);   // (two spaces, as the fixture is kept)
   console.log(`wrote ${relative(ROOT, FIXTURE)}: ${Object.keys(seqs).length} sequences`);
 }
 

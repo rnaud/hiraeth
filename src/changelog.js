@@ -15,6 +15,9 @@ export const CHANGELOG = [
     'Each makers’ house now ends on its own picture of what calming its keeper changed, after the keeper and its chimes: the Rose House’s cistern fills, the Clock-House’s stopped wall clocks race round to the right time, the tide spreads over the Whale-House’s floor, the Greenhouse’s beds fill with water, the Lamp-House’s lamp lights, and so on, instead of every house ending on the makers’ mark over a door. Then the way out opens, seen from inside its own hall. In the Whale-House the chimes land beside you and are in view, no longer under the Listener’s shell.',
   ] },
   { v: '1.87', date: '2026-10-19', items: [
+    // issue #556: BridgeHud.cs (a minigame's flashes, the gadget marks' numbers, the chimes' count in Ui.Sans / SansHeavy,
+    // the monospace before); tests/typefaces.test.js
+    'In the Unity version, the chime pirates’ place names and a minigame’s other call-outs, the chimes you carry and the numbers on the gadget marks are set in the game’s own lettering, as on the web, instead of a typewriter face.',
     // issue #559: src/story/hosts-data.js (the twelve fight hosts, Abner, Mirek, Omar), src/fight-temples/*.js (quiet,
     // blurbs), session.js (the cards), view.js LOCK_ANSWER, src/prompt-keys.js {key:roll}, kit/runner.js (keys in flashes and
     // results); tests/fight-temples-story.test.js, names.test.js, key-placeholder.test.js

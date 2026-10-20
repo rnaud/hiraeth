@@ -36,6 +36,7 @@ The same release notes shown in the game (press **N** or open settings).
 - Small fixes: Joss now says the machine letting the Mooring-House’s cables out is behind a barred gate, not at the top; the Quests page says Plumb finds your quest; a house’s map chest names your own button for the game menu; with Reduce motion on, a fight temple’s camera no longer slides toward a hazard; the first time R3 turns the camera behind you, a line says so; Nima’s dust joke sounds like a joke; Fenna’s gallery is the old city’s everywhere; Anselm’s box ticks, and he tells “some” singing from “a little”.
 - At your parents’ stone, Anselm’s lamp now lights the round window after the last words are said, without counting the splinters. The tune he sells stops short of its end, since only Ilen can give the light’s song back whole.
 - The twelve fight temples’ hosts each speak in their own voice now, each with a reason of their own and a last word of their own, instead of all promising to get back to work once you clear the place. Three people were renamed so no two names you meet blur together: the cistern’s digger is Omar, the Seed Vault’s keeper Abner and the Kiln Yard’s Mirek, in colours of his own. A fight temple’s cards count the foes you sent back into the floor and show your own buttons for aiming and rolling.
+- In the Unity version, the chime pirates’ place names and a minigame’s other call-outs, the chimes you carry and the numbers on the gadget marks are set in the game’s own lettering, as on the web, instead of a typewriter face.
 
 ## v1.86 — 2026-10-19
 

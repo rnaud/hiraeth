@@ -923,7 +923,8 @@ namespace Hiraeth.Bridge
                 if (mgFlash.Any(x => x.id == f.I("id"))) continue;
                 var kind = f.S("kind") ?? "";
                 var box = Ui.Panel(root, "mg flash", kind.Contains("bad") ? MgBad : kind.Contains("good") ? MgTeal : Ui.Page, Ui.Ink, 2, 3, 3);
-                var text = Ui.Label(box.rt, "text", Ui.Mono, kind.Contains("big") ? 27 : 16, kind.Contains("bad") ? MgCard : Ui.Ink, TextAnchor.MiddleCenter, FontStyle.Bold, 1.2f);
+                // (in the page's face, minigames.css .mg-flash: the monospace before, issue #556: the pirates' place names in it)
+                var text = Ui.Label(box.rt, "text", Ui.Sans, kind.Contains("big") ? 27 : 16, kind.Contains("bad") ? MgCard : Ui.Ink, TextAnchor.MiddleCenter, FontStyle.Bold, 1.2f);
                 Ui.Space(text, 0.06f);
                 text.text = f.S("text");
                 mgFlash.Add((box, text, f.I("id"), 0, Mathf.Max(0.3f, f.F("secs", 1.2f))));
@@ -1108,7 +1109,7 @@ namespace Hiraeth.Bridge
                 var dia = Ui.Panel(rt, "diamond", Ui.Hex("#f7ecd2", 0.75f), Ui.Red, 2.5f);
                 Ui.Place(dia.rt, 3, 3, 20, 20); dia.rt.localRotation = Quaternion.Euler(0, 0, 45);
                 dia.rt.pivot = new Vector2(0.5f, 0.5f); dia.rt.anchoredPosition = new Vector2(13, -13);
-                var num = Ui.Label(rt, "n", Ui.Mono, 11, Ui.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+                var num = Ui.Label(rt, "n", Ui.Sans, 11, Ui.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);   // (#gadget-marks .m b: the page's face)
                 Ui.Place(num.rectTransform, 0, 0, 26, 26);
                 gMarks.Add((rt, num));
             }
@@ -1655,7 +1656,7 @@ namespace Hiraeth.Bridge
             potionN = Ui.Label(heartRow, "potions", Ui.Sans, 17, Ui.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             { var o = potionN.gameObject.AddComponent<Outline>(); o.effectColor = Ui.Hex("#fffaf0", 0.8f); o.effectDistance = new Vector2(1, -1); }   // (the page's soft cream glow round the count)
             chimeIcon = Ui.Rect(heartRow, ChimeTeal, 0, "chime"); chimeIcon.rectTransform.localRotation = Quaternion.Euler(0, 0, 45);
-            chimeN = Ui.Label(heartRow, "chimes", Ui.Mono, 17, Ui.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+            chimeN = Ui.Label(heartRow, "chimes", Ui.SansHeavy, 17, Ui.Ink, TextAnchor.MiddleLeft, Ui.SansHeavyStyle);   // (#health .chimes: the page's face at 800)
             magicBox = Ui.Panel(heartRow, "magic", Cream, Ui.Ink, 2, 1.5f, 1.5f, 6);
             magicFill = Ui.Rect(magicBox.fill.rectTransform, MagicTeal, 0, "level");
             magicHatch = Ui.Fill(magicFill.rectTransform, new Color(Ui.Ink.r, Ui.Ink.g, Ui.Ink.b, 0.35f), 0, "hatch");

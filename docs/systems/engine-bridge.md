@@ -1798,6 +1798,29 @@ other views: the Overnight Train's glowing box on the platform, a far beacon in 
 
 (The other 23 views of those five worlds within 0.1 ΔE and 0.01 SSIM, the run's own noise.)
 
+**The night's landings, checked in Unity (#556, 2026-10-20).** Eleven changes landed on 19-20 October without a Unity run.
+Two additions to the check carry what they changed: `views.mjs --set changes` (the `CHANGES` table: views aimed from the game's
+own data in the VM, each world booted with the flags the views need, here the Rose House's keeper calmed and the roots drunk),
+and a view's `npc` on the web's side too (scripts/design-qc/capture.mjs, the eye aimed at that person where they stand, as
+engine/unity/game.js `aimed` does: Marrow walks a loop by the camps, so a fixed eye missed him on both sides). Five new
+sequences: the chime pirates' four places and Anselm's arrival (above). The standard views (87 now that the side worlds are
+discarded): mean ΔE 0.9, nothing from the night among the worst.
+
+| change | where (Unity against the web, High, 1280 × 720) | ΔE mean / worst cell | SSIM | verdict |
+|---|---|---|---|---|
+| #553 water in its beds, down the Rose House's steps | the steps from beside, from the foot; a field's channel; the lagoons | 1.4 / 5.6, 0.5 / 1.6, 0.7 / 2.1, 0.4 / 1.2 | 0.95, 0.97, 0.96, 0.93 | same |
+| #552 straps | Marrow (`npc`), Ferro | 0.4 / 1.6, 3.3 / 17.4 | 0.93, 0.80 | same (Ferro turns between the shots) |
+| #550 fragments on cairns, Anselm's arrival | Lorn's cairn, the Signal Market's plinth; `thrum-arrival` | 0.6 / 1.8, 0.3 / 2.9 | 0.92, 0.98; beats 0.87-0.97 | same |
+| #555 the pirates' four places | `game-pirates-*` | | 0.75-0.87 | **fixed**: the place's name in the monospace |
+| #561 Mooring-House, the mast, the Glass Dunes' posts | the great door, the west door; the roots to the mast; the posts | 0.5 / 6.0, 0.3 / 1.4, 0.4 / 2.5, 0.2 / 0.7 | 0.96, 0.98, 0.94, 0.94 | same |
+| #564 the bed maps' budget | the lagoons, every standard desert and Lorn view | ≤ 1.0 | ≥ 0.86 | same |
+| #551, #557, #559 | `talk`, `hold`, `plumb-talk`, `box`, `fight-temple`, `game-rings`; the engines' tests | | 0.51-0.97 | same (streams: one beat's hop, timing) |
+
+The fix: the Unity HUD set a minigame's flashes (the pirates' place names, "Finish!", "+3 s"), the gadget marks' numbers and
+the chimes' count in `Ui.Mono`, the monospace the page dropped in #423; now the page's face (BridgeHud.cs; tests/typefaces.test.js
+holds the JS bridge's HUD to it). The pirates' sequences wait on the game (the 3-2-1 at its 1), not the clock: on the way
+somewhere the run starts as the page opens, a second or two before the web's runner does.
+
 ## The opening, beat by beat (Unity + Puerts, 2026-10-16, issue #394)
 
 "Unity: opening cinematic on android seems a bit bugged out, father's hologram is not working, there is no button
@@ -1908,14 +1931,16 @@ side and compares them beat by beat.
   it, the same names on both sides: `webGame(window)` (the page's globals, its Start menu and game menu) and
   `engineGame(game, menus)` (engine/game.js, engine/menus.js); `engineKey` routes a key as the Unity host routes the
   player's.
-- **The sequences** (39): the opening (#394's seventeen beats), every world's filmed moment (17, the catalog's "World
+- **The sequences** (47): the opening (#394's seventeen beats), every world's filmed moment (17, the catalog's "World
   moments"), a makers' box, the ship's arrival (by step) and takeoff, the Start menu and the game menu's pages (Items, Map, Quests,
   Settings), the Start menu's other entries (`start-pages`: Controls with its rebinding, What's new, Photo mode in and
   out; issue #264), the House map (the game menu's panel inside the Buried's makers' house, issue #405, #487; the game
   menu's beats carry its tabs as `side`), a fight in the Arena (a blot spawned, lock-on, a cut, a hit, its
   death, its chimes), a makers' temple (the Buried's: in at the door, a switch, a small key, the great key and the
   guardian's door), a fight temple's first wave (the Sunken Hall), two minigames (the rings, the ski: card, count, run,
-  pause), a conversation with choices (Teo: two pages, his answers, the first chosen); the grass parting and a splat in
+  pause), the chime pirates' four places (`game-pirates-<stage>`, on the way to Edena, no card: the 3-2-1 at its 1 with the
+  place's name up, then the run; issues #555, #556), Anselm's arrival on the first fragment (`thrum-arrival`: the tick,
+  his run in, the two of them, his talk; #550), a conversation with choices (Teo: two pages, his answers, the first chosen); the grass parting and a splat in
   the Garden (`grass-splats`, #264); the bird whistled down beside you in the Garden of Spheres (its "ride the bird"
   prompt) and a splat put down before you in the desert, at 0.08, 0.3 and 1 s (issue #459).
 - **The state stream**: `probe(G)` at each beat, as data: the screen's parts (src/platform.js `screen`, and what the page

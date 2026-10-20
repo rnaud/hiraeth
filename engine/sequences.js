@@ -238,6 +238,28 @@ export const SEQUENCES = [
   },
   { id: 'game-rings', title: 'A minigame: the rings', setup: { level: 'desert', game: 'rings' }, beats: gameBeats('Space') },
   { id: 'game-ski', title: 'A minigame: the ski', setup: { level: 'desert', game: 'ski' }, beats: gameBeats('KeyW') },
+  // the chime pirates' four places (issue #555, #556): each its sky, ground and arrival out of the warp with its name, on
+  // the way to Edena (?game=pirates&stage=<level>&to=edena)
+  ...['drift', 'mines', 'ice', 'wrecks'].map((stage) => ({
+    id: `game-pirates-${stage}`, title: `The chime pirates: ${stage}`, setup: { level: 'desert', game: 'pirates', stage, to: 'edena' },
+    // (on the way somewhere the run starts as the page opens, no card, so each beat waits on the game: the 3-2-1 at its 1,
+    // the place's name still up from the warp, then the run a few seconds on. The warp itself is over by the time the
+    // web's runner starts, a second or two into the page.)
+    beats: [{ name: 'named', until: (G) => G.minigame?.countState?.text === '1' && !!G.minigame?.flashes?.some((f) => /big/.test(f.kind ?? '')), timeout: 10, wait: 0.2 },
+      { name: 'run', until: (G) => G.minigame?.phase === 'play', timeout: 20, wait: 2.5 }],
+  })),
+  {
+    // Anselm's arrival on the first fragment, filmed (issue #550, #556: src/story/scientist-arrival.js): the desert's
+    // fragment by the ship walked into on the save before the desert; the traveller hears the tick, Anselm runs in, the
+    // two of them, then his talk
+    id: 'thrum-arrival', title: 'Anselm\'s arrival', setup: { level: 'desert', debug: true },
+    beats: [
+      { name: 'taken', act: (G) => { const f = G.fragments.list[5]; G.player.teleport(f.pos.clone().setY(f.pos.y - 0.9), new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1)); },
+        until: (G) => playing(G)?.what === 'moment:thrum.arrival', timeout: 10, wait: 0.8 },
+      into('run', 2.6), into('two', 5),
+      { name: 'talk', until: (G) => !!G.story?.dialogue?.open, timeout: 20, wait: 0.8 },
+    ],
+  },
   {
     // a conversation with choices: Teo in the desert (src/story/desert-data.js: two pages, then his two answers)
     id: 'talk', title: 'A conversation with choices', setup: { level: 'desert', debug: true },
@@ -458,6 +480,8 @@ export function webQuery(setup) {
   if (setup.prologue) q.set('prologue', '1');
   if (setup.debug) q.set('debugsave', '1');
   if (setup.game) { q.set('game', setup.game); q.set('from', setup.level); }
+  if (setup.stage) q.set('stage', setup.stage);   // (the chime pirates' level, issue #555)
+  if (setup.to) q.set('to', setup.to);             // (the world their flight is on the way to)
   return `?${q}`;
 }
 
@@ -477,7 +501,20 @@ export function engineSetup(setup) {
   if (e?.query?.prologue) opts.prologue = true;
   if (setup.fight) opts.fight = true;
   if (setup.game) { opts.game = setup.game; opts.from = setup.level; }
+  if (setup.stage) opts.stage = setup.stage;
+  if (setup.to) opts.to = setup.to;
   return opts;
+}
+
+/**
+ * The engines' -game argument for a sequence's setup (engine/unity/game.js): the game's id, with its address's own words
+ * after a '?' as the Unity host's -game takes them (the chime pirates' stage and where they fly: issue #555), or null.
+ * (No URLSearchParams in an engine's VM: engine/trials.js readHref reads it back.)
+ */
+export function engineGameArg(opts) {
+  if (!opts?.game) return null;
+  const words = Object.entries({ stage: opts.stage, to: opts.to }).filter(([, v]) => v != null).map(([k, v]) => `${k}=${encodeURIComponent(v)}`);
+  return words.length ? `${opts.game}?${words.join('&')}` : opts.game;
 }
 
 /** After the world is up: the review's cinematic staged (the page does it itself from its address: startReview). */
@@ -501,7 +538,7 @@ export function webGame(w) {
   return {
     side: 'web', win: w,
     scene: w.scene, camera: w.camera, player: w.player, rig: w.rig, level: w.level, ship: w.ship, boxes: w.boxes,
-    story: w.storyRt, storyPage: w.story, npcs: w.npcs, gadgets: w.gadgets, tool: w.tool, foes: w.foes, trials: w.trials, items: w.items, state: gameState,
+    story: w.storyRt, storyPage: w.story, npcs: w.npcs, fragments: w.fragments, gadgets: w.gadgets, tool: w.tool, foes: w.foes, trials: w.trials, items: w.items, state: gameState,
     scout: w.scout, plumb: w.plumb,
     get minigame() { return w.minigame ?? null; },
     // (the screen's state, and what the page draws of the fight in its own HTML that the engines send as parts:
@@ -557,7 +594,7 @@ export function engineGame(g, menus = null) {
   return {
     side: 'engine', game: g,
     scene: g.scene, camera: g.camera, player: g.player, rig: g.rig, level: g.level, ship: g.ship, boxes: g.boxes,
-    story: g.story, storyPage: g.storyPage, npcs: g.npcs, gadgets: g.gadgets, tool: g.tool, foes: g.foes, trials: g.trials, items, state: gameState,
+    story: g.story, storyPage: g.storyPage, npcs: g.npcs, fragments: g.fragments, gadgets: g.gadgets, tool: g.tool, foes: g.foes, trials: g.trials, items, state: gameState,
     scout: g.scout, plumb: g.plumb,
     get minigame() { return g.trials?.runner ?? null; },
     screen: () => { const st = g.screen().state; return { ...st, lock: st.lock ? true : null, warn: st.warn?.length ? true : null, restart: st.restart ? true : null }; },

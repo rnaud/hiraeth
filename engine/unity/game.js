@@ -26,7 +26,7 @@ import { watchSceneEdits } from '../scene-matrices.js';
 import { EngineMenus, itemColsFor } from '../menus.js';
 import { UnityUpdates } from './updates.js';
 import { STARMAP_SCENES, STARMAP_BASE, poseStarMap } from '../starmap.js';
-import { sequenceById, SequenceRun, engineSetup, engineReady, engineGame, engineKey, probe } from '../sequences.js';
+import { sequenceById, SequenceRun, engineSetup, engineReady, engineGame, engineKey, probe, engineGameArg } from '../sequences.js';
 import { readHref } from '../trials.js';
 import { Controller } from '../../src/controller.js';
 import { Settings, SaveGame, TEXT_SIZES } from '../../src/ui.js';
@@ -447,7 +447,9 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
     const seq = sequenceById(String(args.sequence)) ?? routeById(String(args.sequence));   // (a stutter route plays as a sequence: engine/stutter-routes.js)
     if (!seq) { console.log(`[unity] no sequence ${args.sequence}`); host.Exit(2); return; }
     const o = engineSetup(seq.setup);
-    args.level = o.levelId; prologue = !!o.prologue; arrive = !!o.arrive; via = o.via ?? null; game = o.game ?? null; seqFight = !!o.fight;
+    args.level = o.levelId; prologue = !!o.prologue; arrive = !!o.arrive; via = o.via ?? null; seqFight = !!o.fight;
+    // (a game's page with its address's words, as -game takes them: the chime pirates' stage and where they fly, #555)
+    game = engineGameArg(o);
   }
   const ending = args.ending ? String(args.ending) : null;
   if (ending) {
