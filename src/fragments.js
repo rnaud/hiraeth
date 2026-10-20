@@ -3,6 +3,7 @@ import { makeMaterial } from './materials.js';
 import { game as sharedGame } from './game-state.js';
 import { items as sharedItems } from './items.js';
 import { FRAGMENTS, fragKey, fragmentCounts, CHART_FLAG } from './fragments-data.js';
+import { buildFragmentMarkers } from './fragment-markers.js';
 
 // The fragments of the singing light (docs/systems/fragments.md, issue #196): small splinters of the light's song
 // hidden in every world on the route (src/fragments-data.js), out of the way. Each floats a little over its spot,
@@ -59,6 +60,8 @@ export const fragmentToast = (found) => `A fragment of the singing light · ${fo
 /** The fragments of this world, made and hidden where they are. */
 export function createFragments({ levelId, scene, physics = null, level = null, player, sound = null, game = sharedGame, items = sharedItems, toast = () => {}, lights = null }) {
   const spots = FRAGMENTS[levelId] ?? [];
+  // (the props some stand on, where the world had no landmark left there: issue #550, src/fragment-markers.js)
+  const markers = buildFragmentMarkers(scene, levelId, physics);
   const crystal = makeMaterial({ color: '#dff7ff', glow: 1, flat: true });
   const motes = makeMaterial({ color: '#ffffff', glow: 1 });
   const geo = new THREE.OctahedronGeometry(0.16, 0).scale(0.75, 1.9, 0.75);
@@ -144,6 +147,7 @@ export function createFragments({ levelId, scene, physics = null, level = null, 
     dispose() {
       for (const f of list) { f.grp.removeFromParent(); if (lights) { const k = lights.indexOf(f.light); if (k >= 0) lights.splice(k, 1); } }
       geo.dispose(); moteGeo.dispose();
+      if (markers) { markers.removeFromParent(); markers.geometry.dispose(); }
     },
   };
 }

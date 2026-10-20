@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import { LAYOUT as SPHERES } from '../src/levels/spheres.js';
 import { COURT, HUNG, HUNG2, CRADLE, BOWL, PMOON, HOIST } from '../src/levels/moon-foundry.js';
 import { ROAD as PILGRIMS_ROAD } from '../src/desert-road.js';
+import { FRAGMENT_MARKERS, markerName } from '../src/fragment-markers.js';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const UP = V(0, 1, 0), DOWN = V(0, -1, 0);
@@ -238,13 +239,13 @@ export const POI_PIECES = {
 // (and columns: { name, column: [x, z, r, y0, y1] }, in it or on it)
 // the Desert's pilgrims' road: its cairns of stacked stones, each a marker (src/desert-road.js ROAD), the last two by the
 // ship (issue #550: the first fragments by the ship on something, the cairns below the ramp)
-POI_PIECES.desert = () => PILGRIMS_ROAD.map(([x, z], i) => ({ name: `the pilgrims’ cairn (${i + 1})`, column: [x, z, 3.2, -60, 200] }));
+POI_PIECES.desert = () => PILGRIMS_ROAD.map(([x, z], i) => ({ name: `the pilgrims’ cairn (${i + 1})`, column: [x, z, 2.2, -60, 200] }));
 // the City-Shaft's high ring round the spire, the round plaza at the top terraces' level the bridges run out to
 // (src/levels/incal.js: SPIRE_R 24 to SPIRE_RING 48, at LEVELS[0])
 POI_PIECES.incal = (level) => { const s = level.shaft; return s ? [{ name: 'the spire’s high ring', column: [0, 0, s.SPIRE_RING + 1, s.LEVELS[0] - 2, s.LEVELS[0] + 6] }] : []; };
 POI_PIECES.underwater = (level) => [
   // the Underwater City's towers of pods, out in the sea and down the canyon's walls (their pods stand out round them)
-  ...[...(level.podTowers ?? []), ...(level.uw?.canyon?.towers ?? [])].map((t, i) => ({ name: `a tower of pods (${i + 1})`, column: [t.x, t.z, t.r + 5, -80, 90] })),
+  ...[...(level.podTowers ?? []), ...(level.uw?.canyon?.towers ?? [])].map((t, i) => ({ name: `a tower of pods (${i + 1})`, column: [t.x, t.z, t.r + 2.5, -80, 90] })),
   // the tower of pods inside the great dome, its open decks to climb to
   ...(level.decks ?? []).map((d, i) => ({ name: `a pod deck in the great dome (${i + 1})`, ball: [d.x, d.y ?? 0, d.z, (d.R ?? 3) + 1] })),
 ];
@@ -291,10 +292,12 @@ export function pointsOfInterest({ scene, level }, id) {
       if (!b.isEmpty()) out.at(-1).on = (x, y, z) => { _rc.set(new THREE.Vector3(x, y + 0.6, z), DOWN); _rc.far = 1.2; return _rc.intersectObject(o, true).length > 0; };
     });
   }
-  for (const p of POI_PIECES[id]?.(level) ?? []) {
+  // (and the markers set for the fragments, issue #550: each a place of its own, a prop under one fragment)
+  const markers = (FRAGMENT_MARKERS[id] ?? []).map(([x, y, z], i) => ({ name: markerName(i), column: [x, z, 1.4, y - 1, y + 2.5], marker: true }));
+  for (const p of [...(POI_PIECES[id]?.(level) ?? []), ...markers]) {
     if (p.column) {
       const [cx, cz, r, y0, y1] = p.column;
-      out.push({ kind: 'piece', name: p.name, at: [cx, y1, cz], test: (x, y, z) => Math.hypot(x - cx, z - cz) < r && y > y0 && y < y1 });
+      out.push({ kind: 'piece', name: p.name, at: [cx, y1, cz], column: true, marker: !!p.marker, test: (x, y, z) => Math.hypot(x - cx, z - cz) < r && y > y0 && y < y1 });
       continue;
     }
     if (!p.ball) { box('piece', p.name, p.min, p.max); continue; }
@@ -315,18 +318,63 @@ export function onSummit(physics, x, y, z) {
   }
   return low >= 6;
 }
+// Issue #550, its second pass (seven on one port's apron, six round one house, ten on one ring "don't read as placed",
+// and leave the rest of the world empty): a fragment is ON its place, a place holds two at most (three a very big one),
+// and none lies in water or flat on an open floor unless a prop is under it (src/fragment-markers.js: a cairn, a
+// plinth, set where a world has no landmark left where one should go).
+/** How many fragments one place holds: two, three for a very big one (the Rose House, the Floating city's islands, the spire's ring). */
+export const PLACE_CAP = 2;
+export const BIG_PLACES = { desert: /^The Rose House/, spacecity: /^(the yard|the garden|the market|the gate)$/, incal: /^the spire’s high ring$/ };
+export const placeCap = (id, name) => (BIG_PLACES[id]?.test(name ?? '') ? 3 : PLACE_CAP);
+/** The named things whose top is a floor (a port's apron, an island's deck, a sunken street, a court): on them only raised. */
+export const FLOOR_THINGS = /^(buried port|bazaar port|The old market|The screen lanes: the face|the yard|the garden|the market|the gate|The flooded wood.*|Makers’ court.*)$/;
+/** By a sight, within this of its mark (m): at it, not out on the ground round it. */
+export const SIGHT_CORE = 5;
+/** Raised: the ground falls `rise` m and more within 3 m of it in two directions of eight at least (a roof, a ledge, a step, a top). */
+export function raised(physics, x, y, z, rise = 1.2) {
+  let n = 0;
+  for (let k = 0; k < 8; k++) {
+    const a = (k / 8) * Math.PI * 2, g = physics.groundAt(x + Math.cos(a) * 3, y + 0.5, z + Math.sin(a) * 3, 40);
+    if (!Number.isFinite(g) || y - g >= rise) n++;
+  }
+  return n >= 2;
+}
 /**
- * Is a spot central to its place (issue #550: "the top of a building, or the center of a point of interest"): by a
- * sight, within SIGHT_CORE m of its mark; a named thing, on it (the ground under the spot its own) or in its middle, not
- * on the ground at the edge of its box; a beacon or a piece of the level, in it as its test says.
+ * Is a spot on its place (issue #550: "the top of a building, or the center of a point of interest"): by a sight,
+ * within SIGHT_CORE m of its mark; a named thing, on it (the ground under the spot its own: a roof, a deck, a terrace;
+ * a floor-like one only where it is raised) or in its middle (inside a ribcage, among bones and posts); a beacon, a
+ * piece of the level or a marker, in it as its test says. Never a bare summit.
  */
-export const SIGHT_CORE = 8;
-export function central(p, x, y, z) {
-  if (!p) return false;
-  if (p.kind === 'sight') return Math.hypot(p.at[0] - x, p.at[2] - z) <= SIGHT_CORE;
-  // (or in its middle, the inner half of its box across: inside a ribcage, among a giant's bones, in a court)
-  if (p.kind === 'thing') return !!p.on?.(x, y, z) || (Math.abs(x - p.at[0]) < (p.max[0] - p.min[0]) / 4 && Math.abs(z - p.at[2]) < (p.max[2] - p.min[2]) / 4);
-  return p.kind !== 'summit';
+export function onPlace(p, x, y, z, physics = null) {
+  if (!p || p.kind === 'summit' || FLAT_SIGHTS.test(p.name)) return false;
+  if (p.marker) return true;
+  // (and never out on the bare ground round it: raised, or something of it within reach, a wall, a stone, a post)
+  const held = () => !!physics && (raised(physics, x, y, z) || byProp(physics, x, y, z));
+  if (p.kind === 'sight') return Math.hypot(p.at[0] - x, p.at[2] - z) <= SIGHT_CORE && held();
+  if (p.kind === 'thing') {
+    if (FLOOR_THINGS.test(p.name.replace(/ \(\d+\)$/, ''))) return !!p.on?.(x, y, z) && !!physics && raised(physics, x, y, z);
+    // (on it; in its middle by something; or on a top of it, a deck or a ledge 3 m and more over the ground round it)
+    return !!p.on?.(x, y, z) || (Math.abs(x - p.at[0]) < (p.max[0] - p.min[0]) / 4 && Math.abs(z - p.at[2]) < (p.max[2] - p.min[2]) / 4 && held())
+      || (!!physics && raised(physics, x, y, z, 3));
+  }
+  if (p.column) return held();
+  return true;
+}
+/** The sights that are a stretch of open ground (a salt pan): nothing there to stand a fragment on. */
+export const FLAT_SIGHTS = /^the salt pan$/;
+/** Something within reach of the spot at waist height (2.2 m: a wall, a stone, a post, a rail), in any direction. */
+export function byProp(physics, x, y, z, r = 2.2) {
+  for (let k = 0; k < 8; k++) {
+    const a = (k / 8) * Math.PI * 2;
+    if (physics.rayDistance(new THREE.Vector3(x, y + 0.6, z), new THREE.Vector3(Math.cos(a), 0, Math.sin(a)), r) < r) return true;
+  }
+  return false;
+}
+export const central = onPlace;
+/** In water (`waters`: src/water.js Waters): a surface over the spot's ground (a sea, the Underwater City's, aside). */
+export function wetAt(waters, x, y, z) {
+  const s = waters?.surfaceAt?.(x, z, y + 0.1, 0.5);
+  return !!(s && !s.body?.sea && s.y > y + 0.03);
 }
 /** The point of interest a spot is in or on (the first that has it, a summit last), or null. */
 export function poiAt(pois, physics, x, y, z) {

@@ -38,7 +38,8 @@
 // the route (tests/playthrough-agent.js loadWorld).
 import * as THREE from 'three';
 import { builtWorld } from '../tests/built-worlds.js';
-import { flood, reachCell, spotOk, standWhyNot, seaWhyNot, newCountry, pointsOfInterest, poiAt, central } from '../tests/fragments-reach.js';
+import { flood, reachCell, spotOk, standWhyNot, seaWhyNot, newCountry, pointsOfInterest, poiAt, onPlace, placeCap, wetAt } from '../tests/fragments-reach.js';
+import { Waters } from '../src/water.js';
 import { Player } from '../src/player.js';
 import { ORDER, partsOf, shiftAt } from '../src/levels/names.js';
 import { CONTENT } from '../src/levels/content.js';
@@ -115,6 +116,8 @@ for (const id of worlds) {
   const drawnAt = (x, y, z) => { const h = drawn?.bvh?.raycastFirst(new THREE.Ray(V(x, y + 1.2, z), V(0, -1, 0)), THREE.DoubleSide); return Math.abs(Math.max(h ? y + 1.2 - h.distance : -Infinity, level.ground?.heightAt?.(x, z) ?? -Infinity) - y) < 0.25; };
   level.openWays?.(physics, true);   // (what the player opens on the way: the floating city's drifted span reeled home)
   const reached = flood({ physics, level }, [spawn, ...Object.values(level.partSpawns ?? {})], { radius: 700, max: 1500000, cell: reachCell(id) });
+  // (shut again for the checks of each spot, as the contact audit makes them: the Underwater City's air is the shut lock's)
+  if (ANCHORS) level.openWays?.(physics, false);
   const ys = reached.map((n) => n[1]).sort((a, b) => a - b), mid = ys[ys.length >> 1];
   const scored = [], whyPoi = new Map(), valid = [];
   const rule = WORLD_RULES[id]?.(W.level) ?? null;
@@ -203,52 +206,60 @@ for (const id of worlds) {
   const keep = new Set(keepArg === 'all' ? FRAGMENTS[id].map((_, i) => i) : (keepArg ?? '').split(',').filter((s) => s !== '').map(Number));
   // (--anchors: the slots on a named place already stay where they are, but those listed in --move)
   const moveSet = new Set((moveArg ?? '').split(',').filter((s) => s !== '').map(Number));
-  const named = (x, y, z) => { const p = poiAt(pois, physics, x, y, z); return p && p.kind !== 'summit' ? p : null; };
-  if (ANCHORS) FRAGMENTS[id].forEach(([x, y, z], i) => { if (!moveSet.has(i) && named(x, y, z)) keep.add(i); });
-  // (and on it or in its middle first: a sight's mark, a thing's roof or its middle, not the ground at its edge; issue #550's
-  // "the top of a building, or the center of a point of interest")
-  if (ANCHORS) {
-    for (const s of scored) {
-      const p = pois.filter((q) => q.test(s.x, s.y, s.z)).find((q) => central(q, s.x, s.y, s.z)) ?? named(s.x, s.y, s.z);
-      s.poi = p?.name ?? null;
-      s.central = !!p && central(p, s.x, s.y, s.z);
-      if (s.central) s.score += 14;
-    }
-    scored.sort((a, b) => b.score - a.score);
-  }
-  const kept = [...keep].map((i) => { const [x, y, z] = FRAGMENTS[id][i]; return { i, x, y, z, off: route(x, y, z), fresh: isNew(x, y, z), poi: poiAt(pois, physics, x, y, z)?.name ?? null, kept: true }; });
+  // (--anchors, issue #550: a pick is ON its place (tests/fragments-reach.js onPlace), out of the water, a place holding
+  // two at most (three a very big one); a slot already so stays, in slot order, until its place is full. When the
+  // places run out, the rest go where the world is emptiest, each on a marker set there: src/fragment-markers.js)
+  const waters = ANCHORS ? new Waters(builtWorld(id).scene, { physics }) : null;
+  const placeOf = (x, y, z) => pois.filter((q) => q.test(x, y, z)).filter((q) => onPlace(q, x, y, z, physics)).map((q) => q.name);
+  const held = new Map();
+  if (ANCHORS) FRAGMENTS[id].forEach(([x, y, z], i) => {
+    if (moveSet.has(i) || wetAt(waters, x, y, z)) return;
+    const name = placeOf(x, y, z).find((n) => (held.get(n) ?? 0) < placeCap(id, n));
+    if (!name) return;
+    keep.add(i); held.set(name, (held.get(name) ?? 0) + 1); FRAGMENTS[id][i].place = name;
+  });
+  if (ANCHORS) for (const s of scored) { s.places = wetAt(waters, s.x, s.y, s.z) ? null : placeOf(s.x, s.y, s.z); s.wet = s.places === null; }
+  const kept = [...keep].map((i) => { const [x, y, z] = FRAGMENTS[id][i]; return { i, x, y, z, off: route(x, y, z), fresh: isNew(x, y, z), poi: FRAGMENTS[id][i].place ?? poiAt(pois, physics, x, y, z)?.name ?? null, kept: true }; });
   // (the best, spread over the world: each next pick the best score plus a bonus for being far from those already picked;
   // until `wantNew` are in the new country, only new country)
   const picks = [...kept];
-  let wantNewLeft = wantNew, wantPoiLeft = wantPoi;
+  let wantNewLeft = wantNew, wantPoiLeft = wantPoi, marking = false;
   while (picks.length < COUNT) {
     const needNew = picks.filter((p) => p.fresh).length < wantNewLeft;
     const needPoi = ANCHORS || (!needNew && picks.filter((p) => p.poi).length < wantPoiLeft);
     let best = null, bv = -Infinity;
     for (const s of scored) {
       if (needNew && !s.fresh) continue;
-      if (needPoi && !s.poi) continue;
+      if (ANCHORS) {
+        if (s.wet) continue;
+        // (on a place with room left, or, the places run out, anywhere for a marker)
+        s.poi = marking ? null : (s.places ?? []).find((n) => picks.filter((p) => p.poi === n).length < placeCap(id, n)) ?? null;
+        if (!marking && !s.poi) continue;
+      } else if (needPoi && !s.poi) continue;
       // (one a place of interest: two in the same ribcage is one find)
-      if (s.poi && s.poi !== 'a summit' && picks.filter((p) => p.poi === s.poi).length >= PER_POI) continue;   // (each summit its own)
+      if (!ANCHORS && s.poi && s.poi !== 'a summit' && picks.filter((p) => p.poi === s.poi).length >= PER_POI) continue;   // (each summit its own)
       const d = picks.length ? Math.min(...picks.map((p) => Math.hypot(p.x - s.x, p.z - s.z, p.y - s.y))) : 300;
       if (d < APART) continue;
       if (CROWD < Infinity) {
         const near = picks.filter((p) => Math.hypot(p.x - s.x, p.y - s.y, p.z - s.z) < 40);
         if (near.length > CROWD || near.some((p) => picks.filter((q) => q !== p && Math.hypot(p.x - q.x, p.y - q.y, p.z - q.z) < 40).length >= CROWD)) continue;
       }
-      const v = s.score + Math.min(d, 300) / 12;
-      if (v > bv) { bv = v; best = s; }
+      // (spread over the world: --anchors weighs the distance from those picked more, a marker most)
+      const v = ANCHORS ? (marking ? s.score / 3 + Math.min(d, 400) / 4 : s.score + Math.min(d, 300) / 6) : s.score + Math.min(d, 300) / 12;
+      if (v > bv) { bv = v; best = { s, poi: s.poi }; }
     }
     if (!best && needNew) { wantNewLeft = picks.filter((p) => p.fresh).length; console.log(`  (${id}: only ${wantNewLeft} in the new country)`); continue; }
-    if (!best && ANCHORS) { console.log(`  (${id}: no more spots on a named place: ${picks.length} of ${COUNT})`); break; }
+    if (!best && ANCHORS && !marking) { console.log(`  (${id}: no more spots on a named place: ${picks.length} of ${COUNT}; the rest on markers)`); marking = true; continue; }
+    if (!best && ANCHORS) { console.log(`  (${id}: no more spots at all: ${picks.length} of ${COUNT})`); break; }
     if (!best && needPoi) { wantPoiLeft = picks.filter((p) => p.poi).length; console.log(`  (${id}: only ${wantPoiLeft} in places of interest)`); continue; }
     if (!best) break;
+    const bestPoi = best.poi; best = best.s;
     // (and the traveller can stand on it: else it is dropped and the next best taken)
     const k = scored.indexOf(best);
     scored.splice(k, 1);
     // (as written down, to a decimetre and a centimetre up: a knife-edge spot good to the millimetre and not a few
     // centimetres off is no spot, #317)
-    const r = { ...best, x: +best.x.toFixed(1), y: +best.y.toFixed(2), z: +best.z.toFixed(1) };
+    const r = { ...best, poi: bestPoi, marker: ANCHORS && !bestPoi, x: +best.x.toFixed(1), y: +best.y.toFixed(2), z: +best.z.toFixed(1) };
     if (!spotOk({ physics, level }, V(r.x, r.y, r.z)) || !drawnAt(r.x, r.y, r.z)) continue;
     if (standWhyNot({ physics, level }, V(r.x, r.y, r.z), Player)) continue;
     picks.push(r);
@@ -261,7 +272,7 @@ for (const id of worlds) {
   const cellA = reachCell(id) ** 2, nn = picks.map((p) => Math.min(...picks.filter((q) => q !== p).map((q) => Math.hypot(p.x - q.x, p.y - q.y, p.z - q.z)))).sort((a, b) => a - b);
   console.log(`  (${id}: ${(reached.length * cellA / 1e6).toFixed(2)} km² of ground reached; ${picks.filter((p) => p.poi).length} of ${picks.length} in a place of interest; nearest other: min ${nn[0]?.toFixed(0)}, median ${nn[nn.length >> 1]?.toFixed(0)}, max ${nn.at(-1)?.toFixed(0)} m)`);
   console.log(`  ${id}: [   // (${reached.length} spots reached, ${scored.length} out of the way, ${sights.length} new-country sights)`);
-  if (ANCHORS) console.log(`  (${id}: ${picks.filter((p) => !p.kept && p.central).length} of the ${picks.filter((p) => !p.kept).length} picked on their place or in its middle)`);
-  for (const p of picks) console.log(`    [${p.x.toFixed(1)}, ${p.y.toFixed(2)}, ${p.z.toFixed(1)}],   // ${p.i}${p.kept ? ' kept' : ''}: route ${p.off.toFixed(0)} m${p.fresh ? ', new country' : ''}${p.poi ? `, ${p.poi}` : ''}${p.kept ? '' : `, drop ${p.drop.toFixed(1)}, nook ${p.nook}, high ${p.high.toFixed(1)}`}`);
+  if (ANCHORS) { const n = new Map(); for (const p of picks) if (p.poi) n.set(p.poi, (n.get(p.poi) ?? 0) + 1); console.log(`  (${id}: ${picks.filter((p) => p.marker).length} on markers; the most on one place: ${Math.max(0, ...n.values())})`); }
+  for (const p of picks) console.log(`    [${p.x.toFixed(1)}, ${p.y.toFixed(2)}, ${p.z.toFixed(1)}],   // ${p.i}${p.kept ? ' kept' : ''}: route ${p.off.toFixed(0)} m${p.fresh ? ', new country' : ''}${p.poi ? `, ${p.poi}` : ''}${p.marker ? ', MARKER' : ''}${p.kept ? '' : `, drop ${p.drop.toFixed(1)}, nook ${p.nook}, high ${p.high.toFixed(1)}`}`);
   console.log('  ],');
 }

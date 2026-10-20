@@ -147,39 +147,50 @@ hide: `docs/story-bible.md`, "The fragments of the singing light".
 - **Every one on its place (v1.87, #550).** The author: "fragment of lights should be in a place that makes sense, like
   the top of a building, or the center of a point of interest, right now they feel like a bit of random placement." Half
   stood on a place of interest; the rest on a bare summit, a ledge with a drop, a corner among walls, the end of a way
-  (`incal` 8 was the corner of a terrace slab over the shaft). Now all 288 do: `FRAGMENT_PLACES` in
-  `src/fragments-data.js` names, slot by slot, the place each stands on or in, as `pointsOfInterest` names it (a sight
-  within 12 m, a beacon's top, a named thing's box, a piece of the level; never a summit alone), and
-  `tests/fragments-poi.test.js` checks each is there. 153 moved, marked `(v1.87, #550)` with their place, their earlier
-  marks kept; the rest were on theirs already.
-  - **Picked** by `node scripts/fragment-spots.mjs <world> --anchors --route 25 --busy 8 --apart 16 --per-poi 3` (the
-    slots already on a named place stay; `--move` re-picks some anyway; `--crowd 4` keeps the spread below; `--per-poi
-    5–8` and `--apart 15` where the places are few): the same rules as before (the walker reaches it, he stands on it,
-    drawn ground, out of harm, 25 m off the route, 15 m apart), only every pick on a named place, and the central
-    ones first (`central` in `tests/fragments-reach.js`: by a sight, within 8 m of its mark; a named thing, on it, the
-    ground under the spot its own, or in the middle of its box; 207 of the 288 are, the rest at a place’s edge). The script also keeps
-    the picks off what a world's own test keeps clear (`WORLD_RULES`: the Signal Market's screen lanes, old market and
-    galleries; the Floating city's ways to the anchor and up the stack). `--things n` lists the scene's named things
-    that hold the most spots reached, the candidates for more places.
-  - **More places** where the sights alone held too few for 24 (the walker reaches only the rim and the top terrace of
-    the City-Shaft, the shallows of Lorn, the street of the Signal Market): `POI_THINGS` gained the houses, halls and
-    islands he walks on (Vael's Aerie, the Founders' Belfry and the hoodoo shop; Lorn's Lamp-House, Hush-House,
-    makers' court and moss-dome shop; the City-Shaft's Warden's Well and the Rim Docks' berth; the Buried Machine's
-    Engine-House, port, keepers' lectern and dials; the Moon Foundry's Casting-House; the Footprint and the pavilion
-    shop in the Garden; the Floating city's Yard, Garden, Market and gate islands and the Mooring-House; the Signal
-    Market's old market, screen lanes and port) and `POI_PIECES` the pilgrims' cairns in the Desert and the City-Shaft's
-    high ring round the spire.
+  (`incal` 8 was the corner of a terrace slab over the shaft). A first pass put all 288 on named places, but heaped
+  (seven on the Signal Market's port apron, six round Lorn's Lamp-House, ten on the City-Shaft's ring) and left the
+  rest of each world empty; the second pass, as shipped:
+  - **On its place.** `FRAGMENT_PLACES` in `src/fragments-data.js` names, slot by slot, the place each stands on, as
+    `pointsOfInterest` names it, and `onPlace` in `tests/fragments-reach.js` says what "on" is: by a sight, within 5 m
+    of its mark; a named thing, on it (the ground under the spot the thing's own: a roof, a terrace, a deck) or in its
+    middle (inside a ribcage, among bones and posts); a floor-like thing (a port's apron, an island's deck, a sunken
+    street, a court: `FLOOR_THINGS`) only where it is raised (the ground falling 1.2 m within 3 m); a beacon's top; a
+    piece of the level (a pyramid, a moon, a tower of pods, a cairn); never a bare summit. **Never in water**
+    (`wetAt`: a surface over the spot's ground, Lorn's shallows above all).
+  - **Two a place at most**, three for a very big one (`PLACE_CAP`, `BIG_PLACES`: the Rose House, the Floating city's
+    islands, the spire's ring). The largest count on one place is 3.
+  - **Spread, on markers where the places run out.** `node scripts/fragment-spots.mjs <world> --anchors --route 25
+    --busy 8 --apart 16 --crowd 4` (`--apart 15 --crowd 6` in the Floating city): the slots already on their place stay,
+    in slot order, until their place is full; then the best spots on places with room, each weighed by its distance
+    from those picked; when no place has room left, the rest go where the world is emptiest (the distance from the
+    picked weighs most), each on a **marker** set there for it: `src/fragment-markers.js` `FRAGMENT_MARKERS`, a little
+    cairn of three flat stones in the open worlds (as the pilgrims stack them), a squat stone plinth in the built ones,
+    in the world's own stone, 0.5 m tall under the fragment (it floats 0.9 m over the ground). One mesh a world (one
+    draw), no collision (the fragment is yours from 1.5 m), built by `createFragments`, so on the web and in the engines
+    alike; they stay when the fragment is taken. 137 markers (three in the Desert, two in the Underwater City; 18 in the Signal
+    Market, whose reachable places are few). The script also keeps the picks off what a world's own test keeps clear
+    (`WORLD_RULES`: the Signal Market's screen lanes, old market and galleries; the Floating city's ways to the anchor
+    and up the stack); `--things n` lists the scene's named things that hold the most spots reached.
+  - **More places** where the sights alone held too few: `POI_THINGS` gained the houses, halls and islands the walker
+    reaches (Vael's Aerie, the Founders' Belfry and the hoodoo shop; Lorn's Lamp-House, Hush-House, makers' court and
+    moss-dome shop; the City-Shaft's Warden's Well and the Rim Docks' berth; the Buried Machine's Engine-House, port,
+    keepers' lectern and dials; the Moon Foundry's Casting-House; the Footprint and the pavilion shop in the Garden;
+    the Floating city's islands and the Mooring-House; the Signal Market's old market, screen lanes and port) and
+    `POI_PIECES` the pilgrims' cairns in the Desert and the City-Shaft's high ring round the spire.
+  - **223 of the 288 moved** since v1.86, marked `(v1.87, #550)` with their place, their earlier marks kept.
   - **The Desert's first two (#247)** stay by the ship, each on something: at the pilgrims' cairn by the ship, 30 m from
     the ramp, the way the road comes down (slot 5, Marrow's errand: *"It sings by the stone cairn beside your ship."*),
     and at the next cairn up the road, 60 m off (slot 6).
-  - **Their words.** Every slot's line in `src/story/rumour-places.js` names its place now (*"at the Warden's Well, on
-    the rim"*, *"on a tower of pods north of the moon pool"*); no kind of place alone (`=ledge`, `=walls`) is left.
+  - **Their words.** Every slot's line in `src/story/rumour-places.js` names its place (*"at the Warden's Well, on the
+    rim"*, *"on a little stone cairn east of the egg isle"*); no kind of place alone (`=ledge`, `=walls`) is left.
     Anselm's own lines say so: *"They settle on the landmarks: rooftops, old bones, high stones."*, and asked where they
     hide, *"On the landmarks, off the main paths: a roof, a tower's top, the middle of something old."*
-  - **The spread** (`tests/fragments.test.js`): still no fragment with more than four others within 40 m (six in the
-    Floating city). A big place holds up to three (five or more in the poorest: the Warden's Well, the old market).
+  - **The spread** (`tests/fragments.test.js`): no fragment with more than four others within 40 m (six in the Floating
+    city); the nearest other at a median of 21 to 275 m, world by world.
   - **A save** keeps its count: the found flags stay on their slots, so a moved one already found shows as found in its
     new place; nothing to migrate.
+  - **Tests** (`tests/fragments-poi.test.js`): each on its named place and out of the water; no place over its cap;
+    each marker on the ground under exactly one fragment, one mesh a world without collision; every rumour line a place.
 - **Seeing and hearing them.** A pale splinter (an elongated octahedron, glowing) with three motes going round it (the
   light's signature beats in threes), bobbing; a small light of its own on the ground round it (`level.lights`, radius
   ~3 m). Within `FRAGMENT.sing` (26 m) it sings faintly from where it is every `singEvery` (3.4 s): three soft notes of the
@@ -357,8 +368,9 @@ The author: "I shouldn't be able to tell how many fragments of light there are i
 - `tests/route-worlds.test.js` (v1.61): every fragment 25 m or more from the route's line; the six rebuilt worlds
   (Lorn, Viridel, the Underwater City, the Moon Foundry, the Floating city, the Signal Market) two at least in their new
   country, one of them high (15 m over the landing, or a 10 m drop beside it).
-- `tests/fragments-poi.test.js` (v1.87, #550): every fragment on or in the named place `FRAGMENT_PLACES` gives it, and
-  every slot's rumour line naming its place. (v1.66, #250; v1.70, #317): in every world 12 of the 24 at least in or on a place of
+- `tests/fragments-poi.test.js` (v1.87, #550): every fragment on the named place `FRAGMENT_PLACES` gives it and out
+  of the water, two a place at most (three a very big one), the markers each under one fragment, and every slot's
+  rumour line naming its place. (v1.66, #250; v1.70, #317): in every world 12 of the 24 at least in or on a place of
   interest (`POI_MIN` for the four poorer: Lorn 7, the Buried Machine 9, the Floating city 11, the Signal Market 8), 144
   of the 288 at least (149 now), spread over three places at least in each world; and the named places still found in their worlds (a
   rename would drop them silently).

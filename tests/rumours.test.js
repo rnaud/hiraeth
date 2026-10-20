@@ -70,7 +70,8 @@ test('every line has a tone, fills in whole and fits 120 characters, in every wo
     }
   }
   // (a fragment's own place is said as written; one of several alike, a ribcage, a tower of pods, takes its landmark)
-  assert.match(rumourLine('desert', rumourTargets({ world: 'desert' })[0], { seed: 0 }), /under the old ribcage’s ribs/);
+  const t0 = rumourTargets({ world: 'desert' })[0];
+  assert.ok(rumourLine('desert', t0, { seed: 0 }).includes(RUMOUR_PLACES.desert[t0.i].replace(/\+$/, '')), 'its own place, as written');
   const ribs = RUMOUR_PLACES.desert.indexOf('inside a ribcage+');
   const where = fragmentWhere('desert', ribs, { x: 0, y: 0, z: 0 }, { landmarks: [{ name: 'the salt pan', at: { x: 0, y: 0, z: 100 } }] });
   assert.equal(where[0], 'inside a ribcage north of the salt pan', 'one of several alike (issue #550: every fragment on its place) says which way it lies');
