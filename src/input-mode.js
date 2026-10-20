@@ -25,9 +25,14 @@ export class InputMode {
   /**
    * @param o.touchDevice the screen takes touches (ui.js isTouch): the touch buttons exist
    * @param o.storage     { get, set } (default sessionStorage)
+   * @param o.touchKeepsPad () → true where a touch leaves the pad in hand (an engine's build on a handheld, issue #574:
+   *                    the Retroid's screen tapped, its prompts still its buttons' names); the touch is kept as `touched`
+   *                    (what the pointer's own buttons ask, src/hud-buttons.js) until the pad is used again
    */
-  constructor({ touchDevice = false, storage = sessionStore } = {}) {
+  constructor({ touchDevice = false, storage = sessionStore, touchKeepsPad = () => false } = {}) {
     this.touchDevice = !!touchDevice;
+    this.touchKeepsPad = touchKeepsPad;
+    this.touched = false;
     this.storage = storage;
     const saved = storage.get(INPUT_MODE_KEY);
     this.kind = KINDS.has(saved) ? saved : this.touchDevice ? 'touch' : 'keys';
@@ -46,7 +51,7 @@ export class InputMode {
   }
 
   /** A pad press or stick push (controller.js activity). */
-  pad() { this.screen = false; this.padSeen = true; this._set('pad'); }
+  pad() { this.screen = false; this.padSeen = true; this.touched = false; this._set('pad'); }
 
   /**
    * A DOM event: a trusted key press, a mouse click or a touch. The touch buttons' own key presses
@@ -59,6 +64,8 @@ export class InputMode {
       if (e.isTrusted === false || !e.code || typing(e)) return;
       this.screen = true; this._set('keys');
     } else if (e.type === 'touchstart' || (e.type === 'pointerdown' && (e.pointerType === 'touch' || e.pointerType === 'pen'))) {
+      // (a handheld's screen tapped with its pad in hand: the pad stays, its names in the prompts; the tap is noted)
+      if (this.kind === 'pad' && this.touchKeepsPad?.()) { this.touched = true; return; }
       this.screen = true; this._set('touch');
     } else if (e.type === 'pointerdown' || e.type === 'mousedown') {
       // (a tap fires a pointerdown of its own type first; only a real mouse is the mouse)
@@ -83,6 +90,9 @@ export class InputMode {
   }
 
   get controller() { return this.kind === 'pad'; }
+  /** What the pointer's own buttons go by (src/hud-buttons.js hudButtons): what is in hand, or 'touch' once a handheld's
+   * screen was tapped with its pad in hand (they come back for the finger, the prompts keep the pad's names). */
+  get pointerKind() { return this.touched && this.kind === 'pad' ? 'touch' : this.kind; }
   /** The touch buttons show: a touch screen, and the fingers are what is in use. */
   get touchButtons() { return this.touchDevice && this.kind === 'touch'; }
 

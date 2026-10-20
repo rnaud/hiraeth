@@ -43,6 +43,7 @@ import { setEnginePad, setFaces, padFaces, padLabels, promptText } from '../../s
 import { keyRouter } from '../../src/remap.js';
 import { hudShows } from '../../src/hud-shows.js';
 import { parsePresses } from '../../src/hud-buttons.js';
+import { parseMenuPointer } from '../menus.js';
 import { uiPose, UI_KEYS } from '../ui-poses.js';
 import { items as ownedItems } from '../../src/items.js';
 
@@ -83,7 +84,7 @@ const RUMBLE = {
 };
 
 /** A run with a plan (the bench's views, a conversation, the tour…): straight into its world, no title, no menus. */
-const planned = (a) => !!(a.views?.length || a.talk || a.through != null || a.play || a.walk || a.hudRun || a.tour || a.idle || a.aboard || a.fight || a.foes || a.devmenu || a.ui || a.noTitle || a.trial || a.game || a.ending || a.opening || a.sequence || a.starmap || a.updatesPage || a.house || a.wardrobe);
+const planned = (a) => !!(a.views?.length || a.talk || a.through != null || a.play || a.walk || a.hudRun || a.tour || a.idle || a.aboard || a.fight || a.foes || a.devmenu || a.ui || a.noTitle || a.trial || a.game || a.ending || a.opening || a.sequence || a.starmap || a.updatesPage || a.house || a.wardrobe || a.menuPointer);
 /** -aboard cockpit,main,cabin,hold: the rooms of the parked ship it photographs, as the web's ?aboard= (main.js). */
 const aboardRooms = (a) => String(a.aboard ?? '').split(',').filter(Boolean);
 /**
@@ -122,8 +123,9 @@ const ENDING_FLAGS = (kind) => ({ 'prologue.done': true, 'ship.powered': true, '
  * printed, L1 R1, Select Start, and its Nintendo letters moved to positions (Unity reports them by letter, as Android
  * does); on the Xbox, Xbox names; on the Deck's player and a computer, the family of the pad in hand (Steam's: Xbox).
  */
-function platformPad() {
-  const p = String(host?.Platform?.() ?? '');
+function platformPad(args = {}) {
+  // (-pad-layout android: a handheld's in the editor's batch, its prompts and its taps: issue #574)
+  const p = args.padLayout === 'android' ? 'android' : String(host?.Platform?.() ?? '');
   setEnginePad({ layout: p === 'android' ? 'android' : 'standard', family: p === 'xbox' ? 'xbox' : '' });
 }
 /** A state's text with its prompts in the pad's own names (`remap`: the player's own buttons too; not the menus' own). */
@@ -139,7 +141,7 @@ const saveLine = () => `${slots.active === DEBUG_SLOT ? 'Debug save' : `Save ${s
 
 export function start(argsJson) {
   const args = JSON.parse(argsJson || '{}');
-  platformPad();
+  platformPad(args);
   // (-screen 960x720: the whole run on a screen of that shape, the Retroid's 4:3: its menus, its shots; issue #264)
   const [sw, sh] = String(args.screen ?? '').split('x').map(Number);
   if (sw > 0 && sh > 0) host.ScreenAs?.(sw, sh);
@@ -462,7 +464,7 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
   // the dev menu is one of the menus too, with the player's settings for its frame readout)
   const menus = S.menus ?? (ending || starScenes.length ? new EngineMenus({ store: slots, screen: () => ({ w: host.MenuWidth?.() || 1280, h: 720 }) })
     // (a sequence's menus are drawn: its Start menu's pages are beats; S.menus is what BridgeMenu is sent)
-    : args.sequence ? (S.menus = new EngineMenus({ store: slots, settings: new Settings(), where, saveLine, version: `v${VERSION}`, house: () => S?.game?.houseView?.() ?? null, screen: () => ({ w: host.MenuWidth?.() || 1280, h: 720 }), itemCols: () => itemColsFor(host.MenuWidth?.() || 1280, 720), mapBox: () => { const [w, h] = String(host.MenuMapBox?.() ?? '').split(',').map(Number); return w > 0 && h > 0 ? { w, h } : null; } }))
+    : args.sequence || args.menuPointer ? (S.menus = new EngineMenus({ store: slots, settings: new Settings(), where, saveLine, version: `v${VERSION}`, house: () => S?.game?.houseView?.() ?? null, screen: () => ({ w: host.MenuWidth?.() || 1280, h: 720 }), itemCols: () => itemColsFor(host.MenuWidth?.() || 1280, 720), mapBox: () => { const [w, h] = String(host.MenuMapBox?.() ?? '').split(',').map(Number); return w > 0 && h > 0 ? { w, h } : null; } }))
     : args.foes || args.devmenu || args.house || args.ui || args.wardrobe ? (S.menus = new EngineMenus({ dev: () => false, house: () => S?.game?.houseView?.() ?? null, screen: () => ({ w: host.MenuWidth?.() || 1280, h: 720 }) })) : null);
   if (args.devmenu && !S.settings) S.settings = new Settings();
   if (starScenes.length) S.menus = menus;   // (shown: BridgeMenu draws the map)
@@ -483,7 +485,7 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
   S.gameFrom = args.level ?? 'desert';
   createGame({ levelId: args.level ?? 'desert', backend, back, game, stage, from: game ? args.level ?? 'desert' : null, to: game ? transit ?? args.to ?? gq.to ?? null : null, onGame: (href) => playGame(href), onLeave: (href) => leaveGame(href), trials: !!args.trial || !!args.fresh, quality: args.quality ?? null, people: args.people !== false, audio: rate ? { sampleRate: rate, record } : null, flags: !ending && (args.views?.length || args.play) ? BENCH_FLAGS : null, log: (...a) => console.log('[game]', ...a),
     menus, settings: S.settings ?? null, start: from, arrive: arrive || !!args.arrive, hullSpawn: !!args.hullSpawn, gestures: !off.has('gestures'), moves: !off.has('moves'), matching: String(args.on ?? '').split(',').includes('matching') || null,
-    via, prologue: prologue || !!args.prologue, onTravel: (to) => flyTo(to), aboard: aboardRooms(args)[0] ?? (starScenes.length ? 'main' : null), scenes: !!args.aboard, fight: !!args.fight || seqFight, arrival: came, onPage: (o) => pageTo(o), saves: !args.foes && !args.devmenu && !args.house && !args.ui && !args.wardrobe, defer: !off.has('defer'), far: !off.has('far'), skies: !off.has('skies'), lod: String(args.on ?? '').split(',').includes('lod'), onStage: (t) => host.LoadStage?.(t),
+    via, prologue: prologue || !!args.prologue, onTravel: (to) => flyTo(to), aboard: aboardRooms(args)[0] ?? (starScenes.length ? 'main' : null), scenes: !!args.aboard, fight: !!args.fight || seqFight, arrival: came, onPage: (o) => pageTo(o), saves: !args.foes && !args.devmenu && !args.house && !args.ui && !args.wardrobe && !args.menuPointer, defer: !off.has('defer'), far: !off.has('far'), skies: !off.has('skies'), lod: String(args.on ?? '').split(',').includes('lod'), onStage: (t) => host.LoadStage?.(t),
     // (the bar under the line and why this part takes the time, src/load-page.js: BridgeHud.Loading draws them, issue #527)
     onLoad: (o) => host.LoadProgress?.(o.p, o.why ?? ''),
     // (-traveller v2 [-outfit id]: the Blender rebuild, or b3; else the device's own switch, engine/game.js: issue #493)
@@ -515,7 +517,7 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
           return null;
         };
         if (menus.mode === 'title') menus.close();
-        if (!args.foes && !args.devmenu && !args.house && !args.wardrobe) game.save();
+        if (!args.foes && !args.devmenu && !args.house && !args.wardrobe && !args.menuPointer) game.save();
         // (-shop <id>: the shop's sheet opened at once, a test of it on a device)
         if (args.shop && !game.openShop(args.shop)) console.log(`[unity] no shop ${args.shop} here`);
       }
@@ -686,6 +688,29 @@ function makePlan(args) {
     for (let i = 1; i <= 3; i++) steps.push({ kind: 'menu', x: 0, y: 1 }, { kind: 'wait', frames: 40, secs: 1.5 }, ...shot(`blade-${i}`));
     steps.push({ kind: 'menu', act: 'confirm' }, { kind: 'wait', frames: 30, secs: 1 }, ...shot('worn'), { kind: 'menu', act: 'back' }, { kind: 'wait', frames: 20 }, ...shot('closed'), { kind: 'wardrobe', log: true });
   }
+  if (args.menuPointer) {
+    // (-menu-pointer mouse | touch, issue #574: the menus by the pointer through the Input System's own devices: the Start
+    // menu, the mouse over Settings (its :hover look), Controls clicked or tapped (its page), Resume; the game menu, its Items
+    // tab, the mouse over the second tile (or a tap on it: picked), a click or a tap again on it (its full view), the full
+    // view's Back; the Wardrobe, the mouse over its line; then its close.
+    // unity-menu-<name>.png beside the web's; the '[unity] menu:' lines say where each left the menus)
+    const P = String(args.menuPointer), shot = (name) => (args.out ? [{ kind: 'shot', file: `${args.out}/unity-menu-${name}.png` }] : []);
+    const at = (where, frames = 20) => [{ kind: 'pointer', what: P, at: `menu:${where}` }, { kind: 'wait', frames, secs: frames / 30 }];
+    const over = (where) => (P === 'mouse' ? [{ kind: 'pointer', what: 'mouse', at: `over:menu:${where}` }, { kind: 'wait', frames: 10, secs: 0.3 }] : []);
+    const log = (text) => ({ kind: 'menuLog', text });
+    steps.push({ kind: 'wait', frames: 120, secs: 4 }, { kind: 'menuOpen', mode: 'start' }, { kind: 'wait', frames: 20, secs: 0.6 }, log('opened'), ...shot('start'),
+      ...over('side:1'), log('over Settings'), ...shot('start-over'),
+      ...at('side:2'), log('Controls pressed'), ...shot('start-controls'),
+      ...at('side:0'), log('Resume pressed'),
+      { kind: 'menuOpen', mode: 'game' }, { kind: 'wait', frames: 30, secs: 1 }, log('the game menu'), ...shot('game'),
+      ...at('tab:2', 30), log('the Items tab pressed'), ...shot('game-items'),
+      ...over('cell:0,1'), ...(P === 'mouse' ? [] : at('cell:0,1')), log('the second tile picked'), ...shot('game-picked'),
+      ...at('cell:0,1'), log('pressed again'), ...shot('game-full'),
+      ...at('full:back'), log('the full view\'s back'),
+      // (the Wardrobe, the mouse over its first line: the debug save has one blade; a tap on it would wear it)
+      ...at('tab:5', 40), ...over('cell:0,0'), { kind: 'wait', frames: 30, secs: 1 }, log('the Wardrobe'), ...shot('wardrobe'),
+      ...at('close'), log('closed'));
+  }
   if (args.devmenu) {
     // (-devmenu: the dev menu, issue #387: opened on F2 as the keys open it, each tab photographed (unity-dev-<n>-<id>.png, to lay
     // beside the web's), a teleport to the temple's door off the World tab, god mode on from Cheats, up and across, then off:
@@ -770,7 +795,15 @@ function makePlan(args) {
       ...(args.pointer ? [{ kind: 'inHand', text: 'run: before' }, { kind: 'pointer', what: 'pad' }, { kind: 'wait', frames: 20, secs: 0.6 }, { kind: 'inHand', text: 'run: a pad pressed' }, ...shot('pointer-pad'),
         { kind: 'pointer', what: args.pointer, at: 'pause' }, { kind: 'wait', frames: 20, secs: 0.6 }, { kind: 'inHand', text: `run: the ${args.pointer} pressed, the button hidden` }, ...shot('pointer-shown'),
         { kind: 'pointer', what: args.pointer, at: 'pause' }, { kind: 'wait', frames: 20, secs: 0.8 }, { kind: 'inHand', text: `run: the ${args.pointer} on the button` }] : tap('Escape', 10)),
-      ...shot('pause'), { kind: 'say', text: '[unity] run: paused' }, ...tap('Enter', 30), ...shot('resumed'));
+      ...shot('pause'), { kind: 'say', text: '[unity] run: paused' },
+      // (-pointer, issue #574: the card's buttons by the pointer too, as the page's click: the mouse over Retry (its :hover,
+      // a paler paper, the focus left on Resume), a click or a tap on Resume; then paused again by the button and Retry)
+      ...(args.pointer ? [
+        ...(args.pointer === 'mouse' ? [{ kind: 'pointer', what: 'mouse', at: 'over:menu:act:retry' }, { kind: 'wait', frames: 10, secs: 0.3 }, ...shot('pointer-hover')] : []),
+        { kind: 'pointer', what: args.pointer, at: 'menu:act:resume' }, { kind: 'wait', frames: 30, secs: 0.8 }, { kind: 'inHand', text: `run: Resume by the ${args.pointer}` }, ...shot('resumed'),
+        { kind: 'wait', frames: 30, secs: 1 }, { kind: 'pointer', what: args.pointer, at: 'pause' }, { kind: 'wait', frames: 20, secs: 0.8 }, { kind: 'inHand', text: 'run: paused again' },
+        { kind: 'pointer', what: args.pointer, at: 'menu:act:retry' }, { kind: 'wait', frames: 30, secs: 0.8 }, { kind: 'inHand', text: `run: Retry by the ${args.pointer}` }, ...shot('retried'),
+      ] : [...tap('Enter', 30), ...shot('resumed')]));
   }
   if (args.hudRun) {
     // (-hud-run secs: the floating prompt and the stamina wheel in motion, to watch or record, BridgeHud's -hud-trace
@@ -945,6 +978,15 @@ function readInput(game) {
 function readPointer(game) {
   let took = false;
   for (const p of parsePresses(host.Pointer?.())) if (!took) took = game.pointer(p);
+  readMenuPointer();
+}
+/**
+ * What the mouse and the fingers did on the menus since the last frame (BridgeHost.MenuPointer, issue #574: BridgeMenu
+ * placed them on what it drew), each through the menus' pointer: what the web's click does (engine/menus.js pointer).
+ */
+function readMenuPointer() {
+  const text = host.MenuPointer?.();
+  if (text && S?.menus) for (const ev of parseMenuPointer(text)) S.menus.pointer(ev);
 }
 function readPad() {
   const pad = host.Pad();
@@ -956,6 +998,7 @@ function readPad() {
 function readTitleInput(dt) {
   for (const [k, down] of keyChanges(new Set((host.Keys() || '').split(',').filter(Boolean)))) if (down) S.menus.key(k);
   readPad();
+  readMenuPointer();
   S.titlePad.update(Math.min(dt, 0.1), true);
 }
 
@@ -1060,7 +1103,8 @@ function playFrame(dt) {
     next();
   }
   else if (step.kind === 'inHand') {
-    console.log(`[unity] ${step.text}: in hand ${game.inputKind}, buttons ${JSON.stringify(game.screen().state.buttons)}, paused ${!!game.trials?.runner?.paused}`);
+    const R = game.trials?.runner;
+    console.log(`[unity] ${step.text}: in hand ${game.inputKind}, buttons ${JSON.stringify(game.screen().state.buttons)}, paused ${!!R?.paused}, phase ${R?.phase ?? '-'}, menu ${S.menus?.mode ?? '-'}`);
     next();
   }
   else if (step.kind === 'state') {
@@ -1238,6 +1282,14 @@ function playFrame(dt) {
     if (!step.until) next();
   } else if (step.kind === 'menu') {
     if (step.act) S.menus.action(step.act); else S.menus.navigate(step.x, step.y);
+    next();
+  }
+  else if (step.kind === 'menuOpen') { S.menus?.show(step.mode, step.panel ?? null); next(); }
+  else if (step.kind === 'menuLog') {
+    // (where the menus are: -menu-pointer's lines, issue #574)
+    const M = S.menus, v = M?.view?.();
+    const at = !M?.mode ? 'closed' : M.mode === 'start' ? `start, the ${M.startPage()} page, at ${JSON.stringify(M.start.at)}` : M.mode === 'game' ? `game, ${M.state.panel.id}, at ${JSON.stringify(M.state.cursor())}${v?.full ? `, full: ${v.full.title}` : ''}` : M.mode;
+    console.log(`[unity] menu: ${step.text}: ${at}${v ? `, pointer ${!!v.pointer}` : ''}`);
     next();
   }
   else if (step.kind === 'canvas') {

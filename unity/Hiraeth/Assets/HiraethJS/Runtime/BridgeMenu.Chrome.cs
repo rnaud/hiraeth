@@ -146,6 +146,7 @@ namespace Hiraeth.Bridge
                 var outline = tab.text.GetComponent<Outline>();
                 if (open && !outline) { outline = tab.text.gameObject.AddComponent<Outline>(); outline.effectColor = GmInk; outline.effectDistance = new Vector2(1.5f, -1.5f); var sh2 = tab.text.gameObject.AddComponent<Shadow>(); sh2.effectColor = GmInk; sh2.effectDistance = new Vector2(3, -3); }
                 foreach (var fx in tab.text.GetComponents<Shadow>()) fx.enabled = open;
+                Hit(tab.box.rt, "tab:" + i);   // (a tab clicked: its panel, as the page's .gm-tab)
                 x += widths[i] + gap + (open ? om : 0);
             }
             // the sides: the panel either side and its button (.gm-side), the one the cursor rests on gold
@@ -155,6 +156,7 @@ namespace Hiraeth.Bridge
             bool g = state.O("glyphs") != null;
             SideTabAt(gmPrev, j.ps, tabY, j.prevW, tabH, "◀\n" + (g ? " " : Key("prev", "LB")) + "\n\n" + Vertical(names, cur - 1), edge < 0, g ? "lb" : null);
             SideTabAt(gmNext, W - j.ps - j.nextW, tabY, j.nextW, tabH, "▶\n" + (g ? " " : Key("next", "RB")) + "\n\n" + Vertical(names, cur + 1), edge > 0, g ? "rb" : null);
+            Hit(gmPrev.box.rt, "go:-1"); Hit(gmNext.box.rt, "go:1");   // (the page's .gm-side buttons)
             // the way out at the top right (.gm-close: B / Esc's glyph and ✕ on a paper pill)
             GmClose(g);
         }
@@ -175,6 +177,7 @@ namespace Hiraeth.Bridge
             PutGlyph(gmClose.rt, "back", 10, h / 2, 16);
             Ui.Place(gmCloseX.rectTransform, 10 + gw + 6, 0, 20, h);
             gmCloseX.text = "✕";
+            if (g) Hit(gmClose.rt, "close");
         }
 
         static string Vertical(List<object> names, int i)
@@ -284,6 +287,7 @@ namespace Hiraeth.Bridge
                 Ui.Place(k.next.rectTransform, tx, ty + 3, nw, 16);
                 var st = Ui.Set(k.step, step, tw - nw - 8); Ui.Place(k.step.rectTransform, tx + nw + 8, ty, tw - nw - 8, st.y);
             }
+            Hit(k.box.rt, c.S("pt"));
         }
 
         // the Quests panel as the page's two columns (src/game-menu.css .gm-quests: the cards, then the aside .qdone at
@@ -354,6 +358,7 @@ namespace Hiraeth.Bridge
                 Ui.Place(l.text.rectTransform, 8, 0, rightW - 16, lh - 1);
                 l.dash.Clear(); l.dash.Path(new[] { new Vector2(0, 0.5f), new Vector2(rightW, 0.5f) }, 1, Ui.Hex("#2b211f", 0.3f), false, 4, 3);
                 Ui.Place(l.dash.rectTransform, 0, lh - 1, rightW, 1);
+                Hit(l.rt, c.S("pt"));
                 ry += lh;
             }
             More(failedSeen ? dv?.S("moreFailed") : dv?.S("more"));

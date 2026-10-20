@@ -123,12 +123,12 @@ namespace Hiraeth.Bridge
         /// <summary>The main thread, at a frame's start: what the script reads this frame (keys, pads, the mouse, the frame times).</summary>
         public static void Snapshot()
         {
-            keys = ReadKeys(); pad = ReadPad(); mouse = ReadMouseLook(); padName = ReadPadName(); pointer = TakePointer();
+            keys = ReadKeys(); pad = ReadPad(); mouse = ReadMouseLook(); padName = ReadPadName(); pointer = TakePointer(); menuPointer = TakeMenuPointer();
             RumbleTick();
             if ((object)Runner != null) { cpuMs = Runner.cpuMs; gpuMs = Runner.gpuMs; }
             clock0 = Time.realtimeSinceStartupAsDouble * 1000 - clock.Elapsed.TotalMilliseconds;
         }
-        static string keys = "", pad, mouse, padName = "", pointer = "";
+        static string keys = "", pad, mouse, padName = "", pointer = "", menuPointer = "";
         static double cpuMs, gpuMs;
 
         // ---------------------------------------------------------------- the mirror's ops
@@ -452,6 +452,23 @@ namespace Hiraeth.Bridge
         }
         /// <summary>The presses since the script last asked: "kind,x,y,w,button;…", or "".</summary>
         public static string Pointer() => OnMain ? TakePointer() : pointer;
+        // ---------------------------------------------------------------- the pointer on the menus (issue #574)
+        // BridgeMenu places the mouse and the fingers on what it drew (BridgeMenu.Pointer.cs) and hands what they did to the
+        // script, which does what the web's click does (engine/menus.js pointer): "how|target|x|y|d;…", how hover, press,
+        // point, drag, zoom or scroll; the target the view's own name for what was drawn; x, y where on it (0..1).
+        static readonly List<string> menuEvents = new();
+        public static void MenuEvent(string how, string target, Vector2 at, float d = 0)
+        {
+            var ci = System.Globalization.CultureInfo.InvariantCulture;
+            var e = string.Format(ci, "{0}|{1}|{2:0.####}|{3:0.####}|{4:0.##}", how, (target ?? "").Replace("|", "").Replace(";", ""), at.x, at.y, d);
+            lock (menuEvents) { if (menuEvents.Count < 32) menuEvents.Add(e); }
+        }
+        static string TakeMenuPointer()
+        {
+            lock (menuEvents) { if (menuEvents.Count == 0) return ""; var s = string.Join(";", menuEvents); menuEvents.Clear(); return s; }
+        }
+        /// <summary>What the pointer did on the menus since the script last asked: "how|target|x|y|d;…", or "".</summary>
+        public static string MenuPointer() => OnMain ? TakeMenuPointer() : menuPointer;
         /// <summary>A batch run's press (engine/unity/game.js plan's 'pointer' step: -pointer): through the Input System's own
         /// devices, a mouse, a touch screen or a pad of its own added for it (BridgeHud.SimPointer), on one of the HUD's
         /// buttons as last drawn ("pause") or at "x,y" of its canvas.</summary>

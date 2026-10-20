@@ -61,6 +61,7 @@ namespace Hiraeth.Bridge
         Label tabPrev, tabNext; Image tabLine;
         Ui.Box strip; Label stripName, stripSub, stripDesc, stripAct, gearChimes;
         Ui.Box card; Label cardTitle, cardSub, cardText, cardFacts, cardUse, cardSteps;
+        Ui.Box cardBack; Label cardBackText;   // (the full view's Back, as the page's .fback: issue #574)
         Ui.Box ask; Label askQ, askWhat, askNo, askYes;
         Ui.Box mapBox;
         // the House map (issue #405, src/house-map.js): inside a makers' house, the game menu's panel (#487): a floor drawn in the
@@ -322,6 +323,7 @@ namespace Hiraeth.Bridge
             if (!Mathf.Approximately(canvas.planeDistance, pd)) canvas.planeDistance = pd;
             bool open = state != null;
             if (root.gameObject.activeSelf != open) root.gameObject.SetActive(open);
+            PollMenuPointer();   // (the mouse and the fingers on what was drawn last: BridgeMenu.Pointer.cs, issue #574)
             bool star = open && state.S("kind") == "starmap" && smRoot && smRoot.gameObject.activeSelf;
             // (the galactic map: only its scanner, its meter and a resolving planet moved, the chart as it was; its
             // animations every frame)
@@ -335,6 +337,7 @@ namespace Hiraeth.Bridge
         void Draw()
         {
             used = 0; tilesUsed = 0; glyphsUsed = 0; hintWordsUsed = 0;
+            PointerDrawStart();
             foreach (var l in new[] { logo, head, sub, hint, note, empty, tabPrev, tabNext, line }) Show(l, false);
             versionBox.Show(false); Show(titleArt, false); Show(titleLogo, false); titleUsed = 0;
             // (the shop's sheet sets these its own way: back to theirs)
@@ -372,6 +375,7 @@ namespace Hiraeth.Bridge
             if (h.Length > 0 && !glyphs) { hint.text = h; Ui.Place(hint.rectTransform, 24, hy, W - 48, 22); }
             hint.transform.SetAsLastSibling();
             HideUnusedGlyphs();
+            PointerDrawEnd();
         }
 
         void Sheet(float x, float y, float w, float h, bool dimmed)
@@ -409,7 +413,7 @@ namespace Hiraeth.Bridge
         /// vermilion shadow, the words in small spaced capitals (what it continues under them); the pad's in vermilion with
         /// the shadow in ink; the first (Continue, New game) marked by a vermilion edge at its left.
         /// </summary>
-        void TitleEntry(float x, float y, float w, float h, float font, string text, string under, bool on, bool primary)
+        void TitleEntry(float x, float y, float w, float h, float font, string text, string under, bool on, bool primary, bool hover = false)
         {
             if (titleUsed >= titleButtons.Count)
             {
@@ -422,11 +426,13 @@ namespace Hiraeth.Bridge
             }
             var e = titleButtons[titleUsed++];
             e.box.Show(true);
-            float lift = on ? 1 : 0;
+            // (the mouse over one the pad isn't on: the page's :hover, a paler paper lifted a pixel on a wider shadow, #574)
+            bool over = !on && hover;
+            float lift = on || over ? 1 : 0;
             Ui.Place(e.box.rt, x - lift, y - lift, w, h);
-            e.box.SetFill(on ? Ui.Hex("#e27c5b") : Ui.Hex("#fbe8c4", 0.9f));
+            e.box.SetFill(on ? Ui.Hex("#e27c5b") : over ? Ui.Hex("#fff4dc") : Ui.Hex("#fbe8c4", 0.9f));
             e.box.shadow.color = on ? Ui.Hex("#211a17") : Ui.Hex("#e27c5b");
-            e.box.SetShadow(on ? 3 : 2, on ? 3 : 2);
+            e.box.SetShadow(on || over ? 3 : 2, on || over ? 3 : 2);
             Show(e.accent, primary);
             if (primary) { e.accent.color = on ? Ui.Hex("#211a17") : Ui.Hex("#e27c5b"); Ui.Place(e.accent.rectTransform, 0, 0, 4, h); }
             var ink = on ? Ui.Hex("#fffaf0") : Ui.Hex("#211a17");
@@ -487,7 +493,8 @@ namespace Hiraeth.Bridge
                 {
                     var r = o as Dictionary<string, object>;
                     float h = string.IsNullOrEmpty(r.S("sub")) ? bh : Mathf.Max(bh, font * 2.3f + 10);
-                    TitleEntry(mx, y, mw, h, font, r.S("text"), r.S("sub"), B(r, "on"), B(r, "primary"));
+                    TitleEntry(mx, y, mw, h, font, r.S("text"), r.S("sub"), B(r, "on"), B(r, "primary"), HoverOn(r.S("pt")));
+                    Hit(titleButtons[titleUsed - 1].box.rt, r.S("pt"));
                     y += h + gap;
                 }
                 note.alignment = TextAnchor.MiddleCenter;
@@ -522,6 +529,7 @@ namespace Hiraeth.Bridge
                     var val = r.S("when") ?? "";
                     if (r.S("fold") is string fold && fold.Length > 0) val = (fold == "open" ? "▴ " : "▾ ") + (r.S("tag") ?? "");
                     var cell = Entry(sx + 24, yy, sw - 48, h - 4, r.S("text"), under, val, B(r, "on"), size: B(r, "back") ? Small + 2 : Body, boxed: !B(r, "back"));
+                    Hit(cell.box.rt, r.S("pt"));
                     // the buttons' glyphs (src/title.js, issue #517): Back's own before its word, the confirm one in the slot the pad is on
                     if (B(r, "back"))
                     {
@@ -536,15 +544,7 @@ namespace Hiraeth.Bridge
             if (a != null) DrawAsk(a);
         }
 
-        /// <summary>How far a list of rows (their heights) is scrolled so the one at `at` shows in `avail`.</summary>
-        static float Scroll(List<float> hs, int at, float avail)
-        {
-            float total = 0, top = 0;
-            for (int i = 0; i < hs.Count; i++) { if (i == at) top = total; total += hs[i]; }
-            if (total <= avail) return 0;
-            float h = at < hs.Count ? hs[at] : 0;
-            return Mathf.Clamp(top + h / 2 - avail / 2, 0, total - avail);
-        }
+        // (how far a list is scrolled: Scroll, BridgeMenu.Pointer.cs, round the pad's cursor or where the pointer left it)
 
         // ------------------------------------------------------------------ a shop (engine/menus.js shopView; issue #264)
 
@@ -672,6 +672,7 @@ namespace Hiraeth.Bridge
                 Ui.Set(label, Ui.Upper(o.S("label")), 130); Ui.Place(label.rectTransform, 8, 0, 130, 28);
                 Ui.Set(val, v, iw - 150); Ui.Place(val.rectTransform, 144, 0, iw - 150, 28);
                 Ui.Place(box.rt, px - 8, y, iw + 16, 28);
+                Hit(box.rt, o.S("pt"));
                 y += 30;
                 if (on && !string.IsNullOrEmpty(o.S("hint"))) y = CardPut(oh, o.S("hint"), px + 144, y, iw - 144) + 4;
             }
@@ -714,8 +715,10 @@ namespace Hiraeth.Bridge
                 cb.text.text = label; Ui.Place(cb.text.rectTransform, 0, 9, bw, ls.y);
                 Show(cb.sub, under.Length > 0);
                 if (under.Length > 0) { cb.sub.text = under; Ui.Place(cb.sub.rectTransform, 0, 9 + ls.y + 2, bw, 14); }
-                // (the pad's the one highlight, filled red; the main one only a red edge at its left: issue #507)
-                cb.box.SetFill(on ? CardRed : Ui.CardC);
+                // (the pad's the one highlight, filled red; the main one only a red edge at its left: issue #507; the mouse over
+                // another its :hover, a lighter paper, the focus staying where it was: minigames.css .sheet button:hover, #574)
+                bool over = !on && HoverOn(b.S("pt"));
+                cb.box.SetFill(on ? CardRed : over ? CardHover : Ui.CardC);
                 cb.box.border.color = Ui.Ink;
                 cb.box.SetShadow(on ? 5 : 3, on ? 5 : 3);
                 cb.text.color = on ? CardOnInk : Ui.Ink;
@@ -723,6 +726,7 @@ namespace Hiraeth.Bridge
                 Show(cb.accent, main);
                 if (main) { cb.accent.color = on ? Ui.Ink : CardRed; Ui.Place(cb.accent.rectTransform, 0, 0, 7, h); }
                 Ui.Place(cb.box.rt, bx - (on ? 2 : 0), y - (on ? 2 : 0), bw, h);
+                Hit(cb.box.rt, b.S("pt"));
                 bx += bw + 10;
             }
             for (int i = buttons.Count; i < cButtons.Count; i++) cButtons[i].box.Show(false);
@@ -753,8 +757,12 @@ namespace Hiraeth.Bridge
                 Show(line, true);
                 line.alignment = TextAnchor.UpperRight; line.fontStyle = FontStyle.Bold; line.color = Ui.Ink;
                 var ln = "◀ " + Key("prev", "LB") + "   " + Ui.Upper(f.S("text")) + "  " + (f.I("i") + 1) + " / " + f.I("n") + "   " + Key("next", "RB") + " ▶";
-                Ui.Set(line, ln, sw * 0.55f);
+                var lsz = Ui.Set(line, ln, sw * 0.55f);
                 Ui.Place(line.rectTransform, sx + sw - 24 - sw * 0.55f, sy + 22, sw * 0.55f, 20);
+                // (its ◀ LB and RB ▶ ends: the world before and after, as the page's chips; line is right-aligned)
+                float lx0 = sw * 0.55f - lsz.x;
+                HitPart(line, new Rect(lx0 - 4, -4, 56, 28), "go:-1");
+                HitPart(line, new Rect(sw * 0.55f - 52, -4, 56, 28), "go:1");
             }
             DrawRows("foes", sx + 18, sy + 58, sw - 36, sh - 58 - 14);
         }
@@ -776,6 +784,7 @@ namespace Hiraeth.Bridge
             askNo.color = on == 0 ? Ui.Ink : Muted; askYes.color = on == 1 ? Ui.Red : Muted;
             Ui.Place(askNo.rectTransform, 20, by, bw, 36); Ui.Place(askYes.rectTransform, 40 + bw, by, bw, 36);
             Ui.Place(ask.rt, x, H / 2 - (by + 56) / 2, w, by + 56);
+            Hit(askNo, "ask:0"); Hit(askYes, "ask:1");
         }
 
         void DrawSettings(List<object> rows, float x, float y, float w, float h, bool plain = false)
@@ -811,6 +820,9 @@ namespace Hiraeth.Bridge
                     if (head) c.text.fontStyle = FontStyle.Bold;
                     // (a verb moved off its own button: its button in red, as the web marks it)
                     c.val.color = B(r, "moved") ? Ui.Red : head ? Muted : Ui.Ink;
+                    Hit(c.box.rt, r.S("pt"));
+                    // (a slider: its track a target of its own, pressed and dragged for its value, as tall as the row for a finger)
+                    if (sl >= 0) { float bw = Mathf.Min(160, w * 0.3f); HitPart(c.box.rt, new Rect(w - 14 - bw, 0, bw, rh - 4 - (head ? 8 : 0)), r.S("ptSlide")); }
                 }
                 yy += rh;
             }
@@ -829,16 +841,17 @@ namespace Hiraeth.Bridge
             int at = (int)h.F("i"), here = (int)h.F("here", -1);
             float tx = x + 14, th = 34;
             bool g = state.O("glyphs") != null;   // (LB / RB as the page's glyphs at the ends: issue #517)
-            if (!string.IsNullOrEmpty(h.S("prev"))) { var c = Entry(tx, y, 58, th, g ? "" : Key("prev", "LB"), null, null, false, size: Small, dimmed: true); if (g) CentreGlyph(c.box.rt, "lb", 29, th / 2, Small); tx += 60; }
+            if (!string.IsNullOrEmpty(h.S("prev"))) { var c = Entry(tx, y, 58, th, g ? "" : Key("prev", "LB"), null, null, false, size: Small, dimmed: true); if (g) CentreGlyph(c.box.rt, "lb", 29, th / 2, Small); Hit(c.box.rt, "go:-1"); tx += 60; }
             for (int i = 0; i < tabsL.Count; i++)
             {
                 string label = (tabsL[i] as string ?? "") + (i == here ? " •" : "");
                 float tw = 44 + label.Length * 14;   // (wide enough for its label on one line, bold when shown: 1F, B1, 1F •)
                 var c = Entry(tx, y, tw, th, label, null, null, i == at, size: Body, boxed: true);
                 if (i == at) c.box.SetFill(Ui.Gold);
+                Hit(c.box.rt, "floor:" + i);
                 tx += tw + 6;
             }
-            if (!string.IsNullOrEmpty(h.S("next"))) { var c = Entry(tx, y, 58, th, g ? "" : Key("next", "RB"), null, null, false, size: Small, dimmed: true); if (g) CentreGlyph(c.box.rt, "rb", 29, th / 2, Small); tx += 60; }
+            if (!string.IsNullOrEmpty(h.S("next"))) { var c = Entry(tx, y, 58, th, g ? "" : Key("next", "RB"), null, null, false, size: Small, dimmed: true); if (g) CentreGlyph(c.box.rt, "rb", 29, th / 2, Small); Hit(c.box.rt, "go:1"); tx += 60; }
             var nm = h.S("name") ?? "";
             Show(houseName, nm.Length > 0);
             if (nm.Length > 0) { houseName.text = nm; Ui.Place(houseName.rectTransform, tx + 8, y, Mathf.Max(60, x + w - tx - 8), th); }
@@ -992,6 +1005,7 @@ namespace Hiraeth.Bridge
                             var dot = c.S("color") is string dotCol && dotCol.Length > 0 ? $"<color={dotCol}>●</color> " : "";
                             var fc = Entry(cx, yy, cw, rh - 6, fk == "foot" || fk == "waves" ? Ui.Upper(text) : dot + text, under, null, B(c, "on"), size: fk == "foe" ? Body : Small, boxed: true);
                             if (B(c, "lit") && !B(c, "on")) fc.box.SetFill(Ui.Gold);
+                            Hit(fc.box.rt, c.S("pt"));
                             continue;
                         }
                         if (panel == "dev")
@@ -1001,13 +1015,14 @@ namespace Hiraeth.Bridge
                             var dc = Entry(cx, yy, cw, rh - 6, text, under, c.S("val"), B(c, "on"), size: Body, boxed: true);
                             dc.sub.fontSize = Small;
                             dc.val.color = B(c, "lit") ? Ui.Hex("#2f7a55") : Ui.Ink;
+                            Hit(dc.box.rt, c.S("pt"));
                             continue;
                         }
                         if (B(c, "inUse")) under = "in use";
                         if (!string.IsNullOrEmpty(c.S("step"))) under = (string.IsNullOrEmpty(under) ? "" : under + "\n") + "Next: " + c.S("step");
                         if (B(c, "tracked")) text = "◆ " + text;
                         if (c.S("done") == "done") text = "✓ " + text; else if (c.S("done") == "failed") text = "· " + text;
-                        if (c.S("kind") == "item" || c.S("kind") == "empty") { DrawTile(cx, yy + 6, cw, side, c); continue; }
+                        if (c.S("kind") == "item" || c.S("kind") == "empty") { DrawTile(cx, yy + 6, cw, side, c); Hit(tiles[tilesUsed - 1].box.rt, c.S("pt")); continue; }
                         // (a quest as the page's .qcard; a quest done, a line: BridgeMenu.Chrome.cs, issue #423)
                         if (panel == "quests" && c.S("kind") != "ended") { QuestCard(cx, yy, cw, rh - 8, c); continue; }
                         if (panel == "quests") under = null;
@@ -1016,6 +1031,7 @@ namespace Hiraeth.Bridge
                         var cell = Entry(cx, yy, cw, rh - 6, (pic != null || string.IsNullOrEmpty(c.S("mark")) ? "" : c.S("mark") + " ") + text, under, null, B(c, "on"), size: c.S("kind") == "ended" ? Small : Body, dimmed: B(c, "off"), boxed: true);
                         cell.text.alignment = TextAnchor.UpperLeft;
                         LinePicture(cell, pic, rh - 6);
+                        Hit(cell.box.rt, c.S("pt"));
                     }
                 yy += rh;
             }
@@ -1157,6 +1173,9 @@ namespace Hiraeth.Bridge
             zoomIn.text = "RT +"; zoomOut.text = "LT −";
             Ui.Place(zoomInBox.rt, mw - 14 - 54, mh - 14 - 2 * 32 - 6, 54, 32);
             Ui.Place(zoomOutBox.rt, mw - 14 - 54, mh - 14 - 32, 54, 32);
+            // (the sheet takes the pointer as the page's: the cursor follows the mouse, a drag moves the map, the wheel zooms;
+            // the zoom's buttons over it, a notch each)
+            Hit(mapBox.rt, "map"); Hit(zoomInBox.rt, "zoom:1"); Hit(zoomOutBox.rt, "zoom:-1");
             foreach (var t in new Component[] { mapCursor, mapNameBox.rt, mapNorth, mapScaleBox.rt, mapNoteBox.rt, zoomInBox.rt, zoomOutBox.rt, mapTip.rt }) t.transform.SetAsLastSibling();   // (over the marks)
             mapEdge.transform.SetAsLastSibling();
         }
@@ -1182,6 +1201,9 @@ namespace Hiraeth.Bridge
             var steps = (p.S("prev") is string pv && pv.Length > 0 ? "◀ " + pv : "") + "        " + (p.S("next") is string nx && nx.Length > 0 ? nx + " ▶" : "");
             Show(note, true); note.fontSize = Small; note.text = steps.Trim();
             Ui.Place(note.rectTransform, x, y + h + 10, w, 20);
+            // (the one before at the left, the one after at the right: the page's ◀ ▶ buttons)
+            if (!string.IsNullOrEmpty(p.S("prev"))) HitPart(note, new Rect(0, -6, w / 2, 32), "person:-1");
+            if (!string.IsNullOrEmpty(p.S("next"))) HitPart(note, new Rect(w / 2, -6, w / 2, 32), "person:1");
         }
 
         void DrawFull(Dictionary<string, object> f)
@@ -1197,9 +1219,31 @@ namespace Hiraeth.Bridge
             if (tex != null) { cardPic.texture = tex; Ui.Place(cardPic.rectTransform, w - pad - big, pad, big, big); }
             if (marked) { cardMark.text = f.S("mark"); Ui.Place(cardMark.rectTransform, w - pad - big, pad, big, big); }
             if (big > 0) cw -= big + 16;
+            // Back at the top left, over the picture and the words (the page's .fback: a paper pill, B / Esc's glyph and
+            // BACK spaced in capitals; a click or a tap on it goes back, as B / ○)
+            float top = pad;
+            var bk = f.S("back") ?? "";
+            if (cardBack == null)
+            {
+                cardBack = Ui.Panel(card.rt, "back", Ui.Paper, Ui.Ink, 2, 2, 2, 15);
+                cardBackText = Ui.Label(cardBack.rt, "text", Ui.Sans, 13, Ui.Ink, TextAnchor.MiddleLeft, FontStyle.Normal); Ui.Space(cardBackText, 0.12f);
+            }
+            cardBack.Show(bk.Length > 0);
+            if (bk.Length > 0)
+            {
+                float gw = state.O("glyphs") != null ? PutGlyph(cardBack.rt, "back", 6, 14, 13) : 0;
+                cardBackText.text = (gw > 0 ? "" : Key("back", "B") + "  ") + Ui.Upper(bk);
+                float tx0 = 6 + (gw > 0 ? gw + 4 : 4), bw = tx0 + Ui.Measure(cardBackText, cardBackText.text).x + 14;
+                Ui.Place(cardBackText.rectTransform, tx0, 0, bw - tx0, 28);
+                Ui.Place(cardBack.rt, pad, pad, bw, 28);
+                Hit(cardBack.rt, "full:back");
+                top = pad + 28 + 12;
+            }
+            if (tex != null) Ui.Place(cardPic.rectTransform, w - pad - big, top, big, big);
+            if (marked) Ui.Place(cardMark.rectTransform, w - pad - big, top, big, big);
             var ts = Ui.Set(cardTitle, f.S("title"), cw);
-            Ui.Place(cardTitle.rectTransform, pad, pad, cw, ts.y);
-            float y = pad + ts.y + 4;
+            Ui.Place(cardTitle.rectTransform, pad, top, cw, ts.y);
+            float y = top + ts.y + 4;
             var sb = (f.S("sub") ?? "") + (B(f, "inUse") ? "  ·  in use" : "");
             var ss = Ui.Set(cardSub, sb, cw); Ui.Place(cardSub.rectTransform, pad, y, cw, ss.y); y += ss.y + 10;
             var tx = Ui.Set(cardText, f.S("text") ?? "", cw); Ui.Place(cardText.rectTransform, pad, y, cw, tx.y); y += tx.y + 10;
@@ -1214,10 +1258,14 @@ namespace Hiraeth.Bridge
             cardUse.text = (use.Length > 0 ? (ug ? use : Key("ok", "A") + "  " + use) : "") + (nt.Length > 0 ? (use.Length > 0 ? "\n" : "") + nt : "");
             var us = Ui.Measure(cardUse, cardUse.text, cw - ux); Ui.Place(cardUse.rectTransform, pad + ux, y, cw - ux, us.y);
             if (ug) PutGlyph(card.rt, "ok", pad, y + Body * 0.65f, Body);
+            if (use.Length > 0) HitPart(card.rt, new Rect(pad - 6, y - 4, cw + 12, us.y + 8), "full:use");   // (the page's .fuse button)
             y += us.y + 10;
             cardSteps.text = ((f.S("prev") is string pv && pv.Length > 0 ? "◀ " + pv : "") + "      " + (f.S("next") is string nx && nx.Length > 0 ? nx + " ▶" : "")).Trim();
-            Ui.Place(cardSteps.rectTransform, pad, y, cw, 20); y += 28;
-            y = Mathf.Max(y, pad + big + 20);
+            Ui.Place(cardSteps.rectTransform, pad, y, cw, 20);
+            if (!string.IsNullOrEmpty(f.S("prev"))) HitPart(card.rt, new Rect(pad, y - 6, cw / 2, 32), "full:-1");
+            if (!string.IsNullOrEmpty(f.S("next"))) HitPart(card.rt, new Rect(pad + cw / 2, y - 6, cw / 2, 32), "full:1");
+            y += 28;
+            y = Mathf.Max(y, top + big + 20);
             Ui.Place(card.rt, x, Mathf.Max(20, H / 2 - y / 2), w, y);
         }
     }

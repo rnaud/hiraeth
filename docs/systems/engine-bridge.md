@@ -2852,8 +2852,73 @@ The chime pirates (ice, on the way to Edena), the top right, against the web's a
 corner's SSIM 0.49 → 0.53 and edges' F1 0.32 → 0.43 (the planets behind differ between the two runs); the pause card
 after the click as Menu's. The page's other pointer-only pieces are the touch layout's (`#touch`, `#gear`, the potion's
 button, the sketch hunt's ✎), shown only with `body.touch`, which the engines never set: with no touch layout in Unity
-they are left out, and a touch counts as the screen in hand. The menus and the runs' cards (BridgeMenu.cs) take no
-pointer yet: after a click on the pause, Resume is Enter or A / ×. Tests: tests/hud-buttons.test.js.
+they are left out, and a touch counts as the screen in hand (on a handheld, the pad stays in hand: below). The menus and
+the runs' cards take the pointer since issue #574 (below). Tests: tests/hud-buttons.test.js.
+
+## The pointer on the menus and the runs' cards (2026-10-20, issue #574)
+
+The web's menus are pages of buttons a click or a tap acts on; Unity's (BridgeMenu*.cs) read the pad and the keys only, so
+after the minigames' pause button was clicked, Resume needed a pad. Now the mouse and the fingers act on every menu as the
+page's click does, through the pad's own actions, so the rule is the script's for both:
+
+- **The targets** (engine/menus.js): every view names what a click can act on, `pt` on its elements: the title's entries
+  `row:i`, a setting `set:i` (its place among the settings, the headings passed over) and its slider's track `slide:i`
+  (`ptSlide`), the Updates page's buttons `upd:i`, the Start menu's sidebar `side:i` and the Controls page's rows `page:i`,
+  the game menu's cells `cell:r,c` (their place in the panel's rows: the empty item slots between take none), the dev
+  menu's `dev:i`, the Arena's and the Arcade's `item:i`, a run's card's options `opt:<id>` and buttons `act:<act>`, a shop's
+  wares `ware:i`, the galactic map's worlds `star:i` (engine/starmap.js). The frames' own: the close buttons `close`, the
+  journal's tabs `tab:i` and side tabs `go:-1` / `go:1` (the Arena's filter's ends too, the House map's LB / RB), a
+  question's answers `ask:0` / `ask:1` (the galactic map's `ask:yes` / `ask:no`, its Travel `star:go`), the full view's
+  `full:-1` / `full:1` / `full:use`, a person's `person:-1` / `person:1`, a floor `floor:i`, the Map's sheet `map` and its
+  zoom `zoom:1` / `zoom:-1`.
+- **What they do** (`EngineMenus.pointer({ how, pt, x, y, d })`): `press` (a click or a tap let go where it was pressed)
+  puts the cursor there and does A / ×, as the page's click (src/title.js, src/ui.js, src/minigames/kit/runner.js,
+  src/shop-panel.js, src/foe-spawner.js, src/levels/arcade-board.js, src/dev-menu.js, src/ship/starmap.js); on the game
+  menu's cells and the galactic map's worlds a tap picks first and a tap on the one picked acts (src/game-menu.js click,
+  starmap.js); a page's entry on the Start menu's sidebar shows its page, the focus left on the entry (the page's
+  `data-a="page"`). `hover` (the mouse, never a finger) puts the cursor there, as the page's mouse picks a journal cell,
+  a world on the galactic map, and its buttons' `:hover` looks as their focus (a save, a ware, a foe, a game); where the
+  page's `:hover` is a look of its own (a run's card's buttons: minigames.css `.sheet button:hover`, the title's entries:
+  menus.css `.main-menu button:hover`, the Start menu's sidebar: `.menu-nav button:hover`) the cursor stays and BridgeMenu
+  draws that look (`HoverOn`); where it has none (the settings' rows) nothing. A slider pressed takes the value under it and follows a drag, in its steps
+  (`slideTo`). The Map as the page's: the mouse moves its cursor (`point`), a drag moves it (`drag`), the wheel zooms round
+  the mouse (`zoom`). A question holds the screen: the rows under it take nothing. The view says `pointer` while the
+  pointer moved the cursor last (a pad's or a key's action clears it).
+- **Unity** (`BridgeMenu.Pointer.cs`): each drawing puts its targets down as it draws them (`Hit`, `HitPart` for a part of
+  a box: a slider's track as tall as its row, the full view's ◀ ▶ halves), on top in the order drawn (a clip for the
+  Arcade's scrolled grid); each frame a menu is up the Input System's primary touch and mouse are placed on them
+  (`RectTransformUtility` with the menus' camera, so a scaled card counts) and what they did goes to the script as
+  `BridgeHost.MenuEvent` → `BridgeHost.MenuPointer` ("how|target|x|y|d;…", taken with the frame's input) →
+  engine/unity/game.js `readMenuPointer` (the title's too, before a world). A press moved more than 12 px is a drag: on a
+  list a finger scrolls it, on the Map it moves the map, on a slider its value. The wheel over a list scrolls it 40 px a
+  notch. `Scroll` (one for every list) keeps the cursor's row in the middle as before, and while the view says the pointer
+  moved the cursor last, keeps the list where the pointer left it (hover would otherwise scroll the list under the mouse
+  and pick the next row). The HUD's own presses (what is in hand, the minigames' pause) are BridgeHud's, read as before.
+- **A tap on a handheld** (src/input-mode.js `touchKeepsPad`, engine/game.js: a build whose pad layout is the handheld's,
+  native-pad.js `padLayout() === 'android'`): the Retroid's screen tapped with its pad in hand leaves the pad in hand, so
+  the prompts keep the handheld's names; the tap is kept as `touched`, `pointerKind` 'touch', which brings the minigames'
+  pause button back for the finger (`hudButtons`) until the pad is used again. A mouse there, and a click or a touch on a
+  computer, are the keyboard and mouse in hand as before. `-pad-layout android` gives the editor's batch the handheld's.
+- **The pause's hint row** (src/minigames/kit/runner.js `publish`): paused, the run's controls and its line (the pirates'
+  missiles, gun and boost) stay as they were, as the page's stay under its card (its loop held); Unity hid them, the row
+  being published `off` under the pause. The pirates' comms line was there already, its few seconds running out before
+  #570's Unity picture was taken.
+- **The full view's Back** (BridgeMenu.cs DrawFull): the page's `.fback` pill at the top (B / Esc's glyph and BACK), which
+  Unity's full view lacked; a click on it goes back (`full:back`).
+- **A batch run** (`-pointer mouse | touch` with `-trial` / `-game`, after #570's pause by the button): with the mouse it
+  is moved over Retry (`over:menu:act:retry`, picture `unity-pointer-hover`), then Resume is clicked or tapped
+  (`menu:act:resume`, `unity-resumed`), the run paused again by the button and Retry pressed (`unity-retried`); the
+  `[unity] run: …` lines say the runner's phase and the menu. `BridgeHud.SimPointer` takes `menu:<target>` (where it was
+  last drawn, `BridgeMenu.ScreenOf`) and `over:` (moved there, not pressed).
+  `scripts/unity-js-run.sh p574 -screen 1280x720 -level desert -game "pirates?stage=ice&to=edena" -run-secs 1 -pointer mouse -out dir`.
+  `-menu-pointer mouse | touch` (in a world, no save written): the Start menu, the mouse over Settings, Controls pressed,
+  Resume; the game menu, its Items tab, the second tile picked and pressed (its full view), Back, the Wardrobe (its line
+  a target: the mouse over it), the close button; the
+  `[unity] menu: …` lines say where each left the menus, pictures `unity-menu-<name>.png` (`menuOpen`, `menuLog` steps).
+
+Not yet: the Wardrobe's drag to turn him (its lines take the pointer: BridgeMenu.Wardrobe.cs, one `Hit` after its
+`Entry`); the galactic map's scanner by the pointer (the page's pointermove follows it); the What's new panel's See what
+changed. Tests: tests/menu-pointer.test.js.
 
 ## The v2 traveller (Unity + Puerts, 2026-10-20, issue #493)
 

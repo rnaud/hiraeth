@@ -112,6 +112,7 @@ namespace Hiraeth.Bridge
             float capW = ShopCap(shClose.rt, "back", Key("back", "B"), 9, 16), cw = 9 + capW + 6 + Ui.Measure(shCloseText, "✕").x + 10;
             Ui.Place(shCloseText.rectTransform, 9 + capW + 6, 0, 20, 33);
             Ui.Place(shClose.rt, sw - px - cw, y, cw, 33);
+            Hit(shClose.rt, "close");
             var purse = state.S("purse") ?? "";
             float pw = Ui.Measure(shPurse, purse).x, ww = 10 + 18 + 5 + pw + 12;
             shPurse.text = purse; Ui.Place(shPurse.rectTransform, 10 + 18 + 5, 0, pw + 4, 38);
@@ -158,6 +159,7 @@ namespace Hiraeth.Bridge
                     bool on = B(r, "on") && state.O("ask") == null;
                     float lift = on ? 1 : 0;
                     Ui.Place(shCards[i].box.rt, px + (i - r0) * (cardW + gap) - lift, y - lift * 2, cardW, rowH);
+                    Hit(shCards[i].box.rt, r.S("pt"));
                 }
                 y += rowH + gap;
             }
@@ -180,6 +182,7 @@ namespace Hiraeth.Bridge
                 float bx = (aw - yw - 12 - nw) / 2;
                 Ui.Place(shYes.rt, bx, byy, yw, bh);
                 Ui.Place(shNo.rt, bx + yw + 12, byy, nw, bh);
+                Hit(shYes.rt, "ask:1"); Hit(shNo.rt, "ask:0");
                 float ah = byy + bh + 14;
                 Ui.Place(shAsk.rt, sw / 2 - aw / 2, y - 22 - ah, aw, ah);
             }

@@ -236,6 +236,7 @@ namespace Hiraeth.Bridge
             PutCap(smCloseCap, cl.S("cap"), 10, 5, 18, true);
             Ui.Place(smCloseT.rectTransform, 10 + capW + 6, 0, ctw + 4, 29);
             smClose.rt.SetAsLastSibling();
+            Hit(smClose.rt, "close");
             DrawStarSide(v, cw, chh, side);
             DrawStarAsk(v.O("ask"), cw, chh);
             Show(smLocked, B(v, "locked"));
@@ -365,6 +366,7 @@ namespace Hiraeth.Bridge
                 float k = sel ? 1.08f : 1;
                 Ui.PlaceC(w.node, x - d / 2, y - d / 2, d, d);
                 w.node.localScale = new Vector3(k, k, 1);
+                Hit(w.node, e.S("pt")); Hit(w.name, e.S("pt"));   // (a world: the mouse over it picks it, a click on the one picked asks to fly, as the page's)
                 // the planet (its picture spans ±80 of the disc's ±50), or home's sun over the hill
                 Show(w.pic, !home); Show(w.home, home);
                 if (!home) { w.pic.texture = Planet(e.S("id")); float over = d * 0.3f; Ui.Place(w.pic.rectTransform, -over, -over, d + 2 * over, d + 2 * over); }
@@ -470,6 +472,7 @@ namespace Hiraeth.Bridge
                 float capw = string.IsNullOrEmpty(go.S("cap")) ? 0 : Ui.Measure(smGoCap.t, go.S("cap")).x + 10 + 6;
                 float gw = 12 + capw + gtw + 12 + 4, gh = 34;
                 Ui.Place(smGo.rt, ix, y, gw, gh);
+                if (!off) Hit(smGo.rt, "star:go");
                 PutCap(smGoCap, go.S("cap"), 12, 8, gh - 16 - 4, false);
                 Ui.Place(smGoT.rectTransform, 12 + capw, 0, gtw + 4, gh - 2);
                 y += gh + 12 + 2;
@@ -524,6 +527,7 @@ namespace Hiraeth.Bridge
             var wh = Ui.Set(smCardWhat, a.S("what") ?? "", inner); Ui.Place(smCardWhat.rectTransform, 20, y, inner, wh.y); y += wh.y + 14;
             float bx = w / 2 - (yw + 14 + nw) / 2;
             Ui.Place(smYes.rt, bx, y, yw, bh); Ui.Place(smNo.rt, bx + yw + 14, y, nw, bh);
+            Hit(smYes.rt, "ask:yes"); Hit(smNo.rt, "ask:no");
             PutCap(smYesCap, yesOn ? yes.S("cap") : "", 12, 8, bh - 20, false);
             Ui.Place(smYesT.rectTransform, 12 + ycap, 0, yw - 12 - ycap, bh - 2);
             PutCap(smNoCap, no.S("cap"), 12, 8, bh - 20, false);

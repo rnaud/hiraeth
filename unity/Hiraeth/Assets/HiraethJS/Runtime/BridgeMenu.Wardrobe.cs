@@ -100,6 +100,7 @@ namespace Hiraeth.Bridge
                     string sw = c.S("swatch");
                     bool colour = !string.IsNullOrEmpty(sw), worn = B(c, "worn"), locked = B(c, "locked");
                     var cell = Entry(x, yy, lw, lineH - 6, (colour ? "" : (locked ? "?  " : "✦  ")) + c.S("text"), null, worn ? Ui.Upper(wd.S("wornTag") ?? "wearing") : null, B(c, "on"), size: Small + 1, dimmed: locked, boxed: true);
+                    Hit(cell.box.rt, c.S("pt"));   // (the pointer: the mouse over a line picks it, a click on the one picked wears it; issue #574)
                     cell.text.alignment = TextAnchor.UpperLeft;
                     if (worn) { cell.val.color = GmRed; cell.val.fontSize = Tiny; cell.val.fontStyle = FontStyle.Bold; }
                     if (colour)

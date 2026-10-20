@@ -517,7 +517,8 @@ export class MinigameRunner {
     const s = this.statusText ?? ((H.score ?? d.score?.kind === 'points') ? formatScore(d, this.points) : '');
     let hints = null;
     if (d.hints) {
-      const kind = inputKind(), live = ['count', 'play'].includes(this.phase) && !this.paused;
+      // (paused, the row as it was: the page's stays under its card as last drawn, its loop held; issue #574)
+      const kind = inputKind(), live = ['count', 'play'].includes(this.phase);
       const row = hintRow(controlsFor({ controls: d.hints }, kind), { age: this.hintAge, used: this.hintsUsed, live });
       hints = { off: !live || (row.off && !this.hintNote), items: row.items.map((i) => ({ k: keyText(i.k, { kind, teach: true }), w: i.w, gone: i.gone || row.off })), note: this.hintNote ? this.hintNoteText ?? plainHtml(this.hintNote) : '' };
     }

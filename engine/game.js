@@ -140,7 +140,7 @@ import { Sound } from '../src/audio.js';
 import { createBoxes, migrateSave } from '../src/boxes/index.js';
 import { installAudio } from './webaudio.js';
 import { setView, inView } from '../src/motion-kit/view.js';
-import { padFaces, setFaces, confirmKey, backKey } from '../src/native-pad.js';
+import { padFaces, setFaces, confirmKey, backKey, padLayout } from '../src/native-pad.js';
 import { attachMotion, matchingSetting } from '../src/motion-match.js';
 import { movesSetting } from '../src/loco-moves.js';
 import { ShopPanel } from '../src/shop-panel.js';
@@ -958,7 +958,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // pressed; the prompts, the cue, a box's card and every {key:verb} name its buttons (the body's 'controller' class,
   // src/prompt-keys.js inputKind), in Xbox / PlayStation form, which the bridge prints as the pad in hand does (issue #345).
   // (Esc does not count: a handheld's back button may arrive as it)
-  const inputMode = new InputMode({ touchDevice: false, storage: { get: () => null, set() {} } });
+  // (on a handheld, the Retroid, a tap leaves its pad in hand: the prompts keep its buttons' names, the HUD's pointer
+  // buttons come back for the finger: src/input-mode.js touchKeepsPad, issue #574; a click on a computer is the mouse in hand)
+  const inputMode = new InputMode({ touchDevice: false, storage: { get: () => null, set() {} }, touchKeepsPad: () => padLayout() === 'android' });
   let padKind = null;
   const padInHand = () => inputMode.controller;
   function inputFrame() {
@@ -966,7 +968,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     inputMode.apply(document.body?.classList);
     if (padKind !== inputMode.kind) { padKind = inputMode.kind; boxes?.card?.refresh?.(); }
     // (the HUD's own buttons for a pointer, as the page's: the minigames' pause, gone with a pad in hand; issue #570)
-    const buttons = hudButtons(screen.state, { kind: inputMode.kind, ts: TEXT_SIZES[settings?.textSize] ?? 1, under: !!menus?.open });
+    const buttons = hudButtons(screen.state, { kind: inputMode.pointerKind, ts: TEXT_SIZES[settings?.textSize] ?? 1, under: !!menus?.open });
     screen.set('buttons', buttons.length ? buttons : null);
   }
   const keys = {};

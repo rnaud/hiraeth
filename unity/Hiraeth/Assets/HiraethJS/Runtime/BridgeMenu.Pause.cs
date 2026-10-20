@@ -140,6 +140,7 @@ namespace Hiraeth.Bridge
             float cw = 12 + (gw > 0 ? gw + 6 : 0) + Ui.Measure(nwCloseText, nwCloseText.text).x + 12;
             Ui.Place(nwCloseText.rectTransform, 12 + (gw > 0 ? gw + 6 : 0) - (gw > 0 ? 0 : 2), 0, cw, bh);
             Ui.Place(nwClose.rt, pw - padX - cw, by, cw, bh);
+            Hit(nwClose.rt, "close");   // (Close: back to the game, as the page's)
             nwPicsText.text = "See what changed";
             float sw0 = Ui.Measure(nwPicsText, nwPicsText.text).x + 26;
             Ui.Place(nwPics.rt, pw - padX - cw - 8 - sw0, by, sw0, bh);
@@ -243,11 +244,14 @@ namespace Hiraeth.Bridge
             {
                 var e = o as Dictionary<string, object>;
                 bool on = B(e, "on"), sel = B(e, "sel");
+                // (the mouse over one the pad isn't on: the page's .menu-nav button:hover, a paler paper lifted on a deeper
+                // shadow, the focus staying where it was: issue #574)
+                bool over = !on && HoverOn(e.S("pt"));
                 var n = Nav();
-                float lift = on ? 2 : 0;
+                float lift = on || over ? 2 : 0;
                 Ui.Place(n.box.rt, pad - lift, y - lift, bw, bh);
-                n.box.SetFill(on ? PauseRed : PauseButton);
-                n.box.SetShadow(on ? 6 : 4, on ? 6 : 4);
+                n.box.SetFill(on ? PauseRed : over ? CardHover : PauseButton);
+                n.box.SetShadow(on || over ? 6 : 4, on || over ? 6 : 4);
                 n.text.color = on ? PauseOnText : PauseInk;
                 n.text.fontSize = Mathf.RoundToInt(Mathf.Min(17, bh * 0.38f));
                 // (the page shown while the pad is in it: a red edge at its left, as the page's focused button keeps)
@@ -260,6 +264,7 @@ namespace Hiraeth.Bridge
                 bool first = navUsed == 1;
                 float gw = first ? PutGlyph(n.box.rt, "back", gx, bh / 2, gs) : on ? PutGlyph(n.box.rt, "ok", gx, bh / 2, gs) : 0;
                 Ui.Place(n.text.rectTransform, 14 + (sel && !on ? 6 : 0), 0, bw - 28 - (gw > 0 ? gw + 6 : 0), bh);
+                Hit(n.box.rt, e.S("pt"));
                 y += bh + gap;
             }
             for (int i = navUsed; i < navs.Count; i++) navs[i].box.Show(false);
@@ -344,6 +349,7 @@ namespace Hiraeth.Bridge
         {
             var row = Row();
             Ui.Place(row.rt, x, y, w, rh);
+            Hit(row.rt, r.S("pt"));
             bool on = B(r, "on"), plain = B(r, "plain"), head = B(r, "head"), wide = B(r, "wide");
             string kind = r.S("kind") ?? "", val = r.S("val") ?? "";
             row.focus.enabled = on;
@@ -395,6 +401,7 @@ namespace Hiraeth.Bridge
                 Ui.Place(row.track.rectTransform, cx, mid - 3, cw, 6);
                 Ui.Place(row.fill.rectTransform, 0, 0, cw * k, 6);
                 Ui.Place(row.dot.rectTransform, cx + cw * k - 8, mid - 8, 16, 16);
+                HitPart(row.rt, new Rect(cx, 0, cw, rh), r.S("ptSlide"));   // (its track, the row's height: pressed and dragged for its value)
             }
             else if (sw)
             {

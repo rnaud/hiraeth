@@ -68,6 +68,7 @@ namespace Hiraeth.Bridge
             Ui.Place(arHead.rectTransform, px, y, iw - 60, hs.y); y += hs.y + 12;
             arCloseText.text = "×";
             Ui.Place(arClose.rt, sw - 14 - 30, 12, 30, 26);
+            Hit(arClose.rt, "close");
             // the cards: three a row (as the page's auto-fill from 240 px), each row as tall as its tallest card
             var rows = state.L("rows") ?? new List<object>();
             int cols = Mathf.Max(1, Mathf.FloorToInt((iw + 10) / 250f));
@@ -83,6 +84,7 @@ namespace Hiraeth.Bridge
                 {
                     ArcCardDraw(i, flat[i], cw, true);
                     Ui.Place(arCards[i].box.rt, (i - r0) * (cw + gap), ty, cw, rh);
+                    Hit(arCards[i].box.rt, flat[i].S("pt"), arClip);   // (only where the sheet shows it: the grid scrolls under its clip)
                     if (B(flat[i], "on")) { onTop = ty; onBottom = ty + rh; }
                     n++;
                 }

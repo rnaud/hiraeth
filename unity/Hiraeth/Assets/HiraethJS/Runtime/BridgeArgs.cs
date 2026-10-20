@@ -208,6 +208,10 @@ namespace Hiraeth.Bridge
             // (-pointer mouse | touch: with -trial / -game, the run paused by the HUD's own pause button pressed through the Input
             // System's devices instead of Esc, a pad taken in hand before it to hide it; issue #570, BridgeHud.SimPointer)
             if (Arg("-pointer") != null) args["pointer"] = Arg("-pointer");
+            // (-pad-layout android: the prompts and a tap as on a handheld, the Retroid's, in the editor's batch: issue #574)
+            if (Arg("-pad-layout") != null) args["padLayout"] = Arg("-pad-layout");
+            // (-menu-pointer mouse | touch: the Start menu and the game menu by the pointer, photographed: issue #574)
+            if (Arg("-menu-pointer") != null) args["menuPointer"] = Arg("-menu-pointer");
             if (Flag("-pose")) args["pose"] = Arg("-pose") is string pk && !pk.StartsWith("-") ? pk : "on";   // (-pose catch: the fishing's catch card)
             // (-set-flags a,b: those flags set on the debug save before the world is built: engine/unity/game.js)
             if (Arg("-set-flags") != null) args["setFlags"] = Arg("-set-flags");

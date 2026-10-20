@@ -41,6 +41,10 @@ export const CHANGELOG = [
     // issue #570: src/hud-buttons.js (the button's rule, hit test and press), engine/game.js pointer, BridgeHud.Pointer.cs
     // (the mouse and the fingers through the Input System, the button drawn), BridgeHost.Pointer; tests/hud-buttons.test.js
     'In the Unity version, the minigames have their pause button at the top right, as on the web: click it with the mouse or tap it to pause, as Menu does. It goes away while you play with a controller and comes back as soon as you use the mouse or the screen.',
+    // issue #574: engine/menus.js pointer (the views' targets, the web's click rules), BridgeMenu.Pointer.cs (the mouse and the
+    // fingers placed on what the menus drew, the lists' scroll), BridgeHost.MenuPointer, src/input-mode.js touchKeepsPad,
+    // kit/runner.js publish (the hint row under the pause); tests/menu-pointer.test.js
+    'In the Unity version, the menus and a minigame’s cards now take the mouse and the touch screen, as on the web: point at a line or a tile to pick it, click or tap to choose, click a tab, a side arrow, a close or Back button, drag a slider, scroll a list with the wheel or a finger, and move and zoom the map with the mouse. After pausing a minigame with its button, Resume and Retry work by a tap. On a handheld, tapping the screen keeps the prompts in its buttons’ names instead of turning them into keyboard keys, and a paused minigame keeps its controls and its missiles line under the card, as on the web.',
     // issue #571: src/wardrobe.js, src/game-menu.js wardrobePanel (+ .css), main.js wardrobeFrame, engine/menus.js and
     // engine/game.js wardrobeCapture, BridgeMenu.Wardrobe.cs, BridgeRunner.Wardrobe; tests/wardrobe.test.js
     // (src/wardrobe.js PageIdle: him breathing on the page; WorldLoader NoSkinData: the sword's blade drawn in Unity too)

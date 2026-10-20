@@ -234,7 +234,7 @@ export class EngineStarMap {
       const [x, y] = D.pos(e), bx = D.boxOf(e), sel = i === this.sel;
       const ring = sel ? 'sel' : e.next ? 'next' : e.current ? 'current' : e.visited ? '' : 'unvisited';
       const tagCol = e.current ? 'current' : e.home ? 'home' : e.next ? 'next' : e.signal ? 'signal' : '';
-      return { id: e.id, x: r1(x), y: r1(y), disc: bx.disc, w: bx.w, font: r1(bx.font), name: e.title, tag: worldTag(e), tagCol, ring, sel,
+      return { id: e.id, pt: `star:${i}`, x: r1(x), y: r1(y), disc: bx.disc, w: bx.w, font: r1(bx.font), name: e.title, tag: worldTag(e), tagCol, ring, sel,
         done: !!e.done, sig: !!e.signature, next: !!e.next, home: !!e.home, signal: !!e.signal, moon: !!e.moon };
     }).filter(Boolean);
     const sc = searching && this.scan ? (() => {

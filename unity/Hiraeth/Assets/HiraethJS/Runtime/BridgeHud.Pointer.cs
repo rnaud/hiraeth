@@ -103,6 +103,17 @@ namespace Hiraeth.Bridge
         string simUp; Vector2 simAt; int simUpIn;
         public void SimPointer(string kind, string where)
         {
+            // ("menu:<target>": on a menu's target as last drawn, BridgeMenu.ScreenOf; "over:menu:<target>": the mouse moved
+            // there and not pressed, the hover; issue #574)
+            bool over = (where ?? "").StartsWith("over:");
+            if (over) where = where.Substring(5);
+            Vector2? onMenu = null;
+            if ((where ?? "").StartsWith("menu:"))
+            {
+                var menu = BridgeHost.Runner ? BridgeHost.Runner.menu : null;
+                onMenu = menu ? menu.ScreenOf(where.Substring(5)) : null;
+                if (onMenu == null) Debug.Log($"Hiraeth bridge: pointer: no {where} on the menus (there: {(menu ? menu.Targets() : "no menus")})");
+            }
             var xy = (where ?? "").Split(',');
             var at = where == "pause" ? pauseBox.center
                 : xy.Length == 2 && float.TryParse(xy[0], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var px)
@@ -112,7 +123,17 @@ namespace Hiraeth.Bridge
             InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
             InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
 #endif
-            var sp = ToScreen(at);
+            var sp = onMenu ?? ToScreen(at);
+            if (onMenu != null) at = FromScreen(sp, out var ca) ? ca : at;
+            if (over)
+            {
+                // (the mouse moved over it, no button: the page's pointerover)
+                if (simMouse == null) simMouse = InputSystem.AddDevice<Mouse>("Hiraeth run mouse");
+                simMouse.MakeCurrent();
+                InputSystem.QueueStateEvent(simMouse, new MouseState { position = sp });
+                Debug.Log($"Hiraeth bridge: pointer over {where} at {at.x:0},{at.y:0} (screen {sp.x:0},{sp.y:0})");
+                return;
+            }
             if (kind == "touch")
             {
                 if (simTouch == null) simTouch = InputSystem.AddDevice<Touchscreen>("Hiraeth run touch");

@@ -191,6 +191,21 @@ export function glyphLabels() {
 }
 /** The cells that carry a thing's picture (the Items panel's gear, what you carry, the keepsakes). */
 const PICTURED = new Set(['item', 'pack', 'keepsake']);
+/**
+ * The Unity bridge's pointer on the menus (BridgeHost.MenuPointer: "how|target|x|y|d;…", BridgeMenu.Pointer.cs) as
+ * EngineMenus.pointer takes them: [{ how, pt, x, y, d }].
+ */
+export function parseMenuPointer(text) {
+  const out = [];
+  for (const part of String(text ?? '').split(';')) {
+    const [how, pt = '', x = '0.5', y = '0.5', d = '0'] = part.split('|');
+    if (!['hover', 'press', 'point', 'drag', 'zoom', 'scroll'].includes(how)) continue;
+    out.push({ how, pt, x: Number.isFinite(+x) ? +x : 0.5, y: Number.isFinite(+y) ? +y : 0.5, d: +d || 0 });
+  }
+  return out;
+}
+/** A row of the Arena's or the Arcade's grid the pad can be on: its place in the list as its pointer's target. */
+const itemPt = (items, r, k) => { const j = items.findIndex((it) => it.r === r && it.k === k); return j >= 0 ? { pt: `item:${j}` } : {}; };
 const plain = (s) => String(s ?? '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
 
 export class EngineMenus {
@@ -264,6 +279,7 @@ export class EngineMenus {
   show(mode, panel = null) {
     this.mode = mode;
     this.note = '';
+    this.byPointer = false;   // (a menu opened: its lists round the cursor)
     if (mode === 'title') {
       Object.assign(this.title, { screen: 'main', i: 0, ask: null, debugOpen: false, starting: null });
       // the painted world behind it (src/title-paint.js: one of the covers' shots, never the one shown last; the
@@ -304,6 +320,7 @@ export class EngineMenus {
    * first), B / ○ no, then close. Its view is the map's own (kind 'starmap').
    */
   openStarMap(map) {
+    this.byPointer = false;
     if (!map) return false;
     this.star = map;
     map.onClose = () => { if (this.mode === 'starmap') { this.star = null; this.mode = null; this.changed(); this.onResume(); } };
@@ -334,6 +351,7 @@ export class EngineMenus {
    * left open while the runner has one up (engine/trials.js keeps them in step).
    */
   openCard(runner) {
+    this.byPointer = false;
     this.card = { runner, v: -1, i: 0 };
     this.mode = 'card';
     this.cardSync();
@@ -390,7 +408,7 @@ export class EngineMenus {
   cardView() {
     const C = this.card, M = C.runner.cardModel ?? {};
     const items = this.cardItems(M), at = items[C.i]?.key;
-    return { v: this.v, kind: 'card', hint: '', card: { ...M, options: (M.options ?? []).map((o) => ({ ...o, on: at === `opt:${o.id}` })), buttons: (M.buttons ?? []).map((b) => ({ ...b, on: at === `act:${b.act}` })) } };
+    return { v: this.v, kind: 'card', hint: '', card: { ...M, options: (M.options ?? []).map((o) => ({ ...o, on: at === `opt:${o.id}`, pt: `opt:${o.id}` })), buttons: (M.buttons ?? []).map((b) => ({ ...b, on: at === `act:${b.act}`, pt: `act:${b.act}` })) } };
   }
 
   // ------------------------------------------------------------------ a shop
@@ -403,6 +421,7 @@ export class EngineMenus {
    * fragments) and every keeper's (chimes).
    */
   openShop(panel, entry) {
+    this.byPointer = false;
     if (!panel?.open?.(entry)) return false;
     const wares = panel.view().wares;
     this.shop = { panel, i: Math.max(0, wares.findIndex((w) => w.state === 'ok')), on: 1 };
@@ -435,7 +454,7 @@ export class EngineMenus {
       const flag = w.flag ?? stateText(w.state), stock = w.note === undefined ? [left, have].filter(Boolean).join(' · ') : w.note;
       const price = w.state === 'soldout' || w.state === 'owned' ? '' : `${w.price} ${frag ? '✦' : '◆'}`;
       return { id: w.id, text: w.name ?? t(`shop.${w.id}.name`), sub: [plain(w.effect ?? t(`shop.${w.id}.effect`)), stock].filter(Boolean).join('\n'), val: [price, flag].filter(Boolean).join('  '),
-        state: w.state, ok: w.state === 'ok', on: i === S.i, pic: frag ? w.id : '', mark: frag ? '✦' : w.kind === 'potion' ? '◒' : w.kind === 'heart' ? '♥' : '◆',
+        state: w.state, ok: w.state === 'ok', on: i === S.i, pt: `ware:${i}`, pic: frag ? w.id : '', mark: frag ? '✦' : w.kind === 'potion' ? '◒' : w.kind === 'heart' ? '♥' : '◆',
         // (the page's card, src/shop-panel.js wareCard: its picture, name, what it does, its stock, its price and flag;
         // the picture an item's own or the ware's drawing, made a PNG by scripts/engine-bundle.mjs unityPictures)
         card: { pic: frag ? w.id : `ware-${w.kind}`, alt: frag ? 'shop-fragment' : '', name: w.name ?? t(`shop.${w.id}.name`), effect: plain(w.effect ?? t(`shop.${w.id}.effect`)),
@@ -457,6 +476,7 @@ export class EngineMenus {
    * row before / after, up / down the one above / below), LB / RB the world filter, A / × fights, B / ○ closes.
    */
   openFoes(list) {
+    this.byPointer = false;
     if (!list?.shown) return false;
     this.foes = { list, i: 0 };
     this.mode = 'foes';
@@ -511,7 +531,7 @@ export class EngineMenus {
     const stops = L.filters, w = L.filter.world;
     return { v: this.v, kind: 'foes', head: 'Foes', cols: Array(cols).fill(1 / cols),
       filter: { text: L.filterTitle(w), i: Math.max(0, stops.indexOf(w)), n: stops.length },
-      rows: rows.map((row, r) => row.map((c, k) => ({ kind: c.kind, text: c.text, sub: c.sub ?? '', col: c.col, span: c.span ?? 1, on: !!on && on.r === r && on.k === k, lit: !!c.act && L.isChosen(c.act) }))),
+      rows: rows.map((row, r) => row.map((c, k) => ({ kind: c.kind, text: c.text, sub: c.sub ?? '', col: c.col, span: c.span ?? 1, on: !!on && on.r === r && on.k === k, lit: !!c.act && L.isChosen(c.act), ...itemPt(items, r, k) }))),
       empty: L.shown().length ? '' : 'Nothing by that name.',
       hint: 'A / × fights · LB / RB a world · B / ○ closes' };
   }
@@ -525,6 +545,7 @@ export class EngineMenus {
    * above / below, A / × plays, B / ○ closes. Its words are the page's (board.words: ARCADE_BOARD).
    */
   openArcade(board) {
+    this.byPointer = false;
     if (!board?.games?.length) return false;
     this.arcade = { board, i: 0 };
     this.mode = 'arcade';
@@ -569,7 +590,7 @@ export class EngineMenus {
     const on = items[A.i];
     const W = A.board.words ?? {};
     return { v: this.v, kind: 'arcade', kicker: W.kicker ?? '', head: W.title ?? '', cols: Array(cols).fill(1 / cols),
-      rows: rows.map((row, r) => row.map((c, k) => ({ kind: c.kind, text: c.text, sub: c.sub, blurb: c.blurb, best: c.best, color: c.color, col: c.col, span: 1, on: !!on && on.r === r && on.k === k }))),
+      rows: rows.map((row, r) => row.map((c, k) => ({ kind: c.kind, text: c.text, sub: c.sub, blurb: c.blurb, best: c.best, color: c.color, col: c.col, span: 1, on: !!on && on.r === r && on.k === k, ...itemPt(items, r, k) }))),
       hint: W.pad ?? '' };
   }
 
@@ -582,6 +603,7 @@ export class EngineMenus {
    * ← →) a tab, up / down its rows, A / × the row, B / ○, L3 + R3, F2 or ` closes; Menu and View go on to theirs.
    */
   openDev(dev) {
+    this.byPointer = false;
     if (!dev) return false;
     this.dev = dev;
     dev.changed = () => this.changed();
@@ -604,9 +626,9 @@ export class EngineMenus {
     const [a, b] = tabWindow(tabs.length, n.tab, TAB_STRIP), cur = n.current(tabs);
     const rows = (tab?.rows ?? []).map((r, i) => [r.head
       ? { kind: 'head', text: `${r.label} · ${r.hint}`, sub: '', col: 0, span: 1, on: false }
-      : { kind: 'dev', text: `${r.now ? '▸ ' : ''}${r.label}`, sub: r.hint ?? '', val: r.state !== undefined ? (r.state ? 'ON' : 'OFF') : r.tag ? String(r.tag).toUpperCase() : '', lit: !!r.state, col: 0, span: 1, on: i === n.row }]);
+      : { kind: 'dev', text: `${r.now ? '▸ ' : ''}${r.label}`, sub: r.hint ?? '', val: r.state !== undefined ? (r.state ? 'ON' : 'OFF') : r.tag ? String(r.tag).toUpperCase() : '', lit: !!r.state, col: 0, span: 1, on: i === n.row, pt: `dev:${i}` }]);
     if (tab?.note) rows.unshift([{ kind: 'head', text: tab.note, sub: '', col: 0, span: 1, on: false }]);
-    return { v: this.v, kind: 'game', panel: 'dev', tabs: { names: tabs.slice(a, b).map((t) => t.name), i: n.tab - a, edge: 0 }, cols: [1], rows,
+    return { v: this.v, kind: 'game', panel: 'dev', tabs: { names: tabs.slice(a, b).map((t) => t.name), i: n.tab - a, edge: 0, from: a }, cols: [1], rows,
       empty: rows.length ? '' : tab?.empty ?? 'Nothing here.',
       strip: cur ? { name: cur.label, sub: `${tab.title} · ${n.tab + 1} / ${tabs.length}`, desc: cur.hint ?? '', act: verb(cur) } : { name: tab?.title ?? '', sub: `${n.tab + 1} / ${tabs.length}`, desc: tab?.line ?? '', act: '' },
       hint: 'LB / RB a tab · A / × choose · B / ○ close' };
@@ -617,6 +639,7 @@ export class EngineMenus {
   /** The controller's menu actions (src/controller.js, context 'menu'). */
   action(name) {
     if (!this.mode) return;
+    this.byPointer = false;
     // (a key awaited: a pad's button leaves it as it was, as Esc does)
     if (this.rebinding?.kind === 'keys') { this.stopRebind?.(); return; }
     if (this.mode === 'title') this.titleAction(name);
@@ -633,6 +656,7 @@ export class EngineMenus {
   /** A direction (the D-pad, the stick, the arrows): x, y in -1 / 0 / 1. */
   navigate(x, y) {
     if (!this.mode) return;
+    this.byPointer = false;
     if (this.mode === 'title') this.titleMove(x, y);
     else if (this.mode === 'start') this.startMove(x, y);
     else if (this.mode === 'shop') this.shopMove(x, y);
@@ -661,6 +685,123 @@ export class EngineMenus {
     if (!act) return false;
     if (this.mode === 'game' && act === 'select') { this.close(); return true; }
     this.action(act);
+    return true;
+  }
+
+  // ------------------------------------------------------------------ the pointer (issue #574)
+
+  /**
+   * The mouse or a finger on a menu, as the web's pages take a click (src/title.js, src/ui.js, src/game-menu.js,
+   * src/minigames/kit/runner.js, src/shop-panel.js, src/foe-spawner.js, src/levels/arcade-board.js, src/ship/starmap.js,
+   * src/dev-menu.js): the engine places it on what it drew (BridgeMenu.Pointer.cs) and names the target its view gave it
+   * (`pt`), or one of its own (the close button 'close', a tab 'tab:i', the side tabs 'go:-1' / 'go:1', a question's
+   * 'ask:0' / 'ask:1', the full view's 'full:-1' / 'full:1' / 'full:use', a person's 'person:-1' / 'person:1', a floor's
+   * 'floor:i', the Map's sheet 'map' and its zoom 'zoom:1' / 'zoom:-1', the galactic map's 'star:go').
+   *   how 'hover'  the mouse came over it (not a finger): the cursor goes there, as the page's mouse picks a cell and its
+   *                buttons' :hover looks as their focus (a save, a ware, a foe, a world on the galactic map); where the
+   *                page's :hover is a look of its own (a run's card's buttons, the title's entries, the Start menu's
+   *                sidebar) the cursor stays and the engine draws that look (BridgeMenu.Pointer.cs HoverOn); where the
+   *                page has none (the settings' rows) nothing
+   *       'press'  a click or a tap on it, let go where it was pressed: what the page's click does, through the pad's own
+   *                actions (the cursor put there, then A / ×), so the rule is the one the pad follows; on the game menu's
+   *                cells a tap picks first and a tap on the one picked does it, as the page's
+   *       'point', 'drag', 'zoom'  the Map: the cursor to (x, y) of the sheet, the map moved by (x, y) of it, a wheel's
+   *                notch (d: -1 in, 1 out) round (x, y)
+   *       'scroll' a list scrolled by the wheel or a finger (the engine's own): the cursor stays
+   * x, y: where on the target, 0..1 across and down (a slider's value, the Map's spot). True when a menu took it.
+   */
+  pointer({ how = 'press', pt = '', x = 0.5, y = 0.5, d = 0 } = {}) {
+    if (!this.mode) return false;
+    const i = pt.indexOf(':'), k = i < 0 ? pt : pt.slice(0, i), a = i < 0 ? '' : pt.slice(i + 1), n = Number(a);
+    const press = how === 'press', hover = how === 'hover';
+    if (how === 'scroll') { this.byPointer = true; this.changed(); return true; }
+    if (!press && !hover && !(this.onMap && k === 'map')) return false;
+    if (hover && (k === 'close' || k === 'tab' || k === 'go' || k === 'zoom' || k === 'full' || k === 'person' || k === 'floor')) return false;   // (the page's :hover only)
+    if (hover && (this.mode === 'card' || this.mode === 'start' || (this.mode === 'title' && this.title.screen !== 'saves' && !this.title.ask))) return false;   // (their :hover a look of its own, or none: the focus where it was)
+    let took = true;
+    const act = (name) => this.action(name);
+    if (k === 'close' && press) {
+      if (this.mode === 'starmap') this.star?.close(); else if (this.mode === 'arcade') this.arcadeAction('back'); else this.close();
+    } else if (this.mode === 'title') {
+      const T = this.title;
+      if (T.ask) { if (k === 'ask') { T.ask.on = n ? 1 : 0; if (press) act('confirm'); } }
+      else if (k === 'row') { T.i = n; if (press) act('confirm'); }
+      else if (k === 'set' || k === 'slide' || k === 'upd') { T.at = { in: 'page', i: n }; if (k === 'slide' && press) this.slideTo(n, x); else if (press) act('confirm'); }
+      else took = false;
+    } else if (this.mode === 'start') {
+      const S = this.start, SIDE = this.startSide();
+      // (a page's entry clicked: its page, the focus staying on the entry, as the page's data-a="page"; the others act)
+      if (k === 'side' && SIDE[n]) { if (SIDE[n].page) { if (SIDE[n].page === 'news') { S.page = 'news'; S.at = { in: 'page', i: 0 }; } else { S.at = { in: 'side', i: n }; S.page = SIDE[n].page; } } else { S.at = { in: 'side', i: n }; act('confirm'); } }
+      else if (k === 'set' || k === 'slide' || k === 'page' || k === 'upd') { S.at = { in: 'page', i: n }; if (k === 'slide' && press) this.slideTo(n, x); else if (press) act('confirm'); }
+      else took = false;
+    } else if (this.mode === 'card') {
+      const C = this.card, M = C.runner.cardModel, j = M ? this.cardItems(M).findIndex((it) => it.key === pt) : -1;
+      if (j >= 0) { C.i = j; if (press) act('confirm'); } else took = false;
+    } else if (this.mode === 'shop') {
+      const S = this.shop;
+      if (k === 'ask' && S.panel.ask) { S.on = n ? 1 : 0; if (press) act('confirm'); }
+      else if (k === 'ware' && !S.panel.ask) { S.i = n; if (press) act('confirm'); }
+      else took = false;
+    } else if (this.mode === 'foes' || this.mode === 'arcade') {
+      const F = this.mode === 'foes' ? this.foes : this.arcade;
+      if (k === 'item') { F.i = n; if (press) act('confirm'); }
+      else if (k === 'go' && press) act(n < 0 ? 'tabPrev' : 'tabNext');
+      else took = false;
+    } else if (this.mode === 'starmap') {
+      const M = this.star;
+      if (!M) took = false;
+      else if (M.asking) { if (k === 'ask' && press) M.answer(a === 'yes'); else if (k === 'ask') { M.yes = a === 'yes'; M.cv++; } }
+      else if (pt === 'star:go') { if (press) M.go(); }
+      else if (k === 'star') { if (press && M.sel === n) M.go(); else M.select(n); }
+      else took = false;
+    } else if (this.mode === 'dev') {
+      const D = this.dev;
+      if (k === 'dev') { D.nav.at(D.tabs, n); D.render?.(); if (press) act('confirm'); }
+      else if (k === 'tab' && press) { const t = D.tabs[n + (this.devView().tabs.from ?? 0)]; if (t) { D.nav.show(D.tabs, t.id); D.render?.(); } }
+      else if (k === 'go' && press) act(n < 0 ? 'tabPrev' : 'tabNext');
+      else took = false;
+    } else took = this.gamePointer(how, k, a, n, x, y, d);
+    if (took) { this.byPointer = true; this.changed(); }
+    return took;
+  }
+  /** A slider's row pressed at x (0..1 along its track): its value there, in its steps (the page's range input). */
+  slideTo(i, x) {
+    const r = this.settingRows()[i];
+    if (!r || r.kind !== 'range') return;
+    const v = r.min + Math.max(0, Math.min(1, x)) * (r.max - r.min);
+    this.setSetting(r, Math.round(Math.round((v - r.min) / r.step) * r.step * 1000 + r.min * 1000) / 1000);
+  }
+  /** The game menu's pointer (src/game-menu.js: its click, pointerover, the Map's pointer and wheel). */
+  gamePointer(how, k, a, n, x, y, d) {
+    const press = how === 'press';
+    if (k === 'tab' && press) {
+      if (!this.state.panels[n] || n === this.state.i) return true;
+      this.state.i = n; this.full = null; this.person = null; this.zoom = null; this.mapFresh = true; this.startAt();
+      return true;
+    }
+    if (k === 'go' && press) { this.action(n < 0 ? 'tabPrev' : 'tabNext'); return true; }
+    if (this.full) {
+      if (k === 'full' && press) { if (a === 'use') this.gameAction('confirm'); else if (a === 'back') this.full = null; else this.fullStep(n); return true; }
+      return false;
+    }
+    if (k === 'person' && press) { if (a === 'back') this.gameAction('back'); else this.gameMove(n, 0); return true; }
+    if (k === 'floor' && press) { const f = this.hv?.floors?.[n]; if (f) this.housePage.pick(this.hv, f.id); return true; }
+    if (k === 'zoom' && press && this.onMap) { this.mapZoomBy(n > 0 ? VIEW.wheel : 1 / VIEW.wheel); return true; }
+    if (k === 'map' && this.onMap) {
+      const V = this.mapView;
+      if (how === 'drag') V.drag(x, y);
+      else if (how === 'zoom') V.zoomBy(d < 0 ? VIEW.wheel : 1 / VIEW.wheel, V.fromSheet(x, y));
+      else V.point(x, y);
+      this.mapTouched();
+      return true;
+    }
+    if (k !== 'cell') return false;
+    const [r, c] = a.split(',').map(Number), at = this.state.cursor(), id = this.state.panel.id;
+    if (!this.panel().rows[r]?.[c]) return false;
+    // a tap (or click) picks a cell; on the one picked, it does what A / × does; the mouse over one picks it
+    if (press && !at.edge && at.r === r && at.c === c) this.gameAction('confirm');
+    else if (!at.edge && at.r === r && at.c === c) return true;
+    else this.state.at[id] = { r, c };
     return true;
   }
 
@@ -774,7 +915,7 @@ export class EngineMenus {
     for (const r of SETTINGS_ROWS) {
       if (r.when && !r.when(this)) continue;
       if (r.group) { out.push({ text: t(`set.group.${r.group}`), head: true }); continue; }
-      out.push({ text: r.label(), val: settingText(r, this.settingValue(r)), slider: r.kind === 'range' ? (this.settings[r.k] - r.min) / (r.max - r.min) : null, kind: r.kind, on: at?.in === 'page' && at.i === i, note: (typeof r.note === 'function' ? r.note() : r.note) ?? '' });
+      out.push({ text: r.label(), val: settingText(r, this.settingValue(r)), slider: r.kind === 'range' ? (this.settings[r.k] - r.min) / (r.max - r.min) : null, kind: r.kind, on: at?.in === 'page' && at.i === i, note: (typeof r.note === 'function' ? r.note() : r.note) ?? '' , pt: `set:${i}`, ...(r.kind === 'range' ? { ptSlide: `slide:${i}` } : {}) });
       i++;
     }
     return out;
@@ -794,7 +935,7 @@ export class EngineMenus {
       const buttons = rows.map((r, i) => (r.act ? i : -1)).filter((i) => i >= 0);
       if (buttons.length) at.i = buttons.reduce((a, b) => (Math.abs(b - at.i) < Math.abs(a - at.i) ? b : a));
     }
-    return rows.map((r, i) => ({ ...r, on: at?.in === 'page' && at.i === i && !!r.act }));
+    return rows.map((r, i) => ({ ...r, on: at?.in === 'page' && at.i === i && !!r.act, ...(r.act ? { pt: `upd:${i}` } : {}) }));
   }
   /** The first button's row (where the cursor goes on the page). */
   updatesFirst() { const i = this.updatesRowsNow().findIndex((r) => r.act); return i < 0 ? 0 : i; }
@@ -843,7 +984,7 @@ export class EngineMenus {
   housePicture(key) { return this.housePics.get(key)?.canvas ?? null; }
   startPageRows() {
     const page = this.startPage(), at = this.start.at, on = (i) => at.in === 'page' && at.i === i;
-    if (page === 'controls') return this.controlsRows().map((r, i) => ({ ...r, on: on(i) }));
+    if (page === 'controls') return this.controlsRows().map((r, i) => ({ ...r, on: on(i), ...(r.plain || r.head ? {} : { pt: `page:${i}` }) }));
     if (page === 'news') return this.newsRows().map((r, i) => ({ ...r, on: on(i) }));
     if (page === 'updates') return this.updatesRows(at);
     return this.settingsPage(at);
@@ -1133,6 +1274,8 @@ export class EngineMenus {
     v.glyphs = glyphLabels();
     v.hint = menuKeys(v.hint);
     v.keys = { ok: confirmKey(), back: backKey(), prev: 'LB', next: 'RB' };
+    // (the pointer moved the cursor last: the engine keeps its lists where the pointer left them, not round the cursor)
+    v.pointer = !!this.byPointer;
     return v;
   }
   titleView() {
@@ -1148,7 +1291,7 @@ export class EngineMenus {
     if (T.starting) return { ...base, rows: [], starting: this.note || '…', layout: lay(2), hint: '' };
     if (T.screen === 'settings') return { ...base, head: t('title.settings').toUpperCase(), page: { rows: this.settingsPage(T.at) }, hint: 'A / × change · ◀ ▶ adjust · B / ○ back' };
     if (T.screen === 'updates') return { ...base, head: 'UPDATES', page: { rows: this.updatesRows(T.at) }, hint: 'A / × choose · B / ○ back' };
-    const rows = this.titleRows().map((r, i) => ({ text: r.text, sub: r.sub ?? '', sub2: r.sub2 ?? '', when: r.when ?? '', tag: r.tag ?? '', fold: r.fold ?? '', back: !!r.back, del: !!r.del, note: r.note ?? '', primary: !!r.primary, on: i === Math.min(T.i, this.titleRows().length - 1) }));
+    const rows = this.titleRows().map((r, i) => ({ text: r.text, sub: r.sub ?? '', sub2: r.sub2 ?? '', when: r.when ?? '', tag: r.tag ?? '', fold: r.fold ?? '', back: !!r.back, del: !!r.del, note: r.note ?? '', primary: !!r.primary, on: i === Math.min(T.i, this.titleRows().length - 1), pt: `row:${i}` }));
     const sel = this.titleRows()[Math.min(T.i, rows.length - 1)];
     const hint = T.screen === 'saves' ? `A / × choose${sel?.del ? ' · X / □ delete' : ''} · B / ○ back` : 'A / × choose';
     return { ...base, head: T.screen === 'saves' ? t('title.savesHead') : '', rows, layout: T.screen === 'main' ? lay(rows.length) : null,
@@ -1168,7 +1311,7 @@ export class EngineMenus {
     const view = { v: this.v, kind: 'start', brand: t('menu.paused'), head: this.where() || '', sub: '', line: this.saveLine?.() ?? '', saved: t('menu.saved'),   // (the side's foot, the page's .saved)
       // (What's new, chosen: the page's changelog panel over the game, no sidebar: `news`, BridgeMenu.Pause.cs DrawNews)
       news: page === 'news' && S.at.in === 'page',
-      side: page === 'news' && S.at.in === 'page' ? [] : this.startSide().map((e, i) => ({ text: e.label(), on: S.at.in === 'side' && S.at.i === i, sel: e.page === page })),
+      side: page === 'news' && S.at.in === 'page' ? [] : this.startSide().map((e, i) => ({ text: e.label(), on: S.at.in === 'side' && S.at.i === i, sel: e.page === page, pt: `side:${i}` })),
       page: { id: page, title, tag, sub, note: page === 'controls' && this.settings ? t(keysFirst ? 'rebind.keysHow' : 'rebind.padHow') : '', rows: this.startPageRows() }, hint };
     return view;
   }
@@ -1178,7 +1321,7 @@ export class EngineMenus {
     const grid = p.id === 'items' ? this.itemGrid() : null;
     const rows = p.rows.map((row, r) => row.map((c, k) => ({
       text: c.name ?? '', sub: c.sub ?? '', col: c.col ?? k, span: grid && c.kind !== 'item' ? (c.col === 0 ? grid.carry : grid.cols - grid.carry) : 1,
-      kind: c.kind,
+      kind: c.kind, pt: `cell:${r},${k}`,
       // (a thing's picture: public/item-pictures/<id>, as the items page draws it; its kind's mark where it has none)
       pic: PICTURED.has(c.kind) ? c.id ?? '' : '', mark: PICTURED.has(c.kind) ? KIND_MARK[c.it?.kind ?? c.kind] ?? '✧' : '', on: !at.edge && at.r === r && at.c === k, inUse: !!c.it?.inUse, tracked: !!c.q?.tracked, track: c.act === 'track' ? ACT.track : '', done: c.kind === 'ended' ? (c.q?.failed ? 'failed' : 'done') : '',
       here: c.kind === 'world' && /here/i.test(c.sub ?? ''), off: c.kind === 'mark' && !c.mark?.on,
@@ -1266,7 +1409,7 @@ export class EngineMenus {
     if (this.full) {
       const c = this.full.cell, F = this.full, f = c.full ?? {};
       const w = c.kind === 'world' ? (Array.isArray(p.data) ? p.data.find((x) => x.id === c.id) : null) : null;
-      view.full = { title: c.name ?? '', sub: f.sub ?? '', pic: PICTURED.has(c.kind) ? c.id ?? '' : '', mark: PICTURED.has(c.kind) ? KIND_MARK[c.it?.kind ?? c.kind] ?? '✧' : '', text: plain(f.text), inUse: !!f.inUse, use: f.use ?? '', note: F.note ?? '',
+      view.full = { back: t('gm.back'), title: c.name ?? '', sub: f.sub ?? '', pic: PICTURED.has(c.kind) ? c.id ?? '' : '', mark: PICTURED.has(c.kind) ? KIND_MARK[c.it?.kind ?? c.kind] ?? '✧' : '', text: plain(f.text), inUse: !!f.inUse, use: f.use ?? '', note: F.note ?? '',
         facts: w ? worldFacts(w).map((x) => ({ text: x.text, on: !!x.on, list: (x.list ?? []).join(' · ') })) : [],
         prev: F.list[F.k - 1]?.name ?? '', next: F.list[F.k + 1]?.name ?? '', kind: c.kind };
     }

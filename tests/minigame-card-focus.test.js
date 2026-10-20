@@ -55,7 +55,9 @@ test('the engines\' card: one button on, wherever the pad is; the main one still
 test('Unity draws the pad\'s button filled and the main one only edged (BridgeMenu.cs BuildCard)', () => {
   const cs = readFileSync(new URL('../unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.cs', import.meta.url), 'utf8');
   const build = cs.slice(cs.indexOf('void BuildCard('), cs.indexOf('// ------------------------------------------------------------------ the Arena'));
-  assert.match(build, /cb\.box\.SetFill\(on \? CardRed : Ui\.CardC\)/, 'the fill follows the pad alone');
+  // (red follows the pad alone; the mouse over another only its :hover's paler paper, issue #574)
+  assert.match(build, /cb\.box\.SetFill\(on \? CardRed : over \? CardHover : Ui\.CardC\)/, 'the fill follows the pad alone');
+  assert.match(build, /bool over = !on && HoverOn\(b\.S\("pt"\)\);/);
   assert.doesNotMatch(build, /main \? Ui\.Gold/, 'no gold main button');
   assert.match(build, /Show\(cb\.accent, main\)/, 'the main one\'s red edge');
 });
