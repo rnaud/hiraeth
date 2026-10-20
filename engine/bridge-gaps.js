@@ -45,6 +45,7 @@ export const DEV_PAGES = [
   { path: 'src/notes-page/', why: 'the notes page' },
   { path: 'src/makers-mark/page.js', why: 'the makers\' mark page' },
   { path: 'src/makers-mark/runtime.js', why: 'the makers\' mark page\'s driver of the game' },
+  { path: 'src/outfits-gallery/', why: 'the outfits gallery (#549): every outfit on the v2 traveller side by side; a dev page, not in the game' },
   { path: 'src/characters/outfit-page.js', why: 'the outfits test page for the v2 traveller (#540): its panel and readout swap outfits in a world; a dev page, not in the game' },
   { path: 'src/items-page/', why: 'the items page' },
   { path: 'src/lore-page/', why: 'the lore page' },

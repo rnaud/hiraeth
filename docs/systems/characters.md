@@ -2369,6 +2369,15 @@ material; the game's portrait head kept with its drawn face; B3's body, cloth an
 panel picks the outfit (U cycles) and the world; a corner shows his draws and triangles and the frame's.
 The models live in `data/`, so the built page only says it needs the dev server.
 
+**The gallery:** `outfits-gallery.html` (issue #549; Debug menu → Pages → Outfits; `?motion=idle|walk|jog|sprint`,
+`?turn=0`, `?yaw=<rad>`) puts every outfit of `outfits.json` side by side (`src/outfits-gallery/`): each one the
+game's traveller (`buildCharacter`, `createTraveller`, the Animator on the game's clips held at a gait's speed on
+the spot, as the character studio drives it) dressed by `outfit-page.js`'s `v2Wardrobe` (the same binding, ink
+and robe swing as the test page; the GLBs loaded once for the row), drawn by the items viewer (the game's
+G-buffer, ink pass and sun shadow) on the pages' paper, each labelled. They turn slowly on their own; dragging
+sideways turns them (each on its spot), up and down tilts the view. Dev server only, as the test page (the built
+page says so); `tests/outfits-gallery.test.js`.
+
 **Still wrong (glider pilot):** the paint is flat colour and lines, no folds or hatching of its own (the
 game's ink shades it); the jacket's band can pinch over the jodhpurs at a sprint (up to 8 mm, 10 verts); the
 puttees' spiral reads as rings from a distance; the boots' top edge, inside the puttees, is ragged; the

@@ -43,6 +43,9 @@ export const BUILD_INPUT = {
   // index.html?outfits=, src/characters/outfit-page.js; its models, data/characters/traveller-v2/, are the dev
   // server's alone: the built page says so)
   outfits: fileURLToPath(new URL('./outfits.html', import.meta.url)),
+  // the outfits gallery (issue #549: every outfit on the v2 traveller side by side, live, src/outfits-gallery/; its
+  // models, data/characters/traveller-v2/, are the dev server's alone: the built page says so)
+  'outfits-gallery': fileURLToPath(new URL('./outfits-gallery.html', import.meta.url)),
 };
 const modules = existsSync('node_modules') ? realpathSync('node_modules') : null;
 /**

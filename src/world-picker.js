@@ -35,6 +35,7 @@ export const PAGES = [
   { href: 'items.html', label: 'Items', hint: 'every item, its picture, what it does, where it is found' },
   { href: 'enemies.html', label: 'Creatures & spirits', hint: 'the enemies of every world, their attacks, and Arena practice' },
   { href: 'studio.html', label: 'Character studio', hint: 'the people alone, to tune them' },
+  { href: 'outfits-gallery.html', label: 'Outfits', hint: 'every outfit on the rebuilt traveller, side by side, standing or running (needs the dev server)' },
   { href: 'music.html', label: 'Music & sounds', hint: 'every song, recorded and procedural, and every sound effect, with notes' },
   { href: 'motion.html', label: 'Motion', hint: 'the traveller\'s loops against motion matching' },
   { href: 'lore.html', label: 'Lore', hint: 'the story, the traveller, each world and its people, the guardians' },

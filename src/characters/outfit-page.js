@@ -9,18 +9,19 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { Wardrobe } from './outfits.js';
 import { makeReviewInkMaterial } from './tripo-material.js';
 
-const ROOT = `${import.meta.env.BASE_URL}data/characters/traveller-v2/`;
+export const ROOT = `${import.meta.env.BASE_URL}data/characters/traveller-v2/`;
 const WORLDS = ['desert', 'incal', 'glassdunes', 'bazaar', 'mangrove', 'saltharbour', 'moonfoundry', 'spacecity', 'home', 'shadows'];
 
-async function json(url) {
-  const r = await fetch(url);
-  if (!r.ok) throw new Error(`${url}: HTTP ${r.status} (the outfits page runs on the dev server: data/ is not in the build)`);
-  return r.json();
+export async function json(url) {
+  const r = await fetch(url), dev = '(the outfits pages run on the dev server: data/ is not in the build)';
+  if (!r.ok) throw new Error(`${url}: HTTP ${r.status} ${dev}`);
+  // (a server that answers a missing file with its index page: not JSON)
+  try { return await r.json(); } catch { throw new Error(`${url}: not found ${dev}`); }
 }
 
 /** A GLB's skinned meshes by name: their geometry with skinIndex renumbered to `bones` by bone name, and their
  * material. */
-async function loadParts(url, bones) {
+export async function loadParts(url, bones) {
   const gltf = await new GLTFLoader().loadAsync(url);
   const out = {};
   gltf.scene.traverse((o) => {
@@ -51,21 +52,23 @@ export function startOutfitPage(o) {
   });
 }
 
-async function start({ player, input, frameStats }) {
-  const model = player.character;
-  const h = model?.humanoid;
-  if (!h) throw new Error('outfits page: no traveller');
+/**
+ * The game's traveller (`model`: createTraveller's) drawn as the v2 traveller: his B3 body and its cloth put away
+ * (the portrait head stays) and a Wardrobe on his skeleton, its outfits in the game's ink (makeReviewInkMaterial).
+ * sources: { list, baseManifest, base: loadParts of the base GLB on his bones }; shared: caches several travellers
+ * share (the outfits gallery: their skeletons number the bones alike). Returns { wardrobe, load(id) }: load before
+ * wearing an outfit other than the default.
+ */
+export function v2Wardrobe(model, { list, baseManifest, base }, shared = { materials: new Map(), parts: new Map() }) {
+  const h = model.humanoid;
   const skeleton = h.body.skeleton, bindMatrix = h.body.bindMatrix, parent = h.body.parent;
-  const [list, baseManifest] = await Promise.all([json(ROOT + 'outfits.json'), json(ROOT + 'manifest.json')]);
-  const base = await loadParts(ROOT + list.base, skeleton.bones);
-  const materials = new Map();
   const material = (src) => {
-    if (!materials.has(src)) {
+    if (!shared.materials.has(src)) {
       const m = new T.Mesh(new T.BufferGeometry(), src);
       m.userData.inkShade = { hatch: 0.2 };
-      materials.set(src, makeReviewInkMaterial(m));
+      shared.materials.set(src, makeReviewInkMaterial(m));
     }
-    return materials.get(src);
+    return shared.materials.get(src);
   };
   const sourceMat = { base: base.Body.material };   // (the base's single-sided atlas: the body, his skin, the default's clothes)
   const wardrobe = new Wardrobe({
@@ -90,12 +93,27 @@ async function start({ player, input, frameStats }) {
   if (model.shadowCasters) model.shadowCasters.length = 0;
   const load = async (id) => {
     if (id === 'default' || wardrobe.outfits[id]) return;
-    const entry = list.outfits.find((o) => o.id === id);
-    const manifest = await json(ROOT + entry.dir + 'manifest.json');
-    const parts = await loadParts(ROOT + entry.dir + manifest.glb, skeleton.bones);
+    if (!shared.parts.has(id)) {
+      shared.parts.set(id, (async () => {
+        const entry = list.outfits.find((o) => o.id === id);
+        const manifest = await json(ROOT + entry.dir + 'manifest.json');
+        return { manifest, parts: await loadParts(ROOT + entry.dir + manifest.glb, skeleton.bones) };
+      })());
+    }
+    const { manifest, parts } = await shared.parts.get(id);
     sourceMat[id] = Object.values(parts)[0].material;
     wardrobe.add(id, manifest, Object.fromEntries(Object.entries(parts).map(([n, p]) => [n, p.geometry])));
   };
+  return { wardrobe, load };
+}
+
+async function start({ player, input, frameStats }) {
+  const model = player.character;
+  const h = model?.humanoid;
+  if (!h) throw new Error('outfits page: no traveller');
+  const [list, baseManifest] = await Promise.all([json(ROOT + 'outfits.json'), json(ROOT + 'manifest.json')]);
+  const base = await loadParts(ROOT + list.base, h.body.skeleton.bones);
+  const { wardrobe, load } = v2Wardrobe(model, { list, baseManifest, base });
 
   // ---- the panel
   const q = new URLSearchParams(location.search);
