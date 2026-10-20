@@ -9,6 +9,16 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   { v: '1.87', date: '2026-10-19', items: [
+    // issue #546: src/perf.js detectHandheld ('Apple GPU' on a touch screen), phoneBrowser; src/main.js (no StaticBatches
+    // in a phone's browser, ?batch=1 to measure); index.html overscroll-behavior; tests/quality.test.js
+    { text: 'Playing in a phone’s browser, the game no longer reloads itself every few seconds. It now needs about a third less of the phone’s memory there, under what Safari lets a page hold before it reloads it; an iPhone gets the Handheld graphics, as Android phones do; and a swipe down on the title or in a menu no longer pulls the page down to reload it.',
+      numbers: [{ title: 'The page’s memory in a phone’s browser: its arrays and buffers, and what it holds on the GPU', unit: 'MB', better: 'lower', device: 'headless Chrome as an iPhone (390 × 844, 3×, touch, “Apple GPU”), the Auto setting, the production build', rows: [
+        { where: 'New game, the prologue: arrays and buffers', before: 780, after: 468 },
+        { where: 'New game, the prologue: WebGL', before: 226, after: 108 },
+        { where: 'the Desert: arrays and buffers', before: 508, after: 328 },
+        { where: 'the Desert: WebGL', before: 222, after: 108 },
+      ], source: 'Chrome’s memory dump of the page (partition_alloc and webgl), the same build without and with the change, 19 October', note: 'No code in the game reloads the page: under phone emulation, dev and production builds, no reload, navigation or exception in three minutes. The reloads are the browser’s, for memory (not measured on a real phone).' }],
+      see: 'On a phone, open the game in the browser, start a new game and play for a few minutes: it stays.' },
     // issue #264: BridgeMenu.Shop.cs (the 42 % veil, Ui.SansHeavy, flags wrapped), src/story/dialogue.js publish (ghost,
     // ahead), BridgeHud.cs DrawTalk; scripts/unity-compare/sequences.mjs hold
     'In the Unity version, Anselm’s shop opens over a darkened hold with its names and prices in heavy letters and every flag inside its box, as on the web, and a conversation’s box is as tall from its first page as when its answers come up.',

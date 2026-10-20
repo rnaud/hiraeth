@@ -563,8 +563,17 @@ export function detectHandheld({ native = false, touch = false, gpu = '' } = {})
   if (native) return true;
   if (/SwiftShader|llvmpipe|softpipe/i.test(gpu)) return true;
   if (/Mali|Adreno|PowerVR|Xclipse|Immortalis|Maleoon|VideoCore|Tegra/i.test(gpu)) return true;
-  return touch && /Intel\(R\) HD Graphics/i.test(gpu);
+  // an iPhone or an iPad: Safari names every Apple GPU "Apple GPU" (a Mac's Safari too, without touch); issue #546
+  return touch && /Intel\(R\) HD Graphics|^Apple GPU$/i.test(gpu);
 }
+
+/**
+ * A phone's or a tablet's browser (issue #546): a touch screen on a handheld GPU, outside the Android app. There the
+ * page has a memory ceiling of its own (Safari on an iPhone reloads a page that goes over it, every time it loads
+ * again), and the still meshes' batches (src/static-batch.js: a second copy of every still mesh, for the view and for
+ * the shadows, in memory and on the GPU) are left out: about 150 MB of arrays and 120 MB of the GPU's in the desert.
+ */
+export const phoneBrowser = ({ native = false, touch = false, handheld = false } = {}) => !native && touch && handheld;
 
 /**
  * The preset to run for a Graphics setting: Auto is the handheld recipe on a handheld, the Deck's on the

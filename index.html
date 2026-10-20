@@ -45,7 +45,9 @@
         --safe-bottom: max(env(safe-area-inset-bottom, 0px), 5vh);
         --safe-left: max(env(safe-area-inset-left, 0px), 5vw);
       }
-      html, body { margin: 0; height: 100%; overflow: hidden; background: #f7ecd2; }
+      /* overscroll-behavior: a swipe down on the title or a menu must not pull the page to reload it (Chrome on Android,
+         Safari on iOS; overflow: hidden doesn't stop it), issue #546 */
+      html, body { margin: 0; height: 100%; overflow: hidden; overscroll-behavior: none; background: #f7ecd2; }
       canvas { display: block; touch-action: none; }
       /* Nothing on the screen at rest (src/hud.js). The cue: one short line, only for what the use button does right
          here with nothing to float over, a first lesson, the scout's find, a region's name as you cross into it; it

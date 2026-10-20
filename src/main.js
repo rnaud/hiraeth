@@ -46,7 +46,7 @@ import { Physics, dropBuriedFloraSteps } from './physics.js';
 import { DeferredWork, DEFER } from './deferred.js';
 import { queueLateCollision } from './late-collision.js';
 import { DRIFT_FITS } from './sand-drifts.js';
-import { tileSceneSteps, cullFar, fitBounds, waterContactOn, SmallCuller, RoomCuller, InteriorCuller, resolveQuality, detectHandheld, detectDeck, GpuTimer, adaptScale, engineLabel, cacheUniformArrays, pinRenderFrame } from './perf.js';
+import { tileSceneSteps, cullFar, fitBounds, waterContactOn, SmallCuller, RoomCuller, InteriorCuller, resolveQuality, detectHandheld, detectDeck, phoneBrowser, GpuTimer, adaptScale, engineLabel, cacheUniformArrays, pinRenderFrame } from './perf.js';
 import { FramePacer } from './frame-pace.js';
 import { StaticBatches, opaqueSort } from './static-batch.js';
 import { LodManager, lodView } from './lod.js';
@@ -2488,8 +2488,8 @@ if (deferred?.pending) {
 setStep('batches');
 console.info(`bounds: ${fitBounds(scene)} instanced meshes made cullable`);
 // the world's still meshes, a batch (and a draw) per material, and one for the shadow maps (src/static-batch.js;
-// ?batch=0 leaves each mesh drawing itself)
-if (query.get('batch') !== '0') {
+// ?batch=0 leaves each mesh drawing itself; a phone's browser has none, for the memory they take, ?batch=1 to measure: issue #546)
+if (query.get('batch') === '1' || (query.get('batch') !== '0' && !phoneBrowser({ native: isNativeApp, touch: isTouch, handheld }))) {
   const t0 = performance.now();
   statics = new StaticBatches(scene, { keep: [...movers(), foes.group] });
   console.info(`still meshes: ${statics.stats.meshes} in ${statics.stats.batches} batches, ${(performance.now() - t0).toFixed(0)} ms`);

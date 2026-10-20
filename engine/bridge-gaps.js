@@ -303,7 +303,7 @@ export const GAPS = {
       'import:src/load-steps.js#runStepsAsync', 'import:src/load-steps.js#gpuPacer', 'import:src/load-steps.js#nextFrame', 'import:src/load-steps.js#loadWatchdog', 'import:src/skeleton-update.js#installSkeletonUpdate', 'import:engine/scene-matrices.js#catchUpShown', 'import:src/empty-instances.js#EmptyInstances', 'import:src/flat-pass.js#flatPasses'],
     what: 'the page\'s loading in slices, its shader warm-up and its matrix shortcuts', status: 'web-only', why: 'the page\'s own loading and three.js shortcuts; the engines load in their VM and keep their own matrices (engine/scene-matrices.js)' },
     { keys: ['import:src/perf.js#tileSceneSteps', 'import:src/perf.js#fitBounds', 'import:src/perf.js#waterContactOn', 'import:src/perf.js#RoomCuller', 'import:src/perf.js#InteriorCuller', 'import:src/perf.js#resolveQuality',
-      'import:src/perf.js#detectHandheld', 'import:src/perf.js#detectDeck', 'import:src/perf.js#GpuTimer', 'import:src/perf.js#adaptScale', 'import:src/perf.js#engineLabel', 'import:src/perf.js#cacheUniformArrays',
+      'import:src/perf.js#detectHandheld', 'import:src/perf.js#detectDeck', 'import:src/perf.js#phoneBrowser', 'import:src/perf.js#GpuTimer', 'import:src/perf.js#adaptScale', 'import:src/perf.js#engineLabel', 'import:src/perf.js#cacheUniformArrays',
       'import:src/perf.js#pinRenderFrame', 'import:src/frame-pace.js#FramePacer', 'import:src/lod.js#lodView', 'import:src/skinned-lod.js#skinnedLods', 'import:src/flora.js#buildFloraSteps',
       'import:src/characters/traveller-lod.js#buildTravellerLod',
       'fn:makeRoomCull', 'fn:makeLod', 'fn:movers', 'fn:applyQuality', 'fn:adaptQuality', 'fn:gpuName', 'fn:missedFrames', 'fn:frameReadout',

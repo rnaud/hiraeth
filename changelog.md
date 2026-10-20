@@ -15,6 +15,7 @@ The same release notes shown in the game (press **N** or open settings).
 - In the Unity version, the Quests page lists the quests you finished close together under Done and shows each quest’s goal on its card, Items fits as many to a row as the web, and the Map says how many fragments you found there.
 - In the Unity version, What’s new opens over the game in its own panel and B closes it, and the Start menu shows your fragments on a line of their own, the version beside Settings and CONTROLS over “Your keys”, as on the web.
 - In the Unity version, Anselm’s shop opens over a darkened hold with its names and prices in heavy letters and every flag inside its box, as on the web, and a conversation’s box is as tall from its first page as when its answers come up.
+- Playing in a phone’s browser, the game no longer reloads itself every few seconds. It now needs about a third less of the phone’s memory there, under what Safari lets a page hold before it reloads it; an iPhone gets the Handheld graphics, as Android phones do; and a swipe down on the title or in a menu no longer pulls the page down to reload it.
 
 ## v1.86 — 2026-10-19
 

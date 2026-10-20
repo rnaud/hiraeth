@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { QUALITY_PRESETS, resolveQuality, detectHandheld, adaptScale, engineLabel } from '../src/perf.js';
+import { QUALITY_PRESETS, resolveQuality, detectHandheld, phoneBrowser, adaptScale, engineLabel } from '../src/perf.js';
 
 const FIELDS = ['label', 'scale', 'dynamic', 'shadow', 'nearExtent', 'nearEvery', 'farEvery', 'taps', 'ao', 'cloudShadows', 'lowDetail', 'crowdFar', 'crowdMid', 'propFar', 'propPx', 'postLite'];
 
@@ -55,6 +55,38 @@ test('handheld detection: the Android app, mobile and software GPUs', () => {
   assert.equal(detectHandheld({ gpu: 'ANGLE (Apple, ANGLE Metal Renderer: Apple M2 Pro, Unspecified Version)' }), false);
   assert.equal(detectHandheld({ gpu: 'ANGLE (NVIDIA, NVIDIA GeForce RTX 3070)', touch: true }), false);
   assert.equal(detectHandheld({ gpu: 'ANGLE (Intel, Intel(R) HD Graphics 520 Direct3D11)', touch: true }), true);
+});
+
+// Issue #546: in a phone's browser the game reloaded every few seconds. Safari on an iPhone names its GPU "Apple GPU",
+// which nothing here knew, so an iPhone ran the desktop's recipe; and every phone's browser built the still meshes'
+// batches, a second copy of the world's still meshes (about 270 MB of the page's memory in the desert, measured under
+// phone emulation), past what Safari lets a page hold before it reloads it.
+test('an iPhone or an iPad is a handheld; a Mac in Safari is not', () => {
+  assert.equal(detectHandheld({ gpu: 'Apple GPU', touch: true }), true);
+  assert.equal(detectHandheld({ gpu: 'Apple GPU', touch: false }), false, 'Safari on a Mac says Apple GPU too');
+  assert.equal(resolveQuality('auto', { handheld: detectHandheld({ gpu: 'Apple GPU', touch: true }), hiDPI: true }).key, 'handheld');
+});
+
+test('a phone\'s browser builds no still batches; the Android app, a desktop and the consoles keep them', () => {
+  const phone = (o) => phoneBrowser({ ...o, handheld: detectHandheld(o) });
+  assert.equal(phone({ touch: true, gpu: 'Apple GPU' }), true, 'an iPhone in Safari');
+  assert.equal(phone({ touch: true, gpu: 'Adreno (TM) 740' }), true, 'an Android phone in Chrome');
+  assert.equal(phone({ touch: true, gpu: 'Mali-G715' }), true);
+  assert.equal(phone({ native: true, touch: true, gpu: 'Adreno (TM) 650' }), false, 'the Android app (the Retroid)');
+  assert.equal(phone({ touch: false, gpu: 'Apple GPU' }), false, 'Safari on a Mac');
+  assert.equal(phone({ touch: false, gpu: 'ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero)), SwiftShader driver)' }), false, 'headless Chrome');
+  assert.equal(phone({ touch: true, gpu: 'ANGLE (NVIDIA, NVIDIA GeForce RTX 3070)' }), false, 'a touch laptop');
+  assert.equal(phone({ touch: false, gpu: 'AMD Custom GPU 0405' }), false, 'the Steam Deck');
+  // and main.js asks it before building them (?batch=1 builds them anyway, to measure)
+  const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
+  assert.match(main, /!phoneBrowser\(\{ native: isNativeApp, touch: isTouch, handheld \}\)\)\) \{\n  const t0 = performance\.now\(\);\n  statics = new StaticBatches/);
+});
+
+test('a swipe down never pulls the game\'s page to reload it', () => {
+  // (Chrome on Android pulls a page down to reload it even under overflow: hidden; the title and the menus are HTML)
+  const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  const rule = html.match(/^\s*html, body \{[^}]*\}/m)?.[0] ?? '';
+  assert.match(rule, /overscroll-behavior: none/);
 });
 
 test('the settings menu offers every preset', async () => {

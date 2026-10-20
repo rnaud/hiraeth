@@ -14,6 +14,21 @@ lines that would alias"; +0.05-0.18 ms on the Mac at the Retroid's render size).
 farther apart and fade at low pixel density. High remains available in
 Settings for a fixed full-resolution image on HiDPI phones.
 
+**A phone's memory (issue #546).** In a phone's browser the game reloaded every few seconds. No code in the game
+reloads the page (every `location` call is a menu's or a debug page's; under phone emulation, dev and production
+builds, nothing navigated in three minutes): the browser did, as Safari reloads a page that goes over the memory it
+allows a page, again after every load. Two things raised the page's memory there: Safari names an iPhone's GPU
+"Apple GPU", which `detectHandheld` didn't know, so an iPhone ran the desktop's recipe; and the still meshes'
+batches (`src/static-batch.js`, made for the Xbox's and the Deck's draw costs) keep a second copy of every still
+mesh, for the view and for the shadows, in arrays and on the GPU. Now `detectHandheld` takes "Apple GPU" on a touch
+screen (a Mac's Safari says it too, without one), and `phoneBrowser` (a touch screen on a handheld GPU, outside the
+Android app) leaves the batches out (`?batch=1` builds them anyway, to measure). Chrome's memory dump of the page, as
+an iPhone (390 × 844, 3×, touch, "Apple GPU"), production build: a new game's prologue 780 → 468 MB of arrays and
+buffers (partition_alloc) and 226 → 108 MB of WebGL; the desert 508 → 328 and 222 → 108. The JS heap itself is
+~100-220 MB; the arrays are the world's geometry. `html, body` also have `overscroll-behavior: none`: Chrome on
+Android pulls a page down to reload it under `overflow: hidden` too, and the title and the menus are HTML (the
+canvas and the touch buttons have `touch-action: none`). Not measured on a real phone.
+
 ## Performance
 
 - **Background collision:** the collision BVH is built in a web worker.
