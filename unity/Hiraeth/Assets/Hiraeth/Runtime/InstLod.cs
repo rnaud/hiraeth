@@ -292,18 +292,84 @@ namespace Hiraeth
             }
             static float OneWay(List<Vector3> P, List<int[]> from, List<int[]> to)
             {
+                if (to.Count == 0) return float.MaxValue;
+                // (each nearest triangle found through a grid of cells: the big still meshes' levels, BridgeRenderer.StillLods, are
+                // tens of thousands of triangles, a search of every one hours; the same distances)
+                var g = new TriGrid(P, to);
                 float worst = 0;
+                var samples = new Vector3[7];
                 foreach (var f in from)
                 {
                     Vector3 a = P[f[0]], b = P[f[1]], c = P[f[2]];
-                    foreach (var s in new[] { a, b, c, (a + b) * 0.5f, (b + c) * 0.5f, (c + a) * 0.5f, (a + b + c) / 3f })
-                    {
-                        float best = float.MaxValue;
-                        foreach (var g in to) { float d = PointTri(s, P[g[0]], P[g[1]], P[g[2]]); if (d < best) { best = d; if (best <= worst) break; } }
-                        if (best > worst) worst = best;
-                    }
+                    samples[0] = a; samples[1] = b; samples[2] = c; samples[3] = (a + b) * 0.5f; samples[4] = (b + c) * 0.5f; samples[5] = (c + a) * 0.5f; samples[6] = (a + b + c) / 3f;
+                    foreach (var s in samples) { float best = g.Nearest(s, worst); if (best > worst) worst = best; }
                 }
                 return worst;
+            }
+            /// <summary>Triangles in a uniform grid of cells (each in every cell its box touches): the nearest to a point, ring of
+            /// cells by ring outward until no farther ring can hold a nearer one.</summary>
+            class TriGrid
+            {
+                readonly List<Vector3> P; readonly List<int[]> T;
+                readonly Vector3 lo; readonly float h; readonly int nx, ny, nz;
+                readonly List<int>[] cells; readonly int[] seen; int query;
+                public TriGrid(List<Vector3> p, List<int[]> t)
+                {
+                    P = p; T = t;
+                    Vector3 mn = Vector3.positiveInfinity, mx = Vector3.negativeInfinity;
+                    foreach (var f in t) foreach (int v in f) { mn = Vector3.Min(mn, p[v]); mx = Vector3.Max(mx, p[v]); }
+                    var ext = mx - mn; float size = Mathf.Max(ext.x, Mathf.Max(ext.y, ext.z), 1e-4f);
+                    // (about a triangle a cell where they fill the box, at most 64 cells a side)
+                    float vol = Mathf.Max(ext.x, size * 0.01f) * Mathf.Max(ext.y, size * 0.01f) * Mathf.Max(ext.z, size * 0.01f);
+                    h = Mathf.Max(size / 64f, Mathf.Pow(vol / Mathf.Max(t.Count, 1), 1f / 3f));
+                    lo = mn;
+                    nx = Mathf.Clamp(Mathf.CeilToInt(ext.x / h) + 1, 1, 66); ny = Mathf.Clamp(Mathf.CeilToInt(ext.y / h) + 1, 1, 66); nz = Mathf.Clamp(Mathf.CeilToInt(ext.z / h) + 1, 1, 66);
+                    cells = new List<int>[nx * ny * nz]; seen = new int[t.Count];
+                    for (int i = 0; i < t.Count; i++)
+                    {
+                        var f = t[i];
+                        Vector3 a = p[f[0]], b = p[f[1]], c = p[f[2]];
+                        var bl = Cell(Vector3.Min(a, Vector3.Min(b, c))); var bh = Cell(Vector3.Max(a, Vector3.Max(b, c)));
+                        for (int x = bl.x; x <= bh.x; x++) for (int y = bl.y; y <= bh.y; y++) for (int z = bl.z; z <= bh.z; z++)
+                            (cells[(x * ny + y) * nz + z] ??= new List<int>()).Add(i);
+                    }
+                }
+                Vector3Int Cell(Vector3 q) => new(Mathf.Clamp((int)((q.x - lo.x) / h), 0, nx - 1), Mathf.Clamp((int)((q.y - lo.y) / h), 0, ny - 1), Mathf.Clamp((int)((q.z - lo.z) / h), 0, nz - 1));
+                /// <summary>The distance to the nearest triangle (or any distance at most `enough`, once one that near is found).</summary>
+                public float Nearest(Vector3 q, float enough)
+                {
+                    query++;
+                    var c = Cell(q);
+                    // (q outside the grid's box: its cell is the nearest edge cell; the rings' reach below holds from there too)
+                    float best = float.MaxValue;
+                    int maxR = Mathf.Max(nx, Mathf.Max(ny, nz));
+                    for (int r = 0; r <= maxR; r++)
+                    {
+                        for (int x = Mathf.Max(c.x - r, 0); x <= Mathf.Min(c.x + r, nx - 1); x++)
+                        {
+                            bool xe = x == c.x - r || x == c.x + r;
+                            for (int y = Mathf.Max(c.y - r, 0); y <= Mathf.Min(c.y + r, ny - 1); y++)
+                            {
+                                bool ye = xe || y == c.y - r || y == c.y + r;
+                                for (int z = Mathf.Max(c.z - r, 0); z <= Mathf.Min(c.z + r, nz - 1); z++)
+                                {
+                                    if (!ye && z != c.z - r && z != c.z + r) continue;   // (the ring's shell only)
+                                    var l = cells[(x * ny + y) * nz + z]; if (l == null) continue;
+                                    foreach (int i in l)
+                                    {
+                                        if (seen[i] == query) continue; seen[i] = query;
+                                        var f = T[i];
+                                        float d = PointTri(q, P[f[0]], P[f[1]], P[f[2]]);
+                                        if (d < best) best = d;
+                                    }
+                                }
+                            }
+                        }
+                        // (every cell r + 1 rings out lies at least r cells' widths from q's cell)
+                        if (best <= enough || best <= r * h) break;
+                    }
+                    return best;
+                }
             }
             static float PointTri(Vector3 p, Vector3 a, Vector3 b, Vector3 c)
             {

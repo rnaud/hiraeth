@@ -1306,6 +1306,8 @@ const DYN404 = 'Issue #404: the bench’s own shots on the Retroid (the views af
 const WATER553 = 'Issue #553: headless Chrome on the GPU at High, 10 in the morning, clear, the camera pinned (changelog-shots.mjs shoot), the Rose House calmed and the pan flooded in the save; before b077eaf94, after its fix, 19 October; cwebp -q 72';
 /** (v1.87, issue #552: straps across the chest lie on the body) */
 const STRAP552 = 'Issue #552: the game’s own captureView in muted headless Chrome (High, 1280 × 720, 10:00, clear) on a Vite of its own (port 5552), the person held still at one spot and heading, the camera 1.8 m from them; before: b077eaf94, after: this branch; 19 October; cwebp -q 72';
+const RETROID404B = 'Retroid Pocket Nova (Adreno 740, Vulkan), the Unity build at Handheld, FSR 1 to 1280 × 960 with dynamic resolution 0.67 → 0.5, the near shadow map 2048² every frame, muted; before, the levels off (-still-lod-tris 0), after, as shipped with the levels read from the cache; the same APK (build 2745), interleaved world by world, the second of two passes';
+const SRC404B = 'the bridge’s own bench (-views -bench 6 -bundle none, unity-bench.json) on the device, 19 October; docs/systems/performance.md, “Unity on the Retroid, round 15”';
 export const CHANGELOG_MEDIA = {
   '1.87': [
     { match: 'In the Unity version, Anselm’s shop opens over a darkened hold', tags: ['devices'], shots: [
@@ -1378,6 +1380,20 @@ export const CHANGELOG_MEDIA = {
       { name: 'strap-ferro-552', title: 'Ferro in the Signal Market', size: [1280, 720], caption: 'Ferro: before, a stiff rod from her right shoulder down past her hip to beside her left hand; after, a strap across her chest to the hip, and round her back', from: STRAP552 },
     ], see: 'Walk down the ship’s ramp in the Desert and look at Marrow, the salvager with the hook, from in front; or Kip and Ferro in the Signal Market.' },
     { match: 'When a conversation ends, however it ends, the traveller lets go of his talking pose', tags: ['characters'], see: 'Talk to someone (Anselm in the ship’s hold, or Plumb when it calls you), and while the traveller is still gesturing close the talk or walk off: within a third of a second he stands normally again. If a strange pose ever comes back, press F8 and screenshot the box: it names the layer holding it.' },
+    { match: 'In the Unity version on the Retroid, big buildings, roots and carvings far away are drawn with fewer triangles', tags: ['perf', 'devices'], numbers: [
+      { title: 'Frames a second at the bench’s views', unit: 'fps', better: 'higher', device: RETROID404B, rows: [
+        { where: 'Lorn’s start', before: 55.8, after: 60.1 },
+        { where: 'Lorn’s crowd', before: 60.1, after: 60.1 },
+        { where: 'the Floating city’s start', before: 56.8, after: 58.5 },
+        { where: 'the City-Shaft, wide', before: 48.0, after: 48.8 },
+      ], source: SRC404B },
+      { title: 'The GPU’s time a frame', unit: 'ms', better: 'lower', device: 'the same', rows: [
+        { where: 'Lorn’s start', before: 17.6, after: 15.4 },
+        { where: 'Lorn’s crowd', before: 15.9, after: 14.3 },
+        { where: 'the Floating city’s start', before: 17.0, after: 16.6 },
+        { where: 'the City-Shaft, wide', before: 18.8, after: 18.4 },
+      ], source: SRC404B },
+    ], see: 'In the Unity version on the Retroid, start in Lorn and look across the meadow to the houses under the trees: the picture is the same, and it stays at 60 frames a second where it dipped to 56. The first visit to a world makes the simpler versions in the minute after it loads; later visits have them at once.' },
   ],
   '1.86': [
     { match: 'In the Unity version, the Controls page shows your keys and buttons on caps', tags: ['devices'], shots: [

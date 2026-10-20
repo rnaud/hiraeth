@@ -1283,6 +1283,8 @@ namespace Hiraeth.Bridge
         {
             if (census && Time.frameCount % 300 == 0) Census();
             if ((hideFar > 0 || hideBig > 0) && cam) HideFar();
+            if (Time.frameCount % 4 == 2) StillLods();
+            if (census && Time.frameCount % 300 == 0) Debug.Log($"Hiraeth bridge: census, still levels: {stillLods.Count} meshes asked, {stillPending} being made, {stillLevelsDrawn} drawn coarser, {stillTrisSaved / 1000}k triangles fewer");
             if (staticBatch && lastCreateFrame > 0 && batchedFor != lastCreateFrame && Time.frameCount - lastCreateFrame > 180) StaticBatch();
             PointQuads();
             var around = new Bounds(cam ? cam.transform.position : Vector3.zero, Vector3.one * 1e4f);
@@ -1486,6 +1488,8 @@ namespace Hiraeth.Bridge
                 if (n.batched || n.kind != "mesh" || n.smr || !(n.r is MeshRenderer) || !n.r.enabled || n.chunks != null || !n.go || !n.mf || !n.mf.sharedMesh || !n.mf.sharedMesh.isReadable) continue;
                 if (now - n.movedAt < 120 || !meshes.TryGetValue(n.mesh ?? "", out var md) || md.keys > 0 || md.unchunked || md.mesh != n.mf.sharedMesh) continue;
                 if (!Opaque(n.r) || NeedsOrigin(n.r)) continue;
+                // (a big mesh of its own takes levels of detail instead: StillLods; a few draws more, none of its triangles baked)
+                if (stillLodTris > 0 && md.subs != null && md.subs.Length == 1 && md.subs[0].Length / 3 >= stillLodTris && md.subs[0].Length / 3 <= StillMaxTris && MeshUsers(n.mesh) == 1) continue;
                 gos.Add(n.go); picked.Add((n, md));
             }
             if (gos.Count < 2) return;
@@ -1546,6 +1550,171 @@ namespace Hiraeth.Bridge
                 }
                 else if (!far && farHidden.Remove(n)) n.r.forceRenderingOff = false;
             }
+        }
+        /// <summary>
+        /// Levels of detail for the big still meshes (issue #404, round 15): a plain still mesh of stillLodTris triangles and up,
+        /// one submesh, drawn by one node on its own (not in a static batch; the big casters are cast by their pieces,
+        /// BridgeShadowChunks, which keep the full mesh), gets up to three coarser versions of its triangles over its own vertices
+        /// (InstLod.Simplify: half-edge collapses by quadric error, each version's stray from the full mesh measured both ways),
+        /// made on a worker thread the first time it lies past stillLodFrom m. They are appended to its index buffer, and every
+        /// 4 frames its submesh is pointed at the coarsest version whose stray, at the nearest point of its bounds, is under
+        /// InstLod.Px of the render's pixels: the picture does not change. What the Retroid's GPU spent on the City-Shaft's far
+        /// terraces and Lorn's far houses and roots was their vertices, not their pixels (docs/systems/performance.md, round 15).
+        /// No new shader variant or pipeline state. -still-lod-tris N (0: off), -still-lod-from D.
+        /// </summary>
+        public static int stillLodTris =
+#if UNITY_ANDROID && !UNITY_EDITOR
+            3000;
+#else
+            0;
+#endif
+        public static float stillLodFrom = 120f;
+        const int StillMaxTris = 50000;   // (a bigger one takes the one thread a minute or more)
+        class StillLod { public int full, level; public int[] start = new int[4], count = new int[4]; public float[] err = new float[4]; public int levels; public bool ready, none; }
+        readonly Dictionary<MeshData, StillLod> stillLods = new();
+        readonly System.Collections.Concurrent.ConcurrentQueue<(MeshData md, StillLod l, List<int[]> idx, List<float> err, string note, double ms)> stillDone = new();
+        readonly Dictionary<string, int> meshUsers = new();
+        int stillPending; public static int stillLevelsDrawn, stillTrisSaved;
+        int MeshUsers(string key) { int c = 0; foreach (var n in nodes.Values) if (n.mesh == key) c++; return c; }
+        void StillLods()
+        {
+            // (the versions made since: their triangles after the full mesh's in its index buffer)
+            while (stillDone.TryDequeue(out var d))
+            {
+                stillPending--;
+                var l = d.l; var mesh = d.md.mesh;
+                if (d.idx == null || d.idx.Count == 0 || !mesh || d.md.unchunked || mesh.subMeshCount != 1 || mesh.GetIndexCount(0) != l.full)
+                {
+                    l.none = true;
+                    if (d.note != null) Debug.Log($"Hiraeth bridge: still levels for {(mesh ? mesh.name : "?")} failed: {d.note}");
+                    continue;
+                }
+                int total = l.full; foreach (var ix in d.idx) total += ix.Length;
+                var all = new int[total];
+                System.Array.Copy(d.md.subs[0], all, l.full);
+                int at = l.full; l.start[0] = 0; l.count[0] = l.full;
+                for (int k = 0; k < d.idx.Count && k < 3; k++) { System.Array.Copy(d.idx[k], 0, all, at, d.idx[k].Length); l.start[k + 1] = at; l.count[k + 1] = d.idx[k].Length; l.err[k + 1] = d.err[k]; at += d.idx[k].Length; l.levels = k + 1; }
+                var b = mesh.bounds; var desc0 = mesh.GetSubMesh(0);
+                mesh.SetIndices(all, MeshTopology.Triangles, 0, false);
+                desc0.indexStart = 0; desc0.indexCount = l.full;
+                mesh.SetSubMesh(0, desc0, MeshUpdateFlags.DontRecalculateBounds | MeshUpdateFlags.DontValidateIndices);
+                mesh.bounds = b;
+                l.ready = true; l.level = 0;
+                var sb = new System.Text.StringBuilder($"Hiraeth bridge: still levels for {mesh.name}: {l.full / 3} triangles ->");
+                for (int k = 1; k <= l.levels; k++) sb.Append($" {l.count[k] / 3} (stray {l.err[k]:0.000})");
+                Debug.Log(sb.Append($", {d.ms:0} ms").ToString());
+            }
+            if (stillLodTris <= 0 || !cam) return;
+            meshUsers.Clear();
+            foreach (var n in nodes.Values) if (n.mesh != null) { meshUsers.TryGetValue(n.mesh, out int c); meshUsers[n.mesh] = c + 1; }
+            var eye = cam.transform.position;
+            float pxRad = Hiraeth.InstLod.PxPerRad, px = Hiraeth.InstLod.Px;
+            stillLevelsDrawn = 0; stillTrisSaved = 0;
+            foreach (var n in nodes.Values)
+            {
+                if (n.kind != "mesh" || n.smr || n.im != null || n.batched || !(n.r is MeshRenderer) || !n.go || n.mesh == null) continue;
+                if (!meshes.TryGetValue(n.mesh, out var md) || !md.mesh || md.bones >= 0 || md.keys > 0 || md.subs == null || md.subs.Length != 1) continue;
+                stillLods.TryGetValue(md, out var l);
+                if (l != null && (l.none || !l.ready)) continue;
+                float d = Mathf.Sqrt(n.r.bounds.SqrDistance(eye));
+                if (l == null)
+                {
+                    if (d < stillLodFrom || md.subs[0].Length / 3 < stillLodTris || md.subs[0].Length / 3 > StillMaxTris || meshUsers[n.mesh] != 1 || md.unchunked || md.pos == null) continue;
+                    l = new StillLod { full = md.subs[0].Length }; stillLods[md] = l;
+                    if (md.mesh.GetIndexCount(0) != l.full) { l.none = true; continue; }
+                    var pos = md.pos; var nrm = md.nrm; var tri = md.subs[0]; var job = md; var lod = l;
+                    stillPending++;
+                    StillWork(() =>
+                    {
+                        var t0 = System.Diagnostics.Stopwatch.StartNew();
+                        List<int[]> idx = new(); List<float> err = new(); string note = null;
+                        try
+                        {
+                            // (made once a mesh on this device: kept in the cache folder by its points and triangles)
+                            string file = stillCache != null ? System.IO.Path.Combine(stillCache, StillKey(pos, tri) + ".lod") : null;
+                            if (file == null || !StillRead(file, tri.Length, pos.Length, idx, err))
+                            {
+                                idx.Clear(); err.Clear();
+                                Hiraeth.InstLod.Simplify.Levels(pos, nrm != null && nrm.Length == pos.Length ? nrm : null, tri, idx, err);
+                                if (file != null) StillWrite(file, tri.Length, pos.Length, idx, err);
+                            }
+                        }
+                        catch (System.Exception e) { idx = null; note = e.Message; }
+                        stillDone.Enqueue((job, lod, idx, err, note, t0.Elapsed.TotalMilliseconds));
+                    });
+                    continue;
+                }
+                // (its points moved since: the full mesh again, for good)
+                if (md.unchunked || md.mesh.subMeshCount != 1) { SetStill(md.mesh, l, 0); l.none = true; continue; }
+                var s = n.go.transform.lossyScale; float sc = Mathf.Max(Mathf.Abs(s.x), Mathf.Max(Mathf.Abs(s.y), Mathf.Abs(s.z)));
+                int want = 0;
+                if (d > 1e-3f && pxRad > 0) for (int k = l.levels; k >= 1; k--) if (l.err[k] * sc * pxRad / d < px) { want = k; break; }
+                if (want != l.level) SetStill(md.mesh, l, want);
+                if (l.level > 0) { stillLevelsDrawn++; stillTrisSaved += (l.full - l.count[l.level]) / 3; }
+            }
+        }
+        // (the levels are made one mesh at a time on one background thread of the lowest priority: made all at once on the
+        // thread pool, they took the script's thread its cores for 20 s after a load, 30-40 fps there)
+        static readonly System.Collections.Concurrent.BlockingCollection<System.Action> stillWork = new();
+        static System.Threading.Thread stillThread;
+        static string stillCache;
+        static void StillWork(System.Action a)
+        {
+            if (stillThread == null)
+            {
+                try { stillCache = System.IO.Path.Combine(Application.temporaryCachePath, "still-lod"); System.IO.Directory.CreateDirectory(stillCache); }
+                catch (System.Exception) { stillCache = null; }
+                stillThread = new System.Threading.Thread(() => { foreach (var w in stillWork.GetConsumingEnumerable()) w(); })
+                { IsBackground = true, Priority = System.Threading.ThreadPriority.Lowest, Name = "Hiraeth still levels" };
+                stillThread.Start();
+            }
+            stillWork.Add(a);
+        }
+        const int StillVersion = 1;   // (the simplifier's: a change to it makes its cached levels again)
+        static string StillKey(Vector3[] pos, int[] tri)
+        {
+            ulong h = 1469598103934665603UL;
+            void Mix(uint x) { h ^= x; h *= 1099511628211UL; }
+            Mix(StillVersion); Mix((uint)pos.Length); Mix((uint)tri.Length);
+            foreach (var p in pos) { Mix((uint)System.BitConverter.SingleToInt32Bits(p.x)); Mix((uint)System.BitConverter.SingleToInt32Bits(p.y)); Mix((uint)System.BitConverter.SingleToInt32Bits(p.z)); }
+            foreach (int t in tri) Mix((uint)t);
+            return h.ToString("x16");
+        }
+        static bool StillRead(string file, int full, int nv, List<int[]> idx, List<float> err)
+        {
+            if (!System.IO.File.Exists(file)) return false;
+            using var r = new System.IO.BinaryReader(System.IO.File.OpenRead(file));
+            if (r.ReadInt32() != StillVersion || r.ReadInt32() != full || r.ReadInt32() != nv) return false;
+            int n = r.ReadInt32(); if (n < 0 || n > 3) return false;
+            for (int k = 0; k < n; k++)
+            {
+                err.Add(r.ReadSingle()); int c = r.ReadInt32(); if (c < 0 || c > full) return false;
+                var a = new int[c]; for (int i = 0; i < c; i++) { a[i] = r.ReadInt32(); if ((uint)a[i] >= (uint)nv) return false; }
+                idx.Add(a);
+            }
+            return true;
+        }
+        static void StillWrite(string file, int full, int nv, List<int[]> idx, List<float> err)
+        {
+            try
+            {
+                var tmp = file + ".tmp";
+                using (var w = new System.IO.BinaryWriter(System.IO.File.Create(tmp)))
+                {
+                    w.Write(StillVersion); w.Write(full); w.Write(nv); w.Write(idx.Count);
+                    for (int k = 0; k < idx.Count; k++) { w.Write(err[k]); w.Write(idx[k].Length); foreach (int i in idx[k]) w.Write(i); }
+                }
+                if (System.IO.File.Exists(file)) System.IO.File.Delete(file);
+                System.IO.File.Move(tmp, file);
+            }
+            catch (System.Exception) { }
+        }
+        static void SetStill(Mesh mesh, StillLod l, int k)
+        {
+            var desc = mesh.GetSubMesh(0);
+            desc.indexStart = l.start[k]; desc.indexCount = l.count[k];
+            mesh.SetSubMesh(0, desc, MeshUpdateFlags.DontRecalculateBounds | MeshUpdateFlags.DontValidateIndices);
+            l.level = k;
         }
         /// <summary>-census (issue #404): the triangles inside the camera's view (each renderer's own mesh, its static batch
         /// aside; the instanced sets by the instances drawn), by distance from the eye and by how many pixels a triangle covers

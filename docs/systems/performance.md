@@ -4734,6 +4734,98 @@ To repeat (the session's scratchpad, `retroid-404/tools/`): `ab.mjs <tag> --worl
 Tests: `tests/unity-dynres.test.js` (HandheldDyn run as JavaScript over modelled views: the heavy go down at once, the
 light stay, nothing pumps).
 
+### Unity on the Retroid, round 15: the far meshes' vertices, levels of detail for the big still meshes (issue #404, 2026-10-19)
+
+The same device, preset and bench as round 14 (Handheld, FSR 1 to 1280 × 960, dynamic resolution 0.67 → 0.5, the near
+shadow map 2048² every frame, muted, the frame readout on; warm launches, `-bench 6 -bundle none`, the conditions
+interleaved world by world). The switches below at a held `-render-scale 0.5` unless said.
+
+**The far material, tried first and not kept.** Round 14's proposal: copies of a far renderer's Surface materials (bounds
+wholly past 300 m, chosen every 4 frames by the renderer's distance, not per pixel) with parts of the fragment left out by
+a per-material value (no new variant, no new pipeline state). What each part costs, over the whole view (`-surface-skip`):
+
+| GPU ms at 0.5 | City-Shaft wide | City-Shaft start | Lorn start | Floating city start |
+|---|---|---|---|---|
+| as is | 18.7 | 14.7-14.8 | 17.5-17.6 | 17.0 |
+| patterns / the hatching / the sun's shadow / the local lights / the shade's tone left out | 18.5 / 18.0 / 18.0 / 18.7 / 18.6 | 14.8 / 14.4 / 14.4 / 14.7 / 14.7 | – / 16.8 / 16.9 / – / – | – / 16.5 / 16.5 / – / – |
+| every Surface pixel plain (`-surface-debug 9`) | 14.4 | 12.3 | 13.5 | 14.0 |
+| the meshes past 300 m hidden (`-hide-far 300`) | 15.7 | 12.6-12.9 | 13.7-13.8 | 16.9 |
+| the far renderers' fragment plain colour alone | 18.2 | 14.4 | 16.2 | – |
+| ... and out of the prepass and the shadow maps (their vertices still run) | 18.3 | 14.1 | 16.5 | – |
+| the far renderers drawn nowhere, their vertices still run (positions moved off the view in every pass) | 17.8 | 13.9 | 16.3 | – |
+
+- **The far meshes' pixels are not their cost.** Even their whole fragment left out buys 0.5 ms in the City-Shaft's wide
+  view (1.3 at Lorn's start, the trunks' ink); leaving them out of the depth prepass costs more (19.1, Lorn 18.6).
+- **Their vertices are.** Drawn nowhere but their vertex stages still run, the far meshes cost 2.1 ms of the wide view and
+  2.6 of Lorn's start; hidden (no draw), 0.9 and 1.2 more go with their pixels and the ink composite over them. 450-480
+  renderers past 300 m in the City-Shaft (1.85 M vertices, 0.78 M triangles; the terraces' merged towers 20-45 k triangles
+  each), 310 in Lorn (1.27 M vertices: the far houses' glyphs and trims, the roots, the canopy's rope).
+- So the far material went, with its test bits; the measures stay in this table.
+
+**What changed: levels of detail for the big still meshes** (BridgeRenderer `StillLods`, InstLod.Simplify, on Android).
+A plain still mesh of 3 000-50 000 triangles, one submesh, drawn by one node on its own gets up to three coarser versions of
+its triangles over its own vertices (round 10's simplifier: half-edge collapses by quadric error, each version's stray
+from the full mesh measured both ways), made the first time it lies past 120 m. They go after the full mesh in its index
+buffer, and every 4 frames its submesh is pointed at the coarsest one whose stray, at the nearest point of its bounds, is
+under half a render pixel (InstLod.Px): the picture does not change. No new Surface variant or pipeline state (the levels
+are index ranges of the same mesh, the same vertex layout): Android's pipeline list needs no new trace. The big casters
+keep their full pieces in the shadow maps (BridgeShadowChunks). Such a mesh leaves the static batches (a few draws more;
+its triangles would be baked there at one level). A mesh whose points move goes back to the full one for good.
+- **Made one at a time on one background thread of the lowest priority**, and kept in the app's cache folder by its
+  points and triangles (`still-lod/<hash>.lod`, a few MB a world): made all at once on the thread pool they took the
+  script's thread its cores for 20 s after a load (30-40 fps); now a first visit makes them over the minute after
+  the load with the frame rate as before (57-60), and a later visit reads them in the first second.
+- **The stray is found through a grid of cells** (TriGrid) instead of a search of every triangle: the same distances
+  (tests/unity-retroid-still-lod.test.js runs it as JavaScript against the search of every triangle), a 40 k-triangle mesh's
+  three levels in 3-15 s instead of hours.
+- What it found: the City-Shaft's terraces' towers 20-45 k → 10-22 k triangles at a stray of 0.2-0.3 m (their next
+  level strays a metre and more), Lorn's houses, trims and roots 3-43 k → a half to an eighth (0.001-0.7 m); 21-24 meshes
+  drawn coarser in the City-Shaft's views (200-310 k triangles fewer), 37-42 in Lorn's (270-300 k fewer).
+  `-still-lod-tris N` (0 off), `-still-lod-from D`; `-census` logs the levels.
+
+**Measured** (release APK 2745 with the switch, `off` = `-still-lod-tris 0`; two passes, the second with the order swapped
+and every world's levels read from the cache; fps, 1 % low, GPU ms, the render scale):
+
+| view | off, pass 1 | on, pass 1 | off, pass 2 | on, pass 2 |
+|---|---|---|---|---|
+| Lorn start | 56.1 (34.8, 17.5, 0.50) | **60.1** (43.0, 15.6, 0.50) | 55.8 (36.7, 17.6, 0.50) | **60.1** (44.1, 15.4, 0.50) |
+| Lorn crowd | 60.1 (45.7, 15.9, 0.50) | 60.1 (44.4, 14.3, 0.50) | 60.1 (42.7, 15.9, 0.50) | 60.1 (43.8, 14.3, 0.50) |
+| Floating city start | 56.6 (39.1, 17.0, 0.50) | 56.8 (32.9, 17.1, 0.50) | 56.8 (31.2, 17.0, 0.50) | 58.5 (41.4, 16.6, 0.50) |
+| City-Shaft wide | 48.1 (30.8, 18.7, 0.50) | 48.9 (29.7, 18.4, 0.50) | 48.0 (32.0, 18.8, 0.50) | 48.8 (27.8, 18.4, 0.50) |
+| City-Shaft start | 59.7 (31.9, 14.8, 0.50) | 60.0 (35.2, 14.4, 0.50) | 59.8 (34.2, 14.8, 0.50) | 60.0 (34.6, 14.5, 0.50) |
+| Desert spawn | 59.9 (40.8, 15.9, 0.50) | 60.0 (39.5, 15.8, 0.50) | 60.2 (40.5, 16.0, 0.50) | 60.1 (49.2, 15.3, 0.50) |
+
+- **23 of the 25 views at 60** in both passes (round 14: 22): Lorn's start 56 → 60 (2.0-2.2 ms of GPU less), its crowd
+  1.6 ms less. The other views' GPU 0-0.5 ms less (the medians of the worlds' views 14.5 → 13.7 in Lorn, 15.1 → 14.7-14.8
+  in the Floating city, 0.2-0.4 elsewhere), every view still at 60 that was.
+- **Still under:** the City-Shaft's wide view (48.8: its terraces' towers halve, but 0.3-0.4 ms; what is left there is
+  not their triangles: the far draws themselves, the pixels and the composite, then the near city) and the Floating
+  city's start (57-58.5: nothing of it is far; its cost is the whole view's fragment, the hatching and the shadow's taps
+  0.5 ms each).
+- **The pictures** (the bench's shots, 200 % crops of the busiest ink; `retroid-404b/sheets/final/`): the same. Pixels
+  differing by more than 24 between off and on: 0.09-0.69 % in the still views (2.8 % in Lorn's crowd, its people), where
+  two runs of off differ by 0.12-1.05 % (2.5 %).
+
+**Launch times** (issue #404's side measure for the author's "about 3 s" on a hard launch; force-stopped, then launched
+with the logo; muted; this APK with `-still-lod-tris 0`, as 2740 loads; the dev build of the same commit beside it):
+
+| | release: the logo's first frame | the title playing | straight into the world (the bench's launch): first frame / settled | development build |
+|---|---|---|---|---|
+| title | 96-99 ms | 3.57-3.60 s | – | 199-203 ms / 3.66-3.68 s |
+| Desert | 96-116 ms | – | 7.9 s / 9.3-10.0 s | 8.06-8.09 s / 9.43-9.47 s |
+| City-Shaft | 89-101 ms | – | 9.3 s / – | – |
+| Signal Market | 104-106 ms | – | 6.6 s / 7.4-7.7 s | – |
+| Floating city | 100 ms | – | 6.6 s / 7.4 s | – |
+| warm (HOME, then launched again) | 36 ms (HOT: the process kept, the world as it was) | – | – | – |
+
+The author's 3 s is the title: the logo's 0.1 s, then 3.5 s to the title playing. The bench's 7-10 s are a world loaded
+from the launch, its first frame then its 2 s of settling; the development build is within 0.1-0.2 s of the release.
+
+To repeat (the session's scratchpad, `retroid-404b/tools/`): `ab.mjs <tag> --worlds … --conds "off=-still-lod-tris 0|on=" --shots 1`
+(`--warm N` the views N times first under other names), `table.mjs <tag> off,on --views`, `sheet.mjs <tag> off on <out> world:view,…`;
+`loads.mjs <tag> --worlds title --runs 3` the title's launch times. The far material's measures were a test build's
+(`-far-mat D -far-skip N`), not kept.
+
 ## CPU per frame (#446)
 
 **The question** (the author, 2026-10-17): the game scales badly on weak CPUs. Is too much done on the CPU, and what

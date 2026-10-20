@@ -41,6 +41,9 @@ export const CHANGELOG = [
     // layTalk (the stick pushed lets go) and AIR_GUARD, src/air-moves.js AIR.stuck; the F8 pose report (src/pose-report.js);
     // tests/pose-guards.test.js
     'When a conversation ends, however it ends, the traveller lets go of his talking pose at once, instead of sometimes staying stuck in it, leaning back with a hand on his hip, after you walk off.',
+    // issue #404: unity/…/BridgeRenderer.cs StillLods (the big still meshes' levels of detail, by their stray in pixels),
+    // InstLod.Simplify's TriGrid; tests/unity-retroid-still-lod.test.js; docs/systems/performance.md "round 15"
+    'In the Unity version on the Retroid, big buildings, roots and carvings far away are drawn with fewer triangles where the difference is smaller than half a pixel, so Lorn’s start now runs at 60 frames a second too, with the picture unchanged: 23 of the 25 measured views hold 60.',
   ] },
   { v: '1.86', date: '2026-10-19', items: [
     // issue #483: src/story/hosts-data.js (the fight hosts' second lines), src/fight-temples/<world>.js (blurb, quiet),

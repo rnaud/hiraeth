@@ -567,6 +567,10 @@ namespace Hiraeth.Bridge
             if (BridgeArgs.Arg("-hide-far") is string hfx && float.TryParse(hfx, flt, inv, out float hfv)) BridgeRenderer.hideFar = hfv;
             BridgeRenderer.hideNoCast = BridgeArgs.Flag("-hide-nocast");
             BridgeRenderer.hideMatch = BridgeArgs.Arg("-hide-match");
+            // (the big still meshes' levels of detail, BridgeRenderer.StillLods: on Android; -still-lod-tris N from N triangles, 0 off;
+            // -still-lod-from D made once past D m)
+            if (BridgeArgs.Arg("-still-lod-tris") is string slt && int.TryParse(slt, out int sltv)) BridgeRenderer.stillLodTris = sltv;
+            if (BridgeArgs.Arg("-still-lod-from") is string slf && float.TryParse(slf, flt, inv, out float slfv)) BridgeRenderer.stillLodFrom = slfv;
             if (BridgeArgs.Arg("-hide-big") is string hbx && int.TryParse(hbx, out int hbv)) BridgeRenderer.hideBig = hbv;
             if (BridgeArgs.Arg("-draw-tax") is string dtx && int.TryParse(dtx, out int dtv)) Hiraeth.Rendering.HiraethFeature.Settings.drawTax = dtv;
             if (BridgeArgs.Arg("-vert-tax") is string vtx && int.TryParse(vtx, out int vtv)) Hiraeth.Rendering.HiraethFeature.Settings.vertTax = vtv;
