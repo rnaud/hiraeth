@@ -1349,6 +1349,12 @@ const RETROID536 = 'Retroid Pocket Nova (Adreno 740, Vulkan), Unity, Handheld (F
 const SRC536 = 'BridgeRenderer.Pipelines (the G-buffer’s states the scene asks for: variant, layout, cull, depth), Metal’s list traced in the editor, the shipped lists rewritten by scripts/bench/pso-one-cull.mjs; docs/systems/performance.md, “One cull mode and one layout for the Surface pipelines”';
 const SEAPORT572 = 'Issue #572: the web game in muted headless Chrome (High, 1280 × 720) on a Vite of its own (port 5441), a new save arriving by ship (?level=underwater&via=ship), then walked as a player; before: origin/main at 02345e2c3, after: this change; the deck and the Dock from the visual check’s views (scripts/design-qc/capture.mjs --fixed-scale); 20 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '1.89': [
+    { match: 'In the Unity version, the sea over the Underwater City, seen from under the water', shots: [
+      { name: 'sea-577-under-deck', title: 'Under the sea port', size: [1280, 720], caption: 'The sea overhead now keeps its own blue, with the same sparse wave lines as on the web.', from: 'Issue #577: muted Unity editor batch, High, 1280 × 720, noon, clear, the same pinned view before and after; compared with muted Chrome on port 5477; 20 October 2026.' },
+      { name: 'sea-577-deck-wide', title: 'Across the sea', size: [1280, 720], caption: 'The distant wave lines fade away, leaving a flat sea around the port.', from: 'Issue #577: muted Unity editor batch, High, 1280 × 720, noon, clear, the same pinned view before and after; compared with muted Chrome on port 5477; 20 October 2026.' },
+    ], see: 'In the Underwater City, look up through the Dock’s dome, or ride the sea port’s lift and look out under the surface.' },
+  ],
   '1.88': [
     { match: 'The traveller is rebuilt: his body and each piece of his clothing', tags: ['traveller'], shots: [
       { name: 'traveller-stand-493', title: 'Standing', size: [1280, 720], caption: 'Before, B3, one body with his clothes painted on and his overshirt cut from it; after, the rebuilt traveller: a body, his skin, a shirt, a tee, trousers, boots and a scarf, each its own piece, in the same colours and folds', from: TRAV493 },

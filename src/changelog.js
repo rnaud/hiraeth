@@ -8,6 +8,11 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.89', date: '2026-10-20', items: [
+    // issue #577: Surface.shader waterLook (_WaterBelow, the crests' WATER_INK fade, _WaterLite), WorldLoader.MakeMaterial;
+    // tests/unity-sea-underside.test.js
+    'In the Unity version, the sea over the Underwater City, seen from under the water, is the same deep, even blue as on the web instead of a pale ceiling crossed by streaks, and from the sea port’s deck the far sea is a flat tone again, without fine lines out to the horizon.',
+  ] },
   { v: '1.88', date: '2026-10-20', items: [
     // issue #493: src/characters/traveller.js loadTraveller / traveller-v2.js (travellerSetting on, dressTravellerV2),
     // traveller-v2-cloth.js (B3's solver on the shirt), humanoid.js wearGlove skins, traveller-lod*.js (Permissive levels),
@@ -58,6 +63,7 @@ export const CHANGELOG = [
     // (shipSite, the Dock's oculus, the sea's hole, rescue, Bastien), ports.js UNDERWATER_PORT, player.js (a falling carrier
     // keeps its rider), ship.js viewGround, arrival-views.js; engine/sequences.js sea-port; tests/underwater-port.test.js
     'In the Underwater City the ship no longer leaves you out in the sea with no way in: it now lands on a sea port, a round coral deck floating on the water over the city. A lift in the brass house in front of the ramp takes you down a glass shaft through the sea and in through the Dock’s dome, where Bastien keeps the lock: step on and stand to ride down, and ride it back up to your ship.',
+
   ] },
   { v: '1.87', date: '2026-10-19', items: [
     // issue #556: BridgeHud.cs (a minigame's flashes, the gadget marks' numbers, the chimes' count in Ui.Sans / SansHeavy,

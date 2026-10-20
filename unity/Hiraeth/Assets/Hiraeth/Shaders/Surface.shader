@@ -34,6 +34,7 @@ Shader "Hiraeth/Surface"
     _Room ("A room in a hull: its key's direction (three, object), strength; w 0: not a room", Vector) = (0, 0, 0, 0)
     _WaterOpt ("Water (fallback depth, printed, clarity, sparkle; x 0: the old water)", Vector) = (0, 0, 1, 1)
     _WaterBed ("Water's bed colour", Vector) = (0.9, 0.86, 0.7, 1)
+    _WaterBelow ("Water's underside: lifted toward rgb by a (water-shader.js uWaterBelow)", Vector) = (0.96, 0.98, 0.97, 0.45)
     _Bed ("Bed heights (three-space map, R: height)", 2D) = "black" {}
     _Weather ("Weathered (0..1)", Float) = 0
     _Detail ("Pen detail (kind, density)", Vector) = (0, 0, 0, 0)
@@ -177,6 +178,7 @@ Shader "Hiraeth/Surface"
     float4 _Metal; float4 _BrushAxis;
     float4 _Room;          // a room in a hull (materials.js ROOM_LIGHT, the ship's rooms): its key's direction (three, object), w its strength
     float4 _WaterOpt, _WaterBed;
+    float4 _WaterBelow;            // its underside seen from below: the shallows' tone lifted toward rgb by a (water-shader.js uWaterBelow)
     float4 _BedBox;                // x0, z0 (three space), 1 / width, 1 / depth: where the bed map lies (Waters.cs bakes it)
     float4 _BedRef;                // x: the height the map is measured from, y: 1 once baked, z: 1 the bridge's bytes (engine/water-bed.js)
     float _Drift, _SpotStep, _LineStep, _ToDisplay, _FormOn, _Veins, _BoxOn, _TripoFace;
@@ -1080,10 +1082,17 @@ Shader "Hiraeth/Surface"
         float3 deep = mid * float3(0.78, 0.86, 0.9) + float3(0.0, 0.0, 0.03);
         float clarity = _WaterOpt.z;
         ink = waveInk(p.xz, t, str, wd, 1.0, 0.0);
-        ink = max(ink, waveInk(p.xz, t, str, wd, 3.2, 17.0) * 0.7);
-        ink *= 0.75;
+        if (_WaterLite < 0.5) ink = max(ink, waveInk(p.xz, t, str, wd, 3.2, 17.0) * 0.7);   // (the handheld's one scale of waves)
+        // the crests come in patches the wind ruffles (cat's paws drifting downwind), the rest of the water left flat, and they
+        // thin out with distance, where an inker leaves the water a flat tone (water-shader.js WATER_INK: paws, calm, far).
+        // Issue #577: without these the far water, and the sea's underside seen from below, drew its crests to the horizon:
+        // streaks the web has none of
+        float paws = smoothstep(0.48, 0.66, vnoise(p.xz * 0.018 - wd * t * 0.05) * 0.7 + vnoise(p.xz * 0.05 + 9.0) * 0.3);
+        ink *= 0.75 * lerp(0.15, 1.0, paws) * (1.0 - smoothstep(0.06, 0.2, px));
         lit = 0;
-        if (!front) { ink *= 0.75; lit = 1; return lerp(shallow, float3(0.96, 0.98, 0.97), 0.45); }
+        // the underside, seen while diving or from under the sea: a ceiling in the shallows' tone lifted toward the water's
+        // own `below` (water-shader.js uWaterBelow; issue #577: it was the default's pale 0.45 toward white for every sea)
+        if (!front) { ink *= 0.75; lit = 1; return lerp(shallow, _WaterBelow.rgb, _WaterBelow.a); }
         if (_WaterOpt.y > 0.5)
         {
           ink *= 0.6;
@@ -1106,7 +1115,7 @@ Shader "Hiraeth/Surface"
         }
         float3 col = dB < 1.15 ? shallow : (dB < 3.4 ? mid : deep);
         if (dB < 0.42 * clarity && known > 0.5) col = lerp(shallow, _WaterBed.rgb, 0.5);
-        float causK = (1.0 - smoothstep(0.15, 0.7, dB)) * known * (1.0 - smoothstep(0.012, 0.03, px)) * clarity;
+        float causK = (1.0 - smoothstep(0.15, 0.7, dB)) * known * (1.0 - smoothstep(0.012, 0.03, px)) * clarity * (1.0 - _WaterLite);
         UNITY_BRANCH if (causK > 0.0)
         {
           float cv = voronoiBorder(p.xz * 1.6 + float2(sin(t * 0.7 + p.z * 0.9), cos(t * 0.6 + p.x * 0.8)) * 0.3);

@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.89 — 2026-10-20
+
+- In the Unity version, the sea over the Underwater City, seen from under the water, is the same deep, even blue as on the web instead of a pale ceiling crossed by streaks, and from the sea port’s deck the far sea is a flat tone again, without fine lines out to the horizon.
+
 ## v1.88 — 2026-10-20
 
 - In the Underwater City the ship no longer leaves you out in the sea with no way in: it now lands on a sea port, a round coral deck floating on the water over the city. A lift in the brass house in front of the ramp takes you down a glass shaft through the sea and in through the Dock’s dome, where Bastien keeps the lock: step on and stand to ride down, and ride it back up to your ship.

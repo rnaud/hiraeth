@@ -2983,6 +2983,28 @@ skinned meshes against B3's body, trousers and overshirt, 43.4 k in three; the p
 casters 51 draws and 109.6 k triangles against 52 and 92.0 k (B3's overshirt cast through a shadow mesh of its own, not counted here). The pearl
 diver 107.2 k, the salt pilgrim 111.0 k. `tests/unity-traveller-v2.test.js`.
 
+## The sea from below (2026-10-20, issue #577)
+
+In the Underwater City, looking up at the sea's surface from under the water (round the sea port's shaft, issue #572),
+Unity drew it much paler than the web, crossed by streaks, where the web draws a deep even blue. Two of
+water-shader.js `waterLook`'s terms the port's `waterLook` (Surface.shader) had left out:
+
+- **The underside's colour.** Seen from behind (`!front`), the web lifts the shallows' tone toward the water's own
+  `below` (`uWaterBelow`: the sea's `['#8fd0e4', 0.22]`, underwater-kit.js `seaSurface`); Unity always lifted it 0.45 of
+  the way to near white (the web's default for a water with no `below`). `uWaterBelow` already crossed the bridge (port-format.js
+  sends every `uWater…` uniform); WorldLoader.MakeMaterial now sets it as `_WaterBelow` (in the material's buffer,
+  defaulting to the web's default) and the underside reads it.
+- **The crests' fade** (`WATER_INK`): the web draws the wave crests only in the patches the wind ruffles (`paws`,
+  `calm` of them between) and fades them out by 0.06–0.2 m a pixel; Unity drew every crest at full strength to the
+  horizon, on both sides of the water: the streaks from below, and fine lines over the far sea from the deck (and over
+  any wide water seen far off). Now the same numbers, before the underside returns. With them, the handheld's one scale
+  of waves and no caustics (`_WaterLite`), as the web's `uWaterLite`.
+
+The web's water rings (`uWaterRings`: round a splash) are still not in the port. Checked with the visual check's tools
+on views of the sea (scripts/unity-compare unity.mjs and design-qc/capture.mjs: under the deck, the underside far from
+the shaft and straight up, the deck from over the sea and from its rail, the Dock, the Whale Gallery, mid-shaft),
+before (origin/main at 525324ffb) and after. tests/unity-sea-underside.test.js.
+
 ## Status
 
 - **Stage 1, the spike**: the desert, built by `createDesert` inside GodotJS, mirrored to Godot

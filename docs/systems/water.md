@@ -138,7 +138,8 @@ whole world under it, drawn the Moebius way rather than as the generic murk. Wit
     patches, near only, stronger in the light, gone once finer than a few pixels;
   - over it all the motes (life.js) stay crisp: they are drawn after the pass.
 - **Its underside**: the water look's `below: [colour, k]` (water-shader.js `uWaterBelow`; the generic water's is a
-  pale white 0.45) sets the ceiling's tone, so a sea's surface reads as a mid blue with its ripples far overhead.
+  pale white 0.45) sets the ceiling's tone, so a sea's surface reads as a mid blue with its ripples far overhead. Unity reads
+  it too (`_WaterBelow`, issue #577: it had the generic pale for every sea; engine-bridge.md "The sea from below").
 - **Air pockets**: `sea.air(x, y, z)` true inside them (the cafés' domes): `surfaceAt` and `floorAt` pass the sea by
   there, so inside you are dry (an ordinary walk, no tint, no muffled sound) and the camera too.
 - **Deep under** (`DEEP_UNDER`, 2.5 m): nothing splashes at the surface for what happens down there (a step, a

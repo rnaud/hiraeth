@@ -267,13 +267,16 @@ namespace Hiraeth
             // a room inside a hull (materials.js ROOM_LIGHT, issue #338: the ship's rooms): its key's direction (three, object) and strength
             var room = m.L("room");
             if (room != null && room.Count >= 4) mat.SetVector("_Room", new Vector4(Json.Num(room[0]), Json.Num(room[1]), Json.Num(room[2]), Json.Num(room[3])));
-            // the water (water-shader.js): its bed's colour, its options (fallback depth, printed, clarity, sparkle); Waters.cs bakes its bed
+            // the water (water-shader.js): its bed's colour, its options (fallback depth, printed, clarity, sparkle), its underside; Waters.cs bakes its bed
             var water = m.O("water");
             if (water != null)
             {
                 var wo = water.L("uWaterOpt"); var wb = water.L("uWaterBed");
                 if (wo != null && wo.Count >= 4) mat.SetVector("_WaterOpt", new Vector4(Mathf.Max(Json.Num(wo[0]), 0.01f), Json.Num(wo[1]), Json.Num(wo[2]), Json.Num(wo[3])));
                 if (wb != null && wb.Count >= 3) mat.SetVector("_WaterBed", new Vector4(Json.Num(wb[0]), Json.Num(wb[1]), Json.Num(wb[2]), 1));
+                // its underside seen from below (o.below: the Underwater City's sea from under it, issue #577): rgb and how much
+                var wbl = water.L("uWaterBelow");
+                if (wbl != null && wbl.Count >= 4) mat.SetVector("_WaterBelow", new Vector4(Json.Num(wbl[0]), Json.Num(wbl[1]), Json.Num(wbl[2]), Json.Num(wbl[3])));
                 // with the contact foam on (the default but on mobile; -noWaterContact turns it off): drawn last in the G-buffer,
                 // writing no depth, over the scene's depth (HiraethFeature)
                 // (a printed shape lying on the water, waterPrint: the mirror lake's reflections, is no body of water on the page
