@@ -55,7 +55,8 @@ export const PEOPLE = {
         inside: {
           say: ['~surprised~ You came back out! Did the floors hold?', '~curious~ And the capstan? Still turning the wrong way?'],
           choices: [
-            { text: '~solemn~ A machine at the top is letting the cables out.', goto: 'pull' },
+            // (the Anchor-Warden's floor is off the Cord Loft, level with the door since #477: seen through its gate's bars, #563)
+            { text: '~solemn~ A machine behind a barred gate. It’s letting the cables out.', goto: 'pull' },
             { text: '~neutral~ I’m going back.', end: true },
           ],
         },

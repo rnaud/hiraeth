@@ -1901,7 +1901,7 @@ From the 2026-10-08 playtest. Every foe, in every state, must be seen:
   walks every kind through 30 s of a fight, including the running hound and the buried ray.
 - **The shadow hound running** is a low hump of shadow with a glowing lavender rim and lit eyes over its pool
   (was a flat pool and 4 cm eyes); its ink has white contours, as the shade's. Its bite after the step behind
-  you winds up 0.45 s (was 0.32).
+  you winds up 0.55 s (was 0.32; `src/enemies/archetypes.js`, the hound's `bite`).
 - **The buried dune ray** has a taller white-lined fin, darker turned sand, and winding up its burst it swims to
   its ring under the sand (`Foe.swimTo`, `SWIM`: there by 85 % of the wind-up, ≤ 12 m/s, through `step`), the
   fin high and throwing sand; before, it sank the fin and came up out of nowhere.

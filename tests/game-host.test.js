@@ -508,3 +508,13 @@ test('the fight in the one game setup: the engines\' layer draws it, its hazards
   const main = readFileSync('src/main.js', 'utf8');
   assert.doesNotMatch(main, /new Foes\(|nextFlurry\(|lockFollow\(|new ChimeField|ambushDue\(/, 'nor main.js\'s own');
 });
+
+test('R3 with no foe near turns the camera behind you, and says so the first time, in both hosts (issue #563)', async () => {
+  const main = readFileSync('src/main.js', 'utf8'), engine = readFileSync('engine/game.js', 'utf8'), host = readFileSync('src/host/game-host.js', 'utf8');
+  assert.match(main, /rig\.recentre\(player\.heading\); fight\.recentred\(\);/);
+  assert.match(engine, /rig\.recentre\?\.\(player\.heading\); combat\?\.recentred\?\.\(\);/);
+  assert.match(readFileSync('engine/combat.js', 'utf8'), /recentred: \(\) => F\.recentred\(\)/);
+  assert.match(host, /recentred\(\) \{\s*if \(game\.flag\('hint\.recentre\.taught'\) \|\| !hintsFor\('teach'\)\) return;\s*game\.set\('hint\.recentre\.taught', true\);/, 'once a save, hints on');
+  const { t } = await import('../src/i18n.js');
+  assert.match(t('hint.recentre'), /\{key:lock\}.*camera behind you/);
+});

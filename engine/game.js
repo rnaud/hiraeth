@@ -991,7 +991,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       // R3: lock on to a foe, then the next, then let go, and nothing else; with none in reach the camera turns behind you
       // (main.js, issue #512)
       if ((name === 'lock' || name === 'l3') && level.jump && !pinned) { level.jump(name === 'lock' ? 1 : -1); return; }   // (the Lab: R3 / L3 hop to the next / previous world's room, as main.js)
-      if (name === 'lock' && !pinned && !(shipOn && ship.playing)) { if (!combat?.lock() && !trials?.running) rig.recentre?.(player.heading); return; }
+      if (name === 'lock' && !pinned && !(shipOn && ship.playing)) { if (!combat?.lock() && !trials?.running) { rig.recentre?.(player.heading); combat?.recentred?.(); } return; }
       // D-pad →: Plumb finds the objective, on foot and riding (a guardian's fight, a makers' house: a hint), as main.js and Q
       if (name === 'scout' && !pinned && !talking() && !(shipOn && ship.playing) && scout && !trials?.running) { scoutHint?.pinged(); if (!plumbStep.press()) scout.ping?.(); return; }   // (Plumb's talk first: issue #543)
       if (name === 'potion' && combat && !pinned && !talking() && !(shipOn && ship.playing)) { combat.drink(); return; }

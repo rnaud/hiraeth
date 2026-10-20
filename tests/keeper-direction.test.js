@@ -2,7 +2,9 @@
 // what winds itself up" and the Undertower "Go down to the voice", "Somewhere far down", where both houses had been
 // rebuilt with the guardian's hall on the top floor). Each house is built in its world and its arena's height compared
 // with where you come in (the house's arrival): a line that says up needs the hall above, one that says down needs it
-// not above. A house rebuilt again cannot leave its words behind.
+// not above. A house rebuilt again cannot leave its words behind. The locals' talk once you have been in (their `inside`
+// node: what they ask and what you answer of the guardian) is read too (issue #563: Joss's "A machine at the top" stayed
+// after #477 brought the Anchor-Warden's floor down to the door's).
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
@@ -32,7 +34,26 @@ test('the words: up and down are read from the line, not from its object', () =>
   assert.equal(direction('The walls hum one high note, very softly'), null);
 });
 
-test('each keeper step and enter line says up only where the guardian’s hall is above the door, down only where it is not', () => {
+/** The lines of the locals' talks once you have been in: each `inside` node's pages and your answers there. */
+export function insideLines(people = {}) {
+  const out = [];
+  for (const [id, p] of Object.entries(people)) {
+    const n = p?.talk?.nodes?.inside;
+    if (!n) continue;
+    for (const l of [n.say].flat().filter(Boolean)) out.push([`${id} inside`, typeof l === 'string' ? l : l.text]);
+    for (const c of n.choices ?? []) if (c?.text) out.push([`${id} answer`, c.text]);
+  }
+  return out;
+}
+
+test('the locals’ inside talks are read: Joss’s answer among them', async () => {
+  const { PEOPLE } = await import('../src/temples/spacecity-data.js');
+  const lines = insideLines(PEOPLE);
+  assert.ok(lines.some(([w, l]) => w.endsWith('answer') && /cables out/.test(l)), JSON.stringify(lines));
+  assert.ok(lines.length >= 3);
+});
+
+test('each keeper step, enter line and local’s inside talk says up only where the guardian’s hall is above the door, down only where it is not', () => {
   const wrong = [];
   for (const [id, { def, words }] of Object.entries(TEMPLES)) {
     const scene = new THREE.Scene();
@@ -41,7 +62,7 @@ test('each keeper step and enter line says up only where the guardian’s hall i
     const rt = templeOf(level, id), G = rt?.guardian;
     if (!G) continue;
     const rise = G.arena.center.y - rt.arrival.pos.y;
-    for (const [what, line] of [['keeper', words.QUEST?.keeper], ['enterLine', def.enterLine]]) {
+    for (const [what, line] of [['keeper', words.QUEST?.keeper], ['enterLine', def.enterLine], ...insideLines(words.PEOPLE)]) {
       const dir = direction(line);
       if (dir === 'up' && rise <= FLOOR) wrong.push(`${id} ${what} says up, the hall is ${rise.toFixed(1)} m from the door: “${line}”`);
       if (dir === 'down' && rise > FLOOR) wrong.push(`${id} ${what} says down, the hall is ${rise.toFixed(1)} m above the door: “${line}”`);

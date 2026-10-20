@@ -292,8 +292,8 @@ export const ITEMS = {
   },
   finder: {
     name: 'Fragment finder', kind: 'charm', fragments: 3, toggle: true, where: 'Anselm Thrum sells it aboard your ship, for three fragments of the singing light.',
-    text: 'Anselm’s brass box with a splinter of the light inside. It beeps faster as a fragment comes within 60 m. Switch it off or on here on the items page.',
-    does: 'It beeps faster as a fragment comes within 60 m; the items page switches it off or on.',
+    text: 'Anselm’s brass box with a splinter of the light inside. It ticks faster as a fragment comes within 60 m. Switch it off or on here on the items page.',
+    does: 'It ticks faster as a fragment comes within 60 m; the items page switches it off or on.',
   },
   lightedge: {
     name: 'Light-tempered edge', kind: 'upgrade', fragments: 7, light: 'sword', needs: 'sword', where: 'Anselm Thrum sells it aboard your ship, for seven fragments of the singing light.',

@@ -39,7 +39,8 @@
   them for forty years. The finale settles the rest: they reached the Lantern,
   kept it and kept Ilen, and are buried on its point (Talo first, then Odile,
   eight winters ago). Before the Lantern, nobody knows this.
-- The makers' glyph is three dots over an upward-bowing arc (∩), not a smile.
+- The makers' glyph is an open corner beside a shorter upright (the game's mark since b653f6eb4, one shared drawing;
+  at the Lantern: "An open corner beside a shorter upright."), not three dots over an arc as it was first drawn.
   Locals have different names for it. Those names express local beliefs.
 - The white builders found the older spheres and pyramids, then copied them
   and the mark. They are not established as the original makers.

@@ -137,7 +137,7 @@ export const PEOPLE = {
         // (issue #479: where the splinter is can be asked from her first words, five pages in all; the light, the night
         //  the sky rang and her sweeping are for whoever asks)
         hello: {
-          say: ["~angry~ Mind the dust. I just did that bit. Looking up, are you? Careful. Residents look down, to check who’s poorer.",
+          say: ["~playful~ Mind the dust, I just did that bit. Looking up, are you? Residents look down, to check who’s poorer.",
             "~sad~ Forty years I’ve looked at the *Lodestar* before I sweep. Since the night the sky rang, it’s been going out. A splinter of it fell all the way to the bottom."],
           choices: [
             { text: '~curious~ Where did the splinter land?', if: EARLY, goto: 'where' },

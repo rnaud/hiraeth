@@ -663,7 +663,8 @@ Every spring-house offers both, as every world does.
 **The way home.** The colours go home on his back. At the stone Lou sees them before she sees anything else.
 
 **In their words (as built, issue #483).** The hosts never send him to "the altar": each says what the floor does and
-what they want back ("Clear it and I'll grind again."). The start card says what the place was and what comes up in
+why they want it quiet, each in their own words and with their own last line (Gert: "Empty it, and there's flour
+by spring."; Ulric: "Seven loads a day, and not one ordered."; issue #559). The start card says what the place was and what comes up in
 it, not how many rooms. A run ends *quiet*, not *cleared*: the end card's first line is the place's ("The ink sinks
 back into the floor. Wafa comes down the stair."), the scores under it. Foes "go back to ink"; the shard's boost is
 the blade running bright, never "fury".

@@ -26,11 +26,11 @@ the monastery, past the Almonry), its host Sister Maud; or `?game=fight-arzach`.
 Marta; or `?game=fight-moonfoundry`. Below: "The Pour Floor".
 
 **Built in v1.81:** Viridel's **Seed Vault** (on the plateau west-south-west of the Builders' Greenhouse, by the top of the
-water stair; its host Hollis; `?game=fight-edena`), the City-Shaft's **Lift Depot** (on the middle terrace by its cab
+water stair; its host Abner; `?game=fight-edena`), the City-Shaft's **Lift Depot** (on the middle terrace by its cab
 stop; Ulric; `?game=fight-incal`), the Buried Machine's **Tooth Gallery** (east of the domes; Greta; `?game=fight-buried`)
 and the Signal Market's **Back Rooms** (in the back alley west of the sign-hanger's ladder; Lettie; `?game=fight-bazaar`).
 And the Underwater City's **Flooded Gallery** (in the Dock hall; its host Sabine; `?game=fight-underwater`).
-And the Glass Dunes' **Kiln Yard** (by the north camp's awnings; Ozren; `?game=fight-glassdunes`).
+And the Glass Dunes' **Kiln Yard** (by the north camp's awnings; Mirek; `?game=fight-glassdunes`).
 And the Garden of Spheres' **Quiet Orchard** (west of the round plaza; Wenna; `?game=fight-spheres`).
 And the City Floating in Space's **Oil Exchange** (on the Towers' deck; Osric; `?game=fight-spacecity`).
 Below, each under its name.
@@ -60,8 +60,9 @@ A temple's table is now its **theme**, and every visit draws its own **run** fro
   the table's whatever the order; the gorged ones where the table had them, the tough ones in the last wave
   (`drawWave`). Within half the cheapest foe of the budget, every wave.
 - **The seed.** `?seed=<n>` replays a run (the same seed, the same rooms, layout and waves: a seeded mulberry32,
-  `rngOf`); without it a fresh one (1 … 999 999, `seedOf`). The results card and the card of a run lost give it
-  ("This run: 48213 (… ?seed=48213)"). Retry replays the same run (the level is built once a visit); the best time is
+  `rngOf`); without it a fresh one (1 … 999 999, `seedOf`). The cards gave it until v1.87 ("This run: 48213 (…
+  ?seed=48213)"); a URL parameter is the developer's, not a player's, so they no longer do (issue #559): the dev
+  page's seed box has it (docs/systems/dev-tools.md). Retry replays the same run (the level is built once a visit); the best time is
   the temple's, whatever the run.
 
 In the engines it is the same JS (engine/game.js builds the game's level through the same `build`): no location there,
@@ -375,7 +376,7 @@ The glassworkers' cooling sheds, floored in glass tiles over the kilns (drawn as
 (`pillar: 'chimney'`), chimneys and glass shards in the dunes round them (`dress: 'kiln'`). Rooms: the packing shed, the
 cooling shed (four chimneys), the annealing floor (open, two tiles at a time), the great kiln (two, more often). Foes:
 glass crabs, mantas, mound worms, a furnace walker or two made light; two clock-house drones and a whole walker at the
-end; 110, par 4:10; Furnace glass. Its doorway at the west end of the north camp's awnings, Ozren by it.
+end; 110, par 4:10; Furnace glass. Its doorway at the west end of the north camp's awnings, Mirek by it.
 
 ## The Quiet Orchard (the Garden of Spheres, `src/fight-temples/spheres.js`)
 

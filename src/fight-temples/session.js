@@ -30,9 +30,10 @@ import { KillFx } from './kill-fx.js';
 import {
   ISO, isoOffset, followIso, SEE, sightPoints, inTheWay, easeSee, seeOpen, AIM, pickTarget, stickToGround, screenUp, screenRight,
   roomAt, inRoom, roomWaves, release, CROWD, headOf, heartChance, chimesFor, pursesFor, totalFoes,
-  GORGED, FURY, GEYSER, geyserSpots, rankFor, clock, rollInput, rollKey,
+  GORGED, FURY, GEYSER, geyserSpots, rankFor, clock, rollInput,
 } from './rules.js';
 import { padFaces } from '../native-pad.js';
+import { motionState } from '../feel.js';
 import { frameIso, telegraphs, nearestTelegraph, FRAME, LOCK_ANSWER, answerScale } from './view.js';
 import { SelfMark } from './self-mark.js';
 import { fightHarm, arrivalHearts, harmBank, hazardScale, FIGHT_HARM } from './harm.js';
@@ -159,11 +160,12 @@ export function startFightTemple(ctx) {
   const look = player.pos.clone().setY(player.pos.y + ISO.look);
   const offset = isoOffset(ISO, new THREE.Vector3());
   // (the framing toward the nearest telegraph, eased: view.js frameIso; `tells` this frame's, the hazards' and geysers')
-  const framed = { dx: 0, dz: 0, zoom: 1 }, aimAt = new THREE.Vector3();
+  const framed = { dx: 0, dz: 0, zoom: 1 }, aimAt = new THREE.Vector3(), STILL_FRAME = { dx: 0, dz: 0, zoom: 1 };
   let tells = [];
   function placeCamera(dt) {
     followIso(look, player.pos, player.vel, dt);
-    const want = frameIso(player.pos, nearestTelegraph(tells, player.pos), camera.aspect || 16 / 9);
+    // (Reduce motion: no pull toward the hazard, the camera kept on him; the edge's marks show what is off the frame, #563)
+    const want = motionState().reduce ? STILL_FRAME : frameIso(player.pos, nearestTelegraph(tells, player.pos), camera.aspect || 16 / 9);
     const e = 1 - Math.exp(-(want.zoom > 1 || want.dx || want.dz ? FRAME.ease : FRAME.back) * dt);
     framed.dx += (want.dx - framed.dx) * e; framed.dz += (want.dz - framed.dz) * e; framed.zoom += (want.zoom - framed.zoom) * e;
     aimAt.set(look.x + framed.dx, look.y, look.z + framed.dz);
@@ -536,9 +538,8 @@ export function startFightTemple(ctx) {
       ...(def.quiet ? [def.quiet] : []),
       fresh ? coloursLine(pal.name, (id) => own?.has?.(id) ?? true) : `${pal.name}: yours already (Items, Colours)`,
       `Rank ${rank} · ${clock(runClock)} (par ${clock(def.par ?? 240)}) · hearts lost ${+run.lost.toFixed(2)}`,
-      `Foes felled ${run.kills} · gorged ${run.gorged} of ${run.gorgedOf} · longest chain ${run.bestChain}`,
+      `Sent back into the floor: ${run.kills} · gorged ${run.gorged} of ${run.gorgedOf} · longest chain ${run.bestChain}`,
       `Hearts found ${run.hearts} · bright blade ${run.furies}× · chimes ${run.chimes}${gentle ? ' · gentle foes' : ''}`,
-      ...(def.seed ? [`This run: ${def.seed} (the same rooms and waves again: ?seed=${def.seed})`] : []),
     ] });
   }
 
@@ -615,7 +616,7 @@ export function startFightTemple(ctx) {
           : run.phase === 'wait' ? `On to ${rooms[run.room].name}` : run.phase === 'reward' ? 'Take the reliquary' : '');
         if (player.dead) {
           over = true;
-          ctx.finish({ failed: true, title: `${def.name} took you`, lines: [`Rooms cleared ${run.room} of ${rooms.length} · wave ${run.waveN} of ${run.waves} · foes felled ${run.kills} of ${run.total}`, `Gorged ${run.gorged} of ${run.gorgedOf} · longest chain ${run.bestChain} · chimes ${run.chimes}`, `A roll (${rollKey(padFaces().faces)}) takes you through a blow or ${HAZARD[rooms.find((r) => r.hazard)?.hazard.kind]?.word ?? 'a geyser'} unharmed.`, ...(def.seed ? [`This run: ${def.seed} (?seed=${def.seed} to try it again)`] : [])] });
+          ctx.finish({ failed: true, title: `${def.name} took you`, lines: [`Rooms cleared ${run.room} of ${rooms.length} · wave ${run.waveN} of ${run.waves} · sent back into the floor ${run.kills} of ${run.total}`, `Gorged ${run.gorged} of ${run.gorgedOf} · longest chain ${run.bestChain} · chimes ${run.chimes}`, `A roll ({key:roll}) takes you through a blow or ${HAZARD[rooms.find((r) => r.hazard)?.hazard.kind]?.word ?? 'a geyser'} unharmed.`] });   // (the card's buttons the player's own, issue #559; the seed is the developer's: ?seed=)
         }
       }
       // the geysers filling and bursting, the world's hazard on its lanes, the shards and the fury, the last few marked

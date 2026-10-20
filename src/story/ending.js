@@ -298,6 +298,9 @@ export const ILEN_AT_STONE = '~whisper~ And this space is for Ilen, wherever she
 /** Is Ilen still to be named at the stone? The ending is over, he has learned about her since (`ending.ilen`: she was named in it). */
 export const ilenAtStoneDue = (flag) => !!flag('ending.done') && !!flag('calls.ilen.told') && !flag('ending.ilen') && !flag('home.ilen.said');
 
+/** Anselm's lamp, lit in the round window as the stone's words end (the true ending, his lamp bought: issue #559). */
+export const LAMP_AT_STONE = '~solemn~ (Behind you, the round window is lit. Anselm’s lamp.)';
+
 export const CLOSING = S("~solemn~ Something of value. Home, on your own two feet.");
 
 /** The closing line of the first homecoming: no end card, the story goes on. */
@@ -365,8 +368,6 @@ export function tombLines(tokens = [], ctx = {}) {
     }
     lines.push(S('~solemn~ (Ilen kneels and sets something small on the slab: the recording that reached her.)', { token: ILEN_TOKEN, ilen: true }));
     lines.push(IL('~solemn~ Your message came the whole way, Dad. I kept it.'));
-    // (Anselm's lamp, bought for fragments: carried out and set in the round window, its glow the count's: issue #481)
-    if (ctx.lamp) lines.push(S('~solemn~ (Anselm carries his lamp up from the ship and sets it in the round window. Every splinter you found glows in it.)', { lamp: true }));
     lines.push(...ilenOnChoices(ch));
     lines.push(YOU('~whisper~ It isn’t what you asked for. It’s what we have.'));
     if (ctx.lou) {
@@ -378,6 +379,9 @@ export function tombLines(tokens = [], ctx = {}) {
     lines.push(...FINAL_RECORDING);
     lines.push(IL('~sad~ I never saw you that small. I never saw you at all.'), YOU('~whisper~ You see me now.'));
     if (ctx.lou) lines.push(LOU(LOU_AT_STONE.after), YOU(LOU_AT_STONE.you));
+    // (Anselm's lamp, bought for fragments, in the round window: after the stone's last words and before the closing, no
+    // count, so the tally stays out of the quiet beat: issue #481, moved by #559)
+    if (ctx.lamp) lines.push(S(LAMP_AT_STONE, { lamp: true }));
     lines.push(CLOSING);
     return lines;
   }

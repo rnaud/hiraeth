@@ -265,21 +265,26 @@ export function wireLessons({ game, items, levelId, gadgets = () => null, sound 
  * shoulder (an escort), hops and turns to you with its mark over it (src/scout.js hail) and calls (sound.drone('call'));
  * the first time, `teach()` (the host puts the button's line on the cue, once a save). Plumb's button then opens the talk
  * in the dialogue box (its pages, its portrait and name: `plumbNpc`), and when it ends Plumb flies toward the goal (the
- * ping). Unanswered for HAIL.secs, it lets it go; a scene or a fight puts it away, and it comes again after.
+ * ping) with its pointing word ("This way.", "Look.": the talk's bark, src/companion.js splitBark) on the cue, as its other
+ * lines show (issue #559); a talk with nowhere to point (the Blade Gate's: you are at it, #563) ends there. Unanswered for
+ * HAIL.secs, it lets it go; a scene or a fight puts it away, and it comes again after.
  */
 export function wireCompanion({ game, plumb = null, scout = null, level, player, npcs = [], struggle = null, sound = null, dialogue = () => null, teach = null }) {
   if (scout) game.on('drone:out', (e) => scout.escort(ESCORT.secs, e?.pos ?? null));
   const at = { goalT: 0, goal: null, lookT: 0, place: null, world: { fight: null, house: null }, names: null };
   // the talk (issue #543): raised at your shoulder (up), how long it has waited; the talk under way
-  const hail = { up: false, shown: 0, talking: null, opening: null };
+  const hail = { up: false, shown: 0, talking: null, opening: null, bark: '' };
   const OPEN_FRAMES = 2;
   const lower = () => { if (hail.up) { hail.up = false; scout?.hail?.(false); } };
   const npc = scout?.talk ? plumbNpc(scout, player) : null;
   game.on?.('dialogue:end', (e) => {
     if (e?.id !== PLUMB_PERSON.id || !hail.talking) return;
+    const said = hail.talking;
     hail.talking = null;
     plumb?.progress();
-    scout?.ping();   // (then off toward the goal, as the button does: the find's line, the flare, the marker)
+    if (!said.point) { scout?.home?.(); return; }   // (nowhere to point: the Blade Gate's warning, said at the gate; it goes home)
+    hail.bark = said.bark ?? '';
+    scout?.ping();   // (then off toward the goal, as the button does: its bark, then the find's line, the flare, the marker)
   });
   const step = (dt, { canSpeak = true, fight = false } = {}) => {
     if (!plumb) return '';
@@ -326,6 +331,7 @@ export function wireCompanion({ game, plumb = null, scout = null, level, player,
       } else if (fight || scout.phase !== 'escort') { lower(); if (fight) scout.home?.(); }   // (put away: raised again after)
       else if ((hail.shown += dt) > HAIL.secs) { lower(); plumb.drop(); }   // (not wanted: let go)
     } else lower();
+    if (!r.say && hail.bark) { const b = hail.bark; hail.bark = ''; return droneShown(b); }   // (the talk's pointing word, as it flies off)
     return r.say ? droneShown(r.say) : '';
   };
   /** Plumb's button: Plumb's talk when it has something to tell you (and the dialogue box is free), else false. */
@@ -347,7 +353,7 @@ export function wireCompanion({ game, plumb = null, scout = null, level, player,
     hail.opening = null;
     const d = dialogue?.();
     hail.talking = o.said;
-    if (!d || d.open || !d.start(plumbTalk(o.said.pages), npc)) { hail.talking = null; scout.ping(); }   // (no talk after all: the ping)
+    if (!d || d.open || !d.start(plumbTalk(o.said.pages), npc)) { hail.talking = null; if (o.said.point) scout.ping(); else scout.home?.(); }   // (no talk after all: the ping)
   };
   Object.defineProperty(step, 'hailing', { get: () => hail.up });
   return step;
@@ -734,6 +740,12 @@ export function wireFight({ scene, level, levelId, content, physics, player, too
         if (lesson) { game.set(`${lesson}.taught`, true); teach(keyText(tr(lesson), { teach: true })); }
       }
       return !!got || !!had;
+    },
+    /** R3 with no foe in reach turned the camera behind him (the host's rig.recentre): the first time, said once (#563). */
+    recentred() {
+      if (game.flag('hint.recentre.taught') || !hintsFor('teach')) return;
+      game.set('hint.recentre.taught', true);
+      teach(keyText(tr('hint.recentre'), { teach: true }));
     },
     drink() {
       const why = player.cantDrink?.();

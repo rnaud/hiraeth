@@ -10,7 +10,7 @@ import { readFileSync } from 'node:fs';
 await import('./register-gadgets.js');
 const { FRAGMENTS, FRAGMENT_TOTAL, FRAGMENTS_PER_WORLD, fragmentCounts, fragKey, CHART_FLAG } = await import('../src/fragments-data.js');
 const { createFragments, FRAGMENT, finderInterval, finderPitch } = await import('../src/fragments.js');
-const { THRUM, THRUM_TALK, THRUM_SHOP_LINES, thrumPerson, tallyLines } = await import('../src/story/scientist-data.js');
+const { THRUM, THRUM_TALK, THRUM_SHOP_LINES, thrumPerson, tallyLines, hereLine, thrumTalk } = await import('../src/story/scientist-data.js');
 const PRICES_MOD = await import('../src/fragment-shop.js');
 const { PRICES, FragmentShop, fragmentPurse, thrumWares, affordable } = PRICES_MOD;
 const { shopHtml, upgradeWare, shopMoney, ShopPanel } = await import('../src/shop-panel.js');
@@ -225,7 +225,9 @@ test('Anselm Thrum: met at the first fragment, a few words, then aboard; his cou
   const thirty = tallyLines({ ...found(30) }, 'arzach', () => false).join(' ');
   assert.match(thirty, /Thirty so far\. Thirty to spend\./);
   assert.match(thirty, /Vael still sings loud\./, 'more than half still to find: loud');
-  assert.match(tallyLines({ ...found(40) }, 'arzach', () => false).join(' '), /A little singing left in Vael\./, 'less than half: a little');
+  assert.match(tallyLines({ ...found(40) }, 'arzach', () => false).join(' '), /Some singing left in Vael\./, 'half or less, a fifth or more: some (#563)');
+  assert.match(hereLine({ total: 24, left: 4 }, 'arzach'), /A little singing left in Vael\./, 'under a fifth: a little');
+  assert.match(hereLine({ total: 24, left: 5 }, 'arzach'), /Some singing left/);
   assert.match(tallyLines({ ...found(24) }, 'desert', () => false).join(' '), /gone quiet here/, 'all found: quiet');
   assert.doesNotMatch(fs.readFileSync(new URL('../src/story/scientist-data.js', import.meta.url), 'utf8'), /\b(96|288)\b/);
   // every line he says, toned (the meeting, the count, the shop)
@@ -494,9 +496,14 @@ test('the true ending counts them: the credits say how many were carried home, n
   assert.equal(creditsPart(c).splinters, 'You carried home 130 splinters of her song.', 'the engines\' page too (BridgeHud.Credits.cs)');
   for (const s of [creditLines(c).join(' '), creditsHtml(c)]) assert.doesNotMatch(s, /288|of \d+ splinters/);
   assert.equal(creditsPart(credits({ order: ['desert'] })).splinters, '', 'none found: no line');
-  const lamp = tombLines([], { final: true, lamp: true }).find((l) => l.lamp);
+  const lit = tombLines([], { final: true, lamp: true, lou: true });
+  const lamp = lit.find((l) => l.lamp);
   assert.equal(lamp?.tone, 'solemn', 'his lamp, set in the round window, toned');
   assert.ok(!tombLines([], { final: true }).some((l) => l.lamp), 'not without it');
+  // (issue #559: not between Ilen's lines, no tally: after the stone's last words, just before the closing line)
+  assert.equal(lit.indexOf(lamp), lit.length - 2, 'after the stone\'s last words, before the closing');
+  assert.ok(lit.findIndex((l) => l.reel) < lit.indexOf(lamp));
+  assert.doesNotMatch(lamp.text, /splinter|every|\d/i, 'no count in the quiet beat');
 });
 
 test('the people book: Anselm Thrum, his story growing with each upgrade, at its price', () => {
@@ -774,4 +781,14 @@ test('Anselm’s chart (issue #520): the Map marks each fragment still to find i
   assert.ok(MAP_MARKS.fragment?.svg, 'the engines draw it too (engine/map-marks.js, BridgeMenu.cs)');
   // both hosts' Map sources pass them
   for (const f of ['../src/main.js', '../engine/game.js']) assert.match(fs.readFileSync(new URL(f, import.meta.url), 'utf8'), /fragments: chartMarks\(fragments,/);
+});
+
+test('the tune he sells stops short: only Ilen gives the light\'s song back whole (issue #559)', async () => {
+  for (const l of THRUM_SHOP_LINES.tune) assert.doesNotMatch(l, /whole/i, l);
+  const said = thrumTalk({ 'frag.met': true, 'thrum.tune': true }).nodes.tune.say.join(' ');
+  assert.match(said, /stops short/);
+  assert.doesNotMatch(said, /whole/i);
+  // and the box plays it so: the theme's short form, cut before it settles (src/story/light-theme.js)
+  const src = readFileSync(new URL('../src/story/scientist.js', import.meta.url), 'utf8');
+  assert.match(src, /thrum:tune'.*lightTheme\?\.\(\{[^}]*short: true/);
 });

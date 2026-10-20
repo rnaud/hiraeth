@@ -29,7 +29,7 @@ export const QUESTS = [
     outro: 'Seven minutes to the hour on the old city’s clock: the Clock-House’s minute. The old city kept its time too.',
     stages: [
       { id: 'bridge', text: 'Cross the prism crossings’ high bridge', label: 'The prism crossings’ high bridge', goto: 'prismBridge', radius: 8, vertical: 4, at: 'prismBridge' },
-      { id: 'clock', text: 'Read the old city’s clock from its upper gallery', label: 'The pearl city’s upper gallery', flag: 'glassdunes.oldclock.read', at: 'pearlGallery' },
+      { id: 'clock', text: 'Read the old city’s clock from its upper gallery', label: 'The old city’s upper gallery', flag: 'glassdunes.oldclock.read', at: 'pearlGallery' },
     ],
   },
 ];
@@ -43,7 +43,7 @@ export const LOCALS = {
     lines: ['~whisper~ See the shapes in the cliffs? My grandmother said they were asleep in the glass. My mother said they were only shapes.', '~playful~ I say they are good company. They never want the last float.'] },
   // (by the red cleft's arch, where her posts go on west: she gives the old city's clock, QUESTS above; issue #475)
   fenna: { id: 'fenna', name: 'Fenna', title: 'who set the west posts', kind: 'f',
-    lines: ['~neutral~ The posts go on through the arch, down the ravine, as far as the old city.', '~curious~ The old city’s clock stopped too. Nobody has told me its minute.'],
+    lines: ['~neutral~ The posts go on through the arch, down the ravine, as far as the old city.', '~curious~ The old city’s clock stopped too. Nobody’s climbed up to read it.'],
     talk: {
       entry: [
         { if: { flag: 'glassdunes.oldclock.read' }, node: 'after' },

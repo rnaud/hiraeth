@@ -21,7 +21,7 @@ The first prototypes (`src/guardian-help/`, `?guardianHelp=`) are gone; these tw
 | Game | Page | Where its sign is | Host |
 |---|---|---|---|
 | **The Elder's flight** (`src/minigames/elderflight.js`, rules `formation.js`) | `?game=elderflight` | Vael, at the foot of the Aerie's great steps | Corra, who flew with the riders |
-| **Cistern channels** (`src/minigames/cistern.js`, rules `channels.js`) | `?game=cistern` | the Desert, beside the Rose House's door | Nuri, who digs the channels |
+| **Cistern channels** (`src/minigames/cistern.js`, rules `channels.js`) | `?game=cistern` | the Desert, beside the Rose House's door | Omar, who digs the channels |
 
 ## 1. The Elder's flight: formation flying across the open sky
 

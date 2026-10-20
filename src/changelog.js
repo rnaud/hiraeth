@@ -9,6 +9,20 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   { v: '1.87', date: '2026-10-19', items: [
+    // issue #559: src/story/hosts-data.js (the twelve fight hosts, Abner, Mirek, Omar), src/fight-temples/*.js (quiet,
+    // blurbs), session.js (the cards), view.js LOCK_ANSWER, src/prompt-keys.js {key:roll}, kit/runner.js (keys in flashes and
+    // results); tests/fight-temples-story.test.js, names.test.js, key-placeholder.test.js
+    { text: 'The twelve fight temples’ hosts each speak in their own voice now, each with a reason of their own and a last word of their own, instead of all promising to get back to work once you clear the place. Three people were renamed so no two names you meet blur together: the cistern’s digger is Omar, the Seed Vault’s keeper Abner and the Kiln Yard’s Mirek, in colours of his own. A fight temple’s cards count the foes you sent back into the floor and show your own buttons for aiming and rolling.',
+      see: 'Talk to the host by any fight temple’s Blade Gate (Gert by the Drowned Mill in Lorn, Ulric on the City-Shaft’s middle terrace), then lose a run there or press lock-on inside.' },
+    // issue #559: src/story/ending.js LAMP_AT_STONE (after the stone's last words), scientist-data.js tune, scientist.js
+    // (the theme short), lantern-data.js light; tests/fragments.test.js
+    { text: 'At your parents’ stone, Anselm’s lamp now lights the round window after the last words are said, without counting the splinters. The tune he sells stops short of its end, since only Ilen can give the light’s song back whole.',
+      see: 'Buy Anselm’s tune (150 fragments found) and ask him to play it; buy his lamp and finish the game.' },
+    // issue #563: spacecity-data.js (Joss), i18n en.js gm.tracked and hint.recentre, temples/pieces.js MAP_CHEST {key:journal},
+    // boxes/card.js, fight-temples/session.js (Reduce motion), host/game-host.js wireFight recentred, incal-data.js (Nima),
+    // glassdunes-people.js (Fenna), scientist-data.js hereLine and finder, rumours-data.js; tests/keeper-direction.test.js
+    { text: 'Small fixes: Joss now says the machine letting the Mooring-House’s cables out is behind a barred gate, not at the top; the Quests page says Plumb finds your quest; a house’s map chest names your own button for the game menu; with Reduce motion on, a fight temple’s camera no longer slides toward a hazard; the first time R3 turns the camera behind you, a line says so; Nima’s dust joke sounds like a joke; Fenna’s gallery is the old city’s everywhere; Anselm’s box ticks, and he tells “some” singing from “a little”.',
+      see: 'In a fight temple, turn on Settings › Reduce motion and wait for a hazard: the camera stays on you and the edge marks it. In a world with no foe near, press R3.' },
     // issue #546: src/perf.js detectHandheld ('Apple GPU' on a touch screen), phoneBrowser; src/main.js (no StaticBatches
     // in a phone's browser, ?batch=1 to measure); index.html overscroll-behavior; tests/quality.test.js
     { text: 'Playing in a phone’s browser, the game no longer reloads itself every few seconds. It now needs about a third less of the phone’s memory there, under what Safari lets a page hold before it reloads it; an iPhone gets the Handheld graphics, as Android phones do; and a swipe down on the title or in a menu no longer pulls the page down to reload it.',
@@ -35,6 +49,10 @@ export const CHANGELOG = [
     // issue #543: src/companion.js (CRITICAL, talkPages, pending), src/scout.js (hail, the mark, talk), host/game-host.js
     // wireCompanion (press, plumbNpc), src/scout-hint.js teach.plumb, audio.js drone('call'); tests/companion.test.js, scout.test.js
     'Plumb now talks to you: when it has something important to say (you seem lost, a makers’ house has you stuck, a gate means danger), it comes to your shoulder with a red mark and a chirp instead of a line at the top of the screen. Press its button (D-pad → or Q) to hear it in the dialogue box, then it flies off to show you the way.',
+    // issue #559: src/companion.js splitBark (the talk's pointing word), host/game-host.js wireCompanion (the bark on the
+    // cue as it flies; no flight after the Blade Gate's, #563); engine/sequences.js plumb-talk; tests/companion.test.js
+    { text: 'When Plumb talks to you, its “This way.” and “Look.” are no longer stuck in the dialogue box pointing at nothing: it says them at the top of the screen as it flies off. At a Blade Gate it warns you in a whisper and stays with you instead of flying off.',
+      see: 'Walk about without a quest step for a few minutes until Plumb comes to your shoulder; press D-pad → (or Q) and read its talk, then watch the top of the screen as it flies.' },
     // issue #404: unity/…/BridgeRunner.cs HandheldResolution, HandheldDyn (the render scale by the GPU's frame, 0.67 → 0.5,
     // under FSR 1); RenderStats' scale; tests/unity-dynres.test.js; docs/systems/performance.md "round 14"
     'In the Unity version on the Retroid and other small Android handhelds, the picture drops to a slightly softer resolution where the GPU can’t keep up and comes back where it can, so 22 of the 25 measured views now run at 60 frames a second instead of 10 (the City-Shaft looking across, Lorn’s start and the Floating city’s start are still under it).',

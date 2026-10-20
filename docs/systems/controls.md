@@ -450,7 +450,7 @@ The author's decision of 19 October 2026 on the proposal in issue #511 (`PAD_SCH
 | LT / L2 | L2 | aim the gadget in hand |
 | RT / R2 | R2 | use it; locked on, the hook goes to the foe |
 | L3 | L3 | run |
-| **R3** | R3 | **lock on, the next, let go: nothing else.** No foe in reach: **the camera turns behind you** (`CameraRig.recentre`, eased over a third of a second, `RECENTRE_RATE`; turning it by hand stops it) |
+| **R3** | R3 | **lock on, the next, let go: nothing else.** No foe in reach: **the camera turns behind you** (`CameraRig.recentre`, eased over a third of a second, `RECENTRE_RATE`; turning it by hand stops it; the first time, once a save and hints subtle or full, a line says so: `hint.recentre`, wireFight `recentred`, issue #563) |
 | **D-pad ↑ held** | D-pad ↑ | **the wheel, the game waiting**: every gadget, and each of the glove's modes as a slot of its own (together where the glove is, its glyph on the mode's tint); the right stick points, letting go of ↑ takes it in hand |
 | **D-pad ↑ tap** | D-pad ↑ | **the last pick back** (a gadget or a mode: push and fluid, a tap apart); none yet: the next gadget. A tap never pauses |
 | D-pad ↓ | D-pad ↓ | call the mount / hail a taxi |

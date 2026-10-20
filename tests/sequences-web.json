@@ -1,6 +1,6 @@
 {
-  "recorded": "2026-10-19",
-  "sha": "0dc6dd8bd",
+  "recorded": "2026-10-20",
+  "sha": "9986aa322",
   "how": "node scripts/unity-compare/sequences.mjs web [ids] && node scripts/unity-compare/sequences.mjs record",
   "sequences": {
     "moment-desert.flow": {
@@ -6570,7 +6570,7 @@
           "hud": {
             "dialogue": {
               "name": "Plumb",
-              "text": "Makers’ gate. Blades mean keep out.",
+              "text": "Blades on a gate.",
               "choices": []
             }
           },
@@ -6602,7 +6602,7 @@
           "hud": {
             "dialogue": {
               "name": "Plumb",
-              "text": "Something got in.",
+              "text": "Keep out. Something got in.",
               "choices": []
             }
           },
@@ -6630,6 +6630,120 @@
           "late": false
         },
         {
+          "beat": "after",
+          "hud": {
+            "cue": "Q talks to Plumb"
+          },
+          "menu": null,
+          "playing": null,
+          "objects": {
+            "ink": 1577,
+            "print": 1,
+            "hidden": 1,
+            "chimeshade": 1,
+            "wisp": 1,
+            "mote": 1
+          },
+          "cam": [
+            94.3,
+            16,
+            163.5,
+            55
+          ],
+          "player": [
+            96.7,
+            13.5,
+            167.6
+          ],
+          "late": false
+        },
+        {
+          "beat": "lost",
+          "hud": {},
+          "menu": null,
+          "playing": null,
+          "objects": {
+            "ink": 1581,
+            "print": 1,
+            "hidden": 1,
+            "chimeshade": 1,
+            "wisp": 1,
+            "mote": 1
+          },
+          "cam": [
+            94.3,
+            16,
+            163.5,
+            55
+          ],
+          "player": [
+            96.7,
+            13.5,
+            167.6
+          ],
+          "late": false
+        },
+        {
+          "beat": "lostTalk",
+          "hud": {
+            "dialogue": {
+              "name": "Plumb",
+              "text": "That rock again.",
+              "choices": []
+            }
+          },
+          "menu": null,
+          "playing": null,
+          "objects": {
+            "ink": 1592,
+            "print": 1,
+            "hidden": 1,
+            "chimeshade": 1,
+            "wisp": 1,
+            "mote": 1
+          },
+          "cam": [
+            94.1,
+            15.4,
+            169.3,
+            55
+          ],
+          "player": [
+            96.7,
+            13.5,
+            167.6
+          ],
+          "late": false
+        },
+        {
+          "beat": "bark",
+          "hud": {
+            "cue": "Plumb: Over here."
+          },
+          "menu": null,
+          "playing": null,
+          "objects": {
+            "ink": 1579,
+            "print": 1,
+            "hidden": 1,
+            "chimeshade": 1,
+            "wisp": 1,
+            "mote": 1
+          },
+          "cam": [
+            94.3,
+            16.3,
+            163.5,
+            55
+          ],
+          "player": [
+            96.7,
+            13.5,
+            167.6
+          ],
+          "late": false
+        },
+        {
           "beat": "flight",
           "hud": {
             "cue": "Marrow, by your ship · 14 m"
@@ -6637,7 +6751,7 @@
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 1578,
+            "ink": 1579,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,

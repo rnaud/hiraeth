@@ -21,6 +21,7 @@ import { registerLight, registerDrinker, CARRY } from '../carried-light.js';
 import { registerIron } from '../gadgets/metal.js';
 import { lensSees } from '../gadgets/hidden.js';
 import { stripTone } from '../story/tone.js';
+import { keyText } from '../prompt-keys.js';
 import { markShape } from '../makers-mark/shape.js';
 import { beamStop } from '../beam-stop.js';
 
@@ -3454,7 +3455,7 @@ export class Key {
       const n = this.rt.logic.keys('small');
       // (the map and the great key said on their card already; where nothing shows one, a line on the screen)
       if (!card) this.rt.notice(this.o.line ?? `A small key${n > 1 ? `, ${n} in hand` : ''}. It turns one lock in this house.`);
-      else if (!O.carded) this.rt.notice(stripTone(this.o.line ?? card.line));
+      else if (!O.carded) this.rt.notice(keyText(stripTone(this.o.line ?? card.line), { teach: true }));   // (the map's button, the player's own: #563)
     }
     if (T0 >= C.done) {
       this.opening = null; this.lightK = 0; this.key.visible = false;
@@ -3465,8 +3466,11 @@ export class Key {
   dispose() { this.off?.(); this.light?.dispose(); this.light = null; }
 }
 
-/** The house's map's chest (issue #405): what it says once opened (a tone, as every line: src/story/tone.js). */
-export const MAP_CHEST = { line: '~happy~ The house’s map. View shows its rooms now.', name: 'The House’s Map', found: '~happy~ View shows its rooms now.' };
+/**
+ * The house's map's chest (issue #405): what it says once opened (a tone, as every line: src/story/tone.js). The game menu is
+ * the map's only way in (#487): its button the player's own, {key:journal} (J, View; #563).
+ */
+export const MAP_CHEST = { line: '~happy~ The house’s map. {key:journal} shows its rooms now.', name: 'The House’s Map', found: '~happy~ {key:journal} shows its rooms now.' };
 /** The great key's chest (issue #486): its card's name and line (a tone), and the line said where no card shows. */
 export const GREAT_KEY_CHEST = { line: '~solemn~ The house’s great key. It opens the guardian’s door.', name: 'The Great Key', found: '~solemn~ It opens the guardian’s door.' };
 export class MapChest extends Key {

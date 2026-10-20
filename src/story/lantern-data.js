@@ -158,7 +158,7 @@ export const PEOPLE = {
         light: {
           say: [
             '~solemn~ (She looks past you, at the scorch along the hull. She looks at it a long time.) A light did that. A singing one.',
-            { text: '~whisper~ It sheds as it sings, you know. Splinters of the song, all along the way. Nobody stops for them.', if: SPLINTERS.none },
+            { text: '~whisper~ It sheds as it sings. Splinters of the song, all along the way. Nobody stops for them.', if: SPLINTERS.none },
             { text: '~whisper~ You picked up after it. A few. I can hear them from here, in your hold. Bits of my song.', if: SPLINTERS.few },
             { text: '~curious~ You picked up after it. I can hear them from here, a whole handful of my song, humming in your hold.', if: SPLINTERS.many },
             { text: '~surprised~ You kept nearly all of it. (She listens toward the ship.) I can almost hear the whole tune in your hold.', if: SPLINTERS.most },

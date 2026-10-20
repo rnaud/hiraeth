@@ -157,7 +157,7 @@ test('a drawn run of every temple, and of short themes, plays through in node to
     player.pos.set(run.rooms.at(-1).altar[0], 0, run.rooms.at(-1).altar[1]);
     for (let k = 0; k < 80 && !out.finished; k++) tick();
     assert.ok(out.finished && !out.finished.failed, `${D.id}: won`);
-    assert.ok(out.finished.lines.some((l) => l.includes(`?seed=${run.seed}`)), 'its seed on the card');
+    assert.ok(!out.finished.lines.some((l) => l.includes('?seed=')), 'no seed on the card: a URL parameter is the developer\'s (issue #559)');
     S.end();
   }
 });

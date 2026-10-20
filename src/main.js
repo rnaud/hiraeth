@@ -1759,7 +1759,7 @@ const controller = new Controller({
       // R3: lock on to a foe, then the next, then let go (Tab: src/foes.js), and nothing else (issue #512); with no foe
       // in reach the camera turns behind you (the souls-likes' habit: CameraRig.recentre)
       // (locked on, a new verb, taught once: the hops, then, the hook owned, the hook at the lock: wireFight lock)
-      if (!fight.lock() && !minigame) rig.recentre(player.heading);
+      if (!fight.lock() && !minigame) { rig.recentre(player.heading); fight.recentred(); }   // (the first time, a line: #563)
     }
     // D-pad →: Plumb finds the objective (Q; src/scout.js), on foot and riding; a guardian's fight or a makers' house: a
     // hint (Scout.getHint, docs/systems/boss-hints.md). Its own button since v1.86 (issue #512: R3 only locks on)

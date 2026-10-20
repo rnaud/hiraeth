@@ -12,6 +12,7 @@ import * as THREE from 'three';
 import { TEMPLES } from '../src/temples/index.js';
 import { solve, TempleLogic, memoryStore } from '../src/temples/logic.js';
 import { MapChest, MAP_CHEST } from '../src/temples/pieces.js';
+import { keyText } from '../src/prompt-keys.js';
 import { buildTemple } from '../src/temple-maps/record.js';
 import { MAKERS, makersMap, carriedInto } from '../src/temple-maps/makers.js';
 import { housePlan, roomAt, floorsOf } from '../src/temples/house-plan.js';
@@ -93,7 +94,8 @@ test('the map chest: a little makers\' chest with a rolled map, opened it is you
     assert.ok(rt.logic.isFound('map'), 'the map is yours (temple.<id>.found.map)');
     assert.ok(events.includes('temple:map') && !events.includes('temple:key'));
     for (let t = 0; t < 3; t += 1 / 30) chest.update(1 / 30, t);
-    assert.deepEqual(said, [text], 'its line, the tone left off');
+    assert.deepEqual(said, [keyText(text, { teach: true })], 'its line, the tone left off, its button the player\'s own (#563)');
+    assert.match(text, /\{key:journal\}/, 'the game menu named by the key system, not in prose (#563)');
     assert.equal(rt.keyCount().small, 0, 'not a key');
   } finally { rt.game.emit = emit; }
 });

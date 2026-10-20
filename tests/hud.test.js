@@ -193,7 +193,7 @@ test('D-pad → sends the scout on foot and riding (R3 only locks on, issue #512
   const main = src('src/main.js');
   // (scoutHint.pinged(): a ping of your own counts the scout's button as learnt, src/scout-hint.js)
   assert.match(main, /e\.code === 'KeyQ' && !e\.repeat && !busy\(\) && !photo\.on && !ship\.playing\) \{ scoutHint\.pinged\(\); if \(!plumbStep\.press\(\)\) scout\.ping\(\); \}/);
-  assert.match(main, /if \(!fight\.lock\(\) && !minigame\) rig\.recentre\(player\.heading\);/, 'R3: nothing to lock on to, the camera behind you');
+  assert.match(main, /if \(!fight\.lock\(\) && !minigame\) \{ rig\.recentre\(player\.heading\); fight\.recentred\(\); \}/, 'R3: nothing to lock on to, the camera behind you (its line the first time, #563)');
   assert.match(main, /if \(name === 'scout' && !ship\.playing && !photo\.on\) \{ scoutHint\.pinged\(\); if \(!plumbStep\.press\(\)\) scout\.ping\(\); \}/, 'D-pad →: the scout');
   assert.match(src('src/host/game-host.js'), /const had = foes\.lock;\s*const got = foes\.cycleLock\(\);[\s\S]{0,600}return !!got \|\| !!had;/, '(wireFight lock: false with nothing in reach)');
   assert.match(src('src/ui.js'), /data-press="KeyQ" class="b-ping"/);

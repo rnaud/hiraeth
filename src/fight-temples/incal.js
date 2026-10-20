@@ -11,7 +11,7 @@
 export const INCAL_FIGHT = {
   id: 'fight-incal', world: 'incal', colours: 'cab',
   name: 'The Lift Depot',
-  blurb: 'The old cab bays on a ledge of the shaft, where the cranes still lower their loads with nobody at the levers. Mind what comes down, and what comes up.',
+  blurb: 'The old cab bays on a ledge of the shaft, where the cranes still lower their loads on their own. Mind what comes down, and what comes up.',
   // the end card's first line, the place's own (issue #483: the place speaks first, the scores under it)
   quiet: 'The chains hang still. Ulric climbs back up to his levers.',
   hour: 12.5,

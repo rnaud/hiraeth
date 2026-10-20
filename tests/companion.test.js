@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Companion, LostWatch, Opening, LOST, DRONE_LINES, OPENING, ONCE, DRONE_HINTS, droneSay, shown, DRONE_NAME, FOLLOWS, OPENING_POINTS,
-  PLACE_LINES, PLACE_MAX, placeOf, HOUSE_LINES, HOUSE, GAP, StepWatch, FightWatch, droneWorld, withPlace, CRITICAL, HAIL, talkPages, plumbTalk, PLUMB_PERSON, PAGE_WORDS } from '../src/companion.js';
+  PLACE_LINES, PLACE_MAX, placeOf, HOUSE_LINES, HOUSE, GAP, StepWatch, FightWatch, droneWorld, withPlace, CRITICAL, HAIL, talkPages, splitBark, plumbTalk, PLUMB_PERSON, PAGE_WORDS } from '../src/companion.js';
 import { STRUGGLE } from '../src/hint-level.js';
 import { parseLine } from '../src/story/tone.js';
 
@@ -262,7 +262,9 @@ test('the first Blade Gate near: its line once per save, as its host comes withi
   run();
   assert.equal(told.length, 1);
   assert.equal(told[0].id, 'bladegate');
-  assert.match(told[0].line, /Makers’ gate/);
+  assert.match(told[0].line, /Blades on a gate/);
+  assert.equal(parseLine(told[0].line).tone, 'whisper', 'a warning, not a curiosity (#563)');
+  assert.equal(told[0].point, null, 'nowhere to fly: you are at the gate (#563)');
   assert.equal(flags['drone.said.bladegate'], true);
   run();
   assert.equal(told.length, 1, 'once');
@@ -270,13 +272,20 @@ test('the first Blade Gate near: its line once per save, as its host comes withi
 
 // ---- Plumb talks (issue #543): something critical waits at your shoulder; its button opens a talk, then the flight
 
-test('a talk\'s pages: one to three, each with the line\'s tone and a few words, every critical line', () => {
+test('a talk\'s pages: one to three, each with the line\'s tone and a few words, every critical line; its pointing word the bark', () => {
   assert.deepEqual(talkPages('~curious~ Lost? A little. The giant’s skull: this way.'), ['~curious~ Lost? A little.', '~curious~ The giant’s skull: this way.']);
   assert.deepEqual(talkPages('~curious~ That plate wants a weight. Look.'), ['~curious~ That plate wants a weight. Look.'], 'a short last sentence stays with the one before');
-  assert.deepEqual(talkPages(DRONE_LINES.bladegate), ['~curious~ Makers’ gate. Blades mean keep out.', '~curious~ Something got in.']);
+  assert.deepEqual(talkPages(DRONE_LINES.bladegate), ['~whisper~ Blades on a gate.', '~whisper~ Keep out. Something got in.']);
+  // (issue #559: "Look.", "This way." point at nothing from a dialogue box: they are said as it flies off, on the cue)
+  assert.deepEqual(splitBark('~curious~ Lost? A little. The giant’s skull: this way.'), { talk: '~curious~ Lost? A little.', bark: '~curious~ The giant’s skull: this way.' });
+  assert.deepEqual(splitBark('~curious~ Wrong way, I think. Look.'), { talk: '~curious~ Wrong way, I think.', bark: '~curious~ Look.' });
+  assert.deepEqual(splitBark(DRONE_LINES.bladegate), { talk: DRONE_LINES.bladegate, bark: '' }, 'a warning keeps its words');
+  assert.deepEqual(splitBark(HOUSE_LINES.plate), { talk: HOUSE_LINES.plate, bark: '' }, '"I’ll show you" is said in the talk');
   const critical = [DRONE_LINES.pointer, DRONE_LINES.bladegate, ...['still', 'away', 'circling'].flatMap((k) => [...DRONE_LINES[k], ...PLACE_LINES[k].map((l) => withPlace(l, 'The giant’s skull'))]), ...Object.values(HOUSE_LINES)];
   for (const l of critical) {
-    const pages = talkPages(l);
+    const { talk, bark } = splitBark(l);
+    assert.ok(!/^(Look|This way|Over here|Back here)[.!]?$/.test(parseLine(talk).text.split(/(?<=[.?!])\s+/).at(-1)), `${l}: no pointing word left in the box`);
+    const pages = talkPages(talk);
     assert.ok(pages.length >= 1 && pages.length <= 3, `${l}: ${pages.length} pages`);
     for (const p of pages) {
       const { text, tone, explicit } = parseLine(p);
@@ -284,7 +293,7 @@ test('a talk\'s pages: one to three, each with the line\'s tone and a few words,
       const n = text.split(/\s+/).filter(Boolean).length;
       assert.ok(n <= 9 && (n >= PAGE_WORDS || pages.length === 1), `${p}: ${n} words`);
     }
-    assert.equal(pages.map((p) => parseLine(p).text).join(' '), parseLine(l).text, 'the whole line, nothing lost');
+    assert.equal([...pages, ...(bark ? [bark] : [])].map((p) => parseLine(p).text).join(' '), parseLine(l).text, 'the whole line, nothing lost: the talk, then the bark');
   }
   const t = plumbTalk(['~curious~ Lost? A little.']);
   assert.equal(t.name, 'Plumb'); assert.equal(t.id, PLUMB_PERSON.id); assert.ok(t.companion);
@@ -374,7 +383,28 @@ test('something critical: at your shoulder with its mark and a call; the button 
   assert.equal(plumb.pending, null); assert.equal(scout.hailing, false); assert.equal(scout.phase, 'talk');
   assert.equal(step.press(), false, 'pressed again mid-talk: nothing new');
   box.close();
+  assert.equal(calls.at(-1), 'home', 'the gate\'s talk over: nowhere to fly, it goes home (#563)');
+  assert.equal(step(0.5), '', 'and nothing on the cue');
+});
+
+test('a lost talk: the box says it, then Plumb flies toward the goal with its pointing word on the cue (issue #559)', async () => {
+  const { step, box, calls, plumb, game } = await talkRig();
+  game.set('drone.said.pointer', true);
+  // (lost: the clock run out while walking; the pending talk as the companion makes it)
+  let r = null;
+  for (let t = 0; t < LOST.after.on + 10 && !r?.hail; t += 0.25) r = plumb.update(0.25, { pos: { x: 12 + Math.cos(t), y: 0, z: 12 + Math.sin(t) }, goal: { x: 80, y: 0, z: 12 }, place: 'The giant’s skull' });
+  assert.ok(r?.hail, 'a talk waits');
+  const { bark, pages } = r.hail;
+  assert.match(bark, /^~\w+~ The giant’s skull: (this way|over here)\.$/, 'the place and the way: its bark');
+  assert.ok(pages.length && pages.every((p) => !/giant’s skull/.test(p)), 'not in the box');
+  step(0.5);
+  assert.equal(step.press(), true);
+  step(1 / 60); step(1 / 60);
+  assert.deepEqual(box.said.person.talk.nodes.plumb.say, pages, 'the talk without its pointing word');
+  box.close();
   assert.equal(calls.at(-1), 'ping', 'the talk over, it flies toward the goal as the button does');
+  assert.equal(step(0.5), shown(bark), 'its pointing word on the cue as it goes, as its other lines show');
+  assert.equal(step(0.5), '', 'once');
 });
 
 test('unanswered it lets the talk go; a scene puts it away and it comes again; never over another talk', async () => {

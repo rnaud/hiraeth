@@ -170,3 +170,17 @@ test('the makers’ mark is not styled as a button glyph (the galactic map showe
   assert.doesNotMatch(MAKERS_MARK_SVG, /class="[^"]*\bglyph\b/);
   assert.match(MAKERS_MARK_SVG, /class="makers-mark"/);
 });
+
+test('keys in lines: a fight temple\'s roll and the game menu (issue #559, #563: the cards\' "(B / ○)" and the map chest\'s "View")', () => {
+  setControlPrefs({});
+  assert.equal(keyText('{key:roll}', { kind: 'pad' }), 'B / ○', 'the button printed B: the evade\'s');
+  assert.equal(keyText('{key:roll}', { kind: 'keys' }), keyText('{key:evade}', { kind: 'keys' }));
+  assert.equal(keyText('{key:roll}', { kind: 'touch' }), '↶');
+  setControlPrefs({ pad: { evade: 'Y', whistle: 'B' } });
+  assert.equal(keyText('{key:roll}', { kind: 'pad' }), 'Y / △', 'moved, it follows');
+  setControlPrefs({});
+  assert.equal(keyText('{key:journal}', { kind: 'pad' }), 'View');
+  assert.equal(keyText('{key:journal}', { kind: 'keys' }), 'J');
+  assert.ok(keyText('{key:journal}', { kind: 'touch' }) && !hasKeys(keyText('{key:journal}', { kind: 'touch' })));
+  assert.equal(keyText('No foe near: {key:lock} turns the camera behind you.', { kind: 'pad', teach: true }), 'No foe near: R3 turns the camera behind you.');
+});

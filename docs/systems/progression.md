@@ -56,7 +56,8 @@ from each route world's ramp foot (flat metres, then height): the nearest are th
 on its own paved square away from the landing (the City-Shaft's 37 m behind the landing on the plateau, Viridel's 41 m,
 Vael's 49 m and 6 m up its rise), and Lorn's breathing reed, 22 m out but 28 m up Wendel's lookout, a climb in five
 pitches; everything else is 60 m or more away, most in temples. (v1.48, issue #101: the three worlds of v1.40 have a
-court each now, a gadget found worlds before; its chest, a charm for that gadget, waits behind the gate its puzzle
+court each now; since v1.86 (#518) its puzzle wants a gadget you have when you reach it, most of them earned in that
+same world's house, see docs/systems/gadgets.md; its chest, a charm for that gadget, waits behind the gate its puzzle
 opens, src/finds/courts.js `boxAt`, so even the nearest chest there is earned.) `tests/boxes.test.js` checks that a run's save (the
 desert done, the house skipped) finds nothing by the ship.
 

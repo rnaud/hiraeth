@@ -23,7 +23,7 @@ import { readInput, NO_INPUT } from './input.js';
 import { gameSfx } from './sfx.js';
 import { disposeTree } from './dispose.js';
 import { formatScore, formatTime, bestScore, recordScore } from './scores.js';
-import { inputKind, escapeHtml, keyText } from '../../prompt-keys.js';
+import { inputKind, escapeHtml, keyText, hasKeys } from '../../prompt-keys.js';
 import { confirmKey, backKey } from '../../native-pad.js';
 import { stripTone } from '../../story/tone.js';
 import { screen } from '../../platform.js';
@@ -445,13 +445,15 @@ export class MinigameRunner {
     const d = this.def, r = this.result;
     this.phase = 'results';
     this.hud.classList.add('off'); this.hudOn = false;
-    const lines = (r.lines ?? []).map((l) => `<li>${h(l)}</li>`).join('');
+    // (a {key:verb} in a line: the player's own key or button, as the intro card's, issue #559)
+    const kind = inputKind();
+    const lines = (r.lines ?? []).map((l) => `<li>${keyText(h(l), { kind, html: true, teach: true })}</li>`).join('');
     const label = r.failed ? (r.title ?? 'Out of lives') : d.score?.kind === 'time' ? 'Your time' : 'Your score';
     const showValue = !(r.failed && d.score?.kind === 'time');
     const bestLine = r.best === null || r.best === undefined ? 'No best yet.' : `Best: ${formatScore(d, r.best)}`;
     const actions = resultActions(r, this.host.links, this.fails ?? 0);
     const hint = this.hint({ win: 'fly on' }[actions[0].act] ?? 'retry', !r.failed && this.host.links?.win ? null : 'quit');   // (won on the way somewhere: Esc flies on too)
-    this.setCard({ kind: 'results', kicker: d.name, title: label, big: showValue ? formatScore(d, r.value) : '', stamp: !!r.isNew, lines: [...(r.lines ?? [])], extra: plainHtml(r.html),
+    this.setCard({ kind: 'results', kicker: d.name, title: label, big: showValue ? formatScore(d, r.value) : '', stamp: !!r.isNew, lines: (r.lines ?? []).map((l) => keyText(l, { kind, teach: true })), extra: plainHtml(r.html),
       best: bestLine, buttons: actions.map((b) => ({ act: b.act, label: b.label, sub: b.sub ?? '', main: !!b.main })), hint, wide: !!r.wide });
     this.openCard(`<p class="kicker">${h(d.name)}</p><h1>${h(label)}</h1>
       ${showValue ? `<div class="big">${h(formatScore(d, r.value))}</div>` : ''}${r.isNew ? '<div class="stamp">New best!</div>' : ''}
@@ -481,7 +483,9 @@ export class MinigameRunner {
   }
   flash(text, kind = '', secs = 1.2) {
     const d = document.createElement('div');
-    d.textContent = text;
+    // (a {key:verb}: the player's own key or button, drawn as the cards draw them; the engines get it as words, issue #559)
+    if (hasKeys(text)) { d.innerHTML = keyText(h(text), { html: true, teach: true }); text = keyText(text, { teach: true }); }
+    else d.textContent = text;
     if (kind) d.className = kind;
     d.style.setProperty('--secs', `${secs}s`);
     this.flashEl.appendChild(d);

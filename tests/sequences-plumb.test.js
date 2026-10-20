@@ -9,13 +9,17 @@ import { sequenceById } from '../engine/sequences.js';
 
 checkSequences((s) => s.id === 'plumb-talk');
 
-test('Plumb\'s web stream: the mark and no line of its on the cue, its talk in its name, then the find', () => {
+test('Plumb\'s web stream: the mark and no line of its on the cue, its talk in its name; the gate\'s ends there, a lost one flies with its bark', () => {
   assert.ok(sequenceById('plumb-talk'));
   const beats = Object.fromEntries(WEB.sequences['plumb-talk'].beats.map((b) => [b.beat, b]));
   assert.ok(!/Plumb:/.test(beats.mark.hud.cue ?? ''), 'not on the cue');
   assert.equal(beats.talk.hud.dialogue?.name, 'Plumb');
-  assert.match(beats.talk.hud.dialogue.text, /Makers’ gate/);
-  assert.equal(beats.page.hud.dialogue?.text, 'Something got in.');
-  assert.equal(beats.flight.hud.dialogue, undefined);
-  assert.match(beats.flight.hud.cue ?? '', / m$/, 'the find\'s line, as the button gives it');
+  assert.match(beats.talk.hud.dialogue.text, /Blades on a gate/);
+  assert.equal(beats.page.hud.dialogue?.text, 'Keep out. Something got in.');
+  assert.equal(beats.after.hud.dialogue, undefined);
+  assert.doesNotMatch(beats.after.hud.cue ?? '', / m$/, 'no flight to the goal from the gate (#563)');
+  assert.equal(beats.lostTalk.hud.dialogue?.name, 'Plumb');
+  assert.doesNotMatch(beats.lostTalk.hud.dialogue.text, /this way|over here|Look\./i, 'no pointing word in the box (#559)');
+  assert.match(beats.bark.hud.cue ?? '', /Plumb: .*(this way|over here|Look|back here)/i, 'the pointing word on the cue as it flies');
+  assert.match(beats.flight.hud.cue ?? '', / m$/, 'then the find\'s line, as the button gives it');
 });

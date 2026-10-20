@@ -140,8 +140,8 @@ export function setupScientist({ levelId, scene, physics, level, ship = null, np
   const lights = level ? (level.lights ??= []) : null;
   const _jp = new THREE.Vector3();
   const lampOn = () => !!rt.jar && !!game.flag('thrum.lamp');
-  // (the light's tune, bought: he plays it whole when asked, issue #481)
-  const offTune = game.on?.('thrum:tune', () => sound?.lightTheme?.({ vol: 0.9 }));
+  // (the light's tune, bought: he plays it when asked, cut short before it settles, issue #481; only Ilen sings it whole, #559)
+  const offTune = game.on?.('thrum:tune', () => sound?.lightTheme?.({ vol: 0.9, short: true }));
   const offBought = game.on?.('thrum:bought', (e) => { if (e?.ware === 'lamp') rt.jar?.lamp(true, fragmentCounts(flags()).found); });
   if (game.flag('frag.met')) board();
   const offFrag = game.on?.('fragment', (e) => {

@@ -140,6 +140,10 @@ function alike(x, y) {
   if (d <= 2 && (a.slice(0, 2) === b.slice(0, 2) || Math.min(a.length, b.length) >= 5)) return `${d} edit${d > 1 ? 's' : ''} apart`;
   return '';
 }
+/** One world: one shape, the same first letter and length (four or more), two letters apart (Nuri and Nour). */
+const closeKin = (a, b) => a !== b && a[0] === b[0] && a.length === b.length && a.length >= 4 && edits(a, b) <= 2;
+/** The route's worlds together: the same first five letters (Hollis and Hollin). */
+const farKin = (a, b) => a !== b && a.length >= 5 && b.length >= 5 && a.slice(0, 5) === b.slice(0, 5);
 /** The games' signs a level puts up itself (src/levels/desert.js, bazaar.js), and the games' markers: the world of each host. */
 const SIGNS = { fishing: 'desert', canyon: 'desert', rings: 'desert', wingdrop: 'desert', gallery: 'bazaar' };
 
@@ -174,6 +178,27 @@ test('within a world, no two people’s names look or sound alike (issue #281)',
     for (let i = 0; i < l.length; i++) for (let j = i + 1; j < l.length; j++) { const why = alike(l[i], l[j]); if (why) bad.push(`${w}: ${l[i]} and ${l[j]} (${why})`); }
   }
   assert.deepEqual(bad, []);
+  // (issue #563, the v1.87 review's finding 5: names the rules above let through) one world, two names of one shape: the
+  // same first letter and length, two letters apart (Nuri and Nour); the route's worlds together, the same first five
+  // letters (Hollis in Viridel, Hollin in Lorn: a player meets both); and two hosts of one world never in the same colours
+  // with the same first letter (Ozren and Opal, both of the Glass Dunes' kilns, one palette)
+  const near = [];
+  for (const [w, set] of by) {
+    const l = [...set].map(plain);
+    for (let i = 0; i < l.length; i++) for (let j = i + 1; j < l.length; j++) if (closeKin(l[i], l[j])) near.push(`${w}: ${l[i]} and ${l[j]}`);
+  }
+  const all = [...new Set([...by].filter(([w]) => ORDER.includes(w)).flatMap(([, s]) => [...s]).map(plain))];
+  for (let i = 0; i < all.length; i++) for (let j = i + 1; j < all.length; j++) if (farKin(all[i], all[j])) near.push(`the route: ${all[i]} and ${all[j]}`);
+  assert.deepEqual(near, []);
+  const colours = new Map();
+  for (const [id, H] of Object.entries(HOSTS)) {
+    if (H.object) continue;
+    const k = `${SIGNS[id] ?? markers[id] ?? id.replace(/^trial-/, '')}|${H.palette?.cloak}|${plain(H.name)[0]}`;
+    assert.ok(!colours.has(k), `${H.name} wears ${colours.get(k)}’s colours in one world (${k})`);
+    colours.set(k, H.name);
+  }
+  for (const [a, b] of [['Nuri', 'Nour']]) assert.ok(closeKin(plain(a), plain(b)), `${a} and ${b} blur`);
+  for (const [a, b] of [['Hollis', 'Hollin']]) assert.ok(farKin(plain(a), plain(b)), `${a} and ${b} blur`);
   // the check sees what the review found, and lets through what reads apart
   for (const [a, b] of [['Ysolt', 'Mother Ysolde'], ['Brother Felix', 'Brother Calix'], ['Ostra', 'Ossa'], ['Nadir', 'Naji'], ['Faris', 'Idris'], ['Darro', 'Marrow'], ['Ilka', 'Ilo'], ['Anselme', 'Anselm Thrum'], ['Ansgar', 'Anselm Thrum'], ['Tamsy', 'Tansy']]) assert.ok(alike(a, b), `${a} and ${b} blur`);
   for (const [a, b] of [['Ama', 'Rima'], ['Teo', 'Ilo'], ['Wen', 'Dun'], ['Rosa', 'Joss'], ['Madame Sel', 'Teb']]) assert.equal(alike(a, b), '', `${a} and ${b} read apart`);

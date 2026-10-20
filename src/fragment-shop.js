@@ -26,7 +26,7 @@ export const PRICES = Object.fromEntries(FRAGMENT_ITEMS.map((u) => [u.id, u.pric
  *   page   his notebook, a page at a time: his story on the People page (src/story/people-book.js)
  *   lamp   his jar becomes a lamp that lights the hold, brighter with every fragment found (src/story/scientist.js)
  *   chart  the Map marks every fragment still hiding in the world you are in (issue #520, src/world-map.js)
- *   tune   he plays the light's theme whole, aboard, when you ask (src/story/scientist-data.js)
+ *   tune   he plays what he has of the light's theme, aboard, when you ask: it stops short (only Ilen sings it whole) (src/story/scientist-data.js)
  */
 export const THRUM_WARES = [
   { id: 'page', price: 5, pages: 6, every: 20 },

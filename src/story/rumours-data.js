@@ -210,8 +210,8 @@ export const RUMOUR_OBJECT_LINES = [
  */
 export const RUMOUR_FIGHT_LINES = {
   any: [
-    '~whisper~ Ink comes up through an old makers’ floor {dir}. {Who} asks everyone who passes.',
-    '~solemn~ {Who} sits by a makers’ door {dir}. The dark comes up in there, they say.',
+    '~whisper~ Ink comes up through an old floor {dir}. {Who} asks everyone who passes.',
+    '~solemn~ {Who} sits by a gate of crossed blades {dir}. The dark comes up in there, they say.',
   ],
   arzach: [
     '~whisper~ (A finger points {way}. Two hands well up from the ground, dark. {Who} waits there.)',

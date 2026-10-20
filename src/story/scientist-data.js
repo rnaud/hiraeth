@@ -33,7 +33,7 @@ export const THRUM_SHOP_LINES = {
   short: ['~neutral~ Not enough yet. Bring me a few more.', '~playful~ Close. One or two more will do it.'],
   needs: ['~curious~ Nothing to fit it to yet. Find the gear first.', '~neutral~ That one wants gear you don’t have.'],
   owned: ['~happy~ You’re wearing that one already.', '~playful~ Fitted. Twice would be greedy.'],
-  finder: ['~playful~ My little box. It beeps when a fragment is near, faster the closer you get.'],
+  finder: ['~playful~ My little box. It ticks faster the closer you get.'],
   lightheart: ['~happy~ Stitched in over your heart. One more heart, for good.'],
   lightedge: ['~curious~ Done. Your blade hits half as hard again.'],
   lightcell: ['~neutral~ Done. Your tank holds one more shot.'],
@@ -45,7 +45,8 @@ export const THRUM_SHOP_LINES = {
   page: ['~playful~ There. Don’t read it while I’m watching.', '~neutral~ Another page. It’s mostly about the light.'],
   lamp: ['~happy~ My jar, made a lamp. Every one you bring makes it brighter.'],
   chart: ['~curious~ Where they ring, every one I’ve heard. Your Map has them now.'],
-  tune: ['~happy~ The whole tune, as the light sang it. Ask me and I’ll play it.'],
+  // (as much as he has pieced together: only Ilen gives the song back whole, at the Lantern, issue #559)
+  tune: ['~curious~ As much of it as I’ve pieced together. It stops short. Ask and I’ll play it.'],
   bye: ['~happy~ Bring me more.', '~curious~ Keep an ear out. They hum when you’re close.'],
 };
 
@@ -69,6 +70,8 @@ export function hereLine(w, here) {
   const share = w.left / w.total;
   if (!w.left) return '~happy~ It’s gone quiet here. You’ve listened well.';
   if (share > 0.5) return `~curious~ ${cap(inLine(here))} still sings loud.`;
+  // (a fifth or more left: some; under a fifth: a little, issue #563)
+  if (share >= 0.2) return `~neutral~ Some singing left in ${inLine(here)}.`;
   return `~neutral~ A little singing left in ${inLine(here)}.`;
 }
 
@@ -129,13 +132,13 @@ export function thrumTalk(flags = {}, { here = null, has = (id) => !!flags[`item
       choices: [
         { text: '~curious~ Show me what you have.', do: { emit: ['shop:open', { shop: 'thrum' }] }, end: true },
         { text: '~curious~ Where do they hide?', goto: 'where' },
-        // (the light's tune, bought: he plays it whole, aboard, issue #481; src/story/scientist.js plays it)
+        // (the light's tune, bought: he plays what he has of it, aboard, stopping short, issue #481, #559; src/story/scientist.js plays it)
         { text: '~happy~ Play me the light’s tune.', if: { flag: 'thrum.tune' }, goto: 'tune' },
       ],
     },
     tune: {
       do: { emit: ['thrum:tune', {}] },
-      say: ['~happy~ (He turns a brass key on his box, and the light’s song comes out of it, whole.)'],
+      say: ['~happy~ (He turns a brass key on his box. The light’s song comes out, and stops short of its end.)'],
     },
     where: {
       say: ['~neutral~ On the landmarks, off the main paths: a roof, a tower’s top, the middle of something old.', '~playful~ Listen, too. They hum, quietly, when you’re near one.'],

@@ -55,5 +55,41 @@ test('Items names each colour by the house it came from (issue #483: “Ember ·
 test('the small hooks: Sabri and Teasel speak of the ink, Plumb names the Blade Gate once (issue #483)', () => {
   assert.ok(DESERT_PEOPLE.sabri.lines.some((l) => /ink comes up/i.test(l) && TONES.includes(parseLine(l).tone)));
   assert.ok(LORN_PEOPLE.teasel.lines.some((l) => /Gert’s mill/.test(l) && TONES.includes(parseLine(l).tone)));
-  assert.ok(ONCE.includes('bladegate') && /keep out/.test(DRONE_LINES.bladegate));
+  assert.ok(ONCE.includes('bladegate') && /keep out/i.test(DRONE_LINES.bladegate));
+});
+
+// Issue #559 (the dialogue review v1.87, finding 1): the twelve were written in one pass and read as one template, eight
+// opening on their old trade in one verb form ("I ground…", "I drove…", "I greased…") and closing on "Clear the X and
+// I'll Y again", "Nobody at the gear / at the levers" five times. Each has their own voice, reason and last line now.
+test('the twelve hosts each in their own voice: no "Clear the … and I’ll", no two last lines alike, no shared opening shape (issue #559)', () => {
+  const hosts = GAMES.map((g) => HOSTS[g.table.id]);
+  const text = (l) => parseLine(l).text;
+  const lastSentence = (l) => text(l).match(/[^.?!]+[.?!]+[’”]?\s*$/)?.[0].trim() ?? text(l);
+  const closes = hosts.map((H) => lastSentence(H.say.at(-1)));
+  assert.equal(new Set(closes).size, closes.length, `twelve last lines: ${closes.join(' | ')}`);
+  const shapes = new Map();
+  for (const H of hosts) {
+    for (const l of [...H.say, ...H.lines]) {
+      assert.doesNotMatch(text(l), /\bClear (it|them|the \w+)( out)? and I/i, `${H.name}: the old closing template: ${l}`);
+      assert.doesNotMatch(text(l), /nobody[’']?s? (is )?at the (gear|levers)/i, `${H.name}: "nobody at the …": ${l}`);
+    }
+    for (const l of H.lines) assert.doesNotMatch(text(l), /^Hear the \w+\? Nobody/, `${H.name}: the twin balloon`);
+    // (an opening on the old trade in the past tense, "I ground / I drove / I greased …": one at most)
+    const open = /^I \w+ed\b/.test(text(H.say[0])) ? 'I …ed' : text(H.say[0]).split(/\s+/).slice(0, 2).join(' ').toLowerCase();
+    shapes.set(open, [...(shapes.get(open) ?? []), H.name]);
+  }
+  for (const [shape, who] of shapes) assert.ok(who.length <= 1, `${who.join(', ')} open alike (${shape}…)`);
+  for (const g of GAMES) assert.doesNotMatch(g.table.blurb, /nobody (at|to)/i, `${g.table.name}'s card: ${g.table.blurb}`);
+});
+
+test('the fight cards: sent back into the floor, no seed for players, buttons by the key system (issue #559)', async () => {
+  const { readFileSync } = await import('node:fs');
+  const { LOCK_ANSWER } = await import('../src/fight-temples/view.js');
+  const src = readFileSync(new URL('../src/fight-temples/session.js', import.meta.url), 'utf8');
+  assert.doesNotMatch(src, /[`'"][^`'"]*\b[Ff]oes felled/, 'foes go back into the floor');
+  assert.doesNotMatch(src, /This run: \$\{def\.seed\}|\?seed=\$\{/, 'the seed is the developer’s');
+  assert.match(src, /Sent back into the floor: \$\{run\.kills\}/);
+  assert.match(src, /A roll \(\{key:roll\}\)/, 'the roll’s button the player’s own');
+  assert.match(LOCK_ANSWER.line, /\{key:look\}/);
+  assert.doesNotMatch(LOCK_ANSWER.line, /right stick|mouse/, 'no buttons in prose');
 });

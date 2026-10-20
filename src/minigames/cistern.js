@@ -556,7 +556,7 @@ export default {
   touchButtons: ['jump', 'fire'],
   options: [{ id: 'level', label: 'Difficulty', choices: [['easy', 'Easy'], ['hard', 'Hard']], default: 'easy' }],
   bestBy: 'level',
-  // (its sign in the desert: beside the Rose House's door, the side away from the path; its host Nuri)
+  // (its sign in the desert: beside the Rose House's door, the side away from the path; its host Omar)
   markers: [{ level: 'desert', at: [479.9, null, 390.3], heading: 2.895 }],
   score: { kind: 'points', unit: 'pts' },
   hud: { timer: false, score: true },

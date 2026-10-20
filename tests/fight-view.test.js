@@ -186,6 +186,27 @@ test('in a run: a pool started at the frame’s edge is drawn into it; one past 
   assert.equal(foes.extraWarn, undefined, 'gone with the run');
 });
 
+test('Reduce motion: no pull toward a hazard, he stays in the middle and the edge marks it (issue #563)', async () => {
+  const { setMotion } = await import('../src/feel.js');
+  setMotion({ reduce: true });
+  try {
+    const { S, player, foes, camera, tick } = simulate();
+    const r = D.rooms[0];
+    player.pos.set((r.x[0] + r.x[1]) / 2 - 2, 0, (r.z[0] + r.z[1]) / 2 - 2);
+    for (let i = 0; i < 30; i++) tick();
+    r.hazard = { kind: 'spill', every: 999, n: 1 };
+    const spot = [player.pos.x + 4.6, player.pos.z + 4.6];
+    const was = player.pos.clone().project(camera);
+    S.hazards.start(0, { spot });
+    for (let i = 0; i < 30; i++) tick();
+    const him = player.pos.clone().project(camera);
+    assert.ok(Math.abs(him.x - was.x) < 0.02 && Math.abs(him.y - was.y) < 0.02, `the camera still (${him.x.toFixed(2)}, ${him.y.toFixed(2)})`);
+    assert.ok(foes.extraWarn().length >= 1, 'the edge\'s marker shows it instead');
+    delete r.hazard;
+    S.end();
+  } finally { setMotion({ reduce: false }); }
+});
+
 test('the lock’s press: the aim’s ring flashes with the lock’s tick (falling with none in the cone), the way to aim said once; never a lock', () => {
   const { S, out, player, foes, tick } = simulate();
   const r = D.rooms[0];

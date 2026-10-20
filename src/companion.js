@@ -35,7 +35,8 @@
 //   plumb.note('chest')                    an opening moment happened (said when it can be)
 //   plumb.update(dt, { active, canSpeak, pos, goal, place, house, fight })
 //       →  { say: text | '', point: reason | null, id }   point: fly the ping's flight (main.js scout.ping())
-//       or { say: '', point: null, hail: { id, line, pages, point } }   something critical: a talk waits (plumb.pending)
+//       or { say: '', point: null, hail: { id, line, pages, bark, point } }   something critical: a talk waits (plumb.pending):
+//          its pages in the dialogue box, then (point) the flight toward the goal with its bark on the cue
 //   plumb.take() / plumb.drop()            the talk had (the button) / let go (unanswered)
 
 import { hintLevel, STRUGGLE } from './hint-level.js';
@@ -57,12 +58,13 @@ export const DRONE_LINES = {
   recharge: '~neutral~ Someone there might help us recharge.',
   person: '~whisper~ Someone’s there. Go and say hello.',
   chest: '~happy~ Oh, that’s a good one. Keep it.',
-  pointer: '~playful~ This way. Ask me any time.',
-  // the first Blade Gate near (a fight temple's door, its host beside it; issue #483: the makers' sign for kept out)
-  bladegate: '~curious~ Makers’ gate. Blades mean keep out. Something got in.',
+  pointer: '~playful~ Lost? Ask me any time. This way.',
+  // the first Blade Gate near (a fight temple's door, its host beside it; issue #483: the makers' sign for kept out; a
+  // warning, #563; no flight after it: you are at the gate)
+  bladegate: '~whisper~ Blades on a gate. Keep out. Something got in.',
   // lost, by why it thinks so (in turn)
-  still: ['~curious~ Lost? A little. This way.', '~playful~ Scenic route? The goal is over here.'],
-  away: ['~curious~ Wrong way, I think. Look.', '~neutral~ Further and further. It’s back here.'],
+  still: ['~curious~ Lost? A little. This way.', '~playful~ Scenic route? It’s the other way.'],
+  away: ['~curious~ Wrong way, I think. Look.', '~neutral~ Further and further from it. Back here.'],
   circling: ['~tired~ That rock again. Over here.', '~playful~ My petals are dizzy. This way.'],
 };
 export const OPENING = ['out', 'recharge', 'person', 'chest', 'pointer'];
@@ -91,9 +93,23 @@ export const PLUMB_PERSON = { id: 'plumb', name: DRONE_NAME, color: '#70a8c8', v
 /** The fewest words on a page of its talk: a shorter sentence goes with the one after it (or before, at the end). */
 export const PAGE_WORDS = 3;
 /**
+ * A pointing word at the end of a critical line ("Look.", "This way.", "Over here.", "The pool is back here."): said in a
+ * dialogue box it points at nothing (issue #559), so it is not a page of the talk but its bark, put on the cue as Plumb
+ * flies off after the talk, the way its other lines show.
+ */
+const POINTING = /^(?:Look|This way|Over here|Back here|Try over here|.+: (?:this way|over here)|.+ is (?:back|over) here)[.!]$/;
+/** A critical line as its talk (the line without its pointing word) and its bark (the pointing word, toned, or ''). */
+export function splitBark(line) {
+  const { tone, text } = parseLine(line);
+  const sentences = text.match(/[^.?!…]+[.?!…]+[’”']?|[^.?!…]+$/g)?.map((s) => s.trim()).filter(Boolean) ?? [text];
+  const last = sentences.at(-1);
+  if (sentences.length < 2 || !POINTING.test(last)) return { talk: line, bark: '' };
+  return { talk: `~${tone}~ ${sentences.slice(0, -1).join(' ')}`, bark: `~${tone}~ ${last}` };
+}
+/**
  * A line as the talk's pages (one to three), each with the line's tone: split at its sentences, a sentence of fewer than
- * PAGE_WORDS words kept with the next ("Lost? A little." / "The giant's skull: this way."; "That plate wants a weight. Look."
- * stays one page).
+ * PAGE_WORDS words kept with the next ("Lost? A little, I think." / "Scenic route? It's the other way."; "That plate wants a
+ * weight. I'll show you." stays one page).
  */
 export function talkPages(line) {
   const { tone, text } = parseLine(line);
@@ -117,8 +133,8 @@ export const plumbTalk = (pages) => ({ ...PLUMB_PERSON, talk: { nodes: { plumb: 
  * puts the place at the start of a sentence.
  */
 export const PLACE_LINES = {
-  still: ['~curious~ Lost? A little. {place}: this way.', '~playful~ Scenic route? {place} is over here.'],
-  away: ['~curious~ Wrong way, I think. {place} is back here.', '~neutral~ Further and further. {place} is back here.'],
+  still: ['~curious~ Lost? A little. {place}: this way.', '~playful~ Scenic route? {place}’s the other way.'],
+  away: ['~curious~ Wrong way, I think. {place} is back here.', '~neutral~ Further and further. {place} is behind us.'],
   circling: ['~tired~ That rock again. {place}: over here.', '~playful~ My petals are dizzy. {place}: this way.'],
 };
 /** The longest place it names (characters): a longer label and it says the plain line. */
@@ -143,16 +159,16 @@ export function placeOf(label, people = new Set()) {
  */
 export const HOUSE_LINES = {
   switch: '~curious~ A switch nobody has thrown. Over here.',
-  plate: '~curious~ That plate wants a weight. Look.',
+  plate: '~curious~ That plate wants a weight. I’ll show you.',
   weight: '~curious~ That weight belongs on a plate.',
   drum: '~curious~ That ball rolls somewhere useful. Look.',
   key: '~happy~ A key, lying about. Over here.',
-  door: '~curious~ A lock wants your key. This way.',
-  bridge: '~curious~ That bridge wants waking. This way.',
+  door: '~curious~ Locked door. Your key fits, I bet. This way.',
+  bridge: '~curious~ That bridge is asleep. I’ll show you.',
   brazier: '~curious~ A cold brazier. Over here.',
   bramble: '~curious~ Something’s grown over the way. Look.',
   bell: '~curious~ A bell nobody has rung. Over here.',
-  vane: '~curious~ That vane wants turning. Over here.',
+  vane: '~curious~ A vane, stuck the wrong way round. Over here.',
   arena: '~whisper~ Something waits in there. Ready?',
   boss: '~whisper~ The keeper of this house waits. Ready?',
   gadget: '~happy~ Something here is yours. This way.',
@@ -295,7 +311,7 @@ export class Companion {
     this.house = new StepWatch(); this.fight = new FightWatch();
     this.seen = new Set(); this.turn = { still: 0, away: 0, circling: 0 };
     this.gap = 0;   // s until it may say another line of its own (GAP)
-    this.pending = null;   // what it waits at your shoulder to tell you (CRITICAL): { id, line, pages, point }
+    this.pending = null;   // what it waits at your shoulder to tell you (CRITICAL): { id, line, pages, bark, point }
   }
   /** The talk it waits to have (taken: no longer pending), or null. */
   take() { const p = this.pending; this.pending = null; return p; }
@@ -330,7 +346,9 @@ export class Companion {
       this.gap = GAP[say] ?? GAP.on;
       const id = r.id ?? r.point;
       if (!r.say || !CRITICAL.includes(id)) return r;
-      this.pending = { id, line: r.say, pages: talkPages(r.say), point: r.point ?? null };
+      // (the talk's pages in the box; its pointing word the bark as it flies off after: splitBark, issue #559)
+      const { talk, bark } = splitBark(r.say);
+      this.pending = { id, line: r.say, pages: talkPages(talk), bark, point: r.point ?? null };
       return { say: '', point: null, hail: this.pending };
     };
     // a guardian's fight: the next of its hints, by itself, once the struggle has gone on (the hint's line is the ping's)

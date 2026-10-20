@@ -13,6 +13,7 @@
 //   combat.update(dt, realDt, { busy, paused })   after the traveller and the rig, before the frame is drawn
 //   combat.frame(realDt, busy)                    the lock's camera, after the rig
 //   combat.lock() / drink() / restart()           R3 and Tab, D-pad ←, the restart's confirm
+//   combat.recentred()                            R3 turned the camera behind you: its line once
 import { wireFight } from '../src/host/game-host.js';
 import { flurryK } from '../src/feel.js';
 import { game as sharedGame } from '../src/game-state.js';
@@ -32,6 +33,8 @@ export function makeCombat({ scene, level, levelId, content, physics, player, to
     knockout: (why) => F.knockout(why),
     /** R3 / Tab: lock on to a foe, then the next, then let go; false: none in reach (the camera turns behind you then, as main.js; Plumb is D-pad →). */
     lock: () => F.lock(),
+    /** The camera turned behind you (R3, no foe in reach): its line, the first time (src/host/game-host.js wireFight). */
+    recentred: () => F.recentred(),
     /** D-pad ←: a healing potion (main.js drinkPotion). */
     drink: () => F.drink(),
     /** The restart card's confirm: up again at the last safe place. */

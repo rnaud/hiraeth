@@ -6,7 +6,7 @@
 // native-pad.js, which rewrites text nodes, still turns it into the
 // handheld's own letter ("X") and swaps A and B when asked.
 
-import { backKey } from './native-pad.js';
+import { backKey, padFaces } from './native-pad.js';
 import { verbKey as remapKey, verbButton, controlPrefs } from './remap.js';
 import { t } from './i18n.js';
 import { hintsFor, quietKeys } from './hint-level.js';
@@ -75,21 +75,24 @@ const VERB_KEYS = {
     blade: () => t('vk.orLeftClick', { key: remapKey('blade') }), guard: () => remapKey('guard'), evade: () => remapKey('evade'), lock: () => remapKey('lock'),
     call: () => remapKey('interact'), gadget: () => remapKey('gadget'), use: () => t('vk.orMiddleMouse', { key: remapKey('gadget') }), pick: () => remapKey('gadgetNext'), run: () => remapKey('run'), scout: () => remapKey('scout'),
     whistle: () => remapKey('whistle'), thrust: () => t('vk.heldInAir', { key: remapKey('jump') }), potion: () => remapKey('potion'),
-    reel: () => `${remapKey('forward')} / ${remapKey('back')}` },
+    reel: () => `${remapKey('forward')} / ${remapKey('back')}`, roll: () => remapKey('evade'), journal: () => remapKey('journal') },
   pad: { move: () => t('vk.leftStick'), look: () => t('vk.rightStick'), jump: () => verbButton('jump'), interact: () => verbButton('interact'), aim: () => verbButton('aim'), fire: () => verbButton('fire'),
     mode: () => t('vk.held', { key: verbButton('pick') }),   // (the glove's modes are slots on the wheel: D-pad ↑ held, issue #511)
     blade: () => verbButton('blade'), guard: () => verbButton('guard'), evade: () => verbButton('evade'), lock: () => verbButton('lock'),
     call: () => verbButton('call'), gadget: () => verbButton('fire'), use: () => verbButton('fire'), pick: () => verbButton('pick'), run: () => verbButton('run'), scout: () => verbButton('scout'),
     whistle: () => verbButton('whistle'), thrust: () => t('vk.heldInAir', { key: verbButton('jump') }), potion: () => verbButton('potion'),
-    reel: () => t('vk.leftStick') },
+    reel: () => t('vk.leftStick'),
+    // (a fight temple's roll: the button printed B, the jump's place on a Nintendo-lettered pad: src/fight-temples/rules.js rollInput)
+    roll: () => verbButton(padFaces().faces === 'nintendo' ? 'jump' : 'evade'), journal: () => 'View' },
   touch: { move: () => t('vk.touchStick'), look: () => t('vk.touchDrag'), jump: '⤒', interact: 'E', aim: '◎', fire: '✺', mode: '◐',
     blade: '⚔', guard: '◇', evade: '↶', lock: '◉', call: 'E', gadget: '✺', use: '✺', pick: () => t('vk.touchChip'), run: () => t('vk.touchRun'), scout: () => t('vk.touchPing'),
     whistle: () => t('vk.touchWhistle'), thrust: () => t('vk.heldInAir', { key: '⤒' }), potion: () => t('vk.touchFlask'),
-    reel: () => t('vk.touchStick') },
+    reel: () => t('vk.touchStick'), roll: '↶', journal: () => t('vk.touchMenu') },
 };
 /**
  * The input for a verb (move, look, jump, interact, aim, fire, mode, blade, guard, evade, lock, call, gadget, pick, whistle, thrust,
- * run, scout; use: the gadget in hand's button with the keyboard's middle mouse button; reel: the stick's forward and back) on this kind of input; an unknown verb is its own word.
+ * run, scout; use: the gadget in hand's button with the keyboard's middle mouse button; reel: the stick's forward and back; roll:
+ * a fight temple's roll; journal: the game menu, View) on this kind of input; an unknown verb is its own word.
  */
 export const verbKey = (verb, kind = inputKind()) => {
   const k = VERB_KEYS[kind]?.[verb] ?? VERB_KEYS.keys[verb] ?? verb;

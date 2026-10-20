@@ -186,8 +186,8 @@ something critical to tell you, with the same button we use to ping Plumb to go 
 | id | when | example |
 |---|---|---|
 | `still`, `away`, `circling` | you look lost (the lost watch; the first time, the pointer line) | "Lost? A little." / "The giant's skull: this way." |
-| `house` | minutes on one step of a makers' house (`StepWatch`) | "That plate wants a weight. Look." |
-| `bladegate` | danger: the first fight temple's Blade Gate within 12 m (`ONCE`) | "Makers' gate. Blades mean keep out." / "Something got in." |
+| `house` | minutes on one step of a makers' house (`StepWatch`) | "That plate wants a weight. I'll show you." |
+| `bladegate` | danger: the first fight temple's Blade Gate within 12 m (`ONCE`) | (a whisper) "Blades on a gate." / "Keep out. Something got in." |
 
 Everything else of Plumb's stays on the cue as before: the opening's chatter (`out`, `recharge`, `person`, `chest`:
 they come before the button is taught, and `recharge`'s flight starts the desert's quest by itself) and a guardian's
@@ -195,7 +195,7 @@ hints, by themselves or asked for (a fight is no time for a conversation). Other
 
 **The flow** (`src/host/game-host.js` `wireCompanion`, the web and the engines alike):
 
-1. A critical line is not put on the cue. `Companion.update` keeps it as `pending` (`{ id, line, pages, point }`) and
+1. A critical line is not put on the cue. `Companion.update` keeps it as `pending` (`{ id, line, pages, bark, point }`) and
    returns `{ hail }`; while one waits, nothing else of its own is said (the lost and house watches and the opening's
    chatter wait; a guardian's hint does not).
 2. When nothing else is up (the host's `canSpeak`), not in a fight and not riding, Plumb comes out of its light at your
@@ -212,7 +212,16 @@ hints, by themselves or asked for (a fight is no time for a conversation). Other
    turns to it, and its portrait is drawn close on the drone from your side (the engines draw the same kept objects).
    A talk with Plumb sets no `met.` flag (`person.companion`).
 4. When the talk closes (`dialogue:end`, id `plumb`) Plumb flies toward the goal: `scout.ping()`, the find's line,
-   the flare and the marker, as the button always does.
+   the flare and the marker, as the button always does. A talk with nowhere to point (`point` null: the Blade Gate's
+   warning, said at the gate) ends there: Plumb goes home (`Scout.home`), no flight (#563).
+
+**The pointing word is a bark** (v1.87, issue #559). Lines written for a drone that flies as it speaks ("Look.", "This
+way.", "Over here.", "The pool is back here.") point at nothing from a dialogue box. `splitBark` takes a critical line's
+last sentence off when it only points (`POINTING`): the box gets the rest (`pages`), and the pointing word (`bark`) goes
+on the cue as Plumb flies off after the talk, the frame after `dialogue:end` (`wireCompanion`'s step returns it, the
+host shows it 3.2 s as Plumb's other lines, then the find's line). A line that is whole without it keeps its words in the
+box ("That bridge is asleep. I'll show you.", "Scenic route? {place}'s the other way."). The sequence `plumb-talk`
+(engine/sequences.js) records both: the gate's talk and no flight, a lost talk, its bark, the find.
 5. Unanswered for `HAIL.secs` (40 s) it lets the talk go and winks out. A scene, a teleport or a ping of a world's own
    puts it away (and a fight sends it home); it comes back to your shoulder after, the talk still waiting.
 

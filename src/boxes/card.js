@@ -57,7 +57,7 @@ export function cardState({ def = null, found = null, hint = null, kind = inputK
   const pad = kind === 'pad';
   const out = { scene: true, back: pad ? backKey() : GLYPH_KEYS.back, skipLabel: t('box.skip') };
   if (!def) return out;
-  return { ...out, card: true, name: def.name ?? '', text: found ? stripTone(t(found)) : keyText(itemLine(def), { kind, teach: true }), ok: pad ? confirmKey() : GLYPH_KEYS.ok, okLabel: hint ?? t('box.continue') };
+  return { ...out, card: true, name: def.name ?? '', text: found ? keyText(stripTone(t(found)), { kind, teach: true }) : keyText(itemLine(def), { kind, teach: true }), ok: pad ? confirmKey() : GLYPH_KEYS.ok, okLabel: hint ?? t('box.continue') };
 }
 
 const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
@@ -104,7 +104,7 @@ export class BoxCard {
     if (!this.dom) return;
     this.card.querySelector('.name').textContent = def.name;
     this.card.classList.toggle('found', !!found);
-    this.card.querySelector('.found').textContent = found ? stripTone(t(found)) : '';
+    this.card.querySelector('.found').innerHTML = found ? keyText(esc(stripTone(t(found))), { html: true, teach: true }) : '';   // (a {key:verb} too: the house map's, #563)
     this.card.querySelector('.desc').innerHTML = keyText(esc(itemLine(def)), { html: true, teach: true });   // (what it does; a {key:verb}: the player's own key or button)
     this.go.querySelector('.lbl').textContent = hint ?? t('box.continue');
     this.el.classList.add('card');

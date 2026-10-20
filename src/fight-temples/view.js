@@ -157,6 +157,6 @@ export function hiddenShare(cam, at, bodies, S = SELF) {
  * `grow` times its size shrinking back over `secs`; with none in the cone, a ring goes out round him the way he aims.
  * The first press of a run also says, once, that the right stick (or the mouse) aims in here.
  */
-export const LOCK_ANSWER = { grow: 1.9, secs: 0.35, ring: 2.6, line: 'No lock-on in here: aim with the right stick or the mouse' };
+export const LOCK_ANSWER = { grow: 1.9, secs: 0.35, ring: 2.6, line: 'No lock-on in here: {key:look} aims' };   // ({key:look}: the right stick, the mouse: issue #559)
 /** The flashed ring's scale `t` s after the press (1: its own size, once over). */
 export const answerScale = (t, A = LOCK_ANSWER) => (t >= A.secs || t < 0 ? 1 : 1 + (A.grow - 1) * (1 - t / A.secs) ** 2);

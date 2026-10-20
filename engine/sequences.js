@@ -281,7 +281,15 @@ export const SEQUENCES = [
         until: (G) => !!G.scout?.mark?.visible, timeout: 30, wait: 1.2 },
       { name: 'talk', keys: tap('KeyQ'), until: (G) => !!G.story?.dialogue?.open, timeout: 5, wait: 1.5 },
       { name: 'page', keys: tap('Space'), wait: 1.2 },
-      { name: 'flight', keys: tap('Space'), until: (G) => !G.story?.dialogue?.open, timeout: 5, wait: 1.5 },
+      // (the Blade Gate's warning: nowhere to fly, you are at it, issue #563)
+      { name: 'after', keys: tap('Space'), until: (G) => !G.story?.dialogue?.open, timeout: 5, wait: 1.5 },
+      // lost: the box says it, then the flight with its pointing word on the cue (issue #559: "This way." in a box points at nothing)
+      { name: 'lost', act: (G) => { G.plumb.gap = 0; G.state.set('drone.said.pointer', true); Object.assign(G.plumb.lost, { t: 1e4, walked: 1e4, cool: 0 }); },
+        until: (G) => !!G.scout?.mark?.visible, timeout: 30, wait: 1.2 },
+      { name: 'lostTalk', keys: tap('KeyQ'), until: (G) => !!G.story?.dialogue?.open, timeout: 5, wait: 1.2 },
+      { name: 'bark', keys: tap('Space'), until: (G) => !G.story?.dialogue?.open, timeout: 5, wait: 0.6 },
+      // (then the find's line: the bark's 3.2 s are the page's clock, which the engines' runner outpaces, so by the cue)
+      { name: 'flight', until: (G) => / m$/.test(G.screen().cue?.text ?? ''), timeout: 15, wait: 0.5 },
     ],
   },
   {
