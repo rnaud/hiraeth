@@ -285,7 +285,7 @@ export const KIND_TABS = { landing: 'Landing', quest: 'Quests', people: 'People'
  * is a switch's on or off; `head` a heading the cursor steps over. `caps`: the acts the host can carry out (null: all;
  * an engine leaves out the page's: films, the screenshot, the hitboxes, the input display, the Debug menu, pages).
  */
-export function devTabs({ world = '', points = [], films = [], quests = [], toggles = {}, save = '', notes = null, items = [], flags = [], boxes = null, levels = [], levelId = null, motion = false, caps = null } = {}) {
+export function devTabs({ world = '', points = [], films = [], quests = [], toggles = {}, save = '', notes = null, items = [], flags = [], boxes = null, levels = [], levelId = null, motion = false, traveller = null, caps = null } = {}) {
   const can = (k) => !caps || caps.has(k);
   const tabs = [];
   const tp = (p) => ({ label: p.label, hint: [p.hint, fmt(p.pos)].filter(Boolean).join(' · '), act: { do: 'tp', point: p }, ...(p.room ? { tag: 'room' } : {}) });
@@ -328,6 +328,13 @@ export function devTabs({ world = '', points = [], films = [], quests = [], togg
     ...(can('inputs') ? [sw('inputs', 'Controller inputs', 'the input display (F6)')] : []),
     ...(can('clock') ? [sw('clock', 'Time runs', 'the sky\'s clock goes on (off: it stands still)')] : []),
     ...HOURS.map(([name, h]) => ({ label: `☼ ${name}`, hint: `the time of day: ${String(Math.floor(h)).padStart(2, '0')}:${String(Math.round((h % 1) * 60)).padStart(2, '0')}`, act: { do: 'hour', h } })),
+  ] });
+  // which traveller is drawn (issue #493): B3, the game's, or the Blender rebuild (v2) and its outfit; the page's only
+  // (the engines draw B3: the bridge has no v2). traveller: { on, outfit, outfits: [{ id, name }] | null, note }
+  if (traveller && can('traveller')) tabs.push({ id: 'traveller', name: 'Traveller', title: 'The traveller', line: 'B3 (the game\'s) or the Blender rebuild, v2 (issue #493) · switching reloads the world; an outfit changes at once', rows: [
+    sw('travellerV2', 'Traveller v2 (Blender rebuild)', 'his body, skin and clothes from data/characters/traveller-v2/ on the same skeleton, the thigh-lift keys driven, the game\'s head · off: B3 · ?traveller=v2 · the dev server only'),
+    ...(traveller.outfits ?? []).map((o) => ({ label: `Outfit: ${o.name}`, hint: `${o.id}${traveller.on ? '' : ' · switches to v2 (reloads)'}`, act: { do: 'traveller', outfit: o.id }, state: traveller.on && traveller.outfit === o.id })),
+    ...(traveller.note ? [{ label: traveller.note, hint: 'outfits.json from the dev server', act: { do: 'none' } }] : []),
   ] });
   // the old dev menu's (its own panel until v1.81): the items, the boxes and the story's switches, the worlds
   if (items.length) tabs.push({ id: 'items', name: 'Items', title: 'Items', line: 'each item on or off · at once, in the save', rows: [

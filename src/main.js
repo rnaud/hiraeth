@@ -75,6 +75,7 @@ import { loadPeople, usesMakeHuman } from './makehuman/people.js';
 import { updateHands } from './hands.js';
 import { loadTraveller, createTraveller } from './characters/traveller.js';
 import { buildTravellerLod } from './characters/traveller-lod.js';
+import { travellerSetting, wearTravellerV2, outfitList } from './characters/traveller-v2.js';
 import { Changelog, VERSION } from './changelog.js';
 import { Settings, SettingsMenu, TouchControls, SaveGame, isTouch, isNativeApp, isDeckApp, isXboxApp, ToolHud } from './ui.js';
 import { xboxReadout } from './xbox.js';
@@ -321,6 +322,9 @@ const meta = minigameDef ? levelMetaFor(minigameDef, levelById) : levelById(leve
 const levelId = meta.id;
 const content = CONTENT[levelId];
 const animLib = loadAnimationLibrary().catch((e) => { console.warn('animation library failed to load', e); return null; });
+// B3 or the v2 rebuild (the debug switch, characters/traveller-v2.js; not on the outfits page, which dresses him itself)
+const travellerV2 = { ...travellerSetting.get(), dress: null, failed: null };
+if (query.has('outfits')) travellerV2.on = false;
 const traveller = loadTraveller(import.meta.env.BASE_URL).catch(e => { console.warn('Traveller B3 unavailable; using the original explorer.', e); return null; });
 const humans = Promise.all([loadHuman('m'), loadHuman('f')]).catch((e) => { console.warn('human models failed to load', e); return null; });
 // the people on MakeHuman bodies (src/makehuman/people.js, docs/makehuman.md: every world's, ?mh=0 none):
@@ -568,8 +572,15 @@ if (generatedTraveller) {
   player.humanoid = player.character.humanoid;
   // his levels of detail when the camera is far enough (characters/traveller-lod.js: built in a worker,
   // the full meshes until then and up close), picked each frame with the people's (skinnedLods)
-  // (not on the outfits page, ?outfits: its far levels would be B3's, characters/outfit-page.js)
-  if (!query.has('outfits')) buildTravellerLod(player.character).then((lod) => { if (lod) player.character.lod = skinnedLods.add(lod); });
+  // (not on the outfits page, ?outfits, nor as v2: its far levels would be B3's, characters/outfit-page.js)
+  if (!query.has('outfits') && !travellerV2.on) buildTravellerLod(player.character).then((lod) => { if (lod) player.character.lod = skinnedLods.add(lod); });
+  // the v2 traveller (issue #493), behind the debug switch: ?traveller=v2 or the dev menu's Traveller tab; B3 otherwise
+  // (bounded: a slow data/ never holds the load; past 30 s the world goes on as B3 and v2 goes on him when it is in)
+  if (travellerV2.on) {
+    const dressed = wearTravellerV2(player.character, { outfit: travellerV2.outfit })
+      .then((d) => { travellerV2.dress = d; }, (e) => { console.warn('traveller v2: staying B3', e); travellerV2.failed = e.message ?? String(e); });
+    await Promise.race([dressed, new Promise((r) => setTimeout(r, 30000))]);
+  }
 } else if (humanT) {
   const travellerTemplate = await new GLTFLoader().loadAsync(`${import.meta.env.BASE_URL}anim/traveller.glb`).then(g => g.scene).catch(() => null);
   if (travellerTemplate) {
@@ -1003,6 +1014,31 @@ const devMatching = lib && {
   get: () => !!player.animator?.matching,
   set: (on) => { matchingSetting.set(on); loadMotionLibrary(lib, { matching: on }).then(() => { if (player.animator) player.animator.matching = on && !!lib.motion?.db; if (devMenu.open) devMenu.refresh(); }); },
 };
+// (which traveller is drawn, issue #493: B3 or the Blender rebuild and its outfit, characters/traveller-v2.js; its
+// outfits listed from the dev server once the menu is first drawn)
+let v2Outfits = null, v2Note = null;
+const devTraveller = () => {
+  if (!v2Outfits && !v2Note) {
+    v2Note = 'Outfits: loading…';
+    outfitList().then((l) => { v2Outfits = l.outfits.map(({ id, name }) => ({ id, name })); v2Note = null; }, () => { v2Note = 'Outfits: the dev server only (data/ is not in the build)'; })
+      .then(() => { if (devMenu.open) devMenu.refresh(); });
+  }
+  const worn = travellerV2.dress?.wardrobe.worn?.id ?? travellerV2.outfit;
+  return { on: !!travellerV2.dress, outfit: worn, outfits: v2Outfits, note: travellerV2.failed ? `v2 failed to load: ${travellerV2.failed}` : v2Note };
+};
+/** B3 or v2 (and v2's outfit): an outfit of v2 worn at once, kept on this device; the switch itself reloads the world. */
+function setTraveller(on, outfit = travellerV2.dress?.wardrobe.worn?.id ?? travellerV2.outfit) {
+  if (on && travellerV2.dress) {
+    travellerV2.dress.wear(outfit)
+      .then(() => { travellerSetting.set(true, outfit); showToast(`Traveller v2: ${v2Outfits?.find((o) => o.id === outfit)?.name ?? outfit}.`); }, (e) => showToast(`Could not wear it: ${e.message ?? e}`))
+      .then(() => { if (devMenu.open) devMenu.refresh(); });
+    return;
+  }
+  travellerSetting.set(on, outfit);
+  const q = new URLSearchParams(location.search);
+  q.delete('traveller'); q.delete('outfit');   // (the address would win over the switch)
+  location.search = q.toString();
+}
 // (the captured starts, stops and turns over the loops: src/loco-moves.js)
 const devMoves = { get: () => player.locoMoves !== false, set: (on) => { movesSetting.set(on); player.locoMoves = on; } };
 const devMenu = new DevMenu({ levelId, levels: LEVELS, boxes, quests: storyRt.quests, story,
@@ -1015,6 +1051,7 @@ const devMenu = new DevMenu({ levelId, levels: LEVELS, boxes, quests: storyRt.qu
     save: slots.active === DEBUG_SLOT ? 'the debug save' : `save ${slots.active}`,
     notes: shotDrafts.status(),
     motion: !!devMatching,
+    traveller: devTraveller(),
   }),
   onAct: (a) => devAct(a),
   onToggle: (on) => { if (on) { showPicker(false); document.exitPointerLock?.(); } },
@@ -1432,7 +1469,7 @@ window.addEventListener('keydown', (e) => {
 // what the dev menu's rows do in the world (src/dev-menu.js hands them here): teleport to a place, the cheats and the
 // toggles, a film, a quest's stage, the time of day, a screenshot for the Notes page
 const devToggles = () => ({ fps: !!settings.showFps, god: !!player.god, hitboxes: hitboxes.on, inputs: inputDisplay.on, potions: !!resources.potions.infinite, clock: sky.speed > 0, jets: items.has('jetpack'),
-  matching: !!devMatching?.get(), moves: devMoves.get() });
+  matching: !!devMatching?.get(), moves: devMoves.get(), travellerV2: !!travellerV2.dress });
 /**
  * God mode on or off (src/player.js GOD: fly fast, nothing hurts, through walls; never saved). Off: set down on the
  * ground under you (src/world-debug.js godLanding), or where you last stood safely when there is none.
@@ -1469,7 +1506,9 @@ function devAct(a) {
     else if (a.key === 'jets') { if (items.has('jetpack')) items.revoke('jetpack'); else { if (!items.has('backpack')) items.grant('backpack'); items.grant('jetpack'); } showToast(items.has('jetpack') ? 'The fluid jets (debug): hold jump in the air.' : 'The fluid jets put away.'); }
     else if (a.key === 'matching') devMatching?.set(!devMatching.get());
     else if (a.key === 'moves') devMoves.set(!devMoves.get());
+    else if (a.key === 'travellerV2') void setTraveller(!travellerV2.dress);
   }
+  else if (a.do === 'traveller') void setTraveller(true, a.outfit);
   else if (a.do === 'heal') { player.restore(player.maxHearts); showToast('Every heart back.'); }
   else if (a.do === 'hour') { sky.hour = a.h; updateSky(); }
   else if (a.do === 'picker') { devMenu.toggle(false); showPicker(true); }

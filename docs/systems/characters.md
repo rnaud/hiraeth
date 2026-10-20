@@ -2070,7 +2070,7 @@ opaque inner-layer coverage, translated/rotated cloth, gameplay pose priorities,
 GPU collision settings and cab palm targets. The interactive changelog saves
 both the accepted review and actual playable-game evidence.
 
-## The traveller in Blender (issue #493, not in the game yet)
+## The traveller in Blender (issue #493, in the game behind a debug switch only)
 
 The traveller as an outfit-swappable game character, made by a script so it can be remade:
 `scripts/blender/traveller/` (Blender 5.2, run headless). The game still draws B3; nothing loads these
@@ -2259,6 +2259,33 @@ head-v3, the game still draws B3 until this reads at least as well side by side)
   and the tee 4 362 or 4 273 (an outfit's pieces vary as well), seen when the machine was loaded; probably an
   order that depends on threads or memory (a decimate, a join or a set iterated by address), not chased yet.
 - 83.1 k triangles.
+
+**The loader in the game, behind a debug switch** (`src/characters/traveller-v2.js`; the game still draws B3 by
+default, the switch is decision 3A's test bench). `?traveller=v2` (`&outfit=<id>`; `?traveller=b3` forces B3), or the
+dev menu's **Traveller** tab (kept on this device; the switch reloads the world, an outfit changes live). Dev server
+only, as the outfits pages: the GLBs are in `data/`; on the built site the tab says so and he stays B3.
+
+- **Built on B3's traveller.** `createTraveller` makes B3 as ever (its humanoid, hands, thumbs, seatedFit, feet IK,
+  clips, kit, glove, the portrait head); `wearTravellerV2` fetches the base GLB (and the outfit's) first, then
+  `v2Wardrobe` puts B3's body, its cloth and the cloth's shadow away (`model.b3Away` keeps them as they were) and dresses
+  him through the Wardrobe: `bindParts` renumbers each skinned mesh's joints to `humanoid.body.skeleton` by bone name
+  (and names its shape keys from the glTF), the body's hidden areas are culled, his skin piece's `skinCut` left out, the
+  draw groups joined (body + skin, the garments: two draws). His far levels (`buildTravellerLod`) are not built as v2.
+- **The head is the game's** (head-v3, `portrait-head.js`, with its face ink, eye paint, blink and speech): the GLB's
+  Head and Hair are not drawn, so nothing waits on #473's re-bake; their re-UV'd atlas copies would need it.
+- **The thigh-lift keys** (`ThighLift`): each key's thigh's forward swing in his root's frame (hip to knee, against the
+  same at rest; `poses.swing`'s angle in the game's axes), through the manifest's `drivers` (0 at 25°, 1 at 80°), set in
+  the clothes mesh's `onBeforeRender` (every pass reads one pose). Joined, the keys must stay offsets:
+  `mergeGeometries` leaves `morphTargetsRelative` false, `nameMorphs` sets it back (read as positions a key at 1 threw
+  the shirt and trousers metres off him). The outfits' own GLBs carry no keys. The outfits page and gallery use the same.
+- **Checked** (headless Chrome, the desert, High, the game paused and drawn twice, B3 then v2, one camera): standing,
+  jog, sprint, jump, climb, talking, gliding, swimming (the mangrove), the knock-down's ragdoll, a film, the pearl
+  diver. Same silhouette, ink and shading; the v2 shirt hangs skinned where B3's overshirt flies (no cloth solver).
+- **Cost** (desert, standing, the camera pinned, 180 frames each): the frame 495 draws / 1.338 M triangles as B3,
+  486 / 1.366 M as v2; his own meshes 71 draws / 321 k triangles over all passes as B3, 65 / 350 k as v2 (body + clothes
+  52.9 k against B3's body and cloth 44.6 k; the portrait head 49.6 k in both). B3 here without its far levels.
+- **Web only:** the Unity bridge (`BridgeBuild.cs`) has no v2 model nor its key drivers; the engines' dev menu leaves the
+  tab out. `tests/traveller-v2.test.js`.
 
 **Phase 1's pieces, still used:**
 

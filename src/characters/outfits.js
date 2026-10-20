@@ -74,16 +74,28 @@ export function cutByBoxes(index, position, boxes) {
   return out;
 }
 
-/** A copy of a geometry with only the kept attributes and the given index (or its own). */
+/** A copy of a geometry with only the kept attributes and the given index (or its own), its shape keys too (the
+ * default's clothes carry the thigh-lift keys, #493 pass 5: characters/traveller-v2.js drives them). */
 export function slimGeometry(g, index = null) {
   const out = new T.BufferGeometry();
   for (const name of KEEP_ATTRIBUTES) if (g.attributes[name]) out.setAttribute(name, g.attributes[name]);
+  for (const name of ['position', 'normal']) if (g.morphAttributes[name]?.length) out.morphAttributes[name] = g.morphAttributes[name];
+  out.morphTargetsRelative = g.morphTargetsRelative;
   const idx = index ?? (g.index ? Array.from(g.index.array) : [...Array(g.attributes.position.count).keys()]);
   out.setIndex(idx);
   return out;
 }
 
 const areaOf = (g) => g.attributes._area ?? g.attributes._AREA;
+
+/** A joined geometry's shape keys named as its first source's (mergeGeometries makes new attributes, unnamed: a
+ * mesh's morphTargetDictionary is built from the names), and read as its sources' are: mergeGeometries leaves
+ * morphTargetsRelative at false, and glTF's keys are offsets (read as positions, a key at 1 threw the clothes off him). */
+export function nameMorphs(merged, from) {
+  merged.morphTargetsRelative = from.morphTargetsRelative;
+  for (const [kind, list] of Object.entries(merged.morphAttributes)) list.forEach((a, i) => { a.name = from.morphAttributes[kind]?.[i]?.name ?? a.name; });
+  return merged;
+}
 
 /** What dressing him in a plan draws: { body, clothes } geometries (the body with his skin piece, the
  * garments), each one draw, and their triangles. base / outfit: { name: BufferGeometry } of the sources. */
@@ -98,6 +110,8 @@ export function dress(plan, baseManifest, base, outfits) {
   if (missing.length) throw new Error(`outfit "${plan.id}" lacks ${missing.join(', ')}`);
   const bodyG = mergeGeometries([slimGeometry(body, bodyIdx), slimGeometry(skin, skinIdx)]);
   const clothesG = mergeGeometries(plan.garments.map((n) => slimGeometry(src[n])));
+  if (!clothesG) throw new Error(`outfit "${plan.id}": its garments do not join (their attributes or shape keys differ)`);
+  nameMorphs(clothesG, src[plan.garments[0]]);
   // where each garment's verts lie in the joined draw (in order: mergeGeometries appends them)
   const ranges = {};
   let at = 0;

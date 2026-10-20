@@ -11,7 +11,7 @@ import { ItemViewer, dragOrbit, zoomOrbit } from '../items-page/viewer.js';
 import { loadAnimationLibrary, Animator } from '../animator.js';
 import { loadTraveller, createTraveller } from '../characters/traveller.js';
 import { buildCharacter } from '../player.js';
-import { ROOT, json, loadParts, v2Wardrobe } from '../characters/outfit-page.js';
+import { ROOT, json, loadParts, v2Wardrobe } from '../characters/traveller-v2.js';
 import { galleryRows, MOTIONS, motionSpeed } from './rows.js';
 
 const $ = (id) => document.getElementById(id);

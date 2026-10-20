@@ -4,41 +4,12 @@
 // portrait head (head-v3, the same asset the v2 head was made from) stays, with its drawn face and eyes; the
 // B3 body, its cloth and its levels of detail are put away. A corner shows the draws and triangles. Web only:
 // the game itself still draws B3, the engines' builds don't draw v2.
-import * as T from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { Wardrobe } from './outfits.js';
-import { makeReviewInkMaterial } from './tripo-material.js';
+// (the binding, the wardrobe on his skeleton and the thigh-lift keys: characters/traveller-v2.js, the game's debug
+// switch uses the same)
+import { ROOT, json, loadParts, v2Wardrobe } from './traveller-v2.js';
 
-export const ROOT = `${import.meta.env.BASE_URL}data/characters/traveller-v2/`;
+export { ROOT, json, loadParts, v2Wardrobe };
 const WORLDS = ['desert', 'incal', 'glassdunes', 'bazaar', 'mangrove', 'saltharbour', 'moonfoundry', 'spacecity', 'home', 'shadows'];
-
-export async function json(url) {
-  const r = await fetch(url), dev = '(the outfits pages run on the dev server: data/ is not in the build)';
-  if (!r.ok) throw new Error(`${url}: HTTP ${r.status} ${dev}`);
-  // (a server that answers a missing file with its index page: not JSON)
-  try { return await r.json(); } catch { throw new Error(`${url}: not found ${dev}`); }
-}
-
-/** A GLB's skinned meshes by name: their geometry with skinIndex renumbered to `bones` by bone name, and their
- * material. */
-export async function loadParts(url, bones) {
-  const gltf = await new GLTFLoader().loadAsync(url);
-  const out = {};
-  gltf.scene.traverse((o) => {
-    if (!o.isSkinnedMesh) return;
-    const g = o.geometry.clone();
-    const map = o.skeleton.bones.map((b) => {
-      const i = bones.findIndex((t) => t.name === b.name);
-      if (i < 0) throw new Error(`${url}: bone ${b.name} not on his skeleton`);
-      return i;
-    });
-    const si = g.attributes.skinIndex;
-    for (let k = 0; k < si.array.length; k++) si.array[k] = map[si.array[k]];
-    si.needsUpdate = true;
-    out[o.name] = { geometry: g, material: o.material };
-  });
-  return out;
-}
 
 /** Puts the v2 traveller on the player (his B3 meshes away) and starts the picker; a failure (the built
  * site has no data/) is said on the page. */
@@ -50,61 +21,6 @@ export function startOutfitPage(o) {
     note.textContent = `Outfits page: ${e.message ?? e}`;
     document.body.append(note);
   });
-}
-
-/**
- * The game's traveller (`model`: createTraveller's) drawn as the v2 traveller: his B3 body and its cloth put away
- * (the portrait head stays) and a Wardrobe on his skeleton, its outfits in the game's ink (makeReviewInkMaterial).
- * sources: { list, baseManifest, base: loadParts of the base GLB on his bones }; shared: caches several travellers
- * share (the outfits gallery: their skeletons number the bones alike). Returns { wardrobe, load(id) }: load before
- * wearing an outfit other than the default.
- */
-export function v2Wardrobe(model, { list, baseManifest, base }, shared = { materials: new Map(), parts: new Map() }) {
-  const h = model.humanoid;
-  const skeleton = h.body.skeleton, bindMatrix = h.body.bindMatrix, parent = h.body.parent;
-  const material = (src) => {
-    if (!shared.materials.has(src)) {
-      const m = new T.Mesh(new T.BufferGeometry(), src);
-      m.userData.inkShade = { hatch: 0.2 };
-      shared.materials.set(src, makeReviewInkMaterial(m));
-    }
-    return shared.materials.get(src);
-  };
-  const sourceMat = { base: base.Body.material };   // (the base's single-sided atlas: the body, his skin, the default's clothes)
-  const wardrobe = new Wardrobe({
-    list, baseManifest, parent,
-    base: Object.fromEntries(Object.entries(base).map(([n, p]) => [n, p.geometry])),
-    make(geometry, role, plan) {
-      const src = role === 'body' || plan.from === 'base' ? sourceMat.base : sourceMat[plan.from];
-      const mesh = new T.SkinnedMesh(geometry, material(src));
-      mesh.name = `TravellerV2.${role}`;
-      mesh.frustumCulled = false;
-      mesh.castShadow = model.mesh.castShadow;
-      mesh.receiveShadow = model.mesh.receiveShadow;
-      mesh.layers.mask = model.mesh.layers.mask;
-      mesh.userData.noSplat = true;
-      mesh.bind(skeleton, bindMatrix);
-      return mesh;
-    },
-  });
-  // his B3 body and its cloth put away; the portrait head stays
-  for (const m of [model.mesh, model.cloth?.garment, model.cloth?.underlayer, model.cloth?.innerShirt]) if (m) m.visible = false;
-  model.clothEnabled = false;
-  if (model.shadowCasters) model.shadowCasters.length = 0;
-  const load = async (id) => {
-    if (id === 'default' || wardrobe.outfits[id]) return;
-    if (!shared.parts.has(id)) {
-      shared.parts.set(id, (async () => {
-        const entry = list.outfits.find((o) => o.id === id);
-        const manifest = await json(ROOT + entry.dir + 'manifest.json');
-        return { manifest, parts: await loadParts(ROOT + entry.dir + manifest.glb, skeleton.bones) };
-      })());
-    }
-    const { manifest, parts } = await shared.parts.get(id);
-    sourceMat[id] = Object.values(parts)[0].material;
-    wardrobe.add(id, manifest, Object.fromEntries(Object.entries(parts).map(([n, p]) => [n, p.geometry])));
-  };
-  return { wardrobe, load };
 }
 
 async function start({ player, input, frameStats }) {

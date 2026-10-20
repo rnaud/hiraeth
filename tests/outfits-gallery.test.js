@@ -37,5 +37,5 @@ test('a dev page: built, in the Debug menu, dressed as the outfits page dresses 
   assert.match(main, /v2Wardrobe\(/, 'the outfits page\'s own dressing (its ink, the robe\'s swing)');
   assert.match(main, /galleryRows\(list\)/);
   assert.match(main, /note\(`Outfits gallery: /, 'a load that fails (the built site: no data/) is said on the page');
-  assert.match(readFileSync('src/characters/outfit-page.js', 'utf8'), /the outfits pages run on the dev server: data\/ is not in the build/);
+  assert.match(readFileSync('src/characters/traveller-v2.js', 'utf8'), /the outfits pages and the v2 traveller run on the dev server: data\/ is not in the build/);
 });
