@@ -1,0 +1,39 @@
+docs/README.md
+  s_5f899ba316b5dc::t_3cd30f222251f5 52
+docs/systems/bridge-gaps.md
+  s_5f899ba316b5dc::t_7d30b329cb482e 15,92
+docs/systems/characters.md
+  s_5f899ba316b5dc::t_18134a05e396ca 2372-2380
+engine/bridge-gaps.js
+  s_5f899ba316b5dc::t_84cdefe4571daf 48
+outfits-gallery.html
+  s_5f899ba316b5dc::t_8ecdd83d75ca35 1-44
+src/characters/outfit-page.js
+  s_5f899ba316b5dc::t_c64e2a7219c8dc 12,15-19,24,55-63,66,69,71,96-103,107-116
+src/outfits-gallery/main.js
+  s_5f899ba316b5dc::t_1a6cc3294ca356 1-168
+src/outfits-gallery/rows.js
+  s_5f899ba316b5dc::t_b2252c5c279259 1-28
+src/world-picker.js
+  s_5f899ba316b5dc::t_e19c49b07de2db 38
+tests/outfits-gallery.test.js
+  s_5f899ba316b5dc::t_2e790900a38d6e 1-41
+vite.config.js
+  s_5f899ba316b5dc::t_f368a3c73c319f 46-48
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0a781a8e441cb95ed9df656412b5424560f1a8d7",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
