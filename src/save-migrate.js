@@ -622,3 +622,17 @@ export function migrateFlags(flags, keepsakes = []) {
   flags['save.migrated'] = STEPS.length;
   return true;
 }
+
+/**
+ * A save handed to the game as flags (the side-by-sides' and the benchmark's bench save), as the page boots it: the page
+ * reads it from its storage, and src/game-state.js migrates a save with no `save.migrated` through every step. The engines
+ * take the same flags straight into their state (engine/game.js createGame), so they migrate them here first, or the two
+ * sides start from different saves (issue #565: the bench's save never filled a tank, so the page gives it the lift valve's
+ * double jump, step 8; unmigrated, the engines built a second fallback chest by the ship, its beacon down the middle of the
+ * Underwater City's wide views). A copy; the flags given are left as they are.
+ */
+export function bootFlags(flags, keepsakes = []) {
+  const f = { ...flags };
+  migrateFlags(f, keepsakes);
+  return f;
+}

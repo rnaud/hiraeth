@@ -18,6 +18,7 @@ import { portMaterial } from '../engine/unity/port-format.js';
 import { sharedUniforms } from '../src/materials.js';
 import { setHintLevel } from '../src/hint-level.js';
 import { resources } from '../src/resources.js';
+import { MIGRATED } from '../src/save-migrate.js';
 
 const quiet = (f) => { const w = console.warn, i = console.info, l = console.log; console.warn = console.info = console.log = () => {}; try { return f(); } finally { console.warn = w; console.info = i; console.log = l; } };
 const state = (flags = {}) => ({ data: { flags }, flag: (k) => flags[k], set: (k, v) => { flags[k] = v; } });
@@ -309,7 +310,8 @@ test('in the engines\' build: the sword hangs on him only once found and wears t
   const file = tempPath(join(tmpdir(), `hiraeth-engine-host-${process.pid}.js`));
   await bundle('godot', { input: 'engine/game.js', out: [file] });
   const B = loadBundle(file).exports;
-  const g = await quiet(() => B.createGame({ levelId: 'desert', backend, flags: { 'prologue.done': true, 'kit.colours.ember': true, 'kit.colour.sword': 'ember' } }));
+  // (a new game's save, as src/game-state.js reset starts one: migrated, so not an old save the migration hands the sword to)
+  const g = await quiet(() => B.createGame({ levelId: 'desert', backend, flags: { 'save.migrated': MIGRATED(), 'prologue.done': true, 'kit.colours.ember': true, 'kit.colour.sword': 'ember' } }));
   quiet(() => { for (let i = 0; i < 3; i++) g.frame(1 / 30); });
   assert.equal(g.tool.swordOn, false, 'the save has no sword yet');
   let base = null;

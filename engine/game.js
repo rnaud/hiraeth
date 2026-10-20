@@ -49,6 +49,7 @@ import { LodManager } from '../src/lod.js';
 import { spawnAliens, alienSpots } from '../src/aliens/index.js';
 import { createStory } from '../src/story/index.js';
 import { game as gameState } from '../src/game-state.js';
+import { bootFlags } from '../src/save-migrate.js';
 import { sharedUniforms } from '../src/materials.js';
 import { createPost } from '../src/post.js';
 import { applyTimeOfDay, colourScript } from '../src/timeofday.js';
@@ -343,8 +344,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const Q = quality && quality !== 'high' && QUALITY_PRESETS[quality] ? { ...QUALITY_PRESETS[quality], key: quality } : null;
   if (Q) grassPreset = Q.key;
   const t0 = performance.now();
-  // the save's flags to start from (the side-by-sides: the web bench's, scripts/bench/web-page.mjs prepareStorage)
-  if (flags) Object.assign(gameState.data.flags, flags);
+  // the save's flags to start from (the side-by-sides: the web bench's, scripts/bench/web-page.mjs prepareStorage), migrated
+  // as the page migrates the save it boots (src/save-migrate.js bootFlags, issue #565)
+  if (flags) Object.assign(gameState.data.flags, bootFlags(flags, gameState.data.keepsakes));
   // saves from before the items, as main.js's start migrates them (src/boxes/index.js); and the engines' own saves,
   // which never were until v1.83 and so had the desert's hoverbike given them at the prologue's end (issue #421)
   migrateSave(gameState);

@@ -1723,9 +1723,10 @@ node scripts/unity-compare/run.mjs [--worlds a,b] [--set lantern] [--skip web,un
 | What moves (people, birds, fish, Lou and the dog) | everywhere | design |
 | Lorn's houses black on both | Lorn's first rooms | the views: the houses are built on the way in (walk in with `-through`) |
 | The lake's ripple strokes denser from high up; the posts' shadows on the water fainter at dusk | Lorn | **open** |
-| A bright vertical streak down the middle; the domes' shadows lighter at dusk | the Underwater City's wide views | **open** (on that line the VM has only a points cloud 3 m from the eye) |
+| A bright vertical streak down the middle | the Underwater City's wide views | **fixed** in the check (#565: a chest's beacon the web never built, below) |
+| The domes' shadows lighter at dusk | the Underwater City's wide views | **open** |
 | The makers' box by the stair glows white (an orange pool on the web) | the eclipse city | **open** |
-| A water tower, a signboard, a lamp post and a glowing box on the platform the web lacks | the Overnight Train | **open** |
+| A water tower, a signboard and a lamp post on the platform the web lacks | the Overnight Train | **open** (its glowing box: **fixed** in the check, #565) |
 | The falling water a flat sheet (falling bands on the web) | the City Behind the Waterfall (WIP) | **fixed** (surfaces C: Fall.hlsl) |
 | The traveller lighter at night | the Underwater City at dusk | **open** (small) |
 | The seeing lens's overlay (post.js `uLens`) has no Unity side | any world, the lens raised | **open**, found by the uniforms' audit, not in a view |
@@ -1772,6 +1773,30 @@ frame (`bakeStep`, half the budget on a handheld; a fixed view all at once), and
 | Lorn's wide view | 5.7 | 5.9 | 0.9 |
 
 (ΔE (Lab) mean of the 6 × 4 grid, High, 1280 × 720, noon.)
+
+**The Underwater City's streak (#565, 2026-10-20).** The bright white streak down the middle of its wide views (ΔE 17.8 in
+the worst cell at dusk) was no fault of the drawing: it was a makers' chest's beacon (src/boxes/model.js `buildBeacon`, a
+glowing column 36 m tall over a chest you must find), 8 m in front of the view's eye, on a chest the web never built: the
+double jump's fallback chest by the ship (src/boxes/placements.js `FALLBACKS`). Both sides start from the bench's save
+(`prologue.done`, `item.backpack`, `items.v`); the page reads it from its storage, and src/game-state.js migrates a save
+with no `save.migrated`, so a save that never emptied its tank gets the lift valve's double jump (src/save-migrate.js step
+8). The engines put the same flags straight into their state (engine/game.js `createGame({ flags })`), unmigrated: no double
+jump, so a second fallback chest beside the gun's, and its beacon. They now boot the flags as the page does
+(src/save-migrate.js `bootFlags`; tests/unity-bench-save.test.js: the two sides' bench saves, booted, the same; the same
+fallback chests in each world; in the VM's wide view, the gun's beacon alone in the frame). Only the engines' fixed views and
+`-play` runs take `flags`: a player's save always loads through the migration, so no player saw it. The same chest stood in
+other views: the Overnight Train's glowing box on the platform, a far beacon in Lorn's and Edena's start.
+
+| view (Unity against the web, High, 1280 × 720) | ΔE mean | ΔE worst cell | SSIM |
+|---|---|---|---|
+| the Underwater City, wide, dusk | 4.1 → 1.7 | 17.7 → 6.7 | 0.857 → 0.920 |
+| the Underwater City, wide, noon | 3.0 → 1.4 | 11.1 → 5.2 | 0.878 → 0.929 |
+| the Overnight Train, start, dusk | 1.9 → 1.2 | 9.9 → 5.6 | 0.862 → 0.881 |
+| the Overnight Train, start | 2.1 → 1.9 | 10.7 → 10.8 | 0.833 → 0.846 |
+| Lorn, start, dusk | 1.9 → 1.5 | 8.7 → 8.7 | 0.848 → 0.858 |
+| Lorn, start | 1.2 → 1.0 | 4.4 → 3.9 | 0.865 → 0.864 |
+
+(The other 23 views of those five worlds within 0.1 ΔE and 0.01 SSIM, the run's own noise.)
 
 ## The opening, beat by beat (Unity + Puerts, 2026-10-16, issue #394)
 
