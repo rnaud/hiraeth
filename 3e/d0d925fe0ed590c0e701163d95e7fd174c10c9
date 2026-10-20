@@ -1,0 +1,61 @@
+scripts/blender/traveller/outfit_glider_pilot.py
+  s_5f899ba316b5dc::t_9164bd4d660531 154-156
+scripts/blender/traveller/outfit.py
+  s_5f899ba316b5dc::t_f4fc37384c2bfb 338-339
+data/characters/traveller-v2/outfits/pearl-diver/manifest.json
+  s_5f899ba316b5dc::t_98a948fabccb46 17-18,21,54-55,60-62,99,170,173,181,186,197,217,227-228,232-233,236-238,246-247
+data/characters/traveller-v2/outfits/moss-gardener/manifest.json
+  s_5f899ba316b5dc::t_0f94ae0029bce8 17-18,31-35,43-44,53-54,75-76,81-83,120,206,209,211-214,218,257-260,264,284-285,288,293,296-297,309,318-320,323-325,330,333-335,338-340,347,350-351,353-354,380,421-422,451-452,463-464,476,493-494,506,509-510,517-518,521-522,535-536,548
+  s_5f899ba316b5dc::t_1e0fa81977c02b 304
+tests/traveller-blender.test.js
+  s_5f899ba316b5dc::t_0d8e726bd4c5a1 89-90,92,95-104
+data/characters/traveller-v2/manifest.json
+  s_5f899ba316b5dc::t_53e8ac9ed1302b 570-571
+  s_5f899ba316b5dc::t_23bd8c55450148 585
+  s_5f899ba316b5dc::t_6b3146b660b0c8 579-580,590-591,595-598,607-608,612-615,620-622,628-629,633-636,649-650,654-657,665-666,670-673,718,726-727,843-845,849,851,854,869-870,878-880,901-948,951-952,961-962,977-978,981-982,987-988,991-992,997-998,1001-1002
+data/characters/traveller-v2/outfits/salt-pilgrim/manifest.json
+  s_5f899ba316b5dc::t_bf9367acc0d13d 17-18,20,24-26,38-39,50-51,54,79-80,135,211,214,218,223,232,234-237,241,248,261,268-270,273-275,278-280,283-285,288-290,300,302-304,322,337-338,364,379-380,405-406,413-414,421-422,425-426,447-448,463-464,467-468,489-490,497-498,505-506,509-510,513-514
+  s_5f899ba316b5dc::t_44452abcc4abdf 255,297
+data/characters/traveller-v2/outfits/glider-pilot/manifest.json
+  s_5f899ba316b5dc::t_842e617a076dc3 332
+  s_5f899ba316b5dc::t_ed2ac7b767d67d 17-18,20-22,44-45,60-61,66-68,142,213,216,221,224-225,229,232-233,236-237,266,270,278,286-287,312,314,322-324,333,398-399,420-421,442-443
+  s_5f899ba316b5dc::t_e56a8c345bc39e 298,305
+docs/systems/characters.md
+  s_5f899ba316b5dc::t_b048e4e4395eb3 2178-2228,2273-2275,2327
+scripts/blender/traveller/outfit_lamplighter.py
+  s_5f899ba316b5dc::t_dc69c6bde78345 175-178
+scripts/blender/traveller/build_b3.py
+  s_5f899ba316b5dc::t_38d8392ff5fb8c 54-59,67-92,129-134,142-146,153-157,313-318,321-329,332-336,359-361,376-377,400,473-486,491-492,496-497,499-511,531,551-554
+scripts/blender/traveller/poses.py
+  s_5f899ba316b5dc::t_c1dffcb7fc1b00 28-68,74,86,177
+scripts/blender/traveller/outfit_moss_gardener.py
+  s_5f899ba316b5dc::t_a93998ad3b44c0 287-289
+data/characters/traveller-v2/outfits/lamplighter/manifest.json
+  s_5f899ba316b5dc::t_29f510ef48c0e4 60-61,312-315,330,339-340,344,356
+  s_5f899ba316b5dc::t_a20547eeaa5793 20,22-24,43-44,84-85,90-92,169,250,253,269,273,278,293-294,305,324,326,334-336,341,346,355,429-430,455-456,481-482
+scripts/blender/traveller/outfit_pearl_diver.py
+  s_5f899ba316b5dc::t_eec435249d65d0 201-214,216,255-258
+tests/traveller-outfits.test.js
+  s_5f899ba316b5dc::t_dcfc6f9543a516 116-121
+  s_5f899ba316b5dc::t_7e673eb93399d2 113-114
+scripts/blender/traveller/finish.py
+  s_5f899ba316b5dc::t_51d3a4b00262a4 99,122-124,134-140,321,362-368,841-844,874-878,1249-1755,1759-1760
+  s_5f899ba316b5dc::t_7f7ad21b5bda15 862
+  s_5f899ba316b5dc::t_1643a4f374e885 860-861,863-865,872-873,1756-1758,1761-1769
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3ed0d925fe0ed590c0e701163d95e7fd174c10c9",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
