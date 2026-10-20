@@ -152,11 +152,11 @@ test('standing through the captured idles and the look-around, his head stays on
   let most = { yaw: 0 }, low = { pitch: 0 };
   for (const f of frames) {
     if (f.moveW > 0.5) played.add(f.move ?? undefined);
-    if (f.look > 0.5) played.add('look');
+    if (f.look > 0.5) played.add('Idle_LookAround_Loop');
     if (Math.abs(f.chestYaw) > Math.abs(most.yaw)) most = { yaw: f.chestYaw, t: f.t };
     if (f.chestPitch > low.pitch) low = { pitch: f.chestPitch, t: f.t };
   }
-  for (const n of ['mixamo_looking_around', 'mixamo_breathing_idle', 'look']) assert.ok(played.has(n), `${n} played`);
+  for (const n of ['mixamo_looking_around', 'mixamo_breathing_idle', 'Idle_LookAround_Loop']) assert.ok(played.has(n), `${n} played`);
   // (before: 105° round at 11.2 s, in the looking about)
   assert.ok(Math.abs(most.yaw) < 80, `the face turned ${most.yaw.toFixed(0)}° from the chest (at ${most.t.toFixed(1)} s)`);
   assert.ok(low.pitch < 50, `the face ${low.pitch.toFixed(0)}° down from the chest (at ${low.t.toFixed(1)} s)`);

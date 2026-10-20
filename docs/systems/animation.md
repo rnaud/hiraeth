@@ -1411,3 +1411,16 @@ or claim to fix the speed/database mismatch measured above.
   is told the way they really go. They used to slide at up to 2-3 m/s with the forward walk playing.
   `tests/close-contact.test.js`.
 
+
+## Idle posture after short walks (#551)
+
+The traveller's three captured idle variants start after seven seconds standing. Their original torso leans assume
+the captured pelvis and foot movement, but the game keeps the standing legs planted. Overlaying the captured spine
+above those legs made the traveller arch backwards during the look-around. `Animator.update` now requests each
+traveller idle variant with `spine: false`: the standing pelvis/spine remain balanced while the arms and head gesture.
+This includes the library look-around as well as the two Mixamo variants. The base standing weight shift, walking,
+stopping and conversation overlays are unchanged. Both engines use this shared Animator.
+
+`tests/idle-posture.test.js` runs two walk/long-idle cycles through all three variants and compares pelvis/spine
+transforms with the base idle, while checking that arm gestures remain animated. Muted browser captures repeat
+short walks and inspect immediate stops and ten-second waits from the side.

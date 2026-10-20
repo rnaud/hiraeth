@@ -18,6 +18,7 @@ export const CHANGELOG = [
     // BridgeRunner.Wardrobe; tests/wardrobe.test.js
     'In the Wardrobe the traveller is now lit by the sun without the world’s shadows, wherever he stands, so his clothes and the sword’s colour look the same everywhere: in the Unity version he no longer comes out grey when he stands in the ship’s shadow.',
     'The Underwater City’s café floors no longer shimmer where they overlap the hall paving beneath them.',
+    'After a short walk, the traveller keeps a balanced standing posture while looking around instead of arching backwards.',
   ] },
   { v: '1.88', date: '2026-10-20', items: [
     // issue #493: src/characters/traveller.js loadTraveller / traveller-v2.js (travellerSetting on, dressTravellerV2),

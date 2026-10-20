@@ -603,7 +603,8 @@ export class Animator {
     this.idleT = tw.idle > 0.99 && !this.calm ? this.idleT + dt : 0;
     const look = this.clips.look;
     // (the traveller, idleMoves: Mixamo's looking about and breathing idle take turns with the
-    // library's look-around, above the legs, so the feet stay as they stand: IDLE_VARIANTS)
+    // library's look-around. Keep the idle spine as well as the planted legs: the captured
+    // torso leans assume their own pelvis/foot motion, and over planted legs arched him back after a stop (#551).)
     const variants = this.idleMoves ? IDLE_VARIANTS.map((v) => (v === 'look' ? (look ? { look, d: look.duration } : null) : (() => { const c = this.moveClip(v); return c && { clip: c, d: c.duration }; })())).filter(Boolean) : null;
     if (variants?.length && this.idleT > 7) {
       const gap = IDLE_GAP, cycle = variants.reduce((a, v) => a + v.d + gap, 0);
@@ -611,8 +612,7 @@ export class Animator {
       for (const v of variants) {
         if (lt < v.d) {
           const k = Math.min(lt / 0.8, (v.d - lt) / 0.8, 1);
-          if (v.look) { tw.look = k; tw.idle = 1 - k; this.actions.look.time = lt; }
-          else if (!this.moveReq && k > 0.001) this.moveReq = { clip: v.clip, t: lt, w: k, full: false, ground: false, head: true, walks: false, rate: 1, legs: false };
+          if (!this.moveReq && k > 0.001) this.moveReq = { clip: v.clip ?? v.look, t: lt, w: k, full: false, ground: false, head: true, walks: false, rate: 1, legs: false, spine: false };
           break;
         }
         lt -= v.d + gap;
