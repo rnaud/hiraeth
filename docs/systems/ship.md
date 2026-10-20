@@ -323,18 +323,29 @@ traveller's capsule, crosses it, and the stripe breaks round the door's frame).
 `caravan-review.html` is a separate shipped review page for the selected caravan reference
 (`references/The Travellers Ship/redesign/caravan/sheet-1.jpg`, provenance beside it).
 It compares a procedural Three.js model with that drawing and provides orbit, front, side and rear
-views, a 1.75 m scale person, camp visibility and a turntable. It has no audio system and does not
+views, a 1.75 m scale person, animated Arrive/Depart controls and a turntable. It has no audio system and does not
 load or change game saves. The reference opens full size by click or keyboard.
 
 `src/ship/caravan-prototype.js` exports the standalone model factory. The bow points along -X and
 the porch lies on +Z; named groups separate the hull, cockpit, engines, landing feet, roof, porch,
 awning, plants and water tank. Its approximate 40 m length follows the source brief. The overall
 height includes antennas; these are review proportions, not collision or walkable interior data.
-No production ship module imports it. The review is web only: it uses standard Three.js materials
-and orbit controls outside the game renderer. A later accepted design can reuse the geometry
-factory while adapting materials, collisions and animations to both game renderers.
+No production ship module imports it. The review page is web only, but its appearance uses the
+actual game pipeline: `makeMaterial`, three-attachment G-buffer, cascaded sunlight shadows,
+Moebius print postprocessing, Desert daylight colour script and FXAA (`tools/caravan-renderer.js`).
+There are no standard-lit materials or added silhouette line meshes. A later accepted design can
+reuse the geometry factory while adapting collisions and the deployment state to both renderers.
 
 The prototype includes the reference’s cream/lavender hull, coral belt, visor, striped canopy,
 porch furniture and ramp, plants, tank, roof ladder, solar array, laundry, antennas and twin engines.
-Its fine weathering, interior rooms, working doors, flight and deployment remain outside this
-exterior study. `tests/caravan-prototype.test.js` checks finite geometry, named groups and scale.
+Its fine weathering, interior rooms, working doors and playable flight remain outside this study.
+
+`CaravanDeployment` (`src/ship/caravan-deployment.js`, issues #583/#585) exposes `depart()`,
+`arrive()`, `landingComplete()` and `update(dt)`, plus `phase`, `camp` and `altitude`. The review
+starts landed. Departure retracts the laundry and props into lockers, folds rails and ramp,
+retracts the canopy into its side cassette, then folds the porch panel against the side before
+lifting off. Arrival descends with the camp secured, then automatically deploys after touchdown.
+Production integration should call `landingComplete()` from its landing event and gate lift-off
+on the `taking-off` phase; review altitude is only a demonstration, not flight physics.
+The controller consumes phase boundaries even for large time steps. Regression tests check
+that no camp deploys above ground, all props stow, and game lighting uniforms remain shared.

@@ -9,6 +9,8 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   { v: '1.89', date: '2026-10-20', items: [
+    'The caravan ship study now uses the game’s ink, hatching and sunlight, so its surfaces read as they will in the world.',
+    'The caravan study packs its camp before taking off: the porch folds against the hull, the awning retracts, and the plants, furniture and laundry stow away. Arriving opens the camp automatically after touchdown.',
     // issue #577: Surface.shader waterLook (_WaterBelow, the crests' WATER_INK fade, _WaterLite), WorldLoader.MakeMaterial;
     // tests/unity-sea-underside.test.js
     'In the Unity version, the sea over the Underwater City, seen from under the water, is the same deep, even blue as on the web instead of a pale ceiling crossed by streaks, and from the sea port’s deck the far sea is a flat tone again, without fine lines out to the horizon.',
