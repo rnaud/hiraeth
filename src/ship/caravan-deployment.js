@@ -1,5 +1,30 @@
 // A prototype's landing contract: the camp opens only after touchdown and closes completely before lift-off.
 // Production integration can call landingComplete() from its real landing event; arrive() is the review's descent.
+
+/** Open fractions for the side camp's mechanisms (0 secured, 1 deployed).
+ * Reversing camp reverses the same physical sequence: loose items are secured
+ * before rails and ramp fold, and the deck closes last. Geometry interprets these
+ * values as hinge angles or travel along a rail, never as a shrinking solid.
+ */
+export function caravanStowPose(camp) {
+  if (!Number.isFinite(camp)) throw new Error('A camp pose needs a finite deployment fraction');
+  const t = Math.max(0, Math.min(1, camp));
+  const stage = (a, b) => {
+    const x = Math.max(0, Math.min(1, (t - a) / (b - a)));
+    return x * x * (3 - 2 * x);
+  };
+  return {
+    deck: stage(0, .30),
+    supports: stage(.30, .43),
+    ramp: stage(.35, .50),
+    rails: stage(.50, .63),
+    canopy: stage(.63, .82),
+    props: stage(.65, .90),
+    laundry: stage(.90, 1),
+    solar: stage(.55, .80),
+  };
+}
+
 export class CaravanDeployment {
   constructor({ applyCamp, applyAltitude = () => {} }) {
     this.applyCamp = applyCamp; this.applyAltitude = applyAltitude;

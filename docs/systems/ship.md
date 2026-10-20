@@ -321,7 +321,7 @@ traveller's capsule, crosses it, and the stripe breaks round the door's frame).
 ## Caravan exterior study (issue #579)
 
 `caravan-review.html` is a separate shipped review page for the selected caravan reference
-(`references/The Travellers Ship/redesign/caravan/sheet-1.jpg`, provenance beside it).
+(`references/The Travellers Ship/redesign/rounded-caravan-a/approved-reference.png`, accepted source and SHA-256 provenance beside it; issue #592).
 It compares a procedural Three.js model with that drawing and provides orbit, front, side and rear
 views, a 1.75 m scale person, animated Arrive/Depart controls and a turntable. It has no audio system and does not
 load or change game saves. The reference opens full size by click or keyboard.
@@ -349,3 +349,17 @@ Production integration should call `landingComplete()` from its landing event an
 on the `taking-off` phase; review altitude is only a demonstration, not flight physics.
 The controller consumes phase boundaries even for large time steps. Regression tests check
 that no camp deploys above ground, all props stow, and game lighting uniforms remain shared.
+
+The rounded A update (#592) uses an outward-facing longitudinal capsule, curved-grid glazing,
+and substantial diagonally stacked engine lobes. The side bay is recessed: its deck carries
+a curved exterior hatch whose closed surface follows the same hull section and paint bands.
+Shell and hatch each batch their paint into three contiguous material groups rather than
+one draw per quad. The approximately40m length is retained; no production ship is replaced.
+
+`caravanStowPose(camp)` supplies staged open fractions for deck, supports, ramp, rails, canopy,
+props, laundry and solar. Reversing the camp fraction retracts loose equipment before folding
+the deck. Furniture and planters translate into the bay, the stairs nest inward, rails fold
+down, canvas retracts to its cassette, laundry lowers into roof storage, and the solar panel
+rotates flush. Landing feet retract only after altitude rises and extend during descent before
+touchdown. This remains a silent web-only authoring prototype: engine integration, walkable
+interiors and physically simulated actuators remain separate work.
