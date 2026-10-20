@@ -7145,6 +7145,295 @@
           "late": false
         }
       ]
+    },
+    "sea-port": {
+      "beats": [
+        {
+          "beat": "land",
+          "hud": {
+            "cine": {
+              "bars": true,
+              "lids": false,
+              "hud": false,
+              "walk": false,
+              "skip": false
+            },
+            "gadget": "gun"
+          },
+          "menu": null,
+          "playing": {
+            "what": "ship:ArrivalDirector",
+            "stage": 3
+          },
+          "objects": {
+            "ink": 204,
+            "print": 1,
+            "hidden": 1,
+            "chimeshade": 1,
+            "pitvoid": 1,
+            "mote": 1
+          },
+          "cam": [
+            24.4,
+            83,
+            112,
+            52
+          ],
+          "player": [
+            4.4,
+            85,
+            157.8
+          ],
+          "late": false
+        },
+        {
+          "beat": "berth",
+          "hud": {
+            "cine": {
+              "bars": true,
+              "lids": false,
+              "hud": false,
+              "walk": false,
+              "skip": false
+            },
+            "gadget": "gun"
+          },
+          "menu": null,
+          "playing": {
+            "what": "ship:ArrivalDirector",
+            "stage": 4
+          },
+          "objects": {
+            "ink": 210,
+            "print": 1,
+            "hidden": 1,
+            "chimeshade": 1,
+            "pitvoid": 1,
+            "mote": 1
+          },
+          "cam": [
+            38.4,
+            88,
+            120,
+            50
+          ],
+          "player": [
+            4.4,
+            85,
+            157.8
+          ],
+          "late": false
+        },
+        {
+          "beat": "ramp",
+          "hud": {
+            "cine": {
+              "bars": true,
+              "lids": false,
+              "hud": false,
+              "walk": false,
+              "skip": false
+            },
+            "gadget": "gun"
+          },
+          "menu": null,
+          "playing": {
+            "what": "ship:ArrivalDirector",
+            "stage": 5
+          },
+          "objects": {
+            "ink": 259,
+            "planet": 1,
+            "shader": 2,
+            "print": 1,
+            "hidden": 1,
+            "chimeshade": 1,
+            "pitvoid": 1,
+            "mote": 1
+          },
+          "cam": [
+            8.9,
+            83.2,
+            139.5,
+            54
+          ],
+          "player": [
+            4.4,
+            85,
+            157.8
+          ],
+          "late": false
+        },
+        {
+          "beat": "out",
+          "hud": {
+            "gadget": "gun",
+            "breath": true
+          },
+          "menu": null,
+          "playing": null,
+          "objects": {
+            "ink": 310,
+            "print": 1,
+            "hidden": 1,
+            "chimeshade": 1,
+            "pitvoid": 1,
+            "mote": 1
+          },
+          "cam": [
+            2.3,
+            85.1,
+            149.4,
+            55
+          ],
+          "player": [
+            4.5,
+            81,
+            143.1
+          ],
+          "late": false
+        },
+        {
+          "beat": "cabin",
+          "hud": {
+            "gadget": "gun"
+          },
+          "menu": null,
+          "playing": null,
+          "objects": {
+            "ink": 340,
+            "planet": 1,
+            "shader": 2,
+            "print": 1,
+            "hidden": 1,
+            "chimeshade": 1,
+            "pitvoid": 1,
+            "mote": 1
+          },
+          "cam": [
+            -0.4,
+            82.8,
+            126.8,
+            55
+          ],
+          "player": [
+            0.4,
+            80.7,
+            128.6
+          ],
+          "late": false
+        },
+        {
+          "beat": "surface",
+          "hud": {
+            "gadget": "gun"
+          },
+          "menu": null,
+          "playing": null,
+          "objects": {
+            "ink": 312,
+            "shader": 1,
+            "print": 1,
+            "hidden": 1,
+            "chimeshade": 1,
+            "pitvoid": 1,
+            "mote": 1
+          },
+          "cam": [
+            -0.4,
+            76.9,
+            126.8,
+            55
+          ],
+          "player": [
+            0.4,
+            74.6,
+            128.6
+          ],
+          "late": false
+        },
+        {
+          "beat": "deep",
+          "hud": {
+            "gadget": "gun"
+          },
+          "menu": null,
+          "playing": null,
+          "objects": {
+            "ink": 242,
+            "print": 1,
+            "hidden": 1,
+            "chimeshade": 1,
+            "pitvoid": 1
+          },
+          "cam": [
+            -0.4,
+            43.9,
+            126.7,
+            55
+          ],
+          "player": [
+            0.4,
+            41.4,
+            128.6
+          ],
+          "late": false
+        },
+        {
+          "beat": "crown",
+          "hud": {
+            "gadget": "gun"
+          },
+          "menu": null,
+          "playing": null,
+          "objects": {
+            "ink": 232,
+            "print": 1,
+            "hidden": 1,
+            "chimeshade": 1,
+            "pitvoid": 1
+          },
+          "cam": [
+            -0.4,
+            20.8,
+            126.3,
+            55
+          ],
+          "player": [
+            0.4,
+            18.2,
+            128.6
+          ],
+          "late": false
+        },
+        {
+          "beat": "dock",
+          "hud": {
+            "gadget": "gun"
+          },
+          "menu": null,
+          "playing": null,
+          "objects": {
+            "ink": 229,
+            "print": 1,
+            "hidden": 1,
+            "chimeshade": 1,
+            "pitvoid": 1
+          },
+          "cam": [
+            -0.4,
+            2.4,
+            126.2,
+            55
+          ],
+          "player": [
+            0.4,
+            0.3,
+            128.6
+          ],
+          "late": false
+        }
+      ]
     }
   }
 }

@@ -112,6 +112,20 @@ export class Ship {
   clearObjective() { if (game.flag('objective') === OBJECTIVE) game.set('objective', null); }
 
   // ------------------------------------------------------------------ placement
+  /**
+   * What a lens of the ship's scenes stands on at (x, z): the ground, or the sea's surface over it in a world under one
+   * (the Underwater City's sea port, issue #572: off the deck the ground is the sea's floor 80 m down, and its lenses
+   * filmed the landing and the take-off from under the water).
+   */
+  viewGround(x, z) {
+    const g = this.groundAt(x, z);
+    if (this._seaTop === undefined) {
+      const sea = this.level?.sea, geo = sea?.userData?.sea ? sea.geometry : null;
+      if (geo && !geo.boundingBox) geo.computeBoundingBox();
+      this._seaTop = geo ? geo.boundingBox.max.y + (sea.position?.y ?? 0) : null;
+    }
+    return this._seaTop != null ? Math.max(g, this._seaTop) : g;
+  }
   groundAt(x, z, fromY) {
     const g = this.physics.groundAt(x, fromY ?? (this.site.ground ?? 0) + 60, z, 600);
     if (Number.isFinite(g)) return g;

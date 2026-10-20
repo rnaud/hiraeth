@@ -14,6 +14,7 @@ import { KEEPERS_HATCH } from '../temples/underwater.js';
 import { canyonBed, buildCanyonStreet, CAGE, TERRACES } from '../underwater-canyon.js';
 import { buildSeabedWalk, HELMET } from '../underwater-seabed.js';
 import { buildSingingCity } from '../underwater-song.js';
+import { buildSeaPort, SHAFT, SEA_PORT, PORT_SHIP, STATIONS, doorSpot } from '../underwater-port.js';
 import {
   UNDERWATER_LOOK, UNDERWATER_DAY, UNDERWATER_DUSK, UNDERWATER_NIGHT, SEA_DAY, UW_PAL, uwMats, seaSurface, tower, pod, podRing, glassColumns, cafeDome,
   lampPost, bush, kelp, rock, manta, fishSchool, farCity, bigDome, glassTube, whale,
@@ -26,8 +27,10 @@ import {
 // the makers' glass, and the halls are joined by sealed glass tubes and a lift; the sea, its towers of pods, the kelp,
 // the fish, the mantas and the whales are all on the other side of the glass.
 //
-//   the Dock         a great dome in the south: the city's lock takes the ship down into it; the ship stands on its
-//                    floor, the moon pool beside it (railed: the lock's water, drawn only), Bastien who keeps it
+//   the sea port     a round coral deck on floats on the surface over the Dock, where the ship lands; the lift (the
+//                    city's lock) down a glass shaft through the sea and the Dock's crown (src/underwater-port.js, #572)
+//   the Dock         a great dome in the south: the lift comes down into its middle; the moon pool (railed: the lock's
+//                    water, drawn only), the divers' rack, Bastien who keeps the lock
 //   the long tube    north from the Dock to the Avenue, glass all round, the towers of pods outside it
 //   the Avenue       the greatest dome: the city's street under glass, its cafés (Coralie's, glass, teal and pink
 //                    domes inside the great one), lamps, benches; tubes west to the Garden and north to the Plaza
@@ -84,14 +87,17 @@ export const TUBES = {
 const TUBES_AT = { gallery: { x0: TUBES.gallery.a[0], x1: TUBES.gallery.b[0], y0: TUBES.gallery.a[1], y1: TUBES.gallery.b[1], z: TUBES.gallery.a[2] } };
 /** The makers' Whale-House (src/temples/underwater.js): its door at the north end of the last tube, facing south. */
 export const WHALE_HOUSE = { x: 0, z: -192, door: -178 };
-export const SHIP_SITE = { x: 0, z: 134, heading: Math.PI };   // (on the Dock's floor, its hatch toward the long tube, north)
+/** Where the ship stands: on the sea port's deck over the Dock, its hatch north toward the lift's house (issue #572). */
+export const SHIP_SITE = PORT_SHIP;
+/** The lift's foot in the Dock, its door north toward the long tube (src/underwater-port.js). */
+export const LIFT_FOOT = doorSpot('foot');
 /** The great column (the Breathing Tower) in the Plaza, its lift at its foot (south) and its head in the Crown. */
 export const COLUMN = { x: D.plaza.x, z: D.plaza.z, r: 4.2 };
 export const LIFT = { foot: [COLUMN.x, 0, COLUMN.z + COLUMN.r + 1.0], head: [COLUMN.x, D.crown.y, COLUMN.z + COLUMN.r + 1.6] };
 /** The moon pool beside the ship (the lock's water: drawn only, railed). */
 export const POOL = { x: -19, z: 118, r: 6 };
 /** What the Dock's first view looks across, either side of the way to the long tube: the divers' rack, the cargo, the stripe ([from z, to z]). */
-export const DOCK_DRESSING = { rack: [-9, 102], cargo: [9.5, 100.5], stripe: [109, 96] };
+export const DOCK_DRESSING = { rack: [-9, 102], cargo: [9.5, 100.5], stripe: [121, 96] };
 export const LIMIT = 300;
 /** Odette's Air-Shop: under the Avenue's dome east of the street, its door turned to it (west). */
 export const UW_SHOP = { x: 28, z: 24, heading: -Math.PI / 2 };
@@ -126,6 +132,9 @@ export function airIn(halls, tubes) {
 export function placeAt(p) {
   const near = (d, pad = 0) => Math.hypot(p.x - d.x, p.z - d.z) < d.r + pad && Math.abs(p.y - d.y) < d.r * d.sy + 4;
   if (near(D.crown)) return 'The Crown';
+  // (issue #572: the sea port on the surface and the lift's shaft down to the Dock)
+  if (p.y > SEA_Y - 2 && Math.hypot(p.x - SEA_PORT.x, p.z - SEA_PORT.z) < SEA_PORT.r + 4) return 'The sea port';
+  if (p.y > D.dock.r * D.dock.sy - 1 && Math.hypot(p.x - SHAFT.x, p.z - SHAFT.z) < SHAFT.r + 1) return 'The lift to the sea port';
   if (near(D.dock)) return 'The Dock';
   if (near(D.garden)) return 'The kelp garden';
   if (near(D.gallery)) return 'The Whale Gallery';
@@ -157,9 +166,10 @@ export const UNDERWATER_CONTENT = {
     names: ['Barnacle bead', 'Diver’s tag', 'Glow-kelp seed', 'Café token', 'Lock key'],
   },
   npcs: [
-    // Bastien keeps the Dock and its lock: he meets the ship, and points the way in
+    // Bastien keeps the Dock and its lock (the lift down from the sea port): he meets you at its foot, and points the way in
     // (v1.48, issue #101: the city's main quest is his, the wrong note in the glass: src/story/underwater-people.js)
-    { ...UW_PEOPLE.bastien, at: [10, 112], y: 0, radius: 1.5, facing: Math.PI * 0.85, palette: pal('#3d6f78', { cloth: '#e3b06a' }), lang: 'underwater' },
+    // (issue #572: by the lift's door, where it lets you out, turned to it)
+    { ...UW_PEOPLE.bastien, at: [5.5, 118], y: 0, radius: 1.5, facing: -0.75, palette: pal('#3d6f78', { cloth: '#e3b06a' }), lang: 'underwater' },
     // (Coralie: the trace of the light that the world kept from its days as a detour, src/story/sightings-detours.js)
     { id: 'coralie', name: 'Coralie', title: 'who keeps the café', color: '#d97a5e', kind: 'f', at: [19, 37], y: 0, radius: 1, facing: -Math.PI / 2, palette: pal('#d97a5e', { cloth: '#efd2a6' }), lang: 'underwater',
       lines: ['~happy~ Come in, come in. It’s dry inside, it always is: the glass keeps the sea out.', '~playful~ Tea, or soup? Everything tastes a little of salt down here. We call it seasoning.'],
@@ -226,7 +236,8 @@ export function* buildUnderwater(scene) {
   const N = Math.PI, S = 0, E = Math.PI / 2, W = -Math.PI / 2;
   const door = { w: 6, h: 3.9 };   // (inside a tube's arch of 5 m: 3² + 3.9² < 5²)
   const halls = {
-    dock: bigDome(kit, M, { ...D.dock, doors: [{ yaw: N, ...door }], floor: M.street }),
+    // (its crown open round the lift's shaft from the sea port: src/underwater-port.js)
+    dock: bigDome(kit, M, { ...D.dock, doors: [{ yaw: N, ...door }], floor: M.street, oculus: SHAFT.oculus }),
     avenue: bigDome(kit, M, { ...D.avenue, doors: [{ yaw: S, ...door }, { yaw: W, ...door }, { yaw: N, ...door }], ribs: 20, floor: M.street, seg: 64 }),
     garden: bigDome(kit, M, { ...D.garden, doors: [{ yaw: E, ...door }, { yaw: doorYaw(D.garden, D.court), ...door }], floor: M.pier }),
     plaza: bigDome(kit, M, { ...D.plaza, doors: [{ yaw: S, ...door }, { yaw: E, ...door }, { yaw: N, ...door }, { yaw: W, ...door }], ribs: 18, floor: M.streetPale, seg: 56 }),
@@ -243,7 +254,7 @@ export function* buildUnderwater(scene) {
   // ---------------------------------------------------------------- the Dock: the ship's floor, the moon pool, cranes and crates
   {
     const dk = D.dock;
-    kit.add(M.streetPale, new THREE.RingGeometry(14, 16, 48).rotateX(-Math.PI / 2).translate(SHIP_SITE.x, 0.06, SHIP_SITE.z), drawn);   // (the landing ring painted on the floor)
+    kit.add(M.streetPale, new THREE.RingGeometry(SHAFT.r + 2.2, SHAFT.r + 2.8, 48).rotateX(-Math.PI / 2).translate(SHAFT.x, 0.06, SHAFT.z), drawn);   // (a ring painted round the lift's foot)
     // the moon pool: the lock's water, drawn (a still sheet, lit from below), its rail
     kit.add(M.column, new THREE.CircleGeometry(POOL.r, 32).rotateX(-Math.PI / 2).translate(POOL.x, 0.08, POOL.z), drawn);
     kit.add(M.frame, new THREE.TorusGeometry(POOL.r + 0.3, 0.12, 4, 40).rotateX(Math.PI / 2).translate(POOL.x, 1.05, POOL.z), solid);
@@ -258,7 +269,7 @@ export function* buildUnderwater(scene) {
     // what the Dock's first view looks across (the v1.46 game audit, issue #102: a bare tiled plaza between the ramp and the
     // long tube), either side of the way, none of it on it: DOCK_DRESSING
     const DR = DOCK_DRESSING;
-    // a stripe painted from the landing ring to the long tube's door, the way the lock-keepers walk a visitor in
+    // a stripe painted from the lift's ring to the long tube's door, the way the lock-keepers walk a visitor in
     kit.add(M.streetPale, new THREE.PlaneGeometry(0.5, DR.stripe[0] - DR.stripe[1]).rotateX(-Math.PI / 2).translate(0, 0.07, (DR.stripe[0] + DR.stripe[1]) / 2), drawn);
     for (let z = DR.stripe[1] + 1.5; z < DR.stripe[0]; z += 4) kit.add(M.streetPale, new THREE.PlaneGeometry(1.6, 0.4).rotateX(-Math.PI / 2).translate(0, 0.07, z), drawn);
     // the divers' rack: two posts and a bar, three suits hung on it, helmets on a shelf, air tanks stood under it
@@ -456,11 +467,13 @@ export function* buildUnderwater(scene) {
     k.mats = kit.mats; k.lights = kit.lights; k.movers = kit.movers; k.noShadow = kit.noShadow;
     return k;
   };
-  const kits = { canyon: sub('The canyon street'), seabed: sub('The walk on the seabed'), song: sub('The singing city') };
+  const kits = { canyon: sub('The canyon street'), seabed: sub('The walk on the seabed'), song: sub('The singing city'), port: sub('The sea port') };
   const canyon = buildCanyonStreet(kits.canyon, M, H);
   const ways = buildSeabedWalk(kits.seabed, M, H, { halls, galleryFloor: TERRACES.at(-1).y, rack: DOCK_DRESSING.rack });
   ways.bell(...[canyon.far.bell[0], canyon.far.bell[2]], canyon.far.bell[1]);   // (the far wall's terrace: a bell there too)
   const song = buildSingingCity(kits.song, M, halls);
+  // the sea port on the surface over the Dock and the lift's shaft down into it (issue #572: src/underwater-port.js)
+  const port = buildSeaPort(kits.port, M, { seaY: SEA_Y, dockTop: halls.dock.top });
   for (const k of Object.values(kits)) {
     k.finish();
     k.group.traverse((o) => { if (o.isMesh) { o.name ||= k.group.name; if (leavesOf(M).has(o.material)) o.userData.flora = true; } });
@@ -470,13 +483,14 @@ export function* buildUnderwater(scene) {
     { at: new THREE.Vector3(CAGE.top[0], CAGE.top[1] + 0.6, CAGE.top[2]), r: 1.1, to: new THREE.Vector3(canyon.cage.foot[0] + 2.6, H(canyon.cage.foot[0] + 2.6, canyon.cage.foot[2]) + 0.1, canyon.cage.foot[2]), heading: Math.PI / 2, label: 'the divers’ cage down to the canyon’s floor' },
     { at: new THREE.Vector3(canyon.cage.foot[0], canyon.cage.foot[1] + 0.6, canyon.cage.foot[2]), r: 1.1, to: new THREE.Vector3(CAGE.top[0] - 2.6, CAGE.top[1] + 0.1, CAGE.top[2]), heading: -Math.PI / 2, label: 'the divers’ cage up to the street' },
   ];
-  // the air: the halls and the tubes, and out in the sea the bells, the cafés down the street, the locks' drums
-  const seaAir = (x, y, z) => air(x, y, z) || ways.air(x, y, z) || canyon.cafes.some((c) => c.air(x, y, z));
+  // the air: the halls and the tubes, the lift's shaft, and out in the sea the bells, the cafés down the street, the locks' drums
+  const seaAir = (x, y, z) => air(x, y, z) || port.air(x, y, z) || ways.air(x, y, z) || canyon.cafes.some((c) => c.air(x, y, z));
   yield;
 
   // ---------------------------------------------------------------- the sea: its surface overhead; dry wherever you can go
   // (out of the glass you walk its bed in a helmet off the divers' rack, its air running down: swim.js `helmet`)
-  const sea = seaSurface(kit, { y: SEA_Y, size: 1400, sea: { ...SEA_DAY, glass: true, helmet: { ...HELMET }, reach: 170, shafts: { ...SEA_DAY.shafts }, caustics: { ...SEA_DAY.caustics } }, air: seaAir });
+  // (open round the lift's shaft, so its surface is not drawn across the dry shaft: issue #572)
+  const sea = seaSurface(kit, { y: SEA_Y, size: 1400, sea: { ...SEA_DAY, glass: true, helmet: { ...HELMET }, reach: 170, shafts: { ...SEA_DAY.shafts }, caustics: { ...SEA_DAY.caustics } }, air: seaAir, holes: [{ x: SHAFT.x, z: SHAFT.z, r: SHAFT.r }] });
   // life: mantas, schools of small fish, and the whales out in the deep (the Whale-House's change brings them to the glass)
   const near = { k: 0 };
   manta(kit, M, { at: [0, 34, 40], R: 70, w: 15, speed: 2.6, phase: 0.4, bank: 0.2 });
@@ -514,7 +528,20 @@ export function* buildUnderwater(scene) {
     Sx.max = THREE.MathUtils.lerp(0.75, SEA_DAY.max, k);
   }
 
-  const spawn = new THREE.Vector3(SHIP_SITE.x, 0.05, SHIP_SITE.z - 22);
+  // (in the Dock, the long tube ahead: where a load in the city puts you; the ship stands up on the sea port)
+  const spawn = new THREE.Vector3(0, 0.05, 112);
+  // over the side of the sea port into the sea: back on its deck by the lift's house (nobody swims here, and the sea
+  // under the port is 80 m deep: issue #572)
+  const deckSpot = new THREE.Vector3(...doorSpot('top', SHAFT.r + 3));
+  deckSpot.y += 0.05;
+  function rescue(p) {
+    if (!p?.pos || p.down || !p.respawn) return;
+    const q = p.pos;
+    if (q.y > SEA_Y - 30 && q.y < SEA_PORT.y - 1.5 && Math.hypot(q.x - SEA_PORT.x, q.z - SEA_PORT.z) < SEA_PORT.r + 60 && !seaAir(q.x, q.y + 1, q.z)) {
+      p.respawn(deckSpot);
+      p.heading = 0;
+    }
+  }
   // Odette's Air-Shop under the Avenue's dome, east of the street, its door to it (src/shop-world.js 'bubble')
   const shop = placeShop(scene, { def: SHOPS.airshop, at: new THREE.Vector3(UW_SHOP.x, 0, UW_SHOP.z), heading: UW_SHOP.heading });
   kit.lights.push(...shop.lights);
@@ -530,9 +557,9 @@ export function* buildUnderwater(scene) {
     id: 'underwater',
     ground: terrain,
     spawn, spawnHeading: Math.PI, camYaw: 0, camPitch: 0.06,
-    // (moored on the Dock's dome: 5.4 m east, its legs even about the dome's crown, its ramp over it; the ship twice the size since
-    // issue #338 hung its stern 7 m down the dome's curve on one leg)
-    shipSite: { ...SHIP_SITE, x: SHIP_SITE.x + 5.4 },
+    // (on the sea port's deck over the Dock, its hatch north toward the lift's house: issue #572. Until then it stood on the
+    // Dock's dome outside the glass, and its ramp let you out into the sea with no way in)
+    shipSite: { ...SHIP_SITE },
     features: { mount: false, wind: false, jetpack: false, climb: true },
     limit: LIMIT, killY: -80,
     edgeHint: 'The glass holds the sea back; there is nowhere further to go.',
@@ -544,6 +571,9 @@ export function* buildUnderwater(scene) {
     shops: [shop],
     floraAvoid: shop.avoid(),
     sea, halls, tubes, decks, cafes, air: seaAir, whales, column: COLUMN, lift: LIFT,
+    // (issue #572: the sea port and its lift; the cabin and its shut gates are moving solids)
+    seaPort: port,
+    dynamic: () => port.lift.solids(),
     // (the towers of pods out in the sea round the city: { x, z, h, r }; the fragments' places of interest, issue #250)
     podTowers: TOWERS,
     // (issue #192: the seabed walk, the canyon street, the singing city; the whale overhead)
@@ -555,7 +585,7 @@ export function* buildUnderwater(scene) {
     whaleToGlass: (dt) => whales[0].userData.passAt?.(dt),
     // the great column over the Plaza and the towers of pods round the city, seen through the glass (the level design
     // audit's landmarks: the column's glass is see-through to the height grid; the Crown's bubble at its head)
-    beacons: [{ name: 'the Breathing Tower', top: [COLUMN.x, D.crown.y + D.crown.r * D.crown.sy, COLUMN.z], height: 8 }, ...song.beacons],
+    beacons: [{ name: 'the Breathing Tower', top: [COLUMN.x, D.crown.y + D.crown.r * D.crown.sy, COLUMN.z], height: 8 }, ...song.beacons, port.beacon],
     // the city's leading lines (the level design audit's `lines`; the audit sees through its glass since v1.43): the
     // sealed tubes, lamplit, hall to hall, and the street through the Avenue
     lines: [
@@ -563,12 +593,12 @@ export function* buildUnderwater(scene) {
       { name: 'the Avenue’s street to the Plaza', points: [[D.garden.x + 6, 0, D.garden.z], [D.avenue.x - D.avenue.r, 0, D.avenue.z], [0, 0, D.avenue.z], [0, 0, D.avenue.z - D.avenue.r], [0, 0, D.plaza.z + D.plaza.r], [0, 0, COLUMN.z + COLUMN.r + 2]] },
       { name: 'the tube down to the Whale Gallery', points: [[0, 0, COLUMN.z + COLUMN.r + 4], [D.plaza.x + D.plaza.r, 0, D.plaza.z], [D.gallery.x - D.gallery.r, D.gallery.y, D.gallery.z], [D.gallery.x, D.gallery.y, D.gallery.z]] },
       { name: 'the tube to the Whale-House', points: [[D.gallery.x, D.gallery.y, D.gallery.z], [D.gallery.x - D.gallery.r, D.gallery.y, D.gallery.z], [D.plaza.x + D.plaza.r, 0, D.plaza.z], [0, 0, D.plaza.z - D.plaza.r], [0, 0, WHALE_HOUSE.door + 2]] },
-      { name: 'the city’s length, back to the Dock', points: [[0, 0, WHALE_HOUSE.door + 2], [0, 0, D.plaza.z - D.plaza.r], [0, 0, D.plaza.z + D.plaza.r], [0, 0, D.avenue.z - D.avenue.r], [0, 0, D.avenue.z + D.avenue.r], [0, 0, D.dock.z - D.dock.r], [0, 0, SHIP_SITE.z - 12]] },
+      { name: 'the city’s length, back to the Dock', points: [[0, 0, WHALE_HOUSE.door + 2], [0, 0, D.plaza.z - D.plaza.r], [0, 0, D.plaza.z + D.plaza.r], [0, 0, D.avenue.z - D.avenue.r], [0, 0, D.avenue.z + D.avenue.r], [0, 0, D.dock.z - D.dock.r], [LIFT_FOOT[0], 0, LIFT_FOOT[2]]] },
       // (v1.50, issue #132: home from the keepers' hatch, down the kelp tube to the garden and the west tube to the Avenue)
       // (issue #192: out by the divers' lock, bell to bell over the seabed, down the canyon street, in by the Gallery's lock)
       { name: 'the air bells', auto: false, points: [[DOCK_DRESSING.rack[0], 0, DOCK_DRESSING.rack[1] + 1.2], ...ways.line, canyon.line[0]] },
       { name: 'the canyon street', auto: false, points: [...canyon.line, ways.locks.gallery.portals[1].at.toArray(), ways.locks.gallery.portals[1].to.toArray(), [D.gallery.x + D.gallery.r - 4, D.gallery.y, D.gallery.z]] },
-      { name: 'the kelp tube', auto: false, points: [home.hatch, TUBES.kelp.a, TUBES.kelp.b, [D.garden.x + 16, 0, D.garden.z - 12], [D.garden.x + D.garden.r, 0, D.garden.z], [D.avenue.x - D.avenue.r, 0, D.avenue.z], [0, 0, D.avenue.z], [0, 0, D.avenue.z + D.avenue.r], [0, 0, D.dock.z - D.dock.r], [0, 0, SHIP_SITE.z - 12]] },
+      { name: 'the kelp tube', auto: false, points: [home.hatch, TUBES.kelp.a, TUBES.kelp.b, [D.garden.x + 16, 0, D.garden.z - 12], [D.garden.x + D.garden.r, 0, D.garden.z], [D.avenue.x - D.avenue.r, 0, D.avenue.z], [0, 0, D.avenue.z], [0, 0, D.avenue.z + D.avenue.r], [0, 0, D.dock.z - D.dock.r], [LIFT_FOOT[0], 0, LIFT_FOOT[2]]] },
     ],
     sights: [
       { name: 'the moon pool', at: [POOL.x, 0, POOL.z] },
@@ -595,13 +625,15 @@ export function* buildUnderwater(scene) {
       for (let i = 0; i < 4; i++) { const a = Math.PI * 0.3 + i * 0.35; edges.push({ at: V(D.gallery.x + Math.cos(a) * (D.gallery.r - 1.6), D.gallery.y, D.gallery.z + Math.sin(a) * (D.gallery.r - 1.6)), heading: Math.PI / 2 - a, pose: 'rail' }); }
       for (const sp of [...groups, ...walks, ...edges]) sp.lines = CROWD_LINES;
       return { groups, walks, edges, avoid: [], farMax: 220, costume: 'underwater', palette: { cloaks: UW_PAL.people },
-        clear: [{ x: spawn.x, z: spawn.z, r: 6 }, { x: SHIP_SITE.x, z: SHIP_SITE.z, r: 18 }, { x: COLUMN.x, z: COLUMN.z + COLUMN.r + 2, r: 4 }] };
+        clear: [{ x: spawn.x, z: spawn.z, r: 6 }, { x: SHAFT.x, z: SHAFT.z, r: 9 }, { x: COLUMN.x, z: COLUMN.z + COLUMN.r + 2, r: 4 }] };
     },
     update(dt, t, ctx = {}) {
       bubbles.later = !!ctx.drawLater;
       for (const m of kit.movers) m(t, ctx.player?.pos ?? null);
       outCols.update(t, ctx.player?.pos ?? null, bubbles.later);
       ways.update(t); song.update(t, dt);
+      port.update(dt, ctx.player ?? null);
+      rescue(ctx.player);
       seaByHour();
     },
     /** The frame's camera final, before anything is drawn (main.js renderFrame, engine/game.js): the bubbles in view laid out. */

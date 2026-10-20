@@ -9,7 +9,7 @@ import { Player } from '../src/player.js';
 import { makeMaterial, MODE_WATER } from '../src/materials.js';
 import { Waters, SEA_LOOK, SEA_SHAFTS, seaShafts, DEEP_UNDER } from '../src/water.js';
 import { SEA, deepSea } from '../src/swim.js';
-import { createUnderwater, DOMES, SHIP_SITE, seabed, placeAt } from '../src/levels/underwater.js';
+import { createUnderwater, DOMES, SHIP_SITE, SEA_Y, seabed, placeAt } from '../src/levels/underwater.js';
 import { SEA_DAY, UNDERWATER_LOOK } from '../src/levels/underwater-kit.js';
 import { LEVELS } from '../src/levels/index.js';
 import { CONTENT, ORDER } from '../src/levels/content.js';
@@ -191,11 +191,13 @@ test('the way home from the Whale-House (v1.50, issue #132): its last way out co
   assert.ok(level.lines.some((l) => l.name === 'the kelp tube') && level.sights.some((x) => /diving bell/.test(x.name)), 'the way home and the bell beside it');
 });
 
-test('the ship stands on the Dock’s floor: flat, clear overhead under the dome', () => {
-  const y0 = physics.groundAt(SHIP_SITE.x, 5, SHIP_SITE.z);
-  for (let a = 0; a < 6.28; a += 0.5) for (const r of [0, 8, 13]) {
-    const x = SHIP_SITE.x + Math.cos(a) * r, z = SHIP_SITE.z + Math.sin(a) * r, g = physics.groundAt(x, 5, z);
-    assert.ok(Math.abs(g - y0) < 0.2, `the Dock at ${x.toFixed(1)}, ${z.toFixed(1)}: ${g.toFixed(2)} (${y0.toFixed(2)})`);
+test('the ship stands on the sea port’s deck over the water: flat, clear overhead (issue #572)', () => {
+  const y0 = physics.groundAt(SHIP_SITE.x, SHIP_SITE.y + 5, SHIP_SITE.z);
+  assert.ok(Math.abs(y0 - SHIP_SITE.y) < 0.05 && y0 > SEA_Y + 2, `on the deck, over the sea: ${y0.toFixed(2)}`);
+  // (within the lock's four columns, which stand 12.3 m off its middle on the deck)
+  for (let a = 0; a < 6.28; a += 0.5) for (const r of [0, 5, 9]) {
+    const x = SHIP_SITE.x + Math.cos(a) * r, z = SHIP_SITE.z + Math.sin(a) * r, g = physics.groundAt(x, SHIP_SITE.y + 5, z);
+    assert.ok(Math.abs(g - y0) < 0.2, `the deck at ${x.toFixed(1)}, ${z.toFixed(1)}: ${g.toFixed(2)} (${y0.toFixed(2)})`);
     assert.ok(physics.rayDistance(V(x, g + 0.5, z), V(0, 1, 0), 40) > 12, `room over ${x.toFixed(1)}, ${z.toFixed(1)}`);
   }
   assert.ok(Math.abs(physics.groundAt(level.spawn.x, level.spawn.y + 2, level.spawn.z) - level.spawn.y) < 0.3, 'the spawn stands on the floor');

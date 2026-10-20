@@ -143,31 +143,29 @@ export const BAZAAR_PORT = {
     lines: ['~neutral~ Every ship gets a call-sign and a board. Yours is up. Third from the top.', '~curious~ The dark board? Nobody’s answered to it in thirty years. We keep it anyway.'] }],
 };
 
-// ------------------------------------------------------------------ the Underwater City: the Dock made a port
-// The ship on the crown of the Dock's dome (5, 21, 134; the dome 34 m round at (0, 128), 21 m high), its hatch north;
-// Bastien at the lock below. The sheet: a coral pontoon ring with brass rims round the lock's shaft, a domed cupola on
-// it, round pods parked and gliding outside the glass. The ring is laid on the dome's crown on brass legs, under the
-// hull, open where the ramp comes down to the dome (the sheet's ring is open where its bridge comes in); the pods loop
-// round the city's domes.
+// ------------------------------------------------------------------ the Underwater City: the sea port
+// The ship on the sea port's deck (4.4, 81, 164), three metres over the sea over the Dock, its hatch north toward the
+// lift's house (issue #572: src/underwater-port.js builds the deck, its rail and floats, and the lift down a glass shaft
+// into the Dock, where Bastien keeps the lock). The sheet: a coral pontoon ring with brass rims round the lock's shaft,
+// a domed cupola on it, round pods parked and gliding. The deck is the ring now; on it the cupola, two pods moored, a
+// brass lamp-post and casks; the pods loop round the city's domes below.
+// (Until #572 the ship stood on the Dock's dome under the sea, outside the glass: its ramp let you out into the water.)
 const UW_COL = { coral: '#e2806e', brass: '#c8a24e', teal: '#7cc4b4', cream: '#efe4cc', glass: '#a8e0d4' };
 export const UNDERWATER_PORT = {
   id: 'underwater',
-  site: { x: 5.4, y: 21, z: 134, h: Math.PI },
-  pad: [
-    { kind: 'annulus', at: [6, 5.4], dy: -0.7, r0: 10.5, r1: 21, gap: [-1.0, 0.3], h: 0.7, color: UW_COL.coral, rim: UW_COL.brass, seams: 18, posts: 10, legs: 8, drop: 5 },
-  ],
+  site: { x: 4.4, y: 81, z: 164, h: Math.PI },
+  pad: [],
   pieces: [
-    // the cupola on the ring by the stern, two pods moored, the lock's brass lamp-post
+    // the cupola on the deck west of the ship, two pods moored, the lock's brass lamp-post and casks behind the hull
     { kind: 'kiosk', at: [12, 22], dy: 0, yaw: 0.9, w: 3.6, d: 3.6, h: 2.6, color: UW_COL.cream, roof: 'round', roofColor: UW_COL.brass, window: '#ffe2a8' },
     { kind: 'craft', at: [21, 13], dy: 0, yaw: 2.2, model: 'pod', colors: { hull: UW_COL.coral, brass: UW_COL.brass, glass: UW_COL.glass } },
-    // (on the ring's far side, between the lock's columns)
     { kind: 'craft', at: [-12.2, 9.8], dy: 0, yaw: -2.4, model: 'pod', colors: { hull: UW_COL.cream, brass: UW_COL.brass, glass: UW_COL.glass } },
     { kind: 'mast', at: [-12.5, 1], dy: 0, h: 5.5, color: UW_COL.brass, trim: UW_COL.teal, lamp: '#ffe8b0' },
     { kind: 'cargo', at: [-12.5, 5.5], dy: 0, yaw: 0.5, items: ['cask', 'crate', 'cask', 'crate'], cols: 2, colors: { cask: UW_COL.teal, band: UW_COL.brass, crate: '#c8a882' } },
   ],
-  // the lock (issue #451, the sheet's shaft between teal columns banded in brass): four columns on the ring either side
+  // the lock (issue #451, the sheet's shaft between teal columns banded in brass): four columns on the deck either side
   // of the hull, the lift's coral plate under the belly braced to collars on them; the ship sets down on it 12 m up and
-  // is lowered onto the dome (src/levels/port-berth.js). The lens of its step: off the ramp's side, ahead of the bow.
+  // is lowered onto the deck (src/levels/port-berth.js). The lens of its step: off the ramp's side, ahead of the bow.
   berth: {
     kind: 'lock', rise: 12, collar: 3.0, columns: [[10.5, -6.5], [10.5, 14.5], [-10.5, -6.5], [-10.5, 14.5]],
     plate: { u: 7.3, v: [-18.5, 27.5], top: 0.78 },
@@ -179,8 +177,8 @@ export const UNDERWATER_PORT = {
     { model: 'pod', colors: { hull: UW_COL.teal, brass: UW_COL.brass, glass: UW_COL.glass }, centre: [0, 0, -50], rx: 110, rz: 90, h: 34, speed: 5, dir: -1, phase: 2.2 },
     { model: 'pod', colors: { hull: UW_COL.cream, brass: UW_COL.brass, glass: UW_COL.glass }, centre: [0, 0, 128], rx: 48, rz: 48, h: 12, speed: 4, phase: 4.4, scale: 0.8 },
   ],
-  sights: [{ name: 'the pontoon ring on the Dock', at: [20, 16] }],
-  staff: [],   // (Bastien keeps the lock: he is its harbourmaster already)
+  sights: [{ name: 'the sea port', at: [20, 16] }],
+  staff: [],   // (Bastien keeps the lock: he is its harbourmaster already, at the lift's foot in the Dock)
 };
 
 // ------------------------------------------------------------------ the Glass Dunes: the Float Yard

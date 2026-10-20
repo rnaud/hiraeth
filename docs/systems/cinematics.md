@@ -63,7 +63,14 @@ The ship's cutscenes and the filmed first times.
   the City-Shaft's cradle, swung out 0.72 rad on 13 m arms, swings it in, past its rest by a quarter of the swing and
   back, in 3.8 s (out in 2.6). Each eased to a standstill at both ends; filmed from the port's own lens (`shot`, in the
   hull's frame). The ship's rest, its ramp and the walk out are as before; a world without a berth plays the same steps
-  as before (the sequences' indices hold). Tests: `tests/port-berth.test.js`.
+  as before (the sequences' indices hold). Tests: `tests/port-berth.test.js`. (Since issue #572 the Underwater City's
+  lock stands on its sea port's deck over the water, not on the Dock's dome under it.)
+- **Over a sea** (issue #572). The scenes' lenses that stand on the ground (the landing's low shot, its dust, the hatch,
+  the step out, the take-off's) stand on the sea's surface where the world lies under one (`Ship.viewGround`): off the
+  Underwater City's sea port the ground is the sea floor 80 m down, and they filmed the landing and the take-off from
+  under the water, looking up the lift's shaft. The first arrival's views were picked again over the sea
+  (`scripts/arrival-views.mjs`, its ground the same; the landmark the lift's house on the deck: the sea hides the city).
+  The sequence `sea-port` (engine/sequences.js) plays the landing, the lock, the ramp and the ride down on every side.
 - **The first arrival in each world** (issue #327: "the landing view and the first exit out of the ship should show a
   beautiful view of the landscape with points of interest visible"; `src/ship/arrival-view.js`). Two views per route
   world, picked from its own data and kept in `src/ship/arrival-views.js`:

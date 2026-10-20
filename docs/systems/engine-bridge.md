@@ -1976,8 +1976,9 @@ side and compares them beat by beat.
   it, the same names on both sides: `webGame(window)` (the page's globals, its Start menu and game menu) and
   `engineGame(game, menus)` (engine/game.js, engine/menus.js); `engineKey` routes a key as the Unity host routes the
   player's.
-- **The sequences** (47): the opening (#394's seventeen beats), every world's filmed moment (17, the catalog's "World
-  moments"), a makers' box, the ship's arrival (by step) and takeoff, the Start menu and the game menu's pages (Items, Map, Quests,
+- **The sequences** (48): the opening (#394's seventeen beats), every world's filmed moment (17, the catalog's "World
+  moments"), a makers' box, the ship's arrival (by step) and takeoff, the Underwater City's sea port (`sea-port`: the
+  landing on its deck, the lock, the ramp, the ride down the lift's shaft to the Dock; issue #572), the Start menu and the game menu's pages (Items, Map, Quests,
   Settings), the Start menu's other entries (`start-pages`: Controls with its rebinding, What's new, Photo mode in and
   out; issue #264), the House map (the game menu's panel inside the Buried's makers' house, issue #405, #487; the game
   menu's beats carry its tabs as `side`), a fight in the Arena (a blot spawned, lock-on, a cut, a hit, its

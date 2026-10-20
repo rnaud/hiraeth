@@ -84,8 +84,17 @@ export const SEA_DAY = {
  * The sea's surface, `y` up, `size` across, centred on (x, z): drawn from below as a pale ceiling with its ripples,
  * carrying the sea's look (and `air`, the air pockets) for water.js. Its own mesh (water.js finds it).
  */
-export function seaSurface(kit, { y = 60, size = 4000, x = 0, z = 0, sea = SEA_DAY, air = null, color = '#2f8fb0', color2 = '#2f86b4', below = ['#8fd0e4', 0.22] } = {}) {
-  const m = kit.mesh(new THREE.PlaneGeometry(size, size).rotateX(-Math.PI / 2).translate(x, y, z), kit.mat({ color, color2, below, mode: MODE_WATER, waterDepth: 40 }), NS);
+export function seaSurface(kit, { y = 60, size = 4000, x = 0, z = 0, sea = SEA_DAY, air = null, color = '#2f8fb0', color2 = '#2f86b4', below = ['#8fd0e4', 0.22], holes = [] } = {}) {
+  // (holes: [{ x, z, r }] left open where a dry shaft rises through it: the Underwater City's lift, src/underwater-port.js)
+  let geo;
+  if (!holes.length) geo = new THREE.PlaneGeometry(size, size).rotateX(-Math.PI / 2);
+  else {
+    const h = size / 2, shape = new THREE.Shape([new THREE.Vector2(-h, -h), new THREE.Vector2(h, -h), new THREE.Vector2(h, h), new THREE.Vector2(-h, h)]);
+    // (laid flat, the shape's y is the world's -z)
+    for (const o of holes) shape.holes.push(new THREE.Path().absarc(o.x - x, -(o.z - z), o.r, 0, TAU, true));
+    geo = new THREE.ShapeGeometry(shape, 32).rotateX(-Math.PI / 2);
+  }
+  const m = kit.mesh(geo.translate(x, y, z), kit.mat({ color, color2, below, mode: MODE_WATER, waterDepth: 40 }), NS);
   m.name = 'The sea';
   m.userData.sea = { ...sea, ...(air ? { air } : {}) };
   return m;
@@ -700,11 +709,13 @@ export function farCity(kit, M, rng, { x = 0, z = 0, rMin = 150, rMax = 420, n =
  * disc of paving (`floor`: its material) 4 cm over y. Returns { x, y, z, r, sy, air(x, y, z), door(i) → [x, y, z] (the
  * door's middle on the floor, at the dome's foot), doors }.
  */
-export function bigDome(kit, M, { x, y = 0, z, r = 30, sy = 0.6, doors = [], ribs = 16, floor = M.street, tint = UW_PAL.domeGlass, seg = 48 }) {
+export function bigDome(kit, M, { x, y = 0, z, r = 30, sy = 0.6, doors = [], ribs = 16, floor = M.street, tint = UW_PAL.domeGlass, seg = 48, oculus = 0 }) {
   const glassMat = kit.mat({ color: tint, glass: true, glassCenter: new THREE.Vector3(x, y + r * sy * 0.4, z), line: 0.5, lineTint: 0.7, side: THREE.DoubleSide });   // (seen from inside: its rim and highlight)
   const H = r * sy, at = (g) => g.translate(x, y, z);
+  // (an oculus: the crown left open `oculus` m round, for a shaft through it: the Dock's lift, src/underwater-port.js)
+  const Htop = oculus > 0 ? H * Math.sqrt(1 - (oculus / r) ** 2) : H;
   const gaps = doors.map((d) => ({ yaw: d.yaw, half: Math.asin(Math.min(0.95, (d.w ?? 6) / 2 / r)), y0: 0, y1: Math.min(d.h ?? 4, H * 0.9) }));
-  const cuts = [...new Set([0, H, ...gaps.flatMap((g) => [g.y0, g.y1])])].filter((v) => v >= 0 && v <= H).sort((a, b) => a - b);
+  const cuts = [...new Set([0, Htop, ...gaps.flatMap((g) => [g.y0, g.y1])])].filter((v) => v >= 0 && v <= Htop).sort((a, b) => a - b);
   for (let k = 0; k < cuts.length - 1; k++) {
     const ya = cuts[k], yb = cuts[k + 1];
     if (yb - ya < 0.05) continue;
@@ -717,7 +728,7 @@ export function bigDome(kit, M, { x, y = 0, z, r = 30, sy = 0.6, doors = [], rib
   for (let i = 0; i < ribs; i++) {
     const a = (i / ribs) * TAU + 0.11;
     if (!free(a)) continue;
-    kit.add(M.frame, at(onDome(r, sy, Array.from({ length: 11 }, (_, k) => [a, (H * k) / 10 * 0.985]), 0.16)), NS);
+    kit.add(M.frame, at(onDome(r, sy, Array.from({ length: 11 }, (_, k) => [a, (Htop * k) / 10 * 0.985]), 0.16)), NS);
   }
   for (const f of [0.38, 0.78]) kit.add(M.frame, at(new THREE.TorusGeometry(Math.sin(thetaAt(H * f, r, sy)) * r * 1.012, 0.16, 4, seg).rotateX(Math.PI / 2).translate(0, H * f * 1.012, 0)), NS);
   // the base ring, broken at the doors (a tube's floor runs on through them, level or sloping: no lip to trip on)
@@ -737,7 +748,7 @@ export function bigDome(kit, M, { x, y = 0, z, r = 30, sy = 0.6, doors = [], rib
   }
   const R2 = (r - 0.2) ** 2;
   return {
-    x, y, z, r, sy, doors: gaps,
+    x, y, z, r, sy, doors: gaps, top: y + Htop,
     door: (i) => doorAt[i],
     air: (px, py, pz) => py > y - 1.5 && py < y + H + 1 && (px - x) ** 2 + (pz - z) ** 2 + (Math.max(0, py - y) / sy) ** 2 < R2,
   };

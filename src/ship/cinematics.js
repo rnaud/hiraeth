@@ -567,13 +567,13 @@ export class PrologueDirector {
         for (let i = 0; i < n; i++) {
           const side = Math.random() < 0.5 ? -1 : 1;
           const at = pos.clone().addScaledVector(this.T, 7 * SHIP_SCALE).addScaledVector(this.N, side * (5 + Math.random() * 5) * SHIP_SCALE);
-          at.y = s.groundAt(at.x, at.z) + 1;
+          at.y = s.viewGround(at.x, at.z) + 1;
           const v = this.N.clone().multiplyScalar(side * (4 + Math.random() * 7)).addScaledVector(this.T, 6 * (1 - p)).add(V(0, 3 + Math.random() * 4, 0));
           s.dust.emit(at, v, 1 + Math.random() * 1.3 * (1 - p * 0.5), 1.2 + Math.random(), new THREE.Color(pickOf(SAND)));
         }
         if (s.wind && Math.random() < 0.5) for (let i = 0; i < 4; i++) s.wind.emit(pos.x + (Math.random() - 0.5) * 30, pos.z + (Math.random() - 0.5) * 30, this.N.x * (Math.random() - 0.5) * 20, this.N.z * (Math.random() - 0.5) * 20);
         const cam = s.restPos.clone().addScaledVector(this.N, -40 * SHIP_SCALE).addScaledVector(this.T, -26 * SHIP_SCALE).add(V(0, 5 * SHIP_SCALE, 0));
-        cam.y = Math.max(cam.y, s.groundAt(cam.x, cam.z) + 2.5);
+        cam.y = Math.max(cam.y, s.viewGround(cam.x, cam.z) + 2.5);
         this.look.lerp(pos, 1 - Math.exp(-5 * dt));
         s.shot({ pos: cam, look: this.look, fov: 52 });
         s.shake(0.35 * (1 - p));
@@ -608,7 +608,7 @@ export class PrologueDirector {
       case 'hatch': {
         const side = V(-s.outDir.z, 0, s.outDir.x);
         const cam = s.rampFoot.clone().addScaledVector(s.outDir, 6.5).addScaledVector(side, 4.5);
-        cam.y = Math.max(s.rampFoot.y, s.groundAt(cam.x, cam.z)) + 2.2;
+        cam.y = Math.max(s.rampFoot.y, s.viewGround(cam.x, cam.z)) + 2.2;
         s.shot({ pos: cam, look: s.hinge.clone().lerp(s.rampFoot, 0.3).add(V(0, 1.4, 0)), fov: 54 });
         if (t > 0.3 && !this.hissed) { this.hissed = true; sfx.hatch(s.sound); }
         // (each eases itself: the door unseals and slides up, then the ramp slides out, tips down, telescopes)
@@ -619,7 +619,7 @@ export class PrologueDirector {
       case 'stepout': {
         const side = V(-s.outDir.z, 0, s.outDir.x);
         const cam = s.rampFoot.clone().addScaledVector(s.outDir, 5.5).addScaledVector(side, -3.2);
-        cam.y = s.groundAt(cam.x, cam.z) + 1.5;
+        cam.y = s.viewGround(cam.x, cam.z) + 1.5;
         this.look.lerp(s.player.pos.clone().add(V(0, 1.3, 0)), t < 0.05 ? 1 : 1 - Math.exp(-4 * dt));
         s.shot({ pos: cam, look: this.look, fov: 50 });
         break;
@@ -1052,7 +1052,7 @@ export class ArrivalDirector extends Sequence {
           // (low, off the ramp's side and ahead of the bow: it comes in toward the lens and stops over its spot; the lens
           // aims a little under it, so the ground it is coming down to stays in the frame and the drop reads)
           const cam = ship.rampFoot.clone().addScaledVector(ship.outDir, 34).addScaledVector(side, 20);
-          cam.y = ship.groundAt(cam.x, cam.z) + 5;
+          cam.y = ship.viewGround(cam.x, cam.z) + 5;
           look.lerp(_w.copy(m.group.position).lerp(base, LAND_LOOK), 1 - Math.exp(-5 * dt));
           ship.shot({ pos: cam, look, fov: 52 });
           const h = m.group.position.y - base.y;
@@ -1087,7 +1087,7 @@ export class ArrivalDirector extends Sequence {
         enter: () => sfx.hatch(ship.sound),
         frame: (t) => {
           const cam = ship.rampFoot.clone().addScaledVector(ship.outDir, 6.5).addScaledVector(side, 4.5);
-          cam.y = ship.groundAt(cam.x, cam.z) + 2.2;
+          cam.y = ship.viewGround(cam.x, cam.z) + 2.2;
           ship.shot({ pos: cam, look: ship.hinge.clone().lerp(ship.rampFoot, 0.3).add(V(0, 1.4, 0)), fov: 54 });
           ship.setDoor(m, seg(t, 0.05, 1.15));
           ship.setRamp(m, seg(t, 1.1, 2.75));
@@ -1103,7 +1103,7 @@ export class ArrivalDirector extends Sequence {
         },
         frame: (t, dt) => {
           const cam = ship.rampFoot.clone().addScaledVector(ship.outDir, 5.5).addScaledVector(side, -3.2);
-          cam.y = ship.groundAt(cam.x, cam.z) + 1.5;
+          cam.y = ship.viewGround(cam.x, cam.z) + 1.5;
           look.lerp(ship.player.pos.clone().add(V(0, 1.3, 0)), t < 0.05 ? 1 : 1 - Math.exp(-4 * dt));
           ship.shot({ pos: cam, look, fov: 50 });
         },
@@ -1195,7 +1195,7 @@ export class TakeoffDirector extends Sequence {
           // (low, out from the hatch and a little behind the stern: the lift and the hover side on, then it goes away
           // across and ahead of the lens rather than over it)
           const cam = ship.rampFoot.clone().addScaledVector(ship.outDir, 40).addScaledVector(fwd, -26);
-          cam.y = ship.groundAt(cam.x, cam.z) + 4;
+          cam.y = ship.viewGround(cam.x, cam.z) + 4;
           look.lerp(m.group.position, t < 0.05 ? 1 : 1 - Math.exp(-5 * dt));
           ship.shot({ pos: cam, look, fov: 52 - 6 * smooth((t - TAKEOFF.rise) / (TAKEOFF.dur - TAKEOFF.rise)) });
           // the jets out of the bells, and the dust they blow out along the ground until it is too high (src/ship/exhaust.js)

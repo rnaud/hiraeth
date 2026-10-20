@@ -15,7 +15,7 @@ export const KEEPSAKE = {
 export const ITEMS = { kelpcutting: 'a glow-kelp cutting' };
 
 export const QUESTS = [
-  // the city's own main quest (v1.48, issue #101): Bastien at the lock, by the landing, and the wrong note in the glass,
+  // the city's own main quest (v1.48, issue #101): Bastien at the lock, the lift's foot under the landing, and the wrong note in the glass,
   // traced to the window over the deep and followed north into the Whale-House (src/story/underwater.js)
   {
     id: 'underwater.note', title: 'The Wrong Note', world: 'underwater', main: true,
@@ -44,7 +44,7 @@ export const QUESTS = [
 ];
 
 export const PEOPLE = {
-  // Bastien keeps the lock (on the Dock, by the ship): he opens the city's main quest
+  // Bastien keeps the lock (the lift down from the sea port, at its foot in the Dock: issue #572): he opens the city's main quest
   bastien: {
     id: 'bastien', name: 'Bastien', title: 'who keeps the lock', color: '#3d6f78', voice: 0.9, kind: 'm',
     lines: ['~happy~ Welcome down. Mind the pool, it’s the lock’s and it’s colder than it looks.', '~neutral~ The long tube goes north to the Avenue. Everything’s north of here.'],
@@ -56,7 +56,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ['~neutral~ Your ship came down my lock like a stone down a well. A polite stone, I’ll give it that.',
+          say: ['~neutral~ You came down my lock like a stone down a well. A polite stone, I’ll give it that.',
             '~tired~ Hear that hum in the glass? One note, all over the city, since the night the whales went quiet. It’s the wrong note. The whales won’t come near it.'],
           choices: [
             { text: '~curious~ Where does it come from?', goto: 'where' },
@@ -71,7 +71,7 @@ export const PEOPLE = {
         },
         again: { say: ['~neutral~ A helmet off the rack, out by the lock, bell to bell. The Gallery’s at the bottom of the canyon street.'], choices: [{ text: '~neutral~ Going.', end: true }] },
         after: {
-          say: ['~happy~ They’re back. One came right up to the lock this morning and looked in at your ship. I think it approved.', { if: { flag: 'underwater.bastien.wells' }, text: '~playful~ One well a day, you said. You went down three: my lock, the canyon and the Whale-House.' }],
+          say: ['~happy~ They’re back. One came right up the lock’s shaft this morning and looked up at your ship. I think it approved.', { if: { flag: 'underwater.bastien.wells' }, text: '~playful~ One well a day, you said. You went down three: my lock, the canyon and the Whale-House.' }],
           choices: [{ text: '~playful~ It has good taste.', if: { not: { flag: 'underwater.bastien.wells' } }, end: true }, { text: '~playful~ Three wells. I may have overdone it.', if: { flag: 'underwater.bastien.wells' }, end: true }],
         },
       },

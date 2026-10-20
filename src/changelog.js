@@ -45,6 +45,10 @@ export const CHANGELOG = [
     // scripts/bench/pso-one-cull.mjs (the Xbox's and the Deck's lists), Android's list traced again; tests/unity-one-cull.test.js;
     // performance.md ("On the Retroid": the uniform layout off on Android, its GPU 0.6-1.5 ms slower with it)
     'In the Unity version, the graphics chip has fewer kinds of drawing to prepare before a world appears: surfaces seen from both sides no longer need their own, and on the Xbox and computers every model is laid out the same way, so a world asks for about half as many of its surfaces’ (the Desert 17 instead of 33), and the Xbox prepares 55 at the start instead of 61. On Android handhelds the models keep their own layouts, which the Retroid draws faster, so its frame rate is as before. The worlds look the same.',
+    // issue #572: src/underwater-port.js (SEA_PORT, SHAFT, SeaLift: the deck, the shaft, the cabin and its gates), underwater.js
+    // (shipSite, the Dock's oculus, the sea's hole, rescue, Bastien), ports.js UNDERWATER_PORT, player.js (a falling carrier
+    // keeps its rider), ship.js viewGround, arrival-views.js; engine/sequences.js sea-port; tests/underwater-port.test.js
+    'In the Underwater City the ship no longer leaves you out in the sea with no way in: it now lands on a sea port, a round coral deck floating on the water over the city. A lift in the brass house in front of the ramp takes you down a glass shaft through the sea and in through the Dock’s dome, where Bastien keeps the lock: step on and stand to ride down, and ride it back up to your ship.',
   ] },
   { v: '1.87', date: '2026-10-19', items: [
     // issue #556: BridgeHud.cs (a minigame's flashes, the gadget marks' numbers, the chimes' count in Ui.Sans / SansHeavy,

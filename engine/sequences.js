@@ -130,6 +130,17 @@ export const SEQUENCES = [
     beats: [atStep('seal', 0, 1), atStep('lift', 1, 2), atStep('away', 1, 4.6), atStep('stars', 2, 0.8)],
   },
   {
+    // the Underwater City's sea port (issue #572): the ship sets down on its deck over the sea, the lock lowers it, the
+    // ramp; then the lift down its shaft through the surface, the sea and the Dock's crown (src/underwater-port.js)
+    id: 'sea-port', title: 'The sea port and its lift', setup: { level: 'underwater', review: 'arrival.underwater' },
+    beats: [atStep('land', 3, 1.5), atStep('berth', 4, 2), atStep('ramp', 5, 1.2), { name: 'out', until: (G) => !G.ship?.playing, timeout: 60, wait: 1.5 },
+      { name: 'cabin', act: (G) => { const S = G.level.seaPort, p = new THREE.Vector3(0.4, S.lift.y + 0.05, 128.6); G.player.teleport(p, new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, -1)); G.player.heading = Math.PI; G.rig.yaw = 0; }, until: (G) => G.level.seaPort.lift.moving, timeout: 5, wait: 0.4 },
+      { name: 'surface', until: (G) => G.level.seaPort.lift.y < 75, timeout: 20 },
+      { name: 'deep', until: (G) => G.level.seaPort.lift.y < 42, timeout: 20 },
+      { name: 'crown', until: (G) => G.level.seaPort.lift.y < 19, timeout: 20 },
+      { name: 'dock', until: (G) => G.level.seaPort.lift.at === 'foot', timeout: 20, wait: 1 }],
+  },
+  {
     // the Start menu and its pages (src/ui.js SettingsMenu on the web, engine/menus.js in the engines; no Items, Quests or
     // Map there since issue #487), and the game menu's (src/game-menu.js) Items, Map and Quests
     id: 'menus', title: 'The Start menu and its pages', setup: { level: 'bazaar', debug: true },

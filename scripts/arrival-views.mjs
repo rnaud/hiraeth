@@ -31,7 +31,8 @@ const PICK = (id) => `(async () => {
   const scene = window.scene, level = window.level, physics = window.physics, ship = window.ship;
   const { los, hit } = AV.losOf(AV.sightPhysics(scene, level, Physics));
   const rest = ship.restPos.toArray();
-  const ground = (x, z) => ship.groundAt(x, z, rest[1] + 300);
+  // (over a sea, its surface: the Underwater City's sea port, issue #572)
+  const ground = (x, z) => { const g = ship.groundAt(x, z, rest[1] + 300), s = ship.viewGround?.(x, z); return Number.isFinite(s) ? Math.max(g, s) : g; };
   // (the ground round a landmark's foot: the lowest of four points 20 m off it, its own top answering straight over it)
   const footAt = (x, z) => Math.min(...[[20, 0], [-20, 0], [0, 20], [0, -20]].map(([dx, dz]) => physics.groundAt(x + dx, 1500, z + dz, 3000)).filter(Number.isFinite));
   const marks = AV.marksOf(${JSON.stringify(id)}, level, footAt);

@@ -107,10 +107,10 @@ export const MARKS = {
     ...mk(beacon(L, 'the Greenhouse’s glass spire'), { main: true, w: 3 }),
     ...mk(temple(L, null, 'the Greenhouse’s door'), { w: 1 }),
   ],
+  // (since issue #572 the ship lands on the sea port over the city: from up there the sea hides the city, and the lift's
+  // house on the deck is the way down)
   underwater: (L) => [
-    ...mk(beacon(L, 'the Breathing Tower'), { main: true, w: 3 }),
-    ...mk(beacon(L, 'the Plaza’s great pipe'), { w: 1 }),
-    ...mk(beacon(L, 'the Gallery’s great pipe'), { w: 1 }),
+    ...mk(beacon(L, 'the sea port’s lift'), { main: true, w: 3 }),
   ],
   incal: (L) => [
     ...mk(beacon(L, 'the Lodestar'), { main: true, w: 3 }),
@@ -159,8 +159,8 @@ export const MARKS = {
 
 /**
  * Where the establishing shot's camera may stand, per world, where the default (140-250 m off the ship, 22-110 m up)
- * reads badly: in the Underwater City's sea and the Moon Foundry's haze it stands nearer and lower (far off is only
- * blue, or white); in the Signal Market high over the roofs (from the street its towers fill the frame).
+ * reads badly: on the Underwater City's sea port and in the Moon Foundry's haze it stands nearer and lower (far off is
+ * only blue, or white); in the Signal Market high over the roofs (from the street its towers fill the frame).
  */
 export const VIEW_OPTS = {
   underwater: { dists: [90, 130, 170], heights: [16, 28, 40] },

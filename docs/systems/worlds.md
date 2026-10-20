@@ -1897,8 +1897,8 @@ route was that the traveller is never outside swimming. Now every place you can 
 the makers' glass, joined to the next by a sealed glass tube or the lift; the sea, the towers of pods, the kelp, the fish,
 the mantas and the whales are all on the other side of the glass. (Since v1.56 you can go out too, in a diver's helmet, walking the bed: still never swimming. "The Underwater City's explorations", below.)
 
-- **The halls** (`DOMES`, floors at y 0 but the Gallery's at -16 and the Crown's at 64): the **Dock** (the ship on its
-  floor, the moon pool railed, Bastien), the **Avenue** (the greatest dome, 46 m: Coralie's café and four more cafés as
+- **The halls** (`DOMES`, floors at y 0 but the Gallery's at -16 and the Crown's at 64): the **Dock** (the lift down from
+  the sea port in its middle, the moon pool railed, Bastien; "The sea port", below), the **Avenue** (the greatest dome, 46 m: Coralie's café and four more cafés as
   domes inside it, a tower of pods to climb, Odette's Air-Shop), the **Garden** (glow-kelp troughs, Brune), the
   **Plaza** (the great column of luminous water, the Breathing Tower, the lift in its foot), the **Crown** (a bubble round
   the column's head, 64 m up under the surface, Fabre) and the **Whale Gallery** (down a sloped tube over the deep, Maelle,
@@ -1915,6 +1915,52 @@ the mantas and the whales are all on the other side of the glass. (Since v1.56 y
 - **Whales**: two, out in the deep east of the Gallery (`whale`), their loops drawn in close to the glass once the
   Whale-House's keeper is calmed (`level.whalesNear`, eased by `src/story/underwater.js`).
 - **Cost**: ~0.3 M triangles, ~110 meshes before the temple; the domes and tubes are glass (cheap: most of it discarded).
+
+## The Underwater City's sea port (issue #572)
+
+The author: "The underwater world is bugged out, when I first come out the ship I'm in the water and I cannot get into the
+city. The ship needs to land in a spaceport above the water. then I take an elevator down to the underwater city." Since
+#338 the ship had stood on the Dock's dome (21 m up, outside the glass, 57 m under the surface), and #441/#451 built its
+port and lock there: its ramp let the traveller out onto the dome's glass in the sea, in the helmet's sea's rules (the
+air running down) with no helmet (it hangs on the rack inside the Dock) and no way in (the locks to the sea want one).
+
+`src/underwater-port.js` (pure numbers first, then `buildSeaPort`):
+
+- **The deck** (`SEA_PORT`): a round coral deck 42 m round on fourteen floats, three metres over the sea (y 81, the sea's
+  surface at 78), over the Dock, paved in a coarse grid; a glass screen on brass posts round its edge (solid, not to be
+  climbed: `userData.noClimb`), six teal lamp-columns banded in brass. The ship stands on its south half (`PORT_SHIP`,
+  4.4, 81, 164, its hatch north), the lock's columns and lift plate round it as before (`src/levels/ports.js`
+  UNDERWATER_PORT: the cupola, two pods, the lamp-post and casks moved onto the deck; the pontoon ring is the deck now).
+  A path of teal studs leads from the ramp's foot to the lift's house, 14 m on. Over the side into the sea, the level's
+  update puts you back on the deck by the house (`rescue`): nobody swims here, and the sea under the port is 80 m deep.
+- **The lift** (`SHAFT`): a glass shaft 3.6 m round between four teal columns banded in brass, straight down from a brass
+  cupola on the deck through the sea and through the Dock's crown (`bigDome`'s `oculus`: the dome's glass stops 5.2 m
+  round its axis, a brass collar over the gap) to the Dock's floor. Its doors: the house's south toward the ship, the
+  foot's north toward the long tube. The shaft is the sea's air all the way down (`air`), the sea's surface is open
+  round it (`seaSurface` `holes`), and its glass is not to be climbed. A lamp every 12 m, brass hoops every 6.
+- **The cabin** (`SeaLift`, `CABIN`): a coral plate 3.3 m round with a brass rail at the hip, a moving solid
+  (`level.dynamic`, src/carriers.js) that carries you. Step on and stand (0.7 s): its gates close and it runs the 80.7 m
+  in 13.4 s (`liftRun`: up to 8 m/s at 2.4 m/s², and down again), through the surface, the city coming up through the
+  glass, and down through the Dock's crown; at the other end its gate opens. It waits until whoever rode it has stepped
+  off before it will go again. Walk up to the end it isn't at (within 7 m of the axis) and it comes. A station's gate (a
+  brass grille sliding round inside the glass) is shut while the cabin is away, and is a solid then: nobody walks into the
+  empty shaft. On the first frame it waits at the end nearer the traveller (the deck after the ship, the Dock after a
+  load). Its meshes are its own (`userData.dynamic`, never baked into the collision); the player rides a cabin going
+  down at speed (`Player.moveStep`: stood on it last step and still on his feet, carried on: issue #572; before, only a
+  disc that did not fall faster than he did held him).
+- **The story**: Bastien stands by the lift's foot in the Dock, turned to its door ("the lock" is the lift: "You came
+  down my lock like a stone down a well"; after the house, a whale "looked up the lock's shaft at your ship"). The
+  arrival's views were picked again over the sea (`src/ship/arrival-views.js`: the landmark the lift's house; the ship's
+  lenses keep over the water: `Ship.viewGround`, docs/systems/cinematics.md "Over a sea"). Places: "The sea port",
+  "The lift to the sea port".
+- **Unity**: the same JS (the cabin, the gates, the carrying) runs in the bridge; the sequence `sea-port`
+  (engine/sequences.js) plays the landing, the lock, the ramp and the ride down on every side and is checked in node on
+  GitHub (`tests/sequences-play.test.js`).
+
+Tested in `tests/underwater-port.test.js` (the run, the deck under the ship and between the ramp and the lift, the ride
+down and back with the real traveller: never in the water, carried all the way, out by Bastien; the call and the shut
+gate; over the side and back; the shaft open through the Dock's crown and dry) and `tests/underwater.test.js` (the ship on
+the deck over the water).
 
 ## The Underwater City's explorations (v1.56, issue #192)
 
@@ -2929,7 +2975,7 @@ in the world where a piece belongs to the city's own plan (the Pier's rim, the s
 | the City in Space | the Pier port | red bands on the deck, four blue hoop cradles off the rim (three with sky-boats), the lamp-mast and the harbour hut by the bridge, a chalk-board, casks; four sky-boats in flight; Orla |
 | the City-Shaft | the Rim Docks | two lacquered cradles over the drop either side of the ramp's line (a cab in one), a gantry crane lowering a crate into the shaft, a cab stand of three behind the hull, the bay's lilac lines; Faro |
 | the Signal Market | the Callsign Apron | the apron's white lines, a 34 m board of call-signs with its clerk's window, a dart, the yellow walker and a hauler parked, a round pad, radios under a stall; two craft over the avenue; Ludo |
-| the Underwater City | the Dock made a port | a coral pontoon ring with brass rims on the dome's crown under the hull, open where the ramp comes down to the dome, a cupola, two pods moored, a brass lamp-post; three pods round the domes |
+| the Underwater City | the sea port | a round coral deck on floats over the sea above the Dock, railed in glass and brass, teal lamp-columns, a cupola, two pods moored, a brass lamp-post and casks, the lift's house ahead of the ramp (issue #572, "The Underwater City's sea port"); three pods round the domes below |
 | the Glass Dunes | the Float Yard | a pale stone disc ringed in white under the ship (flush with the ship's flat of sand: a slab drawn higher is walked through, src/contact-audit.js), ochre canvases over racks of glass floats, three float-sledges, a glass skiff; one skiff in flight; Mabyn |
 | the Eclipse city | the Lantern Esplanade | rows of limewashed pylons with lanterns along the hull, a pair at the way out, a mirror tower, gold rings and lamps set in the paving, baskets; two junks in flight; Cato |
 | Salt Harbour | the Salt Quay | stakes and mooring ropes round the ship, a mast crane on a terracotta tower, a sand-skiff and a hopper, sea chests, a sailcloth over herb crates; a hopper in flight |
@@ -2938,8 +2984,8 @@ in the world where a piece belongs to the city's own plan (the Pier's rim, the s
 
 **Berths** (v1.84, issue #451, `src/levels/port-berth.js`): what carries the ship between where it sets down and its
 rest, a port's `berth`. The Underwater City's **lock** (its sheet's shaft between teal columns): four columns banded in
-brass on the pontoon ring either side of the hull, the lift's coral plate under the belly braced to collars on them; the
-ship sets down on it 12 m up and is lowered onto the dome. The City-Shaft's **cradle** (its sheet's lacquered cradle with
+brass on the sea port's deck either side of the hull (on the Dock's dome until issue #572), the lift's coral plate under
+the belly braced to collars on them; the ship sets down on it 12 m up and is lowered onto the deck. The City-Shaft's **cradle** (its sheet's lacquered cradle with
 a brass hub): towers past the bow and the stern, the cradle hung from their hubs on an arm at each end, girders along the
 hull's sides (open where the ramp comes down), saddles under the feet; the ship sets down in it swung out toward the
 shaft and it swings in over the rim's paving. The fixed part (columns, towers) is baked into the port's solid meshes;

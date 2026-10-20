@@ -61,7 +61,9 @@ the grown room; the console, the voicemail, the projector and where he stands to
   `fromPlan`), not a disc of its reach round its origin (31 m now, twice the ground it covers); the worlds whose ship the
   search placed (Arzach, Perdide, Edena) keep the spots players know (`SITE_OVERRIDES`; the Buried City's 22 m west,
   its longer bow lay across the furnace steps' course), and the
-  Underwater City's ship stands 5.4 m east on the Dock's dome, its legs even about the crown (`underwater.js` shipSite).
+  Underwater City's ship stood 5.4 m east on the Dock's dome, its legs even about the crown (since issue #572 it stands on
+  the sea port's deck over the water, `src/underwater-port.js` PORT_SHIP: on the dome it was outside the glass, and its
+  ramp let you out into the sea with no way in).
   `tests/contact-audit.test.js` lands it in every world over its whole plan (hull, sky, feet, ramp). The arrival views
   were picked again (`scripts/arrival-views.mjs`). The take-off hovers 22 m up (15 before). Marrow waits clear of the
   hull's plan (`landing.js planGap`); a spawn under the plan moves to the foot of the ramp (`Ship.covers`).

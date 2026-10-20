@@ -1764,6 +1764,7 @@ export class Player {
     this._edgeStep = false; this._edgeN ??= new THREE.Vector3();
     for (let k = 0; k < steps; k++) {
       carrier = this.moveStep(sdt, U, move);
+      this._carriedBy = carrier;
       if (this._pushedStep) pushed = true;
       if (this.climbing || this._respawned || this._landing) break;
     }
@@ -1893,7 +1894,9 @@ export class Player {
           continue;
         }
         const above = this.pos.y - d.top;
-        if (above > -0.5 && above < 0.9 && this.vel.y - d.vel.y <= 0.5) {
+        // (stood on it last step and still on your feet: carried on, whatever its speed down: the Underwater City's
+        // lift, issue #572; else only when not rising off it, so a jump leaves it)
+        if (above > -0.5 && above < 0.9 && (this.vel.y - d.vel.y <= 0.5 || (this._carriedBy === d && this.onGround && this.vel.y <= 0.5))) {
           if (above < roofH) { roofH = above; carrier = d; }
         } else if (this.pos.y + HEIGHT > d.bottom && this.pos.y < d.top - 0.5 && hd > 1e-4) {
           const k = (d.r + RADIUS) / hd;
