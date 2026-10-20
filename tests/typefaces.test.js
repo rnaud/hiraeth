@@ -26,6 +26,7 @@ const MONO_OK = {
   'src/levels/reference-picker.js': 'the References’ list of views',
   'src/levels/arcade.js': 'the Arcade’s score board, a machine’s screen in the world',
   'src/characters/outfit-page.js': 'the outfits test page’s readout of draws and triangles, a dev page',
+  'src/pose-report.js': 'the F8 pose report, a debug readout of the traveller’s animator for screenshots',
   'src/ship/portrait.js': 'the ship’s console screen (NO POWER, the reel’s date stamp), a machine’s screen in the world',
 };
 
