@@ -2250,6 +2250,35 @@ skin where the sheets show it (pass 4's body is his skin), on #544's shared volu
   the tunic through the robe 32–53 of 4 649; the check's 4 cm reach at most), and the front panels lift
   with the thighs like boards.
 
+  Since #547 its skirts swing (below), its hood is a cowl lying down (`Hood`: a roll along the robe's
+  neckline from his chest round the back of his neck, the hood's bag on his back to a point, fitted over
+  the robe, weighted from his back and shoulders, never his head), its colours are sheet-1's medians (the
+  robe the paper's warm white, its shading lighter), and the sandals are sandals: his foot flat on a woven
+  sole with thickness, its front drawn back to five toes standing on the sole (`Soles`, a prop), the
+  straps, the ankle strap and the crossed laces raised (`tailor.raised` rings). The hem a little longer
+  (it hangs on from the knee). 49.7 k triangles. Running (Blender's poses, with the swing's rule): the
+  trousers through the tunic 6–9 verts, ≤ 20 mm (were 20–24, ≤ 39); the tunic through the robe ≤ 21 mm;
+  the trousers through the robe 3–10 verts at the groin with the knee at its highest, ≤ 31 mm.
+
+**A skirt's swing** (#547; `outfit_kit.py` "a skirt's swing", `src/characters/outfits.js` `SkirtSwing`): a
+long skirt skinned to the thighs lifts like a board with each knee. An outfit can ask for a swing instead
+(its spec reaches the manifest as the report of a relief op named `swing`: `fit.<piece>.relief.swing`;
+`swingSpecOf`): each skirt's four panels (front and back, left and right; parted where its slits are,
+`backX` and `sideZ`, soft into each other above them) hang on two bones each, hip joint to knee and knee
+to hem, that ride the pelvis. Each upper bone's swing forward is its hang (plumb: a share of the pelvis'
+lean) unless its thigh pushes it (a front panel never behind its thigh, a back one never in front of
+it); it turns with its thigh sideways and about its length; each lower bone hangs plumb from the knee
+unless the shin pushes it (a back panel's hem kicked back at most `lowerReach`). In the game a damped
+spring carries the hang (`spring`: it lags, swings on after a push, settles; a start or a stop swings
+it), stepped once a frame by an empty under the pelvis; the eight bones are added to the clothes' own
+skeleton and the skirts' verts weighted onto them from their rest positions (`skirtSwingWeights`: all
+down the skirt, none over the hips, their own weights between), and that outfit's clothes are drawn on
+both faces (`doubleSided`: the skirts' insides show). In Blender the same rule without the spring:
+drivers on a small armature (`SkirtSwing`, not exported) whose root copies the pelvis, mixed over the
+piece's own weights by a second armature modifier, so `outfit.py`'s poke checks and the previews show
+it. The skirts' weights on the thighs stay in the GLB as the fallback (an engine without the swing).
+Web only for now: the Unity port does not draw v2.
+
 Their own shared parts are in `outfit_kit.py` (boxes, tori, bands, skirts, rigid islands, weights copied
 from the piece under). `outfit.py` takes four optional things from an outfit: `BOOTS = None`, a piece's
 `sample` (where its weights are read), a piece's `checks` (pieces it is checked against, not fitted over),

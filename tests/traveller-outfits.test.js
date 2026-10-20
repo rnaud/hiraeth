@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import * as T from 'three';
 import { B3_JOINTS } from '../src/characters/traveller-b3-fit.js';
-import { Wardrobe, planOutfit, cullByArea, cutByBoxes, hiddenAreaSet } from '../src/characters/outfits.js';
+import { Wardrobe, planOutfit, cullByArea, cutByBoxes, hiddenAreaSet, swingSpecOf, skirtSwingWeights, weightSkirts, SkirtSwing, SWING_PANELS } from '../src/characters/outfits.js';
 
 const DIR = 'data/characters/traveller-v2/';
 const list = JSON.parse(readFileSync(DIR + 'outfits.json', 'utf8'));
@@ -285,9 +285,20 @@ test('the moss gardener: shirt, shorts, socks, waistcoat and its pockets; forear
   for (const k of ['moss', 'ochre', 'rust', 'turquoise', 'wool']) assert.ok(m.atlas.palette[k], `palette ${k}`);
 });
 
-test('the salt pilgrim: robe, tunic, sash, trousers and sandals (no boots); the skirts swing within bounds at full stride', () => {
+test('the salt pilgrim: robe and its hood, tunic, sash, trousers, sandals on soles (no boots); the skirts swing within bounds at full stride', () => {
   const m = outfit('salt-pilgrim');
-  assert.deepEqual(Object.keys(m.parts).sort(), ['PilgrimTrousers', 'Robe', 'Sandals', 'Sash', 'Tunic']);
+  assert.deepEqual(Object.keys(m.parts).sort(), ['Hood', 'PilgrimTrousers', 'Robe', 'Sandals', 'Sash', 'Soles', 'Tunic']);
+  assert.equal(m.parts.Soles.prop, 'weighted', 'the soles and toes: a prop');
+  // (#547) the swing (checked in Blender with the swing's rule): his trousers through the tunic and both
+  // through the robe by a few verts, under 3.5 cm, at full stride; the tunic through the robe under 2.5 cm
+  for (const pose of RUNNING) {
+    const p = m.pokes.posed[pose];
+    assert.ok(p['PilgrimTrousers>Tunic'].deepestMm <= 25 && p['PilgrimTrousers>Tunic'].out <= 15, `${pose}: trousers through the tunic ${JSON.stringify(p['PilgrimTrousers>Tunic'])}`);
+    assert.ok(p['Tunic>Robe'].deepestMm <= 25, `${pose}: the tunic through the robe ${JSON.stringify(p['Tunic>Robe'])}`);
+    assert.ok(p['PilgrimTrousers>Robe'].deepestMm <= 35 && p['PilgrimTrousers>Robe'].out <= 15, `${pose}: trousers through the robe ${JSON.stringify(p['PilgrimTrousers>Robe'])}`);
+  }
+  // the robe as white as the sheet's paper, the hood's colour the robe's
+  assert.ok(m.atlas.palette.robe.every((c) => c >= 220) && m.atlas.palette.robe[0] >= 245, `robe ${m.atlas.palette.robe}`);
   // the sandals' feet over his: the body's feet and ankles hidden, the sandals hide them as well
   for (const a of ['foot.L', 'foot.R', 'ankle.L', 'ankle.R', 'upperarm.L', 'forearm_upper.R', 'thigh.L', 'knee.R']) assert.ok(m.hides.includes(a), a);
   assert.ok(m.skinCut.length >= 1, 'his forearms under the full sleeves cut');
@@ -305,4 +316,164 @@ test('the salt pilgrim: robe, tunic, sash, trousers and sandals (no boots); the 
   }
   assert.ok(m.triangles <= 50000, `${m.triangles} triangles`);
   for (const k of ['robe', 'saffron', 'rose', 'turquoise', 'terracotta', 'skin']) assert.ok(m.atlas.palette[k], `palette ${k}`);
+});
+
+// #547: the salt pilgrim's skirts swing (src/characters/outfits.js, SkirtSwing; outfit_kit.py builds the same
+// rule into Blender for the checks and the previews)
+const pilgrimSwing = () => swingSpecOf(outfit('salt-pilgrim'));
+
+test('only the salt pilgrim asks for a skirt swing: its robe and its tunic', () => {
+  for (const o of others) {
+    const s = swingSpecOf(outfit(o.id));
+    if (o.id === 'salt-pilgrim') assert.deepEqual(Object.keys(s.garments).sort(), ['Robe', 'Tunic']);
+    else assert.equal(s, null, `${o.id} asks for no swing`);
+  }
+  const plan = planOutfit(list, base, { 'salt-pilgrim': outfit('salt-pilgrim') }, 'salt-pilgrim');
+  assert.ok(plan.swing, 'the plan carries it');
+});
+
+test('the swing weights the skirts from their rest: down the skirt all swung, the hips untouched, each panel its own below the slits', () => {
+  const spec = pilgrimSwing();
+  const m = outfit('salt-pilgrim');
+  const g = glb(DIR + 'outfits/salt-pilgrim/' + m.glb);
+  const prim = g.meshes.Robe.mesh.primitives[0];
+  const pos = g.accessor(prim.attributes.POSITION), index = g.accessor(prim.indices);
+  let swung = 0, top = 0;
+  const panel = [];
+  for (let i = 0; i < pos.length; i += 3) {
+    const [x, y, z] = [pos[i], pos[i + 1], pos[i + 2]];
+    const { mix, w } = skirtSwingWeights(x, y, z, spec, 'Robe');
+    const sum = w.reduce((a, b) => a + b, 0);
+    assert.ok(Math.abs(sum - 1) < 1e-6, `weights add to ${sum}`);
+    panel.push(SWING_PANELS.filter((_, k) => w[2 * k] + w[2 * k + 1] > 1e-6));
+    if (y > spec.mix[0]) { assert.equal(mix, 0); top++; continue; }
+    if (y < spec.mix[1]) { assert.equal(mix, 1); swung++; }
+    // below the slits a vert is on one panel alone, its upper or its lower bone
+    if (y < spec.garments.Robe.slitTop) assert.equal(panel.at(-1).length, 1, `vert at ${x.toFixed(3)} ${y.toFixed(3)} ${z.toFixed(3)} on ${panel.at(-1)}`);
+  }
+  // and the panels part at the slits: no triangle below them joins two (it would tear as they swing apart)
+  const slit = spec.garments.Robe.slitTop;
+  for (let t = 0; t < index.length; t += 3) {
+    const v = [index[t], index[t + 1], index[t + 2]];
+    if (v.some((i) => pos[i * 3 + 1] >= slit - 0.01)) continue;
+    assert.equal(new Set(v.map((i) => panel[i][0])).size, 1, `a triangle across panels at ${pos[v[0] * 3].toFixed(3)} ${pos[v[0] * 3 + 1].toFixed(3)}`);
+  }
+  assert.ok(swung > 3000 && top > 2000, `${swung} skirt verts swung, ${top} over the hips not`);
+});
+
+test('re-weighted skirts keep four weights adding to one, on the swing\'s bones down the skirt', () => {
+  const spec = pilgrimSwing();
+  const g = new T.BufferGeometry();
+  const P = [[0.15, 0.95, 0.05], [0.15, 0.7, 0.08], [-0.12, 0.45, -0.1], [0.1, 1.2, 0.1]];
+  g.setAttribute('position', new T.Float32BufferAttribute(P.flat(), 3));
+  g.setAttribute('skinIndex', new T.Uint16BufferAttribute(P.flatMap(() => [1, 2, 0, 0]), 4));
+  g.setAttribute('skinWeight', new T.Float32BufferAttribute(P.flatMap(() => [0.6, 0.4, 0, 0]), 4));
+  const moved = weightSkirts(g, spec, { Robe: [0, 4] }, 53);
+  assert.equal(moved, 3, 'the vert over the hips stays');
+  for (let i = 0; i < 4; i++) {
+    let s = 0;
+    for (let k = 0; k < 4; k++) s += g.attributes.skinWeight.getComponent(i, k);
+    assert.ok(Math.abs(s - 1) < 1e-5);
+  }
+  // the vert at mid-thigh on his left front: all on the front-left's upper bone (53)
+  const bones = [0, 1, 2, 3].filter((k) => g.attributes.skinWeight.getComponent(1, k) > 0).map((k) => g.attributes.skinIndex.getComponent(1, k));
+  assert.deepEqual(bones, [53]);
+  assert.equal(g.attributes.skinIndex.getComponent(3, 0), 1, 'over the hips: its own weights');
+});
+
+/** A stand-in skeleton: the pelvis, the thighs and the calves at the v2 traveller's joints. */
+function legs() {
+  const root = new T.Bone();
+  root.name = 'Root';
+  const mk = (name, parent, p) => { const b = new T.Bone(); b.name = name; b.position.set(...p); parent.add(b); return b; };
+  const pelvis = mk('pelvis', root, [0, 0.955, -0.043]);
+  const b = { root, pelvis };
+  for (const [s, x] of [['l', 1], ['r', -1]]) {
+    b[`thigh_${s}`] = mk(`thigh_${s}`, pelvis, [0.109 * x, -0.024, 0.004]);
+    b[`calf_${s}`] = mk(`calf_${s}`, b[`thigh_${s}`], [0.01 * x, -0.443, 0.017]);
+  }
+  root.updateMatrixWorld(true);
+  return { b, skeleton: new T.Skeleton(Object.values(b)) };
+}
+const deg = (a) => (a * 180) / Math.PI;
+
+test('the swing: a front panel goes with its thigh forward and hangs when it goes back, a back panel the other way; it lags and settles', () => {
+  const spec = pilgrimSwing();
+  const { b, skeleton } = legs();
+  const s = new SkirtSwing(spec, skeleton, new T.Matrix4());
+  s.settle();
+  assert.ok(s.angles().every((a) => Math.abs(a) < 1e-6), 'at rest: hanging');
+  // the left thigh forward 50 degrees (knee up): the front-left panel with it, the back-left hanging
+  b.thigh_l.rotation.x = -50 / 57.2958;
+  b.calf_l.rotation.x = 50 / 57.2958;      // (the knee bent: the shin hanging plumb)
+  b.root.updateMatrixWorld(true);
+  s.settle();
+  let [flU, , frU, , blU] = s.angles().map(deg);
+  assert.ok(Math.abs(flU - 50) < 1, `front-left with the thigh: ${flU}`);
+  assert.ok(Math.abs(blU) < 1 && Math.abs(frU) < 1, 'the back-left and the right hang');
+  // the panels' bones move the skirt: a vert of the front-left at the knee comes forward and up
+  const v = new T.Vector3(0.12, 0.5, 0.1).applyMatrix4(s.bones[0].matrixWorld);
+  assert.ok(v.z > 0.3 && v.y > 0.65, `the front-left panel's knee point at ${v.toArray().map((x) => x.toFixed(2))}`);
+  // its lower bone hangs from the knee (plumb, the hang's share): about -45 relative to the upper
+  assert.ok(Math.abs(deg(s.angles()[1]) + 0.9 * 50) < 2, `the lower hangs: ${deg(s.angles()[1])}`);
+  // the thigh swings back 30 (the knee bent behind): the front-left lags down to hanging, the back-left goes back
+  b.thigh_l.rotation.x = 30 / 57.2958;
+  b.calf_l.rotation.x = 80 / 57.2958;
+  b.root.updateMatrixWorld(true);
+  for (let i = 0; i < 6; i++) s.update(1 / 60);
+  [flU, , , , blU] = s.angles().map(deg);
+  assert.ok(flU > 15 && flU < 50, `the front-left falls back, not at once: ${flU}`);
+  assert.ok(blU <= -30 + 1e-6, `the back-left pushed back by the thigh: ${blU}`);
+  for (let i = 0; i < 240; i++) s.update(1 / 60);
+  const a = s.angles().map(deg);
+  assert.ok(Math.abs(a[0]) < 0.5, `settled hanging: ${a[0]}`);
+  assert.ok(Math.abs(a[4] + 30) < 0.5, `the back-left on the thigh: ${a[4]}`);
+  assert.ok(a[5] >= -deg(spec.lowerReach) - 1e-6, 'the back panel\'s hem kicked back no further than its reach');
+  // a stop (the body slowing) swings the hanging panels forward, then they settle again
+  b.thigh_l.rotation.x = 0;
+  b.calf_l.rotation.x = 0;
+  b.root.updateMatrixWorld(true);
+  for (let i = 0; i < 240; i++) s.update(1 / 60);
+  for (let i = 0; i < 30; i++) { b.root.position.z += 0.1; b.root.updateMatrixWorld(true); s.update(1 / 60); }   // running at 6 m/s
+  let peak = 0;
+  for (let i = 0; i < 40; i++) {
+    b.root.position.z += Math.max(0, 0.1 - i * 0.004);   // slowing to rest
+    b.root.updateMatrixWorld(true);
+    s.update(1 / 60);
+    peak = Math.max(peak, deg(s.angles()[2]));
+  }
+  assert.ok(peak > 2, `the front-right swings forward as he stops: ${peak}`);
+  for (let i = 0; i < 300; i++) s.update(1 / 60);
+  assert.ok(s.angles().every((x) => Math.abs(deg(x)) < 0.5), 'and settles');
+  // the pelvis leant forward 20 (his legs with it): the front panels hang plumb (the hang's share of it)
+  b.pelvis.rotation.x = 20 / 57.2958;
+  b.root.updateMatrixWorld(true);
+  s.settle();
+  assert.ok(Math.abs(deg(s.angles()[2]) - 0.8 * 20) < 1, `plumb: ${deg(s.angles()[2])}`);
+  assert.ok(Math.abs(deg(s.angles()[6])) < 1e-6, 'a back panel not into his legs (they lean with him)');
+});
+
+test('the wardrobe swings the skirts of an outfit that asks, on bones of their own, and only that outfit', () => {
+  const spec = pilgrimSwing();
+  const { skeleton } = legs();
+  const stub = { areas: ['chest'], parts: { Shirt: { kind: 'garment' }, Body: { kind: 'body' }, Skin: { kind: 'skin' } }, outfits: { default: { parts: ['Skin', 'Shirt'], hides: [] } } };
+  const stubList = { outfits: [{ id: 'default', name: 'Own' }, { id: 'pilgrim', name: 'Pilgrim', dir: 'x/' }] };
+  const baseG = { Body: geometry([tri(0, 1.3)], { _area: [0, 0, 0] }), Skin: geometry([tri(0.5, 1.3)], { _area: [-1, -1, -1] }), Shirt: geometry([tri(0, 1.3)]) };
+  const parent = new T.Group();
+  const w = new Wardrobe({ list: stubList, baseManifest: stub, base: baseG, parent,
+    make: (g) => { const m = new T.SkinnedMesh(g); m.bind(skeleton, new T.Matrix4()); return m; } });
+  w.add('pilgrim', { parts: { Robe: {}, Tunic: {} }, hides: [], skinCut: [], fit: { Robe: { relief: { swing: spec } } } },
+    { Robe: geometry([[0.15, 0.7, 0.08, 0.16, 0.7, 0.08, 0.15, 0.71, 0.08]]), Tunic: geometry([tri(0.1, 1.2)]) });
+  assert.equal(w.wear('default').swing, false);
+  assert.equal(parent.children[1].skeleton.bones.length, skeleton.bones.length, 'his own clothes: the game\'s bones');
+  const worn = w.wear('pilgrim');
+  assert.equal(worn.swing, true);
+  const clothes = parent.children[1];
+  assert.equal(clothes.skeleton.bones.length, skeleton.bones.length + 8);
+  const pelvis = skeleton.bones.find((x) => x.name === 'pelvis');
+  assert.ok(pelvis.children.some((c) => c.name === 'SkirtSwing'), 'its driver under the pelvis');
+  // the robe's verts on the front-left panel's upper bone
+  assert.equal(clothes.geometry.attributes.skinIndex.getComponent(0, 0), skeleton.bones.length);
+  w.wear('default');
+  assert.ok(!pelvis.children.some((c) => c.name === 'SkirtSwing'), 'taken off with the outfit');
 });

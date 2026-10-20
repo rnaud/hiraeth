@@ -1,6 +1,7 @@
 """Shared parts for the outfits of issue #545 (the pearl diver, the salt pilgrim, the moss gardener): small
 rigid props as geometry (boxes with bevelled edges, tori), bands round a limb or the waist, skirts hung from a
-hem (a robe's drape), and weights for props and layers (rigid islands, weights copied from the piece under).
+hem (a robe's drape), and weights for props and layers (rigid islands, weights copied from the piece under);
+and (#547) a skirt's swing: its panels' weights and a driven rig for Blender's checks and previews.
 The volume on the cloth itself (pockets, patches, straps) is tailor.py's RELIEF; the shading inkpaint.py's.
 
 Geometry is added to a piece's bmesh after it is oriented (outfit_<id>._orient): each prop is closed and
@@ -263,3 +264,163 @@ def skirt(bm, run, centre, hem_z, rings, radius, closed=False, slits=(), slit_to
                 pass
         out.append(ring)
     return out
+
+
+# ------------------------------------------------------------------ a skirt's swing (issue #547)
+#
+# A long skirt (a robe's, a tunic's) cannot follow the thighs by its weights alone: skinned to them it lifts
+# like a board with each knee and spreads behind. Its swing instead: four panels (front and back, left and
+# right) of two bones each (hip to knee, knee to hem) hung from the pelvis; each bone's angle forward is its
+# hang (plumb: a share of the pelvis' lean) unless its leg pushes it (the front ones never behind the thigh
+# and the shin, the back ones never in front of them). In the game (src/characters/outfits.js, SkirtSwing)
+# a damped spring carries the hang (it lags, swings, settles); here, for the checks and the previews, the
+# same rule without the spring, as drivers on a small armature riding the pelvis. Both weight the skirt by
+# the same rule from the rest position (swing_weights), in the game's frame (x left, y up, z forward). The
+# spec reaches the manifest as a relief op's report (outfit.py records them: the op `swing`).
+
+SWING_PANELS = ('fl', 'fr', 'bl', 'br')
+
+
+def swing_bone_names():
+    return [f'swing_{p}_{k}' for p in SWING_PANELS for k in ('u', 'l')]
+
+
+def _sm(a, b, x):
+    t = np.clip((np.asarray(x, dtype=float) - a) / (b - a), 0, 1)
+    return t * t * (3 - 2 * t)
+
+
+def swing_weights(P, spec, garment):
+    """P (n, 3) rest positions in the game's frame. Returns (mix (n,), W (n, 8)): how much of each vert the
+    swing takes (0 over the hips, 1 down the skirt) and its weights on the eight bones (rows sum to 1),
+    panel by panel as SWING_PANELS, upper then lower. As skirtSwingWeights in src/characters/outfits.js."""
+    g = spec['garments'][garment]
+    X, Y, Z = P[:, 0], P[:, 1], P[:, 2]
+    mix = _sm(spec['mix'][0], spec['mix'][1], Y)
+    lo = _sm(spec['knee'][0], spec['knee'][1], Y)
+    st = g.get('slitTop')
+    soft = spec['blend'] * (np.ones(len(P)) if st is None else _sm(st, st + spec['soften'], Y))
+    # (the panels part where the slits are: the back one's x, the sides' z; a skirt unslit, at the middle)
+    side_z = g.get('sideZ') or [spec['centre'], spec['centre']]
+    dz = Z - np.where(X > 0, side_z[0], side_z[1])
+    dx = X - g.get('backX', 0.0)
+    s = np.maximum(soft, 1e-9)
+    f = np.where(soft > 1e-6, _sm(-s, s, dz), (dz > 0) * 1.0)
+    left = np.where(soft > 1e-6, _sm(-s, s, dx), (dx > 0) * 1.0)
+    fl = (X > 0) * 1.0
+    shares = [f * fl, f * (1 - fl), (1 - f) * left, (1 - f) * (1 - left)]
+    W = np.zeros((len(P), 8))
+    for k, sh in enumerate(shares):
+        W[:, 2 * k] = sh * (1 - lo)
+        W[:, 2 * k + 1] = sh * lo
+    return mix, W
+
+
+def slit_lines(ob, slit_top, hem_z, centre_y=0.02):
+    """Where a skirt's slits part its panels (the game's frame): the back slit's x and each side slit's z,
+    the middles of its open edges between its hem and slit_top (Blender's rest coordinates in, centre_y
+    the skirt's axis)."""
+    bm = bmesh.new()
+    bm.from_mesh(ob.data)
+    edge = [v.co.copy() for v in {v for e in bm.edges if e.is_boundary for v in e.verts}
+            if hem_z + 0.03 < v.co.z < slit_top - 0.03]
+    bm.free()
+    back = [p.x for p in edge if p.y > centre_y + 0.05 and abs(p.x) < 0.15]
+    sides = [[-p.y for p in edge if p.x * s > 0.08 and abs(p.y - centre_y) < 0.06] for s in (1, -1)]
+    mid = lambda a, d: round((min(a) + max(a)) / 2, 4) if a else d
+    return {'backX': mid(back, 0.0), 'sideZ': [mid(sides[0], -centre_y), mid(sides[1], -centre_y)]}
+
+
+def game_frame(P):
+    """Blender's rest coordinates (z up, -y forward) to the game's (y up, z forward)."""
+    P = np.asarray(P, dtype=float)
+    return np.stack([P[:, 0], P[:, 2], -P[:, 1]], axis=1)
+
+
+def swing_rig(arm, spec, name='SkirtSwing'):
+    """The swing's armature in Blender (made once): eight bones from the hip joints and the knees, riding
+    the pelvis, each bone's angle forward a driver of the rig's pelvis, thighs and calves (SWING_TWIST_Y: the
+    swing about their local x, forward positive), the upper ones also turned with their thigh's twist and
+    sideways swing. Not exported (outfit.py exports the game's rig and the pieces)."""
+    import bpy
+    rig = bpy.data.objects.get(name)
+    if rig:
+        return rig
+    data = bpy.data.armatures.new(name)
+    rig = bpy.data.objects.new(name, data)
+    for c in arm.users_collection:
+        c.objects.link(rig)
+    hy, hz = spec['pivot']                 # the hips' axis (game frame: height, forward)
+    ky = spec['kneePivot']
+    rig.matrix_world = arm.matrix_world
+    bpy.context.view_layer.objects.active = rig
+    bpy.ops.object.mode_set(mode='EDIT')
+    # a root on the pelvis (its pose copied from the game rig's: an armature modifier deforms in its own
+    # armature's space, so riding the pelvis is a bone's work, not the object's)
+    src = arm.data.bones['pelvis']
+    root = data.edit_bones.new('swing_root')
+    root.head, root.tail = src.head_local.copy(), src.tail_local.copy()
+    root.align_roll(src.matrix_local.to_3x3() @ Vector((0, 0, 1)))
+    root.use_deform = False
+    for p in SWING_PANELS:
+        x = spec['hipX'] if p[1] == 'l' else -spec['hipX']
+        up = data.edit_bones.new(f'swing_{p}_u')
+        up.head, up.tail = Vector((x, -hz, hy)), Vector((x, -hz, ky))
+        up.parent = root
+        lo = data.edit_bones.new(f'swing_{p}_l')
+        lo.head, lo.tail = Vector((x, -hz, ky)), Vector((x, -hz, ky - 0.12))
+        lo.parent = up
+        for b in (up, lo):
+            b.align_roll(Vector((0, -1, 0)))   # local x = -x: a turn about it swings the bone's foot forward
+            b.use_deform = True
+    bpy.ops.object.mode_set(mode='OBJECT')
+    c = rig.pose.bones['swing_root'].constraints.new('COPY_TRANSFORMS')
+    c.target, c.subtarget = arm, 'pelvis'
+    H, HL, R = spec['hang'], spec['lowerHang'], spec['lowerReach']
+    for p in SWING_PANELS:
+        side = p[1]
+        front = p[0] == 'f'
+        U = f'max({H}*p, t)' if front else f'min({H}*p, t)'
+        L = (f'max({HL}*(p-{U}), t+c-{U})' if front else f'min({HL}*(p-{U}), max(t+c-{U}, -{R}))')
+        # the upper bones also turn with their thigh sideways and about its length (a stance, the hips
+        # turned over planted feet): euler y the thigh's twist, z its sideways swing
+        chans = [('u', 0, U, ('p', 't', 'c')), ('l', 0, L, ('p', 't', 'c')), ('u', 1, 'y', ('y',)), ('u', 2, 'z', ('z',))]
+        for k, axis, expr, names in chans:
+            b = rig.pose.bones[f'swing_{p}_{k}']
+            b.rotation_mode = 'XYZ'
+            d = b.driver_add('rotation_euler', axis).driver
+            d.type = 'SCRIPTED'
+            src = {'p': ('pelvis', 'ROT_X'), 't': (f'thigh_{side}', 'ROT_X'), 'c': (f'calf_{side}', 'ROT_X'),
+                   'y': (f'thigh_{side}', 'ROT_Y'), 'z': (f'thigh_{side}', 'ROT_Z')}
+            for vn in names:
+                v = d.variables.new()
+                v.name = vn
+                v.type = 'TRANSFORMS'
+                tg = v.targets[0]
+                tg.id = arm
+                tg.bone_target, tg.transform_type = src[vn]
+                tg.transform_space = 'LOCAL_SPACE'
+                tg.rotation_mode = 'SWING_TWIST_Y'
+            d.expression = expr
+    rig.hide_render = True
+    return rig
+
+
+def swing_bind(ob, rig, spec, garment):
+    """The piece's swing in Blender: its mix and bone groups from swing_weights, and a second armature
+    modifier on the swing's rig mixed over the first by the mix (multi-modifier: both from the rest)."""
+    co = np.empty(len(ob.data.vertices) * 3)
+    ob.data.vertices.foreach_get('co', co)
+    mix, W = swing_weights(game_frame(co.reshape(-1, 3)), spec, garment)
+    g = ob.vertex_groups.get('swing_mix') or ob.vertex_groups.new(name='swing_mix')
+    for i in np.nonzero(mix > 1e-4)[0]:
+        g.add([int(i)], float(mix[i]), 'REPLACE')
+    for k, name in enumerate(swing_bone_names()):
+        g = ob.vertex_groups.get(name) or ob.vertex_groups.new(name=name)
+        for i in np.nonzero((W[:, k] > 1e-4) & (mix > 1e-4))[0]:
+            g.add([int(i)], float(W[i, k]), 'REPLACE')
+    mod = ob.modifiers.new('Swing', 'ARMATURE')
+    mod.object = rig
+    mod.use_multi_modifier = True
+    mod.vertex_group = 'swing_mix'
+    return {'swung': int((mix > 0.5).sum()), 'mixed': int(((mix > 1e-4) & (mix <= 0.5)).sum())}

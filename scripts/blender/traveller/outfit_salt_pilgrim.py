@@ -8,17 +8,22 @@ cream trousers full to the shin and gathered above the ankle; woven sandals lace
 
 The robe cannot be a live cloth in the game, so it is a drape: its body cut from the base body's cage and
 grown out; its skirt hung from the cut's hem as rings flaring to the hem, with folds (fuller toward the hem
-and the back), slits left open below the thigh at the sides and up the back, so each of its four panels
-follows its own leg. It is skinned to the pelvis and the thighs with
-smooth weights (more to each thigh at the front, where the leg pushes; shared at the back), so it swings with
-the run; outfit.py's checks measure how far his trousers come through it at full stride. The tunic's skirt is
-built the same way, shorter, open at the front where it wraps. The sandals are a piece of their own: his
-foot in his skin's colour (the base body's foot is hidden under it), a sole under it, the straps and laces
-painted. The robe's border stands proud round its hem and down its front edges (RELIEF); the shared
-painter (inkpaint.py) shades it all, with the trousers' long folds and the sleeves' at the elbows.
+and the back), slits left open below the thigh at the sides and up the back. Since #547 its four panels
+swing (outfit_kit.py, "a skirt's swing"; swing_spec here): each hangs from the hips' axis on two bones of
+its own, goes with its thigh and shin where they push it and hangs plumb where they leave it, and in the
+game a damped spring carries the hang (src/characters/outfits.js); the tunic's skirt the same. Their weights
+on the thighs (_skirt_weights) stay as the fallback and over the hips. outfit.py's checks measure, with
+the swing, how far his trousers come through them at full stride.
 
-Palette: picked from sheet-1 (median of small boxes on the robe, the tunic, the sleeve, the sash, the
-trousers, the sandals); the border's turquoise and terracotta from the sheet's stitching."""
+The hood (#547) lies on his back as on sheet-1: a roll round his neck along the robe's neckline and the
+hood's bag down his back to a point (Hood, over the robe). The sandals (#547): his foot in his skin's
+colour (the base body's foot hidden under it), flat on a woven sole with thickness and five toes (Soles,
+a prop), the straps raised over it (RELIEF). The robe's border stands proud round its hem and down its
+front edges (RELIEF); the shared painter (inkpaint.py) shades it all, with the trousers' long folds and
+the sleeves' at the elbows.
+
+Palette (#547): medians of sheet-1's robe (the paper's warm white), tunic, sash and the border's turquoise
+and terracotta."""
 import math
 import bpy
 import bmesh
@@ -35,28 +40,35 @@ ID = 'salt-pilgrim'
 NAME = 'Salt pilgrim'
 SHEET = 'references/characters/traveller-outfits/salt-pilgrim/sheet-1.jpg'
 
+# (#547: the cloth's colours as the sheet's, medians of sheet-1's robe, tunic, sash and border stitching: the
+# robe the paper's warm white, the saffron and the rose lighter, the border's turquoise and terracotta)
 PAL = {
-    'robe': (238, 228, 210), 'saffron': (222, 152, 74), 'rose': (190, 108, 90), 'cream': (226, 208, 182),
-    'turquoise': (86, 166, 168), 'terracotta': (196, 104, 70), 'skin': (201, 134, 94), 'sandal': (142, 100, 66),
-    'sole': (176, 140, 96), 'ink': (40, 34, 30),
+    'robe': (247, 237, 221), 'saffron': (232, 164, 90), 'rose': (212, 122, 100), 'cream': (232, 214, 190),
+    'turquoise': (108, 176, 180), 'terracotta': (214, 124, 88), 'skin': (201, 134, 94), 'strap': (112, 84, 64),
+    'sole': (186, 150, 104), 'ink': (40, 34, 30),
 }
 PIECES = {
     # (the trousers one subdivision level fewer: under the tunic and the robe all but their shins, and the
     # outfit within the default's triangles)
     'PilgrimTrousers': dict(layer=1, outside=[], covers=['Tunic', 'Sandals'], hem=0.02, levels=1, gap=0.005),
+    # (his feet: their toes and straps are geometry, the soles a prop under them)
     'Sandals': dict(layer=1, outside=[], covers=[], hem=0.01, levels=1, gap=0.002),
     'Tunic': dict(layer=2, outside=['PilgrimTrousers'], covers=['Robe', 'Sash'], hem=0.02, levels=2, gap=0.005),
     'Sash': dict(layer=3, outside=['Tunic'], covers=[], hem=0.01, levels=1, gap=0.003),
     # (the robe fitted over the tunic and the trousers, only checked against the sash: fitted over its knot
     # and ends, which hang in the robe's opening, it bent its front edges in front of them)
     'Robe': dict(layer=4, outside=['Tunic', 'PilgrimTrousers'], checks=['Sash'], covers=[], hem=0.025, levels=2, gap=0.006),
+    # (#547) the hood lying down: a rolled rim round his neck and the hood's bag on his back, over the robe;
+    # weighted from his back and shoulders, never his neck and head (it would turn with his head)
+    'Hood': dict(layer=5, outside=['Robe', 'Tunic'], covers=[], hem=None, levels=1, gap=0.004,
+                 sample=lambda p: Vector((p.x, p.y, min(p.z, 1.40)))),
 }
-BOOTS = None          # his feet bare in sandals: the Sandals piece
-ZONES = {'PilgrimTrousers': ['cream', 'cream'], 'Sandals': ['skin', 'sole'], 'Tunic': ['saffron', 'saffron'],
-         'Sash': ['rose', 'rose'], 'Robe': ['robe']}
+BOOTS = None          # his feet bare in sandals: the Sandals piece and the Soles under it
+ZONES = {'PilgrimTrousers': ['cream', 'cream'], 'Sandals': ['skin'], 'Tunic': ['saffron', 'saffron'],
+         'Sash': ['rose', 'rose'], 'Robe': ['robe'], 'Hood': ['robe', 'robe'], 'Soles': ['sole', 'skin']}
 PART = G.PART
 EDGE = {}
-ROBE_HEM = 0.40       # under the knee (the sheet: a hand under it)
+ROBE_HEM = 0.37       # under the knee (the sheet: a hand and more under it; #547: it hangs on from the knee)
 SLIT_TOP = 0.66       # the side slits from the hem to the middle of the thigh
 TUNIC_HEM = 0.78
 
@@ -94,19 +106,130 @@ def trousers(cage, J):
     return bm
 
 
+SOLE_TOP = 0.017      # the soles' top: his feet stand on them (#547)
+
+
+def _foot_box(cage, side):
+    lay = cage.verts.layers.int.get('part')
+    fv = [v.co for v in cage.verts if v[lay] == PART['foot'] and v.co.x * side > 0]
+    return (min(p.x for p in fv), max(p.x for p in fv)), (min(p.y for p in fv), max(p.y for p in fv))
+
+
+def _toes(side, xs, ys):
+    """The five toes of a foot (centre, half sizes x y z), big toe inside: they stand from the foot's front
+    on the sole (#547: the sheet's bare toes, not a slipper's round front)."""
+    (x0, x1), (y0, y1) = xs, ys
+    inner = x0 if side > 0 else x1                       # (his big toe at the inside of each foot)
+    out = []
+    for k, (u, ln, w, h, back) in enumerate(((0.16, 0.021, 0.0115, 0.0095, 0.000), (0.37, 0.017, 0.0080, 0.0078, 0.004),
+                                            (0.55, 0.016, 0.0074, 0.0072, 0.009), (0.71, 0.014, 0.0068, 0.0066, 0.015),
+                                            (0.86, 0.012, 0.0062, 0.0060, 0.022))):
+        x = inner + side * u * (x1 - x0)
+        y = y0 + 0.002 + back + ln
+        out.append(((x, y, SOLE_TOP + h * 1.2), (w * 1.1, ln, h * 1.2)))
+    return out
+
+
 def sandals(cage, J):
-    """His foot, a breath over the base body's (painted in his skin's colour, the straps on it), and a sole
-    under each: a rounded slab the foot stands in."""
+    """His foot, a breath over the base body's (the base body's is hidden under it); its RELIEF shapes it
+    after its fitting (the underside flat on the sole, the front shortened to the root of his toes) and
+    raises the straps on it; the soles and the toes are a prop (Soles)."""
     bm = G.cut(cage, lambda v, p: p == PART['foot'] or (p == PART['leg'] and v.co.z <= 0.18))
     G.inflate(bm, lambda p, part: 0.003)
     _orient(bm)
     for side in (-1, 1):
-        fv = [v.co for v in cage.verts if v[cage.verts.layers.int.get('part')] == PART['foot'] and v.co.x * side > 0]
-        y0, y1 = min(p.y for p in fv), max(p.y for p in fv)
-        x0, x1 = min(p.x for p in fv), max(p.x for p in fv)
-        ctr = ((x0 + x1) / 2, (y0 + y1) / 2 - 0.004, 0.009)
-        K.box(bm, ctr, (x1 - x0 + 0.004, y1 - y0 + 0.008, 0.014), None, bevel=0.010, mat=1, part=PART['foot'])
+        FEET[side] = _foot_box(cage, side)
     return bm
+
+
+FEET = {}
+
+
+def _shape_feet(ob, J):
+    """(relief) The feet stand on the soles: the foot's underside raised flat onto their top, its front
+    drawn back to the toes' root (the toes stand from it: Soles). After the fitting: the body's own foot,
+    hidden, lies under it."""
+    me = ob.data
+    P = T._coords(me)
+    d = np.zeros_like(P)
+    for side in (-1, 1):
+        (x0, x1), (y0, y1) = FEET[side]
+        root = y0 + 0.034
+        m = (P[:, 0] * side > 0) & (P[:, 1] < root)
+        d[m, 1] = (root + (P[m, 1] - root) * 0.35) - P[m, 1]
+        # the foot's top low over the toes' root (the toes show), rising up the instep
+        y = P[:, 1] + d[:, 1]
+        s = (P[:, 0] * side > 0) & (y < root + 0.05)
+        cap = SOLE_TOP + 0.020 + np.maximum(0.0, y - root) * 0.55
+        d[s, 2] += np.minimum(0.0, cap[s] - P[s, 2])
+    z = P[:, 2] + d[:, 2]
+    d[:, 2] += np.maximum(0.0, SOLE_TOP + 0.0015 - z)
+    T._move(me, d)
+    return {'moved': int((np.abs(d).sum(1) > 1e-5).sum())}
+
+
+def _straps():
+    """The sandals' straps (tailor.py shapes, both feet): across the root of the toes, over the instep, round
+    the ankle, and two laces crossing up the shin. Each (shape, where): raised by RELIEF, coloured by paint."""
+    out = []
+    for side in (-1, 1):
+        cx = side * 0.140
+        here = (lambda s: (lambda P: (P[:, 0] * s > 0) * 1.0))(side)
+        out += [
+            (T.ring((cx, -0.078, 0.03), (0.22 * side, 1.0, 0.25), 0.0075), lambda P, h=here: h(P) * (P[:, 1] > -0.10) * (P[:, 2] > SOLE_TOP + 0.002)),
+            (T.ring((cx, -0.022, 0.05), (-0.28 * side, 1.0, 0.65), 0.0070), lambda P, h=here: h(P) * (P[:, 2] > SOLE_TOP + 0.002)),
+            (T.ring((cx, 0.010, 0.098), (0.0, 0.22, 1.0), 0.0060), here),
+            (T.ring((cx, 0.020, 0.140), (0.0, 0.55, 1.0), 0.0045), lambda P, h=here: h(P) * (P[:, 2] > 0.105)),
+            (T.ring((cx, 0.020, 0.140), (0.0, -0.55, 1.0), 0.0045), lambda P, h=here: h(P) * (P[:, 2] > 0.105)),
+        ]
+    return out
+
+
+STRAPS = _straps()
+
+
+def soles(ctx):
+    """The soles (a prop): a slab under each foot, its outline the foot's footprint grown 6 mm, its edges
+    eased (four rings), SOLE_TOP thick; each vert weighted as the body's nearest (it bends at the ball)."""
+    cage = ctx['cage']
+    bm = bmesh.new()
+    for side in (-1, 1):
+        (x0, x1), (y0, y1) = _foot_box(cage, side)
+        cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+        hl = (y1 - y0) / 2 + 0.008
+        n = 28
+        rings = []
+        for z, grow in ((0.0, -0.0015), (0.003, 0.0), (SOLE_TOP - 0.003, 0.0), (SOLE_TOP, -0.0015)):
+            ring = []
+            for i in range(n):
+                a = 2 * math.pi * i / n
+                t = -math.sin(a)                         # -1 at the heel's end... +1 at the toes'
+                # a foot's footprint: wide at the ball, narrower at the heel, a straight inner edge
+                half_w = (x1 - x0) / 2 * (0.78 + 0.30 * smoothstep(-0.2, 0.55, -t) - 0.10 * smoothstep(0.75, 1.0, -t)) + 0.006
+                x = cx + side * 0.006 * (-t) + math.cos(a) * (half_w + grow)
+                y = cy - 0.004 + math.sin(a) * (hl + grow)
+                ring.append(bm.verts.new((x, y, z)))
+            rings.append(ring)
+        for A, B in zip(rings, rings[1:]):
+            for i in range(n):
+                bm.faces.new((A[i], A[(i + 1) % n], B[(i + 1) % n], B[i]))
+        bm.faces.new(list(reversed(rings[0])))
+        bm.faces.new(rings[-1])
+        bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+        # his toes, on the sole: small ellipsoids, rounder at the tip, their backs in the foot's front
+        for c, (w, ln, h) in _toes(side, (x0, x1), (y0, y1)):
+            r = bmesh.ops.create_uvsphere(bm, u_segments=8, v_segments=5, radius=1.0)
+            for v in r['verts']:
+                x, y, z = v.co
+                v.co = Vector((c[0] + x * w, c[1] + y * ln * (1.0 if y < 0 else 1.35), c[2] + z * h * (1.0 if z > 0 else 0.7)))
+            faces = list({f for v in r['verts'] for f in v.link_faces})
+            for f in faces:
+                f.material_index = 1
+            bmesh.ops.recalc_face_normals(bm, faces=faces)
+    return bm
+
+
+PROPS = {'Soles': dict(build=soles, layer=1)}
 
 
 def tunic(cage, J):
@@ -169,7 +292,8 @@ def sash(cage, J):
 def robe(cage, J):
     """Its body: the torso from the hips up, the front open from the neck down (a gap a hand wide), no
     sleeves, a low band at the neck; its skirt: rings hung from the hips to under the knee, flaring, with
-    folds, slit at the sides and up the back (each panel then follows its own leg); the hood a soft lump lying between his shoulders."""
+    folds, slit at the sides and up the back (each of its four panels swings on its own: swing_spec); its hood a
+    piece of its own (Hood)."""
     bm = G.cut(cage, lambda v, p: p == PART['torso'] and v.co.z >= 0.93,
                keep_face=lambda f: not (f.calc_center_median().y < 0 and abs(f.calc_center_median().x) < 0.05))
     G.inflate(bm, lambda p, part: 0.030 + 0.016 * smoothstep(1.22, 1.00, p.z) + 0.004 * smoothstep(1.30, 1.40, p.z))
@@ -192,21 +316,133 @@ def robe(cage, J):
         rings = K.skirt(bm, run, (0.0, 0.020), ROBE_HEM, 9, radius, slits=(0.0, math.pi, math.pi / 2), slit_top=SLIT_TOP,
                         part=PART['torso'])
         EDGE['front'] = [math.atan2(run[0].co.y - 0.02, run[0].co.x), math.atan2(run[-1].co.y - 0.02, run[-1].co.x)]
-    # the hood: a soft lump lying on his back between the shoulder blades, its point down
-    r = bmesh.ops.create_uvsphere(bm, u_segments=12, v_segments=8, radius=1.0)
-    hood = r['verts']
-    for v in hood:
-        x, y, z = v.co
-        v.co = Vector((x * 0.105 * (1 - 0.35 * max(0.0, -z)), 0.130 + y * 0.032 + 0.02 * (1 - z * z), 1.345 + z * 0.085 - 0.03 * max(0.0, -z)))
-    pl = bm.verts.layers.int.get('part')
-    for v in hood:
-        v[pl] = PART['torso']
-    hf = list({f for v in hood for f in v.link_faces})
-    for f in hf:
-        f.material_index = 0
     _orient(bm)
-    bmesh.ops.recalc_face_normals(bm, faces=hf)
     EDGE['hem'] = ROBE_HEM
+    return bm
+
+
+def _robe_neckline():
+    """The robe's open edge from its front edge on his left chest round the back of his neck to the right
+    one (above HOOD_LOW), as points in order, resampled every 1 cm and smoothed."""
+    me = bpy.data.objects['Robe'].data
+    bm = bmesh.new()
+    bm.from_mesh(me)
+    loops = G.boundary_loops(bm)
+    best = []
+    for loop in loops:
+        for run in G.runs(loop, lambda v: v.co.z > HOOD_LOW):
+            if len(run) > len(best) and max(v.co.z for v in run) > 1.40:
+                best = run
+    pts = [v.co.copy() for v in best]
+    bm.free()
+    if pts[0].x < pts[-1].x:
+        pts.reverse()                                   # from his left (+x) round the back to his right
+    # resample by arc length
+    L = [0.0]
+    for a, b in zip(pts, pts[1:]):
+        L.append(L[-1] + (b - a).length)
+    n = max(8, int(L[-1] / 0.022))
+    out = []
+    j = 0
+    for k in range(n + 1):
+        s = L[-1] * k / n
+        while j < len(L) - 2 and L[j + 1] < s:
+            j += 1
+        t = (s - L[j]) / max(1e-9, L[j + 1] - L[j])
+        out.append(pts[j].lerp(pts[j + 1], t))
+    for _ in range(6):
+        out = [out[0]] + [(out[i - 1] + out[i] * 2 + out[i + 1]) / 4 for i in range(1, len(out) - 1)] + [out[-1]]
+    return out
+
+
+HOOD_LOW = 1.20       # the rim's ends: down his chest beside the robe's front edges
+HOOD_TIP = 1.12       # the hood's point, down his back
+
+
+def hood(cage, J):
+    """The hood lying down (#547; sheet-1's back: a cowl, its rim rolled round his neck, the hood's bag
+    lying on his back to a point between his shoulder blades): the rim a soft roll along the robe's
+    neckline (thicker behind, thinning down his chest), the bag a quilted-flat sack below it, built on the
+    robe's back (rays onto it), fuller under the rim and with two folds running down to its point. Fitted
+    over the robe and the tunic (PIECES)."""
+    robe = bpy.data.objects['Robe']
+    from mathutils.bvhtree import BVHTree
+    rb = bmesh.new()
+    rb.from_mesh(robe.data)
+    bvh = BVHTree.FromBMesh(rb)
+    bm = bmesh.new()
+    pl = bm.verts.layers.int.new('part')
+    for k in ('nx', 'ny', 'nz'):
+        bm.verts.layers.float.new(k)
+    # -- the rim: a roll swept along the neckline, lying on the robe just inside its edge
+    line = _robe_neckline()
+    n = len(line)
+    sides = 6
+    rings = []
+    for i, p in enumerate(line):
+        t = i / (n - 1)
+        behind = math.sin(math.pi * t) ** 1.5           # 1 behind his neck, 0 at the ends
+        tang = (line[min(n - 1, i + 1)] - line[max(0, i - 1)]).normalized()
+        out = bvh.find_nearest(p)[1].normalized()       # the robe's outward normal there
+        inward = out.cross(tang).normalized()           # along the robe, away from its edge
+        a_, b_ = bvh.find_nearest(p + inward * 0.012), bvh.find_nearest(p - inward * 0.012)
+        if (a_[3] if a_[0] is not None else 1) > (b_[3] if b_[0] is not None else 1):
+            inward = -inward
+        r_out = 0.008 + 0.009 * behind
+        r_in = 0.010 + 0.013 * behind
+        c = p + out * (r_out * 0.85) + inward * (r_in * 0.55)
+        ring = []
+        for j in range(sides):
+            a = 2 * math.pi * j / sides
+            q = c + out * (math.sin(a) * r_out) + inward * (math.cos(a) * r_in)
+            v = bm.verts.new(q)
+            v[pl] = PART['torso']
+            ring.append(v)
+        rings.append(ring)
+    for A, B in zip(rings, rings[1:]):
+        for j in range(sides):
+            f = bm.faces.new((A[j], A[(j + 1) % sides], B[(j + 1) % sides], B[j]))
+            f.material_index = 1
+    for ring, rev in ((rings[0], True), (rings[-1], False)):
+        f = bm.faces.new(list(reversed(ring)) if rev else ring)
+        f.material_index = 1
+    # -- the bag: a grid across his back, its top under the rim behind, narrowing to its point
+    top = max(p.z for p in line) - 0.03
+    nu, nv = 13, 9
+    grid = []
+    for iv in range(nv + 1):
+        v_ = iv / nv
+        z = top + (HOOD_TIP - top) * v_
+        half = 0.135 * (1 - v_) ** 0.62 + 0.004
+        row = []
+        for iu in range(nu + 1):
+            u = -1 + 2 * iu / nu
+            x = u * half
+            hit = bvh.ray_cast(Vector((x, 0.0, z)), Vector((0, 1, 0)), 0.4)
+            y = hit[0].y if hit[0] is not None else 0.16
+            # the bag's fullness over the robe: most under the rim and in its middle, nothing at its edges,
+            # two folds down to the point
+            edge = (1 - abs(u) ** 2.2) * math.sin(math.pi * min(1.0, v_ ** 0.75))   # (nothing at its top, tucked under the rim, nor at its point)
+            fold = 0.006 * math.cos(u * math.pi * 2.0) * (0.3 + v_) * (1 - abs(u))
+            y += 0.004 + 0.036 * edge + fold
+            vv = bm.verts.new((x, y, z))
+            vv[pl] = PART['torso']
+            row.append(vv)
+        grid.append(row)
+    for A, B in zip(grid, grid[1:]):
+        for iu in range(nu):
+            bm.faces.new((A[iu], B[iu], B[iu + 1], A[iu + 1]))
+    rb.free()
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    # the bag faces out from his back
+    bag = [f for f in bm.faces if f.material_index == 0]
+    if sum(f.normal.y for f in bag) < 0:
+        bmesh.ops.reverse_faces(bm, faces=bag)
+    nx, ny, nz = (bm.verts.layers.float.get(k) for k in ('nx', 'ny', 'nz'))
+    bm.normal_update()
+    for v in bm.verts:
+        v[nx], v[ny], v[nz] = v.normal
+    EDGE['hoodTop'] = top
     return bm
 
 
@@ -232,6 +468,38 @@ def _skirt_weights(ob, W, top=0.96, front_k=0.10, k_max=1.0):
     return R.smooth_weights(ob, out, iters=4, k=0.5)
 
 
+def swing_spec(J):
+    """The robe's and the tunic's swing (#547; outfit_kit.py, "a skirt's swing"), in the game's frame: hung
+    from the hips' axis, the knee where the lower bones take over; the mix from the hips down; the panels
+    soft into each other above the robe's slits (the tunic's skirt, unslit, all down); the hang a share of
+    the pelvis' lean; the springs that carry it in the game (rad/s, damping ratio) and how hard the body's
+    acceleration swings the panels."""
+    return {
+        # (the robe's panels apart below its slits' tops, joined over them: from a little under, where
+        # its subdivided corners round the slits' tops off)
+        # (the tunic's skirt, unslit under them, parts where the robe's panels do: it moves as they do)
+        'garments': {'Robe': {'slitTop': round(SLIT_TOP - 0.07, 3), **SLITS}, 'Tunic': {'slitTop': None, **SLITS}},
+        'pivot': [round(J['thigh_l'].z, 4), round(-J['thigh_l'].y, 4)],
+        'kneePivot': round(J['calf_l'].z, 4), 'hipX': round(J['thigh_l'].x, 4),
+        'centre': -0.020,
+        'mix': [0.98, 0.88], 'knee': [0.58, 0.47], 'blend': 0.05, 'soften': 0.08,
+        'hang': 0.8, 'lowerHang': 0.9, 'lowerReach': 0.7,
+        'bones': {'pelvis': 'pelvis', 'thigh': ['thigh_l', 'thigh_r'], 'calf': ['calf_l', 'calf_r']},
+        'spring': {'upper': [8.0, 0.32], 'lower': [14.0, 0.4], 'inertia': 0.5},
+        'doubleSided': True,      # (its skirts swing open: their insides are seen)
+    }
+
+
+def swing(ob, J):
+    """(relief) No change to the robe: its report is the swing's spec (the manifest's fit.Robe.relief.swing,
+    which src/characters/outfits.js reads)."""
+    SLITS.update(K.slit_lines(ob, SLIT_TOP, ROBE_HEM))     # (where its slits part its panels: measured once, here)
+    return swing_spec(J)
+
+
+SLITS = {}
+
+
 def reweight(name, ob, arm, J):
     if name == 'Robe':
         R.set_weights(ob, _skirt_weights(ob, K.weights_of(ob)))
@@ -241,8 +509,11 @@ def reweight(name, ob, arm, J):
     elif name == 'Sash':
         R.set_weights(ob, K.copy_weights(ob, bpy.data.objects['Tunic']))
         R.set_weights(ob, K.rigid_islands(ob, skip_mats=(0,)))      # the knot and its ends: as one
-    elif name == 'Sandals':
-        R.set_weights(ob, K.rigid_islands(ob, skip_mats=(0,)))
+    if name in ('Robe', 'Tunic'):
+        # (#547) the skirts' swing: the weights above stay the fallback (and the hips'); in Blender the swing's
+        # rig is mixed over them for the checks and the previews; in the game outfits.js swings them
+        spec = swing_spec(J)
+        K.swing_bind(ob, K.swing_rig(arm, spec), spec, name)
 
 
 def _robe_relief(ob, J):
@@ -261,7 +532,12 @@ def _robe_relief(ob, J):
     return rep
 
 
-RELIEF = {'Robe': [_robe_relief]}
+def _strap_ops():
+    return [T.raised(shape, height=0.0026, step=0.0022, where=where) for shape, where in STRAPS]
+
+
+# (the robe's swing: a report, no change; the sandals shaped after their fitting, then their straps)
+RELIEF = {'Robe': [_robe_relief, swing], 'Sandals': [_shape_feet] + _strap_ops()}
 
 
 def _folds(piece):
@@ -283,16 +559,17 @@ def _folds(piece):
 # shadow a step lighter so it stays white; the trousers and the sash lighter (most of them lie under the
 # robe, in its shadow: their shins and knot kept from going muddy)
 SHADE = {'PilgrimTrousers': dict(folds=_folds('PilgrimTrousers'), fold_ink=0.55, tone=0.2),
-         'Tunic': dict(folds=_folds('Tunic'), fold_ink=0.6), 'Robe': dict(tone=0.26), 'Sandals': dict(hatch=0.2),
-         'Sash': dict(tone=0.24, hatch=0.4)}
+         'Tunic': dict(folds=_folds('Tunic'), fold_ink=0.6, tone=0.24), 'Robe': dict(tone=0.18, hatch=0.4),
+         'Hood': dict(tone=0.18, hatch=0.4), 'Sandals': dict(hatch=0.2), 'Soles': dict(hatch=0.3),
+         'Sash': dict(tone=0.22, hatch=0.4)}
 
 # his skin piece under the full sleeves (B3's forearms) left out, as the glider pilot's; his hands show
 SKIN_CUT = [{'absx': [0.20, 0.62], 'z': [1.15, 1.60]}]
 # the hips and thighs as the other outfits; the ankles under the sandals' feet (measured under 97 %: the feet stand
 # 3 mm off the body's, whose ankles would show through in patches)
-EXTRA_HIDES = ['hips', 'thigh.L', 'thigh.R', 'ankle.L', 'ankle.R']
+EXTRA_HIDES = ['hips', 'thigh.L', 'thigh.R', 'ankle.L', 'ankle.R', 'foot.L', 'foot.R']
 
-BUILDERS = {'PilgrimTrousers': trousers, 'Sandals': sandals, 'Tunic': tunic, 'Sash': sash, 'Robe': robe}
+BUILDERS = {'PilgrimTrousers': trousers, 'Sandals': sandals, 'Tunic': tunic, 'Sash': sash, 'Robe': robe, 'Hood': hood}
 
 
 # ------------------------------------------------------------------ the paint
@@ -345,16 +622,13 @@ def paint(piece, zone, P, N, J):
         d1 = np.abs(np.arctan2(np.sin(th - e1), np.cos(th - e1))) * r
         de = np.minimum(d0, d1)
         dh = z - EDGE['hem']
-        hood = (y > 0.09) & (z > 1.24) & (ax < 0.12) & (N[:, 1] > 0.2)
-        for t, s, on in ((de, z, (y < 0.02) & (de < W) & ~hood), (dh, th * 0.25, (dh < W) & ~hood)):
+        for t, s, on in ((de, z, (y < 0.02) & (de < W)), (dh, th * 0.25, dh < W)):
             tri, up = _border(s, t, W)
             mix(on * tri * up, _rgb('turquoise'))
             mix(on * tri * ~up, _rgb('terracotta'))
             mix(on * band(t - W * 0.12, 0.0013, 0.0008), ink, 0.6)
             mix(on * band(t - W * 0.88, 0.0013, 0.0008), ink, 0.6)
-        # the hood's edge, stitched, and its seam down the middle
-        mix(hood * band(x, 0.0012, 0.0008), ink, 0.35)
-        out *= K.grain(rng, n, 0.04)
+        out *= K.grain(rng, n, 0.025)
     elif piece == 'Tunic':
         out[:] = _rgb('saffron')
         cuff = zone == 1
@@ -394,21 +668,33 @@ def paint(piece, zone, P, N, J):
         out *= K.grain(rng, n, 0.04)
     elif piece == 'Sandals':
         out[:] = _rgb('skin')
-        sole = zone == 1
-        out[sole] = _rgb('sole')
-        # the straps: a toe loop, two bands over the instep, laces crossing up round the ankle
-        foot = ~sole
-        cx = np.sign(x) * 0.133
-        u = (x - cx) * np.sign(x)                      # across the foot, + outside
+        # the straps (raised by RELIEF): the strap's leather, an inked edge
         strap = np.zeros(n)
-        strap = np.maximum(strap, band(y + 0.110, 0.006, 0.002) * (z < 0.06))          # over the toes
-        strap = np.maximum(strap, band(y + 0.040 + 0.25 * u, 0.007, 0.002) * (z < 0.11))  # instep, crossed
-        strap = np.maximum(strap, band(y + 0.040 - 0.25 * u, 0.007, 0.002) * (z < 0.11))
-        lace = band(((z - 0.10) / 0.028 + np.arctan2(y - 0.03, u) / np.pi) % 1.0 - 0.5, 0.06, 0.03) * (z > 0.10) * (z < 0.18)
-        strap = np.maximum(strap, lace)
-        mix(strap * foot, _rgb('sandal'))
-        mix(band(strap - 0.5, 0.15, 0.1) * foot, ink, 0.4)
-        # toes: a few lines
-        mix(band(((u + 0.05) / 0.018) % 1.0 - 0.5, 0.05, 0.04) * (y < -0.115) * (z < 0.05) * foot, ink, 0.35)
-        out[sole] = out[sole] * (0.9 + 0.1 * (N[sole, 2] > 0.5))[:, None]
+        for (sdf, _), where in STRAPS:
+            strap = np.maximum(strap, np.clip(-sdf(P) / 0.0012, 0, 1) * where(P))
+        mix(strap, _rgb('strap'))
+        mix(band(strap - 0.5, 0.22, 0.12), ink, 0.55)
+        out *= K.grain(rng, n, 0.03)
+    elif piece == 'Soles':
+        out[:] = _rgb('sole')
+        toe = zone == 1
+        out[toe] = _rgb('skin')
+        # the sole: woven (a fine herringbone on its top), its edge a darker band; the toes' nails
+        sole = ~toe
+        weave = band(((x * np.sign(x) * 0.7 + y) / 0.006) % 1.0 - 0.5, 0.12, 0.08) * (N[:, 2] > 0.7)
+        mix(weave * sole, ink, 0.18)
+        side = np.abs(N[:, 2]) < 0.5
+        mix(side * sole, _rgb('strap'), 0.45)
+        mix(side * sole * band(z - SOLE_TOP * 0.5, 0.0009, 0.0006), ink, 0.4)
+        nail = toe * (N[:, 2] > 0.55) * (N[:, 1] < -0.1)
+        mix(nail, np.array([0.93, 0.78, 0.68]), 0.55)
+        out *= K.grain(rng, n, 0.03)
+    elif piece == 'Hood':
+        out[:] = _rgb('robe')
+        rim = zone == 1
+        bag = ~rim
+        # the bag's seam down its middle and its stitched edge; the rim's stitching along its roll
+        mix(bag * band(x, 0.0011, 0.0007), ink, 0.45)
+        mix(bag * band(np.abs(x) - (0.135 * np.clip((z - HOOD_TIP) / (EDGE['hoodTop'] - HOOD_TIP), 0, 1) ** 0.62 - 0.006), 0.0009, 0.0006), ink, 0.25)
+        out *= K.grain(rng, n, 0.03)
     return np.clip(out, 0, 1)
