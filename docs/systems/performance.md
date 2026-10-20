@@ -6393,3 +6393,10 @@ the branch as it was. fps, pass 1 / pass 2 (GPU ms, pass 1 / pass 2); the views 
 Raw: the session's scratchpad, `surface-536/` (`ab/p1`, `ab/p2` the two passes, `ab/pics` the nearer views, `ab/census`,
 `ab/colddesert`, `load/cold`, `ab/rect` the screen rectangle at a held scale, `trace/`, `sheets/` the picture sheets,
 `tools/`: `ab.mjs`, `both.mjs`, `first.mjs`, `diffsheet.mjs`, `loads.mjs`).
+
+
+### The rectangle in reduced-resolution Unity pictures (#575, 20 October 2026)
+
+The six overlays now scale their target pixel into the G-buffer before reading depth. The City-Shaft's `crowd2` view at a held render scale of 0.67 reproduces the old dark region starting at pixel 857 in a 1280 × 720 photo. The corrected image has no rectangular boundary. The same before/after camera and preset were checked in the muted Mac Unity editor; the Desert also remained unchanged and was compared with the web. The interactive v1.89 changelog contains the City-Shaft pair.
+
+This adds one two-component coordinate multiplication per overlay fragment and one global scale vector per camera, with no new render pass or texture read. No frame-rate gain is claimed. Retroid and Xbox confirmation and timing still require a rebuilt native player; these editor pictures are correctness evidence, not hardware measurements. Earlier #404/#536 screenshot shading should be rechecked with this fix before judging it as a world-lighting difference.

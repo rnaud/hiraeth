@@ -1355,7 +1355,7 @@ export const CHANGELOG_MEDIA = {
       { name: 'sea-577-deck-wide', title: 'Across the sea', size: [1280, 720], caption: 'The distant wave lines fade away, leaving a flat sea around the port.', from: 'Issue #577: muted Unity editor batch, High, 1280 × 720, noon, clear, the same pinned view before and after; compared with muted Chrome on port 5477; 20 October 2026.' },
     ], see: 'In the Underwater City, look up through the Dock’s dome, or ride the sea port’s lift and look out under the surface.' },
   
-    { match: 'In Unity, photos and previews drawn at reduced resolution', see: 'In the Unity version, use a reduced-resolution graphics preset, then take a photo or open the Wardrobe. The picture should have even shading, with no rectangular boundary across the ground.' },
+    { match: 'In Unity, photos and previews drawn at reduced resolution', shots: [{ name: 'scaled-photo-575', title: 'The City-Shaft at reduced resolution', size: [1280, 720], caption: 'Before, a dark rectangle covers the right-hand ground and people. After, the overlay reads the matching scene depth across the whole photo.', from: 'Issue #575: muted Unity editor, Handheld, render scale 0.67, City-Shaft crowd2 benchmark camera, 1280 × 720. Before: the original unscaled G-buffer coordinate mapping; after: 2448f766b. Same world, camera and preset; 20 October 2026. Desert screenshots also checked against the web.' }], see: 'In the Unity version, use a reduced-resolution graphics preset, then take a photo or open the Wardrobe. The picture should have even shading, with no rectangular boundary across the ground.' },
   ],
   '1.88': [
     { match: 'The traveller is rebuilt: his body and each piece of his clothing', tags: ['traveller'], shots: [

@@ -2151,7 +2151,7 @@ screen; the batch run's pictures only.
   ground outside the bottom-left rectangle the G-buffer covered, its height where the horizon fell in the G-buffer. The
   screen was even (its colour target is at the render scale). They now read it through `GAt.hlsl`, the pixel scaled by
   `_GPixelScale` (the G-buffer's size over the target's, set by the composite from `GetRenderTargetInfo` of the camera's
-  colour): 1 on the screen, as before. `tests/unity-gat.test.js` checks the coordinate mapping for reduced-resolution targets.
+  colour): 1 when the G-buffer and target have the same dimensions. `tests/unity-gat.test.js` checks the coordinate mapping for reduced-resolution targets.
 - **The shafts of light** (#420). Besides the flip above, a shaft's wash (alpha 0.12 and 0.14 a layer, both faces of two
   cones) came out far whiter than the web's: three blends it in display values, Unity in its linear target, where a pale
   wash over a dark wall is much lighter (the "blend is Unity's linear one" note above). Veil.shader now raises a laid-over
