@@ -16,7 +16,7 @@ import { plain } from './markdown.js';
 import { compareVersions, KIND_NAMES, readTable } from './parse.js';
 
 /** The dashboard's order: the full game audit, then the rest roughly by how much of the game they judge. */
-export const THEME_ORDER = ['game', 'combat', 'combat-fight-temples', 'level-design', 'temple-design', 'visual', 'temple-visuals', 'ink-lines', 'zfight', 'shadow', 'cinematics', 'dialogue', 'quest', 'procedural-animation', 'motion', 'camera', 'perf'];
+export const THEME_ORDER = ['game', 'combat', 'combat-fight-temples', 'level-design', 'temple-design', 'visual', 'temple-visuals', 'ink-lines', 'zfight', 'shadow', 'cinematics', 'dialogue', 'quest', 'procedural-animation', 'motion', 'camera', 'sound', 'perf'];
 
 const round2 = (n) => Math.round(n * 100) / 100;
 const mean = (v) => (v.length ? v.reduce((a, b) => a + b, 0) / v.length : null);

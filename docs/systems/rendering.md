@@ -1439,6 +1439,12 @@ fixes, those four. `tests/zfight.test.js` holds the Glass Dunes to none (`WORLD_
 pictures): pixels changing by more than 24 levels 0.52 → 0.25 % (a striped wall of rooms gone; the rest is the lamps'
 glow and the motes); the court's terrace and the ledges' view the same before and after (0.25 %, 0.13 %).
 
+**v1.87, 2026-10-20** (docs/audits/zfight-v1.87.md, issue #556): desert 24, incal 4092, arzach 3, glassdunes 0, buried
+1707, edena 5, spheres 0, perdide 5, bazaar 73, underwater 42, moonfoundry 238, spacecity 12, the ship 0: 6201 in all
+(6475 → 6201). New: two crates in the Hush-House's fight court (`crate`, src/gadgets/yard-kit.js: the frame's bars along
+x flush with the box's top and bottom). The temples at or under their baselines, six well under (the Warden's Well 6 of
+39, the Belfry 1 of 10, the Undertower 3 of 8, the Lamp-House 1 of 3, the Greenhouse 1 of 2, the Whale-House 5 of 6).
+
 ## The Shadow Room and the shadow QC (`?level=shadows`, `.claude/skills/shadow-qc`; October 2026)
 
 Issue #67: a room for complex shadow situations, and a check of the shadows in motion with the traveller.
@@ -1508,6 +1514,11 @@ at a low sun, thin long shadows seen from 30–40 m fade out as the lookup widen
 12°: the props spot's leaks on High); the Handheld's balcony keeps 25 % of its contact probes lit (a 16 cm texel);
 the 2 cm fence and the 3 cm grate shimmer a little as the near window steps (sub-texel rasterisation, 0.04 % a frame).
 `tests/shadow-room.test.js`, `tests/shadow-qc.test.js`, `tests/shadows.test.js` (the hero map, `NEAR_CASCADE`).
+
+**v1.87, 2026-10-20** (main `3da6e2539`, the Mac M4 Pro, headless Chrome on the GPU, load 27–29; High, Steam Deck and
+Handheld at 35° and 12°; docs/audits/shadow-v1.87.md): 52 of 60 spots green, the same eight reds at the same readings
+within 1–2 points (the High props at 12° leak 9.5 %, the Handheld balcony 23.3 %); #492's near map every frame changed
+none of them; his shadow drawn 86–100 %, spill 0–36 %, gap 0–3 cm.
 
 **v1.85, 2026-10-18** (main `8f01feae5`, the Mac M4 Pro, headless Chrome on the GPU, load 23–27; High, Steam Deck and
 Handheld at 35° and 12°; docs/audits/shadow-v1.85.md): 52 of 60 spots green, the same eight reds as v1.66 at the same
