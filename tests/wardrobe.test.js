@@ -311,3 +311,33 @@ test('Unity: every fight-surface material (a foe, a crystal, the blade, the shie
   // (the variant declares it: FoeSurface.hlsl's, which BladeSurface.hlsl's shares)
   assert.match(src('unity/Hiraeth/Assets/Hiraeth/Shaders/FoeSurface.hlsl'), /StructuredBuffer<float4> _SkinData;/);
 });
+
+test('the preview\'s light: the sun as in the world, none of the world\'s shadows on him wherever he stands, the same on the web and in Unity (issue #578)', () => {
+  // the web: the Wardrobe's capture asks for its own light; its frame draws the shadow maps with him and the sword alone
+  const main = src('src/main.js');
+  const frame = main.slice(main.indexOf('function wardrobeFrame()'), main.indexOf('function wardrobeFrame()') + 1400);
+  assert.match(frame, /captureView\([^;]*own: true[^;]*\);/, 'the Wardrobe asks for its own light');
+  const cap = main.slice(main.indexOf('function captureView('), main.indexOf('function captureView(') + 3000);
+  assert.match(cap, /if \(own && keep\) \{ ownShadows = keep; SU\.uCloudShadows\.value = 0; \}/, 'his and the sword\'s maps, no clouds\' shadows');
+  assert.match(cap, /ownShadows = null; SU\.uCloudShadows\.value = clouds;/, 'and back as they were after the picture');
+  const draw = main.slice(main.indexOf('function renderFrame()'), main.indexOf('// 2. G-buffer'));
+  assert.match(draw, /if \(ownShadows\) ownShadowPass\(ownShadows\);\s*else \{\s*scene\.overrideMaterial = shadowOverride;/, 'the world\'s passes skipped for it');
+  const own = main.slice(main.indexOf('function ownShadowPass('), main.indexOf('function shadowPass('));
+  assert.match(own, /heroScene\.children = list;/, 'its maps drawn with his list alone (not the scene, not the still meshes\' batch)');
+  assert.doesNotMatch(own, /statics|renderer\.render\(scene/, 'nothing of the world in them');
+  assert.match(own, /c\.view = undefined;/, 'the world\'s next frame draws every map again');
+  // Unity: the Wardrobe's camera draws the fine map of his renderers alone and reads no other map, no clouds' shadows
+  const runner = src('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs');
+  const w = runner.slice(runner.indexOf('public void Wardrobe(string json)'), runner.indexOf('public void ScreenAs('));
+  assert.match(w, /HiraethShadows\.OwnCam = pc;/);
+  assert.match(w, /Shader\.SetGlobalFloat\("_CloudShadows", 0\);/);
+  assert.ok(w.indexOf('HiraethShadows.Instance.EndOwn();') > w.indexOf('finally'), 'put back after the picture, whatever happens');
+  const sh = src('unity/Hiraeth/Assets/Hiraeth/Runtime/HiraethShadows.cs');
+  assert.match(sh, /if \(OwnCam && i > 0\) live = false;/, 'only the fine map read for him');
+  assert.match(sh, /if \(cam == OwnCam \|\| !UseRendererLists/, 'own preview never gets world renderer-list casters');
+  assert.match(sh, /public void EndOwn\(\)[\s\S]*?fine\.fresh = false;/, 'the world redraws the overwritten map after preview');
+  const prep = sh.slice(sh.indexOf('public List<Plan> PrepareOwn()'), sh.indexOf('public void EndOwn()'));
+  assert.match(prep, /foreach \(var r in Own\)/, 'his renderers alone');
+  assert.doesNotMatch(prep, /detail\.|movers|flora\.Add/, 'nothing of the world');
+  assert.match(src('unity/Hiraeth/Assets/Hiraeth/Rendering/HiraethFeature.cs'), /var plans = own \? HiraethShadows\.Instance\.PrepareOwn\(\) : HiraethShadows\.Instance\.Prepare\(/);
+});

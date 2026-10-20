@@ -1102,6 +1102,7 @@ namespace Hiraeth.Bridge
             var was = scene.OnLayer(keep, WardrobeLayer);
             var bd0 = Shader.GetGlobalVector("_Backdrop");
             float rain0 = Shader.GetGlobalFloat("_Rain"), near0 = Shader.GetGlobalFloat("_RainNear"), storm0 = Shader.GetGlobalFloat("_Storm");
+            float clouds0 = Shader.GetGlobalFloat("_CloudShadows");
             try
             {
                 var bd = ColorUtility.TryParseHtmlString(d.S("backdrop") ?? "", out var c) ? c : Color.clear;
@@ -1111,10 +1112,16 @@ namespace Hiraeth.Bridge
                 pc.cullingMask = 1 << WardrobeLayer;
                 pc.fieldOfView = d.Has("fov") ? d.F("fov") : 28; pc.targetTexture = wardrobeRT; pc.aspect = (float)w / h;
                 scene.FinishFrame();
+                HiraethShadows.OwnCam = pc;
+                foreach (var (go, layer) in was)
+                    if (go && go.TryGetComponent<Renderer>(out var r)) HiraethShadows.Own.Add(r);
+                Shader.SetGlobalFloat("_CloudShadows", 0);
                 pc.Render();
             }
             finally
             {
+                HiraethShadows.Instance.EndOwn();
+                Shader.SetGlobalFloat("_CloudShadows", clouds0);
                 pc.targetTexture = null; pc.cullingMask = cam.cullingMask;
                 Shader.SetGlobalVector("_Backdrop", bd0);
                 Shader.SetGlobalFloat("_Rain", rain0); Shader.SetGlobalFloat("_RainNear", near0); Shader.SetGlobalFloat("_Storm", storm0);

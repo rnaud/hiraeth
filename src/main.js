@@ -1893,6 +1893,34 @@ function heroPass() {
   for (const o of player.character?.shadowCasters ?? []) renderer.render(o, c.cam);
 }
 
+/**
+ * The Wardrobe's light (issue #578; captureView's `own`): the sun as in the world, but none of the world's shadows on him
+ * wherever he stands (under the ship, a wall, a tree): the fine (or hero) map and the near one drawn with `keep` alone
+ * (him and the sword beside him) round him, so his own shadow falls on him as in the world (the near map without him
+ * where the hero map holds him, as heroPass and the near pass have it). The far map is left as the world drew it (he
+ * stands in the near map's middle: it is never read for him); every map is drawn again on the world's next frame.
+ */
+let ownShadows = null;
+function ownShadowPass(keep) {
+  const fine = cascades.fine, near = cascades.near;
+  if (heroOn) {
+    const e = heroExtent(shadowDir.y);
+    if (e !== fine.extent) { fine.configure(fine.size, e); fine.aim(shadowDir); shadowTexels(); }
+  }
+  const draw = (c, list) => {
+    c.place(player.pos);
+    renderer.setRenderTarget(c.rt);
+    renderer.clear();
+    heroScene.children = list;
+    try { renderer.render(heroScene, c.cam); } finally { heroScene.children = []; }
+    if (list.includes(player.object)) for (const o of player.character?.shadowCasters ?? []) renderer.render(o, c.cam);
+  };
+  const shown = keep.filter((o) => o?.visible);
+  if (heroOn || fine.enabled) draw(fine, heroOn ? shown.filter((o) => o === player.object) : shown);
+  draw(near, heroOn ? shown.filter((o) => o !== player.object) : shown);
+  for (const c of Object.values(cascades)) c.view = undefined;   // (the world's next frame draws them all again: viewLeft, viewOf)
+}
+
 /** One shadow pass: place the cascade, hide what it doesn't need, render, show it again. A map kept over
  *  several frames (kept) holds the casters of every view within VIEW_SLACK of this one (shadows.js). */
 function shadowPass(c, reach, hide = [], kept = false) {
@@ -1975,41 +2003,46 @@ function renderFrame() {
   shadowDirection(sharedUniforms.uSunDir.value, shadowDir);
   let turned = false;
   for (const c of Object.values(cascades)) turned = c.aim(shadowDir) || turned;
-  scene.overrideMaterial = shadowOverride;
-  statics?.shadowsBegin();
-  const shadowHidden = _shadowHidden; shadowHidden.length = 0;
-  // (and his own, read live: the v2 traveller's clothes, whose shirt's shadow is drawn as it moves, change with his outfit)
-  for (const list of [level.noShadow ?? [], player.gear?.noShadow ?? [], player.humanoid?.noShadow ?? [], tinyShadowCasters(), glowCasters(), crowdShadowless()])
-    for (const o of list) if (o.visible) { o.visible = false; shadowHidden.push(o); }
-  shadowCull.begin(camera, shadowDir, { vertical: !level.gravityAt });
-  const camToPlayer = camera.position.distanceTo(player.pos);
-  if (heroOn) heroPass();
-  else if (cascades.fine.enabled) shadowPass(cascades.fine, camToPlayer + cascades.fine.extent * 1.8);
-  // (and drawn again as soon as the view has turned or moved out of what the last one was culled for)
-  // (every frame on every preset since issue #492: at half rate the foes' and the moving parts' shadows trailed them)
-  const nearEvery = preset.nearEvery;
-  const nearKept = nearEvery > 1;
-  if (nearDue(frameNo, nearEvery, turned, () => viewLeft(cascades.near.view, camera))) {
-    // (the traveller is the hero map's alone; in the near map his coarse shadow only blurred its edge)
-    const hero = heroOn && player.object.visible ? [player.object] : [];
-    for (const o of hero) o.visible = false;
-    shadowPass(cascades.near, camToPlayer + cascades.near.extent * 1.8, hero, nearKept);
+  // (the Wardrobe's picture, issue #578: the maps hold him and the sword beside him alone, none of the world's shadows
+  // on him wherever he stands: ownShadowPass)
+  if (ownShadows) ownShadowPass(ownShadows);
+  else {
+    scene.overrideMaterial = shadowOverride;
+    statics?.shadowsBegin();
+    const shadowHidden = _shadowHidden; shadowHidden.length = 0;
+    // (and his own, read live: the v2 traveller's clothes, whose shirt's shadow is drawn as it moves, change with his outfit)
+    for (const list of [level.noShadow ?? [], player.gear?.noShadow ?? [], player.humanoid?.noShadow ?? [], tinyShadowCasters(), glowCasters(), crowdShadowless()])
+      for (const o of list) if (o.visible) { o.visible = false; shadowHidden.push(o); }
+    shadowCull.begin(camera, shadowDir, { vertical: !level.gravityAt });
+    const camToPlayer = camera.position.distanceTo(player.pos);
+    if (heroOn) heroPass();
+    else if (cascades.fine.enabled) shadowPass(cascades.fine, camToPlayer + cascades.fine.extent * 1.8);
+    // (and drawn again as soon as the view has turned or moved out of what the last one was culled for)
+    // (every frame on every preset since issue #492: at half rate the foes' and the moving parts' shadows trailed them)
+    const nearEvery = preset.nearEvery;
+    const nearKept = nearEvery > 1;
+    if (nearDue(frameNo, nearEvery, turned, () => viewLeft(cascades.near.view, camera))) {
+      // (the traveller is the hero map's alone; in the near map his coarse shadow only blurred its edge)
+      const hero = heroOn && player.object.visible ? [player.object] : [];
+      for (const o of hero) o.visible = false;
+      shadowPass(cascades.near, camToPlayer + cascades.near.extent * 1.8, hero, nearKept);
+    }
+    if (farDue(frameNo, nearEvery, preset.farEvery, turned, () => viewLeft(cascades.far.view, camera))) {
+      // pebbles and bushes don't need km-wide shadows (but a tile of boulders, globes or pillars does)
+      const small = farPassSkips(tiled.small, cascades.far.texel);
+      for (const o of small) o.visible = false;
+      if (preset.lodPx) lod.shadowPass(cascades.far.texel);   // nor detail finer than a texel of it
+      const caster = crowdCaster(cascades.far.cam);
+      for (const o of caster) o.visible = false;
+      shadowPass(cascades.far, camera.far, caster, true);
+      lod.viewPass();
+      for (const o of small) o.visible = true;
+    }
+    frameNo++;
+    scene.overrideMaterial = null;
+    statics?.shadowsEnd();
+    for (const o of shadowHidden) o.visible = true;
   }
-  if (farDue(frameNo, nearEvery, preset.farEvery, turned, () => viewLeft(cascades.far.view, camera))) {
-    // pebbles and bushes don't need km-wide shadows (but a tile of boulders, globes or pillars does)
-    const small = farPassSkips(tiled.small, cascades.far.texel);
-    for (const o of small) o.visible = false;
-    if (preset.lodPx) lod.shadowPass(cascades.far.texel);   // nor detail finer than a texel of it
-    const caster = crowdCaster(cascades.far.cam);
-    for (const o of caster) o.visible = false;
-    shadowPass(cascades.far, camera.far, caster, true);
-    lod.viewPass();
-    for (const o of small) o.visible = true;
-  }
-  frameNo++;
-  scene.overrideMaterial = null;
-  statics?.shadowsEnd();
-  for (const o of shadowHidden) o.visible = true;
 
   // 2. G-buffer (clearing to 0 marks sky pixels with depth 0)
   crowdView(true);   // (what of the crowd draws nothing in the view, out of it)
@@ -2082,8 +2115,8 @@ function shrinkInto(src, sx, sy, sw, sh, out, w, h) {
   g.drawImage(cur, cx, cy, cw, ch, 0, 0, w, h);
 }
 // o.into: a canvas to draw it into (w × h) instead of an image (the Wardrobe's traveller, each frame); o.ink: the lines' weight
-// against the world's (a portrait's half by default)
-function captureView(eye, look, w, h, { keep = null, backdrop = null, fov = null, css = null, into = null, ink = undefined } = {}) {
+// against the world's (a portrait's half by default); o.own: lit by the sun without the world's shadows (the Wardrobe's, issue #578)
+function captureView(eye, look, w, h, { keep = null, backdrop = null, fov = null, css = null, into = null, ink = undefined, own = false } = {}) {
   _cp.copy(camera.position); _cq.copy(camera.quaternion); _cu.copy(camera.up);
   camera.position.copy(eye);
   camera.up.copy(player.frame.up);
@@ -2091,8 +2124,10 @@ function captureView(eye, look, w, h, { keep = null, backdrop = null, fov = null
   const fov0 = camera.fov;
   if (fov) { camera.fov = fov; camera.updateProjectionMatrix(); }
   const hidden = keep ? isolate(keep, scene) : [];
-  const weather = [U.uRain.value, U.uStorm.value], pr = [U.uPixelRatio.value, SU.uPixelRatio.value], cut = SU.uHeroCut.value;
+  const weather = [U.uRain.value, U.uStorm.value], pr = [U.uPixelRatio.value, SU.uPixelRatio.value], cut = SU.uHeroCut.value, clouds = SU.uCloudShadows.value;
   SU.uHeroCut.value = 0;   // (a capture's own eye: the traveller drawn whatever the follow camera's lens was in)
+  // (o.own, the Wardrobe's: the sun's light on him without the world's shadows, neither its casters' nor its clouds': ownShadowPass)
+  if (own && keep) { ownShadows = keep; SU.uCloudShadows.value = 0; }
   if (keep) {
     portraitShot = true;
     U.uRain.value = U.uStorm.value = 0;
@@ -2106,6 +2141,7 @@ function captureView(eye, look, w, h, { keep = null, backdrop = null, fov = null
     [U.uRain.value, U.uStorm.value] = weather;
     [U.uPixelRatio.value, SU.uPixelRatio.value] = pr;
     SU.uHeroCut.value = cut;
+    ownShadows = null; SU.uCloudShadows.value = clouds;
     U.uBackdrop.value.w = 0;
     if (fov) { camera.fov = fov0; camera.updateProjectionMatrix(); }
   }
@@ -2131,8 +2167,9 @@ function captureView(eye, look, w, h, { keep = null, backdrop = null, fov = null
 }
 /**
  * The Wardrobe's traveller (the game menu's last panel, issue #571; src/wardrobe.js): while it shows, each frame under the
- * menu, him alone against the paper (and the sword planted beside him), lit as in the world, from the turntable's angle,
- * drawn by the game's own frame into the page's canvas at its size (its lines the world's weight).
+ * menu, him alone against the paper (and the sword planted beside him), lit by the world's sun but under none of its
+ * shadows (own: issue #578), from the turntable's angle, drawn by the game's own frame into the page's canvas at its size
+ * (its lines the world's weight).
  */
 let wardrobeT = 0;
 function wardrobeFrame() {
@@ -2146,7 +2183,7 @@ function wardrobeFrame() {
   const w = Math.round(canvas.clientWidth * dpr * k), h = Math.round(canvas.clientHeight * dpr * k);
   const shot = wardrobeShot(player, journal.menu.turntable.yaw, w / h);
   wardrobe.place(shot);
-  captureView(shot.eye, shot.look, w, h, { keep: wardrobe.keep(), backdrop: WARDROBE_BACKDROP, fov: shot.fov, css: canvas.clientHeight, into: canvas, ink: 1 });
+  captureView(shot.eye, shot.look, w, h, { keep: wardrobe.keep(), backdrop: WARDROBE_BACKDROP, fov: shot.fov, css: canvas.clientHeight, into: canvas, ink: 1, own: true });
 }
 /** Did the capture come back empty: every pixel clear, or every pixel the same colour? */
 function blankCapture(c) {

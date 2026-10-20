@@ -233,9 +233,10 @@ namespace Hiraeth.Rendering
             public override void RecordRenderGraph(RenderGraph rg, ContextContainer frame)
             {
                 var cam = frame.Get<UniversalCameraData>();
-                if (!WorldDetail.DrawsWorld(cam.camera) || WorldDetail.Current == null) return;
+                bool own = cam.camera == HiraethShadows.OwnCam;
+                if (!own && (!WorldDetail.DrawsWorld(cam.camera) || WorldDetail.Current == null)) return;
                 long t0 = Perf.Now;
-                var plans = HiraethShadows.Instance.Prepare(cam.camera, WorldDetail.Current);
+                var plans = own ? HiraethShadows.Instance.PrepareOwn() : HiraethShadows.Instance.Prepare(cam.camera, WorldDetail.Current);
                 Perf.Add(Perf.Slot.Shadows, t0);
                 if (plans.Count == 0) return;
                 var sm = ShadowMaps.Of(rg, frame);

@@ -684,6 +684,8 @@ function makePlan(args) {
     // (the traveller's preview following it), one worn with A / ×, then closed: unity-wardrobe-<name>.png beside the web's)
     // (the colours won as the web's pictures have them: -set-flags kit.colours.ember,kit.colours.slate,kit.colours.reed,kit.colours.neon)
     const shot = (name) => (args.out ? [{ kind: 'shot', file: `${args.out}/unity-wardrobe-${name}.png` }] : []);
+    // (-wardrobe-at x,z: him set down there first, in the ship's shadow or in the sun: the page lights him the same, issue #578)
+    if (args.wardrobeAt) steps.push({ kind: 'wait', frames: 60, secs: 2 }, { kind: 'wardrobe', at: String(args.wardrobeAt) }, { kind: 'wait', frames: 30, secs: 1 }, ...shot('world'));
     steps.push({ kind: 'wait', frames: 120, secs: 4 }, { kind: 'wardrobe' }, { kind: 'wait', frames: 120, secs: 4 }, ...shot('open'));
     for (let i = 1; i <= 3; i++) steps.push({ kind: 'menu', x: 0, y: 1 }, { kind: 'wait', frames: 40, secs: 1.5 }, ...shot(`blade-${i}`));
     steps.push({ kind: 'menu', act: 'confirm' }, { kind: 'wait', frames: 30, secs: 1 }, ...shot('worn'), { kind: 'menu', act: 'back' }, { kind: 'wait', frames: 20 }, ...shot('closed'), { kind: 'wardrobe', log: true });
@@ -1224,6 +1226,14 @@ function playFrame(dt) {
   }
   else if (step.kind === 'wardrobe') {
     const M = S.menus;
+    if (step.at) {
+      const [x, z] = step.at.split(',').map(Number), P = game.player, V = P.pos.constructor;
+      const y = game.level.ground?.heightAt ? game.level.ground.heightAt(x, z) : P.pos.y;
+      P.teleport(new V(x, y + 0.05, z), new V(0, 1, 0), new V(0, 0, 1));
+      console.log(`[unity] the Wardrobe: him set down at ${P.pos.toArray().map((v) => v.toFixed(2)).join(', ')}`);
+      next();
+      return;
+    }
     if (!step.log) M.show('game', 'wardrobe');
     // (-wardrobe-yaw: him held there, as the web's pictures of the page pin him, so the two can be laid side by side)
     if (!step.log && Number.isFinite(S.args?.wardrobeYaw)) { M.turntable.yaw = S.args.wardrobeYaw; M.turntable.idle = -Infinity; }

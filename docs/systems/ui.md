@@ -729,8 +729,7 @@ main.js and engine/game.js), `src/game-menu.js` `wardrobePanel` and `GameMenu.wa
   new traveller."; without the sword, the Blade list is "No sword yet.". One column of rows: ↑ ↓ go through both.
 - **On the right**, the traveller drawn live: each frame the page shows (main.js `wardrobeFrame` in `pausedFrame`),
   the game's own frame from a camera on him (`wardrobeShot`: his whole height, 28°, 4.4 m off), him alone against the
-  paper (`captureView` with `keep`, `backdrop` and `into` the page's canvas, the lines at the world's weight), so lit
-  as in the world. He turns on his own (`Turntable`: 0.32 rad/s, waiting 2 s after a hand turned him); the right
+  paper (`captureView` with `keep`, `backdrop` and `into` the page's canvas, the lines at the world's weight). He turns on his own (`Turntable`: 0.32 rad/s, waiting 2 s after a hand turned him); the right
   stick turns him (src/controller.js hands it to the page's `menuAnalog` as `rx`), and so does a drag (mouse or
   finger) on the picture. The sword he carries is sheathed, so a sword of its own stands point down beside him on
   the picture's right, its face to the camera (`plantedSword`, `placeSword`), in the colour shown.
@@ -742,14 +741,26 @@ main.js and engine/game.js), `src/game-menu.js` `wardrobePanel` and `GameMenu.wa
   one the world dresses him in as it loads (main.js: the save's, unless `&outfit=` names one).
 - **Unity** (engine/menus.js, BridgeMenu.Wardrobe.cs, BridgeRunner.Wardrobe): the same rows and preview; engine/game.js
   draws him each frame the page shows (`wardrobeCapture`: his drawables and the sword's on a layer of their own for
-  the portraits' camera, into one picture BridgeMenu shows in its frame). The engines draw B3, so the outfits' line
-  says they need the new traveller there too. The sword beside him draws whole there since its blade's material is
+  the portraits' camera, into one picture BridgeMenu shows in its frame). The engines use v2 by default too; when
+  explicitly testing B3, the outfits' line says they need the new traveller. The sword beside him draws whole there since its blade's material is
   bound a buffer: the blade and the shield are drawn by the Surface shader's fight variant (HIRAETH_FIGHT), which
   declares the foes' `_SkinData` buffer, and the blade's material had none; Metal skips a draw whose buffer is unbound
   ("requires a ComputeBuffer at index 3"), so the blade drew only in a fight, after a foe's draw had bound one
   (WorldLoader: `NoSkinData`, an empty slot of its own; `tests/wardrobe.test.js`). `-wardrobe -out dir` photographs
   the page, `-wardrobe-yaw r` holds him at r rad round (as the web's pictures pin him) and `-set-flags
   kit.colours.ember,…` gives him the colours the web's pictures have.
+- **His light** (issue #578): the world's sun, its colour and direction at that hour and place, but none of the
+  world's shadows, wherever he stands (under the ship, against a wall, under a cloud), so the outfit and the blade's
+  colour read the same everywhere. `captureView`'s `own` (the Wardrobe's alone): its frame draws the shadow maps with
+  `keep` alone round him (`ownShadowPass`: the fine or hero map and the near one, him and the sword beside him; the
+  still meshes' batch, which `isolate` does not hide, left out), so his own shadow still falls on him as in the world,
+  and the clouds' shadows are off for the picture; every map is drawn again on the world's next frame. In Unity the
+  same: BridgeRunner.Wardrobe sets `HiraethShadows.OwnCam` and his renderers, and that camera's shadow pass draws the
+  fine map of them alone (`PrepareOwn`), reads no other map (`SetGlobals`) and no clouds' shadows; `EndOwn` after.
+  (Before, Unity's preview read the world's maps, the main camera's: under the ship he came out grey.) Without a fine
+  map (Unity's handheld presets) no map is read there: the sun alone, where the web's handhelds keep their hero map.
+  `-wardrobe-at x,z` sets him down there first (`unity-wardrobe-world.png`), to try it in a shadow and in the sun;
+  `tests/wardrobe.test.js`.
 - **He is not frozen**: the world stands still under the menu, so he would too; on the page he breathes and looks
   about a little over the pose the menu opened on (`PageIdle`, `PAGE_IDLE`: the chest's breath and sway, the head's
   glances and nod, the shoulders with the breath; the upper body's bones only, turned about his own frame's axes, so

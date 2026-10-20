@@ -285,6 +285,7 @@ export const GAPS = {
     { keys: ['import:src/item-icons.js#ItemIcons', 'import:src/boxes/model.js#buildItemModel', 'import:src/portrait-cache.js#PortraitCache', 'fn:pumpPortraits',
       'import:src/story/portrait-bg.js#isolate', 'import:src/story/portrait-bg.js#restore', 'import:src/story/portrait-bg.js#portraitPixelRatio'],
     what: 'the items\' pictures and the conversation\'s portraits, rendered by the page', status: 'handled', where: 'the bridge photographs its own (BridgeRunner.Portrait, engine/unity/backend.js portrait)' },
+    { keys: ['fn:ownShadowPass'], what: 'the Wardrobe preview lit by the sun with only its own shadows', status: 'handled', where: 'BridgeRunner.Wardrobe and HiraethShadows.PrepareOwn/EndOwn draw its own casters and disable world and cloud shadows (#578)' },
     { keys: ['fn:mapTemples'], what: 'the Map\'s ground and temples', status: 'handled', where: 'engine/game.js keeps the map\'s marks and ground (docs/systems/engine-bridge.md, "The Map\'s ground")' },
     { keys: ['import:src/gadgets/all.js#GADGETS'], what: 'every gadget', status: 'handled', where: 'engine/game.js makes the gadgets through src/gadgets (tests/engine-gadgets.test.js)' },
     { keys: ['import:src/music-store.js#startThemeDownload'], what: 'the recorded themes\' download', status: 'handled', where: 'BridgeMusic.cs downloads them into persistentDataPath (#264)' },

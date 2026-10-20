@@ -12,8 +12,11 @@ export const CHANGELOG = [
     // issue #577: Surface.shader waterLook (_WaterBelow, the crests' WATER_INK fade, _WaterLite), WorldLoader.MakeMaterial;
     // tests/unity-sea-underside.test.js
     'In the Unity version, the sea over the Underwater City, seen from under the water, is the same deep, even blue as on the web instead of a pale ceiling crossed by streaks, and from the sea port’s deck the far sea is a flat tone again, without fine lines out to the horizon.',
-  
+
     'In Unity, photos and previews drawn at reduced resolution no longer have a rectangle shaded differently from the rest of the picture.',
+    // issue #578: main.js captureView own / ownShadowPass, HiraethShadows.PrepareOwn / EndOwn, HiraethFeature ShadowPass,
+    // BridgeRunner.Wardrobe; tests/wardrobe.test.js
+    'In the Wardrobe the traveller is now lit by the sun without the world’s shadows, wherever he stands, so his clothes and the sword’s colour look the same everywhere: in the Unity version he no longer comes out grey when he stands in the ship’s shadow.',
   ] },
   { v: '1.88', date: '2026-10-20', items: [
     // issue #493: src/characters/traveller.js loadTraveller / traveller-v2.js (travellerSetting on, dressTravellerV2),

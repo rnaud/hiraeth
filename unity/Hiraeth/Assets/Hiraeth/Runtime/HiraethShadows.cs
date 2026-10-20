@@ -134,6 +134,45 @@ namespace Hiraeth
         bool culling;
         /// <summary>A main camera that is not the port's Game's (the Unity bridge's): it keeps the cascades' schedule.</summary>
         public static Camera MainCamera;
+        // Wardrobe: its own casters, using the world's sun but none of its occluders.
+        public static Camera OwnCam;
+        public static readonly HashSet<Renderer> Own = new();
+        bool ownPrepared;
+        public List<Plan> PrepareOwn()
+        {
+            plans.Clear(); preparedFrame = -1; ownPrepared = true;
+            if (version != Quality.Version || fine.rt == null) Configure();
+            if (!On || !fine.enabled) return plans;
+            var look = HiraethLook.Instance;
+            var light = look ? HiraethLook.Three(look.SunDirThree) : Vector3.up;
+            lightDir = Quantise(light.sqrMagnitude > 1e-6f ? light.normalized : Vector3.up);
+            fine.Aim(lightDir);
+            fine.Place(Traveller?.Invoke() ?? OwnCam.transform.position);
+            fine.fresh = true;
+            var plan = pool[0]; plan.cascade = fine; plan.hasCull = false;
+            plan.draws.Clear(); plan.flora.Clear(); plan.extra.Clear();
+            foreach (var r in Own)
+            {
+                if (!r || !r.enabled || !r.gameObject.activeInHierarchy || r.shadowCastingMode == ShadowCastingMode.Off) continue;
+                var mats = r.sharedMaterials;
+                for (int i = 0; i < mats.Length; i++)
+                {
+                    var mat = mats[i]; if (!mat) continue;
+                    int pass = ShadowPassOf(mat);
+                    if (pass >= 0) plan.draws.Add(new Draw { renderer = r, mat = mat, pass = pass, sub = i });
+                }
+            }
+            plans.Add(plan);
+            return plans;
+        }
+        public void EndOwn()
+        {
+            OwnCam = null; Own.Clear(); ownPrepared = false;
+            preparedFrame = -1;
+            // The fine map held the preview; the world must redraw before sampling it.
+            fine.fresh = false;
+        }
+
         /// <summary>The smallest caster drawn, in the cascade's texels (its bounding radius; the web's 0.75).</summary>
         public static float minCasterTexels = 0.75f;
         /// <summary>The far map's own smallest caster, in its texels (~1.1 m: a small thing far off casts a speck there).</summary>
@@ -351,7 +390,7 @@ namespace Hiraeth
         /// </summary>
         public void CullFor(ScriptableRenderContext ctx, Camera cam, WorldDetail detail)
         {
-            if (!UseRendererLists || !On || detail == null) return;
+            if (cam == OwnCam || !UseRendererLists || !On || detail == null) return;
             preparedFrame = -1;
             culling = true;
             List<Plan> list;
@@ -450,6 +489,8 @@ namespace Hiraeth
             {
                 var c = cs[i];
                 bool live = On && c.enabled && c.fresh && c.rt != null && maps != null && maps[i].IsValid();
+                if (OwnCam && i > 0) live = false;
+                if (OwnCam && !ownPrepared) live = false;
                 cmd.SetGlobalMatrix(IdMat[i], c.sample);
                 cmd.SetGlobalVector(IdParams[i], live ? c.Params : Vector4.zero);
                 if (maps != null && maps[i].IsValid()) cmd.SetGlobalTexture(IdMap[i], maps[i]);

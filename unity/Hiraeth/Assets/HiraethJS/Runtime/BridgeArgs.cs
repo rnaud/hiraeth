@@ -225,6 +225,8 @@ namespace Hiraeth.Bridge
             if (Flag("-wardrobe")) args["wardrobe"] = true;
             // (-wardrobe-yaw r: him held at r rad round from his front, not turning by himself: the same picture as the web's)
             if (Arg("-wardrobe-yaw") != null) args["wardrobeYaw"] = double.Parse(Arg("-wardrobe-yaw"), CultureInfo.InvariantCulture);
+            // (-wardrobe-at x,z: him set down there first, the web's metres: in the ship's shadow or in the sun, issue #578)
+            if (Arg("-wardrobe-at") != null) args["wardrobeAt"] = Arg("-wardrobe-at");
             // (-house id [-house-room room] [-house-turn rad]: the Start menu's House map photographed floor by floor, issue #405: engine/unity/game.js)
             if (Arg("-house") != null) args["house"] = Arg("-house");
             if (Arg("-house-room") != null) args["houseRoom"] = Arg("-house-room");
