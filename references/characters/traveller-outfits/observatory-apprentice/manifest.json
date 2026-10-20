@@ -1,0 +1,18 @@
+{
+  "created": "2026-10-20",
+  "accepted": true,
+  "issue": 588,
+  "sheets": [
+    {
+      "file": "approved-reference.png",
+      "provider": "openai",
+      "service": "OpenAI built-in image generation (explicit user choice)",
+      "approvedBy": "user",
+      "sha256": "c79d4b90c5ae261127adf9c6de38afc37e10fb5e80b746e288c3f67c3720a610",
+      "bytes": 1756808,
+      "why": "User approved all five outfit references and requested local Blender implementation. Original source preserved without conversion."
+    }
+  ],
+  "conceptBrief": "Plum wrap jacket, cream collar and cuffs, dark teal trousers, brown belt and secured brass telescope. Shorten long coat to a fitted hip-length jacket with no trailing hem.",
+  "clothConstraint": "User requested less draping because loose cloth is difficult to render; use fitted garments, short hems and secured accessories."
+}

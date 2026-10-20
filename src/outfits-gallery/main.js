@@ -35,7 +35,8 @@ class RowViewer extends ItemViewer {
     this.orbit = { yaw: 0, pitch: 0.1, zoom: 0.62 };
   }
   setWidth(half) {
-    this.halfWidth = half;
+    // Keep a single focused outfit framed from head to sole.
+    this.halfWidth = Math.max(0.55, half);
     this.cascade.configure(2048, half + 1.6);   // (one shadow map over the whole row)
     this.cascade.prime(this.renderer);
   }
@@ -54,6 +55,13 @@ async function start() {
     json(ROOT + 'outfits.json'), json(ROOT + 'manifest.json'),
     loadAnimationLibrary(`${BASE}anim/ual.glb`), loadTraveller(BASE, { v2: { on: false } }),   // (B3 to build on: each row dresses itself)
   ]);
+  // A focused fitting review uses the same real rig, animation and ink pipeline.
+  // Without ?only=id,id the gallery still shows the entire wardrobe.
+  if (query.has('only')) {
+    const wanted = new Set(query.get('only').split(','));
+    list.outfits = list.outfits.filter((o) => wanted.has(o.id));
+    if (!list.outfits.length) throw new Error('No matching outfits');
+  }
   const rows = galleryRows(list);
   const viewer = new RowViewer();
   $('stage').prepend(viewer.renderer.domElement);

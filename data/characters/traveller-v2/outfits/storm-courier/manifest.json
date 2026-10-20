@@ -1,0 +1,310 @@
+{
+ "source": "scripts/blender/traveller/outfit.py --outfit storm-courier (issue #540)",
+ "id": "storm-courier",
+ "name": "Storm courier",
+ "reference": "references/characters/traveller-outfits/storm-courier/approved-reference.png",
+ "glb": "storm-courier.glb",
+ "base": "data/characters/traveller-v2/traveller.glb",
+ "keeps": [
+  "Body",
+  "Skin",
+  "Head",
+  "Hair"
+ ],
+ "parts": {
+  "CourierTrousers": {
+   "kind": "garment",
+   "triangles": 14144,
+   "vertices": 7175,
+   "hides": [
+    "hips",
+    "knee.L",
+    "knee.R",
+    "shin.L",
+    "shin.R",
+    "thigh.L",
+    "thigh.R"
+   ],
+   "layer": 1,
+   "materials": {
+    "outfit_storm-courier": "atlas"
+   }
+  },
+  "RainJacket": {
+   "kind": "garment",
+   "triangles": 14974,
+   "vertices": 7633,
+   "hides": [
+    "belly",
+    "upperarm.L",
+    "upperarm.R"
+   ],
+   "layer": 2,
+   "materials": {
+    "outfit_storm-courier": "atlas"
+   }
+  },
+  "FoldedHood": {
+   "kind": "garment",
+   "triangles": 516,
+   "vertices": 289,
+   "hides": [],
+   "layer": 3,
+   "materials": {
+    "outfit_storm-courier": "atlas"
+   },
+   "prop": "spine_03"
+  },
+  "Toggles": {
+   "kind": "garment",
+   "triangles": 600,
+   "vertices": 304,
+   "hides": [],
+   "layer": 3,
+   "materials": {
+    "outfit_storm-courier": "atlas"
+   },
+   "prop": "spine_03"
+  },
+  "CourierPouch": {
+   "kind": "garment",
+   "triangles": 408,
+   "vertices": 208,
+   "hides": [],
+   "layer": 3,
+   "materials": {
+    "outfit_storm-courier": "atlas"
+   },
+   "prop": "pelvis"
+  },
+  "CourierBoots": {
+   "kind": "garment",
+   "triangles": 6406,
+   "vertices": 3301,
+   "hides": [
+    "ankle.L",
+    "ankle.R",
+    "foot.L",
+    "foot.R",
+    "shin_lower.L",
+    "shin_lower.R"
+   ],
+   "layer": 1,
+   "materials": {
+    "outfit_storm-courier": "atlas"
+   }
+  }
+ },
+ "hides": [
+  "ankle.L",
+  "ankle.R",
+  "belly",
+  "foot.L",
+  "foot.R",
+  "hips",
+  "knee.L",
+  "knee.R",
+  "shin.L",
+  "shin.R",
+  "shin_lower.L",
+  "shin_lower.R",
+  "thigh.L",
+  "thigh.R",
+  "upperarm.L",
+  "upperarm.R"
+ ],
+ "skinCut": [],
+ "draws": {
+  "clothes": [
+   "CourierTrousers",
+   "RainJacket",
+   "FoldedHood",
+   "Toggles",
+   "CourierPouch",
+   "CourierBoots"
+  ]
+ },
+ "atlas": {
+  "size": [
+   1024,
+   1024
+  ],
+  "texelsPerMetre": 549,
+  "swatches": {
+   "CourierTrousers.inside": [
+    37,
+    38,
+    36
+   ],
+   "RainJacket.inside": [
+    61,
+    74,
+    68
+   ],
+   "CourierBoots.inside": [
+    83,
+    74,
+    57
+   ]
+  },
+  "palette": {
+   "rain": [
+    136,
+    164,
+    150
+   ],
+   "cream": [
+    226,
+    211,
+    177
+   ],
+   "trouser": [
+    82,
+    84,
+    80
+   ],
+   "leather": [
+    137,
+    117,
+    76
+   ],
+   "brass": [
+    190,
+    158,
+    94
+   ],
+   "boot": [
+    185,
+    165,
+    127
+   ],
+   "ink": [
+    42,
+    47,
+    40
+   ]
+  }
+ },
+ "triangles": 37048,
+ "fit": {
+  "CourierTrousers": {
+   "fitLeft": 0,
+   "relief": {
+    "cloth_trousers": {
+     "sculpted": 2580,
+     "maximumMm": 9.9
+    }
+   },
+   "hem": {
+    "open": 112,
+    "covered": 96,
+    "band": 336,
+    "lips": 112
+   }
+  },
+  "RainJacket": {
+   "fitLeft": 135,
+   "relief": {
+    "cloth_shirt": {
+     "sculpted": 1509,
+     "maximumMm": 7.83
+    }
+   },
+   "hem": {
+    "open": 272,
+    "covered": 0,
+    "band": 692,
+    "lips": 272
+   }
+  },
+  "FoldedHood": {
+   "prop": "spine_03"
+  },
+  "Toggles": {
+   "prop": "spine_03"
+  },
+  "CourierPouch": {
+   "prop": "pelvis"
+  }
+ },
+ "shading": {},
+ "pokes": {
+  "under": {
+   "Skin>CourierTrousers": 0,
+   "Skin>RainJacket": 0,
+   "CourierTrousers>RainJacket": 411
+  },
+  "posed": {
+   "lowered": {
+    "Skin>CourierTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>RainJacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "CourierTrousers>RainJacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   },
+   "idle": {
+    "Skin>CourierTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>RainJacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "CourierTrousers>RainJacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   },
+   "jog-a": {
+    "Skin>CourierTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>RainJacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "CourierTrousers>RainJacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   },
+   "jog-b": {
+    "Skin>CourierTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>RainJacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "CourierTrousers>RainJacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   },
+   "sprint": {
+    "Skin>CourierTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>RainJacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "CourierTrousers>RainJacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   }
+  }
+ }
+}

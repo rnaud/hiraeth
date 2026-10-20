@@ -4,7 +4,8 @@
 // the body's hidden areas and his skin piece's cut left out.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, statSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import * as T from 'three';
 import { B3_JOINTS } from '../src/characters/traveller-b3-fit.js';
 import { Wardrobe, planOutfit, cullByArea, cutByBoxes, hiddenAreaSet, swingSpecOf, skirtSwingWeights, weightSkirts, SkirtSwing, SWING_PANELS } from '../src/characters/outfits.js';
@@ -102,6 +103,32 @@ for (const o of others) {
   });
 }
 
+// The ten compact outfits share one active clothing draw; menus can retain
+// previously inspected outfits, so atlas memory is capped as well as triangles.
+const compactIds = ['storm-courier', 'furnace-mechanic', 'frost-surveyor', 'observatory-apprentice',
+  'festival-traveller', 'gravity-ranger', 'star-archive-keeper', 'solar-voyager', 'comet-pathfinder', 'void-navigator'];
+test('the compact collection preserves approved sources and fits its runtime texture and file budget', () => {
+  let decodedBytes = 0;
+  const sourceHashes = new Set();
+  for (const id of compactIds) {
+    const o = others.find((entry) => entry.id === id);
+    assert.ok(o, `${id} registered`);
+    const m = JSON.parse(readFileSync(DIR + o.dir + 'manifest.json', 'utf8'));
+    assert.deepEqual(m.atlas.size, [1024, 1024], `${id}: one 1024 atlas`);
+    decodedBytes += 1024 * 1024 * 4 * 4 / 3; // RGBA8, complete mip chain, conservative
+    assert.ok(statSync(DIR + o.dir + m.glb).size <= 3 * 1024 * 1024, `${id}: runtime GLB below 3 MiB`);
+    const ref = `references/characters/traveller-outfits/${id}/`;
+    const provenance = JSON.parse(readFileSync(ref + 'manifest.json', 'utf8'));
+    assert.equal(provenance.accepted, true);
+    const sheet = provenance.sheets[0];
+    const hash = createHash('sha256').update(readFileSync(ref + sheet.file)).digest('hex');
+    assert.equal(hash, sheet.sha256, `${id}: untouched accepted source`);
+    sourceHashes.add(hash);
+  }
+  assert.equal(sourceHashes.size, 10, 'ten distinct approved references');
+  assert.ok(decodedBytes <= 54 * 1024 * 1024, 'all ten retained atlases below 54 MiB with mips');
+});
+
 test('the body loses its hidden areas\' triangles, his skin piece the cut ones (the real model)', () => {
   const body = baseGlb.meshes.Body.mesh.primitives[0];
   const area = baseGlb.accessor(body.attributes._AREA), index = baseGlb.accessor(body.indices);
@@ -175,8 +202,10 @@ test('swapping takes the old garments off, puts the new on, and applies the hide
   assert.throws(() => hiddenAreaSet(stub.areas, ['elbow']), /no body area/);
 });
 
-test('the test page cycles his own clothes and the five outfits (#542, #545)', () => {
-  assert.deepEqual(list.outfits.map((o) => o.id), ['default', 'glider-pilot', 'lamplighter', 'pearl-diver', 'moss-gardener', 'salt-pilgrim']);
+test('the test page cycles his own clothes and the fifteen outfits (#542, #545, #588, #590)', () => {
+  assert.deepEqual(list.outfits.map((o) => o.id), ['default', 'glider-pilot', 'lamplighter', 'pearl-diver', 'moss-gardener', 'salt-pilgrim',
+    'storm-courier', 'furnace-mechanic', 'frost-surveyor', 'observatory-apprentice', 'festival-traveller',
+    'gravity-ranger', 'star-archive-keeper', 'solar-voyager', 'comet-pathfinder', 'void-navigator']);
 });
 
 test('the lamplighter: its jacket, trousers and tall boots, none of his skin through them, near the pilot\'s triangles', () => {
@@ -243,13 +272,14 @@ test('the outfits have volume: the quilting, the raised pockets and straps, the 
   for (const k of ['belt', 'harness0', 'harness3']) assert.ok(pilot.fit.Jodhpurs.relief._jodhpur_relief[k].raised > 0, k);
 });
 
-test('the shared painter shaded every new garment (folds, occlusion, hatching), the kept boots left as they were', () => {
+test('legacy garments retain their paint and compact garments exclude baked illumination', () => {
   for (const o of others) {
     const m = JSON.parse(readFileSync(DIR + o.dir + 'manifest.json', 'utf8'));
     const kept = Object.keys(m.parts).filter((n) => /Boots$/.test(n) && !m.fit[n]);
     for (const name of Object.keys(m.parts)) {
       if (kept.includes(name)) { assert.ok(!m.shading[name], `${o.id}: ${name} kept as it was`); continue; }
       const s = m.shading[name];
+      if (compactIds.includes(o.id)) { assert.equal(s, undefined, `${o.id}: ${name} has no baked lighting`); continue; }
       assert.ok(s, `${o.id}: ${name} shaded`);
       assert.ok(s.shadow > 0.01 && s.change > 0.002, `${o.id}: ${name} has shading (${JSON.stringify(s)})`);
       // moderate: the game's ink material lights the clothes again

@@ -13,6 +13,8 @@ export const CHANGELOG = [
       text: 'The Salt Pilgrim’s robe and sash have more room at the waist, reducing clothing overlap as he runs.',
       see: 'Choose Salt Pilgrim in the Wardrobe, then walk and run. The open robe keeps its embroidered edges clear of the tunic more consistently.',
     },
+    { text: 'Ten new outfits are available in the Wardrobe: courier, mechanic, surveyor, apprentice and festival clothes, plus five compact spacefaring suits with fitted armour and harnesses.',
+      see: 'Open the game menu, choose Wardrobe, then select an outfit and press A / × to wear it. All ten are available from the start.' },
   ] },
   { v: '1.89', date: '2026-10-20', items: [
     'In the Wardrobe, the traveller now holds the sword upright in his hand, with the whole blade visible as you browse its colours and his outfits.',

@@ -2525,6 +2525,41 @@ both jackets' shoulder caps are thinner (they spread out broad when the arms cam
 Left as they are: the sheets' own fold drawings are not projected onto the garments (the sheets' poses and
 proportions differ from his rest pose; the folds are drawn as strokes instead).
 
+**Compact wardrobe collection (#588, #590, v1.90).** Ten approved references live under
+`references/characters/traveller-outfits/`: storm courier, furnace mechanic, frost surveyor,
+observatory apprentice, festival traveller, gravity ranger, star archive keeper, solar voyager,
+comet pathfinder and void navigator. Each folder keeps the untouched accepted PNG and a manifest
+with its source SHA-256, explicit OpenAI image-generation provenance, concept and the author's
+compact-cloth correction. These are source assets; only each fitted GLB and its runtime manifest
+are copied by the existing traveller packager.
+
+The `outfit_<id>.py` modules use the same body, rig, independent garments and atlas pipeline as the
+original outfits. `outfit_approved_kit.py` supplies fitted shirt/trouser cuts, optional cuff sizes,
+shallow geometric cloth folds and neutral pen strokes. The new cloth does not bake directional
+lighting or AO into its colour; the retained boots use the original painted base atlas. Projected
+straps and facings follow the finished supporting garment and copy its weights. Imported body
+area/mask groups are not deform bones. Small accessories remain secured to the belt or supporting
+cloth, rather than hanging from long ribbons or coat tails.
+
+All ten are unlocked Wardrobe choices on the v2 traveller. The dev gallery accepts `?only=id,id`
+for close fitting reviews without changing the rig, animation, material or final ink pipeline.
+A single filtered outfit retains head-to-sole framing. Build a source model with
+`scripts/blender/traveller/outfit.sh <id>`; the procedural modules, not the reference images, are
+what reproduce its geometry and weights.
+
+New outfits opt into `ATLAS_SIZE = 1024`; older modules retain the 2048 default. A matched courier
+comparison preserved the readable closures, seams and boot details at full wardrobe size. The ten
+new atlases need about 53.3 MiB decoded RGBA8 including mipmaps if all are retained, instead of
+213.3 MiB at 2048. This is a conservative texture estimate, excluding geometry, the base body and
+older cached outfits. The new-collection test caps each GLB at 3 MiB, the atlas at 1024 and the
+combined decoded atlases at 54 MiB; existing tests still validate every deform joint, normalized
+weights, one clothing material and triangles no higher than the default outfit. Numeric pose
+clearance is supplemented by rendered full-cycle reviews, particularly collar and armhole edges. The review separates
+final ink captures from diagnostic MeshBasic unlit base-colour views and neutral Lambert clay
+idle/walk/jog/sprint cycles on the same animated skeleton. Unlit cloth keeps flat palette fills
+and narrow authored ink; the old boot atlas remains an explicit exception. These desktop checks
+do not establish handheld frame rate or memory headroom.
+
 **Wearing one** (`src/characters/outfits.js`): `Wardrobe.wear(id)` joins the outfit's garments into one draw
 and the body (its hidden areas' triangles left out) with his skin piece (its `skinCut` left out) into
 another, takes the last outfit's draws off and puts these on; `planOutfit`, `cullByArea`, `cutByBoxes` are

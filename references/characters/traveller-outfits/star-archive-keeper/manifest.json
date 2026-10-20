@@ -1,0 +1,18 @@
+{
+  "created": "2026-10-20",
+  "accepted": true,
+  "issue": 590,
+  "sheets": [
+    {
+      "file": "approved-reference.png",
+      "provider": "openai",
+      "service": "OpenAI built-in image generation (explicit user choice)",
+      "approvedBy": "user",
+      "sha256": "c4c95336c62525cb66208d6bd007fc877b6b6317c2e1d758f5f495a93d8ac14f",
+      "bytes": 1749321,
+      "why": "User approved compact futuristic outfit reference and requested local Blender implementation and in-game Wardrobe access. Original source preserved."
+    }
+  ],
+  "conceptBrief": "Approved compact futuristic sheet: fitted plum jacket, ivory asymmetric yoke, standing collar and cuffs, gold seam inlays, teal trousers, cream boots and secured faceted belt crystal.",
+  "clothConstraint": "User requested less draping because loose cloth is difficult to render; use fitted garments, short hems and secured accessories."
+}

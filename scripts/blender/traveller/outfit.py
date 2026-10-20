@@ -44,7 +44,9 @@ BASE = os.path.abspath(arg('--base', os.path.join(REPO, 'data', 'characters', 't
 OUT = os.path.abspath(arg('--out', os.path.join(REPO, 'data', 'characters', 'traveller-v2', 'outfits', OID)))
 BLEND_OUT = arg('--blend')
 S = importlib.import_module('outfit_' + OID.replace('-', '_'))
-SIZE = 2048
+SIZE = getattr(S, 'ATLAS_SIZE', 2048)
+if SIZE not in (1024, 2048):
+    raise ValueError('Outfit ATLAS_SIZE must be 1024 or 2048')
 TOP = 0.97          # the islands below; the swatches in the strip above
 INSIDE = 0.45       # a band inside: the piece's own colour this much as light
 os.makedirs(OUT, exist_ok=True)

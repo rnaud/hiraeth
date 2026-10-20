@@ -1,0 +1,18 @@
+{
+  "created": "2026-10-20",
+  "accepted": true,
+  "issue": 588,
+  "sheets": [
+    {
+      "file": "approved-reference.png",
+      "provider": "openai",
+      "service": "OpenAI built-in image generation (explicit user choice)",
+      "approvedBy": "user",
+      "sha256": "1bd751672363516e457f98c6934bf1bba3167dd10bbaf1115b5097771e81196d",
+      "bytes": 1854284,
+      "why": "User approved all five outfit references and requested local Blender implementation. Original source preserved without conversion."
+    }
+  ],
+  "conceptBrief": "Rust bib overalls over a cream rolled-sleeve shirt, secured tool pouch and brown boots. Keep practical sewn workwear and fitted straps, without loose cloth.",
+  "clothConstraint": "User requested less draping because loose cloth is difficult to render; use fitted garments, short hems and secured accessories."
+}

@@ -1,0 +1,18 @@
+{
+  "created": "2026-10-20",
+  "accepted": true,
+  "issue": 588,
+  "sheets": [
+    {
+      "file": "approved-reference.png",
+      "provider": "openai",
+      "service": "OpenAI built-in image generation (explicit user choice)",
+      "approvedBy": "user",
+      "sha256": "9bb28b6221fc82e8417e500729b8f8eb2692c04923256a3565f9c65bc2b6f387",
+      "bytes": 1801036,
+      "why": "User approved all five outfit references and requested local Blender implementation. Original source preserved without conversion."
+    }
+  ],
+  "conceptBrief": "Coral and mustard patchwork vest over cream shirt, teal trousers, patterned secured sash and brown boots. Sash is short and tucked with no trailing ribbons.",
+  "clothConstraint": "User requested less draping because loose cloth is difficult to render; use fitted garments, short hems and secured accessories."
+}

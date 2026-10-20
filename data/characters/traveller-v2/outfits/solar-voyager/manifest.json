@@ -1,0 +1,349 @@
+{
+ "source": "scripts/blender/traveller/outfit.py --outfit solar-voyager (issue #540)",
+ "id": "solar-voyager",
+ "name": "Solar voyager",
+ "reference": "references/characters/traveller-outfits/solar-voyager/approved-reference.png",
+ "glb": "solar-voyager.glb",
+ "base": "data/characters/traveller-v2/traveller.glb",
+ "keeps": [
+  "Body",
+  "Skin",
+  "Head",
+  "Hair"
+ ],
+ "parts": {
+  "SolarTrousers": {
+   "kind": "garment",
+   "triangles": 14144,
+   "vertices": 7175,
+   "hides": [
+    "hips",
+    "knee.L",
+    "knee.R",
+    "shin.L",
+    "shin.R",
+    "thigh.L",
+    "thigh.R"
+   ],
+   "layer": 1,
+   "materials": {
+    "outfit_solar-voyager": "atlas"
+   }
+  },
+  "SolarSuit": {
+   "kind": "garment",
+   "triangles": 17757,
+   "vertices": 9018,
+   "hides": [
+    "belly",
+    "chest",
+    "forearm_upper.L",
+    "forearm_upper.R",
+    "upperarm.L",
+    "upperarm.R"
+   ],
+   "layer": 1,
+   "materials": {
+    "outfit_solar-voyager": "atlas"
+   }
+  },
+  "SolarHarness": {
+   "kind": "garment",
+   "triangles": 2568,
+   "vertices": 1350,
+   "hides": [],
+   "layer": 3,
+   "materials": {
+    "outfit_solar-voyager": "atlas"
+   },
+   "prop": "weighted"
+  },
+  "SolarBracers": {
+   "kind": "garment",
+   "triangles": 2536,
+   "vertices": 1336,
+   "hides": [
+    "ankle.L",
+    "ankle.R",
+    "shin_lower.L",
+    "shin_lower.R"
+   ],
+   "layer": 3,
+   "materials": {
+    "outfit_solar-voyager": "atlas"
+   },
+   "prop": "weighted"
+  },
+  "SolarBelt": {
+   "kind": "garment",
+   "triangles": 536,
+   "vertices": 268,
+   "hides": [],
+   "layer": 3,
+   "materials": {
+    "outfit_solar-voyager": "atlas"
+   },
+   "prop": "weighted"
+  },
+  "SolarCell": {
+   "kind": "garment",
+   "triangles": 1440,
+   "vertices": 736,
+   "hides": [],
+   "layer": 3,
+   "materials": {
+    "outfit_solar-voyager": "atlas"
+   },
+   "prop": "pelvis"
+  },
+  "SolarBoots": {
+   "kind": "garment",
+   "triangles": 6406,
+   "vertices": 3301,
+   "hides": [
+    "ankle.L",
+    "ankle.R",
+    "foot.L",
+    "foot.R",
+    "shin_lower.L",
+    "shin_lower.R"
+   ],
+   "layer": 1,
+   "materials": {
+    "outfit_solar-voyager": "atlas"
+   }
+  }
+ },
+ "hides": [
+  "ankle.L",
+  "ankle.R",
+  "belly",
+  "chest",
+  "foot.L",
+  "foot.R",
+  "forearm_upper.L",
+  "forearm_upper.R",
+  "hips",
+  "knee.L",
+  "knee.R",
+  "shin.L",
+  "shin.R",
+  "shin_lower.L",
+  "shin_lower.R",
+  "thigh.L",
+  "thigh.R",
+  "upperarm.L",
+  "upperarm.R"
+ ],
+ "skinCut": [],
+ "draws": {
+  "clothes": [
+   "SolarTrousers",
+   "SolarSuit",
+   "SolarHarness",
+   "SolarBracers",
+   "SolarBelt",
+   "SolarCell",
+   "SolarBoots"
+  ]
+ },
+ "atlas": {
+  "size": [
+   1024,
+   1024
+  ],
+  "texelsPerMetre": 448,
+  "swatches": {
+   "SolarTrousers.inside": [
+    92,
+    53,
+    40
+   ],
+   "SolarSuit.inside": [
+    92,
+    53,
+    40
+   ],
+   "SolarBoots.inside": [
+    97,
+    92,
+    79
+   ]
+  },
+  "palette": {
+   "coral": [
+    205,
+    117,
+    89
+   ],
+   "ivory": [
+    225,
+    216,
+    187
+   ],
+   "ochre": [
+    208,
+    156,
+    68
+   ],
+   "brass": [
+    173,
+    128,
+    49
+   ],
+   "amber": [
+    245,
+    170,
+    48
+   ],
+   "dark": [
+    70,
+    63,
+    49
+   ],
+   "boot": [
+    216,
+    205,
+    176
+   ],
+   "ink": [
+    52,
+    43,
+    33
+   ]
+  }
+ },
+ "triangles": 45387,
+ "fit": {
+  "SolarTrousers": {
+   "fitLeft": 0,
+   "relief": {
+    "op": {
+     "shapedVertices": 4191
+    }
+   },
+   "hem": {
+    "open": 112,
+    "covered": 96,
+    "band": 336,
+    "lips": 112
+   }
+  },
+  "SolarSuit": {
+   "fitLeft": 193,
+   "relief": {
+    "op": {
+     "shapedVertices": 3561
+    },
+    "seams": {
+     "-1": {
+      "cuts": 142,
+      "raised": 95
+     },
+     "1": {
+      "cuts": 144,
+      "raised": 96
+     }
+    }
+   },
+   "hem": {
+    "open": 272,
+    "covered": 0,
+    "band": 958,
+    "lips": 272
+   }
+  },
+  "SolarHarness": {
+   "prop": "weighted"
+  },
+  "SolarBracers": {
+   "prop": "weighted"
+  },
+  "SolarBelt": {
+   "prop": "weighted"
+  },
+  "SolarCell": {
+   "prop": "pelvis"
+  }
+ },
+ "shading": {},
+ "pokes": {
+  "under": {
+   "Skin>SolarTrousers": 0,
+   "Skin>SolarSuit": 0,
+   "SolarTrousers>SolarSuit": 480
+  },
+  "posed": {
+   "lowered": {
+    "Skin>SolarTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>SolarSuit": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "SolarTrousers>SolarSuit": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   },
+   "idle": {
+    "Skin>SolarTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>SolarSuit": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "SolarTrousers>SolarSuit": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   },
+   "jog-a": {
+    "Skin>SolarTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>SolarSuit": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "SolarTrousers>SolarSuit": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   },
+   "jog-b": {
+    "Skin>SolarTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>SolarSuit": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "SolarTrousers>SolarSuit": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   },
+   "sprint": {
+    "Skin>SolarTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>SolarSuit": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "SolarTrousers>SolarSuit": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   }
+  }
+ }
+}

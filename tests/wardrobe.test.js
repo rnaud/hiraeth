@@ -36,10 +36,10 @@ function host({ flags = {}, v2 = true, sword = true } = {}) {
   return { w, game, dress, kit, player };
 }
 
-test('the outfits: his own clothes and the five, the list outfits.json makes; each with its unlocked flag, all his from the start', () => {
+test('the outfits: his own clothes and all fifteen outfits, the list outfits.json makes; each with its unlocked flag, all his from the start', () => {
   const list = JSON.parse(src('data/characters/traveller-v2/outfits.json'));
   assert.deepEqual(OUTFITS.map((o) => o.id), list.outfits.map((o) => o.id), 'the same outfits, in the same order');
-  assert.equal(OUTFITS.length, 6);
+  assert.equal(OUTFITS.length, 16);
   assert.equal(OUTFITS[0].id, 'default');
   const d = wardrobeData({ state: state(), v2: true });
   assert.ok(d.outfits.every((o) => o.unlocked), 'all available from day one (the author, 2026-10-20)');
@@ -55,6 +55,10 @@ test('the outfits: his own clothes and the five, the list outfits.json makes; ea
   assert.equal(chooseOutfit(g, 'tuxedo'), false);
   assert.equal(chooseOutfit(g, 'pearl-diver'), true);
   assert.equal(g.flags[OUTFIT_KEY], 'pearl-diver');
+  for (const outfit of OUTFITS) {
+    assert.equal(chooseOutfit(g, outfit.id), true, `${outfit.id} can be worn`);
+    assert.equal(chosenOutfit(g), outfit.id, `${outfit.id} persists in the wardrobe save`);
+  }
 });
 
 test('the blade\'s colours: only those won (the makers\' jade always, one a fight temple cleared), the worn one marked; none without the sword', () => {
@@ -139,7 +143,7 @@ test('the pad through the page: the preview follows the cursor, A / × wears, B 
   assert.equal(dress.wardrobe.worn.id, 'pearl-diver');
   assert.equal(game.flags[OUTFIT_KEY], undefined, 'nothing saved by looking');
   // down to the blades: the outfit back to his own, the sword in the colour highlighted
-  for (let i = 0; i < 4; i++) m.navigate(0, 1);
+  for (let i = 0; i < OUTFITS.length - 2; i++) m.navigate(0, 1);
   await settle();
   assert.equal(m.state.cell(m.rows).id, 'ember');
   assert.equal(dress.wardrobe.worn.id, 'default');
@@ -151,7 +155,7 @@ test('the pad through the page: the preview follows the cursor, A / × wears, B 
   assert.equal(m.state.cell(m.rows).act, null, 'worn now');
   // up to an outfit and out with B / ○ (the menu closes: Journal.toggle(false) → close): him as he was
   m.navigate(0, -1); m.navigate(0, -1); await settle();
-  assert.equal(dress.wardrobe.worn.id, 'salt-pilgrim');
+  assert.equal(dress.wardrobe.worn.id, OUTFITS.at(-1).id);
   assert.equal(m.back(), false, 'B / ○ on the page closes the menu');
   m.close(); await settle();
   assert.equal(dress.wardrobe.worn.id, 'default', 'back in his own clothes');
@@ -160,9 +164,9 @@ test('the pad through the page: the preview follows the cursor, A / × wears, B 
   assert.equal(w.sword.parent, null, 'the sword beside him put away');
   // turning to another panel leaves it too
   m.open('wardrobe');
-  assert.deepEqual(m.state.cursor(), { r: 5, c: 0 }, 'the cursor where it was, as on every panel');
+  assert.deepEqual(m.state.cursor(), { r: OUTFITS.length - 1, c: 0 }, 'the cursor where it was, as on every panel');
   m.navigate(0, -1); await settle();
-  assert.equal(dress.wardrobe.worn.id, 'moss-gardener');
+  assert.equal(dress.wardrobe.worn.id, OUTFITS.at(-2).id);
   m.turn(1); await settle();
   assert.equal(m.panel, 'quests');
   assert.equal(dress.wardrobe.worn.id, 'default');

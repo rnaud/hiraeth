@@ -1,0 +1,325 @@
+{
+ "source": "scripts/blender/traveller/outfit.py --outfit observatory-apprentice (issue #540)",
+ "id": "observatory-apprentice",
+ "name": "Observatory apprentice",
+ "reference": "references/characters/traveller-outfits/observatory-apprentice/approved-reference.png",
+ "glb": "observatory-apprentice.glb",
+ "base": "data/characters/traveller-v2/traveller.glb",
+ "keeps": [
+  "Body",
+  "Skin",
+  "Head",
+  "Hair"
+ ],
+ "parts": {
+  "ApprenticeTrousers": {
+   "kind": "garment",
+   "triangles": 14144,
+   "vertices": 7175,
+   "hides": [
+    "hips",
+    "knee.L",
+    "knee.R",
+    "shin.L",
+    "shin.R",
+    "thigh.L",
+    "thigh.R"
+   ],
+   "layer": 1,
+   "materials": {
+    "outfit_observatory-apprentice": "atlas"
+   }
+  },
+  "WrapJacket": {
+   "kind": "garment",
+   "triangles": 17069,
+   "vertices": 8680,
+   "hides": [
+    "belly",
+    "forearm_upper.L",
+    "forearm_upper.R",
+    "upperarm.L",
+    "upperarm.R"
+   ],
+   "layer": 2,
+   "materials": {
+    "outfit_observatory-apprentice": "atlas"
+   }
+  },
+  "Belt": {
+   "kind": "garment",
+   "triangles": 560,
+   "vertices": 280,
+   "hides": [],
+   "layer": 3,
+   "materials": {
+    "outfit_observatory-apprentice": "atlas"
+   },
+   "prop": "pelvis"
+  },
+  "Instrument": {
+   "kind": "garment",
+   "triangles": 1124,
+   "vertices": 576,
+   "hides": [],
+   "layer": 3,
+   "materials": {
+    "outfit_observatory-apprentice": "atlas"
+   },
+   "prop": "pelvis"
+  },
+  "Lapels": {
+   "kind": "garment",
+   "triangles": 346,
+   "vertices": 211,
+   "hides": [],
+   "layer": 3,
+   "materials": {
+    "outfit_observatory-apprentice": "atlas"
+   },
+   "prop": "weighted"
+  },
+  "ApprenticeBoots": {
+   "kind": "garment",
+   "triangles": 6406,
+   "vertices": 3301,
+   "hides": [
+    "ankle.L",
+    "ankle.R",
+    "foot.L",
+    "foot.R",
+    "shin_lower.L",
+    "shin_lower.R"
+   ],
+   "layer": 1,
+   "materials": {
+    "outfit_observatory-apprentice": "atlas"
+   }
+  }
+ },
+ "hides": [
+  "ankle.L",
+  "ankle.R",
+  "belly",
+  "foot.L",
+  "foot.R",
+  "forearm_upper.L",
+  "forearm_upper.R",
+  "hips",
+  "knee.L",
+  "knee.R",
+  "shin.L",
+  "shin.R",
+  "shin_lower.L",
+  "shin_lower.R",
+  "thigh.L",
+  "thigh.R",
+  "upperarm.L",
+  "upperarm.R"
+ ],
+ "skinCut": [],
+ "draws": {
+  "clothes": [
+   "ApprenticeTrousers",
+   "WrapJacket",
+   "Belt",
+   "Instrument",
+   "Lapels",
+   "ApprenticeBoots"
+  ]
+ },
+ "atlas": {
+  "size": [
+   1024,
+   1024
+  ],
+  "texelsPerMetre": 538,
+  "swatches": {
+   "ApprenticeTrousers.inside": [
+    26,
+    35,
+    32
+   ],
+   "WrapJacket.inside": [
+    59,
+    47,
+    54
+   ],
+   "Lapels.inside": [
+    104,
+    96,
+    81
+   ],
+   "ApprenticeBoots.inside": [
+    78,
+    68,
+    51
+   ]
+  },
+  "palette": {
+   "plum": [
+    132,
+    105,
+    119
+   ],
+   "cream": [
+    230,
+    214,
+    179
+   ],
+   "trouser": [
+    57,
+    78,
+    70
+   ],
+   "leather": [
+    137,
+    98,
+    50
+   ],
+   "brass": [
+    177,
+    147,
+    80
+   ],
+   "boot": [
+    173,
+    151,
+    114
+   ],
+   "ink": [
+    43,
+    37,
+    36
+   ]
+  }
+ },
+ "triangles": 39649,
+ "fit": {
+  "ApprenticeTrousers": {
+   "fitLeft": 0,
+   "relief": {
+    "cloth_trousers": {
+     "sculpted": 2580,
+     "maximumMm": 9.9
+    }
+   },
+   "hem": {
+    "open": 112,
+    "covered": 96,
+    "band": 336,
+    "lips": 112
+   }
+  },
+  "WrapJacket": {
+   "fitLeft": 163,
+   "relief": {
+    "cloth_shirt": {
+     "sculpted": 1432,
+     "maximumMm": 7.83
+    }
+   },
+   "hem": {
+    "open": 272,
+    "covered": 0,
+    "band": 1096,
+    "lips": 272
+   }
+  },
+  "Belt": {
+   "prop": "pelvis"
+  },
+  "Instrument": {
+   "prop": "pelvis"
+  },
+  "Lapels": {
+   "prop": "weighted",
+   "hem": {
+    "open": 48,
+    "covered": 0,
+    "band": 78,
+    "lips": 48
+   }
+  }
+ },
+ "shading": {},
+ "pokes": {
+  "under": {
+   "Skin>ApprenticeTrousers": 0,
+   "Skin>WrapJacket": 0,
+   "ApprenticeTrousers>WrapJacket": 409
+  },
+  "posed": {
+   "lowered": {
+    "Skin>ApprenticeTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>WrapJacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "ApprenticeTrousers>WrapJacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   },
+   "idle": {
+    "Skin>ApprenticeTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>WrapJacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "ApprenticeTrousers>WrapJacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   },
+   "jog-a": {
+    "Skin>ApprenticeTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>WrapJacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "ApprenticeTrousers>WrapJacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   },
+   "jog-b": {
+    "Skin>ApprenticeTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>WrapJacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "ApprenticeTrousers>WrapJacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   },
+   "sprint": {
+    "Skin>ApprenticeTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>WrapJacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "ApprenticeTrousers>WrapJacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   }
+  }
+ }
+}

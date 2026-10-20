@@ -4,7 +4,7 @@
 // A / × wears it (saved, worn in the world at once); B / ○ leaves him as he was.
 //
 // - The outfits are the v2 traveller's (src/characters/outfits.js, data/characters/traveller-v2/outfits.json): his
-//   own clothes and five others. Each has an `unlock`: null is his from the start (all of them, for now); a flag of the
+//   own clothes and fifteen others. Each has an `unlock`: null is his from the start (all of them, for now); a flag of the
 //   save later (`{ flag }`), so they can be won by progress. B3 (the game's traveller until v2 is the default) has
 //   none: the list says the outfits need the new traveller.
 // - The blade's colours are the kit's (src/kit-colours.js): the makers' jade always, and one more for each fight temple
@@ -41,6 +41,16 @@ export const OUTFITS = [
   { id: 'pearl-diver', name: 'Pearl diver', unlock: null },
   { id: 'moss-gardener', name: 'Moss gardener', unlock: null },
   { id: 'salt-pilgrim', name: 'Salt pilgrim', unlock: null },
+  { id: 'storm-courier', name: 'Storm courier', unlock: null },
+  { id: 'furnace-mechanic', name: 'Furnace mechanic', unlock: null },
+  { id: 'frost-surveyor', name: 'Frost surveyor', unlock: null },
+  { id: 'observatory-apprentice', name: 'Observatory apprentice', unlock: null },
+  { id: 'festival-traveller', name: 'Festival traveller', unlock: null },
+  { id: 'gravity-ranger', name: 'Gravity ranger', unlock: null },
+  { id: 'star-archive-keeper', name: 'Star archive keeper', unlock: null },
+  { id: 'solar-voyager', name: 'Solar voyager', unlock: null },
+  { id: 'comet-pathfinder', name: 'Comet pathfinder', unlock: null },
+  { id: 'void-navigator', name: 'Void navigator', unlock: null },
 ];
 /** The save's flag that keeps the outfit chosen. */
 export const OUTFIT_KEY = 'wardrobe.outfit';

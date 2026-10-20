@@ -1,0 +1,349 @@
+{
+ "source": "scripts/blender/traveller/outfit.py --outfit comet-pathfinder (issue #540)",
+ "id": "comet-pathfinder",
+ "name": "Comet pathfinder",
+ "reference": "references/characters/traveller-outfits/comet-pathfinder/approved-reference.png",
+ "glb": "comet-pathfinder.glb",
+ "base": "data/characters/traveller-v2/traveller.glb",
+ "keeps": [
+  "Body",
+  "Skin",
+  "Head",
+  "Hair"
+ ],
+ "parts": {
+  "PathfinderTrousers": {
+   "kind": "garment",
+   "triangles": 14144,
+   "vertices": 7175,
+   "hides": [
+    "hips",
+    "knee.L",
+    "knee.R",
+    "shin.L",
+    "shin.R",
+    "thigh.L",
+    "thigh.R"
+   ],
+   "layer": 1,
+   "materials": {
+    "outfit_comet-pathfinder": "atlas"
+   }
+  },
+  "PathfinderSuit": {
+   "kind": "garment",
+   "triangles": 17757,
+   "vertices": 9018,
+   "hides": [
+    "belly",
+    "chest",
+    "forearm_upper.L",
+    "forearm_upper.R",
+    "upperarm.L",
+    "upperarm.R"
+   ],
+   "layer": 1,
+   "materials": {
+    "outfit_comet-pathfinder": "atlas"
+   }
+  },
+  "CometHarness": {
+   "kind": "garment",
+   "triangles": 2004,
+   "vertices": 1016,
+   "hides": [],
+   "layer": 3,
+   "materials": {
+    "outfit_comet-pathfinder": "atlas"
+   },
+   "prop": "weighted"
+  },
+  "CometBracers": {
+   "kind": "garment",
+   "triangles": 2536,
+   "vertices": 1336,
+   "hides": [
+    "ankle.L",
+    "ankle.R",
+    "shin_lower.L",
+    "shin_lower.R"
+   ],
+   "layer": 3,
+   "materials": {
+    "outfit_comet-pathfinder": "atlas"
+   },
+   "prop": "weighted"
+  },
+  "PathfinderBelt": {
+   "kind": "garment",
+   "triangles": 536,
+   "vertices": 268,
+   "hides": [],
+   "layer": 3,
+   "materials": {
+    "outfit_comet-pathfinder": "atlas"
+   },
+   "prop": "weighted"
+  },
+  "NavigationDisc": {
+   "kind": "garment",
+   "triangles": 1296,
+   "vertices": 656,
+   "hides": [],
+   "layer": 3,
+   "materials": {
+    "outfit_comet-pathfinder": "atlas"
+   },
+   "prop": "pelvis"
+  },
+  "PathfinderBoots": {
+   "kind": "garment",
+   "triangles": 6406,
+   "vertices": 3301,
+   "hides": [
+    "ankle.L",
+    "ankle.R",
+    "foot.L",
+    "foot.R",
+    "shin_lower.L",
+    "shin_lower.R"
+   ],
+   "layer": 1,
+   "materials": {
+    "outfit_comet-pathfinder": "atlas"
+   }
+  }
+ },
+ "hides": [
+  "ankle.L",
+  "ankle.R",
+  "belly",
+  "chest",
+  "foot.L",
+  "foot.R",
+  "forearm_upper.L",
+  "forearm_upper.R",
+  "hips",
+  "knee.L",
+  "knee.R",
+  "shin.L",
+  "shin.R",
+  "shin_lower.L",
+  "shin_lower.R",
+  "thigh.L",
+  "thigh.R",
+  "upperarm.L",
+  "upperarm.R"
+ ],
+ "skinCut": [],
+ "draws": {
+  "clothes": [
+   "PathfinderTrousers",
+   "PathfinderSuit",
+   "CometHarness",
+   "CometBracers",
+   "PathfinderBelt",
+   "NavigationDisc",
+   "PathfinderBoots"
+  ]
+ },
+ "atlas": {
+  "size": [
+   1024,
+   1024
+  ],
+  "texelsPerMetre": 463,
+  "swatches": {
+   "PathfinderTrousers.inside": [
+    103,
+    96,
+    81
+   ],
+   "PathfinderSuit.inside": [
+    103,
+    96,
+    81
+   ],
+   "PathfinderBoots.inside": [
+    87,
+    79,
+    64
+   ]
+  },
+  "palette": {
+   "cream": [
+    229,
+    214,
+    181
+   ],
+   "coral": [
+    201,
+    114,
+    89
+   ],
+   "teal": [
+    102,
+    137,
+    127
+   ],
+   "cyan": [
+    113,
+    215,
+    217
+   ],
+   "metal": [
+    115,
+    104,
+    83
+   ],
+   "dark": [
+    53,
+    66,
+    61
+   ],
+   "boot": [
+    193,
+    176,
+    142
+   ],
+   "ink": [
+    47,
+    44,
+    36
+   ]
+  }
+ },
+ "triangles": 44679,
+ "fit": {
+  "PathfinderTrousers": {
+   "fitLeft": 0,
+   "relief": {
+    "op": {
+     "shapedVertices": 4191
+    }
+   },
+   "hem": {
+    "open": 112,
+    "covered": 96,
+    "band": 336,
+    "lips": 112
+   }
+  },
+  "PathfinderSuit": {
+   "fitLeft": 193,
+   "relief": {
+    "op": {
+     "shapedVertices": 3561
+    },
+    "seams": {
+     "-1": {
+      "cuts": 142,
+      "raised": 95
+     },
+     "1": {
+      "cuts": 144,
+      "raised": 96
+     }
+    }
+   },
+   "hem": {
+    "open": 272,
+    "covered": 0,
+    "band": 958,
+    "lips": 272
+   }
+  },
+  "CometHarness": {
+   "prop": "weighted"
+  },
+  "CometBracers": {
+   "prop": "weighted"
+  },
+  "PathfinderBelt": {
+   "prop": "weighted"
+  },
+  "NavigationDisc": {
+   "prop": "pelvis"
+  }
+ },
+ "shading": {},
+ "pokes": {
+  "under": {
+   "Skin>PathfinderTrousers": 0,
+   "Skin>PathfinderSuit": 0,
+   "PathfinderTrousers>PathfinderSuit": 480
+  },
+  "posed": {
+   "lowered": {
+    "Skin>PathfinderTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>PathfinderSuit": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "PathfinderTrousers>PathfinderSuit": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   },
+   "idle": {
+    "Skin>PathfinderTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>PathfinderSuit": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "PathfinderTrousers>PathfinderSuit": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   },
+   "jog-a": {
+    "Skin>PathfinderTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>PathfinderSuit": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "PathfinderTrousers>PathfinderSuit": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   },
+   "jog-b": {
+    "Skin>PathfinderTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>PathfinderSuit": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "PathfinderTrousers>PathfinderSuit": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   },
+   "sprint": {
+    "Skin>PathfinderTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>PathfinderSuit": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "PathfinderTrousers>PathfinderSuit": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   }
+  }
+ }
+}

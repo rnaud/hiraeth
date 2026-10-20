@@ -1,0 +1,18 @@
+{
+  "created": "2026-10-20",
+  "accepted": true,
+  "issue": 590,
+  "sheets": [
+    {
+      "file": "approved-reference.png",
+      "provider": "openai",
+      "service": "OpenAI built-in image generation (explicit user choice)",
+      "approvedBy": "user",
+      "sha256": "960384a3cd06e495056bee94d171642bf1f8f7dd8684d3aadc590576b57da613",
+      "bytes": 1696909,
+      "why": "User approved compact futuristic outfit reference and requested local Blender implementation and in-game Wardrobe access. Original source preserved."
+    }
+  ],
+  "conceptBrief": "Approved compact futuristic sheet: olive fitted jacket, coral collar, cream shoulder and back armour, charcoal trousers, lilac boots and cyan details. No loose draping.",
+  "clothConstraint": "User requested less draping because loose cloth is difficult to render; use fitted garments, short hems and secured accessories."
+}

@@ -130,7 +130,7 @@ test('Unity: the bridge carries the files, asks for v2 by -traveller, reads data
   assert.match(bundler, /shippedFiles\(ROOT\)/);
   for (const w of ['unity-android', 'unity-xbox']) assert.match(read(`.github/workflows/${w}.yml`), /- 'data\/characters\/traveller-v2\/\*\*'/, `${w}: built again when his models change`);
   const outfits = JSON.parse(read('data/characters/traveller-v2/outfits.json'));
-  assert.equal(outfits.outfits.filter((o) => o.dir).length, 5, 'the five outfits beside the base');
+  assert.equal(outfits.outfits.filter((o) => o.dir).length, 15, 'the fifteen outfits beside the base');
   const args = read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeArgs.cs');
   assert.match(args, /args\["traveller"\] = Arg\("-traveller"\)/);
   assert.match(args, /args\["outfit"\] = Arg\("-outfit"\)/);

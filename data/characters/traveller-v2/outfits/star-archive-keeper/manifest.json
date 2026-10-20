@@ -1,0 +1,347 @@
+{
+ "source": "scripts/blender/traveller/outfit.py --outfit star-archive-keeper (issue #540)",
+ "id": "star-archive-keeper",
+ "name": "Star archive keeper",
+ "reference": "references/characters/traveller-outfits/star-archive-keeper/approved-reference.png",
+ "glb": "star-archive-keeper.glb",
+ "base": "data/characters/traveller-v2/traveller.glb",
+ "keeps": [
+  "Body",
+  "Skin",
+  "Head",
+  "Hair"
+ ],
+ "parts": {
+  "ArchiveTrousers": {
+   "kind": "garment",
+   "triangles": 14144,
+   "vertices": 7175,
+   "hides": [
+    "hips",
+    "knee.L",
+    "knee.R",
+    "shin.L",
+    "shin.R",
+    "thigh.L",
+    "thigh.R"
+   ],
+   "layer": 1,
+   "materials": {
+    "outfit_star-archive-keeper": "atlas"
+   }
+  },
+  "ArchiveJacket": {
+   "kind": "garment",
+   "triangles": 15160,
+   "vertices": 7733,
+   "hides": [
+    "belly",
+    "forearm_upper.L",
+    "forearm_upper.R",
+    "upperarm.L",
+    "upperarm.R"
+   ],
+   "layer": 2,
+   "materials": {
+    "outfit_star-archive-keeper": "atlas"
+   }
+  },
+  "ArchiveYoke": {
+   "kind": "garment",
+   "triangles": 1214,
+   "vertices": 737,
+   "hides": [],
+   "layer": 3,
+   "materials": {
+    "outfit_star-archive-keeper": "atlas"
+   },
+   "prop": "weighted"
+  },
+  "ArchiveCollar": {
+   "kind": "garment",
+   "triangles": 642,
+   "vertices": 356,
+   "hides": [],
+   "layer": 3,
+   "materials": {
+    "outfit_star-archive-keeper": "atlas"
+   },
+   "prop": "spine_03"
+  },
+  "ArchiveBelt": {
+   "kind": "garment",
+   "triangles": 566,
+   "vertices": 289,
+   "hides": [],
+   "layer": 3,
+   "materials": {
+    "outfit_star-archive-keeper": "atlas"
+   },
+   "prop": "pelvis"
+  },
+  "ArchiveBoots": {
+   "kind": "garment",
+   "triangles": 6406,
+   "vertices": 3301,
+   "hides": [
+    "ankle.L",
+    "ankle.R",
+    "foot.L",
+    "foot.R",
+    "shin_lower.L",
+    "shin_lower.R"
+   ],
+   "layer": 1,
+   "materials": {
+    "outfit_star-archive-keeper": "atlas"
+   }
+  }
+ },
+ "hides": [
+  "ankle.L",
+  "ankle.R",
+  "belly",
+  "chest",
+  "foot.L",
+  "foot.R",
+  "forearm_upper.L",
+  "forearm_upper.R",
+  "hips",
+  "knee.L",
+  "knee.R",
+  "shin.L",
+  "shin.R",
+  "shin_lower.L",
+  "shin_lower.R",
+  "thigh.L",
+  "thigh.R",
+  "upperarm.L",
+  "upperarm.R"
+ ],
+ "skinCut": [],
+ "draws": {
+  "clothes": [
+   "ArchiveTrousers",
+   "ArchiveJacket",
+   "ArchiveYoke",
+   "ArchiveCollar",
+   "ArchiveBelt",
+   "ArchiveBoots"
+  ]
+ },
+ "atlas": {
+  "size": [
+   1024,
+   1024
+  ],
+  "texelsPerMetre": 525,
+  "swatches": {
+   "ArchiveTrousers.inside": [
+    22,
+    35,
+    36
+   ],
+   "ArchiveJacket.inside": [
+    52,
+    38,
+    53
+   ],
+   "ArchiveYoke.inside": [
+    104,
+    98,
+    83
+   ],
+   "ArchiveCollar.inside": [
+    104,
+    98,
+    83
+   ],
+   "ArchiveBoots.inside": [
+    94,
+    87,
+    72
+   ]
+  },
+  "palette": {
+   "plum": [
+    115,
+    85,
+    117
+   ],
+   "ivory": [
+    232,
+    218,
+    185
+   ],
+   "teal": [
+    48,
+    78,
+    80
+   ],
+   "gold": [
+    221,
+    171,
+    71
+   ],
+   "leather": [
+    147,
+    133,
+    101
+   ],
+   "crystal": [
+    161,
+    198,
+    207
+   ],
+   "rose": [
+    191,
+    153,
+    175
+   ],
+   "boot": [
+    210,
+    194,
+    159
+   ],
+   "ink": [
+    37,
+    32,
+    38
+   ]
+  }
+ },
+ "triangles": 38132,
+ "fit": {
+  "ArchiveTrousers": {
+   "fitLeft": 0,
+   "relief": {
+    "cloth_trousers": {
+     "sculpted": 2490,
+     "maximumMm": 7.96
+    }
+   },
+   "hem": {
+    "open": 112,
+    "covered": 96,
+    "band": 336,
+    "lips": 112
+   }
+  },
+  "ArchiveJacket": {
+   "fitLeft": 33,
+   "relief": {
+    "cloth_shirt": {
+     "sculpted": 1317,
+     "maximumMm": 5.45
+    }
+   },
+   "hem": {
+    "open": 246,
+    "covered": 26,
+    "band": 911,
+    "lips": 246
+   }
+  },
+  "ArchiveYoke": {
+   "prop": "weighted",
+   "hem": {
+    "open": 162,
+    "covered": 0,
+    "band": 267,
+    "lips": 162
+   }
+  },
+  "ArchiveCollar": {
+   "prop": "spine_03",
+   "hem": {
+    "open": 64,
+    "covered": 0,
+    "band": 60,
+    "lips": 64
+   }
+  },
+  "ArchiveBelt": {
+   "prop": "pelvis"
+  }
+ },
+ "shading": {},
+ "pokes": {
+  "under": {
+   "Skin>ArchiveTrousers": 0,
+   "Skin>ArchiveJacket": 0,
+   "ArchiveTrousers>ArchiveJacket": 414
+  },
+  "posed": {
+   "lowered": {
+    "Skin>ArchiveTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>ArchiveJacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "ArchiveTrousers>ArchiveJacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   },
+   "idle": {
+    "Skin>ArchiveTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>ArchiveJacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "ArchiveTrousers>ArchiveJacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   },
+   "jog-a": {
+    "Skin>ArchiveTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>ArchiveJacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "ArchiveTrousers>ArchiveJacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   },
+   "jog-b": {
+    "Skin>ArchiveTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>ArchiveJacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "ArchiveTrousers>ArchiveJacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   },
+   "sprint": {
+    "Skin>ArchiveTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>ArchiveJacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "ArchiveTrousers>ArchiveJacket": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   }
+  }
+ }
+}

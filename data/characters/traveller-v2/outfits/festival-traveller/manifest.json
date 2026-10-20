@@ -1,0 +1,403 @@
+{
+ "source": "scripts/blender/traveller/outfit.py --outfit festival-traveller (issue #540)",
+ "id": "festival-traveller",
+ "name": "Festival traveller",
+ "reference": "references/characters/traveller-outfits/festival-traveller/approved-reference.png",
+ "glb": "festival-traveller.glb",
+ "base": "data/characters/traveller-v2/traveller.glb",
+ "keeps": [
+  "Body",
+  "Skin",
+  "Head",
+  "Hair"
+ ],
+ "parts": {
+  "FestivalTrousers": {
+   "kind": "garment",
+   "triangles": 14144,
+   "vertices": 7175,
+   "hides": [
+    "hips",
+    "knee.L",
+    "knee.R",
+    "shin.L",
+    "shin.R",
+    "thigh.L",
+    "thigh.R"
+   ],
+   "layer": 1,
+   "materials": {
+    "outfit_festival-traveller": "atlas"
+   }
+  },
+  "FestivalShirt": {
+   "kind": "garment",
+   "triangles": 15091,
+   "vertices": 7780,
+   "hides": [
+    "belly",
+    "upperarm.L",
+    "upperarm.R"
+   ],
+   "layer": 1,
+   "materials": {
+    "outfit_festival-traveller": "atlas"
+   }
+  },
+  "PatchworkVest": {
+   "kind": "garment",
+   "triangles": 6404,
+   "vertices": 3410,
+   "hides": [],
+   "layer": 2,
+   "materials": {
+    "outfit_festival-traveller": "atlas"
+   }
+  },
+  "FestivalSash": {
+   "kind": "garment",
+   "triangles": 600,
+   "vertices": 304,
+   "hides": [],
+   "layer": 3,
+   "materials": {
+    "outfit_festival-traveller": "atlas"
+   },
+   "prop": "weighted"
+  },
+  "FestivalCollar": {
+   "kind": "garment",
+   "triangles": 160,
+   "vertices": 80,
+   "hides": [],
+   "layer": 3,
+   "materials": {
+    "outfit_festival-traveller": "atlas"
+   },
+   "prop": "weighted"
+  },
+  "FestivalBoots": {
+   "kind": "garment",
+   "triangles": 6406,
+   "vertices": 3301,
+   "hides": [
+    "ankle.L",
+    "ankle.R",
+    "foot.L",
+    "foot.R",
+    "shin_lower.L",
+    "shin_lower.R"
+   ],
+   "layer": 1,
+   "materials": {
+    "outfit_festival-traveller": "atlas"
+   }
+  }
+ },
+ "hides": [
+  "ankle.L",
+  "ankle.R",
+  "belly",
+  "foot.L",
+  "foot.R",
+  "hips",
+  "knee.L",
+  "knee.R",
+  "shin.L",
+  "shin.R",
+  "shin_lower.L",
+  "shin_lower.R",
+  "thigh.L",
+  "thigh.R",
+  "upperarm.L",
+  "upperarm.R"
+ ],
+ "skinCut": [],
+ "draws": {
+  "clothes": [
+   "FestivalTrousers",
+   "FestivalShirt",
+   "PatchworkVest",
+   "FestivalSash",
+   "FestivalCollar",
+   "FestivalBoots"
+  ]
+ },
+ "atlas": {
+  "size": [
+   1024,
+   1024
+  ],
+  "texelsPerMetre": 489,
+  "swatches": {
+   "FestivalTrousers.inside": [
+    31,
+    50,
+    45
+   ],
+   "FestivalShirt.inside": [
+    104,
+    97,
+    83
+   ],
+   "PatchworkVest.inside": [
+    97,
+    58,
+    46
+   ],
+   "FestivalBoots.inside": [
+    64,
+    53,
+    37
+   ]
+  },
+  "palette": {
+   "cream": [
+    231,
+    216,
+    184
+   ],
+   "coral": [
+    216,
+    129,
+    102
+   ],
+   "ochre": [
+    220,
+    170,
+    83
+   ],
+   "teal": [
+    69,
+    110,
+    101
+   ],
+   "sash": [
+    154,
+    108,
+    77
+   ],
+   "plum": [
+    141,
+    121,
+    142
+   ],
+   "boot": [
+    142,
+    117,
+    82
+   ],
+   "ink": [
+    53,
+    43,
+    36
+   ]
+  }
+ },
+ "triangles": 42805,
+ "fit": {
+  "FestivalTrousers": {
+   "fitLeft": 0,
+   "relief": {
+    "op": {
+     "shapedVertices": 3766
+    }
+   },
+   "hem": {
+    "open": 112,
+    "covered": 96,
+    "band": 336,
+    "lips": 112
+   }
+  },
+  "FestivalShirt": {
+   "fitLeft": 71,
+   "relief": {
+    "op": {
+     "shapedVertices": 2894
+    }
+   },
+   "hem": {
+    "open": 276,
+    "covered": 36,
+    "band": 906,
+    "lips": 276
+   }
+  },
+  "PatchworkVest": {
+   "fitLeft": 110,
+   "relief": {
+    "op": {
+     "shapedVertices": 539
+    },
+    "raised": {
+     "cuts": 86,
+     "raised": 41
+    },
+    "raised2": {
+     "cuts": 85,
+     "raised": 40
+    }
+   },
+   "hem": {
+    "open": 406,
+    "covered": 0,
+    "band": 611,
+    "lips": 406
+   }
+  },
+  "FestivalSash": {
+   "prop": "weighted"
+  },
+  "FestivalCollar": {
+   "prop": "weighted",
+   "hem": {
+    "open": 0,
+    "covered": 0
+   }
+  }
+ },
+ "shading": {},
+ "pokes": {
+  "under": {
+   "Skin>FestivalTrousers": 0,
+   "Skin>FestivalShirt": 0,
+   "FestivalTrousers>FestivalShirt": 407,
+   "Skin>PatchworkVest": 0,
+   "FestivalShirt>PatchworkVest": 2381,
+   "FestivalTrousers>PatchworkVest": 351
+  },
+  "posed": {
+   "lowered": {
+    "Skin>FestivalTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>FestivalShirt": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "FestivalTrousers>FestivalShirt": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>PatchworkVest": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "FestivalShirt>PatchworkVest": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "FestivalTrousers>PatchworkVest": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   },
+   "idle": {
+    "Skin>FestivalTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>FestivalShirt": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "FestivalTrousers>FestivalShirt": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>PatchworkVest": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "FestivalShirt>PatchworkVest": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "FestivalTrousers>PatchworkVest": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   },
+   "jog-a": {
+    "Skin>FestivalTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>FestivalShirt": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "FestivalTrousers>FestivalShirt": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>PatchworkVest": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "FestivalShirt>PatchworkVest": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "FestivalTrousers>PatchworkVest": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   },
+   "jog-b": {
+    "Skin>FestivalTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>FestivalShirt": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "FestivalTrousers>FestivalShirt": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>PatchworkVest": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "FestivalShirt>PatchworkVest": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "FestivalTrousers>PatchworkVest": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   },
+   "sprint": {
+    "Skin>FestivalTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>FestivalShirt": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "FestivalTrousers>FestivalShirt": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>PatchworkVest": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "FestivalShirt>PatchworkVest": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "FestivalTrousers>PatchworkVest": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   }
+  }
+ }
+}

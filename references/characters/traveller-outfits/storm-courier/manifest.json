@@ -1,0 +1,18 @@
+{
+  "created": "2026-10-20",
+  "accepted": true,
+  "issue": 588,
+  "sheets": [
+    {
+      "file": "approved-reference.png",
+      "provider": "openai",
+      "service": "OpenAI built-in image generation (explicit user choice)",
+      "approvedBy": "user",
+      "sha256": "3920abde6cecd0fdb4159b2b1fab70bcdae2890d9ffb92a5f5f50ebb54c027b4",
+      "bytes": 1690470,
+      "why": "User approved all five outfit references and requested local Blender implementation. Original source preserved without conversion."
+    }
+  ],
+  "conceptBrief": "Sage rain jacket with short shoulder hood/yoke, cream cuffs, charcoal trousers and secured canvas hip pouch. Replace loose poncho with fitted short jacket; no cape or tails.",
+  "clothConstraint": "User requested less draping because loose cloth is difficult to render; use fitted garments, short hems and secured accessories."
+}

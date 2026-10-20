@@ -3,11 +3,21 @@
  "base": "traveller.glb",
  "manifest": "manifest.json",
  "outfits": [
-  { "id": "default", "name": "His own clothes" },
-  { "id": "glider-pilot", "name": "Glider pilot", "dir": "outfits/glider-pilot/" },
-  { "id": "lamplighter", "name": "Lamplighter", "dir": "outfits/lamplighter/" },
-  { "id": "pearl-diver", "name": "Pearl diver", "dir": "outfits/pearl-diver/" },
-  { "id": "moss-gardener", "name": "Moss gardener", "dir": "outfits/moss-gardener/" },
-  { "id": "salt-pilgrim", "name": "Salt pilgrim", "dir": "outfits/salt-pilgrim/" }
+  {"id": "default", "name": "His own clothes"},
+  {"id": "glider-pilot", "name": "Glider pilot", "dir": "outfits/glider-pilot/"},
+  {"id": "lamplighter", "name": "Lamplighter", "dir": "outfits/lamplighter/"},
+  {"id": "pearl-diver", "name": "Pearl diver", "dir": "outfits/pearl-diver/"},
+  {"id": "moss-gardener", "name": "Moss gardener", "dir": "outfits/moss-gardener/"},
+  {"id": "salt-pilgrim", "name": "Salt pilgrim", "dir": "outfits/salt-pilgrim/"},
+  {"id": "storm-courier", "name": "Storm courier", "dir": "outfits/storm-courier/"},
+  {"id": "furnace-mechanic", "name": "Furnace mechanic", "dir": "outfits/furnace-mechanic/"},
+  {"id": "frost-surveyor", "name": "Frost surveyor", "dir": "outfits/frost-surveyor/"},
+  {"id": "observatory-apprentice", "name": "Observatory apprentice", "dir": "outfits/observatory-apprentice/"},
+  {"id": "festival-traveller", "name": "Festival traveller", "dir": "outfits/festival-traveller/"},
+  {"id": "gravity-ranger", "name": "Gravity ranger", "dir": "outfits/gravity-ranger/"},
+  {"id": "star-archive-keeper", "name": "Star archive keeper", "dir": "outfits/star-archive-keeper/"},
+  {"id": "solar-voyager", "name": "Solar voyager", "dir": "outfits/solar-voyager/"},
+  {"id": "comet-pathfinder", "name": "Comet pathfinder", "dir": "outfits/comet-pathfinder/"},
+  {"id": "void-navigator", "name": "Void navigator", "dir": "outfits/void-navigator/"}
  ]
 }

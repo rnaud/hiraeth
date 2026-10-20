@@ -168,13 +168,13 @@ test('his far levels: v2\'s body and clothes, no more triangles or draws far off
   assert.ok(L2.entries.some((e) => e.mesh === v2.v2State.meshes[1]) && L2.entries.every((e) => e.mesh.parent), 'the new clothes tracked, the old let go');
 });
 
-test('the build carries his models: the base (without the head and hair it never draws) and the five outfits', async () => {
+test('the build carries his models: the base (without the head and hair it never draws) and the fifteen outfits', async () => {
   const files = shippedFiles();
   assert.ok(files.includes(DIR + 'traveller.glb') && files.includes(DIR + 'outfits.json') && files.includes(DIR + 'manifest.json'));
   for (const o of list.outfits.filter((x) => x.dir)) assert.ok(files.some((f) => f.startsWith(DIR + o.dir) && f.endsWith('.glb')), `${o.id} ships`);
   assert.ok(!files.some((f) => /\.blend$|previews\//.test(f)), 'not the .blend nor the previews');
   const mb = files.reduce((n, f) => n + shippedBytes(f).length, 0) / 2 ** 20;
-  assert.ok(mb < 19, `${mb.toFixed(1)} MB added to the build`);
+  assert.ok(mb < 40, `${mb.toFixed(1)} MB added to the build`);
   assert.match(readFileSync('vite.config.js', 'utf8'), /travellerV2Plugin\(\)/);
   // the shipped base: every part the game draws as the pipeline wrote it, the head and hair left out
   const raw = readFileSync(DIR + 'traveller.glb'), shipped = shippedBytes(DIR + 'traveller.glb');

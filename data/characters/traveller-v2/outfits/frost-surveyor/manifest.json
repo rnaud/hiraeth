@@ -1,0 +1,390 @@
+{
+ "source": "scripts/blender/traveller/outfit.py --outfit frost-surveyor (issue #540)",
+ "id": "frost-surveyor",
+ "name": "Frost surveyor",
+ "reference": "references/characters/traveller-outfits/frost-surveyor/approved-reference.png",
+ "glb": "frost-surveyor.glb",
+ "base": "data/characters/traveller-v2/traveller.glb",
+ "keeps": [
+  "Body",
+  "Skin",
+  "Head",
+  "Hair"
+ ],
+ "parts": {
+  "SurveyTrousers": {
+   "kind": "garment",
+   "triangles": 14144,
+   "vertices": 7175,
+   "hides": [
+    "hips",
+    "knee.L",
+    "knee.R",
+    "shin.L",
+    "shin.R",
+    "thigh.L",
+    "thigh.R"
+   ],
+   "layer": 1,
+   "materials": {
+    "outfit_frost-surveyor": "atlas"
+   }
+  },
+  "SurveyShirt": {
+   "kind": "garment",
+   "triangles": 16771,
+   "vertices": 8558,
+   "hides": [
+    "belly",
+    "forearm_upper.L",
+    "forearm_upper.R",
+    "upperarm.L",
+    "upperarm.R"
+   ],
+   "layer": 1,
+   "materials": {
+    "outfit_frost-surveyor": "atlas"
+   }
+  },
+  "SurveyVest": {
+   "kind": "garment",
+   "triangles": 7620,
+   "vertices": 3999,
+   "hides": [],
+   "layer": 2,
+   "materials": {
+    "outfit_frost-surveyor": "atlas"
+   }
+  },
+  "NeckWrap": {
+   "kind": "garment",
+   "triangles": 364,
+   "vertices": 184,
+   "hides": [],
+   "layer": 3,
+   "materials": {
+    "outfit_frost-surveyor": "atlas"
+   },
+   "prop": "spine_03"
+  },
+  "SurveyBoots": {
+   "kind": "garment",
+   "triangles": 6406,
+   "vertices": 3301,
+   "hides": [
+    "ankle.L",
+    "ankle.R",
+    "foot.L",
+    "foot.R",
+    "shin_lower.L",
+    "shin_lower.R"
+   ],
+   "layer": 1,
+   "materials": {
+    "outfit_frost-surveyor": "atlas"
+   }
+  }
+ },
+ "hides": [
+  "ankle.L",
+  "ankle.R",
+  "belly",
+  "chest",
+  "foot.L",
+  "foot.R",
+  "forearm_upper.L",
+  "forearm_upper.R",
+  "hips",
+  "knee.L",
+  "knee.R",
+  "shin.L",
+  "shin.R",
+  "shin_lower.L",
+  "shin_lower.R",
+  "thigh.L",
+  "thigh.R",
+  "upperarm.L",
+  "upperarm.R"
+ ],
+ "skinCut": [],
+ "draws": {
+  "clothes": [
+   "SurveyTrousers",
+   "SurveyShirt",
+   "SurveyVest",
+   "NeckWrap",
+   "SurveyBoots"
+  ]
+ },
+ "atlas": {
+  "size": [
+   1024,
+   1024
+  ],
+  "texelsPerMetre": 507,
+  "swatches": {
+   "SurveyTrousers.inside": [
+    31,
+    31,
+    29
+   ],
+   "SurveyShirt.inside": [
+    37,
+    49,
+    55
+   ],
+   "SurveyVest.inside": [
+    103,
+    97,
+    83
+   ],
+   "SurveyBoots.inside": [
+    83,
+    73,
+    56
+   ]
+  },
+  "palette": {
+   "blue": [
+    83,
+    108,
+    122
+   ],
+   "cream": [
+    229,
+    216,
+    185
+   ],
+   "coral": [
+    200,
+    115,
+    88
+   ],
+   "trouser": [
+    69,
+    69,
+    64
+   ],
+   "boot": [
+    184,
+    162,
+    125
+   ],
+   "ink": [
+    44,
+    43,
+    37
+   ]
+  }
+ },
+ "triangles": 45305,
+ "fit": {
+  "SurveyTrousers": {
+   "fitLeft": 0,
+   "relief": {
+    "cloth_trousers": {
+     "sculpted": 2598,
+     "maximumMm": 9.95
+    }
+   },
+   "hem": {
+    "open": 112,
+    "covered": 96,
+    "band": 336,
+    "lips": 112
+   }
+  },
+  "SurveyShirt": {
+   "fitLeft": 127,
+   "relief": {
+    "cloth_shirt": {
+     "sculpted": 1282,
+     "maximumMm": 5.02
+    }
+   },
+   "hem": {
+    "open": 219,
+    "covered": 53,
+    "band": 950,
+    "lips": 219
+   }
+  },
+  "SurveyVest": {
+   "fitLeft": 209,
+   "relief": {
+    "quilt": {
+     "cuts": 302,
+     "puffed": 2191
+    },
+    "raised": {
+     "cuts": 92,
+     "raised": 56
+    },
+    "raised2": {
+     "cuts": 101,
+     "raised": 30
+    },
+    "raised3": {
+     "cuts": 93,
+     "raised": 56
+    },
+    "raised4": {
+     "cuts": 102,
+     "raised": 30
+    }
+   },
+   "hem": {
+    "open": 360,
+    "covered": 0,
+    "band": 515,
+    "lips": 360
+   }
+  },
+  "NeckWrap": {
+   "prop": "spine_03"
+  }
+ },
+ "shading": {},
+ "pokes": {
+  "under": {
+   "Skin>SurveyTrousers": 0,
+   "Skin>SurveyShirt": 0,
+   "SurveyTrousers>SurveyShirt": 415,
+   "Skin>SurveyVest": 0,
+   "SurveyShirt>SurveyVest": 2991,
+   "SurveyTrousers>SurveyVest": 384
+  },
+  "posed": {
+   "lowered": {
+    "Skin>SurveyTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>SurveyShirt": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "SurveyTrousers>SurveyShirt": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>SurveyVest": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "SurveyShirt>SurveyVest": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "SurveyTrousers>SurveyVest": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   },
+   "idle": {
+    "Skin>SurveyTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>SurveyShirt": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "SurveyTrousers>SurveyShirt": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>SurveyVest": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "SurveyShirt>SurveyVest": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "SurveyTrousers>SurveyVest": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   },
+   "jog-a": {
+    "Skin>SurveyTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>SurveyShirt": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "SurveyTrousers>SurveyShirt": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>SurveyVest": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "SurveyShirt>SurveyVest": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "SurveyTrousers>SurveyVest": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   },
+   "jog-b": {
+    "Skin>SurveyTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>SurveyShirt": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "SurveyTrousers>SurveyShirt": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>SurveyVest": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "SurveyShirt>SurveyVest": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "SurveyTrousers>SurveyVest": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   },
+   "sprint": {
+    "Skin>SurveyTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>SurveyShirt": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "SurveyTrousers>SurveyShirt": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>SurveyVest": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "SurveyShirt>SurveyVest": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "SurveyTrousers>SurveyVest": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   }
+  }
+ }
+}

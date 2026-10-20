@@ -1,0 +1,436 @@
+{
+ "source": "scripts/blender/traveller/outfit.py --outfit furnace-mechanic (issue #540)",
+ "id": "furnace-mechanic",
+ "name": "Furnace mechanic",
+ "reference": "references/characters/traveller-outfits/furnace-mechanic/approved-reference.png",
+ "glb": "furnace-mechanic.glb",
+ "base": "data/characters/traveller-v2/traveller.glb",
+ "keeps": [
+  "Body",
+  "Skin",
+  "Head",
+  "Hair"
+ ],
+ "parts": {
+  "MechanicTrousers": {
+   "kind": "garment",
+   "triangles": 14568,
+   "vertices": 7387,
+   "hides": [
+    "hips",
+    "knee.L",
+    "knee.R",
+    "shin.L",
+    "shin.R",
+    "thigh.L",
+    "thigh.R"
+   ],
+   "layer": 1,
+   "materials": {
+    "outfit_furnace-mechanic": "atlas"
+   }
+  },
+  "MechanicShirt": {
+   "kind": "garment",
+   "triangles": 15544,
+   "vertices": 7991,
+   "hides": [
+    "belly",
+    "upperarm.L",
+    "upperarm.R"
+   ],
+   "layer": 1,
+   "materials": {
+    "outfit_furnace-mechanic": "atlas"
+   }
+  },
+  "MechanicBib": {
+   "kind": "garment",
+   "triangles": 3328,
+   "vertices": 1784,
+   "hides": [],
+   "layer": 2,
+   "materials": {
+    "outfit_furnace-mechanic": "atlas"
+   }
+  },
+  "ToolBelt": {
+   "kind": "garment",
+   "triangles": 560,
+   "vertices": 280,
+   "hides": [],
+   "layer": 3,
+   "materials": {
+    "outfit_furnace-mechanic": "atlas"
+   },
+   "prop": "weighted"
+  },
+  "ToolPouch": {
+   "kind": "garment",
+   "triangles": 972,
+   "vertices": 504,
+   "hides": [],
+   "layer": 3,
+   "materials": {
+    "outfit_furnace-mechanic": "atlas"
+   },
+   "prop": "pelvis"
+  },
+  "BibStraps": {
+   "kind": "garment",
+   "triangles": 1304,
+   "vertices": 656,
+   "hides": [],
+   "layer": 3,
+   "materials": {
+    "outfit_furnace-mechanic": "atlas"
+   },
+   "prop": "weighted"
+  },
+  "ShirtDetails": {
+   "kind": "garment",
+   "triangles": 160,
+   "vertices": 80,
+   "hides": [],
+   "layer": 3,
+   "materials": {
+    "outfit_furnace-mechanic": "atlas"
+   },
+   "prop": "weighted"
+  },
+  "MechanicBoots": {
+   "kind": "garment",
+   "triangles": 6406,
+   "vertices": 3301,
+   "hides": [
+    "ankle.L",
+    "ankle.R",
+    "foot.L",
+    "foot.R",
+    "shin_lower.L",
+    "shin_lower.R"
+   ],
+   "layer": 1,
+   "materials": {
+    "outfit_furnace-mechanic": "atlas"
+   }
+  }
+ },
+ "hides": [
+  "ankle.L",
+  "ankle.R",
+  "belly",
+  "foot.L",
+  "foot.R",
+  "hips",
+  "knee.L",
+  "knee.R",
+  "shin.L",
+  "shin.R",
+  "shin_lower.L",
+  "shin_lower.R",
+  "thigh.L",
+  "thigh.R",
+  "upperarm.L",
+  "upperarm.R"
+ ],
+ "skinCut": [],
+ "draws": {
+  "clothes": [
+   "MechanicTrousers",
+   "MechanicShirt",
+   "MechanicBib",
+   "ToolBelt",
+   "ToolPouch",
+   "BibStraps",
+   "ShirtDetails",
+   "MechanicBoots"
+  ]
+ },
+ "atlas": {
+  "size": [
+   1024,
+   1024
+  ],
+  "texelsPerMetre": 485,
+  "swatches": {
+   "MechanicTrousers.inside": [
+    84,
+    47,
+    30
+   ],
+   "MechanicShirt.inside": [
+    102,
+    95,
+    81
+   ],
+   "MechanicBib.inside": [
+    84,
+    47,
+    30
+   ],
+   "MechanicBoots.inside": [
+    62,
+    49,
+    34
+   ]
+  },
+  "palette": {
+   "cream": [
+    227,
+    211,
+    179
+   ],
+   "rust": [
+    187,
+    105,
+    66
+   ],
+   "cuff": [
+    202,
+    124,
+    81
+   ],
+   "leather": [
+    80,
+    66,
+    48
+   ],
+   "brass": [
+    188,
+    151,
+    76
+   ],
+   "boot": [
+    137,
+    108,
+    75
+   ],
+   "ink": [
+    48,
+    39,
+    31
+   ]
+  }
+ },
+ "triangles": 42842,
+ "fit": {
+  "MechanicTrousers": {
+   "fitLeft": 0,
+   "relief": {
+    "op": {
+     "shapedVertices": 3758
+    },
+    "raised": {
+     "cuts": 121,
+     "raised": 130
+    },
+    "raised2": {
+     "cuts": 121,
+     "raised": 130
+    }
+   },
+   "hem": {
+    "open": 112,
+    "covered": 96,
+    "band": 336,
+    "lips": 112
+   }
+  },
+  "MechanicShirt": {
+   "fitLeft": 71,
+   "relief": {
+    "op": {
+     "shapedVertices": 2897
+    }
+   },
+   "hem": {
+    "open": 310,
+    "covered": 2,
+    "band": 1128,
+    "lips": 310
+   }
+  },
+  "MechanicBib": {
+   "fitLeft": 0,
+   "relief": {
+    "op": {
+     "shapedVertices": 496
+    },
+    "raised": {
+     "cuts": 119,
+     "raised": 119
+    },
+    "raised2": {
+     "cuts": 101,
+     "raised": 65
+    }
+   },
+   "hem": {
+    "open": 240,
+    "covered": 0,
+    "band": 284,
+    "lips": 240
+   }
+  },
+  "ToolBelt": {
+   "prop": "weighted"
+  },
+  "ToolPouch": {
+   "prop": "pelvis"
+  },
+  "BibStraps": {
+   "prop": "weighted"
+  },
+  "ShirtDetails": {
+   "prop": "weighted",
+   "hem": {
+    "open": 0,
+    "covered": 0
+   }
+  }
+ },
+ "shading": {},
+ "pokes": {
+  "under": {
+   "Skin>MechanicTrousers": 0,
+   "Skin>MechanicShirt": 0,
+   "MechanicTrousers>MechanicShirt": 406,
+   "Skin>MechanicBib": 0,
+   "MechanicShirt>MechanicBib": 930,
+   "MechanicTrousers>MechanicBib": 338
+  },
+  "posed": {
+   "lowered": {
+    "Skin>MechanicTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>MechanicShirt": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "MechanicTrousers>MechanicShirt": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>MechanicBib": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "MechanicShirt>MechanicBib": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "MechanicTrousers>MechanicBib": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   },
+   "idle": {
+    "Skin>MechanicTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>MechanicShirt": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "MechanicTrousers>MechanicShirt": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>MechanicBib": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "MechanicShirt>MechanicBib": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "MechanicTrousers>MechanicBib": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   },
+   "jog-a": {
+    "Skin>MechanicTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>MechanicShirt": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "MechanicTrousers>MechanicShirt": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>MechanicBib": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "MechanicShirt>MechanicBib": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "MechanicTrousers>MechanicBib": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   },
+   "jog-b": {
+    "Skin>MechanicTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>MechanicShirt": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "MechanicTrousers>MechanicShirt": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>MechanicBib": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "MechanicShirt>MechanicBib": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "MechanicTrousers>MechanicBib": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   },
+   "sprint": {
+    "Skin>MechanicTrousers": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>MechanicShirt": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "MechanicTrousers>MechanicShirt": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "Skin>MechanicBib": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "MechanicShirt>MechanicBib": {
+     "out": 0,
+     "deepestMm": 0.0
+    },
+    "MechanicTrousers>MechanicBib": {
+     "out": 0,
+     "deepestMm": 0.0
+    }
+   }
+  }
+ }
+}

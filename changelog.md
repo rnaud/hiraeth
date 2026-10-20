@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.90 — 2026-10-20
 
+- Ten new outfits are available in the Wardrobe: courier, mechanic, surveyor, apprentice and festival clothes, plus five compact spacefaring suits with fitted armour and harnesses.
 - The Salt Pilgrim’s robe and sash have more room at the waist, reducing clothing overlap as he runs.
 
 ## v1.89 — 2026-10-20

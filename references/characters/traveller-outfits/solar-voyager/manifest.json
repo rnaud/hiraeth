@@ -1,0 +1,18 @@
+{
+  "created": "2026-10-20",
+  "accepted": true,
+  "issue": 590,
+  "sheets": [
+    {
+      "file": "approved-reference.png",
+      "provider": "openai",
+      "service": "OpenAI built-in image generation (explicit user choice)",
+      "approvedBy": "user",
+      "sha256": "e7b016d5116adb3f35e1d1d71a8989b7f378618976b9872d533b41fdcbcd1d41",
+      "bytes": 1766110,
+      "why": "User approved compact futuristic outfit reference and requested local Blender implementation and in-game Wardrobe access. Original source preserved."
+    }
+  ],
+  "conceptBrief": "Approved compact futuristic sheet: fitted coral suit with cream segmented chest, shoulder, forearm and shin armour, gold joints and secured amber hip canister.",
+  "clothConstraint": "User requested less draping because loose cloth is difficult to render; use fitted garments, short hems and secured accessories."
+}
