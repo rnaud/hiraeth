@@ -1,0 +1,53 @@
+changelog.md
+  s_5f899ba316b5dc::t_9e35f2f52ee27c 7
+docs/systems/engine-bridge.md
+  s_5f899ba316b5dc::t_65ff0c0dbbd107 643
+docs/systems/minigames.md
+  s_5f899ba316b5dc::t_3ef9308a6a3b22 981-1023
+engine/game.js
+  s_5f899ba316b5dc::t_34de655db2e541 336,402-406
+engine/trials.js
+  s_5f899ba316b5dc::t_d0df5ebf0bb0d1 25,30,35,46
+engine/unity/game.js
+  s_5f899ba316b5dc::t_6f56dc9f29d1c6 330,335,475-479,481
+src/ambush.js
+  s_5f899ba316b5dc::t_583e0da99a2f05 76,78-80
+src/changelog-media.js
+  s_5f899ba316b5dc::t_5adf8d1af9289c 1306-1308,1367-1373
+src/changelog.js
+  s_5f899ba316b5dc::t_334a5a798fe845 31-34
+src/main.js
+  s_5f899ba316b5dc::t_51b37d8fcef4bf 140,2605
+src/minigames/kit/arcade.js
+  s_5f899ba316b5dc::t_524de063adb945 58-69
+src/minigames/pirates-rules.js
+  s_5f899ba316b5dc::t_49d7b4b0c05c0c 171-182,185-186,188,193,213-215,236-237,242,245,261-290,413,532-533,604-610,690,707,1077-1090,1169-1175
+src/minigames/pirates-sfx.js
+  s_5f899ba316b5dc::t_5d79bf079c644d 43-60,98-117,119-142
+src/minigames/pirates.js
+  s_5f899ba316b5dc::t_2497fb17e00083 28,190,241-246,248,254,302-316,319-339,341-396,446-447,460,463-480,487,490-494,496,499-506,700-704,849-851,911,968-971,990-1051,1117-1119,1123-1129,1330-1342,1346-1351,1371,1401-1403,1420-1423,1433-1440,1442-1443,1484-1492,1594-1603
+src/music-page/catalog.js
+  s_5f899ba316b5dc::t_12526cecb4fc15 244,251-254
+tests/engine-trials.test.js
+  s_5f899ba316b5dc::t_9260b93e319fec 64,66-68
+tests/pirates-feel.test.js
+  s_5f899ba316b5dc::t_f489f426ef9050 149
+tests/pirates-places.test.js
+  s_5f899ba316b5dc::t_ee0032b1866ce4 1-219
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0411406e7111bdaad1eefa5f9a7ffc47fc928f0f",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
