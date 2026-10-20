@@ -743,9 +743,18 @@ main.js and engine/game.js), `src/game-menu.js` `wardrobePanel` and `GameMenu.wa
 - **Unity** (engine/menus.js, BridgeMenu.Wardrobe.cs, BridgeRunner.Wardrobe): the same rows and preview; engine/game.js
   draws him each frame the page shows (`wardrobeCapture`: his drawables and the sword's on a layer of their own for
   the portraits' camera, into one picture BridgeMenu shows in its frame). The engines draw B3, so the outfits' line
-  says they need the new traveller there too. Left: Unity's picture shows the sword beside him by its hilt alone (its
-  blade's node is mirrored, on the layer, in view and its renderer on, yet nothing of it is drawn; the held blade draws
-  in a fight).
+  says they need the new traveller there too. The sword beside him draws whole there since its blade's material is
+  bound a buffer: the blade and the shield are drawn by the Surface shader's fight variant (HIRAETH_FIGHT), which
+  declares the foes' `_SkinData` buffer, and the blade's material had none; Metal skips a draw whose buffer is unbound
+  ("requires a ComputeBuffer at index 3"), so the blade drew only in a fight, after a foe's draw had bound one
+  (WorldLoader: `NoSkinData`, an empty slot of its own; `tests/wardrobe.test.js`). `-wardrobe -out dir` photographs
+  the page, `-wardrobe-yaw r` holds him at r rad round (as the web's pictures pin him) and `-set-flags
+  kit.colours.ember,…` gives him the colours the web's pictures have.
+- **He is not frozen**: the world stands still under the menu, so he would too; on the page he breathes and looks
+  about a little over the pose the menu opened on (`PageIdle`, `PAGE_IDLE`: the chest's breath and sway, the head's
+  glances and nod, the shoulders with the breath; the upper body's bones only, turned about his own frame's axes, so
+  his feet stay planted), put back as he was when the page is left. The page's `tick` poses him before each picture,
+  in both hosts.
 
 ## Notices and the quest card (playtest 2026-10-08)
 

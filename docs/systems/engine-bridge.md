@@ -173,7 +173,9 @@ the same entries in the same order, moved through by the web's own rules, and `v
   right stick turns him (`analog`'s `rx`). engine/game.js draws him each frame the page shows (`wardrobeCapture`:
   backend.js `wardrobe` → BridgeHost.Wardrobe → BridgeRunner.Wardrobe, the portraits' camera on layer 29 alone, his
   drawables and the sword beside him moved onto it for the moment: `BridgeRenderer.OnLayer`), into one picture
-  BridgeMenu.Wardrobe.cs shows in its frame. `-wardrobe -out dir` photographs it (`unity-wardrobe-<name>.png`).
+  BridgeMenu.Wardrobe.cs shows in its frame. `-wardrobe -out dir` photographs it (`unity-wardrobe-<name>.png`;
+  `-wardrobe-yaw r` holds him at r rad round, as the web's pictures do). Every HIRAETH_FIGHT material is bound a
+  `_SkinData` buffer (the blade's an empty one): Metal skips a draw whose buffer is unbound (docs/systems/ui.md).
 - **the House map** (issue #405, #487): inside a makers' house the game menu has a panel for it after Map
   (src/game-menu.js `panelsFor`; the house's view taken as the game menu opens, `house()`: engine/game.js
   `houseView`); the Start menu has none since issue #487 (nor Items, Quests or Map: `START_SIDE`). The game view

@@ -298,10 +298,14 @@ namespace Hiraeth
             // skins' buffer (engine/foe-pack.js; Surface.shader HIRAETH_FIGHT, FoeSurface.hlsl). Lean, as a skin: only on a foe that uses
             // none of the shader's rare paths (glass, a veil, dissolving, fluid, a drawn face, veins, a box, scrub), else as before
             // the fluid sword's living blade (1) or the guard's shield (2) (src/blade-shader.js, issue #264): HIRAETH_FIGHT's
-            // BladeSurface.hlsl, its live numbers _Blade, _BladeB, _BladeC (its fluid is its own: the full variant's paths unneeded)
+            // BladeSurface.hlsl, its live numbers _Blade, _BladeB, _BladeC (its fluid is its own: the full variant's paths unneeded).
+            // The variant declares the foes' buffer (_SkinData) though the blade reads none of it: an empty one of its own, or Metal
+            // skips its draws while no foe's buffer is bound before it ("requires a ComputeBuffer at index 3"): the Wardrobe's
+            // sword beside him drew its hilt alone, its blade only in a fight, after the foes (issue #571)
             else if (BladeLook && m.I("blade") > 0)
             {
                 mat.SetFloat("_BladeOn", m.I("blade"));
+                SetSkinData(mat, NoSkinData);
                 mat.EnableKeyword("HIRAETH_FIGHT");
             }
             // the chimes' crystal (src/crystal-shader.js): its uniforms packed the same way, aCrystal in the form's slot (_CrystalOn)
@@ -343,6 +347,8 @@ namespace Hiraeth
         }
         /// <summary>The skins' buffers, by material (each material its own: released with it, or all at once).</summary>
         static readonly Dictionary<Material, ComputeBuffer> skinBuffers = new();
+        /// <summary>A HIRAETH_FIGHT material with no uniforms to pack (the blade, the shield): one empty slot, so its buffer is bound.</summary>
+        static readonly float[] NoSkinData = new float[4];
         /// <summary>A skin material's packed uniforms (vec4 slots): its buffer made, or filled again (the bridge's op 21, live values).</summary>
         public static void SetSkinData(Material mat, float[] data)
         {

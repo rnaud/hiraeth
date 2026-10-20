@@ -219,6 +219,8 @@ namespace Hiraeth.Bridge
             if (Flag("-devmenu")) args["devmenu"] = true;
             // (-wardrobe: the game menu's Wardrobe opened, photographed through its blade colours, one worn: engine/unity/game.js, issue #571)
             if (Flag("-wardrobe")) args["wardrobe"] = true;
+            // (-wardrobe-yaw r: him held at r rad round from his front, not turning by himself: the same picture as the web's)
+            if (Arg("-wardrobe-yaw") != null) args["wardrobeYaw"] = double.Parse(Arg("-wardrobe-yaw"), CultureInfo.InvariantCulture);
             // (-house id [-house-room room] [-house-turn rad]: the Start menu's House map photographed floor by floor, issue #405: engine/unity/game.js)
             if (Arg("-house") != null) args["house"] = Arg("-house");
             if (Arg("-house-room") != null) args["houseRoom"] = Arg("-house-room");

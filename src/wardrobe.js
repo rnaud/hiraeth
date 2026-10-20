@@ -19,8 +19,8 @@
 //   w.preview(cell)          the highlighted cell (or null): him and the sword in it
 //   w.wear(kind, id)         A / × on a cell: saved and worn in the world
 //   w.leave()                the page left (another panel, the menu closed): him as he was, the sword put away
-//   w.place(shot) · w.tick(dt) · w.keep()   each drawn frame: the sword beside him for the shot, its breath, what the
-//                            preview draws (him, the sword)
+//   w.place(shot) · w.tick(dt) · w.keep()   each drawn frame: the sword beside him for the shot, its breath and his
+//                            (PageIdle: the world is still under the menu, he is not), what the preview draws (him, the sword)
 //   wardrobeShot(player, yaw) → { eye, look, fov }: the camera on him, `yaw` round him from his front
 
 import * as THREE from 'three';
@@ -168,6 +168,64 @@ export function placeSword(g, { eye, look }, feet, up, P = PLANTED) {
   return g;
 }
 
+// ------------------------------------------------------------------ him at rest on the page
+
+/**
+ * The world stands still under the menu, so he would too, frozen in the frame the menu opened on: on the page he breathes
+ * and looks about a little instead, over that pose, his upper body only (his feet stay planted). The chest `breath` rad at
+ * `breathRate` rad/s and `sway` rad side to side at `swayRate`; the head `look` rad round at `lookRate`, `nod` rad down
+ * and up; the shoulders `arms` rad in and out with the breath.
+ */
+export const PAGE_IDLE = { breath: 0.022, breathRate: 1.7, sway: 0.03, swayRate: 0.41, look: 0.13, lookRate: 0.27, nod: 0.03, arms: 0.03 };
+// (his skeleton's bones it moves: humanoid.js's names; each turned about an axis of his own frame, x across, y up, z ahead)
+const IDLE_BONES = ['spine_02', 'spine_03', 'neck_01', 'Head', 'upperarm_l', 'upperarm_r'];
+const _ax = new THREE.Vector3(), _iq = new THREE.Quaternion(), _rq = new THREE.Quaternion(), _bq = new THREE.Quaternion();
+/**
+ * The page's idle (wireWardrobe's): `pose(bones, root, t)` each frame the page draws him (`bones` humanoid.b, by name;
+ * `root` his object), `put()` him as he was when the page is left. The pose under it is taken again whenever something
+ * else moved him since (the game ran between two visits to the page).
+ */
+export class PageIdle {
+  constructor(P = PAGE_IDLE) { this.P = P; this.held = null; this.wrote = null; }
+  /** The bones' turns at time t (s), by name: [axis (his frame), rad]s. */
+  turns(t) {
+    const P = this.P, breath = Math.sin(t * P.breathRate), sway = Math.sin(t * P.swayRate + 0.6);
+    const look = Math.sin(t * P.lookRate) * Math.min(1, Math.abs(Math.sin(t * P.lookRate * 0.5 + 1)) * 1.6);   // (dwells, then glances)
+    return {
+      spine_02: [[1, 0, 0, -0.5 * P.breath * breath], [0, 0, 1, 0.5 * P.sway * sway]],
+      spine_03: [[1, 0, 0, -0.5 * P.breath * breath], [0, 0, 1, 0.5 * P.sway * sway]],
+      neck_01: [[0, 1, 0, 0.4 * P.look * look]],
+      Head: [[0, 1, 0, 0.6 * P.look * look], [1, 0, 0, P.nod * Math.sin(t * P.lookRate * 1.7 + 2)]],
+      upperarm_l: [[0, 0, 1, P.arms * (0.5 + 0.5 * breath)]],
+      upperarm_r: [[0, 0, 1, -P.arms * (0.5 + 0.5 * breath)]],
+    };
+  }
+  pose(bones, root, t) {
+    if (!bones || !root) return;
+    const list = IDLE_BONES.map((n) => [n, bones[n]]).filter(([, b]) => b?.quaternion);
+    if (!list.length) return;
+    // (the pose under it: taken when the page first draws him, and again if anything else posed him since)
+    const moved = !this.held || this.held.bones !== bones || list.some(([n, b]) => !this.wrote?.[n]?.equals(b.quaternion));
+    if (moved) this.held = { bones, q: Object.fromEntries(list.map(([n, b]) => [n, b.quaternion.clone()])) };
+    for (const [n, b] of list) b.quaternion.copy(this.held.q[n]);
+    root.updateMatrixWorld(true);
+    const T = this.turns(t), rootQ = root.getWorldQuaternion(_rq);
+    for (const [n, b] of list) {
+      // (about his frame's axis, through the bone's own turn in the world: the same on any rig's bone axes)
+      const inv = b.parent ? b.parent.getWorldQuaternion(_bq).multiply(b.quaternion).invert() : _bq.copy(b.quaternion).invert();
+      for (const [x, y, z, a] of T[n] ?? []) b.quaternion.multiply(_iq.setFromAxisAngle(_ax.set(x, y, z).applyQuaternion(rootQ).applyQuaternion(inv).normalize(), a));
+    }
+    root.updateMatrixWorld(true);
+    this.wrote = Object.fromEntries(list.map(([n, b]) => [n, b.quaternion.clone()]));
+  }
+  /** Him as he was under it (the page left). */
+  put() {
+    const H = this.held;
+    if (H) for (const [n, q] of Object.entries(H.q)) H.bones[n]?.quaternion.copy(q);
+    this.held = null; this.wrote = null;
+  }
+}
+
 // ------------------------------------------------------------------ the page's host
 
 /**
@@ -177,6 +235,7 @@ export function placeSword(g, { eye, look }, feet, up, P = PLANTED) {
  */
 export function wireWardrobe({ game, kit = null, tool = null, player = null, dress = () => null }) {
   let sword = null, shown = null, time = 0;
+  const idle = new PageIdle();
   // the outfit on him: the one wanted, put on one at a time (v2's first wear of an outfit loads it)
   let want = null, on = null, busy = false;
   const dressed = () => dress?.() ?? null;
@@ -220,6 +279,7 @@ export function wireWardrobe({ game, kit = null, tool = null, player = null, dre
       return false;
     },
     leave() {
+      idle.put();
       if (sword?.parent) sword.parent.remove(sword);
       if (dressed()) wearOutfit(chosenOutfit(game));
     },
@@ -229,6 +289,7 @@ export function wireWardrobe({ game, kit = null, tool = null, player = null, dre
     },
     tick(dt) {
       time += dt;
+      idle.pose(player?.humanoid?.b, player?.object, time);   // (him breathing, looking about: PageIdle)
       const U = sword?.userData.material?.uniforms;
       if (!U?.uBlade) return;
       U.uBlade.value.set(0, 1, time * BLADE_LOOK.breathRate, BLADE_QUALITY.lite ? 1 : 0);   // (its breath, as the box's sword)

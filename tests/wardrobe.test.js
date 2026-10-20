@@ -11,7 +11,7 @@ import * as THREE from 'three';
 globalThis.matchMedia ??= () => ({ matches: false });
 globalThis.window ??= new EventTarget();
 const W = await import('../src/wardrobe.js');
-const { OUTFITS, OUTFIT_KEY, outfitUnlocked, chosenOutfit, chooseOutfit, bladeColours, wardrobeData, previewOf, wireWardrobe, Turntable, TURN, wardrobeShot, SHOT, placeSword, plantedSword } = W;
+const { OUTFITS, OUTFIT_KEY, outfitUnlocked, chosenOutfit, chooseOutfit, bladeColours, wardrobeData, previewOf, wireWardrobe, Turntable, TURN, wardrobeShot, SHOT, placeSword, plantedSword, PageIdle, PAGE_IDLE } = W;
 const { GameMenu, PANELS, wardrobePanel } = await import('../src/game-menu.js');
 const { menuSources } = await import('../src/game-menu-data.js');
 const { EngineMenus } = await import('../engine/menus.js');
@@ -241,4 +241,73 @@ test('the engines\' menus: the same page, its preview following the cursor, A / 
   assert.match(eg, /if \(onWardrobe\) wardrobeCapture\(wardrobeAt\);/);
   assert.match(src('engine/unity/backend.js'), /this\.host\.Wardrobe\?\.\(JSON\.stringify/);
   assert.match(src('engine/unity/game.js'), /menus\.wardrobe = game\.wardrobe;/);
+});
+
+/** A skeleton as humanoid.js names it (the bones the page's idle moves, and a hand it leaves), under his object. */
+function skeleton() {
+  const root = new THREE.Group(), b = {};
+  const bone = (n, parent, y, x = 0) => { const o = new THREE.Bone(); o.name = n; o.position.set(x, y, 0); o.quaternion.setFromEuler(new THREE.Euler(0.1, 0.2 * x, 0.05)); parent.add(o); return (b[n] = o); };
+  const pelvis = bone('pelvis', root, 1), s2 = bone('spine_02', bone('spine_01', pelvis, 0.1), 0.15), s3 = bone('spine_03', s2, 0.15);
+  bone('Head', bone('neck_01', s3, 0.2), 0.1);
+  bone('hand_l', bone('lowerarm_l', bone('upperarm_l', s3, 0.15, 0.2), 0.3), 0.25);
+  bone('upperarm_r', s3, 0.15, -0.2);
+  root.rotation.y = 0.8; root.position.set(3, 1, 2);
+  root.updateMatrixWorld(true);
+  return { root, b };
+}
+const angle = (a, b) => 2 * Math.acos(Math.min(1, Math.abs(a.dot(b))));
+
+test('on the page he is not frozen: he breathes and looks about over the pose the menu opened on, gently, and is put back as he was', () => {
+  const { root, b } = skeleton();
+  const rest = Object.fromEntries(Object.entries(b).map(([n, o]) => [n, o.quaternion.clone()]));
+  const idle = new PageIdle();
+  const seen = { Head: [], spine_03: [], upperarm_l: [] };
+  for (let t = 0; t < 12; t += 0.25) {
+    idle.pose(b, root, t);
+    for (const n of Object.keys(seen)) seen[n].push(b[n].quaternion.clone());
+    for (const [n, o] of Object.entries(b)) assert.ok(angle(o.quaternion, rest[n]) < 0.2, `${n} only a little off the pose under it at ${t}`);
+    for (const n of ['pelvis', 'spine_01', 'lowerarm_l', 'hand_l']) assert.ok(o_eq(b[n].quaternion, rest[n]), `${n} left alone (his feet planted)`);
+  }
+  for (const [n, qs] of Object.entries(seen)) assert.ok(Math.max(...qs.map((q) => angle(q, rest[n]))) > 0.01, `${n} moves`);
+  idle.put();
+  for (const [n, o] of Object.entries(b)) assert.ok(o_eq(o.quaternion, rest[n]), `${n} as he was once the page is left`);
+  // the game ran between two visits (he was posed again): the pose under it taken again, not the old one put back
+  b.Head.quaternion.setFromEuler(new THREE.Euler(0, 0.7, 0));
+  const turned = b.Head.quaternion.clone();
+  idle.pose(b, root, 3); idle.pose(b, root, 3.5);
+  assert.ok(angle(b.Head.quaternion, turned) < 0.2, 'over the new pose');
+  idle.put();
+  assert.ok(o_eq(b.Head.quaternion, turned));
+  assert.ok(PAGE_IDLE.look < 0.2 && PAGE_IDLE.breath < 0.05, 'gentle');
+});
+function o_eq(a, b) { return angle(a, b) < 1e-6; }
+
+test('the page\'s host moves him each drawn frame and puts him back as he was when the page is left (web and engines: tick, leave)', () => {
+  const { w, player } = host({ v2: false });
+  const { root, b } = skeleton();
+  player.object.add(root); player.humanoid = { b };
+  const head = b.Head.quaternion.clone();
+  w.preview(null);
+  let most = 0;
+  for (let i = 0; i < 40; i++) { w.tick(0.1); most = Math.max(most, angle(b.Head.quaternion, head)); }
+  assert.ok(most > 0.01, 'not frozen');
+  w.leave();
+  assert.ok(o_eq(b.Head.quaternion, head), 'as he was');
+  // (the tick that poses him runs before each picture of him: engine/game.js wardrobeCapture, main.js wardrobeFrame)
+  assert.match(src('engine/game.js'), /wardrobe\.tick\(realDt\); wardrobe\.place\(wardrobeAt\);/);
+  const main = src('src/main.js'), frame = main.slice(main.indexOf('function wardrobeFrame()'), main.indexOf('function wardrobeFrame()') + 1200);
+  assert.ok(frame.indexOf('wardrobe.tick(dt)') > 0 && frame.indexOf('wardrobe.tick(dt)') < frame.indexOf('captureView('), 'the web: posed before the picture');
+});
+
+test('Unity: every fight-surface material (a foe, a crystal, the blade, the shield) is bound a buffer for the variant\'s _SkinData, so Metal draws it (issue #571: the Wardrobe\'s blade drew nothing)', () => {
+  const loader = src('unity/Hiraeth/Assets/Hiraeth/Runtime/WorldLoader.cs');
+  const sites = [...loader.matchAll(/mat\.EnableKeyword\("HIRAETH_FIGHT"\);/g)];
+  assert.ok(sites.length >= 3, 'the foes\', the crystal\'s and the blade\'s');
+  for (const m of sites) {
+    const block = loader.slice(loader.lastIndexOf('{', m.index), m.index);
+    assert.match(block, /SetSkinData\(mat, /, `a buffer bound before: ${block.slice(0, 80)}`);
+  }
+  assert.match(loader, /_BladeOn", m\.I\("blade"\)\);\s*SetSkinData\(mat, NoSkinData\);/);
+  // (the variant declares it: FoeSurface.hlsl's, which BladeSurface.hlsl's shares)
+  assert.match(src('unity/Hiraeth/Assets/Hiraeth/Shaders/FoeSurface.hlsl'), /StructuredBuffer<float4> _SkinData;/);
 });

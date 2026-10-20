@@ -678,7 +678,7 @@ function makePlan(args) {
   if (args.wardrobe) {
     // (-wardrobe: the game menu's Wardrobe, issue #571: opened, photographed, the cursor down through the blade's colours won
     // (the traveller's preview following it), one worn with A / ×, then closed: unity-wardrobe-<name>.png beside the web's)
-    // (a while on the page before the first picture: the editor may still be compiling a shader variant the page draws)
+    // (the colours won as the web's pictures have them: -set-flags kit.colours.ember,kit.colours.slate,kit.colours.reed,kit.colours.neon)
     const shot = (name) => (args.out ? [{ kind: 'shot', file: `${args.out}/unity-wardrobe-${name}.png` }] : []);
     steps.push({ kind: 'wait', frames: 120, secs: 4 }, { kind: 'wardrobe' }, { kind: 'wait', frames: 120, secs: 4 }, ...shot('open'));
     for (let i = 1; i <= 3; i++) steps.push({ kind: 'menu', x: 0, y: 1 }, { kind: 'wait', frames: 40, secs: 1.5 }, ...shot(`blade-${i}`));
@@ -1179,6 +1179,8 @@ function playFrame(dt) {
   else if (step.kind === 'wardrobe') {
     const M = S.menus;
     if (!step.log) M.show('game', 'wardrobe');
+    // (-wardrobe-yaw: him held there, as the web's pictures of the page pin him, so the two can be laid side by side)
+    if (!step.log && Number.isFinite(S.args?.wardrobeYaw)) { M.turntable.yaw = S.args.wardrobeYaw; M.turntable.idle = -Infinity; }
     const d = game.wardrobe?.data?.();
     console.log(`[unity] the Wardrobe: ${M.open ? M.state.panel.id : 'closed'}, v2 ${!!d?.v2}, sword ${!!d?.sword}, colours ${(d?.blades ?? []).map((b) => `${b.id}${b.worn ? '*' : ''}`).join(' ')}, beside him ${!!game.wardrobe?.sword?.parent}`);
     next();
