@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.87 — 2026-10-19
 
+- In the Unity version, the graphics chip has fewer kinds of drawing to prepare before a world appears: surfaces seen from both sides no longer need their own, and every model is laid out the same way, so a world asks for about half as many of its surfaces’ (the Desert 17 instead of 33), and the Xbox prepares 55 at the start instead of 61. The worlds look the same.
 - The chime pirates’ flights now take you through places of their own. The Rose Rings: a rose giant ringed with rubble. The Iron Moon: you skim a heavy moon whose pull drags your ship down. The Frost Moon: ice spires rise from its face into your way. The Storm Giant: over its clouds, pirates hide in the storms until they are close, only their lamps showing, with lightning in the clouds. Each flight opens as your ship drops out of the warp, with the place’s name, and each place has its own light, sky and sound; played from the Arcade, Fly on takes you to the next one.
 - In the Unity version on the Retroid, big buildings, roots and carvings far away are drawn with fewer triangles where the difference is smaller than half a pixel, so Lorn’s start now runs at 60 frames a second too, with the picture unchanged: 23 of the 25 measured views hold 60.
 - When a conversation ends, however it ends, the traveller lets go of his talking pose at once, instead of sometimes staying stuck in it, leaning back with a hand on his hip, after you walk off.

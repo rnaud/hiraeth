@@ -146,6 +146,7 @@ Shader "Hiraeth/Surface"
     _GrassLod ("GrassLod", Vector) = (0, 0, 0, 0)
     _GrassLook ("GrassLook", Vector) = (0, 0, 0, 0)
     _Cull ("Cull", Float) = 2
+    _Sides ("One cull mode (issue #536, BridgeSided): 0 as the GPU says, 1 back faces only, 2 both faces, 3 both, its normals against the winding", Float) = 0
     _MZTest ("ZTest (4: LEqual; 8: Always, the bridge's -ztest-always test)", Float) = 4
     _ZWrite ("ZWrite (0: the water, drawn last over the scene's depth)", Float) = 1
   }
@@ -190,6 +191,7 @@ Shader "Hiraeth/Surface"
     float4 _Lining, _BoxA, _BoxB, _BoxMark, _BoxLight;
     float4 _Shade;         // materials.js uShade: lift, hue (-1 the world's; 2 + a flat print), hatch, strata strokes
     float _Bind;           // people (Figures.cs): the rest pose in uv3 / uv4, so their drawing rides on the body
+    float _Sides;          // one cull mode (issue #536): the face a two-sided or back-sided material shows, told here (BridgeSided)
     float _Cracks;         // strata rock: dense cracks and strokes down its faces (materials.js uCracks; 0: the sparse fissures only)
     // (Figure.hlsl's: the people's outfit, face, mood, limbs, the flask's fluid, a makers' box dissolving)
     float4 _Outfit, _Skin, _Glove, _Trim, _Face, _Mood, _Mood2, _FaceKit, _FaceKit2, _EyeC, _EyeR, _EyeLook;
@@ -462,6 +464,11 @@ Shader "Hiraeth/Surface"
       // pixel of the ground, the people and the props the registers of the walls' heaviest paths, and the GPU its waves
       // in flight: 0.7-1.4 ms of the Retroid's GPU a frame (issue #262). The same picture. Given on Android (-plain elsewhere).
       #pragma multi_compile_local_fragment _ HIRAETH_PLAIN
+      // (the primitive's number in the fragment stage, for a two-sided material's face: everywhere but Android and OpenGL ES,
+      // issue #536; BridgeSided.ById says the same on the C# side)
+      #if !defined(SHADER_API_MOBILE) && !defined(SHADER_API_GLES3) && !defined(SHADER_API_GLES)
+        #define SIDES_BY_ID 1
+      #endif
       #if defined(HIRAETH_PLAIN) || defined(HIRAETH_SKIN)
         #define WALLK false
       #else
@@ -1146,6 +1153,23 @@ Shader "Hiraeth/Surface"
 
       GBufferOut frag(Varyings i, bool frontFace : SV_IsFrontFace)
       {
+        // (one cull mode, issue #536: a material three draws from behind (BackSide) or from both sides (DoubleSide) is drawn
+        // culling back faces as every other, on a mesh whose triangles come again reversed (BridgeSided), so its pipelines are
+        // the same; the face the GPU would have called front is told here: never for one shown from behind. For both sides,
+        // each triangle is followed by itself reversed, so the one drawn is the original where its primitive's number is even:
+        // the GPU's own answer (fragEntry, SIDES_BY_ID). Where the fragment stage has no primitive number (Android, whose
+        // Mali GPUs lack it, and OpenGL ES), the vertex normal on the eye's side of the triangle's plane, which is the GPU's
+        // answer where the normals agree with the winding (BridgeSided gives that only to such meshes; 3: every one against it))
+        if (_Sides > 0.5)
+        {
+          #if !defined(SIDES_BY_ID)
+            float3 sRel = i.worldPos - toThree(_WorldSpaceCameraPos);
+            float3 sF = cross(ddx(sRel), ddy(sRel));
+            bool sEye = dot(sF, i.normal) * dot(sF, sRel) <= 0.0;
+            frontFace = _Sides < 2.5 ? sEye : !sEye;
+          #endif
+          if (_Sides < 1.5) frontFace = false;
+        }
         // (a lighter line from afar: the vertex stage's flag, +4 on the tint's red; materials.js LINE_FAR)
         float lineStepHere = _LineStep;
         UNITY_BRANCH if (_LineFar.w > 0.5 && i.instColor.r > 3.0) { i.instColor.r -= 4.0; lineStepHere = _LineFar.x; }
@@ -1824,7 +1848,12 @@ Shader "Hiraeth/Surface"
         // (the traveller's own surfaces while the lens is in his body, materials.js uHeroCut × uCutMe: past the clip volume, so
         // none of him is drawn; his shadow is the ShadowCaster's, kept)
         Varyings vertEntry(Attributes v) { Varyings o = vert(v); if (_HeroCut * _CutMe.x > 0.5) o.positionCS = float4(2, 2, 2, 1); return o; }
-        GBufferOut fragEntry(Varyings i, bool frontFace : SV_IsFrontFace) { return frag(i, frontFace); }
+        #if defined(SIDES_BY_ID)
+          // (a two-sided material's mesh, BridgeSided: each triangle then itself reversed, so an even primitive is the original)
+          GBufferOut fragEntry(Varyings i, uint primId : SV_PrimitiveID, bool frontFace : SV_IsFrontFace) { if (_Sides > 1.5) frontFace = (primId & 1u) == 0u; return frag(i, frontFace); }
+        #else
+          GBufferOut fragEntry(Varyings i, bool frontFace : SV_IsFrontFace) { return frag(i, frontFace); }
+        #endif
       #endif
       ENDHLSL
     }

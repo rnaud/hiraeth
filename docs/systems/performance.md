@@ -6238,3 +6238,89 @@ leftovers; its `unity_builtin_extra` is 5.2 MB, so about 4 MB of it goes with th
 Tests: `tests/unity-size.test.js` (none of our shaders always included, every shader the run-time code finds by name
 preloaded, the Linux archive packed without the leftovers, the size tool's areas and rules). Raw: the session's
 scratchpad, `size-500/`.
+
+## One cull mode and one layout for the Surface pipelines (issue #536, 2026-10-20)
+
+Round four of the Xbox's load (issue #443) left the world's first frame waiting on its pipelines, ~0.7 s each on the
+console's driver, one after another, and found that 20 of the Desert's 37 come from the Surface shader's vertex layouts
+times its cull mode, which Direct3D 12 bakes into a pipeline. The author's call: merge them, keep the look.
+
+**One cull mode (BridgeSided).** three's materials come in three sides, so a lean variant drawn on materials of more
+than one side was made two or three times. Now every renderer's Surface material culls back faces:
+- a BackSide one is drawn as a copy culling back faces on its submesh's triangles reversed: the faces drawn are the same;
+- a DoubleSide one is drawn as a copy on its triangles twice, each followed by itself reversed: the same vertices (no
+  more vertex work: the copy reuses the three indices), the order of the pixels kept, and the one facing the eye drawn;
+- the shader is told the face the GPU would have called front (`_Sides`, a material value, no keyword): never for a
+  BackSide copy; for a DoubleSide one, by the primitive's number (`SV_PrimitiveID`: an even one is the original, the
+  GPU's own answer for every mesh). Android has no such number on its Mali GPUs (no geometry shaders), so there the
+  vertex normal's side of the triangle's plane tells it, which is the GPU's answer where the normals agree with the
+  winding: only meshes whose every triangle's three normals do (or all disagree) are turned there, the rest keep their
+  material (`SIDES_BY_ID`, `BridgeSided.ById`).
+- No discard: a discard, even one never taken, costs every lean surface the early depth test (issue #263). The shadow
+  maps draw both faces whatever the side, as before (a big still mesh casts from its untouched pieces). The GPU
+  instances, the crowds, the grass, the footprints and the water keep their own: each is a variant of its own drawn
+  one way (the instances' two-sided sets are the one doubled state left, below).
+- The copies' meshes (`Instantiate`, the triangles set for their modes) sit among the geometry's variants, so the
+  capes, the overshirt and op 8 move them too, and take its shape keys and bind poses. A material's copy is among its
+  copies (live colours, glow, vectors, pictures reach it) and takes the arrays a copy leaves behind (`_Palette`,
+  `_Limbs`, `_FluidTones`: without that the desert's campfires went black).
+- A first try told the face by the normal everywhere: the traveller's trousers (3 of 3 168 triangles), his overshirt and
+  the people's capes have triangles whose normals cross them, and kept 3-4 doubled states a world. The primitive's
+  number turns them all.
+
+**One layout.** The uniform layout (every mesh with normals, a uv and colours: the Xbox's since round two) is on
+everywhere but the Deck's Linux player, whose shipped list holds the layouts as traced: a layout it lacks would be a
+first use mid-play there (round 14) until the Deck traces it again with `-uniform-layout`. It costs 33-52 MB of vertices
+a world (the colours are four floats), on the CPU and again on the GPU, as on the Xbox.
+
+**The shipped lists.** `scripts/bench/pso-one-cull.mjs` takes each Surface G-buffer state that BridgeSided no longer
+draws (culling none or the front faces, not the instances', crowds', grass', footprints', flora's or water's) to the
+same state culling back faces, and drops the doubles: the Xbox's first views' list **61 → 55 states** (Surface 39 →
+33), the Deck's **168 → 142** (Surface 116 → 90; 3 states had no such state to take and stay). Android's list (not
+warmed by default) is left: a mesh whose normals cross its triangles keeps its cull mode there. `tests/unity-one-cull.test.js`
+checks the lists hold no such state, and the shader, BridgeSided and the renderer's paths.
+
+**Measured on the Mac** (the editor's batch, muted, the four worlds' six views each: `scripts/unity-compare/unity.mjs`
+with `-metrics -variants`; `-lean` as the devices draw). `-variants` now also logs the Surface pipelines the scene asks
+for (`BridgeRenderer.Pipelines`: the G-buffer's variant, layout, cull, depth, offset and blend over every renderer,
+instance set, crowd and grass; the shadow pass's keywords and layout; who draws the states not culling back faces), an
+estimate that holds on any platform. And Metal's own pipeline list, traced in the editor (`-pso-trace`):
+
+| world | Surface G-buffer states, estimated: before / uniform layout alone (the Xbox before) / after | the shadow pass's: before / after | Metal's traced list, all shaders (Surface): before / after |
+|---|---|---|---|
+| Desert | 33 / 21 / **17** | 13 / 4 | 57 (42) / **34 (19)** |
+| City-Shaft | 30 / 20 / **16** | 12 / 5 | 55 (41) / **35 (21)** |
+| Signal Market | 27 / 19 / **17** | 14 / 7 | 55 (43) / **37 (25)** |
+| Floating city | 27 / 19 / **15** | 12 / 5 | 51 (39) / **31 (19)** |
+
+- Of the after's, one state a world still differs from another by its cull mode alone: the GPU instances' two-sided
+  sets (HIRAETH_INSTMAT); the crowd's and the water's are variants drawn one way.
+- Metal sets the cull mode on the encoder, not in the pipeline: its trace counts the layouts' share only (the uniform
+  layout alone gives the same 34 / 35 / 37 / 31). Direct3D 12 and Vulkan bake it in, so on the Xbox and the Deck the
+  cull mode's share is the estimate's (Desert 21 → 17) and the lists' (61 → 55).
+- What it costs: 55-190 meshes turned a world, 61-141 k triangles twice (their indices once more; one face of each pair
+  is culled before the pixels), 72-160 k vertices in the copies (~3.5-8 MB with the uniform layout's 48 bytes; the
+  original stays for the shadow pieces and any node drawing it otherwise). The shadow maps draw the turned DoubleSide
+  triangles twice.
+
+**Pictures** (the same 24 views, Unity at 1280 × 720 High against the web's, `scripts/unity-compare/pair.mjs`; the raw
+pairs in the session's scratchpad, `surface-536/report-before/`, `report-after/`, and Unity before against after with
+heat maps, `diff-before-after/` against two runs of the after, `diff-noise/`): web against Unity scored 5.21 before and
+5.28 after (higher is further apart; per view within ±1.2). Unity before against after changed 0.2-5.4 % of the pixels,
+two runs of the after 0.1-4.9 %: the differences are the people, the vehicles, the smoke and the lamps moving between
+runs, and nothing else turned up in the heat maps.
+
+**Not measured** (none of the devices could be reached: the Mac was on another network than the Xbox and the Deck, and
+the Retroid was locked): the Xbox's first frame (41.1 s cold at the Desert, round four; the 4-6 pipelines fewer the
+estimate and the list give, at ~0.7 s each, would be ~3-4 s), the Deck's warm-up and hitches, the Retroid's frames with the uniform layout and the turned
+meshes, and the lists traced again (Xbox: `-mute -level <world> -idle 30 -pso-trace` per world, `psolist.mjs union`;
+Deck: `scripts/bench/deck-pso-trace.mjs` with `-uniform-layout`, then the uniform layout on for the Deck; Android:
+`scripts/bench/android-pso-trace.mjs`).
+
+**The next lever, seen in the lists.** The Xbox's G-buffer pass is traced in two render passes (two load actions of the
+same four targets), each a state of its own: 30 of its Surface states without the cull mode, 22 without the pass too.
+Direct3D 12's pipelines hold no load actions, so the driver may make one for both; if the console's first frame does
+not fall with this round, that pairing is the next place to look.
+
+Tests: `tests/unity-one-cull.test.js`. Raw: the session's scratchpad, `surface-536/` (`chain*.txt` the census lines,
+`trace-*.graphicsstate` Metal's lists, `psoinfo.mjs` and `collapse.mjs` take a list apart).

@@ -1311,6 +1311,8 @@ const SRC404B = 'the bridge’s own bench (-views -bench 6 -bundle none, unity-b
 /** (v1.87, issue #555: the chime pirates' places) */
 const PLACES555 = 'Issue #555: the web game in muted headless Chrome (ANGLE Metal, High, 1280 × 720) on this branch’s own Vite (port 6555), ?game=pirates&stage=<level>&to=edena, the run flown ahead by the game’s pilot to the same second for both; before: the branch’s base (0a781a8e4, port 6557); 19 October; cwebp -q 72';
 const ARRIVE555 = 'Issue #555: the web game in muted headless Chrome (ANGLE Metal, High, 1280 × 720) on this branch’s own Vite (port 6555), ?game=pirates&stage=ice&to=edena, 0.8 s after the page opened; 19 October; cwebp -q 72';
+const MAC536 = 'The Unity editor’s batch run on this Mac (M4 Pro, Metal), muted, the four worlds’ six views each (scripts/unity-compare/unity.mjs -lean -metrics -variants, -pso-trace), the same build with -no-one-cull -no-uniform-layout (before) and as shipped (after); 20 October';
+const SRC536 = 'BridgeRenderer.Pipelines (the G-buffer’s states the scene asks for: variant, layout, cull, depth), Metal’s list traced in the editor, the shipped lists rewritten by scripts/bench/pso-one-cull.mjs; docs/systems/performance.md, “One cull mode and one layout for the Surface pipelines”';
 export const CHANGELOG_MEDIA = {
   '1.87': [
     { match: 'In the Unity version, Anselm’s shop opens over a darkened hold', tags: ['devices'], shots: [
@@ -1404,6 +1406,21 @@ export const CHANGELOG_MEDIA = {
       { name: 'pirates-storm-555', title: 'The Storm Giant', size: [1280, 720], caption: 'Fifteen seconds in: before, old hulks in open space; after, over the giant’s cream clouds in a slate sky, lilac storm banks either side, the hulks sinking in it. In a storm, pirates further than 70 m are drawn in the murk, only their lamps showing.', from: PLACES555 },
       { name: 'pirates-arrive-555', only: 'after', title: 'Arriving', size: [1280, 720], caption: 'The flight’s first second: the ship drops out of the warp, the stars still streaking, the place’s name and its line under “On the way to …”.', from: ARRIVE555 },
     ], see: 'Fly to a world you have not visited, or play Chime pirates from the Arcade and choose Fly on after each flight: each place has its own sky, ground and sound. On the Iron Moon let go of the stick to feel its pull; on the Frost Moon fly low to meet the spires; on the Storm Giant watch the lamps in the storm.' },
+    { match: 'In the Unity version, the graphics chip has fewer kinds of drawing to prepare', tags: ['perf', 'devices'], numbers: [
+      { title: 'The surfaces’ drawing setups a world asks for (estimated, as the Xbox, the Deck and the Retroid draw them)', unit: 'setups', better: 'lower', device: MAC536, rows: [
+        { where: 'the Desert', before: 33, after: 17 },
+        { where: 'the City-Shaft', before: 30, after: 16 },
+        { where: 'the Signal Market', before: 27, after: 17 },
+        { where: 'the Floating city', before: 27, after: 15 },
+      ], source: SRC536 },
+      { title: 'The lists prepared at the start', unit: 'setups', better: 'lower', device: 'the shipped lists (BridgePso)', rows: [
+        { where: 'the Xbox (the Desert’s and the City-Shaft’s first views)', before: 61, after: 55 },
+        { where: 'the Steam Deck (every world)', before: 168, after: 142 },
+      ], source: SRC536 },
+      { title: 'The Xbox’s first frame, the Desert, cold', unit: 's', better: 'lower', device: 'Xbox Series X, rnaud.HiraethUnity, Direct3D 12', rows: [
+        { where: 'the Desert', before: 41.1, after: null },
+      ], source: 'before: docs/systems/performance.md, “The Xbox’s load, round four”; after: not measured yet (the console could not be reached)' },
+    ], see: 'In the Unity version, load a world: it looks the same; on the Xbox and the Steam Deck it should come up a few seconds sooner the first time.' },
   ],
   '1.86': [
     { match: 'In the Unity version, the Controls page shows your keys and buttons on caps', tags: ['devices'], shots: [

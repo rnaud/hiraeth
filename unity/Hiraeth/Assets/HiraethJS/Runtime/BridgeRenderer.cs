@@ -15,7 +15,8 @@ namespace Hiraeth.Bridge
     /// </summary>
     public class BridgeRenderer : MonoBehaviour
     {
-        class MeshData { public Mesh mesh; public Vector3[] pos, nrm; public Color[] col; public Vector2[] uv; public Vector3[] bind; public List<Vector4> vmP, vmN; public int[][] subs; public int[] subMat; public int bones = -1; public int keys; public bool unchunked; public Mesh shape; public List<Node> batchedBy; }   // (shape: the first mesh made from the same bytes: instance groups)
+        class MeshData { public Mesh mesh; public Vector3[] pos, nrm; public Color[] col; public Vector2[] uv; public Vector3[] bind; public List<Vector4> vmP, vmN; public int[][] subs; public int[] subMat; public int bones = -1; public int keys; public bool unchunked; public Mesh shape; public List<Node> batchedBy;   // (shape: the first mesh made from the same bytes: instance groups)
+            public Dictionary<string, MeshData> sided; public MeshData from; public int[] agree; }   // (its copies for one cull mode by their submeshes' modes, BridgeSided; the one a copy is of; each submesh's normals against its winding)
         class Node
         {
             public GameObject go; public string kind, mesh; public int[] mids; public MeshFilter mf; public Renderer r;
@@ -28,6 +29,7 @@ namespace Hiraeth.Bridge
             public InstMats im; public Matrix4x4[] raw = new Matrix4x4[0]; public Color[] rawCol = new Color[0]; public int rawN; public bool imDirty;   // (instanced: on the GPU, the port's HIRAETH_INSTMAT)
             public Vector4[] breathe;   // (the Buried Machine's moving parts: each instance's aBreathe, src/breathe-shader.js; null: none)
             public List<GameObject> chunks; public MeshData chunkSrc;   // (a big still mesh's pieces for the shadow maps: BridgeShadowChunks)
+            public Material[] baseMats; public int[] sides; public Mesh sidedMesh;   // (one cull mode: its materials as made, each submesh's mode, the mesh drawn: BridgeSided)
         }
 
         public Camera cam;
@@ -108,6 +110,7 @@ namespace Hiraeth.Bridge
             int o = 0, nk = (int)u[o++], nv = (int)u[o++];
             if (nv != md.mesh.vertexCount) { Debug.LogWarning($"Hiraeth bridge: keys for {key}: {nv} vertices, the mesh has {md.mesh.vertexCount}"); return; }
             md.mesh.ClearBlendShapes();
+            if (md.sided != null) foreach (var sd in md.sided.Values) if (sd.mesh) sd.mesh.ClearBlendShapes();   // (and its copies for one cull mode: BridgeSided)
             var delta = new Vector3[nv];
             for (int k = 0; k < nk; k++)
             {
@@ -115,8 +118,10 @@ namespace Hiraeth.Bridge
                 int n = (int)u[o++];
                 for (int i = 0; i < n; i++, o += 4) delta[u[o]] = new Vector3(f[o + 1], f[o + 2], f[o + 3]);
                 md.mesh.AddBlendShapeFrame("key" + k, 1f, delta, null, null);
+                if (md.sided != null) foreach (var sd in md.sided.Values) if (sd.mesh) sd.mesh.AddBlendShapeFrame("key" + k, 1f, delta, null, null);
             }
             md.keys = nk;
+            if (md.sided != null) foreach (var sd in md.sided.Values) sd.keys = nk;
         }
 
         /// <summary>The cloths' jobs done, their garments into the meshes (before the frame is drawn).</summary>
@@ -219,6 +224,51 @@ namespace Hiraeth.Bridge
             var top = System.Linq.Enumerable.Take(System.Linq.Enumerable.OrderByDescending(sets, kv => kv.Value), 6);
             return (uniformLayout ? $"(uniform layouts: +{uniformBytes / 1048576.0:0.0} MB of vertices) " : "") + $"{n} renderer materials, {sets.Count} shader variants (shader and keywords), {layouts.Count} vertex layouts, {states.Count} material states, {pairs.Count} (layout, state) pairs; the commonest variants: " + string.Join("; ", System.Linq.Enumerable.Select(top, kv => $"{kv.Value}× {kv.Key}"))
                    + (lean ? "; the lean variants, and the full one's reasons: " + string.Join(", ", System.Linq.Enumerable.Select(leanWhy, kv => $"{kv.Key} {kv.Value}")) : "");
+        }
+        /// <summary>
+        /// The Surface shader's pipelines the scene asks for (-variants, issue #536), estimated from what it draws: the G-buffer
+        /// pass's (variant, vertex layout, cull, depth, offset, blend) and the shadow pass's (its keywords, layout), over the
+        /// renderers, the GPU instances and their groups, the crowds, the grass and the footprints; and how many of the G-buffer's
+        /// differ only by their cull mode. The traced lists (BridgePso) are the measure; this is the same count on any platform
+        /// and in the editor. Then the triangles each cull mode draws, and how many of the two-sided ones BridgeSided turned.
+        /// </summary>
+        public string Pipelines()
+        {
+            var g = new HashSet<string>(); var noCull = new HashSet<string>(); var sh = new HashSet<string>(); var lay = new HashSet<string>();
+            var byCull = new long[3];
+            var who = new Dictionary<string, string>();
+            static string Layout(Mesh m, bool skin) => m ? string.Join(",", System.Linq.Enumerable.Select(m.GetVertexAttributes(), a => $"{a.attribute}{a.format}x{a.dimension}s{a.stream}")) + (skin ? "+skin" : "") : "none";
+            void Add(Mesh mesh, bool skin, Material mt, bool casts, int sub)
+            {
+                if (!mt || mt.shader == null || mt.shader.name != "Hiraeth/Surface" || !mesh) return;
+                var kw = mt.shaderKeywords; System.Array.Sort(kw);
+                string l = Layout(mesh, skin), k = string.Join(" ", kw);
+                string st = $"z{F(mt, "_ZWrite")}{F(mt, "_MZTest")} o{F(mt, "_OffsetFactor")}/{F(mt, "_OffsetUnits")} q{(mt.renderQueue > 2500 ? "t" : "o")}";
+                int c = (int)F(mt, "_Cull");
+                var gk = $"{k}|{l}|c{c}|{st}";
+                if (g.Add(gk) || (who.TryGetValue(gk, out var wl) && wl.Length < 160)) who[gk] = (who.TryGetValue(gk, out var w0) ? w0 + ", " : "") + mesh.name + "/" + mt.name;
+                noCull.Add($"{k}|{l}|{st}"); lay.Add(l);
+                if (casts) sh.Add(string.Join(" ", System.Array.FindAll(kw, x => x is "HIRAETH_CROWD" or "HIRAETH_FLORA" or "HIRAETH_INSTMAT")) + "|" + l);
+                if (sub >= 0 && sub < mesh.subMeshCount && c >= 0 && c < 3) byCull[c] += mesh.GetIndexCount(sub) / 3;
+            }
+            foreach (var n in nodes.Values)
+            {
+                if (!n.go) continue;
+                if (n.im != null) { Add(n.im.mesh, false, n.im.mat, n.shadow, 0); continue; }
+                if (n.puffs != null) { Add(n.puffs.mesh, false, n.puffs.mat, false, 0); continue; }
+                if (n.r == null || n.r.forceRenderingOff) continue;
+                var mesh = n.mf ? n.mf.sharedMesh : n.smr ? n.smr.sharedMesh : null;
+                var mats = n.r.sharedMaterials;
+                for (int s = 0; s < mats.Length; s++) Add(mesh, n.smr, mats[s], n.r.shadowCastingMode != ShadowCastingMode.Off, s);
+            }
+            foreach (var gr in instGroups.Values) if (gr.im != null) Add(gr.im.mesh, false, gr.im.mat, gr.shadow, 0);
+            foreach (var c in crowds.Values) Add(c.mesh, false, c.mat, false, 0);
+            foreach (var gl in grass.Values) Add(gl.mesh, false, gl.mat, false, 0);
+            // (the states not culling back faces, and who draws them)
+            var notBack = System.Linq.Enumerable.ToList(System.Linq.Enumerable.Where(g, x => !x.Contains("|c2|")));
+            return $"Surface pipelines (estimate): G-buffer {g.Count} ({g.Count - noCull.Count} only by the cull mode), {lay.Count} vertex layouts; shadow {sh.Count}; "
+                + $"not culling back faces: {string.Join("; ", System.Linq.Enumerable.Select(notBack, x => x + " by " + (who.TryGetValue(x, out var wn) ? wn : "?")))}; "
+                + $"triangles drawn culling back faces {byCull[2] / 1000}k, front {byCull[1] / 1000}k, none {byCull[0] / 1000}k; " + BridgeSided.Said();
         }
         static readonly List<string> madeNames = new();
         static void Count(string k, int by = 1)
@@ -357,12 +407,13 @@ namespace Hiraeth.Bridge
             d.mesh = mesh;
             d.shape = Shape(b, count, mesh);
             if (meshes.TryGetValue(key, out var old) && old.mesh) Destroy(old.mesh);
+            if (old?.sided != null) foreach (var sd in old.sided.Values) if (sd.mesh) Destroy(sd.mesh);
             meshes[key] = d;
             // (the variants of one geometry, by its id: cloth moves them all at once, op 8)
             if (int.TryParse(key.Split(':')[0], out int gid))
             {
                 if (!byGeometry.TryGetValue(gid, out var list)) byGeometry[gid] = list = new List<MeshData>();
-                list.RemoveAll(x => x.mesh == null || x == old);
+                list.RemoveAll(x => x.mesh == null || x == old || (old != null && x.from == old));
                 list.Add(d);
             }
             msGeometry += (Time.realtimeSinceStartupAsDouble - t0) * 1000;
@@ -801,7 +852,7 @@ namespace Hiraeth.Bridge
             else if (md != null && n.kind == "skinned" && d.I("bones") > 0)
             {
                 int nb = d.I("bones");
-                if (md.bones != nb) { var bp = new Matrix4x4[nb]; for (int i = 0; i < nb; i++) bp[i] = Matrix4x4.identity; md.mesh.bindposes = bp; md.bones = nb; }
+                if (md.bones != nb) { var bp = new Matrix4x4[nb]; for (int i = 0; i < nb; i++) bp[i] = Matrix4x4.identity; Bindposes(md, bp); }
                 n.bones = new Transform[nb];
                 for (int i = 0; i < nb; i++) { var b = new GameObject("b" + i).transform; b.SetParent(n.go.transform, false); n.bones[i] = b; }
                 n.smr = n.go.AddComponent<SkinnedMeshRenderer>();
@@ -820,13 +871,15 @@ namespace Hiraeth.Bridge
             {
                 var mats = new Material[md.subMat.Length];
                 for (int s = 0; s < mats.Length; s++) materials.TryGetValue(n.mids.Length > 0 ? n.mids[Mathf.Min(md.subMat[s], n.mids.Length - 1)] : 0, out mats[s]);
-                n.r.sharedMaterials = mats;
+                // (each material culling back faces, its mesh's triangles for that: BridgeSided, issue #536)
+                ApplySides(n, md, mats);
+                DrawSided(n, md);
                 n.r.shadowCastingMode = n.shadow ? ShadowCastingMode.TwoSided : ShadowCastingMode.Off;   // (both faces, as the web's shadow pass draws every caster: main.js shadowOverride)
                 // (and in the rendering layer the shadow maps' renderer lists draw: HiraethShadows.UseRendererLists)
                 n.r.renderingLayerMask = n.shadow ? n.r.renderingLayerMask | HiraethShadows.CasterLayer : n.r.renderingLayerMask & ~HiraethShadows.CasterLayer;
                 Occluder(n, md);
                 Chunk(n, md);
-                if (n.r is MeshRenderer && n.mf && n.mf.sharedMesh) BridgePrewarm.Note(n.mf.sharedMesh, mats, mt => specs.TryGetValue(mt, out var j) ? j : null);
+                if (n.r is MeshRenderer && n.mf && n.mf.sharedMesh) BridgePrewarm.Note(n.mf.sharedMesh, n.r.sharedMaterials, mt => specs.TryGetValue(mt, out var j) ? j : null);
             }
             nodes[id] = n;
         }
@@ -888,13 +941,98 @@ namespace Hiraeth.Bridge
         /// <summary>The mesh with this node's bind matrix as every bone's bind pose (one per mesh and bind, shared).</summary>
         Mesh Bound(string key, MeshData md, Node n)
         {
-            var bkey = key + "|" + n.bindKey;
+            var bkey = key + "|" + n.bindKey + (n.sides != null ? "|" + BridgeSided.Key(n.sides) : "");
             if (bound.TryGetValue(bkey, out var bm) && bm) return bm;
             bm = Instantiate(md.mesh); bm.name = md.mesh.name + " (bound)";
+            if (n.sides != null) BridgeSided.Turn(bm, md.subs, n.sides);   // (its triangles for one cull mode: BridgeSided)
             var bp = new Matrix4x4[n.nb]; for (int i = 0; i < n.nb; i++) bp[i] = n.bind;
             bm.bindposes = bp;
             bound[bkey] = bm;
             return bm;
+        }
+
+        /// <summary>
+        /// The node's materials for one cull mode (BridgeSided, issue #536): a BackSide or DoubleSide Surface material drawn as a
+        /// copy culling back faces (the same variant and state as every other), its submesh's triangles turned for it in the mesh
+        /// drawn (sidedMesh, set by DrawSided or SetMesh); a DoubleSide one only where the mesh's normals agree with its winding,
+        /// else as it was.
+        /// </summary>
+        void ApplySides(Node n, MeshData md, Material[] mats)
+        {
+            n.baseMats = mats; n.sides = null; n.sidedMesh = null;
+            Material[] drawn = null;
+            if (BridgeSided.On && md != null && md.mesh && md.subs != null)
+                for (int s = 0; s < mats.Length && s < md.subs.Length; s++)
+                {
+                    int w = BridgeSided.Wants(mats[s]);
+                    if (BridgeSided.checkKappa && w == 0 && mats[s] && mats[s].HasProperty("_Sides") && F(mats[s], "_Cull") == (float)CullMode.Back) BridgeSided.Check(md.pos, md.nrm, md.subs[s]);
+                    if (w == 2 && !BridgeSided.ById)
+                    {
+                        // (each submesh's normals against its winding, once a mesh; none on the GPU without the uniform layout: kept)
+                        md.agree ??= new int[md.subs.Length];
+                        if (md.agree[s] == 0)
+                        {
+                            int aw = 0, aa = 0, ax = 0;
+                            int ag = md.nrm == null && !uniformLayout ? 0 : BridgeSided.Agreement(md.pos, md.nrm, md.subs[s], out aw, out aa, out ax);
+                            md.agree[s] = ag != 0 ? ag : -1;
+                            if (ag == 0) BridgeSided.Kept(md.subs[s].Length / 3, $"{n.go.name} [{(mats[s] ? mats[s].name : "?")}] {aw}/{aa}/{ax}");
+                        }
+                        w = md.agree[s] > 0 ? md.agree[s] : 0;
+                    }
+                    if (w == 0) continue;
+                    if (drawn == null) { drawn = (Material[])mats.Clone(); n.sides = new int[mats.Length]; }
+                    n.sides[s] = w;
+                    int mid = n.mids.Length > 0 ? n.mids[Mathf.Min(md.subMat[s], n.mids.Length - 1)] : 0;
+                    drawn[s] = SidedOf(mid, mats[s], w);
+                }
+            n.r.sharedMaterials = drawn ?? mats;
+            if (n.sides != null && !(n.smr && n.bindKey != null)) n.sidedMesh = Sided(md, n.sides);
+        }
+        /// <summary>The mesh the node draws for one cull mode, once its materials are set (Create: its renderer was given md.mesh).</summary>
+        void DrawSided(Node n, MeshData md)
+        {
+            if (n.sides == null) return;
+            if (n.smr && n.bindKey != null) n.smr.sharedMesh = Bound(n.mesh, md, n);
+            else if (n.smr) n.smr.sharedMesh = n.sidedMesh;
+            else if (n.mf && n.kind != "instanced") n.mf.sharedMesh = n.sidedMesh;   // (an instanced set baked here turns its own: BakeInstances)
+        }
+        /// <summary>A copy of the mesh with its submeshes' triangles for their modes (BridgeSided), one for each set of modes, kept
+        /// among the geometry's variants so its points, normals and colours move with it (cloth, capes, op 8).</summary>
+        Mesh Sided(MeshData md, int[] modes)
+        {
+            var key = BridgeSided.Key(modes);
+            md.sided ??= new Dictionary<string, MeshData>();
+            if (md.sided.TryGetValue(key, out var d) && d.mesh) return d.mesh;
+            var mesh = BridgeSided.Make(md.mesh, md.subs, modes);
+            d = new MeshData { mesh = mesh, pos = md.pos, nrm = md.nrm, col = md.col, uv = md.uv, bind = md.bind, vmP = md.vmP, vmN = md.vmN, subs = md.subs, subMat = md.subMat, bones = md.bones, keys = md.keys, shape = md.shape, from = md };
+            md.sided[key] = d;
+            if (int.TryParse(md.mesh.name.Split(':')[0], out int gid) && byGeometry.TryGetValue(gid, out var list)) list.Add(d);
+            return mesh;
+        }
+        /// <summary>A skinned mesh's bind poses, on it and its copies for one cull mode.</summary>
+        static void Bindposes(MeshData md, Matrix4x4[] bp)
+        {
+            md.mesh.bindposes = bp; md.bones = bp.Length;
+            if (md.sided != null) foreach (var sd in md.sided.Values) if (sd.mesh) { sd.mesh.bindposes = bp; sd.bones = bp.Length; }
+        }
+        readonly Dictionary<(Material, int), Material> sidedMats = new();
+        static readonly string[] ArrayProps = { "_Palette", "_Limbs", "_FluidTones" };
+        /// <summary>A material's copy culling back faces for one cull mode (BridgeSided): `_Sides` tells its shader the face it shows;
+        /// among the material's copies (its live colours, glow, vectors and pictures reach it), its variant kept as it is.</summary>
+        Material SidedOf(int mid, Material m, int mode)
+        {
+            if (sidedMats.TryGetValue((m, mode), out var c) && c) return c;
+            c = new Material(m) { name = m.name + (mode == 1 ? " (back faces, one cull)" : " (both faces, one cull)") };
+            if (m.IsKeywordEnabled("HIRAETH_FIGHT")) WorldLoader.CopySkinData(m, c);
+            // (a copy leaves the arrays set by script behind: a fire's palette went black, a figure's limbs, a flask's tones)
+            foreach (var a in ArrayProps) { var v = m.GetVectorArray(a); if (v != null && v.Length > 0) c.SetVectorArray(a, v); }
+            c.SetFloat("_Cull", (float)CullMode.Back); c.SetFloat("_Sides", mode);
+            if (!copies.TryGetValue(mid, out var l)) copies[mid] = l = new List<Material>();
+            l.RemoveAll(x => !x); l.Add(c);
+            // (a picture still to come reaches the copy too)
+            foreach (var users in mapUsers.Values) for (int i = 0, k = users.Count; i < k; i++) if (users[i].mat == m) users.Add((c, users[i].prop));
+            sidedMats[(m, mode)] = c;
+            return c;
         }
 
         public void SetMesh(int id, string key)
@@ -902,9 +1040,11 @@ namespace Hiraeth.Bridge
             if (!nodes.TryGetValue(id, out var n) || !meshes.TryGetValue(key, out var md)) return;
             n.mesh = key;
             if (n.batched) Unbatch(n);
+            // (its materials for one cull mode again: whether a two-sided one is turned depends on the mesh's normals, BridgeSided)
+            if (n.r != null && n.baseMats != null) ApplySides(n, md, n.baseMats);
             if (n.smr && n.bindKey != null) { n.smr.sharedMesh = Bound(key, md, n); return; }
-            if (n.smr) { if (md.bones != n.bones.Length) { var bp = new Matrix4x4[n.bones.Length]; for (int i = 0; i < bp.Length; i++) bp[i] = Matrix4x4.identity; md.mesh.bindposes = bp; md.bones = bp.Length; } n.smr.sharedMesh = md.mesh; }
-            else if (n.mf && n.kind != "instanced") n.mf.sharedMesh = md.mesh;
+            if (n.smr) { if (md.bones != n.bones.Length) { var bp = new Matrix4x4[n.bones.Length]; for (int i = 0; i < bp.Length; i++) bp[i] = Matrix4x4.identity; Bindposes(md, bp); } n.smr.sharedMesh = n.sidedMesh ? n.sidedMesh : md.mesh; }
+            else if (n.mf && n.kind != "instanced") n.mf.sharedMesh = n.sidedMesh ? n.sidedMesh : md.mesh;
             Occluder(n, md);
             Chunk(n, md);
         }
@@ -1226,7 +1366,10 @@ namespace Hiraeth.Bridge
             var pos = new Vector3[nv * cnt]; var nrm = md.nrm != null ? new Vector3[nv * cnt] : null; var col = new Color[nv * cnt];
             var uv = md.uv != null ? new Vector2[nv * cnt] : null;
             var subs = new int[md.subs.Length][];
-            for (int g = 0; g < subs.Length; g++) subs[g] = new int[md.subs[g].Length * cnt];
+            // (each submesh's triangles for the node's cull modes: BridgeSided)
+            var src = new int[md.subs.Length][];
+            for (int g = 0; g < subs.Length; g++) src[g] = nd.sides != null && g < nd.sides.Length && nd.sides[g] != 0 ? BridgeSided.Indices(md.subs[g], nd.sides[g]) : md.subs[g];
+            for (int g = 0; g < subs.Length; g++) subs[g] = new int[src[g].Length * cnt];
             for (int k = 0; k < cnt; k++)
             {
                 var m = Mat(ff, mo + k * 16);
@@ -1239,7 +1382,7 @@ namespace Hiraeth.Bridge
                     col[b + i] = md.col != null ? md.col[i] * c : c;
                     if (uv != null) uv[b + i] = md.uv[i];
                 }
-                for (int g = 0; g < subs.Length; g++) { var s = md.subs[g]; int so = k * s.Length; for (int i = 0; i < s.Length; i++) subs[g][so + i] = s[i] + b; }
+                for (int g = 0; g < subs.Length; g++) { var s = src[g]; int so = k * s.Length; for (int i = 0; i < s.Length; i++) subs[g][so + i] = s[i] + b; }
             }
             if (!nd.inst) nd.inst = new Mesh { name = md.mesh.name + " (instances)" };
             var mesh = nd.inst;
@@ -1486,7 +1629,7 @@ namespace Hiraeth.Bridge
             foreach (var n in nodes.Values)
             {
                 if (n.batched || n.kind != "mesh" || n.smr || !(n.r is MeshRenderer) || !n.r.enabled || n.chunks != null || !n.go || !n.mf || !n.mf.sharedMesh || !n.mf.sharedMesh.isReadable) continue;
-                if (now - n.movedAt < 120 || !meshes.TryGetValue(n.mesh ?? "", out var md) || md.keys > 0 || md.unchunked || md.mesh != n.mf.sharedMesh) continue;
+                if (now - n.movedAt < 120 || !meshes.TryGetValue(n.mesh ?? "", out var md) || md.keys > 0 || md.unchunked || (n.sidedMesh ? n.sidedMesh : md.mesh) != n.mf.sharedMesh) continue;
                 if (!Opaque(n.r) || NeedsOrigin(n.r)) continue;
                 // (a big mesh of its own takes levels of detail instead: StillLods; a few draws more, none of its triangles baked)
                 if (stillLodTris > 0 && md.subs != null && md.subs.Length == 1 && md.subs[0].Length / 3 >= stillLodTris && md.subs[0].Length / 3 <= StillMaxTris && MeshUsers(n.mesh) == 1) continue;
@@ -1509,7 +1652,7 @@ namespace Hiraeth.Bridge
             var old = n.r;
             var c = new GameObject("own") { layer = n.go.layer };
             c.transform.SetParent(n.go.transform, false);
-            var mf = c.AddComponent<MeshFilter>(); mf.sharedMesh = md?.mesh;
+            var mf = c.AddComponent<MeshFilter>(); mf.sharedMesh = n.sidedMesh ? n.sidedMesh : md?.mesh;
             var r = c.AddComponent<MeshRenderer>();
             r.sharedMaterials = old.sharedMaterials; r.shadowCastingMode = old.shadowCastingMode; r.receiveShadows = old.receiveShadows; r.renderingLayerMask = old.renderingLayerMask;
             old.forceRenderingOff = true; old.shadowCastingMode = ShadowCastingMode.Off; old.renderingLayerMask = 0;
@@ -1612,7 +1755,8 @@ namespace Hiraeth.Bridge
             stillLevelsDrawn = 0; stillTrisSaved = 0;
             foreach (var n in nodes.Values)
             {
-                if (n.kind != "mesh" || n.smr || n.im != null || n.batched || !(n.r is MeshRenderer) || !n.go || n.mesh == null) continue;
+                // (a mesh drawn turned for one cull mode, BridgeSided, draws its copy, whose triangles these levels would not follow)
+                if (n.kind != "mesh" || n.smr || n.im != null || n.batched || n.sidedMesh || !(n.r is MeshRenderer) || !n.go || n.mesh == null) continue;
                 if (!meshes.TryGetValue(n.mesh, out var md) || !md.mesh || md.bones >= 0 || md.keys > 0 || md.subs == null || md.subs.Length != 1) continue;
                 stillLods.TryGetValue(md, out var l);
                 if (l != null && (l.none || !l.ready)) continue;
@@ -1813,6 +1957,8 @@ namespace Hiraeth.Bridge
             foreach (var g in instGroups.Values) g.im?.Release();
             foreach (var m in instMaterials.Values) if (m) Destroy(m);
             foreach (var m in meshes.Values) if (m.mesh) Destroy(m.mesh);
+            foreach (var m in meshes.Values) if (m.sided != null) foreach (var sd in m.sided.Values) if (sd.mesh) Destroy(sd.mesh);
+            foreach (var m in sidedMats.Values) if (m) Destroy(m);
             foreach (var m in bound.Values) if (m) Destroy(m);
             bonesJob?.Dispose();
             foreach (var m in materials.Values) if (m) Destroy(m);

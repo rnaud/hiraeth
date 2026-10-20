@@ -166,6 +166,8 @@ namespace Hiraeth.Bridge
                     // (the scene's variants and layouts: every renderer, material and mesh looked at once, 30-60 ms of the main thread
                     // on the Retroid, as the bench's first view runs: -variants asks for them, issue #262)
                     if (BridgeArgs.Flag("-variants")) { sw.Restart(); try { Write($"load: {scene.Variants()} ({sw.Elapsed.TotalMilliseconds:0} ms)"); } catch (Exception e) { Write("load: the variants: " + e.Message); } }
+                    // (and the Surface shader's pipelines it asks for, estimated: issue #536)
+                    if (BridgeArgs.Flag("-variants")) { try { var pl = scene.Pipelines(); Write($"load: {pl}"); Debug.Log("Hiraeth bridge: " + pl); } catch (Exception e) { Write("load: the pipelines: " + e.Message); } }
                     Write($"load: world settled {settled * 1000:0} ms after launch ({nodes} nodes, {scene.Geometries} geometries); " +
                           $"first frames: {warmFrames} in {warmSum:0} ms, longest {warmMax:0} ms, {warmSlow} over 50 ms; " +
                           $"Unity's own part (without the wait on the script): {nativeSum:0} ms, longest {nativeMax:0} ms, {nativeSlow} over 50 ms");
