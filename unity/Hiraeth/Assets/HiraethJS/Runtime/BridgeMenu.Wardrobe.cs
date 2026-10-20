@@ -121,6 +121,7 @@ namespace Hiraeth.Bridge
             float th = 20, fh = Mathf.Max(60, h - th - 6);
             wdFrame.Show(true);
             Ui.Place(wdFrame.rt, rx, y, rw - 5, fh - 5);
+            Hit(wdFrame.rt, "wardrobe-turn");
             WardrobeAspect = (rw - 10) / Mathf.Max(1, fh - 10);
             BridgeHost.wardrobeAspect = WardrobeAspect;
             if (BridgeHost.Runner && BridgeHost.Runner.wardrobeRT && wdView.texture != BridgeHost.Runner.wardrobeRT) wdView.texture = BridgeHost.Runner.wardrobeRT;

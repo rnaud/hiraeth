@@ -282,3 +282,33 @@ test('the Unity side: BridgeMenu places the pointer on what it drew and hands it
   for (const t of ['"close"', '"tab:" + i', '"go:-1"', '"go:1"', '"ask:0"', '"ask:1"', '"map"', '"zoom:1"', '"full:use"', '"floor:" + i', '"star:go"', 'r.S("ptSlide")', 'b.S("pt")', 'o.S("pt")', 'e.S("pt")', 'c.S("pt")'])
     assert.ok(all.includes(t), `a target ${t}`);
 });
+
+test('wardrobe drag uses the shared turntable and is confined to its page', () => {
+  const m = new EngineMenus({ store: memStore(), sources: sources() });
+  m.show('game');
+  const before = m.turntable.yaw;
+  assert.equal(m.pointer({ how: 'drag', pt: 'wardrobe-turn', x: 80 }), false);
+  m.state.i = m.state.panels.findIndex(p => p.id === 'wardrobe');
+  assert.equal(m.pointer({ how: 'drag', pt: 'wardrobe-turn', x: 80 }), true);
+  assert.ok(Math.abs(m.turntable.yaw - before - 80 * m.turntable.T.drag) < 1e-9);
+  assert.equal(m.turntable.idle, 0);
+  assert.equal(m.pointer({ how: 'drag', pt: 'wardrobe-turn', x: NaN }), false);
+});
+
+test('scanner pointer dispatch preserves hover versus touch placement', () => {
+  const m = new EngineMenus({ store: memStore() });
+  const calls = [];
+  m.mode = 'starmap'; m.star = { pointer: (...args) => (calls.push(args), true) };
+  m.pointer({ how: 'point', pt: 'scanner', x: .2, y: .3 });
+  m.pointer({ how: 'press', pt: 'scanner', x: .4, y: .5 });
+  assert.deepEqual(calls, [[.2, .3, false], [.4, .5, true]]);
+});
+
+test('native pointer targets include the wardrobe, scanner and explicit changelog browser link', () => {
+  assert.match(src('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.Wardrobe.cs'), /Hit\(wdFrame.rt, "wardrobe-turn"\)/);
+  assert.match(src('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.StarMap.cs'), /Hit\(smField, "scanner"\)/);
+  assert.match(src('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.Pause.cs'), /Hit\(nwPics.rt, "news-pictures"\)/);
+  const pointer = src('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeMenu.Pointer.cs');
+  assert.match(pointer, /downPt == "news-pictures"[\s\S]*Application.OpenURL\(url\)/);
+  assert.match(pointer, /if \(!Application.isBatchMode\) Application.OpenURL/);
+});

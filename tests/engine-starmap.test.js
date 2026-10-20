@@ -136,3 +136,28 @@ test("the menus carry the map: its own view, the stick to the scanner while sear
   menus.action('back');
   assert.ok(!menus.open && resumed === 1);
 });
+
+test('pointer scanner preserves first-hover sweep guard, supports touch, clamps and resets on reopen', () => {
+  const { o } = options({ 'world.desert.done': true });
+  const map = new EngineStarMap({ o });
+  map.open();
+  const start = [...map.scan];
+  assert.equal(map.pointer(.5, .5), false);
+  assert.deepEqual(map.scan, start);
+  assert.equal(map.moved, 0);
+  assert.equal(map.pointer(.6, .5), true);
+  assert.ok(map.moved > 0);
+  assert.deepEqual(map.scan, [map.box.fw * .6, map.box.fh * .5]);
+  map.close(); map.open();
+  assert.equal(map.pointer(.8, .7, true), true);
+  assert.equal(map.moved, 0, 'first tap places scanner but does not arm discovery');
+  map.pointer(2, -1);
+  assert.deepEqual(map.scan, [map.box.fw, 0]);
+  const before = [...map.scan];
+  assert.equal(map.pointer(NaN, .5), false);
+  assert.deepEqual(map.scan, before);
+  map.asking = {};
+  assert.equal(map.pointer(.3, .4, true), false);
+  map.asking = null; map.close();
+  assert.equal(map.pointer(.3, .4, true), false);
+});

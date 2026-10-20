@@ -61,7 +61,7 @@ export class EngineStarMap {
   open() {
     this.isOpen = true;
     this.asking = null; this.held.clear(); this.search.lock = {}; this.still = false;
-    this.scan = null; this.moved = 0; this.resolving = null; this.beatT = 0; this.pingT = -1; this.wPhase = 0; this.wAmp = 0;
+    this.pointerAt = null; this.scan = null; this.moved = 0; this.resolving = null; this.beatT = 0; this.pingT = -1; this.wPhase = 0; this.wAmp = 0;
     this.render();
     this.sel = firstPick(this.entries, this.o.flag ?? (() => undefined));
     if (!this.entries[this.sel]?.known) this.sel = Math.max(0, this.entries.findIndex((e) => e.known));
@@ -79,6 +79,17 @@ export class EngineStarMap {
     this.targets = this.D.targets;
     if (!this.scan || this.scan[0] > this.box.fw || this.scan[1] > this.box.fh) this.scan = this.D.scanFrom;
     this.cv++;
+  }
+
+  /** Pointer on the chart, normalized across/down. Initial hover is not a deliberate sweep (web issue #204). */
+  pointer(x, y, pressed = false) {
+    if (!this.searching() || this.asking || !Number.isFinite(x) || !Number.isFinite(y)) return false;
+    const to = [Math.max(0, Math.min(1, x)) * this.box.fw, Math.max(0, Math.min(1, y)) * this.box.fh];
+    if (this.pointerAt) this.moved += Math.hypot(to[0] - this.pointerAt[0], to[1] - this.pointerAt[1]);
+    else if (!pressed) { this.pointerAt = to; return false; }
+    this.pointerAt = to;
+    this.scan = to;
+    return true;
   }
 
   /** The entries you can choose (known worlds, and home), as indices into entries. */
@@ -251,7 +262,7 @@ export class EngineStarMap {
     const legend = searching ? { search: true, label: SEARCH_LABEL, text: short ? SEARCH_LEGEND_SHORT : SEARCH_LEGEND }
       : { search: false, label: SIGNATURE, text: short ? SIGNATURE_LEGEND_SHORT : SIGNATURE_LEGEND };
     const pad = !!this.pad?.();
-    const keys = { pre: searching ? (pad ? 'left stick: search · ' : 'W A S D: search · ') : '', ...this.cap('dpad', 'choose a world') };
+    const keys = { pre: searching ? (pad ? 'touch or left stick: search · ' : 'mouse or W A S D: search · ') : '', ...this.cap('dpad', 'choose a world') };
     const a = this.asking;
     return {
       kind: 'starmap', cv: this.cv, chart: { x: r1(B.x), y: r1(B.y), w: r1(B.w), h: r1(B.h), side: r1(B.side) }, fw: r1(B.fw), fh: r1(B.fh),

@@ -690,7 +690,7 @@ function makePlan(args) {
     for (let i = 1; i <= 3; i++) steps.push({ kind: 'menu', x: 0, y: 1 }, { kind: 'wait', frames: 40, secs: 1.5 }, ...shot(`blade-${i}`));
     steps.push({ kind: 'menu', act: 'confirm' }, { kind: 'wait', frames: 30, secs: 1 }, ...shot('worn'), { kind: 'menu', act: 'back' }, { kind: 'wait', frames: 20 }, ...shot('closed'), { kind: 'wardrobe', log: true });
   }
-  if (args.menuPointer) {
+  if (args.menuPointer && !String(args.menuPointer).startsWith('device-')) {
     // (-menu-pointer mouse | touch, issue #574: the menus by the pointer through the Input System's own devices: the Start
     // menu, the mouse over Settings (its :hover look), Controls clicked or tapped (its page), Resume; the game menu, its Items
     // tab, the mouse over the second tile (or a tap on it: picked), a click or a tap again on it (its full view), the full
@@ -705,14 +705,24 @@ function makePlan(args) {
       ...at('side:2'), log('Controls pressed'), ...shot('start-controls'),
       ...at('side:0'), log('Resume pressed'),
       { kind: 'menuOpen', mode: 'game' }, { kind: 'wait', frames: 30, secs: 1 }, log('the game menu'), ...shot('game'),
-      ...at('tab:2', 30), log('the Items tab pressed'), ...shot('game-items'),
+      ...(starmapScenes(args).length ? [] : [...at('tab:2', 30), log('the Items tab pressed'), ...shot('game-items'),
       ...over('cell:0,1'), ...(P === 'mouse' ? [] : at('cell:0,1')), log('the second tile picked'), ...shot('game-picked'),
       ...at('cell:0,1'), log('pressed again'), ...shot('game-full'),
-      ...at('full:back'), log('the full view\'s back'),
+      ...at('full:back'), log('the full view\'s back')]),
       // (the Wardrobe, the mouse over its first line: the debug save has one blade; a tap on it would wear it)
       ...at('tab:5', 40), ...over('cell:0,0'), { kind: 'wait', frames: 30, secs: 1 }, log('the Wardrobe'), ...shot('wardrobe'),
-      ...at('close'), log('closed'));
+      { kind: 'pointer', what: P, at: 'drag:menu:wardrobe-turn' }, { kind: 'wait', frames: 45, secs: 1.5 }, log('Wardrobe dragged'), ...shot('wardrobe-dragged'),
+      ...at('close'), log('closed'),
+      { kind: 'menuOpen', mode: 'start' }, { kind: 'wait', frames: 20 }, ...at('side:4'), ...shot('news'),
+      ...at('news-pictures'), log('See what changed pressed'), ...at('close'));
+
   }
+  // Device checks wait on a real Android touch, rather than replaying a simulated editor touch.
+  if (args.menuPointer === 'device-wardrobe') steps.push({ kind: 'wait', frames: 120, secs: 4 },
+    { kind: 'menuOpen', mode: 'game', panel: 'wardrobe' }, { kind: 'hold' });
+  if (args.menuPointer === 'device-news') steps.push({ kind: 'wait', frames: 120, secs: 4 },
+    { kind: 'menuOpen', mode: 'start' }, { kind: 'wait', frames: 20 },
+    { kind: 'pointer', what: 'touch', at: 'menu:side:4' }, { kind: 'wait', frames: 20 }, { kind: 'hold' });
   if (args.devmenu) {
     // (-devmenu: the dev menu, issue #387: opened on F2 as the keys open it, each tab photographed (unity-dev-<n>-<id>.png, to lay
     // beside the web's), a teleport to the temple's door off the World tab, god mode on from Cheats, up and across, then off:
@@ -842,7 +852,9 @@ function makePlan(args) {
     steps.push({ kind: 'wait', frames: 240, secs: 5 });
     for (const scene of starmapScenes(args)) {
       steps.push({ kind: 'starmap', scene }, { kind: 'wait', frames: 90, secs: STARMAP_SCENES[scene].found ? 2.6 : 1.2 });
+      if (args.menuPointer && !String(args.menuPointer).startsWith('device-') && scene === 'search') steps.push({ kind: 'pointer', what: String(args.menuPointer), at: 'drag:menu:scanner' }, { kind: 'wait', frames: 45, secs: 1.5 });
       if (args.out) steps.push({ kind: 'shot', file: `${args.out}/unity-starmap-${scene}.png` });
+      if (args.menuPointer === 'device-scanner') steps.push({ kind: 'hold' });
     }
   }
   if (pageRun(args)) {

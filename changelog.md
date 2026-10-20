@@ -8,6 +8,7 @@ The same release notes shown in the game (press **N** or open settings).
 - The Salt Pilgrim’s robe and sash have more room at the waist, reducing clothing overlap as he runs.
 - Repeated reference pictures now load reliably on the published References page.
 - The caravan study has a rounder hull and broad curved cockpit. Its camp packs into a closed side hatch before lift-off, then unfolds after landing.
+- In Unity, drag the Wardrobe preview to turn the traveller and move the galactic scanner with a mouse or finger. See what changed opens the illustrated changelog in your browser.
 - With motion matching enabled, the traveller now settles into standing after a short walk instead of holding a frozen stride with bent knees.
 - The caravan study has been rebuilt around the selected drawing, with a broad cockpit, a deeper rounded hull and separate engine pods.
 - The caravan study now has four rear boosters in two pairs, with a Bottom view for checking the underside.

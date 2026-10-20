@@ -142,6 +142,7 @@ namespace Hiraeth.Bridge
             Ui.Place(nwClose.rt, pw - padX - cw, by, cw, bh);
             Hit(nwClose.rt, "close");   // (Close: back to the game, as the page's)
             nwPicsText.text = "See what changed";
+            Hit(nwPics.rt, "news-pictures");
             float sw0 = Ui.Measure(nwPicsText, nwPicsText.text).x + 26;
             Ui.Place(nwPics.rt, pw - padX - cw - 8 - sw0, by, sw0, bh);
             // the list: each version's heading (h2: 1.08em bold, its date 0.85em at 0.6, a rule under), its lines bulleted

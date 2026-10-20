@@ -100,11 +100,13 @@ namespace Hiraeth.Bridge
         // Pressed through the Input System's own devices, added for the run and made current: a mouse, a touch screen, or a pad
         // (its View pressed: a pad in hand). The press goes into the input's queue and is read as a player's would be.
         Mouse simMouse; Touchscreen simTouch; Gamepad simPad;
-        string simUp; Vector2 simAt; int simUpIn;
+        string simUp; Vector2 simAt; int simUpIn; bool simDrag;
         public void SimPointer(string kind, string where)
         {
             // ("menu:<target>": on a menu's target as last drawn, BridgeMenu.ScreenOf; "over:menu:<target>": the mouse moved
             // there and not pressed, the hover; issue #574)
+            bool drag = (where ?? "").StartsWith("drag:");
+            if (drag) where = where.Substring(5);
             bool over = (where ?? "").StartsWith("over:");
             if (over) where = where.Substring(5);
             Vector2? onMenu = null;
@@ -152,12 +154,22 @@ namespace Hiraeth.Bridge
                 simMouse.MakeCurrent();
                 InputSystem.QueueStateEvent(simMouse, new MouseState { position = sp }.WithButton(MouseButton.Left, true));
             }
-            simUp = kind; simAt = sp; simUpIn = 4;   // (let go a few frames on)
+            simUp = kind; simAt = sp; simDrag = drag; simUpIn = drag ? 30 : 4;   // (let go a few frames on)
             Debug.Log($"Hiraeth bridge: pointer {kind} at {at.x:0},{at.y:0} of {W:0}x{H:0} (screen {sp.x:0},{sp.y:0})");
         }
         void SimTick()
         {
-            if (simUp == null || --simUpIn > 0) return;
+            if (simUp == null) return;
+            if (--simUpIn > 0)
+            {
+                if (simDrag)
+                {
+                    simAt.x += 4 * Screen.height / Mathf.Max(1, H);
+                    if (simUp == "touch") InputSystem.QueueStateEvent(simTouch, new TouchState { touchId = 1, phase = UnityEngine.InputSystem.TouchPhase.Moved, position = simAt, pressure = 1 });
+                    else InputSystem.QueueStateEvent(simMouse, new MouseState { position = simAt }.WithButton(MouseButton.Left, true));
+                }
+                return;
+            }
             if (simUp == "touch" && simTouch != null) InputSystem.QueueStateEvent(simTouch, new TouchState { touchId = 1, phase = UnityEngine.InputSystem.TouchPhase.Ended, position = simAt });
             else if (simUp == "pad" && simPad != null) InputSystem.QueueStateEvent(simPad, new GamepadState());
             else if (simMouse != null) InputSystem.QueueStateEvent(simMouse, new MouseState { position = simAt });

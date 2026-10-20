@@ -116,7 +116,7 @@ namespace Hiraeth.Bridge
             if (moved && downKind == null && !touched)
             {
                 var pt = HitAt(mp, out var f);
-                if (pt == "map") BridgeHost.MenuEvent("point", pt, f);
+                if (pt == "map" || pt == "scanner") BridgeHost.MenuEvent("point", pt, f);
                 else if (pt != hoverPt && pt != null) BridgeHost.MenuEvent("hover", pt, f);
                 if (pt != hoverPt) { var kind = state.S("kind"); if (kind == "card" || kind == "title" || kind == "start") dirty = true; }   // (their :hover drawn here)
                 hoverPt = pt;
@@ -131,14 +131,23 @@ namespace Hiraeth.Bridge
         {
             downKind = kind; downAt = lastAt = p; dragged = false;
             downPt = HitAt(p, out var f);
-            if (downPt == "map") BridgeHost.MenuEvent("point", downPt, f);   // (the page's pointerdown on the sheet: the cursor there)
+            if (downPt == "scanner") BridgeHost.MenuEvent("press", downPt, f);
+            else if (downPt == "map") BridgeHost.MenuEvent("point", downPt, f);   // (the page's pointerdown on the sheet: the cursor there)
             else if (downPt != null && downPt.StartsWith("slide:")) BridgeHost.MenuEvent("press", downPt, f);   // (a slider takes the press at once)
         }
         void Move(Vector2 p)
         {
             var d = p - lastAt; lastAt = p;
             if (!dragged && (p - downAt).magnitude * CanvasPx > DragPx) dragged = true;
-            if (!dragged || d.sqrMagnitude < 0.0001f) return;
+            if (d.sqrMagnitude < 0.0001f) return;
+            if (downPt == "scanner")
+            {
+                var field = hits.Find(x => x.pt == "scanner");
+                if (OnBox(field, p, out var scan)) BridgeHost.MenuEvent("point", "scanner", scan);
+                return;
+            }
+            if (!dragged) return;
+            if (downPt == "wardrobe-turn") { BridgeHost.MenuEvent("drag", downPt, new Vector2(d.x * CanvasPx, 0)); return; }
             if (downPt == "map")
             {
                 // (the map moved under the finger or the held button: the move in the sheet's widths and heights, y down)
@@ -155,7 +164,16 @@ namespace Hiraeth.Bridge
         void Up(Vector2 p)
         {
             // a click: let go on what it was pressed on, not dragged (the Map's and a slider's were taken as pressed)
-            if (!dragged && downPt != null && downPt != "map" && !downPt.StartsWith("slide:") && HitAt(p, out var f) == downPt) BridgeHost.MenuEvent("press", downPt, f);
+            if (!dragged && downPt != null && downPt != "map" && downPt != "scanner" && !downPt.StartsWith("slide:") && HitAt(p, out var f) == downPt)
+            {
+                if (downPt == "news-pictures")
+                {
+                    const string url = "https://hiraeth.alexandria-rnaud.workers.dev/changelog.html";
+                    Debug.Log($"Hiraeth bridge: See what changed: {url}");
+                    if (!Application.isBatchMode) Application.OpenURL(url);
+                }
+                else BridgeHost.MenuEvent("press", downPt, f);
+            }
             downKind = null; downPt = null;
         }
         void Wheel(Vector2 p, float wy)

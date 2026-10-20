@@ -184,6 +184,7 @@ namespace Hiraeth.Bridge
                 for (float y = 18.5f; y < chh; y += 37) for (float x = 20.5f; x < cw; x += 41) smDots.Disc(D(x, y), 0.85f, L(SmCream, 0.45f * 0.7f));
             }
             Ui.Place(smField, 2, 2, smFw, smFh);
+            if (!B(v, "locked") && v.O("ask") == null) Hit(smField, "scanner");
             foreach (var s in new[] { smBack, smRoute, smAnim, smRegionLines, smRings, smScan }) { Ui.PlaceC(s.rectTransform, 0, 0, smFw, smFh); s.Clear(); }
             smTagsUsed = 0;
             var star = v.O("star");

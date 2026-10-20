@@ -715,6 +715,15 @@ export class EngineMenus {
     const i = pt.indexOf(':'), k = i < 0 ? pt : pt.slice(0, i), a = i < 0 ? '' : pt.slice(i + 1), n = Number(a);
     const press = how === 'press', hover = how === 'hover';
     if (how === 'scroll') { this.byPointer = true; this.changed(); return true; }
+    if (this.mode === 'starmap' && pt === 'scanner' && (how === 'point' || press)) {
+      const took = !!this.star?.pointer(x, y, press);
+      if (took) { this.byPointer = true; this.changed(); }
+      return took;
+    }
+    if (this.mode === 'game' && this.state?.panel?.id === 'wardrobe' && pt === 'wardrobe-turn' && how === 'drag') {
+      if (!Number.isFinite(x)) return false;
+      this.turntable.drag(x); this.byPointer = true; return true;
+    }
     if (!press && !hover && !(this.onMap && k === 'map')) return false;
     if (hover && (k === 'close' || k === 'tab' || k === 'go' || k === 'zoom' || k === 'full' || k === 'person' || k === 'floor')) return false;   // (the page's :hover only)
     if (hover && (this.mode === 'card' || this.mode === 'start' || (this.mode === 'title' && this.title.screen !== 'saves' && !this.title.ask))) return false;   // (their :hover a look of its own, or none: the focus where it was)
@@ -1357,7 +1366,7 @@ export class EngineMenus {
       // the blade's over its; the traveller drawn by the engine into the page's picture on the right (BridgeRunner.Wardrobe)
       const d = p.data ?? {};
       view.wardrobe = { outfitHead: t('gm.wd.outfit'), bladeHead: t('gm.wd.blade'), outfits: rows.filter((r) => r[0]?.kind === 'outfit').length,
-        outfitNote: d.v2 ? '' : t('gm.wd.needV2'), bladeNote: d.sword ? '' : t('gm.wd.noSword'), turn: t('gm.wd.turnPad'), wornTag: t('gm.wd.wornTag') };
+        outfitNote: d.v2 ? '' : t('gm.wd.needV2'), bladeNote: d.sword ? '' : t('gm.wd.noSword'), turn: `${t('gm.wd.turnHand')} · ${t('gm.wd.turnPad')}`, wornTag: t('gm.wd.wornTag') };
       view.empty = '';
       view.hint = `${cell?.act === 'wear' ? 'A / × wear · ' : ''}LB / RB turn · B / ○ close`;
     }

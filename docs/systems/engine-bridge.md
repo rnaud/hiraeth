@@ -170,7 +170,7 @@ the same entries in the same order, moved through by the web's own rules, and `v
 - **the Wardrobe** (issue #571): the game menu's last panel (src/wardrobe.js, src/game-menu.js `wardrobePanel`): its
   rows and the view's `wardrobe` (the headings, the outfits' and the blades' notes, the turn line); the preview
   follows the cursor (`wardrobeSync`, the host's `preview`, `wear`, `leave`: `menus.wardrobe = game.wardrobe`), the
-  right stick turns him (`analog`'s `rx`). engine/game.js draws him each frame the page shows (`wardrobeCapture`:
+  right stick turns him (`analog`'s `rx`), and dragging the preview uses the same `Turntable.drag` sensitivity as the web. engine/game.js draws him each frame the page shows (`wardrobeCapture`:
   backend.js `wardrobe` → BridgeHost.Wardrobe → BridgeRunner.Wardrobe, the portraits' camera on layer 29 alone, his
   drawables and the sword held in his fist moved onto it for the moment: `BridgeRenderer.OnLayer`), into one picture
   BridgeMenu.Wardrobe.cs shows in its frame. `-wardrobe -out dir` photographs it (`unity-wardrobe-<name>.png`;
@@ -3036,3 +3036,11 @@ before (origin/main at 525324ffb) and after. tests/unity-sea-underside.test.js.
 - **Unity, speed and the last of the look** (the script on its own thread, still subtrees frozen, the composite's
   passes by the look; the towers' per-vertex materials, the cliffs' cracks, the newest shading; the chip's portrait;
   faces close up): above.
+
+### Remaining pointer controls (issue #574)
+
+The Wardrobe frame is a drag target, separate from its scrollable outfit list. The galactic chart follows mouse movement and held touch, retaining the web’s first-hover and deliberate-sweep guard: merely opening the chart or tapping a hidden world does not discover it. Its normalized field coordinates scale with the native canvas.
+
+What’s new’s **See what changed** opens the published interactive changelog in the system browser after an explicit click or tap. Unity does not embed the HTML page; returning from the browser resumes the existing menu. Batch review logs the URL without launching a browser. `-menu-pointer mouse|touch` drives the real Input System devices through preview dragging and the link; combine `-starmap search` for scanner dragging.
+
+For device input verification, `-menu-pointer device-wardrobe`, `device-news`, or `device-scanner -starmap search` waits on the requested screen without injecting the tested drag or link press. These review plans disable gameplay save writes; the device check still backs up and restores the current store files.
