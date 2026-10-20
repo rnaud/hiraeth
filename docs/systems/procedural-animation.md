@@ -763,6 +763,25 @@ Mac M4 Pro at load 10-18 (the review's 1.3 µs a leg for the shade was a busy ma
 Every kind at or under 1 µs a leg; the mixed scene within the runs' spread of v1.40 (the review's 92-95 and Phase 7's 71
 were the machine's load, not the kit).
 
+**Re-measured at v1.87** (issue #566; the v1.87 audit at load 22-25 read 3-8× this table): `cost.mjs` three rounds
+interleaved with v1.85's tree (`git archive v1.85`, its own cost.mjs) and with #508's gaze off (`--no-gaze`: the foes'
+eyes left as built), the Mac M4 Pro at load 10.7-14.7, each figure the least of the three rounds' bests:
+
+| µs | v1.85 | v1.87 | v1.87, gaze off |
+|---|---|---|---|
+| the shade, a leg (10 near) | 1.00 | 1.06 | 1.05 |
+| the heron, a leg | 0.92 | 0.95 | 0.95 |
+| the lizard, a leg | 0.73 | 0.74 | 0.74 |
+| mixed, 10 near + 30 far, a frame | 77.2 | 79.2 | 75.4 |
+| mixed, seen one way | 68.0 | 66.4 | 63.9 |
+| a pack of 8 near + the Keeper, a frame | 37.0 | 36.9 | 36.0 |
+| the whole look, mixed (the `look` column: the kit, the gaze and the rest) | – | 409 | 377 |
+
+The two trees agree within 3 % (the shade at 1.06 a leg, a hair over 1 in both v1.87 runs); the gaze adds nothing to the
+kit's own time (its eyes turn outside Rig.update) and about 0.8 µs a foe to the whole look (32 µs over 40 foes; 8 µs
+over 10 crabs, the most of any kind). The mixed scene sits ~15 % over v1.71's quiet table on both trees: the machine
+or node, not the kit.
+
 ### On a slope (v1.72, issue #332)
 
 A foe on the ground is turned onto the ground's plane under it (`src/enemies/slope.js`); the kit takes the plane

@@ -116,7 +116,9 @@ export async function stageCinematic(w, e) {
       if (id === way.id || id === T.def.arenaDoor || el.type !== 'door' || JSON.stringify(el.opens ?? {}).includes('resolved')) continue;
       L.force(id, true);
     }
-    T.applyDoors();
+    // (set open at once and silent, as they stand long after play opened them one by one: all at once, their clunks and
+    // rushes at the film's first second made the Casting-House's ending, with eleven of them, the loudest of the QC, #563)
+    T.applyDoors(true);
     const c = G.model.pos, door = way.piece.group.position;
     const dir = V(door.x - c.x, 0, door.z - c.z).normalize();
     place(c.clone().addScaledVector(dir, Math.min(6, G.arena.r * 0.5)).setY(G.arena.y + 0.1));

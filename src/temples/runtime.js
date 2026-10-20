@@ -318,8 +318,9 @@ export class TempleRuntime {
     this.game.emit('temple:resolved', { id: this.id, pos: this.guardian?.model?.pos?.clone?.() ?? null, body: this.guardian?.model ? keeperBox(this.guardian.model) : null });   // (pos: where it settled, body: its drawn box: its purse, src/chimes.js purseSpot)
     this.def.onResolved?.(this);
   }
-  applyDoors() {
-    for (const { id, open } of this.logic.update()) for (const p of [this.byId.get(id), ...(this.twins?.get(id) ?? [])]) p?.setOpen?.(open, false);
+  /** The doors as the logic has them now; `instant`: set so at once, silent (a stage set, not a door opening in play). */
+  applyDoors(instant = false) {
+    for (const { id, open } of this.logic.update()) for (const p of [this.byId.get(id), ...(this.twins?.get(id) ?? [])]) p?.setOpen?.(open, instant);
   }
 
   update(dt, t) {

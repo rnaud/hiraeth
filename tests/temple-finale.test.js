@@ -240,3 +240,26 @@ test('the Greenhouse: its sun hushed while the film looks through it at the Gard
   assert.ok(seen.every((f) => !f.washes || f.hush === FILM_HUSH), 'and the sun is hushed whenever it does');
   assert.equal(rt.gardenSun.hush, 1, 'back to full after the film');
 });
+
+// Issue #563: the Casting-House's ending measured the loudest of the cinematics QC (−5.8 dBFS) because the review's
+// staging forced every door of the way in open at once (src/cinematics-page/runtime.js): eleven clunks and rushes at the
+// film's first second. Set as a stage, the doors open at once and silent; opened in play, one at a time, each is heard.
+test('a house\'s doors set open as a stage open at once and silent; in play, heard (issue #563)', () => {
+  const { rt } = house('moonfoundry');
+  const calls = [];
+  const sound = rt.sound;
+  rt.sound = { doorOpen: () => calls.push('doorOpen'), whoosh: () => calls.push('whoosh') };
+  try {
+    const L = rt.logic, way = wayOut(rt);
+    const doors = Object.entries(L.def.elements).filter(([id, el]) => id !== way.id && id !== rt.def.arenaDoor && el.type === 'door' && !JSON.stringify(el.opens ?? {}).includes('resolved')).map(([id]) => id);
+    assert.ok(doors.length >= 8, `${doors.length} doors on the way in`);
+    for (const id of doors) L.force(id, true);
+    rt.applyDoors(true);
+    assert.equal(calls.length, 0, 'no door heard');
+    const shown = doors.map((id) => rt.byId.get(id)).filter((p) => p?.setOpen && 'k' in p);
+    assert.ok(shown.length && shown.every((p) => p.open && p.k === 1), 'every door open, all the way');
+    L.force(doors[0], false); rt.applyDoors(true);
+    L.force(doors[0], true); rt.applyDoors();
+    assert.deepEqual(calls, ['doorOpen'], 'opened in play: heard');
+  } finally { rt.sound = sound; }
+});

@@ -296,6 +296,15 @@ v1.85 table 4.62). Every v1.85 issue held (#491, #501, #528, #529). New: the tem
 every house (interest 3.4, the weakest collection), the Whale-House's reward panel still under the shell; the
 Casting-House's ending peaks at −5.8 dBFS.
 
+**The endings' loudness was the staging's (issue #563).** A house's ending is staged in its arena with every door of the
+way in forced open (src/cinematics-page/runtime.js), and the QC brings the sound up before the staging: every one of
+those doors played its clunk and its rush (and the rush's four plucks) in the same frame, as the film began; the peak,
+0.3–0.6 s in, was their rushes' crest on the effects bus, louder the more doors a house has (the Casting-House eleven,
+the Greenhouse five). The staging now sets them open at once and silent (`applyDoors(true)`: as they stand long after
+play opened them one by one). The QC on the five loudest, before → after: the Casting-House −5.8 → **−17**, the
+Whale-House −6.4 → −20, the Mooring-House −7.2 → −19, the Lamp-House −9.8 → −21, the Greenhouse −11.3 → −20 dBFS.
+The films themselves were never loud: in play no ending is heard over the moments' −30…−11.
+
 ### The table
 
 Tech: the script's score on the first run (its heuristics, rescored with the final rules) → the score
