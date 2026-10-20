@@ -1,0 +1,59 @@
+changelog.md
+  s_5f899ba316b5dc::t_0d52013daba6dd 7-8
+docs/systems/fragments.md
+  s_5f899ba316b5dc::t_415aab043b243d 1,59,147-182,207-220,347-350,360-361
+scripts/fragment-spots.mjs
+  s_5f899ba316b5dc::t_3904b2d2190303 27-35,41,49-61,68-72,76,119-120,128,137,157-184,204-218,226,235-238,243,264
+src/changelog-media.js
+  s_5f899ba316b5dc::t_1ca505b195ddee 1306-1307,1376-1384
+src/changelog.js
+  s_5f899ba316b5dc::t_a027821e716dcd 37-42
+src/fragments-data.js
+  s_5f899ba316b5dc::t_8e39dacb92f2aa 3-5,37-44,58-59,69-76,81,84-91,93-102,105-107,110-113,115,118-121,123-128,132,135,146-154,158,162,164,173,176,183-184,186,190-206,209-210,212,214-215,217,227-232,236-240,248-258,264,266-267,276-284,288,292,295,305-312,327-328,343-346,349,352-353,355-471
+src/npc.js
+  s_5f899ba316b5dc::t_a710581ef5cdae 829-835
+src/story/desert-data.js
+  s_5f899ba316b5dc::t_2579fe03b9c185 146,150,719,743
+src/story/index.js
+  s_5f899ba316b5dc::t_c80fb15c97d635 281
+src/story/people-book.js
+  s_5f899ba316b5dc::t_11a5e24e91ae73 192
+src/story/rumour-places.js
+  s_5f899ba316b5dc::t_410fed7fc8ddb1 24-30,33-41,44-49,52-59,62,64,70-77,80-83,85-88,91-98,101-108,111-120,123-129,132-139
+src/story/scientist-arrival.js
+  s_5f899ba316b5dc::t_b3c68b8efa5a18 1-179
+src/story/scientist-data.js
+  s_5f899ba316b5dc::t_02ca85151389ff 104-106,108,141
+src/story/scientist.js
+  s_5f899ba316b5dc::t_c1ff7847f68fd1 8,13-14,19-21,94,153-157,161,164,168-227,234-241
+tests/answers-follow.test.js
+  s_5f899ba316b5dc::t_3db4e618650379 24
+tests/engine-thrum-arrival.test.js
+  s_5f899ba316b5dc::t_68e0c2e078fa8a 1-43
+tests/fragments-poi.test.js
+  s_5f899ba316b5dc::t_8398112b098b11 11-12,52-77
+tests/fragments-reach.js
+  s_5f899ba316b5dc::t_ede2331af13473 8,11-12,205-208,211-212,215,217-221,239-244,278,290-291,318-330
+tests/fragments.test.js
+  s_5f899ba316b5dc::t_c479d3cfc99358 160,207,592-700,707
+tests/rumours.test.js
+  s_5f899ba316b5dc::t_c9821b227146bb 72,74-76
+tests/thrum-aboard.test.js
+  s_5f899ba316b5dc::t_b24becaab06b67 105
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4a2bcc0939af1bb6b0ffd93a9b25c723ec813a14",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
