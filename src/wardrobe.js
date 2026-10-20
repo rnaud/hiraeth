@@ -114,7 +114,7 @@ export class Turntable {
  * The preview's framing: his whole height, `fov` degrees, the eye `dist` m off (further on a narrow picture, so the sword
  * beside him stays in it: `room` m either side of him), `eye` m over his feet, looking at `look`.
  */
-export const SHOT = { fov: 28, dist: 4.4, eye: 1.05, look: 0.9, room: 1.08, depth: 0.3 };
+export const SHOT = { fov: 28, dist: 4.8, eye: 1.15, look: 1.0, room: 1.08, depth: 0.3 };
 const _f = new THREE.Vector3(), _u = new THREE.Vector3(), _r = new THREE.Vector3();
 /**
  * The camera on the traveller for the preview: `yaw` rad round him from his front, about his up (player: { pos, heading,
@@ -240,9 +240,9 @@ export class PageGrip {
     const up = new THREE.Vector3(0, 1, 0).applyQuaternion(rq);
     const side = new THREE.Vector3(-1, 0, 0).applyQuaternion(rq);
     const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(rq);
-    const target = root.getWorldPosition(new THREE.Vector3()).addScaledVector(up, 1.04)
-      .addScaledVector(side, 0.42).addScaledVector(forward, 0.18);
-    const y = up.clone().negate().addScaledVector(side, 0.22).normalize();
+    const target = root.getWorldPosition(new THREE.Vector3()).addScaledVector(up, 0.9)
+      .addScaledVector(side, 0.45).addScaledVector(forward, 0.18);
+    const y = up.clone().addScaledVector(side, 0.14).normalize();
     const x = new THREE.Vector3().crossVectors(y, forward).normalize();
     const z = new THREE.Vector3().crossVectors(x, y).normalize();
     const swordQ = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(x, y, z));

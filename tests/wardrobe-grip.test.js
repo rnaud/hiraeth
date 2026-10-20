@@ -27,7 +27,7 @@ for (const body of ['b3', 'plain']) test(`${body}: Wardrobe holds the whole blad
       const contact = mount.position.clone().applyMatrix4(B.hand_r.matrixWorld);
       assert.ok(w.sword.getWorldPosition(new THREE.Vector3()).distanceTo(contact) < 1e-7, 'hilt exactly in the fitted fist');
       const axis = new THREE.Vector3(0, 1, 0).applyQuaternion(w.sword.getWorldQuaternion(new THREE.Quaternion()));
-      assert.ok(axis.y < -0.9, 'blade relaxed beside the leg, point down');
+      assert.ok(axis.y > 0.9, 'blade upright beside the body, clear of his face');
       for (const aspect of [1.1, 0.75, 0.6]) for (const yaw of [0, 0.9, Math.PI / 2, Math.PI]) {
         const shot = wardrobeShot(player, yaw, aspect), camera = new THREE.PerspectiveCamera(shot.fov, aspect);
         camera.position.copy(shot.eye); camera.lookAt(shot.look); camera.updateMatrixWorld();

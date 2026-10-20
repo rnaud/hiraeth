@@ -728,11 +728,11 @@ main.js and engine/game.js), `src/game-menu.js` `wardrobePanel` and `GameMenu.wa
   cleared). With B3 (the game's traveller until v2 is the default) the Outfit list is a line, "The outfits need the
   new traveller."; without the sword, the Blade list is "No sword yet.". One column of rows: ↑ ↓ go through both.
 - **On the right**, the traveller drawn live: each frame the page shows (main.js `wardrobeFrame` in `pausedFrame`),
-  the game's own frame from a camera on him (`wardrobeShot`: his whole height, 28°, 4.4 m off), him alone against the
+  the game's own frame from a camera on him (`wardrobeShot`: his whole height and upright blade, 28°, 4.8 m off), him alone against the
   paper (`captureView` with `keep`, `backdrop` and `into` the page's canvas, the lines at the world's weight). He turns on his own (`Turntable`: 0.32 rad/s, waiting 2 s after a hand turned him); the right
   stick turns him (src/controller.js hands it to the page's `menuAnalog` as `rx`), and so does a drag (mouse or
-  finger) on the picture. He holds a separate preview sword point down in his right fist (issue #586, `PageGrip`, `previewSword`),
-  using the body’s fitted `fistGrip` and two-bone arm solver. The full blade stays beside his leg as the camera turns.
+  finger) on the picture. He holds a separate preview sword blade up in his right fist (issue #586, `PageGrip`, `previewSword`),
+  using the body’s fitted `fistGrip` and two-bone arm solver. The hilt rests at waist height and the upright blade stays clear of his face as the camera turns.
   The gameplay sword is hidden while previewing; its equipped/drawn/sheath state and save are untouched.
   `PageGrip.put` restores exact arm/finger rotations and hand-driver state before the next idle pass and when leaving;
   `leave` restores the gameplay sword’s previous visibility. The shared code drives B3 and v2 in both hosts.
