@@ -167,6 +167,13 @@ the same entries in the same order, moved through by the web's own rules, and `v
   marks from world-map.js `mapMarks`, the ground not drawn), the cursor by `MenuState` / `moveCursor` (a row's
   end rests on the side tab, once more turns), LB / RB turn, A / × a thing's full view (its use: a gun mode),
   a quest tracked, a person's page (← → the next), Travel here.
+- **the Wardrobe** (issue #571): the game menu's last panel (src/wardrobe.js, src/game-menu.js `wardrobePanel`): its
+  rows and the view's `wardrobe` (the headings, the outfits' and the blades' notes, the turn line); the preview
+  follows the cursor (`wardrobeSync`, the host's `preview`, `wear`, `leave`: `menus.wardrobe = game.wardrobe`), the
+  right stick turns him (`analog`'s `rx`). engine/game.js draws him each frame the page shows (`wardrobeCapture`:
+  backend.js `wardrobe` → BridgeHost.Wardrobe → BridgeRunner.Wardrobe, the portraits' camera on layer 29 alone, his
+  drawables and the sword beside him moved onto it for the moment: `BridgeRenderer.OnLayer`), into one picture
+  BridgeMenu.Wardrobe.cs shows in its frame. `-wardrobe -out dir` photographs it (`unity-wardrobe-<name>.png`).
 - **the House map** (issue #405, #487): inside a makers' house the game menu has a panel for it after Map
   (src/game-menu.js `panelsFor`; the house's view taken as the game menu opens, `house()`: engine/game.js
   `houseView`); the Start menu has none since issue #487 (nor Items, Quests or Map: `START_SIDE`). The game view

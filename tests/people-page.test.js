@@ -196,7 +196,7 @@ test('the page in the menu: People is the fifth panel; A / × opens a person, B 
   assert.equal(m.back(), false, 'on the cards, B / ○ closes the menu');
   // turning away and back: the cards
   m.confirm(); assert.equal(m.person, 'dov');
-  m.turn(1); assert.equal(m.panel, 'quests', 'the last panel since the Sketchbook went (v1.62): round to the first'); m.turn(-1);
+  m.turn(1); assert.equal(m.panel, 'wardrobe', 'the Wardrobe after it (issue #571)'); m.turn(-1);
   assert.equal(m.person, null);
   // the wiring
   const main = src('src/main.js');

@@ -4,7 +4,7 @@
 // page, the sightings and the sketches, went in v1.62, issue #213: the journal still keeps them, src/quest.js.)
 //
 //   menuSources({ items, mode, quests, charge, keepsakes, journal, levels, known, current, boxes, errands, icon, titles, game, travel })
-//     → { items(), quests(), map(), worlds(), people() }
+//     → { items(), quests(), map(), worlds(), people(), house(), wardrobe() }
 
 import { ITEMS } from './items.js';
 import { CHARGE, chargeStep } from './story/charge.js';
@@ -123,5 +123,7 @@ export function menuSources(o) {
     map: (arg) => o.map?.(arg) ?? null,
     // (inside a makers' house: its map's view, src/house-map.js houseView; null outside one: issue #405, #487)
     house: () => o.house?.() ?? null,
+    // (the Wardrobe: his outfits and the blade's colours, src/wardrobe.js wireWardrobe's data; issue #571)
+    wardrobe: () => o.wardrobe?.() ?? null,
   };
 }

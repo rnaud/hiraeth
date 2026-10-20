@@ -114,6 +114,7 @@ import { slots, slotStorage } from '../src/save-slots.js';
 import { menuSources } from '../src/game-menu-data.js';
 import { WorldMap, MAP, mapBounds, zoomBounds, mapMarks, scaleBar } from '../src/world-map.js';
 import { houseHere, houseView } from '../src/house-map.js';
+import { wireWardrobe, wardrobeShot, BACKDROP as WARDROBE_BACKDROP } from '../src/wardrobe.js';
 import { interiorAt } from '../src/interior-kit.js';
 import { fillUnfound, portraitPaint } from './traveller-paint.js';
 import { PORTRAIT_EYE_PAINT } from '../src/characters/portrait-head.js';
@@ -593,6 +594,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // and the kit's colours won in the fight temples were the page's alone, #264). A fight's bench (-fight): armed, as the
   // Arena lends them
   const kit = optional('the kit', () => wireKit({ tool, game: gameState, armed: fight }));
+  // the game menu's Wardrobe (src/wardrobe.js, issue #571): the blade's colours; the outfits are the v2 traveller's, which
+  // the engines don't draw yet (the page says so)
+  const wardrobe = optional('the wardrobe', () => wireWardrobe({ game: gameState, kit, tool, player, dress: () => null }));
   let story = null;
   if (people && humans && lib) {
     try {
@@ -1156,6 +1160,13 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     backend.portrait(n, { eye: eye.toArray(), look: look.toArray(), up: player.frame.up.toArray(), fov: o.fov ?? 36, ids, backdrop: o.backdrop ?? null, size: w, css: 84 });
     return `engine:portrait:${n}`;
   }
+  // the Wardrobe's traveller (src/wardrobe.js, main.js wardrobeFrame): him and the sword beside him alone against the
+  // paper, from the turntable's angle, drawn by the engine into the page's picture each frame the page shows
+  function wardrobeCapture(shot) {
+    const ids = [];
+    for (const k of wardrobe.keep()) k?.traverse?.((x) => { if (x.visible !== false) { const id = mirror.idOf(x); if (id) ids.push(id); } });
+    if (ids.length) backend.wardrobe?.({ eye: shot.eye.toArray(), look: shot.look.toArray(), up: player.frame.up.toArray(), fov: shot.fov, ids, backdrop: WARDROBE_BACKDROP });
+  }
   let simT = 0, frames = 0, saveIn = 10;
   // the game menu's Map (main.js mapSource, src/world-map.js): the marks over the world's rectangle (as wide as the
   // engine's sheet for it, issue #272), and its ground drawn as the web draws it, the world's collision sampled straight
@@ -1549,6 +1560,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         fragments: () => fragments?.counts?.() ?? null,
         errandDefs: ERRANDS, done: worldDone,   // (the Quests panel's errands under way, the Worlds page's worlds told, as main.js)
         colours: () => kit?.colours() ?? null,   // (the Items panel's Colours row: src/host/game-host.js wireKit)
+        wardrobe: () => wardrobe?.data() ?? null,   // (the Wardrobe's lists: src/wardrobe.js)
         map: (o) => mapSource(o), travel: (id) => !!travel && fastTravel.can({ to: id, from: levelId, seen, flag }), order: ORDER, known: (id) => journal.seen(id) });
     },
     /** The Map's drawn ground by its key (the view's map.ground): a PixelCanvas (width, height, data: RGBA, rows top down). */
@@ -1572,6 +1584,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     },
     /** The holo table's galactic map (engine/starmap.js; null off the ship's scenes): its state, a run's or a test's. */
     get starMap() { return starMap; },
+    /** The game menu's Wardrobe (src/wardrobe.js wireWardrobe: preview, wear, leave; engine/menus.js wardrobe). */
+    get wardrobe() { return wardrobe; },
     /** Open the galactic map as the holo table does (a run's, a test's): true when it opened. */
     openStarMap() { return openStarMap(); },
     /** The player's settings (src/ui.js Settings) on the camera and the sound, as main.js applies them. */
@@ -1616,7 +1630,11 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         mirror.time = simT;
         veilsFrame();
         level.beforeDraw?.(camera);   // (the frame's camera final: what a level lays out only where it is seen, main.js renderFrame)
+        const onWardrobe = !!wardrobe && menus.mode === 'game' && !menus.full && menus.state?.panel?.id === 'wardrobe';
+        const wardrobeAt = onWardrobe ? wardrobeShot(player, menus.turntable.yaw, backend.wardrobeAspect?.() ?? 0.9) : null;
+        if (onWardrobe) { menus.turntable.tick(realDt); wardrobe.tick(realDt); wardrobe.place(wardrobeAt); }
         const stats = mirror.sync(scene, camera);
+        if (onWardrobe) wardrobeCapture(wardrobeAt);
         return { ms: { update: tB0 - tA, mirror: performance.now() - tB0 }, stats, frames };
       }
       if (photo.on) {

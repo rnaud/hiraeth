@@ -95,6 +95,22 @@ namespace Hiraeth.Bridge
         }
         public static void Restore(List<GameObject> off) { foreach (var go in off) if (go) go.SetActive(true); }
         /// <summary>
+        /// These nodes (and what each holds) on `layer` for a moment, the camera that draws that layer alone seeing them alone
+        /// (the Wardrobe's traveller, every frame: cheaper than Isolate's thousands of nodes switched off and on): their
+        /// layers as they were, for PutBack.
+        /// </summary>
+        public List<(GameObject go, int layer)> OnLayer(HashSet<int> keep, int layer)
+        {
+            var was = new List<(GameObject, int)>();
+            foreach (var id in keep)
+            {
+                if (!nodes.TryGetValue(id, out var n) || !n.go) continue;
+                foreach (var t in n.go.GetComponentsInChildren<Transform>(true)) { was.Add((t.gameObject, t.gameObject.layer)); t.gameObject.layer = layer; }
+            }
+            return was;
+        }
+        public static void PutBack(List<(GameObject go, int layer)> was) { foreach (var (go, l) in was) if (go) go.layer = l; }
+        /// <summary>
         /// A MakeHuman face's shape keys as the mesh's blend shapes (engine/unity/backend.js faceKeyDeltas: per key the
         /// vertices it moves, Unity's frame); op 19 sets their weights a node.
         /// </summary>

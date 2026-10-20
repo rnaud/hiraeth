@@ -198,7 +198,7 @@ test('the House map is the game menu\'s alone (issue #487): a panel after Map in
   const house = () => (inside ? houseView(rt, { game, player: { pos: m.spot.clone(), heading: 0 } }) : null);
   assert.equal(panelsFor(null), PANELS);
   const v = house();
-  assert.deepEqual(panelsFor(v).map((p) => p.id), ['quests', 'map', 'house', 'items', 'worlds', 'people'], 'after Map');
+  assert.deepEqual(panelsFor(v).map((p) => p.id), ['quests', 'map', 'house', 'items', 'worlds', 'people', 'wardrobe'], 'after Map');
   // the panel: the floors' tabs, the one shown, a canvas for its drawing; one cell (the strip names the floor)
   const P = housePanel({ view: v, floor: v.floors[1].id });
   assert.equal(P.rows.length, 1);

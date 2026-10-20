@@ -2348,6 +2348,9 @@ An outfit is a set of garments on the same body, skin piece, head and skeleton; 
 default is the base GLB's own (`outfits.default` in its manifest); every other outfit is its own GLB, atlas
 and manifest in `data/characters/traveller-v2/outfits/<id>/`, listed in `data/characters/traveller-v2/outfits.json`.
 Web only for now: nothing in the game draws v2; the test page below does, and the Unity port doesn't.
+The player chooses one in the game menu's **Wardrobe** (issue #571; docs/systems/ui.md, "The Wardrobe"): the list there
+is `src/wardrobe.js` `OUTFITS` (these ids, each with its unlock), the choice is saved (`wardrobe.outfit`) and worn
+through `wearTravellerV2`'s `wear(id)`; with B3 drawn, the page says the outfits need the new traveller.
 
 **The first: the glider pilot** (references: five lab sheets, `docs/design/traveller-outfit-prompts.md`; the
 pick in `references/characters/traveller-outfits/glider-pilot/`): a cropped mustard flight jacket with a fleece

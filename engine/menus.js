@@ -25,7 +25,7 @@
 import { slots as defaultStore, SLOT_COUNT, DEBUG_SLOT, formatPlaytime, formatDate, progressLine } from '../src/save-slots.js';
 import { ORDER, TITLES } from '../src/levels/names.js';
 import { t } from '../src/i18n.js';
-import { MenuState, PANELS, DEFAULT_PANEL, ACT, panelsFor, itemsPanel, questsPanel, worldsPanel, peoplePanel, mapPanel, housePanel, worldFacts, CARRY_COL, GEAR_COLS, PEOPLE_COLS, KIND_MARK, ENDED } from '../src/game-menu.js';
+import { MenuState, PANELS, DEFAULT_PANEL, ACT, panelsFor, itemsPanel, questsPanel, worldsPanel, peoplePanel, mapPanel, housePanel, wardrobePanel, worldFacts, CARRY_COL, GEAR_COLS, PEOPLE_COLS, KIND_MARK, ENDED } from '../src/game-menu.js';
 import { sideStep } from '../src/menu-pad.js';
 import { controlsList, REBIND_PAD, REBIND_KEYS, PAD_RAW_ROWS, TEXT_SIZES, reducedMotion } from '../src/ui.js';
 import { PAD_VERBS, BUTTON_NAME, KEYS } from '../src/bindings.js';
@@ -45,6 +45,7 @@ import { tabWindow } from '../src/world-debug.js';
 import { TAB_STRIP, verb } from '../src/dev-menu.js';
 import { drawHouseMap, HouseMapPage, HOUSE_MAP } from '../src/house-map.js';
 import { PixelCanvas } from './raster.js';
+import { Turntable } from '../src/wardrobe.js';
 
 /** The slot after `into` for the debug saves: the debug slot, then the player's 1..count, round again (src/title.js). */
 export const nextInto = (into, count = SLOT_COUNT) => (into === DEBUG_SLOT ? 1 : into >= count ? DEBUG_SLOT : into + 1);
@@ -157,10 +158,10 @@ const verbName = (v, kind = 'pad') => { const k = `verb.${v}.${kind}`, s = t(k);
 /** Is the keyboard in hand (the body's 'controller' class unset, as engine/game.js's InputMode keeps it; none: the pad)? */
 const keysInHand = () => { const b = globalThis.document?.body?.classList; return !!b && !b.contains?.('controller'); };
 
-const BUILDERS = { items: itemsPanel, quests: questsPanel, map: mapPanel, worlds: worldsPanel, people: peoplePanel, house: housePanel };
+const BUILDERS = { items: itemsPanel, quests: questsPanel, map: mapPanel, worlds: worldsPanel, people: peoplePanel, house: housePanel, wardrobe: wardrobePanel };
 /** Each panel's columns across the sheet, as the page lays them out (the cells' `col`; a cell's `span` columns wide). */
 const COLS = { quests: [0.64, 0.36], items: Array(GEAR_COLS).fill(1 / GEAR_COLS),   // (the items': as many as fit, itemGrid)
-  worlds: [1], people: Array(PEOPLE_COLS).fill(1 / PEOPLE_COLS), map: [1], house: [1] };
+  worlds: [1], people: Array(PEOPLE_COLS).fill(1 / PEOPLE_COLS), map: [1], house: [1], wardrobe: [1] };
 /** A menu's prompt with its confirm (written "A / ×") and back ("B / ○") as the pad in hand has them (native-pad.js). */
 export const menuKeys = (s) => {
   const ok = confirmKey(), back = backKey();
@@ -215,8 +216,12 @@ export class EngineMenus {
    * @param o.saveLine  () → the line under the Start menu's heading: the save, the world, the time played
    * @param o.updates   the player's script updates (engine/unity/updates.js UnityUpdates: rows(), act(a), tick()); null: none
    */
-  constructor({ store = defaultStore, settings = null, sources = null, dev = () => true, order = ORDER, onStart = () => {}, onResume = () => {}, onQuit = () => {}, onTravel = () => null, onUse = () => {}, onTrack = () => {}, onSetting = () => {}, onPhoto = () => {}, where = () => '', version = '', itemCols = () => GEAR_COLS, mapBox = () => null, screen = () => ({ w: 1280, h: 720 }), shots = (o) => chooseShot(o), saveLine = () => '', updates = null, house = () => null, hasJets = () => false, piratesBeaten = () => false } = {}) {
-    Object.assign(this, { store, settings, sources, dev, order, onStart, onResume, onQuit, onTravel, onUse, onTrack, onSetting, onPhoto, where, version, itemCols, mapBox, screen, shots, saveLine, updates, house, hasJets, piratesBeaten });
+  constructor({ store = defaultStore, settings = null, sources = null, dev = () => true, order = ORDER, onStart = () => {}, onResume = () => {}, onQuit = () => {}, onTravel = () => null, onUse = () => {}, onTrack = () => {}, onSetting = () => {}, onPhoto = () => {}, where = () => '', version = '', itemCols = () => GEAR_COLS, mapBox = () => null, screen = () => ({ w: 1280, h: 720 }), shots = (o) => chooseShot(o), saveLine = () => '', updates = null, house = () => null, hasJets = () => false, piratesBeaten = () => false, wardrobe = null } = {}) {
+    Object.assign(this, { store, settings, sources, dev, order, onStart, onResume, onQuit, onTravel, onUse, onTrack, onSetting, onPhoto, where, version, itemCols, mapBox, screen, shots, saveLine, updates, house, hasJets, piratesBeaten, wardrobe });
+    // the Wardrobe (issue #571, src/wardrobe.js): `wardrobe` its host (wireWardrobe: preview, wear, leave; engine/game.js),
+    // how far round the traveller is turned, and the cell its preview follows ('kind:id'; null off the page)
+    this.turntable = new Turntable();
+    this._wd = null;
     // the House map (issue #405, #487): the house's view as the game menu opened (house(): src/house-map.js houseView, or
     // null outside a house), the floor chosen, and its drawn floors by key (engine/raster.js: the engine shows them as the Map's)
     this.hv = null;
@@ -241,7 +246,19 @@ export class EngineMenus {
   }
 
   get open() { return !!this.mode; }
-  changed() { this.v++; }
+  changed() { this.v++; this.wardrobeSync(); }
+  /**
+   * The Wardrobe's preview (issue #571): on its page, the traveller in what the cursor is on (src/wardrobe.js previewOf),
+   * once each time it moves; off it (another panel, the Start menu, closed), him as he was.
+   */
+  wardrobeSync() {
+    const on = this.mode === 'game' && !this.full && this.state?.panel?.id === 'wardrobe';
+    if (!on) { if (this._wd != null) { this._wd = null; try { this.wardrobe?.leave?.(); } catch (e) { console.warn(`[menus] the wardrobe: ${e?.message ?? e}`); } } return; }
+    const p = this.panel(), cell = this.state.cell(p.rows), k = cell ? `${cell.kind}:${cell.id}` : '';
+    if (k === this._wd) return;
+    this._wd = k;
+    try { this.wardrobe?.preview?.(cell); } catch (e) { console.warn(`[menus] the wardrobe: ${e?.message ?? e}`); }
+  }
 
   /** Open a menu: 'title', 'start', or 'game' (on a panel). */
   show(mode, panel = null) {
@@ -265,7 +282,7 @@ export class EngineMenus {
       this.state.panels = panelsFor(this.hv);
       this.state.at.house = { r: 0, c: 0 };   // (on the floor, not a side tab)
     }
-    if (mode === 'game') { this.state.show(panel ?? DEFAULT_PANEL); this.full = null; this.person = null; this.zoom = null; this.mapFresh = true; this.startAt(); }
+    if (mode === 'game') { this.state.show(panel ?? DEFAULT_PANEL); this.full = null; this.person = null; this.zoom = null; this.mapFresh = true; this.turntable.reset(); this.startAt(); }
     this.changed();
   }
   close() {
@@ -1012,9 +1029,11 @@ export class EngineMenus {
    * its cursor smoothly (the view following), RT zooms in and LT out round it, as far as they are pressed. True when
    * the Map took them (the controller then leaves the stick's steps to the D-pad).
    */
-  analog({ x = 0, y = 0, lt = 0, rt = 0 } = {}, dt = 1 / 60) {
+  analog({ x = 0, y = 0, lt = 0, rt = 0, rx = 0 } = {}, dt = 1 / 60) {
     // (the galactic map: while there is a world to find, the stick moves the scanner, the D-pad chooses a world)
     if (this.mode === 'starmap') { this.starStick = [x, y]; return !!this.star?.searching() && !this.star.asking; }
+    // (the Wardrobe: the right stick turns the traveller; the left one still moves the cursor)
+    if (this.mode === 'game' && this.state.panel.id === 'wardrobe') { this.turntable.stick(rx, dt); return false; }
     if (!this.onMap) return false;
     const V = this.mapView, k = (rt > 0.08 ? rt : 0) - (lt > 0.08 ? lt : 0);
     if (x || y) V.stick(x, y, dt);
@@ -1074,6 +1093,8 @@ export class EngineMenus {
     }
     if (name !== 'confirm' || !cell) return;
     if (cell.act === 'track') { this.onTrack(cell.id); return; }
+    // (the Wardrobe: worn, saved, in the world at once; the preview again from the save: src/wardrobe.js)
+    if (cell.act === 'wear') { this.wardrobe?.wear?.(cell.kind, cell.id); this._wd = null; return; }
     if (cell.act === 'open' && cell.kind === 'person') { this.person = cell.id; this.state.at.people = { r: 0, c: 0 }; return; }
     if (cell.act === 'back') { const id = this.person; this.person = null; this.cursorTo('people', (x) => x.id === id); return; }
     if (cell.act === 'zoom') { this.zoom = this.zoom === cell.id ? null : cell.id; return; }
@@ -1165,6 +1186,8 @@ export class EngineMenus {
       step: ['quest', 'charge', 'errand'].includes(c.kind) ? plain(c.q?.step) : '',
       // (and its goal in italics between, and its mark: the main story's ◆, an errand's ◇, as the page's .qcard; issue #264)
       goal: ['quest', 'charge', 'errand'].includes(c.kind) ? plain(c.q?.goal) : '', main: !!c.q?.main,
+      // (the Wardrobe's lines: a blade's colour, the one worn, an outfit not his yet)
+      ...(p.id === 'wardrobe' ? { swatch: c.swatch ?? '', worn: !!c.worn, locked: !!c.locked } : {}),
     })));
     if (grid) {
       // the slots still to find, drawn after the gear but not named (src/game-menu.js itemsPanel), never the cursor's
@@ -1185,6 +1208,15 @@ export class EngineMenus {
     if (p.id === 'quests') {
       const d = p.data ?? {}, more = (l = []) => (l.length > ENDED ? t('gm.more', { n: l.length - ENDED }) : '');
       view.done = { head: t('gm.done'), more: more(d.done), moreFailed: more(d.failed), none: (d.done?.length || d.failed?.length) ? '' : t('gm.noneYet') };
+    }
+    if (p.id === 'wardrobe') {
+      // the Wardrobe (issue #571): the outfits' heading over their rows (or the line that they need the new traveller),
+      // the blade's over its; the traveller drawn by the engine into the page's picture on the right (BridgeRunner.Wardrobe)
+      const d = p.data ?? {};
+      view.wardrobe = { outfitHead: t('gm.wd.outfit'), bladeHead: t('gm.wd.blade'), outfits: rows.filter((r) => r[0]?.kind === 'outfit').length,
+        outfitNote: d.v2 ? '' : t('gm.wd.needV2'), bladeNote: d.sword ? '' : t('gm.wd.noSword'), turn: t('gm.wd.turnPad'), wornTag: t('gm.wd.wornTag') };
+      view.empty = '';
+      view.hint = `${cell?.act === 'wear' ? 'A / × wear · ' : ''}LB / RB turn · B / ○ close`;
     }
     if (p.id === 'items') { view.slots = p.data?.slots ?? 0; view.gear = (p.data?.gear ?? []).length; view.chimes = p.data?.chimes ?? null; }
     if (p.id === 'map') {

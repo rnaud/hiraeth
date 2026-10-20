@@ -203,9 +203,9 @@ test('the Map panel: no list, the cursor named beside it; the stick moves it, th
 
 test('the pad reads the Map\'s stick and triggers each frame in a menu; the keys zoom with − and +, the mouse with its wheel', () => {
   const ctl = src('src/controller.js'), gm = src('src/game-menu.js'), main = src('src/main.js');
-  assert.match(ctl, /const analog = ctx === 'menu' && !!this\.menuAnalog\?\.\(\{ x: left\.x, y: left\.y, lt: values\[LT\] \?\? 0, rt: values\[RT\] \?\? 0 \}, dt\)/);
+  assert.match(ctl, /const analog = ctx === 'menu' && !!this\.menuAnalog\?\.\(\{ x: left\.x, y: left\.y, lt: values\[LT\] \?\? 0, rt: values\[RT\] \?\? 0, rx: right\.x, ry: right\.y \}, dt\)/);
   assert.match(ctl, /!analog && Math\.abs\(left\.x\) > 0\.5/, 'the stick\'s steps left to the Map');
-  assert.match(main, /menuAnalog: \(a, dt\) => menuRoot\(\) === journal\.el && journal\.menu\.panel === 'map' && journal\.menu\.mapAnalog\(a, dt\)/);
+  assert.match(main, /menuAnalog: \(a, dt\) => menuRoot\(\) === journal\.el && \(journal\.menu\.panel === 'map' \? journal\.menu\.mapAnalog\(a, dt\) : journal\.menu\.wardrobeAnalog\(a, dt\)\)/);
   assert.match(gm, /\['Minus', 'NumpadSubtract', 'Equal', 'NumpadAdd'\]/);
   assert.match(gm, /addEventListener\('wheel'/);
   assert.match(main, /quests: \(storyRt\.quests\.objectives\?\.\(\) \?\? \[\]\)/, 'the quests\' marks from the quests under way');

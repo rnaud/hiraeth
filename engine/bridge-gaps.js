@@ -318,6 +318,8 @@ export const GAPS = {
       'import:src/pose-report.js#installPoseReport', 'import:src/characters/traveller-v2.js#travellerSetting',
       'import:src/characters/traveller-v2.js#outfitList', 'fn:devTraveller', 'fn:setTraveller'],
     what: 'the dev tools: hitboxes, inputs, teleports, films, the picker, the Notes screenshot, the pose report, the v2 traveller switch (issue #493)', status: 'web-only', why: 'developer tools on the page (the engines have their own command-line switches)' },
+    { keys: ['import:src/wardrobe.js#chosenOutfit', 'import:src/wardrobe.js#OUTFIT_KEY'],
+      what: 'the outfit chosen in the Wardrobe put on the v2 traveller as the world loads (issue #571)', status: 'web-only', why: 'the engines draw B3, which has no outfits (the Wardrobe itself is shared: src/wardrobe.js wireWardrobe in engine/game.js, its page says the outfits need the new traveller)' },
   ],
 };
 

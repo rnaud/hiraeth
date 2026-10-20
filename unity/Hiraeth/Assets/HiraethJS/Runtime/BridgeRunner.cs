@@ -1063,6 +1063,57 @@ namespace Hiraeth.Bridge
             Debug.Log($"Hiraeth bridge: portrait {n}: {keep.Count} drawables, {S} px");
         }
 
+        /// <summary>
+        /// The game menu's Wardrobe (issue #571; engine/game.js wardrobeCapture, as main.js wardrobeFrame): the traveller and
+        /// the sword beside him (drawables `ids`) alone against the backdrop, from eye toward look, lit as in the world, into
+        /// one picture kept for the page (BridgeMenu.Wardrobe.cs shows it), every frame the page shows. The portraits' camera
+        /// with the UI's layer and the rest of the world off: the kept nodes on a layer of their own for the moment it draws.
+        /// </summary>
+        public RenderTexture wardrobeRT;
+        public const int WardrobeLayer = 29;
+        public void Wardrobe(string json)
+        {
+            var d = Json.Parse(json) as Dictionary<string, object>;
+            if (d == null || !scene || !cam) return;
+            var keep = new HashSet<int>();
+            foreach (var x in d.L("ids") ?? new List<object>()) if (x is double dd) keep.Add((int)dd);
+            Vector3 V(string k) { var l = d.L(k); return l != null && l.Count >= 3 ? new Vector3((float)Json.Num(l[0]), (float)Json.Num(l[1]), (float)Json.Num(l[2])) : Vector3.zero; }
+            Vector3 eye = V("eye"), at = V("look"), up = V("up");
+            if (up.sqrMagnitude < 1e-6f) up = Vector3.up;
+            // (the page's picture: its frame's shape on the menus' canvas, 720 rows; drawn again at a new shape)
+            float aspect = menu ? Mathf.Clamp(menu.WardrobeAspect, 0.4f, 2.5f) : 0.9f;
+            int h = 720, w = Mathf.RoundToInt(h * aspect);
+            if (!wardrobeRT || wardrobeRT.width != w || wardrobeRT.height != h)
+            {
+                if (wardrobeRT) { wardrobeRT.Release(); Destroy(wardrobeRT); }
+                wardrobeRT = new RenderTexture(w, h, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB) { name = "wardrobe" };
+                if (menu) menu.WardrobePicture(wardrobeRT);
+            }
+            var pc = PortraitCamera();
+            var t = pc.transform;
+            var was = scene.OnLayer(keep, WardrobeLayer);
+            var bd0 = Shader.GetGlobalVector("_Backdrop");
+            float rain0 = Shader.GetGlobalFloat("_Rain"), near0 = Shader.GetGlobalFloat("_RainNear"), storm0 = Shader.GetGlobalFloat("_Storm");
+            try
+            {
+                var bd = ColorUtility.TryParseHtmlString(d.S("backdrop") ?? "", out var c) ? c : Color.clear;
+                Shader.SetGlobalVector("_Backdrop", new Vector4(bd.r, bd.g, bd.b, bd.a > 0 ? 1 : 0));
+                Shader.SetGlobalFloat("_Rain", 0); Shader.SetGlobalFloat("_RainNear", 0); Shader.SetGlobalFloat("_Storm", 0);
+                t.SetPositionAndRotation(eye, Quaternion.LookRotation(at - eye, up));
+                pc.cullingMask = 1 << WardrobeLayer;
+                pc.fieldOfView = d.Has("fov") ? d.F("fov") : 28; pc.targetTexture = wardrobeRT; pc.aspect = (float)w / h;
+                scene.FinishFrame();
+                pc.Render();
+            }
+            finally
+            {
+                pc.targetTexture = null; pc.cullingMask = cam.cullingMask;
+                Shader.SetGlobalVector("_Backdrop", bd0);
+                Shader.SetGlobalFloat("_Rain", rain0); Shader.SetGlobalFloat("_RainNear", near0); Shader.SetGlobalFloat("_Storm", storm0);
+                BridgeRenderer.PutBack(was);
+            }
+        }
+
         /// <summary>A batch run's screen of another size and shape (issue #470: the Retroid's portrait first frame, then its
         /// 4:3): the camera drawn into a picture of w × h from now on, the canvases laid out on it as on such a screen, the
         /// shots taken at its size; 0, 0 gives the screen back.</summary>

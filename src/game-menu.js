@@ -29,6 +29,8 @@
 //               opens one: what you know of them, where they are now, what passed between you; B / ○ back
 //               to the cards (src/story/people-book.js). The cards' grid moves by where the cards are on the
 //               screen (gridStep, src/menu-pad.js: data-grid-nav), so it is right at any width; the items too.
+//   Wardrobe    the last (issue #571, src/wardrobe.js): his outfits and the blade's colours won down the left, the
+//               traveller drawn live on the right (main.js), in what the cursor is on; A / × wears it, saved
 //   House map   inside a makers' house only, after Map (issue #405; here since #487, the Start menu's before): the
 //               house floor by floor (src/house-map.js), ▲ ▼ the floor above / below (LB / RB turn the panels here)
 //
@@ -47,9 +49,11 @@ import { t, onLanguage } from './i18n.js';
 import { chimeIcon } from './chime-icon.js';
 import { MapView, VIEW, mapAspect } from './world-map.js';
 import { drawHouseMap, HouseMapPage, HOUSE_MAP } from './house-map.js';
+import { Turntable } from './wardrobe.js';
 
-// (the names in the language now: src/i18n.js; the menu opens on the first, Quests: issue #213)
-export const PANELS = ['quests', 'map', 'items', 'worlds', 'people'].map((id) => ({ id, get name() { return t(`gm.${id}`); } }));
+// (the names in the language now: src/i18n.js; the menu opens on the first, Quests: issue #213; the Wardrobe last, one
+// LB / L1 from the Quests: issue #571)
+export const PANELS = ['quests', 'map', 'items', 'worlds', 'people', 'wardrobe'].map((id) => ({ id, get name() { return t(`gm.${id}`); } }));
 /** The House map's panel, after Map, only inside a makers' house (issue #405; the Start menu's page until #487). */
 export const HOUSE_PANEL = { id: 'house', get name() { return t('gm.house'); } };
 /** The panels with the house's view `house` (src/house-map.js houseView) or without one (null: outside a house). */
@@ -403,11 +407,38 @@ export function housePanel({ view = null, floor = null } = {}) {
   return { html, rows };
 }
 
-const BUILDERS = { items: itemsPanel, quests: questsPanel, map: mapPanel, worlds: worldsPanel, people: peoplePanel, house: housePanel };
+/**
+ * Wardrobe (issue #571; src/wardrobe.js wardrobeData): { v2, sword, outfits: [{ id, name, unlocked, worn }], blades: [{ id,
+ * name, house, swatch, worn }] }. On the left the outfits (with B3, the game's traveller until v2 is the default, a line
+ * that they need the new traveller instead) and the blade's colours won (none without the sword), a line each, the worn
+ * one tagged; on the right the stage the traveller is drawn on (a canvas main.js draws into: GameMenu.wardrobeCanvas).
+ * One column of rows, the outfits then the blades: ↑ ↓ go through both, the preview follows (GameMenu.paint); A / ×
+ * wears the one picked (act 'wear'; an outfit not his yet has no act).
+ */
+export function wardrobePanel({ v2 = false, sword = false, outfits = [], blades = [] } = {}) {
+  const sub = (kind, worn, more = '') => [t(kind === 'outfit' ? 'gm.wd.outfit' : 'gm.wd.blade'), more, worn ? t('gm.wd.worn') : ''].filter(Boolean).join(' · ');
+  const os = v2 ? outfits.map((o) => ({ col: 0, kind: 'outfit', id: o.id, name: o.unlocked ? o.name : t('gm.wd.locked'), sub: sub('outfit', o.worn), desc: '', act: o.unlocked && !o.worn ? 'wear' : null, locked: !o.unlocked, worn: !!o.worn })) : [];
+  const bs = sword ? blades.map((b) => ({ col: 0, kind: 'blade', id: b.id, name: b.name, sub: sub('blade', b.worn, b.house ? t('gm.wd.from', { house: b.house }) : t('gm.wd.makers')), desc: '', act: b.worn ? null : 'wear', swatch: b.swatch, worn: !!b.worn })) : [];
+  const rows = [...os, ...bs].map((c) => [c]);
+  const line = (c, r) => `<button class="line wd-${c.kind}${c.worn ? ' worn' : ''}${c.locked ? ' locked' : ''}" ${cellAttrs(r, 0)} data-wd="${esc(c.kind)}:${esc(c.id)}">${c.kind === 'blade'
+    ? `<i class="ico swatch" style="background:${esc(c.swatch)}"></i>` : `<i class="ico mark">${c.locked ? '?' : KIND_MARK.cosmetic}</i>`}<span>${esc(c.name)}</span>${c.worn ? `<em class="tag">${t('gm.wd.wornTag')}</em>` : ''}</button>`;
+  const turn = inputKind() === 'pad' ? t('gm.wd.turnPad') : t('gm.wd.turnHand');
+  const html = `<div class="gm-wardrobe">
+    <div class="wd-lists">
+      <section class="wd-outfits"><h2>${t('gm.wd.outfit')}</h2>${v2 ? os.map((c, i) => line(c, i)).join('') : `<p class="none">${t('gm.wd.needV2')}</p>`}</section>
+      <section class="wd-blades"><h2>${t('gm.wd.blade')}</h2>${sword ? bs.map((c, i) => line(c, os.length + i)).join('') : `<p class="none">${t('gm.wd.noSword')}</p>`}</section>
+    </div>
+    <figure class="wd-stage" data-wardrobe-stage><canvas class="wd-view"></canvas><figcaption class="wd-turn">${esc(turn)}</figcaption></figure>
+  </div>`;
+  const worn = rows.findIndex((r) => r[0].worn);
+  return { html, rows, start: worn >= 0 ? { r: worn, c: 0 } : null };
+}
+
+const BUILDERS = { items: itemsPanel, quests: questsPanel, map: mapPanel, worlds: worldsPanel, people: peoplePanel, house: housePanel, wardrobe: wardrobePanel };
 const MAP_SHADOW = 10;   // px: the map sheet's ink shadow and border, kept inside the page (src/game-menu.css)
 
 /** The verb A / × does on a cell ('' if nothing). */
-export const ACT = Object.defineProperties({}, Object.fromEntries(['use', 'track', 'look', 'turn', 'open', 'back', 'zoom', 'whole', 'travel', 'colour'].map((k) => [k, { get: () => t(`gm.act.${k}`), enumerable: true }])));
+export const ACT = Object.defineProperties({}, Object.fromEntries(['use', 'track', 'look', 'turn', 'open', 'back', 'zoom', 'whole', 'travel', 'colour', 'wear'].map((k) => [k, { get: () => t(`gm.act.${k}`), enumerable: true }])));
 
 /**
  * What the confirm button does on the picked cell, in the info strip: its glyph (a pad's printed A, the
@@ -452,9 +483,12 @@ export class GameMenu {
    * @param o.onTrack (id) a quest chosen (the scout finds it) · o.onUse (id) an item used (a gun mode, a gadget, a switch)
    * @param o.onTravel (id) "Travel here" on a world: null if the ship goes, else the line why not (shown in the full view)
    * @param o.onClose () the ✕, B / ○ or Esc (Journal.toggle(false))
+   * @param o.wardrobe the Wardrobe's host (src/wardrobe.js wireWardrobe): preview(cell), wear(kind, id), leave()
    */
-  constructor(el, { sources = {}, onTrack = null, onUse = null, onTravel = null, onClose = null, onColour = null } = {}) {
-    Object.assign(this, { el, sources, onTrack, onUse, onTravel, onClose, onColour });
+  constructor(el, { sources = {}, onTrack = null, onUse = null, onTravel = null, onClose = null, onColour = null, wardrobe = null } = {}) {
+    Object.assign(this, { el, sources, onTrack, onUse, onTravel, onClose, onColour, wardrobe });
+    this.turntable = new Turntable();   // the Wardrobe's traveller: how far round he is turned (src/wardrobe.js)
+    this._wd = null;        // (the Wardrobe shown: the cell its preview follows, as 'kind:id'; null off it)
     this.note = null;       // a line in the full view (a fast travel refused: why)
     this.state = new MenuState();
     this.rows = [];
@@ -544,6 +578,19 @@ export class GameMenu {
       this.mapView.zoomBy(e.deltaY < 0 ? VIEW.wheel : 1 / VIEW.wheel, this.mapView.fromSheet(p.x, p.y));
       this.mapPaint();
     }, { passive: false });
+    // the Wardrobe's stage: a drag (a finger's, a held button's) turns him
+    el.addEventListener('pointerdown', (e) => {
+      if (this.panel !== 'wardrobe' || !e.target.closest?.('[data-wardrobe-stage]')) return;
+      this._turnX = e.clientX;
+      e.target.setPointerCapture?.(e.pointerId);
+    });
+    el.addEventListener('pointermove', (e) => {
+      if (this._turnX == null || !e.buttons) return;
+      this.turntable.drag(e.clientX - this._turnX);
+      this._turnX = e.clientX;
+    });
+    const endTurn = () => { this._turnX = null; };
+    el.addEventListener('pointerup', endTurn); el.addEventListener('pointercancel', endTurn);
     // a mouse over a cell picks it (not a finger: that would act on the first tap)
     el.addEventListener('pointerover', (e) => {
       if (e.pointerType !== 'mouse' || this.full) return;
@@ -565,6 +612,7 @@ export class GameMenu {
   /** Build the current panel's cells from its source and draw it. */
   render() {
     const id = this.panel;
+    if (id !== 'wardrobe') this.wardrobeLeave();   // (turned away from the Wardrobe: him as he was)
     let data = null;
     // (the People panel: its source is asked for the open person's page too; the Map, for a sharper part when zoomed)
     // (the Map's shape: the page's box for it, as last measured: issue #272)
@@ -591,7 +639,7 @@ export class GameMenu {
     if (!at.edge && rows.length) { at.r = Math.min(at.r, rows.length - 1); at.c = Math.min(at.c, rows[at.r].length - 1); }
     // (a thing open full screen that is no longer there: back to the panel)
     if (this.full && (this.full.panel !== id || !this.fullCell())) this.full = null;
-    if (!this.el) return;
+    if (!this.el) { if (id === 'wardrobe') this.wardrobeFollow(this.state.cell(rows)); return; }
     this.el.dataset.panel = id;
     this.el.querySelector('.gm-title').textContent = this.state.panel.name;
     for (const b of this.el.querySelectorAll('.gm-tab')) b.classList.toggle('on', b.dataset.panel === id);
@@ -613,6 +661,7 @@ export class GameMenu {
 
   /** Mark the cursor's cell (or tab) and fill the info strip: its name and what it is, and what A / × does. */
   paint(scroll = true) {
+    if (this.panel === 'wardrobe') this.wardrobeFollow(this.state.cell(this.rows));   // (the Wardrobe: the preview in the cell)
     if (!this.el) return;
     const at = this.state.cursor();
     for (const x of this.el.querySelectorAll('.at')) x.classList.remove('at');
@@ -647,12 +696,13 @@ export class GameMenu {
     this.state.panels = panelsFor(this.hv);
     this.state.at.house = { r: 0, c: 0 };   // (on the floor, not a side tab)
     this.drawTabs();
+    this.turntable.reset();   // (the Wardrobe's traveller from the front again)
     this.leavePerson(); this.full = null; this._mapFresh = true; this.state.show(panel ?? DEFAULT_PANEL); this.render();
     // (drawn while the menu was still hidden: once it shows, the cursor's cell scrolled into view)
     // (and the Map, drawn before its box could be measured: again at the box's shape, issue #272)
     if (this.el && typeof requestAnimationFrame === 'function') requestAnimationFrame(() => { this.paint(); this.mapFit(); });
   }
-  close() { this.full = null; this.drawFull(); }
+  close() { this.wardrobeLeave(); this.full = null; this.drawFull(); }
   show(panel) { this.leavePerson(); this.full = null; this.state.show(panel); this.render(); }
   turn(d) { this.leavePerson(); this.full = null; this.state.turn(d); this.render(); }
   select(r, c, scroll = true) { this.state.at[this.panel] = { r, c }; this.paint(scroll); }
@@ -937,8 +987,35 @@ export class GameMenu {
     }
     else if (cell.act === 'look') this.openFull(cell);
     else if (cell.act === 'colour') { this.onColour?.(cell.id); this.render(); }
+    else if (cell.act === 'wear') { this.wardrobe?.wear?.(cell.kind, cell.id); this._wd = null; this.render(); }
     else if (cell.act === 'open') this.openPerson(cell.id);
     else if (cell.act === 'back') this.back();
+  }
+
+  // ---- the Wardrobe (issue #571, src/wardrobe.js)
+
+  /** The cursor on `cell` (null: a side tab) on the Wardrobe: the preview in it (once a move, not each repaint). */
+  wardrobeFollow(cell) {
+    const k = cell ? `${cell.kind}:${cell.id}` : '';
+    if (k === this._wd) return;
+    this._wd = k;
+    this.wardrobe?.preview?.(cell);
+  }
+  /** The Wardrobe left (another panel, the menu closed): him as he was, the sword beside him put away. */
+  wardrobeLeave() {
+    if (this._wd === null) return;
+    this._wd = null;
+    this.wardrobe?.leave?.();
+  }
+  /** Each frame with a pad on the Wardrobe: the right stick turns him (the left one still moves the cursor: false). */
+  wardrobeAnalog({ rx = 0 } = {}, dt = 1 / 60) {
+    if (this.panel === 'wardrobe' && !this.full) this.turntable.stick(rx, dt);
+    return false;
+  }
+  /** The canvas the traveller is drawn into (main.js), while the Wardrobe shows; else null. */
+  wardrobeCanvas() {
+    if (this.panel !== 'wardrobe' || this.full || !this.el?.classList.contains('open')) return null;
+    return this.body?.querySelector('canvas.wd-view') ?? null;
   }
 
   /** An item's picture is ready (src/item-icons.js): swap its mark for it, wherever it shows. */

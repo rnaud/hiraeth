@@ -301,6 +301,18 @@ export class UnityBackend {
     this.host.Portrait?.(n, JSON.stringify({ eye: m(eye), look: m(look), up: m(up ?? [0, 1, 0]), fov, ids, backdrop, size, css, file }));
   }
 
+  /**
+   * The Wardrobe's traveller (engine/game.js wardrobeCapture, issue #571): BridgeRunner.Wardrobe draws drawables `ids` alone
+   * against the backdrop from eye toward look (mirrored into Unity's frame) into the page's picture, every frame it shows.
+   */
+  /** The Wardrobe's picture's shape on the engine's menu (its width over its height): him framed for it. */
+  wardrobeAspect() { return +this.host.WardrobeAspect?.() || 0.9; }
+
+  wardrobe({ eye, look, up, fov, ids, backdrop }) {
+    const m = (v) => [-v[0], v[1], v[2]];
+    this.host.Wardrobe?.(JSON.stringify({ eye: m(eye), look: m(look), up: m(up ?? [0, 1, 0]), fov, ids, backdrop }));
+  }
+
   /** Photo mode's picture (engine/game.js): the frame as drawn, saved as `name` in the app's photos folder (BridgeHost.Photo). */
   photo(name) { this.host.Photo?.(name); }
 

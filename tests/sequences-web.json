@@ -1,6 +1,6 @@
 {
   "recorded": "2026-10-20",
-  "sha": "fec81d291",
+  "sha": "f1bcb175c",
   "how": "node scripts/unity-compare/sequences.mjs web [ids] && node scripts/unity-compare/sequences.mjs record",
   "sequences": {
     "moment-desert.flow": {
@@ -3497,7 +3497,7 @@
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 411,
+            "ink": 415,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -3566,7 +3566,7 @@
           },
           "playing": null,
           "objects": {
-            "ink": 411,
+            "ink": 414,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -3600,7 +3600,8 @@
               "Map",
               "Items",
               "Worlds",
-              "People"
+              "People",
+              "Wardrobe"
             ],
             "rows": [
               "Magic-fluid backpack",
@@ -3685,7 +3686,7 @@
           },
           "playing": null,
           "objects": {
-            "ink": 353,
+            "ink": 356,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -3719,7 +3720,8 @@
               "Map",
               "Items",
               "Worlds",
-              "People"
+              "People",
+              "Wardrobe"
             ],
             "rows": [
               "You",
@@ -3731,7 +3733,7 @@
           },
           "playing": null,
           "objects": {
-            "ink": 353,
+            "ink": 356,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -3765,7 +3767,8 @@
               "Map",
               "Items",
               "Worlds",
-              "People"
+              "People",
+              "Wardrobe"
             ],
             "rows": [
               "Something of Value",
@@ -3781,7 +3784,7 @@
           },
           "playing": null,
           "objects": {
-            "ink": 353,
+            "ink": 356,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -3850,7 +3853,7 @@
           },
           "playing": null,
           "objects": {
-            "ink": 353,
+            "ink": 356,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -3879,7 +3882,7 @@
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 411,
+            "ink": 414,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,

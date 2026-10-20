@@ -28,17 +28,19 @@ function questsWorld() {
   return { q, flags };
 }
 
-test('the panels: Quests first (the menu opens there, issue #213), the Map beside it, then Items, Worlds, People (no Sketchbook since v1.62); the shoulder buttons turn them round', () => {
-  assert.deepEqual(PANELS.map((p) => p.name), ['Quests', 'Map', 'Items', 'Worlds', 'People']);
+test('the panels: Quests first (the menu opens there, issue #213), the Map beside it, then Items, Worlds, People, Wardrobe (no Sketchbook since v1.62; the Wardrobe since issue #571); the shoulder buttons turn them round', () => {
+  assert.deepEqual(PANELS.map((p) => p.name), ['Quests', 'Map', 'Items', 'Worlds', 'People', 'Wardrobe']);
   assert.ok(!PANELS.some((p) => p.id === 'sketches'), 'the Sketchbook is gone (issue #213)');
   assert.equal(DEFAULT_PANEL, 'quests');
   const s = new MenuState();
   assert.equal(s.panel.id, 'quests');
-  assert.deepEqual([s.neighbours().prev.name, s.neighbours().next.name], ['People', 'Map'], 'the neighbours named at the sides');
+  assert.deepEqual([s.neighbours().prev.name, s.neighbours().next.name], ['Wardrobe', 'Map'], 'the neighbours named at the sides');
   s.turn(1); assert.equal(s.panel.id, 'map');
   s.turn(1); s.turn(1); assert.equal(s.panel.id, 'worlds');
   s.turn(1); assert.equal(s.panel.id, 'people');
+  s.turn(1); assert.equal(s.panel.id, 'wardrobe');
   s.turn(1); assert.equal(s.panel.id, 'quests', 'round again');
+  s.turn(-1); assert.equal(s.panel.id, 'wardrobe');
   s.turn(-1); assert.equal(s.panel.id, 'people');
   s.show('sketches'); assert.equal(s.panel.id, 'people', 'an old caller asking for the Sketchbook: nothing changes');
   // each panel keeps its own cursor
@@ -114,7 +116,7 @@ test('the menu without a page: open on a panel, move, turn with the shoulders; A
   // past the row's start, the People's tab; A / × on it turns there
   m.state.at.quests = { r: 0, c: 0 }; m.navigate(-1, 0);
   assert.equal(m.state.cursor().edge, -1);
-  m.confirm(); assert.equal(m.panel, 'people', 'A / × on a side tab turns to it');
+  m.confirm(); assert.equal(m.panel, 'wardrobe', 'A / × on a side tab turns to it');
   // opened again with no panel asked (View / Select, J): the Quests (issue #213)
   m.open(); assert.equal(m.panel, 'quests');
   m.show('items'); m.open(); assert.equal(m.panel, 'quests', 'whatever was left showing');

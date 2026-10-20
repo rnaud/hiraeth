@@ -51,7 +51,7 @@ export class Controller {
   /**
    * @param o.context () => 'menu' | 'talk' | 'photo' | 'ride' | 'game'
    * @param o.faces   () => ({ faces: 'xbox' | 'nintendo', byLabel }) (native-pad.js padFaces)
-   * @param o.menuAnalog ({ x, y, lt, rt }, dt) => bool: in a menu, each frame, the left stick and the triggers for a page
+   * @param o.menuAnalog ({ x, y, lt, rt, rx, ry }, dt) => bool: in a menu, each frame, the left stick and the triggers for a page
    *                  that reads them itself (the game menu's Map); true: it took the stick (the D-pad still steps)
    */
   constructor({ pads = () => navigator.getGamepads?.() ?? [], context, action, look, navigate, scroll, activity = () => {}, faces = () => ({ faces: 'xbox', byLabel: false }), combat = null, prefs = controlPrefs, padMap = currentPadMap, stickTaken = null, menuAnalog = null }) {
@@ -121,7 +121,7 @@ export class Controller {
       if (ctx === 'menu' && ((press(R3) && down(L3)) || (press(L3) && down(R3)))) this.action('worldDebug');
       // (a page that reads the stick itself, the game menu's Map: it moves a cursor smoothly and the triggers zoom,
       // issue #244; the D-pad still steps)
-      const analog = ctx === 'menu' && !!this.menuAnalog?.({ x: left.x, y: left.y, lt: values[LT] ?? 0, rt: values[RT] ?? 0 }, dt);
+      const analog = ctx === 'menu' && !!this.menuAnalog?.({ x: left.x, y: left.y, lt: values[LT] ?? 0, rt: values[RT] ?? 0, rx: right.x, ry: right.y }, dt);   // (rx, ry: the right stick, the Wardrobe turns him by it)
       const x = down(RIGHT) ? 1 : down(LEFT) ? -1 : !analog && Math.abs(left.x) > 0.5 ? Math.sign(left.x) : 0;
       const y = down(DOWN) ? 1 : down(UP) ? -1 : !analog && Math.abs(left.y) > 0.5 ? Math.sign(left.y) : 0;
       const direction = y ? `y${y}` : x ? `x${x}` : '';

@@ -347,6 +347,7 @@ namespace Hiraeth.Bridge
             foreach (var (area, label) in areaPics) { Show(area, false); Show(label, false); }
             var kind = state.S("kind");
             HideGameFrame();   // (the journal's desk and tabs: BridgeMenu.Chrome.cs, drawn again by DrawGame)
+            HideWardrobe();   // (the game menu's Wardrobe: BridgeMenu.Wardrobe.cs, drawn again by DrawGame)
             if (pauseRoot && kind != "start") pauseRoot.gameObject.SetActive(false);   // (the Start menu's own page: BridgeMenu.Pause.cs)
             if (nwRoot && kind != "start") nwRoot.gameObject.SetActive(false);
             if (gearChimes) Show(gearChimes, false);   // (the Items panel's wallet: DrawRows)   // (What's new's panel: BridgeMenu.Pause.cs DrawNews)
@@ -867,6 +868,7 @@ namespace Hiraeth.Bridge
             if (person != null) DrawPerson(person, px, top, pw, bottom - top);
             else if (panel == "map") DrawMap(journal.bodyX, journal.bodyY, journal.bodyW, journal.bodyH);   // (the sheet's body, as the page's .gm-body)
             else if (panel == "house" && house != null) DrawHouse(house, px, top + 8, pw, bottom - top - 16);
+            else if (panel == "wardrobe" && state.O("wardrobe") is Dictionary<string, object> wd) DrawWardrobe(wd, journal.bodyX, journal.bodyY, journal.bodyW, journal.bodyH);   // (BridgeMenu.Wardrobe.cs)
             else DrawRows(panel, px, top, pw, bottom - top);
             // the strip: the cell's name, what it is, and what A / × does
             var s = state.O("strip");

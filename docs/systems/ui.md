@@ -433,7 +433,8 @@ panels, the cursor, the page), `src/game-menu-data.js` (what fills them, from th
   it on a panel (issue #487). It draws into `#journal`: `Journal.toggle(on, panel)` in `src/quest.js`
   opens it; the journal still keeps the relics, story pages, errands and the observatory. It pauses the
   game like the Start menu; each panel keeps its cursor.
-- **Panels** (`PANELS`), side by side in a ring, in this order since v1.58: **Quests**, **Map** (below),
+- **Panels** (`PANELS`), side by side in a ring, in this order since v1.58 (the **Wardrobe** last since v1.88: its own
+  section below): **Quests**, **Map** (below),
   **Items** (the gear as large tiles, each with its name under its picture, as many a row as fit, the cursor
   moving by where they are drawn, `data-grid-nav`; a tile for every item there is, the empty ones dashed and
   unnamed; under them what you carry for the quests and the father's keepsakes), **Worlds**, **People**.
@@ -710,6 +711,41 @@ stood in are solid; once the house's little map chest is open, the rest show fai
 seen. The traveller, the doors, the great key's and the guardian's are marked; the key along the foot says which is
 which. The engines draw the same picture (engine/menus.js `houseKey`, BridgeMenu.cs `DrawHouse`). How the plan is
 read: docs/systems/temples.md, "The house's map".
+
+## The Wardrobe (issue #571)
+
+The game menu's last panel, one LB / L1 from the Quests (`PANELS`): the author's "a menu that shows the traveller on
+the right side, and on the left side we can pick different sword colours (that we unlocked) and different outfits".
+Code: `src/wardrobe.js` (the lists, the save, the preview, the camera and the sword beside him; `wireWardrobe`, shared by
+main.js and engine/game.js), `src/game-menu.js` `wardrobePanel` and `GameMenu.wardrobe*`, `src/game-menu.css`
+(`.gm-wardrobe`); tests: `tests/wardrobe.test.js`.
+
+- **On the left**, two lists, a line each (the pack's line: a mark or a swatch, the name, WEARING on the one worn):
+  **Outfit**, his own clothes and the five of the v2 traveller (`OUTFITS`, the ids of
+  `data/characters/traveller-v2/outfits.json`), each with an `unlock` (null: his from the start, all of them for now;
+  `{ flag }` later, won by progress; one not his shows as "Not yours yet", dashed, with nothing to do); **Blade**, the
+  colours won (`bladeColours`: src/kit-colours.js, the makers' jade always and one more for each fight temple
+  cleared). With B3 (the game's traveller until v2 is the default) the Outfit list is a line, "The outfits need the
+  new traveller."; without the sword, the Blade list is "No sword yet.". One column of rows: ↑ ↓ go through both.
+- **On the right**, the traveller drawn live: each frame the page shows (main.js `wardrobeFrame` in `pausedFrame`),
+  the game's own frame from a camera on him (`wardrobeShot`: his whole height, 28°, 4.4 m off), him alone against the
+  paper (`captureView` with `keep`, `backdrop` and `into` the page's canvas, the lines at the world's weight), so lit
+  as in the world. He turns on his own (`Turntable`: 0.32 rad/s, waiting 2 s after a hand turned him); the right
+  stick turns him (src/controller.js hands it to the page's `menuAnalog` as `rx`), and so does a drag (mouse or
+  finger) on the picture. The sword he carries is sheathed, so a sword of its own stands point down beside him on
+  the picture's right, its face to the camera (`plantedSword`, `placeSword`), in the colour shown.
+- **The preview follows the cursor**: what is saved, with the highlighted line in its place (`previewOf`): on an
+  outfit he wears it (the v2 Wardrobe swaps it live: `dress.wear`, one at a time), on a colour the sword beside him
+  takes it. **A / × wears it**: saved (`wardrobe.outfit`, `kit.colour.sword` in the save's flags) and on him in the
+  world at once (the outfit already on, `applyKitColours` for the sword). **B / ○ closes the menu** and turning to
+  another panel leaves it: him back in what is saved, the sword beside him put away (`leave`). The outfit saved is the
+  one the world dresses him in as it loads (main.js: the save's, unless `&outfit=` names one).
+- **Unity** (engine/menus.js, BridgeMenu.Wardrobe.cs, BridgeRunner.Wardrobe): the same rows and preview; engine/game.js
+  draws him each frame the page shows (`wardrobeCapture`: his drawables and the sword's on a layer of their own for
+  the portraits' camera, into one picture BridgeMenu shows in its frame). The engines draw B3, so the outfits' line
+  says they need the new traveller there too. Left: Unity's picture shows the sword beside him by its hilt alone (its
+  blade's node is mirrored, on the layer, in view and its renderer on, yet nothing of it is drawn; the held blade draws
+  in a fight).
 
 ## Notices and the quest card (playtest 2026-10-08)
 

@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.88 — 2026-10-20
 
+- The game menu has a new last page, the Wardrobe, one LB / L1 from the Quests: the traveller stands on the right, drawn and lit as in the world and turning slowly (turn him yourself with the right stick or by dragging), and on the left you choose your sword’s colour among those you have won in the fight temples, shown on a sword standing beside him as you move through them. A / × wears it at once; B / ○ leaves him as he was. His outfits will be chosen there too once the new traveller arrives.
 - In the Unity version, the minigames have their pause button at the top right, as on the web: click it with the mouse or tap it to pause, as Menu does. It goes away while you play with a controller and comes back as soon as you use the mouse or the screen.
 - In the Unity version, the sun’s sharpest shadows now follow you as on the web, not the camera: Home’s stepping stones cast their little shadows at dusk again, the Overnight Train’s platform wall throws a smooth shadow of the right length, and the glowing screen on the Signal Market’s roof console no longer drops a dark patch down the console when you are across the roof from it.
 - In the Unity version, the sun’s shadows are filtered as on the web, their edges softer up close, and the near ones sit as tight against what casts them as on the web.

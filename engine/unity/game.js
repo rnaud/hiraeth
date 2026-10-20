@@ -83,7 +83,7 @@ const RUMBLE = {
 };
 
 /** A run with a plan (the bench's views, a conversation, the tour…): straight into its world, no title, no menus. */
-const planned = (a) => !!(a.views?.length || a.talk || a.through != null || a.play || a.walk || a.hudRun || a.tour || a.idle || a.aboard || a.fight || a.foes || a.devmenu || a.ui || a.noTitle || a.trial || a.game || a.ending || a.opening || a.sequence || a.starmap || a.updatesPage || a.house);
+const planned = (a) => !!(a.views?.length || a.talk || a.through != null || a.play || a.walk || a.hudRun || a.tour || a.idle || a.aboard || a.fight || a.foes || a.devmenu || a.ui || a.noTitle || a.trial || a.game || a.ending || a.opening || a.sequence || a.starmap || a.updatesPage || a.house || a.wardrobe);
 /** -aboard cockpit,main,cabin,hold: the rooms of the parked ship it photographs, as the web's ?aboard= (main.js). */
 const aboardRooms = (a) => String(a.aboard ?? '').split(',').filter(Boolean);
 /**
@@ -463,7 +463,7 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
   const menus = S.menus ?? (ending || starScenes.length ? new EngineMenus({ store: slots, screen: () => ({ w: host.MenuWidth?.() || 1280, h: 720 }) })
     // (a sequence's menus are drawn: its Start menu's pages are beats; S.menus is what BridgeMenu is sent)
     : args.sequence ? (S.menus = new EngineMenus({ store: slots, settings: new Settings(), where, saveLine, version: `v${VERSION}`, house: () => S?.game?.houseView?.() ?? null, screen: () => ({ w: host.MenuWidth?.() || 1280, h: 720 }), itemCols: () => itemColsFor(host.MenuWidth?.() || 1280, 720), mapBox: () => { const [w, h] = String(host.MenuMapBox?.() ?? '').split(',').map(Number); return w > 0 && h > 0 ? { w, h } : null; } }))
-    : args.foes || args.devmenu || args.house || args.ui ? (S.menus = new EngineMenus({ dev: () => false, house: () => S?.game?.houseView?.() ?? null, screen: () => ({ w: host.MenuWidth?.() || 1280, h: 720 }) })) : null);
+    : args.foes || args.devmenu || args.house || args.ui || args.wardrobe ? (S.menus = new EngineMenus({ dev: () => false, house: () => S?.game?.houseView?.() ?? null, screen: () => ({ w: host.MenuWidth?.() || 1280, h: 720 }) })) : null);
   if (args.devmenu && !S.settings) S.settings = new Settings();
   if (starScenes.length) S.menus = menus;   // (shown: BridgeMenu draws the map)
   // (-updates-page: the Start menu's Updates page photographed as it checks, downloads and restarts: BridgeUpdates, with
@@ -483,7 +483,7 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
   S.gameFrom = args.level ?? 'desert';
   createGame({ levelId: args.level ?? 'desert', backend, back, game, stage, from: game ? args.level ?? 'desert' : null, to: game ? transit ?? args.to ?? gq.to ?? null : null, onGame: (href) => playGame(href), onLeave: (href) => leaveGame(href), trials: !!args.trial || !!args.fresh, quality: args.quality ?? null, people: args.people !== false, audio: rate ? { sampleRate: rate, record } : null, flags: !ending && (args.views?.length || args.play) ? BENCH_FLAGS : null, log: (...a) => console.log('[game]', ...a),
     menus, settings: S.settings ?? null, start: from, arrive: arrive || !!args.arrive, hullSpawn: !!args.hullSpawn, gestures: !off.has('gestures'), moves: !off.has('moves'), matching: String(args.on ?? '').split(',').includes('matching') || null,
-    via, prologue: prologue || !!args.prologue, onTravel: (to) => flyTo(to), aboard: aboardRooms(args)[0] ?? (starScenes.length ? 'main' : null), scenes: !!args.aboard, fight: !!args.fight || seqFight, arrival: came, onPage: (o) => pageTo(o), saves: !args.foes && !args.devmenu && !args.house && !args.ui, defer: !off.has('defer'), far: !off.has('far'), skies: !off.has('skies'), lod: String(args.on ?? '').split(',').includes('lod'), onStage: (t) => host.LoadStage?.(t),
+    via, prologue: prologue || !!args.prologue, onTravel: (to) => flyTo(to), aboard: aboardRooms(args)[0] ?? (starScenes.length ? 'main' : null), scenes: !!args.aboard, fight: !!args.fight || seqFight, arrival: came, onPage: (o) => pageTo(o), saves: !args.foes && !args.devmenu && !args.house && !args.ui && !args.wardrobe, defer: !off.has('defer'), far: !off.has('far'), skies: !off.has('skies'), lod: String(args.on ?? '').split(',').includes('lod'), onStage: (t) => host.LoadStage?.(t),
     // (the bar under the line and why this part takes the time, src/load-page.js: BridgeHud.Loading draws them, issue #527)
     onLoad: (o) => host.LoadProgress?.(o.p, o.why ?? '') })
     .then((game) => {
@@ -499,6 +499,8 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
         menus.onTrack = (id) => game.story?.quests?.choose?.(id);
         // (a gun mode taken, a gadget taken in hand, the finder switched: main.js onUse; issue #344)
         menus.onUse = (id) => game.useItem(id);
+        // (the Wardrobe: its preview follows the cursor, A / × wears it: src/wardrobe.js, issue #571)
+        menus.wardrobe = game.wardrobe;
         menus.onTravel = (id) => {
           const no = game.travelRefusal(id);
           if (no) return no;
@@ -511,7 +513,7 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
           return null;
         };
         if (menus.mode === 'title') menus.close();
-        if (!args.foes && !args.devmenu && !args.house) game.save();
+        if (!args.foes && !args.devmenu && !args.house && !args.wardrobe) game.save();
         // (-shop <id>: the shop's sheet opened at once, a test of it on a device)
         if (args.shop && !game.openShop(args.shop)) console.log(`[unity] no shop ${args.shop} here`);
       }
@@ -672,6 +674,15 @@ function makePlan(args) {
     // rooms seen, its map found, the game menu on House map, each floor photographed (unity-house-<id>-<floor>.png, to lay
     // beside the web's), ▲ between them)
     steps.push({ kind: 'wait', frames: 120, secs: 4 }, { kind: 'house', id: String(args.house) }, { kind: 'wait', frames: 40, secs: 1.5 }, { kind: 'house', open: true });
+  }
+  if (args.wardrobe) {
+    // (-wardrobe: the game menu's Wardrobe, issue #571: opened, photographed, the cursor down through the blade's colours won
+    // (the traveller's preview following it), one worn with A / ×, then closed: unity-wardrobe-<name>.png beside the web's)
+    // (a while on the page before the first picture: the editor may still be compiling a shader variant the page draws)
+    const shot = (name) => (args.out ? [{ kind: 'shot', file: `${args.out}/unity-wardrobe-${name}.png` }] : []);
+    steps.push({ kind: 'wait', frames: 120, secs: 4 }, { kind: 'wardrobe' }, { kind: 'wait', frames: 120, secs: 4 }, ...shot('open'));
+    for (let i = 1; i <= 3; i++) steps.push({ kind: 'menu', x: 0, y: 1 }, { kind: 'wait', frames: 40, secs: 1.5 }, ...shot(`blade-${i}`));
+    steps.push({ kind: 'menu', act: 'confirm' }, { kind: 'wait', frames: 30, secs: 1 }, ...shot('worn'), { kind: 'menu', act: 'back' }, { kind: 'wait', frames: 20 }, ...shot('closed'), { kind: 'wardrobe', log: true });
   }
   if (args.devmenu) {
     // (-devmenu: the dev menu, issue #387: opened on F2 as the keys open it, each tab photographed (unity-dev-<n>-<id>.png, to lay
@@ -1163,6 +1174,13 @@ function playFrame(dt) {
       if (step.what === 'god') M.close();
       console.log(`[unity] dev menu: ${step.what} ${step.what === 'god' ? !!p.god : !!S.settings?.showFps}`);
     }
+    next();
+  }
+  else if (step.kind === 'wardrobe') {
+    const M = S.menus;
+    if (!step.log) M.show('game', 'wardrobe');
+    const d = game.wardrobe?.data?.();
+    console.log(`[unity] the Wardrobe: ${M.open ? M.state.panel.id : 'closed'}, v2 ${!!d?.v2}, sword ${!!d?.sword}, colours ${(d?.blades ?? []).map((b) => `${b.id}${b.worn ? '*' : ''}`).join(' ')}, beside him ${!!game.wardrobe?.sword?.parent}`);
     next();
   }
   else if (step.kind === 'house') {

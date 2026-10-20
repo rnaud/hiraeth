@@ -217,6 +217,8 @@ namespace Hiraeth.Bridge
             if (Flag("-foes")) args["foes"] = Arg("-foes") is string fw && !fw.StartsWith("-") ? fw : "all";
             // (-devmenu: the dev menu opened on F2, each of its tabs photographed, a teleport, god mode on, flown, off: engine/unity/game.js)
             if (Flag("-devmenu")) args["devmenu"] = true;
+            // (-wardrobe: the game menu's Wardrobe opened, photographed through its blade colours, one worn: engine/unity/game.js, issue #571)
+            if (Flag("-wardrobe")) args["wardrobe"] = true;
             // (-house id [-house-room room] [-house-turn rad]: the Start menu's House map photographed floor by floor, issue #405: engine/unity/game.js)
             if (Arg("-house") != null) args["house"] = Arg("-house");
             if (Arg("-house-room") != null) args["houseRoom"] = Arg("-house-room");

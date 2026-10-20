@@ -37,6 +37,9 @@ export const CHANGELOG = [
     // issue #570: src/hud-buttons.js (the button's rule, hit test and press), engine/game.js pointer, BridgeHud.Pointer.cs
     // (the mouse and the fingers through the Input System, the button drawn), BridgeHost.Pointer; tests/hud-buttons.test.js
     'In the Unity version, the minigames have their pause button at the top right, as on the web: click it with the mouse or tap it to pause, as Menu does. It goes away while you play with a controller and comes back as soon as you use the mouse or the screen.',
+    // issue #571: src/wardrobe.js, src/game-menu.js wardrobePanel (+ .css), main.js wardrobeFrame, engine/menus.js and
+    // engine/game.js wardrobeCapture, BridgeMenu.Wardrobe.cs, BridgeRunner.Wardrobe; tests/wardrobe.test.js
+    'The game menu has a new last page, the Wardrobe, one LB / L1 from the Quests: the traveller stands on the right, drawn and lit as in the world and turning slowly (turn him yourself with the right stick or by dragging), and on the left you choose your sword’s colour among those you have won in the fight temples, shown on a sword standing beside him as you move through them. A / × wears it at once; B / ○ leaves him as he was. His outfits will be chosen there too once the new traveller arrives.',
   ] },
   { v: '1.87', date: '2026-10-19', items: [
     // issue #556: BridgeHud.cs (a minigame's flashes, the gadget marks' numbers, the chimes' count in Ui.Sans / SansHeavy,

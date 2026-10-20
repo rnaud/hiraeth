@@ -171,6 +171,8 @@ namespace Hiraeth.Bridge
         public static void Clock(double t) => HiraethLook.GameClock = (float)t;   // (a static: the script runs off the main thread)
         /// <summary>A conversation's portrait (engine/unity/backend.js portrait): drawn into texture n for the panel's chip.</summary>
         public static void Portrait(int n, string json) => On(() => Runner?.Portrait(n, json));
+        /// <summary>The game menu's Wardrobe (engine/unity/backend.js wardrobe, issue #571): the traveller drawn into its picture.</summary>
+        public static void Wardrobe(string json) => On(() => Runner?.Wardrobe(json));
         /// <summary>What the screen shows (src/platform.js screen), when it changed: BridgeHud draws it.</summary>
         /// <summary>The sound (BridgeAudio): the output rate (0: none), the frames queued, the next PCM (float32 stereo).</summary>
         // (BridgeAudio's ring is locked: these are safe on the script's thread)
@@ -255,6 +257,9 @@ namespace Hiraeth.Bridge
         /// <summary>The room BridgeMenu's game menu has for the Map, "w,h" in its units (the map is drawn as wide as it, issue #272/#343).</summary>
         public static string MenuMapBox() => menuMapBox;
         public static volatile string menuMapBox = "";
+        /// <summary>The Wardrobe's picture's shape (its width over its height, BridgeMenu.Wardrobe.cs): engine/game.js frames him for it.</summary>
+        public static double WardrobeAspect() => wardrobeAspect;
+        public static volatile float wardrobeAspect = 0.9f;
 
         // ---------------------------------------------------------------- the pad's motors (src/rumble.js through engine/unity/game.js, issue #346)
         static double rumbleUntil = -1;

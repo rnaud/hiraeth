@@ -380,7 +380,7 @@ test('the game menu: opens on Quests at the tracked quest, LB / RB turn the five
   assert.equal(m.view().panel, 'map');
   assert.equal(m.view().map.marks.length, 2);
   m.action('tabPrev'); m.action('tabPrev');
-  assert.equal(m.view().panel, 'people', 'round: Quests ← People');
+  assert.equal(m.view().panel, 'wardrobe', 'round: Quests ← Wardrobe (issue #571)');
   m.action('back');
   assert.equal(m.mode, null);
 });

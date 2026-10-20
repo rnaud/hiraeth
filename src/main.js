@@ -76,6 +76,7 @@ import { updateHands } from './hands.js';
 import { loadTraveller, createTraveller } from './characters/traveller.js';
 import { buildTravellerLod } from './characters/traveller-lod.js';
 import { travellerSetting, outfitList } from './characters/traveller-v2.js';
+import { wireWardrobe, wardrobeShot, BACKDROP as WARDROBE_BACKDROP, chosenOutfit, OUTFIT_KEY } from './wardrobe.js';
 import { Changelog, VERSION } from './changelog.js';
 import { Settings, SettingsMenu, TouchControls, SaveGame, isTouch, isNativeApp, isDeckApp, isXboxApp, ToolHud } from './ui.js';
 import { xboxReadout } from './xbox.js';
@@ -325,6 +326,8 @@ const animLib = loadAnimationLibrary().catch((e) => { console.warn('animation li
 // B3 or the v2 rebuild (the debug switch, characters/traveller-v2.js; not on the outfits page, which dresses him itself)
 const travellerV2 = { ...travellerSetting.get(), dress: null, failed: null };
 if (query.has('outfits')) travellerV2.on = false;
+// (the outfit chosen in the Wardrobe, issue #571: the save's, unless the address names one)
+if (!query.has('outfit') && game.flag(OUTFIT_KEY)) travellerV2.outfit = chosenOutfit(game);
 const traveller = loadTraveller(import.meta.env.BASE_URL, { v2: travellerV2 }).catch(e => { console.warn('Traveller B3 unavailable; using the original explorer.', e); return null; });
 const humans = Promise.all([loadHuman('m'), loadHuman('f')]).catch((e) => { console.warn('human models failed to load', e); return null; });
 // the people on MakeHuman bodies (src/makehuman/people.js, docs/makehuman.md: every world's, ?mh=0 none):
@@ -668,6 +671,8 @@ const tool = new FluidTool({ scene, player, physics, camera, rig, sound, level, 
 const kit = wireKit({ tool, game,
   // (the touch screen's ⚔ and ◇ only once found: index.html body.no-sword, body.no-shield)
   onArm: (s, g) => { if (s !== tool.swordOn) document.body.classList.toggle('no-sword', !s); if (g !== tool.shieldOn) document.body.classList.toggle('no-shield', !g); } });
+// the Wardrobe (the game menu's last panel, issue #571): his outfits (the v2 traveller's) and the blade's colour, tried on live
+const wardrobe = wireWardrobe({ game, kit, tool, player, dress: () => travellerV2.dress });
 if (level.lendTool) lendTool(tool, level.lendTool);   // (the Arena: the backpack, the blade and the shield lent for the visit, whatever the save: src/minigames/kit/onfoot.js)
 await slice();
 // the hover vehicles' trails, in the fluid's tones (src/host/game-host.js wireTrails, the engines' too)
@@ -911,7 +916,10 @@ Object.assign(journal.menu, {
     // (inside a makers' house: its map, the game menu's House map after Map; issue #405, #487, src/house-map.js)
     house: () => { const rt = houseHere(level, player); return rt ? houseView(rt, { game, player }) : null; },
     // (the Worlds page's "Travel here": a world you have been to, with the ship powered: src/fast-travel.js, issue #213)
-    travel: (id) => fastTravel.can({ to: id, from: levelId, seen: (w) => journal.seen(w), flag: (k) => game.flag(k) }) }),
+    travel: (id) => fastTravel.can({ to: id, from: levelId, seen: (w) => journal.seen(w), flag: (k) => game.flag(k) }),
+    wardrobe: () => wardrobe.data() }),
+  // the Wardrobe: the preview follows the cursor, A / × wears it (saved, worn at once), leaving puts him back (src/wardrobe.js)
+  wardrobe,
   onTrack: (id) => storyRt.quests.choose(id),
   // the Colours row: the next colour won for that piece, worn at once (src/kit-colours.js)
   onColour: (piece) => kit.cycle(piece),
@@ -1747,7 +1755,8 @@ const controller = new Controller({
   faces: () => padFaces(),
   combat: () => foes.near(20),   // (a foe near: LB blocks, the right stick only looks)
   // (the game menu's Map: the left stick moves its cursor, the triggers zoom: issue #244)
-  menuAnalog: (a, dt) => menuRoot() === journal.el && journal.menu.panel === 'map' && journal.menu.mapAnalog(a, dt),
+  // (the Wardrobe: the right stick turns the traveller, issue #571)
+  menuAnalog: (a, dt) => menuRoot() === journal.el && (journal.menu.panel === 'map' ? journal.menu.mapAnalog(a, dt) : journal.menu.wardrobeAnalog(a, dt)),
   stickTaken: () => !!gadgets?.wheelOn,   // (the gadget wheel open: the right stick chooses, the camera holds: src/gadgets/index.js wheelStick)
   look: (x, y) => { if (x || y) rig.look(x, y); },
   activity: () => { inputMode.pad(); controllerActive = true; sound.start(); padSchemeNotice(); },   // (where a pad press may start sound: the Android app)
@@ -2072,7 +2081,9 @@ function shrinkInto(src, sx, sy, sw, sh, out, w, h) {
   g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
   g.drawImage(cur, cx, cy, cw, ch, 0, 0, w, h);
 }
-function captureView(eye, look, w, h, { keep = null, backdrop = null, fov = null, css = null } = {}) {
+// o.into: a canvas to draw it into (w × h) instead of an image (the Wardrobe's traveller, each frame); o.ink: the lines' weight
+// against the world's (a portrait's half by default)
+function captureView(eye, look, w, h, { keep = null, backdrop = null, fov = null, css = null, into = null, ink = undefined } = {}) {
   _cp.copy(camera.position); _cq.copy(camera.quaternion); _cu.copy(camera.up);
   camera.position.copy(eye);
   camera.up.copy(player.frame.up);
@@ -2088,7 +2099,7 @@ function captureView(eye, look, w, h, { keep = null, backdrop = null, fov = null
     if (backdrop) { const c = new THREE.Color(backdrop); U.uBackdrop.value.set(c.r, c.g, c.b, 1); }
   }
   // drawn at the size it is shown: the crop (the frame's height, a square) is css CSS px across
-  if (css) U.uPixelRatio.value = SU.uPixelRatio.value = portraitPixelRatio(gbuffer.height, css, pr[0]);
+  if (css) U.uPixelRatio.value = SU.uPixelRatio.value = portraitPixelRatio(gbuffer.height, css, pr[0], ink);
   try { renderFrame(); } finally {
     restore(hidden);
     portraitShot = false;
@@ -2102,19 +2113,40 @@ function captureView(eye, look, w, h, { keep = null, backdrop = null, fov = null
   const aspect = w / h, sw = src.width, sh = src.height;
   let cw = sw, ch = sw / aspect;
   if (ch > sh) { ch = sh; cw = sh * aspect; }
-  if (css) shrinkInto(src, (sw - cw) / 2, (sh - ch) / 2, cw, ch, grabCanvas, w, h);
+  if (into) shrinkInto(src, (sw - cw) / 2, (sh - ch) / 2, cw, ch, into, w, h);
+  else if (css) shrinkInto(src, (sw - cw) / 2, (sh - ch) / 2, cw, ch, grabCanvas, w, h);
   else {
     grabCanvas.width = w; grabCanvas.height = h;
     grabCanvas.getContext('2d').drawImage(src, (sw - cw) / 2, (sh - ch) / 2, cw, ch, 0, 0, w, h);
   }
   camera.position.copy(_cp); camera.quaternion.copy(_cq); camera.up.copy(_cu);
   camera.updateMatrixWorld();
+  if (into) return null;
   // A capture reads the WebGL canvas with drawImage, which some drivers hand back empty. An empty
   // portrait is worse than none: the circle would show a flat disc of the world's backdrop with the
   // person missing (the Retroid, TODO.md). Say so instead, and the panel falls back to the initial.
   // (Portraits only: a comic panel of open sky is legitimately one colour.)
   if (css && blankCapture(grabCanvas)) return null;
   return css ? grabCanvas.toDataURL('image/png') : grabCanvas.toDataURL('image/jpeg', 0.82);
+}
+/**
+ * The Wardrobe's traveller (the game menu's last panel, issue #571; src/wardrobe.js): while it shows, each frame under the
+ * menu, him alone against the paper (and the sword planted beside him), lit as in the world, from the turntable's angle,
+ * drawn by the game's own frame into the page's canvas at its size (its lines the world's weight).
+ */
+let wardrobeT = 0;
+function wardrobeFrame() {
+  const canvas = journal.menu.wardrobeCanvas?.();
+  const now = performance.now() / 1000, dt = Math.min(0.1, Math.max(0, now - (wardrobeT || now)));
+  wardrobeT = now;
+  if (!canvas || !(canvas.clientWidth > 0) || !(canvas.clientHeight > 0)) return;
+  journal.menu.turntable.tick(dt);
+  wardrobe.tick(dt);
+  const dpr = Math.min(window.devicePixelRatio || 1, 2), k = Math.min(1, 900 / (canvas.clientHeight * dpr));
+  const w = Math.round(canvas.clientWidth * dpr * k), h = Math.round(canvas.clientHeight * dpr * k);
+  const shot = wardrobeShot(player, journal.menu.turntable.yaw, w / h);
+  wardrobe.place(shot);
+  captureView(shot.eye, shot.look, w, h, { keep: wardrobe.keep(), backdrop: WARDROBE_BACKDROP, fov: shot.fov, css: canvas.clientHeight, into: canvas, ink: 1 });
 }
 /** Did the capture come back empty: every pixel clear, or every pixel the same colour? */
 function blankCapture(c) {
@@ -2432,6 +2464,7 @@ function pausedFrame() {
   if (journal.open) itemIcons.pump();
   if (journal.open && journal.menu.panel === 'map') { const gm = physics.groundMover, gk = physics.groundKind; worldMap.pump(); physics.groundMover = gm; physics.groundKind = gk; }   // (the map's rays: src/world-map.js)
   if (journal.open) pumpPortraits();
+  if (journal.open) wardrobeFrame();
   wasBusy = true;
   sound.update(CALM);
 }
@@ -2706,7 +2739,7 @@ window.contactAudit = async (o = {}) => {
   return r;
 };
 Object.assign(window, { shopPanel, flatPass, motes, houseAir, waters, flora, blades, bloom, shelter, items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, fragments, story, journal, errands, expedition, scout, plumb, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife, foes, chimes, potionDrops, lowHealth, resources, itemIcons, gadgets,
-  storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, passage, doorWalk, warmDraw, boxes, benches, devMenu, slots, paused, quitToTitle, clock: () => simT, sharedUniforms, cascades, shadowCull, applyQuality, preset: () => preset, frameStats, renderFrame, crowdPasses, lod: () => lod, skinnedLods, interiorCull });
+  storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, passage, doorWalk, warmDraw, boxes, benches, devMenu, slots, paused, quitToTitle, clock: () => simT, sharedUniforms, cascades, shadowCull, applyQuality, preset: () => preset, frameStats, renderFrame, crowdPasses, lod: () => lod, skinnedLods, interiorCull, wardrobe, travellerV2 });
 
 if (['keeper','elder'].includes(query.get('guardianReview'))) {
   const {startGuardianReview} = await import('./guardian-review.js');
