@@ -74,6 +74,12 @@ test('the red rag’s mast: by the hollow, in sight from the drinking roots thro
     // the rag is the hollow's own: the story's rag flies at the mast's head
     const hollow = W.story?.hollow ?? null;
     if (hollow?.rag) assert.ok(flat(hollow.rag.mesh.position, top) < 1.5, 'the red rag at its head');
+    // (issue #567) and it reads from there, not a speck among the camps' banners: at 1280 x 720 and the camera's 60°, the
+    // rag stands at least 22 px tall and 10 px wide (2.2 x 7 m on a 20 m mast before: 5 x 17 px), its middle in sight too
+    const px = 720 / (2 * Math.tan(THREE.MathUtils.degToRad(30))), d = eye.distanceTo(top);
+    const R = STORY.rag;
+    assert.ok((R.fh / d) * px >= 22 && (R.w / d) * px >= 10, `the rag ${((R.w / d) * px).toFixed(0)} x ${((R.fh / d) * px).toFixed(0)} px from the roots`);
+    assert.equal(blocker(W, eye, V(top.x, top.y - 1.4 - R.fh / 2, top.z)), null, 'the rag’s middle in sight');
   } finally { W.dispose(); }
 });
 

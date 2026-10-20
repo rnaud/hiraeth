@@ -1324,6 +1324,9 @@ const ARRIVAL564 = 'Issue #564: the production build in muted headless Chrome on
 const CRATES566 = 'Issue #566: the design QC’s capture (scripts/design-qc/capture.mjs) in muted headless Chrome (High, 1280 × 720, 10:00, clear) on this branch’s own Vite (port 5566), Lorn, the camera pinned 6 m from the two crates and 1.2 m over their lids, the picture cropped to its middle half and enlarged; before: the tree without the fix, after: with it; 20 October; cwebp -q 72';
 /** (v1.87, issue #558: five guardians' blows kept on their bodies) */
 const GUARD558 = 'Issue #558: muted headless Chrome (High, 1280 × 720, 11:00) on this branch’s own Vite (port 6558), ?level=<world>&hitboxes=1, each guardian in its own hall, the traveller 2.5 m off its body in front, the move begun and stepped by hand at 1/60 s to one or two 60ths after its strike (the Foreman’s and the Tooth-Warden’s two), the world frozen there, the camera pinned above its flank; before: the same page with the code before the change put back on the guardian (Guardian.sweepOf and partsOf of 59134e5fe: every sphere widened by half its part’s travel a frame; the Foreman’s hammer splash 0.4); 20 October; cwebp -q 72';
+/** (v1.88, issue #567: the night's polish) */
+const POLISH567 = 'Issue #567: muted headless Chrome (High, 1280 × 720, 10:00, clear) on this branch’s own Vite (port 5567), scripts/design-qc/capture.mjs, the same pinned camera before and after; before: origin/main (a9750ff33, d2a27ddea for the ending), after: this change; 20 October; cwebp -q 72';
+const FINALE567 = 'Issue #567: the cinematics QC (node scripts/cinematics-qc.mjs --only finale.underwater: muted headless Chrome at High, 1280 × 720, its frames 960 × 540) on a Vite of its own (port 5567), staged by the review page as play has it; the frame 9 s in (D); before: origin/main d2a27ddea, after: this change; 20 October';
 /** (v1.88, issue #562: the temple endings, each house's own panel) */
 const END562 = 'Issue #562: the cinematics QC (node scripts/cinematics-qc.mjs --group "Temple endings": muted headless Chrome at High, 1280 × 720, its frames 960 × 540) on a Vite of its own (port 5362), each ending staged by the review page as play has it; before: origin/main 6352c9ee8, after: this change; the same moment of each film; 20 October';
 export const CHANGELOG_MEDIA = {
@@ -1335,6 +1338,20 @@ export const CHANGELOG_MEDIA = {
       { name: 'finale-spheres-562', title: 'The Footprint', size: [960, 540], caption: 'Before, the mark over the door; after, two galleries either side of the calmed Echo, their spheres singing', from: END562 },
       { name: 'finale-purse-562', title: 'The Whale-House’s chimes', size: [960, 540], caption: 'The chimes’ panel: before, low under the Listener’s shell, its underside over the top of the frame and him small at the left; after, from over his shoulder, him and the chimes beside him on the floor, the shell’s foot beside', from: END562 },
     ], see: 'Calm any makers’ house’s keeper (or open Debug → Cinematics, Temple endings): after the keeper and its chimes, its own panel, then the way out from inside the hall.' },
+    { match: 'At the end of the Whale-House, the last picture now shows the way out whole', tags: ['story'], shots: [
+      { name: 'finale-way-567', title: 'The way out', size: [960, 540], caption: 'The ending’s last panel: before, the Listener’s shell over the left half of the frame and a pod before the door’s foot; after, from the gap between the shell and the wall, the door and its mark whole, the shell a sliver at the edge', from: FINALE567 },
+    ], see: 'Calm the Listener in the Whale-House (or open Debug → Cinematics, Temple endings, the Whale-House): its last panel, the door sinking open.' },
+    { match: 'In the Desert, Marrow’s red rag is now a broad red cloth on a taller mast', shots: [
+      { name: 'desert-mast-567', title: 'From the roots', size: [960, 540], caption: 'From the tree’s roots, the drinking done, Qanat’s main gate (the middle of the view, enlarged twice): before, a thin red strip among the camps’ banners against the ship’s hull; after, a red block against the sky under the arch’s crown, right of the camps’ smoke', from: POLISH567 },
+    ], see: 'In the Desert, watch the tree drink at its roots, then look south-west through Qanat’s main gate.' },
+    { match: 'In the Signal Market and on the City-Shaft’s rim, the statues by the fragments', tags: ['worlds'], shots: [
+      { name: 'statue-quiet-567', title: 'A quiet one', size: [1280, 720], caption: 'The Signal Market’s statue of a quiet one: before, a blob with a broad head and a stub of an arm; after, a robed figure with its sash, its arms folded round a light, its broad head and two eyes', from: POLISH567 },
+      { name: 'statue-lamp-567', title: 'A lamplighter', size: [1280, 720], caption: 'The City-Shaft’s statue of a lamplighter: before, a cone with a ball for a head; after, boots, a long belted coat, a turned-up collar, a wide hat, his lamp held up on its pole', from: POLISH567 },
+      { name: 'fountain-567', title: 'The second fountain', size: [1280, 720], caption: 'The Signal Market’s second fountain: before, the same round basin as the other three; after, eight-sided, bronze fish on its rim spouting into it', from: POLISH567 },
+      { name: 'bandstand-567', title: 'The second bandstand', size: [1280, 720], caption: 'The second bandstand: before, the same dome as the other two; after, a pointed tent roof on eight posts, a scalloped valance under it', from: POLISH567 },
+    ], see: 'In the Signal Market, ask about the fragments and walk to the statues and fountains they name; on the City-Shaft’s rim, the lamplighters’ statues.' },
+    { match: 'Walking in a fountain’s basin there, your feet no longer sink', tags: ['worlds'],
+      see: 'In the Signal Market or on the City-Shaft’s rim, step over a fountain’s rim into its basin: you stand on its floor, 15 cm up, where before your feet went through it to the square’s ground.' },
   ],
   '1.87': [
     { match: 'In the Unity version, the chime pirates’ place names and a minigame’s other call-outs', tags: ['menus'], shots: [

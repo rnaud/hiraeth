@@ -172,3 +172,44 @@ test('the named places of interest are still in their worlds (a rename would dro
   }
   assert.deepEqual(gone, []);
 });
+
+// Issue #567: up to four fountains and three bandstands in one world, all alike, and the statues a blob and a cone. Each
+// landmark of a kind in a world is now its own shape (the fountain's basin and spouts, the statue's pose and pedestal,
+// the bandstand's roof, the tank's cap, the block's front, the mast's signals, the kiosk's staff): no two the same.
+test('no two landmarks of one kind in a world are built alike (issue #567)', async () => {
+  const { landmarkParts } = await import('../src/fragment-landmarks.js');
+  const same = [];
+  for (const id of ['bazaar', 'incal']) {
+    const list = FRAGMENT_LANDMARKS[id], seen = new Map();
+    list.forEach((L, i) => {
+      const n = list.slice(0, i).filter((o) => o.kind === L.kind).length;
+      // (its shape where it stands, at the origin, unturned: its colours aside)
+      const p = landmarkParts(id, { kind: L.kind, at: [0, 0, 0], yaw: 0 }, 0, n);
+      const key = `${L.kind} ${['solid', 'detail', 'glow'].map((k) => p[k].map((g) => g.attributes.position.count).join(',')).join('|')}`;
+      if (seen.has(key)) same.push(`${id}: ${landmarkName(id, i)} built as ${seen.get(key)}`);
+      else seen.set(key, landmarkName(id, i));
+    });
+  }
+  assert.deepEqual(same, []);
+});
+
+// Issue #567: a fountain's floor was drawn 0.15 m over the ground walked in its basin, so feet sank into it. Seen from
+// above, under its water, what is drawn there is what is walked on.
+test('a fountain’s basin is walked on where it is drawn (issue #567)', () => {
+  const off = [];
+  for (const id of ['bazaar', 'incal']) {
+    const { physics } = world(id), scene = new THREE.Scene(), g = buildFragmentLandmarks(scene, id);
+    scene.updateMatrixWorld(true);
+    const drawn = g.children.filter((m) => m.visible), ray = new THREE.Raycaster();
+    FRAGMENT_LANDMARKS[id].forEach((L, i) => {
+      if (L.kind !== 'fountain') return;
+      for (const [lx, lz] of [[0, 2.1], [2.1, 0], [-1.5, -1.5], [0, -2.2]]) {
+        const x = L.at[0] + lx, z = L.at[2] + lz, y = L.at[1];
+        ray.set(new THREE.Vector3(x, y + 0.38, z), new THREE.Vector3(0, -1, 0));
+        const hit = ray.intersectObjects(drawn, false).find((h) => h.distance > 0), walked = physics.groundAt(x, y + 0.38, z, 2);
+        if (!hit || Math.abs(hit.point.y - walked) > 0.02) off.push(`${id}: ${landmarkName(id, i)} at (${lx}, ${lz}): drawn ${hit?.point.y.toFixed(2)}, walked ${walked?.toFixed(2)}`);
+      }
+    });
+  }
+  assert.deepEqual(off, []);
+});

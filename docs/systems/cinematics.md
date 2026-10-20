@@ -401,6 +401,12 @@ moment on the ship's camera (letterbox, skip tag; B / ○, Menu, Esc or a tap sk
   a little. The logic holds the door shut (`logic.force`) until 0.4 s into this panel, then it sinks (1.8 s); he turns
   to it (`m.face`), so the follow camera comes back behind him looking at it. The house's glyphs come up over this
   panel (`rt.litWant`, eased by `TempleRuntime.glowUpdate`: `uGlow` + 0.35, back down over 2.5 s after).
+  `way.clear` (the Whale-House, issue #567: the Listener comes to rest on its shell five metres before the door, and D
+  was framed past it, the shell half the frame and a pod before the door's foot): the lens must also see the doorway
+  whole (nine points across and up it, past everything drawn), and the keeper's body as it stands through D (its box)
+  must stay off the doorway's part of the frame (a grid of 16 × 9 rays, a margin round the doorway) and take a fifth
+  of the frame at most; such a house also tries lenses from over the keeper's body and further round (±0.9 rad). The
+  Whale-House's D now looks at its door from the gap between the shell and the wall.
 - **B's nudges** (`FINALES[id].reward`): the Whale-House's keeper's drawn box takes in the floor beside him, the
   Listener's shell 12 m high over it: a step toward it put the purse under the shell, and from low by the floor its
   underside filled the top half of the frame (the v1.87 audit). The purse now lands a step to his side, or behind him,

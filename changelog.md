@@ -4,6 +4,10 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.88 — 2026-10-20
 
+- Walking in a fountain’s basin there, your feet no longer sink into its floor.
+- In the Signal Market and on the City-Shaft’s rim, the statues by the fragments are carved figures now: a quiet one with its broad head, holding a light, listening or lifting its little screen, and a lamplighter in his long coat and wide hat with his lamp. No two fountains, bandstands, water tanks, stall blocks, signal platforms or kiosks in one world look the same any more.
+- In the Desert, Marrow’s red rag is now a broad red cloth on a taller mast, with a long red pennant streaming from its top: from the tree’s roots you can make it out in the arch of Qanat’s gate, against the sky.
+- At the end of the Whale-House, the last picture now shows the way out whole, from beside its door, instead of half hidden behind the Listener’s shell.
 - Each makers’ house now ends on its own picture of what calming its keeper changed, after the keeper and its chimes: the Rose House’s cistern fills, the Clock-House’s stopped wall clocks race round to the right time, the tide spreads over the Whale-House’s floor, the Greenhouse’s beds fill with water, the Lamp-House’s lamp lights, and so on, instead of every house ending on the makers’ mark over a door. Then the way out opens, seen from inside its own hall. In the Whale-House the chimes land beside you and are in view, no longer under the Listener’s shell.
 
 ## v1.87 — 2026-10-19

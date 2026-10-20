@@ -204,9 +204,9 @@ hide: `docs/story-bible.md`, "The fragments of the singing light".
   | `block` | a two-storey stall block (a cab-wrights' shed), its awning over a shuttered shop | a stack of crates up its side, six steps of 0.8 m (a jump each) | on its flat roof, 4.8 m up, by its front |
   | `mast` | a signal platform (the lamplighters') on lattice legs, 6.4 m up, a mast with a dish and a lamp off its back | a stair down its front | on the platform |
   | `kiosk` | a round kiosk (a pavilion), its roof terrace 3.6 m up, a lamp on a post | a stair down its front | on the roof |
-  | `fountain` | a round basin, its water drawn only (not a body of water), a dry drum in its middle | a hop over its rim (0.65 m), a jump onto the drum | on the drum, 1 m up |
-  | `statue` | a figure on a pedestal on a round dais: one of the market's quiet ones, a lamplighter with his lamp on the rim | two low steps | at its feet |
-  | `bandstand` | a round floor two steps up, six posts, a dome (drawn only: the way in is under it) | two steps | in its middle |
+  | `fountain` | a basin, its water drawn only (not a body of water), its floor solid where it is drawn (0.15 m), a dry drum in its middle; four shapes (round with brass spouts, eight-sided with bronze fish on its rim, round with a broad lip, a bowl round the drum and four needles, square with urns on its corners) | a hop over its rim (0.6–0.65 m), a jump onto the drum | on the drum, 1 m up |
+  | `statue` | a carved figure on a pedestal (a block, a drum or two steps) on a round dais: one of the market's quiet ones (hands folded on a light, listening with a hand at its head, or holding up a little screen), a lamplighter on the rim (his lamp held up on its pole, or the pole on his shoulder and the lamp low) | two low steps | at its feet |
+  | `bandstand` | a round floor two steps up, six posts, a roof drawn only (the way in is under it): a dome, a pointed tent with a scalloped valance on eight posts, or two tiers | two steps | in its middle |
 
   - **Placed** from each plinth outward: the nearest spot where the building, its stair and
     2 m round them stand on open ground, 16 m open in front of it (the way you walk up, and see the fragment from),
@@ -217,6 +217,15 @@ hide: `docs/story-bible.md`, "The fragments of the singing light".
   - **On it.** Each landmark is a place of interest of its own (`pointsOfInterest`: its name numbered by kind, *the water
     tank on stilts (1)*), and `onPlace` counts a spot on a landmark's top (`onLandmarkTop`: inside its roof or drum,
     the ground under the spot that top). Its rumour says where on it (*on a water tank's deck, west of …*).
+  - **No two alike** (v1.88, issue #567): each landmark of a kind is built by its number among its world's of that kind
+    (`build(P, S, v, n)`: `v` its place in the list, for its colours; `n`, for its shape): the tank a painted drum under
+    a cone or a staved one under a dome with a vane, the stall block three windows or two over a balcony with a blade
+    sign, the signal platform a dish or semaphore arms, a horn and a windsock, the kiosk a lamp or a flag over a clock,
+    and the fountains, statues and bandstands as above. The statues are carved (`quietOneStatue`, `lamplighterStatue`:
+    turned bodies, limbs, hands, faces, in faceted flat-shaded stone), in the drawn-only mesh; the fountain's floor is
+    solid at the height it is drawn. `tests/fragments-poi.test.js`: no two of a kind built alike in a world; a basin
+    walked on where it is drawn. The Signal Market's collision 82.0 k → 82.3 k (its budget 84 k); the drawn-only
+    meshes +3.3 k and +2.4 k triangles, still one draw each.
   - **Drawn** as three meshes a world (vertex colours: the solid, the drawn-only rails, braces, awnings, water and the
     figures, and the glowing lamps), plus a collider never drawn under the crates (one box a step); the stairs' steps
     are lean solids (a tread, a riser, two sides). 2.6 k collision triangles in the Signal Market (its budget 84 k,

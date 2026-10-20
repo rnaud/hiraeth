@@ -50,7 +50,9 @@ const centerOf = (o) => o?.center?.clone?.() ?? o?.group?.getWorldPosition?.(new
  *           Most houses draw what C shows themselves, reading rt.calmK; `run` is for a beat the film plays (a stone
  *           sung, a dish's ring).
  *   way     D's lens: { back (m from the door), up (m over its floor), turn (radians off the door's axis, toward `side`),
- *           past (false: not from behind what C showed) }
+ *           past (false: not from behind what C showed), clear (true: the doorway framed clear of the keeper's body,
+ *           its part of the frame and the keeper's apart, the keeper a small share of it, the doorway seen whole past
+ *           everything drawn: the Listener's shell filled half of D and a pod stood before its door, issue #567) }
  *   stage   (the review page, src/cinematics-page/runtime.js) the house as play leaves it when its guardian is calmed
  *   reward  B's lens, where a house needs it: { away (true: close and high over the purse from the far side of it from
  *           the keeper's middle, where its drawn box takes in the floor round him: the Listener's shell) }
@@ -132,7 +134,7 @@ export const FINALES = {
       at: (rt) => (rt.hallTide?.edges ?? []).map((p) => ({ pos: p.clone(), r: 4.5 })), lens: { up: 2.4, dist: 9, push: 0.25 },
       run: (rt, k) => { for (const id of ['dishW', 'dishE']) { const d = rt.piece(id); const due = id === 'dishW' ? 0.3 : 0.6; if (d && k >= due && !d.finaleRung) { d.finaleRung = true; for (const e of d.ends) e.k = 1; } } },
       end: (rt) => { for (const id of ['dishW', 'dishE']) { const d = rt.piece(id); if (d) d.finaleRung = false; } } },
-    way: { back: 13, up: 2.6, turn: 0.5 } },
+    way: { back: 13, up: 2.6, turn: 0.5, clear: true } },
 };
 /** The Undertower's word stones (the First Sign's line: bazaar.js WordStone), in the line's order. */
 function wordStones(rt) { return (rt.wordStones ?? (rt.pieces ?? []).filter((p) => Number.isInteger(p.i) && typeof p.sing === 'function' && p.N)).slice().sort((a, b) => a.i - b.i); }
@@ -532,9 +534,38 @@ export function finaleShots(rt, F = FINALE) {
   if (n.dot(toHall) < 0) n.negate();
   const doorLook = door.clone().addScaledVector(n, 0.9).addScaledVector(UP, dh * 0.4);   // (in front of its slab: the lens's ray starts outside the shut door's block)
   const WL = H.way ?? {}, doorMid = door.clone().addScaledVector(UP, dh * 0.45);
+  // (its lens as wide as the doorway and its frame want, a little room round them: the hall's wall round it in the frame)
+  const doorBox = new THREE.Box3().setFromPoints([door.clone().addScaledVector(V(-n.z, 0, n.x), -3.8), door.clone().addScaledVector(V(-n.z, 0, n.x), 3.8).addScaledVector(UP, dh + 0.8)]);
+  const wayFov = (p) => THREE.MathUtils.clamp(fitFov(p, doorLook, doorBox, ASPECT, 0.8), 38, 56);
+  // (WL.clear, issue #567: the doorway whole in the frame, nothing drawn before it, the keeper's body as it stands through
+  // D apart from it on the screen and a small share of the frame)
+  const doorPts = WL.clear ? [-1.2, 0, 1.2].flatMap((s) => [0.12, 0.5, 0.85].map((h) => door.clone().addScaledVector(V(-n.z, 0, n.x), s).addScaledVector(UP, dh * h).addScaledVector(n, 0.3))) : [];
+  const KDbody = WL.clear ? (() => { const b = boxAt(tD); for (let t = tD + 0.25; t < finaleLength(F); t += 0.25) b.union(boxAt(t)); return b.union(boxAt(finaleLength(F))); })() : null;
+  const doorClear = (p) => {
+    if (!WL.clear) return true;
+    if (doorPts.some((q) => drawnHit(rt, p, q, [way?.piece?.group].filter(Boolean)) < p.distanceTo(q) - 0.4)) return false;
+    const cam = new THREE.PerspectiveCamera(wayFov(p), ASPECT, 0.1, 2000);
+    cam.position.copy(p); cam.lookAt(doorLook); cam.updateMatrixWorld(); cam.updateProjectionMatrix();
+    const dr = [Infinity, -Infinity, Infinity, -Infinity];
+    for (const q of doorPts) { const v = q.clone().project(cam); if (v.z > 1) return false; dr[0] = Math.min(dr[0], v.x); dr[1] = Math.max(dr[1], v.x); dr[2] = Math.min(dr[2], v.y); dr[3] = Math.max(dr[3], v.y); }
+    // (a grid of rays over the frame: none that meets the keeper's box in the doorway's part of the frame or round it, a
+    // fifth of them at most anywhere)
+    const m = 0.1, ray = new THREE.Ray(), q = V();
+    let hit = 0, all = 0;
+    for (let i = 0; i < 16; i++) for (let j = 0; j < 9; j++) {
+      const x = -1 + (i + 0.5) / 8, y = -1 + (j + 0.5) / 4.5;
+      ray.set(p, q.set(x, y, 0.5).unproject(cam).sub(p).normalize());
+      all++;
+      if (!ray.intersectsBox(KDbody)) continue;
+      hit++;
+      if (x > dr[0] - m && x < dr[1] + m && y > dr[2] - m && y < dr[3] + m) return false;
+    }
+    return hit / all <= 0.2;
+  };
   const wayOk = (p) => rt.inside?.(p) !== false && !inKeeper(p, KD) && !solid(p) && p.distanceTo(doorLook) > 4
     && sightClear(p, doorLook, { ...sight, skip: [way?.piece?.group].filter(Boolean), near: 0.6 }) && drawnHit(rt, doorLook, p, skip) >= p.distanceTo(doorLook) - 0.2
-    && drawnHit(rt, p, doorMid, skip) >= p.distanceTo(doorMid) - 0.4;   // (and from the lens to the doorway's middle: a stone before it, the Undertower's)
+    && drawnHit(rt, p, doorMid, skip) >= p.distanceTo(doorMid) - 0.4   // (and from the lens to the doorway's middle: a stone before it, the Undertower's)
+    && doorClear(p);
   let wayEnds = null;
   // (first from behind what C showed, the house's own thing in the foreground and the way out beyond it: the basin, the
   // vane, the cradle, the tide; then from the hall, as FINALES[id].way says)
@@ -548,7 +579,10 @@ export function finaleShots(rt, F = FINALE) {
       if (wayOk(p0) && wayOk(p1) && wayOk(p0.clone().lerp(p1, 0.5))) { wayEnds = [p0, p1]; break past; }
     }
   }
-  if (!wayEnds) find: for (const back of [WL.back ?? 14, (WL.back ?? 14) * 0.75, (WL.back ?? 14) * 0.55]) for (const up of [WL.up ?? 2.5, (WL.up ?? 2.5) + 2.5, 1.4]) for (const turn of [0, 0.15, -0.15, 0.3, -0.3, 0.5, -0.5]) {
+  const turns = [0, 0.15, -0.15, 0.3, -0.3, 0.5, -0.5, ...(WL.clear ? [0.7, -0.7, 0.9, -0.9] : [])];
+  // (and, where the keeper stands before its door, from over its body: WL.clear)
+  const ups = [WL.up ?? 2.5, (WL.up ?? 2.5) + 2.5, 1.4, ...(WL.clear ? [KDbody.max.y - door.y + 1.5, KDbody.max.y - door.y + 3.5] : [])];
+  if (!wayEnds) find: for (const back of [WL.back ?? 14, (WL.back ?? 14) * 0.75, (WL.back ?? 14) * 0.55]) for (const up of ups) for (const turn of turns) {
     const a1 = side * ((WL.turn ?? 0) + turn);
     const dir = V(n.x * Math.cos(a1) + n.z * Math.sin(a1), 0, -n.x * Math.sin(a1) + n.z * Math.cos(a1));
     const p0 = inside(rt, door.clone().addScaledVector(dir, back).setY(door.y + up));
@@ -562,9 +596,6 @@ export function finaleShots(rt, F = FINALE) {
     wayEnds = [wayFrom, pastKeeper(doorLook, clearOf(rt, doorLook, inside(rt, door.clone().addScaledVector(n, Math.max(4, back - 1.6)).addScaledVector(UP, 2.1)), skip, 3.5), 3.5, KD)];
   }
   const [wayFrom, wayTo] = wayEnds;
-  // (its lens as wide as the doorway and its frame want, a little room round them: the hall's wall round it in the frame)
-  const doorBox = new THREE.Box3().setFromPoints([door.clone().addScaledVector(V(-n.z, 0, n.x), -3.8), door.clone().addScaledVector(V(-n.z, 0, n.x), 3.8).addScaledVector(UP, dh + 0.8)]);
-  const wayFov = (p) => THREE.MathUtils.clamp(fitFov(p, doorLook, doorBox, ASPECT, 0.8), 38, 56);
   const shots = [
     { dur: F.keeper, from: keeper, ease: 'linear' },
     { dur: F.reward, from: { pos: rewardFrom, look: rewardAt, fov: rewardPick?.away ? 40 : fovB(rewardFrom, rewardAt) }, to: { pos: rewardTo, look: rewardAt, fov: (rewardPick?.away ? 40 : fovB(rewardTo, rewardAt)) - 4 } },   // (away: him and the purse, not the keeper's whole box)

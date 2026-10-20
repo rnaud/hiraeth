@@ -39,8 +39,11 @@ export const STORY = {
   bike: { x: 132, z: 150, yaw: 2.3 },                               // Marrow's hollow: the hoverbike under its tarp (quest desert.bike)
   lookout: { x: 165, z: 182 },                                      // Zahir on the dune's crest over the hollow, the tarp in sight below (issue #278)
   // the red rag's mast on the hollow's north-west lip, between it and the ship (issue #561: the 263 m from the drinking roots
-  // to the tarp were blind): `h` m tall, and from the roots it stands in the arch of Qanat's main gate (tests/desert-lookout.test.js)
-  rag: { x: 115, z: 172, h: 20 },
+  // to the tarp were blind): `h` m tall, and from the roots it stands in the arch of Qanat's main gate (tests/desert-lookout.test.js;
+  // issue #567: 20 -> 28 m, so its rag flies against the sky over the ship's hull, not among the camps' banners, and still
+  // under the arch's crown; the rag w x fh m, a salvaged sail's cloth, 2.2 x 7 before, and an 11 m pennant over it at the
+  // truck: src/story/desert-bike.js)
+  rag: { x: 115, z: 172, h: 28, w: 5, fh: 10, pennant: 11 },
   // the Givers' Hearth (src/desert-hearth.js): a butte of red rock far out in the south-east, ~1.7 km from
   // Qanat (a long ride, more than four minutes' run), the spark-stone in the dark cave under it; its rooms far overhead
   hearth: { x: 1650, z: -450, r: 46 },

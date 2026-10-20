@@ -330,7 +330,7 @@ over the purse, which now lands a step to his side, out from under the shell (`p
 | `finale.bazaar` | a word stone sings, the rest of the line heard round the hall | 5 | 3 → 4 |
 | `finale.spacecity` | the Warden's barred gate rises onto the hub (D: the way east) | 5 | 3 → 4 |
 | `finale.moonfoundry` | the iron moon in the cradle glows white-hot and cools | 5 | 3.5 → 4.5 |
-| `finale.underwater` | the tide spreads out of the Listener's pool, a dish ringing; B over the purse | 5 | 3 → 4.5 |
+| `finale.underwater` | the tide spreads out of the Listener's pool, a dish ringing; B over the purse; D (#567) the door framed clear of the shell | 5 | 3 → 4.5 |
 
 Interest 3.39 → 4.39; tech 5 in every one (the audit's 4.54, by eye). The staging (`src/cinematics-page/runtime.js`) now leaves two houses as play does at
 their guardian's end (`FINALES[id].stage`): the Engine-House's ball in the gear's teeth, the Greenhouse's beds bloomed.

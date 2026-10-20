@@ -506,6 +506,10 @@ open edges of every desert water within 6 cm of what is under them, and the chan
   audit (`the red rag’s mast`): the leg roots → tarp is guided by a landmark by it, 71 % → 79 % of the long legs (one leg
   short of wayfinding 5: the giant's skull → the drain and the two short legs in the Hearth stay blind). Tests:
   `tests/desert-lookout.test.js` (the mast in sight from the roots by the audit's ray, with a step's margin either side).
+  v1.88 (issue #567): from the roots the 2.2 × 7 m rag was a speck among the camps' banners, against the ship's hull. The
+  spar is 28 m, the rag a salvaged sail's cloth, 5 × 10 m (12 × 25 px from the roots at 1280 × 720), hung against the sky
+  just under the arch's crown, and a tapered red pennant streams downwind from the truck (`Banner`'s `taper`, src/life.js);
+  28 m, not more: higher, the drawn arch (not its collision box) hides the rag's head from the roots.
 - **The audit** (`node scripts/level-design/audit.mjs --worlds desert`): mean 3.89 → 4.22. No walk back with nothing
   new (loops 3 → 5: the House's walk home passes the field-stone), four kinds of stop with the House a temple stop
   and the longest run of "do" six (pacing 3 → 4); the critical path 5600 → 4996 m.

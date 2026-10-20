@@ -165,9 +165,11 @@ export class Motes {
 
 /** A cloth banner hanging from its top edge, waving in the wind. */
 export class Banner {
-  constructor(scene, pos, rotY, { width = 2, height = 6, color = '#d9643a', glyphs = true } = {}) {
+  constructor(scene, pos, rotY, { width = 2, height = 6, color = '#d9643a', glyphs = true, taper = 0 } = {}) {
     const g = new THREE.PlaneGeometry(width, height, 2, 10);
     g.translate(0, -height / 2, 0);
+    // (a pennant: `taper` of its width gone by its free end, issue #567)
+    if (taper) { const a = g.attributes.position; for (let i = 0; i < a.count; i++) a.setX(i, a.getX(i) * (1 + taper * a.getY(i) / height)); }
     this.base = g.attributes.position.array.slice();
     this.geo = g;
     this.height = height;

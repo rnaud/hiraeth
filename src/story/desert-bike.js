@@ -32,6 +32,8 @@ import { t as tr } from '../i18n.js';
 
 const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 const TARP = { w: 2.6, l: 4.2 };
+const RAG = STORY.rag;   // (its rag's size w x fh and its pennant's length: src/desert-sites.js)
+const WIND = 0.6;   // (the desert's mean wind, src/wind.js windAngle: the pennant streams that way)
 
 /**
  * Old saves: before the bike had to be found, anyone with the backpack could
@@ -99,10 +101,12 @@ export function setupHoverbike(ctx) {
   const T = (p) => [p.x - site.bike.x, p.y - site.bike.y, p.z - site.bike.z];
   // (issue #561) the red rag's mast on the lip: a salvaged spar, a cross-tree near its top, three stays pegged in the sand
   const mast = site.mast, H = site.mastH, toLip = Math.atan2(site.bike.x - mast.x, site.bike.z - mast.z);
-  props.add(new THREE.CylinderGeometry(0.08, 0.16, H, 6), '#4a3a2a', { at: [T(mast)[0], T(mast)[1] + H / 2 - 0.3, T(mast)[2]] });
-  props.add(new THREE.BoxGeometry(2.2, 0.1, 0.1), '#4a3a2a', { at: [T(mast)[0], T(mast)[1] + H - 1.1, T(mast)[2]], rot: [0, toLip, 0] });
+  props.add(new THREE.CylinderGeometry(0.09, 0.2, H + 0.3, 6), '#4a3a2a', { at: [T(mast)[0], T(mast)[1] + H / 2 - 0.15, T(mast)[2]] });
+  props.add(new THREE.BoxGeometry(RAG.w + 0.4, 0.12, 0.12), '#4a3a2a', { at: [T(mast)[0], T(mast)[1] + H - 1.5, T(mast)[2]], rot: [0, toLip + Math.PI / 2, 0] });   // (the yard along the rag it carries)
+  // (issue #567) the truck at the very top, the pennant's hoist
+  props.add(new THREE.CylinderGeometry(0.2, 0.14, 0.3, 6), '#4a3a2a', { at: [T(mast)[0], T(mast)[1] + H - 0.1, T(mast)[2]] });
   for (let k = 0; k < 3; k++) {
-    const a = toLip + Math.PI / 3 + (k * Math.PI * 2) / 3, out = H * 0.42, top = new THREE.Vector3(0, H - 1.3, 0), foot = new THREE.Vector3(Math.sin(a) * out, ground.heightAt(mast.x + Math.sin(a) * out, mast.z + Math.cos(a) * out) - mast.y, Math.cos(a) * out);
+    const a = toLip + Math.PI / 3 + (k * Math.PI * 2) / 3, out = H * 0.42, top = new THREE.Vector3(0, H - 1.7, 0), foot = new THREE.Vector3(Math.sin(a) * out, ground.heightAt(mast.x + Math.sin(a) * out, mast.z + Math.cos(a) * out) - mast.y, Math.cos(a) * out);
     const len = top.distanceTo(foot), mid = top.clone().add(foot).multiplyScalar(0.5), q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), top.clone().sub(foot).normalize());
     const e = new THREE.Euler().setFromQuaternion(q);
     props.add(new THREE.CylinderGeometry(0.018, 0.018, len, 3), '#3a3a3a', { at: [T(mast)[0] + mid.x, T(mast)[1] + mid.y, T(mast)[2] + mid.z], rot: [e.x, e.y, e.z] });
@@ -121,7 +125,12 @@ export function setupHoverbike(ctx) {
   group.traverse((o) => { o.userData.noCollide = true; });
   scene.add(group);
   // the red rag at the mast's head: you see it from the dunes around, and from the tree's roots through the city's gate
-  const rag = new Banner(scene, mast.clone().add(new THREE.Vector3(0, H - 1.0, 0)), toLip + Math.PI / 2, { width: 2.2, height: 7, color: '#c8483a', glyphs: false });
+  // (issue #567: 2.2 x 7 m -> RAG.w x RAG.fh, the mast 28 m: against the sky over the ship's hull from the roots, not the camps' banners)
+  const rag = new Banner(scene, mast.clone().add(new THREE.Vector3(0, H - 1.4, 0)), toLip + Math.PI / 2, { width: RAG.w, height: RAG.fh, color: '#c8483a', glyphs: false });
+  // and over it a long red pennant streaming downwind from the truck (the desert's wind, src/wind.js: about 0.6 rad), a
+  // banner laid on its side, tapering to a point: the one thing on the sand that flies sideways
+  const pennant = new Banner(scene, mast.clone().add(new THREE.Vector3(0, H - 0.5, 0)), 0, { width: 1.2, height: RAG.pennant, color: '#c8483a', glyphs: false, taper: 0.9 });
+  pennant.mesh.rotation.set(0, -WIND, Math.PI / 2 - 0.1);
 
   // the tarp: draped over the bike until pulled back, then a heap beside it
   const tarp = new THREE.Mesh(tarpGeometry(site, ground), paintMaterial({ smooth: true, side: THREE.DoubleSide }));
@@ -178,8 +187,8 @@ export function setupHoverbike(ctx) {
   const update = (dt, t, camPos) => {
     if (heap.t > 0 && heap.t < 1) { heap.t = Math.min(1, heap.t + dt / 0.9); placeTarp(heap.t); }
     const d = flat(camPos, site.bike);
-    rag.mesh.visible = d < 900;
-    if (d < 220) rag.update(t);
+    rag.mesh.visible = pennant.mesh.visible = d < 900;
+    if (d < 220) { rag.update(t); pennant.update(t * 1.4); }
   };
-  return { site, tarp, rag, update, found, uncovered };
+  return { site, tarp, rag, pennant, update, found, uncovered };
 }
