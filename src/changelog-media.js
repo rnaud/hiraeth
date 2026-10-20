@@ -1304,6 +1304,8 @@ const RETROID404 = 'Retroid Pocket Nova (Adreno 740, Vulkan), the Unity build at
 const SRC404 = 'the bridge’s own bench (-views -bench 6 -bundle none, unity-bench.json) on the device, 19 October; docs/systems/performance.md, “Unity on the Retroid, round 14”';
 const DYN404 = 'Issue #404: the bench’s own shots on the Retroid (the views after their 6 s), the same APK with -no-dyn-res (before) and as shipped (after); 19 October; cwebp -q 72';
 const WATER553 = 'Issue #553: headless Chrome on the GPU at High, 10 in the morning, clear, the camera pinned (changelog-shots.mjs shoot), the Rose House calmed and the pan flooded in the save; before b077eaf94, after its fix, 19 October; cwebp -q 72';
+/** (v1.87, issue #552: straps across the chest lie on the body) */
+const STRAP552 = 'Issue #552: the game’s own captureView in muted headless Chrome (High, 1280 × 720, 10:00, clear) on a Vite of its own (port 5552), the person held still at one spot and heading, the camera 1.8 m from them; before: b077eaf94, after: this branch; 19 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.87': [
     { match: 'In the Unity version, Anselm’s shop opens over a darkened hold', tags: ['devices'], shots: [
@@ -1371,6 +1373,10 @@ export const CHANGELOG_MEDIA = {
       { name: 'water-553-flood', title: 'The salt pan', caption: 'The flooded salt pan from its edge: before, a sheet hanging up to a metre over the sand round the pan, its shadow under it; after, in the pan, its shore where the ground rises out of it', from: WATER553 },
       { name: 'water-553-lagoon', title: 'The salt lagoons', caption: 'The salt lagoons from the low side: before, the water’s edge stood up to 2.4 m over the sand, a pale line over its own shadow; after, the water lies on the ground down to its edge', from: WATER553 },
     ], see: 'In the desert, crouch by a channel at Qanat’s fields once the Rose House runs again, or walk to the edge of the flooded salt pan or of the salt lagoons and look along the ground.' },
+    { match: 'Marrow by the ship, and the people who wear a strap across the chest', tags: ['characters'], shots: [
+      { name: 'strap-marrow-552', title: 'Marrow by the ship', size: [1280, 720], caption: 'Marrow by the ship’s ramp: before, his bag’s strap a straight brown stick standing off his chest from his right shoulder to the bag his left hand seemed to hold; after, a strap lying on him over the shoulder, the bag on his hip', from: STRAP552 },
+      { name: 'strap-ferro-552', title: 'Ferro in the Signal Market', size: [1280, 720], caption: 'Ferro: before, a stiff rod from her right shoulder down past her hip to beside her left hand; after, a strap across her chest to the hip, and round her back', from: STRAP552 },
+    ], see: 'Walk down the ship’s ramp in the Desert and look at Marrow, the salvager with the hook, from in front; or Kip and Ferro in the Signal Market.' },
   ],
   '1.86': [
     { match: 'In the Unity version, the Controls page shows your keys and buttons on caps', tags: ['devices'], shots: [

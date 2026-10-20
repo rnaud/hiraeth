@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { MASKS } from '../costumes.js';
+import { MASKS, torsoStrap, CHEST_DEEP } from '../costumes.js';
 import { QUEST_LOOKS } from './quest-looks.js';
 import { FAMILY_LOOKS } from './family.js';
 import { familyPieces } from './family-pieces.js';
@@ -26,7 +26,6 @@ function ladder(x,y,z,h=.7){const a=[P(wood,rod([x-.1,y-h/2,z],[x-.1,y+h/2,z],.0
 function coil(x,y,z,r=.1,n=4){return Array.from({length:n},(_,i)=>P(wood,ring(r+i*.007,.006,x,y,z+i*.005)));}
 function keys(x=.19,y=.08,z=.18){let a=[P(metal,ring(.055,.007,x,y,z))];for(let i=0;i<4;i++){let X=x+(i-1.5)*.025;a.push(P(metal,rod([X,y-.03,z],[X,y-.15-i*.008,z],.006)),P(metal,box(.025,.015,.01,X+.01,y-.13-i*.008,z)));}return a;}
 function bag(x,y,z,w=.16,h=.2,role='canvas') {return [P(role,box(w,h,.075,x,y,z)),P(role,box(w*1.04,h*.3,.085,x,y+h*.4,z+.004)),P(metal,ball(.012,x,y+h*.2,z+.047))];}
-function strap(a,b,role=wood){return P(role,rod(a,b,.015));}
 function prism(points,depth=.035){const sh=new THREE.Shape();sh.moveTo(...points[0]);for(const p of points.slice(1))sh.lineTo(...p);sh.closePath();return new THREE.ExtrudeGeometry(sh,{depth,bevelEnabled:false});}
 
 function headKit(id) {
@@ -106,10 +105,10 @@ function toolKit(id){
 }
 function gear(x,y,z,r=.055){const a=[P(metal,ring(r,.009,x,y,z))];for(let i=0;i<8;i++){const t=i*Math.PI/4;a.push(P(metal,box(.018,.025,.014,0,r,0).rotateZ(t).translate(x,y,z)));}return a;}
 
-function wornKit(id){
+function wornKit(id,look={}){
  const chest=[],back=[];const add=(c,g)=>chest.push(P(c,g));const pack=(p)=>back.push(...p);
  const pouch=()=>chest.push(...bag(.19,.08,.19));
- const diagonal=()=>chest.push(strap([-.17,.69,.15],[.21,.05,.18]));
+ const diagonal=()=>chest.push(sash(look));
  switch(id){
  case 'dustpan':add(metal,box(.11,.12,.015,.19,.09,.19));add(wood,rod([.19,.13,.19],[.19,.3,.19],.005));break;
  case 'fanCollar':add('accent',prism([[-.3,.61],[-.27,.84],[-.1,.69],[0,.63],[.1,.69],[.27,.84],[.3,.61],[0,.48]],.03).translate(0,0,.13));break;
@@ -175,11 +174,37 @@ function referenceHead(design, look, humanoid) {
  return a;
 }
 
-function tunic(design, look) {
- if(!look.robe && !(look.bulk>=2))return [];
+/** The fuller tunic's profile ([radius, height] up the body), or null when the look wears none. */
+function tunicProfile(look) {
+ if(!look.robe && !(look.bulk>=2))return null;
  const padded=look.bulk>=2, heavy=look.build==='heavy';
  const width=heavy?(padded?.32:.25):padded?.25:.21;
- const profile=[[.18,.12],[width,.25],[width*1.04,.43],[width*.92,.62],[.10,.72]];
+ return [[.18,.12],[width,.25],[width*1.04,.43],[width*.92,.62],[.10,.72]];
+}
+/** The tunic's radius at a height (its lathe is straight between the profile's points), or 0 off it. */
+function tunicRadius(profile,y){
+ if(!profile||y<profile[0][1]||y>profile[profile.length-1][1])return 0;
+ for(let i=1;i<profile.length;i++)if(y<=profile[i][1]){const [r0,y0]=profile[i-1],[r1,y1]=profile[i];return THREE.MathUtils.lerp(r0,r1,(y-y0)/(y1-y0));}
+ return 0;
+}
+/**
+ * The sash across the chest (issue #552): a strap from the left hip up over the right shoulder and down the
+ * back round to the hip again, lying on the body (or on the tunic worn over it). It was a straight rod from
+ * the shoulder down past the hip to beside the left hand, standing off the chest: a bar from the shoulder to the hand.
+ */
+function sash(look) {
+ const profile=tunicProfile(look);
+ // (the tunic's depth in front or behind at (x, y): its lathe squashed to .7 deep)
+ const shell=profile?(x,y)=>{const r=tunicRadius(profile,y);return Math.abs(x)<r?.7*Math.sqrt(r*r-x*x):-Infinity;}:null;
+ const side=Math.max(.185,tunicRadius(profile,.25)+.014);
+ return {...P(wood,torsoStrap([[.15,.25,1],[.11,.34,1],[.06,.43,1],[0,.52,1],[-.06,.61,1],[-.11,.7,1],[-.135,.75,0],
+   [-.12,.69,-1],[-.05,.58,-1],[.05,.44,-1],[.13,.31,-1],[side,.25,0,0]],.034,1,{shell,closed:true,deep:Math.max(CHEST_DEEP[look.build]??1,look.kind==='f'?1.2:1)})),strap:true};
+}
+
+function tunic(design, look) {
+ const profile=tunicProfile(look);
+ if(!profile)return [];
+ const padded=look.bulk>=2;
  const shell=new THREE.LatheGeometry(profile.map(([r,y])=>new THREE.Vector2(r,y)),20).scale(1,1,.7);
  const a=[P(design.kit==='oilApron'?'cloak':'cloth',shell)];
  if(padded && design.kit!=='oilApron') for(let k=0;k<7;k++) {
@@ -220,7 +245,7 @@ export function questPieces(look, pieces, humanoid = null) {
  if(world==='family'){const design=FAMILY_LOOKS[id];if(!design)return pieces;const f=familyPieces(design,look,humanoid);
    return {...pieces,head:[...pieces.head,...f.head],hand:f.hand??pieces.hand,skinned:[...(pieces.skinned??[]),...f.skinned]};}
  const design=QUEST_LOOKS[world]?.[id];if(!design)return pieces;
- const extras=wornKit(design.kit), tool=toolKit(design.tool);
+ const extras=wornKit(design.kit,look), tool=toolKit(design.tool);
  const head=referenceHead(design,look,humanoid)??[...pieces.head,...headKit(design.headKit)];
  return {...pieces,head,chest:[...pieces.chest,...tunic(design,look),...extras.chest],back:[...pieces.back,...extras.back],hand:tool??pieces.hand,skinned:[...(pieces.skinned??[]),...pressureSuit(look,humanoid)]};
 }

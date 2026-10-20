@@ -2309,19 +2309,28 @@ export const BODIES = {
   // Marrow's kit (his sheet): a soft salvage bag on a strap across the chest at his left hip, a bone and a
   // length of pipe sticking out of it, worn with his scarf (a look has one chest piece; his pack is on his
   // back: BACKS.pack). He wears no cape: his sheet draws a long patched coat (his robe), not a cloak.
-  scavbag: (q) => [
-    // (the scarf's wound collar, and its end tucked down the front: the long tail of `scarf` was cut for a
-    // cape to fall over, and over a pack it stood out across the back)
-    BODIES.scarf(q)[0],
-    P('accent', box(0.075, 0.15, 0.022).rotateZ(0.12).rotateX(-0.18).translate(-0.06, 0.665, 0.125), true),
-    P('wood', box(0.04, 0.5, 0.012).rotateX(-0.34).rotateZ(0.7).translate(0.02, 0.53, 0.168), true),
-    P('hat', sphere(0.1, q, 10, 7).scale(1.05, 0.85, 0.55).rotateZ(-0.1).rotateY(-0.25).translate(0.165, 0.28, 0.215), true),
-    P('accent', sphere(0.1, q, 10, 4, 0, Math.PI * 2, 0, Math.PI * 0.42).scale(1.12, 0.6, 0.62).rotateZ(-0.1).rotateY(-0.25).translate(0.163, 0.315, 0.218), true),
-    P('cloth', cyl(0.011, 0.011, 0.17, q, 5).rotateZ(0.42).translate(0.135, 0.42, 0.205), true),
-    ...Pq('cloth', q < 1 ? null : sphere(0.019, q, 6, 4).scale(1.4, 1, 1).rotateZ(0.42).translate(0.1, 0.495, 0.205)),
-    P('metal', cyl(0.015, 0.015, 0.15, q, 6).rotateZ(-0.35).translate(0.215, 0.4, 0.2), true),
-    ...Pq('dark', q < 1 ? null : cyl(0.009, 0.009, 0.004, q, 6).rotateZ(-0.35).translate(0.24, 0.47, 0.2)),
-  ],
+  // (the bag on his hip, not out in front where his hand swings, and its strap a strap: up across his chest,
+  //  over his right shoulder and down his back under the pack to the bag again, lying on him; it was a straight
+  //  board from the shoulder to the bag standing 9 cm off his chest, read as a bar from his shoulder to his
+  //  hand: issue #552)
+  scavbag: (q) => {
+    const bag = (g) => g.translate(-0.015, 0, -0.07);
+    const out = [
+      // (the scarf's wound collar, and its end tucked down the front: the long tail of `scarf` was cut for a
+      // cape to fall over, and over a pack it stood out across the back)
+      BODIES.scarf(q)[0],
+      P('accent', box(0.075, 0.15, 0.022).rotateZ(0.12).rotateX(-0.18).translate(-0.06, 0.665, 0.125), true),
+      P('hat', bag(sphere(0.1, q, 10, 7).scale(1.05, 0.85, 0.55).rotateZ(-0.1).rotateY(-0.25).translate(0.165, 0.28, 0.215)), true),
+      P('accent', bag(sphere(0.1, q, 10, 4, 0, Math.PI * 2, 0, Math.PI * 0.42).scale(1.12, 0.6, 0.62).rotateZ(-0.1).rotateY(-0.25).translate(0.163, 0.315, 0.218)), true),
+      P('cloth', bag(cyl(0.011, 0.011, 0.17, q, 5).rotateZ(0.42).translate(0.135, 0.42, 0.205)), true),
+      ...Pq('cloth', q < 1 ? null : bag(sphere(0.019, q, 6, 4).scale(1.4, 1, 1).rotateZ(0.42).translate(0.1, 0.495, 0.205))),
+      P('metal', bag(cyl(0.015, 0.015, 0.15, q, 6).rotateZ(-0.35).translate(0.215, 0.4, 0.2)), true),
+      ...Pq('dark', q < 1 ? null : bag(cyl(0.009, 0.009, 0.004, q, 6).rotateZ(-0.35).translate(0.24, 0.47, 0.2))),
+    ];
+    out.push({ ...P('wood', torsoStrap([[0.115, 0.34, 0, 0.14], [0.07, 0.44, 1], [0, 0.53, 1], [-0.06, 0.62, 1], [-0.11, 0.7, 1], [-0.135, 0.745, 0],
+      [-0.12, 0.69, -1], [-0.05, 0.58, -1], [0.05, 0.45, -1], [0.13, 0.35, -1], [0.18, 0.31, 0, 0.0], [0.2, 0.31, 0, 0.1]], 0.03, q), true), strap: true });
+    return out;
+  },
   // the Garden of Spheres: a pleated ruff
   ruff: (q) => {
     const g = torus(0.115, 0.04, q, 24, 6).rotateX(Math.PI / 2);
@@ -2357,6 +2366,59 @@ function strapRibbon(points, width, q) {
     O.set(p.x, 0, p.z).normalize();
     S.crossVectors(T, O).normalize().multiplyScalar(width / 2);
     pos.push(p.x - S.x + O.x * 0.003, p.y - S.y, p.z - S.z + O.z * 0.003, p.x + S.x + O.x * 0.003, p.y + S.y, p.z + S.z + O.z * 0.003);
+    if (i < n) idx.push(i * 2, i * 2 + 1, i * 2 + 2, i * 2 + 1, i * 2 + 3, i * 2 + 2);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  return g;
+}
+
+/**
+ * The torso's surface in the chest frame (any build: the frame is the build's): its depth in front and behind
+ * at a height, narrowing to the sides; measured on the MakeHuman bodies as they walk (issue #552).
+ */
+const TORSO_FRONT = [[0.12, 0.09], [0.54, 0.088], [0.6, 0.07], [0.66, 0.045], [0.72, 0.02], [0.77, -0.01]];
+const TORSO_BACK = [[0.12, -0.13], [0.3, -0.13], [0.6, -0.145], [0.7, -0.12], [0.77, -0.08]];
+export const TORSO_HALF_WIDTH = 0.18;
+function tableAt(t, y) {
+  if (y <= t[0][0]) return t[0][1];
+  for (let i = 1; i < t.length; i++) if (y <= t[i][0]) return THREE.MathUtils.lerp(t[i - 1][1], t[i][1], (y - t[i - 1][0]) / (t[i][0] - t[i - 1][0]));
+  return t[t.length - 1][1];
+}
+/** How much deeper a build's chest is than the frame's own scaling makes it (MakeHuman's broad and heavy chests). */
+export const CHEST_DEEP = { slender: 1, slim: 1, average: 1, broad: 1.3, stout: 1.3, heavy: 1.45 };
+/** The torso's depth at (x, y), chest frame: in front (side 1) or behind (side -1); `deep`, the chest's (CHEST_DEEP). */
+export function torsoDepth(x, y, side, deep = 1) {
+  const chest = side > 0 && deep !== 1 ? 1 + (deep - 1) * THREE.MathUtils.smoothstep(y, 0.38, 0.48) * (1 - THREE.MathUtils.smoothstep(y, 0.62, 0.72)) : 1;
+  return tableAt(side > 0 ? TORSO_FRONT : TORSO_BACK, y) * chest * Math.sqrt(Math.max(0.05, 1 - (x / TORSO_HALF_WIDTH) ** 2));
+}
+
+/**
+ * A strap lying on the torso (chest frame), `width` across, its face turned out from the body: through `path`,
+ * points [x, y, side]: side 1 on the front and -1 on the back (its depth the torso's, or a garment's worn over
+ * it, `shell(x, y, side)`, `lift` m out from it), 0 over the top of the shoulder (`lift` above y), or a fourth
+ * number, the depth given. So it bends round the chest and over the shoulder instead of standing off the body
+ * as a straight bar (issue #552: Marrow's bag strap and the reference costumes' sash were rigid bars from the
+ * shoulder down to where the other hand hangs, and read as a line from the shoulder to the hand).
+ */
+export function torsoStrap(path, width, q, { lift = 0.016, shell = null, closed = false, deep = 1 } = {}) {
+  const pts = path.map(([x, y, side, z]) => {
+    if (z !== undefined) return new THREE.Vector3(x, y, z);
+    if (!side) return new THREE.Vector3(x, y + lift, -0.03);
+    const d = Math.max(torsoDepth(x, y, side, deep) * side, shell ? shell(x, y, side) : -Infinity);   // (how far out on that side)
+    return new THREE.Vector3(x, y, side * (d + lift));
+  });
+  const curve = new THREE.CatmullRomCurve3(pts, closed), n = sg(closed ? 40 : 28, q);
+  const pos = [], idx = [], T = new THREE.Vector3(), O = new THREE.Vector3(), S = new THREE.Vector3();
+  for (let i = 0; i <= n; i++) {
+    const u = i / n, p = curve.getPointAt(u % 1);
+    curve.getTangentAt(u % 1, T);
+    // (out from the body: from its axis, and up over the shoulders)
+    O.set(p.x, p.y - Math.min(p.y, 0.6), p.z + 0.03).normalize();
+    S.crossVectors(T, O).normalize().multiplyScalar(width / 2);
+    pos.push(p.x - S.x, p.y - S.y, p.z - S.z, p.x + S.x, p.y + S.y, p.z + S.z);
     if (i < n) idx.push(i * 2, i * 2 + 1, i * 2 + 2, i * 2 + 1, i * 2 + 3, i * 2 + 2);
   }
   const g = new THREE.BufferGeometry();

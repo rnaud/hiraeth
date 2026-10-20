@@ -47,10 +47,12 @@ test('the people carry what their sheets draw', () => {
   // the gourds hang at the belt, in front, where the cloak's opening shows them
   const g = box(BODIES.gourds(1));
   assert.ok(g.min.y > 0.1 && g.max.y < 0.36 && g.max.z > 0.15, `gourds at the belt: ${g.min.y.toFixed(2)}..${g.max.y.toFixed(2)}`);
-  // Marrow's bag at his left hip in front, his pack on his back (the back slot: BACKS.pack)
+  // Marrow's bag at his left hip in front, on the hip (not out where his hand swings: issue #552), his pack
+  // on his back (the back slot: BACKS.pack)
   const kit = BODIES.scavbag(1);
   for (const pc of kit) pc.geo.computeBoundingBox();
-  assert.ok(kit.some((pc) => pc.role === 'hat' && pc.geo.boundingBox.min.x > 0.05 && pc.geo.boundingBox.min.z > 0.1), 'a bag at the left hip, in front');
+  const at = (pc) => pc.geo.boundingBox.getCenter(V());
+  assert.ok(kit.some((pc) => pc.role === 'hat' && at(pc).x > 0.1 && at(pc).z > 0.1 && at(pc).z < 0.17 && pc.geo.boundingBox.min.x > 0.03), 'a bag at the left hip, in front');
   assert.equal(marrow.back, 'pack');
   const back = box(BACKS.pack(1));
   assert.ok(!back.isEmpty() && back.max.z < 0 && back.min.y > 0.2, 'a pack behind');

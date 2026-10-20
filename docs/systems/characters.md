@@ -1126,6 +1126,22 @@ families' skin weights and moving tools, late identification, costume isolation,
 and Wren's trim. Review full-body cast sheets and walking/seated poses in
 `studio.html?lineup=cast&world=buried&source=makehuman` (change the world as needed).
 
+### Straps lie on the torso (issue #552)
+
+A strap across the chest is built with `torsoStrap` (`src/costumes.js`): a band through points given as
+(x, y, front or back), its depth looked up on the torso's surface in the chest frame (`torsoDepth`: tables
+measured by raycasting the MakeHuman bodies as they walk, deeper for broad and heavy builds and women's
+chests, `CHEST_DEEP`), or on a garment worn over it (`shell`: the reference tunic), a little out from it,
+its face turned out and over the shoulder. It replaced two straight pieces that read as a bar from the
+shoulder to the other hand: Marrow's bag strap (a board standing 9–16 cm off his chest down to the bag his
+hand seemed to hold; the bag now sits on his hip) and the reference outfits' sash (`quest-pieces.js` `sash`,
+for the `sash`, `mechanic`, `rigger`, `cable`, `ladder`, `climbing`, `sphereLamp`, `rope`, `reeds`, `wickBag`
+and `parcel` kits: a rod from the right shoulder down past the left hip to beside the hand; now a loop over
+the shoulder, across the chest to the hip and round the back). Chest pieces are rigid on `spine_03`, so
+nothing stretched between bones: the bars were drawn that way. `tests/body-straps.test.js` builds every
+wearer on the MakeHuman body, walks them, and checks their straps stay above the hip, inside the arms and
+within 5 cm of the chest (pieces tagged `strap: true`).
+
 ## Prominence: the crowd a step quieter (October 2026, v1.42)
 
 The author: "most world characters should look a bit less colourful so that the quest and main characters really
