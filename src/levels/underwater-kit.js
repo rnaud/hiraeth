@@ -355,6 +355,10 @@ function onDome(r, sy, pts, rad = 0.1) {
   return new THREE.TubeGeometry(new THREE.CatmullRomCurve3(P), Math.max(4, pts.length * 3), rad, 4, false);
 }
 
+// Finished surfaces above each building's nominal y. Cafés stand inside the halls;
+// their warm floors must clear the hall paving instead of sharing its depth.
+export const UW_FLOOR_TOP = Object.freeze({ hall: 0.04, cafe: 0.08 });
+
 /**
  * A café under a dome at (x, y, z) (y its floor), r round, sy its height over r.
  *   shell     'glass': a glass dome on ribs (S_GLASS: only its rim and a highlight drawn); else the shell's tone
@@ -416,7 +420,7 @@ export function cafeDome(kit, M, rng, { x, y = 0, z, r = 10, sy = 0.85, shell = 
   kit.add(M.frame, put(new THREE.BoxGeometry(doorW + 0.6, 0.35, 0.35), x + Math.sin(doorYaw) * r, y + doorH, z + Math.cos(doorYaw) * r, doorYaw), SOLID);
   // the base ring (round the shell's foot) and the floor
   kit.add(M.frame, lathe([[r * 1.04, y - base], [r * 1.06, y - base * 0.4], [r * 1.02, y + 0.05], [r * 0.98, y + 0.05]], 40).translate(x, 0, z), SOLID);
-  kit.add(M.floor, new THREE.CylinderGeometry(r * 0.99, r * 0.99, 0.2, 40).translate(x, y - 0.06, z), SOLID);   // (4 cm over the street it stands on)
+  kit.add(M.floor, new THREE.CylinderGeometry(r * 0.99, r * 0.99, 0.2, 40).translate(x, y + UW_FLOOR_TOP.cafe - 0.1, z), SOLID);   // (4 cm above the enclosing hall paving)
   const list = cafeInside(kit, M, rng, { x, y, z, r, H, doorYaw, tables, people });
   const R2 = (r - 0.25) ** 2;
   return {
@@ -739,7 +743,7 @@ export function bigDome(kit, M, { x, y = 0, z, r = 30, sy = 0.6, doors = [], rib
     const from = cutsA[k].b, to = k + 1 < cutsA.length ? cutsA[k + 1].a : cutsA[0].a + TAU;
     if (to - from > 1e-3) kit.add(M.frame, new THREE.LatheGeometry(ringPts, Math.max(2, Math.ceil(seg * (to - from) / TAU)), from, to - from).translate(x, y, z), SOLID);
   }
-  kit.add(floor, new THREE.CylinderGeometry(r * 0.995, r * 0.995, 0.4, seg).translate(x, y - 0.16, z), SOLID);
+  kit.add(floor, new THREE.CylinderGeometry(r * 0.995, r * 0.995, 0.4, seg).translate(x, y + UW_FLOOR_TOP.hall - 0.2, z), SOLID);
   // the doors' frames: two posts and a lintel at the dome's foot
   const doorAt = gaps.map((g) => [x + Math.sin(g.yaw) * r, y, z + Math.cos(g.yaw) * r]);
   for (const [i, g] of gaps.entries()) {

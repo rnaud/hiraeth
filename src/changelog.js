@@ -17,6 +17,7 @@ export const CHANGELOG = [
     // issue #578: main.js captureView own / ownShadowPass, HiraethShadows.PrepareOwn / EndOwn, HiraethFeature ShadowPass,
     // BridgeRunner.Wardrobe; tests/wardrobe.test.js
     'In the Wardrobe the traveller is now lit by the sun without the world’s shadows, wherever he stands, so his clothes and the sword’s colour look the same everywhere: in the Unity version he no longer comes out grey when he stands in the ship’s shadow.',
+    'The Underwater City’s café floors no longer shimmer where they overlap the hall paving beneath them.',
   ] },
   { v: '1.88', date: '2026-10-20', items: [
     // issue #493: src/characters/traveller.js loadTraveller / traveller-v2.js (travellerSetting on, dressTravellerV2),

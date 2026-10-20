@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.89 — 2026-10-20
 
+- The Underwater City’s café floors no longer shimmer where they overlap the hall paving beneath them.
 - In the Wardrobe the traveller is now lit by the sun without the world’s shadows, wherever he stands, so his clothes and the sword’s colour look the same everywhere: in the Unity version he no longer comes out grey when he stands in the ship’s shadow.
 - In Unity, photos and previews drawn at reduced resolution no longer have a rectangle shaded differently from the rest of the picture.
 - In the Unity version, the sea over the Underwater City, seen from under the water, is the same deep, even blue as on the web instead of a pale ceiling crossed by streaks, and from the sea port’s deck the far sea is a flat tone again, without fine lines out to the horizon.
