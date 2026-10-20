@@ -1,0 +1,37 @@
+data/characters/traveller-v2/outfits/salt-pilgrim/manifest.json
+  s_5f899ba316b5dc::t_36ad135c535237 32-34,70-71,77-97,141-143,151,154-156,164-166,169,171,176-178,181-183,186-188,191-193,196-198,201-203,210-213,216-218,227,239-284,288,309,316-379,385,388-393,398-400,403-405,408-410,413-415,418-430,442-447,464-465,490-501,518-519,544-555,572-573,581,588-589,592-593,598-609,626-627,642-643,646-647,650-661,680-681,688-689,696-697,700-701,704-717
+scripts/blender/traveller/outfit_salt_pilgrim.py
+  s_5f899ba316b5dc::t_5305cef9255953 11-26,43-44,46-48,54,61-64,66-68,71,109-132,134-136,141-228,232-234,295-296,324-448,471-502,512-516,535-540,562-564,570,572,625,631,671,673-699
+src/characters/outfits.js
+  s_5f899ba316b5dc::t_5cde273c1a4d94 27-35,101-104,106-368,395,398-403
+tests/traveller-outfits.test.js
+  s_5f899ba316b5dc::t_29d476da74abc9 10,288,290-301,320-479
+docs/systems/characters.md
+  s_b42a0e3c722086::t_532763f4a357b7 2253-2281
+scripts/blender/traveller/outfit_kit.py
+  s_b42a0e3c722086::t_ded4993c1f1789 3-4,267-426
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b077eaf941c909f191c218109d82e8c5503a3c05",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_b42a0e3c722086": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a0417ae1bbca90800",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
