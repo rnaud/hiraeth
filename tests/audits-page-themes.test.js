@@ -24,8 +24,8 @@ test('one card per theme, each its latest report (versions compared as numbers: 
   for (const k of ['game', 'combat', 'level-design', 'temple-design', 'visual', 'temple-visuals', 'ink-lines', 'cinematics', 'quest', 'perf', 'zfight', 'shadow', 'motion', 'camera', 'procedural-animation']) assert.ok(THEME_ORDER.includes(k));
   assert.deepEqual(themes.map((t) => t.kind).filter((k) => THEME_ORDER.includes(k)), THEME_ORDER.filter((k) => kinds.includes(k)), 'in the dashboard\'s order');
   assert.equal(theme('visual').latest.id, 'visual-v1.85');
-  assert.equal(theme('game').latest.id, 'game-v1.85');
-  assert.equal(theme('cinematics').latest.id, 'cinematics-v1.85');   // (the third full pass, issue #467; the v1.6 baseline stays in docs/systems/cinematics-qc.md)
+  assert.equal(theme('game').latest.id, 'game-v1.87');
+  assert.equal(theme('cinematics').latest.id, 'cinematics-v1.87');   // (the fourth full pass, issue #556; the v1.6 baseline stays in docs/systems/cinematics-qc.md)
   for (const t of themes) {
     const same = reports.filter((r) => r.kind === t.kind);
     assert.equal(t.history.length, same.length, `${t.kind}: every version in its history`);
@@ -34,22 +34,22 @@ test('one card per theme, each its latest report (versions compared as numbers: 
     assert.equal(+t.latest.version.split('.')[1] + 1000 * +t.latest.version.split('.')[0], top, `${t.kind}: the highest version`);
   }
   // a new report of a kind becomes its card at once
-  const fake = { ...reports.find((r) => r.id === 'combat-v1.61'), id: 'combat-v1.70', version: '1.70', overall: 4.6 };
+  const fake = { ...reports.find((r) => r.id === 'combat-v1.87'), id: 'combat-v1.90', version: '1.90', overall: 4.6 };
   const t2 = latestByTheme([...reports, fake]).find((t) => t.kind === 'combat');
-  assert.equal(t2.latest.id, 'combat-v1.70');
-  assert.equal(t2.prev.id, 'combat-v1.61');
+  assert.equal(t2.latest.id, 'combat-v1.90');
+  assert.equal(t2.prev.id, 'combat-v1.87');
   assert.equal(t2.delta, 0.09);
 });
 
 test('the change since the one before: overall, and each item since the last time it was judged', () => {
-  assert.equal(theme('combat').prev.id, 'combat-v1.47'); assert.equal(theme('combat').delta, -0.01);   // (combat-v1.61: 4.51, combat-v1.47: 4.52)
-  assert.equal(theme('level-design').prev.id, 'level-design-v1.66'); assert.equal(theme('level-design').delta, -0.03);   // (level-design-v1.85: 4.68, v1.66: 4.71, both over twelve; issue #467)
-  assert.equal(theme('temple-design').prev.id, 'temple-design-v1.74'); assert.equal(theme('temple-design').delta, 0.06);   // (temple-design-v1.85: 4.4 after the shrine redesign, #336; v1.74: 4.34, both over fourteen; issue #467)
-  assert.equal(theme('game').delta, 0);   // (game-v1.85: 4.1, game-v1.59: 4.1)
-  assert.equal(theme('dialogue').prev.id, 'dialogue-v1.57'); assert.equal(theme('dialogue').delta, -0.23);   // (dialogue-v1.66: 4.09 over eleven, v1.57: 4.32 over eleven; issue #226)
+  assert.equal(theme('combat').prev.id, 'combat-v1.61'); assert.equal(theme('combat').delta, 0);   // (combat-v1.87: 4.51, combat-v1.61: 4.51 in its block; issue #556)
+  assert.equal(theme('level-design').prev.id, 'level-design-v1.85'); assert.equal(theme('level-design').delta, 0.05);   // (level-design-v1.87: 4.73, v1.85: 4.68, both over twelve; issue #556)
+  assert.equal(theme('temple-design').prev.id, 'temple-design-v1.85'); assert.equal(theme('temple-design').delta, 0);   // (temple-design-v1.87: 4.4 after #477's three reworks, as v1.85: 4.4, both over fourteen; issue #556)
+  assert.equal(theme('game').delta, 0.1);   // (game-v1.87: 4.2, game-v1.85: 4.1)
+  assert.equal(theme('dialogue').prev.id, 'dialogue-v1.66'); assert.equal(theme('dialogue').delta, 0.09);   // (dialogue-v1.87: 4.18 over eleven, v1.66: 4.09 over eleven; issue #556)
   const lore = group('dialogue', 'Areas').rows.find((r) => r.label === 'Lore load');
-  assert.deepEqual([lore.value, lore.from], [3.5, 4.5], 'an area compared with the review before (v1.66: the hosts\' names alike)');
-  assert.ok(!group('dialogue', 'Areas').rows.some((r) => r.label === 'Localisation'), 'v1.53, v1.57 and v1.66 left localisation unscored (out of scope)');
+  assert.deepEqual([lore.value, lore.from], [4, 3.5], 'an area compared with the review before (v1.87: the near names renamed, #281)');
+  assert.ok(!group('dialogue', 'Areas').rows.some((r) => r.label === 'Localisation'), 'v1.53, v1.57, v1.66 and v1.87 left localisation unscored (out of scope)');
   assert.equal(theme('visual').prev.id, 'visual-v1.66', 'a theme with no score still has the one before'); assert.equal(theme('visual').delta, null);
   for (const t of themes) for (let i = 1; i < t.history.length; i++) {
     const h = t.history[i], before = t.history.slice(0, i).reverse().find((x) => x.overall != null);
@@ -57,24 +57,27 @@ test('the change since the one before: overall, and each item since the last tim
   }
 
   const desert = group('level-design', 'Worlds').rows.find((r) => r.label === 'The Desert');
-  assert.deepEqual([desert.value, desert.from, desert.fromVersion, desert.delta], [4.22, 3.89, '1.66', 0.33]);   // (v1.85: the Rose House before Qanat's gift, #278: no walk back)
+  assert.deepEqual([desert.value, desert.from, desert.fromVersion, desert.delta], [4.22, 4.22, '1.85', 0]);   // (v1.87: unchanged since v1.85, its 263 m blind leg still)
   const viridel = group('level-design', 'Worlds').rows.find((r) => r.label === 'Viridel');
-  assert.deepEqual([viridel.value, viridel.from, viridel.delta], [5, 5, 0], 'a world compared by its row\'s name (5 at v1.66 and v1.85)');
+  assert.deepEqual([viridel.value, viridel.from, viridel.delta], [5, 5, 0], 'a world compared by its row\'s name (5 at v1.66, v1.85 and v1.87)');
   const dunes = group('level-design', 'Worlds').rows.find((r) => r.label === 'The Glass Dunes');
-  assert.deepEqual([dunes.value, dunes.from], [4.22, 4.78], 'v1.85: the new west off every path (#475)');
-  // combat v1.61 judged the whole roster again: each is compared with the last report that judged it (v1.47, the same
-  // 22 kinds and 14 guardians); the antler hound's read 5 -> 4 is the one that moved
+  assert.deepEqual([dunes.value, dunes.from], [4.67, 4.22], 'v1.87: the west on posts, Fenna\'s errand (#475)');
+  // combat v1.87 judged the whole roster again (issue #556): each is compared with the last report that judged it (v1.61,
+  // the same 22 kinds and 14 guardians; the ember wisp new); the hound back to 4.5 (v1.63's follow-up), five guardians' reach
   const arche = group('combat', 'Archetypes').rows;
-  assert.equal(arche.find((r) => r.key === 'shellback crab').fromVersion, '1.47');
+  assert.equal(arche.find((r) => r.key === 'shellback crab').fromVersion, '1.61');
   assert.equal(arche.find((r) => r.key === 'bellows toad').delta, 0);
   const hound = arche.find((r) => r.key === 'antler hound');
-  assert.deepEqual([hound.value, hound.fromVersion], [4.3, '1.47']); assert.ok(hound.delta < 0);
+  assert.deepEqual([hound.value, hound.fromVersion], [4.5, '1.61']); assert.ok(hound.delta > 0);
+  assert.equal(arche.find((r) => r.key === 'ember wisp').delta, undefined, 'a kind no earlier report judged');
   const guardRows = group('combat', 'Guardians').rows;
-  assert.ok(guardRows.every((r) => r.fromVersion === '1.47'), 'the guardians were last scored at v1.47');
+  assert.ok(guardRows.every((r) => r.fromVersion === '1.61'), 'the guardians were last scored at v1.61');
+  assert.ok(guardRows.find((r) => r.label === 'the Gardener').delta < 0, 'its reach past its body (#558)');
   const themesGame = group('game', 'Themes').rows;
-  assert.equal(themesGame.find((r) => /^Arc/.test(r.label)).delta, 0);   // (game-v1.85: arc and pacing 4 → 4)
-  assert.equal(themesGame.find((r) => /^Exploration/.test(r.label)).delta, 0);   // (game-v1.85: exploration and wayfinding 5 → 5)
-  assert.equal(themesGame.find((r) => /^Quality/.test(r.label)).delta, 0);   // (game-v1.85: quality 3 → 3)
+  assert.equal(themesGame.find((r) => /^Arc/.test(r.label)).delta, 0);   // (game-v1.87: arc and pacing 4 → 4)
+  assert.equal(themesGame.find((r) => /^Exploration/.test(r.label)).delta, 0);   // (game-v1.87: exploration and wayfinding 5 → 5)
+  assert.equal(themesGame.find((r) => /^Quality/.test(r.label)).delta, 0);   // (game-v1.87: quality 3 → 3)
+  assert.equal(themesGame.find((r) => /^Core/.test(r.label)).delta, 1);   // (game-v1.87: core experience 3 → 4, the fight temples and the fragments in the story)
   // fewer findings is better: the visual audit's counts
   const vis = group('visual', 'Findings by severity');
   assert.equal(vis.better, 'lower');
@@ -90,8 +93,8 @@ test('the change since the one before: overall, and each item since the last tim
 
 test('the parsers on the real reports: each kind\'s items add up to its overall', () => {
   const arche = group('combat', 'Archetypes').rows, guards = group('combat', 'Guardians').rows;
-  assert.equal(arche.length, 22); assert.equal(guards.length, 14);
-  assert.ok(near(avg([...arche, ...guards].map((r) => r.value)), theme('combat').latest.overall, 0.02), 'the 36 totals\' mean');
+  assert.equal(arche.length, 23); assert.equal(guards.length, 14);
+  assert.ok(near(avg([...arche, ...guards].map((r) => r.value)), theme('combat').latest.overall, 0.02), 'the 37 totals\' mean');
   const worlds = group('level-design', 'Worlds').rows;
   assert.equal(worlds.length, 12, 'the twelve route worlds (v1.49)');
   assert.ok(near(avg(worlds.map((r) => r.value)), theme('level-design').latest.overall));
@@ -107,7 +110,7 @@ test('the parsers on the real reports: each kind\'s items add up to its overall'
   assert.equal(group('game', 'Themes').rows.length, 12);
   const areas = group('dialogue', 'Areas').rows;
   assert.equal(areas.length, 11); assert.ok(near(avg(areas.map((r) => r.value)), theme('dialogue').latest.overall));
-  // the quest QC's second report (v1.85, issue #467): the fourteen places of v1.66 and the fight temples and the ports, the seven rules' mean each
+  // the quest QC's third report (v1.87, issue #556): the fourteen places of v1.66 and the fight temples and the ports, the seven rules' mean each
   const places = group('quest', 'Items').rows;
   assert.equal(theme('quest').name, 'Quest QC');
   assert.equal(places.length, 16); assert.ok(near(avg(places.map((r) => r.value)), theme('quest').latest.overall));
@@ -115,7 +118,7 @@ test('the parsers on the real reports: each kind\'s items add up to its overall'
   assert.equal(scenes.length, 16, 'v1.53: the 13 of v1.34 and the three worlds that joined in v1.40');
   assert.ok(near(avg(scenes.map((r) => r.value)), theme('ink-lines').latest.overall), 'each scene the mean of its resolutions');
   const worldsCine = group('cinematics', 'By world').rows;
-  assert.equal(worldsCine.reduce((n, r) => n + +r.text, 0), 104, 'the 104 cinematics of the v1.85 pass, by world');
+  assert.equal(worldsCine.reduce((n, r) => n + +r.text, 0), 112, 'the 112 cinematics of the v1.87 pass, by world (the side worlds\' arrivals left out, the temple endings in)');
   assert.ok(worldsCine.some((r) => r.label === 'desert') && worldsCine.some((r) => r.label === 'prologue'));
   // (v1.39: the merged and dismissed worlds' arrivals, the Hangar's signal and recordings 10-11 out, the Glass Dunes' clock in)
   // (v1.40: the three new worlds' climaxes, chests and gifts, and recordings 10-12: 12 verdicts more, not reviewed yet)
@@ -191,9 +194,9 @@ test('the cards: score, change, items, the link to the full audit, History behin
       for (const h of t.history) assert.ok(card.includes(`href="#/${h.id}"`), `${t.kind}: history opens ${h.id}`);
     }
   }
-  assert.match(themeCard(theme('combat')), /▼ −0\.01 <small>since v1\.47/);
+  assert.match(themeCard(theme('combat')), /◆ ±0 <small>since v1\.61/);
   assert.match(themeCard(theme('combat')), /class="theme wide"/, 'a card of many items spans two columns');
-  assert.match(themeCard(theme('dialogue')), /▼ −0\.23 <small>since v1\.57/);
+  assert.match(themeCard(theme('dialogue')), /▲ \+0\.09 <small>since v1\.66/);
   assert.doesNotMatch(themeCard(theme('dialogue')), /the first dialogue audit/);
   assert.match(themeCard(theme('perf')), /2\/6/);
   assert.doesNotMatch(themeCard(theme('combat'), { open: true }), /class="history"[^>]* hidden/);

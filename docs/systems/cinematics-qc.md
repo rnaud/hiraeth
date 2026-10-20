@@ -287,6 +287,15 @@ a wall, both worlds rebuilt round their films since (#491); the City-Shaft's bri
   - A second run by eye: 14 Pass. The weakest left: the Whale-House's B (the shell over the top half) and a pillar in
     the Warden's Well's A.
 
+### The fourth full pass (v1.87)
+
+On 2026-10-20 (issue #556), the same script and rules: all 112 of the main game on the review page run in one pass (the
+side worlds' arrivals left out), the fourteen temple endings among them for the first time. No fixes. The report and its
+table: [cinematics-v1.87.md](../audits/cinematics-v1.87.md) (4.53: tech 4.90, interest 4.17; the 98 that were in the
+v1.85 table 4.62). Every v1.85 issue held (#491, #501, #528, #529). New: the temple endings are one four-panel film in
+every house (interest 3.4, the weakest collection), the Whale-House's reward panel still under the shell; the
+Casting-House's ending peaks at −5.8 dBFS.
+
 ### The table
 
 Tech: the script's score on the first run (its heuristics, rescored with the final rules) → the score

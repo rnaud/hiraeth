@@ -1,5 +1,5 @@
 {
- "exported": "2026-10-19T08:30:00.000Z",
+ "exported": "2026-10-20T04:30:00.000Z",
  "notes": {
   "prologue": {
    "verdict": "Needs work",
@@ -352,9 +352,9 @@
    "updated": "2026-10-18T16:00:00.000Z"
   },
   "box.incal.bridge": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 4/5, interest 5/5. New: the health HUD shows through the scene (the script's hudLeaks: health); his head under the top bar at 8 s",
-   "updated": "2026-10-18T16:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-20 (v1.87, docs/audits/cinematics-v1.87.md): tech 5/5, interest 5/5. #501 fixed: no HUD in the scene.",
+   "updated": "2026-10-20T04:30:00.000Z"
   },
   "box.arzach.hush": {
    "verdict": "Pass",
@@ -472,9 +472,9 @@
    "updated": "2026-10-18T16:00:00.000Z"
   },
   "box.bazaar.court": {
-   "verdict": "Not reviewed",
-   "text": "New in v1.86 (issue #518): the Signal Market's court box, behind its alcove's gate as the other yards'. Not through a QC pass yet.",
-   "updated": "2026-10-19T09:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-20 (v1.87, docs/audits/cinematics-v1.87.md): tech 5/5, interest 4/5. New in v1.86 (#518): the Signal Market’s court chest behind its gate; plays clean, his first frame mid-step.",
+   "updated": "2026-10-20T04:30:00.000Z"
   },
   "box.moonfoundry.court": {
    "verdict": "Pass",
@@ -588,13 +588,13 @@
   },
   "finale.moonfoundry": {
    "verdict": "Pass",
-   "text": "QC 2026-10-19 (v1.85, #528/#529: the lens kept out of the keeper’s drawn body; before → after by eye from --group \"Temple endings\"): tech 4 → 4.5, interest 3 → 3.5. B was its body over the top half; now the Last Founder whole beyond him and the chimes. A, C, D clean. Every one plays its 11 s; the one console error in this run is the dev server’s BVH worker outside its allow list (a worktree’s node_modules), not the film.",
-   "updated": "2026-10-19T08:00:00.000Z"
+   "text": "QC 2026-10-19 (v1.85, #528/#529: the lens kept out of the keeper’s drawn body; before → after by eye from --group \"Temple endings\"): tech 4 → 4.5, interest 3 → 3.5. B was its body over the top half; now the Last Founder whole beyond him and the chimes. A, C, D clean. Every one plays its 11 s; the one console error in this run is the dev server’s BVH worker outside its allow list (a worktree’s node_modules), not the film. QC pass 2026-10-20 (v1.87): peaks at −5.8 dBFS, just over the −6 flag.",
+   "updated": "2026-10-20T04:30:00.000Z"
   },
   "finale.underwater": {
    "verdict": "Pass",
-   "text": "QC 2026-10-19 (v1.85, #528/#529: the lens kept out of the keeper’s drawn body; before → after by eye from --group \"Temple endings\"): tech 3.5 → 4, interest 3. A was the Listener’s shell filling the frame from 2 s; now arced 5 m higher, the shell whole bar its tip at 2 s (#529). The hand-back was under the shell, him half hidden; now beside him, the shell to one side (#529). B still has the shell’s underside over the top half, him small at the left: the weakest B. Every one plays its 11 s; the one console error in this run is the dev server’s BVH worker outside its allow list (a worktree’s node_modules), not the film.",
-   "updated": "2026-10-19T08:00:00.000Z"
+   "text": "QC 2026-10-19 (v1.85, #528/#529: the lens kept out of the keeper’s drawn body; before → after by eye from --group \"Temple endings\"): tech 3.5 → 4, interest 3. A was the Listener’s shell filling the frame from 2 s; now arced 5 m higher, the shell whole bar its tip at 2 s (#529). The hand-back was under the shell, him half hidden; now beside him, the shell to one side (#529). B still has the shell’s underside over the top half, him small at the left: the weakest B. Every one plays its 11 s; the one console error in this run is the dev server’s BVH worker outside its allow list (a worktree’s node_modules), not the film. QC pass 2026-10-20 (v1.87): B unchanged, the shell over the top half.",
+   "updated": "2026-10-20T04:30:00.000Z"
   }
  }
 }
