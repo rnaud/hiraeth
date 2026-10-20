@@ -2119,7 +2119,13 @@ sockets, the atlas's swatches, the draw groups, what comes out through the shirt
   rotation from rest) and counts the verts under the shirt that come out through it
   (`manifest.underShirt`): with the arms lowered 23 tee verts came out in phase 2, 0–2 now. Running, the
   lifted thigh still pushes the trousers through the shirt's front hem (as in phase 2): that wants the
-  shirt's cloth solver.
+  shirt's cloth solver. The lowered pose (`poses.LOWERED`, the one copy; `previews.py` uses it too) turns
+  each bone about the armature's own axes from the rest T-pose (z up, facing -y, his left at +x): the
+  forearms bend forward about z (the left by a negative angle, the right by a positive one) and turn palms
+  in (his rest palms face forward); until #548 the forearms' signs were swapped and every posed picture
+  bent the elbows backwards. `poses.bend()` reads an elbow's or knee's bend and its side;
+  `tests/traveller-elbows.test.js` checks the pose, and the game's clips on B3 with the v2 skin bound by
+  bone name (as the outfits page binds it) bending the elbows forward.
 - **His skin on the body** (`skin_colours`). Each body vertex near his visible skin (B3's forearms and
   ankles, head-v3's neck) takes its colour there, where it reads as skin; the rest is filled in by
   spreading those colours over the body, so every seam matches. The base body is collapsed to 55 % of its

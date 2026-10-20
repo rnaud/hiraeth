@@ -156,20 +156,14 @@ if 'posed' in ONLY:
     # the skins at work: arms down and bent, a stride, the head turned, a smile (pose bones, not clips)
     show(parts)
     pb = rig.pose.bones
-    turns = {'upperarm_l': ((0, 1, 0), 68), 'upperarm_r': ((0, 1, 0), -68), 'lowerarm_l': ((0, 0, 1), 35),
-             'lowerarm_r': ((0, 0, 1), -35), 'thigh_l': ((1, 0, 0), -28), 'calf_l': ((1, 0, 0), 45),
-             'thigh_r': ((1, 0, 0), 14), 'neck_01': ((0, 0, 1), 12), 'Head': ((0, 0, 1), 14),
-             'spine_02': ((0, 0, 1), -6), 'eye_l': ((0, 0, 1), 15), 'eye_r': ((0, 0, 1), 15)}
-    for name, (axis, deg) in turns.items():
+    import poses as PZ   # (poses.LOWERED: the one lowered pose, #548)
+    turns = {**PZ.LOWERED, 'eye_l': ((0, 0, 1), 15), 'eye_r': ((0, 0, 1), 15)}
+    for name, t in turns.items():
         if name not in pb:
             continue
         b = pb[name]
         b.rotation_mode = 'QUATERNION'
-        # a turn about the armature's own axis, whatever the bone's roll
-        M = rig.data.bones[name].matrix_local.to_3x3()
-        from mathutils import Quaternion
-        q = Quaternion(M.inverted() @ Vector(axis), math.radians(deg))
-        b.rotation_quaternion = q
+        b.rotation_quaternion = PZ.turn(rig, name, t)   # (about the armature's own axes, whatever the bone's roll)
     for o in [by[n] for n in ('Head', 'Brows') if n in by]:
         o.data.shape_keys.key_blocks['smile'].value = 0.8
     bpy.context.view_layer.update()

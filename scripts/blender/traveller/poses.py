@@ -15,9 +15,19 @@ from mathutils.bvhtree import BVHTree
 HERE = os.path.dirname(os.path.abspath(__file__))
 UAL = os.path.join(HERE, '..', '..', '..', 'public', 'anim', 'ual.glb')
 
-# the previews' pose: arms down and bent, a stride, the head turned
-LOWERED = {'upperarm_l': ((0, 1, 0), 68), 'upperarm_r': ((0, 1, 0), -68), 'lowerarm_l': ((0, 0, 1), 35),
-           'lowerarm_r': ((0, 0, 1), -35), 'thigh_l': ((1, 0, 0), -28), 'calf_l': ((1, 0, 0), 45),
+PALMS_IN = 100   # degrees
+# the previews' pose: arms down and bent, a stride, the head turned. Each turn is about an axis of the armature
+# (Blender's frame: z up, facing -Y, his left at +x), whatever the bone's roll, from the rest T-pose: the upper
+# arms lowered about y, the forearms bent forward (toward -y) about z, so the left one (along +x) turns by a
+# negative angle and the right one (along -x) by a positive one. (Until #548 the forearms' signs were the other
+# way round: the elbows bent backwards, the hands flung out behind, palms forward, in every posed preview.)
+# His rest T-pose has the palms forward: the forearms and hands turned palms in (about x, the arms' line at rest,
+# a turn shared between the forearm and the wrist), as arms hang. A bone's turns are made in the order given
+# (the forearm's: turned on its own line, then bent).
+LOWERED = {'upperarm_l': ((0, 1, 0), 68), 'upperarm_r': ((0, 1, 0), -68),
+           'lowerarm_l': [((1, 0, 0), PALMS_IN / 2), ((0, 0, 1), -35)], 'lowerarm_r': [((1, 0, 0), PALMS_IN / 2), ((0, 0, 1), 35)],
+           'hand_l': ((1, 0, 0), PALMS_IN / 2), 'hand_r': ((1, 0, 0), PALMS_IN / 2),
+           'thigh_l': ((1, 0, 0), -28), 'calf_l': ((1, 0, 0), 45),
            'thigh_r': ((1, 0, 0), 14), 'neck_01': ((0, 0, 1), 12), 'Head': ((0, 0, 1), 14),
            'spine_02': ((0, 0, 1), -6)}
 # frames of the game's clips (fraction of the clip): idle, the jog's two passing poses, a sprint stride
@@ -34,13 +44,19 @@ def reset(rig):
 
 def lowered(rig):
     reset(rig)
-    for name, (axis, deg) in LOWERED.items():
-        if name not in rig.pose.bones:
-            continue
-        b = rig.pose.bones[name]
-        M = rig.data.bones[name].matrix_local.to_3x3()
-        b.rotation_quaternion = Quaternion(M.inverted() @ Vector(axis), math.radians(deg))
+    for name, turns in LOWERED.items():
+        if name in rig.pose.bones:
+            rig.pose.bones[name].rotation_quaternion = turn(rig, name, turns)
     bpy.context.view_layer.update()
+
+
+def turn(rig, name, turns):
+    """A pose bone's rotation for turns about the armature's axes ((axis, degrees) or a list of them, made in order)."""
+    M = rig.data.bones[name].matrix_local.to_3x3().inverted()
+    q = Quaternion()
+    for axis, deg in (turns if isinstance(turns, list) else [turns]):
+        q = Quaternion(M @ Vector(axis), math.radians(deg)) @ q
+    return q
 
 
 _src = {}
@@ -131,6 +147,19 @@ def clip(rig, name):
         head = (Mt @ pb.matrix).translation
         pb.matrix = Mt.inverted() @ Matrix.LocRotScale(head, delta @ rt, None)
         bpy.context.view_layer.update()
+
+
+def bend(rig, side, limb='arm'):
+    """How a limb bends in the current pose: (degrees between its two bones, the lower bone's lean off the upper
+    one's line toward the upper bone's front carried by its pose, -1..1). His front is -y at rest, so an elbow
+    bends the right way when the lean is positive and a knee when it is negative (#548)."""
+    a, b, c = (f'upperarm_{side}', f'lowerarm_{side}', f'hand_{side}') if limb == 'arm' else (f'thigh_{side}', f'calf_{side}', f'foot_{side}')
+    M = rig.matrix_world
+    at = lambda n: M @ rig.pose.bones[n].head
+    rest = (M @ rig.data.bones[a].matrix_local).to_quaternion()
+    front = ((M @ rig.pose.bones[a].matrix).to_quaternion() @ rest.inverted()) @ Vector((0, -1, 0))
+    u, f = (at(b) - at(a)).normalized(), (at(c) - at(b)).normalized()
+    return math.degrees(u.angle(f)), (f - u * f.dot(u)).dot(front)
 
 
 def under_set(inner, outer, reach=0.05):
