@@ -318,48 +318,63 @@ traveller's capsule, crosses it, and the stripe breaks round the door's frame).
 
 
 
-## Caravan exterior study (issue #579)
+## Caravan exterior study (issues #579, #592, #595)
 
 `caravan-review.html` is a separate shipped review page for the selected caravan reference
-(`references/The Travellers Ship/redesign/rounded-caravan-a/approved-reference.png`, accepted source and SHA-256 provenance beside it; issue #592).
-It compares a procedural Three.js model with that drawing and provides orbit, front, side and rear
-views, a 1.75 m scale person, animated Arrive/Depart controls and a turntable. It has no audio system and does not
-load or change game saves. The reference opens full size by click or keyboard.
+(`references/The Travellers Ship/redesign/rounded-caravan-a/approved-reference.png`, accepted source
+and SHA-256 provenance beside it). It provides a reference camera, orbit, front, side and rear
+views, a 1.75 m scale person, Arrive/Depart controls and a turntable. The reference opens full size
+by click or keyboard. The page has no audio system and does not load or change game saves.
 
-`src/ship/caravan-prototype.js` exports the standalone model factory. The bow points along -X and
-the porch lies on +Z; named groups separate the hull, cockpit, engines, landing feet, roof, porch,
-awning, plants and water tank. Its approximate 40 m length follows the source brief. The overall
-height includes antennas; these are review proportions, not collision or walkable interior data.
-No production ship module imports it. The review page is web only, but its appearance uses the
-actual game pipeline: `makeMaterial`, three-attachment G-buffer, cascaded sunlight shadows,
-Moebius print postprocessing, Desert daylight colour script and FXAA (`tools/caravan-renderer.js`).
-There are no standard-lit materials or added silhouette line meshes. A later accepted design can
-reuse the geometry factory while adapting collisions and the deployment state to both renderers.
+The Blender rebuild (#595) replaces the generic capsule study with separately shaped forecabin,
+inhabited middle, tapered aft body and offset engine pods. Shape review compares the actual game
+render with the selected drawing before detailing: the upper cockpit glazing, deep chin, cabin
+length and porch placement matter more than surface decoration. The model remains approximately
+40 m long, with bow along -X, up along +Y and porch on +Z in game coordinates. These are authoring
+proportions, not collision or walkable interior data.
 
-The prototype includes the reference’s cream/lavender hull, coral belt, visor, striped canopy,
-porch furniture and ramp, plants, tank, roof ladder, solar array, laundry, antennas and twin engines.
-Its fine weathering, interior rooms, working doors and playable flight remain outside this study.
+### Rebuilding the source
+
+`scripts/blender/ship/build_caravan.py` is the reproducible Blender source. From the repository
+root, run Blender in background mode:
+
+```sh
+blender --background --factory-startup --threads 2 --python scripts/blender/ship/build_caravan.py -- --out public/models/ships/caravan-a
+```
+
+The script saves the editable Blender project at
+`references/The Travellers Ship/redesign/rounded-caravan-a/caravan-a.blend` beside the approved
+reference, and exports `public/models/ships/caravan-a/caravan.glb`. Both source and runtime model
+are preserved in the repository. The GLB contains neutral material colours and geometry,
+without lights or cameras; the checked-in build script regenerates the source and export.
+
+`src/ship/caravan-prototype.js` loads the full-scale GLB asynchronously through a base-path-aware
+URL. Asset failure shows an error and does not mark the study ready. Imported materials are
+converted to shared game `makeMaterial` shader materials. The page uses the actual game pipeline:
+three-attachment G-buffer, cascaded sunlight shadows, Moebius print postprocessing, Desert
+daylight colour script and FXAA (`tools/caravan-renderer.js`). Lighting is not baked into the
+asset. No production ship module imports this authoring model.
+
+### Authored deployment hierarchy
+
+Moving parts keep their open poses, pivots and parent-child hierarchy in Blender. GLB node extras
+expose `caravanMechanism`, read as `node.userData.caravanMechanism` by
+`bindCaravanMechanisms` in `src/ship/caravan-prototype.js`. Its `stage` names one of `deck`,
+`supports`, `ramp`, `rails`, `canopy`, `props`, `laundry`, `solar` or `gear`. Optional
+`closedOffset`, `closedRotation` (radians) and `closedScale` define the closed pose relative to
+the authored local pivot; `hideClosed` hides a fully stowed part. An optional `range: [start, end]`
+uses the raw camp fraction, allowing a storage shutter to open and close in its own interval.
 
 `CaravanDeployment` (`src/ship/caravan-deployment.js`, issues #583/#585) exposes `depart()`,
-`arrive()`, `landingComplete()` and `update(dt)`, plus `phase`, `camp` and `altitude`. The review
-starts landed. Departure retracts the laundry and props into lockers, folds rails and ramp,
-retracts the canopy into its side cassette, then folds the porch panel against the side before
-lifting off. Arrival descends with the camp secured, then automatically deploys after touchdown.
-Production integration should call `landingComplete()` from its landing event and gate lift-off
-on the `taking-off` phase; review altitude is only a demonstration, not flight physics.
-The controller consumes phase boundaries even for large time steps. Regression tests check
-that no camp deploys above ground, all props stow, and game lighting uniforms remain shared.
+`arrive()`, `landingComplete()` and `update(dt)`, plus `phase`, `camp` and `altitude`.
+`caravanStowPose(camp)` supplies the staged fractions. Departure secures loose camp equipment
+before the deck closes and lift-off begins. Arrival keeps the camp secured during descent and
+opens it only after touchdown. Landing gear follows altitude. The controller consumes phase
+boundaries even for large time steps; regression tests check sequencing and shared lighting.
+Production integration would call `landingComplete()` from its landing event and gate lift-off
+on the `taking-off` phase. Review altitude is a demonstration, not flight physics.
 
-The rounded A update (#592) uses an outward-facing longitudinal capsule, curved-grid glazing,
-and substantial diagonally stacked engine lobes. The side bay is recessed: its deck carries
-a curved exterior hatch whose closed surface follows the same hull section and paint bands.
-Shell and hatch each batch their paint into three contiguous material groups rather than
-one draw per quad. The approximately40m length is retained; no production ship is replaced.
-
-`caravanStowPose(camp)` supplies staged open fractions for deck, supports, ramp, rails, canopy,
-props, laundry and solar. Reversing the camp fraction retracts loose equipment before folding
-the deck. Furniture and planters translate into the bay, the stairs nest inward, rails fold
-down, canvas retracts to its cassette, laundry lowers into roof storage, and the solar panel
-rotates flush. Landing feet retract only after altitude rises and extend during descent before
-touchdown. This remains a silent web-only authoring prototype: engine integration, walkable
-interiors and physically simulated actuators remain separate work.
+This is a silent, web-only authoring study. Unity integration, production ship replacement,
+walkable interiors and physically simulated actuators are separate work. Visual review covers
+matched reference views and the open, partly stowed, closed and airborne states; passing the
+study's checks does not establish gameplay collision or device performance.

@@ -1,0 +1,28 @@
+{
+  "issue": 595,
+  "design": "Selected rounded caravan A; authored Blender reconstruction",
+  "reference": "references/The Travellers Ship/redesign/rounded-caravan-a/approved-reference.png",
+  "referenceSha256": "5674f7b2808db2e40d676f6bb43d28f97a9a082e3a90379d028399f78b20c5f2",
+  "build": "/Applications/Blender.app/Contents/MacOS/Blender --background --threads 2 --python scripts/blender/ship/build_caravan.py",
+  "blender": "5.2.2 LTS",
+  "lengthMetres": 40,
+  "triangles": 139432,
+  "primitiveDraws": 44,
+  "neutralMaterials": true,
+  "textures": 0,
+  "scope": "Web-only authoring prototype; live game ink materials applied on load.",
+  "files": {
+    "scripts/blender/ship/build_caravan.py": {
+      "sha256": "9bf82ea8091ad222db56c53ce8f4ffdda5d8e43dcf2a9b072f01cce2c0412ae7",
+      "bytes": 24182
+    },
+    "references/The Travellers Ship/redesign/rounded-caravan-a/caravan-a.blend": {
+      "sha256": "4649ed4fa9a07cf579e649f019abc420deeaeee955cd79636e51061c60c890cd",
+      "bytes": 1850070
+    },
+    "public/models/ships/caravan-a/caravan.glb": {
+      "sha256": "bae4cf676c69a1371fa838b5f668e5a0c86c5cec916d3c8d963cbd7e6f34e9a9",
+      "bytes": 3526644
+    }
+  }
+}

@@ -8,6 +8,7 @@ The same release notes shown in the game (press **N** or open settings).
 - The Salt Pilgrim’s robe and sash have more room at the waist, reducing clothing overlap as he runs.
 - Repeated reference pictures now load reliably on the published References page.
 - The caravan study has a rounder hull and broad curved cockpit. Its camp packs into a closed side hatch before lift-off, then unfolds after landing.
+- The caravan study has been rebuilt around the selected drawing, with a broad cockpit, a deeper rounded hull and separate engine pods.
 
 ## v1.89 — 2026-10-20
 
