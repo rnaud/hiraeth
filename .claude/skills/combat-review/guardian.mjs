@@ -19,33 +19,18 @@
 //   sidestep    the traveller's own (the game's Player on tests/gait-sim.js's flat course, a foe 7 m off, locked on): how
 //               far a 2 s strafe each way and a side hop carry him off the foe (issue #314: 1.6 m; a fail past 0.25 m)
 //
-//   node .claude/skills/combat-review/guardian.mjs <out-dir> [--ids desert,incal | all] [--secs 90] [--grid 0.5]
+//   node .claude/skills/combat-review/guardian.mjs <out-dir> [--ids desert,incal | all] [--secs 90] [--grid 0.5] [--fps 60]
 // Writes <out-dir>/guardians.json and guardians.md; exits 1 if a check fails (FAIL lines), with --strict.
 import fs from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 const args = process.argv.slice(2), arg = (n, d) => { const i = args.indexOf(`--${n}`); return i >= 0 ? args[i + 1] : d; };
 const OUT = resolve(args[0] && !args[0].startsWith('--') ? args[0] : join(ROOT, '.local-tools/guardian-fight'));
-const SECS = +arg('secs', 90), GRID = +arg('grid', 0.5), DT = 1 / 60;
+const SECS = +arg('secs', 90), GRID = +arg('grid', 0.5), DT = 1 / +arg('fps', 60);
 fs.mkdirSync(OUT, { recursive: true });
-
-// (the game loads its skins by URL: here from public/, without textures: node has no image decoder)
-globalThis.ProgressEvent ??= class { constructor(type, v) { this.type = type; Object.assign(this, v); } };
-const PUBLIC = new URL('../../../public/', import.meta.url);
-GLTFLoader.prototype.load = function (url, onLoad, onProgress, onError) {
-  try {
-    const bytes = fs.readFileSync(new URL(String(url).replace(/^\/+/, ''), PUBLIC)), len = bytes.readUInt32LE(12), json = JSON.parse(bytes.subarray(20, 20 + len));
-    for (const m of json.meshes) for (const p of m.primitives) delete p.material;
-    delete json.materials; delete json.textures; delete json.images;
-    json.buffers[0].uri = 'data:application/octet-stream;base64,' + bytes.subarray(28 + len).toString('base64');
-    this.parse(JSON.stringify(json), '', onLoad, onError);
-  } catch (e) { onError?.(e); }
-};
-const quiet = async (fn) => { const w = console.warn, l = console.log; console.warn = () => {}; console.log = () => {}; try { return await fn(); } finally { console.warn = w; console.log = l; } };
 
 await import(join(ROOT, 'tests/register-gadgets.js'));
 const { Guardian, inArea, comboOf, windOf } = await import(join(ROOT, 'src/temples/boss.js'));
@@ -56,6 +41,8 @@ const { Physics } = await import(join(ROOT, 'src/physics.js'));
 const { guardianLock } = await import(join(ROOT, 'src/foes.js'));
 const { selfLitSkips } = await import(join(ROOT, 'src/shadows.js'));
 const L = await import(join(ROOT, 'scripts/combat-review/lib.mjs'));
+// (the hitboxes against the posed mesh: shared with tests/guardian-reach.test.js)
+const { stageGuardian, hitboxes: reachRows, reachFails, quiet } = await import(join(ROOT, 'scripts/combat-review/reach.mjs'));
 
 /** The limits the report holds each guardian to (the first one, the Keeper, a little kinder: `first`). */
 export const LIMITS = { wind: 0.8, link: 0.6, recover: 0.8, chain: 1.2, phantom: 0.15, far: 1.5, lock: 0.6, openings: 1, sidestep: 0.25 };
@@ -83,58 +70,6 @@ async function sidestep() {
 }
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
-
-/** The guardian in its temple (the real def and hooks), or in the Arena's ring (its sparring rule) if that can't be built. */
-async function stage(G) {
-  const P = { pos: V(), heading: 0, vel: V(), dead: false, down: null, hearts: 3, maxHearts: 3, health: 1, hurts: [], knocks: 0,
-    hurt(d) { this.hurts.push(d); }, knockDown() { this.knocks++; }, guard: null, untouchable: null };
-  try {
-    const scene = new THREE.Scene();
-    const level = await quiet(() => buildableById(templeWorld(G.id)).create(scene));
-    const physics = new Physics(scene, level.ground?.heightAt ? level.ground : null);
-    level.init?.(physics);
-    const rt = templeOf(level, G.id);
-    if (!rt?.guardian) throw new Error('no guardian in its temple');
-    await quiet(async () => { rt.connect({ player: P }); await rt.guardian.model.ready; });
-    return { g: rt.guardian, P, where: 'temple', rt, scene };
-  } catch (e) {
-    const rt = { def: { id: `arena-${G.id}` }, root: new THREE.Group(), logic: { resolved: false }, physics: { groundAt: () => 0 }, player: P, notice() {}, rumble() {} };
-    const model = G.model();
-    model.pos.set(0, 0, 9); model.home = model.pos.clone(); model.heading = Math.PI;
-    rt.root.add(model.group);
-    const g = new Guardian(rt, { def: G.def, model, arena: { center: V(), r: 20, y: 0 } });
-    await model.ready;
-    return { g, P, where: `ring (${String(e.message ?? e).slice(0, 60)})`, rt };
-  }
-}
-
-/** The body's drawn points (world), posed now: skinned vertices (every `step`th), else each mesh's vertices. */
-function bodyPoints(model, step = 7) {
-  const out = [], v = V();
-  model.group.updateMatrixWorld(true);
-  model.group.traverse((o) => {
-    if (!o.isMesh || !o.visible || o.userData.noBody) return;
-    const p = o.geometry?.attributes?.position;
-    if (!p || /glyph|marks|tele|glow/i.test(o.name)) return;
-    if (o.isSkinnedMesh) { o.skeleton.update(); for (let i = 0; i < p.count; i += step) out.push(o.getVertexPosition(i, v).applyMatrix4(o.matrixWorld).clone()); }
-    else for (let i = 0; i < p.count; i += Math.max(1, Math.floor(p.count / 900))) out.push(v.fromBufferAttribute(p, i).applyMatrix4(o.matrixWorld).clone());
-  });
-  return out;
-}
-
-/** Its drawn blow's points (world) now (boss.js Blast: a beam's cylinder, a front's bands), every vertex: what it is drawn as. */
-function blowPoints(g) {
-  const out = [], v = V();
-  for (const o of g.blast?.meshes?.() ?? []) {
-    o.updateMatrixWorld(true);
-    const p = o.geometry.attributes.position;
-    for (let i = 0; i < p.count; i++) out.push(v.fromBufferAttribute(p, i).applyMatrix4(o.matrixWorld).clone());
-  }
-  return out;
-}
-
-/** The game's own test of a strike reaching a traveller standing at p (Guardian.wouldHit, else its area). */
-const reaches = (g, a, p) => (g.wouldHit ? g.wouldHit(a, p) : g.points(a).some((o) => inArea(a, o, g.attackH, p)));
 
 /** One phase, played SECS s in one manner: events, openings, recovery. */
 function playPhase(S, i, manner) {
@@ -189,56 +124,6 @@ function playPhase(S, i, manner) {
 }
 const link = (def, id) => !!def.attacks[id]?.link;
 
-/** Each move at its strike: the floor its hit takes against the floor its body sweeps over. */
-function hitboxes(S) {
-  const { g, P } = S, A = g.arena, def = g.def, rows = [];
-  for (const [id, a0] of Object.entries(def.attacks)) {
-    if (a0.lob) { rows.push({ id, lob: true }); continue; }
-    g.reset?.(); g.stop(); g.enter('fight'); g.meter = g.floor = 0; g.answered = new Set([0, 1, 2, 3]);
-    // (on its hall's floor, where it fights: its home may be a perch over it, the Elder's)
-    if (!g.model.rooted) g.model.pos.set(A.center.x, A.y, A.center.z);
-    const h = g.model.heading, off = (g.model.radius ?? 2.6) + 3;
-    P.pos.set(g.model.pos.x + Math.sin(h) * off, A.y + 50, g.model.pos.z + Math.cos(h) * off);   // (out of its way: nothing lands)
-    let t = 100;
-    for (let f = 0; f < 30; f++) g.update(DT, (t += DT));
-    // (here no floor holds it up: a body that hung in the air in its last phase stays up there without this)
-    if (!g.model.floats) g.model.pos.y = A.y;
-    g.stop(); g.cool = 99; g.begin(P, null, id);
-    g.attackAt.set(g.model.pos.x + Math.sin(g.model.heading) * off, A.y, g.model.pos.z + Math.cos(g.model.heading) * off);
-    const zone = new Map(), body = new Set(), cell = (x, z) => `${Math.round(x / GRID)},${Math.round(z / GRID)}`, c = g.model.pos.clone();
-    const R = 16;
-    let hitAny = false, frames = 0;
-    while (g.attack?.id === id && frames++ < 600) {
-      const wasStruck = g.struck;
-      g.update(DT, (t += DT));
-      if (!g.attack || g.attack.id !== id) break;
-      if (g.struck) {
-        const since = g.at - g.windFor;
-        if ((!wasStruck || g.live) && since >= (g.attack.late ?? 0)) {   // (a.late: its body blow live a moment after the strike, Guardian.contact)
-          // the game's test, at every cell of the floor round it (a traveller standing there, on the floor)
-          for (let x = -R; x <= R; x += GRID) for (let z = -R; z <= R; z += GRID) {
-            const p = V(c.x + x, A.y, c.z + z);
-            if (reaches(g, g.attack, p)) { zone.set(cell(p.x, p.z), p); hitAny = true; }
-          }
-        }
-        // (what it strikes with: its posed body, and what it draws of its blow: v1.70, a beam, a front)
-        if (since < (g.live?.for ?? g.attack.active ?? 0.3)) for (const q of [...bodyPoints(g.model), ...blowPoints(g)]) {
-          if (q.y - A.y > 1.9 + 0.3 || q.y - A.y < -1) continue;
-          for (let dx = -0.45; dx <= 0.45; dx += GRID) for (let dz = -0.45; dz <= 0.45; dz += GRID) body.add(cell(q.x + dx, q.z + dz));
-        }
-        if (since > Math.max(0.35, (g.live?.for ?? g.attack.active ?? 0) + 0.05) && !g.live) break;
-      }
-    }
-    const pts = [...zone.values()], bodyCells = [...body].map((k) => k.split(',').map((n) => +n * GRID));
-    const nearBody = (p) => { let best = Infinity; for (const [x, z] of bodyCells) best = Math.min(best, Math.hypot(p.x - x, p.z - z)); return best; };
-    const far = pts.map(nearBody), phantom = far.filter((d) => d > 1).length;
-    const touchedNotHit = [...body].filter((k) => !zone.has(k)).length;
-    rows.push({ id, hitM2: +(pts.length * GRID * GRID).toFixed(1), bodyM2: +(body.size * GRID * GRID).toFixed(1), phantom: pts.length ? +(phantom / pts.length).toFixed(2) : 0,
-      missed: body.size ? +(touchedNotHit / body.size).toFixed(2) : 0, farthest: far.length ? (bodyCells.length ? +Math.max(...far).toFixed(1) : `${R}+ (no body at his height)`) : 0, reach: pts.length ? +Math.max(...pts.map((p) => Math.hypot(p.x - c.x, p.z - c.z))).toFixed(1) : 0, hit: hitAny });
-  }
-  return rows;
-}
-
 /** The lock-on's aim against the weak point, and the body's meshes in the shadow passes. */
 function lockAndShadow(S) {
   const { g } = S;
@@ -263,10 +148,10 @@ const out = [];
 for (const id of ids) {
   const G = GUARDIANS.find((x) => x.id === id);
   if (!G) { console.log(`no guardian ${id}`); continue; }
-  const S = await stage(G);
+  const S = await stageGuardian(G);
   const phases = S.g.def.phases.filter((p) => !p.weary);
   const play = phases.map((p, i) => ({ phase: i + 1, moves: p.attacks, manners: ['still', 'dodge', 'guard'].map((m) => playPhase(S, i, m)) }));
-  const hb = hitboxes(S);
+  const hb = reachRows(S, { grid: GRID, dt: DT });
   const ls = lockAndShadow(S);
   const own = Object.entries(S.g.def.attacks).filter(([, a]) => !a.link).map(([k, a]) => [k, windOf(a)]), links = Object.entries(S.g.def.attacks).filter(([, a]) => a.link).map(([k, a]) => [k, windOf(a)]);
   const fails = [];
@@ -278,7 +163,7 @@ for (const id of ids) {
     for (const m of P.manners) if (m.recoverMin !== null && m.recoverMin < LIMITS.recover) fails.push(`phase ${P.phase} (${m.manner}): ${m.recoverMin} s from a strike to its next move's wind-up (< ${LIMITS.recover})`);
     for (const m of P.manners) if (m.chainMin !== null && m.chainMin < LIMITS.chain) fails.push(`phase ${P.phase} (${m.manner}): a combo's next blow ${m.chainMin} s after the last (< ${LIMITS.chain})`);
   }
-  for (const r of hb) if (!r.lob && r.hit && (r.phantom > LIMITS.phantom || r.farthest > LIMITS.far)) fails.push(`${r.id}: its hit takes ${Math.round(r.phantom * 100)} % of its floor more than 1 m from its body, up to ${r.farthest} m`);
+  fails.push(...reachFails(hb));
   if (ls.lockToMouth > LIMITS.lock) fails.push(`the lock aims ${ls.lockToMouth} m from its weak point (its mouth)`);
   if (ls.casting < ls.meshes) fails.push(`${ls.meshes - ls.casting} of its ${ls.meshes} meshes cast no shadow (${ls.dark.join(', ')})`);
   if (!ls.contact) fails.push('no contact shadow on the floor under it (indoors, out of the sun, nothing grounds it)');

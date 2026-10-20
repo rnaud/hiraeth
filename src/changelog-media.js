@@ -1320,6 +1320,8 @@ const ARRIVE555 = 'Issue #555: the web game in muted headless Chrome (ANGLE Meta
 const ARRIVAL564 = 'Issue #564: the production build in muted headless Chrome on the Mac’s GPU (ANGLE Metal, M4 Pro), no vsync, 1280 × 720, the desert’s spawn view (scripts/bench/viewpoints.json) pinned from the boot, 10:00, clear, a save past the prologue; each second counted from the boot, two runs each, before (9986aa322) and after interleaved; 20 October, load 18–27';
 /** (v1.87, issue #566: the Hush-House court's crates) */
 const CRATES566 = 'Issue #566: the design QC’s capture (scripts/design-qc/capture.mjs) in muted headless Chrome (High, 1280 × 720, 10:00, clear) on this branch’s own Vite (port 5566), Lorn, the camera pinned 6 m from the two crates and 1.2 m over their lids, the picture cropped to its middle half and enlarged; before: the tree without the fix, after: with it; 20 October; cwebp -q 72';
+/** (v1.87, issue #558: five guardians' blows kept on their bodies) */
+const GUARD558 = 'Issue #558: muted headless Chrome (High, 1280 × 720, 11:00) on this branch’s own Vite (port 6558), ?level=<world>&hitboxes=1, each guardian in its own hall, the traveller 2.5 m off its body in front, the move begun and stepped by hand at 1/60 s to one or two 60ths after its strike (the Foreman’s and the Tooth-Warden’s two), the world frozen there, the camera pinned above its flank; before: the same page with the code before the change put back on the guardian (Guardian.sweepOf and partsOf of 59134e5fe: every sphere widened by half its part’s travel a frame; the Foreman’s hammer splash 0.4); 20 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.87': [
     { match: 'In the Mooring-House each lock now shows its answer from where you stand', tags: ['temples'], shots: [
@@ -1458,6 +1460,20 @@ export const CHANGELOG_MEDIA = {
       { name: 'fragment-roof-bazaar-550', title: 'The Signal Market', size: [1280, 720], caption: 'Out among the Signal Market’s towers: before, a fragment on a little plinth at a tower’s foot; after, on the deck of a water tank on stilts, up its stair', from: ROOF550 },
       { name: 'fragment-roof-incal-550', title: 'The City-Shaft’s rim', size: [1280, 720], caption: 'Out on the City-Shaft’s rim: before, a fragment on a little plinth at the foot of a striped tower; after, on the roof of a cab-wrights’ shed, up its stack of crates', from: ROOF550 },
     ], see: 'In the Signal Market, walk out past the towers behind the stalls; on the City-Shaft, walk out over the rim away from the shaft: the water tanks, stall blocks, signal platforms and kiosks (cisterns, sheds, platforms and pavilions on the rim) have a fragment on top, and the fountains, statues and bandstands in the squares one in their middle.' },
+    { match: 'Five guardians no longer hit you from past their arms', tags: ['combat', 'temples'], shots: [
+      { name: 'guardians-gardener-sweep-558', title: 'The Gardener’s sweep', size: [1280, 720], caption: 'Its arm sweeping, a 60th of a second after the strike, the hitbox overlay on (red: where the blow lands): before, every sphere of the arm 2.3 m round, the blow reaching well past the arm and its claws; after, 1 m round, on the arm', from: GUARD558 },
+      { name: 'guardians-listener-sweep-558', title: 'The Listener’s sweep', size: [1280, 720], caption: 'Both arms sweeping: before, spheres 1.7 m round at the hands; after, 1 m, on them', from: GUARD558 },
+      { name: 'guardians-foreman-hammer-558', title: 'The Foreman’s hammers', size: [1280, 720], caption: 'The two hammers coming down either side of the traveller: before, 1.6 m round; after, 1.1 m round on the hammers’ heads, still reaching him', from: GUARD558 },
+      { name: 'guardians-toothwarden-charge-558', title: 'The Tooth-Warden’s charge', size: [1280, 720], caption: 'Charging, on its four feet: before, 1.1 m round each; after, 0.8 m', from: GUARD558 },
+      { name: 'guardians-founder-ladle-558', title: 'The Last Founder’s ladle', size: [1280, 720], caption: 'Its ladle swung: before, 1.3 m round; after, 1 m, on the ladle and the arm', from: GUARD558 },
+    ], numbers: [{ title: 'The farthest any of its blows lands from its body (its worst move)', unit: 'm', better: 'lower', device: 'node, each guardian in its own temple, every move at its strike at 60 frames a second (scripts/combat-review/reach.mjs; the limit is 1.5 m)', rows: [
+      { where: 'the Gardener (sweep)', before: 2.5, after: 1.1 },
+      { where: 'the Listener (sweep)', before: 1.9, after: 1.1 },
+      { where: 'the Clockwork Foreman (jab)', before: 1.7, after: 1.3 },
+      { where: 'the Tooth-Warden (charge)', before: 1.7, after: 0.9 },
+      { where: 'the Last Founder (ladle)', before: 1.8, after: 1.1 },
+    ], source: 'tests/guardian-reach.test.js’s measure (the combat review’s guardian run), the code before the change and after, 20 October; the v1.87 audit’s own run read 2.7, 1.9, 1.9, 1.8 and 1.9 m with the body’s footprint lopsided (docs/systems/foes.md, “Kept on the body”)' }],
+      see: 'In the Greenhouse, wake the Gardener and stand a step to the side of where its arm ends as it sweeps: it misses you. Press F4 to see where each blow lands.' },
   ],
   '1.86': [
     { match: 'In the Unity version, the Controls page shows your keys and buttons on caps', tags: ['devices'], shots: [

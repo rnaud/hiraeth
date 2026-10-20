@@ -311,6 +311,8 @@ export class GroundShadow {
  * (model.part) within `near` x its radius ('body': all of it).
  */
 export const MESH_PARTS = { cell: 0.7, r: 0.5, skinStep: 5, near: 0.75, max: 900, top: 0.4 };
+/** A body blow on a frame longer than a 60th of a second: sampled at each 60th of its way, up to `most` 60ths (Guardian.sweepOf). */
+export const SWEEP = { most: 4 };
 /**
  * A blow drawn where it lands (v1.70, issue #319): the warden's eye-beam hit a lane 28 m long the game never drew, the
  * Elder's gale a lane of 20, every shock and gust its whole floor at once. Now a beam is a ray of light out of its eye
@@ -781,10 +783,11 @@ export class Guardian {
     kit.eye = P?.pos ?? null;
     m.animate(dt, t, { state: this.state, attack: this.view, k: this.attackK, speed, meter: this.meter, phase: this.phaseIndex, kit, pushed: !!this._pushed });
     this._pushed = false;
-    this.sweepOf(this.attack);
+    this.sweepOf(this.attack, dt);
     (this._posed ??= V()).copy(m.pos);   // (where its middle was as its bones were posed: keepIn reads them from there)
     this.ground.update();
     this._meshFrame = this._mesh = null;   // (posed anew: a body blow's mesh is sampled again when next asked, meshParts)
+    this._partsOf = null;   // (and its parts, partsOf)
     this.blast.draw(!!this.live?.blast && this.state === 'fight');
     this.marks.set(Math.min(this.phaseIndex, this.def.phases.filter((p) => !p.weary).length - 1), t, this.state);
     this.tells(t);
@@ -938,27 +941,66 @@ export class Guardian {
   /** Does move a land with its body (its `parts`: the model's posed bones, or its posed mesh)? */
   bodyBlow(a) { return !!a?.parts; }
   /**
-   * How far move a's striking part (its glow's, partAt) went as it was posed this frame, halved (m): a body blow's spheres
-   * are that much wider (partsOf), so a blow lands over the way its part swept between two frames, not only where a frame
-   * caught it (v1.77, issue #361: at 30 frames a second the Foreman's hammer came down past a traveller in its way 7 cm
-   * off him in one frame and through him in none, hammer after hammer; its phase asks for the guard against it).
+   * How move a's body went from last frame's pose to this one's, so a body blow lands as it would at 60 frames a second
+   * whatever the frame rate, not only where a slower frame caught it (v1.77, issue #361: at 30 frames a second the
+   * Foreman's hammer came down past a traveller in its way 7 cm off him in one frame and through him in none, hammer
+   * after hammer; its phase asks for the guard against it). Read off its middle and its striking part (its glow's, partAt;
+   * both of a pair): how far its middle went, and each part's own way on from it (this.sweep: { move, parts: [{ at, rel }],
+   * R, n }; null at 60 frames or faster, or when it was not posed for this move last frame). `n`: the 60ths of a second
+   * the frame took. Each sphere of the blow is carried back by its middle's way and by its nearest part's, in full at the
+   * part and less with distance from it, none `R` m off (MESH_PARTS.near of its radius: a shoulder goes nowhere as the
+   * fist swings; sweptFrom), and partsOf adds it at each 60th of the way between. Until v1.87 each sphere was widened all
+   * round by half its part's travel instead, up to 1.6 m a frame at a sweep's strike, at 60 frames too: the Gardener's,
+   * the Listener's, the Foreman's, the Tooth-Warden's and the Last Founder's blows landed 1.6-2.7 m past their bodies,
+   * beside and behind the arm as well as along its way (issue #558).
    */
-  sweepOf(a) {
-    const S = (this._sw ??= { at: [V(), V()], f: -2, id: null });
-    this.sweep = 0;
+  sweepOf(a, dt = 1 / 60) {
+    const S = (this._sw ??= { at: [V(), V()], pos: V(), f: -2, id: null });
+    this.sweep = null;
     if (!a?.parts) { S.id = null; return; }
-    const sides = PAIRED.has(a.part) ? [1, -1] : [1], now = this._swNow ??= [V(), V()];
-    let most = 0;
-    sides.forEach((s, i) => { this.partAt(a.part ?? 'core', now[i], s); if (S.id === a && S.f === this.frame - 1) most = Math.max(most, now[i].distanceTo(S.at[i])); S.at[i].copy(now[i]); });
-    S.f = this.frame; S.id = a;
-    this.sweep = most / 2;
+    const sides = PAIRED.has(a.part) ? [1, -1] : [1], now = this._swNow ??= [V(), V()], m = this.model.pos;
+    const was = S.id === a && S.f === this.frame - 1, n = Math.min(SWEEP.most, Math.round(dt * 60));
+    for (let i = 0; i < sides.length; i++) this.partAt(a.part ?? 'core', now[i], sides[i]);
+    if (was && n > 1) {
+      const W = (this._swept ??= { move: V(), parts: [], R: 1, n: 1 });
+      W.move.subVectors(m, S.pos);
+      W.parts.length = sides.length;
+      for (let i = 0; i < sides.length; i++) {
+        W.parts[i] ??= { at: V(), rel: V() };
+        W.parts[i].at.copy(now[i]); W.parts[i].rel.subVectors(now[i], S.at[i]).sub(W.move);
+      }
+      W.R = Math.max(0.5, (this.model.radius ?? 3) * MESH_PARTS.near); W.n = n;
+      this.sweep = W;
+    }
+    for (let i = 0; i < sides.length; i++) S.at[i].copy(now[i]);
+    S.pos.copy(m); S.f = this.frame; S.id = a;
   }
-  /** The spheres move a strikes with now (world { c, r }), its parts on the posed bones (or mesh), a.splash wider (and the sweep, sweepOf). */
+  /** Where point c of its body was last frame (sweepOf): its middle's way back, and its nearest part's as near as it is; null if it isn't swept. */
+  sweptFrom(c, out = V()) {
+    const W = this.sweep;
+    if (!W) return null;
+    let P = W.parts[0], d = c.distanceTo(P.at);
+    for (let i = 1; i < W.parts.length; i++) { const e = c.distanceTo(W.parts[i].at); if (e < d) { d = e; P = W.parts[i]; } }
+    return out.copy(c).sub(W.move).addScaledVector(P.rel, -THREE.MathUtils.clamp(1 - d / W.R, 0, 1));
+  }
+  /**
+   * The spheres move a strikes with now (world { c, r }), its parts on the posed bones (or mesh), a.splash wider; on a
+   * frame longer than a 60th of a second, each also where it was at each 60th of the way from last frame's pose (sweepOf:
+   * at 30 frames, half way; `swept` true).
+   */
   partsOf(a, out = (this._parts ??= [])) {
+    // (once a pose: the fight's own test asks once a frame, the QC at every cell of the floor)
+    const own = out === this._parts;
+    if (own && this._partsOf === a && this._partsFrame === this.frame) return out;
     out.length = 0;
+    if (own) { this._partsOf = a; this._partsFrame = this.frame; }
     if (!a?.parts) return out;
-    const add = (a.splash ?? 0) + (this.sweep ?? 0), list = this.model.hitParts ? a.parts.flatMap((n) => this.model.hitParts(n, [])) : this.meshParts(a.parts);
-    for (const s of list) out.push(add ? { c: s.c, r: s.r + add } : s);
+    const add = a.splash ?? 0, list = this.model.hitParts ? a.parts.flatMap((n) => this.model.hitParts(n, [])) : this.meshParts(a.parts), W = this.sweep;
+    for (const s of list) {
+      out.push(add ? { c: s.c, r: s.r + add } : s);
+      const p = W ? this.sweptFrom(s.c, _b) : null;
+      if (p) for (let j = 1; j < W.n; j++) out.push({ c: s.c.clone().lerp(p, j / W.n), r: s.r + add, swept: true });
+    }
     return out;
   }
   /**

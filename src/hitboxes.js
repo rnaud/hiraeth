@@ -221,7 +221,8 @@ export function guardianHitboxes(g, out = [], { locked = null } = {}) {
     else out.push({ kind: 'fan', c, h: B.yaw, range: B.r + B.depth / 2, angle: B.shape === 'cone' ? B.angle : Math.PI, r0, color, fill: 0.3, tag: `guardian.${a.id}.front` });
   }
   if (g.bodyBlow?.(a)) {
-    for (const p of g.partsOf(a, [])) out.push({ kind: 'sphere', c: p.c.clone(), r: p.r, color, tag: `guardian.${a.id}` });
+    // (each sphere, and where it was at each 60th of a long frame's way: Guardian.sweepOf)
+    for (const p of g.partsOf(a, [])) out.push({ kind: 'sphere', c: p.c.clone(), r: p.r, color, tag: p.swept ? `guardian.${a.id}.sweep` : `guardian.${a.id}` });
     return out;
   }
   if (a.blast) return out;

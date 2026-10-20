@@ -789,8 +789,36 @@ seeds for ever. Now the move a phase asks for is never swapped while it asks: sh
 and the push still answers it. Two more found the same way: the Foreman came for its asked guard only to 4 m (the
 hammer's `reach` 4.5) and its arms landed 3.7 m out (now 3.8, landing on a guard held against the wall), and at 30
 frames a second the hammer came down past a traveller 7 cm off him in one frame and through him in none. A body blow's
-spheres are now wider by half of what its striking part moved as it was posed (`Guardian.sweepOf`), so a blow lands
-over the way its part swept between two frames, the same at 30 frames as at 60.
+spheres were made wider by half of what its striking part moved as it was posed (`Guardian.sweepOf`), so a blow
+landed over the way its part swept between two frames. (That widening went all round each sphere, at 60 frames too,
+and was replaced in v1.87: "Kept on the body", below.)
+
+### Kept on the body (v1.87, issue #558)
+
+The v1.87 combat review found five guardians' blows landing 1.6–2.7 m past their bodies again (the Gardener's sweeps
+and crush, the Listener's sweeps and slam, the Foreman's hammers, jabs and spin, the Tooth-Warden's charge, the Last
+Founder's ladles and slam), with nothing in the suite to see it. The cause was the v1.77 widening above: half the
+striking part's travel a frame, up to 1.6 m at a sweep's strike, added to every sphere's radius in every direction,
+beside and behind the arm as well as along its way. Now:
+
+- **The sweep is sampled, not widened** (`boss.js` `sweepOf`, `sweptFrom`, `partsOf`, `SWEEP`): a frame longer than a
+  60th of a second adds each sphere again at each 60th of the way from where it was last frame (carried back by how
+  far its middle went and by its nearest striking part's own way, in full at the part and none `MESH_PARTS.near` of
+  its radius off: a shoulder stays put as the fist swings). At 60 frames a blow is its posed body alone; at 30 it lands
+  as at 60. `partsOf` is worked out once a pose.
+- **The Foreman's hammers** (`garage.js`, `splash` 0.4 → 0.6): they come down at head height either side of a
+  traveller in front of it, and without the widening they only grazed him past 2.8 m at 30 frames; now they reach
+  him to the move's `reach`, 3.8 m, at 30 and at 60.
+- **The measure is a test** (`scripts/combat-review/reach.mjs`, shared by the skill's `guardian.mjs` and
+  `tests/guardian-reach.test.js`): every guardian in its own temple, each move at its strike at 60 frames, over 15 % of
+  a hit more than 1 m from its body, or any more than 1.5 m, fails. The body counts as touching a traveller across his
+  column's footprint, 0.45 m every way (it was -0.45 and +0.05 m on each axis, so the same blow measured up to 0.4 m
+  further facing one way than another: the Lampless's spiral passed or failed with where it ended its last move).
+
+Farthest hit from the body, worst move, the measure as it is now: the Gardener 2.5 → 1.1 m, the Listener 1.9 → 1.1, the
+Foreman 1.7 → 1.3, the Tooth-Warden 1.7 → 0.9, the Last Founder 1.8 → 1.1; every other guardian unchanged, all ≤ 1.2.
+At 30 frames the Listener's sweeps measure 1.9 m: the run samples its body only at the frames, and its arms go 3.4 m
+in the strike's first 30th of a second, the half-way spheres between them.
 
 `tests/guardian-completable.test.js` fights every temple's guardian, and every Arena sparring one, through to weary
 from three stances (close by, half way across the hall, at its far side) at 60 and at 30 frames a second, a traveller

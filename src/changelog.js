@@ -136,6 +136,10 @@ export const CHANGELOG = [
     // bazaar.js and incal.js, src/fragments-data.js (32 moved), src/fragment-markers.js (32 plinths gone), rumour-places.js,
     // tests/fragments-reach.js (a landmark's top counts in onPlace); tests/fragments-poi.test.js
     'In the Signal Market and out on the City-Shaft’s rim, the fragments of the singing light no longer wait on little plinths at the foot of tower walls. Most now sit on top of something you climb to: a water tank on stilts, a stall block, a signal platform or a kiosk in the market, a cistern, a cab-wrights’ shed, a lamplighters’ platform or a pavilion on the rim, each with a stair or a stack of crates up to its roof. The others rest in the middle of a little square, on a fountain, at a statue’s feet or in a bandstand. Those you already found stay found.',
+    // issue #558: src/temples/boss.js sweepOf / sweptFrom / partsOf (a long frame sampled at each 60th, not every sphere
+    // widened by half its part's travel), SWEEP; src/temples/garage.js the hammers' splash; scripts/combat-review/reach.mjs
+    // (the combat review's measure, its body's footprint even); tests/guardian-reach.test.js
+    'Five guardians no longer hit you from past their arms: the Gardener’s and the Listener’s sweeps, the Clockwork Foreman’s hammers, jabs and spin, the Tooth-Warden’s charge and the Last Founder’s ladle and slam reached up to 2.7 m beyond their bodies, and now land only where the body itself passes, as every other guardian’s blows do. Stand clear of the arm and it misses you. The Foreman’s hammers still reach a guard held in front of it, on a handheld as on a computer.',
   ] },
   { v: '1.86', date: '2026-10-19', items: [
     // issue #483: src/story/hosts-data.js (the fight hosts' second lines), src/fight-temples/<world>.js (blurb, quiet),
