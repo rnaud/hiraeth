@@ -565,9 +565,11 @@ SHADE = {'PilgrimTrousers': dict(folds=_folds('PilgrimTrousers'), fold_ink=0.55,
 
 # his skin piece under the full sleeves (B3's forearms) left out, as the glider pilot's; his hands show
 SKIN_CUT = [{'absx': [0.20, 0.62], 'z': [1.15, 1.60]}]
-# the hips and thighs as the other outfits; the ankles under the sandals' feet (measured under 97 %: the feet stand
-# 3 mm off the body's, whose ankles would show through in patches)
-EXTRA_HIDES = ['hips', 'thigh.L', 'thigh.R', 'ankle.L', 'ankle.R', 'foot.L', 'foot.R']
+# body areas left out besides the measured ones (97 % under a piece): none since #493's pass 5. On the pass-4
+# base the hips and thighs came out under 97 % (the crumpled crotch), and the ankles and feet under the sandals'
+# (their feet 3 mm off the body's); on the refitted base the trousers measure the hips and thighs, the sandals
+# the ankles and feet
+EXTRA_HIDES = []
 
 BUILDERS = {'PilgrimTrousers': trousers, 'Sandals': sandals, 'Tunic': tunic, 'Sash': sash, 'Robe': robe, 'Hood': hood}
 

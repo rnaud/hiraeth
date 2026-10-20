@@ -284,9 +284,9 @@ SHADE = {'Shorts': dict(folds=_folds('Shorts'), fold_ink=0.55), 'Socks': dict(ha
          'GardenShirt': dict(tone=0.16, hatch=0.35)}
 
 SKIN_CUT = []          # his forearms and hands all show
-# the hips and thighs as the other outfits; the chest under the shirt's closed collar (measured under 97 % on
-# the shared fit of #544, the misses at the collar's foot, where the fit no longer pushes the shirt out)
-EXTRA_HIDES = ['hips', 'thigh.L', 'thigh.R', 'chest']
+# the chest under the shirt's closed collar (measured under 97 % on the shared fit of #544, the misses at the
+# collar's foot, where the fit no longer pushes the shirt out); the hips and thighs measure since #493's pass 5
+EXTRA_HIDES = ['chest']
 
 BUILDERS = {'GardenShirt': shirt, 'Shorts': shorts, 'Socks': socks, 'Waistcoat': waistcoat, 'GardenGear': gear}
 

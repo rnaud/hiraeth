@@ -335,6 +335,8 @@ def main():
         src = bpy.data.objects['Boots']
         boots = src.copy()
         boots.data = src.data.copy()
+        if boots.data.shape_keys:   # (#493 pass 5: the default's clothes carry the shirt's thigh-lift keys at zero)
+            boots.shape_key_clear()
         boots.name = boots.data.name = S.BOOTS
         for c in boots.users_collection:
             c.objects.unlink(boots)

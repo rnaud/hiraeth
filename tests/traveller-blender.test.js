@@ -86,9 +86,19 @@ test('nothing under the shirt comes out through it with the arms lowered', () =>
   const under = manifest.underShirt.outThroughShirt;
   // (a vert or two of over a thousand: the build is not bit-for-bit repeatable; pass 2 had 23 at the shoulder)
   assert.ok(under.lowered.Tee.out <= 3 && under.idle.Tee.out <= 5, JSON.stringify(under.lowered));
-  // running, the lifted thigh still pushes the trousers through the shirt's front hem (as in pass 2: that
-  // wants the shirt's cloth solver); kept from getting worse
+  // running, the lifted thigh pushed the trousers through the shirt's front hem (21-23 verts in passes 2-4); pass 5's
+  // thigh-lift keys, set from the thighs' swing (poses.drive), lift the shirt's front off them: kept there
   for (const [pose, r] of Object.entries(under)) {
-    assert.ok(r.Tee.out <= 25 && r.Trousers.out <= 40, `${pose}: ${JSON.stringify(r)}`);
+    assert.ok(r.Tee.out <= 3 && r.Trousers.out <= 14, `${pose}: ${JSON.stringify(r)}`);
   }
+});
+
+test('the shirt carries its thigh-lift keys, each driven by its thigh (pass 5)', () => {
+  for (const [key, d] of Object.entries(manifest.drivers)) {
+    assert.ok(['thighLift_l', 'thighLift_r'].includes(key), key);
+    assert.ok(manifest.skeleton[d.bone], `${key}: bone ${d.bone}`);
+    assert.ok(d.swing[0] < d.swing[1], `${key}: swing ${d.swing}`);
+    for (const part of manifest.draws.clothes) assert.ok(manifest.parts[part].shapeKeys.includes(key), `${part} carries ${key}`);
+  }
+  assert.equal(Object.keys(manifest.drivers).length, 2);
 });

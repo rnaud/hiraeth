@@ -172,12 +172,10 @@ def jacket(cage, J):
 # (#544: the first box on out past his fingertips: the gloves cover his hands, the hands' skin goes)
 SKIN_CUT = [{'absx': [0.20, 1.0], 'z': [1.15, 1.60]}, {'absx': [0.0, 0.40], 'z': [-1.0, 0.45]}, {'absx': [0.0, 0.20], 'z': [0.70, 1.15]}]
 
-# body areas left out besides the measured ones (97 % under a piece): the hips come out at 94 %, the
-# misses all on a lump of the base body at his right front hip that stands 14 mm proud of the rest
-# (drawn for the default's trousers) and comes through these slim ones; the trousers and the jacket's
-# hem cover the whole area (still so on the pass-4 base: 93 %, the lump unchanged). The thighs too: on the
-# pass-4 base they come out at 92-97 %, every miss a vert at the crotch whose ray goes down between the legs
-EXTRA_HIDES = ['hips', 'thigh.L', 'thigh.R']
+# body areas left out besides the measured ones (97 % under a piece): none since #493's pass 5 (the base
+# body's hips and legs are fitted from its bones: the lump at his right front hip and the crumpled crotch,
+# which made the hips and thighs come out at 92-97 %, are gone; they measure now)
+EXTRA_HIDES = []
 # the taller collar (#544) covers the neck's area, but from above he is seen into it: the neck stays
 KEEP_AREAS = ['neck']
 

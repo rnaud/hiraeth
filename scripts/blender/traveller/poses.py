@@ -35,11 +35,53 @@ CLIPS = {'idle': ('Idle_Loop', 0.0), 'jog-a': ('Jog_Fwd_Loop', 0.25), 'jog-b': (
          'sprint': ('Sprint_Loop', 0.25)}
 
 
+# pass 5: corrective shape keys on the shirt, driven by how far each thigh swings forward (thighLift_l/_r: its
+# front lifted off the trousers where the lifted thigh pushed them out through it). A key's value is the thigh's
+# forward swing from LIFT_FROM to LIFT_REF degrees, as 0..1; the game's loader sets it the same way each frame.
+LIFT = {'thighLift_l': 'thigh_l', 'thighLift_r': 'thigh_r'}
+LIFT_FROM, LIFT_REF = 25.0, 80.0   # (degrees: none at an idle stance, all at a running stride)
+
+
+def swing(rig, bone):
+    """How far `bone` swings forward from its rest, in degrees, in the side view (its head-to-tail line's angle
+    from straight down, toward -Y, posed less rest): 0 standing, positive with the knee lifted forward."""
+    def ang(d):
+        return math.degrees(math.atan2(-d.y, -d.z))
+    rest = rig.data.bones[bone]
+    pb = rig.pose.bones[bone]
+    Mw = rig.matrix_world.to_3x3()
+    return ang(Mw @ (pb.tail - pb.head)) - ang(Mw @ (rest.tail_local - rest.head_local))
+
+
+def drive(rig):
+    """The thigh-lift keys of every mesh on `rig` set from the pose (LIFT)."""
+    vals = {k: min(1.0, max(0.0, (swing(rig, b) - LIFT_FROM) / (LIFT_REF - LIFT_FROM))) for k, b in LIFT.items() if b in rig.pose.bones}
+    for o in bpy.data.objects:
+        if o.type == 'MESH' and o.parent is rig and o.data.shape_keys:
+            for k, x in vals.items():
+                kb = o.data.shape_keys.key_blocks.get(k)
+                if kb is not None:
+                    kb.value = x
+    bpy.context.view_layer.update()
+    return vals
+
+
+def flexed(rig, bone, deg):
+    """The rig at rest but `bone` (a thigh) swung forward `deg` degrees about the armature's X axis."""
+    reset(rig)
+    b = rig.pose.bones[bone]
+    M = rig.data.bones[bone].matrix_local.to_3x3()
+    b.rotation_quaternion = Quaternion(M.inverted() @ Vector((1, 0, 0)), math.radians(-deg))
+    bpy.context.view_layer.update()
+    drive(rig)
+
+
 def reset(rig):
     for b in rig.pose.bones:
         b.rotation_mode = 'QUATERNION'
         b.matrix_basis = Matrix.Identity(4)
     bpy.context.view_layer.update()
+    drive(rig)
 
 
 def lowered(rig):
@@ -48,6 +90,7 @@ def lowered(rig):
         if name in rig.pose.bones:
             rig.pose.bones[name].rotation_quaternion = turn(rig, name, turns)
     bpy.context.view_layer.update()
+    drive(rig)
 
 
 def turn(rig, name, turns):
@@ -147,6 +190,7 @@ def clip(rig, name):
         head = (Mt @ pb.matrix).translation
         pb.matrix = Mt.inverted() @ Matrix.LocRotScale(head, delta @ rt, None)
         bpy.context.view_layer.update()
+    drive(rig)
 
 
 def bend(rig, side, limb='arm'):

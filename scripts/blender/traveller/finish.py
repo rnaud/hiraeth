@@ -96,6 +96,7 @@ def boundary_loops(bm):
 
 
 PINS = None   # pass 4: the seams left as cut (pin_seams)
+PIN_POINTS = []
 
 
 def pin_seams(a, b, where=lambda c: True, tol=1e-5):
@@ -118,8 +119,9 @@ def pin_seams(a, b, where=lambda c: True, tol=1e-5):
         kb.insert(q, i)
     kb.balance()
     pts = [p for p in bnd(a) if where(p) and kb.find(p)[2] < tol]
-    PINS = KDTree(max(1, len(pts)))
-    for i, q in enumerate(pts):
+    PIN_POINTS.extend(pts)   # (pass 5: each call adds its seam to the ones pinned before)
+    PINS = KDTree(max(1, len(PIN_POINTS)))
+    for i, q in enumerate(PIN_POINTS):
         PINS.insert(q, i)
     PINS.balance()
     return len(pts)
@@ -127,6 +129,13 @@ def pin_seams(a, b, where=lambda c: True, tol=1e-5):
 
 def pinned(co, tol=1e-5):
     return PINS is not None and PINS.find(co)[0] is not None and PINS.find(co)[2] < tol
+
+
+PIN_END = 0.015   # pass 5: how far from a pinned seam a covered edge gets no lip (hem)
+
+
+def near_pinned(co, dist):
+    return PINS is not None and PIN_POINTS and PINS.find(co)[2] < dist
 
 
 def tidy(o, min_faces=150, hole=0.10, relax=6, keep=None):
@@ -309,7 +318,7 @@ def under(o, shell, reach=0.05, gap=0.004, ease=6):
 
 # ---------------------------------------------------------------- hems
 
-def hem(o, covers, width=0.04, depth=0.003, lip_only=False):
+def hem(o, covers, width=0.04, depth=0.003, lip_only=False, flush=None):
     """Every open boundary of `o` turned in `depth` (the lip) and carried on inside as a band `width` wide,
     `depth` under the surface, facing in (kind BAND: plain dark cloth in the atlas). Boundaries under one of
     `covers` (the garments over it) get the lip alone. The lip's UVs are the edge's own (it reads as the
@@ -350,7 +359,13 @@ def hem(o, covers, width=0.04, depth=0.003, lip_only=False):
             if v not in cov:
                 cov[v] = covered(v)
     open_e = [] if lip_only else [e for e in bnd if not (cov[e.verts[0]] and cov[e.verts[1]])]
-    shut_e = [e for e in bnd if e not in set(open_e)]
+    # pass 5: no lip on a covered edge just by the end of a pinned seam (the tee's hem's ends at the open
+    # shirt's panels: the tee's and the trousers' lips turned in either side of the seam's end left a notch)
+    near_pin = lambda e: any(near_pinned(v.co, PIN_END) for v in e.verts)
+    shut_e = [e for e in bnd if e not in set(open_e) and not near_pin(e)]
+    # (#554: and none where the edge lies flush on the body, `flush(co)`: turned in, it pierced the arm)
+    if flush is not None:
+        shut_e = [e for e in shut_e if not (flush(e.verts[0].co) and flush(e.verts[1].co))]
     stats = {'open': len(open_e), 'covered': len(shut_e)}
 
     # -- the plain lip on covered edges (as phase 2's)
@@ -823,7 +838,10 @@ def clean_paint(px, ids, garments, ink=0.33, soft=0.05, keep=None):
 GAME_SKIN = (0.79, 0.525, 0.37)
 
 
-def even_skin(px, ids, parts, target=GAME_SKIN, ink=0.30, also=None):
+SKIN_RANGE = (0.88, 1.04)   # #554: his skin piece's lightness against the median, held (B3's forearm streaks)
+
+
+def even_skin(px, ids, parts, target=GAME_SKIN, ink=0.30, also=None, also_range=(0.85, 1.02)):
     """Pass 4: one skin tone. B3's forearms and hands (pale, 208 164 129), head-v3's face and neck (orange,
     209 125 70) and the body under them all take `target` (the game's skin), each texel keeping its lightness
     against its part's median (B3's painted shading stays, its ink lines too). parts: index -> 'head' (only
@@ -839,13 +857,25 @@ def even_skin(px, ids, parts, target=GAME_SKIN, ink=0.30, also=None):
     out = rgb.copy()
     report = {}
     masks = [(kind, ids == gi) for gi, kind in parts.items()] + ([('shin', also)] if also is not None else [])
+    # (#554: his skin piece and the body meet on his bare forearms: one lightness for both, their joint median)
+    joint = np.zeros_like(Y, dtype=bool)
+    for kind, m in masks:
+        if kind in ('skin', 'body'):
+            joint |= m & (smooth(ink * 0.8, ink, Y) > 0.5)
+    joint_med = float(np.median(Y[joint])) if joint.any() else None
     for kind, m in masks:
         if not m.any():
             continue
         k = (warm if kind == 'head' else np.ones_like(Y)) * m * smooth(ink * 0.8, ink, Y)
         sel = m & (k > 0.5)
         med = float(np.median(Y[sel])) if sel.any() else tY
-        ratio = np.clip(Y / max(med, 1e-3), 0.55, 1.15)
+        if kind in ('skin', 'body') and joint_med is not None:
+            med = joint_med
+        # (pass 5: the shin over the boots' tops held near its median: B3 painted the boots' cream up onto it,
+        # which kept its lightness came out as pale streaks)
+        ratio = np.clip(Y / max(med, 1e-3), *(also_range if kind == 'shin' else (0.55, 1.15)))
+        if kind == 'skin':   # (#554: B3's hands held nearer the body's plain skin they now join)
+            ratio = np.clip(ratio, *SKIN_RANGE)
         new = np.clip(t[None, None, :] * ratio[..., None], 0, 1)
         out = out * (1 - k[..., None]) + new * k[..., None]
         report[kind] = [int(round(x * 255)) for x in np.median(rgb[sel], 0)] if sel.any() else None
@@ -1216,3 +1246,524 @@ def drop_exposed_backing(o, others, reach=0.5):
     bm.free()
     tb.free()
     return {'dropped': len(gone), 'crumbs': crumbs}
+
+
+def _samples(f):
+    """Points over a face: its middle, its corners, its edges' middles and halfway from the middle to each."""
+    c = f.calc_center_median()
+    vs = [v.co for v in f.verts]
+    return [c] + vs + [(vs[i] + vs[i - 1]) / 2 for i in range(len(vs))] + [(c + v) / 2 for v in vs]
+
+
+def drop_redundant_backing(o, body, axes=(), reach=0.03, near_reach=0.015, edge_margin=0.015):
+    """Pass 5: backing faces of `o` where its own B3 cloth is go: three in four points of the face (its middle
+    and its corners) have the piece's own cloth along its normal either way within `reach` (roughly parallel), or
+    within `near_reach` of it at a point of that cloth more than `edge_margin` in from its open edges (the
+    backing there is crumpled: its normals run any way). The backing is only wanted where B3 has no cloth
+    (under the shirt); where B3's trousers are kept (the front under the open panels, the crotch) it poked
+    through them and lay over them by the panels' edges (the cream slivers below the waist). A face with any
+    point outside the piece's own cloth (the segment to it from 3 cm inside the nearest point of `body`
+    crosses that cloth) goes too: the cloth is right under it."""
+    tree, tb = _cloth_tree([o], kinds=(SURFACE, LIP))
+    from mathutils.kdtree import KDTree
+    pts = []
+    for e in tb.edges:
+        if e.is_boundary:
+            a, b = e.verts[0].co, e.verts[1].co
+            n = max(1, int((b - a).length / 0.004))
+            pts += [a.lerp(b, i / n) for i in range(n + 1)]
+    edges = KDTree(max(1, len(pts)))
+    for i, q in enumerate(pts):
+        edges.insert(q, i)
+    edges.balance()
+    bm = bmesh.new()
+    bm.from_mesh(o.data)
+    bm.normal_update()
+    kl = bm.faces.layers.int['p3']
+
+    def near(p, n):
+        for d in (n, -n):
+            hit = tree.ray_cast(p + d * 0.0005, d, reach)
+            if hit[0] is not None and abs(hit[1].dot(n)) > 0.3:   # (a flap folded over faces either way)
+                return True
+        q = tree.find_nearest(p, near_reach)[0]
+        return q is not None and (not pts or edges.find(q)[2] > edge_margin)
+    bb = bmesh.new()
+    bb.from_mesh(body.data)
+    btree = BVHTree.FromBMesh(bb)
+
+    def outside(p):
+        q, n = btree.find_nearest(p, 0.25)[:2]
+        if q is None:
+            return False
+        q = q - n * 0.03   # (3 cm into the body: at the crotch the body itself stands out of B3's trousers)
+        d = (p - q).normalized()
+        hit = tree.ray_cast(q, d, (p - q).length - 0.001)
+        if hit[0] is not None:
+            return True
+        for a, b in axes:
+            ab = b - a
+            t = min(1.0, max(0.0, (p - a).dot(ab) / ab.length_squared))
+            q = a + ab * t
+            L = (p - q).length
+            if 0.01 < L < 0.2 and tree.ray_cast(q, (p - q) / L, L - 0.001)[0] is not None:
+                return True
+        return False
+    gone = [f for f in bm.faces if f[kl] == BACKING and (
+            sum(near(p, f.normal) for p in [f.calc_center_median()] + [v.co for v in f.verts]) >= 0.75 * (len(f.verts) + 1) or
+            any(outside(p) for p in _samples(f)))]
+    bb.free()
+    bmesh.ops.delete(bm, geom=gone, context='FACES')
+    bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context='VERTS')
+    crumbs = _drop_crumbs(bm, kl, BACKING, 12)
+    bm.to_mesh(o.data)
+    bm.free()
+    tb.free()
+    return {'dropped': len(gone), 'crumbs': crumbs}
+
+
+# ---------------------------------------------------------------- pass 5: the base body's hips and legs, clean
+
+def _nearest_on(axes, p):
+    best, bd = None, 1e9
+    for a, b in axes:
+        ab = b - a
+        t = min(1.0, max(0.0, (p - a).dot(ab) / ab.length_squared))
+        q = a + ab * t
+        d = (p - q).length
+        if d < bd:
+            best, bd = q, d
+    return best
+
+
+def refit_body(body, clean, shells, axes, zone=(1.05, 1.15), gap=0.006, rounds=6, weight=None):
+    """Pass 5: the base body below `zone` back to its clean shape (`clean`: its rest positions before it was
+    drawn in under the clothes) and drawn in again, judged from its bones out: each vert on the segment
+    from the nearest point of `axes` (bone segments) to it, at least `gap` inside the first cloth of
+    `shells` that segment crosses, the pushes spread over the mesh each round as a smooth field. The nearest-
+    point fit (inside_smooth) followed the folds and the shells' inside faces: it left a lump standing out at
+    his right front hip (through slim trousers) and a crumpled crotch whose normals ran any way, so an
+    outfit's hides (rays out along the normals) could not be measured there. Between zone[0] and zone[1]
+    the clean shape blends into the fitted one; `weight(clean position)` (0..1), when given, says where instead
+    (#554: his arms, bare under short sleeves, came out dented by the default's rolled sleeves and buckled at
+    the elbow). Returns how many verts moved in the last round."""
+    trees = []
+    for s in shells:
+        b2 = bmesh.new()
+        b2.from_mesh(s.data)
+        trees.append(BVHTree.FromBMesh(b2))
+        b2.free()
+    bm = bmesh.new()
+    bm.from_mesh(body.data)
+    bm.verts.ensure_lookup_table()
+    w = [weight(clean[v.index]) if weight else 1.0 - smoothstep(zone[0], zone[1], clean[v.index].z) for v in bm.verts]
+    for v in bm.verts:
+        if w[v.index] > 0:
+            v.co = clean[v.index] * w[v.index] + v.co * (1 - w[v.index])
+    nbr = [[e.other_vert(v).index for e in v.link_edges] for v in bm.verts]
+    region = [v for v in bm.verts if w[v.index] > 0]
+
+    def needs():
+        need = {}
+        for v in region:
+            a = _nearest_on(axes, v.co)
+            d = v.co - a
+            L = d.length
+            if L < 1e-4:
+                continue
+            d /= L
+            t = min((h[3] for h in (tr.ray_cast(a, d, L + gap) for tr in trees) if h[0] is not None), default=None)
+            if t is not None:
+                need[v.index] = a + d * max(t - gap, 0.5 * t) - v.co
+        return need
+    for r in range(rounds):
+        need = needs()
+        field = [need.get(i, Vector()) for i in range(len(bm.verts))]
+        hold = [0.6 if i in need else 0.0 for i in range(len(bm.verts))]
+        for _ in range(12):
+            field = [field[i] * hold[i] + (sum((field[j] for j in nb), Vector()) / len(nb)) * (1 - hold[i]) if nb else field[i]
+                     for i, nb in enumerate(nbr)]
+        for v in region:
+            v.co += field[v.index] * w[v.index]
+    need = needs()   # (what is still out after the smooth rounds, vert by vert)
+    for i, dv in need.items():
+        bm.verts[i].co += dv
+    bm.to_mesh(body.data)
+    bm.free()
+    body.data.update()
+    return len(need)
+
+
+
+def level_top(o, z0, top, zmin=0.21):
+    """Pass 5: the shin over the boots' tops (B3's skin, cut with the boots) stretched up so its ragged top edge
+    (its open loops above `zmin`) is one level ring at `top`, inside the trousers' cuff: it stopped right at
+    the cuff's lower edge, a jagged crown with the body showing between. Each vert above `z0` is lifted in
+    proportion along its column (by its angle round the loop's middle). Returns how many verts moved."""
+    bm = bmesh.new()
+    bm.from_mesh(o.data)
+    moved = 0
+    for run, closed in boundary_loops(bm):
+        if sum(v.co.z for v in run) / len(run) < zmin:
+            continue
+        cx = sum(v.co.x for v in run) / len(run)
+        cy = sum(v.co.y for v in run) / len(run)
+        ang = lambda p: math.atan2(p.y - cy, p.x - cx)
+        ring = sorted((ang(v.co), v.co.z) for v in run)
+
+        def height(a):   # the loop's height at angle a (nearest two of its verts, wrapped)
+            import bisect
+            i = bisect.bisect(ring, (a, -1.0))
+            (a0, h0), (a1, h1) = ring[(i - 1) % len(ring)], ring[i % len(ring)]
+            span = (a1 - a0) % (2 * math.pi) or 1e-6
+            t = ((a - a0) % (2 * math.pi)) / span
+            return h0 + (h1 - h0) * min(1.0, t)
+        r = max(math.hypot(v.co.x - cx, v.co.y - cy) for v in run) * 1.5
+        for v in bm.verts:
+            if v.co.z <= z0 or math.hypot(v.co.x - cx, v.co.y - cy) > r:
+                continue
+            h = height(ang(v.co))
+            if h - z0 < 1e-3:
+                continue
+            v.co.z = z0 + (v.co.z - z0) * (top - z0) / (h - z0)
+            moved += 1
+    bm.to_mesh(o.data)
+    bm.free()
+    return moved
+
+
+def hug(o, shell, where, z0, z1, inset=0.002, reach=0.05):
+    """Pass 5: the verts of `o` where `where(co)` eased onto `shell`, more the higher from `z0` to `z1` (their
+    offset from it shrinks to `inset` under it): B3's neck lining, drawn in, met head-v3's neck in a ragged
+    line; eased onto it, it goes in under it along the neck's own round. Returns how many verts moved."""
+    b2 = bmesh.new()
+    b2.from_mesh(shell.data)
+    tree = BVHTree.FromBMesh(b2)
+    b2.free()
+    # (its open edges there, ragged where the cut ran, go in under the shell all the way, the ring inside them
+    # most of the way)
+    bm = bmesh.new()
+    bm.from_mesh(o.data)
+    edge = {v.index for v in bm.verts if v.is_boundary and where(v.co)}
+    ring = {e.other_vert(v).index for v in bm.verts if v.index in edge for e in v.link_edges} - edge
+    bm.free()
+    moved = 0
+    for v in o.data.vertices:
+        if not where(v.co):
+            continue
+        t = 1.0 if v.index in edge else max(smoothstep(z0, z1, v.co.z), 0.6 if v.index in ring else 0.0)
+        if t <= 0:
+            continue
+        q, n = tree.find_nearest(v.co, reach)[:2]
+        if q is None:
+            continue
+        d = (v.co - q).dot(n)
+        v.co = q + n * (d * (1 - t) - inset * t)
+        moved += 1
+    o.data.update()
+    return moved
+
+
+HOLD, SMOOTH, TWIN = 0.4, 6, 0.008   # pass 5: lift_key's push field: how much a pushed vert keeps its own push,
+# rounds of plain smoothing after, and how near at rest verts move together
+
+
+def lift_key(rig, shell, inners, key, poses, gap=0.012, radius=0.05, rounds=12):
+    """Pass 5: a corrective shape key on `shell` (the shirt) for one thigh swung forward: in each of `poses` (frames
+    of the game's run with that thigh forward, taken in turn round by round; the key at the value poses.drive
+    gives it there), wherever what
+    lies under it (`inners`: the trousers, the tee) comes out through it, the shell is pushed out past it by
+    `gap` (its verts within `radius` of where the poke meets it, eased, the pushes spread over the shell as a
+    smooth field), and the push, taken back through each vert's skinning to the rest pose and over the key's
+    value, is added to the key's offset; a few rounds. Running, the lifted
+    thigh pushed the trousers out through the shirt's front hem (pass 4: 21-23 verts); the key, at the
+    thigh's swing (poses.drive), lifts the shirt's front off them as the cloth would. Returns the verts out
+    through the shell in that pose before and after."""
+    import poses as PZ
+    from mathutils import Matrix
+    from mathutils.kdtree import KDTree
+    PZ.reset(rig)
+    if shell.data.shape_keys is None:
+        shell.shape_key_add(name='Basis', from_mix=False)
+    kb = shell.data.shape_keys.key_blocks.get(key) or shell.shape_key_add(name=key, from_mix=False)
+    idx = {o.name: PZ.under_set(o, shell) for o in inners}
+    nbr = None
+    names = {g.index: g.name for g in shell.vertex_groups}
+    W = [{names[g.group]: g.weight for g in v.groups if g.weight > 0} for v in shell.data.vertices]
+
+    def posed(k):
+        poses[k % len(poses)]()
+        skin = {n: rig.pose.bones[n].matrix @ rig.data.bones[n].matrix_local.inverted() for n in rig.pose.bones.keys()}
+        lin = []
+        for w in W:
+            s = sum(w.values()) or 1.0
+            M = Matrix(((0, 0, 0), (0, 0, 0), (0, 0, 0)))
+            for n, x in w.items():
+                if n in skin:
+                    M += skin[n].to_3x3() * (x / s)
+            lin.append(M.inverted_safe() if w else Matrix.Identity(3))
+        return max(0.2, kb.value), lin
+    if nbr is None:
+        bm = bmesh.new()
+        bm.from_mesh(shell.data)
+        bm.verts.ensure_lookup_table()
+        nbr = [[e.other_vert(v).index for e in v.link_edges] for v in bm.verts]
+        bm.free()
+
+    def pokes():
+        dg = bpy.context.evaluated_depsgraph_get()
+        es = shell.evaluated_get(dg)
+        sm = es.to_mesh()
+        pos = [v.co.copy() for v in sm.vertices]
+        es.to_mesh_clear()
+        tree = BVHTree.FromObject(es, dg)
+        out = []
+        for o in inners:
+            ei = o.evaluated_get(dg)
+            me = ei.to_mesh()
+            for i in idx[o.name]:
+                v = me.vertices[i]
+                p, n = v.co.copy(), v.normal.copy()
+                if tree.ray_cast(p + n * 0.0005, n, 0.06)[0] is not None:
+                    continue
+                hit = tree.ray_cast(p, -n, 0.04)
+                if hit[0] is not None and hit[1].dot(n) > 0 and hit[3] > 0.001:
+                    out.append((hit[0], n, hit[3]))   # (where it meets the shell, the way out, how deep)
+            ei.to_mesh_clear()
+        return out, pos
+    rest = [v.co.copy() for v in shell.data.vertices]
+    twins = KDTree(len(rest))
+    for i, q in enumerate(rest):
+        twins.insert(q, i)
+    twins.balance()
+    before, after = [], []
+    for r in range(rounds):
+        value, lin = posed(r)
+        out, pos = pokes()
+        if r < len(poses):
+            before.append(len(out))
+        if not out:
+            continue
+        kd = KDTree(len(pos))
+        for i, q in enumerate(pos):
+            kd.insert(q, i)
+        kd.balance()
+        push = [Vector() for _ in pos]
+        for p, n, d in out:
+            for q, i, dist in kd.find_range(p, radius):
+                f = 1 - (dist / radius) ** 2
+                want = n * ((d + gap) * f)
+                if want.length > push[i].length:
+                    push[i] = want
+        # (spread as a smooth field, then smoothed through the whole cloth: the hem's lip and its inside band move
+        # with the surface, no slit opens between them)
+        hold = [HOLD if push[i].length > 0 else 0.0 for i in range(len(pos))]
+        for _ in range(10):
+            push = [push[i] * hold[i] + (sum((push[j] for j in nb), Vector()) / len(nb)) * (1 - hold[i]) if nb else push[i]
+                    for i, nb in enumerate(nbr)]
+        for _ in range(SMOOTH):
+            push = [(push[i] + sum((push[j] for j in nb), Vector()) / len(nb)) * 0.5 if nb else push[i] for i, nb in enumerate(nbr)]
+        # (and the same for every vert within TWIN of it at rest: a hem's surface, lip and inside band, 3 mm apart
+        # but rings apart in the mesh, move as one)
+        push = [sum((push[j] for _, j, _ in twins.find_range(rest[i], TWIN)), Vector()) / max(1, len(twins.find_range(rest[i], TWIN)))
+                for i in range(len(push))]
+        for i, v in enumerate(kb.data):
+            if push[i].length > 1e-6:
+                v.co = v.co + lin[i] @ push[i] / value
+        shell.data.update()
+        bpy.context.view_layer.update()
+    for k in range(len(poses)):
+        posed(k)
+        after.append(len(pokes()[0]))
+    PZ.reset(rig)
+    return {'before': before, 'after': after}
+
+
+# ---------------------------------------------------------------- #554: the bare arm one surface
+
+def _split_loop_at(bm, loop_edges, pts, snap=0.001):
+    """Each point of `pts` made a vert of the open-edge loop `loop_edges` (its nearest edge split there, or its
+    nearest vert snapped to it when that is within `snap`). Returns the loop's verts after."""
+    edges = list(loop_edges)
+    for p in pts:
+        best, bd, bt = None, 1e9, 0.0
+        for e in edges:
+            if not e.is_valid:
+                continue
+            a, b = e.verts[0].co, e.verts[1].co
+            ab = b - a
+            t = 0.0 if ab.length_squared < 1e-12 else min(1.0, max(0.0, (p - a).dot(ab) / ab.length_squared))
+            d = (a + ab * t - p).length
+            if d < bd:
+                best, bd, bt = e, d, t
+        if best is None:
+            continue
+        a, b = best.verts
+        if (a.co - p).length < snap:
+            a.co = p.copy()
+        elif (b.co - p).length < snap:
+            b.co = p.copy()
+        else:
+            ne, nv = bmesh.utils.edge_split(best, a, bt)
+            nv.co = p.copy()
+            edges = [x for x in edges if x.is_valid] + [ne] + [x for x in nv.link_edges if x.is_boundary and x not in edges]
+    return {v for e in edges if e.is_valid for v in e.verts}
+
+
+def join_arm(body, skin, elbow, hand, side, dist=0.085, blend=0.04, slope=True):
+    """#554: his bare forearm one surface. B3's forearm (his skin piece) and the base body's arm overlapped (the
+    body inside, 6 mm under), and where the piece began there was a step: bare under a short sleeve, a fold
+    round the forearm. Now each is cut on one plane across the forearm, `dist` from the elbow (toward the hand):
+    the piece keeps the hand's side, the body the elbow's; the body's last `blend` before the cut is drawn out
+    onto the piece's surface, and the two cut edges are made the same verts at the same places, with the
+    same weights (the piece's, eased into the body's over `blend`), so they meet without a crack, a lip or a
+    step. Returns the seam's points (custom normals are set on both later: seam_normals)."""
+    import rig as R
+    d = (hand - elbow).normalized()
+    P = elbow + d * dist
+    on_side = lambda c: (c.x > 0.3) if side > 0 else (c.x < -0.3)
+    # the cuts
+    out = {}
+    for ob, keep_far in ((skin, True), (body, False)):
+        bm = bmesh.new()
+        bm.from_mesh(ob.data)
+        region = [f for f in bm.faces if on_side(f.calc_center_median())]
+        geom = list({v for f in region for v in f.verts}) + list({e for f in region for e in f.edges}) + region
+        bmesh.ops.bisect_plane(bm, geom=geom, plane_co=P, plane_no=d, dist=1e-6)
+        gone = [f for f in bm.faces if on_side(f.calc_center_median()) and
+                (((f.calc_center_median() - P).dot(d) < 0) if keep_far else ((f.calc_center_median() - P).dot(d) > 0))]
+        bmesh.ops.delete(bm, geom=gone, context='FACES')
+        bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context='VERTS')
+        bm.to_mesh(ob.data)
+        bm.free()
+        ob.data.update()
+        out[ob.name] = len(gone)
+    # the body's last stretch drawn out onto the piece
+    sb = bmesh.new()
+    sb.from_mesh(skin.data)
+    stree = BVHTree.FromBMesh(sb)
+    sb.free()
+    SW = weights_of(skin)
+    from mathutils.kdtree import KDTree
+    skd = KDTree(len(skin.data.vertices))
+    for v in skin.data.vertices:
+        skd.insert(v.co, v.index)
+    skd.balance()
+    bones = {g.name for g in skin.vertex_groups}
+    eased = {}
+    for v in body.data.vertices:
+        s = (v.co - P).dot(d)
+        if not on_side(v.co) or s > 1e-5 or s < -blend:
+            continue
+        w = smoothstep(-blend, 0.0, s)
+        # (onto the piece's surface carried on back past the cut, as its own slope runs: the point on the cut, less
+        # the point as far past it; the join keeps one slope as well as one place)
+        on = v.co - d * s
+        q0 = stree.find_nearest(on, 0.05)[0]
+        qm = stree.find_nearest(on - d * s, 0.05)[0]
+        if q0 is None or qm is None:
+            continue
+        q0 = q0 - d * (q0 - P).dot(d)
+        qm = qm - d * ((qm - P).dot(d) + s)   # (on its own ring, as far past the cut as the vert is before it)
+        q = q0 * 2 - qm if slope else q0
+        q = q - d * ((q - P).dot(d) - s)      # (and the vert stays at its distance from the cut)
+        v.co = v.co.lerp(q, w)
+        eased[v.index] = w
+    body.data.update()
+    # the two cut edges: the same verts at the same places
+    def seam_loop(ob):
+        bm = bmesh.new()
+        bm.from_mesh(ob.data)
+        es = [e for e in bm.edges if e.is_boundary and all(abs((v.co - P).dot(d)) < 2e-4 and on_side(v.co) for v in e.verts)]
+        return bm, es
+    sbm, ses = seam_loop(skin)
+    bbm, bes = seam_loop(body)
+    spts = [v.co.copy() for v in {v for e in ses for v in e.verts}]
+    bpts = [v.co.copy() for v in {v for e in bes for v in e.verts}]
+    # (each loop takes the other's verts, then the body's loop is snapped onto the piece's)
+    sverts = _split_loop_at(sbm, ses, bpts, snap=0.0015)
+    bverts = _split_loop_at(bbm, bes, [v.co.copy() for v in sverts], snap=0.0015)
+    skd2 = KDTree(len(sverts))
+    sv = list(sverts)
+    for i, v in enumerate(sv):
+        skd2.insert(v.co, i)
+    skd2.balance()
+    for v in bverts:
+        q, i, dd = skd2.find(v.co)
+        v.co = q.copy()
+    seam = [v.co.copy() for v in sv]
+    sbm.to_mesh(skin.data)
+    sbm.free()
+    bbm.to_mesh(body.data)
+    bbm.free()
+    skin.data.update()
+    body.data.update()
+    # weights: the body's seam verts take the piece's, eased into the body's own over its last stretch
+    SW = weights_of(skin)
+    skd = KDTree(len(skin.data.vertices))
+    for v in skin.data.vertices:
+        skd.insert(v.co, v.index)
+    skd.balance()
+    vg = {g.name: g for g in body.vertex_groups}
+    for v in body.data.vertices:
+        s = (v.co - P).dot(d)
+        if not on_side(v.co) or s > 1e-4 or s < -blend:
+            continue
+        w = smoothstep(-blend, 0.0, s)
+        q, si, dd = skd.find(v.co - d * min(0.0, s))
+        own = {body.vertex_groups[g.group].name: g.weight for g in v.groups if body.vertex_groups[g.group].name in bones}
+        new = {n: own.get(n, 0) * (1 - w) + SW[si].get(n, 0) * w for n in set(own) | set(SW[si])}
+        top = sorted(new.items(), key=lambda kv: (-kv[1], kv[0]))[:4]
+        tot = sum(x for _, x in top) or 1.0
+        for n in own:
+            vg[n].remove([v.index])
+        for n, x in top:
+            if x <= 0:
+                continue
+            if n not in vg:
+                vg[n] = body.vertex_groups.new(name=n)
+            vg[n].add([v.index], x / tot, 'REPLACE')
+    out['seam'] = len(seam)
+    out['eased'] = len(eased)
+    return seam, out
+
+
+def seam_normals(objs, seam, tol=1e-5, band=0.06):
+    """#554: the verts of `objs` at the points `seam` (the arm's join, two meshes) take one normal, the mean of
+    theirs, as custom normals, and the corners within `band` of it ease into it, so the join shades as one
+    surface."""
+    from mathutils.kdtree import KDTree
+    if not seam:
+        return 0
+    kd = KDTree(len(seam))
+    for i, q in enumerate(seam):
+        kd.insert(q, i)
+    kd.balance()
+    acc = [Vector() for _ in seam]
+    hits = []
+    for o in objs:
+        me = o.data
+        me.update()
+        for v in me.vertices:
+            q, i, dd = kd.find(v.co)
+            if dd is not None and dd < tol:
+                acc[i] += v.normal
+                hits.append((o, v.index, i))
+    n = 0
+    for o in objs:
+        me = o.data
+        # (every corner keeps its own normal, sharp edges and all; within `band` of the seam it eases into the
+        # seam's mean normal there, all the way on it)
+        ns = [c.vector.copy() for c in me.corner_normals]
+        near = {}
+        for v in me.vertices:
+            q, i, dd = kd.find(v.co)
+            if dd is not None and dd < band and acc[i].length > 0:
+                near[v.index] = (1 - smoothstep(0.0, band, dd), acc[i].normalized())
+        for li, l in enumerate(me.loops):
+            if l.vertex_index in near:
+                w, m = near[l.vertex_index]
+                ns[li] = ns[li].lerp(m, w).normalized()
+                n += 1
+        me.normals_split_custom_set(ns)
+    return n

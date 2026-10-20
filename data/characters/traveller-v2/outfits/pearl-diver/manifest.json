@@ -14,11 +14,11 @@
  "parts": {
   "DiveSuit": {
    "kind": "garment",
-   "triangles": 27394,
-   "vertices": 13841,
+   "triangles": 27452,
+   "vertices": 13876,
    "hides": [
     "belly",
-    "chest",
+    "hips",
     "knee.L",
     "knee.R",
     "thigh.L",
@@ -51,13 +51,15 @@
   },
   "DiveBoots": {
    "kind": "garment",
-   "triangles": 6505,
-   "vertices": 3363,
+   "triangles": 6406,
+   "vertices": 3301,
    "hides": [
     "ankle.L",
     "ankle.R",
     "foot.L",
-    "foot.R"
+    "foot.R",
+    "shin_lower.L",
+    "shin_lower.R"
    ],
    "layer": 1,
    "materials": {
@@ -72,10 +74,6 @@
   "chest",
   "foot.L",
   "foot.R",
-  "forearm_lower.L",
-  "forearm_lower.R",
-  "hand.L",
-  "hand.R",
   "hips",
   "knee.L",
   "knee.R",
@@ -98,7 +96,7 @@
    2048,
    2048
   ],
-  "texelsPerMetre": 1147,
+  "texelsPerMetre": 1151,
   "swatches": {
    "DiveSuit.inside": [
     23,
@@ -169,10 +167,10 @@
    ]
   }
  },
- "triangles": 45447,
+ "triangles": 45406,
  "fit": {
   "DiveSuit": {
-   "fitLeft": 132,
+   "fitLeft": 116,
    "relief": {
     "_suit_relief": {
      "side-1": {
@@ -180,12 +178,12 @@
       "raised": 172
      },
      "leg-1": {
-      "cuts": 222,
+      "cuts": 223,
       "raised": 332
      },
      "side1": {
       "cuts": 145,
-      "raised": 171
+      "raised": 172
      },
      "leg1": {
       "cuts": 223,
@@ -196,7 +194,7 @@
    "hem": {
     "open": 294,
     "covered": 0,
-    "band": 1628,
+    "band": 1658,
     "lips": 294
    }
   },
@@ -216,7 +214,7 @@
    }
   },
   "DiveGear": {
-   "fitLeft": 4,
+   "fitLeft": 0,
    "hem": {
     "open": 0,
     "covered": 0
@@ -226,18 +224,18 @@
  "shading": {
   "DiveSuit": {
    "shadow": 0.065,
-   "hatched": 0.073,
-   "change": 0.0105
+   "hatched": 0.074,
+   "change": 0.0107
   },
   "DiveShafts": {
    "shadow": 0.067,
-   "hatched": 0.024,
-   "change": 0.0089
+   "hatched": 0.019,
+   "change": 0.0088
   },
   "DiveGear": {
-   "shadow": 0.339,
-   "hatched": 0.504,
-   "change": 0.0676
+   "shadow": 0.317,
+   "hatched": 0.46,
+   "change": 0.0608
   }
  },
  "pokes": {
@@ -245,8 +243,8 @@
    "Skin>DiveSuit": 0,
    "Skin>DiveShafts": 0,
    "Skin>DiveGear": 0,
-   "DiveSuit>DiveGear": 292,
-   "DiveShafts>DiveGear": 24
+   "DiveSuit>DiveGear": 280,
+   "DiveShafts>DiveGear": 22
   },
   "posed": {
    "lowered": {

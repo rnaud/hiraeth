@@ -51,11 +51,43 @@ HAIR_SCALE = 0.8          # the hair's islands against the face's (dark curls: t
 BODY_SCALE = 0.32          # the body's islands, in 2048-texel units (it is plain skin, mostly hidden)
 INSIDE = 0.45              # a garment's inside: its own colour this much as light
 SHIN_Z = 0.177              # pass 4: the boots' faces above this are his shin (B3 paints it skin)
+LIFT_FRAMES = {'thighLift_l': ['jog-b'], 'thighLift_r': ['jog-a', 'sprint']}   # pass 5: poses.CLIPS with that thigh forward
+ARM_BLEND = 0.06           # #554: the body's forearm drawn onto his hand's wrist over this
+ARM_JOIN = 0.235           # #554: his skin piece meets the body's arm this far from the elbow toward the hand
+NECK_TOP = 1.50            # pass 5: B3's neck lining kept up to here, inside head-v3's neck
+SHIN_LOW = 0.15            # pass 5: the boots' faces between this and SHIN_Z are his shin where painted skin
+SHIN_TOP = 0.275           # pass 5: the shin's top edge, inside the trousers' cuff (its lower edge at 0.225-0.24 m)
 COLLAR_KEEP = (1.40, 0.14)   # pass 4: the back of the shirt's collar stand (above, within): B3's cream paint kept
 TRIM_MARGIN = 0.03         # pass 4: B3's tee and trousers under the shirt go only this far in from its open front
 # the dressed default's draws: parts in one group share the material, the skeleton and their attributes, so
 # a loader can join them (BufferGeometryUtils.mergeGeometries / Unity's CombineMeshes) after culling the body
 DRAWS = {'body': ['Body', 'Skin'], 'head': ['Head', 'Hair'], 'clothes': ['Shirt', 'Tee', 'Trousers', 'Boots', 'Scarf']}
+
+
+def AXES(J):
+    """Pass 5: the bone segments the trousers' and tee's backing is judged from (drop_redundant_backing)."""
+    seg = [('pelvis', 'spine_03')] + [(a + s, b + s) for s in ('_l', '_r') for a, b in (('thigh', 'calf'), ('calf', 'foot'))]
+    return [(J[a], J[b]) for a, b in seg]
+
+
+def ARM_ZONE(p):
+    """#554: how much of the base body's clean shape his arm takes back (refit_body): from the shoulder's
+    joint out, above the hips."""
+    return F.smoothstep(0.17, 0.24, abs(p.x)) * F.smoothstep(1.15, 1.25, p.z)
+
+
+def NECK_TUBE(p):
+    """Pass 5: B3's neck lining above the scarf, round the neck's middle (0, 0.02)."""
+    return p.z > 1.455 and math.hypot(p.x, p.y - 0.02) < 0.08
+
+
+def BODY_AXES(J):
+    """Pass 5: the bone segments the base body is fitted from (refit_body): the spine, the legs, the arms."""
+    seg = [('pelvis', 'spine_01'), ('spine_01', 'spine_02'), ('spine_02', 'spine_03'), ('spine_03', 'neck_01')]
+    for s in ('_l', '_r'):
+        seg += [('thigh' + s, 'calf' + s), ('calf' + s, 'foot' + s), ('foot' + s, 'ball' + s),
+                ('upperarm' + s, 'lowerarm' + s), ('lowerarm' + s, 'hand' + s)]
+    return [(J[a], J[b]) for a, b in seg]
 
 
 def atlas(every, outfit, head, hair, body):
@@ -94,6 +126,12 @@ def atlas(every, outfit, head, hair, body):
     # (and, in green, B3's paint kept as it is: pass 4, the cream collar at the back of the neck, painted on the
     # shirt's collar stand, went pink as foreign paint; in blue, his skin on another part: the shin over the
     # boots' tops, which the cut gave the boots, went their pale grey)
+    neck_flag = {}
+    for o in every:
+        f = o.data.attributes.get('b3neck')
+        neck_flag[o.name] = [0] * len(o.data.polygons)
+        if f is not None:
+            f.data.foreach_get('value', neck_flag[o.name])
     for o in every:
         a = o.data.color_attributes.new('bake_id', 'FLOAT_COLOR', 'CORNER')
         vals = []
@@ -101,13 +139,22 @@ def atlas(every, outfit, head, hair, body):
             c = p.center
             collar = o.name == 'Shirt' and c.z > COLLAR_KEEP[0] and c.y > -0.025 and math.hypot(c.x, c.y - 0.02) < COLLAR_KEEP[1]
             shin = o.name == 'Boots' and c.z > SHIN_Z
-            vals += [every.index(o) + 1, 1.0 if collar or shin else 0.0, 1.0 if shin else 0.0, 1.0] * p.loop_total
+            # (pass 5: and, in blue at a quarter, the boots' faces just under SHIN_Z: their skin paint is his shin
+            # over the rim, which clean_paint turned the boots' cream, a pale streak)
+            rim = o.name == 'Boots' and SHIN_LOW < c.z <= SHIN_Z
+            shin = shin or bool(neck_flag[o.name][p.index])   # (pass 5: B3's neck over the scarf, his skin)
+            vals += [every.index(o) + 1, 1.0 if collar or shin else 0.0, 1.0 if shin else (0.25 if rim else 0.0), 1.0] * p.loop_total
         a.data.foreach_set('color', vals)
     F.bake(every, ids_img, lambda o: F.emission_material('id_' + o.name, F.attr_source('bake_id')), margin=8)
     idpx = F.image_array(ids_img)
     ids = np.rint(idpx[..., 0]).astype(int)
     as_painted = idpx[..., 1] > 0.5
     shin = idpx[..., 2] > 0.5
+    rim = (idpx[..., 2] > 0.1) & ~shin
+    rgb = px[..., :3]
+    warm = (F.smooth(0.06, 0.17, rgb[..., 0] - rgb[..., 1]) * F.smooth(0.12, 0.25, rgb[..., 0] - rgb[..., 2])) > 0.5
+    shin |= rim & warm        # (his skin's paint on the boots' rim faces: the shin, not the boots)
+    as_painted |= rim & warm
     bpy.data.images.remove(ids_img)
     for o in every:
         o.data.color_attributes.remove(o.data.color_attributes['bake_id'])
@@ -263,26 +310,30 @@ def main():
         if label == 'head':
             bpy.data.objects.remove(o, do_unlink=True)
             continue
-        if label == 'scarf':   # B3's neck lining above the scarf goes: head-v3's own neck is there
+        if label == 'scarf':
+            # pass 5: B3's neck lining round his neck above the scarf stays, as the game keeps it (traveller-b3.js:
+            # every triangle under 1.515 m), drawn in under head-v3's neck (toward the neck's middle, more the
+            # higher: 45 % at 1.495 m) and cut level at NECK_TOP, painted his skin as the game paints it: the neck's
+            # base widens into the scarf (pass 4 dropped it, and his neck ran long into the scarf; skin only where
+            # B3 painted it skin left skin streaks on the scarf)
             bm = bmesh.new()
             bm.from_mesh(o.data)
-            bmesh.ops.delete(bm, geom=[f for f in bm.faces if (lambda c: c.z > 1.478 and math.hypot(c.x, c.y - 0.02) < 0.065)(f.calc_center_median())], context='FACES')
-            # pass 4: and B3's own neck round it, painted skin, that the cut gave the scarf (a grey ring under
-            # the chin; the game paints it skin: traveller-b3.js, oldNeck): its colour told by the same test
-            tex = F.image_array(F.tex_of(o, o.data.polygons[0]))
-            uvl = bm.loops.layers.uv.active
-
-            def b3_neck(f):
-                c = f.calc_center_median()
-                if c.z < 1.45 or math.hypot(c.x, c.y - 0.02) > 0.085:
-                    return False
-                uv = sum((l[uvl].uv for l in f.loops), Vector((0, 0))) / len(f.loops)
-                r, g, b = (max(1e-3, x) for x in F.sample(tex, uv))
-                return 0.70 < g / r < 0.85 and g / b > 1.17
-            gone = [f for f in bm.faces if b3_neck(f)]
-            print('scarf: %d faces of B3\'s neck go' % len(gone))
+            tube = NECK_TUBE
+            for v in bm.verts:
+                if tube(v.co):
+                    k = 0.45 * F.smoothstep(1.46, 1.495, v.co.z)
+                    v.co.x *= 1 - k
+                    v.co.y = 0.02 + (v.co.y - 0.02) * (1 - k)
+            geom = list(bm.verts) + list(bm.edges) + list(bm.faces)
+            bmesh.ops.bisect_plane(bm, geom=geom, plane_co=(0, 0, NECK_TOP), plane_no=(0, 0, 1))
+            gone = [f for f in bm.faces if f.calc_center_median().z > NECK_TOP and tube(f.calc_center_median())]
             bmesh.ops.delete(bm, geom=gone, context='FACES')
             bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context='VERTS')
+            fl = bm.faces.layers.int.new('b3neck')   # (his skin: atlas() reads it)
+            for f in bm.faces:
+                if NECK_TUBE(f.calc_center_median()):
+                    f[fl] = 1
+            print('scarf: the neck lining kept up to %.3f m (%d faces over it gone)' % (NECK_TOP, len(gone)))
             bm.to_mesh(o.data)
             bm.free()
         parts.objects.link(o)
@@ -305,6 +356,9 @@ def main():
             bpy.ops.mesh.customdata_custom_splitnormals_clear()
         for p in o.data.polygons:
             p.use_smooth = True
+    # pass 5: the shin over the boots' tops reaches up inside the trousers' cuffs (its top edge stopped at the
+    # cuff's lower edge: a jagged crown, the body between)
+    print('shin levelled (verts):', F.level_top(outfit['Boots'], SHIN_Z + 0.013, SHIN_TOP))
     keep = {o.name for o in outfit.values()}
     for o in list(bpy.data.objects):
         if o.parent is None and o.type in ('ARMATURE', 'MESH') and o.name not in keep and o.name != arm.name:
@@ -319,6 +373,8 @@ def main():
     hair = PH.split_hair(head, hair_mask, parts, HAIR_TRIS, scalp)
     hair['kind'] = 'hair'
     PH.face_keys(head)
+    # pass 5: B3's neck lining eased in under head-v3's neck along its round (it met it in a ragged line)
+    print('neck lining eased (verts):', F.hug(outfit['Scarf'], head, NECK_TUBE, 1.462, 1.486))
     F.set_kind(head.data, [F.SCALP if head.data.materials[p.material_index] == scalp else F.SURFACE for p in head.data.polygons])
     head.data.materials[0]['texture'] = 'head-v3'
 
@@ -341,6 +397,7 @@ def main():
         bpy.ops.object.modifier_apply(modifier=dec.name)
     body['kind'] = 'body'
     R.weight_body(arm, body, cage_ob)   # (bone heat on the clean body, before it is drawn in under the clothes)
+    clean = [v.co.copy() for v in body.data.vertices]   # (pass 5: its hips and legs are fitted again from this)
     inside_smooth(body, [outfit[n] for n in ('Shirt', 'Tee', 'Trousers', 'Boots', 'Scarf', 'Skin')])
 
     # ---- backing where B3 has no cloth (under the shirt): phase 1's tee and trousers top, inside B3's
@@ -413,16 +470,45 @@ def main():
     dressed = [outfit[n] for n in ('Shirt', 'Tee', 'Trousers', 'Boots', 'Scarf', 'Skin')]
     inside_smooth(body, dressed, gap=0.008, rounds=4)
     inside(body, dressed, gap=0.004, reach=0.03)   # (what is still out, in a deep fold, vert by vert)
+    # pass 5: below the waist, the clean body drawn in from its bones out (no lump at the hip, a clean crotch)
+    print('body refit (verts still out):', F.refit_body(body, clean, dressed, BODY_AXES(J)))
+    # (#554: and his arms, from the shoulder out: bare under an outfit's short sleeves, they came out dented by
+    # the default's rolled sleeves and buckled at the elbow)
+    print('arms refit (verts still out):', F.refit_body(body, clean, dressed, BODY_AXES(J), weight=ARM_ZONE))
+    # (#554: and each bare forearm one surface: his skin piece and the body cut on one plane across it and joined
+    # there, the same verts, weights and normals either side; they overlapped, in a step with a lip, a fold)
+    seams = []
+    for side in (1, -1):
+        sfx = '_l' if side > 0 else '_r'
+        seam, rep = F.join_arm(body, outfit['Skin'], J['lowerarm' + sfx], J['hand' + sfx], side, dist=ARM_JOIN,
+                               blend=ARM_BLEND, slope=False)
+        seams += seam
+        print('arm joined', sfx, rep)
 
     # ---- the cut edges: open ones hemmed (a lip and a dark band inside), covered ones a lip
     for name, o in outfit.items():
         covers = [head if c == 'Head' else outfit[c] for c in COVERS[name]]
-        print('hem', name, F.hem(o, covers, width=HEM_WIDTH.get(name, 0.03), lip_only=name == 'Skin'))
+        print('hem', name, F.hem(o, covers, width=HEM_WIDTH.get(name, 0.03), lip_only=name == 'Skin',
+                                 flush=(lambda c: any((c - q).length < 1e-4 for q in seams)) if name == 'Skin' else None))
 
     # pass 4: backing nothing covers (flaps past the shirt's hem) goes
     for name in ('Tee', 'Trousers'):
-        print('backing exposed', name, F.drop_exposed_backing(outfit[name], [o for n, o in outfit.items() if n != name] + [head]))
+        print('backing exposed', name, F.drop_exposed_backing(outfit[name], [o for n, o in outfit.items() if n != name] + [head]),
+              F.drop_redundant_backing(outfit[name], body, axes=AXES(J)))
 
+    # pass 5: the shirt's corrective keys for each thigh swung forward (running, the lifted thigh pushed the
+    # trousers out through its front hem); the other clothes carry them at zero (one draw: the same morph targets)
+    import poses as PZ
+    lifts = {}
+    for key, frames in LIFT_FRAMES.items():   # (each key made in the frames of the run with its thigh forward)
+        lifts[key] = F.lift_key(arm, outfit['Shirt'], [outfit['Trousers'], outfit['Tee']], key,
+                                [(lambda f=f: PZ.clip(arm, f)) for f in frames])
+        print('thigh lift', key, lifts[key])
+    for n in ('Tee', 'Trousers', 'Boots', 'Scarf'):
+        o = outfit[n]
+        o.shape_key_add(name='Basis', from_mix=False)
+        for key in PZ.LIFT:
+            o.shape_key_add(name=key, from_mix=False).value = 0.0
     sockets = R.sockets(arm, root)
     areas = G.body_areas(body, J)
     cover = {name: G.hidden_areas(body, o, areas) for name, o in outfit.items()}
@@ -442,6 +528,7 @@ def main():
     cage_ob.hide_render = True
     cage_ob.hide_set(True)
     src_coll.hide_render = True
+    print('arm seams, corners given one normal:', F.seam_normals([body, outfit['Skin']], seams))   # (#554)
     bpy.context.preferences.filepaths.save_version = 0
     bpy.ops.wm.save_as_mainfile(filepath=os.path.join(OUT, 'traveller.blend'), compress=True)
     P1.OUT = OUT
@@ -461,6 +548,10 @@ def main():
         'sockets': sockets,
         'atlas': atlas_info,
         'draws': DRAWS,
+        # pass 5: each key's value, set every frame from its bone: (its forward swing in the side view, in degrees,
+        # less `from`) / (`to` - `from`), clamped to 0..1 (poses.swing / poses.drive)
+        'drivers': {key: {'bone': bone, 'swing': [PZ.LIFT_FROM, PZ.LIFT_REF], 'parts': ['Shirt'], 'frames': LIFT_FRAMES[key],
+                          'outThroughShirtInItsFrames': lifts[key]} for key, bone in PZ.LIFT.items()},
         'triangles': sum(P1.tri_count(o) for o in every),
     }
     # pass 3: what lies under the shirt, posed (lowered arms; the game's idle, jog and sprint), against it

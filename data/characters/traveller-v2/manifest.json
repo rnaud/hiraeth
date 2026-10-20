@@ -567,8 +567,8 @@
   },
   "Body": {
    "kind": "body",
-   "triangles": 6079,
-   "vertices": 3057,
+   "triangles": 4925,
+   "vertices": 2527,
    "materials": {
     "traveller": "atlas"
    },
@@ -576,28 +576,26 @@
   },
   "Skin": {
    "kind": "skin",
-   "triangles": 2611,
-   "vertices": 1351,
+   "triangles": 1815,
+   "vertices": 961,
    "materials": {
     "traveller": "atlas"
    },
    "shapeKeys": [],
-   "hides": [
-    "forearm_lower.L",
-    "forearm_lower.R",
-    "hand.L",
-    "hand.R"
-   ],
+   "hides": [],
    "layer": 0
   },
   "Shirt": {
    "kind": "garment",
-   "triangles": 24475,
-   "vertices": 12548,
+   "triangles": 25171,
+   "vertices": 12902,
    "materials": {
     "traveller": "atlas"
    },
-   "shapeKeys": [],
+   "shapeKeys": [
+    "thighLift_l",
+    "thighLift_r"
+   ],
    "hides": [
     "upperarm.L",
     "upperarm.R"
@@ -606,28 +604,36 @@
   },
   "Boots": {
    "kind": "garment",
-   "triangles": 6505,
-   "vertices": 3363,
+   "triangles": 6406,
+   "vertices": 3301,
    "materials": {
     "traveller": "atlas"
    },
-   "shapeKeys": [],
+   "shapeKeys": [
+    "thighLift_l",
+    "thighLift_r"
+   ],
    "hides": [
     "ankle.L",
     "ankle.R",
     "foot.L",
-    "foot.R"
+    "foot.R",
+    "shin_lower.L",
+    "shin_lower.R"
    ],
    "layer": 1
   },
   "Trousers": {
    "kind": "garment",
-   "triangles": 13588,
-   "vertices": 7166,
+   "triangles": 13017,
+   "vertices": 6891,
    "materials": {
     "traveller": "atlas"
    },
-   "shapeKeys": [],
+   "shapeKeys": [
+    "thighLift_l",
+    "thighLift_r"
+   ],
    "hides": [
     "knee.L",
     "knee.R",
@@ -640,12 +646,15 @@
   },
   "Tee": {
    "kind": "garment",
-   "triangles": 4460,
-   "vertices": 2499,
+   "triangles": 4350,
+   "vertices": 2454,
    "materials": {
     "traveller": "atlas"
    },
-   "shapeKeys": [],
+   "shapeKeys": [
+    "thighLift_l",
+    "thighLift_r"
+   ],
    "hides": [
     "belly"
    ],
@@ -653,12 +662,15 @@
   },
   "Scarf": {
    "kind": "garment",
-   "triangles": 1225,
-   "vertices": 653,
+   "triangles": 1492,
+   "vertices": 832,
    "materials": {
     "traveller": "atlas"
    },
-   "shapeKeys": [],
+   "shapeKeys": [
+    "thighLift_l",
+    "thighLift_r"
+   ],
    "hides": [],
    "layer": 3
   }
@@ -703,19 +715,16 @@
     "ankle.L",
     "ankle.R",
     "belly",
+    "chest",
     "foot.L",
     "foot.R",
-    "forearm_lower.L",
-    "forearm_lower.R",
-    "forearm_upper.L",
-    "forearm_upper.R",
-    "hand.L",
-    "hand.R",
     "hips",
     "knee.L",
     "knee.R",
     "shin.L",
     "shin.R",
+    "shin_lower.L",
+    "shin_lower.R",
     "thigh.L",
     "thigh.R",
     "upperarm.L",
@@ -831,18 +840,18 @@
     89
    ],
    "Scarf.inside": [
-    103,
-    90,
-    72
+    93,
+    76,
+    60
    ]
   },
   "cleaned": {
-   "skin": 0.5,
+   "skin": 0.0,
    "shirt": 9.1,
-   "boots": 0.8,
+   "boots": 0.5,
    "trousers": 2.5,
    "tee": 1.9,
-   "scarf": 2.3
+   "scarf": 1.0
   },
   "skin": [
    201,
@@ -857,8 +866,8 @@
    ],
    "body": [
     209,
-    157,
-    119
+    142,
+    95
    ],
    "skin": [
     208,
@@ -866,9 +875,9 @@
     130
    ],
    "shin": [
-    210,
-    167,
-    132
+    208,
+    166,
+    131
    ]
   }
  },
@@ -889,11 +898,58 @@
    "Scarf"
   ]
  },
- "triangles": 84912,
+ "drivers": {
+  "thighLift_l": {
+   "bone": "thigh_l",
+   "swing": [
+    25.0,
+    80.0
+   ],
+   "parts": [
+    "Shirt"
+   ],
+   "frames": [
+    "jog-b"
+   ],
+   "outThroughShirtInItsFrames": {
+    "before": [
+     22
+    ],
+    "after": [
+     4
+    ]
+   }
+  },
+  "thighLift_r": {
+   "bone": "thigh_r",
+   "swing": [
+    25.0,
+    80.0
+   ],
+   "parts": [
+    "Shirt"
+   ],
+   "frames": [
+    "jog-a",
+    "sprint"
+   ],
+   "outThroughShirtInItsFrames": {
+    "before": [
+     25,
+     26
+    ],
+    "after": [
+     10,
+     8
+    ]
+   }
+  }
+ },
+ "triangles": 83145,
  "underShirt": {
   "verts": {
-   "Tee": 1069,
-   "Trousers": 698
+   "Tee": 1057,
+   "Trousers": 670
   },
   "outThroughShirt": {
    "lowered": {
@@ -902,8 +958,8 @@
      "deepestMm": 0.0
     },
     "Trousers": {
-     "out": 3,
-     "deepestMm": 26.9
+     "out": 4,
+     "deepestMm": 30.4
     }
    },
    "idle": {
@@ -918,32 +974,32 @@
    },
    "jog-a": {
     "Tee": {
-     "out": 7,
-     "deepestMm": 11.0
+     "out": 0,
+     "deepestMm": 0.0
     },
     "Trousers": {
-     "out": 21,
-     "deepestMm": 35.5
+     "out": 10,
+     "deepestMm": 13.3
     }
    },
    "jog-b": {
     "Tee": {
-     "out": 3,
-     "deepestMm": 30.9
+     "out": 0,
+     "deepestMm": 0.0
     },
     "Trousers": {
-     "out": 21,
-     "deepestMm": 38.8
+     "out": 4,
+     "deepestMm": 7.2
     }
    },
    "sprint": {
     "Tee": {
-     "out": 1,
-     "deepestMm": 1.1
+     "out": 0,
+     "deepestMm": 0.0
     },
     "Trousers": {
-     "out": 23,
-     "deepestMm": 39.0
+     "out": 8,
+     "deepestMm": 15.4
     }
    }
   }

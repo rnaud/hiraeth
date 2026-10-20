@@ -14,8 +14,8 @@
  "parts": {
   "GardenShirt": {
    "kind": "garment",
-   "triangles": 12697,
-   "vertices": 6514,
+   "triangles": 13044,
+   "vertices": 6698,
    "hides": [
     "belly"
    ],
@@ -28,7 +28,11 @@
    "kind": "garment",
    "triangles": 12144,
    "vertices": 6175,
-   "hides": [],
+   "hides": [
+    "hips",
+    "thigh.L",
+    "thigh.R"
+   ],
    "layer": 1,
    "materials": {
     "outfit_moss-gardener": "atlas"
@@ -36,8 +40,8 @@
   },
   "Socks": {
    "kind": "garment",
-   "triangles": 5814,
-   "vertices": 3035,
+   "triangles": 5218,
+   "vertices": 2745,
    "hides": [],
    "layer": 1,
    "materials": {
@@ -46,8 +50,8 @@
   },
   "Waistcoat": {
    "kind": "garment",
-   "triangles": 9147,
-   "vertices": 4743,
+   "triangles": 9160,
+   "vertices": 4751,
    "hides": [
     "belly"
    ],
@@ -68,13 +72,15 @@
   },
   "GardenBoots": {
    "kind": "garment",
-   "triangles": 6505,
-   "vertices": 3363,
+   "triangles": 6406,
+   "vertices": 3301,
    "hides": [
     "ankle.L",
     "ankle.R",
     "foot.L",
-    "foot.R"
+    "foot.R",
+    "shin_lower.L",
+    "shin_lower.R"
    ],
    "layer": 1,
    "materials": {
@@ -89,10 +95,6 @@
   "chest",
   "foot.L",
   "foot.R",
-  "forearm_lower.L",
-  "forearm_lower.R",
-  "hand.L",
-  "hand.R",
   "hips",
   "shin_lower.L",
   "shin_lower.R",
@@ -115,7 +117,7 @@
    2048,
    2048
   ],
-  "texelsPerMetre": 1031,
+  "texelsPerMetre": 1044,
   "swatches": {
    "GardenShirt.inside": [
     90,
@@ -201,19 +203,19 @@
    ]
   }
  },
- "triangles": 47123,
+ "triangles": 46788,
  "fit": {
   "GardenShirt": {
-   "fitLeft": 41,
+   "fitLeft": 211,
    "hem": {
-    "open": 114,
-    "covered": 158,
-    "band": 447,
-    "lips": 114
+    "open": 127,
+    "covered": 145,
+    "band": 624,
+    "lips": 127
    }
   },
   "Shorts": {
-   "fitLeft": 50,
+   "fitLeft": 0,
    "relief": {
     "_shorts_relief": {
      "cargo-1": {
@@ -252,14 +254,14 @@
   "Socks": {
    "fitLeft": 0,
    "hem": {
-    "open": 209,
-    "covered": 15,
-    "band": 445,
-    "lips": 209
+    "open": 106,
+    "covered": 118,
+    "band": 148,
+    "lips": 106
    }
   },
   "Waistcoat": {
-   "fitLeft": 65,
+   "fitLeft": 37,
    "relief": {
     "_vest_relief": {
      "pocket0-1": {
@@ -279,32 +281,32 @@
       "raised": 30
      },
      "pocket1-1": {
-      "cuts": 104,
-      "raised": 61
+      "cuts": 100,
+      "raised": 60
      },
      "flap1-1": {
-      "cuts": 111,
+      "cuts": 110,
       "raised": 44
      },
      "pocket11": {
       "cuts": 103,
-      "raised": 58
+      "raised": 60
      },
      "flap11": {
-      "cuts": 110,
-      "raised": 43
+      "cuts": 115,
+      "raised": 49
      }
     }
    },
    "hem": {
     "open": 304,
     "covered": 0,
-    "band": 802,
+    "band": 798,
     "lips": 304
    }
   },
   "GardenGear": {
-   "fitLeft": 1,
+   "fitLeft": 0,
    "hem": {
     "open": 0,
     "covered": 0
@@ -313,43 +315,43 @@
  },
  "shading": {
   "GardenShirt": {
-   "shadow": 0.516,
-   "hatched": 0.744,
-   "change": 0.055
+   "shadow": 0.522,
+   "hatched": 0.741,
+   "change": 0.0557
   },
   "Shorts": {
-   "shadow": 0.162,
-   "hatched": 0.212,
-   "change": 0.0232
+   "shadow": 0.15,
+   "hatched": 0.197,
+   "change": 0.0215
   },
   "Socks": {
    "shadow": 0.349,
    "hatched": 0.513,
-   "change": 0.0647
+   "change": 0.0649
   },
   "Waistcoat": {
-   "shadow": 0.058,
-   "hatched": 0.057,
-   "change": 0.0071
+   "shadow": 0.056,
+   "hatched": 0.054,
+   "change": 0.0068
   },
   "GardenGear": {
-   "shadow": 0.323,
-   "hatched": 0.517,
-   "change": 0.0327
+   "shadow": 0.29,
+   "hatched": 0.487,
+   "change": 0.028
   }
  },
  "pokes": {
   "under": {
    "Skin>GardenShirt": 0,
    "Skin>Shorts": 0,
-   "GardenShirt>Shorts": 481,
+   "GardenShirt>Shorts": 467,
    "Skin>Socks": 0,
    "Skin>Waistcoat": 0,
-   "GardenShirt>Waistcoat": 3087,
-   "Shorts>Waistcoat": 310,
+   "GardenShirt>Waistcoat": 2988,
+   "Shorts>Waistcoat": 300,
    "Skin>GardenGear": 0,
-   "Waistcoat>GardenGear": 117,
-   "Shorts>GardenGear": 206
+   "Waistcoat>GardenGear": 136,
+   "Shorts>GardenGear": 210
   },
   "posed": {
    "lowered": {
@@ -375,7 +377,7 @@
     },
     "GardenShirt>Waistcoat": {
      "out": 16,
-     "deepestMm": 14.4
+     "deepestMm": 12.0
     },
     "Shorts>Waistcoat": {
      "out": 0,
@@ -416,8 +418,8 @@
      "deepestMm": 0.0
     },
     "GardenShirt>Waistcoat": {
-     "out": 26,
-     "deepestMm": 11.9
+     "out": 25,
+     "deepestMm": 13.6
     },
     "Shorts>Waistcoat": {
      "out": 0,
@@ -446,8 +448,8 @@
      "deepestMm": 0.0
     },
     "GardenShirt>Shorts": {
-     "out": 0,
-     "deepestMm": 0.0
+     "out": 2,
+     "deepestMm": 12.1
     },
     "Skin>Socks": {
      "out": 0,
@@ -458,8 +460,8 @@
      "deepestMm": 0.0
     },
     "GardenShirt>Waistcoat": {
-     "out": 1,
-     "deepestMm": 2.8
+     "out": 2,
+     "deepestMm": 2.6
     },
     "Shorts>Waistcoat": {
      "out": 0,
@@ -471,7 +473,7 @@
     },
     "Waistcoat>GardenGear": {
      "out": 1,
-     "deepestMm": 3.0
+     "deepestMm": 1.8
     },
     "Shorts>GardenGear": {
      "out": 0,
@@ -488,8 +490,8 @@
      "deepestMm": 0.0
     },
     "GardenShirt>Shorts": {
-     "out": 0,
-     "deepestMm": 0.0
+     "out": 4,
+     "deepestMm": 13.8
     },
     "Skin>Socks": {
      "out": 0,
@@ -501,23 +503,23 @@
     },
     "GardenShirt>Waistcoat": {
      "out": 1,
-     "deepestMm": 1.8
+     "deepestMm": 2.4
     },
     "Shorts>Waistcoat": {
-     "out": 1,
-     "deepestMm": 1.6
+     "out": 0,
+     "deepestMm": 0.0
     },
     "Skin>GardenGear": {
      "out": 0,
      "deepestMm": 0.0
     },
     "Waistcoat>GardenGear": {
-     "out": 0,
-     "deepestMm": 0.0
+     "out": 3,
+     "deepestMm": 4.4
     },
     "Shorts>GardenGear": {
-     "out": 0,
-     "deepestMm": 0.0
+     "out": 1,
+     "deepestMm": 1.2
     }
    },
    "sprint": {
@@ -530,8 +532,8 @@
      "deepestMm": 0.0
     },
     "GardenShirt>Shorts": {
-     "out": 0,
-     "deepestMm": 0.0
+     "out": 1,
+     "deepestMm": 1.2
     },
     "Skin>Socks": {
      "out": 0,
@@ -543,7 +545,7 @@
     },
     "GardenShirt>Waistcoat": {
      "out": 4,
-     "deepestMm": 6.4
+     "deepestMm": 2.5
     },
     "Shorts>Waistcoat": {
      "out": 0,

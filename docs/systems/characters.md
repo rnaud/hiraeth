@@ -2205,6 +2205,61 @@ head-v3, the game still draws B3 until this reads at least as well side by side)
   streak or two of B3's paint; hair and face as pass 3 (head-v3, decision 2A). Running, the lifted thigh still
   pushes the trousers through the shirt's front hem (the cloth solver's job).
 
+**Pass 5: what pass 4 left, and the base body clean** (issue #493, with #554; the game still draws B3).
+
+- **The waist's slivers** were the trousers' backing, over and through B3's own trousers (by the panels'
+  edges, at the crotch). `drop_redundant_backing` drops backing where B3's own cloth is (three in four points
+  of a face with that cloth along the normal either way, or near it away from its edges) and any face with a
+  point outside that cloth (judged from 3 cm inside the body and from the bone segments: the crotch's normals
+  run any way). Backing seen from outside (rays from 72 directions) went 777 -> 446 hits, inside faces seen
+  667 -> 367.
+- **The tee hem's ends:** no lip on a covered edge within `PIN_END` (1.5 cm) of the pinned tee/trousers seam,
+  where the three edges meet the shirt's panel. His left end is cleaner; his right still shows a small wedge
+  where B3's tee hem overhangs the trousers' top.
+- **The shin:** the boots' piece (B3's shin over their tops) is stretched up into the trousers' cuff
+  (`level_top` to `SHIN_TOP`, 0.275 m: its ragged top edge stopped at the cuff's lower edge, the body
+  between); B3's skin paint on the boots' faces just under `SHIN_Z` is his shin (it was cleaned to the boots'
+  cream, the streak), and the shin's lightness is held to 0.85-1.02 of its median.
+- **The neck:** B3's neck lining over the scarf is kept, as the game keeps it (`traveller-b3.js`, oldNeck):
+  drawn in under head-v3's neck (45 % at 1.495 m), cut level at `NECK_TOP` (1.50 m), eased onto head-v3's
+  neck along its round (`hug`) and painted his skin: his neck widens into the scarf as B3's does, not running
+  long into it.
+- **Running:** two corrective shape keys on the shirt, `thighLift_l` / `thighLift_r` (`lift_key`): in frames of
+  the game's run with that thigh forward (jog-b; jog-a and sprint) the shirt is pushed out past whatever comes
+  through it, the pushes spread as a smooth field (the hem's lip and band moving with the surface), taken back
+  to the rest pose through each vert's skinning. A key's value is its thigh's forward swing in the side view,
+  0 at 25 degrees and 1 at 80 (`poses.swing`, `poses.drive`; the manifest's `drivers`): **a loader must set
+  them each frame**. The other clothes carry both keys at zero so the clothes still join into one draw.
+  Trousers out through the shirt: jog-a 21 -> 10, jog-b 21 -> 4, sprint 23 -> 8 (deepest 39 -> 15 mm); the tee
+  7/3/1 -> 0.
+- **The base body's hips and legs** are fitted again from their clean shape (`refit_body`: below 1.15 m, each
+  vert drawn in along the segment from its nearest bone, `BODY_AXES`, to inside the first cloth it crosses, as
+  a smooth field). The nearest-point fit had left a lump at his right front hip (14 mm proud, through slim
+  trousers) and a crumpled crotch whose normals sent the hides' rays down between the legs: every outfit's
+  hips and thighs now measure, and `EXTRA_HIDES` lost them (the glider pilot and the moss gardener keep the
+  chest; the pearl diver's chest, 97.0 %, is listed too; the salt pilgrim's is empty, its sandals measuring
+  the ankles and feet). On the slimmer belly the salt pilgrim's tunic lies 2.5 cm inside its robe at the
+  hips: running, the trousers no longer come through the robe (0, were 3–10 verts) and through the tunic
+  2 verts, ≤ 7 mm, but 10–21 of the tunic's verts by the robe's front edges at the waist pass them as the
+  front panel lifts, ≤ 32 mm, under the lifted panel (were 44–64, ≤ 20 mm).
+- **His arms (#554):** bare under a short sleeve (the pearl diver, the moss gardener) the base body's upper arm
+  was dented by the default's rolled sleeves and overlapped B3's forearm, which began in a step with its lip
+  turned in: a fold round the forearm. The arms are refitted from their clean shape too (`ARM_ZONE`), and each
+  bare arm is one surface (`join_arm`): the body and his skin piece are cut on one plane across the wrist
+  (`ARM_JOIN`, 0.235 m from the elbow), the body keeps the arm and the piece the hand, the body's last
+  `ARM_BLEND` (6 cm) is drawn out onto the hand's wrist, and the two cut edges are made the same verts at the
+  same places (each edge split where the other has a vert), with the hand's weights eased into the arm's and
+  one normal either side (`seam_normals`, custom normals eased over 6 cm), no lip (`hem(flush=)`). His skin
+  piece and the body take one lightness (`even_skin`: their joint median; the piece held to `SKIN_RANGE`).
+  Nothing overlaps: the body's hands and the piece's forearms are gone; a soft line is left at the wrist,
+  where B3's hand has its own crease.
+- The pearl diver's suit round the belt (0.92-1.12 m) leans to the pelvis and its pouches take the suit's
+  weights (on the refitted body a vert under the belt followed the thigh and came through it sprinting).
+- **Not repeatable bit for bit:** two builds of the same code have given the trousers 13 017 or 12 969 triangles
+  and the tee 4 362 or 4 273 (an outfit's pieces vary as well), seen when the machine was loaded; probably an
+  order that depends on threads or memory (a decimate, a join or a set iterated by address), not chased yet.
+- 83.1 k triangles.
+
 **Phase 1's pieces, still used:**
 
 - **One skeleton.** The game's 53 bones by their own names (`Root`, `pelvis` … `ball_r`), at the B3 fit
@@ -2249,9 +2304,9 @@ trousers) with a turned-down cuff. Since #544: the quilting puffed between stitc
 the front, six down the back, rings round the sleeves), a tall stand collar closed at the throat, the
 toggles and the armband raised, short brown gloves and the brass oil can on its strap at his left hip.
 47.3 k triangles (jacket 21.4 k, trousers 10.8 k, shafts 5.8 k, gloves 2.0 k, can 0.8 k, boots 6.5 k); his
-skin through nothing in any pose. Its hides are measured but for the hips (94 %: a lump of the base body at
-his right front hip stands proud of the slim trousers); the collar covers the neck's area, but the neck
-stays drawn (`KEEP_AREAS`: from above he is seen into the collar).
+skin through nothing in any pose. Its hides are all measured (since #493's pass 5: before it a lump of the
+base body at his right front hip stood proud of the slim trousers); the collar covers the neck's area, but
+the neck stays drawn (`KEEP_AREAS`: from above he is seen into the collar).
 
 **The other three** (issue #545; their sheets in `references/characters/traveller-outfits/<id>/`), with bare
 skin where the sheets show it (pass 4's body is his skin), on #544's shared volume and painter:
@@ -2332,7 +2387,7 @@ steps, `outfit_<id>.py` says what the outfit is):
    it); a band below the waist samples the waist (`sample`).
 4. **Hems** (`finish.hem`), **hides** (each piece's areas covered 97 %, rays out to 20 cm: the base body
    is drawn in under the default's loose clothes) plus `EXTRA_HIDES` where two pieces cover an area
-   between them (the glider pilot's chest and hips).
+   between them (the glider pilot's chest).
 5. **Paint**: Cycles bakes each texel's rest position and normal; `paint()` colours them (the sheet's
    palette, its pockets, strap, zip, roundel, rib and the puttees' spiral, drawn as functions of the
    surface). Inside bands are swatches.

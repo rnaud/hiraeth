@@ -198,9 +198,22 @@ def gear(cage, J):
 
 
 def reweight(name, ob, arm, J):
-    """The props move as one with the body under them (the belt bends as the suit it goes round)."""
+    """The props move as one with the body under them (the belt bends as the suit it goes round); the suit
+    round the belt keeps off the thighs (#493 pass 5: on the refitted base body a vert of it just under the belt
+    took the thigh by half, and sprinting it came out under the belt by 3.5 cm)."""
+    if name == 'DiveSuit':
+        W = K.weights_of(ob)
+        for v in ob.data.vertices:
+            k = smoothstep(0.92, 1.0, v.co.z) * (1 - smoothstep(1.08, 1.12, v.co.z))
+            w = W[v.index]
+            thigh = sum(x for b, x in w.items() if b.startswith('thigh'))
+            if k > 0 and thigh > 0:
+                for b in [b for b in w if b.startswith('thigh')]:
+                    w[b] *= 1 - k
+                w['pelvis'] = w.get('pelvis', 0.0) + thigh * k
+        R.set_weights(ob, W)
     if name == 'DiveGear':
-        R.set_weights(ob, K.copy_weights(ob, bpy.data.objects['DiveSuit'], only=K.verts_of_mats(ob, {0})))
+        R.set_weights(ob, K.copy_weights(ob, bpy.data.objects['DiveSuit'], only=K.verts_of_mats(ob, {0, 1})))   # (the pouches too, made rigid after)
         R.set_weights(ob, K.rigid_islands(ob, skip_mats=(0,)))
 
 
@@ -239,9 +252,10 @@ def _folds(piece):
 SHADE = {'DiveSuit': dict(folds=_folds('DiveSuit'), fold_ink=0.6), 'DiveShafts': dict(hatch=0.35), 'DiveGear': dict(hatch=0.3)}
 
 SKIN_CUT = []          # his forearms and hands all show
-# the hips: under the belt and the suit's seat together (each alone misses the crotch's verts); the thighs
-# as the other outfits (every miss a vert at the crotch whose ray goes down between the legs)
-EXTRA_HIDES = ['hips', 'thigh.L', 'thigh.R']
+# the chest: the suit and its collar ring cover it, but on #493 pass 5's base it measures 97.0 % (just under: the
+# misses are the body's neck foot inside the ring). The hips and thighs measure since pass 5 (the base body's
+# crotch, crumpled, sent its rays down between the legs)
+EXTRA_HIDES = ['chest']
 
 BUILDERS = {'DiveSuit': suit, 'DiveShafts': shafts, 'DiveGear': gear}
 
