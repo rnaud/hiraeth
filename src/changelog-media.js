@@ -1313,6 +1313,8 @@ const SRC404B = 'the bridge’s own bench (-views -bench 6 -bundle none, unity-b
 /** (v1.87, issue #555: the chime pirates' places) */
 const PLACES555 = 'Issue #555: the web game in muted headless Chrome (ANGLE Metal, High, 1280 × 720) on this branch’s own Vite (port 6555), ?game=pirates&stage=<level>&to=edena, the run flown ahead by the game’s pilot to the same second for both; before: the branch’s base (0a781a8e4, port 6557); 19 October; cwebp -q 72';
 const ARRIVE555 = 'Issue #555: the web game in muted headless Chrome (ANGLE Metal, High, 1280 × 720) on this branch’s own Vite (port 6555), ?game=pirates&stage=ice&to=edena, 0.8 s after the page opened; 19 October; cwebp -q 72';
+/** (v1.87, issue #564: the water's bed maps baked without stalling the desert's arrival) */
+const ARRIVAL564 = 'Issue #564: the production build in muted headless Chrome on the Mac’s GPU (ANGLE Metal, M4 Pro), no vsync, 1280 × 720, the desert’s spawn view (scripts/bench/viewpoints.json) pinned from the boot, 10:00, clear, a save past the prologue; each second counted from the boot, two runs each, before (9986aa322) and after interleaved; 20 October, load 18–27';
 export const CHANGELOG_MEDIA = {
   '1.87': [
     { match: 'In the Unity version, Anselm’s shop opens over a darkened hold', tags: ['devices'], shots: [
@@ -1416,6 +1418,24 @@ export const CHANGELOG_MEDIA = {
       { name: 'fragment-incal-550', title: 'The City-Shaft', size: [1280, 720], caption: 'One of the City-Shaft’s: before, on the corner of a bare terrace slab over the shaft; after, out on the rim, where the shaft’s landmarks were full, on a little stone plinth set for it at a tower’s foot', from: FRAG550 },
       { name: 'fragment-marker-550', only: 'after', title: 'A little cairn', size: [1280, 720], caption: 'Where a world had no landmark left to hold one (two a place at most), a fragment rests on a little cairn of flat stones set for it, here out on the Glass Dunes’ flats', from: FRAG550 },
     ], see: 'Buy Anselm’s chart and open the Map, or listen to what people say: each fragment is on a ribcage, a temple’s steps, a roof, a tower, a moon or a little cairn now, never more than two on one place. In the Desert, the first sings by the cairn beside your ship.' },
+    { match: 'Arriving in the desert is smooth again', numbers: [
+      { title: 'Frames a second, seconds 4 to 7 after the desert loaded (each second’s count)', unit: 'fps', better: 'higher', device: 'Mac (M4 Pro), headless Chrome, no vsync', rows: [
+        { where: 'High', before: '29–38', after: '106–121' },
+        { where: 'Handheld', before: '36–45', after: '123–148' },
+      ], source: ARRIVAL564 },
+      { title: 'The main thread a frame, the same seconds (the median of each second)', unit: 'ms', better: 'lower', device: 'Mac (M4 Pro), headless Chrome, no vsync', rows: [
+        { where: 'High', before: '25–34', after: 8 },
+        { where: 'Handheld', before: '22–27', after: '6–7' },
+      ], source: ARRIVAL564 },
+      { title: 'Time until every bed map is made, from the boot', unit: 's', better: 'lower', device: 'Mac (M4 Pro), headless Chrome, no vsync', rows: [
+        { where: 'High', before: '8.8–10.1', after: '2.7–2.8' },
+        { where: 'Handheld', before: '7.9–8.4', after: '2.3–2.4' },
+      ], source: ARRIVAL564 },
+      { title: 'Frames over 22 ms in the first 14 seconds', unit: 'frames', better: 'lower', device: 'Mac (M4 Pro), headless Chrome, no vsync', rows: [
+        { where: 'High', before: '194–220', after: 6 },
+        { where: 'Handheld', before: '177–198', after: '5–7' },
+      ], source: ARRIVAL564, note: 'The salt lagoons’ map alone was 3.8 s of rays (each texel tested against every one of its 1 920 triangles), now 0.14 s; the maps come out the same (every texel identical, and the last row of the two even-sized maps, left out before, now made). The engines bake through the same code (engine/game.js), so Unity on the Retroid, the Deck and the Xbox gets the same fix: in the engine bundle in node, the bake’s frames went from up to 154 ms to its 1.5 ms budget, done in 327 frames instead of 437.' },
+    ], see: 'Travel to the desert, or load a save there, and look round at once: the first seconds are as smooth as the rest.' },
   ],
   '1.86': [
     { match: 'In the Unity version, the Controls page shows your keys and buttons on caps', tags: ['devices'], shots: [

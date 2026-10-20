@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { MeshBVH } from 'three-mesh-bvh';
 import { makeMaterial, sharedUniforms, MODE_WATER } from './materials.js';
 import { waterShared, RINGS, WATER_MARK } from './water-shader.js';
 import { screen } from './platform.js';
@@ -19,7 +20,11 @@ import { screen } from './platform.js';
 //              the bed under each body, baked a few rows a frame from the
 //              collision world (physics.groundAt), nearest body first; the
 //              huge ones (Lorn's swamp) get a map round the player that is
-//              baked again as you go (BED).
+//              baked again as you go (BED). A sloping body's surface is read
+//              through a BVH of its mesh (bvhOf), and the budget is checked
+//              every BED.block texels (issue #564: the salt lagoons' sheet,
+//              brute-force raycast a row at a time, cost 25-35 ms a frame for
+//              seven seconds after the desert loaded).
 //   rings      ripples spreading round whatever touches the water: the player
 //              wading and swimming, the strokes, splashes, a vehicle skimming,
 //              creatures on the water (uWaterRings, a ring buffer)
@@ -47,9 +52,10 @@ export const BED = {
   span: 300,           // m: that map's width
   recentre: 70,        // m: bake it again once you are this far from its centre
   budget: 1.5,         // ms of baking a frame
+  block: 16,           // texels baked between two looks at the clock (issue #564: a row of 256 was 25-35 ms)
 };
 
-const _ray = new THREE.Raycaster(), _o = new THREE.Vector3(), _down = new THREE.Vector3(0, -1, 0), _hits = [];
+const _o = new THREE.Vector3(), _down = new THREE.Vector3(0, -1, 0), _local = new THREE.Ray(), _inv = new THREE.Matrix4();
 const _c = new THREE.Color();
 
 function shownInScene(o) {
@@ -127,15 +133,18 @@ export class Waters {
     if (x < b.box.min.x || x > b.box.max.x || z < b.box.min.z || z > b.box.max.z) return null;
     if (!shownInScene(b.mesh)) return null;
     if (b.huge && b.flat) return b.top;   // (a plane over the whole world)
-    _o.set(x, b.top + 1, z);
-    _ray.set(_o, _down);
-    _ray.far = b.box.max.y - b.box.min.y + 2;
-    _hits.length = 0;
-    b.mesh.raycast(_ray, _hits);
-    if (!_hits.length) return null;
-    let y = -Infinity;
-    for (const h of _hits) y = Math.max(y, h.point.y);
-    return y;
+    // straight down from over its box, in the mesh's own space: the first hit is the highest surface (as three's
+    // Mesh.raycast found it, every triangle tested, before issue #564)
+    _local.set(_o.set(x, b.top + 1, z), _down).applyMatrix4(_inv.copy(b.mesh.matrixWorld).invert());
+    const hit = this.bvhOf(b).raycastFirst(_local, b.mesh.material);
+    return hit ? _o.copy(hit.point).applyMatrix4(b.mesh.matrixWorld).y : null;
+  }
+
+  /** The body's mesh as a BVH (its own space; made again if its geometry changes; `indirect`: its geometry untouched). */
+  bvhOf(b) {
+    const g = b.mesh.geometry, v = g.attributes.position.version;
+    if (b.bvh?.geometry !== g || b.bvhVersion !== v) { b.bvh = new MeshBVH(g, { indirect: true }); b.bvhVersion = v; }
+    return b.bvh;
   }
 
   /**
@@ -188,10 +197,11 @@ export class Waters {
     }
     const texel = Math.max(BED.texel, Math.max(w, d) / BED.maxSize);
     const nx = Math.max(8, Math.min(BED.maxSize, Math.ceil(w / texel))), nz = Math.max(8, Math.min(BED.maxSize, Math.ceil(d / texel)));
-    // rows from the middle outward, so a map in progress is useful early (huge maps: from the player's row)
+    // rows from the middle outward, so a map in progress is useful early (huge maps: from the player's row); every row
+    // (until issue #564 an even count's row 0 was left out, its bed 0: a shallows' line along the map's far edge)
     const order = [], mid = Math.floor(nz / 2);
-    for (let k = 0; k < nz; k++) order.push(mid + (k % 2 ? (k + 1) / 2 : -k / 2));
-    b.bake = { x0, z0, w, d, nx, nz, ref: b.top, row: 0, order: order.filter((r) => r >= 0 && r < nz), data: new Uint16Array(nx * nz), centre: { x: x0 + w / 2, z: z0 + d / 2 } };
+    for (let k = 0; order.length < nz; k++) { const r = mid + (k % 2 ? (k + 1) / 2 : -k / 2); if (r >= 0 && r < nz) order.push(r); }
+    b.bake = { x0, z0, w, d, nx, nz, ref: b.top, row: 0, col: 0, order, data: new Uint16Array(nx * nz), centre: { x: x0 + w / 2, z: z0 + d / 2 } };
     return b.bake;
   }
 
@@ -201,18 +211,25 @@ export class Waters {
     return Number.isFinite(g) ? g : surface - 40;
   }
 
-  /** Bake rows of one body's map for up to `ms` milliseconds. Returns true when that map is done. */
+  /**
+   * Bake one body's map for up to `ms` milliseconds, BED.block texels at a time (a row is taken up where the last
+   * frame left it). Returns true when that map is done.
+   */
   bakeRows(b, ms = BED.budget) {
     const B = b.bake;
     if (!B) return true;
     const t0 = performance.now(), dx = B.w / B.nx, dz = B.d / B.nz;
+    // (a sloping body's BVH first: a frame of its own, unless the budget is unbounded)
+    if (!b.flat && b.bvh?.geometry !== b.mesh.geometry) { this.bvhOf(b); if (Number.isFinite(ms)) return false; }
     while (B.row < B.order.length) {
-      const j = B.order[B.row++], z = B.z0 + (j + 0.5) * dz;
-      for (let i = 0; i < B.nx; i++) {
+      const j = B.order[B.row], z = B.z0 + (j + 0.5) * dz, end = Math.min(B.nx, B.col + BED.block);
+      for (let i = B.col; i < end; i++) {
         const x = B.x0 + (i + 0.5) * dx;
         const s = b.flat ? B.ref : (this.surfaceOf(b, x, z) ?? B.ref);
         B.data[j * B.nx + i] = toHalf(THREE.MathUtils.clamp(this.bedAt(x, z, s) - B.ref, -60, 6));
       }
+      B.col = end;
+      if (B.col >= B.nx) { B.col = 0; B.row++; }
       if (performance.now() - t0 > ms) break;
     }
     if (B.row < B.order.length) return false;

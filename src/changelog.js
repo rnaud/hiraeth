@@ -44,6 +44,9 @@ export const CHANGELOG = [
     // issue #553: src/desert-water.js floodGeometry, the wells' level; src/desert-landmarks.js lagoonSheet, STREAM; the
     // fields' channels and the Givers' channel in src/temples/desert.js; tests/desert-water.test.js
     'In the desert, water lies in its bed instead of floating over the sand: the channels by Qanat’s new fields and the one from the Rose House, the flooded salt pan, the edges of the salt lagoons and the gorge’s stream, and the water risen in the qanat wells.',
+    // issue #564: src/water.js surfaceOf through a BVH of the body (bvhOf), bakeRows reads the clock every BED.block
+    // texels; tests/water-bake-budget.test.js; docs/systems/water.md
+    'Arriving in the desert is smooth again: for about seven seconds after it loaded, the game ran at 30 to 45 frames a second while it worked out the ground under the salt lagoons and the gorge’s stream for the water’s colours. That now takes under three seconds, a little each frame, and the game stays at full speed meanwhile, on handhelds too.',
     // issue #552: src/costumes.js torsoStrap (BODIES.scavbag: the strap and the bag), src/characters/quest-pieces.js sash
     // (wornKit's diagonal); tests/body-straps.test.js, desert-props.test.js
     'Marrow by the ship, and the people who wear a strap across the chest in the City-Shaft, Viridel, the Garden of Spheres, Lorn and the Signal Market, now wear it lying on them, over the shoulder and round to the hip, instead of a straight stick from the shoulder down to where the other hand hangs. Marrow’s bag sits on his hip.',

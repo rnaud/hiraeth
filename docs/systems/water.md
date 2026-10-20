@@ -46,15 +46,25 @@ cave's magic pool, which keeps its fluid look; `userData.waterMoves` refreshes i
 box as it rises). Each gets its own copy of the material, drawn from both sides.
 - `surfaceAt(x, z, y)`: the water there for something at height y (the lowest
   surface above y - 0.6, else the highest one under it): `{ y, body }` or null.
-  Streams slope: it raycasts the water mesh itself. `floorAt(x, y, z)`: the highest
+  Streams slope: it raycasts the water mesh itself, through a BVH of it (`bvhOf`:
+  three-mesh-bvh, `indirect` so the geometry is left as it is, made again if its
+  positions change). `floorAt(x, y, z)`: the highest
   surface under y; hoverbikes and skiffs skim on it (`bike.js` `surface`).
 - **Bed maps**: the depth bands and the foam come from a half-float map of the bed
   under each body, baked from the collision world (`physics.groundAt` from 1.5 m
   over the surface, so rocks and walls standing in the water count and bridges
-  overhead don't), a few rows a frame (`BED.budget` ms), nearest body first,
-  from the middle rows outward. Texels down to 0.3 m on small pools, 256 a side at
-  most. Bodies wider than `BED.huge` (Lorn's swamp) get a 300 m map round the player,
-  baked again once you are 70 m off its centre. A 256² map is ~25 ms of rays in all.
+  overhead don't), `BED.budget` ms a frame (half on a handheld), the clock read every
+  `BED.block` (16) texels so a frame never runs past its budget by more than a
+  block, a row taken up where the last frame left it; a sloping body's BVH is a
+  frame of its own. Nearest body first, from the middle rows outward (every row:
+  an even count's row 0 used to be skipped). Texels down to 0.3 m on small pools,
+  256 a side at most. Bodies wider than `BED.huge` (Lorn's swamp) get a 300 m map
+  round the player, baked again once you are 70 m off its centre. A texel is ~1-2 µs
+  on the Mac (a flat body: the ground ray alone), so the desert's five maps (200 000
+  texels) are ~0.3-0.4 s of work, done ~3 s after the load at 1.5 ms a frame. Until
+  issue #564 the sloping bodies were raycast triangle by triangle and the clock read
+  after each row: the salt lagoons' sheet (1 920 triangles, 256²) was 3.8 s of rays,
+  25-35 ms a frame for seven seconds after the desert loaded.
 - **Rings and splashes**: the player wading (each step: a ring, a few drops, a slosh,
   no footprint) and swimming, the strokes, going in and out (bigger the faster you
   fall), vehicles skimming, creatures standing in water, the fluid tool's globs
