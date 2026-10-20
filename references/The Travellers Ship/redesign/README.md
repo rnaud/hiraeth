@@ -1,0 +1,1 @@
+Options for the traveller's ship redesign (issue #573, docs/design/ship-redesign-prompts.md): the overview sheet of every candidate; each direction's pick goes to its own folder here once the author picks in the reference lab.
