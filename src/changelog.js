@@ -9,6 +9,7 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   { v: '1.89', date: '2026-10-20', items: [
+    'In the Wardrobe, the traveller now holds the sword in his hand, with the whole blade visible as you browse its colours and his outfits.',
     'The caravan ship study now uses the game’s ink, hatching and sunlight, so its surfaces read as they will in the world.',
     'The caravan study packs its camp before taking off: the porch folds against the hull, the awning retracts, and the plants, furniture and laundry stow away. Arriving opens the camp automatically after touchdown.',
     // issue #577: Surface.shader waterLook (_WaterBelow, the crests' WATER_INK fade, _WaterLite), WorldLoader.MakeMaterial;

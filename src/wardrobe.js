@@ -11,21 +11,23 @@
 //   cleared (its reward, worn on the backpack, the sword and the shield); the Wardrobe chooses the sword's, the Items
 //   panel's Colours strip still goes round all three pieces.
 // - The preview is the choice saved with the highlighted one in its place (previewOf): the outfit worn on him (v2's
-//   Wardrobe swaps it live), the blade's colour on a sword of its own standing beside him (the one he carries is
-//   sheathed: only its hilt shows), so the real one changes only when the colour is chosen.
+//   Wardrobe swaps it live), the blade's colour on a sword of its own held in his right fist (the gameplay sword is hidden
+//   for the preview), so the real one changes only when the colour is chosen.
 //
 //   const w = wireWardrobe({ game, kit, tool, player, dress: () => travellerV2.dress })
 //   w.data()                 the page's lists (game-menu.js wardrobePanel)
 //   w.preview(cell)          the highlighted cell (or null): him and the sword in it
 //   w.wear(kind, id)         A / × on a cell: saved and worn in the world
 //   w.leave()                the page left (another panel, the menu closed): him as he was, the sword put away
-//   w.place(shot) · w.tick(dt) · w.keep()   each drawn frame: the sword beside him for the shot, its breath and his
+//   w.place(shot) · w.tick(dt) · w.keep()   each drawn frame: the sword held in his fist, its breath and his
 //                            (PageIdle: the world is still under the menu, he is not), what the preview draws (him, the sword)
 //   wardrobeShot(player, yaw) → { eye, look, fov }: the camera on him, `yaw` round him from his front
 
 import * as THREE from 'three';
 import { KIT_COLOURS, wonColours, chosenColour, chooseColour, colourById, paintWater } from './kit-colours.js';
 import { buildSword } from './fluid-sword.js';
+import { fistGrip } from './blade-grip.js';
+import { HAND_POSES } from './hands.js';
 import { BLADE_LOOK, BLADE_QUALITY } from './blade-shader.js';
 
 /**
@@ -112,14 +114,14 @@ export class Turntable {
  * The preview's framing: his whole height, `fov` degrees, the eye `dist` m off (further on a narrow picture, so the sword
  * beside him stays in it: `room` m either side of him), `eye` m over his feet, looking at `look`.
  */
-export const SHOT = { fov: 28, dist: 4.4, eye: 1.05, look: 0.9, room: 1.08 };
+export const SHOT = { fov: 28, dist: 4.4, eye: 1.05, look: 0.9, room: 1.08, depth: 0.3 };
 const _f = new THREE.Vector3(), _u = new THREE.Vector3(), _r = new THREE.Vector3();
 /**
  * The camera on the traveller for the preview: `yaw` rad round him from his front, about his up (player: { pos, heading,
  * frame: { up, dir(heading, out) } }), for a picture `aspect` wide over high. → { eye, look, fov, dist } (new vectors).
  */
 export function wardrobeShot(player, yaw = TURN.start, aspect = 1, S = SHOT) {
-  const dist = Math.max(S.dist, S.room / (Math.tan((S.fov * Math.PI) / 360) * Math.max(0.3, aspect)) + PLANTED.front);
+  const dist = Math.max(S.dist, S.room / (Math.tan((S.fov * Math.PI) / 360) * Math.max(0.3, aspect)) + S.depth);
   const up = _u.copy(player.frame?.up ?? THREE.Object3D.DEFAULT_UP).normalize();
   const fwd = player.frame?.dir ? player.frame.dir(player.heading ?? 0, _f) : _f.set(Math.sin(player.heading ?? 0), 0, Math.cos(player.heading ?? 0));
   const side = _r.crossVectors(up, fwd).normalize();
@@ -134,16 +136,10 @@ export function wardrobeShot(player, yaw = TURN.start, aspect = 1, S = SHOT) {
 /** The paper behind him (the menu's sheet, a shade darker so his light parts stand off it). */
 export const BACKDROP = '#ece0c2';
 
-// ------------------------------------------------------------------ the sword beside him
+// ------------------------------------------------------------------ the preview sword
 
-/**
- * The sword stood beside him on the stage, point down, its broad face to the camera: `side` m to the picture's right of
- * his feet and `front` m toward the camera, its grip `grip` m up, leaning `lean` rad, its face turned `turn` rad off the
- * camera. It stays where the camera sees it as he turns (placed for each frame's shot: placeSword).
- */
-export const PLANTED = { side: 0.78, front: 0.3, grip: 0.92, lean: 0.1, turn: 0.35 };
 /** A sword of its own for the preview (src/fluid-sword.js buildSword in a material of its own). */
-export function plantedSword() {
+export function previewSword() {
   const s = buildSword({ key: 'wardrobe.sword' });
   const g = new THREE.Group();
   g.name = 'wardrobe sword';
@@ -152,22 +148,6 @@ export function plantedSword() {
   g.userData.material = s.material;
   return g;
 }
-const _x = new THREE.Vector3(), _y = new THREE.Vector3(), _z = new THREE.Vector3(), _m = new THREE.Matrix4(), _q = new THREE.Quaternion();
-/** The sword placed for a shot (wardrobeShot's eye and look; `feet` and `up` his): beside him on the picture's right. */
-export function placeSword(g, { eye, look }, feet, up, P = PLANTED) {
-  const toward = _z.subVectors(eye, look);
-  toward.addScaledVector(up, -toward.dot(up)).normalize();
-  const right = _x.crossVectors(up, toward).normalize();   // (the picture's right, seen from the eye)
-  g.position.copy(feet).addScaledVector(right, P.side).addScaledVector(toward, P.front).addScaledVector(up, P.grip);
-  // the hilt's frame (+y up the blade, z its flat) turned over: the blade down, its flat to the camera, then leant and turned
-  _y.copy(up).negate();
-  _x.crossVectors(_y, toward).normalize();
-  g.quaternion.setFromRotationMatrix(_m.makeBasis(_x, _y, toward));
-  g.quaternion.multiply(_q.setFromAxisAngle(THREE.Object3D.DEFAULT_UP, P.turn)).multiply(_q.setFromAxisAngle(_z.set(0, 0, 1), -P.lean));
-  g.updateMatrixWorld(true);
-  return g;
-}
-
 // ------------------------------------------------------------------ him at rest on the page
 
 /**
@@ -226,6 +206,67 @@ export class PageIdle {
   }
 }
 
+/** A preview-only right arm and fist. Restore before PageIdle runs again, and before leaving the page. */
+export class PageGrip {
+  constructor() { this.saved = null; this.mount = null; this.body = null; }
+  put() {
+    if (!this.saved) return;
+    for (const [bone, q] of this.saved.bones) bone.quaternion.copy(q);
+    for (const [side, cur, goal, lag, lagV, tight] of this.saved.hands) {
+      side.cur.set(cur); side.goal.set(goal); side.lag = lag; side.lagV = lagV; side.tight = tight;
+    }
+    this.saved = null;
+  }
+  pose(H, root, sword) {
+    const B = H?.b;
+    if (!B?.hand_r || !H.solveTwoBone || !root || !sword) return false;
+    // Include the fingers: the hand driver poses both hands when applying a right-hand change.
+    this.saved = {
+      bones: Object.entries(B).filter(([n]) => /^(upperarm_r|lowerarm_r|hand_r|(?:thumb|index|middle|ring|pinky)_)/.test(n))
+        .map(([, b]) => [b, b.quaternion.clone()]),
+      hands: (H.hands?.sides ?? []).map((s) => [s, s.cur.slice(), s.goal.slice(), s.lag, s.lagV, s.tight]),
+    };
+    if (this.body !== H) { this.mount = fistGrip(H); this.body = H; }
+    const g = this.mount;
+    if (!g) return false;
+    const right = H.hands?.sides.find((s) => s.s === 'r');
+    if (right) {
+      right.cur.set(H.hands.poses?.fist ?? HAND_POSES.fist); right.goal.set(right.cur);
+      right.lag = right.lagV = 0; right.tight = 1;
+      H.hands.apply();
+    }
+    root.updateMatrixWorld(true);
+    const rq = root.getWorldQuaternion(new THREE.Quaternion());
+    const up = new THREE.Vector3(0, 1, 0).applyQuaternion(rq);
+    const side = new THREE.Vector3(-1, 0, 0).applyQuaternion(rq);
+    const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(rq);
+    const target = root.getWorldPosition(new THREE.Vector3()).addScaledVector(up, 1.04)
+      .addScaledVector(side, 0.42).addScaledVector(forward, 0.18);
+    const y = up.clone().negate().addScaledVector(side, 0.22).normalize();
+    const x = new THREE.Vector3().crossVectors(y, forward).normalize();
+    const z = new THREE.Vector3().crossVectors(x, y).normalize();
+    const swordQ = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(x, y, z));
+    const handQ = swordQ.clone().multiply(g.quaternion.clone().invert());
+    const pole = B.upperarm_r.getWorldPosition(new THREE.Vector3()).addScaledVector(side, 0.45).addScaledVector(up, -0.6);
+    // Orient the wrist and solve for the actual grip centre, not the wrist origin.
+    for (let i = 0; i < 3; i++) {
+      B.hand_r.quaternion.copy(B.hand_r.parent.getWorldQuaternion(new THREE.Quaternion()).invert().multiply(handQ));
+      root.updateMatrixWorld(true);
+      const wrist = B.hand_r.getWorldPosition(new THREE.Vector3());
+      const contact = g.position.clone().applyMatrix4(B.hand_r.matrixWorld);
+      H.solveTwoBone(B.upperarm_r, B.lowerarm_r, B.hand_r, target.clone().add(wrist).sub(contact), pole, 1);
+    }
+    B.hand_r.quaternion.copy(B.hand_r.parent.getWorldQuaternion(new THREE.Quaternion()).invert().multiply(handQ));
+    root.updateMatrixWorld(true);
+    const world = new THREE.Matrix4().compose(g.position.clone().applyMatrix4(B.hand_r.matrixWorld),
+      B.hand_r.getWorldQuaternion(new THREE.Quaternion()).multiply(g.quaternion), new THREE.Vector3(1, 1, 1));
+    if (sword.parent) world.premultiply(sword.parent.matrixWorld.clone().invert());
+    world.decompose(sword.position, sword.quaternion, sword.scale);
+    sword.updateMatrixWorld(true);
+    return true;
+  }
+}
+
 // ------------------------------------------------------------------ the page's host
 
 /**
@@ -236,6 +277,8 @@ export class PageIdle {
 export function wireWardrobe({ game, kit = null, tool = null, player = null, dress = () => null }) {
   let sword = null, shown = null, time = 0;
   const idle = new PageIdle();
+  const grip = new PageGrip();
+  let carried = null;
   // the outfit on him: the one wanted, put on one at a time (v2's first wear of an outfit loads it)
   let want = null, on = null, busy = false;
   const dressed = () => dress?.() ?? null;
@@ -260,12 +303,16 @@ export function wireWardrobe({ game, kit = null, tool = null, player = null, dre
   const data = () => wardrobeData({ state: game, v2: !!dressed(), sword: !!tool?.swordOn });
   const host = {
     data,
-    /** The sword beside him (null until the page shows, or without the sword). */
+    /** The separate held sword (null until the page shows, or without the sword). */
     get sword() { return sword; },
     preview(cell) {
       const d = data(), sel = previewOf(d, cell);
-      if (d.sword && player?.object && !sword) { sword = plantedSword(); shown = null; }
-      // (in the world beside him, while the page shows: placed for each frame's shot, place)
+      if (!carried && d.sword && tool?.blade?.group) {
+        carried = { object: tool.blade.group, visible: tool.blade.group.visible };
+        carried.object.visible = false;
+      }
+      if (d.sword && player?.object && !sword) { sword = previewSword(); shown = null; }
+      // (a separate world root following the fitted hand, included once in both renderers)
       const world = player?.object?.parent;
       if (sword && d.sword && world && sword.parent !== world) world.add(sword);
       if (sword && !d.sword && sword.parent) sword.parent.remove(sword);
@@ -279,24 +326,26 @@ export function wireWardrobe({ game, kit = null, tool = null, player = null, dre
       return false;
     },
     leave() {
+      grip.put();
       idle.put();
+      if (carried) { carried.object.visible = carried.visible; carried = null; }
       if (sword?.parent) sword.parent.remove(sword);
       if (dressed()) wearOutfit(chosenOutfit(game));
     },
-    /** The sword placed for this frame's shot (wardrobeShot), before it is drawn. */
-    place(shot) {
-      if (sword?.parent && player) placeSword(sword, shot, player.pos, player.frame?.up ?? THREE.Object3D.DEFAULT_UP);
-    },
+    /** Attachment is updated by tick, after the preview pose. Both hosts call this camera hook. */
+    place() {},
     tick(dt) {
       time += dt;
+      grip.put();
       idle.pose(player?.humanoid?.b, player?.object, time);   // (him breathing, looking about: PageIdle)
+      if (sword?.parent) grip.pose(player?.humanoid, player?.object, sword);
       const U = sword?.userData.material?.uniforms;
       if (!U?.uBlade) return;
       U.uBlade.value.set(0, 1, time * BLADE_LOOK.breathRate, BLADE_QUALITY.lite ? 1 : 0);   // (its breath, as the box's sword)
       // (and its currents flowing up it, as the one in his hand: fluid-blade.js; an engine is sent the fluid as it moves)
       if (U.uFluidA) U.uFluidA.value.z = time;
     },
-    /** What the preview draws: him, and the sword beside him. */
+    /** What the preview draws: him and the separate sword following his fist. */
     keep: () => [player?.object, sword?.parent ? sword : null].filter(Boolean),
   };
   return host;

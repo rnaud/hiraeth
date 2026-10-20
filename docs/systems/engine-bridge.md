@@ -172,7 +172,7 @@ the same entries in the same order, moved through by the web's own rules, and `v
   follows the cursor (`wardrobeSync`, the host's `preview`, `wear`, `leave`: `menus.wardrobe = game.wardrobe`), the
   right stick turns him (`analog`'s `rx`). engine/game.js draws him each frame the page shows (`wardrobeCapture`:
   backend.js `wardrobe` → BridgeHost.Wardrobe → BridgeRunner.Wardrobe, the portraits' camera on layer 29 alone, his
-  drawables and the sword beside him moved onto it for the moment: `BridgeRenderer.OnLayer`), into one picture
+  drawables and the sword held in his fist moved onto it for the moment: `BridgeRenderer.OnLayer`), into one picture
   BridgeMenu.Wardrobe.cs shows in its frame. `-wardrobe -out dir` photographs it (`unity-wardrobe-<name>.png`;
   `-wardrobe-yaw r` holds him at r rad round, as the web's pictures do). Every HIRAETH_FIGHT material is bound a
   `_SkinData` buffer (the blade's an empty one): Metal skips a draw whose buffer is unbound (docs/systems/ui.md).

@@ -11,7 +11,7 @@ import * as THREE from 'three';
 globalThis.matchMedia ??= () => ({ matches: false });
 globalThis.window ??= new EventTarget();
 const W = await import('../src/wardrobe.js');
-const { OUTFITS, OUTFIT_KEY, outfitUnlocked, chosenOutfit, chooseOutfit, bladeColours, wardrobeData, previewOf, wireWardrobe, Turntable, TURN, wardrobeShot, SHOT, placeSword, plantedSword, PageIdle, PAGE_IDLE } = W;
+const { OUTFITS, OUTFIT_KEY, outfitUnlocked, chosenOutfit, chooseOutfit, bladeColours, wardrobeData, previewOf, wireWardrobe, Turntable, TURN, wardrobeShot, SHOT, PageIdle, PAGE_IDLE } = W;
 const { GameMenu, PANELS, wardrobePanel } = await import('../src/game-menu.js');
 const { menuSources } = await import('../src/game-menu-data.js');
 const { EngineMenus } = await import('../engine/menus.js');
@@ -190,7 +190,7 @@ test('turning him: on his own after a moment, the right stick (the pad\'s, hande
   assert.match(src('src/main.js'), /journal\.menu\.panel === 'map' \? journal\.menu\.mapAnalog\(a, dt\) : journal\.menu\.wardrobeAnalog\(a, dt\)/);
 });
 
-test('the camera on him: his whole height from `yaw` round his front; the sword beside him on the picture\'s right, in it however narrow', () => {
+test('the camera on him: his whole height from `yaw` round his front, with room for the held blade', () => {
   const p = { pos: new THREE.Vector3(10, 2, -5), heading: 0, frame: null };
   const s = wardrobeShot(p, 0, 1.1);
   assert.equal(s.dist, SHOT.dist, 'a picture as wide as high: the usual distance');
@@ -199,16 +199,7 @@ test('the camera on him: his whole height from `yaw` round his front; the sword 
   const side = wardrobeShot(p, Math.PI / 2, 1.1);
   assert.ok(Math.abs(side.eye.distanceTo(p.pos.clone().setY(2 + SHOT.eye)) - SHOT.dist) < 1e-9, 'round him at the same distance');
   assert.ok(wardrobeShot(p, 0, 0.75).dist > SHOT.dist + 1, 'a narrow picture (Unity\'s on 4:3): further off');
-  for (const aspect of [1.1, 0.75, 0.6]) {
-    const shot = wardrobeShot(p, 0.7, aspect), g = plantedSword();
-    placeSword(g, shot, p.pos, new THREE.Vector3(0, 1, 0));
-    const cam = new THREE.PerspectiveCamera(SHOT.fov, aspect);
-    cam.position.copy(shot.eye); cam.lookAt(shot.look); cam.updateMatrixWorld();
-    const at = g.position.clone().project(cam);
-    assert.ok(at.x > 0.2 && at.x < 0.9 && Math.abs(at.y) < 1, `on the picture's right at ${aspect} (${at.x.toFixed(2)})`);
-    const down = new THREE.Vector3(0, 1, 0).applyQuaternion(g.quaternion);
-    assert.ok(down.y < -0.9, 'the blade down (the hilt\'s +y)');
-  }
+
 });
 
 test('the engines\' menus: the same page, its preview following the cursor, A / × wearing, out of it him as he was', async () => {

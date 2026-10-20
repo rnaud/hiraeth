@@ -12,6 +12,7 @@ The same release notes shown in the game (press **N** or open settings).
 - In the Unity version, the sea over the Underwater City, seen from under the water, is the same deep, even blue as on the web instead of a pale ceiling crossed by streaks, and from the sea port’s deck the far sea is a flat tone again, without fine lines out to the horizon.
 - The caravan study packs its camp before taking off: the porch folds against the hull, the awning retracts, and the plants, furniture and laundry stow away. Arriving opens the camp automatically after touchdown.
 - The caravan ship study now uses the game’s ink, hatching and sunlight, so its surfaces read as they will in the world.
+- In the Wardrobe, the traveller now holds the sword in his hand, with the whole blade visible as you browse its colours and his outfits.
 
 ## v1.88 — 2026-10-20
 

@@ -716,7 +716,7 @@ read: docs/systems/temples.md, "The house's map".
 
 The game menu's last panel, one LB / L1 from the Quests (`PANELS`): the author's "a menu that shows the traveller on
 the right side, and on the left side we can pick different sword colours (that we unlocked) and different outfits".
-Code: `src/wardrobe.js` (the lists, the save, the preview, the camera and the sword beside him; `wireWardrobe`, shared by
+Code: `src/wardrobe.js` (the lists, the save, the preview, the camera and the sword in his hand; `wireWardrobe`, shared by
 main.js and engine/game.js), `src/game-menu.js` `wardrobePanel` and `GameMenu.wardrobe*`, `src/game-menu.css`
 (`.gm-wardrobe`); tests: `tests/wardrobe.test.js`.
 
@@ -731,13 +731,16 @@ main.js and engine/game.js), `src/game-menu.js` `wardrobePanel` and `GameMenu.wa
   the game's own frame from a camera on him (`wardrobeShot`: his whole height, 28°, 4.4 m off), him alone against the
   paper (`captureView` with `keep`, `backdrop` and `into` the page's canvas, the lines at the world's weight). He turns on his own (`Turntable`: 0.32 rad/s, waiting 2 s after a hand turned him); the right
   stick turns him (src/controller.js hands it to the page's `menuAnalog` as `rx`), and so does a drag (mouse or
-  finger) on the picture. The sword he carries is sheathed, so a sword of its own stands point down beside him on
-  the picture's right, its face to the camera (`plantedSword`, `placeSword`), in the colour shown.
+  finger) on the picture. He holds a separate preview sword point down in his right fist (issue #586, `PageGrip`, `previewSword`),
+  using the body’s fitted `fistGrip` and two-bone arm solver. The full blade stays beside his leg as the camera turns.
+  The gameplay sword is hidden while previewing; its equipped/drawn/sheath state and save are untouched.
+  `PageGrip.put` restores exact arm/finger rotations and hand-driver state before the next idle pass and when leaving;
+  `leave` restores the gameplay sword’s previous visibility. The shared code drives B3 and v2 in both hosts.
 - **The preview follows the cursor**: what is saved, with the highlighted line in its place (`previewOf`): on an
-  outfit he wears it (the v2 Wardrobe swaps it live: `dress.wear`, one at a time), on a colour the sword beside him
+  outfit he wears it (the v2 Wardrobe swaps it live: `dress.wear`, one at a time), on a colour the held preview sword
   takes it. **A / × wears it**: saved (`wardrobe.outfit`, `kit.colour.sword` in the save's flags) and on him in the
   world at once (the outfit already on, `applyKitColours` for the sword). **B / ○ closes the menu** and turning to
-  another panel leaves it: him back in what is saved, the sword beside him put away (`leave`). The outfit saved is the
+  another panel leaves it: him back in what is saved, the held preview sword put away (`leave`). The outfit saved is the
   one the world dresses him in as it loads (main.js: the save's, unless `&outfit=` names one).
 - **Unity** (engine/menus.js, BridgeMenu.Wardrobe.cs, BridgeRunner.Wardrobe): the same rows and preview; engine/game.js
   draws him each frame the page shows (`wardrobeCapture`: his drawables and the sword's on a layer of their own for
@@ -752,7 +755,7 @@ main.js and engine/game.js), `src/game-menu.js` `wardrobePanel` and `GameMenu.wa
 - **His light** (issue #578): the world's sun, its colour and direction at that hour and place, but none of the
   world's shadows, wherever he stands (under the ship, against a wall, under a cloud), so the outfit and the blade's
   colour read the same everywhere. `captureView`'s `own` (the Wardrobe's alone): its frame draws the shadow maps with
-  `keep` alone round him (`ownShadowPass`: the fine or hero map and the near one, him and the sword beside him; the
+  `keep` alone round him (`ownShadowPass`: the fine or hero map and the near one, him and the held preview sword; the
   still meshes' batch, which `isolate` does not hide, left out), so his own shadow still falls on him as in the world,
   and the clouds' shadows are off for the picture; every map is drawn again on the world's next frame. In Unity the
   same: BridgeRunner.Wardrobe sets `HiraethShadows.OwnCam` and his renderers, and that camera's shadow pass draws the
