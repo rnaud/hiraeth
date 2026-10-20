@@ -123,18 +123,26 @@ namespace Hiraeth.Bridge
             var words = new ReadOnlySpan<byte>(b, 0, count - count % 4);
             ReadOnlySpan<uint> u = System.Runtime.InteropServices.MemoryMarshal.Cast<byte, uint>(words);
             ReadOnlySpan<float> f = System.Runtime.InteropServices.MemoryMarshal.Cast<byte, float>(words);
-            int o = 0, nk = (int)u[o++], nv = (int)u[o++];
+            // (the count's top bit: each vertex carries its normal's offset too, three's morphAttributes.normal: backend.js morphKeyDeltas)
+            int o = 0; uint head = u[o++]; int nk = (int)(head & 0x7fffffff), nv = (int)u[o++];
+            bool normals = (head & 0x80000000u) != 0; int w = normals ? 7 : 4;
             if (nv != md.mesh.vertexCount) { Debug.LogWarning($"Hiraeth bridge: keys for {key}: {nv} vertices, the mesh has {md.mesh.vertexCount}"); return; }
             md.mesh.ClearBlendShapes();
             if (md.sided != null) foreach (var sd in md.sided.Values) if (sd.mesh) sd.mesh.ClearBlendShapes();   // (and its copies for one cull mode: BridgeSided)
             var delta = new Vector3[nv];
+            var dn = normals ? new Vector3[nv] : null;
             for (int k = 0; k < nk; k++)
             {
                 System.Array.Clear(delta, 0, nv);
+                if (dn != null) System.Array.Clear(dn, 0, nv);
                 int n = (int)u[o++];
-                for (int i = 0; i < n; i++, o += 4) delta[u[o]] = new Vector3(f[o + 1], f[o + 2], f[o + 3]);
-                md.mesh.AddBlendShapeFrame("key" + k, 1f, delta, null, null);
-                if (md.sided != null) foreach (var sd in md.sided.Values) if (sd.mesh) sd.mesh.AddBlendShapeFrame("key" + k, 1f, delta, null, null);
+                for (int i = 0; i < n; i++, o += w)
+                {
+                    delta[u[o]] = new Vector3(f[o + 1], f[o + 2], f[o + 3]);
+                    if (dn != null) dn[u[o]] = new Vector3(f[o + 4], f[o + 5], f[o + 6]);
+                }
+                md.mesh.AddBlendShapeFrame("key" + k, 1f, delta, dn, null);
+                if (md.sided != null) foreach (var sd in md.sided.Values) if (sd.mesh) sd.mesh.AddBlendShapeFrame("key" + k, 1f, delta, dn, null);
             }
             md.keys = nk;
             if (md.sided != null) foreach (var sd in md.sided.Values) sd.keys = nk;
@@ -462,7 +470,9 @@ namespace Hiraeth.Bridge
         public void Texture(int tid, byte[] b, int n, int w, int h, int flags)
         {
             if (b == null || w <= 0 || h <= 0 || n < w * h * 4) return;
-            bool flip = (flags & 1) != 0, srgb = (flags & 2) != 0, mips = (flags & 4) != 0, nearest = (flags & 8) != 0;
+            // (16: drawn once and never again, a model's own picture (TextureImage): its pixels let go of on the CPU side once
+            // uploaded; the v2 traveller's 4096 × 2048 atlas kept 32 MB there for nothing, issue #493)
+            bool flip = (flags & 1) != 0, srgb = (flags & 2) != 0, mips = (flags & 4) != 0, nearest = (flags & 8) != 0, once = (flags & 16) != 0;
             if (!textures.TryGetValue(tid, out var t) || t.width != w || t.height != h)
             {
                 if (t) Destroy(t);
@@ -479,7 +489,7 @@ namespace Hiraeth.Bridge
             // (Unity's rows go bottom up: three's flipY puts the canvas's top row at v = 1, the last row here)
             if (flip) for (int y = 0; y < h; y++) Unity.Collections.NativeArray<byte>.Copy(b, (h - 1 - y) * row, px, y * row, row);
             else Unity.Collections.NativeArray<byte>.Copy(b, 0, px, 0, h * row);
-            t.Apply(mips, false);
+            t.Apply(mips, once);
             Count("texture");
         }
 
@@ -500,7 +510,7 @@ namespace Hiraeth.Bridge
                 int src = (h - 1 - y) * w, o = y * row;   // (Unity's rows go bottom up)
                 for (int x = 0; x < w; x++) { var c = px[src + x]; top[o++] = c.r; top[o++] = c.g; top[o++] = c.b; top[o++] = c.a; }
             }
-            Texture(tid, top, top.Length, w, h, flags);
+            Texture(tid, top, top.Length, w, h, flags | 16);
         }
 
         public void Material(int mid, string json)

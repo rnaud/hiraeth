@@ -38,6 +38,18 @@ test('three\'s morph targets as blend shapes: only the vertices each moves, x mi
   const hf = new Float32Array(morphKeyDeltas(morphKeys(h), 1));
   assert.equal(hf[5], 1, "y up a metre"); assert.equal(hf[6], 0);
   assert.equal(morphKeys(new THREE.BoxGeometry()), null, 'none without morph targets');
+  // (with normal targets, issue #493: the count's top bit, each vertex's normal offset after its position's, x mirrored)
+  const n = new THREE.BufferGeometry();
+  n.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0, 1, 0, 0], 3));
+  n.setAttribute('normal', new THREE.Float32BufferAttribute([0, 0, 1, 0, 0, 1], 3));
+  n.morphAttributes.position = [new THREE.Float32BufferAttribute([0, 0, 0, 0, 0, 0.1], 3)];
+  n.morphAttributes.normal = [new THREE.Float32BufferAttribute([0.5, 0, 0, 0, 0, 0], 3)];
+  n.morphTargetsRelative = true;
+  const nb = morphKeyDeltas(morphKeys(n), 2), nu = new Uint32Array(nb), nf = new Float32Array(nb);
+  assert.deepEqual([nu[0] >>> 0, nu[1], nu[2]], [0x80000001, 2, 2], 'one key with normals, two vertices moved (one only turned)');
+  assert.deepEqual([nu[3], nf[4], nf[5], nf[6], nf[7], nf[8], nf[9]], [0, -0, 0, 0, -0.5, 0, 0]);
+  assert.deepEqual([nu[10], nf[13], nf[14]], [1, Math.fround(0.1), -0]);
+  assert.match(RENDERER, /AddBlendShapeFrame\("key" \+ k, 1f, delta, dn, null\)/);
 });
 
 test('mirror: a mesh\'s morphTargetInfluences go as its keys\' weights when they move (the portrait head\'s blink)', () => {

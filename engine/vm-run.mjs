@@ -26,7 +26,8 @@ export function loadBundle(file, host = {}, globals = {}, { seed = null } = {}) 
   // (the context's own Math, not node's: the host's Math.random stays as it was)
   if (seed != null) vm.runInContext(`(() => { let s = ${seed >>> 0}; Math.random = () => { s = (s + 0x6d2b79f5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; })()`, ctx);
   // (the bytes in the context's own ArrayBuffer: three checks `instanceof ArrayBuffer`)
-  const readFile = (p) => { try { const b = readFileSync(resolve(ROOT, 'public', p)); const U8 = vm.runInContext('Uint8Array', ctx); return new U8(b).buffer; } catch { return null; } };
+  // (the game's data/ folder from the repository, beside public/, as the Unity bridge reads it: the v2 traveller's models, issue #493)
+  const readFile = (p) => { try { const b = readFileSync(String(p).startsWith('data/') ? resolve(ROOT, p) : resolve(ROOT, 'public', p)); const U8 = vm.runInContext('Uint8Array', ctx); return new U8(b).buffer; } catch { return null; } };
   ctx.__HIRAETH_HOST__ = { engine: 'node-vm', readFile, ...host };
   const module = { exports: {} };
   // (the context's built-ins handed to the bundle as locals, the same objects: a free name in a context made from an

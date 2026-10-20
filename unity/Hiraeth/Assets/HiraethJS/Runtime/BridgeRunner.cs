@@ -1300,11 +1300,11 @@ namespace Hiraeth.Bridge
             else Application.Quit(code);
         }
 
-        // what Unity drew a frame (the Render profiler's counters; issue #262): SetPass calls, triangles and
-        // vertices over every pass, summed until RenderStats takes them (-1: not counted; a release player counts no draw calls)
+        // what Unity drew a frame (the Render profiler's counters; issue #262): SetPass calls, triangles,
+        // vertices and draw calls over every pass, summed until RenderStats takes them (-1: not counted; a release player counts no draw calls)
         Unity.Profiling.ProfilerRecorder[] renderRec;
-        static readonly string[] RenderStatNames = { "SetPass Calls Count", "Triangles Count", "Vertices Count" };
-        readonly double[] renderSum = new double[3];
+        static readonly string[] RenderStatNames = { "SetPass Calls Count", "Triangles Count", "Vertices Count", "Draw Calls Count" };
+        readonly double[] renderSum = new double[4];
         double renderScaleSum;
         int renderN;
         void SampleRenderStats()
@@ -1314,16 +1314,25 @@ namespace Hiraeth.Bridge
                 renderRec = new Unity.Profiling.ProfilerRecorder[RenderStatNames.Length];
                 for (int i = 0; i < renderRec.Length; i++) renderRec[i] = Unity.Profiling.ProfilerRecorder.StartNew(Unity.Profiling.ProfilerCategory.Render, RenderStatNames[i]);
             }
+#if UNITY_EDITOR
+            // (the editor's batch runs: the profiler's counters stay 0 there; the editor's own statistics of the frame drawn)
+            if (!renderRec[0].Valid || renderRec[0].LastValue == 0)
+            {
+                renderSum[0] += UnityEditor.UnityStats.setPassCalls; renderSum[1] += UnityEditor.UnityStats.triangles;
+                renderSum[2] += UnityEditor.UnityStats.vertices; renderSum[3] += UnityEditor.UnityStats.drawCalls;
+            }
+            else
+#endif
             for (int i = 0; i < renderRec.Length; i++) renderSum[i] += renderRec[i].Valid ? renderRec[i].LastValue : -1;
             renderScaleSum += GraphicsSettings.currentRenderPipeline is UniversalRenderPipelineAsset ua ? ua.renderScale : 1f;   // (the dynamic resolution's, issue #404)
             renderN++;
         }
-        /// <summary>The frames' mean SetPass calls, triangles, vertices and render scale since the last call (JSON).</summary>
+        /// <summary>The frames' mean SetPass calls, triangles, vertices, render scale and draw calls since the last call (JSON).</summary>
         public string RenderStats()
         {
             int n = Mathf.Max(renderN, 1);
-            var s = string.Format(System.Globalization.CultureInfo.InvariantCulture, "{{\"setpass\":{0:0},\"tris\":{1:0},\"verts\":{2:0},\"frames\":{3},\"scale\":{4:0.###}}}",
-                renderSum[0] / n, renderSum[1] / n, renderSum[2] / n, renderN, renderScaleSum / n);
+            var s = string.Format(System.Globalization.CultureInfo.InvariantCulture, "{{\"setpass\":{0:0},\"tris\":{1:0},\"verts\":{2:0},\"frames\":{3},\"scale\":{4:0.###},\"draws\":{5:0}}}",
+                renderSum[0] / n, renderSum[1] / n, renderSum[2] / n, renderN, renderScaleSum / n, renderSum[3] / n);
             System.Array.Clear(renderSum, 0, renderSum.Length); renderScaleSum = 0; renderN = 0;
             return s;
         }

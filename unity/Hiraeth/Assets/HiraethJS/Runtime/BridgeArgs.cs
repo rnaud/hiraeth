@@ -265,6 +265,10 @@ namespace Hiraeth.Bridge
             // (-js-off a,b: the script's own measures turned off, a before-and-after on one build: engine/unity/game.js)
             if (Arg("-js-off") != null) args["off"] = Arg("-js-off");
             if (Arg("-js-on") != null) args["on"] = Arg("-js-on");   // (-js-on a,b: the script's tests turned on: lod, engine/unity/game.js)
+            // (-traveller v2|b3 [-outfit <id>]: the traveller drawn as the Blender rebuild in that outfit, or as B3, whatever this
+            // device keeps: engine/game.js, issue #493)
+            if (Arg("-traveller") != null) args["traveller"] = Arg("-traveller");
+            if (Arg("-outfit") != null) args["outfit"] = Arg("-outfit");
             // (-v8-gcs: each of V8's full collections logged with its frame, engine/unity/gc-watch.js; issue #113)
             if (Flag("-v8-gcs")) args["gcs"] = true;
             return JsonText(args);

@@ -315,11 +315,9 @@ export const GAPS = {
     { keys: ['import:src/hitbox-overlay.js#HitboxOverlay', 'import:src/hitboxes.js#hitboxes', 'import:src/hitboxes.js#registerHitboxes', 'fn:toggleHitboxes', 'fn:toggleInputs',
       'fn:devToggles', 'fn:worldTeleport', 'fn:worldFilm', 'fn:showPicker', 'import:src/input-display.js#inputDisplay', 'import:src/world-picker.js#fillPicker', 'import:src/world-picker.js#pickHref', 'import:src/world-picker.js#buildInfo',
       'import:src/issue-draft.js#ShotDrafts', 'import:src/issue-draft.js#grabFrame', 'import:src/issue-draft.js#shotJpeg', 'import:src/issue-draft.js#shotContext', 'import:src/world-debug.js#cinematicsFor',
-      'import:src/pose-report.js#installPoseReport', 'import:src/characters/traveller-v2.js#travellerSetting',
+      'import:src/pose-report.js#installPoseReport',
       'import:src/characters/traveller-v2.js#outfitList', 'fn:devTraveller', 'fn:setTraveller'],
-    what: 'the dev tools: hitboxes, inputs, teleports, films, the picker, the Notes screenshot, the pose report, the v2 traveller switch (issue #493)', status: 'web-only', why: 'developer tools on the page (the engines have their own command-line switches)' },
-    { keys: ['import:src/wardrobe.js#chosenOutfit', 'import:src/wardrobe.js#OUTFIT_KEY'],
-      what: 'the outfit chosen in the Wardrobe put on the v2 traveller as the world loads (issue #571)', status: 'web-only', why: 'the engines draw B3, which has no outfits (the Wardrobe itself is shared: src/wardrobe.js wireWardrobe in engine/game.js, its page says the outfits need the new traveller)' },
+    what: 'the dev tools: hitboxes, inputs, teleports, films, the picker, the Notes screenshot, the pose report, the v2 traveller\'s Traveller tab (issue #493: the engines dress him by the same switch through loadTraveller, engine/game.js, or -traveller v2 -outfit <id>)', status: 'web-only', why: 'developer tools on the page (the engines have their own command-line switches)' },
   ],
 };
 

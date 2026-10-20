@@ -187,6 +187,27 @@ export async function unityStarmap({ to = UNITY_STARMAP.to } = {}) {
 }
 
 /**
+ * The v2 traveller's models for the Unity players (issue #493): what the web build ships of data/characters/traveller-v2/
+ * (scripts/traveller-v2-ship.mjs shippedFiles: the outfits' list, the base manifest and GLB, each outfit's; the base GLB
+ * without the head and hair the game never draws) into StreamingAssets/hiraeth-js/public/ at the same paths, so a player
+ * reads them where the page fetches them (BridgeHost.ReadPublic). Each written again only when its source is newer.
+ */
+export const UNITY_PUBLIC = 'unity/Hiraeth/Assets/StreamingAssets/hiraeth-js/public';
+export async function unityTravellerV2({ to = UNITY_PUBLIC } = {}) {
+  const { shippedFiles, shippedBytes } = await import('./traveller-v2-ship.mjs');
+  let n = 0, bytes = 0;
+  for (const f of shippedFiles(ROOT)) {
+    const out = resolve(ROOT, to, f);
+    if (!existsSync(out) || statSync(out).mtimeMs < statSync(resolve(ROOT, f)).mtimeMs) {
+      mkdirSync(dirname(out), { recursive: true });
+      writeFileSync(out, shippedBytes(f, ROOT));
+    }
+    n++; bytes += statSync(out).size;
+  }
+  return { n, bytes, to };
+}
+
+/**
  * The Unity script's bundle.json beside hiraeth.cjs (release-info.mjs unityBundleInfo: the build, version and player
  * it needs; BridgeUpdates.cs reads it): a player compares a downloaded script with the one it carries by it. `updates`
  * (a player that looks for updates over the air): the published builds, made in GitHub Actions or with UNITY_OTA=1; a
@@ -233,6 +254,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url) && process.argv[2] === 'o
     const p = await unityPictures(); console.log(`the items' pictures: ${p.n} PNGs, ${(p.bytes / 1e6).toFixed(2)} MB, in ${p.to}`);
     const q = await unityTitle(); console.log(`the title's ${q.n} pictures, its lettering and the Map's ${q.marks} marks: ${(q.bytes / 1e6).toFixed(2)} MB, in ${q.to}`);
     const m = await unityStarmap(); console.log(`the galactic map's ${m.n} pictures: ${(m.bytes / 1e6).toFixed(2)} MB, in ${m.to}`);
+    const v = await unityTravellerV2(); console.log(`the v2 traveller's ${v.n} files: ${(v.bytes / 1e6).toFixed(2)} MB, in ${v.to}`);
     const b = await unityBundleJson(); console.log(`bundle.json: build ${b.build}, v${b.version}, needs player level ${b.minUnity}, updates ${b.updates ? 'on' : 'off'}`);
   }
 }

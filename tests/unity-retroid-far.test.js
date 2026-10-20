@@ -67,7 +67,7 @@ test('the distance reaches Unity: the mirror\'s desc, InstMats.far in the view a
 test('the shadow maps\' casters as renderer lists on Android as on the Xbox; the bench reads Unity\'s SetPass calls and triangles', () => {
   const runner = read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs');
   assert.match(runner, /#if \(UNITY_WSA \|\| UNITY_ANDROID\) && !UNITY_EDITOR\n\s+HiraethShadows\.UseRendererLists = !BridgeArgs\.Flag\("-shadow-draws"\);/);
-  assert.match(runner, /RenderStatNames = \{ "SetPass Calls Count", "Triangles Count", "Vertices Count" \}/);
+  assert.match(runner, /RenderStatNames = \{ "SetPass Calls Count", "Triangles Count", "Vertices Count", "Draw Calls Count" \}/);
   assert.match(read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHost.cs'), /public static string RenderStats\(\) => Ask\(\(\) => Runner \? Runner\.RenderStats\(\) : "\{\}"\);/);
   assert.match(read('engine/unity/game.js'), /res\.rs = JSON\.parse\(host\.RenderStats\?\.\(\) \?\? '\{\}'\);/);
 });

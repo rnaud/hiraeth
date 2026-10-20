@@ -485,7 +485,9 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
     menus, settings: S.settings ?? null, start: from, arrive: arrive || !!args.arrive, hullSpawn: !!args.hullSpawn, gestures: !off.has('gestures'), moves: !off.has('moves'), matching: String(args.on ?? '').split(',').includes('matching') || null,
     via, prologue: prologue || !!args.prologue, onTravel: (to) => flyTo(to), aboard: aboardRooms(args)[0] ?? (starScenes.length ? 'main' : null), scenes: !!args.aboard, fight: !!args.fight || seqFight, arrival: came, onPage: (o) => pageTo(o), saves: !args.foes && !args.devmenu && !args.house && !args.ui && !args.wardrobe, defer: !off.has('defer'), far: !off.has('far'), skies: !off.has('skies'), lod: String(args.on ?? '').split(',').includes('lod'), onStage: (t) => host.LoadStage?.(t),
     // (the bar under the line and why this part takes the time, src/load-page.js: BridgeHud.Loading draws them, issue #527)
-    onLoad: (o) => host.LoadProgress?.(o.p, o.why ?? '') })
+    onLoad: (o) => host.LoadProgress?.(o.p, o.why ?? ''),
+    // (-traveller v2 [-outfit id]: the Blender rebuild, or b3; else the device's own switch, engine/game.js: issue #493)
+    traveller: args.traveller ? { on: args.traveller === 'v2', outfit: args.outfit ?? null } : null })
     .then((game) => {
       S.game = game;
       // (built: what is left is Unity's own first frame, its pipelines for this world's look; the bar full once it has played)

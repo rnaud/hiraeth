@@ -38,6 +38,8 @@ import { loadHuman, Humanoid } from '../src/humanoid.js';
 import { loadPeople, usesMakeHuman } from '../src/makehuman/people.js';
 import { loadTraveller, createTraveller } from '../src/characters/traveller.js';
 import { CLOTH_HOST } from '../src/characters/tripo-cloth.js';
+import { travellerSetting } from '../src/characters/traveller-v2.js';
+import { holdGait, releaseGait } from './gait-hold.js';
 import { CAPE_HOST } from '../src/cape.js';
 import { updateHands } from '../src/hands.js';
 import { spawnNPCs, pooledNPC, setCalmZones, shipCalmZones } from '../src/npc.js';
@@ -114,7 +116,7 @@ import { slots, slotStorage } from '../src/save-slots.js';
 import { menuSources } from '../src/game-menu-data.js';
 import { WorldMap, MAP, mapBounds, zoomBounds, mapMarks, scaleBar } from '../src/world-map.js';
 import { houseHere, houseView } from '../src/house-map.js';
-import { wireWardrobe, wardrobeShot, BACKDROP as WARDROBE_BACKDROP } from '../src/wardrobe.js';
+import { wireWardrobe, wardrobeShot, BACKDROP as WARDROBE_BACKDROP, chosenOutfit, OUTFIT_KEY } from '../src/wardrobe.js';
 import { interiorAt } from '../src/interior-kit.js';
 import { fillUnfound, portraitPaint } from './traveller-paint.js';
 import { PORTRAIT_EYE_PAINT } from '../src/characters/portrait-head.js';
@@ -280,6 +282,21 @@ function engineColours(ch, { gltf, colors, headColors }) {
 
 
 /**
+ * The v2 traveller's clothes and body in an engine (issue #493): their atlas goes to the engine encoded (engine/boot.js
+ * ENCODED_PICTURES), which samples it decoded to linear; the ink material turns its albedo to display values
+ * (tripo-material.js), as the engines' ink surfaces do by userData.albedoLinear. Every outfit's draws, as they are worn.
+ */
+function engineV2(ch) {
+  const W = ch.v2?.wardrobe;
+  if (!W || W.engineMarked) return;
+  W.engineMarked = true;
+  const mark = () => { for (const m of W.meshes ?? []) for (const x of Array.isArray(m.material) ? m.material : [m.material]) if (x) x.userData.albedoLinear = true; };
+  mark();
+  const wear = W.wear.bind(W);
+  W.wear = (...a) => { const r = wear(...a); mark(); return r; };
+}
+
+/**
  * A guardian's generated skin (the Keeper's, the Elder's) in an engine: its texture is a JPEG no engine VM decodes, so
  * its colours sampled at each vertex (colors.json beside it, scripts/tripo/sample-colors.mjs) go on as vertex colours,
  * display values as the texture shows them (src/characters/skin-colours.js; it was white in the Unity build, issue #264).
@@ -336,7 +353,7 @@ export const LOOK_VECTORS = new Set(['uWind', 'uHaze', 'uSpot', 'uSpotTone', 'uH
   // (the sky's own: the eclipse, src/eclipse.js; the Lantern's light, src/story/lantern-sky.js; space, src/levels/space-city-kit.js)
   'uEclipse', 'uCorona', 'uEclipseGlow', 'uEclipseDir', 'uLantern', 'uSpace', 'uSpaceTone', 'uSpaceSun', 'uSpaceNight']);
 
-export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', quality = null, log = () => {}, menus = null, start = null, arrive = false, hullSpawn = false, settings = null, gestures = true, moves = true, matching = null, via = null, prologue = false, onTravel = null, aboard = null, scenes = false, fight = false, game: gameId = null, stage: gameStage = null, from = null, to: transitTo = null, onGame = null, onLeave = null, trials: withTrials = false, onPage = null, arrival = null, back = null, saves = true, defer = true, far: farOn = true, lod: lodOn = false, skies = true, waterBed = true, onStage = null, onLoad = null } = {}) {
+export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', quality = null, log = () => {}, menus = null, start = null, arrive = false, hullSpawn = false, settings = null, gestures = true, moves = true, matching = null, via = null, prologue = false, onTravel = null, aboard = null, scenes = false, fight = false, game: gameId = null, stage: gameStage = null, from = null, to: transitTo = null, onGame = null, onLeave = null, trials: withTrials = false, onPage = null, arrival = null, back = null, saves = true, defer = true, far: farOn = true, lod: lodOn = false, skies = true, waterBed = true, onStage = null, onLoad = null, traveller = null } = {}) {
   const T = {};
   // (the fight, engine/combat.js, made once the traveller and his tool are)
   let combat = null;
@@ -382,7 +399,13 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const motionP = Promise.all(motionFiles.map((f) => new GLTFLoader().loadAsync(f).then((g) => [f, g]).catch((e) => { log(`${f} unavailable`, e?.message ?? e); return [f, null]; })));
   // the traveller as main.js has him: the coral-shirt traveller (src/characters/traveller.js), his overshirt's cloth
   // stepped on this thread (no workers in the engines' VMs: tripo-cloth.js falls back); the old suit if he can't load
-  const travellerP = loadTraveller('').catch((e) => { log('traveller B3 unavailable', e?.message ?? e); return null; });
+  // (B3 or the Blender rebuild and its outfit, issue #493: `traveller` ({ on, outfit }: the bridge's -traveller v2 -outfit
+  // <id>), else the game's own switch as this device keeps it (travellerSetting, without an address), as the page's
+  // loadTraveller reads it; v2's models fetched beside B3's, createTraveller dressing him; a v2 that fails stays B3)
+  // (and the outfit chosen in the Wardrobe, issue #571, unless the host names one: main.js's rule)
+  const ask = traveller ?? travellerSetting.get('');
+  const v2Ask = { on: !!ask.on, outfit: traveller?.outfit ?? (gameState.flag(OUTFIT_KEY) ? chosenOutfit(gameState) : ask.outfit ?? 'default') };
+  const travellerP = loadTraveller('', { v2: v2Ask }).catch((e) => { log('traveller B3 unavailable', e?.message ?? e); return null; });
   const humansP = Promise.all([loadHuman('m'), loadHuman('f')]).catch((e) => { log('human models failed', e); return null; });
   // the people on MakeHuman bodies (src/makehuman/people.js, docs/makehuman.md), each world's as main.js has them
   const mhP = people && usesMakeHuman(levelId) ? loadPeople('', levelId).catch((e) => { log('MakeHuman bodies unavailable', e?.message ?? e); return null; }) : null;
@@ -485,6 +508,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       engineColours(player.character, generated);
     } catch (e) { log('traveller B3 failed', e?.message ?? e); player.character = null; }
   }
+  // (v2's materials marked for the engine: its atlas decoded to linear in Unity, the ink's display values; engineV2)
+  if (player.character?.v2) engineV2(player.character);
   if (!player.humanoid && humans0) {
     const travellerTemplate = await new GLTFLoader().loadAsync('anim/traveller.glb').then((g) => g.scene).catch(() => null);
     if (travellerTemplate) player.humanoid = new Humanoid(humans0[0], player.char, 'm', { outfit: travellerTemplate });
@@ -594,9 +619,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // and the kit's colours won in the fight temples were the page's alone, #264). A fight's bench (-fight): armed, as the
   // Arena lends them
   const kit = optional('the kit', () => wireKit({ tool, game: gameState, armed: fight }));
-  // the game menu's Wardrobe (src/wardrobe.js, issue #571): the blade's colours; the outfits are the v2 traveller's, which
-  // the engines don't draw yet (the page says so)
-  const wardrobe = optional('the wardrobe', () => wireWardrobe({ game: gameState, kit, tool, player, dress: () => null }));
+  // the game menu's Wardrobe (src/wardrobe.js, issue #571): the blade's colours, and the outfits on the v2 traveller when
+  // he is drawn as v2 (issue #493: player.character.v2, as main.js's travellerV2.dress)
+  const wardrobe = optional('the wardrobe', () => wireWardrobe({ game: gameState, kit, tool, player, dress: () => player.character?.v2 ?? null }));
   let story = null;
   if (people && humans && lib) {
     try {
@@ -1264,6 +1289,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     // (a view's hour and weather pinned, as the web's side does: scripts/bench/web-page.mjs conditions, scripts/unity-compare/)
     if (Number.isFinite(v.hour)) sky.hour = v.hour;
     if (v.weather && weather) { weather.mode = v.weather; if (v.weather === 'clear') weather.intensity = 0; }
+    // (a view's `gait`: the traveller held in that gait at that phase, as the web's side holds him: engine/gait-hold.js)
+    if (v.gait) holdGait(player, v.gait); else releaseGait(player);
     const q = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(eye, target, new THREE.Vector3(0, 1, 0)));
     // (a view with no place for the traveller leaves him out of the picture, as web-shots.mjs does)
     return { eye, q, fov: v.fov ?? 55, hidePlayer: v.hidePlayer ?? !v.player };

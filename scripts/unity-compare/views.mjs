@@ -9,7 +9,7 @@
 //   - each view at noon, the start and the wide one again at dusk; the weather clear.
 // Writes { worlds: { <id>: { views } } }, the format BridgeArgs reads with -level, and a flat list for the web's side.
 //
-//   node scripts/unity-compare/views.mjs <out.json> [--worlds a,b] [--set main|lantern]
+//   node scripts/unity-compare/views.mjs <out.json> [--worlds a,b] [--set main|lantern|changes|traveller]
 //
 // The `lantern` set: Lorn with six worlds done, its views turned to where the Lantern's light hangs
 // (src/story/lantern-sky.js), the flags for both sides in each view's `flags`.
@@ -17,6 +17,9 @@
 // below): the Rose House's water down its steps and a field's channel with the keeper calmed, the lagoons, Marrow's strap,
 // the drinking roots toward the red rag's mast, a fragment on a cairn or plinth, the Mooring-House's west door and great
 // door, the Glass Dunes' posts to the court. Replace its entries with the next landings' when they want looking at.
+// The `traveller` set (issue #493): the traveller close, at the desert's start: standing, at a jog and at a sprint (held at a
+// phase of the loop with a thigh swung forward, so the shirt's thigh-lift keys are on: engine/gait-hold.js), from behind as
+// the follow camera sees him, and a film's shot (low, a long lens, at dusk); with run.mjs --traveller v2[:outfit].
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -64,6 +67,7 @@ async function fromGame(id, flags = {}) {
   const g = await hushed(() => E.createGame({ levelId: id, backend, flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, ...flags } }));
   await hushed(async () => { for (let i = 0; i < 40; i++) g.frame(1 / 30); });
   if (SET === 'changes') return { g };
+  if (SET === 'traveller') return { views: travellerViews(g.player.pos, g.player.heading), temples: [] };
   const p = g.player.pos, c = g.camera.position, d = g.camera.getWorldDirection(c.clone());
   const views = [];
   views.push({ name: 'start', player: r2(p.toArray()), heading: +g.player.heading.toFixed(4), eye: r2(c.toArray()), target: r2(c.clone().addScaledVector(d, 20).toArray()), fov: 55, note: 'the follow camera where the game puts you' });
@@ -81,6 +85,21 @@ async function fromGame(id, flags = {}) {
   return { views, temples };
 }
 
+
+// ---- the `traveller` set (issue #493): where the game puts him, his front (sin h, cos h) and his side
+export function travellerViews(p, h) {
+  const f = [Math.sin(h), Math.cos(h)], sd = [f[1], -f[0]];
+  const at = (fw, side, up) => r2([p.x + f[0] * fw + sd[0] * side, p.y + up, p.z + f[1] * fw + sd[1] * side]);
+  const P = r2([p.x, p.y, p.z]), chest = r2([p.x, p.y + 1.0, p.z]);
+  const v = (name, gait, phase, eye, target, note, more = {}) => ({ name, player: P, heading: +h.toFixed(4), eye, target, fov: 40, gait: { gait, phase }, note, ...more });
+  return [
+    v('trav-stand', 'idle', 0, at(3.0, 1.2, 1.5), chest, 'standing, his front three-quarter'),
+    v('trav-jog', 'jog', 0.6, at(0.6, 3.4, 1.2), chest, 'at a jog (held), from his side: both thigh-lift keys on'),
+    v('trav-sprint', 'sprint', 0.6, at(2.6, -1.8, 1.3), chest, 'at a sprint (held), his front three-quarter'),
+    v('trav-back', 'idle', 0, at(-3.6, 0.4, 1.9), at(4, 0, 1.2), 'from behind, as the follow camera'),
+    v('trav-film', 'idle', 0, at(3.6, -1.0, 0.7), r2([p.x, p.y + 1.25, p.z]), 'a film\'s shot: low, a long lens, at dusk', { fov: 28, hour: DUSK }),
+  ];
+}
 
 // ---- the `changes` set (issue #556): what the v1.87 landings changed, aimed from the game's data in the VM
 const VV = (x, y, z) => ({ x, y, z });
@@ -158,6 +177,13 @@ export const CHANGES = {
 const worlds = {};
 for (const id of WORLDS.filter((w) => !only || only.includes(w))) {
   if (SET === 'lantern' && id !== 'perdide') continue;
+  if (SET === 'traveller') {
+    if (id !== 'desert') continue;
+    const { views } = await fromGame(id);
+    worlds[id] = { views: views.map((v) => ({ hour: NOON, weather: 'clear', ...v })) };
+    console.log(`${id}: ${views.map((v) => v.name).join(', ')}`);
+    continue;
+  }
   if (SET === 'changes') {
     if (!CHANGES[id]) continue;
     const { g } = await fromGame(id, CHANGES[id].flags);

@@ -24,8 +24,26 @@ GLTFLoader.prototype.load = function (url, onLoad, onProgress, onError) {
   } catch (e) { onError ? onError(e) : console.error(e); }
 };
 
-/** The models whose pictures go to the engine encoded: the father's (the guardians' go as vertex colours: skin-colours.js). */
-export const ENCODED_PICTURES = ['characters/father-v1/'];
+/**
+ * A picture's encoded bytes on its texture (userData.encoded: { bytes, mime }), kept out of three's JSON copy of userData and
+ * carried by reference to every clone instead: a material cloned with its map (tripo-material.js makeReviewInkMaterial, the v2
+ * traveller's, issue #493) turned the bytes into an object of a million keys, and Unity had no picture to decode.
+ */
+export function keepEncoded(tex, encoded) {
+  Object.defineProperty(tex.userData, 'encoded', { value: encoded, enumerable: false, configurable: true, writable: true });
+  return tex;
+}
+const copyTexture = THREE.Texture.prototype.copy;
+THREE.Texture.prototype.copy = function (source) {
+  copyTexture.call(this, source);
+  const e = source.userData?.encoded;
+  if (e) keepEncoded(this, e);
+  return this;
+};
+
+/** The models whose pictures go to the engine encoded: the father's, the v2 traveller's atlases (his base and each outfit's,
+ * issue #493: their UVs are the clothes' own, no colours sampled a vertex); the guardians' go as vertex colours: skin-colours.js. */
+export const ENCODED_PICTURES = ['characters/father-v1/', 'characters/traveller-v2/'];
 
 /**
  * The models drawn in the engines by the colours sampled from their picture (colors.json beside each, put on as vertex
@@ -45,8 +63,7 @@ export function encodedPicture(path, mime = 'image/png') {
   if (!b) return null;
   const t = new THREE.Texture();
   t.image = { width: 1, height: 1, data: null };
-  t.userData.encoded = { bytes: (b instanceof ArrayBuffer ? new Uint8Array(b) : new Uint8Array(b.buffer, b.byteOffset, b.byteLength)).slice(), mime };
-  return t;
+  return keepEncoded(t, { bytes: (b instanceof ArrayBuffer ? new Uint8Array(b) : new Uint8Array(b.buffer, b.byteOffset, b.byteLength)).slice(), mime });
 }
 
 /**
@@ -73,8 +90,7 @@ export function engineImages(parser, url = '') {
     return this.getDependency('bufferView', def.bufferView).then((bv) => {
       const t = new THREE.Texture();
       t.image = { width: 1, height: 1, data: null };
-      t.userData.encoded = { bytes: new Uint8Array(bv.slice(0)), mime: def.mimeType ?? '' };
-      return t;
+      return keepEncoded(t, { bytes: new Uint8Array(bv.slice(0)), mime: def.mimeType ?? '' });
     });
   };
   return { name: 'engine_images' };

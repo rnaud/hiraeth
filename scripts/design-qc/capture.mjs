@@ -4,12 +4,14 @@
 // plans turned into pictures by the same browser. It leaves no Chrome and no server behind.
 //
 //   node scripts/design-qc/capture.mjs <out-dir> [--views a/views.json,b/views.json] [--svgs dir1,dir2]
-//        [--worlds desert,incal] [--rest 15] [--res 960x540] [--preset high] [--fixed-scale]
+//        [--worlds desert,incal] [--rest 15] [--res 960x540] [--preset high] [--fixed-scale] [--query traveller=v2&outfit=<id>]
 //   PORT (default 5344; never 5173, the author's own server). Chrome's debugging port: chosen by Chrome.
 //   QC_VITE_CACHE: the dev server's cache folder (default: in Chrome's throwaway profile; in a worktree whose node_modules is
 //   a link to the main checkout's, give one inside the worktree, .vite-cache/qc, or its deps cannot find three)
 // A view: { world, name, eye, target, player?, heading?, hour?, weather?, fov?, flags? (the save its world boots with), act? (an expression
-// run in the page before the shot), npc? (aimed at that person instead of eye and target: dist?, side?, face?, dy?) }.
+// run in the page before the shot), npc? (aimed at that person instead of eye and target: dist?, side?, face?, dy?), gait? (the
+// traveller held in a gait at a phase, { gait, phase }: engine/gait-hold.js, as the engines hold him) }. --query: more of
+// the page's address for every world (the v2 traveller, issue #493: traveller=v2&outfit=pearl-diver).
 // Writes <out-dir>/<view name>.png for each view, <svg name>.png beside each SVG, and <out-dir>/captured.json (each view's
 // draw calls and triangles a frame, averaged over a second before the shot).
 import { spawn } from 'node:child_process';
@@ -23,7 +25,8 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const args = process.argv.slice(2), arg = (n, d) => { const i = args.indexOf(`--${n}`); return i >= 0 ? args[i + 1] : d; };
 const OUT = resolve(args[0] && !args[0].startsWith('--') ? args[0] : join(tmpdir(), 'design-qc'));
 const [W, H] = arg('res', '960x540').split('x').map(Number), PRESET = arg('preset', 'high'), REST = +arg('rest', 15) * 1000;
-const FIXED = args.includes('--fixed-scale');   // (no dynamic resolution, the render scale 1: the Unity side-by-sides, scripts/unity-compare/)
+const FIXED = args.includes('--fixed-scale');
+const QUERY = arg('query', '').replace(/^[?&]/, '');   // (no dynamic resolution, the render scale 1: the Unity side-by-sides, scripts/unity-compare/)
 const PORT = Number(process.env.PORT ?? 5344);
 if (PORT === 5173) throw new Error('5173 is the author’s own dev server: pick another PORT');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -101,7 +104,7 @@ for (const [n, world] of worlds.entries()) {
   await ev(`localStorage.clear(); localStorage.setItem('hiraeth.muted','1');
     localStorage.setItem('hiraeth.settings.v1', JSON.stringify({ quality: '${PRESET}', music: 0, effects: 0, voices: 0, soundV: 1 }));
     localStorage.setItem('hiraeth.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, ...${JSON.stringify(Object.assign({}, ...views.filter((x) => x.world === world).map((x) => x.flags ?? {})))} }, keepsakes: [] })); true`);   // (a view's `flags`: the save its world boots with, shared by the world's views)
-  await send('Page.navigate', { url: `${BASE}?level=${world}` });
+  await send('Page.navigate', { url: `${BASE}?level=${world}${QUERY ? `&${QUERY}` : ''}` });
   let up = false; for (let i = 0; i < 1200 && !up; i++) { up = (await ev('!!window.__hiraethBooted && !!window.player')) === true; if (!up) await sleep(100); }
   if (!up) { console.log(`${world}: never booted`); captured.push({ world, error: 'never booted' }); continue; }
   await sleep(2500);
@@ -112,6 +115,8 @@ for (const [n, world] of worlds.entries()) {
     const s = document.createElement('style'); s.textContent = 'body > *:not(canvas) { visibility: hidden !important; } canvas { visibility: visible !important; }'; document.head.appendChild(s); return true; })()`);
   for (const v of views.filter((x) => x.world === world)) {
     await ev(pin(v));
+    // (a view's `gait`: the traveller held in it, the engines' way: engine/gait-hold.js through the dev server)
+    { const r = await ev(`import('/engine/gait-hold.js').then((m) => ${v.gait ? `m.holdGait(window.player, ${JSON.stringify(v.gait)})` : 'm.releaseGait(window.player)'} ?? true)`); if (typeof r === 'string' && r.startsWith('ERR')) console.log(`${v.name}: ${r}`); }
     // (a view's `act`: an expression run in the page once the view is set, before the shot: a horn rung, a note sounded)
     if (v.act) { await sleep(1500); const r = await ev(v.act); if (typeof r === 'string' && r.startsWith('ERR')) console.log(`${v.name}: ${r}`); }
     await ev(`(() => { if (window.sky) { window.sky.hour = ${v.hour ?? 12}; window.sky.speed = 0; window.updateSky?.(); } return true; })()`);

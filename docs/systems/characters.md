@@ -2320,8 +2320,12 @@ dev menu's **Traveller** tab (kept on this device; the switch reloads the world,
 - **Checked** (headless Chrome, the desert, High, the game paused and drawn twice, B3 then v2, one camera): standing,
   jog, sprint, jump, climb, talking, gliding, swimming (the mangrove), the knock-down's ragdoll, a film, the pearl
   diver; then the cloth, the glove and the far levels.
-- **Web only:** the Unity bridge (`BridgeBuild.cs`) is ported separately (#493's Unity half).
-  `tests/traveller-v2.test.js`, `tests/traveller-v2-parts.test.js`.
+- **In Unity** (the engines' host builds him as the page does: docs/systems/engine-bridge.md, "The v2 traveller"): by the
+  same switch as the device keeps it, or the bridge's `-traveller v2 -outfit <id>`. Every player carries the shipped files
+  (`scripts/engine-bundle.mjs unity` writes `shippedFiles` into StreamingAssets, the base GLB pruned as the build's); the
+  atlases go encoded for Unity to decode, the thigh-lift keys as blend shapes (with their normals) whose weights cross
+  each frame. The shirt's cloth is the page's only: in Unity the shirt stays skinned. The engines' dev menu leaves the
+  Traveller tab out. `tests/traveller-v2.test.js`, `tests/traveller-v2-parts.test.js`, `tests/unity-traveller-v2.test.js`.
 
 **Phase 1's pieces, still used:**
 

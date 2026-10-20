@@ -57,6 +57,7 @@ namespace Hiraeth.EditorTools
                 Directory.CreateDirectory(d);
                 foreach (var f in files) File.Copy(Path.Combine(Repo, "public", from, f), Path.Combine(d, f), true);
             }
+            TravellerV2();
             Music();
             if (!File.Exists(Path.Combine(Application.streamingAssetsPath, "hiraeth-js", "hiraeth.cjs"))) throw new Exception("no bundle: node scripts/engine-bundle.mjs unity");
             AssetDatabase.Refresh();
@@ -114,6 +115,20 @@ namespace Hiraeth.EditorTools
             PlayerSettings.SetPreloadedAssets(pre.ToArray());
             AssetDatabase.SaveAssets();
             Debug.Log($"Hiraeth: {keep.Count} shaders preloaded, none of ours always included (issue #500)");
+        }
+
+        /// <summary>
+        /// The v2 traveller (issue #493, src/characters/traveller-v2.js): his models are put into
+        /// StreamingAssets/hiraeth-js/public/data/characters/traveller-v2/ by the bundle's step (node scripts/engine-bundle.mjs
+        /// unity: unityTravellerV2, the files the web build ships, the base GLB without its head and hair); said here, and
+        /// a player built without them is told (he stays B3 in it).
+        /// </summary>
+        static void TravellerV2()
+        {
+            var dir = Path.Combine(Application.streamingAssetsPath, "hiraeth-js", "public", "data", "characters", "traveller-v2");
+            if (!File.Exists(Path.Combine(dir, "outfits.json"))) { Debug.LogWarning("Hiraeth: no v2 traveller in StreamingAssets (node scripts/engine-bundle.mjs unity): he stays B3 in this player"); return; }
+            long bytes = Directory.GetFiles(dir, "*", SearchOption.AllDirectories).Where(f => !f.EndsWith(".meta")).Sum(f => new FileInfo(f).Length);
+            Debug.Log($"Hiraeth: the v2 traveller, {bytes / 1048576.0:F1} MB (issue #493)");
         }
 
         /// <summary>The recordings every device carries (src/music-store.js ON_DEVICE_THEMES; tests/engine-music.test.js checks they agree).</summary>

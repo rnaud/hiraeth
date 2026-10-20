@@ -31,6 +31,7 @@ on:
       - 'scripts/unity-*'
       - 'scripts/unity-*/**'
       - 'scripts/engine-bundle.mjs'
+      - 'data/characters/traveller-v2/**'   # (the v2 traveller's models, packed by engine-bundle.mjs unity: issue #493)
       - '.github/workflows/unity-xbox.yml'
   workflow_dispatch:
     inputs:

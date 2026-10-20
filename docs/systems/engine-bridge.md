@@ -2855,6 +2855,69 @@ button, the sketch hunt's ✎), shown only with `body.touch`, which the engines 
 they are left out, and a touch counts as the screen in hand. The menus and the runs' cards (BridgeMenu.cs) take no
 pointer yet: after a click on the pause, Resume is Enter or A / ×. Tests: tests/hud-buttons.test.js.
 
+## The v2 traveller (Unity + Puerts, 2026-10-20, issue #493)
+
+The Blender rebuild (docs/systems/characters.md, "The traveller in Blender") drawn by Unity as the page draws it.
+
+- **Which traveller.** engine/game.js builds him through the page's own `loadTraveller` / `createTraveller`
+  (characters/traveller.js: v2's models fetched beside B3's, `dressTravellerV2` as he is made), asked
+  `createGame({ traveller: { on, outfit } })` (the bridge's `-traveller v2|b3 -outfit <id>`, BridgeArgs), else the game's
+  own switch as the device keeps it (`travellerSetting.get('')`, no address): when the page's default turns to v2, the
+  engines follow with no flag. A v2 that fails to load leaves him B3. The outfit is the one chosen in the Wardrobe (issue
+  #571, `chosenOutfit`) unless the host names one, main.js's rule, and the Wardrobe dresses him (its `dress`:
+  player.character.v2), so its outfits work in Unity once he is v2.
+- **His files.** `node scripts/engine-bundle.mjs unity` writes what the web build ships (scripts/traveller-v2-ship.mjs
+  `shippedFiles`: the outfits' list, the base GLB without its head and hair, each outfit's GLB and manifest, 17.9 MB) into
+  StreamingAssets/hiraeth-js/public/data/characters/traveller-v2/, the path the game fetches (`unityTravellerV2`;
+  BridgeBuild.TravellerV2 says it is there). BridgeHost.ReadPublic reads `data/` from the repository beside public/ too
+  (the editor's runs), as engine/vm-run.mjs does in node. The Unity workflows build again when his models change. A
+  player older than this one, given the script over the air, has no files: he stays B3 in it.
+- **His atlas.** Each GLB's one JPEG atlas goes encoded for Unity to decode (engine/boot.js ENCODED_PICTURES), its albedo
+  turned to display values as the page's ink material does (engine/game.js `engineV2`: `albedoLinear` → port-format
+  `toDisplay`). A material cloned with its map (makeReviewInkMaterial) used to turn the encoded bytes into an object of a
+  million keys through three's JSON copy of userData: `keepEncoded` keeps them out of it and carries them by reference
+  to every clone. Unity lets the decoded picture's CPU copy go once it is uploaded (BridgeRenderer.Texture's flag 16: the
+  4096 × 2048 atlas kept 32 MB there).
+- **The thigh-lift keys** (`thighLift_l` / `_r`) are three morph targets on the joined clothes: the mirror sends them as
+  blend shapes (backend.js `morphKeyDeltas`, now with their normals: the count's top bit set, each vertex's normal offset
+  after its position's) and their weights each frame they move (op 19), set by ThighLift in the mesh's onBeforeRender,
+  which the mirror calls.
+- **Web only:** the shirt's cloth (src/characters/traveller-v2-cloth.js). In Unity the engine takes B3's cloth
+  (`CLOTH_HOST.offload`, Burst), so v2's shirt is left skinned, its keys driven; B3's overshirt flew there. The skirt's
+  swing (the salt pilgrim) is the clothes' own bones, mirrored as any skinned mesh's (not checked in a picture yet). His
+  far levels are the page's (the engines build none, for B3 either).
+- **A held gait for the side-by-sides** (engine/gait-hold.js): a view's `gait: { gait, phase }` holds his Animator in one
+  loop at one phase, whatever each side's clock does (engine/game.js pin; the web's capture imports the same file
+  through its dev server). `views.mjs --set traveller`: at the desert's start, standing, at a jog and a sprint (phase 0.6:
+  both thighs forward, the keys on), from behind, and a film's shot (low, 28°); `run.mjs --traveller v2[:outfit]` puts
+  him on both sides (the page's `?traveller=`, the bridge's `-traveller`).
+
+Web against Unity (High, 1280 × 720; the whole frame, then a 400 × 636 crop round him: ΔE mean / worst cell, SSIM):
+
+| view | B3 frame | v2 frame | v2 crop | B3 crop | pearl diver crop |
+|---|---|---|---|---|---|
+| standing | 0.8 / 3.9, 0.874 | 0.8 / 3.8, 0.881 | 1.08 / 3.3, 0.774 | 0.97 / 3.5, 0.780 | 1.22 / 4.6, 0.786 |
+| jog (held) | 0.3 / 1.3, 0.938 | 0.4 / 1.9, 0.929 | 0.79 / 6.8, 0.837 | 0.60 / 2.7, 0.845 | 0.53 / 2.3, 0.833 |
+| sprint (held) | 1.1 / 5.1, 0.853 | 1.1 / 5.6, 0.869 | 1.79 / 6.9, 0.723 | 1.71 / 7.1, 0.715 | 1.70 / 6.7, 0.725 |
+| from behind | 0.3 / 2.2, 0.899 | 0.4 / 2.0, 0.899 | 1.12 / 4.7, 0.724 | 1.17 / 4.4, 0.727 | 1.43 / 4.2, 0.725 |
+| film's shot | 2.5 / 13.9, 0.820 | 2.3 / 15.0, 0.833 | 2.55 / 9.4, 0.747 | 2.37 / 9.4, 0.743 | 2.45 / 8.8, 0.756 |
+
+Again after main's one cull mode (#536) and the Wardrobe (#571), v2's crop: 0.70–1.13 / 2.1–6.2, SSIM 0.77–0.85; the pearl
+diver worn from the Wardrobe's flag (`-set-flags wardrobe.outfit=pearl-diver`, no `-outfit`): 0.67–1.25 / 2.3–5.4,
+0.77–0.87. v2 sits as close to the web as B3 does: the same gaps are the port's (lines thinner on his clothes and arms, fewer
+creases drawn inside them, the portrait head's hair). The jog's worst cell is the web's shirt hanging as cloth by his hip.
+Web | Unity, standing, jog, the film's shot, the pearl diver at a sprint:
+![the v2 traveller, web against Unity](../engine-bridge/v2-traveller.jpg)
+
+**What he costs in Unity** (the editor's batch, the desert's start, every pass a frame, 2 s each: BridgeRunner.RenderStats,
+which reads the editor's own UnityStats where the profiler's counters stay 0, and now counts draw calls): v2 against
+B3, +82–87 k triangles a frame over 10–14 M (all passes, every camera), the draws within the views' own noise (+24, +52,
+−20, +126 of 2.5–8 k). His own, as the mirror makes them (one renderer a drawable, a draw a submesh a pass): 32 drawables
+and 57 draws a pass against B3's 34 and 59, 111.6 k triangles against 103.3 k (his body and clothes 52.9 k in two
+skinned meshes against B3's body, trousers and overshirt, 43.4 k in three; the portrait head 49.6 k in both); his shadow
+casters 51 draws and 109.6 k triangles against 52 and 92.0 k (B3's overshirt cast through a shadow mesh of its own, not counted here). The pearl
+diver 107.2 k, the salt pilgrim 111.0 k. `tests/unity-traveller-v2.test.js`.
+
 ## Status
 
 - **Stage 1, the spike**: the desert, built by `createDesert` inside GodotJS, mirrored to Godot

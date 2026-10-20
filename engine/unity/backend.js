@@ -580,34 +580,44 @@ export function faceKeyDeltas(fk, nv) {
   for (const L of lists) { u[o++] = L.length / 4; for (let i = 0; i < L.length; i += 4) { u[o++] = L[i]; f[o++] = L[i + 1]; f[o++] = L[i + 2]; f[o++] = L[i + 3]; } }
   return buf;
 }
-/** A geometry's own morph targets (three's morphAttributes.position) as a face's keys: { morph, relative, base }; null without. */
+/** A geometry's own morph targets (three's morphAttributes.position, and .normal when it has them) as a face's keys:
+ * { morph, normals, relative, base, baseNormal }; null without. */
 export function morphKeys(geo) {
   const M = geo?.morphAttributes?.position;
   if (!M?.length || !geo.attributes?.position) return null;
-  return { morph: M, relative: !!geo.morphTargetsRelative, base: geo.attributes.position };
+  const N = geo.morphAttributes.normal;
+  const normals = N?.length === M.length && geo.attributes.normal ? N : null;
+  return { morph: M, normals, relative: !!geo.morphTargetsRelative, base: geo.attributes.position, baseNormal: normals ? geo.attributes.normal : null };
 }
 /**
  * Three's morph targets as blend shapes for Unity (as faceKeyDeltas: the same layout, x mirrored): each target's offsets
  * (relative, or less the rest position), only the vertices it moves. Their weights are the mesh's morphTargetInfluences
- * (engine/mirror.js, op 19).
+ * (engine/mirror.js, op 19). With normal targets (the v2 traveller's thigh-lift keys, issue #493) the key count's top bit
+ * is set and each vertex carries its normal's offset too: u32 vertex, f32 dx, dy, dz, nx, ny, nz.
  */
 export function morphKeyDeltas(mk, nv) {
-  const lists = [];
+  const lists = [], NA = mk.normals, w = NA ? 7 : 4;
   let words = 2;
-  for (const A of mk.morph) {
-    const L = [], n = Math.min(nv, A.count), b = mk.base;
+  for (let k = 0; k < mk.morph.length; k++) {
+    const A = mk.morph[k], B = NA?.[k], L = [], n = Math.min(nv, A.count), b = mk.base, bn = mk.baseNormal;
     for (let v = 0; v < n; v++) {
       let x = A.getX(v), y = A.getY(v), z = A.getZ(v);
       if (!mk.relative) { x -= b.getX(v); y -= b.getY(v); z -= b.getZ(v); }
-      if (Math.abs(x) > 1e-7 || Math.abs(y) > 1e-7 || Math.abs(z) > 1e-7) L.push(v, -x, y, z);
+      let p = 0, q = 0, r = 0;
+      if (B) { p = B.getX(v); q = B.getY(v); r = B.getZ(v); if (!mk.relative) { p -= bn.getX(v); q -= bn.getY(v); r -= bn.getZ(v); } }
+      const moves = Math.abs(x) > 1e-7 || Math.abs(y) > 1e-7 || Math.abs(z) > 1e-7, turns = Math.abs(p) > 1e-6 || Math.abs(q) > 1e-6 || Math.abs(r) > 1e-6;
+      if (moves || turns) { L.push(v, -x, y, z); if (B) L.push(-p, q, r); }
     }
     lists.push(L); words += 1 + L.length;
   }
   if (words === 2 + lists.length) return null;
   const buf = new ArrayBuffer(words * 4), u = new Uint32Array(buf), f = new Float32Array(buf);
   let o = 0;
-  u[o++] = lists.length; u[o++] = nv;
-  for (const L of lists) { u[o++] = L.length / 4; for (let i = 0; i < L.length; i += 4) { u[o++] = L[i]; f[o++] = L[i + 1]; f[o++] = L[i + 2]; f[o++] = L[i + 3]; } }
+  u[o++] = (lists.length | (NA ? 0x80000000 : 0)) >>> 0; u[o++] = nv;
+  for (const L of lists) {
+    u[o++] = L.length / w;
+    for (let i = 0; i < L.length; i += w) { u[o++] = L[i]; for (let j = 1; j < w; j++) f[o++] = L[i + j]; }
+  }
   return buf;
 }
 /** A half float's value (three's DataUtils.fromHalfFloat, without three). */

@@ -4,9 +4,11 @@
 // (unity.mjs: -fresh -no-hud, the same views), then the pairs, their heat maps and scores in one HTML report (pair.mjs).
 //
 //   node scripts/unity-compare/run.mjs [--out dir] [--worlds a,b] [--set main|lantern] [--skip views,web,unity]
-//       [--notes notes.json]
+//       [--notes notes.json] [--traveller v2[:outfit] | b3]
 //   PORT (the web's Vite, default 5391; never 5173), LOCK (a lock dir shared with other Unity runs), MAX_LOAD (25: each
 //   step waits while the machine's 1-minute load is over it)
+// --traveller: the traveller on both sides as the Blender rebuild in that outfit, or as B3 (issue #493: the page's
+// ?traveller=v2&outfit=, the bridge's -traveller v2 -outfit); unset, each side's own default.
 // Writes <out>/views.json, <out>/web/, <out>/unity/<world>/, <out>/report/index.html (default output/unity-compare/<sha>/).
 import { spawnSync, execSync } from 'node:child_process';
 import { mkdirSync } from 'node:fs';
@@ -19,6 +21,9 @@ const sha = execSync('git rev-parse --short HEAD', { cwd: ROOT }).toString().tri
 const OUT = resolve(arg('out', join(ROOT, 'output/unity-compare', sha)));
 const skip = new Set((arg('skip') ?? '').split(',').filter(Boolean));
 const worlds = arg('worlds'), set = arg('set', 'main'), MAX_LOAD = +(process.env.MAX_LOAD ?? 25);
+const [trav, outfit] = (arg('traveller') ?? '').split(':');
+const webQuery = trav ? `traveller=${trav}${outfit ? `&outfit=${outfit}` : ''}` : '';
+const unityExtra = trav ? `-traveller ${trav}${outfit ? ` -outfit ${outfit}` : ''}` : '';
 if (String(process.env.PORT ?? '') === '5173') throw new Error('5173 is the author’s own dev server: pick another PORT');
 mkdirSync(OUT, { recursive: true });
 const load = () => +execSync('uptime').toString().match(/load averages?:\s*([\d.]+)/)[1];
@@ -32,9 +37,9 @@ const views = join(OUT, 'views.json');
 if (!skip.has('views')) step('views', ['scripts/unity-compare/views.mjs', views, '--set', set, ...(worlds ? ['--worlds', worlds] : [])]);
 if (!skip.has('web')) {
   rest();
-  step('the web', ['scripts/design-qc/capture.mjs', join(OUT, 'web'), '--views', views, '--res', '1280x720', '--preset', 'high', '--fixed-scale', '--rest', '10', ...(worlds ? ['--worlds', worlds] : [])],
+  step('the web', ['scripts/design-qc/capture.mjs', join(OUT, 'web'), '--views', views, '--res', '1280x720', '--preset', 'high', '--fixed-scale', '--rest', '10', ...(worlds ? ['--worlds', worlds] : []), ...(webQuery ? ['--query', webQuery] : [])],
     { PORT: process.env.PORT ?? '5391', QC_VITE_CACHE: process.env.QC_VITE_CACHE ?? join(ROOT, '.vite-cache/unity-compare') });
 }
-if (!skip.has('unity')) step('Unity', ['scripts/unity-compare/unity.mjs', views, join(OUT, 'unity'), ...(worlds ? ['--worlds', worlds] : [])]);
+if (!skip.has('unity')) step('Unity', ['scripts/unity-compare/unity.mjs', views, join(OUT, 'unity'), ...(worlds ? ['--worlds', worlds] : []), ...(unityExtra || arg('extra') ? ['--extra', [unityExtra, arg('extra') ?? ''].join(' ').trim()] : [])]);
 step('the pairs', ['scripts/unity-compare/pair.mjs', join(OUT, 'web'), join(OUT, 'unity'), join(OUT, 'report'), '--views', views, ...(arg('notes') ? ['--notes', arg('notes')] : [])]);
 console.log(`the report: ${join(OUT, 'report/index.html')}`);

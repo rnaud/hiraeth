@@ -321,6 +321,9 @@ namespace Hiraeth.Bridge
                 var b = StreamingFile.Read(Path.Combine(root, path));
                 if (b != null) return b;
             }
+            // (the game's data/ folder, beside public/ in the repository (the last root): the v2 traveller's models, issue #493;
+            // a player carries its copy under public/data/, BridgeBuild.Common, found above)
+            if (path.StartsWith("data/") && roots.Length > 0) return StreamingFile.Read(Path.Combine(roots[roots.Length - 1], "..", path));
             return null;
         }
         // the script's localStorage: a JSON file in persistentDataPath (BridgeStore: UWP's PlayerPrefs hold at most 8 KB a
