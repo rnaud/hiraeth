@@ -50,3 +50,36 @@ test('matching takes over from the loops on their own copy in the database, in s
   drive(p, [[1 / 60, { KeyW: true }]]);
   assert.match(db.segments[db.segOf[Math.floor(A.mm.cur)]].name, /^game:/, 'and the matcher starts there');
 });
+
+// #597: speed warping could stop a moving capture's clock while its pose query
+// kept selecting the same frame. Idle weight1 was hidden under matching weight1.
+test('repeated short walks settle out of frozen matched strides and start matching again', async () => {
+  const { course, traveller, drive } = await import('./gait-sim.js');
+  for (const fps of [30, 60, 120]) {
+    const p = await traveller(course(), undefined, { matching: true, moves: true });
+    for (const duration of [0.2, 0.7, 1.4]) {
+      drive(p, [[duration, { KeyW: true }], [2, {}]], { fps });
+      const A = p.animator;
+      assert.ok(A.mmW < 0.001, `${fps}fps/${duration}s: stopped matching weight ${A.mmW}`);
+      assert.ok(A.gaitW < 0.01, `a frozen stride must not keep the feet in gait (${A.gaitW})`);
+      // The actual sampled bones, not just the idle label, must be standing.
+      const saved = ['thigh_l', 'calf_l', 'thigh_r', 'calf_r', 'upperarm_l', 'upperarm_r'].map(n => [n,A.bone(n).quaternion.clone()]);
+      A.matching = false; drive(p, [[1/fps, {}]], { fps });
+      for (const [n,q] of saved) assert.ok(q.angleTo(A.bone(n).quaternion) < 0.05, `${n} still overridden after settling`);
+      A.matching = true;
+      drive(p, [[0.8, { KeyW: true }]], { fps });
+      assert.ok(A.mmW > 0.1, 'movement can resume matching after standing');
+    }
+  }
+});
+
+test('matching rest detection respects held movement intent and continuing planar motion', async () => {
+  const { course, traveller, drive } = await import('./gait-sim.js');
+  const p = await traveller(course(), undefined, { matching: true });
+  drive(p, [[0.7, { KeyW: true }]]);
+  const A = p.animator;
+  for (const [speed, steering, want] of [[0, true, 3], [0, false, 3], [0.6, false, 0]]) {
+    for (let i = 0; i < 90; i++) A.match(1/60, { speed, steering, onGround: true, mode: 'ground', mm: {vel:{x:0,z:speed},want:{x:0,z:want},k:8,face:null} }, false, A.legRatio);
+    assert.equal(A._mmStill, 0, 'held input against a wall or continuing motion is not settled idle');
+  }
+});

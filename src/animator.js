@@ -829,11 +829,17 @@ export class Animator {
    */
   match(dt, s, landing, size) {
     const db = this.lib.motion?.db;
-    if (!this.matching || !db || !s.mm) { this.mmW = 0; return; }
+    if (!this.matching || !db || !s.mm) { this.mmW = 0; this._mmStill = 0; return; }
     const ground = s.onGround && (s.mode === 'ground' || s.mode === undefined) && !landing;
     // (past the database's fastest run, the sprint loop: MATCH.fallback x its 95th percentile)
     const fast = THREE.MathUtils.smoothstep(s.speed / (db.maxSpeed * size), 1.2, 1.45);
-    let target = ground ? 1 - fast : 0;
+    // A stopped capture can retain moving pose features while speed warping freezes
+    // its clock (#597). Give the captured stop a short settling interval, then
+    // fade back to the standing loops. Intent prevents a held stick against a
+    // wall from counting as rest; speed is the actor's planar locomotion speed.
+    const still = ground && s.speed < 0.15 && !s.steering && Math.hypot(s.mm.want.x, s.mm.want.z) < 0.15;
+    this._mmStill = still ? (this._mmStill ?? 0) + dt : 0;
+    let target = ground && this._mmStill < 0.35 ? 1 - fast : 0;
     if (target > 0 || this.mmW > 0.001) {
       this.mm ??= new MotionMatcher(db);
       // (coming in from the loops: the matcher starts on the database's copy of what the loops show now, the same pose at

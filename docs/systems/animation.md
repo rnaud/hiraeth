@@ -467,6 +467,17 @@ plant on the real ground as before (feet.js, with the clip's contacts). It never
 the controls answer as before. Where the database has nothing close (a sprint faster than any
 capture, a start quicker than anyone sets off, the air, climbing, talking) the loops take over.
 
+After releasing movement, matched stops have 0.35 s below 0.15 m/s with no steering or wanted
+motion before their weight fades back to the standing loops (#597). Without this hand-back,
+speed warping could freeze a moving capture at playback rate zero while its pose features and
+search hysteresis kept it selected at full weight, hiding an otherwise complete idle blend.
+The existing exponential blend preserves the stop transition; re-entering matching starts from
+the displayed loop pose. Actor planar speed and movement intent prevent a held input against a
+wall or continuing movement from counting as settled rest. `tests/motion-matching.test.js`
+checks repeated short walks at 30/60/120 fps, actual leg/arm bone hand-back, restart and intent
+exclusions. The shared Animator path is used by web and Unity.
+
+
 Measured with the harness above (`compare.mjs`, slide max / mean, held, sink, head jerk km/s³):
 
 | Run | loops (the default) | motion matching |

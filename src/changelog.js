@@ -12,6 +12,8 @@ export const CHANGELOG = [
     { text: 'The caravan study now has four rear boosters in two pairs, with a Bottom view for checking the underside.',
       see: 'Open the caravan study from Debug, then choose Rear or Bottom to inspect the four boosters and landing gear.' },
     'The caravan study has been rebuilt around the selected drawing, with a broad cockpit, a deeper rounded hull and separate engine pods.',
+    { text: 'With motion matching enabled, the traveller now settles into standing after a short walk instead of holding a frozen stride with bent knees.',
+      see: 'Enable Motion matching in Debug, walk briefly, then release the controls. He finishes settling into a relaxed standing pose; repeated starts and stops work too.' },
     { text: 'The caravan study has a rounder hull and broad curved cockpit. Its camp packs into a closed side hatch before lift-off, then unfolds after landing.',
       see: 'Open the caravan ship study from Debug, then try Depart and Arrive to watch the deck, canopy, furniture, laundry and landing gear stow and return.' },
     { text: 'Repeated reference pictures now load reliably on the published References page.',
