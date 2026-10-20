@@ -293,6 +293,17 @@ before anyone gave its quest is that quest done (docs/systems/story.md, "Quests 
 world with no temple's local, or one an old save had been to (`givers.old.<part>`), they start
 `BOX_QUEST_DELAY` s after the first box opens, as before.
 
+## Nothing before its tool
+
+A little chest held shut by its makers' court's puzzle or a small lock (`boxTool(placement)`: the court's `needs`, or
+`LOCK_ITEM[lock.tool]`) is not spoken of before that tool is yours (issue #557, the author's rule from #518: "I should
+have all the tools available at that moment in the game to open them"; `toolHeld`). Most of these tools are the same
+world's temple's, so: its quest is not the temple's local's to give till then (`givenBy`'s `ready`: no mark, no line
+from them); the arrival's offer leaves it out, and the tool's coming offers it `BOX_QUEST_DELAY` s later; no beacon stands
+over the court (a locked chest's is out anyway till its lock is answered); and the locals' lines that point at one ask
+for its tool (`{ has: tool }` beside the box's flag, else a line that names no place). tests/box-quest-tools.test.js runs
+every little chest of the route through it; tests/little-chests.test.js holds the tool to its world.
+
 ## The tree's dais (desert)
 
 The first chest is everything (issue #140, v1.49: "The first chest by the tree shouldn't be on a platform up in the

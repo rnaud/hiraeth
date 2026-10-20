@@ -151,7 +151,7 @@ export const PEOPLE = {
       ['~happy~ Come up! From up here you can see the whole garden: the lake, the sphere-arch, the plaza at the end of the avenue.', '~playful~ Ume says the plaza is where everything ends. From up here it looks like where it starts.'],
       ['~happy~ *Climb the white hill*! From the middle terrace you can step right out onto the great canopy.', '~playful~ Nobody believes me until they do it.'],
       ['~whisper~ Ever looked under a sphere? Where it touches the ground there’s a mark pressed in, like where a foot came down. {glyph}', '~playful~ The Footprint. Every sphere has one, underneath, where nobody looks. Except me.'],
-      { if: { not: { flag: 'box.spheres.shell' } }, say: '~playful~ There’s a blue box with a star on top *up on the grove’s umbrella tree*. A left-behind. Ume says they’re presents. Ume says everything is a present.' },
+      { if: [{ not: { flag: 'box.spheres.shell' } }, { has: 'monocle' }], say: '~playful~ There’s a blue box with a star on top *up on the grove’s umbrella tree*. A left-behind. Ume says they’re presents. Ume says everything is a present.' },
       '~curious~ Something walked through the sky putting spheres down, the way you’d put down cups. Some say it will come back for them.',
       '~neutral~ Splash a sphere and it rings. The big ones ring low, the little ones high. I played a whole song on the grove once. Badly.',
       '~tired~ Can’t talk. Climbing. (He is standing on the ground.)',

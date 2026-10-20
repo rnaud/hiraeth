@@ -117,7 +117,7 @@ export const PEOPLE = {
           choices: [{ text: '~sad~ And the bird is still waiting.', goto: 'track' }],
         },
         track: {
-          say: ["~solemn~ (She nods. In the sand she draws an open corner beside a shorter upright.) {glyph}", "~neutral~ (She taps a bent leg and a shorter toe, and looks up at the sky.) Her track.", "~whisper~ (Below it she draws a chest with *a star on top*. She points *north, to the needle spire*: look for the chest up there.)"],
+          say: ["~solemn~ (She nods. In the sand she draws an open corner beside a shorter upright.) {glyph}", "~neutral~ (She taps a bent leg and a shorter toe, and looks up at the sky.) Her track.", { if: { has: 'hook' }, text: "~whisper~ (Below it she draws a chest with *a star on top*. She points *north, to the needle spire*: look for the chest up there.)" }],
           do: { set: { 'arzach.glyph.drawn': true } },
           choices: [
             { text: '~surprised~ I’ve seen that mark before. On my ship.', goto: 'mark' },
@@ -159,7 +159,7 @@ export const LOCALS = [
       { if: { not: { quest: 'arzach.hand', done: true } }, say: ['~scared~ (You glance at the tower. He shakes his head hard and hugs himself: too high, too cold.)', '~playful~ (Then he points at the stone hand out on the plain and taps his own knuckles, the smallest first, up to the tallest, and grins.)'] },
       "~playful~ (He opens his mouth wide. An impressive amount of nothing comes out.)",
       '~angry~ (He turns his back on you, folds his arms and becomes a spire. The spire would like you to go away.)',
-      { if: { not: { flag: 'box.arzach.hush' } }, say: '~curious~ (He draws a square with a star on top, points at the needle spire halfway to the tower, and mimes climbing it. He falls off on purpose.)' },
+      { if: [{ not: { flag: 'box.arzach.hush' } }, { has: 'hook' }], say: '~curious~ (He draws a square with a star on top, points at the needle spire halfway to the tower, and mimes climbing it. He falls off on purpose.)' },
       { after: { flag: 'world.arzach.done' }, say: '~happy~ (He flaps his arms, points at the sky, then at you, and bows so low his hair sweeps the sand.)' },
       { after: { flag: 'temple.arzach.done' }, say: '~surprised~ (He points west, at the white house with the stone wings, then up, where the great birds wheel again, and spins until he sits down.)' },
     ] },

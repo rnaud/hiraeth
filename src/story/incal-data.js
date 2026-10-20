@@ -613,7 +613,7 @@ export const RIM = {
       ["~shout~ Views of the abyss! Very reasonable! Stand here, look down, discover how reasonable!", "~playful~ Up is free. Please stop demonstrating that in front of customers."],
       '~neutral~ Nine levels. The rich at the top, the poor at the bottom, and a light in the middle nobody pays for. So nobody looks.',
       '~angry~ No looking without paying. That was a look. That’s one coin.',
-      { if: { not: { flag: 'box.incal.soles' } }, say: '~whisper~ A free one: there’s a box on top of *the lone stone pillar*, round the rim from your ship. Good climb. Terrible view. Of a box.' },
+      { if: [{ not: { flag: 'box.incal.soles' } }, { has: 'bridge' }], say: '~whisper~ A free one: there’s a box behind the gate of *the makers’ court beyond the rim*. Good walk. Terrible view. Of a box.' },
       { after: LOOKED, if: { not: { quest: 'incal.pass', active: true } }, say: '~playful~ Now they all look up, and for free. I’m ruined. I sell views of the light now. Same price.' },
       // (last: the list's places are the save's memory of what was said)
       { after: { quest: 'incal.pass', active: true }, if: { not: { has: 'cabpass' } }, say: ["~angry~ The cabs snubbing you? Here. Lio’s pass. I was going to pay for it. Eventually. Possibly in views.", "~tired~ (He hands it over slowly, like the last view on the rim.) Cross my name out. Wave a cab down at the edge."],

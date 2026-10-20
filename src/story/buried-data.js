@@ -128,7 +128,8 @@ export const PEOPLE = {
             { text: '~happy~ I’ll be back for the turn.', end: true },
           ],
         },
-        mark: { say: ["~solemn~ {glyph} *The Maker’s Thumb.* It’s on the buried pipes and plates. We paint it on our doors, hoping the machine will recognise its neighbours.", "~neutral~ It’s on the old *blue star-chests* too. We call them thumb-boxes. There’s one *on the chimney ring*. It has never opened for us."], choices: [{ text: '~curious~ Does it work?', goto: 'works' }] },
+        mark: { say: ["~solemn~ {glyph} *The Maker’s Thumb.* It’s on the buried pipes and plates. We paint it on our doors, hoping the machine will recognise its neighbours.", { if: { has: 'bomb' }, text: "~neutral~ It’s on the old *blue star-chests* too. We call them thumb-boxes. There’s one *on the chimney ring*. It has never opened for us." },
+          { if: { not: { has: 'bomb' } }, text: "~neutral~ It’s on the old *blue star-chests* too. We call them thumb-boxes. Not one has ever opened for us." }], choices: [{ text: '~curious~ Does it work?', goto: 'works' }] },
         works: { say: ["~playful~ Has the machine knocked at the wrong house? Not once. Strong evidence."], choices: [{ text: '~playful~ I’ll paint one on my ship.', end: true }] },
         lit: {
           say: ["~surprised~ I felt the Wick catch! Go *stand in front of the wheel* and watch. Nobody should miss their first turn."],
@@ -263,7 +264,7 @@ export const PEOPLE = {
       '~happy~ That’s the Other Half, up there. When the wheel turns, it rocks. Last year a whole tower swung like a bell. Too high for anyone to hear.',
       { if: { not: { quest: 'buried.key', done: true } }, say: '~whisper~ Dun’s key is stuck up on *the floating derrick*, everyone knows, but he says it isn’t. The crane only turns one way. Like me.' },
       '~angry~ Go away, I’m counting. Now I have to start again. One…',
-      { if: { not: { flag: 'box.buried.resin' } }, say: '~playful~ There’s a box with a star on it up on *the smoking chimney stack*, north-east. On the ring round it. I’m not allowed to climb it. You are, probably.' },
+      { if: [{ not: { flag: 'box.buried.resin' } }, { has: 'bomb' }], say: '~playful~ There’s a box with a star on it up on *the smoking chimney stack*, north-east. On the ring round it. I’m not allowed to climb it. You are, probably.' },
       { after: { flag: 'world.buried.done' }, say: ["~playful~ TEN! I’m ten teeth old! Wen says you’re one. You should listen to your elders. That’s me.", '~playful~ Come back next year, so I can be eleven in front of you.'] },
       { after: { flag: 'temple.buried.done' }, say: '~surprised~ The old pipe-cart rides the canyon again! I rode it nine times. Don’t tell Wen. Ten. Ten times.' },
     ] },

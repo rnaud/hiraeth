@@ -211,7 +211,8 @@ export const LOCALS = [
           choices: [{ text: '~happy~ I do. I’ll bring it back.', goto: 'bring' }, { text: '~curious~ What’s that mark on the bell?', goto: 'mark' }],
         },
         mark: {
-          say: ["~solemn~ We call this mark *the Three Notes*. {glyph} The founders put it on their bells. We’ve forgotten the notes. We kept the name.", "~whisper~ But the night the singing light passed, this bell hummed without a clapper. One long note, answering the sky.", "~solemn~ The blue chest *on the balanced stones* answered too. A founders’ bell-chest, with a pale star on top. They say it opens for travellers from beyond the reach of our bells."],
+          say: ["~solemn~ We call this mark *the Three Notes*. {glyph} The founders put it on their bells. We’ve forgotten the notes. We kept the name.", "~whisper~ But the night the singing light passed, this bell hummed without a clapper. One long note, answering the sky.", { if: { has: 'glider' }, text: "~solemn~ The blue chest *in the makers’ court on the first sky stone* answered too. A founders’ bell-chest, with a pale star on top. They say it opens for travellers from beyond the reach of our bells." },
+            { if: { not: { has: 'glider' } }, text: "~solemn~ The founders’ blue bell-chests answered too, the ones with a pale star on top. They say they open for travellers from beyond the reach of our bells." }],
           do: { set: { 'arzach2.rumour.light': true } },
           choices: [{ text: '~surprised~ A light that sang? That was the night it passed my ship.', goto: 'light' }, { text: '~neutral~ I’ll bring the clapper back.', goto: 'bring' }],
         },

@@ -1211,8 +1211,9 @@ export const CROWD_TALK = {
       { if: { not: LIT }, say: "~scared~ We’re waiting for the Speaker to call us to the Drinking. Every year he calls. This year he keeps walking." },
       '~neutral~ Mind the steps up to the tree. They’re older than the walls, and they know it.',
       { if: { not: RISEN }, say: '~whisper~ The tree’s thickest roots all run toward *the back gate*. Hessa says it means nothing. Hessa sweeps them every day, so she’d know.' },
-      // (only once the tree's own box is found: nobody tells of the makers' boxes before the first)
-      { if: [{ flag: 'box.desert.backpack' }, { not: { flag: 'box.desert.star' } }], say: '~playful~ Another of those blue boxes, on a roof *just inside the gate*, a pale star on top. Climb the wall, if your knees are younger than mine.' },
+      // (only once the tree's own box is found: nobody tells of the makers' boxes before the first; and once its braziers'
+      // ember is yours, with the gun: issue #557)
+      { if: [{ flag: 'box.desert.backpack' }, { not: { flag: 'box.desert.star' } }, { has: 'fire' }], say: '~playful~ Another of those blue boxes, on a roof *just inside the gate*, a pale star on top. Climb the wall, if your knees are younger than mine.' },
       '~tired~ Stand there if you like. I’ve been standing here three days. It isn’t interesting.',
       { after: DONE, say: '~happy~ The Speaker called us in! First time in my life I’ve been glad to stop waiting.' },
     ] } },

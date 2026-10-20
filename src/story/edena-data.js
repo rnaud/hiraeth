@@ -268,7 +268,8 @@ export const PEOPLE = {
           choices: [{ text: '~happy~ I’ll look for it.', do: { start: 'edena.seed' }, goto: 'thanks' }, { text: '~neutral~ Maybe later.', end: true }],
         },
         androids: {
-          say: ["~neutral~ The white builders were androids. They found the pyramids and sky-fallen spheres already here, then built their gardens around them. Their copies aren’t nearly as good.", "~solemn~ {glyph} We call it the Builders’ mark, but it’s older than them. It’s under the spheres too. I suspect the builders were copying something they admired.", "~whisper~ They also left blue chests with pale stars in the tree canopies. The plants grow around them, never over them. Interesting choice for a plant."],
+          say: ["~neutral~ The white builders were androids. They found the pyramids and sky-fallen spheres already here, then built their gardens around them. Their copies aren’t nearly as good.", "~solemn~ {glyph} We call it the Builders’ mark, but it’s older than them. It’s under the spheres too. I suspect the builders were copying something they admired.", { if: { has: 'bloom' }, text: "~whisper~ They also left blue chests with pale stars in the tree canopies. The plants grow around them, never over them. Interesting choice for a plant." },
+            { if: { not: { has: 'bloom' } }, text: "~whisper~ They also left blue chests with pale stars. The plants grow around them, never over them. Interesting choice for a plant." }],
           choices: [{ text: '~curious~ Pyramids grow from seeds, you said?', goto: 'seeds' }],
         },
         thanks: { say: ["~happy~ Please do! *The seed glows when you get close.* Bring it back. We can plant it together, and I can finally stop searching the grass."], choices: [{ text: '~happy~ Back soon.', end: true }] },

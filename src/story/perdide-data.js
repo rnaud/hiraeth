@@ -117,7 +117,8 @@ export const LANDING = [
         },
         fell: { say: ["~neutral~ That’s Saba’s idea. She has listened at its foot forty years. I’m qualified in eggs, not enormous singing rocks."], choices: [{ text: '~curious~ What’s that mark on your staff?', goto: 'glyph' }, { text: '~neutral~ I’ll go and see.', end: true }] },
         glyph: {
-          say: ["~neutral~ {glyph} *The Hush.* A tall stem bent over a smaller one, sheltering it. We put it on things we’d prefer the plants not to eat. Boots, eggs, small relatives.", "~solemn~ It’s carved beneath the Great Crystal too. The plants leave that alone. Mind you, it would be an ambitious meal.", "~sad~ Look for *the sky-egg on the mossy rise*: a blue star-chest covered in that mark. Plants won’t touch it. It won’t open for us."],
+          say: ["~neutral~ {glyph} *The Hush.* A tall stem bent over a smaller one, sheltering it. We put it on things we’d prefer the plants not to eat. Boots, eggs, small relatives.", "~solemn~ It’s carved beneath the Great Crystal too. The plants leave that alone. Mind you, it would be an ambitious meal.", { if: { has: 'bubble' }, text: "~sad~ Look for *the sky-egg on the mossy rise*: a blue star-chest covered in that mark. Plants won’t touch it. It won’t open for us." },
+            { if: { not: { has: 'bubble' } }, text: "~sad~ There are blue star-chests covered in that mark. Plants won’t touch them. They won’t open for us." }],
           do: { set: { 'perdide.glyph.heard': true } },
           choices: [{ text: '~happy~ Thank you, Wendel.', end: true }],
         },

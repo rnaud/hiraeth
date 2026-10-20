@@ -404,6 +404,7 @@ test('every hidden box has a quest that says where to look; it starts on arrival
   const toasts = [];
   const pl = player(level.spawn);
   game.set('box.desert.backpack', true);   // (box quests come once you have found a box: the next test)
+  game.set('item.bloom', true);   // (and once you have the tool that opens it: its bud wants bloom, issue #557)
   const boxes = createBoxes({ levelId: 'edena', scene, physics, level, player: pl, quests, toast: (t) => toasts.push(t) });
   const [qid] = boxes.quests;
   assert.equal(qid, 'box.edena.pouch');   // (the canopy's box: the lantern moved into Lorn II's temple, src/temples/)
@@ -432,8 +433,9 @@ test('issue #273: a world’s box quests are the temple’s local’s to give; a
     for (let i = 0; i < 30 * (BOX_QUEST_DELAY + 1); i++) boxes.update(1 / 30, i / 30);
     return { quests, boxes, pl };
   };
-  // a box found already somewhere (box quests wait for the first): nothing on arrival, Sorrel marked
-  let { quests, boxes, pl } = setup({ 'box.desert.backpack': true });
+  // a box found already somewhere (box quests wait for the first), its bud's bloom in hand (issue #557): nothing on
+  // arrival, Sorrel marked
+  let { quests, boxes, pl } = setup({ 'box.desert.backpack': true, 'item.bloom': true });
   const qid = 'box.edena.pouch';
   assert.equal(quests.isStarted(qid), false, 'nothing offered on arrival');
   assert.deepEqual(quests.giverMarks().map((g) => g.person), ['sorrel'], 'the map marks Sorrel alone');
@@ -450,7 +452,7 @@ test('issue #273: a world’s box quests are the temple’s local’s to give; a
   assert.deepEqual(quests.giverMarks(), [], 'nobody left to mark');
   boxes.dispose();
   // a box opened before anyone gave its quest: that quest is done (on the finished list), nobody marked for it
-  ({ quests, boxes, pl } = setup({ 'box.desert.backpack': true }));
+  ({ quests, boxes, pl } = setup({ 'box.desert.backpack': true, 'item.bloom': true }));
   boxes.open('edena.pouch', { instant: true });
   quests.update(pl);
   assert.equal(quests.isDone(qid), true, 'found first: done');
@@ -462,7 +464,7 @@ test('issue #273: a world’s box quests are the temple’s local’s to give; a
   assert.deepEqual(quests.pendingGivers()[0].quests, ['temple.edena']);
   boxes.dispose();
   // a save that had been here before the givers (step 26): offered on arrival, as before
-  ({ quests, boxes } = setup({ 'box.desert.backpack': true, 'givers.old.edena': true }));
+  ({ quests, boxes } = setup({ 'box.desert.backpack': true, 'givers.old.edena': true, 'item.bloom': true }));
   assert.equal(quests.isActive(qid), true, 'the old ways in a world the save knew');
   boxes.dispose(); clearInteractables(); game.reset();
 });
@@ -614,6 +616,7 @@ test('nothing tells of the makers’ boxes before you find your first one', () =
   const quests = new Quests({ game });
   const toasts = [];
   const pl = player(level.spawn);
+  game.set('item.bloom', true);   // (the pouch's bud wants bloom: issue #557)
   const boxes = createBoxes({ levelId: 'edena', scene, physics, level, player: pl, quests, toast: (t) => toasts.push(t) });
   const [qid] = boxes.quests;
   // a long while in a world with a box hidden in it: no quest, no toast, no page in the sketchbook

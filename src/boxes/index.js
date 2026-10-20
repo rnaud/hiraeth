@@ -11,7 +11,8 @@ import { partsOf, shiftAt } from '../levels/names.js';
 import { migrateTemples } from '../temples/migrate.js';
 import { HUM } from '../story/hum.js';
 import { hintsFor } from '../hint-level.js';
-import { buildLock, lockFlag, LOCK_SEALED } from './locks.js';
+import { buildLock, lockFlag, LOCK_SEALED, LOCK_ITEM } from './locks.js';
+import { COURTS } from '../finds/courts.js';
 
 // Item boxes: the makers' chests (docs/story-bible.md, "The boxes"), the same in every world (model.js, chest.js):
 // a rounded cream shell with the makers' star on its top, a brass band and a jade lens in its front; in the temples,
@@ -54,6 +55,26 @@ const smoothstep = (a, b, x) => { const t = THREE.MathUtils.clamp((x - a) / (b -
 export function boxesFound(g = sharedGame) {
   for (const [k, v] of Object.entries(g.data?.flags ?? {})) if (v === true && k.startsWith('box.')) return true;
   return false;
+}
+
+/**
+ * The tool that opens a placement's box (issue #557): its makers' court's (`needs`, src/finds/courts.js) or its small
+ * lock's (src/boxes/locks.js LOCK_ITEM), or null for a box nothing holds shut.
+ */
+export function boxTool(p) {
+  if (p?.court) return COURTS[p.court]?.needs ?? null;
+  if (p?.lock) return LOCK_ITEM[p.lock.tool] ?? null;
+  return null;
+}
+
+/**
+ * Is the tool that opens this box in hand (or does nothing hold it shut)? Until it is, nothing points at the box: its
+ * quest is not given (nor offered on arrival), no beacon stands over it (issue #557, the author's rule from #518: "I
+ * should have all the tools available at that moment in the game to open them"). has(item) → owned.
+ */
+export function toolHeld(p, has = (id) => items.has(id)) {
+  const t = boxTool(p);
+  return !t || !!has(t);
 }
 
 /**
@@ -281,7 +302,11 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
   }
 
   // keep the look in step with the items (the dev menu, a grant elsewhere)
-  offs.push(items.on(() => { for (const b of list) if (b !== current?.box && spent(b) !== b.isSpent) setSpentLook(b, spent(b)); }));
+  offs.push(items.on((id, got) => {
+    for (const b of list) if (b !== current?.box && spent(b) !== b.isSpent) setSpentLook(b, spent(b));
+    // (a box's tool is yours now: the arrival's offer comes again for the boxes it opens, a few seconds on; issue #557)
+    if (got && boxQuests.some(({ b, id: q }) => boxTool(b.place) === id && offered(b) && !spent(b) && !quests?.isStarted?.(q))) { questsOffered = false; questClock = 0; }
+  }));
 
   // ------------------------------------------------------------------ the bell's call (src/boxes/effects.js sounds it)
   offs.push(g.on('bell', ({ pos, reach = 90, soft = false } = {}) => {
@@ -304,7 +329,11 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
   // found (src/story/quests.js givenBy). A box opened before anyone gave its quest is that quest done, quietly. A
   // world with no such local, or a save that had been here before the givers (`givers.old.<part>`: src/save-migrate.js
   // step 26), offers them on arrival as before.
+  // Since issue #557 a box held shut by a court's puzzle or a small lock is not spoken of before its tool is yours
+  // (toolHeld): its giver keeps it till then (no mark, no line), the arrival's offer leaves it out, and the tool's coming
+  // offers it a few seconds later (a world's own temple gives most of them: the box is the temple's local's to give after).
   const boxQuests = [];
+  const held = (b) => toolHeld(b.place);
   const part = (b) => String(b.id).split('.')[0];
   const giverFor = (b) => quests?.giverOf?.(`temple.${part(b)}`) ?? quests?.givers?.find?.((x) => x.rank === 0) ?? null;
   const offered = (b) => !giverFor(b) || !!g.flag(`givers.old.${part(b)}`);
@@ -317,7 +346,7 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
         stages: [{ id: 'find', text: b.place.hint, label: 'The makers’ box', flag: `box.${b.id}`, at: `box.${b.id}` }] });
       boxQuests.push({ b, id });
       const giver = !offered(b) && giverFor(b);
-      if (giver) quests.givenBy(id, giver.who, { at: giver.at, label: giver.label, ready: () => boxesFound(g) && !spent(b), line: (k) => boxLine(b.place.hint, k) });
+      if (giver) quests.givenBy(id, giver.who, { at: giver.at, label: giver.label, ready: () => boxesFound(g) && !spent(b) && held(b), line: (k) => boxLine(b.place.hint, k) });
     }
   }
   let questClock = 0, questsOffered = false;
@@ -328,7 +357,7 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
     if ((questClock += dt) < BOX_QUEST_DELAY || current) return;
     questsOffered = true;
     let n = 0;
-    for (const { b, id } of boxQuests) if (offered(b) && !spent(b) && !quests.isStarted?.(id)) { quests.start(id); n++; }
+    for (const { b, id } of boxQuests) if (offered(b) && !spent(b) && held(b) && !quests.isStarted?.(id)) { quests.start(id); n++; }
     if (n && hintsFor('tip')) toast(n > 1 ? 'More makers’ boxes in this world: the menu’s Quests page says where.' : 'Another makers’ box in this world: the menu’s Quests page says where.');
   }
 
@@ -449,7 +478,7 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
         // the beacon: from afar (always for the boxes that must be found, with the lens for all)
         if (b.beacon) {
           const lens = items.has('lens');
-          const on = ((b.alwaysBeacon && d < b.beaconMax) || lens) && d > 9;
+          const on = ((b.alwaysBeacon && d < b.beaconMax) || lens) && d > 9 && toolHeld(b.place);   // (not over a court whose tool you lack: issue #557)
           b.beacon.visible = on;
           // (thicker far off, so it stays a few pixels wide at any distance)
           if (on) { const w = THREE.MathUtils.clamp(d * 0.03, 1, 12) * smoothstep(9, 22, d); b.beacon.scale.set(w, 36, w); }

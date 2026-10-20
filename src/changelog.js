@@ -67,6 +67,11 @@ export const CHANGELOG = [
     // issue #550: src/fragments-data.js FRAGMENT_PLACES (223 moved), src/fragment-markers.js, tests/fragments-reach.js
     // onPlace / PLACE_CAP / POI_THINGS, scripts/fragment-spots.mjs --anchors, rumour-places.js; tests/fragments-poi.test.js
     'Every fragment of the singing light now sits on something instead of a bare ledge or corner: inside a ribcage, on a roof or a temple’s steps, a tower’s balcony, the high ring round the City-Shaft’s spire, a moon’s courtyard, never more than two on one place and spread over the whole world; where a world had no landmark left, a little stone cairn or plinth holds one. Most of them moved; the first one in the Desert sings at the cairn beside your ship, and people’s hints name the place. Those you already found stay found.',
+    // issue #557: src/boxes/index.js boxTool / toolHeld (the box quests' giver's ready, the arrival's offer, the tool's
+    // coming, the beacon); the locals' lines in src/story/*-data.js ({ has: tool }); tests/box-quest-tools.test.js,
+    // little-chests.test.js
+    { text: 'A makers’ chest behind a court’s gate or a small lock is no longer pointed out before you have the tool that opens it. The temple’s keeper gives you its quest, the locals tell you where it is and the pale column rises over its court only once that tool is yours, most often after the same world’s makers’ house.',
+      see: 'In Vael, before the Founders’ Belfry: the Aerie’s keeper says nothing of the chests on the needle spire and in the pale court, and no column stands over the court. Come out of the Belfry with the grappling hook and talk to them again: now they tell you of both.' },
   ] },
   { v: '1.86', date: '2026-10-19', items: [
     // issue #483: src/story/hosts-data.js (the fight hosts' second lines), src/fight-temples/<world>.js (blurb, quiet),

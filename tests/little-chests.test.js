@@ -12,6 +12,7 @@ import { ORDER, partOf, isDiscarded } from '../src/levels/names.js';
 import { ITEMS } from '../src/items.js';
 import { COURTS, attachCourt } from '../src/finds/courts.js';
 import { LOCK_ITEM, LOCK_SEALED, lockFlag, buildLock } from '../src/boxes/locks.js';
+import { boxTool, toolHeld } from '../src/boxes/index.js';
 import { GameState } from '../src/game-state.js';
 import { allTargets, clearTargets } from '../src/targets.js';
 import { GadgetWorld } from '../src/gadgets/world.js';
@@ -49,6 +50,11 @@ test('every little chest on the route is a puzzle’s reward, its tool in hand b
     assert.ok(ITEMS[tool], `${p.id}: its tool is an item (${tool})`);
     const at = earnedAt(tool);
     assert.ok(at <= here, `${p.id} (${p.world}, ${here + 1}th): its ${tool} is earned in ${ORDER[at] ?? 'no world on the route'} (${at + 1}th)`);
+    // (earned by its world is not enough: a tool from this world's own temple comes after its local speaks, and an earlier
+    // world's can be left behind. Its quest waits for that very tool, so nothing points at the box before it is in hand:
+    // issue #557, tests/box-quest-tools.test.js runs the quests)
+    assert.equal(boxTool(p), tool, `${p.id}: its quest waits for its ${tool}`);
+    assert.ok(!toolHeld(p, (id) => id !== tool), `${p.id}: not offered with every tool but its ${tool}`);
     assert.ok(p.hint, `${p.id}: its box quest's hint`);
     rows.push(`${p.id}: ${tool} from ${ORDER[at]}`);
   }
