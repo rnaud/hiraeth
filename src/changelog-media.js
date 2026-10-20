@@ -1351,6 +1351,10 @@ const SEAPORT572 = 'Issue #572: the web game in muted headless Chrome (High, 128
 export const CHANGELOG_MEDIA = {
   '1.90': [
     { match: 'The caravan study has been rebuilt around the selected drawing', see: 'Open the caravan ship study from Debug. Choose Reference to compare its shape with the selected drawing, then orbit around it and try Depart and Arrive. This is a separate web study; the ship in the game has not changed.' },
+    { match: 'The Underwater City has much more life', shots: [
+      { name: 'underwater-life-dock-581', title: 'Schools outside the Dock', size: [1280, 720], caption: 'Larger, denser schools swim in clear water close to the city windows.', from: 'Issue #581: muted Chrome on isolated port 5482, High at 1280 × 720, noon. Same camera before (8c21febec) and after; animals remain in motion.' },
+      { name: 'underwater-life-gallery-581', title: 'Life beyond the Whale Gallery', size: [1280, 720], caption: 'A resident whale and nearby fish pass above the deep canyon, visible from inside the Gallery.', from: 'Issue #581: muted Chrome on isolated port 5482, High at 1280 × 720, noon. Same camera before (8c21febec) and after; animals remain in motion.' },
+    ] },
   ],
   '1.89': [
     { match: 'In the Wardrobe, the traveller now holds the sword', see: 'After finding the sword, open the Wardrobe and browse outfits and blade colours. He holds it upright beside him, with the hilt at his waist, as you turn the preview. Closing the page restores the weapon and hand pose he had in the world, in both web and Unity.' },

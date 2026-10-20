@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { buildCityLife } from './underwater-life.js';
 import { attachPort } from './port-pad.js';
 import { UNDERWATER_PORT } from './ports.js';
 import { createNoise2D, fbm, mulberry32, smoothstep } from '../noise.js';
@@ -17,7 +18,7 @@ import { buildSingingCity } from '../underwater-song.js';
 import { buildSeaPort, SHAFT, SEA_PORT, PORT_SHIP, STATIONS, doorSpot } from '../underwater-port.js';
 import {
   UNDERWATER_LOOK, UNDERWATER_DAY, UNDERWATER_DUSK, UNDERWATER_NIGHT, SEA_DAY, UW_PAL, uwMats, seaSurface, tower, pod, podRing, glassColumns, cafeDome,
-  lampPost, bush, kelp, rock, manta, fishSchool, farCity, bigDome, glassTube, whale,
+  lampPost, bush, kelp, rock, manta, farCity, bigDome, glassTube, whale,
 } from './underwater-kit.js';
 
 // ---------------------------------------------------------------------------
@@ -495,7 +496,7 @@ export function* buildUnderwater(scene) {
   const near = { k: 0 };
   manta(kit, M, { at: [0, 34, 40], R: 70, w: 15, speed: 2.6, phase: 0.4, bank: 0.2 });
   manta(kit, M, { at: [40, 44, -60], R: 120, w: 19, speed: -3, phase: 2.2, bank: 0.15 });
-  for (const [x, y, z, n, R] of [[28, 10, 92, 30, 6], [-30, 18, -30, 30, 5], [50, 12, -110, 36, 7], [-70, 8, 50, 26, 5], [-20, 6, 160, 24, 6]]) fishSchool(kit, M, { at: [x, y, z], n, R, seed: x * 7 + z });
+  const cityLife = buildCityLife(kit, M);
   // (since #192 the two of the deep swim down in the canyon, long loops along it; calmed, they come up to the Gallery's
   // glass. A third passes overhead over the lip of the canyon and the end of the bells' walk, all the time: its shadow
   // goes over you)
@@ -570,7 +571,7 @@ export function* buildUnderwater(scene) {
     portals: [...portals, ...shop.portals],
     shops: [shop],
     floraAvoid: shop.avoid(),
-    sea, halls, tubes, decks, cafes, air: seaAir, whales, column: COLUMN, lift: LIFT,
+    sea, halls, tubes, decks, cafes, air: seaAir, whales, cityLife, column: COLUMN, lift: LIFT,
     // (issue #572: the sea port and its lift; the cabin and its shut gates are moving solids)
     seaPort: port,
     dynamic: () => port.lift.solids(),

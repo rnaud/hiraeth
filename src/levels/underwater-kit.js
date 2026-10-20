@@ -610,23 +610,30 @@ export function manta(kit, M, { at, R = 60, w = 14, speed = 3, phase = 0, bank =
  * A school of small pale fish milling round a point: n of them, one InstancedMesh, one mover. at: [x, y, z]; R its
  * radius. Returns the mesh.
  */
-export function fishSchool(kit, M, { at, n = 40, R = 5, size = 0.35, speed = 0.4, seed = 5 } = {}) {
+export function fishSchool(kit, M, { at, n = 40, R = 5, size = 0.35, speed = 0.4, seed = 5, near = Infinity, far = Infinity } = {}) {
   const rng = mulberry32(seed);
   const g = mergeGeometries([
-    new THREE.ConeGeometry(0.25, 1, 5).rotateX(Math.PI / 2).toNonIndexed(),
-    new THREE.ConeGeometry(0.22, 0.4, 3).rotateX(-Math.PI / 2).scale(0.2, 1, 1).translate(0, 0, -0.62).toNonIndexed(),
+    new THREE.SphereGeometry(1, 8, 6).scale(0.22, 0.36, 0.55).toNonIndexed(),
+    new THREE.ConeGeometry(0.25, 0.35, 3).rotateX(-Math.PI / 2).scale(0.2, 1, 1).translate(0, 0, -0.64).toNonIndexed(),
   ]);
   const mesh = new THREE.InstancedMesh(g, M.fish, n);
-  mesh.name = 'Fish'; mesh.userData.noCollide = true; mesh.frustumCulled = false;
+  mesh.name = 'Fish'; mesh.userData.noCollide = true;
+  mesh.position.set(...at);
+  // Fixed local envelope covers every phase, including the largest fish and vertical bob.
+  mesh.boundingSphere = new THREE.Sphere(new THREE.Vector3(), R * 1.1 + size * 1.5 + 0.3);
   mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
   kit.group.add(mesh);
   kit.noShadow?.push?.(mesh);
   const f = Array.from({ length: n }, () => ({ r: R * (0.4 + rng() * 0.6), y: (rng() - 0.5) * R * 0.5, a: rng() * TAU, v: speed * (0.8 + rng() * 0.4), s: size * (0.7 + rng() * 0.6) }));
   const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _e = new THREE.Euler(), _p = new THREE.Vector3(), _s = new THREE.Vector3();
-  const update = (t) => {
-    for (let i = 0; i < n; i++) {
+  const update = (t, viewer = null) => {
+    const distance = viewer ? viewer.distanceTo(mesh.position) : 0;
+    mesh.visible = distance < far;
+    if (!mesh.visible) return;
+    mesh.count = distance > near ? Math.max(1, Math.ceil(n / 3)) : n;
+    for (let i = 0; i < mesh.count; i++) {
       const o = f[i], a = o.a + t * o.v;
-      _p.set(at[0] + Math.cos(a) * o.r, at[1] + o.y + Math.sin(t * 0.7 + i) * 0.3, at[2] + Math.sin(a) * o.r);
+      _p.set(Math.cos(a) * o.r, o.y + Math.sin(t * 0.7 + i) * 0.3, Math.sin(a) * o.r);
       _q.setFromEuler(_e.set(0, -a, 0));
       mesh.setMatrixAt(i, _m.compose(_p, _q, _s.setScalar(o.s)));
     }

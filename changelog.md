@@ -8,6 +8,7 @@ The same release notes shown in the game (press **N** or open settings).
 - The Salt Pilgrim’s robe and sash have more room at the waist, reducing clothing overlap as he runs.
 - Repeated reference pictures now load reliably on the published References page.
 - The caravan study has a rounder hull and broad curved cockpit. Its camp packs into a closed side hatch before lift-off, then unfolds after landing.
+- The Underwater City has much more life outside its windows: dense schools of fish, nearby mantas and great whales passing above the streets and beside the Gallery.
 - In Unity, drag the Wardrobe preview to turn the traveller and move the galactic scanner with a mouse or finger. See what changed opens the illustrated changelog in your browser.
 - With motion matching enabled, the traveller now settles into standing after a short walk instead of holding a frozen stride with bent knees.
 - The caravan study has been rebuilt around the selected drawing, with a broad cockpit, a deeper rounded hull and separate engine pods.

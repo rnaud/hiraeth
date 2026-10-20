@@ -1916,6 +1916,18 @@ the mantas and the whales are all on the other side of the glass. (Since v1.56 y
   Whale-House's keeper is calmed (`level.whalesNear`, eased by `src/story/underwater.js`).
 - **Cost**: ~0.3 M triangles, ~110 meshes before the temple; the domes and tubes are glass (cheap: most of it discarded).
 
+Since #581, `src/levels/underwater-life.js` places 960 fish in 15 schools near the city’s
+windows, four local manta circuits and two resident whales, reusing the approved fauna sheet
+(`references/levels/The Underwater City/environment/flora-fauna/sheet-1.jpg`). The existing
+far-ranging mantas, overhead whale and two story-responsive deep whales remain. Rounded fish
+bodies and tails share one instanced draw per school. Schools retain 22 fish beyond 75 m,
+stop updating and drawing beyond 160 m, and resume from absolute time when approached; a
+fixed local bounding sphere covers their entire orbit for frustum culling. Large residents
+remain fully animated. These shared builders run in both web and Unity. Tests sample complete
+routes against the domes, tubes, seabed and actual city collision geometry, and exercise LOD
+return without stale poses. The close routes avoid the Avenue’s rooftop tower and the glass
+instead of letting animals disappear when they intersect buildings.
+
 The Underwater City’s nested cafés use finished floor heights from `UW_FLOOR_TOP`: hall paving at 4 cm over its nominal elevation, café floors at 8 cm. This leaves a walkable 4 cm threshold and prevents the two differently coloured surfaces from fighting for the same depth in both engines (issue #580). `tests/underwater-floor.test.js` checks the actual generated geometry at several elevations.
 
 ## The Underwater City's sea port (issue #572)

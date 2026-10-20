@@ -16,6 +16,8 @@ export const CHANGELOG = [
       see: 'Enable Motion matching in Debug, walk briefly, then release the controls. He finishes settling into a relaxed standing pose; repeated starts and stops work too.' },
     { text: 'In Unity, drag the Wardrobe preview to turn the traveller and move the galactic scanner with a mouse or finger. See what changed opens the illustrated changelog in your browser.',
       see: 'Drag across the traveller in Wardrobe, then sweep across the galactic map to search. In What’s new, choose See what changed to open the website; return to the game when finished.' },
+    { text: 'The Underwater City has much more life outside its windows: dense schools of fish, nearby mantas and great whales passing above the streets and beside the Gallery.',
+      see: 'Take the sea-port lift down, then look through the Dock, Avenue, Garden and Whale Gallery windows. Schools stay outside the glass; the deep whales still respond to the Whale-House.' },
     { text: 'The caravan study has a rounder hull and broad curved cockpit. Its camp packs into a closed side hatch before lift-off, then unfolds after landing.',
       see: 'Open the caravan ship study from Debug, then try Depart and Arrive to watch the deck, canopy, furniture, laundry and landing gear stow and return.' },
     { text: 'Repeated reference pictures now load reliably on the published References page.',
