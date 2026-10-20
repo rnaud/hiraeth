@@ -1329,6 +1329,10 @@ const POLISH567 = 'Issue #567: muted headless Chrome (High, 1280 × 720, 10:00, 
 const FINALE567 = 'Issue #567: the cinematics QC (node scripts/cinematics-qc.mjs --only finale.underwater: muted headless Chrome at High, 1280 × 720, its frames 960 × 540) on a Vite of its own (port 5567), staged by the review page as play has it; the frame 9 s in (D); before: origin/main d2a27ddea, after: this change; 20 October';
 /** (v1.88, issue #562: the temple endings, each house's own panel) */
 const END562 = 'Issue #562: the cinematics QC (node scripts/cinematics-qc.mjs --group "Temple endings": muted headless Chrome at High, 1280 × 720, its frames 960 × 540) on a Vite of its own (port 5362), each ending staged by the review page as play has it; before: origin/main 6352c9ee8, after: this change; the same moment of each film; 20 October';
+/** (v1.88, issues #568, #569: the Unity version's trails, box card, minigame hints and shadows) */
+const UNITY568 = 'Issues #568, #569: the Unity editor’s batch run on this Mac (node scripts/unity-compare/sequences.mjs unity plumb-talk,box,game-pirates-ice: -sequence, High, a 1280 × 720 screen, muted), the beat’s picture (plumb-talk’s bark, box’s card, the pirates’ run), cropped for the card and the hints; before: origin/main at 9a4f25a01, after: this change; 20 October; cwebp -q 72';
+const WEB568 = 'Issues #568, #569: the web game in muted headless Chrome (High, 1280 × 720) on a Vite of its own (port 5461, node scripts/unity-compare/sequences.mjs web), the same beats, cropped as the Unity pictures; 20 October; cwebp -q 72';
+const UNITY569S = 'Issue #569: the visual check (node scripts/unity-compare/run.mjs --worlds home,overnighttrain: High, 1280 × 720, muted, -fresh -no-hud), the Overnight Train’s wide view at dusk (18.6 h), cropped to the platform’s low wall; before: origin/main at 9a4f25a01, after: this change; the web’s from the same run (scripts/design-qc/capture.mjs --fixed-scale); 20 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.88': [
     { match: 'Each makers’ house now ends on its own picture', tags: ['story'], shots: [
@@ -1352,6 +1356,20 @@ export const CHANGELOG_MEDIA = {
     ], see: 'In the Signal Market, ask about the fragments and walk to the statues and fountains they name; on the City-Shaft’s rim, the lamplighters’ statues.' },
     { match: 'Walking in a fountain’s basin there, your feet no longer sink', tags: ['worlds'],
       see: 'In the Signal Market or on the City-Shaft’s rim, step over a fountain’s rim into its basin: you stand on its floor, 15 cm up, where before your feet went through it to the square’s ground.' },
+    { match: 'In the Unity version, Plumb’s trail and the hoverbike’s and the skiff’s trails', tags: ['devices'], shots: [
+      { name: 'unity-trail-568', title: 'Plumb’s trail', size: [1280, 720], caption: 'Plumb flying off after its talk, in Unity: before, a plain white streak; after, its lilac and pink bands, as on the web (SSIM with the web 0.69 → 0.82, ΔE 2.6 → 0.9)', from: UNITY568 },
+      { name: 'unity-trail-568-web', only: 'after', title: 'On the web', size: [1280, 720], caption: 'The same beat on the web', from: WEB568 },
+    ], see: 'In the Unity version, talk to Plumb and let it fly off toward where you are going; or ride the hoverbike.' },
+    { match: 'In the Unity version, a makers’ box’s card names what you found', tags: ['devices', 'menus'], shots: [
+      { name: 'unity-boxcard-569', title: 'A box’s card', size: [480, 200], caption: 'The backpack’s card in Unity: before, “MAGIC-FLUID BACKPACK” in capitals beside a square, “CONTINUE”; after, as written, on two lines, the four-pointed star before it, “Continue” (SSIM with the web 0.86 → 0.92)', from: UNITY568 },
+      { name: 'unity-boxcard-569-web', only: 'after', title: 'On the web', size: [480, 200], caption: 'The same card on the web', from: WEB568 },
+      { name: 'unity-hints-569', title: 'The pirates’ hints', size: [980, 80], caption: 'The chime pirates’ controls in Unity: before, the controls and the missiles, gun and boost in one bar; after, in two boxes side by side', from: UNITY568 },
+      { name: 'unity-hints-569-web', only: 'after', title: 'On the web', size: [980, 80], caption: 'The same row on the web', from: WEB568 },
+    ], see: 'In the Unity version, open a makers’ box; fly the chime pirates on the way to a new world.' },
+    { match: 'In the Unity version, the sun’s shadows are filtered as on the web', tags: ['devices'], shots: [
+      { name: 'unity-shadow-569', title: 'A shadow’s edge', size: [640, 430], caption: 'The Overnight Train’s platform at dusk in Unity: before, the low wall’s shadow edged in square steps (the shadow map’s texels); after, the web’s tent of taps rounds them (its length still differs from the web’s, issue #569)', from: UNITY569S },
+      { name: 'unity-shadow-569-web', only: 'after', title: 'On the web', size: [640, 430], caption: 'The same wall on the web', from: UNITY569S },
+    ] },
   ],
   '1.87': [
     { match: 'In the Unity version, the chime pirates’ place names and a minigame’s other call-outs', tags: ['menus'], shots: [

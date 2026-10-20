@@ -614,7 +614,8 @@ namespace Hiraeth.Bridge
             // (the ground and the water keep their own path in a lean variant of their own, when they use no other rare one)
             string why = F(m, "_Glass") > 0 ? "glass" : F(m, "_Veil") > 0 ? "veil" : V(m, "_Dissolve").x > 0 ? "dissolve"
                 : F(m, "_Fluid") > 0.5f ? "fluid" : F(m, "_TripoFace") > 0.5f ? "face" : F(m, "_Veins") > 0 ? "veins" : F(m, "_BoxOn") > 0.5f ? "box"
-                : F(m, "_SeeOn") > 0.5f ? "see" : F(m, "_Scrub") > 0 ? "scrub" : F(m, "_SplatOn") > 0.5f ? "splat" : F(m, "_MirrorOn") > 0.5f ? "mirror" : F(m, "_FallOn") > 0.5f ? "fall" : null;
+                : F(m, "_SeeOn") > 0.5f ? "see" : F(m, "_Scrub") > 0 ? "scrub" : F(m, "_SplatOn") > 0.5f ? "splat" : F(m, "_MirrorOn") > 0.5f ? "mirror" : F(m, "_FallOn") > 0.5f ? "fall"
+                : mode == 5 ? "ribbon" : null;   // (a trail's ribbon, MODE_RIBBON: its tail cut into dots, a discard, issue #568)
             string kw = why != null ? null : mode == 1 ? "HIRAETH_LEAN_TERRAIN" : mode == 3 ? "HIRAETH_LEAN_WATER" : "HIRAETH_LEAN";
             // (the scrub's strokes or the glass's cut alone, on no ground or water: the lean variant with that one path kept; the
             // see-through hole of a fight temple's wall, materials.js SEE_HOLE, is a cut of the same kind, drawn there too)

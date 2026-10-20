@@ -11,7 +11,7 @@ Shader "Hiraeth/Surface"
     _Color ("Color", Vector) = (1, 1, 1, 1)
     _Color2 ("Color 2", Vector) = (1, 1, 1, 1)
     _Color3 ("Color 3", Vector) = (1, 1, 1, 1)
-    _Mode ("Mode (0 plain, 1 terrain, 2 strata, 3 water)", Float) = 0
+    _Mode ("Mode (0 plain, 1 terrain, 2 strata, 3 water, 4 outfit, 5 ribbon, 6 eye)", Float) = 0
     _Flat ("Faceted", Float) = 0
     _StrataSize ("Strata size", Float) = 4
     _Grid ("Grid spacing", Float) = 0
@@ -391,7 +391,7 @@ Shader "Hiraeth/Surface"
       // glass's, the dissolve's and a veil's (they write no depth there: drawn in full by the G-buffer pass after); the G-buffer pass
       // then shades each pixel once. Off, the pass is as before.
       #pragma multi_compile _ HIRAETH_PREPASS
-      // HIRAETH_LEAN: a material that is no water, terrain, glass, fluid, makers' box, scrub, veins, drawn face or dissolve
+      // HIRAETH_LEAN: a material that is no water, terrain, glass, fluid, trail's ribbon, makers' box, scrub, veins, drawn face or dissolve
       // (BridgeRenderer.Lean, the Unity bridge's Linux player) on a variant without those paths (LEANK false: the compiler
       // drops them). The full pass is ~25 000 instructions and 168 VGPRs on the Deck's RADV (6 waves a SIMD), the lean
       // one about half and 128 (8): the City-Shaft's GPU 3-4 ms quicker, the same picture (docs/systems/performance.md,
@@ -487,6 +487,8 @@ Shader "Hiraeth/Surface"
       float _MShadowTaps, _MShadowOn;
       // sampleShadow: the point pushed out along the normal (more towards grazing light), faded out at the map's
       // edges; where a texel is smaller than the pixel the taps spread to the pixel's footprint
+      // (one tap, o texels from the corner base, its distance from the point uv scaled by spread: materials.js shadowTap)
+      #define M_SHADOW_TAP(o) SAMPLE_TEXTURE2D_SHADOW(map, smp, float3((uv + (base + (o) - uv) * spread) * inv, z))
       float mSampleShadow(TEXTURE2D_SHADOW_PARAM(map, smp), float4x4 m, float4 prm, float inv, float3 wp, float3 nU, float sinL, float spread, out float inside)
       {
         inside = 0.0;
@@ -501,18 +503,26 @@ Shader "Hiraeth/Surface"
           float z = p.z - prm.x;
         #endif
         if (inside <= 0.0) return 1.0;
-        float2 tx = spread * inv;
+        // the tent on the map's own texels (materials.js sampleShadow, shadows.js tentTaps): st, where the point lies past the
+        // nearest texel corner (0..1); each bilinear comparison weighted so the taps add up to a tent 3 (4 taps) or 5 (9 taps)
+        // texels wide that slides with the point: a smooth edge where a box of taps on a fixed grid printed the map's texels
+        // as steps (the Overnight Train's platform wall at dusk, issue #569)
+        float2 uv = p.xy / inv, base = floor(uv + 0.5), st = uv + 0.5 - base;
+        base -= 0.5;
         if (_MShadowTaps < 5.0) {
-          float2 o = tx * 0.5;
-          return 0.25 * (SAMPLE_TEXTURE2D_SHADOW(map, smp, float3(p.xy + float2(-o.x, -o.y), z)) + SAMPLE_TEXTURE2D_SHADOW(map, smp, float3(p.xy + float2(o.x, -o.y), z))
-                       + SAMPLE_TEXTURE2D_SHADOW(map, smp, float3(p.xy + float2(-o.x, o.y), z)) + SAMPLE_TEXTURE2D_SHADOW(map, smp, float3(p.xy + float2(o.x, o.y), z)));
+          float2 w0 = 3.0 - 2.0 * st, w1 = 1.0 + 2.0 * st;
+          float2 o0 = (2.0 - st) / w0 - 1.0, o1 = st / w1 + 1.0;
+          return (w0.y * (w0.x * M_SHADOW_TAP(float2(o0.x, o0.y)) + w1.x * M_SHADOW_TAP(float2(o1.x, o0.y)))
+                + w1.y * (w0.x * M_SHADOW_TAP(float2(o0.x, o1.y)) + w1.x * M_SHADOW_TAP(float2(o1.x, o1.y)))) / 16.0;
         }
-        float sum = 0.0;
-        UNITY_UNROLL for (int x = -1; x <= 1; x++)
-          UNITY_UNROLL for (int y = -1; y <= 1; y++)
-            sum += SAMPLE_TEXTURE2D_SHADOW(map, smp, float3(p.xy + float2(x, y) * tx, z));
-        return sum / 9.0;
+        float2 w0 = 4.0 - 3.0 * st, w2 = 1.0 + 3.0 * st;
+        float2 o0 = (3.0 - 2.0 * st) / w0 - 2.0, o1 = (3.0 + st) / 7.0, o2 = st / w2 + 2.0;
+        float s = w0.y * (w0.x * M_SHADOW_TAP(float2(o0.x, o0.y)) + 7.0 * M_SHADOW_TAP(float2(o1.x, o0.y)) + w2.x * M_SHADOW_TAP(float2(o2.x, o0.y)));
+        s += 7.0 * (w0.x * M_SHADOW_TAP(float2(o0.x, o1.y)) + 7.0 * M_SHADOW_TAP(float2(o1.x, o1.y)) + w2.x * M_SHADOW_TAP(float2(o2.x, o1.y)));
+        s += w2.y * (w0.x * M_SHADOW_TAP(float2(o0.x, o2.y)) + 7.0 * M_SHADOW_TAP(float2(o1.x, o2.y)) + w2.x * M_SHADOW_TAP(float2(o2.x, o2.y)));
+        return s / 144.0;
       }
+      #undef M_SHADOW_TAP
       // ndl: light facing (> 0); px: the pixel's footprint in metres; wp, nU in Unity space
       float getShadow(float3 wp, float3 nU, float ndl, float px)
       {
@@ -1214,6 +1224,9 @@ Shader "Hiraeth/Surface"
           if (dn < dth) discard;
           dEdge = 1.0 - smoothstep(0.0, _Dissolve.y, dn - dth);
         }
+        // a trail's tail dissolving into print dots by its age (materials.js S_RIBBON: aFold.y, bayer4 on the page's pixels). In
+        // the full variant only (BridgeRenderer.Lean "ribbon"): a discard in a lean one costs its every surface the early depth test
+        if (LEANK && mode == MODE_RIBBON && ribbonBayer4(i.positionCS.xy / max(_PixelRatio, 1.0) * 0.5) < smoothstep(0.45, 0.95, I_FOLD.y)) discard;
         // a splat of the fluid (splat-decal.js splatMaterial): its lumpy blob and drops in its own plane (the form's slot: x, y,
         // born, life; its phase in the fold's), grown and shrunk by its age on the splats' clock; the inner blob in its second
         // tone (the bind's slot). Not in the lean variants (BridgeRenderer.Lean: a splat's material is on the full one)
@@ -1339,6 +1352,9 @@ Shader "Hiraeth/Surface"
         } else if (mode == MODE_WATER && _WaterOpt.x <= 0.0) {
           float w = vnoise(i.worldPos.xz * 0.012 + _MTime * 0.01);
           albedo = w > 0.55 ? _Color2.rgb : _Color.rgb;
+        } else if (mode == MODE_RIBBON) {
+          // a trail (materials.js S_RIBBON): its colour bands along the path, in the fluid's tones when the backpack powers it
+          albedo = ribbonAlbedo(I_FOLD.x, _Fluid > 0.5, _FluidA.y);
         }
         float waterInk = 0.0, waterLit = 0.0, waterGlow = 0.0;
         UNITY_BRANCH if (WATERK && mode == MODE_WATER && _WaterOpt.x > 0.0) albedo = waterLook(i.worldPos, frontFace, i.positionCS.xy, i.viewDepth, waterInk, waterLit, waterGlow); else if (mode == MODE_OUTFIT) {
@@ -1812,6 +1828,7 @@ Shader "Hiraeth/Surface"
         // kept on the full variant (BridgeRenderer.Lean: "mirror", "splat", "fall"), so no lean prepass carries a discard; a wall
         // seen through round him while its hole is open (SEE_HOLE) with the glass's cut, GLASSK: the full variant or the glass's
         // lean one, BridgeRenderer.Lean "see")
+        // (a trail's ribbon, MODE_RIBBON, its tail's dots cut in the G-buffer pass: on the full variant, BridgeRenderer.Lean "ribbon")
         // (the blade and the shield, HIRAETH_FIGHT's own variant: their meniscus is cut, and their vertices bowed, in the
         // G-buffer pass alone)
         #if defined(HIRAETH_FIGHT)
@@ -1819,7 +1836,7 @@ Shader "Hiraeth/Surface"
         #else
           #define BLADEPP false
         #endif
-        void fragEntry(DepthVaryings i) { if ((GLASSK && (_Glass > 0.0 || (_SeeOn > 0.5 && _SeeK.x > 0.001))) || (LEANK && (_Dissolve.x > 0.0 || _Veil > 0.0 || _SplatOn > 0.5 || _MirrorOn > 0.5 || _FallOn > 0.5)) || BLADEPP) discard; }
+        void fragEntry(DepthVaryings i) { if ((GLASSK && (_Glass > 0.0 || (_SeeOn > 0.5 && _SeeK.x > 0.001))) || (LEANK && (_Dissolve.x > 0.0 || _Veil > 0.0 || _SplatOn > 0.5 || _MirrorOn > 0.5 || _FallOn > 0.5 || (_Mode > 4.5 && _Mode < 5.5))) || BLADEPP) discard; }
       #else
         // (the traveller's own surfaces while the lens is in his body, materials.js uHeroCut × uCutMe: past the clip volume, so
         // none of him is drawn; his shadow is the ShadowCaster's, kept)

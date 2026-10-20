@@ -9,6 +9,7 @@
 #define MODE_TERRAIN 1
 #define MODE_STRATA 2
 #define MODE_WATER 3
+#define MODE_RIBBON 5   // a hover trail (materials.js MODE_RIBBON: src/trail.js, the fluid's wakes): flat colour bands along aFold.x
 
 // atan2 with no NaN at (0, 0), for everything included after this (the Surface shader, its patterns and the people; issue
 // #462): Metal's fast maths works atan2(0, 0) out as 0 / 0, and the G-buffer's one NaN pixel at a pattern's very centre is

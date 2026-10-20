@@ -1821,6 +1821,28 @@ the chimes' count in `Ui.Mono`, the monospace the page dropped in #423; now the 
 holds the JS bridge's HUD to it). The pirates' sequences wait on the game (the 3-2-1 at its 1), not the clock: on the way
 somewhere the run starts as the page opens, a second or two before the web's runner does.
 
+**The trails, the box card, the hints and the shadows (#568, #569, 2026-10-20).** From #556's check:
+- **The ribbon** (#568): every Trail (Plumb's, the hoverbike's and the skiff's, the fluid's wakes) is `MODE_RIBBON` (5) on
+  the web, which Surface.shader had no branch for: drawn white. Now a uniform branch, not a keyword (the PSO lists untouched):
+  the five bands along `I_FOLD.x` (Figure.hlsl `ribbonAlbedo`, the fluid's tones under `_Fluid`), the tail dithered out by
+  `I_FOLD.y` (`ribbonBayer4`, the page's bayer4). The fold goes with the bind (engine/unity/backend.js: a ribbon's node packs
+  it as a fluid trail's, one vertex layout for both; the trail's aFold moves every frame, so its geometry was already sent
+  whole each frame). The discard is in the full variant only: BridgeRenderer.Lean gives a ribbon none of the lean ones
+  ("ribbon"), and the prepass writes no depth for it. plumb-talk's `bark`: SSIM with the web 0.69 → 0.82, ΔE 2.6 → 0.9.
+- **The box card** (#569): the name as written (no capitals), on the page's lines (44ch: 0.53 of the body's size, not 0.62),
+  the four-pointed star (a Sketch, the page's clip-path) before its first line; Continue and Skip as written. `box`'s `card`
+  0.86 → 0.92. **The pirates' hints**: the controls' row and the game's line (missiles, gun, boost) in two boxes, 8 px apart,
+  as the page's `.mg-hints`. The page's pause button (top right) is not drawn: Unity's HUD takes no pointer, and the page
+  hides the button with a pad.
+- **Shadows** (#569): `mSampleShadow` is the page's tent (4 or 9 bilinear taps weighted to a 3- or 5-texel tent sliding with
+  the point; a box of taps on a fixed grid before), and the near map's bias and offset are shadows.js `NEAR_CASCADE` (1 and
+  1.6 texels; Unity kept 2.3 and 3.2 from before the web's shadow QC). Home's wide view at dusk: ΔE 2.9 / 16.8 → 1.3 / 6.7,
+  SSIM 0.81 → 0.88. Left: Home's round stepping stones still cast next to nothing at dusk, and the Overnight Train's platform
+  wall's shadow is longer than the web's (its steps rounded now, not gone): another cause than the filter and the bias.
+- Not Unity's: the lit disc round Lorn's fragment cairn is the fragment's own light breathing (src/fragments.js: its reach
+  2.6 ± 0.4 m), each side shot at its own clock's phase. The Signal Market console's screen panel casts a shadow on the
+  console's face in Unity and none on the web (whether the traveller is near or far): open.
+
 ## The opening, beat by beat (Unity + Puerts, 2026-10-16, issue #394)
 
 "Unity: opening cinematic on android seems a bit bugged out, father's hologram is not working, there is no button

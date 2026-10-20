@@ -237,6 +237,19 @@ float _FluidDomeK;   // how far it stands out of its ring (-z), in its radius
 #endif
 float3 fluidTone(int i) { return _FluidTones[i - 6 * (i / 6)].rgb; }
 float fmod2(float x, float y) { return x - y * floor(x / y); }
+// A trail's ribbon (materials.js S_RIBBON, MODE_RIBBON; src/trail.js): flat print bands of colour fixed along the path
+// (fold.x, a band every 6 m), each blending smoothly into the next; powered by the backpack (fluid-tool.js powerTrails, the
+// fluid's wakes) in the fluid's tones instead (nf of them: _FluidA.y)
+float3 ribbonAlbedo(float x, bool fluid, float nf)
+{
+  static const float3 P[5] = { float3(0.949, 0.773, 0.294), float3(0.902, 0.529, 0.373), float3(0.910, 0.561, 0.651),
+                               float3(0.663, 0.608, 0.878), float3(0.384, 0.765, 0.788) };
+  float k = smoothstep(0.0, 1.0, frac(x)), b = floor(x);
+  if (fluid) { nf = max(nf, 1.0); return lerp(fluidTone((int)fmod2(b, nf)), fluidTone((int)fmod2(b + 1.0, nf)), k); }
+  return lerp(P[(int)fmod2(b, 5.0)], P[(int)fmod2(b + 1.0, 5.0)], k);
+}
+// materials.js bayer4: a 4 x 4 ordered dither (the ribbon's tail dissolving into print dots)
+float ribbonBayer4(float2 p) { float2 q = floor(p - 4.0 * floor(p / 4.0)); int i = (int)q.x + (int)q.y * 4; static const int m[16] = { 0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5 }; return (m[i] + 0.5) / 16.0; }
 float3 fluidLava(float a, float h, float aspect, float t, int n, bool banded)
 {
   float F[6] = { 0, 0, 0, 0, 0, 0 };

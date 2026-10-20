@@ -160,11 +160,13 @@ export class UnityBackend {
     const vmat = specs.some((s) => s?.defines?.S_VMAT);
     // (the fluid's flask, hose and globs read their own rest place too: their box, the glass's height, materials.js FLUID)
     const fluid = specs.some((s) => s?.defines?.FLUID);
+    // (a trail's ribbon, MODE_RIBBON: its bands and its tail's age are aFold, which goes with the bind, as a fluid trail's; issue #568)
+    const ribbon = specs.some((s) => s?.u?.uMode === 5);
     // (a material three draws nothing with, visible false: a shaft of light's mesh, src/veil.js LightShaft, drawn only as its
     // wash; drawn opaque white before, issue #263): a node with no mesh, so nothing drawn and no geometry sent for it)
     // (and one the page draws nothing with by its blending: the hologram's beam, port 'hidden')
     const hidden = specs.length > 0 && (specs.every((s) => s?.visible === false) || d.mids.every((m) => this.ports.get(m) === 'hidden'));
-    const mesh = d.gid && !hidden ? this._variant(d.gid, colors, figure || fluid || d.kind === 'skinned', crowd, form, vmat) : null;
+    const mesh = d.gid && !hidden ? this._variant(d.gid, colors, figure || fluid || ribbon || d.kind === 'skinned', crowd, form, vmat) : null;
     if (d.kind === 'instanced' && d.mids.some((m) => this.ports.get(m) === 'print')) {
       // the footprints: the port's Puffs (its Print decal), instanced from op 10
       (this.puffs ??= new Set()).add(id);
@@ -192,7 +194,7 @@ export class UnityBackend {
     this.nodes ??= new Map();
     // (vmat kept with it: a merged mesh's geometry sent again, the City-Shaft's banners each frame they wave, keeps its
     // material values per vertex; without them its variant had none, and the banners drew black, issue #538)
-    this.nodes.set(id, { gid: d.gid, colors, bind: figure || fluid || d.kind === 'skinned', kind: d.kind, form, hidden, vmat });
+    this.nodes.set(id, { gid: d.gid, colors, bind: figure || fluid || ribbon || d.kind === 'skinned', kind: d.kind, form, hidden, vmat });
     // (a see-through surface's wash, Hiraeth/Veil, a deadly drop's dark, Hiraeth/PitVoid, and the wind's wisps cast no
     // shadow: the page draws them over the ink)
     const over = d.mids.some((m) => OVER.has(this.ports.get(m)));

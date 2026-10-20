@@ -32,7 +32,7 @@ test('the bridge gives a lean material the plain variant only when it has none o
 });
 
 test('the lean depth prepass has no discard (early depth on a tiled GPU); the full variant keeps the glass\'s, the dissolve\'s and a veil\'s', () => {
-  assert.match(surface, /void fragEntry\(DepthVaryings i\) \{ if \(\(GLASSK && \(_Glass > 0\.0 \|\| \(_SeeOn > 0\.5 && _SeeK\.x > 0\.001\)\)\) \|\| \(LEANK && \(_Dissolve\.x > 0\.0 \|\| _Veil > 0\.0 \|\| _SplatOn > 0\.5 \|\| _MirrorOn > 0\.5 \|\| _FallOn > 0\.5\)\) \|\| BLADEPP\) discard; \}/);
+  assert.match(surface, /void fragEntry\(DepthVaryings i\) \{ if \(\(GLASSK && \(_Glass > 0\.0 \|\| \(_SeeOn > 0\.5 && _SeeK\.x > 0\.001\)\)\) \|\| \(LEANK && \(_Dissolve\.x > 0\.0 \|\| _Veil > 0\.0 \|\| _SplatOn > 0\.5 \|\| _MirrorOn > 0\.5 \|\| _FallOn > 0\.5 \|\| \(_Mode > 4\.5 && _Mode < 5\.5\)\)\) \|\| BLADEPP\) discard; \}/);
   // (the see-through hole cuts with the glass, GLASSK; the blade's discard only in HIRAETH_FIGHT's own variant, never a lean one)
   assert.match(surface, /#if defined\(HIRAETH_FIGHT\)\n\s+#define BLADEPP \(_BladeOn > 0\.5\)\n\s+#else\n\s+#define BLADEPP false/);
 });

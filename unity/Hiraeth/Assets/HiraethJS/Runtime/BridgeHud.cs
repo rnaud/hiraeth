@@ -786,7 +786,7 @@ namespace Hiraeth.Bridge
         Ui.Box mgTimer, mgScore; Label mgTimerText, mgPenalty, mgScoreText, mgCount; RectTransform mgLives;
         readonly List<Image> mgLife = new();
         readonly List<(Ui.Box box, Label text, int id, float t, float secs)> mgFlash = new();
-        Ui.Box mgHints; Label mgHintsText;
+        Ui.Box mgHints, mgNote; Label mgHintsText, mgNoteText;
         int mgCountId = -1; float mgCountT; double mgSecs = -1; bool mgRun; float mgLocal; int mgBump = -1; float mgBumpT = 1;
         static readonly Color MgGold = Ui.Hex("#f2c54b"), MgTeal = Ui.Hex("#71d7cf"), MgBad = Ui.Hex("#d9643a"), MgCard = Ui.Hex("#fbf4e2");
 
@@ -807,7 +807,10 @@ namespace Hiraeth.Bridge
             var sh = mgCount.gameObject.AddComponent<Shadow>(); sh.effectColor = Ui.Ink; sh.effectDistance = new Vector2(7, -7);
             mgHints = Ui.Panel(root, "mg hints", HintBg0, HintBg0, 0, 0, 0, 4);
             mgHintsText = Ui.Label(mgHints.rt, "text", mono, 11, HintInk0, TextAnchor.MiddleLeft, FontStyle.Bold);
-            foreach (var b in new[] { mgTimer, mgScore, mgHints }) b.Show(false);
+            // (the game's line beside the row in a box of its own: the page's .mg-hints p, heavier and spaced; issue #569)
+            mgNote = Ui.Panel(root, "mg note", HintBg0, HintBg0, 0, 0, 0, 4);
+            mgNoteText = Ui.Label(mgNote.rt, "text", mono, 11, HintInk0, TextAnchor.MiddleLeft, FontStyle.Bold); Ui.Space(mgNoteText, 0.06f);
+            foreach (var b in new[] { mgTimer, mgScore, mgHints, mgNote }) b.Show(false);
             Show(mgCount, false); mgLives.gameObject.SetActive(false);
         }
 
@@ -945,19 +948,29 @@ namespace Hiraeth.Bridge
                 Ui.Alpha(box.rt, a);
                 fy += h + 6;
             }
-            // the controls' hint row (def.hints: the pirates between worlds), each word gone once used, the game's line beside it
+            // the controls' hint row (def.hints: the pirates between worlds), each word gone once used, and the game's line beside
+            // it in a box of its own (the page's .mg-hints: the row and its p side by side, 8 px apart, centred on one line, at the
+            // bottom right; issue #569: one bar before)
             var hi = g?.O("hints");
             bool hon = hi != null && !(hi.Get("off") is bool ho && ho);
-            mgHints.Show(hon);
-            if (hon)
+            var parts = hon ? (hi.L("items") ?? new List<object>()).OfType<Dictionary<string, object>>().Where(x => !(x.Get("gone") is bool gn && gn)).Select(x => $"<color=#f2c54b>{x.S("k")}</color> {x.S("w")}").ToList() : new List<string>();
+            var note = hon ? hi.S("note") ?? "" : "";
+            mgHints.Show(parts.Count > 0); mgNote.Show(note.Length > 0);
+            float hx = W - 14, hb = H - 12;
+            Vector2 ns = Vector2.zero, rs = Vector2.zero;
+            if (note.Length > 0) { mgNote.SetFill(HintBg); mgNoteText.color = HintInk; ns = Ui.Set(mgNoteText, note, W - 60); }
+            if (parts.Count > 0) { mgHints.SetFill(HintBg); mgHintsText.color = HintInk; rs = Ui.Set(mgHintsText, string.Join("   ", parts), W - 60 - (note.Length > 0 ? ns.x + 26 : 0)); }
+            float rowH = Mathf.Max(note.Length > 0 ? ns.y + 8 : 0, parts.Count > 0 ? rs.y + 8 : 0);
+            if (note.Length > 0)
             {
-                var parts = (hi.L("items") ?? new List<object>()).OfType<Dictionary<string, object>>().Where(x => !(x.Get("gone") is bool gn && gn)).Select(x => $"<color=#f2c54b>{x.S("k")}</color> {x.S("w")}").ToList();
-                var note = hi.S("note") ?? "";
-                if (note.Length > 0) parts.Add(note);
-                mgHints.SetFill(HintBg); mgHintsText.color = HintInk;
-                var s = Ui.Set(mgHintsText, string.Join("   ", parts), W - 60);
-                Ui.Place(mgHintsText.rectTransform, 9, 4, s.x, s.y);
-                Ui.Place(mgHints.rt, W - 14 - (s.x + 18), H - 12 - (s.y + 8), s.x + 18, s.y + 8);
+                Ui.Place(mgNoteText.rectTransform, 9, 4, ns.x, ns.y);
+                Ui.Place(mgNote.rt, hx - (ns.x + 18), hb - rowH / 2 - (ns.y + 8) / 2, ns.x + 18, ns.y + 8);
+                hx -= ns.x + 18 + 8;
+            }
+            if (parts.Count > 0)
+            {
+                Ui.Place(mgHintsText.rectTransform, 9, 4, rs.x, rs.y);
+                Ui.Place(mgHints.rt, hx - (rs.x + 18), hb - rowH / 2 - (rs.y + 8) / 2, rs.x + 18, rs.y + 8);
             }
         }
 
@@ -1236,9 +1249,10 @@ namespace Hiraeth.Bridge
         // the scene holds up stays clear above it; the name first and largest, after the makers' star, one line under it
         // (what it does, or the found line), then the button to go on, gold, its key's badge before its word. While the
         // scene plays and before the card, the skip's tag under the top bar
-        Ui.Box bCard, bGo, bSkip; Label bName, bText, bGoKey, bGoText, bSkipKey, bSkipText; Image bStar, bGoBadge, bSkipBadge;
+        Ui.Box bCard, bGo, bSkip; Label bName, bName2, bText, bGoKey, bGoText, bSkipKey, bSkipText; Image bGoBadge, bSkipBadge; Sketch bStar;
         float bCardT;
         const int CardBody = 15, CardName = 26;
+        const float CardStar = 0.7f * CardName, CardStarGap = 0.35f * CardName;   // (the page's h2 .star: 0.7em, 0.35em after it)
 
         // the father's charge lettered low in the lower third (src/story/charge.js showChargeCard, the page's #charge-card;
         // issue #394: Unity showed nothing as the dust cleared): a band of paper fading out at its ends, the gold mark and
@@ -1300,8 +1314,18 @@ namespace Hiraeth.Bridge
         void BuildBoxCard(Font mono)
         {
             bCard = Ui.Panel(root, "box card", Ui.Cream, Ui.Ink, 2, 4, 4);
-            bStar = Ui.Rect(bCard.rt, Ui.Hex("#25386c"), 0, "star"); bStar.rectTransform.localRotation = Quaternion.Euler(0, 0, 45);
-            bName = Ui.Label(bCard.rt, "name", Ui.Heavy, CardName, Ui.Ink, TextAnchor.UpperCenter, FontStyle.Bold); Ui.Space(bName, 0.04f);
+            // (the page's h2 .star: a four-pointed star in the makers' blue, clip-path polygon(50% 0, 61% 39%, 100% 50%, 61% 61%,
+            // 50% 100%, 39% 61%, 0 50%, 39% 39%), inline before the name's first line; issue #569)
+            bStar = Ui.Node("star", bCard.rt).gameObject.AddComponent<Sketch>(); bStar.raycastTarget = false;
+            var sp = new[] { (0.5f, 0f), (0.61f, 0.39f), (1f, 0.5f), (0.61f, 0.61f), (0.5f, 1f), (0.39f, 0.61f), (0f, 0.5f), (0.39f, 0.39f) };
+            var navy = Ui.Hex("#25386c"); var mid = new Vector2(CardStar / 2, -CardStar / 2);
+            for (int i = 0; i < sp.Length; i++)
+            {
+                var (ax, ay) = sp[i]; var (bx, by) = sp[(i + 1) % sp.Length];
+                bStar.Tri(mid, new Vector2(ax * CardStar, -ay * CardStar), new Vector2(bx * CardStar, -by * CardStar), navy);
+            }
+            bName = Ui.Label(bCard.rt, "name", Ui.Heavy, CardName, Ui.Ink, TextAnchor.UpperLeft, FontStyle.Bold); Ui.Space(bName, 0.04f);
+            bName2 = Ui.Label(bCard.rt, "name 2", Ui.Heavy, CardName, Ui.Ink, TextAnchor.UpperCenter, FontStyle.Bold); Ui.Space(bName2, 0.04f);
             bText = Ui.Label(bCard.rt, "text", mono, CardBody, Ui.Ink, TextAnchor.UpperCenter, lineSpacing: 1.3f);
             bGo = Ui.Panel(bCard.rt, "go", Ui.Gold, Ui.Ink, 1.5f, 2, 2);
             bGoBadge = Ui.Rect(bGo.rt, Ui.Ink, 4, "badge");
@@ -1332,23 +1356,34 @@ namespace Hiraeth.Bridge
             bSkip.Show(scene && !card);
             if (scene && !card)
             {
-                float sw = LayButton(bSkipBadge, bSkipKey, bSkipText, b.S("back") ?? "", Ui.Upper(b.S("skipLabel") ?? "Skip"), 9, 30);
+                float sw = LayButton(bSkipBadge, bSkipKey, bSkipText, b.S("back") ?? "", b.S("skipLabel") ?? "Skip", 9, 30);   // (as written, not in capitals: the page's .skip; issue #569)
                 Ui.Place(bSkip.rt, W - 18 - sw, H * 0.11f + 14, sw, 30);
                 Ui.Alpha(bSkip.rt, 0.85f);
             }
             bCardT = card ? bCardT + Time.unscaledDeltaTime : 0;
             bCard.Show(card);
             if (!card) return;
-            // (no wider than 44 of its letters, centred; the name first and largest, then its line, then the button)
-            float most = Mathf.Min(44 * CardBody * 0.62f, W - 24), padX = 1.2f * CardBody, padY = 0.6f * CardBody;
-            var ns = Ui.Set(bName, Ui.Upper(Text.Plain(b.S("name") ?? "")), most - 2 * padX - 26);
-            var ts = Ui.Set(bText, Text.Plain(b.S("text") ?? ""), most - 2 * padX);
-            float gh = 32, gw = LayButton(bGoBadge, bGoKey, bGoText, b.S("ok") ?? "", Ui.Upper(b.S("okLabel") ?? "Continue"), 10, gh);
-            float inner = Mathf.Max(ns.x + 26, Mathf.Max(ts.x, gw)), w = inner + 2 * padX;
+            // (no wider than 44 of its letters (the page's 44ch: 0.53 of the body's size in its face), centred; the name first and
+            // largest, as written (the page's h2: no capitals; issue #569), the star before its first line, its lines centred;
+            // then its line, then the button)
+            float most = Mathf.Min(44 * CardBody * 0.53f, W - 24), padX = 1.2f * CardBody, padY = 0.6f * CardBody, nameMax = most - 2 * padX;
+            var words = Text.Plain(b.S("name") ?? "").Split(' ');
+            int nw = words.Length;
+            while (nw > 1 && Ui.Measure(bName, string.Join(" ", words, 0, nw)).x + CardStar + CardStarGap > nameMax) nw--;
+            string rest = string.Join(" ", words, nw, words.Length - nw);
+            var ns = Ui.Set(bName, string.Join(" ", words, 0, nw));
+            var rs = rest.Length > 0 ? Ui.Set(bName2, rest, nameMax) : Vector2.zero;
+            Show(bName2, rest.Length > 0);
+            var ts = Ui.Set(bText, Text.Plain(b.S("text") ?? ""), nameMax);
+            float gh = 32, gw = LayButton(bGoBadge, bGoKey, bGoText, b.S("ok") ?? "", b.S("okLabel") ?? "Continue", 10, gh);
+            float first = CardStar + CardStarGap + ns.x;
+            float inner = Mathf.Max(Mathf.Max(first, rs.x), Mathf.Max(ts.x, gw)), w = inner + 2 * padX;
             float y = padY;
-            float nameX = w / 2 - (ns.x + 26) / 2;
-            Ui.Place(bStar.rectTransform, nameX + 4, y + ns.y / 2 - 6, 12, 12);
-            Ui.Place(bName.rectTransform, nameX + 26, y, ns.x, ns.y); y += ns.y + 4;
+            float nameX = w / 2 - first / 2;
+            Ui.Place(bStar.rectTransform, nameX, y + ns.y / 2 - CardStar / 2 + 1, CardStar, CardStar);
+            Ui.Place(bName.rectTransform, nameX + CardStar + CardStarGap, y, ns.x, ns.y); y += ns.y;
+            if (rest.Length > 0) { Ui.Place(bName2.rectTransform, w / 2 - rs.x / 2, y, rs.x, rs.y); y += rs.y; }
+            y += 4;
             Ui.Place(bText.rectTransform, w / 2 - ts.x / 2, y, ts.x, ts.y); y += ts.y + 0.5f * CardBody;
             Ui.Place(bGo.rt, w / 2 - gw / 2, y, gw, gh); y += gh + padY + 2;
             // (it slides up a little and fades in, as the page's transition)

@@ -23,6 +23,14 @@ export const CHANGELOG = [
     'In the Signal Market and on the City-Shaft’s rim, the statues by the fragments are carved figures now: a quiet one with its broad head, holding a light, listening or lifting its little screen, and a lamplighter in his long coat and wide hat with his lamp. No two fountains, bandstands, water tanks, stall blocks, signal platforms or kiosks in one world look the same any more.',
     // issue #567: src/fragment-landmarks.js fountain (its floor solid where it is drawn); tests/fragments-poi.test.js
     'Walking in a fountain’s basin there, your feet no longer sink into its floor.',
+    // issue #568: Surface.shader MODE_RIBBON (Figure.hlsl ribbonAlbedo, ribbonBayer4), engine/unity/backend.js (the fold packed
+    // for a ribbon), BridgeRenderer.Lean "ribbon"; tests/unity-ribbon.test.js
+    'In the Unity version, Plumb’s trail and the hoverbike’s and the skiff’s trails are drawn in their soft bands of colour (in the fluid’s colours when the backpack powers them), their tails breaking up into dots, as on the web, instead of a plain white streak.',
+    // issue #569: BridgeHud.cs (the box card's name, star and buttons; the minigame's hint row and its line in two boxes)
+    'In the Unity version, a makers’ box’s card names what you found as the web writes it, with its little star before it, and its buttons are no longer in capitals; in the chime pirates, the controls and the missiles-and-gun line sit in two boxes, as on the web.',
+    // issue #569: Surface.shader mSampleShadow (the web's tent of taps), HiraethShadows.cs (the near map's bias and offset
+    // as shadows.js NEAR_CASCADE); tests/unity-shadow-parity.test.js
+    'In the Unity version, the sun’s shadows are filtered as on the web, their edges softer up close, and the near ones sit as tight against what casts them as on the web.',
   ] },
   { v: '1.87', date: '2026-10-19', items: [
     // issue #556: BridgeHud.cs (a minigame's flashes, the gadget marks' numbers, the chimes' count in Ui.Sans / SansHeavy,

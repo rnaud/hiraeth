@@ -87,9 +87,11 @@ namespace Hiraeth
             return new Vector3(Mathf.Cos(el) * Mathf.Sin(az), Mathf.Sin(el), Mathf.Cos(el) * Mathf.Cos(az));
         }
 
-        // (main.js: fine 2048 / 12 m, near 4096 / 220 m, far 2048 / 1150 m; their bias and offset in texels)
+        // (main.js: fine 2048 / 12 m, near 4096 / 220 m, far 2048 / 1150 m; their bias and offset in texels: the near map's
+        // shadows.js NEAR_CASCADE, 1 and 1.6 since the web's shadow QC (v1.45: at 2.3 and 3.2 the shadows came loose from what
+        // casts them by 40-50 cm; low things, Home's stepping stones, cast next to none at dusk; issue #569))
         public readonly Cascade fine = new() { name = "fine", extent = 12, depth = 1600, biasTexels = 3.4f, offsetTexels = 2.6f };
-        public readonly Cascade near = new() { name = "near", extent = 220, depth = 1600, biasTexels = 2.3f, offsetTexels = 3.2f };
+        public readonly Cascade near = new() { name = "near", extent = 220, depth = 1600, biasTexels = 1.0f, offsetTexels = 1.6f };
         public readonly Cascade far = new() { name = "far", extent = 1150, depth = 3200, biasTexels = 2.2f, offsetTexels = 2.4f };
         public Cascade[] All => new[] { fine, near, far };
         int version = -1, frameNo;

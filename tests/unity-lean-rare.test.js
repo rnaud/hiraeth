@@ -19,7 +19,7 @@ test('the two variants drop every rare path but their own, and the ground\'s and
   assert.match(shader, /if \(GLASSK && _Glass > 0\.0 && _MSurfaceDebug < 3\.5\)/);
   assert.match(shader, /UNITY_BRANCH if \(SCRUBK && _Scrub > 0\.0\) \{/);
   // (the prepass discards for the glass alone there: the scrub's variant has no discard, its depth known before the fragment)
-  assert.match(shader, /void fragEntry\(DepthVaryings i\) \{ if \(\(GLASSK && \(_Glass > 0\.0 \|\| \(_SeeOn > 0\.5 && _SeeK\.x > 0\.001\)\)\) \|\| \(LEANK && \(_Dissolve\.x > 0\.0 \|\| _Veil > 0\.0 \|\| _SplatOn > 0\.5 \|\| _MirrorOn > 0\.5 \|\| _FallOn > 0\.5\)\) \|\| BLADEPP\) discard; \}/);
+  assert.match(shader, /void fragEntry\(DepthVaryings i\) \{ if \(\(GLASSK && \(_Glass > 0\.0 \|\| \(_SeeOn > 0\.5 && _SeeK\.x > 0\.001\)\)\) \|\| \(LEANK && \(_Dissolve\.x > 0\.0 \|\| _Veil > 0\.0 \|\| _SplatOn > 0\.5 \|\| _MirrorOn > 0\.5 \|\| _FallOn > 0\.5 \|\| \(_Mode > 4\.5 && _Mode < 5\.5\)\)\) \|\| BLADEPP\) discard; \}/);
   assert.equal((shader.match(/LEANK && _Scrub|LEANK && _Glass/g) ?? []).length, 0);
 });
 
