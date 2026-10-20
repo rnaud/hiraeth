@@ -12,6 +12,8 @@ export const CHANGELOG = [
     // issue #577: Surface.shader waterLook (_WaterBelow, the crests' WATER_INK fade, _WaterLite), WorldLoader.MakeMaterial;
     // tests/unity-sea-underside.test.js
     'In the Unity version, the sea over the Underwater City, seen from under the water, is the same deep, even blue as on the web instead of a pale ceiling crossed by streaks, and from the sea port’s deck the far sea is a flat tone again, without fine lines out to the horizon.',
+  
+    'In Unity, photos and previews drawn at reduced resolution no longer have a rectangle shaded differently from the rest of the picture.',
   ] },
   { v: '1.88', date: '2026-10-20', items: [
     // issue #493: src/characters/traveller.js loadTraveller / traveller-v2.js (travellerSetting on, dressTravellerV2),

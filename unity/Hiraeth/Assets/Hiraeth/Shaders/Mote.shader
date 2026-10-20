@@ -18,11 +18,7 @@ Shader "Hiraeth/Mote"
       #pragma vertex vert
       #pragma fragment frag
       #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-      Texture2D _GNormalTex;
-      // (HiraethFeature _GFlip: drawn straight into a player's back buffer, which is the other way up from the G-buffer's
-      // texture, its row read from the bottom; issue #420 / #425)
-      float _GFlip;
-      float4 GAt(float4 cs) { int2 p = int2(cs.xy); if (_GFlip > 0.5) { uint gw, gh; _GNormalTex.GetDimensions(gw, gh); p.y = (int)gh - 1 - p.y; } return _GNormalTex.Load(int3(p, 0)); }
+      #include "GAt.hlsl"
       float3 _Ink; float4 _MoteColor; float _Glow, _Alpha;
       struct A { float4 pos : POSITION; float2 uv : TEXCOORD0; uint vid : SV_VertexID; };
       struct V { float4 cs : SV_POSITION; float2 uv : TEXCOORD0; float d : TEXCOORD1; float tw : TEXCOORD2; };

@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.89 — 2026-10-20
 
+- In Unity, photos and previews drawn at reduced resolution no longer have a rectangle shaded differently from the rest of the picture.
 - In the Unity version, the sea over the Underwater City, seen from under the water, is the same deep, even blue as on the web instead of a pale ceiling crossed by streaks, and from the sea port’s deck the far sea is a flat tone again, without fine lines out to the horizon.
 
 ## v1.88 — 2026-10-20

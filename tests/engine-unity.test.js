@@ -582,7 +582,8 @@ test('a deadly drop\'s dark: on Hiraeth/PitVoid with its frame, box and look, ov
   const sh = read('unity/Hiraeth/Assets/Hiraeth/Shaders/PitVoid.shader');
   assert.match(sh, /Shader "Hiraeth\/PitVoid"/);
   assert.match(sh, /Cull Front/, 'three\'s BackSide through the mirror\'s flipped winding');
-  assert.match(sh, /_GNormalTex\.Load/, 'the scene\'s depth read by hand');
+  assert.match(sh, /#include "GAt\.hlsl"/, 'the scene\'s depth read by hand (GAt.hlsl: _GNormalTex at the pixel scaled to its size, issue #575)');
+  assert.match(sh, /GAt\(i\.cs\)/);
   const guid = /guid: ([0-9a-f]{32})/.exec(read('unity/Hiraeth/Assets/Hiraeth/Shaders/PitVoid.shader.meta'))[1];
   assert.ok(read('unity/Hiraeth/ProjectSettings/ProjectSettings.asset').includes(`guid: ${guid}, type: 3}`), 'preloaded (BridgeBuild.KeepShaders, issue #500): Shader.Find finds it in a player');
   assert.match(read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRenderer.cs'), /m\.S\("port"\) == "pitvoid"/);

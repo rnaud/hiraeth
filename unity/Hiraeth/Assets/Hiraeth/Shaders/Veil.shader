@@ -27,11 +27,7 @@ Shader "Hiraeth/Veil"
       HLSLINCLUDE
       #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
       #include "LightAdd.hlsl"
-      Texture2D _GNormalTex;
-      // (HiraethFeature _GFlip: drawn straight into a player's back buffer, which is the other way up from the G-buffer's
-      // texture, its row read from the bottom; issue #420 / #425)
-      float _GFlip;
-      float4 GAt(float4 cs) { int2 p = int2(cs.xy); if (_GFlip > 0.5) { uint gw, gh; _GNormalTex.GetDimensions(gw, gh); p.y = (int)gh - 1 - p.y; } return _GNormalTex.Load(int3(p, 0)); }
+      #include "GAt.hlsl"
       CBUFFER_START(UnityPerMaterial)
       float4 _Color;
       float _WashAlpha, _WashGlow, _WashNear, _Cull, _DstBlend;

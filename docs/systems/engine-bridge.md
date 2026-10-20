@@ -2142,6 +2142,16 @@ screen; the batch run's pictures only.
   now sets `_GFlip` (1 when the target is the back buffer) and the six read the G-buffer through `GAt`, its row from the
   bottom then. Not seen on a device yet: the sequences `pits` (the Rose House's Great Hall turned toward its pits, the
   channel's lip) and `skull-cave` compare it with the web in the editor, where both ways look the same.
+- **The void's dark over a picture's ground** (#575). A picture drawn into a texture at a render scale under 1 (a shot,
+  photo mode, the bench's views, the portraits and the wardrobe on the Retroid and the Xbox) is drawn by URP straight
+  into that texture, at its size: URP makes no smaller copy of its own for a camera with a target texture
+  (UniversalRenderer `requiresBlitForOffscreenCamera` leaves the render scale out), while our G-buffer is at the render
+  scale. The six above read the G-buffer at the picture's pixel, past its width and height nothing, inside it the scene
+  from elsewhere: the world's deadly void (PitVoid, under a floating world's kill height) laid its dark over all the
+  ground outside the bottom-left rectangle the G-buffer covered, its height where the horizon fell in the G-buffer. The
+  screen was even (its colour target is at the render scale). They now read it through `GAt.hlsl`, the pixel scaled by
+  `_GPixelScale` (the G-buffer's size over the target's, set by the composite from `GetRenderTargetInfo` of the camera's
+  colour): 1 on the screen, as before. `tests/unity-gat.test.js` checks the coordinate mapping for reduced-resolution targets.
 - **The shafts of light** (#420). Besides the flip above, a shaft's wash (alpha 0.12 and 0.14 a layer, both faces of two
   cones) came out far whiter than the web's: three blends it in display values, Unity in its linear target, where a pale
   wash over a dark wall is much lighter (the "blend is Unity's linear one" note above). Veil.shader now raises a laid-over

@@ -1354,6 +1354,8 @@ export const CHANGELOG_MEDIA = {
       { name: 'sea-577-under-deck', title: 'Under the sea port', size: [1280, 720], caption: 'The sea overhead now keeps its own blue, with the same sparse wave lines as on the web.', from: 'Issue #577: muted Unity editor batch, High, 1280 × 720, noon, clear, the same pinned view before and after; compared with muted Chrome on port 5477; 20 October 2026.' },
       { name: 'sea-577-deck-wide', title: 'Across the sea', size: [1280, 720], caption: 'The distant wave lines fade away, leaving a flat sea around the port.', from: 'Issue #577: muted Unity editor batch, High, 1280 × 720, noon, clear, the same pinned view before and after; compared with muted Chrome on port 5477; 20 October 2026.' },
     ], see: 'In the Underwater City, look up through the Dock’s dome, or ride the sea port’s lift and look out under the surface.' },
+  
+    { match: 'In Unity, photos and previews drawn at reduced resolution', see: 'In the Unity version, use a reduced-resolution graphics preset, then take a photo or open the Wardrobe. The picture should have even shading, with no rectangular boundary across the ground.' },
   ],
   '1.88': [
     { match: 'The traveller is rebuilt: his body and each piece of his clothing', tags: ['traveller'], shots: [
