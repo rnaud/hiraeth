@@ -31,6 +31,9 @@ export const CHANGELOG = [
     // issue #569: Surface.shader mSampleShadow (the web's tent of taps), HiraethShadows.cs (the near map's bias and offset
     // as shadows.js NEAR_CASCADE); tests/unity-shadow-parity.test.js
     'In the Unity version, the sun’s shadows are filtered as on the web, their edges softer up close, and the near ones sit as tight against what casts them as on the web.',
+    // issue #569: BridgeRunner.cs (the cascades round the traveller on every build, -shadow-camera as before);
+    // tests/unity-shadow-parity.test.js
+    'In the Unity version, the sun’s sharpest shadows now follow you as on the web, not the camera: Home’s stepping stones cast their little shadows at dusk again, the Overnight Train’s platform wall throws a smooth shadow of the right length, and the glowing screen on the Signal Market’s roof console no longer drops a dark patch down the console when you are across the roof from it.',
   ] },
   { v: '1.87', date: '2026-10-19', items: [
     // issue #556: BridgeHud.cs (a minigame's flashes, the gadget marks' numbers, the chimes' count in Ui.Sans / SansHeavy,

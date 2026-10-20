@@ -89,7 +89,8 @@ namespace Hiraeth
 
         // (main.js: fine 2048 / 12 m, near 4096 / 220 m, far 2048 / 1150 m; their bias and offset in texels: the near map's
         // shadows.js NEAR_CASCADE, 1 and 1.6 since the web's shadow QC (v1.45: at 2.3 and 3.2 the shadows came loose from what
-        // casts them by 40-50 cm; low things, Home's stepping stones, cast next to none at dusk; issue #569))
+        // casts them by 40-50 cm; issue #569). Low things, Home's stepping stones, cast in the fine map alone: it has to stand
+        // round the traveller as the web's does (Traveller), not round the camera)
         public readonly Cascade fine = new() { name = "fine", extent = 12, depth = 1600, biasTexels = 3.4f, offsetTexels = 2.6f };
         public readonly Cascade near = new() { name = "near", extent = 220, depth = 1600, biasTexels = 1.0f, offsetTexels = 1.6f };
         public readonly Cascade far = new() { name = "far", extent = 1150, depth = 3200, biasTexels = 2.2f, offsetTexels = 2.4f };

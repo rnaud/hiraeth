@@ -1333,6 +1333,7 @@ const END562 = 'Issue #562: the cinematics QC (node scripts/cinematics-qc.mjs --
 const UNITY568 = 'Issues #568, #569: the Unity editor’s batch run on this Mac (node scripts/unity-compare/sequences.mjs unity plumb-talk,box,game-pirates-ice: -sequence, High, a 1280 × 720 screen, muted), the beat’s picture (plumb-talk’s bark, box’s card, the pirates’ run), cropped for the card and the hints; before: origin/main at 9a4f25a01, after: this change; 20 October; cwebp -q 72';
 const WEB568 = 'Issues #568, #569: the web game in muted headless Chrome (High, 1280 × 720) on a Vite of its own (port 5461, node scripts/unity-compare/sequences.mjs web), the same beats, cropped as the Unity pictures; 20 October; cwebp -q 72';
 const UNITY569S = 'Issue #569: the visual check (node scripts/unity-compare/run.mjs --worlds home,overnighttrain: High, 1280 × 720, muted, -fresh -no-hud), the Overnight Train’s wide view at dusk (18.6 h), cropped to the platform’s low wall; before: origin/main at 9a4f25a01, after: this change; the web’s from the same run (scripts/design-qc/capture.mjs --fixed-scale); 20 October; cwebp -q 72';
+const UNITY569C = 'Issue #569: the visual check (node scripts/unity-compare/run.mjs: High, 1280 × 720, muted, -fresh -no-hud), Home’s and the Overnight Train’s wide views at dusk (18.6 h), the Signal Market’s Ferro view of the changes set at noon, cropped; before: 49f762dbc, the cascades round the camera; after: this change, round the traveller; the web’s from the same run (scripts/design-qc/capture.mjs --fixed-scale); 20 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.88': [
     { match: 'Each makers’ house now ends on its own picture', tags: ['story'], shots: [
@@ -1370,6 +1371,14 @@ export const CHANGELOG_MEDIA = {
       { name: 'unity-shadow-569', title: 'A shadow’s edge', size: [640, 430], caption: 'The Overnight Train’s platform at dusk in Unity: before, the low wall’s shadow edged in square steps (the shadow map’s texels); after, the web’s tent of taps rounds them (its length still differs from the web’s, issue #569)', from: UNITY569S },
       { name: 'unity-shadow-569-web', only: 'after', title: 'On the web', size: [640, 430], caption: 'The same wall on the web', from: UNITY569S },
     ] },
+    { match: 'In the Unity version, the sun’s sharpest shadows now follow you as on the web', tags: ['devices'], shots: [
+      { name: 'unity-stones-569', title: 'Home’s stepping stones', size: [480, 360], caption: 'Home’s stepping stones at dusk in Unity: before, next to no shadow beside them (the sharp shadow map stood round the camera, high over the garden); after, each throws its short shadow, as on the web (ΔE with the web 1.4 → 0.3, SSIM 0.88 → 0.94)', from: UNITY569C },
+      { name: 'unity-stones-569-web', only: 'after', title: 'On the web', size: [480, 360], caption: 'The same stones on the web', from: UNITY569C },
+      { name: 'unity-platform-569', title: 'The platform wall', size: [400, 360], caption: 'The Overnight Train’s platform at dusk in Unity: before, the low wall’s shadow long and stepped (read from the coarsest map); after, the web’s shape (worst cell ΔE 23.1 → 1.1)', from: UNITY569C },
+      { name: 'unity-platform-569-web', only: 'after', title: 'On the web', size: [400, 360], caption: 'The same wall on the web', from: UNITY569C },
+      { name: 'unity-console-569', title: 'The roof console', size: [400, 320], caption: 'The console on the Signal Market’s roof, the traveller 14 m off: before, its screen’s shadow down the console’s face in Unity alone; after, none, as on the web (close by, both draw it)', from: UNITY569C },
+      { name: 'unity-console-569-web', only: 'after', title: 'On the web', size: [400, 320], caption: 'The same console on the web', from: UNITY569C },
+    ], see: 'In the Unity version, look at Home’s garden path at dusk, or stand on the Overnight Train’s platform at dusk.' },
   ],
   '1.87': [
     { match: 'In the Unity version, the chime pirates’ place names and a minigame’s other call-outs', tags: ['menus'], shots: [

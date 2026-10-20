@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.88 — 2026-10-20
 
+- In the Unity version, the sun’s sharpest shadows now follow you as on the web, not the camera: Home’s stepping stones cast their little shadows at dusk again, the Overnight Train’s platform wall throws a smooth shadow of the right length, and the glowing screen on the Signal Market’s roof console no longer drops a dark patch down the console when you are across the roof from it.
 - In the Unity version, the sun’s shadows are filtered as on the web, their edges softer up close, and the near ones sit as tight against what casts them as on the web.
 - In the Unity version, a makers’ box’s card names what you found as the web writes it, with its little star before it, and its buttons are no longer in capitals; in the chime pirates, the controls and the missiles-and-gun line sit in two boxes, as on the web.
 - In the Unity version, Plumb’s trail and the hoverbike’s and the skiff’s trails are drawn in their soft bands of colour (in the fluid’s colours when the backpack powers them), their tails breaking up into dots, as on the web, instead of a plain white streak.

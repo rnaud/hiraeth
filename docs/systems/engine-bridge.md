@@ -1838,10 +1838,26 @@ somewhere the run starts as the page opens, a second or two before the web's run
   the point; a box of taps on a fixed grid before), and the near map's bias and offset are shadows.js `NEAR_CASCADE` (1 and
   1.6 texels; Unity kept 2.3 and 3.2 from before the web's shadow QC). Home's wide view at dusk: ΔE 2.9 / 16.8 → 1.3 / 6.7,
   SSIM 0.81 → 0.88. Left: Home's round stepping stones still cast next to nothing at dusk, and the Overnight Train's platform
-  wall's shadow is longer than the web's (its steps rounded now, not gone): another cause than the filter and the bias.
+  wall's shadow is longer than the web's (its steps rounded now, not gone): another cause than the filter and the bias (below: where the cascades stand).
 - Not Unity's: the lit disc round Lorn's fragment cairn is the fragment's own light breathing (src/fragments.js: its reach
-  2.6 ± 0.4 m), each side shot at its own clock's phase. The Signal Market console's screen panel casts a shadow on the
-  console's face in Unity and none on the web (whether the traveller is near or far): open.
+  2.6 ± 0.4 m), each side shot at its own clock's phase.
+- **Where the cascades stand** (#569, the rest): the bridge placed its three maps round the camera everywhere but the Xbox
+  (BridgeRunner: `-shadow-traveller` to ask for the traveller), the web round the traveller (main.js `c.place(player.pos)`).
+  A view whose eye stands off from him (a wide look, a fixed view, the follow camera's few metres) moved the fine map's
+  24 m off what it shades round him, so a spot read one map in Unity and another on the web. That was all three of the
+  shadows left from above, found by evaluating the web's own lookup at the spot (the shadow QC's `ProbeEval`): Home's
+  stepping stones (6 cm tall) fell to the near map, whose normal offset (1.6 texels, 17 cm, almost all of it up for a
+  low sun) lifts the ground's lookup over their tops: no shadow; the Overnight Train's platform wall fell to the far map
+  (1.1 m texels: the long, stepped edge); and the Signal Market console's screen panel, 13.7 m from the traveller in
+  `ferro`, read the fine map in Unity (the eye 11 m off it: the panel's 0.7 m shadow down the face) and the near one on
+  the web, whose 17 cm offset steps past the panel's 4–16 cm stand-off. Which is right is the web's rule, now both
+  sides': with the traveller within the fine map's reach of the console both draw the panel's shadow (the web's own
+  lookup there: fine map, lit fraction 0 from 0.7 m under the panel up to it, RT0's light term 0.38); further off neither
+  does. Now the cascades go round the traveller on every build (the brush op's `_Brush`; `-shadow-camera` as before),
+  the same maps, sizes and rates: cost-neutral by construction (not measured on a device). High, 1280 × 720, ΔE mean /
+  worst cell, SSIM: `home--wide-dusk` 1.4 / 6.3 → 0.3 / 0.9, 0.878 → 0.944; `overnighttrain--wide-dusk` 1.9 / 23.1 →
+  0.2 / 1.1, 0.911 → 0.941; `bazaar--ferro` (the `changes` set) 1.7 / 6.7 → 0.6 / 3.3, 0.857 → 0.876; the console with the
+  traveller 8 m off 0.7 / 4.7 → 0.6 / 4.7, 0.928 → 0.936 (both drew it). `tests/unity-shadow-parity.test.js`.
 
 ## The opening, beat by beat (Unity + Puerts, 2026-10-16, issue #394)
 

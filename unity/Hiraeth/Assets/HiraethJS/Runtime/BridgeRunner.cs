@@ -538,12 +538,11 @@ namespace Hiraeth.Bridge
             if (BridgeArgs.Arg("-job-workers") is string jw && int.TryParse(jw, out int jwn)) Unity.Jobs.LowLevel.Unsafe.JobsUtility.JobWorkerCount = Mathf.Clamp(jwn, 1, Unity.Jobs.LowLevel.Unsafe.JobsUtility.JobWorkerMaximumCount);
             Debug.Log($"Hiraeth bridge: job workers {Unity.Jobs.LowLevel.Unsafe.JobsUtility.JobWorkerCount} (of {workers0} by default, {SystemInfo.processorCount} processors)");
             // the cascades placed round the traveller (his feet: the brush op's _Brush, three's space), as the web places them,
-            // not round the camera: on the Xbox, -shadow-traveller elsewhere, -shadow-camera as before
-#if UNITY_WSA && !UNITY_EDITOR
+            // not round the camera, everywhere (the Xbox's since #113; every build since #569: round the camera, the fine map's
+            // 24 m followed a wide view's eye, so the stepping stones it shades at Home fell in the near map, whose 17 cm offset
+            // lifts the ground's lookup over their 6 cm, and a console's screen panel at the Signal Market took the fine map's
+            // shadow where the web reads the far one's); -shadow-camera as before
             bool aroundTraveller = !BridgeArgs.Flag("-shadow-camera");
-#else
-            bool aroundTraveller = BridgeArgs.Flag("-shadow-traveller");
-#endif
             if (aroundTraveller) HiraethShadows.Traveller = () => { var b = Shader.GetGlobalVector("_Brush"); return b == Vector4.zero ? (Vector3?)null : new Vector3(-b.x, b.y, b.z); };
             BridgeRenderer.oneVariant = BridgeArgs.Flag("-one-variant");
             BridgeRenderer.fullLayout = BridgeArgs.Flag("-full-layout");
