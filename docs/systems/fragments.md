@@ -1,4 +1,4 @@
-# The fragments of the singing light, the scientist and his shop (v1.55, issue #196; re-placed v1.61, #228, #229; a currency v1.62, #185; into the places of interest v1.66, #250; three times as many v1.70, #317)
+# The fragments of the singing light, the scientist and his shop (v1.55, issue #196; re-placed v1.61, #228, #229; a currency v1.62, #185; into the places of interest v1.66, #250; three times as many v1.70, #317; every one on its place and Anselm's arrival filmed v1.87, #550)
 
 Where the singing light passed it shed small splinters of its song. They settled in the out-of-the-way places of every
 world on the route: up on ledges and high places, tucked behind things, at the ends of side paths; never on the way
@@ -56,7 +56,7 @@ hide: `docs/story-bible.md`, "The fragments of the singing light".
   ramp, ahead and to the right as you step out, the other up the low rise 60 m behind the ship. Both keep #228's rule
   (32 and 42 m off the route's line: the way to Qanat leaves the ramp the other way), so they are there to be found, not
   stepped on. You hear the nearer one sing from the ramp (26 m) as you walk out. And Marrow, at your ship, has one line
-  for it (*"Something the light dropped when it passed, I'd say. It sings on the sand forty paces from your ramp. I
+  for it (*"Something the light dropped when it passed, I'd say. It sings by the stone cairn beside your ship. I
   don't pick up things that sing."*: he hedges, as a witness does, in the desert's word, issue #282), asked at the
   ship (his first talk, beside the way to Qanat and the mark, and his hello; issue #279): it starts the errand
   **Something Singing** (`desert.splinter`, `SPLINTER` in `src/story/desert-data.js`), one step whose goal is the
@@ -144,6 +144,42 @@ hide: `docs/story-bible.md`, "The fragments of the singing light".
 
   - **Drawn near only** (`FRAGMENT.drawTo`, 220 m): three times as many would be four draws each for every one in view
     across a world; past 220 m (a few pixels) a fragment is hidden and not turned. Its song and the finder are as before.
+- **Every one on its place (v1.87, #550).** The author: "fragment of lights should be in a place that makes sense, like
+  the top of a building, or the center of a point of interest, right now they feel like a bit of random placement." Half
+  stood on a place of interest; the rest on a bare summit, a ledge with a drop, a corner among walls, the end of a way
+  (`incal` 8 was the corner of a terrace slab over the shaft). Now all 288 do: `FRAGMENT_PLACES` in
+  `src/fragments-data.js` names, slot by slot, the place each stands on or in, as `pointsOfInterest` names it (a sight
+  within 12 m, a beacon's top, a named thing's box, a piece of the level; never a summit alone), and
+  `tests/fragments-poi.test.js` checks each is there. 153 moved, marked `(v1.87, #550)` with their place, their earlier
+  marks kept; the rest were on theirs already.
+  - **Picked** by `node scripts/fragment-spots.mjs <world> --anchors --route 25 --busy 8 --apart 16 --per-poi 3` (the
+    slots already on a named place stay; `--move` re-picks some anyway; `--crowd 4` keeps the spread below; `--per-poi
+    5–8` and `--apart 15` where the places are few): the same rules as before (the walker reaches it, he stands on it,
+    drawn ground, out of harm, 25 m off the route, 15 m apart), only every pick on a named place, and the central
+    ones first (`central` in `tests/fragments-reach.js`: by a sight, within 8 m of its mark; a named thing, on it, the
+    ground under the spot its own, or in the middle of its box; 207 of the 288 are, the rest at a place’s edge). The script also keeps
+    the picks off what a world's own test keeps clear (`WORLD_RULES`: the Signal Market's screen lanes, old market and
+    galleries; the Floating city's ways to the anchor and up the stack). `--things n` lists the scene's named things
+    that hold the most spots reached, the candidates for more places.
+  - **More places** where the sights alone held too few for 24 (the walker reaches only the rim and the top terrace of
+    the City-Shaft, the shallows of Lorn, the street of the Signal Market): `POI_THINGS` gained the houses, halls and
+    islands he walks on (Vael's Aerie, the Founders' Belfry and the hoodoo shop; Lorn's Lamp-House, Hush-House,
+    makers' court and moss-dome shop; the City-Shaft's Warden's Well and the Rim Docks' berth; the Buried Machine's
+    Engine-House, port, keepers' lectern and dials; the Moon Foundry's Casting-House; the Footprint and the pavilion
+    shop in the Garden; the Floating city's Yard, Garden, Market and gate islands and the Mooring-House; the Signal
+    Market's old market, screen lanes and port) and `POI_PIECES` the pilgrims' cairns in the Desert and the City-Shaft's
+    high ring round the spire.
+  - **The Desert's first two (#247)** stay by the ship, each on something: at the pilgrims' cairn by the ship, 30 m from
+    the ramp, the way the road comes down (slot 5, Marrow's errand: *"It sings by the stone cairn beside your ship."*),
+    and at the next cairn up the road, 60 m off (slot 6).
+  - **Their words.** Every slot's line in `src/story/rumour-places.js` names its place now (*"at the Warden's Well, on
+    the rim"*, *"on a tower of pods north of the moon pool"*); no kind of place alone (`=ledge`, `=walls`) is left.
+    Anselm's own lines say so: *"They settle on the landmarks: rooftops, old bones, high stones."*, and asked where they
+    hide, *"On the landmarks, off the main paths: a roof, a tower's top, the middle of something old."*
+  - **The spread** (`tests/fragments.test.js`): still no fragment with more than four others within 40 m (six in the
+    Floating city). A big place holds up to three (five or more in the poorest: the Warden's Well, the old market).
+  - **A save** keeps its count: the found flags stay on their slots, so a moved one already found shows as found in its
+    new place; nothing to migrate.
 - **Seeing and hearing them.** A pale splinter (an elongated octahedron, glowing) with three motes going round it (the
   light's signature beats in threes), bobbing; a small light of its own on the ground round it (`level.lights`, radius
   ~3 m). Within `FRAGMENT.sing` (26 m) it sings faintly from where it is every `singEvery` (3.4 s): three soft notes of the
@@ -168,9 +204,20 @@ hide: `docs/story-bible.md`, "The fragments of the singing light".
 A thin man in a patched pale coat with too many pockets, goggles pushed up on his brow, a tool belt, grey curls. He
 studies light, and has been on the lookout for the fragments since the night the light went over.
 
-- **The meeting.** The first fragment you take brings him: he comes up a few steps from you (`meetSpot`: ground near
-  yours, room over him, nothing between) and the talk opens at once (or as soon as nothing else has the screen). Four
-  lines and one answer: "Don't drop it!", he has been on the lookout for them, what he thinks they are (a guess:
+- **The meeting.** The first fragment you take brings him, filmed (v1.87, #550: "there should be a cinematic for Anselm
+  to show up, not just immediately appearance"; `src/story/scientist-arrival.js`, on the world's moment stage,
+  `src/story/moment.js`: letterboxed, skippable as every moment is, B / ○, Menu, Esc or a tap on the tag). Once you are on
+  your feet and nothing else has the screen, `arrivalFrom` looks round his spot beside you (`meetSpot`) for where he
+  comes from: 24 m off at most (9 at least), the ground walkable all the way in (no step over 0.75 m, no wall, no water,
+  nothing unsafe, room to run upright), never through you; a start out of your sight first (behind a wall or a crest of
+  the ground), then the farthest, then the ship's side. Three panels, 5 to 8 s: **A** you, three-quarter from the front,
+  as his box ticks and you turn to it; **B** over your shoulder as he runs in (5.2 m/s, slowing over the last metres,
+  the tick quickening: the finder's beep); **C** side on to the two of you, a lens with a clear line to both (in a tight
+  place, the stack's top, over your shoulder instead) as he stops, bent over, out of breath (`NPC.winded`: his chest
+  heaving, his head up to you; his breath back over the talk's first lines). Skipped or not, he ends on his spot,
+  facing you, and the talk opens. Where there is no way in for him (a narrow ledge) or no stage (a scene already up), he
+  comes up beside you and the talk opens at once, as before. Only on the first fragment: once met he is aboard. Four
+  lines and one answer: (out of breath) "Don't drop it!", he has been on the lookout for them, what he thinks they are (a guess:
   "Bits of its song, I'd say", v1.68, #282; only Ilen says what the light is), five and he'll have
   something (since v1.62: "Bring me more. I'll work them into your gear, at a price."); then he asks to come aboard
   (`frag.met`). Once that talk has opened he is met however it ends (v1.62: B out of it before the last answer used to
@@ -297,7 +344,10 @@ The author: "I shouldn't be able to tell how many fragments of light there are i
   fragment taken (saved, gone, its light out), its song only near, the finder's beeps by distance and its switch, the
   meeting, his count and his shop (held against found, buying, the gear an upgrade needs, the panel with his lines),
   an old save's upgrades and what it holds, the upgrades' numbers, the menu, the migration, the people book, his place
-  aboard the real ship and the first meeting.
+  aboard the real ship and the first meeting; his arrival filmed (v1.87, #550): played on the first fragment only, from
+  well off, at a run, winded, the talk after; skippable, and with no way in, beside you at once.
+- `tests/engine-thrum-arrival.test.js` (v1.87, #550): the same arrival in the engines' bundle (Unity's), letterboxed on
+  the screen's 'cine', his talk after.
 - `tests/thrum-aboard.test.js` (v1.62): Anselm aboard in every world once met (above), out of sight while the ship
   flies, met however the first talk ends.
 - `tests/contact-audit.test.js` ("every fragment of the singing light…"): in every world each stands on solid ground that
@@ -307,7 +357,8 @@ The author: "I shouldn't be able to tell how many fragments of light there are i
 - `tests/route-worlds.test.js` (v1.61): every fragment 25 m or more from the route's line; the six rebuilt worlds
   (Lorn, Viridel, the Underwater City, the Moon Foundry, the Floating city, the Signal Market) two at least in their new
   country, one of them high (15 m over the landing, or a 10 m drop beside it).
-- `tests/fragments-poi.test.js` (v1.66, #250; v1.70, #317): in every world 12 of the 24 at least in or on a place of
+- `tests/fragments-poi.test.js` (v1.87, #550): every fragment on or in the named place `FRAGMENT_PLACES` gives it, and
+  every slot's rumour line naming its place. (v1.66, #250; v1.70, #317): in every world 12 of the 24 at least in or on a place of
   interest (`POI_MIN` for the four poorer: Lorn 7, the Buried Machine 9, the Floating city 11, the Signal Market 8), 144
   of the 288 at least (149 now), spread over three places at least in each world; and the named places still found in their worlds (a
   rename would drop them silently).

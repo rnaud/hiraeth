@@ -58,6 +58,12 @@ export const CHANGELOG = [
     // pirates.js BACKDROPS' places (groundGeometry, layerPieces, ARRIVAL, lightning), pirates-sfx.js PLACE_SOUNDS (arrive,
     // bed, thunder), kit/arcade.js gameLinks (Fly on), engine/game.js (a game page's address); tests/pirates-places.test.js
     'The chime pirates’ flights now take you through places of their own. The Rose Rings: a rose giant ringed with rubble. The Iron Moon: you skim a heavy moon whose pull drags your ship down. The Frost Moon: ice spires rise from its face into your way. The Storm Giant: over its clouds, pirates hide in the storms until they are close, only their lamps showing, with lightning in the clouds. Each flight opens as your ship drops out of the warp, with the place’s name, and each place has its own light, sky and sound; played from the Arcade, Fly on takes you to the next one.',
+    // issue #550: src/story/scientist-arrival.js (arrivalFrom, arrivalShots), src/story/scientist.js arrive, src/npc.js
+    // winded; tests/fragments.test.js, engine-thrum-arrival.test.js
+    'The first time you pick up a fragment of the singing light, Anselm no longer just appears beside you: you see him run in from out of sight, his brass box ticking faster as he comes, and stop beside you out of breath before he speaks. B / ○ skips it.',
+    // issue #550: src/fragments-data.js FRAGMENT_PLACES (153 moved), tests/fragments-reach.js POI_THINGS / POI_PIECES,
+    // scripts/fragment-spots.mjs --anchors, src/story/rumour-places.js, Marrow's line; tests/fragments-poi.test.js
+    'Every fragment of the singing light now sits on a landmark instead of a bare ledge or corner: inside a ribcage, on a temple’s steps, a tower’s balcony, the high ring round the City-Shaft’s spire, a moon’s courtyard, a stone cairn. Half of them moved; the first one in the Desert sings at the cairn beside your ship, and people’s hints name the place. Those you already found stay found.',
   ] },
   { v: '1.86', date: '2026-10-19', items: [
     // issue #483: src/story/hosts-data.js (the fight hosts' second lines), src/fight-temples/<world>.js (blurb, quiet),

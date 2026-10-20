@@ -826,6 +826,13 @@ export class NPC {
       c.body.rotation.x -= 0.06;
       c.legs[0].rotation.set(-0.32, 0, 0); c.knees[0].rotation.set(0.75, 0, 0);
     }
+    // winded (`winded` 0..1: Anselm come at a run to the first fragment, src/story/scientist-arrival.js): bent over,
+    // the chest heaving, the head up to whoever he came for
+    const wind = this.winded ?? 0;
+    if (wind > 0.01) {
+      c.torso.rotation.x += wind * (0.34 + 0.07 * Math.sin(this.time * 6.8));
+      c.head.rotateX(-0.3 * wind);
+    }
     if (startle >= 0 && startle < 0.8) {
       const k = Math.sin(Math.PI * Math.min(startle / 0.8, 1));
       this.object.position.y += 0.3 * Math.sin(Math.PI * Math.min(startle / 0.45, 1));

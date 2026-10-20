@@ -101,10 +101,11 @@ export function thrumTalk(flags = {}, { here = null, has = (id) => !!flags[`item
     // ---------------------------------------------------------------- the first fragment
     meet: {
       say: [
-        // (v1.61, #229: he opens in the middle of the chase, not on his name and trade; the panel names him)
-        '~surprised~ (A thin man in a patched coat comes at a run, goggles on his brow, a brass box ticking in his hand.) Don’t drop it!',
+        // (v1.61, #229: he opens in the middle of the chase, not on his name and trade; the panel names him. Since issue
+        // #550 his run in is filmed, src/story/scientist-arrival.js: the talk opens on him out of breath)
+        '~tired~ (Out of breath, a brass box ticking in his hand.) Don’t drop it!',
         '~happy~ A fragment of the singing light. I’ve been on the lookout for these since the night the light went over.',
-        '~curious~ They turn up wherever it passed. Bits of it that broke off, I think. They’re hidden in out-of-the-way places.',
+        '~curious~ They turn up wherever it passed. Bits of it that broke off, I think. They settle on the landmarks: rooftops, old bones, high stones.',
         '~playful~ Bring me more. I’ll work them into your gear, at a price.',
       ],
       choices: [
@@ -137,7 +138,7 @@ export function thrumTalk(flags = {}, { here = null, has = (id) => !!flags[`item
       say: ['~happy~ (He turns a brass key on his box, and the light’s song comes out of it, whole.)'],
     },
     where: {
-      say: ['~neutral~ Off the main paths: up high, behind things, at the dead ends.', '~playful~ Listen, too. They hum, quietly, when you’re near one.'],
+      say: ['~neutral~ On the landmarks, off the main paths: a roof, a tower’s top, the middle of something old.', '~playful~ Listen, too. They hum, quietly, when you’re near one.'],
       choices: [
         { text: '~curious~ Show me what you have.', do: { emit: ['shop:open', { shop: 'thrum' }] }, end: true },
         { text: '~neutral~ I’ll keep looking.', end: true },

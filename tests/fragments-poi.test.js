@@ -8,7 +8,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { builtWorld } from './built-worlds.js';
 import { pointsOfInterest, poiAt, POI_THINGS, POI_PIECES } from './fragments-reach.js';
-import { FRAGMENTS, FRAGMENTS_PER_WORLD } from '../src/fragments-data.js';
+import { FRAGMENTS, FRAGMENTS_PER_WORLD, FRAGMENT_PLACES } from '../src/fragments-data.js';
+import { RUMOUR_PLACES } from '../src/story/rumour-places.js';
 import { ORDER } from '../src/levels/names.js';
 
 /**
@@ -46,6 +47,32 @@ test('every world hides half its fragments or more in or on a place of interest 
   assert.deepEqual(short, [], seen.join('\n'));
   assert.ok(all >= POI_TOTAL, `${all} of ${FRAGMENTS_PER_WORLD * ORDER.length} in or on a place of interest (at least ${POI_TOTAL})\n${seen.join('\n')}`);
   console.log(seen.map((l) => l.split(':')[0]).join('\n'), `\nall told: ${all}`);
+});
+
+// Issue #550 ("fragment of lights should be in a place that makes sense, like the top of a building, or the center of a
+// point of interest, right now they feel like a bit of random placement"): every one of them, not half, on or in the
+// named place src/fragments-data.js FRAGMENT_PLACES gives it (a sight within SIGHT_R m, a beacon's top, a named thing's
+// box or a piece of the level: never a bare summit, a ledge or a nook), and the people say that place when they tell of it.
+test('every fragment stands on or in its named place, never a bare spot (issue #550)', () => {
+  const off = [];
+  for (const id of ORDER) {
+    const { pois } = world(id);
+    const names = FRAGMENT_PLACES[id] ?? [];
+    if (names.length !== FRAGMENTS[id].length) off.push(`${id}: ${names.length} places for ${FRAGMENTS[id].length} fragments`);
+    FRAGMENTS[id].forEach(([x, y, z], i) => {
+      const name = names[i], same = pois.filter((q) => q.name === name), p = same.find((q) => q.test(x, y, z)) ?? same[0];
+      if (!p) { off.push(`${id} ${i}: no place of interest named ${JSON.stringify(name)} in the world`); return; }
+      const d = Math.hypot(p.at[0] - x, p.at[2] - z).toFixed(0);
+      if (!p.test(x, y, z)) off.push(`${id} ${i} (${x}, ${y}, ${z}): not on or in ${name} (its mark ${d} m off)`);
+    });
+  }
+  assert.deepEqual(off, [], off.join('\n'));
+});
+
+test('the people say where each lies by its place, never a kind of place alone (issue #550)', () => {
+  const generic = [];
+  for (const id of ORDER) (RUMOUR_PLACES[id] ?? []).forEach((s, i) => { if (s.startsWith('=')) generic.push(`${id} ${i}: ${s}`); });
+  assert.deepEqual(generic, []);
 });
 
 test('a world’s fragments in places of interest are spread over three of them at least, not heaped in one', () => {

@@ -143,11 +143,11 @@ export const QUESTS = [
   },
   {
     // the first fragment of the singing light, easy (issue #247: "there should be a quest to find the first light fragment"):
-    // Marrow, at your ship, points at it singing on the sand 40 m from the ramp (src/fragments-data.js, the desert's slot 5);
+    // Marrow, at your ship, points at it singing by the pilgrims’ cairn 30 m from the ramp (src/fragments-data.js, the desert’s slot 5, issue #550);
     // taking it is the goal (and it brings Anselm Thrum, docs/systems/fragments.md). Found first, it never starts.
     id: SPLINTER, title: 'Something Singing', world: 'desert',
     outro: 'A splinter of the singing light, warm in your hand. More of them hide out there.',
-    stages: [{ id: 'find', text: 'Find what sings on the sand by your ship', label: 'Something singing', flag: SPLINTER_FLAG, at: SPLINTER_AT }],
+    stages: [{ id: 'find', text: 'Find what sings at the cairn by your ship', label: 'Something singing', flag: SPLINTER_FLAG, at: SPLINTER_AT }],
   },
   {
     id: 'desert.drum', title: 'Teo’s Drum', world: 'desert',
@@ -716,7 +716,7 @@ export const PEOPLE = {
           choices: [
             { text: '~neutral~ My ship has no power. Where can I find some?', goto: 'fire' },
             { text: '~curious~ What does the mark mean?', goto: 'mean' },
-            // (the fragment sings forty paces off as you step out: the traveller asks about what he hears, here and in
+            // (the fragment sings at the cairn by the ship as you step out, issue #550: the traveller asks about what he hears, here and in
             //  `hello`, not after a page about Qanat's fire or the mark; quest QC v1.66 rule 5, issue #279)
             { text: '~curious~ What’s that singing out on the sand?', if: { all: [{ not: { flag: SPLINTER_FLAG } }, { quest: SPLINTER, started: false }] }, goto: 'splinter' },
           ],
@@ -740,7 +740,7 @@ export const PEOPLE = {
         // the first fragment, singing by your ship (issue #247): one line, and the errand is yours to take or leave; he
         // hedges, in the desert's word "passed" (a witness reports before believing, lore/voice-guide.md; issue #282)
         splinter: {
-          say: ["~playful~ That? Something the light dropped when it passed, I’d say. It sings on the sand *forty paces from your ramp*. I don’t pick up things that sing."],
+          say: ["~playful~ That? Something the light dropped when it passed, I’d say. It sings by the *stone cairn beside your ship*. I don’t pick up things that sing."],
           do: [{ start: SPLINTER }],
           choices: [{ text: '~neutral~ I’ll have a look.', end: true }],
         },

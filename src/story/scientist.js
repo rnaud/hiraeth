@@ -5,18 +5,20 @@ import { items as sharedItems } from '../items.js';
 import { fragmentCounts } from '../fragments-data.js';
 import { FragmentShop } from '../fragment-shop.js';
 import { THRUM, THRUM_SHOP_LINES, thrumPerson } from './scientist-data.js';
+import { ARRIVAL, arrivalFrom, arrivalShots, runSpeed, runTime } from './scientist-arrival.js';
 
 // The scientist (src/story/scientist-data.js: Anselm Thrum; docs/systems/fragments.md). src/story/index.js sets him
 // up in every world:
 //
-//   setupScientist({ levelId, scene, physics, level, ship, npcs, lib, humans, game, items, talkable, dialogue, player, toast })
-//     → { def, aboard, field, meet(), update(dt), jar, shop, shopEntry() }
+//   setupScientist({ levelId, scene, physics, level, ship, npcs, lib, humans, game, items, talkable, dialogue, player, toast, moments })
+//     → { def, aboard, field, meet(), arrive(), update(dt), jar, shop, shopEntry() }
 //
 // Once met (`frag.met`) he lives aboard the ship, in the hold by the crates (ABOARD, ship-local), in every world, and
 // talks there: his count, and his shop (v1.62, issue #185: his upgrades for fragments, src/fragment-shop.js; main.js
 // opens shopEntry() in the shop panel on game 'shop:open' { shop: 'thrum' }). Before that he is nowhere; the first
-// fragment you pick up (game 'fragment', src/fragments.js) brings him: he comes up beside you (meetSpot) and the talk
-// opens at once. Once that talk has opened he is met, however it ends (`frag.met`: B out of it too). The one who met
+// fragment you pick up (game 'fragment', src/fragments.js) brings him, filmed (issue #550, src/story/scientist-arrival.js):
+// he runs in from out of sight to his spot beside you (meetSpot), out of breath, and the talk opens; where it can't be
+// filmed (no way in for him, no stage) he comes up beside you and the talk opens at once, as before. Once that talk has opened he is met, however it ends (`frag.met`: B out of it too). The one who met
 // you stays where he met you until you are far off or aboard, then is gone (he is in the hold by then). While the ship
 // flies (an arrival's landing, a take-off: its hull off where it is parked) he is out of sight in the shut hull, and
 // back in his place once it is down. On the crate beside him, a jar of what you have brought him, a splinter for each
@@ -89,7 +91,7 @@ function buildJar() {
   };
 }
 
-export function setupScientist({ levelId, scene, physics, level, ship = null, npcs = [], lib = null, humans = null, game, items = sharedItems, talkable, dialogue = null, player = null, sound = null }) {
+export function setupScientist({ levelId, scene, physics, level, ship = null, npcs = [], lib = null, humans = null, game, items = sharedItems, talkable, dialogue = null, player = null, sound = null, moments = null }) {
   if (!game) return null;
   const flags = () => game.data?.flags ?? {};
   const def = thrumPerson({ flags, has: (id) => items.has(id), here: levelId });
@@ -148,15 +150,79 @@ export function setupScientist({ levelId, scene, physics, level, ship = null, np
     if (!game.flag('frag.met')) rt.pending = true;
   });
 
+  const spotNow = () => meetSpot({ physics, level, at: player.pos, heading: player.heading ?? 0 })
+    ?? { at: player.pos.clone().add(new THREE.Vector3(-Math.sin(player.heading ?? 0) * 2.5, 0, -Math.cos(player.heading ?? 0) * 2.5)), heading: player.heading ?? 0 };
+  /** The talk opens with him (the meeting's: "Don't drop it!"). */
+  const talkNow = () => { rt.meeting = dialogue?.start(def, rt.field) !== false; };
+
   /** The first meeting: he comes up beside you, and the talk opens (now, or as soon as nothing else has the screen). */
   rt.meet = () => {
     if (game.flag('frag.met') || rt.field || !player || !scene || !physics) return false;
-    const spot = meetSpot({ physics, level, at: player.pos, heading: player.heading ?? 0 })
-      ?? { at: player.pos.clone().add(new THREE.Vector3(-Math.sin(player.heading ?? 0) * 2.5, 0, -Math.cos(player.heading ?? 0) * 2.5)), heading: player.heading ?? 0 };
+    const spot = spotNow();
     rt.field = make(spot.at, spot.heading);
     rt.pending = false;
-    rt.meeting = dialogue?.start(def, rt.field) !== false;
+    talkNow();
     return true;
+  };
+
+  /**
+   * The first meeting, filmed (issue #550): he runs in from out of sight to his spot beside you, winded, and the talk
+   * opens. Where there is no way in for him or no stage to film it on, rt.meet(): beside you at once. → the Moment, or null.
+   */
+  rt.arrive = () => {
+    if (game.flag('frag.met') || rt.field || !player || !scene || !physics) return null;
+    if (!moments?.canPlay?.()) { rt.meet(); return null; }
+    const spot = spotNow();
+    const eye = player.pos.clone().add(new THREE.Vector3(0, 1.6, 0));
+    const toward = ship?.parked?.group?.position ?? null;
+    const from = arrivalFrom({ physics, level, meet: spot.at, eye, toward });
+    if (!from) { rt.meet(); return null; }
+    const M = spot.at.clone(), P = player.pos.clone();
+    const npc = make(from.at.clone(), Math.atan2(M.x - from.at.x, M.z - from.at.z));
+    npc.facing = null;
+    rt.field = npc;
+    rt.pending = false;
+    rt.arrival = { from, spot, run: runTime(Math.hypot(M.x - from.at.x, M.z - from.at.z)), done: false };
+    // (his run: toward his spot at the run's pace, slowing over the last metres: src/npc.js follow)
+    const fol = { pos: M, near: ARRIVAL.near, speed: ARRIVAL.run, max: ARRIVAL.run };
+    const flat = () => Math.hypot(npc.pos.x - M.x, npc.pos.z - M.z);
+    npc.follow = () => fol;
+    const arrived = () => {
+      npc.follow = null;
+      npc.facing = spot.heading;
+      npc.winded = 1;
+      rt.winded = ARRIVAL.windedFor;
+    };
+    const { shots, dur } = arrivalShots({ P, M, S: from.at, run: rt.arrival.run, him: () => npc.pos, physics }, ARRIVAL);
+    const head = new THREE.Vector3();
+    // (his box's ticking, quickening as he comes: the finder's beep, src/audio.js)
+    const tick = { at: 0.35 };
+    const m = moments.play({
+      id: ARRIVAL.id, dur, shots, behind: true,
+      onFrame: (mm, t) => {
+        const left = flat();
+        if (npc.follow) {
+          fol.speed = fol.max = runSpeed(left);
+          if (left < ARRIVAL.near + 0.05) arrived();
+        }
+        // the traveller turns to him and watches him come
+        mm.face = npc.pos;
+        mm.eyes = head.copy(npc.pos).setY(npc.pos.y + 1.6);
+        if (t >= tick.at && npc.follow) { sound?.finderBeep?.(1500 - 600 * Math.min(1, left / 24)); tick.at = t + 0.16 + 0.03 * Math.min(left, 14); }
+      },
+      onEnd: () => {
+        // (skipped or cut short: on his spot all the same, facing you, out of breath)
+        if (npc.follow || flat() > 0.6) { npc.pos.copy(M); npc.object.position.copy(M); npc.heading = spot.heading; arrived(); }
+        rt.arrival.done = true;
+        talkNow();
+      },
+    });
+    if (!m) {
+      // (it couldn't be filmed after all: he is beside you, as before)
+      npc.follow = null; npc.pos.copy(M); npc.heading = spot.heading; npc.facing = spot.heading;
+      talkNow();
+    }
+    return m;
   };
 
   /** The ship off where it is parked (flying in, taking off): its hull shut, him out of sight in it. */
@@ -165,8 +231,14 @@ export function setupScientist({ levelId, scene, physics, level, ship = null, np
     return !!(g && rest && g.position.distanceToSquared(rest) > 0.01);
   };
 
-  rt.update = () => {
-    if (rt.pending && !dialogue?.open && !ship?.playing) rt.meet();
+  rt.update = (dt = 1 / 60) => {
+    // (the first fragment: once nothing else has the screen, and he is on his feet, or has been in the air a while)
+    if (rt.pending && !dialogue?.open && !ship?.playing && !moments?.playing) {
+      rt.airT = player && player.onGround === false ? (rt.airT ?? 0) + dt : 0;
+      if (!(rt.airT > 0 && rt.airT < 2.5)) { if (moments) rt.arrive(); else rt.meet(); }
+    }
+    // (winded from his run: his breath back over the talk's first lines)
+    if (rt.field && rt.winded > 0 && !moments?.playing) { rt.winded -= dt; rt.field.winded = Math.max(0, Math.min(1, rt.winded / 1.5)); }
     if (lights) {
       const on = lampOn() && !rt.aboard?.away;
       const k = lights.indexOf(lampLight);

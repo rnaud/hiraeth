@@ -102,7 +102,7 @@ test('met however the first talk ends (B out of it too): aboard from then on', (
 
 test('the story sets him up in every world with the ship (src/story/index.js, main.js)', () => {
   const story = fs.readFileSync(new URL('../src/story/index.js', import.meta.url), 'utf8');
-  assert.match(story, /const scientist = setupScientist\(\{ \.\.\.o, game, talkable, dialogue, toast \}\);/);
+  assert.match(story, /const scientist = setupScientist\(\{ \.\.\.o, game, talkable, dialogue, toast, moments \}\);/);   // (the moments: his arrival filmed, issue #550)
   const main = fs.readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
   assert.match(main, /const storyRt = createStory\(\{[^]*?\n  ship, /, 'createStory gets the ship');
   assert.match(main, /const ship = new Ship\(\{ scene, physics, level, levelId, content/, 'every world has its ship');

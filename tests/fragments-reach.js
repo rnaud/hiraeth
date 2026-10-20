@@ -5,9 +5,11 @@
 import * as THREE from 'three';
 import { LAYOUT as SPHERES } from '../src/levels/spheres.js';
 import { COURT, HUNG, HUNG2, CRADLE, BOWL, PMOON, HOIST } from '../src/levels/moon-foundry.js';
+import { ROAD as PILGRIMS_ROAD } from '../src/desert-road.js';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
-const UP = V(0, 1, 0);
+const UP = V(0, 1, 0), DOWN = V(0, -1, 0);
+const _rc = new THREE.Raycaster();
 /** How high a step up may be: a plain jump, the lift valve's double jump (tests/playthrough-agent.js RISE). */
 export const RISE = { jump: 1.4, doublejump: 4.8 };
 /** The flood's cell (m), world by world: 1 m where the way up is a narrow stair a 2 m grid steps off (the floating city's
@@ -200,18 +202,23 @@ export function newCountry(level, id) {
 export const SIGHT_R = 12, SIGHT_DY = 8, BEACON_R = 8, SUMMIT_DROP = 15, SUMMIT_OUT = [12, 24];
 /** The scene's named things that count as places, world by world (their names: the scene's object names). */
 // Match the Rose House’s exterior group: its reference rebuild replaces the old wall batch.
+// (issue #550, every fragment on a named place: the worlds' houses, halls and islands the walker reaches added, where
+// their sights alone held too few: Vael's Aerie and Belfry, Lorn's Lamp-House and Hush-House, the Rim Docks' berth and
+// the Warden's Well on the City-Shaft's rim, the Buried Machine's Engine-House and port, the Moon Foundry's
+// Casting-House, the Footprint in the Garden of Spheres, the Floating city's islands)
 export const POI_THINGS = {
   desert: /^(Ribcage|Sunken leviathan|Fallen giant|Crashed hull|The giant’s (hand|arm|spine|jaw)|Givers’ Hearth butte|Radio dishes|Umbrella grove|Petal station|Sail tents|Lavender butte|The Rose House)$/,
-  arzach: /^(The rider’s roost|The riders’ gate|The great bird’s bones|The slabs tipped out of the plain|The stones that fell up|The tables of the plain over the cloud|The riders’ road: the niches)$/,
-  perdide: /^(The cave’s crown|Wendel’s lookout|shroom-top|The keepers’ (stalks|light|canopy \(hut\))|The cap square|The flooded wood \(mound\))$/,
+  arzach: /^(The rider’s roost|The riders’ gate|The great bird’s bones|The slabs tipped out of the plain|The stones that fell up|The tables of the plain over the cloud|The riders’ road: the niches|The riders’ road: the worn steps|The Aerie|The Founders’ Belfry|shopfront\.hoodoo)$/,
+  perdide: /^(The cave’s crown|Wendel’s lookout|shroom-top|The keepers’ (stalks|light|canopy \(hut\))|The cap square|The flooded wood \(mound\)|The Lamp-House|The Hush-House|shopfront\.mossdome|Makers’ court \(stun\))$/,
   edena: /^(The round ship’s (hill|tree’s crown)|The dish pond|The split meteor.*|The builders’ machine|The pyramid nursery’s (caps|terrace trees)|The water stair)$/,
   underwater: /^(Whale|The whale overhead)$/,
-  incal: /^(Lio’s dispatch (mast|booth)|The lamplighters’ pad)$/,
+  incal: /^(Lio’s dispatch (mast|booth)|The lamplighters’ pad|The Warden’s Well|berth body)$/,
   glassdunes: /^(The glass that holds a stopped minute.*|The breaker’s cairn)$/,
-  buried: /^(The canyon stack|The Tooth Day posts|The keepers’ gangway|Fisk’s flag)$/,
-  moonfoundry: /^(The moon-carrier|The Moon Foundry: the (west|east) crane)$/,
-  spheres: /^(The belvedere’s streamer)$/,
-  spacecity: /^(the anchor under the Towers|the stack \((low|high)\)|the lamprock|the drifted span)$/,
+  buried: /^(The canyon stack|The Tooth Day posts|The keepers’ gangway|Fisk’s flag|The Engine-House|buried port|The broken oil pipe and the keepers’ lectern|The keepers’ dials and their log)$/,
+  moonfoundry: /^(The moon-carrier|The Moon Foundry: the (west|east) crane|The Casting-House)$/,
+  spheres: /^(The belvedere’s streamer|The Footprint|shopfront\.pavilion)$/,
+  spacecity: /^(the anchor under the Towers|the stack \((low|high)\)|the lamprock|the drifted span|the yard|the garden|the market|The Mooring-House|the gate)$/,
+  bazaar: /^(The old market|The screen lanes: the face|bazaar port)$/,
 };
 /** A level's own big pieces, where the scene doesn't name them: boxes ({ name, min: [x, y, z], max }) balls ({ name, ball: [x, y, z, r], upper }: on it or in it, 2 m round; `upper`: its upper half) or columns. */
 export const POI_PIECES = {
@@ -229,6 +236,12 @@ export const POI_PIECES = {
   ],
 };
 // (and columns: { name, column: [x, z, r, y0, y1] }, in it or on it)
+// the Desert's pilgrims' road: its cairns of stacked stones, each a marker (src/desert-road.js ROAD), the last two by the
+// ship (issue #550: the first fragments by the ship on something, the cairns below the ramp)
+POI_PIECES.desert = () => PILGRIMS_ROAD.map(([x, z], i) => ({ name: `the pilgrims’ cairn (${i + 1})`, column: [x, z, 3.2, -60, 200] }));
+// the City-Shaft's high ring round the spire, the round plaza at the top terraces' level the bridges run out to
+// (src/levels/incal.js: SPIRE_R 24 to SPIRE_RING 48, at LEVELS[0])
+POI_PIECES.incal = (level) => { const s = level.shaft; return s ? [{ name: 'the spire’s high ring', column: [0, 0, s.SPIRE_RING + 1, s.LEVELS[0] - 2, s.LEVELS[0] + 6] }] : []; };
 POI_PIECES.underwater = (level) => [
   // the Underwater City's towers of pods, out in the sea and down the canyon's walls (their pods stand out round them)
   ...[...(level.podTowers ?? []), ...(level.uw?.canyon?.towers ?? [])].map((t, i) => ({ name: `a tower of pods (${i + 1})`, column: [t.x, t.z, t.r + 5, -80, 90] })),
@@ -262,7 +275,7 @@ export function pointsOfInterest({ scene, level }, id) {
     const t = at(b.top); if (!t || !(b.height > 0)) continue;
     out.push({ kind: 'beacon', name: b.name, at: t, test: (x, y, z) => Math.hypot(x - t[0], z - t[2]) < BEACON_R && y > t[1] - b.height * 0.4 && y < t[1] + 1.5 });
   }
-  const box = (kind, name, min, max) => out.push({ kind, name, at: [(min[0] + max[0]) / 2, max[1], (min[2] + max[2]) / 2],
+  const box = (kind, name, min, max) => out.push({ kind, name, at: [(min[0] + max[0]) / 2, max[1], (min[2] + max[2]) / 2], min, max,
     test: (x, y, z) => x > min[0] - 1 && x < max[0] + 1 && z > min[2] - 1 && z < max[2] + 1 && y > min[1] - 1 && y < max[1] + 1.5 });
   const named = POI_THINGS[id];
   if (named && scene) {
@@ -274,6 +287,8 @@ export function pointsOfInterest({ scene, level }, id) {
       // (several of one name, the desert's six ribcages: each its own place, numbered)
       const n = (seen.get(o.name) ?? 0) + 1; seen.set(o.name, n);
       if (!b.isEmpty()) box('thing', n > 1 ? `${o.name} (${n})` : o.name, b.min.toArray(), b.max.toArray());
+      // (issue #550: on it, not on the ground inside its box: the ground just under the spot is the thing's own)
+      if (!b.isEmpty()) out.at(-1).on = (x, y, z) => { _rc.set(new THREE.Vector3(x, y + 0.6, z), DOWN); _rc.far = 1.2; return _rc.intersectObject(o, true).length > 0; };
     });
   }
   for (const p of POI_PIECES[id]?.(level) ?? []) {
@@ -299,6 +314,19 @@ export function onSummit(physics, x, y, z) {
     if (SUMMIT_OUT.every((r) => { const g = physics.groundAt(x + Math.cos(a) * r, y + 2, z + Math.sin(a) * r, 400); return !Number.isFinite(g) || y - g >= SUMMIT_DROP; })) low++;
   }
   return low >= 6;
+}
+/**
+ * Is a spot central to its place (issue #550: "the top of a building, or the center of a point of interest"): by a
+ * sight, within SIGHT_CORE m of its mark; a named thing, on it (the ground under the spot its own) or in its middle, not
+ * on the ground at the edge of its box; a beacon or a piece of the level, in it as its test says.
+ */
+export const SIGHT_CORE = 8;
+export function central(p, x, y, z) {
+  if (!p) return false;
+  if (p.kind === 'sight') return Math.hypot(p.at[0] - x, p.at[2] - z) <= SIGHT_CORE;
+  // (or in its middle, the inner half of its box across: inside a ribcage, among a giant's bones, in a court)
+  if (p.kind === 'thing') return !!p.on?.(x, y, z) || (Math.abs(x - p.at[0]) < (p.max[0] - p.min[0]) / 4 && Math.abs(z - p.at[2]) < (p.max[2] - p.min[2]) / 4);
+  return p.kind !== 'summit';
 }
 /** The point of interest a spot is in or on (the first that has it, a summit last), or null. */
 export function poiAt(pois, physics, x, y, z) {

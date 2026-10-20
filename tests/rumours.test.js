@@ -69,10 +69,11 @@ test('every line has a tone, fills in whole and fits 120 characters, in every wo
       if (t.kind === 'host' && !t.host.object) assert.ok(p.text.includes(t.host.name), 'names the host');
     }
   }
-  // (a fragment's own place is said as written; a kind of place takes its landmark)
+  // (a fragment's own place is said as written; one of several alike, a ribcage, a tower of pods, takes its landmark)
   assert.match(rumourLine('desert', rumourTargets({ world: 'desert' })[0], { seed: 0 }), /under the old ribcage’s ribs/);
-  const where = fragmentWhere('desert', 16, { x: 0, y: 0, z: 0 }, { landmarks: [{ name: 'the salt pan', at: { x: 0, y: 0, z: 100 } }] });
-  assert.equal(where[0], 'on a ledge with a long drop, north of the salt pan');
+  const ribs = RUMOUR_PLACES.desert.indexOf('inside a ribcage+');
+  const where = fragmentWhere('desert', ribs, { x: 0, y: 0, z: 0 }, { landmarks: [{ name: 'the salt pan', at: { x: 0, y: 0, z: 100 } }] });
+  assert.equal(where[0], 'inside a ribcage north of the salt pan', 'one of several alike (issue #550: every fragment on its place) says which way it lies');
   assert.deepEqual(levelSights(level('desert')).map((s) => s.name).slice(0, 2), ['the window in the sand', 'a stone that rises'], 'a numbered row is one place, its note left off');
 });
 

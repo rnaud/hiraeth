@@ -21,7 +21,7 @@ const HIS_OWN = ['singing light', 'Odile', 'Talo'];
 /** `file who.node: word` → why the answer may name it there. */
 export const EXCEPTIONS = {
   // what he hears or sees, not what was said
-  'desert-data.js marrow.wreck: singing': 'the fragment sings forty paces from the ramp as he steps out: he asks about the sound (issue #279)',
+  'desert-data.js marrow.wreck: singing': 'the fragment sings at the cairn by the ship as he steps out: he asks about the sound (issue #279)',
   'desert-data.js marrow.hello: singing': 'the same, at the ship, while the fragment still sings there (issue #279)',
   'perdide-data.js corm.hello: Great Crystal': 'the swamp\'s landmark, over every pool: what he sees',
   'perdide-data.js corm.again: Great Crystal': 'the same',

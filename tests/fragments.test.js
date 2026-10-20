@@ -157,7 +157,7 @@ test('the finder: beeps from 60 m, faster and higher as a fragment comes closer;
   const { game, items: its } = fresh();
   const player = { pos: V() };
   const beeps = [];
-  const F = createFragments({ levelId: 'edena', scene: new THREE.Scene(), player, sound: { finderBeep: (f) => beeps.push(f) }, game, items: its });
+  const F = createFragments({ levelId: 'desert', scene: new THREE.Scene(), player, sound: { finderBeep: (f) => beeps.push(f) }, game, items: its });   // (the Desert: one alone there, issue #550 gathered Viridel's on its places)
   // (the one farthest from the others: the finder beeps for the nearest, 24 a world since v1.70)
   const alone = (g) => Math.min(...F.list.filter((h) => h !== g).map((h) => h.pos.distanceTo(g.pos)));
   const f = F.list.reduce((a, b) => (alone(b) > alone(a) ? b : a));
@@ -204,7 +204,7 @@ test('Anselm Thrum: met at the first fragment, a few words, then aboard; his cou
   assert.match(c1.said, /One so far\. One to spend\./);
   assert.match(c1.said, /The Desert still sings loud\./, 'a loose word for the world, never a number (issue #519)');
   assert.doesNotMatch(c1.said, /288|twenty-three|still hide|Most left/i);
-  assert.match(c1.said, /up high, behind things, at the dead ends/);
+  assert.match(c1.said, /On the landmarks, off the main paths/, 'where they are now: on the landmarks (issue #550)');
   assert.equal(person.fresh(), false, 'no balloon: nothing you can buy yet');
   const opened = [];
   ctx.game.on('shop:open', (e) => opened.push(e.shop));
@@ -589,13 +589,122 @@ test('the first fragment brings him beside you; once met he is aboard, in the ho
   assert.ok(meetSpot({ physics, level: {}, at: V(), heading: 0 }), 'a spot on open ground');
 });
 
+// Issue #550 ("The first time I pick up a fragment of light there should be a cinematic for Anselm to show up, not just
+// immediately appearance"): his arrival filmed on the world's moment stage (src/story/scientist-arrival.js).
+async function arrivalRig({ ground = (x, z) => 0, flags = {} } = {}) {
+  const { MomentStage } = await import('../src/story/moment.js');
+  const el = () => ({ classList: { add() {}, remove() {}, toggle() {}, contains: () => false }, style: {}, dataset: {}, remove() {}, addEventListener() {}, querySelector: () => null, appendChild() {}, set textContent(v) {}, set innerHTML(v) {} });
+  globalThis.document ??= { createElement: el, body: el(), getElementById: () => null, querySelector: () => null };
+  const ctx = fresh(flags);
+  const scene = new THREE.Scene();
+  const physics = { groundAt: (x, y, z) => { const g = ground(x, z); return y >= g ? g : -Infinity; }, rayDistance: () => Infinity, pushCapsule: () => false, groundNormal: (x, y, z, o = V()) => o.set(0, 1, 0) };
+  const npcs = [], talked = [], shots = [];
+  const group = new THREE.Group(); group.position.set(60, 0, 0); scene.add(group);
+  const cinema = { bars() {}, hud() {}, say() {}, skip() {}, skipEl: null };
+  const ship = {
+    parked: { group }, playing: false, cinema, shot: (c) => shots.push(c), release() {}, busy: () => false,
+    world: (m, v) => { m.group.updateMatrixWorld(); return v.clone().applyMatrix4(m.group.matrixWorld); },
+    worldHeading: (m, h) => h,
+    isInside: (m, p) => p.distanceTo(group.position) < 12,
+  };
+  const player = { pos: V(0, 0, 0), vel: V(), heading: 0, onGround: true };
+  const dialogue = { open: false, start: (def, npc) => { talked.push([def.id, npc]); dialogue.open = true; return true; } };
+  const moments = new MomentStage({ ship, game: ctx.game, player, physics });
+  const S = setupScientist({ levelId: 'desert', scene, physics, level: {}, ship, npcs, game: ctx.game, items: ctx.items, talkable: () => () => {}, dialogue, player, moments });
+  const camera = new THREE.PerspectiveCamera();
+  /** A frame of the game: the moments, him, the people (src/story/index.js, main.js). */
+  const step = (dt = 1 / 30) => { moments.update(dt); S.update(dt); for (const n of npcs) n.update(dt, player, camera); if (shots.length) camera.position.copy(shots.at(-1).pos); };
+  const first = (i = 0) => { ctx.game.set(fragKey('desert', i), true); ctx.game.emit('fragment', { world: 'desert', i, found: 1, total: 288, left: 23 }); };
+  return { ctx, S, moments, dialogue, talked, shots, player, npcs, step, first, group };
+}
+
+test('the first fragment: Anselm’s arrival is filmed, he runs in from out of the way, winded, then the talk opens (issue #550)', async () => {
+  const { ARRIVAL, arrivalFrom, runTime } = await import('../src/story/scientist-arrival.js');
+  const R = await arrivalRig();
+  R.first();
+  R.step();
+  assert.ok(R.moments.playing, 'the cinematic plays');
+  assert.equal(R.moments.current.id, ARRIVAL.id);
+  assert.equal(R.talked.length, 0, 'the talk waits for it');
+  const npc = R.S.field, start = npc.pos.clone();
+  const d0 = start.distanceTo(R.player.pos);
+  assert.ok(d0 > 15, `he starts well off, not in front of the lens (${d0.toFixed(1)} m)`);
+  // (the ship is east of him: he comes from its side)
+  assert.ok(start.x > 8, `from the ship’s side (${start.toArray().map((v) => v.toFixed(1))})`);
+  const dur = R.moments.current.dur;
+  assert.ok(dur > 4 && dur < 10, `a few seconds (${dur.toFixed(1)} s)`);
+  let closest = Infinity, fast = 0, prev = npc.pos.clone();
+  for (let t = 0; t < dur + 1 && R.moments.playing; t += 1 / 30) {
+    R.step();
+    fast = Math.max(fast, prev.distanceTo(npc.pos) * 30); prev.copy(npc.pos);
+    closest = Math.min(closest, npc.pos.distanceTo(R.player.pos));
+  }
+  assert.ok(!R.moments.playing, 'over');
+  assert.ok(fast > 4, `he runs (${fast.toFixed(1)} m/s at his fastest)`);
+  assert.ok(closest > 2.5, `never brushing past you on his way (${closest.toFixed(1)} m at the nearest)`);
+  assert.equal(R.talked.length, 1, 'then the talk opens');
+  assert.equal(R.talked[0][1], npc, 'with him');
+  const d = npc.pos.distanceTo(R.player.pos);
+  assert.ok(d > 2.5 && d < 7, `beside you (${d.toFixed(1)} m)`);
+  assert.ok(npc.winded > 0.5, 'out of breath');
+  assert.ok(R.shots.length > 60, 'filmed');
+  // his breath back over the talk
+  for (let k = 0; k < 150; k++) R.step();
+  assert.equal(npc.winded, 0, 'his breath back');
+  // once: the talk had, the next fragment brings no cinematic
+  R.ctx.game.set('frag.met', true); R.dialogue.open = false;
+  R.step();
+  R.first(1);
+  R.step();
+  assert.ok(!R.moments.playing, 'no cinematic for the second fragment');
+  assert.equal(R.talked.length, 1, 'nor a meeting');
+  assert.ok(runTime(24) > 3 && runTime(24) < 7);
+  // (where he comes from: none where there is no way in, the ground falling away all round his spot)
+  const ledge = { groundAt: (x, y, z) => (Math.hypot(x, z) < 6 ? 0 : -Infinity), rayDistance: () => Infinity };
+  assert.equal(arrivalFrom({ physics: ledge, level: {}, meet: V(3, 0, 0), eye: V(0, 1.6, 0) }), null);
+  // (never through you: on a long narrow ledge, from behind his spot, not from behind your back)
+  const ridge = { groundAt: (x, y, z) => (Math.abs(z) < 1.5 ? 0 : -Infinity), rayDistance: () => Infinity };
+  const way = arrivalFrom({ physics: ridge, level: {}, meet: V(3, 0, 0), eye: V(0, 1.6, 0) });
+  assert.ok(way && way.at.x > 3, `from beyond his spot (${way?.at.x.toFixed(1)})`);
+});
+
+test('Anselm’s arrival can be skipped: he is on his spot, out of breath, and the talk opens just the same (issue #550)', async () => {
+  const R = await arrivalRig();
+  R.first();
+  R.step();
+  assert.ok(R.moments.playing);
+  for (let k = 0; k < 24; k++) R.step();   // (past the grace: src/story/moment.js)
+  assert.ok(R.moments.skip(), 'B / Menu / Esc / the tag skips it');
+  R.step();
+  assert.ok(!R.moments.playing, 'skipped');
+  assert.equal(R.talked.length, 1, 'the talk opens');
+  const d = R.S.field.pos.distanceTo(R.player.pos);
+  assert.ok(d > 2.5 && d < 7, `beside you (${d.toFixed(1)} m)`);
+  assert.equal(R.S.field.follow, null, 'not running any more');
+  // with no way in for him (a ledge), no cinematic: beside you at once, as before
+  const L = await arrivalRig({ ground: (x, z) => (Math.hypot(x, z) < 5 ? 0 : -50) });
+  L.first();
+  L.step();
+  assert.ok(!L.moments.playing, 'nothing to film');
+  assert.equal(L.talked.length, 1, 'the talk opens at once');
+  // and in the air (a jump onto it), he waits for you to land
+  const J = await arrivalRig();
+  J.player.onGround = false;
+  J.first();
+  J.step();
+  assert.ok(!J.moments.playing && !J.S.field, 'not while you are in the air');
+  J.player.onGround = true;
+  J.step();
+  assert.ok(J.moments.playing, 'landed: he comes');
+});
+
 test('Marrow on the first fragment hedges, in the desert’s word: the light “passed” (issue #282)', async () => {
   const { PEOPLE } = await import('../src/story/desert-data.js');
   const said = PEOPLE.marrow.talk.nodes.splinter.say.map((p) => String(p.text ?? p)).join(' ');
   assert.match(said, /^~playful~ /, 'his tone kept');
   assert.match(said, /Something the light dropped when it passed, I’d say/, 'a witness reports before believing (lore/voice-guide.md)');
   assert.doesNotMatch(said, /went over|A splinter of the light/, 'not told as fact, nor in another people’s words');
-  assert.match(said, /\*forty paces from your ramp\*/, 'still says where');
+  assert.match(said, /\*stone cairn beside your ship\*/, 'still says where: the cairn it sits by (issue #550)');
 });
 
 test('what the rest buy (issue #481): his notebook a page at a time, his lamp, his chart, the tune; offered by the count found, spent never off it', () => {

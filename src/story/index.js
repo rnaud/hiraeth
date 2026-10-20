@@ -278,7 +278,7 @@ export function createStory(o) {
   // the fellow traveller (src/story/fellow.js): Tansy, a few steps from the ship in her stops along the route
   const fellow = setupFellow({ ...o, game, quests, talkable });
   // the scientist (src/story/scientist.js): aboard the ship once met; the first fragment of the singing light brings him
-  const scientist = setupScientist({ ...o, game, talkable, dialogue, toast });
+  const scientist = setupScientist({ ...o, game, talkable, dialogue, toast, moments });
 
   // people in the crowd: whoever is nearest (a pooled full NPC) can be talked to
   if (crowd && world?.crowdTalk) {
