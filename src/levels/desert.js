@@ -194,7 +194,10 @@ export function* buildDesert(scene) {
         // (issue #167: the giant's hand standing out of the dune, too slender for the audit's height grid)
         { name: 'the giant’s hand', top: [giants.giants.hand.top.x, giants.giants.hand.top.y, giants.giants.hand.top.z], height: 30 },
         // (fifth round: the giant's breath over the back gate while the tree is cold, its lower half, before it bends away)
-        ...(gb && qanat.city.lit < 0.5 ? [{ name: 'the giant’s breath', top: [gb.x, gb.y + 28, gb.z], height: 22 }] : [])];
+        ...(gb && qanat.city.lit < 0.5 ? [{ name: 'the giant’s breath', top: [gb.x, gb.y + 28, gb.z], height: 22 }] : []),
+        // (issue #561: the red rag's mast on Marrow's hollow's lip, seen from the tree's roots through the main gate; its
+        // streamer the top 7 m: src/story/desert-bike.js)
+        { name: 'the red rag’s mast', top: [STORY.rag.x, terrain.heightAt(STORY.rag.x, STORY.rag.z) + STORY.rag.h, STORY.rag.z], height: 7 }];
     },
     // what the eye follows on the sand (the audit walks a leg one carries along it, and counts it as guiding): the
     // fire-bearers' marked stones from Qanat to the Hearth, the Givers' dry channel from the city to their house

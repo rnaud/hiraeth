@@ -120,6 +120,10 @@ export const CAIRN_WAY = {
   sand: [[106, 86], [100, 60], [110, 30], [128, 0], [140, -40], [148, -80], [158, -125], [172, -170], [184, -194]],
   every: 28, back: 18,
   sledge: [114, 24, 0.5], shade: [137, -18, -0.3], windGlass: [146, -56, 0.2],
+  // (issue #561: the half-buried court, 279 m off the path and 157 m from anything, the Glass Dunes' last remote dead end)
+  // where the way passes nearest the court the carriers leave their oil jars, and a short row of the same posts runs east
+  // from them to the court's sand: `court` [x, z] from the fork to its mouth (src/glass-dunes-quarter.js COURT), `jars` [x, z, yaw]
+  jars: [163, -121, 1.2], court: [[166, -127], [188, -134], [210, -141], [231, -147]],
 };
 
 /** Where the posts stand along a way ([x, z]), one every `every` m, the way's own ends included. */
@@ -142,13 +146,15 @@ export function buildCairnWay(scene, M, terrain, crestAt) {
   // the sand part, then the back: from the east foot straight up toward the cairn (the walk up it, tests/merged-ways.test.js)
   const foot = W.sand.at(-1), top = [BREAKER_CAIRN.x + 6, BREAKER_CAIRN.z + 1];
   const spots = [...postsAlong(W.sand, W.every), ...postsAlong([foot, top], W.back).slice(1)];
-  spots.forEach(([x, z], i) => {
+  // (issue #561) and the court's row, off the way at the carriers' oil jars
+  const spur = [];
+  [...spots, ...W.court].forEach(([x, z], i) => {
     const y = up(x, z), h = 2.9 + (i % 2) * 0.3;
     poles.push(nonIdx(new THREE.CylinderGeometry(0.07, 0.1, h + 0.4, 5).translate(x, y + h / 2 - 0.2, z)));
     floats.push(nonIdx(new THREE.IcosahedronGeometry(0.4, 1).translate(x, y + h + 0.28, z)));
     // a rag of the cairn's streamer tied under each float, so the row reads as the cairn's
     rags.push(nonIdx(new THREE.PlaneGeometry(0.9, 0.22).translate(0.45, 0, 0).rotateY(0.9 + i * 0.3).translate(x, y + h - 0.25, z)));
-    posts.push(V(x, y + h + 0.28, z));
+    (i < spots.length ? posts : spur).push(V(x, y + h + 0.28, z));
   });
   // the carriers' float-sledge: two runners, a bed of slats, three floats roped on
   const S = W.sledge, sy = H(S[0], S[1]), sm = new THREE.Matrix4().compose(V(S[0], sy, S[1]), new THREE.Quaternion().setFromAxisAngle(V(0, 1, 0), S[2]), V(1, 1, 1));
@@ -162,6 +168,12 @@ export function buildCairnWay(scene, M, terrain, crestAt) {
   for (const [px, pz, ph] of [[-1.4, -1.1, 2.4], [1.4, -1.1, 2.4], [-1.4, 1.1, 2.0], [1.4, 1.1, 2.0]]) shade.push(new THREE.CylinderGeometry(0.05, 0.06, ph, 4).translate(px, ph / 2, pz));
   const awning = new THREE.PlaneGeometry(3.2, 2.6).rotateX(-Math.PI / 2 + 0.16).translate(0, 2.25, 0);
   jar.push(new THREE.CylinderGeometry(0.28, 0.22, 0.6, 8).translate(0.4, 0.3, 0.2), new THREE.CylinderGeometry(0.12, 0.16, 0.16, 8).translate(0.4, 0.68, 0.2));
+  // (issue #561) the carriers' oil jars by the fork: three clay jars roped round a short post, two floats on it
+  const J = W.jars, jy = H(J[0], J[1]), jm = new THREE.Matrix4().compose(V(J[0], jy, J[1]), new THREE.Quaternion().setFromAxisAngle(V(0, 1, 0), J[2]), V(1, 1, 1));
+  const oil = [], oilPost = [new THREE.CylinderGeometry(0.06, 0.08, 1.9, 5).translate(0, 0.95, 0)], oilFloats = [];
+  for (const [ox, oz, r, hh] of [[0.55, 0.1, 0.34, 0.9], [-0.35, 0.45, 0.3, 0.8], [-0.2, -0.5, 0.28, 0.7]]) oil.push(new THREE.CylinderGeometry(r * 0.7, r * 0.55, hh, 8).translate(ox, hh / 2, oz), new THREE.SphereGeometry(r, 8, 6).scale(1, 0.7, 1).translate(ox, hh * 0.62, oz), new THREE.CylinderGeometry(0.1, 0.13, 0.18, 6).translate(ox, hh + 0.12, oz));
+  oilPost.push(new THREE.TorusGeometry(0.62, 0.025, 3, 16).rotateX(Math.PI / 2).translate(0, 0.45, 0));
+  for (const fy of [1.95, 1.62]) oilFloats.push(new THREE.IcosahedronGeometry(fy > 1.9 ? 0.34 : 0.26, 1).translate(fy > 1.9 ? 0 : 0.22, fy + 0.2, 0));
   // the wind-glass: a gallows frame, a row of floats on strings under its bar, knocking together
   const G = W.windGlass, gy = H(G[0], G[1]), gm = new THREE.Matrix4().compose(V(G[0], gy, G[1]), new THREE.Quaternion().setFromAxisAngle(V(0, 1, 0), G[2]), V(1, 1, 1));
   const frame = [new THREE.CylinderGeometry(0.06, 0.08, 3, 5).translate(-1.4, 1.5, 0), new THREE.CylinderGeometry(0.06, 0.08, 3, 5).translate(1.4, 1.5, 0), new THREE.CylinderGeometry(0.04, 0.04, 3.1, 4).rotateZ(Math.PI / 2).translate(0, 2.95, 0)];
@@ -183,8 +195,9 @@ export function buildCairnWay(scene, M, terrain, crestAt) {
   const g = new THREE.Group();
   g.name = 'The way up to the breaker’s cairn';
   const meshes = [
-    new THREE.Mesh(mergeGeometries([...poles, ...[...sled, ...shade].map((q, k) => nonIdx(q).applyMatrix4(k < sled.length ? sm : dm))]), M.pole),
-    new THREE.Mesh(mergeGeometries([...floats, ...sledFloats.map((q) => nonIdx(q).applyMatrix4(sm))]), amber),
+    new THREE.Mesh(mergeGeometries([...poles, ...[...sled, ...shade].map((q, k) => nonIdx(q).applyMatrix4(k < sled.length ? sm : dm)), ...oilPost.map((q) => nonIdx(q).applyMatrix4(jm))]), M.pole),
+    new THREE.Mesh(mergeGeometries([...floats, ...sledFloats.map((q) => nonIdx(q).applyMatrix4(sm)), ...oilFloats.map((q) => nonIdx(q).applyMatrix4(jm))]), amber),
+    new THREE.Mesh(mergeGeometries(oil.map((q) => nonIdx(q).applyMatrix4(jm))), M.kiln),
     new THREE.Mesh(mergeGeometries(rags), M.cloth[3]),
     new THREE.Mesh(nonIdx(awning).applyMatrix4(dm), M.cloth[1]),
     new THREE.Mesh(mergeGeometries(jar.map((q) => nonIdx(q).applyMatrix4(dm))), M.kiln),
@@ -206,6 +219,9 @@ export function buildCairnWay(scene, M, terrain, crestAt) {
       { name: 'the carriers’ shade', at: V(D[0], dy + 0.5, D[1]) },
       { name: 'the wind-glass', at: V(G[0], gy + 0.5, G[1]) },
     ],
+    // (issue #561) the court's row off the way: its posts' floats, the line from the oil jars to the court's sand (a line of
+    // its own for the level design audit), and the jars, a place to stop at
+    court: { posts: spur, points: [[J[0], jy + 0.5, J[1]], ...spur.map((p) => [p.x + 1.2, p.y - 3, p.z])], jars: { name: 'the carriers’ oil jars', at: V(J[0], jy + 0.5, J[1]) } },
     update(dt, t, ctx) {
       // (the chimes swing and knock; the smoke moves every other frame, as the desert's camp smoke)
       chimes.children.forEach((f, k) => { f.rotation.z = Math.sin((t ?? 0) * 1.7 + k * 1.3) * 0.18; f.rotation.x = Math.sin((t ?? 0) * 1.1 + k) * 0.1; });

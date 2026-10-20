@@ -11,7 +11,8 @@ import { t as tr } from '../i18n.js';
 // The desert's hoverbike isn't yours from the start. Marrow the salvager
 // dragged it into a hollow between the ship and the camps (STORY.bike, the dip
 // in desert-landmarks.js HOLLOWS) and threw a tarp over it; a red rag on a
-// pole marks the place. Until it is found the bike lies there half in the
+// tall mast on the hollow's lip marks the place (STORY.rag: issue #561, seen
+// from the tree's roots through Qanat's main gate). Until it is found the bike lies there half in the
 // sand (Hoverbike.rest: dormant, so no whistle, no "ride" prompt, nothing
 // moves it). The quest desert.bike (desert-data.js) is started by Rook near
 // the ship or by Marrow ("Got anything faster than walking?"), and leads to the
@@ -53,7 +54,8 @@ export function hollowSite(ground) {
   const s = STORY.bike, h = (x, z) => ground.heightAt(x, z);
   const f = new THREE.Vector3(Math.sin(s.yaw), 0, Math.cos(s.yaw)), r = new THREE.Vector3(f.z, 0, -f.x);
   const at = (side, ahead) => { const p = new THREE.Vector3(s.x, 0, s.z).addScaledVector(r, side).addScaledVector(f, ahead); p.y = h(p.x, p.z); return p; };
-  return { bike: at(0, 0), heading: s.yaw, pole: at(-2.6, -2.2), crates: [at(2.4, -1.6), at(2.9, -0.6)], heap: at(2.6, 1.4), f, r, at };
+  const m = STORY.rag, mast = new THREE.Vector3(m.x, h(m.x, m.z), m.z);
+  return { bike: at(0, 0), heading: s.yaw, mast, mastH: m.h, crates: [at(2.4, -1.6), at(2.9, -0.6)], heap: at(2.6, 1.4), f, r, at };
 }
 
 /** The tarp draped over the bike's shape, its skirt on the sand (vertex-coloured, two-sided). */
@@ -95,8 +97,17 @@ export function setupHoverbike(ctx) {
   // ---------------------------------------------------------------- the hollow's props
   const props = new Paint();
   const T = (p) => [p.x - site.bike.x, p.y - site.bike.y, p.z - site.bike.z];
-  const pole = site.pole;
-  props.add(new THREE.CylinderGeometry(0.05, 0.08, 6.4, 5), '#4a3a2a', { at: [T(pole)[0], T(pole)[1] + 3.1, T(pole)[2]] });
+  // (issue #561) the red rag's mast on the lip: a salvaged spar, a cross-tree near its top, three stays pegged in the sand
+  const mast = site.mast, H = site.mastH, toLip = Math.atan2(site.bike.x - mast.x, site.bike.z - mast.z);
+  props.add(new THREE.CylinderGeometry(0.08, 0.16, H, 6), '#4a3a2a', { at: [T(mast)[0], T(mast)[1] + H / 2 - 0.3, T(mast)[2]] });
+  props.add(new THREE.BoxGeometry(2.2, 0.1, 0.1), '#4a3a2a', { at: [T(mast)[0], T(mast)[1] + H - 1.1, T(mast)[2]], rot: [0, toLip, 0] });
+  for (let k = 0; k < 3; k++) {
+    const a = toLip + Math.PI / 3 + (k * Math.PI * 2) / 3, out = H * 0.42, top = new THREE.Vector3(0, H - 1.3, 0), foot = new THREE.Vector3(Math.sin(a) * out, ground.heightAt(mast.x + Math.sin(a) * out, mast.z + Math.cos(a) * out) - mast.y, Math.cos(a) * out);
+    const len = top.distanceTo(foot), mid = top.clone().add(foot).multiplyScalar(0.5), q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), top.clone().sub(foot).normalize());
+    const e = new THREE.Euler().setFromQuaternion(q);
+    props.add(new THREE.CylinderGeometry(0.018, 0.018, len, 3), '#3a3a3a', { at: [T(mast)[0] + mid.x, T(mast)[1] + mid.y, T(mast)[2] + mid.z], rot: [e.x, e.y, e.z] });
+    props.add(new THREE.CylinderGeometry(0.05, 0.03, 0.5, 4), '#4a3a2a', { at: [T(mast)[0] + foot.x, T(mast)[1] + foot.y + 0.15, T(mast)[2] + foot.z] });
+  }
   for (const [i, c] of site.crates.entries()) props.add(new THREE.BoxGeometry(0.9 - i * 0.2, 0.6 - i * 0.1, 0.7), i ? '#c8483a' : '#d8a24a', { at: [T(c)[0], T(c)[1] + 0.25 - i * 0.05, T(c)[2]], rot: [0, site.heading + i * 0.6, 0.05] });
   // a spade stuck in the sand, and a drift of sand over the bike's near flank
   const sp = site.at(1.6, 0.9);
@@ -109,8 +120,8 @@ export function setupHoverbike(ctx) {
   group.add(props.mesh({ smooth: true }));
   group.traverse((o) => { o.userData.noCollide = true; });
   scene.add(group);
-  // the red rag on its pole: you see it from the dunes around
-  const rag = new Banner(scene, pole.clone().add(new THREE.Vector3(0, 6.2, 0)), site.heading + Math.PI / 2, { width: 1.2, height: 1.8, color: '#c8483a', glyphs: false });
+  // the red rag at the mast's head: you see it from the dunes around, and from the tree's roots through the city's gate
+  const rag = new Banner(scene, mast.clone().add(new THREE.Vector3(0, H - 1.0, 0)), toLip + Math.PI / 2, { width: 2.2, height: 7, color: '#c8483a', glyphs: false });
 
   // the tarp: draped over the bike until pulled back, then a heap beside it
   const tarp = new THREE.Mesh(tarpGeometry(site, ground), paintMaterial({ smooth: true, side: THREE.DoubleSide }));

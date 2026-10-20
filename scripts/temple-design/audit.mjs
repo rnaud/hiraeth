@@ -59,9 +59,10 @@ for (const id of ids) {
   const def = TEMPLES[id].def;
   const { rt, scene, pieces, spaces } = recordTemple(def);
   scene.updateMatrixWorld(true);
-  // line of sight in the temple's own frame: its walls, floors, pieces (doors shut as at the start), not the guardian
+  // line of sight in the temple's own frame: its walls, floors, pieces (doors shut as at the start), not the guardian, and
+  // not a pane of glass (a mesh marked `seeThrough`: the Mooring-House's windows toward its lamp-eye, issue #561)
   const solids = [];
-  rt.root.traverse((o) => { if (o.isMesh && o.geometry && !(rt.guardian && isUnder(o, rt.guardian.model?.group))) solids.push(o); });
+  rt.root.traverse((o) => { if (o.isMesh && o.geometry && !o.userData.seeThrough && !(rt.guardian && isUnder(o, rt.guardian.model?.group))) solids.push(o); });
   const ray = new THREE.Raycaster();
   const s = solve(def.logic, { items: carriedInto(id) });
   // the gates you came through to reach a lock's room stand open by then (an iris you flew up through, a door): their

@@ -910,6 +910,38 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   `tests/temple-design.test.js` checks it (the audit run whole). Tests: `tests/mooring-room.test.js` (the Warden in sight
   through its bars from the hall; the hold's ball pulled for real; the moorers' gate with its key and its bar; the great
   door off the loft; the Warden; out through its gate into the hall), `tests/temples.test.js`.
+- **The Mooring-House's far keys brought near** (v1.87, issue #561, the v1.87 design audit's first edit: three steps at
+  obviousness 1.0–1.5, their keys rooms away and out of sight). Each lock's answer is read from where you stand at it:
+  - **The Chain Locker past the west door** (`LOCKER`: its middle on the west door's axis, its floor the upper landing's,
+    `y`; its well, rail and ring from its middle): the west door is open now, into the locker, and the locker's far door is
+    `gN` (the ring `rK` with its ball `ballK` out in the far cup), on to the Anchor Hold, moved 31 m west (`HOLD.x` from
+    the locker's). Its shutter `dL` is gone (the room was always low by then: the Cable Walk wants it). From the far door
+    the ball and the ring are in sight (gN 1.0 → 4.0).
+  - **The moorers' gate two keyholes** (`sc`: `lock: 'small', keys: 2`, no `opens`): the Rope Store's key and the Anchor
+    Hold's (`kH`), in a cage across the hold's well from the anchor-ball. The cage wants its lamp-eye (`eH`, a `Switch` with
+    `lids`: shut till the anchor-ball is home, `when`), splashed awake: the tether and the gun's first mode at once. The gate
+    is a keyhole now (no puzzle of its own: a lock says plainly what it wants); the hold's cage 4.0.
+  - **The great door sees its lamp-eye** (`D1_WINDOWS`): two glazed windows on the line from the great door to the eye on
+    the pier's top, one in the Capstan Hall's wall beside the shaft's gate (two stones, 6.4–10 m up) and one in the Lamp
+    Shaft's over its gate (9.6–12.2 m); the eye moved 1.2 m off the pier's radial and up on a 1 m stone (`SHAFT_PIER.side`,
+    `stone`), so the line clears the gate's passage, and still hidden from the shaft's floor by the top's edge. A `Pane` in
+    each window: its glass (`glazing`) marked `seeThrough` for the audit's sight lines (`scripts/temple-design/audit.mjs`
+    leaves such meshes out), and a block of its own in the physics, so a splash from the hub meets the glass (d1 1.5 →
+    2.5; the eye still woken from the pier's top).
+  Audit: 14 → 13 steps, mean obviousness 2.64 → 3.19 (obscure 3 → 0), non-obvious 3 → 4, dungeon item 4 → 5 (the chest at
+  31 %), curve 4 → 3 (the far keys' distance was most of the late steps' complexity; the hold's eye keeps a rise, first
+  third 2.44, last 3.38), the score 4.22 → 4.33. Rules broken: none. Old saves (`migrate.js` spacecity v6): a last mark in
+  the old locker (before the gangway), the gangway taut and the walk's catch pulled, so the way back east is open; one
+  that entered, to its last mark. Tests: `tests/far-keys.test.js` (the audit's floor for these locks, the eye seen through
+  the glass and the glass solid, the old saves), `tests/mooring-room.test.js` (the locker, the hold's eye and key, the
+  gate's two keys, on foot), `tests/temples.test.js`.
+- **The Footprint's Lens Chamber a keyhole** (v1.87, issue #561): its door (`dL`) opened from the Still Pool's berth, two
+  rooms up and out of sight (obviousness 1.0); it is a small lock now, its key (`kP`) on the pool's far ledge beside the
+  coffer, seen across the water from the near side, reached over the stones the berth raises. One small key before the lens
+  and one after (the Lodge's, for the far door), so neither can open the other's door first. Audit: 10 → 9 steps (the door
+  a keyhole, its key's step the stones, 4.0), mean obviousness 2.55 → 2.72, obscure 4 → 3 (`dT`, `dR`, `d4` stay: not this
+  issue's), the score 4.22 as before. Old saves (`migrate.js` spheres v5): past the chamber, its key in its door. Tests:
+  `tests/footprint-floors.test.js`, `tests/far-keys.test.js`.
 - **The Lamp-House round its Lamp Hall, its great lamp the house's state** (v1.83, issue #410; the approved
   recommendations: `docs/design/temple-best-practices.md`, G1, G2, G4, G6). The Hall of Dark Pools is the **Lamp Hall**
   (`ROOMS.pools`, its id kept), 36 by 64 m under 34, its **gallery** (`GALLERY`, the room `hallUp`) along the west wall

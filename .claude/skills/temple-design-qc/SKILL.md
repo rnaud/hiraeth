@@ -107,7 +107,8 @@ the **puzzle graph** (rooms placed at their marks and pieces; every door and bri
 item, is a lock; its keys are what its condition names, a ball for a plate it is meant for, the singing stone
 for an echo ear); per lock, the **mechanics** (weight, push, shot, sequence, `gadget:<item>`, with `volley` and
 `reveal` as qualifiers), and per key its distance in **rooms** and **metres** and whether it is **in sight**
-from where you stand to face the lock (a ray through the temple's walls, floors and shut doors); the
+from where you stand to face the lock (a ray through the temple's walls, floors and shut doors; a pane of glass, a mesh
+marked `userData.seeThrough`, hides nothing); the
 **traversal** pieces per room (discs, winds, gusts, swings, pits, glass); the solve order (`logic.js`
 `solve`). Then the measures and scores above, the temple's **skeleton** (one letter a step: B base verbs, C the
 chest's room, G the gadget alone, X a combination, R a reveal, T a traversal the gadget makes, L a lock a key from elsewhere opens, A an arena's way out, K the guardian)

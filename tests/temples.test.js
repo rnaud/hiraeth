@@ -979,7 +979,7 @@ test('the Hush-House (v1.83, issue #409: no fight at all): the Threshold’s cry
   }
 });
 
-test('the Mooring-House (issues #417, #477): the moored room high or low is the house’s one state; the Capstan Floor by the hub, its gate opened from inside; the Anchor Hold’s anchor-ball for the moorers’ gate; the Rope Store’s small key for the moorers’ gate, the great key on the balcony behind the lens’s ring; either order; old saves past the west door find it open', async () => {
+test('the Mooring-House (issues #417, #477, #561): the moored room high or low is the house’s one state; the Capstan Floor by the hub, its gate opened from inside; the moorers’ gate’s two keyholes, the Rope Store’s small key and the Anchor Hold’s (its cage’s eye awake once the anchor-ball is home); the Chain Locker past the west door, its ring for its far door; the great key on the balcony behind the lens’s ring; either order; old saves past the west door find it open', async () => {
   const { PERCH, LOW, HIGH, HOLD } = await import('../src/temples/spacecity.js');
   const L = TEMPLES.spacecity.def.logic, items = ['backpack', 'gun', 'doublejump', 'glider', 'sword', 'shield', 'monocle'];
   for (const reverse of [false, true]) { const r = solve(L, { items, reverse }); assert.equal(r.done, true, r.log.join(' / ')); }
@@ -992,13 +992,22 @@ test('the Mooring-House (issues #417, #477): the moored room high or low is the 
   assert.ok(noBall.logic.isFound('kS') && noBall.stuck.includes('perch') && !noBall.stuck.includes('arena'), 'without the balcony’s ball the Capstan Floor stays shut');
   assert.deepEqual(TEMPLES.spacecity.def.arenas.map((A) => A.el), ['arR']);
   // (issue #477, the guardian met early) the Capstan Floor's gate into the hub opens from inside once the Warden is stopped,
-  // and its way in is the great door off the loft; the Anchor Hold's anchor-ball, pulled home, draws the moorers' gate's bar
+  // and its way in is the great door off the loft. (#561) The moorers' gate takes two small keys, the Rope Store's and the
+  // Anchor Hold's: the hold's key caged till its eye wakes, the eye lidded till the anchor-ball is home
   assert.ok(L.links.some((l) => l.a === 'arena' && l.b === 'hall' && l.door === 'd7') && L.links.some((l) => l.a === 'loft' && l.b === 'ante' && !l.door), 'the floor between the hub and the loft');
   assert.deepEqual(L.elements.d7.opens, { resolved: true });
-  assert.deepEqual(L.elements.sc.opens, { drumOn: ['bA', 'pA'] });
+  assert.equal(L.elements.sc.lock, 'small'); assert.equal(L.elements.sc.keys, 2); assert.equal(L.elements.sc.opens, undefined, 'the gate wants its keys alone');
+  assert.deepEqual(L.elements.kH.when, { lit: 'eH' }); assert.deepEqual(L.elements.eH.when, { drumOn: ['bA', 'pA'] });
   assert.equal(L.elements.bA.plateAt, HOLD.rail.plateAt);
-  const noHold = solve(L, { items, forbid: ['bA'] });
-  assert.ok(!noHold.done && noHold.order.includes('hold') && !noHold.order.includes('perch'), 'without the Anchor Hold’s ball the moorers’ gate stays shut');
+  for (const f of ['bA', 'eH']) {
+    const noHold = solve(L, { items, forbid: [f] });
+    assert.ok(!noHold.done && noHold.order.includes('hold') && !noHold.order.includes('perch'), `without the Anchor Hold’s ${f} the moorers’ gate stays shut`);
+  }
+  // (#561) the Chain Locker past the west door, on the way to the hold: its ring opens its far door
+  assert.ok(L.links.some((l) => l.a === 'westS' && l.b === 'locker' && !l.door) && L.links.some((l) => l.a === 'locker' && l.b === 'hold' && l.door === 'gN'), 'the west door into the locker, its far door on to the hold');
+  assert.equal(L.elements.dL, undefined, 'no shutter on the locker: it is the way on');
+  const noLocker = solve(L, { items, forbid: ['ballK'] });
+  assert.ok(!noLocker.done && noLocker.order.includes('locker') && !noLocker.order.includes('hold'), 'without the locker’s ball its far door stays shut');
   const way = solve(L, { items }).order;
   assert.ok(way.indexOf('hold') < way.indexOf('perch') && way.indexOf('perch') < way.indexOf('arena'), `the hold, the balcony, then the floor (${way.join(' ')})`);
   // the state: one drum of two stops, set from the hub, the room, the west landing, and with the tether at the docks
@@ -1006,20 +1015,20 @@ test('the Mooring-House (issues #417, #477): the moored room high or low is the 
   assert.deepEqual(M.stops, { mLow: 0, mHigh: 1 });
   assert.equal(M.start, 1, 'it starts high');
   assert.deepEqual(M.rooms.map((r) => (typeof r === 'string' ? r : `${r.room}:${r.needs}`)), ['west', 'drift:tether', 'moor:tether', 'moorW:tether']);
-  // what each stop does, through the house's floors (G1): low, the breath, the locker's and the store's shutters, the Cable
-  // Walk; high, the loft's ring, the gangway, the coffer's cage
-  for (const [id, want] of [['breath', LOW], ['dL', LOW], ['dR', LOW], ['dockL', LOW], ['dockH', HIGH], ['dockW', HIGH], ['ride', HIGH], ['rideW', HIGH]]) assert.deepEqual(L.elements[id].opens, want, id);
+  // what each stop does, through the house's floors (G1): low, the breath, the store's shutter, the Cable Walk; high, the
+  // loft's ring, the gangway, the coffer's cage
+  for (const [id, want] of [['breath', LOW], ['dR', LOW], ['dockL', LOW], ['dockH', HIGH], ['dockW', HIGH], ['ride', HIGH], ['rideW', HIGH]]) assert.deepEqual(L.elements[id].opens, want, id);
   assert.deepEqual(L.elements.r1.when, HIGH);
   assert.deepEqual(L.elements.cw.opens.all[0], LOW);
   assert.deepEqual(L.elements.br2.opens.all[1], HIGH);
   assert.deepEqual(L.elements.cC.when.all[1], HIGH);
   const S = new TempleLogic(L, { has: (i) => ['gun', 'tether', 'monocle'].includes(i) });
   S.update();
-  assert.equal(S.isOpen('dL'), false, 'high: the locker shut');
+  assert.equal(S.isOpen('dR'), false, 'high: the store shut');
   S.moveDrum('mooring', 0); S.update();
-  assert.ok(S.isOpen('dL') && S.isOpen('dR') && !S.isOpen('dockH'), 'low: the locker and the store open, the high dock’s gate shut');
+  assert.ok(S.isOpen('dR') && !S.isOpen('dockH'), 'low: the store open, the high dock’s gate shut');
   S.moveDrum('mooring', 0.45); S.update();
-  assert.ok(!S.isOpen('dL') && !S.isOpen('dockL') && !S.isOpen('dockH'), 'under way: every gate shut');
+  assert.ok(!S.isOpen('dR') && !S.isOpen('dockL') && !S.isOpen('dockH'), 'under way: every gate shut');
   // the cage wants the ball home and the ring only the lens shows (its chain)
   const W = new TempleLogic(L, { has: (i) => ['gun', 'tether', 'monocle'].includes(i) });
   W.moveDrum('bK', L.elements.bK.plateAt);

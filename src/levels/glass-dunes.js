@@ -297,7 +297,7 @@ export function* buildGlassDunes(scene) {
     // what the level design audit reads (scripts/level-design/audit.mjs): the float-posts, the way home Wim sends you by
     // (only where it is named: the route's temple step, tests/playthrough-worlds.js); the places to stop at that are
     // neither people nor quests: the camps, the passage through the wave, the rack, the cairn
-    lines: [{ name: 'the float-posts', points: floats.points, auto: false }, { name: 'the cairn’s posts', points: up.points }, { name: 'the west posts', points: westLine }],
+    lines: [{ name: 'the float-posts', points: floats.points, auto: false }, { name: 'the cairn’s posts', points: up.points }, { name: 'the west posts', points: westLine }, { name: 'the court’s posts', points: up.court.points }],
     sights: [
       ...quarter.sights.map(s=>({...s,at:new THREE.Vector3(...s.at)})),
       { name: 'the west camp', at: new THREE.Vector3(GLASS_CAMPS.west.x, terrain.heightAt(GLASS_CAMPS.west.x, GLASS_CAMPS.west.z) + 0.5, GLASS_CAMPS.west.z) },
@@ -309,6 +309,8 @@ export function* buildGlassDunes(scene) {
       { name: 'the breaker’s cairn', at: breaker.at },
       // (v1.50: on the way up to it, issue #134)
       ...up.sights,
+      // (issue #561: where the way passes nearest the half-buried court, the carriers' oil jars, and a row of posts to it)
+      up.court.jars,
       // (issue #166: the stopped minutes in the glass, read from where you stand; the windows in the sand, the sinkhole)
       ...frozen.scenes.map((f) => ({ name: f.label, at: f.stand.clone().setY(f.stand.y + 0.5) })),
       ...city.sights,

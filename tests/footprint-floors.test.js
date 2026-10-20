@@ -197,19 +197,29 @@ test('the Footprint on foot, floor by floor (issue #401): the Hall of Spheres op
   for (let i = 0; i < 4 / DT && !ball3.rest; i++) frame();
   assert.ok(logic.drumOn('ball3', 'p3'), `over the still water into its berth (${ball3.t.toFixed(2)})`);
   wait(2);
-  assert.ok(logic.isOpen('stones') && logic.isOpen('dL'), 'the stepping stones rise, and the Lens Chamber opens below');
+  assert.ok(logic.isOpen('stones') && !logic.isOpen('dL'), 'the stepping stones rise (the Lens Chamber below wants its key: issue #561)');
   const Fz = PL.z0 + PL.near + PL.pit;
   assert.equal(walk(L(3.5, F1, PL.z0 + 7.4)) && walk(L(3.5, F1, Fz + 1.0)), true, `over the stones (${where()})`);
   assert.ok(P.pos.y > L(0, F1 - 1, 0).y, 'not in the pool');
   const coffer = bestInteractable(P);
   assert.equal(coffer?.entry?.id, 'temple.spheres.cF', 'the coffer on the far ledge');
   coffer.entry.use(P);
+  // (issue #561) and beside it the Lens Chamber's small key
+  assert.equal(walk(rt.piece('kP').pos, { tol: 1.2 }), true, `to the Lens Chamber’s key (${where()})`);
+  wait(0.3);
+  const chest = bestInteractable(P);
+  assert.equal(chest?.entry?.id, 'temple.spheres.kP', 'the key’s little chest');
+  chest.entry.use(P);
+  assert.ok(logic.isFound('kP') && logic.keys('small') === 1, 'the small key in hand');
   // ---- the second drop: back over the stones and out, round to the hole in F1's balcony, onto F2's pool
-  assert.equal(walk(L(3.5, F1, PL.z0 + 7.4)) && walk(L(0, F1, WZ + 23)) && walk(at(0, 17, F1)) && roundTo(0, -45, F1), true, `round to the second drop (${where()})`);
+  assert.equal(walk(L(3.5, F1, Fz + 1.0), { tol: 0.4 }) && walk(L(3.5, F1, PL.z0 + 7.4)) && walk(L(0, F1, WZ + 23)) && walk(at(0, 17, F1)) && roundTo(0, -45, F1), true, `round to the second drop (${where()})`);
   f = fall(at(AT.dropB, AT.poolR, F1));
   assert.ok(Math.abs(H.local().y - F2) < 0.5 && f.hurt === 0 && !f.down, `down onto F2's pool (${f.fell} m, ${f.hurt}, ${where()})`);
   // ---- the Lens Chamber: the seeing lens
-  assert.equal(roundTo(-60, -90, F2) && walk(L(-23, F2, WZ)) && walk(L(-38, F2, WZ)), true, `into the Lens Chamber (${where()})`);
+  assert.equal(roundTo(-60, -90, F2) && walk(L(-19.2, F2, WZ), { tol: 0.4 }), true, `to the Lens Chamber’s door (${where()})`);
+  wait(2.4);
+  assert.ok(logic.keysIn('dL') === 1 && logic.isOpen('dL'), 'its small key goes in, and it opens');
+  assert.equal(walk(L(-23, F2, WZ)) && walk(L(-38, F2, WZ)), true, `into the Lens Chamber (${where()})`);
   assert.equal(rt.piece('mural').mesh.visible, false, 'no mural to see');
   items.grant('monocle'); game.emit('box:opened', { id: 'spheres.temple.lens' });
   wait(0.3);

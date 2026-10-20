@@ -232,8 +232,14 @@ export const LAYOUTS = {
   // v1.86 (issue #477): the Capstan Floor east of the Capstan Hall (its bars seen from the hub, its great door off the loft,
   // the way out the gate into the hub); the Anchor Hold where it stood, its anchor-ball pulled home draws the moorers'
   // gate's bar. Past the moorers' gate: the hold done. A save that entered: to its last mark
+  // v1.87 (issue #561): the Chain Locker moved past the west door (its ring opens its far door, on to the Anchor Hold), the
+  // moorers' gate two keyholes (the Rope Store's small key and the Anchor Hold's, in a cage its eye opens once the anchor-ball
+  // is home), the great door's lamp-eye seen through two windows. Past the moorers' gate: the hold's key found and in it
+  // (both keyholes: `raise`, the count was 1). A save whose
+  // last mark was in the old locker (north off the east landing, before the gangway): the gangway taut and the Cable Walk's
+  // catch pulled, so the way back east from the locker's new place is open. A save that entered: to its last mark
   spacecity: {
-    v: 5,
+    v: 6,
     steps: [
       { if: ['lit.r5', 'open.sc', 'open.gN', 'boss'], set: { 'unlocked.sc': 1, 'found.kS': true, 'lit.arR': true } },
       { if: ['open.sc', 'found.kB', 'boss'], set: { 'drum.bA': 0.141 } },   // (HOLD.rail.plateAt: tests/temples.test.js checks)
@@ -241,6 +247,8 @@ export const LAYOUTS = {
       { if: ['open.gN', 'boss'], set: { 'drum.ballK': 1, 'lit.rK': true, 'lit.rW': true, 'open.br2': true, 'drum.ballD': 0.125, 'open.ride': true, 'open.rideW': true } },
       { if: ['found.kB', 'open.gN', 'boss'], set: { 'lit.rL': true, 'seen.rL': true } },
       { if: ['open.d1', 'gadget', 'open.d2', 'boss'], set: { 'open.breath': true } },
+      { if: ['open.sc', 'found.kB', 'boss'], set: { 'lit.eH': true, 'found.kH': true }, raise: { 'unlocked.sc': 2 } },
+      { if: ['checkpoint=locker'], set: { 'open.br2': true, 'drum.ballD': 0.125, 'lit.rW': true } },
       { if: ['entered'], set: { relaid: true } },
     ],
   },
@@ -294,11 +302,15 @@ export const LAYOUTS = {
   // (dR), the far door wants the great sphere down too and opens on the great key, for the great door (dG) on the heel's
   // floor. Past the old far door (or the guardian): all of that as done, the great sphere down. And a save that entered
   // the house: taken to its last mark
+  // v1.87 (issue #561): the Lens Chamber's door a small lock, its key on the Still Pool's far ledge (the berth opened it
+  // before). Past that door (or the lens, or anything after): its key in it, so no spare key is left on the ledge for the far
+  // door, which takes the Lodge's
   spheres: {
-    v: 4,
+    v: 5,
     steps: [
       { if: ['open.d4', 'boss'], set: { 'unlocked.d4': 1, 'found.kS': true, 'lit.arL': true } },
       { if: ['open.d4', 'boss'], set: { 'drum.ballT': 1, 'open.dT': true, 'open.dL': true, 'lit.sL': true, 'seen.spiral': true, 'open.dR': true, 'drum.lift': 1, 'open.d4': true, 'found.kG': true, 'unlocked.dG': 1 } },
+      { if: ['open.dL', 'gadget', 'open.d4', 'boss'], set: { 'found.kP': true, 'unlocked.dL': 1 } },
       { if: ['entered'], set: { relaid: true } },
     ],
   },
@@ -358,6 +370,8 @@ export function migrateTempleLayouts(g) {
       for (const [f, v] of Object.entries(st.set)) { const was = g.flag(`temple.${id}.${f}`); if (was === undefined || (f === 'relaid' && was === null)) { g.set(`temple.${id}.${f}`, v); n++; } }
       // (a flag cleared to null counts as unset: `relaid`, used up once, is set again when the house is remade again, #408)
       for (const [f, v] of Object.entries(st.set)) if (g.flag(`temple.${id}.${f}`) == null) { g.set(`temple.${id}.${f}`, v); n++; }
+      // (`raise`: a count brought up to at least this, set or not: the keys in a lock that has more keyholes now, #561)
+      for (const [f, v] of Object.entries(st.raise ?? {})) if (!((g.flag(`temple.${id}.${f}`) ?? 0) >= v)) { g.set(`temple.${id}.${f}`, v); n++; }
     }
     g.set(k, L.v);
   }

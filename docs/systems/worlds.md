@@ -499,6 +499,13 @@ open edges of every desert water within 6 cm of what is under them, and the chan
   hollow, on the 263 m from the roots to the tarp that had nobody on it. From the camps' south edge he stands on the
   skyline by the red rag; from where he stands the tarp is in sight below (`tests/desert-lookout.test.js`, the audit's
   rays). What he says points at the red rag, never at someone else.
+- **The red rag's mast** (v1.87, issue #561; ranked at v1.66 and v1.85: from the drinking roots the leg was still blind,
+  neither the hollow nor anything by it in sight, Qanat's towers in the way). The rag flies from a 20 m salvaged spar on
+  the hollow's north-west lip (`STORY.rag`, src/story/desert-bike.js: three stays, a cross-tree, the rag at its head),
+  between the tarp and the ship, placed so that from the roots it stands in the arch of Qanat's main gate. A beacon for the
+  audit (`the red rag’s mast`): the leg roots → tarp is guided by a landmark by it, 71 % → 79 % of the long legs (one leg
+  short of wayfinding 5: the giant's skull → the drain and the two short legs in the Hearth stay blind). Tests:
+  `tests/desert-lookout.test.js` (the mast in sight from the roots by the audit's ray, with a step's margin either side).
 - **The audit** (`node scripts/level-design/audit.mjs --worlds desert`): mean 3.89 → 4.22. No walk back with nothing
   new (loops 3 → 5: the House's walk home passes the field-stone), four kinds of stop with the House a temple stop
   and the longest run of "do" six (pacing 3 → 4); the critical path 5600 → 4996 m.
@@ -2592,6 +2599,13 @@ spots it is there for, with the audit's own rays, in `tests/level-design-landmar
   floats (the way home's are green) every 28 m on the sand from beside the Clock-House's door to the wave's east foot and
   every 18 m up its back to the cairn (`the cairn's posts`); on the way, 30–150 m from the door, the carriers' float-sledge,
   their shade and the wind-glass (sights: optional pull 3 → 4). All drawn only.
+- **The Glass Dunes, the half-buried court** (v1.87, issue #561: the world's last remote dead end, 279 m off the path and
+  157 m from anything; Fenna's west posts run nowhere near it, so the way up to the breaker's cairn takes it on). Where
+  that way passes nearest the court the carriers leave their oil jars (`CAIRN_WAY.jars`: three clay jars roped round a
+  post with two amber floats, a sight), and a row of four of the same posts runs east from them to the court's sand
+  (`CAIRN_WAY.court`, the line `the court’s posts`; `buildCairnWay` returns them apart, `court`, so the way up keeps its
+  own). The court 117 m from the jars: remote dead ends 1 → 0, its 157 m loner gone. Drawn only. Tests:
+  `tests/far-keys.test.js` (the jars within 150 m, each post's float in sight of the next).
 
 ## The ways in and home past the temples (level design audit v1.53, issues #178-#180; v1.54)
 

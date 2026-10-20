@@ -38,6 +38,9 @@ export const STORY = {
   drum: { x: 156.65, z: -187.6 },                                   // Teo's drum, blown under the old ribcage and jammed against the inside of a rib's foot (src/story/desert-errands.js)
   bike: { x: 132, z: 150, yaw: 2.3 },                               // Marrow's hollow: the hoverbike under its tarp (quest desert.bike)
   lookout: { x: 165, z: 182 },                                      // Zahir on the dune's crest over the hollow, the tarp in sight below (issue #278)
+  // the red rag's mast on the hollow's north-west lip, between it and the ship (issue #561: the 263 m from the drinking roots
+  // to the tarp were blind): `h` m tall, and from the roots it stands in the arch of Qanat's main gate (tests/desert-lookout.test.js)
+  rag: { x: 115, z: 172, h: 20 },
   // the Givers' Hearth (src/desert-hearth.js): a butte of red rock far out in the south-east, ~1.7 km from
   // Qanat (a long ride, more than four minutes' run), the spark-stone in the dark cave under it; its rooms far overhead
   hearth: { x: 1650, z: -450, r: 46 },

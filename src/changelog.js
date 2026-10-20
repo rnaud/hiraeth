@@ -90,6 +90,13 @@ export const CHANGELOG = [
             { where: 'the Back Rooms (15 → 17 hearts; A → B)', before: 0.33, after: 0.54 },
           ], source: '.claude/skills/combat-review/fight-temples.mjs --bot skilled --seed 4821; issue #560', note: 'One run is one run: the crowd’s blows move a run’s total by a fifth either way. Every run after stays under all your hearts, with no knock-out, inside the 0.4–1 the v1.87 review saw from the first temple to the last.' }],
       see: 'In the Back Rooms of the Signal Market, with every heart bought on the way: each blow now takes a little more than before, still far from all your hearts if you roll.' },
+    // issue #561: src/temples/spacecity.js (LOCKER past the west door, gN its far door; sc two keyholes, kH caged by eH in
+    // the Anchor Hold; D1_WINDOWS and Pane, SHAFT_PIER side/stone), migrate.js spacecity v6, spheres v5 (dL a small lock,
+    // kP on the Still Pool's far ledge), scripts/temple-design/audit.mjs (seeThrough); tests/far-keys.test.js
+    'In the Mooring-House each lock now shows its answer from where you stand: the Chain Locker is the room behind the west door, its ring and its ball in sight of the far door they open; the moorers’ gate has two keyholes, one for the Rope Store’s key and one for a key in the Anchor Hold, whose cage opens when you pull the spare anchor home and wake its eye; and from the great door you see the lamp-eye it wants through a window beside the shaft’s gate. In the Footprint, the Lens Chamber’s door takes a small key, waiting on the Still Pool’s far ledge.',
+    // issue #561: src/desert-sites.js STORY.rag, src/story/desert-bike.js (the mast), src/levels/desert.js beacons;
+    // src/glass-dunes-ways.js CAIRN_WAY jars and court, src/levels/glass-dunes.js; tests/desert-lookout.test.js, far-keys.test.js
+    'In the Desert, the red rag over Marrow’s hollow now flies from a tall mast, which you see through Qanat’s main gate from the tree’s roots. In the Glass Dunes, the carriers have left their oil jars where the way up to the breaker’s cairn passes nearest the half-buried court, and a row of their posts leads you there.',
   ] },
   { v: '1.86', date: '2026-10-19', items: [
     // issue #483: src/story/hosts-data.js (the fight hosts' second lines), src/fight-temples/<world>.js (blurb, quiet),

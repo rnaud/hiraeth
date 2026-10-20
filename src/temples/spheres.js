@@ -33,8 +33,8 @@ import { footprintSkin } from './skins/footprint.js';
 //               shows, under the rim's pier, and the great sphere up. In the middle the GREAT LIFT: a disc and its great
 //               sphere riding between the rim and F2; stood on, it carries you; its plate on either pier calls it
 //   F1 (-18 m)  the balcony, its east arc cut off by two gaps whose bridges stand while the great sphere is up. North,
-//               the Still Pool (the floating sphere pushed over the stilled water: its berth opens the Lens Chamber,
-//               below and west; its stones a coffer on the far ledge). East, the Sounding Toe: a sphere in a groove
+//               the Still Pool (the floating sphere pushed over the stilled water: its berth raises the stones to the
+//               far ledge, and on it the small key of the Lens Chamber, below and west, and a coffer). East, the Sounding Toe: a sphere in a groove
 //               whose end is a hatch over a hole in the floor; from the walker's print, among two plain ones, the hatch
 //               opens, and pushed from there the sphere drops through onto the plate below and opens the Hall of the
 //               Unseen's door (the author's ruling: a hole is not a door, #336)
@@ -192,14 +192,16 @@ export const LOGIC = {
     ballT: { type: 'drum', room: 'sounding', plate: 'pT', plateAt: 1, start: 0, through: 'hole', when: { open: 'hT' } },
     dT: { type: 'door', opens: { drumOn: ['ballT', 'pT'] }, latch: true },
     // F1, the Still Pool: the water stirs and draws the floating sphere back, unless you stand on the stone that stills it;
-    // pushed across onto its berth meanwhile, it raises the stepping stones (to a coffer on the far ledge) and opens the
-    // Lens Chamber on F2
+    // pushed across onto its berth meanwhile, it raises the stepping stones to the far ledge: a coffer, and the small key of
+    // the Lens Chamber on F2 (issue #561: the chamber's door opened from the berth, two rooms off and out of sight; a
+    // keyhole says what it wants from where you stand at it, and the key is seen from the pool's near side)
     pS: { type: 'plate', room: 'pool' },
     p3: { type: 'plate', room: 'pool' },
     ball3: { type: 'drum', room: 'pool', plate: 'p3', plateAt: 1, start: 0, when: { pressed: 'pS' } },
     stones: { type: 'bridge', opens: { drumOn: ['ball3', 'p3'] }, latch: true },
     cF: { type: 'cache', room: 'poolFar' },
-    dL: { type: 'door', opens: { drumOn: ['ball3', 'p3'] }, latch: true },
+    kP: { type: 'key', kind: 'small', room: 'poolFar' },
+    dL: { type: 'door', lock: 'small', latch: true },
     // F2, the Lens Chamber (issue #377: the seeing lens, raised to see what the house hides: once it has looked at a hidden
     // stone, eye or door, it stays; a print shows only while it looks)
     chest: { type: 'gadget', room: 'lens', item: 'monocle' },
@@ -776,6 +778,7 @@ function layout(rt) {
   K.add(M.trim, T(new THREE.TorusGeometry(1.8, 0.18, 5, 20, Math.PI), [-4.5, F1 - 2.45, Fz - 0.6], [Math.PI / 2, 0, Math.PI]));   // the berth's lip
   add(Bridge, { id: 'stones', a: [3.5, F1, E - 0.1], b: [3.5, F1, Fz + 0.1], w: 3.4, n: 7 });
   add(Coffer, { id: 'cF', at: [3.5, F1, Fz + 2.4], yaw: Math.PI });
+  add(Key, { id: 'kP', at: [-2.5, F1, Fz + 2.8], yaw: Math.PI });   // (issue #561: the Lens Chamber's small key, seen across the pool)
   add(Mark, { room: 'pool', at: [-9, F1, PL.z0 + 3.1], yaw: Math.PI / 2 });
 
   // ---- the Sounding Toe (F1, east): a sphere in a groove whose end is a hatch over a hole in the floor, straight over
@@ -807,7 +810,7 @@ function layout(rt) {
   // over the second drop's pool, its last two prints turned to the well where the first stone waits: through the lens,
   // where to raise it again (the spiral was shown only to a lens raised into the well's middle, seen from nowhere)
   add(Mural, { id: 'trail', at: [-(R - 0.6), F2, WZ], wall: false, floor: F2, prints: trailPrints() });
-  add(Door, { id: 'dL', at: [-(R + 0.7), F2, WZ], yaw: Math.PI / 2, w: D.w, h: D.h, lamps: [{ drumOn: ['ball3', 'p3'] }] });
+  add(Door, { id: 'dL', at: [-(R + 0.7), F2, WZ], yaw: Math.PI / 2, w: D.w, h: D.h });   // (issue #561: its keyhole, the Still Pool's key)
   add(Mark, { room: 'lens', at: [LE.x + 8, F2, LE.z - 8], yaw: -Math.PI * 0.75 });
 
   // ---- the Hall of the Unseen (F2, east): a chasm across its middle under stones only the lens shows, the walker's

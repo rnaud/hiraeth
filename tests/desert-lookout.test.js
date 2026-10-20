@@ -50,3 +50,44 @@ test('what Zahir says points at the hollow, and sends you to nobody (issue #278)
   assert.ok(lines.some((l) => /red rag/.test(l) && /hollow/.test(l)), 'the red rag, the hollow: where the tarp is');
   for (const l of lines) assert.doesNotMatch(l, /\b(ask|talk to|go and see|find)\b/i, `no hand-off: ${l}`);
 });
+
+// (issue #561) Zahir stood on the way, but from the roots the leg was still blind: 263 m with neither the hollow nor anything
+// by it in sight (the level design audit's ray, the collision then the terrain under it). The red rag now flies from a tall
+// mast on the hollow's north-west lip, and from the roots it stands in the arch of Qanat's main gate.
+test('the red rag’s mast: by the hollow, in sight from the drinking roots through the city’s gate, a landmark the audit reads (issue #561)', async () => {
+  globalThis.location = { search: '?level=desert' };
+  const W = A.loadWorld('desert');
+  try {
+    const beacons = typeof W.level.beacons === 'function' ? W.level.beacons() : W.level.beacons;
+    const mast = beacons.find((b) => b.name === 'the red rag’s mast');
+    assert.ok(mast, 'the audit reads the mast as a beacon');
+    const roots = A.objectiveAt(W, 'roots'), tarp = A.objectiveAt(W, 'bikeHollow'), top = V(...mast.top);
+    // by the goal (the audit's 80 m), and tall over the sand
+    assert.ok(flat(top, tarp) < 80 * 0.6, `by the tarp (${flat(top, tarp).toFixed(0)} m)`);
+    assert.ok(top.y - W.level.ground.heightAt(top.x, top.z) >= STORY.rag.h - 0.1, 'as tall as it says');
+    // the audit's aim, a fifth of its height down from its top, from the roots' eye; and so is the rag's head itself
+    const eye = V(roots.x, roots.y + 1.7, roots.z);
+    assert.equal(blocker(W, eye, V(top.x, top.y - 0.2 * mast.height, top.z)), null, 'the mast in sight from the roots');
+    assert.equal(blocker(W, eye, V(top.x, top.y - 2, top.z)), null, 'and its rag');
+    // with a margin: the same seen from a step either side of the roots
+    for (const s of [-2, 2]) assert.equal(blocker(W, V(eye.x + s, eye.y, eye.z), V(top.x, top.y - 0.2 * mast.height, top.z)), null, `from ${s} m beside the roots`);
+    // the rag is the hollow's own: the story's rag flies at the mast's head
+    const hollow = W.story?.hollow ?? null;
+    if (hollow?.rag) assert.ok(flat(hollow.rag.mesh.position, top) < 1.5, 'the red rag at its head');
+  } finally { W.dispose(); }
+});
+
+test('the level design audit sees the roots → tarp leg guided by a landmark by it (issue #561)', async () => {
+  const { spawnSync } = await import('node:child_process');
+  const { readFileSync, rmSync } = await import('node:fs');
+  const { join } = await import('node:path');
+  const { tempDir } = await import('../scripts/temp-dirs.mjs');
+  const out = tempDir('level-561-');
+  try {
+    const r = spawnSync(process.execPath, ['scripts/level-design/audit.mjs', out, '--worlds', 'desert'], { encoding: 'utf8', timeout: 180000 });
+    assert.equal(r.status, 0, r.stderr.slice(-400));
+    const rep = JSON.parse(readFileSync(join(out, 'report.json'), 'utf8'));
+    const leg = rep.worlds[0].metrics.guidance.legs.find((l) => l.from === 'The roots, drinking' && l.to === 'The tarp in the hollow');
+    assert.ok(leg && leg.seen && leg.how !== 'blind', `the leg is guided (${leg?.how})`);
+  } finally { rmSync(out, { recursive: true, force: true }); }
+});
