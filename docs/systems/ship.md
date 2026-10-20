@@ -322,12 +322,15 @@ traveller's capsule, crosses it, and the stripe breaks round the door's frame).
 
 `caravan-review.html` is a separate shipped review page for the selected caravan reference
 (`references/The Travellers Ship/redesign/rounded-caravan-a/approved-reference.png`, accepted source
-and SHA-256 provenance beside it). It provides a reference camera, orbit, front, side and rear
+and SHA-256 provenance beside it). It provides a reference camera, orbit, front, side, rear and bottom
 views, a 1.75 m scale person, Arrive/Depart controls and a turntable. The reference opens full size
 by click or keyboard. The page has no audio system and does not load or change game saves.
 
 The Blender rebuild (#595) replaces the generic capsule study with separately shaped forecabin,
-inhabited middle, tapered aft body and offset engine pods. Shape review compares the actual game
+inhabited middle, tapered aft body and four rear boosters in a two-by-two arrangement (#596).
+The upper and lower port/starboard assemblies remain separately named beneath `engines`; their
+mirrored placement is checked against the actual exported model. The Bottom camera reveals the
+underside without moving hidden parts into view. Shape review compares the actual game
 render with the selected drawing before detailing: the upper cockpit glazing, deep chin, cabin
 length and porch placement matter more than surface decoration. The model remains approximately
 40 m long, with bow along -X, up along +Y and porch on +Z in game coordinates. These are authoring

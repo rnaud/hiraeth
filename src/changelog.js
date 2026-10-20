@@ -9,6 +9,8 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   { v: '1.90', date: '2026-10-20', items: [
+    { text: 'The caravan study now has four rear boosters in two pairs, with a Bottom view for checking the underside.',
+      see: 'Open the caravan study from Debug, then choose Rear or Bottom to inspect the four boosters and landing gear.' },
     'The caravan study has been rebuilt around the selected drawing, with a broad cockpit, a deeper rounded hull and separate engine pods.',
     { text: 'The caravan study has a rounder hull and broad curved cockpit. Its camp packs into a closed side hatch before lift-off, then unfolds after landing.',
       see: 'Open the caravan ship study from Debug, then try Depart and Arrive to watch the deck, canopy, furniture, laundry and landing gear stow and return.' },

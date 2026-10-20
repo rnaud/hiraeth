@@ -1,28 +1,34 @@
 {
-  "issue": 595,
-  "design": "Selected rounded caravan A; authored Blender reconstruction",
+  "issue": 596,
+  "design": "Selected rounded caravan A; Blender reconstruction with user-requested four rear boosters in two-by-two arrangement",
   "reference": "references/The Travellers Ship/redesign/rounded-caravan-a/approved-reference.png",
   "referenceSha256": "5674f7b2808db2e40d676f6bb43d28f97a9a082e3a90379d028399f78b20c5f2",
   "build": "/Applications/Blender.app/Contents/MacOS/Blender --background --threads 2 --python scripts/blender/ship/build_caravan.py",
   "blender": "5.2.2 LTS",
   "lengthMetres": 40,
-  "triangles": 139432,
-  "primitiveDraws": 44,
+  "triangles": 155968,
+  "primitiveDraws": 56,
   "neutralMaterials": true,
   "textures": 0,
   "scope": "Web-only authoring prototype; live game ink materials applied on load.",
   "files": {
     "scripts/blender/ship/build_caravan.py": {
-      "sha256": "9bf82ea8091ad222db56c53ce8f4ffdda5d8e43dcf2a9b072f01cce2c0412ae7",
-      "bytes": 24182
+      "sha256": "53736b4151623b6c162a7170c208e080c5a0d6e64b6a7a9f350b7212d4873e4a",
+      "bytes": 25370
     },
     "references/The Travellers Ship/redesign/rounded-caravan-a/caravan-a.blend": {
-      "sha256": "4649ed4fa9a07cf579e649f019abc420deeaeee955cd79636e51061c60c890cd",
-      "bytes": 1850070
+      "sha256": "8eb29bb76aff9e66a3467816267dcb9455c8511c53bb6c5d260a0fdfecc18f45",
+      "bytes": 1831593
     },
     "public/models/ships/caravan-a/caravan.glb": {
-      "sha256": "bae4cf676c69a1371fa838b5f668e5a0c86c5cec916d3c8d963cbd7e6f34e9a9",
-      "bytes": 3526644
+      "sha256": "c8bc9a163ff77f65381d30ca3d5cf1f54b8b8b6038cd54f0e01177fd4fe9c56f",
+      "bytes": 3755568
     }
-  }
+  },
+  "boosterAssemblies": [
+    "booster-port-upper",
+    "booster-port-lower",
+    "booster-starboard-upper",
+    "booster-starboard-lower"
+  ]
 }

@@ -41,7 +41,7 @@ def tube(n,pts,r,mat='metal',group='hull'):
 
 # Smooth longitudinal sections preserve the three major inhabited volumes rather than a uniform capsule.
 def loft(n,sections,group='hull',mat='cream',bands=False,window=False):
- vs=[];fs=[];mi=[];nr=96
+ vs=[];fs=[];mi=[];nr=64 if group.startswith('booster-') else 96
  for x,cy,ry,rz in sections:
   for j in range(nr):
    t=2*math.pi*j/nr;ss=math.sin(t);cc=math.cos(t);power=2/2.6 if group=='hull' else 1;vs.append((x,cy+ry*math.copysign(abs(ss)**power,ss),rz*math.copysign(abs(cc)**power,cc)))
@@ -49,7 +49,7 @@ def loft(n,sections,group='hull',mat='cream',bands=False,window=False):
   for j in range(nr):
    k=i*nr+j;ids=(k,i*nr+(j+1)%nr,(i+1)*nr+(j+1)%nr,(i+1)*nr+j);c=tuple(sum(vs[k][ax] for k in ids)/4 for ax in range(3))
    if window and c[0]<-11.8 and 9.5<c[1]<11.65:continue
-   fs.append(tuple(reversed(ids)));mi.append((1 if 14.7<c[0]<17.7 else 0) if group=='engines' else (2 if bands and 6.9<c[1]<8.1 else 1 if bands and any(abs(c[0]-v)<.8 for v in [-12,-3.5,8.7]) else 0))
+   fs.append(tuple(reversed(ids)));mi.append((1 if 14.7<c[0]<17.7 else 0) if group.startswith('booster-') else (2 if bands and 6.9<c[1]<8.1 else 1 if bands and any(abs(c[0]-v)<.8 for v in [-12,-3.5,8.7]) else 0))
  if group!='hull':fs.extend([tuple(reversed(range(nr))),tuple((len(sections)-1)*nr+j for j in range(nr))]);mi.extend([0,0])
  return mesh(n,vs,fs,['cream','lavender','coral'] if bands else mat,group,mi if bands else None)
 # Fine section sampling through smooth interpolation keeps intentionally distinct shoulders.
@@ -73,6 +73,24 @@ for i in range(len(ys)-1):
  for j in range(nr):
   if j==70 or (9.48<=ys[i]<11.68 and j<64):continue
   k=i*nr+j;fs.append((k,i*nr+(j+1)%nr,(i+1)*nr+(j+1)%nr,(i+1)*nr+j));mi.append(2 if -13.4<sum(vs[v][0] for v in fs[-1])/4<-11 else 1 if 6.9<=ys[i]<8.1 else 0)
+# Close the small terminal loops: the belly must be solid in an actual underside view.
+def cap_strip(points,lo,hi):
+ for bound,greater in [(lo,True),(hi,False)]:
+  result=[]
+  for i,a in enumerate(points):
+   b=points[(i+1)%len(points)];ina=a[0]>=bound if greater else a[0]<=bound;inb=b[0]>=bound if greater else b[0]<=bound
+   if ina:result.append(a)
+   if ina!=inb:
+    t=(bound-a[0])/(b[0]-a[0]);result.append(tuple(a[k]+t*(b[k]-a[k]) for k in range(3)))
+  points=result
+  if not points:break
+ return points
+for row,reverse in [(0,True),(len(ys)-1,False)]:
+ outline=vs[row*nr:(row+1)*nr]
+ for lo,hi,mat in [(-100,-13.4,0),(-13.4,-11,2),(-11,100,0)]:
+  polygon=cap_strip(outline,lo,hi)
+  if len(polygon)<3:continue
+  ids=tuple(range(len(vs),len(vs)+len(polygon)));vs.extend(polygon);fs.append(tuple(reversed(ids)) if reverse else ids);mi.append(mat)
 mesh('deep rounded forecabin',vs,fs,['cream','coral','lavender'],'hull',mi)
 # The middle reuses the cabin's exact side-boundary rows, then welds at x=-9.
 sections=sample([(-9,8.3,5.0,5.5),(-8.4,8.25,4.85,5.2),(1,8.0,4.55,4.5),(6.7,7.6,4.15,4.15),(10,7.2,3.7,3.65),(14.7,6.9,2.7,2.6),(16,6.9,1.4,1.6)])
@@ -102,12 +120,14 @@ for y,r in [(9.48,.12),(11.68,.19),(11.90,.09)]:
  pts=glassrow(min(11.68,y));pts=[(x,yy+(y-min(11.68,y)),z) for x,yy,z in pts];tube('layered cockpit frame',pts,r,'cream','cockpit')
 for side in [-1,1]:tube('rounded cockpit side return',[glassrow(9.48+2.2*j/24)[0 if side<0 else -1] for j in range(25)],.12,'cream','cockpit')
 for t in [-1.05,-.55,0,.55,1.05]:tube('window structural mullion',[glasspos(t,9.5+2.16*j/12,.14) for j in range(13)],.055,'cream','cockpit')
-# Two distinct egg-shaped nacelles, offset both vertically and laterally.
-for n,cy,cz,r in [('upper',11.4,-2.1,2.8),('lower',5.6,1.0,2.75)]:
- o=loft(n+' egg nacelle',sample([(9.8,cy,.15,.15),(11.2,cy,r*.75,r*.75),(13.2,cy,r,r),(17,cy,r*.98,r*.98),(19.5,cy,r*.75,r*.75),(20,cy,r*.62,r*.62)]),'engines',bands=True);o.location.y=-cz
- for x,rr in [(18.7,r*.84),(19.6,r*.72)]:tube(n+' nozzle collar',[(x,cy+rr*math.sin(i*math.tau/64),cz+rr*math.cos(i*math.tau/64)) for i in range(65)],.12,'metal','engines')
- ellipsoid(n+' dark exhaust',(19.96,cy,cz),(.08,r*.58,r*.58),'dark','engines')
- cube(n+' pylon',(11.8,cy,cz),(4.3,1.7,2.0),'metal',.55,'engines')
+# Four distinct rear boosters: mirrored port/starboard pairs at upper and lower levels.
+BOOSTERS=[(f'booster-{side}-{level}',cy,cz,r) for side,cz in [('port',-3.2),('starboard',3.2)] for level,cy,r in [('upper',11.4,2.8),('lower',5.6,2.75)]]
+for n,cy,cz,r in BOOSTERS:
+ G[n]=empty(n)
+ o=loft(n+' egg nacelle',sample([(9.8,cy,.15,.15),(11.2,cy,r*.75,r*.75),(13.2,cy,r,r),(17,cy,r*.98,r*.98),(19.5,cy,r*.75,r*.75),(20,cy,r*.62,r*.62)]),n,bands=True);o.location.y=-cz
+ for x,rr in [(18.7,r*.84),(19.6,r*.72)]:tube(n+' nozzle collar',[(x,cy+rr*math.sin(i*math.tau/64),cz+rr*math.cos(i*math.tau/64)) for i in range(65)],.12,'metal',n)
+ ellipsoid(n+' dark exhaust',(19.96,cy,cz),(.08,r*.58,r*.58),'dark',n)
+ cube(n+' pylon',(11.8,cy,cz),(4.3,1.7,2.0),'metal',.55,n)
 # Distinct low roof cabins, utility box and observation cupola.
 cube('forward roof service cabin',(-9.0,13.15,-.6),(4.2,1.0,3.6),'cream',.45,'roof')
 cube('roof service block',(-3.4,12.6,-1.3),(4.6,1.2,3.2),'cream',.5,'roof')
@@ -183,10 +203,10 @@ for x,z,h in [(-11,-1,2.7),(-7.2,-1.5,3.4),(-3.7,-1.3,2.4),(4.7,-.7,3.4),(10.2,-
  for y in [basey+.8,basey+1.5]:cube('aerial receiver',(x,y,z),(.17,.34,.20),'metal',.04,'roof')
 for x in [-12,-5.2,5.7]:ellipsoid('roof ventilation dome',(x,12.9 if x<0 else 11.5,-2.0),(.65,.45,.65),'cream','roof')
 # Engine seams and service rings delineate long egg shoulders and cylindrical hot sections.
-for cy,cz,r in [(11.4,-2.1,2.8),(5.6,1.0,2.75)]:
- for x,rr in [(13.0,r*.99),(15.6,r),(17.7,r*.94)]:tube('nacelle shell station',[(x,cy+rr*math.sin(i*math.tau/64),cz+rr*math.cos(i*math.tau/64)) for i in range(65)],.025,'metal','engines')
- for t in [i*math.tau/12 for i in range(12)]:tube('engine longitudinal panel',[(13.2,cy+r*math.sin(t),cz+r*math.cos(t)),(17,cy+r*.98*math.sin(t),cz+r*.98*math.cos(t)),(19.5,cy+r*.75*math.sin(t),cz+r*.75*math.cos(t))],.018,'metal','engines')
- for x in [10.7,11.5]:cube('engine pylon service saddle',(x,cy,cz),(1.1,1.9,2.4),'metal',.35,'engines')
+for n,cy,cz,r in BOOSTERS:
+ for x,rr in [(13.0,r*.99),(15.6,r),(17.7,r*.94)]:tube('nacelle shell station',[(x,cy+rr*math.sin(i*math.tau/64),cz+rr*math.cos(i*math.tau/64)) for i in range(65)],.025,'metal',n)
+ for t in [i*math.tau/12 for i in range(12)]:tube('engine longitudinal panel',[(13.2,cy+r*math.sin(t),cz+r*math.cos(t)),(17,cy+r*.98*math.sin(t),cz+r*.98*math.cos(t)),(19.5,cy+r*.75*math.sin(t),cz+r*.75*math.cos(t))],.018,'metal',n)
+ for x in [10.7,11.5]:cube('engine pylon service saddle',(x,cy,cz),(1.1,1.9,2.4),'metal',.35,n)
 # Complete compact camp, authored open at final scale. Runtime uses extras for staged closure.
 for n in ['porch-panel','porch-rail','porch-supports','ramp','porch-furniture','plants','awning','laundry','solar-panel','roof-ladder','landing-gear','locker-shutter']:G[n]=empty(n)
 mechanisms={}
@@ -291,6 +311,10 @@ for n,(pivot,extra) in mechanisms.items():
 # Solar opens at a genuine30-degree tilt; closed delta restores a flush panel.
 G['solar-panel'].rotation_euler.x=.5
 for g in G.values():g.location.z-=.8
+# Each booster remains an editable named assembly beneath the fixed engine root.
+bpy.context.view_layer.update()
+for n,cy,cz,r in BOOSTERS:
+ g=G[n];world=g.matrix_world.copy();g.parent=G['engines'];g.matrix_world=world
 # The rail is a rigid deck child and travels with the folding panel.
 rail=G['porch-rail'];world=rail.matrix_world.copy();bpy.context.view_layer.update();world=rail.matrix_world.copy();rail.parent=G['porch-panel'];rail.matrix_world=world
 

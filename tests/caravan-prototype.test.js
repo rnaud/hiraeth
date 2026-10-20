@@ -137,3 +137,42 @@ test('the real camp can reverse mid-deployment and repeat without drift or loose
   }
   model.dispose();
 });
+
+test('the authored ship has four separate aft boosters arranged in two symmetric height rows', async () => {
+  const model = await actualModel();
+  model.root.updateMatrixWorld(true);
+  const names = ['booster-port-upper', 'booster-port-lower', 'booster-starboard-upper', 'booster-starboard-lower'];
+  const assemblies = [];
+  model.root.traverse(node => { if (/^booster-(port|starboard)-(upper|lower)$/.test(node.name)) assemblies.push(node); });
+  assert.equal(assemblies.length, 4);
+  const centres = {};
+  for (const name of names) {
+    const node = model.root.getObjectByName(name);
+    assert.ok(node, name);
+    let parent = node.parent;
+    while (parent && parent !== model.parts.engines) parent = parent.parent;
+    assert.equal(parent, model.parts.engines, `${name} belongs to the rear engine assembly`);
+    const bounds = new THREE.Box3().setFromObject(node);
+    assert.ok(!bounds.isEmpty(), `${name} has real geometry`);
+    const centre = bounds.getCenter(new THREE.Vector3()); centres[name] = centre;
+    assert.ok(bounds.min.x > 5, `${name} is behind the inhabited hull`);
+    assert.ok(name.includes('port-') && !name.includes('starboard-') ? centre.z < -1 : centre.z > 1, `${name} occupies its own side`);
+  }
+  for (const side of ['port', 'starboard']) assert.ok(centres[`booster-${side}-upper`].y - centres[`booster-${side}-lower`].y > 3, 'both upper and lower rows are present');
+  for (const row of ['upper', 'lower']) {
+    const port = centres[`booster-port-${row}`], starboard = centres[`booster-starboard-${row}`];
+    assert.ok(Math.abs(port.x - starboard.x) < .1);
+    assert.ok(Math.abs(port.y - starboard.y) < .1);
+    assert.ok(Math.abs(port.z + starboard.z) < .1, 'paired boosters mirror across the centreline');
+  }
+  model.dispose();
+});
+
+test('the forecabin has a closed belly beneath its centreline', async () => {
+  const model = await actualModel(); model.root.updateMatrixWorld(true);
+  const ray = new THREE.Raycaster(new THREE.Vector3(-12, -10, 0), new THREE.Vector3(0, 1, 0));
+  const hit = ray.intersectObject(model.root, true)[0];
+  assert.ok(hit, 'underside ray hits the authored belly');
+  assert.ok(hit.point.y > 1 && hit.point.y < 4, `belly surface height ${hit.point.y}, not a far roof through an open hole`);
+  model.dispose();
+});
