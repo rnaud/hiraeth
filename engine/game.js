@@ -106,9 +106,10 @@ import { guardianBar } from '../src/temples/boss.js';
 import { setSkinColours } from '../src/characters/skin-colours.js';
 import { HOLO } from '../src/ship/hologram.js';
 import { feelDt, selfDt, shakeCamera, kick } from '../src/feel.js';
-import { ToolHud, SaveGame } from '../src/ui.js';
+import { ToolHud, SaveGame, TEXT_SIZES } from '../src/ui.js';
 import { screen } from '../src/platform.js';
 import { sceneHolds } from '../src/hud-shows.js';
+import { hudButtons, hitHudButton, pressHudButton } from '../src/hud-buttons.js';
 import { slots, slotStorage } from '../src/save-slots.js';
 import { menuSources } from '../src/game-menu-data.js';
 import { WorldMap, MAP, mapBounds, zoomBounds, mapMarks, scaleBar } from '../src/world-map.js';
@@ -935,6 +936,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     inputMode.frame(controller.index !== null);
     inputMode.apply(document.body?.classList);
     if (padKind !== inputMode.kind) { padKind = inputMode.kind; boxes?.card?.refresh?.(); }
+    // (the HUD's own buttons for a pointer, as the page's: the minigames' pause, gone with a pad in hand; issue #570)
+    const buttons = hudButtons(screen.state, { kind: inputMode.kind, ts: TEXT_SIZES[settings?.textSize] ?? 1, under: !!menus?.open });
+    screen.set('buttons', buttons.length ? buttons : null);
   }
   const keys = {};
   const tapped = new Set();
@@ -1421,6 +1425,18 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     screen: () => screen,
     /** A pointer delta (pixels), as the mouse turns the camera on the page. */
     look(dx, dy) { rig.look(dx, dy); },
+    /**
+     * A pointer pressed (issue #570; the Unity bridge's mouse or finger, BridgeHost.Pointer): { kind: 'mouse' | 'touch', x, y
+     * (the HUD's px from its top left), w (the HUD's width), button (0 the main one) }. What is in hand follows it, as the
+     * page's pointerdown (src/input-mode.js); a main press on one of the HUD's own buttons as drawn (the screen's 'buttons',
+     * src/hud-buttons.js; not over a menu, which takes no pointer) does what the page's click does. True when a button took
+     * it; anywhere else it is left alone (the camera's right button, the world).
+     */
+    pointer({ kind = 'mouse', x, y, w, button = 0 } = {}) {
+      const hit = button === 0 && !menus?.open ? hitHudButton(screen.state.buttons, x, y, w) : null;
+      inputMode.event({ type: 'pointerdown', pointerType: kind === 'touch' ? 'touch' : 'mouse' });
+      return hit ? pressHudButton(hit, { trials }) : false;
+    },
     // (a pinned view holds a makers' house's lights at their reach as built, as the web's capture does: their flicker's phase
     // is each side's own clock, and moved a room's pool of light a size either side, issue #264)
     pin(v) { pinned = v ? pin(v) : null; if (v && waterBed) bakeAround(); if (houseAir) houseAir.still = !!v; },

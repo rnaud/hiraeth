@@ -716,7 +716,9 @@ const PART = {
 /** Parts that come and go with timing alone (the stamina wheel's fade, a pad's pick): not compared. */
 // (the toast: the engines keep its part, drawn for its secs from when its id came, the page clears it as it fades, and
 // queues the next by its own clock; what was toasted is the story's, the same on both sides)
-const UNSTEADY = new Set(['choice', 'stamina', 'version', 'toast']);
+// (the HUD's own buttons for a pointer, issue #570: the page's are its elements, minigames.css .mg-pause, the engines' this
+// part, src/hud-buttons.js; tests/hud-buttons.test.js holds the two to one rule)
+const UNSTEADY = new Set(['choice', 'stamina', 'version', 'toast', 'buttons']);
 
 /** The drawables in view: each visible mesh within `far` m of the camera and in its frustum, by the port's kind of its material. */
 function objectKinds(G, far = 120) {

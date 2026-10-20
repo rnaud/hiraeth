@@ -1832,8 +1832,8 @@ somewhere the run starts as the page opens, a second or two before the web's run
 - **The box card** (#569): the name as written (no capitals), on the page's lines (44ch: 0.53 of the body's size, not 0.62),
   the four-pointed star (a Sketch, the page's clip-path) before its first line; Continue and Skip as written. `box`'s `card`
   0.86 → 0.92. **The pirates' hints**: the controls' row and the game's line (missiles, gun, boost) in two boxes, 8 px apart,
-  as the page's `.mg-hints`. The page's pause button (top right) is not drawn: Unity's HUD takes no pointer, and the page
-  hides the button with a pad.
+  as the page's `.mg-hints`. The page's pause button (top right) was not drawn then: Unity's HUD took no pointer (now it
+  does: "The pointer on the HUD" below, issue #570).
 - **Shadows** (#569): `mSampleShadow` is the page's tent (4 or 9 bilinear taps weighted to a 3- or 5-texel tent sliding with
   the point; a box of taps on a fixed grid before), and the near map's bias and offset are shadows.js `NEAR_CASCADE` (1 and
   1.6 texels; Unity kept 2.3 and 3.2 from before the web's shadow QC). Home's wide view at dusk: ΔE 2.9 / 16.8 → 1.3 / 6.7,
@@ -2805,6 +2805,45 @@ The last two of the round above:
   the screen's `photo` part (its keys' line), and photo mode is a state of src/hud-shows.js (`HUD_HIDES.photo`: the
   gadget's chip, wheel, reticle and marks, the page's `body.photo` rules). The three streams agree at the beat; the
   web's stream recorded again.
+
+## The pointer on the HUD: the minigames' pause (2026-10-20, issue #570)
+
+The page's minigames have a round ❚❚ button at the top right, under the score (minigames.css `#minigame .mg-pause`:
+right 16 px, top 64 px, 2.6 em of `--type-s`, cream at 0.75 in a 2 px ink ring, the whole at 0.6 and at 1 under the
+mouse), hidden while a pad is in hand (`body.controller`); clicked, it pauses. Unity's HUD took no pointer, so it had
+none. Now:
+
+- **The rule and the press, shared** (`src/hud-buttons.js`): `hudButtons(screen.state, { kind, ts, under })` is the
+  screen's `buttons` part, `[{ id, right, top, size }]` in the HUD's px (none without a run, none with a pad in hand,
+  sized by the Text size setting, `under` while a menu or the run's card is over it); `hitHudButton(buttons, x, y, W)` is
+  a round hit test on a screen W wide; `pressHudButton('pause', { trials })` is the runner's `padAction('start')`, so a
+  click pauses exactly as Start / Menu does, and does nothing with a card up (engine/trials.js turns the pad down then).
+  engine/game.js publishes the part each frame (`inputFrame`) and takes a press with `game.pointer({ kind, x, y, w,
+  button })`: what is in hand follows it first as the page's pointerdown (src/input-mode.js; a touch counts as `keys`,
+  the engines having no touch layout), then a main press on a button as published (so a press where a hidden button
+  was only brings it back, as on the page) does what it does. Anywhere else nothing is taken: the right button still
+  turns the camera (BridgeHost.ReadMouseLook) and the pads are read as before.
+- **Unity** (`BridgeHud.Pointer.cs`): each frame the Input System's `Touchscreen.current` (its primary touch) and
+  `Mouse.current` (the left button, and the right one for what is in hand only), pressed this frame, are placed on the
+  HUD's canvas as the canvas covers the camera's view (the world points' `ToCanvas` the other way) and queued in
+  `BridgeHost.PointerPress`; `Snapshot` takes them with the frame's keys and pad, the script reads them in `readInput`
+  (`BridgeHost.Pointer`: "kind,x,y,w,button;…", `parsePresses`). A finger's press and the mouse's in one frame are one.
+  `DrawButtons` draws the part as the page's: the disc (its radius half its size), the two bars as Chrome draws ❚❚
+  (0.31 em wide, 0.68 em tall, 0.15 em apart), 0.6, and 1 while the mouse is over it and nothing covers it.
+- **A batch run's press** (`-pointer mouse | touch` with `-trial` / `-game`): instead of Esc, a pad of the Input
+  System's own is added and its View pressed (the button goes), then the mouse or the touch screen of its own presses
+  where the button was drawn (it comes back, nothing paused), then on it (paused); `[unity] run: …` lines say what is in
+  hand, the part and whether the run is paused, pictures `unity-pointer-pad`, `unity-pointer-shown`, `unity-pause`. While
+  a plan with `-pointer` runs, Unity's pad and presses are read (a plan's input is otherwise its own). In the editor's
+  batch the devices are let through without a game view's focus (`editorInputBehaviorInPlayMode`).
+  `scripts/unity-js-run.sh pause -screen 1280x720 -level desert -game "pirates?stage=ice&to=edena" -pointer mouse -out dir`.
+
+The chime pirates (ice, on the way to Edena), the top right, against the web's at the same moment of its run: the
+corner's SSIM 0.49 → 0.53 and edges' F1 0.32 → 0.43 (the planets behind differ between the two runs); the pause card
+after the click as Menu's. The page's other pointer-only pieces are the touch layout's (`#touch`, `#gear`, the potion's
+button, the sketch hunt's ✎), shown only with `body.touch`, which the engines never set: with no touch layout in Unity
+they are left out, and a touch counts as the screen in hand. The menus and the runs' cards (BridgeMenu.cs) take no
+pointer yet: after a click on the pause, Resume is Enter or A / ×. Tests: tests/hud-buttons.test.js.
 
 ## Status
 

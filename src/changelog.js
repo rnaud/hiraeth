@@ -34,6 +34,9 @@ export const CHANGELOG = [
     // issue #569: BridgeRunner.cs (the cascades round the traveller on every build, -shadow-camera as before);
     // tests/unity-shadow-parity.test.js
     'In the Unity version, the sun’s sharpest shadows now follow you as on the web, not the camera: Home’s stepping stones cast their little shadows at dusk again, the Overnight Train’s platform wall throws a smooth shadow of the right length, and the glowing screen on the Signal Market’s roof console no longer drops a dark patch down the console when you are across the roof from it.',
+    // issue #570: src/hud-buttons.js (the button's rule, hit test and press), engine/game.js pointer, BridgeHud.Pointer.cs
+    // (the mouse and the fingers through the Input System, the button drawn), BridgeHost.Pointer; tests/hud-buttons.test.js
+    'In the Unity version, the minigames have their pause button at the top right, as on the web: click it with the mouse or tap it to pause, as Menu does. It goes away while you play with a controller and comes back as soon as you use the mouse or the screen.',
   ] },
   { v: '1.87', date: '2026-10-19', items: [
     // issue #556: BridgeHud.cs (a minigame's flashes, the gadget marks' numbers, the chimes' count in Ui.Sans / SansHeavy,

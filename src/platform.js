@@ -91,10 +91,12 @@ export const audio = {
  *             drawn round him from his feet to his head (size × that across), over the foes that hide him, k its fade
  *   visor     the Lens Vault's first-person visor (minigames/lens-vault-hud.js visorPart, CSS px of W × H): the rim, the hearts,
  *             the ARM / LENS tab, the reticle with the charge's and the reading's rings, the lock, the lens's marks, its reading
+ *   buttons   [{ id, right, top, size }]   the HUD's own buttons for a mouse or a finger (src/hud-buttons.js, issue #570): the
+ *             minigames' pause at the top right, none with a pad in hand; an engine only (the page's are its elements)
  * `version` moves whenever a part changes, so a renderer reads it only then.
  */
 export const screen = {
-  state: { cue: null, toast: null, prompt: null, health: null, stamina: null, tool: null, keys: null, dialogue: null, choice: null, cine: null, sub: null, photo: null, gadget: null, gadgetWheel: null, reticle: null, gadgetMarks: null, carry: null, boxCard: null, charge: null, warp: null, foeTab: null, words: null, drums: null, hunt: null, fishing: null, pirates: null, visor: null, self: null },
+  state: { cue: null, toast: null, prompt: null, health: null, stamina: null, tool: null, keys: null, dialogue: null, choice: null, cine: null, sub: null, photo: null, gadget: null, gadgetWheel: null, reticle: null, gadgetMarks: null, carry: null, boxCard: null, charge: null, warp: null, foeTab: null, words: null, drums: null, hunt: null, fishing: null, pirates: null, visor: null, self: null, buttons: null },
   version: 0,
   _keys: {},
   set(part, value) {

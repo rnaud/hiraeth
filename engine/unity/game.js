@@ -42,6 +42,7 @@ import { devMode } from '../../src/dev-gate.js';
 import { setEnginePad, setFaces, padFaces, padLabels, promptText } from '../../src/native-pad.js';
 import { keyRouter } from '../../src/remap.js';
 import { hudShows } from '../../src/hud-shows.js';
+import { parsePresses } from '../../src/hud-buttons.js';
 import { uiPose, UI_KEYS } from '../ui-poses.js';
 import { items as ownedItems } from '../../src/items.js';
 
@@ -749,7 +750,14 @@ function makePlan(args) {
       ...(args.pose ? [{ kind: 'pose' }, { kind: 'wait', frames: 40, secs: 1.5 }] : []), ...shot('run'),
       // (-words: a fixed set of the minigames' words round the traveller, a second on: BridgeHud's DrawWords against the web's)
       ...(args.words ? [{ kind: 'key', code: runKey, down: false }, { kind: 'words' }, { kind: 'wait', frames: 30, secs: 1 }, ...shot('words')] : []),
-      { kind: 'key', code: runKey, down: false }, ...tap('Escape', 10), ...shot('pause'), { kind: 'say', text: '[unity] run: paused' }, ...tap('Enter', 30), ...shot('resumed'));
+      { kind: 'key', code: runKey, down: false },
+      // (-pointer mouse | touch, issue #570: the HUD's pause button pressed instead of Esc, through the Input System's own
+      // devices. First a pad taken in hand (its View pressed): the button goes; a press where it was does nothing but bring
+      // it back, as on the page; a second one pauses)
+      ...(args.pointer ? [{ kind: 'inHand', text: 'run: before' }, { kind: 'pointer', what: 'pad' }, { kind: 'wait', frames: 20, secs: 0.6 }, { kind: 'inHand', text: 'run: a pad pressed' }, ...shot('pointer-pad'),
+        { kind: 'pointer', what: args.pointer, at: 'pause' }, { kind: 'wait', frames: 20, secs: 0.6 }, { kind: 'inHand', text: `run: the ${args.pointer} pressed, the button hidden` }, ...shot('pointer-shown'),
+        { kind: 'pointer', what: args.pointer, at: 'pause' }, { kind: 'wait', frames: 20, secs: 0.8 }, { kind: 'inHand', text: `run: the ${args.pointer} on the button` }] : tap('Escape', 10)),
+      ...shot('pause'), { kind: 'say', text: '[unity] run: paused' }, ...tap('Enter', 30), ...shot('resumed'));
   }
   if (args.hudRun) {
     // (-hud-run secs: the floating prompt and the stamina wheel in motion, to watch or record, BridgeHud's -hud-trace
@@ -912,8 +920,18 @@ function readInput(game) {
     game.key(k, true);
   }
   readPad();
+  readPointer(game);
   const look = host.MouseLook();   // (the right button held: "dx,dy" pixels)
   if (look && !menus?.open) { const [dx, dy] = look.split(',').map(Number); if (dx || dy) game.look(dx, dy); }
+}
+/**
+ * The mouse's and the fingers' presses since the last frame (BridgeHost.Pointer, issue #570), each through the game's
+ * pointer: what is in hand follows it, and a press on one of the HUD's own buttons does what the page's click does (the
+ * minigames' pause). One button a frame: a finger's press and the mouse's the same frame are one press.
+ */
+function readPointer(game) {
+  let took = false;
+  for (const p of parsePresses(host.Pointer?.())) if (!took) took = game.pointer(p);
 }
 function readPad() {
   const pad = host.Pad();
@@ -981,6 +999,7 @@ function playFrame(dt) {
   const { game, backend } = S;
   const tA = now();
   if (!S.plan) readInput(game);
+  else if (S.planPointer) { readPad(); readPointer(game); }   // (a plan's -pointer: its presses and pad through Unity's input, the keys still the plan's)
   const r = game.frame(dt);
   showMenu();
   if (S.loadingWorld) { S.loadingWorld = false; host.LoadProgress?.(1, ''); host.Loading?.(false); }   // (its first frame played: the loading screen fades)
@@ -1020,6 +1039,17 @@ function playFrame(dt) {
     next();
   }
   else if (step.kind === 'say') { console.log(step.text); next(); }
+  else if (step.kind === 'pointer') {
+    // (a batch run's press through the Input System, issue #570: on a HUD button's middle as BridgeHud last drew it; a pad's
+    // View for 'pad'. The state it leaves: the 'inHand' step's line)
+    S.planPointer = true;
+    host.PointerSim(step.what, step.at ?? '');
+    next();
+  }
+  else if (step.kind === 'inHand') {
+    console.log(`[unity] ${step.text}: in hand ${game.inputKind}, buttons ${JSON.stringify(game.screen().state.buttons)}, paused ${!!game.trials?.runner?.paused}`);
+    next();
+  }
   else if (step.kind === 'state') {
     // (the traveller's speed, height, the passage's phase and the door walk's: issue #389's frames against the web's)
     const Pl = game.player, ps = game.passage?.cur;

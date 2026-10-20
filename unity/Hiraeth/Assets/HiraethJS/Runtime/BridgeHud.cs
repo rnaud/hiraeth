@@ -381,7 +381,7 @@ namespace Hiraeth.Bridge
         // them, so the HUD is placed with the camera the frame is drawn with, whichever of the two Updates Unity runs first.
         // -hud-old: placed as before, in Update and through the canvas' transform, a check against -hud-trace's numbers)
         static readonly bool oldPlace = BridgeArgs.Flag("-hud-old");
-        void Update() { if (oldPlace) Draw(); }
+        void Update() { PollPointer(); if (oldPlace) Draw(); }   // (the mouse's and the fingers' presses: BridgeHud.Pointer.cs)
         void LateUpdate() { if (!oldPlace) Draw(); }
         /// <summary>Laid out again at once for the canvas's size now: a batch shot (BridgeRunner.Shot) draws 1280 × 720 while
         /// the editor's batch window is 4:3, and the HUD stood where the window had it, the letterbox, the subtitles and the
@@ -421,6 +421,7 @@ namespace Hiraeth.Bridge
             DrawCue(cueState, On("cue"));
             DrawGames(state, On("words"));
             DrawMinigame(d == null ? mg : null);   // (before the toast: it stacks under the run's clock)
+            DrawButtons(state.L("buttons"));   // (the HUD's own buttons for a pointer: the minigames' pause; BridgeHud.Pointer.cs)
             DrawWords(Part("words"));
             DrawBreath(Part("breath"));
             DrawLevel(Part("level"));

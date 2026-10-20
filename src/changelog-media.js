@@ -1334,6 +1334,8 @@ const UNITY568 = 'Issues #568, #569: the Unity editor’s batch run on this Mac 
 const WEB568 = 'Issues #568, #569: the web game in muted headless Chrome (High, 1280 × 720) on a Vite of its own (port 5461, node scripts/unity-compare/sequences.mjs web), the same beats, cropped as the Unity pictures; 20 October; cwebp -q 72';
 const UNITY569S = 'Issue #569: the visual check (node scripts/unity-compare/run.mjs --worlds home,overnighttrain: High, 1280 × 720, muted, -fresh -no-hud), the Overnight Train’s wide view at dusk (18.6 h), cropped to the platform’s low wall; before: origin/main at 9a4f25a01, after: this change; the web’s from the same run (scripts/design-qc/capture.mjs --fixed-scale); 20 October; cwebp -q 72';
 const UNITY569C = 'Issue #569: the visual check (node scripts/unity-compare/run.mjs: High, 1280 × 720, muted, -fresh -no-hud), Home’s and the Overnight Train’s wide views at dusk (18.6 h), the Signal Market’s Ferro view of the changes set at noon, cropped; before: 49f762dbc, the cascades round the camera; after: this change, round the traveller; the web’s from the same run (scripts/design-qc/capture.mjs --fixed-scale); 20 October; cwebp -q 72';
+const UNITY570 = 'Issue #570: the Unity editor’s batch run on this Mac (scripts/unity-js-run.sh: -screen 1280x720 -level desert -game "pirates?stage=ice&to=edena", muted), the run’s picture; after: the same with -pointer mouse, which takes a pad in hand (the Input System’s own Gamepad, View pressed), then presses the Input System’s own Mouse on the button twice; before: origin/main at f1bcb175c; the strip cropped from the top right and doubled; 20 October; cwebp -q 72';
+const WEB570 = 'Issue #570: the web game in muted headless Chrome (High, 1280 × 720) on a Vite of its own (port 5477), ?game=pirates&stage=ice&to=edena, three seconds into the run, then the button clicked through Chrome’s mouse; cropped as the Unity pictures; 20 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.88': [
     { match: 'Each makers’ house now ends on its own picture', tags: ['story'], shots: [
@@ -1379,6 +1381,13 @@ export const CHANGELOG_MEDIA = {
       { name: 'unity-console-569', title: 'The roof console', size: [400, 320], caption: 'The console on the Signal Market’s roof, the traveller 14 m off: before, its screen’s shadow down the console’s face in Unity alone; after, none, as on the web (close by, both draw it)', from: UNITY569C },
       { name: 'unity-console-569-web', only: 'after', title: 'On the web', size: [400, 320], caption: 'The same console on the web', from: UNITY569C },
     ], see: 'In the Unity version, look at Home’s garden path at dusk, or stand on the Overnight Train’s platform at dusk.' },
+    { match: 'In the Unity version, the minigames have their pause button at the top right', tags: ['devices', 'menus'], shots: [
+      { name: 'unity-pause-570', title: 'The button', size: [640, 260], caption: 'The chime pirates in Unity, the top right doubled: before, the score alone; after, the round pause button under it, faded as on the web (SSIM of the corner with the web 0.49 → 0.53, edges 0.32 → 0.43: the planets behind differ)', from: UNITY570 },
+      { name: 'unity-pause-570-web', only: 'after', title: 'On the web', size: [640, 260], caption: 'The same corner on the web', from: WEB570 },
+      { name: 'unity-paused-570', only: 'after', title: 'Clicked', size: [1280, 720], caption: 'The button clicked in Unity (the Input System’s mouse): the run paused under its card, as Menu pauses it', from: UNITY570 },
+      { name: 'unity-paused-570-web', only: 'after', title: 'Clicked on the web', size: [1280, 720], caption: 'The same click on the web', from: WEB570 },
+      { name: 'unity-pad-570', only: 'after', title: 'A controller in hand', size: [640, 260], caption: 'The same corner in Unity a moment after a controller’s button is pressed: no pause button, as on the web; a click or a tap brings it back', from: UNITY570 },
+    ], see: 'In the Unity version on a computer or the Steam Deck, play the chime pirates and click the round button at the top right, under the score; on a handheld, tap it. Press a controller’s button and it goes.' },
   ],
   '1.87': [
     { match: 'In the Unity version, the chime pirates’ place names and a minigame’s other call-outs', tags: ['menus'], shots: [

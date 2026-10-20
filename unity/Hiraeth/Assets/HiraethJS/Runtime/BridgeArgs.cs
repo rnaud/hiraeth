@@ -205,6 +205,9 @@ namespace Hiraeth.Bridge
             // (-run-key KeyR: the key held through the run instead of W; -pose: the game's own pose a moment before the run's
             // picture, session.pose: the drum circle played by itself, a fish on the fishing's line)
             if (Arg("-run-key") != null) args["runKey"] = Arg("-run-key");
+            // (-pointer mouse | touch: with -trial / -game, the run paused by the HUD's own pause button pressed through the Input
+            // System's devices instead of Esc, a pad taken in hand before it to hide it; issue #570, BridgeHud.SimPointer)
+            if (Arg("-pointer") != null) args["pointer"] = Arg("-pointer");
             if (Flag("-pose")) args["pose"] = Arg("-pose") is string pk && !pk.StartsWith("-") ? pk : "on";   // (-pose catch: the fishing's catch card)
             // (-set-flags a,b: those flags set on the debug save before the world is built: engine/unity/game.js)
             if (Arg("-set-flags") != null) args["setFlags"] = Arg("-set-flags");

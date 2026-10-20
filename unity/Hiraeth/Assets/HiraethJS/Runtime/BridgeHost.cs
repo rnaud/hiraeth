@@ -123,12 +123,12 @@ namespace Hiraeth.Bridge
         /// <summary>The main thread, at a frame's start: what the script reads this frame (keys, pads, the mouse, the frame times).</summary>
         public static void Snapshot()
         {
-            keys = ReadKeys(); pad = ReadPad(); mouse = ReadMouseLook(); padName = ReadPadName();
+            keys = ReadKeys(); pad = ReadPad(); mouse = ReadMouseLook(); padName = ReadPadName(); pointer = TakePointer();
             RumbleTick();
             if ((object)Runner != null) { cpuMs = Runner.cpuMs; gpuMs = Runner.gpuMs; }
             clock0 = Time.realtimeSinceStartupAsDouble * 1000 - clock.Elapsed.TotalMilliseconds;
         }
-        static string keys = "", pad, mouse, padName = "";
+        static string keys = "", pad, mouse, padName = "", pointer = "";
         static double cpuMs, gpuMs;
 
         // ---------------------------------------------------------------- the mirror's ops
@@ -423,6 +423,32 @@ namespace Hiraeth.Bridge
             // (the web's sticks: y down)
             return string.Join(",", v) + "|" + $"{ls.x},{-ls.y},{rs.x},{-rs.y}";
         }
+        // ---------------------------------------------------------------- the pointer's presses (issue #570)
+        // BridgeHud reads the mouse's and the fingers' presses each frame on the main thread (it owns the canvas they are
+        // placed on, PollPointer) and hands them here; the script takes them with the frame's input (engine/unity/game.js
+        // readInput → engine/game.js pointer: what is in hand, the HUD's own buttons). Kept to a few: a script that never
+        // asks (an older one) lets them go at the next frame.
+        static readonly List<string> presses = new();
+        const int MaxPresses = 8;
+        /// <summary>A press: "mouse" or "touch", where on the HUD's canvas (px from its top left), its width, the button
+        /// (0 the main one, 2 the right).</summary>
+        public static void PointerPress(string kind, Vector2 at, float width, int button)
+        {
+            var ci = System.Globalization.CultureInfo.InvariantCulture;
+            var e = string.Format(ci, "{0},{1:0.#},{2:0.#},{3:0.#},{4}", kind, at.x, at.y, width, button);
+            lock (presses) { if (presses.Count < MaxPresses) presses.Add(e); }
+        }
+        static string TakePointer()
+        {
+            lock (presses) { if (presses.Count == 0) return ""; var s = string.Join(";", presses); presses.Clear(); return s; }
+        }
+        /// <summary>The presses since the script last asked: "kind,x,y,w,button;…", or "".</summary>
+        public static string Pointer() => OnMain ? TakePointer() : pointer;
+        /// <summary>A batch run's press (engine/unity/game.js plan's 'pointer' step: -pointer): through the Input System's own
+        /// devices, a mouse, a touch screen or a pad of its own added for it (BridgeHud.SimPointer), on one of the HUD's
+        /// buttons as last drawn ("pause") or at "x,y" of its canvas.</summary>
+        public static void PointerSim(string kind, string at) => On(() => Runner?.hud?.SimPointer(kind, at));
+
         /// <summary>The mouse's move this frame while the right button is held: "dx,dy" (pixels, y down), or null.</summary>
         static string ReadMouseLook()
         {

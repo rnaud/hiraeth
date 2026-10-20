@@ -52,7 +52,7 @@ frame calls `minigame.update(dt, controls)` instead of `player.update` and the c
 |---|---|
 | `intro` | the start card: name, blurb, one-line rules, the controls (the pad's in Xbox / PlayStation form when a pad is in use, else the keys; redrawn when the input changes), the best so far. A / × or Enter starts, B / ○ or Esc quits |
 | `count` | 3, 2, 1, GO (`kit/flow.js` `COUNT`): the session runs and draws, without input |
-| `play` | the clock (`ctx.time`, with penalties); Menu / Esc (or the ❚❚ button on a touch screen) pauses: Resume, Retry, Quit. The game's pause freezes the world as the full-screen menus do (`paused()`) |
+| `play` | the clock (`ctx.time`, with penalties); Menu / Esc (or the ❚❚ button at the top right, with the mouse or a finger: hidden while a pad is in hand; Unity's HUD draws it too, src/hud-buttons.js) pauses: Resume, Retry, Quit. The game's pause freezes the world as the full-screen menus do (`paused()`) |
 | `finishing` | `ctx.finish()` was called: the score is kept, 1.7 s to coast |
 | `results` | the score, its lines, the best, a "New best!" stamp (only for beating a best kept before); Retry (R) and Quit |
 
