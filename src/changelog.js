@@ -37,6 +37,10 @@ export const CHANGELOG = [
     // issue #552: src/costumes.js torsoStrap (BODIES.scavbag: the strap and the bag), src/characters/quest-pieces.js sash
     // (wornKit's diagonal); tests/body-straps.test.js, desert-props.test.js
     'Marrow by the ship, and the people who wear a strap across the chest in the City-Shaft, Viridel, the Garden of Spheres, Lorn and the Signal Market, now wear it lying on them, over the shoulder and round to the hip, instead of a straight stick from the shoulder down to where the other hand hangs. Marrow’s bag sits on his hip.',
+    // issue #551: src/talk-gesture.js GESTURE.cut (a talk gone, however it ended: every layer out in 0.3 s), src/animator.js
+    // layTalk (the stick pushed lets go) and AIR_GUARD, src/air-moves.js AIR.stuck; the F8 pose report (src/pose-report.js);
+    // tests/pose-guards.test.js
+    'When a conversation ends, however it ends, the traveller lets go of his talking pose at once, instead of sometimes staying stuck in it, leaning back with a hand on his hip, after you walk off.',
   ] },
   { v: '1.86', date: '2026-10-19', items: [
     // issue #483: src/story/hosts-data.js (the fight hosts' second lines), src/fight-temples/<world>.js (blurb, quiet),

@@ -58,6 +58,8 @@ export const INTENTS = [
 export const GESTURE = {
   in: 0.3,          // blend in
   out: 0.45,        // blend out (and a crossfade's old layer)
+  cut: 0.3,         // blend out when the talk is gone (closed, skipped, cut off by a scene, a load, a teleport, a menu)
+                    // or the body moves on its own: none left holding a pose after it (issue #551)
   hold: 0.8,        // a loop keeps going this long after its line is said
   cap: 1.6,         // a one-shot is let go at most this long after its line
   long: 5,          // a one-shot longer than this starts somewhere in it and plays at most `most`
@@ -170,8 +172,9 @@ export class TalkGesture {
         for (const L of this.layers) if (!L.out && !L.ack && (L.loop ? this.since > GESTURE.hold : this.since > GESTURE.cap)) L.out = true;
       }
     } else {
+      // (no talk this frame, however it ended: every layer lets go, quickly: GESTURE.cut, issue #551)
       this.ack = null; this.key = null;
-      for (const L of this.layers) L.out = true;
+      for (const L of this.layers) { L.out = true; L.cut = true; }
     }
     // the layers: time on, weights toward their goal, the spent ones dropped
     for (let i = this.layers.length - 1; i >= 0; i--) {
@@ -179,7 +182,7 @@ export class TalkGesture {
       L.t += dt;
       if (L.loop) { if (L.t >= L.d) L.t %= L.d; }
       else if (L.t >= L.end - GESTURE.out) L.out = true;
-      L.w += (L.out ? -dt / GESTURE.out : dt / GESTURE.in) * L.wMax;
+      L.w += (L.out ? -dt / (L.cut ? GESTURE.cut : GESTURE.out) : dt / GESTURE.in) * L.wMax;
       if (L.w > L.wMax) L.w = L.wMax;
       if (L.w <= 0 && L.out) { this.layers.splice(i, 1); continue; }
     }

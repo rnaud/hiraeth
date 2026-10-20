@@ -58,6 +58,7 @@ export const DEV_PAGES = [
   { path: 'src/foe-spawner.js', why: 'the dev foe spawner' },
   { path: 'src/hitbox-overlay.js', why: 'the fight\'s hitboxes overlay (dev)' },
   { path: 'src/input-display.js', why: 'the input display (a dev overlay)' },
+  { path: 'src/pose-report.js', why: 'the pose report (F8, a dev overlay: issue #551)' },
   { path: 'src/debug-back.js', why: 'the debug pages\' back button' },
   { path: 'src/changelog-media.js', why: 'the changelog\'s pictures and how they are shot' },
   { path: 'src/gait-course.js', why: 'the gait harness\'s course (tests, the motion page)' },
@@ -313,8 +314,9 @@ export const GAPS = {
     what: 'the Android web app\'s shell and pad names, touch controls, the mouse', status: 'web-only', why: 'the web build\'s inputs and app shell; the Unity players read their pads through Unity\'s Input System' },
     { keys: ['import:src/hitbox-overlay.js#HitboxOverlay', 'import:src/hitboxes.js#hitboxes', 'import:src/hitboxes.js#registerHitboxes', 'fn:toggleHitboxes', 'fn:toggleInputs',
       'fn:devToggles', 'fn:worldTeleport', 'fn:worldFilm', 'fn:showPicker', 'import:src/input-display.js#inputDisplay', 'import:src/world-picker.js#fillPicker', 'import:src/world-picker.js#pickHref', 'import:src/world-picker.js#buildInfo',
-      'import:src/issue-draft.js#ShotDrafts', 'import:src/issue-draft.js#grabFrame', 'import:src/issue-draft.js#shotJpeg', 'import:src/issue-draft.js#shotContext', 'import:src/world-debug.js#cinematicsFor'],
-    what: 'the dev tools: hitboxes, inputs, teleports, films, the picker, the Notes screenshot', status: 'web-only', why: 'developer tools on the page (the engines have their own command-line switches)' },
+      'import:src/issue-draft.js#ShotDrafts', 'import:src/issue-draft.js#grabFrame', 'import:src/issue-draft.js#shotJpeg', 'import:src/issue-draft.js#shotContext', 'import:src/world-debug.js#cinematicsFor',
+      'import:src/pose-report.js#installPoseReport'],
+    what: 'the dev tools: hitboxes, inputs, teleports, films, the picker, the Notes screenshot, the pose report', status: 'web-only', why: 'developer tools on the page (the engines have their own command-line switches)' },
   ],
 };
 

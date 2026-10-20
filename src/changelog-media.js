@@ -1377,6 +1377,7 @@ export const CHANGELOG_MEDIA = {
       { name: 'strap-marrow-552', title: 'Marrow by the ship', size: [1280, 720], caption: 'Marrow by the ship’s ramp: before, his bag’s strap a straight brown stick standing off his chest from his right shoulder to the bag his left hand seemed to hold; after, a strap lying on him over the shoulder, the bag on his hip', from: STRAP552 },
       { name: 'strap-ferro-552', title: 'Ferro in the Signal Market', size: [1280, 720], caption: 'Ferro: before, a stiff rod from her right shoulder down past her hip to beside her left hand; after, a strap across her chest to the hip, and round her back', from: STRAP552 },
     ], see: 'Walk down the ship’s ramp in the Desert and look at Marrow, the salvager with the hook, from in front; or Kip and Ferro in the Signal Market.' },
+    { match: 'When a conversation ends, however it ends, the traveller lets go of his talking pose', tags: ['characters'], see: 'Talk to someone (Anselm in the ship’s hold, or Plumb when it calls you), and while the traveller is still gesturing close the talk or walk off: within a third of a second he stands normally again. If a strange pose ever comes back, press F8 and screenshot the box: it names the layer holding it.' },
   ],
   '1.86': [
     { match: 'In the Unity version, the Controls page shows your keys and buttons on caps', tags: ['devices'], shots: [

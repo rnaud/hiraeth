@@ -1213,6 +1213,14 @@ line, their body above the hips takes a gesture in the line's tone, from Mixamo'
   get-up) let it go. Seated: the arms and the head only (the back stays on the seat), at 0.75, the seated pose's
   arms lifted off the lap by the gesture's weight (`NPC.posture`). A whisper at 0.6; Excited at 0.8 (its fists in
   front of the belly came close to the slimmest body). `?gestures=0` switches it off, to compare.
+- **Never left holding a pose** (issue #551: the traveller once stood leaning far back, a hand on his hip, in the
+  ship's hold): a frame with no talk driven (closed, skipped, cut off by a scene, a load, a teleport, a menu: nothing
+  calls `drive` with a talk) marks every layer `cut`, out in `GESTURE.cut` (0.3 s) instead of 0.45; the stick pushed
+  (`steering`) lets go the same way even before the body is up to a walk. The air's pose has a guard of its own
+  (`src/animator.js` `AIR_GUARD`: standing 0.2 s with the air loop over 0.25 of the blend, the ground's weights at once,
+  each frame counting 1/250 s at the least so a stopped clock is caught; `src/air-moves.js` `AIR.stuck`: a jump's or a
+  drop's move still on 1.2 s after the ground, dropped). A real landing never reaches either. `tests/pose-guards.test.js`.
+  If it happens again, the pose report says which layer held it (F8, `docs/systems/dev-tools.md`).
 - **The tone map** (`TONE_GESTURES`; every tone of `src/story/tone.js` has two clips at least):
 
   | Tone | Clips |

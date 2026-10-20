@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.87 — 2026-10-19
 
+- When a conversation ends, however it ends, the traveller lets go of his talking pose at once, instead of sometimes staying stuck in it, leaning back with a hand on his hip, after you walk off.
 - Marrow by the ship, and the people who wear a strap across the chest in the City-Shaft, Viridel, the Garden of Spheres, Lorn and the Signal Market, now wear it lying on them, over the shoulder and round to the hip, instead of a straight stick from the shoulder down to where the other hand hangs. Marrow’s bag sits on his hip.
 - In the desert, water lies in its bed instead of floating over the sand: the channels by Qanat’s new fields and the one from the Rose House, the flooded salt pan, the edges of the salt lagoons and the gorge’s stream, and the water risen in the qanat wells.
 - Once the Rose House’s keeper is calm, its water runs down the middle of the house’s steps, falling over each one to the sand, instead of sticking out of the door into the air and vanishing under the stairs.

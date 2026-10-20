@@ -110,6 +110,8 @@ import { breatheDetail } from './breathe-shader.js';
 import { Companion, shown as droneShown } from './companion.js';
 import { FlurryFx } from './flurry.js';
 import { DevMenu } from './dev-menu.js';
+import { devMode } from './dev-gate.js';
+import { installPoseReport } from './pose-report.js';
 import { HitboxOverlay } from './hitbox-overlay.js';
 import { hitboxes, registerHitboxes } from './hitboxes.js';
 import { inputDisplay } from './input-display.js';
@@ -1699,6 +1701,8 @@ inputDisplay.set(query.has('inputs') && query.get('inputs') !== '0');
 inputDisplay.listen(() => { if (devMenu.open) devMenu.refresh(); });
 const toggleInputs = () => showToast(inputDisplay.toggle() ? 'Controller inputs shown (F6).' : 'Controller inputs hidden.');
 window.addEventListener('keydown', (e) => { if (e.code === 'F6' && !e.repeat) { e.preventDefault(); toggleInputs(); } });
+// the pose report (F8, the author's debug entries: src/pose-report.js, issue #551): what poses the traveller, in a box to screenshot
+installPoseReport({ player, ship, dialogue: () => storyRt.dialogue, enabled: () => devMode({ settings }) });
 window.addEventListener('padchord', (e) => { if (levelId === 'arena' && e.detail?.name === 'viewLeft') toggleInputs(); });
 /** The world's verbs the controller's actions hold back while the gadget wheel is open (the menus still open over it). */
 const WHEEL_HOLDS = new Set(['lock', 'scout', 'potion', 'call', 'l3', 'zoomIn', 'zoomOut']);

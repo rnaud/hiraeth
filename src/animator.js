@@ -27,6 +27,12 @@ const HEAD_NOD = ['idle', 'walk', 'jog', 'sprint', 'talk', 'look'];
 // the traveller's idle variants after standing 7 s (Animator.idleMoves), in turn with IDLE_GAP s between
 const IDLE_VARIANTS = ['looking_around', 'breathing_idle', 'look'];
 const IDLE_GAP = 10;
+/**
+ * Standing with the air's pose left in the blend (issue #551, the airborne loop's lean back and bent knees held on the
+ * floor): after `secs` on the ground with air + jump start over `w`, the weights go to the ground's at once. Each
+ * frame counts `frame` s at the least, so a stopped clock (dt 0) is caught too.
+ */
+export const AIR_GUARD = { secs: 0.2, w: 0.25, frame: 1 / 250 };
 // the gait's share over which, the stick held, a speed under the standing line for a frame (a reversal) keeps the gait's blend
 export const GAIT_HOLD = 0.5;
 // the rig's hips over its body's origin (player.js buildCharacter: the thighs' pivots, the pelvis)
@@ -555,7 +561,8 @@ export class Animator {
     this._airT = s.onGround ? 0 : (this._airT ?? 0) + dt;
     this._wasAir = !s.onGround;
     const landing = this.landT !== undefined && this.landT < 0.45;
-    if (landing) { this.landT += dt; this.actions.jumpLand.time = this.landT * 1.3 + 0.1; }
+    // (each frame at least AIR_GUARD.frame on: a stopped clock no longer holds the landing's crouch for ever, issue #551)
+    if (landing) { this.landT += Math.max(dt, AIR_GUARD.frame); this.actions.jumpLand.time = this.landT * 1.3 + 0.1; }
     if (s.mode === 'climb') {
       // on the wall: up / down / sideways loops by the direction you push, hanging idle otherwise
       const f = s.climbF ?? 0, sd = s.climbS ?? 0;
@@ -621,6 +628,21 @@ export class Animator {
     }
     const kk = 1 - Math.exp(-10 * dt);
     for (const key in this.w) this.w[key] = L(this.w[key], tw[key], kk);
+    // standing, the air's pose still in the blend past AIR_GUARD.secs: down to the ground's own weights at once (issue #551).
+    // On the ground they ease out as e^-10t (0.14 left at 0.2 s, whatever the frame rate), so this only catches a blend
+    // the clock stopped moving (each frame counts AIR_GUARD.frame s at the least) or one left over from elsewhere
+    if (s.onGround && s.mode !== 'climb' && s.mode !== 'ledge' && this.w.air + this.w.jumpStart > AIR_GUARD.w) {
+      this._standAir = (this._standAir ?? 0) + Math.max(dt, AIR_GUARD.frame);
+      if (this._standAir > AIR_GUARD.secs) {
+        // (the ground's weights, the landing over too: its crouch is the air's as well)
+        this.landT = undefined;
+        const AIRY = ['air', 'jumpStart', 'jumpLand'];
+        let g = 0;
+        for (const key in tw) if (!AIRY.includes(key)) g += tw[key];
+        for (const key in this.w) this.w[key] = AIRY.includes(key) ? 0 : g > 0 ? tw[key] / g : key === 'idle' ? 1 : 0;
+        this._standAir = 0; this.airGuarded = (this.airGuarded ?? 0) + 1;
+      }
+    } else this._standAir = 0;
 
     // one shared gait phase: cycles per second = speed / stride, stride from the
     // clip that dominates (each clip's native stride = native speed * duration)
@@ -742,7 +764,8 @@ export class Animator {
   layTalk(dt, s) {
     const G = this.talkGesture, info = this.talkDriven ? this.talkInfo : null;
     this.talkDriven = false;
-    const free = s.onGround && !(s.speed > 0.6) && (s.mode === 'ground' || s.mode === 'talk' || s.mode == null) && !(this.move && this.move.legs !== false);
+    // (and not once the body moves on its own, the stick pushed: the gesture lets go at once, GESTURE.cut, issue #551)
+    const free = s.onGround && !(s.speed > 0.6) && !s.steering && (s.mode === 'ground' || s.mode === 'talk' || s.mode == null) && !(this.move && this.move.legs !== false);
     const list = G.update(dt, free ? info : null, this);
     this.talkW = 0;   // (this frame's most: a seated body's arms come off its lap by it, NPC.posture)
     for (const g of list) {

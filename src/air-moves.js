@@ -22,6 +22,10 @@ export const AIR = {
   // a hard landing at speed (over `impact` m/s down, under the knockdown's), the stumble's lurch above the legs
   stumble: { clip: 'jogging_stumble', from: 0.32, to: 1.08, impact: 15, minSpeed: 2.6, w: 0.85 },
   after: 1.2, blendIn: 0.08, blendOut: 0.2,
+  // on the ground this long with a move still on (each frame `frame` s at the least: a stopped clock too), it is dropped:
+  // the longest plays out on the ground in 1 s (a stumble and its blend out), so this only catches one left holding its
+  // pose (issue #551)
+  stuck: 1.2, frame: 1 / 250,
 };
 
 /** The traveller's moves in the air and as he lands: update() each frame, then play(animator). */
@@ -50,9 +54,11 @@ export class AirMoves {
     if (onGround && !landed) this.hop = false;
     if (landed && impact > AIR.stumble.impact && speed > AIR.stumble.minSpeed && (!this.cur || this.cur.kind === 'run')) this.begin('stumble', AIR.stumble.from);
     const C = this.cur;
-    if (!C) return this;
+    if (!C) { this.grounded = 0; return this; }
     const M = AIR[C.kind];
     if (landed) C.landed = true;
+    this.grounded = onGround ? (this.grounded ?? 0) + Math.max(dt, AIR.frame) : 0;
+    if (this.grounded > AIR.stuck) { this.cur = null; this.grounded = 0; return this; }
     if (C.kind === 'run') {
       if (!C.landed && !onGround) {
         // in the air: the share of the flight done

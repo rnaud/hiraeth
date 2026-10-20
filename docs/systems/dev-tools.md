@@ -93,6 +93,17 @@ landing, the engines' sheet), `tests/world-debug.test.js` (the gathering, the ke
 the films, the tabs, the controller), `tests/world-debug-worlds.test.js` (every route world's key places landed on, on
 their feet; in the desert and the floating city, `WORLD_DEBUG_ALL=1` for all, every point of every kind).
 
+## The pose report (issue #551: `src/pose-report.js`)
+
+F8, where the debug entries show (`src/dev-gate.js` `devMode`): what poses the traveller this frame, logged to the
+console and kept in a small box at the top left (read again four times a second) until F8 again, for a screenshot
+when he stands in a pose no run reproduces: the place and speed, on the ground or not, in the ship or a conversation,
+the clips' weights and the idle's clock, the captured move over them (start, stop, turn, an idle variant), motion
+matching, the conversation's gesture layers (`out`, `cut`), the air move and the jump layer, the aim, a blade swing,
+the edge lean, a kneel or a get-up, a flinch or a stagger. F8 is no verb's (the F keys can't be given to one:
+`src/remap.js` `RESERVED_KEYS`). Web only: a page box for the author, the engines' builds have the dev menu.
+`tests/pose-guards.test.js`.
+
 ## The Lab (v0.39)
 
 In the Lab, `[` and `]` (L3 and R3 on a pad) call `level.jump(∓1)`: a fade, then the
