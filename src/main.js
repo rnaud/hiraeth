@@ -139,7 +139,7 @@ import { MinigameRunner } from './minigames/kit/runner.js';
 import { levelMetaFor } from './minigames/kit/world.js';
 import { lendTool } from './minigames/kit/onfoot.js';
 import { wireKit, wireDangers, wirePeople, wireChemistry, wireMount, wireVehicles, wireLessons, wireShip, wireCompanion, wireCamera, wireHero, heroCutFrame, cameraFollow, wireBenches, wireTrails, wireOpenings, wireEdge, wireSky, wirePotion, wireNudges, fragmentsLine, wireHealth, hurtReactions, wireFight, wireAmbush, toolGauge, wireJumpShade } from './host/game-host.js';
-import { arcadeLinks } from './minigames/kit/arcade.js';
+import { gameLinks } from './minigames/kit/arcade.js';
 import { talkAllowed } from './ship/landing.js';
 import { ShopPanel } from './shop-panel.js';
 import { setRumbleSettings } from './rumble.js';
@@ -2606,7 +2606,7 @@ if (minigameDef) {
     navigate: (href) => { transit?.left(); flushPlay(); location.href = href; },
     // (won: the chimes shot down go into the wallet, once: a Retry after the win flies it again for the score alone)
     onResult: (r) => transit?.onResult(r),
-    links: transit?.links ?? arcadeLinks(query.get('from'), minigameDef.id) });   // (started from the Arcade: the game before / after, back to its sign)
+    links: transit?.links ?? gameLinks(minigameDef, level, query.get('from')) });   // (started from the Arcade: the game before / after, back to its sign; the pirates' next place, issue #555)
   window.minigame = minigame;
   story.beacon?.removeFromParent();   // (the host world's story beacon: not in a game)
   if (story) story.done = true;   // (nor its goal: the Arena's ring would end its story under a game played by it)

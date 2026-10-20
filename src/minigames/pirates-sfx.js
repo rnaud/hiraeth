@@ -40,6 +40,24 @@ export const PIRATE_SOUNDS = {
   upgrade: 'A gun drop taken: the guns a tier up',
   gunLost: 'Hit: the guns back to the twin bolts',
   engine: 'The ship\'s engine hum (held)',
+  arrive: 'Out of the warp into a place (each its own note)',
+  bed: 'A place\'s sound under the flight (held: each its own)',
+  thunder: 'The Storm Giant\'s thunder, near or far',
+};
+
+/**
+ * Each place's sound (issue #555): the note its arrival rings (Hz), and its bed under the flight, soft and held: a few
+ * tones (Hz, wave, level), a band of noise (its middle, Q, level), how loud all of it is and how it swells (rad/s).
+ *  - the Rose Rings: a warm open fifth, a high glint over it;
+ *  - the Iron Moon: a low hum and a ground rumble;
+ *  - the Frost Moon: two high glassy tones and a thin cold air;
+ *  - the Storm Giant: wind, and a low note under it.
+ */
+export const PLACE_SOUNDS = {
+  drift: { note: 523, tones: [[110, 'sine', 0.8], [164.8, 'sine', 0.55], [659, 'sine', 0.08]], noise: [700, 0.6, 0.12], vol: 0.016, swell: 0.31 },
+  mines: { note: 392, tones: [[55, 'triangle', 0.8], [82.4, 'sine', 0.5]], noise: [180, 0.8, 0.5], vol: 0.018, swell: 0.22 },
+  ice: { note: 1047, tones: [[880, 'sine', 0.18], [1318, 'sine', 0.12], [220, 'sine', 0.4]], noise: [3200, 3, 0.22], vol: 0.012, swell: 0.4 },
+  wrecks: { note: 330, tones: [[49, 'sine', 0.7], [98, 'triangle', 0.25]], noise: [420, 0.7, 0.9], vol: 0.022, swell: 0.5 },
 };
 
 /** The scale the struck tones climb (the game's pentatonic, as Sound.freq's: semitones over a root). */
@@ -77,7 +95,51 @@ export function pirateSounds(sound) {
       return { g, f, nf, oscs };
     })());
   };
+  /** A place's bed (issue #555), made once a page for each place and kept on the Sound (a Retry finds it again). */
+  const bed = (id) => {
+    if (!sound?.ctx?.createGain || !sound.fx || !PLACE_SOUNDS[id]) return null;
+    const beds = (sound._pirateBeds ??= {});
+    return (beds[id] ??= (() => {
+      const P = PLACE_SOUNDS[id], ctx = sound.ctx, g = ctx.createGain(), f = ctx.createBiquadFilter();
+      g.gain.value = 0; f.type = 'lowpass'; f.frequency.value = 2400; f.Q.value = 0.5;
+      for (const [hz, type, v] of P.tones) {
+        const o = ctx.createOscillator(), og = ctx.createGain();
+        o.type = type; o.frequency.value = hz; og.gain.value = v;
+        o.connect(og).connect(f); o.start();
+      }
+      const [nf0, nq, nv] = P.noise, n = ctx.createBufferSource(); n.buffer = sound.noiseBuf; n.loop = true;
+      const nf = ctx.createBiquadFilter(); nf.type = 'bandpass'; nf.frequency.value = nf0; nf.Q.value = nq;
+      const ng = ctx.createGain(); ng.gain.value = nv;
+      n.connect(nf).connect(ng).connect(f); n.start();
+      f.connect(g).connect(sound.fx);
+      return { g, P };
+    })());
+  };
   return {
+    /**
+     * Out of the warp into a place (issue #555): a soft rush falling away, a low swell, and the place's own note struck
+     * twice, the second its fifth: short and soft.
+     */
+    arrive(id = 'drift') {
+      if (!on()) return; const t = now(), f = (PLACE_SOUNDS[id] ?? PLACE_SOUNDS.drift).note;
+      sound.noiseGlide?.(t, { type: 'bandpass', f: 2600, f1: 380, q: 0.8, dur: 0.9, vol: 0.035 });
+      sound.sweep(t, 96, 58, 0.8, 0.03, 'sine');
+      ting(t + 0.5, f, 0.022, 0.45); ting(t + 0.62, f * 1.5, 0.016, 0.4);
+    },
+    /** A place's bed (issue #555), held: `k` 0..1 (0 off), swelling slowly. Called every frame while the page runs. */
+    bed(id = 'drift', k = 1) {
+      const E = bed(id);
+      if (!E) return;
+      const t = now(), L = sound.muted ? 0 : Math.max(0, Math.min(1, k));
+      E.g.gain.setTargetAtTime(E.P.vol * L * (0.8 + 0.2 * Math.sin(t * E.P.swell)), t, 0.5);
+    },
+    /** The Storm Giant's thunder (issue #555): a soft low roll, `far` 0..1 (far: quieter, duller, later in its crack). */
+    thunder(far = 0.5) {
+      if (!on()) return; const t = now(), k = Math.max(0, Math.min(1, far)), v = vary(0.1);
+      sound.burst(t + 0.05 + 0.3 * k, { dur: 1.1, type: 'lowpass', freq: (230 - 90 * k) * v, q: 0.7, vol: 0.06 * (1 - 0.5 * k), rate: 0.45 * v });
+      thump(t + 0.05 + 0.3 * k, 70 * v, 38, 0.6, 0.03 * (1 - 0.5 * k));
+      if (k < 0.5) snap(t + 0.02, 700 * v, 0.06, 0.012, 'bandpass', 1.2);
+    },
     /**
      * The twin bolts: the gun's bloop made dry and short (fluidShoot's sweep and its burst), a soft click at the
      * muzzles; each volley a hair lower or higher than the last (the two guns), none alike.

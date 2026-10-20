@@ -241,12 +241,17 @@ const SHIP = {
 for (const [fn, [what, variants]] of Object.entries(SHIP)) add('The ship', `ship:${fn}`, what, variants, 'the prologue, the arrivals and the takeoff (src/ship/sfx.js)');
 // the chime pirates (src/minigames/pirates-sfx.js, issue #326): every one of pirateSounds, with its variants
 const PIR = (s) => (s._pirateSfx ??= pirateSounds(s));
+const PLACE_NAMES = { drift: 'the Rose Rings', mines: 'the Iron Moon', ice: 'the Frost Moon', wrecks: 'the Storm Giant' };
 const PIRATE_VARIANTS = {
   tell: ['skiff', 'raider', 'hauler', 'turret', 'core'].map((k) => pick({ skiff: 'a fighter', raider: 'a gunboat', hauler: 'a bomber', turret: 'a turret', core: 'the bridge' }[k], (s) => PIR(s).tell(k, k === 'skiff' ? 0.4 : 0.7))),
   boom: [pick('a mine', (s) => PIR(s).boom(0.6)), pick('a fighter', (s) => PIR(s).boom(1)), pick('a bomber', (s) => PIR(s).boom(1.6)), pick('the captain\'s turret', (s) => PIR(s).boom(2.2))],
   combo: [2, 4, 8].map((n) => pick(`${n} in a row`, (s) => PIR(s).combo(n))),
   tally: [0, 3, 6].map((k) => pick(`step ${k + 1}`, (s) => PIR(s).tally(k))),
   engine: [pick('cruising, 4 s', (s, e) => e.hold(4, () => PIR(s).engine(1, 0), () => PIR(s).engine(0))), pick('pushing, 4 s', (s, e) => e.hold(4, () => PIR(s).engine(1, 1), () => PIR(s).engine(0)))],
+  // (issue #555: each place's arrival and bed)
+  arrive: Object.entries(PLACE_NAMES).map(([id, name]) => pick(name, (s) => PIR(s).arrive(id))),
+  bed: Object.entries(PLACE_NAMES).map(([id, name]) => pick(`${name}, 6 s`, (s, e) => e.hold(6, () => PIR(s).bed(id, 1), () => PIR(s).bed(id, 0)))),
+  thunder: [pick('near', (s) => PIR(s).thunder(0.1)), pick('far', (s) => PIR(s).thunder(0.9))],
 };
 for (const [fn, what] of Object.entries(PIRATE_SOUNDS)) add('Chime pirates', `pirates:${fn}`, what, PIRATE_VARIANTS[fn] ?? one((s) => PIR(s)[fn]()), 'the rail shooter between worlds (src/minigames/pirates-sfx.js)');
 // ambience: the continuous layers (update) and the beds' one-offs

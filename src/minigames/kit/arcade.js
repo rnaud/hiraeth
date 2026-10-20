@@ -55,6 +55,18 @@ export function returnSpot(signs, id) {
  * previous and the next game ([ and ], LB / RB).
  */
 export function arcadeLinks(from, id, games = GAMES) {
+  return arcadeLinksOf(from, id, games);
+}
+/**
+ * A game page's links (main.js, engine/trials.js): the Arcade's (arcadeLinks), and the game's own (`def.links(level,
+ * from)`: { extra: [...] }, the chime pirates' Fly on to their next place, issue #555) after them; null with neither.
+ */
+export function gameLinks(def, level, from, games = GAMES) {
+  const A = arcadeLinksOf(from, def?.id, games), own = def?.links?.(level, from) ?? null;
+  if (!own) return A;
+  return { ...(A ?? {}), extra: [...(own.extra ?? []), ...(A?.extra ?? [])] };
+}
+function arcadeLinksOf(from, id, games) {
   if (from !== ARCADE) return null;
   const extra = [];
   if (games.length > 1) {

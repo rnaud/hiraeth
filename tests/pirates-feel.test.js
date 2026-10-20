@@ -146,7 +146,7 @@ test('the sounds: each made of layers, nothing shrill, each named and on the mus
   const catalog = readFileSync(new URL('../src/music-page/catalog.js', import.meta.url), 'utf8');
   for (const k of Object.keys(snd)) {
     assert.ok(PIRATE_SOUNDS[k], `${k} named`);
-    if (k === 'engine') continue;   // (held: its nodes on a real context, tests/music-page.test.js plays it)
+    if (k === 'engine' || k === 'bed') continue;   // (held: its nodes on a real context, tests/music-page.test.js plays it; the places' beds, issue #555)
     const before = rec.played.length;
     rec.ctx.currentTime += 1;   // (past the shot's and the hit's rate limits)
     snd[k]();

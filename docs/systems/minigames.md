@@ -978,6 +978,49 @@ bad and there is shimmering on the ship at the beginning."
   the mines' gaps; the formations through the view; the page's sky per level, the ship's fitted size and hit box, no
   shadow from it; the sounds' vocabulary, lengths, levels and a fight's peak, rendered in memory).
 
+### Places (v1.87, issue #555)
+
+The author: "I want the space pirate mini game to have different levels, not just different ships, so it truly feels
+like you are going to another planet." Each level is now a place the ship flies through, with its own light, sky, ground
+and sound, and something of the place in play (the rules' `place`, `pull`, `spires`, `storms`; the page's `BACKDROPS`):
+
+| level | place | sky and light | flown over | in play |
+|---|---|---|---|---|
+| the open drift | **the Rose Rings** | violet nebula, a rose giant low on the left with a cream ring, a small lilac moon | open space: the ring's rubble streaming 27–36 m below | the rock belts are the rings' rubble (the first ambush is the run it always was) |
+| the minefield | **the Iron Moon** | black-teal, its pale parent planet over the horizon, a low morning sun | a slate moon's faceted face 22 m under the rail, curving away, craters streaming by | its **pull**: 2.4 m/s down (`pull`); let go, the ship sinks to the box's floor; the stick climbs against it |
+| the ice belt | **the Frost Moon** | deep blue, a ringed blue planet, the sun low ahead (the ships rim-lit, a cold light) | a pale ice face, spires far and near | **ice spires** from the face into the way (`spires`, `SPIRE`: 1.3–2.3 m thick, tops never over 4.2 m up the box, 26 m apart at least); struck below its top, a pip and a knock up; over it, untouched |
+| the wreck field | **the Storm Giant** | a slate storm sky (a mid tone: the pale bolts stay clear), dense murk (fog from 110 m) | the giant's cream cloud deck, cumulus towers; in its storms lilac storm banks either side | **storms** (`storms`, `STORM`): in one, a pirate more than 70 m ahead is hidden (`e.veil` 0..1 over 40 m more), drawn in the murk's colour with its lamps dimmed, and can't be locked (charge, missile, aim assist); lightning forks and flashes in the clouds, thunder after |
+
+- **The place on the page** (`BACKDROPS`): `script` its light as a world's colour script, `hour` its sun, `fog`/`haze`
+  its murk, `planets` its bodies (two at most: the destination ahead is the third, smaller now, 5°), `ground` one ribbon
+  along the rail (`groundGeometry`: 7.4 km, 24 m steps, flat-shaded faces, curving away at `R`, `groundV(G, s, u)` its
+  height), `layer` one instanced mesh of what streams past (`layerPieces`, recycled a 900 m window on so each piece
+  stands still in the world till it is behind; the Frost Moon's rules' spires drawn in it too, deeper blue), `murk`.
+  Everything is the one material in uniforms and instance colours: no new program; two draws more than the open drift
+  at most (the ground, the layer); nothing new casts a shadow (the cascades sit round the hidden traveller far off: see
+  the shimmer above). The far moons hang only in the Rose Rings (over a ground they floated like balloons).
+- **The arrival** (`ARRIVAL`): the page opens on the warp's last moment: for 1.8 s the dust streams 22 times longer and
+  6 times quicker, the view 18° wider (none under Reduce motion), the flames long, easing out; at 0.55 s the place's
+  name flashes big under "On the way to …" with its line under it, and its note is struck (`snd.arrive`). Once a page:
+  a Retry flies on from the checkpoint without it. Played on its own (the Arcade, the Debug menu), the cards offer
+  **Fly on** to the next place (`def.links`, kit/arcade.js `gameLinks`: `?game=pirates&stage=<next>`), its arrival
+  and its name: the beat between levels.
+- **Sound** (`PLACE_SOUNDS`, pirates-sfx.js): each place's note for its arrival (C, G, a high C, E) and its **bed**
+  under the flight, held and soft (0.012–0.022 of gain, under the engine's 0.045, swelling slowly): the rings' warm
+  open fifth, the moon's low hum and ground rumble, the frost's two glassy tones and thin air, the storm's wind; the
+  storm's **thunder** a low roll (1.1 s, lowpass under 230 Hz), quieter and later the farther the strike. On the music
+  page ("Chime pirates": each place's arrival and bed).
+- **Lines**: the Iron Moon's pull said at 7 s ("A heavy moon under us…"), the Frost Moon's spires in its ice line, the
+  storm at 7 s ("A storm ahead. They hide in it: watch for their lamps.").
+- **Engines**: an engine's game page now reads its address as the page does (engine/game.js sets `location.search`
+  to `?game=<id>&to=<world>&stage=<level>` while the level builds), so a flight in Unity flies the route's level and
+  shows its destination (it drew one at random before); `-game "pirates?stage=ice"` picks one in a batch run and
+  `-pose <secs>` flies the run ahead by the pilot for its picture; the cards' Fly on carries its stage through the reboot.
+- Tests: `tests/pirates-places.test.js` (each place's name, line, light, sky and ground, the ground under the box; the
+  page's meshes, no shadow, two draws more at most; the pull, the spires struck and flown over, the storms' veil and
+  locks; the arrival's view, note, name and line, none on a Retry; the sounds; Fly on); the pilot still wins every level
+  at 60, 30 and 20 fps with two hits at most (`tests/pirates-levels.test.js`).
+
 ### Boost, brake and the guns (v1.85, issue #495)
 
 The author: "Space chimes mini game should allow me to boost and slow down to avoid hazards. Enemies should drop gun

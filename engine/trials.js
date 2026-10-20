@@ -22,17 +22,17 @@ import { GAMES, gameById } from '../src/minigames/index.js';
 import { placeGameMarker } from '../src/minigames/kit/marker.js';
 import { queueHost, takeHosts } from '../src/minigames/kit/hosts.js';
 import { MinigameRunner } from '../src/minigames/kit/runner.js';
-import { arcadeLinks } from '../src/minigames/kit/arcade.js';
+import { gameLinks } from '../src/minigames/kit/arcade.js';
 import { partsOf, shiftAt } from '../src/levels/names.js';
 import { inputKind } from '../src/prompt-keys.js';
 import * as THREE from 'three';
 
-/** A game page's address (?game=<id>&from=<world>, ?level=<id>, ?worlds=1) as { game, from, level, back, to, via } (to: the world the pirates' fight is on the way to, src/ambush.js). */
+/** A game page's address (?game=<id>&from=<world>, ?level=<id>, ?worlds=1) as { game, from, level, back, to, via, stage } (to: the world the pirates' fight is on the way to, src/ambush.js; stage: the pirates' level, issue #555). */
 export function readHref(href) {
   // (no URLSearchParams in an engine's VM)
   const q = {};
   for (const kv of String(href ?? '').replace(/^[^?]*\?/, '').split('&')) { const [k, v = ''] = kv.split('='); if (k) q[decodeURIComponent(k)] = decodeURIComponent(v.replace(/\+/g, ' ')); }
-  return { game: q.game ?? null, from: q.from ?? null, level: q.level ?? null, back: q.back ?? null, to: q.to ?? null, via: q.via ?? null };
+  return { game: q.game ?? null, from: q.from ?? null, level: q.level ?? null, back: q.back ?? null, to: q.to ?? null, via: q.via ?? null, stage: q.stage ?? null };
 }
 
 export function makeTrials({ levelId, scene, physics, level, player, camera, rig, sound, wind = null, tool = null, foes = null, chimes = null, npcs = [], crowd = null, wildlife = null, flora = null,
@@ -43,7 +43,7 @@ export function makeTrials({ levelId, scene, physics, level, player, camera, rig
   let challenges = null;
   if (def) {
     // a game's page: the runner takes over at once (main.js: the start card up), the world's story set aside
-    runner = new MinigameRunner(def, host({ ship, from, links: transit?.links ?? arcadeLinks(from, def.id),   // (from the Arcade: back to it, the game before / after, as main.js)
+    runner = new MinigameRunner(def, host({ ship, from, links: transit?.links ?? gameLinks(def, level, from),   // (from the Arcade: back to it, the game before / after, as main.js; a game's own: the pirates' next place)
       onResult: transit ? (r) => transit.onResult(r) : null,
       navigate: (href) => { transit?.left(); runner = null; onLeave?.(href); } }));
     story?.beacon?.removeFromParent?.();

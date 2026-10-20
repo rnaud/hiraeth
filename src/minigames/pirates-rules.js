@@ -168,14 +168,29 @@ export const BELTS = [[175, 875, 3.2], [1190, 1890, 4.6], [2100, 2450, 2.2], [25
  *    (`drift`: slow down to pick a way through);
  *  - the wreck field: fighters diving from above (`dive`), old hulks turning over in the way, drifting up and down.
  * `drift`: how far (m) the hazards swing across (u) and up (v) and how quickly (rad/s); `shape` what they are drawn as.
+ *
+ * Since issue #555 ("I want the space pirate mini game to have different levels, not just different ships, so it truly
+ * feels like you are going to another planet") each is also a place the ship flies through (`place`: its name, said as
+ * the ship drops out of the warp into it, and a line), with its own sky and ground on the page (pirates.js PLACES) and
+ * something of the place in play:
+ *  - the Rose Rings (the open drift): a rose giant ringed with rubble; the rocks are the rings' rubble (the first run
+ *    as it always was);
+ *  - the Iron Moon (the minefield): flown low over a heavy moon whose `pull` (m/s) drags the ship down;
+ *  - the Frost Moon (the ice belt): ice `spires` rising from its face into the way ([s0, s1, per 100 m], SPIRE):
+ *    climb over them or weave between;
+ *  - the Storm Giant (the wreck field): `storms` in its clouds ([s0, s1] m), where the pirates beyond STORM.veil m are
+ *    hidden in the murk (their lamps glinting), and cannot be locked.
  */
 export const LEVELS = [
-  { id: 'drift', name: 'The open drift', script: SCRIPT, belts: BELTS, shape: 'rock', drift: null },
+  { id: 'drift', name: 'The open drift', script: SCRIPT, belts: BELTS, shape: 'rock', drift: null,
+    place: { name: 'The Rose Rings', line: 'A rose giant and its rings of rubble' } },
   { id: 'mines', name: 'The minefield', shape: 'rock', drift: null,
+    place: { name: 'The Iron Moon', line: 'A heavy moon. Its pull drags you down' }, pull: 2.4,
     belts: [[175, 700, 2.2], [1300, 1800, 3], [2150, 2450, 2], [2600, 2940, 2.4]],
     script: [
       { t: 1.2, say: 'start' },
       { t: 4, wave: 'pincer', n: 3 },
+      { t: 7, say: 'moon' },
       { t: 10, wave: 'wall', n: 6, v: 1.5 },
       { t: 15, say: 'mines' },
       { t: 16, field: [{ gapU: -6, gapV: 2 }, { gapU: 5, gapV: -2 }] },
@@ -195,7 +210,9 @@ export const LEVELS = [
       { t: 70, boss: true },
     ] },
   { id: 'ice', name: 'The ice belt', shape: 'ice', drift: { u: 6, v: 1.2, w: 0.42 },
-    belts: [[150, 950, 3.6], [1150, 1950, 4.4], [2080, 2480, 3], [2580, 2940, 3.2]],
+    place: { name: 'The Frost Moon', line: 'Ice spires rise from its face' },
+    spires: [[260, 1000, 1.5], [1350, 1900, 1.7], [2150, 2520, 1.3]],
+    belts: [[150, 950, 2.6], [1150, 1950, 3.2], [2080, 2480, 2.2], [2580, 2940, 3.2]],
     script: [
       { t: 1.2, say: 'start' },
       { t: 4, wave: 'spiral', n: 6, u: -4, v: 1 },
@@ -216,13 +233,16 @@ export const LEVELS = [
       { t: 70, boss: true },
     ] },
   { id: 'wrecks', name: 'The wreck field', shape: 'wreck', drift: { u: 1, v: 3, w: 0.33 },
+    place: { name: 'The Storm Giant', line: 'Old hulks sink in its storms' },
+    storms: [[380, 900], [1250, 1750], [2050, 2500]],
     belts: [[200, 850, 2.6], [1200, 1850, 3.4], [2100, 2450, 2], [2600, 2940, 2.6]],
     script: [
       { t: 1.2, say: 'start' },
       { t: 4, wave: 'dive', n: 5, side: -1 },
+      { t: 7, say: 'storm' },
       { t: 10, wave: 'vee', n: 5 },
-      { t: 13, say: 'wrecks' },
       { t: 17, wave: 'chase', n: 2 },
+      { t: 22, say: 'wrecks' },
       { t: 24, wave: 'dive', n: 6, side: 1 },
       { t: 30, ring: true, u: 5, v: -2 },
       { t: 33, checkpoint: 1 },
@@ -238,6 +258,36 @@ export const LEVELS = [
     ] },
 ];
 export const levelById = (id) => LEVELS.find((l) => l.id === id) ?? LEVELS[0];
+/** The place after a level's, round the list (the Arcade's "Fly on": issue #555). */
+export const nextLevel = (id) => LEVELS[(Math.max(0, LEVELS.findIndex((l) => l.id === id)) + 1) % LEVELS.length];
+
+/**
+ * The Frost Moon's ice spires (issue #555): each rises from the moon's face below to `top` (v, m: inside the box, never
+ * above `top[1]`, so the ship always clears them flying high), `r` m thick; in the box at least `gap` m apart along the
+ * way. Struck, a pip of hull and the ship knocked up and aside (`knock` m/s). Shown `warn` m ahead by the ship's line.
+ */
+export const SPIRE = { r: [1.3, 2.3], top: [-4.5, 4.2], gap: 26, knock: 13 };
+/** The Storm Giant's storms (issue #555): in one, a pirate further than `veil` m ahead is hidden in the murk, fading out over `fade` m beyond it. */
+export const STORM = { veil: 70, fade: 40 };
+/** Is s (m along the way) in one of the storms ([s0, s1] each)? */
+export const stormAt = (storms, s) => !!storms?.some(([a, b]) => s >= a && s <= b);
+/**
+ * The spires along the way, sorted by s: { s, u, top, r, hit }. Seeded as the rocks are (one layout per destination).
+ */
+export function courseSpires(seed = 7, bands = [], F = FLY) {
+  const rand = rng(seed * 13 + 5), out = [];
+  for (const [s0, s1, per] of bands ?? []) {
+    const n = Math.round(((s1 - s0) / 100) * per);
+    let s = s0;
+    for (let i = 0; i < n && s < s1; i++) {
+      s += SPIRE.gap + rand() * Math.max(0, (s1 - s0) / n * 2 - SPIRE.gap);
+      if (s > s1) break;
+      const r = SPIRE.r[0] + rand() * (SPIRE.r[1] - SPIRE.r[0]);
+      out.push({ s, u: (rand() * 2 - 1) * (F.boxU - 1), top: SPIRE.top[0] + rand() * (SPIRE.top[1] - SPIRE.top[0]), r, hit: false, tone: Math.floor(rand() * 3) });
+    }
+  }
+  return out.sort((a, b) => a.s - b.s);
+}
 /**
  * The level of the flight to `to` (issue #494): the worlds of the route in their order take the levels in turn (so two
  * flights one after the other are never alike), a detour by its name's letters; the Arcade's game (no `to`) whichever
@@ -360,6 +410,7 @@ export function newRun({ seed = 7, heat = 0, gentle = false, from = 0, fails = 0
       // (issue #495: the speed along the rail, 1 cruising; the boost and brake's gauge, 0..1; the gun's tier: GUNS)
       speedK: 1, meter: 1, meterWait: 0, spent: false, throttle: null, gun: 0, gunBest: 0 },
     rocks: courseRocks(seed, L.belts), rockI: 0,
+    spires: courseSpires(seed, L.spires), spireI: 0, inStorm: false,   // (issue #555: the Frost Moon's spires; in one of the Storm Giant's storms)
     foes: [], shots: [], bolts: [], rings: [], missiles: [], drops: [], fields: [], waves: {},
     script, next: next < 0 ? script.length : next, nextId: 1,
     boss: null, score, kills: 0, hits: 0, fired: 0, done: null,
@@ -478,6 +529,8 @@ export function runStep(S, inp = {}, dt = 1 / 60) {
   P.vu += (tu - P.vu) * ease(tu, P.vu) * (P.roll > 0 ? 0.4 : 1);   // (rolling, the shove carries it)
   P.vv += (tv - P.vv) * ease(tv, P.vv);
   P.u += P.vu * dt; P.v += P.vv * dt;
+  // (issue #555: the Iron Moon's pull drags the ship down; the stick climbs against it)
+  if (S.level?.pull) P.v -= S.level.pull * dt;
   if (Math.abs(P.u) > F.boxU) { P.u = Math.sign(P.u) * F.boxU; if (Math.sign(P.vu) === Math.sign(P.u)) P.vu = 0; }
   if (Math.abs(P.v) > F.boxV) { P.v = Math.sign(P.v) * F.boxV; if (Math.sign(P.vv) === Math.sign(P.v)) P.vv = 0; }
   // banked hard into the turn; the nose points the way it goes (the bolts follow it: aimAt)
@@ -548,6 +601,13 @@ export function runStep(S, inp = {}, dt = 1 / 60) {
   // ---------------------------------------------------------------- the pirates
   for (const e of S.foes) moveFoe(S, e, dt, ev);
   if (S.boss) moveBoss(S, dt, ev);
+  // (issue #555: in the Storm Giant's storms the pirates further than the veil are hidden in the murk: e.veil 0..1)
+  const storms = S.level?.storms;
+  if (storms) {
+    const here = stormAt(storms, S.s);
+    if (here !== S.inStorm) { S.inStorm = here; ev.push({ kind: 'storm', on: here }); }
+    for (const e of S.foes) e.veil = here || stormAt(storms, S.s + e.ds) ? clamp((e.ds - STORM.veil) / STORM.fade, 0, 1) : 0;
+  }
 
   // their shots
   for (const b of S.shots) { b.ds += (b.vds - 0) * dt; b.u += b.vu * dt; b.v += b.vv * dt; b.life -= dt; }
@@ -627,7 +687,7 @@ export function findLock(S, cone = S.F.lock.cone) {
     const k = off / at.ds;
     if (k < L.cone && k < bd) { bd = k; best = t; }
   };
-  for (const f of S.foes) if (!f.dead && f.kind !== 'mine') consider({ foe: f }, f, f.r);
+  for (const f of S.foes) if (!f.dead && f.kind !== 'mine' && !(f.veil > 0)) consider({ foe: f }, f, f.r);   // (none hidden in a storm: issue #555)
   if (S.boss && !S.boss.dying && S.boss.age > BOSS.enter) for (const p of liveParts(S.boss)) consider({ part: p }, partAt(S.boss, p), p.r);
   return best;
 }
@@ -644,7 +704,7 @@ export function aimTarget(S, slack = 0.6) {
     const aim = aimAt(P, at.ds, S.F);
     if (Math.hypot(at.u - aim.u, at.v - aim.v) < r + slack && at.ds < bd) { bd = at.ds; best = t; }
   };
-  for (const f of S.foes) if (!f.dead && !f.hidden) consider({ foe: f }, f, f.r);
+  for (const f of S.foes) if (!f.dead && !f.hidden && !(f.veil > 0)) consider({ foe: f }, f, f.r);
   if (S.boss && !S.boss.dying && S.boss.age > 1) for (const p of S.boss.parts) if (!p.gone) consider({ part: p }, partAt(S.boss, p), p.r);
   return best;
 }
@@ -1014,6 +1074,20 @@ function rocksAndRings(S, ev) {
       hurt(S, 'rock', ev);
     }
   }
+  // the Frost Moon's spires (issue #555): struck flying lower than a spire's top, a pip, and the ship knocked up off it
+  while (S.spireI < S.spires.length && S.spires[S.spireI].s - s < -30) S.spireI++;
+  for (let i = S.spireI; i < S.spires.length; i++) {
+    const p = S.spires[i], ds = p.s - s;
+    if (ds > 12) break;
+    if (p.hit) continue;
+    const ku = (P.u - p.u) / (Bd.u + p.r), ks = ds / (Bd.s + p.r);
+    if (ku * ku + ks * ks < 1 && P.v - Bd.v < p.top) {
+      p.hit = true;
+      P.vu += Math.sign(P.u - p.u || 1) * SPIRE.knock * 0.6; P.vv += SPIRE.knock;
+      ev.push({ kind: 'spire', at: { ds, u: p.u, v: Math.min(P.v, p.top) } });
+      hurt(S, 'spire', ev);
+    }
+  }
   for (const g of S.rings) {
     if (g.taken) continue;
     const ds = g.s - s;
@@ -1091,6 +1165,13 @@ export function botInput(S, { missiles = true } = {}) {
       else tv = P.v + Math.sign(dv || 1) * 6;
       from = { u: P.u, v: P.v };
     }
+  }
+  // the Frost Moon's spires just ahead (issue #555): over them
+  for (let i = S.spireI; i < S.spires.length; i++) {
+    const p = S.spires[i], ds = p.s - S.s;
+    if (ds > 55) break;
+    if (ds < -3 || p.hit) continue;
+    if (Math.abs(P.u - p.u) < p.r + 2.6 && P.v < p.top + 2.2) { tv = Math.max(tv, p.top + 3); from = { u: P.u, v: P.v }; }
   }
   // a shot about to land: roll
   const close = S.shots.some((b) => b.ds > 0 && b.ds < 12 && Math.hypot(b.u - P.u, b.v - P.v) < 2.6);

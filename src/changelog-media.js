@@ -1308,6 +1308,9 @@ const WATER553 = 'Issue #553: headless Chrome on the GPU at High, 10 in the morn
 const STRAP552 = 'Issue #552: the game’s own captureView in muted headless Chrome (High, 1280 × 720, 10:00, clear) on a Vite of its own (port 5552), the person held still at one spot and heading, the camera 1.8 m from them; before: b077eaf94, after: this branch; 19 October; cwebp -q 72';
 const RETROID404B = 'Retroid Pocket Nova (Adreno 740, Vulkan), the Unity build at Handheld, FSR 1 to 1280 × 960 with dynamic resolution 0.67 → 0.5, the near shadow map 2048² every frame, muted; before, the levels off (-still-lod-tris 0), after, as shipped with the levels read from the cache; the same APK (build 2745), interleaved world by world, the second of two passes';
 const SRC404B = 'the bridge’s own bench (-views -bench 6 -bundle none, unity-bench.json) on the device, 19 October; docs/systems/performance.md, “Unity on the Retroid, round 15”';
+/** (v1.87, issue #555: the chime pirates' places) */
+const PLACES555 = 'Issue #555: the web game in muted headless Chrome (ANGLE Metal, High, 1280 × 720) on this branch’s own Vite (port 6555), ?game=pirates&stage=<level>&to=edena, the run flown ahead by the game’s pilot to the same second for both; before: the branch’s base (0a781a8e4, port 6557); 19 October; cwebp -q 72';
+const ARRIVE555 = 'Issue #555: the web game in muted headless Chrome (ANGLE Metal, High, 1280 × 720) on this branch’s own Vite (port 6555), ?game=pirates&stage=ice&to=edena, 0.8 s after the page opened; 19 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.87': [
     { match: 'In the Unity version, Anselm’s shop opens over a darkened hold', tags: ['devices'], shots: [
@@ -1394,6 +1397,13 @@ export const CHANGELOG_MEDIA = {
         { where: 'the City-Shaft, wide', before: 18.8, after: 18.4 },
       ], source: SRC404B },
     ], see: 'In the Unity version on the Retroid, start in Lorn and look across the meadow to the houses under the trees: the picture is the same, and it stays at 60 frames a second where it dipped to 56. The first visit to a world makes the simpler versions in the minute after it loads; later visits have them at once.' },
+    { match: 'The chime pirates’ flights now take you through places of their own', shots: [
+      { name: 'pirates-rings-555', title: 'The Rose Rings', size: [1280, 720], caption: 'Six seconds in: before, the open drift, rocks against the violet nebula; after, the same run past a rose giant and its cream ring, the ring’s rubble streaming by below.', from: PLACES555 },
+      { name: 'pirates-moon-555', title: 'The Iron Moon', size: [1280, 720], caption: 'Nine seconds in: before, the minefield in open space; after, low over a slate moon, its craters streaming under the ship, its pale parent planet over the horizon. Let go of the stick and its pull drags the ship down.', from: PLACES555 },
+      { name: 'pirates-frost-555', title: 'The Frost Moon', size: [1280, 720], caption: 'Nine seconds in: before, shards of ice drifting in space; after, the Frost Moon’s face, a deep blue spire in the way (fly over it or round it) and a forest of pale ones off to the sides, a ringed planet in the sky.', from: PLACES555 },
+      { name: 'pirates-storm-555', title: 'The Storm Giant', size: [1280, 720], caption: 'Fifteen seconds in: before, old hulks in open space; after, over the giant’s cream clouds in a slate sky, lilac storm banks either side, the hulks sinking in it. In a storm, pirates further than 70 m are drawn in the murk, only their lamps showing.', from: PLACES555 },
+      { name: 'pirates-arrive-555', only: 'after', title: 'Arriving', size: [1280, 720], caption: 'The flight’s first second: the ship drops out of the warp, the stars still streaking, the place’s name and its line under “On the way to …”.', from: ARRIVE555 },
+    ], see: 'Fly to a world you have not visited, or play Chime pirates from the Arcade and choose Fly on after each flight: each place has its own sky, ground and sound. On the Iron Moon let go of the stick to feel its pull; on the Frost Moon fly low to meet the spires; on the Storm Giant watch the lamps in the storm.' },
   ],
   '1.86': [
     { match: 'In the Unity version, the Controls page shows your keys and buttons on caps', tags: ['devices'], shots: [

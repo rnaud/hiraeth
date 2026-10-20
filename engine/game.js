@@ -333,7 +333,7 @@ export const LOOK_VECTORS = new Set(['uWind', 'uHaze', 'uSpot', 'uSpotTone', 'uH
   // (the sky's own: the eclipse, src/eclipse.js; the Lantern's light, src/story/lantern-sky.js; space, src/levels/space-city-kit.js)
   'uEclipse', 'uCorona', 'uEclipseGlow', 'uEclipseDir', 'uLantern', 'uSpace', 'uSpaceTone', 'uSpaceSun', 'uSpaceNight']);
 
-export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', quality = null, log = () => {}, menus = null, start = null, arrive = false, hullSpawn = false, settings = null, gestures = true, moves = true, matching = null, via = null, prologue = false, onTravel = null, aboard = null, scenes = false, fight = false, game: gameId = null, from = null, to: transitTo = null, onGame = null, onLeave = null, trials: withTrials = false, onPage = null, arrival = null, back = null, saves = true, defer = true, far: farOn = true, lod: lodOn = false, skies = true, waterBed = true, onStage = null, onLoad = null } = {}) {
+export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', quality = null, log = () => {}, menus = null, start = null, arrive = false, hullSpawn = false, settings = null, gestures = true, moves = true, matching = null, via = null, prologue = false, onTravel = null, aboard = null, scenes = false, fight = false, game: gameId = null, stage: gameStage = null, from = null, to: transitTo = null, onGame = null, onLeave = null, trials: withTrials = false, onPage = null, arrival = null, back = null, saves = true, defer = true, far: farOn = true, lod: lodOn = false, skies = true, waterBed = true, onStage = null, onLoad = null } = {}) {
   const T = {};
   // (the fight, engine/combat.js, made once the traveller and his tool are)
   let combat = null;
@@ -399,8 +399,11 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   let level;
   // (back from a game started from the Arcade, ?level=arcade&back=<id> on the page: in front of that game's sign, as the
   // level reads it from the address, src/levels/arcade.js; engine/unity/game.js carries it through the reboot)
-  const loc = back && globalThis.location ? globalThis.location : null, search = loc?.search;
-  if (loc) loc.search = `?back=${encodeURIComponent(back)}`;
+  // (a game's own page reads its address too, as the page's ?game=<id>&to=<world>&stage=<level>: the chime pirates' level
+  // and the destination's planet by where the flight goes, issue #555; until then an engine's flight drew a level at random)
+  const gameQuery = gameDef ? `?game=${encodeURIComponent(gameId)}${transitTo ? `&to=${encodeURIComponent(transitTo)}` : ''}${gameStage ? `&stage=${encodeURIComponent(gameStage)}` : ''}` : null;
+  const loc = (back || gameQuery) && globalThis.location ? globalThis.location : null, search = loc?.search;
+  if (loc) loc.search = back ? `?back=${encodeURIComponent(back)}` : gameQuery;
   try { level = quiet(() => (meta.create ? meta.create(scene) : runSteps(meta.build(scene)))); } finally { DRIFT_FITS.later = false; DRIFT_FITS.most = Infinity; if (loc) loc.search = search; }
   level.id ??= levelId;
   // where the old walls' cracks may not run: their windows and doors, as the page (src/host/game-host.js wireOpenings)

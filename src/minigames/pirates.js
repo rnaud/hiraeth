@@ -25,7 +25,7 @@ import { stripTone } from '../story/tone.js';
 import { shakeScale } from '../feel.js';
 import { optionKey } from './kit/flow.js';
 import { AMBUSH_LINES, SPEAKERS, ambushCount } from '../ambush.js';
-import { FLY, BOSS, ATTACKS, CHECKPOINTS, CHIME_RATE, chimesFor, newRun, runStep, pirateInput, railPoint, railX, railY, seedOf, courseRocks, partAt, botInput, aimAt, aimTarget, targetPos, LEVELS, levelFor, GUNS } from './pirates-rules.js';
+import { FLY, BOSS, ATTACKS, CHECKPOINTS, CHIME_RATE, chimesFor, newRun, runStep, pirateInput, railPoint, railX, railY, seedOf, courseRocks, partAt, botInput, aimAt, aimTarget, targetPos, LEVELS, levelFor, GUNS, rng, stormAt, nextLevel } from './pirates-rules.js';
 import { pirateSounds } from './pirates-sfx.js';
 import { screen, page } from '../platform.js';
 
@@ -187,6 +187,7 @@ export const DEBRIS_OF = {
   mine: [PIRATE_COLORS.mine.body, '#3a3340'],
   part: ['#c99d48', '#9a3f35', '#3a3340', '#5e4a72'],
   rock: ['#c9a27a', '#b98d6e', '#9c8fb0'],
+  ice: ['#e8f6ff', '#9fdcf0', '#6fc0e6'],
 };
 
 /** A rock: a lumpy ball (its points pushed in and out by where they are, so the faces still meet), faceted. */
@@ -237,15 +238,20 @@ class Many {
     this.max = max; this.n = 0;
   }
   begin() { this.n = 0; }
-  /** One more: at pos, turned q, scaled s; flash 0..1 whitens it (a hit); color: the body's own colour (the rocks' tones); tellK 0..1: its `tell` part hotter (a wind-up). */
-  put(pos, q, s, flash = 0, color = null, glowK = 1, tellK = 0) {
+  /**
+   * One more: at pos, turned q, scaled s (a number, or a Vector3: a spire's thickness and height); flash 0..1 whitens it
+   * (a hit); color: the body's own colour (the rocks' tones); tellK 0..1: its `tell` part hotter (a wind-up); veil 0..1:
+   * its body drawn into `this.murk` (a pirate hidden in a storm, issue #555: its lamps dimmed, not gone).
+   */
+  put(pos, q, s, flash = 0, color = null, glowK = 1, tellK = 0, veil = 0) {
     if (this.n >= this.max) return;
-    _m.compose(pos, q, _s.setScalar(s));
+    _m.compose(pos, q, typeof s === 'number' ? _s.setScalar(s) : _s.copy(s));
     for (const p of this.parts) {
       p.mesh.setMatrixAt(this.n, _m);
       _c.copy(color && !p.glow ? color : p.color);
       if (p.glow && glowK !== 1) _c.multiplyScalar(glowK);
       if (p.tell && tellK > 0) _c.lerp(_hot, 0.55 * tellK).multiplyScalar(1 + 1.6 * tellK);
+      if (veil > 0 && this.murk) { if (p.glow) _c.multiplyScalar(1 - 0.55 * veil); else _c.lerp(this.murk, veil); }
       if (flash > 0) _c.lerp(_w, flash);
       p.mesh.setColorAt(this.n, _c);
     }
@@ -293,13 +299,101 @@ export const PIRATE_LOOK = { ...SPACE_LOOK, uSpace: [1, 0.24, 0.4, 0.8], uSpaceT
  * (uSpace: on, how many, how many teal, the nebula's strength; uSpaceTone: its colour, the stars' size), the hazards'
  * shape and tones, the far moons' tones and the dust's share of teal. The same parts of the ink pass every time: only
  * uniforms differ, no new program.
+ *
+ * Since issue #555 ("so it truly feels like you are going to another planet") each is a place (the rules' `place`):
+ *  - `script`: its light, as a world's colour script ([sky top, horizon, shadow tint, light tint, the sun's colour]);
+ *    `hour` where its sun stands (the Frost Moon's low ahead, the ships rim-lit); `fog` its murk ([density, start],
+ *    `haze` the colour the fog goes to, a how much); `sun` the light on its bodies in the sky (from behind the
+ *    ship, so they read lit, whatever the place's own sun does to the ships);
+ *  - `planets`: its bodies in the sky, printed by the ink pass (at most two: the destination ahead is the third): the
+ *    rose giant and its ring, the Iron Moon's parent over its horizon, the Frost Moon's ringed blue planet;
+ *  - `ground`: the face flown over (one long ribbon along the rail, faceted, `v` m under it, hills `hills` m high,
+ *    curving away at `R`), or none in open space;
+ *  - `layer`: what streams past for the eye (one instanced mesh, recycled along the way: layerPieces): the rings'
+ *    rubble below, the Iron Moon's craters, the Frost Moon's spires far off (the rules' own spires drawn with them), the
+ *    giant's cloud towers, and in its storms dark columns;
+ *  - `murk`: the Storm Giant's: what a pirate hidden in a storm is drawn in (its lamps dimmed through it).
+ * Everything is the one material, in uniforms and instance colours: no new program, two draws more a place.
  */
 export const BACKDROPS = {
-  drift: { space: [1, 0.24, 0.4, 0.8], tone: [0.17, 0.1, 0.24, 1], rocks: ROCK_TONES, far: ['#f4b49a', '#c3bbec', '#9fe0d6', '#f6d792', '#e9998a', '#cfe5ea'], teal: 1 / 3 },
-  mines: { space: [1, 0.2, 0.7, 0.85], tone: [0.06, 0.17, 0.15, 1], rocks: ['#9c8fb0', '#8a7f9a', '#b3a6c4', '#7f8a96', '#a39bb2'], far: ['#9fe0d6', '#71d7cf', '#cfe5ea', '#e9998a'], teal: 0.6 },
-  ice: { space: [1, 0.42, 0.55, 0.7], tone: [0.08, 0.13, 0.26, 1.15], rocks: ['#7fd6f0', '#5fbfe6', '#a8e8f6', '#79a8e6', '#9fdcf0'], far: ['#cfe5ea', '#c3bbec', '#f3ead8'], teal: 0.5 },
-  wrecks: { space: [1, 0.14, 0.12, 0.95], tone: [0.25, 0.1, 0.07, 0.9], rocks: ['#8a7a6a', '#6f6a7a', '#a8876a', '#5e5a6a', '#b59a7a'], far: ['#f6d792', '#e9998a', '#ef9479', '#f4b49a'], teal: 0.12 },
+  drift: { space: [1, 0.24, 0.4, 0.8], tone: [0.17, 0.1, 0.24, 1], rocks: ['#e3b39e', '#c99484', '#f0d4bd', '#a98fb6', '#e6c4a6'], far: ['#c3bbec', '#9fe0d6', '#f6d792', '#cfe5ea'], teal: 1 / 3,
+    script: ['#05040b', '#0a0714', '#a07fae', '#ffe6da', '#fff0e2'], hour: 8.5, sun: [0.45, 0.3, 0.84, 1],
+    planets: [{ az: 210, el: -27, size: 22, color: '#f2b49c', ring: 0.34, craters: false }, { az: 147, el: 18, size: 2.6, color: '#e4dcf4' }],
+    layer: { kind: 'rubble', n: 260, v: [-36, -27], u: 520, size: [0.6, 2.6], tones: ['#e8c0aa', '#c8988a', '#f4dcc6', '#b29abd'], gaps: [[70, 105], [230, 270]] } },
+  mines: { space: [1, 0.2, 0.7, 0.85], tone: [0.06, 0.17, 0.15, 1], rocks: ['#9c8fb0', '#8a7f9a', '#b3a6c4', '#7f8a96', '#a39bb2'], far: ['#9fe0d6', '#71d7cf', '#cfe5ea', '#e9998a'], teal: 0.6,
+    script: ['#020809', '#061110', '#5c7c88', '#eef6f0', '#f6f1e2'], hour: 7.6, fog: [0.0013, 300], haze: [0.56, 0.68, 0.7, 0.8], farOff: true, sun: [-0.3, 0.3, 0.9, 1],
+    planets: [{ az: 146, el: 8, size: 12, color: '#ead2a6', craters: false }, { az: 214, el: 24, size: 2.4, color: '#cfe5ea' }],
+    ground: { v: -22, hills: 5, R: 2400, width: 900, color: '#7b7487' },
+    layer: { kind: 'crater', n: 120, ground: true, u: 380, size: [3, 13], tones: ['#9089a0', '#625d70', '#cdc5b6'] } },
+  ice: { space: [1, 0.42, 0.55, 0.7], tone: [0.08, 0.13, 0.26, 1.15], rocks: ['#7fd6f0', '#5fbfe6', '#a8e8f6', '#79a8e6', '#9fdcf0'], far: ['#cfe5ea', '#c3bbec', '#f3ead8'], teal: 0.5,
+    script: ['#03060f', '#081227', '#7d92c8', '#f2f8ff', '#e8f6ff'], hour: 16.8, fog: [0.0012, 320], haze: [0.7, 0.8, 0.92, 0.8], farOff: true, sun: [-0.6, 0.3, 0.74, 1],
+    planets: [{ az: 150, el: 10, size: 6, color: '#a8d4ec', ring: 0.42, craters: false }],
+    ground: { v: -22, hills: 3, R: 2600, width: 900, color: '#e2eef4' },
+    layer: { kind: 'spire', n: 110, ground: true, u: 420, inner: 20, size: [10, 52], tones: ['#bfe4f2', '#8fcde6', '#e8f4f8'] },
+    spire: ['#6fc0e6', '#4fa6d8', '#93d6ee'] },
+  wrecks: { space: [1, 0, 0.2, 0], tone: [0.25, 0.1, 0.07, 0.6], rocks: ['#8a7a6a', '#6f6a7a', '#a8876a', '#5e5a6a', '#b59a7a'], far: ['#f6d792', '#e9998a', '#f3ead8'], teal: 0.12,
+    script: ['#3a5059', '#9aa48a', '#6f6a7e', '#fff2dc', '#fff4d6'], hour: 10.5, fog: [0.0032, 110], haze: [0.56, 0.6, 0.52, 0.9], farOff: true, sun: [0.3, 0.5, 0.81, 1],
+    planets: [{ az: 158, el: 28, size: 4.2, color: '#f3ead8' }],
+    ground: { v: -26, hills: 7, R: 3200, width: 1000, color: '#efeae0', cloud: true },
+    layer: { kind: 'cloud', n: 190, ground: true, u: 560, inner: 30, size: [10, 40], tones: ['#f6f0e2', '#e6dcc4', '#efe6d2', '#dcd2bc'], storm: ['#8a87a6', '#77769a', '#9895b2'] },
+    murk: '#8a927e' },
 };
+/** The far fields (issue #555): the ground's ribbon from just behind the start to this far along (m), its steps along and across. */
+export const GROUND = { from: -300, len: 7400, step: 24, across: 12 };
+/** How high the ground's face is at (s, u), rail-relative (v, m): its hills, curving away to the sides (the body's roundness). */
+export function groundV(G, s, u) {
+  const h = G.hills * (0.5 + 0.5 * Math.sin(s / 61 + u / 47) * Math.cos(s / 43 - u / 31 + 1.1)) + (G.cloud ? G.hills * 0.6 * Math.max(0, Math.sin(s / 140 + u / 90)) : 0);
+  return G.v + h - (u * u) / (2 * (G.R ?? 2600));
+}
+/** The ground's ribbon (issue #555): a grid along the rail, denser across near the middle, its faces flat-shaded. */
+export function groundGeometry(G, D = GROUND) {
+  const us = [];
+  for (let k = -D.across; k <= D.across; k++) us.push(Math.sign(k) * Math.pow(Math.abs(k) / D.across, 1.7) * G.width);
+  const n = Math.ceil(D.len / D.step) + 1, m = us.length, pos = new Float32Array(n * m * 3), idx = [];
+  for (let i = 0; i < n; i++) {
+    const s = D.from + i * D.step;
+    for (let j = 0; j < m; j++) {
+      const o = (i * m + j) * 3;
+      pos[o] = railX(s) + us[j]; pos[o + 1] = railY(s) + groundV(G, s, us[j]); pos[o + 2] = -s;
+      if (i < n - 1 && j < m - 1) { const a = i * m + j, b = a + 1, c = a + m, d = c + 1; idx.push(a, b, c, b, d, c); }
+    }
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  g.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(n * m * 2), 2));
+  return g;
+}
+/** An ice spire (the Frost Moon, issue #555): a six-sided crystal standing from y 0 to 1 (its point the top fifth), a small one leaning on it. */
+export function spireShape() {
+  return merge([new THREE.CylinderGeometry(0.72, 1, 0.8, 6, 1).translate(0, 0.4, 0), new THREE.ConeGeometry(0.72, 0.2, 6).translate(0, 0.9, 0),
+    new THREE.CylinderGeometry(0.3, 0.42, 0.5, 6, 1).rotateZ(-0.35).translate(0.8, 0.22, 0.2)]);
+}
+/** A crater (the Iron Moon, issue #555): a low rim round a hollow, laid flat. */
+const craterShape = () => merge([new THREE.TorusGeometry(1, 0.22, 4, 14).rotateX(Math.PI / 2).scale(1, 0.6, 1), new THREE.CircleGeometry(0.85, 12).rotateX(-Math.PI / 2).translate(0, -0.08, 0)]);
+/** What each kind of layer is drawn as. */
+const LAYER_SHAPES = { rubble: () => rockShape(1), crater: craterShape, spire: spireShape, cloud: () => cloudShape() };
+/** A cloud tower of the Storm Giant (issue #555): a cluster of round puffs on a flat foot. */
+export function cloudShape() {
+  // (round: each puff's normals from its middle, so the toon light gives it one soft shade, not facets)
+  const puff = (r, x, y, z) => { const g = new THREE.IcosahedronGeometry(r, 2), p = g.attributes.position, n = g.attributes.normal;
+    for (let i = 0; i < p.count; i++) { const px = p.getX(i), py = p.getY(i), pz = p.getZ(i), l = Math.hypot(px, py, pz) || 1; n.setXYZ(i, px / l, py / l, pz / l); p.setY(i, Math.max(-0.12 * r, py)); }
+    return g.translate(x, y, z); };
+  return mergeGeometries([puff(0.62, 0, 0.1, 0), puff(0.45, 0.55, 0.05, 0.15), puff(0.42, -0.55, 0.02, -0.1), puff(0.36, 0.1, 0.55, 0.05), puff(0.32, 0.2, 0, -0.5)]);   // (not merge(): its normals kept round)
+}
+/** The pieces of a place's layer: where each lies in its window along the way (m), across, up (or on the ground), its size and tone. */
+export function layerPieces(Ly, seed = 7) {
+  const rand = rng(seed * 3 + 11), W = Ly.window ?? 900, out = [];
+  for (let i = 0; i < Ly.n; i++) {
+    let u = (rand() * 2 - 1) * Ly.u;
+    const inner = Ly.inner ?? 0;
+    if (Math.abs(u) < inner) u = Math.sign(u || 1) * (inner + rand() * 40);   // (the spires and the towers off the ship's way: the rules' own stand in it)
+    if (Ly.gaps?.some(([a, b]) => Math.abs(u) > a && Math.abs(u) < b)) u = Math.sign(u) * Ly.gaps[0][0] * rand();   // (the rings' dark lanes)
+    out.push({ s0: rand() * W, u, v: Ly.v ? Ly.v[0] + rand() * (Ly.v[1] - Ly.v[0]) : 0, r: Ly.size[0] + Math.pow(rand(), 1.6) * (Ly.size[1] - Ly.size[0]), tone: Math.floor(rand() * 8), spin: (rand() - 0.5) * 0.8, ph: rand() * 6.283, lean: (rand() - 0.5) * 0.3 });
+  }
+  return out;
+}
 
 function* buildPirates(scene) {
   const q = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
@@ -349,7 +443,8 @@ function* buildPirates(scene) {
   const drops = new Drops(scene, 600, noShadow);   // (the bolts, the shots, the sparks, the dust, the flashes and the ship's trail)
   const debris = new Many(scene, [{ color: '#ffffff', geo: shardShape() }], 120, noShadow);
   yield;
-  // far bodies hung along the way, for the eye: pale moons and planetoids a long way off either side
+  // far bodies hung along the way, for the eye: pale moons and planetoids a long way off either side (none over a
+  // place's ground: its own bodies are in its sky, issue #555)
   const far = nc(new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 3), BODY(), 16));
   {
     const R = Math.random;
@@ -362,24 +457,52 @@ function* buildPirates(scene) {
       far.setColorAt(i, _c.set(tones[i % tones.length]));
     }
     far.frustumCulled = false;
+    far.visible = !back.farOff;
     scene.add(far); noShadow.push(far);
   }
+  // the place (issue #555): the face flown over, one ribbon along the whole way (casting no shadow: the cascades sit round
+  // the hidden traveller far off), and its layer, one instanced mesh of what streams past (the Frost Moon's own spires,
+  // the rules', drawn in it too)
+  let ground = null, layer = null;
+  if (back.ground) {
+    ground = nc(new THREE.Mesh(groundGeometry(back.ground), makeMaterial({ color: back.ground.color, flat: !back.ground.cloud, key: `pirates-ground-${lvl.id}` })));   // (a moon's face faceted, the giant's clouds soft)
+    ground.frustumCulled = false;
+    scene.add(ground); noShadow.push(ground);
+  }
+  if (back.layer) {
+    const Ly = back.layer;
+    layer = new Many(scene, [{ color: Ly.tones[0], geo: (LAYER_SHAPES[Ly.kind] ?? LAYER_SHAPES.rubble)() }], Ly.n + 40, noShadow);
+    layer.pieces = layerPieces(Ly, seed);
+    layer.tones = Ly.tones.map((c) => new THREE.Color(c));
+    layer.dark = (Ly.storm ?? []).map((c) => new THREE.Color(c));
+    layer.spire = (back.spire ?? []).map((c) => new THREE.Color(c));
+  }
+  if (back.murk) for (const k of Object.values(kinds)) k.murk = new THREE.Color(back.murk);
   // the repair rings: a teal hoop with a cream cross, two of them reused
   const ringGeo = merge([new THREE.TorusGeometry(3.4, 0.28, 6, 28), box(1.6, 0.36, 0.2), box(0.36, 1.6, 0.2)]);
   const rings = [0, 1].map(() => { const m = nc(new THREE.Mesh(ringGeo, makeMaterial({ color: '#71d7cf', glow: 0.8, key: 'pirates-ring' }))); m.visible = false; scene.add(m); noShadow.push(m); return m; });
   const boss = buildGunship(scene, noShadow);
   yield;
   const look = PLANETS[to] ?? { body: '#f4b49a' };
+  const name = lvl.place?.name ?? 'Between worlds';
   return arenaLevel({
     ground: { heightAt: () => FLOOR },   // (nothing to stand on out here; the host's things placed on the ground land far below, out of sight)
-    spawn, name: 'Between worlds', hour: 8.5,
-    look: { ...PIRATE_LOOK, uSpace: back.space, uSpaceTone: back.tone },
-    // the destination ahead, low, in its colour from the galactic map
-    sky: { script: SPACE_SCRIPT, planets: [{ az: 180, el: 7, size: 14, color: look.body, craters: false }] },
-    atmo: () => ({ tint: [1, 1, 1], fog: 0.5, name: 'Between worlds' }),
+    spawn, name, hour: back.hour ?? 8.5,
+    look: placeLook(back),
+    // the place's own bodies (issue #555), and the destination ahead, low, in its colour from the galactic map
+    sky: { script: placeScript(back), planets: [...(back.planets ?? []).slice(0, 2), { az: 180, el: 7, size: back.planets?.length ? 5 : 14, color: look.body, craters: false }] },
+    atmo: () => ({ tint: [1, 1, 1], fog: 0.5, name }),
     noShadow,
-    pirates: { to, seed, level: lvl, back, ship, model, flames, kinds, rocks, drops, debris, rings, boss, gifts, fit: { ...fit, nozzle, k: fk } },
+    pirates: { to, seed, level: lvl, back, ship, model, flames, kinds, rocks, drops, debris, rings, boss, gifts, ground, layer, fit: { ...fit, nozzle, k: fk } },
   });
+}
+/** A place's look (issue #555): the pirates' space look with its nebula and stars, its fog and the far colour it goes to. */
+export function placeLook(B) {
+  return { ...PIRATE_LOOK, uSpace: B.space, uSpaceTone: B.tone, ...(B.fog ? { uFogDensity: B.fog[0], uFogStart: B.fog[1] } : {}), ...(B.haze ? { uHaze: B.haze } : {}), ...(B.sun ? { uSpaceSun: B.sun } : {}) };
+}
+/** A place's colour script (issue #555): its own light at every hour, as space's was (SPACE_SCRIPT). */
+export function placeScript(B) {
+  return B.script ? { day: B.script, dusk: B.script, night: B.script } : SPACE_SCRIPT;
 }
 
 /** The gunship's size over its drawing (the parts' places in BOSS are in metres: divided by this to draw them). */
@@ -574,7 +697,11 @@ function start(ctx) {
   // the pip that went; aimK: the reticle's tightening on a target, hitT its hit mark)
   // (issue #326, the feel: jolt the small capped shake of a kill, stop the hit-stop left, combo the kills in a row)
   const run = { said: new Set(), lastHull: S.ship.hull, sinkT: 0, outT: 0, lowSaid: false, blinkT: 0, bossShown: false, redT: 0, shake: 0, pipT: 0, lostI: -1, lostT: 0, aimK: 0, target: null, pullX: 0, pullY: 0, reticle: null, hitT: 0, hitBig: false, hurtN: 0,
-    jolt: 0, stop: 0, stopCool: 0, stops: 0, combo: 0, comboT: 0, comboBest: 0, trailT: 0 };
+    jolt: 0, stop: 0, stopCool: 0, stops: 0, combo: 0, comboT: 0, comboBest: 0, trailT: 0,
+    // (issue #555: the arrival, the warp's last moment as the page opens, once a page: a Retry flies on from where it was)
+    arriveT: L.arrived ? 0 : ARRIVAL.secs, named: !!L.arrived, heard: false, boltT: 1.2, strikes: [] };
+  L.arrived = true;
+  const place = S.level?.place ?? null, B = L.back ?? {};
   // the flashes (a muzzle's, an impact's, an explosion's swelling ball: ship-relative, they fly with it), the debris of
   // the wrecks and the ship's engine trail (in the world), the telegraphs' glows drawn this frame
   const flashes = [], shards = [], trail = [], tells = [];
@@ -719,6 +846,9 @@ function start(ctx) {
           break;
         }
         case 'gunLost': snd.gunLost(); ctx.flash('Guns back to twin bolts', 'bad', 1.2); break;
+        // the place's own (issue #555): a spire of the Frost Moon struck, shards of ice off it; into a storm, its thunder
+        case 'spire': { const p = world(e.at.ds, e.at.u, e.at.v, V()); spark(p, 10, '#e8f6ff'); debris(p, 'ice', 6); break; }
+        case 'storm': if (e.on) { run.boltT = Math.min(run.boltT, 0.6); snd.thunder(0.6); } break;
         case 'win': {
           say(e.sunk ? 'won' : 'fled');
           ctx.setScore(S.score);
@@ -778,7 +908,7 @@ function start(ctx) {
     // ship from the first frame, issue #494)
     run.flameT = (run.flameT ?? 0) + dt;
     const flick = 0.2 + 0.12 * Math.sin(run.flameT * 29) + 0.08 * Math.sin(run.flameT * 47 + 1.3);
-    L.flames.scale.set(1, 1, (0.8 + flick + 0.25 * push + (run.outT > 0 ? 2 : 0)) * (sk > 1 ? 1 + 1.4 * (sk - 1) : 0.55 + 0.45 * sk));   // (long on a boost, short on the brake)
+    L.flames.scale.set(1, 1, (0.8 + flick + 0.25 * push + (run.outT > 0 ? 2 : 0)) * (sk > 1 ? 1 + 1.4 * (sk - 1) : 0.55 + 0.45 * sk) * (1 + 1.5 * arrivalK()));   // (long on a boost, short on the brake; long out of the warp: issue #555)
     // the engine trail (issue #326): two short streams of glowing drops left at the nozzles (rail-relative: they fall
     // back slowly and are drawn after the ship across, lagging, so the stream curves behind it as it steers and banks)
     if (S.done !== 'dead' && dt > 0) {
@@ -835,9 +965,10 @@ function start(ctx) {
       // a mine blinks quicker as the ship comes near (issue #326)
       const blink = e.kind === 'mine' ? 0.4 + 0.6 * (Math.sin(e.age * (e.ds < 40 ? 22 : 9)) > 0 ? 1 : 0) : 1;
       // a hit whitens it and swells it a moment; a wind-up heats its tell part and swells a glow there
-      const size = (LOOK_SIZE[e.kind] ?? 1) * (1 + 0.14 * Math.max(0, e.flash) / 0.12), tk = e.tellK ?? 0;
-      L.kinds[e.kind].put(pos, q, size, e.flash > 0 ? 0.8 : 0, null, blink, tk);
-      if (tk > 0 && TELL_AT[e.kind]) tells.push({ pos: _p2.set(...TELL_AT[e.kind]).multiplyScalar(size).applyQuaternion(q).add(pos).clone(), r: (0.25 + 0.9 * tk) * (e.kind === 'hauler' ? 1.3 : 1), color: e.kind === 'skiff' ? '#c8fff4' : '#ffd27a' });
+      const size = (LOOK_SIZE[e.kind] ?? 1) * (1 + 0.14 * Math.max(0, e.flash) / 0.12), tk = e.tellK ?? 0, veil = e.veil ?? 0;
+      // (hidden in a storm, issue #555: drawn in the murk, its lamps glinting through it)
+      L.kinds[e.kind].put(pos, q, size, e.flash > 0 ? 0.8 : 0, null, blink, tk, veil);
+      if (tk > 0 && TELL_AT[e.kind] && veil < 0.5) tells.push({ pos: _p2.set(...TELL_AT[e.kind]).multiplyScalar(size).applyQuaternion(q).add(pos).clone(), r: (0.25 + 0.9 * tk) * (e.kind === 'hauler' ? 1.3 : 1), color: e.kind === 'skiff' ? '#c8fff4' : '#ffd27a' });
     }
     for (const k of Object.values(L.kinds)) k.end();
   }
@@ -855,6 +986,68 @@ function start(ctx) {
     for (const r of L.rocks) r.end();
   }
   const tones = L.back?.rocks ?? ROCK_TONES;
+
+  /**
+   * The place's layer (issue #555): what streams past, each piece at its own place along the way (recycled a window on,
+   * so it stays still in the world until it is far behind), on the ground or hung below; the Frost Moon's spires of the
+   * rules (S.spires) in the same mesh, deeper blue; the Storm Giant's towers dark and tall in its storms.
+   */
+  function drawLayer() {
+    const M = L.layer, Ly = B.layer, G = B.ground;
+    if (!M) return;
+    M.begin();
+    const W = Ly.window ?? 900, behind = 60;
+    for (const p of M.pieces) {
+      const ds = ((((p.s0 - S.s) % W) + W) % W) - behind, s = S.s + ds;
+      const g = Ly.ground && G ? groundV(G, s, p.u) : p.v;
+      let col = M.tones[p.tone % M.tones.length];
+      if (Ly.kind === 'crater') {
+        railPoint(s, p.u, g + 0.15, _p);
+        M.put(_p, _q.setFromAxisAngle(_yAxis, p.ph), _ls.set(p.r, p.r * 0.5, p.r), 0, col);
+      } else if (Ly.kind === 'spire') {
+        railPoint(s, p.u, g - 2, _p);
+        _e.set(p.lean, p.ph, p.lean * 0.6, 'YXZ');
+        M.put(_p, _q.setFromEuler(_e), _ls.set(p.r * 0.13 + 1, p.r, p.r * 0.13 + 1), 0, col);
+      } else if (Ly.kind === 'cloud') {
+        const storm = M.dark.length && stormAt(S.level?.storms, s) && Math.abs(p.u) < 200 && Math.abs(p.u) > 44;   // (the storm's banks either side of the way)
+        if (storm) col = M.dark[p.tone % M.dark.length];
+        railPoint(s, p.u, g - p.r * 0.25, _p);
+        M.put(_p, _q.setFromAxisAngle(_yAxis, p.ph), storm ? _ls.set(p.r * 1.2, p.r * 0.95, p.r * 1.05) : _ls.set(p.r, p.r * 0.55, p.r * 0.8), 0, col);
+      } else {
+        railPoint(s, p.u, g, _p);
+        _e.set(p.spin * S.t + p.ph, p.spin * 0.6 * S.t, 0, 'YXZ');
+        M.put(_p, _q.setFromEuler(_e), p.r, 0, col);
+      }
+    }
+    // the rules' spires, standing from the ground to where they are struck, their point over it
+    if (G && S.spires.length) for (let i = Math.max(0, S.spireI - 2); i < S.spires.length; i++) {
+      const p = S.spires[i], ds = p.s - S.s;
+      if (ds > 900) break;
+      if (ds < -40) continue;
+      const g = groundV(G, p.s, p.u) - 1, h = (p.top + 0.3 - g) / 0.8;
+      railPoint(p.s, p.u, g, _p);
+      M.put(_p, _q.setFromAxisAngle(_yAxis, p.s), _ls.set(p.r, h, p.r), p.hit ? 0.35 : 0, M.spire[p.tone % M.spire.length] ?? null);
+    }
+    M.end();
+  }
+
+  /** The Storm Giant's lightning (issue #555): in a storm, now and then a flash in the clouds, a fork of light, the thunder after. */
+  function lightning(dt) {
+    if (!S.level?.storms) return;
+    run.boltT -= dt;
+    if (S.inStorm && run.boltT <= 0 && !S.done) {
+      run.boltT = STORM_LOOK.every[0] + Math.random() * (STORM_LOOK.every[1] - STORM_LOOK.every[0]);
+      const side = Math.random() < 0.5 ? -1 : 1, ds = 150 + Math.random() * 170, u = side * (34 + Math.random() * 80), v = 10 + Math.random() * 20;
+      flashes.push({ ds, u, v, r: 18 + Math.random() * 10, life: 0.18, age: 0, color: STORM_LOOK.flash, grow: true });
+      // the fork: a few strokes down from the flash to the clouds
+      const pts = [];
+      let pu = u, pv = v;
+      for (let i = 0; i <= 5; i++) { pts.push({ u: pu, v: pv }); pu += (Math.random() - 0.5) * 9; pv -= 5 + Math.random() * 4; }
+      run.strikes.push({ ds, pts, age: 0, life: 0.14 });
+      snd.thunder(Math.min(1, ds / 300));
+    }
+    for (let i = run.strikes.length - 1; i >= 0; i--) if ((run.strikes[i].age += dt) > run.strikes[i].life) run.strikes.splice(i, 1);
+  }
 
   /** The gun drops (issue #495): turning, bobbing, the ring round them swelling as the ship comes near. */
   function drawGifts() {
@@ -921,11 +1114,19 @@ function start(ctx) {
       world(t.ds, t.u, t.v, _p);
       D.put(_p, fw, t.r * (1 - k * 0.7), 0.8, k < 0.3 ? '#ffd27a' : k < 0.65 ? '#ffb36b' : '#ef9479');
     }
-    // the dust that streams past: the speed made visible
+    // the dust that streams past: the speed made visible (issue #555: drawn out into the warp's streaks as the ship
+    // arrives; in a storm, the giant's pale wisps, longer)
+    const wk = arrivalK(), streak = 1 + ARRIVAL.streak * wk * wk, wisp = S.inStorm;
     for (const m of dust) {
       const ds = (((m.s - S.s) % 260) + 260) % 260 - 30;
       world(ds, m.u, m.v, _p);
-      D.put(_p, fw, 0.05, (1.6 + (run.outT > 0 ? 6 : 0)) * Math.max(0.6, S.ship.speedK ?? 1) ** 1.5, m.teal ? '#9ff2e6' : '#fff1c8');   // (stretched on a boost, short on the brake: issue #495)
+      D.put(_p, fw, wisp ? 0.035 : 0.05, (1.6 + (run.outT > 0 ? 6 : 0)) * Math.max(0.6, S.ship.speedK ?? 1) ** 1.5 * streak * (wisp ? 1.6 : 1), wisp ? STORM_LOOK.dust : m.teal ? '#9ff2e6' : '#fff1c8');   // (stretched on a boost, short on the brake: issue #495)
+    }
+    // the lightning's forks (issue #555)
+    for (const k of run.strikes) for (let i = 0; i < k.pts.length - 1; i++) {
+      world(k.ds, k.pts[i].u, k.pts[i].v, _a3); world(k.ds, k.pts[i + 1].u, k.pts[i + 1].v, _b3);
+      _p2.subVectors(_b3, _a3); const len = _p2.length(); _p2.divideScalar(len || 1);
+      D.put(_p.addVectors(_a3, _b3).multiplyScalar(0.5), _p2, 0.45, len / 2, STORM_LOOK.flash);
     }
     D.end();
   }
@@ -1126,13 +1327,28 @@ function start(ctx) {
   /** Two colours mixed (k 0..1), as a CSS colour. */
   function mix(a, b, k) { return '#' + _c.set(a).lerp(_c2.set(b), Math.max(0, Math.min(1, k))).getHexString(); }
 
+  /** The arrival's strength now (issue #555): 1 as the page opens, easing to 0 over ARRIVAL.secs. */
+  function arrivalK() { return Math.max(0, Math.min(1, run.arriveT / ARRIVAL.secs)); }
+  /** The arrival's beat (issue #555): its sound at once, the place's name and line once the streaks have drawn in. */
+  function arrive(dt) {
+    if (!run.heard) { run.heard = true; if (run.arriveT > 0) snd.arrive(S.level?.id); }
+    if (run.arriveT <= 0 && run.named) return;
+    run.arriveT = Math.max(0, run.arriveT - dt);
+    if (!run.named && ARRIVAL.secs - run.arriveT >= ARRIVAL.name) {
+      run.named = true;
+      if (place) { ctx.flash(place.name, 'big', 2.8); ctx.flash(place.line, '', 2.6); }
+    }
+  }
+
   const tick = (dt, phase) => {
     drawShip(dt, phase);
     drawCamera(dt);
-    drawFoes(); drawRocks(dt); drawRings(); drawGifts(); drawBoss(dt); drawDebris(dt); drawDrops(dt);
-    // (the boost widens the view a little, the brake narrows it: issue #495; none under Reduce motion)
-    const sk = S.ship.speedK ?? 1;
-    ctx.setFov(CAM.fov + (shakeScale() > 0 ? (sk > 1 ? CAM.boostFov * (sk - 1) / (FLY.throttle.boost - 1) : -CAM.brakeFov * (1 - sk) / (1 - FLY.throttle.brake)) : 0));
+    lightning(dt);
+    drawFoes(); drawRocks(dt); drawLayer(); drawRings(); drawGifts(); drawBoss(dt); drawDebris(dt); drawDrops(dt);
+    // (the boost widens the view a little, the brake narrows it: issue #495; none under Reduce motion; the arrival's
+    // warp wider still, easing in: issue #555)
+    const sk = S.ship.speedK ?? 1, wk = arrivalK();
+    ctx.setFov(CAM.fov + (shakeScale() > 0 ? (sk > 1 ? CAM.boostFov * (sk - 1) / (FLY.throttle.boost - 1) : -CAM.brakeFov * (1 - sk) / (1 - FLY.throttle.brake)) + ARRIVAL.fov * wk * wk : 0));
     run.gunT = Math.max(0, (run.gunT ?? 0) - dt);
     fire.update(dt); smoke.update(dt);
     words.update(dt);
@@ -1152,7 +1368,7 @@ function start(ctx) {
     drawHud(phase);
     if (phase === 'results') tally(dt);
   };
-  drawShip(0, 'intro'); drawCamera(0, true); drawRocks(0); drawDrops(0);
+  drawShip(0, 'intro'); drawCamera(0, true); drawRocks(0); drawLayer(); drawDrops(0);
 
   /** The results' tally (on the way to a world): the points' chimes counted up, a chime heard for each tenth. */
   function tally(dt) {
@@ -1182,6 +1398,9 @@ function start(ctx) {
     update(dt, inp, { live, phase, raw }) {
       dt = Math.min(dt, 0.05);
       run.stopCool = Math.max(0, run.stopCool - dt);
+      // (issue #555: the place's arrival, and its sound bed under the flight, fading at the end)
+      arrive(dt);
+      snd.bed(S.level?.id, phase === 'results' || S.done === 'dead' ? 0 : phase === 'finishing' ? 0.5 : 1);
       if (live && run.stop > 0) {
         // the hit-stop (issue #326): the world held a beat on a kill, the flashes and the shards barely moving
         run.stop = Math.max(0, run.stop - dt);
@@ -1198,9 +1417,10 @@ function start(ctx) {
         ctx.setScore(S.score);
         ctx.speed(S.ship.roll > 0 ? 0.5 : 0.12);
       } else if (phase === 'intro' || phase === 'count') {
-        // cruising before GO: the dust streams by, nothing else moves on
-        for (const m of dust) m.s -= FLY.speed * dt;
-        snd.engine(0.7, 0);
+        // cruising before GO: the dust streams by, nothing else moves on (rushing as the ship drops out of the warp)
+        const wk = arrivalK();
+        for (const m of dust) m.s -= FLY.speed * dt * (1 + ARRIVAL.rush * wk * wk);
+        snd.engine(0.7, wk);
       } else if (phase === 'finishing' || phase === 'results') {
         S.s += FLY.speed * dt;
         for (const b of S.shots) b.life = 0;
@@ -1210,10 +1430,17 @@ function start(ctx) {
       }
       tick(dt, phase);
     },
-    /** The screenshots' pose (the bridge's -pose): the captain hails (or a line of AMBUSH_LINES by its id) over the comms. */
-    pose(kind) { say(AMBUSH_LINES[kind] ? kind : 'captain'); return !!hud; },
+    /**
+     * The screenshots' pose (the bridge's -pose): the captain hails (or a line of AMBUSH_LINES by its id) over the comms;
+     * a number of seconds flies the run ahead by the pilot to then (-pose 14: a place's picture, issue #555).
+     */
+    pose(kind) {
+      if (/^\d+(\.\d+)?$/.test(String(kind))) { this.forward(+kind); return true; }
+      say(AMBUSH_LINES[kind] ? kind : 'captain'); return !!hud;
+    },
     end() {
-      snd.engine(0);
+      snd.engine(0); snd.bed(S.level?.id, 0);
+      L.layer?.begin(); L.layer?.end();
       hud?.dispose();
       screen.set('pirates', null);
       words.dispose();
@@ -1254,7 +1481,15 @@ export const KILL_SIZE = { skiff: 0.85, raider: 1.25, hauler: 1.7, mine: 0.6 };
 export const TRAIL = { every: 1 / 30, life: 0.32, carry: 0.9, follow: 6, max: 40 };
 /** The pirates drawn larger than their shapes were made (their hit sizes in the rules match). */
 export const LOOK_SIZE = { skiff: 1.9, raider: 1.5, hauler: 1.5, mine: 1.3 };
-const _fwd = V(0, 0, -1), _spin = V(0.3, 1, 0.2).normalize(), _d2 = V(), _p3 = V(), _c2 = new THREE.Color(), _hotBoss = new THREE.Color('#ff8a4a');
+const _fwd = V(0, 0, -1), _spin = V(0.3, 1, 0.2).normalize(), _d2 = V(), _p3 = V(), _c2 = new THREE.Color(), _hotBoss = new THREE.Color('#ff8a4a'), _yAxis = V(0, 1, 0), _ls = V(), _a3 = V(), _b3 = V();
+/**
+ * The arrival (issue #555): the page opens on the warp's last moment, the ship dropping out of it into the place: for
+ * `secs` the dust streams `streak` times longer and `rush` times quicker, the view `fov` degrees wider (none under Reduce
+ * motion), all easing out; at `name` s the place's name, big, and its line.
+ */
+export const ARRIVAL = { secs: 1.8, name: 0.55, fov: 18, streak: 22, rush: 6 };
+/** The Storm Giant's lightning (issue #555): s between two strikes in a storm, the flash's colour; the dust in a storm. */
+export const STORM_LOOK = { every: [1.6, 3.8], flash: '#fff6d8', dust: '#d8dcc6' };
 
 /** A pip of hull lost (issue #206): the edge's flash (s), the camera's shake (s, and its size at the start, m), the pips shown under the ship (s), the lost one's burst (s). */
 export const HURT = { flash: 0.7, shake: 0.45, amp: 2.4, pips: 2.2, lost: 0.8 };
@@ -1356,6 +1591,16 @@ export default {
   color: '#ef9479',
   build: buildPirates,
   start,
+  /**
+   * The cards' way on (kit/arcade.js gameLinks; issue #555): played on its own (the Arcade's, the Debug menu's), Fly on
+   * to the next place, its arrival and its name; none on the way to a world (that flight's way on is the landing).
+   */
+  links(level, from = null) {
+    const L = level?.pirates;
+    if (!L?.level || L.to) return null;
+    const next = nextLevel(L.level.id);
+    return { extra: [{ id: 'place', label: 'Fly on', sub: next.place?.name ?? next.name, href: `?game=pirates&stage=${next.id}${from ? `&from=${encodeURIComponent(from)}` : ''}` }] };
+  },
 };
 
 /** (the tests: the rocks the arena draws are the rules' own, for a destination) */

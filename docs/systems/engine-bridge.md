@@ -640,7 +640,7 @@ size, uGUI's one), and a label's words after an arrow go in a label of their own
 fallback font took that font's advance). The bridge's `-run-key KeyR` holds another key than W through a `-game` run,
 and `-pose [kind]` calls the game's `session.pose` a moment before the run's picture (the drum circle plays itself on
 every beat; a fish on the line, `catch` one landed; two of the hunt's list sketched and the silent tower in the frame;
-the pirate captain hails), the web's side the same through `window.minigame.session.pose`. Tests:
+the pirate captain hails; a number of seconds, `-pose 9`, flies the pirates' run ahead by the pilot), the web's side the same through `window.minigame.session.pose`. `-game "pirates?stage=ice&to=edena"` plays a game's page with its address's words (the pirates' level and destination, issue #555: engine/game.js sets `location.search` while the level builds, as the page's own address). Tests:
 tests/engine-games-hud.test.js.
 
 | | Unity + Puerts | web (three.js) |

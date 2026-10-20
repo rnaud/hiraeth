@@ -54,6 +54,10 @@ export const CHANGELOG = [
     // issue #404: unity/…/BridgeRenderer.cs StillLods (the big still meshes' levels of detail, by their stray in pixels),
     // InstLod.Simplify's TriGrid; tests/unity-retroid-still-lod.test.js; docs/systems/performance.md "round 15"
     'In the Unity version on the Retroid, big buildings, roots and carvings far away are drawn with fewer triangles where the difference is smaller than half a pixel, so Lorn’s start now runs at 60 frames a second too, with the picture unchanged: 23 of the 25 measured views hold 60.',
+    // issue #555: src/minigames/pirates-rules.js LEVELS' place, pull, spires (SPIRE, courseSpires), storms (STORM, veil),
+    // pirates.js BACKDROPS' places (groundGeometry, layerPieces, ARRIVAL, lightning), pirates-sfx.js PLACE_SOUNDS (arrive,
+    // bed, thunder), kit/arcade.js gameLinks (Fly on), engine/game.js (a game page's address); tests/pirates-places.test.js
+    'The chime pirates’ flights now take you through places of their own. The Rose Rings: a rose giant ringed with rubble. The Iron Moon: you skim a heavy moon whose pull drags your ship down. The Frost Moon: ice spires rise from its face into your way. The Storm Giant: over its clouds, pirates hide in the storms until they are close, only their lamps showing, with lightning in the clouds. Each flight opens as your ship drops out of the warp, with the place’s name, and each place has its own light, sky and sound; played from the Arcade, Fly on takes you to the next one.',
   ] },
   { v: '1.86', date: '2026-10-19', items: [
     // issue #483: src/story/hosts-data.js (the fight hosts' second lines), src/fight-temples/<world>.js (blurb, quiet),
