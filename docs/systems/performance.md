@@ -6238,3 +6238,158 @@ leftovers; its `unity_builtin_extra` is 5.2 MB, so about 4 MB of it goes with th
 Tests: `tests/unity-size.test.js` (none of our shaders always included, every shader the run-time code finds by name
 preloaded, the Linux archive packed without the leftovers, the size tool's areas and rules). Raw: the session's
 scratchpad, `size-500/`.
+
+## One cull mode and one layout for the Surface pipelines (issue #536, 2026-10-20)
+
+Round four of the Xbox's load (issue #443) left the world's first frame waiting on its pipelines, ~0.7 s each on the
+console's driver, one after another, and found that 20 of the Desert's 37 come from the Surface shader's vertex layouts
+times its cull mode, which Direct3D 12 bakes into a pipeline. The author's call: merge them, keep the look.
+
+**One cull mode (BridgeSided).** three's materials come in three sides, so a lean variant drawn on materials of more
+than one side was made two or three times. Now every renderer's Surface material culls back faces:
+- a BackSide one is drawn as a copy culling back faces on its submesh's triangles reversed: the faces drawn are the same;
+- a DoubleSide one is drawn as a copy on its triangles twice, each followed by itself reversed: the same vertices (no
+  more vertex work: the copy reuses the three indices), the order of the pixels kept, and the one facing the eye drawn;
+- the shader is told the face the GPU would have called front (`_Sides`, a material value, no keyword): never for a
+  BackSide copy; for a DoubleSide one, by the primitive's number (`SV_PrimitiveID`: an even one is the original, the
+  GPU's own answer for every mesh). Android has no such number on its Mali GPUs (no geometry shaders), so there the
+  vertex normal's side of the triangle's plane tells it, which is the GPU's answer where the normals agree with the
+  winding: only meshes whose every triangle's three normals do (or all disagree) are turned there, the rest keep their
+  material (`SIDES_BY_ID`, `BridgeSided.ById`).
+- No discard: a discard, even one never taken, costs every lean surface the early depth test (issue #263). The shadow
+  maps draw both faces whatever the side, as before (a big still mesh casts from its untouched pieces). The GPU
+  instances, the crowds, the grass, the footprints and the water keep their own: each is a variant of its own drawn
+  one way (the instances' two-sided sets are the one doubled state left, below).
+- The copies' meshes (`Instantiate`, the triangles set for their modes) sit among the geometry's variants, so the
+  capes, the overshirt and op 8 move them too, and take its shape keys and bind poses. A material's copy is among its
+  copies (live colours, glow, vectors, pictures reach it) and takes the arrays a copy leaves behind (`_Palette`,
+  `_Limbs`, `_FluidTones`: without that the desert's campfires went black).
+- A first try told the face by the normal everywhere: the traveller's trousers (3 of 3 168 triangles), his overshirt and
+  the people's capes have triangles whose normals cross them, and kept 3-4 doubled states a world. The primitive's
+  number turns them all.
+
+**One layout.** The uniform layout (every mesh with normals, a uv and colours: the Xbox's since round two) is on
+everywhere but the Deck's Linux player and Android. The Deck's shipped list holds the layouts as traced: a layout it lacks
+would be a first use mid-play there (round 14) until the Deck traces it again with `-uniform-layout`. On Android the
+Retroid's GPU pays for its bytes (0.6-1.5 ms a frame, below) and there is no first-use stall for it to save (Android warms
+no list by default, issue #525). It costs 33-52 MB of vertices a world (the colours are four floats), on the CPU and again
+on the GPU, as on the Xbox.
+
+**The shipped lists.** `scripts/bench/pso-one-cull.mjs` takes each Surface G-buffer state that BridgeSided no longer
+draws (culling none or the front faces, not the instances', crowds', grass', footprints', flora's or water's) to the
+same state culling back faces, and drops the doubles: the Xbox's first views' list **61 → 55 states** (Surface 39 →
+33), the Deck's **168 → 142** (Surface 116 → 90; 3 states had no such state to take and stay). Android's list (not
+warmed by default) is left: a mesh whose normals cross its triangles keeps its cull mode there. `tests/unity-one-cull.test.js`
+checks the lists hold no such state, and the shader, BridgeSided and the renderer's paths.
+
+**Measured on the Mac** (the editor's batch, muted, the four worlds' six views each: `scripts/unity-compare/unity.mjs`
+with `-metrics -variants`; `-lean` as the devices draw). `-variants` now also logs the Surface pipelines the scene asks
+for (`BridgeRenderer.Pipelines`: the G-buffer's variant, layout, cull, depth, offset and blend over every renderer,
+instance set, crowd and grass; the shadow pass's keywords and layout; who draws the states not culling back faces), an
+estimate that holds on any platform. And Metal's own pipeline list, traced in the editor (`-pso-trace`):
+
+| world | Surface G-buffer states, estimated: before / uniform layout alone (the Xbox before) / after | the shadow pass's: before / after | Metal's traced list, all shaders (Surface): before / after |
+|---|---|---|---|
+| Desert | 33 / 21 / **17** | 13 / 4 | 57 (42) / **34 (19)** |
+| City-Shaft | 30 / 20 / **16** | 12 / 5 | 55 (41) / **35 (21)** |
+| Signal Market | 27 / 19 / **17** | 14 / 7 | 55 (43) / **37 (25)** |
+| Floating city | 27 / 19 / **15** | 12 / 5 | 51 (39) / **31 (19)** |
+
+- Of the after's, one state a world still differs from another by its cull mode alone: the GPU instances' two-sided
+  sets (HIRAETH_INSTMAT); the crowd's and the water's are variants drawn one way.
+- Metal sets the cull mode on the encoder, not in the pipeline: its trace counts the layouts' share only (the uniform
+  layout alone gives the same 34 / 35 / 37 / 31). Direct3D 12 and Vulkan bake it in, so on the Xbox and the Deck the
+  cull mode's share is the estimate's (Desert 21 → 17) and the lists' (61 → 55).
+- What it costs: 55-190 meshes turned a world, 61-141 k triangles twice (their indices once more; one face of each pair
+  is culled before the pixels), 72-160 k vertices in the copies (~3.5-8 MB with the uniform layout's 48 bytes; the
+  original stays for the shadow pieces and any node drawing it otherwise). The shadow maps draw the turned DoubleSide
+  triangles twice.
+
+**Pictures** (the same 24 views, Unity at 1280 × 720 High against the web's, `scripts/unity-compare/pair.mjs`; the raw
+pairs in the session's scratchpad, `surface-536/report-before/`, `report-after/`, and Unity before against after with
+heat maps, `diff-before-after/` against two runs of the after, `diff-noise/`): web against Unity scored 5.21 before and
+5.28 after (higher is further apart; per view within ±1.2). Unity before against after changed 0.2-5.4 % of the pixels,
+two runs of the after 0.1-4.9 %: the differences are the people, the vehicles, the smoke and the lamps moving between
+runs, and nothing else turned up in the heat maps.
+
+**Not measured yet** (the Mac on another network than the Xbox and the Deck): the Xbox's first frame (41.1 s cold at the
+Desert, round four; the 4-6 pipelines fewer the estimate and the list give, at ~0.7 s each, would be ~3-4 s), the Deck's
+warm-up and hitches, and their lists traced again (Xbox: `-mute -level <world> -idle 30 -pso-trace` per world,
+`psolist.mjs union`; Deck: `scripts/bench/deck-pso-trace.mjs` with `-uniform-layout`, then the uniform layout on for the
+Deck). The Retroid's are below.
+
+**The next lever, seen in the lists.** The Xbox's G-buffer pass is traced in two render passes (two load actions of the
+same four targets), each a state of its own: 30 of its Surface states without the cull mode, 22 without the pass too.
+Direct3D 12's pipelines hold no load actions, so the driver may make one for both; if the console's first frame does
+not fall with this round, that pairing is the next place to look.
+
+Tests: `tests/unity-one-cull.test.js`. Raw: the session's scratchpad, `surface-536/` (`chain*.txt` the census lines,
+`trace-*.graphicsstate` Metal's lists, `psoinfo.mjs` and `collapse.mjs` take a list apart).
+
+### On the Retroid (issue #536, 2026-10-20)
+
+The branch rebased onto main at f1bcb175c (#568's ribbon, #569's shadows round the traveller and the web's bias, round
+15's still levels in it), one release APK (build 2778) with the switches, and its development APK for the trace. The
+Retroid, Unity, Handheld (FSR 1 to 1280 × 960, dynamic resolution 0.67 → 0.5, the near map 2048² every frame), muted
+(the plan's `-mute` read back from the log in every launch, no audio stream started), the frame readout on, warm
+launches, `-bench 6 -bundle none`, the four conditions interleaved world by world, two passes, the second in the
+reverse order (round 15's `ab.mjs`). `off` = `-no-one-cull -no-uniform-layout` (as before the branch), `cull` = one cull
+mode alone (`-no-uniform-layout`, now Android's default), `layout` = the uniform layout alone (`-no-one-cull`), `both` =
+the branch as it was. fps, pass 1 / pass 2 (GPU ms, pass 1 / pass 2); the views not listed held 60 in every condition:
+
+| view | off | cull (now) | layout | both |
+|---|---|---|---|---|
+| City-Shaft start | 59.1 / 58.9 (15.2 / 15.3) | 59.1 / 59.2 (15.1 / 15.1) | 55.9 / 55.3 (16.1 / 16.3) | 56.2 / 56.0 (16.0 / 16.2) |
+| City-Shaft wide | 47.3 / 47.1 (19.1 / 19.1) | 47.8 / 47.7 (18.9 / 18.9) | 44.7 / 44.2 (20.2 / 20.4) | 45.2 / 45.0 (19.9 / 20.0) |
+| Floating city start | 57.2 / 57.0 (17.1 / 17.1) | 57.0 / 57.0 (17.1 / 17.1) | 54.7 / 54.5 (18.0 / 18.0) | 54.8 / 54.9 (17.8 / 18.0) |
+| Lorn start | 59.9 / 59.9 (16.1 / 16.0) | 60.1 / 59.9 (16.0 / 16.0) | 59.4 / 59.4 (16.3 / 16.3) | 59.6 / 59.6 (16.2 / 16.3) |
+| Signal Market start / wide (GPU) | 14.8 / 14.7, 13.5 / 13.4 | 14.8 / 14.8, 13.4 / 13.5 | 15.8 / 15.9, 14.4 / 14.5 | 15.9 / 15.8, 14.4 / 14.4 |
+| Underwater start / crowd / wide (GPU) | 15.0, 14.5, 15.5 | 14.8, 14.4, 15.4 | 15.7, 15.2, 16.0 | 15.6, 15.3, 15.8 |
+| Floating city crowd / crowd2 / wide (GPU) | 13.3, 14.8, 15.7 | 13.3, 14.9, 15.6 | 13.9, 15.4, 16.2 | 13.8, 15.2, 16.3 |
+| the 25 views' mean GPU ms | 14.52 | **14.47** | 14.91 | 14.83 |
+
+- **One cull mode costs nothing on the Retroid** (the 25 views' GPU 14.52 → 14.47 ms, every view within the passes'
+  noise of `off`, ±0.5 ms and 0.5 fps), though its turned meshes draw their two-sided triangles twice.
+- **The uniform layout costs 0.6-1.5 ms of GPU** in the City-Shaft, the Signal Market, the Underwater City and the
+  Floating city, and 2.5-3.5 fps in the three views under 60 (the City-Shaft's start 59 → 56, its wide view 47.5 → 45,
+  the Floating city's start 57 → 55): the Adreno's vertex fetch of 48 bytes and more a vertex, the colours four floats.
+  Android warms no pipeline list and had no first-use stall to remove (#525), so it gains nothing for it. **So Android
+  keeps its layouts** (`BridgeRunner`: the uniform layout off on Android as on the Deck, `-uniform-layout` to try it) and
+  takes one cull mode.
+- **Hitches after a load** (the bridge's own count, `unity.log`'s first frames after the world settled): the same in
+  every condition, 102-168 frames in 2.0-2.9 s, the longest 50-100 ms, 0-2 over 50 ms (Unity's own part 33-64 ms, 0-1),
+  the settle 6.7-12.7 s as round 15's (the first launch after the install 18.2 s, a cold pipeline cache).
+- **Android's pipeline list traced again** (`android-pso-trace.mjs --fresh 1 --extra -no-uniform-layout` on the
+  development APK, 52 launches, every world not discarded): **220 states of 82 variants → 212 of 82**, Hiraeth/Surface
+  172 → 164; its G-buffer states 132 → 123, those not culling back faces 49 → 29 (culling front faces 5 → 0, none 44 →
+  29); the shadow pass's 40 → 41 (Cull Off, as ever). The 29 left are meshes the normals cannot tell (the traveller's
+  trousers and overshirt, the people's capes and robes: their normals cross their triangles, so they keep their two-sided
+  material, BridgeSided), the GPU instances' two-sided sets, the grass and the water. The list in the project is the new
+  one; Android still warms none by default. The scene's estimate (`-variants`, the start view) per world, before / the
+  uniform layout alone / one cull mode alone (now): the Desert 37 / 25 / 34, the City-Shaft 36 / 24 / 29, the Signal Market
+  29 / 21 / 27, Lorn 38 / 27 / 34, the Underwater City 33 / 24 / 26, the Floating city 29 / 22 / 25; of them only by the
+  cull mode 5-10 before, 0-3 now. One cull mode turned 45-143 meshes a world (63-156 k vertices in their copies, 15-46 k
+  triangles twice) and kept 9-27 two-sided submeshes (40-84 k triangles) whose normals are mixed.
+- **A cold first launch** (Unity's Vulkan pipeline cache deleted before each launch, as after an install; three each,
+  interleaved): the title's first frame 9.01-9.06 s (cull), 9.03-9.09 (both), 9.01-9.06 (off); straight into the Desert
+  (the bench's launch), settled 18.5-18.9 s in all three (its script's bundle evaluated in 13.4-14.4 s of it, against 9.6 s
+  settled warm). The pipelines are not what the Retroid's cold start waits on.
+- **Pictures** (the bench's own shots of the 25 views, and 37 more views taken nearer: each view's eye 55 % of the way to
+  its target, and the traveller from 3 m behind and in front at each start; `off` against `cull`; `diffsheet.mjs`: A |
+  B | the difference, the two blocks that differ most at 200 %): 0.02-9.1 % of the pixels differ by more than 24, where
+  two passes of `off` differ by 0.03-6.9 %, all of it people, the crowd, smoke, fires and plants moving, and the screen
+  fault below. No face turned wrong: the tents, banners, cloaks, the people's capes and robes, the leaves, the rails and
+  the traveller's clothes are the same in every crop. No shadow acne after #569's bias in any crop (the shaded ground's
+  hatching and the railings' shadows the same in both).
+- **Found, older than this branch: a screen rectangle of wrong shade on the Retroid.** In views with a big flat lit ground
+  (the City-Shaft's crowd2, the Signal Market's crowd, its start's square, the Underwater City's floor), the part of the
+  ground right of the render scale's share of the screen's width (about 0.59 of the width in a view at the 0.585 level, 0.67 at a held 0.67,
+  `-no-dyn-res`), from the bottom up to about the middle, is drawn darker, as if in shadow, over the ground and the people
+  alike, where the web and the Mac draw it lit. It moves with the render scale, not the scene, and is in every Retroid
+  shot back to round 10 (17 October, `gpu-404-r10/`), so it is not #569's, #536's or the dynamic resolution's: a
+  screen-space input of the shading read with the full target's coordinates where the render-scaled ones are wanted.
+  Not fixed here (issue to file).
+
+Raw: the session's scratchpad, `surface-536/` (`ab/p1`, `ab/p2` the two passes, `ab/pics` the nearer views, `ab/census`,
+`ab/colddesert`, `load/cold`, `ab/rect` the screen rectangle at a held scale, `trace/`, `sheets/` the picture sheets,
+`tools/`: `ab.mjs`, `both.mjs`, `first.mjs`, `diffsheet.mjs`, `loads.mjs`).

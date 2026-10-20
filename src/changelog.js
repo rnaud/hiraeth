@@ -40,6 +40,11 @@ export const CHANGELOG = [
     // issue #571: src/wardrobe.js, src/game-menu.js wardrobePanel (+ .css), main.js wardrobeFrame, engine/menus.js and
     // engine/game.js wardrobeCapture, BridgeMenu.Wardrobe.cs, BridgeRunner.Wardrobe; tests/wardrobe.test.js
     'The game menu has a new last page, the Wardrobe, one LB / L1 from the Quests: the traveller stands on the right, drawn and lit as in the world and turning slowly (turn him yourself with the right stick or by dragging), and on the left you choose your sword’s colour among those you have won in the fight temples, shown on a sword standing beside him as you move through them. A / × wears it at once; B / ○ leaves him as he was. His outfits will be chosen there too once the new traveller arrives.',
+    // issue #536: unity/…/BridgeSided.cs (one cull mode: BackSide and DoubleSide surfaces on their triangles turned, the face
+    // told by SV_PrimitiveID's parity, Surface.shader _Sides), BridgeRunner.cs (the uniform layout but on the Deck),
+    // scripts/bench/pso-one-cull.mjs (the Xbox's and the Deck's lists), Android's list traced again; tests/unity-one-cull.test.js;
+    // performance.md ("On the Retroid": the uniform layout off on Android, its GPU 0.6-1.5 ms slower with it)
+    'In the Unity version, the graphics chip has fewer kinds of drawing to prepare before a world appears: surfaces seen from both sides no longer need their own, and on the Xbox and computers every model is laid out the same way, so a world asks for about half as many of its surfaces’ (the Desert 17 instead of 33), and the Xbox prepares 55 at the start instead of 61. On Android handhelds the models keep their own layouts, which the Retroid draws faster, so its frame rate is as before. The worlds look the same.',
   ] },
   { v: '1.87', date: '2026-10-19', items: [
     // issue #556: BridgeHud.cs (a minigame's flashes, the gadget marks' numbers, the chimes' count in Ui.Sans / SansHeavy,

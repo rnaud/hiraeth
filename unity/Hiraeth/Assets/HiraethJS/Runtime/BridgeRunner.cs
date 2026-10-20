@@ -620,13 +620,21 @@ namespace Hiraeth.Bridge
             WorldLoader.BladeLook = !BridgeArgs.Flag("-no-blade-look");
             Hiraeth.HiraethLook.LampTint = !BridgeArgs.Flag("-no-lamp-tint");
             WorldLoader.SeeHole = !BridgeArgs.Flag("-no-see-hole");   // (a fight temple's walls opening round him, SEE_HOLE; -no-see-hole whole)   // (the lamps' own colour, materials.js LAMP_TINT; -no-lamp-tint none)   // (the fluid sword's blade and the shield, HIRAETH_FIGHT; -no-blade-look the plain fluid)
-            // every mesh with normals, a uv and colours on the Xbox: fewer vertex layouts, fewer pipelines its driver makes at
-            // the first draw (the load's stall 24 → 15 s; the same picture); -no-uniform-layout, -uniform-layout elsewhere
-#if UNITY_WSA && !UNITY_EDITOR
-            BridgeRenderer.uniformLayout = !BridgeArgs.Flag("-no-uniform-layout");
-#else
+            // every mesh with normals, a uv and colours: fewer vertex layouts, fewer pipelines the driver makes at the first draw
+            // (the Xbox's load's stall 24 → 15 s; the same picture); everywhere since issue #536 (docs/systems/performance.md, "One
+            // cull mode and one layout") but the Deck's Linux player, whose shipped pipeline list holds its layouts as traced (a
+            // layout it lacks is a first use mid-play there, round 14) until it is traced again with -uniform-layout, and Android:
+            // on the Retroid the uniform layout's bytes cost the GPU 0.5-1 ms a frame (the City-Shaft's start 59 → 56 fps), and
+            // Android warms no list and has no first-use stall to save; -no-uniform-layout / -uniform-layout as before
+#if (UNITY_STANDALONE_LINUX || UNITY_ANDROID) && !UNITY_EDITOR
             BridgeRenderer.uniformLayout = BridgeArgs.Flag("-uniform-layout");
+#else
+            BridgeRenderer.uniformLayout = !BridgeArgs.Flag("-no-uniform-layout");
 #endif
+            // (and every Surface material drawn culling back faces, a two-sided or back-sided one on its triangles turned for it:
+            // its pipelines no longer made again for each cull mode, BridgeSided, issue #536; -no-one-cull as before)
+            BridgeSided.On = !BridgeArgs.Flag("-no-one-cull");
+            BridgeSided.checkKappa = BridgeArgs.Flag("-variants");
             // the Xbox's shadow maps (the Unity build only; the shared presets, Quality.Set and the web's perf.js, stay): the
             // web's High schedule (near every frame, far every 3rd, now kept in the bridge too: HiraethShadows.MainCamera),
             // casters under 2 texels left out; -shadows-high keeps the web's 0.75

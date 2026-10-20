@@ -1338,6 +1338,9 @@ const UNITY569S = 'Issue #569: the visual check (node scripts/unity-compare/run.
 const UNITY569C = 'Issue #569: the visual check (node scripts/unity-compare/run.mjs: High, 1280 × 720, muted, -fresh -no-hud), Home’s and the Overnight Train’s wide views at dusk (18.6 h), the Signal Market’s Ferro view of the changes set at noon, cropped; before: 49f762dbc, the cascades round the camera; after: this change, round the traveller; the web’s from the same run (scripts/design-qc/capture.mjs --fixed-scale); 20 October; cwebp -q 72';
 const UNITY570 = 'Issue #570: the Unity editor’s batch run on this Mac (scripts/unity-js-run.sh: -screen 1280x720 -level desert -game "pirates?stage=ice&to=edena", muted), the run’s picture; after: the same with -pointer mouse, which takes a pad in hand (the Input System’s own Gamepad, View pressed), then presses the Input System’s own Mouse on the button twice; before: origin/main at f1bcb175c; the strip cropped from the top right and doubled; 20 October; cwebp -q 72';
 const WEB570 = 'Issue #570: the web game in muted headless Chrome (High, 1280 × 720) on a Vite of its own (port 5477), ?game=pirates&stage=ice&to=edena, three seconds into the run, then the button clicked through Chrome’s mouse; cropped as the Unity pictures; 20 October; cwebp -q 72';
+const MAC536 = 'The Unity editor’s batch run on this Mac (M4 Pro, Metal), muted, the four worlds’ six views each (scripts/unity-compare/unity.mjs -lean -metrics -variants, -pso-trace), the same build with -no-one-cull -no-uniform-layout (before) and as shipped (after); 20 October';
+const RETROID536 = 'Retroid Pocket Nova (Adreno 740, Vulkan), Unity, Handheld (FSR 1 to 1280 × 960, dynamic resolution), muted, release APK 2778 with the switches (before: -no-one-cull -no-uniform-layout), warm launches, -bench 6, two passes interleaved world by world; 20 October';
+const SRC536 = 'BridgeRenderer.Pipelines (the G-buffer’s states the scene asks for: variant, layout, cull, depth), Metal’s list traced in the editor, the shipped lists rewritten by scripts/bench/pso-one-cull.mjs; docs/systems/performance.md, “One cull mode and one layout for the Surface pipelines”';
 export const CHANGELOG_MEDIA = {
   '1.88': [
     { match: 'Each makers’ house now ends on its own picture', tags: ['story'], shots: [
@@ -1395,6 +1398,31 @@ export const CHANGELOG_MEDIA = {
       { name: 'wardrobe-v2-571', only: 'after', title: 'With the new traveller', size: [1280, 720], caption: 'The same page with the new traveller (still a test switch): the lamplighter’s outfit tried on as the cursor reaches it, his own clothes still worn', from: WARD571 },
       { name: 'wardrobe-unity-571', only: 'after', title: 'In the Unity version', size: [1280, 720], caption: 'The page in Unity, the cursor on Ember: the same lists, the traveller drawn by Unity into its frame and turning; the sword beside him shows only its hilt there for now', from: WARD571U },
     ], see: 'Press View / Select, then LB / L1 once; move through the blade colours (won in the fight temples) and turn him with the right stick or by dragging.' },
+    { match: 'In the Unity version, the graphics chip has fewer kinds of drawing to prepare', tags: ['perf', 'devices'], numbers: [
+      { title: 'The surfaces’ drawing setups a world asks for (estimated, as the Xbox, the Deck and the Retroid draw them)', unit: 'setups', better: 'lower', device: MAC536, rows: [
+        { where: 'the Desert', before: 33, after: 17 },
+        { where: 'the City-Shaft', before: 30, after: 16 },
+        { where: 'the Signal Market', before: 27, after: 17 },
+        { where: 'the Floating city', before: 27, after: 15 },
+      ], source: SRC536 },
+      { title: 'The lists prepared at the start', unit: 'setups', better: 'lower', device: 'the shipped lists (BridgePso)', rows: [
+        { where: 'the Xbox (the Desert’s and the City-Shaft’s first views)', before: 61, after: 55 },
+        { where: 'the Steam Deck (every world)', before: 168, after: 142 },
+      ], source: SRC536 },
+      { title: 'The Retroid’s graphics chip, ms a frame (the mean of two passes)', unit: 'ms', better: 'lower', device: RETROID536, rows: [
+        { where: 'the City-Shaft’s start', before: 15.25, after: 15.1 },
+        { where: 'the City-Shaft’s wide view', before: 19.1, after: 18.9 },
+        { where: 'the Floating city’s start', before: 17.1, after: 17.1 },
+        { where: 'the 25 views’ mean', before: 14.52, after: 14.47 },
+      ], source: 'docs/systems/performance.md, “On the Retroid” (issue #536); with every model laid out the same way too, the 25 views’ mean was 14.83 ms and the City-Shaft’s start 16.1, so Android keeps its layouts' },
+      { title: 'The Retroid’s list of drawing setups, every world traced', unit: 'setups', better: 'lower', device: 'the development APK of build 2778, scripts/bench/android-pso-trace.mjs (52 launches)', rows: [
+        { where: 'all', before: 220, after: 212 },
+        { where: 'the surfaces’ (the Surface shader)', before: 172, after: 164 },
+      ], source: 'before: the list traced on build 2737 (issue #525); after: this change' },
+      { title: 'The Xbox’s first frame, the Desert, cold', unit: 's', better: 'lower', device: 'Xbox Series X, rnaud.HiraethUnity, Direct3D 12', rows: [
+        { where: 'the Desert', before: 41.1, after: null },
+      ], source: 'before: docs/systems/performance.md, “The Xbox’s load, round four”; after: not measured yet (the console could not be reached)' },
+    ], see: 'In the Unity version, load a world: it looks the same; on the Xbox and the Steam Deck it should come up a few seconds sooner the first time.' },
   ],
   '1.87': [
     { match: 'In the Unity version, the chime pirates’ place names and a minigame’s other call-outs', tags: ['menus'], shots: [
