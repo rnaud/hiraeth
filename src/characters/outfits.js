@@ -6,7 +6,7 @@
 // areas left out and his skin piece's under the outfit's sleeves and puttees (its skinCut), joined into
 // another. Swapping takes the old draws away and puts the new ones on, live, on the same skeleton.
 // The outfits are listed in data/characters/traveller-v2/outfits.json. Web only, a test page's
-// (outfits.html): the game still draws B3.
+// (outfits.html) and the game's (characters/traveller-v2.js: v2 is the game's traveller since v1.88).
 import * as T from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 

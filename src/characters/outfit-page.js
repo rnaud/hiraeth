@@ -3,7 +3,7 @@
 // usual skeleton and animation, and a picker that swaps his outfit live (the U key cycles). The game's
 // portrait head (head-v3, the same asset the v2 head was made from) stays, with its drawn face and eyes; the
 // B3 body, its cloth and its levels of detail are put away. A corner shows the draws and triangles. Web only:
-// the game itself still draws B3, the engines' builds don't draw v2.
+// the game itself draws v2 in his own clothes since v1.88 (characters/traveller.js); this page builds B3 and dresses him.
 // (the binding, the wardrobe on his skeleton and the thigh-lift keys: characters/traveller-v2.js, the game's debug
 // switch uses the same)
 import { ROOT, json, loadParts, v2Wardrobe } from './traveller-v2.js';

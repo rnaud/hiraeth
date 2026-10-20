@@ -1789,6 +1789,9 @@ registers them (`lod: true` in `elderGuardian`). Cost: `docs/systems/performance
 
 ## Traveller B3 body (13 October 2026)
 
+Since v1.88 the game draws the Blender rebuild (v2, "The traveller in Blender" below) over this one: B3 is still
+built underneath (its skeleton, hands, head and glove are v2's), its body and cloth put away; `?traveller=b3` draws it.
+
 The user approved the OpenAI B3 slender-young-adult proportions and matching left
 and back T-poses, then the Tripo result. Inputs, source export and provenance are
 in `references/main character/Body study - 2026-10-13/`. Tripo H3.1 job
@@ -2070,11 +2073,11 @@ opaque inner-layer coverage, translated/rotated cloth, gameplay pose priorities,
 GPU collision settings and cab palm targets. The interactive changelog saves
 both the accepted review and actual playable-game evidence.
 
-## The traveller in Blender (issue #493, in the game behind a debug switch only)
+## The traveller in Blender (issue #493, the game's traveller since v1.88)
 
 The traveller as an outfit-swappable game character, made by a script so it can be remade:
-`scripts/blender/traveller/` (Blender 5.2, run headless). The game still draws B3; nothing loads these
-files yet. The author picks from the previews before anything is switched over.
+`scripts/blender/traveller/` (Blender 5.2, run headless). The game draws it since v1.88 (below, "The loader in
+the game"); B3 is kept for comparison.
 
     scripts/blender/traveller/build.sh [--previews]
 
@@ -2260,9 +2263,10 @@ head-v3, the game still draws B3 until this reads at least as well side by side)
   order that depends on threads or memory (a decimate, a join or a set iterated by address), not chased yet.
 - 83.1 k triangles.
 
-**The loader in the game, behind a debug switch** (`src/characters/traveller-v2.js`; the game still draws B3 by
-default, the switch is decision 3A's test bench). `?traveller=v2` (`&outfit=<id>`; `?traveller=b3` forces B3), or the
-dev menu's **Traveller** tab (kept on this device; the switch reloads the world, an outfit changes live).
+**The loader in the game** (`src/characters/traveller-v2.js`). The game draws v2 since v1.88 (the author's call,
+2026-10-20, once the cloth, the glove, the far levels and the build were done); B3 stays reachable to compare:
+`?traveller=b3` (`?traveller=v2&outfit=<id>` for an outfit), or the dev menu's **Traveller** tab (kept on this device;
+the switch reloads the world, an outfit changes live).
 
 - **Loaded with B3, dressed as he is built.** `loadTraveller(base, { v2 })` (`characters/traveller.js`) fetches v2's
   list, base manifest and GLB (and the worn outfit's) beside B3's own when the switch says so (`travellerSetting`); a
@@ -2319,7 +2323,13 @@ dev menu's **Traveller** tab (kept on this device; the switch reloads the world,
   zipped; the .blend and the previews stay out.
 - **Checked** (headless Chrome, the desert, High, the game paused and drawn twice, B3 then v2, one camera): standing,
   jog, sprint, jump, climb, talking, gliding, swimming (the mangrove), the knock-down's ragdoll, a film, the pearl
-  diver; then the cloth, the glove and the far levels.
+  diver; then the cloth, the glove and the far levels; after the switch the title, a minigame (fishing), the outfits
+  page and gallery, the studio, the Motion page and the trailer.
+- **Cost** (the Desert by the ship, High, 1280 × 720, the camera pinned 5 m off him, 180 frames, each in its own page
+  load): the frame 498 draws / 1.234 M triangles as B3, 494 / 1.263 M as v2; his own 71 draws / 246 k triangles over
+  all passes as B3, 65 / 275 k as v2 (up close his full clothes, 52.9 k, against B3's 44.7 k); his buffers drawn
+  10.3 MB against 14.3 MB (the clothes' thigh-lift keys, their cloth inputs and far levels); the JS heap 768 MB as B3,
+  787 MB as v2 (each the first page loaded).
 - **In Unity** (the engines' host builds him as the page does: docs/systems/engine-bridge.md, "The v2 traveller"): by the
   same switch as the device keeps it, or the bridge's `-traveller v2 -outfit <id>`. Every player carries the shipped files
   (`scripts/engine-bundle.mjs unity` writes `shippedFiles` into StreamingAssets, the base GLB pruned as the build's); the
@@ -2351,10 +2361,11 @@ dev menu's **Traveller** tab (kept on this device; the switch reloads the world,
 An outfit is a set of garments on the same body, skin piece, head and skeleton; the body never changes. The
 default is the base GLB's own (`outfits.default` in its manifest); every other outfit is its own GLB, atlas
 and manifest in `data/characters/traveller-v2/outfits/<id>/`, listed in `data/characters/traveller-v2/outfits.json`.
-Web only for now: nothing in the game draws v2; the test page below does, and the Unity port doesn't.
+The game wears the one the player chose (since v1.88: the default unless one was picked).
 The player chooses one in the game menu's **Wardrobe** (issue #571; docs/systems/ui.md, "The Wardrobe"): the list there
 is `src/wardrobe.js` `OUTFITS` (these ids, each with its unlock), the choice is saved (`wardrobe.outfit`) and worn
-through `wearTravellerV2`'s `wear(id)`; with B3 drawn, the page says the outfits need the new traveller.
+through `wearTravellerV2`'s `wear(id)`; with B3 drawn (`?traveller=b3`), the page says the outfits need the new traveller.
+The dev menu's Traveller tab and the outfits pages try on any of them.
 
 **The first: the glider pilot** (references: five lab sheets, `docs/design/traveller-outfit-prompts.md`; the
 pick in `references/characters/traveller-outfits/glider-pilot/`): a cropped mustard flight jacket with a fleece
@@ -2432,7 +2443,7 @@ both faces (`doubleSided`: the skirts' insides show). In Blender the same rule w
 drivers on a small armature (`SkirtSwing`, not exported) whose root copies the pelvis, mixed over the
 piece's own weights by a second armature modifier, so `outfit.py`'s poke checks and the previews show
 it. The skirts' weights on the thighs stay in the GLB as the fallback (an engine without the swing).
-Web only for now: the Unity port does not draw v2.
+The skirts' swing is the web's (the Unity half of #493 ports v2 on its own).
 
 Their own shared parts are in `outfit_kit.py` (boxes, tori, bands, skirts, rigid islands, weights copied
 from the piece under). `outfit.py` takes four optional things from an outfit: `BOOTS = None`, a piece's

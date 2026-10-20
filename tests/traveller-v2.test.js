@@ -1,7 +1,7 @@
-// The v2 traveller's loader in the game (issue #493; src/characters/traveller-v2.js), behind its debug switch: it binds
+// The v2 traveller's loader in the game (issue #493; src/characters/traveller-v2.js), and its switch: it binds
 // every bone the GLBs use to the game's skeleton by name, the thigh-lift keys follow the thighs (0 standing, up toward
-// 1 with a thigh swung forward running), the game draws B3 unless asked, and asking (?traveller=v2, the dev menu) puts
-// v2 on and B3 away.
+// 1 with a thigh swung forward running), the game draws v2 (since v1.88) unless B3 is asked for (?traveller=b3, the dev
+// menu), and v2 on puts B3 away.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as T from 'three';
@@ -121,15 +121,16 @@ test('the thigh-lift keys follow the thighs: 0 standing, lifted with a thigh for
   assert.ok(frames < 60, `the two thighs lift in turn, not together (${frames} frames both)`);
 });
 
-test('the game draws B3 unless asked: no address, nothing kept', () => {
+test('the game draws v2 unless B3 is asked for: no address, nothing kept', () => {
   const kept = new Map();
   globalThis.localStorage = { getItem: (k) => kept.get(k) ?? null, setItem: (k, v) => kept.set(k, v), removeItem: (k) => kept.delete(k) };
   try {
-    assert.deepEqual(travellerSetting.get(''), { on: false, outfit: 'default' });
-    assert.deepEqual(travellerSetting.get('?level=desert&outfits=default'), { on: false, outfit: 'default' }, 'the outfits page is not the switch');
+    assert.deepEqual(travellerSetting.get(''), { on: true, outfit: 'default' });
+    assert.deepEqual(travellerSetting.get('?level=desert&outfits=default'), { on: true, outfit: 'default' }, 'the outfits page is not the switch');
+    assert.deepEqual(travellerSetting.get('?traveller=b3'), { on: false, outfit: 'default' }, 'B3 kept for comparison');
     const main = readFileSync('src/main.js', 'utf8');
     assert.match(main, /const travellerV2 = \{ \.\.\.travellerSetting\.get\(\)/);
-    assert.match(main, /loadTraveller\(import\.meta\.env\.BASE_URL, \{ v2: travellerV2 \}\)/, 'v2 loaded only when the switch is on');
+    assert.match(main, /loadTraveller\(import\.meta\.env\.BASE_URL, \{ v2: travellerV2 \}\)/, 'v2 loaded unless the switch is off');
     assert.match(main, /if \(!query\.has\('outfits'\)\) buildTravellerLod/, 'his far levels, B3\'s or v2\'s');
     const traveller = readFileSync('src/characters/traveller.js', 'utf8');
     assert.match(traveller, /v2\?\.on\?loadTravellerV2/, 'loadTraveller fetches v2 only when asked');

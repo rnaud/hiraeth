@@ -1329,6 +1329,8 @@ const POLISH567 = 'Issue #567: muted headless Chrome (High, 1280 × 720, 10:00, 
 const FINALE567 = 'Issue #567: the cinematics QC (node scripts/cinematics-qc.mjs --only finale.underwater: muted headless Chrome at High, 1280 × 720, its frames 960 × 540) on a Vite of its own (port 5567), staged by the review page as play has it; the frame 9 s in (D); before: origin/main d2a27ddea, after: this change; 20 October';
 /** (v1.88, issue #562: the temple endings, each house's own panel) */
 const END562 = 'Issue #562: the cinematics QC (node scripts/cinematics-qc.mjs --group "Temple endings": muted headless Chrome at High, 1280 × 720, its frames 960 × 540) on a Vite of its own (port 5362), each ending staged by the review page as play has it; before: origin/main 6352c9ee8, after: this change; the same moment of each film; 20 October';
+/** (v1.88, issue #493: the traveller rebuilt, B3 and v2 drawn on the same paused frame) */
+const TRAV493 = 'Issue #493: muted headless Chrome (High, 1280 × 720, 10:00, clear) on this branch’s own Vite (port 5473), the Desert, ?traveller=v2 with B3 kept under him: the game paused and drawn twice on the same frame and camera, B3’s body and cloth shown (before) then v2’s (after), each cloth stepped through the run; 20 October; cwebp -q 72';
 /** (v1.88, issues #568, #569: the Unity version's trails, box card, minigame hints and shadows) */
 const UNITY568 = 'Issues #568, #569: the Unity editor’s batch run on this Mac (node scripts/unity-compare/sequences.mjs unity plumb-talk,box,game-pirates-ice: -sequence, High, a 1280 × 720 screen, muted), the beat’s picture (plumb-talk’s bark, box’s card, the pirates’ run), cropped for the card and the hints; before: origin/main at 9a4f25a01, after: this change; 20 October; cwebp -q 72';
 const WARD571 = 'Issue #571: the web game in muted headless Chrome (High, 1280 × 720, 10:00) on a Vite of its own (port 5461), a save with the sword and four fight temples’ colours won, the game menu opened on the Wardrobe and the cursor moved with the arrows (the new traveller by ?traveller=v2); 20 October; cwebp -q 72';
@@ -1344,6 +1346,18 @@ const SRC536 = 'BridgeRenderer.Pipelines (the G-buffer’s states the scene asks
 const SEAPORT572 = 'Issue #572: the web game in muted headless Chrome (High, 1280 × 720) on a Vite of its own (port 5441), a new save arriving by ship (?level=underwater&via=ship), then walked as a player; before: origin/main at 02345e2c3, after: this change; the deck and the Dock from the visual check’s views (scripts/design-qc/capture.mjs --fixed-scale); 20 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.88': [
+    { match: 'The traveller is rebuilt: his body and each piece of his clothing', tags: ['traveller'], shots: [
+      { name: 'traveller-stand-493', title: 'Standing', size: [1280, 720], caption: 'Before, B3, one body with his clothes painted on and his overshirt cut from it; after, the rebuilt traveller: a body, his skin, a shirt, a tee, trousers, boots and a scarf, each its own piece, in the same colours and folds', from: TRAV493 },
+      { name: 'traveller-sprint-side-493', title: 'Sprinting', size: [1280, 720], caption: 'The same frame of a sprint: the rebuilt shirt is cloth as B3’s was, flying out behind him', from: TRAV493 },
+      { name: 'traveller-glide-side-493', title: 'Gliding', size: [1280, 720], caption: 'Gliding over the Desert: the same pose and outline', from: TRAV493 },
+    ], numbers: [
+      { title: 'His triangles far off', unit: 'k triangles', better: 'lower', device: 'node, High (half a pixel), 720p', rows: [
+        { where: '10 m', before: 20.4, after: 19.4 }, { where: '20 m', before: 16.4, after: 12.4 }, { where: '40 m', before: 16.4, after: 10.2 }, { where: '80 m', before: 15.2, after: 10.2 } ],
+        source: 'tests/traveller-v2-parts.test.js’s rule: every mesh he draws, B3’s trousers and inner shirt included; his levels of detail picked as the game picks them', note: 'And 3 draws where B3 took 5.' },
+      { title: 'The Desert’s frame, standing by the ship', unit: 'draws', better: 'lower', device: 'Mac, Chrome, High, 1280 × 720', rows: [
+        { where: 'the frame', before: 498, after: 494 }, { where: 'his own (every pass)', before: 71, after: 65 } ],
+        source: TRAV493 },
+    ], see: 'Play anywhere: it is him. Debug → Traveller switches back to B3 to compare, and tries on the other outfits.' },
     { match: 'In the Underwater City the ship no longer leaves you out in the sea', tags: ['worlds'], shots: [
       { name: 'seaport-out-572', title: 'Out of the ship', size: [1280, 720], caption: 'The first step out of the ship: before, onto the Dock’s glass dome in the sea, the city under you and no way in; after, onto the sea port’s deck over the water, the lift’s brass house ahead', from: SEAPORT572 },
       { name: 'seaport-deck-572', only: 'after', title: 'The sea port', size: [1280, 720], caption: 'The sea port from over the sea: the round coral deck on its floats, the ship in the lock’s columns, the lift’s house at the front', from: SEAPORT572 },

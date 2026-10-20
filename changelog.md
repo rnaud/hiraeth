@@ -17,6 +17,7 @@ The same release notes shown in the game (press **N** or open settings).
 - In the Desert, Marrow’s red rag is now a broad red cloth on a taller mast, with a long red pennant streaming from its top: from the tree’s roots you can make it out in the arch of Qanat’s gate, against the sky.
 - At the end of the Whale-House, the last picture now shows the way out whole, from beside its door, instead of half hidden behind the Listener’s shell.
 - Each makers’ house now ends on its own picture of what calming its keeper changed, after the keeper and its chimes: the Rose House’s cistern fills, the Clock-House’s stopped wall clocks race round to the right time, the tide spreads over the Whale-House’s floor, the Greenhouse’s beds fill with water, the Lamp-House’s lamp lights, and so on, instead of every house ending on the makers’ mark over a door. Then the way out opens, seen from inside its own hall. In the Whale-House the chimes land beside you and are in view, no longer under the Listener’s shell.
+- The traveller is rebuilt: his body and each piece of his clothing are now made apart, ready for him to change outfits. He looks as he did, his shirt still flies out behind him when he runs, and far off he is lighter to draw.
 
 ## v1.87 — 2026-10-19
 

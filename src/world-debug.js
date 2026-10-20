@@ -329,10 +329,10 @@ export function devTabs({ world = '', points = [], films = [], quests = [], togg
     ...(can('clock') ? [sw('clock', 'Time runs', 'the sky\'s clock goes on (off: it stands still)')] : []),
     ...HOURS.map(([name, h]) => ({ label: `☼ ${name}`, hint: `the time of day: ${String(Math.floor(h)).padStart(2, '0')}:${String(Math.round((h % 1) * 60)).padStart(2, '0')}`, act: { do: 'hour', h } })),
   ] });
-  // which traveller is drawn (issue #493): B3, the game's, or the Blender rebuild (v2) and its outfit; the page's only
-  // (the engines draw B3: the bridge has no v2). traveller: { on, outfit, outfits: [{ id, name }] | null, note }
-  if (traveller && can('traveller')) tabs.push({ id: 'traveller', name: 'Traveller', title: 'The traveller', line: 'B3 (the game\'s) or the Blender rebuild, v2 (issue #493) · switching reloads the world; an outfit changes at once', rows: [
-    sw('travellerV2', 'Traveller v2 (Blender rebuild)', 'his body, skin and clothes from data/characters/traveller-v2/ on the same skeleton, the shirt\'s cloth and the thigh-lift keys driven, the game\'s head · off: B3 · ?traveller=v2 / b3'),
+  // which traveller is drawn (issue #493): the Blender rebuild (v2, the game's since v1.88) and its outfit, or B3 for
+  // comparison; the page's only. traveller: { on, outfit, outfits: [{ id, name }] | null, note }
+  if (traveller && can('traveller')) tabs.push({ id: 'traveller', name: 'Traveller', title: 'The traveller', line: 'the Blender rebuild, v2 (the game\'s, issue #493), or B3 to compare · switching reloads the world; an outfit changes at once', rows: [
+    sw('travellerV2', 'Traveller v2 (Blender rebuild)', 'his body, skin and clothes from data/characters/traveller-v2/ on the same skeleton, the shirt\'s cloth and the thigh-lift keys driven, the game\'s head · off: B3, the traveller before v1.88 · ?traveller=b3 / v2'),
     ...(traveller.outfits ?? []).map((o) => ({ label: `Outfit: ${o.name}`, hint: `${o.id}${traveller.on ? '' : ' · switches to v2 (reloads)'}`, act: { do: 'traveller', outfit: o.id }, state: traveller.on && traveller.outfit === o.id })),
     ...(traveller.note ? [{ label: traveller.note, hint: 'data/characters/traveller-v2/outfits.json', act: { do: 'none' } }] : []),
   ] });

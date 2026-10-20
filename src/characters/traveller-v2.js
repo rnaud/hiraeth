@@ -1,7 +1,6 @@
 // The v2 traveller in the game (issue #493): the Blender rebuild (data/characters/traveller-v2/, copied into the build by
-// scripts/traveller-v2-ship.mjs) drawn on his usual skeleton and animation, behind a debug switch (?traveller=v2, or
-// the dev menu's Traveller tab). The game draws B3 by default; the author decides whether to switch (decision 3A). The
-// Unity bridge is ported on its own (#493's Unity half).
+// scripts/traveller-v2-ship.mjs) drawn on his usual skeleton and animation: the game's traveller since v1.88 (the
+// author's decision, 2026-10-20). B3 stays reachable for comparison (?traveller=b3, or the dev menu's Traveller tab).
 //
 // What it does, on the game's traveller (createTraveller's, B3, whose humanoid, hands, feet and clips stay):
 // - loadTravellerV2 fetches the models beside B3's (characters/traveller.js loadTraveller), dressTravellerV2 dresses
@@ -36,19 +35,19 @@ export async function json(url) {
 }
 
 // ------------------------------------------------------------------ the switch
-/** B3 or v2, and v2's outfit: ?traveller=v2 (or b3) and &outfit=<id> in the address win; else the dev menu's choice,
- * kept on this device. Off (B3) unless asked for. */
+/** v2 or B3, and v2's outfit: ?traveller=b3 (or v2) and &outfit=<id> in the address win; else the dev menu's choice,
+ * kept on this device. On (v2) unless B3 is asked for. */
 export const travellerSetting = {
   key: 'hiraeth.travellerV2',
   get(search = typeof location !== 'undefined' ? location.search : '') {
-    let on = false, outfit = 'default';
+    let on = true, outfit = 'default';
     try {
       const kept = store.get(this.key);
       if (kept) { on = kept !== 'off'; if (on) outfit = kept; }
       const q = new URLSearchParams(search);
-      if (q.has('traveller')) on = q.get('traveller') === 'v2';
+      if (q.has('traveller')) on = q.get('traveller') !== 'b3';
       if (q.get('outfit')) outfit = q.get('outfit');
-    } catch { /* (no storage: B3) */ }
+    } catch { /* (no storage: v2) */ }
     return { on, outfit };
   },
   /** on: v2 with `outfit` kept on this device; off: B3. */

@@ -9,6 +9,10 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   { v: '1.88', date: '2026-10-20', items: [
+    // issue #493: src/characters/traveller.js loadTraveller / traveller-v2.js (travellerSetting on, dressTravellerV2),
+    // traveller-v2-cloth.js (B3's solver on the shirt), humanoid.js wearGlove skins, traveller-lod*.js (Permissive levels),
+    // scripts/traveller-v2-ship.mjs (the models in the build); tests/traveller-v2.test.js, traveller-v2-parts.test.js
+    'The traveller is rebuilt: his body and each piece of his clothing are now made apart, ready for him to change outfits. He looks as he did, his shirt still flies out behind him when he runs, and far off he is lighter to draw.',
     // issue #562: src/temples/finale.js (FINALES[id].sign, way, reward.away), runtime.js calmK / def.onCalm / finaleRun,
     // each house's onCalm (garage dials, edena bed water, underwater hall tide, incal vanes, perdide crystals, arzach
     // vents, moonfoundry moon, buried gear), src/chimes.js purseSpot; tests/temple-finale.test.js, engine-temple-finale.test.js
