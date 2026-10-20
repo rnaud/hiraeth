@@ -1,0 +1,33 @@
+changelog.md
+  s_5f899ba316b5dc::t_623d83226dd3c8 7
+docs/systems/performance.md
+  s_5f899ba316b5dc::t_697d117ae76547 4737-4828
+src/changelog-media.js
+  s_5f899ba316b5dc::t_6779fe27388a5a 1305-1307,1366-1379
+src/changelog.js
+  s_5f899ba316b5dc::t_5a79534732bd51 31-33
+tests/unity-retroid-still-lod.test.js
+  s_5f899ba316b5dc::t_bfdea926cc463d 1-149
+unity/Hiraeth/Assets/Hiraeth/Runtime/InstLod.cs
+  s_5f899ba316b5dc::t_b3125a48c10056 295-298,300,304-328,330-334,337-372
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRenderer.cs
+  s_5f899ba316b5dc::t_bc699ab7d130ff 1286-1287,1491-1492,1554-1718
+unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeRunner.cs
+  s_5f899ba316b5dc::t_e961f95465a5eb 570-573
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "bedb0c98ace50f2c0d124c96d3b4d53fb8b845d3",
+  "prompts": {},
+  "sessions": {
+    "s_5f899ba316b5dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6254278c-7fa2-4ac5-baa4-c2b134406a9b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
