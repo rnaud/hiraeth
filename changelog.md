@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.89 — 2026-10-20
 
+- A caravan version of the traveller’s ship can be explored in a separate 3D study beside the selected drawing: a shaded porch, plants, a water tank, roof laundry and twin engines. Turn it around and compare its size with a person before the design goes into the game.
 - After a short walk, the traveller keeps a balanced standing posture while looking around instead of arching backwards.
 - The Underwater City’s café floors no longer shimmer where they overlap the hall paving beneath them.
 - In the Wardrobe the traveller is now lit by the sun without the world’s shadows, wherever he stands, so his clothes and the sword’s colour look the same everywhere: in the Unity version he no longer comes out grey when he stands in the ship’s shadow.

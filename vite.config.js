@@ -15,6 +15,7 @@ import { threeProgramKeys } from './scripts/three-program-keys.mjs';
 // allow serving from where it really lives (the BVH worker is loaded from it).
 /** The pages built (tests/studio.test.js checks the studio is one, tests/motion-page.test.js the Motion page). */
 export const BUILD_INPUT = {
+  'caravan-review': fileURLToPath(new URL('./caravan-review.html', import.meta.url)),
   notes: fileURLToPath(new URL('./notes.html', import.meta.url)),
   cinematics: fileURLToPath(new URL('./cinematics.html', import.meta.url)),
   enemies: fileURLToPath(new URL('./enemies.html', import.meta.url)),

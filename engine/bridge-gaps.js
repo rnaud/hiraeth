@@ -138,6 +138,7 @@ export const GAPS = {
 
   // ------------------------------------------------------------------ shaders (where src/ makes them)
   shaders: [
+    { keys: ['site:src/ship/caravan-prototype.js:MeshStandardMaterial'], count: { 'site:src/ship/caravan-prototype.js:MeshStandardMaterial': 1 }, what: 'the caravan exterior review model', status: 'web-only', why: 'standalone authoring prototype in caravan-review.html; not imported by the production ship or game scene' },
     { keys: ['site:src/materials.js:ShaderMaterial'], count: { 'site:src/materials.js:ShaderMaterial': 1 }, what: 'makeMaterial, the surface everything is drawn with', status: 'handled', where: 'Surface.shader (port-format.js portMaterial); its unread defines and uniforms are under materials' },
     { keys: ['site:src/life.js:ShaderMaterial'], count: { 'site:src/life.js:ShaderMaterial': 2 }, what: 'the dust motes and the footprints', status: 'handled', where: 'Hiraeth/Mote, Hiraeth/Print' },
     { keys: ['site:src/wind.js:ShaderMaterial'], count: { 'site:src/wind.js:ShaderMaterial': 1 }, what: 'the wind\'s wisps', status: 'handled', where: 'Hiraeth/Wisp' },

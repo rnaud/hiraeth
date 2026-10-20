@@ -316,3 +316,25 @@ differs from the painting: its bow wedge is a little longer and its windshield p
 height and the projector's headroom set ours), and its door stands under the stripe (ours, 2.25 m for the
 traveller's capsule, crosses it, and the stripe breaks round the door's frame).
 
+
+
+## Caravan exterior study (issue #579)
+
+`caravan-review.html` is a separate shipped review page for the selected caravan reference
+(`references/The Travellers Ship/redesign/caravan/sheet-1.jpg`, provenance beside it).
+It compares a procedural Three.js model with that drawing and provides orbit, front, side and rear
+views, a 1.75 m scale person, camp visibility and a turntable. It has no audio system and does not
+load or change game saves. The reference opens full size by click or keyboard.
+
+`src/ship/caravan-prototype.js` exports the standalone model factory. The bow points along -X and
+the porch lies on +Z; named groups separate the hull, cockpit, engines, landing feet, roof, porch,
+awning, plants and water tank. Its approximate 40 m length follows the source brief. The overall
+height includes antennas; these are review proportions, not collision or walkable interior data.
+No production ship module imports it. The review is web only: it uses standard Three.js materials
+and orbit controls outside the game renderer. A later accepted design can reuse the geometry
+factory while adapting materials, collisions and animations to both game renderers.
+
+The prototype includes the reference’s cream/lavender hull, coral belt, visor, striped canopy,
+porch furniture and ramp, plants, tank, roof ladder, solar array, laundry, antennas and twin engines.
+Its fine weathering, interior rooms, working doors, flight and deployment remain outside this
+exterior study. `tests/caravan-prototype.test.js` checks finite geometry, named groups and scale.
