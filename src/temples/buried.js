@@ -248,8 +248,9 @@ function wardenOpenFor(g, a, s) { return s && g.phaseIndex >= 2 ? Math.max(s, 4.
  * teeth. A ring of iron teeth that turns (dynamic), its notch by the wall's groove.
  */
 class Gear {
-  constructor(rt, { at, r, jam }) {
-    this.rt = rt; this.jam = jam;
+  constructor(rt, { at, r, jam, notch = null }) {
+    this.rt = rt; this.jam = jam; this.notchAt = notch;
+    rt.engineGear = this;
     this.group = new THREE.Group();
     this.group.position.copy(rt.kit.world(...at));
     this.group.rotation.y = rt.kit.yaw;
@@ -262,9 +263,18 @@ class Gear {
     this.w = 0;
   }
   get jammed() { return this.rt.logic.check(this.jam); }
+  /** Where its teeth meet the groove (world): the ball it throws out, the house's panel in its ending. */
+  notch() { return this.notchAt ? this.rt.kit.world(...this.notchAt) : this.group.position.clone(); }
   update(dt) {
     const G = this.rt.guardian, turning = !this.jammed && G && G.phaseIndex >= 1 && G.state !== 'sleep' && G.state !== 'resolved';
-    this.w += ((turning ? 0.5 : 0) - this.w) * Math.min(1, dt * 2);
+    // (issue #562) the warden stopped, the engine runs: the gear turns for good (rt.calmK, its ending's own panel),
+    // and a ball left in its teeth is thrown back out along its groove
+    const calm = this.rt.calmK;
+    if (calm > 0) {
+      const b = this.rt.piece?.('bG');
+      if (this.jammed && b && b.rest !== undefined && !this.threw) { this.threw = true; b.rest = false; b.v = -6.5; this.rt.sound?.critter?.('clack', 0.7); }
+    }
+    this.w += ((calm > 0 ? 0.8 * calm : turning ? 0.5 : 0) - this.w) * Math.min(1, dt * 2);
     this.group.rotation.y += this.w * dt;
   }
 }
@@ -879,7 +889,7 @@ function layout(rt) {
   // the engine's great shaft through the middle of the hall's roof, the great gear on the floor (it turns with the
   // warden from its second phase; a ball in its teeth stops it), its groove from the west wall
   K.both(M.stone, T(new THREE.CylinderGeometry(1.4, 1.4, 14, 16), [0, UP + 26 - 7, CWZ]));
-  add(Gear, { at: [0, UP + 0.04, CWZ], r: 9.6, jam: { drumOn: ['bG', 'pG'] } });
+  add(Gear, { at: [0, UP + 0.04, CWZ], r: 9.6, jam: { drumOn: ['bG', 'pG'] }, notch: [-9.6, UP, CWZ] });
   K.both(M.dark, T(annulus(8.2, 9.2, 0.25, 64), [0, UP + 0.25, CWZ]));
   K.add(M.dark, box(7.2, 0.04, 1.0, -14, UP + 0.02, CWZ));
   add(Ball, { id: 'bG', a: [-17.4, UP + 0.04, CWZ], b: [-10.6, UP + 0.04, CWZ], r: 1.0 });

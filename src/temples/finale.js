@@ -1,59 +1,141 @@
 import * as THREE from 'three';
 import { sightClear } from '../story/film.js';
-import { purseSpot } from '../chimes.js';
+import { purseSpot, PURSE_AT } from '../chimes.js';
 
 // A temple's ending, filmed (issue #366: "Temples should end on a cinematic. Cinematic should have the level's music
-// playing."). Every house ends the same way once its guardian is resolved: one shape, four panels, its details read
-// from the house itself (its guardian, its arena, the door that opens on `{ resolved: true }`), with the few houses
-// that need it nudged by FINALES below. It plays as a moment (src/story/moment.js: the ship's camera and Cinema, the
+// playing."). Every house ends once its guardian is resolved on four panels, its details read from the house itself (its
+// guardian, its arena, the door that opens on `{ resolved: true }`, what its waking changes in the hall), with FINALES
+// below saying what each house shows. It plays as a moment (src/story/moment.js: the ship's camera and Cinema, the
 // letterbox, the skip tag; B / ○, Menu, Esc or a tap skips it), once per save (`temple.<id>.finale`), and the world's
 // recorded theme comes in under it (Sound.musicCue: src/music-moments.js), as the game's other moments bring it.
 //
 //   A  keeper  the guardian at rest, a slow arc round it with him beside it (its own resolution plays out)
 //   B  reward  low on the floor where its purse fell, the chimes rising, the guardian beyond
-//   C  house   high and wide over its hall, the house's glyphs lighting up (rt.litWant: runtime.js eases them)
-//   D  way     the way out: the door that waited for the guardian sinking open (held shut until this panel), him
+//   C  house   the house's own: what the guardian's waking changes in its hall, happening now (FINALES[id].sign: the
+//              cistern filling under the dry spout, the stopped clocks coming round, the tide spreading over the
+//              Listener's floor…), a short move on it. Until issue #562 every house showed its hall from high up and
+//              ended on the makers' mark over a door, the same shot fourteen times (the v1.87 audit: interest 3.4)
+//   D  way     the way out: the door that waited for the guardian sinking open (held shut until this panel), seen from
+//              inside the hall, the house round it (FINALES[id].way: how far back, how high, how far round), him
 //              turned to it
 //
-// The state it shows is the house's own: the door is opened at D's beat and for sure in onEnd (a skip or a failure lands
-// the same), the glyphs ease back by themselves. When it can't play (no ship's camera: a test, a bench; a scene up), the
-// door opens at once as it always did. The toasts the resolution says (the guardian's line, what changed outside) wait
-// for its end (cinema.held).
+// The state it shows is the house's own: what C shows is held back through A and B (rt.finaleK 0, the house reading
+// rt.calmK: runtime.js) and comes on over C, and stays; the door is opened at D's beat and for sure in onEnd (a skip or
+// a failure lands the same), the glyphs ease back by themselves. When it can't play (no ship's camera: a test, a bench;
+// a scene up), the door opens at once as it always did, and the house's change is there at once. The toasts the
+// resolution says (the guardian's line, what changed outside) wait for its end (cinema.held).
 
 export const FINALE = {
   keeper: 3.2,     // s of each panel
   reward: 2.4,
-  house: 2.6,
-  way: 2.8,
-  doorLead: 0.5,   // s into D before the door starts down (it sinks in 1.8 s: pieces.js Door)
-  glow: 0.35,      // how much brighter the house's glyphs come up (uGlow)
+  house: 2.9,
+  way: 2.5,
+  doorLead: 0.4,   // s into D before the door starts down (it sinks in 1.8 s: pieces.js Door)
+  glow: 0.35,      // how much brighter the house's glyphs come up (uGlow), over D
 };
 export const finaleLength = (F = FINALE) => F.keeper + F.reward + F.house + F.way;
 export const finaleFlag = (id) => `temple.${id}.finale`;
 
+const centerOf = (o) => o?.center?.clone?.() ?? o?.group?.getWorldPosition?.(new THREE.Vector3()) ?? null;
+
 /**
- * Per house: what it shows (`beat`, for the docs and the tests) and the few nudges a house needs:
+ * Per house: what it shows (`beat`, for the docs and the tests), its own panel (`sign`) and the few nudges a house needs:
  *   side    which way the keeper's arc turns (+1 / -1; default +1)
  *   door    the way out's element, where the house has more than one door that opens on the guardian
- *   wide    the house panel's distance out from the arena's middle, as a share of its radius (default 0.8)
- *   high    the house panel's height over the floor, as a share of the arena's radius (default 0.55)
+ *   sign    C, the house's own panel (issue #562): { what (one line, for the docs), at(rt) → [{ pos, r, look? }] (the
+ *           subjects tried in turn, world space: what it frames and how big it is), lens { up, dist, push, rise, turn }
+ *           (over it, out from it, the share it moves in, how much it rises; `turn` the way it looks from, radians
+ *           round from the hall's middle), hold (a door of the house held shut until the panel lets it go), run(rt, k,
+ *           dt, t) (each frame from C on, after the house's own update: k 0..1 over C, 1 after), end(rt) }
+ *           Most houses draw what C shows themselves, reading rt.calmK; `run` is for a beat the film plays (a stone
+ *           sung, a dish's ring).
+ *   way     D's lens: { back (m from the door), up (m over its floor), turn (radians off the door's axis, toward `side`),
+ *           past (false: not from behind what C showed) }
+ *   stage   (the review page, src/cinematics-page/runtime.js) the house as play leaves it when its guardian is calmed
+ *   reward  B's lens, where a house needs it: { away (true: close and high over the purse from the far side of it from
+ *           the keeper's middle, where its drawn box takes in the floor round him: the Listener's shell) }
  */
 export const FINALES = {
-  desert: { beat: 'the Keeper breathes out over the dry spout; the Rose House’s way up sinks open' },
-  incal: { beat: 'the warden sags, its eye dark; the Warden’s Well’s way out opens over the shaft' },
-  arzach2: { beat: 'the Cloud-Mother sighs her cloud away; the Founders’ Belfry’s high door opens' },
-  spheres: { beat: 'the Echo takes his hand and is still; the Footprint’s way out opens' },
-  buried: { beat: 'the Tooth-Warden locks up and the engine runs; the Engine-House’s way out opens' },
-  perdide2: { beat: 'the Lampless folds its wings; the Lamp-House’s way out opens under the lamp' },
-  perdide: { beat: 'the Mother Snapper sleeps; the Hush-House’s crystals hum and its way out opens' },
-  arzach: { beat: 'the Elder rides the wind up out of the roost; the Aerie’s way out opens' },
-  garage: { beat: 'the Foreman’s hands come round to the right time; the Clock-House’s way out opens' },
-  edena: { beat: 'the Gardener closes its eyes among the beds; the Greenhouse’s way out opens' },
-  bazaar: { beat: 'the First Sign says its line once and listens; the Undertower’s way out opens' },
-  spacecity: { beat: 'the Anchor-Warden is still; the Mooring-House’s way out opens', high: 0.35 },   // (under the skin's floating plates)
-  moonfoundry: { beat: 'the Last Founder stops with one moon cast; the Casting-House’s way out opens', door: 'd5' },
-  underwater: { beat: 'the Listener settles on its shell; the Whale-House’s way out opens' },
+  desert: { beat: 'the Keeper breathes out over the dry spout; the Rose House’s way up sinks open',
+    // (near: the dry spout stands in the basin's middle)
+    sign: { what: 'the cistern fills: the Givers’ water rises in the dry basin under the spout',
+      at: (rt) => (rt.spring ? [{ pos: rt.spring.pool.position.clone().setY(rt.spring.pool.position.y + 0.9), r: 5.5, near: 2 }] : []), lens: { up: 3.2, dist: 11, push: 0.3 } },
+    way: { back: 16, up: 4.5, turn: 0.45 } },
+  incal: { beat: 'the warden sags, its eye dark; the Warden’s Well’s way out opens over the shaft',
+    sign: { what: 'the shaft’s breath comes back: the four great vanes in the hall’s floor spin up, their rings lit',
+      at: (rt) => (rt.hallVanes ?? []).map((v) => ({ pos: v.center.clone(), r: 4.5, pri: rt.player?.pos && v.center.distanceTo(rt.player.pos) < 5 ? 1 : 0 })), lens: { up: 4.5, dist: 9, push: 0.25, rise: 1.5 } },   // (pri: not the one he stands on)
+    way: { back: 14, up: 1.4, turn: -0.5 } },
+  arzach2: { beat: 'the Cloud-Mother sighs her cloud away; the Founders’ Belfry’s high door opens',
+    sign: { what: 'the stones that fell up come down: the hall’s hung stones sink to the floor and stay',
+      at: (rt) => { const K = rt.guardian?.model ? keeperBox(rt.guardian.model) : null; return (rt.hallStones?.list ?? []).map((s) => { const to = V(s.home.x, rt.hallStones.floorY + s.r * 0.6, s.home.z); return { pos: to, r: 3, near: s.r + 0.3, skip: [s.m], pri: K && K.distanceToPoint(to) < 4 ? 1 : 0, look: (k) => s.home.clone().lerp(to, k * k), span: s.home.y - to.y }; }); },   // (pri: not the one that lands by her)
+      lens: { up: 2.4, dist: 13, push: 0.15, rise: -1.5 } },
+    way: { back: 13, up: 6, turn: 0.35, past: false } },   // (past: the landed stone stood over the doorway's foot)
+  spheres: { beat: 'the Echo takes his hand and is still; the Footprint’s way out opens',
+    sign: { what: 'the three resonant spheres on their galleries sing in turn, then all three at once',
+      // (from before one gallery, across the hall: the other two on either side of the Echo, calm between them)
+      at: (rt) => (rt.resonators ?? []).map((s, i, R) => { const o = R[(i + 1) % R.length]; return { pos: s.center.clone().lerp(o.center, 0.5), r: 13, near: 1, through: true, skip: [s.group, o.group].filter(Boolean) }; }),
+      lens: { up: 1.5, dist: 22, push: 0.1 },
+      run: (rt, k) => { rt.singAll = k >= 0.6; rt.sing = k >= 0.6 ? 0 : ((rt.finaleSubject ?? 0) + Math.min(1, Math.floor((k / 0.6) * 2))) % 3; },   // (the two in the frame in turn, then all three at once)
+      end: (rt) => { rt.singAll = false; } },
+    way: { back: 12, up: 2, turn: -0.6 } },
+  buried: { beat: 'the Tooth-Warden locks up and the engine runs; the Engine-House’s way out opens',
+    sign: { what: 'the engine runs: the great gear in the floor turns again and shrugs the ball out of its teeth',
+      at: (rt) => { const g = rt.engineGear; return g ? [{ pos: g.notch(), r: 6.5 }] : []; }, lens: { up: 8, dist: 11, push: 0.2, rise: -1 } },
+    // (the review page's staging, as play leaves it: its last phase is won with the ball rolled back into the teeth)
+    stage: (rt) => { const b = rt.piece?.('bG'); if (!b) return; rt.logic.moveDrum('bG', 1); b.t = 1; b.v = 0; b.rest = true; b.place?.(); },
+    way: { back: 15, up: 3.5, turn: 0.6 } },
+  perdide2: { beat: 'the Lampless folds its wings; the Lamp-House’s way out opens under the lamp',
+    sign: { what: 'the great lamp burns again: the glass globe over the hall fills with light, and the room goes gold',
+      at: (rt) => (rt.lampRoom ? [{ pos: rt.lampRoom.lamp.getWorldPosition(V()), r: 7, near: 3.8, skip: [rt.lampRoom.lamp] }] : []), lens: { up: -9, dist: 14, push: 0.15, rise: 2 } },
+    way: { back: 14, up: 1.2, turn: 0.3 } },
+  perdide: { beat: 'the Mother Snapper sleeps; the Hush-House’s crystals hum and its way out opens',
+    sign: { what: 'the frosted crystals thaw and swing again, the three in time, humming in tune over her',
+      at: (rt) => { const S = rt.motherCrystals?.swings ?? []; if (!S.length) return []; const c = S.reduce((a, s) => a.add(s.center), V()).divideScalar(S.length); return [{ pos: c, r: 9, near: 2, skip: S.map((s) => s.group) }]; }, lens: { up: -6.5, dist: 13, push: 0.15 } },   // (the three together, from low under them)
+    way: { back: 15, up: 2.5, turn: -0.4 } },
+  arzach: { beat: 'the Elder rides the wind up out of the roost; the Aerie’s way out opens',
+    sign: { what: 'the wind comes back: both vents of the roost breathe, their columns rising to the open sky',
+      at: (rt) => (rt.roostWinds ?? []).map((w) => ({ pos: w.foot.clone().setY(w.foot.y + 4), r: 4.5, pri: w.on ? 1 : 0, skip: [w.root], look: (k) => w.foot.clone().setY(w.foot.y + 2 + 9 * k) })), lens: { up: -2.5, dist: 10, push: 0.1, rise: 3.5 } },
+    way: { back: 14, up: 5, turn: 0.5 } },
+  garage: { beat: 'the Foreman’s hands come round to the right time; the Clock-House’s way out opens',
+    sign: { what: 'the stopped clocks on the workshop’s walls start again, their hands racing round to the true time',
+      at: (rt) => (rt.workshopDials ?? []).map((d) => ({ pos: d.center.clone(), r: 3 })), lens: { up: -1.5, dist: 8, push: 0.3 } },
+    way: { back: 13, up: 1.5, turn: -0.45 } },
+  edena: { beat: 'the Gardener closes its eyes among the beds; the Greenhouse’s way out opens',
+    sign: { what: 'the builders’ water runs back into the four beds round the walls, welling up round their blooms',
+      at: (rt) => (rt.bedWater ?? []).map((b) => ({ pos: b.center.clone().setY(b.center.y + 0.6), r: 3.4, near: 1.2, skip: [b.m, b.bloom].filter(Boolean) })), lens: { up: 3, dist: 8, push: 0.3 } },
+    // (the review page's staging, as play leaves it: its four beds bloomed before the Gardener wakes)
+    stage: (rt) => { for (const b of rt.bedWater ?? []) if (b.seed) { rt.logic.light(b.seed.id); b.seed.k = 1; b.seed.apply(); } },
+    way: { back: 15, up: 3, turn: 0.4 } },
+  bazaar: { beat: 'the First Sign says its line once and listens; the Undertower’s way out opens',
+    sign: { what: 'its line goes round the hall: the word stones sing the rest of it, one after another',
+      at: (rt) => wordStones(rt).map((s) => ({ pos: s.center.clone(), r: 4.2, near: 1.6, skip: [s.group].filter(Boolean) })), lens: { up: 2, dist: 11, push: 0.2 },
+      run: (rt, k) => {
+        const S = wordStones(rt);
+        // (the one in the frame first, then the rest of the line round the hall: lit and heard, not said, so nothing
+        // in the house hears a word: a stone's own sing() tells the dishes and the wrist's recorder)
+        const first = S[rt.finaleSubject ?? 0], order = [first, ...S.filter((x) => x !== first)].filter(Boolean);
+        rt.finaleSung ??= 0;
+        while (rt.finaleSung < order.length && k >= 0.08 + rt.finaleSung * 0.3) { const x = order[rt.finaleSung++]; x.flash = 1.6; rt.sound?.orbNote?.(x.N?.degree ?? 0, x.center, { size: 1.0 }); }
+      },
+      end: (rt) => { rt.finaleSung = null; } },
+    way: { back: 14, up: 4, turn: -0.5, past: false } },   // (past: the stone a wall before the lens)
+  spacecity: { beat: 'the Anchor-Warden is still; the Mooring-House’s way out opens', door: 'd8',
+    sign: { what: 'the gate the Warden kept: its bars rise into the lintel, and the hub’s great capstan stands beyond',
+      hold: 'd7', at: (rt) => { const p = rt.piece('d7'); return p?.group ? [{ pos: p.group.position.clone().setY(p.group.position.y + 3.6), r: 4.6 }] : []; }, lens: { up: -1.4, dist: 10, push: 0.3 } },
+    way: { back: 14, up: 4, turn: 0.4 } },
+  moonfoundry: { beat: 'the Last Founder stops with one moon cast; the Casting-House’s way out opens', door: 'd5',
+    sign: { what: 'one moon cast: the iron moon in the cradle glows from within, white-hot, and cools to iron',
+      at: (rt) => { const b = rt.piece('mA'); return b ? [{ pos: centerOf(b), r: 4, near: 1.6, skip: [b.group].filter(Boolean) }] : []; }, lens: { up: 1.8, dist: 8, push: 0.3 } },
+    way: { back: 15, up: 2.2, turn: -0.35 } },
+  underwater: { beat: 'the Listener settles on its shell; the Whale-House’s way out opens', reward: { away: true },
+    sign: { what: 'the tide comes in: the sea wells up out of the Listener’s pool and spreads over the hall’s floor, the dishes ringing',
+      at: (rt) => (rt.hallTide?.edges ?? []).map((p) => ({ pos: p.clone(), r: 4.5 })), lens: { up: 2.4, dist: 9, push: 0.25 },
+      run: (rt, k) => { for (const id of ['dishW', 'dishE']) { const d = rt.piece(id); const due = id === 'dishW' ? 0.3 : 0.6; if (d && k >= due && !d.finaleRung) { d.finaleRung = true; for (const e of d.ends) e.k = 1; } } },
+      end: (rt) => { for (const id of ['dishW', 'dishE']) { const d = rt.piece(id); if (d) d.finaleRung = false; } } },
+    way: { back: 13, up: 2.6, turn: 0.5 } },
 };
+/** The Undertower's word stones (the First Sign's line: bazaar.js WordStone), in the line's order. */
+function wordStones(rt) { return (rt.wordStones ?? (rt.pieces ?? []).filter((p) => Number.isInteger(p.i) && typeof p.sing === 'function' && p.N)).slice().sort((a, b) => a.i - b.i); }
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const UP = V(0, 1, 0);
@@ -340,6 +422,7 @@ export function finaleShots(rt, F = FINALE) {
   // (a lens that frames the purse at the foot of the frame with the keeper beyond it, a good part of its body in the
   // frame (KEEP.beyond): from close in by the purse its body was a wall filling the panel, the purse a pink speck, #528;
   // its lens as long as that lets it: the purse as big as it can be)
+  const RB = H.reward ?? {};
   const fovB = (p, look) => THREE.MathUtils.clamp(fitFov(p, look, boxB, ASPECT, KEEP.beyond) + 2, 30, 52);
   // (its body over the whole panel first; where it turns round by the purse as it walks on and no lens near is out of
   // that, its body unturned. Never through him: the purse at his feet, filmed from behind him, was his legs)
@@ -354,12 +437,31 @@ export function finaleShots(rt, F = FINALE) {
   const rewardOk = ({ ends, look }, K, strict) => threeOf(ends).every((p) => cheapOk(p, look, K, strict))
     && threeOf(ends).every((p) => !solid(p) && sightClear(p, chimes, { ...sight, skip: [way?.piece?.group].filter(Boolean), near: 0.25 }));
   let rewardPick = null;
-  search: for (const K of [KR, KRmid]) for (const strict of [true, false]) for (const back of [0, 1.5, 3, 4.5, 6.5, 9, 12]) for (const up of [0, 0.8, 1.8, 3, 5]) for (const lean of [0.25, 0.45]) {
+  // (RB.away: a keeper whose drawn box takes in the purse and him beside it, the Listener's shell over him: the lens
+  // out on the far side of the purse from its body's middle, close, looking down on the chimes at his feet with its foot
+  // beyond, him to one side; #562)
+  // (and wherever its body stood so near him that the purse fell beside him or behind him, not a step toward it, or at
+  // his feet: from behind him that was his legs, the Footprint's Echo with its rings wide)
+  const ahead = (purse.x - me.x) * toG.x + (purse.z - me.z) * toG.z;
+  if (RB.away || ahead < PURSE_AT.near * 0.6) {
+    const ctr = boxB.getCenter(V()), away = flat(purse.clone().sub(ctr));
+    find: for (const dist of [5, 6.5, 4]) for (const up of [6, 7.5, 4.5]) for (const turn of [0.7, -0.7, 1.0, -1.0, 0.45, -0.45, 1.3, -1.3]) {   // (high, looking down on the purse: from low its underside hung over him)
+      const dir = V(away.x * Math.cos(turn) + away.z * Math.sin(turn), 0, -away.x * Math.sin(turn) + away.z * Math.cos(turn));
+      const look = chimes.clone().addScaledVector(UP, 0.4).addScaledVector(dir, -0.6);
+      const f = near(purse.clone().addScaledVector(dir, dist).addScaledVector(UP, up)), t = near(purse.clone().addScaledVector(dir, dist - 1.2).addScaledVector(UP, up - 0.8));
+      const ok = [f, f.clone().lerp(t, 0.5), t].every((p) => !inKeeper(p, KRmid) && !solid(p) && !(P?.pos && Math.hypot(p.x - P.pos.x, p.z - P.pos.z) < 1.4)   // (the chimes at his feet: him in the shot with them, from over his shoulder)
+        && sightClear(p, chimes, { ...sight, skip: [way?.piece?.group].filter(Boolean), near: 0.25 }) && drawnHit(rt, p, chimes, [way?.piece?.group].filter(Boolean)) >= p.distanceTo(chimes) - 0.3);
+      if (ok) { rewardPick = { look, ends: [f, t], away: true, dist, up, turn }; break find; }
+    }
+  }
+  // (FINALES[id].reward: the least lift and the most lean a house's B takes: the Listener's shell, 12 m high over its
+  // purse, filled the top half of the frame from low by the floor, #562)
+  if (!rewardPick) search: for (const K of [KR, KRmid]) for (const strict of [true, false]) for (const back of [0, 1.5, 3, 4.5, 6.5, 9, 12]) for (const up of [0, 0.8, 1.8, 3, 5]) for (const lean of [0.25, 0.45]) {
     for (const turn of REWARD_TURNS) {
       const raw = reward(side * turn, back, up, lean, false);
       if (!threeOf(raw.ends).every((p) => cheapOk(p, raw.look, K, strict))) continue;
       const e = reward(side * turn, back, up, lean);
-      if (rewardOk(e, K, strict)) { rewardPick = e; break search; }
+      if (rewardOk(e, K, strict)) { rewardPick = { ...e, back, up, lean, turn, strict }; break search; }
     }
   }
   const outOf = (p) => {
@@ -373,36 +475,103 @@ export function finaleShots(rt, F = FINALE) {
   const door = way?.piece?.group?.position?.clone() ?? rt.doorOut?.clone() ?? c.clone().addScaledVector(V(0, 0, 1), A.r);
   const dh = way?.piece?.h ?? 6;
   const toHall = flat(c.clone().sub(door));
-  // C: the house, high and wide over the arena, from the side away from the way out
-  const wide = (H.wide ?? 0.8) * A.r, high = (H.high ?? 0.55) * A.r + 3;
-  const houseLook = c.clone().addScaledVector(toHall, -0.25 * A.r).addScaledVector(UP, 1.5);
-  // (swung round the hall, the smallest turn first, until both ends and the middle see the house, out of the keeper's
-  // body and of solids)
-  const house = (turn) => {
-    const dir = V(toHall.x * Math.cos(turn) + toHall.z * Math.sin(turn), 0, -toHall.x * Math.sin(turn) + toHall.z * Math.cos(turn));
-    return [[wide, high], [wide * 0.92, high + 1.4]].map(([w, h]) => pastKeeper(houseLook, clearOf(rt, houseLook, inside(rt, c.clone().addScaledVector(dir, w).addScaledVector(UP, h)), skip, 6), 6, KC, false));
-  };
-  const houseOk = (e) => [e[0], e[0].clone().lerp(e[1], 0.5), e[1]].every((p) => !inKeeper(p, KC) && !solid(p)
-    && sightClear(p, houseLook, { ...sight, skip, near: 3 }));
-  let houseEnds = null;
-  for (const turn of HOUSE_TURNS) { const e = house(side * turn); if (houseOk(e)) { houseEnds = e; break; } }
-  const [houseFrom, houseTo] = houseEnds ?? house(0);
-  // D: the door straight on from the hall's side (it may stand at the end of a passage off the arena), as it sinks
+  const fovOf = (p, look, r) => THREE.MathUtils.clamp(THREE.MathUtils.radToDeg(2 * Math.atan((r * 1.25) / Math.max(1, p.distanceTo(look)))), 30, 62);
+  // C: the house's own (FINALES[id].sign, issue #562): each subject in turn (the one nearest him first), the lens swung
+  // round it from the hall's side and lifted until both ends of its move and its middle are out of the keeper's body
+  // and of solids, in the house and clear of its drawn walls, and see it past everything (the keeper too)
+  const S = H.sign ?? {}, SL = S.lens ?? {};
+  const subjects = (() => { try { return S.at?.(rt) ?? []; } catch { return []; } })().filter((x) => x?.pos && [x.pos.x, x.pos.y, x.pos.z].every(Number.isFinite))
+    .map((x, i) => ({ ...x, i })).sort((p, q) => (p.pri ?? 0) - (q.pri ?? 0) || p.pos.distanceTo(me) - q.pos.distanceTo(me));   // (pri: the one that changes first)
+  const signSkip = [way?.piece?.group, S.hold && rt.piece?.(S.hold)?.group].filter(Boolean);
+  const lookOf = (x, k) => (typeof x.look === 'function' ? x.look(k) : x.look?.clone?.() ?? x.pos.clone());
+  const skipOf = (x) => [...signSkip, ...(x.skip ?? []), ...(x.through ? [m.group] : [])];   // (through: the keeper may stand in the shot, the Footprint's Echo between its spheres)
+  const signOk = (ends, x) => [ends[0], ends[0].clone().lerp(ends[1], 0.5), ends[1]].every((p, j) => {
+    const lk = lookOf(x, j / 2), sk = skipOf(x);
+    return rt.inside?.(p) !== false && !inKeeper(p, KC) && !solid(p) && p.distanceTo(lk) > 2.8 && !besideHim(p, lk)
+      && sightClear(p, lk, { ...sight, skip: sk, near: x.near ?? Math.min(1.5, x.r * 0.4) }) && drawnHit(rt, p, lk, sk) >= p.distanceTo(lk) - (x.near ?? 0.2);
+  });
+  let sign = null;
+  pick: for (const x of subjects) {
+    const base = flat(c.clone().sub(x.pos));
+    if (Math.hypot(x.pos.x - c.x, x.pos.z - c.z) < 2) base.copy(flat(me.clone().sub(x.pos)));
+    const d0 = SL.dist ?? THREE.MathUtils.clamp(x.r * 2.4 + 3, 5, 16), up0 = SL.up ?? x.r * 0.4 + 1;
+    for (const back of [1, 0.8, 1.25, 0.6]) for (const lift of [0, 2.5, 5]) for (const turn of HOUSE_TURNS) {
+      const a1 = (SL.turn ?? 0) * side + side * turn;
+      const dir = V(base.x * Math.cos(a1) + base.z * Math.sin(a1), 0, -base.x * Math.sin(a1) + base.z * Math.cos(a1));
+      const at0 = lookOf(x, 0), at1 = lookOf(x, 1), d = d0 * back;
+      const from = inside(rt, x.pos.clone().addScaledVector(dir, d).setY(x.pos.y + up0 + lift));
+      const to = inside(rt, x.pos.clone().addScaledVector(dir, d * (1 - (SL.push ?? 0.25))).setY(x.pos.y + up0 + lift + (SL.rise ?? 0)));
+      const ends = [from, to];
+      if (!signOk(ends, x)) continue;
+      sign = { x, ends, at0, at1 };
+      break pick;
+    }
+  }
+  let houseShot, houseAt;
+  if (sign) {
+    const { x, ends: [p0, p1] } = sign, span = x.span ?? 0;
+    const fv = (p, k) => Math.min(66, fovOf(p, lookOf(x, k), x.r) + (span ? THREE.MathUtils.radToDeg(Math.atan(span / 2 / Math.max(1, p.distanceTo(lookOf(x, k))))) * 0.3 : 0));
+    const moving = typeof x.look === 'function';
+    houseShot = moving
+      ? { dur: F.house, ease: 'inOut', clear: false, from: (t) => ({ pos: p0, look: lookOf(x, Math.min(1, t / F.house)), fov: fv(p0, 0) }), to: (t) => ({ pos: p1, look: lookOf(x, Math.min(1, t / F.house)), fov: fv(p0, 0) - 2 }) }   // (k as the house has it: finaleK)
+      : { dur: F.house, clear: false, from: { pos: p0, look: lookOf(x, 0), fov: fv(p0, 0) }, to: { pos: p1, look: lookOf(x, 1), fov: fv(p0, 0) - 4 } };   // (its lens the same or longer as it moves in: a push, not a zoom out)   // (clear: checked here, signOk: the moment's own pull-in from the look would start inside the subject's collider)
+    houseAt = moving ? (k = 0.5) => lookOf(x, k) : lookOf(x, 0.5);   // (a subject that moves: where it is `k` of the way through the panel)
+  } else {
+    // (no subject this house can film: high over its hall, as before #562)
+    const houseLook = c.clone().addScaledVector(toHall, -0.25 * A.r).addScaledVector(UP, 1.5);
+    const wide = 0.8 * A.r, high = 0.55 * A.r + 3;
+    const p0 = pastKeeper(houseLook, clearOf(rt, houseLook, inside(rt, c.clone().addScaledVector(toHall, wide).addScaledVector(UP, high)), skip, 6), 6, KC, false);
+    houseShot = { dur: F.house, from: { pos: p0, look: houseLook, fov: 58 }, to: { pos: p0.clone().lerp(houseLook, 0.08), look: houseLook, fov: 56 } };
+    houseAt = houseLook;
+  }
+  // D: the way out from inside the hall, the house round it (FINALES[id].way: back, up, turn), the lens out of the keeper
+  // as it stands then and seeing the door past it; it moves in a little as the door sinks. (Straight on from as far
+  // back as the passage lets it, as before #562, where nothing of that clears)
   const yaw = way?.piece?.group?.rotation?.y;
   const n = Number.isFinite(yaw) ? V(Math.sin(yaw), 0, Math.cos(yaw)) : toHall.clone();
   if (n.dot(toHall) < 0) n.negate();
-  // (from as far back as the passage lets it, up to 11 m: the door whole, with its frame and the walls round it)
   const doorLook = door.clone().addScaledVector(n, 0.9).addScaledVector(UP, dh * 0.4);   // (in front of its slab: the lens's ray starts outside the shut door's block)
-  const wayFrom = pastKeeper(doorLook, clearOf(rt, doorLook, inside(rt, door.clone().addScaledVector(n, 11).addScaledVector(UP, 2.3)), skip, 4), 4, KD);
-  const back = wayFrom.distanceTo(doorLook);
-  const wayTo = pastKeeper(doorLook, clearOf(rt, doorLook, inside(rt, door.clone().addScaledVector(n, Math.max(4, back - 1.6)).addScaledVector(UP, 2.1)), skip, 3.5), 3.5, KD);
+  const WL = H.way ?? {}, doorMid = door.clone().addScaledVector(UP, dh * 0.45);
+  const wayOk = (p) => rt.inside?.(p) !== false && !inKeeper(p, KD) && !solid(p) && p.distanceTo(doorLook) > 4
+    && sightClear(p, doorLook, { ...sight, skip: [way?.piece?.group].filter(Boolean), near: 0.6 }) && drawnHit(rt, doorLook, p, skip) >= p.distanceTo(doorLook) - 0.2
+    && drawnHit(rt, p, doorMid, skip) >= p.distanceTo(doorMid) - 0.4;   // (and from the lens to the doorway's middle: a stone before it, the Undertower's)
+  let wayEnds = null;
+  // (first from behind what C showed, the house's own thing in the foreground and the way out beyond it: the basin, the
+  // vane, the cradle, the tide; then from the hall, as FINALES[id].way says)
+  if (sign && WL.past !== false) {
+    const x = sign.x, from = x.pos.clone(), back = flat(from.clone().sub(door));
+    past: for (const d of [3.5, 5, 2.5, 7]) for (const up of [2.2, 3.5, 1.4, 5]) for (const turn of [0, 0.3, -0.3, 0.6, -0.6]) {
+      const dir = V(back.x * Math.cos(turn) + back.z * Math.sin(turn), 0, -back.x * Math.sin(turn) + back.z * Math.cos(turn));
+      const p0 = inside(rt, from.clone().addScaledVector(dir, d).setY(door.y + up));
+      if (p0.distanceTo(doorLook) < 7 || p0.distanceTo(doorLook) > 19 || Math.hypot(p0.x - from.x, p0.z - from.z) < x.r * 0.8 + 1) continue;   // (the door a good part of the frame; the subject not a wall before the lens)
+      const p1 = p0.clone().lerp(doorLook, 0.12);
+      if (wayOk(p0) && wayOk(p1) && wayOk(p0.clone().lerp(p1, 0.5))) { wayEnds = [p0, p1]; break past; }
+    }
+  }
+  if (!wayEnds) find: for (const back of [WL.back ?? 14, (WL.back ?? 14) * 0.75, (WL.back ?? 14) * 0.55]) for (const up of [WL.up ?? 2.5, (WL.up ?? 2.5) + 2.5, 1.4]) for (const turn of [0, 0.15, -0.15, 0.3, -0.3, 0.5, -0.5]) {
+    const a1 = side * ((WL.turn ?? 0) + turn);
+    const dir = V(n.x * Math.cos(a1) + n.z * Math.sin(a1), 0, -n.x * Math.sin(a1) + n.z * Math.cos(a1));
+    const p0 = inside(rt, door.clone().addScaledVector(dir, back).setY(door.y + up));
+    const p1 = p0.clone().lerp(doorLook, 0.16);
+    if (wayOk(p0) && wayOk(p1) && wayOk(p0.clone().lerp(p1, 0.5))) { wayEnds = [p0, p1]; break find; }
+  }
+  const wayPicked = !!wayEnds;
+  if (!wayEnds) {
+    const wayFrom = pastKeeper(doorLook, clearOf(rt, doorLook, inside(rt, door.clone().addScaledVector(n, 11).addScaledVector(UP, 2.3)), skip, 4), 4, KD);
+    const back = wayFrom.distanceTo(doorLook);
+    wayEnds = [wayFrom, pastKeeper(doorLook, clearOf(rt, doorLook, inside(rt, door.clone().addScaledVector(n, Math.max(4, back - 1.6)).addScaledVector(UP, 2.1)), skip, 3.5), 3.5, KD)];
+  }
+  const [wayFrom, wayTo] = wayEnds;
+  // (its lens as wide as the doorway and its frame want, a little room round them: the hall's wall round it in the frame)
+  const doorBox = new THREE.Box3().setFromPoints([door.clone().addScaledVector(V(-n.z, 0, n.x), -3.8), door.clone().addScaledVector(V(-n.z, 0, n.x), 3.8).addScaledVector(UP, dh + 0.8)]);
+  const wayFov = (p) => THREE.MathUtils.clamp(fitFov(p, doorLook, doorBox, ASPECT, 0.8), 38, 56);
   const shots = [
     { dur: F.keeper, from: keeper, ease: 'linear' },
-    { dur: F.reward, from: { pos: rewardFrom, look: rewardAt, fov: fovB(rewardFrom, rewardAt) }, to: { pos: rewardTo, look: rewardAt, fov: fovB(rewardTo, rewardAt) - 4 } },
-    { dur: F.house, from: { pos: houseFrom, look: houseLook, fov: 58 }, to: { pos: houseTo, look: houseLook, fov: 56 } },
-    { dur: F.way, from: { pos: wayFrom, look: doorLook, fov: 54 }, to: { pos: wayTo, look: doorLook, fov: 52 } },
+    { dur: F.reward, from: { pos: rewardFrom, look: rewardAt, fov: rewardPick?.away ? 40 : fovB(rewardFrom, rewardAt) }, to: { pos: rewardTo, look: rewardAt, fov: (rewardPick?.away ? 40 : fovB(rewardTo, rewardAt)) - 4 } },   // (away: him and the purse, not the keeper's whole box)
+    houseShot,
+    { dur: F.way, clear: !wayPicked, from: { pos: wayFrom, look: doorLook, fov: wayFov(wayFrom) }, to: { pos: wayTo, look: doorLook, fov: wayFov(wayTo) - 2 } },
   ];
-  return { shots, way, at: { keeper: body, reward: purse, house: houseLook, way: door }, axis: n, box: boxAt(finaleLength(F)), reach: { A: KA, B: KR, C: KC, D: KD }, picked: { arc, reward: !!rewardPick, house: !!houseEnds }, bodyAt: boxAt };
+  return { shots, way, at: { keeper: body, reward: purse, house: houseAt, way: door }, axis: n, box: boxAt(finaleLength(F)), reach: { A: KA, B: KR, C: KC, D: KD }, picked: { arc, reward: !!rewardPick, sign: sign ? sign.x.i : null, way: wayPicked }, sign: sign ? { skip: skipOf(sign.x), near: sign.x.near ?? Math.min(1.5, sign.x.r * 0.4) } : null, bodyAt: boxAt };
 }
 
 /**
@@ -416,30 +585,44 @@ export function playFinale(rt, { moments = null, sound = null, game = rt.game, F
   const film = finaleShots(rt, F);
   if (!film) return null;
   const { shots, way, at } = film;
-  const L = rt.logic;
-  let held = false;
-  const letGo = () => { if (!held) return; held = false; L.force(way.id, null); rt.applyDoors(); };
-  const tD = F.keeper + F.reward + F.house + F.doorLead;
-  const log = (rt.finaleLog = { id: rt.id, picked: film.picked, started: false, music: null, door: way?.id ?? null, opened: false, skipped: null, ended: false });
+  const L = rt.logic, sign = FINALES[rt.id]?.sign ?? {};
+  // (doors held: the way out until D's beat, and a door the house's own panel opens, until C's)
+  const held = new Set();
+  const letGo = (id) => { if (!held.has(id)) return; held.delete(id); L.force(id, null); rt.applyDoors(); };
+  const hold = (id) => { if (id && rt.piece?.(id) && !L.isOpen(id)) { L.force(id, false); held.add(id); } };
+  const tC = F.keeper + F.reward, tD = tC + F.house;
+  const kOf = (t) => (t < tC ? 0 : Math.min(1, (t - tC) / F.house));
+  const log = (rt.finaleLog = { id: rt.id, picked: film.picked, started: false, music: null, door: way?.id ?? null, opened: false, skipped: null, ended: false, sign: null });
+  let T = 0;
   const m = moments.play({
     id: `temple.${rt.id}.finale`, flag, shots,
     behind: { avoid: () => keeperBox(rt.guardian.model) },   // (the follow camera back behind him, out of the keeper's body: the Listener's shell, #529)
-    beats: [{ t: tD, run: () => { letGo(); log.opened = true; } }],
+    beats: [
+      { t: tC + 0.35, run: () => { if (sign.hold) { letGo(sign.hold); log.held = sign.hold; } } },
+      { t: tD + F.doorLead, run: () => { if (way) letGo(way.id); log.opened = true; } },
+    ],
     onStart: (mo) => {
       log.started = true;
-      // the way out held until its panel (the logic resolved a moment ago: the door would sink at once)
-      if (way && !L.isOpen(way.id)) { L.force(way.id, false); held = true; }
+      // the way out held until its panel (the logic resolved a moment ago: the door would sink at once), and what the
+      // house's own panel shows held back until it (rt.finaleK: the house reads rt.calmK)
+      if (way) hold(way.id);
+      hold(sign.hold);
+      rt.finaleK = 0;
+      rt.finaleSubject = film.picked.sign;
+      rt.finaleRun = (dt, t) => { if (T >= tC) { log.sign ??= T; sign.run?.(rt, kOf(T), dt, t); } };
       // the world's recorded theme, faded in under it (src/music-moments.js; the procedural score's moment where there is none)
       sound?.musicCue?.('moment');
       log.music = { cued: !!sound?.musicCue, track: !!sound?.trackBuffer, on: sound?.trackOn ?? null };
       mo.face = at.reward.clone();
     },
     onFrame: (mo, t) => {
+      T = t;
+      rt.finaleK = kOf(t);
       // he turns to the keeper, then to the way out
-      mo.face = t < F.keeper + F.reward ? at.keeper() : at.way;
+      mo.face = t < tC ? at.keeper() : at.way;
       mo.eyes = mo.shotI === 3 ? at.way.clone().addScaledVector(UP, 2) : at.keeper();
-      // the house's glyphs come up over C and D (runtime.js eases them back after)
-      rt.litWant = t >= F.keeper + F.reward ? 1 : 0;
+      // the house's glyphs come up over D, the way out (runtime.js eases them back after)
+      rt.litWant = t >= tD ? 1 : 0;
       // (a shaft of light between the lens and the keeper hushed while it looks through it: the keeper whole, #529)
       const cam = mo.camera();
       const hushed = cam && mo.shotI < 3 ? [...washes(rt, cam.pos, film.bodyAt(t)), ...washes(rt, cam.pos, film.bodyAt(0))] : [];
@@ -449,14 +632,19 @@ export function playFinale(rt, { moments = null, sound = null, game = rt.game, F
       if (log.music && sound?.trackOn !== undefined) log.music.on = sound.trackOn;
     },
     onEnd: (mo, skipped) => {
-      letGo(); log.opened = true;
+      for (const id of [...held]) letGo(id);
+      log.opened = true;
       for (const p of rt.pieces ?? []) if ('hush' in p) p.hush = 1;
       rt.litWant = 0;
+      // (what the house's panel shows, all there: a skip lands where the film would have)
+      if (T < tC + F.house) sign.run?.(rt, 1, 0, 0);
+      sign.end?.(rt);
+      rt.finaleK = null; rt.finaleRun = null; rt.finaleSubject = null;
       log.skipped = !!skipped; log.ended = true;
       if (typeof console !== 'undefined') console.info?.(`[temple finale] ${rt.id} ${skipped ? 'skipped' : 'watched'}; theme ${log.music?.track ? (log.music.on ? 'playing' : 'cued') : 'cued (no recording loaded)'}`);
     },
   });
-  if (!m) { rt.finaleLog = null; return null; }
+  if (!m) { rt.finaleLog = null; rt.finaleK = null; rt.finaleRun = null; for (const id of [...held]) letGo(id); return null; }
   rt.game?.emit?.('temple:finale', { id: rt.id });
   return m;
 }

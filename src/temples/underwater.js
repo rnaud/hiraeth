@@ -895,6 +895,16 @@ function layout(rt) {
       dark: 'The dish on the wall is dark and deaf: its footstone is bare.' });
   }
   for (const a of [0.6, 2.3, 3.9, 5.6]) whorl(...A(Math.sin(a) * (AR - 2), AY, Math.cos(a) * (AR - 2)), 1.0, 'all', 6);
+  // (issue #562) the tide the hall was built dry against: once the Listener sings again the sea wells up out of its pool
+  // and over the floor, a hand deep (underwater onCalm; its ending lets it in over its own panel). Drawn only: nothing
+  // swims in it, as in the pool
+  {
+    const m = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 0.06, 48), drawnSea());
+    m.position.copy(K.world(...A(0, AY + 0.1, 4))); m.visible = false;   // (its top over the coral rim's: no face shared)
+    m.userData.noCollide = true; m.userData.dynamic = true;
+    rt.root.add(m);
+    rt.hallTide = { m, y: m.position.y, edges: [-1, 1].map((sd) => K.world(...A(sd * 9.5, AY + 0.4, 4))) };
+  }
   add(Door, { id: 'd5', at: A(0, AY, AR + 0.7), yaw: Math.PI / 2, ...DOOR, frame: { side: 1.2 } });   // (frame: the rotunda's gap is wider than the door, issue #356)
   const E0 = AR + 0.6, E1 = AR + 10;
   K.slab(ACX - E1, ACZ - 4.2, ACX - E0, ACZ + 4.2, AY, 0.8);
@@ -1027,6 +1037,15 @@ export const UNDERWATER_TEMPLE = {
   enterLine: 'Inside the Whale-House it is dry and cool and smells of brass and salt. The walls hum one high note, very softly: not a whale’s.',
   pitLine: 'You climb back up, to the last glyph stone.',
   onResolved(rt) { rt.notice('The whales are coming back. The way out comes up in the divers’ court.', 'resolved.out'); },
+  /** (issue #562) The tide in: the sea wells up out of the Listener's pool and spreads over its hall's floor (rt.calmK: its ending lets it in over its own panel). */
+  onCalm(rt, k) {
+    const T = rt.hallTide;
+    if (!T) return;
+    const e = k * k * (3 - 2 * k), r = 6.4 + 5.6 * e;
+    T.m.visible = k > 0.01;
+    T.m.scale.set(r, 1, r);
+    T.m.position.y = T.y + 0.12 * e;
+  },
   // (v1.77) the Pool Room's ball in its cradle by the glass: the Shell Room's floor door, across the hall, sinks if the sea
   // is out (said once, as it lands; out of sight of it)
   onUpdate(rt) {

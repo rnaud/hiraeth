@@ -212,12 +212,13 @@ const _mid = new THREE.Vector3(), _dir = new THREE.Vector3(), _side = new THREE.
 
 /** How far toward a guardian its purse lands at most (m), and how far short of its drawn body it stops. */
 export const PURSE_AT = { reach: 3.4, clear: 0.8, near: 0.8 };
-const _pr = new THREE.Ray(), _po = new THREE.Vector3(), _pd = new THREE.Vector3(), _ph = new THREE.Vector3();
+const _pr = new THREE.Ray(), _po = new THREE.Vector3(), _pd = new THREE.Vector3(), _ph = new THREE.Vector3(), _pc = new THREE.Vector3(), _pb = new THREE.Box3();
 /**
  * Where a guardian's purse lands (the hosts' purseAt): on the floor between it and you, PURSE_AT.reach m toward it at
  * most, and short of its drawn body (`body`: a Box3, src/temples/finale.js keeperBox) by PURSE_AT.clear, so it lies
  * in the open where it is seen: under the Mother Snapper's leaves or the Gardener's moss it lay hidden, and the
- * ending's reward panel filmed the keeper's body (the cinematics QC, v1.85, #528). At least PURSE_AT.near ahead of you.
+ * ending's reward panel filmed the keeper's body (the cinematics QC, v1.85, #528). At least PURSE_AT.near ahead of you;
+ * where its body is nearer than that, a step to your side or behind you, clear of it (#562).
  */
 export function purseSpot(you, keeper, body = null, out = new THREE.Vector3()) {
   out.copy(you);
@@ -229,7 +230,21 @@ export function purseSpot(you, keeper, body = null, out = new THREE.Vector3()) {
     _po.set(you.x, you.y + 0.3, you.z);
     _pd.set(dx / d, 0, dz / d);
     if (body.containsPoint(_po)) k = Math.min(k, PURSE_AT.near);
-    else if (_pr.set(_po, _pd).intersectBox(body, _ph)) k = Math.min(k, Math.max(PURSE_AT.near, _ph.distanceTo(_po) - PURSE_AT.clear));
+    else if (_pr.set(_po, _pd).intersectBox(body, _ph)) {
+      const hit = _ph.distanceTo(_po);
+      if (hit >= PURSE_AT.near) k = Math.min(k, Math.max(PURSE_AT.near, hit - PURSE_AT.clear));
+      else {
+        // (its body nearer than a step: a step to his side, or behind him, out in the open and clear of it, never into
+        // it: a step put the Whale-House's purse under the Listener's shell, out of sight, the v1.87 cinematics audit,
+        // #562; never at his feet, where he would take it before it is seen)
+        const room = _pb.copy(body).expandByScalar(PURSE_AT.clear * 0.75);
+        for (const [sx, sz] of [[-_pd.z, _pd.x], [_pd.z, -_pd.x], [-_pd.x, -_pd.z]]) {
+          _pc.set(you.x + sx * PURSE_AT.near, you.y + 0.3, you.z + sz * PURSE_AT.near);
+          if (!room.containsPoint(_pc)) return out.set(_pc.x, you.y, _pc.z);
+        }
+        return out.set(you.x - _pd.x * PURSE_AT.near, you.y, you.z - _pd.z * PURSE_AT.near);
+      }
+    }
   }
   return out.set(you.x + (dx / d) * k, you.y, you.z + (dz / d) * k);
 }

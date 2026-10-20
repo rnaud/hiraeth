@@ -361,7 +361,7 @@ moons turning, the capstan and its cables in frame with the lamps lighting), and
 "Temples should end on a cinematic. Cinematic should have the level's music playing." Every house (all fourteen) ends
 the same way once its guardian is resolved (`src/temples/finale.js`): one shape, its details read from the house, a
 moment on the ship's camera (letterbox, skip tag; B / ○, Menu, Esc or a tap skips it after the grace), once per save
-(`temple.<id>.finale`), 11 s (`FINALE`):
+(`temple.<id>.finale`), 11 s (`FINALE`), four panels, the last two each house's own (issue #562):
 
 - **A, keeper** (3.2 s): the guardian whole as its resolution plays out, from behind him and a little round, him small in
   the foreground, the arc drifting on; a keeper too big for its hall at that reach gets a wider lens (to 68°).
@@ -370,12 +370,44 @@ moment on the ship's camera (letterbox, skip tag; B / ○, Menu, Esc or a tap sk
   lenses round the purse (swung, drawn back, lifted, the look leaning toward the keeper) the first out of its body and
   of solids, 2.6 m off him and not through him, that sees the chimes past everything (the keeper's own body too:
   `sightClear` with it not skipped) with the keeper beyond in the frame; its lens as long as that allows (v1.85, #528).
-- **C, house** (2.6 s): high and wide over the arena from the side away from the way out; the house's glyphs come up
-  (`rt.litWant`, eased by `TempleRuntime.glowUpdate`: `uGlow` + 0.35, back down over 2.5 s after).
-- **D, way** (2.8 s): the way out, the door whose condition is `{ resolved: true }` (`wayOut`, the nearest the arena's
-  middle; `FINALES[id].door` where a house has two), straight on from the hall along its own normal, from as far back
-  as its passage lets the lens (up to 11 m). The logic holds it shut (`logic.force`) until 0.5 s into this panel, then
-  it sinks (1.8 s); he turns to it (`m.face`), so the follow camera comes back behind him looking at it.
+- **C, house** (2.9 s; issue #562): the house's own panel, what the guardian's waking changes in its hall, happening
+  now (`FINALES[id].sign`): the Rose House's cistern filling under its dry spout, the Warden's Well's four great vanes
+  spinning up, the Belfry's hung stones sinking to its floor, the Footprint's spheres singing in turn then all three,
+  the Engine-House's great gear turning again and throwing the ball out of its teeth, the Lamp-House's lamp catching,
+  the Hush-House's crystals thawing and swinging in time, the roost's second vent breathing, the Clock-House's four
+  stopped wall clocks racing round to the true time, the water welling up in the Greenhouse's beds, the Undertower's
+  word stones singing the rest of the line, the Mooring-House's barred gate rising onto the hub, the Casting-House's
+  iron moon glowing white-hot in its cradle and cooling, the tide spreading out of the Listener's pool over its floor.
+  Each sign names its subjects (`at(rt)`: where, how big, what of it the lens may look through, a look that moves for a
+  stone coming down or a column rising) and a lens (`lens`: over it, out from it, the push in, the rise); of the
+  subjects (the one nearest him first, `pri` first) and the lenses swung round each from the hall's side and lifted,
+  the first whose ends and middle are in the house, out of the keeper's body and of solids, off him, and see the subject
+  past everything (the keeper too: `sightClear`, then `drawnHit` from the lens) is taken; its lens fits the subject and
+  only lengthens as it moves in. Until #562 every house showed its hall from high up and ended on the makers' mark
+  over a door: the same shot fourteen times (the v1.87 audit, interest 3.4).
+  **Held back for its panel**: the house draws its change itself, reading `rt.calmK` (`TempleRuntime`: 0 before the
+  guardian is resolved, then `rt.finaleK ?? 1`); the film sets `rt.finaleK` 0 through A and B and 0..1 over C, and
+  `null` after (so the change is all there, and stays: on a reload too). The houses' `def.onCalm(rt, k, dt, t)` runs
+  after their update each frame once resolved (the dials, the beds, the tide, the vanes, the crystals, the vents, the
+  moon); the desert's spring, the Belfry's stones and the Lamp-House's lamp read `rt.finaleK` in their own easing; a
+  sign's `run(rt, k)` (from `rt.finaleRun`, after the house's update) plays a beat of the film's own (the Footprint's
+  spheres, the Undertower's stones, the Whale-House's dishes ringing), `end` tidies it, and a `hold` door (the Mooring-
+  House's gate) waits for C as the way out waits for D. A skip ends the film: the change comes at once.
+- **D, way** (2.5 s): the way out, the door whose condition is `{ resolved: true }` (`wayOut`, the nearest the arena's
+  middle; `FINALES[id].door` where a house has two: the Mooring-House's way east, `d8`), seen from inside the hall:
+  from behind what C showed (its basin, its vane, its cradle, its tide in the foreground, 7–19 m from the door) where
+  that sees the door past the keeper, else from the hall at `FINALES[id].way` (back, up, turn), else straight on from
+  as far back as its passage lets the lens (up to 11 m, as before). Its lens fits the doorway and its frame; it moves in
+  a little. The logic holds the door shut (`logic.force`) until 0.4 s into this panel, then it sinks (1.8 s); he turns
+  to it (`m.face`), so the follow camera comes back behind him looking at it. The house's glyphs come up over this
+  panel (`rt.litWant`, eased by `TempleRuntime.glowUpdate`: `uGlow` + 0.35, back down over 2.5 s after).
+- **B's nudges** (`FINALES[id].reward`): the Whale-House's keeper's drawn box takes in the floor beside him, the
+  Listener's shell 12 m high over it: a step toward it put the purse under the shell, and from low by the floor its
+  underside filled the top half of the frame (the v1.87 audit). The purse now lands a step to his side, or behind him,
+  clear of a body nearer than a step (`purseSpot`, src/chimes.js; never at his feet, where he would take it unseen),
+  and `away: true` frames it close and high (4–6.5 m out, 4.5–7.5 m up, a 40° lens) from the far side of the purse from
+  the keeper's middle: him, the chimes on the floor by him and the shell's foot beside. The same framing is used wherever
+  the purse lands beside or behind him rather than a step toward the keeper (the Footprint's Echo, its rings wide).
 
 The **music**: as it starts, `sound.musicCue('moment')` brings the world's recorded theme in under it (src/music-moments.js,
 faded in over 3 s where it had gone quiet; inside a temple it is usually on already, indoors); without a recording the
@@ -393,16 +425,18 @@ world box of its shown, opaque meshes, skinned ones posed, not a column of its r
 the Lampless's wings and the Listener's shell reach far past it). Calmed, it walks on to its rest as the film plays
 (boss.js), so each panel keeps out of its body as it will stand then, moved and turned (`reachOf`). A's arc is swung
 round it and lifted until its lens sees the keeper and has the whole of it in 68° at most (`fitFov`); C is swung round
-the hall until it sees the house. A shaft of light between a lens and the keeper (a `Sunbeam`'s `cone()`, `washes`)
+its subject until it sees it (above). A shaft of light between a lens and the keeper (a `Sunbeam`'s `cone()`, `washes`)
 is hushed to `FILM_HUSH` of its wash while the film looks through it, at once on a cut (the Greenhouse's sun washed
 the Gardener pale in C, #529). The hand-back (`behind: { avoid }`, `behindHim`): the follow camera behind him, swung
 the least it can until its arm is out of the keeper's body as it stands at the end (the Listener's shell, #529); `FINALES` holds each
-house's beat and its nudges (`side`, `door`, `wide`, `high`: the Mooring-House's hall view under its floating plates).
+house's beat, its own panel (`sign`) and its nudges (`side`, `door`, `way`, `reward`).
 **Unity** plays it from the same story (engine/game.js: the ship's cinema as the screen's 'cine').
 Tests: `tests/temple-finale.test.js` (all fourteen built: every panel frames its subject, from inside, not through a
 drawn wall or the keeper; A–C each a lens out of solids and the keeper's drawn body that sees its subject, B past the
-keeper's own body; the purse short of the body; the hand-back out of it; the Greenhouse's sun hushed; once; the theme cued; the door held to its panel; a skip and no ship), and
-`tests/engine-temple-finale.test.js` (the Aerie's in the engine bundle).
+keeper's own body; the purse short of the body; the hand-back out of it; the Greenhouse's sun hushed; once; the theme cued; the door held to its panel; a skip and no ship; since #562 every house its own C and D from inside
+its hall, its change held through A and B and happening in C, a skip landing it at once, the Whale-House's purse close
+and in the frame), and `tests/engine-temple-finale.test.js` (the Aerie's in the engine bundle: its vents held, then
+both breathing in C).
 
 ### After the v1.66 pass: framing fixes (issues #296–#299)
 

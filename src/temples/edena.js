@@ -957,10 +957,18 @@ function layout(rt) {
   K.rotunda({ x: 0, z: CW, y: 27, r: HR, h: 24, seg: 36, gaps: [{ a: Math.PI, w: D.w, h: D.h }, { a: 0, w: D.w, h: D.h }], oculus: 0.55 });
   for (let i = 0; i < 12; i++) { const a = (i / 12) * TAU + 0.26; pane(Math.sin(a) * (HR - 0.05), 41, CW + Math.cos(a) * (HR - 0.05), 6, 8, a + Math.PI); }
   K.add({ paint: new THREE.Color('#9a7448'), smooth: false, side: THREE.FrontSide }, T(annulus(4, 7, 0.06, 48), [0, 27.06, CW]));   // bare earth where it stood
+  let bedWaterM = null;
+  rt.bedWater = [];
   for (const [i, a] of [Math.PI * 0.25, Math.PI * 0.75, Math.PI * 1.25, Math.PI * 1.75].entries()) {
     const x = Math.sin(a) * (HR - 3.4), z = CW + Math.cos(a) * (HR - 3.4);
     K.both(M.wall, lathe([[2.6, 0], [2.7, 0.9], [2.4, 1.0], [0.01, 1.0]], 18).translate(x, 27, z), new THREE.CylinderGeometry(2.6, 2.6, 0.9, 12).translate(x, 27.45, z));
-    add(Seed, { id: BEDS[i], at: [x, 28, z], size: 1.5, seed: i, drink: 'The dead bed drinks the water, and stays dead. It is waiting to be told to grow.' });
+    const seed = add(Seed, { id: BEDS[i], at: [x, 28, z], size: 1.5, seed: i, drink: 'The dead bed drinks the water, and stays dead. It is waiting to be told to grow.' });
+    // (issue #562) the builders' water, back in the bed once the Gardener sleeps: it wells up round the bloom (edena onCalm)
+    const wet = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 0.08, 32), (bedWaterM ??= makeMaterial({ color: '#4f9fbf', glow: 0.25, flat: true, key: 'temple.edena.bedwater' })));   // (deeper than the troughs' water: it reads against the beds' white stone)
+    wet.position.copy(K.world(x, 28.02, z)); wet.visible = false;
+    wet.userData.noCollide = true; wet.userData.dynamic = true;
+    rt.root.add(wet);
+    (rt.bedWater ??= []).push({ center: K.world(x, 28, z), m: wet, seed, bloom: seed?.group });
     add(Plate, { id: FOOTSTONES[i], at: [Math.sin(a) * 12, 27, CW + Math.cos(a) * 12], r: 1.3 });
   }
   // the dome's louvre: the sun on one quarter at a time, the quarter whose footstone you last stood on
@@ -1177,6 +1185,15 @@ export const EDENA_TEMPLE = {
   enterLine: 'Inside the Greenhouse it is warm and green-lit and smells of earth, and nothing grows. Every pot holds a dead stick.',
   pitLine: 'You climb back out of the green dark, to the last glyph stone.',
   onResolved(rt) { rt.notice('Outside, the white ruins all over the garden are flowering.', 'resolved.out'); },
+  /** (issue #562) The Gardener asleep, the builders' water runs back into its four beds: it wells up round each bloom, out to the bed's lip (rt.calmK: its ending lets it in over its own panel). */
+  onCalm(rt, k, dt, t) {
+    for (const [i, b] of (rt.bedWater ?? []).entries()) {
+      const e = Math.max(0, Math.min(1, k * 1.8 - i * 0.1)), r = 0.25 + 2.1 * e * (2 - e);   // (the beds in turn, the first well within the panel)
+      b.m.visible = e > 0.01;
+      b.m.scale.set(r, 1, r);
+      b.m.position.y = b.center.y + 0.03 + 0.07 * e;
+    }
+  },
   onLit(rt, id) { if (BEDS.includes(id)) syncBeds(rt.guardian); },
   onWake(rt) { syncBeds(rt.guardian); },
 };

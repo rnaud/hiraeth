@@ -157,6 +157,13 @@ export class TempleRuntime {
 
   /** The level's washes over the finished picture (src/veil.js: the shafts of light, issue #116), made if it has none. */
   get veils() { return (this.level.veils ??= new Veils()); }
+  /**
+   * How far the house's own change inside has come once its guardian is resolved (0..1; 0 before): its ending holds it
+   * back for its own panel (src/temples/finale.js, issue #562: `finaleK`, 0 through the keeper and the purse, rising over
+   * the house's panel, null when no film plays), and without a film it is all there at once. The house reads it for what
+   * its waking changes in the guardian's hall: the cistern's water, the stones coming down, the lamp, the clocks.
+   */
+  get calmK() { return this.logic.resolved ? (this.finaleK ?? 1) : 0; }
 
   /** Add a piece (a Door, a Plate…: pieces.js) built for this temple. */
   add(Piece, o) {
@@ -364,6 +371,10 @@ export class TempleRuntime {
     // fell into a pit
     if (P && !P.dead && inside) for (const pit of this.pits) if (pit.contains(P.pos)) { this.toCheckpoint({ hurt: DAMAGE.graze }); this.notice(this.def.pitLine ?? 'You climb back up to the last mark.', 'pit'); break; }
     this.change?.update?.(dt, t);
+    // what the guardian's waking changes in its hall, as far as it has come (def.onCalm: the house's own; its ending holds
+    // it back for its panel, calmK), then its ending's panel on the house (src/temples/finale.js)
+    if (this.logic.resolved) this.def.onCalm?.(this, this.calmK, dt, t);
+    this.finaleRun?.(dt, t);
     this.glowUpdate(dt);
   }
 

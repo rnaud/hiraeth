@@ -1322,7 +1322,18 @@ const ARRIVAL564 = 'Issue #564: the production build in muted headless Chrome on
 const CRATES566 = 'Issue #566: the design QC’s capture (scripts/design-qc/capture.mjs) in muted headless Chrome (High, 1280 × 720, 10:00, clear) on this branch’s own Vite (port 5566), Lorn, the camera pinned 6 m from the two crates and 1.2 m over their lids, the picture cropped to its middle half and enlarged; before: the tree without the fix, after: with it; 20 October; cwebp -q 72';
 /** (v1.87, issue #558: five guardians' blows kept on their bodies) */
 const GUARD558 = 'Issue #558: muted headless Chrome (High, 1280 × 720, 11:00) on this branch’s own Vite (port 6558), ?level=<world>&hitboxes=1, each guardian in its own hall, the traveller 2.5 m off its body in front, the move begun and stepped by hand at 1/60 s to one or two 60ths after its strike (the Foreman’s and the Tooth-Warden’s two), the world frozen there, the camera pinned above its flank; before: the same page with the code before the change put back on the guardian (Guardian.sweepOf and partsOf of 59134e5fe: every sphere widened by half its part’s travel a frame; the Foreman’s hammer splash 0.4); 20 October; cwebp -q 72';
+/** (v1.88, issue #562: the temple endings, each house's own panel) */
+const END562 = 'Issue #562: the cinematics QC (node scripts/cinematics-qc.mjs --group "Temple endings": muted headless Chrome at High, 1280 × 720, its frames 960 × 540) on a Vite of its own (port 5362), each ending staged by the review page as play has it; before: origin/main 6352c9ee8, after: this change; the same moment of each film; 20 October';
 export const CHANGELOG_MEDIA = {
+  '1.88': [
+    { match: 'Each makers’ house now ends on its own picture', tags: ['story'], shots: [
+      { name: 'finale-clock-562', title: 'The Clock-House', size: [960, 540], caption: 'Its third panel: before, the makers’ mark lit over a door, as in every house; after, the workshop’s stopped wall clocks, their hands racing round to the true time', from: END562 },
+      { name: 'finale-cistern-562', title: 'The Rose House', size: [960, 540], caption: 'Before, the mark over the door again; after, the Givers’ water rising in the dry cistern under its spout, the Keeper drinking beyond', from: END562 },
+      { name: 'finale-tide-562', title: 'The Whale-House', size: [960, 540], caption: 'Before, the mark over the door; after, the tide welling up out of the Listener’s pool and over its floor, a dish ringing on the wall', from: END562 },
+      { name: 'finale-spheres-562', title: 'The Footprint', size: [960, 540], caption: 'Before, the mark over the door; after, two galleries either side of the calmed Echo, their spheres singing', from: END562 },
+      { name: 'finale-purse-562', title: 'The Whale-House’s chimes', size: [960, 540], caption: 'The chimes’ panel: before, low under the Listener’s shell, its underside over the top of the frame and him small at the left; after, from over his shoulder, him and the chimes beside him on the floor, the shell’s foot beside', from: END562 },
+    ], see: 'Calm any makers’ house’s keeper (or open Debug → Cinematics, Temple endings): after the keeper and its chimes, its own panel, then the way out from inside the hall.' },
+  ],
   '1.87': [
     { match: 'In the Mooring-House each lock now shows its answer from where you stand', tags: ['temples'], shots: [
       { name: 'mooring-westdoor-561', title: 'The west door', size: [1280, 720], caption: 'The Mooring-House’s upper west landing: before, the west door shut, its chain’s ring three rooms away in a locker off the east landing; after, the door open on the Chain Locker, its ball, its well and the far door it opens all in sight', from: LEVEL561 },

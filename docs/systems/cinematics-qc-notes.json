@@ -528,73 +528,73 @@
   },
   "finale.desert": {
    "verdict": "Pass",
-   "text": "QC 2026-10-19 (v1.85, #528/#529: the lens kept out of the keeper’s drawn body; before → after by eye from --group \"Temple endings\"): tech 4 → 4.5, interest 3 → 3.5. A the Keeper whole; B was a speck of purse on bare floor, now the chimes, him on the right and the Keeper beyond; C, D clean; hand-back behind him, clear. Every one plays its 11 s; the one console error in this run is the dev server’s BVH worker outside its allow list (a worktree’s node_modules), not the film.",
-   "updated": "2026-10-19T08:00:00.000Z"
+   "text": "QC 2026-10-20 (#562): C is the house’s own: the cistern fills under the dry spout, the Keeper drinking beyond. D the way out from inside the hall. Plays 11 s, skips in 1.6 s.",
+   "updated": "2026-10-20T06:00:00.000Z"
   },
   "finale.incal": {
    "verdict": "Pass",
-   "text": "QC 2026-10-19 (v1.85, #528/#529: the lens kept out of the keeper’s drawn body; before → after by eye from --group \"Temple endings\"): tech 3.5 → 4, interest 3. B was the lens inside a solid for 48 frames, a bare floor; now out of solids, the warden on its legs beyond the chimes (its body over the top of the frame). A still has a pillar over a quarter of the frame at 2–3 s. Every one plays its 11 s; the one console error in this run is the dev server’s BVH worker outside its allow list (a worktree’s node_modules), not the film.",
-   "updated": "2026-10-19T08:00:00.000Z"
+   "text": "QC 2026-10-20 (#562): C is the house’s own: a great vane in the floor spins up, its ring lit. D the way out from inside the hall. Plays 11 s, skips in 1.6 s.",
+   "updated": "2026-10-20T06:00:00.000Z"
   },
   "finale.arzach2": {
    "verdict": "Pass",
-   "text": "QC 2026-10-19 (v1.85, #528/#529: the lens kept out of the keeper’s drawn body; before → after by eye from --group \"Temple endings\"): tech 5 → 5, interest 4. B was a speck by a boulder; now the boulder, the chimes and the Cloud-Mother over them. A, C, D clean. Every one plays its 11 s; the one console error in this run is the dev server’s BVH worker outside its allow list (a worktree’s node_modules), not the film.",
-   "updated": "2026-10-19T08:00:00.000Z"
+   "text": "QC 2026-10-20 (#562): C is the house’s own: a hung stone sinks to the floor, the lens following it down. D the way out from inside the hall. Plays 11 s, skips in 1.6 s.",
+   "updated": "2026-10-20T06:00:00.000Z"
   },
   "finale.spheres": {
    "verdict": "Pass",
-   "text": "QC 2026-10-19 (v1.85, #528/#529: the lens kept out of the keeper’s drawn body; before → after by eye from --group \"Temple endings\"): tech 4.5 → 4.5, interest 3. B now him and the Echo’s legs beyond the chimes (him at the frame’s edge); A, C, D clean. Every one plays its 11 s; the one console error in this run is the dev server’s BVH worker outside its allow list (a worktree’s node_modules), not the film.",
-   "updated": "2026-10-19T08:00:00.000Z"
+   "text": "QC 2026-10-20 (#562): C is the house’s own: two galleries either side of the Echo, their spheres singing, then all three. D the way out from inside the hall. Plays 11 s, skips in 1.6 s.",
+   "updated": "2026-10-20T06:00:00.000Z"
   },
   "finale.buried": {
    "verdict": "Pass",
-   "text": "QC 2026-10-19 (v1.85, #528/#529: the lens kept out of the keeper’s drawn body; before → after by eye from --group \"Temple endings\"): tech 4 → 4.5, interest 3. B was its body over the top half; now the Tooth-Warden beyond him, legs and body (close in some runs, as it walks on to its rest). A, C, D clean. Every one plays its 11 s; the one console error in this run is the dev server’s BVH worker outside its allow list (a worktree’s node_modules), not the film.",
-   "updated": "2026-10-19T08:00:00.000Z"
+   "text": "QC 2026-10-20 (#562): C is the house’s own: the great gear turns again and throws the ball out of its teeth. D the way out from inside the hall. Plays 11 s, skips in 1.6 s.",
+   "updated": "2026-10-20T06:00:00.000Z"
   },
   "finale.perdide2": {
    "verdict": "Pass",
-   "text": "QC 2026-10-19 (v1.85, #528/#529: the lens kept out of the keeper’s drawn body; before → after by eye from --group \"Temple endings\"): tech 4 → 4.5, interest 3 → 3.5. A was the Lampless’s wings filling the frame at 1–3 s; now the whole of it in the air under the lamp from 15 m (#529). B him and the chimes, the moth at the top edge (it floats high). D dark as before. Every one plays its 11 s; the one console error in this run is the dev server’s BVH worker outside its allow list (a worktree’s node_modules), not the film.",
-   "updated": "2026-10-19T08:00:00.000Z"
+   "text": "QC 2026-10-20 (#562): C is the house’s own: the great lamp catches and the room goes gold. D the way out from inside the hall. Plays 11 s, skips in 1.6 s.",
+   "updated": "2026-10-20T06:00:00.000Z"
   },
   "finale.perdide": {
    "verdict": "Pass",
-   "text": "QC 2026-10-19 (v1.85, #528/#529: the lens kept out of the keeper’s drawn body; before → after by eye from --group \"Temple endings\"): tech 3 → 4.5, interest 3 → 4. B was 2.4 s inside the Mother Snapper’s leaves; now the chimes in the open by him, her leaves and bulb whole beyond (the purse lands short of her body). A, C, D clean. Every one plays its 11 s; the one console error in this run is the dev server’s BVH worker outside its allow list (a worktree’s node_modules), not the film.",
-   "updated": "2026-10-19T08:00:00.000Z"
+   "text": "QC 2026-10-20 (#562): C is the house’s own: the three crystals thaw and swing in time over her. D the way out from inside the hall. Plays 11 s, skips in 1.6 s.",
+   "updated": "2026-10-20T06:00:00.000Z"
   },
   "finale.arzach": {
    "verdict": "Pass",
-   "text": "QC 2026-10-19 (v1.85, #528/#529: the lens kept out of the keeper’s drawn body; before → after by eye from --group \"Temple endings\"): tech 5 → 5, interest 4. B now him by the chimes and the Elder’s wings and feet beyond. A, C, D clean. Every one plays its 11 s; the one console error in this run is the dev server’s BVH worker outside its allow list (a worktree’s node_modules), not the film.",
-   "updated": "2026-10-19T08:00:00.000Z"
+   "text": "QC 2026-10-20 (#562): C is the house’s own: the roost’s second vent breathes, its column rising. D the way out from inside the hall. Plays 11 s, skips in 1.6 s.",
+   "updated": "2026-10-20T06:00:00.000Z"
   },
   "finale.garage": {
    "verdict": "Pass",
-   "text": "QC 2026-10-19 (v1.85, #528/#529: the lens kept out of the keeper’s drawn body; before → after by eye from --group \"Temple endings\"): tech 4.5 → 5, interest 3 → 3.5. B was its underside over the top half; now the Foreman whole beyond him and the chimes. A, C, D clean. Every one plays its 11 s; the one console error in this run is the dev server’s BVH worker outside its allow list (a worktree’s node_modules), not the film.",
-   "updated": "2026-10-19T08:00:00.000Z"
+   "text": "QC 2026-10-20 (#562): C is the house’s own: the stopped wall clocks race round to the true time. D the way out from inside the hall. Plays 11 s, skips in 1.6 s.",
+   "updated": "2026-10-20T06:00:00.000Z"
   },
   "finale.edena": {
    "verdict": "Pass",
-   "text": "QC 2026-10-19 (v1.85, #528/#529: the lens kept out of the keeper’s drawn body; before → after by eye from --group \"Temple endings\"): tech 3 → 4.5, interest 3 → 3.5. B was the Gardener’s green body filling the panel; now him and the chimes with its mound beyond. C was the Gardener washed pale by its sunbeam (the shaft’s wash between lens and keeper); now that wash is hushed while the film looks through it, the Gardener solid (#529). A, D clean. Every one plays its 11 s; the one console error in this run is the dev server’s BVH worker outside its allow list (a worktree’s node_modules), not the film.",
-   "updated": "2026-10-19T08:00:00.000Z"
+   "text": "QC 2026-10-20 (#562): C is the house’s own: the water wells up round a bloomed bed. D the way out from inside the hall. Plays 11 s, skips in 1.6 s.",
+   "updated": "2026-10-20T06:00:00.000Z"
   },
   "finale.bazaar": {
    "verdict": "Pass",
-   "text": "QC 2026-10-19 (v1.85, #528/#529: the lens kept out of the keeper’s drawn body; before → after by eye from --group \"Temple endings\"): tech 4 → 4, interest 3. B was dark struts over the lower half; now him (a third of the frame, left) with the First Sign’s base and pole beyond. A lifted 8 m for its 16 m height, whole; C, D clean. Every one plays its 11 s; the one console error in this run is the dev server’s BVH worker outside its allow list (a worktree’s node_modules), not the film.",
-   "updated": "2026-10-19T08:00:00.000Z"
+   "text": "QC 2026-10-20 (#562): C is the house’s own: a word stone sings, the rest of the line heard round the hall. D the way out from inside the hall. Plays 11 s, skips in 1.6 s.",
+   "updated": "2026-10-20T06:00:00.000Z"
   },
   "finale.spacecity": {
    "verdict": "Pass",
-   "text": "QC 2026-10-19 (v1.85, #528/#529: the lens kept out of the keeper’s drawn body; before → after by eye from --group \"Temple endings\"): tech 4.5 → 4.5, interest 3. B was its arm across the top; now the Anchor-Warden whole beyond him. Hand-back beside it, clear. A, C, D clean. Every one plays its 11 s; the one console error in this run is the dev server’s BVH worker outside its allow list (a worktree’s node_modules), not the film.",
-   "updated": "2026-10-19T08:00:00.000Z"
+   "text": "QC 2026-10-20 (#562): C is the house’s own: the Warden’s barred gate rises onto the hub; D the way east. D the way out from inside the hall. Plays 11 s, skips in 1.6 s.",
+   "updated": "2026-10-20T06:00:00.000Z"
   },
   "finale.moonfoundry": {
    "verdict": "Pass",
-   "text": "QC 2026-10-19 (v1.85, #528/#529: the lens kept out of the keeper’s drawn body; before → after by eye from --group \"Temple endings\"): tech 4 → 4.5, interest 3 → 3.5. B was its body over the top half; now the Last Founder whole beyond him and the chimes. A, C, D clean. Every one plays its 11 s; the one console error in this run is the dev server’s BVH worker outside its allow list (a worktree’s node_modules), not the film. QC pass 2026-10-20 (v1.87): peaks at −5.8 dBFS, just over the −6 flag.",
-   "updated": "2026-10-20T04:30:00.000Z"
+   "text": "QC 2026-10-20 (#562): C is the house’s own: the iron moon in the cradle glows white-hot and cools. D the way out from inside the hall. Plays 11 s, skips in 1.6 s.",
+   "updated": "2026-10-20T06:00:00.000Z"
   },
   "finale.underwater": {
    "verdict": "Pass",
-   "text": "QC 2026-10-19 (v1.85, #528/#529: the lens kept out of the keeper’s drawn body; before → after by eye from --group \"Temple endings\"): tech 3.5 → 4, interest 3. A was the Listener’s shell filling the frame from 2 s; now arced 5 m higher, the shell whole bar its tip at 2 s (#529). The hand-back was under the shell, him half hidden; now beside him, the shell to one side (#529). B still has the shell’s underside over the top half, him small at the left: the weakest B. Every one plays its 11 s; the one console error in this run is the dev server’s BVH worker outside its allow list (a worktree’s node_modules), not the film. QC pass 2026-10-20 (v1.87): B unchanged, the shell over the top half.",
-   "updated": "2026-10-20T04:30:00.000Z"
+   "text": "QC 2026-10-20 (#562): C is the house’s own: the tide spreads out of the Listener’s pool, a dish ringing; B close and high over the purse, out from under the shell. D the way out from inside the hall. Plays 11 s, skips in 1.6 s.",
+   "updated": "2026-10-20T06:00:00.000Z"
   }
  }
 }

@@ -43,9 +43,9 @@ function standBy(rt) {
   return rt.player;
 }
 /** What drawn surface of the house stands between the lens and p (not the keeper, not the way out's own door, nothing see-through), or null. */
-function blocker(rt, from, p, skip) {
+function blocker(rt, from, p, skip, near = 0.4) {
   const d = from.distanceTo(p);
-  const ray = new THREE.Raycaster(from, p.clone().sub(from).normalize(), 0.05, d - 0.4);
+  const ray = new THREE.Raycaster(from, p.clone().sub(from).normalize(), 0.05, d - near);
   const shown = (o) => { for (let q = o; q; q = q.parent) { if (!q.visible) return false; if (skip.includes(q)) return false; } return true; };
   for (const h of ray.intersectObject(rt.root, true)) {
     const mat = Array.isArray(h.object.material) ? h.object.material[0] : h.object.material;
@@ -89,13 +89,14 @@ for (const id of Object.keys(TEMPLES)) {
         m.t = t0 + s.dur * k;
         const c = m.camera();
         assert.equal(c.i, i);
-        const target = typeof film.at[names[i]] === 'function' ? film.at[names[i]]() : film.at[names[i]].clone();
+        const target = typeof film.at[names[i]] === 'function' ? film.at[names[i]](k) : film.at[names[i]].clone();   // (C's subject may move: the stones coming down, issue #562)
         if (names[i] === 'way') target.y += (way.piece.h ?? 6) * 0.45;
         if (names[i] === 'reward') target.y += 0.3;   // (the chimes float over the floor)
         assert.ok(rt.inside(c.pos), `${names[i]} at ${k}: the lens inside the house (${c.pos.toArray().map((v) => v.toFixed(1))})`);
         assert.ok(inFrame(c, target), `${names[i]} at ${k}: in the frame`);
         assert.ok(c.pos.distanceTo(c.look) > (names[i] === 'reward' ? 1.2 : 2.5), `${names[i]} at ${k}: not jammed against a wall (${c.pos.distanceTo(c.look).toFixed(1)} m)`);
-        const b = blocker(rt, c.pos, target, [rt.guardian.model.group, way.piece.group]);
+        const C = names[i] === 'house' && film.sign;   // (the house's own subject: its own body not in the way of itself, issue #562)
+        const b = blocker(rt, c.pos, target, [rt.guardian.model.group, way.piece.group, ...(C ? film.sign.skip : [])], C ? Math.max(0.4, film.sign.near) : 0.4);
         const M = rt.guardian.model, gh = M.height ?? 3, lo = M.floats ? M.pos.y - gh / 2 : M.pos.y;
         assert.ok(!(Math.hypot(c.pos.x - M.pos.x, c.pos.z - M.pos.z) < (M.radius ?? 2.6) && c.pos.y > lo && c.pos.y < lo + gh), `${names[i]} at ${k}: the lens not inside the keeper`);
         if (names[i] === 'way') { const d = c.pos.clone().sub(target), hd = Math.hypot(d.x, d.z), p = target.clone().addScaledVector(d, 0.5); assert.ok(hd < 3 || Math.hypot(p.x - M.pos.x, p.z - M.pos.z) > (M.radius ?? 2.6) * 0.8, `${names[i]} at ${k}: not looking at the door through the keeper`); }
@@ -119,11 +120,11 @@ for (const id of Object.keys(TEMPLES)) {
     const body = keeperBox(M);
     assert.ok(!body.isEmpty(), 'the keeper has a drawn body');
     const m = new Moment({ shots: film.shots, stage: { physics } });
-    const subject = [film.at.keeper(), film.at.reward.clone().setY(film.at.reward.y + 0.3), film.at.house];
+    const subject = (k) => [film.at.keeper(), film.at.reward.clone().setY(film.at.reward.y + 0.3), typeof film.at.house === 'function' ? film.at.house(k) : film.at.house];
     const opts = [
       { skip: [M.group, way.piece.group], near: 1 },
       { skip: [way.piece.group], near: 0.25 },   // (the keeper's own body counts: it must not stand over the purse)
-      { skip: [M.group, way.piece.group], near: 3 },
+      { skip: [M.group, way.piece.group, ...(film.sign?.skip ?? [])], near: Math.max(1.5, film.sign?.near ?? 0) },   // (C: the house's own subject, past everything but itself)
     ];
     let t0 = 0;
     for (const [i, s] of film.shots.slice(0, 3).entries()) {
@@ -133,7 +134,7 @@ for (const id of Object.keys(TEMPLES)) {
         const c = m.camera(), at = `${P} at ${k} (${c.pos.toArray().map((v) => v.toFixed(1))})`;
         assert.ok(!physics.embedded(c.pos), `${at}: the lens out of solids`);
         assert.ok(!body.clone().expandByScalar(0.3).containsPoint(c.pos), `${at}: the lens out of the keeper's body`);
-        assert.ok(sightClear(c.pos, subject[i], { physics, roots: [rt.root], ...opts[i] }), `${at}: it sees its subject`);
+        assert.ok(sightClear(c.pos, subject(k)[i], { physics, roots: [rt.root], ...opts[i] }), `${at}: it sees its subject`);
         // (the keeper as it stands by then: calmed, it walks on to its rest as A plays, and the lens follows it there;
         // the Mooring-House's Warden walks 5 m since #477, so its first place is no measure of the panel's end)
         if (P === 'A') {
@@ -152,6 +153,12 @@ test('the purse lands short of the keeper’s body, and the hand-back swings out
   const body = new THREE.Box3(V(-4, 0, 3), V(4, 4, 13));
   assert.ok(Math.abs(purseSpot(you, keeper, body).z - 2.2) < 1e-6, 'short of its body by 0.8 m');
   assert.ok(Math.abs(purseSpot(you, keeper, new THREE.Box3(V(-4, 0, -1), V(4, 4, 13))).z - 0.8) < 1e-6, 'standing in its reach: at his feet');
+  // (#562: its body nearer than a step: a step to his side, clear of it, not a step in under the Listener's shell)
+  assert.ok(Math.abs(purseSpot(you, keeper, new THREE.Box3(V(-4, 0, 1.2), V(4, 4, 13))).z - 0.8) < 1e-6, 'a step from its body: a step ahead, as before');
+  const side = purseSpot(you, keeper, new THREE.Box3(V(-0.1, 0, 0.5), V(4, 4, 13)));
+  assert.ok(Math.abs(side.x + 0.8) < 1e-6 && Math.abs(side.z) < 1e-6, `its body nearer than a step: a step to his side, away from it (${side.toArray()})`);
+  const back = purseSpot(you, keeper, new THREE.Box3(V(-4, 0, 0.3), V(4, 4, 13)));
+  assert.ok(Math.abs(back.z + 0.8) < 1e-6, `before him wall to wall: a step behind him (${back.toArray()})`);
   // the follow camera: behind him, unless that puts the arm in the keeper's body
   const rig = { yaw: 0, pitch: 0.4, pitch0: 0.16, dist: 4.8 }, P = { pos: V(0, 0, 0), heading: Math.PI };   // (facing -z: behind him is +z)
   behindHim(rig, P);
@@ -171,7 +178,7 @@ const fakeShip = () => {
 };
 const fakeSound = () => ({ cues: [], musicCue(k) { this.cues.push(k); }, trackBuffer: {}, trackOn: true });
 
-function resolveWith(id, { ship = fakeShip(), skipAt = null } = {}) {
+function resolveWith(id, { ship = fakeShip(), skipAt = null, each = null, prep = null } = {}) {
   game.reset();
   const { rt, physics } = house(id);
   rt.logic.store.set('boss', null);
@@ -184,13 +191,14 @@ function resolveWith(id, { ship = fakeShip(), skipAt = null } = {}) {
   const moments = new MomentStage({ ship, game, player, physics });
   rt.onFinale = () => playFinale(rt, { moments, sound, game });
   rt.game = game;
+  prep?.(rt);
   rt.guardian.state = 'weary';
   quiet(() => rt.guardian.resolve());
   const seen = { playing: moments.playing, open: [], shut: [] };
   const dt = 1 / 30;
   for (let t = 0; t < finaleLength() + 1; t += dt) {
     if (skipAt !== null && t >= skipAt && moments.playing) moments.skip();
-    quiet(() => { moments.update(dt); rt.applyDoors(); rt.glowUpdate(dt); });
+    quiet(() => { moments.update(dt); rt.applyDoors(); rt.glowUpdate(dt); each?.(rt, dt, t); });
     seen.lit = Math.max(seen.lit ?? 0, rt.litK ?? 0);
     (rt.logic.isOpen(way.id) ? seen.open : seen.shut).push(t);
   }
@@ -262,4 +270,88 @@ test('a house\'s doors set open as a stage open at once and silent; in play, hea
     L.force(doors[0], true); rt.applyDoors();
     assert.deepEqual(calls, ['doorOpen'], 'opened in play: heard');
   } finally { rt.sound = sound; }
+});
+
+// Issue #562 (the v1.87 cinematics audit: the fourteen endings were one film, interest 3.4): C is each house's own, what
+// the guardian's waking changes in its hall, held back through A and B and happening over C, and D the way out seen from
+// inside the hall. What each house's change is, read off the house (a number that moves when it happens).
+const CHANGE = {
+  desert: (rt) => rt.spring.k,                                                     // the cistern's water
+  incal: (rt) => Math.min(...rt.hallVanes.map((v) => v.left)),                    // the great vanes turning
+  arzach2: (rt) => rt.hallStones.list[0].k,                                        // the stones coming down
+  spheres: (rt) => (rt.singAll ? 1 : 0),                                           // all three spheres singing
+  buried: (rt) => rt.engineGear.w,                                                 // the great gear turning
+  perdide2: (rt) => rt.lampRoom.lampM.uniforms.uGlow.value,                        // the great lamp
+  perdide: (rt) => rt.motherCrystals.swings[0].theta,                              // the crystals swinging
+  arzach: (rt) => rt.roostWinds.filter((w) => w.on).length,                        // both vents breathing
+  garage: (rt) => rt.workshopDials[0].minute.rotation.z,                           // the clocks' hands
+  edena: (rt) => (rt.bedWater[0].m.visible ? rt.bedWater[0].m.scale.x : 0),        // the water in the beds
+  bazaar: (rt) => rt.finaleSung ?? 0,                                              // the line sung round the hall
+  spacecity: (rt) => (rt.logic.isOpen('d7') ? 1 : 0),                              // the Warden's gate
+  moonfoundry: (rt) => rt.piece('mA').ironM.uniforms.uGlow.value,                  // the moon cast
+  underwater: (rt) => (rt.hallTide.m.visible ? rt.hallTide.m.scale.x : 0),         // the tide over the floor
+};
+/** The house as play leaves it at the guardian's end: the Mother Snapper's crystals all frosted (her lullaby asks it). */
+const PREP = { perdide: (rt) => { for (const sw of rt.motherCrystals.swings) { sw.still = Infinity; sw.frost = true; sw.phase0 = undefined; } } };
+/** The house's own update as play runs it after the story's (runtime.js update: its pieces, its change, onCalm, the film's panel). */
+function houseStep(rt, dt, t) {
+  rt.time = (rt.time ?? 0) + dt;
+  for (const p of [rt.engineGear, rt.hallStones, ...(rt.motherCrystals?.swings ?? []), ...(rt.hallVanes ?? [])]) p?.update?.(dt, t);
+  rt.change?.update?.(dt, t);
+  if (rt.logic.resolved) rt.def.onCalm?.(rt, rt.calmK, dt, t);
+  rt.finaleRun?.(dt, t);
+}
+
+test('every house has its own panel C and frames its way out from inside its hall (#562)', () => {
+  const whats = new Set();
+  for (const id of Object.keys(TEMPLES)) {
+    const S = FINALES[id].sign;
+    assert.ok(S?.what?.length > 20 && typeof S.at === 'function', `${id}: what its own panel shows`);
+    assert.ok(!whats.has(S.what), `${id}: its own, not another house's`);
+    whats.add(S.what);
+    const { rt } = house(id);
+    standBy(rt);
+    const film = finaleShots(rt);
+    assert.notEqual(film.picked.sign, null, `${id}: a lens that sees ${S.what}`);
+    assert.ok(film.picked.way, `${id}: the way out from inside the hall`);
+    assert.ok(Math.abs(finaleLength() - 11) < 0.3, 'the film as long as before');
+  }
+});
+
+for (const id of Object.keys(TEMPLES)) {
+  test(`${id}: what its waking changes waits for its own panel, happens in it, and stays (#562)`, () => {
+    const v = CHANGE[id], tC = FINALE.keeper + FINALE.reward, tD = tC + FINALE.house;
+    const at = [];
+    const { rt } = resolveWith(id, { prep: PREP[id], each: (r, dt, t) => { houseStep(r, dt, t); at.push([t, v(r)]); } });
+    const before = at.filter(([t]) => t > 0.2 && t < tC - 0.1).map(([, x]) => x), during = at.filter(([t]) => t > tC && t < tD + 0.3).map(([, x]) => x);
+    const v0 = before[0];
+    assert.ok(before.every((x) => Math.abs(x - v0) < 1e-6), `${id}: held through the keeper and the purse (${Math.min(...before)}..${Math.max(...before)})`);
+    assert.ok(during.some((x) => Math.abs(x - v0) > 0.05), `${id}: it happens in its panel (${v0} → ${during.map((x) => x.toFixed(2)).slice(0, 4)}…)`);
+    assert.equal(rt.finaleK, null, 'the film over: the house its own again');
+    assert.equal(rt.calmK, 1);
+  });
+}
+
+test('a skip lands the house as its panel leaves it: the clocks at the time, the tide in, the gate up (#562)', () => {
+  const tC = FINALE.keeper + FINALE.reward;
+  for (const id of ['garage', 'underwater', 'spacecity', 'edena']) {
+    const at = [];
+    resolveWith(id, { skipAt: 1.2, each: (r, dt, t) => { houseStep(r, dt, t); at.push([t, CHANGE[id](r)]); } });
+    const first = at.find(([t]) => t > 0.1)[1], late = at[at.length - 1][1];
+    assert.ok(Math.abs(late - first) > 0.05, `${id}: changed after the skip (${first} → ${late})`);
+    assert.ok(at.filter(([t]) => t > 1.4 && t < tC).some(([, x]) => Math.abs(x - first) > 0.05), `${id}: at once, not at C's time`);
+  }
+});
+
+test('the Whale-House’s purse: close over it from the far side of the Listener’s shell, the chimes in the frame (#562)', () => {
+  const { rt } = house('underwater');
+  standBy(rt);
+  const film = finaleShots(rt), B = film.shots[1];
+  assert.ok(film.picked.reward, 'a lens found');
+  const chimes = film.at.reward.clone().setY(film.at.reward.y + 0.3);
+  for (const c of [B.from, B.to]) {
+    assert.ok(c.pos.distanceTo(chimes) < 8, `close to the chimes (${c.pos.distanceTo(chimes).toFixed(1)} m; the shell's underside filled the frame from 11 m)`);
+    assert.ok(inFrame(c, chimes), 'the chimes in the frame');
+    assert.ok(!keeperBox(rt.guardian.model).containsPoint(c.pos), 'out of its body');
+  }
 });

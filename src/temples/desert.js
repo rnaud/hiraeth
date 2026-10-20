@@ -891,7 +891,8 @@ function change(scene, level, rt) {
       // inside: the cistern fills
       const S = rt.spring;
       if (S) {
-        S.k = rt.logic.resolved ? Math.min(1, S.k + dt / 6) : 0;
+        // (its ending holds the water back for its own panel and fills it over that: rt.finaleK, src/temples/finale.js)
+        S.k = !rt.logic.resolved ? 0 : rt.finaleK != null ? rt.finaleK * rt.finaleK * (3 - 2 * rt.finaleK) : Math.min(1, S.k + dt / 6);
         S.pool.visible = S.k > 0.01;
         S.pool.position.y = rt.kit.world(0, -1.05 + S.k * 0.9, 0).y;
         S.pool.scale.set(4.2 + S.k * 2.3, 1e-3, 4.2 + S.k * 2.3);

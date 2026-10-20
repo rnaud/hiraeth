@@ -883,6 +883,8 @@ export const ARZACH_TEMPLE = {
   startsOnArrival: () => !items.has('glider'),
   arrivalLine: 'The makers left a pair of wings in Vael: in the Aerie, the white house on the plain west of the landing.',
   onResolved(rt) { rt.notice('Out over the plain the great birds are coming back to the Aerie.', 'resolved.out'); },
+  /** (issue #562) The wind back: once the Elder is calm both of the roost's vents breathe, stone or no stone (rt.calmK: its ending raises the still one in its own panel). */
+  onCalm(rt, k) { for (const w of rt.roostWinds ?? []) w.forced = k > 0.02; },
   // she will not fly alone: ride the wind beside her while she looks up, afraid (in her second phase the wind out of
   // a vent lifts her twice as high; in her last only the wind will do: roll the stone so it rises by her)
   onConnect(rt) {

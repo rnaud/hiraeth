@@ -305,6 +305,36 @@ play opened them one by one). The QC on the five loudest, before → after: the 
 Whale-House −6.4 → −20, the Mooring-House −7.2 → −19, the Lamp-House −9.8 → −21, the Greenhouse −11.3 → −20 dBFS.
 The films themselves were never loud: in play no ending is heard over the moments' −30…−11.
 
+### The temple endings' own panels (#562, 2026-10-20)
+
+The v1.87 pass's second headline: the fourteen endings were one film (interest 3.4), panel C the makers' mark over a
+door in every house, and the Whale-House's reward panel under the Listener's shell. Fixed in `src/temples/finale.js`
+(docs/systems/cinematics.md, "A temple's ending"): C is each house's own, what the guardian's waking changes in its
+hall, held back through A and B (`rt.finaleK`, the houses' `onCalm` reading `rt.calmK`) and happening in the panel; D
+the way out seen from inside the hall, from behind what C showed where that sees it; B in the Whale-House close and high
+over the purse, which now lands a step to his side, out from under the shell (`purseSpot`). Same length (11 s), every one skippable (the
+`--skip` pass: all fourteen end in 1.6 s, no menu). `--group "Temple endings"` before and after, by eye:
+
+| Ending | C, the house's own | Tech | Interest before → after |
+|---|---|---|---|
+| `finale.desert` | the cistern fills under the dry spout, the Keeper drinking beyond | 5 | 3.5 → 5 |
+| `finale.incal` | a great vane in the floor spins up, its ring lit, the breath rising over it | 5 | 3 → 4 |
+| `finale.arzach2` | a hung stone sinks to the floor, the lens following it down | 5 | 4 → 4.5 |
+| `finale.spheres` | two galleries either side of the Echo, their spheres singing, then all three; B over his shoulder (the purse beside him) | 5 | 3 → 4.5 |
+| `finale.buried` | the great gear turns again and throws the ball out of its teeth | 5 | 3 → 4 |
+| `finale.perdide2` | the great lamp catches and the room goes gold | 5 | 3.5 → 5 |
+| `finale.perdide` | the three crystals thaw and swing in time over her | 5 | 4 → 4 |
+| `finale.arzach` | the roost's second vent breathes, its column rising to the sky | 5 | 4 → 4 |
+| `finale.garage` | the stopped wall clocks race round to the true time | 5 | 3.5 → 5 |
+| `finale.edena` | the water wells up round a bloomed bed | 5 | 3.5 → 4.5 |
+| `finale.bazaar` | a word stone sings, the rest of the line heard round the hall | 5 | 3 → 4 |
+| `finale.spacecity` | the Warden's barred gate rises onto the hub (D: the way east) | 5 | 3 → 4 |
+| `finale.moonfoundry` | the iron moon in the cradle glows white-hot and cools | 5 | 3.5 → 4.5 |
+| `finale.underwater` | the tide spreads out of the Listener's pool, a dish ringing; B over the purse | 5 | 3 → 4.5 |
+
+Interest 3.39 → 4.39; tech 5 in every one (the audit's 4.54, by eye). The staging (`src/cinematics-page/runtime.js`) now leaves two houses as play does at
+their guardian's end (`FINALES[id].stage`): the Engine-House's ball in the gear's teeth, the Greenhouse's beds bloomed.
+
 ### The table
 
 Tech: the script's score on the first run (its heuristics, rescored with the final rules) → the score

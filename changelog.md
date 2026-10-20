@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.88 — 2026-10-20
+
+- Each makers’ house now ends on its own picture of what calming its keeper changed, after the keeper and its chimes: the Rose House’s cistern fills, the Clock-House’s stopped wall clocks race round to the right time, the tide spreads over the Whale-House’s floor, the Greenhouse’s beds fill with water, the Lamp-House’s lamp lights, and so on, instead of every house ending on the makers’ mark over a door. Then the way out opens, seen from inside its own hall. In the Whale-House the chimes land beside you and are in view, no longer under the Listener’s shell.
+
 ## v1.87 — 2026-10-19
 
 - Five guardians no longer hit you from past their arms: the Gardener’s and the Listener’s sweeps, the Clockwork Foreman’s hammers, jabs and spin, the Tooth-Warden’s charge and the Last Founder’s ladle and slam reached up to 2.7 m beyond their bodies, and now land only where the body itself passes, as every other guardian’s blows do. Stand clear of the arm and it misses you. The Foreman’s hammers still reach a guard held in front of it, on a handheld as on a computer.

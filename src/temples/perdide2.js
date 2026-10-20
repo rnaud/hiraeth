@@ -1094,8 +1094,11 @@ function change(scene, level, rt) {
       }
       const L = rt.lampRoom;
       if (L) {
-        L.lampM.uniforms.uGlow.value = 0.04 + 0.96 * k;
-        if (on && !L.light) { L.light = new THREE.Vector4(L.lamp.position.x, L.lamp.position.y, L.lamp.position.z, 40); rt.lights.push(L.light); }
+        // (inside, its ending lights it in its own panel, issue #562: rt.finaleK, held dark until then)
+        const f = rt.finaleK, kk = f != null && rt.logic.resolved ? Math.min(k, f * f * (3 - 2 * f)) : k;
+        L.lampM.uniforms.uGlow.value = 0.04 + 0.96 * kk;
+        if (kk > 0.02 && !L.light) { L.light = new THREE.Vector4(L.lamp.position.x, L.lamp.position.y, L.lamp.position.z, 40); rt.lights.push(L.light); }
+        if (L.light) L.light.w = 40 * Math.min(1, kk * 1.5);
       }
     },
   };

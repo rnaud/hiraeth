@@ -1181,6 +1181,8 @@ export const INCAL_TEMPLE = {
   used: upUsed,   // (the temple quest's 'use' stage: src/temples/index.js)
   pitLine: 'You climb back up to the last glyph stone.',
   onResolved(rt) { rt.notice('Far below, by the Upward Shrine, the shaft begins to breathe again.', 'resolved.out'); },
+  /** (issue #562) The breath back: the hall's four great vanes turn for good once the warden is stopped (rt.calmK: its ending spins them up in its own panel). */
+  onCalm(rt, k) { if (k > 0) for (const v of rt.hallVanes ?? []) { v.left = Math.max(v.left, 0.4 + 2.6 * k); v.warned = true; } },
   // its side vents: each a target while they are open in the first phase (the guardian's own weak point is
   // the one at its front: a shot into one round its side or back counts the same). From its second phase, its hatch
   // open, it backs toward the nearest of the hall's vanes and stands by it: the draught off that vane is the way in

@@ -1057,7 +1057,17 @@ function layout(rt) {
   for (let i = 0; i < 12; i++) { const a = (i / 12) * TAU; K.both(M.dark, T(new THREE.BoxGeometry(0.35, 0.06, 1.4), [Math.sin(a) * 7.4, UP + 0.03, CW + Math.cos(a) * 7.4], [0, a, 0])); }
   K.add(brass, T(annulus(12.0, 12.8, 0.08, 72), [0, UP + 0.06, CW]));
   for (let i = 0; i < 36; i++) { const a = (i / 36) * TAU; K.add(brass, T(new THREE.BoxGeometry(0.7, 0.08, 0.7), [Math.sin(a) * 13.1, UP + 0.04, CW + Math.cos(a) * 13.1], [0, a, 0])); }
-  for (const a of [0.9, 2.2, 4.0, 5.3]) dial(Math.sin(a) * (HR - 0.2), UP + 12, CW + Math.cos(a) * (HR - 0.2), 2.4, a + Math.PI, [a * 2, a * 5]);
+  // (four stopped clocks on its wall, their hands their own (issue #562): stopped where they stopped until the Foreman is
+  // set right, then come round to the true time and keep it: garage onCalm, the house's panel in its ending)
+  const dialM = makeMaterial({ color: '#2a2622', flat: true, key: 'temple.garage.dialhand' });
+  rt.workshopDials = [];
+  for (const a of [0.9, 2.2, 4.0, 5.3]) {
+    const x = Math.sin(a) * (HR - 0.2), y = UP + 12, z = CW + Math.cos(a) * (HR - 0.2);
+    dial(x, y, z, 2.4, a + Math.PI, null);
+    const hour = hourHand(rt, [x, y, z], a + Math.PI, 1.55, dialM, 0.22), minute = hourHand(rt, [x, y, z], a + Math.PI, 2.3, dialM, 0.3);
+    hour.rotation.z = -a * 2; minute.rotation.z = -a * 5;
+    rt.workshopDials.push({ center: K.world(x, y, z), hour, minute, h0: a * 2, m0: a * 5 });
+  }
   // the way out, past the far door
   const X0 = CW + HR + 0.7, X1 = CW + HR + 10;
   add(Door, { id: 'd5', at: [0, UP, X0], ...D });
@@ -1236,6 +1246,20 @@ export const GARAGE_TEMPLE = {
   enterLine: 'Inside the Clock-House everything ticks, but out of step, like a room full of clocks that have quarrelled.',
   pitLine: 'You climb back up to the last glyph stone.',
   onResolved(rt) { rt.notice('Out in the dunes, the clock over the Clock-House’s door keeps time.', 'resolved.out'); },
+  /**
+   * (issue #562) The Foreman set right, the workshop's stopped clocks start again: their minute hands race round twice and
+   * their hour hands come round, all four to the true time, and keep it (rt.calmK: its ending sets them going in its own
+   * panel; without it they show the time at once).
+   */
+  onCalm(rt, k) {
+    const now = new Date(), TAU = Math.PI * 2;
+    const hT = ((now.getHours() % 12) + now.getMinutes() / 60) / 12 * TAU, mT = (now.getMinutes() + now.getSeconds() / 60) / 60 * TAU;
+    const e = k >= 1 ? 1 : k * k * (3 - 2 * k), fwd = (a0, a1) => ((((a1 - a0) % TAU) + TAU) % TAU);
+    for (const d of rt.workshopDials ?? []) {
+      d.hour.rotation.z = -(d.h0 + fwd(d.h0, hT) * e);
+      d.minute.rotation.z = -(d.m0 + (fwd(d.m0, mT) + 2 * TAU) * e);
+    }
+  },
   // the Foreman's six numerals: each a target while its face is open; all six inside a breath is a hit. In step (the
   // clock's order counted from four, where its hands come round to as it opens) each rings and its ring lights; in
   // its last phase only in step takes, and a numeral out of step puts them all out

@@ -9,7 +9,7 @@ import { join } from 'node:path';
 import { bundle } from '../scripts/engine-bundle.mjs';
 import { loadBundle } from '../engine/vm-run.mjs';
 import { tempPath } from '../scripts/temp-dirs.mjs';
-import { finaleLength, finaleFlag } from '../src/temples/finale.js';
+import { FINALE, finaleLength, finaleFlag } from '../src/temples/finale.js';
 
 const UNSET = new Set(['shapeAttrs', 'quietWalk', 'listMatrices', 'stillMatrices', 'skipHidden', 'peopleLod', 'portrait', 'capeOffload', 'clothOffload', 'brush', 'materialFluid', 'materialLive', 'materialVec', 'vertices', 'then', 'photo']);
 const backend = new Proxy({}, { get: (t, k) => (UNSET.has(k) ? undefined : () => {}) });
@@ -37,13 +37,20 @@ test('the engine films a temple’s ending: the letterbox, the theme cued, the w
   assert.ok(rt.finaleLog.music?.cued, 'the world’s theme cued under it (Sound.musicCue: the engine’s own sound, a stand-in here)');
   const door = rt.finaleLog.door;
   let bars = false, shutAt = 0, t = 0;
+  // (issue #562: its own panel, the roost's two vents breathing, held back until C and on in it, in the engines too)
+  const tC = FINALE.keeper + FINALE.reward, winds = { before: new Set(), after: new Set() };
   await hushed(() => {
     for (; t < finaleLength() + 2 && (g.story.moments.playing || t < 0.2); t += 1 / 20) {
       g.frame(1 / 20);
       bars ||= !!scr.state.cine?.bars;
       if (!rt.logic.isOpen(door)) shutAt = t;
+      const on = rt.roostWinds.filter((w) => w.on).length;
+      if (t > 0.3 && t < tC - 0.1) winds.before.add(on);
+      if (t > tC + 0.5 && t < finaleLength()) winds.after.add(on);
     }
   });
+  assert.ok(winds.before.size === 1 && [...winds.before][0] < 2, `its own change held back through the keeper and the purse (${[...winds.before]} of 2 vents)`);
+  assert.deepEqual([...winds.after], [2], 'both of the roost’s vents breathing in its own panel');
   assert.ok(bars, 'in the letterbox (the screen’s cine)');
   assert.ok(shutAt > finaleLength() * 0.6, `the way out held for its panel (${shutAt.toFixed(1)} s)`);
   assert.ok(!g.story.moments.playing && rt.logic.isOpen(door), 'over: the way out open');

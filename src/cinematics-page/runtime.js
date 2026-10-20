@@ -7,7 +7,7 @@ import { ENDING_WORLDS } from '../story/ending.js';
 import { ORDER, TITLES } from '../levels/names.js';
 import { BELL } from '../story/arzach2-moments.js';
 import { DESERT_QUEST_V } from '../story/desert-data.js';
-import { wayOut, finaleFlag } from '../temples/finale.js';
+import { wayOut, finaleFlag, FINALES } from '../temples/finale.js';
 const selected = () => CINEMATICS.find(e => e.id === new URLSearchParams(location.search).get('cinematicReview'));
 export async function seedReview() {
   const e = selected();
@@ -116,6 +116,7 @@ export async function stageCinematic(w, e) {
       if (id === way.id || id === T.def.arenaDoor || el.type !== 'door' || JSON.stringify(el.opens ?? {}).includes('resolved')) continue;
       L.force(id, true);
     }
+    FINALES[e.temple]?.stage?.(T);   // (the house as play leaves it at its guardian's end: the Engine-House's ball in the teeth, #562)
     // (set open at once and silent, as they stand long after play opened them one by one: all at once, their clunks and
     // rushes at the film's first second made the Casting-House's ending, with eleven of them, the loudest of the QC, #563)
     T.applyDoors(true);

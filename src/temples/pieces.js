@@ -1823,7 +1823,7 @@ export class Updraft {
   get h() { return this.o.heights?.find(([c]) => this.rt.logic?.check(c))?.[1] ?? this.h0; }
   dispose() { this.offWorking?.(); }
   /** Does it blow now (its `when` holds)? */
-  get on() { return !this.o.when || !!this.rt.logic?.check(this.o.when); }
+  get on() { return !!this.forced || !this.o.when || !!this.rt.logic?.check(this.o.when); }   // (forced: the Aerie's roost once its Elder is calm, issue #562)
   /** Is p (feet) in the column (and is it rising)? */
   contains(p) { return this.on && this.inside(p); }
   inside(p) { return Math.hypot(p.x - this.foot.x, p.z - this.foot.z) < this.r && p.y > this.foot.y - 1 && p.y < this.foot.y + this.h; }
@@ -1869,7 +1869,7 @@ export class Updraft {
  */
 export class WingAir {
   constructor(rt, o) { this.rt = rt; this.o = o; this.box = new THREE.Box3(V(...o.min), V(...o.max)); }
-  get on() { return !this.o.when || !!this.rt.logic?.check(this.o.when); }
+  get on() { return !!this.forced || !this.o.when || !!this.rt.logic?.check(this.o.when); }   // (forced: the Aerie's roost once its Elder is calm, issue #562)
   update() {
     const P = this.rt.player;
     if (P && !P.dead && this.on && this.box.containsPoint(this.rt.kit.local(P.pos))) P.windAt = P.time ?? 0;   // (marked before the wings open: they open into it)
@@ -1956,7 +1956,7 @@ export class Gust {
   }
   dispose() { this.offWorking?.(); }
   /** Does it blow at all now (its `when` holds)? */
-  get on() { return !this.o.when || !!this.rt.logic?.check(this.o.when); }
+  get on() { return !!this.forced || !this.o.when || !!this.rt.logic?.check(this.o.when); }   // (forced: the Aerie's roost once its Elder is calm, issue #562)
   /** 0 calm, a warning ramp, 1 blowing. */
   get state() {
     if (!this.on) return 0;

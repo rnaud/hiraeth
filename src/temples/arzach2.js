@@ -396,6 +396,8 @@ class HallStones {
       if (calm) s.to.set(s.home.x, this.floorY + s.r * 0.6, s.home.z);
       const down = calm || s.held > 0;
       s.k = down ? Math.min(1, s.k + dt / (calm ? 4 : 0.35)) : Math.max(0, s.k - dt / 2.5);
+      // (calm: its ending brings them down in its own panel, issue #562: held up until then, rt.calmK)
+      if (calm && this.rt.finaleK != null) s.k = this.rt.finaleK;
       const bob = (1 - s.k) * Math.sin(t * 0.5 + s.i * 2.1) * 0.6;
       s.m.position.lerpVectors(s.home, s.to, s.k * s.k).y += bob;
       if (s.held > 0) held++;

@@ -65,6 +65,7 @@ import { castingHouseSkin } from './skins/casting-house.js';
 // After: the Last Founder has cast one moon whole; it hangs from the jib over the Casting-House's door, turning slowly,
 // and the chimney's glow is steady at night (the world change).
 
+const HOT = new THREE.Color('#ffc27a');   // (the moon cast in the Last Casting's cradle, white-hot: onCalm)
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const TAU = Math.PI * 2;
 
@@ -1203,6 +1204,18 @@ export const MOONFOUNDRY_TEMPLE = {
   enterLine: 'Inside the Casting-House the air is hot and smells of iron. Ahead, a great crucible pours into the floor.',
   pitLine: 'You climb back out of the channel, to the last glyph stone.',
   onResolved(rt) { rt.notice('Outside, a whole small moon is lifted out and hung from the jib.', 'resolved.out'); },
+  /**
+   * (issue #562) One moon cast: the iron moon in the cradle takes the Founder's last pour, glows white-hot from within and
+   * cools back to iron (rt.calmK: its ending pours it in its own panel; at rest it is iron again).
+   */
+  onCalm(rt, k) {
+    const M = rt.piece('mA')?.ironM?.uniforms;
+    if (!M?.uColor || (k >= 1 && rt.moonCooled)) return;   // (cooled once: the moon's own heat after that is its own)
+    rt.moonCooled = k >= 1;
+    const h = k >= 1 ? 0 : Math.pow(Math.sin(Math.PI * Math.min(1, k * 1.1)), 0.7);
+    M.uColor.value.set('#3d3a40').lerp(HOT, h);
+    if (M.uGlow) M.uGlow.value = 0.95 * h;
+  },
   onLit(rt, id) {
     if (id === 'bH') rt.notice(rt.logic.check(POURED) ? 'The hot moon fills the mould.' : 'The hot moon fills the mould. The bridge waits for the pour.', 'bH.lit');
   },

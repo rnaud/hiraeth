@@ -886,4 +886,22 @@ export const PERDIDE_TEMPLE = {
   enterLine: 'Inside the Hush-House it is green and cool, and the crystals hum, each its own note. Somewhere ahead, something snaps.',
   pitLine: 'You climb back up to the last glyph stone.',
   onResolved(rt) { rt.notice('Out on the swamp, at the foot of every snapping plant, flowers open.', 'resolved.out'); },
+  /**
+   * (issue #562) Asleep, she no longer hears them: the three crystals thaw and swing again, all three in time, humming
+   * in tune over her (rt.calmK: its ending thaws them in its own panel; each comes from where its frost held it into
+   * the one beat).
+   */
+  onCalm(rt, k) {
+    const C = rt.motherCrystals;
+    if (!C || k <= 0) return;
+    const P = 3.35, TAU = Math.PI * 2, e = k * k * (3 - 2 * k), beat = (rt.time / P) * TAU;
+    for (const sw of C.swings) {
+      sw.phase0 ??= ((sw.s / sw.period) * TAU) % TAU;
+      sw.still = 0; sw.stillFor = 0;
+      sw.period = P;
+      sw.s = (P / TAU) * (sw.phase0 + (beat - sw.phase0) * e);
+      sw.theta = sw.amp * Math.sin((sw.s / P) * TAU);
+      sw.place();
+    }
+  },
 };

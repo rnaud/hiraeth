@@ -8,6 +8,12 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.88', date: '2026-10-20', items: [
+    // issue #562: src/temples/finale.js (FINALES[id].sign, way, reward.away), runtime.js calmK / def.onCalm / finaleRun,
+    // each house's onCalm (garage dials, edena bed water, underwater hall tide, incal vanes, perdide crystals, arzach
+    // vents, moonfoundry moon, buried gear), src/chimes.js purseSpot; tests/temple-finale.test.js, engine-temple-finale.test.js
+    'Each makers’ house now ends on its own picture of what calming its keeper changed, after the keeper and its chimes: the Rose House’s cistern fills, the Clock-House’s stopped wall clocks race round to the right time, the tide spreads over the Whale-House’s floor, the Greenhouse’s beds fill with water, the Lamp-House’s lamp lights, and so on, instead of every house ending on the makers’ mark over a door. Then the way out opens, seen from inside its own hall. In the Whale-House the chimes land beside you and are in view, no longer under the Listener’s shell.',
+  ] },
   { v: '1.87', date: '2026-10-19', items: [
     // issue #559: src/story/hosts-data.js (the twelve fight hosts, Abner, Mirek, Omar), src/fight-temples/*.js (quiet,
     // blurbs), session.js (the cards), view.js LOCK_ANSWER, src/prompt-keys.js {key:roll}, kit/runner.js (keys in flashes and
