@@ -28,6 +28,7 @@ import { ShaftPillars, PILLARS } from '../shaft-pillars.js';
 import { Veils, LightShaft } from '../veil.js';
 import { buildShaftQuarters, balconySpots, balconyGap, quarterAt } from '../shaft-quarters.js';
 import { buildShaftMirrors, mirrorRailGaps, BEAM_END, MIRRORS } from '../shaft-mirrors.js';
+import { buildFragmentLandmarks } from '../fragment-landmarks.js';
 
 // ---------------------------------------------------------------------------
 // The City-Shaft: a city stacked down a 600 m pit.
@@ -1241,6 +1242,9 @@ export function* buildIncal(scene) {
 
   // the Rim Docks round the ship (issue #441, references/space-ports/city-shaft/sheet-1.jpg; src/levels/ports.js)
   const port = buildPort(INCAL_PORT); scene.add(port.group); roomLights.push(...port.lights);
+  // the fragments' landmarks out on the rim and the high terrace (issue #550: a cistern, a shed, a platform, a pavilion
+  // to climb, a fountain, a statue, a bandstand in a square; a fragment on each: src/fragment-landmarks.js)
+  buildFragmentLandmarks(scene, 'incal');
   const spawn = new THREE.Vector3(R + 14, TOP, 0);
   // Fausta's Basket-Shop (src/shop-world.js, src/shop-fronts.js 'basket'): a narrow house on the middle terrace by the
   // middle levels' cab stop, its door and shop window turned to the promenade and the void

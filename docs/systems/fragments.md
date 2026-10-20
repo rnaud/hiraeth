@@ -167,8 +167,8 @@ hide: `docs/story-bible.md`, "The fragments of the singing light".
     cairn of three flat stones in the open worlds (as the pilgrims stack them), a squat stone plinth in the built ones,
     in the world's own stone, 0.5 m tall under the fragment (it floats 0.9 m over the ground). One mesh a world (one
     draw), no collision (the fragment is yours from 1.5 m), built by `createFragments`, so on the web and in the engines
-    alike; they stay when the fragment is taken. 137 markers (three in the Desert, two in the Underwater City; 18 in the Signal
-    Market, whose reachable places are few). The script also keeps the picks off what a world's own test keeps clear
+    alike; they stay when the fragment is taken. 105 markers (three in the Desert, two in the Underwater City; the Signal
+    Market's 18 and the City-Shaft's 14 gave way to roofs and squares, below). The script also keeps the picks off what a world's own test keeps clear
     (`WORLD_RULES`: the Signal Market's screen lanes, old market and galleries; the Floating city's ways to the anchor
     and up the stack); `--things n` lists the scene's named things that hold the most spots reached.
   - **More places** where the sights alone held too few: `POI_THINGS` gained the houses, halls and islands the walker
@@ -191,6 +191,41 @@ hide: `docs/story-bible.md`, "The fragments of the singing light".
     new place; nothing to migrate.
   - **Tests** (`tests/fragments-poi.test.js`): each on its named place and out of the water; no place over its cap;
     each marker on the ground under exactly one fragment, one mesh a world without collision; every rumour line a place.
+- **Roofs and squares (v1.87, #550, its third pass).** In the Signal Market and on the City-Shaft's rim the plinths stood
+  at the foot of tower walls: the towers there are 60 to 300 m of sheer wall, no roof to send anyone to. Where each
+  plinth stood, a small building of the world's own now stands, with a way up the traveller's own moves manage and the
+  fragment on its roof; or, where it marks the middle of an open square, the square's centrepiece with the fragment on
+  it (`src/fragment-landmarks.js` `FRAGMENT_LANDMARKS`, built by `src/levels/bazaar.js` and `incal.js` into the scene
+  before their collision):
+
+  | Kind | What it is | The way up | The fragment |
+  |---|---|---|---|
+  | `tank` | a water tank (on the rim, a cistern) on four legs, its deck 6 m up | a stair of 0.43 m steps down its front (under the 0.6 m step: walked) | on the deck before the tank |
+  | `block` | a two-storey stall block (a cab-wrights' shed), its awning over a shuttered shop | a stack of crates up its side, six steps of 0.8 m (a jump each) | on its flat roof, 4.8 m up, by its front |
+  | `mast` | a signal platform (the lamplighters') on lattice legs, 6.4 m up, a mast with a dish and a lamp off its back | a stair down its front | on the platform |
+  | `kiosk` | a round kiosk (a pavilion), its roof terrace 3.6 m up, a lamp on a post | a stair down its front | on the roof |
+  | `fountain` | a round basin, its water drawn only (not a body of water), a dry drum in its middle | a hop over its rim (0.65 m), a jump onto the drum | on the drum, 1 m up |
+  | `statue` | a figure on a pedestal on a round dais: one of the market's quiet ones, a lamplighter with his lamp on the rim | two low steps | at its feet |
+  | `bandstand` | a round floor two steps up, six posts, a dome (drawn only: the way in is under it) | two steps | in its middle |
+
+  - **Placed** from each plinth outward: the nearest spot where the building, its stair and
+    2 m round them stand on open ground, 16 m open in front of it (the way you walk up, and see the fragment from),
+    the fragment 30 m and more off the route, 22 m from any other, off the Signal Market's lanes, old market, galleries
+    and the listeners' lane, within the walker's 700 m; every landmark half a metre off the walker's 2 m grid, so no
+    step's edge falls on a cell (a crate stack on whole metres was stepped off at its edges). Eight roofs and ten squares
+    in the Signal Market, seven and seven on the City-Shaft (two of its squares on the high terrace); one fragment each.
+  - **On it.** Each landmark is a place of interest of its own (`pointsOfInterest`: its name numbered by kind, *the water
+    tank on stilts (1)*), and `onPlace` counts a spot on a landmark's top (`onLandmarkTop`: inside its roof or drum,
+    the ground under the spot that top). Its rumour says where on it (*on a water tank's deck, west of …*).
+  - **Drawn** as three meshes a world (vertex colours: the solid, the drawn-only rails, braces, awnings, water and the
+    figures, and the glowing lamps), plus a collider never drawn under the crates (one box a step); the stairs' steps
+    are lean solids (a tread, a riser, two sides). 2.6 k collision triangles in the Signal Market (its budget 84 k,
+    `tests/bazaar.test.js`), 2.1 k on the City-Shaft; no two faces of different colours in one plane.
+  - **Seen** from the ground, as a player walks up 10 to 20 m off: each fragment shows over its roof's edge (the
+    stall block's lip 0.15 m, the fragment 1 m in from it).
+  - 32 moved (their slots and marks kept, the place in the note), the 32 plinths gone. Lorn, Viridel and the Buried
+    Machine kept theirs: no place of interest with room lies within 120 m of any of their cairns, and moving them
+    farther would heap them in the middle again.
 - **Seeing and hearing them.** A pale splinter (an elongated octahedron, glowing) with three motes going round it (the
   light's signature beats in threes), bobbing; a small light of its own on the ground round it (`level.lights`, radius
   ~3 m). Within `FRAGMENT.sing` (26 m) it sings faintly from where it is every `singEvery` (3.4 s): three soft notes of the
@@ -368,8 +403,10 @@ The author: "I shouldn't be able to tell how many fragments of light there are i
 - `tests/route-worlds.test.js` (v1.61): every fragment 25 m or more from the route's line; the six rebuilt worlds
   (Lorn, Viridel, the Underwater City, the Moon Foundry, the Floating city, the Signal Market) two at least in their new
   country, one of them high (15 m over the landing, or a 10 m drop beside it).
-- `tests/fragments-poi.test.js` (v1.87, #550): every fragment on the named place `FRAGMENT_PLACES` gives it and out
-  of the water, two a place at most (three a very big one), the markers each under one fragment, and every slot's
+- `tests/fragments-poi.test.js` (v1.87, #550): every fragment on the named place `FRAGMENT_PLACES` gives it (on a
+  landmark's top, for the roofs and squares) and out of the water, the Signal Market's and the City-Shaft's roofs and squares (one
+  fragment on each, said to be there, its way up walked a 0.6 m step at a time or, the crates and a fountain, a jump of
+  1.4 m at most, no plinth left in those two worlds), two a place at most (three a very big one), the markers each under one fragment, and every slot's
   rumour line naming its place. (v1.66, #250; v1.70, #317): in every world 12 of the 24 at least in or on a place of
   interest (`POI_MIN` for the four poorer: Lorn 7, the Buried Machine 9, the Floating city 11, the Signal Market 8), 144
   of the 288 at least (149 now), spread over three places at least in each world; and the named places still found in their worlds (a

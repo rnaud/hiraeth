@@ -43,6 +43,12 @@
 // (src/fragment-markers.js). 223 of the 288 moved, marked "(v1.87, #550)" with their place (their earlier marks kept).
 // Picked by scripts/fragment-spots.mjs <world> --anchors. The Desert's two by the ship (#247) sit at the pilgrims'
 // cairns there. A save keeps its count: the flags stay on their slots (a moved one found shows as found).
+//
+// Its third pass: in the Signal Market and on the City-Shaft's rim the plinths stood at the foot of tower walls. Where
+// each stood, a small building with a way up (a water tank, a stall block, a signal platform, a kiosk; on the rim a
+// cistern, a shed, a lamplighters' platform, a pavilion) or a square's centrepiece (a fountain, a statue, a bandstand)
+// now stands, the fragment on its top (src/fragment-landmarks.js; its place `landmarkName`); 32 moved in their slots,
+// their notes saying where on it.
 
 import { ORDER, TITLES } from './levels/names.js';
 
@@ -188,23 +194,23 @@ export const FRAGMENTS = {
     [150.0, 200.00, 216.0],   // (v1.66, #250; v1.87, #550) by the great mirror, on the rim
     [354.0, 200.00, 94.0],   // (v1.66, #250) by Tobin’s telescopes on the rim
     [192.0, 150.00, 8.0],   // (v1.66, #250) in a stall of the balcony market
-    [746.0, 200.00, -14.0],   // (v1.87, #550) on a little stone plinth
-    [262.0, 200.00, -526.0],   // (v1.70, #317; v1.87, #550) on a little stone plinth
-    [214.0, 200.00, 696.0],   // (v1.70, #317; v1.87, #550) on a little stone plinth
-    [730.0, 200.00, 476.0],   // (v1.70, #317; v1.87, #550) on a little stone plinth
-    [-364.0, 200.00, -196.0],   // (v1.70, #317; v1.87, #550) on a little stone plinth
+    [744.5, 206.00, -8.7],   // (v1.87, #550) on the cistern’s deck, up its stair
+    [263.9, 204.80, -517.5],   // (v1.70, #317; v1.87, #550) on the cab-wrights’ shed’s roof, up its crates
+    [219.5, 206.40, 689.0],   // (v1.70, #317; v1.87, #550) on the lamplighters’ platform, up its stair
+    [724.5, 203.60, 471.5],   // (v1.70, #317; v1.87, #550) on the round pavilion’s roof, up its stair
+    [-389.5, 201.00, -221.5],   // (v1.70, #317; v1.87, #550) on the fountain’s dry middle, in a little square
     [342.0, 200.00, -88.0],   // (v1.70, #317; v1.87, #550) at the Warden’s Well, on the rim
-    [606.0, 200.00, -396.0],   // (v1.70, #317; v1.87, #550) on a little stone plinth
+    [611.9, 204.80, -389.5],   // (v1.70, #317; v1.87, #550) on the cab-wrights’ shed’s roof, up its crates
     [342.0, 200.00, 10.0],   // (v1.70, #317; v1.87, #550) on the Rim Docks’ berth
     [338.0, 200.00, -22.0],   // (v1.70, #317; v1.87, #550) on the Rim Docks’ berth
-    [-100.0, 200.00, 522.0],   // (v1.70, #317; v1.87, #550) on a little stone plinth
-    [408.0, 200.00, 446.0],   // (v1.70, #317; v1.87, #550) on a little stone plinth
-    [502.0, 200.00, -650.0],   // (v1.70, #317; v1.87, #550) on a little stone plinth
-    [38.0, 200.00, -260.0],   // (v1.70, #317; v1.87, #550) on a little stone plinth
-    [-258.0, 150.00, 6.0],   // (v1.70, #317; v1.87, #550) on a little stone plinth
-    [968.0, 200.00, 88.0],   // (v1.70, #317; v1.87, #550) on a little stone plinth
-    [582.0, 200.00, 164.0],   // (v1.70, #317; v1.87, #550) on a little stone plinth
-    [-160.0, 150.00, -202.0],   // (v1.70, #317; v1.87, #550) on a little stone plinth
+    [-115.5, 200.55, 547.2],   // (v1.70, #317; v1.87, #550) at the feet of a lamplighter’s statue, in a little square
+    [409.7, 206.00, 438.5],   // (v1.70, #317; v1.87, #550) on the cistern’s deck, up its stair
+    [480.5, 200.90, -669.5],   // (v1.70, #317; v1.87, #550) in the bandstand, in a little square
+    [46.5, 201.00, -285.5],   // (v1.70, #317; v1.87, #550) on the fountain’s dry middle, in a little square
+    [-253.5, 151.00, -7.5],   // (v1.70, #317; v1.87, #550) on the fountain’s dry middle, in a little square
+    [937.0, 206.40, 83.5],   // (v1.70, #317; v1.87, #550) on the lamplighters’ platform, up its stair
+    [608.5, 200.90, 138.5],   // (v1.70, #317; v1.87, #550) in the bandstand, in a little square
+    [-132.2, 150.55, -191.5],   // (v1.70, #317; v1.87, #550) at the feet of a lamplighter’s statue, in a little square
   ],
   glassdunes: [
     [26.0, 30.28, 30.0],   // (v1.87, #550) by the wave’s cairn, on the frozen wave’s crest
@@ -341,28 +347,28 @@ export const FRAGMENTS = {
   bazaar: [
     [34.0, 25.00, -90.0],   // (v1.61, #228) the far end of Kip’s skybridge, 25 m up
     [38.0, 8.32, -142.0],   // (v1.61, #228) a ledge 8 m up over Signal Square
-    [-84.0, 0.00, -48.0],   // (v1.87, #550) on a little stone plinth
-    [-226.0, 0.00, -494.0],   // (v1.87, #550) on a little stone plinth
+    [-109.5, 1.00, -51.5],   // (v1.87, #550) on the fountain’s dry middle, in a little square
+    [-232.7, 6.00, -491.5],   // (v1.87, #550) on the water tank’s deck, up its stair
     [-34.0, 8.32, -144.0],   // (v1.87, #550) on a tower over the street
-    [208.0, 0.00, 158.0],   // (v1.61, #228; v1.87, #550) on a little stone plinth
+    [206.5, 4.80, 163.9],   // (v1.61, #228; v1.87, #550) on the stall block’s roof, up its crates
     [34.0, 8.32, -274.0],   // (v1.66, #250) on a tower’s service balcony over Signal Square
-    [-272.0, 0.00, -240.0],   // (v1.66, #250; v1.87, #550) on a little stone plinth
-    [-216.0, 0.00, 158.0],   // (v1.70, #317; v1.87, #550) on a little stone plinth
+    [-278.5, 6.40, -238.0],   // (v1.66, #250; v1.87, #550) on the signal platform, up its stair
+    [-234.2, 0.55, 184.5],   // (v1.70, #317; v1.87, #550) at the feet of a quiet one’s statue, in a little square
     [100.0, 8.32, -324.0],   // (v1.70, #317) on a tower over the street
     [30.0, 8.32, -78.0],   // (v1.70, #317) on a tower over the street (new country)
-    [282.0, 0.00, -494.0],   // (v1.70, #317; v1.87, #550) on a little stone plinth
-    [282.0, 0.00, -220.0],   // (v1.70, #317; v1.87, #550) on a little stone plinth
-    [-4.0, 0.00, 178.0],   // (v1.70, #317; v1.87, #550) on a little stone plinth
-    [-6.0, 0.00, -466.0],   // (v1.70, #317; v1.87, #550) on a little stone plinth
-    [-128.0, 0.00, -338.0],   // (v1.70, #317; v1.87, #550) on a little stone plinth
-    [170.0, 0.00, 2.0],   // (v1.70, #317; v1.87, #550) on a little stone plinth
-    [-210.0, 0.00, 12.0],   // (v1.70, #317; v1.87, #550) on a little stone plinth
-    [-282.0, 0.00, -372.0],   // (v1.70, #317; v1.87, #550) on a little stone plinth
-    [220.0, 0.00, -374.0],   // (v1.70, #317; v1.87, #550) on a little stone plinth
-    [158.0, 0.00, -188.0],   // (v1.70, #317; v1.87, #550) on a little stone plinth
-    [62.0, 0.00, 68.0],   // (v1.70, #317; v1.87, #550) on a little stone plinth
-    [-146.0, 0.00, -182.0],   // (v1.70, #317; v1.87, #550) on a little stone plinth
-    [-64.0, 0.00, 68.0],   // (v1.70, #317; v1.87, #550) on a little stone plinth
+    [286.5, 3.60, -492.5],   // (v1.70, #317; v1.87, #550) on the round kiosk’s roof, up its stair
+    [287.3, 6.00, -217.5],   // (v1.70, #317; v1.87, #550) on the water tank’s deck, up its stair
+    [4.5, 0.90, 194.5],   // (v1.70, #317; v1.87, #550) in the bandstand, in a little square
+    [-16.5, 6.40, -464.0],   // (v1.70, #317; v1.87, #550) on the signal platform, up its stair
+    [-153.5, 1.00, -343.5],   // (v1.70, #317; v1.87, #550) on the fountain’s dry middle, in a little square
+    [174.5, 4.80, -2.1],   // (v1.70, #317; v1.87, #550) on the stall block’s roof, up its crates
+    [-234.2, 0.55, 12.5],   // (v1.70, #317; v1.87, #550) at the feet of a quiet one’s statue, in a little square
+    [-287.5, 3.60, -370.5],   // (v1.70, #317; v1.87, #550) on the round kiosk’s roof, up its stair
+    [246.5, 0.90, -373.5],   // (v1.70, #317; v1.87, #550) in the bandstand, in a little square
+    [158.5, 1.00, -213.5],   // (v1.70, #317; v1.87, #550) on the fountain’s dry middle, in a little square
+    [61.2, 0.55, 74.5],   // (v1.70, #317; v1.87, #550) at the feet of a quiet one’s statue, in a little square
+    [-171.5, 0.90, -203.5],   // (v1.70, #317; v1.87, #550) in the bandstand, in a little square
+    [-89.5, 1.00, 94.5],   // (v1.70, #317; v1.87, #550) on the fountain’s dry middle, in a little square
   ],
 };
 
@@ -416,11 +422,11 @@ export const FRAGMENT_PLACES = {
   ],
   incal: [
     'the spire’s high ring', 'the spire’s high ring', 'the cab-wrights’ crane', 'the spire’s high ring',
-    'the great mirror', 'Tobin’s telescopes', 'the balcony market', 'the light’s cairn (1)', 'the light’s cairn (2)',
-    'the light’s cairn (3)', 'the light’s cairn (4)', 'the light’s cairn (5)', 'The Warden’s Well (2)',
-    'the light’s cairn (6)', 'berth body', 'berth body', 'the light’s cairn (7)', 'the light’s cairn (8)',
-    'the light’s cairn (9)', 'the light’s cairn (10)', 'the light’s cairn (11)', 'the light’s cairn (12)',
-    'the light’s cairn (13)', 'the light’s cairn (14)',
+    'the great mirror', 'Tobin’s telescopes', 'the balcony market', 'the cistern on stilts (1)',
+    'the cab-wrights’ shed (1)', 'the lamplighters’ platform (1)', 'the round pavilion (1)', 'the fountain (1)',
+    'The Warden’s Well (2)', 'the cab-wrights’ shed (2)', 'berth body', 'berth body',
+    'the statue of a lamplighter (1)', 'the cistern on stilts (2)', 'the bandstand (1)', 'the fountain (2)',
+    'the fountain (3)', 'the lamplighters’ platform (2)', 'the bandstand (2)', 'the statue of a lamplighter (2)',
   ],
   glassdunes: [
     'the wave’s cairn', 'the light’s cairn (1)', 'the light’s cairn (2)', 'the light’s cairn (3)',
@@ -465,12 +471,13 @@ export const FRAGMENT_PLACES = {
     'the light’s cairn (8)', 'The Mooring-House (2)', 'the light’s cairn (9)',
   ],
   bazaar: [
-    'a tower over the street (8)', 'a tower over the street (10)', 'the light’s cairn (1)', 'the light’s cairn (2)',
-    'a tower over the street (9)', 'the light’s cairn (3)', 'a tower over the street (14)', 'the light’s cairn (4)',
-    'the light’s cairn (5)', 'a tower over the street (16)', 'a tower over the street (8)', 'the light’s cairn (6)',
-    'the light’s cairn (7)', 'the light’s cairn (8)', 'the light’s cairn (9)', 'the light’s cairn (10)',
-    'the light’s cairn (11)', 'the light’s cairn (12)', 'the light’s cairn (13)', 'the light’s cairn (14)',
-    'the light’s cairn (15)', 'the light’s cairn (16)', 'the light’s cairn (17)', 'the light’s cairn (18)',
+    'a tower over the street (8)', 'a tower over the street (10)', 'the fountain (1)',
+    'the water tank on stilts (1)', 'a tower over the street (9)', 'the stall block (1)',
+    'a tower over the street (14)', 'the signal platform (1)', 'the statue of a quiet one (1)',
+    'a tower over the street (16)', 'a tower over the street (8)', 'the round kiosk (1)',
+    'the water tank on stilts (2)', 'the bandstand (1)', 'the signal platform (2)', 'the fountain (2)',
+    'the stall block (2)', 'the statue of a quiet one (2)', 'the round kiosk (2)', 'the bandstand (2)',
+    'the fountain (3)', 'the statue of a quiet one (3)', 'the bandstand (3)', 'the fountain (4)',
   ],
 };
 

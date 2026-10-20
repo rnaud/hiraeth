@@ -24,6 +24,7 @@ import { placeGameMarker } from '../minigames/kit/marker.js';
 import { gameById } from '../minigames/index.js';
 import { buildPort } from './port-pad.js';
 import { BAZAAR_PORT } from './ports.js';   // (none in node's tests: there is no glob there)
+import { buildFragmentLandmarks } from '../fragment-landmarks.js';
 
 // A street-level city, separate from the City-Shaft. Repeated details are
 // merged by street block and material so the mobile renderer can cull them.
@@ -482,6 +483,9 @@ export function* buildBazaar(scene) {
   // the listeners' lane (src/market-ways.js, level design audit, fourth round): the back lane behind the west towers,
   // its old dishes all turned to the silent tower: the way home Sel sends you once it speaks again
   const lane = buildListenersLane(scene);
+  // the fragments' landmarks out among the towers (issue #550: a water tank, a stall block, a signal platform, a kiosk to
+  // climb, a fountain, a statue, a bandstand in a square; a fragment on each: src/fragment-landmarks.js)
+  buildFragmentLandmarks(scene, 'bazaar');
   // (the makers' Undertower under the silent tower: src/temples/bazaar.js)
   yield;
   return attachTemple('bazaar', scene, {

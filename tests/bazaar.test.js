@@ -37,7 +37,8 @@ test('taxis initialize and the crowd walks the avenue, sidewalks and skybridges'
  // (the back alleys' small machinery, climbed as drawn, greeble-kit.js: ~27 k → ~52 k, docs/systems/references.md; issue #191,
  // the market in the air, the old market and the screen lanes, solid as drawn: ~56 k → ~75 k, tests/market-explorations.test.js)
  // The reference-matched Undertower adds its solid stepped feet and arched doorway: ~80 k.
- const triangles=physics.triangles;assert.ok(triangles<82000,`static collision budget: ${triangles}`);
+ // The fragments' landmarks out among the towers, their stairs and roofs solid as drawn (issue #550, src/fragment-landmarks.js): ~82 k.
+ const triangles=physics.triangles;assert.ok(triangles<84000,`static collision budget: ${triangles}`);
 });
 
 test('the broadcast page closes with the story (the quest), not on arriving at the balcony', async()=>{

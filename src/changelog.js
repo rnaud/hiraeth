@@ -132,6 +132,10 @@ export const CHANGELOG = [
         { where: 'the heartbeat at low health (−6)', before: -5.2, after: -6.2 },
       ], source: 'node .claude/skills/sound-qc/run.mjs (103 → 116 of its 116 sounds inside their bands), before at v1.87 (docs/audits/sound-v1.87.md), after on this change, 20 October; docs/systems/audio.md, “The thirteen trimmed (#566)”' }],
       see: 'In the desert, fight the foes near the landing with the full combo, double jump, and throw a bomb, with the music on: each sound sits under the music’s loudest moments instead of jumping over them.' },
+    // issue #550 (its third pass): src/fragment-landmarks.js (the landmarks, their ways up, onLandmarkTop), the levels
+    // bazaar.js and incal.js, src/fragments-data.js (32 moved), src/fragment-markers.js (32 plinths gone), rumour-places.js,
+    // tests/fragments-reach.js (a landmark's top counts in onPlace); tests/fragments-poi.test.js
+    'In the Signal Market and out on the City-Shaft’s rim, the fragments of the singing light no longer wait on little plinths at the foot of tower walls. Most now sit on top of something you climb to: a water tank on stilts, a stall block, a signal platform or a kiosk in the market, a cistern, a cab-wrights’ shed, a lamplighters’ platform or a pavilion on the rim, each with a stair or a stack of crates up to its roof. The others rest in the middle of a little square, on a fountain, at a statue’s feet or in a bandstand. Those you already found stay found.',
   ] },
   { v: '1.86', date: '2026-10-19', items: [
     // issue #483: src/story/hosts-data.js (the fight hosts' second lines), src/fight-temples/<world>.js (blurb, quiet),

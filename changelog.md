@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.87 — 2026-10-19
 
+- In the Signal Market and out on the City-Shaft’s rim, the fragments of the singing light no longer wait on little plinths at the foot of tower walls. Most now sit on top of something you climb to: a water tank on stilts, a stall block, a signal platform or a kiosk in the market, a cistern, a cab-wrights’ shed, a lamplighters’ platform or a pavilion on the rim, each with a stair or a stack of crates up to its roof. The others rest in the middle of a little square, on a fountain, at a statue’s feet or in a bandstand. Those you already found stay found.
 - A dozen sounds that stood a little over the music since it was raised now sit just under it: the third, heavy swing of the blade and its blow landing, the double jump, the heartbeat at low health, a perfect dodge’s slow-down, the gun’s shot, the fan, a bomb, the boomerang’s aim and its catch, a swimming stroke, and the chime of a quest’s step or a cleared room. The music is as loud as before.
 - In the Hush-House’s fight court in Lorn, the dark frames on the two crates no longer flicker and stripe over their lids as you turn the camera.
 - In the Desert, the red rag over Marrow’s hollow now flies from a tall mast, which you see through Qanat’s main gate from the tree’s roots. In the Glass Dunes, the carriers have left their oil jars where the way up to the breaker’s cairn passes nearest the half-buried court, and a row of their posts leads you there.

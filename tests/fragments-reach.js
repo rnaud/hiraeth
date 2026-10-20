@@ -7,6 +7,7 @@ import { LAYOUT as SPHERES } from '../src/levels/spheres.js';
 import { COURT, HUNG, HUNG2, CRADLE, BOWL, PMOON, HOIST } from '../src/levels/moon-foundry.js';
 import { ROAD as PILGRIMS_ROAD } from '../src/desert-road.js';
 import { FRAGMENT_MARKERS, markerName } from '../src/fragment-markers.js';
+import { FRAGMENT_LANDMARKS, LANDMARK_KINDS, landmarkName, landmarkSpot, onLandmarkTop } from '../src/fragment-landmarks.js';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const UP = V(0, 1, 0), DOWN = V(0, -1, 0);
@@ -305,6 +306,10 @@ export function pointsOfInterest({ scene, level }, id) {
     // (`upper`: on its upper half only, a sphere's top, not the grass at its foot)
     out.push({ kind: 'piece', name: p.name, at: [bx, by + r, bz], test: (x, y, z) => Math.hypot(x - bx, y - by, z - bz) < r + 2 && (!p.upper || y > by) });
   }
+  // (and the landmarks set for them, issue #550's third pass: a roof with a way up, a square's middle; each a place of
+  // its own, src/fragment-landmarks.js; in it as far as half a metre round its top and a metre over or under)
+  (FRAGMENT_LANDMARKS[id] ?? []).forEach((L, i) => out.push({ kind: 'piece', name: landmarkName(id, i), at: landmarkSpot(L), landmark: L,
+    roof: !!LANDMARK_KINDS[L.kind].roof, test: (x, y, z) => onLandmarkTop(L, x, y, z, -0.5, 1) }));
   return out;
 }
 /** On a summit: the topmost ground at x, z, and in 6 of 8 directions the ground SUMMIT_OUT m off SUMMIT_DROP m and more under it (or none). */
@@ -348,6 +353,8 @@ export function raised(physics, x, y, z, rise = 1.2) {
 export function onPlace(p, x, y, z, physics = null) {
   if (!p || p.kind === 'summit' || FLAT_SIGHTS.test(p.name)) return false;
   if (p.marker) return true;
+  // (on a roof, or a square's middle, set for it: on its top, the ground under the spot that top, issue #550)
+  if (p.landmark) return onLandmarkTop(p.landmark, x, y, z) && (!physics || Math.abs(physics.groundAt(x, y + 1.5, z, 4) - y) < 0.3);
   // (and never out on the bare ground round it: raised, or something of it within reach, a wall, a stone, a post)
   const held = () => !!physics && (raised(physics, x, y, z) || byProp(physics, x, y, z));
   if (p.kind === 'sight') return Math.hypot(p.at[0] - x, p.at[2] - z) <= SIGHT_CORE && held();

@@ -13,6 +13,8 @@ import { rough } from './desert-hearth.js';
 //
 // Drawn as one mesh a world (one draw), no collision (you walk up to it and the fragment is yours from 1.5 m), built by
 // src/fragments.js createFragments, so on the web and in the engines alike. They stay when the fragment is taken.
+// (The Signal Market's and the City-Shaft's stood at the foot of tower walls: they gave way to roofs to climb and squares'
+// centrepieces, src/fragment-landmarks.js, issue #550's third pass.)
 
 /** The markers, world by world: [x, y, z] (the ground there), each under one fragment (src/fragments-data.js FRAGMENT_PLACES). */
 export const FRAGMENT_MARKERS = {
@@ -66,22 +68,6 @@ export const FRAGMENT_MARKERS = {
     [354.0, 7.58, 162.0],
   ],
   underwater: [[-103.8, -0.45, -126.9], [-25.8, -0.59, -182.9]],
-  incal: [
-    [746.0, 200.00, -14.0],
-    [262.0, 200.00, -526.0],
-    [214.0, 200.00, 696.0],
-    [730.0, 200.00, 476.0],
-    [-364.0, 200.00, -196.0],
-    [606.0, 200.00, -396.0],
-    [-100.0, 200.00, 522.0],
-    [408.0, 200.00, 446.0],
-    [502.0, 200.00, -650.0],
-    [38.0, 200.00, -260.0],
-    [-258.0, 150.00, 6.0],
-    [968.0, 200.00, 88.0],
-    [582.0, 200.00, 164.0],
-    [-160.0, 150.00, -202.0],
-  ],
   glassdunes: [
     [-554.0, 14.24, -130.0],
     [-556.0, 15.16, 198.0],
@@ -153,26 +139,6 @@ export const FRAGMENT_MARKERS = {
     [-80.0, -4.00, -75.0],
     [-22.0, 0.00, -42.0],
     [-103.0, -4.00, -43.0],
-  ],
-  bazaar: [
-    [-84.0, 0.00, -48.0],
-    [-226.0, 0.00, -494.0],
-    [208.0, 0.00, 158.0],
-    [-272.0, 0.00, -240.0],
-    [-216.0, 0.00, 158.0],
-    [282.0, 0.00, -494.0],
-    [282.0, 0.00, -220.0],
-    [-4.0, 0.00, 178.0],
-    [-6.0, 0.00, -466.0],
-    [-128.0, 0.00, -338.0],
-    [170.0, 0.00, 2.0],
-    [-210.0, 0.00, 12.0],
-    [-282.0, 0.00, -372.0],
-    [220.0, 0.00, -374.0],
-    [158.0, 0.00, -188.0],
-    [62.0, 0.00, 68.0],
-    [-146.0, 0.00, -182.0],
-    [-64.0, 0.00, 68.0],
   ],
 };
 

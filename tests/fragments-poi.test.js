@@ -9,6 +9,9 @@ import assert from 'node:assert/strict';
 import { builtWorld } from './built-worlds.js';
 import { pointsOfInterest, poiAt, POI_THINGS, POI_PIECES, onPlace, placeCap, wetAt, PLACE_CAP } from './fragments-reach.js';
 import { FRAGMENT_MARKERS, markerName, buildFragmentMarkers, MARKER_HEIGHT } from '../src/fragment-markers.js';
+import { FRAGMENT_LANDMARKS, LANDMARK_KINDS, landmarkName, landmarkSpot, onLandmarkTop, buildFragmentLandmarks } from '../src/fragment-landmarks.js';
+import { STEP } from '../src/player.js';
+import { RISE } from './fragments-reach.js';
 import { Waters } from '../src/water.js';
 import * as THREE from 'three';
 import { FRAGMENTS, FRAGMENTS_PER_WORLD, FRAGMENT_PLACES } from '../src/fragments-data.js';
@@ -103,6 +106,43 @@ test('each marker stands on the ground under one fragment, drawn as one mesh a w
     const scene = new THREE.Scene(), m = buildFragmentMarkers(scene, id, world(id).physics);
     if (list.length && (!m || scene.children.length !== 1 || !m.userData.noCollide)) bad.push(`${id}: not one mesh without collision`);
     if (m) { m.geometry.computeBoundingBox(); if (m.geometry.boundingBox.max.y > Math.max(...list.map((p) => p[1])) + MARKER_HEIGHT + 0.1) bad.push(`${id}: a marker over the fragment it carries`); }
+  }
+  assert.deepEqual(bad, []);
+});
+
+// Issue #550, its third pass ("in the Signal Market and on the City-Shaft rim, most plinths stand at the foot of tower
+// walls"): there a roof with a way up or a square's centrepiece stands where each plinth stood (src/fragment-landmarks.js).
+test('the Signal Market’s and the City-Shaft’s roofs and squares: one fragment on each, its way up walked or jumped, no plinth left (issue #550)', () => {
+  const bad = [];
+  for (const id of ['bazaar', 'incal']) {
+    const list = FRAGMENT_LANDMARKS[id] ?? [], { physics } = world(id);
+    if (list.length < 12) bad.push(`${id}: ${list.length} landmarks`);
+    if ((FRAGMENT_MARKERS[id] ?? []).length) bad.push(`${id}: plinths left`);
+    if (list.filter((L) => LANDMARK_KINDS[L.kind].roof).length < 6) bad.push(`${id}: fewer than six roofs`);
+    list.forEach((L, i) => {
+      const name = landmarkName(id, i), on = FRAGMENTS[id].flatMap((f, k) => (onLandmarkTop(L, ...f) ? [k] : []));
+      if (on.length !== 1) { bad.push(`${id}: ${name} carries ${on.length} fragments`); return; }
+      if (FRAGMENT_PLACES[id][on[0]] !== name) bad.push(`${id} ${on[0]}: on ${name}, said to be on ${FRAGMENT_PLACES[id][on[0]]}`);
+      const sp = landmarkSpot(L), f = FRAGMENTS[id][on[0]];
+      if (Math.hypot(sp[0] - f[0], sp[2] - f[2]) > 0.05 || Math.abs(sp[1] - f[1]) > 0.02) bad.push(`${id}: ${name}'s fragment off its spot`);
+      // (its way up, from the ground in front to its top, along the stair's or the crates' middle: each rise a step (0.6 m)
+      // or, the crates and a fountain's rim and drum, a plain jump (1.4 m); the statue's and bandstand's from the square)
+      const K = LANDMARK_KINDS[L.kind], c = Math.round(Math.cos(L.yaw)), s = Math.round(Math.sin(L.yaw));
+      const W = (lx, lz) => [L.at[0] + lx * c + lz * s, L.at[2] - lx * s + lz * c];
+      const path = L.kind === 'block' ? [[5.1, 4], [5.1, -2.5], [2, -2.5], [K.spot[0], K.spot[1]]] : L.kind === 'tank' ? [[1.7, K.foot.z1 + 1], [1.7, 2], [K.spot[0], K.spot[1]]]
+        : [[K.spot[0], K.foot.z1 + 1], [K.spot[0], K.spot[1]]];
+      let y = L.at[1], worst = 0;
+      for (let k = 1; k < path.length; k++) for (let t = 0; t <= 1; t += 0.02) {
+        const [lx, lz] = [path[k - 1][0] + (path[k][0] - path[k - 1][0]) * t, path[k - 1][1] + (path[k][1] - path[k - 1][1]) * t], [x, z] = W(lx, lz);
+        const g = physics.groundAt(x, y + 2, z, 4);
+        if (!Number.isFinite(g)) { worst = Infinity; break; }
+        worst = Math.max(worst, g - y); y = g;
+      }
+      const most = L.kind === 'block' || L.kind === 'fountain' ? RISE.jump : STEP;
+      if (!(worst <= most) || Math.abs(y - f[1]) > 0.05) bad.push(`${id}: ${name}: its way up rises ${worst.toFixed(2)} m at once (at most ${most}) and ends ${(y - f[1]).toFixed(2)} m from its top`);
+    });
+    const scene = new THREE.Scene(), g = buildFragmentLandmarks(scene, id), meshes = g?.children ?? [];
+    if (meshes.length !== 4 || meshes.filter((m) => m.visible && !m.userData.noCollide).length !== 1 || meshes.some((m) => !m.visible && m.userData.noCollide)) bad.push(`${id}: not one solid, two drawn and one walked-on mesh`);
   }
   assert.deepEqual(bad, []);
 });
