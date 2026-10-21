@@ -501,3 +501,22 @@ in (the end: `to`, moved a step in from the lip where the top goes on at the sam
 kneeling (the kneel gesture's clip), weighted in and out by `mantleKneel` over the standing pose, the body following
 its hips; without the capture, `Humanoid.kneel`. It takes `0.78 + 0.16 s` a metre of rise (1 m 0.94 s, 1.9 m 1.08 s,
 2.6 m 1.2 s; it was 0.87-1.06 s), and pushing on while getting up hurries that part 1.6 times. `tests/mantle.test.js`.
+
+### Moving-floor height and locked forward takeoff (issues #610, #612)
+
+Ground collision samples the moving surface at its current transform. Once grounded,
+carrier following applies only the displacement tangent to gravity: applying its height
+again would hover above rising decks and sink into descending ones. `_ridden` retains the
+full displacement so planted feet and body lag follow the floor vertically as well.
+Shaped moving solids use the same grounded descent continuity as flat riding discs; a
+jump releases either kind. Tests sample continuous contact at 30, 60 and 120 Hz and the
+actual Moon Foundry carrier, rather than checking only arrival at its dock. The native
+frame loop now calls `physics.syncMovers(dt)` before character movement, matching the web;
+without it, animated colliders stayed at their initial position in Unity. A real engine
+frame test covers both directions and verifies actual vertical travel, including interleaved
+zero-time render frames. Held frames do not consume the next live step’s mover delta.
+
+A locked-on forward jump starts with the current allowed grounded movement pace toward
+the actual enemy direction, including from rest. This avoids carrying only one frame of
+ground acceleration into the air. A stationary jump stays vertical; side/back dodge hops,
+aiming, and ordinary unlocked jumps retain their existing behavior.

@@ -1740,6 +1740,10 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
         if (post.uniforms.uInk) wind.uniforms.uInk.value = post.uniforms.uInk.value;
       }
       level.lightAt?.(player.pos, sharedUniforms.uSunDir.value);
+      // As on the web, follow the moving geometry drawn last frame before characters move
+      // (#610). Otherwise a crane's deck moves visually while its collision stays at the dock.
+      // A held render frame must not consume the next live step's transform delta.
+      if (dt > 0) physics.syncMovers(dt);
       lap?.('weather');
       sharedUniforms.uTime.value = simT;
       if (crowd) crowd.hush = !talkAllowed({ shipPlaying: shipOn && ship.playing }) || !!pinned;   // (no shouts over a ship's scene: main.js)

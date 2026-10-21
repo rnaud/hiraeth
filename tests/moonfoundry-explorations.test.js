@@ -193,7 +193,13 @@ test('the moon-carrier carries a traveller from the signal box down to the looko
   P.has = () => false;
   P.respawn(ridePos(0).add(V(0, 0.3, 0)));
   let t = 0;
-  for (; t < 60 && rideDocked(st) !== 1; t += 1 / 60) { C.update(1 / 60, t, 10); physics.syncMovers(1 / 60); P.update(1 / 60, {}, 0); }
+  for (; t < 60 && rideDocked(st) !== 1; t += 1 / 60) {
+    C.update(1 / 60, t, 10); physics.syncMovers(1 / 60); P.update(1 / 60, {}, 0);
+    if (t > .4) {
+      assert.ok(P.onGround, `grounded on the travelling moon at ${t.toFixed(2)} s`);
+      assert.ok(Math.abs(P.pos.y - ridePos(st.u).y) < .003, `feet stay on the travelling moon: gap ${P.pos.y - ridePos(st.u).y}`);
+    }
+  }
   for (let k = 0; k < 30; k++) { C.update(1 / 60, t, 10); physics.syncMovers(1 / 60); P.update(1 / 60, {}, 0); }
   const B = ridePos(1);
   assert.ok(flat(P.pos, B) < 1.6 && Math.abs(P.pos.y - B.y) < 0.4, `carried to the lookout’s dock (${P.pos.toArray().map((v) => v.toFixed(1))} for ${B.toArray().map((v) => v.toFixed(1))})`);

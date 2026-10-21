@@ -1701,6 +1701,13 @@ export class Player {
         jumped = true;
       } else if (input.Space && this.onGround && !this._jumpHeld) {
         vu = this.carrying ? JUMP * CARRY.jump : JUMP;   // (carrying: a hop)
+        // A forward lock-on jump commits toward the foe even from rest (#612), rather than
+        // taking off with just one frame of ground acceleration. Idle jumps and dodge hops
+        // keep their own motion; use the actual foe direction, not the near-camera hop axis.
+        if (this.lockOn && !this.aim && f > 0 && steering) {
+          const toward = _g6.copy(this.lockOn.dir).addScaledVector(U, -this.lockOn.dir.dot(U)).normalize();
+          if (toward.lengthSq() > .5) tv.copy(toward).multiplyScalar(speed);
+        }
         this.onGround = false;
         jumped = true;
         this._jumped = true;   // (the pose's take-off: src/jump.js)
@@ -1800,7 +1807,13 @@ export class Player {
     else if (this.onGround) restStamina(this, dt * (this.restK ?? 1), Math.hypot(this.vel.x, this.vel.z) < 0.5 ? STAMINA.stand : STAMINA.walk);
     // ride along on whatever you're standing on (and the feet held on it, and the drawn body's step lag, with you)
     (this._ridden ??= new THREE.Vector3()).set(0, 0, 0);
-    if (carrier && this.onGround) { this.pos.addScaledVector(carrier.vel, dt); this._ridden.copy(carrier.vel).multiplyScalar(dt); }
+    if (carrier && this.onGround) {
+      this._ridden.copy(carrier.vel).multiplyScalar(dt);
+      // Ground collision has already snapped to the carrier's current height (#610).
+      // Only its tangent travel remains to apply; retain the full displacement for held
+      // feet and body lag so they follow its vertical motion too.
+      this.pos.add(this._ridden).addScaledVector(U, -this._ridden.dot(U));
+    }
 
     // Still ended up inside solid geometry (a moving taxi, a teleport, a
     // vehicle): step out to the nearest free spot, or back to the last one.
@@ -1889,7 +1902,7 @@ export class Player {
         if (d.topAt) {
           // (a shaped solid, src/carriers.js: a cab's hull and canopy, a ball's dome)
           const above = this.pos.y - (hd <= d.r ? d.topAt(this.pos.x, this.pos.z) : -Infinity);
-          if (above > -0.5 && above < 0.9 && this.vel.y - d.vel.y <= 0.5) { if (above < roofH) { roofH = above; carrier = d; } }
+          if (above > -0.5 && above < 0.9 && (this.vel.y - d.vel.y <= 0.5 || (this._carriedBy === d && this.onGround && this.vel.y <= 0.5))) { if (above < roofH) { roofH = above; carrier = d; } }
           else if (this.pos.y + HEIGHT > d.bottom) d.pushOut?.(this.pos, RADIUS);
           continue;
         }
