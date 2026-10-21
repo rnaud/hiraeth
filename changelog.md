@@ -7,6 +7,8 @@ The same release notes shown in the game (press **N** or open settings).
 - The porch folds into the ship before departure, with its furniture secured overhead; it opens again after touchdown.
 - Your ship is now the rounded caravan, with four rear boosters, a raised cockpit and furnished rooms you can walk through.
 - The caravan sits closer to the ground on shorter landing legs, with a shorter boarding ramp.
+- Directions and conversations now name the tools you actually find, point to the uncovered ship scar and the correct signal-lamp direction, and respect expanded tanks.
+- The ending remembers a visit to Hollin without claiming you made a promise or delivered news you never gave him.
 
 ## v1.90 — 2026-10-20
 

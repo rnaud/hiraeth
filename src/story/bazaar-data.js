@@ -238,7 +238,7 @@ export const PEOPLE = {
         },
         you: {
           say: ["~surprised~ You can shoot from here? Good. *Hit all three bulbs quickly*, before the first fades.",
-            "~neutral~ Aim with {key:aim}, fire with {key:fire}. One shot a bulb, and your tank holds three, so don’t get creative."],
+            "~neutral~ Aim with {key:aim}, fire with {key:fire}. One shot a bulb. Light all three before the first fades."],
           choices: [{ text: '~playful~ Stand back.', end: true }],
         },
         light: {
@@ -345,7 +345,7 @@ export const STREET = {
   wynn: {
     id: 'wynn', name: 'Wynn', title: 'the last listener', color: '#b9a37a', look: { head: 'skullcap', body: 'muffler' },
     talk: { listen: [
-        { if: { not: ON_AIR }, say: "~whisper~ Shh. Thirty years I’ve sat under these dishes, and the tower hasn’t said a word. I keep them turned to it anyway, in case it starts again." },
+        { if: { not: ON_AIR }, say: "~whisper~ Shh. Thirty years I’ve listened under these dishes. Not a word since the night every sign showed the mark. I keep them turned to the tower anyway, in case it starts again." },
         { if: { not: ON_AIR }, say: '~neutral~ We were twelve once, one dish each, all up this lane. The others went to the avenue to sell. Selling pays better than listening.' },
         '~curious~ Every dish here is aimed at the tower, to a finger’s width. Feel the poles: they hum when the wind is right.',
         '~playful~ People ask what I hear back here. Pigeons, mostly. Once a man proposing to a cab driver. She said yes.',
@@ -374,7 +374,7 @@ export const THINGS = {
       entry: [{ if: { flag: 'bazaar.oldsign.awake' }, node: 'awake' }, { node: 'dark' }],
       nodes: {
         dark: { say: ["~neutral~ A slate-coloured sign hangs beneath the bridge. Its straps are newer than the plate, and very old themselves.", '~neutral~ Old plates drink light. (*Shoot* it with the fluid.)'], choices: [{ text: '~neutral~ (step back)', end: true }] },
-        awake: { say: ["~solemn~ The plate lights up. Beneath {glyph}, four words: WE HEARD YOU."], choices: [{ text: '~neutral~ (read it again)', end: true }] },
+        awake: { say: ["~solemn~ The plate lights up. Beneath {glyph}, three words: WE HEARD YOU."], choices: [{ text: '~neutral~ (read it again)', end: true }] },
       },
     },
   },

@@ -263,7 +263,7 @@ export const PEOPLE = {
         tree: {
           say: ["~solemn~ Qanat’s tree used to burn without consuming its wood. The water in its roots fed the fire. It had burned longer than anyone remembered.", "~sad~ The night before you came down, a singing light passed over, and the tree’s fire went out. We watched it go from the camps."],
           choices: [
-            { text: '~curious~ Can it be lit again?', goto: 'giants' },
+            { text: '~curious~ Where does its water come from?', goto: 'giants' },
             { text: '~neutral~ I need power for my ship.', goto: 'early' },
           ],
         },

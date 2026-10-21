@@ -237,7 +237,7 @@ export function setupArzach2(ctx) {
     game.set('arzach2.lamp.notch', (((notch() + by) % 8) + 8) % 8);
     sound.critter?.('clack', 0.7);
     if (notch() === 0) {
-      if (!lampLit()) toast('The turntable clunks into the notch by the carved bell. The mirror looks north now, at the rose cliff, far off over the plain.');
+      if (!lampLit()) toast('The turntable clunks into the notch by the carved bell. The mirror looks south now, at the rose cliff, far off over the plain.');
       else answer();
     } else if (!lampSt.turned) { lampSt.turned = true; toast('The turntable grinds round one notch. The carved bell is still not under the mirror.'); }
   };

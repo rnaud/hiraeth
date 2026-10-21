@@ -129,9 +129,9 @@ export const PEOPLE = {
         hello: {
           say: ['~neutral~ Years back I cast a plate for a ship’s nose, for a woman who asked nicely and paid in advance.',
             '~curious~ She drew it in soot on the floor: {glyph}. *So they’ll know me,* she said.',
-            '~solemn~ I didn’t ask who they were. I poured it twice to get the arc right.'],
+            '~solemn~ I didn’t ask who they were. I poured it twice to get the corner clean.'],
           do: { set: { 'sight.moonfoundry.bertil': true } },
-          choices: [{ text: '~curious~ Where did she go?', goto: 'where' }, { text: '~neutral~ It’s a good arc.', end: true }],
+          choices: [{ text: '~curious~ Where did she go?', goto: 'where' }, { text: '~neutral~ It’s a clean corner.', end: true }],
         },
         where: { say: ['~neutral~ Up. Same as everyone who lands on the apron. She looked back at the moons the whole way out to her ship.'], choices: [{ text: '~solemn~ I’d have looked back too.', end: true }] },
         again: {

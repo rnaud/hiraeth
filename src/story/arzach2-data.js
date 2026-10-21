@@ -306,7 +306,7 @@ export const THINGS = {
       nodes: {
         look: {
           say: ["~neutral~ A bronze signal lamp sits on a turntable, a polished mirror behind it and a wooden tiller at its back. The oil still smells sweet.",
-            { if: { flag: 'arzach2.lamp.notch', is: 0 }, text: "~curious~ There are eight notches. The mirror faces *the notch with a carved bell*: north, toward the monastery." },
+            { if: { flag: 'arzach2.lamp.notch', is: 0 }, text: "~curious~ There are eight notches. The mirror faces *the notch with a carved bell*: south, toward the monastery." },
             { if: { not: { flag: 'arzach2.lamp.notch', is: 0 } }, text: "~curious~ The mirror points away from *the carved bell*. *Push the tiller sideways* to turn it toward that notch and the monastery." },
             { if: { not: { flag: 'arzach2.lamp.lit' } }, text: "~neutral~ The wick is dry and dark. It needs a light." }],
           choices: [{ text: '~neutral~ (step back)', end: true }],

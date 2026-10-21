@@ -198,7 +198,7 @@ export const PEOPLE = {
           ],
         },
         thumb: {
-          say: ["~solemn~ {glyph} The Maker’s Thumb. They say its builder pressed three fingers into soft iron and drew an arc. Every gauge carries it.", "~curious~ Wen says your ship has that mark. Was your ship built by the same hands?"],
+          say: ["~solemn~ {glyph} The Maker’s Thumb. They say its builder bent a finger into soft iron and set a thumb beside it. Every gauge carries it.", "~curious~ Wen says your ship has that mark. Was your ship built by the same hands?"],
           do: { set: { 'clue.buried.mark': true } },
           choices: [{ text: '~neutral~ No. Something brushed it.', do: { set: { 'buried.hask.said': 'hit' } }, goto: 'hit' }, { text: '~neutral~ I don’t know.', do: { set: { 'buried.hask.said': 'unsure' } }, goto: 'hit' }],
         },

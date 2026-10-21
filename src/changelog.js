@@ -9,6 +9,8 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   { v: '1.91', date: '2026-10-20', items: [
+    { text: 'The ending remembers a visit to Hollin without claiming you made a promise or delivered news you never gave him.', see: 'Return home after declining his invitation, or after keeping your promise before learning about Odile and Talo. The words at the stone now fit both choices.' },
+    { text: 'Directions and conversations now name the tools you actually find, point to the uncovered ship scar and the correct signal-lamp direction, and respect expanded tanks.', see: 'Ask the City-Shaft and Moon Foundry keepers about their tools, ask Ama about the tree’s water, or return to Vey after she moves the flowers. The makers’ mark and Signal Market’s chronology are described consistently too.' },
     { text: 'The caravan sits closer to the ground on shorter landing legs, with a shorter boarding ramp.',
       see: 'The landed deck is now 2.8 m above flat ground instead of 4.68 m. Its legs and porch supports adapt to the terrain; steep slopes still need longer ramps. The rooms and automatic packing stay the same.' },
     { text: 'Your ship is now the rounded caravan, with four rear boosters, a raised cockpit and furnished rooms you can walk through.',

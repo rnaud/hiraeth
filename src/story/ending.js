@@ -239,7 +239,7 @@ export function tokenLine(t) {
     case 'item': return spoken('scene', ITEM_LINES[t.item] ?? `~solemn~ (${name}.)`);
     case 'song': return spoken('scene', `~solemn~ (${name}. You can hum it now without thinking.)`);
     case 'word': return spoken('scene', `~solemn~ (“${quoteOf(t.keepsake ?? t)}”)`);
-    case 'person': return spoken('scene', `~solemn~ (${name}. Someone you promised to visit again.)`);
+    case 'person': return spoken('scene', `~solemn~ (${name}. Someone who kept a place for you.)`);
     case 'knowing': return spoken('scene', `~solemn~ (${name}. Something you wish you could explain to them.)`);
     default: return spoken('scene', `~solemn~ (${name}. All this way, in your keeping.)`);
   }
@@ -337,7 +337,7 @@ export function ilenOnChoices(ch = {}) {
   const out = [];
   if (ch.token === 'returned') out.push(IL('~whisper~ He gave a man his way home, Dad. You’d have called it a waste. It wasn’t.'));
   else if (ch.token === 'kept') out.push(IL('~solemn~ He kept a guard’s way home safe, Dad. Eleven years in a pocket. It can rest here now.'));
-  if (ch.promise === 'kept') out.push(IL('~happy~ And he went back to the deep wood, like he said. Hollin knows where Odile and Talo went now.'));
+  if (ch.promise === 'kept') out.push(IL('~happy~ And he went back to the deep wood, like he said. Hollin knows he kept his word.'));
   else if (ch.promise === 'made') out.push(IL('~playful~ He still owes a lamp-keeper a visit. I’ll see that he goes.'));
   else if (ch.promise === 'declined') out.push(IL('~solemn~ He wouldn’t promise a lamp-keeper he’d come back. He knows what waiting costs. He learned that here.'));
   if (ch.broke) out.push(IL('~solemn~ He broke something he couldn’t mend, and said sorry, and went when he was asked. You taught him that one.'));

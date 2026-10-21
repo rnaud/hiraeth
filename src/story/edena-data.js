@@ -352,10 +352,10 @@ export const PEOPLE = {
         again: { say: ["~neutral~ *The hatch beneath the flower arch.* Enter gently. Leave the vines intact."], choices: [{ text: '~whisper~ Gently.', end: true }] },
         pushed: { say: ["~angry~ I saw you push the vines. They pushed back. Try watering them. Force isn’t the only thing your hands can do."], choices: [{ text: '~sad~ Sorry, Vey.', end: true }] },
         opened: {
-          say: ["~surprised~ They moved aside for you. Forty years tending them, and I’ve never seen that.", "~curious~ No cutting. No tearing. They made room. *Go inside and look.* Then let them close again."],
+          say: ["~surprised~ They moved aside for you. Forty years tending them, and I’ve never seen that.", "~curious~ No cutting. No tearing. They made room. *Look beneath the flowers on the flank.* Then let them close again."],
           choices: [{ text: '~solemn~ I’ll look, and let it close.', end: true }],
         },
-        after: { say: ["~solemn~ The flowers are closing over the hatch. By spring they’ll be thicker. Leave them that much."], choices: [{ text: '~solemn~ That’s how it should be.', end: true }] },
+        after: { say: ["~solemn~ The flowers are closing over the scar. By spring they’ll be thicker. Leave them that much."], choices: [{ text: '~solemn~ That’s how it should be.', end: true }] },
         flood: {
           say: ["~angry~ I heard about the terraces. That gate had been shut longer than anyone remembered. Now we know how little we knew about it.", "~solemn~ The garden will grow over the mud. That won’t make it Esk’s old hill again."],
           do: { set: { 'edena.vey.flood': true } },

@@ -53,7 +53,7 @@ export const PEOPLE = {
             { text: '~neutral~ I’m going back.', end: true },
           ],
         },
-        four: { say: ["~curious~ Four targets, and your tank holds three shots? Then hit two at once. The makers kept *ink bombs* in there for stubborn engines. They left tools near their problems."], choices: [{ text: '~neutral~ I’ll look.', end: true }] },
+        four: { say: ["~curious~ Four targets. Hit two at once. The makers kept *ink bombs* in there for stubborn engines. They left tools near their problems."], choices: [{ text: '~neutral~ I’ll look.', end: true }] },
         after: {
           say: ["~surprised~ The grinding stopped! Then the dune hummed and the cart rose out of the sand. Went down the ramp as if it hadn’t missed a day.",
             "~happy~ Children are riding it to the oculus and back. Jot’s done nine trips. I suspect a tenth is already underway.",
