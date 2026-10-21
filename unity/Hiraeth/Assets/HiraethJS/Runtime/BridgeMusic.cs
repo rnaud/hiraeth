@@ -110,6 +110,84 @@ namespace Hiraeth.Bridge
 
         static IEnumerable<string> Roots() => (object)BridgeHost.Runner != null ? BridgeHost.Runner.PublicRoots() : new string[0];
 
+        // Short effects are decoded at most two at a time, copied to the existing JS DSP graph, then released.
+        // Queue/result caps also bound callers that never poll. No native AudioSource bypasses game gain/pan/mute.
+        class Effect { public int id; public string path, state = ""; public byte[] pcm; public AudioClip clip; public double started; }
+        readonly Dictionary<int, Effect> effects = new();
+        readonly Dictionary<string, Effect> effectPaths = new();
+        int effectActive, effectBytes;
+        public int LoadEffect(string path)
+        {
+            if (path == null || !System.Text.RegularExpressions.Regex.IsMatch(path, @"^sfx/[a-zA-Z0-9][a-zA-Z0-9_-]*\.(mp3|wav)$")) return 0;
+            Effect e;
+            lock (gate)
+            {
+                if (effectPaths.TryGetValue(path, out e)) return e.id;
+                if (effects.Count >= 64) return 0;
+                e = new Effect { id = ++nextId, path = path, started = Clock.Elapsed.TotalSeconds };
+                effects[e.id] = e; effectPaths[path] = e;
+            }
+            BridgeHost.On(() => StartCoroutine(DecodeEffect(e)));
+            return e.id;
+        }
+        public string EffectState(int id) { lock (gate) return effects.TryGetValue(id, out var e) ? e.state : "fail,no such effect"; }
+        public byte[] TakeEffect(int id)
+        {
+            lock (gate) {
+                if (!effects.TryGetValue(id, out var e) || e.state == "") return null;
+                effects.Remove(id); effectPaths.Remove(e.path); effectBytes -= e.pcm?.Length ?? 0; return e.pcm;
+            }
+        }
+        IEnumerator DecodeEffect(Effect e)
+        {
+            while (effectActive >= 2) {
+                if (Clock.Elapsed.TotalSeconds - e.started > 30) { lock (gate) e.state = "fail,queue timeout"; yield break; }
+                yield return null;
+            }
+            effectActive++;
+            try {
+                string uri = null, archive = null;
+                foreach (var root in Roots()) {
+                    var file = Path.Combine(root, e.path);
+                    if (root.Contains("://")) { archive ??= file; continue; }
+                    if (!File.Exists(file)) continue;
+                    if (new FileInfo(file).Length > 2 * 1024 * 1024) { lock (gate) e.state = "fail,encoded effect too large"; yield break; }
+                    uri = new Uri(file).AbsoluteUri; break;
+                }
+                uri ??= archive;
+                if (uri == null) { lock (gate) e.state = "fail,not found"; yield break; }
+                using var req = UnityWebRequestMultimedia.GetAudioClip(uri, e.path.EndsWith(".wav", StringComparison.OrdinalIgnoreCase) ? AudioType.WAV : AudioType.MPEG);
+                req.timeout = 15;
+                var handler = (DownloadHandlerAudioClip)req.downloadHandler;
+                handler.streamAudio = false; handler.compressed = false;
+                yield return req.SendWebRequest();
+                if (req.result != UnityWebRequest.Result.Success || req.downloadedBytes > 2 * 1024 * 1024) {
+                    lock (gate) e.state = "fail,effect request failed or too large"; yield break;
+                }
+                try { e.clip = DownloadHandlerAudioClip.GetContent(req); }
+                catch (Exception ex) { lock (gate) e.state = "fail," + Clean(ex.Message); }
+                if (!e.clip) { lock (gate) e.state = "fail,no decoded clip"; yield break; }
+                var c = e.clip;
+                if (c.channels < 1 || c.channels > 2 || c.samples <= 0 || c.frequency < 8000 || c.frequency > 192000 ||
+                    c.length > 30 || (long)c.samples * c.channels * 4 > 8 * 1024 * 1024) {
+                    lock (gate) e.state = "fail,effect PCM exceeds limits"; yield break;
+                }
+                var samples = new float[c.samples * c.channels];
+                if (!c.GetData(samples, 0)) { lock (gate) e.state = "fail,effect PCM unavailable"; yield break; }
+                var bytes = new byte[samples.Length * 4];
+                Buffer.BlockCopy(samples, 0, bytes, 0, bytes.Length);
+                if (!BitConverter.IsLittleEndian) for (int i = 0; i < bytes.Length; i += 4) Array.Reverse(bytes, i, 4);
+                lock (gate) {
+                    if (effectBytes + bytes.Length > 16 * 1024 * 1024) e.state = "fail,effect transfer budget full";
+                    else { effectBytes += bytes.Length; e.pcm = bytes; e.state = $"ok,{c.channels},{c.samples},{c.frequency}"; }
+                }
+            } finally {
+                if (e.clip) { Destroy(e.clip); e.clip = null; }
+                lock (gate) if (e.state == "") e.state = "fail,effect decoder interrupted";
+                effectActive--;
+            }
+        }
+
         // ------------------------------------------------------------ every frame: the clips where the shim says, as loud
         void Update()
         {
@@ -238,7 +316,7 @@ namespace Hiraeth.Bridge
 
         void OnDestroy()
         {
-            lock (gate) { foreach (var c in clips.Values) if (c.clip) Destroy(c.clip); clips.Clear(); byPath.Clear(); }
+            lock (gate) { foreach (var c in clips.Values) if (c.clip) Destroy(c.clip); clips.Clear(); byPath.Clear(); foreach (var e in effects.Values) if (e.clip) Destroy(e.clip); effects.Clear(); effectPaths.Clear(); }
         }
 
         // ------------------------------------------------------------ the themes a package doesn't carry, downloaded once

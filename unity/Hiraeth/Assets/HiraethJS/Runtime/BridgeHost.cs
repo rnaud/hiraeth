@@ -219,6 +219,9 @@ namespace Hiraeth.Bridge
         // ---------------------------------------------------------------- the recorded music (BridgeMusic: Unity decodes the MP3s)
         static BridgeMusic Music => (object)Runner != null && Runner.music is BridgeMusic m ? m : null;
         /// <summary>A file of public/ (music/x.mp3) decoded by Unity: its clip's id (0: no music here); MusicState says when.</summary>
+        public static int SfxLoad(string path) => Music?.LoadEffect(path) ?? 0;
+        public static string SfxState(int id) => Music?.EffectState(id) ?? "fail,no audio host";
+        public static object SfxTake(int id) => JsRuntime.ToScript(Music?.TakeEffect(id));
         public static int MusicLoad(string path) => Music?.Load(path) ?? 0;
         /// <summary>"" decoding, "ok,channels,samples,frequency", "fail,why".</summary>
         public static string MusicState(int id) => Music?.State(id) ?? "fail,no music here";

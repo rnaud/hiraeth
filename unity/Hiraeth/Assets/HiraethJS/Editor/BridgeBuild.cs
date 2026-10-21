@@ -59,6 +59,7 @@ namespace Hiraeth.EditorTools
             }
             TravellerV2();
             Music();
+            Effects();
             if (!File.Exists(Path.Combine(Application.streamingAssetsPath, "hiraeth-js", "hiraeth.cjs"))) throw new Exception("no bundle: node scripts/engine-bundle.mjs unity");
             AssetDatabase.Refresh();
             KeepShaders();
@@ -133,6 +134,19 @@ namespace Hiraeth.EditorTools
 
         /// <summary>The recordings every device carries (src/music-store.js ON_DEVICE_THEMES; tests/engine-music.test.js checks they agree).</summary>
         public static readonly string[] OnDeviceThemes = { "desert-bayati.mp3", "singing-light.mp3", "title.mp3" };
+
+        /// <summary>Short effects are available offline on every native platform.</summary>
+        static void Effects()
+        {
+            var src = Path.Combine(Repo, "public", "sfx");
+            var dst = Path.Combine(Application.streamingAssetsPath, "hiraeth-js", "public", "sfx");
+            Directory.CreateDirectory(dst);
+            var want = new HashSet<string>(Directory.Exists(src) ? Directory.GetFiles(src).Where(f => f.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase) || f.EndsWith(".wav", StringComparison.OrdinalIgnoreCase)).Select(Path.GetFileName) : Enumerable.Empty<string>());
+            foreach (var file in Directory.GetFiles(dst).Where(f => f.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase) || f.EndsWith(".wav", StringComparison.OrdinalIgnoreCase))) if (!want.Contains(Path.GetFileName(file))) {
+                File.Delete(file); if (File.Exists(file + ".meta")) File.Delete(file + ".meta");
+            }
+            foreach (var name in want) File.Copy(Path.Combine(src, name), Path.Combine(dst, name), true);
+        }
 
         /// <summary>
         /// The recorded music (BridgeMusic decodes the MP3s as they are) into StreamingAssets/hiraeth-js/public/music: every

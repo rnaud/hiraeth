@@ -1578,6 +1578,25 @@ pools every so often in play. Load keeps the lights unless a list comes with it 
 off-screen cull (#262) is unchanged; a shot (`BridgeRunner.Shot`) culls against its own 16:9 picture, not the 4:3
 batch window, and logs `lights at <shot>: kept of near` (Rose House: 8/8, 6/8, 7/8, 8/8; desert bench views: spawn
 8/8, qanat-tree 7/8, camps 6/8, cave 6/6, dunes 2/3).
+## Short recorded effects in Unity
+
+The existing `decodeAudioData` bridge also accepts `sfx/<name>.mp3` and `sfx/<name>.wav`. Unlike long music,
+these recordings become ordinary `AudioBuffer` PCM: their playback rate, stereo pan,
+filters, loop, gain/mute and `onended` use the same DSP graph and audio-worker protocol
+as synthesized effects. The native decoder never creates an effect `AudioSource`.
+`BridgeBuild.Common` copies `public/sfx/*.mp3` and `public/sfx/*.wav` into every package through its existing
+StreamingAssets route and removes stale packaged effects. There is no effect download
+service; a missing or rejected recording leaves the caller's procedural fallback available.
+
+`BridgeMusic` limits decoding to two simultaneous requests, 64 outstanding handles,
+2 MiB encoded per file, mono/stereo, 30 seconds and 8 MiB PCM per effect. Completed PCM
+awaiting transfer is capped at 16 MiB. Requests time out after 15 seconds and queued
+requests after 30 seconds. Duplicate pending paths share one request. `SfxTake` consumes
+successes and failures; temporary Unity clips are destroyed after extraction and all
+remaining clips/results are released with the host. The sample bank owns the final
+JavaScript buffers rather than a second permanent native PCM cache. These limits are
+intended for short effects and seamless short loops, not long ambience recordings.
+
 ## The recorded music (Unity + Puerts, 2026-10-15, issue #264)
 
 The Web Audio shim can't decode an MP3, so until now Unity played only the procedural score: no world themes, no

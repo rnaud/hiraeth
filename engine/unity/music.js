@@ -10,7 +10,7 @@ import { SHEET_SITE } from '../../src/levels/reference-sheets.js';
 
 const pending = new Map();   // Unity's clip id → the decodes waiting on it [{ resolve, reject, path }]
 
-/** Only music: the effects (src/sfx.js) stay as they are in the engines. */
+/** Public audio paths; effects are decoded to ordinary PCM, never streamed music voices. */
 export const MUSIC_FILE = /^music\/[^/]+\.mp3$/i;
 
 /**
@@ -18,10 +18,20 @@ export const MUSIC_FILE = /^music\/[^/]+\.mp3$/i;
  * Unity (BridgeHost.MusicLoad). Resolves { native, file, numberOfChannels, length, sampleRate } when Unity has decoded it
  * (pollMusic), rejects for anything else (the procedural score goes on, as before).
  */
+export const SFX_FILE = /^sfx\/[a-z0-9][a-z0-9_-]*\.(mp3|wav)$/i;
+const effects = new Map();
+
 export function musicDecoder(host) {
   return (data) => {
     const path = fetchedPath(data);
-    if (!path || !MUSIC_FILE.test(path) || !host?.MusicLoad) throw new Error(`decodeAudioData: the engine decodes only the music (${path ?? 'bytes from nowhere'})`);
+    if (path && SFX_FILE.test(path) && host?.SfxLoad) {
+      const id = host.SfxLoad(path);
+      if (!(id > 0)) throw new Error(`decodeAudioData: effect queue unavailable (${path})`);
+      return new Promise((resolve, reject) => {
+        const w = effects.get(id) ?? []; w.push({ resolve, reject, path }); effects.set(id, w);
+      });
+    }
+    if (!path || !MUSIC_FILE.test(path) || !host?.MusicLoad) throw new Error(`decodeAudioData: unsupported engine audio file (${path ?? 'bytes from nowhere'})`);
     const id = host.MusicLoad(path);
     if (!(id > 0)) throw new Error(`decodeAudioData: no music in this player (${path})`);
     return new Promise((resolve, reject) => { const w = pending.get(id) ?? []; w.push({ resolve, reject, path }); pending.set(id, w); });
@@ -30,6 +40,17 @@ export function musicDecoder(host) {
 
 /** Every frame: the decodes Unity has finished (BridgeHost.MusicState: "" not yet, "ok,channels,samples,frequency", "fail,why"). */
 export function pollMusic(host) {
+  for (const [id, waits] of effects) {
+    const state = String(host.SfxState(id) ?? '');
+    if (!state) continue;
+    effects.delete(id);
+    const [kind, channels, length, rate] = state.split(',');
+    try {
+      const pcm = host.SfxTake(id); // consumes the bounded native result, including failures
+      if (kind !== 'ok') throw new Error(`Unity could not decode ${waits[0].path}: ${state}`);
+      for (const w of waits) w.resolve({ pcm, numberOfChannels: +channels, length: +length, sampleRate: +rate });
+    } catch (error) { for (const w of waits) w.reject(error); }
+  }
   if (!pending.size) return;
   for (const [id, waits] of pending) {
     const s = String(host.MusicState(id) ?? '');

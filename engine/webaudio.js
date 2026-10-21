@@ -332,6 +332,24 @@ export class PeriodicWave {
   }
 }
 
+/** Decoded short recordings use the ordinary DSP graph, including pitch, pan and loop/stop lifecycle. */
+function decodedBuffer(d) {
+  if (d.native) return new NativeAudioBuffer(d);
+  const { numberOfChannels: channels, length, sampleRate, pcm } = d;
+  if (![1, 2].includes(channels) || !Number.isInteger(length) || length <= 0 ||
+      !Number.isInteger(sampleRate) || sampleRate < 8000 || sampleRate > 192000 ||
+      length / sampleRate > 30 || length * channels * 4 > 8 * 1024 * 1024 ||
+      !(pcm instanceof ArrayBuffer) || pcm.byteLength !== length * channels * 4)
+    throw new Error('decodeAudioData: invalid or oversized effect PCM');
+  const view = new DataView(pcm), buf = new AudioBuffer(d);
+  for (let i = 0; i < length; i++) for (let c = 0; c < channels; c++) {
+    const v = view.getFloat32((i * channels + c) * 4, true);
+    if (!Number.isFinite(v)) throw new Error('decodeAudioData: non-finite effect PCM');
+    buf._ch[c][i] = v;
+  }
+  return buf;
+}
+
 export class AudioBuffer {
   constructor({ numberOfChannels = 1, length, sampleRate }) {
     this.numberOfChannels = numberOfChannels; this.length = length; this.sampleRate = sampleRate; this.duration = length / sampleRate;
@@ -581,7 +599,7 @@ export class AudioContext {
   createPeriodicWave(real, imag) { return new PeriodicWave(real, imag); }
   decodeAudioData(data, ok, fail) {
     // (the engine's own decoder, where it has one: a NativeAudioBuffer the engine plays, setAudioDecoder)
-    const p = decoder ? Promise.resolve().then(() => decoder(data)).then((d) => new NativeAudioBuffer(d)) : Promise.reject(new Error('decodeAudioData: no decoder in the engine'));
+    const p = decoder ? Promise.resolve().then(() => decoder(data)).then(decodedBuffer) : Promise.reject(new Error('decodeAudioData: no decoder in the engine'));
     p.then((b) => ok?.(b), (e) => fail?.(e));
     return p;
   }
