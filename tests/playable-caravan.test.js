@@ -104,7 +104,7 @@ test('each authored landing foot adapts to terrain without moving its hull mount
     const at=local.applyMatrix4(n.matrixWorld), expected=terrain(authoredToShip(V(...spec.at)));
     assert.ok(Math.abs(at.y-expected)<1e-5,`${n.name} reaches the local terrain: ${at.y} vs ${expected}`);
   });
-  assert.equal(count,4);
+  assert.equal(count,6);
 });
 test('normal walking traverses every stair in both directions and the real entry ramp',async()=>{
   const { Player }=await import('../src/player.js');
@@ -216,4 +216,47 @@ test('Pirates trail starts at the rendered nozzle through yaw, pitch, full roll,
     const anchor=new THREE.Object3D();ship.add(anchor);anchor.position.copy(mouth).add(V(0,0,.6));
     const expected=anchor.getWorldPosition(V());assert.ok(world.distanceTo(expected)<1e-6);ship.remove(anchor);
   }
+});
+
+test('lower grounded stance keeps authored rooms fixed and all six feet on uneven terrain',async()=>{
+  const { LIFT, AUTHORED_OFFSET, BELLY, undersideAt }=await import('../src/ship/caravan-layout.js');
+  assert.equal(LIFT,2.8);assert.ok(Math.abs(AUTHORED_OFFSET-4.68)<1e-10);
+  const a=await asset();assert.equal(a.getObjectByName('hull').userData.playableContract.landedDeck,LIFT);
+  const flat=buildShipModel({caravan:a});flat.group.position.y=LIFT;flat.group.updateMatrixWorld(true);
+  const hull=new THREE.Box3().setFromObject(flat.authored.getObjectByName('hull'));
+  assert.ok(hull.min.y>.55&&hull.min.y<.65,`actual belly clearance ${hull.min.y}`);
+  assert.ok(BELLY<=hull.min.y-LIFT,'parking envelope conservatively contains actual hull');
+  assert.equal(undersideAt(0,0),BELLY);
+  assert.ok(flat.interior.points.seat.equals(V(-1.3,5.65,-18.25)),'interior anchor remains ship local');
+  const contacts=[];flat.authored.traverse(n=>{if(n.userData.caravanFoot)contacts.push(n);});
+  assert.equal(contacts.length,6,'four legs and two independently grounded porch supports');
+  for(const foot of contacts){const b=new THREE.Box3().setFromObject(foot);assert.ok(Math.abs(b.min.y)<.08,`${foot.name} flat contact ${b.min.y}`);}
+  const slope=p=>-LIFT+.025*p.x+.012*p.z;
+  const m=buildShipModel({caravan:a,footY:slope});m.group.updateMatrixWorld(true);
+  m.authored.traverse(n=>{
+    if(!n.userData.caravanFoot)return;
+    const at=authoredToShip(V(...n.userData.caravanFoot.at));
+    const b=new THREE.Box3().setFromObject(n);
+    assert.ok(Math.abs(b.min.y-slope(at))<.08,`${n.name} follows terrain: ${b.min.y} vs ${slope(at)}`);
+  });
+  for(const camp of [1,.8,.5,0,.5,1]) {m.applyCamp(camp,0);m.group.updateMatrixWorld(true);}
+  m.authored.traverse(n=>{
+    if(!n.userData.caravanFoot)return;
+    const at=authoredToShip(V(...n.userData.caravanFoot.at)), b=new THREE.Box3().setFromObject(n);
+    assert.ok(Math.abs(b.min.y-slope(at))<.08,`${n.name} restores its terrain contact after a full stow cycle`);
+  });
+  assert.equal(flat.hull.feet.length,4);
+  for(const foot of flat.hull.feet)assert.ok(Math.abs(foot.y+LIFT)<1e-5,'reported feet use fitted sole height');
+  m.applyCamp(0,4);assert.equal(m.authored.getObjectByName('porch-supports').visible,false);assert.equal(m.authored.getObjectByName('landing-gear').visible,false);
+});
+
+test('rounded caravan centres its aft pods inside the Space City pier without turning the boarding ramp',async()=>{
+ const {findShipSite}=await import('../src/ship/sites.js');
+ const layout=await import('../src/ship/caravan-layout.js');
+ const level={shipSite:{x:0,z:128,heading:Math.PI},spawn:V(4,0,110)};
+ const physics={groundAt:()=>0,rayDistance:()=>Infinity};
+ const old=findShipSite({level,physics,levelId:'spacecity'});
+ const next=findShipSite({level,physics,levelId:'spacecity',layout});
+ assert.equal(old.x,0);assert.equal(next.x,5);assert.equal(next.z,128);assert.equal(next.heading,Math.PI);
+ assert.equal(level.shipSite.x,0,'placement does not mutate the world definition');
 });

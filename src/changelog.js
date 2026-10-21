@@ -9,6 +9,8 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   { v: '1.91', date: '2026-10-20', items: [
+    { text: 'The caravan sits closer to the ground on shorter landing legs, with a shorter boarding ramp.',
+      see: 'The landed deck is now 2.8 m above flat ground instead of 4.68 m. Its legs and porch supports adapt to the terrain; steep slopes still need longer ramps. The rooms and automatic packing stay the same.' },
     { text: 'Your ship is now the rounded caravan, with four rear boosters, a raised cockpit and furnished rooms you can walk through.',
       see: 'Board at the side porch. The galley, bunk, map table, cabin and cargo hold have been rearranged inside the new hull; stairs lead to the panoramic cockpit.' },
     { text: 'The porch folds into the ship before departure, with its furniture secured overhead; it opens again after touchdown.',

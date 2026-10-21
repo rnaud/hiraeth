@@ -7,7 +7,7 @@ import { CaravanDeployment } from './caravan-deployment.js';
 import { makeMaterial } from '../materials.js';
 export const CARAVAN = Object.freeze({ length: 40, humanHeight: 1.75, source: '/references/The Travellers Ship/redesign/rounded-caravan-a/approved-reference.png' });
 /** The authoring asset is public, so Vite serves the same URL in development and built previews. */
-export const CARAVAN_MODEL_URL = `${import.meta.env?.BASE_URL ?? '/'}models/ships/caravan-a/caravan.glb`;
+export const CARAVAN_MODEL_URL = new URL('../../data/ships/caravan-a/caravan.glb', import.meta.url).href;
 
 /** Load the authored model before marking the review ready. Failure is surfaced to the review UI. */
 export async function loadCaravanPrototype({ url = CARAVAN_MODEL_URL, loader = new GLTFLoader() } = {}) {

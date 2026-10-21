@@ -140,20 +140,29 @@ export function buildShipModel(o = {}) {
         movingParts.push(node);
       }
     });
-    if (o.footY) authored.traverse(node => {
+    authored.traverse(node => {
       const foot = node.userData.caravanFoot;
       if (!foot) return;
       const at = caravanLayout.authoredToShip(new THREE.Vector3(...foot.at));
-      const target = o.footY(at) / caravanLayout.CARAVAN_SCALE + caravanLayout.AUTHORED_ENTRY.y;
+      const target = (o.footY ? o.footY(at) : -caravanLayout.LIFT) / caravanLayout.CARAVAN_SCALE + caravanLayout.AUTHORED_ENTRY.y;
       const stretch = Math.max(.15, (foot.mountY - target) / (foot.mountY - foot.at[1]));
+      node.position.y += foot.localMountY * node.scale.y * (1 - stretch);
       node.scale.y *= stretch;
-      node.position.y += foot.localMountY * (1 - stretch);
     });
     applyCamp = bindCaravanMechanisms(authored);
     applyCamp(o.space ? 0 : 1, o.space ? 4 : 0);
     caravanLayout.placeAuthoredRoot(authored); group.add(authored);
   }
-  const hull = authored ? { authored: true, feet: [[-16.25,.0,4.01],[-12.25,.0,-3.81],[11.25,.0,3.09],[10.25,.0,-2.89]].map(p => caravanLayout.authoredToShip(new THREE.Vector3(...p))) } : buildHull(batch, { legs: o.legs ?? 'down', footY: o.footY });
+  const hull = authored ? { authored: true, feet: [] } : buildHull(batch, { legs: o.legs ?? 'down', footY: o.footY });
+  if (authored) {
+    group.updateMatrixWorld(true);
+    authored.traverse(node => {
+      if (!node.name.startsWith('landing-foot-') || !node.userData.caravanFoot) return;
+      const at = node.userData.caravanFoot.at;
+      // Feet are authored before the global -.8 export shift; include fitted node transforms.
+      hull.feet.push(group.worldToLocal(node.localToWorld(new THREE.Vector3(at[0], at[1] + .8, at[2]))));
+    });
+  }
   const interior = authored ? buildCaravanInterior(batch, group) : buildInterior(batch, group, { tag, room: roomKey });
   const flags = Object.fromEntries(NO_COLLIDE.map((k) => [k, { noCollide: true }]));
   flags.collider = { visible: false };

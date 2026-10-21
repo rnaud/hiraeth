@@ -7,7 +7,7 @@ import { sharedUniforms } from '../src/materials.js';
 import { bindCaravanModel, CARAVAN } from '../src/ship/caravan-prototype.js';
 test('authored review loading is awaited and reports failures instead of silently substituting a ship', async () => {
   const { loadCaravanPrototype, CARAVAN_MODEL_URL } = await import('../src/ship/caravan-prototype.js');
-  assert.match(CARAVAN_MODEL_URL, /\/models\/ships\/caravan-a\/caravan\.glb$/);
+  assert.match(CARAVAN_MODEL_URL, /\/data\/ships\/caravan-a\/caravan\.glb$/);
   const failure = new Error('asset unavailable');
   await assert.rejects(loadCaravanPrototype({ loader: { loadAsync: async () => { throw failure; } } }), failure);
   await assert.rejects(loadCaravanPrototype({ loader: { loadAsync: async () => ({ scene: new THREE.Group() }) } }), /missing hull/);
@@ -41,14 +41,14 @@ test('authored pivots preserve hierarchy, reverse every stage, and keep the lock
   assert.deepEqual(prop.position.toArray(), [1, 5, 6], 'repeated cycles never accumulate offsets');
 });
 // Validate the same authored GLB served by development and copied into the published build.
-const ASSET = new URL('../public/models/ships/caravan-a/caravan.glb', import.meta.url);
+const ASSET = new URL('../data/ships/caravan-a/caravan.glb', import.meta.url);
 async function actualModel() {
   const bytes = readFileSync(ASSET);
   const data = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
   return bindCaravanModel((await new GLTFLoader().parseAsync(data, '')).scene);
 }
 
-test('the shipped Blender model has finite geometry, named mechanisms and bounded draw cost', async () => {
+test('the retained Blender study has finite geometry, named mechanisms and bounded draw cost', async () => {
   const bytes = readFileSync(ASSET), jsonLength = bytes.readUInt32LE(12);
   const gltf = JSON.parse(bytes.subarray(20, 20 + jsonLength).toString());
   assert.equal(gltf.images?.length ?? 0, 0, 'neutral geometry has no baked lighting textures');

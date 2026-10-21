@@ -67,12 +67,16 @@ const MARK_LINE = '~curious~ An open corner beside a shorter upright, on your ba
 const temple = (G, id) => (G.level.temples ?? []).find((t) => t.id === id) ?? null;
 /** A minigame's start card's main button, a pause, as a pad's Menu (src/minigames/kit/runner.js padAction). */
 const padStart = (G) => G.minigame?.padAction?.('start');
-/** A fight temple's run: more foes up, and the three nearest him stood round him, stunned (sequence 'fight-crowd'). */
+/** A fight temple's framing fixture: all foes held still, the nearest three stood round him ('fight-crowd'). */
 function hemIn(G) {
   const S = G.minigame?.session, P = G.player;
   if (!S || !P) throw new Error('no fight temple run');
   S.crowd(4);
-  const near = (G.foes?.list ?? []).filter((f) => f.alive).sort((a, b) => a.pos.distanceTo(P.pos) - b.pos.distanceTo(P.pos)).slice(0, 3);
+  const alive = (G.foes?.list ?? []).filter((f) => f.alive);
+  // Hold the fourth/far foes too: an unrelated wind-up must not change this framing fixture's warning HUD.
+  // Asset node UUIDs consume the shared RNG before spawning; the deliberate pool warning remains live.
+  for (const f of alive) f.stunned = 9;
+  const near = alive.sort((a, b) => a.pos.distanceTo(P.pos) - b.pos.distanceTo(P.pos)).slice(0, 3);
   near.forEach((f, i) => { const [dx, dz] = [[0.6, 0.6], [-1.1, 0.5], [0.5, -1.2]][i]; f.pos.set(P.pos.x + dx, P.pos.y, P.pos.z + dz); f.model?.group?.position.copy(f.pos); f.stunned = 9; });
 }
 /** A pool of oil lent to the run's room, 6.5 m down the screen from him (the fight temples' iso camera: +x +z). */

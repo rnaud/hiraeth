@@ -4,8 +4,8 @@ Game coordinates: X length (bow negative), Y up, Z porch. Export is full 40m.
 """
 import bpy, math, pathlib, sys, argparse, json
 from mathutils import Vector
-p=argparse.ArgumentParser();p.add_argument('--playable',action='store_true');p.add_argument('--out',default='public/models/ships/caravan-a');a=p.parse_args(sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else [])
-ROOT=pathlib.Path(__file__).resolve().parents[3];OUT=pathlib.Path(a.out).resolve();OUT.mkdir(parents=True,exist_ok=True)
+p=argparse.ArgumentParser();p.add_argument('--playable',action='store_true');p.add_argument('--out');a=p.parse_args(sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else [])
+ROOT=pathlib.Path(__file__).resolve().parents[3];OUT=pathlib.Path(a.out or (ROOT/'public/models/ships/caravan-a' if a.playable else ROOT/'data/ships/caravan-a')).resolve();OUT.mkdir(parents=True,exist_ok=True)
 bpy.ops.object.select_all(action='SELECT');bpy.ops.object.delete(use_global=False)
 COLORS={'cream':'e7d8b6','ivory':'f1e4cb','lavender':'a295ac','coral':'da8c75','teal':'7baca7','dark':'374b50','metal':'958d78','wood':'aa8d6b','leaf':'657e66'}
 M={}
@@ -212,7 +212,7 @@ for n in ['porch-panel','porch-rail','porch-supports','ramp','porch-furniture','
 mechanisms={}
 def mechanism(n,pivot,stage=None,**kw):mechanisms[n]=(pivot,dict(stage=stage,**kw) if stage else kw)
 floor=4.4;hingez=surface(2,floor)
-if a.playable:G['hull']['playableContract']={'entry':[-2.65,floor-.8,2.5],'rampHinge':[-2.65,floor-.8,hingez+4.9],'scale':1.3}
+if a.playable:G['hull']['playableContract']={'entry':[-2.65,floor-.8,2.5],'rampHinge':[-2.65,floor-.8,hingez+4.9],'scale':1.3,'landedDeck':2.8}
 # The curved outside becomes the flush side hull when the entire deck rotates upward.
 vs=[];fs=[];mi=[];nx=40;ny=24
 for j in range(ny+1):
@@ -260,8 +260,11 @@ for x in [-.5,3.5]:
 for x in [-.6,1.1,2.8,4.5,6.2]:tube('porch rail upright',[(x,4.5,hingez+4.65),(x,5.55,hingez+4.65)],.038,'metal','porch-rail')
 tube('porch top rail',[(-.6,5.55,hingez+4.65),(6.6,5.55,hingez+4.65)],.055,'metal','porch-rail')
 mechanism('porch-rail',(2,4.5,hingez+4.65),'rails',closedRotation=[-math.pi/2,0,0])
-for x in [-1.0,6.0]:
- tube('telescoping porch support',[(x,4.3,hingez+4.4),(x,1,hingez+4.4)],.08,'metal','porch-supports');cube('porch support shoe',(x,.93,hingez+4.4),(.55,.16,.55),'metal',.06,'porch-supports')
+for i,x in enumerate([-1.0,6.0]):
+ support=f'porch-foot-{i}' if a.playable else 'porch-supports'
+ if a.playable:
+  G[support]=empty(support);G[support]['caravanFoot']={'at':[x,.85-.8,hingez+4.4],'mountY':4.3-.8,'localMountY':4.3}
+ tube('telescoping porch support',[(x,4.3,hingez+4.4),(x,1,hingez+4.4)],.08,'metal',support);cube('porch support shoe',(x,.93,hingez+4.4),(.55,.16,.55),'metal',.06,support)
 mechanism('porch-supports',(2,4.3,hingez+4.4),'supports',closedScale=[1,.001,1],hideClosed=True)
 # Nested stair section retracts beneath deck while it is horizontal.
 if not a.playable:
@@ -309,7 +312,7 @@ for x,z in [(-15,3.4),(-11,-3.4),(10.5,2.6),(9.5,-2.6)]:
  endx=x-1 if x<0 else x+1;endz=z*1.15
  leg=f'landing-foot-{len([n for n in G if n.startswith("landing-foot-")])}' if a.playable else 'landing-gear'
  if a.playable:
-  G[leg]=empty(leg);G[leg]['caravanFoot']={'at':[endx-.25,.78-.8,endz+.1],'mountY':3.2-.8,'localMountY':3.2}
+  G[leg]=empty(leg);G[leg]['caravanFoot']={'at':[endx-.25,.72-.8,endz+.1],'mountY':3.2-.8,'localMountY':3.2}
  cube('landing mount',(x,3.2,z),(1.5,.65,1.4),'metal',.2,leg)
  tube('landing upper arm',[(x,3.2,z),(endx,2.0,endz)],.25,'cream',leg)
  ellipsoid('landing knee',(endx,2,endz),(.45,.4,.45),'metal',leg)
@@ -328,6 +331,20 @@ if a.playable:
   mechanism(name+'-lift',(0,0,0),None,range=[.70,.82],closedOffset=[0,2.7,0])
  mechanisms['awning'][1].pop('stage',None);mechanisms['awning'][1]['range']=[.82,.94]
  mechanisms['locker-shutter'][1]['range']=[.45,.55]
+# Bake the shorter landed stance into the editable source, keeping each upper mount fixed.
+# World grounding is separate from the unchanged authored interior origin atY3.6.
+if a.playable:
+ from mathutils import Matrix
+ bpy.context.view_layer.update()
+ sole=3.6-2.8/1.3
+ for g in G.values():
+  if 'caravanFoot' not in g:continue
+  spec=dict(g['caravanFoot']);mount=spec['mountY'];oldsole=spec['at'][1]
+  stretch=(mount-sole)/(mount-oldsole)
+  pivot=Vector((0,0,spec['localMountY']))
+  transform=Matrix.Translation(pivot)@Matrix.Diagonal((1,1,stretch,1))@Matrix.Translation(-pivot)
+  for child in g.children:child.matrix_world=transform@child.matrix_world
+  at=list(spec['at']);at[1]=sole;spec['at']=at;g['caravanFoot']=spec
 # Store pivots and closed transforms in glTF extras; no model-specific coordinates in runtime.
 from mathutils import Matrix
 for n,(pivot,extra) in mechanisms.items():
@@ -349,8 +366,8 @@ for n,cy,cz,r in BOOSTERS:
  g=G[n];world=g.matrix_world.copy();g.parent=G['engines'];g.matrix_world=world
 if a.playable:
  for name,g in G.items():
-  if name.startswith('landing-foot-'):
-   world=g.matrix_world.copy();g.parent=G['landing-gear'];g.matrix_world=world
+  if name.startswith(('landing-foot-','porch-foot-')):
+   world=g.matrix_world.copy();g.parent=G['landing-gear' if name.startswith('landing-foot-') else 'porch-supports'];g.matrix_world=world
 # The rail is a rigid deck child and travels with the folding panel.
 rail=G['porch-rail'];world=rail.matrix_world.copy();bpy.context.view_layer.update();world=rail.matrix_world.copy();rail.parent=G['porch-panel'];rail.matrix_world=world
 

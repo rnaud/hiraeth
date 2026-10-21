@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { makeMaterial } from '../src/materials.js';
 import { createCaravanInkRenderer } from './caravan-renderer.js';
-import { loadCaravanPrototype, CARAVAN } from '../src/ship/caravan-prototype.js';
+import { loadPlayableCaravanReview } from './playable-caravan-review.js';
 // A silent review scene: it never constructs the game or an audio system, and reads no save/preferences.
 THREE.ColorManagement.enabled = false;
 const $=id=>document.getElementById(id),canvas=$('view');
@@ -13,7 +13,9 @@ $('arrive').disabled = $('depart').disabled = true;
 $('flight-state').textContent = 'Loading the ship…';
 let model;
 try {
-  model = await loadCaravanPrototype();
+  model = await loadPlayableCaravanReview();
+  document.querySelector('.scale strong').textContent = '≈ 52 m';
+  document.querySelector('.foot').textContent = 'The playable caravan · furnished rooms, folding camp and low landing stance · drawn with the game’s ink shader.';
   scene.add(model.root);
 } catch (error) {
   $('flight-state').textContent = 'The ship could not load. Reload to try again.';
@@ -31,12 +33,12 @@ const rockMat=makeMaterial({color:'#c6a69a'});for(let i=0;i<46;i++){const a=i*2.
 const pipeline=createCaravanInkRenderer({canvas,scene,camera,subject:human}), renderer=pipeline.renderer;
 let currentView='reference';
 const positions={reference:[-25,12,85],orbit:[-35,18,54],front:[-63,15,0],side:[0,16,64],rear:[61,19,13],bottom:[0,-62,.1]};
-function setView(name){currentView=name;scenery.visible=name!=='bottom';controls.maxPolarAngle=name==='bottom'?Math.PI-.001:Math.PI*.49;camera.position.set(...positions[name]);camera.fov=name==='reference'?25:37;camera.updateProjectionMatrix();controls.target.set(...(name==='reference'?[0,8,0]:name==='bottom'?[0,6,0]:[0,7,1]));controls.update();document.querySelectorAll('[data-view]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.view===name)));}
+function setView(name){currentView=name;scenery.visible=name!=='bottom';controls.maxPolarAngle=name==='bottom'?Math.PI-.001:Math.PI*.49;camera.position.set(...positions[name]).multiplyScalar(1.3);camera.position.y+=model.deployment.altitude;camera.fov=name==='reference'?25:37;camera.updateProjectionMatrix();controls.target.set(...(name==='reference'?[0,8,0]:name==='bottom'?[0,6,0]:[0,7,1]));controls.target.multiplyScalar(1.3);controls.target.y+=model.deployment.altitude;controls.update();resize();document.querySelectorAll('[data-view]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.view===name)));}
 for(const b of document.querySelectorAll('[data-view]'))b.onclick=()=>setView(b.dataset.view);
 $('arrive').onclick=()=>model.deployment.arrive();$('depart').onclick=()=>model.deployment.depart();$('human').onchange=()=>human.visible=$('human').checked;$('rotate').onchange=()=>controls.autoRotate=$('rotate').checked;controls.autoRotateSpeed=.65;
 const showRef=()=>$('reference-dialog').showModal();$('reference').onclick=showRef;$('reference').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();showRef();}};$('close-reference').onclick=()=>$('reference-dialog').close();
 function resize(){const {width,height}=canvas.getBoundingClientRect();pipeline.resize(width,height);camera.aspect=width/height;camera.fov=2*Math.atan(Math.tan((currentView==='reference'?25:37)*Math.PI/360)*Math.max(1,1.2/camera.aspect))*180/Math.PI;camera.updateProjectionMatrix();}new ResizeObserver(resize).observe(canvas);resize();setView(new URLSearchParams(location.search).get('view') in positions?new URLSearchParams(location.search).get('view'):'reference');
-let last=performance.now();
+let last=performance.now(),lastAltitude=0;
 const flightLabels={landed:'Landed · porch open',departing:'Stowing the camp…','taking-off':'Camp secured · lifting off',flight:'In flight · camp secured',arriving:'Arriving · camp secured',deploying:'Landed · opening the camp…'};
-renderer.setAnimationLoop((now)=>{model.deployment.update(Math.min(.05,Math.max(0,(now-last)/1000)));last=now;const phase=model.deployment.phase;$('flight-state').textContent=flightLabels[phase];$('arrive').disabled=phase!=='flight';$('depart').disabled=!['landed','deploying'].includes(phase);controls.update();pipeline.render();});
-window.caravanReview={ready:true,pipeline,model,camera,renderer,scene,setView,human,dimensions:CARAVAN};
+renderer.setAnimationLoop((now)=>{model.deployment.update(Math.min(.05,Math.max(0,(now-last)/1000)));last=now;const phase=model.deployment.phase;const dy=model.deployment.altitude-lastAltitude;camera.position.y+=dy;controls.target.y+=dy;lastAltitude=model.deployment.altitude;$('flight-state').textContent=flightLabels[phase];$('arrive').disabled=phase!=='flight';$('depart').disabled=!['landed','deploying'].includes(phase);controls.update();pipeline.render();});
+window.caravanReview={ready:true,pipeline,model,camera,renderer,scene,setView,human,dimensions:model.dimensions};

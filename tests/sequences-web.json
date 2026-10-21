@@ -1,7 +1,7 @@
 {
   "recorded": "2026-10-21",
-  "sha": "c5449ab6c",
-  "how": "node scripts/unity-compare/sequences.mjs web [ids] && node scripts/unity-compare/sequences.mjs record",
+  "sha": "ce74660b6",
+  "how": "Visible CUA-started /qa/ sequence page using engine/sequences.js SequenceRun/webGame/probe, then scripts/unity-compare/sequences.mjs record; #601 arrival/takeoff/sea-port/hold",
   "sequences": {
     "moment-desert.flow": {
       "beats": [
@@ -3126,12 +3126,12 @@
           "cam": [
             -271.6,
             2611.6,
-            -1180.3,
+            -1180.4,
             42
           ],
           "player": [
             -270.6,
-            63.6,
+            61.7,
             -1115.4
           ],
           "late": false
@@ -3158,7 +3158,7 @@
             "stage": 1
           },
           "objects": {
-            "ink": 1868,
+            "ink": 1867,
             "planet": 1,
             "shader": 2,
             "print": 1,
@@ -3166,13 +3166,13 @@
           },
           "cam": [
             -282.8,
-            2606.3,
-            -1135.7,
+            2606.4,
+            -1135.8,
             50
           ],
           "player": [
             -270.6,
-            63.6,
+            61.7,
             -1115.4
           ],
           "late": false
@@ -3199,7 +3199,7 @@
             "stage": 2
           },
           "objects": {
-            "ink": 1802,
+            "ink": 1796,
             "basic": 1,
             "print": 1,
             "chimeshade": 1,
@@ -3213,7 +3213,7 @@
           ],
           "player": [
             -270.6,
-            63.6,
+            61.7,
             -1115.4
           ],
           "late": false
@@ -3236,7 +3236,7 @@
             "stage": 3
           },
           "objects": {
-            "ink": 1923,
+            "ink": 1960,
             "basic": 1,
             "print": 1,
             "chimeshade": 1,
@@ -3244,14 +3244,14 @@
             "mote": 1
           },
           "cam": [
-            -223.1,
-            51.3,
-            -1072.4,
+            -226.9,
+            52.9,
+            -1074.1,
             52
           ],
           "player": [
             -270.6,
-            63.6,
+            61.7,
             -1115.4
           ],
           "late": false
@@ -3274,7 +3274,7 @@
             "stage": 4
           },
           "objects": {
-            "ink": 1982,
+            "ink": 1999,
             "basic": 1,
             "planet": 1,
             "shader": 2,
@@ -3284,14 +3284,14 @@
             "mote": 1
           },
           "cam": [
-            -241.9,
-            56.7,
-            -1097.7,
+            -245.8,
+            57.2,
+            -1099.5,
             54
           ],
           "player": [
             -270.6,
-            63.6,
+            61.7,
             -1115.4
           ],
           "late": false
@@ -3304,7 +3304,7 @@
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 1917,
+            "ink": 1925,
             "basic": 1,
             "print": 1,
             "chimeshade": 1,
@@ -3312,15 +3312,15 @@
             "mote": 1
           },
           "cam": [
-            -249.3,
-            58.4,
-            -1100.2,
+            -253.1,
+            58.7,
+            -1101.8,
             55
           ],
           "player": [
-            -243.4,
-            54.9,
-            -1104
+            -247.2,
+            55.2,
+            -1105.7
           ],
           "late": false
         }
@@ -3350,7 +3350,7 @@
             "stage": 0
           },
           "objects": {
-            "ink": 1959,
+            "ink": 1993,
             "basic": 1,
             "planet": 1,
             "shader": 2,
@@ -3360,14 +3360,14 @@
           },
           "cam": [
             -271.2,
-            65.6,
+            63.7,
             -1116.4,
             54
           ],
           "player": [
-            -272.9,
-            64.6,
-            -1119
+            -272.8,
+            62.7,
+            -1119.1
           ],
           "late": false
         },
@@ -3389,22 +3389,22 @@
             "stage": 1
           },
           "objects": {
-            "ink": 1890,
+            "ink": 1910,
             "basic": 1,
             "print": 1,
             "chimeshade": 1,
             "wisp": 1
           },
           "cam": [
-            -199,
-            54.7,
-            -1112,
+            -202.8,
+            55.8,
+            -1113.7,
             52
           ],
           "player": [
-            -272.9,
-            64.6,
-            -1119
+            -272.8,
+            62.7,
+            -1119.1
           ],
           "late": false
         },
@@ -3427,7 +3427,7 @@
             "stage": 1
           },
           "objects": {
-            "ink": 1825,
+            "ink": 1807,
             "basic": 1,
             "print": 1,
             "chimeshade": 1,
@@ -3435,15 +3435,15 @@
             "mote": 1
           },
           "cam": [
-            -198.9,
-            54.7,
-            -1112,
-            46.4
+            -202.8,
+            55.9,
+            -1113.7,
+            46.5
           ],
           "player": [
-            -272.9,
-            64.6,
-            -1119
+            -272.8,
+            62.7,
+            -1119.1
           ],
           "late": false
         },
@@ -3466,7 +3466,7 @@
             "stage": 2
           },
           "objects": {
-            "ink": 1818,
+            "ink": 1803,
             "basic": 1,
             "print": 1,
             "chimeshade": 1,
@@ -3474,15 +3474,15 @@
             "mote": 1
           },
           "cam": [
-            -198.9,
-            54.7,
-            -1112,
+            -202.8,
+            55.9,
+            -1113.7,
             46
           ],
           "player": [
-            -272.9,
-            64.6,
-            -1119
+            -272.8,
+            62.7,
+            -1119.1
           ],
           "late": false
         }
@@ -6285,7 +6285,7 @@
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 2032,
+            "ink": 2069,
             "basic": 1,
             "planet": 1,
             "shader": 2,
@@ -6294,15 +6294,15 @@
             "wisp": 1
           },
           "cam": [
-            -238,
-            57.3,
-            -1101,
+            -241.9,
+            57.6,
+            -1102.7,
             55
           ],
           "player": [
-            -242.4,
-            54.9,
-            -1102.9
+            -246.2,
+            55.1,
+            -1104.6
           ],
           "late": false
         },
@@ -6314,7 +6314,7 @@
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 2032,
+            "ink": 2067,
             "basic": 1,
             "planet": 1,
             "shader": 2,
@@ -6323,15 +6323,15 @@
             "wisp": 1
           },
           "cam": [
-            -241.5,
-            57.5,
-            -1102.5,
+            -245.3,
+            57.8,
+            -1104.2,
             55
           ],
           "player": [
-            -246.1,
-            55.1,
-            -1104.5
+            -249.8,
+            55.3,
+            -1106.2
           ],
           "late": false
         },
@@ -6343,7 +6343,7 @@
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 1928,
+            "ink": 1958,
             "basic": 1,
             "planet": 1,
             "shader": 2,
@@ -6352,14 +6352,14 @@
             "wisp": 1
           },
           "cam": [
-            -269.2,
-            65.4,
+            -269.3,
+            63.6,
             -1115.5,
             65
           ],
           "player": [
-            -271.2,
-            63.6,
+            -271.3,
+            61.7,
             -1115.8
           ],
           "late": false
@@ -6377,7 +6377,7 @@
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 1959,
+            "ink": 1984,
             "basic": 1,
             "print": 1,
             "chimeshade": 1,
@@ -6385,13 +6385,13 @@
           },
           "cam": [
             -267.3,
-            65.4,
+            63.5,
             -1125.1,
             65
           ],
           "player": [
             -267.2,
-            63.6,
+            61.7,
             -1127.1
           ],
           "late": false
@@ -6409,7 +6409,7 @@
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 1983,
+            "ink": 2044,
             "basic": 1,
             "planet": 1,
             "shader": 2,
@@ -6419,13 +6419,13 @@
           },
           "cam": [
             -264.8,
-            65.5,
+            63.6,
             -1128.4,
             65
           ],
           "player": [
             -267.2,
-            63.6,
+            61.7,
             -1127.1
           ],
           "late": false
@@ -6446,7 +6446,7 @@
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 1984,
+            "ink": 2043,
             "basic": 1,
             "planet": 1,
             "shader": 2,
@@ -6456,13 +6456,13 @@
           },
           "cam": [
             -264.8,
-            65.5,
+            63.6,
             -1128.4,
             65
           ],
           "player": [
             -267.2,
-            63.6,
+            61.7,
             -1127.1
           ],
           "late": false
@@ -6483,7 +6483,7 @@
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 1984,
+            "ink": 2043,
             "basic": 1,
             "planet": 1,
             "shader": 2,
@@ -6493,13 +6493,13 @@
           },
           "cam": [
             -264.8,
-            65.5,
+            63.6,
             -1128.4,
             65
           ],
           "player": [
             -267.2,
-            63.6,
+            61.7,
             -1127.1
           ],
           "late": false
@@ -6526,7 +6526,7 @@
           },
           "playing": null,
           "objects": {
-            "ink": 1956,
+            "ink": 1994,
             "basic": 1,
             "print": 1,
             "chimeshade": 1,
@@ -6534,13 +6534,13 @@
           },
           "cam": [
             -267.3,
-            65.4,
+            63.5,
             -1125.1,
             65
           ],
           "player": [
             -267.2,
-            63.6,
+            61.7,
             -1127.1
           ],
           "late": false
@@ -7176,7 +7176,7 @@
             "stage": 3
           },
           "objects": {
-            "ink": 230,
+            "ink": 210,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -7186,12 +7186,12 @@
           "cam": [
             24.4,
             83,
-            108.6,
+            112.2,
             52
           ],
           "player": [
             4.4,
-            85.7,
+            83.8,
             162
           ],
           "late": false
@@ -7214,7 +7214,7 @@
             "stage": 4
           },
           "objects": {
-            "ink": 233,
+            "ink": 213,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -7229,7 +7229,7 @@
           ],
           "player": [
             4.4,
-            85.7,
+            83.8,
             162
           ],
           "late": false
@@ -7264,12 +7264,12 @@
           "cam": [
             8.9,
             83.2,
-            136.1,
+            139.7,
             54
           ],
           "player": [
             4.4,
-            85.7,
+            83.8,
             162
           ],
           "late": false
@@ -7283,7 +7283,7 @@
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 292,
+            "ink": 279,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -7291,15 +7291,15 @@
             "mote": 1
           },
           "cam": [
-            2.1,
-            85.3,
-            146.2,
+            2.2,
+            85.2,
+            149.7,
             55
           ],
           "player": [
             4.5,
             81,
-            139.7
+            143.3
           ],
           "late": false
         },
@@ -7311,7 +7311,7 @@
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 371,
+            "ink": 375,
             "planet": 1,
             "shader": 2,
             "print": 1,
@@ -7321,7 +7321,7 @@
             "mote": 1
           },
           "cam": [
-            -0.5,
+            -0.4,
             82.8,
             126.8,
             55
@@ -7341,7 +7341,9 @@
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 301,
+            "ink": 350,
+            "planet": 1,
+            "shader": 2,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -7349,8 +7351,8 @@
             "mote": 1
           },
           "cam": [
-            -0.5,
-            76.9,
+            -0.4,
+            77,
             126.8,
             55
           ],
@@ -7369,7 +7371,7 @@
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 244,
+            "ink": 210,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -7377,13 +7379,13 @@
           },
           "cam": [
             -0.4,
-            43.9,
+            44.1,
             126.7,
             55
           ],
           "player": [
             0.4,
-            41.4,
+            41.6,
             128.6
           ],
           "late": false
@@ -7396,21 +7398,21 @@
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 234,
+            "ink": 206,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
             "pitvoid": 1
           },
           "cam": [
-            -0.4,
-            21.4,
+            -0.3,
+            21.1,
             126.3,
             55
           ],
           "player": [
             0.4,
-            18.7,
+            18.4,
             128.6
           ],
           "late": false
@@ -7423,14 +7425,14 @@
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 233,
+            "ink": 201,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
             "pitvoid": 1
           },
           "cam": [
-            -0.4,
+            -0.3,
             2.4,
             126.2,
             55

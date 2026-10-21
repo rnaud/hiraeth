@@ -20,7 +20,7 @@
       "sha256": "8eb29bb76aff9e66a3467816267dcb9455c8511c53bb6c5d260a0fdfecc18f45",
       "bytes": 1831593
     },
-    "public/models/ships/caravan-a/caravan.glb": {
+    "data/ships/caravan-a/caravan.glb": {
       "sha256": "c8bc9a163ff77f65381d30ca3d5cf1f54b8b8b6038cd54f0e01177fd4fe9c56f",
       "bytes": 3755568
     }

@@ -174,7 +174,9 @@ export function fromPlan(x, z, sx, sz, heading, layout = LEGACY_LAYOUT) {
 export function findShipSite({ level, physics, levelId, avoid = [], spawn, layout = LEGACY_LAYOUT }) {
   const { HALF_W } = layout;
   const S = spawn ?? level.spawn ?? new THREE.Vector3();
-  const fixed = level.shipSite ?? SITE_OVERRIDES[levelId];
+  const original = level.shipSite ?? SITE_OVERRIDES[levelId];
+  const offset = layout.SITE_OFFSETS?.[levelId];
+  const fixed = original && offset ? { ...original, x: original.x + offset.x, z: original.z + offset.z } : original;
   if (fixed) {
     const g = physics.groundAt(fixed.x, (fixed.y ?? S.y) + 60, fixed.z, 400);
     const probe = probeSite(physics, fixed.x, fixed.z, fixed.heading ?? 0, { refY: Number.isFinite(g) ? g : S.y, tolerance: 1e9, layout });
