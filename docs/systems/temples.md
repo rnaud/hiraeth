@@ -2945,6 +2945,23 @@ fight; the City's own count moved 19 → 20 with its batches, the Mooring-House'
 samples each face from a seed of where it lies (`contact-audit.js reseed`), so a piece added in one place no longer
 moves every other face's samples.
 
+## Rose House doorway and sliding surfaces (v1.93, #608–#609)
+
+The exterior portal now occupies the recess between the red fins: its dark plane is at
+local z=9.5 m, and its frame reaches back to z=2.5 m to overlap the central wall.
+The original stairs and upper terrace remain the approach. The entry threshold and
+water over the terrace follow the new doorway; `outside.channelOrigin` retains the
+established irrigation route through the dunes so moving the entrance does not shift
+that channel off its bed.
+
+The Rose skin gives moving `Door.slab` meshes a separate machined material with
+`uSkObj=1`. Its slab joints and circuits use `vObjPos` and `vObjNormal`; static
+architecture retains its world-relative pattern. This changes only the authored
+surface coordinates: normal lighting and shadow calculations still use the world
+position and normal. The same skin definition generates Unity's `SkinPatterns.hlsl`.
+Portal collision/roof continuity, the terrace floor, the distant channel, and actual
+slab motion are covered by the temple portal, skin and Desert water regressions.
+
 ## Futuristic skins: the Rose House (v1.77, issue #342)
 
 The Rose House wears the author's futuristic picks (`references/temples/future/rose-house/sheet-1.jpg`, `sheet-2.jpg`):

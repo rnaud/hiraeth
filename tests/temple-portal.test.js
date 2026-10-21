@@ -59,3 +59,36 @@ test('all fourteen houses build their way in with the portal and give its shape 
   const rt = readFileSync(new URL('../src/temples/runtime.js', import.meta.url), 'utf8');
   assert.match(rt, /D\.top \? \{ top: D\.top \}/, 'the runtime hands the shape on to the door light');
 });
+
+
+test('Rose entrance is joined to the building with continuous overhead masonry and a walkable terrace', async () => {
+  const { TempleRuntime } = await import('../src/temples/runtime.js');
+  const { TEMPLES } = await import('../src/temples/index.js');
+  const { GameState } = await import('../src/game-state.js');
+  const rt = new TempleRuntime({ scene: new THREE.Scene(), level: { lights: [] }, def: TEMPLES.desert.def, game: new GameState(null) });
+  const O = rt.outside, K = O.kit, dy = O.doorY - O.base;
+  rt.root.updateMatrixWorld(true);
+  const solid = K.group.children.find(m => m.name.endsWith(' collision'));
+  assert.ok(solid);
+  const ray = new THREE.Raycaster(), down = V(0, -1, 0);
+  const surface = (x, z) => {
+    ray.set(K.world(x, dy + 100, z), down);
+    return ray.intersectObject(solid, false).map(h => K.local(h.point).y - dy);
+  };
+  const door = K.local(O.door.at);
+  // The central wall ends at z=3. Every cross-section from it to the doorway
+  // must have a roof; the previous freestanding frame left open sky here.
+  for (let z = 3; z < door.z; z += 0.5) {
+    assert.ok(surface(0, z).some(y => y > O.door.h), `masonry over the entrance at z=${z}`);
+  }
+  // The retained outer stairs lead across the upper terrace into the new recess.
+  for (let z = door.z + 0.5; z < O.stairs.z0; z += 0.5) {
+    const heights = surface(0, z).filter(y => y < 1);
+    assert.ok(heights.some(y => y >= -0.1 && y <= 0.1), `continuous threshold floor at z=${z}`);
+  }
+  assert.ok(Math.abs(O.stairs.door - door.z) < 1e-6, 'water and entry share the moved threshold');
+  const { channelPath } = await import('../src/temples/desert.js');
+  const legacy = { ...O, channelOrigin: undefined, door: { ...O.door, at: K.world(0, dy, O.R + 2.4) } };
+  assert.deepEqual(channelPath(O, () => 0).sand, channelPath(legacy, () => 0).sand,
+    'recessing the threshold preserves the established channel and its bed out in the dunes');
+});

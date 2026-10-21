@@ -59,6 +59,7 @@ const RH_PARS = /* glsl */ `
   uniform vec3 uSkE;
   uniform vec3 uSkS;
   uniform vec3 uSkC;
+  uniform float uSkObj;
 `;
 const RH_GLSL = /* glsl */ `
   float rhH(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -102,13 +103,14 @@ const RH_GLSL = /* glsl */ `
 const BODIES = {
   // slabs of slate: uSkP (slab width, course, circuit segment, lit share), uSkQ (inset share, circuit share, chamfer, sand)
   slab: /* glsl */ `
-    vec3 skP = vWorldPos - uSkinO;
+    vec3 skP = uSkObj > 0.5 ? vObjPos : vWorldPos - uSkinO;
     float skInk = 0.0, skEmit = 0.0;
     vec3 albedo = uColor;
     {
-      vec3 an = abs(n);
+      vec3 skN = uSkObj > 0.5 ? normalize(vObjNormal) : n;
+      vec3 an = abs(skN);
       bool side = an.y < 0.65;
-      vec2 uv = side ? vec2(dot(skP.xz, normalize(vec2(-n.z, n.x) + 1e-6)), skP.y) : skP.xz;   // (along the face, whichever way it looks: a round room's stones too)
+      vec2 uv = side ? vec2(dot(skP.xz, normalize(vec2(-skN.z, skN.x) + 1e-6)), skP.y) : skP.xz;   // (along the face, whichever way it looks: a round room's stones too)
       vec2 fw2 = fwidth(uv);
       float pxm = max(max(fw2.x, fw2.y), 1e-5), lite = uWearLite;
       float near = 1.0 - smoothstep(0.035, 0.09, pxm);
@@ -189,7 +191,7 @@ const BODIES = {
 const SHADER = skinShader('rose-house', { pars: RH_PARS, glsl: RH_GLSL, bodies: BODIES, ink: 'skInk', emit: 'skEmit', emitAt: 'init' });
 
 /** The surface material of one of the skin's bodies: makeMaterial's own, its albedo, first pen lines and emit the body's. */
-function skinMaterial(body, look, o, U, key) {
+function skinMaterial(body, look, o, U, key, object = false) {
   const m = makeMaterial({ flat: true, ...look, color: o.color, key: `temple.skin.rose.${key}` });
   m.uniforms.uSkinO = U.origin;
   if (m.userData.roseSkin) return m;
@@ -200,6 +202,7 @@ function skinMaterial(body, look, o, U, key) {
     uSkA: c(o.seam), uSkB: c(o.bevel ?? o.tide), uSkE: c(ROSE_SKIN.ember), uSkS: c(o.sand),
     uSkP: { value: new THREE.Vector4(...(o.size ?? [o.step ?? 1, 0, 0, 0])) },
     uSkQ: { value: new THREE.Vector4(...(o.more ?? [0, 0, 0, 0])) },
+    uSkObj: { value: object ? 1 : 0 },
     uSkC: { value: new THREE.Vector3(...(o.centre ?? [0, 0, 0])) },
   });
   return m;
@@ -509,6 +512,7 @@ export function roseHouseSkin(rt) {
   const mats = {
     wall: skinMaterial('slab', look, S.wall, U, 'wall'),
     machine: skinMaterial('slab', look, S.machine, U, 'machine'),
+    machineObj: skinMaterial('slab', look, S.machine, U, 'machine-object', true),
     floor: skinMaterial('plates', look, S.floor, U, 'floor'),
     basin: null,
     stoneMat: makeMaterial({ color: S.stone, flat: true, ...look, key: 'temple.skin.rose.stoneMat' }),
@@ -538,6 +542,10 @@ export function roseHouseSkin(rt) {
     /** After the layout: the basin, the signs and the dressing. */
     dress() {
       const t0 = performance.now(), plan = K.plan;
+      // Engraving belongs to the moving slab; world normals still light and shadow it.
+      for (const p of rt.pieces) if (p instanceof Door) p.slab.traverse((mesh) => {
+        if (mesh.material === mats.machine) mesh.material = mats.machineObj;
+      });
       // the great round room's basin (M.stone, the house's one use of it): its steps round its middle
       const big = plan.filter((e) => e.kind === 'round').sort((a, b) => b.r - a.r)[0];
       if (big) {

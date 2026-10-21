@@ -1111,3 +1111,29 @@ test('the Footprint’s dressing keeps out of every doorway; its rings turn, and
   } finally { fpShared.uWearLite.value = was; motion.update(0); }
   assert.ok(rt.skin.mats.wall.fragmentShader.includes('bool lite = uWearLite > 0.5;'), 'the panels’ tones, chamfers and plates off on the lighter presets');
 });
+
+
+test('Rose sliding doors carry their engraving while static walls retain their world pattern', () => {
+  const rt = buildHouse('desert'), p = rt.piece('dE'), mats = rt.skin.mats;
+  const surfaces = [];
+  p.slab.traverse(m => { if (m.material?.userData.roseSkin === 'slab') surfaces.push(m); });
+  assert.ok(surfaces.length > 0);
+  for (const m of surfaces) {
+    assert.equal(m.material, mats.machineObj);
+    assert.equal(m.material.uniforms.uSkObj.value, 1);
+    assert.match(m.material.fragmentShader, /uSkObj > 0.5 \? vObjPos : vWorldPos - uSkinO/);
+    assert.match(m.material.fragmentShader, /uSkObj > 0.5 \? normalize\(vObjNormal\) : n/);
+  }
+  assert.equal(mats.machine.uniforms.uSkObj.value, 0);
+  assert.equal(mats.wall.uniforms.uSkObj.value, 0);
+  const mesh = surfaces[0], point = new THREE.Vector3().fromBufferAttribute(mesh.geometry.attributes.position, 0);
+  rt.root.updateMatrixWorld(true);
+  const closedWorld = mesh.localToWorld(point.clone()), closedLocal = point.clone();
+  p.setOpen(true);
+  for (let i = 0; i < 42; i++) p.update(1 / 60, 0);
+  rt.root.updateMatrixWorld(true);
+  const movingWorld = mesh.localToWorld(point.clone());
+  assert.ok(movingWorld.y < closedWorld.y - 2, 'the real slab has slid down');
+  assert.ok(mesh.worldToLocal(movingWorld.clone()).distanceTo(closedLocal) < 1e-8, 'the sampled engraving point stays attached');
+  assert.equal(mesh.material, mats.machineObj, 'motion does not swap or rebuild the material');
+});

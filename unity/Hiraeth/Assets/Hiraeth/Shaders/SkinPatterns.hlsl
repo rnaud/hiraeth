@@ -55,13 +55,14 @@ float skBayer4(float2 p) { float2 q = skMod(floor(p), 4.0); int i = (int)q.x + (
 void s0_slab(float3 vWorldPos, float3 vObjPos, float3 vObjNormal, float2 vTextureUV, float4 skFragCoord, float3 n, float3 uColor, inout float3 albedoOut, inout float inkOut, inout float emitOut)
 {
 
-    float3 skP = vWorldPos - (_SkinData[0].xyz);
+    float3 skP = (_SkinData[8].x) > 0.5 ? vObjPos : vWorldPos - (_SkinData[0].xyz);
     float skInk = 0.0, skEmit = 0.0;
     float3 albedo = uColor;
     {
-      float3 an = abs(n);
+      float3 skN = (_SkinData[8].x) > 0.5 ? normalize(vObjNormal) : n;
+      float3 an = abs(skN);
       bool side = an.y < 0.65;
-      float2 uv = side ? float2(dot(skP.xz, normalize(float2(-n.z, n.x) + 1e-6)), skP.y) : skP.xz;   // (along the face, whichever way it looks: a round room's stones too)
+      float2 uv = side ? float2(dot(skP.xz, normalize(float2(-skN.z, skN.x) + 1e-6)), skP.y) : skP.xz;   // (along the face, whichever way it looks: a round room's stones too)
       float2 fw2 = fwidth(uv);
       float pxm = max(max(fw2.x, fw2.y), 1e-5), lite = _WearLite;
       float near = 1.0 - smoothstep(0.035, 0.09, pxm);

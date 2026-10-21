@@ -690,7 +690,8 @@ export const CHANNEL = { lift: 0.04, fall: 0.3, lip: 0.08, step: 3, bed: 0.06, w
  *   toward the way it runs (the steps' own heading)
  */
 export function channelPath(O, H) {
-  const K = O.kit, S = O.stairs, from = O.door.at, C = CHANNEL;
+  // Keep the existing channel in the dunes when the doorway is recessed into the facade.
+  const K = O.kit, S = O.stairs, from = O.channelOrigin ?? O.door.at, C = CHANNEL;
   const toward = V(STORY.city.x - from.x, 0, STORY.city.z - from.z).normalize();
   // what you walk on down the door's axis (local z): the sill, then the steps, and the house's terraces where their
   // tiers stand over the steps near the top (src/temples/landmarks.js); level between breaks, lower after each
@@ -773,21 +774,24 @@ function exterior(scene, level, rt) {
   const landmarkTop = landmark(K, 'desert', { y: dy, R });
   // The deep round doorway between the red feet, framed three times as in the selected drawing (src/temples/portal.js)
   const red = stone('#ef5845',{course:5.5,width:10,wear:.65});
-  const P = portal(K, { y: dy, z: R + 1.9, w: 7, h: 10.4, shape: 'round', layers: 3, step: 1.0, recess: 0.7, back: 1.1, into: 2.5,
+  // The fins end at z=9 and the central wall at z=3. Recess the frame into both,
+  // rather than placing a freestanding doorway at the outer terrace edge.
+  const entranceZ = 9.5;
+  const P = portal(K, { y: dy, z: entranceZ, w: 7, h: 10.4, shape: 'round', layers: 3, step: 1.0, recess: 0.7, back: 1.1, into: 7,
     frame: red, inlay: '#86e0cf', sill: { w: 13, d: 4.2 } });
   // the forecourt and its steps down into the sand
   K.both(red, box(12, dy, 6, 0, dy / 2, R + 3));
   const end = K.world(0,0,R+38), sand = H(end.x,end.z)-base+.12;
   K.stairs([0,dy,R+6],[0,sand,R+38],10.4,{rise:.32,mat:red,sides:false});
   // (the steps as the kit lays them, for the channel's water down them: src/temples/kit.js stairs; local heights over `base`)
-  const stairs = { y0: dy, y1: sand, z0: R + 6, z1: R + 38, n: Math.max(1, Math.ceil(Math.abs(sand - dy) / 0.32)), sill: dy + 0.07, sillEnd: R + 1.9 + 4.2, door: R + 2.4 };
+  const stairs = { y0: dy, y1: sand, z0: R + 6, z1: R + 38, n: Math.max(1, Math.ceil(Math.abs(sand - dy) / 0.32)), sill: dy + 0.07, sillEnd: entranceZ + 4.2, door: entranceZ + 0.5 };
   for(const side of [-1,1])K.ramp([side*5.7,dy+.25,R+6],[side*5.7,sand+.25,R+38],.7,{t:.5,mat:red});
   // (the Givers' dry channel out from the door toward Qanat is the world's: src/levels/desert.js, the same path)
   K.flush();
   // the door: its threshold (world), looking out toward Qanat
-  const at = K.world(0, dy, R + 2.4);
+  const at = K.world(0, dy, entranceZ + 0.5);
   const front = K.world(0, dy, R + 14);
-  return { door: { at, heading: yaw, ...P.door }, kit: K, base, top: base + landmarkTop, doorY, R, front, stairs, clear: [{ x: SITE.x, z: SITE.z, r: 76 }, { x: end.x, z: end.z, r: 14 }] };
+  return { door: { at, heading: yaw, ...P.door }, channelOrigin: K.world(0, dy, R + 2.4), kit: K, base, top: base + landmarkTop, doorY, R, front, stairs, clear: [{ x: SITE.x, z: SITE.z, r: 76 }, { x: end.x, z: end.z, r: 14 }] };
 }
 
 // ------------------------------------------------------------------ the world change: water runs, fields grow

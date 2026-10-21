@@ -1352,7 +1352,32 @@ export const CHANGELOG_MEDIA = {
   '1.93': [
     { match: 'Your feet stay planted', shots: [{ name: 'moon-carrier-feet', only: 'after', caption: 'Standing on the descending moon-carrier; continuous contact is checked alongside this view.', from: 'Issue #610, muted internal-browser game at port5487, High, 1280 × 575; d2d74adde plus this movement patch. Actual after-only view; task-private save and carrier positioned halfway along its normal route. Frame contact samples and matching Unity review: .local-tools/validation/v1.93/movement-610-612/REPORT.md. A still alone does not demonstrate vertical following.' }] },
     { match: 'Jumping forward while locked on', shots: [{ name: 'locked-forward-jump', only: 'after', caption: 'Forward jump toward a locked skitter from a standing start.', from: 'Issue #612, muted internal-browser game at port5487, High, 1280 × 575; d2d74adde plus this movement patch. Actual after-only view, normal W/Space control state with a real spawned foe; task-private progress. Native and web motion measurements: .local-tools/validation/v1.93/movement-610-612/REPORT.md. Camera/animation phase differs between engine captures.' }] },
-  ],
+  {
+    "match": "The Rose House entrance now joins",
+    "shots": [
+      {
+        "name": "rose-attached-entrance",
+        "caption": "The doorway meets the Rose House facade, leaving the terrace clear.",
+        "from": "Actual muted internal-browser game capture, High, 1280 × 720, FOV 55, noon and clear weather, 21 October 2026. Before d2d74adde; after the #608/#609 change based on that revision. Fixed matching cameras; temporary progress, player hidden. Door poses use the real sliding update, closed and 42 steps at 60 Hz; controlled visual diagnostics, not a complete puzzle playthrough. Raw views and mute reports: .local-tools/validation/v1.93/rose-doors-608-609/web/."
+      }
+    ]
+  },
+  {
+    "match": "The Rose House’s sliding doors carry",
+    "shots": [
+      {
+        "name": "rose-sliding-closed",
+        "caption": "The closed slab has its own engraved surface.",
+        "from": "Actual muted internal-browser game capture, High, 1280 × 720, FOV 55, noon and clear weather, 21 October 2026. Before d2d74adde; after the #608/#609 change based on that revision. Fixed matching cameras; temporary progress, player hidden. Door poses use the real sliding update, closed and 42 steps at 60 Hz; controlled visual diagnostics, not a complete puzzle playthrough. Raw views and mute reports: .local-tools/validation/v1.93/rose-doors-608-609/web/."
+      },
+      {
+        "name": "rose-sliding-moving",
+        "caption": "At the same opening position, the circuits now travel down with the slab.",
+        "from": "Actual muted internal-browser game capture, High, 1280 × 720, FOV 55, noon and clear weather, 21 October 2026. Before d2d74adde; after the #608/#609 change based on that revision. Fixed matching cameras; temporary progress, player hidden. Door poses use the real sliding update, closed and 42 steps at 60 Hz; controlled visual diagnostics, not a complete puzzle playthrough. Raw views and mute reports: .local-tools/validation/v1.93/rose-doors-608-609/web/."
+      }
+    ]
+  }
+],
   "1.92": [
 {
   "match": "Recent ship, outfit and Desert updates now include pictures",
