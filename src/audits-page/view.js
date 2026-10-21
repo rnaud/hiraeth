@@ -53,6 +53,7 @@ export function sparkline(history, { w = 84, h = 26, of = 5 } = {}) {
 
 /** The change since the version before, as a badge. */
 export function deltaBadge(e) {
+  if (e.comparison) return `<span class="delta none">${esc(e.comparison)}</span>`;
   if (!e.prev) return `<span class="delta first">the first ${esc((KIND_NAMES[e.kind] ?? e.kind).toLowerCase())} audit</span>`;
   if (e.delta == null) return `<span class="delta none">after v${esc(e.prevVersion)}</span>`;
   const cls = e.delta > 0 ? 'up' : e.delta < 0 ? 'down' : 'same';
@@ -84,7 +85,7 @@ export function cardHtml(e, report) {
   const todo = e.todo.open || e.todo.done ? `TODO ${e.todo.open} open${e.todo.done ? `, ${e.todo.done} done` : ''}` : 'no TODO section';
   return `<article class="card" data-id="${esc(e.id)}" data-kind="${esc(e.kind)}" tabindex="0" data-nav>
     <div class="meta"><b>${esc(e.kindName)}</b> · <span class="v">v${esc(e.version)}</span> · ${esc(e.date)}</div>
-    <div class="row">${score}${sparkline(e.history, { of: e.of })}</div>
+    <div class="row">${score}${e.comparison ? '' : sparkline(e.history, { of: e.of })}</div>
     ${deltaBadge(e)}
     <p class="label">${esc(e.overall != null ? e.label : e.headline)}</p>
     ${miniBars(report)}

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { CINEMATICS, reviewURL } from '../src/cinematics-page/catalog.js';
-import { reviewStorage, mergeNotes } from '../src/cinematics-page/storage.js';
+import { reviewStorage, mergeNotes, QC_VERDICTS } from '../src/cinematics-page/storage.js';
 import { readFileSync } from 'node:fs';
 import { WORLD_MOMENTS } from '../src/story/film.js';
 import { PLACEMENTS } from '../src/boxes/placements.js';
@@ -40,7 +40,24 @@ test('imported QC notes merge by date, and the last QC pass\'s notes load and na
   const pass = JSON.parse(readFileSync(new URL('../docs/systems/cinematics-qc-notes.json', import.meta.url), 'utf8'));
   const ids = new Set(CINEMATICS.map((e) => e.id));
   for (const id of Object.keys(pass.notes)) assert.ok(ids.has(id), id);
-  assert.equal(Object.keys(mergeNotes({}, pass)).length, CINEMATICS.length, 'every cinematic has its verdict');
+  const imported = mergeNotes({}, pass);
+  assert.equal(Object.keys(pass.notes).length, 112, 'the frozen evidence inventory stays 112 entries');
+  assert.equal(Object.keys(imported).length, 112, 'all reviewed notes survive import');
+  assert.equal(pass.scope.version, '1.90');
+  assert.equal(pass.scope.source, 'c5449ab6c');
+  assert.equal(pass.scope.reviewedLive, 111);
+  assert.deepEqual(pass.scope.separateEntries, ['trailer']);
+  assert.equal(Object.keys(imported).filter(id => id !== 'trailer').length, 111);
+  assert.equal(imported.trailer.verdict, 'Pass with creative recommendation', 'do not flatten the trailer’s qualified judgment into Pass');
+  assert.equal(imported.trailer.text, pass.notes.trailer.text);
+  const unreviewed = ['arrival.mangrove', 'arrival.waterfall', 'arrival.saltharbour', 'arrival.antennas', 'arrival.eclipse', 'arrival.fallenring', 'arrival.underside'];
+  assert.deepEqual([...pass.scope.unreviewed].sort(), [...unreviewed].sort());
+  assert.deepEqual(CINEMATICS.filter(e => !imported[e.id]).map(e => e.id).sort(), [...unreviewed].sort(), 'catalogue entries outside frozen coverage remain unreviewed, never manufactured passes');
+  for (const id of unreviewed) assert.equal(imported[id], undefined);
+  assert.equal(Object.keys(imported).length + unreviewed.length, CINEMATICS.length, 'every current entry is explicitly reviewed or outside the frozen review');
+  const html = readFileSync(new URL('../cinematics.html', import.meta.url), 'utf8');
+  const options = [...html.match(/<select id="verdict">(.*?)<\/select>/s)[1].matchAll(/<option>(.*?)<\/option>/g)].map(m => m[1]);
+  assert.deepEqual(options, QC_VERDICTS, 'the review UI can display and preserve every accepted imported status');
 });
 
 // The review page's staging (runtime.js stageCinematic) on a stand-in world: a merged world's second part films its own

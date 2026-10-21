@@ -25,6 +25,7 @@ export function viewTabs(view = 'latest', count = 0, { glyphs = true } = {}) {
 
 /** The change of the theme's overall score, as a badge. */
 export function themeDelta(t) {
+  if (t.latest.comparison) return `<span class="delta none">${esc(t.latest.comparison)}</span>`;
   if (!t.prev) return `<span class="delta first">the first ${esc(t.name.toLowerCase())} audit</span>`;
   if (t.delta == null) return `<span class="delta none">after v${esc(t.prev.version)}</span>`;
   return `<span class="delta ${way(t.delta)}">${arrow(t.delta)} ${signed(t.delta)} <small>since v${esc(t.prev.version)}</small></span>`;
@@ -79,7 +80,7 @@ export function trendHtml(history, { w = 300, h = 64 } = {}) {
 /** The theme's earlier versions: a trend line and the list, newest first, each opening its report. */
 export function historyHtml(t, open = false) {
   const rows = [...t.history].reverse();
-  const line = trendHtml(t.history);
+  const line = t.latest.comparison ? '' : trendHtml(t.history);
   return `<div class="history" id="hist-${esc(t.kind)}"${open ? '' : ' hidden'}>${line ? `<div class="trend">${line}</div>` : ''}<ol>${rows.map((h, i) => `<li><a class="hist-row" href="#/${encodeURIComponent(h.id)}" data-open="${esc(h.id)}"><span class="hv">v${esc(h.version)}</span><span class="hd">${esc(h.date)}</span>${h.overall != null ? `<b class="tint ${tone(h.overall)}">${fmt(h.overall)}</b>` : `${h.figure ? `<b>${esc(h.figure.text)}</b>` : ''}<span class="hh" title="${esc(h.headline)}">${esc(h.headline)}</span>`}${h.delta != null ? `<i class="d ${way(h.delta)}">${arrow(h.delta)}${fmt(Math.abs(h.delta))}</i>` : h.overall != null ? '<i class="d"></i>' : ''}${i === 0 ? '<small>latest</small>' : ''}</a></li>`).join('')}</ol></div>`;
 }
 

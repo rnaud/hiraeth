@@ -1,600 +1,583 @@
 {
- "exported": "2026-10-20T04:30:00.000Z",
- "notes": {
-  "prologue": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 4/5, interest 5/5. As before: the script waits at the walk (it can't press the voicemail), so the frames hold the cabin from 21 s on; Plumb's new beat (#434) and the walk down the ramp not reached. Not a fault",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "desert.flow": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "desert.fill": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. The script's pop at 5.9 s is the cut from close on the glass to over his shoulder (a size change, accepted, as v1.66)",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "desert.lit": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 4.5/5, interest 5/5. As v1.66: A his back against the trunk; villagers' speech bubbles over C (diegetic)",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "arzach.bird": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. The traveller's head cut by the bottom of B as the bird comes over (minor); the docked drone no longer by his face (#294)",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "arzach2.bell": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "perdide.crystal": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "perdide2.pools": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "edena.terraces": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "incal.lodestar": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "glassdunes.clock": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. Two seconds (B) on one clock hand against the dark face read as a near-empty frame (minor)",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "buried.wheel": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "spheres.chord": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "bazaar.broadcast": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "underwater.whales": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 4.5/5, interest 4/5. Four panels now (#295), 9.6 s; the whale's panels in the dark sea read as half-empty frames (5 of 10), by design but hard to read",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "moonfoundry.moon": {
-   "verdict": "Pass",
-   "text": "QC 2026-10-19 (v1.85, #491 fixed): tech 5/5, interest 4/5. Before, A sat inside the jib over the door: the moment's pull-in met it 2 m from its look, giving 52 frames of a navy face with orange bars. Now A is checked by film.js clearShot (MOON.NEAR), and it opens wide on the house and its tower from out on the floor. D's side is picked by its backdrop (openCloseUp). Out of the door the house is still behind his face, and that is by design: he stands at its door. B and C unchanged",
-   "updated": "2026-10-19T08:30:00.000Z"
-  },
-  "spacecity.cables": {
-   "verdict": "Pass",
-   "text": "QC 2026-10-19 (v1.85, #491 fixed): tech 5/5, interest 4/5. Before, B was filmed through a leg of the Mooring-House's tripod and the spindle's flare, a teal wall. Now capstanShot sits in the gap between two legs, under the spindle: the capstan turns and the cables leave it with their lamps lighting. A was a metre from the house's wall because the pull-in met a ledge. Now clearShot keeps it, lifted 4 m over the apron's rim, wide from out over the void",
-   "updated": "2026-10-19T08:30:00.000Z"
-  },
-  "lantern.arrive": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "homecoming.first": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 4/5, interest 4/5. Times out at 120 s, as before. The cargo lines now cut between angles (#296 fixed: interest 3 → 4). The face shot at 51 s and 120 s puts the hull's scar right behind his head, a dark blot (minor); the warp reads as a blank cream frame at 17 s (by design)",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "homecoming.final": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 4/5, interest 4/5. Times out at 120 s, as before. The slab's angles now frame everyone (#296 fixed); Lou's close at 86 s has the top of her head under the bar, and the hull's scar sits behind his head in the face shots (minor)",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "home.homage": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "home.windowSeat": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 4.5/5, interest 4/5. The white patch is gone (#298); in the first angle he stands in the window's ring, his head close under the bar at 9 s (minor)",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "call.1": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "call.2": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "call.3": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "call.4": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "call.5": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "call.6": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "call.7": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "call.8": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "call.9": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "call.10": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "call.11": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "call.12": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "call.ilen": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "call.ilen.after": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "call.trace": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "call.part.arzach2": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. The script counts one shot: its cuts are eased moves now (#297), four angles by eye",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "call.part.perdide2": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "arrival.desert": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "arrival.arzach": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "arrival.perdide": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "arrival.edena": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "arrival.underwater": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "arrival.incal": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 4.5/5, interest 4/5. The first landing now comes down wide over the port (#327, #441), 24.5 s; the hand-back frame has a grey slab across him, the follow camera behind a post at the ramp's foot (minor)",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "arrival.glassdunes": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "arrival.buried": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "arrival.moonfoundry": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. The first landing comes down wide under the foundry's roof (#327); at touchdown (14 s) the dust still reads as a row of beige boulders for a frame (#299's settle, minor)",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "arrival.spheres": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "arrival.spacecity": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "arrival.bazaar": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "arrival.mangrove": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "arrival.waterfall": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "arrival.saltharbour": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "arrival.antennas": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "arrival.eclipse": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "arrival.fallenring": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "arrival.underside": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "arrival.home": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 4/5, interest 3/5. As before: waits on the cargo check, one held look out of the windshield",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "arrival.lantern": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "takeoff": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "box.desert.backpack": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "box.desert.lift": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 4.5/5, interest 4/5. As v1.66: in the small round room his back and tank fill the left half of every frame; the closing frame has him at the edge",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "box.desert.gun": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "box.desert.star": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "box.desert.temple.sword": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "box.desert.temple.shield": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "box.incal.soles": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "box.incal.temple.jetpack": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "box.incal.sunglass": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "box.incal.bridge": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-20 (v1.87, docs/audits/cinematics-v1.87.md): tech 5/5, interest 5/5. #501 fixed: no HUD in the scene.",
-   "updated": "2026-10-20T04:30:00.000Z"
-  },
-  "box.arzach.hush": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "box.arzach.temple.glider": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "box.arzach.hook": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "box.arzach2.scarf": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "box.arzach2.temple.bell": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "box.garage.level": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "box.garage.temple.coil": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "box.buried.resin": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "box.buried.temple.cell": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "box.buried.monocle": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "box.edena.pouch": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. The script's near-empty frames are the meadow's flat pink ground from above (accepted)",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "box.edena.temple.bloom": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "box.edena.bubble": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "box.spheres.shell": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "box.spheres.temple.lens": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "box.spheres.bomb": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "box.perdide.reed": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "box.perdide.temple.stun": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "box.perdide.fan": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "box.perdide2.moss": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "box.perdide2.temple.lantern": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "box.perdide2.boomerang": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "box.bazaar.temple.echo": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "box.bazaar.court": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-20 (v1.87, docs/audits/cinematics-v1.87.md): tech 5/5, interest 4/5. New in v1.86 (#518): the Signal Market’s court chest behind its gate; plays clean, his first frame mid-step.",
-   "updated": "2026-10-20T04:30:00.000Z"
-  },
-  "box.moonfoundry.court": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. The yards' boxes open from inside their alcove now (#292 fixed): no bars, no blank frame",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "box.moonfoundry.bellows": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "box.moonfoundry.temple.tongs": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "box.spacecity.court": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. #292 fixed: no bars, no blank frame (by the script; the Moon Foundry's court seen by eye)",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "box.spacecity.starthread": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "box.spacecity.temple.tether": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "box.underwater.court": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. #292 fixed: no bars, no blank frame (by the script; the Moon Foundry's court seen by eye)",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "box.underwater.pearl": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "box.underwater.temple.horn": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 4/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "trailer": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-18 (v1.85, docs/audits/cinematics-v1.85.md): tech 5/5, interest 5/5. No problem found.",
-   "updated": "2026-10-18T16:00:00.000Z"
-  },
-  "finale.desert": {
-   "verdict": "Pass",
-   "text": "QC 2026-10-20 (#562): C is the house’s own: the cistern fills under the dry spout, the Keeper drinking beyond. D the way out from inside the hall. Plays 11 s, skips in 1.6 s.",
-   "updated": "2026-10-20T06:00:00.000Z"
-  },
-  "finale.incal": {
-   "verdict": "Pass",
-   "text": "QC 2026-10-20 (#562): C is the house’s own: a great vane in the floor spins up, its ring lit. D the way out from inside the hall. Plays 11 s, skips in 1.6 s.",
-   "updated": "2026-10-20T06:00:00.000Z"
-  },
-  "finale.arzach2": {
-   "verdict": "Pass",
-   "text": "QC 2026-10-20 (#562): C is the house’s own: a hung stone sinks to the floor, the lens following it down. D the way out from inside the hall. Plays 11 s, skips in 1.6 s.",
-   "updated": "2026-10-20T06:00:00.000Z"
-  },
-  "finale.spheres": {
-   "verdict": "Pass",
-   "text": "QC 2026-10-20 (#562): C is the house’s own: two galleries either side of the Echo, their spheres singing, then all three. D the way out from inside the hall. Plays 11 s, skips in 1.6 s.",
-   "updated": "2026-10-20T06:00:00.000Z"
-  },
-  "finale.buried": {
-   "verdict": "Pass",
-   "text": "QC 2026-10-20 (#562): C is the house’s own: the great gear turns again and throws the ball out of its teeth. D the way out from inside the hall. Plays 11 s, skips in 1.6 s.",
-   "updated": "2026-10-20T06:00:00.000Z"
-  },
-  "finale.perdide2": {
-   "verdict": "Pass",
-   "text": "QC 2026-10-20 (#562): C is the house’s own: the great lamp catches and the room goes gold. D the way out from inside the hall. Plays 11 s, skips in 1.6 s.",
-   "updated": "2026-10-20T06:00:00.000Z"
-  },
-  "finale.perdide": {
-   "verdict": "Pass",
-   "text": "QC 2026-10-20 (#562): C is the house’s own: the three crystals thaw and swing in time over her. D the way out from inside the hall. Plays 11 s, skips in 1.6 s.",
-   "updated": "2026-10-20T06:00:00.000Z"
-  },
-  "finale.arzach": {
-   "verdict": "Pass",
-   "text": "QC 2026-10-20 (#562): C is the house’s own: the roost’s second vent breathes, its column rising. D the way out from inside the hall. Plays 11 s, skips in 1.6 s.",
-   "updated": "2026-10-20T06:00:00.000Z"
-  },
-  "finale.garage": {
-   "verdict": "Pass",
-   "text": "QC 2026-10-20 (#562): C is the house’s own: the stopped wall clocks race round to the true time. D the way out from inside the hall. Plays 11 s, skips in 1.6 s.",
-   "updated": "2026-10-20T06:00:00.000Z"
-  },
-  "finale.edena": {
-   "verdict": "Pass",
-   "text": "QC 2026-10-20 (#562): C is the house’s own: the water wells up round a bloomed bed. D the way out from inside the hall. Plays 11 s, skips in 1.6 s.",
-   "updated": "2026-10-20T06:00:00.000Z"
-  },
-  "finale.bazaar": {
-   "verdict": "Pass",
-   "text": "QC 2026-10-20 (#562): C is the house’s own: a word stone sings, the rest of the line heard round the hall. D the way out from inside the hall. Plays 11 s, skips in 1.6 s.",
-   "updated": "2026-10-20T06:00:00.000Z"
-  },
-  "finale.spacecity": {
-   "verdict": "Pass",
-   "text": "QC 2026-10-20 (#562): C is the house’s own: the Warden’s barred gate rises onto the hub; D the way east. D the way out from inside the hall. Plays 11 s, skips in 1.6 s.",
-   "updated": "2026-10-20T06:00:00.000Z"
-  },
-  "finale.moonfoundry": {
-   "verdict": "Pass",
-   "text": "QC 2026-10-20 (#562): C is the house’s own: the iron moon in the cradle glows white-hot and cools. D the way out from inside the hall. Plays 11 s, skips in 1.6 s.",
-   "updated": "2026-10-20T06:00:00.000Z"
-  },
-  "finale.underwater": {
-   "verdict": "Pass",
-   "text": "QC 2026-10-20 (#562): C is the house’s own: the tide spreads out of the Listener’s pool, a dish ringing; B close and high over the purse, out from under the shell. D the way out from inside the hall. Plays 11 s, skips in 1.6 s. (#567) D framed clear of the Listener’s shell: from the gap between the shell and the wall, the door whole in the frame, the shell a sliver at its edge, gone as the lens moves in.",
-   "updated": "2026-10-20T09:00:00.000Z"
+  "exported": "2026-10-21T16:11:24.913571+00:00",
+  "notes": {
+    "prologue": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Corrected desktop and phone endpoints inspected. Measured pop at ~11 s is the explicit player-use walk-to-recording camera handoff; unletterboxed controls/prompt are intentional during walking. No accidental pop established. Prior stalled fixture holds excluded. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "desert.flow": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "desert.fill": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "desert.lit": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "arzach.bird": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "arzach2.bell": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "perdide.crystal": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "perdide2.pools": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "edena.terraces": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "incal.lodestar": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "glassdunes.clock": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "buried.wheel": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "spheres.chord": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "bazaar.broadcast": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "underwater.whales": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "moonfoundry.moon": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "spacecity.cables": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "finale.desert": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 4.0/5 (purpose/length/variety/motion/beat 1/1/1/0.5/0.5). Camera direction is judged from the inspected keeper/object/exit progression; obstructed or floor-dominated middle panels receive partial credit. Exit opening is readable, but the keeper/traveller reaction contributes only a partial emotional beat. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "finale.incal": {
+      "verdict": "Needs work",
+      "text": "v1.90 frozen c5449ab6c: technical 4/5, interest 3.0/5 (purpose/length/variety/motion/beat 1/1/0.5/0.5/0). Visible foreground geometry significantly obscures intended subject in a middle/establishing panel despite automatic geometry metric passing. Playback/skip remain clean; framing is the deduction. Foreground pillar and under-body panel obscure the keeper; wide/detail variety exists but the emotional reaction and directed reveal are weak. Camera direction is judged from the inspected keeper/object/exit progression; obstructed or floor-dominated middle panels receive partial credit. Mechanical exit opening is present, but the sampled middle/ending panels lose the useful keeper or traveller reaction. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "finale.arzach2": {
+      "verdict": "Needs work",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 3.5/5 (purpose/length/variety/motion/beat 1/1/0.5/0.5/0.5). Wide floating guardian reads; middle low underside and ceiling crop lose the subject before door payoff. Camera direction is judged from the inspected keeper/object/exit progression; obstructed or floor-dominated middle panels receive partial credit. Exit opening is readable, but the keeper/traveller reaction contributes only a partial emotional beat. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "finale.spheres": {
+      "verdict": "Needs work",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 3.0/5 (purpose/length/variety/motion/beat 1/1/0.5/0.5/0). Middle top-down panel is largely blank floor with a tiny traveller; door payoff is clear but medium/reaction beat is weak. Camera direction is judged from the inspected keeper/object/exit progression; obstructed or floor-dominated middle panels receive partial credit. Mechanical exit opening is present, but the sampled middle/ending panels lose the useful keeper or traveller reaction. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "finale.buried": {
+      "verdict": "Needs work",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 3.5/5 (purpose/length/variety/motion/beat 1/1/0.5/0.5/0.5). Tight under-body and floor views weaken subject continuity; room and door payoff remain legible. Camera direction is judged from the inspected keeper/object/exit progression; obstructed or floor-dominated middle panels receive partial credit. Exit opening is readable, but the keeper/traveller reaction contributes only a partial emotional beat. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "finale.perdide2": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 4.5/5 (purpose/length/variety/motion/beat 1/1/1/1/0.5). Exit opening is readable, but the keeper/traveller reaction contributes only a partial emotional beat. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "finale.perdide": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 4.5/5 (purpose/length/variety/motion/beat 1/1/1/1/0.5). Exit opening is readable, but the keeper/traveller reaction contributes only a partial emotional beat. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "finale.arzach": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 4.0/5 (purpose/length/variety/motion/beat 1/1/1/0.5/0.5). Camera direction is judged from the inspected keeper/object/exit progression; obstructed or floor-dominated middle panels receive partial credit. Exit opening is readable, but the keeper/traveller reaction contributes only a partial emotional beat. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "finale.garage": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "finale.edena": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 4.5/5 (purpose/length/variety/motion/beat 1/1/1/1/0.5). Exit opening is readable, but the keeper/traveller reaction contributes only a partial emotional beat. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "finale.bazaar": {
+      "verdict": "Needs work",
+      "text": "v1.90 frozen c5449ab6c: technical 4/5, interest 3.0/5 (purpose/length/variety/motion/beat 1/1/0.5/0.5/0). Visible foreground geometry significantly obscures intended subject in a middle/establishing panel despite automatic geometry metric passing. Playback/skip remain clean; framing is the deduction. Foreground column and platform underside compete with subject; door payoff is clear, but repeated wide mechanical reveal lacks a readable reaction. Camera direction is judged from the inspected keeper/object/exit progression; obstructed or floor-dominated middle panels receive partial credit. Mechanical exit opening is present, but the sampled middle/ending panels lose the useful keeper or traveller reaction. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "finale.spacecity": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 4.0/5 (purpose/length/variety/motion/beat 1/1/1/0.5/0.5). Camera direction is judged from the inspected keeper/object/exit progression; obstructed or floor-dominated middle panels receive partial credit. Exit opening is readable, but the keeper/traveller reaction contributes only a partial emotional beat. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "finale.moonfoundry": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "finale.underwater": {
+      "verdict": "Needs work",
+      "text": "v1.90 frozen c5449ab6c: technical 4/5, interest 3.0/5 (purpose/length/variety/motion/beat 1/1/0.5/0.5/0). Visible foreground geometry significantly obscures intended subject in a middle/establishing panel despite automatic geometry metric passing. Playback/skip remain clean; framing is the deduction. Keeper shell underside dominates middle shot; traveller is a tiny edge figure. Door payoff is clear but reaction and useful medium framing are weak. Camera direction is judged from the inspected keeper/object/exit progression; obstructed or floor-dominated middle panels receive partial credit. Mechanical exit opening is present, but the sampled middle/ending panels lose the useful keeper or traveller reaction. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "lantern.arrive": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "homecoming.first": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 4.5/5 (purpose/length/variety/motion/beat 1/0.5/1/1/1). Maximum-keepsake fixture spends roughly three to four minutes on repeated placements; meaningful reflection but a long unvaried middle. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "homecoming.final": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 4.5/5 (purpose/length/variety/motion/beat 1/0.5/1/1/1). Maximum-keepsake fixture spends roughly three to four minutes on repeated placements; meaningful reflection but a long unvaried middle. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "home.homage": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "home.windowSeat": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "call.1": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 4.0/5 (purpose/length/variety/motion/beat 1/1/0.5/0.5/1). Console wide and display insert dominate, with little distinct reaction framing. Gentle reframing keeps attention near the receiver, but much movement changes scale without revealing new information. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "call.2": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 4.5/5 (purpose/length/variety/motion/beat 1/1/1/0.5/1). Gentle reframing keeps attention near the receiver, but much movement changes scale without revealing new information. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "call.3": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 4.5/5 (purpose/length/variety/motion/beat 1/1/1/0.5/1). Gentle reframing keeps attention near the receiver, but much movement changes scale without revealing new information. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "call.4": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 4.5/5 (purpose/length/variety/motion/beat 1/1/1/0.5/1). Gentle reframing keeps attention near the receiver, but much movement changes scale without revealing new information. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "call.5": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 4.5/5 (purpose/length/variety/motion/beat 1/1/1/0.5/1). Gentle reframing keeps attention near the receiver, but much movement changes scale without revealing new information. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "call.6": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 4.5/5 (purpose/length/variety/motion/beat 1/1/1/0.5/1). Gentle reframing keeps attention near the receiver, but much movement changes scale without revealing new information. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "call.7": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 4.5/5 (purpose/length/variety/motion/beat 1/1/1/0.5/1). Gentle reframing keeps attention near the receiver, but much movement changes scale without revealing new information. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "call.8": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 4.5/5 (purpose/length/variety/motion/beat 1/1/1/0.5/1). Gentle reframing keeps attention near the receiver, but much movement changes scale without revealing new information. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "call.9": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 4.0/5 (purpose/length/variety/motion/beat 1/1/0.5/0.5/1). Console wide and display insert dominate, with little distinct reaction framing. Gentle reframing keeps attention near the receiver, but much movement changes scale without revealing new information. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "call.10": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 4.5/5 (purpose/length/variety/motion/beat 1/1/1/0.5/1). Gentle reframing keeps attention near the receiver, but much movement changes scale without revealing new information. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "call.11": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 4.5/5 (purpose/length/variety/motion/beat 1/1/1/0.5/1). Gentle reframing keeps attention near the receiver, but much movement changes scale without revealing new information. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "call.12": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 4.5/5 (purpose/length/variety/motion/beat 1/1/1/0.5/1). Gentle reframing keeps attention near the receiver, but much movement changes scale without revealing new information. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "call.ilen": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 4.0/5 (purpose/length/variety/motion/beat 1/1/0.5/0.5/1). Console wide and display insert dominate, with little distinct reaction framing. Gentle reframing keeps attention near the receiver, but much movement changes scale without revealing new information. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "call.ilen.after": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 4.0/5 (purpose/length/variety/motion/beat 1/1/0.5/0.5/1). Console wide and display insert dominate, with little distinct reaction framing. Gentle reframing keeps attention near the receiver, but much movement changes scale without revealing new information. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "call.trace": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 4.0/5 (purpose/length/variety/motion/beat 1/1/0.5/0.5/1). Console wide and display insert dominate, with little distinct reaction framing. Gentle reframing keeps attention near the receiver, but much movement changes scale without revealing new information. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "call.part.arzach2": {
+      "verdict": "Needs work",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 3.5/5 (purpose/length/variety/motion/beat 1/1/0/0.5/1). One largely unchanged over-shoulder console composition through the bell recording. Gentle reframing keeps attention near the receiver, but much movement changes scale without revealing new information. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "call.part.perdide2": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 4.5/5 (purpose/length/variety/motion/beat 1/1/1/0.5/1). Gentle reframing keeps attention near the receiver, but much movement changes scale without revealing new information. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "arrival.desert": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 4.0/5 (purpose/length/variety/motion/beat 1/0.5/1/1/0.5). 23.1 s; two generic orbit panels delay the destination-specific landing reveal, so the pacing earns partial credit. Landing/lift and return to walking are intelligible, but most have little traveller reaction or surprising turn beyond completing transport. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "arrival.arzach": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 4.0/5 (purpose/length/variety/motion/beat 1/0.5/1/1/0.5). 21.3 s; two generic orbit panels delay the destination-specific landing reveal, so the pacing earns partial credit. Landing/lift and return to walking are intelligible, but most have little traveller reaction or surprising turn beyond completing transport. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "arrival.perdide": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 4.0/5 (purpose/length/variety/motion/beat 1/0.5/1/1/0.5). 19.9 s; two generic orbit panels delay the destination-specific landing reveal, so the pacing earns partial credit. Landing/lift and return to walking are intelligible, but most have little traveller reaction or surprising turn beyond completing transport. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "arrival.edena": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 4.0/5 (purpose/length/variety/motion/beat 1/0.5/1/1/0.5). 19.7 s; two generic orbit panels delay the destination-specific landing reveal, so the pacing earns partial credit. Landing/lift and return to walking are intelligible, but most have little traveller reaction or surprising turn beyond completing transport. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "arrival.underwater": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 4.0/5 (purpose/length/variety/motion/beat 1/0.5/1/1/0.5). 23.3 s; two generic orbit panels delay the destination-specific landing reveal, so the pacing earns partial credit. Landing/lift and return to walking are intelligible, but most have little traveller reaction or surprising turn beyond completing transport. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "arrival.incal": {
+      "verdict": "Needs work",
+      "text": "v1.90 frozen c5449ab6c: technical 4/5, interest 4.0/5 (purpose/length/variety/motion/beat 1/0.5/1/1/0.5). Full-playback hand-back camera obstructed by legacy ship geometry in both desktop and phone. Frozen c544 only; skip settles clear and current caravan differs. 23.5 s; two generic orbit panels delay the destination-specific landing reveal, so the pacing earns partial credit. Landing/lift and return to walking are intelligible, but most have little traveller reaction or surprising turn beyond completing transport. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "arrival.glassdunes": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 4.0/5 (purpose/length/variety/motion/beat 1/0.5/1/1/0.5). 19.4 s; two generic orbit panels delay the destination-specific landing reveal, so the pacing earns partial credit. Landing/lift and return to walking are intelligible, but most have little traveller reaction or surprising turn beyond completing transport. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "arrival.buried": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 4.0/5 (purpose/length/variety/motion/beat 1/0.5/1/1/0.5). 20.5 s; two generic orbit panels delay the destination-specific landing reveal, so the pacing earns partial credit. Landing/lift and return to walking are intelligible, but most have little traveller reaction or surprising turn beyond completing transport. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "arrival.moonfoundry": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 4.0/5 (purpose/length/variety/motion/beat 1/0.5/1/1/0.5). 19.4 s; two generic orbit panels delay the destination-specific landing reveal, so the pacing earns partial credit. Landing/lift and return to walking are intelligible, but most have little traveller reaction or surprising turn beyond completing transport. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "arrival.spheres": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 4.0/5 (purpose/length/variety/motion/beat 1/0.5/1/1/0.5). 19.5 s; two generic orbit panels delay the destination-specific landing reveal, so the pacing earns partial credit. Landing/lift and return to walking are intelligible, but most have little traveller reaction or surprising turn beyond completing transport. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "arrival.spacecity": {
+      "verdict": "Needs work",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 3.5/5 (purpose/length/variety/motion/beat 1/0.5/1/0.5/0.5). 19.4 s; two generic orbit panels delay the destination-specific landing reveal, so the pacing earns partial credit. The early Space City approach follows exhaust without a visible hull, weakening the intended ship movement. Landing/lift and return to walking are intelligible, but most have little traveller reaction or surprising turn beyond completing transport. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "arrival.bazaar": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 4.0/5 (purpose/length/variety/motion/beat 1/0.5/1/1/0.5). 19.6 s; two generic orbit panels delay the destination-specific landing reveal, so the pacing earns partial credit. Landing/lift and return to walking are intelligible, but most have little traveller reaction or surprising turn beyond completing transport. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "arrival.home": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 4.5/5 (purpose/length/variety/motion/beat 1/0.5/1/1/1). Maximum-keepsake fixture spends roughly three to four minutes on repeated placements; meaningful reflection but a long unvaried middle. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "arrival.lantern": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 4.0/5 (purpose/length/variety/motion/beat 1/0.5/1/1/0.5). 16.5 s; two generic orbit panels delay the destination-specific landing reveal, so the pacing earns partial credit. Landing/lift and return to walking are intelligible, but most have little traveller reaction or surprising turn beyond completing transport. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "takeoff": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 4.5/5 (purpose/length/variety/motion/beat 1/1/1/1/0.5). Landing/lift and return to walking are intelligible, but most have little traveller reaction or surprising turn beyond completing transport. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "box.desert.backpack": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "box.desert.lift": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "box.desert.gun": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "box.desert.star": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 4.5/5 (purpose/length/variety/motion/beat 1/1/0.5/1/1). Opening view is partly blocked by foreground structure; later item detail and hand-back are readable. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "box.desert.temple.sword": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "box.desert.temple.shield": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "box.incal.soles": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "box.incal.temple.jetpack": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "box.incal.sunglass": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "box.incal.bridge": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "box.arzach.hush": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 4.5/5 (purpose/length/variety/motion/beat 1/1/0.5/1/1). Opening view is partly blocked by foreground structure; later item detail and hand-back are readable. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "box.arzach.temple.glider": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "box.arzach.hook": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "box.arzach2.scarf": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "box.arzach2.temple.bell": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "box.garage.level": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "box.garage.temple.coil": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "box.buried.resin": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 4.5/5 (purpose/length/variety/motion/beat 1/1/1/1/0.5). Visible reward/reaction payoff, but the same repeated item-box formula offers little scene-specific surprise. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "box.buried.temple.cell": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "box.buried.monocle": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "box.edena.pouch": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "box.edena.temple.bloom": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "box.edena.bubble": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "box.spheres.shell": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 4.5/5 (purpose/length/variety/motion/beat 1/1/1/1/0.5). Visible reward/reaction payoff, but the same repeated item-box formula offers little scene-specific surprise. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "box.spheres.temple.lens": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "box.spheres.bomb": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "box.perdide.reed": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "box.perdide.temple.stun": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "box.perdide.fan": {
+      "verdict": "Needs work",
+      "text": "v1.90 frozen c5449ab6c: technical 4/5, interest 4.5/5 (purpose/length/variety/motion/beat 1/1/0.5/1/1). Permanent court teeth substantially cover initial reveal on desktop and phone; later reward and release readable. These teeth are separate from the solved gate, so fixture lock state does not explain the obstruction. Opening view is partly blocked by foreground structure; later item detail and hand-back are readable. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "box.perdide2.moss": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "box.perdide2.temple.lantern": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "box.perdide2.boomerang": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "box.bazaar.temple.echo": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "box.bazaar.court": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "box.moonfoundry.court": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "box.moonfoundry.bellows": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "box.moonfoundry.temple.tongs": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "box.spacecity.court": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "box.spacecity.starthread": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 4.5/5 (purpose/length/variety/motion/beat 1/1/0.5/1/1). Opening view is partly blocked by foreground structure; later item detail and hand-back are readable. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "box.spacecity.temple.tether": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "box.underwater.court": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "box.underwater.pearl": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 4.5/5 (purpose/length/variety/motion/beat 1/1/0.5/1/1). Opening view is partly blocked by foreground structure; later item detail and hand-back are readable. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "box.underwater.temple.horn": {
+      "verdict": "Pass",
+      "text": "v1.90 frozen c5449ab6c: technical 5/5, interest 5/5 (purpose/length/variety/motion/beat 1/1/1/1/1). Reviewed desktop, phone and skip evidence; five criteria supported by per-entry notes. Audio unassessed. Recommendations held; no fixes.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    },
+    "trailer": {
+      "verdict": "Pass with creative recommendation",
+      "text": "v1.90 technical5/5, interest4.5/5; purpose/length/variety/motion/beat1/1/1/1/0.5. Continuous48.12s production playback and13frames inspected, clean endpoint, zero errors, gain0 output blocked. Clear world montage, limited protagonist-response beat. Audible mix/export unassessed; excluded from111live means.",
+      "updated": "2026-10-21T16:11:24.913571+00:00"
+    }
+  },
+  "scope": {
+    "version": "1.90",
+    "source": "c5449ab6c",
+    "reviewedLive": 111,
+    "separateEntries": [
+      "trailer"
+    ],
+    "unreviewed": [
+      "arrival.mangrove",
+      "arrival.waterfall",
+      "arrival.saltharbour",
+      "arrival.antennas",
+      "arrival.eclipse",
+      "arrival.fallenring",
+      "arrival.underside"
+    ],
+    "reason": "The frozen audit covers 111 live scenes and the separately reviewed trailer. These seven side-world arrivals remain outside that evidence; current catalogue membership does not imply review."
   }
- }
 }

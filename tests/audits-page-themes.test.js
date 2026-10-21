@@ -2,6 +2,7 @@
 // the latest report of every theme, the changes since the one before, each kind's parser on the real reports in
 // docs/audits/, the cards' HTML and the controller's wiring.
 import test from 'node:test';
+import { historicalAudits } from './audits-history.js';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { auditsData } from '../scripts/audits-data.mjs';
@@ -10,7 +11,7 @@ import { dashboardHtml, shortLabel, themeCard, trendHtml, viewTabs, VIEWS } from
 import { parseRoute, routeHash } from '../src/audits-page/view.js';
 
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
-const { reports } = auditsData();
+const { reports } = historicalAudits();
 const themes = latestByTheme(reports);
 const theme = (k) => themes.find((t) => t.kind === k);
 const group = (k, title) => theme(k).groups.find((g) => g.title === title);
@@ -117,7 +118,7 @@ test('the parsers on the real reports: each kind\'s items add up to its overall'
   const scenes = group('ink-lines', 'Scenes').rows;
   assert.equal(scenes.length, 16, 'v1.53: the 13 of v1.34 and the three worlds that joined in v1.40');
   assert.ok(near(avg(scenes.map((r) => r.value)), theme('ink-lines').latest.overall), 'each scene the mean of its resolutions');
-  const worldsCine = group('cinematics', 'By world').rows;
+  const worldsCine = group('cinematics', 'Scene groups').rows;
   assert.equal(worldsCine.reduce((n, r) => n + +r.text, 0), 112, 'the 112 cinematics of the v1.87 pass, by world (the side worlds\' arrivals left out, the temple endings in)');
   assert.ok(worldsCine.some((r) => r.label === 'desert') && worldsCine.some((r) => r.label === 'prologue'));
   // (v1.39: the merged and dismissed worlds' arrivals, the Hangar's signal and recordings 10-11 out, the Glass Dunes' clock in)
@@ -221,4 +222,46 @@ test('routes and the controller: the dashboard by default, All audits behind LB 
   assert.match(html, /\.theme \{[^}]*box-shadow: 5px 5px 0 var\(--ink\)/, 'the house\'s offset shadow');
   assert.match(html, /\.theme-open:focus \{[^}]*outline/, 'the pad\'s focus shows');
   assert.match(read('scripts/audits-data.mjs'), /r\.theme = themeOf\(r, md\)/, 'the parsers run where the data is built');
+});
+
+// Current publication is tested separately from the immutable historical dashboard above.
+test('v1.90 publication: all seventeen current kinds, distinct rubrics and qualified comparisons', () => {
+  const current = auditsData().reports;
+  const latest = latestByTheme(current);
+  const get = k => latest.find(t => t.kind === k);
+  const kinds = ['visual','ink-lines','shadow','zfight','cinematics','game','dialogue','quest','level-design','temple-design','perf','combat','combat-fight-temples','camera','motion','sound','procedural-animation'];
+  for (const k of kinds) assert.equal(get(k).latest.id, `${k}-v1.90`, k);
+  for (const [k, score] of Object.entries({game:4.17,dialogue:4.14,quest:4.97,'level-design':4.73,'temple-design':4.4,combat:4.16,'combat-fight-temples':3.9,'ink-lines':4.69})) assert.equal(get(k).latest.overall, score, k);
+  for (const k of ['visual','shadow','zfight','cinematics','perf','camera','motion','sound','procedural-animation']) assert.equal(get(k).latest.overall, null, `${k}: no invented aggregate`);
+  assert.equal(get('visual').latest.theme.figure, null, '87 native pairs are coverage, not severity findings');
+  assert.equal(get('visual').groups.length, 0);
+  assert.equal(get('zfight').latest.scoreTables.length, 0, 'ranked priorities are not quality scores');
+  assert.equal(get('combat').groups.find(g => g.title === 'Archetypes').rows.length, 23);
+  assert.equal(get('combat').groups.find(g => g.title === 'Guardians').rows.length, 14);
+  for (const k of ['game','combat','procedural-animation']) {
+    assert.ok(get(k).latest.comparison, `${k}: explicit comparison qualification`);
+    assert.equal(get(k).delta, null);
+    assert.ok(get(k).groups.every(g => g.rows.every(r => r.delta == null)), `${k}: no misleading item arrows`);
+    assert.ok(themeCard(get(k)).includes(get(k).latest.comparison));
+  }
+  assert.match(get('procedural-animation').latest.headline, /2\.00\/3/);
+  assert.equal(get('procedural-animation').latest.scoreTables.length, 0, '0–3 is not silently displayed as /5');
+  const cineGroups = get('cinematics').groups.find(g => g.title === 'Scene groups');
+  assert.equal(cineGroups.rows.length, 24);
+  assert.ok(cineGroups.rows.some(r => r.label === 'arrival') && cineGroups.rows.some(r => r.label === 'desert'), 'group labels include scene families and worlds');
+  assert.match(read('audits.html'), /\.delta\.none \{[^}]*max-width: 100%[^}]*white-space: normal[^}]*overflow-wrap: anywhere/, 'comparison explanations wrap inside narrow cards');
+  const cine = get('cinematics').latest;
+  const rows = cine.scoreTables.flatMap(t => t.rows);
+  assert.equal(rows.length, 112);
+  assert.equal(rows.filter(r => r.id !== 'trailer').length, 111);
+  assert.equal(rows.filter(r => r.id === 'trailer').length, 1);
+  const table = cine.scoreTables[0], live = rows.filter(r => r.id !== 'trailer');
+  const tech = table.header.indexOf('Tech /5'), interest = table.header.indexOf('Interest /5');
+  assert.equal(table.scoreCols.length, 2, 'only the two five-point rubrics are scored');
+  assert.ok(near(avg(live.map(r => r.scores[tech].value)), 4.95495495495, 0.000001));
+  assert.ok(near(avg(live.map(r => r.scores[interest].value)), 4.58108108108, 0.000001));
+  const trailer = rows.find(r => r.id === 'trailer');
+  assert.deepEqual([trailer.scores[tech].value, trailer.scores[interest].value], [5,4.5]);
+  assert.equal(Object.values(cine.verdicts).reduce((a,b) => a+b,0),112);
+  assert.equal(get('dialogue').groups[0].rows.length, 11, 'localisation remains excluded');
 });

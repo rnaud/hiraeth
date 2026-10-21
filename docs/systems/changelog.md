@@ -49,12 +49,25 @@ save). Nothing newer: "You have the newest game." Offline, a new APK needed, a c
 line saying so. Apps from before NATIVE_API 4 can't check from a page and reload, as on the site.
 Tests: `tests/changelog-refresh.test.js`.
 
+## Required evidence for new changes
+
+Visual changes (models, outfits, rooms, worlds, lighting, framing and screen layout) need
+reviewed screenshots of the actual implementation. A “how to see it” note alone is not enough.
+Use a comparable before/after pair where available; otherwise show an honest after-only view.
+Record source revision, capture conditions and limitations in `from` or `view`. Different animation
+states are separate after-only tabs, not a fictional version comparison. Keep design references
+separate from implementation evidence. Performance claims need measured device/preset numbers;
+behavior and sound that a still cannot demonstrate retain their reproduction/listening notes.
+
+The v1.91–v1.92 ship, opening and gameplay pictures were backfilled from their accepted validation
+captures on 21 October, together with v1.90’s ten-outfit gallery. The Father and large-text HUD
+comparisons use genuine older and newer views, with framing/time differences stated in captions.
+
 ## Where a line's media lives
 
 `src/changelog.js` stays the source of the lines: the game's panel, `changelog.md`
 (`scripts/changelog-md.mjs`) and the release notes use their words only. A line is a string, or
-`{ text, shots, numbers, see, tags }` with its media written beside it. The pictures and numbers for lines
-written as strings (all the lines up to v0.80) are in **`src/changelog-media.js`**, by version, each entry
+`{ text, shots, numbers, see, tags }` with its media written beside it. Additional pictures and numbers for lines (strings or objects) are in **`src/changelog-media.js`**, by version, each entry
 naming its line by its opening words (`match`, which must match exactly one line: tests check it). The
 game never imports that file; only the page does.
 

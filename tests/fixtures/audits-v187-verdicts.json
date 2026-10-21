@@ -1,0 +1,362 @@
+{
+  "source": "docs/systems/cinematics-qc-notes.json before v1.90 publication",
+  "notes": {
+    "prologue": {
+      "verdict": "Needs work"
+    },
+    "desert.flow": {
+      "verdict": "Pass"
+    },
+    "desert.fill": {
+      "verdict": "Pass"
+    },
+    "desert.lit": {
+      "verdict": "Pass"
+    },
+    "arzach.bird": {
+      "verdict": "Pass"
+    },
+    "arzach2.bell": {
+      "verdict": "Pass"
+    },
+    "perdide.crystal": {
+      "verdict": "Pass"
+    },
+    "perdide2.pools": {
+      "verdict": "Pass"
+    },
+    "edena.terraces": {
+      "verdict": "Pass"
+    },
+    "incal.lodestar": {
+      "verdict": "Pass"
+    },
+    "glassdunes.clock": {
+      "verdict": "Pass"
+    },
+    "buried.wheel": {
+      "verdict": "Pass"
+    },
+    "spheres.chord": {
+      "verdict": "Pass"
+    },
+    "bazaar.broadcast": {
+      "verdict": "Pass"
+    },
+    "underwater.whales": {
+      "verdict": "Pass"
+    },
+    "moonfoundry.moon": {
+      "verdict": "Pass"
+    },
+    "spacecity.cables": {
+      "verdict": "Pass"
+    },
+    "lantern.arrive": {
+      "verdict": "Pass"
+    },
+    "homecoming.first": {
+      "verdict": "Needs work"
+    },
+    "homecoming.final": {
+      "verdict": "Needs work"
+    },
+    "home.homage": {
+      "verdict": "Pass"
+    },
+    "home.windowSeat": {
+      "verdict": "Pass"
+    },
+    "call.1": {
+      "verdict": "Pass"
+    },
+    "call.2": {
+      "verdict": "Pass"
+    },
+    "call.3": {
+      "verdict": "Pass"
+    },
+    "call.4": {
+      "verdict": "Pass"
+    },
+    "call.5": {
+      "verdict": "Pass"
+    },
+    "call.6": {
+      "verdict": "Pass"
+    },
+    "call.7": {
+      "verdict": "Pass"
+    },
+    "call.8": {
+      "verdict": "Pass"
+    },
+    "call.9": {
+      "verdict": "Pass"
+    },
+    "call.10": {
+      "verdict": "Pass"
+    },
+    "call.11": {
+      "verdict": "Pass"
+    },
+    "call.12": {
+      "verdict": "Pass"
+    },
+    "call.ilen": {
+      "verdict": "Pass"
+    },
+    "call.ilen.after": {
+      "verdict": "Pass"
+    },
+    "call.trace": {
+      "verdict": "Pass"
+    },
+    "call.part.arzach2": {
+      "verdict": "Pass"
+    },
+    "call.part.perdide2": {
+      "verdict": "Pass"
+    },
+    "arrival.desert": {
+      "verdict": "Pass"
+    },
+    "arrival.arzach": {
+      "verdict": "Pass"
+    },
+    "arrival.perdide": {
+      "verdict": "Pass"
+    },
+    "arrival.edena": {
+      "verdict": "Pass"
+    },
+    "arrival.underwater": {
+      "verdict": "Pass"
+    },
+    "arrival.incal": {
+      "verdict": "Pass"
+    },
+    "arrival.glassdunes": {
+      "verdict": "Pass"
+    },
+    "arrival.buried": {
+      "verdict": "Pass"
+    },
+    "arrival.moonfoundry": {
+      "verdict": "Pass"
+    },
+    "arrival.spheres": {
+      "verdict": "Pass"
+    },
+    "arrival.spacecity": {
+      "verdict": "Pass"
+    },
+    "arrival.bazaar": {
+      "verdict": "Pass"
+    },
+    "arrival.mangrove": {
+      "verdict": "Pass"
+    },
+    "arrival.waterfall": {
+      "verdict": "Pass"
+    },
+    "arrival.saltharbour": {
+      "verdict": "Pass"
+    },
+    "arrival.antennas": {
+      "verdict": "Pass"
+    },
+    "arrival.eclipse": {
+      "verdict": "Pass"
+    },
+    "arrival.fallenring": {
+      "verdict": "Pass"
+    },
+    "arrival.underside": {
+      "verdict": "Pass"
+    },
+    "arrival.home": {
+      "verdict": "Needs work"
+    },
+    "arrival.lantern": {
+      "verdict": "Pass"
+    },
+    "takeoff": {
+      "verdict": "Pass"
+    },
+    "box.desert.backpack": {
+      "verdict": "Pass"
+    },
+    "box.desert.lift": {
+      "verdict": "Pass"
+    },
+    "box.desert.gun": {
+      "verdict": "Pass"
+    },
+    "box.desert.star": {
+      "verdict": "Pass"
+    },
+    "box.desert.temple.sword": {
+      "verdict": "Pass"
+    },
+    "box.desert.temple.shield": {
+      "verdict": "Pass"
+    },
+    "box.incal.soles": {
+      "verdict": "Pass"
+    },
+    "box.incal.temple.jetpack": {
+      "verdict": "Pass"
+    },
+    "box.incal.sunglass": {
+      "verdict": "Pass"
+    },
+    "box.incal.bridge": {
+      "verdict": "Pass"
+    },
+    "box.arzach.hush": {
+      "verdict": "Pass"
+    },
+    "box.arzach.temple.glider": {
+      "verdict": "Pass"
+    },
+    "box.arzach.hook": {
+      "verdict": "Pass"
+    },
+    "box.arzach2.scarf": {
+      "verdict": "Pass"
+    },
+    "box.arzach2.temple.bell": {
+      "verdict": "Pass"
+    },
+    "box.garage.level": {
+      "verdict": "Pass"
+    },
+    "box.garage.temple.coil": {
+      "verdict": "Pass"
+    },
+    "box.buried.resin": {
+      "verdict": "Pass"
+    },
+    "box.buried.temple.cell": {
+      "verdict": "Pass"
+    },
+    "box.buried.monocle": {
+      "verdict": "Pass"
+    },
+    "box.edena.pouch": {
+      "verdict": "Pass"
+    },
+    "box.edena.temple.bloom": {
+      "verdict": "Pass"
+    },
+    "box.edena.bubble": {
+      "verdict": "Pass"
+    },
+    "box.spheres.shell": {
+      "verdict": "Pass"
+    },
+    "box.spheres.temple.lens": {
+      "verdict": "Pass"
+    },
+    "box.spheres.bomb": {
+      "verdict": "Pass"
+    },
+    "box.perdide.reed": {
+      "verdict": "Pass"
+    },
+    "box.perdide.temple.stun": {
+      "verdict": "Pass"
+    },
+    "box.perdide.fan": {
+      "verdict": "Pass"
+    },
+    "box.perdide2.moss": {
+      "verdict": "Pass"
+    },
+    "box.perdide2.temple.lantern": {
+      "verdict": "Pass"
+    },
+    "box.perdide2.boomerang": {
+      "verdict": "Pass"
+    },
+    "box.bazaar.temple.echo": {
+      "verdict": "Pass"
+    },
+    "box.bazaar.court": {
+      "verdict": "Pass"
+    },
+    "box.moonfoundry.court": {
+      "verdict": "Pass"
+    },
+    "box.moonfoundry.bellows": {
+      "verdict": "Pass"
+    },
+    "box.moonfoundry.temple.tongs": {
+      "verdict": "Pass"
+    },
+    "box.spacecity.court": {
+      "verdict": "Pass"
+    },
+    "box.spacecity.starthread": {
+      "verdict": "Pass"
+    },
+    "box.spacecity.temple.tether": {
+      "verdict": "Pass"
+    },
+    "box.underwater.court": {
+      "verdict": "Pass"
+    },
+    "box.underwater.pearl": {
+      "verdict": "Pass"
+    },
+    "box.underwater.temple.horn": {
+      "verdict": "Pass"
+    },
+    "trailer": {
+      "verdict": "Pass"
+    },
+    "finale.desert": {
+      "verdict": "Pass"
+    },
+    "finale.incal": {
+      "verdict": "Pass"
+    },
+    "finale.arzach2": {
+      "verdict": "Pass"
+    },
+    "finale.spheres": {
+      "verdict": "Pass"
+    },
+    "finale.buried": {
+      "verdict": "Pass"
+    },
+    "finale.perdide2": {
+      "verdict": "Pass"
+    },
+    "finale.perdide": {
+      "verdict": "Pass"
+    },
+    "finale.arzach": {
+      "verdict": "Pass"
+    },
+    "finale.garage": {
+      "verdict": "Pass"
+    },
+    "finale.edena": {
+      "verdict": "Pass"
+    },
+    "finale.bazaar": {
+      "verdict": "Pass"
+    },
+    "finale.spacecity": {
+      "verdict": "Pass"
+    },
+    "finale.moonfoundry": {
+      "verdict": "Pass"
+    },
+    "finale.underwater": {
+      "verdict": "Pass"
+    }
+  }
+}

@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.92 — 2026-10-21
 
+- Recent ship, outfit and Desert updates now include pictures in See what changed.
 - Several flickering joins at the Aerie and Lamp-House, and buried city roof caps, have been repaired.
 - Fight-temple timers and room names make room for your hearts when using larger text in a narrow browser window.
 - You can post Tansy’s letter to Hesper at the Signal Market’s night halt.
@@ -19,6 +20,7 @@ The same release notes shown in the game (press **N** or open settings).
 - The caravan’s chairs, tea table and planters are bolted to the deck and fold into the ship together.
 - Directions and conversations now name the tools you actually find, point to the uncovered ship scar and the correct signal-lamp direction, and respect expanded tanks.
 - The ending remembers a visit to Hollin without claiming you made a promise or delivered news you never gave him.
+- The audit dashboard now includes the completed v1.90 review, its evidence and the lowest-scoring areas to work on next.
 
 ## v1.91 — 2026-10-20
 

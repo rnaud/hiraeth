@@ -13,6 +13,10 @@ export const CHANGELOG = [
     "date": "2026-10-21",
     "items": [
       {
+        "text": "The audit dashboard now includes the completed v1.90 review, its evidence and the lowest-scoring areas to work on next.",
+        "see": "Open Audits from the worlds page. The reports keep their original game version, distinguish diagnostic counts from quality scores, and explain when changed methods or rounding make a score comparison misleading."
+      },
+      {
         "text": "The ending remembers a visit to Hollin without claiming you made a promise or delivered news you never gave him.",
         "see": "Return home after declining his invitation, or after keeping your promise before learning about Odile and Talo. The words at the stone now fit both choices."
       },
@@ -71,6 +75,10 @@ export const CHANGELOG = [
       {
         "text": "Several flickering joins at the Aerie and Lamp-House, and buried city roof caps, have been repaired.",
         "see": "Walk around the Aerie entrance and Lamp-House apron. Their stone and frame surfaces stay stable as the camera moves."
+      },
+      {
+        "text": "Recent ship, outfit and Desert updates now include pictures in See what changed.",
+        "see": "Open What’s new, choose See what changed, then browse the ship, Wardrobe and Desert entries. Picture tabs identify earlier versions or show separate views of the current result."
       }
     ]
   },

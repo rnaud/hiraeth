@@ -1,0 +1,28 @@
+[
+  {
+    "source": "retained-local-provenance/homecoming-first-phone-full-page.png",
+    "sourceSha256": "d9eda912ac087bf85306fae67fa023181a216d57b749c92ceda670d139511006",
+    "display": "hud-phone.webp",
+    "displaySha256": "9c96c8f3b1287d6c73d43938b5fe424e902bf508bb24826e2c6c9018d3b33b4f",
+    "crop": [
+      0,
+      399,
+      844,
+      789
+    ],
+    "scope": "Complete game frame including DOM subtitles, letterbox and skip. Representative HUD only; original Home playback endpoint incomplete."
+  },
+  {
+    "source": "retained-local-provenance/homecoming-final-desktop.png",
+    "sourceSha256": "f883147e8441b4871c7109e528d2df7f73e6ebc406e3a2fdd43576ffc025fbc4",
+    "display": "hud-desktop.webp",
+    "displaySha256": "a92de2b9c963e600a7461d78d01e5a23a86e77fb53d9944f48d3335b6b19c4af",
+    "crop": [
+      0,
+      399,
+      1280,
+      1119
+    ],
+    "scope": "Complete game frame including DOM subtitles, letterbox and skip. Representative HUD only; original Home playback endpoint incomplete."
+  }
+]

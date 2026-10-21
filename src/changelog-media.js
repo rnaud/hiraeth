@@ -1349,7 +1349,225 @@ const RETROID536 = 'Retroid Pocket Nova (Adreno 740, Vulkan), Unity, Handheld (F
 const SRC536 = 'BridgeRenderer.Pipelines (the G-buffer’s states the scene asks for: variant, layout, cull, depth), Metal’s list traced in the editor, the shipped lists rewritten by scripts/bench/pso-one-cull.mjs; docs/systems/performance.md, “One cull mode and one layout for the Surface pipelines”';
 const SEAPORT572 = 'Issue #572: the web game in muted headless Chrome (High, 1280 × 720) on a Vite of its own (port 5441), a new save arriving by ship (?level=underwater&via=ship), then walked as a player; before: origin/main at 02345e2c3, after: this change; the deck and the Dock from the visual check’s views (scripts/design-qc/capture.mjs --fixed-scale); 20 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  "1.92": [
+{
+  "match": "Recent ship, outfit and Desert updates now include pictures",
+  "shots": [
+    {
+      "name": "illustrated-updates",
+      "caption": "See what changed now shows actual pictures of recent ship, outfit and Desert updates.",
+      "only": "after",
+      "from": "Actual internal-browser capture, 21 October 2026; combined v1.92 candidate based on18216136e plus illustrated changelog integration; changelog.html?kind=shots&q=caravan, 1280 × 720. After-only page view, reviewed before integration."
+    }
+  ]
+},
+  {
+    "match": "The caravan’s chairs, tea table and planters",
+    "shots": [
+      {
+        "name": "deck-landed",
+        "caption": "Furnished deck deployed; chairs, table and planters attached.",
+        "only": "after",
+        "from": ".local-tools/validation/v1.91/playable-caravan-599/interior-walk/runs/2026-10-21T13-33-43-429Z/camp-1792589623389-landed-10.png; 18216136e; Accepted web capture from precommit validation of the stated revision; not captured after publication.; after-only state: landed"
+      }
+    ]
+  },
+  {
+    "match": "The caravan has a curved instrument console",
+    "shots": [
+      {
+        "name": "cockpit",
+        "caption": "Curved console and panoramic cockpit.",
+        "only": "after",
+        "from": ".local-tools/validation/v1.91/playable-caravan-599/interior-walk/runs/2026-10-21T13-59-24-172Z/1792591260-view.png; 18216136e; Accepted web capture from precommit validation of the stated revision; not captured after publication.; after-only"
+      }
+    ]
+  },
+  {
+    "match": "The caravan has roomier living quarters",
+    "shots": [
+      {
+        "name": "mainroom",
+        "caption": "Roomier main room, stairs, compact hologram and message viewer.",
+        "only": "after",
+        "from": ".local-tools/validation/v1.91/playable-caravan-599/interior-walk/runs/2026-10-21T13-59-24-172Z/1792591255-view.png; 18216136e; Accepted web capture from precommit validation of the stated revision; not captured after publication.; after-only"
+      }
+    ]
+  },
+  {
+    "match": "Wake up facing the message console",
+    "shots": [
+      {
+        "name": "father-view",
+        "caption": "The same message scene in the earlier and current cabin: Father is clear of the playback screen. Framing differs.",
+        "from": "Before: .local-tools/validation/v1.91/playable-caravan-599/sequences/web/web-opening-call-talk.png (ce74660b6); after: .local-tools/validation/v1.92/combined-sequences/opening-call-talk.png (18216136e). Actual archived captures; camera/time differ, not pixel-matched."
+      }
+    ]
+  },
+  {
+    "match": "The furnished porch folds",
+    "shots": [
+      {
+        "name": "deck-folding",
+        "caption": "The furnished deck rotates upward during departure.",
+        "only": "after",
+        "from": ".local-tools/validation/v1.91/playable-caravan-599/interior-walk/runs/2026-10-21T13-33-43-429Z/camp-1792589646307-departing-1.png; 18216136e; Accepted web capture from precommit validation of the stated revision; not captured after publication.; after-only state: departing"
+      }
+    ]
+  },
+  {
+    "match": "Your first landing is a gentle",
+    "shots": [
+      {
+        "name": "desert-landing",
+        "caption": "Powered descent beside Qanat, with landing feet extended.",
+        "only": "after",
+        "from": ".local-tools/validation/v1.92/combined-sequences/opening-land.png; 18216136e; Accepted web capture from precommit validation of the stated revision; not captured after publication.; after-only; descent, not grounded endpoint"
+      }
+    ]
+  },
+  {
+    "match": "The Rose House now teaches",
+    "shots": [
+      {
+        "name": "rose-weight-open",
+        "caption": "The push gun opens the spark chamber.",
+        "only": "after",
+        "from": ".local-tools/validation/v1.92/integrated-native/native-rose/unity/rose-final-delta/unity-rose-final-delta-open-cage.png; Combined precommit v1.92 candidate; integrated-native/pins-rose.json source pins; subsequently shipped18216136e; Clean accepted Unity gameplay frame. Earlier prerequisites seeded once; actual normal gun input moved weight 0→0.151→1, then normal collision movement and E collected the spark. No injected weight-hit callback or reward grant. Not an uninterrupted fresh temple playthrough or a before/after pair.; after-only"
+      },
+      {
+        "name": "rose-stone-collected",
+        "caption": "Spark-stone collected; the next step is lighting the tree.",
+        "only": "after",
+        "from": ".local-tools/validation/v1.92/integrated-native/native-rose/unity/rose-final-delta/unity-rose-final-delta-collected.png; Combined precommit v1.92 candidate; integrated-native/pins-rose.json source pins; subsequently shipped18216136e; Clean accepted Unity gameplay frame. Earlier prerequisites seeded once; actual normal gun input moved weight 0→0.151→1, then normal collision movement and E collected the spark. No injected weight-hit callback or reward grant. Not an uninterrupted fresh temple playthrough or a before/after pair.; after-only"
+      }
+    ]
+  },
+  {
+    "match": "Win your first hoverbike",
+    "shots": [
+      {
+        "name": "race-kamal",
+        "caption": "Racing Kamal through the canyon.",
+        "only": "after",
+        "from": ".claude/worktrees/desert-rival-race/.local-tools/validation/race603/native-race-3/unity/race603-loss-retry-win/unity-race603-loss-retry-win-race-15.png; 071185436f7da6ad422f7a84ee077ca8895c7476 + preserved race implementation patch; integrated into 18216136e; Unity gameplay frame from accepted scripted normal-input loss/retry/win run; exact source in race603/native-race-3/frozen-bundle-manifest.json and race603-staged.patch. This is an after-only gameplay frame, not a capture of clean base071.; after-only"
+      }
+    ]
+  },
+  {
+    "match": "You can post Tansy’s letter",
+    "shots": [
+      {
+        "name": "postal-letter-accepted",
+        "caption": "Edda’s night-halt post.",
+        "only": "after",
+        "from": ".local-tools/validation/v1.92/tansy-hud-602/postal-runtime-letter-posted.png; 69e379a1b repair integrated into combined candidate; shipped18216136e; Clean game canvas after accepted postal interaction and dialogue closure. Actual walking and dialogue keys consumed the old-save letter and preserved signature/ending; this image illustrates the place and characters, while postal-runtime.json retains state proof. No dialogue panel or QA text is baked into this canvas.; after-only"
+      }
+    ]
+  },
+  {
+    "match": "Fight-temple timers and room names",
+    "shots": [
+      {
+        "name": "large-text-hud",
+        "caption": "145% text in a 640 × 720 game view: the timer and room name move below the hearts. The later view is paused; scene timing differs.",
+        "from": "Before: .local-tools/validation/v1.90/full-audit/feel/combat-fight-temples-v1.90/large-text-game-frame.webp (c5449ab6c, frozen v1.90); after: .local-tools/validation/v1.92/tansy-hud-602/hud-640-145.png (69e379a1b, shipped in18216136e). Actual archived captures; camera/time differ, not pixel-matched."
+      }
+    ]
+  },
+  {
+    "match": "Several flickering joins",
+    "shots": [
+      {
+        "name": "surface-buried",
+        "caption": "Repaired buried-city roof caps in the native build.",
+        "only": "after",
+        "from": ".local-tools/validation/v1.92/integrated-native/native-combined/unity/buried/unity-zfight-buried-2.png; Combined precommit v1.92 candidate; pins-execute.json preserved; subsequently18216136e; Accepted Unity center still, after only. Exact source/adapters in integrated-native/pins-execute.json; temporal stability was checked separately with web camera nudges. This single image does not prove motion stability or a matched before/after.; after-only"
+      }
+    ]
+  },
+  {
+    "match": "The audit dashboard now includes",
+    "shots": [
+      {
+        "name": "audit-dashboard",
+        "caption": "The published audit dashboard keeps scores and comparison limits together.",
+        "only": "after",
+        "from": "Internal-browser screenshot, 21 October 2026, batch audit-publication candidate; 1280 × 720, audits.html dashboard."
+      }
+    ]
+  },
+  {
+    "match": "The original ship remains playable",
+    "shots": [
+      {
+        "name": "original-ship-native",
+        "caption": "The original ship remains selectable alongside the rounded caravan.",
+        "only": "after",
+        "from": ".local-tools/validation/v1.92/integrated-native/native-combined/unity/original-opening/unity-opening-delta-land.png; 18216136e; Accepted integrated precommit candidate native opening delta, original ship, landing beat; source later committed as18216136e. Exact frozen source and restore evidence: .local-tools/validation/v1.92/integrated-native/RESULTS.md and native-combined/frozen-bundle-manifest.json. Not a physical-device capture.; after-only original ship option; cinematic landing frame"
+      }
+    ]
+  }
+],
+  "1.91": [
+  {
+    "match": "The caravan sits closer",
+    "shots": [
+      {
+        "name": "low-stance",
+        "caption": "Shorter legs and boarding ramp on flat ground, shown in the model review beside the selected drawing.",
+        "only": "after",
+        "from": ".local-tools/validation/v1.91/lower-caravan-601/final-lowered-reference.png; 071185436; Accepted web capture from precommit validation of the stated revision; not captured after publication.; after-only production-model review page; includes reference sidebar"
+      }
+    ]
+  },
+  {
+    "match": "Your ship is now the rounded",
+    "shots": [
+      {
+        "name": "first-playable-exterior",
+        "caption": "First playable rounded caravan at its earlier tall landing stance.",
+        "only": "after",
+        "from": ".local-tools/validation/v1.91/playable-caravan-599/web/exterior.png; ce74660b6; Accepted web capture from precommit validation of the stated revision; not captured after publication.; after-only first playable release"
+      },
+      {
+        "name": "first-playable-living",
+        "caption": "First playable caravan living room and navigation table.",
+        "only": "after",
+        "from": ".local-tools/validation/v1.91/playable-caravan-599/web/living.png; ce74660b6; Accepted web capture from precommit validation of the stated revision; not captured after publication.; after-only first playable release"
+      }
+    ]
+  },
+  {
+    "match": "The porch folds into the ship",
+    "shots": [
+      {
+        "name": "overhead-stow",
+        "caption": "The earlier overhead-storage packing sequence, before the furnished deck changed in v1.92.",
+        "only": "after",
+        "from": ".local-tools/validation/v1.91/playable-caravan-599/final-motion/camp-009.png; ce74660b6; Accepted web capture from precommit validation of the stated revision; not captured after publication.; after-only earlier implementation; superseded in1.92"
+      }
+    ]
+  }
+],
   '1.90': [
+{
+  "match": "Ten new outfits are available in the Wardrobe",
+  "shots": [
+    {
+      "name": "outfits-first-five",
+      "caption": "Storm courier, furnace mechanic, frost surveyor, observatory apprentice and festival traveller.",
+      "only": "after",
+      "from": ".local-tools/validation/v1.90/first-five-final/lineup.png; 78ea2405a, v1.90 outfit integration; Accepted final in-engine gallery lineup, not a screenshot of the Wardrobe menu. These outfits shipped in v1.90 and are not new v1.92 content.; after-only"
+    },
+    {
+      "name": "outfits-future-five",
+      "caption": "Gravity ranger, star archive keeper, solar voyager, comet pathfinder and void navigator.",
+      "only": "after",
+      "from": ".local-tools/validation/v1.90/future-five-final/lineup.png; 78ea2405a, v1.90 outfit integration; Accepted final in-engine gallery lineup, not a screenshot of the Wardrobe menu. These outfits shipped in v1.90 and are not new v1.92 content.; after-only"
+    }
+  ]
+},
     { match: 'The caravan study has been rebuilt around the selected drawing', see: 'Open the caravan ship study from Debug. Choose Reference to compare its shape with the selected drawing, then orbit around it and try Depart and Arrive. This is a separate web study; the ship in the game has not changed.' },
     { match: 'The Underwater City has much more life', shots: [
       { name: 'underwater-life-dock-581', title: 'Schools outside the Dock', size: [1280, 720], caption: 'Larger, denser schools swim in clear water close to the city windows.', from: 'Issue #581: muted Chrome on isolated port 5482, High at 1280 × 720, noon. Same camera before (8c21febec) and after; animals remain in motion.' },

@@ -7,17 +7,21 @@ version: 1.6
 date: 2026-10-09
 -->
 
-Every cinematic on the review page (`cinematics.html`, Debug → Cinematics: 91 of them) is checked for
+Every cinematic on the review page (`cinematics.html`, Debug → Cinematics: 91 at the historical v1.6 pass) is checked for
 **technical quality** (it plays cleanly, the camera is never in a wall, the subject is in frame, the HUD
 and notices are gone, it skips, it hands control back at a sensible spot, its sound is in time and not
 too loud) and for **interest** (a purpose, the right length, varied shots, motion with intent, a beat).
 The procedure, the checklist and the rubric are the project skill `.claude/skills/cinematics-qc/SKILL.md`.
 
-The pass below is the v1.6 baseline (2026-10-09, 91 cinematics). The review page lists 107 now (October 2026:
+The pass below is the v1.6 baseline (2026-10-09, 91 cinematics). At the v1.66-era checkpoint, the review page listed 107 (October 2026:
 Items 45, Travel 22, Recordings 17, World moments 17, Story 5, Trailer 1). The second full pass, v1.66
 (2026-10-13, 80 run and 27 boxes carried over), is its own report: [docs/audits/cinematics-v1.66.md](../audits/cinematics-v1.66.md)
 (4.51: tech 4.79, interest 4.24), summed up under "The second full pass (v1.66)" below; the table here stays the
-v1.6 pass's, and the verdicts file (`cinematics-qc-notes.json`) holds the latest verdict for each (the v1.85 pass, 104).
+v1.6 pass's, and the verdicts file (`cinematics-qc-notes.json`) later held the v1.85 pass’s 104 verdicts. Those counts are historical; the latest pass is described separately below.
+
+## Latest full audit: v1.90
+
+The frozen `c5449ab6c` pass is recorded in [Cinematics QC v1.90](../audits/cinematics-v1.90.md), with separate technical and five-criterion interest judgments, desktop/phone/skip evidence, and explicit audio limitations. The historical v1.6 table below is preserved. All 111 live scenes now have accepted desktop, phone and skip evidence; the continuous trailer is a separate 112th entry. The independent full-audit native parity gate is complete (87 inspected pairs); publication remains a separate coordinator action.
 
 ## The script: `scripts/cinematics-qc.mjs`
 

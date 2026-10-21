@@ -75,7 +75,7 @@ export function headlineFigure(headline) {
 /** The visual audit's headline counts: "0 breaks the picture, 2 noticeable, 1 only when looking; …". */
 export function severityCounts(headline) {
   const first = String(headline ?? '').split(';')[0];
-  return [...first.matchAll(/(\d+)\s+([^,;\d]+)/g)].map((m) => ({ label: m[2].replace(/\([^)]*\)/g, '').trim(), value: +m[1] })).filter((x) => x.label);
+  return [...first.matchAll(/(\d+)\s+([^,;\d]+)/g)].map((m) => ({ label: m[2].replace(/\([^)]*\)/g, '').trim(), value: +m[1] })).filter((x) => /^(breaks the picture|noticeable|only when looking|look)$/i.test(x.label));
 }
 
 /** A budget's verdict from its result cell: **Over** …, Not measured …, else within. */
@@ -94,7 +94,7 @@ export const PARSERS = {
   combat(report) {
     const byLabel = (re) => mainTable(report, (t) => re.test(t.header[t.labelCol] ?? ''));
     const groups = [];
-    const foes = byLabel(/^kind$/i), guardians = byLabel(/^guardian/i);
+    const foes = byLabel(/^(kind|foe)$/i), guardians = byLabel(/^guardian/i);
     if (foes) groups.push(scoreGroup('Archetypes', tableItems(foes)));
     if (guardians) groups.push(scoreGroup('Guardians', tableItems(guardians)));
     return { figure: null, groups };
@@ -113,7 +113,7 @@ export const PARSERS = {
     const t = mainTable(report);
     return { figure: null, groups: t ? [scoreGroup('Scenes', tableItems(t, { rowMean: true }))] : [] };
   },
-  // the cinematics by world (the id before its dot), each the mean of tech and interest; the review page's verdicts
+  // Cinematic id prefixes mix worlds and scene families (arrival/finale/etc.), so label them as scene groups.
   cinematics(report) {
     const t = report.scoreTables.reduce((b, x) => (!b || x.rows.length > b.rows.length ? x : b), null);
     if (!t) return { figure: null, groups: [] };
@@ -125,7 +125,7 @@ export const PARSERS = {
       if (!by.has(w)) by.set(w, []);
       by.get(w).push(v);
     }
-    const groups = [scoreGroup('By world', [...by].map(([w, v]) => scoreRow(w, mean(v), { text: `${v.length}` })))];
+    const groups = [scoreGroup('Scene groups', [...by].map(([w, v]) => scoreRow(w, mean(v), { text: `${v.length}` })))];
     if (report.verdicts) groups.push({ title: 'Verdicts', type: 'status', better: 'higher', rows: Object.entries(report.verdicts).map(([v, n]) => ({ ...itemKey(v), label: v, value: n, status: /pass/i.test(v) ? 'ok' : 'over' })) });
     return { figure: null, groups };
   },
@@ -223,14 +223,14 @@ export function latestByTheme(reports) {
     const prev = latest.overall != null ? earlier.find((r) => r.overall != null) ?? null : earlier[0] ?? null;
     const history = sorted.map((r, i) => {
       const before = sorted.slice(0, i).reverse().find((x) => x.overall != null);
-      return { id: r.id, version: r.version, date: r.date, overall: r.overall, of: r.of, headline: r.headline, label: r.label, figure: r.theme?.figure ?? null,
-        delta: before && r.overall != null ? round2(r.overall - before.overall) : null };
+      return { id: r.id, version: r.version, date: r.date, overall: r.overall, of: r.of, headline: r.headline, label: r.label, comparison: r.comparison, figure: r.theme?.figure ?? null,
+        delta: !r.comparison && before && r.overall != null ? round2(r.overall - before.overall) : null };
     });
     return {
       kind, name: themeName(kind), latest, prev,
-      delta: prev && latest.overall != null && prev.overall != null ? round2(latest.overall - prev.overall) : null,
+      delta: !latest.comparison && prev && latest.overall != null && prev.overall != null ? round2(latest.overall - prev.overall) : null,
       history,
-      groups: itemDeltas(latest.theme?.groups ?? [], earlier),
+      groups: latest.comparison ? (latest.theme?.groups ?? []) : itemDeltas(latest.theme?.groups ?? [], earlier),
     };
   });
 }

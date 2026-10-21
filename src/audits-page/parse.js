@@ -81,7 +81,7 @@ export function cellScore(raw) {
 }
 
 const SCORE_HEADER = /\/\s*5\b/;
-const NOT_SCORE = /^#$|\(|\/|ttk|%|^length$|^cuts/i;
+const NOT_SCORE = /^priority$|^rank$|^#$|\(|\/|ttk|%|^length$|^cuts/i;
 const TOTAL = /^(total|mean|overall|score|average)\b/i;
 
 /**
@@ -199,7 +199,7 @@ export function parseReport(md, { file = '', link = (h) => h, kind: kindIn, vers
   const overall = block.overall ?? null;
   return {
     id, kind, kindName: KIND_NAMES[kind] ?? kind, version, date, title, file,
-    overall, of: block.of ?? 5, label: block.label ?? '', headline: block.headline ?? '',
+    overall, of: block.of ?? 5, label: block.label ?? '', headline: block.headline ?? '', comparison: block.comparison ?? '',
     hasBlock: Object.keys(block).length > 0,
     sections, scoreTables, severities,
     edits: sections.reduce((n, s) => n + s.edits, 0),
@@ -282,9 +282,9 @@ export function buildIndex(reports) {
     const prev = list[i - 1] ?? null;
     return {
       id: r.id, kind: r.kind, kindName: r.kindName, version: r.version, date: r.date, title: r.title,
-      overall: r.overall, of: r.of, label: r.label, headline: r.headline,
+      overall: r.overall, of: r.of, label: r.label, headline: r.headline, comparison: r.comparison,
       prev: prev?.id ?? null, prevVersion: prev?.version ?? null,
-      delta: prev && prev.overall != null && r.overall != null ? Math.round((r.overall - prev.overall) * 100) / 100 : null,
+      delta: !r.comparison && prev && prev.overall != null && r.overall != null ? Math.round((r.overall - prev.overall) * 100) / 100 : null,
       history: list.slice(0, i + 1).map((x) => ({ v: x.version, overall: x.overall })),
       versions: list.map((x) => x.id),
       edits: r.edits, pictures: r.pictures, todo: r.todo ? { open: r.todo.open, done: r.todo.done } : { open: 0, done: 0 },
@@ -311,7 +311,7 @@ export function compareAudits(a, b) {
       const ra = ta.rows.find((r) => norm(r.label) === norm(rb.label));
       const from = ra?.scores[ta.primary]?.value ?? null, to = rb.scores[tb.primary]?.value ?? null;
       rows.push({
-        table: tb.title, label: rb.label, from, to, delta: from != null && to != null ? Math.round((to - from) * 100) / 100 : null,
+        table: tb.title, label: rb.label, from, to, delta: !b.comparison && from != null && to != null ? Math.round((to - from) * 100) / 100 : null,
         criteria: crit.map(([c, k]) => ({ name: tb.header[c], from: ra?.scores[k]?.value ?? null, to: rb.scores[c]?.value ?? null })),
       });
     }
@@ -319,7 +319,7 @@ export function compareAudits(a, b) {
   const sev = [...new Set([...Object.keys(a.severities), ...Object.keys(b.severities)])].map((s) => ({ severity: s, from: a.severities[s] ?? 0, to: b.severities[s] ?? 0 }));
   return {
     from: a.id, to: b.id,
-    overall: { from: a.overall, to: b.overall, delta: a.overall != null && b.overall != null ? Math.round((b.overall - a.overall) * 100) / 100 : null },
+    overall: { from: a.overall, to: b.overall, delta: !b.comparison && a.overall != null && b.overall != null ? Math.round((b.overall - a.overall) * 100) / 100 : null },
     rows, severities: sev,
     edits: { from: a.edits, to: b.edits },
   };

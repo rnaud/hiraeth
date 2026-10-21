@@ -977,6 +977,18 @@ Debug → Audits reads every audit report: `docs/audits/<kind>-v<version>.md` an
   or `overall: none` and `headline:`, `date:`, `version:` … `-->`, hidden on GitHub). Score tables are
   found by their columns of 1-5 scores (not `#`, units, `ttk`, lengths or counts); the row's total is
   the column named total, mean or score, else the report's version (`v1.6`), else the last.
+- **Qualified comparisons:** an `audit-scores` block may include `comparison: <reason>` when
+  a changed rubric, reviewer method or display precision makes a numerical delta misleading.
+  The dashboard and All audits cards show that explanation, retain current and historical scores,
+  and omit difference arrows and cross-version trend lines. Comparison tables retain the values
+  without numerical deltas. Comparison explanations wrap within narrow cards. Cinematic id prefixes
+  are labelled "Scene groups" because they mix worlds with arrival/finale and other scene families.
+  Diagnostic priority/rank columns are not quality scores, and visual
+  coverage counts are not severity findings. The frozen v1.90 review uses these qualifications
+  for the unchanged weighted game result, reassessed combat and separate 0–3 creature rubric.
+- **Historical parser coverage:** the dashboard tests explicitly freeze reports through v1.87 and
+  its 119 verdicts in a compact test fixture. Separate current-publication checks cover all 17
+  v1.90 report kinds and the 111 live cinematics plus separately judged trailer.
 - **Site-only:** the build's `auditsPlugin` (vite.config.js) writes `dist/audits/audits.json` (about
   330 KB) and the reports' pictures (about 1 MB) beside the page; the over-the-air zip, the APK, the Deck
   and the Xbox package leave `audits/` out (`scripts/web-update.mjs` `AUDIT_FILE`, `scripts/site-only.mjs`),

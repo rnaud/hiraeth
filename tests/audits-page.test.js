@@ -2,6 +2,7 @@
 // the report parser on the real reports, the index, the comparisons, the navigation wiring, and that every report
 // in docs/audits/ appears and stays off the devices.
 import test from 'node:test';
+import { historicalAudits } from './audits-history.js';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import { auditsData, linkFor, reportFiles, mediaFiles } from '../scripts/audits-data.mjs';
@@ -89,13 +90,13 @@ test('the score tables are read from the real reports: criteria, totals, "before
   assert.deepEqual([desert.from, desert.to, desert.delta], [4, 4.11, 0.11], 'matched with v1.49\'s row by name');
   assert.deepEqual(desert.criteria.find((c) => c.name === 'Spacing'), { name: 'Spacing', from: 4, to: 5 }, 'and its criteria by header');
 
-  const cine = byId('cinematics-v1.87');   // (the newest pass carries the review page's verdicts, issue #556)
+  const cine = historicalAudits().reports.find(r => r.id === 'cinematics-v1.87');   // (the newest pass carries the review page's verdicts, issue #556)
   const ct = cine.scoreTables.find((x) => x.rows.length > 80);
   assert.ok(ct, 'the cinematics table');
   assert.equal(ct.scoreCols.length, 2, 'tech and interest (not the length or the cuts)');
   const prologue = ct.rows.find((r) => r.id === 'prologue');
   assert.equal(prologue.verdict, 'Needs work', 'the review page\'s verdict, from the notes');
-  assert.equal(Object.values(cine.verdicts).reduce((a, b) => a + b, 0), Object.keys(JSON.parse(read('docs/systems/cinematics-qc-notes.json')).notes).length);
+  assert.equal(Object.values(cine.verdicts).reduce((a, b) => a + b, 0), 119, 'the frozen pre-v1.90 verdict fixture');
   assert.ok(cine.sections.some((s) => /Headline findings/.test(s.title)), 'its sections');
 
   // the second combat review's guardians: criteria and total in one cell, the earlier defs beside them
@@ -231,4 +232,10 @@ test('a click on a report\'s tab or a card\'s History is theirs, not the Latest 
   assert.match(main, /document\.body\.dataset\.view = view/);
   assert.match(main, /t\.closest\('button\[data-view\]'\)/, 'only the view tabs themselves');
   assert.doesNotMatch(main, /t\.closest\('\[data-view\]'\)/);
+});
+
+
+test('diagnostic ranks and coverage counts do not become quality scores', () => {
+  const table = readTable(['| Priority | Finding |','|---|---|','| 1 | first |','| 2 | second |']);
+  assert.deepEqual(table.scoreCols, []);
 });
