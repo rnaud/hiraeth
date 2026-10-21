@@ -41,10 +41,10 @@ namespace Hiraeth.Bridge
         /// <summary>The C# bridge's level: bump it whenever the player changes in a way the script relies on (a BridgeHost call
         /// it can't do without, the command buffer's format, a shader or a material's field it sends), so a newer script
         /// never reaches a player too old for it (unity.json's minUnity, raised with ScriptMinUnity).</summary>
-        public const int UnityApi = 1;   // 1: the store as a file, the script over the air, the Updates page (issue #264)
+        public const int UnityApi = 2;   // 2: playable caravan asset packaged in the player (#599); 1: store and script updates (#264)
         /// <summary>The oldest player the script runs on (unity.json's minUnity, scripts/release-info.mjs unityMinApi). Raise it
         /// to UnityApi when the script starts relying on a bridge change; a C#-only change leaves it.</summary>
-        public const int ScriptMinUnity = 1;
+        public const int ScriptMinUnity = 2;
         public const string Manifest = "https://hiraeth.alexandria-rnaud.workers.dev/updates/unity.json";
         public const int MaxTries = 2;
         public const long ZipLimit = 200L * 1024 * 1024;

@@ -92,6 +92,8 @@ test('the engine plays the fight: lock-on, a cut, the drops, the hearts, the kno
   assert.ok(g.foes.lock?.guardian, 'locked on the guardian');
   assert.ok(g.rig.frameWith, 'framed with him');
   // its fitted skin in its own colours (its texture a JPEG the VM can't decode: colors.json as vertex colours; it was white)
+  // Frame stepping above is synchronous; let the explicitly asynchronous skin load finish before checking it.
+  await G.model.ready;
   let skin = null; G.model.group.traverse((o) => { if (o.isSkinnedMesh) skin = o; });
   assert.ok(G.model.generated && skin, 'the Keeper on its fitted skin');
   assert.ok(skin.geometry.attributes.color && skin.material.vertexColors, 'its colours as vertex colours');

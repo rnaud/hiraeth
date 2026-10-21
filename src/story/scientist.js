@@ -117,14 +117,15 @@ export function setupScientist({ levelId, scene, physics, level, ship = null, np
   /** His shop, for the shop panel (src/shop-panel.js open: kind 'fragments'). */
   rt.shopEntry = () => ({ kind: 'fragments', shop: { id: 'thrum', label: THRUM.name }, logic: rt.shop, keeper: THRUM, lines: THRUM_SHOP_LINES, npc: rt.aboard ?? rt.field });
 
+  const aboard = ship?.layout?.SCIENTIST ?? ABOARD;
   // aboard, by the crates (with the ship parked here)
   const board = () => {
     if (rt.aboard || !ship?.parked || !scene || !physics) return;
     const m = ship.parked;
-    const at = ship.world(m, new THREE.Vector3(...ABOARD.at));
-    rt.aboard = make(at, ship.worldHeading(m, ABOARD.heading));
+    const at = ship.world(m, new THREE.Vector3(...aboard.at));
+    rt.aboard = make(at, ship.worldHeading(m, aboard.heading));
     const jar = buildJar();
-    jar.group.position.set(...ABOARD.jar);
+    jar.group.position.set(...aboard.jar);
     m.group.add(jar.group);
     // (drawn with the rooms, only with the camera near enough to see in: src/ship/ship.js update, m.indoor; its 30 pieces
     // were drawn from anywhere the ship was in view, through its hull)
@@ -255,7 +256,7 @@ export function setupScientist({ levelId, scene, physics, level, ship = null, np
       if (away !== !!rt.aboard.away) {
         rt.aboard.away = away;
         // (down again: back on his spot by the crate, facing the doorway)
-        if (!away) { rt.aboard.pos.copy(ship.world(ship.parked, new THREE.Vector3(...ABOARD.at))); rt.aboard.heading = ship.worldHeading(ship.parked, ABOARD.heading); }
+        if (!away) { rt.aboard.pos.copy(ship.world(ship.parked, new THREE.Vector3(...aboard.at))); rt.aboard.heading = ship.worldHeading(ship.parked, aboard.heading); }
       }
     }
     if (rt.field) {

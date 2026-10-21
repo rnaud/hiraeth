@@ -2,6 +2,11 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.91 — 2026-10-20
+
+- The porch folds into the ship before departure, with its furniture secured overhead; it opens again after touchdown.
+- Your ship is now the rounded caravan, with four rear boosters, a raised cockpit and furnished rooms you can walk through.
+
 ## v1.90 — 2026-10-20
 
 - Ten new outfits are available in the Wardrobe: courier, mechanic, surveyor, apprentice and festival clothes, plus five compact spacefaring suits with fitted armour and harnesses.

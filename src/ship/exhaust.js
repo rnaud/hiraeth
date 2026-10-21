@@ -1,8 +1,9 @@
 import * as THREE from 'three';
+import { BOOSTER_CENTRES } from './caravan-layout.js';
 import { BELLS } from './hull.js';
 
 // The ship's engines as seen from outside, for landing and take-off: a jet of
-// flame out of each of the four lift jets under the belly, and where the jets hit
+// flame out of each authored rear booster (legacy hull: four belly lift jets), and where lift jets hit
 // the ground, dust blown flat out along it from under the ship (more the lower
 // it is); a puff from under each foot as it touches down or lifts off.
 //
@@ -33,14 +34,14 @@ export function blast(h, power = 1) {
  */
 export function exhaust(ship, model, dt, { power = 1, palette, rate = 34 } = {}) {
   model.group.updateMatrixWorld();
-  _d.set(0, -1, 0).applyQuaternion(model.group.quaternion);
+  _d.set(0, model.authored ? 0 : -1, model.authored ? 1 : 0).applyQuaternion(model.group.quaternion);
   const jets = ship.jets ?? ship.flame;
   // the flame goes where the ship goes (issue #89: coming down faster than the jet's own speed, and faster at the start
   // of the last stretch than at the end of the fall before it, the ship was flying down through its own flame): the
   // tongues already out move with the ship, so only their own jet speed carries them away from the bells
   if (ship.jets) carryJets(jets, model);
   let most = 0;
-  for (const local of THRUSTERS) {
+  for (const local of model.authored ? BOOSTER_CENTRES.map(b => b.at) : THRUSTERS) {
     _n.copy(local).applyMatrix4(model.group.matrixWorld);
     // the jet: short-lived tongues of flame straight out of the bell
     if (power > 0.05) {
@@ -49,6 +50,7 @@ export function exhaust(ship, model, dt, { power = 1, palette, rate = 34 } = {})
         jets.emit(_p, _v.copy(_d).multiplyScalar(JET.speed + Math.random() * 8 * power), 0.45 + Math.random() * 0.35 * power, 0.22 + Math.random() * 0.18, pick(FIRE));
       }
     }
+    if (model.authored) continue; // rearward boosters do not blow dust vertically through the cabin
     // the blast on the ground right under the bell, blown out flat along it
     const g = ship.floorAt(_n.x, _n.z);
     const q = blast(_n.y - g, power);

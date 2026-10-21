@@ -17,6 +17,7 @@ import { makeMaterial } from '../materials.js';
 import { arenaLevel } from './kit/world.js';
 import { WorldLabels } from './kit/labels.js';
 import { buildShipModel } from '../ship/model.js';
+import { BOOSTER_CENTRES } from '../ship/caravan-layout.js';
 import { FACE } from '../typefaces.js';
 import { Puffs } from '../ship/fx.js';
 import { PLANETS } from '../ship/planets.js';
@@ -60,6 +61,13 @@ export function shipFit(group, length = SHIP_LENGTH) {
   const mid = b.getCenter(V());
   mid.y = b.min.y + 0.3 * size.y;   // (the hull's body, low: the masts and lamps that rise over it are left above)
   return { scale: k, mid, stern: (b.max.z - mid.z) * k, width: size.x * k, height: size.y * k };
+}
+/** A nozzle in the shooter's rail coordinates, including the ship's complete current transform. */
+export function pirateTrailOrigin(ship, mouth, railS) {
+  ship.updateWorldMatrix(true, false);
+  const p = mouth.clone().add(V(0, 0, .6)).applyMatrix4(ship.matrixWorld);
+  const ds = -p.z - railS;
+  return { ds, u: p.x - railX(railS + ds), v: p.y - railY(railS + ds) };
 }
 /**
  * The camera: behind and over the ship, how much of the ship's offset it follows (less than all of it, so the ship
@@ -395,7 +403,7 @@ export function layerPieces(Ly, seed = 7) {
   return out;
 }
 
-function* buildPirates(scene) {
+function* buildPirates(scene, { caravan } = {}) {
   const q = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
   const to = q.get('to');
   const seed = seedOf(to ?? 'arcade');
@@ -411,7 +419,7 @@ function* buildPirates(scene) {
   scene.add(ledge);
   yield;
   // the family ship, small; its rooms hidden, its hatch shut
-  const model = buildShipModel({ space: true, legs: 'up' });
+  const model = buildShipModel({ caravan, space: true, legs: 'up' });
   for (const o of [...model.indoor, model.screen]) o.visible = false;
   model.group.traverse((o) => { o.userData.noCollide = true; o.userData.dynamic = true; });
   model.mats.thrust.uniforms.uGlow.value = 1;
@@ -420,16 +428,22 @@ function* buildPirates(scene) {
   const fit = shipFit(model.group);
   model.group.scale.setScalar(fit.scale);
   model.group.position.copy(fit.mid).multiplyScalar(-fit.scale);
-  // two engine flames at the stern (the hull's bells point down: these push it forward)
+  // Packed production caravan: flames and trails come from all four authored rear mouths.
   const fk = SHIP_LENGTH / 5.5, nozzle = fit.width * 0.12;
-  const flames = nc(new THREE.Mesh(merge([-nozzle, nozzle].map((x) => new THREE.ConeGeometry(0.16 * fk, 1.1 * fk, 6).rotateX(Math.PI / 2).translate(x, 0.1 * fk, fit.stern + 0.5 * fk))), makeMaterial({ color: '#ffd27a', glow: 0.8, key: 'pirates-flame' })));
+  const mouths = caravan ? BOOSTER_CENTRES.map(b => b.at.clone().sub(fit.mid).multiplyScalar(fit.scale))
+    : [-nozzle, nozzle].map(x => V(x, .1 * fk, fit.stern));
+  const flames = nc(new THREE.Group());
+  const flameGeo = new THREE.ConeGeometry(.16 * fk, 1.1 * fk, 6).rotateX(Math.PI / 2).translate(0,0,.5 * fk);
+  const flameMat = makeMaterial({ color: '#ffd27a', glow: .8, key: 'pirates-flame' });
+  for (const mouth of mouths) { const flame=nc(new THREE.Mesh(flameGeo,flameMat)); flame.position.copy(mouth); flames.add(flame); }
+
   ship.add(model.group, flames);
   scene.add(ship);
   // (issue #494, the shimmer at the start: the ship casts no sun shadow. The cascades are placed round the traveller,
   // hidden far off under the start, so the ship flew in the far map's coarse texels, refreshed every few frames: its
   // masts' shadow crawled over its deck as it went. Space has no ground to catch it; the hull's own shading stays)
   model.group.traverse((o) => { if (o.isMesh) noShadow.push(o); });
-  noShadow.push(flames);
+  noShadow.push(...flames.children);
   yield;
   const S = pirateShapes();
   const kinds = {
@@ -493,7 +507,7 @@ function* buildPirates(scene) {
     sky: { script: placeScript(back), planets: [...(back.planets ?? []).slice(0, 2), { az: 180, el: 7, size: back.planets?.length ? 5 : 14, color: look.body, craters: false }] },
     atmo: () => ({ tint: [1, 1, 1], fog: 0.5, name }),
     noShadow,
-    pirates: { to, seed, level: lvl, back, ship, model, flames, kinds, rocks, drops, debris, rings, boss, gifts, ground, layer, fit: { ...fit, nozzle, k: fk } },
+    pirates: { to, seed, level: lvl, back, ship, model, flames, kinds, rocks, drops, debris, rings, boss, gifts, ground, layer, fit: { ...fit, nozzle, mouths, k: fk } },
   });
 }
 /** A place's look (issue #555): the pirates' space look with its nebula and stars, its fog and the far colour it goes to. */
@@ -908,15 +922,14 @@ function start(ctx) {
     // ship from the first frame, issue #494)
     run.flameT = (run.flameT ?? 0) + dt;
     const flick = 0.2 + 0.12 * Math.sin(run.flameT * 29) + 0.08 * Math.sin(run.flameT * 47 + 1.3);
-    L.flames.scale.set(1, 1, (0.8 + flick + 0.25 * push + (run.outT > 0 ? 2 : 0)) * (sk > 1 ? 1 + 1.4 * (sk - 1) : 0.55 + 0.45 * sk) * (1 + 1.5 * arrivalK()));   // (long on a boost, short on the brake; long out of the warp: issue #555)
-    // the engine trail (issue #326): two short streams of glowing drops left at the nozzles (rail-relative: they fall
+    for (const flame of L.flames.children) flame.scale.set(1, 1, (0.8 + flick + 0.25 * push + (run.outT > 0 ? 2 : 0)) * (sk > 1 ? 1 + 1.4 * (sk - 1) : 0.55 + 0.45 * sk) * (1 + 1.5 * arrivalK()));   // (long on a boost, short on the brake; long out of the warp: issue #555)
+    // the engine trail (issue #326): a short stream from each booster of glowing drops left at the nozzles (rail-relative: they fall
     // back slowly and are drawn after the ship across, lagging, so the stream curves behind it as it steers and banks)
     if (S.done !== 'dead' && dt > 0) {
       run.trailT -= dt;
       while (run.trailT <= 0) {
         run.trailT += TRAIL.every;
-        const c = Math.cos(P.bank), sn = Math.sin(P.bank);
-        for (const x of [-L.fit.nozzle, L.fit.nozzle]) trail.push({ ds: -(L.fit.stern + 0.6), u: P.u + x * c, v: P.v - 0.05 + x * sn, age: 0, life: TRAIL.life, r: (0.06 + 0.04 * push) * L.fit.k });
+        for (const mouth of L.fit.mouths) trail.push({ ...pirateTrailOrigin(L.ship, mouth, S.s), age: 0, life: TRAIL.life, r: (0.06 + 0.04 * push) * L.fit.k });
       }
       if (trail.length > TRAIL.max) trail.splice(0, trail.length - TRAIL.max);
     }

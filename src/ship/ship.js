@@ -3,6 +3,8 @@ import * as THREE from 'three';
 import { game } from '../game-state.js';
 import { buildShipModel, buildSpace, poseRamp, DETAIL_FAR } from './model.js';
 import { R, DECK, CEIL, LIFT, HATCH_A, HINGE_R, WINDOW, HATCH, LEGS, footOf, SCAR, ROOF, CENTRE_Z, undersideAt, WALL_IN, reachAt, HALF_W, NOSE_Z, STERN_Z } from './hull.js';
+import * as caravanLayout from './caravan-layout.js';
+import { caravanStowPose } from './caravan-deployment.js';
 import { polar } from './geo.js';
 import { CONSOLE_R, TABLE_R, ROOMS, inRooms, cockpitHalf } from './interior.js';
 import { findShipSite, siteAvoid, decorAvoid } from './sites.js';
@@ -23,7 +25,7 @@ import { HomecomingDirector } from './homecoming.js';
 import * as sfx from './sfx.js';
 import { padIndex } from '../native-pad.js';
 import { shakeScale } from '../feel.js';
-import { Prologue } from './prologue.js';
+import { Prologue, PROLOGUE_STAGES } from './prologue.js';
 import { ReboardGate } from './landing.js';
 import { REVEAL, rigView, anyInput } from './arrival-view.js';
 /** Walking into the ramp takes you aboard (issue #87): this near its foot (m), this fast up it (m/s). */
@@ -82,13 +84,15 @@ export class Ship {
    * (and before crowds are placed, so they keep clear of it).
    * @param o { scene, physics, level, levelId, content, prologue: play the opening here }
    */
-  constructor({ scene, physics, level, levelId, content, prologue = false }) {
-    Object.assign(this, { scene, physics, level, levelId, content });
+  constructor({ scene, physics, level, levelId, content, prologue = false, caravan = null }) {
+    Object.assign(this, { scene, physics, level, levelId, content, caravan });
+    this.layout = caravan ? caravanLayout : { R, DECK, CEIL, LIFT, HATCH_A, HINGE_R, WINDOW, HATCH, LEGS, footOf, SCAR, ROOF, CENTRE_Z, undersideAt, WALL_IN, reachAt, HALF_W, NOSE_Z, STERN_Z, ROOMS, inRooms, cockpitHalf };
+    this.roomsRadius2 = (Math.max(-this.layout.ROOMS.cockpit.z0, this.layout.ROOMS.hold.z1) + 1.3) ** 2 + (this.layout.HALF_W + 1.3) ** 2 + (this.layout.ROOF + 2) ** 2;
     this.lights = level.lights ?? (level.lights = []);
     this.noShadow = level.noShadow ?? (level.noShadow = []);
     this.heightAt = level.ground?.heightAt ? (x, z) => level.ground.heightAt(x, z) : null;
     const avoid = [...siteAvoid({ level, content }), ...decorAvoid(scene, level, { near: level.spawn }).filter((d) => d.y1 > level.spawn.y - 20 && d.y0 < level.spawn.y + 40)];
-    const site = (this.site = findShipSite({ level, physics, levelId, avoid }) ?? { x: level.spawn.x + 30, z: level.spawn.z, heading: -Math.PI / 2, ground: level.spawn.y, source: 'fallback' });
+    const site = (this.site = findShipSite({ level, physics, levelId, avoid, ...(caravan ? { layout: this.layout } : {}) }) ?? { x: level.spawn.x + 30, z: level.spawn.z, heading: -Math.PI / 2, ground: level.spawn.y, source: 'fallback' });
     this.crashed = !!site.crash && !game.flag('ship.launched');
     this.inside = false;
     this.reboard = new ReboardGate();   // (stepped out: the ramp doesn't offer to take you straight back in, src/ship/landing.js)
@@ -141,11 +145,11 @@ export class Ship {
    */
   floorAt(x, z) {
     const r = Math.hypot(x - this.restPos.x, z - this.restPos.z);
-    if (r > R + 4) return this.groundAt(x, z);
+    if (r > this.layout.R + 4) return this.groundAt(x, z);
     // from just under the hull's belly, its bells and its legs' pads (or a little above the ground round it)
     const l = _p.set(x - this.restPos.x, 0, z - this.restPos.z).applyQuaternion(_q.copy(this.restQuat).invert());
-    const u = undersideAt(l.x, l.z);
-    const from = this.restPos.y + (u !== null ? Math.min(u - 0.55, -1.85) : -LIFT + 0.6);
+    const u = this.layout.undersideAt(l.x, l.z);
+    const from = this.restPos.y + (u !== null ? Math.min(u - 0.55, -1.85) : -this.layout.LIFT + 0.6);
     const g = this.physics.groundAt(x, from, z, 60);
     if (Number.isFinite(g)) return g;
     const h = this.heightAt?.(x, z);
@@ -154,31 +158,31 @@ export class Ship {
 
   place() {
     const s = this.site, crash = this.crashed ? s.crash : null;
-    const yaw = s.heading - HATCH_A;          // the hatch (local -x, heading HATCH_A) faces site.heading
+    const yaw = s.heading - this.layout.HATCH_A;          // the hatch (local -x, heading this.layout.HATCH_A) faces site.heading
     const q = new THREE.Quaternion().setFromEuler(new THREE.Euler(crash?.pitch ?? 0, yaw, crash?.roll ?? 0, 'YXZ'));
     const base = new THREE.Vector3(s.x, 0, s.z);
     const toW = (v, cy) => v.clone().applyQuaternion(q).add(base).setY(v.clone().applyQuaternion(q).y + cy);
     let cy;
     if (crash) {
-      cy = this.groundAt(s.x, s.z) + LIFT - crash.sink;   // sunk below its parked height over the spot itself
+      cy = this.groundAt(s.x, s.z) + this.layout.LIFT - crash.sink;   // sunk below its parked height over the spot itself
       // keep the deck and the hatch sill clear of the sand
       let need = -Infinity;
-      for (let z = ROOMS.cockpit.z0; z <= ROOMS.hold.z1 + 1e-6; z += 1.2) for (const f of [-1, -0.5, 0, 0.5, 1]) {
-        const w = toW(new THREE.Vector3(f * (z < ROOMS.main.z0 ? cockpitHalf(z) : WALL_IN), DECK - 0.35, z), cy);
+      for (let z = this.layout.ROOMS.cockpit.z0; z <= this.layout.ROOMS.hold.z1 + 1e-6; z += 1.2) for (const f of [-1, -0.5, 0, 0.5, 1]) {
+        const w = toW(new THREE.Vector3(f * (z < this.layout.ROOMS.main.z0 ? this.layout.cockpitHalf(z) : this.layout.WALL_IN), this.layout.DECK - 0.35, z), cy);
         need = Math.max(need, this.groundAt(w.x, w.z, w.y + 40) + 0.05 - w.y);
       }
-      const h = toW(polar(HINGE_R, HATCH_A, DECK), cy);
+      const h = toW(polar(this.layout.HINGE_R, this.layout.HATCH_A, this.layout.DECK), cy);
       need = Math.max(need, this.groundAt(h.x, h.z, h.y + 40) + 0.3 - h.y);
       if (need > 0) cy += need;
     } else {
       // on its legs, the belly clear of the ground everywhere under it
-      cy = s.ground + LIFT;
-      for (let z = NOSE_Z + 1.3; z <= STERN_Z - 3; z += 1.5) for (const x of [-2.6, -1.4, 0, 1.4, 2.6].map((v) => (v * HALF_W) / 4.2)) {
-        const u = undersideAt(x, z);
+      cy = s.ground + this.layout.LIFT;
+      for (let z = this.layout.NOSE_Z + 1.3; z <= this.layout.STERN_Z - 3; z += 1.5) for (const x of [-2.6, -1.4, 0, 1.4, 2.6].map((v) => (v * this.layout.HALF_W) / 4.2)) {
+        const u = this.layout.undersideAt(x, z);
         if (u === null) continue;
         const p = new THREE.Vector3(x, 0, z).applyQuaternion(q).add(base);
         // (the terrain itself where the level has one: a prop under the hull, a bush or a bone, never lifts it on stilts)
-        const g = Math.min(this.heightAt?.(p.x, p.z) ?? this.groundAt(p.x, p.z), s.ground + LIFT);
+        const g = Math.min(this.heightAt?.(p.x, p.z) ?? this.groundAt(p.x, p.z), s.ground + this.layout.LIFT);
         cy = Math.max(cy, g - u + 0.45);
       }
     }
@@ -189,10 +193,10 @@ export class Ship {
     const W = (v) => v.clone().applyMatrix4(m);
     // the feet find the ground; the ramp reaches it at a walkable slope
     const footY = (leg) => {
-      const fo = footOf(leg), f = W(new THREE.Vector3(fo.x, -LIFT, fo.z));
+      const fo = this.layout.footOf(leg), f = W(new THREE.Vector3(fo.x, -this.layout.LIFT, fo.z));
       return this.groundAt(f.x, f.z) - cy;
     };
-    const hinge = W(polar(HINGE_R, HATCH_A, DECK));
+    const hinge = W(polar(this.layout.HINGE_R, this.layout.HATCH_A, this.layout.DECK));
     const out = new THREE.Vector3(Math.sin(s.heading), 0, Math.cos(s.heading));
     let foot = null;
     for (let d = 1.2; d <= 24; d += 0.2) {
@@ -203,7 +207,7 @@ export class Ship {
     foot ??= hinge.clone().addScaledVector(out, 20).setY(this.groundAt(hinge.x + out.x * 20, hinge.z + out.z * 20) - 0.08);
     const rampWorld = foot.clone().sub(hinge);
     const rampLocal = rampWorld.clone().applyQuaternion(q.clone().invert());
-    const model = buildShipModel({ legs: crash ? 'up' : 'down', footY, ramp: { dir: rampLocal.clone().normalize(), length: rampLocal.length() + 0.25 } });
+    const model = buildShipModel({ caravan: this.caravan, legs: crash ? 'up' : 'down', footY, ramp: { dir: rampLocal.clone().normalize(), length: rampLocal.length() + 0.25 } });
     model.group.position.copy(this.restPos);
     model.group.quaternion.copy(q);
     this.scene.add(model.group);
@@ -221,23 +225,23 @@ export class Ship {
     this.syncLights(model);
     // the furrow and the heaped sand
     if (crash && this.heightAt) {
-      const C = W(new THREE.Vector3(0, 0, CENTRE_Z));   // the middle of the hull's plan, at deck height
+      const C = W(new THREE.Vector3(0, 0, this.layout.CENTRE_Z));   // the middle of the hull's plan, at deck height
       const az = (p) => Math.atan2(p.x - C.x, p.z - C.z);
       const protect = [];
       for (let k = 0; k <= 6; k++) {
-        const p = W(new THREE.Vector3(0, WINDOW.y0, WINDOW.z0 - 0.4 + k * 0.1));
+        const p = W(new THREE.Vector3(0, this.layout.WINDOW.y0, this.layout.WINDOW.z0 - 0.4 + k * 0.1));
         protect.push({ a: az(p), y: p.y - 0.9, w: 0.1 });
       }
       for (let k = 0; k <= 4; k++) {
-        const p = W(new THREE.Vector3(-HINGE_R, HATCH.y0, HATCH.z0 - 0.3 + ((HATCH.z1 - HATCH.z0 + 0.6) * k) / 4));
+        const p = W(new THREE.Vector3(-this.layout.HINGE_R, this.layout.HATCH.y0, this.layout.HATCH.z0 - 0.3 + ((this.layout.HATCH.z1 - this.layout.HATCH.z0 + 0.6) * k) / 4));
         protect.push({ a: az(p), y: p.y - 0.8, w: 0.14 });
       }
       protect.push({ a: s.heading, y: this.groundAt(foot.x, foot.z) - 0.6, w: 0.42 });
-      const reach = (a, dy) => reachAt(a - yaw, dy);   // (a world heading into the ship's frame)
+      const reach = (a, dy) => this.layout.reachAt(a - yaw, dy);   // (a world heading into the ship's frame)
       this.crashSite = buildCrashSite({ heightAt: this.heightAt, centre: C, reach, travel: s.crash.travel, length: s.crash.length, sandMat: this.level.ground.mesh?.material, protect });
       this.scene.add(this.crashSite.group);
     }
-    this.colliders = [this.physics.addCollider(model.group)];
+    this.colliders = [this.physics.addCollider(model.group), ...(model.movingParts ?? []).map(part => this.physics.addMover(part)).filter(Boolean)];
     if (this.crashSite) this.colliders.push(this.physics.addCollider(this.crashSite.group));
     // smoke, dust and flame
     this.smoke = new Puffs(this.scene, { count: 150, glow: 0.35, tag: 'ship-smoke', noShadow: this.noShadow });
@@ -261,7 +265,7 @@ export class Ship {
 
   /** The prologue's ship, in orbit high above the map, wrapped in a dome of stars. */
   buildSpaceCopy() {
-    const model = buildShipModel({ space: true, legs: 'up', ramp: null });
+    const model = buildShipModel({ caravan: this.caravan, space: true, legs: 'up', ramp: null });
     const pos = new THREE.Vector3(this.site.x, SPACE_Y, this.site.z);
     model.group.position.copy(pos);
     this.scene.add(model.group);
@@ -282,6 +286,7 @@ export class Ship {
     if (!s) return;
     this.physics.removeCollider(s.collider);
     s.model.group.removeFromParent();
+    s.model.disposeAuthored?.();
     s.space.removeFromParent();
     for (const v of [...s.model.lightVecs, s.model.vmailLight]) { const i = this.lights.indexOf(v); if (i >= 0) this.lights.splice(i, 1); }
     const h = this.noShadow.indexOf(s.model.holoTable?.object);
@@ -359,16 +364,24 @@ export class Ship {
    * along the outside of the hull on its track, clear of the doorway (it never passes through the hull).
    */
   setDoor(model, k) {
+    if (model.authored) {
+      model.door.position.copy(model.doorRest);
+      // Door lives in authored coordinates; its track slides toward the bow clear of the through-opening.
+      model.door.position.x -= 1.9 * ease(k);
+      model.doorK = k;
+      return;
+    }
     const { pop, slide } = doorPhases(k);
     model.door.rotation.set(0, 0, 0);
-    model.door.position.set(Math.sin(HATCH_A) * DOOR_POP * pop, 0, -DOOR_TRAVEL * slide);
+    model.door.position.set(Math.sin(this.layout.HATCH_A) * DOOR_POP * pop, 0, -DOOR_TRAVEL * slide);
     model.doorK = k;
   }
 
   /** k = 0 stowed .. 1 lowered to the ground: it slides out, tips down, telescopes out (src/ship/model.js poseRamp). */
   setRamp(model, k) {
-    if (!model.ramp) return;
-    poseRamp(model.ramp, k);
+    if (model.applyCamp) model.applyCamp(k, model.gearAltitude ?? 0);
+    if (!model.ramp) { model.rampK = k; return; }
+    poseRamp(model.ramp, model.authored ? caravanStowPose(k).ramp : k);
     model.rampK = k;
   }
 
@@ -407,7 +420,7 @@ export class Ship {
     }
     if (prologue && this.spaceCopy) {
       const director = new PrologueDirector(this);
-      this.prologue = new Prologue({ director, game });
+      this.prologue = new Prologue({ director, game, ...(this.caravan ? { stages: PROLOGUE_STAGES.map(stage => stage.id === 'hatch' ? { ...stage, dur: 4.65 } : stage) } : {}) });
       this.cinematic = this.prologue;
       this.prologue.start();
       return;
@@ -458,8 +471,8 @@ export class Ship {
     // the ship's origin, by the same matrix worldToLocal reads. It was 20 m, from before the rooms were doubled (#338):
     // the hold's back half, out to 26 m, was outside, rain and all, and the cabin's tight camera let go there)
     const e = model.group.matrixWorld.elements, dx = p.x - e[12], dy = p.y - e[13], dz = p.z - e[14];
-    if (dx * dx + dy * dy + dz * dz > ROOMS_R2 * (e[0] * e[0] + e[1] * e[1] + e[2] * e[2])) return false;
-    return inRooms(this.local(model, p));
+    if (dx * dx + dy * dy + dz * dz > this.roomsRadius2 * (e[0] * e[0] + e[1] * e[1] + e[2] * e[2])) return false;
+    return this.layout.inRooms(this.local(model, p));
   }
 
   /** Which ship the player is in (the parked one or the one in orbit), or null. */
@@ -502,12 +515,12 @@ export class Ship {
    * no way to walk). Near the ship, with its hull or ramp overhead (or inside its rooms).
    */
   covers(p) {
-    if (Math.hypot(p.x - this.restPos.x, p.z - this.restPos.z) > R + 6) return false;
+    if (Math.hypot(p.x - this.restPos.x, p.z - this.restPos.z) > this.layout.R + 6) return false;
     if (this.isInside(this.parked, p)) return true;
     // (under the hull's plan, however high it stands: the ship twice the size since issue #338, its belly over a
     // spawn by its side can be more than SPAWN_HEADROOM up, and the desert's start stood under its flank)
     const l = _ko.set(p.x - this.restPos.x, 0, p.z - this.restPos.z).applyQuaternion(this._restQi ??= this.parked.group.quaternion.clone().invert());
-    if (Math.abs(l.x) < HALF_W + 0.5 && l.z > NOSE_Z - 0.5 && l.z < STERN_Z + 0.5 && p.y < this.restPos.y + ROOF) return true;
+    if (Math.abs(l.x) < this.layout.HALF_W + 0.5 && l.z > this.layout.NOSE_Z - 0.5 && l.z < this.layout.STERN_Z + 0.5 && p.y < this.restPos.y + this.layout.ROOF) return true;
     return this.physics.rayDistance(new THREE.Vector3(p.x, p.y + 0.3, p.z), Y, SPAWN_HEADROOM) < SPAWN_HEADROOM;
   }
 
@@ -520,11 +533,11 @@ export class Ship {
   keepsOff(p, pad = KEEP_OFF) {
     if (!this.restPos || !this.parked) return false;
     const dx = p.x - this.restPos.x, dz = p.z - this.restPos.z;
-    if (dx * dx + dz * dz > (R + pad + 25) ** 2) return false;   // (far from it: the cheap answer first)
-    // the footprint, in the hull's own frame where it rests (local x across, z along: NOSE_Z .. STERN_Z)
+    if (dx * dx + dz * dz > (this.layout.R + pad + 25) ** 2) return false;   // (far from it: the cheap answer first)
+    // the footprint, in the hull's own frame where it rests (local x across, z along: this.layout.NOSE_Z .. this.layout.STERN_Z)
     const q = this._restQi ??= this.parked.group.quaternion.clone().invert();   // (set where it is parked)
     const l = _ko.set(dx, 0, dz).applyQuaternion(q);
-    if (Math.abs(l.x) < HALF_W + pad && l.z > NOSE_Z - pad && l.z < STERN_Z + pad && p.y < this.restPos.y + ROOF + 4) return true;
+    if (Math.abs(l.x) < this.layout.HALF_W + pad && l.z > this.layout.NOSE_Z - pad && l.z < this.layout.STERN_Z + pad && p.y < this.restPos.y + this.layout.ROOF + 4) return true;
     // the ramp: hinge to foot on the ground, its width and a step either side
     if (this.hinge && this.rampFoot) {
       const ax = this.hinge.x, az = this.hinge.z, bx = this.rampFoot.x - ax, bz = this.rampFoot.z - az, L2 = bx * bx + bz * bz || 1;
@@ -551,9 +564,9 @@ export class Ship {
 
   /** Where ?aboard=<room> starts you (development, main.js): in that room of the parked ship, facing the bow. */
   roomSpot(room) {
-    const r = ROOMS[room], m = this.parked;
+    const r = this.layout.ROOMS[room], m = this.parked;
     if (!r || !m) return null;
-    const l = new THREE.Vector3(0, m.interior.points.aboard.y + 0.1, r.z0 + (r.z1 - r.z0) * 0.7);
+    const l = new THREE.Vector3(0, (r.floor ?? m.interior.points.aboard.y) + 0.1, r.z0 + (r.z1 - r.z0) * 0.7);
     return { pos: this.world(m, l), heading: this.worldHeading(m, Math.PI) };
   }
 
@@ -929,8 +942,8 @@ export class Ship {
       if ((this.smokeT -= dt) <= 0) {
         this.smokeT = 0.3;
         const m = this.parked;
-        const src = this.world(m, new THREE.Vector3(SCAR.x - 0.4, SCAR.y + 1, SCAR.z));
-        const top = this.world(m, new THREE.Vector3(1.0, ROOF + 0.3, 2.5));
+        const src = this.world(m, new THREE.Vector3(this.layout.SCAR.x - 0.4, this.layout.SCAR.y + 1, this.layout.SCAR.z));
+        const top = this.world(m, new THREE.Vector3(1.0, this.layout.ROOF + 0.3, 2.5));
         const at = Math.random() < 0.6 ? src : top;
         this.smoke.emit(at.add(new THREE.Vector3((Math.random() - 0.5) * 2, 0, (Math.random() - 0.5) * 2)), new THREE.Vector3(0.8 + Math.random(), 3.2 + Math.random() * 1.5, 0.3), 0.6 + Math.random() * 0.6, 7 + Math.random() * 2, new THREE.Color(SMOKE[Math.floor(Math.random() * SMOKE.length)]));
       }
@@ -945,7 +958,11 @@ export class Ship {
     // shot inside the ship while you stand far off, as the review page stages the takeoff, drew no walls)
     for (const m of [this.parked, this.spaceCopy?.model]) {
       if (!m) continue;
-      const d = this.camera.position.distanceTo(this.world(m, _c.set(0, 1, CENTRE_Z))), near = d < 48;
+      if (m.applyCamp) {
+        m.gearAltitude = m === this.parked ? Math.max(0, m.group.position.y - this.restPos.y) : 4;
+        m.applyCamp(m.rampK ?? (m === this.parked ? 1 : 0), m.gearAltitude);
+      }
+      const d = this.camera.position.distanceTo(this.world(m, _c.set(0, 1, this.layout.CENTRE_Z))), near = d < 48;
       if (near !== m.indoorShown) {
         m.indoorShown = near;
         for (const o of m.indoor) o.visible = near;

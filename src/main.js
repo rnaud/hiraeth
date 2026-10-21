@@ -70,6 +70,7 @@ import { loadAnimationLibrary, Animator } from './animator.js';
 import { loadMotionLibrary, matchingSetting } from './motion-match.js';
 import { movesSetting } from './loco-moves.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { loadPlayableCaravan } from './ship/caravan-asset.js';
 import { loadHuman, Humanoid } from './humanoid.js';
 import { loadPeople, usesMakeHuman } from './makehuman/people.js';
 import { updateHands } from './hands.js';
@@ -334,11 +335,16 @@ const humans = Promise.all([loadHuman('m'), loadHuman('f')]).catch((e) => { cons
 // the body's one file asked for now, while the rest loads
 const mhPeople = usesMakeHuman(levelId, query.get('mh')) ? loadPeople(import.meta.env.BASE_URL, levelId).catch((e) => { console.warn('MakeHuman bodies unavailable', e); return null; }) : null;
 await stage(`sketching ${meta.title.toLowerCase()}…`);
+const caravan = await loadPlayableCaravan(import.meta.env.BASE_URL).catch(error => {
+  loadWatch.stop();
+  if (loadMsg) { loadMsg.textContent = 'The ship could not be loaded. Reload to try again.'; loadMsg.setAttribute('role', 'alert'); }
+  throw error;
+});
 setStep('world');
 // (distant detail on: the sand drifts' collision is cut into pieces made after the world is built, src/late-collision.js)
 const deferOn = query.get('defer') !== '0';
 DRIFT_FITS.later = deferOn;
-const level = meta.build ? await runStepsAsync(meta.build(scene), slice) : meta.create(scene);
+const level = meta.build ? await runStepsAsync(meta.build(scene, { caravan }), slice) : meta.create(scene, { caravan });
 DRIFT_FITS.later = false;
 if (level.gadgets === 'all') for (const g of GADGETS) items.grant(g.id);   // (the Gadget Yard: every gadget, to try them: src/levels/gadget-yard.js)
 const terrain = level.ground;
@@ -381,7 +387,8 @@ const playPrologue = levelId === 'desert' && !viaShip && !minigameDef && (query.
 // (the stone, the light over the hill), then, with Ilen, the true ending; ?ending=1 replays the first, ?ending=2 the last
 const playHomecoming = (levelId === 'home' && (query.get('ending') === '1' ? 'first' : query.get('ending') === '2' ? 'final' : viaShip ? homecomingKind((k) => game.flag(k)) : null)) || false;
 setStep('ship');
-const ship = new Ship({ scene, physics, level, levelId, content, prologue: playPrologue || playHomecoming });
+
+const ship = new Ship({ caravan, scene, physics, level, levelId, content, prologue: playPrologue || playHomecoming });
 wireShip({ level, ship });   // (the ship's place: quests, the scout, the Map's mark; the engines' too)
 await slice();
 const auditRoots = scene.children.slice();   // the level and the ship: what the clipping audit looks over (window.clipAudit)   // quests that say "return to the ship" point at its ramp

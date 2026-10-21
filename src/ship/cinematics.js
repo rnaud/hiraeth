@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { game } from '../game-state.js';
 import { DECK, HATCH_A, CENTRE_Z, LENGTH, HALF_W, BELLY, LIFT, SHIP_SCALE } from './hull.js';
+import { COCKPIT_DECK } from './caravan-layout.js';
 import { CONSOLE_R, cockpitZ } from './interior.js';
 import { PROLOGUE_CALL, recordingSpan, onHologram, recordingLabel } from '../story/calls.js';
 import { callTimeline, NUDGE, nudgeText, nudgeDue, PAUSE, PAUSE_THEME_AT, PROLOGUE_STAGES } from './prologue.js';
@@ -255,7 +256,7 @@ export class PrologueDirector {
     if (ship.sound?.ctx) void loadCue(ship.sound, 'singing-light');
     // the light's way past the ship (ship-local): out of the dark ahead, close past the cockpit's left (the hatch's
     // side, where it leaves its mark on the hull), away behind
-    this.LM = V(-HALF_W - 5, DECK + 2.4 * SHIP_SCALE, -7.5 * SHIP_SCALE);   // nearest: a few metres off the hull, at the window's height
+    this.LM = ship.caravan ? V(-ship.layout.HALF_W - 5, COCKPIT_DECK + 2, -18) : V(-HALF_W - 5, DECK + 2.4 * SHIP_SCALE, -7.5 * SHIP_SCALE);   // nearest: a few metres off the hull, at the window's height
     this.LD = V(-0.45, -0.08, 0.89).normalize();              // the way it goes
     this.rec = { span: recordingSpan(PROLOGUE_CALL), who: onHologram('prologue'), label: recordingLabel('prologue') };
     const c = ship.site.crash;
@@ -263,7 +264,7 @@ export class PrologueDirector {
     this.N = V(this.T.z, 0, -this.T.x);
     const rest = ship.restPos;
     this.touch = rest.clone().addScaledVector(this.T, -(c.length - 16));
-    this.touch.y = ship.groundAt(this.touch.x, this.touch.z) + LIFT - 1.0;   // (its belly just in the sand)
+    this.touch.y = ship.groundAt(this.touch.x, this.touch.z) + (ship.layout?.LIFT ?? LIFT) - 1.0;   // (its belly just in the sand)
     this.S0 = this.touch.clone().addScaledVector(this.T, -1250).addScaledVector(this.N, 160).add(V(0, 620, 0));
     this.S1 = this.touch.clone().addScaledVector(this.T, -430).addScaledVector(this.N, 25).add(V(0, 95, 0));
     this.look = new THREE.Vector3();
@@ -500,7 +501,7 @@ export class PrologueDirector {
         const nearAt = 2.9, cut = 2.55;
         if (t < cut) {
           const k = smooth(t / cut);
-          s.shot({ pos: this.W(V(0.55, DECK + 1.95, cockpitZ(-6.7 - 0.3 * k))), look: this.W(V(-2.6 - 2 * k, DECK + 1.75, cockpitZ(-22.8))), fov: 56 });
+          s.shot({ pos: this.W(V(0.55, (pk.authored ? COCKPIT_DECK : DECK) + 1.95, pk.authored ? -18.1 - .3*k : cockpitZ(-6.7 - 0.3 * k))), look: this.W(V(-2.6 - 2 * k, (pk.authored ? COCKPIT_DECK : DECK) + 1.75, pk.authored ? -35 : cockpitZ(-22.8))), fov: 56 });
         } else {
           const k = smooth((t - cut) / (this.passDur - cut));
           const K = SHIP_SCALE;   // (outside, wide: as far off as the ship is big)
@@ -517,7 +518,7 @@ export class PrologueDirector {
       case 'drain': {
         // dark, then the amber reserve; the planet swings up into the window: she can't hold orbit
         const k = smooth(seg(t, 1.6, 4.8));
-        s.shot({ pos: this.W(V(1.1, DECK + 1.8, cockpitZ(-6.3))), look: this.W(V(-0.3, DECK + 1.9 - k * 0.7, cockpitZ(-12.8))), fov: 58, roll: k * 0.12 + Math.sin(t * 1.3) * 0.02 });   // (from his right: the pilot's seat out of the way)
+        s.shot({ pos: this.W(V(1.1, (pk.authored ? COCKPIT_DECK : DECK) + 1.8, pk.authored ? -17.7 : cockpitZ(-6.3))), look: this.W(V(-0.3, (pk.authored ? COCKPIT_DECK : DECK) + 1.9 - k * 0.7, pk.authored ? -26 : cockpitZ(-12.8))), fov: 58, roll: k * 0.12 + Math.sin(t * 1.3) * 0.02 });   // (from his right: the pilot's seat out of the way)
         if (t < 0.1 && !this.dark) { this.dark = true; C.fade(0.55, false, 0.35); }   // (the lamps out: dark but for the window)
         if (t > 1.3 && !this.reserve) { this.reserve = true; s.setPower('emergency', sp); C.fade(0.25, false, 0.8); C.red(0.18); }
         if (t > 2.4 && !this.said2) { this.said2 = true; C.say({ who: 'ship', text: 'Not enough to hold orbit. Taking us down.' }); }
@@ -540,13 +541,16 @@ export class PrologueDirector {
           const g = new THREE.Color(pickOf(VAPOUR));
           s.smoke.emit(p.clone().addScaledVector(vel, -LENGTH * 0.6).add(V((Math.random() - 0.5) * 4, (Math.random() - 0.5) * 3, (Math.random() - 0.5) * 4)), V(0, 2, 0), 2 + Math.random() * 1.5, 1.6 + Math.random(), g);
         }
-        // (carried with the ship and started a swell's reach under the belly, issue #89: left behind in the air, or
-        // swelling up from just under it, the flame stood up through the hull as it came down)
-        if (s.jets) carryJets(s.jets, pk);
-        if (u > 0.82) for (let i = 0; i < 2; i++) {
-          const size = 0.7 + Math.random() * 0.5;
-          const under = s.world(pk, V((Math.random() - 0.5) * 3, BELLY - 0.5 - size * 1.3, CENTRE_Z + (Math.random() - 0.5) * LENGTH * 0.6));
-          (s.jets ?? s.flame).emit(under, V(0, -14, 0), size, 0.3, pickOf(FIRE));
+        // Reserve thrust uses the authored rear mouths; legacy fixtures keep their original belly jets.
+        if (pk.authored) {
+          if (u > 0.82) exhaust(s, pk, dt, { power: .45 });
+        } else {
+          if (s.jets) carryJets(s.jets, pk);
+          if (u > 0.82) for (let i = 0; i < 2; i++) {
+            const size = 0.7 + Math.random() * 0.5;
+            const under = s.world(pk, V((Math.random() - 0.5) * 3, BELLY - 0.5 - size * 1.3, CENTRE_Z + (Math.random() - 0.5) * LENGTH * 0.6));
+            (s.jets ?? s.flame).emit(under, V(0, -14, 0), size, 0.3, pickOf(FIRE));
+          }
         }
         const cam = s.restPos.clone().addScaledVector(this.N, -64 * SHIP_SCALE).addScaledVector(this.T, 36 * SHIP_SCALE).add(V(0, 8 * SHIP_SCALE, 0));   // (the long low hull: nearer than the ball needed; as far off as it is big)
         if (t < dt * 1.5) this.look.copy(p);
@@ -612,8 +616,8 @@ export class PrologueDirector {
         s.shot({ pos: cam, look: s.hinge.clone().lerp(s.rampFoot, 0.3).add(V(0, 1.4, 0)), fov: 54 });
         if (t > 0.3 && !this.hissed) { this.hissed = true; sfx.hatch(s.sound); }
         // (each eases itself: the door unseals and slides up, then the ramp slides out, tips down, telescopes)
-        s.setDoor(pk, seg(t, 0.3, 1.4));
-        s.setRamp(pk, seg(t, 1.35, 3.3));
+        s.setDoor(pk, seg(t, pk.authored ? 4.2 : .3, pk.authored ? 4.6 : 1.4));
+        s.setRamp(pk, seg(t, pk.authored ? 0 : 1.35, pk.authored ? 4.2 : 3.3));
         break;
       }
       case 'stepout': {
@@ -1083,14 +1087,14 @@ export class ArrivalDirector extends Sequence {
       }] : []),
       {
         // the door unseals and slides up the hull; then the ramp slides out, tips down and telescopes to the ground
-        dur: 2.8,
+        dur: m.authored ? 4.65 : 2.8,
         enter: () => sfx.hatch(ship.sound),
         frame: (t) => {
           const cam = ship.rampFoot.clone().addScaledVector(ship.outDir, 6.5).addScaledVector(side, 4.5);
           cam.y = ship.viewGround(cam.x, cam.z) + 2.2;
           ship.shot({ pos: cam, look: ship.hinge.clone().lerp(ship.rampFoot, 0.3).add(V(0, 1.4, 0)), fov: 54 });
-          ship.setDoor(m, seg(t, 0.05, 1.15));
-          ship.setRamp(m, seg(t, 1.1, 2.75));
+          ship.setDoor(m, seg(t, m.authored ? 4.2 : .05, m.authored ? 4.6 : 1.15));
+          ship.setRamp(m, seg(t, m.authored ? 0 : 1.1, m.authored ? 4.2 : 2.75));
           if (t > 2.6 && !this.landed) { this.landed = true; sfx.rumble(ship.sound, 0.3, 0.25); }   // the ramp's foot on the ground
         },
       },
@@ -1154,7 +1158,7 @@ export class TakeoffDirector extends Sequence {
     const B = ship.berth, base = ship.berthPos(B ? berthOut(B.spec) : null);
     super(ship, [
       {
-        dur: 2.0,
+        dur: m.authored ? 4.6 : 2.0,
         enter: () => {
           C.hud(false); C.bars(true);
           C.say({ who: 'ship', text: `Course set: ${title}. Hold on.` });
@@ -1164,8 +1168,8 @@ export class TakeoffDirector extends Sequence {
         frame: (t) => {
           ship.shot(tableShot(ship, m, t));
           // the ramp folds away first (in, up, back into the doorway), then the door slides down and seals
-          ship.setRamp(m, 1 - seg(t, 0, 1.25));
-          ship.setDoor(m, 1 - seg(t, 1.2, 1.95));
+          ship.setRamp(m, 1 - seg(t, m.authored ? .35 : 0, m.authored ? 4.55 : 1.25));
+          ship.setDoor(m, 1 - seg(t, m.authored ? 0 : 1.2, m.authored ? .35 : 1.95));
           ship.shake(0.25 * t);
         },
       },

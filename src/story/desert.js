@@ -220,7 +220,7 @@ export function setupDesert(ctx) {
   const out = V(Math.sin(ramp?.heading ?? 0), 0, Math.cos(ramp?.heading ?? 0));
   const hull = ctx.ship?.restPos?.clone() ?? rampAt.clone().addScaledVector(out, -14);
   // (well clear of where the ship comes down and ploughs in: he watched it land, src/ship/landing.js)
-  const watch = bystanderSpot({ out, hull, travel: ctx.ship?.site?.crash?.travel ?? null });
+  const watch = bystanderSpot({ out, hull, travel: ctx.ship?.site?.crash?.travel ?? null, layout: ctx.ship?.layout });
   const wreckSpot = onGround(V(watch.x, rampAt.y, watch.z));
   people.marrow = spawn(PEOPLE.marrow, { route: opening() ? [wreckSpot] : marrowHome, speed: 0.6 });
   if (opening()) { people.marrow.facing = Math.atan2(hull.x - wreckSpot.x, hull.z - wreckSpot.z); people.marrow.heading = people.marrow.facing; }

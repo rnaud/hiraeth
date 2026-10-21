@@ -3,6 +3,9 @@ import { makeMaterial, MODE_STRATA } from '../materials.js';
 import { Batch, polar } from './geo.js';
 import { buildHull, doorGeometry, rampGeometry, R, DECK, HATCH, HATCH_A, HINGE_R, HALF_W } from './hull.js';
 import { buildInterior, BLOCK_H, ROOM_KEY, roomLook } from './interior.js';
+import { buildCaravanInterior } from './caravan-interior.js';
+import * as caravanLayout from './caravan-layout.js';
+import { bindCaravanMechanisms } from './caravan-mechanisms.js';
 import { CallScreen } from './portrait.js';
 
 // Assembles one ship (hull + interior + moving parts) in ship-local space.
@@ -108,15 +111,57 @@ export function buildShipModel(o = {}) {
   const group = new THREE.Group();
   group.name = 'ship';
   const batch = new Batch(mats);
-  const hull = buildHull(batch, { legs: o.legs ?? 'down', footY: o.footY });
-  const interior = buildInterior(batch, group, { tag, room: roomKey });
+  const layout = o.caravan ? caravanLayout : { HINGE_R, HATCH_A, DECK };
+  let authored = null, applyCamp = null, disposeAuthored = null;
+  const movingParts = [];
+  if (o.caravan) {
+    authored = o.caravan.clone(true);
+    const ownedGeometry = new Map(), paint = new Map();
+    authored.traverse(node => {
+      if (!node.isMesh) return;
+      // Geometry belongs to this live copy. Immutable ink paint is globally cached and must not be disposed here.
+      if (!ownedGeometry.has(node.geometry)) ownedGeometry.set(node.geometry, node.geometry.clone());
+      node.geometry = ownedGeometry.get(node.geometry);
+      const remap = original => {
+        let cockpit = false;
+        for (let parent = node.parent; parent; parent = parent.parent) if (parent.name === 'cockpit') cockpit = true;
+        const side = cockpit && original.name === 'dark' ? THREE.FrontSide : original.side;
+        const key = `${original.name}:${side}`;
+        if (!paint.has(key)) paint.set(key, makeMaterial({ color: original.color, side }));
+        return paint.get(key);
+      };
+      node.material = Array.isArray(node.material) ? node.material.map(remap) : remap(node.material);
+      node.castShadow = node.receiveShadow = true;
+    });
+    disposeAuthored = () => { for (const geometry of ownedGeometry.values()) geometry.dispose(); ownedGeometry.clear(); };
+    authored.traverse(node => {
+      if (node.userData.caravanMechanism || node.name === 'entry-door') {
+        node.userData.noCollide = true;
+        movingParts.push(node);
+      }
+    });
+    if (o.footY) authored.traverse(node => {
+      const foot = node.userData.caravanFoot;
+      if (!foot) return;
+      const at = caravanLayout.authoredToShip(new THREE.Vector3(...foot.at));
+      const target = o.footY(at) / caravanLayout.CARAVAN_SCALE + caravanLayout.AUTHORED_ENTRY.y;
+      const stretch = Math.max(.15, (foot.mountY - target) / (foot.mountY - foot.at[1]));
+      node.scale.y *= stretch;
+      node.position.y += foot.localMountY * (1 - stretch);
+    });
+    applyCamp = bindCaravanMechanisms(authored);
+    applyCamp(o.space ? 0 : 1, o.space ? 4 : 0);
+    caravanLayout.placeAuthoredRoot(authored); group.add(authored);
+  }
+  const hull = authored ? { authored: true, feet: [[-16.25,.0,4.01],[-12.25,.0,-3.81],[11.25,.0,3.09],[10.25,.0,-2.89]].map(p => caravanLayout.authoredToShip(new THREE.Vector3(...p))) } : buildHull(batch, { legs: o.legs ?? 'down', footY: o.footY });
+  const interior = authored ? buildCaravanInterior(batch, group) : buildInterior(batch, group, { tag, room: roomKey });
   const flags = Object.fromEntries(NO_COLLIDE.map((k) => [k, { noCollide: true }]));
   flags.collider = { visible: false };
   const meshes = batch.build(group, flags);
 
   // the hatch door: pops out of its frame and slides aft along the hull (Ship.setDoor)
-  const door = new THREE.Group();
-  {
+  const door = authored?.getObjectByName('entry-door') ?? new THREE.Group();
+  if (!authored) {
     const { out, inn } = doorGeometry();
     door.add(new THREE.Mesh(out, mats.hull), new THREE.Mesh(inn, mats.wallIn));
     const zc = (HATCH.z0 + HATCH.z1) / 2, x = -HALF_W - 0.125;
@@ -129,7 +174,7 @@ export function buildShipModel(o = {}) {
   }
   door.userData.noCollide = !o.space;   // shut in orbit (part of the walls), open when parked
   door.userData.dynamic = true;
-  group.add(door);
+  if (!authored) group.add(door);
 
   // the telescoping ramp, hinged at the outer edge of the threshold: nested sections, each a little
   // narrower and lower than the one before, that slide out of one another (see poseRamp)
@@ -137,7 +182,7 @@ export function buildShipModel(o = {}) {
   if (o.ramp) {
     const L = o.ramp.length, n = rampSections(L), step = L / n;
     ramp = new THREE.Group();
-    ramp.position.copy(polar(HINGE_R, HATCH_A, DECK));
+    ramp.position.copy(polar(layout.HINGE_R, layout.HATCH_A, layout.DECK));
     const axis = Math.sign(Math.sin(HATCH_A)) || 1;   // the plank runs out along local ±x, through the hatch
     const sections = [];
     for (let i = 0; i < n; i++) {
@@ -167,6 +212,10 @@ export function buildShipModel(o = {}) {
     ramp.userData.dynamic = true;
     poseRamp(ramp, 1);   // (the colliders are taken as it stands now: deployed)
     group.add(ramp);
+    if (authored) {
+      ramp.userData.noCollide = true;
+      for (const section of sections) { section.userData.noCollide = true; movingParts.push(section); }
+    }
   }
 
   // the call screen
@@ -186,7 +235,7 @@ export function buildShipModel(o = {}) {
   const indoor = [interior.deco, interior.props, screen, ...['core', 'lamp', 'btnA', 'btnB', 'btnC', 'vmail', 'vmailHalo', 'portIn', ...INTERIOR].map((k) => meshes[k]).filter(Boolean)];
   // the outside's small things (seams, the scorch, the lights, the trim): only drawn near (the far level of detail)
   const details = FAR_HIDDEN.map((k) => meshes[k]).filter(Boolean);
-  return { tag, group, meshes, mats, door, ramp, interior, hull, screen, callScreen, indoor, details, roomKey };
+  return { tag, group, meshes, mats, door, ramp, interior, hull, screen, callScreen, indoor, details, roomKey, authored, applyCamp, disposeAuthored, doorRest: door.position.clone(), movingParts, gearAltitude: o.space ? 4 : 0 };
 }
 /** How far (m) the outside's small things are drawn; past it the hull is its panels, stripe, glass and legs. */
 export const DETAIL_FAR = 130;

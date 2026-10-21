@@ -51,7 +51,7 @@ namespace Hiraeth.EditorTools
             // and the Rose House's Keeper on its fitted skin
             // (guardians/keeper-v1, issue #267, and elder-v3: without them the bundle falls back to the procedural bodies; and
             // their colors.json, the skins' colours as the engines draw them, issue #264)
-            foreach (var (from, files) in new[] { ("anim/mh", new[] { "body.bin" }), ("characters/traveller-b3", new[] { "model.glb", "rig.json", "colors.json" }), ("characters/traveller-v1/head-v3", new[] { "model.glb", "colors.json", "hair-ink.png", "eye-paint.png" }), ("guardians/keeper-v1", new[] { "model.glb", "colors.json" }), ("guardians/elder-v3", new[] { "model.glb", "colors.json" }) })
+            foreach (var (from, files) in new[] { ("models/ships/caravan-a", new[] { "playable.glb" }), ("anim/mh", new[] { "body.bin" }), ("characters/traveller-b3", new[] { "model.glb", "rig.json", "colors.json" }), ("characters/traveller-v1/head-v3", new[] { "model.glb", "colors.json", "hair-ink.png", "eye-paint.png" }), ("guardians/keeper-v1", new[] { "model.glb", "colors.json" }), ("guardians/elder-v3", new[] { "model.glb", "colors.json" }) })
             {
                 var d = Path.Combine(Application.streamingAssetsPath, "hiraeth-js", "public", from);
                 Directory.CreateDirectory(d);

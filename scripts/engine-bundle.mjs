@@ -9,7 +9,7 @@
 // 'csharp', 'puerts') stay outside it.
 import { rolldown } from 'rolldown';
 import { viteImportGlobPlugin } from 'rolldown/experimental';
-import { mkdirSync, statSync, readdirSync, existsSync, writeFileSync } from 'node:fs';
+import { mkdirSync, statSync, readdirSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -204,6 +204,10 @@ export async function unityTravellerV2({ to = UNITY_PUBLIC } = {}) {
     }
     n++; bytes += statSync(out).size;
   }
+  const caravan = 'models/ships/caravan-a/playable.glb';
+  const source = resolve(ROOT, 'public', caravan), target = resolve(ROOT, to, caravan);
+  mkdirSync(dirname(target), { recursive: true });
+  writeFileSync(target, readFileSync(source)); n++; bytes += statSync(target).size;
   return { n, bytes, to };
 }
 

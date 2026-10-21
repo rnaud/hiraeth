@@ -57,6 +57,7 @@ import { createPost } from '../src/post.js';
 import { applyTimeOfDay, colourScript } from '../src/timeofday.js';
 import { EDGE_HINTS } from '../src/edge.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { loadPlayableCaravan } from '../src/ship/caravan-asset.js';
 import { SceneMirror } from './mirror.js';
 import { Wildlife } from '../src/wildlife.js';
 import { ReactiveWorld } from '../src/reactive-world.js';
@@ -423,6 +424,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   DRIFT_FITS.later = !!deferred;
   DRIFT_FITS.most = DRIFT_PIECE;   // (a piece's triangles tested at most: each made on the frame's thread here)
   wallOpenings.reset();   // (one world at a time in a VM: the last one's pieces let go before the builders lay theirs)
+  const caravan = await loadPlayableCaravan('');
   let level;
   // (back from a game started from the Arcade, ?level=arcade&back=<id> on the page: in front of that game's sign, as the
   // level reads it from the address, src/levels/arcade.js; engine/unity/game.js carries it through the reboot)
@@ -431,7 +433,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const gameQuery = gameDef ? `?game=${encodeURIComponent(gameId)}${transitTo ? `&to=${encodeURIComponent(transitTo)}` : ''}${gameStage ? `&stage=${encodeURIComponent(gameStage)}` : ''}` : null;
   const loc = (back || gameQuery) && globalThis.location ? globalThis.location : null, search = loc?.search;
   if (loc) loc.search = back ? `?back=${encodeURIComponent(back)}` : gameQuery;
-  try { level = quiet(() => (meta.create ? meta.create(scene) : runSteps(meta.build(scene)))); } finally { DRIFT_FITS.later = false; DRIFT_FITS.most = Infinity; if (loc) loc.search = search; }
+  try { level = quiet(() => (meta.create ? meta.create(scene, { caravan }) : runSteps(meta.build(scene, { caravan })))); } finally { DRIFT_FITS.later = false; DRIFT_FITS.most = Infinity; if (loc) loc.search = search; }
   level.id ??= levelId;
   // where the old walls' cracks may not run: their windows and doors, as the page (src/host/game-host.js wireOpenings)
   quiet(() => wireOpenings({ scene }));
@@ -460,7 +462,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // coming home by ship plays a homecoming (main.js playHomecoming, src/story/ending.js homecomingKind): the first (the
   // stone, the light over the hill), then, with Ilen, the true ending and its credits; its ship in orbit too
   const playHomecoming = !!(menus && levelId === HOME_ID && via === 'ship' && !flags && !view && !gameDef) && homecomingKind((k) => gameState.flag(k));
-  const ship = quiet(() => new Ship({ scene, physics, level, levelId, content, prologue: playPrologue || !!playHomecoming }));
+  const ship = quiet(() => new Ship({ caravan, scene, physics, level, levelId, content, prologue: playPrologue || !!playHomecoming }));
   // the ship's place for the quests that say "return to the ship", the scout and the Map's "Your ship" mark, as the page
   // (src/host/game-host.js wireShip: the engines' Map had no ship, #429's sequences)
   wireShip({ level, ship });

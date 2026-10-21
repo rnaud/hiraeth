@@ -23,12 +23,12 @@ const el = () => ({ classList: { add() {}, remove() {}, toggle() {}, contains: (
 const page = { createElement: el, body: el(), getElementById: () => null, querySelector: () => null };
 
 /** The world `id` with its ship, the save `flags` (the shared one, which the ship reads, and Anselm's). */
-function aboardIn(id, flags) {
+function aboardIn(id, flags, caravan) {
   delete globalThis.document;   // (a world built with no page: its drawings drawn without a canvas)
   const { scene, level, physics } = builtWorld(id);
   for (const k of Object.keys(sharedGame.data.flags)) delete sharedGame.data.flags[k];
   Object.assign(sharedGame.data.flags, flags);
-  const ship = quiet(() => new Ship({ scene, physics, level, levelId: id, content: CONTENT[id] ?? { npcs: [], relics: { spots: [] } } }));
+  const ship = quiet(() => new Ship({ caravan, scene, physics, level, levelId: id, content: CONTENT[id] ?? { npcs: [], relics: { spots: [] } } }));
   globalThis.document = page;
   const game = new GameState(memory());
   Object.assign(game.data.flags, flags);
@@ -45,7 +45,7 @@ function checkAboard(where, { S, ship, physics }) {
   assert.ok(Math.abs(deck - p.y) < 0.25, `${where}: on the hold's deck (${(deck - p.y).toFixed(2)} m)`);
   assert.ok(physics.rayDistance(V(p.x, p.y + 0.3, p.z), V(0, 1, 0), 2.2) > 1.8, `${where}: room over his head`);
   const local = ship.local ? ship.local(ship.parked, p) : null;
-  if (local) assert.ok(local.distanceTo(V(...ABOARD.at)) < 0.6, `${where}: on his spot by the crate`);
+  if (local) assert.ok(local.distanceTo(V(...(ship.layout.SCIENTIST ?? ABOARD).at)) < 0.6, `${where}: on his spot by the crate`);
   assert.equal(!!S.aboard.away, false, `${where}: in sight`);
 }
 
@@ -58,6 +58,20 @@ for (const id of WORLDS) {
     checkAboard(id, aboardIn(id, flags));
   });
 }
+
+test('the production caravan places Anselm and his jar in its furnished hold, including after flight', async () => {
+  const { GLTFLoader } = await import('three/addons/loaders/GLTFLoader.js');
+  const b = fs.readFileSync(new URL('../public/models/ships/caravan-a/playable.glb', import.meta.url));
+  const caravan = (await new GLTFLoader().parseAsync(b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength), '')).scene;
+  const w = aboardIn('arzach', { ...progressBefore('arzach').flags, 'frag.met': true, 'ship.launched': true, 'ship.powered': true }, caravan);
+  checkAboard('production caravan', w);
+  assert.deepEqual(w.S.jar.group.position.toArray(), w.ship.layout.SCIENTIST.jar);
+  const home = w.S.aboard.pos.clone();
+  w.ship.parked.group.position.y += 60; w.S.update(.1);
+  assert.equal(w.S.aboard.away, true);
+  w.ship.parked.group.position.copy(w.ship.restPos); w.S.aboard.pos.set(0,-50,0); w.S.update(.1);
+  assert.ok(w.S.aboard.pos.distanceTo(home) < .05);
+});
 
 test('the desert: aboard the crashed ship before the first launch too (met in the desert, the ship still down)', () => {
   const flags = { 'prologue.done': true, 'frag.met': true, 'frag.desert.0': true };
@@ -105,5 +119,5 @@ test('the story sets him up in every world with the ship (src/story/index.js, ma
   assert.match(story, /const scientist = setupScientist\(\{ \.\.\.o, game, talkable, dialogue, toast, moments \}\);/);   // (the moments: his arrival filmed, issue #550)
   const main = fs.readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
   assert.match(main, /const storyRt = createStory\(\{[^]*?\n  ship, /, 'createStory gets the ship');
-  assert.match(main, /const ship = new Ship\(\{ scene, physics, level, levelId, content/, 'every world has its ship');
+  assert.match(main, /const ship = new Ship\(\{ caravan, scene, physics, level, levelId, content/, 'every world has its ship');
 });

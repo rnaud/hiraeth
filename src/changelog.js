@@ -8,6 +8,12 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.91', date: '2026-10-20', items: [
+    { text: 'Your ship is now the rounded caravan, with four rear boosters, a raised cockpit and furnished rooms you can walk through.',
+      see: 'Board at the side porch. The galley, bunk, map table, cabin and cargo hold have been rearranged inside the new hull; stairs lead to the panoramic cockpit.' },
+    { text: 'The porch folds into the ship before departure, with its furniture secured overhead; it opens again after touchdown.',
+      see: 'Choose a destination at the map table. The door seals, furniture is lifted into storage, and the canopy, rails and deck pack away before the ship rises.' },
+  ] },
   { v: '1.90', date: '2026-10-20', items: [
     { text: 'Unity can group more stationary scenery into shared draws without reducing its detail.',
       see: 'The same scenery, ink and shadows are retained. Native batching checks cover this correction; its effect on Retroid frame rate still needs device measurements.' },

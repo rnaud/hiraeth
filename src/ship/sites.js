@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { LIFT, HALF_W, NOSE_Z, STERN_Z, CENTRE_Z, HATCH_A, ROOF, BELLY, SHIP_SCALE } from './hull.js';
+const LEGACY_LAYOUT = { LIFT, HALF_W, NOSE_Z, STERN_Z, CENTRE_Z, HATCH_A, ROOF, BELLY };
 
 // Where the ship stands in each world. A level can define `shipSite`
 // ({ x, z, heading }) itself; otherwise the table below; otherwise a clear,
@@ -108,7 +109,8 @@ export function decorAvoid(scene, level, { near = null, reach = 260 } = {}) {
  * How well the ship fits at (x, z): the ground under its feet, hull and ramp.
  * Returns null if it doesn't fit, else { ground, spread, ... }.
  */
-export function probeSite(physics, x, z, heading, { refY = 0, tolerance = 2.6 * SHIP_SCALE, unsafe = null } = {}) {
+export function probeSite(physics, x, z, heading, { refY = 0, tolerance = 2.6 * SHIP_SCALE, unsafe = null, layout = LEGACY_LAYOUT } = {}) {
+  const { LIFT, HALF_W, NOSE_Z, STERN_Z, CENTRE_Z, HATCH_A, ROOF, BELLY } = layout;
   const from = refY + 60;
   const G = (px, pz) => physics.groundAt(px, from, pz, 400);
   // (the hull's own plan where it would stand, its legs a little past it: the ship twice the size since issue #338, a
@@ -158,7 +160,8 @@ function toWorld(x, z, heading) {
 }
 
 /** How far (x, z) is from the plan of a ship standing at (sx, sz), its hatch toward `heading` (0 inside it). */
-export function fromPlan(x, z, sx, sz, heading) {
+export function fromPlan(x, z, sx, sz, heading, layout = LEGACY_LAYOUT) {
+  const { HALF_W, NOSE_Z, STERN_Z } = layout;
   const yaw = heading - HATCH_A, c = Math.cos(yaw), s = Math.sin(yaw), dx = x - sx, dz = z - sz;
   const lx = dx * c - dz * s, lz = dx * s + dz * c;
   return Math.hypot(Math.max(Math.abs(lx) - HALF_W, 0), Math.max(NOSE_Z - lz, 0, lz - STERN_Z));
@@ -168,16 +171,17 @@ export function fromPlan(x, z, sx, sz, heading) {
  * Find the ship's spot. Deterministic (same level -> same place).
  * @returns { x, z, heading, ground, crash? , source }
  */
-export function findShipSite({ level, physics, levelId, avoid = [], spawn }) {
+export function findShipSite({ level, physics, levelId, avoid = [], spawn, layout = LEGACY_LAYOUT }) {
+  const { HALF_W } = layout;
   const S = spawn ?? level.spawn ?? new THREE.Vector3();
   const fixed = level.shipSite ?? SITE_OVERRIDES[levelId];
   if (fixed) {
     const g = physics.groundAt(fixed.x, (fixed.y ?? S.y) + 60, fixed.z, 400);
-    const probe = probeSite(physics, fixed.x, fixed.z, fixed.heading ?? 0, { refY: Number.isFinite(g) ? g : S.y, tolerance: 1e9 });
+    const probe = probeSite(physics, fixed.x, fixed.z, fixed.heading ?? 0, { refY: Number.isFinite(g) ? g : S.y, tolerance: 1e9, layout });
     return { ...fixed, ground: probe?.ground ?? g, source: level.shipSite ? 'level' : 'table' };
   }
   // (+3: the legs reach out past the hull; its own plan, heading toward the spawn as below: issue #338)
-  const clear = (x, z, heading) => avoid.every((a) => fromPlan(a.x, a.z, x, z, heading) > a.r + 3);
+  const clear = (x, z, heading) => avoid.every((a) => fromPlan(a.x, a.z, x, z, heading, layout) > a.r + 3);
   let best = null;
   for (let d = 34; d <= 150; d += 8) {
     const n = Math.max(12, Math.round((TAU * d) / 10));
@@ -190,7 +194,7 @@ export function findShipSite({ level, physics, levelId, avoid = [], spawn }) {
       // and nothing standing on the ramp's way down
       const [hx, hz] = dirOf(heading);
       if (![4, 8, 12].map((k) => HALF_W + 2 + k).every((k) => avoid.every((a) => Math.hypot(x + hx * k - a.x, z + hz * k - a.z) > a.r + 1.5))) continue;
-      const p = probeSite(physics, x, z, heading, { refY: S.y, unsafe: level.unsafe });
+      const p = probeSite(physics, x, z, heading, { refY: S.y, unsafe: level.unsafe, layout });
       if (!p) continue;
       const score = d + p.spread * 14 + Math.abs(p.ground - S.y) * 1.5 + Math.max(0, S.y - 1.5 - p.ground) * 12;   // not down in a hollow (or a pond)
       // only a clearly better spot replaces the first found: on flat floors every candidate of a ring

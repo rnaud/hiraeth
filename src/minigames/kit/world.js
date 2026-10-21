@@ -12,7 +12,7 @@ export function levelMetaFor(def, levelById) {
   if (def.world) return levelById(def.world);
   const host = levelById(def.host ?? 'arena');   // (whose save corner, sound and story slot the arena borrows: the Arena's, a developer's world)
   // (the level answers to its host's id, which the world's other systems know: the sound, the edge, the costumes)
-  const build = function* (scene) { const L = yield* def.build(scene); L.id ??= host.id; return L; };
+  const build = function* (scene, context) { const L = yield* def.build(scene, context); L.id ??= host.id; return L; };
   return { ...host, build, create: null, title: def.name, source: 'a game', blurb: def.blurb };
 }
 

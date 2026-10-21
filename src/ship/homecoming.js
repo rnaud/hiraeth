@@ -3,6 +3,7 @@ import { markShape } from '../makers-mark/shape.js';
 import * as THREE from 'three';
 import { game } from '../game-state.js';
 import { DECK, HATCH_A } from './hull.js';
+import { COCKPIT_DECK } from './caravan-layout.js';
 import { cockpitZ } from './interior.js';
 import { makeMaterial, MODE_STRATA } from '../materials.js';
 import { callTimeline } from './prologue.js';
@@ -372,7 +373,7 @@ export class HomecomingDirector {
       { id: 'cargo', until: () => !!this.chosen && this.t > (this.chosenAt ?? 0) + 2.6 },
       { id: 'dive', dur: 2.6 },
       { id: 'descend', dur: 6.2 },
-      { id: 'hatch', dur: 3.0 },
+      { id: 'hatch', dur: ship.parked.authored ? 4.65 : 3.0 },
       { id: 'walk', until: () => !ship.auto },
       { id: 'tomb', until: () => this.t > (this.tl?.total ?? 0) + 1.2 },
       ...(this.final ? [{ id: 'card', dur: 6.5 }, { id: 'credits', until: () => this.credits?.done }] : []),
@@ -635,7 +636,7 @@ export class HomecomingDirector {
         if (s.spaceCopy) s.spaceCopy.space.rotation.x = 0.12 * k + 0.5 * dive;
         // (eased in and out over 0.8 s: it stepped 0.6 m back in one frame, a pop at either end of the cargo check)
         const back = id === 'cargo' ? 0.6 * smooth(t / 0.8) : id === 'dive' ? 0.6 * (1 - smooth(t / 0.8)) : 0;
-        s.shot({ pos: this.W(V(-0.85 - back * 0.4, DECK + 1.95, cockpitZ(-8.1 + (1 - k) * 1.0 + back))), look: this.W(V(-1.1, DECK + 1.75 - dive * 0.6, cockpitZ(-16.8))), fov: 60 - k * 4 });   // (through the left pane, past the middle frame)
+        s.shot({ pos: this.W(V(-0.85 - back * 0.4, (sp.authored ? COCKPIT_DECK : DECK) + 1.95, sp.authored ? -18.5 + (1-k) + back : cockpitZ(-8.1 + (1 - k) * 1.0 + back))), look: this.W(V(-1.1, (sp.authored ? COCKPIT_DECK : DECK) + 1.75 - dive * 0.6, sp.authored ? -30 : cockpitZ(-16.8))), fov: 60 - k * 4 });   // (through the left pane, past the middle frame)
         s.player.heading = s.worldHeading(sp, Math.PI);
         if (id === 'approach') {
           if (t > 1.6 && !this.said) { this.said = true; C.say({ who: 'ship', text: 'Out of the jump. Home is below us.' }); }
@@ -665,8 +666,8 @@ export class HomecomingDirector {
       case 'hatch': {
         const cam = this.at(-7.5, 1.7, HOME_SPOTS.door.z - 7);
         s.shot({ pos: cam, look: s.hinge.clone().lerp(s.rampFoot, 0.4).add(V(0, 1.2, 0)), fov: 46 });
-        s.setDoor(pk, seg(t, 0, 1.1));      // (each eases itself: it unseals and slides up, then the ramp slides out,
-        s.setRamp(pk, seg(t, 1.05, 2.95));  // tips down and telescopes to the ground)
+        s.setDoor(pk, seg(t, pk.authored ? 4.2 : 0, pk.authored ? 4.6 : 1.1));      // (each eases itself: it unseals and slides up, then the ramp slides out,
+        s.setRamp(pk, seg(t, pk.authored ? 0 : 1.05, pk.authored ? 4.2 : 2.95));  // tips down and telescopes to the ground)
         break;
       }
       case 'walk': {

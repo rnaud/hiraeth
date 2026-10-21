@@ -31,6 +31,7 @@ const KNOWN = [
   [/^nextFrame\(/, 'a frame or its fallback timer'],
   [/^runStepsAsync\(/, 'a world\'s build: slices, and the promises its own steps yield (workers and assets with a way out)'],
   [/^Physics\.create\(/, 'the collisions: its build in slices, the BVH worker with a main-thread fallback'],
+  [/^loadPlayableCaravan\(/, 'the ship asset: a 60 s deadline, with explicit reload guidance on failure'],
   [/^(animLib|humans|mhPeople|traveller)\b/, 'an asset load started earlier, its failure caught (null)'],
   [/^new GLTFLoader\(\)\.loadAsync\(/, 'an asset load, its failure caught', (after) => /\.catch\(/.test(after.split('\n')[0])],
   [/^warmShaders\(/, 'the race below: compileAsync or 2 s'],
@@ -70,6 +71,10 @@ test('the guard catches an unbounded wait', () => {
 });
 
 test('the known waits keep their bounds', () => {
+  const caravan = readFileSync(new URL('../src/ship/caravan-asset.js', import.meta.url), 'utf8');
+  assert.match(caravan, /timeoutMs = 60000/);
+  assert.match(caravan, /Promise\.race\(/);
+  assert.match(caravan, /setTimeout\([\s\S]*?, timeoutMs\)/);
   const code = uncomment(main);
   // stage() waits for nextFrame(), which falls back on a timer
   assert.match(code, /const stage = \(msg\) => \{[\s\S]*?return nextFrame\(\)/, 'stage() waits on nextFrame()');

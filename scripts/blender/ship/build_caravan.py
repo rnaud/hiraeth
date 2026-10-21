@@ -4,7 +4,7 @@ Game coordinates: X length (bow negative), Y up, Z porch. Export is full 40m.
 """
 import bpy, math, pathlib, sys, argparse, json
 from mathutils import Vector
-p=argparse.ArgumentParser();p.add_argument('--out',default='public/models/ships/caravan-a');a=p.parse_args(sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else [])
+p=argparse.ArgumentParser();p.add_argument('--playable',action='store_true');p.add_argument('--out',default='public/models/ships/caravan-a');a=p.parse_args(sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else [])
 ROOT=pathlib.Path(__file__).resolve().parents[3];OUT=pathlib.Path(a.out).resolve();OUT.mkdir(parents=True,exist_ok=True)
 bpy.ops.object.select_all(action='SELECT');bpy.ops.object.delete(use_global=False)
 COLORS={'cream':'e7d8b6','ivory':'f1e4cb','lavender':'a295ac','coral':'da8c75','teal':'7baca7','dark':'374b50','metal':'958d78','wood':'aa8d6b','leaf':'657e66'}
@@ -115,7 +115,7 @@ vs=[];fs=[];ny=16;nr=51
 for j in range(ny+1):vs.extend(glassrow(9.48+2.2*j/ny))
 for j in range(ny):
  for i in range(nr-1):k=j*nr+i;fs.append((k,k+nr,k+nr+1,k+1))
-mesh('high panoramic windshield',vs,fs,'dark','cockpit')
+mesh('high panoramic windshield',vs,[tuple(reversed(f)) for f in fs] if a.playable else fs,'dark','cockpit')
 for y,r in [(9.48,.12),(11.68,.19),(11.90,.09)]:
  pts=glassrow(min(11.68,y));pts=[(x,yy+(y-min(11.68,y)),z) for x,yy,z in pts];tube('layered cockpit frame',pts,r,'cream','cockpit')
 for side in [-1,1]:tube('rounded cockpit side return',[glassrow(9.48+2.2*j/24)[0 if side<0 else -1] for j in range(25)],.12,'cream','cockpit')
@@ -212,6 +212,7 @@ for n in ['porch-panel','porch-rail','porch-supports','ramp','porch-furniture','
 mechanisms={}
 def mechanism(n,pivot,stage=None,**kw):mechanisms[n]=(pivot,dict(stage=stage,**kw) if stage else kw)
 floor=4.4;hingez=surface(2,floor)
+if a.playable:G['hull']['playableContract']={'entry':[-2.65,floor-.8,2.5],'rampHinge':[-2.65,floor-.8,hingez+4.9],'scale':1.3}
 # The curved outside becomes the flush side hull when the entire deck rotates upward.
 vs=[];fs=[];mi=[];nx=40;ny=24
 for j in range(ny+1):
@@ -228,17 +229,29 @@ mechanism('porch-panel',(2,floor,hingez),'deck',closedRotation=[-math.pi/2,0,0])
 # Fixed aperture edge, shallow threshold and deep open storage bay.
 for x in [-3.4,7.4]:tube('hatch side seal',[(x,floor+i*4.9/32,surface(x,floor+i*4.9/32)+.02) for i in range(33)],.07,'metal')
 for y in [floor,9.3]:tube('hatch transverse seal',[(-3.4+10.8*i/48,y,surface(-3.4+10.8*i/48,y)+.02) for i in range(49)],.07,'metal')
-cube('deep storage back',(2,6.7,-.8),(10.7,4.6,.12),'cream',.02)
+if not a.playable:cube('deep storage back',(2,6.7,-.8),(10.7,4.6,.12),'cream',.02)
+else:
+ cube('overhead garage rear partition',(2.8,8.1,-.8),(8.8,2.3,.14),'cream',.02)
+ for x in [-1.6,7.2]:cube('overhead garage end partition',(x,8.1,.85),(.12,2.3,3.3),'cream',.02)
 cube('bay ceiling',(2,9.22,1.4),(10.7,.12,4.3),'cream',.02)
 cube('bay floor',(2,floor-.08,1.1),(10.7,.14,4.4),'wood',.02)
 cube('locker shutter',(2.8,9.275,2.5),(8.8,.05,.12),'metal',.015,'locker-shutter')
 cube('locker roller cassette',(2.8,9.3,2.5),(9.0,.20,.30),'cream',.07)
 mechanism('locker-shutter',(2.8,9.3,2.5),None,range=[.55,.65],closedScale=[1,98,1])
 # Entry at the fore edge, tall enough for a person but subordinate to the cabin.
-cube('door rounded frame',(-2.65,5.92,2.8),(1.35,3.04,.2),'metal',.3)
-cube('door inner panel',(-2.65,5.92,2.94),(1.12,2.82,.16),'cream',.24)
-cube('door upper window',(-2.65,6.65,3.05),(.72,.8,.08),'dark',.16)
-tube('entry grab rail',[(-1.9,5.0,3.2),(-1.9,6.7,3.2)],.045,'metal')
+if a.playable:
+ G['entry-door']=empty('entry-door')
+ # A genuinely open passage through the camp bay to the furnished saloon.
+ for x in [-3.52,-1.78]:cube('entry jamb',(x,5.98,2.5),(.12,3.16,.18),'metal',.04)
+ cube('entry lintel',(-2.65,7.62,2.5),(1.86,.16,.18),'metal',.04)
+ cube('sliding entry panel',(-2.65,6.0,2.55),(1.66,3.18,.12),'cream',.12,'entry-door')
+ cube('entry window',(-2.65,6.65,2.63),(.72,.8,.06),'dark',.14,'entry-door')
+else:
+ cube('door rounded frame',(-2.65,5.92,2.8),(1.35,3.04,.2),'metal',.3)
+ cube('door inner panel',(-2.65,5.92,2.94),(1.12,2.82,.16),'cream',.24)
+ cube('door upper window',(-2.65,6.65,3.05),(.72,.8,.08),'dark',.16)
+grabx=-1.7 if a.playable else -1.9
+tube('entry grab rail',[(grabx,5.0,3.2),(grabx,6.7,3.2)],.045,'metal')
 for x in [-.5,3.5]:
  tube('porch hanging lamp stem',[(x,9.1,2.9),(x,8.3,2.9)],.025,'metal')
  ellipsoid('porch lamp shade',(x,8.25,2.9),(.28,.16,.28),'metal')
@@ -251,9 +264,10 @@ for x in [-1.0,6.0]:
  tube('telescoping porch support',[(x,4.3,hingez+4.4),(x,1,hingez+4.4)],.08,'metal','porch-supports');cube('porch support shoe',(x,.93,hingez+4.4),(.55,.16,.55),'metal',.06,'porch-supports')
 mechanism('porch-supports',(2,4.3,hingez+4.4),'supports',closedScale=[1,.001,1],hideClosed=True)
 # Nested stair section retracts beneath deck while it is horizontal.
-for i in range(12):
- y=4.3-i*.30;z=hingez+4.6+i*.32;cube('stair tread',(-2.55,y,z),(1.7,.10,.35),'wood',.025,'ramp')
-for x in [-3.4,-1.7]:tube('stair stringer',[(x,4.25,hingez+4.5),(x,.9,hingez+8.3)],.075,'metal','ramp')
+if not a.playable:
+ for i in range(12):
+  y=4.3-i*.30;z=hingez+4.6+i*.32;cube('stair tread',(-2.55,y,z),(1.7,.10,.35),'wood',.025,'ramp')
+ for x in [-3.4,-1.7]:tube('stair stringer',[(x,4.25,hingez+4.5),(x,.9,hingez+8.3)],.075,'metal','ramp')
 mechanism('ramp',(-2.55,4.3,hingez+4.5),'ramp',closedOffset=[0,.5,-5.8],hideClosed=True)
 # Furnishings slide together on a rigid storage tray, without scale collapse.
 cube('folding table top',(1.1,5.65,hingez+2.25),(1.55,.12,1.0),'wood',.06,'porch-furniture')
@@ -293,14 +307,27 @@ mechanism('solar-panel',(-3,12.9,-.5),'solar',closedOffset=[0,-.7,0],closedRotat
 # Broad splayed articulated landing gear; each includes mounting saddle, knee, piston and shoe.
 for x,z in [(-15,3.4),(-11,-3.4),(10.5,2.6),(9.5,-2.6)]:
  endx=x-1 if x<0 else x+1;endz=z*1.15
- cube('landing mount',(x,3.2,z),(1.5,.65,1.4),'metal',.2,'landing-gear')
- tube('landing upper arm',[(x,3.2,z),(endx,2.0,endz)],.25,'cream','landing-gear')
- ellipsoid('landing knee',(endx,2,endz),(.45,.4,.45),'metal','landing-gear')
- tube('landing piston',[(x+.35,3.3,z),(endx+.25,1.6,endz)],.12,'metal','landing-gear')
- tube('landing lower arm',[(endx,2,endz),(endx-.25,1.05,endz+.1)],.28,'cream','landing-gear')
- cube('landing broad shoe',(endx-.25,.93,endz+.1),(2.5,.32,1.7),'metal',.25,'landing-gear')
- cube('landing shoe pad',(endx-.25,.78,endz+.1),(2.25,.12,1.5),'dark',.12,'landing-gear')
+ leg=f'landing-foot-{len([n for n in G if n.startswith("landing-foot-")])}' if a.playable else 'landing-gear'
+ if a.playable:
+  G[leg]=empty(leg);G[leg]['caravanFoot']={'at':[endx-.25,.78-.8,endz+.1],'mountY':3.2-.8,'localMountY':3.2}
+ cube('landing mount',(x,3.2,z),(1.5,.65,1.4),'metal',.2,leg)
+ tube('landing upper arm',[(x,3.2,z),(endx,2.0,endz)],.25,'cream',leg)
+ ellipsoid('landing knee',(endx,2,endz),(.45,.4,.45),'metal',leg)
+ tube('landing piston',[(x+.35,3.3,z),(endx+.25,1.6,endz)],.12,'metal',leg)
+ tube('landing lower arm',[(endx,2,endz),(endx-.25,1.05,endz+.1)],.28,'cream',leg)
+ cube('landing broad shoe',(endx-.25,.93,endz+.1),(2.5,.32,1.7),'metal',.25,leg)
+ cube('landing shoe pad',(endx-.25,.78,endz+.1),(2.25,.12,1.5),'dark',.12,leg)
 mechanism('landing-gear',(0,3,0),'gear',closedOffset=[0,3.5,0],hideClosed=True)
+if a.playable:
+ # Lift rigid contents while outside, then translate them into the overhead garage.
+ # Reverse motion carries them out above the partition before lowering to the deck.
+ for name in ['porch-furniture','plants']:
+  pivot,spec=mechanisms[name];spec.pop('stage',None);spec['range']=[.55,.70]
+  lift=empty(name+'-lift');G[name+'-lift']=lift
+  for child in list(G[name].children):child.parent=lift
+  mechanism(name+'-lift',(0,0,0),None,range=[.70,.82],closedOffset=[0,2.7,0])
+ mechanisms['awning'][1].pop('stage',None);mechanisms['awning'][1]['range']=[.82,.94]
+ mechanisms['locker-shutter'][1]['range']=[.45,.55]
 # Store pivots and closed transforms in glTF extras; no model-specific coordinates in runtime.
 from mathutils import Matrix
 for n,(pivot,extra) in mechanisms.items():
@@ -308,13 +335,22 @@ for n,(pivot,extra) in mechanisms.items():
  for child in g.children:child.matrix_parent_inverse=Matrix.Translation(-Vector(xyz(pivot)))
  g['caravanMechanism']=extra
 
+if a.playable:
+ bpy.context.view_layer.update()
+ for name in ['porch-furniture','plants']:
+  lift=G[name+'-lift'];world=lift.matrix_world.copy();lift.parent=G[name];lift.matrix_world=world
 # Solar opens at a genuine30-degree tilt; closed delta restores a flush panel.
 G['solar-panel'].rotation_euler.x=.5
-for g in G.values():g.location.z-=.8
+for g in G.values():
+ if not g.parent:g.location.z-=.8
 # Each booster remains an editable named assembly beneath the fixed engine root.
 bpy.context.view_layer.update()
 for n,cy,cz,r in BOOSTERS:
  g=G[n];world=g.matrix_world.copy();g.parent=G['engines'];g.matrix_world=world
+if a.playable:
+ for name,g in G.items():
+  if name.startswith('landing-foot-'):
+   world=g.matrix_world.copy();g.parent=G['landing-gear'];g.matrix_world=world
 # The rail is a rigid deck child and travels with the folding panel.
 rail=G['porch-rail'];world=rail.matrix_world.copy();bpy.context.view_layer.update();world=rail.matrix_world.copy();rail.parent=G['porch-panel'];rail.matrix_world=world
 
@@ -329,6 +365,7 @@ for name,g in G.items():
  bpy.ops.object.select_all(action='DESELECT')
  for o in children:o.select_set(True)
  bpy.context.view_layer.objects.active=children[0];bpy.ops.object.convert(target='MESH');bpy.ops.object.join();bpy.context.object.name=name+' surfaces';bpy.context.object.select_set(False)
-blend=ROOT/'references/The Travellers Ship/redesign/rounded-caravan-a/caravan-a.blend';blend.parent.mkdir(parents=True,exist_ok=True);bpy.ops.wm.save_as_mainfile(filepath=str(blend))
-bpy.ops.export_scene.gltf(filepath=str(OUT/'caravan.glb'),export_format='GLB',export_yup=True,export_apply=True,export_materials='EXPORT',export_cameras=False,export_lights=False,export_extras=True)
-print('CARAVAN_EXPORT',OUT/'caravan.glb')
+basename='playable-caravan' if a.playable else 'caravan-a'
+blend=ROOT/f'references/The Travellers Ship/redesign/rounded-caravan-a/{basename}.blend';blend.parent.mkdir(parents=True,exist_ok=True);bpy.ops.wm.save_as_mainfile(filepath=str(blend))
+bpy.ops.export_scene.gltf(filepath=str(OUT/('playable.glb' if a.playable else 'caravan.glb')),export_format='GLB',export_yup=True,export_apply=True,export_materials='EXPORT',export_cameras=False,export_lights=False,export_extras=True)
+print('CARAVAN_EXPORT',OUT/('playable.glb' if a.playable else 'caravan.glb'))

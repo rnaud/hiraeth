@@ -5,6 +5,7 @@ import { RoomKit } from '../levels/lab-kit.js';
 import { makeMaterial, MODE_TERRAIN } from '../materials.js';
 import { buildShipModel } from '../ship/model.js';
 import { LIFT } from '../ship/hull.js';
+import { LIFT as CARAVAN_LIFT } from '../ship/caravan-layout.js';
 
 // Reuse the reference level's actual geometry, palette and sun, without its UI or NPCs.
 export const REFERENCE_SCENES = {
@@ -12,7 +13,7 @@ export const REFERENCE_SCENES = {
   stream: '3797-egg-heaps', garden: '3793-arch-lake', grove: '3793-grove-pyramid',
 };
 export function referenceBuilder(id) {
-  return function* (scene) {
+  return function* (scene, { caravan } = {}) {
     const def = REFERENCE_VIEWS.find(v => v.id === REFERENCE_SCENES[id]);
     if (!def) throw new Error(`Unknown trailer reference ${id}`);
     const stage = new THREE.Group(); stage.rotation.y = sunTurn(def.sun, def.camera.yaw); scene.add(stage);
@@ -22,8 +23,8 @@ export function referenceBuilder(id) {
     const kit = new RoomKit({ group: stage, ground, centre: new THREE.Vector3(), seed: 3775 });
     if (id === 'horizon') {
       // Empty dunes: the traveller and the game's ship are the only subjects.
-      const ship = buildShipModel({ legs: 'down' });
-      ship.group.position.set(65, heightAt(65, -180) + LIFT, -180);
+      const ship = buildShipModel({ caravan, legs: 'down' });
+      ship.group.position.set(65, heightAt(65, -180) + (caravan ? CARAVAN_LIFT : LIFT), -180);
       ship.group.rotation.y = -0.5; stage.add(ship.group);
     } else def.build(kit, { ...def, omitCabs: id === 'shaft' });
     kit.finish(); stage.updateMatrixWorld(true); yield;

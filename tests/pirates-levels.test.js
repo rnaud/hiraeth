@@ -164,7 +164,7 @@ test('the page builds each level\'s sky and hazards; the ship is fitted small an
       assert.ok(Math.abs(box.getCenter(new THREE.Vector3()).z) < 0.3, 'its middle on its place');
       // no sun shadow from it (the shimmer at the start: its masts' shadow crawled over the deck in the far map's texels)
       P.model.group.traverse((o) => { if (o.isMesh) assert.ok(lv.noShadow.includes(o), `${o.name}: casts no shadow`); });
-      assert.ok(lv.noShadow.includes(P.flames));
+      assert.ok(P.flames.children.every(flame => lv.noShadow.includes(flame)));
     }
   } finally { if (was === undefined) delete globalThis.location; else globalThis.location = was; }
   // on the screen: from the camera, the ship takes about a tenth of the width (it took about a third)

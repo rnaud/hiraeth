@@ -22,9 +22,10 @@ export const BYSTANDER = { dist: 22, furrow: 18, off: 0.7, clear: 6 };
  * How far a point (dx, dz from the ship's origin) is from the hull's plan, the ramp's way being `out` (unit; the hull's
  * local -x): across it HALF_W either side of the centre line, along it from NOSE_Z to STERN_Z (aft: (out.z, -out.x)).
  */
-export function planGap(dx, dz, out) {
+export function planGap(dx, dz, out, layout = { HALF_W, NOSE_Z, STERN_Z }) {
+  const { HALF_W: half, NOSE_Z: nose, STERN_Z: stern } = layout;
   const across = dx * out.x + dz * out.z, aft = dx * out.z - dz * out.x;
-  return Math.hypot(Math.max(Math.abs(across) - HALF_W, 0), Math.max(NOSE_Z - aft, 0, aft - STERN_Z));
+  return Math.hypot(Math.max(Math.abs(across) - half, 0), Math.max(nose - aft, 0, aft - stern));
 }
 
 /** Whether a point (relative to the hull's centre) is in the furrow the ship ploughed coming in along heading `travel`. */
@@ -40,12 +41,12 @@ export function inFurrow(dx, dz, travel, half = BYSTANDER.furrow) {
  * rad), never in the furrow behind the ship (it slid along `travel`, a heading). { x, z }.
  * @param o { out: {x,z} the way the ramp faces (unit), hull: {x,z} the ship's origin (Ship.restPos), travel?: heading }
  */
-export function bystanderSpot({ out, hull, travel = null }, B = BYSTANDER) {
+export function bystanderSpot({ out, hull, travel = null, layout }, B = BYSTANDER) {
   let best = null, score = -Infinity;
   for (let i = 0; i < 48; i++) {
     const a = (i / 48) * Math.PI * 2, dx = Math.sin(a) * B.dist, dz = Math.cos(a) * B.dist;
     if (travel !== null && inFurrow(dx, dz, travel, B.furrow)) continue;
-    if (planGap(dx, dz, out) < B.clear) continue;
+    if (planGap(dx, dz, out, layout) < B.clear) continue;
     // (the hatch's way turned B.off to either side: whichever is nearer)
     const c = Math.cos(B.off), sn = Math.sin(B.off);
     const s = Math.max(dx * (out.x * c + out.z * sn) + dz * (out.z * c - out.x * sn), dx * (out.x * c - out.z * sn) + dz * (out.z * c + out.x * sn)) / B.dist;
