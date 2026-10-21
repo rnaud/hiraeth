@@ -30,7 +30,8 @@ def cube(n,pos,size,mat='cream',bevel=.15,group='hull'):
  o.modifiers.new('weighted corner normals','WEIGHTED_NORMAL');return o
 
 def ellipsoid(n,pos,size,mat='cream',group='hull'):
- bpy.ops.mesh.primitive_uv_sphere_add(segments=32,ring_count=16,location=xyz(pos));o=bpy.context.object;o.name=n;o.scale=(size[0],size[2],size[1]);bpy.ops.object.transform_apply(location=False,rotation=False,scale=True);o.data.materials.append(M[mat]);o.parent=G[group]
+ detail=n in ['floor fixing bolt','plant leaf','secured enamel tea cup']
+ bpy.ops.mesh.primitive_uv_sphere_add(segments=12 if detail else 32,ring_count=8 if detail else 16,location=xyz(pos));o=bpy.context.object;o.name=n;o.scale=(size[0],size[2],size[1]);bpy.ops.object.transform_apply(location=False,rotation=False,scale=True);o.data.materials.append(M[mat]);o.parent=G[group]
  for f in o.data.polygons:f.use_smooth=True
  return o
 
@@ -136,16 +137,54 @@ for x in [-10,-7,-3,3,5]:cube('roof narrow blue glazing',(x,13.1 if x<0 else 12.
 # Retain characteristic tank as authored volume on the porch side.
 ellipsoid('tank body',(8.8,6.5,4.8),(1.12,1.95,1.12),'teal','water-tank')
 for y in [5.2,7.8]:tube('tank strap',[(8.8+1.15*math.cos(i*math.tau/48),y,4.8+1.15*math.sin(i*math.tau/48)) for i in range(49)],.06,'metal','water-tank')
+# Recover usable lower-deck volume without enlarging the upper silhouette or moving the camp entry.
+# Metres here precede the export's -.8 Y shift and the game's 1.3 scale.
+if a.playable:
+ def living_half(x,side):
+  z=(x+2.65)*1.3
+  if not -12.2<=z<=16.5:return None
+  # Keep each room's full width through its partition; taper in the narrower neighbour.
+  if side>0:
+   if z<3:return 3.35/1.3
+   if z<3.6:return (3.35+(z-3)/.6*1.1)/1.3
+  else:
+   if z<4.4:return 5.55/1.3
+   if z<5:return (5.55-(z-4.4)/.6*1.1)/1.3
+  if z<10.4:return 4.45/1.3
+  if z<11:return (4.45-(z-10.4)/.6*.4)/1.3
+  return 4.05/1.3
+ for v in cabin.data.vertices:
+  x,zneg,y=v.co;side=1 if zneg<0 else -1;target=living_half(x,side)
+  if target is None:continue
+  # The flat occupied range has structural margin; round gently back into the original belly/shoulder.
+  k=max(0,min(1,(y-3.5)/.65,(9.7-y)/.8))
+  if k>0:v.co.y=math.copysign(max(abs(zneg),target*k),zneg)
+ cabin.data.update()
 # Precisely cut the side aperture through a thin shell; the cabin/middle joint remains welded.
 solid=cabin.modifiers.new('manufactured shell thickness','SOLIDIFY');solid.thickness=.06;bpy.context.view_layer.objects.active=cabin;bpy.ops.object.modifier_apply(modifier=solid.name)
 cutter=cube('temporary bay cutter',(2,6.85,5),(10.8,4.9,10),'dark',0)
 boolean=cabin.modifiers.new('side camp aperture','BOOLEAN');boolean.operation='DIFFERENCE';boolean.solver='EXACT';boolean.object=cutter;bpy.context.view_layer.objects.active=cabin;bpy.ops.object.modifier_apply(modifier=boolean.name);bpy.data.objects.remove(cutter,do_unlink=True)
+# An actual saloon window at main-deck eye height. Its outside-only glazing leaves the space view clear inside.
+if a.playable:
+ wx0=-.8/1.3-2.65;wx1=3/1.3-2.65;wy0=4.4+1.1/1.3;wy1=4.4+3.9/1.3
+ cutter=cube('temporary saloon window cutter',((wx0+wx1)/2,(wy0+wy1)/2,-5),((wx1-wx0),wy1-wy0,5),'dark',0)
+ boolean=cabin.modifiers.new('real main deck observation window','BOOLEAN');boolean.operation='DIFFERENCE';boolean.solver='EXACT';boolean.object=cutter;bpy.context.view_layer.objects.active=cabin;bpy.ops.object.modifier_apply(modifier=boolean.name);bpy.data.objects.remove(cutter,do_unlink=True)
+ M['viewGlass']=M['dark'].copy();M['viewGlass'].name='viewGlass';M['viewGlass'].use_backface_culling=True
+ wz=-5.57/1.3
+ mesh('saloon observation glazing',[(wx0,wy0,wz),(wx1,wy0,wz),(wx1,wy1,wz),(wx0,wy1,wz)],[(3,2,1,0)],'viewGlass')
+ for xx in [wx0,wx1]:cube('saloon window jamb',(xx,(wy0+wy1)/2,wz),(.12,wy1-wy0+.12,.16),'cream',.04)
+ for yy in [wy0,wy1]:cube('saloon window sill',((wx0+wx1)/2,yy,wz),(wx1-wx0+.12,.12,.16),'cream',.04)
 # Reference-specific narrow windows, mounted hatches, joint seams and external service plumbing.
-def surface(x,y):
+def surface(x,y,side=1):
  for i in range(len(sections)-1):
-  a,b=sections[i],sections[i+1]
-  if a[0]<=x<=b[0]:
-   t=(x-a[0])/(b[0]-a[0]);cy=a[1]*(1-t)+b[1]*t;ry=a[2]*(1-t)+b[2]*t;rz=a[3]*(1-t)+b[3]*t;return rz*max(.001,1-abs((y-cy)/ry)**2.6)**(1/2.6)
+  aa,bb=sections[i],sections[i+1]
+  if aa[0]<=x<=bb[0]:
+   t=(x-aa[0])/(bb[0]-aa[0]);cy=aa[1]*(1-t)+bb[1]*t;ry=aa[2]*(1-t)+bb[2]*t;rz=aa[3]*(1-t)+bb[3]*t
+   radius=rz*max(.001,1-abs((y-cy)/ry)**2.6)**(1/2.6)
+   if a.playable:
+    target=living_half(x,side)
+    if target is not None:radius=max(radius,target*max(0,min(1,(y-3.5)/.65,(9.7-y)/.8)))
+   return radius
  return 3
 
 def window(n,x,y,w,h,side=1):
@@ -154,18 +193,18 @@ def window(n,x,y,w,h,side=1):
   for j in range(ny+1):
    yy=-hh/2+hh*j/ny;edge=ww/2-rad+math.sqrt(max(0,rad*rad-max(0,abs(yy)-(hh/2-rad))**2))
    for i in range(nx+1):
-    xx=x-edge+2*edge*i/nx;vs.append((xx,y+yy,side*(surface(xx,y+yy)+depth)))
+    xx=x-edge+2*edge*i/nx;vs.append((xx,y+yy,side*(surface(xx,y+yy,side)+depth)))
   for j in range(ny):
    for i in range(nx):
     k=j*(nx+1)+i;f=(k,k+1,k+nx+2,k+nx+1);fs.append(f if side>0 else tuple(reversed(f)))
   return mesh(name,vs,fs,mat)
  plate(n+' continuous rounded frame',w+.22,h+.2,.10,'cream');plate(n+' continuous blue glazing',w,h,.13,'teal')
  for k in range(1,max(2,round(w/.65))):
-  xx=x-w/2+w*k/max(2,round(w/.65));tube(n+' mullion',[(xx,y-h/2+i*h/8,side*(surface(xx,y-h/2+i*h/8)+.16)) for i in range(9)],.022,'cream')
+  xx=x-w/2+w*k/max(2,round(w/.65));tube(n+' mullion',[(xx,y-h/2+i*h/8,side*(surface(xx,y-h/2+i*h/8,side)+.16)) for i in range(9)],.022,'cream')
 for side in [-1,1]:
  window('long saloon window',1.6,10.4,5.5,.65,side);window('aft cabin window',10.9,8.8,2.4,.55,side);window('forward clerestory',-6.1,11.4,2.7,.55,side)
  for x in [-7.2,-4.8,8.1,11.7]:
-  y=8.6 if x<0 else 6.9;z=side*(surface(x,y)+.07);cube('recessed service hatch',(x,y,z),(.62,.9,.12),'metal',.12)
+  y=8.6 if x<0 else 6.9;z=side*(surface(x,y,side)+.07);cube('recessed service hatch',(x,y,z),(.62,.9,.12),'metal',.12)
   cube('service hatch inset',(x,y,z+side*.08),(.45,.7,.08),'cream',.08)
 # Cabin broad lavender rear band and deliberately spaced panel joints.
 for side in [-1,1]:
@@ -208,10 +247,10 @@ for n,cy,cz,r in BOOSTERS:
  for t in [i*math.tau/12 for i in range(12)]:tube('engine longitudinal panel',[(13.2,cy+r*math.sin(t),cz+r*math.cos(t)),(17,cy+r*.98*math.sin(t),cz+r*.98*math.cos(t)),(19.5,cy+r*.75*math.sin(t),cz+r*.75*math.cos(t))],.018,'metal',n)
  for x in [10.7,11.5]:cube('engine pylon service saddle',(x,cy,cz),(1.1,1.9,2.4),'metal',.35,n)
 # Complete compact camp, authored open at final scale. Runtime uses extras for staged closure.
-for n in ['porch-panel','porch-rail','porch-supports','ramp','porch-furniture','plants','awning','laundry','solar-panel','roof-ladder','landing-gear','locker-shutter']:G[n]=empty(n)
+for n in ['porch-panel','porch-rail','porch-supports','ramp','porch-furniture','plants','awning','laundry','solar-panel','roof-ladder','landing-gear']:G[n]=empty(n)
 mechanisms={}
 def mechanism(n,pivot,stage=None,**kw):mechanisms[n]=(pivot,dict(stage=stage,**kw) if stage else kw)
-floor=4.4;hingez=surface(2,floor)
+floor=4.4;hingez=(8.188206100673813-4.9) if a.playable else surface(2,floor)
 if a.playable:G['hull']['playableContract']={'entry':[-2.65,floor-.8,2.5],'rampHinge':[-2.65,floor-.8,hingez+4.9],'scale':1.3,'landedDeck':2.8}
 # The curved outside becomes the flush side hull when the entire deck rotates upward.
 vs=[];fs=[];mi=[];nx=40;ny=24
@@ -230,14 +269,10 @@ mechanism('porch-panel',(2,floor,hingez),'deck',closedRotation=[-math.pi/2,0,0])
 for x in [-3.4,7.4]:tube('hatch side seal',[(x,floor+i*4.9/32,surface(x,floor+i*4.9/32)+.02) for i in range(33)],.07,'metal')
 for y in [floor,9.3]:tube('hatch transverse seal',[(-3.4+10.8*i/48,y,surface(-3.4+10.8*i/48,y)+.02) for i in range(49)],.07,'metal')
 if not a.playable:cube('deep storage back',(2,6.7,-.8),(10.7,4.6,.12),'cream',.02)
-else:
- cube('overhead garage rear partition',(2.8,8.1,-.8),(8.8,2.3,.14),'cream',.02)
- for x in [-1.6,7.2]:cube('overhead garage end partition',(x,8.1,.85),(.12,2.3,3.3),'cream',.02)
+
+# No overhead furniture garage: the furnished hatch folds as one rigid assembly.
 cube('bay ceiling',(2,9.22,1.4),(10.7,.12,4.3),'cream',.02)
 cube('bay floor',(2,floor-.08,1.1),(10.7,.14,4.4),'wood',.02)
-cube('locker shutter',(2.8,9.275,2.5),(8.8,.05,.12),'metal',.015,'locker-shutter')
-cube('locker roller cassette',(2.8,9.3,2.5),(9.0,.20,.30),'cream',.07)
-mechanism('locker-shutter',(2.8,9.3,2.5),None,range=[.55,.65],closedScale=[1,98,1])
 # Entry at the fore edge, tall enough for a person but subordinate to the cabin.
 if a.playable:
  G['entry-door']=empty('entry-door')
@@ -272,21 +307,71 @@ if not a.playable:
   y=4.3-i*.30;z=hingez+4.6+i*.32;cube('stair tread',(-2.55,y,z),(1.7,.10,.35),'wood',.025,'ramp')
  for x in [-3.4,-1.7]:tube('stair stringer',[(x,4.25,hingez+4.5),(x,.9,hingez+8.3)],.075,'metal','ramp')
 mechanism('ramp',(-2.55,4.3,hingez+4.5),'ramp',closedOffset=[0,.5,-5.8],hideClosed=True)
-# Furnishings slide together on a rigid storage tray, without scale collapse.
-cube('folding table top',(1.1,5.65,hingez+2.25),(1.55,.12,1.0),'wood',.06,'porch-furniture')
-for x in [.5,1.7]:
- for z in [hingez+1.9,hingez+2.6]:tube('table folding leg',[(x,5.6,z),(1.1,4.5,z)],.04,'metal','porch-furniture')
-for x,z in [(0,hingez+3.1),(2.4,hingez+1.8)]:
- cube('chair seat',(x,5.0,z),(.65,.1,.7),'wood',.06,'porch-furniture')
- for dx in [-.28,.28]:
-  tube('chair curved frame',[(x+dx,4.5,z+.28),(x+dx,5,z+.28),(x+dx,5.9,z+.28)],.035,'metal','porch-furniture');tube('chair front leg',[(x+dx,5,z-.28),(x+dx,4.5,z-.28)],.035,'metal','porch-furniture')
- cube('chair back',(x,5.55,z+.28),(.65,.62,.07),'wood',.045,'porch-furniture')
-mechanism('porch-furniture',(1.2,4.5,hingez+2.3),'props',closedOffset=[0,0,-5.7])
-for i,x in enumerate([4.0,4.8,5.6,6.4]):
- cube('planter box',(x,4.8,hingez+3.8),(.65,.55,.7),'wood',.06,'plants')
- for j in range(6):
-  ang=j*math.tau/6;xx=x+.22*math.cos(ang);zz=hingez+3.8+.25*math.sin(ang);tube('plant stem',[(x,5,hingez+3.8),(xx,5.5+(j%3)*.15,zz)],.018,'leaf','plants');ellipsoid('plant leaf',(xx,5.5+(j%3)*.15,zz),(.14,.10,.28),'leaf','plants')
-mechanism('plants',(5.2,4.5,hingez+3.8),'props',closedOffset=[0,0,-6.5])
+# Furniture is bolted to the hatch floor. Every item rotates with the panel,
+# including the cushions, clipped cups and secured planters; nothing materialises.
+if a.playable:
+ unit=1/1.3;deck=floor+.08
+ def footplate(x,z,group):
+  cube('bolted floor plate',(x,deck+.018,z),(.18*unit,.035,.18*unit),'metal',.015,group)
+  for dx in [-.06,.06]:
+   for dz in [-.06,.06]:ellipsoid('floor fixing bolt',(x+dx*unit,deck+.04,z+dz*unit),(.018,.015,.018),'dark',group)
+ def campchair(name,x,z,reverse=False):
+  G[name]=empty(name);sgn=-1 if reverse else 1
+  cube('coral seat cushion',(x,deck+.46*unit,z),(.58*unit,.11*unit,.58*unit),'coral',.055,name)
+  cube('cream chair shell',(x,deck+.41*unit,z),(.64*unit,.07*unit,.64*unit),'cream',.045,name)
+  cube('coral chair back',(x,deck+.77*unit,z+sgn*.26*unit),(.58*unit,.51*unit,.11*unit),'coral',.05,name)
+  for dx in [-.25,.25]:
+   for dz in [-.24,.24]:
+    footplate(x+dx*unit,z+dz*unit,name)
+    tube('chair bolted leg',[(x+dx*unit,deck+.04,z+dz*unit),(x+dx*unit,deck+.43*unit,z+dz*unit)],.025,'metal',name)
+   tube('chair arm and back frame',[(x+dx*unit,deck+.62*unit,z-sgn*.24*unit),(x+dx*unit,deck+.62*unit,z+sgn*.30*unit),(x+dx*unit,deck+1.04*unit,z+sgn*.30*unit)],.027,'cream',name)
+ # This part of the main saloon has a full 1.17m service recess behind the closed hatch.
+ # Keep furniture below 1.05m and the entry path at x=-2.65 completely clear.
+ campchair('camp-seat-left',-.92,hingez+1.05,True)
+ campchair('camp-seat-right',-.92,hingez+3.05)
+ G['camp-table']=empty('camp-table');x=-.92;z=hingez+2.05
+ cube('human scale tea table',(x,deck+.715*unit,z),(.90*unit,.05*unit,.65*unit),'wood',.035,'camp-table')
+ for dx in [-.32,.32]:
+  for dz in [-.21,.21]:
+   footplate(x+dx*unit,z+dz*unit,'camp-table')
+   tube('table bolted leg',[(x+dx*unit,deck+.04,z+dz*unit),(x+dx*unit,deck+.69*unit,z+dz*unit)],.025,'cream','camp-table')
+ for dx in [-.24,.24]:
+  cube('cup retaining clip',(x+dx*unit,deck+.765*unit,z),(.16*unit,.035*unit,.16*unit),'metal',.015,'camp-table')
+  ellipsoid('secured enamel tea cup',(x+dx*unit,deck+.82*unit,z),(.065*unit,.07*unit,.065*unit),'teal','camp-table')
+ # Aft deck objects nest above the cabin liner when closed, not through the rooms.
+ # Their inner edges stand 5.2m from the hinge; the cabin ceiling is only 5m high.
+ for i,x in enumerate([.3,1.95,3.65,5.35,6.85]):
+  z=hingez+4.30;y=deck+.13*unit
+  cube('secured deck planter',(x,y,z),(.65*unit,.26*unit,.42*unit),'teal',.045,'plants')
+  for dx in [-.23,.23]:footplate(x+dx*unit,z,'plants')
+  tube('planter retaining band',[(x-.34*unit,y+.05,z+.22*unit),(x+.34*unit,y+.05,z+.22*unit)],.025,'metal','plants')
+  for j in range(5):
+   ang=j*math.tau/5;xx=x+.16*unit*math.cos(ang);zz=z+.10*unit*math.sin(ang);yy=deck+(.42+(j%2)*.07)*unit
+   tube('plant stem',[(x,deck+.26*unit,z),(xx,yy,zz)],.012,'leaf','plants')
+   ellipsoid('plant leaf',(xx,yy,zz),(.11*unit,.06*unit,.10*unit),'leaf','plants')
+ # Low latched travel boxes occupy the same overhead packing strip.
+ for x in [2.4,5.95]:
+  z=hingez+4.32
+  cube('bolted travel case',(x,deck+.18*unit,z),(.48*unit,.36*unit,.38*unit),'coral',.045,'porch-furniture')
+  for dx in [-.17,.17]:footplate(x+dx*unit,z,'porch-furniture')
+  cube('case latch',(x,deck+.28*unit,z-.20*unit),(.10*unit,.12*unit,.025),'metal',.01,'porch-furniture')
+
+else:
+ # Furnishings slide together on a rigid storage tray, without scale collapse.
+ cube('folding table top',(1.1,5.65,hingez+2.25),(1.55,.12,1.0),'wood',.06,'porch-furniture')
+ for x in [.5,1.7]:
+  for z in [hingez+1.9,hingez+2.6]:tube('table folding leg',[(x,5.6,z),(1.1,4.5,z)],.04,'metal','porch-furniture')
+ for x,z in [(0,hingez+3.1),(2.4,hingez+1.8)]:
+  cube('chair seat',(x,5.0,z),(.65,.1,.7),'wood',.06,'porch-furniture')
+  for dx in [-.28,.28]:
+   tube('chair curved frame',[(x+dx,4.5,z+.28),(x+dx,5,z+.28),(x+dx,5.9,z+.28)],.035,'metal','porch-furniture');tube('chair front leg',[(x+dx,5,z-.28),(x+dx,4.5,z-.28)],.035,'metal','porch-furniture')
+  cube('chair back',(x,5.55,z+.28),(.65,.62,.07),'wood',.045,'porch-furniture')
+ mechanism('porch-furniture',(1.2,4.5,hingez+2.3),'props',closedOffset=[0,0,-5.7])
+ for i,x in enumerate([4.0,4.8,5.6,6.4]):
+  cube('planter box',(x,4.8,hingez+3.8),(.65,.55,.7),'wood',.06,'plants')
+  for j in range(6):
+   ang=j*math.tau/6;xx=x+.22*math.cos(ang);zz=hingez+3.8+.25*math.sin(ang);tube('plant stem',[(x,5,hingez+3.8),(xx,5.5+(j%3)*.15,zz)],.018,'leaf','plants');ellipsoid('plant leaf',(xx,5.5+(j%3)*.15,zz),(.14,.10,.28),'leaf','plants')
+ mechanism('plants',(5.2,4.5,hingez+3.8),'props',closedOffset=[0,0,-6.5])
 # Striped scalloped canvas, its leading edge and posts roll back into a fixed wall cassette.
 for i in range(10):
  x=-3.2+i*1.04;mesh('awning cloth stripe',[(x,9.2,4.4),(x+1.04,9.2,4.4),(x+1.04,7.5,hingez+4.9),(x,7.5,hingez+4.9)],[(0,1,2,3)],'coral' if i%2==0 else 'teal','awning')
@@ -322,15 +407,8 @@ for x,z in [(-15,3.4),(-11,-3.4),(10.5,2.6),(9.5,-2.6)]:
  cube('landing shoe pad',(endx-.25,.78,endz+.1),(2.25,.12,1.5),'dark',.12,leg)
 mechanism('landing-gear',(0,3,0),'gear',closedOffset=[0,3.5,0],hideClosed=True)
 if a.playable:
- # Lift rigid contents while outside, then translate them into the overhead garage.
- # Reverse motion carries them out above the partition before lowering to the deck.
- for name in ['porch-furniture','plants']:
-  pivot,spec=mechanisms[name];spec.pop('stage',None);spec['range']=[.55,.70]
-  lift=empty(name+'-lift');G[name+'-lift']=lift
-  for child in list(G[name].children):child.parent=lift
-  mechanism(name+'-lift',(0,0,0),None,range=[.70,.82],closedOffset=[0,2.7,0])
- mechanisms['awning'][1].pop('stage',None);mechanisms['awning'][1]['range']=[.82,.94]
- mechanisms['locker-shutter'][1]['range']=[.45,.55]
+ # The canopy opens only after the furnished deck has reached horizontal.
+ mechanisms['awning'][1].pop('stage',None);mechanisms['awning'][1]['range']=[.55,.70]
 # Bake the shorter landed stance into the editable source, keeping each upper mount fixed.
 # World grounding is separate from the unchanged authored interior origin atY3.6.
 if a.playable:
@@ -352,10 +430,6 @@ for n,(pivot,extra) in mechanisms.items():
  for child in g.children:child.matrix_parent_inverse=Matrix.Translation(-Vector(xyz(pivot)))
  g['caravanMechanism']=extra
 
-if a.playable:
- bpy.context.view_layer.update()
- for name in ['porch-furniture','plants']:
-  lift=G[name+'-lift'];world=lift.matrix_world.copy();lift.parent=G[name];lift.matrix_world=world
 # Solar opens at a genuine30-degree tilt; closed delta restores a flush panel.
 G['solar-panel'].rotation_euler.x=.5
 for g in G.values():
@@ -370,6 +444,11 @@ if a.playable:
    world=g.matrix_world.copy();g.parent=G['landing-gear' if name.startswith('landing-foot-') else 'porch-supports'];g.matrix_world=world
 # The rail is a rigid deck child and travels with the folding panel.
 rail=G['porch-rail'];world=rail.matrix_world.copy();bpy.context.view_layer.update();world=rail.matrix_world.copy();rail.parent=G['porch-panel'];rail.matrix_world=world
+
+# Preserve authored world positions when attaching the complete furnishing to the deck.
+if a.playable:
+ for name in ['porch-furniture','plants','camp-table','camp-seat-left','camp-seat-right']:
+  g=G[name];bpy.context.view_layer.update();world=g.matrix_world.copy();g.parent=G['porch-panel'];g.matrix_world=world
 
 # Camera-neutral source asset. Lights/camera are never included in GLB.
 bpy.ops.object.select_all(action='DESELECT')

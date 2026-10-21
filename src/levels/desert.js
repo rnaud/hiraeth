@@ -18,7 +18,7 @@ import { buildDesertCity, desertCrowdSpots } from '../desert-city.js';
 import { LINES } from '../story/desert-data.js';
 import { attachTemple, clearInstances } from '../temples/index.js';
 import { channelPath, alongGround, stripAlong, CHANNEL } from '../temples/desert.js';
-import { buildPilgrimsRoad, buildRiderStrips, buildFieldStone } from '../desert-road.js';
+import { buildPilgrimsRoad, buildRiderStrips, buildFieldStone, LEGACY_ROAD, CONTROLLED_ROAD, CONTROLLED_FIELD_STONE } from '../desert-road.js';
 import { buildDesertHearth } from '../desert-hearth.js';
 import { buildGiantsRoad } from '../desert-giants.js';
 import { buildWalkingDunes } from '../desert-dunes.js';
@@ -26,7 +26,7 @@ import { buildWaterMemory } from '../desert-water.js';
 import { game } from '../game-state.js';
 import { SandDrifts, driftMaterial } from '../sand-drifts.js';
 import { STORY, DESERT_WORLD_LOOK, DESERT_CLOUD_SHADOWS } from '../desert-sites.js';
-import { SITE_OVERRIDES } from '../ship/sites.js';
+import { SITE_OVERRIDES, LEGACY_DESERT_SITE, CONTROLLED_LANDING_FLAG } from '../ship/sites.js';
 import { smoothstep } from '../noise.js';
 import { pavedMask } from '../paved.js';
 import { placeGameMarker } from '../minigames/kit/marker.js';
@@ -46,6 +46,9 @@ export const DESERT_DAY = ['#92b6c5', '#d7dfd9', '#9b9bd2', '#fff9ee', '#fff6dc'
 
 export function* buildDesert(scene) {
   yield* prepareRelief();
+  const legacyBerth = game.flag('prologue.done') && !game.flag(CONTROLLED_LANDING_FLAG);
+  const landingSite = legacyBerth ? LEGACY_DESERT_SITE : SITE_OVERRIDES.desert;
+  const landing = { x: landingSite.x + Math.sin(landingSite.heading) * 8, z: landingSite.z + Math.cos(landingSite.heading) * 8, heading: landingSite.heading };
   const terrain = yield* Terrain.make({ height: desertHeight });
   const { floaters, banners, lights, doors, floraAvoid } = buildWorld(scene, terrain);
   yield;
@@ -95,7 +98,8 @@ export function* buildDesert(scene) {
   // and the fire-bearers' marked stones on the way to it
   const hearth = buildDesertHearth(scene, terrain);
   lights.push(...hearth.lights);
-  portals.push(...hearth.portals);
+  // The distant Hearth remains a landscape ruin; its old reward portal is retired.
+  hearth.stone.visible = false; hearth.stoneLight.w = 0;
   yield;
   const drifts = yield* sand.close().buildSteps(driftMaterial(makeMaterial, terrain.materialOptions));
   if (drifts) scene.add(drifts);
@@ -118,12 +122,12 @@ export function* buildDesert(scene) {
   clearInstances(scene, shopClear, shop.interior.front.group);
   const avoidWorld = floraAvoid;
   // the pilgrims' road home (src/desert-road.js): its cairns from the main gate down to the landing, lit once the tree burns
-  const road = buildPilgrimsRoad(scene, terrain, { tree: qanat.city.crown });
+  const road = buildPilgrimsRoad(scene, terrain, { tree: qanat.city.crown, points: legacyBerth ? LEGACY_ROAD : CONTROLLED_ROAD });
   lights.push(...road.cairns.map((c) => c.light));
   clearInstances(scene, road.clear, road.group);
   // the riders' red strips along the ride out from Marrow's hollow, and the Givers' field-stone on the way home from
   // their House (src/desert-road.js; level design audit v1.46)
-  const strips = buildRiderStrips(scene, terrain), fieldStone = buildFieldStone(scene, terrain);
+  const strips = buildRiderStrips(scene, terrain), fieldStone = buildFieldStone(scene, terrain, legacyBerth ? undefined : CONTROLLED_FIELD_STONE);
   clearInstances(scene, strips.clear, strips.group);
   clearInstances(scene, fieldStone.clear, fieldStone.group);
   // the giants' road (src/desert-giants.js; issue #167): four fallen giants down the old river's dry wash, between the ride
@@ -159,6 +163,7 @@ export function* buildDesert(scene) {
     // a save left standing up the tree where the makers' shelf was (until v1.49, issue #140): down to the dais's foot
     // instead of a fall onto the square (main.js, where a save is resumed)
     settleSaved: (p, physics) => {
+      if (p.distanceTo(hearth.origin) < 220) return level.temple.doorOut.clone();
       const C = qanat.city;
       if (Math.hypot(p.x - C.treeBase.x, p.z - C.treeBase.z) > 13 || p.y < C.top + 2.5 || p.y > C.top + 12) return null;
       const g = physics.groundAt(p.x, p.y + 0.5, p.z, 4);
@@ -220,8 +225,8 @@ export function* buildDesert(scene) {
     shops: [shop],   // (src/story/shops.js: the keeper behind the counter, the wares on it; main.js: the shop panel)
     ground: terrain,
     // the landing: at the foot of the ship's ramp, facing Qanat (src/ship/sites.js SITE_OVERRIDES.desert; issue #71)
-    spawn: new THREE.Vector3(LANDING.x, terrain.heightAt(LANDING.x, LANDING.z), LANDING.z),
-    spawnHeading: LANDING.heading,
+    spawn: new THREE.Vector3(landing.x, terrain.heightAt(landing.x, landing.z), landing.z),
+    spawnHeading: landing.heading,
     camYaw: 0,
     features: { mount: true, wind: true, jetpack: false, climb: true },
     // (it rides the sand rivers fast: src/desert-dunes.js lane)

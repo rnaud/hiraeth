@@ -1,5 +1,34 @@
 # Progression: the route, the sword and the backpack's strengths, the cab pass, Vael's bird
 
+## First planet: one House, after the race (v1.92, #603)
+
+The fresh main route fills the backpack at Qanat, earns the lift valve, then wins
+Kamal's hoverbike at the red-rag hollow before entering the Rose House. The same
+House now supplies the blade on the balcony, the guard beyond the fire bridge,
+and the push gun beyond the shield watcher's gate. After the Keeper, a final
+push-weight lesson opens the spark-stone cage. Its stone returns to the tree;
+Qanat's repayment still powers the ship. The older progression notes below are
+history, not the current route.
+
+`desert.bike.found` remains ownership; `desert.bike.race.won` records the new win.
+The House entry accepts either, or `desert.rose.legacy` for a pre-v7 save already
+carrying weapons or past that part of the route. It never grants a new bike or
+removes inventory during migration. Quest version 7 maps `hearth` to `rose` and
+`gear` to `blade`, retaining all box IDs, `desert.hearth.open`, and
+`desert.stone.taken`. Temple layout version 6 returns existing interior visitors to
+their named checkpoint because the cistern moved behind the enlarged gun room.
+Previously earned guns mark their relocated chest open. Old Hearth interior
+positions settle outside the Rose House.
+The old distant Hearth and way-stone landscape retain their original coordinates,
+but no longer provide a second main-route portal or gun/stone reward.
+
+Two renewable fluid basins are available: one beside the gun before the Keeper,
+and one beside the final weight. The weight rejects hands, blade and plain fluid;
+the acquired gun's push moves it, and the cage latches open. Save restoration
+restores that open state and does not duplicate a taken stone. Both hosts use the
+same temple geometry, story interactions and portal eligibility callback.
+
+
 ## The route (`src/levels/names.js`, `src/story/route.js`)
 
 `ORDER` is the route: the desert, Vael, Lorn, Viridel, the Underwater City, the

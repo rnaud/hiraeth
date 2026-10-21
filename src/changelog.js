@@ -8,9 +8,73 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  {
+    v: '1.92',
+    "date": "2026-10-21",
+    "items": [
+      {
+        "text": "The ending remembers a visit to Hollin without claiming you made a promise or delivered news you never gave him.",
+        "see": "Return home after declining his invitation, or after keeping your promise before learning about Odile and Talo. The words at the stone now fit both choices."
+      },
+      {
+        "text": "Directions and conversations now name the tools you actually find, point to the uncovered ship scar and the correct signal-lamp direction, and respect expanded tanks.",
+        "see": "Ask the City-Shaft and Moon Foundry keepers about their tools, ask Ama about the tree’s water, or return to Vey after she moves the flowers. The makers’ mark and Signal Market’s chronology are described consistently too."
+      },
+      {
+        "text": "The caravan’s chairs, tea table and planters are bolted to the deck and fold into the ship together.",
+        "see": "Watch the side open after landing: the furnished deck rotates down as one piece, its supports settle and the canopy opens. The chairs and cups stay attached throughout take-off and landing."
+      },
+      {
+        "text": "The caravan has a curved instrument console, coral pilot seats, a framed message viewer, a compact one-metre planet hologram and more personal galley and bunk details.",
+        "see": "Board the caravan and visit its cockpit, galley, bunk and navigation projector. Obsolete storage walls no longer hang into the rooms."
+      },
+      {
+        "text": "The original ship remains playable alongside the rounded caravan. Choose either ship in the dev menu’s Ship tab.",
+        "see": "Press F2 or both sticks, choose Ship, then Original ship or Rounded caravan. Return to the title and continue, or travel, to use your choice. Progress is preserved; if you saved aboard the other ship, you resume safely beside the new ramp."
+      },
+      {
+        "text": "The caravan has roomier living quarters, wider doors and stairs, and finished walls around the cockpit.",
+        "see": "Walk from the porch through the cabin and cargo hold, then up to the cockpit and turn back toward the stairs. The cabin and hold have about 80% more floor area; the main room ceiling is 5.4 m instead of 3.3 m."
+      },
+      {
+        "text": "Wake up facing the message console, with a window onto space behind your father’s hologram and its small screen safely to one side.",
+        "see": "Replay the opening from the cinematics page. After getting out of bed, the blinking message is in view. Walk to it and play the recording; the map table is now separate from the message console."
+      },
+      {
+        "text": "The furnished porch folds into the ship before departure and opens again after touchdown.",
+        "see": "Choose a destination at the map table. The door seals, the canopy and rails retract, and the furnished deck folds against the hull before the ship rises."
+      },
+      {
+        "text": "Your first landing is a gentle powered touchdown closer to Qanat, with the city ahead of the ramp.",
+        "see": "Start a new journey: the reserve engines guide the ship down onto its legs without a belly skid. Existing journeys keep their familiar landing spot."
+      },
+      {
+        "text": "The Rose House now teaches the blade, guard and push gun in order, ending with the spark-stone that lights Qanat’s tree.",
+        "see": "Win the hoverbike at the red-rag hollow, then ride east to the Rose House. Cross its two wings, take the gun beyond the shield watcher, and push the final weight after the Keeper. Refill basins keep the route usable if your tank runs dry. Existing equipment and spark-stone saves are preserved."
+      },
+      {
+        "text": "Win your first hoverbike by beating Kamal in a canyon race. He rides alongside you; losses can be retried, and bikes you already earned stay yours.",
+        "see": "On a new desert journey, uncover the bike in the red-rag hollow with a filled backpack. Race Kamal through one lap of the Two Chasms. Crossing first earns the bike; losing or quitting does not. Retry from the results card or return to the hollow."
+      },
+      {
+        "text": "If your browser refuses to capture the mouse, you can keep dragging to look without an unhandled error.",
+        "see": "In an embedded browser that refuses mouse capture, click and drag across the game to turn the camera."
+      },
+      {
+        "text": "You can post Tansy’s letter to Hesper at the Signal Market’s night halt.",
+        "see": "Bring the letter to Edda. You can post it or keep it; letters already held in older saves work too."
+      },
+      {
+        "text": "Fight-temple timers and room names make room for your hearts when using larger text in a narrow browser window.",
+        "see": "Set text size to 145% and enter a fight temple in a 640 × 720 browser window. The timer and room name sit below the hearts and reserve."
+      },
+      {
+        "text": "Several flickering joins at the Aerie and Lamp-House, and buried city roof caps, have been repaired.",
+        "see": "Walk around the Aerie entrance and Lamp-House apron. Their stone and frame surfaces stay stable as the camera moves."
+      }
+    ]
+  },
   { v: '1.91', date: '2026-10-20', items: [
-    { text: 'The ending remembers a visit to Hollin without claiming you made a promise or delivered news you never gave him.', see: 'Return home after declining his invitation, or after keeping your promise before learning about Odile and Talo. The words at the stone now fit both choices.' },
-    { text: 'Directions and conversations now name the tools you actually find, point to the uncovered ship scar and the correct signal-lamp direction, and respect expanded tanks.', see: 'Ask the City-Shaft and Moon Foundry keepers about their tools, ask Ama about the tree’s water, or return to Vey after she moves the flowers. The makers’ mark and Signal Market’s chronology are described consistently too.' },
     { text: 'The caravan sits closer to the ground on shorter landing legs, with a shorter boarding ramp.',
       see: 'The landed deck is now 2.8 m above flat ground instead of 4.68 m. Its legs and porch supports adapt to the terrain; steep slopes still need longer ramps. The rooms and automatic packing stay the same.' },
     { text: 'Your ship is now the rounded caravan, with four rear boosters, a raised cockpit and furnished rooms you can walk through.',

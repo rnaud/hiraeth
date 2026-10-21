@@ -41,7 +41,9 @@ test('one mesh a door: the opening, the floor before it, its sides back into the
 });
 
 test('in a world: one wash a way, one program, lit while it takes you, facing the side it is walked into from', () => {
+  const savedFlags = { ...A.game.data.flags };
   const W = A.loadWorld('desert');
+  for (const key of ['desert.bike.found', 'desert.bike.race.won', 'desert.rose.legacy']) A.game.data.flags[key] = false;
   try {
     const veils = new Veils(), before = veils.list.length;
     const T = new Thresholds({ veils, parent: new THREE.Group(), portals: W.level.portals, physics: W.physics });
@@ -55,11 +57,17 @@ test('in a world: one wash a way, one program, lit while it takes you, facing th
     const out = W.level.portals.find((p) => p.label === 'door' && p.fromSpace)._threshold;
     assert.equal(out.side, -1, 'a room’s way out: from inside the room');
     const eye = rose.door.at.clone().add(new THREE.Vector3(0, 2, 6));
+    assert.equal(rose.portal.when(), false, 'a fresh traveller must win the bike before entering');
+    for (let i = 0; i < 30; i++) T.update(1 / 30, i / 30, eye);
+    assert.equal(rose.on, false, 'the locked Rose doorway does not advertise passage');
+    assert.equal(rose.k, 0, 'the locked doorway stays dark');
+    A.game.set('desert.bike.found', true);
+    assert.equal(rose.portal.when(), true, 'the earned bike opens the Rose road');
     for (let i = 0; i < 30; i++) T.update(1 / 30, i / 30, eye);
     const u = rose.washes[0].material.uniforms;
     assert.ok(u.uDoor.value.x > 0.8 && Math.abs(u.uDoor.value.y - rose.door.at.distanceTo(eye)) < 1e-6, 'on, and it knows how near the eye is');
     const shop = W.level.portals.find((p) => p.label === 'shop door');
     assert.equal(approachSide(shop._threshold.door, shop, W.physics), 1, 'a shop: from the street');
     T.dispose();
-  } finally { W.dispose(); }
+  } finally { W.dispose(); A.game.data.flags = savedFlags; }
 });

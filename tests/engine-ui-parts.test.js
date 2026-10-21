@@ -70,10 +70,13 @@ test('the speech balloons over people in the engine: the nearest one\'s line ove
   const { exports: X } = await load();
   const g = await quietly(() => X.createGame({ levelId: 'desert', backend, menus: new EngineMenus({}) }));
   await run(g, 3);
-  const n = g.npcs.find((p) => !p.pooled && p.def?.id && p.object?.visible);
-  assert.ok(n, 'someone in the desert');
-  // beside them, a shout (always shown: not a greeting)
+  const n = g.npcs.find((p) => !p.pooled && p.def?.id === 'ama' && p.object?.visible);
+  assert.ok(n, 'Ama is visible in the desert camp');
   g.player.pos.copy(n.pos).add(new THREE.Vector3(2.5, 0, 0));
+  // Enter the camp first: its story update gives Ama a welcome shout. Inject the
+  // balloon under test afterwards, so that legitimate entry cue cannot replace it.
+  await run(g, 3);
+  // Beside her, a shout (always shown: not a greeting).
   n.shout = { text: 'Over *here*!', until: n.time + 30 };
   let b = null;
   for (let i = 0; i < 30 && !b?.length; i++) { await run(g, 1); b = plain(g.screen().state.balloons); }

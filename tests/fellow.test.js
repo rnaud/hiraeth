@@ -261,3 +261,37 @@ test('in each of her stops she waits a few steps from the ship, on ground you ca
   assert.ok(looks[0]?.head, 'her look, as dressed');
   for (const L of looks.slice(1)) for (const k of keys) assert.equal(L[k], looks[0][k], `her ${k} the same in every world`);
 });
+
+
+test('Tansy’s held letter can be posted on the ordinary reachable route, including old saves', async () => {
+  assert.ok(ORDER.includes('bazaar') && !ORDER.includes('saltharbour'));
+  const { PEOPLE } = await import('../src/story/night-train-data.js');
+  const { builtWorld } = await import('./built-worlds.js');
+  const { setupNightHalt } = await import('../src/story/night-train.js');
+  const { level } = builtWorld('bazaar');
+  assert.ok(level.nightHalt, 'the ordinary market builds the postal halt');
+  const setup = fresh();let edda;
+  setupNightHalt({ ...setup, level, spawn: (def, at) => { edda = def; return { pos: at.route[0].clone() }; } });
+  assert.equal(edda, PEOPLE.edda, 'actual market setup spawns the postal recipient');
+  for (const questFlag of [undefined, 'board', 'mireille', 'done']) {
+    const ctx = fresh({ 'item.saltletter': 1, 'fellow.end': 'on', 'fellow.signed': true });
+    if (questFlag) ctx.game.set('quest.bazaar.nightmail', questFlag);
+    const declined = new DialogueRunner(edda, ctx);
+    assert.equal(declined.nodeId, 'tansyPost');
+    declined.choose(declined.choices().findIndex(c => /keep it/.test(c.text)));
+    assert.ok(ctx.quests.has('saltletter'), 'declining keeps the original letter');
+    assert.equal(declined.nodeId, questFlag === 'done' ? 'after' : ['board', 'mireille'].includes(questFlag) ? 'again' : 'hello', 'deferring still opens Edda’s current story');
+    assert.equal(ctx.game.flag('quest.bazaar.nightmail'), questFlag, 'deferring preserves the quest stage');
+    const r = new DialogueRunner(edda, ctx);
+    r.choose(r.choices().findIndex(c => /niece/.test(c.text)));
+    assert.equal(r.nodeId, 'tansyPosted');
+    assert.ok(!ctx.quests.has('saltletter'));
+    assert.equal(ctx.game.flag('fellow.letter.given'), true);
+    assert.equal(ctx.game.flag('fellow.letter.posted'), true);
+    assert.equal(ctx.game.flag('fellow.end'), 'on');
+    assert.equal(ctx.game.flag('fellow.signed'), true);
+    const story = personStory(PERSON.get('tansy'), ctx.game.data.flags).join(' ');
+    assert.match(story, /posted Tansy/);assert.doesNotMatch(story, /gave Hesper/);
+    assert.notEqual(new DialogueRunner(edda, ctx).nodeId, 'tansyPost', 'posted once; Edda’s own story resumes');
+  }
+});

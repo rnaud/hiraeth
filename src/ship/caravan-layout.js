@@ -15,20 +15,21 @@ export const STERN_Z = (20 - AUTHORED_ENTRY.x) * CARAVAN_SCALE;
 export const CENTRE_Z = (NOSE_Z + STERN_Z) / 2;
 export const R = Math.hypot(STERN_Z, 8), ROOF = 15.4 * CARAVAN_SCALE - AUTHORED_OFFSET;
 export const BELLY = -2.21, LENGTH = STERN_Z - NOSE_Z;
-export const CEIL = 3.3;
+export const CEIL = 5.4;
 export const COCKPIT_DECK = 5.2;
 export const ROOMS = Object.freeze({
   cockpit: { z0: -20.2, z1: -12, floor: COCKPIT_DECK, half: 4.7, ceiling: 10.4 },
-  main: { z0: -12, z1: 6.4, floor: DECK, half: WALL_IN, ceiling: CEIL },
-  cabin: { z0: 6.4, z1: 10.9, floor: DECK, half: WALL_IN, ceiling: 3.3 },
-  hold: { z0: 10.9, z1: 16.1, floor: DECK, half: 2.5, ceiling: 3.3 },
+  main: { z0: -12, z1: 4, floor: DECK, half: 5.3, left: WALL_IN, right: 5.3, ceiling: CEIL },
+  cabin: { z0: 4, z1: 10, floor: DECK, half: 4.2, ceiling: 5.0 },
+  hold: { z0: 10, z1: 16.1, floor: DECK, half: 3.8, ceiling: 4.8 },
 });
-export const STAIRS = Object.freeze({ z0: -12, z1: -3.2, width: 1.8, rise: COCKPIT_DECK, steps: 30 });
+export const STAIRS = Object.freeze({ z0: -12, z1: -3.2, x: -1.4, width: 3.0, rise: COCKPIT_DECK, steps: 30 });
 export const ENTRY_Z = 0;
+export const SALOON_WINDOW = Object.freeze({ x: 5.3, z0: -.8, z1: 3, y0: 1.1, y1: 3.9 });
 // Centre the wider aft pods inside the Space City pier parapet; preserve the bridge-facing ramp.
 export const SITE_OFFSETS = Object.freeze({ spacecity: Object.freeze({ x: 5, z: 0 }) });
 // Anselm stands in the clear hold aisle, beside the starboard cargo crate.
-export const SCIENTIST = Object.freeze({ at: [.75, 0, 13.25], heading: -2.4, jar: [1.85, .995, 13.25] });
+export const SCIENTIST = Object.freeze({ at: [.75, 0, 13.25], heading: -2.4, jar: [3.05, .995, 13.25] });
 export const authoredToShip = (p, out = new THREE.Vector3()) => out.set(-p.z * CARAVAN_SCALE, (p.y - AUTHORED_ENTRY.y) * CARAVAN_SCALE, (p.x - AUTHORED_ENTRY.x) * CARAVAN_SCALE);
 export function placeAuthoredRoot(root) {
   root.rotation.y = -Math.PI / 2; root.scale.setScalar(CARAVAN_SCALE);
@@ -37,7 +38,7 @@ export function placeAuthoredRoot(root) {
 }
 export function roomAt(z) { return Object.values(ROOMS).find(r => z >= r.z0 && z <= r.z1) ?? null; }
 export function deckAt(x, z) {
-  if (Math.abs(x) < STAIRS.width / 2 && z >= STAIRS.z0 && z <= STAIRS.z1) {
+  if (Math.abs(x - STAIRS.x) < STAIRS.width / 2 && z >= STAIRS.z0 && z <= STAIRS.z1) {
     return Math.ceil((STAIRS.z1 - z) / (STAIRS.z1 - STAIRS.z0) * STAIRS.steps) * STAIRS.rise / STAIRS.steps;
   }
   return roomAt(z)?.floor ?? null;
@@ -46,7 +47,7 @@ export const cockpitHalf = () => ROOMS.cockpit.half;
 export function inRooms(p, { margin = .3 } = {}) {
   const room = roomAt(p.z); if (!room) return false;
   const floor = deckAt(p.x, p.z);
-  return Math.abs(p.x) <= room.half + margin && p.y >= floor - .8 && p.y <= (floor > 0 ? Math.max(room.ceiling, ROOMS.cockpit.ceiling) : room.ceiling) + .9;
+  return p.x >= -(room.left ?? room.half) - margin && p.x <= (room.right ?? room.half) + margin && p.y >= floor - .8 && p.y <= (floor > 0 ? Math.max(room.ceiling, ROOMS.cockpit.ceiling) : room.ceiling) + .9;
 }
 // Conservative parking envelope. Actual walking/camera collision comes from the authored shell and room meshes.
 export function undersideAt(x, z) { return z >= NOSE_Z && z <= STERN_Z && Math.abs(x) <= HALF_W ? BELLY : null; }

@@ -18,35 +18,41 @@ const TEAL = '#9fe0d6';
 export class HoloTable {
   constructor(model, id) {
     this.id = id;
-    const look = planetLook(id);
+    const look = planetLook(id), table = model.interior.table ?? TABLE;
     const g = (this.group = new THREE.Group());
     g.name = 'holo-table';
     g.userData.noCollide = true;
     g.position.copy(model.interior.points.table);
     // the planet (a unit sphere, scaled) and what goes with it, in a frame that faces the camera
     const face = (this.face = new THREE.Group());
-    face.scale.setScalar(TABLE.planetR);
+    face.scale.setScalar(table.planetR);
     this.body = new THREE.Mesh(new THREE.SphereGeometry(1, 40, 28), planetMaterial(id));
     // (small on screen: fewer stripes, lighter lines, or it reads as a ball of ink)
     this.body.material.uniforms.uInkK.value = 0.6;
     this.body.material.uniforms.uFreq.value = 0.45;
+    if (table.compact) {
+      const u=this.body.material.uniforms;
+      u.uBody.value.set('#70c9c5');u.uShade.value.set('#397e87');
+      u.uMark.value.set('#c7f1df');u.uInk.value.set('#347a83');u.uCream.value.set('#e0fff1');
+      u.uInkK.value=.35;
+    }
     face.add(this.body);
-    const rim = new THREE.Mesh(new THREE.RingGeometry(1.03, 1.1, 64), flatMaterial(TEAL));
+    const rim = new THREE.Mesh(new THREE.RingGeometry(table.compact ? .97 : 1.03, table.compact ? 1 : 1.1, 64), flatMaterial(TEAL));
     rim.position.z = -0.02;
     face.add(rim);
-    if (look.mark === 'ring') {
+    if (look.mark === 'ring' && !table.compact) {
       const ring = new THREE.Mesh(new THREE.RingGeometry(1.35, 1.62, 96), flatMaterial(look.ink));
       ring.rotation.set(-1.25, 0.2, -0.32);
       face.add(ring);
     }
-    if (look.mark === 'moon') {
+    if (look.mark === 'moon' && !table.compact) {
       const moon = new THREE.Mesh(new THREE.SphereGeometry(0.2, 24, 16), flatMaterial(look.ink));
       moon.position.set(1.05, 0.95, -0.6);
       face.add(moon);
     }
     g.add(face);
     // two thin scan rings, tipped, turning slowly round the planet
-    const r = TABLE.planetR * 1.45, t1 = new THREE.TorusGeometry(r, 0.009, 4, 64).rotateX(Math.PI / 2 + 0.35);
+    const r = table.planetR * (table.compact ? .85 : 1.45), t1 = new THREE.TorusGeometry(r, 0.009, 4, 64).rotateX(Math.PI / 2 + 0.35);
     const t2 = new THREE.TorusGeometry(r * 1.12, 0.008, 4, 64).rotateX(Math.PI / 2 - 0.5).rotateZ(0.4);
     const rings = new THREE.BufferGeometry();
     {

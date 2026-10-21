@@ -1609,3 +1609,9 @@ Checked against the author's two crops and six more views (the ship's main room,
 tree stairs, the desert's cave, the Buried Machine's crowd, the Signal Market's street): changelog v1.73.
 `tests/occlusion-taps.test.js` holds the crease shading's taps stable and the spot blacks gone; `tests/zfight.test.js`
 the rooms' strokes clear of `HATCH_AA`.
+
+### Audit surface repairs (October 2026, #602)
+
+The Aerie frames extend 8 cm into their terrace, and the Lamp-House apron ends 4 cm below the drum sill so each join has one visible owner. The City-Shaft spire cap ends inside the palace plinth. Buried city blocks and tower tiers omit upward triangles only where the entire triangle lies inside the enclosing slab; exposed edges, bottom faces and side walls remain. These geometry changes are shared by WebGL and Unity, without depth bias or a shader exception. The original audit used grazing diagnostic views; it did not establish how often high city caps occur on ordinary routes.
+
+The focused repeat found zero coplanar sites in the Aerie and Lamp-House, down from their previous test ceilings of three and one. Other temples retain their own measured baselines.

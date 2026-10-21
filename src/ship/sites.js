@@ -8,14 +8,9 @@ const LEGACY_LAYOUT = { LIFT, HALF_W, NOSE_Z, STERN_Z, CENTRE_Z, HATCH_A, ROOF, 
 // the relics and the story goal). `heading` is the direction the hatch and
 // its ramp face (a player heading: 0 = +z, PI/2 = +x).
 //
-// The desert is special: the forced landing of the prologue. The ship came
-// in low from the south and lies half dug into the dune, upright, at the end of a
-// long furrow (it slid toward Qanat and stopped short of it). Sand is heaped
-// against its leading side; the hatch opens toward the city, so stepping out you
-// see it, its walls whole and its great tree, across the dunes.
-
-export const SITE_OVERRIDES = {
-  desert: {
+// Existing saves keep their original berth; fresh openings use the powered site near Qanat.
+export const CONTROLLED_LANDING_FLAG = 'ship.desertControlledLanding';
+export const LEGACY_DESERT_SITE = {
     // on the brow of the rise north of the old camp, on the line of the camps' lane to the gate (CAMP_WAY), where nothing hides the horizon: the hatch faces Qanat
     // (230, 400), so stepping out you see the city, its walls whole and its great tree, across the dunes, 210 m to
     // its gate (the author's playtest, issue #71: from (20, 120) the near dune hid the walls' lower 9 m, the city
@@ -33,6 +28,14 @@ export const SITE_OVERRIDES = {
       roll: 0,            // (rad: the hatch side down)
       sink: 6,            // how far below its parked height it is dug in (clamped so the deck stays clear of the sand)
     },
+  };
+
+export const SITE_OVERRIDES = {
+  desert: {
+    x: 115, z: 360, heading: Math.atan2(230 - 115, 400 - 360),
+    landing: 'controlled',
+    // Compatibility metadata for older tools; this mode never builds a furrow or sinks the hull.
+    crash: { travel: Math.atan2(230 - 115, 400 - 360) - 0.6, length: 0, pitch: 0, roll: 0, sink: 0 },
   },
   // the search's own pick crowded the pearl sphere, a listening spot of the main quest
   spheres: { x: 38, z: 81, heading: -2.7 },

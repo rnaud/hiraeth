@@ -443,7 +443,8 @@ export function* buildIncal(scene) {
   // ---------------------------------------------------------- central spire
   yield;
   {
-    const height = TOP + 120 - BOTTOM;
+    // The palace plinth owns this roof; bury the spire cap inside its 3 m base.
+    const height = TOP + 117.1 - BOTTOM;
     const g = new THREE.CylinderGeometry(SPIRE_R * 0.8, SPIRE_R, height, 16);
     g.translate(0, BOTTOM + height / 2, 0);
     scene.add(new THREE.Mesh(g, strata('#f1e6cf', '#9fb2c6', '#e6cfae', 5, { grid: 4 })));

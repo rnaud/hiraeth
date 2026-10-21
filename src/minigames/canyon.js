@@ -15,6 +15,7 @@ import { Terrain } from '../world.js';
 import { arenaLevel } from './kit/world.js';
 import { disposeTree } from './kit/dispose.js';
 import { buildBike, bikeSteer } from '../bike.js';
+import { buildCharacter } from '../player.js';
 import { Dots, FLUID_TONES } from '../fluid-tool.js';
 import { Trail } from '../trail.js';
 
@@ -334,6 +335,38 @@ export function botInput(B, K, { look = 16 } = {}) {
   return { x: Math.max(-1, Math.min(1, -diff * 2.6)), throttle: 1, brake: 0, hop: false };
 }
 
+/** Equal-start, one-lap rival. Skill is fixed, never adjusted to the player's position. */
+export function newRival(K) { return { bike: newBike(K,6,3), race: newRace(K), dying:0, time:0, falls:0 }; }
+export function stepRival(r,K,dt) {
+  r.time+=dt;
+  if(r.dying>0) {
+    r.dying-=dt;
+    r.bike.vy-=26*dt;r.bike.y+=r.bike.vy*dt;r.bike.x+=r.bike.vx*dt*.3;r.bike.z+=r.bike.vz*dt*.3;
+    if(r.dying<=0) {
+      const s=splitAt(K,r.race.next-1)+4;
+      Object.assign(r.bike,newBike(K,s%K.L,3),{prog:s,speed:14});
+      r.bike.vx=Math.sin(r.bike.heading)*14;r.bike.vz=Math.cos(r.bike.heading)*14;
+    }
+    return;
+  }
+  const input=botInput(r.bike,K);
+  const nearJump=K.jumps.some(j=>{const d=K.ds(j.s,r.bike.s);return d>-j.gap-8&&d<90;});
+  input.throttle=nearJump?1:.72;
+  for(const e of bikeStep(r.bike,input,dt,K))if(e.kind==='fell'){r.dying=1;r.falls++;}
+  if(!r.dying)raceStep(r.race,K,r.bike.prog,r.time);
+}
+/** Within-frame crossing order prevents update order deciding close finishes. A dead heat is a retry. */
+export function rivalWinner(p0,p1,r0,r1,line) {
+  const crossing=(a,b)=>a<line&&b>=line?(line-a)/(b-a):Infinity;
+  const p=crossing(p0,p1),r=crossing(r0,r1);
+  if(!Number.isFinite(p)&&!Number.isFinite(r))return null;
+  return p<r?'player':'rival';
+}
+export function awardRivalBike(state) {
+  if(!state?.set)return false;
+  state.set('desert.bike.race.won',true);state.set('desert.bike.uncovered',true);state.set('desert.bike.found',true);return true;
+}
+
 // ------------------------------------------------------------------ the canyon, built
 const INK = '#2b211f';
 const tag = (m) => { m.userData.noCollide = true; return m; };
@@ -352,8 +385,8 @@ function frameAt(K, s) {
   return { x: p.x, z: p.z, tx: p.tx, tz: p.tz, nx: p.tz, nz: -p.tx, heading: Math.atan2(p.tx, p.tz) };
 }
 
-function* buildCanyon(scene) {
-  const K = makeCourse();
+export function* buildCanyon(scene, context = {}, course = COURSE) {
+  const K = makeCourse(makeTrack(), course);
   const terrain = yield* Terrain.make({
     size: 720, seg: 360,
     height: (x, z) => canyonHeight(K, x, z, -1, 4),
@@ -571,13 +604,22 @@ const SPLITS = 'minigame.canyon.splits', BEST_LAP = 'minigame.canyon.lap';
 const SAND = ['#e7b98a', '#d9a273', '#f2d4ae', '#b98a5a'];
 const _UP = new THREE.Vector3(0, 1, 0), _sp = new THREE.Vector3(), _sv = new THREE.Vector3(), _q = new THREE.Quaternion(), _jet = new THREE.Vector3();
 
-function start(ctx) {
+export function start(ctx) {
   const { player, camera, level, sfx } = ctx;
   const Cy = level.canyon, K = Cy.K;
   const state = ctx.state;
   const bestSplits = state?.flag?.(SPLITS) ?? null, bestLap = state?.flag?.(BEST_LAP) ?? null;
   const B = newBike(K, 6, 0);
   const R = newRace(K);
+  const duel = !!ctx.def?.rival;
+  const rival = duel ? newRival(K) : null;
+  const rivalModel = duel ? buildBike() : null;
+  const rivalChar = duel ? buildCharacter({ cloak: "#c9703e", cloth: "#376f78", hat: "#e8c890" }) : null;
+  if (rivalModel) {
+    rivalModel.root.name = 'Kamal-rival-bike'; rivalChar.root.name = 'Kamal-rival-rider';
+    ctx.add(rivalModel.root); ctx.add(rivalChar.root);
+  }
+  let settled = false;
   const bike = buildBike();
   ctx.add(bike.root);
   bike.root.traverse((o) => { o.userData.noCollide = true; });
@@ -650,7 +692,7 @@ function start(ctx) {
       ctx.flash(d !== null ? `${fmtDelta(d)}` : `Split ${e.t.toFixed(2)}`, d === null ? '' : d <= 0 ? 'good' : 'bad', 1.1);
     }
     lastCheck = e.n;
-    if (e.done) {
+    if (e.done && !duel) {
       const total = e.t;
       const best = state?.flag?.(SPLITS);
       const prev = Array.isArray(best) ? best[best.length - 1] : null;
@@ -672,15 +714,18 @@ function start(ctx) {
   ctx.status(`Lap 1/${K.C.laps} · 0 km/h`);
 
   return {
-    bike: B, course: K, race: R,
+    bike: B, course: K, race: R, rival,
     update(dt, inp, { live, phase }) {
       t += dt;
+      const before = B.prog, rivalBefore = rival?.bike.prog;
+      if (live && rival && !settled) stepRival(rival, K, dt);
+      else if (rival && settled && phase === 'finishing') bikeStep(rival.bike, { x: 0, throttle: 0, brake: .35, hop: false }, dt, K);
       const moving = live || phase === 'finishing';
       const bot = (typeof window !== 'undefined' && window.__canyonBot) ? botInput(B, K) : null;
       const steerX = bot ? bot.x : bikeSteer(inp.x, false);
       const thr = bot ? 1 : Math.max(inp.tuck, inp.y > 0.3 ? inp.y : 0);
       const ii = !moving ? { x: 0, throttle: 0, brake: 0, hop: false }
-        : R.done ? { x: 0, throttle: 0, brake: 0.35, hop: false }
+        : R.done || settled ? { x: 0, throttle: 0, brake: 0.35, hop: false }
           : { x: steerX, throttle: thr, brake: bot ? 0 : inp.brake, hop: bot ? false : inp.jump };
       if (run.dying > 0) {
         run.dying -= dt;
@@ -704,6 +749,24 @@ function start(ctx) {
           }
         }
         if (live) for (const e of raceStep(R, K, B.prog, ctx.time)) split(e);
+      }
+      if (duel && live && !settled) {
+        const winner = rivalWinner(before, B.prog, rivalBefore, rival.bike.prog, K.L);
+        if (winner) {
+          settled = true;
+          const won = winner === 'player';
+          if (won) awardRivalBike(state);
+          ctx.finish({ failed: !won, title: won ? 'You beat Kamal!' : 'Kamal takes the line',
+            lines: won ? ['The hoverbike is yours.', 'Call it from your backpack when you return to the desert.'] : ['No bike lost, no fee. Try again.', 'Brake before bends; take the marked kickers at full throttle.'] });
+        }
+      }
+      if (rivalModel) {
+        const rb = rival.bike;
+        rivalModel.root.position.set(rb.x,rb.y,rb.z); rivalModel.root.rotation.y=rb.heading;
+        rivalModel.body.rotation.set(rb.pitch,0,rb.bank); rivalModel.animate?.(dt,{yawRate:rb.yawRate,speed:rb.speed,time:t});
+        rivalModel.root.updateMatrixWorld(true);
+        rivalModel.seatAnchor.getWorldPosition(rivalChar.root.position); rivalModel.seatAnchor.getWorldQuaternion(rivalChar.root.quaternion);
+        poseRider({char:rivalChar},rb,t);
       }
       run.top = Math.max(run.top, B.speed);
       // the pads cool after their flash
@@ -733,7 +796,7 @@ function start(ctx) {
       ctx.speed(Math.max(0, Math.min(1, (B.speed - 26) / 22)) + (B.boost > 0 ? 0.25 : 0));
       eng?.set(B.speed, B.boost > 0 ? 1 : 0, moving || phase === 'count');
       const lap = Math.min(K.C.laps, Math.floor((R.next - 1) / K.C.checkpoints) + 1);
-      ctx.status(`Lap ${lap}/${K.C.laps} · ${Math.round(B.speed * 3.6)} km/h`);
+      ctx.status(duel ? `${B.prog >= rival.bike.prog ? '1st' : '2nd'} / 2 · ${Math.max(0,Math.round(Math.abs(B.prog-rival.bike.prog)))} m ${B.prog >= rival.bike.prog ? 'ahead' : 'behind'} · ${Math.round(B.speed*3.6)} km/h` : `Lap ${lap}/${K.C.laps} · ${Math.round(B.speed * 3.6)} km/h`);
     },
     end() {
       eng?.stop();

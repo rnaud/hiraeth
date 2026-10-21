@@ -489,7 +489,12 @@ test('every fragment of the singing light stands on drawn, solid ground the walk
     at.forEach((p, i) => { const why = standWhyNot({ physics, level }, p, Player); if (why) failed.push(`${id} ${i}: ${why}`); });
     // (what the player opens on the way stands open for the walker: the floating city's drifted span reeled home, v1.57)
     level.openWays?.(physics, true);
-    const { reached } = flood({ physics, level }, [level.spawn, ...Object.values(level.partSpawns ?? {})], { targets: at, cell: reachCell(id) });
+    const starts = [level.spawn, ...Object.values(level.partSpawns ?? {})];
+    // A moved landing must not exclude existing fragments before collision is checked.
+    // Keep the same starts, cell, slopes, jumps and node cap; allow a 100 m detour
+    // beyond the furthest target's nearest start, rather than a fixed 700 m disc.
+    const radius = Math.max(700, ...at.map(p => Math.min(...starts.map(s => Math.hypot(p.x - s.x, p.z - s.z))) + 100));
+    const { reached } = flood({ physics, level }, starts, { targets: at, cell: reachCell(id), radius });
     level.openWays?.(physics, false);
     reached.forEach((ok, i) => { if (!ok) failed.push(`${id} ${i} (${at[i].toArray().map((v) => v.toFixed(1))}): the walker doesn’t reach it from the spawn`); });
   }

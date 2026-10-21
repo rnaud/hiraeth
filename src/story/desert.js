@@ -1,3 +1,4 @@
+import { roseReady, migrateRoseRoute } from './desert-rose.js';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
@@ -38,7 +39,7 @@ import { t as tr } from '../i18n.js';
 //                and the avenue
 //   the dunes    old Oum sits on a stone where she fell behind
 //   the cave     the dry pool, the debris clogging its drain, the mural
-//   far away     the Givers' Hearth and its spark-stone (src/story/desert-spark.js)
+//   Rose House  the blade, guard, gun and spark-stone (src/story/desert-spark.js)
 //
 // The tree is cold (src/desert-city.js city.setLit: no flame, no smoke column,
 // no sparks, no burn, a lone bell for music) until the spark-stone is set in
@@ -52,7 +53,7 @@ import { t as tr } from '../i18n.js';
 // rises and the first wade fills the tank (and adds the giant's colour) and Ama's jar. The water climbs
 // the roots while you watch (desert.well.watched: the flag kept its name from the well, gone in v1.49). Beside the pool a makers' chest holds the
 // lift valve (the double jump, the backpack's first strength: src/boxes/placements.js 'desert.lift'); in the
-// Givers' Hearth a chest holds the fluid gun (a gadget, 'desert.gun'), whose push rolls the stone ball.
+// Rose House a chest holds the fluid gun (a gadget, 'desert.gun'), whose push rolls the final weight.
 //
 // The reaction at the tree: the first time you come near the closed chest, the
 // people in the square turn and murmur and the tree flares; when it opens
@@ -110,7 +111,7 @@ export function migrateDesertQuest(game) {
   if (v >= DESERT_QUEST_V) return null;
   const s = game.flag('quest.desert.power');
   // (a brand-new save has nothing to carry over)
-  if (s === undefined && !game.flag('ship.powered')) { game.set('desert.quest.v', DESERT_QUEST_V); return null; }
+  if (s === undefined && !game.flag('ship.powered')) { migrateRoseRoute(game, v); game.set('desert.quest.v', DESERT_QUEST_V); return null; }
   let to = null;
   if (v < 2) { to = STAGE_MIGRATION[s] ?? null; if (to) game.set('quest.desert.power', to); }
   if (v < 3 && (game.flag('desert.channel.open') || game.flag('desert.ship.fed') || game.flag('ship.powered') || s === 'done')) game.set('desert.tree.lit', true);
@@ -118,6 +119,7 @@ export function migrateDesertQuest(game) {
   if (STAGE_MERGE[now]) { to = STAGE_MERGE[now]; game.set('quest.desert.power', to); }
   const gearMissing = missingCore('desert', (id) => !!game.flag(`item.${id}`)).some((c) => c.quest);
   if (v < 6 && game.flag('quest.desert.power') === GIFT_AFTER_GEAR.from && !game.flag('desert.ship.fed') && gearMissing) { to = GIFT_AFTER_GEAR.to; game.set('quest.desert.power', to); }
+  to = migrateRoseRoute(game, v) ?? to;
   game.set('desert.quest.v', DESERT_QUEST_V);
   return to;
 }
@@ -166,6 +168,7 @@ export function setupDesert(ctx) {
   if (!Q) return null;
   const city = Q.city, camps = Q.camps, cave = Q.cave;
   migrateDesertQuest(game);
+  for (const portal of level.temple?.portals ?? []) if (!portal.toUp) { portal.when = () => roseReady(game); portal.refuse = 'Win the hoverbike in the red-rag hollow before taking the Rose House’s road.'; }
   for (const q of QUESTS) quests.define(q);
   quests.itemNames = ITEMS;
   // the main quest: power for the ship (unless the ship already has it). It doesn't just appear: Marrow,
@@ -180,7 +183,15 @@ export function setupDesert(ctx) {
   // the tree already burns (a save from before the spark-stone's errand): its stages are passed over
   const lit = () => !!game.flag('desert.tree.lit');
   // (on to the Rose House's step, passed over to the gift if the blade and guard are had: quests.landing; issue #278)
-  const skipSpark = () => { if (lit() && SPARK_STAGES.includes(quests.stage('desert.power'))) { const d = quests.def('desert.power'); quests.set('desert.power', quests.landing(d, d.stages.findIndex((x) => x.id === 'gear'))); } };
+  const skipSpark = () => {
+    if (!lit() || !SPARK_STAGES.includes(quests.stage('desert.power'))) return;
+    const missingWeapon = [['sword', 'blade'], ['shield', 'guard'], ['gun', 'gun']].find(([item]) => !game.flag(`item.${item}`))?.[1];
+    // An old lit-tree save may own the blade/guard but not the valve. The new gun
+    // is inside Rose: its channel crossing still requires the earned double jump.
+    const next = missingWeapon && !items.has('doublejump')
+      ? (game.flag('desert.door.open') ? 'valve' : 'door') : missingWeapon ?? 'ship';
+    if (quests.stage('desert.power') !== next) quests.set('desert.power', next);
+  };
   skipSpark();
   // the water let out before anyone sent you down (Ilo, Bako and Hessa all point at the giant's mouth): the steps
   // that only lead there (Nour's sending, the dry well, the Speaker's old words, the way down) are passed over,
@@ -844,7 +855,7 @@ export function setupDesert(ctx) {
   quests.onChange(({ id }) => { if (id === 'desert.power') setWaveOn(early()); });
 
   // ---------------------------------------------------------------- the spark-stone's errand
-  // Nour's word sends you for the stone: the hoverbike's errand starts then (if it hasn't), the Hearth waits
+  // Nour's word sends you for the stone: the hoverbike's errand starts then (if it hasn't), the Rose House waits
   const hearth = setupHearth(ctx, { hasPush: () => toolHasPush() || (!!tool && !dry() && items.has('gun')), hasGun: () => items.has('gun'), lit });
   // the bowl, the camp and the bell on the long ride there (src/story/desert-way.js)
   const way = setupWay(ctx);
@@ -888,7 +899,7 @@ export function setupDesert(ctx) {
     const hand = player.humanoid?.b?.hand_r;
     if (hand && player.object?.visible !== false) hand.getWorldPosition(lighting.from);
     else lighting.from.copy(player.pos).add(V(0, 1.15, 0)).addScaledVector(V(city.roots.x - player.pos.x, 0, city.roots.z - player.pos.z).normalize(), 0.45);
-    if (level.hearth) level.hearth.stone.userData.placing = true;
+    if (level.temple?.roseSpark) level.temple.roseSpark.stone.userData.placing = true;
     game.set('desert.tree.lit', true);
     sound.chime?.();
     toast('You set the spark-stone in the wet roots. The living water draws it in, glowing…');
@@ -902,7 +913,7 @@ export function setupDesert(ctx) {
   const updateLighting = (dt) => {
     if (lighting.t < 0) return;
     lighting.t += dt;
-    const T = lighting.t, H = level.hearth;
+    const T = lighting.t, H = level.temple?.roseSpark;
     if (T < LIGHT.fly) {
       // the stone comes out of your pack and drops from your hand into the water
       const k = T / LIGHT.fly;

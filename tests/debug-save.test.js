@@ -174,7 +174,7 @@ test('every magical water that colours the tank is a band, and the code grants i
   const sites = [], grants = [], gives = [];
   for (const f of files) {
     const src = fs.readFileSync(f, 'utf8').split('\n').filter((l) => !/^\s*(\/\/|\*|\/\*)/.test(l)).join('\n'), rel = path.relative(SRC, f);   // (code, not comments)
-    for (const m of src.matchAll(/emit\('tool:refill',\s*\{\s*addColour/g)) sites.push(rel);
+    for (const m of src.matchAll(/emit\('tool:refill',\s*\{\s*addColour(?!\s*:\s*false\b)/g)) sites.push(rel);
     if (/items\.grant\(/.test(src) && rel !== 'items.js') grants.push(rel);
     for (const m of src.matchAll(/quests\.give\('([^']+)'\)/g)) if (ITEMS[m[1]]) gives.push(`${rel}: ${m[1]}`);
   }
@@ -286,7 +286,7 @@ test('into one of the player\'s slots only when chosen: that slot alone is writt
   for (const [k, v] of keep) assert.equal(st.getItem(k), v, `${k} untouched`);
   // (boot passes the slot from the link, then drops it)
   const boot = fs.readFileSync(path.join(SRC, 'boot.js'), 'utf8');
-  assert.match(boot, /seedDebugSave\(q\.get\('level'\), \{ state: game, slot: q\.get\(SLOT_PARAM\) \}\)/);
+  assert.match(boot, /seedDebugSave\(q\.get\('level'\), \{ state: game, slot: q\.get\(SLOT_PARAM\), legacyLanding: q\.get\('debuglanding'\) === 'legacy' \}\)/);
   assert.match(boot, /q\.delete\(DEBUG_PARAM\); q\.delete\(SLOT_PARAM\);/);
 });
 
@@ -326,4 +326,29 @@ test('the Saves screen\'s debug section is one closed "Debug" row until chosen: 
   assert.match(title, /else if \(a === 'saves'\) \{ debugOpen = false; show\('saves'/, 'folded each time the screen opens');
   assert.match(title, /else if \(a === 'debug-open'\) \{\s*debugOpen = !debugOpen;\s*renderSaves\(\);/, 'A opens it (and folds it)');
   assert.match(title, /const rows = savesRows\(savesEl\);/);
+});
+
+test('legacy Desert landing is an explicit debug-only fixture, shared by web and engine setup', async () => {
+  const { CONTROLLED_LANDING_FLAG } = await import('../src/ship/sites.js');
+  const { webQuery, engineSetup, sequenceById } = await import('../engine/sequences.js');
+  const { game } = await import('../src/game-state.js');
+  const store = new SlotStore(mem());
+  assert.equal(seedDebugSave('desert', { store }).flags[CONTROLLED_LANDING_FLAG], true);
+  const legacy = seedDebugSave('desert', { store, legacyLanding: true });
+  assert.equal(legacy.flags['prologue.done'], true);
+  assert.equal(legacy.flags[CONTROLLED_LANDING_FLAG], undefined);
+  assert.equal(seedDebugSave('edena', { store, legacyLanding: true }).flags[CONTROLLED_LANDING_FLAG], true, 'non-Desert debug saves unaffected');
+  assert.equal(webQuery({ level: 'desert', legacyLanding: true }), '?level=desert', 'no opt-in without debug seeding');
+  const setup = sequenceById('decals').setup;
+  assert.equal(webQuery(setup), '?level=desert&debugsave=1&debuglanding=legacy');
+  const { slots } = await import('../src/save-slots.js');
+  const previous = game.data, priorStorage = slots.storage;
+  slots.storage = mem();
+  try {
+    engineSetup(setup);
+    assert.equal(game.flag('prologue.done'), true);
+    assert.equal(game.flag(CONTROLLED_LANDING_FLAG), undefined);
+    engineSetup({ level: 'desert', debug: true });
+    assert.equal(game.flag(CONTROLLED_LANDING_FLAG), true);
+  } finally { game.data = previous; slots.storage = priorStorage; }
 });

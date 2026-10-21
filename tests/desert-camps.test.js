@@ -4,10 +4,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import { loadWorld } from './playthrough-agent.js';
+import { loadWorld, walkCheck } from './playthrough-agent.js';
 import { CAMP_WAY } from '../src/desert-city.js';
+import { LEGACY_DESERT_SITE, SITE_OVERRIDES } from '../src/ship/sites.js';
 
-const { level, physics } = loadWorld('desert');
+const W = loadWorld('desert'), { level, physics } = W;
 const Q = level.qanat, C = Q.camps, gate = Q.city.gate;
 const toGate = gate.clone().sub(C.center).setY(0).normalize(), across = new THREE.Vector3(-toGate.z, 0, toGate.x);
 /** camp-local: x across the way, z along it (+z toward the landing) */
@@ -19,9 +20,20 @@ const onWay = (z, x = 0, lift = 1) => {
   return p;
 };
 
-test('the way runs from the dunes to the gate, along the line from the landing', () => {
+test('the camps retain their legacy approach and the controlled landing joins the declared road', () => {
   assert.ok(Math.abs(local(gate).x) < 2 && local(gate).z < CAMP_WAY.to + 10, 'the gate at its end');
-  assert.ok(Math.abs(local(level.spawn).x) < 10 && local(level.spawn).z > 140, `the landing behind you as you come in (${local(level.spawn).x.toFixed(1)}, ${local(level.spawn).z.toFixed(0)}; 160 m out since the landing moved closer, issue #71)`);
+  const old = LEGACY_DESERT_SITE;
+  const oldSpawn = new THREE.Vector3(old.x + Math.sin(old.heading) * 8, 0, old.z + Math.cos(old.heading) * 8);
+  assert.ok(Math.abs(local(oldSpawn).x) < 10 && local(oldSpawn).z > 140, 'the preserved old berth still approaches through the camps');
+  const fresh = SITE_OVERRIDES.desert;
+  assert.ok(Math.hypot(level.spawn.x - fresh.x - Math.sin(fresh.heading) * 8, level.spawn.z - fresh.z - Math.cos(fresh.heading) * 8) < .01, 'fresh spawn uses the controlled berth');
+  const road = level.lines().find(l => l.name === 'the pilgrims’ road');
+  assert.ok(road?.points.length >= 2, 'the new berth has its declared return road');
+  const end = new THREE.Vector3(...road.points.at(-1));
+  assert.ok(Math.hypot(end.x - level.spawn.x, end.z - level.spawn.z) < 40, 'the road ends beside the new berth');
+  const failures = [];
+  walkCheck(W, level.spawn, end, why => failures.push(why));
+  assert.deepEqual(failures, [], 'the real walker joins the return road from the new berth');
   const line = level.lines().find((l) => l.name === 'the camps’ banners');
   assert.ok(line && line.points.length >= 2, 'the level design audit reads it as a leading line');
 });

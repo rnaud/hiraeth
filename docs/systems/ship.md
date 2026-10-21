@@ -1,4 +1,6 @@
-# The traveller's ship: the angular hull (October 2026)
+# The traveller's ship (October 2026)
+
+The default is the [playable rounded caravan](#playable-rounded-caravan-599-v191). The original angular ship remains selectable and fully playable; its design and dimensions are documented below.
 
 The ship was a 26 m ball with one round deck. It is now the angular exploration vessel the
 author selected on 2026-10-09: `references/The Travellers Ship/Angular Exterior - Selected/reference-4.jpeg`
@@ -398,14 +400,27 @@ for the furnished home. Furniture is constructed in metres, not enlarged with th
 The author's final export offset of −0.8 m is included: authored porch Y=3.6 and
 booster rows Y=10.6/4.8. Exported `playableContract` extras record the entry and
 outer porch edge. The terrain ramp starts at that edge rather than at the hull wall.
-The main room has 3.3 m headroom, a separate cabin and hold aft, and a 30-riser
-stairwell to the cockpit's 5.2 m upper deck. The stairwell has enclosed walls and a high ceiling above the stairs;
-its headroom is checked against actual walking collision.
+The main room has 5.4 m headroom and an asymmetric 8.4 m width: its port wall
+keeps the existing porch entry while its starboard side expands into the rounded
+hull. The cabin is 8.4 × 6 m with a 5 m ceiling; the hold is 7.6 × 6.1 m with
+4.8 m headroom. The lower shell is reshaped around those volumes, without growing
+the upper silhouette or moving the boosters. Door openings are 3.6 m wide.
+A 3 m wide, 30-riser stair at local X=-1.4 reaches the cockpit's 5.2 m upper deck.
+The cockpit's curved rear bulkheads and the wall below its floor close the old
+service-cavity gaps. Walking collision and full camera turns check the finished rooms.
 
-The former painted study door is replaced by an opening and sliding panel. Camp
-contents remain rigid: outside the hull they first rise, then retract above the
-living room into a partitioned overhead garage. They move outside before lowering
-on arrival. The real flight sequence closes the camp before lift-off and only opens
+The bunk faces a separate message console by a real starboard observation window.
+Its window opening crosses both the room liner and the authored shell; the outside-only
+glazing retains collision. Wake heading is derived from the message position, with a
+standing point clear of the bunk so the follow camera need not turn away. Call cameras
+use the console's local frame; the small date screen sits laterally beside the projected
+bust, and both opening and later recordings honor the console heading. The navigation
+holo table remains a distinct interaction in the forward main room.
+
+The former painted study door is replaced by an opening and sliding panel. The camp
+table and seats fold on visible fixed wall hinges, with 0.74 m table height and 0.46 m
+seat height above the deck. The rigid furniture remains attached throughout deployment;
+small planters stay on secured shelves. The real flight sequence closes the camp before lift-off and only opens
 it after touchdown. Each moving assembly has its own collision transform; the
 terrain ramp uses separate rigid section colliders. Existing progression and save
 flag names remain unchanged.
@@ -438,10 +453,12 @@ uses the same eight exterior/interior poses and exact production GLB. Evidence l
 in the release's ignored `playable-caravan-599` validation folder. Device performance
 is not inferred from editor pictures; the Retroid was unavailable for this change.
 
-The new GLB is 3,710,232 bytes, 154,440 triangles across 65 material primitives.
-Including all furnishings and hidden/stowed pieces, the old procedural model contains
-60 draws / 29,696 triangles / 2.95 MB geometry buffers; the playable caravan contains
-89 draws / 159,489 triangles / 4.34 MB. These are model budgets, not frame timings:
+The selected-furnishings follow-up was checked through normal muted browser walking from ramp to message, cabin, hold, stairs and cockpit. Seven matched native poses and both ships’ opening, arrival, takeoff and Pirates sequences produced 75 inspected Unity pictures. The framed message keeps faces clear, and the deck’s furniture remains rigidly bolted throughout folding. These checks use isolated progress and verified restoration of the borrowed native workspace; they do not claim Retroid performance.
+
+The current GLB is 3,940,612 bytes, 160,012 triangles across 82 material primitives.
+Counting every mesh, including hidden collision and stowed pieces, the original model has
+77 draws / 29,696 triangles / 2.95 MB geometry buffers; the furnished caravan has
+107 draws / 175,629 triangles / 5.58 MB. These are model budgets, not frame timings:
 actual visible scene costs depend on culling, room visibility and the world. Device
 performance remains a separate measurement. The recorded opening covers all 22 beats through the crash, drone, hatch and
 step-out. Homecoming reaches its cargo panel; that capture does not claim a
@@ -468,3 +485,17 @@ Desert retains its established Qanat-facing site: the dune falls away under the
 porch, so its adaptive ramp remains longer than the flat-ground review. A bounded
 30–80 m natural-site search did not find a short ramp with the same first-look
 direction; no terrain was flattened and the story's landing direction is unchanged.
+
+
+### Keeping both ships playable
+
+The dev menu’s **Ship** tab selects **Rounded caravan** or **Original ship** on web and Unity. The device preference `hiraeth.shipModel` takes effect on the next world load; it does not replace an occupied hull in place or change quest flags. On the web, `?ship=original` and `?ship=caravan` override the preference for that page. Travel and Pirates use the retained preference. The original branch passes `null` to the existing model, interior, collision and cinematic builders and never needs the caravan download. The trailer uses the same selection.
+
+Position saves include the active `shipModel` and `aboardShip`. If the player switches hull after saving aboard, both hosts resume at the selected ship’s ramp; outside positions and saves in the same hull are kept. This is separate from progress and needs no destructive save migration.
+
+The wider rooms preserve clearance through their partitions. The accepted 21 October references are in `references/The Travellers Ship/redesign/lived-in-selected-2026-10-21/`, with source jobs and the user's final mechanism/scale constraints in its manifest. The low teal cockpit console follows the panoramic glass; coral pilot seats, galley storage and bunk keepsakes stay at human scale. The message viewer frame sits behind the projected faces. The caravan's navigation contract sets a 1m projection envelope and 45cm-wide, 50cm-high pedestal; the original ship keeps its own dimensions.
+
+All deck furniture and plants are rigid children of `porch-panel`, with visible floor fixings. They remain visible at every camp fraction. The front chairs and table pack into the main room's exterior service recess; aft planters and travel cases pack above the cabin ceiling. Geometry tests sample the complete folding sweep against every inhabited room. There are no overhead garage partitions or moving storage shutters. Awning and rail stow before the furnished deck rises. The original ship remains an independent playable fallback.
+### Controlled first Desert landing (#603)
+
+New journeys land near Qanat at (115, 360), about 83 m from the gate instead of 219 m. The emergency reserve powers the approach and a smooth vertical touchdown; the caravan uses its four authored rear booster mouths, and the original fallback uses its own lift bells. The parked hull stays upright on its gear, with no furrow or buried belly. Stage IDs and skip behavior remain unchanged. `ship.desertControlledLanding` records the new berth when the opening starts; completed older saves without that flag retain the original (86, 149) berth, including aboard resumes. Site collision, terrain/ramp probes and the real director's motion are covered by the landing tests for both models.

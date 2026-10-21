@@ -179,7 +179,9 @@ const A = await import('./playthrough-agent.js');
 const WORLDS = { desert: 9, perdide: 6, edena: 3, underwater: 4 };
 for (const [world, least] of Object.entries(WORLDS)) {
   test(`${world}: every way through walked and run into: through without a stop, in off the far door, the controls back`, () => {
+    const savedFlags = { ...A.game.data.flags };
     const W = quiet(() => A.loadWorld(world));
+    if (world === 'desert') for (const key of ['desert.bike.found', 'desert.bike.race.won', 'desert.rose.legacy']) A.game.data.flags[key] = false;
     try {
       let walked = 0, locked = 0;
       const bad = [];
@@ -191,7 +193,13 @@ for (const [world, least] of Object.entries(WORLDS)) {
           let res = null;
           for (const a of approach(W.physics, pt)) { res = walkThrough(W, { ...a, frames: 150 }); if (res.refused) break; }
           if (res?.refused) { locked++; if (res.rec.some((r) => r.taken)) bad.push(`${name}: locked, yet the controls were taken`); }
-          continue;
+          if (world === 'desert' && pt.label === 'door of the Rose House') {
+            assert.ok(res?.refused, 'the fresh Rose entrance explicitly refuses entry');
+            assert.ok(!res.rec.some((r) => r.taken), 'refusal never takes the controls');
+            // Exercise the same door again after the bike is earned; keep the full traversal count.
+            A.game.set('desert.bike.found', true);
+            assert.equal(pt.when(), true, 'the earned bike permits the Rose entrance');
+          } else continue;
         }
         for (const run of [false, true]) {
           let res = null, j = null;
@@ -212,8 +220,9 @@ for (const [world, least] of Object.entries(WORLDS)) {
         }
       }
       assert.ok(walked >= least * 2, `${world}: ${walked / 2} ways walked through (at least ${least})`);
+      if (world === 'desert') assert.ok(locked >= 1, 'the fresh Rose entrance was tested locked before traversal');
       if (world === 'underwater') assert.ok(locked >= 1, 'its locks without the suit: refused');
       assert.deepEqual(bad, [], `${world}:\n${bad.join('\n')}`);
-    } finally { W.dispose(); }
+    } finally { W.dispose(); A.game.data.flags = savedFlags; }
   });
 }

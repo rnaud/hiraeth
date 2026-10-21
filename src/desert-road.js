@@ -16,18 +16,20 @@ import { STORY, RIDE } from './desert-sites.js';
 //   const road = buildPilgrimsRoad(scene, terrain)  →  { points, cairns: [{ at, top, flame, light }], rest, avoid(x, z, r) }
 
 /** The cairns, [x, z], from just west of the main gate down to the ship. */
-export const ROAD = [[168, 352], [128, 340], [90, 318], [55, 290], [28, 255], [16, 226], [4, 192], [30, 166], [58, 160]];
+export const LEGACY_ROAD = [[168, 352], [128, 340], [90, 318], [55, 290], [28, 255], [16, 226], [4, 192], [30, 166], [58, 160]];
 /** The resting stone on the last dune's shoulder, between the 7th and 8th cairns ([x, z]; it faces the tree). */
+export const ROAD = [[168,352],[128,340],[90,318],[55,290],[28,255],[16,226],[4,192],[-18,228],[-8,278],[18,305],[48,315],[65,355],[95,380]];
+export const CONTROLLED_ROAD = ROAD;
 export const REST = { x: 10, z: 178 };
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 
-export function buildPilgrimsRoad(scene, terrain, { tree = V(230, 0, 400) } = {}) {
+export function buildPilgrimsRoad(scene, terrain, { tree = V(230, 0, 400), points = ROAD } = {}) {
   const H = (x, z) => terrain.heightAt(x, z);
   const stone = makeMaterial({ color: '#cdb38f', color2: '#bfa27c', flat: true });
   const clay = makeMaterial({ color: '#b86a43', flat: true });
   const flameMat = makeMaterial({ color: '#ffd27a', glow: 1, flat: true, key: 'desert.road.flame' });
   const stones = [], lamps = [], cairns = [];
-  ROAD.forEach(([x, z], i) => {
+  points.forEach(([x, z], i) => {
     const y = H(x, z), turn = i * 1.7;
     let h = 0;
     // four or five flat stones, each a little smaller and turned, leaning a touch (a pilgrim stacked them by hand)
@@ -130,8 +132,10 @@ export function buildRiderStrips(scene, terrain) {
 /** Where it stands, [x, z]; its carved face looks up the dunes toward the House (`toward`). */
 export const FIELD_STONE = { x: 300, z: 268, toward: [518, 378] };
 
-export function buildFieldStone(scene, terrain) {
-  const { x, z } = FIELD_STONE, y = terrain.heightAt(x, z), face = Math.atan2(FIELD_STONE.toward[0] - x, FIELD_STONE.toward[1] - z);
+export const CONTROLLED_FIELD_STONE = { x: 350, z: 365, toward: [518, 378] };
+
+export function buildFieldStone(scene, terrain, site = FIELD_STONE) {
+  const { x, z } = site, y = terrain.heightAt(x, z), face = Math.atan2(site.toward[0] - x, site.toward[1] - z);
   const stone = makeMaterial({ color: '#cdb38f', color2: '#bfa27c', flat: true }), clay = makeMaterial({ color: '#b86a43', flat: true });
   const at = (lx, ly, lz) => V(x + Math.cos(face) * lx + Math.sin(face) * lz, y + ly, z - Math.sin(face) * lx + Math.cos(face) * lz);
   // a slab standing to a man's shoulder, leaning a little, its top worn round by the wind, its foot in the sand

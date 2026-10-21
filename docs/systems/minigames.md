@@ -295,6 +295,31 @@ costs a life and starts you at the last banner; out of lives ends the run with t
 course's own (`player._feetGround`). `botInput` plays the course; the tests run it at 120, 60, 30 and 20 fps
 and require the gate with no fall.
 
+## The bike wager (`canyon-rival.js`)
+
+New desert travellers earn the hoverbike by beating Kamal in one lap of the Two
+Chasms. The hollow's tarp only reveals the prize; with a filled backpack its next
+interaction launches `?game=canyon-rival&from=desert` through the shared story
+`playGame` callback (web navigation and Unity `onGame`). There is no free wake,
+loss reward or skip. Results offer Retry; quitting returns without ownership.
+The existing three-lap Canyon run remains an optional time trial.
+
+Both racers use `bikeStep`, the same base-bike handling, pads, drifts, jumps and
+checkpoint recovery. Kamal uses a fixed steering policy and throttle: full at
+chasms, 72% elsewhere. He never reads the player's position, gets no catch-up
+speed and cannot advance during the introduction or pause. The visible opponent
+uses the existing character rig and riding pose on a real bike seat. Passing is
+non-contact; neither rider can win by knocking the other off the road.
+
+A within-frame finish-line comparison decides the winner, independent of update
+order. A dead heat is a retry. Only a winning session writes
+`desert.bike.race.won` and the established `desert.bike.found` ownership flag.
+Existing earned saves retain `found`; the original one-time legacy migration is
+preserved. The quest keeps its `find`/`wake` stage IDs for save compatibility.
+The borrowed race bike needs no upgrades. Pure/session checks cover fixed rival
+pace at 20–120 fps, a slower/idle rider losing, actual steering/throttle input
+winning, recovery, retry reset, and no award on introduction, loss or disposal.
+
 ## Canyon run (`canyon.js`)
 
 The hoverbike (`src/bike.js` `buildBike`, the desert's own model; the rider posed as `animateRiding` does) round
@@ -1137,3 +1162,7 @@ wants the jets.
 - **Fair courses** (`check.js` `checkCourse`): every gate in the open, the way between them clear, a ride with no
   wall or cliff on it (water all the way for the skiff), a glide never asking more than 1 : 5.2 without a column.
   `tests/trials-worlds.test.js` runs it in every world; `tests/trials.test.js` the pure parts.
+
+### Narrow browser temple HUD (#602)
+
+On-foot minigames at widths up to 900 px place their timer and wrapping room label in two bounded columns beneath the separate hearts/reserve panel. The vertical offset follows text scale and the safe top inset; the duplicate minigame lives slot is hidden. This addresses the observed 640 × 720, 145% text overlap. It is a browser CSS layout change: Unity’s separately drawn `BridgeHud` does not consume these styles.

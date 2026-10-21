@@ -1038,7 +1038,9 @@ function exterior(scene, level, rt) {
   // src/temples/portal.js)
   const P = portal(K, { y: door, z: R + 1.3, w: 4.3, h: 7.4, shape: 'round', layers: 2, step: 0.9, recess: 0.7, back: 1.2, into: 3.6, foot: door + 1,
     frame: lmStone('#465a78', { course: 2.4, width: 4.8, wear: .55 }), inlay: '#ffc979', sill: { w: 5.6 } });
-  K.both(M.stone, box(5.8,door+1,11,0,(door-1)/2,R+4));
+  // The drum owns the sill plane. The apron meets it with a 4 cm step.
+  const apronTop = door - .04;
+  K.both(M.stone, box(5.8,apronTop+1,11,0,(apronTop-1)/2,R+4));
   // the causeway: flat stones from the apron to the end of the lit path
   const pathL = K.local(V(SITE.path[0], 0, SITE.path[1]));
   const n = Math.ceil(Math.hypot(pathL.x, pathL.z - R - 7) / 3.8);

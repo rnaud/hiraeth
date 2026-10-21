@@ -1186,3 +1186,7 @@ changed by what the traveller said at the last (`src/story/fellow-data.js`, `src
 - Tests: `tests/fellow.test.js` (her stops and meetings in order, each changed by the last, both ways through,
   a meeting walked off halfway, the last meeting away from the market, the migration, the People page,
   Hesper, and her place by the ship in each stop and at home, built in the world with the real ship).
+
+### Tansy’s post on the ordinary route (#602)
+
+The Signal Market’s Edda accepts the existing `saltletter` for Hesper through the night halt’s postal service. The retired Salt Harbour remains available to old content, but visiting it is no longer required to finish the letter. Accepting consumes the letter and sets the existing `fellow.letter.given` plus `fellow.letter.posted`; the people book distinguishes posting from an older direct delivery. Keeping the letter opens Edda’s normal conversation for the current Night Mail stage, without changing Tansy’s choice, signature or the train quest. Existing held letters need no migration.

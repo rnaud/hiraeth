@@ -84,40 +84,23 @@ const memory = () => { const m = new Map(); return { getItem: (k) => m.get(k) ??
 const mainQuest = (quests, id) => { const game = new GameState(memory()), q = new Quests({ game }); for (const d of quests) q.define(d); return { game, q, d: q.def(id) }; };
 const hasAll = (game) => (id) => !!game.flag(`item.${id}`);
 
-test('the desert: the blade and the guard missing, the step after the tree is the Rose House, before Qanat’s gift, and the quest ends only with them (issues #232, #278)', () => {
+test('the desert teaches each core weapon before the spark and cannot pass an unearned one', () => {
   const { game, q, d } = mainQuest(DESERT_QUESTS, 'desert.power');
-  const ids = d.stages.map((s) => s.id);
-  assert.deepEqual(ids.slice(-3), ['light', 'gear', 'ship'], 'the Rose House a leg out from the tree, the gift the way home');
-  const gear = d.stages.find((s) => s.id === 'gear');
-  assert.match(gear.text, /blade and guard from the Rose House/);
-  assert.equal(gear.at, 'temple.desert.door');
-  assert.equal(gear.gate, true);
-  assert.equal(d.stages.at(-1).flag, 'desert.ship.fed', 'the gift ends it: reaching the ship is the goal');
-  for (const i of DESERT_MAIN) game.set(`item.${i}`, 1);
-  q.start('desert.power', 'light');
-  game.set('desert.tree.lit', true); q.update(null);
-  assert.equal(q.stage('desert.power'), 'gear');
-  assert.ok(leaveRefusal('desert', 'arzach', hasAll(game)), 'and the ship would refuse: the quest says so first');
-  // an old save fed before the Rose House (the order before #278): the gift had doesn't carry the quest past the gate
-  game.set('desert.ship.fed', true); q.update(null);
-  assert.equal(q.stage('desert.power'), 'gear', 'the ship fed, the quest still open: its step names what the ship waits for');
-  game.set('item.sword', 1); q.update(null);
-  assert.equal(q.stage('desert.power'), 'gear', 'the blade alone: not yet');
-  game.set('item.shield', 1); q.update(null); q.update(null);
-  assert.equal(q.isDone('desert.power'), true, 'both, and the gift had: the quest ends');
-  assert.equal(leaveRefusal('desert', 'arzach', hasAll(game)), null, 'and the ship goes: a done quest always means it can fly');
-});
-
-test('the desert: with the blade and the guard, Qanat’s gift follows the Rose House’s step (issue #278)', () => {
-  const { game, q } = mainQuest(DESERT_QUESTS, 'desert.power');
-  for (const i of DESERT_MAIN) game.set(`item.${i}`, 1);
-  q.start('desert.power', 'gear');
-  q.update(null);
-  assert.equal(q.stage('desert.power'), 'gear');
-  game.set('item.sword', 1); game.set('item.shield', 1); q.update(null);
-  assert.equal(q.stage('desert.power'), 'ship', 'on to the gift at the ship');
-  assert.equal(q.isDone('desert.power'), false);
-  game.set('desert.ship.fed', true); q.update(null);
+  const ids = d.stages.map(s => s.id);
+  assert.deepEqual(ids.slice(-6), ['blade', 'guard', 'gun', 'stone', 'light', 'ship']);
+  game.set('item.backpack', 1); game.set('item.doublejump', 1);
+  game.set('desert.ship.fed', true);
+  q.start('desert.power', 'blade'); q.update(null);
+  assert.equal(q.stage('desert.power'), 'blade');
+  for (const [item, next] of [['sword', 'guard'], ['shield', 'gun'], ['gun', 'stone']]) {
+    assert.ok(leaveRefusal('desert', 'arzach', hasAll(game)));
+    game.set(`item.${item}`, 1); q.update(null); assert.equal(q.stage('desert.power'), next);
+  }
+  assert.equal(leaveRefusal('desert', 'arzach', hasAll(game)), null);
+  game.set('desert.ship.fed', false);
+  game.set('desert.stone.taken', true); q.update(null);
+  assert.equal(q.stage('desert.power'), 'light');
+  game.set('desert.tree.lit', true); q.update(null); game.set('desert.ship.fed', true); q.update(null);
   assert.equal(q.isDone('desert.power'), true);
 });
 

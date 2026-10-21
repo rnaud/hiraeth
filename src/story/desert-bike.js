@@ -8,27 +8,10 @@ import { quietOr } from '../hint-level.js';
 import { keyText } from '../prompt-keys.js';
 import { t as tr } from '../i18n.js';
 
-// The desert's hoverbike isn't yours from the start. Marrow the salvager
-// dragged it into a hollow between the ship and the camps (STORY.bike, the dip
-// in desert-landmarks.js HOLLOWS) and threw a tarp over it; a red rag on a
-// tall mast on the hollow's lip marks the place (STORY.rag: issue #561, seen
-// from the tree's roots through Qanat's main gate). Until it is found the bike lies there half in the
-// sand (Hoverbike.rest: dormant, so no whistle, no "ride" prompt, nothing
-// moves it). The quest desert.bike (desert-data.js) is started by Rook near
-// the ship or by Marrow ("Got anything faster than walking?"), and leads to the
-// hollow; once Nour has sent you for the spark-stone (desert.spark.heard: the
-// Givers' Hearth is farther than walking) the main quest's own step does:
-//
-//   E on the tarp      pulls it back (desert.bike.uncovered)
-//   E on the bike      with a full tank: the tank swings into its cradle,
-//                      the bike lifts out of the sand and you're on it
-//                      (desert.bike.found); without the backpack, or with its
-//                      tank still empty (tool.empty: before the giant's pool),
-//                      "it runs on fluid"
-//
-// Flags: desert.bike.uncovered, desert.bike.found (the bike works as ever,
-// in this save, for good), desert.bike.v (migrateBike ran),
-// desert.marrow.bike (Marrow's word once it's found).
+// The hollow holds Kamal's prize bike. Pulling the tarp reveals it; a full
+// backpack lets the traveller borrow a race bike, not claim this one. Only
+// beating the visible rival grants desert.bike.found (and race.won). Existing
+// owners keep their earned bike through the original one-time migration.
 
 const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 const TARP = { w: 2.6, l: 4.2 };
@@ -92,6 +75,10 @@ export function setupHoverbike(ctx) {
   const site = hollowSite(ground);
   const bike = player.mount?.kind === 'bike' ? player.mount : null;
   const found = () => !!game.flag('desert.bike.found');
+  if (found() && game.flag('desert.bike.race.won') && !game.flag('desert.bike.race.taught')) {
+    game.set('desert.bike.race.taught', true);
+    toast(keyText(tr('teach.bikeCall'), { teach: true }));
+  }
   // fluid to run on: the backpack, filled (its tank is empty until the giant's pool, src/story/desert.js)
   const fuelled = () => items.has('backpack') && !game.flag('tool.empty');
   const uncovered = () => !!game.flag('desert.bike.uncovered') || found();
@@ -166,22 +153,20 @@ export function setupHoverbike(ctx) {
     const s = quests.stage('desert.bike');
     // (not when you could wake it this moment: no errand to hand you and take back at once)
     if ((s === undefined && !fuelled()) || s === 'find') quests.set('desert.bike', 'wake');
-    toast(fuelled() ? 'A hoverbike, half in the sand, smelling of fluid. Its cradle is empty.' : 'A hoverbike, half in the sand. It won’t wake: it runs on fluid, and you have none.');
+    toast(fuelled() ? 'Kamal’s wager: beat him around the canyon and this hoverbike is yours.' : 'A hoverbike, half in the sand. It won’t wake: it runs on fluid, and you have none.');
   };
-  const wakeBike = () => {
+  const raceForBike = () => {
     if (!items.has('backpack')) { toast(quietOr('It runs on fluid, and your back is bare.', 'It runs on fluid, and your back is bare. The city may hold some.')); return; }
     if (!fuelled()) { toast(quietOr('It runs on fluid, and your tank is empty.', 'Your tank is empty. Fill it at the giant’s pool, past Qanat’s back gate.')); return; }
-    game.set('desert.bike.found', true);
-    sound.chime?.();
-    toast(keyText(tr('teach.bikeCall'), { teach: true }));   // (a new verb, said once: src/hint-level.js teach)
-    if (bike) setTimeout(() => { if (!player.ride && flat(player.pos, bike.pos) < 6) player.board?.(bike); }, 350);
+    if (typeof ctx.playGame !== 'function') { toast('The race is not available here yet.'); return; }
+    ctx.playGame('?game=canyon-rival&from=desert');
   };
   registerInteractable({
     id: 'bike.tarp', priority: PRIORITY.use, range: 3.4,
     at: () => marker, enabled: () => !found(),
-    prompt: () => (!uncovered() ? 'pull back the tarp' : fuelled() ? 'wake the hoverbike' : 'look at the hoverbike'),
+    prompt: () => (!uncovered() ? 'pull back the tarp' : fuelled() ? 'race Kamal for the hoverbike' : 'look at the hoverbike'),
     distance: (p) => (Math.abs(p.pos.y - site.bike.y) < 4 ? flat(p.pos, site.bike) : Infinity),
-    use: () => (!uncovered() ? pullTarp() : wakeBike()),
+    use: () => (!uncovered() ? pullTarp() : raceForBike()),
   });
 
   const update = (dt, t, camPos) => {

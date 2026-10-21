@@ -249,7 +249,8 @@ export const BOOK = {
       [f('fellow.heart', 'on'), 'You told her to find where the singing goes first, and have something to show for it.'],
       [f('fellow.end', 'home'), 'She sent word ahead to Hesper that she is coming home, and gave you her compass. It still points after the light.'],
       [f('fellow.end', 'on'), 'She went on, past where the charts end, and gave you a letter for Hesper at the Salt Harbour.'],
-      [f('fellow.letter.given'), 'You gave Hesper the letter. She put it in the harbour book, after Tansy’s line.'],
+      [f('fellow.letter.posted'), 'You posted Tansy’s letter at the market’s night halt. It went into the Salt Harbour sack.'],
+      [{ all: [f('fellow.letter.given'), { not: f('fellow.letter.posted') }] }, 'You gave Hesper the letter. She put it in the harbour book, after Tansy’s line.'],
     ], [
       [f('fellow.end', 'home'), 'Home at the Salt Harbour, with Hesper.'],
       [f('fellow.end', 'on'), 'Somewhere past the last chart, where the singing goes.'],

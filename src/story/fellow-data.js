@@ -264,13 +264,13 @@ export const TANSY = {
         had: 4,
         do: [{ set: { 'fellow.end': 'on' } }, { give: 'saltletter' }],
         say: [
-          '~solemn~ Will you take this to my aunt? Hesper, at the Salt Harbour. (A page torn from her book, folded small.) It says where I went, and that I’m well. And the bit about the bird.',
+          '~solemn~ Will you post this to my aunt? Hesper, at the Salt Harbour. *The market’s night halt* takes letters. (A page torn from her book, folded small.) It says where I went, and that I’m well. And the bit about the bird.',
           '~neutral~ I’m keeping the compass. Sorry. I still need it.',
         ],
         choices: [
           { if: not({ flag: 'fellow.signed' }), text: '~happy~ (Sign the last page of her book.)', do: { set: { 'fellow.signed': true } }, goto: 'm4.signed' },
           { if: not({ flag: 'fellow.signed' }), text: '~neutral~ Keep the page for someone else.', goto: 'm4.bye' },
-          { if: { flag: 'fellow.signed' }, text: '~solemn~ I’ll take it to her.', goto: 'm4.kept' },
+          { if: { flag: 'fellow.signed' }, text: '~solemn~ I’ll post it to her.', goto: 'm4.kept' },
         ],
       },
       'm4.signed': { say: ['~happy~ There. Me on the first page, you on the last. The salt can have the harbour’s book. This one stays with me.'], next: 'm4.bye' },

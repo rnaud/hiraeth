@@ -62,8 +62,8 @@ export const FRAGMENTS = {
     [658.0, 24.45, 51.9],
     [-166.0, 27.03, 745.9],
     [-324.0, 7.61, 395.9],
-    [59.6, 19.92, 160.0],   // (#247; v1.87, #550) the first, easy: at the pilgrims’ cairn by the ship, 30 m from the ramp, the way the road comes down
-    [31.6, 23.16, 166.0],   // (#247; v1.87, #550) the second, easy: at the next cairn up the pilgrims’ road, 60 m from the ramp
+    [96.6, -0.08, 380.0],   // (#247; v1.87, #550) the first, easy: at the controlled landing’s return cairn (#603); same found slot
+    [66.6, -2.83, 355.0],   // (#247; v1.87, #550) the second, easy: at the next controlled-landing return cairn (#603); same found slot
     [-162.0, 10.93, 359.9],   // (v1.66, #250; v1.87, #550) among the sail tents
     [4.0, 21.37, 193.9],   // (v1.70, #317; v1.87, #550) by a pilgrims’ cairn on the old road
     [-386.0, 4.23, 629.9],   // (v1.70, #317; v1.87, #550) inside a ribcage
@@ -380,8 +380,8 @@ export const FRAGMENTS = {
  */
 export const FRAGMENT_PLACES = {
   desert: [
-    'Ribcage', 'The Rose House (2)', 'The giant’s arm', 'Crashed hull', 'Ribcage (5)', 'the pilgrims’ cairn (9)',
-    'the pilgrims’ cairn (8)', 'Sail tents', 'the pilgrims’ cairn (7)', 'Ribcage (4)', 'the light’s cairn (1)',
+    'Ribcage', 'The Rose House (2)', 'The giant’s arm', 'Crashed hull', 'Ribcage (5)', 'the pilgrims’ cairn (13)',
+    'the pilgrims’ cairn (12)', 'Sail tents', 'the pilgrims’ cairn (7)', 'Ribcage (4)', 'the light’s cairn (1)',
     'The giant’s hand', 'Ribcage (4)', 'Crashed hull', 'The Rose House (2)', 'a boat stranded in the dry wash',
     'Sail tents', 'Ribcage (5)', 'The Rose House (2)', 'the light’s cairn (2)', 'The giant’s arm', 'Ribcage',
     'the first qanat well', 'the light’s cairn (3)',

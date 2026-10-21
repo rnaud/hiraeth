@@ -85,7 +85,18 @@ test('Vael: the critical path passes over the wings’ last step once the route 
   } finally { W.dispose(); }
   const D = A.loadWorld('desert');
   try {
-    // (the desert's route never goes into the Rose House before its main quest ends, so its blade and guard are still a step)
-    assert.ok(criticalPath(D, 'desert').path.some((s) => s.label === 'The Givers’ blade and guard'));
+    // Main progression now enters one House before lighting the tree. Interior
+    // work is intentionally omitted from the outdoor audit, not from the quest.
+    const path = criticalPath(D, 'desert').path;
+    const house = path.findIndex(s => s.label === 'The Rose House');
+    const roots = path.findIndex(s => s.label === 'The tree’s roots');
+    assert.ok(house >= 0 && roots > house, 'Rose entry remains on the outdoor route before lighting');
+    const stages = D.quests.def('desert.power').stages;
+    assert.deepEqual(stages.slice(stages.findIndex(s => s.id === 'blade'), stages.findIndex(s => s.id === 'light')).map(s => s.id), ['blade', 'guard', 'gun', 'stone']);
+    for (const id of ['blade', 'guard', 'gun']) {
+      const step = stages.find(s => s.id === id);
+      assert.equal(step.at, 'temple.desert.next', `${id} follows reachable House work`);
+      assert.equal(step.gate, true, `${id} remains mandatory`);
+    }
   } finally { D.dispose(); }
 });

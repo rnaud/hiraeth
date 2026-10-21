@@ -59,24 +59,58 @@ test('actual playable model has through entry, walking floors, and human headroo
   const visitor=npc.clone().add(V(Math.sin(SCIENTIST.heading),0,Math.cos(SCIENTIST.heading)).multiplyScalar(1.6));
   assert.ok(physics.rayDistance(visitor.clone().add(V(0,1.2,0)),npc.clone().sub(visitor).normalize(),1.6)===Infinity,'conversation faces him across a clear aisle');
   for(let i=0;i<STAIRS.steps;i++) {
-    const z=STAIRS.z1-(i+.5)*(STAIRS.z1-STAIRS.z0)/STAIRS.steps, floor=deckAt(0,z);
-    assert.ok(Math.abs(physics.groundAt(0,floor+.5,z,1)-floor)<.03,`stair ${i} floor follows walking collision`);
-    assert.ok(physics.rayDistance(V(0,floor+.05,z),V(0,1,0),2.1)>2,`stair ${i} standing clearance`);
+    const z=STAIRS.z1-(i+.5)*(STAIRS.z1-STAIRS.z0)/STAIRS.steps, floor=deckAt(STAIRS.x,z);
+    assert.ok(Math.abs(physics.groundAt(STAIRS.x,floor+.5,z,1)-floor)<.03,`stair ${i} floor follows walking collision`);
+    assert.ok(physics.rayDistance(V(STAIRS.x,floor+.05,z),V(0,1,0),2.1)>2,`stair ${i} standing clearance`);
   }
 });
-test('rigid camp contents rise outside before retracting above the occupied living room',async()=>{
-  const m=buildShipModel({caravan:await asset()});
-  for(const name of ['porch-furniture','plants']) {
-    const contents=m.authored.getObjectByName(name), lift=m.authored.getObjectByName(name+'-lift');
-    assert.equal(lift.parent,contents);
-    for(const camp of [1,.9,.82,.76,.7,.6,.55,0,.55,.7,.82,1]) {
-      m.applyCamp(camp,0);m.group.updateMatrixWorld(true);
-      assert.deepEqual(contents.scale.toArray(),[1,1,1]);assert.deepEqual(lift.scale.toArray(),[1,1,1]);
-      const bounds=new THREE.Box3().setFromObject(contents);
-      assert.ok(Number.isFinite(bounds.min.y));
-      if(camp<=.7)assert.ok(bounds.min.y>3.3,`${name} clears living ceiling before inward movement: ${bounds.min.y}`);
+test('bolted furnishings travel rigidly with the deck and pack clear of inhabited rooms',async()=>{
+  const m=buildShipModel({caravan:await asset()}),deck=m.authored.getObjectByName('porch-panel');
+  const names=['camp-table','camp-seat-left','camp-seat-right','plants','porch-furniture'];
+  const rests=new Map();
+  m.applyCamp(1,0);m.group.updateMatrixWorld(true);
+  for(const name of names) {
+    const n=m.authored.getObjectByName(name);assert.ok(n,name);assert.equal(n.parent,deck);
+    rests.set(name,n.matrix.clone());
+    const bounds=new THREE.Box3().setFromObject(n);
+    if(name==='camp-table')assert.ok(Math.abs(bounds.max.y-.104-.89)<.04,'table and secured cups are human scale');
+    if(name.startsWith('camp-seat'))assert.ok(bounds.max.y-.104<1.10,'chair back below adult shoulders');
+  }
+  m.applyCamp(0,4);m.group.updateMatrixWorld(true);
+  const railBox=new THREE.Box3().setFromObject(m.authored.getObjectByName('porch-rail'));
+  assert.ok(railBox.min.x>-4.4,'folded rail stays behind the closed outer hatch');
+  assert.ok(railBox.max.y<6.4,'folded rail fits the hatch height');
+  for(let i=0;i<=40;i++) {
+    const camp=i/40;m.applyCamp(camp,0);m.group.updateMatrixWorld(true);
+    for(const name of names) {
+      const n=m.authored.getObjectByName(name);
+      assert.deepEqual(n.matrix.elements,rests.get(name).elements,`${name} stays bolted at ${camp}`);
+      assert.equal(n.visible,true,`${name} never vanishes`);
+      const bounds=new THREE.Box3().setFromObject(n);
+      for(const [room,r] of Object.entries(ROOMS)) {
+        const left=r.left??r.half,right=r.right??r.half;
+        const occupied=new THREE.Box3(V(-left+.11,r.floor+.05,r.z0+.12),V(right-.11,r.ceiling-.05,r.z1-.12));
+        assert.ok(!bounds.intersectsBox(occupied),`${name} intrudes into ${room} at camp=${camp}: ${bounds.min.toArray()} / ${bounds.max.toArray()}`);
+      }
     }
   }
+});
+test('camera space has no obsolete overhead garage partitions',async()=>{
+  const m=buildShipModel({caravan:await asset()}),physics=new Physics(new THREE.Scene());
+  physics.addCollider(m.group);for(const part of m.movingParts)physics.addMover(part);physics.syncMovers(1/60);
+  for(const z of [2,7])assert.equal(physics.rayDistance(V(0,4,z),V(1,0,0),3),Infinity,`clear upper camera space at z=${z}`);
+  assert.equal(physics.rayDistance(V(0,4,0),V(0,0,1),3),Infinity,'no floating garage end wall');
+});
+test('caravan navigation globe uses its one-metre contract without changing the original ship',async()=>{
+  const {HoloTable}=await import('../src/ship/holotable.js');
+  const c=buildShipModel({caravan:await asset()}),old=buildShipModel();
+  const globe=new HoloTable(c,'desert'),original=new HoloTable(old,'desert');
+  assert.equal(globe.body.material.uniforms.uBody.value.getHexString(),'70c9c5');
+  assert.equal(globe.face.scale.x,.5);assert.equal(original.face.scale.x,.3);
+  assert.equal(globe.group.position.y,1.1);assert.equal(c.interior.table.r,.225);
+  globe.group.updateMatrixWorld(true);
+  const size=new THREE.Box3().setFromObject(globe.group).getSize(V());
+  assert.ok(size.x<=1.001&&size.y<=1.001&&size.z<=1.001,`entire projection fits 1m: ${size.toArray()}`);
 });
 test('parked/orbit copies own resources without mutating the parsed asset',async()=>{
   const a=await asset(), parked=buildShipModel({caravan:a}), orbit=buildShipModel({caravan:a,space:true});
@@ -127,8 +161,8 @@ test('normal walking traverses every stair in both directions and the real entry
     assert.ok(reached,`walk reached ${target.toArray()} from ${start.toArray()}, stopped at ${player.pos.toArray()}`);
     assert.ok(Math.abs(player.pos.y-expectedY)<.25,`walking height ${player.pos.y}, expected ${expectedY}`);
   };
-  walk(V(0,.05,-2.8),V(0,0,-13.0),ROOMS.cockpit.floor);
-  walk(V(0,ROOMS.cockpit.floor+.05,-13),V(0,0,-2.8),0);
+  walk(V(STAIRS.x,.05,-2.8),V(STAIRS.x,0,-13.0),ROOMS.cockpit.floor);
+  walk(V(STAIRS.x,ROOMS.cockpit.floor+.05,-13),V(STAIRS.x,0,-2.8),0);
   walk(V(-2.1,.05,0),V(-22.2,0,0),-5);
   walk(V(-22.2,-4.95,0),V(-2.1,0,0),0);
 });
@@ -259,4 +293,56 @@ test('rounded caravan centres its aft pods inside the Space City pier without tu
  const next=findShipSite({level,physics,levelId:'spacecity',layout});
  assert.equal(old.x,0);assert.equal(next.x,5);assert.equal(next.z,128);assert.equal(next.heading,Math.PI);
  assert.equal(level.shipSite.x,0,'placement does not mutate the world definition');
+});
+
+
+test('expanded rooms retain clear floors and close the cockpit service cavities', async()=>{
+  const m=buildShipModel({caravan:await asset()});m.group.updateMatrixWorld(true);
+  const ph=new Physics(new THREE.Scene());ph.addCollider(m.group);
+  // Samples in the recovered floor strips, beyond the former 3.1/2.5 m room walls.
+  for(const p of [V(5.1,.1,3.8),V(4,.1,9.8),V(3.6,.1,15.8),V(4,.1,-9),V(4,.1,-.4),V(-3.5,.1,5.2),V(3.3,.1,6),V(-2.5,.1,10.7),V(2.4,.1,15.2)]) {
+    assert.ok(Math.abs(ph.groundAt(p.x,p.y+.5,p.z,1))<.03,`floor at ${p.toArray()}`);
+    assert.ok(ph.rayDistance(p,V(0,1,0),2.2)>2.1,`usable headroom at ${p.toArray()}`);
+  }
+  for(const x of [-4,2,4]) {
+    const hit=ph.rayDistance(V(x,7,-14),V(0,0,1),5);
+    assert.ok(hit>1.7&&hit<2.2,`cockpit rear enclosure at x=${x}: ${hit}`);
+  }
+  assert.ok(ph.rayDistance(V(3,1.6,-10),V(0,0,-1),4)<2.1,'lower forward bulkhead closes the cavity below the cockpit');
+});
+test('wake and message sightlines face the observation window without a screen in the face', async()=>{
+  const m=buildShipModel({caravan:await asset()});m.group.updateMatrixWorld(true);
+  const p=m.interior.points, forward=V(Math.sin(p.bunkStandHeading),0,Math.cos(p.bunkStandHeading));
+  assert.ok(forward.dot(p.voicemail.clone().sub(p.bunkStand).setY(0).normalize())>.99,'stand faces the blinking message');
+  const eye=p.cockpit.clone().add(V(0,1.7,0));
+  const ray=new THREE.Raycaster(eye,V(1,0,0),0,10);
+  const hits=ray.intersectObject(m.authored,true);
+  assert.equal(hits.length,0,`real outside view from message, blocked by ${hits.map(x=>x.object.name)}`);
+  assert.ok(Math.abs(m.interior.screen.centre.z-p.projector.z)-m.interior.screen.radius>.35,'date screen is beside the bust, not on its viewing axis');
+  const ph=new Physics(new THREE.Scene());ph.addCollider(m.group);
+  assert.ok(ph.rayDistance(eye,V(1,0,0),10)<5,'window still contains player and camera collision');
+});
+
+test('caravan follow camera stays inside its finished rooms during full turns', async()=>{
+  const {CameraRig}=await import('../src/player.js');
+  const m=buildShipModel({caravan:await asset()});m.group.updateMatrixWorld(true);
+  const ph=new Physics(new THREE.Scene());ph.addCollider(m.group);
+  const camera=new THREE.PerspectiveCamera(65,16/9,.3,5000);
+  const rig=new CameraRig(camera,{addEventListener(){}},ph);rig.indoor=true;
+  const points=[m.interior.points.bunkStand,m.interior.points.cockpit,V(0,0,7),V(0,0,13.2),V(STAIRS.x,deckAt(STAIRS.x,-10.3),-10.3),V(0,5.2,-16.2),V(STAIRS.x,5.2,-12.4)];
+  for(const p of points){
+    rig.pitch=.1;rig.target.copy(p);rig.snapTight(p);
+    for(let i=0;i<40;i++)rig.update(p,1/60);
+    let clipped=0;
+    for(let i=0;i<240;i++){
+      rig.look(-(Math.PI*2/240)/.0025,0);rig.update(p,1/60);
+      const f=camera.getWorldDirection(V(0,0,0));let bad=false;
+      for(const x of [-1,0,1])for(const y of [-1,0,1])for(const z of [-1,0,1]){
+        if(!x&&!y&&!z)continue;const d=V(x,y,z).normalize();
+        if(d.dot(f)>-.2&&ph.rayDistance(camera.position,d,.3)<.3)bad=true;
+      }
+      if(bad)clipped++;
+    }
+    assert.ok(clipped<=4,`lens clearance at ${p.toArray()}: ${clipped}/240 frames`);
+  }
 });

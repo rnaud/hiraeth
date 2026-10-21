@@ -1,0 +1,35 @@
+{
+  "selectedBy": "user hearts and explicit approval on 2026-10-21",
+  "source": "Midjourney",
+  "constraints": [
+    "Hologram diameter and total projection envelope <= 1 metre; compact 45cm projector.",
+    "Deck reference is colour/furniture style only. Latest user instruction replaces its wall hinges: furniture, cups and plants are bolted to the deck and rotate with it.",
+    "Preserve approved rounded caravan exterior, four rear boosters, real ink shader and original ship fallback."
+  ],
+  "images": [
+    {
+      "file": "cockpit.jpeg",
+      "url": "https://www.midjourney.com/jobs/ba3d8b04-7397-4046-904e-b1529d0ff68a?index=0"
+    },
+    {
+      "file": "voicemail.jpeg",
+      "url": "https://www.midjourney.com/jobs/d0090e4e-22fb-41e7-84b5-cbc17f119df5?index=2"
+    },
+    {
+      "file": "planet-hologram.jpeg",
+      "url": "https://www.midjourney.com/jobs/86c6d0cc-75ad-4b8d-a3d4-08670ef6fd3c?index=2"
+    },
+    {
+      "file": "galley.jpeg",
+      "url": "https://www.midjourney.com/jobs/3a5e3fc1-ba2f-4c66-931d-6df67d083153?index=1"
+    },
+    {
+      "file": "bunk.jpeg",
+      "url": "https://www.midjourney.com/jobs/fb56bddc-0e6c-47d5-b666-3d32e4912c1d?index=2"
+    },
+    {
+      "file": "deck-style.jpeg",
+      "url": "https://www.midjourney.com/jobs/da8eb776-7f3c-4fd6-a83e-b9b3d12d1f82?index=3"
+    }
+  ]
+}

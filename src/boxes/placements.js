@@ -67,14 +67,12 @@ export const PLACEMENTS = {
       ready: (g, it) => it.has('backpack') && !!g.flag('desert.door.open'),
       sealed: 'The makers’ chest sits shut and silent on its dais.',
       note: 'In the cave of the giant’s heart (the skull’s mouth, past Qanat’s back gate), in the makers’ shrine west of the pool, on a dais in a shaft of light. A full tank opens the shrine’s door.' },
-    // the fluid gun (a gadget) in the Givers' Hearth, whose push rolls the stone ball (the main quest's spark-stone), with
-    // its two modes, the push and ember (issue #83: one chest, not two side by side; ember mode had a chest of its own
-    // here in v1.44, src/save-migrate.js step 14 merges them): on the dais of the Givers' room, a round room of its own
-    // off the hall's east side (src/desert-hearth.js CHAMBER), facing the passage in
-    { id: 'desert.gun', item: 'gun', site: (level) => level.hearth?.chamber && { at: level.hearth.chamber.clone().setY(level.hearth.chamber.y + 0.3).toArray(), face: -Math.PI / 2 }, story: true,
-      note: 'In the Givers’ Hearth far out in the red rocks (the hoverbike’s ride), on the dais of the Givers’ room off the hall’s east side. The main quest goes there for the spark-stone.' },
+    // The same saved gun chest now follows the shield watcher inside the Rose House.
+    { id: 'desert.gun', item: 'gun', temple: 'desert', site: findSite('desert', 'gun'),
+      ready: g => !!g.flag('item.shield'), sealed: 'The chest waits for the Givers’ guard.',
+      note: 'Inside the Rose House, beyond the watcher’s shield gate, before the cistern. Its push releases the spark-stone in the spring room.' },
     // Qanat: on the flat roof of a domeless house inside the main gate (a 6 m climb)
-    // (issue #518: two cold braziers beside it, lit with the fluid gun's ember, which comes with the gun in the Givers' Hearth)
+    // (issue #518: two cold braziers beside it, lit with the fluid gun's ember, which comes with the gun in the Rose House)
     { id: 'desert.star', item: 'star', at: [246.9, 7.6, 363.6], lift: 0.5, toward: [230, 330], lock: { tool: 'ember' },
       hint: 'Between two braziers on a roof inside Qanat’s gate',
       note: 'A house roof just inside the main gate of the old city; climb its wall, and light the braziers either side of the chest with ember.' },
@@ -84,6 +82,7 @@ export const PLACEMENTS = {
     { id: 'desert.temple.sword', item: 'sword', temple: 'desert', site: templeSite('desert'),
       note: 'Inside the rose-stone house in the eastern dunes, in the round chamber past the sand pit.' },
     { id: 'desert.temple.shield', item: 'shield', temple: 'desert', site: findSite('desert', 'guard'),
+      ready: g => !!g.flag('item.sword'), sealed: 'Find the Givers’ blade on the Great Hall’s balcony first.',
       note: 'Inside the rose-stone house in the eastern dunes, in the Watcher’s Hall over the Hall of Fires’ bridge.' },
   ],
   incal: [

@@ -259,7 +259,8 @@ export class PrologueDirector {
     this.LM = ship.caravan ? V(-ship.layout.HALF_W - 5, COCKPIT_DECK + 2, -18) : V(-HALF_W - 5, DECK + 2.4 * SHIP_SCALE, -7.5 * SHIP_SCALE);   // nearest: a few metres off the hull, at the window's height
     this.LD = V(-0.45, -0.08, 0.89).normalize();              // the way it goes
     this.rec = { span: recordingSpan(PROLOGUE_CALL), who: onHologram('prologue'), label: recordingLabel('prologue') };
-    const c = ship.site.crash;
+    this.controlled = ship.site.landing === 'controlled';
+    const c = ship.site.crash ?? { travel: ship.site.heading, length: 0 };
     this.T = V(Math.sin(c.travel), 0, Math.cos(c.travel));
     this.N = V(this.T.z, 0, -this.T.x);
     const rest = ship.restPos;
@@ -267,6 +268,13 @@ export class PrologueDirector {
     this.touch.y = ship.groundAt(this.touch.x, this.touch.z) + (ship.layout?.LIFT ?? LIFT) - 1.0;   // (its belly just in the sand)
     this.S0 = this.touch.clone().addScaledVector(this.T, -1250).addScaledVector(this.N, 160).add(V(0, 620, 0));
     this.S1 = this.touch.clone().addScaledVector(this.T, -430).addScaledVector(this.N, 25).add(V(0, 95, 0));
+    if (this.controlled) {
+      // Finish the approach above the landing gear, then descend vertically without a skid.
+      this.touch.copy(rest).add(V(0, 5, 0));
+      const forward = V(0, 0, -1).applyQuaternion(ship.restQuat);
+      this.S0.copy(this.touch).addScaledVector(forward, -220).add(V(0, 70, 0));
+      this.S1.copy(this.touch).addScaledVector(forward, -65).add(V(0, 18, 0));
+    }
     this.look = new THREE.Vector3();
     // Plumb, asleep in its cradle until the landing, then the beat where it comes with him (issue #434: prologue-drone.js)
     this.bot = new PrologueDrone(ship.scene);
@@ -316,7 +324,7 @@ export class PrologueDirector {
         if (this.nudgeOff) { C.hint(null); this.nudgeOff = 0; }
         C.controls(false); C.bars(true);
         s.auto = null;
-        s.placePlayer(this.W(this.pt('cockpit')), s.worldHeading(sp, Math.PI), true);   // facing the recording
+        s.placePlayer(this.W(this.pt('cockpit')), s.worldHeading(sp, this.pt('cockpitHeading') ?? Math.PI), true);   // facing the recording
         sp.callScreen?.set({ who: 'tape', statik: 1, label: this.rec.label });
         break;
       }
@@ -339,7 +347,7 @@ export class PrologueDirector {
         this.humming?.stop(); this.humming = null;
         this.lightOff();
         sfx.hum(s.sound, 0);
-        s.setPower('dead', sp);
+        s.setPower(this.controlled ? 'emergency' : 'dead', sp);
         sp.callScreen?.set({ who: 'off', paused: false, statik: 0 });
         s.holo?.hide();
         C.say({ who: 'ship', text: 'Main power drained. Emergency reserve only.' });
@@ -354,10 +362,12 @@ export class PrologueDirector {
         s.placePlayer(this.P(pk.interior.points.hatchIn), s.worldHeading(pk, HATCH_A), false);
         pk.group.visible = true;
         s.crashSite && (s.crashSite.group.visible = true, s.crashSite.berm.visible = false);
-        s.setPower('dead', pk);
+        if (this.controlled) { pk.lightsOff = false; s.setDoor(pk, 0); s.setRamp(pk, 0); }
+        s.setPower(this.controlled ? 'emergency' : 'dead', pk);
         C.fade(0, true, 0.5);
         break;
       case 'land':
+        if (this.controlled) break;
         sfx.rumble(s.sound, 3.2, 0.7);
         rumblePlay('land', { speed: 44 });   // (on a pad: the belly touching down; src/rumble.js)
         s.shake(1.4);
@@ -510,7 +520,7 @@ export class PrologueDirector {
         const pos = this.lightFrame(nearAt - t, dt);
         // everything in the cockpit is lit by it as it nears; the father's picture shivers
         if (pos && t < nearAt + 0.4) s.holo?.glitch(0.25 * smooth(t / nearAt));
-        if (t > nearAt && !this.drained) { this.drained = true; rumblePlay('found'); s.setPower('dead', sp); sp.callScreen?.set({ statik: 1, talk: 0 }); s.holo?.glitch(1); C.fade(0.3, false, 0.5); }
+        if (t > nearAt && !this.drained) { this.drained = true; rumblePlay('found'); s.setPower(this.controlled ? 'emergency' : 'dead', sp); sp.callScreen?.set({ statik: 1, talk: 0 }); s.holo?.glitch(1); C.fade(0.3, false, 0.5); }
         if (t > nearAt - 0.6) sp.mats.core.uniforms.uGlow.value = Math.max(0, 0.6 * (1 - (t - nearAt + 0.6) / 1.2));
         if (t > 3.6 && !this.saidPass) { this.saidPass = true; C.say({ who: 'ship', text: 'Power draining.' }); }
         break;
@@ -528,6 +538,17 @@ export class PrologueDirector {
         break;
       }
       case 'glide': {
+        if (this.controlled) {
+          const u = smooth(t / 5.2), p = this.bez(u);
+          pk.group.position.copy(p);
+          pk.group.quaternion.copy(s.restQuat);
+          pk.gearAltitude = Math.max(0, p.y - s.restPos.y);
+          s.setRamp(pk, 0); // camp stays packed; landing gear follows height above its berth
+          exhaust(s, pk, dt, { power: .55 });
+          const cam = s.restPos.clone().addScaledVector(this.N, -75).addScaledVector(this.T, 35).add(V(0, 20, 0));
+          s.shot({ pos: cam, look: p, fov: 48 });
+          break;
+        }
         // dark, no fire: a long shallow fall on what reserve is left, a thin vapour behind it; the reserve's jets
         // only at the very end, to bring it in
         const u = Math.min(1, t / 5.2);
@@ -559,6 +580,23 @@ export class PrologueDirector {
         break;
       }
       case 'land': {
+        if (this.controlled) {
+          const u = smooth(t / 3.6);
+          pk.group.position.copy(this.touch).lerp(s.restPos, u);
+          pk.group.quaternion.copy(s.restQuat);
+          pk.gearAltitude = Math.max(0, pk.group.position.y - s.restPos.y);
+          s.setRamp(pk, 0);
+          exhaust(s, pk, dt, { power: .45 * (1 - u) + .08 });
+          if (t >= 3.25 && !this.touchedDown) {
+            this.touchedDown = true;
+            footPuffs(s, pk, { palette: SAND, n: 3, speed: 1.2, size: .25 });
+            rumblePlay('land', { speed: 2 });
+          }
+          const cam = s.restPos.clone().addScaledVector(this.N, -65).addScaledVector(this.T, -25).add(V(0, 12, 0));
+          cam.y = Math.max(cam.y, s.viewGround(cam.x, cam.z) + 3);
+          s.shot({ pos: cam, look: pk.group.position, fov: 48 });
+          break;
+        }
         // down on its belly, a short skid through the sand, and still
         const u = Math.min(1, t / 3.6), p = 1 - Math.pow(1 - u, 2.6);
         const pos = this.touch.clone().lerp(s.restPos, p);
@@ -840,7 +878,7 @@ export class CallDirector extends Sequence {
         dur: tl.total + 0.6,
         enter: () => {
           C.hud(false); C.bars(true);
-          ship.placePlayer(ship.world(m, m.interior.points.cockpit), ship.worldHeading(m, Math.PI), true);   // facing the recording
+          ship.placePlayer(ship.world(m, m.interior.points.cockpit), ship.worldHeading(m, m.interior.points.cockpitHeading ?? Math.PI), true);   // facing the recording
           m.callScreen?.set({ who: 'tape', statik: 1, label });
           sfx.beep(ship.sound, true);
         },

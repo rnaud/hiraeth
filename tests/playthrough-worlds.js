@@ -29,42 +29,52 @@ Object.assign(SOLVERS, {
     A.openBox(W, 'desert.lift', issue);
     if (!A.abilities(W).doublejump) issue('ability', 'no double jump out of the chest by the pool');
   },
-  // the Givers' chest in the Hearth's hall (v1.38): the fluid gun, which the ball's push wants
-  'desert.power:gun': (W, { issue }) => {
-    if (items.has('gun')) issue('ability', 'the gun before the Givers’ chest');
-    W.at(W.level.hearth.inside); W.step(2);
-    A.openBox(W, 'desert.gun', issue);
-    if (!A.abilities(W).gun) issue('ability', 'no fluid gun to push with out of the Givers’ chest');
+  'desert.power:bike': async (W, { issue }) => {
+    if (!items.has('backpack') || game.flag('tool.empty')) return issue('ability', 'race entry needs the filled backpack');
+    const { winDesertRival } = await import('./helpers/desert-rival-win.js');
+    await winDesertRival(game); W.step(2);
   },
-  // the Hearth: the ball rolled down its groove by a push lifts the grille; up on the shelf, E takes the stone
-  'desert.power:stone': (W, { issue }) => {
-    const H = W.level.hearth;
-    W.at(H.inside); W.step(2);
-    const weight = A.allTargets().find((t) => t.kind === 'weight');
-    if (!weight) return issue('no-thing', 'no stone ball to push');
-    if (!A.abilities(W).gun) return issue('ability', 'the stone ball wants the gun’s push, and he has no gun (or an empty tank)');
-    W.at(H.plinthFront); W.step(1);
-    weight.onHit('push');
-    W.step(30 * 6);
-    if (!game.flag('desert.hearth.open')) return issue('soft-lock', 'the push did not lift the grille');
-    W.at(H.shelfFront.clone().add(V(0, 0, -1.6)));
-    A.useHere(W, 'hearth.stone');
+  'desert.power:rose': async (W, { issue }) => {
+    if (!W.quests.isStarted('temple.desert')) ACTIONS.askSabri(W, issue);
+    const { nextSpot } = await import('../src/temples/index.js');
+    await A.templeTo(W, 'gadget', issue, { nextSpot, id: 'desert' }); W.step(2);
+  },
+  'desert.power:blade': async (W, options) => SOLVERS['desert.power:rose'](W, options),
+  'desert.power:guard': async (W, { issue }) => {
+    const { nextSpot } = await import('../src/temples/index.js');
+    await A.templeTo(W, 'done', issue, { nextSpot, id: 'desert' }); W.step(2);
+  },
+  'desert.power:gun': async (W, { issue }) => {
+    if (items.has('gun')) issue('ability', 'the gun before the Givers’ chest');
+    // Legacy saves can already own blade and guard without solving today's House.
+    // Follow its real puzzle state to the gun rather than teleport past its locked rooms.
+    if (!W.level.temple.logic.resolved) await SOLVERS['desert.power:guard'](W, { issue });
+    if (!items.has('gun')) {
+      W.at(V(...W.level.temple.findSites.gun.at)); W.step(2);
+      A.openBox(W, 'desert.gun', issue);
+    }
+    if (!A.abilities(W).gun) issue('ability', 'no fluid gun out of the Rose House chest');
+  },
+  'desert.power:stone': async (W, { issue }) => {
+    const T = W.level.temple, H = T.roseSpark;
+    if (!T.logic.resolved) await SOLVERS['desert.power:guard'](W, { issue });
+    W.at(H.refills[1]); W.step(2); A.useHere(W, 'rose.spring.refill.1');
+    const ball = T.byId.get('sparkBall');
+    if (!A.abilities(W).gun) return issue('ability', 'the weight needs the gun and a full tank');
+    W.at(ball.a.clone().addScaledVector(ball.dir, -2));
+    ball.hit('push', ball.dir, { strength: 1 }); W.step(60);
+    ball.hit('push', ball.dir, { strength: 1 }); W.step(30 * 30);
+    if (!game.flag('desert.hearth.open')) return issue('soft-lock', 'the pushed weight did not open the spark cage');
+    W.at(H.stoneRest); A.useHere(W, 'hearth.stone');
   },
   // back to the ship (its hatch says so: src/ship/ship.js emits ship:enter), where Qanat waits with its gift:
   // one by one they pour what they brought into it (src/story/desert-repay.js), and the ship wakes
   'desert.power:ship': (W) => { W.at(W.level.ship.pos); game.emit('ship:enter', { level: 'desert' }); W.step(30 * 26); },
-  // the main quest's last step while the blade and the guard are missing (issue #232): Sabri in the camps points to the
-  // Rose House, played to its guardian (the blade and the guard in its chests); the quest ends with them
-  'desert.power:gear': async (W, { issue }) => {
-    if (!W.quests.isStarted('temple.desert')) ACTIONS.askSabri(W, issue);
-    const { nextSpot } = await import('../src/temples/index.js');
-    await A.templeTo(W, 'done', issue, { nextSpot, id: 'desert' });
-    W.step(2);
-  },
+
 });
 Object.assign(CHECKS, {
   // the spark-stone goes into the pack, and nothing floats about him
-  'desert.power:light': (W) => (!W.quests.has('stone') ? 'the stone is not in the pack' : W.level.hearth.stone.visible ? 'the stone still shows in the world' : !W.quests.carried().length ? 'the gear lists nothing carried' : null),
+  'desert.power:light': (W) => (!W.quests.has('stone') ? 'the stone is not in the pack' : W.level.temple.roseSpark.stone.visible ? 'the stone still shows in the world' : !W.quests.carried().length ? 'the gear lists nothing carried' : null),
 });
 
 // ------------------------------------------------------------------ Vael: the wind up the lone tower, the steps, the flute, the bird
@@ -406,10 +416,7 @@ Object.assign(ACTIONS, {
 
 // ------------------------------------------------------------------ the route
 export const ROUTE = [
-  // (the Rose House after the main quest: it asks for nothing the Hearth gives, and its blade and guard are the
-  // traveller's before he leaves; tests/temples.test.js plays it on foot with nothing in hand)
-  // (Sabri in the camps sends you east to the Rose House: the way there is not the way home past its field-stone)
-  // (the main quest's last step is the Rose House's blade and guard, issue #232: its solver asks Sabri and plays the house)
+  // The race precedes the Rose House; all three weapons and the spark now lie on the main route.
   { id: 'desert', play: ['desert.power'] },
   // (Oïa sits by the landing: she points the way to the Aerie for the wings, and gives the main quest once they are had:
   //  the quest's play talks to her, its opener)

@@ -22,6 +22,7 @@ const { PEOPLE } = await import('../src/story/desert-data.js');
 const { STORY } = await import('../src/desert-sites.js');
 const { CONTENT } = await import('../src/levels/content.js');
 const { bestInteractable } = await import('../src/interact.js');
+const { awardRivalBike } = await import('../src/minigames/canyon.js');
 const { migrateBike } = await import('../src/story/desert-bike.js');
 const { Hoverbike, buildBike } = await import('../src/bike.js');
 const { buildSkiff } = await import('../src/levels/perdide.js');
@@ -71,7 +72,7 @@ test('a dormant bike can’t be boarded, whistled for or moved; awake it works a
   assert.ok(bike.auto, 'whistled, it comes');
 });
 
-test('the quest: Rook or Marrow send you to the hollow; the tarp, then the backpack, wake the bike', () => {
+test('the quest: uncover the bike, fuel the backpack, then win the rival race', () => {
   game.reset?.();
   const scene = new THREE.Scene();
   const level = createDesert(scene);
@@ -81,8 +82,8 @@ test('the quest: Rook or Marrow send you to the hollow; the tarp, then the backp
   const player = { pos: V(0, terrain.heightAt(0, 0), 0), vel: V(), wind: V(), heading: 0, riding: false, mount: bike, ride: null, vehicles: [bike],
     frame: { up: V(0, 1, 0), dir: (h, out) => out.set(Math.sin(h), 0, Math.cos(h)) }, boarded: null, board(v) { this.boarded = v; } };
   const sound = { setBands() {}, setBandMode() {}, band: () => null, chime() {}, listen() {}, whoosh() {} };
-  const toasts = [];
-  const rt = createStory({ levelId: 'desert', scene, physics, level, player, npcs: [], crowd: null, sound, journal: { sections: [], el: { addEventListener() {} } }, story: { complete() {} },
+  const toasts = [], launches = [];
+  const rt = createStory({ playGame: href => launches.push(href), levelId: 'desert', scene, physics, level, player, npcs: [], crowd: null, sound, journal: { sections: [], el: { addEventListener() {} } }, story: { complete() {} },
     capture: null, lib: null, humans: null, toast: (t) => toasts.push(t), tool: null });
   const { quests } = rt;
   const camera = new THREE.PerspectiveCamera();
@@ -127,16 +128,22 @@ test('the quest: Rook or Marrow send you to the hollow; the tarp, then the backp
   bestInteractable(player).entry.use();
   assert.ok(bike.dormant);
   assert.equal(player.boarded, null);
-  // with it: found, awake, and you get on
+  // With fluid the race opens, but the tarp never grants ownership.
   items.grant('backpack');
-  assert.equal(bestInteractable(player).entry.prompt(), 'wake the hoverbike');
+  assert.equal(bestInteractable(player).entry.prompt(), 'race Kamal for the hoverbike');
   bestInteractable(player).entry.use();
+  step(2);
+  assert.deepEqual(launches, ['?game=canyon-rival&from=desert']);
+  assert.equal(game.flag('desert.bike.found'), undefined, 'launching does not award the bike');
+  assert.equal(bike.dormant, true);
+  assert.equal(quests.isDone('desert.bike'), false);
+  awardRivalBike(game);
   step(2);
   assert.equal(game.flag('desert.bike.found'), true);
   assert.equal(bike.dormant, false);
   assert.equal(quests.isDone('desert.bike'), true);
   assert.notEqual(bestInteractable(player)?.entry.id, 'bike.tarp', 'the tarp is done with');
-  assert.ok(toasts.some((t) => /call it from anywhere with E\./.test(t)), 'the toast says how to call it, a new verb taught once (resolved as it is said: the key in hand)');
+  assert.equal(game.flag('desert.bike.race.won'), true);
 });
 
 test('the new models keep their seats, sockets and lights, within a handheld budget', () => {

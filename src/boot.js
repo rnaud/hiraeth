@@ -62,8 +62,8 @@ if (new URLSearchParams(location.search).has('debugsave')) {
   // are items by then; seeded without them, the page's debug save lacked the hook, the bombs and the rest the engines' has)
   const [{ seedDebugSave, DEBUG_PARAM, SLOT_PARAM }, { game }] = await Promise.all([import('./debug-save.js'), import('./game-state.js'), import('./gadgets/all.js')]);
   // (into the debug slot, or the player's slot chosen on the title's Saves screen: ?debugslot=<n>)
-  seedDebugSave(q.get('level'), { state: game, slot: q.get(SLOT_PARAM) });
-  q.delete(DEBUG_PARAM); q.delete(SLOT_PARAM);
+  seedDebugSave(q.get('level'), { state: game, slot: q.get(SLOT_PARAM), legacyLanding: q.get('debuglanding') === 'legacy' });
+  q.delete(DEBUG_PARAM); q.delete(SLOT_PARAM); q.delete('debuglanding');
   history.replaceState(null, '', `${location.pathname}?${q}`);
 }
 const worldsOnly = new URLSearchParams(location.search).get('worlds') === '1' && opensTitle(location.search);

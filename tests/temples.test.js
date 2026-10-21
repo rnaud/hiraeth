@@ -408,7 +408,7 @@ test('the gifts: a tool in every temple, the small gifts in the open, no gadget 
   for (const [id, g] of Object.entries(GADGETS)) {
     if (!g.built) continue;
     assert.ok(TEMPLES[id], `${id}: built`);
-    const box = placed.find((p) => p.temple === id);
+    const box = placed.find((p) => p.id === TEMPLES[id].def.gadgetBox);
     assert.ok(box && box.item === g.temple && box.id.startsWith(`${id}.`), `${id}: its temple chest holds ${g.temple}`);
     assert.equal(TEMPLES[id].def.gadgetBox, box.id);
     for (const it of g.world) assert.ok(PLACEMENTS[TEMPLE_HOME[id] ?? id].some((p) => p.item === it && !p.temple), `${id}: ${it} waits in the open`);
@@ -1145,13 +1145,28 @@ test('each built temple: a door in its world, solid rooms with marks, a chest si
       assert.ok(rt.inside(s), `${id}: ${m.room} inside the temple`);
     }
     // the chest's spot resolves (tests/boxes.test.js checks it is reachable like every box)
-    const box = Object.values(PLACEMENTS).flat().find((p) => p.temple === id);
+    const templeBoxes = Object.values(PLACEMENTS).flat().filter((p) => p.temple === id);
+    const box = templeBoxes.find((p) => p.id === TEMPLES[id].def.gadgetBox);
     const stood = resolvePlacement(box, { physics, level });
     assert.ok(stood, `${id}: the chest stands`);
     // on its dais, not sunk into it (the Spheres' chest stood on the floor under the dais: the QC pass)
     const site = rt.gadgetSite.at;
     assert.ok(Math.abs(stood.pos.y - site[1]) < 0.05, `${id}: the chest on top of its dais (${stood.pos.y.toFixed(2)} vs ${site[1]})`);
     assert.ok(Math.abs(physics.groundAt(site[0], site[1] + 1, site[2], 3) - site[1]) < 0.05, `${id}: the dais's top is solid`);
+    // A House can hold more than its canonical gadget: Rose also contains shield and gun.
+    for (const gift of templeBoxes) {
+      const placed = resolvePlacement(gift, { physics, level });
+      assert.ok(placed && rt.inside(placed.pos), `${gift.id}: chest inside its House`);
+      const floor = physics.groundAt(placed.pos.x, placed.pos.y + 1, placed.pos.z, 3);
+      assert.ok(Math.abs(floor - placed.pos.y) < .05, `${gift.id}: chest stands on its own solid floor`);
+    }
+    if (id === 'desert') {
+      assert.deepEqual(templeBoxes.map(p => p.item).sort(), ['gun', 'shield', 'sword']);
+      const stone = rt.roseSpark.stoneRest;
+      assert.ok(rt.inside(stone), 'spark-stone remains inside the Rose spring');
+      const floor = physics.groundAt(stone.x, stone.y + 1, stone.z, 3);
+      assert.ok(Number.isFinite(floor) && stone.y >= floor && stone.y - floor < 2, 'spark-stone rests within reach above a solid spring floor');
+    }
     assert.ok(level.lights.length >= 6, `${id}: lights inside`);
     // the scout points at the next thing to do
     assert.ok(nextSpot(rt).isVector3);
@@ -1498,6 +1513,10 @@ test('the Rose House on foot, with nothing in hand (issue #406: round its Great 
   wait(0.3);
   assert.equal(rt.checkpoint?.room, 'ante', 'the antechamber’s mark: the guardian’s checkpoint, a few steps from its door');
 
+  assert.equal(walk(L(1.6, 0, ROOMS.hall.z1 + 12), { run: false }), true, 'walk to the gun mound');
+  items.grant('gun'); game.set('box.desert.gun', true); game.emit('box:opened', { id: 'desert.gun', item: 'gun' });
+  assert.ok(items.has('gun'), 'the third weapon is earned before the Keeper');
+
   // ---- the Cistern: the Keeper wakes; light its bowls, guard its charge and give it water, then by a fire cut to it
   const K = rt.guardian;
   assert.equal(K.state, 'sleep');
@@ -1563,7 +1582,22 @@ test('the Rose House on foot, with nothing in hand (issue #406: round its Great 
   assert.equal(game.flag('temple.desert.done'), true, 'the world changes');
   wait(2.5);
   assert.ok(rt.logic.isOpen('d4') && rt.logic.isOpen('d5'), 'the doors open again, and the far one');
-  // ---- out by the spring's door
+  // ---- ordinary walking through the new spring, then the gun-driven weight and cage
+  const S0 = rt.roseSpark.room.z0;
+  assert.equal(walk(L(0, 0, S0 + 2), { run: false }), true, `into the spring (${where()})`);
+  assert.equal(walk(L(-9, 0, S0 + 2), { run: false }), true, 'left aisle');
+  assert.equal(walk(L(-9, 0, S0 + 11), { run: false }), true, 'behind the weight');
+  const weight = rt.byId.get('sparkBall');
+  assert.equal(rt.logic.isOpen('sparkGate'), false, 'the spark is still caged');
+  weight.hit('push', weight.dir, { strength: 1 }); wait(2);
+  weight.hit('push', weight.dir, { strength: 1 }); wait(25);
+  assert.equal(rt.logic.isOpen('sparkGate'), true, 'the actual rolling weight settles on its plate');
+  assert.equal(walk(L(0, 0, S0 + 11), { run: false }), true, 'approach the open cage');
+  assert.equal(walk(L(0, 0, S0 + 17), { run: false }), true, 'walk through its doorway to the spark');
+  assert.equal(walk(L(0, 0, S0 + 12), { run: false }), true, 'back through the doorway');
+  assert.equal(walk(L(-9, 0, S0 + 12), { run: false }), true, 'around the cage');
+  assert.equal(walk(L(-9, 0, S0 + 26), { run: false }), true, 'to its far side');
+  assert.equal(walk(L(0, 0, S0 + 26), { run: false }), true, 'back to the exit aisle');
   const out = level.portals.filter((p) => p.temple === 'desert').at(-1);
   assert.equal(walk(out.at, { tol: out.r }), true, `to the way out (${where()})`);
   wait(1);
@@ -1843,7 +1877,7 @@ test('a save from the Footprint before issues #336 and #401: its state as it was
   own();
 });
 
-test('the Rose House is solved with the backpack and the double jump, the blade and the guard found inside: no gun; not without the double jump, the blade or the guard', () => {
+test('the Rose House is solved with the backpack and the double jump, blade, guard and gun found inside in order; the spring needs the earned gun', () => {
   const L = TEMPLES.desert.def.logic;
   const r = solve(L, { items: ['backpack', 'doublejump'] });
   assert.equal(r.done, true, r.log.join(' / '));
@@ -1851,8 +1885,10 @@ test('the Rose House is solved with the backpack and the double jump, the blade 
   assert.equal(solve(L, { items: ['backpack'] }).done, false, 'the pier wants the double jump');
   assert.ok(!solve(L, { items: ['backpack', 'doublejump'], withhold: ['shield'] }).stuck.includes('ante'), 'the watcher before the cistern’s door wants the guard');
   assert.equal(L.elements.keeper.needs.includes('shield') && L.elements.keeper.needs.includes('sword'), true, 'the Keeper asks for both');
-  // nothing in the house asks for the gun, or a gun mode
-  for (const [id, e] of Object.entries(L.elements)) assert.ok(!(e.needs ?? []).some((n) => ['gun', 'fire', 'stun', 'bloom'].includes(n)), `${id}: no gun`);
+  assert.ok(r.log.indexOf('find gun (gun)') > r.log.indexOf('find guard (shield)'), 'the gun follows the guard');
+  assert.ok(L.elements.sparkBall.needs.includes('gun'), 'the spring teaches its push');
+  assert.equal(solve(L, { items: ['backpack', 'doublejump'], withhold: ['gun'] }).logic.isOpen('sparkGate'), false);
+  for (const [id, e] of Object.entries(L.elements)) assert.ok(!(e.needs ?? []).some((n) => ['fire', 'stun', 'bloom'].includes(n)), `${id}: no later-world gun mode`);
 });
 
 // (the Warden's Well on foot, round its Well and its breath since issue #413: tests/wardens-well.test.js)

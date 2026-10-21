@@ -413,7 +413,7 @@ export const SEQUENCES = [
     // the desert's ground decals that three pulls in front with a polygon offset (issue #463: in Unity only the splats'
     // reached the port): the sand banked against things, the salt pan, the tide lines, the sand river, the basin's
     // shore, the crash's scorch and its scrapes, each looked at from its edge nearest the start
-    id: 'decals', title: 'The ground\'s decals', setup: { level: 'desert', debug: true },
+    id: 'decals', title: 'The ground\'s decals', setup: { level: 'desert', debug: true, legacyLanding: true },
     beats: [
       // (a hair of look input first: the debug save is before the backpack, so the desert's first steps would print
       // "Look around…" after 6 s still, at a beat the machine's speed picks; looked at, it never comes)
@@ -493,7 +493,7 @@ export function webQuery(setup) {
   const q = new URLSearchParams({ level: setup.level });
   if (setup.review) { const e = catalogEntry(setup.review); q.set('cinematicReview', setup.review); for (const [k, v] of Object.entries(e?.query ?? {})) q.set(k, v); }
   if (setup.prologue) q.set('prologue', '1');
-  if (setup.debug) q.set('debugsave', '1');
+  if (setup.debug) { q.set('debugsave', '1'); if (setup.level === 'desert' && setup.legacyLanding) q.set('debuglanding', 'legacy'); }
   if (setup.game) { q.set('game', setup.game); q.set('from', setup.level); }
   if (setup.stage) q.set('stage', setup.stage);   // (the chime pirates' level, issue #555)
   if (setup.to) q.set('to', setup.to);             // (the world their flight is on the way to)
@@ -509,7 +509,7 @@ export function engineSetup(setup) {
   try { slotStorage.removeItem('hiraeth.journal.v1'); } catch { /* none */ }
   const e = setup.review ? catalogEntry(setup.review) : null;
   if (e) seedReviewEntry(e);
-  if (setup.debug) seedDebugSave(setup.level, { slot: DEBUG_SLOT, state: gameState });
+  if (setup.debug) seedDebugSave(setup.level, { slot: DEBUG_SLOT, state: gameState, legacyLanding: setup.legacyLanding });
   const opts = { levelId: setup.level };
   if (setup.prologue) opts.prologue = true;
   if (e?.query?.via) { opts.via = e.query.via; opts.arrive = true; }

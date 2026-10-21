@@ -3255,7 +3255,16 @@ export class CameraRig {
     this._chasePitched = false;        // the last follow had a chase that tips the view (the jets' climb or dive)
     this._settleT = 0; this._settleFrom = 0;   // after it: easing the view back to the on-foot pitch (PITCH_SETTLE)
 
-    dom.addEventListener('click', () => dom.requestPointerLock?.());
+    const refusedLock = (error) => {
+      // Embedded browsers can refuse pointer lock. Drag-to-look remains usable.
+      if (this._lockRefusalReported) return;
+      this._lockRefusalReported = true;
+      console.warn('Pointer lock refused; drag to look remains available.', error?.name ?? 'Error');
+    };
+    dom.addEventListener('click', () => {
+      try { Promise.resolve(dom.requestPointerLock?.()).catch(refusedLock); }
+      catch (error) { refusedLock(error); }
+    });
     dom.addEventListener('mousedown', () => (this._dragging = true));
     window.addEventListener('mouseup', () => (this._dragging = false));
     this.sensitivity = 1;

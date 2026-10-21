@@ -33,6 +33,13 @@ const ROLL = 1.3, DROP = 0.45, LIFT = 2.4;   // s: the ball rolls, drops, the gr
 /** ctx: the desert story's context; hasPush: () => the gun can push (found, the tank full); hasGun: () => the fluid gun is found; lit: () => the tree burns. */
 export function setupHearth(ctx, { hasPush = () => true, hasGun = () => true, lit = () => false } = {}) {
   const { level, player, quests, dialogue, game, sound, toast } = ctx;
+  if (level.temple?.roseSpark) {
+    const old = level.hearth;
+    if (old?.carving) registerInteractable({ id: 'hearth.carving', priority: PRIORITY.use, range: 3.2, at: () => old.carvingFoot,
+      distance: p => p.pos.distanceTo(old.carvingFoot), prompt: 'look at the carved frieze',
+      use: () => dialogue.start(THINGS.carving, null, old.carvingFoot.clone(), old.carving.clone()) });
+    return setupRoseSpark(ctx);
+  }
   const H = level.hearth;
   if (!H) return null;
   const opened = () => !!game.flag('desert.hearth.open');
@@ -149,4 +156,34 @@ export function setupHearth(ctx, { hasPush = () => true, hasGun = () => true, li
     }
   };
   return { update, state: st, roll, take, opened, taken, carrying };
+}
+
+/** The original story flags survive; the working puzzle now belongs to the Rose House. */
+export function setupRoseSpark({ level, player, quests, game, sound, toast }) {
+  const H = level.temple.roseSpark, rt = H.runtime;
+  const taken = () => !!game.flag('desert.stone.taken');
+  const opened = () => !!game.flag('desert.hearth.open') || rt.logic.isOpen('sparkGate');
+  if (game.flag('desert.hearth.open')) { rt.logic.moveDrum('sparkBall', 1); rt.logic.update(); const ball = rt.pieces.find(p => p.id === 'sparkBall'); if (ball) { ball.t = 1; ball.place(); } rt.byId.get('sparkGate')?.setOpen(true, true); }
+  const take = () => {
+    if (taken() || !opened() || !game.flag('item.gun')) return false;
+    quests.give('stone'); game.set('desert.stone.taken', true); sound.chime?.();
+    toast('The spark-stone warms your hand. Bring it to the wet roots of Qanat’s tree.'); return true;
+  };
+  registerInteractable({ id: 'hearth.stone', priority: PRIORITY.use, range: 2.5, at: () => H.stoneRest, distance: p => p.pos.distanceTo(H.stoneRest),
+    enabled: () => opened() && !taken(), prompt: 'take the spark-stone', use: take });
+  H.refills.forEach((at, i) => registerInteractable({ id: `rose.spring.refill.${i}`, priority: PRIORITY.use, range: 2.5, at: () => at, distance: p => p.pos.distanceTo(at),
+    enabled: () => !!game.flag('item.backpack'), prompt: 'fill your tank at the spring',
+    use: () => { game.emit('tool:refill', { addColour: false }); game.set('tool.empty', false); toast('The spring fills your tank.'); } }));
+  quests.locate('hearth', () => rt.outside.door.at);
+  quests.locate('sparkStone', () => taken() ? player.pos : H.stoneRest);
+  return { opened, taken, carrying: () => quests.has('stone'), take,
+    update(dt, t) {
+      if (rt.logic.isOpen('sparkGate') && !game.flag('desert.hearth.open')) game.set('desert.hearth.open', true);
+      if (rt.inside(player.pos) && !game.flag('desert.hearth.seen')) game.set('desert.hearth.seen', true);
+      if (H.stone.userData.placing) return;
+      H.stone.visible = !taken() && rt.inside(player.pos);
+      if (!taken()) { H.stone.position.copy(H.stoneRest); H.stone.scale.setScalar(0.96 + 0.04 * Math.sin(t * 2)); }
+      H.stoneLight.w = H.stone.visible ? 8 + 2 * Math.sin(t * 2) : 0;
+    },
+  };
 }

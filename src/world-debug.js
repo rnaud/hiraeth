@@ -21,6 +21,7 @@ import { kitTrialsFor } from './trials/kit-data.js';
 import { SITES, STORY } from './desert-sites.js';
 import { CINEMATICS } from './cinematics-page/catalog.js';
 import { partsOf, shiftAt } from './levels/names.js';
+import { SHIP_MODELS } from './ship/selection.js';
 
 /** The kinds of place, in the order the menu shows them: [key, title, its line]. */
 export const KINDS = [
@@ -285,11 +286,17 @@ export const KIND_TABS = { landing: 'Landing', quest: 'Quests', people: 'People'
  * is a switch's on or off; `head` a heading the cursor steps over. `caps`: the acts the host can carry out (null: all;
  * an engine leaves out the page's: films, the screenshot, the hitboxes, the input display, the Debug menu, pages).
  */
-export function devTabs({ world = '', points = [], films = [], quests = [], toggles = {}, save = '', notes = null, items = [], flags = [], boxes = null, levels = [], levelId = null, motion = false, traveller = null, caps = null } = {}) {
+export function devTabs({ world = '', points = [], films = [], quests = [], toggles = {}, save = '', notes = null, items = [], flags = [], boxes = null, levels = [], levelId = null, motion = false, traveller = null, ship = null, caps = null } = {}) {
   const can = (k) => !caps || caps.has(k);
   const tabs = [];
   const tp = (p) => ({ label: p.label, hint: [p.hint, fmt(p.pos)].filter(Boolean).join(' · '), act: { do: 'tp', point: p }, ...(p.room ? { tag: 'room' } : {}) });
   const sw = (key, label, hint, act = { do: 'toggle', key }) => ({ label, hint, act, state: !!toggles[key] });
+  if (ship) tabs.push({ id: 'ship', name: 'Ship', title: 'Your ship', line: 'Choose the ship for your next world load',
+    note: 'Return to the title and continue, or travel to another world. Your progress stays the same. The ship you are standing in stays until then.',
+    rows: SHIP_MODELS.map(model => ({
+      label: model.name, hint: ship.active === model.id ? 'Currently in this world' : 'Available for the next world load',
+      act: { do: 'ship', id: model.id }, tag: ship.selected === model.id ? 'selected' : '', now: ship.selected === model.id,
+    })) });
   tabs.push({ id: 'world', name: 'World', title: world || 'This world', line: 'its key places: a teleport lands you on your feet, facing it · every place by kind on the tabs further on',
     rows: keyPlaces(points).map(tp), empty: 'Nowhere to go here.' });
   tabs.push({ id: 'cheats', name: 'Cheats', title: 'Cheats', line: 'for this session: god mode is never saved (the potions and the jets are)', rows: [

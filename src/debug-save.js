@@ -38,6 +38,7 @@
 // save being played. The worlds list writes the debug slot (DEBUG_SLOT); the title's Saves screen may write one of
 // the player's own slots instead, once asked (seedDebugSave's `slot`, ?debugslot=<n>: src/boot.js).
 
+import { CONTROLLED_LANDING_FLAG } from './ship/sites.js';
 import { ORDER, TITLES, partsOf } from './levels/names.js';
 import * as glassdunes from './story/glassdunes-people.js';
 import * as underwater from './story/underwater-people.js';
@@ -142,7 +143,7 @@ const endKeepsake = (data, flags) => data.KEEPSAKE ?? data.keepsakeFor?.(flags['
 export function progressBefore(levelId, { order = ORDER, now = Date.now() } = {}) {
   const before = worldsBefore(levelId, order);
   if (!before) return null;
-  const flags = { 'prologue.done': true, 'items.v': 2, 'save.migrated': MIGRATED(), [GIVEN]: true, [CARD]: true, 'ship.level': 'desert' };
+  const flags = { 'prologue.done': true, [CONTROLLED_LANDING_FLAG]: true, 'items.v': 2, 'save.migrated': MIGRATED(), [GIVEN]: true, [CARD]: true, 'ship.level': 'desert' };
   const keepsakes = [];
   const journal = { relics: {}, stories: {}, seen: {}, errands: {} };
   let t = now - 1000 * 60 * (before.length + 1);
@@ -257,9 +258,11 @@ export const opensInDebugSave = (levelId, order = ORDER) => order.includes(level
  * until a save is chosen on the title. No other slot is ever written. `state` (the shared game state, if already
  * loaded) reads the new save. Returns the progress, or null.
  */
-export function seedDebugSave(levelId, { store = slots, state = null, now = Date.now(), slot = DEBUG_SLOT } = {}) {
+export function seedDebugSave(levelId, { store = slots, state = null, now = Date.now(), slot = DEBUG_SLOT, legacyLanding = false } = {}) {
   const p = progressBefore(levelId, { now });
   if (!p) return null;
+  // Explicit compatibility fixture only: ordinary debug saves use the controlled berth.
+  if (levelId === 'desert' && legacyLanding) delete p.flags[CONTROLLED_LANDING_FLAG];
   const n = debugSlot(slot);
   store.remove(n);
   store.setActive(n);

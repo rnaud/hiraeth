@@ -801,7 +801,7 @@ function exterior(scene, level, rt) {
   // The tall blue pointed arch is part of the swept shell. Its dark recess stays
   // behind the retained portal, so approaching the new door takes the same route in.
   // (the teal frames, two, stepping back into the ochre arch; their light pale peach: src/temples/portal.js)
-  const P = portal(K, { y: sill, z: R + .9, w: 6, h: 17.8, shape: 'pointed', layers: 2, step: 3.6, recess: .6, back: .9, into: 4,
+  const P = portal(K, { y: sill, z: R + .9, w: 6, h: 17.8, shape: 'pointed', layers: 2, step: 3.6, recess: .6, back: .9, into: 4, foot: .08,
     frame: lmCeramic('#409aa8'), inlay: '#ffd9b8' });
   // the great steps down to the plain
   const foot = level.ground.heightAt(...(() => { const p = K.world(0, 0, R + 34); return [p.x, p.z]; })()) - base;

@@ -58,6 +58,7 @@ import { applyTimeOfDay, colourScript } from '../src/timeofday.js';
 import { EDGE_HINTS } from '../src/edge.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { loadPlayableCaravan } from '../src/ship/caravan-asset.js';
+import { shipSetting, shipResume } from '../src/ship/selection.js';
 import { SceneMirror } from './mirror.js';
 import { Wildlife } from '../src/wildlife.js';
 import { ReactiveWorld } from '../src/reactive-world.js';
@@ -424,7 +425,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   DRIFT_FITS.later = !!deferred;
   DRIFT_FITS.most = DRIFT_PIECE;   // (a piece's triangles tested at most: each made on the frame's thread here)
   wallOpenings.reset();   // (one world at a time in a VM: the last one's pieces let go before the builders lay theirs)
-  const caravan = await loadPlayableCaravan('');
+  const caravan = await loadPlayableCaravan('', { variant: shipSetting.get('') });
   let level;
   // (back from a game started from the Arcade, ?level=arcade&back=<id> on the page: in front of that game's sign, as the
   // level reads it from the address, src/levels/arcade.js; engine/unity/game.js carries it through the reboot)
@@ -628,7 +629,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   if (people && humans && lib) {
     try {
       if (!playPrologue) gameState.data.flags['prologue.done'] = true;
-      story = quiet(() => createStory({ levelId, scene, physics, level, player, npcs, crowd, sound, journal, story: storyPage ?? { complete() {}, start() {}, done: false, waitFor: null },
+      story = quiet(() => createStory({ playGame: (href) => onGame?.(href), levelId, scene, physics, level, player, npcs, crowd, sound, journal, story: storyPage ?? { complete() {}, start() {}, done: false, waitFor: null },
         capture: backend.portrait ? (eye, look, w, h, o) => portraitCapture(eye, look, w, h, o) : null, lib, humans, toast, tool, isNight: () => { try { return sky.hour < 6.4 || sky.hour > 19.3; } catch { return false; } }, ship, drone: () => null }));
     } catch (e) { log('the story failed to start', e?.message ?? e); }
   }
@@ -1304,6 +1305,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   function bakeAround() {
     for (let k = 0; k <= waters.bodies.length && waters.bakeStep(player.pos, Infinity); k++);
   }
+  start = shipResume(start, ship);
   // where the traveller starts when the engine plays (not a bench's views): the save's place in this world (main.js
   // "continue where you left off"), else at the foot of the ship's ramp, as arriving by ship (ship.arrivalSpot). A
   // plan (-idle, -tour, -walk, -play) starts at the level's spawn, as the web's ?level= does: the ship has already moved
@@ -1409,6 +1411,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     onTravel: (id) => { menus.close(); onTravel?.(id); },
     world: () => ({
       world: meta.title,
+      ship: { active: caravan ? 'caravan' : 'original', selected: shipSetting.get('') },
       points: gatherPoints({ levelId, level, quests: story?.quests ?? null, npcs, boxes, relics, ship, content, games: GAMES }),
       quests: story?.quests ? questList(story.quests, levelId) : [],
       toggles: { fps: !!settings?.showFps, god: !!player.god, potions: !!resources.potions.infinite, jets: gear.has('jetpack') },
@@ -1572,7 +1575,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     save() {
       // (not while a ship's scene plays: the opening's traveller stands in the ship in orbit, a take-off's in the air)
       if (!saves || flags || pinned || player.dead || player.god || (shipOn && ship.playing) || gameDef) return;   // (god mode: never saved, you would load in the air)   // (a game's page keeps the place you left the world at)
-      SaveGame.write({ level: levelId, pos: player.pos.toArray(), heading: player.heading, yaw: rig.yaw, hour: sky.hour, up: player.frame.up.toArray(), fwd: player.frame.fwd.toArray() });
+      SaveGame.write({ level: levelId, pos: player.pos.toArray(), heading: player.heading, yaw: rig.yaw, hour: sky.hour, up: player.frame.up.toArray(), fwd: player.frame.fwd.toArray(), shipModel: caravan ? 'caravan' : 'original', aboardShip: !!ship.inside });
     },
     /**
      * The game menu's panels (src/game-menu-data.js menuSources, as main.js wires them, with what the engine carries:

@@ -22,7 +22,7 @@ const flat = (p, q) => Math.hypot(q[0] - p.x, q[q.length - 1] - p.z);
  * them, worked out as the beat starts) on the keys: the camera turned at each point (the stick's forward is the
  * camera's), the keys held the whole way. Its state is kept on G.
  */
-export function walkTo(name, points, { run = true, timeout = 90 } = {}) {
+export function walkTo(name, points, { run = true, timeout = 90, near = NEAR } = {}) {
   return {
     name, timeout,
     hold: run ? { KeyW: true, ShiftLeft: true } : { KeyW: true },
@@ -31,7 +31,7 @@ export function walkTo(name, points, { run = true, timeout = 90 } = {}) {
       const R = G.route, p = G.player.pos, q = R.points[R.i];
       if (!q) return true;
       const d = flat(p, q);
-      if (d < NEAR) { R.i++; R.best = Infinity; R.at = G.since; return R.i >= R.points.length; }
+      if (d < near) { R.i++; R.best = Infinity; R.at = G.since; return R.i >= R.points.length; }
       if (d < R.best - 0.5) { R.best = d; R.at = G.since; }
       else if (G.since - R.at > STUCK) {
         // (no headway: set down at the point, on the ground there)
@@ -49,6 +49,15 @@ export function walkTo(name, points, { run = true, timeout = 90 } = {}) {
 /** The keys let go. */
 const stop = (name = 'stop', wait = 1.5) => ({ name, hold: { KeyW: false, ShiftLeft: false }, wait });
 const kill = (G) => { for (const f of [...(G.foes?.list ?? [])]) if (f.alive) G.foes.hurt(f, 'blade', new THREE.Vector3(0, 0, 1), { damage: 99 }); };
+
+// Follow the real porch and offset staircase rather than cutting diagonally through the rooms.
+function shipWalkPoints(G) {
+  const S=G.ship,m=S.parked,stairs=S.layout?.STAIRS;
+  if(!stairs){const f=S.rampFoot,p=S.roomSpot('main').pos,c=S.roomSpot('cockpit')?.pos??p;return [[f.x,f.z],[p.x,p.z],[c.x,c.z]];}
+  const world=(x,y,z)=>S.world(m,new THREE.Vector3(x,y,z));
+  return [S.rampFoot,S.hinge,S.world(m,m.interior.points.hatchIn),S.world(m,m.interior.points.aboard),
+    world(stairs.x,0,stairs.z1+.5),world(stairs.x,stairs.rise,stairs.z0-.6),S.roomSpot('cockpit').pos].map(p=>p.toArray());
+}
 
 export const ROUTES = [
   {
@@ -107,9 +116,9 @@ export const ROUTES = [
     id: 'route-board', title: 'Boarding the ship', setup: { level: 'desert', debug: true },
     beats: [
       { name: 'settle', wait: 3 },
-      walkTo('board', (G) => { const f = G.ship.rampFoot, m = G.ship.roomSpot('main').pos, c = G.ship.roomSpot('cockpit')?.pos ?? m; return [[f.x, f.z], [m.x, m.z], [c.x, c.z]]; }, { run: false, timeout: 60 }),
+      walkTo('board', (G) => shipWalkPoints(G), { run: false, timeout: 60, near: .45 }),
       stop('aboard', 3),
-      walkTo('out', (G) => { const f = G.ship.rampFoot, m = G.ship.roomSpot('main').pos; return [[m.x, m.z], [f.x, f.z], [2 * f.x - m.x, 2 * f.z - m.z]]; }, { run: false, timeout: 60 }),
+      walkTo('out', (G) => shipWalkPoints(G).reverse(), { run: false, timeout: 60, near: .45 }),
       stop('outside', 3),
     ],
   },

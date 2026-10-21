@@ -20,6 +20,7 @@ import { game as sharedGame } from './game-state.js';
 import { items, ITEMS } from './items.js';
 import { devTabs, DevNav, tabWindow } from './world-debug.js';
 import { glyph } from './pad-glyphs.js';
+import { shipSetting } from './ship/selection.js';
 
 /** The story's big switches on the Story tab: [flag, label]. */
 export const STORY_FLAGS = [['prologue.done', 'Prologue done'], ['ship.powered', 'Ship powered'], ['desert.bike.found', 'Hoverbike found'], ['desert.tree.lit', 'Qanat’s tree lit'], ['tool.empty', 'Tank empty']];
@@ -101,7 +102,8 @@ export class DevMenu {
   choose() { const r = this.nav.current(this.tabs); if (r) this.act(r.act); }
   /** A row's act: the old dev menu's done here, the world's handed to the host; then drawn again. */
   act(a) {
-    if (a.do === 'item') this.setItem(a.id, !items.has(a.id));
+    if (a.do === 'ship') shipSetting.set(a.id);
+    else if (a.do === 'item') this.setItem(a.id, !items.has(a.id));
     else if (a.do === 'items') { if (a.all) this.allItems(); else this.noItems(); }
     else if (a.do === 'boxes') { if (a.open) this.openAllBoxes(); else this.resetBoxes(); }
     else if (a.do === 'flag') this.setFlag(a.key, !this.g.flag(a.key));

@@ -15,8 +15,9 @@ const _rc = new THREE.Raycaster();
 /** How high a step up may be: a plain jump, the lift valve's double jump (tests/playthrough-agent.js RISE). */
 export const RISE = { jump: 1.4, doublejump: 4.8 };
 /** The flood's cell (m), world by world: 1 m where the way up is a narrow stair a 2 m grid steps off (the floating city's
- * stack, the broken moon's street and spiral: v1.61, #228), else 2. */
-export const REACH_CELL = { spacecity: 1, moonfoundry: 1 };
+ * stack, the broken moon's street and spiral: v1.61, #228). Desert's new berth shifts the grid phase; its cairn
+ * shoulder also needs 1 m samples to resolve the valid double-jump landing, else 2 m skips it (v1.92, #603). */
+export const REACH_CELL = { desert: 1, spacecity: 1, moonfoundry: 1 };
 export const reachCell = (id) => REACH_CELL[id] ?? 2;
 
 /**

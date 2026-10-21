@@ -52,7 +52,7 @@ const SAVES = [
     data: { flags: DESERT_GEAR('gear'), keepsakes: [] },
     journal: { stories: {}, seen: { desert: 1 } },
     known: ['desert', 'arzach', 'perdide'],
-    play: { world: 'desert', quests: ['desert.power'], stage: 'gear' },
+    play: { world: 'desert', quests: ['desert.power'], stage: 'blade' },
     after: (issue) => {
       if (!items.has('sword') || !items.has('shield')) issue('it ended without the blade and the guard');
       if (!game.flag('desert.ship.fed') || !game.flag('ship.powered')) issue('the gift it had was lost');
@@ -64,7 +64,7 @@ const SAVES = [
     data: { flags: DESERT_GEAR('ship'), keepsakes: [] },
     journal: { stories: {}, seen: { desert: 1 } },
     known: ['desert', 'arzach', 'perdide'],
-    play: { world: 'desert', quests: ['desert.power'], stage: 'gear' },
+    play: { world: 'desert', quests: ['desert.power'], stage: 'blade' },
     after: (issue) => {
       if (!items.has('sword') || !items.has('shield')) issue('it ended without the blade and the guard');
       if (!game.flag('desert.ship.fed')) issue('no gift at the ship');
@@ -135,7 +135,9 @@ const SAVES = [
     play: { world: 'desert', quests: ['desert.power'], stage: 'fill' },
     after: (issue) => {
       if (!game.flag('desert.tree.lit')) issue('the tree it saw burn is cold');
-      for (const s of ['spark', 'bike', 'hearth', 'stone']) if (game.flag(`desert.${s}.heard`) || game.flag(`desert.${s}.seen`) || game.flag(`desert.${s}.taken`)) issue(`it was sent on the spark-stone's errand (${s})`);
+      // hearth.seen now marks the shared Rose interior; visiting it for missing equipment is valid.
+      assert.ok(!game.flag('desert.stone.taken'), 'a previously lit tree does not require the stone again');
+      for (const s of ['spark', 'bike', 'stone']) if (game.flag(`desert.${s}.heard`) || game.flag(`desert.${s}.seen`) || game.flag(`desert.${s}.taken`)) issue(`it was sent on the spark-stone's errand (${s})`);
     },
   },
   {
@@ -146,6 +148,8 @@ const SAVES = [
     play: { world: 'desert', quests: ['desert.power'], stage: 'elder' },
     after: (issue) => {
       if (!items.has('backpack')) issue('a save from before the items lost the backpack');
+      if (!items.has('doublejump')) issue('the old save skipped the valve needed to cross the Rose House');
+      if (!game.flag('temple.desert.done')) issue('the old save took the spring stone without reaching the Keeper');
       if (game.flag('tool.empty')) issue('its tank was emptied');
     },
   },
@@ -181,3 +185,30 @@ for (const S of SAVES) {
     assert.deepEqual(issues, []);
   });
 }
+
+
+test('Rose main equipment guidance follows reachable work after the blade, not the shield behind unopened gates', async () => {
+  A.loadSave({ flags: { 'save.migrated': MIGRATED(), 'desert.quest.v': 7, 'prologue.done': true,
+    'quest.desert.power': 'blade', 'item.backpack': true, 'item.doublejump': true,
+    'desert.bike.found': true, 'desert.pool.tinted': true, 'desert.door.open': true }, keepsakes: [] });
+  const issues = [], W = A.loadWorld('desert', { journal: A.memoryJournal() });
+  try {
+    const { nextSpot } = await import('../src/temples/index.js');
+    await A.templeTo(W, 'gadget', (kind, text) => issues.push(`${kind}: ${text}`), { nextSpot, id: 'desert' });
+    W.step(2);
+    assert.equal(W.quests.stage('desert.power'), 'guard');
+    assert.equal(W.level.temple.logic.next(), 'ballK');
+    const target = A.objectiveNow(W).raw.position;
+    assert.ok(target.distanceTo(nextSpot(W.level.temple)) < .01, 'main quest targets the next actionable House piece');
+    assert.ok(target.distanceTo(new (await import('three')).Vector3(...W.level.temple.findSites.guard.at)) > 20, 'the locked shield chest is not the current route target');
+    A.walkCheck(W, W.player.pos, target, text => issues.push(text));
+    assert.deepEqual(issues, [], 'ordinary walking reaches the marked work before closed wing gates');
+    await A.templeTo(W, 'done', (kind, text) => issues.push(`${kind}: ${text}`), { nextSpot, id: 'desert' });
+    assert.equal(W.level.temple.logic.resolved, true);
+    // A pre-consolidation completed House can be missing the newly moved gun.
+    game.set('item.gun', false); game.set('box.desert.gun', false); game.set('temple.desert.found.gun', false);
+    assert.equal(W.level.temple.logic.next(), 'gun', 'resolved legacy House still points to its unearned gun');
+    assert.ok(nextSpot(W.level.temple).distanceTo(new (await import('three')).Vector3(...W.level.temple.findSites.gun.at)) < .01);
+    assert.deepEqual(issues, []);
+  } finally { W.dispose(); }
+});

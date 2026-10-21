@@ -468,10 +468,10 @@ const use = (id) => {
 };
 const promptOf = (e) => (typeof e.entry.prompt === 'function' ? e.entry.prompt() : e.entry.prompt);
 
-test('the main quest, end to end: an empty tank, the drain cleared, the tank filled, the well, the bike, the Hearth, the stone, the tree lit, the ship', async (t) => {
+test('the main quest, end to end: an empty tank, the drain cleared, the tank filled, the well, the race, the Rose House, the stone, the tree lit, the ship', async (t) => {
   t.mock.timers.enable({ apis: ['setTimeout'] });   // (the story's delayed toasts and turns run on the test's clock: WAIT)
   const { items } = await import('../src/items.js');
-  const W = rt.world, H = level.hearth;
+  const W = rt.world, H = level.temple.roseSpark;
   assert.equal(quests.stage('desert.power'), 'down');
   assert.equal(quests.objective().label, 'The giant’s skull');
   // Nour said the old verse herself: the mouth is a door
@@ -574,15 +574,15 @@ test('the main quest, end to end: an empty tank, the drain cleared, the tank fil
   assert.equal(talk(THINGS.roots, []).nodeId, 'full');
   step(2);
   assert.equal(quests.stage('desert.power'), 'spark');
-  // Nour tells of the spark-stone and the Givers' Hearth
+  // Nour tells of the race and the Rose House
   const cold = new DialogueRunner(PEOPLE.nour, { game, quests });
   assert.equal(cold.nodeId, 'cold', 'Nour: the tree drank, and stays cold');
   assert.match(cold.pages.join(' '), /spark-stone/);
-  assert.match(cold.pages.join(' '), /Givers’ Hearth/);
+  assert.match(cold.pages.join(' '), /Rose House/);
   while (!cold.ended && (!cold.lastPage || !cold.choices().length) && cold.advance());
-  assert.deepEqual(cold.choices().map((c) => c.text.replace(/^~\w+~ /, '')), ['I’ll bring the stone back.', 'Marrow won’t mind?']);
+  assert.deepEqual(cold.choices().map((c) => c.text.replace(/^~\w+~ /, '')), ['I’ll bring the stone back.', 'Whose bike is it?']);
   // she says where the bike is herself (it was "ask Marrow at the camps": issue #63)
-  assert.match(cold.pages.join(' '), /hollow with the red rag/);
+  assert.match(cold.pages.join(' '), /red-rag hollow/);
   assert.equal(game.flag('desert.spark.heard'), true);
   step(2);
   assert.equal(quests.stage('desert.power'), 'bike');
@@ -592,51 +592,33 @@ test('the main quest, end to end: an empty tank, the drain cleared, the tank fil
   at(W.hollow.site.bike.clone().add(V(1.5, 0, 0)).setY(terrain.heightAt(W.hollow.site.bike.x + 1.5, W.hollow.site.bike.z)));
   use('bike.tarp');           // the tarp
   step(30);
-  const wake = bestInteractable(player);
-  assert.equal(promptOf(wake), 'wake the hoverbike', 'a full tank wakes it');
-  wake.entry.use(player);
-  step(2);
-  assert.equal(game.flag('desert.bike.found'), true);
-  assert.equal(quests.stage('desert.power'), 'hearth');
-
-  // ---- the Givers' Hearth: far out in the red rocks, the marked stones on the way
-  const d = Math.hypot(H.door.x - Q.city.center.x, H.door.z - Q.city.center.z);
-  assert.ok(d > 1500, `the Hearth is ${d.toFixed(0)} m from Qanat: farther than walking`);
-  assert.ok(quests.objective().position.distanceTo(H.door) < 0.01, 'the marker is at its door');
-  assert.ok(H.stones.length >= 8, `${H.stones.length} marked stones on the way`);
-  for (let i = 1; i < H.stones.length; i++) assert.ok(H.stones[i].distanceTo(H.stones[i - 1]) < 200, 'a stone in sight of the last');
-  at(H.doorFront); step(2);
-  // ---- the Givers' chest in the hall (v1.38): the fluid gun, whose push rolls the ball
-  assert.equal(quests.stage('desert.power'), 'gun');
-  items.grant('gun');
-  step(2);
-  assert.equal(quests.stage('desert.power'), 'stone');
-  const [inPortal] = level.portals.filter((p) => p.label === 'Givers’ Hearth');
-  assert.ok(inPortal && inPortal.to.distanceTo(H.inside) < 0.1, 'its door leads into the hall');
-  at(H.inside); step(2);
-  // the stone breathes light behind its grille: take it? not yet
-  const glowA = H.stoneLight.w;
-  step(45);
-  assert.notEqual(H.stoneLight.w, glowA, 'the stone’s light pulses');
-  at(H.shelfFront.clone().add(V(0, 0, -1.6)));
-  assert.notEqual(bestInteractable(player)?.entry.id, 'hearth.stone', 'the grille is down: no taking it');
-  // a shot rocks the ball; a push rolls it down its groove, it drops, and the grille rises
-  const weight = allTargets().find((t) => t.kind === 'weight');
-  at(H.plinthFront); step(1);
-  assert.ok(weight.enabled());
-  weight.onHit('shoot');
-  assert.equal(game.flag('desert.hearth.open'), undefined, 'a shot only rocks it');
-  weight.onHit('push');
-  step(30 * 5);
-  assert.equal(game.flag('desert.hearth.open'), true, 'the grille is up');
-  assert.ok(H.grille.position.y - H.grilleRest.y > 1.5);
-  // climb up to the shelf and take it
-  at(H.shelfFront.clone().add(V(0, 0, -1.6)));
-  use('hearth.stone');
+  // The race's independent integration test proves a real finish; this story test supplies
+  // its result and checks the ownership gate/quest handoff, never the old free-bike interaction.
+  const entry = level.temple.portals.find(p => !p.toUp);
+  assert.equal(entry.when(), false);
+  game.set('desert.bike.race.won', true); game.set('desert.bike.found', true); step(2);
+  assert.equal(entry.when(), true);
+  assert.equal(quests.stage('desert.power'), 'rose');
+  assert.ok(!level.portals.some(p => p.label === 'Givers’ Hearth'));
+  at(level.temple.arrival.pos); game.set('temple.desert.entered', true); step(2);
+  assert.equal(quests.stage('desert.power'), 'blade');
+  items.grant('sword'); step(2); assert.equal(quests.stage('desert.power'), 'guard');
+  items.grant('shield'); step(2); assert.equal(quests.stage('desert.power'), 'gun');
+  items.grant('gun'); step(2); assert.equal(quests.stage('desert.power'), 'stone');
+  at(H.stoneRest); step(2);
+  assert.notEqual(bestInteractable(player)?.entry.id, 'hearth.stone', 'closed cage cannot give the stone');
+  const weight = level.temple.byId.get('sparkBall');
+  weight.hit('water', weight.dir); step(40);
+  assert.equal(game.flag('desert.hearth.open'), undefined);
+  for (let i = 0; i < 30 * 30; i++) {
+    if (i === 0 || i === 60) weight.hit('push', weight.dir, { strength: 1 });
+    weight.update(1 / 30, i / 30); level.temple.logic.update(); step(1);
+  }
+  assert.equal(game.flag('desert.hearth.open'), true);
+  at(H.stoneRest); use('hearth.stone'); step(2);
   assert.ok(quests.has('stone') && game.flag('desert.stone.taken'));
-  step(2);
   assert.equal(quests.stage('desert.power'), 'light');
-  assert.equal(H.stone.visible, false, 'in your pack: nothing floats about you');
+  assert.equal(H.stone.visible, false);
   assert.ok(quests.carried().includes(ITEMS.stone), 'your gear lists it');
   assert.equal(talk(PEOPLE.nour, []).nodeId, 'stone');
 
@@ -676,19 +658,8 @@ test('the main quest, end to end: an empty tank, the drain cleared, the tank fil
   assert.ok(crowd.people.filter((p) => p.spot?.id === 'procession').every((p) => p.lines === LINES.drinking), 'the procession sings');
   assert.equal(talk(PEOPLE.ama, []).nodeId, 'drinking');
   step(2);
-  // the Rose House not yet visited: its blade and guard are the next step, before Qanat's gift (issue #278), and Ama and
-  // Nour say so; at the ship nothing is given yet, and it stays dark
-  assert.equal(quests.stage('desert.power'), 'gear', 'the blade and the guard first, and the quest says so');
-  assert.match([talk(PEOPLE.nour, []).pages].flat().join(' '), /blade and guard from the Rose House/);
+  assert.equal(quests.stage('desert.power'), 'ship', 'all three weapons were earned before the stone');
   const R = rt.world.repay;
-  at(R.ramp().clone()); step(2);
-  game.emit('ship:enter');
-  step(30 * 4, 1 / 30, { people: true });
-  assert.ok(!R.state.placed && !game.flag('desert.ship.fed') && !game.flag('ship.powered'), 'Qanat waits for the Rose House: no gift yet, the ship dark');
-  // the blade and the guard out of their chests in the Rose House: Qanat sets off for the ship with its gift
-  game.set('item.sword', 1); game.set('item.shield', 1);
-  at(V(518, 36, 372)); step(2);
-  assert.equal(quests.stage('desert.power'), 'ship');
   // back to the ship (the ship's own hatch emits ship:enter; walking up works too): Qanat repays you. Its people
   // come down to the ship with what they can spare and pour it in, one by one (src/story/desert-repay.js)
   at(R.ramp().clone()); step(2);
@@ -808,7 +779,7 @@ test('side quests: Teo’s drum, Ilo at the skull, Oum home from the dunes, the 
   talk(PEOPLE.oum, []);
   assert.ok(quests.has('cord'));
   // the old story beacon is now a short visit
-  talk(CONTENT.desert.npcs[1], ['What sleeps']);
+  talk(CONTENT.desert.npcs[1], ['There’s a giant under the city?', 'And the south?']);
   at(V(-20, terrain.heightAt(-20, -372), -372)); step(2);
   assert.equal(quests.stage('desert.mask'), 'eyes', 'there: sand over its eyes');
   // both eyes washed clear at once (src/story/desert-errands.js)

@@ -524,7 +524,8 @@ test('the engines\' ways through (issue #264): a doorway walked into carries the
   const { exports } = loadBundle(file);
   const warn = console.warn, info = console.info; console.warn = console.info = () => {};
   try {
-    const game = await exports.createGame({ levelId: 'desert', backend: recorder().backend });
+    // This is the earned-bike doorway fixture; fresh Rose refusal is covered by door-walk.test.js.
+    const game = await exports.createGame({ levelId: 'desert', backend: recorder().backend, flags: { 'desert.bike.found': true } });
     const P = game.level.portals ?? [];
     assert.ok(P.length > 2, 'the desert\'s doorways, caves and hatches');
     game.frame(1 / 30);

@@ -1,0 +1,129 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import * as THREE from 'three';
+import { solve } from '../src/temples/logic.js';
+import { DESERT_TEMPLE, LOGIC } from '../src/temples/desert.js';
+import { migrateTemples } from '../src/temples/migrate.js';
+import { Physics } from '../src/physics.js';
+import { TempleRuntime } from '../src/temples/runtime.js';
+import { roseReady, migrateRoseRoute } from '../src/story/desert-rose.js';
+import { QUESTS } from '../src/story/desert-data.js';
+import { PLACEMENTS } from '../src/boxes/placements.js';
+import { setupRoseSpark } from '../src/story/desert-spark.js';
+import { clearInteractables, bestInteractable } from '../src/interact.js';
+
+function state(flags = {}) {
+  const data = { ...flags }, events = [];
+  return { data, events, flag: k => data[k], set: (k, v) => { data[k] = v; }, emit: (k, v) => events.push([k, v]), on: () => () => {} };
+}
+function house(flags = {}) {
+  const game = state(flags), scene = new THREE.Scene();
+  const items = { has: id => !!game.flag(`item.${id}`) };
+  const rt = new TempleRuntime({ scene, level: { ground: { heightAt: () => 0 }, lights: [] }, def: DESERT_TEMPLE, game, items });
+  return { game, rt, scene };
+}
+
+test('fresh Rose route earns blade, guard and gun in order, then opens the spark cage without an imported weapon', () => {
+  for (const reverse of [false, true]) {
+    const r = solve(LOGIC, { items: ['backpack', 'doublejump'], reverse });
+    assert.equal(r.done, true, r.stuck?.join(','));
+    const steps = ['take chest (sword)', 'find guard (shield)', 'find gun (gun)', 'resolve keeper', 'roll sparkBall onto sparkPlate'];
+    const indices = steps.map(s => r.log.indexOf(s));
+    assert.ok(indices.every((v, i) => v >= 0 && (!i || v > indices[i - 1])), r.log.join('\n'));
+    assert.equal(r.logic.isOpen('sparkGate'), true);
+  }
+  for (const missing of ['sword', 'shield', 'gun']) {
+    const r = solve(LOGIC, { items: ['backpack', 'doublejump'], withhold: [missing] });
+    assert.equal(r.logic.isOpen('sparkGate'), false, `${missing} cannot be skipped`);
+  }
+});
+
+test('race entry and old-save migration preserve earned equipment without awarding a fresh bike', () => {
+  const fresh = state({ 'quest.desert.power': 'spark' });
+  migrateRoseRoute(fresh, 6); assert.equal(roseReady(fresh), false);
+  assert.equal(fresh.flag('desert.bike.found'), undefined);
+  for (const earned of ['desert.bike.found', 'desert.bike.race.won']) assert.equal(roseReady(state({ [earned]: true })), true);
+  for (const earned of ['item.sword', 'item.shield', 'item.gun', 'temple.desert.entered', 'desert.stone.taken', 'ship.powered']) {
+    const old = state({ [earned]: true, 'quest.desert.power': 'gear' });
+    assert.equal(migrateRoseRoute(old, 6), 'blade'); assert.equal(roseReady(old), true);
+    assert.equal(old.flag(earned), true); assert.equal(old.flag('desert.bike.found'), undefined);
+  }
+  const old = state({ 'quest.desert.power': 'hearth', 'item.gun': true, 'desert.hearth.open': true });
+  assert.equal(migrateRoseRoute(old, 6), 'rose'); assert.equal(old.flag('desert.hearth.open'), true);
+  assert.equal(migrateRoseRoute(old, 7), null);
+});
+
+test('quest and chest placements point inside one House and retain all saved box identifiers', () => {
+  const stages = QUESTS.find(q => q.id === 'desert.power').stages.map(s => s.id);
+  assert.deepEqual(stages.slice(stages.indexOf('bike'), stages.indexOf('light')), ['bike', 'rose', 'blade', 'guard', 'gun', 'stone']);
+  assert.ok(!stages.includes('hearth'));
+  const { rt } = house();
+  const gun = PLACEMENTS.desert.find(p => p.id === 'desert.gun');
+  assert.equal(gun.temple, 'desert'); assert.deepEqual(gun.site({ temple: rt }).at, rt.findSites.gun.at);
+  assert.equal(gun.ready(state()), false); assert.equal(gun.ready(state({ 'item.shield': true })), true);
+  assert.ok(rt.roseSpark.refills.every(p => rt.inside(p)), 'both renewable basins belong to the House');
+  assert.ok(rt.roseSpark.refills[0].distanceTo(new THREE.Vector3(...rt.findSites.gun.at)) < 8, 'refill before guardian at the gun');
+  rt.dispose();
+});
+
+test('the actual final weight rejects bare fluid and blade, accepts the gun, saves the open cage and refills an empty tank', () => {
+  clearInteractables();
+  const { rt, game } = house({ 'item.backpack': true });
+  const ball = rt.byId.get('sparkBall'), owned = new Set();
+  const player = { pos: rt.roseSpark.stoneRest.clone() };
+  const quests = { give: id => owned.add(id), has: id => owned.has(id), locate() {} };
+  const spark = setupRoseSpark({ level: { temple: rt }, player, quests, game, sound: {}, toast() {} });
+  assert.equal(spark.take(), false);
+  ball.hit('water', ball.dir); ball.hit('blade', ball.dir); ball.hit('push', ball.dir);
+  for (let i = 0; i < 60; i++) ball.update(1 / 60, i / 60);
+  assert.equal(ball.t, 0, 'no gun means no movement');
+  game.set('item.gun', true);
+  for (let i = 0; i < 1800 && !rt.logic.isOpen('sparkGate'); i++) {
+    if (i === 0 || i === 120) ball.hit('push', ball.dir, { strength: 1 });
+    ball.update(1 / 60, i / 60); rt.logic.update();
+  }
+  assert.equal(rt.logic.isOpen('sparkGate'), true, `weight reached ${ball.t}`);
+  spark.update(1 / 60, 10); assert.equal(game.flag('desert.hearth.open'), true);
+  assert.equal(spark.take(), true); assert.equal(spark.take(), false); assert.ok(owned.has('stone'));
+  for (const at of rt.roseSpark.refills) {
+    player.pos.copy(at); game.set('tool.empty', true);
+    const use = bestInteractable(player); assert.match(use.entry.id, /^rose.spring.refill\./); use.entry.use();
+    assert.equal(game.flag('tool.empty'), false);
+  }
+  assert.equal(game.events.filter(([id]) => id === 'tool:refill').length, 2);
+  rt.dispose(); clearInteractables();
+});
+
+
+test('new gun aisle and spark room have continuous walking floors and clear headroom', () => {
+  const { rt, scene } = house();
+  const physics = new Physics(scene, { heightAt: () => 0 });
+  const { z0, z1 } = rt.roseSpark.room;
+  const points = [];
+  for (const x of [-8, 8]) for (let z = z0 + 2; z <= z1 - 2; z += 2) points.push(rt.kit.world(x, 0, z));
+  const gun = new THREE.Vector3(...rt.findSites.gun.at);
+  points.push(gun.clone().add(new THREE.Vector3(-2, -0.3, 0)));
+  for (const p of points) {
+    const floor = physics.groundAt(p.x, p.y + 1.8, p.z, 3);
+    assert.ok(Number.isFinite(floor) && Math.abs(floor - p.y) < 0.12, `floor at ${p.toArray()}: ${floor}`);
+    const hit = physics.rayDistance(p.clone().add(new THREE.Vector3(0, 0.1, 0)), new THREE.Vector3(0, 1, 0), 3);
+    assert.ok(!(hit < 2.3), `headroom at ${p.toArray()}: ${hit}`);
+  }
+  rt.dispose();
+});
+
+test('a pre-consolidation visitor is relocated once and keeps the gun chest already earned outside', () => {
+  const old = state({ 'temple.desert.layout': 5, 'temple.desert.entered': true, 'temple.desert.checkpoint': 'cistern', 'temple.desert.relaid': null, 'item.gun': 1, 'desert.stone.taken': true });
+  migrateTemples(old);
+  assert.equal(old.flag('temple.desert.layout'), 6);
+  assert.equal(old.flag('temple.desert.relaid'), true);
+  assert.equal(old.flag('temple.desert.checkpoint'), 'cistern');
+  assert.equal(old.flag('box.desert.gun'), true);
+  assert.equal(old.flag('item.gun'), 1);
+  assert.equal(old.flag('desert.stone.taken'), true);
+  old.set('temple.desert.relaid', null); migrateTemples(old);
+  assert.equal(old.flag('temple.desert.relaid'), null, 'not relocated again after settling');
+  const fresh = state(); migrateTemples(fresh);
+  assert.equal(fresh.flag('temple.desert.relaid'), undefined);
+  assert.equal(fresh.flag('box.desert.gun'), undefined);
+});

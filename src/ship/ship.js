@@ -7,7 +7,7 @@ import * as caravanLayout from './caravan-layout.js';
 import { caravanStowPose } from './caravan-deployment.js';
 import { polar } from './geo.js';
 import { CONSOLE_R, TABLE_R, ROOMS, inRooms, cockpitHalf } from './interior.js';
-import { findShipSite, siteAvoid, decorAvoid } from './sites.js';
+import { LEGACY_DESERT_SITE, CONTROLLED_LANDING_FLAG, findShipSite, siteAvoid, decorAvoid } from './sites.js';
 import { buildCrashSite } from './crash.js';
 import { buildApproach } from './approach.js';
 import { HoloTable } from './holotable.js';
@@ -92,8 +92,11 @@ export class Ship {
     this.noShadow = level.noShadow ?? (level.noShadow = []);
     this.heightAt = level.ground?.heightAt ? (x, z) => level.ground.heightAt(x, z) : null;
     const avoid = [...siteAvoid({ level, content }), ...decorAvoid(scene, level, { near: level.spawn }).filter((d) => d.y1 > level.spawn.y - 20 && d.y0 < level.spawn.y + 40)];
-    const site = (this.site = findShipSite({ level, physics, levelId, avoid, ...(caravan ? { layout: this.layout } : {}) }) ?? { x: level.spawn.x + 30, z: level.spawn.z, heading: -Math.PI / 2, ground: level.spawn.y, source: 'fallback' });
-    this.crashed = !!site.crash && !game.flag('ship.launched');
+    if (levelId === 'desert' && prologue) game.set(CONTROLLED_LANDING_FLAG, true);
+    const siteLevel = levelId === 'desert' && game.flag('prologue.done') && !game.flag(CONTROLLED_LANDING_FLAG) && !level.shipSite
+      ? { ...level, shipSite: LEGACY_DESERT_SITE } : level;
+    const site = (this.site = findShipSite({ level: siteLevel, physics, levelId, avoid, ...(caravan ? { layout: this.layout } : {}) }) ?? { x: level.spawn.x + 30, z: level.spawn.z, heading: -Math.PI / 2, ground: level.spawn.y, source: 'fallback' });
+    this.crashed = !!site.crash && site.landing !== 'controlled' && !game.flag('ship.launched');
     this.inside = false;
     this.reboard = new ReboardGate();   // (stepped out: the ramp doesn't offer to take you straight back in, src/ship/landing.js)
     this.cam = null;          // a cinematic camera, or null to leave the rig alone

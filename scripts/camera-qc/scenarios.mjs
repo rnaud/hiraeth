@@ -40,6 +40,11 @@ export const SHIP_WAY = {
   aft: [[0, 4.8], [0, 11], [2.2, 11.8], [0, 15.2], [0, 18.6], [-1.0, 19.6], [0, 17.6], [0, 8], [0, 2.4], [-4.4, 0.9]],
 };
 
+// Keep the real landing spawn, but aim the open-sand exercise south (-Z), away from Qanat.
+// The city-facing arrival heading now crosses roofs before its first turn; that is not open-ground framing.
+// Interior/roof collision coverage remains in desert-shop, ship-walk and train-roof.
+export const DESERT_OPEN_YAW = 0;
+
 export const SCENARIOS = [
   // ---------------------------------------------------------------- the train
   { name: 'train-walk', world: 'overnighttrain', about: 'walking from the landing deck through the library, the sleepers and the dining car to the balcony, the camera turned after the way',
@@ -58,7 +63,7 @@ export const SCENARIOS = [
     at: [SHIP_SITE.x + 12, FLOOR + 0.1, 10], yaw: along, segs: [{ for: 30, path: [[LW.x0 + 3, 11], [LW.x0 + 3, -11], [LW.x1 - 3, -11], [LW.x1 - 3, 11]], steer: 120 }] },
   // ---------------------------------------------------------------- the open, a town, a room, a fight
   // (framing: the traveller's height on the screen judged on foot in the open, Sable's third of the frame: lib.mjs LIMITS.framing)
-  { name: 'desert-open', world: 'desert', about: 'running across the open sand from the landing: turns, jumps', framing: true,
+  { name: 'desert-open', world: 'desert', about: 'running south across the open sand from the landing: turns, jumps', framing: true, yaw: DESERT_OPEN_YAW,
     segs: [{ for: 8, stick: [0, 1], run: true }, { for: 4, stick: [0, 1], run: true, turn: 70 }, { for: 6, stick: [0, 1], run: true, jumpEvery: 1.3 }, { for: 4, turn: -150 }, { for: 6, stick: [0.6, 0.8] }] },
   { name: 'desert-shop', world: 'desert', about: 'inside Qanat’s shop (an 8 × 7 m room): round the room between the counter and the door, turning, the camera after the way',
     setup: `const s = level.shops?.[0]; if (s) { const c = s.counter.at, l = s.counter.look, d = new THREE.Vector3(c.x - l.x, 0, c.z - l.z).normalize(), r = new THREE.Vector3(-d.z, 0, d.x);

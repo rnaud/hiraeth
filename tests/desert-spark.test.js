@@ -65,7 +65,7 @@ test('saves from before the rework: a tree that already drank keeps burning, and
   // the water rose in the old story (the channel open): the tree was burning, and stays so
   // (the blade and the guard had, as src/save-migrate.js migrateGivers gives an old save: without them a save at the gift
   // goes back to the Rose House's step, issue #278, below)
-  for (const [stage, flags] of [['fill', { 'desert.channel.open': true }], ['ship', { 'desert.channel.open': true, 'desert.jar.filled': true, 'item.sword': 1, 'item.shield': 1 }], ['done', { 'desert.ship.fed': true, 'ship.powered': true }]]) {
+  for (const [stage, flags] of [['fill', { 'desert.channel.open': true }], ['ship', { 'desert.channel.open': true, 'desert.jar.filled': true, 'item.sword': 1, 'item.shield': 1, 'item.gun': 1 }], ['done', { 'desert.ship.fed': true, 'ship.powered': true }]]) {
     const g = save(stage, flags);
     assert.equal(migrateDesertQuest(g), null, `${stage}: the stage stays where it was`);
     assert.equal(g.flag('desert.tree.lit'), true, `${stage}: the tree burns`);
@@ -78,7 +78,7 @@ test('saves from before the rework: a tree that already drank keeps burning, and
   assert.equal(g.flag('desert.tree.lit'), undefined);
   // the stages still exist (old ids) and the errand's are in order between the well and the ship
   const ids = QUESTS.find((q) => q.id === 'desert.power').stages.map((s) => s.id);
-  assert.deepEqual(ids.slice(ids.indexOf('fill')), ['fill', ...SPARK_STAGES, 'gear', 'ship'], '(the blade and the guard while missing, issue #232, before Qanat’s gift, issue #278)');
+  assert.deepEqual(ids.slice(ids.indexOf('fill')), ['fill', ...SPARK_STAGES, 'ship'], '(the blade and the guard while missing, issue #232, before Qanat’s gift, issue #278)');
   // once only
   assert.equal(migrateDesertQuest(g), null);
   // a v1 save gets both migrations: the moved stages, and the tree
@@ -96,19 +96,19 @@ test('saves from before the Rose House came ahead of Qanat’s gift (v5, issue #
     return g;
   };
   let g = save('ship');
-  assert.equal(migrateDesertQuest(g), 'gear', 'the gift to come, the blade and guard missing: the Rose House first');
+  assert.equal(migrateDesertQuest(g), 'blade', 'the gift to come, the blade and guard missing: the Rose House first');
   assert.equal(g.flag('desert.quest.v'), DESERT_QUEST_V);
-  g = save('ship', { 'item.sword': 1, 'item.shield': 1 });
+  g = save('ship', { 'item.sword': 1, 'item.shield': 1, 'item.gun': 1 });
   assert.equal(migrateDesertQuest(g), null, 'with them: on to the gift');
   g = save('gear', { 'desert.ship.fed': true, 'ship.powered': true });
-  assert.equal(migrateDesertQuest(g), null, 'at the Rose House’s step (fed, the old order): it stays, and ends with them');
-  assert.equal(g.flag('quest.desert.power'), 'gear');
+  assert.equal(migrateDesertQuest(g), 'blade', 'the obsolete combined step becomes the blade step');
+  assert.equal(g.flag('quest.desert.power'), 'blade');
 });
 
 test('an old save at the jar: the tree already burns; wading fills the jar and the quest goes straight to the ship', () => {
   const D = desert({ 'prologue.done': true, 'items.v': 1, 'item.backpack': true, 'box.desert.backpack': true, 'desert.quest.v': 2,
     'quest.desert.power': 'fill', 'desert.channel.open': true, 'item.jar': 1, 'desert.jar.given': true, 'desert.elder.heard': true,
-    'item.sword': 1, 'item.shield': 1 });   // (an old save keeps the blade and the guard: src/save-migrate.js migrateGivers)
+    'item.sword': 1, 'item.shield': 1, 'item.gun': 1 });   // (an old save keeps the blade and the guard: src/save-migrate.js migrateGivers)
   const { Q, step, quests, player } = D;
   step(2);
   assert.equal(game.flag('desert.tree.lit'), true);
@@ -155,47 +155,18 @@ test('the cold tree: no burn, ember mode only hisses on it, and the roots refuse
   Q.city.setLit(0);
 });
 
-test('the Hearth: the grille holds until a shove rolls the ball; a save part-way finds it as it was', () => {
-  const D = desert({ 'prologue.done': true, 'item.backpack': true, 'box.desert.backpack': true, 'desert.quest.v': 3, 'desert.bike.v': 1, 'quest.desert.power': 'stone', 'desert.channel.open': true,
-    'desert.jar.filled': true, 'desert.well.watched': true, 'desert.spark.heard': true, 'desert.bike.found': true, 'desert.hearth.seen': true });
-  const { H, step, player, quests } = D;
-  player.pos.copy(H.inside);
-  step(2);
-  // the outside: a butte far from Qanat, its door looking back at the city; the hall inside, dark, overhead
-  assert.ok(H.origin.y > 900, 'the hall is built far overhead, like the giant’s chest');
-  const back = level => level.portals.find((p) => p.label === 'passage out');
-  assert.ok(back(D.level).to.distanceTo(H.doorFront) < 1.5, 'the way out leads back to the door');
-  // the stone can't be taken through the grille, a shot only rocks the ball, the ball won't move by hand
-  player.pos.copy(H.shelfFront).add(V(0, 0, -1.6));
-  assert.notEqual(bestInteractable(player)?.entry.id, 'hearth.stone');
-  player.pos.copy(H.plinthFront);
-  const look = bestInteractable(player);
-  assert.equal(look?.entry.id, 'hearth.weight', 'E on the ball: only a look');
-  const w = allTargets().find((t) => t.kind === 'weight');
-  w.onHit('shoot');
-  step(40);
-  assert.equal(game.flag('desert.hearth.open'), undefined);
-  w.onHit('push');
-  step(30 * 5);
-  assert.equal(game.flag('desert.hearth.open'), true);
-  assert.equal(H.ball.userData.gone, true, 'the ball has dropped into its hole');
-  assert.equal(w.enabled(), false);
-  // a reload: the grille up, the ball gone; the stone taken is in your pack (not floating about you)
-  const R = desert({ 'prologue.done': true, 'item.backpack': true, 'box.desert.backpack': true, 'desert.quest.v': 3, 'desert.bike.v': 1, 'quest.desert.power': 'light', 'desert.channel.open': true,
-    'desert.jar.filled': true, 'desert.well.watched': true, 'desert.spark.heard': true, 'desert.bike.found': true, 'desert.hearth.seen': true,
+test('old Hearth progress restores the Rose cage and keeps a taken stone without reopening the obsolete portal', () => {
+  const D = desert({ 'prologue.done': true, 'item.backpack': true, 'item.gun': true, 'box.desert.backpack': true,
+    'desert.quest.v': 6, 'quest.desert.power': 'light', 'desert.channel.open': true,
     'desert.hearth.open': true, 'desert.stone.taken': true, 'item.stone': 1 });
-  R.player.pos.set(400, R.level.ground.heightAt(400, 100), 100);
-  R.step(3);
-  assert.ok(R.H.grille.position.y - R.H.grilleRest.y > 1.5, 'the grille is up');
-  assert.equal(R.H.ball.userData.gone, true);
-  assert.equal(R.H.stone.visible, false, 'nothing floats about you: the stone is in your pack');
-  assert.ok(R.quests.carried().includes('the spark-stone'), 'your gear lists it');
-  assert.equal(R.H.stoneLight.w, 0, 'out under the sky it gives no light');
-  R.player.pos.copy(R.H.inside); R.step(2);
-  assert.equal(R.H.stone.visible, false);
-  assert.ok(R.H.stoneLight.w > 5 && Math.hypot(R.H.stoneLight.x - R.player.pos.x, R.H.stoneLight.z - R.player.pos.z) < 1.5, 'in the dark hall it glows through your pack');
-  assert.equal(R.quests.objective().label, 'The tree’s roots');
-  void quests;
+  const T = D.level.temple;
+  D.player.pos.copy(T.roseSpark.stoneRest); D.step(2);
+  assert.equal(T.logic.isOpen('sparkGate'), true);
+  assert.equal(T.byId.get('sparkBall').t, 1);
+  assert.equal(T.roseSpark.stone.visible, false);
+  assert.ok(D.quests.carried().includes('the spark-stone'));
+  assert.equal(D.level.portals.some(p => p.label === 'Givers’ Hearth'), false);
+  assert.equal(D.rt.world.hearth.take(), false, 'no duplicate stone');
 });
 
 test('the hoverbike won’t wake on an empty tank', () => {
@@ -216,7 +187,7 @@ test('the hoverbike won’t wake on an empty tank', () => {
 
 test('old saves at the stages that left the main quest (the well, Ama, the Speaker, and Ama’s jar since v5) go on to the way down, keeping what was done', async () => {
   const { STAGE_MERGE } = await import('../src/story/desert-data.js');
-  assert.equal(DESERT_QUEST_V, 6);
+  assert.equal(DESERT_QUEST_V, 7);
   const ids = QUESTS.find((q) => q.id === 'desert.power').stages.map((s) => s.id);
   for (const gone of ['well', 'ama', 'speaker', 'ask']) assert.ok(!ids.includes(gone), `${gone} is no stage now`);
   // (Nour points you at the skull herself: the author's playthrough, October 2026, issue #63)
@@ -368,14 +339,7 @@ test('the ride to the Hearth: each thing on the way is named once as it comes up
   const W = D.H.way;
   const out = ride(D, city.clone().addScaledVector(dir, 200), D.H.doorFront.clone().addScaledVector(dir, -30));
   const named = (t) => out.find((s) => s.text === t);
-  for (const id of ['bowl', 'camp', 'tusks', 'bell', 'hearth']) assert.ok(named(CALLS[id]), `${id} is named on the way out`);
-  assert.equal(out.length, 5, 'each once (the tusk gate stands on the straight ride, 50 m off the stones: seen from both)');
-  // ahead of you, with time to stop: between the near and the far reach
-  for (const [id, at] of [['bowl', W.bowl.at], ['camp', W.camp.at], ['bell', W.bell.at]]) {
-    const d = Math.hypot(named(CALLS[id]).at.x - at.x, named(CALLS[id]).at.z - at.z);
-    assert.ok(d > CALL.near && d <= CALL.range + 2, `${id} named ${d.toFixed(0)} m ahead`);
-  }
-  assert.deepEqual(out.map((s) => s.text), ['bowl', 'camp', 'tusks', 'bell', 'hearth'].map((id) => CALLS[id]), 'in order along the ride');
+  assert.deepEqual(out, [], 'migrated Rose route does not send the traveller toward the obsolete distant Hearth');
   // what is done is not named again (the bowl filled, the camp seen, the gate looked at), nor the butte on the way home
   D = desert({ ...errand, 'quest.desert.power': 'light', 'item.stone': 1, 'desert.way.bowl': true, 'desert.way.camp': true, 'desert.ride.tusks': true });
   const home = ride(D, D.H.doorFront.clone().addScaledVector(dir, -30), city.clone().addScaledVector(dir, 200));
@@ -409,7 +373,7 @@ test('the straight ride out (level design audit v1.9): Yara’s shade and a skif
     D.step(1);
     if (D.toasts.length > before && Object.values(CALLS).includes(D.toasts.at(-1))) said.push(D.toasts.at(-1));
   }
-  assert.deepEqual(said.filter((t) => [CALLS.shade, CALLS.anchor, CALLS.wreck, CALLS.tusks].includes(t)), [CALLS.shade, CALLS.anchor, CALLS.wreck, CALLS.tusks], 'all four named, in order, once');
+  assert.deepEqual(said.filter(t => [CALLS.shade, CALLS.anchor, CALLS.wreck, CALLS.tusks].includes(t)), [], 'the migrated main route no longer directs the rider toward the distant ruin');
   // (the level design audit, third round: the skiff's anchor between Yara's shade and the wreck, under 400 m from each)
   assert.ok(along(P.anchor) - along(P.shade) < 400 && along(P.wreck) - along(P.anchor) < 400, 'no stretch of the ride over 400 m with nothing on it');
   D.player.pos.copy(R.anchor.stand);
@@ -519,7 +483,7 @@ test('the riders’ red strips lead out of Marrow’s hollow along the ride, and
   assert.ok(strips.every((p) => off(p) > 2 && off(p) < 8), strips.map((p) => off(p).toFixed(1)).join(', '));
   for (const s of Object.values(ridePlaces())) assert.ok(strips.every((p) => Math.hypot(p[0] - s.x, p[2] - s.z) > 20), 'not on a stop of the ride');
   assert.ok(Math.hypot(strips.at(-1)[0] - b.x, strips.at(-1)[2] - b.z) < L * 0.3, 'on to the red rocks, near the tusk gate');
-  assert.equal(QUESTS.find((q) => q.id === 'desert.power').stages.find((s) => s.id === 'hearth').via, 'the riders’ red strips');
+  assert.ok(!QUESTS.find(q => q.id === 'desert.power').stages.some(s => s.id === 'hearth'), 'the distant ride remains scenery, not the main route');
   // the field-stone: between the House and the ship, something to look at, its words changed once the House's water runs
   const F = D.level.fieldStone, ship = D.level.spawn, door = D.temple?.outside?.door?.at ?? D.level.temple.outside.door.at;
   const toLine = Math.abs((F.at.x - ship.x) * (door.z - ship.z) - (F.at.z - ship.z) * (door.x - ship.x)) / Math.hypot(door.x - ship.x, door.z - ship.z);

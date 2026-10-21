@@ -29,9 +29,9 @@ export const CORE = {
   desert: [
     { item: 'backpack', name: 'the backpack', where: 'Qanat' },
     { item: 'doublejump', name: 'the lift valve', where: 'the giant’s cave' },
-    { item: 'gun', name: 'the fluid gun', where: 'the Givers’ Hearth' },
     { item: 'sword', name: 'the Givers’ blade', where: 'the Rose House', quest: 'temple.desert' },
     { item: 'shield', name: 'the Givers’ guard', where: 'the Rose House', quest: 'temple.desert' },
+    { item: 'gun', name: 'the fluid gun', where: 'the Rose House', quest: 'temple.desert' },
   ],
   arzach: [
     { item: 'glider', name: 'the fluid wings', where: 'the Aerie', plural: true, quest: 'temple.arzach' },

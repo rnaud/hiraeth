@@ -2,13 +2,29 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.92 — 2026-10-21
+
+- Several flickering joins at the Aerie and Lamp-House, and buried city roof caps, have been repaired.
+- Fight-temple timers and room names make room for your hearts when using larger text in a narrow browser window.
+- You can post Tansy’s letter to Hesper at the Signal Market’s night halt.
+- If your browser refuses to capture the mouse, you can keep dragging to look without an unhandled error.
+- Win your first hoverbike by beating Kamal in a canyon race. He rides alongside you; losses can be retried, and bikes you already earned stay yours.
+- The Rose House now teaches the blade, guard and push gun in order, ending with the spark-stone that lights Qanat’s tree.
+- Your first landing is a gentle powered touchdown closer to Qanat, with the city ahead of the ramp.
+- The furnished porch folds into the ship before departure and opens again after touchdown.
+- Wake up facing the message console, with a window onto space behind your father’s hologram and its small screen safely to one side.
+- The caravan has roomier living quarters, wider doors and stairs, and finished walls around the cockpit.
+- The original ship remains playable alongside the rounded caravan. Choose either ship in the dev menu’s Ship tab.
+- The caravan has a curved instrument console, coral pilot seats, a framed message viewer, a compact one-metre planet hologram and more personal galley and bunk details.
+- The caravan’s chairs, tea table and planters are bolted to the deck and fold into the ship together.
+- Directions and conversations now name the tools you actually find, point to the uncovered ship scar and the correct signal-lamp direction, and respect expanded tanks.
+- The ending remembers a visit to Hollin without claiming you made a promise or delivered news you never gave him.
+
 ## v1.91 — 2026-10-20
 
 - The porch folds into the ship before departure, with its furniture secured overhead; it opens again after touchdown.
 - Your ship is now the rounded caravan, with four rear boosters, a raised cockpit and furnished rooms you can walk through.
 - The caravan sits closer to the ground on shorter landing legs, with a shorter boarding ramp.
-- Directions and conversations now name the tools you actually find, point to the uncovered ship scar and the correct signal-lamp direction, and respect expanded tanks.
-- The ending remembers a visit to Hollin without claiming you made a promise or delivered news you never gave him.
 
 ## v1.90 — 2026-10-20
 

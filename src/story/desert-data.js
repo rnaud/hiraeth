@@ -18,9 +18,9 @@
 // pool rises, the tank and the jar fill, and the water climbs the roots up into
 // the city's tree. The tree drinks, and stays cold: living water only burns
 // from the Givers' own spark. Nour sends the traveller for the spark-stone,
-// in the Givers' Hearth far out in the red rocks: farther than walking, so
-// first Marrow's hoverbike (desert-bike.js), then the ride from marked stone
-// to marked stone, the Hearth's dark and its grille (desert-hearth.js), the
+// in the Rose House. First win Kamal's hoverbike at the red-rag hollow, then
+// learn the blade, guard and push gun in the House's successive rooms. Its
+// last weight opens the spark's cage; the
 // stone carried home and set in the wet roots. The tree catches, cool and in
 // every colour. And because the traveller gave Qanat back its light, Qanat
 // chooses to repay him: every house carries what it can spare of the burning
@@ -36,7 +36,6 @@
 // Conversations: see src/story/dialogue.js for the format. Quests: see
 // src/story/quests.js. Flags (game-state.js): desert.* below.
 
-import { coreStage } from './leave-gate.js';
 import { FRAGMENTS } from '../fragments-data.js';
 
 const Q = 'desert.power';
@@ -54,7 +53,7 @@ export const ITEMS = { jar: 'Ama’s drinking jar', water: 'a jar of living wate
  * (desert.quest.v < 3) whose tree was already burning (the channel open, or the ship fed) skips them
  * (src/story/desert.js migrateDesertQuest, and the skip in setupDesert).
  */
-export const SPARK_STAGES = ['door', 'valve', 'up', 'rise', 'spark', 'bike', 'hearth', 'gun', 'stone', 'light'];   // (valve and gun: v1.38's chests, the lift valve and the fluid gun; door: the makers' shrine's, issue #156)
+export const SPARK_STAGES = ['door', 'valve', 'up', 'rise', 'spark', 'bike', 'rose', 'blade', 'guard', 'gun', 'stone', 'light'];   // (valve and gun: v1.38's chests, the lift valve and the fluid gun; door: the makers' shrine's, issue #156)
 
 /**
  * Saves from before the backpack's box moved into the city (the stages were
@@ -79,7 +78,7 @@ export const STAGE_MERGE = { well: 'down', ama: 'down', speaker: 'down', ask: 'd
  */
 export const GIFT_AFTER_GEAR = { from: 'ship', to: 'gear' };
 /** The desert quest's save version (src/story/desert.js migrateDesertQuest). */
-export const DESERT_QUEST_V = 6;
+export const DESERT_QUEST_V = 7;
 
 // ------------------------------------------------------------------ quests
 export const QUESTS = [
@@ -110,7 +109,7 @@ export const QUESTS = [
       { id: 'door', text: 'Open the makers’ door with your full tank', label: 'The makers’ door', flag: 'desert.door.open', at: 'shrineDoor', gate: true },
       // the progression rewrite (v1.38): inside, a makers' chest holds the lift valve (the double jump, the backpack's
       // first strength: src/boxes/placements.js desert.lift)
-      { id: 'valve', text: 'Open the chest in the makers’ shrine', label: 'The chest in the shrine', flag: 'item.doublejump', at: 'box.desert.lift', ahead: false },
+      { id: 'valve', text: 'Open the chest in the makers’ shrine', label: 'The chest in the shrine', flag: 'item.doublejump', at: 'box.desert.lift', ahead: false, gate: true },
       // up the keepers' stair behind the pool, beside the root the water climbs, to the hatch in the back lane (src/desert-city.js
       // HATCH; level design audit, third round: the way out was the way down). Out by the skull instead, the roots' drinking skips it
       { id: 'up', text: 'Follow the water up the keepers’ stair', label: 'The keepers’ stair', goto: 'hatch', radius: 6, vertical: 4 },
@@ -118,23 +117,13 @@ export const QUESTS = [
       { id: 'rise', text: 'Watch the tree drink at its roots', label: 'The roots, drinking', flag: 'desert.well.watched', at: 'roots' },
       // Nour calls you over (src/story/desert.js nourCall): the spark-stone, and where the bike is
       { id: 'spark', text: 'Hear Nour out by the cold tree', label: 'Nour, the eldest', flag: 'desert.spark.heard', at: 'nour' },
-      // the Givers' Hearth is far out in the red rocks: the hoverbike Marrow hid in the hollow first (src/story/desert-bike.js);
-      // found on its own errand it doesn't carry the quest on before Nour has sent you (ahead: false)
-      { id: 'bike', text: 'Find the hoverbike under the tarp', label: 'The tarp in the hollow', flag: 'desert.bike.found', at: 'bikeHollow', ahead: false },
-      // (via: the riders' red strips lead out of the hollow along the ride, src/desert-road.js; for the level design audit)
-      { id: 'hearth', text: 'Ride the red strips south-east to the Givers’ Hearth', label: 'The Givers’ Hearth', flag: 'desert.hearth.seen', at: 'hearth', via: 'the riders’ red strips' },
-      // (src/desert-hearth.js: dark; the stone pulses behind a grille; a shove of fluid rolls the weight that lifts it)
-      // the Givers' chest in its own room off the hall (issue #83): the fluid gun with its push and ember modes (a gadget,
-      // src/gadgets/gun.js; src/boxes/placements.js desert.gun), whose push rolls the ball
-      { id: 'gun', text: 'Open the Givers’ chest off the hall', label: 'The Givers’ chest', flag: 'item.gun', at: 'box.desert.gun' },
-      { id: 'stone', text: 'Shove the stone ball and take the spark-stone', label: 'The spark-stone', flag: 'desert.stone.taken', at: 'sparkStone' },
-      { id: 'light', text: 'Set the spark-stone in the roots', label: 'The tree’s roots', flag: 'desert.tree.lit', at: 'roots', via: 'the marked stones' },
-      // the ship won't leave without the Givers' blade and guard (src/story/leave-gate.js, issue #217): while they're
-      // missing, the step after the tree (issue #232), passed over when they're had. It comes before Qanat's gift (issue
-      // #278, the level design audit v1.66): the Rose House is a leg out east from the tree, and the gift waits at the ship
-      // for the way back, past the Givers' field-stone (Qanat sets off with it once you have them: desert-repay.js `ready`).
-      // A gate: the gift had already (an old save, fed before the Rose House) doesn't end the quest past it
-      coreStage('desert', { id: 'gear', text: 'Take the blade and guard from the Rose House', label: 'The Givers’ blade and guard', at: 'temple.desert.door', gate: true }),
+      { id: 'bike', text: 'Beat the rider to win the hoverbike', label: 'The race in the red-rag hollow', flag: 'desert.bike.found', at: 'bikeHollow', gate: true },
+      { id: 'rose', text: 'Ride east to the Rose House', label: 'The Rose House', flag: 'temple.desert.entered', at: 'temple.desert.door' },
+      { id: 'blade', text: 'Find the blade on the Great Hall’s balcony', label: 'The Givers’ blade', when: q => q.has('sword'), at: 'temple.desert.next', gate: true },
+      { id: 'guard', text: 'Cross the fire bridge and take the guard', label: 'The Givers’ guard', when: q => q.has('shield'), at: 'temple.desert.next', gate: true },
+      { id: 'gun', text: 'Turn the watcher’s bolt and find the push gun', label: 'The push gun', when: q => q.has('gun'), at: 'temple.desert.next', gate: true },
+      { id: 'stone', text: 'Push the spring-room weight and take the spark-stone', label: 'The spark-stone', flag: 'desert.stone.taken', at: 'sparkStone', gate: true },
+      { id: 'light', text: 'Set the spark-stone in the roots', label: 'The tree’s roots', flag: 'desert.tree.lit', at: 'roots', via: 'the Givers’ dry channel' },
       // the tree burns: Qanat repays you, its people carrying what they can spare to your ship (src/story/desert-repay.js)
       // (home by the pilgrims' road, the second way, when you come from the tree: its cairns lit from the gate down to the
       // ship once the tree burns, src/desert-road.js). The quest's last step: reaching the ship ends it
@@ -187,7 +176,7 @@ export const QUESTS = [
     outro: 'The hoverbike hums under you. Your pack calls it, and it comes.',
     stages: [
       { id: 'find', text: 'Find the tarp in the red-rag hollow', label: 'The tarp in the hollow', flag: 'desert.bike.uncovered', at: 'bike' },
-      { id: 'wake', text: 'Wake the hoverbike with a full tank', label: 'The hoverbike', flag: 'desert.bike.found', at: 'bike' },
+      { id: 'wake', text: 'Beat the rider to win the hoverbike', label: 'The hoverbike', flag: 'desert.bike.found', at: 'bike' },
     ],
   },
   {
@@ -300,11 +289,11 @@ export const PEOPLE = {
         // meanwhile, and is at the ship when you come back with them)
         drinking: {
           say: ["~happy~ It burns! Every colour! I had my doubts when you dropped out of the sky in a dead ball, but you’ve made a fine recovery.",
-            { if: { quest: Q, stage: 'gear' }, text: "~solemn~ The camps are filling our share of the Drinking for your ship. That takes a while. Fetch *the Givers’ blade and guard from the Rose House*; we’ll be at your ship." },
-            { if: { not: { quest: Q, stage: 'gear' } }, text: "~solemn~ The camps are carrying our share of the Drinking down to your ship. Don’t argue. *Go and meet us there.*" }],
-          choices: [{ text: '~neutral~ It was a stone from the Givers’ Hearth.', goto: 'stone' }, { text: '~neutral~ I will.', end: true }],
+            { if: { quest: Q, stage: ['blade', 'guard', 'gun'] }, text: "~solemn~ The camps are filling our share of the Drinking for your ship. That takes a while. Fetch *the Givers’ blade and guard from the Rose House*; we’ll be at your ship." },
+            { if: { not: { quest: Q, stage: ['blade', 'guard', 'gun'] } }, text: "~solemn~ The camps are carrying our share of the Drinking down to your ship. Don’t argue. *Go and meet us there.*" }],
+          choices: [{ text: '~neutral~ It was a stone from the Rose House.', goto: 'stone' }, { text: '~neutral~ I will.', end: true }],
         },
-        stone: { say: ["~surprised~ Marrow’s bike got you there? Don’t praise it where he can hear. He’ll start charging for the breeze."], choices: [{ text: '~playful~ I’ll praise it quietly.', end: true }] },
+        stone: { say: ["~surprised~ You won the bike and found the stone? Don’t praise the bike where Marrow can hear. He’ll charge for the breeze."], choices: [{ text: '~playful~ I’ll praise it quietly.', end: true }] },
         rib: { say: ["~solemn~ The drain was clogged? All these years, and the giant is still coming apart beneath us. I’ll tell the Speaker."], choices: [{ text: '~neutral~ He’ll want it in a verse.', end: true }] },
         after: {
           say: ["~playful~ They’ll sing about you all the way home. You’ll be twelve feet tall by the second oasis. Don’t take it personally."],
@@ -327,7 +316,7 @@ export const PEOPLE = {
       ],
       nodes: {
         hello: {
-          say: ["~playful~ Teo. Drummer. Currently providing only the first half of the service.", "~sad~ The wind rolled my drum off a camel on our last night crossing. It went *south, under the old ribcage*, past your crash site. Too dark to fetch it then."],
+          say: ["~playful~ Teo. Drummer. Currently providing only the first half of the service.", "~sad~ The wind rolled my drum off a camel on our last night crossing. It went *south, under the old ribcage*, past the old camp. Too dark to fetch it then."],
           choices: [
             { text: '~happy~ I’ll look for it.', do: { start: 'desert.drum' }, goto: 'thanks' },
             { text: '~curious~ Can’t you play something else?', goto: 'else' },
@@ -625,17 +614,17 @@ export const PEOPLE = {
         // where the bike is herself (it was "ask Marrow": issue #63)
         cold: {
           say: ["~sad~ You brought the water back. But the tree stays cold: it only burns from the Givers’ own spark.",
-            "~solemn~ The spark-stone sits in the Givers’ Hearth, far south-east in the red rocks. Too far for feet. *Marrow hid a hoverbike under a tarp, in the hollow with the red rag.* He won’t miss it for a day."],
+            "~solemn~ The spark-stone waits in the Rose House, east of Qanat. *Win the hoverbike in the red-rag hollow.* The house keeps a blade, a guard and a push gun on the way to its spring."],
           do: [{ set: { 'desert.spark.heard': true } }, { track: Q }],
           choices: [
             { text: '~solemn~ I’ll bring the stone back.', goto: 'bring' },
-            { text: '~curious~ Marrow won’t mind?', goto: 'marrow' },
+            { text: '~curious~ Whose bike is it?', goto: 'marrow' },
           ],
         },
-        marrow: { say: ["~playful~ Marrow minds everything, loudly. Then he tells everyone it was his idea. Go on."], choices: [{ text: '~solemn~ I’ll bring the stone back.', goto: 'bring' }] },
+        marrow: { say: ["~playful~ Kamal’s prize. Win the race, and it is yours. The red-rag hollow, with a full tank."], choices: [{ text: '~solemn~ I’ll bring the stone back.', goto: 'bring' }] },
         bring: { say: ["~solemn~ Set it in the wet roots. And bring all your fingers back. Legends are careless about fingers."], choices: [{ text: '~happy~ Thank you, Nour.', end: true }] },
         sparkAgain: {
-          say: ["~neutral~ The bike under the tarp in the red-rag hollow, then south-east to the Hearth. The stone goes in the roots."],
+          say: ["~neutral~ Win the bike in the red-rag hollow, then ride east to the Rose House. Bring its spark-stone to the roots."],
           choices: [{ text: '~playful~ And all my fingers back.', end: true }],
         },
         stone: {
@@ -644,9 +633,9 @@ export const PEOPLE = {
         },
         // (the Rose House's step first while its blade and guard are missing: issue #278)
         drinking: { say: ["~happy~ The chest opened, the water rose, the tree burns. I stayed alive long enough.",
-          { if: { quest: Q, stage: 'gear' }, text: "~solemn~ You gave us back our light, child. Qanat pays its debts: every house is filling a jar for your ship. Fetch *the Givers’ blade and guard from the Rose House*, east in the dunes. We’ll be at your ship." },
-          { if: { not: { quest: Q, stage: 'gear' } }, text: "~solemn~ You gave us back our light, child, and asked for nothing. Qanat pays its debts: every house is filling a jar for your ship. *Go down to your ship* and let us do it." }],
-          choices: [{ text: '~neutral~ The Rose House, then.', if: { quest: Q, stage: 'gear' }, end: true }, { text: '~happy~ Then I’ll go and let them.', if: { not: { quest: Q, stage: 'gear' } }, end: true }] },
+          { if: { quest: Q, stage: ['blade', 'guard', 'gun'] }, text: "~solemn~ You gave us back our light, child. Qanat pays its debts: every house is filling a jar for your ship. Fetch *the Givers’ blade and guard from the Rose House*, east in the dunes. We’ll be at your ship." },
+          { if: { not: { quest: Q, stage: ['blade', 'guard', 'gun'] } }, text: "~solemn~ You gave us back our light, child, and asked for nothing. Qanat pays its debts: every house is filling a jar for your ship. *Go down to your ship* and let us do it." }],
+          choices: [{ text: '~neutral~ The Rose House, then.', if: { quest: Q, stage: ['blade', 'guard', 'gun'] }, end: true }, { text: '~happy~ Then I’ll go and let them.', if: { not: { quest: Q, stage: ['blade', 'guard', 'gun'] } }, end: true }] },
         after: {
           say: ["~happy~ When another chest opens for you, think of us. Qanat will be here. Hessa will probably still be sweeping."],
           choices: [
@@ -752,17 +741,17 @@ export const PEOPLE = {
           do: { set: { 'desert.marrow.hull': true } },
           choices: [{ text: '~neutral~ So would I.', end: true }],
         },
-        // the hoverbike (quest desert.bike): he found it, hid it, and can't start it
+        // the hoverbike (quest desert.bike): a borrowed race bike, earned only by winning
         bike: {
           say: ["~playful~ Faster than walking? You’ve come to the right liar. Specialist, I meant.",
-            "~whisper~ A *hoverbike*, under a tarp in the hollow with the red rag. Between the camps and your ship. Its previous ownership is charmingly unclear.",
-            "~sad~ It won’t run for me. Needs a fuel I don’t have. That tank of yours looks promising."],
+            "~whisper~ A *hoverbike*, under a tarp in the hollow with the red rag. Between the camps and your ship. Kamal races there. Beat him and the bike is yours.",
+            "~playful~ Bring a full fluid tank. You can borrow it for the race. Keeping it takes a win."],
           do: { start: 'desert.bike' },
           choices: [{ text: '~happy~ I’ll go and dig it out.', end: true }, { text: '~curious~ What do you want for it?', goto: 'price' }],
         },
-        price: { say: ["~playful~ Free. It ate my tarp. Ride it past the camp occasionally so I can claim the success from a safe distance."], choices: [{ text: '~happy~ Deal.', end: true }] },
-        bikeWhere: { say: ["~neutral~ Red-rag hollow, between camps and ship. Remove the tarp. Wake the bike with *a full fluid tank*."], choices: [{ text: '~neutral~ Thanks, Marrow.', end: true }, { text: '~curious~ What do you sell?', goto: 'sell' }] },
-        bikeAfter: { say: ["~happy~ I heard it start! A kettle with ambitions. Look after it. I’m becoming attached to the idea that I helped."], do: { set: { 'desert.marrow.bike': true } }, choices: [{ text: '~playful~ It has opinions.', end: true }, { text: '~curious~ What do you sell?', goto: 'sell' }] },
+        price: { say: ["~playful~ One race won. Kamal set the price; I merely supplied the tarp. Try again if he beats you."], choices: [{ text: '~happy~ Deal.', end: true }] },
+        bikeWhere: { say: ["~neutral~ Red-rag hollow, between camps and ship. Lift the tarp with *a full fluid tank*. *Beat Kamal* to keep the bike."], choices: [{ text: '~neutral~ Thanks, Marrow.', end: true }, { text: '~curious~ What do you sell?', goto: 'sell' }] },
+        bikeAfter: { say: ["~happy~ It’s yours! A kettle with ambitions. Look after it. I’m becoming attached to the idea that I helped."], do: { set: { 'desert.marrow.bike': true } }, choices: [{ text: '~playful~ It has opinions.', end: true }, { text: '~curious~ What do you sell?', goto: 'sell' }] },
         mean: { say: ["~solemn~ Same mark as the giants and old gates. I’ve found it on fallen sky-metal before. Yours is the first example still warm from arrival."], choices: [{ text: '~curious~ Things that fell before?', goto: 'before' }, { text: '~neutral~ Thanks, Marrow.', end: true }] },
         before: { say: ["~playful~ Humming glass. A bowl that rings alone. Things like that. I suspect the singing matters. Professional suspicion, complimentary today.",
           "~curious~ Also, my compass points at your ship now. Whatever made the scar magnetised the metal. That observation actually is free."], choices: [{ text: '~curious~ What do you sell, then?', goto: 'sell' }, { text: '~neutral~ Thanks, Marrow.', end: true }] },

@@ -27,7 +27,6 @@ export const EXCEPTIONS = {
   'perdide-data.js corm.again: Great Crystal': 'the same',
   // what he did or found, told to the one it matters to
   'bazaar-data.js brush.read: HEARD YOU': 'what the oldest sign said when he woke it: Brush asks',
-  'desert-data.js ama.drinking: Givers’ Hearth': 'where the stone he brings came from: he was there',
   'incal-data.js nima.again: Lodestar': 'the mark he saw on the Lodestar, the light Nima tends',
   'night-train-data.js solange.hello: Edda': 'the letter in his hand is Edda\'s',
   'underwater-people.js maelle.lamps: Whale-House': 'the temple he is on his way to',

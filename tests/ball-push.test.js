@@ -8,6 +8,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import './register-gadgets.js';
 import { TEMPLES } from '../src/temples/index.js';
+import { game } from '../src/game-state.js';
 import { Ball, BALL_PUSH, END_BOUNCE } from '../src/temples/pieces.js';
 import { templeWorld, wantedOn } from '../scripts/ball-room.mjs';
 
@@ -51,12 +52,14 @@ function roll(rt, b, e, at, push) {
 }
 
 test('every pushed ball still comes to rest on each plate its puzzle wants, never through a hole that isn’t its way, in about half the pushes on a long roll', () => {
-  const was = { ...BALL_PUSH };
+  const was = { ...BALL_PUSH }, savedFlags = game.data.flags;
+  // This measures a gun push, including the Rose House's gun-only weight.
   assert.ok(BALL_PUSH.base + BALL_PUSH.per * 0.65 > 1.6 * (OLD.base + OLD.per * 0.65), 'a push from close behind sends it 1.6 times as fast or more');
   assert.ok(BALL_PUSH.base < 1.2 * OLD.base + 0.5, 'the softest push, from the far end of the reach, about as soft as it was');
   assert.ok(END_BOUNCE <= 0.25 * (OLD.base + OLD.per) + 0.05, 'off the groove’s end no harder than the hardest old push came back');
   const rows = [];
   try {
+    game.data.flags = { ...savedFlags, 'item.gun': true };
     for (const id of Object.keys(TEMPLES)) {
       const { rt } = quiet(() => templeWorld(id));
       for (const { b, e, targets } of pushedBalls(rt)) {
@@ -69,7 +72,7 @@ test('every pushed ball still comes to rest on each plate its puzzle wants, neve
       }
       quiet(() => rt.dispose?.());
     }
-  } finally { Object.assign(BALL_PUSH, was); }
+  } finally { Object.assign(BALL_PUSH, was); game.data.flags = savedFlags; }
   assert.ok(rows.length >= 40, `${rows.length} rolls`);
   for (const { name, after } of rows) {
     assert.ok(after.home, `${name}: on its plate (${after.pushes} pushes)`);

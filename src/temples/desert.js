@@ -98,7 +98,7 @@ export const ROOMS = {
   fires: { x0: XE - 18, x1: XE + 18, z0: 48.4, z1: 90.4, y: -10.5, top: 18, lip: 74.4, far: 87.4 },
   watch: { x0: XE - 18, x1: XE + 18, z0: 91.6, z1: 123.6, y: 0, top: 18 },
   wing: { x0: XC - 18, x1: XC + 18, z0: 48.4, z1: 123.6, y: 0, top: 18 },
-  cistern: { x: 0, z: 126.9, r: 18, y: 0, top: 22 },
+  cistern: { x: 0, z: 142.9, r: 18, y: 0, top: 22 },
 };
 /**
  * The Dry Channel's pier (the kit's x and z): its middle, width and depth, where the Givers' weight lies at its west end
@@ -146,7 +146,7 @@ export const LOGIC = {
     threshold: { checkpoint: true, kind: 'passage' }, hall: { checkpoint: true, kind: 'puzzle' }, flame: { checkpoint: true, kind: 'puzzle' },
     channel: { checkpoint: true, kind: 'puzzle' }, balcony: { checkpoint: true, kind: 'puzzle' }, machines: { checkpoint: true, kind: 'combat' },
     fires: { checkpoint: true, kind: 'puzzle' }, firesFar: { kind: 'chest' }, wing: { checkpoint: true, kind: 'puzzle' },
-    ante: { checkpoint: true, kind: 'passage' }, cistern: { boss: true, kind: 'guardian' }, spring: { kind: 'passage' },
+    ante: { checkpoint: true, kind: 'chest' }, cistern: { boss: true, kind: 'guardian' }, spring: { checkpoint: true, kind: 'puzzle' },
   },
   links: [
     { a: 'threshold', b: 'hall' },
@@ -193,7 +193,11 @@ export const LOGIC = {
     b3: { type: 'brazier', room: 'fires', needs: ['sword'], when: { drumOn: ['ball3', 'pb3'] } },
     br1: { type: 'bridge', opens: { lit: 'b3' }, latch: true },
     // the Guard's Hall: the Givers' guard
-    guard: { type: 'find', room: 'firesFar', item: 'shield', box: 'desert.temple.shield' },
+    guard: { type: 'find', room: 'firesFar', item: 'shield', box: 'desert.temple.shield', needs: ['sword'] },
+    gun: { type: 'find', room: 'ante', item: 'gun', box: 'desert.gun', needs: ['shield'] },
+    sparkPlate: { type: 'plate', room: 'spring' },
+    sparkBall: { type: 'drum', room: 'spring', plate: 'sparkPlate', plateAt: 1, start: 0, needs: ['gun'] },
+    sparkGate: { type: 'door', opens: { all: [{ drumOn: ['sparkBall', 'sparkPlate'] }, { item: 'gun' }] }, latch: true },
     // the Hall of Channels: the eye that lifts the relay's lid (and wakes the keepers' door), the ball, the bowl at the groove's end
     e10: { type: 'switch', room: 'wing', needs: ['sword'] },
     sc: { type: 'door', opens: { lit: 'e10' }, latch: true },
@@ -208,7 +212,7 @@ export const LOGIC = {
     // the cistern's spokes: each ball cut out through its fire into the hooded bowl on the rim
     ...Object.fromEntries(SPOKES.flatMap((b, i) => [[`pk${i + 1}`, { type: 'plate', room: 'cistern' }], [b, { type: 'drum', room: 'cistern', plate: `pk${i + 1}`, plateAt: 0, start: 1, roll: 'sword' }]])),
     ...Object.fromEntries(RIM.map((id, i) => [id, { type: 'brazier', room: 'cistern', needs: ['sword'], when: { drumOn: [SPOKES[i], `pk${i + 1}`] } }])),
-    keeper: { type: 'boss', room: 'cistern', needs: ['sword', 'shield'], requires: { all: RIM.map((id) => ({ lit: id })) } },
+    keeper: { type: 'boss', room: 'cistern', needs: ['sword', 'shield', 'gun'], requires: { all: RIM.map((id) => ({ lit: id })) } },
     d5: { type: 'door', opens: { resolved: true } },
     // the house's map, in a little chest off the way on (issue #405: src/house-map.js; nothing waits on it)
     map: { type: 'map', room: 'channel', at: [XW - 16.2, 0, 56.4], yaw: Math.PI / 4 },
@@ -577,7 +581,9 @@ function layout(rt) {
 
   // ---- the antechamber and the Cistern (a great rotunda), past the Great Hall's north wall
   const CI = R0.cistern, C = V(CI.x, 0, CI.z), R = CI.r;
-  K.corridor([CI.x, GH.z1 + 1.2], [CI.x, C.z - R - 0.6], 0, { w: D.w, h: D.h });
+  const A0 = GH.z1 + 1.2, A1 = C.z - R - 0.6;
+  K.hall({ x: CI.x, z: (A0 + A1) / 2, w: 24, d: A1 - A0, y: 0, h: 16, roof: 'oculus', oculus: 0.2,
+    doors: [{ side: 's', w: D.w, h: D.h }, { side: 'n', w: D.w, h: D.h }] });
   add(Mark, { room: 'ante', at: [CI.x + 2.2, 0, GH.z1 + 4.4], yaw: -Math.PI / 2 });
   K.rotunda({ x: C.x, z: C.z, y: 0, r: R, h: CI.top, seg: 36, gaps: [{ a: Math.PI, w: D.w, h: D.h }, { a: 0, w: D.w, h: D.h }], oculus: 0.3, floor: false });
   // the floor round a shallow dry basin, and the spout in the middle
@@ -609,15 +615,33 @@ function layout(rt) {
   rt.root.add(pool);
   rt.spring = { pool, poolMat, k: rt.logic.resolved ? 1 : 0 };
 
-  // ---- the spring (behind the far door): the way back out
-  const S0 = C.z + R + 0.6, S1 = S0 + 9.8;
-  K.corridor([C.x, S0], [C.x, S1], 0, { w: D.w, h: D.h });
-  K.wall(C.x + 4.6, S1 + 0.4, C.x - 4.6, S1 + 0.4, 0, D.h, { t: 0.8, holes: [{ at: 4.6, w: 5, h: 7 }] });
+  // The spring room pays off the push gun after the shield-gated antechamber.
+  // A wide floor lets the traveller stand behind the weight, clear of the cage.
+  const S0 = C.z + R + 0.6, S1 = S0 + 32;
+  K.hall({ x: C.x, z: (S0 + S1) / 2, w: 32, d: S1 - S0, y: 0, h: 18, roof: 'oculus', oculus: 0.25, columns: 0, doors: [{ side: 's', w: D.w, h: D.h }, { side: 'n', w: 5, h: 7 }] });
   K.add(M.voidM, T(new THREE.PlaneGeometry(5, 7).translate(0, 3.5, 0), [C.x, 0, S1 + 0.9]));
   K.solid(box(5.4, 7, 0.5, C.x, 3.5, S1 + 1.3));
   K.glyph([C.x, 8, S1 - 0.05], 1.6, Math.PI);
-
-  // the machines' mark: the Machines' Hall's, its foes round the hall's middle (the last mark: its machines' ids are new)
+  const sparkZ = S0 + 16;
+  groove(-6, sparkZ - 5, 6, sparkZ - 5, 0);
+  add(Plate, { id: 'sparkPlate', at: [6, 0, sparkZ - 5], r: 1.25 });
+  add(Ball, { id: 'sparkBall', a: [-6, 0.04, sparkZ - 5], b: [6, 0.04, sparkZ - 5], r: 0.8, friction: 0.6, heavy: 'gun', heavyLine: 'The weight answers only a push from the Givers’ gun.', lock: true });
+  K.wall(-3, sparkZ + 3, -3, sparkZ - 1, 0, 8, { t: 0.5 });
+  K.wall(3, sparkZ - 1, 3, sparkZ + 3, 0, 8, { t: 0.5 });
+  K.wall(3, sparkZ + 3, -3, sparkZ + 3, 0, 8, { t: 0.5 });
+  add(Door, { id: 'sparkGate', at: [0, 0, sparkZ - 1], w: 6, h: 8, lamps: [{ drumOn: ['sparkBall', 'sparkPlate'] }] });
+  K.both(M.trim, ...chestMound(3.4, 0, GH.z1 + 12, { h: 0.3, top: 1.2, foot: 2.0, seg: 24 }));
+  const stone = new THREE.Mesh(new THREE.IcosahedronGeometry(0.4, 1), makeMaterial({ color: '#fff1c8', glow: 1, flat: true }));
+  stone.position.copy(K.world(0, 1.1, sparkZ + 1)); stone.userData.noCollide = true; stone.userData.dynamic = true; rt.root.add(stone);
+  const stoneLight = new THREE.Vector4(stone.position.x, stone.position.y, stone.position.z, 8); rt.lights.push(stoneLight);
+  rt.roseSpark = { stone, stoneRest: stone.position.clone(), stoneLight, refills: [K.world(-3.4, 0, GH.z1 + 12), K.world(-7, 0, sparkZ + 2)], room: { z0: S0, z1: S1 }, runtime: rt };
+  // A renewable tank source before the guardian and another beside the push lesson.
+  for (const [x, z] of [[-3.4, GH.z1 + 12], [-7, sparkZ + 2]]) {
+    K.both(M.trim, T(lathe([[1.3, 0], [1.4, 0.6], [1.1, 0.8]]), [x, 0, z]));
+    const water = magicPool(1.05, poolMat); water.position.copy(K.world(x, 0.68, z)); rt.root.add(water);
+  }
+  add(Mark, { room: 'spring', at: [-7, 0, S0 + 2], yaw: 0 });
+  // the Machines' Hall checkpoint remains available before the guardian.
   add(Mark, { room: 'machines', at: [XE - 12, 0, MH.z0 + 3.5], yaw: 0.7, foes: [XE, 0, mhz + 1] });
 
   // the Keeper, asleep curled at the far side of the basin (its fitted Tripo body, the procedural one until it loads)
@@ -637,13 +661,13 @@ function layout(rt) {
     arrival: { pos: W(0, 0.05, 4), heading: K.heading(0) },
     bounds: new THREE.Box3(V(XW - 21, -14, -3), V(XC + 21, 34, S1 + 3)),
     gadget: { at: W(DR.blade[0], BA.y + 0.62, DR.blade[1]).toArray(), face: K.heading(-Math.PI * 0.28) },
-    finds: { guard: { at: W(XE - 9, 0.3, 105.4).toArray(), face: K.heading(Math.PI / 2) } },
+    finds: { guard: { at: W(XE - 9, 0.3, 105.4).toArray(), face: K.heading(Math.PI / 2) }, gun: { at: W(3.4, 0.3, GH.z1 + 12).toArray(), face: K.heading(-Math.PI / 2) } },
     exits: [
       { at: W(0, 0.5, 0.4), r: 1.5 },
       { at: W(C.x, 0.5, S1 - 0.4), r: 1.5 },
     ],
     lights: [[0, 7, 7, 18], [0, 14, 30, 34], [0, 14, 60, 34], [0, 14, 88, 30], [-13, 12, 78, 20], [XW, 10, 25, 26], [XW, 10, 45, 26], [XW, 8, 64, 28], [XW, 10, 90, 28],
-      [XE, 6, 24, 26], [XE, 6, 40, 26], [XE, 6, 59, 28], [XE, 6, 83, 28], [XE, 6, 107, 28], [XC, 6, 63, 28], [XC, 6, 88, 28], [XC, 6, 113, 28], [0, 4, GH.z1 + 5, 11], [0, 8, C.z, 32], [0, 4, S0 + 5, 11]],
+      [XE, 6, 24, 26], [XE, 6, 40, 26], [XE, 6, 59, 28], [XE, 6, 83, 28], [XE, 6, 107, 28], [XC, 6, 63, 28], [XC, 6, 88, 28], [XC, 6, 113, 28], [0, 4, GH.z1 + 12, 11], [0, 8, C.z, 32], [0, 4, S0 + 5, 11]],
     guardian: { def: { ...KEEPER, onHit: keeperHit, openFor: keeperOpen, onBlock: keeperBlocked, onStrike: keeperLands }, model, arena },
   };
 }

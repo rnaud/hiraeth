@@ -8,7 +8,7 @@ import { Ship } from '../src/ship/ship.js';
 import { cueText } from '../src/hud.js';
 import { DECK, LIFT, WINDOW, WALL_IN, SHIP_SCALE } from '../src/ship/hull.js';
 import { CONSOLE_R, TABLE, inRooms } from '../src/ship/interior.js';
-import { findShipSite, siteAvoid, probeSite, fromPlan, SITE_OVERRIDES } from '../src/ship/sites.js';
+import { findShipSite, siteAvoid, probeSite, fromPlan, SITE_OVERRIDES, LEGACY_DESERT_SITE } from '../src/ship/sites.js';
 import { consoleAction, mapEntries } from '../src/ship/starmap.js';
 import { pendingCall, callLines, completedWorlds, applyCall, CALL_COUNT, ILEN_CALL, PROLOGUE_CALL, AGE, REEL, REEL_FROM, recordingLabel, recordingSpan, onHologram } from '../src/story/calls.js';
 import { holoLayout, mouthOpen, HOLO, BUST, PEOPLE, holoLook } from '../src/ship/hologram.js';
@@ -241,9 +241,9 @@ test('the site search does not hang on float noise (the browser and node found d
   assert.deepEqual([b.x, b.z, b.heading], [a.x, a.z, a.heading]);
 });
 
-test('the desert crash site faces Qanat, and the city shows on the horizon from the ramp', async () => {
+test('the preserved legacy desert crash site faces Qanat, and the city shows on the horizon from the ramp', async () => {
   const { desertHeight } = await import('../src/desert-landmarks.js');
-  const s = SITE_OVERRIDES.desert, city = { x: 230, z: 400 }, gate = { x: 195.1, z: 339.3 };
+  const s = LEGACY_DESERT_SITE, city = { x: 230, z: 400 }, gate = { x: 195.1, z: 339.3 };
   assert.ok(Math.hypot(s.x, s.z) < 190, 'near the old camp');
   // close (the author's playtest, issue #71: "make it closer and what I'm facing when coming out of the ship")
   assert.ok(Math.hypot(gate.x - s.x, gate.z - s.z) < 230, `${Math.hypot(gate.x - s.x, gate.z - s.z).toFixed(0)} m to the main gate`);

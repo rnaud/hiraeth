@@ -22,10 +22,11 @@ const mat = (color, o = {}) => new THREE.MeshBasicMaterial({ color, ...o });
  * nearly all on its tower's foot and crown outside, in the shaft (node scripts/zfight/list-temple.mjs incal).
  */
 export const ZFIGHT_BASELINE = {
+  // #602: Aerie frame feet and Lamp-House apron joins now have separate planes (3 -> 0, 1 -> 0).
   // (v1.66, the zfight audit: the counts the temples had come down to, held there; were incal 47, arzach2 11, perdide2 9,
   // perdide 10, arzach 8, spacecity 5; v1.87, issue #566: lowered to what they hold, were incal 39, arzach2 10, perdide2 3,
   // edena 2, bazaar 8, underwater 6)
-  desert: 0, incal: 6, arzach2: 1, spheres: 0, buried: 0, perdide2: 1, perdide: 2, arzach: 3,   // (v1.82: the Footprint rebuilt across four floors, issue #401, 2 -> 0; v1.77: the Hush-House redone as shrines, issue #336, 9 -> 2: the walls and floors over the old Choir's door and the old root-wall's top gone, the two left the doorways' dark at the way in and out)
+  desert: 0, incal: 6, arzach2: 1, spheres: 0, buried: 0, perdide2: 0, perdide: 2, arzach: 0,   // (v1.82: the Footprint rebuilt across four floors, issue #401, 2 -> 0; v1.77: the Hush-House redone as shrines, issue #336, 9 -> 2: the walls and floors over the old Choir's door and the old root-wall's top gone, the two left the doorways' dark at the way in and out)
   garage: 0, edena: 1, bazaar: 3,   // (v1.86: the Clock-House 1 -> 0, its dial a measuring slip, the finder now measures where two faces overlap, issue #498; v1.48: the Clock-House, the Greenhouse and the Undertower round their hubs, a rotunda's raised gap with a sill)
   spacecity: 0, moonfoundry: 0, underwater: 5,   // (v1.83: the Whale-House round its Sounding Hall, issue #412, 19 -> 6: the quays' faces 2 cm under their floors; v1.77: the Mooring-House redone as shrines, issue #336, its doorways a little narrower than their passages: 3 -> 0; the Casting-House, 20 -> 0: its channel's faces and its landing's trim set 2 cm proud)
 };

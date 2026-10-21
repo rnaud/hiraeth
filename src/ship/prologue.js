@@ -13,8 +13,8 @@
 //   pause   → he pauses the recording, mid-word, to listen: the theme alone, from outside
 //   pass    → the singing light passes the ship, close, singing (its glyph brushed onto the hull)
 //   drain   → the power goes with it: the lamps, the core, the screen; the planet swings up
-//   glide   → outside, over the desert: the dark ship glides down, no fire, on its last reserve
-//   land    → a hard landing on its belly, a short skid through the dunes (a landing, not a crash)
+//   glide   → outside, over the desert: the reserve powers a controlled approach toward Qanat
+//   land    → a gentle vertical touchdown on its landing gear
 //   settle  → the dust clears
 //   drone   → inside, by the hatch: Plumb wakes in its charging cradle, blooms and comes to his shoulder (issue #434)
 //   hatch   → the hatch opens, the ramp comes down

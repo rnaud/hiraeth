@@ -71,6 +71,7 @@ import { loadMotionLibrary, matchingSetting } from './motion-match.js';
 import { movesSetting } from './loco-moves.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { loadPlayableCaravan } from './ship/caravan-asset.js';
+import { shipSetting, shipResume } from './ship/selection.js';
 import { loadHuman, Humanoid } from './humanoid.js';
 import { loadPeople, usesMakeHuman } from './makehuman/people.js';
 import { updateHands } from './hands.js';
@@ -756,7 +757,7 @@ const showToast = (text, o) => { if (!text || (typeof text === 'string' && !keyT
 let balloonAt = -1e9;   // (when a balloon last showed: a lesson on the cue waits for it, issue #79)
 player.onNotice = showToast;   // "It needs power." (a vehicle without the backpack)
 const preStory = new Set(scene.children);
-const storyRt = createStory({ levelId, scene, physics, level, player, npcs, crowd, sound, journal, story, lib, humans: peopleT, toast: showToast, tool,
+const storyRt = createStory({ playGame: (href) => { location.href = href; }, levelId, scene, physics, level, player, npcs, crowd, sound, journal, story, lib, humans: peopleT, toast: showToast, tool,
   traces: content.traces ?? [],   // (a detour world's trace of the light: src/story/sightings-detours.js)
   isNight: () => sky.hour < 6.4 || sky.hour > 19.3,
   ship, drone: (out) => (scout?.out ? out.copy(scout.object.position) : null),   // (home: the scenes wait for the ship's; the dog barks at the drone)
@@ -1064,6 +1065,7 @@ const devMenu = new DevMenu({ levelId, levels: LEVELS, boxes, quests: storyRt.qu
     notes: shotDrafts.status(),
     motion: !!devMatching,
     traveller: devTraveller(),
+    ship: { active: caravan ? 'caravan' : 'original', selected: shipSetting.get('') },
   }),
   onAct: (a) => devAct(a),
   onToggle: (on) => { if (on) { showPicker(false); document.exitPointerLock?.(); } },
@@ -1148,7 +1150,7 @@ if (arrival) {
   history.replaceState(null, '', `?level=${levelId}`);
 }
 // continue where you left off (same world, not arriving by ship)
-const saved = SaveGame.load();
+const saved = shipResume(SaveGame.load(), ship);
 if (!viaShip && !arrival && !playPrologue && saved?.level === levelId && saved.pos && !level.keepSpawn) {   // (keepSpawn: the Arcade, back in front of a game's sign)
   const p = new THREE.Vector3(...saved.pos);
   { const moved = level.settleSaved?.(p, physics); if (moved) p.copy(moved); }   // (a place the world has since taken away: the desert's tree shelf)
@@ -1168,6 +1170,7 @@ let resetting = false;   // (a save being started over: nothing more is written 
 const writeSave = () => !resetting && !minigameDef && !player.god && SaveGame.write({   // (a game's page keeps the place you left the world at; god mode never: you would load in the air)
   level: levelId, pos: player.pos.toArray(), heading: player.heading, yaw: rig.yaw, hour: sky.hour,
   up: player.frame.up.toArray(), fwd: player.frame.fwd.toArray(),
+  shipModel: caravan ? 'caravan' : 'original', aboardShip: !!ship.inside,
 });
 // time played, for the save selector (counted while the game runs, not while paused: src/save-slots.js)
 let playClock = 0;

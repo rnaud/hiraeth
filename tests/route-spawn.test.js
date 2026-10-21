@@ -17,6 +17,7 @@ import { buildableById } from '../src/levels/buildable.js';
 import { CONTENT, ORDER } from '../src/levels/content.js';
 import { readFileSync } from 'node:fs';
 import { MeshBVH, acceleratedRaycast } from 'three-mesh-bvh';
+import { DESERT_OPEN_YAW } from '../scripts/camera-qc/scenarios.mjs';
 
 globalThis.window ??= { addEventListener() {} };
 const dom = { addEventListener() {} };
@@ -175,7 +176,8 @@ test('desert: the camera QC\'s desert-open run from the start keeps the travelle
   const P = new Player(physics, { gravityAt: level.gravityAt });
   P.respawn(level.spawn.clone().add(V(0, 0.05, 0)));
   const cam = new THREE.PerspectiveCamera(55, 16 / 9, 0.3, 2000), rig = new CameraRig(cam, dom, physics);
-  rig.yaw = level.camYaw ?? 0; rig._lastP = null;
+  // Match the open-sand scenario, not the city-facing arrival heading into Qanat roofs.
+  rig.yaw = DESERT_OPEN_YAW; rig._lastP = null;
   const dt = 1 / 60, off = (q) => { const a = q.clone().project(cam); return a.z > 1 || Math.abs(a.x) > 1 || Math.abs(a.y) > 1; };
   let out = 0, n = 0;
   for (let i = 0; i < 60 * 18; i++) {

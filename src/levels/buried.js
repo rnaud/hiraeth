@@ -1,3 +1,4 @@
+import { omitCoveredCap } from '../covered-cap.js';
 import { COURTS } from '../finds/courts.js';
 import { templeVista } from '../temples/vistas.js';
 import { SITE as ENGINE_HOUSE } from '../temples/buried.js';
@@ -832,6 +833,10 @@ export function* buildBuried(scene) {
     const tag = 'city';
     const add = (i, g) => put(M.city[i], g, { solid: false, tag });
     const cY = CITY_Y;
+    // Only omit caps fully enclosed in the slab. Edge blocks keep exposed roofs.
+    const underSlab = (x, y, z) => y > cY && y < cY + 36
+      && Math.hypot(x - CITY_C.x, z - CITY_C.z) < (300 + (y - cY) * 30 / 36) * Math.cos(Math.PI / 40) - .1;
+    const covered = g => omitCoveredCap(g, underSlab);
     add(2, new THREE.CylinderGeometry(330, 300, 36, 40, 1).translate(CITY_C.x, cY + 18, CITY_C.z));
     add(0, new THREE.SphereGeometry(330, 40, 8, 0, TAU, 0, Math.PI / 2).scale(1, 0.18, 1).translate(CITY_C.x, cY + 36, CITY_C.z));
     // a dense underside of blocks, tanks and inverted towers tapering to spires;
@@ -849,7 +854,7 @@ export function* buildBuried(scene) {
       const a = rng() * TAU, r = Math.sqrt(rng()) * 300;
       const x = CITY_C.x + Math.cos(a) * r, z = CITY_C.z + Math.sin(a) * r;
       const w = range(12, 34), d = range(12, 34), hh = range(10, 40) * (1.2 - r / 330);
-      add(i % 3 === 2 ? 2 : i % 2, new THREE.BoxGeometry(w, hh, d).rotateY(rng() * 3).translate(x, cY - hh / 2 + 2, z));
+      add(i % 3 === 2 ? 2 : i % 2, covered(new THREE.BoxGeometry(w, hh, d).rotateY(rng() * 3).translate(x, cY - hh / 2 + 2, z)));
     }
     for (const { x, z, r: r0, k } of towers) {
       let y = cY + 2, rr = r0;
@@ -858,7 +863,7 @@ export function* buildBuried(scene) {
       const tiers = 2 + Math.floor(rng() * 3);
       for (let t = 0; t < tiers; t++) {
         const th = total / tiers * range(0.7, 1.3);
-        add(mat, new THREE.CylinderGeometry(rr, rr * range(0.82, 1), th, sides, 1).translate(x, y - th / 2, z));
+        add(mat, covered(new THREE.CylinderGeometry(rr, rr * range(0.82, 1), th, sides, 1).translate(x, y - th / 2, z)));
         if (rng() < 0.5) {   // side pods and boxes on the shaft
           const sa = rng() * TAU, sr = rr * range(0.35, 0.6);
           add((mat + 1) % 3, new THREE.CylinderGeometry(sr, sr, th * 0.6, 8).translate(x + Math.cos(sa) * rr, y - th * 0.45, z + Math.sin(sa) * rr));

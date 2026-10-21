@@ -94,7 +94,7 @@ export const templesIn = (world) => Object.keys(TEMPLES).filter((id) => templeWo
  * tests/temples.test.js checks the split, and that it matches PLACEMENTS.
  */
 export const GADGETS = {
-  desert: { temple: 'sword', world: ['backpack', 'star'], built: true },   // (the Givers' blade, and their guard beside it; the main quest's own since v1.38, the lift valve by the giant's pool and the fluid gun in the Givers' Hearth, with ember mode in the same chest since v1.45: src/boxes/placements.js)
+  desert: { temple: 'sword', world: ['backpack', 'star'], built: true },   // (blade, guard and gun now share the Rose House; the backpack and lift valve remain Qanat's first lessons)
   incal: { temple: 'fan', world: ['soles'], built: true },             // the gust fan (issue #377; the Warden's bellows from v1.42, the Warden's harness, the City-Shaft's own jets, before them); the soft-fall soles behind its makers' court's gate (v1.86, issue #518: on the rim pillar before)
   // planned (LORE.md, "Temples"): until a temple is built its world keeps its box as it was
   arzach: { temple: 'glider', world: ['hush', 'bell'], built: true }, // the wings moved here from Vael II's stack; the hush-cloth on Vael's spire; the bell-note whistle in its makers' court (issue #375: the hook's box, the hook earned in the Belfry)

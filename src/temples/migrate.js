@@ -10,6 +10,7 @@
 export const TEMPLE_BOXES = [
   ['desert.temple.sword', 'sword'],
   ['desert.temple.shield', 'shield'],
+  ['desert.gun', 'gun'],
   ['incal.temple.jetpack', 'fan'],   // (the Warden's bellows until issue #377, the jets before: the box's id kept)
   ['incal.bridge', 'bridge'],   // (issue #375: the Ash Store's prize, the makers' court's box before)
   ['arzach2.temple.bell', 'hook'],   // (the bell-note whistle until issue #377: the box's id kept)
@@ -328,8 +329,10 @@ export const LAYOUTS = {
   // (the Machines' Hall, the Hall of Fires, the Guard's Hall, the Hall of Channels), the watcher before the cistern's door,
   // which wants it broken and the Hall of Channels' bowl lit. Past the old Machines' Hall (won, or anything after it): the
   // ball dropped, the key taken and turned in its door. A save that entered the house: taken to its last mark
+  // v1.92 (#603): the gun antechamber and spring enlarged; the cistern moved back.
+  // Existing visitors return to their named checkpoint with every earned item retained.
   desert: {
-    v: 5,
+    v: 6,
     steps: [
       { if: ['lit.arM', 'open.dm', 'encounter=done', 'lit.bw0', 'drum.ball3', 'lit.b3', 'open.br1', 'found.guard', 'lit.sentry', 'checkpoint=fires', 'checkpoint=wing', 'checkpoint=ante', 'checkpoint=cistern', 'lit.e10', 'open.sc', 'drum.ball4', 'lit.b4', 'open.d3', 'boss', 'done'], set: { 'drum.ballK': 1, 'found.kS': true, 'unlocked.dE': 1 } },
       { if: ['checkpoint=wing', 'checkpoint=ante', 'checkpoint=cistern', 'lit.e10', 'open.sc', 'drum.ball4', 'lit.b4', 'open.d3', 'boss', 'done'], set: { 'lit.sentry': true, 'open.dw': true } },

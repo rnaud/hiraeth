@@ -609,3 +609,7 @@ capsule against walls works the same way (it used to keep a fifth of its push as
 `tests/ragdoll-cliff.test.js` (a ragdoll knocked into 50°, 72° and sheer faces at 3-9 m/s, with the heightfield's
 blended normal too, ends no higher than it started, never climbs the face, settles; one into a wall stays this side
 of it), `tests/ragdoll.test.js`.
+
+### Refused browser mouse capture (#602)
+
+The canvas click request handles both promise rejection and synchronous refusal from `requestPointerLock`, including embedded Chromium's `UnknownError`. It reports one console warning per camera rig and leaves the existing mouse-down/drag/mouse-up fallback intact. Browsers returning no promise and browsers without the API remain supported. No camera or input mode is forced on refusal.

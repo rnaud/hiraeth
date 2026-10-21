@@ -34,6 +34,18 @@ export const QUESTS = [
   },
 ];
 
+// The normal conversation remains reachable when a player keeps Tansy's letter.
+const EDDA_ENTRY = [
+  { if: { all: [{ has: 'reply' }, { not: { flag: 'nightmail.read' } }] }, node: 'answer' },
+  { if: { quest: Q, done: true }, node: 'after' },
+  { if: { quest: Q, stage: ['board', 'mireille'] }, node: 'again' },
+  { node: 'hello' },
+];
+const keepTansyLetter = EDDA_ENTRY.map((entry, i) => ({
+  text: '~neutral~ I’ll keep it for now. What’s the night mail?', goto: entry.node,
+  if: { all: [...EDDA_ENTRY.slice(0, i).map(e => ({ not: e.if })), ...(entry.if ? [entry.if] : [])] },
+}));
+
 // ------------------------------------------------------------------ the people
 export const PEOPLE = {
   edda: {
@@ -42,13 +54,22 @@ export const PEOPLE = {
     lines: ['~neutral~ Night mail. Mind the lamp.', '~curious~ Is that the bell? No. Not yet.', '~tired~ Forty years of postcards. One a year.'],
     talk: {
       entry: [
-        // (the answer in your coat: she reads it when you pass, once)
-        { if: { all: [{ has: 'reply' }, { not: { flag: 'nightmail.read' } }] }, node: 'answer' },
-        { if: { quest: Q, done: true }, node: 'after' },
-        { if: { quest: Q, stage: ['board', 'mireille'] }, node: 'again' },
-        { node: 'hello' },
+        { if: { has: 'saltletter' }, node: 'tansyPost' },
+        ...EDDA_ENTRY,
       ],
       nodes: {
+        tansyPost: {
+          say: ['~curious~ Hesper, Salt Harbour? The postal hulks still go there. Shall I put this in their sack?'],
+          choices: [
+            { text: '~solemn~ Yes. It’s from her niece.', goto: 'tansyPosted' },
+            ...keepTansyLetter,
+          ],
+        },
+        tansyPosted: {
+          say: ['~solemn~ (Edda stamps the folded page and slips it into the sack.) Next hulk. Hesper will have her word.'],
+          do: { set: { 'item.saltletter': 0, 'fellow.letter.given': true, 'fellow.letter.posted': true } },
+          choices: [{ text: '~neutral~ Thank you.', end: true }],
+        },
         // (issue #479: five pages from the lamp to the letter, Nour's measure; who rides it and what the letter says
         //  are for whoever asks)
         hello: {
