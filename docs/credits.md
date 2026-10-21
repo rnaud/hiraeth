@@ -16,7 +16,7 @@ The third-party art, animation and sound the game uses, and their licences.
   project was obtained from mocap.cs.cmu.edu. The database was created with funding from NSF
   EIA-0196217. Takes and terms: docs/motion-data.md.
 - License texts are in `public/anim/`.
-- Sound effects (`public/sfx/`, the body's foley and the blade's swings and hits): all CC0 1.0
+- Retained sound effects (`public/sfx/`, body foley, impacts and water): CC0 1.0
   (public domain), cut, filtered and re-encoded by `scripts/sfx-build.mjs`; each file's source is in
   `public/sfx/manifest.json`.
   - [Impact Sounds](https://kenney.nl/assets/impact-sounds) and [RPG Audio](https://kenney.nl/assets/rpg-audio)
@@ -28,6 +28,14 @@ The third-party art, animation and sound the game uses, and their licences.
     SypherZent (#420668), Dalesome (#352719) and florianreichelt (#683101), wet splats by Breviceps
     (#445109), nebulasnails (#495118, #495117) and gprosser (#360942), cloth flaps by martian (#19290)
     and memuse (#280205), swimming by craigsmith (#438845) and small splashes by N-RAZM (#390391).
+
+- Selected generated effects: ElevenLabs Sound Effects v3, selected by the author on 21 October 2026.
+  These are **not CC0**: energy blade light/heavy cuts, perfect parry, fluid shot, sand/stone/grass
+  steps, cabin idle, booster thrust and deck opening/closing. Original 48 kHz WAV exports, exact
+  prompts, generation IDs, selected takes and SHA-256 hashes are preserved in
+  `references/audio/elevenlabs-sfx-2026-10-21/`. Runtime derivatives are mono PCM WAV with per-file
+  processing records in `public/sfx/manifest.json`; account usage rights apply. The replaced CC0
+  footsteps and their original provenance remain in `references/audio/legacy-footsteps/`.
 
 ## Notes that sat under the credits
 

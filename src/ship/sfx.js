@@ -1,3 +1,4 @@
+import { shipAudio } from './audio-controller.js';
 // The ship's sounds, synthesised on the game's Sound (src/audio.js): the hum
 // of the hull, the call tone, the alarm, the impact, the long scrape of the
 // landing, the hatch and the engines. Each is a no-op until audio starts.
@@ -5,7 +6,7 @@
 const ok = (s) => s?.ctx && !s.muted;
 
 function loop(s, key, build) {
-  if (!s.ctx) return null;
+  if (!s?.ctx?.createGain || !s.fx) return null;
   s._ship ??= {};
   if (!s._ship[key]) s._ship[key] = build(s.ctx);
   return s._ship[key];
@@ -13,6 +14,10 @@ function loop(s, key, build) {
 
 /** The hull's low hum (0..1); it drops out when the power dies. */
 export function hum(s, level) {
+  shipAudio(s)?.loop('hum', 'ship-idle', level, 1, (value) => synthHum(s, value));
+}
+function synthHum(s, level) {
+  if (!level && !s?._ship?.hum) return;
   const h = loop(s, 'hum', (ctx) => {
     const g = ctx.createGain(); g.gain.value = 0;
     const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 260;
@@ -31,6 +36,10 @@ export function hum(s, level) {
 
 /** The alarm: a two-tone wail (0 = off). */
 export function alarm(s, level) {
+  shipAudio(s)?.loop('alarm', null, level, 1, (value) => synthAlarm(s, value));
+}
+function synthAlarm(s, level) {
+  if (!level && !s?._ship?.alarm) return;
   const a = loop(s, 'alarm', (ctx) => {
     const o = ctx.createOscillator(); o.type = 'square';
     const lfo = ctx.createOscillator(); lfo.type = 'square'; lfo.frequency.value = 1.6;
@@ -103,7 +112,11 @@ export function hatch(s) {
 }
 
 /** Engines for take-off (k 0..1 ramps them up; 0 stops). */
-export function engines(s, k) {
+export function engines(s, k, push = k) {
+  shipAudio(s)?.loop('engines', 'ship-thrust', k, 0.9 + 0.2 * push, (value) => synthEngines(s, value));
+}
+function synthEngines(s, k) {
+  if (!k && !s?._ship?.engines) return;
   const e = loop(s, 'engines', (ctx) => {
     const n = ctx.createBufferSource(); n.buffer = s.noiseBuf; n.loop = true;
     const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 200;
@@ -146,4 +159,19 @@ export function descent(s, dur = 4) {
   f.frequency.setValueAtTime(380, t); f.frequency.exponentialRampToValueAtTime(700, t + dur * 0.5); f.frequency.exponentialRampToValueAtTime(320, t + dur);
   const g = ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.14, t + dur * 0.4); g.gain.linearRampToValueAtTime(0, t + dur);
   src.connect(f).connect(g).connect(s.fx); src.start(t); src.stop(t + dur + 0.1);
+}
+
+/** Follow actual authored camp deployment, including reversals and skipped endpoints. */
+export function deck(s, model, before, k) {
+  shipAudio(s)?.moveDeck(model, before, k, (level) => {
+    if (!level && !s?._ship?.deck) return;
+    const motor = loop(s, 'deck', (ctx) => {
+      const n = ctx.createBufferSource(); n.buffer = s.noiseBuf; n.loop = true;
+      const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 600; f.Q.value = 1.2;
+      const g = ctx.createGain(); g.gain.value = 0;
+      n.connect(f).connect(g).connect(s.fx); n.start();
+      return { g };
+    });
+    motor?.g.gain.setTargetAtTime(level * 0.08, s.ctx.currentTime, 0.03);
+  }, () => s.burst(s.ctx.currentTime, { dur: 0.12, type: 'lowpass', freq: 300, q: 1, vol: 0.3 }));
 }

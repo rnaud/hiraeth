@@ -250,6 +250,7 @@ export class Sound {
 
   /** The guard's change: hush the master at once when away, bring it back softly on return. */
   _away(away) {
+    this._shipAudio?.pause();
     if (!this.master) return;
     const g = this.master.gain, t = this.ctx.currentTime;
     g.cancelScheduledValues(t);
@@ -596,6 +597,8 @@ export class Sound {
   dispose() {
     this._unlisten?.();
     this._disposed = true;
+    this._shipAudio?.dispose();
+    this.bank?.dispose();
     this.trackAbort?.abort(); this.titleAbort?.abort();
     clearInterval(this.scheduler); clearInterval(this.menuTimer); clearTimeout(this._menuStop); clearTimeout(this._preload); clearTimeout(this._trackStop);
     this.scheduler = this.menuTimer = null;
@@ -620,6 +623,7 @@ export class Sound {
 
   toggleMute() {
     this.muted = !this.muted;
+    this._shipAudio?.pause();
     store.set('hiraeth.muted', this.muted ? '1' : '0');
     if (this.master) this.master.gain.setTargetAtTime(this.masterLevel(), this.ctx.currentTime, 0.1);
   }
@@ -1033,11 +1037,11 @@ export class Sound {
   }
 
   /** A footstep at `speed` m/s on `surface` ('stone' | 'grass' | 'sand'; by default what the feet are on: update's footing). */
-  step(speed = 5, { vol = 1, at = 0, surface = this.surface ?? this.profile.ground } = {}) {
+  step(speed = 5, { vol = 1, at = 0, maxDuration = null, surface = this.surface ?? this.profile.ground } = {}) {
     if (!this.ctx || this.muted) return;
     const k = Math.min(speed / 11, 1);
     const g = surface;
-    if (this.sample(`step-${g}`, { vol: (0.55 + 0.35 * k) * vol, at })) return;
+    if (this.sample(`step-${g}`, { vol: (0.55 + 0.35 * k) * vol, at, maxDuration })) return;
     const t = this.ctx.currentTime + at;
     if (g === 'stone') this.burst(t, { dur: 0.05, type: 'bandpass', freq: 1700 + Math.random() * 600, q: 2, vol: 0.12 + 0.12 * k });
     else if (g === 'grass') this.burst(t, { dur: 0.09, type: 'bandpass', freq: 2600 + Math.random() * 800, q: 0.8, vol: 0.05 + 0.06 * k });
@@ -1830,11 +1834,11 @@ export class Sound {
    * One recorded take of a group (src/sfx.js) on the effects bus, `at` s from now, panned toward
    * `pos` (and softer far from the listener). False when the bank has none yet: play the synth.
    */
-  sample(group, { vol = 1, rate = 1, at = 0, pos = null, reach = 60 } = {}) {
+  sample(group, { vol = 1, rate = 1, at = 0, pos = null, reach = 60, maxDuration = null } = {}) {
     if (!this.ctx || !this.bank) return false;
     let pan = 0;
     if (pos && this._ear) { const p = this.placeAt(pos, reach); vol *= Math.max(0.25, p.gain); pan = p.pan * 0.5; }
-    return this.bank.play(group, { dest: this.fx, vol, rate, pan, when: this.ctx.currentTime + at });
+    return this.bank.play(group, { dest: this.fx, vol, rate, pan, when: this.ctx.currentTime + at, maxDuration });
   }
 
   /** Random 0..1 (one place to swap it in a test). */
@@ -1883,7 +1887,8 @@ export class Sound {
     if (!this.ctx || this.muted) return;
     if (!this.sample('cloth', { vol: 1, rate: 0.9, pos })) this.burst(this.ctx.currentTime, { dur: 0.2, type: 'bandpass', freq: 900, q: 0.8, vol: 0.05, rate: 0.7 });
     this.sample('belt', { vol: 0.7, at: 0.28, pos });
-    this.step(3, { vol: 0.5, at: 0.45 });
+    // The foot plants here, but its settling sand tail must not outlast the pull-up. Walking keeps the full contact.
+    this.step(3, { vol: 0.5, at: 0.45, maxDuration: 0.3 });
     if (breath) this.vocal('effort', { vol: 0.75, at: 0.06, gap: 3, pos });
   }
 
@@ -2109,6 +2114,7 @@ export class Sound {
     const t = this.ctx.currentTime;
     if (mode === 'stun') { const v = this.vary(0.06), g = this.vary(0.12); this.sweep(t, 1400 * v, 2600 * v, 0.14, 0.08 * g, 'sine'); this.sweep(t + 0.03 * this.vary(0.3), 2100 * v, 900 * v, 0.2, 0.04 * g, 'triangle'); return; }
     if (mode === 'fire') { this.burst(t, { dur: 0.22, type: 'bandpass', freq: 600, q: 0.6, vol: 0.2, rate: 0.7 }); this.sweep(t, 180, 520, 0.16, 0.1, 'sawtooth'); return; }
+    if (mode === 'shoot' && this.sample('fluid-shot')) return;
     const v = this.vary(0.06), g = 0.955;   // (0.4 dB down: it stood 0.2 dB over the band against the music, issue #566)
     this.sweep(t, 260 * v, 720 * v, 0.11, 0.13 * g);
     this.sweep(t + 0.02, 520 * v, 1500 * v, 0.08, 0.04 * g, 'triangle');
@@ -2235,8 +2241,8 @@ export class Sound {
   fluidSlash(n = 0) {
     if (!this.ctx) return;
     const t = this.ctx.currentTime, v = this.vary(0.07), heavy = n === 2;
-    // (the heavy third's recorded take and his effort over it 1.2 dB down: it stood 1 dB over the band against the music, issue #566)
-    const air = heavy ? this.sample('swing-heavy', { vol: 0.85 * 0.87, rate: 0.88 * v }) : this.sample('swing', { vol: 0.85 + n * 0.15, rate: (1.08 - n * 0.07) * v });
+    // The selected heavy take already carries its low weight; keep near authored speed and inside the action mix band.
+    const air = heavy ? this.sample('blade-heavy', { vol: 0.85 * 0.87, rate: 1.04 * v }) : this.sample('blade-light', { vol: 0.85 + n * 0.15, rate: (1.08 - n * 0.07) * v });
     if (this.rand() < (heavy ? 0.75 : 0.18)) this.effort(heavy ? (air ? 0.85 * 0.87 : 0.85) : 0.65);
     const d = (heavy ? 0.3 : 0.2) * this.vary(0.08);
     this.swish(t, { f0: (heavy ? 420 : 800 + n * 220) * v, f1: (heavy ? 1500 : 2500 + n * 450) * v, f2: (heavy ? 300 : 600 + n * 120) * v, dur: d, vol: air ? 0.07 : 0.16, rate: 1.2 * v });
@@ -2297,10 +2303,11 @@ export class Sound {
     this.sweep(t, (heavy ? 190 : 300) * v, (heavy ? 65 : 110) * v, heavy ? 0.19 : 0.12, (heavy ? 0.14 : 0.1) * g, 'triangle');
   }
 
-  /** The fluid shield takes a blow (src/fluid-blade.js block): a bright clang and a wet splash. */
+  /** A normal block retains its wet impact; a recorded perfect parry returns true to suppress the caller's extra chirp. */
   fluidBlock(perfect = false) {
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
+    if (perfect && this.sample('shield-parry')) return true;
     if (perfect) this.sweep(t, 1600, 2100, 0.14, 0.07, 'sine');
     this.sample('splat', { vol: 0.55, rate: 1.25 });
     this.sample('knock', { vol: 0.5, rate: 0.75 });

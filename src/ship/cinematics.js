@@ -355,7 +355,7 @@ export class PrologueDirector {
       case 'glide':
         C.say(null); C.red(0);   // (the white fade from the drain's end lifts: C.fade below)
         s.holo?.clear();
-        sfx.alarm(s.sound, 0); sfx.hum(s.sound, 0); sfx.roar(s.sound, 4.2);
+        sfx.alarm(s.sound, 0); sfx.hum(s.sound, 0); sfx.engines(s.sound, 0); if (!this.controlled) sfx.roar(s.sound, 4.2);
         s.removeSpaceCopy();
         this.bot.hide();   // (asleep inside the dark ship until the beat after the landing)
         // the player waits, hidden, inside the parked ship; the ship itself glides in, dark
@@ -373,6 +373,7 @@ export class PrologueDirector {
         s.shake(1.4);
         break;
       case 'settle':
+        sfx.engines(s.sound, 0);
         pk.group.position.copy(s.restPos); pk.group.quaternion.copy(s.restQuat);
         s.crashSite?.reveal(1);
         if (s.crashSite) s.crashSite.berm.visible = true;
@@ -545,6 +546,7 @@ export class PrologueDirector {
           pk.gearAltitude = Math.max(0, p.y - s.restPos.y);
           s.setRamp(pk, 0); // camp stays packed; landing gear follows height above its berth
           exhaust(s, pk, dt, { power: .55 });
+          sfx.engines(s.sound, .55);
           const cam = s.restPos.clone().addScaledVector(this.N, -75).addScaledVector(this.T, 35).add(V(0, 20, 0));
           s.shot({ pos: cam, look: p, fov: 48 });
           break;
@@ -587,6 +589,7 @@ export class PrologueDirector {
           pk.gearAltitude = Math.max(0, pk.group.position.y - s.restPos.y);
           s.setRamp(pk, 0);
           exhaust(s, pk, dt, { power: .45 * (1 - u) + .08 });
+          sfx.engines(s.sound, t < 3.25 ? .45 * (1 - u) + .08 : 0);
           if (t >= 3.25 && !this.touchedDown) {
             this.touchedDown = true;
             footPuffs(s, pk, { palette: SAND, n: 3, speed: 1.2, size: .25 });
@@ -652,7 +655,7 @@ export class PrologueDirector {
         const cam = s.rampFoot.clone().addScaledVector(s.outDir, 6.5).addScaledVector(side, 4.5);
         cam.y = Math.max(s.rampFoot.y, s.viewGround(cam.x, cam.z)) + 2.2;
         s.shot({ pos: cam, look: s.hinge.clone().lerp(s.rampFoot, 0.3).add(V(0, 1.4, 0)), fov: 54 });
-        if (t > 0.3 && !this.hissed) { this.hissed = true; sfx.hatch(s.sound); }
+        if (t > 0.3 && !this.hissed) { this.hissed = true; if (!pk.authored) sfx.hatch(s.sound); }
         // (each eases itself: the door unseals and slides up, then the ramp slides out, tips down, telescopes)
         s.setDoor(pk, seg(t, pk.authored ? 4.2 : .3, pk.authored ? 4.6 : 1.4));
         s.setRamp(pk, seg(t, pk.authored ? 0 : 1.35, pk.authored ? 4.2 : 3.3));
@@ -806,7 +809,7 @@ export class PrologueDirector {
       s.setDoor(pk, 1); s.setRamp(pk, 1);
       pk.lightsOff = false;
       s.setPower('emergency', pk);
-      sfx.alarm(s.sound, 0); sfx.hum(s.sound, 0);
+      sfx.alarm(s.sound, 0); sfx.hum(s.sound, 0); sfx.engines(s.sound, 0);
       const a = s.arrivalSpot(), exit = this.firstExit();
       s.cam = null; s.blend = null;
       if (exit) {
@@ -1126,7 +1129,7 @@ export class ArrivalDirector extends Sequence {
       {
         // the door unseals and slides up the hull; then the ramp slides out, tips down and telescopes to the ground
         dur: m.authored ? 4.65 : 2.8,
-        enter: () => sfx.hatch(ship.sound),
+        enter: () => { if (!m.authored) sfx.hatch(ship.sound); },
         frame: (t) => {
           const cam = ship.rampFoot.clone().addScaledVector(ship.outDir, 6.5).addScaledVector(side, 4.5);
           cam.y = ship.viewGround(cam.x, cam.z) + 2.2;
@@ -1200,7 +1203,7 @@ export class TakeoffDirector extends Sequence {
         enter: () => {
           C.hud(false); C.bars(true);
           C.say({ who: 'ship', text: `Course set: ${title}. Hold on.` });
-          sfx.hatch(ship.sound); sfx.engines(ship.sound, 0.35);
+          if (!m.authored) sfx.hatch(ship.sound); sfx.engines(ship.sound, 0.35);
           m.callScreen?.set({ who: 'map' });
         },
         frame: (t) => {
@@ -1247,7 +1250,7 @@ export class TakeoffDirector extends Sequence {
         },
       },
       { dur: 1.6 },
-    ], { onFinish: () => { sfx.engines(ship.sound, 0); onDone?.(); } });
+    ], { onFinish: () => { ship.sound?._shipAudio?.stopDeck?.(); sfx.engines(ship.sound, 0); onDone?.(); } });
     this.to = to;
   }
 }

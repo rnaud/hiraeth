@@ -231,6 +231,15 @@ const SHIP = {
   rumble: ['The ship rumbles', one((s) => ship.rumble(s))],
   roar: ['The engines roar', one((s) => ship.roar(s))],
   hatch: ['The hatch', one((s) => ship.hatch(s))],
+  deck: ['The folding deck (4.2 s)', [true, false].map((opening) => pick(opening ? 'open' : 'close', (s, e) => {
+    const model = {}, from = s.ctx.currentTime;
+    let previous = opening ? 0 : 1;
+    e.hold(4.2, () => {
+      const progress = Math.min(1, Math.max(.0001, (s.ctx.currentTime - from) / 4.2));
+      const k = opening ? progress : 1 - progress;
+      ship.deck(s, model, previous, k); previous = k;
+    }, () => ship.deck(s, model, previous, opening ? 1 : 0));
+  }))],
   approach: ['Approach', one((s) => ship.approach(s))],
   reentry: ['Re-entry', one((s) => ship.reentry(s))],
   descent: ['The descent', one((s) => ship.descent(s))],

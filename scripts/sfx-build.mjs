@@ -13,7 +13,7 @@
 // Each file is trimmed of leading silence, high-passed, peak-normalised to -1 dBFS, faded out, and
 // encoded at 64 kb/s mono 44.1 kHz (the game sets each sound's level: src/sfx.js SFX).
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { mkdirSync, rmSync, statSync, writeFileSync, readFileSync, existsSync } from 'node:fs';
 import { tempDir } from './temp-dirs.mjs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
@@ -101,6 +101,10 @@ const run = (cmd, args) => {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const SRC = resolve(process.argv[2] ?? '.');
+  const currentManifest = join(OUT, 'manifest.json');
+  if (existsSync(currentManifest) && Object.values(JSON.parse(readFileSync(currentManifest, 'utf8')).files).some((f) => f.generationId)) {
+    throw new Error('This legacy CC0 recipe must not overwrite the selected mixed-provenance bank. Rebuild approved effects with python3 scripts/sfx/import-approved.py; rebuild legacy sources in an isolated checkout.');
+  }
   mkdirSync(OUT, { recursive: true });
   const tmp = tempDir('sfx-');
   const manifest = { licence: 'CC0 1.0 (public domain): every source below', made: 'node scripts/sfx-build.mjs', files: {} };

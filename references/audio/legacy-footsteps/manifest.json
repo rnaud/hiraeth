@@ -1,0 +1,95 @@
+{
+  "licence": "CC0 1.0",
+  "files": {
+    "step-stone-4": {
+      "from": "Kenney, Impact Sounds",
+      "url": "https://kenney.nl/assets/impact-sounds",
+      "file": "Audio/footstep_concrete_004.ogg",
+      "bytes": 2506
+    },
+    "step-stone-1": {
+      "from": "Kenney, Impact Sounds",
+      "url": "https://kenney.nl/assets/impact-sounds",
+      "file": "Audio/footstep_concrete_001.ogg",
+      "bytes": 2506
+    },
+    "step-stone-0": {
+      "from": "Kenney, Impact Sounds",
+      "url": "https://kenney.nl/assets/impact-sounds",
+      "file": "Audio/footstep_concrete_000.ogg",
+      "bytes": 2506
+    },
+    "step-stone-2": {
+      "from": "Kenney, Impact Sounds",
+      "url": "https://kenney.nl/assets/impact-sounds",
+      "file": "Audio/footstep_concrete_002.ogg",
+      "bytes": 2506
+    },
+    "step-stone-3": {
+      "from": "Kenney, Impact Sounds",
+      "url": "https://kenney.nl/assets/impact-sounds",
+      "file": "Audio/footstep_concrete_003.ogg",
+      "bytes": 2506
+    },
+    "step-sand-4": {
+      "from": "Kenney, Impact Sounds",
+      "url": "https://kenney.nl/assets/impact-sounds",
+      "file": "Audio/footstep_snow_004.ogg",
+      "bytes": 3342
+    },
+    "step-sand-2": {
+      "from": "Kenney, Impact Sounds",
+      "url": "https://kenney.nl/assets/impact-sounds",
+      "file": "Audio/footstep_snow_002.ogg",
+      "bytes": 3342
+    },
+    "step-sand-3": {
+      "from": "Kenney, Impact Sounds",
+      "url": "https://kenney.nl/assets/impact-sounds",
+      "file": "Audio/footstep_snow_003.ogg",
+      "bytes": 3342
+    },
+    "step-sand-1": {
+      "from": "Kenney, Impact Sounds",
+      "url": "https://kenney.nl/assets/impact-sounds",
+      "file": "Audio/footstep_snow_001.ogg",
+      "bytes": 3342
+    },
+    "step-sand-0": {
+      "from": "Kenney, Impact Sounds",
+      "url": "https://kenney.nl/assets/impact-sounds",
+      "file": "Audio/footstep_snow_000.ogg",
+      "bytes": 3342
+    },
+    "step-grass-2": {
+      "from": "Kenney, Impact Sounds",
+      "url": "https://kenney.nl/assets/impact-sounds",
+      "file": "Audio/footstep_grass_002.ogg",
+      "bytes": 4178
+    },
+    "step-grass-3": {
+      "from": "Kenney, Impact Sounds",
+      "url": "https://kenney.nl/assets/impact-sounds",
+      "file": "Audio/footstep_grass_003.ogg",
+      "bytes": 4178
+    },
+    "step-grass-1": {
+      "from": "Kenney, Impact Sounds",
+      "url": "https://kenney.nl/assets/impact-sounds",
+      "file": "Audio/footstep_grass_001.ogg",
+      "bytes": 4178
+    },
+    "step-grass-0": {
+      "from": "Kenney, Impact Sounds",
+      "url": "https://kenney.nl/assets/impact-sounds",
+      "file": "Audio/footstep_grass_000.ogg",
+      "bytes": 4178
+    },
+    "step-grass-4": {
+      "from": "Kenney, Impact Sounds",
+      "url": "https://kenney.nl/assets/impact-sounds",
+      "file": "Audio/footstep_grass_004.ogg",
+      "bytes": 4178
+    }
+  }
+}

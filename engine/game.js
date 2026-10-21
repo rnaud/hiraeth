@@ -1646,6 +1646,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       try { trials?.sync(); } catch (e) { if (!game._trialsFailed) { game._trialsFailed = true; console.warn('[game] the trials failed', e?.stack ?? e); } }
       // a menu open (engine/menus.js): the world holds still under it, as the web's menus pause the game; the pad
       // goes to the menu (the controller's menu context), the scene is still drawn
+      sound._shipAudio?.pause?.(!!(gadgets?.wheelOn && !talking() && !boxes?.busy?.()) || !!photo.on || !!(menus?.open && !(menus.mode === 'card' && trials?.running && !trials.runner?.paused)));
       if (menus?.open) {
         controller.update(dt, true);
         inputFrame();

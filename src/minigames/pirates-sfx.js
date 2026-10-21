@@ -1,3 +1,4 @@
+import { engines as shipEngines } from '../ship/sfx.js';
 // The chime pirates' sounds (issue #326: "better sound effects"; issue #494: "the sounds are bad"), made with the
 // game's own synth (src/audio.js Sound: sweep, burst, noiseGlide, and its struck tings), each a few layers: a body (a
 // low thump or a tone), a snap (a short noise at the attack) and a tail. Since issue #494 they are the game's own
@@ -75,26 +76,7 @@ export function pirateSounds(sound) {
   const snap = (t, freq, dur, vol, type = 'bandpass', q = 0.9) => sound.burst(t, { dur, type, freq, q, vol });
   /** A short struck tone (the chimes' glass: Sound.ting), or a sine's ping where there is none. */
   const ting = (t, f, vol, dur = 0.35) => (sound.ting ? sound.ting(t, f, vol, dur) : sound.sweep(t, f, f * 1.004, Math.min(0.25, dur), vol, 'sine'));
-  const engine = () => {
-    if (!sound?.ctx?.createGain || !sound.fx) return null;
-    // (one hum for the page's life, kept on the Sound: a Retry finds it again)
-    return (sound._pirateEngine ??= (() => {
-      const ctx = sound.ctx, g = ctx.createGain(), f = ctx.createBiquadFilter();
-      g.gain.value = 0; f.type = 'lowpass'; f.frequency.value = 340; f.Q.value = 0.9;
-      const oscs = [[62, 'sawtooth', 0.5], [93.3, 'triangle', 0.7], [124.6, 'sine', 0.4]].map(([hz, type, v]) => {
-        const o = ctx.createOscillator(), og = ctx.createGain();
-        o.type = type; o.frequency.value = hz; og.gain.value = v;
-        o.connect(og).connect(f); o.start();
-        return { o, hz };
-      });
-      const n = ctx.createBufferSource(); n.buffer = sound.noiseBuf; n.loop = true;
-      const nf = ctx.createBiquadFilter(); nf.type = 'bandpass'; nf.frequency.value = 520; nf.Q.value = 0.7;
-      const ng = ctx.createGain(); ng.gain.value = 0.35;
-      n.connect(nf).connect(ng).connect(f); n.start();
-      f.connect(g).connect(sound.fx);
-      return { g, f, nf, oscs };
-    })());
-  };
+
   /** A place's bed (issue #555), made once a page for each place and kept on the Sound (a Retry finds it again). */
   const bed = (id) => {
     if (!sound?.ctx?.createGain || !sound.fx || !PLACE_SOUNDS[id]) return null;
@@ -248,13 +230,7 @@ export function pirateSounds(sound) {
      * the filter open a little). Called every frame while the run flies; 0 at the end.
      */
     engine(level = 1, push = 0) {
-      const E = engine();
-      if (!E) return;
-      const t = now(), L = sound.muted ? 0 : Math.max(0, Math.min(1, level));
-      E.g.gain.setTargetAtTime(0.045 * L, t, 0.12);
-      E.f.frequency.setTargetAtTime(340 + 420 * push, t, 0.15);
-      E.nf.frequency.setTargetAtTime(520 + 600 * push, t, 0.15);
-      for (const o of E.oscs) o.o.frequency.setTargetAtTime(o.hz * (1 + 0.12 * push), t, 0.2);
+      shipEngines(sound, Math.max(0, Math.min(1, level)), Math.max(0, Math.min(1, push)));
     },
   };
 }

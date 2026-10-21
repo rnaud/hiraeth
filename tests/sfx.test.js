@@ -1,27 +1,46 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, statSync, readdirSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { SFX, sfxFiles, variation, RoundRobin, SampleBank } from '../src/sfx.js';
 import { AudioContext } from '../engine/webaudio.js';
 
 const seeded = (seed = 7) => () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
 
-test('every take of the bank is a small packaged MP3 with a CC0 source in the manifest', () => {
+test('every runtime take has accurate per-file provenance and a bounded payload', () => {
   const manifest = JSON.parse(readFileSync(new URL('../public/sfx/manifest.json', import.meta.url), 'utf8'));
-  assert.match(manifest.licence, /CC0/);
   let total = 0;
   for (const f of sfxFiles()) {
-    const size = statSync(new URL(`../public/sfx/${f}`, import.meta.url)).size;
-    assert.ok(size > 1000 && size < 40000, `${f}: ${size} bytes`);
-    total += size;
-    const m = manifest.files[f.replace(/\.mp3$/, '')];
+    const bytes = readFileSync(new URL(`../public/sfx/${f}`, import.meta.url));
+    total += bytes.length;
+    const m = manifest.files[f.replace(/\.(mp3|wav)$/, '')];
     assert.ok(m, `${f} has a source`);
-    assert.match(m.url, /^https:\/\/(kenney\.nl\/assets\/(impact-sounds|rpg-audio)|freesound\.org\/s\/\d+\/)$/);
+    assert.equal(m.bytes, bytes.length);
+    if (f.endsWith('.wav')) {
+      assert.match(m.from, /ElevenLabs/); assert.match(m.licence, /not CC0/);
+      assert.equal(createHash('sha256').update(bytes).digest('hex'), m.sha256);
+      const source = readFileSync(new URL(`../${m.source}`, import.meta.url));
+      assert.equal(createHash('sha256').update(source).digest('hex'), m.sourceSha256);
+      assert.equal(bytes.toString('ascii',0,4), 'RIFF');
+      assert.equal(bytes.readUInt16LE(22), 1, 'mono');
+      assert.equal(bytes.readUInt32LE(24), 44100);
+      assert.equal(bytes.readUInt16LE(34), 16);
+      assert.ok(m.peakDbfs <= -3 && m.duration < 9 && bytes.length < 800000);
+      if (f.startsWith('step-')) assert.ok(m.duration < 0.8, 'a single contact, never the whole four-second master');
+    } else {
+      assert.ok(bytes.length > 1000 && bytes.length < 40000);
+      assert.match(m.url, /^https:\/\/(kenney\.nl\/assets\/(impact-sounds|rpg-audio)|freesound\.org\/s\/\d+\/)$/);
+    }
   }
-  assert.ok(total < 1.5 * 2 ** 20, `the bank stays small: ${total} bytes`);
-  // nothing in the folder the bank doesn't use
-  const shipped = readdirSync(new URL('../public/sfx/', import.meta.url)).filter((f) => f.endsWith('.mp3')).sort();
+  assert.ok(total < 5 * 2 ** 20, `runtime bank stays below 5 MiB: ${total}`);
+  const shipped = readdirSync(new URL('../public/sfx/', import.meta.url)).filter((f) => /\.(mp3|wav)$/.test(f)).sort();
   assert.deepEqual(shipped, sfxFiles().sort());
+  const sources = JSON.parse(readFileSync(new URL('../references/audio/elevenlabs-sfx-2026-10-21/manifest.json', import.meta.url)));
+  assert.equal(sources.sources.length, 11);
+  for (const source of sources.sources.filter((s) => s.kind === 'footsteps')) {
+    assert.equal(source.cuts.length, 4);
+    source.cuts.forEach(([start,end],i) => { assert.ok(end > start); if (i) assert.ok(start > source.cuts[i-1][1]); });
+  }
 });
 
 test('a play varies pitch and level within the group\'s spread', () => {
@@ -86,4 +105,70 @@ test('one take missing: the group plays the ones it has', async () => {
   assert.equal(await bank.load('splat'), true);
   for (let i = 0; i < 10; i++) assert.equal(bank.play('splat', { dest: ctx.destination }), true);
   assert.ok(bank.played.every((p) => p.take < 3));
+});
+
+
+test('loop handles update on the audio clock, stop once and dispose releases pending fades', async () => {
+  const ctx = new AudioContext({ sampleRate: 8000 });
+  ctx.decodeAudioData = async () => ctx.createBuffer(1, 800, 8000);
+  const bank = new SampleBank(ctx, { table: { hum: { n: 1, vol: 0.2, ext: 'wav' } }, fetcher: async (url) => {
+    assert.ok(url.endsWith('hum-0.wav'));
+    return { ok: true, arrayBuffer: async () => new ArrayBuffer(8) };
+  } });
+  await bank.load('hum');
+  const handle = bank.start('hum', { dest: ctx.destination, loop: true, vol: 0 });
+  assert.equal(handle.duration, 0.1);
+  assert.equal(bank.active.size, 1);
+  handle.set({ vol: 0.6, rate: 1.2 });
+  handle.stop(0.3); handle.stop(0.3);
+  assert.equal(bank.active.size, 1, 'fading source retained until it ends');
+  bank.dispose();
+  assert.equal(bank.active.size, 0, 'dispose releases even fading loops immediately');
+  assert.equal(bank.start('hum', { dest: ctx.destination }), null);
+  assert.equal(await bank.load('hum'), false);
+});
+
+test('dispose during decode cannot resurrect a loaded bank', async () => {
+  const ctx = new AudioContext({ sampleRate: 8000 });
+  let resolve;
+  ctx.decodeAudioData = () => new Promise((done) => { resolve = done; });
+  const bank = new SampleBank(ctx, { table: { one: { n: 1, vol: 1 } }, fetcher: async () => ({ ok: true, arrayBuffer: async () => new ArrayBuffer(8) }) });
+  const pending = bank.load('one');
+  await new Promise((done) => setImmediate(done));
+  bank.dispose(); resolve(ctx.createBuffer(1, 8, 8000));
+  assert.equal(await pending, false);
+  assert.equal(bank.groups.size, 0);
+});
+
+
+test('a resumed cue starts at a bounded decoded-buffer offset without replaying its onset', async () => {
+  const ctx = new AudioContext({ sampleRate: 8000 });
+  const buffer = ctx.createBuffer(1, 8000, 8000); buffer.getChannelData(0).fill(0.25);
+  ctx.decodeAudioData = async () => buffer;
+  const bank = new SampleBank(ctx, { table: { cue: { n: 1, vol: 1 } }, fetcher: async () => ({ ok: true, arrayBuffer: async () => new ArrayBuffer(8) }) });
+  await bank.load('cue');
+  assert.equal(bank.start('cue', { dest: ctx.destination, offset: 1 }), null);
+  assert.equal(bank.start('cue', { dest: ctx.destination, offset: -1 }), null);
+  const cue = bank.start('cue', { dest: ctx.destination, offset: 0.75 });
+  assert.equal(cue.duration, 1);
+  const rendered = ctx.render(8000);
+  assert.ok(rendered.slice(0, 1000).some((v) => v !== 0));
+  assert.ok(rendered.slice(4000).every((v) => v === 0), 'only the final quarter second plays');
+  bank.dispose();
+});
+
+test('bounded contacts keep their scheduled onset and fade out at a wall-clock deadline', async () => {
+  const ctx = new AudioContext({ sampleRate: 8000 });
+  const buffer = ctx.createBuffer(1, 8000, 8000); buffer.getChannelData(0).fill(0.5);
+  ctx.decodeAudioData = async () => buffer;
+  const bank = new SampleBank(ctx, { table: { contact: { n: 1, vol: 1 } }, fetcher: async () => ({ ok: true, arrayBuffer: async () => new ArrayBuffer(8) }) });
+  await bank.load('contact');
+  const handle = bank.start('contact', { dest: ctx.destination, when: 0.45, maxDuration: 0.3, rate: 0.7 });
+  handle.set({ vol: 0.8 });
+  const pcm = ctx.render(8000);
+  assert.ok(pcm.slice(0, 7200).every((v) => v === 0), 'never before the 0.45-second plant');
+  assert.ok(pcm.slice(7400, 11000).some((v) => Math.abs(v) > 0.1));
+  assert.ok(Math.abs(pcm[11800]) < Math.abs(pcm[11400]), '25 ms tail is faded, not abruptly cut');
+  assert.ok(pcm.slice(12000).every((v) => v === 0), 'finished at 0.75 seconds despite the slower playback rate');
+  bank.dispose();
 });

@@ -578,7 +578,7 @@ export class FluidBlade {
     this.parry = GUARD.parryFor;
     hitStop(perfect ? 0.14 : 0.07); kick(perfect ? 0.5 : 0.14);
     T.used('block', p.pos);
-    T.sound?.fluidBlock?.(perfect);
+    const recordedParry = T.sound?.fluidBlock?.(perfect);
     this.device.s.hit(perfect ? 'perfect' : 'block');
     // (the fluid answers: a ring up from the cup; a perfect parry flares the blade out of it a moment, gold)
     this.rippleAt(0, perfect ? BLADE_LOOK.ripple.parry : BLADE_LOOK.ripple.block, perfect ? 1 : 0);
@@ -587,7 +587,7 @@ export class FluidBlade {
     T.rings?.add({ from: at, dir: this.dir, reach: 0.1, r0: 0.2, r1: 1.1, life: 0.3, color: tones[0], thick: 1 });
     for (let i = 0; i < HIT_FX.block; i++) T.drops?.add({ pos: at, vel: _a.copy(this.dir).multiplyScalar(-2).add(_b.randomDirection().multiplyScalar(3)), drag: 3, grav: 6, size: 0.03, life: 0.4, color: tones[i % tones.length] });
     p.vel?.addScaledVector(this.dir, -2);   // pushed back a step
-    if (perfect) { T.sound?.fluidMode?.('stun'); for (let i = 0; i < HIT_FX.parry; i++) T.glow?.add({ pos: at, vel: _a.randomDirection().multiplyScalar(2), drag: 3, size: 0.07, life: 0.5, color: '#fff6dc', grow: true }); }
+    if (perfect) { if (!recordedParry) T.sound?.fluidMode?.('stun'); for (let i = 0; i < HIT_FX.parry; i++) T.glow?.add({ pos: at, vel: _a.randomDirection().multiplyScalar(2), drag: 3, size: 0.07, life: 0.5, color: '#fff6dc', grow: true }); }
     return perfect ? 'perfect' : true;
   }
 

@@ -453,7 +453,7 @@ that is kept.
 ## Recorded effects: the body's foley (October 2026)
 
 The traveller's body used to be silent apart from the synthesised footsteps. Now it is heard through a
-small bank of CC0 recordings (`public/sfx/`, 74 mono MP3s at 64 kb/s, about 360 KB; sources in
+mixed bank of retained CC0 recordings and author-selected ElevenLabs effects (`public/sfx/`; sources in
 `public/sfx/manifest.json` and docs/credits.md), with the synth as the fallback.
 
 - **The bank** (`src/sfx.js` `SampleBank`, `sound.bank`): `SFX` lists each group (its takes, level and
@@ -481,6 +481,45 @@ small bank of CC0 recordings (`public/sfx/`, 74 mono MP3s at 64 kb/s, about 360 
 - `node scripts/sfx-build.mjs <sources>` remakes the files from the downloads (sox and lame); the
   recipe in it names every source. `tests/sfx.test.js` checks the files, the variation, the round
   robin and the fallback; `tests/foley.test.js` the events.
+
+### Selected generated effects (v1.93)
+
+`python3 scripts/sfx/import-approved.py` rebuilds the approved ElevenLabs v3 derivatives from
+preserved lossless masters and checked hashes. It requires ffmpeg, performs no download or playback,
+and records cuts, levels and output hashes. The original generated outputs are not CC0. The legacy
+CC0 builder refuses to overwrite this mixed bank.
+
+Four separate contacts are selected from each footstep master using its measured RMS envelope;
+the generator supplied extra contacts despite its four-step prompt, so surplus contacts are excluded.
+These are short footfalls, never a four-second walking sequence. Existing surface routing and cadence
+remain intact. Footstep headroom differs by surface, and the effects bus still controls walking/running
+levels. Dedicated `blade-light`/`blade-heavy` groups leave body-action swishes unchanged. Only ordinary
+fluid `shoot` uses the new blaster; fire, stun and push retain their identities. The perfect-parry cue
+replaces its layered block/ping, while a normal block and unloaded fallback remain distinct.
+
+`SampleBank.start(group, {dest, vol, rate, when, pan, loop, offset, maxDuration})` returns null while unavailable,
+or a handle with `duration`, `set({vol,rate})` and `stop(fade=0.1)`. `duration(group)` reports decoded
+source seconds; offset is in those seconds. Gain/rate changes smooth over 30 ms. The caller owns loop
+lifetime, including pause/exit/skip; disposing the Sound disposes its bank, aborts pending fetches and
+releases even fading sources. An optional `maxDuration` bounds a contact in audio-clock seconds with
+a separate 25 ms tail envelope; only the mantle foot plant uses it (start 0.45 s, contact at most 0.30 s),
+so ordinary walking keeps its full sand/grass/stone timbre. The targeted mantle/step check passes all
+five recorded and fallback cases without changing the 0.8-second foley limit. `play` remains a boolean one-shot API. Loop WAVs use a measured 150 ms
+join crossfade without encoder padding or a silent end fade; idle/thrust rates are not randomized.
+The six-second deck masters are fitted to the 4.2-second mechanism using pitch-preserving ffmpeg
+`atempo=1.428571428571`, padded/trimmed to exactly 4.2 seconds; the runtime does not raise their pitch.
+Numerical headroom/join checks do not replace the author's auditory review.
+
+The targeted silent Sound QC pass covers ten actions: walking/running on sand, grass and stone,
+all three blade cuts, block, parry and fluid shoot. All ten pass both the recorded-asset mix and the
+explicit decode-unavailable fallback. Against the Desert recording (−25.7 dBFS reference), final
+relative levels are −13.3/−11.7 dB for walking/running, −15.5 grass, −16.2 stone, +0.7/+1.2/+1.2
+for the three cuts, +3.5 block, +4.0 parry and +1.8 shoot. The initial light/heavy cuts were +2.8/+4.7;
+the heavy lasted 1.30 seconds at its old slow rate. It is now 1.10 seconds. Parry initially repeated
+within 0.2 dB / 1.4% brightness; subtle pitch/gain variation now meets the existing check.
+These are offline mix measurements, not a listening verdict or full-game driven audit. Native
+packaging and silent Unity decoding separately verify all twenty selected PCM files; the revised
+pitch-preserving deck files are exactly 185,220 frames each. The combined full QC then covered all 116 actions: all key actions and the mix passed, with one non-key mantle tail exceeding its duration limit. The bounded contact correction above passed a targeted five-action recorded/fallback rerun without changing ordinary footsteps. The full run measured the fight at −6.7 dBFS peak and +5.2 dB against music, dialogue at +3.6 dB, and music ducking at −4.3 dB; it found no mix warning. These tests render silently and do not establish a subjective listening verdict.
 
 ## The surface underfoot, and the loud ones (playtest, 8 October 2026)
 
@@ -976,3 +1015,31 @@ inside already.
 `node .claude/skills/sound-qc/run.mjs`: 103 → **116 of 116** OK in the browser, 106 → **116** in the engines (against
 the score 116 both, as before); a fight's loudest moment +5.7 → +5.4 dB over the music; the voice +3.6 and ducking
 -4.3 dB unchanged. The engines play the same synths (src/audio.js, src/gadgets/), so Unity has the same trims.
+
+### Selected ship recordings
+
+The cabin idle and rear-booster recordings use one `ShipAudio` controller per
+`Sound`. Aboard play follows the ship's power state; cinematic power changes take
+precedence while a sequence runs. Pirates shares the same aggregate booster bed,
+with throttle pitch and level, rather than playing four full-volume copies.
+Missing or still-loading samples retain the synthesised fallback.
+
+Authored camp movement drives the opening/closing recording from the actual
+0–1 pose. The six-second masters are shortened with pitch-preserving processing
+to the 4.2-second deployment, including their final locks. Runtime playback rate
+is processed duration divided by 4.2 (1 for the shipped cues). Reversing stops the previous
+cue; resuming starts at the matching buffer offset. If a foreground stall lets
+audio run more than 180 ms ahead of or behind physical movement, the old cue
+fades out and restarts at the current pose rather than continuing out of sync. Initial placement and skip
+to an endpoint do not play a whole motor sequence. The fallback motor is held
+only during movement, with a clunk on a normally reached endpoint.
+
+Menus, photo mode, the gadget wheel, loss of visibility/focus, mute and Sound
+disposal stop held recordings. Resume preserves desired cabin/throttle state and
+camp progress. Late loading is retried by the host's regular pause/lifecycle
+update, without stacking sources. Both web and native hosts call the same
+controller. The music page includes open/close previews, but verification of
+this integration uses offline PCM mixing; no listening-quality claim follows
+from the numerical checks alone.
+
+The v1.93 Unity player and script minimum are level 3: the player supplies the new decoder and packaged offline effects together. Older player updates require that app update before accepting the script; guarded manual older-host use retains synthesized fallback. Java native API is unchanged.

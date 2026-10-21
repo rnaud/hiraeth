@@ -382,6 +382,7 @@ export class Ship {
 
   /** k = 0 stowed .. 1 lowered to the ground: it slides out, tips down, telescopes out (src/ship/model.js poseRamp). */
   setRamp(model, k) {
+    if (model.authored) sfx.deck(this.sound, model, model.rampK, k);
     if (model.applyCamp) model.applyCamp(k, model.gearAltitude ?? 0);
     if (!model.ramp) { model.rampK = k; return; }
     poseRamp(model.ramp, model.authored ? caravanStowPose(k).ramp : k);
@@ -922,6 +923,8 @@ export class Ship {
       if (c.skippable !== false) this.cinema.skip(Math.min(1, (c.skipT ?? 0) / 0.9), !c.interactive?.() && ((c.skipT ?? 0) > 0.05 || recent));
       if (c.done) { this.cinematic = null; this.cinema.skip(0, false); }
     }
+    // Cinematics own power changes while playing; normal aboard play has the same cabin bed.
+    if (!this.playing) sfx.hum(this.sound, inside && this.powerState !== 'dead' ? 0.6 : 0);
     // the fluid tool is put away at home and while a scene plays (src/fluid-tool.js listens)
     const toolOn = !this.inside && !(this.cinematic && !this.cinematic.done) && !this.auto;
     if (toolOn !== this._toolOn) { this._toolOn = toolOn; game.emit('tool:enable', { on: toolOn }); }

@@ -348,3 +348,22 @@ test('a swing through a small creature bonks it (the blade, not a scare from any
   assert.deepEqual(got, [['near', 'blade']]);
   tool.dispose(); clearTargets();
 });
+
+
+test('recorded perfect parry suppresses only the duplicate mode chirp; fallback keeps it', async () => {
+  for (const recorded of [true, false]) {
+    clearTargets();
+    const { tool, tick } = await armed();
+    const calls = [];
+    tool.sound = { fluidBlock: (perfect) => { calls.push(['block', perfect]); return recorded; }, fluidMode: (mode) => calls.push(['mode', mode]) };
+    const blade = tool.blade;
+    for (let i = 0; i < 40; i++) tick({});
+    let result = false;
+    for (let i = 0; !result && i < 20; i++) { tick({ KeyZ: true }); if (blade.parryLive) result = blade.block(v(0, 0, -57.8)); }
+    assert.equal(result, 'perfect');
+    assert.equal(calls.filter(([name]) => name === 'block').length, 1);
+    assert.equal(calls.filter(([name, mode]) => name === 'mode' && mode === 'stun').length, recorded ? 0 : 1);
+    tool.dispose();
+  }
+  clearTargets();
+});

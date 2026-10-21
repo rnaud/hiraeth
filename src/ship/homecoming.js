@@ -475,7 +475,7 @@ export class HomecomingDirector {
         break;
       }
       case 'hatch':
-        sfx.hatch(s.sound);
+        if (!pk.authored) sfx.hatch(s.sound);
         pk.group.position.copy(s.restPos);
         break;
       case 'walk': {

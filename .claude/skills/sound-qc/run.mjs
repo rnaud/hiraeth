@@ -3,7 +3,7 @@
 //   1. looked for in the code: does the browser's game ask for it, and the engines' (engine/game.js: what Unity plays)?
 //   2. rendered alone on the in-memory Web Audio (engine/webaudio.js), calm, its score off, six times: its loudest 50 ms
 //      against the music's, its peak, onset and length, how much the takes differ; twice over: with the recorded takes
-//      (public/sfx/, as the browser plays them) and without (the synth alone, as the engines play it);
+//      (public/sfx/, as the browser plays them) and without (the synth-only fallback, not native decoded-asset parity);
 //   3. driven in the engines' build of the whole game (scripts/sound-qc/drive.mjs, scenarios.mjs): which sounds the game
 //      asked for after the press, and how soon;
 // then the mix: the music's level in three worlds (the recording that plays, Music: Always, and the procedural score), a voice over it, the music under a conversation (ducking), the
@@ -71,7 +71,7 @@ async function catalogue(samples) {
 }
 log('rendering every sound: with the recorded takes (the browser)');
 const web = await catalogue(!has('no-samples'));
-log(`  the music's reference ${web.ref} dBFS (${REF.from === 'recording' ? `the desert's recording, ${REF.file} at ${REF.gain}` : 'the desert\'s procedural score: no recording decoded'}; the score ${REF.score})${web.samples ? '' : ' (no afconvert: the synth alone)'}; without them (the engines)`);
+log(`  the music's reference ${web.ref} dBFS (${REF.from === 'recording' ? `the desert's recording, ${REF.file} at ${REF.gain}` : 'the desert\'s procedural score: no recording decoded'}; the score ${REF.score})${web.samples ? '' : ' (no afconvert: the synth alone)'}; without them (decode-unavailable fallback)`);
 const eng = await catalogue(false);
 
 // ---------------------------------------------------------------- 3. driven in the engines' build
@@ -174,7 +174,7 @@ const vari = (v) => (v.v ? `${v.v.level} dB / ${v.v.centroid} %` : '–');
 const refWhat = REF.from === 'recording' ? `the desert's recording, ${REF.file} at the engines' gain ${REF.gain} (src/theme-levels.js), once round its loop` : 'the desert\'s procedural score: **no recording decoded**';
 let md = `# Sound QC\n\n${json.at} · the music's reference (${refWhat}; the 95th percentile of its 50 ms windows): ${web.ref} dBFS · the procedural score (a Moment where no recording plays): ${REF.score} dBFS` +
   `${web.samples ? '' : ' · **no recorded takes decoded** (afconvert missing): the web column is the synth'}\n\n` +
-  `Levels: the sound's loudest 50 ms against that, dB. Web: the browser (the recorded takes and the synth); engines: engine/game.js on the in-memory Web Audio (the synth alone, what Unity plays). ` +
+  `Levels: the sound's loudest 50 ms against that, dB. Web: the browser (the recorded takes and the synth); engine fallback: engine/game.js on in-memory Web Audio with sample decoding disabled. This is a fallback check, not proof of current Unity sample decoding; native decoded-asset parity is checked separately. ` +
   `press: from the key to the first sound in the engines' game. var: the spread of six takes (level / brightness).\n\n` +
   `| action | role | web | engines | level web / eng | dur s | var web | var eng | press ms | why |\n|---|---|---|---|---|---|---|---|---|---|\n`;
 for (const g of [...new Set(rows.map((r) => r.group))]) {

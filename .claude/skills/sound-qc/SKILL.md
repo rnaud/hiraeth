@@ -36,9 +36,11 @@ quick loop while tuning a sound: ~1 min).
    The gadgets' sounds are their own synths in src/gadgets/ (`KIT`, actions.mjs `loadKit`), played on the Sound.
 2. **Each sound alone** (scripts/sound-qc/render.mjs): the game's own Sound, calm, its score off, the call made, two
    seconds rendered (a cue four and a half) and the same render without it subtracted (the wind's bed); six takes on
-   different seeds. Twice: with the recorded takes (public/sfx/, decoded by macOS `afconvert` into
-   `$TMPDIR/hiraeth-sound-qc-takes`: what the browser plays) and without (the synth alone: what the engines play,
-   engine/unity/music.js decodes only the music).
+   different seeds. Twice: with recorded takes (public/sfx/: PCM WAV read directly; MP3 decoded by macOS `afconvert` or
+   `ffmpeg` into `$TMPDIR/hiraeth-sound-qc-takes`, cached by source hash) and without (the explicit
+   decode-unavailable synth fallback). Unity now decodes short MP3/WAV recordings into the same DSP graph;
+   the legacy `engine` report column is the fallback comparison, not a claim that current Unity plays only synths.
+   Validate actual native decoding and packaged source hashes separately before claiming native parity.
 3. **In the game** (scripts/sound-qc/drive.mjs, scenarios.mjs): engine/game.js bundled and run in a bare V8 context with
    its sound on (what Unity runs), in the desert with its foes; a scenario presses keys as a player would (F the blade,
    Ctrl the guard, Alt the roll, Space, Tab, Q) and every call into the Sound is written down with its frame. The
@@ -46,7 +48,7 @@ quick loop while tuning a sound: ~1 min).
 4. **The mix**: the reference is what plays (Music: Always, issue #474): the desert's Suno recording, decoded by
    afconvert as the takes are, at the gain the engines give it (src/theme-levels.js; the browser's prepareSoundtrack
    measures the same), once round its loop through the music bus, the 95th percentile of its 50 ms windows. The
-   procedural score is the fallback (no afconvert, or `--score-ref`) and is measured beside it (a Moment where no
+   procedural score is the fallback (neither decoder succeeds, or `--score-ref`) and is measured beside it (a Moment where no
    recording plays); the report also counts every verdict against the score, so the music's level and a sound's own
    are told apart. Then three worlds' recording and score, a conversation's voice alone, the music bus under a
    conversation (ducking), a fight's loudest moment (the heavy third landing as a blow lands on him).
@@ -80,8 +82,8 @@ Levels are K-weighted (the curve LUFS is measured through), the loudest 50 ms, i
   so about 1 dB under now): read the "against the procedural score" line for each sound's own fault.
 - **missing in the engines only**: the call is made in src/main.js (BodyFoley, interactHooks, onDrink, waters): wire
   the same in engine/game.js. Check it there with the drive (the `press` column fills in).
-- **too quiet in the engines only**: the browser hears a recorded take, the engines its synth stand-in (the hurt's was
-  a 40 ms burst). Give the synth body: the same layers the recording has.
+- **too quiet in the fallback column only**: the recorded mix passes but its synth stand-in (used when decoding is unavailable; the hurt's was
+  a 40 ms burst) does not. Give the synth body: the same layers the recording has.
 - **repetitive**: a synth with fixed frequencies: multiply them by `this.vary(0.06)` (±6 %, about a semitone).
 - **a peak over 0 dBFS in the engines**: a gain left at its default 1 until its first event leaks into the block a
   source starts in (fixed in engine/webaudio.js, issue #379: scheduled events inside a block are sampled exactly).

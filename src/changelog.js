@@ -9,6 +9,36 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
+    v: '1.93',
+    "date": "2026-10-21",
+    "items": [
+      {
+        "text": "Your energy blade now hums through light and heavy cuts, and a perfect parry answers with a magnetic snap.",
+        "see": "Swing through a three-hit combo, then time a perfect shield block. The heavy cut has its own recording; an ordinary block still sounds different. You can also compare them under Effects on the Music page."
+      },
+      {
+        "text": "The fluid gun fires a smaller, rounded energy blip with a playful liquid finish.",
+        "see": "Fire an ordinary fluid shot. Stilling, ember and push keep their distinct sounds."
+      },
+      {
+        "text": "Boots settle softly into fine sand, compress grass and tap stone with separate footsteps.",
+        "see": "Walk and run from the Desert sand onto Qanat’s paving, then across grass on another world. Each surface follows your steps with a little natural variation."
+      },
+      {
+        "text": "The ship has a warm cabin hum and a shared booster sound for travel, landings and Chime Pirates.",
+        "see": "Board the powered ship, depart, land, then play Chime Pirates. Thrust follows the engines and pauses with the action; returning or retrying does not stack extra engine loops."
+      },
+      {
+        "text": "The folding deck has distinct opening and closing sounds that follow its movement and locking finish.",
+        "see": "Watch the porch deploy after landing and pack before departure. Its motor and locking sounds follow the mechanism, resume after a pause and stop cleanly when a scene is skipped."
+      },
+      {
+        "text": "The selected recorded effects now play in native versions as well as the browser.",
+        "see": "Update the native app to get all the recordings offline. They follow your Effects volume setting, and unavailable recordings keep their familiar fallback sounds."
+      }
+    ]
+  },
+  {
     v: '1.92',
     "date": "2026-10-21",
     "items": [

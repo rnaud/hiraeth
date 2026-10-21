@@ -2,6 +2,15 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.93 — 2026-10-21
+
+- The selected recorded effects now play in native versions as well as the browser.
+- The folding deck has distinct opening and closing sounds that follow its movement and locking finish.
+- The ship has a warm cabin hum and a shared booster sound for travel, landings and Chime Pirates.
+- Boots settle softly into fine sand, compress grass and tap stone with separate footsteps.
+- The fluid gun fires a smaller, rounded energy blip with a playful liquid finish.
+- Your energy blade now hums through light and heavy cuts, and a perfect parry answers with a magnetic snap.
+
 ## v1.92 — 2026-10-21
 
 - Recent ship, outfit and Desert updates now include pictures in See what changed.

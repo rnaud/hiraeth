@@ -1,10 +1,11 @@
 // The sound QC's renderer (.claude/skills/sound-qc/SKILL.md): the game's own Sound (src/audio.js) on the in-memory Web
 // Audio (engine/webaudio.js), calm, its score off, one call rendered from the moment it is made. The recorded takes
-// (public/sfx/) decoded here (macOS afconvert into <cache>/*.wav) when asked, so a sound is heard as the browser plays
-// it; without them, as an engine with no decoder does (the synth layers alone).
+// (public/sfx/) read as PCM WAV or decoded by afconvert/ffmpeg into the content-hashed cache, so a sound is measured as the browser plays
+// it; without them, the explicit decode-unavailable fallback (not current native decoder parity).
 //
 //   const R = await renderer({ samples: true, cache })
 //   R.render((s) => s.fluidSlash(0), { level: 'desert', secs: 2, setup })  → { pcm, bed, rate }
+import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { existsSync, mkdirSync, readFileSync } from 'node:fs';
@@ -33,21 +34,31 @@ export function readWav(buf) {
 }
 
 /**
- * Each take of the bank (or, `from` 'public/music', each recorded theme) decoded once (afconvert, macOS) into `cache`;
- * null where it can't be (no afconvert: the synth, the procedural score).
+ * Each take/theme is read as WAV or decoded once (afconvert, then ffmpeg) into `cache`;
+ * null only where decoding fails, retaining the explicit synth/procedural-score fallback.
  */
-export function decodedTakes(cache, from = 'public/sfx') {
+export function decodedTakes(cache, from = 'public/sfx', root = ROOT) {
   mkdirSync(cache, { recursive: true });
   const takes = new Map();
   return (name) => {
-    if (takes.has(name)) return takes.get(name);
-    const mp3 = join(ROOT, from, name), wav = join(cache, name.replace(/\.mp3$/, '.wav'));
-    let got = null;
+    let got = null, key = null;
     try {
-      if (!existsSync(wav)) execFileSync('afconvert', ['-f', 'WAVE', '-d', `LEI16@${RATE}`, mp3, wav], { stdio: 'ignore' });
-      got = readWav(readFileSync(wav));
+      const source = join(root, from, name), bytes = readFileSync(source);
+      const hash = createHash('sha256').update(bytes).digest('hex');
+      key = `${name}:${hash}:${RATE}`;
+      if (takes.has(key)) return takes.get(key);
+      if (/\.wav$/i.test(name)) got = readWav(bytes);
+      else {
+        const wav = join(cache, `${name.replace(/\.mp3$/i, '')}-${hash}-${RATE}.wav`);
+        if (!existsSync(wav)) {
+          try { execFileSync('afconvert', ['-f', 'WAVE', '-d', `LEI16@${RATE}`, source, wav], { stdio: 'ignore' }); }
+          catch { execFileSync('ffmpeg', ['-v', 'error', '-y', '-i', source, '-ar', String(RATE), '-c:a', 'pcm_s16le', wav], { stdio: 'ignore' }); }
+        }
+        got = readWav(readFileSync(wav));
+      }
+      takes.set(key, got);
     } catch { got = null; }
-    takes.set(name, got);
+    if (key) takes.set(key, got);
     return got;
   };
 }
