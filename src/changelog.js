@@ -9,6 +9,12 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
+    v: '1.98', date: '2026-10-22',
+    items: [
+      { text: 'A Sound effects switch in the developer controls shows recent effects and playing loops, with their ElevenLabs, procedural or other recording source, to help spot overlapping sounds.', see: 'Open the developer menu, choose Toggles, then Sound effects. Walk, use a tool or listen to the ship: each actual effect appears with its source. Music and spoken dialogue are excluded; the panel is off by default.' },
+    ],
+  },
+  {
     v: '1.97', date: '2026-10-22',
     items: [
       { text: 'Forming the fluid blade, opening the shield and refilling the tank have softer new sounds, with a discreet reminder when fluid runs low.', see: 'Draw your blade from rest, raise the shield and refill an ordinary tank. Spend a full tank below one quarter: one gentle warning plays until a meaningful refill. First-water and new-colour celebrations retain their existing cues.' },

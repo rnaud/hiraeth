@@ -1483,7 +1483,7 @@ window.addEventListener('keydown', (e) => {
 // ------------------------------------------------------------------ the dev menu's world
 // what the dev menu's rows do in the world (src/dev-menu.js hands them here): teleport to a place, the cheats and the
 // toggles, a film, a quest's stage, the time of day, a screenshot for the Notes page
-const devToggles = () => ({ fps: !!settings.showFps, god: !!player.god, hitboxes: hitboxes.on, inputs: inputDisplay.on, potions: !!resources.potions.infinite, clock: sky.speed > 0, jets: items.has('jetpack'),
+const devToggles = () => ({ soundSources: !!sound.sfxTrace?.enabled, fps: !!settings.showFps, god: !!player.god, hitboxes: hitboxes.on, inputs: inputDisplay.on, potions: !!resources.potions.infinite, clock: sky.speed > 0, jets: items.has('jetpack'),
   matching: !!devMatching?.get(), moves: devMoves.get(), travellerV2: !!travellerV2.dress });
 /**
  * God mode on or off (src/player.js GOD: fly fast, nothing hurts, through walls; never saved). Off: set down on the
@@ -1511,7 +1511,8 @@ function devAct(a) {
   }
   else if (a.do === 'reload') location.reload();
   else if (a.do === 'toggle') {
-    if (a.key === 'fps') settings.set('showFps', !settings.showFps);
+    if (a.key === 'soundSources') void sound.sfxTrace.enable(!sound.sfxTrace.enabled);
+      else if (a.key === 'fps') settings.set('showFps', !settings.showFps);
     else if (a.key === 'god') setGod(!player.god);
     else if (a.key === 'hitboxes') toggleHitboxes();
     else if (a.key === 'inputs') toggleInputs();

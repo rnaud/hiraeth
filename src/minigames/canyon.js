@@ -594,6 +594,7 @@ function motor(sound) {
   o.type = 'sawtooth'; o2.type = 'triangle'; f.type = 'lowpass'; f.frequency.value = 300; g.gain.value = 0;
   o.connect(f); o2.connect(f); f.connect(g).connect(sound.fx);
   o.start(); o2.start();
+  sound._canyonMotor = g;
   return {
     set(speed, boost, live) {
       const t = ctx.currentTime, on = live && !sound.muted ? 1 : 0;
@@ -602,7 +603,7 @@ function motor(sound) {
       o2.frequency.setTargetAtTime(81 + Math.abs(speed) * 4.3, t, 0.12);
       f.frequency.setTargetAtTime(260 + Math.abs(speed) * 26 + boost * 900, t, 0.12);
     },
-    stop() { try { g.gain.setTargetAtTime(0, ctx.currentTime, 0.05); o.stop(ctx.currentTime + 0.3); o2.stop(ctx.currentTime + 0.3); } catch { /* (already stopped) */ } },
+    stop() { if (sound._canyonMotor === g) sound._canyonMotor = null; try { g.gain.setTargetAtTime(0, ctx.currentTime, 0.05); o.stop(ctx.currentTime + 0.3); o2.stop(ctx.currentTime + 0.3); } catch { /* (already stopped) */ } },
   };
 }
 

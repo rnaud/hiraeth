@@ -1108,3 +1108,27 @@ The existing treasure music response and positional legacy vocals are preserved.
 Eight author-starred sources in `references/audio/elevenlabs-next-2026-10-22/` rebuild through `scripts/sfx/import-next.py`. They use mono 44.1 kHz PCM16, finite one-shots, unchanged pitch, 4 ms/25 ms edge fades and -6 dBFS peak normalization; runtime group gain is 0.2. No hoverbike, hologram or additional temple takes were selected. Every temple retains the shared action bank.
 
 `NextActionAudio` owns short cue handles, reserves cooldowns even while samples load (synthesis stays a one-event fallback), and stops on pause, mute, away and disposal. Map discovery/control cues explicitly use the UI bus while the world is paused. Drawing uses the sheath transition, never every swing; initial rig setup is silent. Shield opening replaces its original cue without changing parry/closing. Ordinary refill replaces the bubbling cue while newly acquired colours retain their celebration. The shared fluid tool warns on a downward quarter-tank crossing, rearms at half, and seeds silently after dry/load/inactive states. Pickups replace grab/cloth/notes, retaining the separate fragment theme. Both map implementations resolve through the same Sound method. A new message announces once per ID; initial waiting messages seed silently and the opening reminder no longer repeats. No cue waits for decode then replays a stale event.
+
+## Developer sound source overlay
+
+The developer **Toggles → Sound effects** switch is off by default. It shows a bounded recent
+history and currently playing loops, with **ElevenLabs**, **Procedural**, or **Other recording**
+provenance. An unavailable manifest is explicitly shown as **Unknown recording**. The per-file
+`public/sfx/manifest.json` is the provenance authority and is also packaged for Unity.
+
+`src/sfx-trace.js` observes successful recorded source starts through `SampleBank`, and observes
+procedural source starts only while enabled. Several oscillators/noise sources created by one
+Sound invocation are one occurrence with a layer count; separate invocations remain separate.
+Music and spoken dialogue are excluded. Character effort sounds are effects and are included.
+The display follows source end/stop, mute and loop gain changes; it does not label failed or
+unloaded sample requests as played recordings. Existing loops can appear under Playing without
+being invented as new starts in Recent. The shared `screen.sfxTrace` state supplies the native HUD.
+
+This is a playback diagnostic, not a microphone or proof of audible speaker output. Silent
+review must use a constructor-time isolated output sink while exercising the real event paths;
+ordinary review mute correctly suppresses playback events instead of creating demonstration rows.
+
+The panel covers the active game's Sound and its ship/minigame effects. Standalone trailer
+foley and the bell page's emergency standalone AudioContext (when no game Sound is bound)
+are outside this in-game panel. A playable instrument routed into Effects is included;
+the same instrument routed into Music is excluded.

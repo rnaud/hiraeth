@@ -194,6 +194,7 @@ export const GAPS = {
 
   // ------------------------------------------------------------------ page elements (HTML) the game builds
   dom: [
+    { keys: ['src/sfx-trace.js'], count: { 'src/sfx-trace.js': 2 }, what: 'optional sound-effect source panel', status: 'handled', where: 'shared screen.sfxTrace state, BridgeHud.SoundSources.cs; actual muted Editor recording, procedural, loop, stop and mute views checked for #619' },
     // gaps
     // handled: drawn from the screen's parts, or the engines' own menus
     { keys: ['src/ship/homecoming.js'], count: { 'src/ship/homecoming.js': 15 }, parts: ['cargo', 'endCard', 'credits'], what: 'the homecoming\'s cargo check, end card and credits rolling up the screen', status: 'handled',

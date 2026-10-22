@@ -125,6 +125,7 @@ export class SampleBank {
     };
     G.promise = Promise.all(Array.from({ length: spec.n }, (_, i) => one(i).catch(() => null))).then((bufs) => {
       G.buffers = this.disposed ? [] : bufs.filter(Boolean);
+      G.takes = bufs.map((b, i) => b ? i : -1).filter(i => i >= 0);
       G.state = G.buffers.length ? 'ready' : 'failed';
       G.rr = new RoundRobin(G.buffers.length, this.rand);
       return G.state === 'ready';
@@ -155,12 +156,14 @@ export class SampleBank {
     if (G.state !== 'ready' || !Number.isFinite(offset) || offset < 0) return null;
     const ctx = this.ctx, spec = this.table[group], take = G.rr.next(), v = variation(spec, this.rand);
     const src = ctx.createBufferSource(), g = ctx.createGain();
-    src.buffer = G.buffers[take]; src.loop = !!loop;
+    src.buffer = G.buffers[take]; src.loop = !!loop; src._sfxRecorded = true;
     if (offset >= src.buffer.duration) return null;
     src.playbackRate.value = Math.max(0.25, v.rate * rate);
     const baseGain = spec.vol * v.gain;
     g.gain.value = baseGain * vol;
-    let out = g, ended = false, stopping = false;
+    let out = g, ended = false, stopping = false, event = null;
+    const traceInfo = () => ({ name: group, source: 'Unknown recording', file: `${group}-${G.takes?.[take] ?? take}.${spec.ext ?? 'mp3'}`, when: Number.isFinite(when) ? when : ctx.currentTime, loop: !!loop, gain: g.gain.value, bus: dest });
+    const traced = () => { if (this.trace) { event ??= this.trace.begin({ ...traceInfo(), when: Number.isFinite(when) ? when : ctx.currentTime }); this.trace.level(event, g.gain.value); } };
     if (Number.isFinite(pan) && pan && ctx.createStereoPanner) { const p = ctx.createStereoPanner(); p.pan.value = Math.max(-1, Math.min(1, pan)); g.connect(p); out = p; }
     // A separate envelope preserves a bounded contact's gentle tail even if handle.set changes its mix gain.
     const envelope = maxDuration === null ? null : ctx.createGain();
@@ -168,7 +171,7 @@ export class SampleBank {
     out.connect(dest);
     const clean = () => {
       if (ended) return;
-      ended = true; this.active.delete(handle);
+      ended = true; this.active.delete(handle); this.trace?.end(event);
       try { src.disconnect(); envelope?.disconnect(); g.disconnect(); if (out !== g) out.disconnect(); } catch { /* context already closed */ }
     };
     const ramp = (param, value, seconds) => {
@@ -179,16 +182,21 @@ export class SampleBank {
     };
     const handle = {
       duration: src.buffer.duration,
+      traceInfo,
+      get traceEvent() { return event; },
+      set traceEvent(e) { event = e; },
       set: ({ vol: nextVol, rate: nextRate } = {}) => {
         if (ended || stopping) return;
         if (Number.isFinite(nextVol) && nextVol >= 0) ramp(g.gain, baseGain * nextVol, 0.03);
         if (Number.isFinite(nextRate) && nextRate > 0) ramp(src.playbackRate, Math.max(0.25, v.rate * nextRate), 0.03);
+        traced();
       },
       stop: (fade = 0.1) => {
         if (ended || (stopping && fade !== 0)) return;
         stopping = true;
         const seconds = Number.isFinite(fade) ? Math.max(0, fade) : 0.1;
         ramp(g.gain, 0, seconds);
+        this.trace?.end(event, ctx.currentTime + seconds);
         try { src.stop(ctx.currentTime + seconds); } catch { /* already ended */ }
         if (!seconds) clean();
       },
@@ -206,6 +214,7 @@ export class SampleBank {
       }
     }
     catch { clean(); return null; }
+    traced();
     this.played.push({ group, take, rate: src.playbackRate.value, vol: g.gain.value, loop: !!loop, offset });
     if (this.played.length > 32) this.played.shift();
     return handle;

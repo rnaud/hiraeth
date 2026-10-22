@@ -1112,3 +1112,11 @@ once the conversation has closed. A paper sheet over the room, the room dimmed b
   buy it for 10 fragments?"; bought, the light's rise (`sound.fragmentTaken`), no bell and no coins.
 
 Tests: `tests/shop.test.js` (the markup, the states, the question, the keeper's reactions, the wiring).
+
+
+### Sound effects diagnostic (v1.98)
+
+Developer controls → **Toggles → Sound effects** enables the opt-in source panel.
+It shares `screen.sfxTrace` between the web and Unity HUD: recent sound occurrences,
+playing loops, source labels and mute status. It never changes the sound mix.
+See [audio.md](audio.md#developer-sound-source-overlay) for provenance and trace scope.

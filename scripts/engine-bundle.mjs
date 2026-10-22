@@ -208,6 +208,12 @@ export async function unityTravellerV2({ to = UNITY_PUBLIC } = {}) {
   const source = resolve(ROOT, 'public', caravan), target = resolve(ROOT, to, caravan);
   mkdirSync(dirname(target), { recursive: true });
   writeFileSync(target, readFileSync(source)); n++; bytes += statSync(target).size;
+  // The developer sound overlay reads the same per-file provenance as the web.
+  const provenance = resolve(ROOT, to, 'sfx/manifest.json');
+  mkdirSync(dirname(provenance), { recursive: true });
+  writeFileSync(provenance, readFileSync(resolve(ROOT, 'public/sfx/manifest.json')));
+  n++; bytes += statSync(provenance).size;
+
   return { n, bytes, to };
 }
 

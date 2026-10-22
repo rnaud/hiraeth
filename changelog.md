@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.98 — 2026-10-22
+
+- A Sound effects switch in the developer controls shows recent effects and playing loops, with their ElevenLabs, procedural or other recording source, to help spot overlapping sounds.
+
 ## v1.97 — 2026-10-22
 
 - New voicemail, ship controls, small pickups and newly charted worlds now have warm, rounded sound cues.

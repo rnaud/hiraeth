@@ -13,7 +13,7 @@ function loop(s, key, build) {
 }
 
 /** The hull's low hum (0..1); it drops out when the power dies. */
-export function hum(s, level) {
+function trace_hum(s, level) {
   shipAudio(s)?.loop('hum', 'ship-idle', level, 1, (value) => synthHum(s, value));
 }
 function synthHum(s, level) {
@@ -35,7 +35,7 @@ function synthHum(s, level) {
 }
 
 /** The alarm: a two-tone wail (0 = off). */
-export function alarm(s, level) {
+function trace_alarm(s, level) {
   shipAudio(s)?.loop('alarm', null, level, 1, (value) => synthAlarm(s, value));
 }
 function synthAlarm(s, level) {
@@ -54,7 +54,7 @@ function synthAlarm(s, level) {
 }
 
 /** An incoming call: two soft rising notes. */
-export function ring(s, id = 'opening') {
+function trace_ring(s, id = 'opening') {
   if (!ok(s)) return;
   if (s.nextAction?.('voicemail-ready', { gap: .9, onceKey: `voicemail:${id}` })) return;
   const t = s.ctx.currentTime;
@@ -62,14 +62,14 @@ export function ring(s, id = 'opening') {
   s.sweep(t + 0.22, 880, 940, 0.26, 0.05, 'sine');
 }
 
-export function beep(s, high = false) {
+function trace_beep(s, high = false) {
   if (!ok(s)) return;
   if (high && s.nextAction?.('ship-confirm', { gap: .3, ui: true })) return;
   s.sweep(s.ctx.currentTime, high ? 1400 : 900, high ? 1500 : 860, 0.08, 0.04, 'square');
 }
 
 /** Something hits the ship: a deep boom, a metal clang, and debris rattling down. */
-export function impact(s) {
+function trace_impact(s) {
   if (!ok(s)) return;
   const t = s.ctx.currentTime;
   s.burst(t, { dur: 2.2, type: 'lowpass', freq: 240, q: 0.6, vol: 1.1, rate: 0.5 });
@@ -80,13 +80,13 @@ export function impact(s) {
 }
 
 /** The screen dying into static. */
-export function staticBurst(s, dur = 1.2) {
+function trace_staticBurst(s, dur = 1.2) {
   if (!ok(s)) return;
   s.burst(s.ctx.currentTime, { dur, type: 'highpass', freq: 2800, q: 0.4, vol: 0.12, rate: 1.3 });
 }
 
 /** Entry and the long scrape through the dunes. */
-export function rumble(s, dur = 3.5, vol = 0.6) {
+function trace_rumble(s, dur = 3.5, vol = 0.6) {
   if (!ok(s)) return;
   const t = s.ctx.currentTime;
   s.burst(t, { dur, type: 'lowpass', freq: 420, q: 0.8, vol, rate: 0.6 });
@@ -94,7 +94,7 @@ export function rumble(s, dur = 3.5, vol = 0.6) {
 }
 
 /** Falling through the air, burning: a rising roar. */
-export function roar(s, dur = 4) {
+function trace_roar(s, dur = 4) {
   if (!ok(s)) return;
   const ctx = s.ctx, t = ctx.currentTime;
   const src = ctx.createBufferSource(); src.buffer = s.noiseBuf; src.loop = true;
@@ -105,7 +105,7 @@ export function roar(s, dur = 4) {
 }
 
 /** The hatch: a hydraulic hiss and a clunk. */
-export function hatch(s) {
+function trace_hatch(s) {
   if (!ok(s)) return;
   const t = s.ctx.currentTime;
   s.burst(t, { dur: 0.9, type: 'bandpass', freq: 3600, q: 0.7, vol: 0.12, rate: 1.2 });
@@ -114,7 +114,7 @@ export function hatch(s) {
 }
 
 /** Engines for take-off (k 0..1 ramps them up; 0 stops). */
-export function engines(s, k, push = k) {
+function trace_engines(s, k, push = k) {
   shipAudio(s)?.loop('engines', 'ship-thrust', k, 0.9 + 0.2 * push, (value) => synthEngines(s, value));
 }
 function synthEngines(s, k) {
@@ -136,7 +136,7 @@ function synthEngines(s, k) {
 }
 
 /** Out of the jump: a soft rushing swell as the planet comes up (space has no air; the cartoon does). */
-export function approach(s, dur = 2.8) {
+function trace_approach(s, dur = 2.8) {
   if (!ok(s)) return;
   const t = s.ctx.currentTime;
   s.sweep(t, 60, 95, dur, 0.12, 'sine');
@@ -144,7 +144,7 @@ export function approach(s, dur = 2.8) {
 }
 
 /** Into the air: the roar of entry, the hull crackling with fire, a deep buffeting. */
-export function reentry(s, dur = 2.2) {
+function trace_reentry(s, dur = 2.2) {
   if (!ok(s)) return;
   const t = s.ctx.currentTime;
   roar(s, dur + 0.6);
@@ -153,7 +153,7 @@ export function reentry(s, dur = 2.2) {
 }
 
 /** Coming down under control: a soft rush of air over the hull, rising and fading (no roar, no crackle). */
-export function descent(s, dur = 4) {
+function trace_descent(s, dur = 4) {
   if (!ok(s)) return;
   const ctx = s.ctx, t = ctx.currentTime;
   const src = ctx.createBufferSource(); src.buffer = s.noiseBuf; src.loop = true;
@@ -164,7 +164,7 @@ export function descent(s, dur = 4) {
 }
 
 /** Follow actual authored camp deployment, including reversals and skipped endpoints. */
-export function deck(s, model, before, k) {
+function trace_deck(s, model, before, k) {
   shipAudio(s)?.moveDeck(model, before, k, (level) => {
     if (!level && !s?._ship?.deck) return;
     const motor = loop(s, 'deck', (ctx) => {
@@ -177,3 +177,19 @@ export function deck(s, model, before, k) {
     motor?.g.gain.setTargetAtTime(level * 0.08, s.ctx.currentTime, 0.03);
   }, () => s.burst(s.ctx.currentTime, { dur: 0.12, type: 'lowpass', freq: 300, q: 1, vol: 0.3 }));
 }
+
+// Preserve one diagnostic occurrence across the helper layers of each ship cue.
+export function hum(s, ...args) { return s?.sfxTrace?.enabled ? s.sfxTrace.run('Ship hum', () => trace_hum(s, ...args)) : trace_hum(s, ...args); }
+export function alarm(s, ...args) { return s?.sfxTrace?.enabled ? s.sfxTrace.run('Ship alarm', () => trace_alarm(s, ...args)) : trace_alarm(s, ...args); }
+export function ring(s, ...args) { return s?.sfxTrace?.enabled ? s.sfxTrace.run('Ship ring', () => trace_ring(s, ...args)) : trace_ring(s, ...args); }
+export function beep(s, ...args) { return s?.sfxTrace?.enabled ? s.sfxTrace.run('Ship beep', () => trace_beep(s, ...args)) : trace_beep(s, ...args); }
+export function impact(s, ...args) { return s?.sfxTrace?.enabled ? s.sfxTrace.run('Ship impact', () => trace_impact(s, ...args)) : trace_impact(s, ...args); }
+export function staticBurst(s, ...args) { return s?.sfxTrace?.enabled ? s.sfxTrace.run('Ship staticBurst', () => trace_staticBurst(s, ...args)) : trace_staticBurst(s, ...args); }
+export function rumble(s, ...args) { return s?.sfxTrace?.enabled ? s.sfxTrace.run('Ship rumble', () => trace_rumble(s, ...args)) : trace_rumble(s, ...args); }
+export function roar(s, ...args) { return s?.sfxTrace?.enabled ? s.sfxTrace.run('Ship roar', () => trace_roar(s, ...args)) : trace_roar(s, ...args); }
+export function hatch(s, ...args) { return s?.sfxTrace?.enabled ? s.sfxTrace.run('Ship hatch', () => trace_hatch(s, ...args)) : trace_hatch(s, ...args); }
+export function engines(s, ...args) { return s?.sfxTrace?.enabled ? s.sfxTrace.run('Ship engines', () => trace_engines(s, ...args)) : trace_engines(s, ...args); }
+export function approach(s, ...args) { return s?.sfxTrace?.enabled ? s.sfxTrace.run('Ship approach', () => trace_approach(s, ...args)) : trace_approach(s, ...args); }
+export function reentry(s, ...args) { return s?.sfxTrace?.enabled ? s.sfxTrace.run('Ship reentry', () => trace_reentry(s, ...args)) : trace_reentry(s, ...args); }
+export function descent(s, ...args) { return s?.sfxTrace?.enabled ? s.sfxTrace.run('Ship descent', () => trace_descent(s, ...args)) : trace_descent(s, ...args); }
+export function deck(s, ...args) { return s?.sfxTrace?.enabled ? s.sfxTrace.run('Ship deck', () => trace_deck(s, ...args)) : trace_deck(s, ...args); }

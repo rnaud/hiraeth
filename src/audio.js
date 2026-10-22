@@ -1,3 +1,4 @@
+import { SfxTrace } from './sfx-trace.js';
 // Recorded world soundtracks with procedural fallback, ambience and effects.
 // Mixed with Web Audio. Starts on the first click or
 // key press (browsers require a gesture). M mutes.
@@ -186,6 +187,7 @@ export class Sound {
     this.act = { ...CALM_ACT };   // what you are doing, eased (update): the score follows it
     this.ctx = null;
     this.muted = muted;
+    this.sfxTrace = new SfxTrace(this);
     this.musicVol = 0.8;
     this.fxVol = 1.0;
     this.musicModeSetting = 'always';   // Settings > Music: the recorded theme always (the default, issue #474), or for the moments (src/music-moments.js)
@@ -369,6 +371,7 @@ export class Sound {
     this.moments = new MusicMoments({ mode: this.musicModeSetting, now: ctx.currentTime });
     // the recorded effects (src/sfx.js): fetched a moment after the start, the synth stands in until then
     this.bank = new SampleBank(ctx);
+    if (this.sfxTrace.enabled) this.sfxTrace.attach();
     this._preload = setTimeout(() => { if (!this._disposed) void this.bank.preload(); }, 800);
     this._preload?.unref?.();
     if (this.menuOn) this.menuMusic(true);
@@ -601,6 +604,7 @@ export class Sound {
 
   /** Stop for good (the title screen's sound, handing over to the game's): fade out, then close. */
   dispose() {
+    this.sfxTrace?.dispose();
     this._unlisten?.();
     this._disposed = true;
     this._shipAudio?.dispose();

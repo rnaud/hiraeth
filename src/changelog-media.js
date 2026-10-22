@@ -1349,6 +1349,33 @@ const RETROID536 = 'Retroid Pocket Nova (Adreno 740, Vulkan), Unity, Handheld (F
 const SRC536 = 'BridgeRenderer.Pipelines (the G-buffer’s states the scene asks for: variant, layout, cull, depth), Metal’s list traced in the editor, the shipped lists rewritten by scripts/bench/pso-one-cull.mjs; docs/systems/performance.md, “One cull mode and one layout for the Surface pipelines”';
 const SEAPORT572 = 'Issue #572: the web game in muted headless Chrome (High, 1280 × 720) on a Vite of its own (port 5441), a new save arriving by ship (?level=underwater&via=ship), then walked as a player; before: origin/main at 02345e2c3, after: this change; the deck and the Dock from the visual check’s views (scripts/design-qc/capture.mjs --fixed-scale); 20 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '1.98': [
+  {
+    "match": "A Sound effects switch",
+    "shots": [
+      {
+        "name": "sound-sources",
+        "only": "after",
+        "caption": "Actual recorded and procedural effects, with one playing ship loop.",
+        "size": [
+          1280,
+          960
+        ],
+        "from": "Issue #619: actual Unity Editor game, High, 1280 \u00d7 960, 22 October 2026; working candidate based on 5ce5ee808 with this overlay. Task-private store and real packaged WAVs. Explicit native output mute was established before startup; the logical audio graph ran without speaker output. Controlled real game effect calls, not fabricated rows or an audible listening test. After-only capture; source pins and exact restoration are retained in .local-tools/validation/v1.98/sound-source-619/native-619-packaged/."
+      },
+      {
+        "name": "sound-sources-muted",
+        "only": "after",
+        "caption": "Muting clears Playing while keeping bounded recent history.",
+        "size": [
+          1280,
+          960
+        ],
+        "from": "Same silent Unity Editor review as sound-sources; the actual Sound mute path is exercised. No muted footstep request is counted as a new sound. After-only evidence."
+      }
+    ]
+  }
+],
   '1.96': [{ match: 'The camera stays closer while gliding inside the Aerie',
     shots: [{ name: 'aerie-glide', caption: 'Gliding toward the same Aerie landing ledge, before and after the closer camera.',
       from: 'Issue #617: actual muted internal Codex browser game, 2560 × 1440 canvas reduced to 1280 × 720, 22 October 2026. Before uses the exact game-host camera source from 000cb60f097c54373cd68925271e329b7ba99c83; after uses this change. Task-private debug progress, identical staged start and normal Shift+Space glider input for 90 fixed 1/60 s steps; both airborne at capture. Game camera is not pinned. Constructor/reload mute verified against an audible saved preference, with audio destination blocked. Separate Unity real-glide evidence and raw web traces retained in .local-tools/validation/v1.96/aerie-camera-617/. These are controlled flight comparisons, not a full temple playthrough.' }],

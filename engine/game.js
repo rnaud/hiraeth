@@ -1402,7 +1402,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const devAct = (a) => {
     if (a.do === 'tp') { menus.close(); devTeleport(a.point); }
     else if (a.do === 'toggle') {
-      if (a.key === 'fps') { settings?.set?.('showFps', !settings.showFps); menus.onSetting?.('showFps'); }
+      if (a.key === 'soundSources') void sound.sfxTrace?.enable?.(!sound.sfxTrace.enabled);
+      else if (a.key === 'fps') { settings?.set?.('showFps', !settings.showFps); menus.onSetting?.('showFps'); }
       else if (a.key === 'god') setGod(!player.god);
       else if (a.key === 'potions') resources.setPotionsInfinite(!resources.potions.infinite);
       else if (a.key === 'jets') { if (gear.has('jetpack')) gear.revoke('jetpack'); else { if (!gear.has('backpack')) gear.grant('backpack'); gear.grant('jetpack'); } }
@@ -1421,7 +1422,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       ship: { active: caravan ? 'caravan' : 'original', selected: shipSetting.get('') },
       points: gatherPoints({ levelId, level, quests: story?.quests ?? null, npcs, boxes, relics, ship, content, games: GAMES }),
       quests: story?.quests ? questList(story.quests, levelId) : [],
-      toggles: { fps: !!settings?.showFps, god: !!player.god, potions: !!resources.potions.infinite, jets: gear.has('jetpack') },
+      toggles: { soundSources: !!sound.sfxTrace?.enabled, fps: !!settings?.showFps, god: !!player.god, potions: !!resources.potions.infinite, jets: gear.has('jetpack') },
       save: slots.active === DEBUG_SLOT ? 'the debug save' : `save ${slots.active}`,
     }),
     onAct: (a) => devAct(a),

@@ -331,6 +331,7 @@ export function devTabs({ world = '', points = [], films = [], quests = [], togg
     ] });
   }
   tabs.push({ id: 'toggles', name: 'Toggles', title: 'Toggles', line: 'the debug overlays and the time of day', rows: [
+    sw('soundSources', 'Sound effects', 'show recent sound starts, playing loops and their source; music and spoken dialogue excluded'),
     ...(can('hitboxes') ? [sw('hitboxes', 'Hitboxes', 'the fight\'s hitbox overlay (F4)')] : []),
     ...(can('inputs') ? [sw('inputs', 'Controller inputs', 'the input display (F6)')] : []),
     ...(can('clock') ? [sw('clock', 'Time runs', 'the sky\'s clock goes on (off: it stands still)')] : []),

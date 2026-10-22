@@ -97,7 +97,7 @@ export function pirateSounds(sound) {
       return { g, P };
     })());
   };
-  return {
+  const api = {
     /**
      * Out of the warp into a place (issue #555): a soft rush falling away, a low swell, and the place's own note struck
      * twice, the second its fifth: short and soft.
@@ -233,4 +233,7 @@ export function pirateSounds(sound) {
       shipEngines(sound, Math.max(0, Math.min(1, level)), Math.max(0, Math.min(1, push)));
     },
   };
+  for (const [name, fn] of Object.entries(api)) api[name] = (...args) => sound?.sfxTrace?.enabled
+    ? sound.sfxTrace.run(`Pirates ${name}`, () => fn(...args)) : fn(...args);
+  return api;
 }
