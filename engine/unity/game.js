@@ -388,7 +388,7 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
   // (moves: the people's walks and the traveller's captured moves left unloaded, walks.glb, moves.glb; -js-on matching: the
   // matching database loaded and the matching on, locomotion.glb: issue #427, round 4)
   // (played, the title's state kept: its menus, settings and the save chosen)
-  S = { ...(S ?? {}), args, backend, game: null, frames: 0, plan: null, results: [], keys: new Set(), lastT: 0, audioMs: 0, gcs: args.gcs || args.stutter ? fullGcWatch() : null,
+  S = { ...(S ?? {}), args, backend, game: null, frames: 0, plan: null, planPointer: String(args.menuPointer ?? '').startsWith('device-'), results: [], keys: new Set(), lastT: 0, audioMs: 0, gcs: args.gcs || args.stutter ? fullGcWatch() : null,
     // (-stutter <prefix>: every script frame and what was happening, written once at the end: engine/stutter.js, issue #468)
     stutter: args.stutter ? new StutterLog() : null };
   // a played world is built under the loading screen (BridgeHud.Loading.cs, the page's #loading), from the title's choice as

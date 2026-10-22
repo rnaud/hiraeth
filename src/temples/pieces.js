@@ -217,8 +217,8 @@ export class Door {
     this.open = open;
     if (open && this.handle) { this.physics?.removeCollider?.(this.handle); this.handle = null; }
     if (!open && this.physics && !this.handle) this.handle = this.physics.addCollider?.(this.block, NO_CLIMB) ?? null;
-    if (instant) { this.k = open ? 1 : 0; this.apply(); }
-    else { const S = this.rt.sound; if (S?.doorOpen) S.doorOpen(); else S?.whoosh?.(); this.rt.rumble?.(open ? 1.6 : 0.8, 0.35); }   // (the bolt's clunk at once, then the rush: issue #379)
+    if (instant) { this.rt.sound?.templeDoor?.(this, open, true); this.k = open ? 1 : 0; this.apply(); }
+    else { const S = this.rt.sound; if (!S?.templeDoor?.(this, open)) { if (S?.doorOpen) S.doorOpen(); else S?.whoosh?.(); } this.rt.rumble?.(open ? 1.6 : 0.8, 0.35); }   // (the bolt's clunk at once, then the rush: issue #379)
   }
   apply() {
     this.slab.position.y = -ease(this.k) * (this.h + 0.3);
@@ -228,6 +228,7 @@ export class Door {
     if (this.wantShut && !this.inDoorway()) this.setOpen(false);
     const want = this.open ? 1 : 0;
     if (this.k !== want) { this.k = THREE.MathUtils.clamp(this.k + (want ? dt / 1.8 : -dt / 0.9), 0, 1); this.apply(); }
+    this.rt.sound?.templeDoorUpdate?.(this);
     // a shut door is not a wall to climb (up it and over the lintel is out of the temple's rooms): you slip off
     const P = this.rt.player;
     if (!this.open && P?.climbing) {
@@ -255,7 +256,11 @@ export class Door {
 /** A locked door: a key of its kind, walked up to, goes in (one a keyhole); without one it says what it wants, once. */
 Door.prototype.updateLock = function (dt) {
   const L = this.rt.logic, P = this.rt.player, id = this.id;
-  if (P?.pos && !this.open && !L.unlocked(id) && this.inDoorway(P, 2.6)) {
+  const near = P?.pos && !this.open && !L.unlocked(id) && this.inDoorway(P, 2.6);
+  const blocked = near && !L.canUnlock(id);
+  if (blocked && !this._lockedNear) this.rt.sound?.templeLocked?.();
+  this._lockedNear = !!blocked;
+  if (near) {
     if (L.canUnlock(id)) {
       this.keyWait = (this.keyWait ?? 0) + dt;
       if (this.keyWait > 0.35) {
@@ -1250,7 +1255,7 @@ export class Switch {
       if (!this.on) { this.flash = 0.6; this.rt.sound?.critter?.('clank', 0.5); this.rt.notice?.(this.o.wrong ?? 'The ring clanks on its post and hangs still. It wants pulling, not wetting.', `wrong.${this.id}`); }
       return true;
     }
-    if (this.rt.logic.light(this.id)) { this.on = true; this.rt.sound?.chime?.(); this.rt.onLit?.(this.id); }
+    if (this.rt.logic.light(this.id)) { this.on = true; if (this.o.crystal || !this.rt.sound?.templeMechanism?.()) this.rt.sound?.chime?.(); this.rt.onLit?.(this.id); }
     // (its `when` fails: what it waits on, `unmet`, the Clock-House's Cupboard, its clock stopped till the mainspring runs;
     // a function says which of its waits it is, each once: the Cupboard's, the mainspring or the hour, issue #414)
     else if (!this.on && this.o.unmet && !this.rt.logic.check(this.rt.logic.el(this.id)?.when)) { this.flash = 0.6; const u = unmetOf(this.o); this.rt.notice?.(u, typeof this.o.unmet === 'function' ? `unmet.${this.id}.${u}` : `unmet.${this.id}`); }
@@ -2357,8 +2362,8 @@ export class Iris {
     this.open = open;
     if (open && this.handle) { this.physics?.removeCollider?.(this.handle); this.handle = null; }
     if (!open && this.physics && !this.handle) this.handle = this.physics.addCollider?.(this.block, NO_CLIMB) ?? null;
-    if (instant) { this.k = open ? 1 : 0; this.apply(); }
-    else { const S = this.rt.sound; if (S?.doorOpen) S.doorOpen(); else S?.whoosh?.(); this.rt.rumble?.(open ? 1.6 : 0.8, 0.35); }   // (the bolt's clunk at once, then the rush: issue #379)
+    if (instant) { this.rt.sound?.templeDoor?.(this, open, true); this.k = open ? 1 : 0; this.apply(); }
+    else { const S = this.rt.sound; if (!S?.templeDoor?.(this, open)) { if (S?.doorOpen) S.doorOpen(); else S?.whoosh?.(); } this.rt.rumble?.(open ? 1.6 : 0.8, 0.35); }   // (the bolt's clunk at once, then the rush: issue #379)
   }
   apply() {
     // the blades slide out into the ceiling
@@ -2368,6 +2373,7 @@ export class Iris {
   update(dt, t) {
     const want = this.open ? 1 : 0;
     if (this.k !== want) { this.k = THREE.MathUtils.clamp(this.k + (want ? dt / 1.8 : -dt / 0.9), 0, 1); this.apply(); }
+    this.rt.sound?.templeDoorUpdate?.(this);
     let met = 0;
     for (const l of this.lamps) {
       const on = this.open || !!this.rt.logic?.check(l.cond);

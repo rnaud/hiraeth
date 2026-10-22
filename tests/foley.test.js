@@ -4,7 +4,7 @@ import { BodyFoley, FOLEY } from '../src/foley.js';
 
 const v = (x = 0, y = 0, z = 0) => ({ x, y, z });
 const body = (o = {}) => ({ onGround: true, vel: v(), pos: v(), frame: { up: v(0, 1, 0) }, stamina: 1, ...o });
-const recorder = () => { const heard = []; const s = new Proxy({}, { get: (_, k) => (arg) => heard.push([k, arg]) }); return { s, heard }; };
+const recorder = () => { const heard = []; const s = new Proxy({}, { get: (_, k) => k === 'bodyVoice' ? () => {} : (arg) => heard.push([k, arg]) }); return { s, heard }; };
 const run = (f, p, frames, dt = 1 / 60) => { for (let i = 0; i < frames; i++) f.update(p, dt); };
 
 test('a jump and its landing, scaled by the fall', () => {
@@ -78,4 +78,37 @@ test('riding, swimming or lying down: no jump or landing sounds', () => {
   Object.assign(p, { onGround: false, vel: v(0, 8, 0) }); run(f, p, 20);
   Object.assign(p, { onGround: true, vel: v(0, -9, 0) }); run(f, p, 1);
   assert.deepEqual(heard, []);
+});
+
+// Switching between throttle and powered aim must not stack ignition one-shots.
+test('one jet ignition per continuous burn, including powered aim and restart', () => {
+  const { s, heard } = recorder();
+  const f = new BodyFoley(s);
+  const p = body({ onGround: false });
+  run(f, p, 2);
+  p.thrusting = true; run(f, p, 3);
+  for (let i = 0; i < 4; i++) {
+    Object.assign(p, { thrusting: false, jetHold: true }); run(f, p, 3);
+    Object.assign(p, { thrusting: true, jetHold: false }); run(f, p, 3);
+  }
+  assert.equal(heard.filter(([name]) => name === 'jets').length, 1);
+  Object.assign(p, { thrusting: false, jetHold: false }); run(f, p, 3);
+  p.jetHold = true; run(f, p, 3);
+  assert.equal(heard.filter(([name]) => name === 'jets').length, 2, 'a fresh aim burn still ignites');
+  p.jetHold = false; run(f, p, 3);
+  p.thrusting = true; run(f, p, 3);
+  assert.equal(heard.filter(([name]) => name === 'jets').length, 3, 'a fresh throttle burn still ignites');
+});
+
+test('landing defers only to a foot contact observed in the current frame', () => {
+  for (const contactAt of [undefined, 1.9, 2]) {
+    const { s, heard } = recorder(); const f = new BodyFoley(s);
+    const p = body({ onGround: false, vel: v(0, -8, 0), time: 1 });
+    run(f, p, 15);
+    Object.assign(p, { onGround: true, vel: v(), time: 2, _footContactAt: contactAt });
+    run(f, p, 1);
+    const landing = heard.find(([name]) => name === 'land')?.[1];
+    assert.ok(landing);
+    assert.equal(landing.feetPlanted, contactAt === 2);
+  }
 });

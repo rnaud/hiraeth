@@ -312,3 +312,12 @@ test('native pointer targets include the wardrobe, scanner and explicit changelo
   assert.match(pointer, /downPt == "news-pictures"[\s\S]*Application.OpenURL\(url\)/);
   assert.match(pointer, /if \(!Application.isBatchMode\) Application.OpenURL/);
 });
+
+test('physical device menu review drains real input before any synthetic pointer step or hold', () => {
+  const source = src('engine/unity/game.js');
+  assert.match(source, /planPointer: String\(args\.menuPointer \?\? ''\)\.startsWith\('device-'\)/);
+  const frame = source.slice(source.indexOf('function playFrame(dt)'), source.indexOf("else if (step.kind === 'key')"));
+  assert.ok(frame.indexOf('readPointer(game)') < frame.indexOf("step.kind === 'hold'"));
+  assert.match(frame, /else if \(S\.planPointer\) \{ readPad\(\); readPointer\(game\); \}/);
+  assert.match(source, /!String\(args\.menuPointer\)\.startsWith\('device-'\)/, 'physical review does not inject a synthetic swipe');
+});

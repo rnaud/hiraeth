@@ -2274,6 +2274,7 @@ function frame(ts) {
   if (hintText !== hintShown.text) { controllerHint.textContent = hintText; hintShown.text = hintText; hintShown.at = simT; }
   document.body.classList.toggle('controller-hint', controllerActive && photo.on);
   sound._shipAudio?.pause(paused() || photo.on || document.hidden || !!(gadgets?.wheelOn && !busy()));
+  sound.pauseActionAudio?.(paused() || photo.on || document.hidden || !!(gadgets?.wheelOn && !busy()), busy());
   if (paused()) { pausedFrame(); requestAnimationFrame(frame); return; }
   // the gadget wheel open (held D-pad ↑ or B): the game waits while you choose (issue #524), only the wheel reads the input
   if (gadgets?.wheelOn && !busy()) { wheelFrame(realDt, mergeControls(latchedInput(), padInput)); requestAnimationFrame(frame); return; }

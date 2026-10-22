@@ -17,6 +17,8 @@ import { playVoice, playColour, hit, echoBus, prepareLute } from './score-voices
 import { audioGuard } from './audio-guard.js';
 import { loadSoundtrack, loadTitleTheme } from './soundtracks.js';
 import { SampleBank } from './sfx.js';
+import { travellerVoice } from './traveller-voice.js';
+import { templeAudio } from './temples/sfx.js';
 import { voiceOf, voiceLength, GLANCE, CUES, BALL_VOICES } from './foe-voices.js';
 import { MusicMoments, lightScore, musicMode } from './music-moments.js';
 import { HUM, boxHumWait } from './story/hum.js';
@@ -251,6 +253,8 @@ export class Sound {
   /** The guard's change: hush the master at once when away, bring it back softly on return. */
   _away(away) {
     this._shipAudio?.pause();
+    this._travellerVoice?.pause(true);
+    this._templeAudio?.pause(true);
     if (!this.master) return;
     const g = this.master.gain, t = this.ctx.currentTime;
     g.cancelScheduledValues(t);
@@ -598,6 +602,8 @@ export class Sound {
     this._unlisten?.();
     this._disposed = true;
     this._shipAudio?.dispose();
+    this._travellerVoice?.dispose();
+    this._templeAudio?.dispose();
     this.bank?.dispose();
     this.trackAbort?.abort(); this.titleAbort?.abort();
     clearInterval(this.scheduler); clearInterval(this.menuTimer); clearTimeout(this._menuStop); clearTimeout(this._preload); clearTimeout(this._trackStop);
@@ -624,6 +630,8 @@ export class Sound {
   toggleMute() {
     this.muted = !this.muted;
     this._shipAudio?.pause();
+    this._travellerVoice?.pause(true);
+    this._templeAudio?.pause(true);
     store.set('hiraeth.muted', this.muted ? '1' : '0');
     if (this.master) this.master.gain.setTargetAtTime(this.masterLevel(), this.ctx.currentTime, 0.1);
   }
@@ -1537,10 +1545,11 @@ export class Sound {
    * held chord (in absolute pitches, so it sounds the same in every world's scale).
    */
   fanfare() {
-    if (!this.ctx) return;
+    if (!this.ctx || this.muted) return;
+    this.musicCue('moment', { delay: 2.5 });
+    if (templeAudio(this).cue('treasure-reveal', 1)) return;
     const t = this.ctx.currentTime, bus = this.fx;
     const n = (semi) => 392 * Math.pow(2, semi / 12);            // from G4
-    this.musicCue('moment', { delay: 2.5 });
     const notes = [[0, 0], [4, 0.13], [7, 0.26], [11, 0.39], [12, 0.6]];   // G B D F# G: up and open
     for (const [s, d] of notes) { this.pluck(n(s), t + d, 0.11, 'triangle', bus); this.pluck(n(s + 12), t + d, 0.035, 'sine', bus); }
     // the held chord under the last note
@@ -1846,12 +1855,17 @@ export class Sound {
 
   /** A voice from the traveller (a hurt, an effort, a sigh): never two within `gap` s. */
   vocal(group, { vol = 1, at = 0, gap = 0.8, pos = null } = {}) {
-    if (!this.ctx) return false;
-    const now = this.ctx.currentTime;
-    if (now - (this._vocalAt ?? -1e9) < gap) return false;
-    if (!this.sample(group, { vol, at, pos })) return false;
-    this._vocalAt = now;
-    return true;
+    return travellerVoice(this).play(group, { vol, at, gap, pos, priority: 2 }) === true;
+  }
+  actionVocal(action, options) { return travellerVoice(this).play(`vox-${action}`, options) !== null; }
+  bodyVoice(player, dt) { travellerVoice(this).body(player, dt); }
+  templeDoor(piece, open, instant = false) { return templeAudio(this).door(piece, open, instant); }
+  templeDoorUpdate(piece) { this._templeAudio?.update(piece); }
+  templeLocked() { return templeAudio(this).cue('temple-locked', 1.5); }
+  templeMechanism() { return templeAudio(this).cue('temple-mechanism', .3); }
+  pauseActionAudio(on = true, voiceHeld = false) {
+    this._actionPaused = on; this._voiceHeld = voiceHeld;
+    this._travellerVoice?.pause(on || voiceHeld); this._templeAudio?.pause(on);
   }
 
   /** Off the ground: a scuff of the foot, the gear's rustle, now and then a soft breath. */
@@ -1859,15 +1873,20 @@ export class Sound {
     if (!this.ctx || this.muted) return;
     this.step(4, { vol: 0.6 });
     this.sample('belt', { vol: 0.8, at: 0.03, pos });
-    if (breath) this.vocal('breath', { vol: 0.9, at: 0.04, pos });
+    if (!this.actionVocal(travellerVoice(this).speed >= 5 ? 'jump-running' : 'jump-standing', { gap: 1.2 }) && breath) this.vocal('breath', { vol: 0.9, at: 0.04, pos });
   }
 
   /** Back on the ground at `speed` m/s down: both feet on the world's ground, a body's weight past a soft hop. */
-  land({ speed = 4, pos = null } = {}) {
+  land({ speed = 4, pos = null, feetPlanted = false } = {}) {
     if (!this.ctx || this.muted) return;
+    this.actionVocal(speed >= 9 ? 'land-heavy' : 'land-soft', { gap: 1.1, priority: 3 });
     const k = Math.max(0, Math.min(1, (speed - 2) / 14)), g = this.surface ?? this.profile.ground, t = this.ctx.currentTime;
-    this.step(6 + 5 * k, { vol: 0.8 + 0.5 * k });
-    this.step(6 + 5 * k, { vol: 0.5 + 0.4 * k, at: 0.05 + 0.03 * (1 - k) });
+    // The rig already sounded its planted feet this frame; keep only the body impact here.
+    // Standalone cues and landings without measured contacts still provide their own feet.
+    if (!feetPlanted) {
+      this.step(6 + 5 * k, { vol: 0.8 + 0.5 * k });
+      this.step(6 + 5 * k, { vol: 0.5 + 0.4 * k, at: 0.05 + 0.03 * (1 - k) });
+    }
     if (speed > 5) {
       if (!this.sample(k > 0.5 ? 'land-heavy' : 'land', { vol: 0.35 + 0.65 * k, rate: 1.06 - 0.16 * k, pos })) this.burst(t, { dur: 0.18 + 0.2 * k, type: 'lowpass', freq: 220, q: 0.7, vol: 0.08 + 0.18 * k, rate: 0.6 });
       if (g === 'sand') this.burst(t + 0.02, { dur: 0.25 + 0.3 * k, type: 'highpass', freq: 2600, q: 0.5, vol: 0.012 + 0.035 * k, rate: 0.8 });   // a little spray of sand
@@ -1889,7 +1908,7 @@ export class Sound {
     this.sample('belt', { vol: 0.7, at: 0.28, pos });
     // The foot plants here, but its settling sand tail must not outlast the pull-up. Walking keeps the full contact.
     this.step(3, { vol: 0.5, at: 0.45, maxDuration: 0.3 });
-    if (breath) this.vocal('effort', { vol: 0.75, at: 0.06, gap: 3, pos });
+    if (!this.actionVocal('mantle', { gap: 1.5 }) && breath) this.vocal('effort', { vol: 0.75, at: 0.06, gap: 3, pos });
   }
 
   /** The fluid wings open (a cloth snapping full, a breath of the fluid rising) or fold away. */
@@ -2216,11 +2235,13 @@ export class Sound {
     if (!this.ctx || this.muted) return false;
     const now = this.ctx.currentTime;
     if (now - (this._vocalAt ?? -1e9) < gap) return false;
+    if (!travellerVoice(this).reserve((GRUNTS[kind] ?? GRUNTS.effort).dur + .1)) return false;
     this._vocalAt = now;
     const G = GRUNTS[kind] ?? GRUNTS.effort, ctx = this.ctx, t = now + 0.005, v = this.vary(0.07), dur = G.dur * (0.9 + 0.2 * Math.random());
     const out = ctx.createGain(); out.gain.value = 0;
     out.gain.setValueAtTime(0, t); out.gain.linearRampToValueAtTime(G.vol * k, t + 0.018); out.gain.exponentialRampToValueAtTime(0.0005, t + dur);
     out.connect(this.fx);
+    travellerVoice(this).bindSynth(out);
     const o = ctx.createOscillator(); o.type = 'sawtooth';
     o.frequency.setValueAtTime(G.f0 * v, t); o.frequency.exponentialRampToValueAtTime(G.f1 * v, t + dur);
     for (const [f, q, g] of G.formants) {
@@ -2243,7 +2264,7 @@ export class Sound {
     const t = this.ctx.currentTime, v = this.vary(0.07), heavy = n === 2;
     // The selected heavy take already carries its low weight; keep near authored speed and inside the action mix band.
     const air = heavy ? this.sample('blade-heavy', { vol: 0.85 * 0.87, rate: 1.04 * v }) : this.sample('blade-light', { vol: 0.85 + n * 0.15, rate: (1.08 - n * 0.07) * v });
-    if (this.rand() < (heavy ? 0.75 : 0.18)) this.effort(heavy ? (air ? 0.85 * 0.87 : 0.85) : 0.65);
+    if (!this.actionVocal(heavy ? 'attack-heavy' : n === 1 ? 'attack-follow' : 'attack-light', { gap: 1.1 }) && this.rand() < (heavy ? 0.75 : 0.18)) this.effort(heavy ? (air ? 0.85 * 0.87 : 0.85) : 0.65);
     const d = (heavy ? 0.3 : 0.2) * this.vary(0.08);
     this.swish(t, { f0: (heavy ? 420 : 800 + n * 220) * v, f1: (heavy ? 1500 : 2500 + n * 450) * v, f2: (heavy ? 300 : 600 + n * 120) * v, dur: d, vol: air ? 0.07 : 0.16, rate: 1.2 * v });
     this.sweep(t, (heavy ? 220 : 420 + n * 90) * v, (heavy ? 90 : 900 + n * 160) * v, 0.18, air ? 0.04 : 0.06, 'sawtooth');
@@ -2404,6 +2425,7 @@ export class Sound {
    */
   quest(kind = 'step') {
     if (!this.ctx || this.muted) return;
+    if (kind === 'done' && templeAudio(this).cue('quest-important', 2.8)) return;
     const t = this.ctx.currentTime + 0.01;
     if (kind === 'start') { this.keyBell(this.freq(0, 1), t, 0.05, 1.1); this.keyBell(this.freq(4, 1), t + 0.2, 0.05, 1.6); return; }
     if (kind === 'done') {

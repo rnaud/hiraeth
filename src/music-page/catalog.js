@@ -35,6 +35,10 @@ export const PLUMBING = {
   listen: 'the listener (the page calls it every frame)', seated: 'a bench\'s swell (src/benches.js)', seatedK: 'a bench\'s swell', musicLevel: 'the music bus\'s level', _humVoice: 'the hum (makersHum)', _humOut: 'the hum (makersHum)',
   setBands: 'the musicians (Songs)', makeBands: 'the musicians', band: 'the musicians', setBandMode: 'the musicians', bandBeat: 'the musicians',
   soloPhrase: 'the ney solo (Songs)', soloDrone: 'the ney solo', rand: 'a random number', vocal: 'the traveller\'s voice takes (Recorded takes)',
+  actionVocal: 'exclusive selected traveller takes (Recorded takes)', bodyVoice: 'movement-state scheduling for the selected traveller takes',
+  templeDoor: 'physical sliding lifecycle for shared selected takes (Recorded takes)', templeDoorUpdate: 'sliding audio progress and cleanup',
+  templeLocked: 'shared locked feedback (Recorded takes)', templeMechanism: 'shared mechanism take (Recorded takes)',
+  pauseActionAudio: 'pause and dialogue lifecycle for action sound controllers',
   canSpeak: 'the voices', holdFloor: 'the voices', hush: 'the voices', utterance: 'the voices', trace: 'the voices',
   vary: 'a random factor (the synth\'s variation)', swish: 'a building block of the swings (fluidSlash, toss)', uiOut: 'the menus\' bus (ui)',
 };

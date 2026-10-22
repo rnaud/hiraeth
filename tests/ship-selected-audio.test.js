@@ -1,5 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { AudioContext } from '../engine/webaudio.js';
+import { SampleBank } from '../src/sfx.js';
 import { ShipAudio } from '../src/ship/audio-controller.js';
 import { engines, hum, deck } from '../src/ship/sfx.js';
 import { pirateSounds } from '../src/minigames/pirates-sfx.js';
@@ -133,4 +135,25 @@ test('foreground stall resynchronises to capped physical movement without restar
   }
   assert.equal(plays.length, 2, 'normal frames after recovery do not churn sources');
   c.stopDeck();
+});
+
+test('real sample sources release after engine pause fades and disposal, including pending fades', async () => {
+  const ctx = new AudioContext({ sampleRate: 8000 });
+  const fx = ctx.createGain(); fx.connect(ctx.destination);
+  ctx.decodeAudioData = async () => ctx.createBuffer(1, 800, 8000);
+  const bank = new SampleBank(ctx, { table: { 'ship-thrust': { n: 1, vol: .2 } },
+    fetcher: async () => ({ ok: true, arrayBuffer: async () => new ArrayBuffer(8) }) });
+  await bank.load('ship-thrust');
+  const sound = { ctx, fx, bank, muted: false };
+  const controller = new ShipAudio(sound); sound._shipAudio = controller;
+  for (let i = 0; i < 120; i++) engines(sound, .7, i / 120);
+  assert.equal(bank.active.size, 1);
+  controller.pause(true);
+  ctx.render(800); await Promise.resolve();
+  assert.equal(bank.active.size, 0, 'paused fade releases the actual source');
+  controller.pause(false); assert.equal(bank.active.size, 1);
+  controller.dispose(); bank.dispose();
+  assert.equal(bank.active.size, 0, 'disposal also releases a source already fading');
+  controller.pause(false); engines(sound, 1);
+  assert.equal(bank.active.size, 0, 'no late revival');
 });

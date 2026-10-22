@@ -489,6 +489,21 @@ preserved lossless masters and checked hashes. It requires ffmpeg, performs no d
 and records cuts, levels and output hashes. The original generated outputs are not CC0. The legacy
 CC0 builder refuses to overwrite this mixed bank.
 
+The #616 contact review measured real B3 rig contacts at roughly 0.39–0.40 s when walking and
+0.23–0.30 s when sprinting. The sand masters now contribute four 0.24 s core contacts, with
+4 ms onset and 25 ms tail fades; the first contact's impact is aligned near the trigger instead
+of peaking 0.40 s later. Lossless originals, pitch and −9 dBFS sample headroom are preserved.
+No gait event is throttled. `Player.stepped` records `_footContactAt`; when an actual contact
+occurred in the current simulation frame, `BodyFoley` sends `feetPlanted` to `Sound.land`.
+That omits its additional pair of feet while retaining body impact, cloth and voice. Landings
+without measured contacts, including standalone previews, still generate their own pair.
+
+Backpack ignition follows `thrusting || jetHold`: changing from throttle to powered aiming and
+back is one continuous burn. A real off→on transition still ignites. Native sound updates pass
+that same state and `jetPower`, matching the web path. Ship engines remain a separate aggregate
+loop; repeated throttle updates do not create another source, and pause/disposal release the
+actual sample sources, including pending fades.
+
 Four separate contacts are selected from each footstep master using its measured RMS envelope;
 the generator supplied extra contacts despite its four-step prompt, so surplus contacts are excluded.
 These are short footfalls, never a four-second walking sequence. Existing surface routing and cadence
@@ -1043,3 +1058,47 @@ this integration uses offline PCM mixing; no listening-quality claim follows
 from the numerical checks alone.
 
 The v1.93 Unity player and script minimum are level 3: the player supplies the new decoder and packaged offline effects together. Older player updates require that app update before accepting the script; guarded manual older-host use retains synthesized fallback. Java native API is unchanged.
+
+
+## Selected traveller and shared temple actions (v1.96, #613 / #614)
+
+`src/action-sfx.js` adds only the 18 user-starred takes: ten traveller vocals and
+eight temple/reward recordings. The exact original WAVs, generation prompts,
+ take IDs and SHA-256 hashes are preserved in
+`references/audio/elevenlabs-actions-2026-10-21/manifest.json`. Run
+`python3 scripts/sfx/import-actions.py` to reproduce their mono 44.1 kHz PCM16
+runtime derivatives; `public/sfx/manifest.json` records transforms and hashes.
+No unselected chest-opening, key-unlock, ordinary-door or ambience take is imported.
+
+`TravellerVoice` arbitrates one finite voice on the Voices bus. Attack, takeoff,
+landing and mantle use actual action callbacks. Running requires six seconds of
+actual grounded horizontal motion above 8 m/s; it uses a finite phrase, never a
+loop, and at least 14 seconds between phrases. A sustained run can earn one quiet
+recovery breath on slowing down. Walking and idle do not periodically grunt.
+Missing selected files retain applicable existing effort fallbacks; an occupied
+voice channel suppresses fallback layering. Web and engine hosts hold body vocals
+during conversations, cinematics and menus. Pause, focus loss, mute and disposal
+stop active voices and discard run/recovery credit; restored state starts no cue.
+
+`TempleAudio` selects by action, never temple ID. Names containing a house in the
+source manifest describe provenance only. The three sliding-open takes are
+pitch-preserving fits to the existing 1.8-second door motion. Twin leaves share
+one logical cue. Instant load/restore is silent, reversal stops the prior cue,
+and pause resumes at the physical offset. Foreground clock drift beyond 0.2 s
+resynchronizes the one voice. A late decode does not layer over the already-used
+synth fallback. Temple disposal releases its active door cues.
+
+Locked feedback is an approach edge, not a frame loop. Mechanical switches use
+the mechanism take; crystal interactions retain their chime. Treasure uses the
+existing reveal event (including its skip guard), not the chest-lid opening.
+Only completed quests use the selected quest pair. A treasure reward that also
+completes a quest gets one selected celebration rather than stacked recordings.
+Unselected closing and unlocking categories retain existing sound behavior.
+
+Validation: 103 focused and broader audio/temple checks pass, plus two actual-WAV
+offline DSP tests covering exclusivity, mute, pause, sliding offset and reversal.
+A silent warm Unity transaction packaged and decoded all 18 files (and four
+separately revised sand contacts), verified exact hashes and PCM frame counts,
+and created no AudioSources. Warm inputs were restored byte-for-byte. This is
+numerical/native format evidence, not a subjective listening assessment.
+The existing treasure music response and positional legacy vocals are preserved.

@@ -542,3 +542,24 @@ test('delayed gadget and potion lessons stay off-screen without losing item prog
   assert.deepEqual(c.toasts.map(x => x.text), ['Shield found.'], 'essential acquisition remains, both unsolicited reminders are suppressed');
   setHintLevel('subtle'); screen.reset();
 });
+
+test('Aerie flight uses its authored close shot only inside, preserving outdoor glides and rides (#617)', () => {
+  const calls = [], rig = { follow: (...a) => calls.push(a) };
+  const shot = { arm: 6.4, keepTight: true };
+  let inside = true;
+  const player = { pos: new THREE.Vector3(), heading: 0, vel: new THREE.Vector3(), gliding: true, onGround: false, houses: [{ def: { glideCamera: shot }, inside: () => inside }] };
+  const follow = cameraFollow({ rig, player });
+  follow(1 / 60);
+  assert.equal(calls.at(-1)[3], shot, 'the bounded chamber keeps room probes enabled');
+  assert.ok(Math.abs(calls.at(-1)[4] - 1.6) < 1e-9, 'only 1.6 m added to the normal arm');
+  inside = false; follow(1 / 60);
+  assert.equal(calls.at(-1)[3], null);
+  assert.ok(Math.abs(calls.at(-1)[4] - 8.6) < 1e-9, 'outdoor wings retain their existing reach');
+  inside = true; player.houses[0].def = {}; follow(1 / 60);
+  assert.equal(calls.at(-1)[3], null, 'other temples retain their authored/default behavior');
+  player.houses[0].def.glideCamera = shot; player.gliding = false; follow(1 / 60);
+  assert.equal(calls.at(-1)[4], 0, 'landing restores the normal arm');
+  player.gliding = true; player.riding = true; player.ride = { heading: 1, shot: { arm: 10 } }; follow(1 / 60);
+  assert.equal(calls.at(-1)[3], player.ride.shot, 'a vehicle owns its shot');
+  assert.equal(calls.at(-1)[4], null);
+});

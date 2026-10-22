@@ -3065,3 +3065,13 @@ The Wardrobe frame is a drag target, separate from its scrollable outfit list. T
 What’s new’s **See what changed** opens the published interactive changelog in the system browser after an explicit click or tap. Unity does not embed the HTML page; returning from the browser resumes the existing menu. Batch review logs the URL without launching a browser. `-menu-pointer mouse|touch` drives the real Input System devices through preview dragging and the link; combine `-starmap search` for scanner dragging.
 
 For device input verification, `-menu-pointer device-wardrobe`, `device-news`, or `device-scanner -starmap search` waits on the requested screen without injecting the tested drag or link press. These review plans disable gameplay save writes; the device check still backs up and restores the current store files.
+
+
+### Galactic map viewport changes
+
+The native map checks the current logical canvas before drawing, updating or reading a pointer.
+A changed size rebuilds its chart and native cache version, preserves the scanner’s normalized
+position and remaps a resolving world. Layout changes clear sweep/dwell qualification; they do not
+count as searching. A fresh deliberate sweep and dwell can still chart a world after resizing.
+The private `device-*` menu review plans drain physical pointer input during their hold instead of
+waiting for a synthetic pointer step. This fixture correction is separate from normal gameplay input.

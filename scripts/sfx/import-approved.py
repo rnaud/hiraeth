@@ -3,7 +3,7 @@
 Usage: python3 scripts/sfx/import-approved.py
 The source manifest records selected takes, prompts, generation IDs and measured footstep cuts.
 """
-import array, hashlib, json, math, pathlib, subprocess, wave
+import argparse, array, hashlib, json, math, pathlib, subprocess, wave
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 SOURCES = ROOT / 'references/audio/elevenlabs-sfx-2026-10-21'
 OUT = ROOT / 'public/sfx'
@@ -27,10 +27,16 @@ def write_wav(path, values):
         w.setparams((1, 2, RATE, 0, 'NONE', 'not compressed')); w.writeframes(pcm.tobytes())
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--group', action='append', help='Rebuild only this group (repeatable); preserve other accepted runtime bytes.')
+    args = parser.parse_args()
     manifest = json.loads((SOURCES/'manifest.json').read_text())
     runtime = json.loads((OUT/'manifest.json').read_text())
     runtime['licence'] = 'Mixed provenance: retained CC0 recordings and selected ElevenLabs-generated effects; see each file.'
+    if args.group and set(args.group) - {s['group'] for s in manifest['sources']}:
+        raise ValueError('Unknown selected source group')
     for source in manifest['sources']:
+        if args.group and source['group'] not in args.group: continue
         path = SOURCES/source['file']
         if digest(path) != source['sha256']: raise ValueError(f'Source hash mismatch: {path}')
         if not source.get('generationId') or not source.get('prompt'): raise ValueError('Missing generation provenance')

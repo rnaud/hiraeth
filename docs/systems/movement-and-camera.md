@@ -613,3 +613,10 @@ of it), `tests/ragdoll.test.js`.
 ### Refused browser mouse capture (#602)
 
 The canvas click request handles both promise rejection and synchronous refusal from `requestPointerLock`, including embedded Chromium's `UnknownError`. It reports one console warning per camera rig and leaves the existing mouse-down/drag/mouse-up fallback intact. Browsers returning no promise and browsers without the API remain supported. No camera or input mode is forced on refusal.
+
+
+## Aerie flight framing (#617, v1.96)
+
+The Aerie authors a `glideCamera` shot on its temple definition: a 6.4 m arm at default zoom, with room-clearance probes retained. Shared `cameraFollow` applies it only while gliding inside that runtime’s bounds. The previous generic glide selected the 13.4 m outdoor chase and disabled those probes; the Wind Well’s broad interior left enough clearance for the full pullback. The existing distance easing and landing recovery remain, as do manual zoom, vehicle shots, jets and outdoor gliding. Both the browser and Unity use this shared camera path.
+
+Validation uses real held glider input in both hosts. In the web comparison, identical 90-frame flights end airborne at the same position: camera arm 9.718 m before and 5.715 m after while easing toward the target. A separate four-second native flight measures 13.386 m before and 6.429 m after. Outside, both settle near 13.4 m. Web and native starts use their respective debug-progress fixtures, so these demonstrate the shared framing behavior rather than identical puzzle state or pixel alignment. The changelog pair is the matched web capture. The focused regressions cover authored-bound selection, other temples, landing, manual zoom, vehicles, and ascent through the real Wind Well geometry; raw pictures, per-frame traces, mute proof and native restoration hashes are retained in `.local-tools/validation/v1.96/aerie-camera-617/`.

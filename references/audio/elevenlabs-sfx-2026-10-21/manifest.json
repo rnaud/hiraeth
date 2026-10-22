@@ -156,23 +156,23 @@
       "sha256": "42a7b4a5e5442c22ebc2f2f58f936503fb380e322e70d916b45aefb789955ce0",
       "cuts": [
         [
-          0.1,
-          0.75
+          0.44,
+          0.68
         ],
         [
           1.05,
-          1.73
+          1.29
         ],
         [
           1.91,
-          2.49
+          2.15
         ],
         [
           2.78,
-          3.3
+          3.02
         ]
       ],
-      "segmentation": "20 ms RMS envelope; four separate contact clusters selected with pre-contact room and decay; surplus contacts excluded, not a whole walking sequence."
+      "segmentation": "Issue #616: 20 ms RMS inspection aligns four 240 ms core contacts to their actual impacts (take 0 previously peaked 400 ms after its trigger). Long powder-settling tails are excluded to avoid layering across measured 230\u2013400 ms gait contacts. Original lossless master and pitch retained; 4 ms onset/25 ms tail fades."
     }
   ]
 }

@@ -60,7 +60,8 @@ export class BodyFoley {
       climbing: !!p.climbing,
       mantle: !!p.mantle,
       gliding: !!p.gliding,
-      thrust: !!p.thrusting,
+      // Aiming holds the same powered burn; returning to throttle is not another ignition.
+      thrust: !!(p.thrusting || p.jetHold),
       down: !!p.down,
       rising: p.down?.phase === 'rise',
       evade: !!p.combatMotion?.evade,
@@ -72,6 +73,7 @@ export class BodyFoley {
 
   update(p, dt = 1 / 60) {
     if (!p) return;
+    this.sound?.bodyVoice?.(p, dt);
     this.t += dt;
     const c = this.read(p), o = this.prev;
     this.prev = c;
@@ -85,7 +87,7 @@ export class BodyFoley {
     }
     if (!o.ground && c.ground) {
       const speed = Math.max(this.fall, -o.vy);
-      if (body && !o.mantle && this.air >= F.airMin && speed >= F.landMin) this.emit('land', { speed, pos });
+      if (body && !o.mantle && this.air >= F.airMin && speed >= F.landMin) this.emit('land', { speed, pos, feetPlanted: Number.isFinite(p._footContactAt) && p._footContactAt === p.time });
       this.air = 0; this.fall = 0;
     }
     if (c.climbing || c.water || c.riding) { this.air = 0; this.fall = 0; }

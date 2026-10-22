@@ -1349,6 +1349,35 @@ const RETROID536 = 'Retroid Pocket Nova (Adreno 740, Vulkan), Unity, Handheld (F
 const SRC536 = 'BridgeRenderer.Pipelines (the G-buffer’s states the scene asks for: variant, layout, cull, depth), Metal’s list traced in the editor, the shipped lists rewritten by scripts/bench/pso-one-cull.mjs; docs/systems/performance.md, “One cull mode and one layout for the Surface pipelines”';
 const SEAPORT572 = 'Issue #572: the web game in muted headless Chrome (High, 1280 × 720) on a Vite of its own (port 5441), a new save arriving by ship (?level=underwater&via=ship), then walked as a player; before: origin/main at 02345e2c3, after: this change; the deck and the Dock from the visual check’s views (scripts/design-qc/capture.mjs --fixed-scale); 20 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '1.96': [{ match: 'The camera stays closer while gliding inside the Aerie',
+    shots: [{ name: 'aerie-glide', caption: 'Gliding toward the same Aerie landing ledge, before and after the closer camera.',
+      from: 'Issue #617: actual muted internal Codex browser game, 2560 × 1440 canvas reduced to 1280 × 720, 22 October 2026. Before uses the exact game-host camera source from 000cb60f097c54373cd68925271e329b7ba99c83; after uses this change. Task-private debug progress, identical staged start and normal Shift+Space glider input for 90 fixed 1/60 s steps; both airborne at capture. Game camera is not pinned. Constructor/reload mute verified against an audible saved preference, with audio destination blocked. Separate Unity real-glide evidence and raw web traces retained in .local-tools/validation/v1.96/aerie-camera-617/. These are controlled flight comparisons, not a full temple playthrough.' }],
+    see: 'Open the fluid wings inside the Aerie and approach a ledge. The camera stays closer while keeping room clearance; flying outside still uses the wider view, and manual zoom remains available.' },
+{
+  "match": "The galactic map fits",
+  "shots": [
+    {
+      "name": "scanner-fit",
+      "only": "after",
+      "caption": "The full galactic map fits a 4:3 native screen.",
+      "from": "Actual Unity Editor batch, High, 1280 × 960 framebuffer and 960 × 720 logical canvas, native output muted; 000cb60f0 plus #574 patch, 22 October 2026. Private review store; initial width deliberately held at 1280 then released to reproduce late native initialization. After-only view, not a Retroid capture. Discovery uses the normal menu pointer path with scripted coordinates; physical Retroid swipe remains pending. Evidence: .local-tools/validation/v1.96/scanner-574/REPORT.md.",
+      "size": [
+        1280,
+        960
+      ]
+    },
+    {
+      "name": "scanner-discovery",
+      "only": "after",
+      "caption": "A deliberate pointer sweep and dwell charts Vael after the layout changes.",
+      "from": "Actual Unity Editor batch, High, 1280 × 960 framebuffer and 960 × 720 logical canvas, native output muted; 000cb60f0 plus #574 patch, 22 October 2026. Private review store; initial width deliberately held at 1280 then released to reproduce late native initialization. After-only view, not a Retroid capture. Discovery uses the normal menu pointer path with scripted coordinates; physical Retroid swipe remains pending. Evidence: .local-tools/validation/v1.96/scanner-574/REPORT.md.",
+      "size": [
+        1280,
+        960
+      ]
+    }
+  ]
+}],
   '1.95': [
 {
   "match": "Kamal now explains his claim",

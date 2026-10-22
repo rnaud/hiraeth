@@ -32,7 +32,7 @@ test('every runtime take has accurate per-file provenance and a bounded payload'
       assert.match(m.url, /^https:\/\/(kenney\.nl\/assets\/(impact-sounds|rpg-audio)|freesound\.org\/s\/\d+\/)$/);
     }
   }
-  assert.ok(total < 5 * 2 ** 20, `runtime bank stays below 5 MiB: ${total}`);
+  assert.ok(total < 6 * 2 ** 20, `runtime bank including 18 selected action takes stays below 6 MiB: ${total}`);
   const shipped = readdirSync(new URL('../public/sfx/', import.meta.url)).filter((f) => /\.(mp3|wav)$/.test(f)).sort();
   assert.deepEqual(shipped, sfxFiles().sort());
   const sources = JSON.parse(readFileSync(new URL('../references/audio/elevenlabs-sfx-2026-10-21/manifest.json', import.meta.url)));
@@ -171,4 +171,21 @@ test('bounded contacts keep their scheduled onset and fade out at a wall-clock d
   assert.ok(Math.abs(pcm[11800]) < Math.abs(pcm[11400]), '25 ms tail is faded, not abruptly cut');
   assert.ok(pcm.slice(12000).every((v) => v === 0), 'finished at 0.75 seconds despite the slower playback rate');
   bank.dispose();
+});
+
+test('sand contacts start at the measured impact and settle before the next running step', () => {
+  for (let i = 0; i < 4; i++) {
+    const wav = readFileSync(new URL(`../public/sfx/step-sand-${i}.wav`, import.meta.url));
+    const rate = wav.readUInt32LE(24), frames = wav.readUInt32LE(40) / 2;
+    assert.equal(frames, Math.round(.24 * rate), 'a core contact, not the long settling scrape');
+    const window = Math.round(.02 * rate), energy = [];
+    for (let start = 0; start < frames; start += window) {
+      let sum = 0;
+      for (let n = start; n < Math.min(start + window, frames); n++) sum += wav.readInt16LE(44 + 2 * n) ** 2;
+      energy.push(sum / Math.min(window, frames - start));
+    }
+    const peak = Math.max(...energy);
+    assert.ok(energy.indexOf(peak) * .02 <= .08, 'impact is near the actual trigger, not 400 ms late');
+    assert.ok(energy.at(-1) < peak * .5, 'softened tail, not a hard truncation');
+  }
 });

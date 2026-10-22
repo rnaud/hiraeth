@@ -683,18 +683,18 @@
    "generationId": "1NmF7DqYTA3QqQbJ6Gli",
    "sourceSha256": "42a7b4a5e5442c22ebc2f2f58f936503fb380e322e70d916b45aefb789955ce0",
    "cutSeconds": [
-    0.1,
-    0.75
+    0.44,
+    0.68
    ],
    "fitSeconds": null,
+   "tempoRatio": null,
    "timeStretch": null,
    "processing": "mono 44.1 kHz PCM16; 4 ms onset/25 ms tail edge fades",
-   "bytes": 57374,
-   "sha256": "5135e41911cb2d6c7e810951f43e0eb49494fd7397222256b5d42237c5173d16",
-   "duration": 0.65,
+   "bytes": 21212,
+   "sha256": "eb9ccd3c60309dc79f50aa912106e8032a8ddd04a0b39b6ef47b2b8eb38efb9c",
+   "duration": 0.24,
    "peakDbfs": -9.0,
-   "rmsDbfs": -24.27514276105461,
-   "tempoRatio": null
+   "rmsDbfs": -21.819282107292373
   },
   "step-sand-1": {
    "from": "ElevenLabs Sound Effects v3, user-selected generated take",
@@ -704,17 +704,17 @@
    "sourceSha256": "42a7b4a5e5442c22ebc2f2f58f936503fb380e322e70d916b45aefb789955ce0",
    "cutSeconds": [
     1.05,
-    1.73
+    1.29
    ],
    "fitSeconds": null,
+   "tempoRatio": null,
    "timeStretch": null,
    "processing": "mono 44.1 kHz PCM16; 4 ms onset/25 ms tail edge fades",
-   "bytes": 60020,
-   "sha256": "7b0d3f4a125309dcadf629ff336d779bb9ce8808147525a5cb273a47f04d8ca1",
-   "duration": 0.68,
+   "bytes": 21212,
+   "sha256": "4a8c1704c33fcf5b92aae7242b44e7d125365667681dc6b9932f216134ee17b8",
+   "duration": 0.24,
    "peakDbfs": -9.0,
-   "rmsDbfs": -24.965098906367963,
-   "tempoRatio": null
+   "rmsDbfs": -23.966035857927825
   },
   "step-sand-2": {
    "from": "ElevenLabs Sound Effects v3, user-selected generated take",
@@ -724,17 +724,17 @@
    "sourceSha256": "42a7b4a5e5442c22ebc2f2f58f936503fb380e322e70d916b45aefb789955ce0",
    "cutSeconds": [
     1.91,
-    2.49
+    2.15
    ],
    "fitSeconds": null,
+   "tempoRatio": null,
    "timeStretch": null,
    "processing": "mono 44.1 kHz PCM16; 4 ms onset/25 ms tail edge fades",
-   "bytes": 51200,
-   "sha256": "cbd8c634bd53431ba4181bcab29ca7d63f8f299e11cfc2b72acd6029c874b6d8",
-   "duration": 0.58,
+   "bytes": 21212,
+   "sha256": "ca9fc0596772cd841f58b8a0ee8261841d156cd4a2707a35c962ade8425531f3",
+   "duration": 0.24,
    "peakDbfs": -9.0,
-   "rmsDbfs": -25.32894065304089,
-   "tempoRatio": null
+   "rmsDbfs": -23.28306059066673
   },
   "step-sand-3": {
    "from": "ElevenLabs Sound Effects v3, user-selected generated take",
@@ -744,17 +744,377 @@
    "sourceSha256": "42a7b4a5e5442c22ebc2f2f58f936503fb380e322e70d916b45aefb789955ce0",
    "cutSeconds": [
     2.78,
-    3.3
+    3.02
+   ],
+   "fitSeconds": null,
+   "tempoRatio": null,
+   "timeStretch": null,
+   "processing": "mono 44.1 kHz PCM16; 4 ms onset/25 ms tail edge fades",
+   "bytes": 21212,
+   "sha256": "96fbd36a0b40715bd4c11245429e823d4561bcc83f632f40fd5a0a6dd23cd8f2",
+   "duration": 0.24,
+   "peakDbfs": -9.0,
+   "rmsDbfs": -23.714520134131902
+  },
+  "temple-slide-open-0": {
+   "from": "ElevenLabs Sound Effects v3, user-starred take",
+   "licence": "Generated with ElevenLabs; not CC0",
+   "source": "references/audio/elevenlabs-actions-2026-10-21/temple_r2_11-take-4.wav",
+   "generationId": "zOw8kvkU0MFkbNziaJcp",
+   "sourceSha256": "451439170bd61474cc40be20b92e5b0215c6181cec94977774dcc997238adde0",
+   "selectedTake": 4,
+   "cutSeconds": [
+    0,
+    1.76
+   ],
+   "fitSeconds": 1.8,
+   "timeStretch": "ffmpeg atempo, pitch preserving",
+   "processing": "mono 44.1 kHz PCM16; 4 ms onset/25 ms tail fades; peak-normalized; finite one-shot",
+   "bytes": 158804,
+   "sha256": "982d05bcfad535c831601d6a417733d0fc9b802587ecc04a0ff728b2875bf479",
+   "duration": 1.8,
+   "peakDbfs": -4.0,
+   "rmsDbfs": -18.085821405834817
+  },
+  "temple-slide-open-1": {
+   "from": "ElevenLabs Sound Effects v3, user-starred take",
+   "licence": "Generated with ElevenLabs; not CC0",
+   "source": "references/audio/elevenlabs-actions-2026-10-21/temple_r2_10-take-3.wav",
+   "generationId": "YvX1Kp8faOoiViMUGKtM",
+   "sourceSha256": "8773178367c29eca80da8cd42bb229bed6d497f2d1f1bd7394f9f87b052ec091",
+   "selectedTake": 3,
+   "cutSeconds": [
+    0,
+    1.76
+   ],
+   "fitSeconds": 1.8,
+   "timeStretch": "ffmpeg atempo, pitch preserving",
+   "processing": "mono 44.1 kHz PCM16; 4 ms onset/25 ms tail fades; peak-normalized; finite one-shot",
+   "bytes": 158804,
+   "sha256": "e9f98862723a5f99d9dbe4ab7e75f54789e712a3bf7d35ed7685db7ca50647c2",
+   "duration": 1.8,
+   "peakDbfs": -4.0,
+   "rmsDbfs": -17.04220941445303
+  },
+  "temple-locked-0": {
+   "from": "ElevenLabs Sound Effects v3, user-starred take",
+   "licence": "Generated with ElevenLabs; not CC0",
+   "source": "references/audio/elevenlabs-actions-2026-10-21/temple_09_r1-take-4.wav",
+   "generationId": "zUiyWJou7rRMJzWxSPjs",
+   "sourceSha256": "0375397a5442a58343fd472bc549bcb66da7e4bda93a53ae5ddf1ffd899d79d1",
+   "selectedTake": 4,
+   "cutSeconds": [
+    0,
+    0.6065
    ],
    "fitSeconds": null,
    "timeStretch": null,
-   "processing": "mono 44.1 kHz PCM16; 4 ms onset/25 ms tail edge fades",
-   "bytes": 45908,
-   "sha256": "12d99039ab2b752c9d893b5fd5c48720f0ef143f1dbb693683dc176a2726de97",
-   "duration": 0.52,
-   "peakDbfs": -9.0,
-   "rmsDbfs": -26.26621851138958,
-   "tempoRatio": null
+   "processing": "mono 44.1 kHz PCM16; 4 ms onset/25 ms tail fades; peak-normalized; finite one-shot",
+   "bytes": 53538,
+   "sha256": "66f837bd18c09fdfbf73b368254bd19bc850f67233c6302d75c1e6477c476739",
+   "duration": 0.6065079365079366,
+   "peakDbfs": -4.0,
+   "rmsDbfs": -31.720290802374443
+  },
+  "quest-important-0": {
+   "from": "ElevenLabs Sound Effects v3, user-starred take",
+   "licence": "Generated with ElevenLabs; not CC0",
+   "source": "references/audio/elevenlabs-actions-2026-10-21/temple_08_r1-take-1.wav",
+   "generationId": "KZL2e885LQRBUTwRyYiU",
+   "sourceSha256": "8942b5c2b0a66734005c669ce4440e6a6e9f07ce2effb66bc6e692eaca9d2d8f",
+   "selectedTake": 1,
+   "cutSeconds": [
+    0,
+    2.76
+   ],
+   "fitSeconds": null,
+   "timeStretch": null,
+   "processing": "mono 44.1 kHz PCM16; 4 ms onset/25 ms tail fades; peak-normalized; finite one-shot",
+   "bytes": 243476,
+   "sha256": "3da52de97345fe97430d9c34b23812cf823e05a2d93a4496f7a87eb5eaaca638",
+   "duration": 2.76,
+   "peakDbfs": -4.0,
+   "rmsDbfs": -19.101256931700615
+  },
+  "quest-important-1": {
+   "from": "ElevenLabs Sound Effects v3, user-starred take",
+   "licence": "Generated with ElevenLabs; not CC0",
+   "source": "references/audio/elevenlabs-actions-2026-10-21/temple_08_r1-take-2.wav",
+   "generationId": "Nzhgw34pzGKSEe9K88h1",
+   "sourceSha256": "3352788180aef65faa634b22fae718fcf11161e7d274c93649be612b96f6b729",
+   "selectedTake": 2,
+   "cutSeconds": [
+    0,
+    2.76
+   ],
+   "fitSeconds": null,
+   "timeStretch": null,
+   "processing": "mono 44.1 kHz PCM16; 4 ms onset/25 ms tail fades; peak-normalized; finite one-shot",
+   "bytes": 243476,
+   "sha256": "8d358c039c1909d787d058fa8ef36347788683f165cc335026ae673545147377",
+   "duration": 2.76,
+   "peakDbfs": -4.0,
+   "rmsDbfs": -21.829611809180033
+  },
+  "temple-mechanism-0": {
+   "from": "ElevenLabs Sound Effects v3, user-starred take",
+   "licence": "Generated with ElevenLabs; not CC0",
+   "source": "references/audio/elevenlabs-actions-2026-10-21/temple_07_r1-take-4.wav",
+   "generationId": "yssvBUmwv9QOZdumj4jt",
+   "sourceSha256": "744dd0c96cc6bbf495e40ecd69ffa30a8feb1a0df44195c42bc03a07923fe442",
+   "selectedTake": 4,
+   "cutSeconds": [
+    0,
+    1.76
+   ],
+   "fitSeconds": null,
+   "timeStretch": null,
+   "processing": "mono 44.1 kHz PCM16; 4 ms onset/25 ms tail fades; peak-normalized; finite one-shot",
+   "bytes": 155276,
+   "sha256": "6a13f6355460389b4f60ab821c635bd4181107baa773ddcece79f59b35b30dc8",
+   "duration": 1.76,
+   "peakDbfs": -4.0,
+   "rmsDbfs": -28.04988972466645
+  },
+  "temple-slide-open-2": {
+   "from": "ElevenLabs Sound Effects v3, user-starred take",
+   "licence": "Generated with ElevenLabs; not CC0",
+   "source": "references/audio/elevenlabs-actions-2026-10-21/temple_06_r1-take-3.wav",
+   "generationId": "LxDMS53ABq8q9Bn6u7Xo",
+   "sourceSha256": "fb04660dcd85b82a783c0fddb04fcbfd172f38e1c14183ff5600d2d0cb601028",
+   "selectedTake": 3,
+   "cutSeconds": [
+    0,
+    3.0
+   ],
+   "fitSeconds": 1.8,
+   "timeStretch": "ffmpeg atempo, pitch preserving",
+   "processing": "mono 44.1 kHz PCM16; 4 ms onset/25 ms tail fades; peak-normalized; finite one-shot",
+   "bytes": 158804,
+   "sha256": "3a7eb3d4601283ba26a0632f57bcaf57b3c59b761e06373201266de4d48479e6",
+   "duration": 1.8,
+   "peakDbfs": -4.000000000000002,
+   "rmsDbfs": -14.970211413950533
+  },
+  "treasure-reveal-0": {
+   "from": "ElevenLabs Sound Effects v3, user-starred take",
+   "licence": "Generated with ElevenLabs; not CC0",
+   "source": "references/audio/elevenlabs-actions-2026-10-21/temple_02_r1-take-1.wav",
+   "generationId": "2W0GLXoYZT0IFucWIM3K",
+   "sourceSha256": "4f620064bf2255066214741154e44b45d34c00fbd8afa4b016e8794480e7efe9",
+   "selectedTake": 1,
+   "cutSeconds": [
+    0,
+    1.48
+   ],
+   "fitSeconds": null,
+   "timeStretch": null,
+   "processing": "mono 44.1 kHz PCM16; 4 ms onset/25 ms tail fades; peak-normalized; finite one-shot",
+   "bytes": 130580,
+   "sha256": "9cf8cba8a20e488af917f516d40f3f5bd685981426722ba116b119642dd38c97",
+   "duration": 1.48,
+   "peakDbfs": -4.0,
+   "rmsDbfs": -21.336694689841536
+  },
+  "vox-mantle-0": {
+   "from": "ElevenLabs Sound Effects v3, user-starred take",
+   "licence": "Generated with ElevenLabs; not CC0",
+   "source": "references/audio/elevenlabs-actions-2026-10-21/vox_10_r1-take-4.wav",
+   "generationId": "s7VzyMKS60l0BryRsMKa",
+   "sourceSha256": "d9e82b8535a97e3563a42b41fc3327456186c1b8d18e815ec5dba577e13d700c",
+   "selectedTake": 4,
+   "cutSeconds": [
+    0,
+    1.2
+   ],
+   "fitSeconds": null,
+   "timeStretch": null,
+   "processing": "mono 44.1 kHz PCM16; 4 ms onset/25 ms tail fades; peak-normalized; finite one-shot",
+   "bytes": 105884,
+   "sha256": "8bc194104dcbe636c8304662f9629d36edc3e74271d2aa76bcf98828d0e6cb1f",
+   "duration": 1.2,
+   "peakDbfs": -6.000000000000001,
+   "rmsDbfs": -25.860843354759055
+  },
+  "vox-recover-0": {
+   "from": "ElevenLabs Sound Effects v3, user-starred take",
+   "licence": "Generated with ElevenLabs; not CC0",
+   "source": "references/audio/elevenlabs-actions-2026-10-21/vox_09_r1-take-1.wav",
+   "generationId": "AHNAMZ0mfMCq3PFYlh4T",
+   "sourceSha256": "85d565755f33a981accbb43c5039280208e90cd415ca4232f6f167eace1b8263",
+   "selectedTake": 1,
+   "cutSeconds": [
+    0,
+    3.0
+   ],
+   "fitSeconds": null,
+   "timeStretch": null,
+   "processing": "mono 44.1 kHz PCM16; 4 ms onset/25 ms tail fades; peak-normalized; finite one-shot",
+   "bytes": 264644,
+   "sha256": "85d18a4e08abc2db6e115f5e960ba1fcb93f5ccab72e0cca5b313d6242cbc72f",
+   "duration": 3.0,
+   "peakDbfs": -6.000000000000001,
+   "rmsDbfs": -28.532265747530868
+  },
+  "vox-run-0": {
+   "from": "ElevenLabs Sound Effects v3, user-starred take",
+   "licence": "Generated with ElevenLabs; not CC0",
+   "source": "references/audio/elevenlabs-actions-2026-10-21/vox_08_r1-take-1.wav",
+   "generationId": "9sg5KpF0ULGnnM9pvxd0",
+   "sourceSha256": "259cff6577280f0eaec1eb060160aa766300078c569089e9e4c9d0e47111f6ed",
+   "selectedTake": 1,
+   "cutSeconds": [
+    0,
+    6.0
+   ],
+   "fitSeconds": null,
+   "timeStretch": null,
+   "processing": "mono 44.1 kHz PCM16; 4 ms onset/25 ms tail fades; peak-normalized; finite one-shot",
+   "bytes": 529244,
+   "sha256": "9ee2949ded8f35b01649a4683a4a2670e82f3f1d057e593670f29a6f1eecdeeb",
+   "duration": 6.0,
+   "peakDbfs": -6.000000000000001,
+   "rmsDbfs": -25.338547505646176
+  },
+  "vox-land-heavy-0": {
+   "from": "ElevenLabs Sound Effects v3, user-starred take",
+   "licence": "Generated with ElevenLabs; not CC0",
+   "source": "references/audio/elevenlabs-actions-2026-10-21/vox_07_r1-take-2.wav",
+   "generationId": "XlmaG7IVALygqxd8xsZw",
+   "sourceSha256": "ef7b5b4d8cfa65c2f34d5d5114194ffe5cf6529c997c941080f8ff6cae8c090e",
+   "selectedTake": 2,
+   "cutSeconds": [
+    0,
+    1.2
+   ],
+   "fitSeconds": null,
+   "timeStretch": null,
+   "processing": "mono 44.1 kHz PCM16; 4 ms onset/25 ms tail fades; peak-normalized; finite one-shot",
+   "bytes": 105884,
+   "sha256": "54a535cd7083500c9318828205e86f65f40f095078c87a9447fcd0d6f19cb746",
+   "duration": 1.2,
+   "peakDbfs": -6.000000000000001,
+   "rmsDbfs": -23.899553818452638
+  },
+  "vox-land-soft-0": {
+   "from": "ElevenLabs Sound Effects v3, user-starred take",
+   "licence": "Generated with ElevenLabs; not CC0",
+   "source": "references/audio/elevenlabs-actions-2026-10-21/vox_06_r1-take-4.wav",
+   "generationId": "uGOvV8iaXGtIhyhAkNG3",
+   "sourceSha256": "f06e8b32a12cd885f8efe8de712137313714615151755e571e8306f323142cd6",
+   "selectedTake": 4,
+   "cutSeconds": [
+    0,
+    0.8865
+   ],
+   "fitSeconds": null,
+   "timeStretch": null,
+   "processing": "mono 44.1 kHz PCM16; 4 ms onset/25 ms tail fades; peak-normalized; finite one-shot",
+   "bytes": 78234,
+   "sha256": "4e54e6f35ae4e910294156b7ca46022675f66a7905b0816222065ceddbe12386",
+   "duration": 0.8865079365079365,
+   "peakDbfs": -6.000000000000001,
+   "rmsDbfs": -24.26948020533996
+  },
+  "vox-jump-running-0": {
+   "from": "ElevenLabs Sound Effects v3, user-starred take",
+   "licence": "Generated with ElevenLabs; not CC0",
+   "source": "references/audio/elevenlabs-actions-2026-10-21/vox_05_r1-take-2.wav",
+   "generationId": "F4z8jgjvjN5lvTcynXD3",
+   "sourceSha256": "845e3cd030c0f01d3903a22efe3f89b2e7337bf535faaa3dd37edb2f62a14c2c",
+   "selectedTake": 2,
+   "cutSeconds": [
+    0,
+    0.8865
+   ],
+   "fitSeconds": null,
+   "timeStretch": null,
+   "processing": "mono 44.1 kHz PCM16; 4 ms onset/25 ms tail fades; peak-normalized; finite one-shot",
+   "bytes": 78234,
+   "sha256": "7155a727e0b0f10d86e72555ee1e3486d86fc7b5efb6dbf71b3b3329bef48a26",
+   "duration": 0.8865079365079365,
+   "peakDbfs": -6.000000000000001,
+   "rmsDbfs": -25.097578968099953
+  },
+  "vox-jump-standing-0": {
+   "from": "ElevenLabs Sound Effects v3, user-starred take",
+   "licence": "Generated with ElevenLabs; not CC0",
+   "source": "references/audio/elevenlabs-actions-2026-10-21/vox_04_r1-take-4.wav",
+   "generationId": "ltUccf9oMdRwlianurUp",
+   "sourceSha256": "b78b2e6bfc43befed816c893b4d661ba31707ba4cc5c2e70d5a05e9b0616cd53",
+   "selectedTake": 4,
+   "cutSeconds": [
+    0,
+    0.6865
+   ],
+   "fitSeconds": null,
+   "timeStretch": null,
+   "processing": "mono 44.1 kHz PCM16; 4 ms onset/25 ms tail fades; peak-normalized; finite one-shot",
+   "bytes": 60594,
+   "sha256": "90e6a22c7572a9e744284be48c47ac91e97625cddb45fad9c5a70ecd12cc9bd8",
+   "duration": 0.6865079365079365,
+   "peakDbfs": -6.000000000000001,
+   "rmsDbfs": -24.001781783616096
+  },
+  "vox-attack-follow-0": {
+   "from": "ElevenLabs Sound Effects v3, user-starred take",
+   "licence": "Generated with ElevenLabs; not CC0",
+   "source": "references/audio/elevenlabs-actions-2026-10-21/vox_03_r1-take-2.wav",
+   "generationId": "FHDaQY11GOdwItqMejyL",
+   "sourceSha256": "cbe81347caa97f29fe65b87a9523c5adc21f7a947e8d389e23cf3a0a2849633d",
+   "selectedTake": 2,
+   "cutSeconds": [
+    0,
+    0.8065
+   ],
+   "fitSeconds": null,
+   "timeStretch": null,
+   "processing": "mono 44.1 kHz PCM16; 4 ms onset/25 ms tail fades; peak-normalized; finite one-shot",
+   "bytes": 71178,
+   "sha256": "5bcca6bb4a93b93ce5ba7c3da1ff5f4738e454295f11b39ff21a9656658a6307",
+   "duration": 0.8065079365079365,
+   "peakDbfs": -6.000000000000001,
+   "rmsDbfs": -23.361820528593952
+  },
+  "vox-attack-heavy-0": {
+   "from": "ElevenLabs Sound Effects v3, user-starred take",
+   "licence": "Generated with ElevenLabs; not CC0",
+   "source": "references/audio/elevenlabs-actions-2026-10-21/vox_02_r1-take-4.wav",
+   "generationId": "jI6FSkVGY4D0ybPUZ0zG",
+   "sourceSha256": "b0eade94ac8f46918f1a3f844e4f18eb945e582f266047ab6a8528739bcb50a8",
+   "selectedTake": 4,
+   "cutSeconds": [
+    0,
+    1.0
+   ],
+   "fitSeconds": null,
+   "timeStretch": null,
+   "processing": "mono 44.1 kHz PCM16; 4 ms onset/25 ms tail fades; peak-normalized; finite one-shot",
+   "bytes": 88244,
+   "sha256": "1fedd90a5c0b7c785e01e411094dc958208a3df97f005495b7e4b14aef5c4fe0",
+   "duration": 1.0,
+   "peakDbfs": -6.000000000000001,
+   "rmsDbfs": -22.53249471015236
+  },
+  "vox-attack-light-0": {
+   "from": "ElevenLabs Sound Effects v3, user-starred take",
+   "licence": "Generated with ElevenLabs; not CC0",
+   "source": "references/audio/elevenlabs-actions-2026-10-21/vox_01_r1-take-4.wav",
+   "generationId": "xJeUGpOfh7jmTJKgMjiI",
+   "sourceSha256": "fdaa1bfd5fbc77255d26cffa461ff0419de7c87f7723fb642658c8dec23e9d4c",
+   "selectedTake": 4,
+   "cutSeconds": [
+    0,
+    0.6865
+   ],
+   "fitSeconds": null,
+   "timeStretch": null,
+   "processing": "mono 44.1 kHz PCM16; 4 ms onset/25 ms tail fades; peak-normalized; finite one-shot",
+   "bytes": 60594,
+   "sha256": "4c9bba140d9600637a3d8f1bd6f5299c49e8e38f77acbb49cc5b38a466559b6b",
+   "duration": 0.6865079365079365,
+   "peakDbfs": -6.000000000000001,
+   "rmsDbfs": -23.94818301282188
   }
  }
 }

@@ -3005,6 +3005,7 @@ export class Player {
   }
 
   stepped(p, i, n) {
+    this._footContactAt = this.time; // BodyFoley must not add another pair over these actual contacts.
     if (this.onStep) this.onStep(p, this.heading, n ? n.clone() : this.frame.up, i);
   }
 }

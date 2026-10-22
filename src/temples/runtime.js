@@ -459,6 +459,7 @@ export class TempleRuntime {
   }
 
   dispose() {
+    this.sound?._templeAudio?.release?.(this);
     this.meterEl?.remove?.();
     for (const f of this.offs) f?.();
     for (const p of this.pieces) p.dispose?.();

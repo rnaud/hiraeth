@@ -2,6 +2,15 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.96 — 2026-10-22
+
+- The galactic map fits the native screen when its size settles or changes.
+- Backpack jets no longer reignite when you switch between aiming and forward thrust.
+- Footsteps land cleanly without extra landing taps or trailing sand scrapes.
+- Temple sliding doors, mechanisms, treasure reveals and completed quests now share a new set of sounds across every house.
+- The traveller now has quieter, distinct efforts for fighting, jumping, landing and climbing, with an occasional breath after a sustained run.
+- The camera stays closer while gliding inside the Aerie, making the Traveller and landing ledges easier to read.
+
 ## v1.95 — 2026-10-21
 
 - Advice stays with Plumb until you ask. Automatic hint boxes no longer interrupt your journey; important notices and conversations remain.

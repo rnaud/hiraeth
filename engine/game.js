@@ -1653,6 +1653,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       // a menu open (engine/menus.js): the world holds still under it, as the web's menus pause the game; the pad
       // goes to the menu (the controller's menu context), the scene is still drawn
       sound._shipAudio?.pause?.(!!(gadgets?.wheelOn && !talking() && !boxes?.busy?.()) || !!photo.on || !!(menus?.open && !(menus.mode === 'card' && trials?.running && !trials.runner?.paused)));
+      sound.pauseActionAudio?.(!!(gadgets?.wheelOn && !talking() && !boxes?.busy?.()) || !!photo.on || !!(menus?.open && !(menus.mode === 'card' && trials?.running && !trials.runner?.paused)), !!story?.busy?.() || !!(shipOn && ship.busy()) || !!boxes?.busy?.() || !!trials?.busy());
       if (menus?.open) {
         controller.update(dt, true);
         inputFrame();
@@ -1896,7 +1897,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
           menusHeard(menus);
           sound.update(pinned || busy ? CALM : {
             speed: player.riding ? 0 : Math.hypot(player.vel.x, player.vel.z), gust, storm: Wx?.storm ?? 0, rain: Wx?.rainOut ?? 0, rainRoof: Wx?.rainRoof ?? 0,
-            thrusting: !!player.thrusting, riding: !!player.riding, rideKind: player.ride?.kind ?? null, rideSpeed: player.ride?.speed ?? 0,
+            thrusting: !!(player.thrusting || player.jetHold), jetPower: player.jetPower, riding: !!player.riding, rideKind: player.ride?.kind ?? null, rideSpeed: player.ride?.speed ?? 0,
             altitude: Number.isFinite(ground) ? player.pos.y - ground : 0, flying: !!(player.gliding || player.thrusting), indoor: shelter?.indoor ?? 0, night: sky.hour < 6.4 || sky.hour > 19.3,
             house: houseAir?.sound ?? null,   // (inside a makers' house: its bed, src/temples/air.js)
             footing: player.footing,   // (the world's ground or something built on it: the footsteps' surface, as main.js)

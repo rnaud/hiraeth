@@ -58,7 +58,7 @@ import { guardianHint } from '../temples/hints.js';
 import { createBenches } from '../benches.js';
 import { cameraPhysics, keepLensOut } from '../carriers.js';
 import { keepHero, markHero, sharedUniforms } from '../materials.js';
-import { heroCut, jetCameraPitch, WIDE } from '../player.js';
+import { heroCut, jetCameraPitch, OPEN_DIST, WIDE } from '../player.js';
 import { JumpShadow } from '../jump-shadow.js';
 import { screen } from '../platform.js';
 import { sceneHolds } from '../hud-shows.js';
@@ -427,8 +427,11 @@ export function cameraFollow({ rig, player }) {
   const jetShot = { pitch: 0, keepTight: true, yawRate: 4 };   // (behind the jets' nose: rig.follow's shot)
   return (dt) => {
     const jets = player.onJets, jetSpeed = jets ? player.vel.length() : 0;
-    const wide = player.riding ? null : player.gliding ? WIDE.glide : jets || player.jetHold ? WIDE.jets + Math.min(jetSpeed, 30) * WIDE.jetsPerMs : player.climbing ? WIDE.climb : player.swim ? WIDE.swim : 0;
-    const shot = jets ? (jetShot.pitch = jetCameraPitch(player.jetFlight.pitch), jetShot) : null;
+    // An authored flight chamber can keep the Traveller close without changing outdoor glides.
+    const glideShot = player.gliding && !player.riding
+      ? player.houses?.find((h) => h.def?.glideCamera && h.inside?.(player.pos))?.def.glideCamera ?? null : null;
+    const wide = player.riding ? null : player.gliding ? (glideShot?.arm != null ? glideShot.arm - OPEN_DIST : WIDE.glide) : jets || player.jetHold ? WIDE.jets + Math.min(jetSpeed, 30) * WIDE.jetsPerMs : player.climbing ? WIDE.climb : player.swim ? WIDE.swim : 0;
+    const shot = jets ? (jetShot.pitch = jetCameraPitch(player.jetFlight.pitch), jetShot) : glideShot;
     rig.follow(player.ride?.heading ?? player.heading, dt, player.riding || player.gliding || jets, player.ride?.shot ?? shot, wide);
     rig.down = !!player.down;
     rig.air = !player.onGround && !player.climbing && !player.swim && !player.riding;

@@ -17,7 +17,10 @@
  * the pitch spread (± playback rate) and the level spread (down to 1 - gain). The footsteps, the grab and the
  * stroke 2.5-4.5 dB down since the sound QC (issue #379): they sat 3-7 dB under the music, foley sits 8 or more under.
  */
+import { ACTION_SFX } from './action-sfx.js';
+
 export const SFX = {
+  ...ACTION_SFX,
   'blade-light': { n: 1, ext: 'wav', vol: 0.16, rate: 0.025, gain: 0.08 },
   'blade-heavy': { n: 1, ext: 'wav', vol: 0.16, rate: 0.025, gain: 0.08 },
   'shield-parry': { n: 1, ext: 'wav', vol: 0.32, rate: 0.05, gain: 0.18 },

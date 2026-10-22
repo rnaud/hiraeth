@@ -161,3 +161,46 @@ test('pointer scanner preserves first-hover sweep guard, supports touch, clamps 
   map.asking = null; map.close();
   assert.equal(map.pointer(.3, .4, true), false);
 });
+
+test('an open native chart follows delayed canvas size and later resize without inventing a sweep', () => {
+  const { o } = options({ 'world.desert.done': true });
+  let screen = { w: 1280, h: 720 };
+  const map = new EngineStarMap({ o, screen: () => screen }); map.open();
+  map.pointer(.6, .4, true); map.pointer(.65, .45);
+  const cv = map.cv, sel = map.sel;
+  screen = { w: 960, h: 720 };
+  const view = map.view(), box = chartBox(960, 720);
+  assert.deepEqual(view.chart, { x: 17.2, y: 34, w: 921.6, h: 648, side: 248.8 });
+  assert.ok(view.chart.x + view.chart.w + 4 <= 960);
+  assert.ok(map.cv > cv, 'native full-chart cache must rebuild');
+  assert.equal(map.sel, sel);
+  assert.ok(Math.abs(map.scan[0] / box.fw - .65) < 1e-9);
+  assert.equal(map.moved, 0, 'resize never arms discovery');
+  assert.equal(map.pointer(.7, .5), false, 'first hover remains guarded');
+  assert.equal(map.pointer(.8, .6, true), true);
+  assert.ok(map.moved > 0);
+  assert.deepEqual(map.scan, [box.fw * .8, box.fh * .6]);
+  map.still = true; screen = { w: 1440, h: 900 };
+  assert.equal(map.update(0), true, 'held diagnostic views still relayout');
+  assert.deepEqual(map.box, chartBox(1440, 900));
+  assert.equal(map.update(0), false, 'unchanged dimensions do not rebuild every frame');
+});
+
+test('after native resize a deliberate pointer swipe and dwell still discovers and charts a world', () => {
+  const { o, found, F } = options({ 'world.desert.done': true });
+  let screen = { w: 1280, h: 720 };
+  const map = new EngineStarMap({ o, screen: () => screen }); map.open();
+  screen = { w: 960, h: 720 }; map.view();
+  const target = map.targets.find(t => t.id === 'arzach'), box = map.box;
+  map.pointer(.05, .05, true);
+  for (let i = 1; i <= 30; i++) {
+    const k = i / 30;
+    map.pointer(.05 + (target.x / box.fw - .05) * k, .05 + (target.y / box.fh - .05) * k);
+    map.update(1 / 60);
+  }
+  for (let i = 0; i < 180; i++) map.update(1 / 60);
+  assert.deepEqual(found, ['arzach']);
+  assert.equal(F[foundFlag('arzach')], true);
+  assert.ok(map.entries.find(e => e.id === 'arzach').known);
+  assert.ok(map.view().worlds.some(w => w.id === 'arzach'));
+});

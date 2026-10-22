@@ -9,6 +9,18 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
+    v: '1.96',
+    date: '2026-10-22',
+    items: [
+      'The camera stays closer while gliding inside the Aerie, making the Traveller and landing ledges easier to read.',
+      { text: 'The traveller now has quieter, distinct efforts for fighting, jumping, landing and climbing, with an occasional breath after a sustained run.', see: 'With Voices enabled, try a blade combo, a running jump and a ledge climb. Run for several seconds and slow down. Only one traveller voice plays at a time; menus, conversations and cinematics stop body vocals.' },
+      { text: 'Temple sliding doors, mechanisms, treasure reveals and completed quests now share a new set of sounds across every house.', see: 'Open a sliding temple door, approach a locked one, operate a mechanical switch and collect a chest reward. All houses use the same action sounds. Door closing and key unlocking keep their existing cues.' },
+      { text: 'Footsteps land cleanly without extra landing taps or trailing sand scrapes.', see: 'Walk, sprint and jump onto sand. Each planted foot sounds once; the heavier body impact still follows a hard landing.' },
+      { text: 'Backpack jets no longer reignite when you switch between aiming and forward thrust.', see: 'Hold powered aim, return to forward thrust, then release and fire again. A continuous burn keeps running; a fresh ignition still has its own start.' },
+      { text: 'The galactic map fits the native screen when its size settles or changes.', see: 'Open the ship’s galactic map on a 4:3 screen. The full information panel remains visible, and a deliberate scanner sweep still reveals new worlds.' },
+    ],
+  },
+  {
     v: '1.95',
     date: '2026-10-21',
     items: [

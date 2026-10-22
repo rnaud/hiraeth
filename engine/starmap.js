@@ -74,6 +74,7 @@ export class EngineStarMap {
   render() {
     this.entries = mapEntries(this.o);
     const S = this.screen?.() ?? { w: 1280, h: 720 };
+    this.viewport = { w: S.w, h: S.h };
     this.box = chartBox(S.w, S.h);
     this.D = chartDrawing(this.entries, this.box.fw, this.box.fh);
     this.targets = this.D.targets;
@@ -81,8 +82,26 @@ export class EngineStarMap {
     this.cv++;
   }
 
+  /** The native canvas may settle after opening (1280 to 960 on a 4:3 handheld). */
+  resize() {
+    if (!this.isOpen || !this.box) return false;
+    const S = this.screen?.() ?? { w: 1280, h: 720 };
+    if (S.w === this.viewport?.w && S.h === this.viewport?.h) return false;
+    const scan = this.scan?.map((v, i) => v / (i ? this.box.fh : this.box.fw));
+    this.render();
+    if (scan) this.scan = [scan[0] * this.box.fw, scan[1] * this.box.fh];
+    // A layout change isn't a deliberate sweep or time held over a new target.
+    this.pointerAt = null; this.moved = 0; this.search.lock = {}; this.lock = 0;
+    if (this.resolving) {
+      const entry = this.entries.find(e => e.id === this.resolving.id);
+      if (entry) { const [x, y] = this.D.pos(entry); Object.assign(this.resolving, { x, y }); }
+    }
+    return true;
+  }
+
   /** Pointer on the chart, normalized across/down. Initial hover is not a deliberate sweep (web issue #204). */
   pointer(x, y, pressed = false) {
+    this.resize();
     if (!this.searching() || this.asking || !Number.isFinite(x) || !Number.isFinite(y)) return false;
     const to = [Math.max(0, Math.min(1, x)) * this.box.fw, Math.max(0, Math.min(1, y)) * this.box.fh];
     if (this.pointerAt) this.moved += Math.hypot(to[0] - this.pointerAt[0], to[1] - this.pointerAt[1]);
@@ -160,7 +179,8 @@ export class EngineStarMap {
    * Then a resolved planet's second, the chart drawn again with it. True when what is drawn moved.
    */
   update(dt, stick = null) {
-    if (!this.isOpen || this.still) return false;
+    const resized = this.resize();
+    if (!this.isOpen || this.still) return resized;
     if (this.resolving) {
       this.resolving.t += dt;
       if (this.resolving.t >= 1) {
@@ -174,7 +194,7 @@ export class EngineStarMap {
       }
       return true;
     }
-    if (!this.searching() || this.asking) return false;
+    if (!this.searching() || this.asking) return resized;
     const W = this.box.fw, H = this.box.fh, diag = this.D.diag;
     let mx = 0, my = 0;
     for (const k of this.held) { const d = SCAN_KEYS[k]; if (d) { mx += d[0]; my += d[1]; } }
@@ -238,6 +258,7 @@ export class EngineStarMap {
    * `cv` moves when anything but the scanner, the meter and the resolving planet changed.
    */
   view() {
+    this.resize();
     const D = this.D, L = D.L, B = this.box, E = this.entries, searching = this.searching() || !!this.resolving;
     const powered = !!this.o.powered?.();
     const worlds = E.map((e, i) => {

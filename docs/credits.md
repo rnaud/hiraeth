@@ -47,3 +47,13 @@ northwest, and large dish canopies above the dome village. Running and climbing
 now use speeds matched to the animation; climb contacts orient palms and toes
 toward the wall. The bike parks within boarding range and recalls to a clear
 nearby spot if blocked or still travelling after four seconds.
+
+
+### Selected traveller and temple action recordings
+
+Eighteen author-starred ElevenLabs sound-effect takes, selected 21 October 2026:
+ten traveller efforts and eight shared temple/reward actions. Original recordings,
+exact prompts, provider take IDs and hashes are retained in
+`references/audio/elevenlabs-actions-2026-10-21/manifest.json`; derivative hashes and
+processing are in `public/sfx/manifest.json`. Temple labels in generation prompts
+are provenance, not separate in-game temple banks. No unselected takes are used.

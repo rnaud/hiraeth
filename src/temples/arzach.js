@@ -870,6 +870,8 @@ function change(scene, level, rt) {
 
 export const ARZACH_TEMPLE = {
   id: 'arzach', levelId: 'arzach', name: 'The Aerie', doorLabel: 'door of the Aerie',
+  // The Wind Well and Gulf need readable landings, not the open sky's 13.4 m chase.
+  glideCamera: { arm: 6.4, keepTight: true },
   gadget: 'glider', gadgetBox: 'arzach.temple.glider', arenaDoor: 'd3', arenas: ARENAS,
   origin: shiftAt('arzach', [-200, 1600, 300]), yaw: 0,   // (its rooms over Vael's plain, where they always were from it: names.js PART_OFFSET)
   palette: PALETTE, logic: LOGIC, site: SITE,
