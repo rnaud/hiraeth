@@ -697,7 +697,7 @@ def prune_unity(root, keep=2):
             shutil.rmtree(path)
 
 
-def install_unity(root, manifest, downloader=download_unity):
+def install_unity(root, manifest, downloader=download_unity, verify=None):
     """Download, verify and unpack the unity-linux player when its digest differs from the installed
     one, then point unity/current at it. @return whether one was installed"""
     validate_unity_manifest(manifest)
@@ -716,6 +716,8 @@ def install_unity(root, manifest, downloader=download_unity):
             archive = staging / 'player.tar.gz'
             downloader(manifest, archive)
             # Check here too, so every path verifies the download.
+            if verify is not None:
+                progress('verifying', manifest['size'], manifest['size'], done=True)
             digest, size = hashlib.sha256(), 0
             with archive.open('rb') as stream:
                 while chunk := stream.read(1024 * 1024):
@@ -727,6 +729,8 @@ def install_unity(root, manifest, downloader=download_unity):
                 raise ValueError('Unity player checksum mismatch; installed player unchanged')
             content = staging / 'player'
             content.mkdir()
+            if verify is not None:
+                progress('unpacking', manifest['size'], manifest['size'], done=True)
             extract(archive, content, skip=UNITY_SKIP)
             archive.unlink()
             # the player at the archive's top, or in its one folder (the workflow's bridge-linux/)
@@ -735,6 +739,8 @@ def install_unity(root, manifest, downloader=download_unity):
                 if len(inner) != 1 or not (inner[0] / UNITY_PLAYER).is_file():
                     raise ValueError('Incomplete Unity player')
                 content = inner[0]
+            if verify is not None:
+                verify(content)   # reject incompatible players before changing current or previous
             (content / UNITY_PLAYER).chmod(0o755)
             atomic_write(content / 'unity.json', json.dumps({
                 'sha256': manifest['sha256'], 'size': manifest['size'], 'installedAt': time.time()}).encode())
@@ -763,6 +769,107 @@ def install_unity(root, manifest, downloader=download_unity):
 
 def update_unity(root):
     return install_unity(root, get_unity_manifest())
+
+
+# Player-only bridge operation. Kept in this canonical helper and bundled with the
+# Linux player, so an old runtime updater is not a prerequisite for in-game updates.
+def player_metadata(folder, min_api, min_build):
+    """Verify the native API and its bundled script before activation, never infer API from minUnity."""
+    base = folder / 'hiraeth-js_Data/StreamingAssets'
+    try:
+        native = json.loads((base / 'player.json').read_text())
+        script = json.loads((base / 'hiraeth-js/bundle.json').read_text())
+    except (OSError, ValueError):
+        raise ValueError('The published player has no compatible update metadata; keep playing and try later.') from None
+    if not isinstance(native, dict) or not isinstance(script, dict):
+        raise ValueError('The published player metadata is invalid.')
+    helper = base / 'deck-player.py'
+    digest = native.get('helperSha256')
+    if native.get('helperProtocol') != 1 or not isinstance(digest, str) or not re.fullmatch(r'[0-9a-f]{64}', digest):
+        raise ValueError('The published player has no supported player-update helper metadata.')
+    if not helper.is_file() or hashlib.sha256(helper.read_bytes()).hexdigest() != digest:
+        raise ValueError('The published player is missing its verified player-update helper.')
+    api, build = native.get('api'), script.get('build')
+    if type(api) is not int or type(build) is not int or type(script.get('minUnity')) is not int:
+        raise ValueError('The published player metadata is invalid.')
+    if native.get('build') != build or api < min_api or script['minUnity'] > api or build < min_build:
+        raise ValueError('The published player is older or incompatible; keep playing and try later.')
+    return {'build': build, 'api': api, 'version': script.get('version', '')}
+
+
+def managed_player_root(root, player, ready):
+    """Only the watched launcher layout: a real installed/pinned executable and canonical ready file."""
+    root, player, ready = Path(root).resolve(), Path(player).resolve(), Path(ready)
+    if ready.parent.resolve() != root or not re.fullmatch(r'\.unity-ready-[0-9]+', ready.name):
+        raise ValueError('This player was not started by the Deck launcher.')
+    if player.parent != root / 'unity' or not re.fullmatch(r'[0-9a-f]{12}', player.name):
+        raise ValueError('This player is not in the managed Deck install.')
+    if not (player / UNITY_PLAYER).is_file() or not (player / '.in-use').is_file():
+        raise ValueError('The managed player is incomplete.')
+    with (player / '.in-use').open('a') as pin:
+        try:
+            fcntl.flock(pin, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            pass   # the watched launcher owns this player's shared pin
+        else:
+            raise ValueError('This player is not pinned by the running launcher.')
+    current = (root / 'unity/current').resolve(strict=True)
+    if current.parent != root / 'unity' or not (current / UNITY_PLAYER).is_file():
+        raise ValueError('The launcher current player is invalid.')
+    if not (root / 'current/resources/app/deck.py').is_file():
+        raise ValueError('The Deck launcher is unavailable.')
+    return root
+
+
+def verified_player_snapshot(root, expected_sha, min_api, min_build):
+    """One activation snapshot under the launcher's state lock; never mix digest A with metadata B."""
+    with (root / 'unity/state.lock').open('a') as lock:
+        fcntl.flock(lock, fcntl.LOCK_SH)
+        current = (root / 'unity/current').resolve(strict=True)
+        if current.parent != root / 'unity' or not (current / UNITY_PLAYER).is_file():
+            raise ValueError('The activated player is outside the managed install.')
+        installed = json.loads((current / 'unity.json').read_text())
+        if installed.get('sha256') != expected_sha:
+            return None
+        if current.name != expected_sha[:12]:
+            raise ValueError('The activated player identity does not match its verified archive.')
+        meta = player_metadata(current, min_api, min_build)
+        if unity_health(root).get(current.name) == 'failed':
+            raise ValueError('This player failed to start before. The previous working player is kept; wait for a newer release.')
+        return {'state': 'ready', **meta, 'sha256': expected_sha}
+
+
+def player_operation(root, player, ready, min_api, min_build, install=False, feed=None, downloader=None):
+    """Independent result: busy is not success; only verified activated bytes can become ready."""
+    root = managed_player_root(root, player, ready)
+    manifest = (feed or get_unity_manifest)()
+    validate_unity_manifest(manifest)
+    running = json.loads((Path(player) / 'unity.json').read_text()).get('sha256')
+    if manifest['sha256'] == running:
+        return {'state': 'current', 'detail': 'The published player is the one running. If a newer game needs another player, try again later.'}
+    # Existing background download owns the same lock. Report it honestly rather than
+    # treating install_unity(False) as ready; a later check can inspect its completed bytes.
+    with (root / 'unity/update.lock').open('a') as lock:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            return {'state': 'busy', 'detail': 'The launcher is already downloading a player. Check again when it finishes.'}
+    snapshot = verified_player_snapshot(root, manifest['sha256'], min_api, min_build)
+    if snapshot is not None:
+        return snapshot
+    if unity_health(root).get(manifest['sha256'][:12]) == 'failed':
+        raise ValueError('This published player failed to start before. Wait for a newer release; the working player is kept.')
+    if not install:
+        return {'state': 'available', 'size': manifest['size'], 'sha256': manifest['sha256']}
+    progress('downloading', 0, manifest['size'], done=True)
+    changed = install_unity(root, manifest, downloader or download_unity,
+                            verify=lambda folder: player_metadata(folder, min_api, min_build))
+    if not changed:
+        return {'state': 'busy', 'detail': 'Another launcher update is finishing. Check again.'}
+    snapshot = verified_player_snapshot(root, manifest['sha256'], min_api, min_build)
+    if snapshot is None:
+        raise ValueError('The activated player changed during the update. Check again before restarting.')
+    return snapshot
 
 
 # ---------------------------------------------------------------- Steam's library artwork
@@ -1449,6 +1556,11 @@ def unity_failed(root, log, show=None):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--player-operation', choices=('check', 'download'))
+    parser.add_argument('--player', metavar='DIR')
+    parser.add_argument('--ready', metavar='FILE')
+    parser.add_argument('--min-api', type=int, default=0)
+    parser.add_argument('--min-build', type=int, default=0)
     parser.add_argument('--launch', action='store_true')
     # (the launchers of the second shortcuts the Deck had, written by earlier runtimes: the game too, issue #484)
     parser.add_argument('--launch-unity', '--launch-web', dest='launch', action='store_true', help=argparse.SUPPRESS)
@@ -1466,8 +1578,19 @@ def main():
     args, extra = parser.parse_known_args()
     root = Path(args.root).expanduser() if args.root else ROOT
     # (--status and --update on an explicit --root run anywhere: the settings' tests on a Mac)
-    if (platform.system() != 'Linux' or platform.machine() not in ('x86_64', 'AMD64')) and not (args.root and (args.status or args.status_local or args.update)):
+    if (platform.system() != 'Linux' or platform.machine() not in ('x86_64', 'AMD64')) and not (args.root and (args.status or args.status_local or args.update or args.player_operation)):
         parser.error('This package requires Linux x86-64 (Steam Deck).')
+    if args.player_operation:
+        global PROGRESS
+        PROGRESS = Path(args.progress) if args.progress else None
+        try:
+            result = player_operation(root, args.player, args.ready, args.min_api, args.min_build, args.player_operation == 'download')
+        except Exception as error:
+            result = {'state': 'offline' if offline(error) else 'error', 'detail': str(error)}
+        if PROGRESS:
+            atomic_write(PROGRESS, json.dumps(result).encode())
+        print(json.dumps(result), flush=True)
+        return
     if args.launch:
         launch(root, extra)
         return
@@ -1484,7 +1607,6 @@ def main():
             sys.exit(1)
         return
     if args.update:
-        global PROGRESS
         PROGRESS = Path(args.progress) if args.progress else None
         # (the settings' download, --progress, takes the player too: it is the game; a 'unity' failure never fails it)
         failures = update_all(root)

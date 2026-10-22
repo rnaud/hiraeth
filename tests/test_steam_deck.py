@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import shutil
 import signal
+import subprocess
 import sys
 import tarfile
 import tempfile
@@ -1186,6 +1187,158 @@ class LauncherDialogTests(unittest.TestCase):
         # no tool: nothing shown, the launch goes on (its log says it)
         self.assertFalse(deck.show_error('x', popen=Process, which=lambda _tool: None))
         deck.busy_dialog('x', popen=Process, which=lambda _tool: None)()
+
+
+class PlayerUpdateBridgeTests(unittest.TestCase):
+    setUp_base = SteamDeckTests.setUp
+    player = UnityPlayerTests.player
+
+    def setUp(self):
+        self.setUp_base()
+        self.count = 0
+        release, fetch = self.player(files=self.files(100, 4))
+        manifest = deck.unity_manifest(release)
+        deck.install_unity(self.root, manifest, fetch)
+        self.running = (self.root / 'unity/current').resolve()
+        self.pin = (self.running / '.in-use').open('a')
+        fcntl.flock(self.pin, fcntl.LOCK_SH)
+        self.addCleanup(self.pin.close)
+        app = self.root / 'current/resources/app'
+        app.mkdir(parents=True, exist_ok=True)
+        (app / 'deck.py').write_text('# installed launcher')
+        self.ready = self.root / '.unity-ready-123'
+        self.ready.touch()
+        self.saved = self.root / 'unity-data/store.json'
+        self.saved.parent.mkdir(exist_ok=True)
+        self.saved.write_text('{"settings":"kept","save":"kept"}')
+        self.old_manifest = manifest
+
+    def files(self, build, api, min_api=3):
+        prefix = 'hiraeth-js_Data/StreamingAssets/'
+        helper = b'# canonical player-only helper fixture\n'
+        return {'hiraeth-js.x86_64': (b'player', 0o755), 'UnityPlayer.so': (b'so', 0o755),
+                prefix+'deck-player.py': (helper, 0o644),
+                prefix+'player.json': (json.dumps({'api': api, 'build': build, 'helperProtocol': 1, 'helperSha256': hashlib.sha256(helper).hexdigest()}).encode(), 0o644),
+                prefix+'hiraeth-js/bundle.json': (json.dumps({'build': build, 'minUnity': min_api, 'version': '1.99'}).encode(), 0o644)}
+
+    def operation(self, manifest, fetch=None, install=False):
+        return deck.player_operation(self.root, self.running, self.ready, 4, 100, install,
+                                     feed=lambda: manifest, downloader=fetch)
+
+    def test_available_verified_ready_and_save_previous_preserved(self):
+        release, fetch = self.player(files=self.files(101, 4))
+        manifest = deck.unity_manifest(release)
+        self.assertEqual(self.operation(manifest)['state'], 'available')
+        self.assertEqual(self.operation(manifest, fetch, True)['state'], 'ready')
+        self.assertEqual(self.operation(manifest)['state'], 'ready')
+        self.assertTrue(self.running.is_dir())
+        self.assertEqual(self.saved.read_text(), '{"settings":"kept","save":"kept"}')
+        # A stale UI ready cannot make a feed now pointing at the running player restart.
+        self.assertEqual(self.operation(self.old_manifest)['state'], 'current')
+
+    def test_busy_is_not_ready_then_real_completed_update_is_ready(self):
+        release, fetch = self.player(files=self.files(101, 4))
+        manifest = deck.unity_manifest(release)
+        with (self.root / 'unity/update.lock').open('a') as lock:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            self.assertEqual(self.operation(manifest, fetch, True)['state'], 'busy')
+        self.assertEqual(self.operation(manifest, fetch, True)['state'], 'ready')
+
+    def test_incompatible_stale_missing_metadata_and_bad_hash_never_activate(self):
+        variants = [self.files(101, 3), self.files(99, 4), self.files(101, 4, 5),
+                    {'hiraeth-js.x86_64': (b'no metadata', 0o755)}]
+        missing_helper = self.files(101, 4); del missing_helper['hiraeth-js_Data/StreamingAssets/deck-player.py']
+        bad_helper = self.files(101, 4); bad_helper['hiraeth-js_Data/StreamingAssets/deck-player.py'] = (b'wrong helper', 0o644)
+        variants.extend([missing_helper, bad_helper])
+        for files in variants:
+            release, fetch = self.player(files=files)
+            with self.assertRaises(ValueError): self.operation(deck.unity_manifest(release), fetch, True)
+            self.assertEqual((self.root / 'unity/current').resolve(), self.running)
+        release, fetch = self.player(files=self.files(101, 4))
+        manifest = deck.unity_manifest(release); manifest['sha256'] = 'f' * 64
+        with self.assertRaisesRegex(ValueError, 'checksum'): self.operation(manifest, fetch, True)
+        self.assertEqual((self.root / 'unity/current').resolve(), self.running)
+
+    def test_extraction_failure_and_failed_start_feed_keep_previous(self):
+        bad = tarfile.TarInfo('../escape'); bad.size = 1
+        release, fetch = self.player(files=self.files(101, 4), extra=[bad])
+        with self.assertRaises(ValueError): self.operation(deck.unity_manifest(release), fetch, True)
+        self.assertEqual((self.root / 'unity/current').resolve(), self.running)
+        release, fetch = self.player(files=self.files(102, 4))
+        manifest = deck.unity_manifest(release)
+        self.operation(manifest, fetch, True)
+        failed = (self.root / 'unity/current').resolve()
+        deck.unity_remember(self.root, failed, 'failed')
+        with self.assertRaisesRegex(ValueError, 'failed to start'): self.operation(manifest)
+        self.assertIn(self.running, deck.unity_players(self.root))
+
+    def test_ready_snapshot_holds_activation_lock_through_metadata_read(self):
+        release, fetch = self.player(files=self.files(101, 4))
+        manifest = deck.unity_manifest(release)
+        self.operation(manifest, fetch, True)
+        entered, activated = threading.Event(), threading.Event()
+        real = deck.player_metadata
+        worker = None
+        def activate():
+            entered.set()
+            with (self.root / 'unity/state.lock').open('a') as lock:
+                fcntl.flock(lock, fcntl.LOCK_EX)
+                link = self.root / 'unity/.test-current'
+                link.symlink_to(self.running.name)
+                link.replace(self.root / 'unity/current')
+                activated.set()
+        def inspect(folder, api, build):
+            nonlocal worker
+            worker = threading.Thread(target=activate)
+            worker.start(); self.assertTrue(entered.wait(1))
+            self.assertFalse(activated.wait(.05), 'background activation must wait for snapshot lock')
+            return real(folder, api, build)
+        with patch.object(deck, 'player_metadata', side_effect=inspect):
+            result = deck.verified_player_snapshot(self.root, manifest['sha256'], 4, 100)
+        worker.join(2)
+        self.assertTrue(activated.is_set())
+        self.assertEqual(result['build'], 101)
+        # A later recheck sees the changed current rather than reusing the first ready result.
+        self.assertIsNone(deck.verified_player_snapshot(self.root, manifest['sha256'], 4, 100))
+
+    def test_real_helper_process_reports_ready_busy_and_offline_without_touching_save(self):
+        release, fetch = self.player(files=self.files(101, 4))
+        manifest = deck.unity_manifest(release)
+        self.operation(manifest, fetch, True)
+        feed = self.home / 'fixture-feed.json'; feed.write_text(json.dumps(manifest))
+        wrapper = self.home / 'helper-process.py'
+        wrapper.write_text("import importlib.util,json,sys\n"
+            "from pathlib import Path\n"
+            "spec=importlib.util.spec_from_file_location('deck',sys.argv.pop(1));d=importlib.util.module_from_spec(spec);spec.loader.exec_module(d)\n"
+            "feed=Path(sys.argv.pop(1));mode=sys.argv.pop(1)\n"
+            "def get():\n"
+            " if mode=='offline': raise OSError('fixture network unavailable')\n"
+            " return json.loads(feed.read_text())\n"
+            "d.get_unity_manifest=get\n"
+            "sys.exit(d.main())\n")
+        progress = self.home / 'helper-progress.json'
+        def run(mode='normal'):
+            command = [sys.executable, str(wrapper), str(Path(deck.__file__)), str(feed), mode,
+                       '--root', str(self.root), '--player-operation', 'check', '--player', str(self.running),
+                       '--ready', str(self.ready), '--min-api', '4', '--min-build', '100', '--progress', str(progress)]
+            result = subprocess.run(command, capture_output=True, text=True, timeout=10)
+            state = json.loads(progress.read_text())
+            self.assertEqual(json.loads(result.stdout.strip().splitlines()[-1]), state)
+            self.assertEqual(self.saved.read_text(), '{"settings":"kept","save":"kept"}')
+            return state
+        self.assertEqual(run()['state'], 'ready')
+        with (self.root / 'unity/update.lock').open('a') as lock:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            self.assertEqual(run()['state'], 'busy')
+        self.assertEqual(run()['state'], 'ready')
+        self.assertEqual(run('offline')['state'], 'offline')
+
+    def test_nonlauncher_or_unpinned_layout_is_rejected_before_network(self):
+        with self.assertRaises(ValueError):
+            deck.managed_player_root(self.root, self.running, self.root / 'fake-ready')
+        self.pin.close()
+        with self.assertRaisesRegex(ValueError, 'not pinned'):
+            deck.managed_player_root(self.root, self.running, self.ready)
 
 
 if __name__ == '__main__':

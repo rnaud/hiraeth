@@ -1349,6 +1349,43 @@ const RETROID536 = 'Retroid Pocket Nova (Adreno 740, Vulkan), Unity, Handheld (F
 const SRC536 = 'BridgeRenderer.Pipelines (the G-buffer’s states the scene asks for: variant, layout, cull, depth), Metal’s list traced in the editor, the shipped lists rewritten by scripts/bench/pso-one-cull.mjs; docs/systems/performance.md, “One cull mode and one layout for the Surface pipelines”';
 const SEAPORT572 = 'Issue #572: the web game in muted headless Chrome (High, 1280 × 720) on a Vite of its own (port 5441), a new save arriving by ship (?level=underwater&via=ship), then walked as a player; before: origin/main at 02345e2c3, after: this change; the deck and the Dock from the visual check’s views (scripts/design-qc/capture.mjs --fixed-scale); 20 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '1.99': [
+  {
+    "match": "Steam Deck players can update",
+    "shots": [
+      {
+        "name": "player-available",
+        "only": "after",
+        "caption": "Update the player from the Updates page.",
+        "size": [
+          1280,
+          720
+        ],
+        "from": "Issue #620; actual Unity Editor BridgeMenu renderer, 1280 \u00d7 720, 22 October 2026, candidate based on 4f1e5fe7. Isolated native status fixtures exercise available, progress and failure states; no physical Steam Deck update or historical before image is claimed. Audio output muted; no player save used. Sources, native API tests, real isolated launcher-process and OTA rollback evidence retained in .local-tools/validation/v1.99/player-update-620/."
+      },
+      {
+        "name": "player-downloading",
+        "only": "after",
+        "caption": "Download progress keeps duplicate update actions unavailable.",
+        "size": [
+          1280,
+          720
+        ],
+        "from": "Issue #620; actual Unity Editor BridgeMenu renderer, 1280 \u00d7 720, 22 October 2026, candidate based on 4f1e5fe7. Isolated native status fixtures exercise available, progress and failure states; no physical Steam Deck update or historical before image is claimed. Audio output muted; no player save used. Sources, native API tests, real isolated launcher-process and OTA rollback evidence retained in .local-tools/validation/v1.99/player-update-620/."
+      },
+      {
+        "name": "player-error",
+        "only": "after",
+        "caption": "A rejected download leaves the current player unchanged.",
+        "size": [
+          1280,
+          720
+        ],
+        "from": "Issue #620; actual Unity Editor BridgeMenu renderer, 1280 \u00d7 720, 22 October 2026, candidate based on 4f1e5fe7. Isolated native status fixtures exercise available, progress and failure states; no physical Steam Deck update or historical before image is claimed. Audio output muted; no player save used. Sources, native API tests, real isolated launcher-process and OTA rollback evidence retained in .local-tools/validation/v1.99/player-update-620/."
+      }
+    ]
+  }
+],
   '1.98': [
   {
     "match": "A Sound effects switch",

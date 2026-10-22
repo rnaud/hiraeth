@@ -115,3 +115,73 @@ same job of `.github/workflows/unity-android.yml`:
   ended at the exit with `_exit`); the page's check, download and Restart now (the bridge started again in the same
   process on the download). Not yet on Linux, Android or the Xbox: exit 76 into deck.py's relaunch is covered by
   deck.py's own tests of `RESTART_EXIT`.
+
+
+## Optional Steam Deck player update (#620, v1.99)
+
+The native player advertises API 4 for the optional player-update methods. The script
+minimum remains API 3: each new call is capability-gated, so existing compatible
+players can still receive scripts. API 3 players show relaunch/installer guidance;
+API 1/2 players must first obtain a compatible native player through the existing
+launcher background download. No old player is promised a host method it lacks.
+
+In a managed Deck install, Updates can check the player separately and offer
+**Update player and restart**. The new Linux player bundles the canonical
+`scripts/steam-deck/deck.py` as its player-only helper. This avoids depending on an
+update to the older launcher/runtime package, without changing that feed or its
+release assets. The existing launcher still owns startup, exit 76, pins, and failed
+startup fallback. Standalone and other-platform players get installation guidance.
+
+The helper validates the watched launch's ready path, canonical install/player
+layout and held player pin before operating. It downloads only the fixed
+`unity-linux` asset, checking its exact size and SHA-256. Before activation it checks
+native `player.json` against bundled `bundle.json`: build identity, no older build,
+and enough native API for both the running player and pending script. The canonical
+helper must match its packaged SHA-256 and supported protocol. A missing or
+incompatible feed fails explicitly. Another updater's lock reports busy, never a
+false success. No aggregate runtime/content-update result is used as proof.
+
+The page shows checking, bytes downloaded, verification, preparation, ready and
+concrete errors. Restart performs a fresh native check of the activated player,
+then requires the save store to flush successfully before exit 76. Saves/settings
+remain in their existing data directory. The prior player remains available and
+existing launcher health/watchdog rollback is retained. A previously failed player
+is not offered repeatedly as a new ready update.
+
+Validation uses isolated launcher filesystem fixtures and muted editor/UI fixtures;
+it does not update a user's installation. See the release evidence for the actual
+platform coverage and limitations.
+
+Activation reads hold the launcher's shared state lock across resolved directory,
+archive identity, helper and compatibility checks. The restart's native recheck
+repeats this snapshot. With an older launcher, there is still a handoff interval
+after that helper exits: a concurrent background updater can activate another
+release before exit 76 is relaunched. The old launcher then chooses its current
+player under its own state lock and startup-health rules, retaining the previous
+working player as fallback. We do not claim an exact staged digest is pinned across
+that old-launcher handoff; eliminating that interval requires a newer launcher
+protocol, rather than pretending new native methods can control the old launcher.
+
+
+### API 4 sound-bank delivery contract (#622)
+
+The selected script bundle can own a compact `public/sfx` set. For `sfx/` reads only,
+including `manifest.json` and native PCM decoding, that selected root is authoritative:
+a missing member fails rather than falling back to the installed or repository file
+of the same name. Music, models and all other public roots keep their existing order.
+A selected bundle with `minUnity >= 4` requires that bank even when its directory is
+missing; an older API-3 script-only bundle without `public/sfx` keeps installed lookup.
+The host root cache is cleared at startup, bundle selection and reboot, and rollback
+selects the previous bundle's bank together with its script. The subsequent strict
+audio release owns compact OTA packaging and raises its script minimum to 4; this
+native support release itself remains compatible with script minimum 3.
+
+Release validation: 82 Python launcher tests include a real helper subprocess with
+held player pins and unchanged save bytes; 30 focused JS update tests cover optional
+host calls, duplicate actions and failed saves. Ten native EditMode tests cover fresh
+restart rejection and authoritative roots. A muted editor transaction uses actual
+`Choose → Failed → Choose` selection to decode distinct same-name WAVs and their
+manifest, checks missing API-4 directories, and verifies packaged helper bytes.
+Eight actual native menu renders and browser renderer states are isolated fixtures,
+not a physical Deck download or restart. The warm project was restored byte-for-byte.
+Evidence: `.local-tools/validation/v1.99/player-update-620/` (ignored).

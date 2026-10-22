@@ -303,6 +303,7 @@ namespace Hiraeth.Bridge
             Interlocked.Exchange(ref audioPending, 0);
             lock (audioEnded) audioEnded.Clear();
             audioThreaded = false;
+            ResetPublicRoots();
         }
 
         // ---------------------------------------------------------------- the platform
@@ -317,16 +318,20 @@ namespace Hiraeth.Bridge
             return b != null ? JsRuntime.ToScript(b) : null;
         }
         static string[] roots;
+        internal static void ResetPublicRoots() => roots = null;
         static byte[] ReadPublic(string path)
         {
-            foreach (var root in roots ??= (object)Runner != null ? Runner.PublicRoots() : new string[0])
+            // The selected bundle owns the entire SFX set, including its manifest; do not mix installed files.
+            var lookup = path.StartsWith("sfx/", StringComparison.Ordinal) && (object)Runner != null
+                ? Runner.PublicRoots(path) : (roots ??= ((object)Runner != null ? Runner.PublicRoots() : new string[0]));
+            foreach (var root in lookup)
             {
                 var b = StreamingFile.Read(Path.Combine(root, path));
                 if (b != null) return b;
             }
             // (the game's data/ folder, beside public/ in the repository (the last root): the v2 traveller's models, issue #493;
             // a player carries its copy under public/data/, BridgeBuild.Common, found above)
-            if (path.StartsWith("data/") && roots.Length > 0) return StreamingFile.Read(Path.Combine(roots[roots.Length - 1], "..", path));
+            if (path.StartsWith("data/") && roots != null && roots.Length > 0) return StreamingFile.Read(Path.Combine(roots[roots.Length - 1], "..", path));
             return null;
         }
         // the script's localStorage: a JSON file in persistentDataPath (BridgeStore: UWP's PlayerPrefs hold at most 8 KB a
@@ -347,6 +352,7 @@ namespace Hiraeth.Bridge
         }
         /// <summary>What was set, on the disk (the exit, going away, an update's restart).</summary>
         public static void FlushStore() { try { store?.Flush(); } catch (Exception e) { UnityEngine.Debug.Log("Hiraeth bridge: the store's flush: " + e.Message); } }
+        internal static bool FlushStoreForRestart() => store?.Flush() ?? true;
         public static string StorageGet(string k) => (store ?? Ask(OpenStore)).Get(k);
         public static void StorageSet(string k, string v) => (store ?? Ask(OpenStore)).Set(k, v);
         public static void StorageRemove(string k) => (store ?? Ask(OpenStore)).Remove(k);
@@ -359,6 +365,10 @@ namespace Hiraeth.Bridge
         public static void UpdateDownload() => On(BridgeUpdates.Download);
         /// <summary>Restart now, into the downloaded script (the script saved first).</summary>
         public static void UpdateRestart() => On(BridgeUpdates.Restart);
+        public static string PlayerUpdateInfo() => Ask(BridgePlayerUpdates.Info);
+        public static void PlayerUpdateCheck() => On(BridgePlayerUpdates.Check);
+        public static void PlayerUpdateDownload() => On(BridgePlayerUpdates.Download);
+        public static void PlayerUpdateRestart() => On(BridgePlayerUpdates.Restart);
         /// <summary>The C# bridge's level (BridgeUpdates.UnityApi).</summary>
         public static int UnityApi() => BridgeUpdates.UnityApi;
 

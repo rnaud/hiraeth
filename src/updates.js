@@ -162,6 +162,33 @@ export function updateView(info, { version = '', now = Date.now(), armed = false
       v.title = 'Not checked yet';
       v.actions.push(check());
   }
+  if (unity) {
+    const p = info.player;
+    if (p?.supported) {
+      const action = (a, label) => ({ a, label, primary: true });
+      if (p.state === 'checking' || p.state === 'downloading') {
+        v.title = p.state === 'checking' ? 'Checking the player update…' : p.step === 'verifying' ? 'Verifying the player…' : p.step === 'unpacking' ? 'Preparing the player…' : 'Downloading the player…';
+        v.detail = 'The launcher verifies it before restarting. Your saves and previous player are kept.';
+        v.busy = true; v.actions = [];
+        if (p.state === 'downloading') {
+          v.progress = p.total > 0 ? Math.min(1, (p.got || 0) / p.total) : 0;
+          v.progressText = p.total > 0 ? `${Math.floor(v.progress * 100)}% · ${formatBytes(p.got) || '0 KB'} of ${formatBytes(p.total)}` : 'Preparing or verifying the download…';
+        }
+      } else if (p.state === 'ready') {
+        v.title = 'The verified player update is ready';
+        v.detail = 'Restart to use it. Your saves and the previous working player are kept.';
+        v.actions = [action('player-restart', 'Restart with updated player')];
+      } else if (p.state === 'available') {
+        v.actions.unshift(action('player-download', 'Update player and restart'));
+        v.detail = `A new player is available${p.size ? ` (${formatBytes(p.size)})` : ''}. It is checked before restarting. Your saves are kept.`;
+      } else if (['error', 'offline', 'busy', 'current'].includes(p.state)) {
+        v.detail = p.detail || (p.state === 'offline' ? 'The player update is offline. Keep playing and try again later.' : 'The player update is not ready.');
+        v.actions = [action('player-check', 'Check player again'), ...v.actions.filter(a => a.a !== 'check')];
+      } else v.actions.push(action('player-check', 'Check player update'));
+    } else if (state === 'apk') {
+      v.detail = p?.guidance || 'This player cannot update itself here. On Steam Deck, quit and relaunch Hiraeth so its launcher can fetch the new player; then launch again after the download. Other installs need their original installer. Your saves are kept.';
+    }
+  }
   if (failed) v.detail = `${failed}. ${v.detail}`.trim();
   return v;
 }

@@ -108,7 +108,7 @@ namespace Hiraeth.Bridge
         }
         static string Clean(string s) => (s ?? "").Replace(',', ' ').Replace(';', ' ');
 
-        static IEnumerable<string> Roots() => (object)BridgeHost.Runner != null ? BridgeHost.Runner.PublicRoots() : new string[0];
+        static IEnumerable<string> Roots(string path = null) => (object)BridgeHost.Runner != null ? BridgeHost.Runner.PublicRoots(path) : new string[0];
 
         // Short effects are decoded at most two at a time, copied to the existing JS DSP graph, then released.
         // Queue/result caps also bound callers that never poll. No native AudioSource bypasses game gain/pan/mute.
@@ -147,7 +147,7 @@ namespace Hiraeth.Bridge
             effectActive++;
             try {
                 string uri = null, archive = null;
-                foreach (var root in Roots()) {
+                foreach (var root in Roots(e.path)) {
                     var file = Path.Combine(root, e.path);
                     if (root.Contains("://")) { archive ??= file; continue; }
                     if (!File.Exists(file)) continue;

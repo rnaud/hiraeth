@@ -52,7 +52,25 @@ namespace Hiraeth.Bridge
 
         // (persistentDataPath read on the main thread at the start: the script's thread asks for the roots too)
         static string downloadRoot;
-        public string[] PublicRoots() => new[]
+        string selectedSfxPublic;
+        /// <summary>Only a selected script's compact SFX set overrides native assets. Missing members stay missing.</summary>
+        public string[] PublicRoots(string path = null) => SelectPublicRoots(path, selectedSfxPublic, DefaultPublicRoots());
+        public static string[] SelectPublicRoots(string path, string selectedSfx, string[] installed)
+            => selectedSfx != null && path?.StartsWith("sfx/", StringComparison.Ordinal) == true ? new[] { selectedSfx } : installed;
+        public void SelectPublicBundle(string bundle)
+        {
+            selectedSfxPublic = null;
+            if (!string.IsNullOrEmpty(bundle))
+            {
+                var pub = Path.Combine(bundle, "public");
+                var info = BundleInfo.Read(File.Exists(Path.Combine(bundle, "bundle.json")) ? File.ReadAllBytes(Path.Combine(bundle, "bundle.json")) : null);
+                // API-4 scripts require a complete delivered SFX bank even if its directory/manifest is missing.
+                // API-3 script-only downloads retain the installed bank until the new delivery contract arrives.
+                if (info.minUnity >= 4 || Directory.Exists(Path.Combine(pub, "sfx"))) selectedSfxPublic = pub;
+            }
+            BridgeHost.ResetPublicRoots();
+        }
+        string[] DefaultPublicRoots() => new[]
         {
             Path.Combine(Application.streamingAssetsPath, "hiraeth-js", "public"),
             downloadRoot ?? Path.Combine(Application.persistentDataPath, "public"),   // (the recorded themes downloaded: BridgeMusic.Fetch)
@@ -62,6 +80,7 @@ namespace Hiraeth.Bridge
         void Start()
         {
             BridgeHost.Runner = this;
+            BridgeHost.ResetPublicRoots();
             BridgeQuit.Install();   // (Steam's Exit Game and every quit: quick, issue #438)
             downloadRoot = Path.Combine(Application.persistentDataPath, "public");
             BridgeHost.OpenStore();   // (the saves' file, once a process: BridgeStore)
@@ -193,6 +212,7 @@ namespace Hiraeth.Bridge
                     if (File.Exists(other)) file = other;
                     Debug.Log($"Hiraeth bridge: -bundle {alt}: {(file == other ? "read" : "not there, the packaged one")}");
                 }
+                SelectPublicBundle(BridgeUpdates.ServingDir);
                 code = file.Contains("://") ? StreamingFile.Read(file) : File.Exists(file) ? File.ReadAllBytes(file) : null;
                 if (code == null) throw new FileNotFoundException($"no bundle: node scripts/engine-bundle.mjs unity ({file})");
                 Debug.Log($"Hiraeth bridge: started {Time.realtimeSinceStartup * 1000:0} ms after launch; the bundle {code.Length / 1e6:0.0} MB{(BridgeUpdates.Serving > 0 ? $" (downloaded build {BridgeUpdates.Serving})" : "")}");

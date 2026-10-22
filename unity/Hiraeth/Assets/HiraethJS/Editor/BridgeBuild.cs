@@ -281,7 +281,18 @@ namespace Hiraeth.EditorTools
             Il2Cpp(NamedBuildTarget.Standalone);
             PlayerSettings.SetUseDefaultGraphicsAPIs(BuildTarget.StandaloneLinux64, false);
             PlayerSettings.SetGraphicsAPIs(BuildTarget.StandaloneLinux64, new[] { GraphicsDeviceType.Vulkan });
+            PlayerUpdater();
             Build(BuildTarget.StandaloneLinux64, outPath);
+        }
+
+        /// <summary>Package the canonical updater and native identity; callable without building a player for validation.</summary>
+        public static void PlayerUpdater()
+        {
+            File.Copy(Path.Combine(Repo, "scripts/steam-deck/deck.py"), Path.Combine(Application.streamingAssetsPath, "deck-player.py"), true);
+            var bundle = BundleInfo.Read(File.ReadAllBytes(Path.Combine(Application.streamingAssetsPath, "hiraeth-js/bundle.json")));
+            File.WriteAllText(Path.Combine(Application.streamingAssetsPath, "player.json"),
+                BridgeArgs.JsonText(new Dictionary<string, object> { ["api"] = BridgeUpdates.UnityApi, ["build"] = bundle.build, ["helperProtocol"] = 1, ["helperSha256"] = System.BitConverter.ToString(System.Security.Cryptography.SHA256.Create().ComputeHash(File.ReadAllBytes(Path.Combine(Application.streamingAssetsPath, "deck-player.py")))).Replace("-", "").ToLowerInvariant() }));
+            AssetDatabase.Refresh();
         }
 
         public static void Android() => AndroidPlayer(false);

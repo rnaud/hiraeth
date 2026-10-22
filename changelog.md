@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.99 — 2026-10-22
+
+- Steam Deck players can update the player from the Updates page, with clear download progress and a checked restart that keeps saves and the previous working player.
+
 ## v1.98 — 2026-10-22
 
 - A Sound effects switch in the developer controls shows recent effects and playing loops, with their ElevenLabs, procedural or other recording source, to help spot overlapping sounds.

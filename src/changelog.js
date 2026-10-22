@@ -9,6 +9,12 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
+    v: '1.99', date: '2026-10-22',
+    items: [
+      { text: 'Steam Deck players can update the player from the Updates page, with clear download progress and a checked restart that keeps saves and the previous working player.', see: 'Open Updates on a launcher-managed Steam Deck install and choose Update player and restart when offered. Older players first need the launcher upgrade: quit and relaunch, wait for its download, then launch again. Other installs use their original installer. A failed or busy update keeps the current player open.' },
+    ],
+  },
+  {
     v: '1.98', date: '2026-10-22',
     items: [
       { text: 'A Sound effects switch in the developer controls shows recent effects and playing loops, with their ElevenLabs, procedural or other recording source, to help spot overlapping sounds.', see: 'Open the developer menu, choose Toggles, then Sound effects. Walk, use a tool or listen to the ship: each actual effect appears with its source. Music and spoken dialogue are excluded; the panel is off by default.' },

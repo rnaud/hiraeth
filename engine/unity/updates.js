@@ -28,6 +28,7 @@ export class UnityUpdates {
     this.failed = '';
     this.polled = -Infinity;
     this.autoDone = false;
+    this.playerArmed = false;
   }
 
   /** Whether this player has updates at all (a player from before them has no UpdateInfo). */
@@ -37,6 +38,15 @@ export class UnityUpdates {
   read() {
     if (!this.on) return null;
     try { const info = JSON.parse(this.host.UpdateInfo()); if (info && typeof info === 'object') this.info = info; } catch { /* keep the last */ }
+    // Optional host methods: compatible script updates must still work on API 3.
+    if (this.info && this.info.native >= 4 && this.host?.PlayerUpdateInfo) {
+      try { this.info.player = JSON.parse(this.host.PlayerUpdateInfo()); } catch { /* no usable capability */ }
+    }
+    if (this.playerArmed && this.info?.player) {
+      const state = this.info.player.state;
+      if (state === 'ready') { this.playerArmed = false; this.restartPlayer(); }
+      else if (['error', 'offline', 'current', 'busy'].includes(state)) this.playerArmed = false;
+    }
     this.polled = this.now();
     if (this.armed && this.info) {
       const step = armedStep(this.info);
@@ -66,18 +76,34 @@ export class UnityUpdates {
 
   /** A button: 'check', 'download' (and restart when it is in), 'restart'. */
   act(a) {
+    // Ignore stale button/controller events while the native operation is pending.
+    if (a.startsWith('player-') && !this.view()?.actions.some(b => b.a === a)) return;
     this.failed = '';
     try {
-      if (a === 'check') this.host.UpdateCheck(false);
+      if (a === 'player-check') this.host.PlayerUpdateCheck();
+      else if (a === 'player-download') { this.playerArmed = true; this.host.PlayerUpdateDownload(); }
+      else if (a === 'player-restart') { this.restartPlayer(); return; }
+      else if (a === 'check') { this.host.UpdateCheck(false); if (this.info?.player?.supported) this.host.PlayerUpdateCheck(); }
       else if (a === 'download') { this.armed = true; this.host.UpdateDownload(); }
       else if (a === 'restart') { this.restart(); return; }
     } catch (e) {
-      this.armed = false;
+      this.armed = false; this.playerArmed = false;
       this.failed = a === 'download' ? 'The download couldn\'t start' : 'The check couldn\'t start';
       console.warn(`[updates] ${a}: ${e?.message ?? e}`);
     }
     this.polled = -Infinity;
     this.read();
+  }
+
+  restartPlayer() {
+    if (this.restarting || !this.info?.player?.supported) return;
+    try {
+      // A failed save must not close the player. Native flush + revalidation precede exit 76.
+      this.save();
+      this.host.PlayerUpdateRestart();
+      this.info.player = { ...this.info.player, state: 'checking' };
+    } catch (e) { this.playerArmed = false; this.failed = `The player restart couldn't start: ${e?.message ?? e}`; }
+    this.polled = -Infinity;
   }
 
   restart() {
