@@ -192,7 +192,8 @@ test('the mask in the sand: one eye at a time the wind fills it again; both at o
   assert.equal(a.enabled(), false, 'an open eye is not a target');
   step(Math.ceil(EYE_WINDOW * 30));
   assert.equal(M.eyes[0].open, false, 'the wind filled it again');
-  assert.ok(toasted(/Both eyes at once/));
+  assert.ok(toasted(/wind sifts the sand back over the mask’s eye/), 'the failed attempt still gives physical feedback');
+  assert.ok(!toasted(/Both eyes at once/), 'no unsolicited solution instruction');
   step(30 * 3);
   assert.ok(M.eyes[0].k > 0.95, 'drifted shut again');
   assert.equal(quests.stage('desert.mask'), 'eyes');

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { setHintLevel } from '../src/hint-level.js';
 
-// (these check the game's words as hints full says them, every tip and step; subtle, the default, is checked in tests/hint-level.test.js)
+// Full requested guidance still preserves puzzle feedback, without unsolicited instructions.
 setHintLevel('full');
 
 // a little DOM for the people's speech balloons (the story never needs a real page)
@@ -112,7 +112,7 @@ test('the main quest: three spheres remembered by splashing them, the pole sings
   at(beside(first));
   step(30 * 6);
   assert.ok(!game.flag(`spheres.heard.${first.id}`), 'looking alone hears nothing');
-  assert.ok(toasts.some((t) => t.includes('splash')), 'a hint to splash it');
+  assert.ok(!toasts.some((t) => t.includes('splash')), 'approaching the sphere does not push unsolicited advice');
   for (const s of rt.world.listeners) {
     at(beside(s));
     const t = allTargets().find((x) => x.kind === 'orb' && x.orb === s.o);

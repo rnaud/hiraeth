@@ -112,6 +112,7 @@ import { HOLO } from '../src/ship/hologram.js';
 import { feelDt, selfDt, shakeCamera, kick } from '../src/feel.js';
 import { ToolHud, SaveGame, TEXT_SIZES } from '../src/ui.js';
 import { screen } from '../src/platform.js';
+import { quietKeys } from '../src/hint-level.js';
 import { sceneHolds } from '../src/hud-shows.js';
 import { hudButtons, hitHudButton, pressHudButton } from '../src/hud-buttons.js';
 import { slots, slotStorage } from '../src/save-slots.js';
@@ -472,7 +473,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const { bikeHere } = wireMount({ levelId, level, flag: (k) => gameState.flag(k) });
   // the potion's glow as the hearts come back, its lesson the first time a hurt leaves you short, as the page
   // (src/host/game-host.js wirePotion: neither in the engines before)
-  const potion = wirePotion({ game: gameState, toast: (t) => toast(t) });
+  const potion = wirePotion({ game: gameState, toast: (t, o) => toast(t, o) });
   // the hearts on the screen: shown a while after a hurt, a drink, a chime, the wallet's count ticking up (src/host/game-host.js
   // wireHealth, as the page: the engines' showed the wallet at once and the hearts on a lock or a foe near, not a fight)
   const health = wireHealth({ game: gameState, tool: () => tool });
@@ -569,9 +570,9 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   let roadT = 1;
   let folk = null;   // (the errands, the hum, the faces of whoever talks: wirePeople, below once the journal is)
   // (a toast's words heard for the hum, as the page's cinema hears its own: src/story/hum.js)
-  const toast = (text) => { if (text && toasts.queue.at(-1) !== text) { toasts.queue.push(String(text)); folk?.hear(String(text)); } };
+  const toast = (text, options = null) => { if (options?.kind === 'hint') return; text = quietKeys(text); if (text && toasts.queue.at(-1) !== text) { toasts.queue.push(String(text)); folk?.hear(String(text)); } };
   const noticeBusy = () => toasts.left > 0 || toasts.queue.length > 0;   // (a notice up or waiting: main.js ship.cinema.noticeBusy)
-  carryHooks.notice = (t) => toast(keyText(t, { teach: true }));   // (carrying, src/carry.js: the first time, how to put it down and throw it)
+  carryHooks.notice = (t) => toast(t, { kind: 'hint' });   // (carrying, src/carry.js: the first time, how to put it down and throw it)
   player.onNotice = toast;
   // the sound: the game's own (src/audio.js) where the engine plays it, else a stand-in that takes every call
   const sound = audio ? makeSound(levelId, audio) : SILENT;
@@ -762,7 +763,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // what the save's events say and start: a gadget found and its line after its card, a keepsake's theme, the trials'
   // upgrades to the gadgets' tuning (before the gadgets are made), Plumb's clock and notes (src/host/game-host.js
   // wireLessons, as the page)
-  wireLessons({ game: gameState, items: gear, levelId, gadgets: () => gadgets, sound: sound !== SILENT ? sound : null, toast: (t) => toast(t), plumb });
+  wireLessons({ game: gameState, items: gear, levelId, gadgets: () => gadgets, sound: sound !== SILENT ? sound : null, toast: (t, o) => toast(t, o), plumb });
   const scoutTeach = { left: 0, at: 0, line: scoutHintLine };   // (the scout's line, or Plumb's talk's: issue #543)
   const scoutHint = help ? installScoutHint({ game: gameState, show: () => { scoutTeach.line = scoutHintLine; scoutTeach.left = SCOUT_HINT_SHOW; },
     usable: () => !(shipOn && (ship.inside || ship.playing)) && !trials?.running && gameState.flag('prologue.done') && !!scout?.getTarget?.() }) : null;
@@ -841,7 +842,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // potion, the knock-out's card; the guardians are the temples' own), when the engine is played (with its menus) or a
   // plan asks for them (`fight`: the bridge's -fight); not in a bench's plan, whose numbers stay comparable with before
   combat = (menus || fight) && !flags ? optional('the foes', () => makeCombat({ scene, level, levelId, content, physics, player, tool, sound, npcs, settings, camera, rig, lib, humans, waters, screen,
-    health, toast: (t) => toast(t), teach: (t) => toast(keyText(t, { teach: true })) })) : null;
+    health, toast: (t) => toast(t), teach: (t) => toast(t, { kind: 'hint' }) })) : null;
   if (combat) stamp('foes');
   // the bodies of the foes this world can field, built in the load and drawn (out of the world) by its first frames, as
   // main.js builds them for its warm passes: their shapes are then the ones every foe of the kind shares
@@ -868,7 +869,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     arcadeBoard.toggle = (on = !arcadeBoard.open) => { if (on) return menus.openArcade(arcadeBoard); if (menus.mode === 'arcade') menus.close(); arcadeBoard.open = false; return false; };
   }
   const gadgets = optional('the gadgets', () => new Gadgets({ scene, physics, player, camera, rig, sound, tool, level, foes: combat?.foes ?? null, wind, input: null, relics: null, flammables, post: U, boxes,
-    notice: (t) => toast(t), ring: () => itemFx?.ring?.() }));
+    notice: (t, o) => toast(t, o), ring: () => itemFx?.ring?.() }));
 
   // the ship attached, as main.js attaches it, when the engine is played (its menus; not a bench's plan): walking up the
   // ramp takes you aboard, E at the console plays the voicemail (CallDirector), at the holo table the galactic map (the
@@ -1116,7 +1117,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       if (quiet || (shipOn && ship.playing)) teach = '';
     }
     if (scoutTeach.left > 0 && !teach && !found && !text && !place && !quiet && !(shipOn && ship.playing)) { teach = scoutTeach.line(); scoutTeach.left -= Math.min(0.1, dt); }
-    cue.set(found || text || place || teach, said ? '' : found ? scoutSaid.kind : text || !place ? '' : 'place');
+    cue.set(ship?.cinema.hasSpeech() || toasts.left > 0 ? '' : found || text || place, said ? '' : found ? scoutSaid.kind : text || !place ? '' : 'place');
     // (aboard, the ship's E floats by what it is for, the prologue's voicemail button too: src/ship/ship.js promptTag, issue #350)
     const sceneTag = story && shipOn && ship.playing && !pinned ? ship.promptTag() : null;
     if (sceneTag) { story.prompt = sceneTag.text; story.promptAt = sceneTag.at; story.promptEntry = null; story.placePrompt?.(camera, pad); }
@@ -1136,9 +1137,14 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       }
     }
     // (a fixed view's picture has no notices over it, as the web's side-by-sides hide the page's: scripts/unity-compare/)
+    if (screen.state.dialogue && toasts.left > 0) {
+      if (screen.state.toast?.text) toasts.queue.unshift(screen.state.toast.text);
+      toasts.left = 0; screen.set('toast', null);
+    }
     if (pinned) screen.set('toast', null);
-    else if (toasts.left <= 0 && toasts.queue.length && !busy) { const t = toasts.queue.shift(), secs = toastSeconds(t); screen.toast(t, secs); toasts.left = secs * 0.58; }
-    if (toasts.left < -6) screen.set('toast', null);
+    else if (toasts.left <= 0 && toasts.queue.length && !busy && !screen.state.sub && !screen.state.cue && !screen.state.dialogue) { const t = toasts.queue.shift(), secs = toastSeconds(t); screen.toast(t, secs); toasts.left = secs; }
+    if (toasts.left <= 0) screen.set('toast', null);
+    if (ship?.cinema) ship.cinema._externalToast = toasts.left > 0;
     // (the hearts, the potions and the wallet, as main.js updateHealth: src/host/game-host.js wireHealth; shown while
     // fighting, a while after a hurt, a drink or a chime, the wallet's count ticking up)
     screen.set('health', health.frame(dt, { player, fighting: !!combat?.foes.fighting, quiet: !!pinned || (shipOn && ship.playing) }).hp);

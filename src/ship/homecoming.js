@@ -449,7 +449,7 @@ export class HomecomingDirector {
         break;
       }
       case 'cargo':
-        C.say({ who: 'ship', text: this.final ? 'Cargo check before descent. One passenger, and what is new in the hold.'
+        C.say({ who: 'plumb', text: this.final ? 'Cargo check before descent. One passenger, and what is new in the hold.'
           : this.items.length ? 'Cargo check before descent. Everything in the hold is going down with you.' : 'Cargo check before descent. The hold is empty.' });
         this.panel = new CargoPanel({ items: this.final ? [{ id: 'ilen', kind: 'person', name: 'Ilen', level: FINALE_ID, text: 'In the jump seat, his old cap in her lap. She has not said anything since the jump.' }, ...this.items] : this.items, titles: this.titles, onGo: () => this.choose(), page: this.page });
         this.panel.show();
@@ -582,7 +582,7 @@ export class HomecomingDirector {
     this.panel?.remove();
     this.panel = null;
     sfx.beep(this.s.sound);
-    this.s.cinema.say({ who: 'ship', text: this.items.length ? `${this.items.length === 1 ? 'One thing' : `${this.items.length} things`} for the hold door. Beginning descent.` : 'Nothing in the hold. Understood. Beginning descent.' });
+    this.s.cinema.say({ who: 'plumb', text: this.items.length ? `${this.items.length === 1 ? 'One thing' : `${this.items.length} things`} for the hold door. Beginning descent.` : 'Nothing in the hold. Understood. Beginning descent.' });
   }
 
   /** Set a token down: from the traveller's hands (or Ilen's) to its place on the slab (this.slab). */
@@ -639,7 +639,7 @@ export class HomecomingDirector {
         s.shot({ pos: this.W(V(-0.85 - back * 0.4, (sp.authored ? COCKPIT_DECK : DECK) + 1.95, sp.authored ? -18.5 + (1-k) + back : cockpitZ(-8.1 + (1 - k) * 1.0 + back))), look: this.W(V(-1.1, (sp.authored ? COCKPIT_DECK : DECK) + 1.75 - dive * 0.6, sp.authored ? -30 : cockpitZ(-16.8))), fov: 60 - k * 4 });   // (through the left pane, past the middle frame)
         s.player.heading = s.worldHeading(sp, Math.PI);
         if (id === 'approach') {
-          if (t > 1.6 && !this.said) { this.said = true; C.say({ who: 'ship', text: 'Out of the jump. Home is below us.' }); }
+          if (t > 1.6 && !this.said) { this.said = true; C.say({ who: 'plumb', text: 'Out of the jump. Home is below us.' }); }
           if (t > 5.4 && !this.said2) { this.said2 = true; C.say(null); }
         }
         if (id === 'cargo') {

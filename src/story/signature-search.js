@@ -183,10 +183,10 @@ export const SEARCH_LEGEND = 'The ship hears the singing light’s three pulses 
 export const SEARCH_LEGEND_SHORT = 'Sweep the uncharted regions: the scanner warms and sings near a world carrying the signal.';
 
 /** The ship, the first time the map opens with a world to find (flag `signature.search.told`). */
-export const SEARCH_LINE = spoken('ship', '~curious~ The same signature, further out. I can hear the three pulses, but not where they come from. Sweep the chart: I will sing louder as you get close.');
+export const SEARCH_LINE = spoken('plumb', '~curious~ The same signature, further out. I can hear the three pulses, but not where they come from. Sweep the chart: I will sing louder as you get close.');
 
 /** The ship, when the search charts a world. */
-export const foundLine = (title) => spoken('ship', `~happy~ Signature locked. ${title} is on the chart.`);
+export const foundLine = (title) => spoken('plumb', `~happy~ Signature locked. ${title} is on the chart.`);
 
 /** The toast when finishing a world opens new ones: no names yet, they have to be found. */
 export function findableNote(n = 0) {

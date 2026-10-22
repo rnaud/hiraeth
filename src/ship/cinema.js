@@ -16,7 +16,7 @@ import { markKeyPhrase } from '../story/key-phrase.js';
 import { inputKind, keyText, hasKeys, escapeHtml } from '../prompt-keys.js';
 import { backKey } from '../native-pad.js';
 import { NoticePace } from '../notice-pace.js';
-import { hintLevel } from '../hint-level.js';
+import { hintLevel, quietKeys } from '../hint-level.js';
 import { HINT } from '../hint-look.js';   // every hint one look, one place (issue #306)
 import { toastSeconds } from '../quest.js';   // a long toast stays up longer   // the mumbled voice under each subtitle
 
@@ -36,7 +36,7 @@ const CSS = `
 #cine .sub em { font-style: normal; font-weight: bold; }
 #cine .sub em.value { color: #8a5a10; border-bottom: 2px solid #e2b552; white-space: nowrap; }
 #cine .sub em.value::before { content: '✦'; color: #d9a43a; font-size: .8em; margin-right: 3px; }
-#cine .sub b.father { color: #7a3a35; } #cine .sub b.mother { color: #277e86; } #cine .sub b.ship { color: #c8483a; }
+#cine .sub b.father { color: #7a3a35; } #cine .sub b.mother { color: #277e86; } #cine .sub b.plumb { color: #c8483a; }
 #cine .sub.show { opacity: 1; transition: opacity .2s, bottom .3s; }
 #cine .sub.show.in span { animation: cine-sub-in .22s ease-out; }
 @keyframes cine-sub-in { from { opacity: 0; transform: translateY(4px); } }
@@ -211,7 +211,7 @@ export function overlaps(rects) {
 // anything inside a letterboxed scene (it has the screen). Each kind waits while another is up, and while a kind
 // ahead of it waits.
 
-export const NOTICE_ORDER = ['title', 'caption', 'line', 'objective', 'toast', 'teach'];
+export const NOTICE_ORDER = ['external', 'title', 'caption', 'line', 'objective', 'toast', 'teach'];
 
 /**
  * May a notice of `kind` show now? `up`: the kinds on the screen; `waiting`: the kinds waiting their turn.
@@ -289,7 +289,7 @@ const chargeUp = (doc = document) => !!doc.getElementById('charge-card')?.classL
 export const OBSTACLES = ['#health', '#gadget-chip.on', '#gear', '#fps', '#touch button', '#controller-hint', '#dialogue.open .dlg-panel', '#dialogue.open .dlg-who', '#dialogue.open .dlg-tag', '#boxscene.card #boxcard', '#boxscene.on .skip'];
 
 /** The speakers' tags over a subtitle (the recordings' and the ship's voices). */
-const SPEAKERS = { father: 'FATHER', mother: 'MOTHER', ship: 'SHIP', lou: 'LOU', ilen: 'ILEN' };
+const SPEAKERS = { father: 'FATHER', mother: 'MOTHER', plumb: 'PLUMB', lou: 'LOU', ilen: 'ILEN' };
 
 export class Cinema {
   constructor() {
@@ -363,27 +363,30 @@ export class Cinema {
   releaseLids() { this._lidK = 1; this._cine({ lid: 1, eyes: false }); if (this.dom) for (const b of this.el.querySelectorAll('.bar')) { b.style.transition = ''; b.style.height = ''; } }
 
   /**
-   * A subtitle, replacing the one up. opts.secs: take it down after that long;
-   * opts.queue: wait for the one up to have its time first.
+   * A subtitle, queued behind the one up. opts.secs: take it down after that long;
+   * opts.queue=false: an authored timeline explicitly replaces its previous beat.
    */
-  say(line, { secs = null, queue = false } = {}) {
+  say(line, { secs = null, queue = true } = {}) {
     // outside a scene, a line waits for the region's name (the notices' order, NOTICE_ORDER)
     if (!line) this._held.length = 0;
-    else if (this.dom && !this._bars && !this.mayNotice('line')) {
+    else if (!this.mayNotice('line')) {
       if (!queue) this._held.length = 0;
       this._held.push({ line, secs, queue });
       return;
     }
     const before = this.subs.line;
     if (queue && line) this.subs.add(line, secs ?? readTime(line.text));
-    else this.subs.say(line, secs);
+    else this.subs.say(line, line ? secs ?? readTime(line.text) : null);
     if (this.subs.line !== before) this._showLine();
   }
 
+  /** Speech up or waiting takes precedence over the contextual cue. */
+  hasSpeech() { return !!this.subs.line || this._held.length > 0; }
+
   _showLine() {
-    speakLine(this.subs.line);   // the voice under the line now up (src/story/voice.js; null hushes it)
-    if (this.subs.line?.text) this.onWords?.(this.subs.line.text);   // (words on the screen: main.js listens for the hum)
-    const line = this.subs.line;
+    const line = this._subHidden ? null : this.subs.line;
+    speakLine(line);   // the voice under the line now up (src/story/voice.js; null hushes it)
+    if (line?.text) this.onWords?.(line.text);   // (words on the screen: main.js listens for the hum)
     // (as data too, screen.sub: the speaker's tag, its colour's class, the line with its emphasis in *stars*)
     screen.set('sub', line?.text ? { who: SPEAKERS[line.who] ?? '', cls: line.who ?? '', text: keyText(String(line.text)), id: ++this._subN } : null);
     if (!this.dom) return;
@@ -399,6 +402,7 @@ export class Cinema {
   }
 
   hint(text) {
+    text = null; // Unsolicited advice stays off-screen; Plumb answers when asked.
     this._cine({ hint: text ? keyText(String(text)) : '' });
     if (!this.dom) return;
     if (text) setText(this.hintEl, text);
@@ -445,23 +449,10 @@ export class Cinema {
     if (was !== show) { this._seen('skip', show); this.layout(); }
   }
 
-  objective(text) {
-    // (as the screen's 'objective' part too, which an engine draws (BridgeHud.cs DrawObjective, issue #430): the step,
-    // `id` one a card, `secs` its life; without a page it shows at once, there being no notices' stack to wait in)
-    if (!this.dom || this.mayNotice('objective')) {
-      const id = (this._objN = (this._objN ?? 0) + 1);
-      screen.set('objective', { text: keyText(String(text)), id, secs: OBJECTIVE_SECS });
-      setTimeout(() => { if (screen.state.objective?.id === id) screen.set('objective', null); }, OBJECTIVE_SECS * 1000);
-    }
-    if (!this.dom) return;
-    // it waits its turn (the notices' order): after the region's name and a line, before the notices
-    if (!this.mayNotice('objective')) { this._objPending = text; return; }
-    this._objPending = null;
-    setText(this.obj.querySelector('.t'), text);
-    this.obj.classList.remove('show');
-    this._seen('objective', false); this._seen('objective', true);
-    this._pending = 'objective'; this.layout(); this._pending = null;
-    void this.obj.offsetWidth; this.obj.classList.add('show');
+  objective() {
+    // The next step remains in the journal and Plumb's requested help, never a pushed advice card.
+    this._objPending = null; screen.set('objective', null);
+    this.obj?.classList.remove('show');
   }
 
   /** Hide or show the game HUD (the cue, fps, the touch buttons) during a cinematic. */
@@ -478,10 +469,12 @@ export class Cinema {
    * has the screen dark or the eyes shut. Placed by layout() like the rest.
    */
   toast(text, o = null) {
+    if (o?.kind === 'hint') return;
+    text = quietKeys(text);
     if (!text) return;
     // (o.kind 'quest': a quest's start, its own look; 'hint': a teaching line, paced (src/notice-pace.js); o.done(): the
     // player has done what it says, so it goes unsaid if it is still waiting)
-    if (!this.toasts.some((x) => x.text === text)) this.toasts.push({ text, ...(o?.kind === 'quest' ? o : {}), kind: o?.kind, done: o?.done, at: now() });
+    if (!this.toasts.some((x) => x.text === text)) this.toasts.push({ text, ...(o?.kind === 'quest' ? { ...o, step: '' } : {}), kind: o?.kind, done: o?.done, at: now() });
     this._pumpToasts();
   }
 
@@ -490,6 +483,7 @@ export class Cinema {
    * has it (the cargo choice, the star map, a story page, the sketchbook).
    */
   dark() {
+    if (screen.state.dialogue) return true;
     if (!this.dom) return false;
     if (this.held) return true;   // (a moment plays: src/story/moment.js; its toasts come after)
     if (this._bars && !this._walk) return true;   // (a ship's scene, a recording: a quest's toast over it read as clutter, the cinematics QC pass)
@@ -530,19 +524,23 @@ export class Cinema {
       const due = this._later.filter((l) => l.at <= this.clock);
       if (due.length) { this._later = this._later.filter((l) => l.at > this.clock); for (const l of due) l.fn(); }
     }
-    if (this.subs.tick(dt)) this._showLine();
+    const hidden = !!screen.state.dialogue;
+    if (hidden !== !!this._subHidden) { this._subHidden = hidden; this._showLine(); }
+    if (!hidden && this.subs.tick(dt)) this._showLine();
     // the notices waiting their turn: lines held for the region's name, then the objective card
-    if (this._held.length && (this._bars || this.mayNotice('line'))) {
+    if (this._held.length && this.mayNotice('line')) {
       const held = this._held.splice(0);
       for (const h of held) this.say(h.line, { secs: h.secs, queue: h.queue });
     }
     if (this._objPending && this.mayNotice('objective')) this.objective(this._objPending);
     this._toastT = Math.max(0, this._toastT - dt);
+    if (this.dom && this._toastT === 0) screen.set('toast', null);
     // a toast that went up just before the screen went dark (the opening's black, the eyes shut) comes back after
     const T = this.toastEl;
     if (T && T.classList.contains('show') && this.dark()) {
       if (performance.now() - (this._toastAt ?? 0) < 3200) this.toasts.unshift({ ...(this._toastItem ?? { text: T.textContent }), back: true });   // (else it was fading out anyway)
       T.classList.remove('show');
+      screen.set('toast', null);
       this._toastT = 0;
       this.layout();
     }
@@ -561,10 +559,12 @@ export class Cinema {
     const up = [], waiting = [];
     if (this.caption.up) up.push('caption');
     if (this.caption.waiting) waiting.push('caption');
+    if (screen.state.dialogue || (screen.state.cue && screen.state.cue.kind !== 'place')) up.push('external');
+    if (this._externalToast) up.push('toast');
+    if (this.subs.line) up.push('line');
+    if (this._held.length) waiting.push('line');
     if (!this.dom) return { up, waiting };
     if (chargeUp()) up.push('title');
-    if (this.subs.line && !this._bars) up.push('line');
-    if (this._held.length) waiting.push('line');
     if (this.obj?.classList.contains('show')) up.push('objective');
     if (this._objPending) waiting.push('objective');
     if (this.toastEl?.classList.contains('show') && this._toastT > 0) up.push('toast');

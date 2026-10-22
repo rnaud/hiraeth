@@ -2,10 +2,45 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import rivalGame from '../src/minigames/canyon-rival.js';
 import {checkGame} from '../src/minigames/index.js';
-import {COURSE,makeTrack,makeCourse,newBike,bikeStep,botInput,newRival,stepRival,rivalWinner,awardRivalBike} from '../src/minigames/canyon.js';
+import {COURSE,makeTrack,makeCourse,newBike,bikeStep,botInput,newRival,stepRival,rivalWinner,awardRivalBike,loseRivalWager} from '../src/minigames/canyon.js';
+import {buildRivalSled} from '../src/minigames/canyon-sled.js';
+import {bikeWager} from '../src/story/bike-wager.js';
+import {DialogueRunner} from '../src/story/dialogue.js';
+import {parseLine} from '../src/story/tone.js';
+import {budget} from '../src/vehicle-kit.js';
 import {resultActions} from '../src/minigames/kit/flow.js';
 const course=()=>makeCourse(makeTrack(),{...COURSE,laps:1});
 const state=()=>({flags:{},flag(k){return this.flags[k]},set(k,v){this.flags[k]=v}});
+
+test('Kamal explains the salvage, fluid requirement and stakes before accepting a race',()=>{
+ const s=state();let fuel=false,launches=0;
+ const person=bikeWager({fuelled:()=>fuel,race:()=>launches++,practice:()=>{}});
+ const r=new DialogueRunner(person,{game:s});
+ const pick=text=>{while(!r.lastPage)r.advance();const c=r.choices().find(c=>c.text.includes(text));assert.ok(c,text);r.choose(c.index);};
+ pick('Then can I take it');
+ assert.match(r.pages.join(' '),/fan sled/);assert.match(r.pages.join(' '),/your backpack/);
+ while(!r.lastPage)r.advance();
+ assert.ok(!r.choices().some(c=>c.text.includes('One lap')), 'an empty tank cannot accept');
+ fuel=true;pick('One lap');assert.equal(launches,1);assert.equal(s.flag('desert.bike.found'),undefined);
+ for(const node of Object.values(person.talk.nodes))for(const line of [...(node.say??[]),...(node.choices??[]).map(c=>c.text)])assert.ok(parseLine(line).explicit,line);
+});
+test('a lost accepted wager retains a claim until a win without removing the essential backpack',()=>{
+ const s=state();s.set('item.backpack',true);
+ assert.equal(loseRivalWager(s),false,'an unrelated arcade loss does not create a debt');
+ s.set('desert.bike.race.accepted',true);assert.equal(loseRivalWager(s),true);
+ assert.equal(s.flag('desert.bike.race.debt'),true);assert.equal(s.flag('item.backpack'),true);
+ const r=new DialogueRunner(bikeWager({fuelled:()=>true,race:()=>{},practice:()=>{}}),{game:s});
+ assert.equal(r.nodeId,'rematch');assert.match(r.pages.join(' '),/loan/);
+ awardRivalBike(s);assert.equal(s.flag('desert.bike.race.debt'),false);assert.equal(s.flag('desert.bike.found'),true);
+ assert.equal(loseRivalWager(s),false,'later practice cannot revoke earned ownership');
+});
+test('Kamal rides a compact independent fan sled with no fluid tank socket',()=>{
+ const sled=buildRivalSled();const cost=budget(sled.root);
+ assert.equal(sled.root.name,'Kamal-fan-sled');assert.ok(sled.seatAnchor);assert.equal(sled.socket,undefined);
+ assert.ok(cost.draws<=3 && cost.tris<2400,JSON.stringify(cost));
+ const rotor=sled.body.children.find(c=>c.isGroup && c!==sled.seatAnchor),before=rotor.rotation.z;
+ sled.animate(1/30,{speed:30});assert.notEqual(rotor.rotation.z,before);
+});
 
 test('rival race is a shared game with ordinary retry/quit, no skip or difficulty award',()=>{
  assert.deepEqual(checkGame(rivalGame),[]);assert.equal(rivalGame.rival,true);

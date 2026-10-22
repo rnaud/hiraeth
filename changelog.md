@@ -2,6 +2,12 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.95 — 2026-10-21
+
+- Advice stays with Plumb until you ask. Automatic hint boxes no longer interrupt your journey; important notices and conversations remain.
+- Plumb now speaks for the ship. Messages wait their turn instead of appearing together.
+- Kamal now explains his claim to the salvaged hoverbike and races on his own fan sled. Win to keep the bike and your backpack; a loss leaves a rematch to settle the wager.
+
 ## v1.94 — 2026-10-21
 
 - The Rose House’s sliding doors carry their glowing circuits and stone pattern with them.

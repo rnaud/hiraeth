@@ -239,7 +239,7 @@ export function wireLessons({ game, items, levelId, gadgets = () => null, sound 
     const found = gadgetFoundLine(item, { owned: gadgets()?.owned?.() ?? [], taught: (k) => !!game.flag(`${k}.taught`), teach: hintsFor('teach'), tip: hintsFor('tip') });
     if (!found) return;
     if (found.key) game.set(`${found.key}.taught`, true);
-    setTimeout(() => toast(keyText(found.text, { teach: true })), 4200);
+    setTimeout(() => toast(found.text, { kind: 'hint' }), 4200);
   });
   if (sound) game.on('keepsake', () => sound.musicCue?.('moment', { delay: 1 }));
   if (plumb) {
@@ -316,7 +316,7 @@ export function wireCompanion({ game, plumb = null, scout = null, level, player,
     const r = plumb.update(dt, { active: !fight && !(scout?.out && scout.phase !== 'escort'), canSpeak, pos: player.pos, goal: at.goal, place: at.place,
       house: at.world.house, fight: hint ? { id: hint.id, secs } : null });
     if (r.point === 'village') game.emit('drone:village');
-    if (r.point) scout?.ping();   // (out toward the goal, a look, the flare, home; in a guardian's fight, the hint)
+    // Automatic observations may advance the opening quest, but only a player's request sends a hint ping.
     // something to tell you: at your shoulder with its mark, until the button, a scene, a fight, or HAIL.secs unanswered
     if (plumb.pending && scout?.hail) {
       if (!hail.up) {
@@ -332,7 +332,7 @@ export function wireCompanion({ game, plumb = null, scout = null, level, player,
       else if ((hail.shown += dt) > HAIL.secs) { lower(); plumb.drop(); }   // (not wanted: let go)
     } else lower();
     if (!r.say && hail.bark) { const b = hail.bark; hail.bark = ''; return droneShown(b); }   // (the talk's pointing word, as it flies off)
-    return r.say ? droneShown(r.say) : '';
+    return ''; // Automatic companion observations still advance state; advice is heard by pressing Plumb.
   };
   /** Plumb's button: Plumb's talk when it has something to tell you (and the dialogue box is free), else false. */
   // (it is put before your face at once, the talk opened OPEN_FRAMES frames later: an engine's portrait is drawn from
@@ -564,7 +564,7 @@ export function wirePotion({ game, toast }) {
     hint(player) {
       if (game.flag('hint.potion') || player.hearts > player.maxHearts - 1 || player.dead || !hintsFor('teach')) return;
       game.set('hint.potion', true);
-      setTimeout(() => toast(keyText(tr('potion.hint'), { teach: true })), 900);
+      setTimeout(() => toast(tr('potion.hint'), { kind: 'hint' }), 900);
     },
   };
 }

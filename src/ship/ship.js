@@ -702,7 +702,7 @@ export class Ship {
     sfx.beep(this.sound);
     const sig = this.relay();
     const tower = sig?.stage === 'far' && towerDue({ flag: (k) => game.flag(k), completed: this.completed() });
-    this.cinema.say(sig ? { who: 'ship', text: RELAY_TEXT.console[tower ? 'tower' : sig.stage], tone: 'neutral' } : NO_MESSAGES, { secs: sig ? 5.2 : 2.4 });
+    this.cinema.say(sig ? { who: 'plumb', text: RELAY_TEXT.console[tower ? 'tower' : sig.stage], tone: 'neutral' } : NO_MESSAGES, { secs: sig ? 5.2 : 2.4 });
   }
 
   /** The holo table: the galactic map (shown but locked without power). */
@@ -710,7 +710,7 @@ export class Ship {
     if (consoleAction({ at: 'table', powered: !!game.flag('ship.powered') }) === 'locked') {
       sfx.beep(this.sound);
       this.parked.callScreen?.set({ who: 'locked' });
-      this.cinema.say({ who: 'ship', text: 'No power. The engines are cold and the map is dark. Find a new source of power.' }, { secs: 4.2 });
+      this.cinema.say({ who: 'plumb', text: 'No power. The engines are cold and the map is dark. Find a new source of power.' }, { secs: 4.2 });
       this.map.toggle(true);   // shown, but locked
       return;
     }
@@ -988,7 +988,7 @@ const heldKeys = (ctl) => new Set(Object.entries(ctl).filter(([, v]) => v === tr
 const _p = new THREE.Vector3(), _l = new THREE.Vector3(), _l2 = new THREE.Vector3(), _d = new THREE.Vector3(), _c = new THREE.Vector3(), _q = new THREE.Quaternion();
 const _warm = new THREE.Color('#fff1c4'), _glowC = new THREE.Color('#ff9a66');
 /** The ship's answer to the voicemail button when nothing waits. */
-export const NO_MESSAGES = { who: 'ship', text: 'No new messages.', tone: 'neutral' };
+export const NO_MESSAGES = { who: 'plumb', text: 'No new messages.', tone: 'neutral' };
 /** The voicemail button's pulse (0..1) at time t: a slow breath, bright for a moment every 1.6 s. */
 export function voicemailBlink(t) { const u = (t % 1.6) / 1.6; return u < 0.5 ? Math.sin(u * Math.PI * 2) ** 2 : 0; }
 

@@ -107,9 +107,9 @@ const OPENING = {
     after: b.console ? (G) => { const m = G.ship.modelOf(G.player.pos); if (m?.interior?.points?.cockpit) G.player.pos.copy(G.ship.world(m, m.interior.points.cockpit)); } : null,
     wait: b.console ? 0.9 : 0,
   })),
-  // after it: Plumb's word on the village on the horizon, on the cue in its name (src/companion.js, issue #434)
-  // (and the first step out's drift into the view over, so the camera is the rig's on both sides whenever the line comes)
-  { name: 'plumb', until: (G) => /Plumb:/.test(G.screen().cue?.text ?? '') && !G.ship?.reveal && !G.ship?.blend, timeout: 60 }],
+  // After the opening, village guidance advances quietly; advice is available when the player asks Plumb.
+  // Keep the real progress milestone and settled handover, without waiting for the removed automatic cue.
+  { name: 'plumb', until: (G) => G.state.flag('drone.said.recharge') && !G.ship?.reveal && !G.ship?.blend, timeout: 60 }],
 };
 
 /** Every world's filmed moment (src/story/*-moments.js, the catalog's "World moments"): three beats into each. */

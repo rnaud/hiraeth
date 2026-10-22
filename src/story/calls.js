@@ -48,7 +48,7 @@
 //  - Recording n becomes available once n worlds are complete (`world.<id>.done`
 //    or the world's story page); each is heard once (flag `calls.<n>`).
 //
-// A line is { who: 'father' | 'mother' | 'ship' | 'you' | 'scene', text, tone, cut?, set? }.
+// A line is { who: 'father' | 'mother' | 'plumb' | 'you' | 'scene', text, tone, cut?, set? }.
 // Each is written with its tone ('~sad~ …', src/story/tone.js); the helpers read it off, and
 // the voice (src/story/voice.js speakLine) mumbles it in the home tongue. Lines in brackets are
 // silent. `set` holds flags to set once the recording has been heard (applyCall).
@@ -64,7 +64,7 @@ export const isQuiet = (k) => !!k && k.kind !== 'thing' && k.kind !== 'nothing' 
 const F = (text, set) => spoken('father', text, set ? { set } : null);
 const M = (text, set) => spoken('mother', text, set ? { set } : null);
 const S = (text, set) => spoken('scene', text, set ? { set } : null);
-const SHIP = (text, set) => spoken('ship', text, set ? { set } : null);
+const PLUMB = (text, set) => spoken('plumb', text, set ? { set } : null);
 const YOU = (text, set) => spoken('you', text, set ? { set } : null);
 const pick = (arr, i) => arr[Math.min(i, arr.length - 1)];
 /** The line(s) the reel finds for a world: one string or several, each the father's. */
@@ -78,7 +78,7 @@ const reelLines = (r) => [].concat(r.find).map((t) => F(t));
  * recording to listen (the cut: src/ship/prologue.js, `pause`).
  */
 export const PROLOGUE_CALL = [
-  SHIP('~neutral~ First new message.'),
+  PLUMB('~neutral~ First new message.'),
   F('~tired~ Is it on? Right. There you are. We haven’t heard from you for so long.'),
   F('~sad~ Your mother still lays your place at the table. We miss you. Both of us.'),
   F('~angry~ And I’m still disappointed in you. The boat, the school. You leave everything half done.'),
@@ -400,9 +400,9 @@ const BEATS = [
     id: 'ilen', when: (f) => f.broadcast && !f.ilenAsked,
     intro: (f) => [
       YOU("~solemn~ (You ask the reel to search for Ilen, the name from the market.)", { 'calls.ilen.asked': true, 'calls.ilen.at': f.here ?? true }),
-      SHIP("~neutral~ One recording in your mother’s voice. Label: “For when he asks.” No match in your father’s voice."),
+      PLUMB("~neutral~ One recording in your mother’s voice. Label: “For when he asks.” No match in your father’s voice."),
       YOU('~whisper~ Not here. Not yet.'),
-      SHIP('~neutral~ Recording held. It will wait at the console.'),
+      PLUMB('~neutral~ Recording held. It will wait at the console.'),
     ],
   },
   {
@@ -410,7 +410,7 @@ const BEATS = [
     id: 'ilen.after', when: (f) => f.ilenTold,
     intro: () => [
       YOU('~solemn~ (You ask the reel for her name, in his voice.)', { 'calls.beat.ilen.after': true }),
-      SHIP('~neutral~ He never says it. One recording comes close.'),
+      PLUMB('~neutral~ He never says it. One recording comes close.'),
     ],
     body: () => [
       F('~sad~ Your mother says I should make one of these. So.'),
@@ -516,7 +516,7 @@ function beats(f, n, max = 2) {
 /** The mother's own recording: Ilen. */
 function motherAlone(f) {
   return [
-    SHIP("~neutral~ Playing “For when he asks.” Your mother’s recording."),
+    PLUMB("~neutral~ Playing “For when he asks.” Your mother’s recording."),
     M("~whisper~ Hello, love. Your father’s asleep. I need to tell you something without him interrupting.", { 'calls.ilen.told': true, 'calls.ilen.told.at': f.here ?? true }),
     M("~neutral~ If you’re asking about Ilen, perhaps you heard his message on an old relay. I should have told you myself, years ago."),
     M("~solemn~ Ilen was your sister. Your elder sister. She had grown up and left before you were born."),
@@ -527,38 +527,38 @@ function motherAlone(f) {
     M("~solemn~ He wanted her home. He wants you home too. That doesn’t excuse what he said. I wish he’d learned to say what he meant."),
     M("~playful~ I’ll tell him I made this. We’ve kept enough quiet."),
     YOU('~whisper~ (She knew I would ask.)'),
-    SHIP('~neutral~ Logged six years ago.'),
+    PLUMB('~neutral~ Logged six years ago.'),
   ];
 }
 
 /** The ship's log after the first homecoming, and the one recording the reel finds for "singing". */
 function traceCall(f) {
   return [
-    SHIP('~neutral~ Log from the receiver, while you were at the stone. The singing light passed over home. Same signature as our scar.'),
-    SHIP(f.market ? '~neutral~ Its trace runs back out along the route, past the Signal Market, to a world on no chart. Charted on the galactic map.'
+    PLUMB('~neutral~ Log from the receiver, while you were at the stone. The singing light passed over home. Same signature as our scar.'),
+    PLUMB(f.market ? '~neutral~ Its trace runs back out along the route, past the Signal Market, to a world on no chart. Charted on the galactic map.'
       : '~neutral~ Its trace runs back out along the route, toward the Signal Market’s silent tower. Too faint to follow past it yet.'),
     YOU('~solemn~ (You ask the reel for anything about singing.)'),
-    SHIP('~neutral~ One match. Your father, late at night.'),
+    PLUMB('~neutral~ One match. Your father, late at night.'),
     F('~whisper~ It came over the house again tonight. Singing. Your mother says I dream it. I don’t.'),
     F(f.ilenTold ? '~sad~ The last thing we heard from your sister’s ship sounded just like that. I stood at the window till it went.'
       : '~sad~ I stood at the window till it went. I don’t know why it makes me think of the port.'),
     YOU('~whisper~ (It was looking for them. It still is.)'),
-    SHIP('~neutral~ Logged three years ago.'),
+    PLUMB('~neutral~ Logged three years ago.'),
   ];
 }
 
 /** Where the recordings point after the first homecoming, until the true ending: back out. */
 function pointOut(f) {
   if (f.final || !f.ended) return [];
-  if (f.met) return [SHIP('~neutral~ Home is on the map. Ilen is aboard, whenever you are both ready.')];
-  if (f.traced) return [SHIP('~neutral~ The light’s trace is on the galactic map, past the Signal Market.')];
-  return [SHIP('~neutral~ The light went toward the Signal Market’s silent tower. It is marked on the galactic map.')];
+  if (f.met) return [PLUMB('~neutral~ Home is on the map. Ilen is aboard, whenever you are both ready.')];
+  if (f.traced) return [PLUMB('~neutral~ The light’s trace is on the galactic map, past the Signal Market.')];
+  return [PLUMB('~neutral~ The light went toward the Signal Market’s silent tower. It is marked on the galactic map.')];
 }
 
 /** The father's own, on Ilen: the 'ilen.after' beat as a recording of its own (src/story/relay.js). */
 function fatherOnIlen(f) {
   const b = BEATS.find((x) => x.id === 'ilen.after');
-  return [...b.intro(f), ...b.body(f), YOU('~whisper~ (Empty hands. He meant me too.)'), SHIP('~neutral~ Logged five years ago.')];
+  return [...b.intro(f), ...b.body(f), YOU('~whisper~ (Empty hands. He meant me too.)'), PLUMB('~neutral~ Logged five years ago.')];
 }
 
 /** The ages of the merged worlds' own recordings (PART_CALLS): the bell when he was small, the lamp after he had gone. */
@@ -570,11 +570,11 @@ const PART_AGES = { arzach2: { label: 'LOGGED 20 YEARS AGO', log: '~neutral~ Log
  */
 function partCall(part, f) {
   const r = REEL[part];
-  const ask = (word) => [YOU(`~neutral~ (You ask the reel for anything about ${word}.)`), SHIP('~neutral~ One match.')];
-  const lines = [...ask(r.word), ...reelLines(r), YOU(r.you), SHIP(PART_AGES[part].log)];
+  const ask = (word) => [YOU(`~neutral~ (You ask the reel for anything about ${word}.)`), PLUMB('~neutral~ One match.')];
+  const lines = [...ask(r.word), ...reelLines(r), YOU(r.you), PLUMB(PART_AGES[part].log)];
   if (part === 'perdide2') {
     const why = REEL.garage;
-    lines.push(YOU('~neutral~ (You ask the reel one more thing: why.)'), SHIP('~neutral~ One match.'), ...reelLines(why), YOU(why.you), SHIP('~neutral~ Logged eleven years ago. You were fifteen.'));
+    lines.push(YOU('~neutral~ (You ask the reel one more thing: why.)'), PLUMB('~neutral~ One match.'), ...reelLines(why), YOU(why.you), PLUMB('~neutral~ Logged eleven years ago. You were fifteen.'));
   }
   if (f.k) lines.splice(3, 0, YOU(`~neutral~ (You lift ${nameIn(f.k)} into the projector’s light. The message is already over.)`));
   return lines;
@@ -631,8 +631,8 @@ export function callLines(n, ctx = {}) {
   // (REEL_FROM), he asks the reel for the world's word himself
   const search = leadBody ? [] : n >= REEL_FROM ? [
     YOU(`~neutral~ (You ask the reel for anything about ${reel.word}.)`),
-    SHIP('~neutral~ One match.'),
-  ] : [SHIP('~neutral~ New message.')];
+    PLUMB('~neutral~ One match.'),
+  ] : [PLUMB('~neutral~ New message.')];
   const find = leadBody ?? reelLines(reel);
   const you = reel.youAfter && flag(reel.youAfter.flag) ? reel.youAfter.you : reel.you;
   const react = !leadBody && you ? [YOU(you)] : [];
@@ -653,7 +653,7 @@ export function callLines(n, ctx = {}) {
       ...leadIntro,
       ...(leadBody ?? []),
       ...found,
-      SHIP('~neutral~ Then the window recording, further on. Your father, three years ago.'),
+      PLUMB('~neutral~ Then the window recording, further on. Your father, three years ago.'),
       F(w ? WINDOW[w] : WINDOW_ANY, w ? { [`calls.window.${w}`]: true } : null),
       ...pointOut(f),
     ];
@@ -669,7 +669,7 @@ export function callLines(n, ctx = {}) {
       ...leadIntro,
       ...(leadBody ?? []),
       ...found,
-      SHIP(found.length ? (f.ended ? '~neutral~ Then the oldest side of the reel. Playing.' : '~neutral~ Nothing newer on this side. Turning to the oldest side of the reel.')
+      PLUMB(found.length ? (f.ended ? '~neutral~ Then the oldest side of the reel. Playing.' : '~neutral~ Nothing newer on this side. Turning to the oldest side of the reel.')
         : f.ended ? '~neutral~ The oldest side of the reel. Playing.' : "~neutral~ No recordings remain on this side. Turning to the oldest side of the reel."),
       ...old.lines,
       ...(k ? [YOU(`~neutral~ (You hold ${nameIn(k)} up to the projector anyway.)`)] : []),
@@ -678,7 +678,7 @@ export function callLines(n, ctx = {}) {
       ...(f.ended
         ? [YOU(c && c.id !== 'all' && c.id !== 'nothing' ? `~whisper~ (${name(c)} is on the stone on the hill.)`
           : f.final ? "~whisper~ (Your keepsakes rest on the stone at home, beneath the two moons.)" : '~whisper~ (Your keepsakes rest on the stone at home. The reel is still with you.)'), ...pointOut(f)]
-        : [SHIP('~neutral~ Home is on the map, whenever you are ready.')]),
+        : [PLUMB('~neutral~ Home is on the map, whenever you are ready.')]),
     ];
   }
   // the last recording on the reel: it asks you home (only the Ilen beats here)
@@ -688,7 +688,7 @@ export function callLines(n, ctx = {}) {
     // the world's own word first, as every time (so the sixth world's line plays too), then the last of all
     ...(!leadBody && REEL[f.lastWorld] ? [...search, ...find, ...react] : []),
     YOU(`~neutral~ (${!leadBody && REEL[f.lastWorld] ? 'Then you' : 'You'} ask the reel for the last thing they recorded.)`),
-    SHIP('~neutral~ The last recording on the reel. Playing.'),
+    PLUMB('~neutral~ The last recording on the reel. Playing.'),
     M('~solemn~ We are both here. He wants to say something.', { 'calls.home': true }),
     F('~solemn~ Son.'),
     F("~solemn~ I keep thinking about what I asked you to bring back. *Something of value*. I made it sound like you had to earn your way through the door."),
@@ -699,11 +699,11 @@ export function callLines(n, ctx = {}) {
     F('~solemn~ Come home.'),
     M('~happy~ Bring whatever you have. Or nothing at all. Just come.'),
     S("~solemn~ (The picture holds on their faces, then folds into the projector.)"),
-    SHIP("~neutral~ That was the last recording on the reel. Logged two years ago, eleven days before the house went quiet."),
+    PLUMB("~neutral~ That was the last recording on the reel. Logged two years ago, eleven days before the house went quiet."),
     YOU('~whisper~ I’m coming home.'),
-    SHIP('~neutral~ Course for home available on the galactic map.'),
+    PLUMB('~neutral~ Course for home available on the galactic map.'),
     // the broadcast, still out there (src/story/relay.js): the way to Ilen before the stone
-    ...(relaySignal({ flag, completed: f.completed.length || n })?.stage === 'far' ? [SHIP(RELAY_COME_HOME)] : []),
+    ...(relaySignal({ flag, completed: f.completed.length || n })?.stage === 'far' ? [PLUMB(RELAY_COME_HOME)] : []),
   ];
   return [
     ...leadIntro,
@@ -716,7 +716,7 @@ export function callLines(n, ctx = {}) {
     ...(n >= 3 ? [ask, ...answer, ...motherOn] : []),
     ...A.close(f),
     ...(A.you ? [YOU(A.you)] : []),
-    SHIP(A.log),
+    PLUMB(A.log),
   ];
 }
 

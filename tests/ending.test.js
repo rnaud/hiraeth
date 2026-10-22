@@ -260,7 +260,7 @@ test('Ilen: he asks the reel for her, is not ready, and hears his mother’s rec
   const [call] = hearAll(game, done);
   assert.equal(call.n, 4);
   assert.ok(call.lines.some((l) => l.who === 'you' && /Ilen/.test(l.text)), 'he asks the reel for the name');
-  assert.ok(call.lines.some((l) => l.who === 'ship' && /For when he asks/.test(l.text)), 'one recording, in her voice');
+  assert.ok(call.lines.some((l) => l.who === 'plumb' && /For when he asks/.test(l.text)), 'one recording, in her voice');
   assert.ok(call.lines.some((l) => l.who === 'you' && /Not here\. Not yet\./.test(l.text)), 'not here');
   assert.ok(!call.lines.some((l) => /sister/.test(l.text)), 'not the truth yet');
   assert.equal(pendingCall({ flag: (k) => game.flag(k), completed: done.length }), null, 'not while still at the market');

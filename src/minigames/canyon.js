@@ -15,6 +15,7 @@ import { Terrain } from '../world.js';
 import { arenaLevel } from './kit/world.js';
 import { disposeTree } from './kit/dispose.js';
 import { buildBike, bikeSteer } from '../bike.js';
+import { buildRivalSled } from './canyon-sled.js';
 import { buildCharacter } from '../player.js';
 import { Dots, FLUID_TONES } from '../fluid-tool.js';
 import { Trail } from '../trail.js';
@@ -364,7 +365,13 @@ export function rivalWinner(p0,p1,r0,r1,line) {
 }
 export function awardRivalBike(state) {
   if(!state?.set)return false;
+  state.set('desert.bike.race.debt',false);
   state.set('desert.bike.race.won',true);state.set('desert.bike.uncovered',true);state.set('desert.bike.found',true);return true;
+}
+export function loseRivalWager(state) {
+  if (!state?.flag?.('desert.bike.race.accepted') || state.flag('desert.bike.found')) return false;
+  state.set('desert.bike.race.debt', true);
+  return true;
 }
 
 // ------------------------------------------------------------------ the canyon, built
@@ -613,10 +620,11 @@ export function start(ctx) {
   const R = newRace(K);
   const duel = !!ctx.def?.rival;
   const rival = duel ? newRival(K) : null;
-  const rivalModel = duel ? buildBike() : null;
+  const rivalModel = duel ? buildRivalSled() : null;
   const rivalChar = duel ? buildCharacter({ cloak: "#c9703e", cloth: "#376f78", hat: "#e8c890" }) : null;
   if (rivalModel) {
-    rivalModel.root.name = 'Kamal-rival-bike'; rivalChar.root.name = 'Kamal-rival-rider';
+    rivalChar.root.name = 'Kamal-rival-rider';
+    rivalChar.pack.visible = false;
     ctx.add(rivalModel.root); ctx.add(rivalChar.root);
   }
   let settled = false;
@@ -755,9 +763,10 @@ export function start(ctx) {
         if (winner) {
           settled = true;
           const won = winner === 'player';
+          const lostWager = !won && loseRivalWager(state);
           if (won) awardRivalBike(state);
           ctx.finish({ failed: !won, title: won ? 'You beat Kamal!' : 'Kamal takes the line',
-            lines: won ? ['The hoverbike is yours.', 'Call it from your backpack when you return to the desert.'] : ['No bike lost, no fee. Try again.', 'Brake before bends; take the marked kickers at full throttle.'] });
+            lines: won ? ['The hoverbike is yours. Your backpack stays yours too.', 'Call the bike from your backpack when you return to the desert.'] : lostWager ? ['Kamal claims the bike and backpack.', 'He lends the tank back for a rematch. Win them back.'] : ['Kamal wins this lap.', 'Try again: brake before bends and take the kickers at full throttle.'] });
         }
       }
       if (rivalModel) {

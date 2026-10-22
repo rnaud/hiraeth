@@ -227,7 +227,7 @@ test('old saves are unaffected: enemies are never saved, only flags of kinds tha
   foes.add('crab', v(0, 0, 6)); foes.add('lizard', v(3, 0, 6));
   for (let i = 0; i < 30; i++) foes.update(DT);
   assert.ok(!notes.some((t) => /shellback/.test(t)), 'a crab already met is not explained again');
-  assert.ok(notes.some((t) => /Horn lizards/.test(t)), 'the new lizard is');
+  assert.ok(!notes.some((t) => /Horn lizards/.test(t)), 'new kinds do not push unsolicited counter advice');
   const saved = JSON.parse(store.get('hiraeth.game.v1'));
   assert.ok(Object.keys(saved.flags).every((k) => !/\//.test(k)), 'no foe kinds or skins in the save');
   foes.dispose(); clearTargets();
@@ -835,14 +835,14 @@ test('the makers’ machine (v1.63, #261): a jump clears its quake, its claws st
   const h0 = s.hp;
   F2.strike(s, slam);
   assert.equal(s.hp, h0 - 1, 'a perfect parry chips it');
-  // the jump is told: when it is met, and the first time it sticks
+  // Visible tells and the stuck state remain, without unsolicited solution text.
   const said = [];
   const F3 = world(player(v(0, 0, 4)), { notice: (t) => said.push(t) });
   const k = F3.add('machine', v(0, 0, 0));
   F3.meet(k);
   F3.worldEvent(k, { type: 'stuck' });
-  assert.ok(said.some((t) => /jump the ring/.test(t)), 'met: jump the ring');
-  assert.ok(said.some((t) => /stuck in the floor: cut it now/.test(t)), 'stuck: cut it now');
+  assert.ok(!said.some((t) => /jump the ring/.test(t)), 'meeting it does not push a jump instruction');
+  assert.ok(!said.some((t) => /stuck in the floor: cut it now/.test(t)), 'getting stuck does not push a cut instruction');
   foes.dispose(); F2.dispose(); F3.dispose(); clearTargets();
 });
 

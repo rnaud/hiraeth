@@ -46,7 +46,8 @@ function run(g, frames, keys = {}, each = null) {
 test('the engine keeps a world done, flies to a world never visited from the holo table, and plays the homecoming (issue #264)', async () => {
   const file = tempPath(join(tmpdir(), `hiraeth-engine-finishable-${process.pid}.js`));
   await bundle('godot', { input: 'engine/game.js', out: [file] });
-  const B = loadBundle(file).exports;
+  let noticeClock = null, clockOffset = 0;
+  const B = loadBundle(file, { now: () => noticeClock ?? performance.now() + clockOffset }).exports;
 
   // the desert: its relics placed, its story page a real one; the main quest's end (story.complete) keeps it told
   const travelled = [], paged = [];
@@ -72,8 +73,15 @@ test('the engine keeps a world done, flies to a world never visited from the hol
   const J = g.journal.data;
   const kept = JSON.stringify({ stories: J.stories, relics: J.relics });
   for (const id of ORDER) { J.stories[id] ??= { title: id }; J.relics[id] = Object.fromEntries((CONTENT[id]?.relics?.names ?? []).map((n, i) => [i, { name: n }])); }
+  // Caption timers use the host clock; advance it with frame time while reading this queue.
+  // Otherwise a fast test spends many simulated seconds on a 3.5-second place caption.
+  noticeClock = performance.now() + clockOffset;
   const said = [];
-  run(g, 20 * 40, {}, () => { const t = g.screen().state.toast?.text; if (t && said.at(-1) !== t) said.push(String(t)); return /END OF THE ROAD/.test(t ?? ''); });
+  run(g, 20 * 40, {}, () => { noticeClock += 50; const t = g.screen().state.toast?.text; if (t && said.at(-1) !== t) said.push(String(t)); return /END OF THE ROAD/.test(t ?? ''); });
+  clockOffset = noticeClock - performance.now(); noticeClock = null;
+  assert.equal(new Set(said).size, said.length, 'no repeated notice delays essential progress');
+  assert.ok(said.some((t) => t.startsWith('Found:')), 'the item find remains visible');
+  assert.ok(said.findIndex((t) => t.startsWith('Found:')) < said.findIndex((t) => t.startsWith('THE END OF THE ROAD')), 'the earlier item find is read before completion');
   assert.ok(J.completed, 'the road done, kept');
   assert.ok(said.some((t) => t.startsWith('THE END OF THE ROAD')), said.join(' | '));
   Object.assign(J, JSON.parse(kept));   // (back to the desert alone: the route's next worlds still to find)

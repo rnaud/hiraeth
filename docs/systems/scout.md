@@ -1,5 +1,7 @@
 # The scout drone
 
+In v1.95 (#605/#611), Plumb speaks ship/navigation status and answers requested advice. Automatic opening observations and wandering tips no longer appear on the cue or trigger a hint ping; their progression flags remain compatible. The historical internal rules below still drive the companion’s state. Critical advice remains available through Plumb’s button.
+
 The folding drone that leads the way to the objective (sending it: docs/systems/ui.md, "Nothing on the screen").
 
 ## The scout keeps pace (v0.39)

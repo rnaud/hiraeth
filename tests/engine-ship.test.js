@@ -32,7 +32,7 @@ test('the engine plays the ship: the opening on a new save, aboard by the ramp, 
   const file = tempPath(join(tmpdir(), `hiraeth-engine-ship-${process.pid}.js`));
   await bundle('godot', { input: 'engine/game.js', out: [file] });
 
-  // the opening: in the ship in orbit, the letterbox down and the eyes shut, the ship's good morning
+  // the opening: in the ship in orbit, the letterbox down and the eyes shut, Plumb's good morning
   const g = await makeGame(file, { menus: menusStub(), prologue: true });
   const scr = g.screen();
   assert.ok(g.shipScenes && g.ship.playing && g.ship.cinematic.stage === 'black', 'the prologue starts');
@@ -41,7 +41,7 @@ test('the engine plays the ship: the opening on a new save, aboard by the ramp, 
   const subs = new Set();
   run(g, 20 * 12, {}, () => { if (scr.state.sub) subs.add(`${scr.state.sub.who}: ${scr.state.sub.text}`); });
   assert.equal(g.ship.cinematic.stage, 'walk');
-  assert.ok([...subs].some((s) => /^SHIP: Good morning/.test(s)), [...subs].join(' | '));
+  assert.ok([...subs].some((s) => /^PLUMB: Good morning/.test(s)), [...subs].join(' | '));
   assert.equal(g.save(), undefined);
   // the walk is his: at the console E plays the message (its prompt floats by the voicemail button, issue #350: it was the cue at the top)
   const m = g.ship.modelOf(g.player.pos);
@@ -95,10 +95,13 @@ test('the engine plays the ship: the opening on a new save, aboard by the ramp, 
   h.player.pos.copy(h.ship.world(h.ship.parked, P.table)); run(h, 4);
   assert.match(h.ship.hud(), /no power/);
   run(h, 2, { KeyE: true }); run(h, 2, { KeyE: false });
-  assert.ok(/^No power/.test(S.state.sub?.text ?? '') && S.state.sub.who === 'SHIP', JSON.stringify(S.state.sub));
+  assert.ok(/^No power/.test(S.state.sub?.text ?? '') && S.state.sub.who === 'PLUMB', JSON.stringify(S.state.sub));
   h.player.pos.copy(h.ship.world(h.ship.parked, P.cockpit)); run(h, 4);
   run(h, 2, { KeyE: true }); run(h, 2, { KeyE: false });
-  assert.equal(S.state.sub?.text, 'No new messages.');
+  assert.match(S.state.sub?.text ?? '', /^No power/, 'the next interaction does not replace an unread status');
+  let heardConsole = false;
+  run(h, 20 * 8, {}, () => { heardConsole ||= S.state.sub?.who === 'PLUMB' && S.state.sub?.text === 'No new messages.'; });
+  assert.ok(heardConsole, 'Plumb answers the console after the first status has been read');
   // the rooms as the web's ?aboard= puts him in them (the bridge's -aboard photographs each): in that room, the ship's
   // inside, no room of another name
   for (const room of ['cockpit', 'main', 'cabin', 'hold']) {

@@ -145,3 +145,43 @@ test('heading to space opens on the night’s ink, not a white page (playtest 20
   const ship = readFileSync(new URL('../src/ship/ship.js', import.meta.url), 'utf8');
   assert.ok(ship.includes('location.search = this.departure?.(to) ?? `?level=${to}&via=ship`'), 'the take-off still arrives ?via=ship (or by way of the pirates: src/ambush.js arrivalHref)');
 });
+
+test('Plumb lines keep their full reading turn, defer to dialogue, and clear together on scene exit', async () => {
+  const { screen } = await import('../src/platform.js');
+  screen.reset();
+  const c = new Cinema();
+  const a = { who: 'plumb', text: 'The core is ready.' }, b = { who: 'plumb', text: 'The chart is ready.' };
+  c.say(a, { secs: 2 }); c.say(b, { secs: 3 });
+  assert.equal(screen.state.sub.who, 'PLUMB');
+  assert.equal(c.subs.line, a);
+  c.update(1.9); assert.equal(c.subs.line, a);
+  screen.set('dialogue', { name: 'Marrow', text: 'Welcome.' });
+  c.update(5); assert.equal(screen.state.sub, null); assert.equal(c.subs.line, a);
+  screen.set('dialogue', null);
+  c.update(0); assert.equal(screen.state.sub.text, a.text);
+  c.update(.11); assert.equal(c.subs.line, b);
+  c.update(2.9); assert.equal(c.subs.line, b);
+  c.update(.11); assert.equal(screen.state.sub, null);
+  screen.set('dialogue', { name: 'Marrow' });
+  c.say(a); assert.equal(c.subs.line, null);
+  c.say(null); screen.set('dialogue', null); c.update(10);
+  assert.equal(c.subs.line, null, 'clearing a scene also drops pending speech');
+  screen.reset();
+});
+
+test('automatic advice stays silent while essential status and requested dialogue survive', async () => {
+  const { screen } = await import('../src/platform.js');
+  screen.reset();
+  const c = new Cinema();
+  c.hint('Try the door.'); c.objective('Go to Qanat.');
+  c.toast('Aim at the switch.', { kind: 'hint' });
+  assert.equal(c.scr.hint, ''); assert.equal(screen.state.objective, null);
+  assert.equal(c.toasts.length, 0);
+  c.toast('Shield found. Hold {key:guard} to guard.');
+  assert.equal(c.toasts[0].text, 'Shield found.');
+  c.toast('A new errand', { kind: 'quest', title: 'A new errand', step: 'Find Edda.' });
+  assert.equal(c.toasts[1].step, '', 'the quest is acknowledged without pushing its next instruction');
+  c.say({ who: 'plumb', text: 'You asked: follow this path.' });
+  assert.equal(screen.state.sub.text, 'You asked: follow this path.');
+  screen.reset();
+});

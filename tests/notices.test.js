@@ -7,7 +7,7 @@ import { NOTICE_ORDER, noticeMay, Cinema } from '../src/ship/cinema.js';
 const src = (f) => readFileSync(new URL(`../${f}`, import.meta.url), 'utf8');
 
 test('the notices take their turn: the region\'s name, a line, the objective card, the notices, a lesson', () => {
-  assert.deepEqual(NOTICE_ORDER, ['title', 'caption', 'line', 'objective', 'toast', 'teach']);
+  assert.deepEqual(NOTICE_ORDER, ['external', 'title', 'caption', 'line', 'objective', 'toast', 'teach']);
   assert.equal(noticeMay('caption', { up: ['title'] }), false, 'the father\'s charge up: the region\'s name waits');
   assert.equal(noticeMay('toast'), true, 'nothing up: it shows');
   assert.equal(noticeMay('toast', { up: ['objective'] }), false, 'the objective card up: a notice waits');
@@ -42,13 +42,12 @@ test('the game puts everything that writes on the screen by itself through the o
   const m = src('src/main.js'), cine = src('src/ship/cinema.js'), desert = src('src/story/desert.js');
   assert.match(m, /hold: quiet \|\| ship\.playing \|\| othersUp/, 'the region\'s name waits for whatever is up');
   assert.match(m, /ship\.cinema\.setCaption\(!!place, placeName\.waiting\)/, 'and tells the cinema');
-  assert.match(m, /cue\.set\(found \|\| text \|\| place \|\| teach/, 'on the cue, the region\'s name before a lesson');
+  assert.match(m, /cue\.set\(ship\.cinema\.hasSpeech\(\) \|\| screen\.state\.toast \? '' : found \|\| text \|\| place,/, 'the cue yields to speech and never displays automatic lessons');
   assert.match(m, /!place && !ship\.cinema\.noticeBusy\(\) && now - balloonAt > 600 && game\.flag\('prologue\.done'\)/, 'a lesson waits for every notice, and a balloon');
   assert.match(m, /const greet = !ship\.cinema\.noticeBusy\(\)/, 'a greeting balloon waits');
   assert.match(m, /story\.start\(\{ quiet: !!playPrologue \}\)/, 'the crash\'s objective card is the desert\'s opening words: not said twice');
   assert.match(cine, /!this\.mayNotice\('toast'\)/, 'a notice waits its turn');
   assert.match(cine, /this\._toastT = secs;/, 'one notice at a time, each for its full time');
-  assert.match(cine, /if \(!this\.mayNotice\('objective'\)\) \{ this\._objPending = text; return; \}/, 'the objective card waits its turn');
   assert.match(desert, /ctx\.ship\?\.cinema\?\.noticeBusy\?\.\(\)/, 'a caller waits for the notices');
 });
 

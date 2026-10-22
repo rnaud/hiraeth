@@ -186,7 +186,7 @@ test('locked on, a quick flick of the look switches to the nearest foe that way;
   foes.dispose(); clearTargets();
 });
 
-test('a cut that lands and does not stop a foe is answered with its armour: a thunk, sparks, a note once', () => {
+test('a cut that lands and does not stop a foe is answered with its armour: a thunk and sparks without an unsolicited tip', () => {
   clearTargets();
   const P = player(v()), notes = [], sounds = [];
   const foes = arena(P, { notice: (t) => notes.push(t), sound: { foeArmour: () => sounds.push('armour'), foeHurt: () => sounds.push('hurt') } });
@@ -194,9 +194,10 @@ test('a cut that lands and does not stop a foe is answered with its armour: a th
   const m = foes.add('machine', v(0, 0, 2));
   m.state = 'chase';
   foes.hurt(m, 'blade', v(0, 0, 1), { damage: 1 });
-  assert.ok(m.shrugged && sounds.at(-1) === 'armour' && notes.length === 1, 'a heavy foe shrugs off a light cut');
+  assert.ok(m.shrugged && sounds.at(-1) === 'armour', 'a heavy foe shrugs off a light cut with its armour sound');
+  assert.deepEqual(notes, [], 'no unsolicited combat instruction');
   foes.hurt(m, 'blade', v(0, 0, 1), { damage: 1 });
-  assert.equal(notes.length, 1, 'said once');
+  assert.equal(notes.length, 0, 'repeated light cuts remain free of advice boxes');
   m.state = 'wind'; m.k = 0.3;
   foes.hurt(m, 'blade', v(0, 0, 1), { damage: 1 });
   assert.ok(!m.shrugged && m.state === 'recover' && sounds.at(-1) === 'hurt', 'cut early in its wind-up: it reels');

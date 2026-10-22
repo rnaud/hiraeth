@@ -120,6 +120,9 @@ test('the quest: uncover the bike, fuel the backpack, then win the rival race', 
   assert.equal(e?.entry.id, 'bike.tarp');
   assert.equal(typeof e.entry.prompt === 'function' ? e.entry.prompt() : e.entry.prompt, 'pull back the tarp');
   e.entry.use();
+  assert.equal(rt.dialogue.person.id, 'host.canyon', 'the salvager introduces the wager in person');
+  assert.equal(rt.world.hollow.rival.char.pack.visible, false, 'Kamal cannot carry the tank he needs to win');
+  rt.dialogue.close();
   step(40);
   assert.equal(quests.stage('desert.bike'), 'wake');
   assert.ok(bike.dormant, 'no fluid, no bike');
@@ -132,6 +135,16 @@ test('the quest: uncover the bike, fuel the backpack, then win the rival race', 
   items.grant('backpack');
   assert.equal(bestInteractable(player).entry.prompt(), 'race Kamal for the hoverbike');
   bestInteractable(player).entry.use();
+  assert.equal(launches.length, 0, 'looking at the bike cannot bypass the wager');
+  const choose = (prefix) => {
+    while (rt.dialogue.open && !rt.dialogue.runner.lastPage) rt.dialogue.next();
+    const option = rt.dialogue.runner.choices().find(c => c.text.includes(prefix));
+    assert.ok(option, `missing ${prefix}`);
+    rt.dialogue.choose(option.index);
+  };
+  choose('Then can I take it?');
+  assert.match(rt.dialogue.runner.pages.join(' '), /fan sled|salvage/i);
+  choose('One lap.');
   step(2);
   assert.deepEqual(launches, ['?game=canyon-rival&from=desert']);
   assert.equal(game.flag('desert.bike.found'), undefined, 'launching does not award the bike');

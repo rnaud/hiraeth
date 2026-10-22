@@ -359,13 +359,13 @@ test('the recordings are old, and it shows a little more each time; they never a
   for (let n = 1; n < ENDING_WORLDS; n++) {
     const L = at(n);
     if (n < REEL_FROM) {
-      assert.ok(L.some((l) => l.who === 'ship' && /new message/i.test(l.text)), `${n}: a new message`);
+      assert.ok(L.some((l) => l.who === 'plumb' && /new message/i.test(l.text)), `${n}: a new message`);
       // (only the third's last word gives it away: "Recording logged nineteen years ago")
-      assert.ok(!L.slice(0, -1).some((l) => (l.who === 'ship' || l.who === 'you') && /\b(reel|recording|recorded)\b/i.test(l.text)), `${n}: nobody says recording`);
+      assert.ok(!L.slice(0, -1).some((l) => (l.who === 'plumb' || l.who === 'you') && /\b(reel|recording|recorded)\b/i.test(l.text)), `${n}: nobody says recording`);
     } else assert.ok(L.some((l) => l.who === 'you' && l.text.includes(`anything about ${REEL.desert.word}`)), `${n}: he asks the reel for water`);
     assert.ok(L.some((l) => l.who === 'father' && l.text === [].concat(REEL.desert.find)[0].replace(/^~\w+~ /, '')), `${n}: the line it finds`);
     assert.ok(recordingSpan(L), `${n}: the parents are on it`);
-    assert.ok(!L.some((l) => /\bcall\b/i.test(l.text) && l.who === 'ship'), `${n}: nobody calls`);
+    assert.ok(!L.some((l) => /\bcall\b/i.test(l.text) && l.who === 'plumb'), `${n}: nobody calls`);
   }
   // no date at first; then a worn stamp; then years
   assert.equal(recordingLabel(1), '');
@@ -373,11 +373,11 @@ test('the recordings are old, and it shows a little more each time; they never a
   for (const n of [3, 4, 5]) assert.match(recordingLabel(n), /YEARS AGO/);
   assert.ok(!at(1).some((l) => /years ago/i.test(l.text)), 'the first says nothing about when');
   assert.ok(at(3).some((l) => l.who === 'scene' && /child’s voice/.test(l.text) && /your voice/.test(l.text)), 'his own voice behind them, a child');
-  assert.ok(at(3).some((l) => l.who === 'ship' && /nineteen years ago/.test(l.text)), 'the ship logs the date');
+  assert.ok(at(3).some((l) => l.who === 'plumb' && /nineteen years ago/.test(l.text)), 'Plumb reads the date');
   assert.ok(at(4).some((l) => /tape is worn/.test(l.text)), 'a worn tape');
   assert.ok(at(5).some((l) => l.who === 'mother' && /one day you will/.test(l.text)));
   const last = at(ENDING_WORLDS);
-  assert.ok(last.some((l) => l.who === 'ship' && /last recording on the reel/.test(l.text) && /house went quiet/.test(l.text)), 'the last one, before the house went quiet');
+  assert.ok(last.some((l) => l.who === 'plumb' && /last recording on the reel/.test(l.text) && /house went quiet/.test(l.text)), 'the last one, before the house went quiet');
   assert.equal(recordingLabel(ENDING_WORLDS), 'THE LAST RECORDING');
   // who stands on the hologram
   assert.equal(onHologram('prologue'), 'father');
@@ -386,8 +386,8 @@ test('the recordings are old, and it shows a little more each time; they never a
   assert.equal(onHologram(ILEN_CALL), 'mother');
   assert.ok(Object.keys(AGE).length === ENDING_WORLDS - 1);
   // the prologue's is a message on the voicemail: nothing says it is a recording
-  assert.ok(PROLOGUE_CALL[0].who === 'ship' && /new message/i.test(PROLOGUE_CALL[0].text));
-  assert.ok(!PROLOGUE_CALL.some((l) => l.who === 'ship' && /reel|record/i.test(l.text)));
+  assert.ok(PROLOGUE_CALL[0].who === 'plumb' && /new message/i.test(PROLOGUE_CALL[0].text));
+  assert.ok(!PROLOGUE_CALL.some((l) => l.who === 'plumb' && /reel|record/i.test(l.text)));
 });
 
 test('the hologram: who stands where, and a mouth that only moves while they speak', () => {

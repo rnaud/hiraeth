@@ -37,13 +37,12 @@ test('the desert in the engines: the first steps, the scout\'s find on the cue, 
   const g = await hushed(() => E.createGame({ levelId: 'desert', backend, menus: menusStub() }));
   const gs = g.story.quests.game;
   gs.set('prologue.done', true);
-  // the first steps: standing a while without touching the camera, its line comes up on the cue (once the arrival's
-  // notices have gone: a lesson is the last of them)
+  // Idle first-step bookkeeping remains compatible, but no unsolicited camera instruction appears.
   assert.ok(g.firstSteps, 'made in the desert before the backpack');
   g.ship.inside = false;
   const seen = [];
   run(g, 20 * 40, {}, () => { const t = cueText(g); if (t && seen.at(-1) !== t) seen.push(t); return /Look around/i.test(t); });
-  assert.ok(seen.some((t) => /Look around/i.test(t)), `the camera's line: ${seen.join(' | ')}`);
+  assert.ok(!seen.some((t) => /Look around/i.test(t)), `no automatic camera advice: ${seen.join(' | ')}`);
   assert.ok(gs.flag('teach.look'));
   // the scout's ping: the find's line, the goal over the step and how far
   run(g, 20 * 6);

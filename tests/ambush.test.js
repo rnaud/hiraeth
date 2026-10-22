@@ -44,7 +44,7 @@ test('on the fight\'s page: no skip on any card, however often it is lost; Retry
   assert.equal(L.quit, undefined, 'no way out but through it');
   assert.deepEqual(L.win, { label: 'Fly on to The City-Shaft', href: '?level=incal&via=ship' });
   assert.equal(L.intro.kicker, 'On the way to The City-Shaft');
-  assert.equal(L.intro.lead.name, 'The ship');
+  assert.equal(L.intro.lead.name, 'Plumb');
   assert.match(L.intro.lead.text, /They want our hull\./);
   const acts = (r, fails) => resultActions(r, L, fails).map((b) => `${b.main ? '*' : ''}${b.label}`);
   assert.deepEqual(acts({ failed: false }, 0), ['*Fly on to The City-Shaft', 'Retry']);
@@ -64,7 +64,7 @@ test('every line said on the way carries a tone; the pirates come for the hull, 
     assert.ok(p.explicit && TONES.includes(p.tone), `${id}: a tone`);
     assert.ok(SPEAKERS[line.who], `${id}: a speaker`);
   }
-  assert.equal(AMBUSH_LINES.start.who, 'ship');
+  assert.equal(AMBUSH_LINES.start.who, 'plumb');
   assert.match(AMBUSH_LINES.start.text, /They want our hull\./);
   // (a win pays chimes since v1.59: nothing said may have them guarding the chimes aboard)
   for (const [id, line] of Object.entries(AMBUSH_LINES)) assert.doesNotMatch(line.text, /your chimes|chimes are safe|every chime/i, id);

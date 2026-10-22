@@ -171,7 +171,7 @@ test('save migration (step 26): an old save keeps every quest it had, and the wo
 });
 
 test('the lore of the marks: the ship says it once, with its tone, and the Map has its line', () => {
-  assert.equal(GIVERS_LINE.who, 'ship');
+  assert.equal(GIVERS_LINE.who, 'plumb');
   assert.ok(GIVERS_LINE.tone && GIVERS_LINE.text.split(' ').length <= 22, 'terse');
   assert.match(GIVERS_LINE.text, /light/);
   const flags = {};

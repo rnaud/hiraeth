@@ -18,12 +18,12 @@ import { QUESTS as VAEL_QUESTS } from '../src/story/arzach-data.js';
 const owning = (...ids) => (id) => ids.includes(id);
 const DESERT_MAIN = ['backpack', 'doublejump', 'gun'];
 
-test('the desert: not without the Givers’ blade and guard; the ship says where they are, in one line with a tone', () => {
+test('the desert: not without the Givers’ blade and guard; Plumb says where they are, in one line with a tone', () => {
   const no = leaveRefusal('desert', 'arzach', owning(...DESERT_MAIN));
   assert.ok(no, 'refused without the blade and the guard');
   assert.deepEqual(no.missing, ['sword', 'shield']);
   assert.equal(no.quest, 'temple.desert', 'the Rose House’s quest leads there');
-  assert.equal(no.line.who, 'ship');
+  assert.equal(no.line.who, 'plumb');
   assert.equal(no.line.tone, 'neutral');
   assert.match(no.line.text, /Rose House/);
   assert.ok(!/\n/.test(no.line.text) && no.line.text.length < 90, `one short line: ${no.line.text}`);

@@ -20,6 +20,7 @@ import { buildShipModel } from '../ship/model.js';
 import { BOOSTER_CENTRES } from '../ship/caravan-layout.js';
 import { FACE } from '../typefaces.js';
 import { Puffs } from '../ship/fx.js';
+import { Subtitles } from '../ship/cinema.js';
 import { PLANETS } from '../ship/planets.js';
 import { SPACE_LOOK, SPACE_DAY } from '../levels/space-city-kit.js';
 import { stripTone } from '../story/tone.js';
@@ -660,18 +661,25 @@ function makeHud(root) {
   comms.className = 'pirates-comms off';
   root.prepend(cv);
   root.appendChild(comms);
-  let hideT = 0, n = 0;
+  const messages = new Subtitles();
+  let n = 0;
   return {
     cv, comms,
     /** The comms line as the screen's part shows it ({ who, name, text, on, n }: n one a line), or null before the first. */
     line: null,
     say(line) {
+      const before = messages.line;
+      messages.add(line, Math.min(6, 1.6 + stripTone(line).length * 0.055));
+      if (messages.line !== before) this.showLine();
+    },
+    showLine() {
+      const line = messages.line;
+      if (!line) { comms.classList.add('off'); if (this.line) this.line = { ...this.line, on: false }; return; }
       comms.className = `pirates-comms ${line.who === 'captain' ? 'captain' : ''}`;
       comms.innerHTML = `<b>${SPEAKERS[line.who] ?? line.who}</b>${stripTone(line).replace(/[<>&]/g, '')}`;
-      hideT = Math.min(6, 1.6 + stripTone(line).length * 0.055);
       this.line = { who: line.who, name: SPEAKERS[line.who] ?? line.who, text: stripTone(line).replace(/[<>&]/g, ''), on: true, n: ++n };
     },
-    update(dt) { if (hideT > 0 && (hideT -= dt) <= 0) { comms.classList.add('off'); if (this.line) this.line = { ...this.line, on: false }; } },
+    update(dt) { if (messages.tick(dt)) this.showLine(); },
     dispose() { cv.remove(); comms.remove(); style.remove(); },
   };
 }

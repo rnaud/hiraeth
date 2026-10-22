@@ -146,7 +146,9 @@ export function* buildDesert(scene) {
   // the arcade signs of two games, out of the story's way (src/minigames/): Fishing on the basin's shore,
   // the Canyon run under the lavender cliffs by the rope bridge
   for (const [id, x, z, heading] of [['fishing', BASIN.x + BASIN.rx * 0.74, BASIN.z + 6, Math.PI / 2], ['canyon', -398, -446, 2.6]]) {
-    if (gameById(id)) placeGameMarker({ scene, levelId: 'desert', lights }, id, new THREE.Vector3(x, terrain.heightAt(x, z), z), { heading });
+    // Kamal now stands beside his salvage in the hollow; the optional longer
+    // course keeps its sign without creating a second copy of him.
+    if (gameById(id)) placeGameMarker({ scene, levelId: 'desert', lights }, id, new THREE.Vector3(x, terrain.heightAt(x, z), z), { heading, ...(id === 'canyon' ? { host: false } : {}) });
   }
   // the Givers' House in the eastern dunes, and its rooms far overhead (src/temples/desert.js)
   const level = attachTemple('desert', scene, {

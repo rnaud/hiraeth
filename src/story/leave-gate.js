@@ -67,5 +67,5 @@ export function leaveRefusal(world, to, has) {
   if (!miss.length) return null;
   const where = miss[0].where, at = miss.filter((c) => c.where === where), here = at.map((c) => c.name);
   const what = here.length > 1 ? `${here.slice(0, -1).join(', ')} and ${here[here.length - 1]}` : here[0];
-  return { missing: miss.map((c) => c.item), quest: at.find((c) => c.quest)?.quest ?? null, line: spoken('ship', `~neutral~ Not yet. ${what[0].toUpperCase()}${what.slice(1)} ${here.length > 1 || at[0].plural ? 'are' : 'is'} still in ${where}.`) };
+  return { missing: miss.map((c) => c.item), quest: at.find((c) => c.quest)?.quest ?? null, line: spoken('plumb', `~neutral~ Not yet. ${what[0].toUpperCase()}${what.slice(1)} ${here.length > 1 || at[0].plural ? 'are' : 'is'} still in ${where}.`) };
 }

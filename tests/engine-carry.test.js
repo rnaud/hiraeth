@@ -17,7 +17,7 @@ const menusStub = () => ({ open: false, mode: null, show() {}, openShop() { retu
 const quietly = async (fn) => { const w = console.warn, i = console.info, l = console.log, e = console.error; console.warn = console.info = console.log = console.error = () => {}; try { return await fn(); } finally { console.warn = w; console.info = i; console.log = l; console.error = e; } };
 const run = (g, frames, keys = {}) => quietly(() => { for (let i = 0; i < frames; i++) { for (const [k, v] of Object.entries(keys)) g.key(k, v); g.frame(1 / 20); } });
 
-test('the first pick-up of a save in the engines: in his hands, the line shown, the story not failed (issue #374)', async () => {
+test('the first pick-up of a save in the engines: in his hands, no unsolicited lesson, normal put-down works, the story not failed (issue #374)', async () => {
   const file = tempPath(join(tmpdir(), `hiraeth-engine-carry-${process.pid}.js`));
   await bundle('godot', { input: 'engine/game.js', out: [file] });
   const B = loadBundle(file, { pads: () => [] });
@@ -39,5 +39,8 @@ test('the first pick-up of a save in the engines: in his hands, the line shown, 
   // (the toasts shown in turn: the yard's own first)
   const shown = new Set();
   await quietly(() => { for (let i = 0; i < 300 && ![...shown].some((s) => /Carried in both hands/.test(s)); i++) { g.frame(1 / 20); const s = g.screen().state.toast?.text; if (s) shown.add(s); } });
-  assert.ok([...shown].some((s) => /Carried in both hands/.test(s)), `the first time, how to put it down (${[...shown].join(' | ')})`);
+  assert.ok(![...shown].some((s) => /Carried in both hands/.test(s)), `no unsolicited carrying lesson (${[...shown].join(' | ')})`);
+  await run(g, 1, { KeyE: true });
+  await run(g, 8, { KeyE: false });
+  assert.equal(P.carrying, null, 'the normal interaction puts it down');
 });

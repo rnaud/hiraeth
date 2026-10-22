@@ -7,7 +7,6 @@ import { GadgetHud } from './hud.js';
 import { InkBursts, inkMat } from './kit.js';
 import { sfx } from './sfx.js';
 import { hintsFor } from '../hint-level.js';
-import { keyText } from '../prompt-keys.js';
 import { ITEMS } from '../items.js';
 import { t as tr } from '../i18n.js';
 
@@ -136,7 +135,7 @@ export class Gadgets {
         const t = performance.now();
         if ((said.get(key) ?? -1e9) + 3000 > t || (said.has(key) && !hintsFor('tip'))) return;
         said.set(key, t);
-        notice?.(TEACH_NOTES.has(key) ? (hintsFor('teach') ? keyText(text, { teach: true }) : '') : text);
+        notice?.(text, TEACH_NOTES.has(key) ? { kind: 'hint' } : null);
       },
       // where an aiming gadget points this frame (the traveller turns to it, the camera comes over the shoulder)
       aimAt: (point, dir) => { this.aimPoint.copy(point); this.aimDir.copy(dir); this.aimWanted = true; },

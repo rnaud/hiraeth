@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { setHintLevel } from '../src/hint-level.js';
 
-// (these check the game's words as hints full says them, every tip and step; subtle, the default, is checked in tests/hint-level.test.js)
+// Full requested guidance still preserves puzzle feedback, without unsolicited instructions.
 setHintLevel('full');
 
 // a little DOM for the people's speech balloons (the story never needs a real page)
@@ -140,7 +140,8 @@ test('the main quest: Aube, the monastery, the clapper (Calix says where), the b
   assert.ok(tiles?.enabled(), 'the tiles are a target');
   tiles.onHit('shoot', null, V(0, 0, -1));
   assert.equal(game.flag('arzach2.tiles.cleared'), undefined, 'a splash doesn’t shift them');
-  assert.ok(toasts.at(-1).includes('shove them'), 'the splash hints at the push');
+  assert.equal(toasts.at(-1), 'The fluid rattles off the tiles. They are wedged tight.', 'the failed splash still has physical feedback');
+  assert.ok(!toasts.at(-1).includes('shove them'), 'no unsolicited solution instruction');
   tiles.onHit('push', null, V(1, 0, 0));
   assert.equal(game.flag('arzach2.tiles.cleared'), true);
   assert.ok(!allTargets().some((t) => t.kind === 'tiles'), 'the tiles are gone from the targets');
@@ -206,7 +207,8 @@ test('side quests: Ysolde’s letter across the aqueduct, and Tiv’s cairn from
   tiller.onHit('push', null, tillerDir());
   tiller.onHit('push', null, tillerDir().negate());
   assert.equal(L.notch(), LAMP_START, 'end-on, the tiller jams');
-  assert.ok(toasts.at(-1).includes('from the side'));
+  assert.equal(toasts.at(-1), 'The tiller shudders on its pin. Shoved straight, it won’t turn.', 'the jam still has physical feedback');
+  assert.ok(!toasts.at(-1).includes('from the side'), 'no unsolicited solution instruction');
   tiller.onHit('shoot', null, sideways(1));
   assert.equal(L.notch(), LAMP_START, 'a splash doesn’t turn it');
   // side-on, each shove turns it one notch, either way round: once the long way, then back the short way.

@@ -32,9 +32,9 @@ test('the galactic map marks the signature on every world, not on home', () => {
   assert.equal(entries.find((e) => e.home).signature, false);
 });
 
-test('the ship says it: after the landing, on the map, out of the jump (once per world), and when new worlds are charted', () => {
+test('Plumb says it: after the landing, on the map, out of the jump (once per world), and when new worlds are charted', () => {
   for (const l of [LANDING_LINE, MAP_LINE]) {
-    assert.equal(l.who, 'ship');
+    assert.equal(l.who, 'plumb');
     assert.ok(TONES.includes(l.tone) && !/^~/.test(l.text), 'a tone, and no tag in the text');
     assert.match(l.text, /signature/);
   }
@@ -44,7 +44,7 @@ test('the ship says it: after the landing, on the map, out of the jump (once per
   assert.ok(![LANDING_LINE, MAP_LINE, FOLLOW_LINE].some((l) => /impact|struck|hit us|crash/i.test(l.text)), 'nothing struck it: the light passed and drained it');
   const flags = {};
   const a = arrivalLine('perdide', (k) => flags[k]);
-  assert.equal(a.who, 'ship');
+  assert.equal(a.who, 'plumb');
   assert.match(a.text, /Great Crystal/);
   assert.deepEqual(a.set, { 'signature.perdide': true });
   Object.assign(flags, a.set);

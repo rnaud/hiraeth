@@ -172,7 +172,7 @@ test('knocked off a ledge by your blow: dazed a long while with stars, a cut lan
   assert.ok(b.dazed > KNOCK.stun - 1.3 && b.stunned > 1.5, `dazed a long while (${b.dazed.toFixed(2)} s)`);
   assert.equal(b.hp, FOES.blot.hp - 1, 'its cut; the fall itself only dazes');
   assert.ok(b.stars?.visible, 'stars turn over it');
-  assert.ok(notes.some((n) => /dazed/.test(n)), 'said once');
+  assert.ok(!notes.some((n) => /dazed/.test(n)), 'visible stars and daze need no unsolicited combat tip');
   const probs = presenceProblems(presenceOf(b.model.group, b.pos.y));
   assert.deepEqual(probs, [], 'still reads as itself');
   // a machine off a 6 m drop: over
@@ -233,7 +233,7 @@ test('knocked into deep water: swept away with a splash, off a bank or a ledge; 
   tick(bank, 1);
   assert.ok(!b.alive, 'swept away');
   assert.ok(splashes.some((x) => x.k >= 2 && x.s === 0.5), 'a great splash on its surface');
-  assert.ok(notes.some((n) => /swept/.test(n)), 'said once');
+  assert.ok(!notes.some((n) => /swept/.test(n)), 'the splash and defeat need no unsolicited combat tip');
   // off the 2 m ledge into a pond 1.5 m deep: swept, not dazed; even a machine
   const ledge = make((x, z) => (z > -40 ? -2 : 0), -0.5);
   const m = ledge.add('machine', v(0, 0, -40.4)); m.state = 'chase';

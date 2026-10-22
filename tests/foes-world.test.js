@@ -145,7 +145,7 @@ test('through Foes: spines and fire hurt a foe knocked into them as any blow doe
   assert.equal(m.hp, FOES.machine.hp - WORLD_HARM.spikes, 'cut by the spines');
   assert.ok(sounds.includes('hurt:machine'), 'with its sound');
   const said = () => notes.filter((t) => /world hurts them/.test(t)).length;
-  assert.equal(said(), 1, 'and the game says the world hurts them too, once');
+  assert.equal(said(), 0, 'damage and sound remain without unsolicited combat advice');
   const b = foes.add('blot', v(-1.4, 0, 0)); b.vel.set(-9, 0, 0);
   tick(foes, 0.3);
   assert.equal(b.hp, FOES.blot.hp - WORLD_HARM.fire, 'burnt');
@@ -155,7 +155,7 @@ test('through Foes: spines and fire hurt a foe knocked into them as any blow doe
   tick(foes, 1);
   assert.ok(b.dead !== undefined, 'then it bursts (ink, the tank’s charge)');
   assert.ok(sounds.includes('burst:blot'));
-  assert.equal(said(), 1);
+  assert.equal(said(), 0);
   foes.dispose(); offs.forEach((o) => o()); fresh();
 });
 

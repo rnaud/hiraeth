@@ -110,7 +110,7 @@ test('old saves keep their charted worlds; a new game searches', () => {
 });
 
 test('the words: tagged, and the toast names no world', () => {
-  for (const l of [SEARCH_LINE, foundLine('Vael')]) assert.ok(parseLine(`~${l.tone}~ ${l.text}`).explicit && l.who === 'ship');
+  for (const l of [SEARCH_LINE, foundLine('Vael')]) assert.ok(parseLine(`~${l.tone}~ ${l.text}`).explicit && l.who === 'plumb');
   assert.equal(findableNote(0), null);
   assert.match(findableNote(1), /Search for it on the galactic map/);
   assert.match(findableNote(2), /2 new places/);

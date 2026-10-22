@@ -277,7 +277,7 @@ test('the nudges: a world\'s ping, not over a scene; one that waits comes once t
   n.frame(true);
   assert.equal(pings, 1, 'and while busy');
   n.frame(false);
-  assert.equal(pings, 2, 'then comes');
+  assert.equal(pings, 1, 'an unsolicited delayed nudge remains silent even on full hints');
   assert.equal(wireNudges({ game, scout: null }), null);
   setHintLevel('subtle');
 });
@@ -381,10 +381,10 @@ test('wireCompanion: the prologue\'s drone handed over to the scout; Plumb\'s fi
   let village = 0;
   game.on('drone:village', () => village++);
   plumb.note('out');
-  assert.equal(step(0.1), shown(DRONE_LINES.out));
-  assert.equal(step(0.1), shown(DRONE_LINES.recharge));
+  assert.equal(step(0.1), '', 'no unsolicited departure advice');
+  assert.equal(step(0.1), '', 'no unsolicited recharge advice');
   assert.equal(village, 1, 'the desert\'s quest starts on it');
-  assert.deepEqual(calls.at(-1), ['ping'], 'and it flies off toward the village');
+  assert.equal(calls.filter(([kind]) => kind === 'ping').length, 0, 'a scout request still belongs to the player');
   assert.equal(wireCompanion({ game, plumb: null, scout, level: {}, player })(0.1), '', 'no help: no lines');
 });
 
@@ -519,4 +519,26 @@ test('R3 with no foe near turns the camera behind you, and says so the first tim
   assert.match(host, /recentred\(\) \{\s*if \(game\.flag\('hint\.recentre\.taught'\) \|\| !hintsFor\('teach'\)\) return;\s*game\.set\('hint\.recentre\.taught', true\);/, 'once a save, hints on');
   const { t } = await import('../src/i18n.js');
   assert.match(t('hint.recentre'), /\{key:lock\}.*camera behind you/);
+});
+
+test('delayed gadget and potion lessons stay off-screen without losing item progress or status', async (t) => {
+  const { Cinema } = await import('../src/ship/cinema.js');
+  const { screen } = await import('../src/platform.js');
+  screen.reset(); setHintLevel('full');
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const flags = {}, on = {};
+  const game = { on: (ev, f) => (on[ev] ??= []).push(f), flag: k => flags[k], set: (k, v) => { flags[k] = v; } };
+  const c = new Cinema(), toast = (text, options) => c.toast(text, options);
+  let progressed = 0;
+  wireLessons({ game, items: { has: () => true, on() {} }, levelId: 'desert', toast,
+    plumb: { progress: () => progressed++, note() {} } });
+  c.toast('Shield found.');
+  for (const f of on['box:opened']) f({ item: 'shield' });
+  wirePotion({ game, toast }).hint({ hearts: 1, maxHearts: 3, dead: false });
+  t.mock.timers.tick(5000);
+  assert.equal(progressed, 1, 'opening the item still advances companion progress');
+  assert.equal(flags['hint.shield.taught'], true);
+  assert.equal(flags['hint.potion'], true);
+  assert.deepEqual(c.toasts.map(x => x.text), ['Shield found.'], 'essential acquisition remains, both unsolicited reminders are suppressed');
+  setHintLevel('subtle'); screen.reset();
 });

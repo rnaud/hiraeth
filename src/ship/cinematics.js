@@ -27,7 +27,7 @@ import { berthOut, berthRest, berthArrive, berthLeave } from '../levels/port-ber
 
 export const OBJECTIVE = 'Find a new source of power.';
 /** The ship's good morning in the prologue: a message is waiting (no word of where from). */
-export const WAKE_LINE = { who: 'ship', text: 'Good morning. You have one new message.', tone: 'neutral' };
+export const WAKE_LINE = { who: 'plumb', text: 'Good morning. You have one new message.', tone: 'neutral' };
 /** A new game steps out without the backpack: it waits in a makers' box in Qanat, under the great dark tree (src/boxes/, the desert's first stage). No card says it since issue #222: the charge's card is the one line, and Marrow, his balloon and the scout lead there. */
 export const FIRST_OBJECTIVE = 'Walk to the city under the great dark tree.';
 const STEP_OUT_YAW = 0.34;   // rad off straight-behind when the traveller first steps out
@@ -207,7 +207,7 @@ export function faceRecording(ship, model) {
  */
 function playLines(ship, model, timeline, t, st = {}) {
   const cur = timeline.lines.find((l) => t >= l.t0 && t < l.t1) ?? null;
-  if (cur !== ship._line) { ship._line = cur; ship.cinema.say(cur ? cur.line : null); }
+  if (cur !== ship._line) { ship._line = cur; ship.cinema.say(cur ? cur.line : null, { queue: false, secs: cur ? cur.t1 - cur.t0 : null }); }
   const who = cur?.line.who;
   const talking = !!cur && t < cur.t0 + (cur.t1 - cur.t0) * 0.9 && (who === 'father' || who === 'mother');
   model.callScreen?.set({ who: 'tape', talk: talking ? 1 : 0, speaker: who ?? 'father', label: st.label ?? '' });
@@ -350,7 +350,7 @@ export class PrologueDirector {
         s.setPower(this.controlled ? 'emergency' : 'dead', sp);
         sp.callScreen?.set({ who: 'off', paused: false, statik: 0 });
         s.holo?.hide();
-        C.say({ who: 'ship', text: 'Main power drained. Emergency reserve only.' });
+        C.say({ who: 'plumb', text: 'Main power drained. Emergency reserve only.' });
         break;
       case 'glide':
         C.say(null); C.red(0);   // (the white fade from the drain's end lifts: C.fade below)
@@ -523,7 +523,7 @@ export class PrologueDirector {
         if (pos && t < nearAt + 0.4) s.holo?.glitch(0.25 * smooth(t / nearAt));
         if (t > nearAt && !this.drained) { this.drained = true; rumblePlay('found'); s.setPower(this.controlled ? 'emergency' : 'dead', sp); sp.callScreen?.set({ statik: 1, talk: 0 }); s.holo?.glitch(1); C.fade(0.3, false, 0.5); }
         if (t > nearAt - 0.6) sp.mats.core.uniforms.uGlow.value = Math.max(0, 0.6 * (1 - (t - nearAt + 0.6) / 1.2));
-        if (t > 3.6 && !this.saidPass) { this.saidPass = true; C.say({ who: 'ship', text: 'Power draining.' }); }
+        if (t > 3.6 && !this.saidPass) { this.saidPass = true; C.say({ who: 'plumb', text: 'Power draining.' }); }
         break;
       }
       case 'drain': {
@@ -532,7 +532,7 @@ export class PrologueDirector {
         s.shot({ pos: this.W(V(1.1, (pk.authored ? COCKPIT_DECK : DECK) + 1.8, pk.authored ? -17.7 : cockpitZ(-6.3))), look: this.W(V(-0.3, (pk.authored ? COCKPIT_DECK : DECK) + 1.9 - k * 0.7, pk.authored ? -26 : cockpitZ(-12.8))), fov: 58, roll: k * 0.12 + Math.sin(t * 1.3) * 0.02 });   // (from his right: the pilot's seat out of the way)
         if (t < 0.1 && !this.dark) { this.dark = true; C.fade(0.55, false, 0.35); }   // (the lamps out: dark but for the window)
         if (t > 1.3 && !this.reserve) { this.reserve = true; s.setPower('emergency', sp); C.fade(0.25, false, 0.8); C.red(0.18); }
-        if (t > 2.4 && !this.said2) { this.said2 = true; C.say({ who: 'ship', text: 'Not enough to hold orbit. Taking us down.' }); }
+        if (t > 2.4 && !this.said2) { this.said2 = true; C.say({ who: 'plumb', text: 'Not enough to hold orbit. Taking us down.' }); }
         if (this.s.spaceCopy) this.s.spaceCopy.space.rotation.x = 0.76 * k;
         sp.mats.core.uniforms.uGlow.value = 0;
         if (t > 4.35 && !this.white) { this.white = true; C.fade(1, true, 0.4); }
@@ -1202,7 +1202,7 @@ export class TakeoffDirector extends Sequence {
         dur: m.authored ? 4.6 : 2.0,
         enter: () => {
           C.hud(false); C.bars(true);
-          C.say({ who: 'ship', text: `Course set: ${title}. Hold on.` });
+          C.say({ who: 'plumb', text: `Course set: ${title}. Hold on.` });
           if (!m.authored) sfx.hatch(ship.sound); sfx.engines(ship.sound, 0.35);
           m.callScreen?.set({ who: 'map' });
         },

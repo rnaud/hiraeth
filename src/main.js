@@ -408,7 +408,7 @@ setStep('player');
 const { bikeHere } = wireMount({ levelId, level, flag: (k) => game.flag(k) });
 // the potion's glow as the hearts come back, and its lesson the first time a hurt leaves you short (src/host/game-host.js
 // wirePotion, the engines' too)
-const potion = wirePotion({ game, toast: (t) => showToast(t) });
+const potion = wirePotion({ game, toast: (t, o) => showToast(t, o) });
 // the hearts on the screen (src/host/game-host.js wireHealth, the engines' too): shown a while after a hurt, a drink, a chime
 const health = wireHealth({ game, tool: () => tool });
 let fight = null;   // (the foes, the lock-on, the drops, the knock-out: wireFight, made with the foes below)
@@ -832,7 +832,7 @@ const droneSaid = { text: '', until: 0 };   // (its line on the cue: before the 
 // what the save's events say and start: a gadget found and its line after its card (the progression's new verbs, each
 // taught once), a keepsake's theme, the trials' upgrades, Plumb's clock and notes (src/host/game-host.js wireLessons,
 // the engines' too)
-wireLessons({ game, items, levelId, gadgets: () => gadgets, sound, toast: (t) => showToast(t), plumb });
+wireLessons({ game, items, levelId, gadgets: () => gadgets, sound, toast: (t, o) => showToast(t, o), plumb });
 // Plumb each frame (src/host/game-host.js wireCompanion, the engines' too): its escort out of the prologue, the first
 // person near, its hints when you look lost, its first word (issue #434)
 // (something critical: at your shoulder with its mark, the button opens its talk; the first time, the button's line: issue #543)
@@ -1206,7 +1206,7 @@ bindToolMouse(renderer.domElement, input);   // right button aims, left shoots, 
 renderer.domElement.addEventListener('mousedown', (e) => { if (e.button === 1) input.MouseMiddle = true; });   // the middle button: the gadget in hand (src/gadgets/)
 // the gadgets (src/gadgets/: the fluid gun, the grappling hook, the ink bombs…): LT / L2 aims and RT / R2 uses the one in hand (R and T, G), D-pad ↑ or B held opens the wheel (the gadgets and the glove's modes, the game waiting; a tap the last pick back), X the next mode; Y / △ (V) the bell-note whistle
 // (the trials' rewards, upgrades to the gadgets' tuning while owned: wireLessons, before the gadgets are made)
-gadgets = new Gadgets({ scene, physics, player, camera, rig, sound, tool, level, foes, wind, input, relics, flammables, post: post.uniforms, boxes, notice: (t) => showToast(t, TEACH), touch: isTouch, ring: () => itemFx.ring(),
+gadgets = new Gadgets({ scene, physics, player, camera, rig, sound, tool, level, foes, wind, input, relics, flammables, post: post.uniforms, boxes, notice: (t, o) => showToast(t, o), touch: isTouch, ring: () => itemFx.ring(),
   icon: (id) => itemIcons.get(id), drawIcon: (id) => itemIcons.pump(id) });   // (the chip shows the gadget's own model, drawn once)
 // the hitbox overlay (src/hitboxes.js): F4, the dev menu's Toggles (L3 + R3, F2, `), the Arena's board, ?hitboxes=1 (this session only)
 const hitboxOverlay = new HitboxOverlay({ player, tool, foes, gadgets: () => gadgets });
@@ -1686,7 +1686,7 @@ function updateHud() {
     const sdt = scoutTeach.at ? Math.min(0.1, (now - scoutTeach.at) / 1000) : 0; scoutTeach.at = now;
     if (!teach && !found && !text && !place && !quiet && !ship.playing) { teach = scoutTeach.line(); scoutTeach.left -= sdt; }
   }
-  cue.set(found || text || place || teach, said ? '' : found ? scoutSaid.kind : text || !place ? '' : 'place');
+  cue.set(ship.cinema.hasSpeech() || screen.state.toast ? '' : found || text || place, said ? '' : found ? scoutSaid.kind : text || !place ? '' : 'place');
   // (the tank's gauge, when it shows without the crosshair, sits beside the traveller: left of the shoulders)
   placeToolGauge();
   audioCfg.mute = sound.muted;

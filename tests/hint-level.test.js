@@ -27,15 +27,15 @@ test('three levels, subtle by default; an unknown value is the default', () => {
 
 test('what each level lets through: subtle keeps only the first-time teaching and the asked-for help', () => {
   for (const kind of Object.keys(HINT_POLICY)) {
-    assert.equal(hintsFor(kind, 'full'), true, `full: ${kind}`);
+    assert.equal(hintsFor(kind, 'full'), !['tip', 'nudge'].includes(kind), `full: ${kind}`);
     assert.equal(hintsFor(kind, 'off'), false, `off: ${kind}`);
   }
   assert.deepEqual(Object.keys(HINT_POLICY).filter((k) => hintsFor(k, 'subtle')), ['teach', 'puzzle']);
   assert.equal(tip('Ink 5 of 8.', 'subtle'), '');
-  assert.equal(tip('Ink 5 of 8.', 'full'), 'Ink 5 of 8.');
+  assert.equal(tip('Ink 5 of 8.', 'full'), '');
   assert.equal(quietOr('The crates rock.', 'The crates rock. Shove them.', 'subtle'), 'The crates rock.');
   assert.equal(quietOr('The crates rock.', 'The crates rock. Shove them.', 'off'), 'The crates rock.');
-  assert.equal(quietOr('The crates rock.', 'The crates rock. Shove them.', 'full'), 'The crates rock. Shove them.');
+  assert.equal(quietOr('The crates rock.', 'The crates rock. Shove them.', 'full'), 'The crates rock.');
 });
 
 test('a guardian\'s fight: the drone\'s hints never at once on subtle; one line opens after each stretch of struggle', () => {

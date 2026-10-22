@@ -126,7 +126,7 @@ test('hints full: the desert’s first steps: look and jump, each said once, onl
   run(LOOK.show + 0.5, { active: true });
   assert.equal(s.update(0.1, { active: true }), '', 'gone');
   assert.equal(run(5, { active: true, moved: JUMP.walk / 100 }), '', 'not before a walk');
-  assert.equal(run(6, { active: true, moved: JUMP.walk / 100 }), 'Jump with SPACE');
+  assert.equal(run(6, { active: true, moved: JUMP.walk / 100 }), '', 'automatic jump tips are disabled at every level');
   run(10, { active: true, moved: 1 });
   assert.equal(s.update(0.1, { active: true, moved: 1 }), '');
   assert.equal(s.done, true);

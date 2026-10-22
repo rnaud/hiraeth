@@ -1,6 +1,6 @@
 // Hints: off / subtle (the default) / full, the settings' "Hints" (src/ui.js; docs/systems/hints.md).
 // The game teaches by its world; the screen says as little as it can. Every kind of help the game
-// gives goes through here, so the one setting turns it all down or back up:
+// gives on request goes through here. Automatic advice remains off at every level:
 //
 //   teach      the first prompt for a genuinely new verb, once (the camera, the potion, the blade's
 //              first fight, a new tool's card)                          off: no   subtle: yes  full: yes
@@ -10,7 +10,7 @@
 //              step, a conversation: quietKeys takes it out)            off: no   subtle: no   full: yes
 //   tip        explanations after the fact, how to beat a foe, a tip said again after a failure
 //                                                                       off: no   subtle: no   full: yes
-//   objective  the quest's next step pushed onto the screen (a stage's toast)
+//   objective  the optional gold column over the quest goal (not an advice card)
 //                                                                       off: no   subtle: no   full: yes
 //   nudge      a line after idling or wandering                         off: no   subtle: no   full: yes
 //   puzzle     the drone's hints in a guardian's fight, asked for (Q, D-pad →): subtle opens them one by one
@@ -36,9 +36,9 @@ export const HINT_POLICY = {
   teach: { off: false, subtle: true, full: true },
   words: { off: false, subtle: false, full: true },
   keys: { off: false, subtle: false, full: true },
-  tip: { off: false, subtle: false, full: true },
+  tip: { off: false, subtle: false, full: false },
   objective: { off: false, subtle: false, full: true },
-  nudge: { off: false, subtle: false, full: true },
+  nudge: { off: false, subtle: false, full: false },
   puzzle: { off: false, subtle: true, full: true },
 };
 
@@ -46,8 +46,8 @@ export const HINT_POLICY = {
 export const hintsFor = (kind, lv = level) => HINT_POLICY[kind]?.[lv] ?? true;
 /** The text when tips show (full), else '' (a toast skips an empty line). */
 export const tip = (text, lv = level) => (hintsFor('tip', lv) ? text : '');
-/** The quiet line (what happened) unless hints are full, then the plain one (what happened, and what to do). */
-export const quietOr = (quiet, plain, lv = level) => (lv === 'full' ? plain : quiet);
+/** Automatic feedback says what happened, without appending advice at any hint level. */
+export const quietOr = (quiet, plain, lv = level) => quiet;
 
 /**
  * A guardian's fight (src/temples/hints.js): how many of the drone's lines for this phase are open after

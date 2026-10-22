@@ -9,6 +9,15 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
+    v: '1.95',
+    date: '2026-10-21',
+    items: [
+      "Kamal now explains his claim to the salvaged hoverbike and races on his own fan sled. Win to keep the bike and your backpack; a loss leaves a rematch to settle the wager.",
+      "Plumb now speaks for the ship. Messages wait their turn instead of appearing together.",
+      "Advice stays with Plumb until you ask. Automatic hint boxes no longer interrupt your journey; important notices and conversations remain.",
+    ],
+  },
+  {
     v: '1.94',
     date: '2026-10-21',
     items: [

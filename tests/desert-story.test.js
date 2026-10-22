@@ -592,6 +592,12 @@ test('the main quest, end to end: an empty tank, the drain cleared, the tank fil
   at(W.hollow.site.bike.clone().add(V(1.5, 0, 0)).setY(terrain.heightAt(W.hollow.site.bike.x + 1.5, W.hollow.site.bike.z)));
   use('bike.tarp');           // the tarp
   step(30);
+  assert.equal(rt.dialogue.person.id, 'host.canyon', 'uncovering the bike starts its owner’s conversation');
+  assert.ok(rt.dialogue.open);
+  // Leave this conversation before supplying the independently tested race result.
+  // Keeping it open would hold the player’s facing on Kamal through later story interactions.
+  rt.dialogue.close();
+  step(2);
   // The race's independent integration test proves a real finish; this story test supplies
   // its result and checks the ownership gate/quest handoff, never the old free-bike interaction.
   const entry = level.temple.portals.find(p => !p.toUp);

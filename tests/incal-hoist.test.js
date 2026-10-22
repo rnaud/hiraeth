@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { setHintLevel } from '../src/hint-level.js';
 
-// (these check the game's words as hints full says them, every tip and step; subtle, the default, is checked in tests/hint-level.test.js)
+// Full requested guidance still preserves puzzle feedback, without unsolicited instructions.
 setHintLevel('full');
 
 // Pip's ration tin, hands-on (src/story/incal.js, the goods hoist): it hangs in the old hoist's
@@ -103,7 +103,8 @@ test('the hoist: the weight won’t turn while the pin is in, nor pushed along t
   // pushed along the arm (toward the void, from the house side): it rocks, nothing turns
   H.state.hintT = -1e9;
   assert.equal(weight.onHit('push', w, radial.clone().negate()), false);
-  assert.ok(toasted(/round the post, not along the arm/));
+  assert.ok(toasted(/arm rocks on its sleeve, but doesn’t turn/), 'essential failed-action feedback remains');
+  assert.ok(!toasted(/round the post, not along the arm/), 'no unsolicited solution instruction');
   assert.ok(!H.swungIn());
   // round the post: it swings in
   assert.equal(weight.onHit('push', w, round.clone().negate()), true);

@@ -5,8 +5,9 @@ import { STORY } from '../desert-sites.js';
 import { items } from '../items.js';
 import { Paint, paintMaterial } from '../vehicle-kit.js';
 import { quietOr } from '../hint-level.js';
-import { keyText } from '../prompt-keys.js';
 import { t as tr } from '../i18n.js';
+import { bikeWager } from './bike-wager.js';
+import { buildRivalSled } from '../minigames/canyon-sled.js';
 
 // The hollow holds Kamal's prize bike. Pulling the tarp reveals it; a full
 // backpack lets the traveller borrow a race bike, not claim this one. Only
@@ -77,11 +78,30 @@ export function setupHoverbike(ctx) {
   const found = () => !!game.flag('desert.bike.found');
   if (found() && game.flag('desert.bike.race.won') && !game.flag('desert.bike.race.taught')) {
     game.set('desert.bike.race.taught', true);
-    toast(keyText(tr('teach.bikeCall'), { teach: true }));
+    toast(tr('teach.bikeCall'), { kind: 'hint' });
   }
   // fluid to run on: the backpack, filled (its tank is empty until the giant's pool, src/story/desert.js)
   const fuelled = () => items.has('backpack') && !game.flag('tool.empty');
   const uncovered = () => !!game.flag('desert.bike.uncovered') || found();
+  let pendingRace = null;
+  const wager = bikeWager({ fuelled, race: () => {
+    game.set('desert.bike.race.accepted', true);
+    game.set('desert.bike.uncovered', true);
+    heap.t = Math.max(heap.t, 0.001);
+    pendingRace = '?game=canyon-rival&from=desert';
+  }, practice: () => { pendingRace = '?game=canyon&from=desert'; } });
+  const rival = ctx.spawn(wager, { route: [site.at(-4.6, 1.5)], heading: site.heading, speed: 0 });
+  rival.facing = site.heading;
+  rival.char.pack.visible = false;
+  game.on('dialogue:end', ({ id } = {}) => {
+    if (id !== wager.id || !pendingRace) return;
+    const href = pendingRace; pendingRace = null;
+    ctx.playGame?.(href);
+  });
+  const sled = buildRivalSled();
+  sled.root.position.copy(site.at(-6.5, -1.4)).add(new THREE.Vector3(0, 0.7, 0));
+  sled.root.rotation.y = site.heading;
+  scene.add(sled.root);
 
   // ---------------------------------------------------------------- the hollow's props
   const props = new Paint();
@@ -153,13 +173,13 @@ export function setupHoverbike(ctx) {
     const s = quests.stage('desert.bike');
     // (not when you could wake it this moment: no errand to hand you and take back at once)
     if ((s === undefined && !fuelled()) || s === 'find') quests.set('desert.bike', 'wake');
-    toast(fuelled() ? 'Kamal’s wager: beat him around the canyon and this hoverbike is yours.' : 'A hoverbike, half in the sand. It won’t wake: it runs on fluid, and you have none.');
+    ctx.dialogue.start(wager, rival);
   };
   const raceForBike = () => {
     if (!items.has('backpack')) { toast(quietOr('It runs on fluid, and your back is bare.', 'It runs on fluid, and your back is bare. The city may hold some.')); return; }
     if (!fuelled()) { toast(quietOr('It runs on fluid, and your tank is empty.', 'Your tank is empty. Fill it at the giant’s pool, past Qanat’s back gate.')); return; }
     if (typeof ctx.playGame !== 'function') { toast('The race is not available here yet.'); return; }
-    ctx.playGame('?game=canyon-rival&from=desert');
+    ctx.dialogue.start(wager, rival);
   };
   registerInteractable({
     id: 'bike.tarp', priority: PRIORITY.use, range: 3.4,
@@ -175,5 +195,5 @@ export function setupHoverbike(ctx) {
     rag.mesh.visible = pennant.mesh.visible = d < 900;
     if (d < 220) { rag.update(t); pennant.update(t * 1.4); }
   };
-  return { site, tarp, rag, pennant, update, found, uncovered };
+  return { site, tarp, rag, pennant, rival, wager, sled, update, found, uncovered };
 }

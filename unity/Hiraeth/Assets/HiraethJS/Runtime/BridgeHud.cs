@@ -241,7 +241,7 @@ namespace Hiraeth.Bridge
             if (sub != null)
             {
                 string who = sub.S("who") ?? "", cls = sub.S("cls") ?? "";
-                string col = cls == "father" ? "#7a3a35" : cls == "mother" ? "#277e86" : cls == "ship" ? "#c8483a" : "#2b211f";
+                string col = cls == "father" ? "#7a3a35" : cls == "mother" ? "#277e86" : cls == "plumb" ? "#c8483a" : "#2b211f";
                 var body = (who.Length > 0 ? $"<b><color={col}>{who}</color></b>  " : "") + Ui.Rich(Text.Plain(sub.S("text") ?? ""));
                 subText.fontSize = Sz(SubSize);
                 subBox.SetFill(solid ? Color.white : SubPaper); subText.color = solid ? Color.black : CineInk;

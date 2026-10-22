@@ -170,7 +170,7 @@ test('keepInside: held at the edge, the outward speed gone, the speed along it k
   assert.equal(keepInside(new THREE.Vector3(1e6, 0, 0), new THREE.Vector3(), Infinity), false, 'no edge');
 });
 
-test('pushing into the world\'s edge: no running on the spot, no jitter; sliding along it is smooth; the hint once (hints full)', () => {
+test('pushing into the world\'s edge: no running on the spot, no jitter; sliding along it is smooth; no unsolicited hint (hints full)', () => {
   setHintLevel('full');
   const notices = [];
   const p = walker({ limit: 20, edgeHint: EDGE_HINTS.desert });
@@ -183,9 +183,9 @@ test('pushing into the world\'s edge: no running on the spot, no jitter; sliding
   assert.ok(Math.max(...speeds) < 1e-9, `standing against it, not running on the spot (${Math.max(...speeds).toFixed(3)} m/s)`);
   assert.ok(p.edge.k > 0.9, `leaning into it (${p.edge.k.toFixed(2)})`);
   assert.ok(Math.abs(Math.sin(p.heading - Math.PI)) < 0.05, 'facing it');
-  assert.deepEqual(notices, [EDGE_HINTS.desert], 'what holds you back, once');
+  assert.deepEqual(notices, [], 'physical wind and lean feedback do not add an unsolicited advice box');
   run(p, 1, {}); run(p, 2, JOG);
-  assert.equal(notices.length, 1, 'not again');
+  assert.equal(notices.length, 0, 'still quiet on a repeated boundary attempt');
   setHintLevel('subtle');
   const quiet = walker({ limit: 20, edgeHint: EDGE_HINTS.desert }), heard = [];
   quiet.onNotice = (t) => heard.push(t); quiet.pos.set(0, 0, -17);

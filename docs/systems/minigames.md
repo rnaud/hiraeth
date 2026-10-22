@@ -121,7 +121,7 @@ refused a moment later by the notice. Once had, the lines and Play / Not now as 
 | game | world, where | host | what they say |
 |---|---|---|---|
 | Fishing | Desert, the mineral basin's shore | Yusra, who fishes the basin | Six this morning, and one had legs. Whatever lives in the giants' water, it bites my hook. / Take the rod. Three minutes on my pier. When the float goes under, strike. Snap my line and you're mending it. |
-| Canyon run | Desert, under the lavender cliffs | Kamal, who races the Two Chasms | Rebuilt my bike twice this week. The canyon keeps the bits it likes. Three laps, two chasms. Fancy it? / Hit the kickers flat out, or you'll meet the chasm floor. The drifts and the banks eat your speed. |
+| Canyon run | Desert, red-rag salvage hollow (course sign under the lavender cliffs) | Kamal, who found the hoverbike | Race the salvage bike against his fan sled for ownership; after winning, he offers the optional three-lap run. |
 | Ring race | Desert, the hanging bridge's east shelf | Aziza, who keeps the brass hoops | I polish those brass hoops every week, and I still don't know what the makers hung them for. Do you? / So we fly them. Twenty, in order, on race-tuned jets. Every hoop you pass tops your tank up a little. |
 | Wing drop | Desert, the hanging bridge's west shelf | Zayd, who painted the mesa | I mixed the paint for the pilgrims' bird mark up on the mesa. No bird's landed on it. So we do. / Three drops. Wings open, find the warm air, ride it up, and come down soft on the middle. Soft. It chips. |
 | Drum circle | Desert, the pilgrims' small fire | Hamid, who keeps the camps' drums | I stretched these skins the night the procession set out. Every night since, the old song, round the fire. / Sit with us. When a beat rolls into the ring, strike it. Keep up and the whole camp gets dancing. |
@@ -298,9 +298,12 @@ and require the gate with no fall.
 ## The bike wager (`canyon-rival.js`)
 
 New desert travellers earn the hoverbike by beating Kamal in one lap of the Two
-Chasms. The hollow's tarp only reveals the prize; with a filled backpack its next
-interaction launches `?game=canyon-rival&from=desert` through the shared story
-`playGame` callback (web navigation and Unity `onGame`). There is no free wake,
+Chasms. Kamal stands beside the salvaged bike and his own motor-driven fan sled.
+The tarp reveals the prize and opens his conversation: he found the bike but
+cannot power it, the traveller's fluid backpack can, and he offers a race with
+the bike and backpack at stake. Accepting with a filled tank launches
+`?game=canyon-rival&from=desert` after the conversation closes, through the shared
+story `playGame` callback (web navigation and Unity `onGame`). There is no free wake,
 loss reward or skip. Results offer Retry; quitting returns without ownership.
 The existing three-lap Canyon run remains an optional time trial.
 
@@ -308,7 +311,9 @@ Both racers use `bikeStep`, the same base-bike handling, pads, drifts, jumps and
 checkpoint recovery. Kamal uses a fixed steering policy and throttle: full at
 chasms, 72% elsewhere. He never reads the player's position, gets no catch-up
 speed and cannot advance during the introduction or pause. The visible opponent
-uses the existing character rig and riding pose on a real bike seat. Passing is
+uses the existing character rig and riding pose on the fan sled's seat. Its
+two skids, blunt cowling and rear fan differ from the long-nosed prize bike;
+the sled has its own motor and no fluid tank socket. Passing is
 non-contact; neither rider can win by knocking the other off the road.
 
 A within-frame finish-line comparison decides the winner, independent of update
@@ -316,6 +321,10 @@ order. A dead heat is a retry. Only a winning session writes
 `desert.bike.race.won` and the established `desert.bike.found` ownership flag.
 Existing earned saves retain `found`; the original one-time legacy migration is
 preserved. The quest keeps its `find`/`wake` stage IDs for save compatibility.
+An accepted wager sets `desert.bike.race.accepted`. Losing sets `race.debt`:
+Kamal claims both prizes but explicitly lends the tank for a rematch, preserving
+the essential backpack and avoiding a stranded save. Winning clears the claim.
+Unrelated arcade losses and later practice never revoke earned equipment.
 The borrowed race bike needs no upgrades. Pure/session checks cover fixed rival
 pace at 20–120 fps, a slower/idle rider losing, actual steering/throttle input
 winning, recovery, retry reset, and no award on introduction, loss or disposal.

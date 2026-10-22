@@ -45,7 +45,7 @@ test('relay: "Come home" mentions the signal while it is out there', () => {
   const s = save();
   ORDER.slice(0, 6).forEach((id) => s.set(`world.${id}.done`, true));
   const ctx = { flag: s.flag, completed: ORDER.slice(0, 6), lastWorld: 'edena' };
-  assert.ok(callLines(ENDING_WORLDS, ctx).some((l) => l.who === 'ship' && /old relay/.test(l.text)));
+  assert.ok(callLines(ENDING_WORLDS, ctx).some((l) => l.who === 'plumb' && /old relay/.test(l.text)));
   s.set('clue.bazaar.home', true);
   assert.ok(!callLines(ENDING_WORLDS, ctx).some((l) => /old relay/.test(l.text)));
 });

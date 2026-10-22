@@ -298,7 +298,7 @@ export function makeTrial(T, { levelId, scene, physics, player, items, game, foe
       if (first) lines.push(firstPurse(game, items));
       const html = reward ? `<div class="trial-reward"><p class="kicker">Yours: ${esc(reward.name)}</p><p>${keyText(esc(reward.text), { html: true, teach: true })}</p></div>` : '';
       ctx.finish({ lines, html });
-      if (reward) notice(`${reward.name}: yours. ${keyText(reward.text, { teach: true })}`);
+      if (reward) notice(`${reward.name}: yours. ${reward.text}`);
     };
     return {
       update(dt, input, { live, phase }) {

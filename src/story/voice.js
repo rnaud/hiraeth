@@ -229,7 +229,7 @@ export const CALL_VOICES = {
   father: { id: 'father', voice: 0.66, kind: 'm', title: 'at home' },
   mother: { id: 'mother', voice: 1.02, kind: 'f', title: 'at home' },
   you: { id: 'you', voice: 1.0, kind: 'm' },
-  ship: { id: 'ship', voice: 1.0, kind: 'f' },
+  plumb: { id: 'plumb', voice: 1.3, kind: 'f', scale: 0.6, companion: true },
   lou: { id: 'lou', voice: 1.6, kind: 'f', age: 'child', scale: 0.72 },   // your daughter, there beside you (home)
   ilen: { id: 'ilen', voice: 0.92, kind: 'f' },   // your sister, there beside you at the stone (the true ending)
 };
@@ -465,14 +465,14 @@ let OUT = null;
 export function bindVoice(sound) { OUT = sound; }
 export const voiceOut = () => OUT;
 
-/** A call-home line, as its subtitle appears: { who: 'father' | 'mother' | 'ship' | 'you' | 'scene', text, tone? }. */
+/** A call-home line, as its subtitle appears: { who: 'father' | 'mother' | 'plumb' | 'you' | 'scene', text, tone? }. */
 export function speakLine(line) {
   if (!OUT || !line || !line.text) { OUT?.hush?.('call'); return; }
   const who = CALL_VOICES[line.who];
   if (!who) return;   // stage directions: silent
-  const lang = line.who === 'ship' ? 'ship' : 'home';
+  const lang = line.who === 'plumb' ? 'ship' : 'home';
   const plan = planLine(line.tone ? { text: line.text, tone: line.tone } : line.text, { voice: voiceOf(who), lang });
-  OUT.speak?.(plan, { channel: 'call', radio: line.who !== 'you' && line.who !== 'lou' && line.who !== 'ilen' ? 0.55 : 0 });   // (Lou and Ilen are there: no radio)
+  OUT.speak?.(plan, { channel: 'call', radio: line.who !== 'plumb' && line.who !== 'you' && line.who !== 'lou' && line.who !== 'ilen' ? 0.55 : 0 });   // (Lou and Ilen are there: no radio)
 }
 
 /**

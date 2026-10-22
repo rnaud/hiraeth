@@ -1349,6 +1349,28 @@ const RETROID536 = 'Retroid Pocket Nova (Adreno 740, Vulkan), Unity, Handheld (F
 const SRC536 = 'BridgeRenderer.Pipelines (the G-buffer’s states the scene asks for: variant, layout, cull, depth), Metal’s list traced in the editor, the shipped lists rewritten by scripts/bench/pso-one-cull.mjs; docs/systems/performance.md, “One cull mode and one layout for the Surface pipelines”';
 const SEAPORT572 = 'Issue #572: the web game in muted headless Chrome (High, 1280 × 720) on a Vite of its own (port 5441), a new save arriving by ship (?level=underwater&via=ship), then walked as a player; before: origin/main at 02345e2c3, after: this change; the deck and the Dock from the visual check’s views (scripts/design-qc/capture.mjs --fixed-scale); 20 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '1.95': [
+{
+  "match": "Kamal now explains his claim",
+  "see": "Find Kamal beside the covered bike in the Desert. Ask to take it, fill your backpack and accept the one-lap wager. After losing, speak to him for a rematch: the backpack stays on loan so the story can continue. Winning settles his claim and unlocks the bike.",
+  "shots": [
+    {
+      "name": "kamal-wager",
+      "caption": "Kamal sets the stakes beside the salvage and his independently powered fan sled.",
+      "only": "after",
+      "from": "Actual muted internal-browser screenshot, 21 October 2026, candidate based on d2d74adde plus issue #607 changes. 1280 × 578 game viewport cropped from full screenshot; isolated review save with tools and fluid, staged position beside Kamal, real conversation and game camera. Reviewed after-only image; no before image or native-device claim.",
+      "view": {
+        "level": "desert",
+        "hour": 12,
+        "weather": "clear",
+        "source": "wager-dialogue-full.png"
+      }
+    }
+  ]
+},
+    { match: 'Plumb now speaks for the ship', shots: [{ name: 'plumb-messages', only: 'after', caption: 'Plumb speaks while other messages wait their turn.', from: 'Actual internal Codex browser, 21 October 2026. Desert game UI with staged status events, based on d2d74adde plus #605/#611 implementation. Technical crop of the 1280 × 720 game viewport; after-only evidence.' }], see: 'Listen to Plumb at the ship or open the galactic map: each line gets its reading time before the next notice appears.' },
+    { match: 'Advice stays with Plumb until you ask', shots: [{ name: 'quiet-advice', only: 'after', caption: 'The journey stays clear of automatic advice boxes.', from: 'Actual internal Codex browser, 21 October 2026. Full hints with staged automatic advice suppressed in the real Desert UI, based on d2d74adde plus #605/#611 implementation. Technical 1280 × 720 viewport crop; after-only evidence.' }], see: 'Press Q or D-pad right to ask Plumb for help. Item finds, conversations and interaction prompts remain available.' },
+  ],
   '1.94': [
     { match: 'Your feet stay planted', shots: [{ name: 'moon-carrier-feet', only: 'after', caption: 'Standing on the descending moon-carrier; continuous contact is checked alongside this view.', from: 'Issue #610, muted internal-browser game at port5487, High, 1280 × 575; d2d74adde plus this movement patch. Actual after-only view; task-private save and carrier positioned halfway along its normal route. Frame contact samples and matching Unity review: .local-tools/validation/v1.93/movement-610-612/REPORT.md. A still alone does not demonstrate vertical following.' }] },
     { match: 'Jumping forward while locked on', shots: [{ name: 'locked-forward-jump', only: 'after', caption: 'Forward jump toward a locked skitter from a standing start.', from: 'Issue #612, muted internal-browser game at port5487, High, 1280 × 575; d2d74adde plus this movement patch. Actual after-only view, normal W/Space control state with a real spawned foe; task-private progress. Native and web motion measurements: .local-tools/validation/v1.93/movement-610-612/REPORT.md. Camera/animation phase differs between engine captures.' }] },

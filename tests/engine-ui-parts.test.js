@@ -90,17 +90,16 @@ test('the speech balloons over people in the engine: the nearest one\'s line ove
   assert.ok(!(plain(g.screen().state.balloons) ?? []).some((x) => x.text === 'Over *here*!'), 'down again');
 });
 
-test('the objective card as the screen\'s part: the step, an id a card, gone after its time (cinema.objective)', async () => {
+test('unsolicited objective advice never opens a native black card', async () => {
   const { exports: X } = await load();
   const g = await quietly(() => X.createGame({ levelId: 'desert', backend, menus: new EngineMenus({}) }));
   await run(g, 2);
   const C = g.ship?.cinema;
-  assert.ok(C, 'the ship\'s cinema');
+  assert.ok(C);
   C.objective('Follow the light to the stone');
-  const o = plain(g.screen().state.objective);
-  assert.deepEqual({ text: o?.text, secs: o?.secs }, { text: 'Follow the light to the stone', secs: 6.5 });
+  assert.equal(g.screen().state.objective, null);
   C.objective('The ship is ready whenever you are');
-  assert.ok(plain(g.screen().state.objective).id > o.id, 'a new card, a new id');
+  assert.equal(g.screen().state.objective, null);
 });
 
 test('the brass level as the screen\'s part: the floor\'s line turned and raised where down has turned (src/boxes/effects.js)', async () => {
