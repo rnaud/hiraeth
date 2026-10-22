@@ -1148,6 +1148,16 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   the saves), `tests/temple-playthrough.test.js` (the house walked in with the hook). Old saves: `migrate.js` incal v5 (past
   the balcony's door: `kC` taken, the Vane Room's door unlocked, the house breathing out; past the eye or the high door:
   the Well's ways made; one that stood inside: to its last mark).
+
+**Playthrough coverage limitation (#628):** `tests/temple-playthrough.test.js` checks every temple's
+puzzle progression with real pieces and timed physical ball interactions, but its travel helper
+teleports between reachable spots and some actions use explicit logic shortcuts. It is not proof of
+a complete ordinary-input journey. The Whale-House's `tests/whale-tide.test.js` adds continuous
+physical traversal through its tide route, but seeds the boots and resolves some later interactions
+directly. `tests/engine-whale-tide.test.js` separately checks ordinary input through the actual native
+host for rising-water swimming, dais escape, tide lowering and the boots' deep-ear stomp. None of
+these should be reported as a full input-driven temple ending or device acceptance.
+
 - **The Whale-House round the Sounding Hall, the tide its state** (v1.83, issue #412; the approved best practices,
   `docs/design/temple-best-practices.md` G1, G2, G4, G6 and its Whale-House row, the research's alternative #401 house).
   The **Sounding Hall** (`HALL`) is the great hall, 48 by 76 m and 43 high from the Sound's floor: the **quays** (y 0) round

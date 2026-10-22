@@ -1349,6 +1349,13 @@ const RETROID536 = 'Retroid Pocket Nova (Adreno 740, Vulkan), Unity, Handheld (F
 const SRC536 = 'BridgeRenderer.Pipelines (the G-buffer’s states the scene asks for: variant, layout, cull, depth), Metal’s list traced in the editor, the shipped lists rewritten by scripts/bench/pso-one-cull.mjs; docs/systems/performance.md, “One cull mode and one layout for the Surface pipelines”';
 const SEAPORT572 = 'Issue #572: the web game in muted headless Chrome (High, 1280 × 720) on a Vite of its own (port 5441), a new save arriving by ship (?level=underwater&via=ship), then walked as a player; before: origin/main at 02345e2c3, after: this change; the deck and the Dock from the visual check’s views (scripts/design-qc/capture.mjs --fixed-scale); 20 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '2.02': [{
+    match: 'Rising water in the Whale-House',
+    shots: [
+      { name: 'whale-tide-swimming', only: 'after', title: 'Swimming with the rising tide', size: [1280, 720], caption: 'After turning the deep valve, the traveller floats at the raised water surface.', from: 'Issue #629: actual Unity Editor BridgeRenderer, High, 1280 × 720, 22 October 2026; v2.02 candidate based on 28261af3. Muted private store, one initial placement beside the deep valve, then ordinary interaction and movement input. After-only tide state; no older-build picture or physical-device acceptance is claimed. Capture and exact warm-project restoration evidence: .local-tools/whale-qa/native/native-tide-3/.' },
+      { name: 'whale-tide-dais', only: 'after', title: 'Climbing onto the dais', size: [1280, 720], caption: 'The same run crosses the Sound and climbs onto the dry dais, while the Listener gate stays locked.', from: 'Issue #629: actual Unity Editor BridgeRenderer, High, 1280 × 720, 22 October 2026; v2.02 candidate based on 28261af3. Muted private store; ordinary forward/swim input after the valve, without further player placement or progression overrides. After-only state from the same run, not a before/after version comparison. Capture and exact restoration evidence: .local-tools/whale-qa/native/native-tide-3/.' },
+    ],
+  }],
   '1.99': [
   {
     "match": "Steam Deck players can update",

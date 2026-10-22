@@ -128,6 +128,11 @@ export class Waters {
     body.top = body.box.max.y;
   }
 
+  /** Keep moving pools' gameplay surface and camera bounds on the geometry's current tide. */
+  refreshMoving() {
+    for (const b of this.bodies) if (b.mesh.userData.waterMoves && shownInScene(b.mesh)) this.refresh(b);
+  }
+
   /** The surface of one body right at (x, z), or null where it isn't. */
   surfaceOf(b, x, z) {
     if (x < b.box.min.x || x > b.box.max.x || z < b.box.min.z || z > b.box.max.z) return null;
@@ -341,7 +346,7 @@ export class Waters {
    */
   update(dt, t, { player = null, vehicles = [], things = [], globs = [], sky = null, bake = true } = {}) {
     this.t = t;
-    for (const b of this.bodies) if (b.mesh.userData.waterMoves && shownInScene(b.mesh)) this.refresh(b);
+    this.refreshMoving();
     if (sky) { waterShared.uWaterSky.value[0].copy(sky.uSkyTop.value); waterShared.uWaterSky.value[1].copy(sky.uSkyHorizon.value); }
     if (bake && player) this.bakeStep(player.pos);
     if (player && !player.ride) {

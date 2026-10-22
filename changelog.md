@@ -2,6 +2,11 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v2.02 — 2026-10-22
+
+- The spring boots explain their short hop inside temples and how to jump, then stomp, to sound the Whale-House’s deep notes.
+- Rising water in the Whale-House now carries you up to swim and climb out on native players, instead of leaving you walking below the surface.
+
 ## v1.99 — 2026-10-22
 
 - Steam Deck players can update the player from the Updates page, with clear download progress and a checked restart that keeps saves and the previous working player.

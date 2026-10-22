@@ -9,6 +9,13 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
+    v: '2.02', date: '2026-10-22',
+    items: [
+      { text: 'Rising water in the Whale-House now carries you up to swim and climb out on native players, instead of leaving you walking below the surface.', see: 'Turn the valve on the deep floor, wait for the sea to rise, swim across the Sound and climb onto the dais. Its valve lowers the water again.' },
+      { text: 'The spring boots explain their short hop inside temples and how to jump, then stomp, to sound the Whale-House’s deep notes.', see: 'Read the spring boots in Items. With them equipped, press A / × to jump, then use the boots near the top of the jump beside a deep-note horn. A wound launch remains higher outside temples.' },
+    ],
+  },
+  {
     v: '1.99', date: '2026-10-22',
     items: [
       { text: 'Steam Deck players can update the player from the Updates page, with clear download progress and a checked restart that keeps saves and the previous working player.', see: 'Open Updates on a launcher-managed Steam Deck install and choose Update player and restart when offered. Older players first need the launcher upgrade: quit and relaunch, wait for its download, then launch again. Other installs use their original installer. A failed or busy update keeps the current player open.' },

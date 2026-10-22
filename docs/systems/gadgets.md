@@ -463,6 +463,12 @@ Tests: tests/boots-reach.test.js (the rule's numbers, and the reach check over a
 temples.md, "No hook past a lock"), tests/engine-springs.test.js (in the engines' bundle: a full wind on the Founders'
 Belfry's floor is a hop, by its door outside over 10 m).
 
+The item description states the indoor hop limit and the separate jump-then-use stomp controls
+(#628). `tests/engine-whale-tide.test.js` checks this in the actual bundled host at the Whale-House's
+deep ear: a wound indoor hop stays below 3 m, then ordinary jump/use input sounds the ear and opens
+the low-tide Horn Store door without damage or opening the later Listener lock. Boots and the
+initial position are fixtures; this is not an acquisition-to-ending playthrough.
+
 ### The wings in the makers' houses (v1.84, issue #436)
 
 The fluid wings (backpack + glider, src/player.js, the wings' branch of `Player.update`) glide 15 m/s on and 2.4 m/s

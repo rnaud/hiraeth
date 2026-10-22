@@ -44,6 +44,13 @@ Like the rest it only writes the G-buffer; post.js prints it:
 every `MODE_WATER` mesh (and any mesh with `userData.water = true`: the desert
 cave's magic pool, which keeps its fluid look; `userData.waterMoves` refreshes its
 box as it rises). Each gets its own copy of the material, drawn from both sides.
+- `refreshMoving()` refreshes visible moving bodies' world matrices and cached bounds after their
+  geometry moves. The web calls it through `Waters.update`; the engine host calls it immediately
+  after `level.update`, before camera placement. Without this, the Whale-House's drawn tide rose
+  while its native swimming surface stayed at the low mark (#629).
+  `tests/engine-whale-tide.test.js` exercises the actual bundled host with ordinary valve and
+  movement inputs: rise from the deep floor, swim across the Sound, mantle onto the dais and
+  lower the water again. The later Listener lock remains closed throughout.
 - `surfaceAt(x, z, y)`: the water there for something at height y (the lowest
   surface above y - 0.6, else the highest one under it): `{ y, body }` or null.
   Streams slope: it raycasts the water mesh itself, through a BVH of it (`bvhOf`:

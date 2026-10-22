@@ -1859,6 +1859,8 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       thresholds?.update(dt, simT, camera.position);
       if (!pinned) throughPortals(dt, simT);
       level.update?.(dt, simT, { player, rig, camera, passage, fade: () => {}, drawLater: true });   // (drawLater: level.beforeDraw is called)
+      // Moving tide meshes must update the swim/camera surface, as Waters.update does on the web.
+      waters.refreshMoving();
       dangers.voidFrame(simT);   // (the void's rings' clock)
       lap?.('level');
       // the foes, the drops, the knock-out's card and what the page draws over the picture for them (engine/combat.js)
