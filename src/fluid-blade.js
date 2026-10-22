@@ -852,7 +852,9 @@ export class FluidBlade {
     if (this.swinging || this.evadeT || this.guardK > 0.05 || p._flinch) this.since = 0;
     const drawWant = bladeDrawn({ ok, swinging: this.swinging, guarding: this.guardK > 0.05, evading: this.evadeT > 0, locked: !!p.lockOn, fighting, since: this.since });
     // (drawn over the shoulder; a swing pressed with it on the back starts at once and the hilt is in the fist before its cut)
-    this.sheath.update(dt, drawWant, { quick: this.swinging });
+    const drawEvent = this.sheath.update(dt, drawWant, { quick: this.swinging });
+    if (this._drawAudioReady && drawEvent === 'draw') T.sound?.bladeForm?.();
+    this._drawAudioReady = true;
     this.place(dt);
     this.placeShield(dt);
   }

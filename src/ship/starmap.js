@@ -689,7 +689,8 @@ export class StarMap {
     if (!t || this.resolving) return;
     this.resolving = id;
     rumblePlay('found');
-    this.o.sound?.()?.chime?.();
+    const sound = this.o.sound?.();
+    if (sound?.discovery) sound.discovery(); else sound?.chime?.();
     const field = this.el.querySelector('.field'), disc = this.layout?.box?.disc ?? 58;
     const el = document.createElement('div');
     el.className = 'resolve';

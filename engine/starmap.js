@@ -238,7 +238,8 @@ export class EngineStarMap {
     if (!t || this.resolving) return;
     this.resolving = { id, t: 0, x: t.x, y: t.y };
     try { rumblePlay('found'); } catch { /* no pad */ }
-    this.o.sound?.()?.chime?.();
+    const sound = this.o.sound?.();
+    if (sound?.discovery) sound.discovery(); else sound?.chime?.();
     this.o.onFound?.(id, t.title);
     this.cv++;
   }

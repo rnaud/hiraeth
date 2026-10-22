@@ -2,6 +2,11 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.97 — 2026-10-22
+
+- New voicemail, ship controls, small pickups and newly charted worlds now have warm, rounded sound cues.
+- Forming the fluid blade, opening the shield and refilling the tank have softer new sounds, with a discreet reminder when fluid runs low.
+
 ## v1.96 — 2026-10-22
 
 - The galactic map fits the native screen when its size settles or changes.

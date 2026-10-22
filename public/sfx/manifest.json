@@ -1115,6 +1115,166 @@
    "duration": 0.6865079365079365,
    "peakDbfs": -6.000000000000001,
    "rmsDbfs": -23.94818301282188
+  },
+  "blade-form-0": {
+   "from": "ElevenLabs Sound Effects v3, user-starred take",
+   "licence": "Generated with ElevenLabs; not CC0",
+   "source": "references/audio/elevenlabs-next-2026-10-22/blade-form.wav",
+   "generationId": "pnjg5viwEXxxKPljX5IE",
+   "sourceSha256": "34702b11d8d6aea2f982f71011a450e666c9c2241d7a13b5887ccb32811c0239",
+   "selectedTake": 2,
+   "cutSeconds": [
+    0,
+    1.2
+   ],
+   "fitSeconds": null,
+   "timeStretch": null,
+   "processing": "mono 44.1 kHz PCM16; 4 ms onset/25 ms tail fades; peak-normalized; finite one-shot",
+   "bytes": 105884,
+   "sha256": "b43841f457a98e23680d0fc153bb3f5f4259dc276cfc9e9cc46887e0f62bd82a",
+   "duration": 1.2,
+   "peakDbfs": -6.000000000000001,
+   "rmsDbfs": -29.772909155140628
+  },
+  "shield-bloom-0": {
+   "from": "ElevenLabs Sound Effects v3, user-starred take",
+   "licence": "Generated with ElevenLabs; not CC0",
+   "source": "references/audio/elevenlabs-next-2026-10-22/shield-bloom.wav",
+   "generationId": "OrCk5PkJU6Qy0WmF5vF6",
+   "sourceSha256": "af770e26117aa99e4dae7c3ea5565d7db48ba77c5adbac37ee2958f1836b9923",
+   "selectedTake": 1,
+   "cutSeconds": [
+    0,
+    1.08
+   ],
+   "fitSeconds": null,
+   "timeStretch": null,
+   "processing": "mono 44.1 kHz PCM16; 4 ms onset/25 ms tail fades; peak-normalized; finite one-shot",
+   "bytes": 95300,
+   "sha256": "7a6a365177cd7cb6908819d80d5a0ab59381319f0d0d78a0a128410662ac71f9",
+   "duration": 1.08,
+   "peakDbfs": -6.000000000000001,
+   "rmsDbfs": -25.627652612539418
+  },
+  "fluid-refill-0": {
+   "from": "ElevenLabs Sound Effects v3, user-starred take",
+   "licence": "Generated with ElevenLabs; not CC0",
+   "source": "references/audio/elevenlabs-next-2026-10-22/fluid-refill.wav",
+   "generationId": "wkktDTIOQHCxxgDjZ8i3",
+   "sourceSha256": "952d3c305ec78a980b7d403c5098e4d5123cfb79280309be0f4c30a40be5c8b6",
+   "selectedTake": 4,
+   "cutSeconds": [
+    0,
+    2.4
+   ],
+   "fitSeconds": null,
+   "timeStretch": null,
+   "processing": "mono 44.1 kHz PCM16; 4 ms onset/25 ms tail fades; peak-normalized; finite one-shot",
+   "bytes": 211724,
+   "sha256": "cfaaa7767483e77179a7b954c5aef6cd29ad4cb8ac77fd38b8f6d0465473d162",
+   "duration": 2.4,
+   "peakDbfs": -6.000000000000001,
+   "rmsDbfs": -23.411201926823786
+  },
+  "voicemail-ready-0": {
+   "from": "ElevenLabs Sound Effects v3, user-starred take",
+   "licence": "Generated with ElevenLabs; not CC0",
+   "source": "references/audio/elevenlabs-next-2026-10-22/voicemail-ready.wav",
+   "generationId": "7f8wdNcHxknboJLOYnEO",
+   "sourceSha256": "883d90f90483432000047ae9115747cccfdbda495c6ca0ad9157df75344af54d",
+   "selectedTake": 1,
+   "cutSeconds": [
+    0,
+    0.8865
+   ],
+   "fitSeconds": null,
+   "timeStretch": null,
+   "processing": "mono 44.1 kHz PCM16; 4 ms onset/25 ms tail fades; peak-normalized; finite one-shot",
+   "bytes": 78234,
+   "sha256": "9d3718dc64e762d53b534742c0f542f1eff6eb30b223952a80b9ec2d5a90359a",
+   "duration": 0.8865079365079365,
+   "peakDbfs": -6.000000000000001,
+   "rmsDbfs": -22.654054227564803
+  },
+  "ship-confirm-0": {
+   "from": "ElevenLabs Sound Effects v3, user-starred take",
+   "licence": "Generated with ElevenLabs; not CC0",
+   "source": "references/audio/elevenlabs-next-2026-10-22/ship-confirm.wav",
+   "generationId": "2g1bYIulHl7lvfVqX9xL",
+   "sourceSha256": "2457b1a627e3af9eaa03cb242e4dc888b6a53d8b13c980c9f2bcbfe3803ca36d",
+   "selectedTake": 2,
+   "cutSeconds": [
+    0,
+    0.4865
+   ],
+   "fitSeconds": null,
+   "timeStretch": null,
+   "processing": "mono 44.1 kHz PCM16; 4 ms onset/25 ms tail fades; peak-normalized; finite one-shot",
+   "bytes": 42954,
+   "sha256": "b1bf73842eb9a4a39802a203925613f34484390a2b6432b1c9b9d3d4826e2d6a",
+   "duration": 0.4865079365079365,
+   "peakDbfs": -6.000000000000001,
+   "rmsDbfs": -18.92861365513661
+  },
+  "small-pickup-0": {
+   "from": "ElevenLabs Sound Effects v3, user-starred take",
+   "licence": "Generated with ElevenLabs; not CC0",
+   "source": "references/audio/elevenlabs-next-2026-10-22/small-pickup.wav",
+   "generationId": "ceGNTYA5wPjO3dIOvD2n",
+   "sourceSha256": "aa935bfc5bd4b29cbeb1c011e47fe7aecec9d7c1216a68385c2f368ed00cf840",
+   "selectedTake": 4,
+   "cutSeconds": [
+    0,
+    0.6865
+   ],
+   "fitSeconds": null,
+   "timeStretch": null,
+   "processing": "mono 44.1 kHz PCM16; 4 ms onset/25 ms tail fades; peak-normalized; finite one-shot",
+   "bytes": 60594,
+   "sha256": "9ee5cd124938634a33d83ec9d060244ef50dfa5ff7cc0e30d50124ee3291d6a2",
+   "duration": 0.6865079365079365,
+   "peakDbfs": -6.000000000000001,
+   "rmsDbfs": -21.88530147362478
+  },
+  "discovery-reveal-0": {
+   "from": "ElevenLabs Sound Effects v3, user-starred take",
+   "licence": "Generated with ElevenLabs; not CC0",
+   "source": "references/audio/elevenlabs-next-2026-10-22/discovery-reveal.wav",
+   "generationId": "oYhlEJF2Eqfh74YWCB0g",
+   "sourceSha256": "2f8ce66f7f2d34548d699d71e63bb0dbb68c256e854e6ec268c291c9e1aca5ea",
+   "selectedTake": 2,
+   "cutSeconds": [
+    0,
+    1.76
+   ],
+   "fitSeconds": null,
+   "timeStretch": null,
+   "processing": "mono 44.1 kHz PCM16; 4 ms onset/25 ms tail fades; peak-normalized; finite one-shot",
+   "bytes": 155276,
+   "sha256": "dc36d81f7d99d83f7b605a0362acfe06c4aabdd697596494250c3786548cf418",
+   "duration": 1.76,
+   "peakDbfs": -6.000000000000001,
+   "rmsDbfs": -26.936447903789244
+  },
+  "low-fluid-0": {
+   "from": "ElevenLabs Sound Effects v3, user-starred take",
+   "licence": "Generated with ElevenLabs; not CC0",
+   "source": "references/audio/elevenlabs-next-2026-10-22/low-fluid.wav",
+   "generationId": "0Y9UCaElgv8BeqnMXQir",
+   "sourceSha256": "34ae2d1b9a1c867370b4550b47917bd14ea341b0536c4aa966f15ad096d3c4c3",
+   "selectedTake": 1,
+   "cutSeconds": [
+    0,
+    0.8065
+   ],
+   "fitSeconds": null,
+   "timeStretch": null,
+   "processing": "mono 44.1 kHz PCM16; 4 ms onset/25 ms tail fades; peak-normalized; finite one-shot",
+   "bytes": 71178,
+   "sha256": "b9161c90b529f5cd98bcdc06d9ba33a40256290cf5c7652d3fb12bf5ae6d9e10",
+   "duration": 0.8065079365079365,
+   "peakDbfs": -6.000000000000001,
+   "rmsDbfs": -24.97671259931265
   }
  }
 }

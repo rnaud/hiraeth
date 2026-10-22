@@ -902,6 +902,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     pad: () => !!globalThis.document?.body?.classList?.contains?.('controller') }) : null;
   const openStarMap = () => {
     if (!starMap || !menus?.openStarMap?.(starMap)) return false;
+    if (gameState.flag('ship.powered')) sound.nextAction?.('ship-confirm', { gap: .3, ui: true });
     // (the first time there is a world to find: how the search works, as the ship's useTable says it once the page drew it)
     if (starMap.targets?.length && gameState.flag('ship.powered') && !gameState.flag('signature.search.told')) {
       gameState.set('signature.search.told', true);

@@ -9,6 +9,13 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
+    v: '1.97', date: '2026-10-22',
+    items: [
+      { text: 'Forming the fluid blade, opening the shield and refilling the tank have softer new sounds, with a discreet reminder when fluid runs low.', see: 'Draw your blade from rest, raise the shield and refill an ordinary tank. Spend a full tank below one quarter: one gentle warning plays until a meaningful refill. First-water and new-colour celebrations retain their existing cues.' },
+      { text: 'New voicemail, ship controls, small pickups and newly charted worlds now have warm, rounded sound cues.', see: 'Open a powered galactic map and scan a new world, collect a small object, or receive a new voicemail. Reloading an already waiting message stays quiet. The opening message rings once rather than repeating while you explore.' },
+    ],
+  },
+  {
     v: '1.96',
     date: '2026-10-22',
     items: [

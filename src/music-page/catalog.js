@@ -39,6 +39,10 @@ export const PLUMBING = {
   templeDoor: 'physical sliding lifecycle for shared selected takes (Recorded takes)', templeDoorUpdate: 'sliding audio progress and cleanup',
   templeLocked: 'shared locked feedback (Recorded takes)', templeMechanism: 'shared mechanism take (Recorded takes)',
   pauseActionAudio: 'pause and dialogue lifecycle for action sound controllers',
+  nextAction: 'finite selected action routing and cooldowns (Recorded takes)',
+  fluidLevel: 'quarter-tank edge scheduler for low-fluid (Recorded takes)',
+  bladeForm: 'sheath draw event wrapper for blade-form (Recorded takes)',
+  discovery: 'map discovery event wrapper for discovery-reveal (Recorded takes)',
   canSpeak: 'the voices', holdFloor: 'the voices', hush: 'the voices', utterance: 'the voices', trace: 'the voices',
   vary: 'a random factor (the synth\'s variation)', swish: 'a building block of the swings (fluidSlash, toss)', uiOut: 'the menus\' bus (ui)',
 };

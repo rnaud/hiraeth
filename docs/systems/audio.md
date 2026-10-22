@@ -1102,3 +1102,9 @@ separately revised sand contacts), verified exact hashes and PCM frame counts,
 and created no AudioSources. Warm inputs were restored byte-for-byte. This is
 numerical/native format evidence, not a subjective listening assessment.
 The existing treasure music response and positional legacy vocals are preserved.
+
+### Selected NEXT actions (v1.97)
+
+Eight author-starred sources in `references/audio/elevenlabs-next-2026-10-22/` rebuild through `scripts/sfx/import-next.py`. They use mono 44.1 kHz PCM16, finite one-shots, unchanged pitch, 4 ms/25 ms edge fades and -6 dBFS peak normalization; runtime group gain is 0.2. No hoverbike, hologram or additional temple takes were selected. Every temple retains the shared action bank.
+
+`NextActionAudio` owns short cue handles, reserves cooldowns even while samples load (synthesis stays a one-event fallback), and stops on pause, mute, away and disposal. Map discovery/control cues explicitly use the UI bus while the world is paused. Drawing uses the sheath transition, never every swing; initial rig setup is silent. Shield opening replaces its original cue without changing parry/closing. Ordinary refill replaces the bubbling cue while newly acquired colours retain their celebration. The shared fluid tool warns on a downward quarter-tank crossing, rearms at half, and seeds silently after dry/load/inactive states. Pickups replace grab/cloth/notes, retaining the separate fragment theme. Both map implementations resolve through the same Sound method. A new message announces once per ID; initial waiting messages seed silently and the opening reminder no longer repeats. No cue waits for decode then replays a stale event.

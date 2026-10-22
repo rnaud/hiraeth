@@ -227,3 +227,16 @@ test('clear of the flask and of his body in every pose he takes', { timeout: 300
   assert.equal(worst.size, 17, 'every pose looked at');
   tool.dispose();
 });
+
+test('selected blade formation follows the real draw edge, never held guard or repeated swings', async () => {
+  const { tool, tick } = await armed(); let forms=0;
+  tool.sound={bladeForm(){forms++;}};
+  try {
+    for(let i=0;i<10;i++)tick({});assert.equal(forms,0,'initial rig/load stays quiet');
+    for(let i=0;i<60;i++)tick({KeyZ:true});assert.equal(forms,1,'held guard draws once');
+    for(let i=0;i<120;i++)tick(i%50===0?{KeyF:true}:{});
+    assert.equal(forms,1,'swing sounds do not reform the already drawn blade');
+    for(let i=0;i<(STANCE.linger+SHEATHE.time+1)/dt;i++)tick({});
+    for(let i=0;i<30;i++)tick({KeyZ:true});assert.equal(forms,2,'a later genuine draw has a new cue');
+  } finally {tool.dispose();}
+});

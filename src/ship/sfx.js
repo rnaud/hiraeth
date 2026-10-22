@@ -54,8 +54,9 @@ function synthAlarm(s, level) {
 }
 
 /** An incoming call: two soft rising notes. */
-export function ring(s) {
+export function ring(s, id = 'opening') {
   if (!ok(s)) return;
+  if (s.nextAction?.('voicemail-ready', { gap: .9, onceKey: `voicemail:${id}` })) return;
   const t = s.ctx.currentTime;
   s.sweep(t, 660, 700, 0.18, 0.05, 'sine');
   s.sweep(t + 0.22, 880, 940, 0.26, 0.05, 'sine');
@@ -63,6 +64,7 @@ export function ring(s) {
 
 export function beep(s, high = false) {
   if (!ok(s)) return;
+  if (high && s.nextAction?.('ship-confirm', { gap: .3, ui: true })) return;
   s.sweep(s.ctx.currentTime, high ? 1400 : 900, high ? 1500 : 860, 0.08, 0.04, 'square');
 }
 

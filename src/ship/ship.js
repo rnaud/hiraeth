@@ -930,6 +930,13 @@ export class Ship {
     if (toolOn !== this._toolOn) { this._toolOn = toolOn; game.emit('tool:enable', { on: toolOn }); }
     // the screen, the mobile, the voicemail button
     const waiting = this.messageWaiting();
+    // Seed silently on load; only a newly arriving message announces itself.
+    if (!this.playing) {
+      const id = this._wait;
+      if (this._messageAudioReady && id && id !== this._messageAudioId) sfx.ring(this.sound, id);
+      this._messageAudioReady = true;
+      if (id) this._messageAudioId = id;
+    }
     for (const m of [this.parked, this.spaceCopy?.model]) {
       if (!m) continue;
       m.callScreen?.update(dt);

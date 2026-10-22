@@ -32,7 +32,7 @@ test('every runtime take has accurate per-file provenance and a bounded payload'
       assert.match(m.url, /^https:\/\/(kenney\.nl\/assets\/(impact-sounds|rpg-audio)|freesound\.org\/s\/\d+\/)$/);
     }
   }
-  assert.ok(total < 6 * 2 ** 20, `runtime bank including 18 selected action takes stays below 6 MiB: ${total}`);
+  assert.ok(total < 7 * 2 ** 20, `runtime bank including 26 selected action takes stays below 7 MiB: ${total}`);
   const shipped = readdirSync(new URL('../public/sfx/', import.meta.url)).filter((f) => /\.(mp3|wav)$/.test(f)).sort();
   assert.deepEqual(shipped, sfxFiles().sort());
   const sources = JSON.parse(readFileSync(new URL('../references/audio/elevenlabs-sfx-2026-10-21/manifest.json', import.meta.url)));

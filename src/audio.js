@@ -19,6 +19,7 @@ import { loadSoundtrack, loadTitleTheme } from './soundtracks.js';
 import { SampleBank } from './sfx.js';
 import { travellerVoice } from './traveller-voice.js';
 import { templeAudio } from './temples/sfx.js';
+import { nextActionAudio } from './next-action-audio.js';
 import { voiceOf, voiceLength, GLANCE, CUES, BALL_VOICES } from './foe-voices.js';
 import { MusicMoments, lightScore, musicMode } from './music-moments.js';
 import { HUM, boxHumWait } from './story/hum.js';
@@ -255,6 +256,7 @@ export class Sound {
     this._shipAudio?.pause();
     this._travellerVoice?.pause(true);
     this._templeAudio?.pause(true);
+    this._nextActionAudio?.stop();
     if (!this.master) return;
     const g = this.master.gain, t = this.ctx.currentTime;
     g.cancelScheduledValues(t);
@@ -604,6 +606,7 @@ export class Sound {
     this._shipAudio?.dispose();
     this._travellerVoice?.dispose();
     this._templeAudio?.dispose();
+    this._nextActionAudio?.dispose();
     this.bank?.dispose();
     this.trackAbort?.abort(); this.titleAbort?.abort();
     clearInterval(this.scheduler); clearInterval(this.menuTimer); clearTimeout(this._menuStop); clearTimeout(this._preload); clearTimeout(this._trackStop);
@@ -632,6 +635,7 @@ export class Sound {
     this._shipAudio?.pause();
     this._travellerVoice?.pause(true);
     this._templeAudio?.pause(true);
+    this._nextActionAudio?.stop();
     store.set('hiraeth.muted', this.muted ? '1' : '0');
     if (this.master) this.master.gain.setTargetAtTime(this.masterLevel(), this.ctx.currentTime, 0.1);
   }
@@ -1863,9 +1867,14 @@ export class Sound {
   templeDoorUpdate(piece) { this._templeAudio?.update(piece); }
   templeLocked() { return templeAudio(this).cue('temple-locked', 1.5); }
   templeMechanism() { return templeAudio(this).cue('temple-mechanism', .3); }
+  nextAction(group, options) { return nextActionAudio(this).cue(group, options); }
+  fluidLevel(ratio, enabled = true) { nextActionAudio(this).level(ratio, enabled); }
+  discovery() { if (!nextActionAudio(this).cue('discovery-reveal', { gap: 1.8, ui: true })) this.chime(); }
+  bladeForm() { return nextActionAudio(this).cue('blade-form', { gap: .8 }); }
   pauseActionAudio(on = true, voiceHeld = false) {
     this._actionPaused = on; this._voiceHeld = voiceHeld;
     this._travellerVoice?.pause(on || voiceHeld); this._templeAudio?.pause(on);
+    if (on) this._nextActionAudio?.stop(true);
   }
 
   /** Off the ground: a scuff of the foot, the gear's rustle, now and then a soft breath. */
@@ -2108,6 +2117,7 @@ export class Sound {
 
   pickup({ pos = null } = {}) {
     if (!this.ctx || this.muted) return;
+    if (nextActionAudio(this).cue('small-pickup', { gap: 0.12, pos })) return;
     const t = this.ctx.currentTime, v = this.vary(0.04);
     if (!this.sample('grab', { vol: 1, pos })) this.burst(t, { dur: 0.08, type: 'bandpass', freq: 1500 * v, q: 1, vol: 0.12 });
     if (!this.sample('cloth', { vol: 0.5, at: 0.12, pos })) this.burst(t + 0.12, { dur: 0.16, type: 'bandpass', freq: 1000 * v, q: 0.8, vol: 0.05, rate: 0.7 });
@@ -2339,6 +2349,7 @@ export class Sound {
   /** The shield opens on the left hand (src/shield.js): a quick brass ratchet of its ribs and the fluid's rising hiss. */
   shieldOpen() {
     if (!this.ctx) return;
+    if (nextActionAudio(this).cue('shield-bloom', { gap: 0.4 })) return;
     const t = this.ctx.currentTime;
     const v = this.vary(0.08), g = this.vary(0.15);
     for (let i = 0; i < 4; i++) this.burst(t + i * 0.03 * v, { dur: 0.025, type: 'bandpass', freq: (2600 + i * 380) * v, q: 6, vol: 0.05 * g });
@@ -2646,6 +2657,7 @@ export class Sound {
   /** The tank refills: a quick bubbling run up the scale (a longer, brighter one when a colour is added). */
   fluidRefill(added = false) {
     if (!this.ctx) return;
+    if (!added && nextActionAudio(this).cue('fluid-refill', { gap: 2.4 })) return;
     const t = this.ctx.currentTime;
     const notes = added ? [0, 2, 4, 7, 9, 11, 14] : [0, 4, 7, 11];
     notes.forEach((d, i) => {

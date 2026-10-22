@@ -1,0 +1,103 @@
+{
+  "provider": "ElevenLabs Sound Effects v3",
+  "selectedBy": "Author-starred Favorites, reconciled 2026-10-22",
+  "policy": "Only eight NEXT selections; no unselected or per-temple bank",
+  "sources": [
+    {
+      "file": "blade-form.wav",
+      "group": "blade-form",
+      "index": 0,
+      "generationId": "pnjg5viwEXxxKPljX5IE",
+      "selectedTake": 2,
+      "prompt": "Hiraeth NEXT 02 R1 - Fluid blade form. Futuristic Hiraeth sound effect, rounded, gently cute and restrained. Dry isolated clean sound, no music or voices. One compact liquid-light blade forming in the hand: a soft rising rounded synth swell, a small wet sparkle, then a gentle settled glow. Precise immediate start and quiet finish. No swing, impact, metal scrape or old sword unsheathing.",
+      "sha256": "34702b11d8d6aea2f982f71011a450e666c9c2241d7a13b5887ccb32811c0239",
+      "sourceDuration": 1.2,
+      "peakDbfs": -6,
+      "kind": "one-shot"
+    },
+    {
+      "file": "shield-bloom.wav",
+      "group": "shield-bloom",
+      "index": 0,
+      "generationId": "OrCk5PkJU6Qy0WmF5vF6",
+      "selectedTake": 1,
+      "prompt": "Hiraeth NEXT 03 R1 - Shield bloom. Futuristic Hiraeth sound effect, rounded, gently cute and restrained. Dry isolated clean sound, no music or voices. One translucent fluid shield blooming into a rounded disc: a soft elastic electronic bloom with a tiny warm liquid pop, then a very short airy settling tail. Protective and friendly. No impact, parry, ceramic clink or metal clang.",
+      "sha256": "af770e26117aa99e4dae7c3ea5565d7db48ba77c5adbac37ee2958f1836b9923",
+      "sourceDuration": 1.08,
+      "peakDbfs": -6,
+      "kind": "one-shot"
+    },
+    {
+      "file": "fluid-refill.wav",
+      "group": "fluid-refill",
+      "index": 0,
+      "generationId": "wkktDTIOQHCxxgDjZ8i3",
+      "selectedTake": 4,
+      "prompt": "Hiraeth NEXT 04 R1 - Fluid refill. Futuristic Hiraeth sound effect, rounded, gently cute and restrained. Dry isolated clean sound, no music or voices. A small personal fluid reservoir refilling: soft clean liquid burbles under a warm rising electronic tone, ending in one gentle full-tank bloop. One refill gesture, dry and close. No pouring into a glass, mechanical pump rattle or alarm.",
+      "sha256": "952d3c305ec78a980b7d403c5098e4d5123cfb79280309be0f4c30a40be5c8b6",
+      "sourceDuration": 2.4,
+      "peakDbfs": -6,
+      "kind": "one-shot"
+    },
+    {
+      "file": "voicemail-ready.wav",
+      "group": "voicemail-ready",
+      "index": 0,
+      "generationId": "7f8wdNcHxknboJLOYnEO",
+      "selectedTake": 1,
+      "prompt": "Hiraeth NEXT 06 R1 - Voicemail ready. Futuristic Hiraeth sound effect, rounded, gently cute and restrained. Dry isolated clean sound, no music or voices. One gentle message-ready notification from a friendly pocket communicator: a short two-note rounded synth chirrup with a soft liquid edge, warm and inviting. No speech, telephone ring, alarm or repeated notification.",
+      "sha256": "883d90f90483432000047ae9115747cccfdbda495c6ca0ad9157df75344af54d",
+      "sourceDuration": 0.8865,
+      "peakDbfs": -6,
+      "kind": "one-shot"
+    },
+    {
+      "file": "ship-confirm.wav",
+      "group": "ship-confirm",
+      "index": 0,
+      "generationId": "2g1bYIulHl7lvfVqX9xL",
+      "selectedTake": 2,
+      "prompt": "Hiraeth NEXT 07 R1 - Ship control confirm. Futuristic Hiraeth sound effect, rounded, gently cute and restrained. Dry isolated clean sound, no music or voices. One tactile confirmation from a living futuristic ship control: a tiny soft electronic plup with a rounded warm resonant tail. Restrained, precise and pleasant when repeated. No physical switch click, hinged creak, machinery or warning tone.",
+      "sha256": "2457b1a627e3af9eaa03cb242e4dc888b6a53d8b13c980c9f2bcbfe3803ca36d",
+      "sourceDuration": 0.4865,
+      "peakDbfs": -6,
+      "kind": "one-shot"
+    },
+    {
+      "file": "small-pickup.wav",
+      "group": "small-pickup",
+      "index": 0,
+      "generationId": "ceGNTYA5wPjO3dIOvD2n",
+      "selectedTake": 4,
+      "prompt": "Hiraeth NEXT 08 R1 - Small pickup. Futuristic Hiraeth sound effect, rounded, gently cute and restrained. Dry isolated clean sound, no music or voices. One small useful object collected: a soft bright rounded synth droplet rising a little in pitch, with a delicate warm sparkle and quick clean finish. Modest reward, not a victory fanfare. No coins, bells, voice or music.",
+      "sha256": "aa935bfc5bd4b29cbeb1c011e47fe7aecec9d7c1216a68385c2f368ed00cf840",
+      "sourceDuration": 0.6865,
+      "peakDbfs": -6,
+      "kind": "one-shot"
+    },
+    {
+      "file": "discovery-reveal.wav",
+      "group": "discovery-reveal",
+      "index": 0,
+      "generationId": "oYhlEJF2Eqfh74YWCB0g",
+      "selectedTake": 2,
+      "prompt": "Hiraeth NEXT 09 R1 - Discovery reveal. Futuristic Hiraeth sound effect, rounded, gently cute and restrained. Dry isolated clean sound, no music or voices. One quiet discovery of a new place or useful secret: three sparse rounded luminous synth droplets opening into a warm airy shimmer, then silence. Curious and tender, a compact sound effect rather than a melody or fanfare. No voice, brass, dramatic impact or bass boom.",
+      "sha256": "2f8ce66f7f2d34548d699d71e63bb0dbb68c256e854e6ec268c291c9e1aca5ea",
+      "sourceDuration": 1.76,
+      "peakDbfs": -6,
+      "kind": "one-shot"
+    },
+    {
+      "file": "low-fluid.wav",
+      "group": "low-fluid",
+      "index": 0,
+      "generationId": "0Y9UCaElgv8BeqnMXQir",
+      "selectedTake": 1,
+      "prompt": "Hiraeth NEXT 10 R1 - Low fluid nudge. Futuristic Hiraeth sound effect, rounded, gently cute and restrained. Dry isolated clean sound, no music or voices. One discreet low-fluid reminder: two very soft rounded low-mid electronic bubbles gently descending in pitch, with a friendly slightly hollow quality. Calm and noticeable without urgency. No alarm, siren, harsh beep, ticking or repetition.",
+      "sha256": "34ae2d1b9a1c867370b4550b47917bd14ea341b0536c4aa966f15ad096d3c4c3",
+      "sourceDuration": 0.8065,
+      "peakDbfs": -6,
+      "kind": "one-shot"
+    }
+  ]
+}
