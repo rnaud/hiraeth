@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v2.00 — 2026-10-22
+
+- Sound effects finish loading before play, so assigned recordings keep their chosen sound instead of turning into a substitute. A missing download offers Retry without losing your save.
+
 ## v1.99 — 2026-10-22
 
 - Steam Deck players can update the player from the Updates page, with clear download progress and a checked restart that keeps saves and the previous working player.

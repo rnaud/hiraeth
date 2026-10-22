@@ -18,7 +18,7 @@ test('selected cues coalesce, interrupt their own tail, stop on host pause and n
  Sound.prototype.pauseActionAudio.call(f.s,true);assert.equal(f.active.size,0);
  a.cue('shield-bloom');assert.equal(f.calls.length,2);
  Sound.prototype.pauseActionAudio.call(f.s,false);assert.equal(f.calls.length,2);
- f.ready(false);assert.equal(a.cue('small-pickup'),false);f.ready(true);assert.equal(a.cue('small-pickup'),true);assert.equal(f.calls.length,2);
+ f.ready(false);assert.equal(a.cue('small-pickup'),true,'assigned missing take remains handled without synthesis');f.ready(true);assert.equal(a.cue('small-pickup'),true);assert.equal(f.calls.length,2);
  f.tick(1);a.cue('small-pickup');assert.equal(f.active.size,1);a.dispose();assert.equal(f.active.size,0);
  f.s._disposed=true;a.cue('small-pickup');assert.equal(f.calls.length,3);
 });

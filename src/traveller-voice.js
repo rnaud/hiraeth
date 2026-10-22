@@ -12,7 +12,7 @@ export class TravellerVoice {
     this.paused = on;
     if (on) { this.stop(); this.run = 0; this.recovery = false; this.running = false; }
   }
-  // null means unavailable: the caller may use its existing synthesized cue.
+  // null means unavailable. Assigned recordings never substitute a synthesized cue.
   // false means intentionally suppressed: never layer a fallback over a voice.
   play(group, { vol = 1, at = 0, gap = .9, priority = 2, maxDuration = null, pos = null, reach = 60 } = {}) {
     if (!this.allowed()) return false;
@@ -20,7 +20,7 @@ export class TravellerVoice {
     if (now - (this.last.get(group) ?? -1e9) < gap) return false;
     if (now < this.until && (this.active?.priority ?? 10) >= priority) return false;
     const s = this.sound;
-    if (s.bank?.state(group) !== 'ready') { void s.bank?.load(group); return null; }
+    if (s.bank?.state(group) !== 'ready') return null;
     // Higher-priority movement/attack can end a quiet running phrase, not add a
     // second source on top of it. Pending scheduled voices are also stopped.
     // Legacy rate variation can outlast the nominal decoded duration. Stop

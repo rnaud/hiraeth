@@ -816,9 +816,17 @@ export class EngineMenus {
 
   // ------------------------------------------------------------------ the title
 
+  showSoundLoadFailure({ retry, back }) {
+    this.mode = 'title';
+    Object.assign(this.title, { screen: 'sound-error', starting: false, ask: null, i: 0 });
+    this.soundLoadActions = { retry, back };
+    this.v++;
+  }
+
   /** The title's rows on its screen now: [{ id, text, sub, … }]. */
   titleRows() {
     const T = this.title, s = this.store;
+    if (T.screen === 'sound-error') return [{ id: 'retry', text: 'Retry' }, { id: 'back', text: 'Back to title' }];
     if (T.screen === 'main') {
       const last = s.latest(), sum = last ? s.summary(last) : null;
       return [
@@ -860,6 +868,13 @@ export class EngineMenus {
   titleAction(name) {
     const T = this.title;
     if (T.starting) return;
+    if (T.screen === 'sound-error') {
+      if (name !== 'confirm' && name !== 'back') return;
+      const action = name === 'back' || T.i === 1 ? 'back' : 'retry';
+      T.starting = true; this.v++;
+      this.soundLoadActions?.[action]?.();
+      return;
+    }
     if (T.ask) {
       if (name === 'back' || (name === 'confirm' && !T.ask.on)) { T.ask = null; return; }
       if (name !== 'confirm') return;
@@ -1303,7 +1318,7 @@ export class EngineMenus {
     const rows = this.titleRows().map((r, i) => ({ text: r.text, sub: r.sub ?? '', sub2: r.sub2 ?? '', when: r.when ?? '', tag: r.tag ?? '', fold: r.fold ?? '', back: !!r.back, del: !!r.del, note: r.note ?? '', primary: !!r.primary, on: i === Math.min(T.i, this.titleRows().length - 1), pt: `row:${i}` }));
     const sel = this.titleRows()[Math.min(T.i, rows.length - 1)];
     const hint = T.screen === 'saves' ? `A / × choose${sel?.del ? ' · X / □ delete' : ''} · B / ○ back` : 'A / × choose';
-    return { ...base, head: T.screen === 'saves' ? t('title.savesHead') : '', rows, layout: T.screen === 'main' ? lay(rows.length) : null,
+    return { ...base, head: T.screen === 'sound-error' ? 'Sound effects couldn’t load.' : T.screen === 'saves' ? t('title.savesHead') : '', rows, layout: T.screen === 'main' ? lay(rows.length) : null,
       ask: T.ask ? { q: T.ask.q, what: T.ask.what, undone: T.ask.kind === 'delete' ? t('title.undone') : '', no: t('title.keep'), yes: T.ask.yes, on: T.ask.on } : null, hint };
   }
   startView() {

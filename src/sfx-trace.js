@@ -102,7 +102,7 @@ export class SfxTrace {
 // Music entry points suppress nested helper scopes. Other calls supply human-readable
 // effect ownership, but only a successful AudioScheduledSourceNode.start creates an event.
 const MUSIC = new Set('schedule playEvent pad bass combatSchedule menuSchedule menuPad playTitleTheme bandBeat solo soloPhrase soloDrone dum tek clap speak syllable utterance blip'.split(' '));
-const CONTROL = new Set('constructor start startIfAllowed dispose levels toggleMute setVolumes setVoices masterLevel _away setMusicMode musicCue setScore holdTheme musicMomentsUpdate combat menuMusic menuBusEnsure seated seatedK musicLevel noiseLayer set freq rand vary placeAt spot uiOut setBands makeBands band setBandMode listen follow update trace canSpeak holdFloor hush pauseActionAudio bodyVoice'.split(' '));
+const CONTROL = new Set('constructor prepareEffects listenForInput start startIfAllowed dispose levels toggleMute setVolumes setVoices masterLevel _away setMusicMode musicCue setScore holdTheme musicMomentsUpdate combat menuMusic menuBusEnsure seated seatedK musicLevel noiseLayer set freq rand vary placeAt spot uiOut setBands makeBands band setBandMode listen follow update trace canSpeak holdFloor hush pauseActionAudio bodyVoice'.split(' '));
 function installProceduralTrace(trace) {
   const s = trace.sound, ctx = s.ctx;
   if (!ctx) return;

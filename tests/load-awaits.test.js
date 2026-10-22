@@ -31,6 +31,7 @@ const KNOWN = [
   [/^nextFrame\(/, 'a frame or its fallback timer'],
   [/^runStepsAsync\(/, 'a world\'s build: slices, and the promises its own steps yield (workers and assets with a way out)'],
   [/^Physics\.create\(/, 'the collisions: its build in slices, the BVH worker with a main-thread fallback'],
+  [/^prepareSoundWithRetry\(/, 'each fetch/body/decode has a 60 s deadline; failure exposes Retry or Back to title, an explicit player choice'],
   [/^loadPlayableCaravan\(/, 'the ship asset: a 60 s deadline, with explicit reload guidance on failure'],
   [/^(animLib|humans|mhPeople|traveller)\b/, 'an asset load started earlier, its failure caught (null)'],
   [/^new GLTFLoader\(\)\.loadAsync\(/, 'an asset load, its failure caught', (after) => /\.catch\(/.test(after.split('\n')[0])],
@@ -71,6 +72,10 @@ test('the guard catches an unbounded wait', () => {
 });
 
 test('the known waits keep their bounds', () => {
+  const effects = readFileSync(new URL('../src/sfx.js', import.meta.url), 'utf8');
+  assert.match(effects, /timeoutMs = 60000/);
+  assert.match(effects, /Promise\.race\(\[deadline/);
+  assert.match(effects, /setTimeout\([\s\S]*?, this\.timeoutMs\)/);
   const caravan = readFileSync(new URL('../src/ship/caravan-asset.js', import.meta.url), 'utf8');
   assert.match(caravan, /timeoutMs = 60000/);
   assert.match(caravan, /Promise\.race\(/);

@@ -8,7 +8,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { installAudio } from '../engine/webaudio.js';
 import { measure, variation, dB } from '../scripts/sound-qc/lib.mjs';
-import { seeded, CALM } from '../scripts/sound-qc/render.mjs';
+import { seeded, CALM, decodedTakes } from '../scripts/sound-qc/render.mjs';
 
 const G = globalThis;
 G.window ??= G; G.addEventListener ??= () => {}; G.removeEventListener ??= () => {};
@@ -17,7 +17,22 @@ const { Sound, TALK_DUCK } = await import('../src/audio.js');
 const { planLine, voiceOf } = await import('../src/story/voice.js');
 
 const RATE = 48000, made = [];
-const fresh = (score = false) => { const s = new Sound('desert', { score }); s.start(); clearInterval(s.scheduler); clearTimeout(s._preload); s.update(CALM); s.ctx.render(RATE / 2); made.push(s); return s; };
+// The shipping action path now requires its complete assigned bank. Render actual
+// packaged takes instead of forcing the retired missing-recording synth substitute.
+const { SampleBank } = await import('../src/sfx.js');
+const { preparedBank } = await import('../src/effect-assets.js');
+const decode = new G.AudioContext({ sampleRate: RATE });
+const takesFromDisk = decodedTakes('/private/tmp/hiraeth622-action-takes');
+decode.decodeAudioData = async name => {
+  const pcm = takesFromDisk(name.split('/').pop());
+  if (!pcm) throw new Error(`Missing packaged take ${name}`);
+  const buffer = decode.createBuffer(pcm.channels.length, pcm.channels[0].length, pcm.rate);
+  pcm.channels.forEach((channel, i) => buffer.getChannelData(i).set(channel));
+  return buffer;
+};
+const prepared = new SampleBank(decode, { fetcher: async name => ({ ok: true, arrayBuffer: async () => name }) });
+await prepared.preload();
+const fresh = (score = false) => { const s = new Sound('desert', { score }); s.start(); s.bank.dispose(); s.bank = preparedBank(s.ctx, { ready: true, bank: prepared }); clearInterval(s.scheduler); clearTimeout(s._preload); s.update(CALM); s.ctx.render(RATE / 2); made.push(s); return s; };
 test.after(() => { for (const s of made) { clearInterval(s.scheduler); clearInterval(s.menuTimer); s._unlisten?.(); } });
 /** `fn`'s sound alone (the same render without it taken out), seeded: its measure. */
 function heard(fn, { secs = 1.5, seed = 7, setup = null } = {}) {
@@ -26,16 +41,17 @@ function heard(fn, { secs = 1.5, seed = 7, setup = null } = {}) {
 }
 const takes = (fn, n = 6) => Array.from({ length: n }, (_, i) => heard(fn, { seed: 100 + i * 977 }));
 
-test('the blade pressed is heard at once, short, a little different every time; the heavy third deeper', () => {
-  const T = takes((s) => s.fluidWindup(0));
+test('the intentional wind-up synthesis is immediate, short and varied beneath recorded cloth', () => {
+  const windup = (n, seed = 7) => heard(s => s.fluidWindup(n), { seed, setup: s => { s.sample = () => false; } });
+  const T = Array.from({ length: 6 }, (_, i) => windup(0, 100 + i * 977));
   for (const m of T) assert.ok(m && m.onset < 0.02 && m.dur < 0.5 && m.rms > -50 && m.peak < -1, JSON.stringify(m));
   const v = variation(T);
   assert.ok(v.level >= 1 || v.centroid >= 2, `varied: ${JSON.stringify(v)}`);
-  const heavy = heard((s) => s.fluidWindup(2)), light = heard((s) => s.fluidWindup(0));
+  const heavy = windup(2), light = windup(0);
   assert.ok(heavy.centroid < light.centroid, `the heavy one darker (${heavy.centroid} < ${light.centroid})`);
 });
 
-test('the cut\'s synth swish (the engines\' swing) varies; it is louder than the press', () => {
+test('the assigned blade cut varies and remains louder than its wind-up', () => {
   const T = takes((s) => s.fluidSlash(0));
   const v = variation(T);
   assert.ok(v.level >= 1 || v.centroid >= 2, `varied: ${JSON.stringify(v)}`);

@@ -371,3 +371,11 @@ html.reduce-motion #title .clouds, html.reduce-motion #title .planet, html.reduc
 .fullmenu .menu-nav button .glyph { margin: 0 0 0 auto; }
 .fullmenu .panel button { display: inline-flex; align-items: center; }
 
+
+/* Recording readiness uses the title's paper, lettering and readable controller-sized actions. */
+dialog[data-effect-loading] { max-width: min(28rem, 90vw); box-sizing: border-box; padding: 24px; border: 1.5px solid #211a17; border-radius: 3px; background: #f4efdf; color: #282d30; font: 500 calc(16px * var(--ts, 1))/1.45 var(--face); box-shadow: 4px 4px 0 #e27c5b; }
+dialog[data-effect-loading]::backdrop { background: rgba(43, 33, 31, 0.55); }
+dialog[data-effect-loading] p { margin: 0; }
+dialog[data-effect-loading] > div { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 20px; }
+dialog[data-effect-loading] button { min-height: 44px; padding: 10px 16px; border: 1.5px solid #211a17; border-radius: 3px; box-shadow: 2px 2px 0 #e27c5b; color: #211a17; background: #fbe8c4; font: 800 calc(14px * var(--ts, 1))/1.2 var(--face); letter-spacing: 0.08em; text-transform: uppercase; }
+dialog[data-effect-loading] button:is(:hover, :focus-visible) { background: #e27c5b; color: #fffaf0; outline: 2px solid #211a17; outline-offset: 3px; }

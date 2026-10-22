@@ -1,3 +1,4 @@
+import { SFX } from './sfx.js';
 // Finite selected action cues. Suppressed events never queue for a later decode.
 export class NextActionAudio {
   constructor(sound) { this.sound = sound; this.cues = new Map(); this.once = new Set(); }
@@ -9,12 +10,11 @@ export class NextActionAudio {
     const old = this.cues.get(group);
     if (old && now - old.at < gap) return true;
     old?.handle?.stop(0);
-    // Reserve even an unloaded fallback: repeated empty-tank presses must not
-    // stack synthesized warnings or switch to a late sample mid-gesture.
+    // Reserve the event even if unavailable: no queued late cue or substitute synthesis.
     this.cues.set(group, { at: now, handle: null, ui });
     const dest = ui ? s.uiOut() : pos ? s.spot?.(pos, { until: 4 }) ?? s.fx : s.fx;
     const handle = s.bank?.start(group, { dest });
-    if (!handle) return false;
+    if (!handle) return Object.hasOwn(SFX, group);
     this.cues.set(group, { at: now, handle, ui });
     return true;
   }

@@ -22,6 +22,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { CHANGELOG } from '../src/changelog.js';
 import { desktopApi, gameBuild, unityJson, webJson, xboxApi } from './release-info.mjs';
 import { ON_DEVICE_THEMES } from '../src/music-store.js';
+import { sfxFiles } from '../src/sfx.js';
 
 export const SITE = 'https://hiraeth.alexandria-rnaud.workers.dev/';
 export const UPDATES = 'updates';
@@ -173,14 +174,16 @@ export async function writeArchive(out, name, zip, partSize = UPDATE_PART) {
 
 /**
  * The Unity script over the air (BridgeUpdates.cs, the Unity-default plan's D14): `dir` (scripts/engine-bundle.mjs ota: the
- * player's StreamingAssets/hiraeth-js without public/) zipped as unity-<build>.zip beside web-<build>.zip, and its
+ * player's StreamingAssets/hiraeth-js plus the assigned public/sfx set) zipped as unity-<build>.zip beside web-<build>.zip, and its
  * manifest updates/unity.json (release-info.mjs unityJson), the previous build's zip kept as web's is. The zip's
  * bundle.json has to be this build's.
  */
 export async function writeUnityUpdate({ out, dir, build, version = CHANGELOG[0].v, site = SITE, previous = null, partSize = UPDATE_PART }) {
-  const { zip, names } = await zipDir(dir, { skip: (n) => n === 'public' || n.startsWith('public/') || n.endsWith('.meta') || n.endsWith('.DS_Store') });
+  const effects = new Set(['public', 'public/sfx', 'public/sfx/manifest.json', ...sfxFiles().map(n => `public/sfx/${n}`)]);
+  const { zip, names } = await zipDir(dir, { skip: (n) => (n.startsWith('public/') && !effects.has(n)) || n.endsWith('.meta') || n.endsWith('.DS_Store') });
   if (!names.includes('hiraeth.cjs')) throw new Error(`no hiraeth.cjs in ${dir}: node scripts/engine-bundle.mjs ota ${dir}`);
   const info = JSON.parse(await readFile(join(dir, 'bundle.json'), 'utf8').catch(() => '{}'));
+  if (info.minUnity >= 4) for (const name of effects) if (name.startsWith('public/sfx/') && !names.includes(name)) throw new Error(`missing assigned effect ${name}`);
   if (info.build !== build) throw new Error(`${dir}/bundle.json is build ${info.build}, not ${build}`);
   await mkdir(out, { recursive: true });
   const file = join(out, `unity-${build}.zip`);

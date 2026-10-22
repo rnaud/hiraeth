@@ -6,6 +6,7 @@
 //
 //   const D = await driver({ out, level: 'desert' });
 //   const r = D.play(scenario)   → { calls: [{ f, t, name, args }], pcm, rate, press: frame of the first press }
+import { installEffectFileDecoder } from './render.mjs';
 import { join, resolve, dirname } from 'node:path';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -15,7 +16,7 @@ export const FPS = 30;
 const RATE = 48000, BLOCK = RATE / FPS;
 
 /** The Sound's own plumbing (called every frame, or by the sounds themselves): left out of a scenario's calls. */
-export const PLUMBING = new Set(['update', 'listen', 'follow', 'schedule', 'ambienceTick', 'houseTick', 'set', 'musicLevel', 'seatedK', 'levels', 'masterLevel',
+export const PLUMBING = new Set(['prepareEffects', 'listenForInput', 'assignedEffect', 'assignedVoice', 'update', 'listen', 'follow', 'schedule', 'ambienceTick', 'houseTick', 'set', 'musicLevel', 'seatedK', 'levels', 'masterLevel',
   'musicMomentsUpdate', 'moveFoeSpots', 'railsUpdate', 'underwater', 'combat', 'combatSchedule', 'rand', 'placeAt', 'freq', 'burst', 'sweep', 'sample', 'pluck',
   'noiseGlide', 'struck', 'ting', 'crystalTing', 'keyBell', 'foeEar', 'foeSpot', 'foeVoice', 'instrument', 'playEvent', 'setBandMode', 'band', 'boxHum', 'canSpeak',
   'holdFloor', 'utterance', 'trace', 'start', 'startIfAllowed', 'noiseLayer', 'menuSchedule', 'menuPad', 'menuBusEnsure', 'bandBeat', 'makeBands', 'setBands', 'vocal',
@@ -48,7 +49,10 @@ export async function engineBundle(file, { fresh = false } = {}) {
  */
 export async function driver({ file, level = 'desert' } = {}) {
   const { loadBundle } = await import(join(ROOT, 'engine/vm-run.mjs'));
-  const mod = loadBundle(file).exports;
+  const vm = loadBundle(file), mod = vm.exports;
+  const probe = mod.makeSound(level, { sampleRate: RATE, prepareOnly: true });
+  installEffectFileDecoder(vm.ctx.window.AudioContext);
+  probe.dispose();
   const make = (o) => hushed(() => mod.createGame({ levelId: level, backend, fight: true, audio: { sampleRate: RATE }, ...o }));
   async function play(sc) {
     const g = await make({ levelId: sc.level ?? level, ...(sc.game ?? {}) });

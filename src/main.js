@@ -1,3 +1,4 @@
+import { prepareSoundWithRetry } from './effect-loading.js';
 import { homecomingKind, roadDone, ROAD } from './story/ending.js';
 import { GIVERS_NOTE } from './story/signature.js';
 import * as THREE from 'three';
@@ -336,6 +337,10 @@ const humans = Promise.all([loadHuman('m'), loadHuman('f')]).catch((e) => { cons
 // the body's one file asked for now, while the rest loads
 const mhPeople = usesMakeHuman(levelId, query.get('mh')) ? loadPeople(import.meta.env.BASE_URL, levelId).catch((e) => { console.warn('MakeHuman bodies unavailable', e); return null; }) : null;
 await stage(`sketching ${meta.title.toLowerCase()}…`);
+const sound = new Sound(levelId, { muted: query.has('cinematicReview') || query.has('guardianReview') || query.has('characterReview') || query.has('markReview') ? true : undefined, autoStart: false, listen: false });
+await prepareSoundWithRetry(sound, { message: loadMsg,
+  onProgress: ({completed,total}) => { if (loadMsg) loadMsg.textContent = `Loading sound effects ${completed}/${total}`; },
+  onFailure: () => { if (titleHold) titleHold.stage = 'Sound effects couldn’t load.'; }, onBack: () => location.assign(import.meta.env.BASE_URL) });
 const caravan = await loadPlayableCaravan(import.meta.env.BASE_URL).catch(error => {
   loadWatch.stop();
   if (loadMsg) { loadMsg.textContent = 'The ship could not be loaded. Reload to try again.'; loadMsg.setAttribute('role', 'alert'); }
@@ -662,7 +667,8 @@ await slice();
 // a context; startReview runs after world loading and is too late for this.
 setStep('sound, tool');
 // (behind the title, the game's sound waits for its first frame: the title's music plays meanwhile)
-const sound = new Sound(levelId, { muted: query.has('cinematicReview') || query.has('guardianReview') || query.has('characterReview') || query.has('markReview') ? true : undefined, autoStart: !titleHold });
+sound.listenForInput();
+if (!titleHold) sound.startIfAllowed();
 // the body heard: jumps, landings, the climb, the wings, the roll, falling and getting up (src/foley.js)
 const foley = new BodyFoley(sound);
 interactHooks.onUse = () => sound.pickup({ pos: player.pos });   // (picking something up, taking it)

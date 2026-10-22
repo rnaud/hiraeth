@@ -556,8 +556,10 @@ export class AudioContext {
     return node;
   }
   _sendBuffer(b) {
-    if (b._bid) return;
-    b._bid = ++bufferIds;
+    this._sentBuffers ??= new WeakSet();
+    if (this._sentBuffers.has(b)) return;
+    this._sentBuffers.add(b);
+    b._bid ??= ++bufferIds;
     const R = this._rec;
     if (b.native) { R.push(OP.nbuf, b._bid, b.native, b.numberOfChannels, b.length, b.sampleRate, b.join, b.level); return; }
     R.push(OP.buf, b._bid, b.numberOfChannels, b.length, b.sampleRate);

@@ -91,14 +91,17 @@ test('already playing loops show as Playing, not invented starts, with shared mu
   } finally { trace.dispose(); }
 });
 
-test('partial decode retains original take provenance and cancelled future starts are not events', async () => {
+test('a partial group makes no trace; after explicit recovery original take provenance remains exact', async () => {
   const {s,trace}=await setup();
   try {
+    let missing=true;
     s.ctx.decodeAudioData=async()=>s.ctx.createBuffer(1,8000,8000);
-    s.bank=new SampleBank(s.ctx,{table:{contact:{n:2,vol:1,ext:'wav'}},fetcher:async url=>({ok:url.endsWith('-1.wav'),arrayBuffer:async()=>new ArrayBuffer(8)})});
-    await s.bank.load('contact'); trace.attach();
+    s.bank=new SampleBank(s.ctx,{table:{contact:{n:2,vol:1,ext:'wav'}},fetcher:async url=>({ok:!missing||url.endsWith('-1.wav'),arrayBuffer:async()=>new ArrayBuffer(8)})});
+    assert.equal(await s.bank.load('contact'),false); trace.attach();
+    assert.equal(s.bank.start('contact',{dest:s.fx}),null); assert.equal(trace.recent.length,0);
+    missing=false; assert.equal(await s.bank.load('contact',{retry:true}),true);
     const h=s.bank.start('contact',{dest:s.fx,when:s.ctx.currentTime+1});
-    assert.equal(h.traceInfo().file,'contact-1.wav'); h.stop(0); trace.refresh();
+    assert.match(h.traceInfo().file,/^contact-[01]\.wav$/); h.stop(0); trace.refresh();
     assert.equal(trace.recent.length,0); assert.equal(trace.active.size,0);
   } finally { s.bank?.dispose(); trace.dispose(); }
 });

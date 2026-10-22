@@ -4,7 +4,7 @@ import { Sound } from '../src/audio.js';
 
 function listener(ready = true) {
   const samples = [], synth = [];
-  const s = { ctx: { currentTime: 0 }, actionVocal: () => true, sample: (name) => { samples.push(name); return ready; },
+  const s = { ctx: { currentTime: 0 }, actionVocal: () => true, assignedEffect: Sound.prototype.assignedEffect, sample: (name) => { samples.push(name); return ready; },
     vary: () => 1, rand: () => 1, sweep: () => synth.push('tone'), burst: () => synth.push('noise'), swish: () => synth.push('swish'), effort() {} };
   return { s, samples, synth };
 }
@@ -24,7 +24,7 @@ test('approved blaster replaces only ordinary fluid shoot, keeping other mode id
   }
   const fallback = listener(false);
   Sound.prototype.fluidShoot.call(fallback.s, 'shoot');
-  assert.ok(fallback.synth.length > 0);
+  assert.equal(fallback.synth.length, 0, 'missing assigned shoot never substitutes synthesis');
 });
 
 test('perfect parry uses its own cue without doubling synth ping; ordinary block is unchanged', () => {
@@ -32,13 +32,13 @@ test('perfect parry uses its own cue without doubling synth ping; ordinary block
   assert.deepEqual(perfect.samples, ['shield-parry']); assert.deepEqual(perfect.synth, []);
   const normal = listener(); Sound.prototype.fluidBlock.call(normal.s, false);
   assert.deepEqual(normal.samples, ['splat', 'knock']); assert.ok(normal.synth.length > 0);
-  const fallback = listener(false); assert.notEqual(Sound.prototype.fluidBlock.call(fallback.s, true), true);
-  assert.deepEqual(fallback.samples, ['shield-parry', 'splat', 'knock']); assert.ok(fallback.synth.length > normal.synth.length);
+  const unavailable = listener(false); assert.equal(Sound.prototype.fluidBlock.call(unavailable.s, true), true);
+  assert.deepEqual(unavailable.samples, ['shield-parry']); assert.deepEqual(unavailable.synth, []);
 });
 
 test('only mantle bounds the planted contact; ordinary walking keeps the full step', () => {
   const events = [];
-  const s = { ctx: { currentTime: 0 }, actionVocal: () => true, muted: false, sample: () => true,
+  const s = { ctx: { currentTime: 0 }, actionVocal: () => true, assignedEffect: Sound.prototype.assignedEffect, muted: false, sample: () => true,
     step: (speed, options) => events.push({ speed, ...options }) };
   Sound.prototype.mantle.call(s);
   assert.deepEqual(events, [{ speed: 3, vol: 0.5, at: 0.45, maxDuration: 0.3 }]);
@@ -51,7 +51,7 @@ test('only mantle bounds the planted contact; ordinary walking keeps the full st
 test('actual rig contacts replace extra landing footsteps without removing body impact', () => {
   for (const feetPlanted of [false, true]) {
     const feet = [], samples = [], vocals = [];
-    const s = { ctx: { currentTime: 0 }, muted: false, surface: 'stone', actionVocal: group => vocals.push(group),
+    const s = { ctx: { currentTime: 0 }, muted: false, surface: 'stone', assignedEffect: Sound.prototype.assignedEffect, actionVocal: group => vocals.push(group),
       step: (...args) => feet.push(args), sample: name => { samples.push(name); return true; }, burst() {} };
     Sound.prototype.land.call(s, { speed: 10, feetPlanted });
     assert.equal(feet.length, feetPlanted ? 0 : 2);

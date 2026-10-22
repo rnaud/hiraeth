@@ -35,11 +35,12 @@ test('one recorded engine follows throttle, stops at zero, and retries without s
   pirateSounds(s).engine(0); assert.equal(active.size, 0);
 });
 
-test('loading fallback transitions once; pause, mute and disposal silence both paths', () => {
+test('unavailable assigned recording stays silent; pause, mute and disposal retain one recorded owner', () => {
   const { s, c, plays, active, fallback, synth } = fixture();
   s.bank.ready = false;
   c.loop('idle', 'ship-idle', .6, 1, synth);
-  assert.equal(fallback.at(-1), .6);
+  assert.equal(fallback.at(-1), 0, 'unavailable assigned engine never substitutes a procedural sound');
+  assert.equal(active.size, 0);
   c.pause(true); assert.equal(fallback.at(-1), 0);
   s.bank.ready = true; c.pause(true); assert.equal(plays.length, 0);
   c.pause(false); assert.equal(active.size, 1); assert.equal(fallback.at(-1), 0);
@@ -81,16 +82,16 @@ test('deck follows physical phase, resumes at offset, reverses, and skips silent
   const count = plays.length; c.pause(false); assert.equal(plays.length, count);
 });
 
-test('offline deck motor is continuous and its locking click only occurs at an actually reached endpoint', () => {
+test('unavailable assigned deck stays silent through movement, pause, skip and endpoint', () => {
   const { s, c, fallback, synth } = fixture(); s.bank.ready = false;
   let clicks = 0; const model = {}, clunk = () => clicks++;
   c.moveDeck(model, 0, .1, synth, clunk);
-  assert.equal(fallback.at(-1), 1);
+  assert.equal(fallback.at(-1), 0);
   c.pause(true); assert.equal(fallback.at(-1), 0);
-  c.pause(false); assert.equal(fallback.at(-1), 1);
+  c.pause(false); assert.equal(fallback.at(-1), 0);
   c.moveDeck(model, .1, 1, synth, clunk); assert.equal(clicks, 0, 'skip does not schedule a delayed click');
   c.moveDeck(model, 1, .9, synth, clunk);
-  c.moveDeck(model, .1, 0, synth, clunk); assert.equal(clicks, 1);
+  c.moveDeck(model, .1, 0, synth, clunk); assert.equal(clicks, 0, 'missing assigned deck recording cannot substitute a procedural endpoint');
   assert.equal(fallback.at(-1), 0);
 });
 

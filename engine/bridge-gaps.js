@@ -194,6 +194,7 @@ export const GAPS = {
 
   // ------------------------------------------------------------------ page elements (HTML) the game builds
   dom: [
+    { keys: ['src/effect-loading.js'], count: { 'src/effect-loading.js': 6 }, what: 'recoverable sound recording load failure and Retry / Back controls', status: 'handled', where: 'engine/unity/game.js catches SoundEffectsLoadError; EngineMenus.showSoundLoadFailure supplies the native title-menu Retry and Back actions before gameplay is ready' },
     { keys: ['src/sfx-trace.js'], count: { 'src/sfx-trace.js': 2 }, what: 'optional sound-effect source panel', status: 'handled', where: 'shared screen.sfxTrace state, BridgeHud.SoundSources.cs; actual muted Editor recording, procedural, loop, stop and mute views checked for #619' },
     // gaps
     // handled: drawn from the screen's parts, or the engines' own menus
@@ -239,6 +240,7 @@ export const GAPS = {
 
   // ------------------------------------------------------------------ host wiring: main.js against engine/game.js (also #427's list)
   host: [
+    { keys: ['import:src/effect-loading.js#prepareSoundWithRetry'], what: 'strict recording preparation and recoverable loading failure', status: 'handled', where: 'engine/game.js awaits Sound.prepareEffects before building the world; engine/unity/game.js presents EngineMenus.showSoundLoadFailure and retries the complete load with retryEffects' },
     // gaps
     { keys: ['import:src/motion-match.js#loadMotionLibrary'], what: 'the traveller\'s captured moves and the people\'s own walks; motion matching\'s database (only with matching switched on)', status: 'handled',
       where: 'engine/game.js loads walks.glb and moves.glb as main.js does (locoMoves by movesSetting), the database only with matchingSetting or -js-on matching, as the page (issue #427 round 4: docs/systems/engine-bridge.md "Motion matching in the engines": on the Deck the walks and moves ~90 ms of load and ~17 MB, the database ~330 ms and ~13 MB more for what no player has on)' },

@@ -12,6 +12,7 @@ import { existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { SOUNDTRACKS } from '../../src/soundtracks.js';
+import { sfxFiles } from '../../src/sfx.js';
 import { THEME_LEVELS } from '../../src/theme-levels.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
@@ -60,6 +61,20 @@ export function decodedTakes(cache, from = 'public/sfx', root = ROOT) {
     } catch { got = null; }
     if (key) takes.set(key, got);
     return got;
+  };
+}
+
+/** Real-file decoder for the Node VM harness: decode the exact packaged bytes, never fake readiness. */
+export function installEffectFileDecoder(AudioContext, { cache = join(tmpdir(), 'hiraeth-sound-qc-takes') } = {}) {
+  const names = new Map(sfxFiles().map(name => [createHash('sha256').update(readFileSync(join(ROOT, 'public/sfx', name))).digest('hex'), name]));
+  const read = decodedTakes(cache);
+  AudioContext.prototype.decodeAudioData = async function(data) {
+    const name = names.get(createHash('sha256').update(Buffer.from(data)).digest('hex'));
+    const pcm = name && read(name);
+    if (!pcm) throw new Error(`No packaged effect decoder result for ${name ?? 'unknown bytes'}`);
+    const buffer = this.createBuffer(pcm.channels.length, pcm.channels[0].length, pcm.rate);
+    pcm.channels.forEach((channel, i) => buffer.getChannelData(i).set(channel));
+    return buffer;
   };
 }
 

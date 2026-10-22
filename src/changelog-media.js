@@ -1349,6 +1349,33 @@ const RETROID536 = 'Retroid Pocket Nova (Adreno 740, Vulkan), Unity, Handheld (F
 const SRC536 = 'BridgeRenderer.Pipelines (the G-buffer’s states the scene asks for: variant, layout, cull, depth), Metal’s list traced in the editor, the shipped lists rewritten by scripts/bench/pso-one-cull.mjs; docs/systems/performance.md, “One cull mode and one layout for the Surface pipelines”';
 const SEAPORT572 = 'Issue #572: the web game in muted headless Chrome (High, 1280 × 720) on a Vite of its own (port 5441), a new save arriving by ship (?level=underwater&via=ship), then walked as a player; before: origin/main at 02345e2c3, after: this change; the deck and the Dock from the visual check’s views (scripts/design-qc/capture.mjs --fixed-scale); 20 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '2.00': [
+  {
+    "match": "Sound effects finish loading before play",
+    "shots": [
+      {
+        "name": "sound-load-retry",
+        "only": "after",
+        "caption": "A missing recording offers Retry or Back to title before the world opens.",
+        "size": [
+          1280,
+          960
+        ],
+        "from": "Issue #622: actual Unity Editor load-failure menu, High, 1280 × 960, 22 October 2026; uncommitted candidate based on 28261af3f5e9b0977d29d7d93838883a1464a196. One task-packaged sound file was withheld, then restored for the real Retry action. Private store, production mute and an explicit evidence-only stopped/disabled output source before world loading. No listening or Retroid claim. Exact input hashes and warm restoration retained in .local-tools/validation/v2.00/effects-readiness-622/native-5/. After-only evidence."
+      },
+      {
+        "name": "sound-load-restored",
+        "only": "after",
+        "caption": "Retry finishes loading all 105 recordings and opens the Bazaar.",
+        "size": [
+          1280,
+          960
+        ],
+        "from": "Same native review as sound-load-retry, after the actual Retry menu action and successful strict decode. The recovered world is an after-only state, not a historical comparison. Logical PCM counters are not speaker-output measurements."
+      }
+    ]
+  }
+],
   '1.99': [
   {
     "match": "Steam Deck players can update",

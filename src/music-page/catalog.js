@@ -22,6 +22,8 @@ const name = (id) => TITLES[id] ?? ({ ship: 'The ship', title: 'The title screen
 
 /** Methods of Sound that are not a sound of their own: the engine, the buses, the helpers the catalogue's sounds use. */
 export const PLUMBING = {
+  prepareEffects: 'strict assigned recording preparation without playback', listenForInput: 'gesture activation registration',
+  assignedEffect: 'assigned recording ownership without substitution', assignedVoice: 'assigned voice ownership without substitution',
   constructor: 'the engine', startIfAllowed: 'the engine', masterLevel: 'the engine', _away: 'the engine', start: 'the engine',
   dispose: 'the engine', levels: 'the meters', toggleMute: 'the mute', setVolumes: 'the volumes', setVoices: 'the voice volume',
   setMusicMode: 'Settings > Music', musicCue: 'the moments (src/music-moments.js)', musicMomentsUpdate: 'the moments',

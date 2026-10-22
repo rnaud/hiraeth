@@ -364,7 +364,8 @@ function pageTo({ level, from = null }) {
   host.Reboot?.(JSON.stringify({ boot: { slot: slots.active, level, from, resolved: true } }));
 }
 
-function launch(args, { start: from = null, arrive = false, via = null, prologue = false, game = null, came = null, transit = null, back = null } = {}) {
+function launch(args, { start: from = null, arrive = false, via = null, prologue = false, game = null, came = null, transit = null, back = null, retryEffects = false } = {}) {
+  const retryOptions = { start: from, arrive, via, prologue, game, came, transit, back, retryEffects: true };
   const t0 = now();
   const backend = new UnityBackend(host);
   backend.clock = () => sharedUniforms.uTime.value;   // (the shaders' time: HiraethLook.GameClock)
@@ -483,7 +484,7 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
   game = game ? gameId : null;
   const gq = readHref(`?${gameQ ?? ''}`), stage = gq.stage;
   S.gameFrom = args.level ?? 'desert';
-  createGame({ levelId: args.level ?? 'desert', backend, back, game, stage, from: game ? args.level ?? 'desert' : null, to: game ? transit ?? args.to ?? gq.to ?? null : null, onGame: (href) => playGame(href), onLeave: (href) => leaveGame(href), trials: !!args.trial || !!args.fresh, quality: args.quality ?? null, people: args.people !== false, audio: rate ? { sampleRate: rate, record } : null, flags: !ending && (args.views?.length || args.play) ? BENCH_FLAGS : null, log: (...a) => console.log('[game]', ...a),
+  createGame({ levelId: args.level ?? 'desert', backend, back, game, stage, from: game ? args.level ?? 'desert' : null, to: game ? transit ?? args.to ?? gq.to ?? null : null, onGame: (href) => playGame(href), onLeave: (href) => leaveGame(href), trials: !!args.trial || !!args.fresh, quality: args.quality ?? null, people: args.people !== false, audio: rate ? { sampleRate: rate, record, retryEffects } : null, flags: !ending && (args.views?.length || args.play) ? BENCH_FLAGS : null, log: (...a) => console.log('[game]', ...a),
     menus, settings: S.settings ?? null, start: from, arrive: arrive || !!args.arrive, hullSpawn: !!args.hullSpawn, gestures: !off.has('gestures'), moves: !off.has('moves'), matching: String(args.on ?? '').split(',').includes('matching') || null,
     via, prologue: prologue || !!args.prologue, onTravel: (to) => flyTo(to), aboard: aboardRooms(args)[0] ?? (starScenes.length ? 'main' : null), scenes: !!args.aboard, fight: !!args.fight || seqFight, arrival: came, onPage: (o) => pageTo(o), saves: !args.foes && !args.devmenu && !args.house && !args.ui && !args.wardrobe && !args.menuPointer, defer: !off.has('defer'), far: !off.has('far'), skies: !off.has('skies'), lod: String(args.on ?? '').split(',').includes('lod'), onStage: (t) => host.LoadStage?.(t),
     // (the bar under the line and why this part takes the time, src/load-page.js: BridgeHud.Loading draws them, issue #527)
@@ -533,7 +534,14 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
       }
       S.plan = makePlan(args);
     })
-    .catch((e) => { console.error('[unity] the game failed to start', e?.stack ?? e); host.Exit(3); });
+    .catch((e) => {
+      console.error('[unity] the game failed to start', e?.stack ?? e);
+      if (e?.name !== 'SoundEffectsLoadError') { host.Exit(3); return; }
+      S.loadingWorld = false; host.Loading?.(false);
+      S.menus ??= new EngineMenus({ store: slots, settings: S.settings, version: `v${VERSION}`, screen: () => ({ w: host.MenuWidth?.() || 1280, h: 720 }) });
+      S.titlePad ??= new Controller({ pads: () => pads, context: () => 'menu', action: n => S.menus.action(n), navigate: (x, y) => S.menus.navigate(x, y), look() {}, scroll() {}, faces: () => padFaces() });
+      S.menus.showSoundLoadFailure({ retry: () => launch(args, retryOptions), back: () => host.Reboot?.('{}') });
+    });
 }
 
 /**

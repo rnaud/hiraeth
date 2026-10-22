@@ -6,13 +6,13 @@ G.window??=G; G.addEventListener??=()=>{}; G.removeEventListener??=()=>{};
 installAudio(G,{sampleRate:8000});
 const {Sound}=await import('../src/audio.js');
 
-test('real Sound fallback effects and character effort are traced without music or muted requests',async()=>{
+test('unavailable assigned recordings stay silent while intentional procedural effort remains traceable',async()=>{
  const s=new Sound('desert',{autoStart:false,score:false,muted:false});
  try {
   await s.sfxTrace.enable(); s.start();
   clearTimeout(s._preload); s.bank.dispose(); s.bank=null;
   s.shieldOpen(); s.sfxTrace.refresh();
-  assert.ok(s.sfxTrace.recent.some(e=>e.name==='shield Open'&&e.source==='Procedural'),JSON.stringify({recent:s.sfxTrace.recent.map(e=>e.name),active:[...s.sfxTrace.active.values()].map(e=>({name:e.name,when:e.when,gain:e.gain})),muted:s.muted,master:s.master.gain.value}));
+  assert.equal(s.sfxTrace.recent.length,0,'missing assigned shield recording must not emit a procedural substitute');
   s.grunt('effort',1,0); s.ctx.render(160); s.sfxTrace.refresh();
   assert.ok(s.sfxTrace.recent.some(e=>e.name==='grunt'));
   const n=s.sfxTrace.recent.length;
@@ -34,14 +34,14 @@ test('an instrument routed to effects is a sound, while its music-bus counterpar
 });
 
 
-test('held ship synthesis has one loop owner, never source layers plus a duplicate gain-bed row',async()=>{
+test('unavailable assigned ship loops never create a procedural substitute',async()=>{
  const {engines}=await import('../src/ship/sfx.js');
  const s=new Sound('desert',{autoStart:false,score:false,muted:false});
  try {
   s.start();clearTimeout(s._preload);s.bank.dispose();s.bank=null;await s.sfxTrace.enable();
   engines(s,.7,.5);s.ctx.render(4000);s.sfxTrace.refresh();
   const ship=()=>[...s.sfxTrace.active.values()].filter(e=>e.name==='Ship engines');
-  assert.equal(ship().length,1);assert.equal(ship()[0].loop,true);
+  assert.equal(ship().length,0);assert.equal(s.sfxTrace.recent.length,0);
   engines(s,0,0);s.ctx.render(s.ctx.sampleRate*4);s.sfxTrace.refresh();assert.equal(ship().length,0);
  }finally{s.dispose();}
 });

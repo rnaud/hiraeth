@@ -201,11 +201,11 @@ const PROP_TILE_REACH = 110 * Math.SQRT1_2;
  * The game's Sound on the shim (engine/webaudio.js), started: the engine has no autoplay rule to wait for. `title`: the
  * title screen's (src/title.js: no world's score, its own recording over the menu music; engine/unity/game.js).
  */
-export function makeSound(levelId, { sampleRate = 48000, volume = 1, record = false, title = false } = {}) {
+export function makeSound(levelId, { sampleRate = 48000, volume = 1, record = false, title = false, prepareOnly = false } = {}) {
   // (record: the graph rendered elsewhere, from what is done to it here: engine/webaudio.js, the Unity bridge's audio thread)
   installAudio(globalThis, { sampleRate, record });
-  const s = quiet(() => (title ? new Sound('title', { score: false, titleTheme: true, autoStart: false }) : new Sound(levelId)));
-  s.start();
+  const s = quiet(() => (title ? new Sound('title', { score: false, titleTheme: true, autoStart: false, listen: false }) : new Sound(levelId, { autoStart: false, listen: false })));
+  if (!prepareOnly) s.start();
   if (volume !== 1 && s.master) s.master.gain.value = 0.9 * volume;
   return s;
 }
@@ -358,6 +358,13 @@ export const LOOK_VECTORS = new Set(['uWind', 'uHaze', 'uSpot', 'uSpotTone', 'uH
 
 export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', quality = null, log = () => {}, menus = null, start = null, arrive = false, hullSpawn = false, settings = null, gestures = true, moves = true, matching = null, via = null, prologue = false, onTravel = null, aboard = null, scenes = false, fight = false, game: gameId = null, stage: gameStage = null, from = null, to: transitTo = null, onGame = null, onLeave = null, trials: withTrials = false, onPage = null, arrival = null, back = null, saves = true, defer = true, far: farOn = true, lod: lodOn = false, skies = true, waterBed = true, onStage = null, onLoad = null, traveller = null } = {}) {
   const T = {};
+  // Prepare all assigned recordings before constructing a playable world. The native host keeps
+  // polling decode completions while this promise is pending; explicit no-audio tools skip it.
+  const sound = audio ? makeSound(levelId, { ...audio, prepareOnly: true }) : SILENT;
+  if (audio) {
+    try { await sound.prepareEffects({ retry: !!audio.retryEffects, onProgress: ({ completed, total }) => onStage?.(`Loading sound effects ${completed}/${total}`) }); }
+    catch (error) { sound.dispose(); throw error; }
+  }
   // (the fight, engine/combat.js, made once the traveller and his tool are)
   let combat = null;
   // the graphics preset's detail (src/perf.js QUALITY_PRESETS: the Unity bridge's -quality, the Deck's on its Linux player),
@@ -575,7 +582,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   carryHooks.notice = (t) => toast(t, { kind: 'hint' });   // (carrying, src/carry.js: the first time, how to put it down and throw it)
   player.onNotice = toast;
   // the sound: the game's own (src/audio.js) where the engine plays it, else a stand-in that takes every call
-  const sound = audio ? makeSound(levelId, audio) : SILENT;
+  if (audio) { sound.start(); if (audio.volume !== undefined && sound.master) sound.master.gain.value = 0.9 * audio.volume; }
   // the body heard, as main.js (src/foley.js: jumps, landings, the climb, the wings, the roll, falling and getting up),
   // a pick-up, a thing carried set down or thrown, the water's splashes and strokes, the menus (src/ui-sound.js): the
   // engines played none of them before issue #379 (the sound QC, .claude/skills/sound-qc)

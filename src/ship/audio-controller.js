@@ -32,7 +32,7 @@ export class ShipAudio {
       row.handle.set({ vol: level, rate: row.rate });
       row.sentLevel = level; row.sentRate = row.rate;
     }
-    this.fallback(row, row.handle ? 0 : level);
+    this.fallback(row, row.group ? 0 : level);
   }
   fallback(row, level) {
     if (row.fallbackLevel === level) return;
@@ -79,7 +79,7 @@ export class ShipAudio {
     }
     const group = d.direction > 0 ? 'deck-open' : 'deck-close';
     const bank = this.sound.bank, duration = bank?.duration?.(group) ?? 0;
-    if (!duration) { bank?.load?.(group); d.usedFallback = true; d.fallback?.(1); return; }
+    if (!duration) { d.fallback?.(0); return; }
     d.fallback?.(0);
     d.rate = duration / 4.2; d.offset = d.progress * duration;
     d.startedAt = this.sound.ctx.currentTime;
