@@ -9,9 +9,9 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
-    v: '1.93',
-    "date": "2026-10-21",
-    "items": [
+    v: '1.94',
+    date: '2026-10-21',
+    items: [
       { text: 'Your feet stay planted as the Moon Foundry’s moving platforms rise and descend.', see: 'Stand still on the moon-carrier between the signal box and lookout, or ride a moving temple platform. You travel with its height without hovering above it or sinking through it.' },
       { text: 'Jumping forward while locked on now carries you toward your enemy, even from a standing start.', see: 'Lock on with R3, then hold forward and press A / ×. Jump without a direction to go straight up; sideways and backward jumps still dodge.' },
       {
@@ -22,6 +22,12 @@ export const CHANGELOG = [
         "text": "The Rose House’s sliding doors carry their glowing circuits and stone pattern with them.",
         "see": "Open a keyed door inside the Rose House and watch its engraved surface descend with the slab. Light and shadows still respond to the room."
       },
+    ]
+  },
+  {
+    v: '1.93',
+    "date": "2026-10-21",
+    "items": [
       {
         "text": "Your energy blade now hums through light and heavy cuts, and a perfect parry answers with a magnetic snap.",
         "see": "Swing through a three-hit combo, then time a perfect shield block. The heavy cut has its own recording; an ordinary block still sounds different. You can also compare them under Effects on the Music page."

@@ -48,13 +48,14 @@ namespace Hiraeth.Tests
             Assert.AreEqual(2, again.Count);
         }
 
-        [Test]
-        public void PlayerPrefsMoveInOnceAndStayAFallback()
+        [TestCase(null)]
+        [TestCase("")]
+        public void PlayerPrefsMoveInOnceAndStayAFallback(string alternate)
         {
             var prefs = new Dictionary<string, string> { ["hiraeth.settings.v1"] = "{\"quality\":\"deck\"}", ["hiraeth.save.2"] = "old save" };
             int asked = 0;
             var removed = new List<string>();
-            BridgeStore Open() => new BridgeStore(file, k => { asked++; return prefs.TryGetValue(k, out var v) ? v : null; }, k => { removed.Add(k); prefs.Remove(k); }, threaded: false);
+            BridgeStore Open() => BridgeStore.OpenSelected(alternate, file, k => { asked++; return prefs.TryGetValue(k, out var v) ? v : null; }, k => { removed.Add(k); prefs.Remove(k); }, threaded: false);
             var s = Open();
             Assert.AreEqual("{\"quality\":\"deck\"}", s.Get("hiraeth.settings.v1"));
             Assert.AreEqual("{\"quality\":\"deck\"}", s.Get("hiraeth.settings.v1"));
@@ -78,6 +79,36 @@ namespace Hiraeth.Tests
             var u = Open();
             Assert.IsNull(u.Get("hiraeth.settings.v1"));
             Assert.AreEqual("new save", u.Get("hiraeth.save.2"));
+        }
+
+        [Test]
+        public void AnAlternateReviewStoreCannotReadOrRemoveLegacyPlayerValues()
+        {
+            var prefs = new Dictionary<string, string> {
+                ["hiraeth.settings.v1"] = "author settings",
+                ["hiraeth.sdebug.journal.v1"] = "author journal",
+                ["hiraeth.sdebug.game.v1"] = "author progress",
+            };
+            int asked = 0, removed = 0;
+            var normal = new BridgeStore(file, threaded: false);
+            normal.Set("hiraeth.game.v1", "author save");
+            var original = File.ReadAllBytes(file);
+            var review = Path.Combine(dir, "review", "store.json");
+            var s = BridgeStore.OpenSelected(review, file,
+                k => { asked++; return prefs.TryGetValue(k, out var v) ? v : null; },
+                k => { removed++; prefs.Remove(k); }, threaded: false);
+            Assert.IsNull(s.Get("hiraeth.settings.v1"), "review must not inherit global legacy settings");
+            Assert.IsNull(s.Get("hiraeth.game.v1"), "review must not read the default save file");
+            // These removals occur in fresh/sequence startup even when the private file never contained the keys.
+            s.Remove("hiraeth.sdebug.journal.v1");
+            s.Remove("hiraeth.sdebug.game.v1");
+            s.Set("hiraeth.game.v1", "review progress");
+            Assert.IsTrue(s.Flush());
+            Assert.AreEqual(0, asked);
+            Assert.AreEqual(0, removed);
+            Assert.AreEqual(3, prefs.Count);
+            CollectionAssert.AreEqual(original, File.ReadAllBytes(file));
+            Assert.AreEqual("review progress", new BridgeStore(review, threaded: false).Get("hiraeth.game.v1"));
         }
 
         [Test]

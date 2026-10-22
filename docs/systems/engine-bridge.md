@@ -113,6 +113,8 @@ bundle, before the game's modules load (some touch the page as they load), and r
 | `matchMedia`, `devicePixelRatio`, `location`, `history`, `URL` | perf.js, ui.js, main.js (`?level=`), reference levels (`new URL(…, import.meta.url)`) | **shim**: no media matches, `location.search` from the host |
 | WebAssembly | none (three-mesh-bvh is plain JS) | |
 
+An explicit Unity `-store <file>` is an isolated review store. It reads and writes only that JSON file and its backup; it neither imports nor removes legacy PlayerPrefs values. The ordinary persistent store retains legacy migration. Device reviews must still seed their own mute/settings before startup and leave the author’s default store untouched.
+
 ### The platform layer (`src/platform.js`)
 
 One module for what the game's modules reach for on the page, so the same code runs on the web and

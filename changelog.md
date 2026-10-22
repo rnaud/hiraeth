@@ -2,6 +2,13 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.94 — 2026-10-21
+
+- The Rose House’s sliding doors carry their glowing circuits and stone pattern with them.
+- The Rose House entrance now joins the building instead of standing apart from it.
+- Jumping forward while locked on now carries you toward your enemy, even from a standing start.
+- Your feet stay planted as the Moon Foundry’s moving platforms rise and descend.
+
 ## v1.93 — 2026-10-21
 
 - The selected recorded effects now play in native versions as well as the browser.
@@ -10,10 +17,6 @@ The same release notes shown in the game (press **N** or open settings).
 - Boots settle softly into fine sand, compress grass and tap stone with separate footsteps.
 - The fluid gun fires a smaller, rounded energy blip with a playful liquid finish.
 - Your energy blade now hums through light and heavy cuts, and a perfect parry answers with a magnetic snap.
-- The Rose House’s sliding doors carry their glowing circuits and stone pattern with them.
-- The Rose House entrance now joins the building instead of standing apart from it.
-- Jumping forward while locked on now carries you toward your enemy, even from a standing start.
-- Your feet stay planted as the Moon Foundry’s moving platforms rise and descend.
 
 ## v1.92 — 2026-10-21
 

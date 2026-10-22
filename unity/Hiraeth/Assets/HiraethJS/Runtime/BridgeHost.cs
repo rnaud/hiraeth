@@ -339,11 +339,10 @@ namespace Hiraeth.Bridge
         public static BridgeStore OpenStore()
         {
             if (store != null) return store;
-            var file = BridgeArgs.Arg("-store") is string alt && alt.Length > 0 ? Path.GetFullPath(alt) : Path.Combine(Application.persistentDataPath, "store.json");
-            store = new BridgeStore(file,
+            store = BridgeStore.OpenSelected(BridgeArgs.Arg("-store"), Path.Combine(Application.persistentDataPath, "store.json"),
                 k => Ask(() => PlayerPrefs.HasKey(PrefsPrefix + k) ? PlayerPrefs.GetString(PrefsPrefix + k) : null),
                 k => On(() => { if (PlayerPrefs.HasKey(PrefsPrefix + k)) { PlayerPrefs.DeleteKey(PrefsPrefix + k); PlayerPrefs.Save(); } }));
-            UnityEngine.Debug.Log($"Hiraeth bridge: the store {file} ({store.Source}, {store.Count} keys)");
+            UnityEngine.Debug.Log($"Hiraeth bridge: the store {store.path} ({store.Source}, {store.Count} keys)");
             return store;
         }
         /// <summary>What was set, on the disk (the exit, going away, an update's restart).</summary>

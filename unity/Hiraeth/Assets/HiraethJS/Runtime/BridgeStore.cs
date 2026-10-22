@@ -64,6 +64,15 @@ namespace Hiraeth.Bridge
             if (threaded) { writer = new Thread(WriteLoop) { Name = "Hiraeth store", IsBackground = true }; writer.Start(); }
         }
 
+        /// <summary>An explicit review store is self-contained: it must never import or remove a player's legacy values.</summary>
+        public static BridgeStore OpenSelected(string alternatePath, string defaultPath,
+            Func<string, string> fallback = null, Action<string> fallbackRemove = null, bool threaded = true)
+        {
+            return !string.IsNullOrEmpty(alternatePath)
+                ? new BridgeStore(Path.GetFullPath(alternatePath), threaded: threaded)
+                : new BridgeStore(defaultPath, fallback, fallbackRemove, threaded);
+        }
+
         // ---------------------------------------------------------------- reading
         void Load()
         {
