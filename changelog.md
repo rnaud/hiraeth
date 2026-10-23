@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v2.04 — 2026-10-22
+
+- Sword strikes now show the result they actually achieved: armour keeps its sparks, passing through a phased foe does not look like a hit, and overhead hits recoil away from the blow.
+
 ## v2.00 — 2026-10-22
 
 - Sound effects finish loading before play, so assigned recordings keep their chosen sound instead of turning into a substitute. A missing download offers Retry without losing your save.

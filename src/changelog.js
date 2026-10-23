@@ -8,6 +8,9 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '2.04', date: '2026-10-22', items: [
+    { text: 'Sword strikes now show the result they actually achieved: armour keeps its sparks, passing through a phased foe does not look like a hit, and overhead hits recoil away from the blow.', see: 'Compare a miss, a light cut against a closed shell, a cut into an exposed foe and a perfect parry. Only accepted cuts give the wet impact and success splash; armour keeps its own sound and sparks.' },
+  ] },
   {
     v: '2.00', date: '2026-10-22',
     items: [

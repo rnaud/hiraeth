@@ -1349,6 +1349,14 @@ const RETROID536 = 'Retroid Pocket Nova (Adreno 740, Vulkan), Unity, Handheld (F
 const SRC536 = 'BridgeRenderer.Pipelines (the G-buffer’s states the scene asks for: variant, layout, cull, depth), Metal’s list traced in the editor, the shipped lists rewritten by scripts/bench/pso-one-cull.mjs; docs/systems/performance.md, “One cull mode and one layout for the Surface pipelines”';
 const SEAPORT572 = 'Issue #572: the web game in muted headless Chrome (High, 1280 × 720) on a Vite of its own (port 5441), a new save arriving by ship (?level=underwater&via=ship), then walked as a player; before: origin/main at 02345e2c3, after: this change; the deck and the Dock from the visual check’s views (scripts/design-qc/capture.mjs --fixed-scale); 20 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '2.04': [{
+    match: 'Sword strikes now show the result',
+    shots: [
+      { name: 'contact-phase', title: 'A shadow stays a shadow', size: [1280, 960], caption: 'A staged cut through the phased hound: before, a success splash appeared despite no damage; after, the same rejected contact produces no success splash.', from: 'Unity editor, muted, Arena, High, 1280 × 960. Paired staged target callbacks at fixed player/foe/camera positions: before uses the original strike/hurt/react methods from 3dbe15a95; after uses the #635 source patch on that base. Native-contact-4 records one callback and unchanged health in both, then verifies zero impact/splash after. The traveller is held for comparison; this is not a complete swing animation, audible preview or whole-encounter playtest.' },
+      { name: 'contact-armour', title: 'The shell keeps its own response', size: [1280, 960], caption: 'The closed shell still sparks and deflects the cut. Its own response is retained while the extra successful-hit splash is removed; health is unchanged.', from: 'The same muted Unity Arena comparison at 3dbe15a95 plus #635, native-contact-4. Historical methods versus changed methods, staged actual crab target and one callback per attempt. Event evidence verifies one armour cue in both and no successful blade-impact cue after. These stills cannot demonstrate sound or hit-stop.' },
+    ],
+    see: 'Try a miss, a cut through a phased hound, a light cut against a closed shell, an exposed foe and a perfect parry. A hit now celebrates an accepted result; armour keeps its own cue. Reduced-motion settings keep their existing behavior.',
+  }],
   '2.00': [
   {
     "match": "Sound effects finish loading before play",

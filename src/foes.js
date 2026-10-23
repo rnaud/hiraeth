@@ -2457,7 +2457,7 @@ export class Foes {
     const r = f.hit(mode, dir, info);
     if (!r) return false;
     if (r === 'choked') { this.sound?.foeHurt?.(f.kind, f.def.sound, () => f.chest); this.animKit(f, 0, {}).spray(f.chest, [f.model.spore ?? f.def.tone, '#ffffff'], 18, 3, 3); return true; }   // (its glob bursts in its throat)
-    if (r === 'glance') { this.sound?.foeGlance?.(); this.sparks(f, f.chest); return true; }   // (off a crab's shell, the bronze, a rolling shell, armour a shot can't pass)
+    if (r === 'glance') { if (info) info.dull = true; this.sound?.foeGlance?.(); this.sparks(f, point ?? f.chest); return true; }   // (off a crab's shell, the bronze, a rolling shell, armour a shot can't pass)
     if (r === 'popped') { this.sound?.foeHurt?.(f.kind, f.def.sound, () => f.chest); this.sparks(f, f.chest); return true; }   // (a jelly's lantern)
     if (f.shedNow) this.shedTail(f);
     // (the dash cut through its back, double: a gold ring runs out round it, as the riposte's does)
@@ -2480,7 +2480,10 @@ export class Foes {
     if (!R) return;
     const kind = f.shrugged ? 'shrug' : last || f.reel === 'staggered' || f.reel === 'riposted' || f.toppled > 0 || (info.damage ?? 1) >= 2 ? 'stagger' : 'flinch';
     installFlash(f.model, R);
-    R.hit(dir, kind, { size: Math.max(f.def.radius, f.def.height * 0.5) / 0.6, hold: f.state === 'recover' ? f.timer : 0 });
+    // An overhead / directionless blow still tips away from the foe's front,
+    // rather than inheriting an unrelated previous hit or losing its shove.
+    const reactionDir = dir && Math.hypot(dir.x, dir.z) > 1e-5 ? dir : _w.set(-Math.sin(f.heading), 0, -Math.cos(f.heading));
+    R.hit(reactionDir, kind, { size: Math.max(f.def.radius, f.def.height * 0.5) / 0.6, hold: f.state === 'recover' ? f.timer : 0 });
     if (mode !== 'blade' && mode !== 'world') return;
     const T = this.tool, at = point ?? f.chest, tones = splashTones(R.family, f.model.tones);
     if (!T?.drops) return;
