@@ -1092,7 +1092,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     sound.drone?.('go');
   }
 
-  const noInput = {};
+  const noInput = { jumpBlocked: true };
   let eWasDown = false, qWasDown = false;
   // the HUD's state, as main.js draws it (src/platform.js screen): the cue line, the floating prompt,
   // the toasts, the health bar and the stamina wheel
@@ -1663,6 +1663,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
       // goes to the menu (the controller's menu context), the scene is still drawn
       sound._shipAudio?.pause?.(!!(gadgets?.wheelOn && !talking() && !boxes?.busy?.()) || !!photo.on || !!(menus?.open && !(menus.mode === 'card' && trials?.running && !trials.runner?.paused)));
       sound.pauseActionAudio?.(!!(gadgets?.wheelOn && !talking() && !boxes?.busy?.()) || !!photo.on || !!(menus?.open && !(menus.mode === 'card' && trials?.running && !trials.runner?.paused)), !!story?.busy?.() || !!(shipOn && ship.busy()) || !!boxes?.busy?.() || !!trials?.busy());
+      if (menus?.open || photo.on || gadgets?.wheelOn) { player.clearJumpInput(); tool?.blade.clearDefensiveInput(); }
       if (menus?.open) {
         controller.update(dt, true);
         inputFrame();

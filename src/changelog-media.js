@@ -1349,13 +1349,44 @@ const RETROID536 = 'Retroid Pocket Nova (Adreno 740, Vulkan), Unity, Handheld (F
 const SRC536 = 'BridgeRenderer.Pipelines (the G-buffer’s states the scene asks for: variant, layout, cull, depth), Metal’s list traced in the editor, the shipped lists rewritten by scripts/bench/pso-one-cull.mjs; docs/systems/performance.md, “One cull mode and one layout for the Surface pipelines”';
 const SEAPORT572 = 'Issue #572: the web game in muted headless Chrome (High, 1280 × 720) on a Vite of its own (port 5441), a new save arriving by ship (?level=underwater&via=ship), then walked as a player; before: origin/main at 02345e2c3, after: this change; the deck and the Dock from the visual check’s views (scripts/design-qc/capture.mjs --fixed-scale); 20 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
-  '2.02': [{
+  '2.04': [
+{ match: 'A new sound-effects page', shots: [
+    { name: 'sound-effects-overview', title: 'Effects by source', only: 'after', size: [1280, 526], caption: 'The new catalogue separates gameplay variants from raw recording files and identifies intentional procedural sounds.', from: 'After-only actual site page in the internal Codex browser, d2bcb38ec plus this final shared-typography candidate, 23 October 2026. Constructor-muted with independent audio-output blocking and private stores. Cropped only to the 1280 × 526 application viewport, excluding QA controls; no listening claim.' },
+    { name: 'sound-effects-provenance', title: 'A selected recording', only: 'after', size: [1280, 526], caption: 'Searching for the hologram shows its ElevenLabs recording, variant and expanded provenance. Playback requires an explicit press.', from: 'After-only actual site page in the internal Codex browser, d2bcb38ec plus this final shared-typography candidate, 23 October 2026. Same guarded silent review and application-only viewport crop; no earlier version of this page existed and no before view is implied.' },
+  ] },
+{
+      match: 'Small stick movements now take small steps',
+      shots: [{
+        name: 'fine-walking', only: 'after', size: [1280, 960],
+        caption: 'Small steps across the Bazaar floor with a light touch on the stick.',
+        from: 'Issue #633: actual Unity Editor game, High, 1280 × 960, 22 October 2026. Candidate based on 3dbe15a951812ff5d72e3eccfded4a9112a83e9e; exact reviewed source hashes and warm-project restoration are retained in .local-tools/movement633/native/native-movement-3/. The real Bazaar player received 120 frames at 60 Hz with a post-deadzone stick magnitude of 0.04, moving 0.280 m horizontally. Review used a private muted store and a disabled native output source. This after-only frame illustrates the walking pose; the 30/60 Hz timing checks, not this still, establish jump and dodge behavior. No device listening or author feel acceptance is claimed.',
+      }],
+    },
+{
+    match: 'Looking around before stepping off',
+    shots: [{
+      name: 'manual-camera-return',
+      caption: 'After the same look-down gesture and dismount: your chosen angle now stays put.',
+      size: [1280, 720],
+      from: 'Issue #634: actual Unity Editor game, High, 1280 × 720, muted private store, 22 October 2026. Before captured with exact player.js from 3dbe15a951812ff5d72e3eccfded4a9112a83e9e; after with this camera fix. Initial owned-bike and approach-position fixture in the desert; ordinary E boarding, a real look gesture, and E dismount. Both pictures use the actual follow camera 1.4 seconds after dismount at the same player position. No pinned camera. The before capture was made for this comparison, not retrieved from an older release. Minor moving scenery/time differences remain. Native source hashes, input traces, original PNGs and exact warm restoration are retained in .local-tools/camera-634/native/. This is editor evidence, not Retroid acceptance.'
+    }]
+  },
+{
+    match: 'Sword strikes now show the result',
+    shots: [
+      { name: 'contact-phase', title: 'A shadow stays a shadow', size: [1280, 960], caption: 'A staged cut through the phased hound: before, a success splash appeared despite no damage; after, the same rejected contact produces no success splash.', from: 'Unity editor, muted, Arena, High, 1280 × 960. Paired staged target callbacks at fixed player/foe/camera positions: before uses the original strike/hurt/react methods from 3dbe15a95; after uses the #635 source patch on that base. Native-contact-4 records one callback and unchanged health in both, then verifies zero impact/splash after. The traveller is held for comparison; this is not a complete swing animation, audible preview or whole-encounter playtest.' },
+      { name: 'contact-armour', title: 'The shell keeps its own response', size: [1280, 960], caption: 'The closed shell still sparks and deflects the cut. Its own response is retained while the extra successful-hit splash is removed; health is unchanged.', from: 'The same muted Unity Arena comparison at 3dbe15a95 plus #635, native-contact-4. Historical methods versus changed methods, staged actual crab target and one callback per attempt. Event evidence verifies one armour cue in both and no successful blade-impact cue after. These stills cannot demonstrate sound or hit-stop.' },
+    ],
+    see: 'Try a miss, a cut through a phased hound, a light cut against a closed shell, an exposed foe and a perfect parry. A hit now celebrates an accepted result; armour keeps its own cue. Reduced-motion settings keep their existing behavior.',
+  },
+{
     match: 'Rising water in the Whale-House',
     shots: [
       { name: 'whale-tide-swimming', only: 'after', title: 'Swimming with the rising tide', size: [1280, 720], caption: 'After turning the deep valve, the traveller floats at the raised water surface.', from: 'Issue #629: actual Unity Editor BridgeRenderer, High, 1280 × 720, 22 October 2026; v2.02 candidate based on 28261af3. Muted private store, one initial placement beside the deep valve, then ordinary interaction and movement input. After-only tide state; no older-build picture or physical-device acceptance is claimed. Capture and exact warm-project restoration evidence: .local-tools/whale-qa/native/native-tide-3/.' },
       { name: 'whale-tide-dais', only: 'after', title: 'Climbing onto the dais', size: [1280, 720], caption: 'The same run crosses the Sound and climbs onto the dry dais, while the Listener gate stays locked.', from: 'Issue #629: actual Unity Editor BridgeRenderer, High, 1280 × 720, 22 October 2026; v2.02 candidate based on 28261af3. Muted private store; ordinary forward/swim input after the valve, without further player placement or progression overrides. After-only state from the same run, not a before/after version comparison. Capture and exact restoration evidence: .local-tools/whale-qa/native/native-tide-3/.' },
     ],
-  }],
+  }
+  ],
   '2.00': [
   {
     "match": "Sound effects finish loading before play",

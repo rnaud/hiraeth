@@ -2,11 +2,18 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
-## v2.02 — 2026-10-22
+## v2.04 — 2026-10-23
 
 - The spring boots explain their short hop inside temples and how to jump, then stomp, to sound the Whale-House’s deep notes.
 - Rising water in the Whale-House now carries you up to swim and climb out on native players, instead of leaving you walking below the surface.
 - The spring-boots instructions fit their item card while keeping the charge, temple-hop and stomp controls together.
+- Sword strikes now show the result they actually achieved: armour keeps its sparks, passing through a phased foe does not look like a hit, and overhead hits recoil away from the blow.
+- Looking around before stepping off your hoverbike or ending a flight keeps the camera at the angle you chose.
+- A dodge pressed just before a sword cut ends now waits for the first safe moment, in ordinary fights as well as fight temples.
+- Small stick movements now take small steps. Jumps forgive a slightly late press at an edge, or remember an unused press just before landing.
+- Every temple shares a quiet new ambience, and ordinary doors reuse the same sliding sounds as temple doors.
+- Hoverbikes glide more quietly, holograms wake with a warm CRT sound, and chests and keys open with longer magical flourishes.
+- A new sound-effects page lets you browse every effect, try its variants and see which sounds are recordings and which are made by the game.
 
 ## v2.00 — 2026-10-22
 

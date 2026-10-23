@@ -22,6 +22,7 @@ const name = (id) => TITLES[id] ?? ({ ship: 'The ship', title: 'The title screen
 
 /** Methods of Sound that are not a sound of their own: the engine, the buses, the helpers the catalogue's sounds use. */
 export const PLUMBING = {
+  hologramOff: 'stop the CRT startup tail when its projection closes',
   prepareEffects: 'strict assigned recording preparation without playback', listenForInput: 'gesture activation registration',
   assignedEffect: 'assigned recording ownership without substitution', assignedVoice: 'assigned voice ownership without substitution',
   constructor: 'the engine', startIfAllowed: 'the engine', masterLevel: 'the engine', _away: 'the engine', start: 'the engine',
@@ -32,7 +33,7 @@ export const PLUMBING = {
   combatSchedule: 'the combat layer (Songs)', menuBusEnsure: 'the menu music (Songs)', menuSchedule: 'the menu music', menuPad: 'the menu music',
   noiseLayer: 'the continuous layers (Ambience)', set: 'the continuous layers', update: 'the continuous layers (Ambience: hold)', follow: 'the score\'s activity',
   railsUpdate: 'the rails layer (Ambience: update with rails)', ambienceTick: 'each world\'s ambience bed (Songs: "with its ambience")',
-  houseTick: 'a makers\' house\'s own bed on the beat (Ambience: its ring, drip, moan, creak; src/temples/air.js)',
+  houseTick: 'legacy house texture helpers; gameplay uses the shared recorded temple ambience',
   placeAt: 'placing a sound', spot: 'placing a sound', foeEar: 'placing a foe\'s sound', foeSpot: 'placing a foe\'s sound', moveFoeSpots: 'placing a foe\'s sound',
   listen: 'the listener (the page calls it every frame)', seated: 'a bench\'s swell (src/benches.js)', seatedK: 'a bench\'s swell', musicLevel: 'the music bus\'s level', _humVoice: 'the hum (makersHum)', _humOut: 'the hum (makersHum)',
   setBands: 'the musicians (Songs)', makeBands: 'the musicians', band: 'the musicians', setBandMode: 'the musicians', bandBeat: 'the musicians',
@@ -212,7 +213,7 @@ add('Quests and moments', 'fail', 'A quest gone wrong', one((s) => s.fail()));
 add('Quests and moments', 'whoosh', 'Something giving way', one((s) => s.whoosh()));
 add('Quests and moments', 'rumble', 'Water and earth letting go', [pick('short', (s) => s.rumble(2.5)), pick('long', (s) => s.rumble(5))], 'Viridel\'s terraces');
 add('Quests and moments', 'page', 'A page turned', one((s) => s.page()));
-add('Quests and moments', 'doorway', 'Walking through a doorway: its latch and soft knock', one((s) => s.doorway()));
+add('Quests and moments', 'doorway', 'Walking through a doorway: shared sliding sound', one((s) => s.doorway()));
 add('Quests and moments', 'bell', 'The bell-note whistle', one((s) => s.bell()));
 add('Quests and moments', 'fragmentSong', 'A fragment singing to itself', [pick('near', (s, e) => s.fragmentSong(e.at, 1)), pick('far', (s, e) => s.fragmentSong(e.at, 0.3))]);
 add('Quests and moments', 'finderBeep', 'The finder\'s beep', [pick('far', (s) => s.finderBeep(700)), pick('near', (s) => s.finderBeep(1800))]);
@@ -288,6 +289,8 @@ layer('jet', 'The jets\' roar', { thrusting: true, jetPower: 1 });
 layer('roar', 'A waterfall', { roar: 1 });
 layer('hum', 'The masts\' hum', { hum: 1 });
 layer('bike', 'The hoverbike\'s engine', { riding: true, rideKind: 'bike', rideSpeed: 18 });
+layer('temple', 'Shared temple ambience', { house: { bed: 'shared' } }, 8);
+add('Quests and moments', 'hologramOn', 'Hologram CRT startup', one(s => s.hologramOn()), 'Recorded calls and the powered map');
 layer('rails', 'The train', (e) => ({ rails: { speed: 24, full: 28, out: e.phase() > 0.5 ? 1 : 0, whistle: e.phase() > 0.2 ? 1 : 0 } }), 8);
 add('Ambience', 'chirp', 'Birds', one((s) => { const t = s.ctx.currentTime; for (let i = 0; i < 3; i++) s.chirp(t + i * 0.09, 3000 + i * 300, 0.05); }), 'birds\' worlds');
 add('Ambience', 'horn', 'A far horn', one((s) => s.horn(s.ctx.currentTime)), 'the cities');

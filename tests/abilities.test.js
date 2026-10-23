@@ -70,7 +70,7 @@ test('no backpack: no tank or glove, nothing fires, nothing throws, one jump; fo
   step(30, { KeyR: true }); step(1, { KeyR: true, KeyG: true }); step(1, { TouchFire: true }); step(10);
   assert.equal(tool.k, 0, 'the arm never comes up');
   assert.equal(tool.globs.length, 0); assert.equal(tool.charges, 3);
-  p.pos.set(0, 20, 0); p.onGround = false; p.vel.set(0, 0, 0);
+  p.teleport(v(0, 20, 0), v(0, 1, 0), v(0, 0, 1));   // relocation clears recent ground grace, as a real portal does
   step(1, { Space: true });
   assert.ok(p.vel.y < 0 && p.flipping == null, 'no double jump');
   assert.equal(tool.blade.group.visible, true, 'left unset (as here), the sword is drawn: main.js sets swordOn from the items');

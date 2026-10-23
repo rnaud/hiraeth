@@ -22,6 +22,7 @@ import { SFX } from './sfx.js';
 import { travellerVoice } from './traveller-voice.js';
 import { templeAudio } from './temples/sfx.js';
 import { nextActionAudio } from './next-action-audio.js';
+import { selectedWorldAudio } from './selected-world-audio.js';
 import { voiceOf, voiceLength, GLANCE, CUES, BALL_VOICES } from './foe-voices.js';
 import { MusicMoments, lightScore, musicMode } from './music-moments.js';
 import { HUM, boxHumWait } from './story/hum.js';
@@ -287,6 +288,7 @@ export class Sound {
     this._travellerVoice?.pause(true);
     this._templeAudio?.pause(true);
     this._nextActionAudio?.stop();
+    this._selectedWorldAudio?.stop();
     if (!this.master) return;
     const g = this.master.gain, t = this.ctx.currentTime;
     g.cancelScheduledValues(t);
@@ -637,6 +639,7 @@ export class Sound {
     this._travellerVoice?.dispose();
     this._templeAudio?.dispose();
     this._nextActionAudio?.dispose();
+    this._selectedWorldAudio?.dispose();
     this.bank?.dispose();
     this.trackAbort?.abort(); this.titleAbort?.abort();
     clearInterval(this.scheduler); clearInterval(this.menuTimer); clearTimeout(this._menuStop); clearTimeout(this._preload); clearTimeout(this._trackStop);
@@ -666,6 +669,7 @@ export class Sound {
     this._travellerVoice?.pause(true);
     this._templeAudio?.pause(true);
     this._nextActionAudio?.stop();
+    this._selectedWorldAudio?.stop();
     store.set('hiraeth.muted', this.muted ? '1' : '0');
     if (this.master) this.master.gain.setTargetAtTime(this.masterLevel(), this.ctx.currentTime, 0.1);
   }
@@ -848,6 +852,7 @@ export class Sound {
 
   // ------------------------------------------------------------------ ambience beds
   ambienceTick(t, spb) {
+    if (this.houseBed === 'recorded') return;
     if (this.houseBed && this.houseTick(this.houseBed, t, spb)) return;   // (inside a makers' house: its own, src/temples/air.js)
     const A = this.voice.ambience, R = Math.random();
     if (A === 'birds' && R < 0.35) {                     // little chirps, in twos and threes
@@ -881,10 +886,8 @@ export class Sound {
     }
   }
 
-  /**
-   * A makers' house's own sounds on the score's beat (issue #372, src/temples/air.js HOUSE_AIR's sound.bed), under the
-   * bed update() holds (its roar, drone and wind): true if `kind` is a house's (the world's ambience is left out there).
-   */
+  /** Legacy house textures retained for isolated sound-catalogue previews.
+   * Gameplay's shared recorded temple bed bypasses these random events in ambienceTick(). */
   houseTick(kind, t, spb) {
     const R = Math.random(), at = t + Math.random() * spb;
     const crackle = (n, vol) => { for (let i = 0; i < n; i++) this.burst(at + Math.random() * spb, { dur: 0.008 + Math.random() * 0.025, type: 'highpass', freq: 2200 + Math.random() * 3600, q: 0.8, vol: vol * (0.5 + Math.random()) }); };
@@ -1536,34 +1539,14 @@ export class Sound {
       o.connect(g).connect(this.fx); o.start(t); o.stop(t + dur + 0.05);
     }
   }
-  /** A key going into a lock (issue #274): a soft click, smaller than a box's latch, a dull tumbler under it. */
+  /** The approved three-second magical key release, without an extra mechanical click. */
   keyTurn() {
-    if (!this.ctx) return;
-    const t = this.ctx.currentTime + 0.01;
-    this.burst(t, { dur: 0.022, type: 'bandpass', freq: 2900, q: 5, vol: 0.06, rate: 1.4 });
-    this.burst(t + 0.09, { dur: 0.03, type: 'bandpass', freq: 1700, q: 4, vol: 0.05, rate: 1.1 });
-    this.sweep(t + 0.09, 190, 140, 0.1, 0.03, 'sine');
+    return nextActionAudio(this).cue('key-unlock', { gap: 3 });
   }
 
-  /**
-   * The chest opens where it stands and the light pours up out of it (issue #223): the halves part with a soft hollow
-   * thump of ceramic, then a magical swell, a held open chord rising in from nothing with a shimmer over it. No creak.
-   */
+  /** The approved five-second magical opening owns the reward tail through the reveal. */
   boxOpen() {
-    if (!this.ctx) return;
-    const ctx = this.ctx, t = ctx.currentTime + 0.02, bus = this.fx;
-    this.sweep(t, 160, 95, 0.32, 0.05, 'sine');
-    this.burst(t, { dur: 0.18, type: 'lowpass', freq: 600, q: 0.8, vol: 0.05, rate: 0.7 });
-    // the swell: D, A, D, F#, A rising in, held, fading
-    for (const [semi, v] of [[-12, 0.022], [-5, 0.018], [0, 0.016], [4, 0.012], [7, 0.01]]) {
-      const o = ctx.createOscillator(), g = ctx.createGain(), lp = ctx.createBiquadFilter();
-      o.type = 'triangle'; o.frequency.value = 293.66 * Math.pow(2, semi / 12);
-      lp.type = 'lowpass'; lp.frequency.setValueAtTime(500, t); lp.frequency.linearRampToValueAtTime(2200, t + 1.0);
-      g.gain.setValueAtTime(0, t + 0.1); g.gain.linearRampToValueAtTime(v, t + 0.9); g.gain.setValueAtTime(v, t + 1.3); g.gain.exponentialRampToValueAtTime(0.0005, t + 2.6);
-      o.connect(lp).connect(g).connect(bus); o.start(t + 0.1); o.stop(t + 2.7);
-    }
-    // the shimmer over it, soft (was a bright noise burst)
-    for (let i = 0; i < 6; i++) this.pluck(1174.7 * Math.pow(2, [0, 4, 7, 12, 7, 16][i] / 12), t + 0.35 + i * 0.11, 0.018, 'sine', bus);
+    return templeAudio(this).cue('chest-open', 5);
   }
 
   /** The light pours out: a bright rising shimmer. */
@@ -1778,14 +1761,9 @@ export class Sound {
     this.burst(t, { dur: 0.35, type: 'bandpass', freq: 3200, q: 0.6, vol: 0.12, rate: 0.8 });
   }
 
-  /** Walked into a doorway (src/door-walk.js, issue #389): the latch's tick, the door's soft wooden knock as it gives, and the
-   *  air of the room beyond drawn past (a low breath); the paper's own rustle (page) follows. */
+  /** Ordinary doorway transitions share the selected futuristic sliding-door bank. */
   doorway() {
-    if (!this.ctx || this.muted) return;
-    const t = this.ctx.currentTime, v = this.vary(0.08);
-    this.burst(t, { dur: 0.03, type: 'bandpass', freq: 2600 * v, q: 4, vol: 0.09 });
-    this.sweep(t + 0.03, 190 * v, 120 * v, 0.12, 0.07, 'triangle');
-    this.burst(t + 0.04, { dur: 0.32, type: 'lowpass', freq: 520 * v, q: 0.7, vol: 0.07, rate: 0.6 });
+    return nextActionAudio(this).cue('temple-slide-open', { gap: 1.8 });
   }
 
   /** Something giving way, waking or moving (a quest's step): an airy sweep up, and four notes over it. */
@@ -1909,6 +1887,12 @@ export class Sound {
   templeDoorUpdate(piece) { this._templeAudio?.update(piece); }
   templeLocked() { return templeAudio(this).cue('temple-locked', 1.5); }
   templeMechanism() { return templeAudio(this).cue('temple-mechanism', .3); }
+  hologramOn({ ui = false } = {}) { return nextActionAudio(this).cue('hologram-crt', { gap: 2.5, ui }); }
+  hologramOff() {
+    const cues = this._nextActionAudio?.cues;
+    cues?.get('hologram-crt')?.handle?.stop(0);
+    cues?.delete('hologram-crt'); // A newly opened projection may start immediately.
+  }
   nextAction(group, options) { return nextActionAudio(this).cue(group, options); }
   fluidLevel(ratio, enabled = true) { nextActionAudio(this).level(ratio, enabled); }
   discovery() { if (!nextActionAudio(this).cue('discovery-reveal', { gap: 1.8, ui: true })) this.chime(); }
@@ -1916,7 +1900,7 @@ export class Sound {
   pauseActionAudio(on = true, voiceHeld = false) {
     this._actionPaused = on; this._voiceHeld = voiceHeld;
     this._travellerVoice?.pause(on || voiceHeld); this._templeAudio?.pause(on);
-    if (on) this._nextActionAudio?.stop(true);
+    if (on) { this._nextActionAudio?.stop(true); this._selectedWorldAudio?.stop(); }
   }
 
   /** Off the ground: a scuff of the foot, the gear's rustle, now and then a soft breath. */
@@ -2499,13 +2483,9 @@ export class Sound {
     if (this.rand() < 0.4) this.effort(0.6, 3);
   }
 
-  /** A temple's door opening (src/temples/pieces.js Door): the bolt's clunk at once, then the rush of it going (whoosh). */
+  /** Legacy door callers use the same selected sliding cue as physical temple doors. */
   doorOpen() {
-    if (!this.ctx || this.muted) return;
-    const t = this.ctx.currentTime, v = this.vary(0.06);
-    this.burst(t, { dur: 0.05, type: 'bandpass', freq: 900 * v, q: 3, vol: 0.14 });
-    this.sweep(t, 160 * v, 80 * v, 0.14, 0.06, 'triangle');
-    this.whoosh(0.8);
+    return nextActionAudio(this).cue('temple-slide-open', { gap: 1.8 });
   }
 
   /**
@@ -3109,31 +3089,31 @@ export class Sound {
     const k = Math.min(s.speed / 11, 1.5);
     // the wind's whoosh sits under the music, not over it (storms still rise well above the calm)
     // (sat on a bench the wind steps back under the swelling music: SEATED_SWELL)
-    const W = AMBIENT_WIND * (1 - SEATED_SWELL.duck * (this._sitK ?? 0));
+    const W = (s.house ? 0 : AMBIENT_WIND) * (1 - SEATED_SWELL.duck * (this._sitK ?? 0));
     const highWind = this.voice.ambience === 'highwind' ? 0.03 : 0;
     // (a storm rises well over the calm, but stays a darker roar under the world: not the hiss it was)
-    this.set('howl', (s.gust * 0.012 + s.storm * 0.016 + highWind + (s.altitude > 60 ? 0.02 : 0)) * W + (s.house?.howl ?? 0) * 0.03, 700 + Math.sin(this.ctx.currentTime * 0.3) * 250);
+    this.set('howl', (s.gust * 0.012 + s.storm * 0.016 + highWind + (s.altitude > 60 ? 0.02 : 0)) * W, 700 + Math.sin(this.ctx.currentTime * 0.3) * 250);
     this.set('wind', (0.03 + s.gust * 0.05 + s.storm * 0.07 + k * 0.03 + (this.voice.ambience === 'city' ? 0.02 : 0)) * W, 380 + s.gust * 220 + s.storm * 240);
     this.set('rain', s.rain * 0.07);
     this.set('rainRoof', (s.rainRoof ?? 0) * 0.11);
     this.set('cloak', (s.riding ? 0.04 + k * 0.05 : Math.pow(Math.min(s.speed / 11, 1), 2) * 0.07) * (0.5 + 0.5 * W));
     this.set('jet', s.thrusting ? 0.32 * (0.45 + 0.55 * Math.min(1, s.jetPower ?? 1)) : 0);   // (the throttle's roar: a light squeeze hums)
-    // inside a makers' house (issue #372, src/temples/air.js): its bed (a low roar, a drone, wind), its events on the beat
-    const HB = s.house ?? null;
-    this.houseBed = HB?.bed ?? null;
-    const roar = Math.min(1, Math.max(0, s.roar ?? 0)) * (1 - 0.6 * (s.indoor ?? 0));
-    this.set('roar', roar * 0.2 + (HB?.roar ?? 0) * 0.06, HB?.roar ? HB.roarF ?? 260 : 300 + roar * 260);
+    // One approved ambience loop for every makers' house; the outdoor bed returns on exit.
+    selectedWorldAudio(this).update(s);
+    // The shared recording replaces the house's hum/roar/ticks; outdoor beds are unchanged.
+    this.houseBed = s.house ? 'recorded' : null;
+    const roar = Math.min(1, Math.max(0, s.house ? 0 : s.roar ?? 0)) * (1 - 0.6 * (s.indoor ?? 0));
+    this.set('roar', roar * 0.2, 300 + roar * 260);
     this.set('hiss', roar * roar * 0.035);
     const e = this.engine, t = this.ctx.currentTime;
-    const hum = Math.max(Math.min(1, Math.max(0, s.hum ?? 0)) * (1 - 0.5 * (s.indoor ?? 0)), HB?.hum ?? 0);
-    const humF = HB?.hum ? HB.humF ?? 98 : 98;
+    const hum = Math.min(1, Math.max(0, s.house ? 0 : s.hum ?? 0)) * (1 - 0.5 * (s.indoor ?? 0));
+    const humF = 98;
     if (this.hum.f !== humF) { this.hum.f = humF; this.hum.osc[0].frequency.setTargetAtTime(humF, t, 0.8); this.hum.osc[1].frequency.setTargetAtTime(humF * 2.006, t, 0.8); }
     this.hum.gain.gain.setTargetAtTime(hum * 0.022, t, 0.5);
     this.hum.osc[1].detune.setTargetAtTime(Math.sin(t * 0.21) * 9, t, 0.5);
-    this.set('static', (HB ? (HB.bed === 'signals' ? hum * hum : 0) : hum * hum) * 0.012);
+    this.set('static', hum * hum * 0.012);
     this.railsUpdate(s.rails, s.indoor ?? 0);
-    const motor = s.rideKind === 'bike' || s.rideKind === 'skiff' || s.rideKind === 'taxi';
-    e.gain.gain.setTargetAtTime(motor ? 0.035 : 0, t, 0.2);
+    e.gain.gain.setTargetAtTime(0, t, 0.2); // Selected glide owns the motor layer.
     e.osc.frequency.setTargetAtTime(38 + Math.abs(s.rideSpeed) * 2.2, t, 0.2);
     e.filter.frequency.setTargetAtTime(250 + Math.abs(s.rideSpeed) * 25, t, 0.2);
   }

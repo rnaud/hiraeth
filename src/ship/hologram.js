@@ -633,7 +633,8 @@ export class HoloFigure {
  * `parent` (the ship's group, or the stone at home) at `at`, scaled.
  */
 export class Hologram {
-  constructor({ lib, humans }) {
+  constructor({ lib, humans, onHide = null }) {
+    this.onHide = onHide;
     this.lib = lib;
     this.humans = humans;
     this.figures = {};
@@ -723,9 +724,9 @@ export class Hologram {
   speak(who) { this.speaker = who; }
   /** Tear the picture up (0 .. 1). */
   glitch(k) { this.glitchK = k; }
-  hide() { this.target = 0; this.speaker = null; }
+  hide() { this.onHide?.(); this.target = 0; this.speaker = null; }
   /** Gone at once (a scene skipped). */
-  clear() { this.target = 0; this.k = 0; this.root.visible = false; this.speaker = null; }
+  clear() { this.onHide?.(); this.target = 0; this.k = 0; this.root.visible = false; this.speaker = null; }
   get visible() { return this.root.visible; }
 
   place() {

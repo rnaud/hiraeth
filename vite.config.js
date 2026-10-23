@@ -36,6 +36,7 @@ export const BUILD_INPUT = {
   // data, scripts/lore-data.mjs; a Note on every part; its pictures, public/lore-pictures/, are the site's alone)
   lore: fileURLToPath(new URL('./lore.html', import.meta.url)),
   // the music page (src/music-page/: every song, recorded and procedural, and every sound effect, each with a Note)
+  soundEffects: fileURLToPath(new URL('./sound-effects.html', import.meta.url)),
   music: fileURLToPath(new URL('./music.html', import.meta.url)),
   // the serendipity map (src/serendipity-page/: a world in 3D with every thing of interest on it by kind, issue #381)
   serendipity: fileURLToPath(new URL('./serendipity.html', import.meta.url)),

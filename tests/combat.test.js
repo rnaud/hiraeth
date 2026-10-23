@@ -74,16 +74,38 @@ test('grounded combat uses legs and smoothly returns to locomotion, with matchin
  }
 });
 
-test('buffered combo lands three distinct contacts and cannot be evaded out of its active cut', async()=>{
+test('buffered combo lands three distinct contacts', async()=>{
  clearTargets(); const {p,tool,tick}=await combatPlayer(); const hits=[];
  registerTarget({kind:'foe',lock:true,accepts:['blade'],radius:.8,position:()=>v(0,1,-58.6),onHit:(_m,_p,_d,info)=>hits.push(info.combo)});
  tick({KeyF:true}); tick({}); tick({KeyF:true});
  for(let i=0;i<12;i++)tick({});
- assert.equal(tool.blade.phase,'strike'); tick({AltLeft:true});assert.equal(tool.blade.evadeT,0,'cannot dodge-cancel the cut');
+ assert.equal(tool.blade.phase,'strike'); tick({});
  for(let i=0;i<25;i++)tick({});
  assert.equal(tool.blade.n,1);tick({KeyF:true});
  for(let i=0;i<100;i++)tick({});
  assert.deepEqual(hits,[0,1,2]); assert.equal(tool.blade.swinging,false);
+ tool.dispose();clearTargets();
+});
+
+test('buffered ordinary evade preserves the active contact and replaces the queued combo only in recovery', async()=>{
+ clearTargets(); const {p,tool,tick}=await combatPlayer(); const hits=[];
+ registerTarget({kind:'foe',lock:true,accepts:['blade'],radius:.8,position:()=>v(0,1,-58.6),onHit:(_m,_p,_d,info)=>hits.push(info.combo)});
+ tick({KeyF:true}); tick({}); tick({KeyF:true});
+ for(let i=0;i<12;i++)tick({});
+ const B=tool.blade; assert.equal(B.phase,'strike'); assert.equal(B.queued,true,'second cut queued before the defensive request');
+ tick({AltLeft:true}); assert.equal(B.evadeT,0,'the defensive request cannot interrupt the active cut');
+ let starts=0,previous=B.evadeT;
+ for(let i=0;i<100;i++){
+  const before=B.phase; tick({AltLeft:true});
+  if(B.evadeT>previous){
+   starts++; assert.equal(before,'recover','ordinary evade starts only after the strike');
+   assert.deepEqual(hits,[0],'the first real contact lands before the evade');
+   assert.equal(B.queued,false,'defense replaces the pending follow-up');
+  }
+  previous=B.evadeT;
+ }
+ assert.equal(starts,1,'held defensive input does not repeat after cooldown');
+ assert.deepEqual(hits,[0],'the cancelled combo never strikes'); assert.equal(B.swinging,false);
  tool.dispose();clearTargets();
 });
 

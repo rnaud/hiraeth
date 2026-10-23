@@ -1,3 +1,4 @@
+import { stickForMovementScale } from '../movement-input.js';
 import { CHARTED_SIDE } from '../levels/names.js';
 import * as THREE from 'three';
 import { game } from '../game-state.js';
@@ -31,10 +32,10 @@ import { REVEAL, rigView, anyInput } from './arrival-view.js';
 /** Walking into the ramp takes you aboard (issue #87): this near its foot (m), this fast up it (m/s). */
 export const RAMP_IN = { near: 2.4, speed: 1.2 };
 /**
- * The autopilot's stick at a walk (issue #434): src/player.js eases the speed from 0.35 to 1 of WALK (3.8 m/s, his jog)
- * with the stick, so 0.06 is ~1.5 m/s, under the walk clip's top (walkAt, 1.52 m/s): a walk, not a jog.
+ * The authored step-out keeps its original 1.4782 m/s pace (issue #434), below the walk clip's 1.52 m/s top.
+ * Invert the shared response: a small physical stick can now creep without slowing this directed walk.
  */
-export const AUTO_WALK = 0.06;
+export const AUTO_WALK = stickForMovementScale(0.35 + 0.65 * 0.06);
 /** How long the autopilot walks before it gives up (s of the game's time, at any frame rate). */
 export const AUTO_GIVE_UP = 30;
 import { PrologueDirector, ArrivalDirector, TakeoffDirector, CallDirector, OBJECTIVE } from './cinematics.js';
@@ -394,7 +395,7 @@ export class Ship {
   attach(deps) {
     Object.assign(this, deps);   // player, rig, camera, sound, journal, post, story, wind, levels, order, titles, levelTitle, lib, humans, departure (to) => href | null, go (to): an engine's way to the next world
     // the recordings' hologram: the game's own people, drawn in light (needs the bodies and the mocap library)
-    if (deps.lib && deps.humans && !this.holo) this.holo = new Hologram({ lib: deps.lib, humans: deps.humans });
+    if (deps.lib && deps.humans && !this.holo) this.holo = new Hologram({ lib: deps.lib, humans: deps.humans, onHide: () => this.sound?.hologramOff?.() });
     this.map = new StarMap({
       order: deps.order, levels: deps.levels, journal: deps.journal, current: this.levelId,
       flag: (k) => game.flag(k), powered: () => !!game.flag('ship.powered'),
@@ -715,6 +716,7 @@ export class Ship {
       return;
     }
     sfx.beep(this.sound, true);
+    this.sound?.hologramOn?.({ ui: true });
     this.parked.callScreen?.set({ who: 'map' });
     this.map.toggle(true);
     // the first time with power: why these worlds (src/story/signature.js)

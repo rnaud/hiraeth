@@ -19,6 +19,7 @@ import { buildRivalSled } from './canyon-sled.js';
 import { buildCharacter } from '../player.js';
 import { Dots, FLUID_TONES } from '../fluid-tool.js';
 import { Trail } from '../trail.js';
+import { selectedWorldAudio } from '../selected-world-audio.js';
 
 // ------------------------------------------------------------------ the loop
 export const TRACK = {
@@ -587,24 +588,10 @@ function poseRider(player, B, t) {
   player._gait = null;
 }
 
-// ------------------------------------------------------------------ the bike's sound: its own motor
-function motor(sound) {
+// ------------------------------------------------------------------ the bike's sound: shared selected glide, owned for this race
+export function motor(sound) {
   if (!sound?.ctx || !sound.fx) return null;
-  const ctx = sound.ctx, o = ctx.createOscillator(), o2 = ctx.createOscillator(), f = ctx.createBiquadFilter(), g = ctx.createGain();
-  o.type = 'sawtooth'; o2.type = 'triangle'; f.type = 'lowpass'; f.frequency.value = 300; g.gain.value = 0;
-  o.connect(f); o2.connect(f); f.connect(g).connect(sound.fx);
-  o.start(); o2.start();
-  sound._canyonMotor = g;
-  return {
-    set(speed, boost, live) {
-      const t = ctx.currentTime, on = live && !sound.muted ? 1 : 0;
-      g.gain.setTargetAtTime(on * (0.03 + boost * 0.02), t, 0.15);
-      o.frequency.setTargetAtTime(40 + Math.abs(speed) * 2.2 + boost * 30, t, 0.12);
-      o2.frequency.setTargetAtTime(81 + Math.abs(speed) * 4.3, t, 0.12);
-      f.frequency.setTargetAtTime(260 + Math.abs(speed) * 26 + boost * 900, t, 0.12);
-    },
-    stop() { if (sound._canyonMotor === g) sound._canyonMotor = null; try { g.gain.setTargetAtTime(0, ctx.currentTime, 0.05); o.stop(ctx.currentTime + 0.3); o2.stop(ctx.currentTime + 0.3); } catch { /* (already stopped) */ } },
-  };
+  return selectedWorldAudio(sound).motor();
 }
 
 // ------------------------------------------------------------------ the game

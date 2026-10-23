@@ -1,6 +1,8 @@
 // User-starred takes only. House names remain source provenance, never routing.
 const vocal = vol => ({ n: 1, ext: 'wav', vol, rate: 0, gain: 0 });
 export const ACTION_SFX = {
+  'hoverbike-glide': vocal(.075), 'temple-ambience': vocal(.085),
+  'hologram-crt': vocal(.18), 'chest-open': vocal(.22), 'key-unlock': vocal(.2),
   // The eight NEXT takes are one shared action vocabulary, never world-specific.
   ...Object.fromEntries(['blade-form', 'shield-bloom', 'fluid-refill', 'voicemail-ready',
     'ship-confirm', 'small-pickup', 'discovery-reveal', 'low-fluid'].map(k => [k, vocal(.2)])),

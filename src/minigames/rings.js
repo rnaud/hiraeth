@@ -393,7 +393,7 @@ function* buildRings(scene) {
 }
 
 // ------------------------------------------------------------------ the sounds
-function raceSounds(sound) {
+export function raceSounds(sound) {
   const on = () => !!sound?.ctx && !sound.muted && sound.fx;
   const note = (s) => 440 * Math.pow(2, s / 12);
   const PENTA = [0, 2, 4, 7, 9];

@@ -1,3 +1,4 @@
+import { movementScale } from './movement-input.js';
 import * as THREE from 'three';
 import { makeMaterial } from './materials.js';
 import { Cape } from './cape.js';
@@ -34,6 +35,8 @@ const RUN = 8.2;   // (7.2 until October 2026: a little faster now that it costs
 export const GRAVITY = 32;   // (m/s²; the blade's rising cut leaps with it: src/fluid-blade.js RISE)
 const JUMP = 13;
 export { JUMP, STEP };
+/** Forgiveness for an unspent ground jump; equipment air actions still own their own presses. */
+export const JUMP_INPUT = { grace: 0.1, buffer: 0.12 };
 /**
  * The wings under a makers' roof (issue #436): in a house (Player.inHouse, the houses the temples' runtimes connect him
  * to) the glide comes down at least a metre for every `ratio` m it goes on, whatever the stick or the charms, so a running
@@ -936,7 +939,11 @@ export class Player {
     return this.frame.up;
   }
 
+  /** Drop remembered input when another mode takes control (scenes, seats and fight-temple rolls). */
+  clearJumpInput() { this._jumpGroundAt = -Infinity; this._jumpQueuedUntil = -Infinity; }
+
   respawn(to) {
+    this.clearJumpInput();
     if (this.ride) this.dismount(true);
     this.down = null;
     this.boarding = this.unboarding = null;
@@ -1211,6 +1218,7 @@ export class Player {
 
   /** Jump to another place, e.g. through a portal, with a new "up" (speed: carry on walking along fwd). */
   teleport(pos, up, fwd, { speed = 0 } = {}) {
+    this._jumpGroundAt = -Infinity; this._jumpQueuedUntil = -Infinity;
     this.boarding = this.unboarding = null;
     if (this.down && !this.down.dead) this.down = null;   // (the dead stay down: the game asks to restart)   // the pack is simply back on (fluid-tool.js follows the state)
     this.pos.copy(pos);
@@ -1228,6 +1236,7 @@ export class Player {
 
   /** God mode on or off (GOD; main.js setGod sets you down on the ground once it is off). */
   setGod(on) {
+    this.clearJumpInput();
     this.god = !!on;
     this.vel.set(0, 0, 0);
     if (!on) return;
@@ -1515,6 +1524,10 @@ export class Player {
 
   update(dt, input, camYaw) {
     this.time += dt;
+    // No remembered ground input crosses a different movement mode or a loss of control.
+    if (input.jumpBlocked || this.down || this.ride || this.boarding || this.unboarding || this.mantle || this.climbing || this.swim || this.god || this.doorWalk || this._stagger) {
+      this._jumpGroundAt = -Infinity; this._jumpQueuedUntil = -Infinity;
+    }
     if (this._knockout) { const why = this._knockout; this._knockout = null; if (!this.down) this.knockDown(this.vel, { dead: true, why }); else this.down.dead = true; }
     this.heal(dt);
     // (a knock-down, a mount: what was carried in both hands is let go, src/carry.js; their own frames never pose it)
@@ -1631,14 +1644,20 @@ export class Player {
     const canJet = this.canJet, canGlide = this.canGlide, fuel = this.jetFuel;
     const tr = triggers(input);
     const jetOn = canJet && fuel > 0.004 && !this.carrying;   // (no jets with something in both hands: src/carry.js)
-    const freshJump = !!input.Space && !this._jumpHeld;
+    const freshJump = !input.jumpBlocked && !!input.Space && !this._jumpHeld;
+    if (this.onGround) { if (!input.jumpBlocked) this._jumpGroundAt = this.time; this._airJumped = false; }
+    if (freshJump) this._jumpQueuedUntil = this.time + JUMP_INPUT.buffer;
+    const groundJumpReady = this.time <= (this._jumpQueuedUntil ?? -Infinity)
+      && (this.onGround || (this.vel.dot(U) <= 0 && this.time - (this._jumpGroundAt ?? -Infinity) <= JUMP_INPUT.grace));
+
     // (on the jets already, a press is the throttle at once: there is no double jump in flight)
-    const spaceT = jetOn && !this.onGround && !this._hop && input.Space && (!freshJump || !!this.jetFlight) && !(canGlide && run) ? 1 : 0;   // (not in a hop: A / × held from it)
+    const spaceT = jetOn && !groundJumpReady && !this.onGround && !this._hop && input.Space && (!freshJump || !!this.jetFlight) && !(canGlide && run) ? 1 : 0;   // (not in a hop: A / × held from it)
     const T = jetOn ? spaceT : 0;
     if (!this.jetFlight && jetOn && !this.climbing && !this.onGround && T > 0) this.startJets(false);
     const flying = !!this.jetFlight && this.flyJets(dt, input, { f, s, T, tr, run, freshJump, canGlide, jetOn });
     let steering = false;
     if (flying) {
+      this._jumpGroundAt = -Infinity; this._jumpQueuedUntil = -Infinity;
       move = _jf.set(0, 0, 0);   // (flying into a wall slides along it: no grabbing it to climb)
       this._wantSpeed = 0; this._accel = 2.5;
       this.sprinting = false; this._carry = false; this._autoGlide = false; this.gliding = false;
@@ -1647,7 +1666,7 @@ export class Player {
       // sprinting spends the stamina climbing does (src/stamina.js); winded, you jog
       const sprint = run && canSprint(this) && !this.aim && !this.lockOn && !this.carrying;   // (locked on: no sprint, you strafe; carrying: a walk)
       this.sprinting = sprint && this.onGround && !this.gliding && move.lengthSq() > 0.01;
-      let speed = (sprint ? RUN : WALK) * (stickScale < 1 ? THREE.MathUtils.lerp(0.35, 1, stickScale) : 1);
+      let speed = (sprint ? RUN : WALK) * movementScale(stickScale);
       if (this.gliding) speed *= 1.25;
       if (this.aim) speed = Math.min(speed, WALK) * (1 - 0.35 * this.aim.k);   // aiming: a steady walk
       else if (this.lockOn && !this.gliding) speed = Math.min(speed, LOCK_MOVE.speed);   // locked on: a jog at most
@@ -1680,6 +1699,7 @@ export class Player {
         vu = Math.max(vu, K.up); this.onGround = false;
         tv.copy(K.dir).multiplyScalar(K.speed);
         this._jumped = true;
+        this._jumpGroundAt = -Infinity; this._jumpQueuedUntil = -Infinity;
       }
       this.riseKick = null;
       // the blade's air cut (src/fluid-blade.js AIR): held a moment at the top, then driven down into the cut
@@ -1693,13 +1713,14 @@ export class Player {
       // jump / glide
       let jumped = false;
       // locked on, the stick back or to a side: the back flip, the side hop (hop: src/jump.js HOP), instead of the jump
-      const hk = input.Space && this.onGround && !this._jumpHeld && this.lockOn && this.time >= this._hopReady && !this.down
+      const jumpReady = groundJumpReady && this.time <= (this._jumpQueuedUntil ?? -Infinity);
+      const hk = jumpReady && this.onGround && this.lockOn && this.time >= this._hopReady && !this.down
         ? hopKind(move.dot(this.lockOn.hop ?? this.lockOn.dir) * stickScale, move.dot(_g6.crossVectors(this.lockOn.hop ?? this.lockOn.dir, U).normalize()) * stickScale) : null;
       if (hk) {
         vu = this.hop(hk, tv, U);
         this.onGround = false;
         jumped = true;
-      } else if (input.Space && this.onGround && !this._jumpHeld) {
+      } else if (jumpReady) {
         vu = this.carrying ? JUMP * CARRY.jump : JUMP;   // (carrying: a hop)
         // A forward lock-on jump commits toward the foe even from rest (#612), rather than
         // taking off with just one frame of ground acceleration. Idle jumps and dodge hops
@@ -1714,6 +1735,7 @@ export class Player {
         this._jumpedNow = true;   // (and the captured jump's: src/air-moves.js)
         this._groundJumpAt = this.time;   // (the jets fired from it go nose up: startJets)
       }
+      if (jumped) { this._jumpGroundAt = -Infinity; this._jumpQueuedUntil = -Infinity; }
       const jumpedNow = input.Space && !this._jumpHeld;
       this._jumpHeld = !!input.Space;
       // a fresh press in the air is the double jump, once each time you leave the ground (the lift valve)
@@ -1758,7 +1780,10 @@ export class Player {
       } else { this.glideTurn = 0; this.glideHeavy = false; }
       this.vel.copy(tv).addScaledVector(U, vu);
       // the double jump sets its burst on this.vel; the wings reopen once you fall again
-      if (airPress) this.doubleJump();
+      // A real air action consumes this press; it cannot also become a jump after landing.
+      if ((airPress && this.doubleJump()) || this.gliding) {
+        this._jumpGroundAt = -Infinity; this._jumpQueuedUntil = -Infinity;
+      }
     }
 
     // Swept collision: the frame's motion is split into sub-steps no longer
@@ -2808,6 +2833,7 @@ export class Player {
       speed: hs, onGround: this.onGround, mode: 'ground', vy, jump: this.onGround ? null : J.phase,
       walkAt: Math.min(N.walk * 1.2, WALK * 0.4), jogAt: WALK, sprintAt: RUN,
       strideScale: 1,
+      preciseWalk: steering && (this._wantSpeed ?? 0) < Math.min(N.walk * 1.2, WALK * 0.4),
       mm: A.matching ? this.matchInput() : null,
       reverse: !!this._strafe?.reverse,
       steering,   // (the speed through nothing for a frame, reversing, keeps the gait's blend: Animator GAIT_HOLD)
@@ -3267,6 +3293,7 @@ export class CameraRig {
     this._swing = 0;         // indoors: the turn the camera is easing through to get clear of a wall behind you
     this._wide = 0; this._wideT = 0;   // the wider arm asked for (gliding, the jets), held a moment
     this._chasePitched = false;        // the last follow had a chase that tips the view (the jets' climb or dive)
+    this._chaseOwnsPitch = false;      // only an applied chase may level the view when it ends; manual look takes ownership
     this._settleT = 0; this._settleFrom = 0;   // after it: easing the view back to the on-foot pitch (PITCH_SETTLE)
 
     const refusedLock = (error) => {
@@ -3344,7 +3371,7 @@ export class CameraRig {
     const k = 0.0025 * this.sensitivity;
     this.yaw -= dx * k;
     this.pitch = THREE.MathUtils.clamp(this.pitch + dy * k * (this.invertY ? -1 : 1), this.pitchUpLimit(), PITCH_DOWN);
-    if (dx || dy) this._recentre = null;   // (turned by hand: a recentre under way gives way)
+    if (dx || dy) { this._recentre = null; this._chaseOwnsPitch = false; }   // (turned by hand: automatic turns and flight return give way)
   }
 
   /**
@@ -3468,6 +3495,7 @@ export class CameraRig {
 
   /** Jump straight to the current tight / open state (after placing the player in a scene). */
   snapTight(playerPos) {
+    this._chasePitched = this._chaseOwnsPitch = false; this._settleT = 0;   // an authored placement owns its new pitch
     this._lastP = null;
     if (playerPos) this.updateTight(playerPos, 0, Y, _zAxis, _xAxis);
     this.indoorK = this.indoor ? 1 : 0;
@@ -3498,12 +3526,20 @@ export class CameraRig {
     let d = heading + (shot?.side ?? 0) + Math.PI - this.yaw;
     d = Math.atan2(Math.sin(d), Math.cos(d));
     this.yaw += d * (1 - Math.exp(-(shot?.yawRate ?? 2.2) * dt));
-    if (shot?.pitch != null) this.pitch += (shot.pitch - this.pitch) * (1 - Math.exp(-1.5 * dt));
+    if (shot?.pitch != null) {
+      this.pitch += (shot.pitch - this.pitch) * (1 - Math.exp(-1.5 * dt));
+      this._chaseOwnsPitch = true;
+    }
   }
 
   /** After a pitched chase ends: the pitch eases back to pitch0 (PITCH_SETTLE), given up if you turn the camera. */
   settlePitch(dt, pitched) {
-    if (this._chasePitched && !pitched) { this._settleT = PITCH_SETTLE.time; this._settleFrom = this._now; }
+    if (this._chasePitched && !pitched) {
+      // A look made before landing belongs to the player too, even though the chase still requested a pitch.
+      this._settleT = this._chaseOwnsPitch ? PITCH_SETTLE.time : 0;
+      this._settleFrom = this._now;
+      this._chaseOwnsPitch = false;
+    }
     this._chasePitched = pitched;
     if (this._settleT <= 0) return;
     if (pitched || this._lastMouse >= this._settleFrom) { this._settleT = 0; return; }   // a new chase, or your own hand

@@ -1716,7 +1716,7 @@ const busy = () => restartOpen || shopPanel.isOpen || story.pageOpen || journal.
 // a level's own quick menu (the References' list of views: src/levels/reference-picker.js): a menu like the others for the pad
 const quickMenu = level.quickMenu ?? null;
 if (quickMenu) quickMenu.blocked = () => busy() || photo.on;
-const noInput = {};
+const noInput = { jumpBlocked: true };
 let controllerActive = inputMode.controller;
 // The controller's layout changed in v0.93 (src/bindings.js): a player with a save from before is told once,
 // the first time a pad is used (the flag is the device's, like the settings)
@@ -2282,6 +2282,7 @@ function frame(ts) {
   document.body.classList.toggle('controller-hint', controllerActive && photo.on);
   sound._shipAudio?.pause(paused() || photo.on || document.hidden || !!(gadgets?.wheelOn && !busy()));
   sound.pauseActionAudio?.(paused() || photo.on || document.hidden || !!(gadgets?.wheelOn && !busy()), busy());
+  if (paused() || photo.on || gadgets?.wheelOn) { player.clearJumpInput(); tool.blade.clearDefensiveInput(); }
   if (paused()) { pausedFrame(); requestAnimationFrame(frame); return; }
   // the gadget wheel open (held D-pad ↑ or B): the game waits while you choose (issue #524), only the wheel reads the input
   if (gadgets?.wheelOn && !busy()) { wheelFrame(realDt, mergeControls(latchedInput(), padInput)); requestAnimationFrame(frame); return; }

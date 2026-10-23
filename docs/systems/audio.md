@@ -678,6 +678,28 @@ continuous voice**, a small formant synthesiser of plain Web Audio nodes.
   reveal, the cost. `tests/unity-voice-reference.test.js` keeps the reference's side honest.
 - The music page's **Voices** play every tongue.
 
+## Sound effects inventory (issue #621)
+
+`sound-effects.html` is a site-only listening and provenance page, linked from the Music page. It reuses the
+music catalogue and its player, adding the delegated arcade controllers and nonverbal action efforts. Gameplay
+and the native audio adapter are unchanged. Background scores, spoken dialogue and synthesis building blocks
+remain on the Music page rather than inflating the gameplay-action count.
+
+One card represents an action; its variants do not increase the action count. Raw recording groups are a
+separate inventory. Search combines with use and source filters; a source filter restricts the card's variant
+selector to matching variants. Recording origins come from the shipped SFX manifest, not the action's name.
+Missing provenance is explicitly unknown. “Mixed” means simultaneous recording and procedural layers and
+also displays the recording origin; alternative runtime branches are not classified as a mixed sound.
+
+No output is activated until Play. The shared `Sound.prepareEffects` contract loads every assigned take
+before activation; failed preparation reports a loading error and offers an explicit retry. The page does not
+implement another decoder or play a substitute. Decoded buffers may be shared across private playback owners;
+stopping a preview disposes only that owner. Actual preview sources come from the shared
+`SfxTrace` graph events. The automated review mode constructs Sound muted and does not claim audible source
+proof. The page does not read or write gameplay progress or volume preferences. Stop, a new preview, variant
+or filter changes, hiding the page, losing focus and leaving the page dispose the private player, cancel its
+callbacks and disconnect its output. An obsolete ready/decode promise cannot start playback afterward.
+
 ## The music page (issue #270, October 2026)
 
 `music.html` (`src/music-page/`, Debug → Pages → **Music & sounds**; on the Notes site at
@@ -1145,3 +1167,32 @@ An assigned recording has no automatic procedural substitute. Intentionally proc
 The existing music page gates only game-effect previews. Independent soundtrack/score playback and Stop do not wait for effects; Stop also disposes the private effect owner so pending callbacks cannot start later. A subsequent preview reuses the decoded set through a new owner.
 
 The Unity script update carries `public/sfx/manifest.json` and every assigned take, not unrelated models or music. Strict readiness requires the API 4 selected-bundle SFX policy: files from the selected update are authoritative, including replacements with the same name and rollback. A missing member must not silently resolve to an older installed or repository recording. Release minimum and runtime proof remain part of the release gate.
+
+`NextActionAudio` owns short cue handles, reserves cooldowns even while samples load (synthesis stays a one-event fallback), and stops on pause, mute, away and disposal. Map discovery/control cues explicitly use the UI bus while the world is paused. Drawing uses the sheath transition, never every swing; initial rig setup is silent. Shield opening replaces its original cue without changing parry/closing. Ordinary refill replaces the bubbling cue while newly acquired colours retain their celebration. The shared fluid tool warns on a downward quarter-tank crossing, rearms at half, and seeds silently after dry/load/inactive states. Pickups replace grab/cloth/notes, retaining the separate fragment theme. Both map implementations resolve through the same Sound method. A new message announces once per ID; initial waiting messages seed silently and the opening reminder no longer repeats. No cue waits for decode then replays a stale event.
+
+### Approved revision bank and shared continuous effects
+
+`src/selected-world-audio.js` owns one recorded hoverbike glide and one shared
+temple ambience loop. World travel and Canyon Run reuse the same glide handle;
+the race claims ownership until its motor is stopped, so the world frame cannot
+restart it. Pause, mute, away, exit and disposal stop the handles. The glide gain
+is deliberately restrained, including at full speed and boost. The recording
+replaces the synthesized motor. All temples share one quiet ambience recording:
+it replaces their house roar, hum, wind and random beat events. Outdoor ambience
+and physical actions remain separate.
+
+The selected `chest-open` is a full five-second ceremony; `key-unlock` lasts three
+seconds. Chest opening owns the shared reward exclusion window, so a subsequent
+item reveal or quest completion does not stack a second celebration over its
+tail. The existing treasure music response still runs. `hologram-crt` plays at
+actual recorded-call and homecoming hologram reveals and powered map activation.
+Ordinary door transitions and both directions of temple sliding doors reuse the
+selected `temple-slide-open` bank, with closing offset following its own physical
+progress. No new door selection or per-temple bank is required.
+
+The five accepted masters and prompts are in
+`references/audio/elevenlabs-revisions-2026-10-22/manifest.json`; runtime provenance
+is in `public/sfx/manifest.json`. Strict readiness loads the added five files with
+the rest of the game's assets before gameplay.
+
+The five approved 22 October revisions occupy exactly 2,145,244 runtime bytes (mono 44.1 kHz PCM); together with the prior 6,433,852-byte bank the package is 8,579,096 bytes. The payload regression keeps the original bank and any future assets within 7 MiB, and permits at most 2.1 MiB separately for only these five named takes. Existing source hashes, PCM format, duration, peak and per-file limits still apply. This preserves the accepted loop boundaries without re-encoding the selected recordings.

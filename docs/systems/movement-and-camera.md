@@ -518,7 +518,11 @@ the arm `3.5 m + 0.12 s` wider with speed `s`, and it keeps the close-in framing
 (`shot.keepTight`). When the chase ends (a landing, or the water, the wings, a wall or a ride taking over)
 the pitch eases back to the on-foot framing (`rig.settlePitch`, `PITCH_SETTLE`: ~95 % in 0.75 s, done in
 1 s): nothing on foot levelled it, so a dive left you looking at your feet. Turning the camera yourself
-(the right stick, the mouse) as you land gives it up. Tested in `tests/jets.test.js`.
+(the right stick, the mouse) before or after landing gives it up: the chase must actually
+apply a pitch again after the 1.5 s manual grace before it can own another automatic return.
+A new authored placement (`snapTight`, for example ship wake-up) also clears the old flight
+return; yaw-only recentering leaves the chosen pitch alone. The same ownership applies to the pitched hoverbike chase on dismount. Shared web/Unity host transitions
+at 30/60 Hz are covered in `tests/camera-handoff.test.js`, alongside `tests/jets.test.js`.
 
 **The pose** (`jetPose(speed, pitch)`): the body leans along the nose about the hips (`JET_PIVOT`),
 the more the faster: upright slow or climbing straight up (a rocket), flat out level, head first in a
@@ -620,3 +624,34 @@ The canvas click request handles both promise rejection and synchronous refusal 
 The Aerie authors a `glideCamera` shot on its temple definition: a 6.4 m arm at default zoom, with room-clearance probes retained. Shared `cameraFollow` applies it only while gliding inside that runtime’s bounds. The previous generic glide selected the 13.4 m outdoor chase and disabled those probes; the Wind Well’s broad interior left enough clearance for the full pullback. The existing distance easing and landing recovery remain, as do manual zoom, vehicle shots, jets and outdoor gliding. Both the browser and Unity use this shared camera path.
 
 Validation uses real held glider input in both hosts. In the web comparison, identical 90-frame flights end airborne at the same position: camera arm 9.718 m before and 5.715 m after while easing toward the target. A separate four-second native flight measures 13.386 m before and 6.429 m after. Outside, both settle near 13.4 m. Web and native starts use their respective debug-progress fixtures, so these demonstrate the shared framing behavior rather than identical puzzle state or pixel alignment. The changelog pair is the matched web capture. The focused regressions cover authored-bound selection, other temples, landing, manual zoom, vehicles, and ascent through the real Wind Well geometry; raw pictures, per-frame traces, mute proof and native restoration hashes are retained in `.local-tools/validation/v1.96/aerie-camera-617/`.
+
+
+## Precise movement and one-use input (v2.04, issue #633)
+
+The 3D controller scales its target pace continuously with the post-deadzone stick magnitude.
+`movementScale` keeps 0–0.12 linear for fine positioning, smoothly joins the established travel curve
+by 0.45, and preserves middle/full-stick pace and captured turn timing. There is no minimum speed floor.
+Directed ship walks invert that same response to retain their authored pace.
+The hardware deadzone remains 0.18; full stick and keyboard retain the same walk/run limits.
+Deliberately low target speeds tell the Animator to use distance-paced walking rather than a mostly
+idle blend. The existing reversal safeguard, contact planting and start/stop clips remain in place.
+
+`JUMP_INPUT` in `src/player.js` allows 0.10 s after the last grounded frame and retains an unused
+press for 0.12 s. Ground/edge jumps own a press first; edge grace applies only while falling or level, so it cannot replace an authored spring launch. Otherwise an available double jump owns a
+fresh airborne press immediately; only an unconsumed press may wait for landing. Starting held jets
+or gliding consumes that pending intent. A ground jump, hop or successful air action clears it, so
+one press cannot trigger two actions. Carrying still reduces jump height and denies air equipment.
+The house glide speed/sink, equipment ownership and fluid rules are unchanged.
+
+Teleport/respawn and movement-mode changes clear remembered intent. Web and engine control-lock
+sentinels use `jumpBlocked`; menus, photo mode, the gadget wheel, seats and fight-temple input discard
+pending jumps rather than replaying them on return. Fight temples still disable jumping entirely.
+
+Both ordinary evades and temple rolls retain a grounded defensive press for 0.20 s. A normal evade
+still waits for follow-through; temple rolls keep their existing windup cancellation. Active cuts,
+cooldowns and invulnerability-rest windows remain committed. Loss of control or leaving the ground
+clears the queue; holding a button does not refresh it. The controller/defensive regressions cover
+30/60 Hz, expiry, single consumption, moving floors and flight arbitration in
+`tests/movement-forgiveness.test.js`, `tests/moving-ground-jump.test.js` and `tests/fight-feel.test.js`.
+
+Validation includes 22 production-controller and blade cases executed in the Unity bridge at 30/60 Hz, plus 120 actual Bazaar frames at 60 Hz with 0.04 post-deadzone stick input (0.280 m horizontal travel). The new slow B3 gait keeps held-foot drift below 0.6 cm in the focused start/walk/stop captures; old stair and reversal contracts remain passing. Native review is muted, uses an isolated store, and restores the borrowed project exactly. These checks establish behavior and parity, not author preference approval.

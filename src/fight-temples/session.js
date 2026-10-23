@@ -555,7 +555,7 @@ export function startFightTemple(ctx) {
 
   return {
     // The isometric fight stays on the floor (touch jump also feeds Space); the roll on the button printed B (rules.js rollInput)
-    input(controls) { rollInput(controls, padFaces().faces); },
+    input(controls) { player.clearJumpInput?.(); rollInput(controls, padFaces().faces); },
     /** (the checks: n more of this room's kinds at once, over the cap: the frame budget with a full crowd) */
     crowd(n = CROWD.cap) {
       const kinds = plan[run.room].flat().filter((q) => !q.tough);

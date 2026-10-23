@@ -1,0 +1,62 @@
+{
+  "provider": "ElevenLabs Sound Effects v3",
+  "selectedBy": "Author-starred revisions and ambience, confirmed 2026-10-22",
+  "policy": "Five approved takes only. Shared temple bank and sliding doors; no per-temple recording variations.",
+  "sources": [
+    {
+      "file": "hoverbike-glide.wav",
+      "group": "hoverbike-glide",
+      "index": 0,
+      "generationId": "6v8ydEBWhWfJKDVhhCyT",
+      "selectedTake": 1,
+      "prompt": "Hiraeth REVISION 01 R2 - Quiet hoverbike glide. Very quiet light anti-gravity cushion: thin soft airy exhale with a faint warm rounded electronic purr. Intimate, gentle and unobtrusive beneath footsteps and dialogue, like a barely audible background texture. Extremely restrained low-mid energy. No bass rumble, roar, revving, sharp whine or impact. Steady seamless loop; no start, stop, pass-by, music or voices.",
+      "sha256": "b1905542b091ea925f6543efcc5cc52052b0a82569dc9206867b8d17c8b9c0df",
+      "sourceDuration": 6.0,
+      "kind": "loop"
+    },
+    {
+      "file": "hologram-crt.wav",
+      "group": "hologram-crt",
+      "index": 0,
+      "generationId": "Ak7Yopx8iZoob3dziDFo",
+      "selectedTake": 2,
+      "prompt": "Hiraeth REVISION 02 R2 - CRT hologram startup. One small old CRT television powering on as a friendly hologram. Soft rounded power-button thunk, brief gentle degaussing whoom, delicate dry electrostatic fizz, then a thin rising electronic whine settling into a tiny hum and fading. Recognizable cathode-ray startup: warm, nostalgic, tactile and restrained. No notification chime, glass droplets, harsh screech, speech or music.",
+      "sha256": "a4f086f557a4629450f508a2807fe2b0d308f6af26d8ba12f141435e43a60fa0",
+      "sourceDuration": 2.48,
+      "kind": "one-shot"
+    },
+    {
+      "file": "chest-open.wav",
+      "group": "chest-open",
+      "index": 0,
+      "generationId": "trmVin8bzPHwRKJDSVqN",
+      "selectedTake": 4,
+      "prompt": "Hiraeth REVISION 03 R2 - Grand magical chest opening. A grand enchanted treasure chest slowly opens over five seconds. Deep soft seal release grows into a luminous ascending cascade of warm magical tones and shimmering air, blooming into a rich wondrous reveal and graceful tail. Memorable fantasy-adventure treasure ceremony, expansive and exciting. Original sound design, no existing game melody, wooden creak, metal squeak or speech.",
+      "sha256": "f264fb5bcb5510a13d0d881f1c14774146c9244109162b0f35c84e9a4f794c3d",
+      "sourceDuration": 5.0,
+      "kind": "one-shot"
+    },
+    {
+      "file": "key-unlock.wav",
+      "group": "key-unlock",
+      "index": 0,
+      "generationId": "um63HuXstJuaBAgHv8KQ",
+      "selectedTake": 4,
+      "prompt": "Hiraeth REVISION 04 R2 - Magical key unlocking. One sustained three-second enchanted unlocking gesture for an ancient futuristic sliding door. Soft key contact begins a warm liquid-energy swirl; luminous resonances rise as the lock recognizes the key, then a rounded satisfying harmonic release and gentle tail. Deliberate, mysterious energy rather than machinery. No pin clicks, ratchet, metal scrape, clunks, short beep, door movement or speech.",
+      "sha256": "61b381520980bf3342c9b00c20d8c445647837a86ac4eb3ae9b6a860a2e9b436",
+      "sourceDuration": 3.0,
+      "kind": "one-shot"
+    },
+    {
+      "file": "temple-ambience.wav",
+      "group": "temple-ambience",
+      "index": 0,
+      "generationId": "NgRi2FfFHOwQeBr2AZgh",
+      "selectedTake": 3,
+      "prompt": "Hiraeth TEMPLE 10 R1 - Quiet temple ambience. Isolated polished game sound for Hiraeth. Seamless quiet interior ambience for a serene ancient futuristic temple. Soft broad airflow through stone corridors, distant low warm energy resonance, extremely faint irregular dust-like tinkling. Spacious but restrained, no identifiable melody or rhythm, no voices, footsteps, water, sudden events or horror drones. Stable gentle loop.",
+      "sha256": "2fa983b91e7f250d1ed10f0b573ce7c13be557d68f6f16a6a9fc49fcb42951c8",
+      "sourceDuration": 8.0,
+      "kind": "loop"
+    }
+  ]
+}

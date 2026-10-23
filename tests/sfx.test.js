@@ -9,10 +9,15 @@ const seeded = (seed = 7) => () => ((seed = (seed * 16807) % 2147483647) / 21474
 
 test('every runtime take has accurate per-file provenance and a bounded payload', () => {
   const manifest = JSON.parse(readFileSync(new URL('../public/sfx/manifest.json', import.meta.url), 'utf8'));
-  let total = 0;
+  // These five author-selected revisions add 2,145,244 bytes of mono 44.1 kHz PCM.
+  // Keep the prior bank budget intact; future files cannot borrow this allowance.
+  const selectedFive = new Set(['hoverbike-glide-0.wav', 'hologram-crt-0.wav', 'chest-open-0.wav', 'key-unlock-0.wav', 'temple-ambience-0.wav']);
+  const foundSelected = new Set();
+  let priorBytes = 0, selectedBytes = 0;
   for (const f of sfxFiles()) {
     const bytes = readFileSync(new URL(`../public/sfx/${f}`, import.meta.url));
-    total += bytes.length;
+    if (selectedFive.has(f)) { selectedBytes += bytes.length; foundSelected.add(f); }
+    else priorBytes += bytes.length;
     const m = manifest.files[f.replace(/\.(mp3|wav)$/, '')];
     assert.ok(m, `${f} has a source`);
     assert.equal(m.bytes, bytes.length);
@@ -32,7 +37,9 @@ test('every runtime take has accurate per-file provenance and a bounded payload'
       assert.match(m.url, /^https:\/\/(kenney\.nl\/assets\/(impact-sounds|rpg-audio)|freesound\.org\/s\/\d+\/)$/);
     }
   }
-  assert.ok(total < 7 * 2 ** 20, `runtime bank including 26 selected action takes stays below 7 MiB: ${total}`);
+  assert.deepEqual([...foundSelected].sort(), [...selectedFive].sort(), 'the allowance covers exactly the five approved revisions');
+  assert.ok(priorBytes <= 7 * 2 ** 20, `original bank and any future assets stay within 7 MiB: ${priorBytes}`);
+  assert.ok(selectedBytes <= 2.1 * 2 ** 20, `only the five approved revisions use the separate 2.1 MiB allowance: ${selectedBytes}`);
   const shipped = readdirSync(new URL('../public/sfx/', import.meta.url)).filter((f) => /\.(mp3|wav)$/.test(f)).sort();
   assert.deepEqual(shipped, sfxFiles().sort());
   const sources = JSON.parse(readFileSync(new URL('../references/audio/elevenlabs-sfx-2026-10-21/manifest.json', import.meta.url)));
