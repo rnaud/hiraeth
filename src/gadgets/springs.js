@@ -175,7 +175,7 @@ class Dust {
 export default {
   id: 'springs', name: 'Spring boots', glyph: '⌇', order: 80, trigger: 'use',
   where: 'In the Underwater City’s Whale-House, at the end of the last tube north of the Plaza: on the shell pulpit in its Horn Chamber.',
-  text: 'Brass coils under the boots. Outside temples, hold {key:use} on the ground to wind them, then let go to spring high. Inside temples they give a short hop. To stomp and break cracked floors, jump with {key:jump}, then press {key:use} near the top of your jump.',
+  text: 'Brass coils under the boots. Hold {key:use} to charge, release: high outside, low in temples. Stomp: {key:jump}, then {key:use} at the peak.',
   model: () => springModel(),
   create(ctx) { return new Springs(ctx); },
 

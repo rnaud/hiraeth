@@ -6,6 +6,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 - The spring boots explain their short hop inside temples and how to jump, then stomp, to sound the Whale-House’s deep notes.
 - Rising water in the Whale-House now carries you up to swim and climb out on native players, instead of leaving you walking below the surface.
+- The spring-boots instructions fit their item card while keeping the charge, temple-hop and stomp controls together.
 
 ## v1.99 — 2026-10-22
 

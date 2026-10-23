@@ -11,6 +11,7 @@ export const CHANGELOG = [
   {
     v: '2.02', date: '2026-10-22',
     items: [
+      'The spring-boots instructions fit their item card while keeping the charge, temple-hop and stomp controls together.',
       { text: 'Rising water in the Whale-House now carries you up to swim and climb out on native players, instead of leaving you walking below the surface.', see: 'Turn the valve on the deep floor, wait for the sea to rise, swim across the Sound and climb onto the dais. Its valve lowers the water again.' },
       { text: 'The spring boots explain their short hop inside temples and how to jump, then stomp, to sound the Whale-House’s deep notes.', see: 'Read the spring boots in Items. With them equipped, press A / × to jump, then use the boots near the top of the jump beside a deep-note horn. A wound launch remains higher outside temples.' },
     ],
