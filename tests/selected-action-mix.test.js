@@ -6,6 +6,9 @@ import { SampleBank } from '../src/sfx.js';
 import { ACTION_SFX } from '../src/action-sfx.js';
 import { TravellerVoice } from '../src/traveller-voice.js';
 import { TempleAudio } from '../src/temples/sfx.js';
+import { SelectedWorldAudio } from '../src/selected-world-audio.js';
+import { Sound } from '../src/audio.js';
+import { SfxTrace, recordedOrigin } from '../src/sfx-trace.js';
 
 // Only the native decoder boundary is supplied here. Real approved PCM then
 // travels through SampleBank and the production engine DSP, never a speaker.
@@ -45,7 +48,49 @@ test('actual sliding recordings resume at physical offset and stop on reversal/d
   a.pause(true);assert.ok(!signal(f.ctx.render(11025)));a.pause(false);a.update(p);
   assert.equal(f.bank.active.size,1);assert.ok(Math.abs(f.bank.played.at(-1).offset-.25)<1e-8);
   out=f.ctx.render(4096);finite(out);assert.ok(signal(out));
-  assert.equal(a.door(p,false),false,'closing retains its existing synthesized cue');assert.equal(f.bank.active.size,0);
-  assert.ok(!signal(f.ctx.render(4096)));a.dispose();
+  assert.equal(a.door(p,false),true,'closing reuses the shared sliding recording');assert.equal(f.bank.active.size,1);
+  assert.ok(Math.abs(f.bank.played.at(-1).offset-(1-p.k)*1.8)<1e-8);
+  out=f.ctx.render(1024);finite(out);assert.ok(signal(out));a.dispose();
+  assert.equal(f.bank.active.size,0);assert.ok(!signal(f.ctx.render(4096)));
  }finally{await f.close();}
+});
+test('approved loop PCM stays quiet, never doubles across updates, and stops immediately on exit',async()=>{
+ const f=await setup();try{
+  const world=new SelectedWorldAudio(f.s);
+  for(let i=0;i<120;i++)world.update({rideKind:'bike',rideSpeed:30,house:{bed:i%2?'fire':'deep'}});
+  assert.equal(f.bank.active.size,2);assert.equal(f.bank.played.length,2);
+  const out=f.ctx.render(8192);finite(out);assert.ok(signal(out));
+  const rms=Math.sqrt(out.reduce((n,x)=>n+x*x,0)/out.length);assert.ok(rms<.01,'restrained combined loop gain');
+  world.update({});assert.equal(f.bank.active.size,0);assert.ok(!signal(f.ctx.render(4096)));
+  world.update({house:{}});f.s.muted=true;world.update({house:{}});assert.ok(!signal(f.ctx.render(4096)));
+  world.dispose();
+ }finally{await f.close();}
+});
+test('actual chest and key recordings retain their long magical tails without synthetic layers',async()=>{
+ const f=await setup();try{
+  Sound.prototype.keyTurn.call(f.s);assert.equal(f.bank.active.size,1);
+  f.ctx.render(44100);assert.ok(signal(f.ctx.render(8192)),'unlock still present after one second');
+  f.ctx.render(44100*3);assert.ok(!signal(f.ctx.render(4096)), 'the completed unlock tail is silent');
+  await Promise.resolve(); // Engine onended dispatch follows the render in a microtask.
+  assert.equal(f.bank.active.size,0);
+  Sound.prototype.boxOpen.call(f.s);f.ctx.render(44100*2);
+  let music=0;f.s.musicCue=()=>music++;Sound.prototype.fanfare.call(f.s);
+  assert.equal(music,1);assert.equal(f.bank.active.size,1,'only the chest ceremony, not another reveal recording');
+  assert.ok(signal(f.ctx.render(8192)),'chest remains present after two seconds');
+  f.s._templeAudio.dispose();assert.ok(!signal(f.ctx.render(4096)));
+ }finally{await f.close();}
+});
+test('the game source trace identifies all five approved groups as recordings, including owned loops',async()=>{
+ const f=await setup(),trace=new SfxTrace(f.s);try{
+  trace.manifest=JSON.parse(readFileSync(new URL('../public/sfx/manifest.json',import.meta.url)));
+  await trace.enable();const world=new SelectedWorldAudio(f.s);
+  world.update({rideKind:'bike',rideSpeed:20,house:{}});
+  Sound.prototype.keyTurn.call(f.s);Sound.prototype.boxOpen.call(f.s);Sound.prototype.hologramOn.call(f.s);
+  trace.refresh();
+  const rows=trace.recent;
+  assert.equal(rows.length,5);assert.equal(rows.filter(e=>e.loop).length,2);
+  assert.deepEqual(rows.map(e=>e.file).sort(),['chest-open-0.wav','hologram-crt-0.wav','hoverbike-glide-0.wav','key-unlock-0.wav','temple-ambience-0.wav'].sort());
+  for(const row of rows)assert.equal(recordedOrigin(trace.manifest,row.file),'ElevenLabs');
+  world.stop();f.s._templeAudio.dispose();f.s._nextActionAudio.dispose();trace.refresh();assert.equal(trace.active.size,0);
+ }finally{trace.dispose();await f.close();}
 });

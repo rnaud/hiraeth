@@ -41,6 +41,7 @@ export const DEV_PAGES = [
   { path: 'src/enemies/page.js', why: 'the enemies page' },
   { path: 'src/cinematics-page/', why: 'the cinematics page' },
   { path: 'src/music-page/', why: 'the music page' },
+  { path: 'src/sound-effects-page/', why: 'the web-only sound-effects catalogue and explicit preview controls; shared game sound routing remains native' },
   { path: 'src/motion/', why: 'the motion lab page' },
   { path: 'src/notes-page/', why: 'the notes page' },
   { path: 'src/makers-mark/page.js', why: 'the makers\' mark page' },

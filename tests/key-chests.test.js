@@ -153,13 +153,12 @@ test('the key\'s chime is short and bright, the lock\'s click soft and shorter (
     s.keyGet(true);
     assert.ok(Math.min(...made.map((o) => o.frequency.value)) < Math.min(...f), 'the great key\'s lower, with a low bell');
     s.ctx.render(48000 * 3);
-    const base = rms(s.ctx.render(24000));   // (the world's own air under it)
-    s.keyTurn();
-    const click = s.ctx.render(48000);
-    const c = rms(click, 0, 9600);
-    assert.ok(c > base * 1.5 && c < head, `the lock's click, heard and softer than the chime (${base.toExponential(1)} < ${c.toExponential(1)} < ${head.toExponential(1)})`);
-    // (short: only the effects' room rings on after it, gone within the second)
-    assert.ok(rms(click, 40000) < c / 6, `and short (${rms(click, 24000, 36000).toExponential(1)} after half a second, ${rms(click, 40000).toExponential(1)} after 0.8 s, the click ${c.toExponential(1)})`);
+    // Unlocking is now the selected three-second magical gesture; key-get bells stay distinct.
+    const plays = []; s.bank = { start(group, options) { plays.push({ group, options }); return { duration: 3, stop() {} }; } };
+    const before = made.length; s.keyTurn();
+    assert.deepEqual(plays.map(p => p.group), ['key-unlock']);
+    assert.equal(made.length, before, 'no mechanical oscillators layered over the recording');
+
   } finally {
     clearInterval(s.scheduler); clearInterval(s.menuTimer); s._unlisten?.();
     if (saved.AudioContext) G.AudioContext = saved.AudioContext; else delete G.AudioContext;

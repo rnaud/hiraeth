@@ -9,6 +9,14 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
+    v: '2.01', date: '2026-10-22',
+    items: [
+      { text: 'A new sound-effects page lets you browse every effect, try its variants and see which sounds are recordings and which are made by the game.', see: 'Open the sound-effects page, filter by source or action, and expand a recording’s provenance. Play is explicit; Stop and leaving the page end the preview.' },
+      { text: 'Hoverbikes glide more quietly, holograms wake with a warm CRT sound, and chests and keys open with longer magical flourishes.', see: 'Ride a hoverbike or race Kamal, activate the powered map or a recording, open a chest, and unlock a keyed temple door. The chest’s five-second opening does not stack another celebration over its tail.' },
+      { text: 'Every temple shares a quiet new ambience, and ordinary doors reuse the same sliding sounds as temple doors.', see: 'Enter two different temples, then return outdoors: the shared recording replaces their previous background textures. Open and close a sliding door; the same selected bank follows both directions.' },
+    ],
+  },
+  {
     v: '2.00', date: '2026-10-22',
     items: [
       { text: 'Sound effects finish loading before play, so assigned recordings keep their chosen sound instead of turning into a substitute. A missing download offers Retry without losing your save.', see: 'Start or continue a game. If a sound download fails, choose Retry to load the missing file, or Back to title. Sound-effect previews also wait for their recordings; stopping a song remains immediate.' },

@@ -60,7 +60,7 @@ export class SfxTrace {
     const loops = [...this.active.values()].filter(e => e.loop && e.shown && now >= e.when && this.audible(e.bus, e.gain));
     const rows = this.recent.map(e => `${e.ended ? 'ended' : this.audible(e.bus, e.gain) ? 'playing' : 'silent'} · ${label(e)}`);
     const view = { title: 'Sound effects', scope: 'Music and spoken dialogue excluded', status: this.sound.muted ? 'Muted' : '', loopCount: loops.length, loops: loops.slice(0, 8).map(label), rows };
-    screen.set('sfxTrace', view);
+    if (this.hud !== false) screen.set('sfxTrace', view);
     if (this.el) this.el.textContent = `${view.title}\n${view.scope}\n${view.status}\n\nPlaying (${loops.length})\n${view.loops.join('\n') || 'None'}\n\nRecent\n${rows.join('\n') || 'None yet'}`;
     this.refreshing = false;
   }
@@ -79,22 +79,40 @@ export class SfxTrace {
     }
     if (s.ctx && this.attachedContext !== s.ctx) { this.attachedContext = s.ctx; installProceduralTrace(this); }
   }
-  async enable(on = true) {
+  async enable(on = true, options = {}) {
+    // A preview can adopt tracing already enabled by the player's developer setting.
+    if (on && Object.hasOwn(options, 'manifest')) {
+      this.manifest = options.manifest;
+      this.epoch = (this.epoch ?? 0) + 1;
+    }
+    if (on && options.hud === false) {
+      this.hud = false; this.el?.remove(); this.el = null; screen.set('sfxTrace', null);
+    }
     if (on === this.enabled) return;
     this.enabled = on;
+    const epoch = this.epoch = (this.epoch ?? 0) + 1;
     this.seedExisting = on;
     if (!on) { clearInterval(this.timer); this.restore.splice(0).reverse().forEach(f => f()); this.attachedContext = null; this.active.clear(); this.beds.clear(); this.recent = []; screen.set('sfxTrace', null); this.el?.remove(); this.el = null; if (this.sound.bank) this.sound.bank.trace = null; return; }
+    this.hud = options.hud !== false;
+    if (Object.hasOwn(options, 'manifest')) this.manifest = options.manifest;
     const s = this.sound;
     this.attach();
-    if (globalThis.document?.createElement && !globalThis.document.hudIsData) {
+    if (this.hud && globalThis.document?.createElement && !globalThis.document.hudIsData) {
       this.el = document.createElement('pre'); this.el.id = 'sfx-source-trace';
       this.el.style.cssText = 'position:fixed;right:12px;top:68px;z-index:7800;max-width:min(400px,calc(100vw - 24px));max-height:70vh;overflow:auto;pointer-events:none;white-space:pre-wrap;background:#f7ecd2ee;color:#2b211f;border:2px solid #2b211f;padding:10px;font:12px/1.4 var(--face);margin:0';
       document.body.appendChild(this.el);
     }
     this.timer = setInterval(() => this.refresh(), 100);
     this.refresh();
-    try { const r = await fetch(`${import.meta.env?.BASE_URL ?? './'}sfx/manifest.json`); if (r.ok) this.manifest = await r.json(); } catch { /* provenance stays explicitly unknown */ }
-    this.refresh();
+    // Catalogue previews already have provenance (or explicitly lack it). Never fetch twice.
+    if (Object.hasOwn(options, 'manifest')) return;
+    try {
+      const r = await fetch(`${import.meta.env?.BASE_URL ?? './'}sfx/manifest.json`);
+      const manifest = r.ok ? await r.json() : null;
+      if (!this.enabled || this.epoch !== epoch || this.sound._disposed) return;
+      if (manifest) this.manifest = manifest;
+    } catch { /* provenance stays explicitly unknown */ }
+    if (this.enabled && this.epoch === epoch && !this.sound._disposed) this.refresh();
   }
   dispose() { void this.enable(false); }
 }
@@ -102,7 +120,7 @@ export class SfxTrace {
 // Music entry points suppress nested helper scopes. Other calls supply human-readable
 // effect ownership, but only a successful AudioScheduledSourceNode.start creates an event.
 const MUSIC = new Set('schedule playEvent pad bass combatSchedule menuSchedule menuPad playTitleTheme bandBeat solo soloPhrase soloDrone dum tek clap speak syllable utterance blip'.split(' '));
-const CONTROL = new Set('constructor prepareEffects listenForInput start startIfAllowed dispose levels toggleMute setVolumes setVoices masterLevel _away setMusicMode musicCue setScore holdTheme musicMomentsUpdate combat menuMusic menuBusEnsure seated seatedK musicLevel noiseLayer set freq rand vary placeAt spot uiOut setBands makeBands band setBandMode listen follow update trace canSpeak holdFloor hush pauseActionAudio bodyVoice'.split(' '));
+const CONTROL = new Set('constructor prepareEffects listenForInput start startIfAllowed dispose levels toggleMute setVolumes setVoices masterLevel _away setMusicMode musicCue setScore holdTheme musicMomentsUpdate combat menuMusic menuBusEnsure seated seatedK musicLevel noiseLayer set freq rand vary placeAt spot uiOut setBands makeBands band setBandMode listen follow update trace canSpeak holdFloor hush pauseActionAudio bodyVoice hologramOff'.split(' '));
 function installProceduralTrace(trace) {
   const s = trace.sound, ctx = s.ctx;
   if (!ctx) return;

@@ -123,38 +123,30 @@ test('the page draws each layer from a scene of its own, against the G-buffer it
   }
 });
 
-test('every house\'s bed sounds: its events on the beat, its drone and roar, and the world\'s ambience back outside', async () => {
-  const G = globalThis;
-  const saved = { window: G.window, AudioContext: G.AudioContext };
+test('every house uses one shared recording, replacing procedural house beds and restoring outdoors', async () => {
+  const G = globalThis, saved = { window: G.window, AudioContext: G.AudioContext };
   G.window = G; G.window.addEventListener ??= () => {}; G.window.removeEventListener ??= () => {};
   delete G.AudioContext; installAudio(G);
   const { Sound } = await import('../src/audio.js');
-  const s = new Sound('desert', { score: false });
-  s.start();
+  const s = new Sound('desert', { score: false, muted: false }); s.start();
+  const calls = [], active = new Set();
+  s.bank = { start(group) { const h = { set() {}, stop() { active.delete(h); } }; calls.push(group); active.add(h); return h; } };
+  const levels = new Map(), originalSet = s.set.bind(s); s.set = (name, level, freq) => { levels.set(name, level); originalSet(name, level, freq); };
   try {
-    assert.ok(s.ctx instanceof AudioContext);
-    s.ctx.render(4800);
-    const base = { speed: 0, gust: 0, storm: 0, rain: 0, rainRoof: 0, altitude: 0, indoor: 1, rideSpeed: 0, jetPower: 1 };
+    const base = { speed: 0, gust: 1, storm: 0, rain: 0, rainRoof: 0, altitude: 0, indoor: 1, rideSpeed: 0, jetPower: 1, roar: 1, hum: 1 };
     for (const [id, A] of Object.entries(HOUSE_AIR)) {
       s.update({ ...base, house: A.sound });
-      assert.equal(s.houseBed, A.sound.bed);
-      let made = 0;
-      const mk = s.ctx.createBufferSource.bind(s.ctx), mo = s.ctx.createOscillator.bind(s.ctx);
-      s.ctx.createBufferSource = () => { made++; return mk(); }; s.ctx.createOscillator = () => { made++; return mo(); };
-      // (the beds draw their events by chance each beat: a fixed sequence of draws, so a run can't fall silent by luck)
-      const rnd = Math.random; let k = 0; Math.random = () => ((k++ * 0.618034) % 1);
-      try { for (let b = 0; b < 60; b++) { s.beat = b; assert.equal(s.houseTick(A.sound.bed, s.ctx.currentTime + 0.1, 0.5), true, `${id}: ${A.sound.bed}`); } } finally { Math.random = rnd; }
-      s.ctx.createBufferSource = mk; s.ctx.createOscillator = mo;
-      assert.ok(made > 0, `${id}: something sounds in 60 beats`);
-      const out = s.ctx.render(4800);
-      assert.ok(out.every(Number.isFinite), `${id}: finite`);
-      if (A.sound.hum) assert.equal(s.hum.f, A.sound.humF, `${id}: its drone`);
+      assert.equal(s.houseBed, 'recorded', id); assert.equal(active.size, 1);
+      for (const name of ['roar', 'hiss', 'howl', 'wind', 'static']) assert.equal(levels.get(name), 0, id + ': no doubled ' + name);
+      let ticks = 0; const old = s.houseTick; s.houseTick = () => { ticks++; return true; };
+      s.ambienceTick(s.ctx.currentTime, .5); s.houseTick = old;
+      assert.equal(ticks, 0, id + ': no old random house events');
     }
-    s.update({ ...base, house: null });
-    assert.equal(s.houseBed, null);
-    assert.equal(s.houseTick('wind', 0, 0.5), false, 'a world\'s ambience is not a house\'s');
+    assert.deepEqual(calls, ['temple-ambience']);
+    s.update({ ...base, house: null }); assert.equal(active.size, 0); assert.equal(s.houseBed, null);
+    assert.ok(levels.get('wind') > 0); assert.ok(levels.get('roar') > 0);
   } finally {
-    clearInterval(s.scheduler); clearInterval(s.menuTimer); s._unlisten?.();
+    clearInterval(s.scheduler); clearInterval(s.menuTimer); s._unlisten?.(); s._selectedWorldAudio?.dispose();
     if (saved.AudioContext) G.AudioContext = saved.AudioContext; else delete G.AudioContext;
     if (saved.window === undefined) delete G.window;
   }

@@ -59,8 +59,9 @@ test('real Door transitions share one twin-leaf cue; blocked and instant changes
  Door.prototype.setOpen.call(p,true);assert.equal(f.calls.length,1);
  p.inDoorway=()=>true;Door.prototype.setOpen.call(p,false);assert.equal(p.wantShut,true);assert.equal(fallback,0);
  p.inDoorway=()=>false;Door.prototype.setOpen.call(p,false);Door.prototype.setOpen.call(twin,false);
- assert.equal(fallback,1,'one existing closing fallback; no selected close take');assert.equal(f.voices.size,0);
- Door.prototype.setOpen.call(p,true,true);assert.equal(f.calls.length,1);assert.equal(p.k,1);
+ assert.equal(fallback,0,'closing reuses the shared sliding recording');assert.equal(f.voices.size,1);
+ assert.equal(f.calls.at(-1).group,'temple-slide-open');
+ Door.prototype.setOpen.call(p,true,true);assert.equal(f.calls.length,2);assert.equal(f.voices.size,0);assert.equal(p.k,1);
 });
 test('sliding cue pause/resume and stalled frame follow physical progress, not a second full playback',()=>{
  const f=fixture(),a=new TempleAudio(f.s),p={rt:{},id:'d',k:0};
@@ -90,7 +91,7 @@ test('all and only starred masters have finite runtime derivatives and common ac
   assert.ok(Number.isFinite(meta.rmsDbfs)&&meta.peakDbfs<=-3.99);assert.equal(bytes.readUInt16LE(22),1);assert.equal(bytes.readUInt32LE(24),44100);
   if(x.group==='temple-slide-open')assert.equal(meta.duration,1.8);
  }
- assert.equal(ACTION_SFX['temple-slide-close'],undefined);assert.equal(ACTION_SFX['key-unlock'],undefined);
+ assert.equal(ACTION_SFX['temple-slide-close'],undefined);assert.ok(ACTION_SFX['key-unlock']);
 });
 
 // A dialogue can begin while a running phrase is active. Temple/chest audio

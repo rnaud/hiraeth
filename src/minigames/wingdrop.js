@@ -350,7 +350,7 @@ function starModel(st, mats) {
 }
 
 // ------------------------------------------------------------------ the sounds
-function dropSounds(sound) {
+export function dropSounds(sound) {
   const on = () => !!sound?.ctx && !sound.muted && sound.fx;
   const note = (s) => 440 * Math.pow(2, s / 12);
   return {
