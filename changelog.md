@@ -2,6 +2,11 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v2.13 — 2026-10-23
+
+- The Aerie’s final doorway now leads into the Elder’s introduction and flight. Reach the Old Roost to return automatically, with the Elder fully framed and the wind returning in the completion scene.
+- The Rose House’s final doorway now leads straight into the Keeper’s opening scene and Cistern challenge. Finish the water route to return automatically for the house’s completion scene.
+
 ## v2.08 — 2026-10-23
 
 - Scene captions appear with their filmed moment, even when a newly entered place is waiting to show its name.

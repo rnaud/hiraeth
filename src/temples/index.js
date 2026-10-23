@@ -1,3 +1,4 @@
+import { helperThreshold } from './helper-threshold.js';
 import { consumeHelperReturn, HELPER_ENCOUNTERS } from './helper-encounter.js';
 import { helperInvitation, helperWorldLease } from './helper-cinematics.js';
 import { templeVista } from './vistas.js';
@@ -247,14 +248,16 @@ function setupOneTemple(ctx, rt) {
   rt.connect({ player, sound, toast, quests, fade: rt.fadeFn, isNight });
   // its ending, filmed as the guardian is resolved (src/temples/finale.js, issue #366), the world's theme under it
   rt.onFinale = () => playFinale(rt, { moments, sound, game });
-  // The explicit invitation owns the opening; only the game's goal receipt can
+  // The entrance owns the opening; only the game's goal receipt can
   // resolve the temple on return. Disposing either story or room cancels launch.
-  let invitation = null;
+  let invitation = null, threshold = null;
   if (HELPER_ENCOUNTERS[rt.id] && rt.guardian?.def.helper) {
     invitation = helperInvitation(rt, { game, player, moments, from: ctx.levelId,
       playGame: ctx.playGame, liveWorld: ctx.helperLive });
-    rt.startHelper = invitation.start;
-    rt.offs.push(invitation.dispose);
+    threshold = helperThreshold(rt, { game, player, invitation, moments, live: ctx.helperLive });
+    rt.startHelper = threshold.continueLegacy;
+    rt.canStartHelper = threshold.legacyAvailable;
+    rt.offs.push(invitation.dispose, threshold.dispose);
   }
   const W = T.words, id = rt.id, Q = W.QUEST;
   // the quest: find the house, find what is inside, go down to its heart
@@ -321,7 +324,7 @@ function setupOneTemple(ctx, rt) {
   const offAfter = game.on(`flag:temple.${id}.done`, (v) => { if (v) after(); });
   let byTheWay = false;   // its quest started as you passed by (not by arrival, not inside)
   return {
-    rt, people, dispose() { invitation?.dispose(); offAfter(); },
+    rt, people, dispose() { threshold?.dispose(); invitation?.dispose(); offAfter(); },
     update(dt, t) {
       if (!quests?.isStarted?.(Q.id) && ((legacy && near()) || game.flag(`temple.${id}.entered`))) {
         quests.start(Q.id);
@@ -337,6 +340,7 @@ function setupOneTemple(ctx, rt) {
         resolve: () => { if (rt.guardian.state === 'resolved') rt.onBossResolved(); else rt.guardian.resolve(); },
       });
       rt.update(dt, t);
+      threshold?.update();
     },
   };
 }

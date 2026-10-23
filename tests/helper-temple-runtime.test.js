@@ -10,21 +10,24 @@ import { helperRun, consumeHelperReturn, HELPER_KEY } from '../src/temples/helpe
 import { wayOut } from '../src/temples/finale.js';
 
 const quiet = fn => { const w = console.warn; console.warn = () => {}; try { return fn(); } finally { console.warn = w; } };
-for (const [id, gameId] of [['desert', 'cistern'], ['arzach', 'elderflight']]) test(`${id}: actual temple invitation, goal return, finale and exit resolve once`, () => {
+for (const [id, gameId] of [['desert', 'cistern'], ['arzach', 'elderflight']]) test(`${id}: actual legacy-inside continuation, intro, goal return, finale and exit resolve once`, () => {
   game.reset();
   const scene = new THREE.Scene(), world = TEMPLE_HOME[id] ?? id;
   const level = quiet(() => buildableById(world).create(scene)), rt = templeOf(level, id) ?? level.temple;
   const player = { pos: rt.guardian.model.pos.clone(), heading: 0, opts: {}, frame: {
     up: new THREE.Vector3(0, 1, 0), dir: (_a, out) => out.set(0, 0, 1) } };
-  const navigations = [], order = [];
-  const story = setupTempleStory({ level, levelId: world, player, game, quests: { isStarted: () => true }, playGame: href => navigations.push(href) });
+  const navigations = [], order = []; let film;
+  const moments={play(spec){film=spec;return {done:false};}};
+  const story = setupTempleStory({ level, levelId: world, player, game, moments, quests: { isStarted: () => true }, playGame: href => navigations.push(href) });
   const off = game.on('temple:resolved', e => { if (e.id === id) order.push('resolved'); });
   try {
     assert.equal(rt.guardian.def.helper, gameId);
     rt.guardian.wake(); assert.equal(rt.guardian.state, 'sleep', 'entering never starts the former battle');
     assert.equal(rt.guardian.add(.5), false, 'combat cannot skip the helping game');
+    const update=rt.update;rt.update=()=>{};story.update(0,0);rt.update=update; // Isolate initial story/controller wiring; full room physics is covered separately.
     const invite = allInteractables().find(e => e.id === `temple.${id}.help`);
     assert.ok(invite?.enabled()); assert.equal(invite.use(), true); assert.equal(invite.use(), false, 'one launch per world host');
+    assert.equal(navigations.length,0,'intro precedes navigation');assert.equal(film.shots.length,2);film.onEnd();
     assert.equal(navigations.length, 1);
     const token = new URLSearchParams(navigations[0]).get('encounter'), run = helperRun(game, gameId, token);
     assert.ok(run); assert.equal(rt.logic.resolved, false);

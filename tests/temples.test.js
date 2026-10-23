@@ -1231,12 +1231,16 @@ test('the Rose House on foot, with nothing in hand (issue #406: round its Great 
   const { level, physics, rt } = world('desert');
   const P = new Player(physics, { spawn: rt.arrival.pos.clone(), dynamic: level.dynamic, health: true });
   const notes = [];
-  const leftFor = [];
-  const helperStory = setupTempleStory({ level, levelId: 'desert', player: P, physics, game,
+  const leftFor = [], helperFilms = [];
+  const moments = { playing: false, play(spec) {
+    helperFilms.push(spec); this.playing = true;
+    return { done: false };
+  } };
+  const helperStory = setupTempleStory({ level, levelId: 'desert', player: P, physics, game, moments,
     toast: s => notes.push(s), quests: { isStarted: () => true }, playGame: href => leftFor.push(href) });
   let t = 0;
   const L = (x, y, z) => rt.kit.world(x, y, z);
-  const frame = (input = {}, yaw = 0) => { t += DT; physics.syncMovers(DT); rt.update(DT, t); P.update(DT, input, yaw); updateHazards(DT, P); };   // (as main.js: the moving colliders first)
+  const frame = (input = {}, yaw = 0) => { t += DT; physics.syncMovers(DT); helperStory.update(DT, t); P.update(DT, input, yaw); updateHazards(DT, P); };   // (as main.js: the moving colliders first)
   const toward = (to) => Math.atan2(-(to.x - P.pos.x), -(to.z - P.pos.z));
   const flat = (a) => Math.hypot(P.pos.x - a.x, P.pos.z - a.z);
   const walk = (to, { tol = 0.6, max = 25, run = true, dy = 1.6 } = {}) => {
@@ -1520,7 +1524,7 @@ test('the Rose House on foot, with nothing in hand (issue #406: round its Great 
   items.grant('gun'); game.set('box.desert.gun', true); game.emit('box:opened', { id: 'desert.gun', item: 'gun' });
   assert.ok(items.has('gun'), 'the third weapon is earned before the Keeper');
 
-  // ---- the Cistern: reach the actual invitation on foot, then return an explicit
+  // ---- the Cistern: cross its actual doorway on foot, finish its opening, then return an explicit
   // completed-game result through the shared host contract. Actual game inputs and
   // all three floods are exercised separately in cistern-planning-runtime.test.js.
   const K = rt.guardian;
@@ -1529,11 +1533,11 @@ test('the Rose House on foot, with nothing in hand (issue #406: round its Great 
   wait(.5);
   assert.equal(K.state, 'sleep', 'the Keeper waits for help without attacking');
   assert.equal(rt.logic.isOpen('d4'), true, 'there is no combat lockdown behind you');
-  const brow = K.model.mouth.clone();
-  for (let i = 0; i < 12 / DT && bestInteractable(P)?.entry.id !== 'temple.desert.help'; i++) frame({ KeyW: true }, toward(brow));
-  const near = bestInteractable(P);
-  assert.equal(near?.entry.id, 'temple.desert.help', 'reach its invitation through ordinary walking');
-  near.entry.use(P); assert.equal(leftFor.length, 1);
+  assert.equal(helperFilms.length, 1, 'ordinary doorway crossing starts one opening');
+  assert.equal(helperFilms[0].shots.length, 2, 'the opening shows context then guidance');
+  assert.equal(leftFor.length, 0, 'no navigation before the opening ends');
+  helperFilms[0].onEnd(); moments.playing = false;
+  assert.equal(leftFor.length, 1, 'the opening end launches the actual encounter');
   const token = new URLSearchParams(leftFor[0]).get('encounter');
   const helping = helperRun(game, 'cistern', token); assert.ok(helping);
   assert.equal(helping.onResult({ failed: false, score: 9999 }), false, 'points alone never calm the Keeper');
@@ -1549,6 +1553,11 @@ test('the Rose House on foot, with nothing in hand (issue #406: round its Great 
   assert.ok(rt.logic.isOpen('d4') && rt.logic.isOpen('d5'), 'return opens the way through to the spring');
   // ---- ordinary walking through the new spring, then the gun-driven weight and cage
   const S0 = rt.roseSpark.room.z0;
+  // The doorway return is on the near rim. Walk around the real central basin
+  // and spout, rather than through them from the old invitation-side pose.
+  assert.equal(walk(L(-9, 0, ROOMS.cistern.z - ROOMS.cistern.r * .65), { run: false }), true, 'along the near rim');
+  assert.equal(walk(L(-9, 0, ROOMS.cistern.z + 10), { run: false }), true, 'around the basin and spout');
+  assert.equal(walk(L(0, 0, ROOMS.cistern.z + 10), { run: false }), true, 'back to the spring aisle');
   assert.equal(walk(L(0, 0, S0 + 2), { run: false }), true, `into the spring (${where()})`);
   assert.equal(walk(L(-9, 0, S0 + 2), { run: false }), true, 'left aisle');
   assert.equal(walk(L(-9, 0, S0 + 11), { run: false }), true, 'behind the weight');
@@ -2197,12 +2206,16 @@ test('the Aerie on foot: the gusts waited out behind the screens, the stone push
   const { level, physics, rt } = world('arzach');
   const P = new Player(physics, { spawn: rt.arrival.pos.clone(), dynamic: level.dynamic, health: true, limit: level.limit ?? 1900 });
   const notes = [];
-  const leftFor = [];
-  const helperStory = setupTempleStory({ level, levelId: 'arzach', player: P, physics, game,
+  const leftFor = [], helperFilms = [];
+  const moments = { playing: false, play(spec) {
+    helperFilms.push(spec); this.playing = true;
+    return { done: false };
+  } };
+  const helperStory = setupTempleStory({ level, levelId: 'arzach', player: P, physics, game, moments,
     toast: s => notes.push(s), quests: { isStarted: () => true }, playGame: href => leftFor.push(href) });
   let t = 0;
   const L = (x, y, z) => rt.kit.world(x, y, z);
-  const frame = (input = {}, yaw = 0) => { t += DT; physics.syncMovers(DT); rt.update(DT, t); P.update(DT, input, yaw); updateHazards(DT, P); };   // (as main.js: the moving colliders first)
+  const frame = (input = {}, yaw = 0) => { t += DT; physics.syncMovers(DT); helperStory.update(DT, t); P.update(DT, input, yaw); updateHazards(DT, P); };   // (as main.js: the moving colliders first)
   const toward = (to) => Math.atan2(-(to.x - P.pos.x), -(to.z - P.pos.z));
   const flat = (a) => Math.hypot(P.pos.x - a.x, P.pos.z - a.z);
   const walk = (to, { tol = 0.6, max = 25, run = true, dy = 1.6 } = {}) => {
@@ -2456,11 +2469,11 @@ test('the Aerie on foot: the gusts waited out behind the screens, the stone push
   const G = rt.guardian;
   wait(.3); assert.equal(G.state, 'sleep', 'the Elder waits for company');
   assert.equal(G.hit('body', 'shoot'), false); assert.equal(G.meter, 0);
-  const head = G.model.mouth.clone().setY(G.arena.y);
-  for (let i = 0; i < 16 / DT && bestInteractable(P)?.entry.id !== 'temple.arzach.help'; i++) frame({ KeyW: true }, toward(head));
-  const near = bestInteractable(P);
-  assert.equal(near?.entry.id, 'temple.arzach.help', 'reach her invitation on foot');
-  near.entry.use(P); assert.equal(leftFor.length, 1);
+  assert.equal(helperFilms.length, 1, 'ordinary doorway crossing starts one opening');
+  assert.equal(helperFilms[0].shots.length, 2, 'the opening shows context then guidance');
+  assert.equal(leftFor.length, 0, 'no navigation before the opening ends');
+  helperFilms[0].onEnd(); moments.playing = false;
+  assert.equal(leftFor.length, 1, 'the opening end launches the actual encounter');
   const helping = helperRun(game, 'elderflight', new URLSearchParams(leftFor[0]).get('encounter'));
   assert.ok(helping);
   assert.equal(helping.onResult({ failed: true, goal: { game: 'elderflight', complete: false } }), false);

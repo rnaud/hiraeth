@@ -9,6 +9,13 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
+    v: '2.13', date: '2026-10-23',
+    items: [
+      { text: "The Rose House’s final doorway now leads straight into the Keeper’s opening scene and Cistern challenge. Finish the water route to return automatically for the house’s completion scene.", see: "With the Rose House’s final door unlocked, walk through it without pressing the talk button. Complete all three Cistern floods; the game returns you to the Keeper and the basin-filling scene without choosing Return." },
+      { text: "The Aerie’s final doorway now leads into the Elder’s introduction and flight. Reach the Old Roost to return automatically, with the Elder fully framed and the wind returning in the completion scene.", see: "Reach the Aerie’s final doorway with its normal prerequisites, walk through and finish the Elder flight’s real goal. The completion scene follows automatically; its close view keeps the Elder’s head, wings and feet visible." },
+    ],
+  },
+  {
     v: '2.08', date: '2026-10-23',
     items: [
       { text: 'The Keeper and Elder now introduce their requests in short scenes. Helping them celebrates the water and wind returning to their temples.', see: 'Accept either guardian’s invitation to watch or skip its introduction. Complete the Cistern channels or reach the Old Roost with the Elder, then return to see the temple change. Leaving a run does not play a victory scene.' },

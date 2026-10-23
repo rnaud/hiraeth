@@ -40,8 +40,9 @@ for (const [temple, id, world] of [['desert','cistern','desert'], ['arzach','eld
   r.ctx.finish({score:1,failed:false,goal:{game:id,complete:true}}); await frames(60);
   assert.deepEqual(plain(r.result.goal),{game:id,complete:true}); assert.equal(saved().success,true);
   assert.equal(r.host.state.flag(`temple.${temple}.done`),undefined,'the world finale owns temple completion');
-  assert.ok(r.cardModel.buttons.some(b=>/Return to/.test(b.label)));
-  assert.match(r.cardModel.hint,/return/); assert.doesNotMatch(r.cardModel.hint,/fly on/);
-  r.quit(); assert.deepEqual(left,[`?level=${world}`]); assert.equal(saved().returning,true);
+  assert.equal(r.cardModel,null,'successful helper leaves without another results/Return card');
+  assert.equal(r.ended,true);
+  assert.deepEqual(left,[`?level=${world}`],'normal finishing boundary returns automatically');
+  r.quit(); assert.deepEqual(left,[`?level=${world}`],'late duplicate quit cannot navigate again'); assert.equal(saved().returning,true);
   assert.deepEqual(plain(saved().returnPose),pose,'runner navigation preserves the arena return pose');
 });

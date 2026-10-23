@@ -48,6 +48,11 @@ export class MinigameRunner {
   constructor(def, host) {
     this.def = def;
     this.host = host;
+    this.recovering = !!host.recoveryHref?.();
+    if (this.recovering) {
+      this.phase = 'recovering'; this.paused = false; this.cardModel = null; this.cardV = 0;
+      return; // No game session, start card, sources or DOM are created for receipt recovery.
+    }
     this.phase = 'intro';
     this.paused = false;
     this.clock = 0;
@@ -85,9 +90,9 @@ export class MinigameRunner {
    */
   get drives() { return this.def.drives !== false; }
   /** A card is up (or paused): the pad navigates it, the world gets no input. */
-  busy() { return this.paused || this.phase === 'intro' || this.phase === 'results'; }
+  busy() { return this.recovering || this.paused || this.phase === 'intro' || this.phase === 'results'; }
   /** The card on the screen, for the pad's menu navigation (main.js menuRoot), or null. */
-  cardEl() { return this.card.classList.contains('open') ? this.card : null; }
+  cardEl() { if (this.recovering) return null; return this.card.classList.contains('open') ? this.card : null; }
 
   // ---------------------------------------------------------------- what a session is given
   makeCtx() {
@@ -141,6 +146,10 @@ export class MinigameRunner {
   filterInput(controls) { if (controls && this.phase === 'play') this.session.input?.(controls); }
 
   update(dt, controls) {
+    if (this.ended) return;
+    const recovery = this.recovering && this.host.recoveryHref?.();
+    if (recovery) { this.go(recovery); return; }
+    if (this.recovering) return; // An invalidated receipt cannot become ordinary story play.
     if (this.phase === 'intro' && inputKind() !== this.introKind) this.showIntro();   // (a pad picked up: the card lists its buttons)
     if (this.hintsEl) this.drawHints(dt);
     const inp = readInput(controls, this.prevIn);
@@ -157,7 +166,12 @@ export class MinigameRunner {
     const live = this.phase === 'play';
     if (live) this.clock += dt;
     this.session.update?.(dt, live ? inp : NO_INPUT, { live, phase: this.phase, t: this.clock, raw: controls ?? {} });   // (raw: the merged controls, for a game reading buttons of its own)
-    if (this.phase === 'finishing' && (this.doneT -= dt) <= 0) this.showResults();
+    if (this.ended) return;
+    if (this.phase === 'finishing' && (this.doneT -= dt) <= 0) {
+      const href = this.host.completionHref?.(this.result);
+      if (href) { this.go(href); return; }
+      this.showResults();
+    }
     this.drawHud();
     this.publish(dt);
   }
@@ -194,7 +208,7 @@ export class MinigameRunner {
   }
 
   finish({ score, failed = false, title, lines = [], html = null, wide = false, chimes = 0, goal = null } = {}) {
-    if (this.phase !== 'play') return;
+    if (this.ended || this.recovering || this.phase !== 'play') return;
     const kind = this.def.score?.kind ?? 'points';
     const value = score ?? (kind === 'time' ? this.clock + this.penalty : this.points);
     // (a time trial not finished has no time to keep; points count even when the lives run out)
@@ -210,6 +224,7 @@ export class MinigameRunner {
   }
 
   retry() {
+    if (this.ended || this.recovering) return;
     this.session.end?.();
     this.clearAdded();
     this.clock = this.penalty = this.points = 0;
@@ -228,6 +243,7 @@ export class MinigameRunner {
   quit() { if (!this.mandatory) this.go(this.host.links?.quit?.href ?? quitHref(this.host.from)); }
   /** Leave the game for another page (Quit, or one of host.links: the Arcade's next game). */
   go(href) {
+    if (this.ended) return;
     this.end();
     (this.host.navigate ?? ((href) => { location.href = href; }))(href);
   }
@@ -249,6 +265,7 @@ export class MinigameRunner {
   end() {
     if (this.ended) return;
     this.ended = true;
+    if (this.recovering) return;
     this.session.end?.();
     this.clearAdded();
     this.ctx.setFov(this.fov0);

@@ -40,8 +40,11 @@ test('arcade, stale tokens, another game, another slot and partial scores cannot
 
 test('quitting restores the origin without progress; retry retains the same story board seed', () => {
   const g = state(), { run, token } = start(g);
-  assert.equal(helperRun(g, 'cistern', token).context.seed, run.context.seed);
-  run.left(); assert.equal(helperRun(g, 'cistern', token), null);
+  const current = helperRun(g, 'cistern', token);
+  assert.equal(current.context.seed, run.context.seed);
+  current.left(); const recovery = helperRun(g, 'cistern', token);
+  assert.equal(recovery.recoveryHref(), '?level=desert');
+  assert.equal(recovery.onResult({goal:{game:'cistern',complete:true}}), false);
   let restored = null, resolutions = 0;
   assert.equal(consumeHelperReturn(g, 'desert', 'arzach', {}), null);
   const r = consumeHelperReturn(g, 'desert', 'desert', { restore: p => { restored = p; }, resolve: () => resolutions++ });

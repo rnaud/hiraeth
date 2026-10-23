@@ -48,12 +48,12 @@ function frame(rt, box, direction, skip = []) {
 }
 
 /** Two after-interaction views: the accepted guardian and the real basin/vent. */
-export function helperOpeningShots(rt, player) {
+export function helperOpeningShots(rt, player, { entrance = false } = {}) {
   const model = rt?.guardian?.model;
   if (!model?.pos || !player?.pos || !HELPER_CAPTIONS[rt.id]) return null;
   const body = keeperBox(model);
   if (body.isEmpty()) body.setFromCenterAndSize(model.pos.clone().addScaledVector(UP, (model.height ?? 4) * .5), V((model.radius ?? 3) * 2, model.height ?? 4, (model.radius ?? 3) * 2));
-  const pair = body.clone().expandByPoint(player.pos).expandByPoint(player.pos.clone().addScaledVector(UP, 1.9));
+  const pair = entrance ? body.clone() : body.clone().expandByPoint(player.pos).expandByPoint(player.pos.clone().addScaledVector(UP, 1.9));
   const dir = player.pos.clone().sub(model.pos).setY(0);
   if (dir.lengthSq() < .01) dir.set(0, 0, 1); else dir.normalize();
   const first = frame(rt, pair, dir, [model.group]);
@@ -77,28 +77,30 @@ export function helperInvitation(rt, { game, player, moments, from, playGame, li
   const cancel = () => { disposed = true; pending = false; if (film && !film.done && moments?.current === film) film.finish(true); };
   return {
     dispose: cancel,
-    start() {
+    start({ returnPose = null, completionPose = null, entrance = false, onLaunch = null } = {}) {
       if (!live() || pending || launched || rt.logic.resolved || !player?.pos || !playGame) return false;
-      const originSlot = String(slot()), origin = { pos: player.pos.toArray(), up: player.frame.up.toArray(), fwd: player.frame.dir(player.heading, V()).toArray() };
+      const originSlot = String(slot()), origin = returnPose ?? { pos: player.pos.toArray(), up: player.frame.up.toArray(), fwd: player.frame.dir(player.heading, V()).toArray() };
       pending = true;
       const launch = () => {
         if (!pending || launched || rt.logic.resolved || !live() || String(slot()) !== originSlot) { pending = false; return false; }
-        const href = beginHelperEncounter(game, rt.id, { from, returnPose: origin, slot: originSlot });
+        const href = beginHelperEncounter(game, rt.id, { from, returnPose: origin, completionPose, slot: originSlot });
         pending = false;
         if (!href) return false;
         launched = true;
+        onLaunch?.();
         playGame(href);
         return true;
       };
-      const flag = helperOpeningFlag(rt.id), shots = !game.flag(flag) && helperOpeningShots(rt, player);
+      const flag = helperOpeningFlag(rt.id), shots = (entrance || !game.flag(flag)) && helperOpeningShots(rt, player, { entrance });
       if (shots && moments?.play) {
-        film = moments.play({ id: flag, flag, shots, behind: true,
+        film = moments.play({ id: flag, ...(entrance ? {} : { flag }), shots, behind: true,
           beats: [{ t: .15, line: HELPER_CAPTIONS[rt.id][0], secs: HELPER_OPENING.context - .2 },
             { t: HELPER_OPENING.context + .1, line: HELPER_CAPTIONS[rt.id][1], secs: HELPER_OPENING.guide - .15 }],
           onFrame: m => { if (!live()) { disposed = true; pending = false; m.finish(true); } },
           onEnd: launch });
         if (film) return true;
       }
+      if (entrance) { pending = false; return false; }
       return launch();
     },
   };
