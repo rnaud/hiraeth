@@ -1349,6 +1349,44 @@ const RETROID536 = 'Retroid Pocket Nova (Adreno 740, Vulkan), Unity, Handheld (F
 const SRC536 = 'BridgeRenderer.Pipelines (the G-buffer’s states the scene asks for: variant, layout, cull, depth), Metal’s list traced in the editor, the shipped lists rewritten by scripts/bench/pso-one-cull.mjs; docs/systems/performance.md, “One cull mode and one layout for the Surface pipelines”';
 const SEAPORT572 = 'Issue #572: the web game in muted headless Chrome (High, 1280 × 720) on a Vite of its own (port 5441), a new save arriving by ship (?level=underwater&via=ship), then walked as a player; before: origin/main at 02345e2c3, after: this change; the deck and the Dock from the visual check’s views (scripts/design-qc/capture.mjs --fixed-scale); 20 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '2.11': [{ match: 'The ship’s bunk shelf is firmly supported', shots: [
+    {
+        "name": "ship-bunk-support",
+        "caption": "A supported shelf beside the bunk",
+        "from": "Actual game in the internal Codex browser, muted with isolated stores and an independent output block. Before: published 7b0f8a0ba; after: that published source with issue #653 ownership, shelf support and canonical panel closure. Matching staged camera/camp checkpoints from continuous tours, not ordinary walking. Full original PNGs and telemetry retained. No scene editing; only WebP encoding. Checkpoint entry-bunk/1.",
+        "view": {
+            "level": "desert",
+            "size": [
+                1280,
+                615
+            ]
+        }
+    },
+    {
+        "name": "ship-panel-edge",
+        "caption": "Solid edges while the porch folds",
+        "from": "Actual game in the internal Codex browser, muted with isolated stores and an independent output block. Before: published 7b0f8a0ba; after: that published source with issue #653 ownership, shelf support and canonical panel closure. Matching staged camera/camp checkpoints from continuous tours, not ordinary walking. Full original PNGs and telemetry retained. No scene editing; only WebP encoding. Checkpoint folding-panel/0_075.",
+        "view": {
+            "level": "desert",
+            "size": [
+                1280,
+                615
+            ]
+        }
+    },
+    {
+        "name": "ship-room-distance",
+        "caption": "Room walls remain visible from farther away",
+        "from": "Actual game in the internal Codex browser, muted with isolated stores and an independent output block. Before: published 7b0f8a0ba; after: that published source with issue #653 ownership, shelf support and canonical panel closure. Matching staged camera/camp checkpoints from continuous tours, not ordinary walking. Full original PNGs and telemetry retained. No scene editing; only WebP encoding. Checkpoint distance-boundary/0_75.",
+        "view": {
+            "level": "desert",
+            "size": [
+                1280,
+                615
+            ]
+        }
+    }
+] }],
   '2.09': [
   {
     "match": "Use prompts follow what you can see",

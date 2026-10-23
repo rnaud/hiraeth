@@ -346,3 +346,107 @@ test('caravan follow camera stays inside its finished rooms during full turns', 
     assert.ok(clipped<=4,`lens clearance at ${p.toArray()}: ${clipped}/240 frames`);
   }
 });
+
+
+test('ship room visibility owns whole furnishings without hiding the shell or its opaque enclosure', async () => {
+  for (const caravan of [null, await asset()]) {
+    const model = buildShipModel({ caravan });
+    const enclosure = ['wallIn', 'wall', 'floor', 'floorDark', 'ceiling'];
+    const indoor = new Set(model.indoor), outside = new Set(Object.values(model.exteriorMeshes));
+    const collection = Object.values(model.meshes);
+    assert.equal(collection.length, new Set(collection).size, 'compatibility collection contains no duplicate aliases');
+    assert.deepEqual(new Set(collection), new Set([...outside, ...Object.values(model.interiorMeshes)]), 'compatibility collection retains both owners for shared material keys');
+    for (const [key, mesh] of Object.entries(model.interiorMeshes)) assert.equal(model.meshes[key], mesh, 'legacy material lookups still select room geometry');
+    for (const [key, mesh] of Object.entries(model.interiorMeshes)) {
+      assert.equal(outside.has(mesh), false, `${key} room geometry is not merged into outside paint`);
+      assert.equal(indoor.has(mesh), key !== 'collider' && !enclosure.includes(key), `${key} has explicit room ownership`);
+    }
+    for (const mesh of model.details) {
+      assert.ok(outside.has(mesh), 'distant shell details never independently toggle furniture');
+      assert.equal(indoor.has(mesh), false);
+    }
+    for (const visible of [true, false, true]) {
+      for (const mesh of model.indoor) mesh.visible = visible;
+      for (const key of ['teal', 'dark', 'trim', 'wood', 'cream', 'cushion']) {
+        const mesh = model.interiorMeshes[key];
+        if (mesh) assert.equal(mesh.visible, visible, `${key} furnishings remain together`);
+      }
+      for (const key of enclosure) if (model.interiorMeshes[key]) assert.equal(model.interiorMeshes[key].visible, true, `${key} keeps occluding an open ship`);
+      assert.equal(model.interiorMeshes.collider.visible, false, 'near room must not display collision blocks');
+      for (const mesh of outside) if (mesh !== model.exteriorMeshes.collider) assert.equal(mesh.visible, true, 'room culling leaves exterior geometry intact');
+    }
+    model.disposeAuthored?.();
+  }
+});
+
+
+test('actual authored folding panel closes lower gaps, upper crossings and all beveled corners', async () => {
+  const scene = (await asset()).clone(true), panel = scene.getObjectByName('porch-panel');
+  const mesh = scene.getObjectByName('porch-panel_surfaces');
+  assert.ok(panel && mesh && mesh.parent === panel, 'closure stays in the existing rigid panel');
+  const attributes = [];
+  mesh.traverse(node => { if (node.geometry?.attributes.position) attributes.push(node.geometry.attributes.position); });
+  assert.ok(attributes.length, 'actual exported panel has geometry');
+  const hinge = 8.188206100673813 - 4.9;
+  const skin = (x,z,upper=false) => {
+    const ys=[];
+    for (const positions of attributes) for (let i=0; i<positions.count; i++) {
+      if (Math.abs(positions.getX(i)-x)<1e-4 && Math.abs(positions.getZ(i)-z)<1e-4) ys.push(positions.getY(i));
+    }
+    assert.ok(ys.length, `actual perimeter vertex at ${x},${z}`);
+    return V(x,upper?Math.max(...ys):Math.min(...ys),z);
+  };
+  const counts = {fore:0,aft:0,hinge:0,outer:0,upper:0,corners:[0,0,0,0]};
+  for (const angle of [0, -Math.PI/4, -Math.PI/2]) {
+    panel.rotation.x = angle; scene.updateMatrixWorld(true);
+    const ray = new THREE.Raycaster();
+    const check = (target,out,label) => {
+      const direction=out.clone().normalize().transformDirection(mesh.matrixWorld);
+      const world=mesh.localToWorld(target.clone());
+      ray.set(world.clone().addScaledVector(direction,.02),direction.clone().negate());ray.near=0;ray.far=.035;
+      const hits=ray.intersectObject(mesh,true);
+      assert.ok(hits.length, `${label}: outward closure at fold ${angle}`);
+      const hit=hits[0], p=hit.object.geometry.attributes.position, f=hit.face;
+      const aa=V().fromBufferAttribute(p,f.a),bb=V().fromBufferAttribute(p,f.b),cc=V().fromBufferAttribute(p,f.c);
+      const area=bb.sub(aa).cross(cc.sub(aa)).length()/2;
+      assert.ok(Number.isFinite(area)&&area>1e-9, `${label}: finite nondegenerate triangle`);
+      const normal=f.normal.clone().applyMatrix3(new THREE.Matrix3().getNormalMatrix(hit.object.matrixWorld)).normalize();
+      assert.ok(normal.dot(direction)>.5, `${label}: outward-facing return, not a reversed back face`);
+    };
+    for (const fraction of [.25,.5,.75]) {
+      const samples=[
+        ['fore',-3.4,hinge+4.9*fraction,V(-1,0,0)],
+        ['aft',7.4,hinge+4.9*fraction,V(1,0,0)],
+        ['hinge',-3.4+10.8*fraction,hinge,V(0,0,-1)],
+        ['outer',-3.4+10.8*fraction,hinge+4.9,V(0,0,1)],
+      ];
+      for(const [edge,x,z,out] of samples) {
+        const point=skin(x,z);
+        if(point.y>=4.30)continue; // upper crossings have their own required samples below
+        point.y=(point.y+4.32)/2;check(point,out,edge);counts[edge]++;
+      }
+    }
+    // These original hinge vertices are above even the timber top. A lower-only
+    // test misses both a reversed upper return and its zero-thickness crossing.
+    for(const x of [6.86,7.13]) {
+      const point=skin(x,hinge,true);
+      assert.ok(point.y>4.48, 'unchanged upper hinge skin remains above timber');
+      point.y=(point.y+4.48)/2;check(point,V(0,0,-1),'upper hinge');counts.upper++;
+    }
+    // Probe just beside each sharp skin corner, halfway to the inset timber
+    // return. This lies in the bevel gap left by a straight-to-top/side cap.
+    for(const [index,[x,z]] of [[-3.4,hinge],[7.4,hinge],[7.4,hinge+4.9],[-3.4,hinge+4.9]].entries()) {
+      const sx=x<2?1:-1,sz=z<hinge+2.45?1:-1;
+      const a=skin(x,z,z===hinge&&x===7.4),b=skin(x+sx*.27,z,z===hinge&&x+sx*.27>6.8);
+      const at=a.clone().lerp(b,.05);
+      const cornerReturn=V(x+sx*.04,4.40,z+sz*.04),nextReturn=V(b.x,4.40,z);
+      const ret=cornerReturn.lerp(nextReturn,.05),target=at.clone().lerp(ret,.5);
+      const edge=b.clone().sub(a),out=ret.clone().sub(at).cross(edge).normalize();
+      if(out.dot(V(0,0,-sz))<0)out.negate();
+      check(target,out,`beveled corner ${index}`);counts.corners[index]++;
+    }
+  }
+  for(const edge of ['fore','aft','hinge','outer'])assert.ok(counts[edge]>=3, `${edge} exercised in each folding pose`);
+  assert.equal(counts.upper,6,'both upper hinge segments covered in every pose');
+  assert.deepEqual(counts.corners,[3,3,3,3],'every corner inset covered in every pose');
+});

@@ -9,6 +9,12 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
+    v: '2.11', date: '2026-10-23',
+    items: [
+      { text: 'The ship’s bunk shelf is firmly supported, its folding porch has solid edges, and its room walls no longer disappear as you step away.', see: 'Look beside the bunk, watch the porch fold open and closed, then walk away from the open ship. The shelf stays attached to the bed and the room walls still hide what is behind them.' },
+    ],
+  },
+  {
     v: '2.10', date: '2026-10-23',
     items: [
       { text: 'Plumb’s temple hints and several local directions now say more clearly what to look for and try, while keeping each speaker’s character.', see: 'Ask Plumb for help with a temple mechanism. Talk to the Speaker in Qanat, Bastien by the underwater lock, Rosa in the floating city, Achille outside the Whale House or Wen in the Moon Foundry.' },
