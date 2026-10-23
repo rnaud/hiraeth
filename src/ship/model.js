@@ -163,10 +163,20 @@ export function buildShipModel(o = {}) {
       hull.feet.push(group.worldToLocal(node.localToWorld(new THREE.Vector3(at[0], at[1] + .8, at[2]))));
     });
   }
-  const interior = authored ? buildCaravanInterior(batch, group) : buildInterior(batch, group, { tag, room: roomKey });
+  // Shared paint is not shared visibility ownership: teal books and dark chair legs
+  // belong to the room, even when the hull uses those same materials outside.
+  const roomBatch = new Batch(mats);
+  const interior = authored ? buildCaravanInterior(roomBatch, group) : buildInterior(roomBatch, group, { tag, room: roomKey });
   const flags = Object.fromEntries(NO_COLLIDE.map((k) => [k, { noCollide: true }]));
   flags.collider = { visible: false };
-  const meshes = batch.build(group, flags);
+  const exteriorMeshes = batch.build(group, flags), interiorMeshes = roomBatch.build(group, flags);
+  for (const [key, mesh] of Object.entries(interiorMeshes)) mesh.name = `ship-interior-${key}`;
+  // Keep historic material-key room lookups, but do not lose an exterior mesh
+  // from collection iteration when both ownership batches use the same paint.
+  const meshes = { ...exteriorMeshes, ...interiorMeshes };
+  for (const [key, mesh] of Object.entries(exteriorMeshes)) {
+    if (interiorMeshes[key]) meshes[`exterior:${key}`] = mesh;
+  }
 
   // the hatch door: pops out of its frame and slides aft along the hull (Ship.setDoor)
   const door = authored?.getObjectByName('entry-door') ?? new THREE.Group();
@@ -241,10 +251,14 @@ export function buildShipModel(o = {}) {
   group.add(screen);
 
   // what only shows from inside (hidden when the camera is far away: fewer draw calls)
-  const indoor = [interior.deco, interior.props, screen, ...['core', 'lamp', 'btnA', 'btnB', 'btnC', 'vmail', 'vmailHalo', 'portIn', ...INTERIOR].map((k) => meshes[k]).filter(Boolean)];
+  // Floors and opaque room walls still occlude the open hatch at far distances.
+  // The invisible collision batch must never become visible during a near toggle.
+  const enclosure = new Set(['wallIn', 'floor', 'floorDark', 'ceiling', 'wall']);
+  const indoor = [interior.deco, interior.props, screen,
+    ...Object.entries(interiorMeshes).filter(([key]) => key !== 'collider' && !enclosure.has(key)).map(([, mesh]) => mesh)];
   // the outside's small things (seams, the scorch, the lights, the trim): only drawn near (the far level of detail)
-  const details = FAR_HIDDEN.map((k) => meshes[k]).filter(Boolean);
-  return { tag, group, meshes, mats, door, ramp, interior, hull, screen, callScreen, indoor, details, roomKey, authored, applyCamp, disposeAuthored, doorRest: door.position.clone(), movingParts, gearAltitude: o.space ? 4 : 0 };
+  const details = FAR_HIDDEN.map((k) => exteriorMeshes[k]).filter(Boolean);
+  return { tag, group, meshes, exteriorMeshes, interiorMeshes, mats, door, ramp, interior, hull, screen, callScreen, indoor, details, roomKey, authored, applyCamp, disposeAuthored, doorRest: door.position.clone(), movingParts, gearAltitude: o.space ? 4 : 0 };
 }
 /** How far (m) the outside's small things are drawn; past it the hull is its panels, stripe, glass and legs. */
 export const DETAIL_FAR = 130;

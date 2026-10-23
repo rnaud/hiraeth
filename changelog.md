@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v2.09 — 2026-10-23
+
+- The ship’s bunk shelf is firmly supported, its folding porch has solid edges, and its room walls no longer disappear as you step away.
+
 ## v2.07 — 2026-10-23
 
 - Steam Deck updates can keep arriving without filling up the old download channel. Existing installations keep their saves and update through the same game site.

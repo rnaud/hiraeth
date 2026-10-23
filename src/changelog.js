@@ -9,6 +9,12 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
+    v: '2.09', date: '2026-10-23',
+    items: [
+      { text: 'The ship’s bunk shelf is firmly supported, its folding porch has solid edges, and its room walls no longer disappear as you step away.', see: 'Look beside the bunk, watch the porch fold open and closed, then walk away from the open ship. The shelf stays attached to the bed and the room walls still hide what is behind them.' },
+    ],
+  },
+  {
     v: '2.07', date: '2026-10-23',
     items: [
       { text: 'Steam Deck updates can keep arriving without filling up the old download channel. Existing installations keep their saves and update through the same game site.', see: 'Check for updates on Steam Deck. Existing launchers keep using the checked multipart download; new package downloads have their own release for each build.' },

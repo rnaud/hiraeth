@@ -262,6 +262,38 @@ for j in range(ny):
  for i in range(nx):
   k=j*(nx+1)+i;fs.append((k,k+1,k+nx+2,k+nx+1));mi.append(1 if 6.9<floor+4.9*(j+.5)/ny<8.1 else 0)
 mesh('curved porch exterior',vs,fs,['cream','coral'],'porch-panel',mi)
+if a.playable:
+ # Close the thick panel between its unchanged curved skin and timber face.
+ # These perimeter returns belong to the same rigid hinge, not to the fixed hull.
+ boundary=list(range(nx+1))+[j*(nx+1)+nx for j in range(1,ny+1)]+[ny*(nx+1)+i for i in range(nx-1,-1,-1)]+[j*(nx+1) for j in range(ny-1,0,-1)]
+ rim=[];faces=[]
+ def timber_return(point):
+  x,_,z=point
+  # The four sharp skin corners extend past the timber's rounded X/Z corners.
+  # Inset only their return targets into solid wood; keep the outer skin intact.
+  if (abs(x+3.4)<1e-8 or abs(x-7.4)<1e-8) and (abs(z-hingez)<1e-8 or abs(z-hingez-4.9)<1e-8):
+   x+=.04 if x<2 else -.04;z+=.04 if z<hingez+2.45 else -.04
+  return (x,floor,z)
+ for i,k in enumerate(boundary):
+  aa=vs[k];bb=vs[boundary[(i+1)%len(boundary)]]
+  segments=[(aa,bb)]
+  # A few original hinge vertices rise above the timber. Split at its middle
+  # plane rather than creating a bow-tie quad across zero panel thickness.
+  if (aa[1]-floor)*(bb[1]-floor)<0:
+   t=(floor-aa[1])/(bb[1]-aa[1]);cross=tuple(aa[c]+t*(bb[c]-aa[c]) for c in range(3))
+   segments=[(aa,cross),(cross,bb)]
+  for a0,b0 in segments:
+   # The outer timber side is solid here, below its bevel. Returning to the
+   # nominal top instead would leave a narrow V-channel along the bevel.
+   polygon=[a0,timber_return(a0),timber_return(b0),b0]
+   points=[]
+   for point in polygon:
+    if not points or sum((point[c]-points[-1][c])**2 for c in range(3))>1e-16:points.append(point)
+   if len(points)>1 and sum((points[0][c]-points[-1][c])**2 for c in range(3))<1e-16:points.pop()
+   if len(points)<3:continue
+   if (a0[1]+b0[1])/2>floor:points.reverse()
+   start=len(rim);rim.extend(points);faces.append(tuple(range(start,len(rim))))
+ mesh('porch panel sealed edge returns',rim,faces,'cream','porch-panel')
 cube('porch interior timber',(2,floor,hingez+2.45),(10.8,.16,4.9),'wood',.04,'porch-panel')
 for x in [-3.2+i*.38 for i in range(28)]:tube('deck plank seam',[(x,floor+.085,hingez+.1),(x,floor+.085,hingez+4.8)],.012,'dark','porch-panel')
 mechanism('porch-panel',(2,floor,hingez),'deck',closedRotation=[-math.pi/2,0,0])
