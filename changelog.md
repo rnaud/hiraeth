@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v2.06 — 2026-10-23
+
+- The seed pouch has been removed, so walking no longer leaves a trail of flowers. The bloom gun still grows flowers where its shots land.
+
 ## v2.05 — 2026-10-23
 
 - Plumb points you toward people and landmarks to explore without naming people you have not learned about yet.

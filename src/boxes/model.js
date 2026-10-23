@@ -410,17 +410,6 @@ function mossModel() {
   return g;
 }
 
-function pouchModel() {
-  // a linen pouch, its neck tied, a few seeds spilt
-  const g = new THREE.Group();
-  g.add(new THREE.Mesh(new THREE.SphereGeometry(0.1, 16, 12).scale(1, 0.85, 0.9), flatM('#d8c8a2')));
-  g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.05, 0.06, 12).translate(0, 0.1, 0), flatM('#cdbb92')));
-  g.add(new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.05, 10, 1, true).rotateX(Math.PI).translate(0, 0.15, 0), flatM('#d8c8a2', { side: THREE.DoubleSide })));
-  g.add(new THREE.Mesh(new THREE.TorusGeometry(0.037, 0.008, 4, 16).rotateX(Math.PI / 2).translate(0, 0.11, 0), flatM('#7a5a3a')));
-  for (let i = 0; i < 4; i++) g.add(new THREE.Mesh(new THREE.SphereGeometry(0.012, 6, 5).scale(1, 0.7, 1).translate(0.07 + i * 0.03, -0.085, 0.06 - i * 0.02), flatM('#8a6a3a')));
-  return g;
-}
-
 function scarfModel() {
   // a fine white scarf in a lifting curl, the glyph woven at its end
   const pts = [];
@@ -623,7 +612,7 @@ const MODELS = {
   sword: swordModel, shield: shieldModel, backpack: tankModel, doublejump: liftModel, jetpack: jetsModel, wardenbellows: wardenbellowsModel, glider: wingsModel, stun: () => lensModel('#bfe8f2', { ice: true }), fire: flintModel,
   cell: cellModel, coil: coilModel, lantern: lanternModel, lens: () => lensModel('#d8d4c8', { glyph: true }), bell: whistleModel, star: starModel,
   bloom: bloomModel, echo: echoModel, level: levelModel,
-  soles: solesModel, hush: hushModel, shell: shellModel, moss: mossModel, pouch: pouchModel, scarf: scarfModel, reed: reedModel, resin: resinModel, cabpass: passModel,
+  soles: solesModel, hush: hushModel, shell: shellModel, moss: mossModel, scarf: scarfModel, reed: reedModel, resin: resinModel, cabpass: passModel,
   tongs: tongsModel, tether: tetherModel, horn: hornModel, pearl: pearlModel, bellows: bellowsModel, starthread: starthreadModel,
   divercap: capModel, founderspin: pinModel, courierribbon: ribbonModel, floatbead: floatbeadModel, keeper: keeperModel, splice: spliceModel, sunglass: sunglassModel, sandglass: sandglassModel,
 };

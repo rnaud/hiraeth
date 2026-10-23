@@ -133,7 +133,7 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   mode after ember, leaf green and petal pink in the tank, slow as sap. Targets
   that `accept` `'bloom'` grow; to everything else it is plain fluid. A bloom
   glob that lands on the world emits `'tool:bloom'`, and `src/boxes/effects.js`
-  plants a few flowers there from the seed pouch's pool.
+  plants a few flowers there from a recycled instanced pool.
 - **The echo shell** (`src/echo-shell.js`, item `echo`): it keeps the last
   `'note'` sung within 18 m (saved: flag `echo.held`) and V (Y / △ with no gadget in hand) plays it
   back (`'echo'` { pos, note }) with the bell (`effects.ring()`).
@@ -153,9 +153,7 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   `src/wildlife.js`) and `shell` (the Spheres' grove canopy: every few seconds
   the unopened boxes within 45 m answer softly, a `'bell'` event with `soft: true`
   that bell-tuned doors ignore), `moss` (Lorn II's root arch: a small light
-  round your feet after dusk), `pouch` (Viridel's canopy: flowers come up in
-  your footsteps, one recycled instanced pool in `src/boxes/effects.js`) and
-  `reed` (Lorn's mossy rise: twice the breath under water, `player.breathK`, read
+  round your feet after dusk) and `reed` (Lorn's mossy rise: twice the breath under water, `player.breathK`, read
   by `src/swim.js`) and `scarf` (Vael II's balanced stack: the wings sink slower,
   `player.sinkK`).
 - **Held bells** (the Founders' Belfry, reworked from the temple design audit): a `bell` element with
@@ -3122,3 +3120,5 @@ matching completed goal reaches `Guardian.resolve` and the existing
 `TempleRuntime.onBossResolved`; quitting or turning back restores the original
 pose without opening the exit. Cinematic additions can wrap `startHelper` and the
 existing `onFinale` without making an arcade score into temple completion.
+
+The seed pouch and its Viridel canopy chest were removed in issue #625. Old save flags remain harmless and do not appear in the inventory or create flowers while walking. The bloom gun still plants flowers through the shared effects pool.
