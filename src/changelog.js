@@ -9,6 +9,13 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
+    v: '2.08', date: '2026-10-23',
+    items: [
+      { text: 'The Keeper and Elder now introduce their requests in short scenes. Helping them celebrates the water and wind returning to their temples.', see: 'Accept either guardian’s invitation to watch or skip its introduction. Complete the Cistern channels or reach the Old Roost with the Elder, then return to see the temple change. Leaving a run does not play a victory scene.' },
+      { text: 'Scene captions appear with their filmed moment, even when a newly entered place is waiting to show its name.', see: 'Return after completing a helper’s request: its water or wind caption appears during the celebration. The place name follows the scene; skipping does not leave a delayed caption behind.' },
+    ],
+  },
+  {
     v: '2.07', date: '2026-10-23',
     items: [
       { text: 'Steam Deck updates can keep arriving without filling up the old download channel. Existing installations keep their saves and update through the same game site.', see: 'Check for updates on Steam Deck. Existing launchers keep using the checked multipart download; new package downloads have their own release for each build.' },

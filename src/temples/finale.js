@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { sightClear } from '../story/film.js';
 import { purseSpot, PURSE_AT } from '../chimes.js';
+import { spoken } from '../story/tone.js';
 
 // A temple's ending, filmed (issue #366: "Temples should end on a cinematic. Cinematic should have the level's music
 // playing."). Every house ends once its guardian is resolved on four panels, its details read from the house itself (its
@@ -94,7 +95,7 @@ export const FINALES = {
     sign: { what: 'the frosted crystals thaw and swing again, the three in time, humming in tune over her',
       at: (rt) => { const S = rt.motherCrystals?.swings ?? []; if (!S.length) return []; const c = S.reduce((a, s) => a.add(s.center), V()).divideScalar(S.length); return [{ pos: c, r: 9, near: 2, skip: S.map((s) => s.group) }]; }, lens: { up: -6.5, dist: 13, push: 0.15 } },   // (the three together, from low under them)
     way: { back: 15, up: 2.5, turn: -0.4 } },
-  arzach: { beat: 'the Elder rides the wind up out of the roost; the Aerie’s way out opens',
+  arzach: { beat: 'after the Elder reaches the Old Roost, the Aerie’s wind returns and its way out opens',
     sign: { what: 'the wind comes back: both vents of the roost breathe, their columns rising to the open sky',
       at: (rt) => (rt.roostWinds ?? []).map((w) => ({ pos: w.foot.clone().setY(w.foot.y + 4), r: 4.5, pri: w.on ? 1 : 0, skip: [w.root], look: (k) => w.foot.clone().setY(w.foot.y + 2 + 9 * k) })), lens: { up: -2.5, dist: 10, push: 0.1, rise: 3.5 } },
     way: { back: 14, up: 5, turn: 0.5 } },
@@ -602,7 +603,13 @@ export function finaleShots(rt, F = FINALE) {
     houseShot,
     { dur: F.way, clear: !wayPicked, from: { pos: wayFrom, look: doorLook, fov: wayFov(wayFrom) }, to: { pos: wayTo, look: doorLook, fov: wayFov(wayTo) - 2 } },
   ];
-  return { shots, way, at: { keeper: body, reward: purse, house: houseAt, way: door }, axis: n, box: boxAt(finaleLength(F)), reach: { A: KA, B: KR, C: KC, D: KD }, picked: { arc, reward: !!rewardPick, sign: sign ? sign.x.i : null, way: wayPicked }, sign: sign ? { skip: skipOf(sign.x), near: sign.x.near ?? Math.min(1.5, sign.x.r * 0.4) } : null, bodyAt: boxAt };
+  if (rt.guardian.def.helper === 'elderflight') {
+    // Flight already ended at the Old Roost. On return, begin with the source
+    // roost's quiet vent, then show its wind restored; never film a second arrival.
+    const start = typeof houseShot.from === 'function' ? houseShot.from(0) : houseShot.from;
+    shots[0] = { dur: F.keeper, clear: houseShot.clear, from: start };
+  }
+  return { shots, way, at: { opening: rt.guardian.def.helper === 'elderflight' ? shots[0].from.look : body, keeper: body, reward: purse, house: houseAt, way: door }, axis: n, box: boxAt(finaleLength(F)), reach: { A: KA, B: KR, C: KC, D: KD }, picked: { arc, reward: !!rewardPick, sign: sign ? sign.x.i : null, way: wayPicked }, sign: sign ? { skip: skipOf(sign.x), near: sign.x.near ?? Math.min(1.5, sign.x.r * 0.4) } : null, bodyAt: boxAt };
 }
 
 /**
@@ -629,6 +636,8 @@ export function playFinale(rt, { moments = null, sound = null, game = rt.game, F
     id: `temple.${rt.id}.finale`, flag, shots,
     behind: { avoid: () => keeperBox(rt.guardian.model) },   // (the follow camera back behind him, out of the keeper's body: the Listener's shell, #529)
     beats: [
+      ...(rt.guardian.def.helper ? [{ t: tC + .15, secs: F.house - .2, line: spoken('scene', rt.id === 'desert'
+        ? '~happy~ Water reaches the dry basin again.' : '~happy~ The wind returns to both vents.') }] : []),
       { t: tC + 0.35, run: () => { if (sign.hold) { letGo(sign.hold); log.held = sign.hold; } } },
       { t: tD + F.doorLead, run: () => { if (way) letGo(way.id); log.opened = true; } },
     ],
