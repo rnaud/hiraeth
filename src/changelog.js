@@ -9,6 +9,13 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
+    v: '2.09', date: '2026-10-23',
+    items: [
+      { text: 'Use prompts follow what you can see. People, loose objects and chests behind a wall no longer take the button from a reachable target.', see: 'Stand near two people or objects and turn the camera between them. The visible reachable prompt owns A / ×. Putting down an object you already hold remains available when you look away.' },
+      { text: 'A sealed chest offers inspection, then offers opening when it is ready.', see: 'Approach a chest that is still waiting for its prerequisite, inspect it, then return after completing that requirement. Inspection keeps the chest shut and gives no item.' },
+    ],
+  },
+  {
     v: '2.08', date: '2026-10-23',
     items: [
       { text: 'The Keeper and Elder now introduce their requests in short scenes. Helping them celebrates the water and wind returning to their temples.', see: 'Accept either guardian’s invitation to watch or skip its introduction. Complete the Cistern channels or reach the Old Roost with the Elder, then return to see the temple change. Leaving a run does not play a victory scene.' },

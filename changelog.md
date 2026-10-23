@@ -2,6 +2,11 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v2.09 — 2026-10-23
+
+- A sealed chest offers inspection, then offers opening when it is ready.
+- Use prompts follow what you can see. People, loose objects and chests behind a wall no longer take the button from a reachable target.
+
 ## v2.08 — 2026-10-23
 
 - Scene captions appear with their filmed moment, even when a newly entered place is waiting to show its name.

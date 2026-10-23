@@ -20,7 +20,7 @@ import { chestGeometry, TEMPLE_CHEST } from '../src/boxes/chest.js';
 import { makeMaterial } from '../src/materials.js';
 import { gearHtml } from '../src/items.js';
 import { DevMenu } from '../src/dev-menu.js';
-import { bestInteractable, clearInteractables } from '../src/interact.js';
+import { bestInteractable, clearInteractables, updateInteract } from '../src/interact.js';
 
 const quiet = (fn) => { const w = console.warn; console.warn = () => {}; try { return fn(); } finally { console.warn = w; } };
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -256,7 +256,7 @@ test('a box opens through E and its scene, grants its item and stays open', () =
   // E: "open"
   const e = bestInteractable(pl);
   assert.equal(e?.entry.id, `box.${box.id}`);
-  assert.equal(e.entry.prompt, 'open');
+  assert.equal(e.entry.prompt(), 'open');
   e.entry.use(pl);
   assert.ok(boxes.busy(), 'the scene plays');
   assert.ok(Math.abs(pl.pos.distanceTo(box.pos) - STAND_AT) < 0.3, 'the traveller is set before the box');
@@ -869,5 +869,33 @@ test('a retired active seed-pouch quest cannot remain the tracked objective or j
     assert.doesNotMatch(quests.journalHtml(), /Seed pouch|umbrella tree/);
     assert.equal(game.flag('quest.box.edena.pouch'), 'find', 'no destructive save migration');
     assert.ok(boxes.list.some(b => b.item === 'lantern'));
+  } finally { boxes.dispose(); clearInteractables(); game.reset(); }
+});
+
+test('a shut chest offers inspection until its actual prerequisite permits opening', () => {
+  game.reset(); clearInteractables();
+  const scene = new THREE.Scene(), physics = new Physics(scene, { heightAt: () => 0 });
+  const level = { spawn: V(), lights: [], noShadow: [] }, pl = player(V(0, 0, 1));
+  const messages = [], responses = [];
+  const table = { desert: [{ id: 'desert.interaction636', item: 'backpack', at: [0, 0, 2],
+    ready: g => !!g.flag('interaction636.powered'), sealed: 'The makers’ chest sits shut and silent.' }] };
+  const boxes = createBoxes({ levelId: 'desert', scene, physics, level, player: pl, table,
+    toast: text => messages.push(text), sound: { boxAnswer: gain => responses.push(gain) } });
+  try {
+    const b = boxes.list.find(b => b.id === 'desert.interaction636');
+    assert.ok(b); assert.equal(b.ready(), false);
+    const offered = updateInteract(pl, false);
+    assert.equal(offered.entry?.id, `box.${b.id}`); assert.equal(offered.prompt, 'inspect the chest');
+    assert.equal(offered.entry.reachCollider(), b.collider);
+    assert.ok(offered.entry.reachAt().y < offered.entry.at().y, 'reach goes to the body, not the floating words');
+    const inspected = updateInteract(pl, true);
+    assert.equal(inspected.handled, true); assert.deepEqual(messages, ['The makers’ chest sits shut and silent.']);
+    assert.deepEqual(responses, [0.15]); assert.equal(boxes.busy(), false);
+    assert.equal(items.has('backpack'), false); assert.equal(!!game.flag(`box.${b.id}`), false);
+    game.set('interaction636.powered', true);
+    assert.equal(b.ready(), true); assert.equal(updateInteract(pl, false).prompt, 'open');
+    updateInteract(pl, true);
+    assert.equal(boxes.busy(), true, 'the existing opening scene starts when the actual prerequisite is true');
+    assert.equal(items.has('backpack'), false, 'the prompt never grants the item ahead of the scene');
   } finally { boxes.dispose(); clearInteractables(); game.reset(); }
 });

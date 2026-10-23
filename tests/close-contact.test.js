@@ -188,3 +188,25 @@ test('the conversation camera holds its shot when you stand nose to nose', () =>
   // (it may follow the midpoint between you, which moves half as much as you do; it must not swing round)
   assert.ok(path < moved * 0.75, `the camera moved ${path.toFixed(2)} m over 2 s while you shuffled ${moved.toFixed(2)} m`);
 });
+
+
+test('a real NPC body does not self-block interaction reach, while an independent wall does', async () => {
+  const { interactionReachable } = await import('../src/interaction-view.js');
+  const { shoulders } = await import('../src/talk-prompt.js');
+  const { scene, physics } = flat();
+  const npc = new NPC(scene, physics, { route: [V(0, 0, 2)], cape: 0, lines: ['~neutral~ …'] });
+  try {
+    npc.object.position.copy(npc.pos); npc.object.updateMatrixWorld(true);
+    assert.equal(npc.object.userData.noCollide, true, 'real NPC collision contract, not a generic target stub');
+    const baked = new Physics(scene);
+    assert.equal(baked.addCollider(npc.object), null, 'their animated body is excluded from added solid collision too');
+    const tmp = [V(0, 0, 0), V(0, 0, 0)], p = { pos: V(0, 0, 0), frame: { up: V(0, 1, 0) } };
+    const entry = { reachAt: () => { const b = shoulders(npc, p.frame.up, tmp); return b.mid ?? V((b.l.x + b.r.x) / 2, (b.l.y + b.r.y) / 2, (b.l.z + b.r.z) / 2); } };
+    assert.equal(interactionReachable(p, entry, baked), true, 'the actual visible NPC can be reached');
+    const wall = new THREE.Mesh(new THREE.BoxGeometry(3, 3, 0.1)); wall.position.set(0, 1.5, 1);
+    const barrier = baked.addCollider(wall);
+    assert.equal(interactionReachable(p, entry, baked), false, 'the person is not an exemption for the wall');
+    baked.removeCollider(barrier);
+    assert.equal(interactionReachable(p, entry, baked), true);
+  } finally { npc.dispose(scene); }
+});
