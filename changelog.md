@@ -2,6 +2,12 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v2.05 — 2026-10-23
+
+- Flying with the Elder now shows your progress toward the Roost and how to return to her wing when you drift away.
+- Plan the Cistern’s channels at your own pace, see the connected route and possible spills, then open the valve. A spill lets you adjust the same board and try again.
+- Help the Rose House Keeper guide water and fly beside the Aerie Elder to the Old Roost. Their completed games now open the temple’s way onward, with a safe return if you leave to try again.
+
 ## v2.00 — 2026-10-22
 
 - Sound effects finish loading before play, so assigned recordings keep their chosen sound instead of turning into a substitute. A missing download offers Retry without losing your save.

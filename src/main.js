@@ -1,3 +1,4 @@
+import { helperRun } from './temples/helper-encounter.js';
 import { prepareSoundWithRetry } from './effect-loading.js';
 import { homecomingKind, roadDone, ROAD } from './story/ending.js';
 import { GIVERS_NOTE } from './story/signature.js';
@@ -2726,13 +2727,15 @@ if (minigameDef) {
   // on the way to a world (?game=pirates&to=<id>, src/ambush.js): the fight's page marks the trip at once (a crash or a
   // closed tab never sends you round it again), won as it is won; every way out lands at the world
   const transit = ambush.transit(query.get('to'));
+  const helper = helperRun(game, minigameDef.id, query.get('encounter'));
   minigame = new MinigameRunner(minigameDef, { scene, camera, player, physics, level, sound, wind, ship, state: game, kick, from: query.get('from'), tool, foes, rig, settings, chimes,
     capture: captureView, npcs, crowd, wildlife, flora, people: { lib, humans: peopleT },   // (what a game played in a world, or with people of its own, may use)
     othersOpen: () => menu.open || journal.open || changelog.open || picker.classList.contains('open') || devMenu.open,
-    navigate: (href) => { transit?.left(); flushPlay(); location.href = href; },
+    navigate: (href) => { helper?.left(); transit?.left(); flushPlay(); location.href = href; },
     // (won: the chimes shot down go into the wallet, once: a Retry after the win flies it again for the score alone)
-    onResult: (r) => transit?.onResult(r),
-    links: transit?.links ?? gameLinks(minigameDef, level, query.get('from')) });   // (started from the Arcade: the game before / after, back to its sign; the pirates' next place, issue #555)
+    onResult: (r) => { helper?.onResult(r); transit?.onResult(r); },
+    helper: helper?.context,
+    links: helper?.links ?? transit?.links ?? gameLinks(minigameDef, level, query.get('from')) });   // (started from the Arcade: the game before / after, back to its sign; the pirates' next place, issue #555)
   window.minigame = minigame;
   story.beacon?.removeFromParent();   // (the host world's story beacon: not in a game)
   if (story) story.done = true;   // (nor its goal: the Arena's ring would end its story under a game played by it)

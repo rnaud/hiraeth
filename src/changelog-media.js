@@ -1349,6 +1349,83 @@ const RETROID536 = 'Retroid Pocket Nova (Adreno 740, Vulkan), Unity, Handheld (F
 const SRC536 = 'BridgeRenderer.Pipelines (the G-buffer’s states the scene asks for: variant, layout, cull, depth), Metal’s list traced in the editor, the shipped lists rewritten by scripts/bench/pso-one-cull.mjs; docs/systems/performance.md, “One cull mode and one layout for the Surface pipelines”';
 const SEAPORT572 = 'Issue #572: the web game in muted headless Chrome (High, 1280 × 720) on a Vite of its own (port 5441), a new save arriving by ship (?level=underwater&via=ship), then walked as a player; before: origin/main at 02345e2c3, after: this change; the deck and the Dock from the visual check’s views (scripts/design-qc/capture.mjs --fixed-scale); 20 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '2.05': [
+  {
+    "match": "Help the Rose House Keeper guide water",
+    "shots": [
+      {
+        "name": "keeper-return",
+        "only": "after",
+        "caption": "The three completed floods offer a return to the Keeper.",
+        "size": [
+          1280,
+          960
+        ],
+        "from": "Issue #623, 23 October 2026, uncommitted helper candidate based on ded6a12e44cc375e1848139cb35c532371e1cdd1, 1280 × 960. After-only actual game view; no historical before image. Unity Editor, High, private save, constructor mute and disabled output sink; exact warm-project restoration verified. Real session driven with scripted ordinary walking/valve or wingman controls at accelerated 30 Hz; no goal/result injection. The task starts on the game page with a pending story encounter; this picture is not a full temple-entry/return or device-listening claim. Evidence: .local-tools/helper623/native/native-helper-3."
+      },
+      {
+        "name": "elder-return",
+        "only": "after",
+        "caption": "Reaching the Old Roost offers a return to the Aerie.",
+        "size": [
+          1280,
+          960
+        ],
+        "from": "Issue #623, 23 October 2026, uncommitted helper candidate based on ded6a12e44cc375e1848139cb35c532371e1cdd1, 1280 × 960. After-only actual game view; no historical before image. Unity Editor, High, private save, constructor mute and disabled output sink; exact warm-project restoration verified. Real session driven with scripted ordinary walking/valve or wingman controls at accelerated 30 Hz; no goal/result injection. The task starts on the game page with a pending story encounter; this picture is not a full temple-entry/return or device-listening claim. Evidence: .local-tools/helper623/native/native-helper-2."
+      }
+    ]
+  },
+  {
+    "match": "Plan the Cistern’s channels",
+    "shots": [
+      {
+        "name": "cistern-route-web",
+        "only": "after",
+        "caption": "Teal grooves show the current plan connecting both troughs in the browser.",
+        "size": [
+          1280,
+          960
+        ],
+        "from": "Issue #623, 23 October 2026, uncommitted helper candidate based on ded6a12e44cc375e1848139cb35c532371e1cdd1, 1280 × 960. After-only actual game view; no historical before image. Headless Chrome on task port 5488, private in-memory stores, constructor mute and blocked audio output; original browser stores unchanged. Real session driven with scripted ordinary walking/valve or wingman controls at accelerated 30 Hz; no goal/result injection. The task starts on the game page with a pending story encounter; this picture is not a full temple-entry/return or device-listening claim. Evidence: .local-tools/helper623/web-2026-10-23T05-01-11-811Z."
+      },
+      {
+        "name": "cistern-plan-native",
+        "only": "after",
+        "caption": "Unity: take time to plan, with the valve instruction beside a clear Pause button.",
+        "size": [
+          1280,
+          960
+        ],
+        "from": "Issue #623, 23 October 2026, uncommitted helper candidate based on ded6a12e44cc375e1848139cb35c532371e1cdd1, 1280 × 960. After-only actual game view; no historical before image. Unity Editor, High, private save, constructor mute and disabled output sink; exact warm-project restoration verified. Short first-live-frame capture; rendered score and Pause bounds do not overlap. The task starts on the game page with a pending story encounter; this picture is not a full temple-entry/return or device-listening claim. Evidence: .local-tools/helper623/native/native-helper-layout-4."
+      }
+    ]
+  },
+  {
+    "match": "Flying with the Elder now shows",
+    "shots": [
+      {
+        "name": "elder-guide-web",
+        "only": "after",
+        "caption": "Browser: progress toward the Roost and guidance while flying in the Elder’s wake.",
+        "size": [
+          1280,
+          960
+        ],
+        "from": "Issue #623, 23 October 2026, uncommitted helper candidate based on ded6a12e44cc375e1848139cb35c532371e1cdd1, 1280 × 960. After-only actual game view; no historical before image. Headless Chrome on task port 5488, private in-memory stores, constructor mute and blocked audio output; original browser stores unchanged. Real session driven with scripted ordinary walking/valve or wingman controls at accelerated 30 Hz; no goal/result injection. The task starts on the game page with a pending story encounter; this picture is not a full temple-entry/return or device-listening claim. Evidence: .local-tools/helper623/web-2026-10-23T04-49-38-282Z."
+      },
+      {
+        "name": "elder-guide-native",
+        "only": "after",
+        "caption": "Unity: the flight guidance leaves the Pause button clear.",
+        "size": [
+          1280,
+          960
+        ],
+        "from": "Issue #623, 23 October 2026, uncommitted helper candidate based on ded6a12e44cc375e1848139cb35c532371e1cdd1, 1280 × 960. After-only actual game view; no historical before image. Unity Editor, High, private save, constructor mute and disabled output sink; exact warm-project restoration verified. Short first-live-frame capture; rendered score and Pause bounds do not overlap. The task starts on the game page with a pending story encounter; this picture is not a full temple-entry/return or device-listening claim. Evidence: .local-tools/helper623/native/native-helper-layout-4."
+      }
+    ]
+  }
+],
   '2.00': [
   {
     "match": "Sound effects finish loading before play",

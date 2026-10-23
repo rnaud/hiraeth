@@ -51,6 +51,7 @@ import { LodManager } from '../src/lod.js';
 import { spawnAliens, alienSpots } from '../src/aliens/index.js';
 import { createStory } from '../src/story/index.js';
 import { game as gameState } from '../src/game-state.js';
+import { helperRun } from '../src/temples/helper-encounter.js';
 import { bootFlags } from '../src/save-migrate.js';
 import { sharedUniforms } from '../src/materials.js';
 import { createPost } from '../src/post.js';
@@ -356,7 +357,7 @@ export const LOOK_VECTORS = new Set(['uWind', 'uHaze', 'uSpot', 'uSpotTone', 'uH
   // (the sky's own: the eclipse, src/eclipse.js; the Lantern's light, src/story/lantern-sky.js; space, src/levels/space-city-kit.js)
   'uEclipse', 'uCorona', 'uEclipseGlow', 'uEclipseDir', 'uLantern', 'uSpace', 'uSpaceTone', 'uSpaceSun', 'uSpaceNight']);
 
-export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', quality = null, log = () => {}, menus = null, start = null, arrive = false, hullSpawn = false, settings = null, gestures = true, moves = true, matching = null, via = null, prologue = false, onTravel = null, aboard = null, scenes = false, fight = false, game: gameId = null, stage: gameStage = null, from = null, to: transitTo = null, onGame = null, onLeave = null, trials: withTrials = false, onPage = null, arrival = null, back = null, saves = true, defer = true, far: farOn = true, lod: lodOn = false, skies = true, waterBed = true, onStage = null, onLoad = null, traveller = null } = {}) {
+export async function createGame({ levelId = 'desert', backend, width = 1280, height = 720, people = true, view = null, audio = null, flags = null, grassPreset = 'high', quality = null, log = () => {}, menus = null, start = null, arrive = false, hullSpawn = false, settings = null, gestures = true, moves = true, matching = null, via = null, prologue = false, onTravel = null, aboard = null, scenes = false, fight = false, game: gameId = null, stage: gameStage = null, from = null, to: transitTo = null, encounter = null, onGame = null, onLeave = null, trials: withTrials = false, onPage = null, arrival = null, back = null, saves = true, defer = true, far: farOn = true, lod: lodOn = false, skies = true, waterBed = true, onStage = null, onLoad = null, traveller = null } = {}) {
   const T = {};
   // Prepare all assigned recordings before constructing a playable world. The native host keeps
   // polling decode completions while this promise is pending; explicit no-audio tools skip it.
@@ -439,7 +440,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // level reads it from the address, src/levels/arcade.js; engine/unity/game.js carries it through the reboot)
   // (a game's own page reads its address too, as the page's ?game=<id>&to=<world>&stage=<level>: the chime pirates' level
   // and the destination's planet by where the flight goes, issue #555; until then an engine's flight drew a level at random)
-  const gameQuery = gameDef ? `?game=${encodeURIComponent(gameId)}${transitTo ? `&to=${encodeURIComponent(transitTo)}` : ''}${gameStage ? `&stage=${encodeURIComponent(gameStage)}` : ''}` : null;
+  const gameQuery = gameDef ? `?game=${encodeURIComponent(gameId)}${transitTo ? `&to=${encodeURIComponent(transitTo)}` : ''}${gameStage ? `&stage=${encodeURIComponent(gameStage)}` : ''}${encounter ? `&encounter=${encodeURIComponent(encounter)}` : ''}` : null;
   const loc = (back || gameQuery) && globalThis.location ? globalThis.location : null, search = loc?.search;
   if (loc) loc.search = back ? `?back=${encodeURIComponent(back)}` : gameQuery;
   try { level = quiet(() => (meta.create ? meta.create(scene, { caravan }) : runSteps(meta.build(scene, { caravan })))); } finally { DRIFT_FITS.later = false; DRIFT_FITS.most = Infinity; if (loc) loc.search = search; }
@@ -962,7 +963,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   // not in a bench's plan, whose numbers stay comparable with before. On a game's page, its runner at once.
   const trials = gameDef || withTrials || (menus && !flags && !view) ? optional('the trials', () => makeTrials({ levelId, scene, physics, level, player, camera, rig, sound, wind, tool, foes: combat?.foes ?? null, chimes: combat?.chimes ?? null,
     npcs, crowd, wildlife, flora, people: lib && humans ? { lib, humans } : null, story, menus, items: gear, game: gameState, toast, waters, settings, ship, kick, def: gameDef, from, onGame, onLeave, thresholds,
-    transit: gameDef ? ambush.transit(transitTo) : null,
+    transit: gameDef ? ambush.transit(transitTo) : null, helper: gameDef ? helperRun(gameState, gameDef.id, encounter) : null,
     log: (t) => log(t) })) : null;
   if (trials) stamp('trials');
   // input: the keys by KeyboardEvent.code, as the page's listeners keep them (main.js), and the pads

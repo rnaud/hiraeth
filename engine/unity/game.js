@@ -330,12 +330,12 @@ function showMenu() {
  * starts again on the game's page, then on the world at the place saved as you left it (engine/trials.js).
  */
 function playGame(href) {
-  const { game, from, to, stage } = readHref(href);
+  const { game, from, to, stage, encounter } = readHref(href);
   if (!game) return;
   S.game?.save();
   console.log(`[unity] the game ${game}${to ? ` on the way to ${to}` : ''}: the engine starts again on its page`);
   // (to: the chime-pirates on the first flight to a world, ?game=pirates&to=<world>: src/ambush.js, issue #435)
-  host.Reboot?.(JSON.stringify({ boot: { slot: slots.active, level: from ?? S.game?.level?.id ?? 'desert', game: stage ? `${game}?stage=${stage}` : game, to: to ?? null, resolved: true } }));   // (stage: the pirates' next place, issue #555)
+  host.Reboot?.(JSON.stringify({ boot: { slot: slots.active, level: from ?? S.game?.level?.id ?? 'desert', game: encounter ? `${game}?encounter=${encodeURIComponent(encounter)}` : stage ? `${game}?stage=${stage}` : game, to: to ?? null, resolved: true } }));   // (stage: the pirates' next place, issue #555)
 }
 function leaveGame(href) {
   const { level, from, via, game, back } = readHref(href);
@@ -484,7 +484,7 @@ function launch(args, { start: from = null, arrive = false, via = null, prologue
   game = game ? gameId : null;
   const gq = readHref(`?${gameQ ?? ''}`), stage = gq.stage;
   S.gameFrom = args.level ?? 'desert';
-  createGame({ levelId: args.level ?? 'desert', backend, back, game, stage, from: game ? args.level ?? 'desert' : null, to: game ? transit ?? args.to ?? gq.to ?? null : null, onGame: (href) => playGame(href), onLeave: (href) => leaveGame(href), trials: !!args.trial || !!args.fresh, quality: args.quality ?? null, people: args.people !== false, audio: rate ? { sampleRate: rate, record, retryEffects } : null, flags: !ending && (args.views?.length || args.play) ? BENCH_FLAGS : null, log: (...a) => console.log('[game]', ...a),
+  createGame({ levelId: args.level ?? 'desert', backend, back, game, stage, encounter: gq.encounter ?? null, from: game ? args.level ?? 'desert' : null, to: game ? transit ?? args.to ?? gq.to ?? null : null, onGame: (href) => playGame(href), onLeave: (href) => leaveGame(href), trials: !!args.trial || !!args.fresh, quality: args.quality ?? null, people: args.people !== false, audio: rate ? { sampleRate: rate, record, retryEffects } : null, flags: !ending && (args.views?.length || args.play) ? BENCH_FLAGS : null, log: (...a) => console.log('[game]', ...a),
     menus, settings: S.settings ?? null, start: from, arrive: arrive || !!args.arrive, hullSpawn: !!args.hullSpawn, gestures: !off.has('gestures'), moves: !off.has('moves'), matching: String(args.on ?? '').split(',').includes('matching') || null,
     via, prologue: prologue || !!args.prologue, onTravel: (to) => flyTo(to), aboard: aboardRooms(args)[0] ?? (starScenes.length ? 'main' : null), scenes: !!args.aboard, fight: !!args.fight || seqFight, arrival: came, onPage: (o) => pageTo(o), saves: !args.foes && !args.devmenu && !args.house && !args.ui && !args.wardrobe && !args.menuPointer, defer: !off.has('defer'), far: !off.has('far'), skies: !off.has('skies'), lod: String(args.on ?? '').split(',').includes('lod'), onStage: (t) => host.LoadStage?.(t),
     // (the bar under the line and why this part takes the time, src/load-page.js: BridgeHud.Loading draws them, issue #527)

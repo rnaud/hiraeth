@@ -1,3 +1,4 @@
+import { beginHelperEncounter, consumeHelperReturn, HELPER_ENCOUNTERS } from './helper-encounter.js';
 import { templeVista } from './vistas.js';
 import * as THREE from 'three';
 import { game as sharedGame } from '../game-state.js';
@@ -243,6 +244,20 @@ function setupOneTemple(ctx, rt) {
   rt.connect({ player, sound, toast, quests, fade: rt.fadeFn, isNight });
   // its ending, filmed as the guardian is resolved (src/temples/finale.js, issue #366), the world's theme under it
   rt.onFinale = () => playFinale(rt, { moments, sound, game });
+  // An explicit helping invitation replaces combat for these two guardians. The
+  // start function and existing onFinale remain the cinematic boundaries (#624).
+  if (HELPER_ENCOUNTERS[rt.id] && rt.guardian?.def.helper) {
+    let leaving = false;
+    rt.startHelper = () => {
+      if (leaving || !ctx.playGame || rt.logic.resolved || !player) return false;
+      const href = beginHelperEncounter(game, rt.id, { from: ctx.levelId,
+        returnPose: { pos: player.pos.toArray(), up: player.frame.up.toArray(), fwd: player.frame.dir(player.heading, new THREE.Vector3()).toArray() } });
+      if (!href) return false;
+      leaving = true;
+      ctx.playGame(href);
+      return true;
+    };
+  }
   const W = T.words, id = rt.id, Q = W.QUEST;
   // the quest: find the house, find what is inside, go down to its heart
   quests?.define?.({
@@ -319,6 +334,10 @@ function setupOneTemple(ctx, rt) {
       }
       // inside it, the temple is what you are doing
       if (byTheWay && game.flag(`temple.${id}.entered`)) { const qd = quests.def?.(Q.id); if (qd) qd.arrival = false; byTheWay = false; }
+      if (rt.guardian?.def.helper) consumeHelperReturn(game, rt.id, ctx.levelId, {
+        restore: p => player?.teleport(new THREE.Vector3(...p.pos), new THREE.Vector3(...p.up), new THREE.Vector3(...p.fwd)),
+        resolve: () => { if (rt.guardian.state === 'resolved') rt.onBossResolved(); else rt.guardian.resolve(); },
+      });
       rt.update(dt, t);
     },
   };

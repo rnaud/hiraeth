@@ -127,12 +127,20 @@ async function ring(g) {
 }
 
 for (const id of Object.keys(TEMPLES)) {
-  test(`${TEMPLES[id].def.name ?? id}’s guardian (${id}): fought through standing close by, half way across its hall and at its far side, at 60 and 30 frames a second, every phase gives a way in`, () => {
+  test(`${TEMPLES[id].def.name ?? id}’s guardian (${id}): combat offers a way in from every stance; helping guardians wait without attacking`, () => {
     const H = hall(id);
     if (!H) return;   // (a temple without a guardian)
     // (a guardian outwitted, never fought, has no openings to wait for: its own play-through, the Mother Snapper's in
     // tests/mother-snapper.test.js, issue #409)
     if (H.G.def.outwit) { H.done(); return; }
+    if (H.G.def.helper) {
+      try {
+        for (const fps of FIGHT.fps) for (let i = 0; i < fps * 5; i++) H.frame(1 / fps);
+        assert.equal(H.G.state, 'sleep'); assert.equal(H.G.attack, null);
+        assert.equal(H.G.add(1), false); assert.equal(H.rt.logic.resolved, false);
+      } finally { H.done(); }
+      return; // Explicit helper completion and actual court/flight inputs have their own suites.
+    }
     try {
       for (const fps of FIGHT.fps) for (const stance of ['near', 'mid', 'far']) {
         const r = fightThrough(H, stance, fps);

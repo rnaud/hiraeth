@@ -2,8 +2,8 @@
 // engine is played or a plan asks (`fight`), never in a bench's views; a blot set down ahead of the traveller is locked
 // on with Tab (the rig locked, the reticle's arrows on the screen's state), cut down with F (its burst scatters chimes,
 // walked into the wallet), and the hearts, potions and wallet are the health HUD's; knocked out, the restart card, and
-// Enter gets him up. In the desert's temple the Keeper wakes as he steps into its arena, and the lock frames it with him
-// (rig.frameWith). engine/game.js in a bare V8 context (the bundle the engines run).
+// Enter gets him up. The story Keeper remains peaceful (#623); the unchanged Incal Warden still wakes in its arena,
+// shows its meter and is framed by the lock (rig.frameWith). engine/game.js in a bare V8 context (the bundle the engines run).
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { tmpdir } from 'node:os';
@@ -77,26 +77,39 @@ test('the engine plays the fight: lock-on, a cut, the drops, the hearts, the kno
   tap(g, 'Enter'); run(g, 5);
   assert.ok(!g.player.dead && g.player.hearts === g.player.maxHearts && S.state.restart === null, 'up again, the card gone');
 
-  // the desert's temple guardian: it wakes as he steps into its arena, and the lock frames it with him
+  // The story Keeper is now a helping encounter. Entering cannot start combat or a combat meter.
   const T = (g.level.temples ?? []).find((t) => t.guardian);
   assert.ok(T, 'a temple with its guardian');
   const G = T.guardian, c = G.arena.center, V = c.constructor;
   g.player.teleport(c.clone().add(new V(0, 0.5, G.arena.r * 0.6)), new V(0, 1, 0), new V(0, 0, 1));
   const states = new Set();
   for (let k = 0; k < 12; k++) { run(g, 30); states.add(G.state); }
-  assert.ok(states.has('fight'), [...states].join(' '));
-  // its bar (the page's .temple-meter, src/temples/runtime.js meterHud): the screen's 'guardian', BridgeHud.cs draws it
-  const bar = S.state.guardian;
-  assert.ok(bar && /·/.test(bar.label) && bar.fill > 0 && bar.fill <= 1 && /^#/.test(bar.color), JSON.stringify(bar));
+  assert.equal(G.def.helper, 'cistern');
+  assert.deepEqual([...states], ['sleep']);
+  assert.equal(S.state.guardian, null, 'no combat meter for a helper');
   tap(g, 'Tab'); run(g, 10);
-  assert.ok(g.foes.lock?.guardian, 'locked on the guardian');
-  assert.ok(g.rig.frameWith, 'framed with him');
+  assert.notEqual(g.foes.lock?.g, G, 'the helper is not a combat lock target');
   // its fitted skin in its own colours (its texture a JPEG the VM can't decode: colors.json as vertex colours; it was white)
   // Frame stepping above is synchronous; let the explicitly asynchronous skin load finish before checking it.
   await G.model.ready;
   let skin = null; G.model.group.traverse((o) => { if (o.isSkinnedMesh) skin = o; });
   assert.ok(G.model.generated && skin, 'the Keeper on its fitted skin');
   assert.ok(skin.geometry.attributes.color && skin.material.vertexColors, 'its colours as vertex colours');
+
+  // Preserve the native combat-meter, guardian-lock and camera contract on an unchanged fighting temple.
+  const fight = await makeGame(file, { levelId: 'incal', fight: true });
+  const warden = fight.level.temples.find(t => t.guardian)?.guardian;
+  assert.ok(warden && !warden.def.helper, 'an unchanged fighting guardian');
+  const at = warden.arena.center.clone(); at.y += .5; at.z += warden.arena.r * .6;
+  fight.player.teleport(at, new V(0, 1, 0), new V(0, 0, 1));
+  const combatStates = new Set();
+  for (let k = 0; k < 12; k++) { run(fight, 30); combatStates.add(warden.state); }
+  assert.ok(combatStates.has('fight'), [...combatStates].join(' '));
+  const bar = fight.screen().state.guardian;
+  assert.ok(bar && /·/.test(bar.label) && bar.fill > 0 && bar.fill <= 1 && /^#/.test(bar.color), JSON.stringify(bar));
+  tap(fight, 'Tab'); run(fight, 10);
+  assert.equal(fight.foes.lock?.g, warden, 'locked on the fighting guardian');
+  assert.ok(fight.rig.frameWith, 'framed with the fighting guardian');
 });
 
 test('the Arena in the engine: its list of foes is the menus\' page (K, D-pad ↓), a foe chosen comes in to fight, the FOES tab on the screen (issue #264)', async () => {
