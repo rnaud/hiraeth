@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v2.12 — 2026-10-23
+
+- Fisk and Petra explain the Engine-House vents and Casting-House controls more clearly, including what to do when the Founder pauses.
+
 ## v2.11 — 2026-10-23
 
 - The ship’s bunk shelf is firmly supported, its folding porch has solid edges, and its room walls no longer disappear as you step away.

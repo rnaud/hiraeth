@@ -237,3 +237,12 @@ answer and carrier route, Lark’s first-hall gust timing, and Sorrel’s garden
 The voice guide and dialogue-review skill require practical meaning before figurative
 colour, without inventing a speaker’s knowledge. This is a bounded first pass; the
 remaining dialogue inventory still needs editorial review. Shared story data feeds both hosts.
+
+## Clear instructions (#626, temple follow-up)
+
+Fisk’s repeat hint now distinguishes the full four-vent volley from a bomb’s partial
+coverage. Petra names the molten channels controlled by the shared pour taps and
+explains that a cradled moon creates an opening for a splash on the Founder’s heart.
+These are three instruction edits across four authored pages; their tones, page counts,
+choices, conditions and effects remain unchanged. The shared dialogue data serves web
+and Unity. This bounded follow-up does not complete the remaining dialogue review.

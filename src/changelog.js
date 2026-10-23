@@ -9,6 +9,12 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
+    v: '2.12', date: '2026-10-23',
+    items: [
+      { text: 'Fisk and Petra explain the Engine-House vents and Casting-House controls more clearly, including what to do when the Founder pauses.', see: 'Return to Fisk after entering the Engine-House and ask about its four vents. Ask Petra about entering the Casting-House, then return after entering and ask about the cradle.' },
+    ],
+  },
+  {
     v: '2.11', date: '2026-10-23',
     items: [
       { text: 'The ship’s bunk shelf is firmly supported, its folding porch has solid edges, and its room walls no longer disappear as you step away.', see: 'Look beside the bunk, watch the porch fold open and closed, then walk away from the open ship. The shelf stays attached to the bed and the room walls still hide what is behind them.' },
