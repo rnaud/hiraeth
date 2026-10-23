@@ -4,6 +4,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { tmpdir } from 'node:os';
+import { runInContext } from 'node:vm';
 import { join } from 'node:path';
 import { readFileSync } from 'node:fs';
 import * as THREE from 'three';
@@ -20,6 +21,7 @@ import { buildFlask } from '../src/fluid-tool.js';
 import { AudioReplay } from '../engine/webaudio.js';
 import { tempPath } from '../scripts/temp-dirs.mjs';
 import { LOAD_WHY } from '../src/load-page.js';
+import { SFX, sfxFiles } from '../src/sfx.js';
 
 THREE.ColorManagement.enabled = false;
 const X = new THREE.Matrix4().makeScale(-1, 1, 1);
@@ -375,6 +377,7 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
   // the menus (engine/menus.js, BridgeMenu.cs): the kind of each state sent, null when none is open
   const menus = [], panels = {}, grounds = [], maps = [];
   let closedAt = 0;
+  const soundStages = [], effects = { paths: [], taken: 0, firstFrame: null };
   const stages = [];   // (the loading screen's lines, BridgeHud.Loading.cs: issue #424)
   const loading = [];   // (the world's load from the title's choice, under the loading screen: issue #510)
   const progress = [];   // (the bar and the why line under the loading screen's line: issue #527)
@@ -393,7 +396,7 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
     Cloth(id, buf) { const h = new Uint32Array(buf, 0, 7); cloths[id] = { N: h[0], K: h[5], B: h[6] }; }, Create() { calls.Create++; }, SetMesh() {},
     // the people's capes (BridgeCape.cs): their descriptions' sizes, for op 20's; their points never read back here
     Cape(id, buf) { const h = new Uint32Array(buf, 0, 2); capes[id] = h[0] * h[1]; }, CapeState: () => null,
-    Frame(buf) { calls.Frame++; lastFrame = buf; }, Look(json) { calls.Look++; look = json; }, Screen(json) { calls.Screen = (calls.Screen ?? 0) + 1; screenJson = json; }, ApplyMs: () => 0,
+    Frame(buf) { effects.firstFrame ??= effects.taken; calls.Frame++; lastFrame = buf; }, Look(json) { calls.Look++; look = json; }, Screen(json) { calls.Screen = (calls.Screen ?? 0) + 1; screenJson = json; }, ApplyMs: () => 0,
     // (on the title Enter once: New game, in the world it was started at; in the world W held, and Esc twice: the Start
     // menu open, then closed)
     // then J: the game menu (Quests), E: the Map (left open while its ground is drawn), J: closed
@@ -405,7 +408,7 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
     MapImage(key, buf, w, h) { maps.push({ key, bytes: buf.byteLength, w, h, sentBefore: !grounds.includes(key), inked: new Uint8Array(buf).some((x, i) => i % 4 === 0 && x < 80) }); },
     // (gone away at frame 76, BridgeRunner.Away: the Steam button, a suspend; back, the game waits under the Start menu)
     AwayCount: () => (closedAt && calls.Frame >= closedAt + 6 ? 1 : 0),
-    LoadStage(t) { stages.push(t); },
+    LoadStage(t) { (t.startsWith('Loading sound effects ') ? soundStages : stages).push(t); },
     LoadProgress(p, why) { progress.push({ p, why, loading: loading.length, stages: stages.length }); },
     Loading(on) { loading.push({ on, frames: calls.Frame, menus: menus.length, stages: stages.length }); },
     MenuWidth: () => 960, MenuMapBox: () => '878,508', PadName: () => 'Retroid Pocket Controller', Platform: () => 'android', Pad: () => null, MouseLook: () => null, Shot() {}, WriteText() {}, LastFrameCpuMs: () => 0, LastFrameGpuMs: () => 0, Exit() {},
@@ -414,12 +417,17 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
     // the sound rendered on Unity's audio thread (BridgeRunner.RunAudio, engine/unity/audio-worker.js): its batches played here as there
     AudioThreaded: () => true,
     AudioBatch(buf) { sound.batches++; const r = replay.apply(new Float64Array(buf)); if (r.pcm.length) BridgeHost.Audio(r.pcm.slice().buffer); if (r.ended.length) ended.push(...r.ended); if (replay.natives) BridgeHost.AudioNatives(replay.natives); },
+    // Assigned effects now gate world loading: this stand-in models the native PCM queue.
+    SfxLoad(path) { effects.paths.push(path); return effects.paths.length; },
+    SfxState: () => 'ok,1,4800,48000',
+    SfxTake() { effects.taken++; return effects.pcm; },
     MusicLoad(path) { music.loads.push(path); return music.loads.length; }, MusicState: () => `ok,2,${48000 * 60},48000`,
     AudioNatives(text) { music.natives.push(text); }, MusicFetch(list, carried) { music.fetch = { list, carried }; },
     AudioEndedTake: () => { const s = ended.join(','); ended.length = 0; return s; },
   };
   // (no timers of the VM's own, as in Puerts: engine/platform.js runs them from the frame)
-  const { exports, readFile } = loadBundle(file, {}, { CS: { Hiraeth: { Bridge: { BridgeHost } } }, setTimeout: undefined, setInterval: undefined, clearTimeout: undefined, clearInterval: undefined });
+  const { exports, readFile, ctx: vmContext } = loadBundle(file, {}, { CS: { Hiraeth: { Bridge: { BridgeHost } } }, setTimeout: undefined, setInterval: undefined, clearTimeout: undefined, clearInterval: undefined });
+  effects.pcm = runInContext('new Float32Array(4800).fill(.01).buffer', vmContext);
   BridgeHost.ReadFile = readFile;
   const errors = [];
   const warn = console.warn, info = console.info, log = console.log, error = console.error; console.warn = console.info = console.log = () => {}; console.error = (...a) => errors.push(a.map(String).join(' ').slice(0, 300));
@@ -430,6 +438,9 @@ test('the Unity bundle in a bare V8 context, against a stand-in of the C# host',
     for (let i = 0; i < 400 && !(closedAt && calls.Frame >= closedAt + 10); i++) { exports.frame(1 / 30); sound.queued = Math.max(0, sound.queued - 1600); await new Promise((r) => setImmediate(r)); }
   } finally { console.warn = warn; console.info = info; console.log = log; console.error = error; }
   assert.ok(calls.Frame >= 20, `frames: ${JSON.stringify(calls)} ${errors.join(' | ')}`);
+  assert.deepEqual(effects.paths.sort(), sfxFiles().map(file => `sfx/${file}`).sort(), 'every assigned take requested from the native decoder');
+  assert.equal(effects.firstFrame, sfxFiles().length, 'world frames begin only after every take decoded');
+  assert.equal(soundStages.at(-1), `Loading sound effects ${Object.keys(SFX).length}/${Object.keys(SFX).length}`);
   // the loading screen told what the build is on, main.js's stages in its order (issue #424)
   assert.deepEqual(stages, ['sketching the glass dunes…', 'inking the collisions…', 'waking the people…', 'mixing the inks…'], JSON.stringify(stages));
   // and the screen itself up from the title's choice (the title sent first), before the build's first line, until the

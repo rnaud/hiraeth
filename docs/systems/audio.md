@@ -1037,7 +1037,7 @@ The cabin idle and rear-booster recordings use one `ShipAudio` controller per
 `Sound`. Aboard play follows the ship's power state; cinematic power changes take
 precedence while a sequence runs. Pirates shares the same aggregate booster bed,
 with throttle pitch and level, rather than playing four full-volume copies.
-Missing or still-loading samples retain the synthesised fallback.
+Assigned samples are prepared before play; unavailable recordings do not start a synthesised substitute.
 
 Authored camp movement drives the opening/closing recording from the actual
 0–1 pose. The six-second masters are shortened with pitch-preserving processing
@@ -1075,8 +1075,8 @@ landing and mantle use actual action callbacks. Running requires six seconds of
 actual grounded horizontal motion above 8 m/s; it uses a finite phrase, never a
 loop, and at least 14 seconds between phrases. A sustained run can earn one quiet
 recovery breath on slowing down. Walking and idle do not periodically grunt.
-Missing selected files retain applicable existing effort fallbacks; an occupied
-voice channel suppresses fallback layering. Web and engine hosts hold body vocals
+Missing selected files fail the readiness gate; an occupied
+voice channel suppresses additional playback. Web and engine hosts hold body vocals
 during conversations, cinematics and menus. Pause, focus loss, mute and disposal
 stop active voices and discard run/recovery credit; restored state starts no cue.
 
@@ -1107,7 +1107,7 @@ The existing treasure music response and positional legacy vocals are preserved.
 
 Eight author-starred sources in `references/audio/elevenlabs-next-2026-10-22/` rebuild through `scripts/sfx/import-next.py`. They use mono 44.1 kHz PCM16, finite one-shots, unchanged pitch, 4 ms/25 ms edge fades and -6 dBFS peak normalization; runtime group gain is 0.2. No hoverbike, hologram or additional temple takes were selected. Every temple retains the shared action bank.
 
-`NextActionAudio` owns short cue handles, reserves cooldowns even while samples load (synthesis stays a one-event fallback), and stops on pause, mute, away and disposal. Map discovery/control cues explicitly use the UI bus while the world is paused. Drawing uses the sheath transition, never every swing; initial rig setup is silent. Shield opening replaces its original cue without changing parry/closing. Ordinary refill replaces the bubbling cue while newly acquired colours retain their celebration. The shared fluid tool warns on a downward quarter-tank crossing, rearms at half, and seeds silently after dry/load/inactive states. Pickups replace grab/cloth/notes, retaining the separate fragment theme. Both map implementations resolve through the same Sound method. A new message announces once per ID; initial waiting messages seed silently and the opening reminder no longer repeats. No cue waits for decode then replays a stale event.
+`NextActionAudio` owns short cue handles, reserves cooldowns for each accepted cue, with no automatic synthesis for missing assigned recordings, and stops on pause, mute, away and disposal. Map discovery/control cues explicitly use the UI bus while the world is paused. Drawing uses the sheath transition, never every swing; initial rig setup is silent. Shield opening replaces its original cue without changing parry/closing. Ordinary refill replaces the bubbling cue while newly acquired colours retain their celebration. The shared fluid tool warns on a downward quarter-tank crossing, rearms at half, and seeds silently after dry/load/inactive states. Pickups replace grab/cloth/notes, retaining the separate fragment theme. Both map implementations resolve through the same Sound method. A new message announces once per ID; initial waiting messages seed silently and the opening reminder no longer repeats. No cue waits for decode then replays a stale event.
 
 ## Developer sound source overlay
 
@@ -1132,3 +1132,16 @@ The panel covers the active game's Sound and its ship/minigame effects. Standalo
 foley and the bell page's emergency standalone AudioContext (when no game Sound is bound)
 are outside this in-game panel. A playable instrument routed into Effects is included;
 the same instrument routed into Music is excluded.
+
+
+### Assigned recordings load before play
+
+`Sound.prepareEffects({ onProgress, retry })` decodes the complete assigned MP3/WAV bank before a world or minigame becomes playable. Preparation creates no sources, connections or speaker activation. Browser preparation uses an offline context; native preparation uses the decoder-only bridge while the frame pump continues polling completions. Four groups load concurrently (currently at most 20 outstanding takes), below the native queue limit of 64. A group is ready only when every take succeeds. Failures retain successful decoded takes; only an explicit retry fetches the missing takes again.
+
+Decoded buffers are shared between title/world or preview owners, but each playback bank owns its active sources and round-robin state. Disposing one owner stops its sources without aborting the shared prepared set. A buffer sent to two native playback contexts is registered separately in each. Playback never starts a lazy request or queues an event to replay when decoding completes.
+
+An assigned recording has no automatic procedural substitute. Intentionally procedural effects and authored layers remain distinct. A failed load displays “Sound effects couldn’t load.” with Retry and Back to title. The web dialog stays visible above the held title; retry does not poison Continue's load state. Native failure remains in a recoverable menu rather than exiting the player. Developer logs retain failed file names. Explicit no-audio tooling skips sound preparation instead of claiming successful decode.
+
+The existing music page gates only game-effect previews. Independent soundtrack/score playback and Stop do not wait for effects; Stop also disposes the private effect owner so pending callbacks cannot start later. A subsequent preview reuses the decoded set through a new owner.
+
+The Unity script update carries `public/sfx/manifest.json` and every assigned take, not unrelated models or music. Strict readiness requires the API 4 selected-bundle SFX policy: files from the selected update are authoritative, including replacements with the same name and rollback. A missing member must not silently resolve to an older installed or repository recording. Release minimum and runtime proof remain part of the release gate.

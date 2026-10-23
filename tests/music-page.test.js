@@ -3,6 +3,7 @@
 // in-memory context without a fault, the page is built, linked from the Debug menu, and its notes file issues the
 // lore page's way with the music page's footer.
 import test from 'node:test';
+import { installEffectFileDecoder } from '../scripts/sound-qc/render.mjs';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { installAudio } from '../engine/webaudio.js';
@@ -68,8 +69,9 @@ test('every effect, tune and loop plays on the in-memory context, finite, and so
   // (the sounds' clean-ups and the schedulers, unref'd: the test ends when it is done, not when they would have)
   G.setTimeout = (...a) => { const h = setT(...a); h?.unref?.(); return h; };
   G.setInterval = (...a) => { const h = setI(...a); h?.unref?.(); return h; };
-  delete G.AudioContext; installAudio(G);
+  delete G.AudioContext; installAudio(G); installEffectFileDecoder(G.AudioContext);
   const s = new Sound('desert', { score: false, muted: false });
+  await s.prepareEffects({ fetcher: async url => ({ ok: true, arrayBuffer: async () => { const b = readFileSync(new URL('../public/sfx/' + url.split('/').pop(), import.meta.url)); return b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength); } }) });
   s.start(); s._unlisten?.();
   s.listen({ x: 0, y: 1.6, z: 0 }, 0);
   const pending = [];
@@ -90,8 +92,8 @@ test('every effect, tune and loop plays on the in-memory context, finite, and so
       if (t.variants) for (const [v, fn] of t.variants) run(`${t.id} ${v}`, fn);
       if (t.start) { run(`${t.id} start`, t.start); run(`${t.id} stop`, t.stop); }
     }
-    // (the recorded takes need the bank's files, which node doesn't fetch: their synth stands in or nothing plays)
-    const silent = quiet.filter((l) => !l.startsWith('sample:'));
+    // Every assigned take is decoded above; raw sample previews no longer get a missing-file exemption.
+    const silent = quiet;
     assert.ok(silent.length <= 3, `heard: ${silent.join(', ')}`);
   } finally {
     clearInterval(s.scheduler); clearInterval(s.menuTimer); clearInterval(s.combatTimer); clearTimeout(s._preload);

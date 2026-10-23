@@ -816,3 +816,15 @@ test('Unity\'s game menu is laid out where the page\'s #journal is (BridgeMenu.C
   assert.match(menu, /DrawMap\(journal\.bodyX, journal\.bodyY, journal\.bodyW, journal\.bodyH\)/);
   assert.match(menu, /MapRoom\(\) \{ var j = JournalAt\(W, H\); return \(j\.bodyW - 10, j\.bodyH - 10\); \}/);
 });
+
+
+test('sound loading failure offers an immediate explicit retry or title return without changing saves', () => {
+  const store = memStore([[2, 'incal']]); let retry = 0, back = 0;
+  const m = new EngineMenus({ store });
+  m.showSoundLoadFailure({ retry: () => retry++, back: () => back++ });
+  assert.equal(m.view().head, 'Sound effects couldn’t load.');
+  assert.deepEqual(m.view().rows.map(row => row.text), ['Retry', 'Back to title']);
+  m.action('confirm'); m.action('confirm'); assert.equal(retry, 1);
+  m.showSoundLoadFailure({ retry: () => retry++, back: () => back++ });
+  m.action('back'); assert.equal(back, 1); assert.equal(store.summary(2).empty, false);
+});

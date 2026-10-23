@@ -1,3 +1,4 @@
+import { SFX } from '../sfx.js';
 // One action bank for every temple. No house ID selects a recording.
 export class TempleAudio {
   constructor(sound) { this.sound = sound; this.doors = new Map(); this.cues = new Map(); this.paused = !!sound._actionPaused; }
@@ -19,7 +20,7 @@ export class TempleAudio {
   start(slot) {
     const s=this.sound, offset=Math.min(1.799,Math.max(0,slot.piece.k*1.8));
     const h=s.bank?.start('temple-slide-open',{dest:s.fx,offset});
-    if (!h) return false;
+    if (!h) return true;
     slot.handle=h;slot.started=this.now;slot.offset=offset;return true;
   }
   update(piece) {
@@ -30,7 +31,7 @@ export class TempleAudio {
     if (!this.allowed() || !slot.open) return;
     const physical=piece.k*1.8;
     // Resume only a cue stopped by pause; never attach a late-decoded recording
-    // over the synthesized fallback already playing for this movement.
+    // after a failed or unavailable start for this movement.
     if (slot.resume || (slot.handle && Math.abs(slot.offset+this.now-slot.started-physical)>.2)) {
       this.stop(slot);slot.resume=false;this.start(slot);
     }
@@ -43,7 +44,7 @@ export class TempleAudio {
     const reward = group === 'treasure-reveal' || group === 'quest-important';
     if (reward && this.now < (this.rewardUntil ?? 0)) return true;
     const h=this.sound.bank?.start(group,{dest:this.sound.fx});
-    if (!h) return false;
+    if (!h) return Object.hasOwn(SFX, group);
     if (reward) this.rewardUntil = this.now + h.duration;
     this.cues.get(group)?.handle.stop(0);
     this.cues.set(group,{at:this.now,handle:h});return true;

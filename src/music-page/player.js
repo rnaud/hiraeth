@@ -17,36 +17,58 @@ const EAR = { x: 0, y: 1.6, z: 0 };
 export const SPOT = { x: 2, y: 1.6, z: -4 };
 
 export class Player {
-  constructor({ onState = () => {} } = {}) {
+  constructor({ onState = () => {}, muted = false } = {}) {
     this.s = null;
+    this.reviewMuted = muted;
+    this.timers = new Set();
+    this.disposed = false;
     this.vol = 0.8;
     this.onState = onState;
     this.holds = [];
     this.loops = new Map();
     this.e = {
       at: SPOT,
-      later: (secs, fn) => setTimeout(fn, secs * 1000),
+      later: (secs, fn) => { const id = setTimeout(() => { this.timers.delete(id); if (!this.disposed) fn(); }, secs * 1000); this.timers.add(id); return id; },
       hold: (secs, tick, end) => this.hold(secs, tick, end),
       phase: () => this._phase ?? 0,
     };
     this._frame = this._frame.bind(this);
   }
 
-  /** The game's Sound, started (a press made it allowed). */
-  sound() {
+  /** A private owner: no gameplay input listeners and no output activation during preparation. */
+  _soundOwner() {
+    if (this.disposed) throw new Error('Preview stopped');
     if (!this.s) {
-      this.s = new Sound('music-page', { score: false, autoStart: false, muted: false });
-      this.s._unlisten?.();   // (its M-mutes and press-starts are the game's; the page has its own buttons)
-      this.s.start();
+      this.s = new Sound('music-page', { score: false, autoStart: false, listen: false, muted: this.reviewMuted });
+      this.s._unlisten?.();
       this.s.voice.ambience = 'none';
-      this.s.listen(EAR, 0);
-      this.media = this.s.ctx.createGain();
-      this.media.connect(this.s.master);
-      this.setVolume(this.vol);
-      requestAnimationFrame(this._frame);
     }
-    if (this.s.ctx.state === 'suspended') this.s.ctx.resume();
     return this.s;
+  }
+
+  prepareEffects(options) { return this._soundOwner().prepareEffects(options); }
+
+  /** A cancelled preparation must never activate or play through a replaced owner. */
+  async preparePreview({ effects = false, retry = false, onProgress, current = () => true } = {}) {
+    if (effects) await this.prepareEffects({ retry, onProgress });
+    if (this.disposed || !current()) return null;
+    const sound = await this.ready();
+    return this.disposed || !current() ? null : sound;
+  }
+
+  /** The game's Sound, activated only by the page's explicit Play action. */
+  sound() {
+    const s = this._soundOwner();
+    if (!s.ctx) {
+      s.start();
+      s.listen(EAR, 0);
+      this.media = s.ctx.createGain();
+      this.media.connect(s.master);
+      this.setVolume(this.vol);
+      this.frameId = requestAnimationFrame(this._frame);
+    }
+    if (s.ctx.state === 'suspended') s.ctx.resume();
+    return s;
   }
 
   /** The Sound, and its context's clock under way (a sound asked for in the very press that made the context is lost). */
@@ -58,14 +80,15 @@ export class Player {
 
   setVolume(v) {
     this.vol = v;
-    if (!this.s) return;
-    this.s.master.gain.setTargetAtTime(0.9 * v, this.s.ctx.currentTime, 0.05);
+    if (!this.s?.master) return;
+    this.s.master.gain.setTargetAtTime(this.reviewMuted ? 0 : 0.9 * v, this.s.ctx.currentTime, 0.05);
   }
 
   /** Sing in a world's scale (the effects that use it: chimes, keys, swells). */
-  setWorld(id) { const s = this.sound(); s.setScore(id || 'desert'); s.scoreOff = true; }
+  setWorld(id) { const s = this._soundOwner(); s.setScore(id || 'desert'); s.scoreOff = true; }
 
   _frame() {
+    if (this.disposed) return;
     const s = this.s;
     s.listen(EAR, 0);
     const now = performance.now();
@@ -77,13 +100,28 @@ export class Player {
     if (this.score && s.ctx.currentTime > this.score.until) this.stopScore();
     if (this.file) this.onState({ kind: 'file', id: this.file.id, at: this.file.el.currentTime, len: this.file.el.duration || 0 });
     else if (this.score) this.onState({ kind: 'score', id: this.score.id, at: s.ctx.currentTime - this.score.from, len: this.score.until - this.score.from });
-    requestAnimationFrame(this._frame);
+    this.frameId = requestAnimationFrame(this._frame);
   }
 
   hold(secs, tick, end) { this.holds.push({ secs, tick, end, from: performance.now() }); tick(); }
 
   /** Play an effect's (or a tune's) variant now. */
   play(fn) { const s = this.sound(); return fn(s, this.e); }
+
+  /** A review page can terminate effects too, including delayed callbacks and decoding. */
+  dispose() {
+    if (this.disposed) return;
+    this.disposed = true;
+    cancelAnimationFrame(this.frameId);
+    for (const timer of this.timers) clearTimeout(timer);
+    this.timers.clear();
+    this.holds = [];
+    this.stopAll();
+    this.s?.dispose();
+    // Sound's gameplay disposal fades for 700 ms. A page's Stop/away action is immediate:
+    // sever this private context's output while its normal disposal finishes.
+    this.s?.master?.disconnect();
+  }
 
   // ---------------------------------------------------------------- files
   /** Play a recording from `url`; `done` runs when it stops (a Blob URL's revoke: src/music-store.js themeToListen). */

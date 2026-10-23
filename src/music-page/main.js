@@ -32,7 +32,7 @@ let fetching = null;   // the recording being fetched for its card ({ id }), on 
 const cancelFetch = () => { if (fetching) setPlaying(fetching.id, false); fetching = null; };
 const card = (id) => document.getElementById(anchorOf(id));
 const setPlaying = (id, on) => { const c = card(id), b = c?.querySelector('.play'); c?.classList.toggle('playing', on); if (b) b.textContent = on ? '■ Stop' : '▶ Play'; };
-const player = new Player({
+const playerOptions = {
   onState: (st) => {
     if (st.kind === 'stopped') { setPlaying(st.id, false); return; }
     const c = card(st.id);
@@ -43,28 +43,40 @@ const player = new Player({
     const prog = c.querySelector('.prog');
     if (prog && st.len) prog.value = st.at / st.len;
   },
-});
+};
+let player = new Player(playerOptions);
 $('#volume').addEventListener('input', (e) => player.setVolume(Number(e.target.value)));
 $('#world').addEventListener('change', (e) => player.setWorld(e.target.value));
-$('#stop').addEventListener('click', () => { cancelFetch(); player.stopAll(); });
+let playRequest = 0, effectsFailed = false;
+$('#stop').addEventListener('click', () => { ++playRequest; cancelFetch(); const volume = player.vol; player.dispose(); player = new Player(playerOptions); player.setVolume(volume); status(''); });
 
 document.addEventListener('click', async (e) => {
   const b = e.target.closest('button[data-act]');
   if (!b) return;
   const c = b.closest('article'), id = c.dataset.id, entry = byId.get(id);
+  const request = ++playRequest, owner = player, act = b.dataset.act;
+  // Stopping a song never waits for an unrelated effect download.
+  if (act === 'file' && fetching?.id === id) { cancelFetch(); status(''); return; }
+  if (owner.playing(id)) {
+    if (act === 'file') owner.stopFile(); else if (act === 'score') owner.stopScore(); else owner.stopLoop(id);
+    return;
+  }
   try {
-    if (!player.s) player.setWorld($('#world').value);
-    await player.ready();
-    const act = b.dataset.act;
-    if (act === 'fx' || act === 'tune') {
-      const r = player.play(entry.variants[Number(b.dataset.i)][1]);
-      if (act === 'fx' && id.startsWith('sample:') && r === false) status('The recorded takes are still loading: the synth stood in. Press again in a moment.');
-      else status(`${entry.name}: ${entry.variants[Number(b.dataset.i)][0]}`);
-      return;
+    owner.setWorld($('#world').value);
+    if (act === 'fx') status('Loading sound effects…');
+    let prepared;
+    try {
+      prepared = await owner.preparePreview({ effects: act === 'fx', retry: effectsFailed, current: () => request === playRequest && owner === player });
+      if (act === 'fx') effectsFailed = false;
+    } catch (error) {
+      if (act !== 'fx') throw error;
+      effectsFailed = true; console.error('[effects]', error);
+      throw new Error('Sound effects couldn’t load. Press Play to retry.');
     }
-    if (act === 'file' && fetching?.id === id) { fetching = null; setPlaying(id, false); status(''); return; }   // (stopped while it downloads)
-    if (player.playing(id)) {
-      if (act === 'file') player.stopFile(); else if (act === 'score') player.stopScore(); else player.stopLoop(id);
+    if (!prepared) return;
+    if (act === 'fx' || act === 'tune') {
+      owner.play(entry.variants[Number(b.dataset.i)][1]);
+      status(`${entry.name}: ${entry.variants[Number(b.dataset.i)][0]}`);
       return;
     }
     if (act === 'file') {
@@ -91,7 +103,7 @@ document.addEventListener('click', async (e) => {
       setPlaying(id, true);
     }
     status(`Playing ${c.querySelector('h3').textContent}`);
-  } catch (err) { status(err.message || String(err), true); }
+  } catch (err) { if (request === playRequest) status(err.message || String(err), true); }
 });
 document.addEventListener('input', (e) => {
   const seek = e.target.closest('.seek');
@@ -107,4 +119,4 @@ $('#search').addEventListener('input', (e) => {
 
 setupNoteBox({ siteUrl: MUSIC_URL, file: (text, ref) => fileMusicNote(text, ref) });
 // (a dev hook for checks: the page's player)
-window.__musicPage = { player, SONGS, EFFECTS };
+window.__musicPage = { get player() { return player; }, SONGS, EFFECTS };

@@ -341,7 +341,9 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
       fade(() => { if (worldStarted || game) { freshPage(); return; } root.remove(); resolve({ slot: n, fresh }); });
     };
 
+    const effectDialog = () => doc.querySelector('dialog[data-effect-loading][open]');
     const back = () => {
+      if (effectDialog()) { effectDialog().dispatchEvent(new Event('cancel', { cancelable: true })); return; }
       if (!confirmEl.hidden) closeConfirm();
       else if (settingsMenu.open) { settingsMenu.back(); if (!settingsMenu.open) root.querySelector('[data-a="settings"]')?.focus({ preventScroll: true }); }
       else if (screen === 'saves') show('main', '[data-a="saves"]');
@@ -421,9 +423,9 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
       else next = y < 0 ? col.at(-1) ?? row[ri] : col[0] ?? row[ri];
       next?.focus({ preventScroll: true });
     };
-    const navigate = (x, y, fresh = true) => (!confirmEl.hidden || settingsMenu.open ? menuNavigate(navRoot(), x, y, fresh)
+    const navigate = (x, y, fresh = true) => (effectDialog() || !confirmEl.hidden || settingsMenu.open ? menuNavigate(navRoot(), x, y, fresh)
       : screen === 'saves' ? savesNavigate(x, y) : mainNavigate(x, y));
-    const navRoot = () => (!confirmEl.hidden ? confirmEl : settingsMenu.open ? settingsMenu.el : root.querySelector(`[data-screen="${screen}"]`));
+    const navRoot = () => effectDialog() ?? (!confirmEl.hidden ? confirmEl : settingsMenu.open ? settingsMenu.el : root.querySelector(`[data-screen="${screen}"]`));
     const KEYS = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0], KeyW: [0, -1], KeyS: [0, 1], KeyA: [-1, 0], KeyD: [1, 0] };
     const onKey = (e) => {
       if (done) return;
@@ -456,7 +458,7 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
       action: (name) => {
         if (name === 'back' || name === 'start' || name === 'select') back();
         // X / □ on a save: delete it (asks first; its Delete button carries the glyph)
-        if (name === 'x' && screen === 'saves' && confirmEl.hidden && !settingsMenu.open) {
+        if (!effectDialog() && name === 'x' && screen === 'saves' && confirmEl.hidden && !settingsMenu.open) {
           const n = +(doc.activeElement?.dataset?.slot ?? doc.activeElement?.dataset?.del ?? 0);
           if (n) askDelete(n);
         }

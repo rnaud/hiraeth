@@ -44,7 +44,7 @@ test('running breath needs sustained actual running and recovery is once after d
 });
 test('selected attack/jump/mantle calls preserve separate body foley without adding generic vocals',()=>{
  const f=fixture(),s=f.s;s._travellerVoice=new TravellerVoice(s);
- Object.assign(s,{actionVocal:Sound.prototype.actionVocal,step(){},sample(){return true;},vocal(){throw Error('unexpected generic layer');},vary:()=>1,swish(){},sweep(){},burst(){},rand:()=>0,effort(){throw Error('generic effort layered');}});
+ Object.assign(s,{assignedEffect:Sound.prototype.assignedEffect,actionVocal:Sound.prototype.actionVocal,step(){},sample(){return true;},vocal(){throw Error('unexpected generic layer');},vary:()=>1,swish(){},sweep(){},burst(){},rand:()=>0,effort(){throw Error('generic effort layered');}});
  Sound.prototype.fluidSlash.call(s,0);assert.equal(f.calls[0].group,'vox-attack-light');
  s._travellerVoice.stop();f.tick(2);s._travellerVoice.speed=7;
  Sound.prototype.jump.call(s,{breath:true});assert.equal(f.calls.at(-1).group,'vox-jump-running');
@@ -71,9 +71,9 @@ test('sliding cue pause/resume and stalled frame follow physical progress, not a
  assert.ok(Math.abs(f.calls.at(-1).opt.offset-.54)<1e-8);
  p.k=1;a.update(p);assert.equal(f.voices.size,0);a.release(p.rt);
 });
-test('late decode never layers over a door fallback; locked proximity is edge-triggered',()=>{
+test('unavailable assigned door audio stays silent and never replays after decode; locked proximity is edge-triggered',()=>{
  const f=fixture(),a=new TempleAudio(f.s),p={rt:{},id:'d',k:0};f.ready(false);
- assert.equal(a.door(p,true),false);f.ready(true);p.k=.4;a.update(p);assert.equal(f.calls.length,0);
+ assert.equal(a.door(p,true),true);f.ready(true);p.k=.4;a.update(p);assert.equal(f.calls.length,0);
  let count=0,near=true;
  const door={id:'keyed',open:false,lock:'small',keyholes:[],inDoorway:()=>near,rt:{player:{pos:{}},logic:{unlocked:()=>false,canUnlock:()=>false,keysIn:()=>0},sound:{templeLocked:()=>count++},notice(){}}};
  for(let i=0;i<120;i++)Door.prototype.updateLock.call(door,1/60);

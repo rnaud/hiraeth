@@ -17,7 +17,8 @@ import { scoreFor, scoreBeat, chordAt, CALM_ACT, fatherIn } from './score.js';
 import { playVoice, playColour, hit, echoBus, prepareLute } from './score-voices.js';
 import { audioGuard } from './audio-guard.js';
 import { loadSoundtrack, loadTitleTheme } from './soundtracks.js';
-import { SampleBank } from './sfx.js';
+import { prepareEffectAssets, preparedBank, adoptEffectAssets } from './effect-assets.js';
+import { SFX } from './sfx.js';
 import { travellerVoice } from './traveller-voice.js';
 import { templeAudio } from './temples/sfx.js';
 import { nextActionAudio } from './next-action-audio.js';
@@ -175,7 +176,7 @@ export class Sound {
    * autoStart: false leaves the start before any press to the owner (startIfAllowed): the title calls it once its
    * menu answers, as asking whether sound may start opens an audio context, 100-250 ms of the main thread.
    */
-  constructor(levelId, { score = true, titleTheme = false, autoStart = true, muted = store.get('hiraeth.muted') === '1' } = {}) {
+  constructor(levelId, { score = true, titleTheme = false, autoStart = true, listen = true, muted = store.get('hiraeth.muted') === '1' } = {}) {
     this.score = score;
     this.titleTheme = titleTheme;
     this.menuOn = false;
@@ -203,8 +204,8 @@ export class Sound {
     bindVoice(this);
     const start = () => this.start();
     const key = (e) => { if (e.code === 'KeyM') this.toggleMute(); else start(); };
-    window.addEventListener('pointerdown', start, { once: false });
-    window.addEventListener('keydown', key);
+    this._inputStart = start; this._inputKey = key;
+    if (listen) this.listenForInput();
     // silent while the app is away (asleep, home, recents) or the page hidden: src/audio-guard.js
     // suspends the context and blocks every resume; the master gain goes to 0 as well
     this.guard = audioGuard(window);
@@ -214,6 +215,33 @@ export class Sound {
     // press) would play in silence. Start now wherever sound is allowed without a press
     // (a world that loads while the app is away: on return, and asked then).
     if (autoStart) this.startIfAllowed();
+  }
+
+  /** Enable gesture activation only after an owner has completed its loading gate. */
+  listenForInput() {
+    if (this._listening || this._disposed) return;
+    this._listening = true;
+    window.addEventListener('pointerdown', this._inputStart, { once: false });
+    window.addEventListener('keydown', this._inputKey);
+  }
+
+  /** Decode assigned effects without starting or resuming the playback graph. */
+  async prepareEffects(options = {}) {
+    let assets;
+    try { assets = await prepareEffectAssets(options); }
+    catch (cause) {
+      if (cause?.name === 'SoundEffectsLoadError') throw cause;
+      const error = new Error('Sound effects couldn’t load.', { cause });
+      error.name = 'SoundEffectsLoadError';
+      error.failures = [{ group: null, file: null, message: String(cause?.message ?? cause) }];
+      throw error;
+    }
+    if (this._disposed) throw new Error('Sound effects owner was disposed during loading.');
+    this._effectAssets = assets;
+    if (this.bank) adoptEffectAssets(this.bank, assets);
+    else if (this.ctx) this.bank = preparedBank(this.ctx, assets);
+    this.sfxTrace?.attach();
+    return assets;
   }
 
   /** Start now if sound is allowed without a press (the page away: on its return, and asked then). */
@@ -369,11 +397,9 @@ export class Sound {
     if (this.score) void loadSoundtrack(this);
     if (this.titleTheme) void loadTitleTheme(this);
     this.moments = new MusicMoments({ mode: this.musicModeSetting, now: ctx.currentTime });
-    // the recorded effects (src/sfx.js): fetched a moment after the start, the synth stands in until then
-    this.bank = new SampleBank(ctx);
+    // Preparation never starts this graph; activation adopts the decoded asset set.
+    this.bank = preparedBank(ctx, this._effectAssets);
     if (this.sfxTrace.enabled) this.sfxTrace.attach();
-    this._preload = setTimeout(() => { if (!this._disposed) void this.bank.preload(); }, 800);
-    this._preload?.unref?.();
     if (this.menuOn) this.menuMusic(true);
   }
 
@@ -1057,7 +1083,7 @@ export class Sound {
     if (!this.ctx || this.muted) return;
     const k = Math.min(speed / 11, 1);
     const g = surface;
-    if (this.sample(`step-${g}`, { vol: (0.55 + 0.35 * k) * vol, at, maxDuration })) return;
+    if (this.assignedEffect(`step-${g}`, { vol: (0.55 + 0.35 * k) * vol, at, maxDuration })) return;
     const t = this.ctx.currentTime + at;
     if (g === 'stone') this.burst(t, { dur: 0.05, type: 'bandpass', freq: 1700 + Math.random() * 600, q: 2, vol: 0.12 + 0.12 * k });
     else if (g === 'grass') this.burst(t, { dur: 0.09, type: 'bandpass', freq: 2600 + Math.random() * 800, q: 0.8, vol: 0.05 + 0.06 * k });
@@ -1066,7 +1092,7 @@ export class Sound {
 
   flap() {
     if (!this.ctx) return;
-    if (this.sample('flap', { vol: 1.3, rate: 0.75 })) return;
+    if (this.assignedEffect('flap', { vol: 1.3, rate: 0.75 })) return;
     this.burst(this.ctx.currentTime, { dur: 0.25, type: 'lowpass', freq: 380, q: 0.5, vol: 0.25, rate: 0.6 });
   }
 
@@ -1454,7 +1480,7 @@ export class Sound {
   boxCreak() {
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
-    const wood = this.sample('creak', { vol: 1 });
+    const wood = this.assignedEffect('creak', { vol: 1 });
     this.sweep(t, 150, 95, 0.55, wood ? 0.015 : 0.035, 'sawtooth');
     this.sweep(t + 0.18, 210, 120, 0.4, wood ? 0.01 : 0.02, 'sawtooth');
     this.burst(t + 0.1, { dur: 0.7, type: 'bandpass', freq: 1800, q: 0.5, vol: 0.06, rate: 0.6 });
@@ -1464,7 +1490,7 @@ export class Sound {
   boxWobble(i = 0) {
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
-    if (!this.sample('knock', { vol: 0.9, rate: 0.85 + i * 0.06 })) this.burst(t, { dur: 0.09, type: 'lowpass', freq: 320, q: 1.2, vol: 0.12, rate: 1 });
+    if (!this.assignedEffect('knock', { vol: 0.9, rate: 0.85 + i * 0.06 })) this.burst(t, { dur: 0.09, type: 'lowpass', freq: 320, q: 1.2, vol: 0.12, rate: 1 });
     this.sweep(t, 140 + i * 18, 90 + i * 12, 0.18, 0.03, 'triangle');
     this.pluck(587 * Math.pow(2, (i * 4) / 12), t + 0.03, 0.035, 'sine', this.fx);
   }
@@ -1858,6 +1884,18 @@ export class Sound {
     return this.bank.play(group, { dest: this.fx, vol, rate, pan, when: this.ctx.currentTime + at, maxDuration });
   }
 
+  /** Ownership, not playback success: an assigned recording never substitutes synthesis. */
+  assignedEffect(group, options) {
+    if (!Object.hasOwn(SFX, group)) return false;
+    this.sample(group, options);
+    return true;
+  }
+  assignedVoice(group, options) {
+    if (!Object.hasOwn(SFX, group)) return false;
+    this.vocal(group, options);
+    return true;
+  }
+
   /** Random 0..1 (one place to swap it in a test). */
   rand() { return Math.random(); }
 
@@ -1865,7 +1903,7 @@ export class Sound {
   vocal(group, { vol = 1, at = 0, gap = 0.8, pos = null } = {}) {
     return travellerVoice(this).play(group, { vol, at, gap, pos, priority: 2 }) === true;
   }
-  actionVocal(action, options) { return travellerVoice(this).play(`vox-${action}`, options) !== null; }
+  actionVocal(action, options) { const group = `vox-${action}`; travellerVoice(this).play(group, options); return Object.hasOwn(SFX, group); }
   bodyVoice(player, dt) { travellerVoice(this).body(player, dt); }
   templeDoor(piece, open, instant = false) { return templeAudio(this).door(piece, open, instant); }
   templeDoorUpdate(piece) { this._templeAudio?.update(piece); }
@@ -1885,8 +1923,8 @@ export class Sound {
   jump({ breath = false, pos = null } = {}) {
     if (!this.ctx || this.muted) return;
     this.step(4, { vol: 0.6 });
-    this.sample('belt', { vol: 0.8, at: 0.03, pos });
-    if (!this.actionVocal(travellerVoice(this).speed >= 5 ? 'jump-running' : 'jump-standing', { gap: 1.2 }) && breath) this.vocal('breath', { vol: 0.9, at: 0.04, pos });
+    this.assignedEffect('belt', { vol: 0.8, at: 0.03, pos });
+    if (!this.actionVocal(travellerVoice(this).speed >= 5 ? 'jump-running' : 'jump-standing', { gap: 1.2 }) && breath) this.assignedVoice('breath', { vol: 0.9, at: 0.04, pos });
   }
 
   /** Back on the ground at `speed` m/s down: both feet on the world's ground, a body's weight past a soft hop. */
@@ -1901,27 +1939,27 @@ export class Sound {
       this.step(6 + 5 * k, { vol: 0.5 + 0.4 * k, at: 0.05 + 0.03 * (1 - k) });
     }
     if (speed > 5) {
-      if (!this.sample(k > 0.5 ? 'land-heavy' : 'land', { vol: 0.35 + 0.65 * k, rate: 1.06 - 0.16 * k, pos })) this.burst(t, { dur: 0.18 + 0.2 * k, type: 'lowpass', freq: 220, q: 0.7, vol: 0.08 + 0.18 * k, rate: 0.6 });
+      if (!this.assignedEffect(k > 0.5 ? 'land-heavy' : 'land', { vol: 0.35 + 0.65 * k, rate: 1.06 - 0.16 * k, pos })) this.burst(t, { dur: 0.18 + 0.2 * k, type: 'lowpass', freq: 220, q: 0.7, vol: 0.08 + 0.18 * k, rate: 0.6 });
       if (g === 'sand') this.burst(t + 0.02, { dur: 0.25 + 0.3 * k, type: 'highpass', freq: 2600, q: 0.5, vol: 0.012 + 0.035 * k, rate: 0.8 });   // a little spray of sand
-      if (k > 0.3) this.sample('cloth', { vol: 0.5 + 0.4 * k, at: 0.02, pos });
+      if (k > 0.3) this.assignedEffect('cloth', { vol: 0.5 + 0.4 * k, at: 0.02, pos });
     }
   }
 
   /** Catching hold of a wall: a hand on it, the sleeve. */
   grab({ pos = null } = {}) {
     if (!this.ctx || this.muted) return;
-    if (!this.sample('grab', { vol: 0.9, pos })) this.burst(this.ctx.currentTime, { dur: 0.06, type: 'bandpass', freq: 1300, q: 1.2, vol: 0.06 });
-    this.sample('cloth', { vol: 0.6, at: 0.03, pos });
+    if (!this.assignedEffect('grab', { vol: 0.9, pos })) this.burst(this.ctx.currentTime, { dur: 0.06, type: 'bandpass', freq: 1300, q: 1.2, vol: 0.06 });
+    this.assignedEffect('cloth', { vol: 0.6, at: 0.03, pos });
   }
 
   /** Pulling up over a ledge: cloth and the pack, often an effort. */
   mantle({ breath = false, pos = null } = {}) {
     if (!this.ctx || this.muted) return;
-    if (!this.sample('cloth', { vol: 1, rate: 0.9, pos })) this.burst(this.ctx.currentTime, { dur: 0.2, type: 'bandpass', freq: 900, q: 0.8, vol: 0.05, rate: 0.7 });
-    this.sample('belt', { vol: 0.7, at: 0.28, pos });
+    if (!this.assignedEffect('cloth', { vol: 1, rate: 0.9, pos })) this.burst(this.ctx.currentTime, { dur: 0.2, type: 'bandpass', freq: 900, q: 0.8, vol: 0.05, rate: 0.7 });
+    this.assignedEffect('belt', { vol: 0.7, at: 0.28, pos });
     // The foot plants here, but its settling sand tail must not outlast the pull-up. Walking keeps the full contact.
     this.step(3, { vol: 0.5, at: 0.45, maxDuration: 0.3 });
-    if (!this.actionVocal('mantle', { gap: 1.5 }) && breath) this.vocal('effort', { vol: 0.75, at: 0.06, gap: 3, pos });
+    if (!this.actionVocal('mantle', { gap: 1.5 }) && breath) this.assignedVoice('effort', { vol: 0.75, at: 0.06, gap: 3, pos });
   }
 
   /** The fluid wings open (a cloth snapping full, a breath of the fluid rising) or fold away. */
@@ -1929,7 +1967,7 @@ export class Sound {
     if (!this.ctx || this.muted) return;
     const t = this.ctx.currentTime;
     // (heavy: opened under a makers' roof, where they glide steeper, player.js HOUSE_GLIDE: a lower, duller flap, the sweep falling)
-    if (!this.sample('flap', { vol: open ? 1 : 0.55, rate: open ? (heavy ? 0.78 : 0.95) : 1.2, pos })) this.flap();
+    if (!this.assignedEffect('flap', { vol: open ? 1 : 0.55, rate: open ? (heavy ? 0.78 : 0.95) : 1.2, pos })) this.flap();
     if (open && heavy) this.sweep(t + 0.02, 420, 240, 0.3, 0.018, 'triangle');
     else if (open) this.sweep(t + 0.02, 300, 760, 0.25, 0.018, 'triangle');
     else this.sweep(t, 620, 280, 0.2, 0.012, 'triangle');
@@ -1940,14 +1978,14 @@ export class Sound {
     if (!this.ctx || this.muted) return;
     const t = this.ctx.currentTime;
     this.burst(t, { dur: 0.35, type: 'lowpass', freq: 380, q: 0.7, vol: 0.12, rate: 0.6 });
-    this.sample('swing-heavy', { vol: 0.7, rate: 0.6, pos });
+    this.assignedEffect('swing-heavy', { vol: 0.7, rate: 0.6, pos });
   }
 
   /** The roll out of a blow: the air, cloth, and the foot catching the ground. */
   evade({ pos = null } = {}) {
     if (!this.ctx || this.muted) return;
-    if (!this.sample('swing-heavy', { vol: 0.65, rate: 0.72, pos })) this.burst(this.ctx.currentTime, { dur: 0.3, type: 'bandpass', freq: 700, q: 0.7, vol: 0.08, rate: 0.6 });
-    this.sample('cloth', { vol: 0.9, at: 0.03, pos });
+    if (!this.assignedEffect('swing-heavy', { vol: 0.65, rate: 0.72, pos })) this.burst(this.ctx.currentTime, { dur: 0.3, type: 'bandpass', freq: 700, q: 0.7, vol: 0.08, rate: 0.6 });
+    this.assignedEffect('cloth', { vol: 0.9, at: 0.03, pos });
     this.step(7, { vol: 0.7, at: 0.3 });
   }
 
@@ -1955,26 +1993,26 @@ export class Sound {
   knockdown({ pos = null } = {}) {
     if (!this.ctx || this.muted) return;
     const t = this.ctx.currentTime, v = this.vary(0.08);
-    if (!this.sample('fall', { vol: 1, rate: v, pos })) {
+    if (!this.assignedEffect('fall', { vol: 1, rate: v, pos })) {
       // (the engines' stand-in: the body meeting the ground, a dull thud and the scrape of it, 12 dB under the music before)
       this.burst(t, { dur: 0.45, type: 'lowpass', freq: 220 * v, q: 0.7, vol: 0.34, rate: 0.5 * v });
       this.burst(t + 0.02, { dur: 0.3, type: 'bandpass', freq: 900 * v, q: 0.8, vol: 0.08, rate: 0.7 });
       this.sweep(t, 150 * v, 55 * v, 0.25, 0.1, 'triangle');
     }
-    if (!this.vocal('hurt', { vol: 0.85, at: 0.05, pos }) && this.bank?.state('hurt') !== 'ready') this.grunt('hurt', 1, 0.8);
+    if (!this.assignedVoice('hurt', { vol: 0.85, at: 0.05, pos }) && this.bank?.state('hurt') !== 'ready') this.grunt('hurt', 1, 0.8);
   }
 
   /** Getting up again: cloth, the pack settling, often a sigh. */
   getUp({ sigh = false, pos = null } = {}) {
     if (!this.ctx || this.muted) return;
-    if (!this.sample('cloth', { vol: 0.8, pos })) {
+    if (!this.assignedEffect('cloth', { vol: 0.8, pos })) {
       // (the engines' stand-in: cloth and the pack settling, nothing before)
       const t = this.ctx.currentTime, v = this.vary(0.08);
       this.burst(t, { dur: 0.25, type: 'bandpass', freq: 1100 * v, q: 0.8, vol: 0.06, rate: 0.7 * v });
       this.burst(t + 0.45, { dur: 0.08, type: 'bandpass', freq: 1800 * v, q: 2, vol: 0.05 });
     }
-    this.sample('belt', { vol: 0.6, at: 0.45, pos });
-    if (sigh) this.vocal('sigh', { vol: 1, at: 0.3, gap: 2, pos });
+    this.assignedEffect('belt', { vol: 0.6, at: 0.45, pos });
+    if (sigh) this.assignedVoice('sigh', { vol: 1, at: 0.3, gap: 2, pos });
   }
 
   /** Hurt (Player onHurt: `amount` in hearts, why: 'foe', 'fall'…): a grunt or a sharp breath, and the blow on the body. */
@@ -1983,11 +2021,11 @@ export class Sound {
     const k = Math.min(1, Math.max(0, amount) / 1.5), t = this.ctx.currentTime, v = this.vary(0.08);
     // the blow on the body (the recorded thump, else its synth: a dull knock and a low drop, issue #379: in the
     // engines a blow landed on him was a 40 ms burst, 19 dB under the music)
-    if (why !== 'fall' && !this.sample('land', { vol: 0.35 + 0.5 * k, rate: 1.2 * v })) {
+    if (why !== 'fall' && !this.assignedEffect('land', { vol: 0.35 + 0.5 * k, rate: 1.2 * v })) {
       this.burst(t, { dur: 0.14, type: 'lowpass', freq: 520 * v, q: 0.8, vol: 0.16 + 0.12 * k, rate: 0.7 * v });
       this.sweep(t, 210 * v, 70 * v, 0.16, 0.08 + 0.06 * k, 'triangle');
     }
-    if (!this.vocal('hurt', { vol: 0.7 + 0.4 * k }) && this.bank?.state('hurt') !== 'ready') this.grunt('hurt', 0.8 + 0.4 * k, 0.8);
+    if (!this.assignedVoice('hurt', { vol: 0.7 + 0.4 * k }) && this.bank?.state('hurt') !== 'ready') this.grunt('hurt', 0.8 + 0.4 * k, 0.8);
   }
 
   /**
@@ -2002,7 +2040,7 @@ export class Sound {
       const v = this.vary(0.08);
       this.sweep(t, 900 * v, 260 * v, 0.06, 0.05, 'triangle');   // the cork
       this.burst(t, { dur: 0.05, type: 'bandpass', freq: 3200 * v, q: 2.5, vol: 0.05, rate: 1.4 * v });
-      this.sample('cloth', { vol: 0.35, at: 0.05 });
+      this.assignedEffect('cloth', { vol: 0.35, at: 0.05 });
       return;
     }
     for (let i = 0; i < 2; i++) this.sweep(t + i * 0.16, 420, 180, 0.09, 0.05);   // two swallows
@@ -2123,8 +2161,8 @@ export class Sound {
     if (!this.ctx || this.muted) return;
     if (nextActionAudio(this).cue('small-pickup', { gap: 0.12, pos })) return;
     const t = this.ctx.currentTime, v = this.vary(0.04);
-    if (!this.sample('grab', { vol: 1, pos })) this.burst(t, { dur: 0.08, type: 'bandpass', freq: 1500 * v, q: 1, vol: 0.12 });
-    if (!this.sample('cloth', { vol: 0.5, at: 0.12, pos })) this.burst(t + 0.12, { dur: 0.16, type: 'bandpass', freq: 1000 * v, q: 0.8, vol: 0.05, rate: 0.7 });
+    if (!this.assignedEffect('grab', { vol: 1, pos })) this.burst(t, { dur: 0.08, type: 'bandpass', freq: 1500 * v, q: 1, vol: 0.12 });
+    if (!this.assignedEffect('cloth', { vol: 0.5, at: 0.12, pos })) this.burst(t + 0.12, { dur: 0.16, type: 'bandpass', freq: 1000 * v, q: 0.8, vol: 0.05, rate: 0.7 });
     // (a thing gained: a small rising pair over the hand, issue #379; the engines heard a 80 ms burst 17 dB under the music)
     [4, 7].forEach((d, i) => this.pluck(this.freq(d, 2) * v, t + 0.06 + i * 0.07, 0.035, 'sine', this.fx));
   }
@@ -2147,7 +2185,7 @@ export class Sound {
     const t = this.ctx.currentTime;
     if (mode === 'stun') { const v = this.vary(0.06), g = this.vary(0.12); this.sweep(t, 1400 * v, 2600 * v, 0.14, 0.08 * g, 'sine'); this.sweep(t + 0.03 * this.vary(0.3), 2100 * v, 900 * v, 0.2, 0.04 * g, 'triangle'); return; }
     if (mode === 'fire') { this.burst(t, { dur: 0.22, type: 'bandpass', freq: 600, q: 0.6, vol: 0.2, rate: 0.7 }); this.sweep(t, 180, 520, 0.16, 0.1, 'sawtooth'); return; }
-    if (mode === 'shoot' && this.sample('fluid-shot')) return;
+    if (mode === 'shoot' && this.assignedEffect('fluid-shot')) return;
     const v = this.vary(0.06), g = 0.955;   // (0.4 dB down: it stood 0.2 dB over the band against the music, issue #566)
     this.sweep(t, 260 * v, 720 * v, 0.11, 0.13 * g);
     this.sweep(t + 0.02, 520 * v, 1500 * v, 0.08, 0.04 * g, 'triangle');
@@ -2224,7 +2262,7 @@ export class Sound {
   fluidWindup(n = 0, heavy = false) {
     if (!this.ctx || this.muted) return;
     const t = this.ctx.currentTime, v = this.vary(0.08), h = heavy || n === 2;
-    this.sample('cloth', { vol: h ? 0.9 : 0.6, rate: (h ? 0.85 : 1.05) * v });
+    this.assignedEffect('cloth', { vol: h ? 0.9 : 0.6, rate: (h ? 0.85 : 1.05) * v });
     this.swish(t, { f0: (h ? 300 : 520) * v, f1: (h ? 900 : 1500) * v, f2: (h ? 700 : 1200) * v, dur: h ? 0.16 : 0.11, vol: h ? 0.1 : 0.075, q: 2.4, rate: 0.9 * v });
     this.sweep(t, (h ? 140 : 230) * v, (h ? 260 : 420) * v, h ? 0.14 : 0.09, h ? 0.045 : 0.03, 'triangle');
   }
@@ -2236,7 +2274,7 @@ export class Sound {
    */
   effort(k = 1, gap = 1.4) {
     if (!this.ctx || this.muted) return false;
-    if (this.vocal('effort', { vol: 0.75 * k, gap })) return true;
+    if (this.assignedVoice('effort', { vol: 0.75 * k, gap })) return true;
     return this.bank?.state('effort') === 'ready' ? false : this.grunt('effort', k, gap);
   }
 
@@ -2277,7 +2315,7 @@ export class Sound {
     if (!this.ctx) return;
     const t = this.ctx.currentTime, v = this.vary(0.07), heavy = n === 2;
     // The selected heavy take already carries its low weight; keep near authored speed and inside the action mix band.
-    const air = heavy ? this.sample('blade-heavy', { vol: 0.85 * 0.87, rate: 1.04 * v }) : this.sample('blade-light', { vol: 0.85 + n * 0.15, rate: (1.08 - n * 0.07) * v });
+    const air = heavy ? this.assignedEffect('blade-heavy', { vol: 0.85 * 0.87, rate: 1.04 * v }) : this.assignedEffect('blade-light', { vol: 0.85 + n * 0.15, rate: (1.08 - n * 0.07) * v });
     if (!this.actionVocal(heavy ? 'attack-heavy' : n === 1 ? 'attack-follow' : 'attack-light', { gap: 1.1 }) && this.rand() < (heavy ? 0.75 : 0.18)) this.effort(heavy ? (air ? 0.85 * 0.87 : 0.85) : 0.65);
     const d = (heavy ? 0.3 : 0.2) * this.vary(0.08);
     this.swish(t, { f0: (heavy ? 420 : 800 + n * 220) * v, f1: (heavy ? 1500 : 2500 + n * 450) * v, f2: (heavy ? 300 : 600 + n * 120) * v, dur: d, vol: air ? 0.07 : 0.16, rate: 1.2 * v });
@@ -2329,8 +2367,8 @@ export class Sound {
     // the ink's wet slap, and the weight behind it (a body blow: the heavy one on the third)
     // (the heavy one 0.9 dB down where its takes play, the browser: it stood 0.3 dB over the band there, the master's
     // compressor giving back some of the trim; the engines' synth alone sat inside it, issue #566)
-    const took = this.sample('splat', { vol: heavy ? 1.3 * 0.9 : 1, rate: (heavy ? 0.78 : 0.98) * v });
-    this.sample(heavy ? 'land-heavy' : 'land', { vol: heavy ? 0.75 * 0.9 : 0.45, rate: (heavy ? 0.92 : 1.15) * v });
+    const took = this.assignedEffect('splat', { vol: heavy ? 1.3 * 0.9 : 1, rate: (heavy ? 0.78 : 0.98) * v });
+    this.assignedEffect(heavy ? 'land-heavy' : 'land', { vol: heavy ? 0.75 * 0.9 : 0.45, rate: (heavy ? 0.92 : 1.15) * v });
     const g = heavy && took ? 0.9 : 1;
     // the crack of it landing (a hit, not a block or the air: bright and short, on the hit-stop's frame)
     this.burst(t, { dur: heavy ? 0.045 : 0.03, type: 'highpass', freq: 2400 * v, q: 0.7, vol: (heavy ? 0.17 : 0.13) * g, rate: 1.3 * v });
@@ -2342,10 +2380,10 @@ export class Sound {
   fluidBlock(perfect = false) {
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
-    if (perfect && this.sample('shield-parry')) return true;
+    if (perfect && this.assignedEffect('shield-parry')) return true;
     if (perfect) this.sweep(t, 1600, 2100, 0.14, 0.07, 'sine');
-    this.sample('splat', { vol: 0.55, rate: 1.25 });
-    this.sample('knock', { vol: 0.5, rate: 0.75 });
+    this.assignedEffect('splat', { vol: 0.55, rate: 1.25 });
+    this.assignedEffect('knock', { vol: 0.5, rate: 0.75 });
     [1, 1.33].forEach((m, i) => this.sweep(t + i * 0.008, 880 * m, 760 * m, 0.3, 0.06, 'triangle'));
     this.burst(t, { dur: 0.18, type: 'bandpass', freq: 1400, q: 0.8, vol: 0.16, rate: 0.9 });
   }
@@ -2457,7 +2495,7 @@ export class Sound {
     if (!this.ctx || this.muted) return;
     const t = this.ctx.currentTime, v = this.vary(0.08);
     this.swish(t, { f0: 400 * v, f1: 1400 * v, f2: 500 * v, dur: 0.24, vol: 0.09, rate: 0.9 * v });
-    this.sample('cloth', { vol: 0.6, rate: v });
+    this.assignedEffect('cloth', { vol: 0.6, rate: v });
     if (this.rand() < 0.4) this.effort(0.6, 3);
   }
 
@@ -2701,7 +2739,7 @@ export class Sound {
   splash(k = 1) {
     if (!this.ctx || this.muted) return;
     const t = this.ctx.currentTime, K = Math.min(k, 2);
-    this.sample('splash', { vol: 0.6 + 0.4 * K, rate: 1.12 - 0.12 * K });
+    this.assignedEffect('splash', { vol: 0.6 + 0.4 * K, rate: 1.12 - 0.12 * K });
     this.burst(t, { dur: 0.12 + 0.2 * K, type: 'lowpass', freq: 900 + 500 * K, q: 0.6, vol: 0.1 + 0.12 * K, rate: 0.7 });
     this.burst(t + 0.03, { dur: 0.25 + 0.4 * K, type: 'highpass', freq: 2400, q: 0.5, vol: 0.03 + 0.05 * K, rate: 1.3 });
     if (K > 0.8) this.sweep(t, 180, 70, 0.18 + 0.1 * K, 0.06 * K);
@@ -2711,7 +2749,7 @@ export class Sound {
   stroke(crawl = 0) {
     if (!this.ctx || this.muted) return;
     // (the recorded take 0.3 dB down: it stood 0.1 dB over the foley band against the music, issue #566)
-    if (this.sample('stroke', { vol: (0.8 + 0.4 * crawl) * 0.966, rate: 1 + 0.1 * crawl })) return;
+    if (this.assignedEffect('stroke', { vol: (0.8 + 0.4 * crawl) * 0.966, rate: 1 + 0.1 * crawl })) return;
     const t = this.ctx.currentTime;
     this.burst(t, { dur: 0.22 - 0.08 * crawl, type: 'bandpass', freq: 700 + 500 * crawl + Math.random() * 200, q: 0.8, vol: 0.06 + 0.03 * crawl, rate: 0.8 });
   }

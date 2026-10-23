@@ -66,7 +66,7 @@ test('round robin: every take once a round, never the same take twice running', 
   assert.equal(new RoundRobin(1).next(), 0);
 });
 
-test('not loaded yet: the bank says no (the synth plays) and starts loading; loaded, it plays a take', async () => {
+test('play never starts a lazy download; explicitly loaded takes play', async () => {
   const ctx = new AudioContext({ sampleRate: 8000 });
   const asked = [];
   ctx.decodeAudioData = async () => ctx.createBuffer(1, 400, 8000);
@@ -74,7 +74,8 @@ test('not loaded yet: the bank says no (the synth plays) and starts loading; loa
   const bank = new SampleBank(ctx, { base: 'sfx/', fetcher, rand: seeded(5) });
   const dest = ctx.createGain(); dest.connect(ctx.destination);
   assert.equal(bank.play('land', { dest }), false);
-  assert.equal(bank.state('land'), 'loading');
+  assert.equal(bank.state('land'), 'idle');
+  assert.equal(asked.length, 0);
   await bank.load('land');
   assert.equal(bank.state('land'), 'ready');
   assert.deepEqual(asked, ['sfx/land-0.mp3', 'sfx/land-1.mp3', 'sfx/land-2.mp3']);
@@ -85,26 +86,28 @@ test('not loaded yet: the bank says no (the synth plays) and starts loading; loa
   assert.equal(bank.play('nothing', { dest }), false);
 });
 
-test('offline or no decoder: the group fails and stays on the synth', async () => {
+test('offline or no decoder: preparation fails explicitly without a playback substitute', async () => {
   const ctx = new AudioContext({ sampleRate: 8000 });   // (the engine's: decodeAudioData rejects)
   const bank = new SampleBank(ctx, { base: 'sfx/', fetcher: async () => ({ ok: true, arrayBuffer: async () => new ArrayBuffer(8) }) });
   assert.equal(await bank.load('hurt'), false);
   assert.equal(bank.state('hurt'), 'failed');
   assert.equal(bank.play('hurt', { dest: ctx.destination }), false);
   const off = new SampleBank(ctx, { fetcher: async () => { throw new TypeError('offline'); } });
-  await off.preload();
-  for (const g of Object.keys(SFX)) assert.equal(off.state(g), 'failed');
+  await assert.rejects(off.preload(), { name: 'SoundEffectsLoadError' });
+  assert.equal(off.groups.size, 4, 'first failure cancels the attempt before queued groups start');
+  for (const group of off.groups.values()) assert.equal(group.state, 'failed');
+  for (const g of Object.keys(SFX)) assert.equal(off.play(g, { dest: ctx.destination }), false, 'failed or unattempted groups cannot play');
   const missing = new SampleBank(ctx, { fetcher: async () => ({ ok: false, status: 404 }) });
   assert.equal(await missing.load('splat'), false);
 });
 
-test('one take missing: the group plays the ones it has', async () => {
+test('one take missing: the whole assigned group remains unavailable', async () => {
   const ctx = new AudioContext({ sampleRate: 8000 });
   ctx.decodeAudioData = async () => ctx.createBuffer(1, 100, 8000);
-  const bank = new SampleBank(ctx, { base: '', fetcher: async (u) => ({ ok: !u.endsWith('-1.mp3'), status: 404, arrayBuffer: async () => new ArrayBuffer(8) }), rand: seeded(9) });
-  assert.equal(await bank.load('splat'), true);
-  for (let i = 0; i < 10; i++) assert.equal(bank.play('splat', { dest: ctx.destination }), true);
-  assert.ok(bank.played.every((p) => p.take < 3));
+  const bank = new SampleBank(ctx, { base: '', fetcher: async u => ({ ok: !u.endsWith('-1.mp3'), status: 404, arrayBuffer: async () => new ArrayBuffer(8) }) });
+  assert.equal(await bank.load('splat'), false);
+  assert.equal(bank.play('splat', { dest: ctx.destination }), false);
+  assert.equal(bank.played.length, 0);
 });
 
 

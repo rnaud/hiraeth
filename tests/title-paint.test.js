@@ -232,7 +232,9 @@ test('starting waits only for the load: the title lets the game go and fades ove
   // the game: built standing aside, its sound waiting, held at the first frame's door until released
   const m = src('main.js');
   assert.match(m, /const titleHold = window\.__titleHold \?\? null;/);
-  assert.match(m, /autoStart: !titleHold/);
+  assert.match(m, /autoStart: false, listen: false/);
+  assert.match(m, /if \(!titleHold\) sound\.startIfAllowed\(\);/);
+  assert.ok(m.indexOf('await prepareSoundWithRetry(sound') < m.indexOf('sound.listenForInput()'), 'recordings ready before gameplay can activate audio');
   assert.match(m, /loadWatch\.stop\(\);\s*\/\/[^\n]*\s*if \(titleHold\) \{ titleHold\.arrive\(\); await titleHold\.go; sound\.startIfAllowed\(\); \}\s*stage\('ready'\);/);
   assert.ok(m.indexOf('titleHold?.played()') > m.indexOf("stage('ready')"), 'the title goes on the first frame');
   // the CSS: the drawing over the paper, the mark where the menu was

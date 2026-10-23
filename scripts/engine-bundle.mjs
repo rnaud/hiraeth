@@ -12,6 +12,7 @@ import { viteImportGlobPlugin } from 'rolldown/experimental';
 import { mkdirSync, statSync, readdirSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { sfxFiles } from '../src/sfx.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 export const ENTRIES = {
@@ -208,11 +209,8 @@ export async function unityTravellerV2({ to = UNITY_PUBLIC } = {}) {
   const source = resolve(ROOT, 'public', caravan), target = resolve(ROOT, to, caravan);
   mkdirSync(dirname(target), { recursive: true });
   writeFileSync(target, readFileSync(source)); n++; bytes += statSync(target).size;
-  // The developer sound overlay reads the same per-file provenance as the web.
-  const provenance = resolve(ROOT, to, 'sfx/manifest.json');
-  mkdirSync(dirname(provenance), { recursive: true });
-  writeFileSync(provenance, readFileSync(resolve(ROOT, 'public/sfx/manifest.json')));
-  n++; bytes += statSync(provenance).size;
+  const effects = unityEffects({ to: resolve(ROOT, to, 'sfx') });
+  n += effects.n; bytes += effects.bytes;
 
   return { n, bytes, to };
 }
@@ -234,9 +232,19 @@ export async function unityBundleJson(dir = dirname(resolve(ROOT, ENTRIES.unity.
   return info;
 }
 
+/** The complete assigned effect set travels with scripts, including same-name replacements. */
+export function unityEffects({ to }) {
+  mkdirSync(to, { recursive: true }); let n = 0, bytes = 0;
+  for (const name of ['manifest.json', ...sfxFiles()]) {
+    const data = readFileSync(resolve(ROOT, 'public/sfx', name));
+    writeFileSync(resolve(to, name), data); n++; bytes += data.length;
+  }
+  return { n, bytes };
+}
+
 /**
  * The script over the air (BridgeUpdates.cs, scripts/web-update.mjs --unity <dir>): the Unity player's
- * StreamingAssets/hiraeth-js without its public/ folder, made into `dir`: hiraeth.cjs, audio.cjs, bundle.json (updates on)
+ * StreamingAssets/hiraeth-js with only the compact public/sfx subset, made into `dir`: hiraeth.cjs, audio.cjs, bundle.json (updates on)
  * and the menus' pictures.
  *   node scripts/engine-bundle.mjs ota <dir>
  */
@@ -246,6 +254,7 @@ export async function unityOta(dir) {
   await unityPictures({ to: resolve(to, 'item-pictures') });
   await unityTitle({ to });
   await unityStarmap({ to: resolve(to, 'starmap') });
+  unityEffects({ to: resolve(to, 'public/sfx') });
   return unityBundleJson(to, { updates: true });
 }
 

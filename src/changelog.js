@@ -17,6 +17,12 @@ export const CHANGELOG = [
     ],
   },
   {
+    v: '2.00', date: '2026-10-22',
+    items: [
+      { text: 'Sound effects finish loading before play, so assigned recordings keep their chosen sound instead of turning into a substitute. A missing download offers Retry without losing your save.', see: 'Start or continue a game. If a sound download fails, choose Retry to load the missing file, or Back to title. Sound-effect previews also wait for their recordings; stopping a song remains immediate.' },
+    ],
+  },
+  {
     v: '1.99', date: '2026-10-22',
     items: [
       { text: 'Steam Deck players can update the player from the Updates page, with clear download progress and a checked restart that keeps saves and the previous working player.', see: 'Open Updates on a launcher-managed Steam Deck install and choose Update player and restart when offered. Older players first need the launcher upgrade: quit and relaunch, wait for its download, then launch again. Other installs use their original installer. A failed or busy update keeps the current player open.' },

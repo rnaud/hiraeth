@@ -1,16 +1,11 @@
 // Recorded effects: retained CC0 foley plus selected generated sounds (public/sfx/,
 // per-file provenance in public/sfx/manifest.json and docs/credits.md).
 //
-//   const bank = new SampleBank(ctx)          (Sound.start makes one: sound.bank)
-//   bank.preload()                            fetch and decode every group, a few at a time
-//   bank.play('step-sand', { dest, vol, rate, when, pan })  → true, or false (not loaded yet, or never:
-//                                             the caller plays its synthesised sound instead)
-//
-// Nothing waits for it: a group not loaded yet starts loading on its first play and the synth plays
-// that time; a download or decode that fails (offline with the file missing, an engine bridge with
-// no decoder) leaves the synth for good. Each play picks the next of the group's takes from a
-// shuffled round (never the same take twice running) and varies its pitch and level a little, so
-// a run of footsteps or a combo never machine-guns.
+// Sound.prepareEffects() strictly fetches and decodes every assigned take before gameplay.
+// Sound.start() adopts those buffers into an independent playback bank. Playback never
+// starts a lazy download, and unavailable assigned recordings do not choose a synth substitute.
+// play() reports actual starts (false for unavailable, muted or suppressed playback).
+// Each group cycles shuffled takes with its authored pitch/level variation.
 
 /**
  * The groups: n takes (`<group>-<i>.<ext>`, MP3 by default), the level (on the effects bus, × the Effects volume),
@@ -95,37 +90,55 @@ export class SampleBank {
    * @param o.base where the files are (default: the site's sfx/), o.fetcher (fetch), o.rand,
    *        o.table (SFX)
    */
-  constructor(ctx, { base = defaultBase(), fetcher = globalThis.fetch?.bind(globalThis), rand = Math.random, table = SFX } = {}) {
+  constructor(ctx, { base = defaultBase(), fetcher = globalThis.fetch?.bind(globalThis), rand = Math.random, table = SFX, timeoutMs = 60000 } = {}) {
     this.ctx = ctx; this.base = base; this.fetcher = fetcher; this.rand = rand; this.table = table;
+    this.timeoutMs = timeoutMs;
     this.groups = new Map();   // group → { state: 'loading' | 'ready' | 'failed', buffers: [], rr, promise }
     this.active = new Set(); this.disposed = false;
-    this.abort = typeof AbortController === 'function' ? new AbortController() : null;
+    this.pendingLoads = new Set();
     this.played = [];          // the last plays (a test / dev hook): { group, take, rate, vol }
   }
 
-  /** 'idle' (never asked), 'loading', 'ready' (at least one take decoded) or 'failed'. */
+  /** 'idle' (never asked), 'loading', 'ready' (every assigned take decoded) or 'failed'. */
   state(group) { return this.groups.get(group)?.state ?? 'idle'; }
 
   /** Decoded source seconds (0 while unavailable); single-take cues use this for physical progress. */
   duration(group) { return this.groups.get(group)?.buffers[0]?.duration ?? 0; }
 
-  /** Fetch and decode a group's takes (once). Resolves to whether any take is ready. */
-  load(group) {
+  /** Fetch and decode every assigned take; explicit retry retains successful takes. */
+  load(group, { retry = false } = {}) {
     const spec = this.table[group];
     if (!spec || this.disposed) return Promise.resolve(false);
     let G = this.groups.get(group);
-    if (G) return G.promise;
-    G = { state: 'loading', buffers: [], rr: null };
+    if (G && !(retry && G.state === 'failed')) return G.promise;
+    G ??= { buffers: [], takeBuffers: [], errors: [], rr: null };
+    G.state = 'loading'; G.errors = [];
     this.groups.set(group, G);
     const one = async (i) => {
+      if (G.takeBuffers[i]) return G.takeBuffers[i];
       if (!this.fetcher) throw new Error('no fetch');
-      const r = await this.fetcher(`${this.base}${group}-${i}.${spec.ext ?? 'mp3'}`, this.abort ? { signal: this.abort.signal } : undefined);
-      if (!r?.ok) throw new Error(`HTTP ${r?.status}`);
-      return decode(this.ctx, await r.arrayBuffer());
+      // Bound the entire request, body read and decoder, including hosts that ignore abort.
+      // Only the winning attempt writes its take: a timed-out decode cannot overwrite Retry.
+      const request = typeof AbortController === 'function' ? new AbortController() : null;
+      let timer, abort;
+      const deadline = new Promise((_, reject) => {
+        abort = () => { request?.abort(); reject(new Error('Sound effects load cancelled')); };
+        this.pendingLoads.add(abort);
+        timer = setTimeout(() => { request?.abort(); reject(new Error('Sound effects load timed out')); }, this.timeoutMs);
+      });
+      try {
+        const data = await Promise.race([deadline, (async () => {
+          const r = await this.fetcher(`${this.base}${group}-${i}.${spec.ext ?? 'mp3'}`, request ? { signal: request.signal } : undefined);
+          if (!r?.ok) throw new Error(`HTTP ${r?.status}`);
+          return decode(this.ctx, await r.arrayBuffer());
+        })()]);
+        if (this.disposed) throw new Error('Sound effects load cancelled');
+        return (G.takeBuffers[i] = data);
+      } finally { clearTimeout(timer); this.pendingLoads.delete(abort); }
     };
-    G.promise = Promise.all(Array.from({ length: spec.n }, (_, i) => one(i).catch(() => null))).then((bufs) => {
-      G.buffers = this.disposed ? [] : bufs.filter(Boolean);
-      G.takes = bufs.map((b, i) => b ? i : -1).filter(i => i >= 0);
+    G.promise = Promise.all(Array.from({ length: spec.n }, (_, i) => one(i).catch(error => { G.errors.push({ group, file: `${group}-${i}.${spec.ext ?? 'mp3'}`, message: String(error?.message ?? error) }); return null; }))).then((bufs) => {
+      G.buffers = !this.disposed && bufs.every(Boolean) ? bufs : [];
+      G.takes = G.buffers.map((_, i) => i);
       G.state = G.buffers.length ? 'ready' : 'failed';
       G.rr = new RoundRobin(G.buffers.length, this.rand);
       return G.state === 'ready';
@@ -134,16 +147,31 @@ export class SampleBank {
   }
 
   /** Load every group, `at` a time. */
-  async preload(at = 4) {
+  async preload(at = 4, { retry = false, onProgress = null } = {}) {
     const todo = Object.keys(this.table);
-    const worker = async () => { while (todo.length) await this.load(todo.shift()); };
-    await Promise.all(Array.from({ length: at }, worker));
+    let completed = 0, failed = false; const total = todo.length;
+    const worker = async () => { while (todo.length && !failed) {
+      const group = todo.shift(), ready = await this.load(group, { retry });
+      if (!ready && !failed) {
+        failed = true;
+        // A failed/expired request ends this attempt; do not serially wait through the rest
+        // of a stalled bank. Other in-flight groups settle before Retry can own their cache.
+        for (const abort of this.pendingLoads) abort();
+      }
+      completed++; onProgress?.({ completed, total, group });
+    } };
+    await Promise.all(Array.from({ length: Math.max(1, Math.min(4, at | 0)) }, worker));
+    const failures = [...this.groups.values()].flatMap(g => g.errors ?? []);
+    if (this.disposed || failed || [...this.groups.values()].some(g => g.state !== 'ready')) {
+      const error = new Error('Sound effects couldn’t load.'); error.name = 'SoundEffectsLoadError'; error.failures = failures; throw error;
+    }
+    return this;
   }
 
   /**
    * Play one take of a group into `dest` (a node on the effects bus): `vol` × the group's level,
    * `rate` × its pitch, at `when` (the context's time; now by default), panned by `pan` (-1..1).
-   * False when the group isn't ready (it starts loading): the caller's synth plays instead.
+   * False when the group is unavailable or suppressed. Readiness is prepared explicitly; no download or substitute starts here.
    */
   play(group, options = {}) { return !!this.start(group, { ...options, loop: false }); }
 
@@ -152,7 +180,7 @@ export class SampleBank {
     if (maxDuration !== null && (!Number.isFinite(maxDuration) || maxDuration <= 0)) return null;
     if (this.disposed || !dest || !Number.isFinite(vol) || vol < 0 || (!loop && vol === 0) || !Number.isFinite(rate) || rate <= 0) return null;
     const G = this.groups.get(group);
-    if (!G) { void this.load(group); return null; }
+    if (!G) return null;
     if (G.state !== 'ready' || !Number.isFinite(offset) || offset < 0) return null;
     const ctx = this.ctx, spec = this.table[group], take = G.rr.next(), v = variation(spec, this.rand);
     const src = ctx.createBufferSource(), g = ctx.createGain();
@@ -222,7 +250,7 @@ export class SampleBank {
 
   /** Prevent late decodes/starts and release every source, including a previously fading loop. */
   dispose() {
-    this.disposed = true; this.abort?.abort();
+    this.disposed = true; for (const abort of this.pendingLoads) abort(); this.pendingLoads.clear();
     for (const handle of [...this.active]) handle.stop(0);
     this.groups.clear();
   }

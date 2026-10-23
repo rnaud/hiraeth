@@ -237,3 +237,7 @@ II, Lorn, Viridel, the Hangar, the Garden and the market had no objective until 
 `quests.tracked()` returned a quest that world doesn't have (fixed; `tests/dialogue.test.js`).
 Lou, at home, starts her talk herself when she runs to meet you (`KNOWN`: intentional, the author's decision). The
 City-Shaft's first find was only reachable on wings or by climbing: the red stair now leads down to it.
+
+### Recorded sound decoder on test hosts (#622)
+
+The Node audio harness decodes the actual packaged effects before game startup. Its WAV reader is built in; compressed MP3 takes require macOS `afconvert` or `ffmpeg` on PATH. The Ubuntu Tests workflow installs FFmpeg explicitly when it is absent. Its setup has a four-minute bound and uses an explicit task-local Ubuntu source list, package indexes and cache. This excludes the runner’s indirect Azure mirror list while retaining Ubuntu’s signed-package verification and archive keyring. Download retries and connection timeouts are bounded, leaving the existing twenty-minute job limit for the actual tests. Local Linux test hosts need FFmpeg too. The `sound-qc-decoder` regression uses a fresh OS-temporary cache and checks every packaged MP3 produces finite, non-silent PCM, so a warm developer cache cannot hide a missing decoder. Test caches use `os.tmpdir()` rather than a macOS-specific `/private/tmp` directory. This changes test prerequisites only; game readiness and production decoders are unchanged.

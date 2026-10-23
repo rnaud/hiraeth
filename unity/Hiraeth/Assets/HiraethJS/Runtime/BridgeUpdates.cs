@@ -44,7 +44,7 @@ namespace Hiraeth.Bridge
         public const int UnityApi = 4;   // 4: optional Deck player updates and selected-bundle SFX roots (#620/#622); 3: recorded effects decoder and packaged bank (#604); 2: playable caravan (#599); 1: store/script updates (#264)
         /// <summary>The oldest player the script runs on (unity.json's minUnity, scripts/release-info.mjs unityMinApi). Raise it
         /// to UnityApi when the script starts relying on a bridge change; a C#-only change leaves it.</summary>
-        public const int ScriptMinUnity = 3;
+        public const int ScriptMinUnity = 4;
         public static int RequiredPlayerApi => Math.Max(UnityApi, latestMin);
         public const string Manifest = "https://hiraeth.alexandria-rnaud.workers.dev/updates/unity.json";
         public const int MaxTries = 2;

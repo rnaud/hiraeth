@@ -9,7 +9,7 @@ test('a real rig landing sounds its two contacts, not another pair from body fol
   const contacts = [], landings = [], extraFeet = [], vocals = [];
   p.onStep = () => contacts.push(p.time);
   const sound = { ctx: { currentTime: 0 }, surface: 'stone', muted: false, actionVocal: group => vocals.push(group),
-    step: () => extraFeet.push(p.time), sample: () => true, burst() {},
+    step: () => extraFeet.push(p.time), sample: () => true, assignedEffect: Sound.prototype.assignedEffect, burst() {},
     land(arg) { landings.push({ ...arg, time: p.time }); Sound.prototype.land.call(this, arg); } };
   const foley = new BodyFoley(sound);
   for (const [frames, input] of [[60, {}], [6, { Space: true }], [180, {}]]) {

@@ -1356,6 +1356,33 @@ export const CHANGELOG_MEDIA = {
       { name: 'whale-tide-dais', only: 'after', title: 'Climbing onto the dais', size: [1280, 720], caption: 'The same run crosses the Sound and climbs onto the dry dais, while the Listener gate stays locked.', from: 'Issue #629: actual Unity Editor BridgeRenderer, High, 1280 × 720, 22 October 2026; v2.02 candidate based on 28261af3. Muted private store; ordinary forward/swim input after the valve, without further player placement or progression overrides. After-only state from the same run, not a before/after version comparison. Capture and exact restoration evidence: .local-tools/whale-qa/native/native-tide-3/.' },
     ],
   }],
+  '2.00': [
+  {
+    "match": "Sound effects finish loading before play",
+    "shots": [
+      {
+        "name": "sound-load-retry",
+        "only": "after",
+        "caption": "A missing recording offers Retry or Back to title before the world opens.",
+        "size": [
+          1280,
+          960
+        ],
+        "from": "Issue #622: actual Unity Editor load-failure menu, High, 1280 × 960, 22 October 2026; uncommitted candidate based on 28261af3f5e9b0977d29d7d93838883a1464a196. One task-packaged sound file was withheld, then restored for the real Retry action. Private store, production mute and an explicit evidence-only stopped/disabled output source before world loading. No listening or Retroid claim. Exact input hashes and warm restoration retained in .local-tools/validation/v2.00/effects-readiness-622/native-5/. After-only evidence."
+      },
+      {
+        "name": "sound-load-restored",
+        "only": "after",
+        "caption": "Retry finishes loading all 105 recordings and opens the Bazaar.",
+        "size": [
+          1280,
+          960
+        ],
+        "from": "Same native review as sound-load-retry, after the actual Retry menu action and successful strict decode. The recovered world is an after-only state, not a historical comparison. Logical PCM counters are not speaker-output measurements."
+      }
+    ]
+  }
+],
   '1.99': [
   {
     "match": "Steam Deck players can update",
