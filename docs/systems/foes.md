@@ -1939,3 +1939,19 @@ From the 2026-10-08 playtest. Every foe, in every state, must be seen:
 - **Never inside the world** (`Foes.roomAt`, `openSpot`): a pack's, a relic's guards', a wave's and `spawnKind`'s
   spots are checked with a capsule (`physics.pushCapsule`) for its body's column; inside a solid, the next spot
   round is tried, never a guessed height.
+
+## Accepted blade contacts (v2.04, #635)
+
+The swept blade proposes contact, then each target decides once. An explicit `false`
+rejects it; `info.dull` marks armour or an unanswered guardian state. Neither gets
+the blade's wet impact, cut splash, success ripple, riposte celebration or hitstop.
+An armoured foe keeps its own metallic sound and sparks at the actual contact point.
+Callbacks with no return remain accepted for existing puzzle interactions. Multi-target
+cuts give only accepted targets the success splash, with one shared blade impact per
+contact frame. Wildlife bonks retain their smaller stop without a second impact call.
+Damage, progression and per-swing target deduplication are unchanged.
+
+Directional reactions retain their existing sizes and springs. A vertical or directionless
+accepted blow uses the foe's facing to tip back, rather than an unrelated previous
+hit's direction. Reduced motion and camera-shake preferences still own all camera
+feedback through `feel.js`; no new freeze, shake or louder sound was added.

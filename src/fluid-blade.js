@@ -1014,7 +1014,14 @@ export class FluidBlade {
     const damage = (S === CHARGE ? CHARGE.damage[this.chargeFull ? 1 : 0] : S?.damage ?? BLADE.damage[this.n] ?? 1) * (BLADE.edge ?? 1);
     const light = airLight(S), heavy = this.n === 2 || (!!S && !light);   // (the air combo's light swings count as the combo's own)
     const info = { ...T.info(), damage, combo: S && !light ? 2 : this.n, ...(S === CHARGE ? { breaks: true, charged: this.chargeFull } : {}), ...(S === AIR || light ? { air: true } : {}), ...(S === RIPOSTE ? { breaks: true, stagger: RIPOSTE.stagger, riposte: true } : {}), ...(S === DASH ? { dash: true, source: 'dash' } : {}) };
-    for (const h of hits) h.target.onHit?.('blade', h.point, h.dir, { ...info, mode: 'blade' });
+    // Geometry proposes a contact; the target owns its outcome. Preserve callbacks
+    // without a return value, but respect explicit rejection and the shared dull
+    // result (armour / a guardian whose current state did not answer the cut).
+    hits = hits.filter((h) => {
+      const result = { ...info, mode: 'blade' };
+      const accepted = h.target.onHit?.('blade', h.point, h.dir, result);
+      return accepted !== false && !result.dull;
+    });
     // a creature the blade passes through is bonked (v1.41: it was only scared off, from anywhere in the cone): knocked
     // away head over heels, dazed a moment, no harm (src/wildlife.js BONK); the cut's sphere test as for a foe with no body
     let bonked = 0;
@@ -1024,7 +1031,7 @@ export class FluidBlade {
       this.hitTargets.add(h.target);
       if (h.target.onHit?.('blade', h.point, h.dir, info)) bonked++;
     }
-    if (bonked && !hits.length) { hitStop(0.035); T.sound?.fluidSlashHit?.(true, false); }
+    if (bonked && !hits.length) hitStop(0.035);
     if (hits.length) {
       T.lastHit = 'target';
       hitStop((S === CHARGE && this.chargeFull) || S === RIPOSTE ? 0.15 : heavy ? 0.11 : 0.06); kick(S === CHARGE || S === RIPOSTE ? 0.7 : heavy ? 0.5 : 0.25);   // (the cut lands: the frame freezes, src/feel.js)
@@ -1042,7 +1049,7 @@ export class FluidBlade {
       const at = pose ? _tip.copy(hits[0].point).sub(pose.a).dot(_vel.subVectors(pose.b, pose.a)) / Math.max(pose.a.distanceToSquared(pose.b), 1e-6) : 0.75;
       this.rippleAt(THREE.MathUtils.clamp(at, 0.2, 1), heavy ? BLADE_LOOK.ripple.heavy : BLADE_LOOK.ripple.hit, S === RIPOSTE ? 1 : 0);
     }
-    T.sound?.fluidSlashHit?.(hits.length > 0, info.combo === 2);
+    if (hits.length || bonked) T.sound?.fluidSlashHit?.(true, hits.length > 0 && info.combo === 2);
     return hits;
   }
 
