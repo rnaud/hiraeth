@@ -9,6 +9,12 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
+    v: '2.06', date: '2026-10-22',
+    items: [
+      { text: 'Plumb points you toward people and landmarks to explore without naming people you have not learned about yet.', see: 'Arrive in a new world and ask Plumb for directions before speaking to its locals. Follow the hint, then accept their quest: the directions can use what you have learned. Returning saves keep their progress.' },
+    ],
+  },
+  {
     v: '2.00', date: '2026-10-22',
     items: [
       { text: 'Sound effects finish loading before play, so assigned recordings keep their chosen sound instead of turning into a substitute. A missing download offers Retry without losing your save.', see: 'Start or continue a game. If a sound download fails, choose Retry to load the missing file, or Back to title. Sound-effect previews also wait for their recordings; stopping a song remains immediate.' },

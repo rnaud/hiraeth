@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v2.06 — 2026-10-22
+
+- Plumb points you toward people and landmarks to explore without naming people you have not learned about yet.
+
 ## v2.00 — 2026-10-22
 
 - Sound effects finish loading before play, so assigned recordings keep their chosen sound instead of turning into a substitute. A missing download offers Retry without losing your save.

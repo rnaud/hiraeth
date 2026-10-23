@@ -1349,6 +1349,33 @@ const RETROID536 = 'Retroid Pocket Nova (Adreno 740, Vulkan), Unity, Handheld (F
 const SRC536 = 'BridgeRenderer.Pipelines (the G-buffer’s states the scene asks for: variant, layout, cull, depth), Metal’s list traced in the editor, the shipped lists rewritten by scripts/bench/pso-one-cull.mjs; docs/systems/performance.md, “One cull mode and one layout for the Surface pipelines”';
 const SEAPORT572 = 'Issue #572: the web game in muted headless Chrome (High, 1280 × 720) on a Vite of its own (port 5441), a new save arriving by ship (?level=underwater&via=ship), then walked as a player; before: origin/main at 02345e2c3, after: this change; the deck and the Dock from the visual check’s views (scripts/design-qc/capture.mjs --fixed-scale); 20 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '2.06': [
+  {
+    "match": "Plumb points you toward people",
+    "shots": [
+      {
+        "name": "unlearned-direction",
+        "only": "after",
+        "caption": "Before an introduction, Plumb points out someone by the landing.",
+        "size": [
+          1280,
+          720
+        ],
+        "from": "Issue #627 candidate based on ded6a12e4; actual muted Unity Editor game, High, 1280 × 720, Signal Market. Fresh unintroduced quest; Scout ping and staged real Companion dialogue, not an elapsed lost-timer or ordinary walking claim. Separate after-only states. Source pins, native originals, auxiliary portrait and exact warm restoration retained in .local-tools/knowledge-safe-hints-627/review/native-hints-1/. Native initial progress differs from browser fixture; the target and anonymous wording match."
+      },
+      {
+        "name": "anonymous-plumb",
+        "only": "after",
+        "caption": "Plumb’s spoken direction uses the same observable landmark.",
+        "size": [
+          1280,
+          720
+        ],
+        "from": "Issue #627 candidate based on ded6a12e4; actual muted Unity Editor game, High, 1280 × 720, Signal Market. Fresh unintroduced quest; Scout ping and staged real Companion dialogue, not an elapsed lost-timer or ordinary walking claim. Separate after-only states. Source pins, native originals, auxiliary portrait and exact warm restoration retained in .local-tools/knowledge-safe-hints-627/review/native-hints-1/. Native initial progress differs from browser fixture; the target and anonymous wording match."
+      }
+    ]
+  }
+],
   '2.00': [
   {
     "match": "Sound effects finish loading before play",

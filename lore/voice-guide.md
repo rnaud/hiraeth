@@ -124,3 +124,10 @@ Controls must match the current build. Retain Xbox / PlayStation names where a
 controller hint is needed. Keep instructional UI plain; reserve character
 humor for the character’s own voice. Recheck adjacent player choices after any
 NPC rewrite: the answer still has to answer the question the player selected.
+
+### Knowledge before names
+
+Plumb and every other speaker can report only what they have observed or been told. On a new
+world, point out a person or an observable landmark to investigate before naming it. Catalogue
+labels and world visitation do not count as introductions. The traveller must not answer with a
+name or fact they have not learned. Check skipped optional talks and returning saves too.

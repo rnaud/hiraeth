@@ -24,7 +24,7 @@ export function setupUnderwater(ctx) {
   // (issue #192: the helmet off the divers' rack and the locks, the halls' great pipes)
   const ways = setupUnderwaterWays(ctx);
   // the city's own main quest doesn't just appear: it starts when you talk to Bastien at the lock (src/story/quests.js opensWith)
-  if (quests?.opensWith && !quests.isStarted?.('underwater.note')) quests.opensWith('underwater.note', 'bastien');
+  if (quests?.opensWith && !quests.isStarted?.('underwater.note')) quests.opensWith('underwater.note', 'bastien', { hint: 'Someone beside the lock' });
   // where the errands point: the people by their content ids, the lift and the Crown
   for (const n of npcs) if (['mireille', 'fabre', 'maelle', 'bastien', 'coralie'].includes(n.def?.id)) quests?.locate?.(n.def.id, () => n.pos);
   // the window over the deep in the Whale Gallery (the level's sight): an ear to the glass traces the wrong note north

@@ -133,7 +133,7 @@ export const plumbTalk = (pages) => ({ ...PLUMB_PERSON, talk: { nodes: { plumb: 
  * puts the place at the start of a sentence.
  */
 export const PLACE_LINES = {
-  still: ['~curious~ Lost? A little. {place}: this way.', '~playful~ Scenic route? {place}’s the other way.'],
+  still: ['~curious~ Lost? A little. {place}: this way.', '~playful~ Scenic route? {place} is the other way.'],
   away: ['~curious~ Wrong way, I think. {place} is back here.', '~neutral~ Further and further. {place} is behind us.'],
   circling: ['~tired~ That rock again. {place}: over here.', '~playful~ My petals are dizzy. {place}: this way.'],
 };
@@ -142,13 +142,14 @@ export const PLACE_MAX = 28;
 /**
  * The objective's label as a place it can name, or null: "The giant’s skull", "Qanat, under the dark tree", "Your
  * ship, and Qanat’s gift"; not a person ("Marrow, by your ship": `people` their names), not a doing ("Climb to ledge 2",
- * "Back to the ship", "Through the doorway"). Hints say where, never who.
+ * "Back to the ship", "Through the doorway"). Named people remain excluded. Observable anonymous descriptions can guide the same lost barks.
  */
 export function placeOf(label, people = new Set()) {
   const s = String(label ?? '').trim();
   if (!s || s.length > PLACE_MAX) return null;
   const head = s.split(',')[0].trim();
   if (people.has(head) || people.has(head.split(/\s+/)[0])) return null;
+  if (/^Someone (?:by|beside|near|on|among|with|seated)\b/.test(s)) return s;
   if (/^(The|Your)\s/.test(s) || (s.includes(',') && /^[A-Z][\w’'-]+$/.test(head))) return s;
   return null;
 }

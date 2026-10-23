@@ -42,7 +42,7 @@ export function setupEdena(ctx) {
   quests.itemNames = ITEMS;
   const Q = 'edena.garden';
   // the main quest doesn't just appear: it starts when you talk to Mira (the scout finds them till then: src/story/quests.js opensWith)
-  if (!quests.isStarted(Q)) quests.opensWith(Q, 'mira');
+  if (!quests.isStarted(Q)) quests.opensWith(Q, 'mira', { hint: 'Someone by the water clock' });
   const S = E.crashed, T = E.tall;
   const ground = (x, z) => level.ground.heightAt(x, z);
   const onGround = (x, z) => { const g = physics.groundAt(x, ground(x, z) + 6, z, 30); return V(x, Number.isFinite(g) ? g : ground(x, z), z); };

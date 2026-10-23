@@ -85,7 +85,7 @@ export function setupArzach2(ctx) {
   // at the gate itself nothing said where next): the scout goes on to Aube, by her smoke over the cloud, and flies there once.
   const gateReached = () => !!game.flag('arzach2.gate.reached');
   const onPlain = () => !!A.gate && !gateReached() && player.pos.z < (A.plainEdgeAt?.(player.pos.x) ?? A.plainEdge) - 6 && flat(player.pos, A.gate.at) > GATE_REACH;
-  if (!quests.isStarted('arzach2.bell')) quests.opensWith('arzach2.bell', 'aube', { at: 'aubeWay', label: () => (onPlain() ? 'The riders’ gate, the way to Sister Aube' : A.gate ? 'Sister Aube, by the smoke over the cloud' : null) });
+  if (!quests.isStarted('arzach2.bell')) quests.opensWith('arzach2.bell', 'aube', { at: 'aubeWay', hint: () => onPlain() ? 'Through the gate ahead' : 'Someone by the smoke', label: () => (onPlain() ? 'The riders’ gate, the way to Sister Aube' : A.gate ? 'Sister Aube, by the smoke over the cloud' : null) });
   if (game.flag('arzach2.cairn.placed') === undefined) game.set('arzach2.cairn.placed', 0);
   const ground = (x, z, from) => { const g = physics.groundAt(x, from, z, 60); return Number.isFinite(g) ? g : from - 3; };
   const Q = 'arzach2.bell';

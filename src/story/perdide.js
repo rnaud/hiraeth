@@ -54,7 +54,7 @@ export function setupPerdide(ctx) {
   for (const q of QUESTS) quests.define(q);
   quests.itemNames = { ...(quests.itemNames ?? {}), ...ITEMS };
   // the main quest doesn't just appear: it starts when you talk to Wendel (the scout finds them till then: src/story/quests.js opensWith)
-  if (!quests.isStarted(Q) && !game.flag('world.perdide.done')) quests.opensWith(Q, 'wendel');
+  if (!quests.isStarted(Q) && !game.flag('world.perdide.done')) quests.opensWith(Q, 'wendel', { hint: 'Someone by the egg lamps' });
 
   const C = level.crystal;
   // the walkable surface just above the swamp floor (not the cave's roof, nor a fungus cap)
