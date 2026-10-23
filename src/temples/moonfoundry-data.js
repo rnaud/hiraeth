@@ -50,7 +50,7 @@ export const PEOPLE = {
         go: {
           say: ['~neutral~ *The door under the chimney.* It isn’t locked. The founders never locked anything; they just made it heavy.',
             '~curious~ The ledger lists a *magnet glove* in the house, for drawing the iron moons along. They move for nothing else. Find it first.',
-            '~neutral~ And it pours. There’s a tap by every hub: shut it, and the channels go cold.'],
+            '~neutral~ The channels carry molten iron. Shut a tap by a hub to stop the pour and drain them.'],
           choices: [{ text: '~happy~ A magnet glove. Got it.', end: true }],
         },
         again: {
@@ -65,8 +65,8 @@ export const PEOPLE = {
           ],
         },
         cradle: {
-          say: ['~solemn~ The ledger says it stops when a moon comes out whole. So give it a whole one.',
-            '~neutral~ An iron moon, drawn into its cradle. You’ll want the glove for that.'],
+          say: ['~solemn~ The ledger says a whole moon makes it stop and look. That gives you an opening.',
+            '~neutral~ Use the glove to draw an iron moon into its cradle. Then splash its heart when the crucible doors open.'],
           choices: [{ text: '~neutral~ I’ll try.', end: true }],
         },
         after: {

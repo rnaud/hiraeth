@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v2.11 — 2026-10-23
+
+- Fisk and Petra explain the Engine-House vents and Casting-House controls more clearly, including what to do when the Founder pauses.
+
 ## v2.10 — 2026-10-23
 
 - Plumb’s temple hints and several local directions now say more clearly what to look for and try, while keeping each speaker’s character.

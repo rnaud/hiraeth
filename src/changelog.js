@@ -9,6 +9,12 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
+    v: '2.11', date: '2026-10-23',
+    items: [
+      { text: 'Fisk and Petra explain the Engine-House vents and Casting-House controls more clearly, including what to do when the Founder pauses.', see: 'Return to Fisk after entering the Engine-House and ask about its four vents. Ask Petra about entering the Casting-House, then return after entering and ask about the cradle.' },
+    ],
+  },
+  {
     v: '2.10', date: '2026-10-23',
     items: [
       { text: 'Plumb’s temple hints and several local directions now say more clearly what to look for and try, while keeping each speaker’s character.', see: 'Ask Plumb for help with a temple mechanism. Talk to the Speaker in Qanat, Bastien by the underwater lock, Rosa in the floating city, Achille outside the Whale House or Wen in the Moon Foundry.' },
