@@ -589,6 +589,9 @@ export class Animator {
     // pivot at a run, a sprint turned round) doesn't stand him up for that frame: the standing pose took 15 % of the blend at
     // once and every swinging foot dropped 7-10 cm in a frame, the 4.6 cm boundary as the running 180° turn came in, issue #47)
     else if (sp < 0.25 && s.steering && this.gaitW > GAIT_HOLD && this.w.walk + this.w.jog + this.w.sprint > GAIT_HOLD) { const g = this.w.walk + this.w.jog + this.w.sprint; for (const k of ['walk', 'jog', 'sprint']) tw[k] = this.w[k] / g; }
+    // Fine stick positioning still takes steps: blending mostly idle here pins both feet while the body creeps on.
+    // The walk's cadence below follows distance, so a small stick means slow steps, not a slow sliding idle.
+    else if (s.preciseWalk && sp > 0.02 && sp < s.walkAt) tw.walk = 1;
     else if (sp < 0.25) tw[s.mode === 'talk' ? 'talk' : 'idle'] = 1;
     else {
       const stops = [['idle', 0], ['walk', s.walkAt], ['jog', s.jogAt], ['sprint', s.sprintAt]];

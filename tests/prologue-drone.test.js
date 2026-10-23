@@ -1,3 +1,4 @@
+import { movementScale } from '../src/movement-input.js';
 // Plumb in the prologue (issue #434): it wakes in its charging cradle after the landing and comes to the traveller's
 // shoulder (the 'drone' beat), rides at his shoulder as he walks, not runs, down the ramp the first time, and is handed
 // over to the scout where it is (game 'drone:out').
@@ -25,7 +26,7 @@ test('the opening has the drone\'s beat: after the dust settles, before the hatc
   assert.ok(PROLOGUE_STAGES.find((s) => s.id === 'stepout').dur >= 20, 'a walk down the ramp fits in the step out\'s safety net');
   // (the beats the engines compare it by: engine/opening-beats.js)
   for (const n of ['drone-wake', 'drone-lift', 'drone-shoulder', 'stepout-walk']) assert.ok(OPENING_BEATS.some((b) => b.name === n), n);
-  assert.ok(AUTO_WALK > 0 && AUTO_WALK < 0.15);
+  assert.ok(Math.abs(movementScale(AUTO_WALK) * 3.8 - 1.4782) < 1e-9, 'the authored walk keeps its pace through the physical-stick response');
   // the cradle stands in the cabin, on the port wall forward of the hatch, at chest height
   assert.ok(DOCK.shelf > 0.9 && DOCK.shelf < 1.6);
 });

@@ -103,7 +103,7 @@ export const SWING_SPEED = 1; // Legacy consumers; attacks now have authored pha
  * soonest: an evade begun before that runs without (spamming it is never unbroken cover).
  * `perfect`: the hit-stop (s) of an evade whose i-frames swallow a blow (a perfect dodge).
  */
-export const EVADE = { duration: 0.28, cooldown: 0.65, speed: 7.5, iframes: [0.03, 0.24], gentle: [0.02, 0.28], rest: 0.3, perfect: 0.05 };
+export const EVADE = { duration: 0.28, cooldown: 0.65, speed: 7.5, iframes: [0.03, 0.24], gentle: [0.02, 0.28], rest: 0.3, perfect: 0.05, buffer: 0.2 };
 /**
  * The dodge roll (the fight temples' iso view, src/fight-temples/session.js: the jump button and B / ○ roll there): the
  * evade made a tucked forward roll along the stick (or the way he faces, never a backstep), longer and further than the
@@ -637,6 +637,8 @@ export class FluidBlade {
 
   get swinging() { return this.n >= 0; }
 
+  clearDefensiveInput() { this.rollWant = 0; }
+
   /**
    * Per frame. press: a fresh press of the blade button; ok: the tool may act (FluidTool.allowed); held: the guard is
    * down; evade: the evade's button; bladeHeld: the blade button is down (held through a wind-up it charges: CHARGE).
@@ -672,7 +674,9 @@ export class FluidBlade {
     // itself it is kept a moment and rolls as the cut ends: rollCancels, issue #442)
     const outOfSwing = !this.swinging || (this.roll ? rollCancels(this.phase, this.charging) : this.phase === 'recover' || this.charging);
     this.rollWant = Math.max(0, this.rollWant - dt);
-    if (this.roll && dodgePress && !outOfSwing) this.rollWant = this.roll.buffer ?? 0;
+    // Both forms remember a short grounded press, but never cancel an active cut or shorten cooldown/i-frame rest.
+    if (!ok || !p?.onGround) this.rollWant = 0;
+    else if (dodgePress) this.rollWant = (this.roll ?? EVADE).buffer ?? EVADE.buffer;
     if (ok && (dodgePress || this.rollWant > 0) && !this.evadeT && !this.evadeCool && p?.onGround && outOfSwing) {
       const E = this.evadeSpec = this.roll ?? EVADE;
       this.rollWant = 0;
