@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v2.04 — 2026-10-22
+
+- Looking around before stepping off your hoverbike or ending a flight keeps the camera at the angle you chose.
+
 ## v2.00 — 2026-10-22
 
 - Sound effects finish loading before play, so assigned recordings keep their chosen sound instead of turning into a substitute. A missing download offers Retry without losing your save.
