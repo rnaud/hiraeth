@@ -14,8 +14,8 @@ test('Plumb\'s web stream: the mark and no line of its on the cue, its talk in i
   const beats = Object.fromEntries(WEB.sequences['plumb-talk'].beats.map((b) => [b.beat, b]));
   assert.ok(!/Plumb:/.test(beats.mark.hud.cue ?? ''), 'not on the cue');
   assert.equal(beats.talk.hud.dialogue?.name, 'Plumb');
-  assert.match(beats.talk.hud.dialogue.text, /Blades on a gate/);
-  assert.equal(beats.page.hud.dialogue?.text, 'Keep out. Something got in.');
+  assert.equal(beats.talk.hud.dialogue.text, 'Those blades mark a dangerous entrance. Be careful.');
+  assert.equal(beats.page.hud.dialogue, undefined, 'The next ordinary press closes the complete one-page warning');
   assert.equal(beats.after.hud.dialogue, undefined);
   assert.doesNotMatch(beats.after.hud.cue ?? '', / m$/, 'no flight to the goal from the gate (#563)');
   assert.equal(beats.lostTalk.hud.dialogue?.name, 'Plumb');

@@ -1,7 +1,7 @@
 {
-  "recorded": "2026-10-22",
+  "recorded": "2026-10-23",
   "sha": "d2d74adde",
-  "how": "Existing historical streams retained. opening, arrival, takeoff and plumb-talk refreshed through the internal Codex browser using a muted, output-blocked SequenceRun QA page; actual web probes and rendered frames inspected, then scripts/unity-compare/sequences.mjs record. Source d2d74adde plus #605/#611 implementation. Evidence: .local-tools/validation/v1.93/plumb605/sequences. Hoverbike refreshed from the actual muted internal-browser sequence on 000cb60f0 plus staged v1.95 wager/message integration (2026-10-22); both rendered beats and Kamal UI inspected, no browser errors; evidence .local-tools/validation/v1.94/wager-607/sequence-v195.",
+  "how": "Existing historical streams retained. opening, arrival, takeoff and plumb-talk refreshed through the internal Codex browser using a muted, output-blocked SequenceRun QA page; actual web probes and rendered frames inspected, then scripts/unity-compare/sequences.mjs record. Source d2d74adde plus #605/#611 implementation. Evidence: .local-tools/validation/v1.93/plumb605/sequences. Hoverbike refreshed from the actual muted internal-browser sequence on 000cb60f0 plus staged v1.95 wager/message integration (2026-10-22); both rendered beats and Kamal UI inspected, no browser errors; evidence .local-tools/validation/v1.94/wager-607/sequence-v195. Plumb-talk alone refreshed through actual guarded internal-browser SequenceRun on ded6a12e44 plus the #626 eighteen-line dialogue candidate (2026-10-23). Eight real probes/canvas frames, initial/final muted=true and master gain/target=0, errors/pageErrors empty, original stores unchanged. Evidence: .local-tools/dialogue-626/streams/results/web.json. Canvas frames exclude DOM dialogue; actual dialogue layout is separately reviewed in the #626 web/native evidence. Preboot output/media/speech guard inspected in streams/worker.js; this adapter did not record a blocked-output counter.",
   "sequences": {
     "moment-desert.flow": {
       "beats": [
@@ -6547,7 +6547,7 @@
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 1600,
+            "ink": 1601,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -6572,14 +6572,14 @@
           "hud": {
             "dialogue": {
               "name": "Plumb",
-              "text": "Blades on a gate.",
+              "text": "Those blades mark a dangerous entrance. Be careful.",
               "choices": []
             }
           },
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 1578,
+            "ink": 1583,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -6601,17 +6601,11 @@
         },
         {
           "beat": "page",
-          "hud": {
-            "dialogue": {
-              "name": "Plumb",
-              "text": "Keep out. Something got in.",
-              "choices": []
-            }
-          },
+          "hud": {},
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 1581,
+            "ink": 1601,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -6619,9 +6613,9 @@
             "mote": 1
           },
           "cam": [
-            133.1,
-            3.1,
-            363.1,
+            127.4,
+            3.7,
+            364.3,
             55
           ],
           "player": [
@@ -6637,7 +6631,7 @@
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 1598,
+            "ink": 1599,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -6663,7 +6657,7 @@
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 1601,
+            "ink": 1604,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -6690,13 +6684,12 @@
               "name": "Plumb",
               "text": "That rock again.",
               "choices": []
-            },
-            "balloons": true
+            }
           },
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 1581,
+            "ink": 1583,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -6724,7 +6717,7 @@
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 1602,
+            "ink": 1603,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,
@@ -6733,13 +6726,13 @@
           },
           "cam": [
             127.4,
-            4.5,
+            4.1,
             364.3,
             55
           ],
           "player": [
             131.9,
-            1.3,
+            1.2,
             365.9
           ],
           "late": false
@@ -6752,7 +6745,7 @@
           "menu": null,
           "playing": null,
           "objects": {
-            "ink": 1599,
+            "ink": 1602,
             "print": 1,
             "hidden": 1,
             "chimeshade": 1,

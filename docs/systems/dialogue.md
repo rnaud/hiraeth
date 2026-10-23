@@ -215,3 +215,13 @@ the Handheld preset and device pixel ratio 2 — the device's preset and ratio, 
 version — the portraits draw. So the preset and the ratio are not the fault; what is left to suspect
 is the driver's canvas read. The fallback is also the test: if the circle on the device now shows the
 initial letter, the capture is coming back empty there.
+
+## Clear instructions (#626, first pass)
+
+Plumb’s mechanism hints name an object and an action rather than requiring a metaphor
+to be decoded. The first dialogue pass also clarifies the Speaker’s water explanation,
+Bastien’s outside route, Rosa’s cable instruction, Achille’s sound clue, Wen’s ledger
+answer and carrier route, Lark’s first-hall gust timing, and Sorrel’s garden question. Tone tags, page counts, choices, IDs, conditions and effects remain unchanged.
+The voice guide and dialogue-review skill require practical meaning before figurative
+colour, without inventing a speaker’s knowledge. This is a bounded first pass; the
+remaining dialogue inventory still needs editorial review. Shared story data feeds both hosts.

@@ -55,6 +55,10 @@ too. Most of all, check what can't be measured:
 
 - **The conversation contract:** does each talk give a person to care about, something to try, or a
   question worth pursuing? Is a quest's next step plain enough to repeat aloud?
+- **Plain instructions first:** state the observable problem or requested action before adding imagery.
+  A player should be able to repeat the next step after one reading. Replace cryptic fragments,
+  vague pronouns and personified mechanisms when they obscure an instruction; preserve character
+  humour, terse voices and optional mystery. Do not add route facts or knowledge to make a line clearer.
 - **The blind swap:** hide the names. Could two speakers in a world trade lines? Check each speaker
   against their sheet in `lore/characters/`.
 - **The writer's voice leaking:** the same image from different mouths. Start from `metrics.json`'s

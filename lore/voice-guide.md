@@ -23,6 +23,11 @@ casually, especially in timed scenes. Directions should name a destination,
 landmark, verb, and any necessary order. Repeat a useful name rather than “it”
 when two objects are in play.
 
+Plumb follows the same rule: say what the visible object is and what to try.
+A sleeping bridge or a ball going somewhere useful is not an instruction.
+Keep warmth and jokes, but put the practical meaning first. Do not invent a
+key’s fit, a hidden reward or a route merely to make a hint sound confident.
+
 Use local vocabulary, then translate it once. The Wick is a lamp. The oculus is
 the open-topped drum. The Hush is one culture’s name for the familiar glyph.
 Keep the names that make the world distinctive without asking players to learn

@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v2.05 — 2026-10-23
+
+- Plumb’s temple hints and several local directions now say more clearly what to look for and try, while keeping each speaker’s character.
+
 ## v2.00 — 2026-10-22
 
 - Sound effects finish loading before play, so assigned recordings keep their chosen sound instead of turning into a substitute. A missing download offers Retry without losing your save.

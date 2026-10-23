@@ -149,12 +149,12 @@ export const PEOPLE = {
           ],
         },
         why: {
-          say: ['~neutral~ The cables, I think. They hum one note now, and they pull. *Lay a hand on the cables under the Towers*, down the moorers’ stair. Feel which way.',
+          say: ['~neutral~ I think the cables are pulling the islands apart. *Go down the moorers’ stair beneath the Towers and touch the cables.* See which way they pull.',
             '~playful~ Over the Market Bridge, then the Towers bridge, east. Don’t lean on the parapet. It leans back.'],
           do: { set: { 'spacecity.rosa.heard': true } },
           choices: [{ text: '~neutral~ I’ll feel them.', end: true }],
         },
-        again: { say: ['~neutral~ The cables under the Towers, down the moorers’ stair. A hand on them.'], choices: [{ text: '~neutral~ Going.', end: true }] },
+        again: { say: ['~neutral~ Go down the moorers’ stair under the Towers and touch the cables.'], choices: [{ text: '~neutral~ Going.', end: true }] },
         after: {
           say: ['~happy~ My chalk hasn’t moved in three mornings. I’m going to have to find something else to worry about.', { if: { flag: 'spacecity.rosa.stayed' }, text: '~playful~ You were staying on one island, you said. Now they all stay put for you.' }],
           choices: [{ text: '~playful~ The bridges will think of something.', end: true }],

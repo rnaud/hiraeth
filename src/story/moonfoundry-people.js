@@ -174,9 +174,9 @@ export const VISITORS = {
             { text: '~curious~ Who were they for?', goto: 'who' },
           ],
         },
-        who: { say: ['~solemn~ Nobody knows. Somebody’s sky, somewhere, waiting for them. Petra at the Casting-House says the ledger knows. She won’t say what it says.'], choices: [{ text: '~neutral~ I’ll count them for you.', do: { start: 'moonfoundry.count' }, goto: 'go' }, { text: '~playful~ Petra keeps a good secret.', end: true }] },
-        go: { say: ['~happy~ *The lookout on the pillar, under the moon on top.* Up the street in this moon and over its crown; the cranes do the rest. Count slowly.'], choices: [{ text: '~neutral~ Slowly.', end: true }] },
-        waiting: { say: ['~curious~ The lookout on the pillar, under its moon. Up through this one, then the cranes. I’ll wait.'], choices: [{ text: '~neutral~ Going.', end: true }] },
+        who: { say: ['~solemn~ I don’t know whose sky these moons were made for. Petra says the Casting-House ledger has the answer, but she won’t tell me.'], choices: [{ text: '~neutral~ I’ll count them for you.', do: { start: 'moonfoundry.count' }, goto: 'go' }, { text: '~playful~ Petra keeps a good secret.', end: true }] },
+        go: { say: ['~happy~ *The lookout on the pillar, under its moon.* Climb the street and spiral stairs to this moon’s top. Follow the high walk to the signal box, then ride the moon-carrier to the lookout. If it’s away, pull the lever. Count slowly.'], choices: [{ text: '~neutral~ Slowly.', end: true }] },
+        waiting: { say: ['~curious~ Up the street and spiral stairs, then follow the high walk to the signal box. Ride the moon-carrier to the lookout. The lever calls it if it’s away. I’ll wait.'], choices: [{ text: '~neutral~ Going.', end: true }] },
         counted: {
           say: ['~surprised~ Thirty-two, from the top? Then I’ve been one short all week. (She starts again from one.)'],
           do: { set: { 'moonfoundry.wen.counted': true } },

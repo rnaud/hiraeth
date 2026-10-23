@@ -9,6 +9,12 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
+    v: '2.05', date: '2026-10-23',
+    items: [
+      { text: 'Plumb’s temple hints and several local directions now say more clearly what to look for and try, while keeping each speaker’s character.', see: 'Ask Plumb for help with a temple mechanism. Talk to the Speaker in Qanat, Bastien by the underwater lock, Rosa in the floating city, Achille outside the Whale House or Wen in the Moon Foundry.' },
+    ],
+  },
+  {
     v: '2.00', date: '2026-10-22',
     items: [
       { text: 'Sound effects finish loading before play, so assigned recordings keep their chosen sound instead of turning into a substitute. A missing download offers Retry without losing your save.', see: 'Start or continue a game. If a sound download fails, choose Retry to load the missing file, or Back to title. Sound-effect previews also wait for their recordings; stopping a song remains immediate.' },
