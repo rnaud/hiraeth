@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v2.07 — 2026-10-23
+
+- Steam Deck updates can keep arriving without filling up the old download channel. Existing installations keep their saves and update through the same game site.
+
 ## v2.06 — 2026-10-23
 
 - The seed pouch has been removed, so walking no longer leaves a trail of flowers. The bloom gun still grows flowers where its shots land.

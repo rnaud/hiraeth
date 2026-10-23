@@ -9,6 +9,12 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
+    v: '2.07', date: '2026-10-23',
+    items: [
+      { text: 'Steam Deck updates can keep arriving without filling up the old download channel. Existing installations keep their saves and update through the same game site.', see: 'Check for updates on Steam Deck. Existing launchers keep using the checked multipart download; new package downloads have their own release for each build.' },
+    ],
+  },
+  {
     v: '2.06', date: '2026-10-23',
     items: [
       { text: 'The seed pouch has been removed, so walking no longer leaves a trail of flowers. The bloom gun still grows flowers where its shots land.', see: 'Walk with an older save that previously owned the seed pouch: no flowers grow behind you and the pouch is absent from your gear. Fire the bloom gun to plant flowers deliberately.' },

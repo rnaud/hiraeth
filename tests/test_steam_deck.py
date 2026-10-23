@@ -1341,5 +1341,44 @@ class PlayerUpdateBridgeTests(unittest.TestCase):
             deck.managed_player_root(self.root, self.running, self.ready)
 
 
+class VersionedReleaseCompatibility(unittest.TestCase):
+    def test_exact_build_url_and_no_expanded_host_trust(self):
+        good = {'build': 123001, 'version': '2.07', 'sha256': 'a' * 64,
+                'url': 'https://github.com/rnaud/hiraeth/releases/download/steam-deck-123001/hiraeth-steam-deck-123001.tar.gz'}
+        deck.validate_manifest(good)
+        for url in [good['url'].replace('github.com', 'evil.example'), good['url'] + '?x=1',
+                    good['url'].replace('steam-deck-123001/', 'steam-deck-123002/'),
+                    good['url'].replace('rnaud/hiraeth', 'other/hiraeth'), good['url'].replace('https:', 'http:')]:
+            with self.assertRaises(ValueError):
+                deck.validate_manifest(dict(good, url=url))
+
+    def test_actual_old_validator_migrates_via_unchanged_site_parts(self):
+        # Exact extracted functions from the published pre-fix launcher, with source SHA recorded.
+        fixture = json.loads((Path(__file__).parent / 'fixtures/steam-deck-v206-feed.json').read_text())
+        namespace = {'re': __import__('re'), 'BASE_URL': deck.BASE_URL, 'CONTENT_URL': deck.CONTENT_URL,
+                     'RUNTIME_SITE_URL': deck.RUNTIME_SITE_URL, 'MANIFEST_URL': deck.MANIFEST_URL,
+                     'MAX_ARCHIVE': deck.MAX_ARCHIVE, 'fetch_manifest': None}
+        exec(fixture['functions'], namespace)
+        old = {'build': 122001, 'version': '2.06', 'sha256': 'a' * 64,
+               'url': deck.BASE_URL + 'hiraeth-steam-deck-122001.tar.gz'}
+        new = {'build': 123001, 'version': '2.07', 'sha256': 'b' * 64, 'size': 100,
+               'parts': [deck.CONTENT_URL + 'steam-deck-123001.tar.gz.000']}
+        def fetch(url):
+            value = new if url == deck.RUNTIME_SITE_URL else old
+            namespace['validate_manifest'](value)
+            return value
+        self.assertEqual(namespace['get_manifest'](fetch)['build'], 123001)
+        with self.assertRaises(ValueError):
+            namespace['validate_manifest']({'build': 123001, 'version': '2.07', 'sha256': 'b' * 64,
+                'url': 'https://github.com/rnaud/hiraeth/releases/download/steam-deck-123001/hiraeth-steam-deck-123001.tar.gz'})
+        # Site unavailable: existing install still sees the untouched legacy fallback.
+        def offline(url):
+            if url == deck.RUNTIME_SITE_URL: raise OSError('offline')
+            return fetch(url)
+        self.assertEqual(namespace['get_manifest'](offline), old)
+        with self.assertRaises(ValueError):
+            namespace['validate_manifest'](dict(new, parts=['https://evil.example/part']))
+
+
 if __name__ == '__main__':
     unittest.main()
