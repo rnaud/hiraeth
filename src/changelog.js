@@ -9,6 +9,12 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
+    v: '2.05', date: '2026-10-23',
+    items: [
+      { text: 'The seed pouch has been removed, so walking no longer leaves a trail of flowers. The bloom gun still grows flowers where its shots land.', see: 'Walk with an older save that previously owned the seed pouch: no flowers grow behind you and the pouch is absent from your gear. Fire the bloom gun to plant flowers deliberately.' },
+    ],
+  },
+  {
     v: '2.00', date: '2026-10-22',
     items: [
       { text: 'Sound effects finish loading before play, so assigned recordings keep their chosen sound instead of turning into a substitute. A missing download offers Retry without losing your save.', see: 'Start or continue a game. If a sound download fails, choose Retry to load the missing file, or Back to title. Sound-effect previews also wait for their recordings; stopping a song remains immediate.' },

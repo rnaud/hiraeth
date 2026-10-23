@@ -98,7 +98,8 @@ export function migrateSave(g = sharedGame) {
   if (engineMade && g.flag('desert.bike.found') && !g.flag('desert.bike.uncovered')) g.set('desert.bike.found', false);
   if (v < 1 && !engineMade) {
     // (the sword and the shield don't count: src/save-migrate.js step 12 gives them to every old save, before this runs)
-    legacy = !!g.flag('prologue.done') && !Object.keys(ITEMS).some((id) => id !== 'sword' && id !== 'shield' && g.flag(`item.${id}`) !== undefined);
+    // Retired inventory keys still prove this save used the item system.
+    legacy = !!g.flag('prologue.done') && ![...Object.keys(ITEMS), 'pouch'].some((id) => id !== 'sword' && id !== 'shield' && g.flag(`item.${id}`) !== undefined);
     if (legacy) g.set('item.backpack', true);
   }
   if (v < 2) {

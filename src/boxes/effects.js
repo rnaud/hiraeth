@@ -23,7 +23,6 @@ import { screen, page } from '../platform.js';
 //   soles    a hard landing counts as a slower one (player.fallGuard: the drop it takes to tumble grows by a third)
 //   hush     creatures don't hear you walk up (player.hush: src/wildlife.js reads it)
 //   moss     after dusk a soft light round your feet (smaller than the lantern's; the lantern wins)
-//   pouch    small flowers come up in your footsteps where you walk, and fade a while later
 //   reed     you hold your breath twice as long under water (player.breathK: src/swim.js reads it)
 //   scarf    the fluid wings sink slower (player.sinkK: src/player.js's glide reads it)
 //   shell    every few seconds, unopened boxes within 45 m answer softly, as if to the bell (game event 'bell' { soft })
@@ -33,7 +32,7 @@ import { screen, page } from '../platform.js';
 //            'echo' { note: 'deep' } the makers' ears tuned to it answer
 //   level    the brass level: where down has turned (the Hangar's quarter and ring), a little level at the screen's
 //            edge shows how the floor lies under the view
-//   bloom    (the gun mode) where a bloom glob lands on the world, a few flowers come up (the seed pouch's pool)
+//   bloom    (the gun mode) where a bloom glob lands on the world, a few flowers come up (one recycled instanced pool)
 //
 //   const fx = createItemEffects({ player, tool, level, sound, isNight: () => bool });
 //   fx.update(dt, t)   per frame
@@ -137,7 +136,7 @@ export function createItemEffects({ player, tool = null, level = null, sound = n
     if (owned && id === 'echo' && hintsFor('tip')) setTimeout(() => toast(tr('teach.echo')), 1800);
     if (owned && id === 'horn' && hintsFor('tip')) setTimeout(() => toast(tr('teach.horn')), 1800);
   });
-  // ---- a bloom glob on the world: a few flowers come up where it landed (the pouch's pool)
+  // ---- a bloom glob on the world: a few flowers come up where it landed (one recycled instanced pool)
   const offBloom = g.on?.('tool:bloom', ({ point } = {}) => {
     const B = point && bloomPool();
     if (!B) return;
@@ -185,10 +184,9 @@ export function createItemEffects({ player, tool = null, level = null, sound = n
   }
   applyTank();
 
-  // ---- the seed pouch: flowers in your footsteps (one instanced pool, recycled)
-  let blooms = null, bloomI = 0, walked = 0;
-  const lastStep = new THREE.Vector3(1e9, 0, 0);
-  const BLOOM = { n: 160, every: 1.7, life: 40 };
+  // ---- flowers planted by bloom globs (one instanced pool, recycled)
+  let blooms = null, bloomI = 0;
+  const BLOOM = { n: 160, life: 40 };
   const bloomColors = ['#f2a7b8', '#f6d36a', '#ffffff', '#b7a0cf', '#ef7e62'].map((c) => new THREE.Color(c));
   const _bm = new THREE.Matrix4(), _bq = new THREE.Quaternion(), _bs = new THREE.Vector3(), _bp = new THREE.Vector3(), _by = new THREE.Vector3(0, 1, 0);
   function bloomPool() {
@@ -198,7 +196,7 @@ export function createItemEffects({ player, tool = null, level = null, sound = n
     parts.push(new THREE.SphereGeometry(0.04, 6, 4).translate(0, 0.17, 0).toNonIndexed());
     parts.push(new THREE.CylinderGeometry(0.008, 0.012, 0.16, 4).translate(0, 0.08, 0).toNonIndexed());
     for (const g of parts) g.deleteAttribute('uv');
-    const mesh = new THREE.InstancedMesh(mergeGeometries(parts), makeMaterial({ color: '#ffffff', flat: true, key: 'pouch.bloom' }), BLOOM.n);
+    const mesh = new THREE.InstancedMesh(mergeGeometries(parts), makeMaterial({ color: '#ffffff', flat: true, key: 'tool.bloom' }), BLOOM.n);
     mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     mesh.userData.noCollide = true; mesh.userData.dynamic = true; mesh.frustumCulled = false;
     for (let i = 0; i < BLOOM.n; i++) { mesh.setMatrixAt(i, _bm.makeScale(0, 0, 0)); mesh.setColorAt(i, bloomColors[i % bloomColors.length]); }
@@ -206,21 +204,9 @@ export function createItemEffects({ player, tool = null, level = null, sound = n
     blooms = { mesh, born: new Float32Array(BLOOM.n).fill(-1e9), at: Array.from({ length: BLOOM.n }, () => new THREE.Vector3()), rot: new Float32Array(BLOOM.n) };
     return blooms;
   }
-  function updateBlooms(dt, t) {
-    if (!items.has('pouch') && !blooms) return;
-    const B = bloomPool();
+  function updateBlooms(t) {
+    const B = blooms;
     if (!B) return;
-    // a new flower every few steps on the ground (not riding, not in a temple's rooms high over the world)
-    if (items.has('pouch') && player.onGround && !player.riding && !player.inDark && !player.climbing) {
-      walked += player.pos.distanceTo(lastStep) < 3 ? player.pos.distanceTo(lastStep) : 0;
-      if (walked > BLOOM.every) {
-        walked = 0;
-        const i = bloomI++ % BLOOM.n;
-        B.born[i] = t; B.rot[i] = Math.random() * 6.28;
-        B.at[i].copy(player.pos).add(_bp.set((Math.random() - 0.5) * 0.5, 0.01, (Math.random() - 0.5) * 0.5));
-      }
-    }
-    lastStep.copy(player.pos);
     let any = false;
     for (let i = 0; i < BLOOM.n; i++) {
       const age = t - B.born[i];
@@ -238,7 +224,7 @@ export function createItemEffects({ player, tool = null, level = null, sound = n
     echo,
     update(dt, t) {
       clock = t;
-      updateBlooms(dt, t);
+      updateBlooms(t);
       echo.update(dt);
       updateLevel();
       bellT = Math.max(0, bellT - dt); hornT = Math.max(0, hornT - dt);

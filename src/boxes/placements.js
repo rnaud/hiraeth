@@ -195,13 +195,6 @@ export const PLACEMENTS = {
       note: 'In the makers’ court on the dunes west of the landing, in the alcove behind its cracked wall: blast it with an ink bomb, earned in the Engine-House.' },
   ],
   edena: [
-    // the upper canopy of an umbrella tree: climb the trunk
-    // It held the lantern charm until the Lamp-House was built (src/temples/perdide2.js): the lantern is that
-    // temple's key now, and the canopy keeps the seed pouch, a gift in the open
-    // (issue #518: a budded seal in front of it, opened with bloom, earned in the Builders' Greenhouse)
-    { id: 'edena.pouch', item: 'pouch', at: [-52, 85.7, 66], toward: [-60, 70], lock: { tool: 'bloom' },
-      hint: 'Behind a bud on the western umbrella tree',
-      note: 'Up the umbrella tree west of the spawn, on its top canopy: open the bud in front of the chest with bloom.' },
     // the Builders' Greenhouse (src/temples/edena.js): on the Palm House's floor, its first hall (issue #477: the gadget
     // first; in the Seed Chamber before). Bloom mode (a new gun mode) is the key to the rest: the budded doors, the seed
     // trays, the vine bridge, the vine up the glass, the Gardener

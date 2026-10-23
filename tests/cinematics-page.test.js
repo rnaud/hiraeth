@@ -39,7 +39,13 @@ test('imported QC notes merge by date, and the last QC pass\'s notes load and na
   assert.equal(merged.a.text, 'new'); assert.equal(merged.b.text, 'mine'); assert.equal(merged.c, undefined);
   const pass = JSON.parse(readFileSync(new URL('../docs/systems/cinematics-qc-notes.json', import.meta.url), 'utf8'));
   const ids = new Set(CINEMATICS.map((e) => e.id));
-  for (const id of Object.keys(pass.notes)) assert.ok(ids.has(id), id);
+  // Frozen review evidence keeps films deliberately retired after that review.
+  const retired = new Set(['box.edena.pouch']); // #625: seed pouch and its reward removed.
+  for (const id of retired) {
+    assert.equal(ids.has(id), false, `${id}: no retired film in the current catalogue`);
+    assert.ok(pass.notes[id], `${id}: retain the original reviewed evidence`);
+  }
+  for (const id of Object.keys(pass.notes)) assert.ok(ids.has(id) || retired.has(id), id);
   const imported = mergeNotes({}, pass);
   assert.equal(Object.keys(pass.notes).length, 112, 'the frozen evidence inventory stays 112 entries');
   assert.equal(Object.keys(imported).length, 112, 'all reviewed notes survive import');
@@ -54,7 +60,8 @@ test('imported QC notes merge by date, and the last QC pass\'s notes load and na
   assert.deepEqual([...pass.scope.unreviewed].sort(), [...unreviewed].sort());
   assert.deepEqual(CINEMATICS.filter(e => !imported[e.id]).map(e => e.id).sort(), [...unreviewed].sort(), 'catalogue entries outside frozen coverage remain unreviewed, never manufactured passes');
   for (const id of unreviewed) assert.equal(imported[id], undefined);
-  assert.equal(Object.keys(imported).length + unreviewed.length, CINEMATICS.length, 'every current entry is explicitly reviewed or outside the frozen review');
+  for (const id of retired) assert.deepEqual(imported[id], pass.notes[id], 'retired film evidence survives import unchanged');
+  assert.equal(Object.keys(imported).length - retired.size + unreviewed.length, CINEMATICS.length, 'every current entry is explicitly reviewed or outside the frozen review');
   const html = readFileSync(new URL('../cinematics.html', import.meta.url), 'utf8');
   const options = [...html.match(/<select id="verdict">(.*?)<\/select>/s)[1].matchAll(/<option>(.*?)<\/option>/g)].map(m => m[1]);
   assert.deepEqual(options, QC_VERDICTS, 'the review UI can display and preserve every accepted imported status');

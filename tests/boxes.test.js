@@ -404,19 +404,22 @@ test('every hidden box has a quest that says where to look; it starts on arrival
   const toasts = [];
   const pl = player(level.spawn);
   game.set('box.desert.backpack', true);   // (box quests come once you have found a box: the next test)
-  game.set('item.bloom', true);   // (and once you have the tool that opens it: its bud wants bloom, issue #557)
+  game.set('item.bubble', true);   // The remaining court chest needs the bubble wand.
+  game.set('item.pouch', true); game.set('box.edena.pouch', true); // Older saves retain harmless flags.
   const boxes = createBoxes({ levelId: 'edena', scene, physics, level, player: pl, quests, toast: (t) => toasts.push(t) });
   const [qid] = boxes.quests;
-  assert.equal(qid, 'box.edena.pouch');   // (the canopy's box: the lantern moved into Lorn II's temple, src/temples/)
+  assert.equal(qid, 'box.edena.bubble');   // The lantern in the makers' court.
+  assert.ok(!boxes.list.some(b => b.id === 'edena.pouch'), 'no obsolete canopy chest');
+  assert.ok(!boxes.quests.includes('box.edena.pouch'), 'no obsolete chest quest');
   assert.equal(quests.isStarted(qid), false, 'not straight away');
   for (let i = 0; i < 30 * (BOX_QUEST_DELAY + 1); i++) boxes.update(1 / 30, i / 30);
   assert.equal(quests.isActive(qid), true, 'started after the landing');
   assert.deepEqual(toasts, [], 'hints subtle: no nudge toward the Quests page (hints full says where to look: src/hint-level.js tip)');
-  assert.ok(quests.journalHtml().includes('umbrella tree'), 'the sketchbook says where');
-  boxes.open('edena.pouch', { instant: true });
+  assert.ok(quests.journalHtml().includes('south-west meadow'), 'the sketchbook says where');
+  boxes.open('edena.bubble', { instant: true });
   quests.update(pl);   // (the story runtime does this every frame)
   assert.equal(quests.isDone(qid), true, 'opening the box finishes it');
-  boxes.dispose(); clearInteractables(); game.reset(); items.revoke('pouch');
+  boxes.dispose(); clearInteractables(); game.reset(); items.revoke('lantern');
 });
 
 test('issue #273: a world’s box quests are the temple’s local’s to give; a box opened first is its quest done; an old save’s world offers them as before', () => {
@@ -433,10 +436,10 @@ test('issue #273: a world’s box quests are the temple’s local’s to give; a
     for (let i = 0; i < 30 * (BOX_QUEST_DELAY + 1); i++) boxes.update(1 / 30, i / 30);
     return { quests, boxes, pl };
   };
-  // a box found already somewhere (box quests wait for the first), its bud's bloom in hand (issue #557): nothing on
+  // a box found already somewhere (box quests wait for the first), its court's bubble wand in hand (issue #557): nothing on
   // arrival, Sorrel marked
-  let { quests, boxes, pl } = setup({ 'box.desert.backpack': true, 'item.bloom': true });
-  const qid = 'box.edena.pouch';
+  let { quests, boxes, pl } = setup({ 'box.desert.backpack': true, 'item.bubble': true });
+  const qid = 'box.edena.bubble';
   assert.equal(quests.isStarted(qid), false, 'nothing offered on arrival');
   assert.deepEqual(quests.giverMarks().map((g) => g.person), ['sorrel'], 'the map marks Sorrel alone');
   const hers = quests.pendingGivers()[0].quests;
@@ -446,25 +449,25 @@ test('issue #273: a world’s box quests are the temple’s local’s to give; a
   const words = quests.givenWords();
   assert.ok(words.length >= 1 && words.every((w) => /^~[a-z]+~ /.test(w)), 'each line with its tone');
   assert.match(words[0], /makers left chests/);
-  assert.ok(words.some((w) => /umbrella tree/.test(w)), 'where the pouch’s box is');
+  assert.ok(words.some((w) => /south-west meadow/.test(w)), 'where the lantern’s box is');
   assert.equal(quests.isActive('temple.edena'), true);
   assert.equal(quests.isActive(qid), true);
   assert.deepEqual(quests.giverMarks(), [], 'nobody left to mark');
   boxes.dispose();
   // a box opened before anyone gave its quest: that quest is done (on the finished list), nobody marked for it
-  ({ quests, boxes, pl } = setup({ 'box.desert.backpack': true, 'item.bloom': true }));
-  boxes.open('edena.pouch', { instant: true });
+  ({ quests, boxes, pl } = setup({ 'box.desert.backpack': true, 'item.bubble': true }));
+  boxes.open('edena.bubble', { instant: true });
   quests.update(pl);
   assert.equal(quests.isDone(qid), true, 'found first: done');
   assert.ok(quests.summary().done.some((q) => q.id === qid), 'listed as done');
   assert.equal(quests.pendingGivers()[0]?.quests.includes(qid), false);
-  boxes.dispose(); items.revoke('pouch');
+  boxes.dispose(); items.revoke('lantern');
   // before any box was found: the boxes' quests are not hers to give yet (Sorrel marked for the temple alone)
   ({ quests, boxes } = setup({}));
   assert.deepEqual(quests.pendingGivers()[0].quests, ['temple.edena']);
   boxes.dispose();
   // a save that had been here before the givers (step 26): offered on arrival, as before
-  ({ quests, boxes } = setup({ 'box.desert.backpack': true, 'givers.old.edena': true, 'item.bloom': true }));
+  ({ quests, boxes } = setup({ 'box.desert.backpack': true, 'givers.old.edena': true, 'item.bubble': true }));
   assert.equal(quests.isActive(qid), true, 'the old ways in a world the save knew');
   boxes.dispose(); clearInteractables(); game.reset();
 });
@@ -616,7 +619,7 @@ test('nothing tells of the makers’ boxes before you find your first one', () =
   const quests = new Quests({ game });
   const toasts = [];
   const pl = player(level.spawn);
-  game.set('item.bloom', true);   // (the pouch's bud wants bloom: issue #557)
+  game.set('item.bubble', true);   // The court chest needs the bubble wand.
   const boxes = createBoxes({ levelId: 'edena', scene, physics, level, player: pl, quests, toast: (t) => toasts.push(t) });
   const [qid] = boxes.quests;
   // a long while in a world with a box hidden in it: no quest, no toast, no page in the sketchbook
@@ -848,4 +851,23 @@ test('after a beat, a hand-back to a play lens close by and turned little blends
     assert.equal(playInRoom(ph, plan, 'gun', player(V()), lens(0.7, 1.2)).release, 0, `${plan}: turned 70°: a cut`);
     assert.equal(playInRoom(ph, plan, 'gun', player(V())).release, 0, `${plan}: no play lens known: a cut, as before`);
   }
+});
+
+test('a retired active seed-pouch quest cannot remain the tracked objective or journal entry', () => {
+  game.reset();
+  game.set('quest.box.edena.pouch', 'find');
+  game.set('quest.tracked', 'box.edena.pouch');
+  game.set('item.pouch', true);
+  game.set('item.bubble', true);
+  const { scene, physics, level } = world('edena');
+  const quests = new Quests({ game }), pl = player(level.spawn);
+  const boxes = createBoxes({ levelId: 'edena', scene, physics, level, player: pl, quests });
+  try {
+    assert.equal(quests.tracked(), null);
+    assert.ok(!quests.active().some(q => q.id === 'box.edena.pouch'));
+    assert.ok(!quests.summary().active.some(q => q.id === 'box.edena.pouch'));
+    assert.doesNotMatch(quests.journalHtml(), /Seed pouch|umbrella tree/);
+    assert.equal(game.flag('quest.box.edena.pouch'), 'find', 'no destructive save migration');
+    assert.ok(boxes.list.some(b => b.item === 'lantern'));
+  } finally { boxes.dispose(); clearInteractables(); game.reset(); }
 });
