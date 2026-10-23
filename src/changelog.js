@@ -9,6 +9,13 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
+    v: '2.07', date: '2026-10-23',
+    items: [
+      { text: 'The Keeper and Elder now introduce their requests in short scenes. Helping them celebrates the water and wind returning to their temples.', see: 'Accept either guardian’s invitation to watch or skip its introduction. Complete the Cistern channels or reach the Old Roost with the Elder, then return to see the temple change. Leaving a run does not play a victory scene.' },
+      { text: 'Scene captions appear with their filmed moment, even when a newly entered place is waiting to show its name.', see: 'Return after completing a helper’s request: its water or wind caption appears during the celebration. The place name follows the scene; skipping does not leave a delayed caption behind.' },
+    ],
+  },
+  {
     v: '2.05', date: '2026-10-23',
     items: [
       { text: 'Help the Rose House Keeper guide water and fly beside the Aerie Elder to the Old Roost. Their completed games now open the temple’s way onward, with a safe return if you leave to try again.', see: 'Reach either guardian and accept its invitation. Quit or fail a run to return without completing the temple; finish its goal to return to the guardian and open the way onward.' },

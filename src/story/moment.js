@@ -276,7 +276,7 @@ export class MomentStage {
     };
     return {
       shot: (c) => s.shot(c), release: (b) => s.release(b), bars: (on) => C.bars?.(on), hud: (on) => C.hud?.(on),
-      say: (line, o) => C.say?.(line, o), skipTag: tag, physics: this.physics, player: this.player, game: this.game,
+      say: (line, o) => C.say?.(line, { ...o, authored: true, queue: false }), skipTag: tag, physics: this.physics, player: this.player, game: this.game,
       behind: (o) => behindHim(s.rig, this.player, o),
     };
   }

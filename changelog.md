@@ -2,6 +2,11 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v2.07 — 2026-10-23
+
+- Scene captions appear with their filmed moment, even when a newly entered place is waiting to show its name.
+- The Keeper and Elder now introduce their requests in short scenes. Helping them celebrates the water and wind returning to their temples.
+
 ## v2.05 — 2026-10-23
 
 - Flying with the Elder now shows your progress toward the Roost and how to return to her wing when you drift away.

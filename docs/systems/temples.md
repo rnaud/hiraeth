@@ -3112,3 +3112,34 @@ matching completed goal reaches `Guardian.resolve` and the existing
 `TempleRuntime.onBossResolved`; quitting or turning back restores the original
 pose without opening the exit. Cinematic additions can wrap `startHelper` and the
 existing `onFinale` without making an arcade score into temple completion.
+
+
+### Helper opening and return films (#624)
+
+`helper-cinematics.js` wraps the two explicit helper invitations with a shared
+7.6-second, two-panel Moment: the accepted guardian beside the traveller, then
+its actual dry basin or roost vent. Unnamed, tone-tagged scene captions explain
+the goal without claiming the companion has introduced itself. Detailed controls
+remain in the games. The lens must be inside the room, outside solids and the
+guardian, clear of drawn walls and fitted inside the letterbox; missing or unsafe
+views take the normal immediate-launch path. No generated scenery is substituted.
+
+The interaction captures the active save and return pose before the film. Only
+one live invitation may create a receipt, after normal completion, skip or an
+unavailable stage. A per-GameState world lease, slot check, attached-root check
+and disposal guard reject late callbacks after leaving or switching worlds or
+saves. Disposal marks cancellation before ending the Moment, since ending a
+Moment invokes its completion callback. Opening-seen state is independent of
+success. Neither a film nor a skip can resolve the helper or pay a reward.
+
+Moment-authored captions own their letterboxed screen: they replace earlier beats
+without waiting behind a region name that is itself held until the film ends.
+Outside a letterboxed Moment, ordinary speech and status notice ordering is unchanged;
+skipping or finishing clears the active beat rather than releasing it afterward.
+
+Successful returns still use the existing four-panel finale and its one reward,
+water/wind and door authority. The Elder's flight has already reached the Old
+Roost: its source-world return starts on the quiet vent rather than staging a
+second arrival, then celebrates the restored wind and way onward. Raw Arena
+sparring retains its original guardian film. Failed and abandoned runs keep the
+original safe return without a victory film.

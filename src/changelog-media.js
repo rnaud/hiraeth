@@ -1349,6 +1349,130 @@ const RETROID536 = 'Retroid Pocket Nova (Adreno 740, Vulkan), Unity, Handheld (F
 const SRC536 = 'BridgeRenderer.Pipelines (the G-buffer’s states the scene asks for: variant, layout, cull, depth), Metal’s list traced in the editor, the shipped lists rewritten by scripts/bench/pso-one-cull.mjs; docs/systems/performance.md, “One cull mode and one layout for the Surface pipelines”';
 const SEAPORT572 = 'Issue #572: the web game in muted headless Chrome (High, 1280 × 720) on a Vite of its own (port 5441), a new save arriving by ship (?level=underwater&via=ship), then walked as a player; before: origin/main at 02345e2c3, after: this change; the deck and the Dock from the visual check’s views (scripts/design-qc/capture.mjs --fixed-scale); 20 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '2.07': [
+  {
+    "match": "The Keeper and Elder now introduce their requests",
+    "shots": [
+      {
+        "name": "keeper-request",
+        "title": "The Keeper’s request",
+        "caption": "After accepting the Keeper’s invitation, the scene introduces its dry channels.",
+        "only": "after",
+        "view": {
+          "level": "desert",
+          "size": [
+            1280,
+            720
+          ]
+        },
+        "from": "Issue #624, 23 October 2026, uncommitted helper-cinematics candidate based on 0318b3730fd2f264c275c95d68a89e5cfa7d767c. Actual internal browser, High, 1280 × 720, task port 5488; private in-memory stores, constructor mute and blocked audio output; original stores unchanged. Initial approach pose and approach doors staged; real ordinary-E invitation. Actual Cistern floods or Elder flight completed with scripted ordinary controls at 30 Hz before normal return. After-only; different film moments are not a before/after version comparison. No native/device/listening claim. Reviewed originals and per-file source pins are in .local-tools/helper624/review-image-inventory.json and runs; cwebp quality 72, no crop. Capture: opening at 0.9 s. Original: helper624-opening-clean-first.png."
+      },
+      {
+        "name": "keeper-guide",
+        "title": "The channel route",
+        "caption": "The second opening panel explains the route and valve.",
+        "only": "after",
+        "view": {
+          "level": "desert",
+          "size": [
+            1280,
+            720
+          ]
+        },
+        "from": "Issue #624, 23 October 2026, uncommitted helper-cinematics candidate based on 0318b3730fd2f264c275c95d68a89e5cfa7d767c. Actual internal browser, High, 1280 × 720, task port 5488; private in-memory stores, constructor mute and blocked audio output; original stores unchanged. Initial approach pose and approach doors staged; real ordinary-E invitation. Actual Cistern floods or Elder flight completed with scripted ordinary controls at 30 Hz before normal return. After-only; different film moments are not a before/after version comparison. No native/device/listening claim. Reviewed originals and per-file source pins are in .local-tools/helper624/review-image-inventory.json and runs; cwebp quality 72, no crop. Capture: opening at 4.1 s. Original: helper624-opening-clean-second.png."
+      },
+      {
+        "name": "elder-request",
+        "title": "The Elder’s request",
+        "caption": "After accepting the Elder’s invitation, the scene introduces her journey.",
+        "only": "after",
+        "view": {
+          "level": "arzach",
+          "size": [
+            1280,
+            720
+          ]
+        },
+        "from": "Issue #624, 23 October 2026, uncommitted helper-cinematics candidate based on 0318b3730fd2f264c275c95d68a89e5cfa7d767c. Actual internal browser, High, 1280 × 720, task port 5488; private in-memory stores, constructor mute and blocked audio output; original stores unchanged. Initial approach pose and approach doors staged; real ordinary-E invitation. Actual Cistern floods or Elder flight completed with scripted ordinary controls at 30 Hz before normal return. After-only; different film moments are not a before/after version comparison. No native/device/listening claim. Reviewed originals and per-file source pins are in .local-tools/helper624/review-image-inventory.json and runs; cwebp quality 72, no crop. Capture: opening at 0.9 s. Original: helper624-aerie-opening-first-clean.png."
+      },
+      {
+        "name": "elder-guide",
+        "title": "Beside her wing",
+        "caption": "The second opening panel explains staying close and recovering courage.",
+        "only": "after",
+        "view": {
+          "level": "arzach",
+          "size": [
+            1280,
+            720
+          ]
+        },
+        "from": "Issue #624, 23 October 2026, uncommitted helper-cinematics candidate based on 0318b3730fd2f264c275c95d68a89e5cfa7d767c. Actual internal browser, High, 1280 × 720, task port 5488; private in-memory stores, constructor mute and blocked audio output; original stores unchanged. Initial approach pose and approach doors staged; real ordinary-E invitation. Actual Cistern floods or Elder flight completed with scripted ordinary controls at 30 Hz before normal return. After-only; different film moments are not a before/after version comparison. No native/device/listening claim. Reviewed originals and per-file source pins are in .local-tools/helper624/review-image-inventory.json and runs; cwebp quality 72, no crop. Capture: opening at 4.1 s. Original: helper624-aerie-opening-second-clean.jpg."
+      },
+      {
+        "name": "elder-return",
+        "title": "Back at the Aerie",
+        "caption": "After reaching the Old Roost, the return scene begins at a calm vent.",
+        "only": "after",
+        "view": {
+          "level": "arzach",
+          "size": [
+            1280,
+            720
+          ]
+        },
+        "from": "Issue #624, 23 October 2026, uncommitted helper-cinematics candidate based on 0318b3730fd2f264c275c95d68a89e5cfa7d767c. Actual internal browser, High, 1280 × 720, task port 5488; private in-memory stores, constructor mute and blocked audio output; original stores unchanged. Initial approach pose and approach doors staged; real ordinary-E invitation. Actual Cistern floods or Elder flight completed with scripted ordinary controls at 30 Hz before normal return. After-only; different film moments are not a before/after version comparison. No native/device/listening claim. Reviewed originals and per-file source pins are in .local-tools/helper624/review-image-inventory.json and runs; cwebp quality 72, no crop. Capture: return finale at 1 s. Original: helper624-aerie-return-first-clean.jpg."
+      },
+      {
+        "name": "elder-way",
+        "title": "The way onward",
+        "caption": "The exit gate is partway through opening during the last return panel.",
+        "only": "after",
+        "view": {
+          "level": "arzach",
+          "size": [
+            1280,
+            720
+          ]
+        },
+        "from": "Issue #624, 23 October 2026, uncommitted helper-cinematics candidate based on 0318b3730fd2f264c275c95d68a89e5cfa7d767c. Actual internal browser, High, 1280 × 720, task port 5488; private in-memory stores, constructor mute and blocked audio output; original stores unchanged. Initial approach pose and approach doors staged; real ordinary-E invitation. Actual Cistern floods or Elder flight completed with scripted ordinary controls at 30 Hz before normal return. After-only; different film moments are not a before/after version comparison. No native/device/listening claim. Reviewed originals and per-file source pins are in .local-tools/helper624/review-image-inventory.json and runs; cwebp quality 72, no crop. Capture: return finale at 9.8 s; gate is not fully open yet. Original: helper624-aerie-return-exit-clean.jpg."
+      }
+    ]
+  },
+  {
+    "match": "Scene captions appear with their filmed moment",
+    "shots": [
+      {
+        "name": "keeper-caption",
+        "title": "Water returns",
+        "caption": "The water caption appears during the filled-basin panel.",
+        "only": "after",
+        "view": {
+          "level": "desert",
+          "size": [
+            1280,
+            720
+          ]
+        },
+        "from": "Issue #624, 23 October 2026, uncommitted helper-cinematics candidate based on 0318b3730fd2f264c275c95d68a89e5cfa7d767c. Actual internal browser, High, 1280 × 720, task port 5488; private in-memory stores, constructor mute and blocked audio output; original stores unchanged. Initial approach pose and approach doors staged; real ordinary-E invitation. Actual Cistern floods or Elder flight completed with scripted ordinary controls at 30 Hz before normal return. After-only; different film moments are not a before/after version comparison. No native/device/listening claim. Reviewed originals and per-file source pins are in .local-tools/helper624/review-image-inventory.json and runs; cwebp quality 72, no crop. Capture: return finale at 7.1046 s. Original: helper624-return-caption-fixed-clean.png."
+      },
+      {
+        "name": "elder-caption",
+        "title": "Wind returns",
+        "caption": "The wind caption appears during the vent panel.",
+        "only": "after",
+        "view": {
+          "level": "arzach",
+          "size": [
+            1280,
+            720
+          ]
+        },
+        "from": "Issue #624, 23 October 2026, uncommitted helper-cinematics candidate based on 0318b3730fd2f264c275c95d68a89e5cfa7d767c. Actual internal browser, High, 1280 × 720, task port 5488; private in-memory stores, constructor mute and blocked audio output; original stores unchanged. Initial approach pose and approach doors staged; real ordinary-E invitation. Actual Cistern floods or Elder flight completed with scripted ordinary controls at 30 Hz before normal return. After-only; different film moments are not a before/after version comparison. No native/device/listening claim. Reviewed originals and per-file source pins are in .local-tools/helper624/review-image-inventory.json and runs; cwebp quality 72, no crop. Capture: return finale at 7.1041 s. Original: helper624-aerie-return-wind-clean.jpg."
+      }
+    ]
+  }
+],
   '2.05': [
   {
     "match": "Help the Rose House Keeper guide water",

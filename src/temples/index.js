@@ -1,4 +1,5 @@
-import { beginHelperEncounter, consumeHelperReturn, HELPER_ENCOUNTERS } from './helper-encounter.js';
+import { consumeHelperReturn, HELPER_ENCOUNTERS } from './helper-encounter.js';
+import { helperInvitation, helperWorldLease } from './helper-cinematics.js';
 import { templeVista } from './vistas.js';
 import * as THREE from 'three';
 import { game as sharedGame } from '../game-state.js';
@@ -223,14 +224,16 @@ export function clearInstances(scene, circles, except = null) {
  * (rt: the first's runtime) or null.
  */
 export function setupTempleStory(ctx) {
+  const lease = helperWorldLease(ctx.game ?? sharedGame);
+  const helperCtx = { ...ctx, helperLive: lease.live };
   // (the world's own temple first: its quest, its local, rt below)
   const list = [...(ctx.level?.temples ?? (ctx.level?.temple ? [ctx.level.temple] : []))].sort((a, b) => (b.id === ctx.levelId) - (a.id === ctx.levelId));
-  const all = list.map((rt) => setupOneTemple(ctx, rt)).filter(Boolean);
+  const all = list.map((rt) => setupOneTemple(helperCtx, rt)).filter(Boolean);
   if (!all.length) return null;
-  if (all.length === 1) return { ...all[0], all };
+  if (all.length === 1) return { ...all[0], all, dispose() { lease.dispose(); all[0].dispose?.(); } };
   return {
     rt: all[0].rt, people: all.flatMap((t) => t.people), all,
-    dispose() { for (const t of all) t.dispose?.(); },
+    dispose() { lease.dispose(); for (const t of all) t.dispose?.(); },
     update(dt, t) { for (const one of all) one.update(dt, t); },
   };
 }
@@ -244,19 +247,14 @@ function setupOneTemple(ctx, rt) {
   rt.connect({ player, sound, toast, quests, fade: rt.fadeFn, isNight });
   // its ending, filmed as the guardian is resolved (src/temples/finale.js, issue #366), the world's theme under it
   rt.onFinale = () => playFinale(rt, { moments, sound, game });
-  // An explicit helping invitation replaces combat for these two guardians. The
-  // start function and existing onFinale remain the cinematic boundaries (#624).
+  // The explicit invitation owns the opening; only the game's goal receipt can
+  // resolve the temple on return. Disposing either story or room cancels launch.
+  let invitation = null;
   if (HELPER_ENCOUNTERS[rt.id] && rt.guardian?.def.helper) {
-    let leaving = false;
-    rt.startHelper = () => {
-      if (leaving || !ctx.playGame || rt.logic.resolved || !player) return false;
-      const href = beginHelperEncounter(game, rt.id, { from: ctx.levelId,
-        returnPose: { pos: player.pos.toArray(), up: player.frame.up.toArray(), fwd: player.frame.dir(player.heading, new THREE.Vector3()).toArray() } });
-      if (!href) return false;
-      leaving = true;
-      ctx.playGame(href);
-      return true;
-    };
+    invitation = helperInvitation(rt, { game, player, moments, from: ctx.levelId,
+      playGame: ctx.playGame, liveWorld: ctx.helperLive });
+    rt.startHelper = invitation.start;
+    rt.offs.push(invitation.dispose);
   }
   const W = T.words, id = rt.id, Q = W.QUEST;
   // the quest: find the house, find what is inside, go down to its heart
@@ -323,7 +321,7 @@ function setupOneTemple(ctx, rt) {
   const offAfter = game.on(`flag:temple.${id}.done`, (v) => { if (v) after(); });
   let byTheWay = false;   // its quest started as you passed by (not by arrival, not inside)
   return {
-    rt, people, dispose: offAfter,
+    rt, people, dispose() { invitation?.dispose(); offAfter(); },
     update(dt, t) {
       if (!quests?.isStarted?.(Q.id) && ((legacy && near()) || game.flag(`temple.${id}.entered`))) {
         quests.start(Q.id);
