@@ -293,3 +293,23 @@ test('the hazards that lie on the ground are crossed in a roll without a perfect
   tool.dispose?.(); clearTargets();
   void attackSample;
 });
+
+for (const fps of [30,60]) for (const roll of [null,ROLL]) test(`${fps}fps: ${roll?'roll':'ordinary evade'} buffers a committed cut once without extending i-frames`,()=>{
+  const {tool,B,rest}=blade();const dt=1/fps;B.roll=roll;rest();
+  tool.update(dt,{KeyF:true});let n=0;
+  while(B.phase!=='strike' && n++<100)tool.update(dt,{});
+  assert.equal(B.phase,'strike');tool.update(dt,{AltLeft:true});assert.equal(B.evadeT,0,'active cut remains committed');
+  let starts=0,previous=0,ageAtStart=null;
+  for(let i=0;i<fps*2;i++) {tool.update(dt,{AltLeft:true});if(B.evadeT>previous){starts++;ageAtStart=B.evadeAge;}previous=B.evadeT;}
+  assert.equal(starts,1,'held button does not repeat');assert.ok(ageAtStart<=dt);assert.equal(B.rollWant,0);
+  tool.dispose?.();clearTargets();
+});
+for (const fps of [30,60]) test(`${fps}fps: ordinary evade queue expires during long recovery and clears when control is denied`,()=>{
+  const {tool,B,rest}=blade();const dt=1/fps;rest();B.evadeCool=.5;
+  tool.update(dt,{AltLeft:true});assert.ok(B.rollWant>0);
+  for(let i=0;i<fps;i++)tool.update(dt,{});
+  assert.equal(B.evadeT,0,'stale intent never fires later');
+  B.evadeCool=.1;tool.update(dt,{AltLeft:true});assert.ok(B.rollWant>0);
+  B.update(dt,false,false,false,false);assert.equal(B.rollWant,0,'loss of control discards pending action');
+  tool.dispose?.();clearTargets();
+});

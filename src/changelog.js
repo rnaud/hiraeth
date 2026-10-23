@@ -9,6 +9,13 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
+    v: '2.04', date: '2026-10-22',
+    items: [
+      { text: 'Small stick movements now take small steps. Jumps forgive a slightly late press at an edge, or remember an unused press just before landing.', see: 'Move the stick just beyond its resting zone to place your feet carefully. Try jumping just after leaving a ledge or tapping jump just before landing. An available double jump still uses a fresh airborne press immediately; holding jump never adds another ground jump.' },
+      { text: 'A dodge pressed just before a sword cut ends now waits for the first safe moment, in ordinary fights as well as fight temples.', see: 'Press B / ○ during the end of a sword cut. The cut finishes before the dodge begins; holding the button does not keep dodging. Cooldowns and invulnerability windows are unchanged.' },
+    ],
+  },
+  {
     v: '2.00', date: '2026-10-22',
     items: [
       { text: 'Sound effects finish loading before play, so assigned recordings keep their chosen sound instead of turning into a substitute. A missing download offers Retry without losing your save.', see: 'Start or continue a game. If a sound download fails, choose Retry to load the missing file, or Back to title. Sound-effect previews also wait for their recordings; stopping a song remains immediate.' },

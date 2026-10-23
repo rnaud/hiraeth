@@ -170,7 +170,7 @@ export function createBenches({ levelId, scene = null, physics = null, level = n
     holds() { return !!this.sitting && (!this.standing || (!this._free && this.t < BENCH.stepOff)); },
     /** What the traveller is given of this frame's input: all of it, or while he sits only E held (so a press held on from
      *  sitting or standing never comes through as a fresh one: the mount's whistle). */
-    inputFor(input = {}) { return this.holds() ? (input.KeyE ? { KeyE: true } : {}) : input; },
+    inputFor(input = {}) { return this.holds() ? { jumpBlocked: true, ...(input.KeyE ? { KeyE: true } : {}) } : input; },
     /** The seat's front edge (where you walk up to it). */
     frontOf(b) { return b.pos.clone().setY(b.ground).addScaledVector(b.front, BENCH.depth / 2 + 0.35); },
     sit(b) {

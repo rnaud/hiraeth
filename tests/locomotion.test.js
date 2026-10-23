@@ -135,3 +135,11 @@ test('people walk their own way: build, size and a seed; the same person always 
   const strides = many.map((g) => g.stride);
   assert.ok(Math.max(...strides) - Math.min(...strides) > 0.06, 'and walk at their own stride');
 });
+
+for(const fps of [30,60]) test(`fine analog positioning at ${fps}fps keeps planted feet and stops cleanly`,async()=>{
+  const p=await traveller(course(),new THREE.Vector3(0,0,-60),{moves:true,body:'b3'});
+  const r=drive(p,[[1,{},'idle'],[3,{stick:{x:0,y:.04}},'fine'],[3,{stick:{x:0,y:.15}},'slow'],[1,{},'stop']],{fps});
+  report(`fine ${fps}`,r);
+  assert.ok(r.heldSlide<.015,`planted contact ${r.heldSlide}m`);assert.ok(r.sink<.02,`sole sink ${r.sink}m`);
+  assert.ok(p.vel.length()<.001,'released stick settles to rest');
+});

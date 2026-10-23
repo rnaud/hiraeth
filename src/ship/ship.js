@@ -1,3 +1,4 @@
+import { stickForMovementScale } from '../movement-input.js';
 import { CHARTED_SIDE } from '../levels/names.js';
 import * as THREE from 'three';
 import { game } from '../game-state.js';
@@ -31,10 +32,10 @@ import { REVEAL, rigView, anyInput } from './arrival-view.js';
 /** Walking into the ramp takes you aboard (issue #87): this near its foot (m), this fast up it (m/s). */
 export const RAMP_IN = { near: 2.4, speed: 1.2 };
 /**
- * The autopilot's stick at a walk (issue #434): src/player.js eases the speed from 0.35 to 1 of WALK (3.8 m/s, his jog)
- * with the stick, so 0.06 is ~1.5 m/s, under the walk clip's top (walkAt, 1.52 m/s): a walk, not a jog.
+ * The authored step-out keeps its original 1.4782 m/s pace (issue #434), below the walk clip's 1.52 m/s top.
+ * Invert the shared response: a small physical stick can now creep without slowing this directed walk.
  */
-export const AUTO_WALK = 0.06;
+export const AUTO_WALK = stickForMovementScale(0.35 + 0.65 * 0.06);
 /** How long the autopilot walks before it gives up (s of the game's time, at any frame rate). */
 export const AUTO_GIVE_UP = 30;
 import { PrologueDirector, ArrivalDirector, TakeoffDirector, CallDirector, OBJECTIVE } from './cinematics.js';

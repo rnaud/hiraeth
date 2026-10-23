@@ -1349,6 +1349,16 @@ const RETROID536 = 'Retroid Pocket Nova (Adreno 740, Vulkan), Unity, Handheld (F
 const SRC536 = 'BridgeRenderer.Pipelines (the G-buffer’s states the scene asks for: variant, layout, cull, depth), Metal’s list traced in the editor, the shipped lists rewritten by scripts/bench/pso-one-cull.mjs; docs/systems/performance.md, “One cull mode and one layout for the Surface pipelines”';
 const SEAPORT572 = 'Issue #572: the web game in muted headless Chrome (High, 1280 × 720) on a Vite of its own (port 5441), a new save arriving by ship (?level=underwater&via=ship), then walked as a player; before: origin/main at 02345e2c3, after: this change; the deck and the Dock from the visual check’s views (scripts/design-qc/capture.mjs --fixed-scale); 20 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '2.04': [
+    {
+      match: 'Small stick movements now take small steps',
+      shots: [{
+        name: 'fine-walking', only: 'after', size: [1280, 960],
+        caption: 'Small steps across the Bazaar floor with a light touch on the stick.',
+        from: 'Issue #633: actual Unity Editor game, High, 1280 × 960, 22 October 2026. Candidate based on 3dbe15a951812ff5d72e3eccfded4a9112a83e9e; exact reviewed source hashes and warm-project restoration are retained in .local-tools/movement633/native/native-movement-3/. The real Bazaar player received 120 frames at 60 Hz with a post-deadzone stick magnitude of 0.04, moving 0.280 m horizontally. Review used a private muted store and a disabled native output source. This after-only frame illustrates the walking pose; the 30/60 Hz timing checks, not this still, establish jump and dodge behavior. No device listening or author feel acceptance is claimed.',
+      }],
+    },
+  ],
   '2.00': [
   {
     "match": "Sound effects finish loading before play",

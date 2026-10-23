@@ -2,6 +2,11 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v2.04 — 2026-10-22
+
+- A dodge pressed just before a sword cut ends now waits for the first safe moment, in ordinary fights as well as fight temples.
+- Small stick movements now take small steps. Jumps forgive a slightly late press at an edge, or remember an unused press just before landing.
+
 ## v2.00 — 2026-10-22
 
 - Sound effects finish loading before play, so assigned recordings keep their chosen sound instead of turning into a substitute. A missing download offers Retry without losing your save.
