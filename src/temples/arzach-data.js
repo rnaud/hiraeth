@@ -40,7 +40,7 @@ export const PEOPLE = {
           choices: [{ text: '~neutral~ I’ll go up to her.', do: { start: 'temple.arzach' }, goto: 'go' }, { text: '~solemn~ (look up at the stone wings)', end: true }],
         },
         go: {
-          say: ["~neutral~ (Three strokes of the broom clear a path to the entrance. Lark gestures: *go in*.)", '~whisper~ Wind, inside. Wait for it.'],
+          say: ["~neutral~ (Three strokes of the broom clear a path to the entrance. Lark gestures: *go in*.)", '~whisper~ First hall. Wait for the gusts to settle.'],
           choices: [{ text: '~happy~ Thank you, Lark.', end: true }],
         },
         again: {

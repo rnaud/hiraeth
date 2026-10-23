@@ -9,6 +9,12 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
+    v: '2.10', date: '2026-10-23',
+    items: [
+      { text: 'Plumb’s temple hints and several local directions now say more clearly what to look for and try, while keeping each speaker’s character.', see: 'Ask Plumb for help with a temple mechanism. Talk to the Speaker in Qanat, Bastien by the underwater lock, Rosa in the floating city, Achille outside the Whale House or Wen in the Moon Foundry.' },
+    ],
+  },
+  {
     v: '2.09', date: '2026-10-23',
     items: [
       { text: 'Use prompts follow what you can see. People, loose objects and chests behind a wall no longer take the button from a reachable target.', see: 'Stand near two people or objects and turn the camera between them. The visible reachable prompt owns A / ×. Putting down an object you already hold remains available when you look away.' },

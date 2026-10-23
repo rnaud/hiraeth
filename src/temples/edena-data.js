@@ -31,7 +31,7 @@ export const PEOPLE = {
           do: { set: { 'met.sorrel': true } },
           choices: [
             { text: '~neutral~ I’ll go in.', do: { start: 'temple.edena' }, goto: 'go' },
-            { text: '~curious~ Nothing ever falls here that you dig up again. Is going in digging?', goto: 'digging' },
+            { text: '~curious~ Would going inside disturb the garden?', goto: 'digging' },
             { text: '~solemn~ Tiny disappointments. I’ll think on it.', end: true },
           ],
         },

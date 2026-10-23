@@ -227,3 +227,13 @@ Unidentified portal routes say “Through the doorway” rather than leaking a d
 Plumb's lost barks consume the same safe Scout label. Accepted quest stages retain their established
 directions and old saves need no migration. This is a hint-presentation repair, not a complete rewrite
 of NPC dialogue or journal/map discovery. Review dialogue knowledge using the updated dialogue skill.
+
+## Clear instructions (#626, first pass)
+
+Plumb’s mechanism hints name an object and an action rather than requiring a metaphor
+to be decoded. The first dialogue pass also clarifies the Speaker’s water explanation,
+Bastien’s outside route, Rosa’s cable instruction, Achille’s sound clue, Wen’s ledger
+answer and carrier route, Lark’s first-hall gust timing, and Sorrel’s garden question. Tone tags, authored dialogue-array page counts, choices, IDs, conditions and effects remain unchanged. The shorter generated Plumb warning intentionally fits one panel.
+The voice guide and dialogue-review skill require practical meaning before figurative
+colour, without inventing a speaker’s knowledge. This is a bounded first pass; the
+remaining dialogue inventory still needs editorial review. Shared story data feeds both hosts.

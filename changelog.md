@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v2.10 — 2026-10-23
+
+- Plumb’s temple hints and several local directions now say more clearly what to look for and try, while keeping each speaker’s character.
+
 ## v2.09 — 2026-10-23
 
 - A sealed chest offers inspection, then offers opening when it is ready.
