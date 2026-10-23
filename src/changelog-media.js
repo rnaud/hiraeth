@@ -1349,6 +1349,15 @@ const RETROID536 = 'Retroid Pocket Nova (Adreno 740, Vulkan), Unity, Handheld (F
 const SRC536 = 'BridgeRenderer.Pipelines (the G-buffer’s states the scene asks for: variant, layout, cull, depth), Metal’s list traced in the editor, the shipped lists rewritten by scripts/bench/pso-one-cull.mjs; docs/systems/performance.md, “One cull mode and one layout for the Surface pipelines”';
 const SEAPORT572 = 'Issue #572: the web game in muted headless Chrome (High, 1280 × 720) on a Vite of its own (port 5441), a new save arriving by ship (?level=underwater&via=ship), then walked as a player; before: origin/main at 02345e2c3, after: this change; the deck and the Dock from the visual check’s views (scripts/design-qc/capture.mjs --fixed-scale); 20 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '2.04': [{
+    match: 'Looking around before stepping off',
+    shots: [{
+      name: 'manual-camera-return',
+      caption: 'After the same look-down gesture and dismount: your chosen angle now stays put.',
+      size: [1280, 720],
+      from: 'Issue #634: actual Unity Editor game, High, 1280 × 720, muted private store, 22 October 2026. Before captured with exact player.js from 3dbe15a951812ff5d72e3eccfded4a9112a83e9e; after with this camera fix. Initial owned-bike and approach-position fixture in the desert; ordinary E boarding, a real look gesture, and E dismount. Both pictures use the actual follow camera 1.4 seconds after dismount at the same player position. No pinned camera. The before capture was made for this comparison, not retrieved from an older release. Minor moving scenery/time differences remain. Native source hashes, input traces, original PNGs and exact warm restoration are retained in .local-tools/camera-634/native/. This is editor evidence, not Retroid acceptance.'
+    }]
+  }],
   '2.00': [
   {
     "match": "Sound effects finish loading before play",

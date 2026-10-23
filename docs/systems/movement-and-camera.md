@@ -518,7 +518,11 @@ the arm `3.5 m + 0.12 s` wider with speed `s`, and it keeps the close-in framing
 (`shot.keepTight`). When the chase ends (a landing, or the water, the wings, a wall or a ride taking over)
 the pitch eases back to the on-foot framing (`rig.settlePitch`, `PITCH_SETTLE`: ~95 % in 0.75 s, done in
 1 s): nothing on foot levelled it, so a dive left you looking at your feet. Turning the camera yourself
-(the right stick, the mouse) as you land gives it up. Tested in `tests/jets.test.js`.
+(the right stick, the mouse) before or after landing gives it up: the chase must actually
+apply a pitch again after the 1.5 s manual grace before it can own another automatic return.
+A new authored placement (`snapTight`, for example ship wake-up) also clears the old flight
+return; yaw-only recentering leaves the chosen pitch alone. The same ownership applies to the pitched hoverbike chase on dismount. Shared web/Unity host transitions
+at 30/60 Hz are covered in `tests/camera-handoff.test.js`, alongside `tests/jets.test.js`.
 
 **The pose** (`jetPose(speed, pitch)`): the body leans along the nose about the hips (`JET_PIVOT`),
 the more the faster: upright slow or climbing straight up (a rocket), flat out level, head first in a

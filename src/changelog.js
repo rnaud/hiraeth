@@ -9,6 +9,12 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
+    v: '2.04', date: '2026-10-22',
+    items: [
+      { text: 'Looking around before stepping off your hoverbike or ending a flight keeps the camera at the angle you chose.', see: 'While riding, tilt the view with the right stick or mouse, then dismount within a second. The view keeps that tilt instead of levelling itself. Without a manual adjustment, the usual gentle return still works. Recentering turns toward your heading without changing your chosen tilt.' },
+    ],
+  },
+  {
     v: '2.00', date: '2026-10-22',
     items: [
       { text: 'Sound effects finish loading before play, so assigned recordings keep their chosen sound instead of turning into a substitute. A missing download offers Retry without losing your save.', see: 'Start or continue a game. If a sound download fails, choose Retry to load the missing file, or Back to title. Sound-effect previews also wait for their recordings; stopping a song remains immediate.' },

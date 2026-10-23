@@ -3267,6 +3267,7 @@ export class CameraRig {
     this._swing = 0;         // indoors: the turn the camera is easing through to get clear of a wall behind you
     this._wide = 0; this._wideT = 0;   // the wider arm asked for (gliding, the jets), held a moment
     this._chasePitched = false;        // the last follow had a chase that tips the view (the jets' climb or dive)
+    this._chaseOwnsPitch = false;      // only an applied chase may level the view when it ends; manual look takes ownership
     this._settleT = 0; this._settleFrom = 0;   // after it: easing the view back to the on-foot pitch (PITCH_SETTLE)
 
     const refusedLock = (error) => {
@@ -3344,7 +3345,7 @@ export class CameraRig {
     const k = 0.0025 * this.sensitivity;
     this.yaw -= dx * k;
     this.pitch = THREE.MathUtils.clamp(this.pitch + dy * k * (this.invertY ? -1 : 1), this.pitchUpLimit(), PITCH_DOWN);
-    if (dx || dy) this._recentre = null;   // (turned by hand: a recentre under way gives way)
+    if (dx || dy) { this._recentre = null; this._chaseOwnsPitch = false; }   // (turned by hand: automatic turns and flight return give way)
   }
 
   /**
@@ -3468,6 +3469,7 @@ export class CameraRig {
 
   /** Jump straight to the current tight / open state (after placing the player in a scene). */
   snapTight(playerPos) {
+    this._chasePitched = this._chaseOwnsPitch = false; this._settleT = 0;   // an authored placement owns its new pitch
     this._lastP = null;
     if (playerPos) this.updateTight(playerPos, 0, Y, _zAxis, _xAxis);
     this.indoorK = this.indoor ? 1 : 0;
@@ -3498,12 +3500,20 @@ export class CameraRig {
     let d = heading + (shot?.side ?? 0) + Math.PI - this.yaw;
     d = Math.atan2(Math.sin(d), Math.cos(d));
     this.yaw += d * (1 - Math.exp(-(shot?.yawRate ?? 2.2) * dt));
-    if (shot?.pitch != null) this.pitch += (shot.pitch - this.pitch) * (1 - Math.exp(-1.5 * dt));
+    if (shot?.pitch != null) {
+      this.pitch += (shot.pitch - this.pitch) * (1 - Math.exp(-1.5 * dt));
+      this._chaseOwnsPitch = true;
+    }
   }
 
   /** After a pitched chase ends: the pitch eases back to pitch0 (PITCH_SETTLE), given up if you turn the camera. */
   settlePitch(dt, pitched) {
-    if (this._chasePitched && !pitched) { this._settleT = PITCH_SETTLE.time; this._settleFrom = this._now; }
+    if (this._chasePitched && !pitched) {
+      // A look made before landing belongs to the player too, even though the chase still requested a pitch.
+      this._settleT = this._chaseOwnsPitch ? PITCH_SETTLE.time : 0;
+      this._settleFrom = this._now;
+      this._chaseOwnsPitch = false;
+    }
     this._chasePitched = pitched;
     if (this._settleT <= 0) return;
     if (pitched || this._lastMouse >= this._settleFrom) { this._settleT = 0; return; }   // a new chase, or your own hand
