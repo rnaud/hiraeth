@@ -11,6 +11,7 @@ export const CHANGELOG = [
   {
     v: '2.12', date: '2026-10-23',
     items: [
+      { text: 'New releases also build the Unity downloads for Android and Steam Deck, and keep them with the version they were built for.', see: 'Open the GitHub release downloads after the Unity build finishes to find the Unity Android APK and Linux / Steam Deck archive.' },
       { text: 'Fisk and Petra explain the Engine-House vents and Casting-House controls more clearly, including what to do when the Founder pauses.', see: 'Return to Fisk after entering the Engine-House and ask about its four vents. Ask Petra about entering the Casting-House, then return after entering and ask about the cradle.' },
     ],
   },

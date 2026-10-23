@@ -1,5 +1,5 @@
 // The Unity builds on a version's release (issue #186; docs/systems/android.md, "The Unity builds on a version's
-// release"): scripts/unity-publish.sh puts each build on its prerelease, as before, and onto the newest vX.Y release,
+// release"): scripts/unity-publish.sh puts each build on its prerelease, as before, and onto the built commit's vX.Y release,
 // labelled with its commit; the notes' Unity section is read back from the labels, and the Android release keeps it.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -10,11 +10,12 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   MAX_RELEASE_ASSET, UNITY_RELEASES, UNITY_SECTION_END, UNITY_SECTION_START,
-  newestVersionTag, unityBuilds, unityLabel, unitySection, withUnitySection,
+  versionAt, newestVersionTag, unityBuilds, unityLabel, unitySection, withUnitySection,
 } from '../scripts/release-info.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const read = (p) => readFileSync(join(root, p), 'utf8');
+const VERSION_TAG = 'v' + versionAt('HEAD', (...a) => execFileSync('git', a, { cwd: root, encoding: 'utf8' }));
 const SHA = '0123456789abcdef0123456789abcdef01234567';
 
 test('the newest version is the highest vX.Y, number by number, among the releases', () => {
@@ -71,9 +72,9 @@ test('the Android release writes the section from the release\'s assets, and lab
 });
 
 // unity-publish.sh against a fake gh: it records the calls and keeps the releases' assets and notes in a JSON file
-function fakeGh(dir, { tags = ['v1.57', 'v1.58', 'unity-xbox', 'steam-deck'], failVersionUpload = false } = {}) {
+function fakeGh(dir, { tags = ['v1.57', 'v1.58', 'unity-xbox', 'steam-deck'], failVersionUpload = false, unavailableChecks = 0 } = {}) {
   const state = join(dir, 'state.json');
-  writeFileSync(state, JSON.stringify({ calls: [], releases: { 'v1.58': { body: 'Hiraeth v1.58\n\n- a line\n', assets: [{ name: 'hiraeth-v1.58.apk', label: 'Hiraeth v1.58 for Android (the game)' }] } } }));
+  writeFileSync(state, JSON.stringify({ calls: [], versionViews: 0, releases: { [VERSION_TAG]: { body: 'Hiraeth test release\n\n- a line\n', assets: [{ name: 'hiraeth-v1.58.apk', label: 'Hiraeth v1.58 for Android (the game)' }] } } }));
   // (a shell wrapper: the node binary's path may hold spaces, which a #! line can't)
   const gh = join(dir, 'gh');
   writeFileSync(gh, `#!/bin/sh\nexec "${process.execPath}" "${join(dir, 'gh.cjs')}" "$@"\n`);
@@ -86,7 +87,10 @@ const rel = (t) => (s.releases[t] ??= { body: '', assets: [] });
 let code = 0;
 if (a[0] === 'api') { if (!a.includes('PATCH')) console.log(a[1].split('/').pop()); }
 else if (a[0] === 'release' && a[1] === 'list') console.log(${JSON.stringify(tags.join('\n'))});
-else if (a[0] === 'release' && a[1] === 'view') { if (a.includes('--json')) console.log(JSON.stringify(rel(a[2]))); }
+else if (a[0] === 'release' && a[1] === 'view') {
+  if (a[2].startsWith('v') && ++s.versionViews <= ${unavailableChecks}) code = 1;
+  else if (a.includes('--json')) console.log(JSON.stringify(rel(a[2])));
+}
 else if (a[0] === 'release' && a[1] === 'upload') {
   const [file, label = ''] = a[3].split('#');
   if (${failVersionUpload} && a[2].startsWith('v')) { console.error('HTTP 422: Validation Failed'); code = 1; }
@@ -107,30 +111,31 @@ function publish(env = {}, opts) {
   const sha = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
   const r = spawnSync('sh', [join(root, 'scripts/unity-publish.sh'), 'xbox', build, 'a test'], {
     cwd: root, encoding: 'utf8',
-    env: { ...process.env, PATH: `${dir}:${dirname(process.execPath)}:${process.env.PATH}`, GITHUB_REPOSITORY: 'o/r', RETRY_DELAYS: '0 0 0', SHA: sha, GH_TOKEN: 'x', ...env },
+    env: { ...process.env, PATH: `${dir}:${dirname(process.execPath)}:${process.env.PATH}`, GITHUB_REPOSITORY: 'o/r', RETRY_DELAYS: '0 0 0', VERSION_RELEASE_DELAY: '0', VERSION_RELEASE_ATTEMPTS: '3', SHA: sha, GH_TOKEN: 'x', ...env },
   });
   return { r, s: state(), sha };
 }
 
-test('a Unity build goes onto its prerelease, then onto the newest version\'s release, labelled with its commit', { skip: !existsSync(join(root, '.git')) && 'no git checkout' }, () => {
-  const { r, s, sha } = publish();
+test('a Unity build goes onto its prerelease, then onto the built version\'s release even when newer tags exist, labelled with its commit', { skip: !existsSync(join(root, '.git')) && 'no git checkout' }, () => {
+  const { r, s, sha } = publish({}, { tags: ['v999.0', VERSION_TAG] });
   assert.equal(r.status, 0, r.stderr);
   const uploads = s.calls.filter((c) => c[1] === 'upload');
-  assert.deepEqual(uploads.map((c) => c[2]), ['unity-xbox', 'v1.58']);
+  assert.deepEqual(uploads.map((c) => c[2]), ['unity-xbox', VERSION_TAG]);
   assert.ok(uploads.every((c) => c.includes('--clobber')));
   assert.match(uploads[0][3], /\/hiraeth-unity-xbox\.zip$/);   // (the prerelease's file as before: no label)
   assert.equal(uploads[1][3].split('#')[1], unityLabel('xbox', sha));
   // the prerelease's notes and flags as before; the version's notes keep their lines and gain the section
   assert.ok(s.calls.some((c) => c[1] === 'edit' && c[2] === 'unity-xbox' && c.includes('--prerelease') && c.includes('--latest=false')));
-  const vedit = s.calls.find((c) => c[1] === 'edit' && c[2] === 'v1.58');
+  const vedit = s.calls.find((c) => c[1] === 'edit' && c[2] === VERSION_TAG);
   assert.ok(vedit && !vedit.includes('--prerelease') && !vedit.some((x) => x.startsWith('--latest')));
-  const body = s.releases['v1.58'].body;
-  assert.match(body, /^Hiraeth v1\.58\n\n- a line\n\n<!-- unity builds -->/);
+  const body = s.releases[VERSION_TAG].body;
+  assert.match(body, /^Hiraeth test release\n\n- a line\n\n<!-- unity builds -->/);
   assert.match(body, new RegExp(`Xbox \\(Developer Mode\\): \`hiraeth-unity-xbox\\.zip\` below, built from commit \\[${sha.slice(0, 12)}\\]`));
-  assert.match(r.stdout, /releases\/tag\/v1\.58 \(hiraeth-unity-xbox\.zip as/);
+  assert.ok(r.stdout.includes(`/releases/tag/${VERSION_TAG} (hiraeth-unity-xbox.zip as`));
+  assert.ok(!s.calls.some((c) => c[1] === 'list'), 'never choose the newest remote version');
 });
 
-test('VERSION_TAG picks the release (a test one), NO_VERSION_RELEASE=1 leaves the prerelease alone, a failure is a warning', () => {
+test('VERSION_TAG picks the release (a test one), NO_VERSION_RELEASE=1 leaves the prerelease alone, a failed version attachment fails the job', () => {
   let { r, s } = publish({ VERSION_TAG: 'test-186' });
   assert.equal(r.status, 0, r.stderr);
   assert.deepEqual(s.calls.filter((c) => c[1] === 'upload').map((c) => c[2]), ['unity-xbox', 'test-186']);
@@ -139,9 +144,9 @@ test('VERSION_TAG picks the release (a test one), NO_VERSION_RELEASE=1 leaves th
   assert.equal(r.status, 0, r.stderr);
   assert.deepEqual(s.calls.filter((c) => c[1] === 'upload').map((c) => c[2]), ['unity-xbox']);
   ({ r, s } = publish({}, { failVersionUpload: true }));
-  assert.equal(r.status, 0, r.stderr);
-  assert.match(r.stdout, /::warning::hiraeth-unity-xbox\.zip is on unity-xbox but could not be put on the newest version's release v1\.58/);
-  assert.ok(!s.calls.some((c) => c[1] === 'edit' && c[2] === 'v1.58'));
+  assert.equal(r.status, 1, r.stderr);
+  assert.ok(r.stdout.includes(`::error::hiraeth-unity-xbox.zip is on unity-xbox but could not be put on the built version's release ${VERSION_TAG}`));
+  assert.ok(!s.calls.some((c) => c[1] === 'edit' && c[2] === VERSION_TAG));
 });
 
 test('the Unity workflows publish through the script, so every build lands on the version\'s release', () => {
@@ -150,4 +155,23 @@ test('the Unity workflows publish through the script, so every build lands on th
   }
   const publishSh = read('scripts/unity-publish.sh');
   assert.match(publishSh, /retry gh release upload "\$VTAG" "\$ASSET#\$LABEL" -R "\$REPO" --clobber/);
+});
+
+
+test('publication waits for the matching release and fails visibly if it never appears', () => {
+  let { r, s } = publish({}, { unavailableChecks: 2 });
+  assert.equal(r.status, 0, r.stderr);
+  assert.deepEqual(s.calls.filter(c => c[1] === 'upload').map(c => c[2]), ['unity-xbox', VERSION_TAG]);
+  ({ r, s } = publish({}, { unavailableChecks: 99 }));
+  assert.equal(r.status, 1);
+  assert.match(r.stderr, /unavailable after 3 checks/);
+  assert.deepEqual(s.calls.filter(c => c[1] === 'upload').map(c => c[2]), ['unity-xbox']);
+});
+
+test('release targeting reads the specified commit and rejects an unknown version instead of falling back', () => {
+  assert.equal(versionAt(SHA, (...args) => {
+    assert.deepEqual(args, ['show', `${SHA}:src/changelog.js`]);
+    return "export const CHANGELOG = [ { v: '1.58', items: [] } ];";
+  }), '1.58');
+  assert.throws(() => versionAt(SHA, () => 'not a changelog'), /no release version/);
 });

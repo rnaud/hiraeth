@@ -53,7 +53,7 @@ as a macOS player, and the port's WebGL (WebGPU) build. Results and the reading 
 
 The engine bridge's Unity player (docs/systems/engine-bridge.md, "Players"), built for testing on the
 devices next to the players' builds, by `.github/workflows/unity-android.yml`: on a push to `main` that
-touches the Unity side (`unity/`, `engine/`, `scripts/unity-*`, `scripts/engine-bundle.mjs`, the workflow),
+touches the release changelog (`src/changelog.js`) or Unity side (`unity/`, `engine/`, `scripts/unity-*`, `scripts/engine-bundle.mjs`, the workflow),
 every night at 03:17 UTC when the game (`src/`, `public/`, …) moved since the commit the release names,
 and by hand (Actions ▸ Unity release (testers) ▸ Run workflow, or `gh workflow run unity-android.yml`).
 The game's own pushes come every 20–40 minutes, faster than a cold build: one run at a time, never
@@ -77,7 +77,7 @@ cancelled once started; GitHub keeps only the newest waiting run and cancels tho
 - Both releases are prereleases and never "latest" (the app's updater and the players read the
   `vX.Y` releases); each build replaces its file, moves the tag to its commit and rewrites the notes
   (which commit, which web version: `release-info.mjs unity-notes`). `scripts/unity-publish.sh` does it,
-  and then puts the same file on the newest version's release (`vX.Y`) beside the APK, labelled with its
+  and then puts the same file on its built version's release (`vX.Y`) beside the APK, labelled with its
   commit (android.md, "The Unity builds on a version's release").
   The two releases were made once by hand: Actions' token was refused creating one (403 "Resource not
   accessible by integration", on a commit that adds a workflow), and it may be refused moving the tag

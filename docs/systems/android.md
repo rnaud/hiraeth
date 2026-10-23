@@ -47,8 +47,8 @@ A version's release (`vX.Y`) also holds the Unity port's testers' builds, beside
 it finishes:
 - **`scripts/unity-publish.sh`** publishes to its prerelease (`unity-xbox`, `unity-linux`, `unity-android`) as
   before, which the Deck's installer and `scripts/xbox-unity.mjs` read; then uploads the same file (`--clobber`)
-  onto the newest version's release: the highest `vX.Y` among the non-draft, non-prerelease releases
-  (`release-info.mjs newest-version`), so a build of an earlier commit still lands on the newest page.
+  onto the built commit's version (`release-info.mjs version-at <sha>`). It waits up to ten minutes for
+  that release to exist; a newer release appearing meanwhile never changes the destination.
 - **The label says what it is and its commit** (`release-info.mjs unity-label`: "Hiraeth (Unity) for Xbox
   (Developer Mode), testers' build (commit 2fa97260eee4)"); GitHub shows it in place of the file's name. The
   APK's label is "Hiraeth vX.Y for Android (the game)". The notes end with a Unity section
@@ -56,19 +56,19 @@ it finishes:
   from, or, for one not built since the release was made, a link to its prerelease. `unity-publish.sh` redoes
   it (`unity-body`) and `android.yml` writes it with every push's notes (`notes <release.json>`), so a rewrite
   of the notes never loses a commit: it travels with the file.
-- **Only what is needed:** one copy per build on the newest release (about 60 MB, 310 MB and 90 MB; GitHub's
+- **Only what is needed:** one copy per build on its matching release (about 60 MB, 310 MB and 90 MB; GitHub's
   limit is 2 GiB a file, and a bigger build would stay on its prerelease with a warning). A new version's
-  release starts without them, pointing at the prereleases, until the next Unity build; nothing is copied
-  over. Older versions keep the Unity builds they had.
-- A failure there is a warning: the testers' build is on its prerelease anyway. `VERSION_TAG=<tag>` points the
+  release starts without them until its Unity build finishes. Every player-visible release changelog
+  change now triggers the Android and Linux builds; nothing is copied from older versions. Older versions keep the Unity builds they had.
+- A failed version attachment fails the job; its rolling prerelease remains available for recovery. `VERSION_TAG=<tag>` points the
   step at another release (a test one), `NO_VERSION_RELEASE=1` skips it. `tests/unity-version-release.test.js`
   runs the script against a fake `gh`.
 - **The Unity APK's script updates itself** (issue #264, R4's script half; docs/systems/unity-updates.md): from the
   site's `unity.json` beside `web.json`, into the app's `files/bundle/`, played from the next start (or at once from
   the Updates page), with the web's 30 s boot watchdog. Its saves are `files/store.json`. The APK offer (a new APK
   through `latest.json`) is still to come (R2, R4).
-- **The Linux player waits for the suite**: `unity-android.yml` publishes it only after tests.yml passed on its commit
-  (D12); the APK and the Xbox's are testers' builds and don't wait.
+- **Both Android and Linux players wait for the suite**: `unity-android.yml` publishes each only after tests.yml passed on its exact commit
+  (Linux D12, now also applied to Android); the separate Xbox workflow is unchanged.
 - The prereleases still hold the builds from before the rename (issue #130): `memento-unity-linux.tar.gz` is
   kept, as installs on a Deck from before the rename (`moebius-deck`, which can't update to the renamed
   package) still read that name; nothing reads `memento-unity.apk` or `memento-unity-xbox.zip` any more.

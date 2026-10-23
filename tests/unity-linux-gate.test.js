@@ -18,3 +18,11 @@ test('the Linux player is published only after the unit suite on its commit (D12
   assert.match(w, /"completed success"\) .*exit 0/);
   for (const f of ['scripts/wait-tests.sh']) assert.ok(statSync(new URL(`../${f}`, import.meta.url)).mode & 0o111, `${f} runs`);
 });
+
+
+test('the Unity Android player also waits for its exact commit tests before publishing', () => {
+  const yml = src('.github/workflows/unity-android.yml');
+  const android = yml.slice(yml.indexOf('\n  android:'), yml.indexOf('\n  linux:'));
+  const wait = android.indexOf('scripts/wait-tests.sh "${{ github.sha }}" 90');
+  assert.ok(wait > 0 && wait < android.indexOf('scripts/unity-publish.sh android'));
+});

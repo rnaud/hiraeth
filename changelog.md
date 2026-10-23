@@ -5,6 +5,7 @@ The same release notes shown in the game (press **N** or open settings).
 ## v2.12 — 2026-10-23
 
 - Fisk and Petra explain the Engine-House vents and Casting-House controls more clearly, including what to do when the Founder pauses.
+- New releases also build the Unity downloads for Android and Steam Deck, and keep them with the version they were built for.
 
 ## v2.11 — 2026-10-23
 

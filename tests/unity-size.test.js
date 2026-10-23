@@ -61,7 +61,8 @@ test('every shader the game finds by name is preloaded, Unity\'s own (UI/Default
 
 test('the Linux player is packed without the build\'s leftovers (IL2CPP\'s C++ and symbols)', () => {
   const wf = read('.github/workflows/unity-android.yml');
-  const step = wf.slice(wf.indexOf('- name: The Linux player packed'), wf.indexOf('- name: The unit suite passed'));
+  const linux = wf.slice(wf.indexOf('\n  linux:'));
+  const step = linux.slice(linux.indexOf('- name: The Linux player packed'), linux.indexOf('- name: The unit suite passed'));
   assert.match(step, /--exclude=\*_BackUpThisFolder_ButDontShipItWithYourGame/);
   for (const line of step.split('\n').filter((l) => /tar .*-cf|tar czf/.test(l))) assert.match(line, /\$skip/);
 });
