@@ -6,6 +6,8 @@
 // and the shim's scheduled notes no longer clicking.
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { installAudio } from '../engine/webaudio.js';
 import { measure, variation, dB } from '../scripts/sound-qc/lib.mjs';
 import { seeded, CALM, decodedTakes } from '../scripts/sound-qc/render.mjs';
@@ -22,7 +24,7 @@ const RATE = 48000, made = [];
 const { SampleBank } = await import('../src/sfx.js');
 const { preparedBank } = await import('../src/effect-assets.js');
 const decode = new G.AudioContext({ sampleRate: RATE });
-const takesFromDisk = decodedTakes('/private/tmp/hiraeth622-action-takes');
+const takesFromDisk = decodedTakes(join(tmpdir(), 'hiraeth-action-takes'));
 decode.decodeAudioData = async name => {
   const pcm = takesFromDisk(name.split('/').pop());
   if (!pcm) throw new Error(`Missing packaged take ${name}`);
