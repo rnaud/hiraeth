@@ -4,14 +4,15 @@
 // in the real level geometry, pushing, riding, climbing, lighting, calming.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { HEARTH_FIRE, PIER, ROOMS, FIRES, WING, XW, XE, XC, DROP } from '../src/temples/desert.js';
+import { PIER, ROOMS, FIRES, WING, XW, XE, XC, DROP } from '../src/temples/desert.js';
 import { CARRY } from '../src/carry.js';
 import { keyText } from '../src/prompt-keys.js';
 import './register-gadgets.js';   // (the gadgets as items: the makers' courts' boxes hold them, src/finds/courts.js)
 import * as THREE from 'three';
 import { TempleLogic, solve, memoryStore, flagStore } from '../src/temples/logic.js';
 import { strikeDamage, inArea, HIT, Guardian } from '../src/temples/boss.js';
-import { TEMPLES, GADGETS, TEMPLE_HOME, templeOf, nextSpot } from '../src/temples/index.js';
+import { helperRun, consumeHelperReturn } from '../src/temples/helper-encounter.js';
+import { TEMPLES, GADGETS, TEMPLE_HOME, templeOf, nextSpot, setupTempleStory } from '../src/temples/index.js';
 import { buildableById } from '../src/levels/buildable.js';
 import { runSteps } from '../src/load-steps.js';
 import { TEMPLE_BOXES, migrateTemples, migrateTempleLayouts, LAYOUTS } from '../src/temples/migrate.js';
@@ -1224,13 +1225,15 @@ test('a temple door is solid until it opens, and the doorway is free after', () 
 });
 
 // ------------------------------------------------------------------ on foot: the desert temple, room by room
-test('the Rose House on foot, with nothing in hand (issue #406: round its Great Hall): the east door locked, the ball leaned on through the pilot flame into the hooded bowl, the pier crossed on the double jump, up onto the balcony, the blade, the ball cut into the hole onto the plate below and the small key’s cage sunk, the drop to the floor, the key in the east door, the Machines’ Hall’s doors held while its machines stand, the thorns cut, the ball too slow by hand and in time when cut, the guard, the eye struck and the relay, the keepers’ door, back to the hall: the watcher’s bolt sent back and the cistern’s door, the Keeper calmed with the guard and the tank’s water, out', () => {
+test('the Rose House on foot, with nothing in hand (issue #406: round its Great Hall): the east door locked, the ball leaned on through the pilot flame into the hooded bowl, the pier crossed on the double jump, up onto the balcony, the blade, the ball cut into the hole onto the plate below and the small key’s cage sunk, the drop to the floor, the key in the east door, the Machines’ Hall’s doors held while its machines stand, the thorns cut, the ball too slow by hand and in time when cut, the guard, the eye struck and the relay, the keepers’ door, back to the hall: the watcher’s bolt sent back and the cistern’s door, the Keeper helped through the Cistern game, its return and the spring’s cage, out', () => {
   game.reset();
   own('backpack', 'doublejump');
   const { level, physics, rt } = world('desert');
   const P = new Player(physics, { spawn: rt.arrival.pos.clone(), dynamic: level.dynamic, health: true });
   const notes = [];
-  rt.connect({ player: P, toast: (s) => notes.push(s) });
+  const leftFor = [];
+  const helperStory = setupTempleStory({ level, levelId: 'desert', player: P, physics, game,
+    toast: s => notes.push(s), quests: { isStarted: () => true }, playGame: href => leftFor.push(href) });
   let t = 0;
   const L = (x, y, z) => rt.kit.world(x, y, z);
   const frame = (input = {}, yaw = 0) => { t += DT; physics.syncMovers(DT); rt.update(DT, t); P.update(DT, input, yaw); updateHazards(DT, P); };   // (as main.js: the moving colliders first)
@@ -1517,71 +1520,33 @@ test('the Rose House on foot, with nothing in hand (issue #406: round its Great 
   items.grant('gun'); game.set('box.desert.gun', true); game.emit('box:opened', { id: 'desert.gun', item: 'gun' });
   assert.ok(items.has('gun'), 'the third weapon is earned before the Keeper');
 
-  // ---- the Cistern: the Keeper wakes; light its bowls, guard its charge and give it water, then by a fire cut to it
+  // ---- the Cistern: reach the actual invitation on foot, then return an explicit
+  // completed-game result through the shared host contract. Actual game inputs and
+  // all three floods are exercised separately in cistern-planning-runtime.test.js.
   const K = rt.guardian;
   assert.equal(K.state, 'sleep');
   assert.equal(walk(L(ROOMS.cistern.x, 0, ROOMS.cistern.z - ROOMS.cistern.r + 4)), true, 'into the cistern');
-  wait(0.2);
-  assert.notEqual(K.state, 'sleep', 'it wakes');
-  wait(0.3);
-  assert.equal(rt.logic.isOpen('d4'), false, 'the door shuts behind you');
-  P.opts.health = false;   // (the fight's own tests are above: here the strikes may knock us about, no further)
-  wait(3.5);
-  // each spoke's ball, cut out through its fire into the hooded bowl on the rim
-  for (const ball of rt.spokes) {
-    ball.hit('blade', ball.dir.clone().multiplyScalar(-1), {});
-    for (let i = 0; i < 10 / DT && !(ball.rest && ball.t < 0.05); i++) { frame(); if (P.dead) P.restart(); }
-    wait(0.3);
-  }
-  assert.deepEqual(['b6', 'b7', 'b8', 'b9'].map((b) => rt.logic.isLit(b)), [true, true, true, true], 'the four bowls on the rim burn');
-  assert.equal(K.meter, 0.4, 'light round the walls: the first phase');
-  /** Water from the tank at its mouth, while it pants. */
-  const water = () => {
-    P.pos.copy(K.model.mouth).setY(K.arena.y); P.pos.x += 1.6; P.vel.set(0, 0, 0);
-    const near = bestInteractable(P);
-    assert.equal(near?.entry.id, 'temple.desert.water', `at its mouth, it drinks (${K.state})`);
-    near.entry.use(P);
-  };
-  // its charge, taken on the guard: jarred, it pants
-  for (let i = 0; i < 4 / DT && (K.state !== 'fight' || K.attack); i++) frame();
-  K.def.onBlock(K, K.def.attacks.charge, false);
-  assert.equal(K.state, 'open', 'a charge your guard took jars it, and it pants');
-  water();
-  // (it drinks on while it pants, a gulp each KEEPER_GUARD.gulp s: one opening, two drinks, v1.71 issue #320)
-  for (let i = 0; i < 0.7 / DT; i++) frame();
-  assert.equal(K.state, 'open', 'it pants on');
-  water();
-  assert.equal(K.phaseIndex, 2, 'its last phase');
-  let open = false;
-  // its last: in the dark only a gasp (a sip of water, v1.69); a ball cut down the spoke nearest it from its lit bowl rolls burning to it, and by it it pants long
-  for (let n = 0; n < 2; n++) {
-    open = false;
-    for (let tries = 0; tries < 6 && !open; tries++) {
-      const m = K.model.pos, ball = rt.spokes.slice().sort((a, b) => a.b.distanceTo(m) - b.b.distanceTo(m))[0];
-      if (!ball.rest || ball.t > 0.3) { ball.t = 0; rt.logic.moveDrum(ball.id, 0); ball.place(); ball.rest = true; }   // (back in its bowl: the test's shortcut for cutting it back out)
-      for (let i = 0; i < 1 / DT; i++) frame();
-      assert.ok(ball.burn > 0, 'lying in its lit bowl, it burns');
-      ball.hit('blade', ball.dir.clone(), {});
-      // (his hearts kept up: standing still by it, its leap finds him, and knocked out he would wake outside its shut doors)
-      for (let i = 0; i < 12 / DT; i++) { P.hearts = P.maxHearts; frame(); if (K.state === 'open' && K.openFor === HEARTH_FIRE.open) { open = true; break; } if (P.dead) P.restart(); }
-    }
-    assert.ok(open, `a fire cut to it: it pants (${n})`);
-    water();
-  }
-  assert.equal(K.state, 'weary', 'calm: it lies down by the spout');
-  for (let i = 0; i < 30 / DT && Math.hypot(K.model.pos.x - K.model.rest.x, K.model.pos.z - K.model.rest.z) > 0.6; i++) frame();
-  wait(3);
-  // walk up to its brow and lay a hand on it
+  wait(.5);
+  assert.equal(K.state, 'sleep', 'the Keeper waits for help without attacking');
+  assert.equal(rt.logic.isOpen('d4'), true, 'there is no combat lockdown behind you');
   const brow = K.model.mouth.clone();
-  for (let i = 0; i < 12 / DT && bestInteractable(P)?.entry.id !== 'temple.desert.touch'; i++) frame({ KeyW: true }, toward(brow));
+  for (let i = 0; i < 12 / DT && bestInteractable(P)?.entry.id !== 'temple.desert.help'; i++) frame({ KeyW: true }, toward(brow));
   const near = bestInteractable(P);
-  assert.equal(near?.entry.id, 'temple.desert.touch', 'a hand on its brow');
-  near.entry.use(P);
-  assert.equal(K.state, 'resolved');
-  assert.equal(rt.logic.resolved, true);
-  assert.equal(game.flag('temple.desert.done'), true, 'the world changes');
+  assert.equal(near?.entry.id, 'temple.desert.help', 'reach its invitation through ordinary walking');
+  near.entry.use(P); assert.equal(leftFor.length, 1);
+  const token = new URLSearchParams(leftFor[0]).get('encounter');
+  const helping = helperRun(game, 'cistern', token); assert.ok(helping);
+  assert.equal(helping.onResult({ failed: false, score: 9999 }), false, 'points alone never calm the Keeper');
+  assert.equal(rt.logic.resolved, false);
+  assert.equal(helping.onResult({ failed: false, goal: { game: 'cistern', complete: true } }), true);
+  helping.left();
+  const returned = consumeHelperReturn(game, 'desert', 'desert', {
+    restore: p => P.teleport(V(...p.pos), V(...p.up), V(...p.fwd)), resolve: () => K.resolve(),
+  });
+  assert.equal(returned.success, true); assert.equal(K.state, 'resolved');
+  assert.equal(rt.logic.resolved, true); assert.equal(game.flag('temple.desert.done'), true, 'the world changes');
   wait(2.5);
-  assert.ok(rt.logic.isOpen('d4') && rt.logic.isOpen('d5'), 'the doors open again, and the far one');
+  assert.ok(rt.logic.isOpen('d4') && rt.logic.isOpen('d5'), 'return opens the way through to the spring');
   // ---- ordinary walking through the new spring, then the gun-driven weight and cage
   const S0 = rt.roseSpark.room.z0;
   assert.equal(walk(L(0, 0, S0 + 2), { run: false }), true, `into the spring (${where()})`);
@@ -1603,7 +1568,7 @@ test('the Rose House on foot, with nothing in hand (issue #406: round its Great 
   wait(1);
   assert.ok(rt.change.root.visible, 'the water runs and the fields come up');
   assert.ok(notes.some((s) => /water/i.test(s)), 'it says so');
-  delete P.guard;
+  helperStory.dispose();
   game.reset();
   own();
 });
@@ -2226,13 +2191,15 @@ test('the Hush-House as shrines (v1.77, issue #336) and round its great hall (v1
   own();
 });
 
-test('the Aerie on foot: the gusts waited out behind the screens, the stone pushed up the hall into its vent (the hall falls calm, the wind rises in the well), the Moult’s door shut from the well, the feather raft to the gallery, the Wing Chamber’s shutter shut, round the gallery to the Fledgery and its stone dropped through the floor onto the passage’s grate (the shutter lifts), the Fledging Sill’s drop onto the makers’ breath, the wings, the column, the ledge round the well to the Eyrie, down its still vent’s shaft into the Moult’s arena and out of its door onto the well’s floor, up again by the raft and the column, and the Eyrie’s stone between two throats for the great key, the gulf vent’s stone rolled out of its throat and the gust that carries you to the perch, the perch’s stone and the column up to the higher ledge, the Elder flown with in the wind, the birds come back', () => {
+test('the Aerie on foot: the gusts waited out behind the screens, the stone pushed up the hall into its vent (the hall falls calm, the wind rises in the well), the Moult’s door shut from the well, the feather raft to the gallery, the Wing Chamber’s shutter shut, round the gallery to the Fledgery and its stone dropped through the floor onto the passage’s grate (the shutter lifts), the Fledging Sill’s drop onto the makers’ breath, the wings, the column, the ledge round the well to the Eyrie, down its still vent’s shaft into the Moult’s arena and out of its door onto the well’s floor, up again by the raft and the column, and the Eyrie’s stone between two throats for the great key, the gulf vent’s stone rolled out of its throat and the gust that carries you to the perch, the perch’s stone and the column up to the higher ledge, the Elder’s helping flight completed and returned from, the birds come back', () => {
   game.reset();
   own('backpack', 'gun');
   const { level, physics, rt } = world('arzach');
   const P = new Player(physics, { spawn: rt.arrival.pos.clone(), dynamic: level.dynamic, health: true, limit: level.limit ?? 1900 });
   const notes = [];
-  rt.connect({ player: P, toast: (s) => notes.push(s) });
+  const leftFor = [];
+  const helperStory = setupTempleStory({ level, levelId: 'arzach', player: P, physics, game,
+    toast: s => notes.push(s), quests: { isStarted: () => true }, playGame: href => leftFor.push(href) });
   let t = 0;
   const L = (x, y, z) => rt.kit.world(x, y, z);
   const frame = (input = {}, yaw = 0) => { t += DT; physics.syncMovers(DT); rt.update(DT, t); P.update(DT, input, yaw); updateHazards(DT, P); };   // (as main.js: the moving colliders first)
@@ -2480,76 +2447,33 @@ test('the Aerie on foot: the gusts waited out behind the screens, the stone push
   assert.ok(top, `lifted up past the perch (${where()})`);
   end = glide(0, 8, () => true, L(0, GULF.farY, pz + 20));
   assert.ok(P.onGround && Math.abs(end.y - GULF.farY) < 0.6, `onto the higher ledge (${where()})`);
-  // ---- the Roost: when she looks up, afraid, fly beside her (in her last phase, only in the wind: roll the stone so it rises by her)
+  // ---- the Roost: the complete approach remains physical. The flight itself is
+  // checked with real formation inputs elsewhere; only its explicit result is
+  // handed across the page boundary here, as both production hosts do.
   const fz = pz + GULF.perchR + GULF.leg2;
   assert.equal(walk(L(0, GULF.farY, fz + 10), { max: 8 }), true, `across the ledge to its door (${where()})`);
   assert.equal(walk(L(0, GULF.farY, fz + 30), { max: 12 }), true, `into the roost (${where()})`);
   const G = rt.guardian;
-  wait(0.3);
-  assert.notEqual(G.state, 'sleep');
-  P.opts.health = false;
-  const before0 = G.meter;
-  G.hit('body', 'shoot');
-  assert.equal(G.meter, before0, 'fluid does not calm her');
-  const winds = rt.roostWinds;
-  const ventNear = () => winds.slice().sort((a, b) => Math.hypot(a.foot.x - G.model.pos.x, a.foot.z - G.model.pos.z) - Math.hypot(b.foot.x - G.model.pos.x, b.foot.z - G.model.pos.z))[0];
-  /** Into the column at w (or beside her if w is null), the wings open, until she takes heart or 2.5 s. */
-  const fly = (w, wind = null) => {
-    const before = G.meter;
-    // (on still air: near her but out of the wind that blows, toward the hall's middle from its vent: she may hang over it)
-    const out = wind ? G.arena.center.clone().sub(wind.foot).setY(0).normalize() : null;
-    // (still air: a spot beside her out of every wind that blows, wherever over the floor she hangs now)
-    const calm = (p) => !winds.some((x) => x.on && Math.hypot(p.x - x.foot.x, p.z - x.foot.z) < x.r + 1.2);
-    const besides = Array.from({ length: 12 }, (_, k) => G.model.pos.clone().add(V(Math.sin(k * Math.PI / 6) * 3.5, 5, Math.cos(k * Math.PI / 6) * 3.5)));
-    const at = w ? w.foot.clone().add(V(0, 4, 0)) : out ? (besides.find(calm) ?? wind.foot.clone().addScaledVector(out, wind.r + 1.7).setY(G.model.pos.y + 5)) : G.model.pos.clone().add(V(3, 5, 0));
-    P.teleport(at, V(0, 1, 0), V(0, 0, 1));
-    P.heading = 0;
-    for (let i = 0; i < 2.5 / DT && G.meter === before && G.state === 'open'; i++) frame({ Space: true });
-    for (let i = 0; i < 5 / DT && !P.onGround; i++) frame();
-    return G.meter - before;
-  };
-  let still = false, doubled = false;
-  for (let n = 0; n < 14 && G.state !== 'weary'; n++) {
-    let open = false;
-    for (let i = 0; i < 40 / DT; i++) { frame(); if (G.state === 'open') { open = true; break; } }
-    assert.ok(open, `she looks up, afraid (${n})`);
-    const phase = G.phaseIndex;
-    if (phase >= 2 && !still) {
-      // her last phase: beside her on still air, she does not follow
-      // (beside her on the side away from the wind that blows: she may hang over the vent it rises from)
-      const gained = fly(null, rt.roostWinds.find((w) => w.on));
-      assert.equal(gained, 0, 'in her last phase, flown with on still air, she does not take heart');
-      assert.ok(said(/still air/), 'and it says why');
-      still = true;
-      continue;
-    }
-    if (phase >= 1) {
-      const w = ventNear();
-      if (!w.on) {
-        // the wind is on the far side: roll the stone across so it rises by her
-        assert.equal(roll('ballR', rt.kit.local(w.foot).x > 0 ? 'pRW' : 'pRE', rt.kit.local(w.foot).x > 0 ? -1 : 1, 4), true, `the stone rolled into the other vent (${n})`);
-        if (G.state !== 'open') continue;
-      }
-      const gained = fly(w);
-      assert.ok(gained > 0, `flown with in the wind (${n}: ${G.meter.toFixed(2)}, ${G.state})`);
-      if (phase === 1 && gained > 0.2) doubled = true;
-    } else assert.ok(fly(null) > 0, `flown with (${n}: ${G.meter.toFixed(2)})`);
-  }
-  assert.equal(G.state, 'weary', `calm (${G.meter.toFixed(2)})`);
-  assert.ok(still, 'her last phase was tried on still air once');
-  assert.ok(doubled, 'in her second phase the wind doubled it');
-  for (let i = 0; i < 20 / DT && Math.hypot(G.model.pos.x - G.model.rest.x, G.model.pos.z - G.model.rest.z) > 0.6; i++) frame();
-  wait(2);
+  wait(.3); assert.equal(G.state, 'sleep', 'the Elder waits for company');
+  assert.equal(G.hit('body', 'shoot'), false); assert.equal(G.meter, 0);
   const head = G.model.mouth.clone().setY(G.arena.y);
-  const out = head.clone().sub(G.model.pos).setY(0).normalize();
-  P.teleport(head.clone().addScaledVector(out, 1.6).add(V(0, 0.1, 0)), V(0, 1, 0), V(0, 0, 1));
-  wait(0.3);
+  for (let i = 0; i < 16 / DT && bestInteractable(P)?.entry.id !== 'temple.arzach.help'; i++) frame({ KeyW: true }, toward(head));
   const near = bestInteractable(P);
-  assert.equal(near?.entry.id, 'temple.arzach.touch', 'a hand on her neck');
-  near.entry.use(P);
+  assert.equal(near?.entry.id, 'temple.arzach.help', 'reach her invitation on foot');
+  near.entry.use(P); assert.equal(leftFor.length, 1);
+  const helping = helperRun(game, 'elderflight', new URLSearchParams(leftFor[0]).get('encounter'));
+  assert.ok(helping);
+  assert.equal(helping.onResult({ failed: true, goal: { game: 'elderflight', complete: false } }), false);
+  assert.equal(rt.logic.resolved, false, 'turning back cannot open the way out');
+  assert.equal(helping.onResult({ failed: false, goal: { game: 'elderflight', complete: true } }), true);
+  helping.left();
+  assert.equal(consumeHelperReturn(game, 'arzach', 'arzach', {
+    restore: p => P.teleport(V(...p.pos), V(...p.up), V(...p.fwd)), resolve: () => G.resolve(),
+  }).success, true);
   assert.equal(game.flag('temple.arzach.done'), true);
   wait(5);
   assert.equal(rt.change.root.visible, true, 'the birds come back');
+  helperStory.dispose();
   game.reset();
   own();
 });

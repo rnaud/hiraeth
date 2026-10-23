@@ -1,11 +1,11 @@
 // Cistern channels (docs/design/helper-guardians.md, issue #339): helping the Keeper of the cistern instead of fighting
 // it. Under the Rose House the Givers' great cistern court is a floor of channel stones, eight by six; the old spout in
 // its north wall still holds water. Walk the stones and turn them (A / × a quarter clockwise, X / □ back) so the water
-// runs from the spout to the Keeper's troughs before it gets there: a stone that does not open to it spills it, and that
-// stream ends. Three floods, each a new board: two troughs, three, four, the water quicker each time. RT / R2 held hurries
-// it (the stones filled while it hurries count double). The Keeper wanders the court while it is thirsty; a stone it
-// stands on cannot be turned. The rules are channels.js (pure, tests/minigames-helpers.test.js); this is the court, the
-// camera high over it, the stones, the water and the Keeper drawn.
+// runs from the spout to every trough. Story/Easy waits for a deliberate valve press and previews the current
+// route, with a same-board drain/retry when water spills. Arcade Hard retains the timed challenge. Three floods,
+// each a new solvable board: two troughs, three, four. RT / R2 held hurries water (double points per filled stone).
+// The Keeper waits off the board while planning, then drinks from the filled troughs. The rules are channels.js;
+// this is the court, the camera high over it, the stones, the water and the Keeper drawn.
 
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -16,7 +16,7 @@ import { disposeTree } from './kit/dispose.js';
 import { WorldLabels } from './kit/labels.js';
 import { keeperModel } from '../temples/guardians.js';
 import { Dots } from '../fluid-tool.js';
-import { makeBoard, newFlow, flowStep, turnStone, openings, cellAt, scoreOf, round, botMove, ROUNDS, KINDS, DX, DY, N, opposite } from './channels.js';
+import { makeBoard, newFlow, flowStep, releaseFlow, retryFlow, previewChannels, turnStone, openings, cellAt, scoreOf, round, botMove, ROUNDS, KINDS, DX, DY, N, opposite } from './channels.js';
 
 // ------------------------------------------------------------------ the court's measures
 export const COURT = { w: 8, h: 6, stone: 6.5, slab: 6.1, rim: 4, wall: 15, floorY: -0.8 };
@@ -139,6 +139,12 @@ function stoneModel(c, mats) {
   turn.add(new THREE.Mesh(mergeGeometries(slab), broken ? mats.broken : mats.slab), tag(new THREE.Mesh(mergeGeometries(cut), broken ? mats.crack : mats.groove)));
   turn.rotation.y = -c.r * Math.PI / 2;
   g.userData.turn = turn;
+  g.userData.channels = turn.children[1];
+  // Stable material bindings in both renderers: the engine mirrors visibility live,
+  // while changing a mesh's material after creation does not rebind its renderer.
+  const connected = tag(new THREE.Mesh(g.userData.channels.geometry, mats.connected));
+  connected.visible = false;
+  turn.add(connected); g.userData.connected = connected;
   return g;
 }
 
@@ -175,11 +181,14 @@ function start(ctx) {
   const snd = courtSounds(ctx.sound);
   const words = new WorldLabels(camera);
   const lvl = ctx.option('level') ?? 'easy';
-  const seed0 = 1 + Math.floor(Math.random() * 1e6);
+  // Story encounters always allow a complete plan; the arcade Hard option keeps its timed challenge.
+  const manual = !!ctx.helper || lvl !== 'hard';
+  const seed0 = ctx.helper?.seed ?? (1 + Math.floor(Math.random() * 1e6));
   const mats = {
     slab: makeMaterial({ color: '#e6ae9b', color2: '#dca08c', color3: '#efbfaa', mode: MODE_STRATA, strataSize: 1.2, strataHatch: 0.35, key: 'cistern.slab' }),
     broken: makeMaterial({ color: '#9c6a5e', color2: '#8f5f54', color3: '#a8776a', mode: MODE_STRATA, strataSize: 0.8, cracks: 1, key: 'cistern.broken' }),
     groove: makeMaterial({ color: '#7a4a48', flat: true, key: 'cistern.groove' }),
+    connected: makeMaterial({ color: '#53c6bd', glow: 0.3, flat: true, key: 'cistern.connected' }),
     crack: makeMaterial({ color: '#2b211f', flat: true, key: 'cistern.crack' }),
     water: L.mats.water,
     wet: makeMaterial({ color: '#4f8f96', flat: true, key: 'cistern.wet' }),
@@ -209,7 +218,8 @@ function start(ctx) {
   keeperRoot.scale.setScalar(KEEPER.scale);
   const K = keeperModel();
   keeperRoot.add(K.group);
-  const kp = new THREE.Vector3(stoneAt(1, 1).x, 0, stoneAt(1, 1).z);   // (its place in the world; K.pos is that over the scale)
+  const keeperRest = new THREE.Vector3(HW + COURT.rim / 2, 0, -HH - COURT.rim / 2);
+  const kp = manual ? keeperRest.clone() : new THREE.Vector3(stoneAt(1, 1).x, 0, stoneAt(1, 1).z);   // (its place in the world; K.pos is that over the scale)
   const keeper = { pos: kp, heading: Math.PI / 2, target: null, rest: 1.5, drinkAt: null, drink: 0, speed: 0, calm: 0, said: 0 };
   const kkit = { eye: null, ground: () => 0 };
   const placeKeeper = (dt, t) => {
@@ -229,16 +239,43 @@ function start(ctx) {
 
   const total = { points: 0, floods: [] };
   let flood = -1, B = null, F = null, stones = [], wet = new Map(), puddles = [], between = 0, t = 0, lastWarnAt = -9, ended = false;
+  let preview = null, awaitingRetry = false, valveHeld = false;
   const cam = { pos: new THREE.Vector3(), look: new THREE.Vector3() };
 
-  function begin(i) {
-    flood = i;
-    for (const o of [...stones, ...puddles]) disposeTree(o);
+  function clearWater() {
+    for (const p of puddles) {
+      const i = level.noShadow.indexOf(p); if (i >= 0) level.noShadow.splice(i, 1);
+      disposeTree(p);
+    }
     for (const w of wet.values()) for (const m of w.pieces) disposeTree(m);
     wet.clear(); puddles = [];
+    L.stream.visible = false; L.basinWater.visible = false;
+    for (const g of L.troughs ?? []) { g.userData.water.visible = false; g.userData.fill = 0; }
+    for (const b of L.braziers) b.userData.flame.visible = false;
+  }
+
+  function refreshPreview() {
+    preview = manual && F.planning ? previewChannels(B) : null;
+    stones.forEach((g, i) => {
+      const on = !B.cells[i].fixed && !!preview?.connected[i];
+      g.userData.connected.visible = on; g.userData.channels.visible = !on;
+    });
+  }
+
+  function planAgain() {
+    clearWater(); F = retryFlow(B, F); awaitingRetry = false;
+    keeper.pos.copy(keeperRest); keeper.target = null; keeper.drinkAt = null; keeper.drink = 0;
+    refreshPreview(); ctx.flash('Adjust the channels. Open the valve when ready.', '', 2.5);
+  }
+
+  function begin(i) {
+    flood = i; clearWater();
+    for (const o of stones) disposeTree(o);
     const R = round(i, lvl);
     B = makeBoard(seed0 + i * 97, { troughs: R.troughs, broken: R.broken });
-    F = newFlow(B, { wait: R.wait, pace: R.pace, paceMin: R.paceMin });
+    F = newFlow(B, { wait: R.wait, pace: R.pace, paceMin: R.paceMin, planning: manual });
+    awaitingRetry = false;
+    if (manual) { keeper.pos.copy(keeperRest); keeper.target = null; keeper.drinkAt = null; keeper.drink = 0; }
     stones = B.cells.map((c, k) => {
       const g = ctx.add(stoneModel(c, mats));
       stoneAt(k % B.w, (k / B.w) | 0, g.position);
@@ -263,7 +300,7 @@ function start(ctx) {
     L.spout.position.x = stoneAt(B.spout.x, 0).x;
     L.stream.visible = false; L.basinWater.visible = false;
     for (const b of L.braziers) b.userData.flame.visible = false;
-    between = 0;
+    between = 0; refreshPreview();
     ctx.status(statusText());
     if (i > 0) ctx.flash(`Flood ${i + 1}: ${R.troughs} troughs`, 'good', 2);
   }
@@ -271,6 +308,8 @@ function start(ctx) {
   function statusText() {
     if (!F) return '';
     const live = total.points + (F.done ? 0 : scoreOf(B, F).total);   // (a flood run out is in the total already)
+    if (awaitingRetry) return `Flood ${flood + 1}/${ROUNDS.length} · troughs ${F.troughs}/${B.troughs.length}\nRT / R2: drain and adjust`;
+    if (F.planning) return `Plan ${flood + 1}/${ROUNDS.length} · connected troughs ${preview.troughs}/${preview.of}\nRT / R2: open valve`;
     const wait = !F.started ? ` · the spout opens in ${Math.ceil(F.wait)}` : '';
     return `${live} pts · flood ${flood + 1}/${ROUNDS.length} · troughs ${F.troughs}/${B.troughs.length}${wait}`;
   }
@@ -311,6 +350,13 @@ function start(ctx) {
   function drawWarnings() {
     let n = 0;
     const pulse = 0.75 + 0.25 * Math.sin(t * 9);
+    if (preview) for (const e of preview.spills) {
+      if (n >= warns.length) break;
+      const m = warns[n++]; stoneAt(e.x, e.y, m.position);
+      m.position.x += DX[e.from] * COURT.stone / 2; m.position.z += DY[e.from] * COURT.stone / 2;
+      m.position.y = 0.9; m.rotation.set(0, Math.atan2(DX[e.from], DY[e.from]), 0);
+      m.scale.setScalar(pulse); m.visible = true;
+    }
     for (const fr of F.fronts) for (const d of fr.exits) {
       const nx = fr.x + DX[d], ny = fr.y + DY[d], c = cellAt(B, nx, ny);
       const bad = c ? !((openings(c) >> opposite(d)) & 1) && !((c.wet >> opposite(d)) & 1) : !B.troughs.some((T) => T.x === fr.x && T.y === fr.y && T.side === d);
@@ -363,6 +409,11 @@ function start(ctx) {
 
   function floodDone() {
     const sc = scoreOf(B, F);
+    if (manual && F.troughs !== B.troughs.length) {
+      awaitingRetry = true; L.stream.visible = false;
+      ctx.flash('Some troughs are dry. Drain and adjust the same channels.', '', 3);
+      return; // Failed attempts never bank points or consume a flood.
+    }
     total.points += sc.total;
     total.floods.push({ ...sc, troughs: F.troughs, of: B.troughs.length, filled: F.filled });
     ctx.setScore(total.points);
@@ -370,7 +421,7 @@ function start(ctx) {
     if (flood + 1 >= ROUNDS.length) {
       ended = true;
       const all = total.floods.reduce((n, f) => n + f.troughs, 0), of = total.floods.reduce((n, f) => n + f.of, 0);
-      ctx.finish({ score: total.points, title: all === of ? 'The cistern runs!' : undefined, lines: [
+      ctx.finish({ score: total.points, failed: all !== of, goal: { game: 'cistern', complete: all === of }, title: all === of ? 'The cistern runs!' : 'Some troughs are still dry', lines: [
         ...total.floods.map((f, k) => `Flood ${k + 1}: ${f.total} (troughs ${f.troughs}/${f.of} · ${f.filled} stones${f.crosses ? ` · ${f.crosses / 100} both ways` : ''}${f.all ? ' · every trough +500' : ''})`),
         `The Keeper drank at ${all} of ${of} troughs`,
       ] });
@@ -419,6 +470,11 @@ function start(ctx) {
   }
 
   function moveKeeper(dt) {
+    if (manual && F.planning) { keeper.speed = 0; return; }
+    if (manual && !keeper.drinkAt && keeper.drink <= 0) {
+      if (keeper.pos.distanceTo(keeperRest) < 0.6) { keeper.speed = 0; return; }
+      keeper.target = keeperRest.clone();
+    }
     if (keeper.drink > 0) { keeper.drink -= dt; keeper.speed = 0; if (keeper.drink <= 0) { keeper.drinkAt = null; keeper.target = null; keeper.rest = 1; } return; }
     if (!keeper.target) {
       if ((keeper.rest -= dt) > 0) { keeper.speed = 0; return; }
@@ -452,7 +508,7 @@ function start(ctx) {
     if (kd < KEEPER.body && kd > 1e-3) keeper.pos.addScaledVector(_w, (KEEPER.body - kd) / kd);
   }
   const keeperStone = () => stoneUnder(keeper.pos.x, keeper.pos.z);
-  const underKeeper = (x, y) => { const s = keeperStone(); return !!s && s.x === x && s.y === y; };
+  const underKeeper = (x, y) => { if (manual && F.planning) return false; const s = keeperStone(); return !!s && s.x === x && s.y === y; };
 
   function updateCamera(dt, snap = false) {
     // high over the court's south end, looking down at the whole board, easing a little after you
@@ -470,7 +526,7 @@ function start(ctx) {
     const s = stoneUnder(me.pos.x, me.pos.z);
     if (!s) return;
     const why = turnStone(B, s.x, s.y, dir, underKeeper);
-    if (!why) { snd.grind(); const g = stones[s.y * B.w + s.x]; g.userData.angle -= dir * Math.PI / 2; return; }
+    if (!why) { snd.grind(); const g = stones[s.y * B.w + s.x]; g.userData.angle -= dir * Math.PI / 2; refreshPreview(); return; }
     snd.thunk();
     const msg = { broken: 'That one’s broken.', set: 'The water’s in it.', blocked: 'It’s lying on that one.' }[why];
     if (msg) words.pop(stoneAt(s.x, s.y, _v).setY(1.8), msg, 'bad', 1.1);
@@ -483,7 +539,7 @@ function start(ctx) {
   let botCool = 0;
 
   return {
-    get state() { return { B, F, flood, me, keeper, total }; },
+    get state() { return { B, F, flood, me, keeper, total, preview, awaitingRetry }; },
     update(dt, inp, { live, phase }) {
       t += dt;
       let ii = inp;
@@ -492,6 +548,7 @@ function start(ctx) {
         const s = stoneUnder(me.pos.x, me.pos.z) ?? { x: -1, y: -1 };
         const m = botMove(B, F, s.x, s.y);
         ii = { x: 0, y: 0, jumpPressed: false, actionPressed: false, tuck: 0 };
+        if (awaitingRetry || (F.planning && preview?.complete)) ii.tuck = valveHeld ? 0 : 1;
         if (m.to) {
           const p = stoneAt(m.to[0], m.to[1], _cw);
           const dx = p.x - me.pos.x, dz = p.z - me.pos.z, d = Math.hypot(dx, dz);
@@ -499,12 +556,19 @@ function start(ctx) {
           else { ii.x = dx / Math.max(d, 1); ii.y = -dz / Math.max(d, 1); }
         }
       }
+      const valveDown = (ii.tuck ?? 0) > 0.3, valvePressed = valveDown && !valveHeld;
+      valveHeld = valveDown; // Sample even while paused/counting down: holding cannot open the next flood.
       const moving = live && !ended;
       const sp = moving ? walk(dt, ii) : walk(dt, { x: 0, y: 0 });
       if (moving && between <= 0) {
-        if (ii.jumpPressed) press(1);
-        if (ii.actionPressed) press(-1);
-        onEvents(flowStep(B, F, dt, { hurry: (ii.tuck ?? 0) > 0.3 }));
+        if (awaitingRetry) {
+          if (valvePressed) planAgain();
+        } else {
+          if (ii.jumpPressed) press(1);
+          if (ii.actionPressed) press(-1);
+          if (F.planning && valvePressed) { releaseFlow(F); refreshPreview(); }
+          onEvents(flowStep(B, F, dt, { hurry: valveDown }));
+        }
       }
       if (between > 0 && (between -= dt) <= 0 && live) begin(flood + 1);
       // the stones turn to their angles, the troughs fill, the puddles spread
@@ -546,12 +610,12 @@ function start(ctx) {
 export default {
   id: 'cistern', order: 13,
   name: 'Cistern channels',
-  blurb: 'Under the Rose House, turn the Givers’ channel stones so the water reaches the Keeper’s troughs before it spills.',
-  rules: 'Turn the stones ahead of the water so it runs from the spout to every trough. A stone that doesn’t open to it spills it, and that stream ends. Three floods: two troughs, three, four. 10 a stone (20 hurried), 250 a trough, 500 for all of a flood.',
+  blurb: 'Plan a path through the Givers’ channel stones, then open the valve and bring water to the Keeper.',
+  rules: 'Walk onto a stone to turn it. Teal channels show the water’s current route; red arrows show spills. Take your time, then open the valve. If a trough stays dry, drain and adjust the same board. Hard starts the water automatically. Three floods: two troughs, three, four.',
   controls: {
-    pad: [['Left stick', 'walk the stones'], ['A / ×', 'turn the stone clockwise'], ['X / □', 'turn it back'], ['RT / R2, held', 'hurry the water: stones count double'], ['Menu', 'pause']],
-    keys: [['W A S D', 'walk the stones'], ['Space', 'turn the stone clockwise'], ['E', 'turn it back'], ['Shift, held', 'hurry the water: stones count double'], ['Esc', 'pause']],
-    touch: [['Stick', 'walk'], ['⤒', 'turn the stone'], ['✺, held', 'hurry the water']],
+    pad: [['Left stick', 'walk the stones'], ['A / ×', 'turn the stone clockwise'], ['X / □', 'turn it back'], ['RT / R2', 'open valve / drain and retry; hold to hurry'], ['Menu', 'pause']],
+    keys: [['W A S D', 'walk the stones'], ['Space', 'turn the stone clockwise'], ['E', 'turn it back'], ['Shift', 'open valve / drain and retry; hold to hurry'], ['Esc', 'pause']],
+    touch: [['Stick', 'walk'], ['⤒', 'turn the stone'], ['✺', 'open valve / retry; hold to hurry']],
   },
   touchButtons: ['jump', 'fire'],
   options: [{ id: 'level', label: 'Difficulty', choices: [['easy', 'Easy'], ['hard', 'Hard']], default: 'easy' }],
@@ -559,7 +623,7 @@ export default {
   // (its sign in the desert: beside the Rose House's door, the side away from the path; its host Omar)
   markers: [{ level: 'desert', at: [479.9, null, 390.3], heading: 2.895 }],
   score: { kind: 'points', unit: 'pts' },
-  hud: { timer: false, score: true },
+  hud: { timer: false, score: true, multiline: true },
   color: '#62c3c9',
   build: buildCourt,
   start,

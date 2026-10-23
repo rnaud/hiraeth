@@ -94,7 +94,7 @@ export class MinigameRunner {
     const R = this, H = this.host;
     return {
       def: this.def, scene: H.scene, camera: H.camera, player: H.player, physics: H.physics, level: H.level,
-      sound: H.sound, wind: H.wind, sfx: this.sfx,
+      sound: H.sound, wind: H.wind, sfx: this.sfx, helper: H.helper ?? null,
       tool: H.tool ?? null, foes: H.foes ?? null, settings: H.settings ?? null,   // (a game played on foot: drives false)
       // (the world's own: the camera rig, a frame grabbed from another viewpoint, its people and creatures,
       // and what a game's own people are made of: main.js)
@@ -193,14 +193,14 @@ export class MinigameRunner {
     this.hintsEl.innerHTML = `<div class="mg-hint-row${row.off ? ' gone' : ''}">${items}</div>${this.hintNote ? `<p>${this.hintNote}</p>` : ''}`;
   }
 
-  finish({ score, failed = false, title, lines = [], html = null, wide = false, chimes = 0 } = {}) {
+  finish({ score, failed = false, title, lines = [], html = null, wide = false, chimes = 0, goal = null } = {}) {
     if (this.phase !== 'play') return;
     const kind = this.def.score?.kind ?? 'points';
     const value = score ?? (kind === 'time' ? this.clock + this.penalty : this.points);
     // (a time trial not finished has no time to keep; points count even when the lives run out)
     const sd = scoreDef(this.def, this.host.state);   // (a best of each difficulty: def.bestBy)
     const kept = failed && kind === 'time' ? { best: bestScore(this.host.state, sd), isNew: false } : recordScore(this.host.state, sd, value);
-    this.result = { value, failed, title, lines, html, wide, chimes, ...kept };   // (html: the game's own block on the results, a page of sketches; chimes: won, for the host to bank)
+    this.result = { value, failed, title, lines, html, wide, chimes, ...kept, ...(goal ? { goal: { game: goal.game, complete: goal.complete === true } } : {}) };   // (html: the game's own block on the results, a page of sketches; chimes: won, for the host to bank)
     if (failed) this.fails = (this.fails ?? 0) + 1;
     this.host.onResult?.(this.result);   // (a host that keeps more than the best: the pirates between worlds mark the trip won)
     this.phase = 'finishing';
@@ -362,6 +362,7 @@ export class MinigameRunner {
   buildDom() {
     const el = this.el = document.createElement('div');
     el.id = 'minigame';
+    if (this.def.hud?.multiline) el.classList.add('mg-guidance');
     el.innerHTML = `<canvas class="mg-speed"></canvas>
       <div class="mg-hud off"><div class="mg-lives"></div><div class="mg-box mg-timer"></div><div class="mg-box mg-score"></div></div>
       <button class="mg-pause" type="button" aria-label="Pause">❚❚</button>
@@ -452,7 +453,7 @@ export class MinigameRunner {
     const showValue = !(r.failed && d.score?.kind === 'time');
     const bestLine = r.best === null || r.best === undefined ? 'No best yet.' : `Best: ${formatScore(d, r.best)}`;
     const actions = resultActions(r, this.host.links, this.fails ?? 0);
-    const hint = this.hint({ win: 'fly on' }[actions[0].act] ?? 'retry', !r.failed && this.host.links?.win ? null : 'quit');   // (won on the way somewhere: Esc flies on too)
+    const hint = this.hint(actions[0].act === 'win' ? this.host.links.win.hint ?? 'fly on' : 'retry', !r.failed && this.host.links?.win ? null : 'quit');   // (won on the way somewhere: Esc flies on too)
     this.setCard({ kind: 'results', kicker: d.name, title: label, big: showValue ? formatScore(d, r.value) : '', stamp: !!r.isNew, lines: (r.lines ?? []).map((l) => keyText(l, { kind, teach: true })), extra: plainHtml(r.html),
       best: bestLine, buttons: actions.map((b) => ({ act: b.act, label: b.label, sub: b.sub ?? '', main: !!b.main })), hint, wide: !!r.wide });
     this.openCard(`<p class="kicker">${h(d.name)}</p><h1>${h(label)}</h1>
@@ -524,7 +525,7 @@ export class MinigameRunner {
     }
     // (under the pause the clock and the score stay up, as the page's HUD does under its .mg-card.clear; under a start or
     // results card they go)
-    screen.set('minigame', { on: this.hudOn && (this.paused || !this.cardModel), timer, score: s, bump: this.scoreBumps ?? 0, lives: this.lives === null ? null : [this.lives, Math.max(this.livesMax ?? this.lives, this.lives)],
+    screen.set('minigame', { on: this.hudOn && (this.paused || !this.cardModel), timer, score: s, guidance: !!H.multiline, bump: this.scoreBumps ?? 0, lives: this.lives === null ? null : [this.lives, Math.max(this.livesMax ?? this.lives, this.lives)],
       count: this.countState, flashes: this.flashes, hints, speed: Math.round((this._speedK ?? 0) * 20) / 20, onFoot: !this.drives });   // (onFoot: the page's mg-onfoot, src/hud-shows.js)
   }
   bumpScore() { this.scoreBumps = (this.scoreBumps ?? 0) + 1; this.scoreEl.classList.remove('bump'); void this.scoreEl.offsetWidth; this.scoreEl.classList.add('bump'); }

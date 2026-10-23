@@ -215,3 +215,15 @@ the Handheld preset and device pixel ratio 2 — the device's preset and ratio, 
 version — the portraits draw. So the preset and the ratio are not the fault; what is left to suspect
 is the driver's canvas read. The fallback is also the test: if the circle on the device now shows the
 initial letter, the capture is coming back empty there.
+
+## Knowledge-safe exploration hints (#627)
+
+Unopened quest and giver targets retain their original journal labels and positions, but supply a
+separate `hintLabel` to the shared Scout used by web and Unity. `opensWith` and `givenBy` accept
+`hint` (an observed description, optionally a function) and `knownWhen` (an explicit acquired-fact
+condition). Without such proof, the default is “Someone to talk to”; entering a world does not
+reveal a person's identity. World openers supply observable descriptions drawn from their actual NPC placement or appearance.
+Unidentified portal routes say “Through the doorway” rather than leaking a destination name.
+Plumb's lost barks consume the same safe Scout label. Accepted quest stages retain their established
+directions and old saves need no migration. This is a hint-presentation repair, not a complete rewrite
+of NPC dialogue or journal/map discovery. Review dialogue knowledge using the updated dialogue skill.

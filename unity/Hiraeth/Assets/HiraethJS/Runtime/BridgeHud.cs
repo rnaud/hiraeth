@@ -882,7 +882,15 @@ namespace Hiraeth.Bridge
                 var ss = Ui.Set(mgScoreText, sc);
                 Ui.Place(mgScoreText.rectTransform, 14, 4, ss.x, ss.y);
                 float w = ss.x + 28, h = ss.y + 9;
-                Ui.Place(mgScore.rt, W - 18 - w, 14, w, h);
+                // Helping-game guidance uses several lines. Leave the pointer's pause
+                // disc its own space, including the live score-bump width.
+                bool guidance = g.Get("guidance") is bool guide && guide;
+                float right = 18;
+                if (guidance && state.L("buttons") is List<object> buttons)
+                    foreach (var button in buttons)
+                        if (button is Dictionary<string, object> p && p.S("id") == "pause")
+                            right = Mathf.Max(right, p.F("right", 16) + Mathf.Max(8, p.F("size", 36)) + 10);
+                Ui.Place(mgScore.rt, W - right - w * (guidance ? k : 1), 14, w, h);
                 mgScore.rt.localScale = new Vector3(k, k, 1);
             }
             var lives = on ? g.L("lives") : null;

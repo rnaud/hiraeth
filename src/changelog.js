@@ -9,6 +9,15 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
+    v: '2.05', date: '2026-10-23',
+    items: [
+      { text: 'Help the Rose House Keeper guide water and fly beside the Aerie Elder to the Old Roost. Their completed games now open the temple’s way onward, with a safe return if you leave to try again.', see: 'Reach either guardian and accept its invitation. Quit or fail a run to return without completing the temple; finish its goal to return to the guardian and open the way onward.' },
+      { text: 'Plan the Cistern’s channels at your own pace, see the connected route and possible spills, then open the valve. A spill lets you adjust the same board and try again.', see: 'In a story or Easy Cistern run, walk onto a stone to turn it. Teal channels show the current water route. Open the valve when ready; drain an unsuccessful flood to keep adjusting. Arcade Hard keeps its timed challenge.' },
+      { text: 'Flying with the Elder now shows your progress toward the Roost and how to return to her wing when you drift away.', see: 'Follow the gold circle beside the Elder. The readout tells you when to climb, descend, catch up or slow down; staying in her wake restores her courage.' },
+      { text: 'Plumb points you toward people and landmarks to explore without naming people you have not learned about yet.', see: 'Arrive in a new world and ask Plumb for directions before speaking to its locals. Follow the hint, then accept their quest: the directions can use what you have learned. Returning saves keep their progress.' },
+    ],
+  },
+  {
     v: '2.04', date: '2026-10-23',
     items: [
       { text: 'A new sound-effects page lets you browse every effect, try its variants and see which sounds are recordings and which are made by the game.', see: 'Open the sound-effects page, filter by source or action, and expand a recording’s provenance. Play is explicit; Stop and leaving the page end the preview.' },

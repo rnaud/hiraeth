@@ -20,7 +20,7 @@ export function setupGlassDunes(ctx) {
   const rt = level?.temples?.find((t) => t.id === 'garage') ?? (level?.temple?.id === 'garage' ? level.temple : null);
   // the dunes' own main quest (v1.48, issue #101): it starts when you talk to Halden by the discs (src/story/quests.js opensWith)
   for (const q of QUESTS) quests?.define?.(q);
-  if (quests?.opensWith && !quests.isStarted?.('glassdunes.minute')) quests.opensWith('glassdunes.minute', 'oren');
+  if (quests?.opensWith && !quests.isStarted?.('glassdunes.minute')) quests.opensWith('glassdunes.minute', 'oren', { hint: 'Someone by the discs' });
   for (const n of npcs) if (['oren', 'aster', 'corin', 'fenna'].includes(n.def?.id)) quests?.locate?.(n.def.id, () => n.pos);
   // Fenna's errand (issue #475): given by her at the red cleft's arch; its goals the prism crossings' high bridge and the
   // pearl city's upper gallery under its stopped clock (src/glass-dunes-west.js)

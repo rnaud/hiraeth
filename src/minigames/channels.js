@@ -185,7 +185,33 @@ export function turnStone(B, x, y, dir = 1, blocked = null) {
 /** The water's state: the wait, the fronts running, what it has done. */
 export function newFlow(B, o = {}) {
   const K = { ...CHANNELS, ...o };
-  return { K, wait: K.wait, fronts: [], started: false, done: false, pace: K.pace, filled: 0, hurried: 0, troughs: 0, crosses: 0, spills: 0, t: 0 };
+  return { K, planning: !!K.planning, wait: K.wait, fronts: [], started: false, done: false, pace: K.pace, filled: 0, hurried: 0, troughs: 0, crosses: 0, spills: 0, t: 0 };
+}
+
+/** Planning has no deadline. Releasing the valve is a fresh action, separate from hurrying a live flow. */
+export function releaseFlow(F) {
+  if (!F.planning || F.started || F.done) return false;
+  F.planning = false; F.wait = 0;
+  return true;
+}
+
+/** Drain a failed attempt, retaining the player's stone turns and the same solvable board. */
+export function retryFlow(B, F) {
+  for (const c of B.cells) { c.wet = 0; c.set = false; }
+  for (const t of B.troughs) t.filled = false;
+  return newFlow(B, { ...F.K, planning: true });
+}
+
+/** Read the player's current channels, never the hidden construction solution. */
+export function previewChannels(B) {
+  const copy = { ...B, cells: B.cells.map(c => ({ ...c, wet: 0, set: false })), troughs: B.troughs.map(t => ({ ...t, filled: false })) };
+  const F = newFlow(copy, { wait: 0, pace: 1, paceMin: 1, quicken: 0 });
+  const spills = [];
+  for (let i = 0; !F.done && i < B.w * B.h * 4 + 2; i++) {
+    for (const e of flowStep(copy, F, 1)) if (e.kind === 'spill') spills.push(e);
+  }
+  return { connected: copy.cells.map(c => !!c.wet), troughs: F.troughs, of: B.troughs.length,
+    complete: F.done && F.troughs === B.troughs.length, spills };
 }
 
 /** Where a front coming into (x, y) from side `from` goes on to, or why it stops (entry: 'spill' | 'join' | null). */
@@ -220,7 +246,7 @@ function enter(B, F, x, y, from, ev) {
  */
 export function flowStep(B, F, dt, { hurry = false } = {}) {
   const ev = [];
-  if (F.done) return ev;
+  if (F.done || F.planning) return ev;
   const K = F.K, k = hurry ? K.hurry : 1;
   F.t += dt;
   if (!F.started) {

@@ -101,7 +101,7 @@ export function nextObjective({ player, expedition, story, ship = null, level, q
   let target;
   const q = typeof quest === 'function' ? quest() : quest;
   const expeditionUnderWay = expedition && expedition.state.started && !expedition.state.returned;
-  if (q && !expeditionUnderWay) target = objective(q.id, q.label, q.position);
+  if (q && !expeditionUnderWay) target = { ...objective(q.id, q.hintLabel ?? q.label, q.position), unidentified: q.hintLabel != null && q.hintLabel !== q.label };
   else if (expedition && !expedition.state.returned) {
     const { state, model, traveler } = expedition;
     if (!state.started || state.done) {
@@ -236,7 +236,7 @@ export function viaPortal(start, target, portals) {
       if (cost < costs[i + 1]) { costs[i + 1] = cost; first[i + 1] = n === 0 ? i : first[n]; }
     });
   }
-  return best < 0 ? target : objective(`portal-${best}-${target.id}`, `Through the ${links[best].label}`, links[best].from);
+  return best < 0 ? target : objective(`portal-${best}-${target.id}`, target.unidentified ? 'Through the doorway' : `Through the ${links[best].label}`, links[best].from);
 }
 
 /**

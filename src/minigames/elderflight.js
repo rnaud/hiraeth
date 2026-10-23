@@ -17,7 +17,7 @@ import { elderModel } from '../temples/guardians.js';
 import { Dots } from '../fluid-tool.js';
 import { table, needle, lumpy } from '../levels/sky-stones-kit.js';
 import { SKY_STONES_LOOK, SKY_STONES_DAY, SKY_STONES_DUSK, SKY_STONES_NIGHT, CLOUD_PRINT } from '../levels/arzach2.js';
-import { FORMATION, makeRoute, routeAt, newFlight, herStep, slotAt, wakeAt, newWings, wingStep, flightStep, flightScore, skyStones, gustAt, botInput } from './formation.js';
+import { FORMATION, makeRoute, routeAt, newFlight, herStep, slotAt, wakeAt, newWings, wingStep, flightStep, flightScore, flightGuide, skyStones, gustAt, botInput } from './formation.js';
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const tag = (m) => { m.userData.noCollide = true; return m; };
@@ -299,7 +299,7 @@ function start(ctx) {
   const bar = (k) => '▰'.repeat(Math.round(k * 8)) + '▱'.repeat(8 - Math.round(k * 8));
   function statusText() {
     const sc = flightScore(F);
-    return `${sc.harmony + sc.gates} pts · ×${F.mult} · gate ${Math.min(F.gate + 1, R.gates.length)}/${R.gates.length} · courage ${bar(F.courage)}`;
+    return `Gate ${Math.min(F.gate + 1, R.gates.length)}/${R.gates.length} · ${Math.floor(100 * F.s / R.length)}% to the Roost\n${sc.harmony + sc.gates} pts · ×${F.mult} · courage ${bar(F.courage)}\n${flightGuide(F, R, W)}`;
   }
 
   function onEvents(ev) {
@@ -330,10 +330,10 @@ function start(ctx) {
     arrived = !turned;
     const sc = flightScore(F);
     ctx.setScore(sc.total);
-    ctx.finish({ score: sc.total, title: turned ? 'She turned back' : 'The Old Roost!', lines: [
+    ctx.finish({ score: sc.total, failed: turned, goal: { game: 'elderflight', complete: !turned }, title: turned ? 'She turned back' : 'The Old Roost!', lines: [
       `Harmony ${sc.harmony} · ${Math.round(F.t)} s flown`,
       `Gates ${F.passed}/${R.gates.length} (${F.together} together) · ${sc.gates}`,
-      ...(turned ? ['Out of courage, she turned back to the Aerie'] : [`Landing ${sc.landing} · her courage ${sc.courage}`]),
+      ...(turned ? ['Return to her wing to restore courage, then try again'] : [`Landing ${sc.landing} · her courage ${sc.courage}`]),
       ...(F.bumps || F.clouds ? [`Stones hit ${F.bumps} · into the cloud ${F.clouds}`] : []),
     ] });
   }
@@ -430,7 +430,7 @@ export default {
   // (its sign in Vael: at the foot of the Aerie's great steps, beside them, facing their foot; its host Corra)
   markers: [{ level: 'arzach', at: [-167.0, null, -24.7], heading: -0.395 }],
   score: { kind: 'points', unit: 'pts' },
-  hud: { timer: false, score: true },
+  hud: { timer: false, score: true, multiline: true },
   color: '#9fd6ee',
   build: buildSky,
   start,

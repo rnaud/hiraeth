@@ -29,7 +29,6 @@ import { updateHazards } from '../src/hazards.js';
 import { GROUNDED, MOTHER_GASP } from '../src/temples/arzach2.js';
 import { LURE } from '../src/temples/perdide2.js';
 import { SUN } from '../src/temples/edena.js';
-import { ROOST } from '../src/temples/arzach.js';
 import { HALL, draught } from '../src/temples/incal.js';
 import { allTargets, hitTarget } from '../src/targets.js';
 import { bestInteractable } from '../src/interact.js';
@@ -38,7 +37,6 @@ import { answerAsks } from './guardian-asks.js';
 import { comboOf } from '../src/temples/boss.js';
 import { LENS_VIEW } from '../src/gadgets/hidden.js';
 import { buildableById } from '../src/levels/buildable.js';
-import { KEEPER_GUARD, KEEPER_DARK, HEARTH_FIRE } from '../src/temples/desert.js';
 import { TEMPLE_HOME, templeOf } from '../src/temples/index.js';
 
 // (these check the game's words as hints full says them, every tip and step; subtle, the default, is checked in tests/hint-level.test.js)
@@ -79,6 +77,10 @@ function arena(id, gadget, phase, { answer = true } = {}) {
     stand(r > m ? x * m / r : x, r > m ? z * m / r : z);
   };
   wait(0.3);
+  if (G.def.helper) {
+    assert.equal(G.state, 'sleep', `${id}: the helper waits peacefully`);
+    return { level, rt, G, P, notes, frame, wait, until, said, stand, away, done: () => { rt.dispose?.(); game.reset(); own(); } };
+  }
   assert.notEqual(G.state, 'sleep', `${id}: it wakes`);
   P.opts.health = false;
   assert.equal(until(() => G.state === 'fight', 8), true, `${id}: it fights`);
@@ -90,95 +92,34 @@ function arena(id, gadget, phase, { answer = true } = {}) {
 }
 
 // ------------------------------------------------------------------ the Keeper
-/** Cut the cistern's spoke ball nearest the Keeper in from its lit bowl on the rim (v1.44: it rolls burning down the spoke), until it pants (tries). */
-function fireToKeeper(A, tries = 6) {
-  const { rt, G, until, wait } = A;
-  for (let k = 0; k < tries; k++) {
-    const m = G.model.pos, ball = rt.spokes.slice().sort((a, b) => a.b.distanceTo(m) - b.b.distanceTo(m))[0];
-    if (!ball.rest || ball.t > 0.3) { ball.t = 0; rt.logic.moveDrum(ball.id, 0); ball.place(); ball.rest = true; ball.v = 0; }   // (back in its bowl: cut out again)
-    wait(0.3);
-    ball.hit('blade', ball.dir.clone(), {});
-    if (until(() => G.state === 'open' && G.openFor === HEARTH_FIRE.open, 12)) return ball;   // (by the fire: not a gasp of its own)
-  }
-  return null;
-}
-/** Each spoke's ball cut out through its fire into its hooded bowl: the four bowls lit. */
-function lightRim(A) {
-  const { rt, until } = A;
-  for (const ball of rt.spokes) { ball.hit('blade', ball.dir.clone().multiplyScalar(-1), {}); until(() => ball.rest && ball.t < 0.05, 10); }
-  return ['b6', 'b7', 'b8', 'b9'].every((b) => rt.logic.isLit(b));
-}
-
-test('the Keeper’s first phase (v1.44): its bowls are lit by the spokes’ balls, cut out through their fires; a hooded bowl takes no ember', () => {
+// The room's physical spokes remain; its old combat phases were replaced by the
+// helping game (#623). Goal/quit/return are exercised in helper-temple-runtime.test.js.
+test('the Keeper’s room: the hooded bowls still need burning spokes, but lighting them cannot skip the helping game', () => {
   const A = arena('desert', 'sword', 0);
-  const { rt, G } = A;
-  rt.piece('b6').hit('fire');
-  assert.equal(rt.logic.isLit('b6'), false, 'hooded: no ember reaches its coals');
-  assert.equal(lightRim(A), true, 'cut out, each ball catches at its fire and lights its bowl');
-  A.wait(0.5);
-  assert.ok(G.meter >= 0.4 - 1e-6, `light round the walls: its first phase done (${G.meter.toFixed(2)})`);
-  A.done();
+  try {
+    const { rt, G } = A;
+    rt.piece('b6').hit('fire');
+    assert.equal(rt.logic.isLit('b6'), false, 'hooded: no ember reaches its coals');
+    for (const ball of rt.spokes) {
+      ball.hit('blade', ball.dir.clone().multiplyScalar(-1), {});
+      assert.equal(A.until(() => ball.rest && ball.t < .05, 10), true);
+    }
+    assert.deepEqual(['b6', 'b7', 'b8', 'b9'].map(id => rt.logic.isLit(id)), [true, true, true, true]);
+    assert.equal(G.meter, 0); assert.equal(G.state, 'sleep');
+    assert.equal(rt.logic.resolved, false); assert.notEqual(game.flag('temple.desert.done'), true);
+  } finally { A.done(); }
 });
 
-test('the Keeper’s charge on the guard (v1.44): jarred, it pants; water from your tank at its mouth calms it', () => {
-  const A = arena('desert', 'sword', 1);
-  const { G, P, until, said, away } = A;
-  away(G.model.pos, 6);
-  let held = 0;
-  P.guard = () => { held++; return true; };
-  G.stop(); G.begin(P, 'charge');
-  assert.equal(until(() => said(/slams into your guard/), 6), true, 'the guard takes the charge, and it reels');
-  assert.ok(held > 0 && G.state === 'open', 'jarred, it pants');
-  delete P.guard;
-  const m = G.meter;
-  P.pos.copy(G.model.mouth).setY(G.arena.y); P.pos.x += 1.6; P.vel.set(0, 0, 0);
-  const near = bestInteractable(P);
-  assert.equal(near?.entry.id, 'temple.desert.water', 'at its mouth: give it water');
-  near.entry.use(P);
-  assert.ok(G.meter > m, 'it drinks, calmer');
-  assert.ok(said(/drinks from your cupped hands/));
-  A.done();
-});
-
-test('the Keeper’s last phase (v1.69, #316): in the dark it only gasps a moment, a sip of water; one cut down the spoke nearest it from a lit bowl rolls burning to it, and by that fire it pants long and drinks deep', () => {
-  const A = arena('desert', 'sword', 2);
-  const { rt, G, until, said } = A;
-  // in the dark its own openings are a gasp: short, and water then is a sip (KEEPER_DARK)
-  assert.equal(until(() => G.state === 'open', 25), true, 'it still opens by itself in its last phase: a gasp');
-  assert.ok(G.openFor <= KEEPER_DARK.open + 1e-6, `a short one in the dark (${G.openFor} s)`);
-  assert.ok(said(/gasps in the dark/), 'and says a fire would hold it open');
-  const m0 = G.meter;
-  G.hit('mouth', 'shoot');
-  assert.ok(Math.abs(G.meter - m0 - KEEPER_GUARD.water * KEEPER_DARK.water) < 1e-6, `a sip (${(G.meter - m0).toFixed(3)})`);
-  assert.ok(rt.spokes.every((b) => b.burn === 0), 'the balls by it are cold');
-  assert.equal(lightRim(A), true, 'the bowls lit');
-  for (let n = 0; n < 2 && G.state !== 'weary'; n++) {
-    const ball = fireToKeeper(A);
-    assert.ok(ball && ball.burn > 0, `a burning ball by it: it pants (${n})`);
-    assert.ok(said(/turns to the fire by it/), 'it turns to the fire');
-    const m = G.meter;
-    G.hit('mouth', 'shoot');
-    assert.ok(G.meter >= m + KEEPER_GUARD.water - 1e-6 || G.state === 'weary', 'and drinks deep');
-  }
-  assert.equal(G.state, 'weary', `calm (${G.meter.toFixed(2)})`);
-  A.done();
-});
-
-test('the Keeper’s second phase teaches the fire: its own panting still opens it, and a burning ball cut to it makes it pant at once', () => {
-  const A = arena('desert', 'sword', 1);
-  const { G, until } = A;
-  assert.equal(until(() => G.state === 'open', 40), true, 'it pants by itself, as before');
-  const m0 = G.meter;
-  G.hit('mouth', 'shoot');
-  assert.ok(G.meter > m0, 'and drinks');
-  assert.equal(lightRim(A), true);
-  assert.ok(until(() => G.state === 'fight', 10));
-  const ball = fireToKeeper(A);
-  assert.ok(ball && ball.burn > 0, 'a burning ball cut to it: it pants');
-  G.hit('mouth', 'shoot');
-  A.wait(0.5);
-  assert.equal(G.phaseIndex, 2, 'into its last phase');
-  A.done();
+test('the Keeper’s room: fluid and guard combat cannot complete a helper encounter', () => {
+  const A = arena('desert', 'sword', 0);
+  try {
+    const { G } = A;
+    assert.equal(G.def.helper, 'cistern');
+    assert.equal(G.hit('mouth', 'shoot'), false); assert.equal(G.add(1, 'water'), false);
+    G.wake(); A.wait(12);
+    assert.equal(G.state, 'sleep'); assert.equal(G.meter, 0);
+    assert.equal(G.attack, null); assert.equal(A.rt.logic.resolved, false);
+  } finally { A.done(); }
 });
 
 // ------------------------------------------------------------------ the Echo
@@ -545,92 +486,30 @@ test('the Gardener’s second phase teaches the sun: a bloom in the shade still 
 });
 
 // ------------------------------------------------------------------ the Elder
-test('the Elder’s last phase: flown with on still air she does not follow; the roost’s stone rolled so the wind rises by her, ridden up beside her, and she takes heart', () => {
-  const A = arena('arzach', 'glider', 2);
-  const { rt, G, P, until, wait, said } = A;
-  const winds = rt.roostWinds;
-  const ball = rt.piece('ballR');
-  assert.ok(winds?.length === 2 && ball, 'two vents and one stone');
-  const nearest = () => winds.slice().sort((a, b) => Math.hypot(a.foot.x - G.model.pos.x, a.foot.z - G.model.pos.z) - Math.hypot(b.foot.x - G.model.pos.x, b.foot.z - G.model.pos.z));
-  const fly = (at) => {
-    const before = G.meter;
-    P.teleport(at, V(0, 1, 0), V(0, 0, 1)); P.heading = 0;
-    for (let i = 0; i < 2.5 / DT && G.meter === before && G.state === 'open'; i++) A.frame({ Space: true });
-    for (let i = 0; i < 5 / DT && !P.onGround; i++) A.frame();
-    return G.meter - before;
-  };
-  // the failure: beside her on still air (well away from the wind), she watches you sink
-  assert.equal(until(() => G.state === 'open', 40), true, 'she looks up, afraid');
-  assert.ok(G.openFor >= ROOST.open[2], `she hangs there long enough to bring the wind (${G.openFor})`);
-  const off = G.model.pos.clone().add(V(0, 5, 0));
-  const farFromWind = winds.every((w) => !w.on || Math.hypot(w.foot.x - off.x, w.foot.z - off.z) > w.r + 1);
-  if (!farFromWind) { const dir = off.clone().sub(winds.find((w) => w.on).foot).setY(0).normalize(); off.addScaledVector(dir, 4); }
-  assert.equal(fly(off), 0, 'on still air she does not take heart');
-  assert.ok(said(/still air/), 'and it says to bring the wind');
-  // the way: when the wind is on the far side, roll the stone across; then ride the column up beside her
-  let rolled = false;
-  for (let n = 0; n < 6 && G.state !== 'weary'; n++) {
-    if (G.state !== 'open') assert.equal(until(() => G.state === 'open', 40), true, `she looks up (${n})`);
-    const w = nearest()[0];
-    if (!w.on) {
-      const toward = Math.sign(rt.kit.local(w.foot).x);   // (the stone goes into the other vent: away from this one)
-      const d = ball.dir.clone().multiplyScalar(-toward);
-      P.teleport(ball.center.clone().addScaledVector(d, -2.3).setY(G.arena.y + 0.1), V(0, 1, 0), V(0, 0, 1));
-      ball.hit('push', d, { strength: 1 });
-      until(() => w.on, 8);
-      assert.equal(w.on, true, `the stone rolled across: the wind rises by her (${n})`);
-      rolled = true;
-      // (her look up nearly over by the time the stone is home, a hard push being quick (issue #522): the next one)
-      if (G.state === 'open' && G.openFor - G.t < 2.5) until(() => G.state !== 'open', 5);
-      if (G.state !== 'open') continue;
-    }
-    assert.ok(fly(w.foot.clone().add(V(0, 4, 0))) > 0, `ridden up the wind beside her (${n}: ${G.meter.toFixed(2)})`);
-  }
-  assert.equal(G.state, 'weary', `calm (${G.meter.toFixed(2)})`);
-  if (!rolled) {
-    // (she happened to open by the wind each time: the stone still carries the wind across)
-    const before = winds.map((w) => w.on);
+test('the Elder’s roost: the rolling stone still swaps the active vent without awarding a flight', () => {
+  const A = arena('arzach', 'glider', 0);
+  try {
+    const { rt, G, P } = A, winds = rt.roostWinds, ball = rt.piece('ballR');
+    assert.equal(winds.length, 2); assert.ok(ball);
+    const before = winds.map(w => w.on);
+    assert.equal(before.filter(Boolean).length, 1);
     const d = ball.dir.clone().multiplyScalar(rt.logic.drumOn('ballR', 'pRW') ? 1 : -1);
-    P.teleport(ball.center.clone().addScaledVector(d, -2.3).setY(G.arena.y + 0.1), V(0, 1, 0), V(0, 0, 1));
-    ball.hit('push', d, { strength: 1 });
-    wait(4);
-    assert.deepEqual(winds.map((w) => w.on), before.map((x) => !x), 'rolled across, the wind changes vents');
-  }
-  A.done();
+    P.teleport(ball.center.clone().addScaledVector(d, -2.3).setY(G.arena.y + .1), V(0, 1, 0), V(0, 0, 1));
+    ball.hit('push', d, { strength: 1 }); A.wait(4);
+    assert.deepEqual(winds.map(w => w.on), before.map(on => !on), 'physical stone swaps the vents');
+    assert.equal(G.state, 'sleep'); assert.equal(G.meter, 0); assert.equal(rt.logic.resolved, false);
+  } finally { A.done(); }
 });
 
-test('the Elder’s second phase teaches the wind: flown with on still air she still takes heart, and in the wind twice as much', () => {
-  const A = arena('arzach', 'glider', 1);
-  const { rt, G, P, until } = A;
-  const winds = rt.roostWinds;
-  const fly = (at) => {
-    const before = G.meter;
-    P.teleport(at, V(0, 1, 0), V(0, 0, 1)); P.heading = 0;
-    for (let i = 0; i < 2.5 / DT && G.meter === before && G.state === 'open'; i++) A.frame({ Space: true });
-    for (let i = 0; i < 5 / DT && !P.onGround; i++) A.frame();
-    return G.meter - before;
-  };
-  assert.equal(until(() => G.state === 'open', 40), true, 'she looks up');
-  const off = G.model.pos.clone().add(V(0, 5, 0));
-  const w = winds.find((x) => x.on);
-  if (Math.hypot(w.foot.x - off.x, w.foot.z - off.z) < w.r + 1) off.addScaledVector(off.clone().sub(w.foot).setY(0).normalize(), 4);
-  const still = fly(off);
-  assert.ok(Math.abs(still - ROOST.still[1]) < 1e-6, `on still air, as before (${still.toFixed(2)})`);
-  const ball = rt.piece('ballR');
-  let gained = null;
-  for (let n = 0; n < 5 && gained === null && G.phaseIndex === 1; n++) {
-    assert.equal(until(() => G.state === 'open', 40), true, `she looks up again (${n})`);
-    const w2 = winds.slice().sort((a, b) => Math.hypot(a.foot.x - G.model.pos.x, a.foot.z - G.model.pos.z) - Math.hypot(b.foot.x - G.model.pos.x, b.foot.z - G.model.pos.z))[0];
-    if (w2.on) { gained = fly(w2.foot.clone().add(V(0, 4, 0))); break; }
-    // the wind on her far side: the stone rolled across, for her next opening
-    const d = ball.dir.clone().multiplyScalar(-Math.sign(rt.kit.local(w2.foot).x));
-    P.teleport(ball.center.clone().addScaledVector(d, -2.3).setY(G.arena.y + 0.1), V(0, 1, 0), V(0, 0, 1));
-    ball.hit('push', d, { strength: 1 });
-    until(() => w2.on, 8);
-    if (G.state === 'open') { gained = fly(w2.foot.clone().add(V(0, 4, 0))); break; }
-  }
-  assert.ok(gained !== null && (gained > ROOST.still[1] + 1e-6 || G.phaseIndex > 1), `in the wind, twice (${gained?.toFixed(2)})`);
-  A.done();
+test('the Elder’s roost: gliding in its wind no longer substitutes for reaching the Old Roost', () => {
+  const A = arena('arzach', 'glider', 0);
+  try {
+    const { G, P, rt } = A, wind = rt.roostWinds.find(w => w.on);
+    P.teleport(wind.foot.clone().add(V(0, 4, 0)), V(0, 1, 0), V(0, 0, 1));
+    for (let i = 0; i < 5 / DT; i++) A.frame({ Space: true });
+    assert.equal(G.def.helper, 'elderflight'); assert.equal(G.meter, 0);
+    assert.equal(G.state, 'sleep'); assert.equal(rt.logic.resolved, false);
+  } finally { A.done(); }
 });
 
 // ------------------------------------------------------------------ the warden

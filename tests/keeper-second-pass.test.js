@@ -34,8 +34,9 @@ const quiet = (fn) => { const w = console.warn, l = console.log; console.warn = 
 const fakePlayer = () => ({ pos: V(), vel: V(), heading: 0, dead: false, down: null, hearts: 3, maxHearts: 3, hurts: [], knocks: 0, hurt(d) { this.hurts.push(d); }, knockDown() { this.knocks++; } });
 
 /**
- * The Keeper in its own cistern (the real def, hooks, floor and wall), on its skin: one for the file (the desert is a
- * big level to build), put back to sleep at home, its braziers out, for each test.
+ * The retained Keeper combat definition in the real cistern's hooks, floor and wall, on its skin. The story layout
+ * now offers a helping game (#623); these legacy combat/rig regressions explicitly stage the raw combat controller.
+ * One for the file (the desert is a big level to build), reset at home with its braziers out for each test.
  */
 let staged = null;
 async function cistern() {
@@ -52,9 +53,13 @@ async function stageCistern() {
   const level = quiet(() => buildableById('desert').create(scene));
   const physics = new Physics(scene, level.ground.heightAt ? level.ground : null);
   level.init?.(physics);
-  const rt = templeOf(level, 'desert'), g = rt.guardian, P = fakePlayer();
+  const rt = templeOf(level, 'desert'), helper = rt.guardian, P = fakePlayer();
   quiet(() => rt.connect({ player: P }));
-  await g.model.ready;
+  await helper.model.ready;
+  assert.equal(helper.def.helper, 'cistern', 'the actual story layout is peaceful');
+  const { helper: _help, ...combatDef } = helper.def;
+  helper.dispose();
+  const g = rt.guardian = new Guardian(rt, { def: combatDef, model: helper.model, arena: helper.arena });
   let t = 0;
   const step = () => { g.update(DT, (t += DT)); P.down = null; };
   return { rt, g, P, m: g.model, A: g.arena, step };
@@ -155,11 +160,12 @@ test('no burrow in a stone cistern: it leaps, over the spot it sprang for, its f
   g.begin(P, null, 'leap');
   const spot = P.pos.clone(), from = m.pos.clone();
   let top = 0, tucked = 0;
-  while (g.attack?.id === 'leap' && !g.struck) {
+  for (let frame = 0; frame < 20 / DT && g.attack?.id === 'leap' && !g.struck; frame++) {
     step();
     top = Math.max(top, m.inner.hop);
     if (m.kit.rig.air > 0) tucked++;
   }
+  assert.ok(g.struck, 'the leap reaches its strike within twenty seconds');
   assert.ok(Math.hypot(m.pos.x - spot.x, m.pos.z - spot.z) < 0.1 && from.distanceTo(m.pos) > 3, 'it lands where it sprang for');
   assert.ok(top > 2 && tucked > 10, `off the floor (${top.toFixed(2)} m up, its feet tucked ${tucked} frames)`);
   for (let i = 0; i < 4 / DT && g.state !== 'open'; i++) step();

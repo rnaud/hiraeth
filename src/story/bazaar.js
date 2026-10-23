@@ -40,7 +40,7 @@ export function setupBazaar(ctx) {
   for (const q of QUESTS) quests.define(q);
   quests.itemNames = { ...(quests.itemNames ?? {}), ...ITEMS };
   // the main quest doesn't just appear: it starts when you talk to Madame Sel (the scout finds them till then: src/story/quests.js opensWith)
-  if (!quests.isStarted(Q)) quests.opensWith(Q, 'sel');
+  if (!quests.isStarted(Q)) quests.opensWith(Q, 'sel', { hint: () => P.selLanding && !game.flag('bazaar.sel.heard') ? 'Someone by the landing' : 'Someone under the tower' });
   if (!quests.def(quests.tracked() ?? '')) quests.track(quests.isActive(Q) ? Q : quests.active().find((d) => d.world === 'bazaar')?.id);
 
   // Oyo's last lantern (his talk, bazaar-data.js): its little sun pours into the tank, and the tank takes its colour for good

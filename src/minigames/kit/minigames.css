@@ -14,6 +14,9 @@ body.minigame #cue, body.minigame:not(.mg-onfoot) #tool, body.minigame:not(.mg-o
 #minigame .mg-timer { font: 700 1.85em/1.1 var(--face); font-variant-numeric: tabular-nums; letter-spacing: 0.06em; min-width: 6.2em; text-align: center; }
 #minigame .mg-timer small { display: block; font: 0.42em/1.2 var(--face); letter-spacing: 0.14em; text-transform: uppercase; color: #6b5a4e; }
 #minigame .mg-score { justify-self: end; font: 700 1.38em/1.2 var(--face); font-variant-numeric: tabular-nums; transform: none; }
+/* Helping games carry persistent instructions as short lines, kept inside the viewport. */
+#minigame.mg-guidance .mg-hud { grid-template-columns: minmax(0, 1fr); }
+#minigame.mg-guidance .mg-score { grid-column: 1; max-width: min(90vw, 35em); box-sizing: border-box; white-space: pre-line; overflow-wrap: anywhere; font-size: clamp(16px, 2vw, 22px); }
 #minigame .mg-score.bump { animation: mgbump .25s; }
 @keyframes mgbump { 40% { transform: scale(1.18); background: #f2c54b; } }
 #minigame .mg-lives { justify-self: start; display: flex; gap: 6px; }

@@ -1,0 +1,47 @@
+// Real engine host and shared runner: explicit outcomes survive the game-page reboot.
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { bundle } from '../scripts/engine-bundle.mjs';
+import { loadBundle } from '../engine/vm-run.mjs';
+import { tempPath } from '../scripts/temp-dirs.mjs';
+import { GameState } from '../src/game-state.js';
+import { beginHelperEncounter, HELPER_KEY } from '../src/temples/helper-encounter.js';
+const UNSET = new Set(['shapeAttrs', 'quietWalk', 'listMatrices', 'stillMatrices', 'skipHidden', 'peopleLod', 'portrait', 'capeOffload', 'clothOffload', 'brush', 'materialFluid', 'materialLive', 'materialVec', 'vertices', 'then', 'photo']);
+const backend = new Proxy({}, { get: (_t, k) => UNSET.has(k) ? undefined : () => {} });
+const plain = x => JSON.parse(JSON.stringify(x));
+const quiet = async fn => { const names = ['warn','info','log','error'], old = names.map(k=>console[k]); names.forEach(k=>console[k]=()=>{}); try { return await fn(); } finally { names.forEach((k,i)=>console[k]=old[i]); } };
+let file;
+async function entry() { if (!file) { file = tempPath(join(tmpdir(), `hiraeth-helper-engine-${process.pid}.js`)); await bundle('godot', { input: 'engine/game.js', out: [file] }); } return file; }
+for (const [temple, id, world] of [['desert','cistern','desert'], ['arzach','elderflight','arzach']]) test(`${id}: engine page keeps its attempt through Retry and forwards only an explicit complete goal`, async () => {
+  const state = new GameState(null), pose = { pos:[4,10,6],up:[0,1,0],fwd:[0,0,1] };
+  const href = beginHelperEncounter(state, temple, { from:world,returnPose:pose,slot:1 });
+  const token = new URLSearchParams(href).get('encounter');
+  const memory = new Map([['hiraeth.slot','1'],['hiraeth.slots.v','1'],['hiraeth.s1.game.v1',JSON.stringify(state.data)]]);
+  const vm = loadBundle(await entry(), { pads:()=>[], storage:{get:k=>memory.get(k),set:(k,v)=>memory.set(k,v),remove:k=>memory.delete(k)} });
+  const X = vm.exports, left = [], menus = new X.EngineMenus({});
+  assert.equal(X.readHref(href).encounter,token,'URI decoding preserves the slot-bound identity');
+  const g = await quiet(()=>X.createGame({levelId:world,game:id,from:world,encounter:token,backend,menus,audio:null,onLeave:h=>left.push(h)}));
+  const r = g.trials.runner, saved = ()=>r.host.state.flag(HELPER_KEY);
+  const frames = async n => quiet(()=>{for(let i=0;i<n;i++)g.frame(1/30);});
+  assert.deepEqual(plain(r.ctx.helper),{temple,seed:state.flag(HELPER_KEY).seed});
+  assert.match(r.outList().find(b=>b.act==='quit').label,/Return to/);
+  r.begin(); await frames(100); assert.equal(r.phase,'play');
+  assert.equal(g.screen().state.minigame.guidance,true,'native HUD reserves pause space for multiline helper guidance');
+  if(id==='cistern')assert.equal(r.session.state.F.planning,true,'story game remains untimed');
+  r.ctx.finish({score:999,failed:false}); await frames(60);
+  assert.equal(saved().success,false,'score-only result never completes a helper');
+  r.retry(); await frames(100); assert.equal(r.phase,'play');
+  assert.equal(saved().token,token,'Retry owns the same pending encounter');
+  r.ctx.finish({score:0,failed:true,goal:{game:id,complete:true}}); await frames(60);
+  assert.equal(saved().success,false,'failure cannot carry a winning goal');
+  r.retry(); await frames(100); assert.equal(r.phase,'play');
+  r.ctx.finish({score:1,failed:false,goal:{game:id,complete:true}}); await frames(60);
+  assert.deepEqual(plain(r.result.goal),{game:id,complete:true}); assert.equal(saved().success,true);
+  assert.equal(r.host.state.flag(`temple.${temple}.done`),undefined,'the world finale owns temple completion');
+  assert.ok(r.cardModel.buttons.some(b=>/Return to/.test(b.label)));
+  assert.match(r.cardModel.hint,/return/); assert.doesNotMatch(r.cardModel.hint,/fly on/);
+  r.quit(); assert.deepEqual(left,[`?level=${world}`]); assert.equal(saved().returning,true);
+  assert.deepEqual(plain(saved().returnPose),pose,'runner navigation preserves the arena return pose');
+});

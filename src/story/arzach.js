@@ -122,7 +122,7 @@ export function setupArzach(ctx) {
   for (const q of QUESTS) quests.define(q);
   quests.itemNames = { ...(quests.itemNames ?? {}), ...ITEMS };
   // the main quest doesn't just appear: it starts when you talk to Oïa (the scout finds them till then: src/story/quests.js opensWith)
-  if (!quests.isStarted('arzach.bird')) quests.opensWith('arzach.bird', 'oia');
+  if (!quests.isStarted('arzach.bird')) quests.opensWith('arzach.bird', 'oia', { hint: 'Someone seated on a stone' });
   const T = A.tower, H = A.hand;
   const bird = player.mount?.kind === 'bird' ? player.mount : null;
   const ground = (x, z, from = 1e4) => { const g = physics.groundAt(x, from, z, 2e4); return Number.isFinite(g) ? g : level.ground.heightAt(x, z); };

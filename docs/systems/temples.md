@@ -3105,3 +3105,20 @@ collision, climbs, pieces and logic are vertex for vertex the same without it (`
 - **Lighter presets** (`uWearLite`): no tone per slab, no chamfers, no climbing circuits, the moons one tone; the foot
   lines, inlays, grating and dressing stay. Draw calls are the house's own (−6 to +5 a view), triangles about 95k fewer
   (measured when the skin still redrew the signs, lighter than the glyphs).
+
+
+### Keeper and Elder helping encounters (#623)
+
+The current Rose House and Aerie layout guardians carry a `helper` mode. They retain
+their fitted bodies, collision, room puzzles and world-change/finale subjects, but
+proximity does not wake a fight and combat cannot add progress. Their nearby
+interaction opens Cistern channels or the Elder's flight in its separate arena.
+The interaction is unavailable through a different floor. Other temples and the
+Arena's raw sparring definitions retain their combat rules.
+
+The slot-bound encounter receipt and both host return paths are documented in
+[Minigames](minigames.md#guardian-invitations-and-return-receipts-623). Only the
+matching completed goal reaches `Guardian.resolve` and the existing
+`TempleRuntime.onBossResolved`; quitting or turning back restores the original
+pose without opening the exit. Cinematic additions can wrap `startHelper` and the
+existing `onFinale` without making an arcade score into temple completion.

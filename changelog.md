@@ -2,6 +2,13 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v2.05 — 2026-10-23
+
+- Plumb points you toward people and landmarks to explore without naming people you have not learned about yet.
+- Flying with the Elder now shows your progress toward the Roost and how to return to her wing when you drift away.
+- Plan the Cistern’s channels at your own pace, see the connected route and possible spills, then open the valve. A spill lets you adjust the same board and try again.
+- Help the Rose House Keeper guide water and fly beside the Aerie Elder to the Old Roost. Their completed games now open the temple’s way onward, with a safe return if you leave to try again.
+
 ## v2.04 — 2026-10-23
 
 - The spring boots explain their short hop inside temples and how to jump, then stomp, to sound the Whale-House’s deep notes.

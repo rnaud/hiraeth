@@ -176,7 +176,7 @@ export function setupDesert(ctx) {
   // the quest starts in that talk (src/story/quests.js opensWith); or Ama, the Speaker, Nour or Hessa, if
   // you walk past him. Until then the scout finds Marrow.
   const opening = () => !quests.isStarted('desert.power') && !game.flag('ship.powered');
-  if (opening()) quests.opensWith('desert.power', ['marrow', 'ama', 'speaker', 'nour', 'hessa'], { label: 'Marrow, by your ship', at: 'marrow', lead: true });   // (the lead giver, ahead of Sabri's temple: the ship's power first, issue #273)
+  if (opening()) quests.opensWith('desert.power', ['marrow', 'ama', 'speaker', 'nour', 'hessa'], { label: 'Marrow, by your ship', hint: 'Someone beside your ship', at: 'marrow', lead: true });   // (the lead giver, ahead of Sabri's temple: the ship's power first, issue #273)
   // or with Plumb, as you step out the first time: "Best bet? The village on the horizon. Someone there might help us
   // recharge." (src/companion.js, issue #434): the quest's first step is the same, Qanat under the dark tree
   game.on('drone:village', () => { if (opening()) quests.start('desert.power'); });
