@@ -151,7 +151,7 @@ function waterPiece(g, mat) {
 }
 
 // ------------------------------------------------------------------ the sounds
-function courtSounds(sound) {
+export function courtSounds(sound) {
   const on = () => !!sound?.ctx && !sound.muted && sound.fx;
   const note = (s) => 440 * Math.pow(2, s / 12);
   return {

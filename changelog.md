@@ -2,6 +2,12 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v2.01 — 2026-10-22
+
+- Every temple shares a quiet new ambience, and ordinary doors reuse the same sliding sounds as temple doors.
+- Hoverbikes glide more quietly, holograms wake with a warm CRT sound, and chests and keys open with longer magical flourishes.
+- A new sound-effects page lets you browse every effect, try its variants and see which sounds are recordings and which are made by the game.
+
 ## v2.00 — 2026-10-22
 
 - Sound effects finish loading before play, so assigned recordings keep their chosen sound instead of turning into a substitute. A missing download offers Retry without losing your save.

@@ -220,6 +220,7 @@ function playLines(ship, model, timeline, t, st = {}) {
   model.holoTable?.group.scale.setScalar(Math.max(0.001, 1 - st.close));
   if (!st.shown && t >= t0 && t < t1) {
     st.shown = true;
+    ship.sound?.hologramOn?.();
     const head = new THREE.Vector3();
     H.show({ parent: model.group, at: model.interior.points.projector, scale: HOLO_SCALE, who: st.who ?? 'father', lens: HOLO_LENS, face: () => travellerHead(ship, model, head) });
   }

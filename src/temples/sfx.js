@@ -14,11 +14,10 @@ export class TempleAudio {
     this.stop(old);
     const slot={piece,open,handle:null};m.set(piece.id,slot);
     if (!this.allowed()) return true;
-    if (!open) return false; // No closing take selected: retain existing cue.
     return this.start(slot);
   }
   start(slot) {
-    const s=this.sound, offset=Math.min(1.799,Math.max(0,slot.piece.k*1.8));
+    const s=this.sound, offset=Math.min(1.799,Math.max(0,(slot.open ? slot.piece.k : 1-slot.piece.k)*1.8));
     const h=s.bank?.start('temple-slide-open',{dest:s.fx,offset});
     if (!h) return true;
     slot.handle=h;slot.started=this.now;slot.offset=offset;return true;
@@ -28,8 +27,8 @@ export class TempleAudio {
     if (!slot || slot.piece!==piece) return;
     const target=slot.open?1:0;
     if (Math.abs(piece.k-target)<1e-7) { this.stop(slot);m.delete(piece.id);return; }
-    if (!this.allowed() || !slot.open) return;
-    const physical=piece.k*1.8;
+    if (!this.allowed()) return;
+    const physical=(slot.open ? piece.k : 1-piece.k)*1.8;
     // Resume only a cue stopped by pause; never attach a late-decoded recording
     // after a failed or unavailable start for this movement.
     if (slot.resume || (slot.handle && Math.abs(slot.offset+this.now-slot.started-physical)>.2)) {
@@ -41,7 +40,7 @@ export class TempleAudio {
     if (this.now-(this.cues.get(group)?.at??-1e9)<gap) return true;
     // A chest reward may also finish a quest in the same frame. One selected
     // reward cue is enough; do not stack two celebratory recordings.
-    const reward = group === 'treasure-reveal' || group === 'quest-important';
+    const reward = group === 'treasure-reveal' || group === 'quest-important' || group === 'chest-open';
     if (reward && this.now < (this.rewardUntil ?? 0)) return true;
     const h=this.sound.bank?.start(group,{dest:this.sound.fx});
     if (!h) return Object.hasOwn(SFX, group);

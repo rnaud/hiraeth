@@ -57,3 +57,14 @@ exact prompts, provider take IDs and hashes are retained in
 `references/audio/elevenlabs-actions-2026-10-21/manifest.json`; derivative hashes and
 processing are in `public/sfx/manifest.json`. Temple labels in generation prompts
 are provenance, not separate in-game temple banks. No unselected takes are used.
+
+### Selected quiet glide, CRT and temple revisions
+
+Five author-starred ElevenLabs Sound Effects v3 takes, selected 22 October 2026:
+quiet hoverbike glide, CRT hologram startup, magical chest opening, magical key
+unlocking and quiet temple ambience. Original WAVs, exact prompts, provider take
+IDs and hashes are preserved in
+`references/audio/elevenlabs-revisions-2026-10-22/manifest.json`. Runtime WAVs are
+mono 44.1 kHz PCM16, never amplified; finite effects retain their full length,
+and continuous loops have an 80 ms seam crossfade. The selected sliding-door
+recordings are shared by opening, closing and ordinary door transitions.

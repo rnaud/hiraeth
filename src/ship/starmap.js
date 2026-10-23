@@ -619,6 +619,7 @@ export class StarMap {
   }
 
   toggle(on = !this.open) {
+    if (!on) this.o.sound?.()?.hologramOff?.();
     if (!this.el) { this.open = on; return; }
     this.open = on;
     this._armed = false;   // the E that opened the map must not also choose

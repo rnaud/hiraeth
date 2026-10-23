@@ -68,7 +68,7 @@ export class EngineStarMap {
     this.cue = cues(0); this.lock = 0;
     this.cv++;
   }
-  close() { if (!this.isOpen) return; this.isOpen = false; this.asking = null; this.held.clear(); this.onClose(); }
+  close() { if (!this.isOpen) return; this.o.sound?.()?.hologramOff?.(); this.isOpen = false; this.asking = null; this.held.clear(); this.onClose(); }
 
   /** The entries read again and the system laid out for the chart's field (the page's render and place). */
   render() {

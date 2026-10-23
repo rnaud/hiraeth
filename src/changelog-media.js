@@ -1349,6 +1349,10 @@ const RETROID536 = 'Retroid Pocket Nova (Adreno 740, Vulkan), Unity, Handheld (F
 const SRC536 = 'BridgeRenderer.Pipelines (the G-buffer’s states the scene asks for: variant, layout, cull, depth), Metal’s list traced in the editor, the shipped lists rewritten by scripts/bench/pso-one-cull.mjs; docs/systems/performance.md, “One cull mode and one layout for the Surface pipelines”';
 const SEAPORT572 = 'Issue #572: the web game in muted headless Chrome (High, 1280 × 720) on a Vite of its own (port 5441), a new save arriving by ship (?level=underwater&via=ship), then walked as a player; before: origin/main at 02345e2c3, after: this change; the deck and the Dock from the visual check’s views (scripts/design-qc/capture.mjs --fixed-scale); 20 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '2.01': [{ match: 'A new sound-effects page', shots: [
+    { name: 'sound-effects-overview', title: 'Effects by source', only: 'after', size: [1280, 526], caption: 'The new catalogue separates gameplay variants from raw recording files and identifies intentional procedural sounds.', from: 'After-only actual site page in the internal Codex browser, d2bcb38ec plus this final shared-typography candidate, 23 October 2026. Constructor-muted with independent audio-output blocking and private stores. Cropped only to the 1280 × 526 application viewport, excluding QA controls; no listening claim.' },
+    { name: 'sound-effects-provenance', title: 'A selected recording', only: 'after', size: [1280, 526], caption: 'Searching for the hologram shows its ElevenLabs recording, variant and expanded provenance. Playback requires an explicit press.', from: 'After-only actual site page in the internal Codex browser, d2bcb38ec plus this final shared-typography candidate, 23 October 2026. Same guarded silent review and application-only viewport crop; no earlier version of this page existed and no before view is implied.' },
+  ] }],
   '2.00': [
   {
     "match": "Sound effects finish loading before play",

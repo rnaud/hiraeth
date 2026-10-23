@@ -11,8 +11,8 @@ import { Motes } from '../life.js';
 //     Handheld and low presets (lowDetail) get AIR_LOW of them.
 //   - the light: the house's own lights (rt.ownLights, the layout's) eased by lightPulse(): a fire's flicker, a slow
 //     breath, a signal's blink, a clock's tick. Their reach changes, so both renderers' local lights carry it.
-//   - the sound: `sound` goes to Sound.update as `house` (src/audio.js houseBed): a low roar (a furnace, the sea), a
-//     drone (a machine, a hum), wind, and the house's own events on the score's beat (crackle, drips, ticks, chimes).
+//   - the sound: `sound` goes to Sound.update as `house`, selecting one shared recorded temple ambience.
+//     The legacy per-house sound fields remain metadata; gameplay does not layer those old beds.
 // Look and sound only: no collision, no logic, no timings (tests/temple-air.test.js).
 
 /** The share of a layer's motes drawn on a low-detail preset (the handheld, Low, the Deck). */
@@ -21,7 +21,8 @@ export const AIR_LOW = 0.5;
 /**
  * Each skinned house's air. theme: what the house is about; layers: Motes options (count before AIR_LOW; box: the cube
  * round the camera they wrap in, m; tall: its height as a share of box; rise m/s, negative falls; wind m/s along x, z;
- * sway: the wobble's share; glow: no rim, a halo, blinking); light: its lights' pulse (lightPulse); sound: its bed.
+ * sway: the wobble's share; glow: no rim, a halo, blinking); light: its lights' pulse (lightPulse);
+ * sound: legacy metadata and the presence signal for the shared recorded temple bed.
  */
 export const HOUSE_AIR = {
   // the Rose House (the desert): the Givers' blade, braziers and ember light in violet slate: embers and rose sand

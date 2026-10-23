@@ -793,6 +793,7 @@ export class HomecomingDirector {
     T.addReel();
     // the three of them as busts over the reel, turned up to him (he stands over the slab)
     const head = new THREE.Vector3();
+    this.s.sound?.hologramOn?.();
     this.s.holo?.show({ parent: T.group, at: REEL_AT.clone().setY(REEL_AT.y + 0.03), scale: REEL_HOLO, who: 'three', lens: 0.085, face: () => this.s.player.humanoid?.b?.Head?.getWorldPosition(head) ?? head.copy(this.s.player.pos).setY(this.s.player.pos.y + 1.55) });
   }
 

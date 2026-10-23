@@ -59,7 +59,7 @@ test('the actual API4 OTA archive retains all assigned audio bytes and excludes 
   const archive = readFileSync(join(out, 'unity-9998.zip'));
   const files = unzip(archive), names = Object.keys(files);
   const expected = ['manifest.json', ...sfxFiles()].map(name => `public/sfx/${name}`).sort();
-  assert.equal(sfxFiles().length, 105, 'the current assigned bank is fully represented');
+  assert.equal(sfxFiles().length, 110, 'the current assigned bank is fully represented');
   assert.deepEqual(names.filter(name => name.startsWith('public/')).sort(), expected);
   assert.ok(!names.includes('public/models/unrelated.glb'));
   for (const name of expected) assert.equal(hash(files[name]), hash(readFileSync(join(dir, name))), name);

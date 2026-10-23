@@ -394,7 +394,7 @@ export class Ship {
   attach(deps) {
     Object.assign(this, deps);   // player, rig, camera, sound, journal, post, story, wind, levels, order, titles, levelTitle, lib, humans, departure (to) => href | null, go (to): an engine's way to the next world
     // the recordings' hologram: the game's own people, drawn in light (needs the bodies and the mocap library)
-    if (deps.lib && deps.humans && !this.holo) this.holo = new Hologram({ lib: deps.lib, humans: deps.humans });
+    if (deps.lib && deps.humans && !this.holo) this.holo = new Hologram({ lib: deps.lib, humans: deps.humans, onHide: () => this.sound?.hologramOff?.() });
     this.map = new StarMap({
       order: deps.order, levels: deps.levels, journal: deps.journal, current: this.levelId,
       flag: (k) => game.flag(k), powered: () => !!game.flag('ship.powered'),
@@ -715,6 +715,7 @@ export class Ship {
       return;
     }
     sfx.beep(this.sound, true);
+    this.sound?.hologramOn?.({ ui: true });
     this.parked.callScreen?.set({ who: 'map' });
     this.map.toggle(true);
     // the first time with power: why these worlds (src/story/signature.js)
