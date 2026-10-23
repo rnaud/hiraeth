@@ -2,6 +2,11 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v2.09 — 2026-10-23
+
+- A sealed chest offers inspection, then offers opening when it is ready.
+- Use prompts follow what you can see. People, loose objects and chests behind a wall no longer take the button from a reachable target.
+
 ## v2.04 — 2026-10-23
 
 - The spring boots explain their short hop inside temples and how to jump, then stomp, to sound the Whale-House’s deep notes.

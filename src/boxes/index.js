@@ -254,7 +254,9 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
       fx.add(b.beacon);
       b.off = registerInteractable({
         id: `box.${p.id}`, priority: PRIORITY.use + 1, range: 3.2,
-        prompt: 'open',
+        prompt: () => ready(b) ? 'open' : 'inspect the chest',
+        reachAt: () => (b._reach ??= V()).set(b.pos.x, b.pos.y + parts.size.h * BOX_SCALE / 2, b.pos.z),
+        reachCollider: () => b.collider,
         at: () => (b._at ??= V()).set(b.pos.x, b.pos.y + (parts.size.h + 0.1) * BOX_SCALE + 0.5, b.pos.z),
         enabled: () => !spent(b) && !current && !player?.riding && parts.root.visible,   // (a chest only the lens shows: not till seen, src/boxes/locks.js)
         distance: (pl) => (Math.abs(pl.pos.y - b.pos.y) < 2 ? flat(pl.pos, b.pos) : Infinity),

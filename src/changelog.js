@@ -9,6 +9,13 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
+    v: '2.09', date: '2026-10-23',
+    items: [
+      { text: 'Use prompts follow what you can see. People, loose objects and chests behind a wall no longer take the button from a reachable target.', see: 'Stand near two people or objects and turn the camera between them. The visible reachable prompt owns A / ×. Putting down an object you already hold remains available when you look away.' },
+      { text: 'A sealed chest offers inspection, then offers opening when it is ready.', see: 'Approach a chest that is still waiting for its prerequisite, inspect it, then return after completing that requirement. Inspection keeps the chest shut and gives no item.' },
+    ],
+  },
+  {
     v: '2.04', date: '2026-10-23',
     items: [
       { text: 'A new sound-effects page lets you browse every effect, try its variants and see which sounds are recordings and which are made by the game.', see: 'Open the sound-effects page, filter by source or action, and expand a recording’s provenance. Play is explicit; Stop and leaving the page end the preview.' },

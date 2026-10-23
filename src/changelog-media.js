@@ -1349,6 +1349,72 @@ const RETROID536 = 'Retroid Pocket Nova (Adreno 740, Vulkan), Unity, Handheld (F
 const SRC536 = 'BridgeRenderer.Pipelines (the G-buffer’s states the scene asks for: variant, layout, cull, depth), Metal’s list traced in the editor, the shipped lists rewritten by scripts/bench/pso-one-cull.mjs; docs/systems/performance.md, “One cull mode and one layout for the Surface pipelines”';
 const SEAPORT572 = 'Issue #572: the web game in muted headless Chrome (High, 1280 × 720) on a Vite of its own (port 5441), a new save arriving by ship (?level=underwater&via=ship), then walked as a player; before: origin/main at 02345e2c3, after: this change; the deck and the Dock from the visual check’s views (scripts/design-qc/capture.mjs --fixed-scale); 20 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '2.09': [
+  {
+    "match": "Use prompts follow what you can see",
+    "shots": [
+      {
+        "name": "interaction-hidden",
+        "title": "Looking away",
+        "size": [
+          1280,
+          720
+        ],
+        "caption": "The same ordinary use press while looking away: before it opened an unseen conversation; after it leaves you looking into the market.",
+        "from": "Issue #636: actual muted headless Chrome game, 1280 × 720, 23 October 2026. Candidate based on 4e0eff9e84193c4e10a53da46eddbdc56238841f; exact changed-source and adapter hashes, private-store checks, input traces and originals retained in .local-tools/interaction636/clean-* folders. Constructor mute, independent output blocking and task-private stores; original stores unchanged. Initial approach, camera and equipment are staged; normal gameplay inputs perform the interaction. Full-frame image with QA controls hidden, no crop. No physical-device or listening acceptance claim. Before uses exact base source for the changed modules. Both begin at the same staged player/camera pose. The old incorrect interaction cuts to the dialogue camera, so this is a behavior comparison, not a fixed-camera framing comparison; moving scenery differs."
+      },
+      {
+        "name": "interaction-visible-prompt",
+        "title": "A reachable prompt",
+        "only": "after",
+        "size": [
+          1280,
+          720
+        ],
+        "caption": "Turn back toward a reachable person and the use prompt returns.",
+        "from": "Issue #636: actual muted headless Chrome game, 1280 × 720, 23 October 2026. Candidate based on 4e0eff9e84193c4e10a53da46eddbdc56238841f; exact changed-source and adapter hashes, private-store checks, input traces and originals retained in .local-tools/interaction636/clean-* folders. Constructor mute, independent output blocking and task-private stores; original stores unchanged. Initial approach, camera and equipment are staged; normal gameplay inputs perform the interaction. Full-frame image with QA controls hidden, no crop. No physical-device or listening acceptance claim. After-only candidate view of the actual selected Madame Sel; the traveller partly overlaps her at this approach."
+      },
+      {
+        "name": "interaction-visible-use",
+        "title": "The intended conversation",
+        "only": "after",
+        "size": [
+          1280,
+          720
+        ],
+        "caption": "Using the visible target opens Madame Sel’s actual conversation once.",
+        "from": "Issue #636: actual muted headless Chrome game, 1280 × 720, 23 October 2026. Candidate based on 4e0eff9e84193c4e10a53da46eddbdc56238841f; exact changed-source and adapter hashes, private-store checks, input traces and originals retained in .local-tools/interaction636/clean-* folders. Constructor mute, independent output blocking and task-private stores; original stores unchanged. Initial approach, camera and equipment are staged; normal gameplay inputs perform the interaction. Full-frame image with QA controls hidden, no crop. No physical-device or listening acceptance claim. After-only real dialogue reached by normal E after turning toward the target; no dialogue callback was invoked directly."
+      }
+    ]
+  },
+  {
+    "match": "A sealed chest offers inspection",
+    "shots": [
+      {
+        "name": "interaction-chest-inspect",
+        "title": "Still sealed",
+        "only": "after",
+        "size": [
+          1280,
+          720
+        ],
+        "caption": "The sealed chest can be inspected without opening it or granting its item.",
+        "from": "Issue #636: actual muted headless Chrome game, 1280 × 720, 23 October 2026. Candidate based on 4e0eff9e84193c4e10a53da46eddbdc56238841f; exact changed-source and adapter hashes, private-store checks, input traces and originals retained in .local-tools/interaction636/clean-* folders. Constructor mute, independent output blocking and task-private stores; original stores unchanged. Initial approach, camera and equipment are staged; normal gameplay inputs perform the interaction. Full-frame image with QA controls hidden, no crop. No physical-device or listening acceptance claim. After-only candidate state on the Desert roof before either brazier is lit. Initial roof approach and ember equipment are staged; this is not a roof-traversal proof. Input/state evidence establishes inspection, which the still alone cannot show."
+      },
+      {
+        "name": "interaction-chest-ready",
+        "title": "Ready to open",
+        "only": "after",
+        "size": [
+          1280,
+          720
+        ],
+        "caption": "Both braziers were lit by actual ember shots; the chest is now ready to open. Its reward has not been taken in this picture.",
+        "from": "Issue #636: actual muted headless Chrome game, 1280 × 720, 23 October 2026. Candidate based on 4e0eff9e84193c4e10a53da46eddbdc56238841f; exact changed-source and adapter hashes, private-store checks, input traces and originals retained in .local-tools/interaction636/clean-* folders. Constructor mute, independent output blocking and task-private stores; original stores unchanged. Initial approach, camera and equipment are staged; normal gameplay inputs perform the interaction. Full-frame image with QA controls hidden, no crop. No physical-device or listening acceptance claim. After-only later state of the same candidate, not a before/after software-version comparison. The unchanged lock predicate became true after ordinary R/G inputs hit both real braziers. Reward completion is separately proved by prior web and native evidence, not this still."
+      }
+    ]
+  }
+],
   '2.04': [
 { match: 'A new sound-effects page', shots: [
     { name: 'sound-effects-overview', title: 'Effects by source', only: 'after', size: [1280, 526], caption: 'The new catalogue separates gameplay variants from raw recording files and identifies intentional procedural sounds.', from: 'After-only actual site page in the internal Codex browser, d2bcb38ec plus this final shared-typography candidate, 23 October 2026. Constructor-muted with independent audio-output blocking and private stores. Cropped only to the 1280 × 526 application viewport, excluding QA controls; no listening claim.' },
