@@ -205,7 +205,7 @@ export const LOGIC = {
     shaft: { type: 'drum', room: 'pistons', rooms: ['gallery', 'cell', 'crank'], stops: { shaftLow: 0, shaftUp: 1 }, start: 1, roll: 'hand', verb: 'power' },
     shaftLow: { type: 'plate' }, shaftUp: { type: 'plate' },
     // the house's map, in a little chest on the gallery (issue #405: src/house-map.js; nothing waits on it)
-    map: { type: 'map', room: 'gallery', at: [19.6, 7, 79.4], yaw: -Math.PI / 2 },
+    map: { type: 'map', room: 'gallery', at: [10, 7, 79], yaw: Math.PI, display: { scale: 1.5, plinth: [1.8, .24, 1.6] } },
   },
 };
 

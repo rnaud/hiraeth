@@ -9,6 +9,13 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
+    v: '2.18', date: '2026-10-24',
+    items: [
+      { text: 'The six raised map chests now line up with the floor tiles where present, with their backs toward the nearest room wall and their fronts facing the room.', see: 'Look at the map displays in the Rose House, Lantern Market, Aerie, Engine-House, Whale-House and Founders’ Belfry. The Engine-House gallery has a plain floor; its chest follows the wall. Puzzle gates are unchanged.' },
+      { text: 'The Engine-House, Whale-House and Founders’ Belfry now display their map chests on low plinths, away from the room corners.', see: 'Look on the Engine-House’s upper gallery, beside the Whale-House pool mechanism and on the Belfry’s lower floor. Walk around each chest, open its map, then save and return: previously collected maps stay collected.' },
+    ],
+  },
+  {
     v: '2.17', date: '2026-10-24',
     items: [
       { text: "The ship’s windows catch a pale reflection from inside, while keeping the view outside clear.", see: 'Look through the cockpit and cabin windows from inside either ship. The pale glass and small edge reflections stay with their panes during departure; the outside paint stays unchanged.' },

@@ -2,6 +2,11 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v2.18 — 2026-10-24
+
+- The Engine-House, Whale-House and Founders’ Belfry now display their map chests on low plinths, away from the room corners.
+- The six raised map chests now line up with the floor tiles where present, with their backs toward the nearest room wall and their fronts facing the room.
+
 ## v2.17 — 2026-10-24
 
 - Wim points you toward the Clock-House’s boomerang, and Tessa explains how to answer the Footprint’s singing spheres.

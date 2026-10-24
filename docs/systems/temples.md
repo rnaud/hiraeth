@@ -3202,3 +3202,40 @@ gates. Some native side/top pictures crop the chest; their support assertions ar
 numeric, not claims of a complete swept/headroom or minimum-width measurement.
 Post-reload Use was at the saved entry pose, not a second chest-range interaction.
 Tests: `tests/map-display.test.js` and `tests/key-chests.test.js`.
+
+### Next map display batch: Engine-House, Whale-House and Founders’ Belfry
+
+These three maps reuse the same 1.5-scale chest and low plinth. The Engine-House
+map stays on its existing upper gallery, east of the piston landing and central
+bulkhead. The Whale-House map moves to the dry northern part of the Pool Room,
+away from the ball groove and tide channel. The Belfry map moves inward on the
+lower nave floor, clear of the entry axis and the nearest state stones. Map IDs,
+room membership, collection flags, puzzle gates and layout versions are unchanged;
+no save migration is needed. The other eight map displays remain outside this batch.
+
+The candidate tests extend actual map collection/reload and unchanged-key/gate
+checks to all six opted-in houses. Authored plinth footprint checks protect the
+nearby lanes; they do not establish swept player clearance or opened-lid visibility.
+The current tile-and-wall revision passed browser review in all six houses: ordinary
+opening and map cards, side passages, jumps and six actual private-save reloads
+with exact restored positions and unchanged keys/gates. Access was staged once
+per house; the reviewed pictures are after-only views, not matched comparisons
+or full temple walkthroughs. These checks do not establish continuous swept
+clearance. The same six houses also passed muted Unity qualification: ordinary
+opening/card, short lateral movement, an in-place jump, return and actual private
+save/VM reload, with unchanged keys/gates and verified restoration of native
+inputs and default settings. All 48 original native pictures were reviewed;
+movement views are diagnostic and do not establish chest-top landing or full
+temple traversal.
+
+All six raised displays face away from their nearest full room wall. Five centres
+follow the actual floor skin: Rose 4.2 m cells with hash-selected subdivisions
+(the chosen cell has four 2.1 m subtiles); Market 3.2 × 2.2 m; Whale 3 × 2 m;
+Aerie 3 m cells from the Fledgery centre; Belfry 3 m cells centred on the nave.
+The Aerie's west/north distance tie deliberately chooses west. The Engine-House
+upper gallery is unpatterned trim, so its chest stays in place and backs toward
+the full north wall rather than the low parapet; no tile grid is invented there.
+Map IDs, plinth dimensions and progression stay unchanged. Real-definition tests
+check skin-grid phase, nearest-wall facing and the existing puzzle-lane bounds.
+Earlier diagonal/cardinal-only pictures and native plans remain historical evidence;
+they do not qualify the current tile-and-wall revision.

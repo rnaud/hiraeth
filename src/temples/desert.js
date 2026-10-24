@@ -215,7 +215,7 @@ export const LOGIC = {
     keeper: { type: 'boss', room: 'cistern', needs: ['sword', 'shield', 'gun'], requires: { all: RIM.map((id) => ({ lit: id })) } },
     d5: { type: 'door', opens: { resolved: true } },
     // the house's map, in a little chest off the way on (issue #405: src/house-map.js; nothing waits on it)
-    map: { type: 'map', room: 'channel', at: [XW - 9, 0, 58.9], yaw: Math.atan2(9, -4.3), display: { scale: 1.5, plinth: [1.8, .24, 1.6] } },
+    map: { type: 'map', room: 'channel', at: [-51.45, 0, 59.85], yaw: 0, display: { scale: 1.5, plinth: [1.8, .24, 1.6] } },
   },
 };
 

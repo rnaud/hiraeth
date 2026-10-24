@@ -212,7 +212,7 @@ export const LOGIC = {
     cache: { type: 'cache', room: 'eyrie' },
     // the house's map, in a little chest off the way on (issue #405: src/house-map.js; nothing waits on it)
     // Optional map display beside the Fledgery approach, clear of its ball and shaft. Its `at` is set below.
-    map: { type: 'map', room: 'fledge', yaw: Math.PI / 4, display: { scale: 1.5, plinth: [1.8, .24, 1.6] } },
+    map: { type: 'map', room: 'fledge', yaw: Math.PI / 2, display: { scale: 1.5, plinth: [1.8, .24, 1.6] } },
   },
 };
 
@@ -353,7 +353,7 @@ TOP.z = TOP.z0 + TOP.d / 2;
  */
 export const FLEDGE = { z1: WELL.z - WELL.r - 4, w: 30, d: 30, h: 18, x: -1.8, a: 8.6, b: -5.6, hole: 1.6 };
 FLEDGE.z0 = FLEDGE.z1 - FLEDGE.d; FLEDGE.z = FLEDGE.z0 + FLEDGE.d / 2;
-LOGIC.elements.map.at = [-7, WELL.gallery.y, FLEDGE.z1 - 7];   // entrance-visible, left of the ball's lane
+LOGIC.elements.map.at = [-7.5, WELL.gallery.y, FLEDGE.z + 7.5];   // tile centre; west/north walls tie, back faces west; ball lane stays clear
 export const SILL = { a: -2.35, r: 20, catch: 3.4, slow: 9, over: 2.5 };
 
 // ------------------------------------------------------------------ the stack's rooms (v1.49, issue #23)

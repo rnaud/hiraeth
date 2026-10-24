@@ -270,7 +270,7 @@ export const LOGIC = {
     listener: { type: 'boss', room: 'arena', needs: ['springs'], requires: { any: [{ drumOn: ['bW', 'pW'] }, { drumOn: ['bE', 'pE'] }] } },
     d5: { type: 'door', opens: { resolved: true } },
     // the house's map, in a little chest off the way on (issue #405: src/house-map.js; nothing waits on it)
-    map: { type: 'map', room: 'pools', at: [-31.4, 0, 28.4], yaw: -Math.PI / 4 },
+    map: { type: 'map', room: 'pools', at: [-37.5, 0, 49], yaw: Math.PI, display: { scale: 1.5, plinth: [1.8, .24, 1.6] } },
     // (issue #412) the tide, the house's state: the sea out (0, the start) or in (1), saved. Set at a valve on the quays,
     // the deep floor, the dais and the gallery, and in the Shell Room and the Tank Hall. Its stops are no plates anyone
     // stands on. (Last of the things to do, so the scout asks for it only once nothing nearer is left: logic.next)

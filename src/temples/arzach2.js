@@ -219,7 +219,7 @@ export const LOGIC = {
     eT: { type: 'bell', room: 'bell', needs: ['hook'], hold: 6 },
     heap: { type: 'bridge', opens: { lit: 'eT' } },
     // the house's map, in a little chest off the way on (issue #405: src/house-map.js; nothing waits on it)
-    map: { type: 'map', room: 'stair', at: [-17.6, 0, 62], yaw: Math.PI / 2 },
+    map: { type: 'map', room: 'stair', at: [-9, 0, 65], yaw: 0, display: { scale: 1.5, plinth: [1.8, .24, 1.6] } },
   },
 };
 

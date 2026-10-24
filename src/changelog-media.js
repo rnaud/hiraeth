@@ -1349,6 +1349,81 @@ const RETROID536 = 'Retroid Pocket Nova (Adreno 740, Vulkan), Unity, Handheld (F
 const SRC536 = 'BridgeRenderer.Pipelines (the G-buffer’s states the scene asks for: variant, layout, cull, depth), Metal’s list traced in the editor, the shipped lists rewritten by scripts/bench/pso-one-cull.mjs; docs/systems/performance.md, “One cull mode and one layout for the Surface pipelines”';
 const SEAPORT572 = 'Issue #572: the web game in muted headless Chrome (High, 1280 × 720) on a Vite of its own (port 5441), a new save arriving by ship (?level=underwater&via=ship), then walked as a player; before: origin/main at 02345e2c3, after: this change; the deck and the Dock from the visual check’s views (scripts/design-qc/capture.mjs --fixed-scale); 20 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '2.18': [
+  {
+    "match": "The six raised map chests now line up",
+    "shots": [
+      {
+        "name": "map-tile-wall-rose",
+        "title": "Rose House",
+        "caption": "The chest’s green front faces the room; its back follows the wall and its plinth follows the small floor tiles.",
+        "only": "after",
+        "from": "Actual muted browser canvas, 24 October 2026; after-only candidate based on 4f78eeb7e, source diff f6eace62b40b95e78744f8603e052fe5c8c14971591a1e918db57e46de50f409. Private staged room access followed by ordinary movement; this still is not a full temple walkthrough or native proof. "
+      },
+      {
+        "name": "map-tile-wall-bazaar",
+        "title": "Lantern Market",
+        "caption": "The map display follows the rectangular tiles, with its back toward the west wall.",
+        "only": "after",
+        "from": "Actual muted browser canvas, 24 October 2026; after-only candidate based on 4f78eeb7e, source diff f6eace62b40b95e78744f8603e052fe5c8c14971591a1e918db57e46de50f409. Private staged room access followed by ordinary movement; this still is not a full temple walkthrough or native proof. "
+      },
+      {
+        "name": "map-tile-wall-aerie",
+        "title": "Aerie",
+        "caption": "The raised map chest faces into the room from the west wall.",
+        "only": "after",
+        "from": "Actual muted browser canvas, 24 October 2026; after-only candidate based on 4f78eeb7e, source diff f6eace62b40b95e78744f8603e052fe5c8c14971591a1e918db57e46de50f409. Private staged room access followed by ordinary movement; this still is not a full temple walkthrough or native proof. A foreground wind ribbon crosses the traveller, not the chest."
+      },
+      {
+        "name": "map-tile-wall-engine",
+        "title": "Engine-House",
+        "caption": "The gallery map chest faces away from the full north wall.",
+        "only": "after",
+        "from": "Actual muted browser canvas, 24 October 2026; after-only candidate based on 4f78eeb7e, source diff f6eace62b40b95e78744f8603e052fe5c8c14971591a1e918db57e46de50f409. Private staged room access followed by ordinary movement; this still is not a full temple walkthrough or native proof. The gallery has a plain floor. A foreground parapet partly hides the plinth base."
+      },
+      {
+        "name": "map-tile-wall-whale",
+        "title": "Whale-House",
+        "caption": "The map chest sits on the floor grid with its back toward the north wall.",
+        "only": "after",
+        "from": "Actual muted browser canvas, 24 October 2026; after-only candidate based on 4f78eeb7e, source diff f6eace62b40b95e78744f8603e052fe5c8c14971591a1e918db57e46de50f409. Private staged room access followed by ordinary movement; this still is not a full temple walkthrough or native proof. "
+      },
+      {
+        "name": "map-tile-wall-belfry",
+        "title": "Founders’ Belfry",
+        "caption": "The map display follows the nave tiles, with its front facing the room.",
+        "only": "after",
+        "from": "Actual muted browser canvas, 24 October 2026; after-only candidate based on 4f78eeb7e, source diff f6eace62b40b95e78744f8603e052fe5c8c14971591a1e918db57e46de50f409. Private staged room access followed by ordinary movement; this still is not a full temple walkthrough or native proof. Wide room context; the chest is smaller in this frame."
+      }
+    ]
+  },
+  {
+    "match": "The Engine-House, Whale-House and Founders’ Belfry now display",
+    "shots": [
+      {
+        "name": "map-plinth-engine",
+        "title": "Engine-House",
+        "caption": "The gallery map chest faces away from the full north wall.",
+        "only": "after",
+        "from": "Actual muted browser canvas, 24 October 2026; after-only candidate based on 4f78eeb7e, source diff f6eace62b40b95e78744f8603e052fe5c8c14971591a1e918db57e46de50f409. Private staged room access followed by ordinary movement; this still is not a full temple walkthrough or native proof. The gallery has a plain floor. A foreground parapet partly hides the plinth base."
+      },
+      {
+        "name": "map-plinth-whale",
+        "title": "Whale-House",
+        "caption": "The map chest sits on the floor grid with its back toward the north wall.",
+        "only": "after",
+        "from": "Actual muted browser canvas, 24 October 2026; after-only candidate based on 4f78eeb7e, source diff f6eace62b40b95e78744f8603e052fe5c8c14971591a1e918db57e46de50f409. Private staged room access followed by ordinary movement; this still is not a full temple walkthrough or native proof. "
+      },
+      {
+        "name": "map-plinth-belfry",
+        "title": "Founders’ Belfry",
+        "caption": "The map display follows the nave tiles, with its front facing the room.",
+        "only": "after",
+        "from": "Actual muted browser canvas, 24 October 2026; after-only candidate based on 4f78eeb7e, source diff f6eace62b40b95e78744f8603e052fe5c8c14971591a1e918db57e46de50f409. Private staged room access followed by ordinary movement; this still is not a full temple walkthrough or native proof. Wide room context; the chest is smaller in this frame."
+      }
+    ]
+  }
+],
   '2.17': [
   {
     "match": "The ship’s windows catch a pale reflection from inside, while keeping the view outside clear.",
