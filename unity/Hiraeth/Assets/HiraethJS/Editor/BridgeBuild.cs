@@ -48,10 +48,10 @@ namespace Hiraeth.EditorTools
             foreach (var f in Directory.GetFiles(src).Where(f => f.EndsWith(".glb"))) File.Copy(f, Path.Combine(dst, Path.GetFileName(f)), true);
             // the people's MakeHuman body (anim/mh/body.bin) and the traveller, B3 (characters/traveller-b3, and his head,
             // head-v3: without them a player on a device, which has no repository beside it, fell back to the old explorer),
-            // and the Rose House's Keeper on its fitted skin
+            // the father's generated hologram body (#658), and the Rose House's Keeper on its fitted skin
             // (guardians/keeper-v1, issue #267, and elder-v3: without them the bundle falls back to the procedural bodies; and
             // their colors.json, the skins' colours as the engines draw them, issue #264)
-            foreach (var (from, files) in new[] { ("models/ships/caravan-a", new[] { "playable.glb" }), ("anim/mh", new[] { "body.bin" }), ("characters/traveller-b3", new[] { "model.glb", "rig.json", "colors.json" }), ("characters/traveller-v1/head-v3", new[] { "model.glb", "colors.json", "hair-ink.png", "eye-paint.png" }), ("guardians/keeper-v1", new[] { "model.glb", "colors.json" }), ("guardians/elder-v3", new[] { "model.glb", "colors.json" }) })
+            foreach (var (from, files) in new[] { ("models/ships/caravan-a", new[] { "playable.glb" }), ("anim/mh", new[] { "body.bin" }), ("characters/father-v1", new[] { "model.glb" }), ("characters/traveller-b3", new[] { "model.glb", "rig.json", "colors.json" }), ("characters/traveller-v1/head-v3", new[] { "model.glb", "colors.json", "hair-ink.png", "eye-paint.png" }), ("guardians/keeper-v1", new[] { "model.glb", "colors.json" }), ("guardians/elder-v3", new[] { "model.glb", "colors.json" }) })
             {
                 var d = Path.Combine(Application.streamingAssetsPath, "hiraeth-js", "public", from);
                 Directory.CreateDirectory(d);

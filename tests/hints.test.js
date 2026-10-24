@@ -34,14 +34,19 @@ test('bug: on a phone on its side a notice was pushed under the touch buttons, o
   assert.ok(L.rects.toast.y1 < 120, `near the top (${L.rects.toast.y0})`);
 });
 
-// (one short line since the author's playthrough, issue #72: the mark, the title, the step after it with hints full)
-test('a quest\'s start has its own card: one line, its mark and its title, the first step after it', () => {
+// The approved enamel card keeps its category visible, its distinct mark decorative, and supplied text escaped.
+test('a quest\'s start has its own card: visible category, distinct mark, title and supplied step', () => {
   const html = questToastHtml({ head: 'New quest', title: 'The bell <of> stone', step: 'Find the clapper' });
-  assert.match(html, /class="qk" aria-label="New quest">◆</, 'a main quest: the gold diamond, no head written out');
+  assert.match(html, /class="qh">New quest</, 'the existing category is visibly written once');
+  assert.equal((html.match(/New quest/g) ?? []).length, 1, 'no duplicate category for assistive readers');
+  assert.match(html, /class="qk" aria-hidden="true">◆</, 'main quest retains its filled decorative diamond');
   assert.doesNotMatch(html, />◆ New quest</);
   assert.match(html, /class="qt">The bell &lt;of&gt; stone</, 'escaped');
   assert.match(html, /class="qs">Find the clapper</);
-  assert.match(questToastHtml({ head: 'New errand', title: 'A pot' }), /class="qk errand" aria-label="New errand">◇</, 'an errand: the hollow one');
+  const errand = questToastHtml({ head: 'New errand', title: 'A pot' });
+  assert.match(errand, /class="qh">New errand</, 'errand category stays explicit');
+  assert.match(errand, /class="qk errand" aria-hidden="true">◇</, 'an errand retains its hollow decorative mark');
+  assert.match(questToastHtml({ head: 'A <category>' }), /class="qh">A &lt;category&gt;</, 'category is escaped too');
   assert.doesNotMatch(questToastHtml({ title: 'Alone' }), /qs/, 'no step, no empty line');
 });
 

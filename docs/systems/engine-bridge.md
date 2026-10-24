@@ -3075,3 +3075,25 @@ position and remaps a resolving world. Layout changes clear sweep/dwell qualific
 count as searching. A fresh deliberate sweep and dwell can still chart a world after resizing.
 The private `device-*` menu review plans drain physical pointer input during their hold instead of
 waiting for a synthetic pointer step. This fixture correction is separate from normal gameplay input.
+
+
+### Father hologram in installed players (#658)
+
+The father's existing generated model is loaded from
+`public/characters/father-v1/model.glb`. `BridgeBuild.Common` includes that exact
+file in `StreamingAssets/hiraeth-js/public/characters/father-v1/` for every native
+player. Its texture and rig are embedded in the GLB; no new character or hologram
+behaviour is introduced. Repository-backed editor reviews can find a source asset
+that an installed player lacks. Validate the built package inventory, deny repository
+fallback in native review, and repeat cold starts through the prologue. These editor
+checks simulate packaged lookup; they are not installed-app evidence. Confirm the
+installed device separately when available, following manual-unlock and private-save
+review rules.
+
+Unity player API and script minimum are both 5 for this repair. Players at API 4
+can run the JavaScript but do not carry this model; the script-only OTA archive
+excludes `public/` and cannot supply it. The raised minimum makes those players
+request a player update before accepting the new script. Android uses the existing
+APK update path, and supported Deck launchers use the existing player updater.
+Installing the replacement player preserves the existing application identity and
+save location. The web/Capacitor native API is unchanged.

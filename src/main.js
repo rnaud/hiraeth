@@ -1660,6 +1660,7 @@ let frameNo = 0;
 // right here when it has nothing to float over (a scene's own E) and a region's
 // name as you cross into it; no button hints as you get into a vehicle (src/hud.js cueText).
 const cue = new Cue(), placeName = new PlaceName();
+window.addEventListener('beforeunload', () => cue.dispose(), { once: true });
 cue.onChange = () => ship.cinema.layout();   // (the cue heads the hints' stack at the top: the notices under it move at once, issue #306)
 function updateHud() {
   const now = performance.now();

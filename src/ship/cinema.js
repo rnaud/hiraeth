@@ -17,7 +17,7 @@ import { inputKind, keyText, hasKeys, escapeHtml } from '../prompt-keys.js';
 import { backKey } from '../native-pad.js';
 import { NoticePace } from '../notice-pace.js';
 import { hintLevel, quietKeys } from '../hint-level.js';
-import { HINT } from '../hint-look.js';   // every hint one look, one place (issue #306)
+import { HINT, questMark } from '../hint-look.js';   // every hint one look, one place (issue #306)
 import { toastSeconds } from '../quest.js';   // a long toast stays up longer   // the mumbled voice under each subtitle
 
 /** How long the objective card stays (s): the page's animation and an engine's part alike. */
@@ -78,14 +78,14 @@ const setText = (el, text) => { if (hasKeys(text)) el.innerHTML = keyText(escape
 
 /**
  * A quest's start, as its toast says it (the toast with class "quest", index.html): one short line, the quest's mark
- * (◆ a main quest, in gold; ◇ an errand) and its title, and its first step after it when hints are full. It was a head
- * ("New quest"), the title and the step on three lines: "too much visual noise" (the author's playthrough, October
- * 2026, issue #72). `head` still says which kind it is. Plain HTML, the step's {key:verb} as the player's own key or button.
+ * ◆ is a main quest and ◇ an errand. Automatic steps remain suppressed by toast(); the optional renderer field
+ * remains for explicit callers only. The enamel styling changes hierarchy, not quest wording or help policy.
+ * Plain HTML; control names retain the current platform form.
  */
 export function questToastHtml({ head = 'New quest', title = '', step = '' } = {}) {
   const k = (s) => (hasKeys(s) ? keyText(escapeHtml(s), { html: true }) : escapeHtml(s));
-  const main = !/errand/i.test(head);
-  return `<span class="qk${main ? '' : ' errand'}" aria-label="${escapeHtml(head)}">${main ? '◆' : '◇'}</span><span class="qt">${escapeHtml(title)}</span>${step ? `<span class="qs">${k(step)}</span>` : ''}`;
+  const mark = questMark(head), main = mark === '◆';
+  return `<span class="qh">${escapeHtml(head)}</span><span class="qk${main ? '' : ' errand'}" aria-hidden="true">${mark}</span><span class="qt">${escapeHtml(title)}</span>${step ? `<span class="qs">${k(step)}</span>` : ''}`;
 }
 
 /** Seconds a line of `text` needs on screen (as the calls time theirs). */
@@ -502,7 +502,7 @@ export class Cinema {
     this.pace.shown(item, now());
     const secs = toastSeconds(text) + (quest ? 0.5 : 0);   // (a quest's start: a moment longer)
     this.onWords?.(text);   // (words on the screen: main.js listens for the hum)
-    screen.toast(keyText(text), secs);   // (as data too: platform.js screen.toast)
+    screen.toast(keyText(text), secs, quest ? item : null);   // (as data too: platform.js screen.toast)
     // a quest's start looks unlike the other notices: its own card (questToastHtml, index.html #toast.quest)
     if (quest) this.toastEl.innerHTML = questToastHtml(item); else setText(this.toastEl, text);
     this.toastEl.classList.toggle('quest', quest);

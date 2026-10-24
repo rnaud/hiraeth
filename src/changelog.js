@@ -9,6 +9,13 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
+    v: '2.19', date: '2026-10-24',
+    items: [
+      { text: 'The Unity opening now shows your father’s hologram with the correct model after updating the app.', see: 'Install the updated Unity app, then watch the opening in the caravan. Older Unity players need the app update before the new game update; existing saves stay in place.' },
+      { text: 'Hints and quest notices have compact charcoal panels, fine cream borders and turquoise accents. Controls keep their ivory badges, and larger text has room to wrap.', see: 'Ask for a quest direction or approach something you can use. Quest announcements keep their existing words; the screen stays quiet at rest. Compare Larger text and the solid speech background in Settings.' },
+    ],
+  },
+  {
     v: '2.18', date: '2026-10-24',
     items: [
       { text: 'The six raised map chests now line up with the floor tiles where present, with their backs toward the nearest room wall and their fronts facing the room.', see: 'Look at the map displays in the Rose House, Lantern Market, Aerie, Engine-House, Whale-House and Founders’ Belfry. The Engine-House gallery has a plain floor; its chest follows the wall. Puzzle gates are unchanged.' },

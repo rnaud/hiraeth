@@ -179,7 +179,7 @@ namespace Hiraeth.Bridge
         Ui.Box objBox; Label objText; int objId = -1; float objT;
         void BuildObjective()
         {
-            objBox = Ui.Panel(root, "objective", HintBg0, HintBg0, 0, 0, 0, 4);
+            objBox = Ui.Panel(root, "objective", HintBg0, HintBg0, 0, 0, 0, 7);
             objText = Ui.Label(objBox.rt, "text", Ui.Sans, 20, HintInk0, TextAnchor.UpperCenter, FontStyle.Normal, 1.3f);   // (the page's 500: Avenir Next's regular here)
             Ui.Space(objText, 0.03f);
             objBox.Show(false);
@@ -196,10 +196,11 @@ namespace Hiraeth.Bridge
             float fs = Mathf.Max(Mathf.Clamp(W * 0.04f, 15, 20), TypeM * 1.1f);
             objText.fontSize = Mathf.RoundToInt(fs);
             objBox.SetFill(HintBg); objText.color = HintInk;
-            var s = Ui.Set(objText, $"<color=#f2c54b>◆</color>  {Text.Plain(o.S("text") ?? "")}", Mathf.Min(48 * TypeS, W - 32) - 2.2f * fs);
+            var s = Ui.Set(objText, $"<color=#79c9c0>◆</color>  {Text.Plain(o.S("text") ?? "")}", Mathf.Min(48 * TypeS, W - 32) - 2.2f * fs);
             float w = s.x + 2.2f * fs, h = s.y + 0.75f * fs;
             Ui.Place(objText.rectTransform, 1.1f * fs, 0.35f * fs, s.x, s.y);
             Ui.Place(objBox.rt, W / 2 - w / 2, H * 0.18f + lift, w, h);
+            HintTrim(objBox);
             Ui.Alpha(objBox.rt, Mathf.Clamp01(a));
         }
 

@@ -1349,6 +1349,69 @@ const RETROID536 = 'Retroid Pocket Nova (Adreno 740, Vulkan), Unity, Handheld (F
 const SRC536 = 'BridgeRenderer.Pipelines (the G-buffer’s states the scene asks for: variant, layout, cull, depth), Metal’s list traced in the editor, the shipped lists rewritten by scripts/bench/pso-one-cull.mjs; docs/systems/performance.md, “One cull mode and one layout for the Surface pipelines”';
 const SEAPORT572 = 'Issue #572: the web game in muted headless Chrome (High, 1280 × 720) on a Vite of its own (port 5441), a new save arriving by ship (?level=underwater&via=ship), then walked as a player; before: origin/main at 02345e2c3, after: this change; the deck and the Dock from the visual check’s views (scripts/design-qc/capture.mjs --fixed-scale); 20 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '2.19': [
+  {
+    "match": "The Unity opening now shows your father’s hologram",
+    "shots": [
+      {
+        "name": "father-package",
+        "title": "Father in the opening",
+        "size": [
+          1280,
+          720
+        ],
+        "caption": "The installed-player inventory now includes the existing Father model instead of leaving the old fallback body.",
+        "from": "Actual muted Unity Editor package-only review, 24 October 2026, 1280 × 720. Before exact 3eabeeda284b native package inventory; after that base plus the five Father packaging fix files (exact hashes retained). Ordinary E opened the real hologram after a disclosed staged cockpit pose, matched camera and call at 8 seconds. Repository asset fallback denied; unchanged generated Father asset, private product/store and full warm/default restoration. This is package simulation, not installed-device evidence; natural gaze/glitch timing differs."
+      },
+      {
+        "name": "father-cold-start",
+        "title": "A separate cold start",
+        "only": "after",
+        "size": [
+          1280,
+          720
+        ],
+        "caption": "The same packaged Father loads again in a separate cold-start process.",
+        "from": "Actual muted Unity Editor package-only review, 24 October 2026, 1280 × 720. Before exact 3eabeeda284b native package inventory; after that base plus the five Father packaging fix files (exact hashes retained). Ordinary E opened the real hologram after a disclosed staged cockpit pose, matched camera and call at 8 seconds. Repository asset fallback denied; unchanged generated Father asset, private product/store and full warm/default restoration. This is package simulation, not installed-device evidence; natural gaze/glitch timing differs. After-only second independent process/private store; no fabricated before."
+      }
+    ]
+  },
+  {
+    "match": "Hints and quest notices have compact charcoal panels",
+    "shots": [
+      {
+        "name": "quest-announcement",
+        "title": "Quest announcement",
+        "size": [
+          1280,
+          620
+        ],
+        "caption": "The same existing quest announcement, with its category above the title.",
+        "from": "Actual internal-browser running game, 24 October 2026. Before exact aed53d616; after that base plus approved enamel HUD candidate (runtime hashes retained). Identical fixed Desert camera, staged presentation through real Cue/Cinema/context renderers, not earned quest or traversal. Full application viewport cropped only to exclude QA controls; world animation timing differs. Constructor-muted with independent output block, private audible preferences and unchanged original stores. No concept image used as game evidence."
+      },
+      {
+        "name": "context-prompt",
+        "title": "A control beside its action",
+        "size": [
+          1280,
+          620
+        ],
+        "caption": "The ivory control badge and action stay together in a compact enamel panel.",
+        "from": "Actual internal-browser running game, 24 October 2026. Before exact aed53d616; after that base plus approved enamel HUD candidate (runtime hashes retained). Identical fixed Desert camera, staged presentation through real Cue/Cinema/context renderers, not earned quest or traversal. Full application viewport cropped only to exclude QA controls; world animation timing differs. Constructor-muted with independent output block, private audible preferences and unchanged original stores. No concept image used as game evidence."
+      },
+      {
+        "name": "larger-direction",
+        "title": "Room for larger text",
+        "size": [
+          390,
+          620
+        ],
+        "caption": "Larger text at 1.45× wraps within the same 390-pixel-wide view; no extra quest step is added.",
+        "from": "Actual internal-browser running game, 24 October 2026. Before exact aed53d616; after that base plus approved enamel HUD candidate (runtime hashes retained). Identical fixed Desert camera, staged presentation through real Cue/Cinema/context renderers, not earned quest or traversal. Full application viewport cropped only to exclude QA controls; world animation timing differs. Constructor-muted with independent output block, private audible preferences and unchanged original stores. No concept image used as game evidence."
+      }
+    ]
+  }
+],
   '2.18': [
   {
     "match": "The six raised map chests now line up",

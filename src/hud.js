@@ -165,7 +165,15 @@ export function staminaHud({ stamina = 1, winded = false, quiet = false } = {}, 
 
 /** The cue's element (index.html #cue): set only when the line changes; fades in and out; `onChange` is called when it does. Its state goes to platform.js screen.cue. */
 export class Cue {
-  constructor(el = page.byId('cue')) { this.el = el; this.text = ''; this.kind = ''; }
+  constructor(el = page.byId('cue')) {
+    this.el = el; this.text = ''; this.kind = '';
+    // Words can wrap after a resize or a larger-text setting without changing the cue's kind.
+    // Observe real dimensions, not every word/frame, so the notice below always clears it.
+    if (el && typeof globalThis.ResizeObserver === 'function') {
+      this.sizeObserver = new ResizeObserver(() => this.onChange?.()); this.sizeObserver.observe(el);
+    }
+  }
+  dispose() { this.sizeObserver?.disconnect(); }
   set(text, kind = '') {
     // (a prompt's button as its own badge, the words after it: an engine draws them as the page's .key and .glyph, issue #422)
     const lead = text && !kind ? leadKey(text) : null;

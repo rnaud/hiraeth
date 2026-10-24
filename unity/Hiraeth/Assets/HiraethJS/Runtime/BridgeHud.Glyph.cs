@@ -52,7 +52,7 @@ namespace Hiraeth.Bridge
         {
             promptGlyph ??= MakeBadge(prompt.rt, "glyph");
             promptGlyph.rt.gameObject.SetActive(true);
-            prompt.SetFill(Color.clear);
+            prompt.SetFill(Color.clear); HintTrim(prompt, false);
             promptKey.enabled = false; promptKeyText.enabled = false; Show(promptText, false);
             // (--type-key × 1.15: 2.2 % of the screen's height, the Text size setting's share)
             var s = PlaceBadge(promptGlyph, 3, 3, key, 2.2f * 7.2f * 1.15f * ts, true);
@@ -84,7 +84,7 @@ namespace Hiraeth.Bridge
             if (glyph)
             {
                 // (#cue.glyph: no strip, the badge alone at 0.8)
-                cue.SetFill(Color.clear);
+                cue.SetFill(Color.clear); HintTrim(cue, false);
                 cueText.text = "";
                 var s = PlaceBadge(cueBadge, 3, 3, key, kpx, true);
                 float w = s.x + 6, h = s.y + 6;
@@ -102,6 +102,7 @@ namespace Hiraeth.Bridge
             float cw = 12 + k.x + 6 + t.x + 12, ch = lh + 12;
             Ui.Place(cue.rt, W / 2 - cw / 2, HintTop, cw, ch);
             Ui.Alpha(cue.rt, 1);
+            HintTrim(cue);
             cueBottom = HintTop + ch;
             return true;
         }

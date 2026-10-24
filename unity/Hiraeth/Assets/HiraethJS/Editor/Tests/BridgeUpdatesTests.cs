@@ -83,6 +83,17 @@ namespace Hiraeth.Tests
         }
 
         [Test]
+        public void MissingFatherAssetRequiresANewPlayerInsteadOfAScriptOnlyUpdate()
+        {
+            const int MissingAssetPlayer = 4;
+            var sha = new string('a', 64);
+            Assert.GreaterOrEqual(BridgeUpdates.ScriptMinUnity, 5, "the Father GLB is native package content");
+            Assert.GreaterOrEqual(Api, BridgeUpdates.ScriptMinUnity);
+            Assert.AreEqual("player", UpdateRules.Decide(15010, BridgeUpdates.ScriptMinUnity, sha, MissingAssetPlayer, 15000, null));
+            Assert.AreEqual("stage", UpdateRules.Decide(15010, BridgeUpdates.ScriptMinUnity, sha, Api, 15000, null));
+        }
+
+        [Test]
         public void ZipEntriesStayInTheirFolder()
         {
             Assert.AreEqual(Path.Combine("item-pictures", "lamp.png"), UpdateRules.SafeEntry("item-pictures/lamp.png"));

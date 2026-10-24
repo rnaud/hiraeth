@@ -46,7 +46,7 @@ test('the hints: one small row of a button and a word each, in the dark hint loo
   assert.ok(r.off && r.items.every((i) => i.gone), 'after the first seconds the row is gone');
   assert.ok(hintRow(rows, { age: 0, live: false }).off, 'not while paused or on a card');
   assert.ok(HINT_ROW.show >= 4 && HINT_ROW.show <= 10);
-  // the size and the look: small type, the strip's near-black and cream and gold (src/hint-look.js), one row
+  // The shared enamel palette keeps the compact row charcoal, ivory and turquoise; CSS retains its legacy fallback.
   const css = readFileSync(new URL('../src/minigames/kit/minigames.css', import.meta.url), 'utf8');
   const rule = css.match(/#minigame \.mg-hints \{[^}]*\}/)[0];
   const px = +rule.match(/font:[^;]*?(\d+)px/)[1];
@@ -56,7 +56,9 @@ test('the hints: one small row of a button and a word each, in the dark hint loo
   assert.match(rule, /var\(--hint-ink/);
   assert.match(css, /\.mg-hint-row \{[^}]*var\(--hint-bg, rgba\(18, 14, 13, 0\.92\)\)/);
   assert.match(css, /\.mg-hint-row b \{[^}]*var\(--hint-accent/);
-  assert.match(HINT.bg, /rgba\(18, 14, 13/);
+  assert.equal(HINT.bg, 'rgba(22, 23, 23, 0.96)', 'approved charcoal shared hint surface');
+  assert.equal(HINT.ink, '#f7ecd2', 'ivory text remains high contrast');
+  assert.equal(HINT.accent, '#79c9c0', 'controller marks inherit the turquoise accent');
   assert.doesNotMatch(rule, /rgba\(247, 236, 210/, 'no cream box');
   // the runner fades them (kit/runner.js drawHints) and the game marks each button used
   const runner = readFileSync(new URL('../src/minigames/kit/runner.js', import.meta.url), 'utf8');

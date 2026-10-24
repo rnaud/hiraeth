@@ -8,6 +8,8 @@
 // modules that draw those set their part of `screen` as they draw, so the web and the engine draw
 // from the same state.
 
+import { questMark } from './hint-look.js';
+
 const hasDoc = () => typeof document !== 'undefined';
 const hasWin = () => typeof window !== 'undefined' && typeof window.addEventListener === 'function';
 
@@ -109,6 +111,9 @@ export const screen = {
   },
   _toasts: 0,
   /** A toast as it goes up (the web's queue decides when). */
-  toast(text, secs = 4) { if (text) this.set('toast', { text: String(text), secs, id: ++this._toasts }); },
+  toast(text, secs = 4, meta = null) {
+    if (text) this.set('toast', { text: String(text), secs, id: ++this._toasts,
+      ...(meta?.kind === 'quest' ? { kind: 'quest', mark: questMark(meta.head ?? 'New quest'), head: String(meta.head ?? 'New quest'), title: String(meta.title ?? ''), step: '' } : {}) });
+  },
   reset() { for (const k of Object.keys(this.state)) this.set(k, null); },
 };

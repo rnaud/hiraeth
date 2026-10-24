@@ -578,7 +578,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   let roadT = 1;
   let folk = null;   // (the errands, the hum, the faces of whoever talks: wirePeople, below once the journal is)
   // (a toast's words heard for the hum, as the page's cinema hears its own: src/story/hum.js)
-  const toast = (text, options = null) => { if (options?.kind === 'hint') return; text = quietKeys(text); if (text && toasts.queue.at(-1) !== text) { toasts.queue.push(String(text)); folk?.hear(String(text)); } };
+  const toast = (text, options = null) => { if (options?.kind === 'hint') return; text = quietKeys(text); if (text && toasts.queue.at(-1)?.text !== text) { toasts.queue.push({ text: String(text), ...(options?.kind === 'quest' ? { kind: 'quest', head: options.head, title: options.title, step: '' } : {}) }); folk?.hear(String(text)); } };
   const noticeBusy = () => toasts.left > 0 || toasts.queue.length > 0;   // (a notice up or waiting: main.js ship.cinema.noticeBusy)
   carryHooks.notice = (t) => toast(t, { kind: 'hint' });   // (carrying, src/carry.js: the first time, how to put it down and throw it)
   player.onNotice = toast;
@@ -601,7 +601,7 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
   const journal = engineJournal({ write: !flags });
   // the errands (a parcel from one world's person to another's), the hum when words on the screen speak of it, the face of
   // whoever talks near you, as the page (src/host/game-host.js wirePeople: the engines had none of them before, #427)
-  folk = optional('the people\'s errands and faces', () => wirePeople({ levelId, npcs, journal, toast: (t) => toast(t), titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])),
+  folk = optional('the people\'s errands and faces', () => wirePeople({ levelId, npcs, journal, toast: (t, o) => toast(t, o), titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])),
     sound, ship, game: gameState }));
   // the world's story page (src/quest.js Story, as main.js makes it): its quest's last step calls story.complete(), which
   // keeps the world in the journal as told (journal.storyDone: a world done for the route, the ship's map, the recordings
@@ -1147,11 +1147,11 @@ export async function createGame({ levelId = 'desert', backend, width = 1280, he
     }
     // (a fixed view's picture has no notices over it, as the web's side-by-sides hide the page's: scripts/unity-compare/)
     if (screen.state.dialogue && toasts.left > 0) {
-      if (screen.state.toast?.text) toasts.queue.unshift(screen.state.toast.text);
+      if (screen.state.toast?.text) toasts.queue.unshift({ ...screen.state.toast });
       toasts.left = 0; screen.set('toast', null);
     }
     if (pinned) screen.set('toast', null);
-    else if (toasts.left <= 0 && toasts.queue.length && !busy && !screen.state.sub && !screen.state.cue && !screen.state.dialogue) { const t = toasts.queue.shift(), secs = toastSeconds(t); screen.toast(t, secs); toasts.left = secs; }
+    else if (toasts.left <= 0 && toasts.queue.length && !busy && !screen.state.sub && !screen.state.cue && !screen.state.dialogue) { const t = toasts.queue.shift(), secs = toastSeconds(t.text); screen.toast(t.text, secs, t); toasts.left = secs; }
     if (toasts.left <= 0) screen.set('toast', null);
     if (ship?.cinema) ship.cinema._externalToast = toasts.left > 0;
     // (the hearts, the potions and the wallet, as main.js updateHealth: src/host/game-host.js wireHealth; shown while

@@ -810,8 +810,8 @@ card, the objective card and the scenes' hint were dark strips at the top; the c
 word, the use button with nothing to float over), the floating prompt and photo mode's keys were cream paper at the
 bottom. Now every one of them is the same strip and, but for the floating prompt, in the same place:
 
-- **One look** (`src/hint-look.js` `HINT`, index.html's `--hint-bg` near-black at 92 %, `--hint-ink` cream,
-  `--hint-accent` gold for a button's name, `--hint-radius`): `#toast` and `#toast.quest`, `#objective .t`,
+- **One look** (`src/hint-look.js` `HINT`, index.html's `--hint-bg` charcoal at 96 %, `--hint-ink` cream,
+  `--hint-accent` turquoise for a button's name, `--hint-radius`): `#toast` and `#toast.quest`, `#objective .t`,
   `#cine .hint`, `#cue`, `#prompt`, `#photo`, `#controller-hint`. A button's badge on the strip is cream with the ink
   letter. A region's name stays letters on the land (a title, not a hint), the button alone (hints subtle) a glyph.
   Solid speech background: white on black.
@@ -1120,3 +1120,24 @@ Developer controls → **Toggles → Sound effects** enables the opt-in source p
 It shares `screen.sfxTrace` between the web and Unity HUD: recent sound occurrences,
 playing loops, source labels and mute status. It never changes the sound mix.
 See [audio.md](audio.md#developer-sound-source-overlay) for provenance and trace scope.
+
+
+### Enamel hint panels (approved direction C)
+
+The shared hint family uses a charcoal fill, thin inset cream frame and turquoise left tab,
+with the existing typeface and ivory control badges. Quest announcements show their existing
+category above their title; their automatically suppressed step remains empty. The requested
+quest direction remains its single existing step. This is a rendering change, not new advice:
+Plumb, notice priority, timings, prompts and quest progression retain their owners.
+
+`src/hint-look.js` supplies the web/engine palette. The browser uses the existing HUD selectors;
+`BridgeHud.Hints.cs` caches one frame/tab per Unity panel. Region names and glyph-only prompts
+have neither decoration, and solid speech mode remains plain black and white. Larger text and
+narrow windows wrap; a Cue size observer reflows the following notices and disconnects when
+disposed. `screen.toast` carries only existing quest kind/head/title with an empty step;
+the engine queue retains that metadata during dialogue interruption/replay.
+
+Validation uses explicitly staged presentation states through the actual Cue, Cinema and
+context-prompt renderers, with muted private stores. These pictures demonstrate HUD appearance,
+not earned quest or traversal outcomes. The approved concept is design provenance only;
+actual browser and Unity pictures are the release evidence.

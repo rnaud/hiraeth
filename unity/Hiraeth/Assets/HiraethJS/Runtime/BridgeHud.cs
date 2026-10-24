@@ -23,7 +23,7 @@ namespace Hiraeth.Bridge
         Dictionary<string, object> state = new();
         int toastId = -1; float toastT, toastSecs = 4;
 
-        Ui.Box toast; Label toastText;
+        Ui.Box toast; Label toastText, toastHead;
         Ui.Box cue; Label cueText;
         Ui.Box prompt; Image promptKey; Label promptKeyText, promptText;
         Ui.Box health; Image healthFill, healthEdge;
@@ -47,7 +47,7 @@ namespace Hiraeth.Bridge
         /// <summary>Every hint one look, one place (issue #306, src/hint-look.js HINT_ENGINE): a near-black strip, cream
         /// letters, at the top centre; the cue first, the toast under it. With the plain speech background (the page's
         /// .speech-solid, issue #346): black and white, the conversation's panel plain white with black words.</summary>
-        static readonly Color HintBg0 = new Color(18 / 255f, 14 / 255f, 13 / 255f, 0.92f), HintInk0 = Ui.Hex("#f7ecd2");
+        static readonly Color HintBg0 = new Color(22 / 255f, 23 / 255f, 23 / 255f, 0.96f), HintInk0 = Ui.Hex("#f7ecd2");
         bool solid, showFps;
         Color HintBg => solid ? Color.black : HintBg0;
         Color HintInk => solid ? Color.white : HintInk0;
@@ -75,11 +75,12 @@ namespace Hiraeth.Bridge
             root.SetParent(transform, false);
             var mono = Ui.Sans;   // (the page's face, --face, for the hints, the prompts and the conversation; issue #423, the monospaced face before)
             BuildEdges();   // (first: under every other piece, as the page's vignettes are under its HUD)
-            toast = Ui.Panel(root, "toast", HintBg0, HintBg0, 0, 0, 0, 4);
+            toast = Ui.Panel(root, "toast", HintBg0, HintBg0, 0, 0, 0, 7);
             toastText = Ui.Label(toast.rt, "text", mono, 13, HintInk0, TextAnchor.UpperCenter);
-            cue = Ui.Panel(root, "cue", HintBg0, HintBg0, 0, 0, 0, 4);
+            toastHead = Ui.Label(toast.rt, "head", mono, 10, HintInk0, TextAnchor.UpperCenter);
+            cue = Ui.Panel(root, "cue", HintBg0, HintBg0, 0, 0, 0, 7);
             cueText = Ui.Label(cue.rt, "text", mono, 13, HintInk0, TextAnchor.MiddleCenter);
-            prompt = Ui.Panel(root, "prompt", HintBg0, HintBg0, 0, 0, 0, 12);
+            prompt = Ui.Panel(root, "prompt", HintBg0, HintBg0, 0, 0, 0, 7);
             promptKey = Ui.Rect(prompt.rt, HintInk0, 11, "key");
             promptKeyText = Ui.Label(promptKey.rectTransform, "k", mono, 11, Ui.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
             Ui.Stretch(promptKeyText.rectTransform);
@@ -165,7 +166,7 @@ namespace Hiraeth.Bridge
             cineRed = Ui.Fill(root, new Color(170 / 255f, 30 / 255f, 25 / 255f, 1), 0, "cine red"); cineRed.raycastTarget = false;
             cineFade = Ui.Fill(root, CineInk, 0, "cine fade"); cineFade.raycastTarget = false;
             barTop = Ui.Rect(root, CineInk, 0, "cine bar top"); barBot = Ui.Rect(root, CineInk, 0, "cine bar bottom");
-            cineHint = Ui.Panel(root, "cine hint", HintBg0, HintBg0, 0, 0, 0, 4);
+            cineHint = Ui.Panel(root, "cine hint", HintBg0, HintBg0, 0, 0, 0, 7);
             cineHintText = Ui.Label(cineHint.rt, "text", mono, 13, HintInk0, TextAnchor.UpperCenter);
             subBox = Ui.Panel(root, "cine sub", SubPaper, CineInk, 2, 3, 3);
             subText = Ui.Label(subBox.rt, "text", mono, SubSize, CineInk, TextAnchor.UpperCenter, lineSpacing: 1.25f);
@@ -233,6 +234,7 @@ namespace Hiraeth.Bridge
                 var s = Ui.Set(cineHintText, Text.Plain(hint), Mathf.Min(560 * ts, W - 60));
                 Ui.Place(cineHintText.rectTransform, 14, 6, s.x, s.y);
                 Ui.Place(cineHint.rt, W / 2 - (s.x + 28) / 2, Mathf.Max(barH * H, cueBottom) + 12, s.x + 28, s.y + 12);
+                HintTrim(cineHint);
             }
             // the subtitle over the bottom bar: the speaker's tag in their colour, the line, its *emphasis* bold
             if (sub != null && sub.I("id") != subId) { subId = sub.I("id"); subT = 0; }
@@ -1412,11 +1414,21 @@ namespace Hiraeth.Bridge
             if (!on) return;
             float k = toastT / toastSecs;
             float a = k < 0.08f ? k / 0.08f : k < 0.8f ? 1 : 1 - (k - 0.8f) / 0.2f;
-            toast.SetFill(HintBg); toastText.color = HintInk; toastText.fontSize = Sz(13);
-            var s = Ui.Set(toastText, Text.Plain(t.S("text")), Mathf.Min(900, W - 60));
-            Ui.Place(toastText.rectTransform, 14, 8, s.x, s.y);
-            float w = s.x + 28, h = s.y + 16;
+            bool quest = t.S("kind") == "quest";
+            toast.SetFill(HintBg); toastText.color = HintInk;
+            toastText.fontSize = Sz(quest ? 15 : 13); toastText.fontStyle = quest ? FontStyle.Bold : FontStyle.Normal;
+            Show(toastHead, quest);
+            float limit = Mathf.Min(900, W - 60), pad = 16;
+            string title = Text.Plain(quest ? t.S("title") : t.S("text"));
+            if (quest) title = $"<color={(solid ? "#ffffff" : "#79c9c0")}>{(t.S("mark") == "◇" ? "◇" : "◆")}</color>  {title}";
+            var s = Ui.Set(toastText, title, limit - pad * 2);
+            var head = Vector2.zero;
+            if (quest) { toastHead.color = HintInk; toastHead.fontSize = Sz(10); head = Ui.Set(toastHead, Text.Plain(t.S("head")), limit - pad * 2); }
+            float w = Mathf.Max(s.x, head.x) + pad * 2, titleY = quest ? head.y + 12 : 9, h = titleY + s.y + 10;
+            if (quest) Ui.Place(toastHead.rectTransform, (w - head.x) / 2, 8, head.x, head.y);
+            Ui.Place(toastText.rectTransform, (w - s.x) / 2, titleY, s.x, s.y);
             Ui.Place(toast.rt, W / 2 - w / 2, cueBottom > 0 ? cueBottom + HintGap : HintTop, w, h);
+            HintTrim(toast);
             Ui.Group(toast.rt).alpha = a;
         }
 
@@ -1434,9 +1446,10 @@ namespace Hiraeth.Bridge
             cueText.color = place ? (solid ? Color.black : Ui.Ink) : HintInk;
             cueText.fontSize = Sz(13);
             var s = Ui.Set(cueText, c.S("text"), Mathf.Min(900, W - 60));
-            float w = s.x + 24, h = s.y + 12;
-            Ui.Place(cueText.rectTransform, 12, 6, s.x, s.y);
+            float w = s.x + 32, h = s.y + 18;
+            Ui.Place(cueText.rectTransform, 16, 9, s.x, s.y);
             Ui.Place(cue.rt, W / 2 - w / 2, HintTop, w, h);   // (the top centre, first in the hints' stack: issue #306)
+            HintTrim(cue, !place);
             cueBottom = HintTop + h;
         }
 
@@ -1454,19 +1467,20 @@ namespace Hiraeth.Bridge
             prompt.SetFill(HintBg); promptKey.color = HintInk; promptText.color = HintInk;
             promptText.fontSize = Sz(12); promptKeyText.fontSize = Sz(11);
             promptKeyText.text = key;
-            float kw = Mathf.Max(21, Ui.Measure(promptKeyText, key).x + 10);
-            Ui.Place(promptKey.rectTransform, 4, 3, kw, 21);
+            float keyHeight = Sz(21), kw = Mathf.Max(keyHeight, Ui.Measure(promptKeyText, key).x + Sz(10));
+            Ui.Place(promptKey.rectTransform, 4, 3, kw, keyHeight);
             // (the button alone unless hints are full, as the page's .glyph: src/hint-level.js; issue #394, Unity always wrote
             // "E voicemail" where the page shows the E)
             bool words = !(p.Get("words") is bool wd) || wd;
-            var s = words ? Ui.Set(promptText, p.S("text"), 360) : Vector2.zero;
+            var s = words ? Ui.Set(promptText, p.S("text"), Mathf.Min(360, W - kw - 60)) : Vector2.zero;
             Show(promptText, words);
-            float lh = Mathf.Max(21, Sz(12) * 1.6f);
-            Ui.Place(promptKey.rectTransform, 4, 3, kw, lh);
-            Ui.Place(promptText.rectTransform, 4 + kw + 6, 3, s.x, lh);
-            float w = words ? 4 + kw + 6 + s.x + 10 : kw + 8, h = lh + 6;
+            float lh = Mathf.Max(Mathf.Max(keyHeight, Sz(12) * 1.6f), s.y);
+            Ui.Place(promptKey.rectTransform, 9, 7 + (lh - keyHeight) / 2, kw, keyHeight);
+            Ui.Place(promptText.rectTransform, 9 + kw + 9, 7, s.x, lh);
+            float w = words ? 9 + kw + 9 + s.x + 12 : kw + 18, h = lh + 14;
             float px = Mathf.Clamp(at.Value.x - w / 2, 8, W - w - 8), py = Mathf.Clamp(at.Value.y - h, 8, H - h - 8);
             Ui.Place(prompt.rt, px, py, w, h);
+            HintTrim(prompt);
             if (trace) tracePrompt.at = Mathf.Approximately(px, at.Value.x - w / 2) && Mathf.Approximately(py, at.Value.y - h) ? World(p.L("at")) : null;   // (not where it is held in at an edge)
         }
 
