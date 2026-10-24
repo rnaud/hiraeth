@@ -523,7 +523,7 @@ export class Guardian {
         id: `temple.${rt.def.id}.help`, priority: PRIORITY.use + 2, range: 4,
         prompt: def.helper === 'cistern' ? 'help the Keeper' : 'fly with the Elder',
         at: () => (this._ta ??= V()).copy(model.mouth).addScaledVector(UP, .8),
-        enabled: () => this.state === 'sleep' && !!rt.startHelper,
+        enabled: () => this.state === 'sleep' && !!rt.startHelper && (rt.canStartHelper?.() ?? true),
         distance: p => Math.abs(p.pos.y - this.arena.y) > 6 ? Infinity : Math.max(0, Math.hypot(p.pos.x - model.mouth.x, p.pos.z - model.mouth.z) - (model.touchR ?? 0)),
         use: () => rt.startHelper?.(),
       }));

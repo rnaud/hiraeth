@@ -3153,3 +3153,32 @@ Roost: its source-world return starts on the quiet vent rather than staging a
 second arrival, then celebrates the restored wind and way onward. Raw Arena
 sparring retains its original guardian film. Failed and abandoned runs keep the
 original safe return without a victory film.
+
+
+### Helping endings at the special door (#655)
+
+Only the Rose House and Aerie use this flow. Crossing their physically opened
+special entrance starts the introduction and existing Cistern/Elder flight game.
+The Rose cistern uses d4 after the sentry/channel d3 gate and required equipment;
+the Aerie uses its great-key d3 door. Old helper attacks stay disabled.
+
+The entry controller records a real grounded approach pose. Quitting restores
+that pose outside the threshold, with no completion; another inward crossing
+retries. A saved game already inside retains explicit continuation at the helper.
+An interrupted introduction restores its saved approach without awarding a win.
+Only a matching goal receipt automatically returns after the existing finishing
+pause. Successful return uses an explicit near-rim completion pose for the
+retained room's finale; quit does not use that pose. Slot, world, receipt and
+runner ownership are rechecked before either deferred navigation. Existing
+resolution owns the reward, water/wind restoration and exit opening exactly once.
+
+Muted web and Unity reviews cover ordinary threshold entry, introduction skip
+and reload, failed-run quit/re-entry, success-receipt reload, and saved-inside
+continuation through a genuine goal and automatic return. Unity uses real scene
+and VM reboots; rewards, completion flags and exit opening remain once-only.
+Legacy fixtures declare initial prerequisites and an inside rim pose, then walk
+with ordinary inputs before saving, rebooting and using the helper. These are
+controlled routes and scripted minigame inputs, not fresh playthroughs or physical-
+device/listening acceptance. The Elder portrait uses current generated body
+bounds at a normal 52-degree lens, excluding unrelated room and reward effects;
+a checked room view remains the fallback if a safe portrait cannot be found.

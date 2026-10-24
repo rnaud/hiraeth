@@ -9,6 +9,13 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
+    v: '2.13', date: '2026-10-23',
+    items: [
+      { text: "The Rose House’s final doorway now leads straight into the Keeper’s opening scene and Cistern challenge. Finish the water route to return automatically for the house’s completion scene.", see: "With the Rose House’s final door unlocked, walk through it without pressing the talk button. Complete all three Cistern floods; the game returns you to the Keeper and the basin-filling scene without choosing Return." },
+      { text: "The Aerie’s final doorway now leads into the Elder’s introduction and flight. Reach the Old Roost to return automatically, with the Elder fully framed and the wind returning in the completion scene.", see: "Reach the Aerie’s final doorway with its normal prerequisites, walk through and finish the Elder flight’s real goal. The completion scene follows automatically; its close view keeps the Elder’s head, wings and feet visible." },
+    ],
+  },
+  {
     v: '2.12', date: '2026-10-23',
     items: [
       { text: 'New releases also build the Unity downloads for Android and Steam Deck, and keep them with the version they were built for.', see: 'Open the GitHub release downloads after the Unity build finishes to find the Unity Android APK and Linux / Steam Deck archive.' },

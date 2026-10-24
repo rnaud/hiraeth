@@ -44,7 +44,8 @@ export function makeTrials({ levelId, scene, physics, level, player, camera, rig
   if (def) {
     // a game's page: the runner takes over at once (main.js: the start card up), the world's story set aside
     runner = new MinigameRunner(def, host({ ship, from, links: helper?.links ?? transit?.links ?? gameLinks(def, level, from),   // (from the Arcade: back to it, the game before / after, as main.js; a game's own: the pirates' next place)
-      onResult: (r) => { helper?.onResult(r); transit?.onResult(r); }, helper: helper?.context,
+      onResult: (r) => { helper?.onResult(r); transit?.onResult(r); },
+      completionHref: r => helper?.completionHref(r), recoveryHref: () => helper?.recoveryHref(), helper: helper?.context,
       navigate: (href) => { helper?.left(); transit?.left(); runner = null; onLeave?.(href); } }));
     story?.beacon?.removeFromParent?.();
     if (story) story.done = true;

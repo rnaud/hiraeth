@@ -2735,6 +2735,7 @@ if (minigameDef) {
     navigate: (href) => { helper?.left(); transit?.left(); flushPlay(); location.href = href; },
     // (won: the chimes shot down go into the wallet, once: a Retry after the win flies it again for the score alone)
     onResult: (r) => { helper?.onResult(r); transit?.onResult(r); },
+      completionHref: r => helper?.completionHref(r), recoveryHref: () => helper?.recoveryHref(),
     helper: helper?.context,
     links: helper?.links ?? transit?.links ?? gameLinks(minigameDef, level, query.get('from')) });   // (started from the Arcade: the game before / after, back to its sign; the pirates' next place, issue #555)
   window.minigame = minigame;

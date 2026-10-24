@@ -608,6 +608,55 @@ export function finaleShots(rt, F = FINALE) {
     // roost's quiet vent, then show its wind restored; never film a second arrival.
     const start = typeof houseShot.from === 'function' ? houseShot.from(0) : houseShot.from;
     shots[0] = { dur: F.keeper, clear: houseShot.clear, from: start };
+    // A separate portrait of the Elder: the purse is near the old low lens and
+    // must not enlarge a body/reward union into a fisheye. Her articulated rig
+    // owns head, crest and wings; tell rings, chimes and room effects are not
+    // subjects. Keep a normal lens and find room for it instead of widening it.
+    let lastPortrait = null, chosenTurn = 0;
+    const portraitBounds = () => {
+      // The live guardian is a wrapper. Its generated skin meshes are siblings
+      // of the rig bones; traversing `rig` alone would omit the accepted skin.
+      m.group.updateMatrixWorld(true);
+      const inner = m.inner ?? m;
+      if (!inner.meshes?.length) return keeperBox({ group: inner.rig ?? inner.group });
+      const bounds = new THREE.Box3();
+      for (const mesh of inner.meshes) if (mesh.visible) bounds.union(keeperBox({ group: mesh }));
+      return bounds;
+    };
+    const portraitTarget = () => portraitBounds().getCenter(V());
+    const portrait = () => {
+      const bounds = portraitBounds(), look = bounds.getCenter(V());
+      const whole = keeperBox(m).expandByScalar(.4);
+      const safe = pos => rt.inside(pos) && !solid(pos) && !whole.containsPoint(pos)
+        && fitFov(pos, look, bounds, 4 / 3, .72) <= 52
+        && sightClear(pos, look, { ...sight, skip: [m.group], near: .3 });
+      const accept = pos => {
+        shots[1].portraitAvailable = true; shots[1].clear = false;
+        return (lastPortrait = { pos, look, fov: 52 });
+      };
+      // A stationary checked lens avoids metre-step camera jumps as wings move.
+      if (lastPortrait && safe(lastPortrait.pos)) return accept(lastPortrait.pos);
+      const direction = flat(me.clone().sub(look));
+      const turns = [...new Set([chosenTurn, 0, .35, -.35, .7, -.7, 1.1, -1.1, Math.PI])];
+      for (const turn of turns) {
+        const dir = V(direction.x * Math.cos(turn) + direction.z * Math.sin(turn), 0,
+          -direction.x * Math.sin(turn) + direction.z * Math.cos(turn));
+        for (let distance = 10; distance <= 40; distance += 1) {
+          const pos = look.clone().addScaledVector(dir, distance).addScaledVector(UP, .5);
+          if (fitFov(pos, look, bounds, 4 / 3, .72) > 52) continue;
+          if (!safe(pos)) continue;
+          chosenTurn = turn;
+          return accept(pos);
+        }
+      }
+      // Explicit room-view fallback, never an unqualified Elder portrait. Keep
+      // the original room shot's collision policy; review requires a portrait
+      // throughout the accepted Aerie pose rather than counting this as a pass.
+      shots[1].portraitAvailable = false; shots[1].clear = houseShot.clear;
+      return start;
+    };
+    shots[1] = { dur: F.reward, clear: false, from: portrait };
+    shots[1].subject = () => shots[1].portraitAvailable === false ? start.look.clone() : portraitTarget();
   }
   return { shots, way, at: { opening: rt.guardian.def.helper === 'elderflight' ? shots[0].from.look : body, keeper: body, reward: purse, house: houseAt, way: door }, axis: n, box: boxAt(finaleLength(F)), reach: { A: KA, B: KR, C: KC, D: KD }, picked: { arc, reward: !!rewardPick, sign: sign ? sign.x.i : null, way: wayPicked }, sign: sign ? { skip: skipOf(sign.x), near: sign.x.near ?? Math.min(1.5, sign.x.r * 0.4) } : null, bodyAt: boxAt };
 }
