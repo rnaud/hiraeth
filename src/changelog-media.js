@@ -1349,6 +1349,55 @@ const RETROID536 = 'Retroid Pocket Nova (Adreno 740, Vulkan), Unity, Handheld (F
 const SRC536 = 'BridgeRenderer.Pipelines (the G-buffer’s states the scene asks for: variant, layout, cull, depth), Metal’s list traced in the editor, the shipped lists rewritten by scripts/bench/pso-one-cull.mjs; docs/systems/performance.md, “One cull mode and one layout for the Surface pipelines”';
 const SEAPORT572 = 'Issue #572: the web game in muted headless Chrome (High, 1280 × 720) on a Vite of its own (port 5441), a new save arriving by ship (?level=underwater&via=ship), then walked as a player; before: origin/main at 02345e2c3, after: this change; the deck and the Dock from the visual check’s views (scripts/design-qc/capture.mjs --fixed-scale); 20 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '2.15': [
+  {
+    "match": "Map chests in the Rose House",
+    "shots": [
+{
+        "name": "map-chest-desert-opened",
+        "title": "Rose House — opened",
+        "only": "after",
+        "size": [
+                1280,
+                960
+        ],
+        "caption": "After opening the Rose House map chest: the larger shell and low plinth are visible beside the traveller. After-only native view.",
+        "from": "Actual Unity Editor 6000.6.4f1 batch-mode Metal rendering, 1280 × 960, High, 24 October 2026. Source 4e0eff9e84193c4e10a53da46eddbdc56238841f plus the reviewed three-house chest candidate; native R4b entry 3760f09422f94f13a4180a7fe49bc0ff037277dd01db651a5c74e59e17c4224e, frozen input pins c57f05effa6661da4d61dc6b2565e5db34cb4a7dd2c3802fed201fd6d7d4b8f8. Declared initial entry staging followed by recorded ordinary keys, genuine map reward and card confirmation. Constructor/settings mute and disabled output sink, private stores, exact warm/default restoration. Original opened-left.png retained; full frame encoded without cropping. No matched native before view or full-temple traversal implied."
+},
+      {
+        "name": "map-chest-desert",
+        "title": "Rose House",
+        "size": [
+          1280,
+          620
+        ],
+        "caption": "Rose House: the optional map chest before and after its larger display and low plinth. Actual approach views; position and camera differ, and the traveller partly obscures the chest.",
+        "from": "Actual web game in the internal browser, 23 October 2026. Before uses baseline temple modules at 4e0eff9e; after uses that base plus the reviewed three-house chest candidate. Declared room-entry staging followed by ordinary walking. Constructor mute, output blocking and private stores. Crop removes only the top 100 pixels of QA controls; original 1280 × 720 captures retained. This is not a matched-camera scale measurement or a full-temple traversal."
+      },
+      {
+        "name": "map-chest-bazaar",
+        "title": "Lantern Market",
+        "size": [
+          1280,
+          620
+        ],
+        "caption": "Lantern Market: the optional map chest before and after its larger display and low plinth. Actual approach views; position and camera differ, and the traveller partly obscures the chest.",
+        "from": "Actual web game in the internal browser, 23 October 2026. Before uses baseline temple modules at 4e0eff9e; after uses that base plus the reviewed three-house chest candidate. Declared room-entry staging followed by ordinary walking. Constructor mute, output blocking and private stores. Crop removes only the top 100 pixels of QA controls; original 1280 × 720 captures retained. This is not a matched-camera scale measurement or a full-temple traversal."
+      },
+      {
+        "name": "map-chest-aerie",
+        "title": "Aerie",
+        "size": [
+          1280,
+          620
+        ],
+        "caption": "Aerie: the optional map chest before and after its larger display and low plinth. Actual approach views; position and camera differ, and the traveller partly obscures the chest.",
+        "from": "Actual web game in the internal browser, 23 October 2026. Before uses baseline temple modules at 4e0eff9e; after uses that base plus the reviewed three-house chest candidate. Declared room-entry staging followed by ordinary walking. Constructor mute, output blocking and private stores. Crop removes only the top 100 pixels of QA controls; original 1280 × 720 captures retained. This is not a matched-camera scale measurement or a full-temple traversal."
+      }
+    ]
+  }
+],
+
   '2.04': [
 { match: 'A new sound-effects page', shots: [
     { name: 'sound-effects-overview', title: 'Effects by source', only: 'after', size: [1280, 526], caption: 'The new catalogue separates gameplay variants from raw recording files and identifies intentional procedural sounds.', from: 'After-only actual site page in the internal Codex browser, d2bcb38ec plus this final shared-typography candidate, 23 October 2026. Constructor-muted with independent audio-output blocking and private stores. Cropped only to the 1280 × 526 application viewport, excluding QA controls; no listening claim.' },

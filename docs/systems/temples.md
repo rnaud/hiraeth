@@ -3105,3 +3105,24 @@ collision, climbs, pieces and logic are vertex for vertex the same without it (`
 - **Lighter presets** (`uWearLite`): no tone per slab, no chamfers, no climbing circuits, the moons one tone; the foot
   lines, inlays, grating and dressing stay. Draw calls are the house's own (−6 to +5 a view), triangles about 95k fewer
   (measured when the skin still redrew the signs, lighter than the glyphs).
+
+
+## Map chest displays in three houses (#630)
+
+Rose House, Lantern Market and Aerie opt into a 1.5-scale map chest on a
+1.8 × 0.24 × 1.6 m plinth. Their individual map definitions choose the site and
+yaw; unrelated keys and reward chests retain their existing size. `map-display.js`
+keeps the authored floor position separate from the raised chest position. The
+visible plinth and its solid share geometry; the chest, interaction anchor and
+rising reward follow the raised placement. Existing collected-map flags keep
+old saves open, without another reward.
+
+The bounded review covers these three optional maps, not all fourteen houses.
+Actual muted web before/after approaches, opening and private-save reloads were
+reviewed. Separate Unity runs replayed ordinary movement after disclosed initial
+entry staging, confirmed one map reward, the real announcement continuation,
+side/landing/return checkpoints, and a real VM reload with unchanged keys and
+gates. Some native side/top pictures crop the chest; their support assertions are
+numeric, not claims of a complete swept/headroom or minimum-width measurement.
+Post-reload Use was at the saved entry pose, not a second chest-range interaction.
+Tests: `tests/map-display.test.js` and `tests/key-chests.test.js`.

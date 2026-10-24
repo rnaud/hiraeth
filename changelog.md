@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v2.15 — 2026-10-24
+
+- Map chests in the Rose House, Lantern Market and Aerie are larger and stand on low plinths, with more room to approach and walk around them.
+
 ## v2.04 — 2026-10-23
 
 - The spring boots explain their short hop inside temples and how to jump, then stomp, to sound the Whale-House’s deep notes.

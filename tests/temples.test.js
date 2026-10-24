@@ -1187,23 +1187,36 @@ test('every temple key is in a little makers\' chest, on flat floor, with room b
     for (const k of keys) {
       n++;
       const at = `${id}.${k.id}`;
+      const display = k instanceof MapChest ? L.def.elements[k.id].display : null;
+      const floorY = k.pos.y - (display?.plinth[1] ?? 0);
       assert.equal(k.chest.kind, 'makers', `${at}: the makers' chest, the same as everywhere`);
       assert.ok(k.chest.shell.isMesh && k.chest.shell.name === 'Makers’ chest', `${at}: the chest's own model`);
-      assert.ok(k.scale < BOX_SCALE * 0.75, `${at}: little (${k.scale} of the boxes' ${BOX_SCALE})`);
-      assert.equal(k.scale, k.o.big ? KEY_CHEST.big : KEY_CHEST.small);
+      if (display) {
+        assert.equal(k.scale, display.scale, `${at}: explicitly authored map display scale`);
+        assert.ok(k.scale < BOX_SCALE, `${at}: map display remains smaller than a full box`);
+        assert.equal(display.plinth[1], 0.24, `${at}: low step only`);
+      } else {
+        assert.ok(k.scale < BOX_SCALE * 0.75, `${at}: little (${k.scale} of the boxes' ${BOX_SCALE})`);
+        assert.equal(k.scale, k.o.big ? KEY_CHEST.big : KEY_CHEST.small);
+      }
       if (k instanceof MapChest) assert.equal(k.flying, false, `${at}: never counted with the keys`);
       assert.equal(k.chest.root.scale.x, k.scale);
       assert.ok(Math.abs(k.chest.mats.body.uniforms.uBoxB.value.x - k.chest.size.w / 2 * k.scale) < 1e-6, `${at}: its shader sized as drawn`);
-      // flat round it: the floor under it and out past its cage, at its own height (no step, no slope, no gap)
+      // Ordinary chests keep flat floor; opted-in maps have only their authored low plinth.
       for (const r of [0.5, 0.8]) for (let i = 0; i < 12; i++) {
         const a = (i / 12) * Math.PI * 2, x = k.pos.x + Math.sin(a) * r * k.scale, z = k.pos.z + Math.cos(a) * r * k.scale;
         const g = w.physics.groundAt(x, k.pos.y + 0.3, z, 1.5);
-        assert.ok(Number.isFinite(g) && Math.abs(g - k.pos.y) < 0.08, `${at}: flat floor ${r} m round it (${Number.isFinite(g) ? (g - k.pos.y).toFixed(2) : 'none'})`);
+        const dx = x - k.pos.x, dz = z - k.pos.z;
+        const lx = Math.cos(k.yaw) * dx - Math.sin(k.yaw) * dz;
+        const lz = Math.sin(k.yaw) * dx + Math.cos(k.yaw) * dz;
+        const onPlinth = display && Math.abs(lx) < display.plinth[0] / 2 && Math.abs(lz) < display.plinth[2] / 2;
+        const expectedY = onPlinth ? k.pos.y : floorY;
+        assert.ok(Number.isFinite(g) && Math.abs(g - expectedY) < 0.08, `${at}: supported floor ${r} m round it (${Number.isFinite(g) ? (g - expectedY).toFixed(2) : 'none'})`);
       }
       // room to stand before it, where its front faces
       const f = V(Math.sin(k.yaw), 0, Math.cos(k.yaw)), front = k.pos.clone().addScaledVector(f, 1.5);
       const gf = w.physics.groundAt(front.x, k.pos.y + 0.6, front.z, 2);
-      assert.ok(Number.isFinite(gf) && Math.abs(gf - k.pos.y) < 0.15, `${at}: floor to stand on before it`);
+      assert.ok(Number.isFinite(gf) && Math.abs(gf - floorY) < 0.15, `${at}: floor to stand on before it`);
       // a cage round it (bars that sink once it is earned), and its key hidden inside until opened
       assert.ok(k.cageR > Math.hypot(k.chest.size.w, k.chest.size.d) / 2 * k.scale, `${at}: the cage clears the chest`);
       assert.equal(k.key.visible, false);

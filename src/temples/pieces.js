@@ -1,3 +1,4 @@
+import { mapDisplay } from './map-display.js';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
@@ -3331,7 +3332,7 @@ export class Key {
    */
   constructor(rt, o) {
     this.rt = rt; this.id = o.id; this.o = o;
-    const K = rt.kit, M = rt.M, big = !!o.big, S = (this.scale = big ? KEY_CHEST.big : KEY_CHEST.small);
+    const K = rt.kit, M = rt.M, big = !!o.big, S = (this.scale = o.map ? (o.mapScale ?? KEY_CHEST.small) : big ? KEY_CHEST.big : KEY_CHEST.small);
     this.pos = K.world(...o.at);
     this.yaw = K.heading(o.yaw ?? 0);
     this.group = new THREE.Group();
@@ -3481,7 +3482,11 @@ export const MAP_CHEST = { line: '~happy~ The house’s map. {key:journal} shows
 export const GREAT_KEY_CHEST = { line: '~solemn~ The house’s great key. It opens the guardian’s door.', name: 'The Great Key', found: '~solemn~ It opens the guardian’s door.' };
 export class MapChest extends Key {
   /** o: { id, at: the chest's foot, yaw (its front), line }: a little chest, the house's map rolled up in it. */
-  constructor(rt, o) { super(rt, { ...o, map: true, big: false }); }
+  constructor(rt, o) {
+    const display = mapDisplay(o.at, o.display, o.yaw ?? 0);
+    super(rt, { ...o, at: display.at, mapScale: display.scale, map: true, big: false });
+    if (display.plinth) rt.kit.both(rt.M.stoneMat, display.plinth);
+  }
   /** (never counted with the keys) */
   get flying() { return false; }
 }

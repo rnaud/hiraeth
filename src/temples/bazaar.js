@@ -297,7 +297,7 @@ export const LOGIC = {
     sign: { type: 'boss', room: 'hall', needs: ['gun', 'recall'] },
     d5: { type: 'door', opens: { resolved: true } },
     // the house's map, in a little chest off the way on (issue #405: src/house-map.js; nothing waits on it)
-    map: { type: 'map', room: 'tune', at: [ROOMS.tune.x0 + 1.2, 0, 75], yaw: Math.PI / 4 },
+    map: { type: 'map', room: 'tune', at: [35, 0, 77], yaw: Math.atan2(-6, 11), display: { scale: 1.5, plinth: [1.8, .24, 1.6] } },
     // (issue #418, G1) the line, the house's state: quiet (0) or speaking (1), saved. Set at the relay levers by the hubs
     // (the Hall of Dishes' far landing by the way into the Great Well, its gallery, its high balcony, the Listening Passage by
     // its door, the First Sign's hall). Its two stops are no plates anyone stands on. (Last of the things to do, so the scout

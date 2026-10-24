@@ -235,3 +235,27 @@ test('the great key\'s chest and the map\'s: a card as a makers\' box\'s, once; 
     assert.ok(boxes.announce({ name: 'x' })); boxes.skip(); assert.equal(boxes.busy(), false);
   } finally { off(); boxes.dispose(); rt.dispose?.(); }
 });
+
+test('the three map displays retain optional collection and opened-save state without enlarging keys', () => {
+  for(const id of ['desert','bazaar','arzach']) {
+    game.reset();
+    const first=world(id), rt=first.rt;
+    const map=rt.pieces.find(p=>p instanceof MapChest);
+    const e=rt.def.logic.elements[map.id];
+    assert.equal(map.scale,1.5);
+    assert.ok(map.pos.distanceTo(rt.kit.world(e.at[0],e.at[1]+.24,e.at[2]))<1e-6);
+    for(const key of rt.pieces.filter(p=>p instanceof Key && !(p instanceof MapChest))) {
+      assert.equal(key.scale,key.o.big?KEY_CHEST.big:KEY_CHEST.small,'unrelated key size preserved');
+    }
+    const before=rt.keyCount();
+    assert.ok(map.openIt(),'optional map opens through its actual interaction handler');
+    assert.equal(map.openIt(),false,'cannot grant twice');
+    assert.deepEqual(rt.keyCount(),before,'map is not a puzzle key');
+    rt.dispose?.();
+    const loaded=world(id);
+    const old=loaded.rt.pieces.find(p=>p instanceof MapChest);
+    assert.equal(old.taken,true,'existing saved map stays opened at its new display');
+    assert.equal(old.openIt(),false,'reload cannot reannounce or grant the map');
+    loaded.rt.dispose?.();
+  }
+});

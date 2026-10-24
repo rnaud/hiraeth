@@ -9,6 +9,12 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
+    v: '2.15', date: '2026-10-24',
+    items: [
+      { text: 'Map chests in the Rose House, Lantern Market and Aerie are larger and stand on low plinths, with more room to approach and walk around them.', see: 'Find the optional map chest in each of these three houses. Walk around it, open it, continue past the map card, and return after saving: the map stays yours and the chest stays open.' },
+    ],
+  },
+  {
     v: '2.04', date: '2026-10-23',
     items: [
       { text: 'A new sound-effects page lets you browse every effect, try its variants and see which sounds are recordings and which are made by the game.', see: 'Open the sound-effects page, filter by source or action, and expand a recording’s provenance. Play is explicit; Stop and leaving the page end the preview.' },

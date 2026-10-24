@@ -117,7 +117,7 @@ export class TempleRuntime {
     const skin = houseSkin(this);
     const L = def.layout(this);
     // the little chest with the house's map in it (issue #405): where its element says (logic type 'map', `at` local)
-    for (const [id, e] of Object.entries(def.logic.elements)) if (e.type === 'map' && e.at) this.add(MapChest, { id, at: e.at, yaw: e.yaw ?? 0 });
+    for (const [id, e] of Object.entries(def.logic.elements)) if (e.type === 'map' && e.at) this.add(MapChest, { id, at: e.at, yaw: e.yaw ?? 0, display: e.display });
     skin?.dress?.();
     this.kit.flush();
     skin?.done?.();
