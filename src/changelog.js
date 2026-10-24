@@ -9,6 +9,12 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
+    v: '2.16', date: '2026-10-24',
+    items: [
+      { text: 'The moorers’ court has room to try different tools: lower a crate with the hook, carry it, or push the spare onto the load plate. Its gate stays open after solving it, including after reloading, and lost crates return safely.', see: 'Visit the makers’ court on the Yard west of the floating city’s Gate with the hook. Try the high crate or the ground spare; put the load down on the marked plate. Holding it above the plate does not press it. The optional reward and main journey are unchanged.' },
+    ],
+  },
+  {
     v: '2.15', date: '2026-10-24',
     items: [
       { text: 'Map chests in the Rose House, Lantern Market and Aerie are larger and stand on low plinths, with more room to approach and walk around them.', see: 'Find the optional map chest in each of these three houses. Walk around it, open it, continue past the map card, and return after saving: the map stays yours and the chest stays open.' },

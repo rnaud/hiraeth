@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v2.16 — 2026-10-24
+
+- The moorers’ court has room to try different tools: lower a crate with the hook, carry it, or push the spare onto the load plate. Its gate stays open after solving it, including after reloading, and lost crates return safely.
+
 ## v2.15 — 2026-10-24
 
 - Map chests in the Rose House, Lantern Market and Aerie are larger and stand on low plinths, with more room to approach and walk around them.

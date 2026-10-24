@@ -308,7 +308,7 @@ export const PLACEMENTS = {
   spacecity: [
     { id: 'spacecity.court', item: 'splice', site: courtSite('spacecity'), beacon: 160, court: 'spacecity',
       hint: 'Behind the gate in the Yard’s court',
-      note: 'In the makers’ court on the Yard, the island west of the Gate, in the alcove behind its gate: hook the crate down off its pillar and push it onto the plate.' },
+      note: 'In the makers’ court on the Yard, the island west of the Gate, in the alcove behind its gate: use the hook to lower the high crate, or push the ground crate along the low guides. Leave either crate on the marked plate; carrying it there works too. The gate stays open once the load settles.' },
     // the star-thread, a gift in the open: on the flat roof of a tall house on the Towers, just past the Towers bridge
     // (a 12 m climb from the deck)
     // (issue #518: a ring on a post beside it, pulled with the tether mode, earned in the Mooring-House)

@@ -1349,6 +1349,46 @@ const RETROID536 = 'Retroid Pocket Nova (Adreno 740, Vulkan), Unity, Handheld (F
 const SRC536 = 'BridgeRenderer.Pipelines (the G-buffer’s states the scene asks for: variant, layout, cull, depth), Metal’s list traced in the editor, the shipped lists rewritten by scripts/bench/pso-one-cull.mjs; docs/systems/performance.md, “One cull mode and one layout for the Surface pipelines”';
 const SEAPORT572 = 'Issue #572: the web game in muted headless Chrome (High, 1280 × 720) on a Vite of its own (port 5441), a new save arriving by ship (?level=underwater&via=ship), then walked as a player; before: origin/main at 02345e2c3, after: this change; the deck and the Dock from the visual check’s views (scripts/design-qc/capture.mjs --fixed-scale); 20 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '2.16': [
+  {
+    "match": "The moorers’ court has room to try different tools:",
+    "shots": [
+      {
+        "name": "court-overview",
+        "title": "The court",
+        "only": "after",
+        "size": [
+          1280,
+          960
+        ],
+        "caption": "The moorers’ court: a ground crate, load plate and high crate beside the reward gate. After-only view.",
+        "from": "Actual muted Unity Editor6000.6.4f1 Metal/High full1280×960 native frame; source7b0f8a0ba plus court candidate, input pins3f6de516b69269fe4b005e99c9359074025b421732106ac817b0a283d3c5d21d. Initial private prerequisites/approach staged, then ordinary inputs. After-only state, not a historical before/after comparison. Captured before integration onto4f78eeb7; court geometry/runtime hunks retained byte-identical. Full original frame encoded without crop. Initial prerequisites and approach staged; subsequent solve and movement use ordinary inputs. No physical device or audible review."
+      },
+      {
+        "name": "court-load-plate",
+        "title": "Load plate",
+        "only": "after",
+        "size": [
+          1280,
+          720
+        ],
+        "caption": "A crate rests on the court’s load plate. After-only view.",
+        "from": "Actual muted web canvas; source7b0f8a0ba plus court candidate, captured diff e5427ee5685491e268dfdfc370ed35433db1c5966d03643349d9c2f310e72400. Initial private prerequisites/approach staged, then ordinary inputs. After-only state, not a historical before/after comparison. Captured before integration onto4f78eeb7; court geometry/runtime hunks retained byte-identical. Full original frame encoded without crop. Initial private fixture only; subsequent ordinary controls. Canvas-only, excludes UI; motion/result attribution requires linked trace."
+      },
+      {
+        "name": "court-reward-alcove",
+        "title": "Reward alcove",
+        "only": "after",
+        "size": [
+          1280,
+          960
+        ],
+        "caption": "Inside the reward alcove after solving the plate. After-only view.",
+        "from": "Actual muted Unity Editor6000.6.4f1 Metal/High full1280×960 native frame; source7b0f8a0ba plus court candidate, input pins3f6de516b69269fe4b005e99c9359074025b421732106ac817b0a283d3c5d21d. Initial private prerequisites/approach staged, then ordinary inputs. After-only state, not a historical before/after comparison. Captured before integration onto4f78eeb7; court geometry/runtime hunks retained byte-identical. Full original frame encoded without crop. Initial prerequisites and approach staged; subsequent solve and movement use ordinary inputs. No physical device or audible review."
+      }
+    ]
+  }
+],
   '2.15': [
   {
     "match": "Map chests in the Rose House",

@@ -665,3 +665,34 @@ The Unity and Godot bundles register the gadgets as the web does (the bundle's o
 engine/game.js; the HUD's chip, wheel, reticle and marks are also the screen's state (src/platform.js `gadget`,
 `gadgetWheel`, `reticle`, `gadgetMarks`), drawn by the Unity bridge's BridgeHud.cs. docs/systems/engine-bridge.md, "The
 gadgets and the wallet".
+
+## Optional moorers’ load court (#637)
+
+Space City’s existing optional splice court keeps its hook ownership requirement,
+reward ID and location. The high crate supports hook/carry placement; the ground
+spare supports fluid push or ordinary carry through an open, low-curbed lane. Both
+are the same light mass-one prop. Held props and the traveller do not load its
+things-only plate. The moorers’ gate alone latches after a real load, preventing
+a closing exit if the prop later moves. No race or mandatory equipment flag changes.
+
+Only these two crates opt into a world-space recovery envelope: after two seconds
+more than 24 m from the court origin or 5 m below its paving, an unheld crate returns
+to its original pose, provided the player is over 3 m from both crate and home and no other visible prop
+overlaps the destination footprint and height.
+Nearby or held props never reset; returning inside the envelope clears the timer.
+Reload uses the existing authored loose-prop reset. The opted-in gate persists a
+real load solve as `court.spacecity.solved`, before the reward is collected; it
+restores fully open before collision registration. Older saves with
+`box.spacecity.court` already collected also restore the exit. Review-only held
+gate overrides cannot persist a solve. Other gates retain their current behavior.
+The generic prop fallback is unchanged for all other props.
+
+Review used disclosed initial fixtures followed by ordinary inputs. Web review
+covered fluid and hook-assisted plate solutions and direct prop pull. Separate
+Unity runs covered solve-before-reward and collected-reward save/reboot/exit,
+direct pull/catch, and held-outside, put-down and delayed loss recovery. These
+are separate routes, not a single direct-pull-to-reward traversal. Depth loss and
+occupied-home protection have unit coverage, not native route coverage. Native
+pictures and telemetry use the preserved pre-integration candidate; later
+interaction-targeting integration is checked separately. No device or audible
+review is claimed.

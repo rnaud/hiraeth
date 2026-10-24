@@ -27,8 +27,8 @@ export const PROPS = { gravity: 24, friction: 5, restitution: 0.3, push: { light
  * would want; light: the hook can pull it.
  */
 export class Prop {
-  constructor({ object, r = 0.45, h = r, mass = 1, metal = false, light = mass <= 1.5, kind = 'crate', name = 'crate', carry = true }) {
-    Object.assign(this, { object, r, h, mass, metal, light, kind, name, carry });   // (carry: small and light enough, it may be picked up: src/carry.js)
+  constructor({ object, r = 0.45, h = r, mass = 1, metal = false, light = mass <= 1.5, kind = 'crate', name = 'crate', carry = true, recovery = null }) {
+    Object.assign(this, { object, r, h, mass, metal, light, kind, name, carry, recovery });   // (carry: small and light enough, it may be picked up: src/carry.js)
     this.pos = object.position;
     this.vel = new THREE.Vector3();
     this.resting = false;
@@ -144,10 +144,22 @@ export class GadgetWorld {
       if (s > 0.4 && !p.resting) p.object.rotation.y += (p.vel.x * 0.7 - p.vel.z * 0.4) * dt * 0.6;
       p.object.updateMatrixWorld();
       // fell out of the world: back where it was placed
-      if (p.pos.y < -60 && p.held !== IN_HANDS) this.resetProp(p);
+      if (p.recovery) {
+        // Opt-in courtyard recovery: no tugging a held/nearby prop out of play, and
+        // no returning a lost crate onto the traveller at its original stand.
+        const r = p.recovery;
+        const lost = p.pos.y < r.minY || Math.hypot(p.pos.x - r.center.x, p.pos.z - r.center.z) > r.radius;
+        const playerClear = !P || (P.pos.distanceTo(p.pos) > r.clearance && P.pos.distanceTo(p.home) > r.clearance);
+        const homeOccupied = this.props.some(other => other !== p && other.object.visible &&
+          Math.hypot(other.pos.x - p.home.x, other.pos.z - p.home.z) < other.r + p.r + 0.1 &&
+          Math.abs(other.pos.y - p.home.y) < other.h + p.h + 0.1);
+        const clear = playerClear && !homeOccupied;
+        p.lostFor = lost && !p.held && clear ? (p.lostFor ?? 0) + dt : 0;
+        if (p.lostFor >= r.delay) this.resetProp(p);
+      } else if (p.pos.y < -60 && p.held !== IN_HANDS) this.resetProp(p);
     }
   }
-  resetProp(p) { p.pos.copy(p.home); p.object.quaternion.copy(p.homeQ); p.vel.set(0, 0, 0); p.resting = false; p.held = null; }
+  resetProp(p) { p.pos.copy(p.home); p.object.quaternion.copy(p.homeQ); p.vel.set(0, 0, 0); p.resting = false; p.held = null; p.lostFor = 0; p.object.updateMatrixWorld(true); }
 
   // ---------------------------------------------------------------- anchors
   addAnchor(a) { const x = { normal: _Y.clone(), radius: 0.4, ...a, pos: a.pos.clone() }; this.anchors.push(x); return x; }
@@ -218,6 +230,14 @@ export class GadgetWorld {
     const x = { open: 0, travel: 3, speed: 2.5, ...g };
     x.object.traverse((m) => { m.userData.noCollide = true; });
     x.base = x.object.position.clone();
+    // Only gates explicitly opting into save flags restore their latch. Move
+    // before registering collision so a saved player never meets closed bars.
+    if (x.latch && ((x.latchFlag && this.game?.flag(x.latchFlag)) ||
+        (x.legacyOpenFlag && this.game?.flag(x.legacyOpenFlag)))) {
+      x.latched = true; x.open = 1;
+      x.object.position.copy(x.base).addScaledVector(_Y, -x.travel);
+      x.object.updateMatrixWorld(true);
+    }
     x.handle = this.physics?.addMover?.(x.object, { all: true }) ?? null;
     this.gates.push(x);
     return x;
@@ -238,7 +258,14 @@ export class GadgetWorld {
       // `latch`: once open it stays open: src/finds/courts.js, issue #518)
       const pressed = g.plates ? (g.all ? g.plates.every((i) => this.plates[i]?.on) : g.plates.some((i) => this.plates[i]?.on)) : false;
       let want = g.held ?? (g.when ? (g.when() ? 1 : 0) : g.plates ? (pressed ? 1 : 0) : g.want ?? 0);
-      if (g.latch) { if (want) g.latched = true; if (g.latched) want = 1; }
+      if (g.latch) {
+        if (want && !g.latched) {
+          g.latched = true;
+          // Review-only held overrides never create a persistent puzzle solve.
+          if (g.latchFlag && g.held == null) this.game?.set(g.latchFlag, true);
+        }
+        if (g.latched) want = 1;
+      }
       g.open = THREE.MathUtils.clamp(g.open + Math.sign(want - g.open) * g.speed * dt / g.travel, 0, 1);
       g.object.position.copy(g.base).addScaledVector(_Y, -g.travel * g.open);
       g.object.updateMatrixWorld();

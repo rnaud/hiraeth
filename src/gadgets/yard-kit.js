@@ -173,7 +173,7 @@ class BayKit {
    * Bars across an opening (size [w, h, d] centred at `c`), sinking into the ground while any of `plates` is pressed
    * (`all`: every one of them); or while `when()` holds; `latch`: once open, open for good (src/gadgets/world.js).
    */
-  gate(size, c, { plates = [], all = false, when = null, latch = false } = {}) {
+  gate(size, c, { plates = [], all = false, when = null, latch = false, latchFlag = null, legacyOpenFlag = null } = {}) {
     const [w, h, d] = size, g = new THREE.Group(), parts = [];
     for (let x = -w / 2 + 0.2; x <= w / 2 - 0.15; x += 0.42) parts.push(new THREE.CylinderGeometry(0.07, 0.07, h, 6).translate(x, 0, 0).toNonIndexed());
     parts.push(new THREE.BoxGeometry(w, 0.18, d).translate(0, h / 2 - 0.09, 0).toNonIndexed(), new THREE.BoxGeometry(w, 0.18, d).translate(0, -h / 2 + 0.3, 0).toNonIndexed());
@@ -181,7 +181,7 @@ class BayKit {
     loose(g);
     g.position.copy(v3(c));
     this.add(g);
-    this.spec.gates.push({ object: g, travel: h - 0.05, plates: when ? null : plates, all, when, latch });
+    this.spec.gates.push({ object: g, travel: h - 0.05, plates: when ? null : plates, all, when, latch, latchFlag, legacyOpenFlag });
     return g;
   }
   /**

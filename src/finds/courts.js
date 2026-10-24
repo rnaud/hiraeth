@@ -219,18 +219,36 @@ export const BAYS = {
     kit.ironBlock([1.6, 1.6, 1.6], [8.4, 7.2, -4]);
     kit.pickup([8.4, 8, -4], { amount: 2 });
   },
-  /** The moorers' yard (the grappling hook): a crate on a pillar too sheer to climb; reel it down, push it onto the plate. */
+  /** One optional load puzzle: hook/carry the high crate, or push/carry the ground spare. */
   moorers(kit) {
-    kit.block([2.4, 6, 2.4], [5.5, 3, -6]);
-    kit.crate([5.5, 6.45, -6]);
+    sheer(kit, [2.4, 6, 2.4], [5.5, 3, -6]);
+    const high = kit.crate([5.5, 6.45, -6]);
+    const spare = kit.crate([2.2, 0.45, 3]);
+    // These two props alone return after being genuinely lost. Normal manipulation
+    // across the court, all held modes, and approaching a lost crate remain valid.
+    for (const object of [high, spare]) {
+      kit.spec.props.find(p => p.object === object).recovery = {
+        center: kit.at([0, 0, 0]), radius: 24, minY: kit.at([0, -5, 0]).y, delay: 2, clearance: 3,
+      };
+      const mark = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.035, 0.34), kit.mats.teal);
+      mark.position.y = 0.485; mark.userData.noCollide = true; object.add(mark);
+    }
     const plate = kit.plate([2.2, 0, -1.5], { radius: 1.1, things: true });
-    alcove(kit, [plate]);
-    // a moorers' mast with rings up it, and a crow's nest with an ink pot: reel up from ring to ring
+    // Save the actual solve before the reward, and honor already-collected rewards
+    // from older saves. Reloading inside must not close the return doorway.
+    alcove(kit, [plate], { latch: true, latchFlag: 'court.spacecity.solved', legacyOpenFlag: 'box.spacecity.court' });
+    // Low guides leave a 2.6 m walking/carry lane; both ends remain open.
+    for (const x of [0.7, 3.7]) kit.block([0.3, 0.22, 4.8], [x, 0.11, 1], { mat: 'pale' });
+    // The same teal load mark leads from the plate toward the gate. Raised inlay
+    // is deliberately non-colliding and slightly above the paving, not coplanar.
+    for (const [size, at] of [ [[5.5, 0.025, 0.1], [-0.55, 0.025, -3.1]], [[0.1, 0.025, 2], [-3.25, 0.025, -4.1]] ]) {
+      kit.block(size, at, { mat: 'teal' }).userData.noCollide = true;
+    }
+    // Existing optional traversal prize is unchanged.
     kit.pole([7.8, 0, 3], 10.5);
     kit.anchor([7.8, 5.2, 3.3], { normal: [0, 0, 1] });
     kit.anchor([7.8, 10.3, 3.86], { normal: [0, 0, 1] });
     kit.pickup([7.8, 10.6, 3], { amount: 2 });
-    kit.crate([-1, 0.45, 2.2]);
   },
 };
 
