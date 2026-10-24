@@ -11,6 +11,7 @@ export const CHANGELOG = [
   {
     v: '2.19', date: '2026-10-24',
     items: [
+      { text: 'Quest notices and control hints now use clearer left-aligned text beside a separate icon, with more breathing room and a small brass detail on quest panels.', see: 'Ask for a quest direction or approach a control. Quest notices stay at the top; control hints stay beside what you can use. Larger text wraps, and the screen stays quiet when there is nothing to show.' },
       { text: 'The Unity opening now shows your father’s hologram with the correct model after updating the app.', see: 'Install the updated Unity app, then watch the opening in the caravan. Older Unity players need the app update before the new game update; existing saves stay in place.' },
       { text: 'Hints and quest notices have compact charcoal panels, fine cream borders and turquoise accents. Controls keep their ivory badges, and larger text has room to wrap.', see: 'Ask for a quest direction or approach something you can use. Quest announcements keep their existing words; the screen stays quiet at rest. Compare Larger text and the solid speech background in Settings.' },
     ],

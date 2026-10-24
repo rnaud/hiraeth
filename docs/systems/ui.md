@@ -1141,3 +1141,5 @@ Validation uses explicitly staged presentation states through the actual Cue, Ci
 context-prompt renderers, with muted private stores. These pictures demonstrate HUD appearance,
 not earned quest or traversal outcomes. The approved concept is design provenance only;
 actual browser and Unity pictures are the release evidence.
+
+The enamel C panels separate the existing quest mark or controller badge from left-aligned words with a fine divider. Quest panels have a modest brass rivet, a capped horizontal minimum width and growing height for wrapped text; no title is invented for the scout’s one-line result. Unity uses the same column layout with normal-weight local hint text. Plain solid, place and glyph modes retain their existing exceptions. These are presentation choices, not completion-state inference or additional automatic advice.

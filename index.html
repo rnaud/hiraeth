@@ -203,7 +203,7 @@
       body.touch #touch { display: block; }
       /* a phone: the cue below the hearts and the magic bar (they show the moment you are hurt, top left) until the
          stack places it (src/ship/cinema.js) */
-      @media (max-width: 700px) { body.touch #cue { top: calc(62px + var(--safe-top, 0px)); max-width: calc(100vw - 96px); } }
+      @media (max-width: 700px) { body.touch #cue { top: calc(62px + var(--safe-top, 0px)); max-width: calc(100vw - 96px); --enamel-width-cap: calc(100vw - 96px); } }
       #touch .stick { position: fixed; width: 140px; height: 140px; border-radius: 50%; border: 2px solid rgba(43, 33, 31, 0.5); background: rgba(255, 250, 240, 0.25); display: none; z-index: 35; pointer-events: none; }
       #touch .stick.on { display: block; }
       #touch .nub { position: absolute; left: 45px; top: 45px; width: 50px; height: 50px; border-radius: 50%; background: rgba(43, 33, 31, 0.55); }
@@ -410,7 +410,7 @@
       #toast { width: max-content; max-width: min(32em, calc(100vw - 32px)); box-sizing: border-box; text-align: center; transition: top 0.3s; }
       body.cine-on #toast { z-index: 8050; }
       /* a phone on its side: the buttons fill the right, so a notice wraps narrower and slides left of them (src/ship/cinema.js) */
-      @media (orientation: landscape) and (max-height: 500px) { body.touch #toast { max-width: min(32em, 60vw); } }
+      @media (orientation: landscape) and (max-height: 500px) { body.touch #toast { max-width: min(32em, 60vw); --enamel-width-cap: min(32em, 60vw); } }
       @keyframes toast { 0% { opacity: 0; transform: translate(-50%, -8px); } 8%, 80% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; } }
 
       #page {
@@ -531,9 +531,30 @@
       #toast.quest .qh { display: block; font: 500 .75em/1.3 var(--face); letter-spacing: .05em; margin-bottom: .2em; opacity: .85; }
       #toast.quest .qt { font: 600 1.15em/1.35 var(--face); letter-spacing: 0; }
       #toast.quest .qk { color: var(--hint-accent); }
-      #prompt:not(.glyph) { padding: .55em .95em .55em .7em; white-space: normal; max-width: calc(100vw - 32px); box-sizing: border-box; gap: .75em; }
+      /* Enamel C: a separate instrument column, left-aligned copy, and a small brass rivet. */
+      #cue.quest:not(.glyph):not(.place), #toast.quest {
+        text-align: left; min-width: min(19em, var(--enamel-width-cap, calc(100vw - 32px))); padding: .8em 1.7em .8em 4.6em;
+        background-image: radial-gradient(circle at calc(100% - 12px) 12px, #ad9263 0 3px, #2b211f 3px 4px, transparent 4px);
+      }
+      #cue.quest .qi, #toast.quest .qk {
+        display: flex; position: absolute; left: .8em; top: .8em; bottom: .8em; width: 2.5em;
+        align-items: center; justify-content: center; border-right: 1px solid rgba(247,236,210,.55);
+        padding-right: .65em; box-sizing: border-box; margin: 0; color: var(--hint-ink); font-size: 1em;
+      }
+      #cue.quest .qcopy, #toast.quest .qcopy { display: block; min-width: 0; }
+      #toast.quest .qh, #cue.quest .goal { display: block; font-size: .85em; letter-spacing: .01em; line-height: 1.35; margin-bottom: .25em; }
+      #toast.quest .qt, #cue.quest .step { display: block; font-size: 1.12em; line-height: 1.4; font-weight: 500; }
+      #toast.quest .qs { display: block; margin-top: .25em; }
+      #toast.quest .qs::before { content: none; }
+      #cue.has-key:not(.glyph):not(.place) { display: flex; align-items: center; gap: .9em; text-align: left; padding: .8em 1.2em; }
+      #cue.has-key .key { flex-shrink: 0; margin: 0; }
+      #cue.has-key .hint-copy { border-left: 1px solid rgba(247,236,210,.55); padding-left: .9em; min-width: 0; }
+      html.speech-solid #cue.quest:not(.glyph):not(.place), html.speech-solid #toast.quest { background-image: none; }
+      html.speech-solid #cue .qi, html.speech-solid #toast .qk, html.speech-solid #cue .hint-copy { border-color: transparent; color: #fff; }
+      #prompt:not(.glyph) { padding: .8em 1.2em .8em .9em; white-space: normal; max-width: calc(100vw - 32px); box-sizing: border-box; gap: .75em; }
       #prompt:not(.glyph) .key { flex-shrink: 0; }
-      #prompt:not(.glyph) > span:last-child { min-width: 0; }
+      #prompt:not(.glyph) > span:last-child { min-width: 0; border-left: 1px solid rgba(247,236,210,.55); padding-left: .9em; }
+      html.speech-solid #prompt:not(.glyph) > span:last-child { border-color: transparent; }
       #photo, #controller-hint { padding: .6em 1.1em; max-width: calc(100vw - 32px); box-sizing: border-box; white-space: normal; }
       #objective .t { position: relative; }
       html.speech-solid #cue::before, html.speech-solid #cue::after, html.speech-solid #toast::before, html.speech-solid #toast::after,

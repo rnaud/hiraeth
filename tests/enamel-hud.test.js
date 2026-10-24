@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { screen } from '../src/platform.js';
-import { Cue } from '../src/hud.js';
+import { Cue, questCueHtml, findSummary } from '../src/hud.js';
 import { Cinema, questToastHtml, layoutCinema } from '../src/ship/cinema.js';
 import { readFileSync } from 'node:fs';
 
@@ -68,4 +68,48 @@ test('enamel exceptions and native cleanup preserve glyph, place and plain solid
   assert.match(native, /decorated && !solid/);
   assert.match(native, /TryGetValue/);
   assert.match(glyph, /HintTrim\(prompt, false\)/); assert.match(glyph, /HintTrim\(cue, false\)/);
+});
+
+
+test('enamel quest column preserves one-line scout content and existing two-line payloads', () => {
+  const single = questCueHtml(findSummary({ goal: 'Do not invent a title', step: 'Find the stair · 120 m' }));
+  assert.doesNotMatch(single, /class="goal"|Do not invent/);
+  assert.equal((single.match(/◆/g) ?? []).length, 1);
+  assert.match(single, /class="qi" aria-hidden="true"/);
+  assert.match(single, /class="step">Find the stair · 120 m/);
+  const pair = questCueHtml('The silent tower\nFind the eastern stair');
+  assert.match(pair, /class="goal">The silent tower/);
+  assert.match(pair, /class="step">Find the eastern stair/);
+  assert.match(questCueHtml('<tower>\n<E>'), /&lt;tower&gt;/);
+  const toast = questToastHtml({head:'New errand', title:'Parcel'});
+  assert.match(toast, /class="qk errand" aria-hidden="true">◇/);
+  assert.match(toast, /class="qcopy"><span class="qh">New errand/);
+  assert.doesNotMatch(toast, /class="qs"/);
+});
+
+test('cue button column retains platform key and wrapped words without changing the screen payload', () => {
+  const el = {innerHTML:'',classList:{toggle(){}}}, c = new Cue(el);
+  c.set('X / □ Inspect the mechanism');
+  assert.equal(screen.state.cue.key, 'X / □');
+  assert.equal(screen.state.cue.rest, 'Inspect the mechanism');
+  assert.match(el.innerHTML, /class="key">X \/ □/);
+  assert.match(el.innerHTML, /class="hint-copy">Inspect the mechanism/);
+  c.set('E'); assert.doesNotMatch(el.innerHTML, /hint-copy/);
+  c.set('Old market','place'); assert.doesNotMatch(el.innerHTML, /qi|hint-copy/);
+  c.set(''); assert.equal(screen.state.cue,null); c.dispose();
+});
+
+
+test('column widths reserve actual badges and retain contextual touch caps', () => {
+  const read = p => readFileSync(new URL('../' + p, import.meta.url), 'utf8');
+  const css = read('index.html'), glyph = read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHud.Glyph.cs'), native = read('unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHud.cs');
+  assert.match(css, /min-width: min\(19em, var\(--enamel-width-cap/);
+  assert.match(css, /--enamel-width-cap: calc\(100vw - 96px\)/);
+  assert.match(css, /--enamel-width-cap: min\(32em, 60vw\)/);
+  assert.ok(glyph.indexOf('var k = PlaceBadge(cueBadge, 12, 10') < glyph.indexOf('W - 32 - k.x - 52'));
+  assert.match(native, /W - 16 - kw - 52/);
+  for (const W of [390, 640, 1280]) for (const badge of [28, 56, 91]) {
+    const textWidth = Math.min(860, W - 32 - badge - 52);
+    assert.ok(badge + 52 + textWidth <= W - 32);
+  }
 });

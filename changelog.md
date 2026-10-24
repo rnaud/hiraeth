@@ -6,6 +6,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 - Hints and quest notices have compact charcoal panels, fine cream borders and turquoise accents. Controls keep their ivory badges, and larger text has room to wrap.
 - The Unity opening now shows your father’s hologram with the correct model after updating the app.
+- Quest notices and control hints now use clearer left-aligned text beside a separate icon, with more breathing room and a small brass detail on quest panels.
 
 ## v2.18 — 2026-10-24
 

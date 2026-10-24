@@ -11,7 +11,7 @@
 //     (main.js, ui.js ToolHud), each lingering a moment (Fader);
 //   - the objective: the scout finds it (Q, D-pad →: src/scout.js) and the cue says its goal over its
 //     next step (findSummary); the game menu's Quests panel shows the same for every quest (src/game-menu.js).
-import { badgeLine, escapeHtml, keysHtml, leadKey } from './prompt-keys.js';
+import { badgeLine, escapeHtml, keysHtml, leadKey, keyBadge } from './prompt-keys.js';
 import { page, screen } from './platform.js';
 import { t, t as tr } from './i18n.js';
 import { hintsFor } from './hint-level.js';
@@ -163,6 +163,14 @@ export function staminaHud({ stamina = 1, winded = false, quiet = false } = {}, 
   return on ? { value: +k.toFixed(3), winded: !!winded } : null;
 }
 
+/** Presentation only: keep a single scout line single; separate its existing mark from its words. */
+export function questCueHtml(text) {
+  const split = text.indexOf('\n'), goal = split < 0 ? '' : text.slice(0, split), step = split < 0 ? text : text.slice(split + 1);
+  const mark = step.startsWith('◇ ') ? '◇' : '◆';
+  const words = /^[◆◇] /.test(step) ? step.slice(2) : step;
+  return `<span class="qi" aria-hidden="true">${mark}</span><span class="qcopy">${goal ? `<small class="goal">${escapeHtml(goal)}</small>` : ''}<span class="step">${keysHtml(words)}</span></span>`;
+}
+
 /** The cue's element (index.html #cue): set only when the line changes; fades in and out; `onChange` is called when it does. Its state goes to platform.js screen.cue. */
 export class Cue {
   constructor(el = page.byId('cue')) {
@@ -182,9 +190,10 @@ export class Cue {
     if (text && (text !== this.text || kind !== this.kind)) {
       // (the place name is a plain line; a prompt badges its button: native-pad.js renames it in place)
       // (the scout's find: its goal small, over its next step: findSummary)
-      const [goal, step] = kind === 'quest' && text.includes('\n') ? text.split('\n') : [null, text];
       this.el.innerHTML = kind === 'place' ? `<span>${escapeHtml(text)}</span>`
-        : goal != null ? `<small class="goal">${escapeHtml(goal)}</small><span class="step">${keysHtml(step)}</span>` : badgeLine(text);
+        : kind === 'quest' ? questCueHtml(text)
+        : lead?.rest ? `${keyBadge(lead.key)}<span class="hint-copy">${keysHtml(lead.rest)}</span>` : badgeLine(text);
+      this.el.classList.toggle('has-key', !!lead?.rest);
       this.el.classList.toggle('place', kind === 'place');
       this.el.classList.toggle('glyph', !kind && PROMPT_ALONE.test(text));   // (a prompt as its button alone: hints subtle or off)
       this.el.classList.toggle('quest', kind === 'quest');

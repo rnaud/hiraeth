@@ -172,9 +172,10 @@ test('the cue sets its line only when it changes and fades it in and out', () =>
   c.set('');
   assert.ok(!cls.has('show'));
   c.set('E go aboard');
-  assert.ok(cls.has('show')); assert.equal(el.innerHTML, '<b class="key">E</b> go aboard');
+  assert.ok(cls.has('show') && cls.has('has-key'));
+  assert.equal(el.innerHTML, '<b class="key">E</b><span class="hint-copy">go aboard</span>', 'badge and unchanged words occupy separate columns');
   c.set('Rose canyons', 'place');
-  assert.ok(cls.has('place')); assert.equal(el.innerHTML, '<span>Rose canyons</span>');
+  assert.ok(cls.has('place') && !cls.has('has-key'), 'place names clear the control-column style'); assert.equal(el.innerHTML, '<span>Rose canyons</span>');
   c.set('');
   assert.ok(!cls.has('show'), 'faded out (the last words stay under the fade)');
 });
@@ -248,7 +249,7 @@ test('the scout\'s find says the current quest as its overall goal over its next
   const cue = new Cue(el);
   cue.set(findSummary({ goal: 'Mend Mira’s clock', step: '<Mira> · 12 m' }), 'quest');
   assert.doesNotMatch(el.innerHTML, /goal|Mend/, 'no goal line');
-  assert.match(el.innerHTML, /◆ &lt;Mira&gt; · 12 m/);
+  assert.equal(el.innerHTML, '<span class="qi" aria-hidden="true">◆</span><span class="qcopy"><span class="step">&lt;Mira&gt; · 12 m</span></span>', 'one decorative quest mark, separate escaped next step, no invented heading');
   assert.ok(el.classList.contains('quest') && el.classList.contains('show'));
   cue.set('E go aboard');
   assert.ok(!el.classList.contains('quest'), 'a prompt is a prompt again');

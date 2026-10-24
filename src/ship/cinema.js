@@ -85,7 +85,7 @@ const setText = (el, text) => { if (hasKeys(text)) el.innerHTML = keyText(escape
 export function questToastHtml({ head = 'New quest', title = '', step = '' } = {}) {
   const k = (s) => (hasKeys(s) ? keyText(escapeHtml(s), { html: true }) : escapeHtml(s));
   const mark = questMark(head), main = mark === '◆';
-  return `<span class="qh">${escapeHtml(head)}</span><span class="qk${main ? '' : ' errand'}" aria-hidden="true">${mark}</span><span class="qt">${escapeHtml(title)}</span>${step ? `<span class="qs">${k(step)}</span>` : ''}`;
+  return `<span class="qk${main ? '' : ' errand'}" aria-hidden="true">${mark}</span><span class="qcopy"><span class="qh">${escapeHtml(head)}</span><span class="qt">${escapeHtml(title)}</span>${step ? `<span class="qs">${k(step)}</span>` : ''}</span>`;
 }
 
 /** Seconds a line of `text` needs on screen (as the calls time theirs). */

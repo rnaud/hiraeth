@@ -94,15 +94,19 @@ namespace Hiraeth.Bridge
                 return true;
             }
             cue.SetFill(HintBg);
+            cueText.alignment = TextAnchor.MiddleLeft;
             cueText.color = HintInk; cueText.fontStyle = FontStyle.Normal; cueText.fontSize = Sz(13);
-            var t = Ui.Set(cueText, rest, Mathf.Min(860, W - 100));
-            float bh = Mathf.Round(kpx * 1.7f), lh = Mathf.Max(t.y, bh);
-            var k = PlaceBadge(cueBadge, 12, 6 + (lh - Mathf.Round(kpx * 1.75f)) / 2, key, kpx, false);
-            Ui.Place(cueText.rectTransform, 12 + k.x + 6, 6 + (lh - t.y) / 2, t.x, t.y);
-            float cw = 12 + k.x + 6 + t.x + 12, ch = lh + 12;
+            var k = PlaceBadge(cueBadge, 12, 10, key, kpx, false);
+            // Reserve the measured badge plus both outer margins before wrapping the words.
+            var t = Ui.Set(cueText, rest, Mathf.Max(1, Mathf.Min(860, W - 32 - k.x - 52)));
+            float lh = Mathf.Max(t.y, k.y);
+            Ui.Place(cueBadge.rt, 12, 10 + (lh - k.y) / 2, k.x, k.y);
+            Ui.Place(cueText.rectTransform, 12 + k.x + 24, 10 + (lh - t.y) / 2, t.x, t.y);
+            float cw = 12 + k.x + 24 + t.x + 16, ch = lh + 20;
             Ui.Place(cue.rt, W / 2 - cw / 2, HintTop, cw, ch);
             Ui.Alpha(cue.rt, 1);
             HintTrim(cue);
+            HintColumn(cue, 12 + k.x + 12);
             cueBottom = HintTop + ch;
             return true;
         }

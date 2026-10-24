@@ -1350,6 +1350,41 @@ const SRC536 = 'BridgeRenderer.Pipelines (the G-buffer’s states the scene asks
 const SEAPORT572 = 'Issue #572: the web game in muted headless Chrome (High, 1280 × 720) on a Vite of its own (port 5441), a new save arriving by ship (?level=underwater&via=ship), then walked as a player; before: origin/main at 02345e2c3, after: this change; the deck and the Dock from the visual check’s views (scripts/design-qc/capture.mjs --fixed-scale); 20 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '2.19': [
+{
+  "match": "Quest notices and control hints now use clearer left-aligned text",
+  "shots": [
+    {
+      "name": "enamel-columns-quest",
+      "title": "A clearer quest panel",
+      "caption": "The existing category and title now align beside a separate quest mark and divider.",
+      "size": [
+        1280,
+        620
+      ],
+      "from": "Actual internal-browser running game, 24 October 2026. Before the first accepted HUD on aed53d616 plus its HUD candidate (presentation runtime later committed in b32c2e1); after b32c2e1 plus the C layout polish. Same fixed Desert camera and staged real Cue/Cinema/context payloads, constructor-muted with independent sink/private stores. Full application viewport excludes only QA controls. These non-solid after pictures were retained under an independently verified solid-only CSS correction; exact source hashes and originals preserved. Not earned quests, traversal or installed-device evidence; background animation timing differs."
+    },
+    {
+      "name": "enamel-columns-context",
+      "title": "A separate control column",
+      "caption": "The ivory control badge has its own space beside the action.",
+      "size": [
+        1280,
+        620
+      ],
+      "from": "Actual internal-browser running game, 24 October 2026. Before the first accepted HUD on aed53d616 plus its HUD candidate (presentation runtime later committed in b32c2e1); after b32c2e1 plus the C layout polish. Same fixed Desert camera and staged real Cue/Cinema/context payloads, constructor-muted with independent sink/private stores. Full application viewport excludes only QA controls. These non-solid after pictures were retained under an independently verified solid-only CSS correction; exact source hashes and originals preserved. Not earned quests, traversal or installed-device evidence; background animation timing differs."
+    },
+    {
+      "name": "enamel-columns-large",
+      "title": "Larger text with a clear margin",
+      "caption": "The same one-line direction wraps at 1.45× in a 390-pixel-wide view; no extra advice is introduced.",
+      "size": [
+        390,
+        620
+      ],
+      "from": "Actual internal-browser running game, 24 October 2026. Before the first accepted HUD on aed53d616 plus its HUD candidate (presentation runtime later committed in b32c2e1); after b32c2e1 plus the C layout polish. Same fixed Desert camera and staged real Cue/Cinema/context payloads, constructor-muted with independent sink/private stores. Full application viewport excludes only QA controls. These non-solid after pictures were retained under an independently verified solid-only CSS correction; exact source hashes and originals preserved. Not earned quests, traversal or installed-device evidence; background animation timing differs."
+    }
+  ]
+},
   {
     "match": "The Unity opening now shows your father’s hologram",
     "shots": [

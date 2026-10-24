@@ -24,7 +24,7 @@ namespace Hiraeth.Bridge
         int toastId = -1; float toastT, toastSecs = 4;
 
         Ui.Box toast; Label toastText, toastHead;
-        Ui.Box cue; Label cueText;
+        Ui.Box cue; Label cueText, cueHead;
         Ui.Box prompt; Image promptKey; Label promptKeyText, promptText;
         Ui.Box health; Image healthFill, healthEdge;
         Ui.Box keys; Label keysText;
@@ -80,6 +80,7 @@ namespace Hiraeth.Bridge
             toastHead = Ui.Label(toast.rt, "head", mono, 10, HintInk0, TextAnchor.UpperCenter);
             cue = Ui.Panel(root, "cue", HintBg0, HintBg0, 0, 0, 0, 7);
             cueText = Ui.Label(cue.rt, "text", mono, 13, HintInk0, TextAnchor.MiddleCenter);
+            cueHead = Ui.Label(cue.rt, "goal", mono, 12, HintInk0, TextAnchor.UpperLeft);
             prompt = Ui.Panel(root, "prompt", HintBg0, HintBg0, 0, 0, 0, 7);
             promptKey = Ui.Rect(prompt.rt, HintInk0, 11, "key");
             promptKeyText = Ui.Label(promptKey.rectTransform, "k", mono, 11, Ui.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
@@ -1416,19 +1417,21 @@ namespace Hiraeth.Bridge
             float a = k < 0.08f ? k / 0.08f : k < 0.8f ? 1 : 1 - (k - 0.8f) / 0.2f;
             bool quest = t.S("kind") == "quest";
             toast.SetFill(HintBg); toastText.color = HintInk;
-            toastText.fontSize = Sz(quest ? 15 : 13); toastText.fontStyle = quest ? FontStyle.Bold : FontStyle.Normal;
+            toastText.fontSize = Sz(quest ? 16 : 13); toastText.fontStyle = FontStyle.Normal;
+            toastText.alignment = quest ? TextAnchor.UpperLeft : TextAnchor.UpperCenter;
+            toastHead.alignment = TextAnchor.UpperLeft;
             Show(toastHead, quest);
-            float limit = Mathf.Min(900, W - 60), pad = 16;
-            string title = Text.Plain(quest ? t.S("title") : t.S("text"));
-            if (quest) title = $"<color={(solid ? "#ffffff" : "#79c9c0")}>{(t.S("mark") == "◇" ? "◇" : "◆")}</color>  {title}";
-            var s = Ui.Set(toastText, title, limit - pad * 2);
+            float limit = Mathf.Min(900, W - 32), left = quest ? Sz(64) : 16, right = quest ? Sz(24) : 16;
+            var s = Ui.Set(toastText, Text.Plain(quest ? t.S("title") : t.S("text")), limit - left - right);
             var head = Vector2.zero;
-            if (quest) { toastHead.color = HintInk; toastHead.fontSize = Sz(10); head = Ui.Set(toastHead, Text.Plain(t.S("head")), limit - pad * 2); }
-            float w = Mathf.Max(s.x, head.x) + pad * 2, titleY = quest ? head.y + 12 : 9, h = titleY + s.y + 10;
-            if (quest) Ui.Place(toastHead.rectTransform, (w - head.x) / 2, 8, head.x, head.y);
-            Ui.Place(toastText.rectTransform, (w - s.x) / 2, titleY, s.x, s.y);
+            if (quest) { toastHead.color = HintInk; toastHead.fontSize = Sz(12); head = Ui.Set(toastHead, Text.Plain(t.S("head")), limit - left - right); }
+            float w = Mathf.Min(limit, Mathf.Max(quest ? Sz(266) : 0, Mathf.Max(s.x, head.x) + left + right));
+            float titleY = quest ? head.y + 16 : 9, h = titleY + s.y + (quest ? 14 : 10);
+            if (quest) Ui.Place(toastHead.rectTransform, left, 12, w - left - right, head.y);
+            Ui.Place(toastText.rectTransform, quest ? left : (w - s.x) / 2, titleY, quest ? w - left - right : s.x, s.y);
             Ui.Place(toast.rt, W / 2 - w / 2, cueBottom > 0 ? cueBottom + HintGap : HintTop, w, h);
             HintTrim(toast);
+            if (quest) HintColumn(toast, Sz(46), t.S("mark") == "◇" ? "◇" : "◆", true);
             Ui.Group(toast.rt).alpha = a;
         }
 
@@ -1438,18 +1441,32 @@ namespace Hiraeth.Bridge
             Show(cue, on);
             cueBottom = 0;
             if (!on) return;
+            Show(cueHead, false);
             if (DrawCueBadge(c)) return;   // (a prompt's button: the page's badge, alone or before its words; issue #422)
             bool place = c.S("kind") == "place";
             cueText.fontStyle = place ? FontStyle.Italic : FontStyle.Normal;
             // (a region's name: letters on the land, no strip, as the page's #cue.place)
             cue.SetFill(place ? (solid ? Color.white : Color.clear) : HintBg);
             cueText.color = place ? (solid ? Color.black : Ui.Ink) : HintInk;
-            cueText.fontSize = Sz(13);
-            var s = Ui.Set(cueText, c.S("text"), Mathf.Min(900, W - 60));
-            float w = s.x + 32, h = s.y + 18;
-            Ui.Place(cueText.rectTransform, 16, 9, s.x, s.y);
-            Ui.Place(cue.rt, W / 2 - w / 2, HintTop, w, h);   // (the top centre, first in the hints' stack: issue #306)
+            bool quest = c.S("kind") == "quest";
+            cueText.fontSize = Sz(quest ? 16 : 13); cueText.alignment = quest ? TextAnchor.UpperLeft : TextAnchor.MiddleCenter;
+            string words = c.S("text"), goal = "", mark = "◆";
+            if (quest) {
+                int split = words.IndexOf('\n');
+                if (split >= 0) { goal = words.Substring(0, split); words = words.Substring(split + 1); }
+                if (words.StartsWith("◇ ")) mark = "◇";
+                if (words.StartsWith("◆ ") || words.StartsWith("◇ ")) words = words.Substring(2);
+            }
+            float limit = Mathf.Min(900, W - 32), left = quest ? Sz(64) : 16, right = quest ? Sz(24) : 16;
+            var s = Ui.Set(cueText, words, limit - left - right); var gs = Vector2.zero;
+            if (quest && goal.Length > 0) { Show(cueHead, true); cueHead.color = HintInk; cueHead.fontSize = Sz(12); gs = Ui.Set(cueHead, goal, limit - left - right); }
+            float w = Mathf.Min(limit, Mathf.Max(quest ? Sz(266) : 0, Mathf.Max(s.x, gs.x) + left + right));
+            float y = quest ? (gs.y > 0 ? gs.y + 16 : 12) : 9, h = y + s.y + (quest ? 12 : 9);
+            if (gs.y > 0) Ui.Place(cueHead.rectTransform, left, 12, w - left - right, gs.y);
+            Ui.Place(cueText.rectTransform, left, y, w - left - right, s.y);
+            Ui.Place(cue.rt, W / 2 - w / 2, HintTop, w, h);
             HintTrim(cue, !place);
+            if (quest) HintColumn(cue, Sz(46), mark, true);
             cueBottom = HintTop + h;
         }
 
@@ -1472,15 +1489,16 @@ namespace Hiraeth.Bridge
             // (the button alone unless hints are full, as the page's .glyph: src/hint-level.js; issue #394, Unity always wrote
             // "E voicemail" where the page shows the E)
             bool words = !(p.Get("words") is bool wd) || wd;
-            var s = words ? Ui.Set(promptText, p.S("text"), Mathf.Min(360, W - kw - 60)) : Vector2.zero;
+            var s = words ? Ui.Set(promptText, p.S("text"), Mathf.Max(1, Mathf.Min(360, W - 16 - kw - 52))) : Vector2.zero;
             Show(promptText, words);
             float lh = Mathf.Max(Mathf.Max(keyHeight, Sz(12) * 1.6f), s.y);
-            Ui.Place(promptKey.rectTransform, 9, 7 + (lh - keyHeight) / 2, kw, keyHeight);
-            Ui.Place(promptText.rectTransform, 9 + kw + 9, 7, s.x, lh);
-            float w = words ? 9 + kw + 9 + s.x + 12 : kw + 18, h = lh + 14;
+            Ui.Place(promptKey.rectTransform, 12, 10 + (lh - keyHeight) / 2, kw, keyHeight);
+            Ui.Place(promptText.rectTransform, 12 + kw + 24, 10, s.x, lh);
+            float w = words ? 12 + kw + 24 + s.x + 16 : kw + 24, h = lh + 20;
             float px = Mathf.Clamp(at.Value.x - w / 2, 8, W - w - 8), py = Mathf.Clamp(at.Value.y - h, 8, H - h - 8);
             Ui.Place(prompt.rt, px, py, w, h);
             HintTrim(prompt);
+            if (words) HintColumn(prompt, 12 + kw + 12);
             if (trace) tracePrompt.at = Mathf.Approximately(px, at.Value.x - w / 2) && Mathf.Approximately(py, at.Value.y - h) ? World(p.L("at")) : null;   // (not where it is held in at an edge)
         }
 
