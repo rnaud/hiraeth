@@ -7,6 +7,7 @@ import { buildCaravanInterior } from './caravan-interior.js';
 import * as caravanLayout from './caravan-layout.js';
 import { bindCaravanMechanisms } from './caravan-mechanisms.js';
 import { CallScreen } from './portrait.js';
+import { addPaneCues, isCaravanPane, bindPaneWashes } from './glazing.js';
 
 // Assembles one ship (hull + interior + moving parts) in ship-local space.
 
@@ -113,16 +114,17 @@ export function buildShipModel(o = {}) {
   const batch = new Batch(mats);
   const layout = o.caravan ? caravanLayout : { HINGE_R, HATCH_A, DECK };
   let authored = null, applyCamp = null, disposeAuthored = null;
-  const movingParts = [];
+  const movingParts = [], glazingPanes = [];
   if (o.caravan) {
     authored = o.caravan.clone(true);
-    const ownedGeometry = new Map(), paint = new Map();
+    const ownedGeometry = new Map(), paint = new Map(), panes = [];
     authored.traverse(node => {
       if (!node.isMesh) return;
       // Geometry belongs to this live copy. Immutable ink paint is globally cached and must not be disposed here.
       if (!ownedGeometry.has(node.geometry)) ownedGeometry.set(node.geometry, node.geometry.clone());
       node.geometry = ownedGeometry.get(node.geometry);
       const remap = original => {
+        if (isCaravanPane(node, original)) panes.push(node);
         let cockpit = false;
         for (let parent = node.parent; parent; parent = parent.parent) if (parent.name === 'cockpit') cockpit = true;
         const side = cockpit && original.name === 'dark' ? THREE.FrontSide : original.side;
@@ -133,6 +135,11 @@ export function buildShipModel(o = {}) {
       node.material = Array.isArray(node.material) ? node.material.map(remap) : remap(node.material);
       node.castShadow = node.receiveShadow = true;
     });
+    for (const pane of new Set(panes)) {
+      glazingPanes.push(pane);
+      const cue = addPaneCues(pane);
+      ownedGeometry.set(cue.geometry, cue.geometry);
+    }
     disposeAuthored = () => { for (const geometry of ownedGeometry.values()) geometry.dispose(); ownedGeometry.clear(); };
     authored.traverse(node => {
       if (node.userData.caravanMechanism || node.name === 'entry-door') {
@@ -176,6 +183,11 @@ export function buildShipModel(o = {}) {
   const meshes = { ...exteriorMeshes, ...interiorMeshes };
   for (const [key, mesh] of Object.entries(exteriorMeshes)) {
     if (interiorMeshes[key]) meshes[`exterior:${key}`] = mesh;
+  }
+  if (!authored && exteriorMeshes.glass) {
+    glazingPanes.push(exteriorMeshes.glass);
+    const cue = addPaneCues(exteriorMeshes.glass);
+    disposeAuthored = () => cue.geometry.dispose();
   }
 
   // the hatch door: pops out of its frame and slides aft along the hull (Ship.setDoor)
@@ -258,7 +270,10 @@ export function buildShipModel(o = {}) {
     ...Object.entries(interiorMeshes).filter(([key]) => key !== 'collider' && !enclosure.has(key)).map(([, mesh]) => mesh)];
   // the outside's small things (seams, the scorch, the lights, the trim): only drawn near (the far level of detail)
   const details = FAR_HIDDEN.map((k) => exteriorMeshes[k]).filter(Boolean);
-  return { tag, group, meshes, exteriorMeshes, interiorMeshes, mats, door, ramp, interior, hull, screen, callScreen, indoor, details, roomKey, authored, applyCamp, disposeAuthored, doorRest: door.position.clone(), movingParts, gearAltitude: o.space ? 4 : 0 };
+  const glazing = bindPaneWashes(o.veils, glazingPanes);
+  const disposeGeometry = disposeAuthored;
+  disposeAuthored = () => { glazing.dispose(); disposeGeometry?.(); };
+  return { glazing, tag, group, meshes, exteriorMeshes, interiorMeshes, mats, door, ramp, interior, hull, screen, callScreen, indoor, details, roomKey, authored, applyCamp, disposeAuthored, doorRest: door.position.clone(), movingParts, gearAltitude: o.space ? 4 : 0 };
 }
 /** How far (m) the outside's small things are drawn; past it the hull is its panels, stripe, glass and legs. */
 export const DETAIL_FAR = 130;

@@ -43,8 +43,8 @@ export const PEOPLE = {
         },
         go: {
           say: ["~neutral~ *The door under the clock.* Unlocked. Nobody here locks anything. The glass keeps what it wants.",
-            "~curious~ Look for a tool that makes you faster. The clocks inside demand several things before the first one fades. Ordinary speed won’t do."],
-          choices: [{ text: '~happy~ Quicker. Got it.', end: true }],
+            "~curious~ Look for the makers’ *boomerang*. It can strike several targets on one throw. The clocks inside need them lit before the first one fades."],
+          choices: [{ text: '~happy~ Several at once. Got it.', end: true }],
         },
         again: {
           say: ["~neutral~ *Through the door under the clock.* Follow the ticking."],

@@ -53,7 +53,7 @@ export const PEOPLE = {
             { text: '~neutral~ I’m going back.', end: true },
           ],
         },
-        answer: { say: ["~solemn~ Try answering its notes in order. Listen first, then give each one back."], choices: [{ text: '~neutral~ I will.', end: true }] },
+        answer: { say: ["~solemn~ When it sings, splash the sphere answering its note. If the lights confuse you, look through the lens for the walker’s print."], choices: [{ text: '~neutral~ I will.', end: true }] },
         after: {
           say: ["~surprised~ Water in every toe! And the heel! I can see the sky from the whole rim now.",
             "~happy~ Light circles the spheres’ feet. They hum together at dusk. Linnet cried. I walked another lap to hear it twice.",

@@ -1,6 +1,7 @@
 import { stickForMovementScale } from '../movement-input.js';
 import { CHARTED_SIDE } from '../levels/names.js';
 import * as THREE from 'three';
+import { Veils } from '../veil.js';
 import { game } from '../game-state.js';
 import { buildShipModel, buildSpace, poseRamp, DETAIL_FAR } from './model.js';
 import { R, DECK, CEIL, LIFT, HATCH_A, HINGE_R, WINDOW, HATCH, LEGS, footOf, SCAR, ROOF, CENTRE_Z, undersideAt, WALL_IN, reachAt, HALF_W, NOSE_Z, STERN_Z } from './hull.js';
@@ -87,6 +88,7 @@ export class Ship {
    */
   constructor({ scene, physics, level, levelId, content, prologue = false, caravan = null }) {
     Object.assign(this, { scene, physics, level, levelId, content, caravan });
+    level.veils ??= new Veils();
     this.layout = caravan ? caravanLayout : { R, DECK, CEIL, LIFT, HATCH_A, HINGE_R, WINDOW, HATCH, LEGS, footOf, SCAR, ROOF, CENTRE_Z, undersideAt, WALL_IN, reachAt, HALF_W, NOSE_Z, STERN_Z, ROOMS, inRooms, cockpitHalf };
     this.roomsRadius2 = (Math.max(-this.layout.ROOMS.cockpit.z0, this.layout.ROOMS.hold.z1) + 1.3) ** 2 + (this.layout.HALF_W + 1.3) ** 2 + (this.layout.ROOF + 2) ** 2;
     this.lights = level.lights ?? (level.lights = []);
@@ -211,7 +213,7 @@ export class Ship {
     foot ??= hinge.clone().addScaledVector(out, 20).setY(this.groundAt(hinge.x + out.x * 20, hinge.z + out.z * 20) - 0.08);
     const rampWorld = foot.clone().sub(hinge);
     const rampLocal = rampWorld.clone().applyQuaternion(q.clone().invert());
-    const model = buildShipModel({ caravan: this.caravan, legs: crash ? 'up' : 'down', footY, ramp: { dir: rampLocal.clone().normalize(), length: rampLocal.length() + 0.25 } });
+    const model = buildShipModel({ veils: this.level.veils, caravan: this.caravan, legs: crash ? 'up' : 'down', footY, ramp: { dir: rampLocal.clone().normalize(), length: rampLocal.length() + 0.25 } });
     model.group.position.copy(this.restPos);
     model.group.quaternion.copy(q);
     this.scene.add(model.group);
@@ -269,7 +271,7 @@ export class Ship {
 
   /** The prologue's ship, in orbit high above the map, wrapped in a dome of stars. */
   buildSpaceCopy() {
-    const model = buildShipModel({ caravan: this.caravan, space: true, legs: 'up', ramp: null });
+    const model = buildShipModel({ veils: this.level.veils, caravan: this.caravan, space: true, legs: 'up', ramp: null });
     const pos = new THREE.Vector3(this.site.x, SPACE_Y, this.site.z);
     model.group.position.copy(pos);
     this.scene.add(model.group);
@@ -982,6 +984,8 @@ export class Ship {
         m.indoorShown = near;
         for (const o of m.indoor) o.visible = near;
       }
+      // Cinematics may move either copy; sync the post-ink panes after final pose/culling.
+      m.glazing?.sync();
       // and far off, the outside's small things too (seams, the scorch, the lights: src/ship/model.js DETAIL_FAR)
       const detail = d < DETAIL_FAR;
       if (detail !== m.detailShown) { m.detailShown = detail; for (const o of m.details ?? []) o.visible = detail; }

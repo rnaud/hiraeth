@@ -508,3 +508,29 @@ Room furniture and procedural exterior details use separate batches even when th
 The bunk shelf and note have a bed-mounted wooden support within the existing bunk footprint. The entry opening remains a real doorway; closing its existing sliding panel occludes the outside view. The canonical playable Blender export adds cream perimeter returns between the porch’s unchanged curved skin and timber. Returns enter the timber below its bevel, inset only at its four rounded corners, and split/reverse at the upper hinge crossings. All returns remain children of the existing rigid porch panel. No original skin, timber, furniture, hinge or material is removed.
 
 The issue’s web review uses matching continuous, explicitly staged camera tours: closed/open orbits, the room-detail distance, forward/reverse folding, entry/bunk, cabin/hold, cockpit and underside. These are actual rendered views, not a claim of ordinary walking; terrain hides part of the parked belly. Actual-model regressions preserve entry and stair traversal and require outward-facing, nondegenerate panel-edge hits including the upper hinge and all four corners. A separate native comparison checks seven matching staged views: closed, early and open folding panel, bunk with hatch open and closed, the room-detail distance, and cockpit. Both runs use constructor mute, an explicit private store and a temporary Unity product identity; the original save/preference files and complete borrowed project are verified unchanged afterward. This proves the pictured native states, not a continuous native flythrough or physical-device traversal.
+
+
+## Inward window glazing (#631)
+
+Both ship models keep their original opaque exterior panes. The inside now uses
+small non-colliding reflection strips plus a pale, alpha-0.12 BackSide wash in the
+existing shared Veil pass. It adds no collision or shadow geometry. The Caravan
+selects its explicit `viewGlass` material and the current committed windshield’s
+exact geometry signature; unrelated dark paint and unsplit multi-material meshes
+are excluded. The original hull uses its existing exterior glass mesh. A future
+authored asset change must deliberately update the exact pane signature or add an
+explicit tag, rather than broadening it to every dark surface.
+
+Each ship owns and disposes its washes. Their matrices synchronize after the ship
+pose updates, including the parked, travel and space copies; the pane remains the
+geometry authority. No new renderer or asset conversion path is involved.
+
+Review compared six matched parked daylight views per hull in Unity, with exact
+warm-project and default-store restoration after each run. Actual web interior
+views and an ordinary table/search/Travel departure were also reviewed: 56 samples
+kept both Caravan washes attached through 8.019 seconds of the 11.4-second takeoff,
+then the QA observer paused before navigation. That is partial takeoff evidence,
+not destination, landing, space, banking or physical-device acceptance. Initial
+private prerequisites and the existing aboard-main start were staged; earning
+those prerequisites or boarding the ship was not part of that review. Published
+pictures retain their older source and staged-camera attribution.

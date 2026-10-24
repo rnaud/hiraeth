@@ -1349,6 +1349,43 @@ const RETROID536 = 'Retroid Pocket Nova (Adreno 740, Vulkan), Unity, Handheld (F
 const SRC536 = 'BridgeRenderer.Pipelines (the G-buffer’s states the scene asks for: variant, layout, cull, depth), Metal’s list traced in the editor, the shipped lists rewritten by scripts/bench/pso-one-cull.mjs; docs/systems/performance.md, “One cull mode and one layout for the Surface pipelines”';
 const SEAPORT572 = 'Issue #572: the web game in muted headless Chrome (High, 1280 × 720) on a Vite of its own (port 5441), a new save arriving by ship (?level=underwater&via=ship), then walked as a player; before: origin/main at 02345e2c3, after: this change; the deck and the Dock from the visual check’s views (scripts/design-qc/capture.mjs --fixed-scale); 20 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '2.17': [
+  {
+    "match": "The ship’s windows catch a pale reflection from inside, while keeping the view outside clear.",
+    "shots": [
+      {
+        "name": "ship-glass-cockpit",
+        "title": "Caravan cockpit",
+        "size": [
+          1280,
+          960
+        ],
+        "caption": "The Caravan’s inward windshield wash is subtle; scenery remains visible.",
+        "from": "Actual muted Unity Editor6000.6.4f1, Metal/High, full1280×960, staged parked daylight cameras matched per hull. Before: exact published c6fe20e6447e004ed6514ee23fc7a283e241f1f0 ship modules; after: same base plus window candidate, diff8dcb2581ecb45f73765c72726e0003a2a3794f1940199b46cdd9fa690dfee7d5, native input pins565c5ce439be929a372f0bda3dbc66938622ed9c233c759e596c9a82cddc6e55. Ship runtime bytes remain exact after updating base to4f78eeb7. Full original frames encoded WebP quality72 without crop. Ambient particles can differ. Parked appearance comparison only; no flight/device/audio claim."
+      },
+      {
+        "name": "ship-glass-saloon",
+        "title": "Caravan cabin",
+        "size": [
+          1280,
+          960
+        ],
+        "caption": "Pale glass and small edge reflections make the cabin window readable.",
+        "from": "Actual muted Unity Editor6000.6.4f1, Metal/High, full1280×960, staged parked daylight cameras matched per hull. Before: exact published c6fe20e6447e004ed6514ee23fc7a283e241f1f0 ship modules; after: same base plus window candidate, diff8dcb2581ecb45f73765c72726e0003a2a3794f1940199b46cdd9fa690dfee7d5, native input pins565c5ce439be929a372f0bda3dbc66938622ed9c233c759e596c9a82cddc6e55. Ship runtime bytes remain exact after updating base to4f78eeb7. Full original frames encoded WebP quality72 without crop. Ambient particles can differ. Parked appearance comparison only; no flight/device/audio claim."
+      },
+      {
+        "name": "ship-glass-porthole",
+        "title": "Original ship porthole",
+        "size": [
+          1280,
+          960
+        ],
+        "caption": "The original ship’s round porthole keeps its clear view and gains an inward reflection.",
+        "from": "Actual muted Unity Editor6000.6.4f1, Metal/High, full1280×960, staged parked daylight cameras matched per hull. Before: exact published c6fe20e6447e004ed6514ee23fc7a283e241f1f0 ship modules; after: same base plus window candidate, diff8dcb2581ecb45f73765c72726e0003a2a3794f1940199b46cdd9fa690dfee7d5, native input pins565c5ce439be929a372f0bda3dbc66938622ed9c233c759e596c9a82cddc6e55. Ship runtime bytes remain exact after updating base to4f78eeb7. Full original frames encoded WebP quality72 without crop. Ambient particles can differ. Parked appearance comparison only; no flight/device/audio claim."
+      }
+    ]
+  }
+],
   '2.16': [
   {
     "match": "The moorers’ court has room to try different tools:",

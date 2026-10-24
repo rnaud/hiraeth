@@ -246,3 +246,7 @@ explains that a cradled moon creates an opening for a splash on the Founder’s 
 These are three instruction edits across four authored pages; their tones, page counts,
 choices, conditions and effects remain unchanged. The shared dialogue data serves web
 and Unity. This bounded follow-up does not complete the remaining dialogue review.
+
+### Mechanic-specific guide corrections (#626)
+
+Wim’s Clock-House directions name the returning boomerang and its multi-target use, rather than the retired speed tool. Tessa’s answer names a splash at the answering sphere and the lens mark when lights are ambiguous. These are text-only corrections in the existing conversation nodes: page counts, tones, choices, quest effects and save IDs remain unchanged. Both hosts consume the same dialogue data.

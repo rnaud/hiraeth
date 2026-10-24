@@ -9,6 +9,13 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
+    v: '2.17', date: '2026-10-24',
+    items: [
+      { text: "The ship’s windows catch a pale reflection from inside, while keeping the view outside clear.", see: 'Look through the cockpit and cabin windows from inside either ship. The pale glass and small edge reflections stay with their panes during departure; the outside paint stays unchanged.' },
+      { text: 'Wim points you toward the Clock-House’s boomerang, and Tessa explains how to answer the Footprint’s singing spheres.', see: 'Ask Wim about entering the Clock-House in the Glass Dunes. After visiting the Footprint, tell Tessa that its singing gets no answer.' },
+    ],
+  },
+  {
     v: '2.16', date: '2026-10-24',
     items: [
       { text: 'The moorers’ court has room to try different tools: lower a crate with the hook, carry it, or push the spare onto the load plate. Its gate stays open after solving it, including after reloading, and lost crates return safely.', see: 'Visit the makers’ court on the Yard west of the floating city’s Gate with the hook. Try the high crate or the ground spare; put the load down on the marked plate. Holding it above the plate does not press it. The optional reward and main journey are unchanged.' },

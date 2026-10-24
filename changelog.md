@@ -2,6 +2,11 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v2.17 — 2026-10-24
+
+- Wim points you toward the Clock-House’s boomerang, and Tessa explains how to answer the Footprint’s singing spheres.
+- The ship’s windows catch a pale reflection from inside, while keeping the view outside clear.
+
 ## v2.16 — 2026-10-24
 
 - The moorers’ court has room to try different tools: lower a crate with the hook, carry it, or push the spare onto the load plate. Its gate stays open after solving it, including after reloading, and lost crates return safely.
