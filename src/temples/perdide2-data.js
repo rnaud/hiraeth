@@ -53,7 +53,7 @@ export const PEOPLE = {
             { text: '~neutral~ I’m going back.', end: true },
           ],
         },
-        hungry: { say: ["~solemn~ Offer it a little light at a time. Wait for it to settle between tries."], choices: [{ text: '~neutral~ I will.', end: true }] },
+        hungry: { say: ["~solemn~ Let a bubble take light from a lit pool, then send it to the moth when it hangs low. Stand back while it drinks."], choices: [{ text: '~neutral~ I will.', end: true }] },
         after: {
           say: ["~surprised~ The tower’s lit! A beam sweeping the whole wood. I tried counting each turn and forgot to sleep.",
             "~happy~ The moth rests on the lamp, all gold. Hollin says put down forty-two lights now. Happiest correction I’ve made.",

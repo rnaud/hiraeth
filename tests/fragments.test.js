@@ -114,7 +114,7 @@ test('a fragment walked into is yours: saved, counted, gone, its light out; it s
   const { game, items: its } = fresh();
   const player = { pos: V(), hidden: false };
   const sang = [], toasts = [], events = [];
-  // (its own song: 24 a world since v1.70, a neighbour may sing too)
+  // (the nearest fragment owns the local approach phrase)
   const sound = { fragmentSong: (p, k) => { if (p === F.list[2].pos) sang.push(k); }, fragmentTaken: () => {}, finderBeep: () => {} };
   const lights = [];
   game.on('fragment', (e) => events.push(e));
@@ -791,4 +791,91 @@ test('the tune he sells stops short: only Ilen gives the light\'s song back whol
   // and the box plays it so: the theme's short form, cut before it settles (src/story/light-theme.js)
   const src = readFileSync(new URL('../src/story/scientist.js', import.meta.url), 'utf8');
   assert.match(src, /thrum:tune'.*lightTheme\?\.\(\{[^}]*short: true/);
+});
+
+
+test('nearby fragments share one phrase deadline across nearest switches and leaving range', () => {
+  const { game, items: its } = fresh();
+  const player = { pos: V() }, songs = [];
+  const F = createFragments({ levelId: 'desert', scene: new THREE.Scene(), player, game, items: its,
+    sound: { fragmentSong: (p) => songs.push(p) } });
+  const a = F.list[5], b = F.list[6];
+  const middle = a.pos.clone().add(b.pos).multiplyScalar(0.5).add(V(0, -FRAGMENT.lift, 0));
+  player.pos.copy(middle).lerp(a.pos.clone().add(V(0, -FRAGMENT.lift, 0)), 0.05);
+  F.update(0.1, 0);
+  assert.deepEqual(songs, [a.pos], 'overlapping real Desert hearing radii start one nearest phrase');
+  player.pos.copy(middle).lerp(b.pos.clone().add(V(0, -FRAGMENT.lift, 0)), 0.05);
+  F.update(0.1, 0.1);
+  assert.equal(songs.length, 1, 'switching nearest cannot start a second phrase');
+  player.pos.set(10000, 10000, 10000); F.update(0.1, 0.2);
+  player.pos.copy(middle).lerp(b.pos.clone().add(V(0, -FRAGMENT.lift, 0)), 0.05);
+  F.update(0.1, 0.3);
+  assert.equal(songs.length, 1, 're-entry retains the deadline');
+  F.update(FRAGMENT.singEvery, 4);
+  assert.deepEqual(songs, [a.pos, b.pos], 'next due phrase uses the current nearest fragment');
+  F.dispose();
+});
+
+test('quiet and hidden fragment approaches never start phrases or queue a resume burst', () => {
+  const { game, items: its } = fresh();
+  const player = { pos: V(), hidden: false }, songs = [];
+  const F = createFragments({ levelId: 'desert', scene: new THREE.Scene(), player, game, items: its,
+    sound: { fragmentSong: (p) => songs.push(p) } });
+  player.pos.copy(F.list[5].pos).add(V(4, -FRAGMENT.lift, 0));
+  F.update(20, 20, { quiet: true });
+  assert.equal(songs.length, 0, 'conversation/menu suppresses approach songs');
+  player.hidden = true; F.update(20, 40);
+  assert.equal(songs.length, 0, 'hidden player does not start a song');
+  player.hidden = false; F.update(0.1, 40.1);
+  assert.equal(songs.length, 1, 'resume starts only one currently due phrase');
+  F.update(0.1, 40.2); F.update(0.1, 40.3);
+  assert.equal(songs.length, 1, 'no accumulated missed phrases');
+  F.dispose();
+});
+
+test('quiet collection still grants one fragment and reload never sings or grants it again', () => {
+  const { game, items: its } = fresh();
+  const player = { pos: V() }, songs = [], taken = [], events = [];
+  game.on('fragment', (e) => events.push(e));
+  const sound = { fragmentSong: (p) => songs.push(p), fragmentTaken: (e) => taken.push(e) };
+  const make = () => createFragments({ levelId: 'desert', scene: new THREE.Scene(), player, game, items: its, sound });
+  const F = make(), pos = F.list[5].pos.clone();
+  player.pos.copy(pos).add(V(0, -FRAGMENT.lift, 0));
+  F.update(1, 1, { quiet: true }); F.update(10, 11, { quiet: true });
+  assert.equal(game.flag('frag.desert.5'), true);
+  assert.equal(taken.length, 1); assert.equal(events.length, 1); assert.equal(songs.length, 0);
+  F.dispose();
+  const again = make(); again.update(10, 21);
+  assert.equal(again.list[5].found, true); assert.equal(again.list[5].grp.visible, false);
+  assert.equal(taken.length, 1); assert.equal(events.length, 1);
+  assert.ok(songs.every(p => !p.equals(pos)), 'found slot never sings after reload');
+  again.dispose();
+});
+
+
+test('a pickup reserves the shared phrase interval for its payoff, even with another fragment in range', () => {
+  const { game, items: its } = fresh();
+  const player = { pos: V() }, songs = [], taken = [], events = [];
+  game.on('fragment', (e) => events.push(e));
+  const F = createFragments({ levelId: 'desert', scene: new THREE.Scene(), player, game, items: its,
+    sound: { fragmentSong: (p) => songs.push(p), fragmentTaken: (e) => taken.push(e) } });
+  const a = F.list[5], b = F.list[6];
+  // A close-pair fixture exercises pickup and an eligible approach in the SAME update.
+  b.pos.copy(a.pos).add(V(10, 0, 0));
+  player.pos.copy(a.pos).add(V(0, -FRAGMENT.lift, 0));
+  F.update(10, 10);
+  assert.equal(taken.length, 1); assert.equal(events.length, 1);
+  assert.equal(game.flag('frag.desert.5'), true);
+  assert.equal(game.flag('frag.desert.6'), undefined, 'uncollected neighbour has no saved flag');
+  assert.equal(b.i, 6, 'the neighbour is Desert fragment 6');
+  assert.equal(b.found, false, 'the neighbouring fragment remains available');
+  assert.equal(songs.length, 0, 'no approach song competes with pickup in the same frame');
+  F.update(0.1, 10.1);
+  assert.equal(songs.length, 0, 'following frame retains the pickup deadline');
+  F.update(FRAGMENT.singEvery - 0.2, 13.3);
+  assert.equal(songs.length, 0, 'payoff retains the whole phrase interval');
+  F.update(0.2, 13.5);
+  assert.deepEqual(songs, [b.pos], 'next nearby fragment may sing after the payoff interval');
+  assert.equal(taken.length, 1); assert.equal(events.length, 1);
+  F.dispose();
 });

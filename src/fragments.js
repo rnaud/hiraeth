@@ -85,10 +85,10 @@ export function createFragments({ levelId, scene, physics = null, level = null, 
     scene?.add(grp);
     const light = new THREE.Vector4(pos.x, pos.y, pos.z, found ? 0 : 3);
     if (!found) lights?.push(light);
-    return { i, pos, base: pos.y, grp, core, orbit, light, found, sungAt: -1e9 };
+    return { i, pos, base: pos.y, grp, core, orbit, light, found };
   });
 
-  let beepAt = 0, clock = 0;
+  let beepAt = 0, clock = 0, sungAt = -Infinity;
   const finderOn = () => items.has('finder') && !game.flag('frag.finder.off');
   const nearest = (at = player?.pos) => {
     let best = null, bd = Infinity;
@@ -101,6 +101,8 @@ export function createFragments({ levelId, scene, physics = null, level = null, 
     const f = list[i];
     if (!f || f.found) return null;
     f.found = true;
+    // Leave the pickup/discovery payoff a full phrase interval, including this frame.
+    sungAt = clock;
     f.grp.visible = false;
     if (lights) { const k = lights.indexOf(f.light); if (k >= 0) lights.splice(k, 1); }
     game.set(fragKey(levelId, i), true);
@@ -118,10 +120,11 @@ export function createFragments({ levelId, scene, physics = null, level = null, 
   return {
     list, nearest, take, finderOn,
     counts: () => fragmentCounts(game.data?.flags ?? {}),
-    /** `quiet`: a conversation or a menu is up (main.js busy()): no finder's beep then (issue #231). */
+    /** `quiet`: conversation/menu (main.js busy()) suppresses new songs and finder beeps, not collection. */
     update(dt, t, { quiet = false } = {}) {
       clock += dt;
       const p = player?.pos;
+      let singer = null, songDistance = FRAGMENT.sing;
       for (const f of list) {
         if (f.found) continue;
         // (out of drawing range: hidden, and nothing to turn)
@@ -136,7 +139,15 @@ export function createFragments({ levelId, scene, physics = null, level = null, 
         if (Math.hypot(dx, dz) < FRAGMENT.take && Math.abs(dy) < 1.8) { take(f.i); continue; }
         // its song, faint, from where it is (three notes of the light's theme)
         const d = Math.hypot(dx, dy, dz);
-        if (d < FRAGMENT.sing && clock - f.sungAt > FRAGMENT.singEvery) { f.sungAt = clock; sound?.fragmentSong?.(f.pos, 1 - d / FRAGMENT.sing); }
+        // One local phrase, from the nearest fragment. Stable list order breaks ties.
+        if (d < songDistance) { singer = f; songDistance = d; }
+      }
+      // Menus/conversation stop new phrases, not collection or an already-playing tail.
+      // Keep this shared deadline across nearest changes and leaving/re-entering range;
+      // missed intervals never accumulate into a burst after a quiet spell.
+      if (singer && !quiet && clock - sungAt > FRAGMENT.singEvery) {
+        sungAt = clock;
+        sound?.fragmentSong?.(singer.pos, 1 - songDistance / FRAGMENT.sing);
       }
       // the finder: a beep, faster as the nearest comes closer
       if (finderOn() && p && !player.hidden && !quiet) {

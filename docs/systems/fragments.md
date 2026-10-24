@@ -422,3 +422,15 @@ The author: "I shouldn't be able to tell how many fragments of light there are i
   rename would drop them silently).
 - `tests/people-names.test.js` (v1.61): one name, one person (the people book and every world's people), and nobody you
   meet named like someone the story only tells of (Odile and Talo, the Orrins).
+
+
+### One local approach phrase (#638)
+
+The nearest uncollected fragment within the existing hearing radius owns the approach song.
+All fragments share its 3.4-second start interval: crossing between two nearby fragments or
+leaving and re-entering their range cannot start competing phrases. Conversation/menu quiet
+state suppresses new phrases, as it already does finder beeps; an existing short phrase may
+finish. A successful pickup reserves a full phrase interval for its payoff, so another nearby
+fragment cannot start a song in that frame or immediately afterward. Missed intervals do not
+queue for later. Collection, its payoff, requested hints, found
+flags and the optional finder remain independent. Both hosts use the same fragment scheduler.

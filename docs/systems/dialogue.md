@@ -250,3 +250,14 @@ and Unity. This bounded follow-up does not complete the remaining dialogue revie
 ### Mechanic-specific guide corrections (#626)
 
 Wim’s Clock-House directions name the returning boomerang and its multi-target use, rather than the retired speed tool. Tessa’s answer names a splash at the answering sphere and the lens mark when lights are ambiguous. These are text-only corrections in the existing conversation nodes: page counts, tones, choices, quest effects and save IDs remain unchanged. Both hosts consume the same dialogue data.
+
+### Hush-House and Lamp-House repeat hints (#626)
+
+Teasel names the overhead jangling crystals as the cold tool’s target, rather than
+leaving “what she hears” implicit. Briony describes a bubble taking light from a
+lit pool, delivery while the moth hangs low, and standing back while it drinks.
+This describes one supported method; the moth’s pool-lure route remains valid.
+These two one-page edits preserve tones, entry conditions, replies, quest effects
+and save IDs. The Mother’s later melody and final touch remain separate steps.
+Shared dialogue data supplies both hosts; this is a bounded clarity pass, not a
+review of every conversation.

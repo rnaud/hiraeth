@@ -1,0 +1,25 @@
+{
+  "baseCommit": "3eabeeda284bd2b44cef4ed6b2b05a8ddba17ea4",
+  "files": [
+    {
+      "path": "src/temples/perdide-data.js",
+      "baseSha256": "5657fdb56dc4b2ee95b5cf6b79424e8ef961fdc76cdca512c061f3de5316a1eb",
+      "replacements": [
+        {
+          "before": "~solemn~ The makers kept a cold tool in there. Quiet what she hears, and she might listen.",
+          "after": "~solemn~ Use the cold tool on the jangling crystals above her. Once they’re still, she might listen."
+        }
+      ]
+    },
+    {
+      "path": "src/temples/perdide2-data.js",
+      "baseSha256": "c9d51f63ebe93037f7bc52173908ec685057806506b4712f6a028387eef3d41a",
+      "replacements": [
+        {
+          "before": "~solemn~ Offer it a little light at a time. Wait for it to settle between tries.",
+          "after": "~solemn~ Let a bubble take light from a lit pool, then send it to the moth when it hangs low. Stand back while it drinks."
+        }
+      ]
+    }
+  ]
+}

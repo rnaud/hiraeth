@@ -53,7 +53,7 @@ export const PEOPLE = {
             { text: '~neutral~ I’m going back.', end: true },
           ],
         },
-        still: { say: ["~solemn~ The makers kept a cold tool in there. Quiet what she hears, and she might listen."], choices: [{ text: '~neutral~ I’ll find it.', end: true }] },
+        still: { say: ["~solemn~ Use the cold tool on the jangling crystals above her. Once they’re still, she might listen."], choices: [{ text: '~neutral~ I’ll find it.', end: true }] },
         after: {
           say: ["~surprised~ No snapping! And the dome’s flowering. White and blue, all opening at dusk.",
             "~happy~ Every jaw-plant has flowers around its roots now. Wendel laughed out loud, and every jaw on the bed turned to look at him.",

@@ -12,6 +12,8 @@ export const CHANGELOG = [
     v: '2.20', date: '2026-10-24',
     items: [
       {"text": "Kamal now looks the same on his fan sled as he does beside the canyon.", "see": "Meet Kamal beside the canyon, start his race, and retry from the pause menu. His appearance stays consistent as the sled banks and lands."},
+      { text: 'Nearby fragments take turns singing, pause their calls while you talk or read a menu, and leave a little room for the sound of a discovery.', see: 'Walk near the singing fragments by the Desert landing. Listen as you approach, open a conversation or menu, then collect one: nearby fragments wait before singing again.' },
+      { text: 'Teasel explains which crystals to quiet in the Hush-House, and Briony explains how to bring light to the Lamp-House’s moth.', see: 'After entering each house, ask Teasel about the Mother snapping at sounds or tell Briony that the moth fled from your light. Their hints name the tool, its target and when to use it.' },
     ],
   },
   {
