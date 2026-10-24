@@ -22,7 +22,7 @@ export const KEY_FILES = ['desktop/main.mjs', 'desktop/deck-updates.mjs', 'scrip
   ...['portrait', 'wide', 'hero', 'logo'].map((art) => `desktop/steam/${art}.png`),   // (Steam's artwork, scripts/steam-art.mjs)
   ...['portrait', 'wide', 'hero', 'logo', 'icon'].map((art) => `desktop/steam/unity/${art}.png`),   // (the Unity preview's, badged)
   ...['portrait', 'wide', 'hero', 'logo', 'icon'].map((art) => `desktop/steam/web/${art}.png`),   // (the web fallback's, badged)
-  'scripts/site-only.mjs'];   // (what the package leaves out of the game: the site's own files, the themes fetched on demand)
+  'scripts/site-only.mjs', 'scripts/publish-steam-deck.mjs'];   // (what the package leaves out of the game: the site's own files, the themes fetched on demand)
 const REPO = fileURLToPath(new URL('../', import.meta.url));
 const sha256 = (buf) => createHash('sha256').update(buf).digest('hex');
 

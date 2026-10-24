@@ -1,6 +1,6 @@
 name: Steam Deck release
 
-# The offline game and its Linux runtime for the Steam Deck, published to the GitHub release `steam-deck`
+# The offline game and its Linux runtime, published to build-scoped `steam-deck-<build>` releases
 # (a prerelease of its own; the runtime on the site comes from cloudflare.yml).
 #
 # When: after the unit suite passed on a push to main (tests.yml, "Tests": this workflow is triggered by its
@@ -97,23 +97,16 @@ jobs:
             output/steam-deck/steam-deck.json
             output/steam-deck/install-hiraeth.py
 
-      - name: Publish package, then advance the update feed
+      - name: Publish verified build-scoped package (preserve legacy feed)
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          # A separate channel avoids races with Android's version releases and
-          # leaves GitHub's latest stable release pointing to the Android APK.
-          # Each call retried on a transient error (scripts/retry.sh); the package's name is this build's
-          # alone, so --clobber only replaces what an earlier attempt half-uploaded.
+          # No clobber/deletion on the full legacy steam-deck release. Each retry
+          # verifies existing draft bytes before publishing, never mutating a
+          # published package. Cloudflare independently advances the stable site
+          # multipart feed, which installed launchers already understand.
           . scripts/retry.sh
-          if ! gh release view steam-deck >/dev/null 2>&1; then
-            retry gh release create steam-deck --target "$SHA" --title 'Hiraeth for Steam Deck' \
-              --prerelease --latest=false --notes-file scripts/steam-deck/release-notes.md \
-              || gh release view steam-deck >/dev/null   # (made by an attempt that reported a failure: fine)
-          fi
-          retry gh release upload steam-deck output/steam-deck/*.tar.gz --clobber
-          retry gh release upload steam-deck output/steam-deck/install-hiraeth.py --clobber
-          retry gh release upload steam-deck output/steam-deck/steam-deck.json --clobber
+          retry node scripts/publish-steam-deck.mjs
 
       - name: Commit status (the outcome)
         if: always()

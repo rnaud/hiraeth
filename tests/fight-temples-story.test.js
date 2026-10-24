@@ -55,7 +55,8 @@ test('Items names each colour by the house it came from (issue #483: “Ember ·
 test('the small hooks: Sabri and Teasel speak of the ink, Plumb names the Blade Gate once (issue #483)', () => {
   assert.ok(DESERT_PEOPLE.sabri.lines.some((l) => /ink comes up/i.test(l) && TONES.includes(parseLine(l).tone)));
   assert.ok(LORN_PEOPLE.teasel.lines.some((l) => /Gert’s mill/.test(l) && TONES.includes(parseLine(l).tone)));
-  assert.ok(ONCE.includes('bladegate') && /keep out/i.test(DRONE_LINES.bladegate));
+  assert.ok(ONCE.includes('bladegate'), 'Blade Gate warning remains once per save');
+  assert.match(DRONE_LINES.bladegate, /blades.*dangerous entrance.*be careful/i, 'The revised warning still identifies the hazard and asks for caution');
 });
 
 // Issue #559 (the dialogue review v1.87, finding 1): the twelve were written in one pass and read as one template, eight

@@ -53,8 +53,20 @@ Read each world's script whole, speaker by speaker. Read every recording, the en
 (`src/story/ending.js`: the stone, the choices, Ilen) and the Lantern (`src/story/lantern-data.js`)
 too. Most of all, check what can't be measured:
 
+- **Knowledge belongs to the speaker:** for every proper name, destination, motive or revelation,
+  identify what that speaker has actually observed or been told before this line. Check fresh arrival,
+  optional conversations skipped, and returning saves. A catalogue label, visited-world flag or another
+  character's knowledge is not evidence. Plumb may point out a person, smoke, gate or signal to explore;
+  it must not introduce an unknown person's name or a place's secret history. Use an observable
+  description until an explicit introduction, rumour or quest step supplies the fact. Keep uncertainty
+  explicit. Review hint toasts and lost-direction barks as well as dialogue pages. Do not fix a leak by
+  granting knowledge flags or changing progression gates.
 - **The conversation contract:** does each talk give a person to care about, something to try, or a
   question worth pursuing? Is a quest's next step plain enough to repeat aloud?
+- **Plain instructions first:** state the observable problem or requested action before adding imagery.
+  A player should be able to repeat the next step after one reading. Replace cryptic fragments,
+  vague pronouns and personified mechanisms when they obscure an instruction; preserve character
+  humour, terse voices and optional mystery. Do not add route facts or knowledge to make a line clearer.
 - **The blind swap:** hide the names. Could two speakers in a world trade lines? Check each speaker
   against their sheet in `lore/characters/`.
 - **The writer's voice leaking:** the same image from different mouths. Start from `metrics.json`'s

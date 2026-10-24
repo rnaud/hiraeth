@@ -141,10 +141,6 @@ export const ITEMS = {
     name: 'Glow-moss pin', kind: 'charm',
     text: 'A sprig of glowing moss under a glass bead. After dusk it lights the ground round your feet, a little.',
   },
-  pouch: {
-    name: 'Seed pouch', kind: 'charm',
-    text: 'A linen pouch of seeds that never empties. Small flowers come up in your footsteps and fade a while after.',
-  },
   scarf: {
     name: 'Wind-silk scarf', kind: 'charm',
     text: 'A fine white scarf any breeze can lift. Your fluid wings sink more slowly when you glide.',

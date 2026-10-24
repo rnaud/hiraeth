@@ -42,7 +42,7 @@ export function setupSpheres(ctx) {
   quests.itemNames = ITEMS;
   const Q = 'spheres.listen';
   // the main quest doesn't just appear: it starts when you talk to Linnet (the scout finds them till then: src/story/quests.js opensWith)
-  if (!quests.isStarted(Q)) quests.opensWith(Q, 'aube.spheres', { at: 'aube' });
+  if (!quests.isStarted(Q)) quests.opensWith(Q, 'aube.spheres', { at: 'aube', hint: 'Someone with a parasol' });
   const H = (x, z) => level.ground.heightAt(x, z);
   const onGround = (x, z, from = 30) => { const g = physics.groundAt(x, from, z, 80); return V(x, Number.isFinite(g) ? g : H(x, z), z); };
   const Pz = G.plaza, pole = V(Pz.x, Pz.ground, Pz.z);

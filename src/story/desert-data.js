@@ -467,8 +467,8 @@ export const PEOPLE = {
           say: ["~solemn~ One old verse gives the route: *Where the giant’s eyes are marked, its mouth is a door.* I believe that means exactly what it says.", "~playful~ Find *the marked skull outside the back gate*. Carved stones hold its jaw open. *Go through the mouth* to reach the water below."],
           choices: [{ text: '~neutral~ I’ll go and look.', end: true }],
         },
-        well: { say: ["~neutral~ Up through its roots. The old keepers went down inside the giant to tend the way it comes."], choices: [{ text: '~curious~ Is there a way down?', goto: 'way' }, { text: '~neutral~ I’ll let you walk.', end: true }] },
-        swamp: { say: ["~curious~ Glowing water and singing plants, far beyond this desert. Farther than our feet can take us."], do: { set: { 'clue.desert.perdide': true } }, choices: [{ text: '~curious~ And the water here, is there a way down to it?', goto: 'way' }, { text: '~neutral~ Some other day, then.', end: true }] },
+        well: { say: ["~neutral~ Water rises through the roots. The old keepers maintained its path inside the giant."], choices: [{ text: '~curious~ Is there a way down?', goto: 'way' }, { text: '~neutral~ I’ll let you walk.', end: true }] },
+        swamp: { say: ["~curious~ The songs describe glowing water and singing plants, far beyond this desert."], do: { set: { 'clue.desert.perdide': true } }, choices: [{ text: '~curious~ And the water here, is there a way down to it?', goto: 'way' }, { text: '~neutral~ Some other day, then.', end: true }] },
         never: { say: ["~tired~ Then we must learn something new. Walking is a comfort, but the tree cannot drink footsteps."], choices: [{ text: '~curious~ Then how does the water reach it?', goto: 'well' }] },
         again: {
           say: ["~neutral~ The water is beneath the tree. The underground entrance is the giant’s mouth, beyond the back gate. May the route be easier than the verse."],

@@ -56,8 +56,31 @@ test('Whale House engine host: ordinary valve input raises swimmable water, swim
     assert.ok(walk([21, 0, SOUND.z1 + 3]), 'mantle onto the dais');
     assert.ok(P.onGround && !P.swim, 'standing on the dry dais');
     assert.ok(walk([6.5, 0, 78]), 'walk to the dais valve');
+    const valve = rt.piece('valve.dais');
+    const valveId = 'temple.underwater.valve.dais';
+    const inView = () => {
+      const p = valve.top.clone().project(g.camera);
+      return p.z > -1 && p.z < 1 && Math.abs(p.x) < 1.05 && Math.abs(p.y) < 1.05;
+    };
+    // Arriving from the east leaves the view facing west, away from the valve.
+    // Nearby but unseen is deliberately not actionable (#636).
+    assert.equal(inView(), false, 'the last walking view has the valve out of frame');
+    assert.notEqual(g.story.promptEntry?.id, valveId, 'no prompt offers the hidden valve');
     tap('KeyE');
-    assert.ok(rt.logic.drumOn('tide', 'tLow'), 'ordinary use lowers the tide');
+    assert.ok(rt.logic.drumOn('tide', 'tHigh'), 'an away-facing use does not lower the tide');
+    // CameraRig yaw describes its backwards arm in the player's local-up frame.
+    // Turn through the same pointer-look API as gameplay, without relocating the player,
+    // assigning a camera matrix, invoking the valve, or writing a tide flag.
+    const toward = valve.top.clone().sub(P.pos);
+    const yaw = Math.atan2(-toward.dot(P.frame.right), -toward.dot(P.frame.fwd));
+    const turn = Math.atan2(Math.sin(yaw - g.rig.yaw), Math.cos(yaw - g.rig.yaw));
+    g.look(-turn / (0.0025 * g.rig.sensitivity), 0);
+    frame(60);
+    assert.ok(inView(), 'ordinary camera turn brings the valve into frame');
+    assert.equal(g.story.promptEntry?.id, valveId, 'the visible valve is the offered use target');
+    assert.equal(g.story.prompt, 'let the sea out');
+    tap('KeyE');
+    assert.ok(rt.logic.drumOn('tide', 'tLow'), 'ordinary use of the visible valve lowers the tide');
     frame((TIDE.run + 2) * 30);
     const low = P.water.surfaceAt(world(0, 0, 40).x, world(0, 0, 40).z, world(0, DEEP, 40).y);
     assert.ok(Math.abs(low.y - world(0, TIDE.hall[0], 0).y) < .05, 'the low swim bounds return with the surface');

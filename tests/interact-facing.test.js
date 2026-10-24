@@ -43,3 +43,16 @@ test('the facing weight: 1 ahead, 2 to the side, 3 behind; as it is without a pl
   assert.equal(facingWeight({ pos: V() }, e(V(3, 0, 0))), 1);
   assert.equal(facingWeight(player(0), e(V(0.1, 0, 0.1))), 1, 'right on top of it');
 });
+
+
+test('facing weighs the tangent plane of a wall or spherical surface, not world XZ', () => {
+  const p = { pos: V(5, 7, 9), heading: 0, frame: { up: V(1, 0, 0), dir: (_h, out) => out.set(0, 1, 0) } };
+  const entry = (offset) => ({ at: () => p.pos.clone().add(offset) });
+  assert.equal(facingWeight(p, entry(V(0, 3, 0))), 1);
+  assert.equal(facingWeight(p, entry(V(0, 0, 3))), 2);
+  assert.equal(facingWeight(p, entry(V(0, -3, 0))), 3);
+  assert.equal(facingWeight(p, entry(V(10, 3, 0))), 1, 'height along local up does not change direction');
+  assert.equal(facingWeight(p, entry(V(0, 0.1, 0.1))), 1, 'near-zero tangent offset stays neutral');
+  p.frame.dir = (_h, out) => out.set(1, 0, 0);
+  assert.equal(facingWeight(p, entry(V(0, 3, 0))), 1, 'a degenerate forward has no preferred tangent');
+});

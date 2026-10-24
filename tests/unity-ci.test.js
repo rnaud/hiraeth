@@ -10,12 +10,12 @@ const workflow = read('.github/workflows/unity-android.yml');
 const build = read('unity/Hiraeth/Assets/HiraethJS/Editor/BridgeBuild.cs');
 const settings = read('unity/Hiraeth/ProjectSettings/ProjectSettings.asset');
 
-test('the workflow runs on pushes that touch the Unity side, nightly when the game moved, and by hand', () => {
+test('the workflow runs on release changelog and Unity-side pushes, nightly when the game moved, and by hand', () => {
   assert.match(workflow, /^on:\n {2}push:\n {4}branches: \[main\]\n {4}paths:/m);
   const paths = /paths:\n((?: {6}- .*\n)+)/.exec(workflow)[1];
-  for (const p of ['unity/**', 'engine/**', 'scripts/unity-*', 'scripts/unity-*/**', 'scripts/engine-bundle.mjs'])
+  for (const p of ['src/changelog.js', 'unity/**', 'engine/**', 'scripts/unity-*', 'scripts/unity-*/**', 'scripts/engine-bundle.mjs'])
     assert.ok(paths.includes(`- '${p}'`), p);
-  assert.ok(!paths.includes("'src/**'"));   // (the game's pushes are too frequent: the nightly run takes them)
+  assert.ok(!paths.includes("'src/**'"));   // release changes are covered by their required changelog entry
   assert.match(workflow, /^ {2}schedule:\n {4}- cron: '\d+ \d+ \* \* \*'/m);
   assert.match(workflow, /^ {2}workflow_dispatch:/m);
   assert.match(workflow, /cancel-in-progress: false/);

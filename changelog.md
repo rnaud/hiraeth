@@ -6,6 +6,53 @@ The same release notes shown in the game (press **N** or open settings).
 
 - Map chests in the Rose House, Lantern Market and Aerie are larger and stand on low plinths, with more room to approach and walk around them.
 
+## v2.14 — 2026-10-24
+
+- The Keeper and Elder keep their familiar appearance when their temple scenes lead into the water and flight games.
+
+## v2.13 — 2026-10-23
+
+- The Aerie’s final doorway now leads into the Elder’s introduction and flight. Reach the Old Roost to return automatically, with the Elder fully framed and the wind returning in the completion scene.
+- The Rose House’s final doorway now leads straight into the Keeper’s opening scene and Cistern challenge. Finish the water route to return automatically for the house’s completion scene.
+
+## v2.12 — 2026-10-23
+
+- Fisk and Petra explain the Engine-House vents and Casting-House controls more clearly, including what to do when the Founder pauses.
+- New releases also build the Unity downloads for Android and Steam Deck, and keep them with the version they were built for.
+
+## v2.11 — 2026-10-23
+
+- The ship’s bunk shelf is firmly supported, its folding porch has solid edges, and its room walls no longer disappear as you step away.
+
+## v2.10 — 2026-10-23
+
+- Plumb’s temple hints and several local directions now say more clearly what to look for and try, while keeping each speaker’s character.
+
+## v2.09 — 2026-10-23
+
+- A sealed chest offers inspection, then offers opening when it is ready.
+- Use prompts follow what you can see. People, loose objects and chests behind a wall no longer take the button from a reachable target.
+
+## v2.08 — 2026-10-23
+
+- Scene captions appear with their filmed moment, even when a newly entered place is waiting to show its name.
+- The Keeper and Elder now introduce their requests in short scenes. Helping them celebrates the water and wind returning to their temples.
+
+## v2.07 — 2026-10-23
+
+- Steam Deck updates can keep arriving without filling up the old download channel. Existing installations keep their saves and update through the same game site.
+
+## v2.06 — 2026-10-23
+
+- The seed pouch has been removed, so walking no longer leaves a trail of flowers. The bloom gun still grows flowers where its shots land.
+
+## v2.05 — 2026-10-23
+
+- Plumb points you toward people and landmarks to explore without naming people you have not learned about yet.
+- Flying with the Elder now shows your progress toward the Roost and how to return to her wing when you drift away.
+- Plan the Cistern’s channels at your own pace, see the connected route and possible spills, then open the valve. A spill lets you adjust the same board and try again.
+- Help the Rose House Keeper guide water and fly beside the Aerie Elder to the Old Roost. Their completed games now open the temple’s way onward, with a safe return if you leave to try again.
+
 ## v2.04 — 2026-10-23
 
 - The spring boots explain their short hop inside temples and how to jump, then stomp, to sound the Whale-House’s deep notes.

@@ -133,7 +133,7 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   mode after ember, leaf green and petal pink in the tank, slow as sap. Targets
   that `accept` `'bloom'` grow; to everything else it is plain fluid. A bloom
   glob that lands on the world emits `'tool:bloom'`, and `src/boxes/effects.js`
-  plants a few flowers there from the seed pouch's pool.
+  plants a few flowers there from a recycled instanced pool.
 - **The echo shell** (`src/echo-shell.js`, item `echo`): it keeps the last
   `'note'` sung within 18 m (saved: flag `echo.held`) and V (Y / △ with no gadget in hand) plays it
   back (`'echo'` { pos, note }) with the bell (`effects.ring()`).
@@ -153,9 +153,7 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   `src/wildlife.js`) and `shell` (the Spheres' grove canopy: every few seconds
   the unopened boxes within 45 m answer softly, a `'bell'` event with `soft: true`
   that bell-tuned doors ignore), `moss` (Lorn II's root arch: a small light
-  round your feet after dusk), `pouch` (Viridel's canopy: flowers come up in
-  your footsteps, one recycled instanced pool in `src/boxes/effects.js`) and
-  `reed` (Lorn's mossy rise: twice the breath under water, `player.breathK`, read
+  round your feet after dusk) and `reed` (Lorn's mossy rise: twice the breath under water, `player.breathK`, read
   by `src/swim.js`) and `scarf` (Vael II's balanced stack: the wings sink slower,
   `player.sinkK`).
 - **Held bells** (the Founders' Belfry, reworked from the temple design audit): a `bell` element with
@@ -3106,6 +3104,84 @@ collision, climbs, pieces and logic are vertex for vertex the same without it (`
   lines, inlays, grating and dressing stay. Draw calls are the house's own (−6 to +5 a view), triangles about 95k fewer
   (measured when the skin still redrew the signs, lighter than the glyphs).
 
+
+### Keeper and Elder helping encounters (#623)
+
+The current Rose House and Aerie layout guardians carry a `helper` mode. They retain
+their fitted bodies, collision, room puzzles and world-change/finale subjects, but
+proximity does not wake a fight and combat cannot add progress. Their nearby
+interaction opens Cistern channels or the Elder's flight in its separate arena.
+The interaction is unavailable through a different floor. Other temples and the
+Arena's raw sparring definitions retain their combat rules.
+
+The slot-bound encounter receipt and both host return paths are documented in
+[Minigames](minigames.md#guardian-invitations-and-return-receipts-623). Only the
+matching completed goal reaches `Guardian.resolve` and the existing
+`TempleRuntime.onBossResolved`; quitting or turning back restores the original
+pose without opening the exit. Cinematic additions can wrap `startHelper` and the
+existing `onFinale` without making an arcade score into temple completion.
+
+The seed pouch and its Viridel canopy chest were removed in issue #625. Old save flags remain harmless and do not appear in the inventory or create flowers while walking. The bloom gun still plants flowers through the shared effects pool.
+
+
+### Helper opening and return films (#624)
+
+`helper-cinematics.js` wraps the two explicit helper invitations with a shared
+7.6-second, two-panel Moment: the accepted guardian beside the traveller, then
+its actual dry basin or roost vent. Unnamed, tone-tagged scene captions explain
+the goal without claiming the companion has introduced itself. Detailed controls
+remain in the games. The lens must be inside the room, outside solids and the
+guardian, clear of drawn walls and fitted inside the letterbox; missing or unsafe
+views take the normal immediate-launch path. No generated scenery is substituted.
+
+The interaction captures the active save and return pose before the film. Only
+one live invitation may create a receipt, after normal completion, skip or an
+unavailable stage. A per-GameState world lease, slot check, attached-root check
+and disposal guard reject late callbacks after leaving or switching worlds or
+saves. Disposal marks cancellation before ending the Moment, since ending a
+Moment invokes its completion callback. Opening-seen state is independent of
+success. Neither a film nor a skip can resolve the helper or pay a reward.
+
+Moment-authored captions own their letterboxed screen: they replace earlier beats
+without waiting behind a region name that is itself held until the film ends.
+Outside a letterboxed Moment, ordinary speech and status notice ordering is unchanged;
+skipping or finishing clears the active beat rather than releasing it afterward.
+
+Successful returns still use the existing four-panel finale and its one reward,
+water/wind and door authority. The Elder's flight has already reached the Old
+Roost: its source-world return starts on the quiet vent rather than staging a
+second arrival, then celebrates the restored wind and way onward. Raw Arena
+sparring retains its original guardian film. Failed and abandoned runs keep the
+original safe return without a victory film.
+
+
+### Helping endings at the special door (#655)
+
+Only the Rose House and Aerie use this flow. Crossing their physically opened
+special entrance starts the introduction and existing Cistern/Elder flight game.
+The Rose cistern uses d4 after the sentry/channel d3 gate and required equipment;
+the Aerie uses its great-key d3 door. Old helper attacks stay disabled.
+
+The entry controller records a real grounded approach pose. Quitting restores
+that pose outside the threshold, with no completion; another inward crossing
+retries. A saved game already inside retains explicit continuation at the helper.
+An interrupted introduction restores its saved approach without awarding a win.
+Only a matching goal receipt automatically returns after the existing finishing
+pause. Successful return uses an explicit near-rim completion pose for the
+retained room's finale; quit does not use that pose. Slot, world, receipt and
+runner ownership are rechecked before either deferred navigation. Existing
+resolution owns the reward, water/wind restoration and exit opening exactly once.
+
+Muted web and Unity reviews cover ordinary threshold entry, introduction skip
+and reload, failed-run quit/re-entry, success-receipt reload, and saved-inside
+continuation through a genuine goal and automatic return. Unity uses real scene
+and VM reboots; rewards, completion flags and exit opening remain once-only.
+Legacy fixtures declare initial prerequisites and an inside rim pose, then walk
+with ordinary inputs before saving, rebooting and using the helper. These are
+controlled routes and scripted minigame inputs, not fresh playthroughs or physical-
+device/listening acceptance. The Elder portrait uses current generated body
+bounds at a normal 52-degree lens, excluding unrelated room and reward effects;
+a checked room view remains the fallback if a safe portrait cannot be found.
 
 ## Map chest displays in three houses (#630)
 

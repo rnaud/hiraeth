@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { unexploredHint } from './hint-knowledge.js';
 import { questGoal } from './quest-goals.js';
 import { hintsFor } from '../hint-level.js';
 import { missingNeed, heldBackLine } from './quest-needs.js';
@@ -235,13 +236,14 @@ export class Quests {
   // ------------------------------------------------------------ the opening conversation
   /**
    * The world's opening quest `id` waits for a conversation with one of `who` (person ids, the
-   * first the one the scout finds): `label` for the scout (default: the first stage's), `at` a
-   * place or locator for it (default: the first of `who`).
+   * first the one the scout finds): `label` is the journal label, `at` a place or locator
+   * (default: the first of `who`). `hint` describes what can be observed before introduction;
+   * `knownWhen` must prove the specific named information has already been learned.
    */
-  opensWith(id, who, { label = null, at = null, lead = false } = {}) {
+  opensWith(id, who, { label = null, at = null, lead = false, hint = undefined, knownWhen = null } = {}) {
     // (a merged world's parts each have one, src/levels/names.js PARTS: they wait in turn, the world's own first)
     // (`lead`: this world's first giver, ahead of its temple's local: the desert's Marrow, the ship's power before anything)
-    const o = { id, who: [].concat(who), label, at, lead, n: (this._gn = (this._gn ?? 0) + 1) };
+    const o = { id, who: [].concat(who), label, at, lead, hint, knownWhen, n: (this._gn = (this._gn ?? 0) + 1) };
     this.openers = [...(this.openers ?? []).filter((x) => x.id !== id), o];
     this.opener = this.openers[0];
     return o;
@@ -288,7 +290,7 @@ export class Quests {
     if (!p) return null;
     const st = this.def(o.id).stages[0];
     const label = typeof o.label === 'function' ? o.label() : o.label;   // (a label that changes with where you are: Vael's gate, then Aube)
-    return { id: `opener-${o.id}`, quest: o.id, label: label ?? st.label ?? st.text, position: p.clone() };
+    return { id: `opener-${o.id}`, quest: o.id, label: label ?? st.label ?? st.text, hintLabel: unexploredHint(o, label ?? st.label ?? st.text), position: p.clone() };
   }
 
   // ------------------------------------------------------------ the givers (issue #273)
@@ -298,8 +300,8 @@ export class Quests {
    * lead; 2 everyone else; the openers are 1), `ready()` (it waits on something else first: not marked till then),
    * `line` what they say of it as they give it (src/boxes/index.js: where a box is).
    */
-  givenBy(id, who, { at = null, label = null, rank = 2, ready = null, line = null } = {}) {
-    const g = { id, who: [].concat(who), at, label, rank, ready, line, n: (this._gn = (this._gn ?? 0) + 1) };
+  givenBy(id, who, { at = null, label = null, rank = 2, ready = null, line = null, hint = undefined, knownWhen = null } = {}) {
+    const g = { id, who: [].concat(who), at, label, rank, ready, line, hint, knownWhen, n: (this._gn = (this._gn ?? 0) + 1) };
     this.givers = [...this.givers.filter((x) => x.id !== id), g];
     return g;
   }
@@ -337,7 +339,7 @@ export class Quests {
     for (const x of this.allGivers()) {
       if (!this.waiting(x)) continue;
       const k = x.who[0];
-      if (!out.has(k)) out.set(k, { person: k, quests: [], at: x.at ?? k, label: x.label, rank: x.rank });
+      if (!out.has(k)) out.set(k, { person: k, quests: [], at: x.at ?? k, label: x.label, hint: x.hint, knownWhen: x.knownWhen, rank: x.rank });
       out.get(k).quests.push(x.id);
     }
     return [...out.values()];
@@ -357,7 +359,7 @@ export class Quests {
     if (!p) return null;
     const st = this.def(g.quests[0])?.stages[0];
     const label = typeof g.label === 'function' ? g.label() : g.label;
-    return { id: `giver-${g.person}`, quest: g.quests[0], person: g.person, label: label ?? st?.label ?? st?.text ?? g.person, position: p.clone() };
+    return { id: `giver-${g.person}`, quest: g.quests[0], person: g.person, label: label ?? st?.label ?? st?.text ?? g.person, hintLabel: unexploredHint(g, label ?? st?.label ?? st?.text ?? g.person), position: p.clone() };
   }
   /** The givers marked on the map: the lead alone while they wait, then everyone still waiting. */
   giverMarks() {

@@ -169,7 +169,12 @@ export function buildCaravanInterior(batch, group) {
   const bx=BUNK.x,bz=BUNK.z;
   box('teal',bx,0,bz,1.35,.42,2.4);box('cream',bx,.42,bz,1.27,.16,2.32);
   rounded('toy',bx,.58,bz-.35,1.25,.14,1.55);rounded('cream',bx,.59,bz+.85,.85,.18,.42);block(bx,0,bz,1.4,2.5);
-  picture(motherNote(),bx,1.8,bz-1.26,.42,.35);books(bx-.5,1.3,bz-1.35);box('wood',bx,1.24,bz-1.35,1.2,.06,.25);
+  // A bed-mounted headboard supports the shelf and note; the hatch wall is open here.
+  // All supports stay inside the existing bunk footprint, clear of the entry aisle.
+  for(const x of [bx-.55,bx+.55])box('wood',x,.42,.88,.08,1.65,.10);
+  box('wood',bx,1.3,.87,1.2,.77,.06);
+  box('wood',bx,1.24,1.02,1.2,.06,.35);
+  books(bx-.5,1.3,1.02);picture(motherNote(),bx,1.8,.94,.42,.35);
   for(const z of [bz-.65,bz+.2,bz+.95]) {
     box('cream',bx+.69,.08,z,.025,.26,.64);box('metal',bx+.72,.22,z,.04,.025,.20);
   }

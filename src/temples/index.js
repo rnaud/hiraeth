@@ -1,3 +1,6 @@
+import { helperThreshold } from './helper-threshold.js';
+import { consumeHelperReturn, HELPER_ENCOUNTERS } from './helper-encounter.js';
+import { helperInvitation, helperWorldLease } from './helper-cinematics.js';
 import { templeVista } from './vistas.js';
 import * as THREE from 'three';
 import { game as sharedGame } from '../game-state.js';
@@ -101,7 +104,7 @@ export const GADGETS = {
   arzach2: { temple: 'hook', world: ['scarf'], built: true },         // the grappling hook (issue #377: the bell-note whistle until then, a charm, now in Vael's court); the wind-silk scarf behind the sky stones' court's gate (v1.86, issue #518: on the balanced stack before)
   garage: { temple: 'boomerang', world: ['level'], built: true },     // the Clock-House (the Sealed Hangar's First Garage, in the Glass Dunes now: TEMPLE_HOME): the boomerang inside (issue #377: the quick coil until then); the brass level behind the court's gate north of it (v1.86, issue #518: on a glass mound before)
   buried: { temple: 'bomb', world: ['resin', 'lens'], built: true },          // ink bombs (issue #377: the fourth chamber until then, now in the Garden of Spheres' court)
-  edena: { temple: 'bloom', world: ['pouch', 'lantern'], built: true }, // a new gun mode, found in the Greenhouse; the seed pouch is on the canopy; the lantern charm back in its makers' court (issue #375: the bubble wand's box)
+  edena: { temple: 'bloom', world: ['lantern'], built: true }, // a new gun mode, found in the Greenhouse; the lantern charm back in its makers' court (issue #375: the bubble wand's box)
   spheres: { temple: 'monocle', world: ['shell', 'cell'], built: true },   // the seeing lens (issue #377: the glyph lens until then, now in the Buried Machine's court); the fourth chamber in its makers' court, the bombs' old box (issue #375)
   perdide: { temple: 'stun', world: ['reed', 'wardenbellows'], built: true }, // the stilling mode moved inside from the mossy rise; the breathing reed is there now; the Warden's bellows in its makers' court (issue #375: the fan's box)
   perdide2: { temple: 'bubble', world: ['moss', 'coil'], built: true }, // the bubble wand (issue #377: the lantern charm until then, now in Viridel's court); the glow-moss pin on the root arch
@@ -222,14 +225,16 @@ export function clearInstances(scene, circles, except = null) {
  * (rt: the first's runtime) or null.
  */
 export function setupTempleStory(ctx) {
+  const lease = helperWorldLease(ctx.game ?? sharedGame);
+  const helperCtx = { ...ctx, helperLive: lease.live };
   // (the world's own temple first: its quest, its local, rt below)
   const list = [...(ctx.level?.temples ?? (ctx.level?.temple ? [ctx.level.temple] : []))].sort((a, b) => (b.id === ctx.levelId) - (a.id === ctx.levelId));
-  const all = list.map((rt) => setupOneTemple(ctx, rt)).filter(Boolean);
+  const all = list.map((rt) => setupOneTemple(helperCtx, rt)).filter(Boolean);
   if (!all.length) return null;
-  if (all.length === 1) return { ...all[0], all };
+  if (all.length === 1) return { ...all[0], all, dispose() { lease.dispose(); all[0].dispose?.(); } };
   return {
     rt: all[0].rt, people: all.flatMap((t) => t.people), all,
-    dispose() { for (const t of all) t.dispose?.(); },
+    dispose() { lease.dispose(); for (const t of all) t.dispose?.(); },
     update(dt, t) { for (const one of all) one.update(dt, t); },
   };
 }
@@ -243,6 +248,17 @@ function setupOneTemple(ctx, rt) {
   rt.connect({ player, sound, toast, quests, fade: rt.fadeFn, isNight });
   // its ending, filmed as the guardian is resolved (src/temples/finale.js, issue #366), the world's theme under it
   rt.onFinale = () => playFinale(rt, { moments, sound, game });
+  // The entrance owns the opening; only the game's goal receipt can
+  // resolve the temple on return. Disposing either story or room cancels launch.
+  let invitation = null, threshold = null;
+  if (HELPER_ENCOUNTERS[rt.id] && rt.guardian?.def.helper) {
+    invitation = helperInvitation(rt, { game, player, moments, from: ctx.levelId,
+      playGame: ctx.playGame, liveWorld: ctx.helperLive });
+    threshold = helperThreshold(rt, { game, player, invitation, moments, live: ctx.helperLive });
+    rt.startHelper = threshold.continueLegacy;
+    rt.canStartHelper = threshold.legacyAvailable;
+    rt.offs.push(invitation.dispose, threshold.dispose);
+  }
   const W = T.words, id = rt.id, Q = W.QUEST;
   // the quest: find the house, find what is inside, go down to its heart
   quests?.define?.({
@@ -308,7 +324,7 @@ function setupOneTemple(ctx, rt) {
   const offAfter = game.on(`flag:temple.${id}.done`, (v) => { if (v) after(); });
   let byTheWay = false;   // its quest started as you passed by (not by arrival, not inside)
   return {
-    rt, people, dispose: offAfter,
+    rt, people, dispose() { threshold?.dispose(); invitation?.dispose(); offAfter(); },
     update(dt, t) {
       if (!quests?.isStarted?.(Q.id) && ((legacy && near()) || game.flag(`temple.${id}.entered`))) {
         quests.start(Q.id);
@@ -319,7 +335,12 @@ function setupOneTemple(ctx, rt) {
       }
       // inside it, the temple is what you are doing
       if (byTheWay && game.flag(`temple.${id}.entered`)) { const qd = quests.def?.(Q.id); if (qd) qd.arrival = false; byTheWay = false; }
+      if (rt.guardian?.def.helper) consumeHelperReturn(game, rt.id, ctx.levelId, {
+        restore: p => player?.teleport(new THREE.Vector3(...p.pos), new THREE.Vector3(...p.up), new THREE.Vector3(...p.fwd)),
+        resolve: () => { if (rt.guardian.state === 'resolved') rt.onBossResolved(); else rt.guardian.resolve(); },
+      });
       rt.update(dt, t);
+      threshold?.update();
     },
   };
 }

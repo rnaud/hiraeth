@@ -1,5 +1,6 @@
 // Release metadata for the release workflows, from the newest entry in src/changelog.js.
 //   node scripts/release-info.mjs version                → 0.34
+//   node scripts/release-info.mjs version-at <sha>       → the version in the built commit
 //   node scripts/release-info.mjs build                  → the game's build number (gameBuild: APK versionCode, web bundle build)
 //   node scripts/release-info.mjs notes                  → markdown release notes for that version
 //   node scripts/release-info.mjs native                 → the app's native bridge level (WebBundles.NATIVE_API)
@@ -283,6 +284,13 @@ export function unityNotes({ platform = 'android', sha, subject = '', version = 
   return `${what}\n\n${from}\n\nNot for players: the game itself is the Hiraeth app and https://hiraeth.alexandria-rnaud.workers.dev/.`;
 }
 
+/** Read the built commit, never fall back to the current checkout's version. */
+export function versionAt(sha, git) {
+  const version = /export const CHANGELOG\s*=\s*\[\s*\{\s*v:\s*['"](\d+(?:\.\d+)+)['"]/.exec(git('show', `${sha}:src/changelog.js`))?.[1];
+  if (!version) throw new Error(`no release version in commit ${sha}`);
+  return version;
+}
+
 /** A commit's web version (its newest changelog entry) and build number (its commit count, as gameBuild counts HEAD's). */
 export function unityBuildOf(sha, git) {
   const version = /\{\s*v:\s*'([^']+)'/.exec(git('show', `${sha}:src/changelog.js`))?.[1] ?? CHANGELOG[0].v;
@@ -292,6 +300,7 @@ export function unityBuildOf(sha, git) {
 function main(what = 'version', ...args) {
   const [latest] = CHANGELOG;
   if (what === 'version') console.log(latest.v);
+  else if (what === 'version-at') console.log(versionAt(args[0], (...a) => execFileSync('git', a, { cwd: REPO, encoding: 'utf8' })));
   else if (what === 'build') console.log(gameBuild());
   else if (what === 'native') console.log(nativeApi());
   else if (what === 'web-min-native') console.log(webMinNative());

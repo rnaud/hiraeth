@@ -1,3 +1,4 @@
+import { packageUrl } from './publish-steam-deck.mjs';
 import { packager } from '../desktop/node_modules/@electron/packager/dist/index.js';
 import { cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
@@ -41,7 +42,7 @@ const archive = await readFile(`${output}/${filename}`);
 const repo = process.env.GITHUB_REPOSITORY ?? 'rnaud/hiraeth';
 await writeFile(`${output}/steam-deck.json`, JSON.stringify({
   build, version: VERSION, sha256: createHash('sha256').update(archive).digest('hex'),
-  url: `https://github.com/${repo}/releases/download/steam-deck/${filename}`,
+  url: packageUrl(build, repo),
 }, null, 2) + '\n');
 await cp('scripts/steam-deck/deck.py', `${output}/install-hiraeth.py`);
 console.log(`${output}/${filename}`);

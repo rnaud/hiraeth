@@ -23,4 +23,12 @@ A Linux package with automatic updates and Steam library integration is built by
 [the Steam Deck workflow](../../.github/workflows/steam-deck.yml). See the
 [installation and release guide](../steam-deck.md). The game inside it updates from the
 game's site, like the Android app's (`deck.py` downloads the web bundle, `desktop/main.mjs`
-serves it); the runtime package itself stays on the `steam-deck` GitHub release.
+serves it); each new runtime package has its own `steam-deck-<build>` GitHub prerelease. The advancing stable feed remains the game site’s multipart manifest; the old `steam-deck` release is an untouched fallback.
+
+### Build-scoped Steam Deck packages (#618)
+
+The permanent GitHub channel reached its 1,000-asset limit. The publisher now creates a draft prerelease for each runtime build, uploads its archive, installer and manifest, then downloads each through the authenticated asset API and checks exact bytes before publishing with `latest=false`. Retries verify existing bytes and resume a draft; mismatches stop publication rather than overwriting an immutable asset. No legacy assets or releases are deleted. The publisher verifies that the legacy installer and feed still exist, but never modifies them.
+
+Cloudflare independently packages and verifies the runtime’s multipart feed and deploys the site atomically. Existing launchers already accept that exact site URL pattern and choose the newest valid site/legacy runtime, so they can receive the updated launcher without accepting a new host. If the site is unavailable, the untouched legacy feed and installed game remain available; the GitHub package publisher never advances the site feed. Changing deck.py and the packager changes the runtime key, forcing a fresh site runtime. New launchers additionally allow only the exact repository, per-build tag and matching archive filename; arbitrary hosts, tags and query suffixes remain rejected. Hosted packaging/download verification is required for release acceptance; local fake-API tests alone do not prove a GitHub upload.
+
+This fix is web-only publication/Steam Deck launcher infrastructure. Unity gameplay, Android/native APIs, device settings and save formats are unchanged; no new gameplay or Unity rendering claim is made.

@@ -48,6 +48,11 @@ export class MinigameRunner {
   constructor(def, host) {
     this.def = def;
     this.host = host;
+    this.recovering = !!host.recoveryHref?.();
+    if (this.recovering) {
+      this.phase = 'recovering'; this.paused = false; this.cardModel = null; this.cardV = 0;
+      return; // No game session, start card, sources or DOM are created for receipt recovery.
+    }
     this.phase = 'intro';
     this.paused = false;
     this.clock = 0;
@@ -85,16 +90,16 @@ export class MinigameRunner {
    */
   get drives() { return this.def.drives !== false; }
   /** A card is up (or paused): the pad navigates it, the world gets no input. */
-  busy() { return this.paused || this.phase === 'intro' || this.phase === 'results'; }
+  busy() { return this.recovering || this.paused || this.phase === 'intro' || this.phase === 'results'; }
   /** The card on the screen, for the pad's menu navigation (main.js menuRoot), or null. */
-  cardEl() { return this.card.classList.contains('open') ? this.card : null; }
+  cardEl() { if (this.recovering) return null; return this.card.classList.contains('open') ? this.card : null; }
 
   // ---------------------------------------------------------------- what a session is given
   makeCtx() {
     const R = this, H = this.host;
     return {
       def: this.def, scene: H.scene, camera: H.camera, player: H.player, physics: H.physics, level: H.level,
-      sound: H.sound, wind: H.wind, sfx: this.sfx,
+      sound: H.sound, wind: H.wind, sfx: this.sfx, helper: H.helper ?? null,
       tool: H.tool ?? null, foes: H.foes ?? null, settings: H.settings ?? null,   // (a game played on foot: drives false)
       // (the world's own: the camera rig, a frame grabbed from another viewpoint, its people and creatures,
       // and what a game's own people are made of: main.js)
@@ -141,6 +146,10 @@ export class MinigameRunner {
   filterInput(controls) { if (controls && this.phase === 'play') this.session.input?.(controls); }
 
   update(dt, controls) {
+    if (this.ended) return;
+    const recovery = this.recovering && this.host.recoveryHref?.();
+    if (recovery) { this.go(recovery); return; }
+    if (this.recovering) return; // An invalidated receipt cannot become ordinary story play.
     if (this.phase === 'intro' && inputKind() !== this.introKind) this.showIntro();   // (a pad picked up: the card lists its buttons)
     if (this.hintsEl) this.drawHints(dt);
     const inp = readInput(controls, this.prevIn);
@@ -157,7 +166,12 @@ export class MinigameRunner {
     const live = this.phase === 'play';
     if (live) this.clock += dt;
     this.session.update?.(dt, live ? inp : NO_INPUT, { live, phase: this.phase, t: this.clock, raw: controls ?? {} });   // (raw: the merged controls, for a game reading buttons of its own)
-    if (this.phase === 'finishing' && (this.doneT -= dt) <= 0) this.showResults();
+    if (this.ended) return;
+    if (this.phase === 'finishing' && (this.doneT -= dt) <= 0) {
+      const href = this.host.completionHref?.(this.result);
+      if (href) { this.go(href); return; }
+      this.showResults();
+    }
     this.drawHud();
     this.publish(dt);
   }
@@ -193,14 +207,14 @@ export class MinigameRunner {
     this.hintsEl.innerHTML = `<div class="mg-hint-row${row.off ? ' gone' : ''}">${items}</div>${this.hintNote ? `<p>${this.hintNote}</p>` : ''}`;
   }
 
-  finish({ score, failed = false, title, lines = [], html = null, wide = false, chimes = 0 } = {}) {
-    if (this.phase !== 'play') return;
+  finish({ score, failed = false, title, lines = [], html = null, wide = false, chimes = 0, goal = null } = {}) {
+    if (this.ended || this.recovering || this.phase !== 'play') return;
     const kind = this.def.score?.kind ?? 'points';
     const value = score ?? (kind === 'time' ? this.clock + this.penalty : this.points);
     // (a time trial not finished has no time to keep; points count even when the lives run out)
     const sd = scoreDef(this.def, this.host.state);   // (a best of each difficulty: def.bestBy)
     const kept = failed && kind === 'time' ? { best: bestScore(this.host.state, sd), isNew: false } : recordScore(this.host.state, sd, value);
-    this.result = { value, failed, title, lines, html, wide, chimes, ...kept };   // (html: the game's own block on the results, a page of sketches; chimes: won, for the host to bank)
+    this.result = { value, failed, title, lines, html, wide, chimes, ...kept, ...(goal ? { goal: { game: goal.game, complete: goal.complete === true } } : {}) };   // (html: the game's own block on the results, a page of sketches; chimes: won, for the host to bank)
     if (failed) this.fails = (this.fails ?? 0) + 1;
     this.host.onResult?.(this.result);   // (a host that keeps more than the best: the pirates between worlds mark the trip won)
     this.phase = 'finishing';
@@ -210,6 +224,7 @@ export class MinigameRunner {
   }
 
   retry() {
+    if (this.ended || this.recovering) return;
     this.session.end?.();
     this.clearAdded();
     this.clock = this.penalty = this.points = 0;
@@ -228,6 +243,7 @@ export class MinigameRunner {
   quit() { if (!this.mandatory) this.go(this.host.links?.quit?.href ?? quitHref(this.host.from)); }
   /** Leave the game for another page (Quit, or one of host.links: the Arcade's next game). */
   go(href) {
+    if (this.ended) return;
     this.end();
     (this.host.navigate ?? ((href) => { location.href = href; }))(href);
   }
@@ -249,6 +265,7 @@ export class MinigameRunner {
   end() {
     if (this.ended) return;
     this.ended = true;
+    if (this.recovering) return;
     this.session.end?.();
     this.clearAdded();
     this.ctx.setFov(this.fov0);
@@ -362,6 +379,7 @@ export class MinigameRunner {
   buildDom() {
     const el = this.el = document.createElement('div');
     el.id = 'minigame';
+    if (this.def.hud?.multiline) el.classList.add('mg-guidance');
     el.innerHTML = `<canvas class="mg-speed"></canvas>
       <div class="mg-hud off"><div class="mg-lives"></div><div class="mg-box mg-timer"></div><div class="mg-box mg-score"></div></div>
       <button class="mg-pause" type="button" aria-label="Pause">❚❚</button>
@@ -452,7 +470,7 @@ export class MinigameRunner {
     const showValue = !(r.failed && d.score?.kind === 'time');
     const bestLine = r.best === null || r.best === undefined ? 'No best yet.' : `Best: ${formatScore(d, r.best)}`;
     const actions = resultActions(r, this.host.links, this.fails ?? 0);
-    const hint = this.hint({ win: 'fly on' }[actions[0].act] ?? 'retry', !r.failed && this.host.links?.win ? null : 'quit');   // (won on the way somewhere: Esc flies on too)
+    const hint = this.hint(actions[0].act === 'win' ? this.host.links.win.hint ?? 'fly on' : 'retry', !r.failed && this.host.links?.win ? null : 'quit');   // (won on the way somewhere: Esc flies on too)
     this.setCard({ kind: 'results', kicker: d.name, title: label, big: showValue ? formatScore(d, r.value) : '', stamp: !!r.isNew, lines: (r.lines ?? []).map((l) => keyText(l, { kind, teach: true })), extra: plainHtml(r.html),
       best: bestLine, buttons: actions.map((b) => ({ act: b.act, label: b.label, sub: b.sub ?? '', main: !!b.main })), hint, wide: !!r.wide });
     this.openCard(`<p class="kicker">${h(d.name)}</p><h1>${h(label)}</h1>
@@ -524,7 +542,7 @@ export class MinigameRunner {
     }
     // (under the pause the clock and the score stay up, as the page's HUD does under its .mg-card.clear; under a start or
     // results card they go)
-    screen.set('minigame', { on: this.hudOn && (this.paused || !this.cardModel), timer, score: s, bump: this.scoreBumps ?? 0, lives: this.lives === null ? null : [this.lives, Math.max(this.livesMax ?? this.lives, this.lives)],
+    screen.set('minigame', { on: this.hudOn && (this.paused || !this.cardModel), timer, score: s, guidance: !!H.multiline, bump: this.scoreBumps ?? 0, lives: this.lives === null ? null : [this.lives, Math.max(this.livesMax ?? this.lives, this.lives)],
       count: this.countState, flashes: this.flashes, hints, speed: Math.round((this._speedK ?? 0) * 20) / 20, onFoot: !this.drives });   // (onFoot: the page's mg-onfoot, src/hud-shows.js)
   }
   bumpScore() { this.scoreBumps = (this.scoreBumps ?? 0) + 1; this.scoreEl.classList.remove('bump'); void this.scoreEl.offsetWidth; this.scoreEl.classList.add('bump'); }

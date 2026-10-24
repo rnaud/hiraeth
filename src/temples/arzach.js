@@ -786,7 +786,7 @@ function layout(rt) {
     gadget: { at: W(C3x, 16.62, C2).toArray(), face: K.heading(-Math.PI / 2) },
     exits: [{ at: W(0, 0.5, 0.4), r: 1.5 }, { at: W(0, RY + 0.5, XZ - 0.4), r: 1.5 }],
     lights: [[0, 5, 6, 10], [0, 8, H.z0 + 16, 24], [0, 8, HZ1 - 16, 24], [0, 10, C2, 22], [-24, 8, C2 - 12, 20], [24, 8, C2 + 10, 20], [-8, 8, C2 + 26, 20], [12, 7, C2 - 25, 18], [16, 22, C2 + 4, 24], [0, 6, (PZ0 + PZ1) / 2, 18], [0, GY + 8, FL.z, 20], [Mo.x, 8, C2, 22], [0, 36, C2, 22], [E.x, 38, C2, 22], [C3x, 22, C2, 16], [0, 40, TZ, 22], [0, 36, G0 + 20, 24], [0, 36, PZ + 10, 24], [0, RY + 6, CL, 18], [GX + 3.2, 31, G0 + 30, 20], [GX + 3.2, 31, FZ - 16, 20]],
-    guardian: { def: { ...ELDER, onHit: elderHit, openFor: elderOpenFor }, model, arena },
+    guardian: { def: { ...ELDER, helper: 'elderflight', resolved: 'The Elder is safe at the Old Roost. The Aerie’s wind returns.', onHit: elderHit, openFor: elderOpenFor }, model, arena },
   };
 }
 
@@ -891,7 +891,7 @@ export const ARZACH_TEMPLE = {
   // a vent lifts her twice as high; in her last only the wind will do: roll the stone so it rises by her)
   onConnect(rt) {
     const G = rt.guardian;
-    if (!G) return;
+    if (!G || G.def.helper) return;
     let flown = 0;
     const upd = G.update.bind(G), _c = V();
     G.update = (dt, t) => {

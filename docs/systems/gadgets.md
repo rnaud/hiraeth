@@ -633,7 +633,6 @@ the walker's flood reaches, docs/systems/fragments.md, and a climb-only top isn'
 | `arzach.hush` | Vael | two pull-rings on posts, tugged with the hook | the hook |
 | `perdide.reed` | Lorn | a dark lamp on a sheer 6.2 m pole beside it: float up to it | the bubble wand |
 | `perdide2.moss` | Lorn | stone jaws snapping over its lid: a stilling glob holds them open | the stilling mode |
-| `edena.pouch` | Viridel | a budded seal in front of it: a bloom glob opens it | bloom |
 | `underwater.pearl` | the Underwater City | a plate in front of it: stomp it | the spring boots |
 | `buried.resin` | the Buried Machine | a cracked stone cap over it: an ink bomb's blast (`gadget:blast`) | the ink bombs |
 | `moonfoundry.bellows` | the Moon Foundry | an iron disc on a post: the glove pulls you to it (`magnet:pull`) | the magnet glove |

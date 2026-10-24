@@ -488,6 +488,27 @@ the start, the Old Roost (a great table ringed with stone feathers) at the end.
   plays there as it is; the floating score words of both (kit/labels.js) are drawn there from the screen's `words`
   (docs/systems/engine-bridge.md, "The words in the world and the speed lines").
 
+### Guardian appearance continuity
+
+The web renderer’s skinned detail selection measures the camera and model in world
+space, including parent scale. Nested minigame bodies therefore retain the same
+detail cutoffs as their scene-rooted temple counterparts. The native renderer does
+not call this web LOD manager; model, pose and gameplay parity are checked separately.
+
+The two helping games use the same approved `keeperGuardian()` / `elderGuardian()`
+models as their temple scenes (Keeper v1 and Elder v3). The generated body can arrive
+asynchronously; the stable wrapper keeps position and anchors, forwards animation
+options, and disposes pending loads when a session ends or retries.
+
+Elder flight sends a semantic `flight` pose (beat, amplitude and called-wing dip) to
+each body's own animator. It never assumes the procedural and generated skeletons
+share `rig` or wing-array shapes. The generated feet use their existing airborne
+tuck and resolved landing; the temporary procedural body tucks its actual leg chains.
+The flight's route, body reference, player slot and difficulty remain unchanged.
+Landing foot samples are converted into the explicitly supplied moving parent frame
+before replanting, so world translation is not applied twice. Keeper drinking keeps
+the existing Cistern path and open-mouth state beneath its scaled scene parent.
+
 ## Cistern channels (`cistern.js`, the rules in `channels.js`)
 
 Helping the Keeper of the cistern instead of fighting it (issue #339): the Givers' sunken cistern court under the Rose
@@ -1175,3 +1196,42 @@ wants the jets.
 ### Narrow browser temple HUD (#602)
 
 On-foot minigames at widths up to 900 px place their timer and wrapping room label in two bounded columns beneath the separate hearts/reserve panel. The vertical offset follows text scale and the safe top inset; the duplicate minigame lives slot is hidden. This addresses the observed 640 × 720, 145% text overlap. It is a browser CSS layout change: Unity’s separately drawn `BridgeHud` does not consume these styles.
+
+
+## Guardian invitations and return receipts (#623)
+
+The Rose House Keeper and Aerie Elder offer their helping games at the guardian's
+interaction. Their bodies and existing temple finale remain in place, but these two
+layout instances do not start their former combat. Arcade signs still start ordinary
+runs and never complete a temple.
+
+`src/temples/helper-encounter.js` stores a pending encounter in the selected save's
+GameState: guardian/game, world, return pose, stable board seed, slot and a unique
+attempt token. Both hosts pass the token into the same runner. Only an explicit
+successful game goal can mark it won; points, quit, partial floods and turning back
+cannot. Results and leaving also recheck the live slot and token, including when
+another slot already owns an attempt. Returning restores the pose before the normal
+Guardian/TempleRuntime resolution, finale, exit and world-change events. The receipt
+is cleared after persisted completion, so closing/reloading across the return does
+not lose a win or award it twice. An interrupted boss-only flag resumes the remaining
+world resolution. `startHelper` and the existing `onFinale` are the cinematic boundaries.
+
+Cistern's story and Easy sessions begin with untimed planning. Teal channels and
+spill arrows are a simulation of the player's current rotations, not the hidden
+construction solution. RT / R2 (Shift, or touch ✺) releases the valve. A failed flood
+can be drained back to the same plan, retaining rotations without banking points.
+A fresh press is needed after pause/retry/between floods; holding cannot release the
+next plan. The Keeper waits off the board while planning. Arcade Hard retains its
+timed water challenge. The Elder flight keeps its movement and scoring rules, adding
+persistent height/side/speed recovery guidance and progress toward the Roost.
+
+Tests cover goal/slot/return ownership, real temple resolution, real Cistern court
+walking from the south rim at 30/60 Hz, valve edges, retry scoring, and current-route
+preview against a broad deterministic board sample. Board construction guarantees a
+route topologically; sampled and physical checks do not claim exhaustive playtesting
+of every seed.
+
+The helper status uses a compact multiline HUD. Its engine state marks guidance panels,
+and Unity reserves the actual pointer Pause button’s width, including score-bump scale.
+Cistern preview channels keep fixed groove/teal material bindings and switch visibility,
+so both renderers show current connections without a live material-rebinding dependency.

@@ -1,0 +1,33 @@
+{
+  "baseCommit": "8611ceb14f679a052f848c99c73b1def5c8a4616",
+  "files": [
+    {
+      "path": "src/temples/buried-data.js",
+      "baseSha256": "daed1cb3bfe4d137cee6c2564f937ababe50bd2f836775701b8423451db472ed",
+      "replacements": [
+        {
+          "before": "~curious~ Four targets. Hit two at once. The makers kept *ink bombs* in there for stubborn engines. They left tools near their problems.",
+          "after": "~curious~ Hit all four open vents quickly. An *ink bomb* can catch several; splash the rest before they close. The makers left tools near their problems."
+        }
+      ]
+    },
+    {
+      "path": "src/temples/moonfoundry-data.js",
+      "baseSha256": "4a33d1ef19e852ccf6543ce4934de6e8e4c3bd28cd9d25b48155a4f832c10383",
+      "replacements": [
+        {
+          "before": "~neutral~ And it pours. There\u2019s a tap by every hub: shut it, and the channels go cold.",
+          "after": "~neutral~ The channels carry molten iron. Shut a tap by a hub to stop the pour and drain them."
+        },
+        {
+          "before": "~solemn~ The ledger says it stops when a moon comes out whole. So give it a whole one.",
+          "after": "~solemn~ The ledger says a whole moon makes it stop and look. That gives you an opening."
+        },
+        {
+          "before": "~neutral~ An iron moon, drawn into its cradle. You\u2019ll want the glove for that.",
+          "after": "~neutral~ Use the glove to draw an iron moon into its cradle. Then splash its heart when the crucible doors open."
+        }
+      ]
+    }
+  ]
+}

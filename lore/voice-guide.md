@@ -23,6 +23,11 @@ casually, especially in timed scenes. Directions should name a destination,
 landmark, verb, and any necessary order. Repeat a useful name rather than “it”
 when two objects are in play.
 
+Plumb follows the same rule: say what the visible object is and what to try.
+A sleeping bridge or a ball going somewhere useful is not an instruction.
+Keep warmth and jokes, but put the practical meaning first. Do not invent a
+key’s fit, a hidden reward or a route merely to make a hint sound confident.
+
 Use local vocabulary, then translate it once. The Wick is a lamp. The oculus is
 the open-topped drum. The Hush is one culture’s name for the familiar glyph.
 Keep the names that make the world distinctive without asking players to learn
@@ -124,3 +129,10 @@ Controls must match the current build. Retain Xbox / PlayStation names where a
 controller hint is needed. Keep instructional UI plain; reserve character
 humor for the character’s own voice. Recheck adjacent player choices after any
 NPC rewrite: the answer still has to answer the question the player selected.
+
+### Knowledge before names
+
+Plumb and every other speaker can report only what they have observed or been told. On a new
+world, point out a person or an observable landmark to investigate before naming it. Catalogue
+labels and world visitation do not count as introductions. The traveller must not answer with a
+name or fact they have not learned. Check skipped optional talks and returning saves too.

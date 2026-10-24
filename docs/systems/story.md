@@ -264,6 +264,41 @@ Every system talks through it, and its header lists the flags and events.
   the channel; the tree drinks and the water refills the tank with a new colour.
   Bringing the water to the ship powers it. There are three side quests.
 
+### Visible and reachable use targets (issue #636)
+
+`interact.js` keeps the existing priority/range/riding selection. The shared story
+runtime supplies `interaction-view.js` eligibility before selection and on each
+fresh press. Anchored entries must have their actual floating prompt anchor inside
+the camera viewport, including its near/far planes; a person's shoulder-side tag
+uses the same position as its rendered prompt. Target facing is measured on the
+traveller's local tangent plane, including non-Y-up surfaces.
+
+Loose carryables, ordinary chests and talkables opt into a separate `reachAt`
+body point. A ray from the traveller's chest must reach it without a separating
+solid. `reachCollider` excludes only that exact added object's collider for the
+query; level geometry, late world collision, unrelated and moving barriers remain
+solid, and collision lists are never temporarily removed or replaced. The label's
+height and the object's radius are not permissions to reach through a wall.
+
+A sealed ordinary chest offers “inspect the chest”; the existing readiness
+predicate, sealed response, opening scene and reward authority are unchanged.
+A ready chest offers “open”. Inspecting does not reveal any new prerequisite or
+future person/place names. Carry-put explicitly retains input ownership when the
+held object leaves the view, using the ordinary HUD cue. Unanchored actions,
+riding exceptions and the ship's separate input/prompt ownership remain intact.
+If nearby candidates fail view/reach checks, that fresh press is consumed rather
+than becoming an accidental whistle or taxi call. With nothing nearby, the
+player's fallback still works. Selection has no hysteresis or delay: camera loss,
+barriers, disabling, range and mode changes are reevaluated immediately.
+
+Parity covers the same registered targets and ordinary input in both hosts: hidden
+Madame Sel cannot consume a conversation, her own collider does not block a visible
+use, a separate synthetic collider does, and removal restores the real dialogue.
+The Desert chest retains its actual ember prerequisite and reward card; Rose House
+retains ordinary pickup, carried walking, put-down and weight-only plate ownership.
+Capture approaches and the synthetic barrier are disclosed fixtures, not claims
+of completing the entire route or of an authored wall in that spot.
+
 ## Every world's story (v0.33)
 Each world has a story module (`src/story/<world>.js` and `<world>-data.js`,
 registered in `WORLDS` in `src/story/index.js`). Each has named people with

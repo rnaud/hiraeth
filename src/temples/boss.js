@@ -510,15 +510,25 @@ export class Guardian {
     this.solid = { pos: model.pos, r: model.radius ?? 2.6, top: 0, bottom: 0, vel: V() };
     this.prev = model.pos.clone();
     this.offs = [];
-    const fighting = () => this.state === 'fight' || this.state === 'open';
+    const fighting = () => !def.helper && (this.state === 'fight' || this.state === 'open');
     this.offs.push(registerTarget({ kind: def.kind === 'robot' ? 'sentinel' : 'guardian', radius: model.mouthR ?? 1.2, accepts: ['fire', 'stun'],
-      position: () => model.mouth, enabled: () => fighting() || this.state === 'weary',
+      position: () => model.mouth, enabled: () => fighting() || (!def.helper && this.state === 'weary'),
       onHit: (mode, point, dir, info) => this.landed('mouth', mode, dir, info) }));
     this.offs.push(registerTarget({ kind: def.kind === 'robot' ? 'sentinel' : 'guardian', radius: model.bodyR ?? (model.radius ?? 2.6) * 0.75, accepts: ['fire', 'stun'],
       position: () => (this._body ??= V()).copy(model.pos).addScaledVector(UP, model.floats ? 0 : (model.height ?? 3) * 0.5), enabled: () => fighting(),
       // (a glob that lands on the body close to the mouth counts as the mouth: the two overlap at the neck)
       onHit: (mode, point, dir, info) => this.landed(point && point.distanceTo(model.mouth) < (model.mouthR ?? 1.2) * 1.8 ? 'mouth' : 'body', mode, dir, info) }));
-    if (def.final === 'touch') {
+    if (def.helper) {
+      this.offs.push(registerInteractable({
+        id: `temple.${rt.def.id}.help`, priority: PRIORITY.use + 2, range: 4,
+        prompt: def.helper === 'cistern' ? 'help the Keeper' : 'fly with the Elder',
+        at: () => (this._ta ??= V()).copy(model.mouth).addScaledVector(UP, .8),
+        enabled: () => this.state === 'sleep' && !!rt.startHelper && (rt.canStartHelper?.() ?? true),
+        distance: p => Math.abs(p.pos.y - this.arena.y) > 6 ? Infinity : Math.max(0, Math.hypot(p.pos.x - model.mouth.x, p.pos.z - model.mouth.z) - (model.touchR ?? 0)),
+        use: () => rt.startHelper?.(),
+      }));
+    }
+    if (!def.helper && def.final === 'touch') {
       this.offs.push(registerInteractable({
         id: `temple.${rt.def.id}.touch`, priority: PRIORITY.use + 2, range: 3.4, prompt: def.touch ?? 'lay a hand on it',
         at: () => (this._ta ??= V()).copy(model.mouth).addScaledVector(UP, 0.8),
@@ -560,7 +570,7 @@ export class Guardian {
 
   /** Raise (or lower) the meter, inside the current phase: a phase's end is reached only from within it. */
   add(k, why = '') {
-    if (!this.awake || this.state === 'weary') return false;
+    if (this.def.helper || !this.awake || this.state === 'weary') return false;
     const i = this.phaseIndex, P = this.def.phases;
     const lo = i > 0 ? P[i - 1].to : 0, hi = P[Math.min(i, P.length - 1)].to;
     const before = this.meter;
@@ -612,6 +622,7 @@ export class Guardian {
     return r;
   }
   hit(part, mode, dir, info) {
+    if (this.def.helper) return false;
     // (the phase's second verb: the push, or a splash, into the move it winds up)
     if ((mode === 'push' || mode === 'shoot') && this.answer(mode === 'push' ? 'push' : 'shot')) return true;
     if (this.def.onHit?.(this, part, mode, info, dir)) return true;
@@ -623,7 +634,7 @@ export class Guardian {
     return true;
   }
   wake() {
-    if (this.state !== 'sleep') return;
+    if (this.def.helper || this.state !== 'sleep') return;
     this.enter('wake');
     this.rt.notice?.(this.def.wake);
     this.rt.rumble?.(2.6, 0.6);

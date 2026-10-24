@@ -496,7 +496,7 @@ export function elderModel({ stone = '#efe6d2', feather = '#e2d6bf', tip = '#b98
   const tellRig = tellFrame(group);
   const legM = flatMats('elder', { joint: beak, thigh: beak, shin: beak, foot: beak });
   const kit = new GuardianLegs({ plan: GUARDIAN_PLANS.elder, group, body: rig, legs: [-1, 1].map((s) => ({ hip: { x: s * 1.0, y: 3.6, z: 0.3 }, foot: { x: s * 1.05, z: 0.45 }, radius: 0.24, pad: 'point', mats: legM })) });
-  const legs = kit.legs;
+  const legs = kit.legs, restAir = legs.map(L => L.air.clone());
   for (const L of legs) for (const a of [-0.5, 0, 0.5]) { const toe = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.12, 1.1, 6).rotateX(Math.PI / 2).translate(0, 0.08, 0.5).rotateY(a), legM.foot); L.foot.add(toe); }
   noCollide(group);
   const mouth = V(), _w = V();
@@ -531,6 +531,9 @@ export function elderModel({ stone = '#efe6d2', feather = '#e2d6bf', tip = '#b98
       // the kit: her feet hang (tucked back) in the air, as she hops up to stamp, and as she rises to dive
       const rising = attack?.rig === 'rise' && state === 'fight' && !struck ? Math.min(1, k * 3) : 0;
       const air = M.floats ? 1 : Math.max(rising, THREE.MathUtils.clamp((M.lift - 0.35) / 0.8, 0, 1));
+      // The minigame's helping-flight pose uses these real leg chains, not
+      // extra meshes attached to a body that can be asynchronously replaced.
+      legs.forEach((L,i)=>{if(opts.flight)L.air.copy(L.hip.position).add(_w.set(0,-.72,-.38)).sub(L.restBody);else L.air.copy(restAir[i]);});
       const o = kit.update(M, dt, opts, { air });
       rig.position.set(o.x, M.lift + (M.floats ? Math.sin(t * 3.2) * 0.35 : 0) + o.y, o.z);
       rig.rotation.set(M.pitch + o.pitch, o.yaw, o.roll);
@@ -541,6 +544,12 @@ export function elderModel({ stone = '#efe6d2', feather = '#e2d6bf', tip = '#b98
         // folded: swept back along the body and down; spread: out and level; raise lifts them
         w.rotation.set(0, s * (1 - M.spread) * 1.25, s * (M.raise + flap) - s * (1 - M.spread) * 0.9, 'YXZ');
         for (let i = 1; i < joints.length; i++) joints[i].rotation.z = s * M.beat * (beatWave.angle(i, 0.55, 0.45) - beatWave.angle(i - 1, 0.55, 0.45)) * M.spread;
+      }
+      if(opts.flight){const {beat,amplitude,callSide,callStrength}=opts.flight;
+        for(const {w,s,joints} of wings){const dip=s===-callSide?-.35*callStrength:0;
+          w.rotation.set(0,0,s*(.08+amplitude*Math.sin(beat)+dip),'YXZ');
+          joints.forEach((j,i)=>{if(i)j.rotation.z=s*amplitude*.35*Math.sin(beat-i*.55);});
+        }
       }
       // the neck lags her turns; the head is held steady against her body's tilt
       neck.rotation.x = neckK * 0.7;

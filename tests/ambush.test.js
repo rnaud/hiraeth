@@ -81,7 +81,7 @@ test('the wiring: the ship asks main.js where a take-off goes; the fight\'s page
   assert.match(main, /const transit = ambush\.transit\(query\.get\('to'\)\)/);
   // won: marked, and the chimes shot down banked once
   assert.match(host, /if \(r\.chimes && game\.flag\(ambushKey\(to\)\) !== 'won'\) resources\.addChimes\(r\.chimes, \{ source: 'pirates' \}\);/);
-  assert.match(main, /onResult: \(r\) => transit\?\.onResult\(r\)/);
+  assert.match(main, /onResult: \(r\) => \{ helper\?\.onResult\(r\); transit\?\.onResult\(r\); \}/);
   // (the setting that turned the pirates off alone went with the skip, v1.45)
   assert.doesNotMatch(ui, /data-k="ambush"/);
   for (const lang of ['en', 'fr']) assert.doesNotMatch(read(`src/i18n/${lang}.js`), /'set\.ambush': '/);

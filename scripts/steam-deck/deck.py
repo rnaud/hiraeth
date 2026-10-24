@@ -296,7 +296,9 @@ def validate_manifest(manifest):
             raise ValueError('Unexpected release parts')
         if type(size) is not int or not 0 < size <= MAX_ARCHIVE:
             raise ValueError('Invalid release size')
-    elif manifest.get('url') != BASE_URL + f'hiraeth-steam-deck-{build}.tar.gz':
+    elif manifest.get('url') not in (
+            BASE_URL + f'hiraeth-steam-deck-{build}.tar.gz',
+            f'https://github.com/rnaud/hiraeth/releases/download/steam-deck-{build}/hiraeth-steam-deck-{build}.tar.gz'):
         raise ValueError('Unexpected release URL')
     if not isinstance(manifest.get('version'), str):
         raise ValueError('Missing release version')

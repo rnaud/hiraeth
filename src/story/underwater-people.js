@@ -65,11 +65,11 @@ export const PEOPLE = {
         },
         where: {
           say: ['~neutral~ Nobody’s found out. *Lay your ear on the window over the deep*, in the Whale Gallery: the glass is thinnest there. You’ll hear which way it runs.',
-            '~playful~ Quickest is outside. *Take a helmet off the divers’ rack* and go out by the lock. Bell to bell, then down the canyon street.'],
+            '~playful~ The outside route is quicker. *Take a helmet from the divers’ rack*, leave through the lock, and follow the bells to the canyon street.'],
           do: { set: { 'underwater.bastien.heard': true } },
           choices: [{ text: '~neutral~ I’ll listen.', end: true }],
         },
-        again: { say: ['~neutral~ A helmet off the rack, out by the lock, bell to bell. The Gallery’s at the bottom of the canyon street.'], choices: [{ text: '~neutral~ Going.', end: true }] },
+        again: { say: ['~neutral~ Take a helmet, leave through the lock, and follow the bells. The Gallery is at the bottom of the canyon street.'], choices: [{ text: '~neutral~ Going.', end: true }] },
         after: {
           say: ['~happy~ They’re back. One came right up the lock’s shaft this morning and looked up at your ship. I think it approved.', { if: { flag: 'underwater.bastien.wells' }, text: '~playful~ One well a day, you said. You went down three: my lock, the canyon and the Whale-House.' }],
           choices: [{ text: '~playful~ It has good taste.', if: { not: { flag: 'underwater.bastien.wells' } }, end: true }, { text: '~playful~ Three wells. I may have overdone it.', if: { flag: 'underwater.bastien.wells' }, end: true }],

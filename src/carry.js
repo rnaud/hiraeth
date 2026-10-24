@@ -65,7 +65,7 @@ function ensureEntries() {
   entries = true;
   const tag = new THREE.Vector3();
   registerInteractable({
-    id: 'carry.put', priority: PRIORITY.use + 2, range: 1, gesture: null,
+    id: 'carry.put', priority: PRIORITY.use + 2, range: 1, gesture: null, offscreenUse: true,
     distance: (p) => (p?.carrying ? 0 : Infinity),
     prompt: () => { const snap = carrier?.carrying ? putSpot(carrier)?.snap : null; return snap ? `set it on the ${snap.name ?? 'plate'}` : 'put it down'; },
     at: () => (carrier?.carrying?.thing?.pos ? tag.copy(carrier.carrying.thing.pos).addScaledVector(upOf(carrier), (carrier.carrying.thing.h ?? 0.4) + 0.25) : null),
@@ -82,6 +82,7 @@ export function registerCarryable(t) {
   const off = registerInteractable({
     id: `carry.${t.id ?? t.name ?? 'thing'}`, priority: PRIORITY.use, range: CARRY.reach, gesture: null,
     prompt: () => `pick up the ${t.name ?? 'thing'}`,
+    reachAt: () => t.pos, reachCollider: () => t.collider,
     at: () => tag.copy(t.pos).addScaledVector(_Y, (t.h ?? 0.4) + 0.3),
     enabled: () => !t.held && t.object?.visible !== false && canCarry(t) && (t.canPick?.() ?? true),
     distance: (p) => {

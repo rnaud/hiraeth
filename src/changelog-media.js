@@ -1398,6 +1398,389 @@ export const CHANGELOG_MEDIA = {
   }
 ],
 
+  '2.14': [
+  {
+    "match": "The Keeper and Elder keep their familiar appearance",
+    "shots": [
+      {
+        "name": "keeper-drinking",
+        "caption": "The Keeper drinking from a filled trough",
+        "from": "Actual running game in muted headless Chrome, High, 1280 × 720; task-private stores and output block. Before: exact published 2099c5a2. After: reviewed helper-model-continuity branch based on that commit. Initial helper-game receipt staged; actual runner and ordinary-input bots at 30 Hz, with no goal or progress injection. Source identities, input checkpoints and original PNGs retained in helper-model-continuity validation. Web evidence; no listening or device claim. Same actual drinking checkpoint (frame 1525); explicitly staged inspection camera after the normal board view, identical before and after. Keeper geometry is unchanged by the later Elder LOD correction.",
+        "view": {
+          "size": [
+            1280,
+            720
+          ]
+        }
+      },
+      {
+        "name": "elder-wing-call",
+        "caption": "The Elder answers a wing call in flight",
+        "from": "Actual running game in muted headless Chrome, High, 1280 × 720; task-private stores and output block. Before: exact published 2099c5a2. After: reviewed helper-model-continuity branch based on that commit. Initial helper-game receipt staged; actual runner and ordinary-input bots at 30 Hz, with no goal or progress injection. Source identities, input checkpoints and original PNGs retained in helper-model-continuity validation. Web evidence; no listening or device claim. Frame 903 with the normal flight camera and actual called-wing animation. The new model uses its own articulated wings and tucked feet.",
+        "view": {
+          "size": [
+            1280,
+            720
+          ]
+        }
+      },
+      {
+        "name": "elder-landing",
+        "only": "after",
+        "caption": "The Elder settles onto the Old Roost",
+        "from": "Actual running game in muted headless Chrome, High, 1280 × 720; task-private stores and output block. Before: exact published 2099c5a2. After: reviewed helper-model-continuity branch based on that commit. Initial helper-game receipt staged; actual runner and ordinary-input bots at 30 Hz, with no goal or progress injection. Source identities, input checkpoints and original PNGs retained in helper-model-continuity validation. Web evidence; no listening or device claim. After-only inspection camera, 45 ordinary frames after the genuine 13-gate goal, before automatic return. This is a declared close inspection, not the normal turning camera: both baseline and candidate normal views put the characters out of frame at this instant. Full-detail model at measured world distance 19.209 m; 47,784 triangles.",
+        "view": {
+          "size": [
+            1280,
+            720
+          ]
+        }
+      }
+    ]
+  }
+],
+  '2.13': [
+    {"match": "The Rose House’s final doorway now leads straight into the Keeper’s opening scene and Cistern challenge.", "shots": [{"name": "rose-guidance", "title": "the opening explains the water route.", "only": "after", "size": [1280, 960], "caption": "Rose House: the opening explains the water route.", "from": "Unity R4 accepted success run; opening shot 2, after-only. Upstream prerequisites and exterior starting pose staged; ordinary threshold input, actual Cistern goals and production scene reboots. No physical-device or listening claim. Source base 7b0f8a0ba plus reviewed #655 candidate; web R3/native R4 game source manifests identical.", "view": {"level": "desert", "size": [1280, 960]}}, {"name": "rose-cistern-game", "title": "turn channel tiles in the Cistern challenge.", "only": "after", "size": [1280, 960], "caption": "Rose House: turn channel tiles in the Cistern challenge.", "from": "Unity R4 accepted real-goal run; after-only current puzzle gameplay before opening the valve. Native1280x960, muted scripted ordinary inputs. Bottom control strip partly clipped; no claim of new puzzle visuals or a clean HUD. Source base7b0f8a0ba0a4422ee6c9afd4425690e00ab362ed plus accepted #655 source pins in manifest. Source base 7b0f8a0ba plus reviewed #655 candidate; web R3/native R4 game source manifests identical.", "view": {"level": "desert", "size": [1280, 960]}}, {"name": "rose-water-return", "title": "water returns after the Cistern goal.", "only": "after", "size": [1280, 960], "caption": "Rose House: water returns after the Cistern goal.", "from": "Unity R4 accepted success run; completion shot 3, after-only, same implementation as opening. Actual three floods completed, automatic transport and natural completion film; this is a later story moment, not a before/after build comparison. Source base 7b0f8a0ba plus reviewed #655 candidate; web R3/native R4 game source manifests identical.", "view": {"level": "desert", "size": [1280, 960]}}]},
+    {"match": "The Aerie’s final doorway now leads into the Elder’s introduction and flight.", "shots": [{"name": "aerie-flight-game", "title": "follow the Elder through the flight gates.", "only": "after", "size": [1280, 960], "caption": "Aerie: follow the Elder through the flight gates.", "from": "Unity R4 accepted real-goal run; after-only in-flight screenshot at gate5/13 on the route to the Old Roost. Native1280x960, muted scripted ordinary inputs. Transient Together notice meets the HUD edge; no claim of new flight visuals or a clean HUD. Source base7b0f8a0ba0a4422ee6c9afd4425690e00ab362ed plus accepted #655 source pins in manifest. Source base 7b0f8a0ba plus reviewed #655 candidate; web R3/native R4 game source manifests identical.", "view": {"level": "arzach", "size": [1280, 960]}}, {"name": "aerie-elder-return", "title": "the Elder stays fully in view on return.", "only": "after", "size": [1280, 720], "caption": "Aerie: the Elder stays fully in view on return.", "from": "Actual web R3 accepted return shot 2 at approximately 4.214s, FOV52; after-only, clean original. Declared exterior/prerequisites and scripted game input; genuine failure/retry, 13-gate goal and automatic return. Opening was explicitly skipped after its first beat in this web run. Source base 7b0f8a0ba plus reviewed #655 candidate; web R3/native R4 game source manifests identical.", "view": {"level": "arzach", "size": [1280, 720]}}, {"name": "aerie-wind-return", "title": "wind returns to both vents.", "only": "after", "size": [1280, 960], "caption": "Aerie: wind returns to both vents.", "from": "Unity R4 accepted success run; completion shot 3, after-only. Actual failed turnback/retry, 13 gates and Old Roost goal followed by real native VM navigation. Different completion moment from the web portrait, not a before/after build comparison. Source base 7b0f8a0ba plus reviewed #655 candidate; web R3/native R4 game source manifests identical.", "view": {"level": "arzach", "size": [1280, 960]}}]},
+  ],
+  '2.11': [{ match: 'The ship’s bunk shelf is firmly supported', shots: [
+    {
+        "name": "ship-bunk-support",
+        "caption": "A supported shelf beside the bunk",
+        "from": "Actual game in the internal Codex browser, muted with isolated stores and an independent output block. Before: published 7b0f8a0ba; after: that published source with issue #653 ownership, shelf support and canonical panel closure. Matching staged camera/camp checkpoints from continuous tours, not ordinary walking. Full original PNGs and telemetry retained. No scene editing; only WebP encoding. Checkpoint entry-bunk/1.",
+        "view": {
+            "level": "desert",
+            "size": [
+                1280,
+                615
+            ]
+        }
+    },
+    {
+        "name": "ship-panel-edge",
+        "caption": "Solid edges while the porch folds",
+        "from": "Actual game in the internal Codex browser, muted with isolated stores and an independent output block. Before: published 7b0f8a0ba; after: that published source with issue #653 ownership, shelf support and canonical panel closure. Matching staged camera/camp checkpoints from continuous tours, not ordinary walking. Full original PNGs and telemetry retained. No scene editing; only WebP encoding. Checkpoint folding-panel/0_075.",
+        "view": {
+            "level": "desert",
+            "size": [
+                1280,
+                615
+            ]
+        }
+    },
+    {
+        "name": "ship-room-distance",
+        "caption": "Room walls remain visible from farther away",
+        "from": "Actual game in the internal Codex browser, muted with isolated stores and an independent output block. Before: published 7b0f8a0ba; after: that published source with issue #653 ownership, shelf support and canonical panel closure. Matching staged camera/camp checkpoints from continuous tours, not ordinary walking. Full original PNGs and telemetry retained. No scene editing; only WebP encoding. Checkpoint distance-boundary/0_75.",
+        "view": {
+            "level": "desert",
+            "size": [
+                1280,
+                615
+            ]
+        }
+    }
+] }],
+  '2.09': [
+  {
+    "match": "Use prompts follow what you can see",
+    "shots": [
+      {
+        "name": "interaction-hidden",
+        "title": "Looking away",
+        "size": [
+          1280,
+          720
+        ],
+        "caption": "The same ordinary use press while looking away: before it opened an unseen conversation; after it leaves you looking into the market.",
+        "from": "Issue #636: actual muted headless Chrome game, 1280 × 720, 23 October 2026. Candidate based on 4e0eff9e84193c4e10a53da46eddbdc56238841f; exact changed-source and adapter hashes, private-store checks, input traces and originals retained in .local-tools/interaction636/clean-* folders. Constructor mute, independent output blocking and task-private stores; original stores unchanged. Initial approach, camera and equipment are staged; normal gameplay inputs perform the interaction. Full-frame image with QA controls hidden, no crop. No physical-device or listening acceptance claim. Before uses exact base source for the changed modules. Both begin at the same staged player/camera pose. The old incorrect interaction cuts to the dialogue camera, so this is a behavior comparison, not a fixed-camera framing comparison; moving scenery differs."
+      },
+      {
+        "name": "interaction-visible-prompt",
+        "title": "A reachable prompt",
+        "only": "after",
+        "size": [
+          1280,
+          720
+        ],
+        "caption": "Turn back toward a reachable person and the use prompt returns.",
+        "from": "Issue #636: actual muted headless Chrome game, 1280 × 720, 23 October 2026. Candidate based on 4e0eff9e84193c4e10a53da46eddbdc56238841f; exact changed-source and adapter hashes, private-store checks, input traces and originals retained in .local-tools/interaction636/clean-* folders. Constructor mute, independent output blocking and task-private stores; original stores unchanged. Initial approach, camera and equipment are staged; normal gameplay inputs perform the interaction. Full-frame image with QA controls hidden, no crop. No physical-device or listening acceptance claim. After-only candidate view of the actual selected Madame Sel; the traveller partly overlaps her at this approach."
+      },
+      {
+        "name": "interaction-visible-use",
+        "title": "The intended conversation",
+        "only": "after",
+        "size": [
+          1280,
+          720
+        ],
+        "caption": "Using the visible target opens Madame Sel’s actual conversation once.",
+        "from": "Issue #636: actual muted headless Chrome game, 1280 × 720, 23 October 2026. Candidate based on 4e0eff9e84193c4e10a53da46eddbdc56238841f; exact changed-source and adapter hashes, private-store checks, input traces and originals retained in .local-tools/interaction636/clean-* folders. Constructor mute, independent output blocking and task-private stores; original stores unchanged. Initial approach, camera and equipment are staged; normal gameplay inputs perform the interaction. Full-frame image with QA controls hidden, no crop. No physical-device or listening acceptance claim. After-only real dialogue reached by normal E after turning toward the target; no dialogue callback was invoked directly."
+      }
+    ]
+  },
+  {
+    "match": "A sealed chest offers inspection",
+    "shots": [
+      {
+        "name": "interaction-chest-inspect",
+        "title": "Still sealed",
+        "only": "after",
+        "size": [
+          1280,
+          720
+        ],
+        "caption": "The sealed chest can be inspected without opening it or granting its item.",
+        "from": "Issue #636: actual muted headless Chrome game, 1280 × 720, 23 October 2026. Candidate based on 4e0eff9e84193c4e10a53da46eddbdc56238841f; exact changed-source and adapter hashes, private-store checks, input traces and originals retained in .local-tools/interaction636/clean-* folders. Constructor mute, independent output blocking and task-private stores; original stores unchanged. Initial approach, camera and equipment are staged; normal gameplay inputs perform the interaction. Full-frame image with QA controls hidden, no crop. No physical-device or listening acceptance claim. After-only candidate state on the Desert roof before either brazier is lit. Initial roof approach and ember equipment are staged; this is not a roof-traversal proof. Input/state evidence establishes inspection, which the still alone cannot show."
+      },
+      {
+        "name": "interaction-chest-ready",
+        "title": "Ready to open",
+        "only": "after",
+        "size": [
+          1280,
+          720
+        ],
+        "caption": "Both braziers were lit by actual ember shots; the chest is now ready to open. Its reward has not been taken in this picture.",
+        "from": "Issue #636: actual muted headless Chrome game, 1280 × 720, 23 October 2026. Candidate based on 4e0eff9e84193c4e10a53da46eddbdc56238841f; exact changed-source and adapter hashes, private-store checks, input traces and originals retained in .local-tools/interaction636/clean-* folders. Constructor mute, independent output blocking and task-private stores; original stores unchanged. Initial approach, camera and equipment are staged; normal gameplay inputs perform the interaction. Full-frame image with QA controls hidden, no crop. No physical-device or listening acceptance claim. After-only later state of the same candidate, not a before/after software-version comparison. The unchanged lock predicate became true after ordinary R/G inputs hit both real braziers. Reward completion is separately proved by prior web and native evidence, not this still."
+      }
+    ]
+  }
+],
+  '2.08': [
+  {
+    "match": "The Keeper and Elder now introduce their requests",
+    "shots": [
+      {
+        "name": "keeper-request",
+        "title": "The Keeper’s request",
+        "caption": "After accepting the Keeper’s invitation, the scene introduces its dry channels.",
+        "only": "after",
+        "view": {
+          "level": "desert",
+          "size": [
+            1280,
+            720
+          ]
+        },
+        "from": "Issue #624, 23 October 2026, uncommitted helper-cinematics candidate based on 0318b3730fd2f264c275c95d68a89e5cfa7d767c. Actual internal browser, High, 1280 × 720, task port 5488; private in-memory stores, constructor mute and blocked audio output; original stores unchanged. Initial approach pose and approach doors staged; real ordinary-E invitation. Actual Cistern floods or Elder flight completed with scripted ordinary controls at 30 Hz before normal return. After-only; different film moments are not a before/after version comparison. No native/device/listening claim. Reviewed originals and per-file source pins are in .local-tools/helper624/review-image-inventory.json and runs; cwebp quality 72, no crop. Capture: opening at 0.9 s. Original: helper624-opening-clean-first.png."
+      },
+      {
+        "name": "keeper-guide",
+        "title": "The channel route",
+        "caption": "The second opening panel explains the route and valve.",
+        "only": "after",
+        "view": {
+          "level": "desert",
+          "size": [
+            1280,
+            720
+          ]
+        },
+        "from": "Issue #624, 23 October 2026, uncommitted helper-cinematics candidate based on 0318b3730fd2f264c275c95d68a89e5cfa7d767c. Actual internal browser, High, 1280 × 720, task port 5488; private in-memory stores, constructor mute and blocked audio output; original stores unchanged. Initial approach pose and approach doors staged; real ordinary-E invitation. Actual Cistern floods or Elder flight completed with scripted ordinary controls at 30 Hz before normal return. After-only; different film moments are not a before/after version comparison. No native/device/listening claim. Reviewed originals and per-file source pins are in .local-tools/helper624/review-image-inventory.json and runs; cwebp quality 72, no crop. Capture: opening at 4.1 s. Original: helper624-opening-clean-second.png."
+      },
+      {
+        "name": "elder-request",
+        "title": "The Elder’s request",
+        "caption": "After accepting the Elder’s invitation, the scene introduces her journey.",
+        "only": "after",
+        "view": {
+          "level": "arzach",
+          "size": [
+            1280,
+            720
+          ]
+        },
+        "from": "Issue #624, 23 October 2026, uncommitted helper-cinematics candidate based on 0318b3730fd2f264c275c95d68a89e5cfa7d767c. Actual internal browser, High, 1280 × 720, task port 5488; private in-memory stores, constructor mute and blocked audio output; original stores unchanged. Initial approach pose and approach doors staged; real ordinary-E invitation. Actual Cistern floods or Elder flight completed with scripted ordinary controls at 30 Hz before normal return. After-only; different film moments are not a before/after version comparison. No native/device/listening claim. Reviewed originals and per-file source pins are in .local-tools/helper624/review-image-inventory.json and runs; cwebp quality 72, no crop. Capture: opening at 0.9 s. Original: helper624-aerie-opening-first-clean.png."
+      },
+      {
+        "name": "elder-guide",
+        "title": "Beside her wing",
+        "caption": "The second opening panel explains staying close and recovering courage.",
+        "only": "after",
+        "view": {
+          "level": "arzach",
+          "size": [
+            1280,
+            720
+          ]
+        },
+        "from": "Issue #624, 23 October 2026, uncommitted helper-cinematics candidate based on 0318b3730fd2f264c275c95d68a89e5cfa7d767c. Actual internal browser, High, 1280 × 720, task port 5488; private in-memory stores, constructor mute and blocked audio output; original stores unchanged. Initial approach pose and approach doors staged; real ordinary-E invitation. Actual Cistern floods or Elder flight completed with scripted ordinary controls at 30 Hz before normal return. After-only; different film moments are not a before/after version comparison. No native/device/listening claim. Reviewed originals and per-file source pins are in .local-tools/helper624/review-image-inventory.json and runs; cwebp quality 72, no crop. Capture: opening at 4.1 s. Original: helper624-aerie-opening-second-clean.jpg."
+      },
+      {
+        "name": "elder-return",
+        "title": "Back at the Aerie",
+        "caption": "After reaching the Old Roost, the return scene begins at a calm vent.",
+        "only": "after",
+        "view": {
+          "level": "arzach",
+          "size": [
+            1280,
+            720
+          ]
+        },
+        "from": "Issue #624, 23 October 2026, uncommitted helper-cinematics candidate based on 0318b3730fd2f264c275c95d68a89e5cfa7d767c. Actual internal browser, High, 1280 × 720, task port 5488; private in-memory stores, constructor mute and blocked audio output; original stores unchanged. Initial approach pose and approach doors staged; real ordinary-E invitation. Actual Cistern floods or Elder flight completed with scripted ordinary controls at 30 Hz before normal return. After-only; different film moments are not a before/after version comparison. No native/device/listening claim. Reviewed originals and per-file source pins are in .local-tools/helper624/review-image-inventory.json and runs; cwebp quality 72, no crop. Capture: return finale at 1 s. Original: helper624-aerie-return-first-clean.jpg."
+      },
+      {
+        "name": "elder-way",
+        "title": "The way onward",
+        "caption": "The exit gate is partway through opening during the last return panel.",
+        "only": "after",
+        "view": {
+          "level": "arzach",
+          "size": [
+            1280,
+            720
+          ]
+        },
+        "from": "Issue #624, 23 October 2026, uncommitted helper-cinematics candidate based on 0318b3730fd2f264c275c95d68a89e5cfa7d767c. Actual internal browser, High, 1280 × 720, task port 5488; private in-memory stores, constructor mute and blocked audio output; original stores unchanged. Initial approach pose and approach doors staged; real ordinary-E invitation. Actual Cistern floods or Elder flight completed with scripted ordinary controls at 30 Hz before normal return. After-only; different film moments are not a before/after version comparison. No native/device/listening claim. Reviewed originals and per-file source pins are in .local-tools/helper624/review-image-inventory.json and runs; cwebp quality 72, no crop. Capture: return finale at 9.8 s; gate is not fully open yet. Original: helper624-aerie-return-exit-clean.jpg."
+      }
+    ]
+  },
+  {
+    "match": "Scene captions appear with their filmed moment",
+    "shots": [
+      {
+        "name": "keeper-caption",
+        "title": "Water returns",
+        "caption": "The water caption appears during the filled-basin panel.",
+        "only": "after",
+        "view": {
+          "level": "desert",
+          "size": [
+            1280,
+            720
+          ]
+        },
+        "from": "Issue #624, 23 October 2026, uncommitted helper-cinematics candidate based on 0318b3730fd2f264c275c95d68a89e5cfa7d767c. Actual internal browser, High, 1280 × 720, task port 5488; private in-memory stores, constructor mute and blocked audio output; original stores unchanged. Initial approach pose and approach doors staged; real ordinary-E invitation. Actual Cistern floods or Elder flight completed with scripted ordinary controls at 30 Hz before normal return. After-only; different film moments are not a before/after version comparison. No native/device/listening claim. Reviewed originals and per-file source pins are in .local-tools/helper624/review-image-inventory.json and runs; cwebp quality 72, no crop. Capture: return finale at 7.1046 s. Original: helper624-return-caption-fixed-clean.png."
+      },
+      {
+        "name": "elder-caption",
+        "title": "Wind returns",
+        "caption": "The wind caption appears during the vent panel.",
+        "only": "after",
+        "view": {
+          "level": "arzach",
+          "size": [
+            1280,
+            720
+          ]
+        },
+        "from": "Issue #624, 23 October 2026, uncommitted helper-cinematics candidate based on 0318b3730fd2f264c275c95d68a89e5cfa7d767c. Actual internal browser, High, 1280 × 720, task port 5488; private in-memory stores, constructor mute and blocked audio output; original stores unchanged. Initial approach pose and approach doors staged; real ordinary-E invitation. Actual Cistern floods or Elder flight completed with scripted ordinary controls at 30 Hz before normal return. After-only; different film moments are not a before/after version comparison. No native/device/listening claim. Reviewed originals and per-file source pins are in .local-tools/helper624/review-image-inventory.json and runs; cwebp quality 72, no crop. Capture: return finale at 7.1041 s. Original: helper624-aerie-return-wind-clean.jpg."
+      }
+    ]
+  }
+],
+  '2.06': [{ match: 'The seed pouch has been removed', shots: [
+    { name: 'seed-trail', caption: 'Walking without a flower trail',
+      from: 'Actual Unity game, High, 1280 × 960, muted private older-save fixture with the pouch owned. Before: published ded6a12e44cc375e1848139cb35c532371e1cdd1 feature sources; after: that base plus issue #625 removal. Identical ordinary movement inputs walk 15.16 m in Viridel: eight trail flowers before, none after. Ambient birds and notification timing differ. Full original frames retained; no scene editing.',
+      view: { level: 'edena', size: [1280, 960] } },
+    { name: 'bloom-retained', caption: 'The bloom gun still grows flowers where its shot lands', only: 'after',
+      from: 'Actual Unity game after issue #625 removal on ded6a12e44cc375e1848139cb35c532371e1cdd1, High, 1280 × 960, muted private fixture with the gun and bloom mode owned. Ordinary aim/fire input produces a real terrain impact and five flowers. This is retained behavior, shown after-only; it is not a new bloom effect or an inventory view.',
+      view: { level: 'edena', size: [1280, 960] } },
+  ] }],
+  '2.05': [
+  {
+    "match": "Help the Rose House Keeper guide water",
+    "shots": [
+      {
+        "name": "keeper-return",
+        "only": "after",
+        "caption": "The three completed floods offer a return to the Keeper.",
+        "size": [
+          1280,
+          960
+        ],
+        "from": "Issue #623, 23 October 2026, uncommitted helper candidate based on ded6a12e44cc375e1848139cb35c532371e1cdd1, 1280 × 960. After-only actual game view; no historical before image. Unity Editor, High, private save, constructor mute and disabled output sink; exact warm-project restoration verified. Real session driven with scripted ordinary walking/valve or wingman controls at accelerated 30 Hz; no goal/result injection. The task starts on the game page with a pending story encounter; this picture is not a full temple-entry/return or device-listening claim. Evidence: .local-tools/helper623/native/native-helper-3."
+      },
+      {
+        "name": "elder-return",
+        "only": "after",
+        "caption": "Reaching the Old Roost offers a return to the Aerie.",
+        "size": [
+          1280,
+          960
+        ],
+        "from": "Issue #623, 23 October 2026, uncommitted helper candidate based on ded6a12e44cc375e1848139cb35c532371e1cdd1, 1280 × 960. After-only actual game view; no historical before image. Unity Editor, High, private save, constructor mute and disabled output sink; exact warm-project restoration verified. Real session driven with scripted ordinary walking/valve or wingman controls at accelerated 30 Hz; no goal/result injection. The task starts on the game page with a pending story encounter; this picture is not a full temple-entry/return or device-listening claim. Evidence: .local-tools/helper623/native/native-helper-2."
+      }
+    ]
+  },
+  {
+    "match": "Plan the Cistern’s channels",
+    "shots": [
+      {
+        "name": "cistern-route-web",
+        "only": "after",
+        "caption": "Teal grooves show the current plan connecting both troughs in the browser.",
+        "size": [
+          1280,
+          960
+        ],
+        "from": "Issue #623, 23 October 2026, uncommitted helper candidate based on ded6a12e44cc375e1848139cb35c532371e1cdd1, 1280 × 960. After-only actual game view; no historical before image. Headless Chrome on task port 5488, private in-memory stores, constructor mute and blocked audio output; original browser stores unchanged. Real session driven with scripted ordinary walking/valve or wingman controls at accelerated 30 Hz; no goal/result injection. The task starts on the game page with a pending story encounter; this picture is not a full temple-entry/return or device-listening claim. Evidence: .local-tools/helper623/web-2026-10-23T05-01-11-811Z."
+      },
+      {
+        "name": "cistern-plan-native",
+        "only": "after",
+        "caption": "Unity: take time to plan, with the valve instruction beside a clear Pause button.",
+        "size": [
+          1280,
+          960
+        ],
+        "from": "Issue #623, 23 October 2026, uncommitted helper candidate based on ded6a12e44cc375e1848139cb35c532371e1cdd1, 1280 × 960. After-only actual game view; no historical before image. Unity Editor, High, private save, constructor mute and disabled output sink; exact warm-project restoration verified. Short first-live-frame capture; rendered score and Pause bounds do not overlap. The task starts on the game page with a pending story encounter; this picture is not a full temple-entry/return or device-listening claim. Evidence: .local-tools/helper623/native/native-helper-layout-4."
+      }
+    ]
+  },
+  {
+    "match": "Flying with the Elder now shows",
+    "shots": [
+      {
+        "name": "elder-guide-web",
+        "only": "after",
+        "caption": "Browser: progress toward the Roost and guidance while flying in the Elder’s wake.",
+        "size": [
+          1280,
+          960
+        ],
+        "from": "Issue #623, 23 October 2026, uncommitted helper candidate based on ded6a12e44cc375e1848139cb35c532371e1cdd1, 1280 × 960. After-only actual game view; no historical before image. Headless Chrome on task port 5488, private in-memory stores, constructor mute and blocked audio output; original browser stores unchanged. Real session driven with scripted ordinary walking/valve or wingman controls at accelerated 30 Hz; no goal/result injection. The task starts on the game page with a pending story encounter; this picture is not a full temple-entry/return or device-listening claim. Evidence: .local-tools/helper623/web-2026-10-23T04-49-38-282Z."
+      },
+      {
+        "name": "elder-guide-native",
+        "only": "after",
+        "caption": "Unity: the flight guidance leaves the Pause button clear.",
+        "size": [
+          1280,
+          960
+        ],
+        "from": "Issue #623, 23 October 2026, uncommitted helper candidate based on ded6a12e44cc375e1848139cb35c532371e1cdd1, 1280 × 960. After-only actual game view; no historical before image. Unity Editor, High, private save, constructor mute and disabled output sink; exact warm-project restoration verified. Short first-live-frame capture; rendered score and Pause bounds do not overlap. The task starts on the game page with a pending story encounter; this picture is not a full temple-entry/return or device-listening claim. Evidence: .local-tools/helper623/native/native-helper-layout-4."
+      }
+    ]
+  },
+  {
+    "match": "Plumb points you toward people",
+    "shots": [
+      {
+        "name": "unlearned-direction",
+        "only": "after",
+        "caption": "Before an introduction, Plumb points out someone by the landing.",
+        "size": [
+          1280,
+          720
+        ],
+        "from": "Issue #627 candidate based on ded6a12e4; actual muted Unity Editor game, High, 1280 × 720, Signal Market. Fresh unintroduced quest; Scout ping and staged real Companion dialogue, not an elapsed lost-timer or ordinary walking claim. Separate after-only states. Source pins, native originals, auxiliary portrait and exact warm restoration retained in .local-tools/knowledge-safe-hints-627/review/native-hints-1/. Native initial progress differs from browser fixture; the target and anonymous wording match."
+      },
+      {
+        "name": "anonymous-plumb",
+        "only": "after",
+        "caption": "Plumb’s spoken direction uses the same observable landmark.",
+        "size": [
+          1280,
+          720
+        ],
+        "from": "Issue #627 candidate based on ded6a12e4; actual muted Unity Editor game, High, 1280 × 720, Signal Market. Fresh unintroduced quest; Scout ping and staged real Companion dialogue, not an elapsed lost-timer or ordinary walking claim. Separate after-only states. Source pins, native originals, auxiliary portrait and exact warm restoration retained in .local-tools/knowledge-safe-hints-627/review/native-hints-1/. Native initial progress differs from browser fixture; the target and anonymous wording match."
+      }
+    ]
+  }
+],
   '2.04': [
 { match: 'A new sound-effects page', shots: [
     { name: 'sound-effects-overview', title: 'Effects by source', only: 'after', size: [1280, 526], caption: 'The new catalogue separates gameplay variants from raw recording files and identifies intentional procedural sounds.', from: 'After-only actual site page in the internal Codex browser, d2bcb38ec plus this final shared-typography candidate, 23 October 2026. Constructor-muted with independent audio-output blocking and private stores. Cropped only to the 1280 × 526 application viewport, excluding QA controls; no listening claim.' },

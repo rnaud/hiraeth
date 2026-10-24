@@ -25,7 +25,7 @@ export function setupMoonFoundry(ctx) {
   const film = setupMoonFoundryMoments(ctx, { rt, level });
   for (const q of QUESTS) quests?.define?.(q);
   // the foundry's own main quest doesn't just appear: it starts when you talk to Hedda on the apron (src/story/quests.js opensWith)
-  if (quests?.opensWith && !quests.isStarted?.('moonfoundry.moons')) quests.opensWith('moonfoundry.moons', 'hedda');
+  if (quests?.opensWith && !quests.isStarted?.('moonfoundry.moons')) quests.opensWith('moonfoundry.moons', 'hedda', { hint: 'Someone by a mould' });
   for (const n of npcs) if (['ottilie', 'bertil', 'wen', 'dun', 'ivo', 'hedda'].includes(n.def?.id)) quests?.locate?.(n.def.id, () => n.pos);
   // the old hoist's signal box, on its second deck (v1.57, issue #193: src/foundry-cranes.js; its first deck until then):
   // from it the hung moons, all turned one way

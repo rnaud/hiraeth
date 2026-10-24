@@ -13,6 +13,7 @@ import { MomentStage } from './moment.js';
 import { recordSightings } from './sightings.js';
 import { glyphGeometry } from './sign-text.js';
 import { registerInteractable, updateInteract, PRIORITY } from '../interact.js';
+import { interactionAnchor, interactionEligible, promptVisible } from '../interaction-view.js';
 import { NPC, registerNPCTargets } from '../npc.js';
 import { talkFaces } from '../talk-face.js';
 import { talkGestures } from '../talk-gesture.js';
@@ -22,7 +23,7 @@ import { viaPortal } from '../scout.js';
 import { backdropFor, portraitSize } from './portrait-bg.js';
 import { keyBadge, escapeHtml } from '../prompt-keys.js';
 import { hintsFor } from '../hint-level.js';
-import { shoulders, besideAnchor, tagPlace } from '../talk-prompt.js';
+import { shoulders, tagPlace } from '../talk-prompt.js';
 import { hostOf, hostTalk, hostStand } from '../minigames/kit/hosts.js';
 import { setupDesert } from './desert.js';
 import { setupPerdide } from './perdide.js';
@@ -113,11 +114,12 @@ const partPage = (story, part) => (story ? Object.assign(Object.create(story), {
 
 const UP = new THREE.Vector3(0, 1, 0);
 const _p = new THREE.Vector3(), _d = new THREE.Vector3(), _eyes = new THREE.Vector3();
-const _sh = [new THREE.Vector3(), new THREE.Vector3()], _cr = new THREE.Vector3(), _an = new THREE.Vector3();
+const _sh = [new THREE.Vector3(), new THREE.Vector3()], _an = new THREE.Vector3();
 
 export function createStory(o) {
   const { levelId, scene, physics, level, player, npcs, crowd, sound, journal, story, capture, lib, humans, toast = () => {} } = o;
   const quests = new Quests({ game, toast, sound });
+  const candidateAnchor = new THREE.Vector3(), promptPoint = new THREE.Vector3(), tagPlacement = { side: 1 };
   let talking = null;   // { person, npc, at }
   let world = null;
   // the rumours the people outside the quests tell (issue #340, src/story/rumours.js): a line, and a circle on the Map
@@ -214,6 +216,7 @@ export function createStory(o) {
       // of the shoulders, for an engine's own prompt: platform.js screen.prompt)
       beside: () => shoulders(npc, UP, _sh),
       at: () => { const b = shoulders(npc, UP, _sh); return b.mid ? _p.set(b.mid.x, b.mid.y, b.mid.z) : _p.set((b.l.x + b.r.x) / 2, (b.l.y + b.r.y) / 2, (b.l.z + b.r.z) / 2); },
+      reachAt: () => { const b = shoulders(npc, UP, _sh); return b.mid ?? _p.set((b.l.x + b.r.x) / 2, (b.l.y + b.r.y) / 2, (b.l.z + b.r.z) / 2); },
       prompt: def.prompt ?? `talk to ${def.name.replace(/^The /, 'the ')}`,   // (a game's host: "ask Kamal about the canyon run")
       enabled: () => npc.object.visible && !npc.stunned?.(),
       distance: (p) => (Math.abs(p.pos.y - npc.pos.y) < 2.5 ? Math.hypot(p.pos.x - npc.pos.x, p.pos.z - npc.pos.z) : Infinity),
@@ -456,11 +459,17 @@ export function createStory(o) {
       // the press that closed a conversation must not open the next one (or whistle the mount)
       const now = typeof performance !== 'undefined' ? performance.now() : 0;
       const fresh = ePressed && now - (dialogue.closedAt ?? -1e9) > 400;
-      const r = paused || dialogue.open || player.hidden ? { prompt: null, handled: false } : updateInteract(player, fresh);
+      const r = paused || dialogue.open || player.hidden ? { prompt: null, handled: false } : updateInteract(player, fresh, {
+        eligible: (entry) => interactionEligible(player, entry, { camera, physics,
+          anchor: interactionAnchor(entry, camera, candidateAnchor, rt._tagFor === entry ? rt._tagSide ?? 1 : 1) }),
+      });
       if (ePressed && !fresh) r.handled = true;
       rt.prompt = r.prompt;
       rt.promptEntry = r.entry ?? null;
-      rt.promptAt = r.entry?.at?.() ?? null;
+      const at = r.entry?.at?.();
+      rt.promptAt = at ? promptPoint.copy(at) : null;
+      // Putting down a held object stays available even when looking away: show the ordinary HUD cue.
+      if (r.entry?.offscreenUse && !promptVisible(interactionAnchor(r.entry, camera, candidateAnchor), camera)) rt.promptAt = null;
       // (what E does aboard the ship, floating by what it is for: the voicemail, the table, the hatch; issue #350. The
       //  ship's E comes first there, so its tag over a person's: src/ship/ship.js promptTag)
       const extra = !paused && !dialogue.open && !player.hidden ? rt.extraPrompt?.() : null;
@@ -481,15 +490,11 @@ export function createStory(o) {
       // a person: the tag hangs beside them, just below the shoulders, on the camera's right (its left near the edge)
       const body = rt.promptEntry?.beside?.() ?? null;
       if (rt._tagFor !== rt.promptEntry) { rt._tagFor = rt.promptEntry; rt._tagSide = 1; }   // (someone new: their right first)
-      if (body) {
-        _cr.setFromMatrixColumn(camera.matrixWorld, 0).normalize();
-        const a = besideAnchor(body, _cr, rt._tagSide ?? 1, rt.promptEntry.npc?.object?.scale?.y ?? 1);
-        _an.set(a.x, a.y, a.z);
-      }
-      const anchor = body ? _an : rt.promptAt;
+      const anchor = body ? interactionAnchor(rt.promptEntry, camera, _an, rt._tagSide ?? 1, tagPlacement) : rt.promptAt;
+      if (body) rt._tagSide = tagPlacement.side;
       const at = anchor.toArray().map((v) => +v.toFixed(2));   // (before projecting: the vector may be shared)
       _p.copy(anchor).project(camera);
-      const on = _p.z < 1 && Math.abs(_p.x) < 1.05 && Math.abs(_p.y) < 1.05;
+      const on = promptVisible(anchor, camera);
       // (as data too, platform.js screen.prompt: where it floats, in the world)
       screen.set('prompt', on ? { text: rt.prompt, key: controller ? PAD.interact : 'E', at, words: !!hintsFor('words') } : null);   // (words: the button alone unless hints are full, as below)
       if (on) {

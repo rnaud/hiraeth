@@ -51,7 +51,7 @@ export function setupIncal(ctx) {
   for (const q of QUESTS) quests.define(q);
   quests.itemNames = { ...(quests.itemNames ?? {}), ...ITEMS };
   // the main quest doesn't just appear: it starts when you talk to Nima (the scout finds them till then: src/story/quests.js opensWith)
-  if (!quests.isStarted(Q)) quests.opensWith(Q, 'nima');
+  if (!quests.isStarted(Q)) quests.opensWith(Q, 'nima', { hint: 'Someone on the high terrace' });
   // a quest tracked in another world has no marker here: track this world's
   if (!quests.def(quests.tracked() ?? '')) quests.track(quests.isActive(Q) ? Q : quests.active().find((d) => d.world === 'incal')?.id);
 

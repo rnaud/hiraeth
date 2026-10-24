@@ -8,25 +8,25 @@ name: Unity release (testers)
 #   build over the last; published to the GitHub release unity-android (hiraeth-unity.apk, replaced each run);
 # - linux: the bridge's Linux player (BridgeBuild.Linux: x86_64, IL2CPP, Vulkan) for the Steam Deck, to unity-linux.
 # Both releases are prereleases, never the latest: the app's updater and the players read the vX.Y releases.
-# Each build also goes onto the newest version's release (vX.Y) beside the APK, labelled with the commit built
+# Each build also goes onto its built version's release (vX.Y) beside the APK, labelled with the commit built
 # (scripts/unity-publish.sh): the prereleases stay what the Deck's installer reads.
 # Unity is licensed by GameCI (unity-builder v6, which activates a Personal seat from UNITY_EMAIL and
 # UNITY_PASSWORD and returns it after); without those secrets the first job fails at once and says so.
 # The same APK can be built and published from a Mac with scripts/unity-android-release.sh.
 #
-# When: a push that touches the Unity side (unity/, engine/, the bridge's scripts, this file), by hand, and
-# every night, when the game (src/, public/) moved since the last published build: the game's pushes are too
-# frequent to build each one. Fast when warm: Unity's Library (its imports, shader cache and the IL2CPP build's
+# When: a release changelog or Unity-side push, by hand, and every night when the game moved.
+# Every player-visible release change touches src/changelog.js, including script-only updates.
+# Fast when warm: Unity's Library (its imports, shader cache and the IL2CPP build's
 # objects in Library/Bee), Puerts' IL2CPP glue, Gradle's caches and Puerts are all cached between runs, each
 # under a key made of what it depends on: saved only when that changed, the entry it replaces then deleted
 # (the repository's caches are limited to 10 GB: new entries every run pushed each other out).
-# No unit suite here, but the Linux player (the Steam Deck's, since v1.79) is published only once tests.yml passed on its
-# commit (scripts/wait-tests.sh: the Unity-default plan's D12).
+# Both native players publish only after tests.yml passes on their exact commit (scripts/wait-tests.sh).
 
 on:
   push:
     branches: [main]
     paths:
+      - 'src/changelog.js'   # every player-visible release, including game-only changes
       - 'unity/**'
       - 'engine/**'
       - 'scripts/unity-*'
@@ -382,6 +382,12 @@ jobs:
           retention-days: 7
 
       # (main only: a branch run by hand (gh workflow run --ref) leaves the testers' release alone, its APK in the artifact)
+      - name: The unit suite passed on this commit (tests.yml)
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: scripts/wait-tests.sh "${{ github.sha }}" 90
+
       - name: Publish to the release unity-android
         if: github.ref == 'refs/heads/main'
         env:

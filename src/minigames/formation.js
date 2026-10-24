@@ -278,6 +278,18 @@ export function skyStones(R, seed = 7, { clear = 34, n = 70 } = {}, K = FORMATIO
   return out;
 }
 
+/** Persistent recovery guidance in her frame; it never steers or grants a gate. */
+export function flightGuide(F, R, W) {
+  const target = slotAt(F, R, new THREE.Vector3()), delta = target.sub(W.pos);
+  if (delta.length() <= FORMATION.slot.r) return 'In her wake · courage recovers';
+  if (Math.abs(delta.y) > 4) return delta.y > 0 ? 'Pull back to climb toward her wing' : 'Push forward to descend toward her wing';
+  const side = delta.dot(F.her.right), along = delta.dot(F.her.fwd);
+  if (Math.abs(side) > 6) return side > 0 ? 'Bank right toward the gold circle' : 'Bank left toward the gold circle';
+  if (along > 5) return 'Hold A / × to catch up';
+  if (along < -5) return 'Hold LT / L2 to slow beside her';
+  return F.side > 0 ? 'Stay at her right wing · follow the gold circle' : 'Stay at her left wing · follow the gold circle';
+}
+
 /** The flight's points, line by line. */
 export function flightScore(F, K = FORMATION) {
   const harmony = Math.round(F.harmony), gates = F.gatePts;

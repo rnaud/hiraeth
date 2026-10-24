@@ -267,13 +267,14 @@ refuses while Steam runs. Never part of an update.
 ## Install by hand
 
 Once the repository is private, its release files need a GitHub login. Download the
-package where `gh` is signed in (then copy the folder to the Deck, or run this on the Deck):
+package where `gh` is signed in (then copy the folder to the Deck, or run this on the Deck). Choose the actual build-scoped release tag from GitHub Releases:
 
 ```sh
 D=~/Downloads/hiraeth
-gh release download steam-deck -R rnaud/hiraeth -D $D -p steam-deck.json -p install-hiraeth.py --clobber
+read -r -p "Build release tag (steam-deck-<build>): " TAG
+gh release download "$TAG" -R rnaud/hiraeth -D $D -p steam-deck.json -p install-hiraeth.py --clobber
 BUILD=$(python3 -c "import json, sys; print(json.load(open(sys.argv[1]))['build'])" $D/steam-deck.json)
-gh release download steam-deck -R rnaud/hiraeth -D $D -p "hiraeth-steam-deck-$BUILD.tar.gz" --clobber
+gh release download "$TAG" -R rnaud/hiraeth -D $D -p "hiraeth-steam-deck-$BUILD.tar.gz" --clobber
 python3 $D/install-hiraeth.py --from $D
 ```
 
@@ -299,7 +300,7 @@ holds back the other; see `update.log`):
 - **The runtime** (Electron, `main.mjs`, this updater and a packaged copy of the game): the
   newer of two feeds, the game's site (`/updates/steam-deck.json`, the package in 20 MiB
   parts, put there by the Cloudflare deploy: `scripts/deck-runtime.mjs`, see
-  `docs/cloudflare.md`) and the dedicated `steam-deck` GitHub release (private now: that
+  `docs/cloudflare.md`) and the preserved legacy `steam-deck` GitHub feed (no longer advanced; private now: that
   check fails quietly, a line in `update.log`). A new build is downloaded into a temporary
   directory, size and SHA-256 verified, and unpacked before the `current` symlink is
   atomically changed. The newest two builds and any build still running are retained. A
@@ -481,3 +482,9 @@ Remove the shortcut through Steam's **Manage → Remove non-Steam game from your
 library**. With the game closed, delete `~/.local/share/hiraeth-deck` and
 `~/.local/share/applications/hiraeth.desktop` to uninstall (the Unity player's progress is in
 `~/.local/share/hiraeth-deck/unity-data/`: copy it out first to keep it). `~/.config/hiraeth` holds the web build's.
+
+## Versioned package downloads
+
+New packages are published as prereleases named `steam-deck-<build>` (one per runtime build), keeping Android’s latest stable release unchanged. Download `install-hiraeth.py` from the chosen build’s release: `https://github.com/rnaud/hiraeth/releases/download/steam-deck-<build>/install-hiraeth.py` (replace `<build>` with that release’s actual runtime build). Its archive and manifest are verified before the release becomes public. For offline installation, download all three assets from that same release and use the existing `--from` procedure.
+
+The older permanent `steam-deck` installer link remains usable as a compatibility entry point. Its assets are preserved, not repeatedly replaced: installed launchers migrate through the unchanged, checksummed site multipart feed. An unavailable site or failed download leaves the existing installation intact. Do not delete saves or reinstall to migrate.

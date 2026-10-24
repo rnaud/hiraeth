@@ -668,7 +668,7 @@ function layout(rt) {
     ],
     lights: [[0, 7, 7, 18], [0, 14, 30, 34], [0, 14, 60, 34], [0, 14, 88, 30], [-13, 12, 78, 20], [XW, 10, 25, 26], [XW, 10, 45, 26], [XW, 8, 64, 28], [XW, 10, 90, 28],
       [XE, 6, 24, 26], [XE, 6, 40, 26], [XE, 6, 59, 28], [XE, 6, 83, 28], [XE, 6, 107, 28], [XC, 6, 63, 28], [XC, 6, 88, 28], [XC, 6, 113, 28], [0, 4, GH.z1 + 12, 11], [0, 8, C.z, 32], [0, 4, S0 + 5, 11]],
-    guardian: { def: { ...KEEPER, onHit: keeperHit, openFor: keeperOpen, onBlock: keeperBlocked, onStrike: keeperLands }, model, arena },
+    guardian: { def: { ...KEEPER, helper: 'cistern', onHit: keeperHit, openFor: keeperOpen, onBlock: keeperBlocked, onStrike: keeperLands }, model, arena },
   };
 }
 
@@ -959,7 +959,7 @@ export const DESERT_TEMPLE = {
     // the blade taken from its chest here: the Givers' machines wake in the hall behind the Great Hall's east door (src/foes.js places them the moment he is armed)
     rt.offs.push(rt.game.on('temple:gadget', ({ id } = {}) => { if (id === 'desert' && !rt.logic.isLit('arM')) rt.notice('Behind the hall’s east door, something in the walls is waking.', 'machines.wake'); }));
     const G = rt.guardian;
-    if (!G) return;
+    if (!G || G.def.helper) return;
     // water from your tank, while it pants (its second phase on): at its mouth, as the hand on its brow at the end
     const m = G.model;
     rt.offs.push(registerInteractable({

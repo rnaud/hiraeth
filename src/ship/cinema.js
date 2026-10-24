@@ -365,11 +365,13 @@ export class Cinema {
   /**
    * A subtitle, queued behind the one up. opts.secs: take it down after that long;
    * opts.queue=false: an authored timeline explicitly replaces its previous beat.
+   * opts.authored: a Moment owns its letterboxed screen; its beat cannot wait
+   * behind the region name that is itself waiting for the Moment to finish.
    */
-  say(line, { secs = null, queue = true } = {}) {
+  say(line, { secs = null, queue = true, authored = false } = {}) {
     // outside a scene, a line waits for the region's name (the notices' order, NOTICE_ORDER)
     if (!line) this._held.length = 0;
-    else if (!this.mayNotice('line')) {
+    else if (!(authored && this._bars) && !this.mayNotice('line')) {
       if (!queue) this._held.length = 0;
       this._held.push({ line, secs, queue });
       return;

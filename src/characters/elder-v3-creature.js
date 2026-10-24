@@ -175,7 +175,7 @@ export function createElderCreature(gltf,{gameMaterial=false,fit=originalFit,lod
   });
   const o=kit.update(M,dt,opts,{air});
   if(wasAir>0&&air<=.01){
-   const positions=kit.legs.map((L,i)=>bones[`leg${i}_foot`].getWorldPosition(new T.Vector3()));
+   const positions=kit.legs.map((L,i)=>{const p=bones[`leg${i}_foot`].getWorldPosition(new T.Vector3());return opts.kit?.frame?opts.kit.frame.worldToLocal(p):p;});
    kit.rig.planner.replant(positions,M.pos);kit.rig.planner.heading=M.heading;
   }
   // (her breath: the breast rising and the feathers with it, slow asleep, fast and deep worn out; a shiver when afraid)
@@ -200,6 +200,14 @@ export function createElderCreature(gltf,{gameMaterial=false,fit=originalFit,lod
   clock.wing+=dt*(4.3+1.4*pose.gust);
   const amp=.3+.22*pose.gust,quiv=pose.quiver*Math.sin(t*25)*.025;
   for(let i=0;i<2;i++){const s=i?1:-1;wings[i].forEach((b,j)=>{const ph=clock.wing-j*.5,flap=pose.beat*Math.sin(ph),flex=j?pose.beat*.14*Math.max(0,Math.cos(ph)):0;b.rotation.set(0,s*(pose.fold*ELDER_FOLD[j]-pose.sweep*[.55,.25,.1,0][j]+flex),s*(j===0?pose.raise+flap*amp-pose.fold*.32+breath*.012:flap*.10*(1+pose.gust)+quiv*[0,.5,1,1.4][j]));});}
+  // Helping flight supplies semantic cues, never procedural rig objects. Each
+  // skin uses its own articulated wings; the shared phase still tucks the feet.
+  if(opts.flight){const {beat,amplitude,callSide,callStrength}=opts.flight;
+   wings.forEach((chain,i)=>{const s=i?1:-1,dip=s===-callSide?-.35*callStrength:0;
+    chain.forEach((b,j)=>b.rotation.set(0,0,s*(j?amplitude*.35*Math.sin(beat-j*.55):.08+amplitude*Math.sin(beat)+dip)));
+   });
+  }
+
   bones.tail0.rotation.set(-pose.pitch*.25+pose.tail+Math.sin(t*1.2)*.025+breath*.01,-turn*.15,0);bones.tail1.rotation.x=Math.sin(t*1.2-.4)*.035+pose.tail*.3;
   kit.write();
   matrixTo(body,group,matrix);matrix.decompose(tmp,bodyQ,scale);

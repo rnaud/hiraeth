@@ -61,7 +61,7 @@ export const DRONE_LINES = {
   pointer: '~playful~ Lost? Ask me any time. This way.',
   // the first Blade Gate near (a fight temple's door, its host beside it; issue #483: the makers' sign for kept out; a
   // warning, #563; no flight after it: you are at the gate)
-  bladegate: '~whisper~ Blades on a gate. Keep out. Something got in.',
+  bladegate: '~whisper~ Those blades mark a dangerous entrance. Be careful.',
   // lost, by why it thinks so (in turn)
   still: ['~curious~ Lost? A little. This way.', '~playful~ Scenic route? It’s the other way.'],
   away: ['~curious~ Wrong way, I think. Look.', '~neutral~ Further and further from it. Back here.'],
@@ -133,7 +133,7 @@ export const plumbTalk = (pages) => ({ ...PLUMB_PERSON, talk: { nodes: { plumb: 
  * puts the place at the start of a sentence.
  */
 export const PLACE_LINES = {
-  still: ['~curious~ Lost? A little. {place}: this way.', '~playful~ Scenic route? {place}’s the other way.'],
+  still: ['~curious~ Lost? A little. {place}: this way.', '~playful~ Scenic route? {place} is the other way.'],
   away: ['~curious~ Wrong way, I think. {place} is back here.', '~neutral~ Further and further. {place} is behind us.'],
   circling: ['~tired~ That rock again. {place}: over here.', '~playful~ My petals are dizzy. {place}: this way.'],
 };
@@ -142,13 +142,14 @@ export const PLACE_MAX = 28;
 /**
  * The objective's label as a place it can name, or null: "The giant’s skull", "Qanat, under the dark tree", "Your
  * ship, and Qanat’s gift"; not a person ("Marrow, by your ship": `people` their names), not a doing ("Climb to ledge 2",
- * "Back to the ship", "Through the doorway"). Hints say where, never who.
+ * "Back to the ship", "Through the doorway"). Named people remain excluded. Observable anonymous descriptions can guide the same lost barks.
  */
 export function placeOf(label, people = new Set()) {
   const s = String(label ?? '').trim();
   if (!s || s.length > PLACE_MAX) return null;
   const head = s.split(',')[0].trim();
   if (people.has(head) || people.has(head.split(/\s+/)[0])) return null;
+  if (/^Someone (?:by|beside|near|on|among|with|seated)\b/.test(s)) return s;
   if (/^(The|Your)\s/.test(s) || (s.includes(',') && /^[A-Z][\w’'-]+$/.test(head))) return s;
   return null;
 }
@@ -161,17 +162,17 @@ export const HOUSE_LINES = {
   switch: '~curious~ A switch nobody has thrown. Over here.',
   plate: '~curious~ That plate wants a weight. I’ll show you.',
   weight: '~curious~ That weight belongs on a plate.',
-  drum: '~curious~ That ball rolls somewhere useful. Look.',
+  drum: '~curious~ Try moving that ball. Over here.',
   key: '~happy~ A key, lying about. Over here.',
-  door: '~curious~ Locked door. Your key fits, I bet. This way.',
-  bridge: '~curious~ That bridge is asleep. I’ll show you.',
+  door: '~curious~ There’s a locked door here. Let’s check it.',
+  bridge: '~curious~ That bridge needs to move. Look here.',
   brazier: '~curious~ A cold brazier. Over here.',
   bramble: '~curious~ Something’s grown over the way. Look.',
   bell: '~curious~ A bell nobody has rung. Over here.',
-  vane: '~curious~ A vane, stuck the wrong way round. Over here.',
+  vane: '~curious~ Try turning that vane. Over here.',
   arena: '~whisper~ Something waits in there. Ready?',
   boss: '~whisper~ The keeper of this house waits. Ready?',
-  gadget: '~happy~ Something here is yours. This way.',
+  gadget: '~happy~ There’s equipment ahead. I’ll show you.',
   find: '~happy~ Something to pick up. This way.',
   default: '~curious~ Stuck? A little. Try over here.',
 };

@@ -15,6 +15,7 @@ import { TEMPLE_HOME, templeOf } from '../src/temples/index.js';
 import { buildableById } from '../src/levels/buildable.js';
 import { Physics } from '../src/physics.js';
 import { bestInteractable } from '../src/interact.js';
+import { beginHelperEncounter, helperRun, consumeHelperReturn } from '../src/temples/helper-encounter.js';
 import { allTargets, hitTarget } from '../src/targets.js';
 
 // (the game loads it by URL: here from public/, as the Unity export does, scripts/unity-export/build-world.mjs; node has
@@ -84,6 +85,7 @@ test('every move’s tell on the skin still lasts at least 1.2 s (issue #258), i
   const boss = new Guardian(rt, { def: KEEPER, model: m, arena: { center: V(), r: 20, y: 0 } });
   boss.enter('fight'); boss.cool = 99;
   for (let f = 0; f < 120; f++) boss.update(DT, f * DT);
+  for (let i = 0; i < 6; i++) assert.ok(m.inner.bones[`leg${i}_shin`].getWorldPosition(V()).y < m.inner.bones[`leg${i}_thigh`].getWorldPosition(V()).y, `raised fighting knee ${i} below its hip`);
   const feet = () => m.kit.rig.planner.feet.map((f) => f.pos.clone());
   boss.attack = { ...KEEPER.attacks.stamp, id: 'stamp' }; boss.view = boss.attack;
   let held = null, planted = [];
@@ -113,7 +115,7 @@ test('the shell’s glyphs glow brighter as it calms', async () => {
   m.dispose();
 });
 
-test('in the Rose House’s cistern: the skin, water at its open mouth, the guard’s jar, a hand on its brow', async () => {
+test('in the Rose House’s cistern: the fitted skin stays grounded, offers help and resolves on a completed game', async () => {
   const scene = new THREE.Scene();
   const level = quiet(() => buildableById(TEMPLE_HOME.desert ?? 'desert').create(scene));
   const physics = new Physics(scene, level.ground.heightAt ? level.ground : null);
@@ -124,12 +126,12 @@ test('in the Rose House’s cistern: the skin, water at its open mouth, the guar
   const P = { pos: V(), heading: 0, vel: V(), dead: false };
   rt.connect({ player: P });
   const frames = (s) => { for (let i = 0; i < s / DT; i++) K.update(DT, (K._t = (K._t ?? 0) + DT)); };
-  // its second phase, panting after a charge your guard took
+  // Waking the peaceful helper does not select its raised fighting pose.
   K.wake(); frames(4);
   // (you at the world's origin, 160 m off: its legs on the kit's far tier, the canned cycle; its body stays on its feet,
   // 2400 m up as the temples are, not sunk toward the ground's height under it)
-  assert.ok(Math.abs(m.body.position.y - 3) < 1.5, `its body over its feet at the far tier (${m.body.position.y.toFixed(2)} m)`);
-  // (its legs under it: each planted foot on the cistern's floor (its rim or its basin), each knee below its hip, 2400 m up as the temple is)
+  assert.ok(Math.abs(m.body.position.y - 1.35) < 0.3, `its sleeping body stays at its authored resting height at the far tier (${m.body.position.y.toFixed(2)} m)`);
+  // Its sleeping crouch keeps planted feet on the elevated cistern floor; the raised combat knees are checked separately above.
   P.pos.copy(m.pos).add(V(0, 0, 8)); frames(1);
   for (let i = 0; i < 6; i++) {
     const b = (r) => m.inner.bones[`leg${i}_${r}`].getWorldPosition(V());
@@ -137,32 +139,20 @@ test('in the Rose House’s cistern: the skin, water at its open mouth, the guar
     // (the first frame back from the far tier's canned cycle, which plants at the body's own floor: a foot a stride out
     // over the basin's 0.8 m step hangs over it until its next step, issue #315's quicker, shorter strides put one there)
     if (m.kit.rig.planner.feet[i].planted && !(m.kit.legs[i].lift > 0.05)) assert.ok(Math.abs(f.y - floor) < 0.9, `foot ${i} on the floor (${(f.y - floor).toFixed(2)} m)`);
-    assert.ok(b('shin').y < b('thigh').y, `knee ${i} below its hip`);
+    assert.ok(b('shin').toArray().every(Number.isFinite) && b('thigh').toArray().every(Number.isFinite), `sleeping leg ${i} has a finite fitted pose`);
   }
-  K.meter = K.floor = 0.4;
-  assert.equal(K.phaseIndex, 1);
-  K.def.onBlock(K, K.def.attacks.charge, false);
-  assert.equal(K.state, 'open', 'a charge your guard took jars it, and it pants');
-  frames(0.6);
-  // a fluid shot into its open mouth (the target the gun aims at)
-  const mouth = allTargets().find((t) => t.position() === m.mouth && t.enabled());
-  P.pos.copy(m.mouth).setY(K.arena.y).add(V(1.6, 0, 0)); P.heading = -Math.PI / 2;
-  const before = K.meter;
-  hitTarget({ target: mouth, point: m.mouth.clone() }, 'shoot', V(-1, 0, 0), {});
-  assert.ok(K.meter > before, 'the water in its open mouth calms it');
-  // water from the tank at its mouth, the next time it pants
-  K.enter('open'); K.openFor = 3; frames(0.5);
-  P.pos.copy(m.mouth).setY(K.arena.y).add(V(1.6, 0, 0));
-  const near = bestInteractable(P);
-  assert.equal(near?.entry.id, 'temple.desert.water', 'at its mouth, it drinks');
-  // calm: it lies down by the spout, and its brow is in reach of a hand
-  K.meter = K.floor = 0.8; K.phaseDone(2);
-  assert.equal(K.state, 'weary');
-  frames(20);
+  assert.equal(K.state, 'sleep'); assert.equal(K.def.helper, 'cistern');
+  assert.ok(!allTargets().some(t => t.position() === m.mouth && t.enabled()), 'its mouth is not a combat target');
+  let href = null;
+  rt.startHelper = () => { href = beginHelperEncounter(rt.game, 'desert', { from: 'desert',
+    returnPose: { pos: P.pos.toArray(), up: [0, 1, 0], fwd: [0, 0, 1] } }); return !!href; };
   P.pos.copy(m.mouth).setY(K.arena.y).add(V(1.2, 0, 0));
-  assert.ok(m.mouth.y - K.arena.y < 3.5, `its head low (${(m.mouth.y - K.arena.y).toFixed(2)} m)`);
-  assert.equal(bestInteractable(P)?.entry.id, 'temple.desert.touch', 'a hand on its brow');
-  bestInteractable(P).entry.use(P);
-  assert.equal(K.state, 'resolved');
+  const invite = bestInteractable(P);
+  assert.equal(invite?.entry.id, 'temple.desert.help'); invite.entry.use(P);
+  const run = helperRun(rt.game, 'cistern', new URLSearchParams(href).get('encounter'));
+  assert.ok(run); assert.equal(run.onResult({ goal: { game: 'cistern', complete: true } }), true); run.left();
+  assert.equal(consumeHelperReturn(rt.game, 'desert', 'desert', { restore: p => P.pos.fromArray(p.pos), resolve: () => K.resolve() }).success, true);
+  assert.equal(K.state, 'resolved'); frames(20);
+  assert.ok(m.mouth.y - K.arena.y < 3.5, `its resting head stays low (${(m.mouth.y - K.arena.y).toFixed(2)} m)`);
   rt.dispose?.();
 });

@@ -13,6 +13,9 @@
 //     at: () => Vector3,                  // optional: where the floating prompt hangs
 //     use: (player) => {},                // pressed
 //     enabled: () => true,                // optional
+//     reachAt: () => Vector3,             // optional body point: story checks for separating solids
+//     reachCollider: () => handle,        // optional exact owned collider, excluded from that reach ray
+//     offscreenUse: true,                 // explicit exception: putting down what is already held
 //     gesture: 'kneel' | 'pet' | null,    // optional: what the body does as it is used (gestureOf guesses)
 //   });
 //   off();                                // unregister
@@ -51,7 +54,7 @@ export const allInteractables = () => [...entries];
 
 /** How much further an entry off your heading counts: ×1 ahead, ×(1 + FACING) to the side, ×(1 + 2·FACING) behind. */
 export const FACING = 1;
-const _f = new THREE.Vector3();
+const _f = new THREE.Vector3(), _offset = new THREE.Vector3(), _up = new THREE.Vector3();
 
 /**
  * An entry's distance weighed by where it lies from the way you face (its `at()`, your heading on the
@@ -60,12 +63,17 @@ const _f = new THREE.Vector3();
 export function facingWeight(player, e) {
   const at = e.at?.(), pos = player?.pos;
   if (!at || !pos || !Number.isFinite(player.heading)) return 1;
-  const dx = at.x - pos.x, dz = at.z - pos.z, L = Math.hypot(dx, dz);
+  _up.copy(player.frame?.up ?? { x: 0, y: 1, z: 0 }).normalize();
+  if (_up.lengthSq() < 0.5) _up.set(0, 1, 0);
+  _offset.subVectors(at, pos).addScaledVector(_up, -_offset.dot(_up));
+  const L = _offset.length();
   if (L < 0.3) return 1;   // (right on top of it: no direction to speak of)
   // (the way you face on the ground: the player's own frame where it has one)
   const f = player.frame?.dir ? player.frame.dir(player.heading, _f) : _f.set(Math.sin(player.heading), 0, Math.cos(player.heading));
-  const fl = Math.hypot(f.x, f.z) || 1;
-  return 1 + FACING * (1 - (dx * f.x + dz * f.z) / (L * fl));
+  _f.copy(f).addScaledVector(_up, -f.dot(_up));
+  const fl = _f.length();
+  if (fl < 1e-8) return 1;
+  return 1 + FACING * (1 - Math.max(-1, Math.min(1, _offset.dot(_f) / (L * fl))));
 }
 
 /** Under this (m over your feet) a thing you pick up or take is low: you kneel for it. */
@@ -96,14 +104,15 @@ export function picksUp(e) {
 /** Told whenever E uses an entry, after it did: onUse(entry) (main.js: the sound of a pick-up). */
 export const interactHooks = { onUse: null };
 
-/** The interactable that E would use right now, or null: { entry, distance }. */
-export function bestInteractable(player, { riding = !!player?.riding } = {}) {
+/** The interactable that E would use right now; optional eligible(entry, player) shares host view/reach policy. */
+export function bestInteractable(player, { riding = !!player?.riding, eligible = null } = {}) {
   let best = null, bd = Infinity, bs = Infinity, bp = -Infinity;
   for (const e of entries) {
     if (riding && !e.whileRiding) continue;
     if (!e.enabled()) continue;
     const d = e.distance(player);
     if (!(d <= e.range)) continue;
+    if (eligible && !eligible(e, player)) continue;
     const score = d * facingWeight(player, e);
     if (e.priority > bp || (e.priority === bp && score < bs)) { best = e; bd = d; bs = score; bp = e.priority; }
   }
@@ -116,7 +125,12 @@ export function bestInteractable(player, { riding = !!player?.riding } = {}) {
  * press was consumed (then the player's own E must not also fire).
  */
 export function updateInteract(player, pressed, o = {}) {
-  const best = bestInteractable(player, o);
+  let rejected = false;
+  const best = bestInteractable(player, o.eligible ? { ...o, eligible: (e, p) => {
+    const allowed = o.eligible(e, p);
+    if (!allowed) rejected = true;
+    return allowed;
+  } } : o);
   if (best && pressed) {
     // (and the body goes with it: down on one knee to pick up something low, petting the dog)
     const g = gestureOf(best.entry, player), picked = picksUp(best.entry);
@@ -125,5 +139,7 @@ export function updateInteract(player, pressed, o = {}) {
     if (g) player.gesture?.(g);
   }
   const prompt = best ? (typeof best.entry.prompt === 'function' ? best.entry.prompt() : best.entry.prompt) : null;
-  return { prompt, entry: best?.entry ?? null, handled: !!(best && pressed) };
+  // A nearby but hidden/blocked target must not turn that press into a whistle or taxi call.
+  // With nothing nearby at all, the player still owns the ordinary fallback.
+  return { prompt, entry: best?.entry ?? null, handled: !!(pressed && (best || rejected)) };
 }

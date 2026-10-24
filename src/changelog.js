@@ -15,6 +15,73 @@ export const CHANGELOG = [
     ],
   },
   {
+    v: '2.14', date: '2026-10-24',
+    items: [
+      { text: 'The Keeper and Elder keep their familiar appearance when their temple scenes lead into the water and flight games.', see: 'Watch the Keeper drink from a filled trough in the Cistern. Fly beside the Elder, answer a wing call and reach the Old Roost: the same feathered Elder folds its wings and lands. The water routes, flight gates and difficulty are unchanged.' },
+    ],
+  },
+  {
+    v: '2.13', date: '2026-10-23',
+    items: [
+      { text: "The Rose House’s final doorway now leads straight into the Keeper’s opening scene and Cistern challenge. Finish the water route to return automatically for the house’s completion scene.", see: "With the Rose House’s final door unlocked, walk through it without pressing the talk button. Complete all three Cistern floods; the game returns you to the Keeper and the basin-filling scene without choosing Return." },
+      { text: "The Aerie’s final doorway now leads into the Elder’s introduction and flight. Reach the Old Roost to return automatically, with the Elder fully framed and the wind returning in the completion scene.", see: "Reach the Aerie’s final doorway with its normal prerequisites, walk through and finish the Elder flight’s real goal. The completion scene follows automatically; its close view keeps the Elder’s head, wings and feet visible." },
+    ],
+  },
+  {
+    v: '2.12', date: '2026-10-23',
+    items: [
+      { text: 'New releases also build the Unity downloads for Android and Steam Deck, and keep them with the version they were built for.', see: 'Open the GitHub release downloads after the Unity build finishes to find the Unity Android APK and Linux / Steam Deck archive.' },
+      { text: 'Fisk and Petra explain the Engine-House vents and Casting-House controls more clearly, including what to do when the Founder pauses.', see: 'Return to Fisk after entering the Engine-House and ask about its four vents. Ask Petra about entering the Casting-House, then return after entering and ask about the cradle.' },
+    ],
+  },
+  {
+    v: '2.11', date: '2026-10-23',
+    items: [
+      { text: 'The ship’s bunk shelf is firmly supported, its folding porch has solid edges, and its room walls no longer disappear as you step away.', see: 'Look beside the bunk, watch the porch fold open and closed, then walk away from the open ship. The shelf stays attached to the bed and the room walls still hide what is behind them.' },
+    ],
+  },
+  {
+    v: '2.10', date: '2026-10-23',
+    items: [
+      { text: 'Plumb’s temple hints and several local directions now say more clearly what to look for and try, while keeping each speaker’s character.', see: 'Ask Plumb for help with a temple mechanism. Talk to the Speaker in Qanat, Bastien by the underwater lock, Rosa in the floating city, Achille outside the Whale House or Wen in the Moon Foundry.' },
+    ],
+  },
+  {
+    v: '2.09', date: '2026-10-23',
+    items: [
+      { text: 'Use prompts follow what you can see. People, loose objects and chests behind a wall no longer take the button from a reachable target.', see: 'Stand near two people or objects and turn the camera between them. The visible reachable prompt owns A / ×. Putting down an object you already hold remains available when you look away.' },
+      { text: 'A sealed chest offers inspection, then offers opening when it is ready.', see: 'Approach a chest that is still waiting for its prerequisite, inspect it, then return after completing that requirement. Inspection keeps the chest shut and gives no item.' },
+    ],
+  },
+  {
+    v: '2.08', date: '2026-10-23',
+    items: [
+      { text: 'The Keeper and Elder now introduce their requests in short scenes. Helping them celebrates the water and wind returning to their temples.', see: 'Accept either guardian’s invitation to watch or skip its introduction. Complete the Cistern channels or reach the Old Roost with the Elder, then return to see the temple change. Leaving a run does not play a victory scene.' },
+      { text: 'Scene captions appear with their filmed moment, even when a newly entered place is waiting to show its name.', see: 'Return after completing a helper’s request: its water or wind caption appears during the celebration. The place name follows the scene; skipping does not leave a delayed caption behind.' },
+    ],
+  },
+  {
+    v: '2.07', date: '2026-10-23',
+    items: [
+      { text: 'Steam Deck updates can keep arriving without filling up the old download channel. Existing installations keep their saves and update through the same game site.', see: 'Check for updates on Steam Deck. Existing launchers keep using the checked multipart download; new package downloads have their own release for each build.' },
+    ],
+  },
+  {
+    v: '2.06', date: '2026-10-23',
+    items: [
+      { text: 'The seed pouch has been removed, so walking no longer leaves a trail of flowers. The bloom gun still grows flowers where its shots land.', see: 'Walk with an older save that previously owned the seed pouch: no flowers grow behind you and the pouch is absent from your gear. Fire the bloom gun to plant flowers deliberately.' },
+    ],
+  },
+  {
+    v: '2.05', date: '2026-10-23',
+    items: [
+      { text: 'Help the Rose House Keeper guide water and fly beside the Aerie Elder to the Old Roost. Their completed games now open the temple’s way onward, with a safe return if you leave to try again.', see: 'Reach either guardian and accept its invitation. Quit or fail a run to return without completing the temple; finish its goal to return to the guardian and open the way onward.' },
+      { text: 'Plan the Cistern’s channels at your own pace, see the connected route and possible spills, then open the valve. A spill lets you adjust the same board and try again.', see: 'In a story or Easy Cistern run, walk onto a stone to turn it. Teal channels show the current water route. Open the valve when ready; drain an unsuccessful flood to keep adjusting. Arcade Hard keeps its timed challenge.' },
+      { text: 'Flying with the Elder now shows your progress toward the Roost and how to return to her wing when you drift away.', see: 'Follow the gold circle beside the Elder. The readout tells you when to climb, descend, catch up or slow down; staying in her wake restores her courage.' },
+      { text: 'Plumb points you toward people and landmarks to explore without naming people you have not learned about yet.', see: 'Arrive in a new world and ask Plumb for directions before speaking to its locals. Follow the hint, then accept their quest: the directions can use what you have learned. Returning saves keep their progress.' },
+    ],
+  },
+  {
     v: '2.04', date: '2026-10-23',
     items: [
       { text: 'A new sound-effects page lets you browse every effect, try its variants and see which sounds are recordings and which are made by the game.', see: 'Open the sound-effects page, filter by source or action, and expand a recording’s provenance. Play is explicit; Stop and leaving the page end the preview.' },

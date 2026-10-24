@@ -215,3 +215,34 @@ the Handheld preset and device pixel ratio 2 — the device's preset and ratio, 
 version — the portraits draw. So the preset and the ratio are not the fault; what is left to suspect
 is the driver's canvas read. The fallback is also the test: if the circle on the device now shows the
 initial letter, the capture is coming back empty there.
+
+## Knowledge-safe exploration hints (#627)
+
+Unopened quest and giver targets retain their original journal labels and positions, but supply a
+separate `hintLabel` to the shared Scout used by web and Unity. `opensWith` and `givenBy` accept
+`hint` (an observed description, optionally a function) and `knownWhen` (an explicit acquired-fact
+condition). Without such proof, the default is “Someone to talk to”; entering a world does not
+reveal a person's identity. World openers supply observable descriptions drawn from their actual NPC placement or appearance.
+Unidentified portal routes say “Through the doorway” rather than leaking a destination name.
+Plumb's lost barks consume the same safe Scout label. Accepted quest stages retain their established
+directions and old saves need no migration. This is a hint-presentation repair, not a complete rewrite
+of NPC dialogue or journal/map discovery. Review dialogue knowledge using the updated dialogue skill.
+
+## Clear instructions (#626, first pass)
+
+Plumb’s mechanism hints name an object and an action rather than requiring a metaphor
+to be decoded. The first dialogue pass also clarifies the Speaker’s water explanation,
+Bastien’s outside route, Rosa’s cable instruction, Achille’s sound clue, Wen’s ledger
+answer and carrier route, Lark’s first-hall gust timing, and Sorrel’s garden question. Tone tags, authored dialogue-array page counts, choices, IDs, conditions and effects remain unchanged. The shorter generated Plumb warning intentionally fits one panel.
+The voice guide and dialogue-review skill require practical meaning before figurative
+colour, without inventing a speaker’s knowledge. This is a bounded first pass; the
+remaining dialogue inventory still needs editorial review. Shared story data feeds both hosts.
+
+## Clear instructions (#626, temple follow-up)
+
+Fisk’s repeat hint now distinguishes the full four-vent volley from a bomb’s partial
+coverage. Petra names the molten channels controlled by the shared pour taps and
+explains that a cradled moon creates an opening for a splash on the Founder’s heart.
+These are three instruction edits across four authored pages; their tones, page counts,
+choices, conditions and effects remain unchanged. The shared dialogue data serves web
+and Unity. This bounded follow-up does not complete the remaining dialogue review.

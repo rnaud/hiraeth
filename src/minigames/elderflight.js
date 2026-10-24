@@ -13,11 +13,11 @@ import { arenaLevel } from './kit/world.js';
 import { disposeTree } from './kit/dispose.js';
 import { lendItems } from './kit/gear.js';
 import { WorldLabels } from './kit/labels.js';
-import { elderModel } from '../temples/guardians.js';
+import { elderGuardian } from '../temples/guardian-generated.js';
 import { Dots } from '../fluid-tool.js';
 import { table, needle, lumpy } from '../levels/sky-stones-kit.js';
 import { SKY_STONES_LOOK, SKY_STONES_DAY, SKY_STONES_DUSK, SKY_STONES_NIGHT, CLOUD_PRINT } from '../levels/arzach2.js';
-import { FORMATION, makeRoute, routeAt, newFlight, herStep, slotAt, wakeAt, newWings, wingStep, flightStep, flightScore, skyStones, gustAt, botInput } from './formation.js';
+import { FORMATION, makeRoute, routeAt, newFlight, herStep, slotAt, wakeAt, newWings, wingStep, flightStep, flightScore, flightGuide, skyStones, gustAt, botInput } from './formation.js';
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const tag = (m) => { m.userData.noCollide = true; return m; };
@@ -201,22 +201,13 @@ function start(ctx) {
 
   // the Elder, in a frame of her own that flies (her legs' kit keeps its feet in her frame: they tuck under her)
   const herRoot = ctx.add(new THREE.Group());
-  const E = elderModel();
+  const E = elderGuardian();
   herRoot.add(E.group);
-  E.group.position.set(0, -BODY_Y, 0);
-  const ekit = { eye: null, ground: () => 0 };
-  E.animate(1 / 60, 0, { state: 'fight', phase: 0, attack: null, k: 0, meter: 1, kit: ekit });   // (her feet planted once, then tucked)
-  // in flight her long legs trail back under her tail, as a heron's do (the walking legs' kit is for the floor)
-  for (const c of E.group.children) if (/^guardian leg/.test(c.name)) c.visible = false;
-  const legMat = makeMaterial({ color: '#d8a24a', flat: true, key: 'ef-legs' });
-  const tucked = [];
-  for (const sx of [-1, 1]) {
-    const leg = tag(new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.22, 4.6, 6).rotateX(Math.PI / 2 - 0.12).translate(sx * 0.75, 3.55, -2.4), legMat));
-    const toes = tag(new THREE.Mesh(new THREE.ConeGeometry(0.3, 1.1, 5).rotateX(-Math.PI / 2).translate(sx * 0.75, 3.25, -5.0), legMat));
-    E.rig.add(leg, toes);
-    tucked.push(leg, toes);
-  }
-  const standing = (on) => { for (const c of E.group.children) if (/^guardian leg/.test(c.name)) c.visible = on; for (const m of tucked) m.visible = !on; };
+  E.pos.set(0, -BODY_Y, 0);
+  E.group.position.copy(E.pos);
+  // Motion is solved in the flying frame; anchors are still returned in world
+  // space. The generated skin owns its real wings and tucked/landing feet.
+  const ekit = { eye: null, ground: () => -BODY_Y, frame: herRoot };
 
   let landed = null, R = ROUTE, F = newFlight(R), W = newWings(slotAt(F, R), F.her.yaw, FORMATION.her.speed), t = 0, beatPh = 0, callT = 0, callSide = 0, gustOn = false, arrived = false;
   const cam = { pos: new THREE.Vector3(), look: new THREE.Vector3(), roll: 0 };
@@ -234,15 +225,11 @@ function start(ctx) {
     const climb = clamp(Math.atan(F.her.climb), -0.3, 0.3);
     herRoot.rotation.set(-climb * 0.6, F.her.yaw, -F.bank, 'YXZ');
     E.heading = 0;
-    E.animate(dt, t, { state: 'fight', phase: 1, attack: null, k: 0, meter: F.courage, kit: ekit });
-    // her wings spread wide, beating slowly (harder climbing, gliding down), the side she calls dipped
+    E.group.position.copy(E.pos);
     const amp = arrived ? 0.5 : clamp(0.22 + F.her.climb * 3, 0.06, 0.5);
     beatPh += dt * (arrived ? 9 : 6.2);
-    for (const { w, s, joints } of E.wings) {
-      const dip = callT > 0 && s === -callSide ? -0.35 * Math.min(1, callT) : 0;   // (her wing's s: +1 her left, -1 her right)
-      w.rotation.set(0, 0, s * (0.08 + amp * Math.sin(beatPh) + dip), 'YXZ');
-      joints.forEach((j, i) => { if (i) j.rotation.z = s * amp * 0.35 * Math.sin(beatPh - i * 0.55); });
-    }
+    E.animate(dt, t, { state: 'fight', phase: 1, attack: null, k: 0, meter: F.courage, kit: ekit,
+      flight: { beat: beatPh, amplitude: amp, callSide, callStrength: Math.max(0, Math.min(1, callT)) } });
     E.group.updateMatrixWorld(true);
   }
 
@@ -299,7 +286,7 @@ function start(ctx) {
   const bar = (k) => '▰'.repeat(Math.round(k * 8)) + '▱'.repeat(8 - Math.round(k * 8));
   function statusText() {
     const sc = flightScore(F);
-    return `${sc.harmony + sc.gates} pts · ×${F.mult} · gate ${Math.min(F.gate + 1, R.gates.length)}/${R.gates.length} · courage ${bar(F.courage)}`;
+    return `Gate ${Math.min(F.gate + 1, R.gates.length)}/${R.gates.length} · ${Math.floor(100 * F.s / R.length)}% to the Roost\n${sc.harmony + sc.gates} pts · ×${F.mult} · courage ${bar(F.courage)}\n${flightGuide(F, R, W)}`;
   }
 
   function onEvents(ev) {
@@ -330,10 +317,10 @@ function start(ctx) {
     arrived = !turned;
     const sc = flightScore(F);
     ctx.setScore(sc.total);
-    ctx.finish({ score: sc.total, title: turned ? 'She turned back' : 'The Old Roost!', lines: [
+    ctx.finish({ score: sc.total, failed: turned, goal: { game: 'elderflight', complete: !turned }, title: turned ? 'She turned back' : 'The Old Roost!', lines: [
       `Harmony ${sc.harmony} · ${Math.round(F.t)} s flown`,
       `Gates ${F.passed}/${R.gates.length} (${F.together} together) · ${sc.gates}`,
-      ...(turned ? ['Out of courage, she turned back to the Aerie'] : [`Landing ${sc.landing} · her courage ${sc.courage}`]),
+      ...(turned ? ['Return to her wing to restore courage, then try again'] : [`Landing ${sc.landing} · her courage ${sc.courage}`]),
       ...(F.bumps || F.clouds ? [`Stones hit ${F.bumps} · into the cloud ${F.clouds}`] : []),
     ] });
   }
@@ -361,7 +348,6 @@ function start(ctx) {
         const E0 = level.flight.end, top = level.flight.roostTop, yaw = F.her.yaw;
         const her = new THREE.Vector3(E0.x, top + BODY_Y, E0.z + 14), right = new THREE.Vector3(Math.sin(yaw), 0, Math.cos(yaw)).cross(_UP);
         landed = { her, yaw, me: her.clone().addScaledVector(right, F.side * 7).setY(top) };
-        standing(true);
         player._feetGround = { heightAbove: (p) => p.y - top, groundNormal: (x, y, z, out = new THREE.Vector3()) => out.set(0, 1, 0), groundAt: () => top };
         sfx.land(0.4); snd.cry(true);
       }
@@ -404,6 +390,7 @@ function start(ctx) {
       ctx.status(statusText());
     },
     end() {
+      E.dispose();
       giveBack();
       player._feetGround = feet0;
       disposeTree(motes.mesh);
@@ -430,7 +417,7 @@ export default {
   // (its sign in Vael: at the foot of the Aerie's great steps, beside them, facing their foot; its host Corra)
   markers: [{ level: 'arzach', at: [-167.0, null, -24.7], heading: -0.395 }],
   score: { kind: 'points', unit: 'pts' },
-  hud: { timer: false, score: true },
+  hud: { timer: false, score: true, multiline: true },
   color: '#9fd6ee',
   build: buildSky,
   start,

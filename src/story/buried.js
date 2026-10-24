@@ -55,7 +55,7 @@ export function setupBuried(ctx) {
   quests.itemNames = ITEMS;
   const Q = 'buried.tooth';
   // the main quest doesn't just appear: it starts when you talk to Wen (the scout finds them till then: src/story/quests.js opensWith)
-  if (!quests.isStarted(Q)) quests.opensWith(Q, 'wen');
+  if (!quests.isStarted(Q)) quests.opensWith(Q, 'wen', { hint: 'Someone near the dome' });
   // the Wick lit before anyone sent you to it (Wen and Ket both say where it is): Wen's Tooth Day talk is passed
   // over (and Hask's, no step of the quest now: issue #118), and the quest goes on from what you did
   const caughtUp = () => {

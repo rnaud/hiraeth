@@ -262,7 +262,7 @@ test('the first Blade Gate near: its line once per save, as its host comes withi
   run();
   assert.equal(told.length, 1);
   assert.equal(told[0].id, 'bladegate');
-  assert.match(told[0].line, /Blades on a gate/);
+  assert.equal(told[0].line, '~whisper~ Those blades mark a dangerous entrance. Be careful.');
   assert.equal(parseLine(told[0].line).tone, 'whisper', 'a warning, not a curiosity (#563)');
   assert.equal(told[0].point, null, 'nowhere to fly: you are at the gate (#563)');
   assert.equal(flags['drone.said.bladegate'], true);
@@ -275,7 +275,8 @@ test('the first Blade Gate near: its line once per save, as its host comes withi
 test('a talk\'s pages: one to three, each with the line\'s tone and a few words, every critical line; its pointing word the bark', () => {
   assert.deepEqual(talkPages('~curious~ Lost? A little. The giant’s skull: this way.'), ['~curious~ Lost? A little.', '~curious~ The giant’s skull: this way.']);
   assert.deepEqual(talkPages('~curious~ That plate wants a weight. Look.'), ['~curious~ That plate wants a weight. Look.'], 'a short last sentence stays with the one before');
-  assert.deepEqual(talkPages(DRONE_LINES.bladegate), ['~whisper~ Blades on a gate.', '~whisper~ Keep out. Something got in.']);
+  assert.deepEqual(talkPages(DRONE_LINES.bladegate), ['~whisper~ Those blades mark a dangerous entrance. Be careful.']);
+  assert.deepEqual(talkPages('~whisper~ Blades on a gate. Keep out. Something got in.'), ['~whisper~ Blades on a gate.', '~whisper~ Keep out. Something got in.'], 'longer warnings still retain sentence grouping');
   // (issue #559: "Look.", "This way." point at nothing from a dialogue box: they are said as it flies off, on the cue)
   assert.deepEqual(splitBark('~curious~ Lost? A little. The giant’s skull: this way.'), { talk: '~curious~ Lost? A little.', bark: '~curious~ The giant’s skull: this way.' });
   assert.deepEqual(splitBark('~curious~ Wrong way, I think. Look.'), { talk: '~curious~ Wrong way, I think.', bark: '~curious~ Look.' });

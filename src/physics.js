@@ -422,12 +422,12 @@ export class Physics {
     return out.set(H(x - e, z) - H(x + e, z), 2 * e, H(x, z - e) - H(x, z + e)).normalize();
   }
 
-  /** Distance along a ray to the first hit (or Infinity). */
-  rayDistance(origin, dir, far) {
+  /** Distance to the first hit (or Infinity); optionally ignore one owned added collider. */
+  rayDistance(origin, dir, far, ignoreCollider = null) {
     if (!this.bvh) return Infinity;
     _ray.origin.copy(origin);
     _ray.direction.copy(dir);
-    const hit = this.bvh.raycastFirst(_ray, THREE.DoubleSide, 0, far);
+    const hit = this.bvh.raycastFirst(_ray, THREE.DoubleSide, 0, far, ignoreCollider);
     return hit ? hit.distance : Infinity;
   }
 
@@ -642,10 +642,11 @@ function compositeBVH(physics) {
   const NONE = [];
   const lists = () => { const L = physics.late?.extras; return L?.length ? [physics.extras, L] : [physics.extras, NONE]; };
   return {
-    raycastFirst(ray, side, near, far) {
+    raycastFirst(ray, side, near, far, ignoreCollider = null) {
       if (physics.late?.pending) physics.late.touchRay(ray, near, far);   // (collision still to be made: what this could meet first, src/late-collision.js)
       let best = physics.levelBVH ? physics.levelBVH.raycastFirst(ray, side, near, far) : null;
       for (const X of lists()) for (const e of X) {
+        if (X === physics.extras && e === ignoreCollider && !e.ground) continue;
         if (!reach(e.box, ray, best ? best.distance : far)) continue;
         const h = cast(e, ray, side, near, best ? best.distance : far);
         if (h && (!best || h.distance < best.distance)) { best = h; if (!e.ground) best.added = true; }   // (added: groundKind; ground: the world's own, made late)
