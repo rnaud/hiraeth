@@ -1235,3 +1235,22 @@ The helper status uses a compact multiline HUD. Its engine state marks guidance 
 and Unity reserves the actual pointer Pause button’s width, including score-bump scale.
 Cistern preview channels keep fixed groove/teal material bindings and switch visibility,
 so both renderers show current connections without a live material-rebinding dependency.
+
+### Kamal’s race appearance (#657)
+
+The canyon wager builds its rival from the same `host.canyon` NPC definition and
+Desert body template as roadside Kamal, including his seeded face, proportions,
+bandana, goggles and toolbelt. The fan sled still owns his position and rotation;
+the existing riding controls drive his skinned body from the first intro frame.
+No NPC walking or dialogue updater competes with the race pose. Ending or retrying
+the session releases the rider’s LOD, balloon, owned materials and skeletons before
+the runner clears its mesh buffers. Race physics, difficulty and wager outcomes
+are independent of this appearance path.
+
+The rider keeps the roadside NPC’s scale. After the actual skinned riding pose is
+updated, its pelvis is aligned with the original saddle support point in the sled’s
+transformed frame. The canonical NPC is disposed before scene buffers are cleared,
+including retry ownership. Browser and native reviews cover loaded identity,
+seating, natural bank/jump/landing and ordinary Retry. Inspection views are labelled;
+these checks do not claim exact hand grips, a complete race victory or an installed
+physical-device run. Race rules and rewards remain separate from the visual adapter.

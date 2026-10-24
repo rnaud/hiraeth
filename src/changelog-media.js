@@ -1349,6 +1349,57 @@ const RETROID536 = 'Retroid Pocket Nova (Adreno 740, Vulkan), Unity, Handheld (F
 const SRC536 = 'BridgeRenderer.Pipelines (the G-buffer’s states the scene asks for: variant, layout, cull, depth), Metal’s list traced in the editor, the shipped lists rewritten by scripts/bench/pso-one-cull.mjs; docs/systems/performance.md, “One cull mode and one layout for the Surface pipelines”';
 const SEAPORT572 = 'Issue #572: the web game in muted headless Chrome (High, 1280 × 720) on a Vite of its own (port 5441), a new save arriving by ship (?level=underwater&via=ship), then walked as a player; before: origin/main at 02345e2c3, after: this change; the deck and the Dock from the visual check’s views (scripts/design-qc/capture.mjs --fixed-scale); 20 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '2.20': [
+{
+  "match": "Kamal now looks the same on his fan sled as he does beside the canyon.",
+  "shots": [
+    {
+      "name": "kamal-race",
+      "title": "On the fan sled (web)",
+      "only": "after",
+      "caption": "Kamal on his fan sled, paused during an actual race",
+      "size": [
+        1280,
+        720
+      ],
+      "from": "Actual muted internal-browser game,1280x720, private initial prerequisites; staged roadside approach and labelled race inspection camera. Separate after-only viewpoints, not matched before/after. Optional roadside motion libraries absent in review; identity/skin/seat/retry verified, not full animation or race-win proof. Source: 3eabeeda plus issue #657 candidate; canyon-rider SHA256 0f526ec0f3fff137a27ef33bc948da96c9320188d88e9d028324c56f744993fe."
+    },
+    {
+      "name": "kamal-roadside",
+      "title": "Beside the canyon (web)",
+      "only": "after",
+      "caption": "The same Kamal beside the canyon, viewed from behind",
+      "size": [
+        1280,
+        720
+      ],
+      "from": "Actual muted internal-browser game,1280x720, private initial prerequisites; staged roadside approach and labelled race inspection camera. Separate after-only viewpoints, not matched before/after. Optional roadside motion libraries absent in review; identity/skin/seat/retry verified, not full animation or race-win proof. Source: 3eabeeda plus issue #657 candidate; canyon-rider SHA256 0f526ec0f3fff137a27ef33bc948da96c9320188d88e9d028324c56f744993fe."
+    },
+    {
+      "name": "kamal-native-airborne",
+      "title": "Banked in the air (Unity)",
+      "only": "after",
+      "caption": "Kamal stays seated as his fan sled naturally banks through a jump.",
+      "size": [
+        1280,
+        720
+      ],
+      "from": "Actual muted Unity Editor game, High 1280 × 720, issue #657 candidate on 3eabeeda; canyon-rider SHA256 0f526ec0f3fff137a27ef33bc948da96c9320188d88e9d028324c56f744993fe. Private initial prerequisites and direct race boot; ordinary Start and production rival AI, with a labelled fixed inspection camera and brief frozen capture. Separate natural motion moments, not before/after builds. Same canonical identity as the accepted roadside run; pose, bank, airborne/landed and ordinary Retry checked. Not an installed-device, exact hand-grip, full race-win or reward claim; normal player HUD remains visible."
+    },
+    {
+      "name": "kamal-native-landed",
+      "title": "After landing (Unity)",
+      "only": "after",
+      "caption": "The same rider remains seated after the sled lands.",
+      "size": [
+        1280,
+        720
+      ],
+      "from": "Actual muted Unity Editor game, High 1280 × 720, issue #657 candidate on 3eabeeda; canyon-rider SHA256 0f526ec0f3fff137a27ef33bc948da96c9320188d88e9d028324c56f744993fe. Private initial prerequisites and direct race boot; ordinary Start and production rival AI, with a labelled fixed inspection camera and brief frozen capture. Separate natural motion moments, not before/after builds. Same canonical identity as the accepted roadside run; pose, bank, airborne/landed and ordinary Retry checked. Not an installed-device, exact hand-grip, full race-win or reward claim; normal player HUD remains visible."
+    }
+  ]
+}
+  ],
   '2.19': [
 {
   "match": "Quest notices and control hints now use clearer left-aligned text",

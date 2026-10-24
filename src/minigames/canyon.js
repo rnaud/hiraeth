@@ -16,7 +16,7 @@ import { arenaLevel } from './kit/world.js';
 import { disposeTree } from './kit/dispose.js';
 import { buildBike, bikeSteer } from '../bike.js';
 import { buildRivalSled } from './canyon-sled.js';
-import { buildCharacter } from '../player.js';
+import { buildKamalRider } from './canyon-rider.js';
 import { Dots, FLUID_TONES } from '../fluid-tool.js';
 import { Trail } from '../trail.js';
 import { selectedWorldAudio } from '../selected-world-audio.js';
@@ -609,12 +609,8 @@ export function start(ctx) {
   const duel = !!ctx.def?.rival;
   const rival = duel ? newRival(K) : null;
   const rivalModel = duel ? buildRivalSled() : null;
-  const rivalChar = duel ? buildCharacter({ cloak: "#c9703e", cloth: "#376f78", hat: "#e8c890" }) : null;
-  if (rivalModel) {
-    rivalChar.root.name = 'Kamal-rival-rider';
-    rivalChar.pack.visible = false;
-    ctx.add(rivalModel.root); ctx.add(rivalChar.root);
-  }
+  const rivalRider = duel ? buildKamalRider(ctx) : null;
+  if (rivalModel) ctx.add(rivalModel.root);
   let settled = false;
   const bike = buildBike();
   ctx.add(bike.root);
@@ -645,6 +641,15 @@ export function start(ctx) {
     player.vel.set(B.vx, B.vy, B.vz);
     player.heading = B.heading;
     player.onGround = B.grounded;
+  }
+
+  function placeRival(dt) {
+    if (!rivalModel) return;
+    const rb = rival.bike;
+    rivalModel.root.position.set(rb.x, rb.y, rb.z); rivalModel.root.rotation.y = rb.heading;
+    rivalModel.body.rotation.set(rb.pitch, 0, rb.bank);
+    rivalModel.animate?.(dt, { yawRate: rb.yawRate, speed: rb.speed, time: t });
+    rivalRider.update(rivalModel.seatAnchor, dt, rider => poseRider(rider, rb, t));
   }
 
   function updateCamera(dt, snap = false) {
@@ -705,12 +710,13 @@ export function start(ctx) {
   }
 
   place(1 / 60);
+  placeRival(0); // the intro card already shows a seated, fully retargeted Kamal
   updateCamera(0, true);
   poseRider(player, B, 0);
   ctx.status(`Lap 1/${K.C.laps} · 0 km/h`);
 
   return {
-    bike: B, course: K, race: R, rival,
+    bike: B, course: K, race: R, rival, rivalRider,
     update(dt, inp, { live, phase }) {
       t += dt;
       const before = B.prog, rivalBefore = rival?.bike.prog;
@@ -757,14 +763,7 @@ export function start(ctx) {
             lines: won ? ['The hoverbike is yours. Your backpack stays yours too.', 'Call the bike from your backpack when you return to the desert.'] : lostWager ? ['Kamal claims the bike and backpack.', 'He lends the tank back for a rematch. Win them back.'] : ['Kamal wins this lap.', 'Try again: brake before bends and take the kickers at full throttle.'] });
         }
       }
-      if (rivalModel) {
-        const rb = rival.bike;
-        rivalModel.root.position.set(rb.x,rb.y,rb.z); rivalModel.root.rotation.y=rb.heading;
-        rivalModel.body.rotation.set(rb.pitch,0,rb.bank); rivalModel.animate?.(dt,{yawRate:rb.yawRate,speed:rb.speed,time:t});
-        rivalModel.root.updateMatrixWorld(true);
-        rivalModel.seatAnchor.getWorldPosition(rivalChar.root.position); rivalModel.seatAnchor.getWorldQuaternion(rivalChar.root.quaternion);
-        poseRider({char:rivalChar},rb,t);
-      }
+      placeRival(dt);
       run.top = Math.max(run.top, B.speed);
       // the pads cool after their flash
       for (const pm of Cy.pads) if (pm.glow > 0 && (pm.glow -= dt / 0.6) <= 0) pm.chev.material = Cy.chevM;
@@ -796,6 +795,7 @@ export function start(ctx) {
       ctx.status(duel ? `${B.prog >= rival.bike.prog ? '1st' : '2nd'} / 2 · ${Math.max(0,Math.round(Math.abs(B.prog-rival.bike.prog)))} m ${B.prog >= rival.bike.prog ? 'ahead' : 'behind'} · ${Math.round(B.speed*3.6)} km/h` : `Lap ${lap}/${K.C.laps} · ${Math.round(B.speed * 3.6)} km/h`);
     },
     end() {
+      rivalRider?.dispose();
       eng?.stop();
       disposeTree(...trails.map((tr) => tr.mesh), spray.mesh);
       level.noShadow = (level.noShadow ?? []).filter((m) => m !== spray.mesh && !trails.some((t) => t.mesh === m));

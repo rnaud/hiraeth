@@ -1,6 +1,8 @@
 // Node playthrough adapter: drives the real rival session with ordinary controls.
 // It never sets rewards, elapsed time, positions, progress or result state.
 import assert from 'node:assert/strict';
+import { ensureNpcDom } from './npc-dom.js';
+ensureNpcDom();
 import * as THREE from 'three';
 import {buildCharacter} from '../../src/player.js';
 import rivalGame from '../../src/minigames/canyon-rival.js';

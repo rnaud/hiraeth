@@ -9,6 +9,12 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
+    v: '2.20', date: '2026-10-24',
+    items: [
+      {"text": "Kamal now looks the same on his fan sled as he does beside the canyon.", "see": "Meet Kamal beside the canyon, start his race, and retry from the pause menu. His appearance stays consistent as the sled banks and lands."},
+    ],
+  },
+  {
     v: '2.19', date: '2026-10-24',
     items: [
       { text: 'Quest notices and control hints now use clearer left-aligned text beside a separate icon, with more breathing room and a small brass detail on quest panels.', see: 'Ask for a quest direction or approach a control. Quest notices stay at the top; control hints stay beside what you can use. Larger text wraps, and the screen stays quiet when there is nothing to show.' },

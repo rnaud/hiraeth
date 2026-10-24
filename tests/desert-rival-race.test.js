@@ -1,4 +1,6 @@
 import test from 'node:test';
+import { ensureNpcDom } from './helpers/npc-dom.js';
+ensureNpcDom();
 import assert from 'node:assert/strict';
 import rivalGame from '../src/minigames/canyon-rival.js';
 import {checkGame} from '../src/minigames/index.js';

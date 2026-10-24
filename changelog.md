@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v2.20 — 2026-10-24
+
+- Kamal now looks the same on his fan sled as he does beside the canyon.
+
 ## v2.19 — 2026-10-24
 
 - Hints and quest notices have compact charcoal panels, fine cream borders and turquoise accents. Controls keep their ivory badges, and larger text has room to wrap.
