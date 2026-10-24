@@ -14,7 +14,7 @@ import { Terrain } from '../world.js';
 import { arenaLevel } from './kit/world.js';
 import { disposeTree } from './kit/dispose.js';
 import { WorldLabels } from './kit/labels.js';
-import { keeperModel } from '../temples/guardians.js';
+import { keeperGuardian } from '../temples/guardian-generated.js';
 import { Dots } from '../fluid-tool.js';
 import { makeBoard, newFlow, flowStep, releaseFlow, retryFlow, previewChannels, turnStone, openings, cellAt, scoreOf, round, botMove, ROUNDS, KINDS, DX, DY, N, opposite } from './channels.js';
 
@@ -216,7 +216,7 @@ function start(ctx) {
   // the Keeper, two-thirds the size of the shipped one (it shares the court with the board), wandering
   const keeperRoot = ctx.add(new THREE.Group());
   keeperRoot.scale.setScalar(KEEPER.scale);
-  const K = keeperModel();
+  const K = keeperGuardian();
   keeperRoot.add(K.group);
   const keeperRest = new THREE.Vector3(HW + COURT.rim / 2, 0, -HH - COURT.rim / 2);
   const kp = manual ? keeperRest.clone() : new THREE.Vector3(stoneAt(1, 1).x, 0, stoneAt(1, 1).z);   // (its place in the world; K.pos is that over the scale)
@@ -595,6 +595,7 @@ function start(ctx) {
       ctx.status(statusText());
     },
     end() {
+      K.dispose();
       player._feetGround = feet0;
       disposeTree(splash.mesh);
       words.dispose();

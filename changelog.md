@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v2.14 — 2026-10-24
+
+- The Keeper and Elder keep their familiar appearance when their temple scenes lead into the water and flight games.
+
 ## v2.13 — 2026-10-23
 
 - The Aerie’s final doorway now leads into the Elder’s introduction and flight. Reach the Old Roost to return automatically, with the Elder fully framed and the wind returning in the completion scene.

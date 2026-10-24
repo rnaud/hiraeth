@@ -9,6 +9,12 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
+    v: '2.14', date: '2026-10-24',
+    items: [
+      { text: 'The Keeper and Elder keep their familiar appearance when their temple scenes lead into the water and flight games.', see: 'Watch the Keeper drink from a filled trough in the Cistern. Fly beside the Elder, answer a wing call and reach the Old Roost: the same feathered Elder folds its wings and lands. The water routes, flight gates and difficulty are unchanged.' },
+    ],
+  },
+  {
     v: '2.13', date: '2026-10-23',
     items: [
       { text: "The Rose House’s final doorway now leads straight into the Keeper’s opening scene and Cistern challenge. Finish the water route to return automatically for the house’s completion scene.", see: "With the Rose House’s final door unlocked, walk through it without pressing the talk button. Complete all three Cistern floods; the game returns you to the Keeper and the basin-filling scene without choosing Return." },

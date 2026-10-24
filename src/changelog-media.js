@@ -1349,6 +1349,47 @@ const RETROID536 = 'Retroid Pocket Nova (Adreno 740, Vulkan), Unity, Handheld (F
 const SRC536 = 'BridgeRenderer.Pipelines (the G-buffer’s states the scene asks for: variant, layout, cull, depth), Metal’s list traced in the editor, the shipped lists rewritten by scripts/bench/pso-one-cull.mjs; docs/systems/performance.md, “One cull mode and one layout for the Surface pipelines”';
 const SEAPORT572 = 'Issue #572: the web game in muted headless Chrome (High, 1280 × 720) on a Vite of its own (port 5441), a new save arriving by ship (?level=underwater&via=ship), then walked as a player; before: origin/main at 02345e2c3, after: this change; the deck and the Dock from the visual check’s views (scripts/design-qc/capture.mjs --fixed-scale); 20 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '2.14': [
+  {
+    "match": "The Keeper and Elder keep their familiar appearance",
+    "shots": [
+      {
+        "name": "keeper-drinking",
+        "caption": "The Keeper drinking from a filled trough",
+        "from": "Actual running game in muted headless Chrome, High, 1280 × 720; task-private stores and output block. Before: exact published 2099c5a2. After: reviewed helper-model-continuity branch based on that commit. Initial helper-game receipt staged; actual runner and ordinary-input bots at 30 Hz, with no goal or progress injection. Source identities, input checkpoints and original PNGs retained in helper-model-continuity validation. Web evidence; no listening or device claim. Same actual drinking checkpoint (frame 1525); explicitly staged inspection camera after the normal board view, identical before and after. Keeper geometry is unchanged by the later Elder LOD correction.",
+        "view": {
+          "size": [
+            1280,
+            720
+          ]
+        }
+      },
+      {
+        "name": "elder-wing-call",
+        "caption": "The Elder answers a wing call in flight",
+        "from": "Actual running game in muted headless Chrome, High, 1280 × 720; task-private stores and output block. Before: exact published 2099c5a2. After: reviewed helper-model-continuity branch based on that commit. Initial helper-game receipt staged; actual runner and ordinary-input bots at 30 Hz, with no goal or progress injection. Source identities, input checkpoints and original PNGs retained in helper-model-continuity validation. Web evidence; no listening or device claim. Frame 903 with the normal flight camera and actual called-wing animation. The new model uses its own articulated wings and tucked feet.",
+        "view": {
+          "size": [
+            1280,
+            720
+          ]
+        }
+      },
+      {
+        "name": "elder-landing",
+        "only": "after",
+        "caption": "The Elder settles onto the Old Roost",
+        "from": "Actual running game in muted headless Chrome, High, 1280 × 720; task-private stores and output block. Before: exact published 2099c5a2. After: reviewed helper-model-continuity branch based on that commit. Initial helper-game receipt staged; actual runner and ordinary-input bots at 30 Hz, with no goal or progress injection. Source identities, input checkpoints and original PNGs retained in helper-model-continuity validation. Web evidence; no listening or device claim. After-only inspection camera, 45 ordinary frames after the genuine 13-gate goal, before automatic return. This is a declared close inspection, not the normal turning camera: both baseline and candidate normal views put the characters out of frame at this instant. Full-detail model at measured world distance 19.209 m; 47,784 triangles.",
+        "view": {
+          "size": [
+            1280,
+            720
+          ]
+        }
+      }
+    ]
+  }
+],
   '2.13': [
     {"match": "The Rose House’s final doorway now leads straight into the Keeper’s opening scene and Cistern challenge.", "shots": [{"name": "rose-guidance", "title": "the opening explains the water route.", "only": "after", "size": [1280, 960], "caption": "Rose House: the opening explains the water route.", "from": "Unity R4 accepted success run; opening shot 2, after-only. Upstream prerequisites and exterior starting pose staged; ordinary threshold input, actual Cistern goals and production scene reboots. No physical-device or listening claim. Source base 7b0f8a0ba plus reviewed #655 candidate; web R3/native R4 game source manifests identical.", "view": {"level": "desert", "size": [1280, 960]}}, {"name": "rose-cistern-game", "title": "turn channel tiles in the Cistern challenge.", "only": "after", "size": [1280, 960], "caption": "Rose House: turn channel tiles in the Cistern challenge.", "from": "Unity R4 accepted real-goal run; after-only current puzzle gameplay before opening the valve. Native1280x960, muted scripted ordinary inputs. Bottom control strip partly clipped; no claim of new puzzle visuals or a clean HUD. Source base7b0f8a0ba0a4422ee6c9afd4425690e00ab362ed plus accepted #655 source pins in manifest. Source base 7b0f8a0ba plus reviewed #655 candidate; web R3/native R4 game source manifests identical.", "view": {"level": "desert", "size": [1280, 960]}}, {"name": "rose-water-return", "title": "water returns after the Cistern goal.", "only": "after", "size": [1280, 960], "caption": "Rose House: water returns after the Cistern goal.", "from": "Unity R4 accepted success run; completion shot 3, after-only, same implementation as opening. Actual three floods completed, automatic transport and natural completion film; this is a later story moment, not a before/after build comparison. Source base 7b0f8a0ba plus reviewed #655 candidate; web R3/native R4 game source manifests identical.", "view": {"level": "desert", "size": [1280, 960]}}]},
     {"match": "The Aerie’s final doorway now leads into the Elder’s introduction and flight.", "shots": [{"name": "aerie-flight-game", "title": "follow the Elder through the flight gates.", "only": "after", "size": [1280, 960], "caption": "Aerie: follow the Elder through the flight gates.", "from": "Unity R4 accepted real-goal run; after-only in-flight screenshot at gate5/13 on the route to the Old Roost. Native1280x960, muted scripted ordinary inputs. Transient Together notice meets the HUD edge; no claim of new flight visuals or a clean HUD. Source base7b0f8a0ba0a4422ee6c9afd4425690e00ab362ed plus accepted #655 source pins in manifest. Source base 7b0f8a0ba plus reviewed #655 candidate; web R3/native R4 game source manifests identical.", "view": {"level": "arzach", "size": [1280, 960]}}, {"name": "aerie-elder-return", "title": "the Elder stays fully in view on return.", "only": "after", "size": [1280, 720], "caption": "Aerie: the Elder stays fully in view on return.", "from": "Actual web R3 accepted return shot 2 at approximately 4.214s, FOV52; after-only, clean original. Declared exterior/prerequisites and scripted game input; genuine failure/retry, 13-gate goal and automatic return. Opening was explicitly skipped after its first beat in this web run. Source base 7b0f8a0ba plus reviewed #655 candidate; web R3/native R4 game source manifests identical.", "view": {"level": "arzach", "size": [1280, 720]}}, {"name": "aerie-wind-return", "title": "wind returns to both vents.", "only": "after", "size": [1280, 960], "caption": "Aerie: wind returns to both vents.", "from": "Unity R4 accepted success run; completion shot 3, after-only. Actual failed turnback/retry, 13 gates and Old Roost goal followed by real native VM navigation. Different completion moment from the web portrait, not a before/after build comparison. Source base 7b0f8a0ba plus reviewed #655 candidate; web R3/native R4 game source manifests identical.", "view": {"level": "arzach", "size": [1280, 960]}}]},

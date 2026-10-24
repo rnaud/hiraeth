@@ -1,3 +1,4 @@
+import { Vector3 } from 'three';
 import { pack, unpack, pickLevel, triCount, levelBuilder } from './lod.js';
 
 // Levels of detail for the people's skinned bodies (~12.5 k triangles each, the costume pieces on
@@ -116,17 +117,21 @@ export class SkinnedLod {
 
 // ------------------------------------------------------------------ every body, once a frame
 const BODIES = new Set();
+const cameraWorld = new Vector3(), rootWorld = new Vector3(), rootScale = new Vector3();
 export const skinnedLods = {
   add(lod) { BODIES.add(lod); return lod; },
   remove(lod) { BODIES.delete(lod); },
   /** Before rendering (main.js renderFrame): each shown body's level for this camera. */
   update(camera, pxPerRad, px) {
-    const cam = camera.position;
+    const cam = camera.getWorldPosition(cameraWorld);
     let tris = 0, full = 0, coarse = 0;
     for (const L of BODIES) {
       const root = L.h.char.root;
       if (!root.visible || !root.parent) continue;
-      L.update(cam.distanceTo(root.position), root.scale.y, pxPerRad, px);
+      // A guardian may live below a moving/scaled minigame frame. Both the
+      // camera distance and apparent size must describe the rendered world pose.
+      root.getWorldPosition(rootWorld); root.getWorldScale(rootScale);
+      L.update(cam.distanceTo(rootWorld), rootScale.y, pxPerRad, px);
       tris += L.stats.tris; full += L.stats.full;
       if (L.j !== -Infinity) coarse++;
     }

@@ -488,6 +488,27 @@ the start, the Old Roost (a great table ringed with stone feathers) at the end.
   plays there as it is; the floating score words of both (kit/labels.js) are drawn there from the screen's `words`
   (docs/systems/engine-bridge.md, "The words in the world and the speed lines").
 
+### Guardian appearance continuity
+
+The web renderer’s skinned detail selection measures the camera and model in world
+space, including parent scale. Nested minigame bodies therefore retain the same
+detail cutoffs as their scene-rooted temple counterparts. The native renderer does
+not call this web LOD manager; model, pose and gameplay parity are checked separately.
+
+The two helping games use the same approved `keeperGuardian()` / `elderGuardian()`
+models as their temple scenes (Keeper v1 and Elder v3). The generated body can arrive
+asynchronously; the stable wrapper keeps position and anchors, forwards animation
+options, and disposes pending loads when a session ends or retries.
+
+Elder flight sends a semantic `flight` pose (beat, amplitude and called-wing dip) to
+each body's own animator. It never assumes the procedural and generated skeletons
+share `rig` or wing-array shapes. The generated feet use their existing airborne
+tuck and resolved landing; the temporary procedural body tucks its actual leg chains.
+The flight's route, body reference, player slot and difficulty remain unchanged.
+Landing foot samples are converted into the explicitly supplied moving parent frame
+before replanting, so world translation is not applied twice. Keeper drinking keeps
+the existing Cistern path and open-mouth state beneath its scaled scene parent.
+
 ## Cistern channels (`cistern.js`, the rules in `channels.js`)
 
 Helping the Keeper of the cistern instead of fighting it (issue #339): the Givers' sunken cistern court under the Rose
