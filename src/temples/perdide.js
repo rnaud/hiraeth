@@ -12,6 +12,7 @@ import { Catch } from './spheres.js';
 import { snapperModel } from './guardians.js';
 import { chestMound } from '../boxes/mound.js';
 import { hushHouseSkin } from './skins/hush-house.js';
+import { Clock } from './trials.js';
 
 // Lorn's temple: the Hush-House, a great low dome of violet stone on the cave
 // island, crystals of the swamp's groves growing up through it, its door
@@ -117,7 +118,19 @@ export const ROOMS = {
   snapping: { x0: -15, x1: 15, z0: A0, z1: A0 + 30, y: UP, top: 27 },
   gallery: { x0: -18, x1: 18, z0: G0, z1: G0 + 48, y: -3, floor: UP, top: 30, near: 14, pit: 20 },
   hall: { x: HX, z: HZ, r: HR, y: 0, top: 26 },
+  // (issue #660) the Quick Room, west off the Choir's floor, and its vault behind it: the house's first makers' clock
+  quick: { x0: -62, x1: -28, z0: 28, z1: 62, y: 0, top: 18 },
+  quickIn: { x0: -75.2, x1: -63.2, z0: 39, z1: 51, y: 0, top: 10 },
 };
+/**
+ * (issue #660, the teach of the makers' clock: docs/design/temple-puzzles.md) The Quick Room: an eye on a pedestal by its
+ * north-east corner, a stone screen across its middle, the vault's door in its west wall. Splash the eye and the lamps
+ * inlaid in the floor light round the screen's north end to the door, and go out from the eye's end: `hold` s to run it.
+ * The run is ~28 m round the screen; at a run that is under 5 s, so there is room to stop and look. The vault's door stays
+ * open once its coffer is had.
+ */
+export const QUICK = { hold: 9, eye: [-36, 0, 53], screen: { x: -47, z0: 34, z1: 52, h: 3.2 }, door: 45,
+  strip: [[-37.4, 0, 54.4], [-47, 0, 55.2], [-55, 0, 50], [-60.8, 0, 45]] };
 const mid = (r) => [(r.x0 + r.x1) / 2, (r.z0 + r.z1) / 2];
 
 /**
@@ -164,6 +177,8 @@ export const LOGIC = {
     stilling: { checkpoint: true, kind: 'puzzle' }, gallery: { checkpoint: true, kind: 'puzzle' },
     galleryFar: { checkpoint: true, kind: 'passage' }, balcony: { checkpoint: true, kind: 'puzzle' },
     hall: { boss: true, kind: 'guardian' }, out: { kind: 'passage' },
+    // (issue #660) the Quick Room off the Choir's floor, and its vault: a side room, for a reward
+    quick: { checkpoint: true, kind: 'puzzle' }, quickIn: { kind: 'passage' },
   },
   links: [
     { a: 'threshold', b: 'choir', door: 'd0' },           // the first note, sung at the door, opens it onto the great hall
@@ -173,6 +188,8 @@ export const LOGIC = {
     { a: 'stilling', b: 'gallery', door: 'd2' },         // the Snapping Passage's jaws, a room on from the chest (one room with it)
     { a: 'gallery', b: 'galleryFar', needs: ['stun'] },   // the pendulums: still them to cross
     { a: 'balcony', b: 'choir', oneWay: true },           // the sill: a drop into the black pool (v1.83, issue #409)
+    { a: 'choir', b: 'quick' },                           // (issue #660) west off the Choir's floor: the Quick Room
+    { a: 'quick', b: 'quickIn', door: 'dQ' },             // its vault, behind a door the makers' clock holds open
     { a: 'choir', b: 'hall', door: 'dG' },                // the great door, in the Choir's east wall
     { a: 'hall', b: 'out', door: 'd5' },
   ],
@@ -184,6 +201,11 @@ export const LOGIC = {
     c3: { type: 'switch', room: 'choir', after: 'c2' },
     c4: { type: 'switch', room: 'choir', after: 'c3' },
     d1: { type: 'door', opens: { all: [{ lit: 'c1' }, { lit: 'c2' }, { lit: 'c3' }, { lit: 'c4' }] }, latch: true },
+    // (issue #660, optional: the marker never points at it; before the chest, so the solver takes it on the way, as a player off the Choir) the Quick Room's clock: splashed, it runs QUICK.hold s and the
+    // vault's door stands open while it runs; once the vault's coffer is had, the door stays open (no way to be shut in)
+    tQ: { type: 'timer', room: 'quick', hold: QUICK.hold, optional: true },
+    dQ: { type: 'door', opens: { any: [{ lit: 'tQ' }, { found: 'cQ' }] } },
+    cQ: { type: 'cache', room: 'quickIn' },
     sw: { type: 'switch', room: 'well' },                          // the eye on the root-wall's face
     dw: { type: 'door', opens: { lit: 'sw' }, latch: true },
     chest: { type: 'gadget', room: 'stilling', item: 'stun' },
@@ -599,7 +621,7 @@ function layout(rt) {
   // (after the door's). Down its west side the gallery, 9 m up (wings), its way in through the west wall from the walk;
   // in its east wall the great door to the Mother
   const CH = R0.choir, [, cz] = mid(CH);
-  hall(CH, { roof: 'oculus', oculus: 0.3, doors: [{ side: 's', w: D.w, h: D.h }, { side: 'n', w: D.w, h: D.h }, { side: 'w', at: WALK.to - cz, w: D.w, h: D.h, y0: UP }, { side: 'e', at: HZ - cz, w: D.w, h: D.h }] });
+  hall(CH, { roof: 'oculus', oculus: 0.3, doors: [{ side: 's', w: D.w, h: D.h }, { side: 'n', w: D.w, h: D.h }, { side: 'w', at: WALK.to - cz, w: D.w, h: D.h, y0: UP }, { side: 'w', at: QUICK.door - cz, w: D.w, h: D.h }, { side: 'e', at: HZ - cz, w: D.w, h: D.h }] });
   for (const [id, x, z, h] of [['c3', -8, 46, 4.4], ['c4', -1.5, 70, 5.6], ['c2', 9, 73, 3.1]])
     add(Switch, { id, at: [x, 0, z], crystal: h, size: 0.9, wrong });
   // where the fourth stood: an empty ring of stone
@@ -737,14 +759,34 @@ function layout(rt) {
 
   // (the wings last: their marks after the others, so the machines' ids by mark stay as they were)
   wings(rt, K, M, { spike, root });
+  // ---- (issue #660) the Quick Room, west off the Choir's floor: the house's makers' clock, taught where failing costs a
+  // walk back to the eye. Its vault behind its west wall, a coffer in it. (Last, after a flush: its walls in batches and a
+  // collision proxy of their own, so the rest of the house's collision is as it was: the door walk's run out of the far
+  // way out met a frame once the side room's walls were merged into the house's one proxy; and its mark after the others)
+  K.flush();
+  const QR = R0.quick, QV = R0.quickIn, [qx, qz] = mid(QR), Q = QUICK;
+  K.corridor([CH.x0 - 1.2, Q.door], [QR.x1 + 1.2, Q.door], 0, { w: D.w, h: D.h });
+  hall(QR, { roof: 'oculus', oculus: 0.3, doors: [{ side: 'e', at: Q.door - qz, w: D.w, h: D.h }, { side: 'w', at: Q.door - qz, w: D.w, h: D.h }] });
+  hall(QV, { roof: true, omit: ['e'], frieze: false });
+  K.both(M.wallGlyph, box(1.2, Q.screen.h, Q.screen.z1 - Q.screen.z0, Q.screen.x, Q.screen.h / 2, (Q.screen.z0 + Q.screen.z1) / 2));
+  K.both(M.trim, box(1.5, 0.3, Q.screen.z1 - Q.screen.z0 + 0.3, Q.screen.x, Q.screen.h + 0.15, (Q.screen.z0 + Q.screen.z1) / 2));
+  add(Door, { id: 'dQ', at: [QR.x0 - 0.6, 0, Q.door], yaw: Math.PI / 2, w: D.w, h: D.h, lamps: [{ lit: 'tQ' }] });
+  add(Clock, { id: 'tQ', at: Q.eye, yaw: Math.atan2(QR.x1 - Q.eye[0], Q.door - Q.eye[2]), strip: Q.strip, n: 16,
+    bars: [-1, 1].map((sd) => ({ at: [QR.x0 + 0.35, 0, Q.door + sd * (D.w / 2 + 1.4)], yaw: Math.PI / 2, h: 7 })),
+    heard: 'The eye wakes. The lamps in the floor light to the far door, and start going out from the eye.',
+    faded: 'The last lamp goes out, and the door sinks shut. Splash the eye again.' });
+  add(Mark, { room: 'quick', at: [QR.x1 - 4, 0, Q.door - 6], yaw: -Math.PI / 2 });
+  add(Coffer, { id: 'cQ', at: [QV.x0 + 3, 0, Q.door], yaw: Math.PI / 2 });
+  K.glyph([QV.x0 + 0.05, 5.5, Q.door], 1.6, Math.PI / 2);
+  spike(QR.x0 + 3, 0, QR.z0 + 3, 3.4, 0.6, 0.2, 1); spike(QR.x1 - 3.5, 0, QR.z1 - 3, 2.6, 0.5, -0.2, 2);
   const W = (x, y, z) => K.world(x, y, z), Wk = WALK, [fx, fz] = FAR_KEY;
   return {
     arrival: { pos: W(0, 0.05, 3.6), heading: K.heading(0) },
-    bounds: new THREE.Box3(V(Wk.x0 - 6, -10, -3), V(X1 + 2, 40, GA.z1 + 6)),
+    bounds: new THREE.Box3(V(Math.min(Wk.x0 - 6, ROOMS.quickIn.x0 - 3), -10, -3), V(X1 + 2, 40, GA.z1 + 6)),   // (issue #660: the Quick Room and its vault, west)
     gadget: { at: W(0, UP + 0.62, C3).toArray(), face: K.heading(Math.PI) },
     exits: [{ at: W(0, 0.5, 0.4), r: 1.5 }, { at: W(X1 - 0.4, 0.5, HZ), r: 1.5 }],
     lights: [[0, 5, 14, 16], [2, 8, 46, 24], [4, 8, 76, 24], [-15, UP + 5, 70, 16], [-4, 4, 53, 10], [0, 4, C2, 18], [(Wk.x0 + Wk.x1) / 2, UP + 4, (Wk.z0 + Wk.z1) / 2, 14],
-      [0, UP + 5, C3, 14], [0, UP + 5, SP.z0 + 15, 18], [0, UP + 5, G0 + 7, 16], [0, 14, (Q0 + Q1) / 2, 18], [0, UP + 5, Q1 + 7, 16], [fx, UP + 4, fz, 10], [(A0x + A1x) / 2, 5, HZ, 10], [HX, 9, HZ, 22]],
+      [0, UP + 5, C3, 14], [0, UP + 5, SP.z0 + 15, 18], [0, UP + 5, G0 + 7, 16], [0, 14, (Q0 + Q1) / 2, 18], [0, UP + 5, Q1 + 7, 16], [fx, UP + 4, fz, 10], [(A0x + A1x) / 2, 5, HZ, 10], [HX, 9, HZ, 22], [-45, 7, 45, 22], [-69, 5, 45, 9]],
     guardian: { def: { ...MOTHER, onHit: motherHit, onReset: (g) => motherReset(rt, g) }, model, arena },
   };
 }

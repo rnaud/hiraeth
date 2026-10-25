@@ -47,8 +47,16 @@ import { meetsWith } from '../resources.js';
 //           a reward (a coffer), not on the way (the marker leaves it alone; issue #337)
 //          arena { }   a room that shuts behind you until its foes are beaten (the runtime's `arenas`): lit once won
 //          cache { when? }   a coffer of chimes in an optional room (a reward, nothing waits on it)
+//          timer { hold }   (issue #660) a makers' clock (src/temples/trials.js Clock): woken, it runs `hold` s and stops; lit
+//           only while it runs (held, as a bell with `hold`: nothing saved, so a reload starts it fresh). Woken again while
+//           it runs, it starts over. What it holds open waits for it: { lit: timer }
+//          glyphs { }   (issue #660) a floor of glyph tiles (trials.js GlyphFloor): stepped in the order a panel shows,
+//           it is lit for good; a wrong tile puts out the ones stepped. With a `when` (a timer's run), only while that holds
+//          (any element `optional: true`: a side room's, for a reward. The marker and the scout never point at it; solve()
+//           still does it, so the tests prove it can be done)
 //   conditions: { all: [] } · { any: [] } · { pressed: plate } · { lit: id } · { item: id }
 //               · { drumOn: [drum, plate] } · { open: door } · { gadget: true } · { resolved: true } · { weightOn: [weight, plate] }
+//               · { found: id }   (a coffer opened, a key taken: a side room's timed door that stays open once its reward is had)
 
 export const DONE = 'done';
 
@@ -63,7 +71,7 @@ export function flagStore(game, id) {
   return { get: (k) => game.flag(`temple.${id}.${k}`), set: (k, v) => game.set(`temple.${id}.${k}`, v) };
 }
 
-const LATCHED = new Set(['brazier', 'bramble', 'switch', 'bell', 'vane', 'arena']);
+const LATCHED = new Set(['brazier', 'bramble', 'switch', 'bell', 'vane', 'arena', 'timer', 'glyphs']);
 /** What is found and kept (a second chest, a key, a coffer, the house's map): `find(id)`. */
 const FINDS = new Set(['find', 'key', 'cache', 'map']);
 /** Held, not latched: lit only while it rings or turns (a held bell, a vane). */
@@ -205,6 +213,7 @@ export class TempleLogic {
     if (c.open) return this.isOpen(c.open);
     if (c.gadget) return this.gadget;
     if (c.resolved) return this.resolved;
+    if (c.found) return this.isFound(c.found);
     return true;
   }
   computeOpen(id) {
@@ -266,6 +275,8 @@ export class TempleLogic {
   next() {
     const reach = this.reachable();
     for (const [id, e] of Object.entries(this.def.elements)) {
+      // (a side room's, for a reward: never where the marker points, issue #660)
+      if (e.optional) continue;
       // (a lock a key can go in now, by a room you can reach: a door has no room of its own)
       if (isGate(e) && e.lock && this.canUnlock(id) && this.lockReachable(id, reach)) return id;
       if (!inReach(e, reach, (it) => this.has(it))) continue;

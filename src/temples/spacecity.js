@@ -219,6 +219,19 @@ export const DOCK_RINGS = [
   { id: 'rgW', room: 'moorW', at: [GALLERY.w - 1.6, GALLERY.y, ROOM.z + 5.4], yaw: Math.PI / 2, dock: 1 },
 ];
 
+/**
+ * (issue #630) The map's display in the Lamp Shaft (local m). Its floor is laid in rings of 2.6 m plates round the room's
+ * middle (skins/mooring-house.js 'floor'), the fifth ring (13 to 15.6 m out, inside the teal border at 15.5) cut into 34
+ * plates, turned by the skin's hash of the ring, `phase` of a plate: 0.173 as this Mac's GPU draws it (the hash is a GPU
+ * sin and differs on the CPU, 0.857). The chest stands on plate `plate` of that ring, in its middle, its back square to the
+ * wall stone behind it (`stone` of the rotunda's 39), its opening toward the room's middle.
+ */
+export const MAP_PLATE = (() => {
+  const ring = 2.6, k = 5, np = 34, phase = 0.173, plate = 2, stone = 26, r = (k + 0.5) * ring;
+  const a = ((plate + 0.5 - phase) / np - 0.5) * Math.PI * 2;   // (the skin's angle: atan2 of z, x off the middle)
+  return { ring, k, np, phase, plate, stone, r, at: [SHAFT[0] + Math.cos(a) * r, 0, SHAFT[1] + Math.sin(a) * r], yaw: (stone + 0.5) * (Math.PI * 2) / 39 - Math.PI };
+})();
+
 export const LOGIC = {
   id: 'spacecity', entry: 'stage', gadget: 'tether',
   // (v1.83, issue #417: the Mooring Hall's rooms: `drift` its east landing (the Drift's near landing's id kept, so a save's
@@ -339,8 +352,9 @@ export const LOGIC = {
     // the things to do, so the scout asks for it only once nothing nearer is left: logic.next)
     mooring: { type: 'drum', room: 'hall', rooms: ['west', ...['drift', 'moor', 'moorW'].map((room) => ({ room, needs: ['tether'] }))], stops: { mLow: 0, mHigh: 1 }, start: 1, roll: 'hand', verb: 'moor' },
     mLow: { type: 'plate' }, mHigh: { type: 'plate' },
-    // the house's map, in a little chest off the way on (issue #405: src/house-map.js; nothing waits on it)
-    map: { type: 'map', room: 'stair', at: [13.1, 0, 1.7], yaw: Math.PI / 2 },
+    // the house's map, in a little chest off the way on (issue #405: src/house-map.js; nothing waits on it). Raised on its
+    // plinth (issue #630) by the Lamp Shaft's wall, left of the way in (70° round from it), on a plate of its floor's fifth ring (MAP_PLATE)
+    map: { type: 'map', room: 'stair', at: MAP_PLATE.at, yaw: MAP_PLATE.yaw, display: { scale: 1.5, plinth: [1.8, .24, 1.6] } },
   },
 };
 

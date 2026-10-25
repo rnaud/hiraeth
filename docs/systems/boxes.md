@@ -73,6 +73,12 @@ hand). Also the sound of the chest opening is wrong, sounds like creaking"), the
   open (`Player.offer` = { k, at }: `offerHand` reaches the arm there and turns the palm up, `src/hands.js` opens the
   fingers, 'flat'). He holds it so through the card; the closing beat takes it from there (its own holds as before)
   as he lets go. The camera's second shot looks between the item over his hand and the open chest.
+  **The hand on the lens's side** (issue #652): under the 'left' plan (its reveal lens over his left shoulder, ten of the
+  42 boxes) the item over his right hand stood behind his body and pack through the whole card. `offerSide(plan)` picks
+  the hand on the side of the plan's B lens; `Player.offer` carries `side` ('r' | 'l'), `offerHand` reaches that arm and
+  `src/hands.js` opens that hand. `tests/box-reveal-visible.test.js`: every box's item has a model of its own (not the
+  generic gem) at a size that reads over the hand, and through the card it is in the frame and clear of his body and
+  pack, played through and skipped, under every plan.
 - **It stays open.** After the scene the chest is left where it stood, its halves parted (the temple's bud open like a
   flower), quiet: no ray, no hum, no light (`setSpentLook`), on a fresh load too. No collider: the block it stood as
   would be solid where the parted halves leave air. A box spent without being opened (a fallback, an item had anyway)

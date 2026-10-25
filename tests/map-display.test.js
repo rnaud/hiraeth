@@ -225,3 +225,66 @@ test('new map plinths stay clear of vault pots, the moving hoist and the tilted 
   assert.ok(choir.max.z<50-.45,'west balcony approach remains clear');
   // Static footprint separation is not proof of an entire swept walk or jump.
 });
+
+
+import { INCAL_TEMPLE, WING as WELL_WING, ROOMS as WELL_ROOMS, VANE_ROOM, MAP_LEDGE } from '../src/temples/incal.js';
+import { SPACECITY_TEMPLE, WING as MOOR_WING, MAP_PLATE } from '../src/temples/spacecity.js';
+import { WELL } from '../src/temples/skins/wardens-well.js';
+import { MOORING_SKIN } from '../src/temples/skins/mooring-house.js';
+
+// Issue #630, the last two. The City-Shaft's Vane Room ledge is 4 m from its west wall to the chasm: the 1.8 × 1.6 plinth
+// cannot sit on a 3.2 m plate centre there (21.6 leaves it in the wall, 24.8 over the chasm) or on the seam at 23.2 with
+// walking room past it (1 m to the chasm, and over the floor's cyan inlay). So it fills the floor's own border band, wall
+// to inlay, and sits on a plate row along the ledge, leaving 2.4 m of ledge clear. The Lamp Shaft is round: its plates in
+// rings, turned by a GPU hash (MAP_PLATE.phase, read off this Mac's GPU: the CPU's sin gives another phase).
+test('the Vane Room map fills the ledge’s border band, on a plate row, its back to the west wall and the ledge clear', () => {
+  const e = INCAL_TEMPLE.logic.elements.map, Z = WELL_WING.z, R = WELL_WING.vane;
+  assert.equal(e.room, 'vane'); assert.equal(e.at[1], 0);
+  assert.deepEqual(e.display, { scale: 1.5, plinth: [1.8, .24, 1.6] });
+  const d = mapDisplay(e.at, e.display, e.yaw); d.plinth.computeBoundingBox(); const b = d.plinth.boundingBox;
+  const wall = R.x - R.w / 2, inlay = wall + 1.6, [chasm] = WELL_WING.gap;
+  assert.equal(chasm, VANE_ROOM.near);
+  assert.ok(Math.abs(b.min.x - wall) < 1e-6 && Math.abs(b.max.x - inlay) < 1e-6, 'from the wall to the inlay, no further');
+  assert.ok(chasm - b.max.x >= 2.4 - 1e-6, 'the ledge before it clear to the chasm (2.4 m)');
+  const q = (e.at[2] - Z) / WELL.floor.plate;
+  assert.ok(Math.abs(q - Math.floor(q) - .5) < 1e-10, 'on the middle of a row of the hall’s plates');
+  assert.ok(b.min.z > Z + WELL_ROOMS.door.w / 2 + 3 && b.max.z < Z + R.d / 2 - 1.6 - 1, 'north of the door, clear of the north inlay');
+  // back toward the nearest wall (the east side is the chasm, no wall)
+  const walls = [['west', e.at[0] - wall, [-1, 0]], ['north', Z + R.d / 2 - e.at[2], [0, 1]], ['south', e.at[2] - (Z - R.d / 2), [0, -1]]].sort((p, s) => p[1] - s[1]);
+  assert.equal(walls[0][0], 'west');
+  assert.ok(-Math.sin(e.yaw) * walls[0][2][0] - Math.cos(e.yaw) * walls[0][2][1] > 1 - 1e-10, 'its back to the west wall, its opening to the room');
+  assert.ok(Math.abs(b.min.y) < 1e-6 && Math.abs(b.max.y - d.at[1]) < 1e-5); d.plinth.dispose();
+  assert.deepEqual([e.at[0], e.at[2]], [MAP_LEDGE.x, MAP_LEDGE.z]);
+});
+
+test('the Lamp Shaft map stands in the middle of one of its floor’s ring plates, square to the wall stone behind it', () => {
+  const e = SPACECITY_TEMPLE.logic.elements.map, P = MAP_PLATE, cell = MOORING_SKIN.floor.cell, TAU = Math.PI * 2;
+  assert.equal(e.room, 'stair'); assert.equal(e.at[1], 0);
+  assert.deepEqual(e.display, { scale: 1.5, plinth: [1.8, .24, 1.6] });
+  // the room: the rotunda 40 m out along the hall's south-east radial (spacecity.js hallAt(SE, WING.d)), 39 stones
+  const c = [Math.sin(Math.PI * 3 / 4) * MOOR_WING.d, 30 + Math.cos(Math.PI * 3 / 4) * MOOR_WING.d], wallR = MOOR_WING.r, border = wallR - 1.5;
+  const dx = e.at[0] - c[0], dz = e.at[2] - c[1], r = Math.hypot(dx, dz);
+  // the skin's plates (skins/mooring-house.js 'floor'): rings cell[0] apart, np = floor(TAU (k + 0.5) ring / cell[1]) plates
+  assert.equal(P.ring, cell[0]);
+  const k = Math.floor(r / cell[0]);
+  assert.equal(k, P.k); assert.equal(P.np, Math.max(6, Math.floor(TAU * (k + 0.5) * cell[0] / cell[1])));
+  assert.ok(Math.abs(r - (k + 0.5) * cell[0]) < 1e-9, 'in the middle of its ring');
+  const aa = (Math.atan2(dz, dx) / TAU + 0.5) * P.np + P.phase;
+  assert.ok(Math.abs(aa - Math.floor(aa) - .5) < 1e-9, 'in the middle of its plate, as the GPU turns the ring');
+  const d = mapDisplay(e.at, e.display, e.yaw); d.plinth.computeBoundingBox(); d.plinth.computeBoundingSphere();
+  const pos = d.plinth.attributes.position, radii = [];
+  for (let i = 0; i < pos.count; i++) radii.push(Math.hypot(pos.getX(i) - c[0], pos.getZ(i) - c[1]));
+  assert.ok(Math.min(...radii) > k * cell[0] + 0.3 && Math.max(...radii) < border - 0.3, 'on its ring, inside the teal border');
+  assert.ok(wallR - Math.max(...radii) > 1.5, 'walking room behind it');
+  // its back square to the nearest of the rotunda's 39 stones (kit.rotunda: stone i faces out along (sin a, cos a), a = (i + 0.5) 2π/39)
+  const step = TAU / 39, ka = ((Math.atan2(dx, dz) % TAU) + TAU) % TAU, stone = Math.round(ka / step - 0.5);
+  assert.equal(stone, P.stone, 'the stone behind it');
+  const a = (stone + 0.5) * step, back = [-Math.sin(e.yaw), -Math.cos(e.yaw)];
+  assert.ok(back[0] * Math.sin(a) + back[1] * Math.cos(a) > 1 - 1e-10, 'its back square to that stone, its opening to the room');
+  // clear of the room's gauge, mark, the draught's counterweight and the way in (the gate at a = -π/4)
+  const way = (Math.atan2(Math.sin(ka + Math.PI / 4), Math.cos(ka + Math.PI / 4)));
+  assert.ok(Math.abs(way) > Math.PI / 3, 'well round the wall from the way in');
+  const wingAt = (d0, s) => [Math.sin(Math.PI * 3 / 4) * d0 + Math.cos(Math.PI * 3 / 4) * s, 30 + Math.cos(Math.PI * 3 / 4) * d0 - Math.sin(Math.PI * 3 / 4) * s];
+  for (const [x, z, clear] of [[...wingAt(25.5, 4.5), 4], [...wingAt(28, -5), 4], [...wingAt(37, 0), 3.4 + 4]]) assert.ok(Math.hypot(e.at[0] - x, e.at[2] - z) > clear);
+  d.plinth.dispose();
+});

@@ -9,6 +9,17 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
+    v: '2.28', date: '2026-10-25',
+    items: [
+      { text: "The Hush-House has a new side room off the Choir’s floor: splash the eye on its pedestal and the lamps set in the floor light the way round a stone screen to a vault door, then go out one by one from the eye, ticking faster near the end. Reach the door before they do; miss it and just splash the eye again.", see: "In the Hush-House’s Choir, take the doorway low in the west wall. Listen as it runs: a tick each second, quicker in the last three, a clack when it stops. Once the vault’s coffer is open, its door stays open." },
+      { text: "The Warden’s Well has a Wind Clock east off the gallery: step the glyph tiles in the order the wall panel shows, then gust the clock with the fan and run, and a bridge of light crosses the chasm while its lamps last. It never sinks under your feet.", see: "From the Well’s gallery floor, take the east doorway. A splash only runs off the clock: it wants the fan’s wind. Once the far ledge’s coffer is open, the bridge stays." },
+      { text: "The Engine-House has a Fuse Room north of the Governor Room: a bomb wakes its clock, and only while the clock runs does the wall panel show which floor tiles to step, and in what order. Out of time, the tiles go dark and you can start again.", see: "Go through the Governor Room’s north doorway with bombs, and throw one at the clock under its iron cross." },
+      { text: 'When a chest opens, what it held floats over your open hand again where you can see it. From some angles your own body hid it through the whole card; now you hold it out in the hand on the camera’s side.', see: 'Open the Mooring-House’s chest of the tether, or any chest whose camera looks over your left shoulder: the item floats over your left hand while its card is up.' },
+      { text: 'The last two house maps are on show like the others: bigger, on a low plinth, their backs to the wall and their openings toward the room. In the City-Shaft’s Vane Room it stands against the wall of the ledge, north of the door, leaving the ledge clear; in the Mooring-House’s Lamp Shaft it stands on a floor plate by the wall, left of the way in.', see: 'Go through the City-Shaft’s small-key door into the Vane Room and look along the ledge to your right; or enter the Mooring-House’s Lamp Shaft and look along the wall to your left. Open them as before: collected maps stay collected.' },
+    ],
+  },
+
+  {
     v: '2.27', date: '2026-10-25',
     items: [
       { text: 'Some enemies now defend themselves, and each has its own way in. The furnace brute raises its forearms between blows: light cuts ring off, a charged cut smashes through and leaves it reeling open for a moment. The shellback crab clamps down flat in its shell when you close in: come down on it with an air cut and it flips onto its back. The shade turns your cuts with its sword: parry the cut it answers with, then riposte. Hammering a guard with the wrong move gets you a counterblow, never a stalemate, and going round their side still works.', see: 'In the Arena call a furnace brute, a shellback crab and a shade. Walk up to each between its blows and watch its guard come up; cut it, then try its answer.' },

@@ -206,6 +206,7 @@ add('Chimes and the shop', 'purchase', 'A sale', [pick('cheap', (s) => s.purchas
 add('Quests and moments', 'chime', 'A quest step done', one((s) => s.chime()));
 add('Quests and moments', 'quest', 'A quest\'s moments', ['start', 'step', 'done'].map((k) => pick(k, (s) => s.quest(k))), 'given, a step done, done (issue #379)');
 add('Quests and moments', 'doorOpen', 'A temple door opening', one((s) => s.doorOpen()));
+add('Quests and moments', 'templeTick', 'A makers\' clock running down', [pick('tick', (s) => s.templeTick('tick')), pick('tock', (s) => s.templeTick('tock')), pick('last seconds', (s) => s.templeTick('urgent')), pick('stopped', (s) => s.templeTick('out'))], 'issue #660: src/temples/trials.js Clock');
 add('Quests and moments', 'ui', 'The menus', ['move', 'confirm', 'back', 'tab', 'open', 'close', 'no'].map((k) => pick(k, (s) => s.ui(k))), 'every menu (src/ui-sound.js, issue #379)');
 add('Quests and moments', 'toolClick', 'An answer chosen', [pick('chosen', (s) => s.toolClick(true)), pick('back', (s) => s.toolClick(false))], 'a conversation\'s answers');
 add('Quests and moments', 'shutter', 'A photo taken', one((s) => s.shutter()), 'photo mode');

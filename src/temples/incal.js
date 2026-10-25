@@ -6,7 +6,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
 import { glyphGeometry } from '../story/sign-text.js';
 import { TempleKit, T, box, lathe, annulus, sector } from './kit.js';
-import { Door, Plate, Ball, Switch, Platform, Bridge, Vane, Mark, Pit, Updraft, WingAir, Key, HookBell } from './pieces.js';
+import { Door, Plate, Ball, Switch, Platform, Bridge, Vane, Mark, Pit, Updraft, WingAir, Key, HookBell, Coffer } from './pieces.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
 import { sentinelModel } from './guardians.js';
 import { items } from '../items.js';
@@ -15,6 +15,7 @@ import { EN } from '../i18n/en.js';
 import { registerTarget } from '../targets.js';
 import { chestMound } from '../boxes/mound.js';
 import { wardensWellSkin } from './skins/wardens-well.js';
+import { Clock, GlyphFloor } from './trials.js';
 
 // The City-Shaft's temple: the Warden's Well, the makers' tower on the rim,
 // round from the ship. Nobody in the city goes in: the rim calls it a folly,
@@ -177,6 +178,22 @@ export const RING = { at: [-9.4, FLOORS.crown + 8, ROOMS.chest.z - 3], sleeve: F
  */
 export const VANE_ROOM = { near: 25, far: 42, pier: [31, 36, 9], vane: [44.4, 5.5], key: [48, -6] };
 
+/**
+ * (issue #660, the test of the makers' clock and the teach of the glyph floor: docs/design/temple-puzzles.md) The Wind
+ * Clock, east off the Well's gallery (local; z about the chest's middle, C3 = 97.4): four glyph tiles on its near floor and
+ * a panel on its south wall showing three of them in turn; stepped in that order, the stone lids over the clock's eye lift.
+ * Only the fan's gust wakes it (a ring of little vanes round it), and it runs `hold` s: while it runs a bridge of light
+ * stands over the chasm (18 m: no running jump, double jump and glide in a house carries so far, tests/wings-reach.js) to the far ledge and its coffer. The gust reaches 9 m,
+ * so you gust it from the lip and run. The bridge never sinks under you; once the coffer is had it stands for good.
+ */
+export const WIND_CLOCK = {
+  hall: { x0: 24, x1: 62, z0: 97.4 - 17, z1: 97.4 + 17, pit: 8 }, lip: 40, far: 58, bridge: 88.5, hold: 6,
+  eye: [34, 106.5], tiles: [[32, 93, 'tri'], [37, 95, 'ring'], [32, 101, 'square'], [37, 103, 'hex']], order: [2, 0, 3],
+};
+/** (issue #630) The map's display on the Vane Room's near ledge (local m): x the middle of the 1.6 m border band between
+ *  the west wall (21) and the floor's inlay; z the middle of a row of the hall’s 3.2 m plates, 11.2 m north of the door, off the way to the pier. */
+export const MAP_LEDGE = { x: 21.8, z: ROOMS.climb.z + Math.cos(Math.PI / 2 + 0.4) * ROOMS.climb.r + 3.5 * 3.2 };
+
 export const LOGIC = {
   id: 'incal', entry: 'threshold', gadget: 'fan',
   // (each room's kind, issue #336: src/foes.js puts machines only in the combat room, the Ash Store)
@@ -185,6 +202,8 @@ export const LOGIC = {
     store: { checkpoint: true, kind: 'combat' }, vane: { checkpoint: true, kind: 'passage' }, vaneFar: { kind: 'puzzle' }, jets: { checkpoint: true, kind: 'chest' },
     gallery: { checkpoint: true, kind: 'puzzle' }, loft: { checkpoint: true, kind: 'puzzle' }, crown: { checkpoint: true, kind: 'puzzle' },
     ledge: { checkpoint: true, kind: 'passage' }, flue: { checkpoint: true, kind: 'passage' }, warden: { boss: true, kind: 'guardian' }, out: { kind: 'passage' },
+    // (issue #660) the Wind Clock off the gallery, and the far ledge over its chasm: a side room, for a reward
+    clock: { checkpoint: true, kind: 'puzzle' }, clockFar: { kind: 'passage' },
   },
   links: [
     { a: 'threshold', b: 'turning' },
@@ -198,6 +217,8 @@ export const LOGIC = {
     { a: 'vane', b: 'vaneFar', door: 'stones', needs: ['bridge'] },
     { a: 'climb', b: 'jets', door: 'd1' },
     { a: 'jets', b: 'gallery', door: 'rise', needs: ['fan'] },   // up through the oculus, on the draught the chest unstops, while the house breathes out
+    { a: 'gallery', b: 'clock' },                    // (issue #660) east off the gallery's floor: the Wind Clock
+    { a: 'clock', b: 'clockFar', door: 'bW' },       // over its chasm on the bridge of light, while the clock runs
     { a: 'gallery', b: 'loft', door: 'iris', needs: ['fan'] },   // the draught on to the loft: the eye whose lids the great vane lifts
     { a: 'loft', b: 'crown', door: 'iris2', needs: ['fan'] },    // and on to the crown: the ball pushed over the gap from the air, over the loft's vane
     { a: 'crown', b: 'ledge', door: 'lift', needs: ['fan'] },    // and past it to the high ledge, while the house breathes out (16 m over the crown)
@@ -276,8 +297,18 @@ export const LOGIC = {
     // the scout asks for it only once nothing nearer is left: logic.next)
     breath: { type: 'drum', room: 'climb', rooms: ['climb', 'vaneFar', 'gallery', 'loft', 'crown'], stops: { breathIn: 0, breathOut: 1 }, start: 0, roll: 'hand', verb: 'breath' },
     breathIn: { type: 'plate' }, breathOut: { type: 'plate' },
-    // the house's map, in a little chest off the way on (issue #405: src/house-map.js; nothing waits on it)
-    map: { type: 'map', room: 'vane', at: [22.8, 0, 74], yaw: Math.PI },
+    // the house's map, in a little chest off the way on (issue #405: src/house-map.js; nothing waits on it). Raised on its
+    // plinth (issue #630) on the Vane Room's near ledge, north of the door: its back to the west wall, its plinth filling
+    // the floor's border band (from the wall to the cyan inlay 1.6 m in), centred on a row of the hall's 3.2 m plates
+    // (WING.z + 3.5 plates), its opening toward the room, the 2.4 m of ledge between it and the chasm left clear
+    map: { type: 'map', room: 'vane', at: [MAP_LEDGE.x, 0, MAP_LEDGE.z], yaw: Math.PI / 2, display: { scale: 1.5, plinth: [1.8, .24, 1.6] } },
+    // (issue #660, optional: the marker never points at them) the Wind Clock: its glyph tiles stepped in the panel's order
+    // lift its eye's lids; the fan's gust wakes it; the bridge of light stands while it runs, and for good once the far
+    // ledge's coffer is had
+    gW: { type: 'glyphs', room: 'clock', optional: true },
+    tW: { type: 'timer', room: 'clock', hold: WIND_CLOCK.hold, needs: ['fan'], when: { lit: 'gW' }, optional: true },
+    bW: { type: 'bridge', opens: { any: [{ lit: 'tW' }, { found: 'cW' }] } },
+    cW: { type: 'cache', room: 'clockFar' },
   },
 };
 
@@ -722,6 +753,38 @@ export class Rim {
 }
 
 // ------------------------------------------------------------------ inside
+/**
+ * (issue #660) The Wind Clock, east off the Well's gallery (WIND_CLOCK): its corridor from the drum, its hall (the floor a
+ * near floor and a far ledge over a chasm, the hall's walls down to the chasm's foot), the glyph tiles and their panel, the
+ * clock's eye on its pedestal by the north wall, the lamps from it along the lip to the bridge's foot, the bridge of light,
+ * the far ledge's coffer, the room's mark.
+ */
+function windClock(rt, K, M, { C3, G0, GR, D, blue }) {
+  const add = (P, o) => rt.add(P, o), W = WIND_CLOCK, H = W.hall, PIT = H.pit, cx = (H.x0 + H.x1) / 2;
+  K.corridor([GR + 0.4, C3], [H.x0 - 1.2, C3], G0, { w: D.w, h: D.h + 0.4 });
+  K.hall({ x: cx, z: C3, w: H.x1 - H.x0, d: H.z1 - H.z0, y: G0 - PIT, h: 18 + PIT, floor: false, roof: 'oculus', oculus: 0.25, doors: [{ side: 'w', at: 0, w: D.w, h: D.h, y0: PIT }] });
+  K.slab(H.x0 - 0.6, H.z0 - 0.6, W.lip, H.z1 + 0.6, G0, PIT);          // the near floor, solid down to the chasm's foot
+  K.slab(W.far, H.z0 - 0.6, H.x1 + 0.6, H.z1 + 0.6, G0, PIT);          // the far ledge
+  K.both(M.dark, box(W.far - W.lip, 1, H.z1 - H.z0, (W.lip + W.far) / 2, G0 - PIT - 0.5, C3));
+  K.add(blue, box(0.5, 0.3, H.z1 - H.z0, W.lip + 0.25, G0 + 0.02, C3));   // (the lips' edges, the house's blue)
+  K.add(blue, box(0.5, 0.3, H.z1 - H.z0, W.far - 0.25, G0 + 0.02, C3));
+  add(Pit, { room: 'clock', min: [W.lip, G0 - PIT - 2, H.z0], max: [W.far, G0 - 1.5, H.z1] });
+  add(GlyphFloor, { id: 'gW', at: W.tiles.map(([x, z]) => [x, G0, z]), glyphs: W.tiles.map((t) => t[2]), order: W.order,
+    mural: { at: [33, G0, H.z0 + 0.25], yaw: 0 },
+    wrong: 'The tiles go dark: out of turn. The panel on the south wall shows the order.',
+    done: 'The last tile takes, and by the north wall the clock’s stone lids lift.' });
+  add(Clock, { id: 'tW', at: [W.eye[0], G0, W.eye[1]], yaw: Math.PI * 0.75, by: 'gust', lids: true, n: 18,
+    strip: [[W.eye[0] + 1.3, G0, W.eye[1]], [W.lip - 1.1, G0, W.eye[1]], [W.lip - 1.1, G0, W.bridge], [W.lip, G0, W.bridge]],
+    bars: [-1, 1].map((sd) => ({ at: [W.lip - 1.2, G0, W.bridge + sd * 3.4], yaw: Math.PI / 2, h: 5 })),
+    wrong: 'The splash runs off the clock’s eye. Its little vanes want wind.',
+    unmet: 'Stone lids cover the clock’s eye. The glyph tiles on the floor lift them.',
+    heard: 'The vanes spin and the clock runs: a bridge of light over the chasm, while the lamps last.',
+    faded: 'The lamps are out, and the bridge of light sinks. Gust the clock again.' });
+  add(Bridge, { id: 'bW', a: [W.lip, G0, W.bridge], b: [W.far, G0, W.bridge], w: 3.6, n: 11, glow: { color: '#8fe6ff', k: 0.6 } });
+  add(Mark, { room: 'clock', at: [H.x0 + 3.5, G0, C3 - 7], yaw: Math.PI / 2 });
+  add(Coffer, { id: 'cW', at: [H.x1 - 2.6, G0, W.bridge + 4], yaw: -Math.PI / 2 });
+}
+
 function layout(rt) {
   const K = rt.kit, M = rt.M;
   const add = (P, o) => rt.add(P, o);
@@ -742,8 +805,13 @@ function layout(rt) {
   const ring = SK?.ring ?? blue, bandM = SK?.band ?? blue, markM = SK?.mark ?? M.trim;
   const slitM = SK?.slit ?? makeMaterial({ color: '#fff0c8', glow: 0.75, flat: true, key: 'incal.temple.slit' });
   /** A band round a drum's inside wall (r, at y), with the makers' frieze on it: an open corner beside a shorter upright. */
-  const band = (x, z, r, y, h = 1.3, every = 0.26, skip = []) => {
-    K.add(bandM, T(annulus(r - 0.14, r + 0.04, h, 72), [x, y + h / 2, z]));
+  const band = (x, z, r, y, h = 1.3, every = 0.26, skip = [], cut = []) => {
+    // (cut: [angle, half-width] where the band stops, a doorway it would cross: drawn as sectors round the rest)
+    if (!cut.length) K.add(bandM, T(annulus(r - 0.14, r + 0.04, h, 72), [x, y + h / 2, z]));
+    else {
+      const ends = cut.map(([c, w]) => [rotA(c) - w, rotA(c) + w]).sort((p, q) => p[0] - q[0]);
+      ends.forEach(([, a1], i) => { const b0 = i + 1 < ends.length ? ends[i + 1][0] : ends[0][0] + TAU; K.add(bandM, T(sector(r - 0.14, r + 0.04, a1, b0, h), [x, y + h / 2, z])); });
+    }
     for (let a = 0; a < TAU - 0.01; a += every) {
       if (skip.some(([c, w]) => Math.abs(Math.atan2(Math.sin(a - c), Math.cos(a - c))) < w)) continue;
       const px = x + Math.sin(a) * (r - 0.16), pz = z + Math.cos(a) * (r - 0.16);
@@ -861,19 +929,19 @@ function layout(rt) {
   const G0 = FLOORS.gallery, GR = ROOMS.drum.r, GC = FLOORS.loft, GK = FLOORS.crown, H0 = FLOORS.hall;
   // (and since issue #23's last round two ways west into the Flue: at the floor, and into the crown at its floor; since
   // issue #413 both drops down it)
-  K.rotunda({ x: 0, z: C3, y: G0, r: GR, h: ROOMS.drum.h, floor: false, seg: 40, gaps: [{ a: 0, w: D.w, h: D.h, y0: H0 - G0 }, { a: -Math.PI / 2, w: FLUE.door, h: D.h }, { a: -Math.PI / 2, w: FLUE.door, h: D.h, y0: VANES.crown }], oculus: 0.25 });
+  K.rotunda({ x: 0, z: C3, y: G0, r: GR, h: ROOMS.drum.h, floor: false, seg: 40, gaps: [{ a: 0, w: D.w, h: D.h, y0: H0 - G0 }, { a: -Math.PI / 2, w: FLUE.door, h: D.h }, { a: -Math.PI / 2, w: FLUE.door, h: D.h, y0: VANES.crown }, { a: Math.PI / 2, w: D.w, h: D.h }], oculus: 0.25 });
   K.both(M.floor, T(annulus(3.9, GR + 1.4, 0.6, 56), [0, G0, C3]));
   K.add(M.trim, T(annulus(3.6, 4.2, 0.8, 32), [0, G0 + 0.25, C3]));
   for (const r of [5.6, 9.4, 13.2]) K.add(SK ? ring : blue, T(annulus(r, r + (SK ? 0.12 : 0.3), 0.02, 56), [0, G0 + 0.012, C3]));
-  const W0 = [[-Math.PI / 2, 0.3]], N0 = [[0, 0.3]];   // (the bands and windows stop short of the doorways west and north)
-  band(0, C3, GR, G0 + 4.2, 1.3, 0.22, W0);
+  const W0 = [[-Math.PI / 2, 0.3]], N0 = [[0, 0.3]], E0 = [[Math.PI / 2, 0.3]];   // (the bands and windows stop short of the doorways west and north; and east, the Wind Clock's, issue #660)
+  band(0, C3, GR, G0 + 4.2, 1.3, 0.22, [...W0, ...E0], E0);
   band(0, C3, GR, GC - 2.6, 1.0, 0.22);
   band(0, C3, GR, GC + 3.4, 1.3, 0.22);
   band(0, C3, GR, GK + 3.4, 1.3, 0.22, W0);
   band(0, C3, GR, GK + 13.2, 1.3, 0.22);
   band(0, C3, GR, H0 + 12.4, 1.3, 0.22, N0);
   const skip = (a, list) => list.some(([c, w]) => Math.abs(Math.atan2(Math.sin(a - c), Math.cos(a - c))) < w + 0.25);
-  for (let i = 0; i < 12; i++) { const a = (i + 0.5) / 12 * TAU; if (skip(a, W0)) continue; slit(0, C3, GR, a, G0 + 6.8, 4.6); }
+  for (let i = 0; i < 12; i++) { const a = (i + 0.5) / 12 * TAU; if (skip(a, [...W0, ...E0])) continue; slit(0, C3, GR, a, G0 + 6.8, 4.6); }
   for (let i = 0; i < 16; i++) { const a = (i + 0.5) / 16 * TAU; slit(0, C3, GR, a, GC + 6.4, 4.8); }
   for (let i = 0; i < 16; i++) { const a = (i + 0.5) / 16 * TAU; if (skip(a, [...W0, ...N0])) continue; slit(0, C3, GR, a, GK + 6.6, 5.2); }
   for (let i = 0; i < 16; i++) { const a = (i + 0.5) / 16 * TAU; if (skip(a, N0)) continue; slit(0, C3, GR, a, GK + 17.5, 5.2); }
@@ -981,6 +1049,7 @@ function layout(rt) {
   ] });
 
   flue(rt, K, M, { C3, G0, GK });
+  windClock(rt, K, M, { C3, G0, GR, D: ROOMS.door, blue });
 
   // ---- the Warden's Hall (floor 84.6, a great drum), its corridor from the high door
   const CW = C3 + GR + 1.4 + 3 + 21.4;   // 141.2
@@ -1032,12 +1101,12 @@ function layout(rt) {
   const W = (x, y, z) => K.world(x, y, z), FX = FLUE.x;
   return {
     arrival: { pos: W(0, 0.05, 3.6), heading: K.heading(0) },
-    bounds: new THREE.Box3(V(FX - FLUE.r - 3, -17, -3), V(WING.vane.x + WING.vane.w / 2 + 3, H0 + 34, CW + HR + 12)),
+    bounds: new THREE.Box3(V(FX - FLUE.r - 3, -17, -3), V(Math.max(WING.vane.x + WING.vane.w / 2, WIND_CLOCK.hall.x1) + 3, H0 + 34, CW + HR + 12)),   // (issue #660: the Wind Clock, east)
     gadget: { at: W(0, 11.62, C3).toArray(), face: K.heading(Math.PI) },
     // (issue #375) the Ash Store's prize, the bridge pen: its chest on a mound by the store's wall, shut till the fight is won
     finds: { pen: { at: W(WING.store.x + PEN_AT[0], 0.3, WING.z + PEN_AT[1]).toArray(), face: K.heading(Math.PI) } },
     exits: [{ at: W(0, 0.5, 0.4), r: 1.5 }, { at: W(0, H0 + 0.5, CW + HR + 9.6), r: 1.5 }],
-    lights: [[FX, FLUE.foot + 6, C3, 22], [FX, G0 + 8, C3, 20], [FX, GK + 3, C3, 18], [-15, FLUE.foot + 5, C3, 9], [0, H0 + 6, C3, 24], [0, 6, 6, 14], [0, 6, 18, 24], [0, 6, 40, 24], [0, 8, C2, 26], [WING.store.x, 8, WING.z, 24], [WING.vane.x, 8, WING.z, 24], [0, 16, C2, 22], [0, 18, C3, 18], [0, G0 + 8, C3, 28], [0, GC + 8, C3, 26], [0, GK + 8, C3, 26], [0, H0 + 4, C3 + GR + 3, 9], [0, H0 + 12, CW, 30]],
+    lights: [[FX, FLUE.foot + 6, C3, 22], [FX, G0 + 8, C3, 20], [FX, GK + 3, C3, 18], [-15, FLUE.foot + 5, C3, 9], [0, H0 + 6, C3, 24], [0, 6, 6, 14], [0, 6, 18, 24], [0, 6, 40, 24], [0, 8, C2, 26], [WING.store.x, 8, WING.z, 24], [WING.vane.x, 8, WING.z, 24], [0, 16, C2, 22], [0, 18, C3, 18], [0, G0 + 8, C3, 28], [0, GC + 8, C3, 26], [0, GK + 8, C3, 26], [0, H0 + 4, C3 + GR + 3, 9], [0, H0 + 12, CW, 30], [(WIND_CLOCK.hall.x0 + WIND_CLOCK.hall.x1) / 2, G0 + 8, C3, 26]],
     guardian: { def: { ...WARDEN, onHit: wardenHit, openFor: wardenOpenFor }, model, arena },
   };
 }

@@ -2155,20 +2155,21 @@ export class Player {
   }
 
   /**
-   * The right hand held out before him, palm up, the fingers open (src/hands.js 'flat' through playerHands' offer), for
+   * A hand held out before him, palm up, the fingers open (src/hands.js 'flat' through playerHands' offer), for
    * an item to float over (the chest's reveal: src/boxes/scene.js). `at` the hand's place (world), `k` how far (0..1),
-   * blended from the pose under it; the elbow bent low at his side.
+   * blended from the pose under it; the elbow bent low at his side. `side` 'r' (the right, as before) or 'l': the hand on
+   * the lens's side, so his body never stands between the lens and the item (issue #652).
    */
-  offerHand({ k, at }) {
-    const H = this.humanoid, B = H.b, U = this.frame.up;
-    if (!B.upperarm_r || !B.hand_r || !at) return;
+  offerHand({ k, at, side = 'r' }) {
+    const H = this.humanoid, B = H.b, U = this.frame.up, s = side === 'l' ? 'l' : 'r';
+    if (!B[`upperarm_${s}`] || !B[`hand_${s}`] || !at) return;
     const e = THREE.MathUtils.smoothstep(k, 0, 1);
     const fwd = this.frame.dir(this.heading, _g1), back = _g2.copy(fwd).negate();
-    const hand = B.hand_r.getWorldPosition(new THREE.Vector3()).lerp(at, e);
-    H.reach({ hands: [hand, null], wallN: back, up: U });
+    const hand = B[`hand_${s}`].getWorldPosition(new THREE.Vector3()).lerp(at, e);
+    H.reach({ hands: s === 'l' ? [null, hand] : [hand, null], wallN: back, up: U });
     // the palm turned up, the fingers on out along the forearm (set each frame: never left to the IK)
-    const along = B.hand_r.getWorldPosition(_g5).sub(B.lowerarm_r.getWorldPosition(_g6)).normalize();
-    H.turnHand?.('r', along, _g4.copy(U), e);
+    const along = B[`hand_${s}`].getWorldPosition(_g5).sub(B[`lowerarm_${s}`].getWorldPosition(_g6)).normalize();
+    H.turnHand?.(s, along, _g4.copy(U), e);
   }
 
   /** Gliding on the fluid wings: the arms open out and a little back under them, the lower one leading the turn. */

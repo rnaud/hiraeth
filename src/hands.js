@@ -161,8 +161,9 @@ export function handTargets(ctx = {}) {
   if (ctx.aim > 0) { over(r, 'fist', ctx.aim); over(l, 'cup', ctx.aim * 0.85); rate = Math.max(rate, HANDS.gripRate); }
   if (ctx.sword > 0) { over(r, 'fist', ctx.sword); rate = Math.max(rate, HANDS.gripRate); }
   if (ctx.shield > 0) { over(l, 'fist', ctx.shield); rate = Math.max(rate, HANDS.gripRate); }
-  // the right hand held out open, palm up, for what a chest gave to float over (Player.offer, src/boxes/scene.js; issue #223)
-  if (ctx.offer > 0) over(r, 'flat', ctx.offer);
+  // a hand held out open, palm up, for what a chest gave to float over (Player.offer, src/boxes/scene.js; issue #223): the
+  // right, or the left when the lens is on his left (issue #652)
+  if (ctx.offer > 0) over(ctx.offerSide === 'l' ? l : r, 'flat', ctx.offer);
   return { r: normalise(r), l: normalise(l), rate };
 }
 
@@ -417,7 +418,7 @@ export function playerHands(p) {
     : p.gliding ? 'glide' : p.onJets ?? p.thrusting ? 'jet' : !p.onGround && !p.overlay ? 'air' : 'ground';
   const U = p.frame?.up ?? _v.set(0, 1, 0);
   const speed = p.vel ? Math.sqrt(Math.max(0, p.vel.lengthSq() - p.vel.dot(U) ** 2)) : 0;
-  return { mode, ride: p.ride?.kind, speed, aim: p.aim?.k ?? 0, handoff: Math.max(p.handoffGrip?.() ?? 0, p.carrying ? Math.min(1, p.carrying.k ?? 0) : 0), sword: p.swordGrip ?? 0, shield: p.shieldGrip ?? 0, offer: p.offer?.k ?? 0 };   // (a thing carried: both hands grip it, src/carry.js)
+  return { mode, ride: p.ride?.kind, speed, aim: p.aim?.k ?? 0, handoff: Math.max(p.handoffGrip?.() ?? 0, p.carrying ? Math.min(1, p.carrying.k ?? 0) : 0), sword: p.swordGrip ?? 0, shield: p.shieldGrip ?? 0, offer: p.offer?.k ?? 0, offerSide: p.offer?.side ?? 'r' };   // (a thing carried: both hands grip it, src/carry.js)
 }
 
 /** Someone's hands (src/npc.js state, read only): a story person, or a crowd person's pooled body. */

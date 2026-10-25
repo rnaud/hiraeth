@@ -1349,6 +1349,121 @@ const RETROID536 = 'Retroid Pocket Nova (Adreno 740, Vulkan), Unity, Handheld (F
 const SRC536 = 'BridgeRenderer.Pipelines (the G-buffer’s states the scene asks for: variant, layout, cull, depth), Metal’s list traced in the editor, the shipped lists rewritten by scripts/bench/pso-one-cull.mjs; docs/systems/performance.md, “One cull mode and one layout for the Surface pipelines”';
 const SEAPORT572 = 'Issue #572: the web game in muted headless Chrome (High, 1280 × 720) on a Vite of its own (port 5441), a new save arriving by ship (?level=underwater&via=ship), then walked as a player; before: origin/main at 02345e2c3, after: this change; the deck and the Dock from the visual check’s views (scripts/design-qc/capture.mjs --fixed-scale); 20 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '2.28': [
+  {
+    "match": "The Hush-House has a new side room off the Choir",
+    "shots": [
+      {
+        "name": "clock-quick-room",
+        "only": "after",
+        "caption": "The Quick Room with its clock running: the lamps out from the eye’s end, still lit round the screen to the vault’s door — after only",
+        "from": "Muted headless Chrome (High, 1280 × 720, noon), scripts/design-qc/capture.mjs on a Vite of its own (port 5459: the brief's 5419 was held by another agent's Chrome), the issue #660 branch on 2026-10-25 (base 192353d4f plus this change), each world booted with a save holding the gun (and the fan, the bombs), the traveller placed in the room and the camera pinned. The clock was started through its piece (rt.piece(id).start()) and its run stretched to 60 s so the picture catches it part-drained; cwebp -q 72.",
+        "view": "Full frame. New rooms: before this change there was no doorway here, so no before picture is claimed. Staged states (clock started, tiles stepped through the piece), not a played run; sound is not in the picture.",
+        "size": [
+          1280,
+          720
+        ]
+      },
+      {
+        "name": "clock-quick-door",
+        "only": "after",
+        "caption": "The vault’s door held open, the bars beside it draining top down as the lamps run out — after only",
+        "from": "Muted headless Chrome (High, 1280 × 720, noon), scripts/design-qc/capture.mjs on a Vite of its own (port 5459: the brief's 5419 was held by another agent's Chrome), the issue #660 branch on 2026-10-25 (base 192353d4f plus this change), each world booted with a save holding the gun (and the fan, the bombs), the traveller placed in the room and the camera pinned. The clock was started through its piece (rt.piece(id).start()) and its run stretched to 60 s so the picture catches it part-drained; cwebp -q 72.",
+        "view": "Full frame. New rooms: before this change there was no doorway here, so no before picture is claimed. Staged states (clock started, tiles stepped through the piece), not a played run; sound is not in the picture.",
+        "size": [
+          1280,
+          720
+        ]
+      }
+    ]
+  },
+  {
+    "match": "The Warden’s Well has a Wind Clock",
+    "shots": [
+      {
+        "name": "clock-wind-glyphs",
+        "only": "after",
+        "caption": "The glyph tiles: two stepped in the panel’s order light up, and their signs on the panel with them — after only",
+        "from": "Muted headless Chrome (High, 1280 × 720, noon), scripts/design-qc/capture.mjs on a Vite of its own (port 5459: the brief's 5419 was held by another agent's Chrome), the issue #660 branch on 2026-10-25 (base 192353d4f plus this change), each world booted with a save holding the gun (and the fan, the bombs), the traveller placed in the room and the camera pinned. The clock was started through its piece (rt.piece(id).start()) and its run stretched to 60 s so the picture catches it part-drained; cwebp -q 72.",
+        "view": "Full frame. New rooms: before this change there was no doorway here, so no before picture is claimed. Staged states (clock started, tiles stepped through the piece), not a played run; sound is not in the picture.",
+        "size": [
+          1280,
+          720
+        ]
+      },
+      {
+        "name": "clock-wind-bridge",
+        "only": "after",
+        "caption": "The clock running: its lids open, the lamps along the lip half out, the bridge of light over the chasm — after only",
+        "from": "Muted headless Chrome (High, 1280 × 720, noon), scripts/design-qc/capture.mjs on a Vite of its own (port 5459: the brief's 5419 was held by another agent's Chrome), the issue #660 branch on 2026-10-25 (base 192353d4f plus this change), each world booted with a save holding the gun (and the fan, the bombs), the traveller placed in the room and the camera pinned. The clock was started through its piece (rt.piece(id).start()) and its run stretched to 60 s so the picture catches it part-drained; cwebp -q 72.",
+        "view": "Full frame. New rooms: before this change there was no doorway here, so no before picture is claimed. Staged states (clock started, tiles stepped through the piece), not a played run; sound is not in the picture.",
+        "size": [
+          1280,
+          720
+        ]
+      }
+    ]
+  },
+  {
+    "match": "The Engine-House has a Fuse Room",
+    "shots": [
+      {
+        "name": "clock-fuse-dark",
+        "only": "after",
+        "caption": "At rest: the tiles dead, the panel dark, the clock under its iron cross — after only",
+        "from": "Muted headless Chrome (High, 1280 × 720, noon), scripts/design-qc/capture.mjs on a Vite of its own (port 5459: the brief's 5419 was held by another agent's Chrome), the issue #660 branch on 2026-10-25 (base 192353d4f plus this change), each world booted with a save holding the gun (and the fan, the bombs), the traveller placed in the room and the camera pinned. The clock was started through its piece (rt.piece(id).start()) and its run stretched to 60 s so the picture catches it part-drained; cwebp -q 72.",
+        "view": "Full frame. New rooms: before this change there was no doorway here, so no before picture is claimed. Staged states (clock started, tiles stepped through the piece), not a played run; sound is not in the picture.",
+        "size": [
+          1280,
+          720
+        ]
+      },
+      {
+        "name": "clock-fuse-running",
+        "only": "after",
+        "caption": "A bomb has woken the clock: the panel shows the order, two tiles stepped, the lamps running to the panel — after only",
+        "from": "Muted headless Chrome (High, 1280 × 720, noon), scripts/design-qc/capture.mjs on a Vite of its own (port 5459: the brief's 5419 was held by another agent's Chrome), the issue #660 branch on 2026-10-25 (base 192353d4f plus this change), each world booted with a save holding the gun (and the fan, the bombs), the traveller placed in the room and the camera pinned. The clock was started through its piece (rt.piece(id).start()) and its run stretched to 60 s so the picture catches it part-drained; cwebp -q 72.",
+        "view": "Full frame. New rooms: before this change there was no doorway here, so no before picture is claimed. Staged states (clock started, tiles stepped through the piece), not a played run; sound is not in the picture.",
+        "size": [
+          1280,
+          720
+        ]
+      }
+    ]
+  },
+  {
+    "match": "When a chest opens, what it held floats",
+    "shots": [
+      {
+        "name": "chest-hand",
+        "caption": "The tether’s chest, its card up: before, the tether hangs behind his head over his right hand; after, it floats over his left hand, in view",
+        "from": "Issue #652: the cinematics QC (scripts/cinematics-qc.mjs --only box.spacecity.temple.tether, muted headless Chrome, High, 1280 × 720) on a Vite of its own (port 5420), the Mooring-House’s tether chest, which opens under the ‘left’ plan; frames taken during the card; before: 192353d4f, after: this change; 25 October; 960 px wide, cwebp -q 70",
+        "view": "The same box and camera plan in both; the frame closest to the card's settled hold in each run (7.3 s and 9.7 s after the scene started: the two runs' clocks differ). Nine rays from the lens to the item: 3–5 of 9 blocked by him before, 1 of 9 (his own hand under it) after.",
+        "size": [
+          960,
+          540
+        ]
+      }
+    ]
+  },
+  {
+    "match": "The last two house maps are on show",
+    "shots": [
+      {
+        "name": "incal-map",
+        "caption": "The City-Shaft’s Vane Room ledge from its door: before, a small chest in the far corner; after, raised on a plinth against the west wall, filling the band up to the floor’s cyan line, the ledge left clear",
+        "from": "Issue #630: the web game in muted headless Chrome (High, 1280 × 720, ?markReview=1 for the constructor mute) on a Vite of its own (port 5420); the traveller placed in the room by player.teleport at the same local spot and facing for both (staged access, not a walk through the house), the follow camera; before: 192353d4f, after: this change; 25 October; cwebp -q 72",
+        "view": "Staged at local (23.8, 0, 61) facing (22.6, 0, 72), the same in both. The plinth sits on a row of the hall’s 3.2 m plates along the ledge; across the ledge it fills the border band from the wall to the cyan inlay rather than a plate (the 4 m ledge has no plate centre the plinth fits on with room to pass)."
+      },
+      {
+        "name": "spacecity-map",
+        "caption": "The Mooring-House’s Lamp Shaft: before, a small chest on the teal border by the west wall; after, raised on a plinth in the middle of a plate of the floor’s fifth ring, square to the wall stone behind it",
+        "from": "Issue #630: the web game in muted headless Chrome (High, 1280 × 720, ?markReview=1 for the constructor mute) on a Vite of its own (port 5420); the traveller placed in the room by player.teleport at the same local spot and facing for both (staged access, not a walk through the house), the follow camera; before: 192353d4f, after: this change; 25 October; cwebp -q 72",
+        "view": "Staged at local (20.5, 0, 9.5) facing (14.5, 0, -2), the same in both. The ring’s plate phase is the GPU’s (a sin hash): read on this Mac’s GPU and checked from above; another GPU may turn the ring’s plates differently."
+      }
+    ]
+  }
+  ],
   '2.27': [
   {
     "match": "Some enemies now defend themselves",

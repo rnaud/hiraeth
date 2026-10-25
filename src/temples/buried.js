@@ -8,11 +8,12 @@ import { registerTarget } from '../targets.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
 import { glyphGeometry } from '../story/sign-text.js';
 import { TempleKit, ANTE, T, box, lathe, annulus } from './kit.js';
-import { Door, Plate, Ball, Switch, Bank, Platform, Bridge, Hammer, Mark, Pit, Key, BellEar, HookBell } from './pieces.js';
+import { Door, Plate, Ball, Switch, Bank, Platform, Bridge, Hammer, Mark, Pit, Key, BellEar, HookBell, Coffer } from './pieces.js';
 import { sentinelModel } from './guardians.js';
 import { chestMound } from '../boxes/mound.js';
 import { ARCHETYPES } from '../enemies/archetypes.js';
 import { engineHouseSkin } from './skins/engine-house.js';
+import { Clock, GlyphFloor } from './trials.js';
 
 // The Buried Machine's temple: the Engine-House, a drum of rust-red iron as
 // tall as the oculus, standing out of the dunes west of the domes, pipe
@@ -121,6 +122,8 @@ export const LOGIC = {
     boiler: { checkpoint: true, kind: 'combat' }, cell: { checkpoint: true, kind: 'puzzle' }, gov: { checkpoint: true, kind: 'puzzle' },
     weight: { checkpoint: true, kind: 'puzzle' }, crank: { checkpoint: true, kind: 'puzzle' }, furnace: { checkpoint: true, kind: 'puzzle' },
     furnaceFar: { checkpoint: true, kind: 'passage' }, hall: { boss: true, kind: 'guardian' }, out: { kind: 'passage' },
+    // (issue #660) the Fuse Room north off the Governor Room, and its vault: a side room, for a reward
+    fuse: { checkpoint: true, kind: 'puzzle' }, fuseIn: { kind: 'passage' },
   },
   links: [
     { a: 'threshold', b: 'pistons' },
@@ -136,6 +139,8 @@ export const LOGIC = {
     { a: 'furnace', b: 'furnaceFar', door: 'br1' },
     { a: 'furnaceFar', b: 'hall', door: 'd4' },
     { a: 'hall', b: 'out', door: 'd5' },
+    { a: 'gov', b: 'fuse' },                          // (issue #660) north off the Governor Room: the Fuse Room
+    { a: 'fuse', b: 'fuseIn', door: 'dV' },           // its vault, behind the door its glyph floor opens
   ],
   elements: {
     // the Engine Hall: the valve's eye, and a ball sitting in the engine's crank: shot and rolled out of the teeth (pY), it runs
@@ -206,8 +211,24 @@ export const LOGIC = {
     shaftLow: { type: 'plate' }, shaftUp: { type: 'plate' },
     // the house's map, in a little chest on the gallery (issue #405: src/house-map.js; nothing waits on it)
     map: { type: 'map', room: 'gallery', at: [10, 7, 79], yaw: Math.PI, display: { scale: 1.5, plinth: [1.8, .24, 1.6] } },
+    // (issue #660, optional: the marker never points at them) the Fuse Room: a bomb's blast wakes its clock, and only while
+    // it runs does its panel show the order and its tiles take; stepped in turn, the vault's door opens for good
+    tF: { type: 'timer', room: 'fuse', hold: 22, needs: ['bomb'], optional: true },
+    gF: { type: 'glyphs', room: 'fuse', when: { lit: 'tF' }, optional: true },
+    dV: { type: 'door', opens: { lit: 'gF' } },
+    cV: { type: 'cache', room: 'fuseIn' },
   },
 };
+
+/**
+ * (issue #660, the twist of the makers' clock and the glyph floor: docs/design/temple-puzzles.md) The Fuse Room, north
+ * off the Governor Room (local metres): its clock's eye under an iron cross only a bomb's blast wakes; five glyph tiles
+ * round its middle; the panel on its east wall dark until the clock runs, then lit with four of the tiles in turn, the
+ * lamps from the eye running to it. Read it and step them before the lamps go out (about 48 m of floor: under 9 s at a
+ * run, `hold` 22 s); out of time, the tiles go dark and the clock waits for another bomb. Done, the vault opens for good.
+ */
+export const FUSE = { x0: 26, x1: 60, z0: 120, z1: 154, eye: [43, 128.5],
+  tiles: [[35, 130, 'tri'], [51, 130, 'hex'], [35, 145, 'diamond'], [51, 145, 'ring'], [43, 140, 'square']], order: [3, 0, 4, 1] };
 
 export const TOOTH_WARDEN = {
   kind: 'robot', name: 'the Tooth-Warden', final: 'break', speed: 1.6, wakeTime: 2.8,
@@ -742,7 +763,7 @@ function layout(rt) {
   // cranks on the lower shaft, round its middle
   const GV = WING.gov, gx0 = GV.x - GV.w / 2, gx1 = GV.x + GV.w / 2, gz0 = GV.z - GV.d / 2, C = GV.z;
   K.corridor([CX0, C3 + CR + 0.7], [GV.x, gz0 - 0.6], 0, DOOR);
-  K.hall({ x: GV.x, z: C, w: GV.w, d: GV.d, y: 0, h: 18, roof: 'oculus', oculus: 0.25, doors: [{ side: 's', at: 0, ...DOOR }] });
+  K.hall({ x: GV.x, z: C, w: GV.w, d: GV.d, y: 0, h: 18, roof: 'oculus', oculus: 0.25, doors: [{ side: 's', at: 0, ...DOOR }, { side: 'n', at: FUSE.eye[0] - GV.x, ...DOOR }] });
   const [AX, ANZ] = WING.anvil, [Z0, Z1] = WING.groove.z, GX = WING.groove.x;
   K.add(band, box(GV.w, 0.5, 0.12, GV.x, 12, gz0 + 0.06)); rivets(gx0 + 0.4, gx1 - 0.4, 12.5, gz0 + 0.1); rivets(gx0 + 0.4, gx1 - 0.4, 11.5, gz0 + 0.1);
   K.both(M.dark, box(3.4, 0.3, 3.0, AX, 0.15, ANZ));
@@ -772,6 +793,32 @@ function layout(rt) {
   }
   add(Mark, { room: 'gov', at: [gx1 - 2.2, 0, C - 4.6], yaw: -Math.PI / 2 });
   add(PowerGauge, { shows: 'shaft', room: 'gov', at: [gx1 - 2.4, 0, C + 5.4] });
+
+  // ---- (issue #660) the Fuse Room, north off the Governor Room, and its vault (FUSE)
+  {
+    const F = FUSE, fx = (F.x0 + F.x1) / 2, fz = (F.z0 + F.z1) / 2, DX = F.eye[0];
+    K.corridor([DX, GV.z + GV.d / 2 + 1.2], [DX, F.z0 - 1.2], 0, DOOR);
+    K.hall({ x: fx, z: fz, w: F.x1 - F.x0, d: F.z1 - F.z0, y: 0, h: 18, roof: 'oculus', oculus: 0.25, doors: [{ side: 's', at: DX - fx, ...DOOR }, { side: 'n', at: DX - fx, ...DOOR }] });
+    K.hall({ x: DX, z: F.z1 + 1.2 + 6, w: 12, d: 12, y: 0, h: 10, roof: true, omit: ['s'], frieze: false });
+    K.add(band, box(F.x1 - F.x0, 0.5, 0.12, fx, 12, F.z0 + 0.06)); rivets(F.x0 + 0.4, F.x1 - 0.4, 12.5, F.z0 + 0.1);
+    add(Door, { id: 'dV', at: [DX, 0, F.z1 + 0.6], w: DOOR.w, h: DOOR.h, lamps: [{ lit: 'gF' }] });
+    const mx = F.x1 - 0.25, mz = fz, mw = 2.6 * F.order.length + 1.4;
+    add(GlyphFloor, { id: 'gF', at: F.tiles.map(([x, z]) => [x, 0, z]), glyphs: F.tiles.map((t) => t[2]), order: F.order,
+      mural: { at: [mx, 0, mz], yaw: -Math.PI / 2 }, muralWhen: { lit: 'tF' },
+      unmet: 'The tiles are dead. The clock by the south door wakes them, and the panel on the east wall with them.',
+      wrong: 'The tiles go dark: out of turn. The panel shows the order while the lamps run.',
+      done: 'The fourth tile takes, and the vault’s door in the north wall sinks.' });
+    add(Clock, { id: 'tF', at: [F.eye[0], 0, F.eye[1]], yaw: Math.PI, by: 'bomb', n: 20,
+      strip: [[F.eye[0] + 1.3, 0, F.eye[1]], [mx - 2.6, 0, F.eye[1]], [mx - 2.6, 0, mz]],
+      bars: [-1, 1].map((sd) => ({ at: [mx - 0.1, 0, mz + sd * (mw / 2 + 1.0)], yaw: -Math.PI / 2, h: 6 })),
+      wrong: 'It rings dull under its iron cross. It wants a blast.',
+      heard: 'The blast wakes the clock. The panel on the east wall lights: step the tiles in its order.',
+      faded: 'The lamps are out; the panel and the tiles go dark. Another bomb wakes the clock.' });
+    add(Mark, { room: 'fuse', at: [F.x0 + 4, 0, F.z0 + 5], yaw: Math.PI / 2 });
+    add(PowerGauge, { shows: 'shaft', room: 'fuse', at: [F.x0 + 2.4, 0, F.z0 + 10] });   // (the engine's power, shown in every room: issue #415)
+    add(PowerGauge, { shows: 'shaft', room: 'fuseIn', at: [DX - 4.4, 0, F.z1 + 1.2 + 10] });
+    add(Coffer, { id: 'cV', at: [DX, 0, F.z1 + 1.2 + 9], yaw: Math.PI });
+  }
 
   // ---- the upper floor: the corridor north off the gallery and the Crank Hall (UP): a walkway over a pit, the engine's
   // hammer slamming down on it while the upper shaft turns, its crank wheel in an iron casing west of the way. The ball
@@ -919,7 +966,7 @@ function layout(rt) {
     gadget: { at: W(CX0, 0.62, C3).toArray(), face: K.heading(-Math.PI / 2) },
     exits: [{ at: W(0, 0.5, 0.4), r: 1.5 }, { at: W(0, UP + 0.5, O1 - 0.4), r: 1.5 }],
     lights: [[0, 6, 6, 14], [0, 14, 26, 30], [0, 14, 56, 30], [-18, 13, 58, 18], [0, 13, 79, 20], [B.x, 10, B.z, 20], [CX0, 10, C3, 22], [GV.x, 10, GV.z, 20],
-      [0, UP + 5, CZ, 22], [0, UP + 6, AZ, 20], [0, UP - 3, (FL + FG) / 2, 30], [0, UP + 5, FG + 8, 24], [0, UP + 5, F0 + 6, 20], [0, UP + 7, CWZ, 30]],
+      [0, UP + 5, CZ, 22], [0, UP + 6, AZ, 20], [0, UP - 3, (FL + FG) / 2, 30], [0, UP + 5, FG + 8, 24], [0, UP + 5, F0 + 6, 20], [0, UP + 7, CWZ, 30], [FUSE.eye[0], 9, (FUSE.z0 + FUSE.z1) / 2, 24], [FUSE.eye[0], 5, FUSE.z1 + 7.2, 9]],
     guardian: { def: { ...TOOTH_WARDEN, onHit: wardenHit, openFor: wardenOpenFor }, model, arena },
   };
 }

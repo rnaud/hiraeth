@@ -82,6 +82,12 @@ export const BOX_PLANS = {
   side: { A: (k, l) => [3.3 * k, 0.75 + 0.3 * l, STAND_AT * 0.45], fovA: 44, B: (k) => [0.55, 1.5, -1.9 * k], fovB: 40 },
   high: { A: (k, l) => [1.1 * k, 2.9 + 0.2 * l, STAND_AT + 1.9 * k], fovA: 48, B: (k) => [1.25 * k, 1.45, STAND_AT + 0.9 * k], fovB: 44 },
 };
+/**
+ * Which hand he holds the item out in for a plan (issue #652): the one on the side its reveal lens (B) stands. Held in his
+ * right under a lens over his left shoulder ('left'), his body hid the item through the whole card: the hand on the
+ * lens's side keeps it in sight.
+ */
+export function offerSide(name) { return (BOX_PLANS[name] ?? BOX_PLANS.shoulder).B(1)[0] < 0 ? 'l' : 'r'; }
 /** The plan for a box: the first box keeps 'shoulder'; the others by a stable hash of the box's id. */
 export function boxPlan(id = '') {
   if (!id || id === 'desert.backpack') return 'shoulder';
@@ -176,6 +182,7 @@ export class BoxScene {
     // (?boxPlan=<name> forces a plan: the cinematics QC sees every plan with every closing beat)
     const forced = typeof location !== 'undefined' ? new URLSearchParams(location.search ?? '').get('boxPlan') : null;
     this.plan = BOX_PLANS[forced] ? forced : this.clearPlan(boxPlan(b.id));
+    this.hand = offerSide(this.plan);
     // the closing beat for what it holds, and the timings it asks for (beats.js)
     this.beat = beatFor(this.item, this.def);
     const tm = timingFor(this.plan, this.beat, { times: TIMES, wobbles: WOBBLES });
@@ -637,12 +644,12 @@ export class BoxScene {
   /** Just clear of the open chest's rim, over its middle: where the item has risen to as it opens. */
   overRim(out = new THREE.Vector3()) { return this.P(0, this.H * BOX_SCALE + 0.3, 0, out); }
 
-  /** Where his open hand is held out to (world): HAND.at, before him on his right. */
-  handTarget(out = new THREE.Vector3()) { const r = this.near(...HAND.at); return this.P(r[0], r[1], r[2], out); }
+  /** Where his open hand is held out to (world): HAND.at, before him on his right (on his left for a lens on his left). */
+  handTarget(out = new THREE.Vector3()) { const r = this.near(HAND.at[0] * (this.hand === 'l' ? -1 : 1), HAND.at[1], HAND.at[2]); return this.P(r[0], r[1], r[2], out); }
 
   /** Where the item floats over his open hand: over his palm as posed, else over where it is held out to. */
   handAt(out = new THREE.Vector3()) {
-    const hand = this.player?.humanoid?.b?.hand_r;
+    const hand = this.player?.humanoid?.b?.[this.hand === 'l' ? 'hand_l' : 'hand_r'];
     if (hand && this.player.object?.visible !== false && (this.offerK ?? 0) > 0.5) {
       hand.getWorldPosition(out);
       // (the palm's middle, a little out along the fingers from the wrist: toward where the hand is held out)
@@ -653,7 +660,7 @@ export class BoxScene {
   }
 
   /**
-   * His right hand, held out palm up for the item (Player.offer: src/player.js poses the arm, src/hands.js opens the
+   * His hand (the right, or the left under a lens on his left), held out palm up for the item (Player.offer: src/player.js poses the arm, src/hands.js opens the
    * hand): up through the reveal, held through the card, let go as the closing beat takes the item.
    */
   offerFrame(t, T) {
@@ -663,7 +670,7 @@ export class BoxScene {
     const k = ph === 'reveal' ? smooth(t / (T.reveal * 0.7)) : ph === 'card' ? 1 : ph === 'beat' ? 1 - smooth(t / 0.45) : 0;
     this.offerK = k;
     if (k <= 0.001) { if (P.offer) P.offer = null; return; }
-    P.offer = { k, at: this.handTarget(P.offer?.at ?? new THREE.Vector3()) };
+    P.offer = { k, at: this.handTarget(P.offer?.at ?? new THREE.Vector3()), side: this.hand ?? 'r' };
   }
 
   /** Seconds since a phase began (counting the phases after it), for the camera pushes. */

@@ -1887,6 +1887,24 @@ export class Sound {
   templeDoorUpdate(piece) { this._templeAudio?.update(piece); }
   templeLocked() { return templeAudio(this).cue('temple-locked', 1.5); }
   templeMechanism() { return templeAudio(this).cue('temple-mechanism', .3); }
+  /**
+   * A makers' clock running down (src/temples/trials.js Clock, issue #660): 'tick' and 'tock' each second, a brass click
+   * over a small wooden knock; 'urgent' in its last seconds, higher and doubled; 'out' when it stops, a falling clack.
+   */
+  templeTick(kind = 'tick', vol = 1) {
+    if (!this.ctx || this.muted) return;
+    const t = this.ctx.currentTime, v = Math.max(0, Math.min(1, vol));
+    if (kind === 'out') {
+      this.burst(t, { dur: 0.09, type: 'bandpass', freq: 1500, q: 5, vol: 0.32 * v });
+      this.sweep(t, 520, 180, 0.32, 0.07 * v, 'triangle');
+      this.sweep(t + 0.12, 390, 130, 0.35, 0.05 * v, 'triangle');
+      return;
+    }
+    const hi = kind === 'urgent' ? 1.35 : kind === 'tock' ? 0.82 : 1;
+    this.burst(t, { dur: 0.03, type: 'bandpass', freq: 3100 * hi, q: 7, vol: 0.26 * v });
+    this.sweep(t, 1180 * hi, 1100 * hi, 0.07, 0.045 * v, 'triangle');
+    if (kind === 'urgent') { this.burst(t + 0.11, { dur: 0.03, type: 'bandpass', freq: 3600, q: 7, vol: 0.2 * v }); this.sweep(t + 0.11, 1700, 1600, 0.06, 0.04 * v, 'triangle'); }
+  }
   hologramOn({ ui = false } = {}) { return nextActionAudio(this).cue('hologram-crt', { gap: 2.5, ui }); }
   hologramOff() {
     const cues = this._nextActionAudio?.cues;

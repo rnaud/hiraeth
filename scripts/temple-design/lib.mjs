@@ -50,6 +50,7 @@ export function conditionKeys(c, out = []) {
   if (c.open) out.push({ id: c.open, how: 'open' });
   if (c.resolved) out.push({ id: 'boss', how: 'resolved' });
   if (c.gadget) out.push({ id: 'gadget', how: 'gadget' });
+  if (c.found) out.push({ id: c.found, how: 'found' });   // (a reward had: a side room's timed door left open, issue #660)
   return out;
 }
 /** The rooms a house-wide state is set from besides its own (logic.js `rooms`, issue #408): [{ room, needs }]. */
@@ -73,7 +74,7 @@ export const TRAVERSAL = { Platform: 'ride', Updraft: 'updraft', Gust: 'gust', S
 /** Tags that qualify a verb rather than add one: a reveal (lens, lantern), a volley (eyes inside one breath), a
  * timed hold (a held bell: what it opens stays only while it rings), a key carried to its lock (the challenge is
  * what guards the key: its `when`). */
-export const MODIFIERS = ['reveal', 'volley', 'timed', 'key'];
+export const MODIFIERS = ['reveal', 'volley', 'timed', 'key', 'clock'];
 const baseOf = (mechs) => mechs.filter((m) => !MODIFIERS.includes(m));
 /** A gadget item's verb, for the reports. */
 export const GADGET_VERB = { sword: 'blade (cut, strike)', shield: 'guard', fire: 'ember', jetpack: 'jets', wardenbellows: 'bellows (a steady wash)', glider: 'wings', bell: 'bell', cell: 'fourth unit (volley)', 'magic:4': 'fourth unit (volley)', lens: 'lens (reveal)', lantern: 'lantern (reveal)', stun: 'stilling', coil: 'quick coil (volley)', bloom: 'bloom', echo: 'echo shell', tongs: 'founders’ tongs (heavy push)', tether: 'tether (pull)', horn: 'whale-horn (deep note)' };
@@ -97,11 +98,14 @@ export function mechanicOf(id, el, { elements = {}, piece = null } = {}) {
   else if (el.type === 'brazier' || el.type === 'bramble') { if (!item) tags.push('ember'); }
   else if (el.type === 'bell' && !item) tags.push('bell');
   else if (el.type === 'vane' && !item) tags.push('shot');
+  else if (el.type === 'timer' && !item) tags.push('shot');   // (a makers' clock, woken by a hit: issue #660; `hold` makes it timed below)
+  else if (el.type === 'glyphs') tags.push('sequence');       // (glyph tiles stepped in a panel's order: issue #660)
   else if (el.type === 'key') tags.push('key');
   else if (el.type === 'weight') tags.push('carry');   // (a block carried onto its plate, issue #337; a key of a lock when a `when` wants it there, #411)
   else if (el.type === 'arena') tags.push('fight');   // (a room that shuts behind you until its foes are beaten)   // (a splash spins a small vane; a great one wants the bellows' wash: its item)
   if (piece?.o?.hidden) tags.push('reveal');
   if (el.hold || el.type === 'vane') tags.push('timed');
+  if (el.type === 'timer') tags.push('clock');   // (a makers' clock: a run against its lamps, issue #660)
   // `when` a condition holds (an eye that wakes only in the sun a ball's louvre lets in): that condition's verbs too
   for (const k of conditionKeys(el.when)) {
     if (k.how === 'drumOn') tags.push(elements[k.id]?.verb ?? 'push');
@@ -443,7 +447,8 @@ function thirds(ys) {
 /**
  * The temple's shape as a string, one letter a step: B a lock with only the base verbs (push, shot,
  * weight), C the chest's room, G a lock the gadget opens alone, X a lock that combines verbs, R a reveal,
- * T a traversal the gadget makes, L a lock a key from elsewhere opens, A an arena's way out, K the guardian.
+ * T a traversal the gadget makes, L a lock a key from elsewhere opens, A an arena's way out, K the guardian, Q a run
+ * against a makers' clock (issue #660: what it opens stands only while the clock's lamps last).
  */
 export function skeleton(g) {
   let s = '';
@@ -462,6 +467,7 @@ export function skeleton(g) {
     if (l.type === 'traverse') s += 'T';
     else if (l.keys.some((k) => k.how === 'key')) s += 'L';
     else if (l.mechanics.includes('fight')) s += 'A';
+    else if (l.mechanics.includes('clock')) s += 'Q';
     else if (base.length >= 2) s += 'X';
     else if (l.mechanics.includes('reveal')) s += 'R';
     else if (gk && l.mechanics.includes(gk)) s += 'G';

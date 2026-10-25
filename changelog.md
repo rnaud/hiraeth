@@ -2,6 +2,14 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v2.28 — 2026-10-25
+
+- The last two house maps are on show like the others: bigger, on a low plinth, their backs to the wall and their openings toward the room. In the City-Shaft’s Vane Room it stands against the wall of the ledge, north of the door, leaving the ledge clear; in the Mooring-House’s Lamp Shaft it stands on a floor plate by the wall, left of the way in.
+- When a chest opens, what it held floats over your open hand again where you can see it. From some angles your own body hid it through the whole card; now you hold it out in the hand on the camera’s side.
+- The Engine-House has a Fuse Room north of the Governor Room: a bomb wakes its clock, and only while the clock runs does the wall panel show which floor tiles to step, and in what order. Out of time, the tiles go dark and you can start again.
+- The Warden’s Well has a Wind Clock east off the gallery: step the glyph tiles in the order the wall panel shows, then gust the clock with the fan and run, and a bridge of light crosses the chasm while its lamps last. It never sinks under your feet.
+- The Hush-House has a new side room off the Choir’s floor: splash the eye on its pedestal and the lamps set in the floor light the way round a stone screen to a vault door, then go out one by one from the eye, ticking faster near the end. Reach the door before they do; miss it and just splash the eye again.
+
 ## v2.27 — 2026-10-25
 
 - Four makers’ houses now give a spell when their guardian is resolved: the Aerie a gold ward that takes two blows, the Whale-House a slow tide that slows foes inside it, the Engine-House shards that circle you and cut, the Mooring-House a veil that makes foes lose you. Press LB / L1 + RB / R1 together (Y on the keyboard, ✺ on touch) to cast; it recovers in 30 seconds, shown by the chip under the gadget’s. Choose your spell in Items. Saves that already resolved those houses have their spells.

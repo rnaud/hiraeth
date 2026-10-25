@@ -1212,6 +1212,13 @@ test('every temple key is in a little makers\' chest, on flat floor, with room b
         const lz = Math.sin(k.yaw) * dx + Math.cos(k.yaw) * dz;
         const onPlinth = display && Math.abs(lx) < display.plinth[0] / 2 && Math.abs(lz) < display.plinth[2] / 2;
         const expectedY = onPlinth ? k.pos.y : floorY;
+        // (a map display set back against its wall, issue #630's Vane Room ledge: behind its plinth's back edge the wall
+        // itself, solid from the plinth to the point, stands where the floor would)
+        if (display && lz < -display.plinth[2] / 2 && !Number.isFinite(g)) {
+          const from = new THREE.Vector3(k.pos.x, floorY + 0.5, k.pos.z), to = new THREE.Vector3(x, floorY + 0.5, z), d = from.distanceTo(to);
+          assert.ok(w.physics.rayDistance(from, to.sub(from).divideScalar(d), d) < d, `${at}: a wall behind it at ${r} m, not a hole`);
+          continue;
+        }
         assert.ok(Number.isFinite(g) && Math.abs(g - expectedY) < 0.08, `${at}: supported floor ${r} m round it (${Number.isFinite(g) ? (g - expectedY).toFixed(2) : 'none'})`);
       }
       // room to stand before it, where its front faces

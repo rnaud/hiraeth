@@ -2205,6 +2205,39 @@ and its guardian answering that gadget's verb; the topical thing went to the mak
 - The backpack's third stage (`BACKPACK_STAGES`, the tank's look) is the gust fan, the Warden's Well's gift now; the
   bellows, in Lorn's court earlier on the route, are no stage.
 
+## The makers' trials: the clock and the glyph floor (issue #660, `src/temples/trials.js`)
+
+Two pieces for timed and ordered puzzles (the research and the three rooms: `docs/design/temple-puzzles.md`):
+
+- **`Clock`**: an eye on a pedestal of the house's trim. A hit wakes it (`by`: any splash; `'gust'` only the fan's wind,
+  little vanes round the eye; `'bomb'` only a blast, an iron cross over it); `lids: true` shuts stone lids over it while
+  its element's `when` fails. Its element is a **`timer`** (`logic.js`): `{ type: 'timer', room, hold, needs?, when? }`,
+  lit only while it runs (held, as a bell with `hold`): nothing saved, so a reload, a fall or a walk away leaves it simply
+  still. Woken again while it runs, it starts over; lit from outside (a test, the solver), it runs a full `hold`. The
+  countdown is in the room: `strip` (a polyline on the floor from the eye to what it holds) carries `n` lamps in a dark
+  channel, lit from the far end back as far as the time left reaches (`lampLit`: the eye's end goes out first); `bars`
+  (upright lamp strips by a door) drain top down; `Sound.templeTick` ticks and tocks each second, a higher doubled tick
+  and a blink in the last `CLOCK.urgent` s, and `'out'` (a falling clack) when it stops. At rest a faint pulse runs along
+  the strip toward the goal. Says `heard` once when it first runs, `faded` once when it first stops, `wrong` for a hit
+  that doesn't wake it, `unmet` while its `when` fails.
+- **`GlyphFloor`**: tiles (low trim drums, a glyph inlaid: `GLYPHS` ring, tri, square, diamond, hex) and a panel on a
+  wall showing `order` (tile indices) in turn with one to four pips under each. Stepping on a tile (the traveller on the
+  ground over it: `standing`, `step`): the next in turn lights it (dim to the house's lamp colour) and its sign on the
+  panel; one already stepped changes nothing; one out of turn puts the steps out (the first of the order starts it again).
+  The last lights its element, a **`glyphs`** (`{ type: 'glyphs', room, when? }`, latched, saved). With a `when` (a
+  clock's run) the tiles take only while it holds, and its steps go out if it lets go mid-way; `muralWhen` shows the
+  panel's glyphs only while a condition holds (the Engine-House's: only while the clock runs).
+- **Fair.** A door a clock holds waits while you stand in its doorway (`Door.inDoorway`); a bridge from below waits while
+  you stand on it (`Bridge.ridden`). A side room's door or bridge opens on `{ any: [{ lit: timer }, { found: coffer }] }`:
+  once its coffer is had (`{ found }`, a new condition) it stands for good, so nobody is shut in a vault.
+- **Optional.** Side rooms' elements carry `optional: true`: `logic.next()` skips them (the quest marker and the drone's
+  scout never point at them), `solve()` still does them, so the completion tests reach them. The audit counts a run
+  against a clock as its own skeleton letter, `Q` (`scripts/temple-design/lib.mjs`).
+- **Where.** The Hush-House's Quick Room (`QUICK`, off the Choir, before the chest: a splash, 9 s), the Warden's Well's
+  Wind Clock (`WIND_CLOCK`, off the gallery: the glyphs lift the lids, the fan's gust, a bridge of light over 18 m, 6 s),
+  the Engine-House's Fuse Room (`FUSE`, off the Governor Room: a bomb, the panel lit only while the clock runs, 22 s).
+  Tests: `tests/temple-trials.test.js` (the pieces driven in node, the rooms solved, the rules kept).
+
 ## The house's map (issue #405, recommendation G5; `src/house-map.js`, `src/temples/house-plan.js`)
 
 A little chest in every makers' house holds its map. Its element is `map: { type: 'map', room, at, yaw }` at the end
@@ -3297,3 +3330,24 @@ Choir movement is a partial roomward approach, not a passage behind the crystal
 or around the whole display. Access was staged; these checks do not establish
 whole-temple progression or continuous swept clearance. Tests use actual map
 definitions, skin-grid phase, wall-facing direction and nearby obstacle bounds.
+
+### Vane Room and Lamp Shaft map displays
+
+The last two of the fourteen (issue #630), the same 1.5-scale chest on the 1.8 × 0.24 × 1.6 m plinth.
+
+- **City-Shaft, Vane Room** (`MAP_LEDGE` in `src/temples/incal.js`): its near ledge is 4 m from the west wall to the
+  chasm, and no 3.2 m plate centre takes the plinth there (21.6 puts it in the wall, 24.8 over the chasm); on the seam at
+  23.2 it straddled the floor's cyan inlay and left 1 m to the chasm. So the plinth fills the floor's border band, wall
+  (x 21) to inlay (x 22.6), its back to the west wall, its opening toward the room, centred on a row of the hall's plates
+  along the ledge (`WING.z` + 3.5 plates), 11.2 m north of the door (more than 5 m off the way to the pier). The 2.4 m of ledge before it stays clear to the chasm.
+  Across the ledge this is the floor's border, not a plate: exact plate alignment gave way to walking room.
+- **Mooring-House, Lamp Shaft** (`MAP_PLATE` in `src/temples/spacecity.js`): the floor is plates in rings 2.6 m apart
+  round the room's middle, each ring turned by a hash (`mhH(k, 2)`) the GPU computes with its own sin, so the CPU's value
+  (0.857 for the fifth ring) is not what is drawn. The phase used, 0.173, was read on this Mac's GPU (a one-pixel shader
+  with the skin's own hash) and checked from above in the game: the plinth sits in the middle of plate 2 of the fifth
+  ring's 34, inside the teal border, 1.9 m from the wall, its back square to wall stone 26 of 39 (0.75° off the plate's
+  radial). Another GPU may turn that ring differently: there the plinth still sits on the ring, square to its stone.
+
+Tests (`tests/map-display.test.js`) read the definitions, the skins' sizes and the rooms. Pictures in v2.27 are staged
+(the traveller placed in the room), with an ordinary open by the interact key; no Unity run.
+
