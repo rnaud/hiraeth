@@ -170,7 +170,7 @@ Why: the worlds' own tests all passed while nothing played the game from start t
 of reordering (the route, the opening conversations, the wings before the jets, the cab pass, Vael's bird
 behind her call, the boxes silent before the first). It found the bug below on its first run.
 
-**In node** (`tests/playthrough.test.js`, about 40 s). A new game, then the route in its order (desert,
+**In node** (`tests/playthrough.test.js`, about a minute). A new game, then the route in its order (desert,
 Vael, Vael II, Lorn, Lorn II, Viridel, City-Shaft, Sealed Hangar, Buried Machine, Garden of Spheres,
 Signal Market), then home. One game state is carried from world to world, as the save is. Each world is
 built as `main.js` builds it, minus the drawing: the level and its temple, real collision, its people, the
@@ -239,15 +239,80 @@ It passed 40 of 40 on October 11, 2026 (the desert's opening still finds Marrow 
 
 **What it does not do.** It teleports between objectives once it has found a walk (or a declared way),
 so it does not run the traveller's own movement except where a way is tried for real; the Hangar's
-turned gravity is not walked. It plays the route's quests, not every side quest, and the temples only as
-far as the route needs (the wings, the jets). Its choices in a conversation are a search over the data,
-not a player's.
+turned gravity is not walked. It plays the route's quests, not every side quest. Every temple is played to its
+guardian (since issue #670: the route's own, then the rest of the world's temples after its route), through the
+temple's logic rather than by real hits. Its choices in a conversation are a search over the data, not a player's.
 
 **Found so far** (October 2026): arriving with the last world's errand still under way and tracked, Vael
 II, Lorn, Viridel, the Hangar, the Garden and the market had no objective until their first talk:
 `quests.tracked()` returned a quest that world doesn't have (fixed; `tests/dialogue.test.js`).
 Lou, at home, starts her talk herself when she runs to meet you (`KNOWN`: intentional, the author's decision). The
 City-Shaft's first find was only reachable on wings or by climbing: the red stair now leads down to it.
+
+## Completion coverage (issue #670)
+
+Can the game be finished from a new game? Yes, and the daily run proves it again each night. This section says
+what "finished" means, what plays it, and what is real, shortcut or not tested.
+
+**What finishing takes, derived from the game's data** (`tests/completion-spec.js`; print it with
+`node scripts/completion-spec.mjs`, or `--json`). Nothing in it is copied by hand. It reads the route (`ORDER`)
+and when each world is charted (`knownWorlds`, run as is). It reads every world's temples, each temple's gadget
+and guardian, and the items its rooms ask for (the logic's `needs`), with the world where each item is first had
+(`PLACEMENTS`). It reads the ship's core gadgets (`leave-gate.js CORE`) and the ending's chain (`ending.js`:
+home charted after `ENDING_WORLDS` worlds and the "come home" call, the first homecoming `ending.done`, the
+Lantern charted once the Signal Market is heard, `finale.met`, the true ending `ending.final`). It also works out
+the fewest worlds the true ending needs: 11 of 12, because the market is charted only once ten worlds are done
+(`AHEAD` 2). `tests/completion.test.js` (cheap, on every commit it reaches) fails if the data asks for an item
+before its world gives it, if an item no box holds is asked for, if a world is never charted, if a core gadget
+is outside its world, or if the ending chain breaks. It also checks that the play-through route covers every
+world in order and that the daily job below keeps running.
+
+**Who plays it**
+
+| Requirement | Test | Real | Shortcut or separate |
+|---|---|---|---|
+| Every world's main quest, in route order, from a new game | `tests/playthrough.test.js` | levels, collision, people, story runtime, conversations, boxes, ship's voicemail and map | he is placed at each objective once a walk or declared way is found; the pirates' fight is marked won |
+| Every temple to its guardian, with items earned on the route | `tests/playthrough.test.js` (route steps, then any temple of the world not done) | the temple's own logic and runtime in its world; doors, keys, chests and weights picked up | latches, balls and plates set through the logic where he stands; arena foes counted beaten; guardian resolved |
+| Every temple physically, piece by piece | `tests/temple-playthrough.test.js` | balls rolled by real hits, timers, weights carried, plates stood on | items injected per house (`CARRY`); some vanes, songs and one-breath sequences done through logic and counted |
+| Every guardian fight | `tests/guardian-completable.test.js` | scripted fights at 60 and 30 fps from three stances | isolated arena, items injected |
+| Save and load across every world and both homecomings | `tests/playthrough.test.js` | the save is written through the game's storage (`src/save-slots.js`, memory `localStorage`), read back with `game.reload` and `migrateSave`, and play continues from that copy | the quest journal is the agent's memory journal |
+| Old saves resume and finish their world | `tests/playthrough-saves.test.js` | real migrations | as above |
+| Ending: first homecoming, Lantern, true ending | `tests/playthrough.test.js` (`HomecomingDirector` to the credits) and the browser pass | directors and flags | browser: from the market's debug save (route before it injected) |
+| Page-only parts: title, prologue, Continue, map, takeoff, arrival, save and load, ending, no page error | `scripts/playthrough-browser.mjs` | the built page in headless Chrome, muted | teleports to objectives; Ilen's talk end set as its node sets it; the pirates' win set |
+
+The completion test in `tests/playthrough.test.js` checks the spec against what was played: every
+`world.<id>.done`, every `temple.<id>.done`, every core gadget, `ending.done`, `finale.met` and `ending.final`.
+
+**Evidence and diagnosis.** `tests/playthrough.test.js` always writes `playthrough-evidence.json` to
+`$PLAYTHROUGH_OUT` (default `<tmp>/hiraeth-playthrough`). Per world it records what was played, which step
+first set `world.<id>.done`, each temple's state and the save round trip (size, same or not). It also records
+the ending's stages, the completion check, the revision, and a `methods` block that names the shortcuts. Every
+issue carries its step and a full state dump: every flag, the items carried and the keepsakes. A failing
+report prints the file's path and the step of each issue. The browser pass writes `results.json` to its
+`--out` folder: every check, page errors, and the page's level, cinematic and flags where it stopped. Its
+screenshots go there too. It also checks by shape what the built game's minified class names hide.
+
+**Daily** (`.github/workflows/nightly-tests.yml`, job `completion`, about 5 minutes). It runs
+`tests/completion.test.js` and `tests/playthrough.test.js` with their evidence, builds the game, and runs the
+browser pass against `vite preview`. It uploads `completion-evidence/` (node and browser) as an artifact, pass
+or fail. The node tests also run in the full gameplay suite and whenever a commit reaches them. The browser pass
+runs only daily or by hand.
+
+**Platforms.** Node runs the game's own modules: the same code the web page runs and the Unity port bundles
+through `engine/`. Chrome runs the built web game headless (SwiftShader WebGL, desktop window). Not covered by a
+completion run: the Unity build (only temple endings are checked in its V8 bundle, `tests/engine-temple-finale.test.js`),
+Android/Capacitor, the Steam Deck and Xbox builds, real GPUs, game pads and touch, and audio. A device or Unity
+completion pass is still manual.
+
+**Findings.** Played through this way (2026-10-25), no progression bug turned up. Every temple, the Aerie and the
+Warden's Well included, reaches its guardian with what the route has earned. The route needs those two only to
+their chests. In four worlds the world is done only once its temple is: the Underwater City, the Glass Dunes, the
+Moon Foundry and the City Floating in Space (`doneAfter` in the evidence). The agent had no spot for the Warden's
+Well's crown ring, which hangs 8 m up and is hooked from the floor. It now stands where the ring's `from` says.
+The save read back after the first world differed only by the migration marks a page sets when it boots, so the
+run now boots its new game the same way. (#628's question, "can every temple be played to completion?": yes, in
+node, by its logic with earned items, and piece by piece with injected items. The guardians are fought
+separately. Neither of these is a device or Unity walkthrough.)
 
 ### Recorded sound decoder on test hosts (#622)
 

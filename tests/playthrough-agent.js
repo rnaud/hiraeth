@@ -628,7 +628,8 @@ export async function templeTo(W, until, issue, { nextSpot, id = null }) {
     // (an eye shot from across a pool, high over the water behind a glass wall: from the floor in sight of it)
     const s = (at ? standNear(W, at, { radius: 4, up: 3.5 }) : null) ?? (plateAt ? standNear(W, plateAt, { radius: 4, up: 3.5 }) : null)
       ?? (at && (e.type === 'switch' || e.type === 'vane') ? standNear(W, at, { radius: 12, up: 8 }) : null)   // (a vane splashed from across a chasm, the Warden's Well's Vane Room)
-      ?? (at && T.piece(id)?.setters ? standNear(W, at, { radius: 12, up: 8 }) : null);   // (a house's state set with the hook at a bell's ring over a chasm, the Founders' Belfry's, issue #408)
+      ?? (at && T.piece(id)?.setters ? standNear(W, at, { radius: 12, up: 8 }) : null)   // (a house's state set with the hook at a bell's ring over a chasm, the Founders' Belfry's, issue #408)
+      ?? (T.piece(id)?.o?.from && T.kit ? standNear(W, T.kit.world(...T.piece(id).o.from), { radius: 3, up: 3 }) : null);   // (a ring hung high, hooked from where it says: the Warden's Well's crown ring, issue #413)
     if (!s && e.type !== 'boss') issue('no-ground', `${T.def.name}: ${e.type} ${id} (${fmt(at)}) has nowhere to stand by it`);
     if (s) { W.at(s); W.step(2); }
     if (e.type === 'gadget' || e.type === 'find') {

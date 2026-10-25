@@ -30,3 +30,34 @@ jobs:
       - run: node --test tests/nightly/*.test.js
       - name: Steam Deck installer and updater tests
         run: python3 -m unittest discover -s tests -p 'test_*.py' -v
+  # The completion evidence (issue #670, docs/systems/testing.md "Completion coverage"): the node play-through from a new
+  # game to the true ending with its evidence file, and the browser play-through (new game, old save, save and load, the
+  # ending) against the built game in a muted headless Chrome. Both upload what they found, passing or failing.
+  completion:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Node play-through, new game to the true ending
+        env:
+          PLAYTHROUGH_OUT: completion-evidence/node
+        run: node --test tests/completion.test.js tests/playthrough.test.js
+      - if: success() || failure()
+        run: npx vite build
+      - name: Browser play-through against the built game
+        if: success() || failure()
+        run: |
+          npx vite preview --port 6101 --strictPort --host 127.0.0.1 &
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:6101/ >/dev/null && break; sleep 1; done
+          node scripts/playthrough-browser.mjs --url http://127.0.0.1:6101/ --port 6101 --out completion-evidence/browser
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: completion-evidence
+          path: completion-evidence
+          retention-days: 14

@@ -23,7 +23,7 @@
 // It starts its own vite dev server on --port unless --url is given (CI: `npx vite preview --port …`
 // after a build, then --url). Chrome: $CHROME, or the usual install path. Sound: --mute-audio, and the
 // game's own volumes at 0. Exits 1 if a check fails; screenshots go to --out.
-import { spawn } from 'node:child_process';
+import { spawn, execSync } from 'node:child_process';
 import { mkdirSync, writeFileSync, rmSync, existsSync } from 'node:fs';
 import { tempDir, ownProcess } from './temp-dirs.mjs';
 import { tmpdir } from 'node:os';
@@ -68,6 +68,7 @@ const shot = async (name) => {
   return f;
 };
 const results = [], pageErrors = [];
+let stoppedState = null;
 const check = (ok, text) => { results.push({ ok: !!ok, text }); console.log(`${ok ? '  ok  ' : '  FAIL'} ${text}`); };
 const key = async (code, type = 'keyDown') => send('Input.dispatchKeyEvent', { type, code, key: code === 'Escape' ? 'Escape' : code.replace(/^Key/, '').toLowerCase(), windowsVirtualKeyCode: code === 'Escape' ? 27 : 0 });
 
@@ -182,7 +183,9 @@ try {
   await until(`location.search.includes('level=arzach')`, 120, 'the landing in Vael');
   await inGame();
   check(await ev(`window.ship.levelId === 'arzach' && window.ship.playing`), 'arriving in Vael by ship');
-  const arrival = await ev(`window.ship.cinematic?.constructor?.name ?? null`);
+  // (by its name on a dev server; the built game's class names are minified, so there by its shape: a ship sequence of
+  // steps, src/ship/cinematics.js Sequence, which the crash, PrologueDirector, is not, and not a recording's CallDirector)
+  const arrival = await ev(`(() => { const c = window.ship.cinematic; return !c ? null : c.constructor?.name === 'ArrivalDirector' || (Array.isArray(c.steps) && !('call' in c)) ? 'ArrivalDirector' : c.constructor?.name ?? '?'; })()`);
   check(arrival === 'ArrivalDirector', `a landing, not a crash (${arrival})`);
   await sleep(2500);
   await shot('arrival');
@@ -254,7 +257,7 @@ try {
   // home, with her: the true ending
   await send('Page.navigate', { url: `${URL_}?level=home&via=ship` });
   await inGame();
-  await until(`window.ship.cinematic?.constructor?.name === 'HomecomingDirector'`, 60, 'the homecoming');
+  await until(`(() => { const c = window.ship.cinematic; return !!c && (c.constructor?.name === 'HomecomingDirector' || ('final' in c && 'kind' in c && typeof c.choose === 'function')); })()`, 60, 'the homecoming');
   check(await ev(`window.ship.cinematic.final === true`), 'the true ending plays');
   const skip = () => ev(`(window.ship.cinematic?.skip?.(), true)`);
   await sleep(2500); await skip(); await sleep(2500); await skip();
@@ -275,6 +278,8 @@ try {
 } catch (e) {
   check(false, `stopped: ${e.message}`);
   try { console.log(`  ${await shot('stopped')}`); } catch { /* */ }
+  // the page's state where it stopped (issue #670): the level, the save's flags, the quest tracked
+  try { stoppedState = await ev(`({ href: location.href, level: window.storyRt?.levelId ?? null, cinematic: window.ship?.cinematic?.stage ?? null, flags: window.game?.data?.flags ?? null })`); } catch { /* the page is gone */ }
 } finally {
   ws?.close();
   chrome.kill();
@@ -283,5 +288,8 @@ try {
   rmSync(profile, { recursive: true, force: true });
 }
 const failed = results.filter((r) => !r.ok);
-console.log(`\n${results.length - failed.length}/${results.length} checks passed; screenshots in ${OUT}`);
+// the evidence (issue #670): every check in order, the page errors, the state where it stopped
+const rev = (() => { try { return execSync('git rev-parse --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim(); } catch { return null; } })();
+writeFileSync(join(OUT, 'results.json'), JSON.stringify({ test: 'scripts/playthrough-browser.mjs', rev, url: URL_, finished: new Date().toISOString(), passed: results.length - failed.length, total: results.length, results, pageErrors, stoppedState }, null, 1));
+console.log(`\n${results.length - failed.length}/${results.length} checks passed; screenshots and results.json in ${OUT}`);
 process.exit(failed.length ? 1 : 0);
