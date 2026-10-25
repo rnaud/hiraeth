@@ -9,6 +9,13 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
+    v: '2.26', date: '2026-10-25',
+    items: [
+      { text: "Abel explains how to guide the mirrors’ beam to the square below, and Sel explains how to light the three bulbs and where to play the cylinder.", see: "Ask Abel why the mirror shines at his wall. Ask Sel why it went quiet, then where the cylinder is now. Follow the replies to hear their instructions." },
+    ],
+  },
+
+  {
     v: '2.25', date: '2026-10-25',
     items: [
   {

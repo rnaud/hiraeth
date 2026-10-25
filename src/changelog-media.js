@@ -1349,6 +1349,35 @@ const RETROID536 = 'Retroid Pocket Nova (Adreno 740, Vulkan), Unity, Handheld (F
 const SRC536 = 'BridgeRenderer.Pipelines (the G-buffer’s states the scene asks for: variant, layout, cull, depth), Metal’s list traced in the editor, the shipped lists rewritten by scripts/bench/pso-one-cull.mjs; docs/systems/performance.md, “One cull mode and one layout for the Surface pipelines”';
 const SEAPORT572 = 'Issue #572: the web game in muted headless Chrome (High, 1280 × 720) on a Vite of its own (port 5441), a new save arriving by ship (?level=underwater&via=ship), then walked as a player; before: origin/main at 02345e2c3, after: this change; the deck and the Dock from the visual check’s views (scripts/design-qc/capture.mjs --fixed-scale); 20 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '2.26': [
+  {
+    "match": "Abel explains how to guide",
+    "shots": [
+      {
+        "name": "abel-hint",
+        "only": "after",
+        "caption": "Abel’s mirror instructions — native Editor, after only",
+        "from": "Muted native Editor at 7bb9886c4947fe128df1bb054745bb6f822044f6 plus the two reviewed Abel/Sel dialogue lines. Normal keyboard,1280×960. Disclosed initial nearby staging and prior tutorial flags; ordinary interaction/replies, production autosave and a fresh VM returning to the natural again page. No installed-device or puzzle-completion claim.",
+        "view": "Full original frame; no before image claimed. Existing renderer-specific character materials are outside this text-only change.",
+        "size": [
+          1280,
+          960
+        ]
+      },
+      {
+        "name": "sel-hint",
+        "only": "after",
+        "caption": "Sel’s bulb and console instructions — native Editor, after only",
+        "from": "Muted native Editor at 7bb9886c4947fe128df1bb054745bb6f822044f6 plus the two reviewed Abel/Sel dialogue lines, 25 October 2026. Normal keyboard, 1280×960. Initial nearby pose and upstream tutorial flags staged; ordinary dialogue, production autosave and a fresh VM followed by the ordinary return walk to Sel’s relocated seat. No installed-device or puzzle-completion claim.",
+        "view": "Full original frame; no before image claimed. The entire revised hint and reply are visible. Existing renderer-specific character materials are outside this text-only change.",
+        "size": [
+          1280,
+          960
+        ]
+      }
+    ]
+  }
+],
   '2.25': [
   {
     "match": "The Seed Vault, Casting Stair and Choir maps now stand on low plinths aligned with the floor tiles, with their backs toward the nearest wall and their openings facing into the room.",

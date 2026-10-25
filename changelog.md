@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v2.26 — 2026-10-25
+
+- Abel explains how to guide the mirrors’ beam to the square below, and Sel explains how to light the three bulbs and where to play the cylinder.
+
 ## v2.25 — 2026-10-25
 
 - Joss explains which anchor to pull with your tether, and Hobb explains how the makers’ hourglass keeps and plays back a note.

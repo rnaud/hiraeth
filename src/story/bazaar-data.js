@@ -112,7 +112,7 @@ export const PEOPLE = {
         self: { say: ["~tired~ Forty years climbing those ledges have collected their fee from my knees. I need someone else to go up."], choices: [{ text: '~curious~ Where is it now?', goto: 'kip' }] },
         kip: {
           say: ["~neutral~ *On the second skybridge*, in Kip’s bag. Take the stalls’ stairs behind me: the galleries go all the way to it.",
-            "~playful~ Tune the antenna first: *three bulbs over the dish, lit at once*. Then play it at *the console on the cream balcony*. I’ll be on my crate under the tower, listening."],
+            "~playful~ Splash the three bulbs over the dish before the first goes dark. Then play the cylinder at *the console on the cream balcony*. I’ll be under the tower, listening."],
           do: { set: { 'bazaar.sel.heard': true } },
           choices: [{ text: '~solemn~ Then we listen.', end: true }],
         },

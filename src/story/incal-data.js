@@ -429,7 +429,7 @@ export const PEOPLE = {
           choices: [{ text: '~curious~ Why at the wall?', goto: 'why' }, { text: '~playful~ The bells sound well enough.', end: true }],
         },
         why: {
-          say: ['~solemn~ The night the sky rang, the updraft knocked it round on its ring, and the ones below it too. Turn its crank and it swings back.'],
+          say: ['~solemn~ The updraft knocked the mirrors round the night the sky rang. Turn the cranks to send the beam from mirror to mirror, then onto the square at the bottom.'],
           choices: [{ text: '~neutral~ I’ll have a look.', end: true }],
         },
         again: {
