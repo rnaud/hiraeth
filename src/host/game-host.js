@@ -53,6 +53,7 @@ import { syncUpgrades } from '../trials/upgrades.js';
 import { keyText } from '../prompt-keys.js';
 import { placeOf, droneWorld, shown as droneShown, HAIL, PLUMB_PERSON, plumbTalk } from '../companion.js';
 import { ESCORT, TALK } from '../scout.js';
+import { ATTEND, AttendGate, AttendPicker, attendCandidates } from '../drone-attend.js';
 import { guardianHint } from '../temples/hints.js';
 import { createBenches } from '../benches.js';
 import { cameraPhysics, keepLensOut } from '../carriers.js';
@@ -257,7 +258,8 @@ export function wireLessons({ game, items, levelId, gadgets = () => null, sound 
  * names, the first Blade Gate near (issue #483), the makers' house you are in and its step, the guardian's phase, then its line and the ping's flight (its first
  * word, "the village on the horizon", starts the desert's quest: 'drone:village', src/story/desert.js).
  *   const plumbStep = wireCompanion({ game, plumb, scout, level, player, npcs, struggle, sound, dialogue: () => storyRt.dialogue, teach })
- *   plumbStep(dt, { canSpeak, fight })   → its line as the cue shows it ('' none); the host puts it up
+ *   plumbStep(dt, { canSpeak, fight, calm }) → its line as the cue shows it ('' none); the host puts it up
+ *     (calm: no talk, scene, menu, photo or ship scene: Plumb may drift out to what matters, issue #662, `quests()`)
  *   plumbStep.press()                    Plumb's button (D-pad →, Q): true when it opened Plumb's talk (else the host pings)
  * `plumb` null (a host without the help): only the escort.
  *
@@ -269,7 +271,7 @@ export function wireLessons({ game, items, levelId, gadgets = () => null, sound 
  * lines show (issue #559); a talk with nowhere to point (the Blade Gate's: you are at it, #563) ends there. Unanswered for
  * HAIL.secs, it lets it go; a scene or a fight puts it away, and it comes again after.
  */
-export function wireCompanion({ game, plumb = null, scout = null, level, player, npcs = [], struggle = null, sound = null, dialogue = () => null, teach = null }) {
+export function wireCompanion({ game, plumb = null, scout = null, level, player, npcs = [], struggle = null, sound = null, dialogue = () => null, teach = null, quests = () => null }) {
   if (scout) game.on('drone:out', (e) => scout.escort(ESCORT.secs, e?.pos ?? null));
   const at = { goalT: 0, goal: null, lookT: 0, place: null, world: { fight: null, house: null }, names: null };
   // the talk (issue #543): raised at your shoulder (up), how long it has waited; the talk under way
@@ -286,9 +288,11 @@ export function wireCompanion({ game, plumb = null, scout = null, level, player,
     hail.bark = said.bark ?? '';
     scout?.ping();   // (then off toward the goal, as the button does: its bark, then the find's line, the flare, the marker)
   });
-  const step = (dt, { canSpeak = true, fight = false } = {}) => {
+  const attend = attendStep({ scout, player, plumb, quests, hail });
+  const step = (dt, { canSpeak = true, fight = false, calm = canSpeak } = {}) => {
     if (!plumb) return '';
     open();
+    attend(dt, { calm, fight });
     // the first person near (the opening's line): now and then
     if ((at.lookT -= dt) <= 0) {
       at.lookT = 0.5;
@@ -357,6 +361,60 @@ export function wireCompanion({ game, plumb = null, scout = null, level, player,
   };
   Object.defineProperty(step, 'hailing', { get: () => hail.up });
   return step;
+}
+
+/**
+ * Plumb drifts out to what matters (issue #662, src/drone-attend.js; docs/systems/scout.md "It shows you"): while you
+ * dawdle, calm and on foot, the person or thing the quests want (the tracked step first, then a quest's giver, then
+ * another step) within ATTEND.range, on your floor and in sight gets the drone over it a while (Scout.attend); it comes
+ * home when you run or ride, in a fight, when it is done, reached or shown long enough, and is gone at once in a talk
+ * or a scene. Never with the drone's hints off, nor while Plumb has something to tell you or is on another errand.
+ * `scout.autoAttend = false` turns it off (the sequences' runs, engine/sequences.js: their streams predate it).
+ */
+function attendStep({ scout, player, plumb, quests, hail }) {
+  if (!scout?.attend) return () => {};
+  const gate = new AttendGate(), picker = new AttendPicker();
+  const head = new THREE.Vector3(), aim = new THREE.Vector3(), dir = new THREE.Vector3();
+  let pickT = 0, now = 0, cands = [], candT = 0, was = false;
+  const up = () => player.frame?.up ?? THREE.Object3D.DEFAULT_UP;
+  const sees = (c) => {
+    const u = up();
+    head.copy(player.pos).addScaledVector(u, 1.6);
+    aim.copy(c.position).addScaledVector(u, 1.2);
+    dir.subVectors(aim, head);
+    const len = dir.length();
+    if (len < 1e-3) return true;
+    const hit = scout.obstacle?.(head, dir.divideScalar(len), len);
+    return !hit || hit.distance >= len - 1.2;   // (the person's own body, the item's stand: as good as seen)
+  };
+  const comeHome = (now_) => {
+    if (scout.attending) scout.unattend(now_);
+    if (picker.current) picker.reset(false);   // (sent home by you: it may show it again once you dawdle)
+    if (was) { gate.rest(); was = false; }
+  };
+  return (dt, { calm, fight }) => {
+    now += dt;
+    const say = plumb?.say ?? 'on';
+    if (scout.autoAttend === false || say === 'off') { comeHome(true); return; }
+    const v = player.ride?.vel ?? player.vel;
+    const speed = v ? Math.sqrt(v.x * v.x + v.z * v.z + (player.ride ? v.y * v.y : 0)) : 0;
+    const mine = scout.phase === 'attend' || !!scout.attending;
+    if (was && !mine && !(scout.phase === 'leave' && scout.fromAttend)) comeHome(false);   // (put away under it: boxed in, a teleport)
+    const other = scout.out && !mine && !(scout.phase === 'leave' && scout.fromAttend);   // (a find, a hint, an escort, a talk)
+    const busy = !!plumb?.pending || hail.up || !!hail.talking || !!hail.opening || other;
+    const g = gate.update(dt, { speed, calm, fight, riding: !!player.ride, busy });
+    if (!calm) { comeHome(true); return; }   // (a talk, a scene: gone at once, as the scout is in them)
+    if (g === 'home' || (mine && busy)) { comeHome(false); return; }
+    if ((pickT -= dt) > 0 && !mine) return;
+    if (pickT <= 0) pickT = 0.2;
+    if ((candT -= dt) <= 0) { candT = 0.5; try { cands = attendCandidates(quests?.()); } catch { cands = []; } }
+    if (g !== 'out' && !mine) return;
+    const t = picker.pick(cands, { feet: player.pos, up: up(), dt: mine ? dt : 0.2, now, sees, again: say === 'fewer' ? ATTEND.againFewer : ATTEND.again });
+    if (!t) { if (mine) comeHome(false); return; }
+    if (scout.attending?.id === t.id) { scout.attending.position.copy(t.position); return; }
+    if (scout.attend({ id: t.id, label: t.label, position: t.position.clone() })) was = true;
+    else picker.reset();
+  };
 }
 
 /**

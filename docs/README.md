@@ -73,7 +73,7 @@ References to other sections read `docs/systems/<file>.md, "Section"`.
 | [cinematics-qc.md](systems/cinematics-qc.md) | the cinematics' quality control: the script that plays every one headless, the checklist, the scores of the October 2026 pass and what it fixed |
 | [ship.md](systems/ship.md) | the traveller's ship, the angular hull of October 2026: what the selected reference fixes, the human-scale blockout (rooms, doors, ceiling, walkways), the hull's dimensions and section, the rooms inside it |
 | [ship-consoles.md](systems/ship-consoles.md) | the ship's two consoles: the voicemail and the holo table |
-| [scout.md](systems/scout.md) | the scout drone, and Plumb's own mind: lost, the opening lines, its moods |
+| [scout.md](systems/scout.md) | the scout drone, and Plumb's own mind: lost, the opening lines, its moods, showing you who and what the quest wants |
 | [items.md](systems/items.md) | items, the backpack and the makers' boxes; hearts, the magic bar and potions (src/resources.js); chimes; the shops, their wares and prices; the kit's colours |
 | [fragments.md](systems/fragments.md) | the fragments of the singing light (twenty-four hidden in every route world, how they were placed and checked, their song), Anselm Thrum the scientist aboard the ship, his seven upgrades sold for 3 to 30 fragments and the finder that beeps |
 | [interiors.md](systems/interiors.md) | buildings you walk into: the interior kit (a shopfront, its room far overhead, the doors both ways, saving inside), a shop's room, walking through a door (the door walk) |

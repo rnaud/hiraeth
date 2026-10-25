@@ -237,3 +237,34 @@ Tests: `tests/companion.test.js` (the pages, the queue, the button with and with
 line), and the `plumb-talk` sequence (`engine/sequences.js`, `tests/sequences-plumb.test.js`): the engines' stream held
 to the web's beat by beat (the mark with nothing of Plumb's on the cue, its two pages under its name, the find after);
 run in Unity's batch too on 19 October, its four beats the web's, the mark, the box and the portrait drawn.
+
+## It shows you (issue #662)
+
+Plumb drifts out on its own to the person or thing your quest wants, while you dawdle near it: it comes out of its light,
+hovers beside it a while, its lens on it and its ring lit, then goes. The rules are pure (`src/drone-attend.js`,
+`tests/drone-attend.test.js`); `wireCompanion`'s `attendStep` (`src/host/game-host.js`) drives them for the web and the
+engines alike, and `Scout.attend()` / `unattend()` fly it (phase `attend`, `src/scout.js`).
+
+- **What can be shown** (`attendCandidates`, from the quests, src/story/quests.js): the tracked objective (what the ping
+  finds, weight 3), the people still waiting to give a quest (the Map's giver marks, 2), and every other quest's step
+  with a place (1.4). Only people and things: a stage to `talk`, to `bring` (the item, then the one it goes to), or one
+  marked `at` without a `goto`; places to walk to never. The fragments are never shown (they are secrets).
+- **Which one** (`AttendPicker`): in range (`ATTEND.range` 22 m), on your floor (within `floor` 3.5 m up or down along the
+  world's up), in sight (a ray from your head to 1.2 m over it, `sees`), not reached (`reached` 3 m flat), not shown lately
+  (`again` 75 s, 180 on "fewer"). Score: the weight, less up to half of it with distance; the tracked step 18 m off still
+  beats a giver 6 m off.
+- **Steady** (hysteresis): the one shown is kept past `range` up to `keep` (30 m), out of sight up to `blind` 1.5 s
+  (someone walking behind a post), at least `hold` 5 s, and only a rival `switchBy` 1.4 times better takes its place: two
+  near-equal targets never flip-flop as you walk between them.
+- **Let go**: done (gone from the quests: talked to, taken, the step moved on), reached, on another floor, too far, out of
+  sight, or shown `show` 14 s: it goes home and that target is marked shown.
+- **When** (`AttendGate`): you stand or walk slowly (under `slow` 2.4 m/s) for `settle` 1.6 s, on foot, calm (no talk,
+  scene, menu, photo, ship scene: the host's `calm`), not in a fight, nothing else of Plumb's under way (a talk waiting or
+  open, a ping's flight, an escort), and `rest` 6 s after its last outing. Once out a brisker walk keeps it out; running
+  (over `fast` 4.2 m/s for `hurry` 0.4 s), riding or a fight sends it home (rises and winks out); a talk or a scene puts it
+  away at once. Sent home by you, the target is not marked shown.
+- **Where** (`attendSpot`): `over` 1.85 m over its feet, `toward` 0.8 m back toward you and `side` 0.7 m to its right as
+  you see it: beside a person's head, under a bark's bubble, in the camera's view; lower under a ceiling.
+- Drone hints off (or Hints off) and it never goes. `scout.autoAttend = false` turns it off: the sequences' runs set it
+  (engine/sequences.js `SequenceRun`), their streams were recorded before it and its timing hangs on how long a beat
+  stands still.

@@ -674,7 +674,12 @@ export function engineKey(g, menus, code, down) {
 export function mapAtOnce() { MAP.budget = 1e6; }
 
 export class SequenceRun {
-  constructor(G, seq) { Object.assign(this, { G, seq, i: 0, phase: 'act', t: 0, time: 0, events: [], busy: false, late: false, errors: [] }); G.since = 0; }
+  constructor(G, seq) {
+    Object.assign(this, { G, seq, i: 0, phase: 'act', t: 0, time: 0, events: [], busy: false, late: false, errors: [] }); G.since = 0;
+    // (Plumb's drift out to what matters, issue #662, is off in the runs: the streams were recorded before it, and its
+    // timing hangs on how long a beat stands still)
+    if (G.scout) { G.scout.autoAttend = false; G.scout.unattend?.(true); }
+  }
   tick(dt) {
     this.time += dt;
     const G = this.G;

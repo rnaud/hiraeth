@@ -1351,6 +1351,22 @@ const SEAPORT572 = 'Issue #572: the web game in muted headless Chrome (High, 128
 export const CHANGELOG_MEDIA = {
   '2.26': [
   {
+    "match": "When you slow down near someone your quest needs",
+    "shots": [
+      {
+        "name": "drone-attend",
+        "only": "after",
+        "caption": "Plumb hovering by Marrow, the Desert’s first quest-giver, while the traveller stands nearby — after only",
+        "from": "Muted headless Chrome (High, 1280 × 720, 10:00), Vite on port 5413, the issue #662 branch on 2026-10-25, the debug save’s Desert (?debugsave=1): the traveller placed 5.7 m from Marrow and left standing; Plumb came out by itself after the settle time and hovered there (scout phase 'attend'). The camera was pinned behind the traveller for the picture; cwebp -q 72.",
+        "view": "Full frame. Before this change nothing came out (the drone stayed away until pinged), so no before picture is claimed. Staged placement and a pinned camera; not the free follow camera.",
+        "size": [
+          1280,
+          720
+        ]
+      }
+    ]
+  },
+  {
     "match": "Abel explains how to guide",
     "shots": [
       {

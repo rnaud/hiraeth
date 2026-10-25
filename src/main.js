@@ -843,14 +843,15 @@ wireLessons({ game, items, levelId, gadgets: () => gadgets, sound, toast: (t, o)
 // Plumb each frame (src/host/game-host.js wireCompanion, the engines' too): its escort out of the prologue, the first
 // person near, its hints when you look lost, its first word (issue #434)
 // (something critical: at your shoulder with its mark, the button opens its talk; the first time, the button's line: issue #543)
-const plumbStep = wireCompanion({ game, plumb, scout, level, player, npcs, struggle, sound, dialogue: () => storyRt.dialogue,
+const plumbStep = wireCompanion({ game, plumb, scout, level, player, npcs, struggle, sound, dialogue: () => storyRt.dialogue, quests: () => storyRt.quests,
   teach: () => { if (plumbHintDue(game)) { scoutTeach.line = plumbHintLine; scoutTeach.left = SCOUT_HINT_SHOW; } } });
 /** Plumb, each frame (after the scout's own update): its line on the cue, a moment. */
 function updatePlumb(dt) {
   const now = performance.now();
   const canSpeak = !busy() && !photo.on && !ship.playing && !ship.inside && !player.dead && !cue.text && !ship.cinema.noticeBusy() && now >= scoutSaid.until && now >= droneSaid.until;
   const fight = !!foes.lock || !!guardianHint(level.temple) || !!minigame || !!minigameDef;
-  const said = plumbStep(dt, { canSpeak, fight });
+  const calm = !busy() && !photo.on && !ship.playing && !ship.inside && !player.dead;   // (Plumb may drift out to what matters: issue #662)
+  const said = plumbStep(dt, { canSpeak, fight, calm });
   if (!said) return;
   droneSaid.text = said; droneSaid.until = now + 3200;
   sound.drone?.('go');

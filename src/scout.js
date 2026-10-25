@@ -3,6 +3,7 @@ import { makeMaterial, markHero } from './materials.js';
 import { sweepCapsule } from './physics.js';
 import { Trail } from './trail.js';
 import { Drone, DroneFold } from './drone.js';
+import { attendSpot } from './drone-attend.js';
 
 const RADIUS = 0.25;     // the drone's collision sphere
 const CLEAR = 0.9;       // air it keeps below itself while flying
@@ -251,7 +252,8 @@ export function viaPortal(start, target, portals) {
  * { id, lines: [first, plainer, plainest], at: () => Vector3 } or null: while it gives one, a ping is
  * a hint (HINT) and calls onHint(line, n): each ping on the same id says the next, plainer line.
  * Phases: away → appear → seek → point → leave → away (and shrug, from away; escort, at your shoulder, from away or
- * handed over by the prologue, issue #434, then seek on a ping or leave). Away, nothing is drawn.
+ * handed over by the prologue, issue #434, then seek on a ping or leave; attend, hovering over someone or something that
+ * matters, issue #662: attend()/unattend(), src/drone-attend.js). Away, nothing is drawn.
  */
 export class Scout {
   constructor({ scene, player, physics, getTarget, getHint = () => null, sound, onPing = () => {}, onFind = () => {}, onShrug = () => {}, onHint = () => {} }) {
@@ -316,7 +318,7 @@ export class Scout {
   }
   /** hide(): gone, folded, nothing drawn (away). */
   hide() {
-    this.phase = 'away'; this.vel.set(0, 0, 0); this.stuck = this.over = 0; this.overUsed = false; this.fade = null; this.leaveT = null;
+    this.phase = 'away'; this.vel.set(0, 0, 0); this.stuck = this.over = 0; this.overUsed = false; this.fade = null; this.leaveT = null; this.attending = null; this.fromAttend = false;
     this.appearSpot(this.object.position); this.object.scale.setScalar(1e-3);
     this.fold.snap(false); this.drone.pose(this.fold);
     this.ring.visible = false; if (this.beam) { this.beam.visible = false; this.beamLen = 0; }
@@ -330,7 +332,7 @@ export class Scout {
     const hint = this.getHint?.();
     const target = hint ? this.hintTarget(hint) : this.getTarget();
     if (!target) { this.shrug(); return false; }
-    this.hinting = hint ?? null;
+    this.hinting = hint ?? null; this.attending = null; this.fromAttend = false;
     this.target = target; this.age = 0; this.relaunched = false; this.found = false; this.seekT = this.pointT = 0;
     if (this.phase === 'away' || this.phase === 'shrug') this.appear();
     else if (this.phase === 'appear') { /* already on its way */ }
@@ -361,7 +363,7 @@ export class Scout {
    */
   escort(secs = ESCORT.secs, from = null) {
     if (this.phase !== 'away' && this.phase !== 'escort') return false;
-    this.phase = 'escort'; this.escortT = secs; this.target = null; this.hinting = null; this.found = false;
+    this.phase = 'escort'; this.escortT = secs; this.target = null; this.hinting = null; this.attending = null; this.found = false;
     this.vel.set(0, 0, 0); this.stuck = this.over = 0; this.fade = null; this.leaveT = null;
     if (from) { this.object.position.copy(from); this.object.scale.setScalar(1); this.fold.snap(true); this.growT = APPEAR.grow; }
     else { this.appearSpot(this.object.position); this.object.scale.setScalar(1e-3); this.fold.snap(false); this.growT = 0; }
@@ -398,7 +400,7 @@ export class Scout {
     const head = _lh.copy(p.pos).addScaledVector(up, HEAD - TALK.below);
     const wall = this.obstacle(head, fwd, TALK.out + RADIUS)?.distance ?? Infinity;
     this.talkAt = (this.talkAt ?? new THREE.Vector3()).copy(head).addScaledVector(fwd, Math.max(TALK.near, Math.min(TALK.out, wall - RADIUS)));
-    this.phase = 'talk'; this.hail(false); this.target = null; this.hinting = null; this.found = false;
+    this.phase = 'talk'; this.hail(false); this.target = null; this.hinting = null; this.attending = null; this.found = false;
     this.vel.set(0, 0, 0); this.stuck = this.over = 0; this.fade = null; this.leaveT = null; this.mouth = 0;
     this.object.position.copy(this.talkAt); this.object.scale.setScalar(1); this.fold.snap(true); this.growT = APPEAR.grow; this.setLight(0);
     this.object.visible = !this.player.hidden;
@@ -406,6 +408,30 @@ export class Scout {
   }
   /** While it talks: how open its "mouth" is (src/story/dialogue.js faces(): its syllables), a little bob on each. */
   express(f) { this.mouth = f?.speaking ? f.mouth ?? 0 : 0; }
+  /**
+   * Hover over someone or something that matters (issue #662, src/drone-attend.js): `target` { id, position } (its
+   * position read each frame: someone walking about). From away it comes out of its light over your shoulder first;
+   * at your shoulder (an escort, not hailing) or on its way home from an earlier one, it turns to it; already over
+   * one, it moves to the new one. Anything else (a find, a hint, a talk) and it is busy: false.
+   */
+  attend(target) {
+    if (!target?.position) return false;
+    const was = this.phase;
+    if (was === 'escort' && this.hailing) return false;
+    if (was === 'leave' && !this.fromAttend) return false;
+    if (was !== 'away' && was !== 'escort' && was !== 'attend' && was !== 'leave' && !(was === 'appear' && this.attending)) return false;
+    this.attending = target; this.fromAttend = false; this.target = null; this.hinting = null; this.found = false;
+    if (was === 'away') { this.appear(); return true; }
+    if (was === 'leave' || was === 'escort') { this.phase = 'attend'; this.leaveT = null; this.fade = null; this.object.scale.setScalar(1); this.setLight(0); this.growT = APPEAR.grow; }
+    return true;
+  }
+  /** Done showing it: home (it rises and winks out), or `now`: gone at once (a talk or a scene began). */
+  unattend(now = false) {
+    if (!this.attending && this.phase !== 'attend') return;
+    if (now) { this.hide(); return; }
+    this.attending = null;
+    this.home(); this.fromAttend = this.phase === 'leave';
+  }
   /** Send it away now (a find cut short, or done): it rises, folds and winks out. */
   home() { if (this.phase !== 'away' && this.phase !== 'leave' && this.phase !== 'shrug') { this.phase = 'leave'; this.leaveT = 0; this.fade = null; } }
   /**
@@ -569,7 +595,7 @@ export class Scout {
     this.object.visible = this.out && !this.player.hidden;
     if (!paused) this.flare.update(dt);
     // the trail: laid while it flies (not while it grows, nor as it winks out), left to dissolve once it is gone
-    const flying = this.phase === 'seek' || this.phase === 'point' || (this.phase === 'leave' && this.leaveT < APPEAR.leave);
+    const flying = this.phase === 'seek' || this.phase === 'point' || (this.phase === 'attend' && this.vel.lengthSq() > 1) || (this.phase === 'leave' && this.leaveT < APPEAR.leave);
     this.trail.update(dt, flying && this.fade === null && !this.player.hidden ? this.object.position : null);
     if (this.phase === 'away') { if (!this.trail.samples.length) this.trail.mesh.visible = false; return; }
     if (paused && this.phase !== 'talk') return;   // (a talk is a pause for the rest: it is the one talking)
@@ -593,12 +619,13 @@ export class Scout {
     }
     if (this.phase === 'escort') { this.escortFrame(dt, up); return; }
     this.age += dt;
-    if (this.hinting) {
+    if (this.attending) { /* its own target: src/drone-attend.js */ }
+    else if (this.hinting) {
       // a hint follows its weak point (the guardian moves); the fight over, it goes
       const h = this.getHint?.(), at = h && h.id === this.hinting.id ? h.at?.() : null;
       if (at && this.target?.hint) this.target.position.copy(at); else if (this.phase !== 'leave') this.home();
     } else this.target = this.getTarget();
-    if (this.phase !== 'leave' && this.phase !== 'appear' && (this.age >= FIND.max || !this.target)) this.home();
+    if (!this.attending && this.phase !== 'leave' && this.phase !== 'appear' && (this.age >= FIND.max || !this.target)) this.home();
     if (this.fade !== null) {
       this.fade -= dt;
       const k = Math.max(0, this.fade / APPEAR.wink);
@@ -624,7 +651,8 @@ export class Scout {
       this.object.scale.setScalar(Math.max(1e-3, THREE.MathUtils.smootherstep(e, 0, 1)));
       this.setLight(Math.sin(Math.PI * Math.min(1, e * 1.15)));
       open = e >= APPEAR.bloomAt;
-      if (e >= 1) { this.phase = 'seek'; this.seekT = 0; this.vel.copy(pv).addScaledVector(up, 1.2); this.setLight(0); }
+      if (e >= 1 && this.attending) { this.phase = 'attend'; this.vel.copy(pv).addScaledVector(up, 1.2); this.setLight(0); }
+      else if (e >= 1) { this.phase = 'seek'; this.seekT = 0; this.vel.copy(pv).addScaledVector(up, 1.2); this.setLight(0); }
     } else if (this.phase === 'seek' || this.phase === 'point') {
       // out to the lookout (it keeps your pace, walking, riding or flying), then a hover there,
       // the beak and the beam on the objective, up or down as well
@@ -641,6 +669,14 @@ export class Scout {
         if (this.pointT >= (this.target.hint ? HINT.point : FIND.point)) this.home();
       }
       if (this.object.position.distanceTo(this.player.pos) > FIND.near + FIND.out + 20) this.home();   // (lost you: gone)
+    } else if (this.phase === 'attend') {
+      // over what matters (issue #662): a slow hover over it, its lens on it, the ring lit under it
+      const goal = this.attending.position;
+      const ray = (o, d, far) => this.obstacle(o, d, far)?.distance ?? Infinity;
+      const spot = attendSpot({ feet: this.player.pos, goal, up, ray }, _d2);
+      spot.addScaledVector(up, Math.sin(this.elapsed * 2.2) * 0.08);
+      this.aim = (this._aim ??= new THREE.Vector3()).subVectors(goal, this.object.position).addScaledVector(up, 1);
+      if (this.fly(spot, Math.max(5, pSpeed + 4), up, dt, null)) this.recall();
     } else {
       // leaving: it rises away where it is (keeping your pace), folds, and winks out into its light
       this.leaveT += dt;
@@ -654,7 +690,7 @@ export class Scout {
     // the antenna sways with the drone's own accelerations (in its frame)
     const acc = _a.subVectors(this.vel, lastVel).divideScalar(Math.max(dt, 1e-3)).applyQuaternion(_q3.copy(this.object.quaternion).invert());
     this.drone.pose(this.fold, dt, _lean.set(acc.x, acc.z));
-    this.ring.visible = this.phase === 'seek' || this.phase === 'point'; this.ring.rotation.z += dt * 2;
+    this.ring.visible = this.phase === 'seek' || this.phase === 'point' || this.phase === 'attend'; this.ring.rotation.z += dt * 2;
     if (this.aim && this.aim.lengthSq() > 1e-6) {
       // the lens at the goal, in the drone's frame
       const local = _n.copy(this.aim).normalize().applyQuaternion(_q3.copy(this.object.quaternion).invert());
