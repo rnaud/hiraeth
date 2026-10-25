@@ -40,10 +40,11 @@ test('every prompt\'s badge takes its size from --type-key', () => {
 });
 
 test('the conversation\'s page turn names its button, in the panel\'s own type', async () => {
-  assert.match(html, /body\.controller #dialogue\.more \.dlg-next \{ display: block; \}/);
+  assert.match(html, /body\.controller #dialogue\.more \.dlg-next \{ display: inline-flex; align-items: center; gap: \.4em;/, 'page button and readable Next label share a centered row');
   assert.match(html, /#dialogue \.dlg-next \.key \{ font-size: [\d.]+em/, 'em of the panel\'s --dlg: the screen\'s height');
   const src = readFileSync(new URL('../src/story/dialogue.js', import.meta.url), 'utf8');
   assert.match(src, /class="dlg-next"/);
+  assert.match(src, /<span>Next<\/span>/, 'the page-turn action remains named');
   assert.match(src, /keyBadge\(key\)/);
 });
 

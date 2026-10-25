@@ -261,3 +261,23 @@ These two one-page edits preserve tones, entry conditions, replies, quest effect
 and save IDs. The Mother’s later melody and final touch remain separate steps.
 Shared dialogue data supplies both hosts; this is a bounded clarity pass, not a
 review of every conversation.
+
+### Compact enamel presentation (direction D)
+
+The conversation renderer uses one dark outer panel, a small integrated portrait,
+a brass speaker label and plain stacked choices. The selected reply has a brass
+diamond; keyboard numbers and the controller confirm badge keep their existing
+input meanings. No inner frame or choice boxes are added. Portrait sources, tone,
+page/reveal state, choice availability and saved dialogue progress are unchanged.
+The longest text page still reserves stable space between pages. Future replies
+occupy no invisible rows: the panel grows only when those choices become available.
+At narrow widths the portrait and name occupy a compact header above full-width
+words; text-size fitting and plain black-on-white speech remain available.
+The same layout is drawn by BridgeHud.DrawTalk in Unity. Muted web review covered
+keyboard/controller presentation, three real pages, early-key rejection, narrow
+Larger text, touch presentation, plain speech and private-save reload. Five native
+Editor transactions reviewed seventeen original panels, including the old-renderer
+comparison, three-page controller flow, narrow Larger text and plain speech.
+Native narrow fitting may reduce type size on longer pages. These staged private
+reviews do not claim physical-controller, installed-device or portrait-identity
+coverage. Reviewed web and native pictures accompany the v2.21 changelog line.

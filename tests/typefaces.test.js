@@ -61,7 +61,7 @@ test('the core screens are set in the game’s face and sized from the screen’
     assert.match(r, /var\(--face\)/, `${sel} in the face`);
     assert.match(r, /var\(--type(-s)?\)/, `${sel} sized by --type`);
   }
-  assert.match(rule(html, '#dialogue'), /var\(--dlg\)\/1\.45 var\(--face\)/, 'the conversation panel');
+  assert.match(rule(html, '#dialogue'), /var\(--dlg\)\/1\.4 var\(--face\)/, 'the compact conversation retains screen-relative sizing and the game face');
   assert.match(rule(read('src/minigames/kit/minigames.css'), '#minigame'), /var\(--type-s\)\/1\.45 var\(--face\)/, 'the minigames');
   assert.match(read('src/menus.css'), /\.fullmenu \{[^}]*var\(--type-s\)\/1\.45 var\(--face\)/, 'the settings');
   assert.match(read('src/boxes/card.js'), /#boxcard \{[^}]*var\(--type-s\)\/1\.4 var\(--face\)/, 'the item card');

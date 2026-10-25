@@ -159,5 +159,5 @@ test('listen: the panel closes on the press after the last line, with no answers
 
 test('answers: the mark sits in its own column, apart from the words', () => {
   const html = choiceHtml({ index: 3, text: '~curious~ What is *that* tree?' }, 0, 'A / ×');
-  assert.match(html, /^<button data-i="3"><span class="dlg-key" aria-hidden="true"><b class="dlg-num">1<\/b><b class="dlg-mark">›<\/b><b class="key">A \/ ×<\/b><\/span><span class="dlg-say">What is <em>that<\/em> tree\?<\/span><\/button>$/);
+  assert.match(html, /^<button data-i="3"><span class="dlg-key" aria-hidden="true"><b class="dlg-num">1<\/b><b class="dlg-mark">◆<\/b><span class="dlg-confirm"><b class="key">A \/ ×<\/b><span>Choose<\/span><\/span><\/span><span class="dlg-say">What is <em>that<\/em> tree\?<\/span><\/button>$/);
 });

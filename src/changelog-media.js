@@ -1349,6 +1349,66 @@ const RETROID536 = 'Retroid Pocket Nova (Adreno 740, Vulkan), Unity, Handheld (F
 const SRC536 = 'BridgeRenderer.Pipelines (the G-buffer’s states the scene asks for: variant, layout, cull, depth), Metal’s list traced in the editor, the shipped lists rewritten by scripts/bench/pso-one-cull.mjs; docs/systems/performance.md, “One cull mode and one layout for the Surface pipelines”';
 const SEAPORT572 = 'Issue #572: the web game in muted headless Chrome (High, 1280 × 720) on a Vite of its own (port 5441), a new save arriving by ship (?level=underwater&via=ship), then walked as a player; before: origin/main at 02345e2c3, after: this change; the deck and the Dock from the visual check’s views (scripts/design-qc/capture.mjs --fixed-scale); 20 October; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '2.21': [
+  {
+    "match": "Conversations use a compact dark panel",
+    "shots": [
+      {
+        "name": "dialogue-d",
+        "title": "Conversation panel (web)",
+        "caption": "The same conversation, before and after the compact panel.",
+        "size": [
+          1280,
+          720
+        ],
+        "from": "Actual muted internal-browser game. Before:9e3987a; after:b9673e4 plus reviewed direction D. Same authored Teasel text, keyboard input and1280x720 viewport; camera, weather and time differ. Private staged prior visit. Only the surrounding QA controls were cropped; no scene-match or traversal claim."
+      },
+      {
+        "name": "dialogue-d-controller",
+        "title": "Controller choices (web)",
+        "only": "after",
+        "caption": "Plain replies, a brass selected diamond and a readable Choose cue.",
+        "size": [
+          1280,
+          720
+        ],
+        "from": "Actual muted browser, b9673e4 plus direction D; real conversation graph with presentation-only controller mode. No physical-controller claim."
+      },
+      {
+        "name": "dialogue-d-narrow-larger",
+        "title": "Larger text (web)",
+        "only": "after",
+        "caption": "Briony\u2019s full final page and three replies in a narrow viewport.",
+        "size": [
+          390,
+          844
+        ],
+        "from": "Actual muted browser390x844, Larger text, b9673e4 plus direction D. Three ordinary pages and private-save reload reviewed. Portrait source unchanged; this fixture does not establish portrait identity."
+      },
+      {
+        "name": "dialogue-d-native",
+        "title": "Conversation panel (Unity)",
+        "caption": "The native conversation panel before and after the same layout change.",
+        "size": [
+          1280,
+          960
+        ],
+        "from": "Actual muted Unity Editor,1280x960, combined2.20 world/data at b9673e4. Before overlays only the9e3987a dialogue JS and native renderer; after uses direction D. Real actor, ordinary reply and private VM reboot; staged prior visit. Background time varies. No installed-device claim."
+      },
+      {
+        "name": "dialogue-d-native-plain",
+        "title": "Plain background (Unity)",
+        "only": "after",
+        "caption": "Black-on-white speech and Larger text remain available.",
+        "size": [
+          390,
+          844
+        ],
+        "from": "Actual muted Unity Editor390x844, b9673e4 plus direction D, Larger text and plain speech. Real conversation and private reboot; simulated controller presentation. Narrow native fitting may reduce type size on longer pages; no constant-size or installed-device claim."
+      }
+    ]
+  }
+],
   '2.20': [
 {
   "match": "Kamal now looks the same on his fan sled as he does beside the canyon.",

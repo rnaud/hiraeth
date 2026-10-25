@@ -47,7 +47,7 @@ test('BridgeHud draws the answers\' mark from it: the badge on the picked answer
   const talk = cs.slice(cs.indexOf('void DrawTalk('), cs.indexOf('Ui.Place(dlg, W / 2 - pw / 2'));
   assert.match(talk, /d\.O\("answerKey"\)/);
   assert.match(talk, /kind == "pad" && i == sel/, 'the badge on the answer the pad would pick');
-  assert.match(talk, /MakeBadge\(box\.rt/, 'drawn as the page\'s .key badge');
-  assert.match(talk, /"›"/, 'a mark on the others and on a touch screen');
+  assert.match(talk, /MakeBadge\(dlgPanel\.rt/, 'drawn as the page\'s .key badge');
+  assert.match(talk, /hi \? "◆"/, 'the selected reply has the same diamond on every input mode');
   assert.match(talk, /\(i \+ 1\)\.ToString\(\)/, 'the keyboard\'s number');
 });

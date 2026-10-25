@@ -278,7 +278,7 @@ export class DialogueRunner {
  * own, wrap beside it and never under or over it.
  */
 export function choiceHtml(c, k, key = confirmKey()) {
-  return `<button data-i="${c.index}"><span class="dlg-key" aria-hidden="true"><b class="dlg-num">${k + 1}</b><b class="dlg-mark">›</b>${keyBadge(key)}</span>`
+  return `<button data-i="${c.index}"><span class="dlg-key" aria-hidden="true"><b class="dlg-num">${k + 1}</b><b class="dlg-mark">◆</b><span class="dlg-confirm">${keyBadge(key)}<span>Choose</span></span></span>`
     + `<span class="dlg-say">${formatText(c.text)}</span></button>`;
 }
 
@@ -563,11 +563,10 @@ export class Dialogue {
     el.classList.toggle('player', r.speaker === 'player');
     el.classList.toggle('heard', !!plan.foreign);
     const choices = r.choices();
-    // (choicesAhead: the answers' room kept on a page before them, so they stand where they will be)
-    const ahead = choices.length ? choices : r.choicesAhead(), waiting = !choices.length && ahead.length > 0;
+    // Keep only visible answers: future replies must not make an empty panel.
     const box = this.q('.dlg-choices');
-    const html = ahead.map((c, k) => choiceHtml(c, k)).join('');
-    box.classList.toggle('waiting', waiting);
+    const html = choices.map((c, k) => choiceHtml(c, k)).join('');
+    box.classList.remove('waiting');
     const fresh = box.dataset.html !== html;
     if (fresh) { box.innerHTML = html; box.dataset.html = html; laid = true; }
     if (fresh || box.dataset.shown !== String(choices.length > 0)) {
@@ -581,7 +580,7 @@ export class Dialogue {
     this.el.classList.toggle('more', !choices.length);
     // (and, with a pad in hand, the button that turns it: index.html .dlg-next; native-pad.js prints it as the pad does)
     const next = this.q('.dlg-next'), key = confirmKey();
-    if (next && next.dataset.key !== key) { next.dataset.key = key; next.innerHTML = keyBadge(key); }
+    if (next && next.dataset.key !== key) { next.dataset.key = key; next.innerHTML = keyBadge(key) + '<span>Next</span>'; }
     if (laid) this.fit();
   }
 
@@ -594,8 +593,8 @@ export class Dialogue {
     const el = this.el;
     if (!el?.style || typeof getComputedStyle === 'undefined') return;
     el.style.removeProperty('--fit');
-    // (offsetTop: where the panel stands, without the slide it comes in on; the portrait stands 2.1 em over it)
-    const room = () => el.offsetTop - parseFloat(getComputedStyle(el).fontSize) * 2.2 - FIT_MARGIN;
+    // The portrait is now inside the panel: fit the actual outer edge, not a vanished overhang.
+    const room = () => el.offsetTop - FIT_MARGIN;
     let f = 1;
     for (let k = 0; k < 3; k++) {
       const over = -room();
@@ -624,11 +623,10 @@ export class Dialogue {
       // with a pad the confirm button's badge on the one it would pick (› on the others); `key` in Xbox / PlayStation
       // form, which the engines print as the pad in hand does (engine/unity/game.js forPad)
       answerKey: { kind: inputKind(), key: confirmKey() },
-      // the room the page's panel keeps (render: .dlg-ghost, .dlg-choices.waiting): the node's longest page, laid out
-      // unseen under the one shown, and the answers still to come, so an engine's panel is as tall as the page's from the
-      // first page on (issue #264: Unity's grew when the answers came)
+      // Keep the longest text page stable, but add answer rows only when available.
+      // Retain the old ahead field as empty for older renderer compatibility.
       ghost: (r.pages ?? []).reduce((a, b) => (b.length > a.length ? b : a), full),
-      ahead: choices.length ? [] : r.choicesAhead().map((c) => c.text),
+      ahead: [],
     });
   }
 

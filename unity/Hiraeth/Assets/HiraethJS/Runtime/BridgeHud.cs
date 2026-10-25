@@ -30,7 +30,7 @@ namespace Hiraeth.Bridge
         Ui.Box keys; Label keysText;
         RectTransform wheel; Image wheelRing, wheelFill;
         RectTransform dlg; Ui.Box dlgPanel; Sketch dlgLines, dlgMore; RectTransform chip; Image chipFill; Label chipLetter; RawImage chipPhoto;
-        Ui.Box dlgTag; Label dlgName, dlgTitle, dlgText;
+        Ui.Box dlgTag; Label dlgName, dlgTitle, dlgText, dlgAction; Badge dlgAdvance;
         readonly List<(Ui.Box box, Label num, Label text, Image line)> dlgChoices = new();
         readonly List<Badge> dlgKeys = new();   // (an answer's confirm badge, a pad in hand: issue #526)
         /// <summary>The panel's type in canvas px (the canvas is 720 tall: index.html #dialogue's --dlg, 2.9 % of the
@@ -39,10 +39,13 @@ namespace Hiraeth.Bridge
         /// conversation's panel grows with its words (its sizes are in em), as do the hints and the subtitles.</summary>
         float ts = 1;
         int Sz(float px) => Mathf.RoundToInt(px * ts);
-        int Body => Sz(21); int AnswerSize => Sz(20); int NameSize => Sz(22);
+        float dialogueFit = 1;
+        int Body => Mathf.Max(10, Mathf.RoundToInt(Sz(21) * dialogueFit));
+        int AnswerSize => Mathf.Max(10, Mathf.RoundToInt(Sz(20) * dialogueFit));
+        int NameSize => Mathf.Max(10, Mathf.RoundToInt(Sz(17) * dialogueFit));
         const int TitleSize = 16, LetterSize = 44;
         float Em => Body;
-        const float ChipD = 4.6f * 21;   // (the portrait's chip keeps its size)
+        const float ChipD = 2.7f * 21;   // (the portrait's chip keeps its size)
         static readonly Color Muted = Ui.Hex("#5e4b45");
         /// <summary>Every hint one look, one place (issue #306, src/hint-look.js HINT_ENGINE): a near-black strip, cream
         /// letters, at the top centre; the cue first, the toast under it. With the plain speech background (the page's
@@ -274,7 +277,7 @@ namespace Hiraeth.Bridge
         {
             // (Hud.cs BuildDialogue: the notebook panel, the portrait chip, the name tag across its top edge)
             dlg = Ui.Node("dialogue", root);
-            dlgPanel = Ui.Panel(dlg, "panel", Ui.Paper, Ui.Ink, 2.5f, 6, 6);
+            dlgPanel = Ui.Panel(dlg, "panel", Ui.Hex("#161d1d", .97f), Ui.Hex("#d9b575"), 1.5f, 0, 0, 10);
             Ui.Stretch(dlgPanel.rt);
             dlgLines = Ui.Stretch(Ui.Node("lines", dlgPanel.fill.rectTransform)).gameObject.AddComponent<Sketch>(); dlgLines.raycastTarget = false; dlgLines.feather = 0.5f;
             dlgText = Ui.Label(dlgPanel.rt, "text", mono, Body, Ui.Ink, lineSpacing: 1.3f);
@@ -292,11 +295,11 @@ namespace Hiraeth.Bridge
             chip = Ui.Node("chip", dlg);
             // (the portrait chip: their colour in an ink ring, their portrait in it (BridgeRunner.Portrait), else their initial)
             var sh = Ui.Rect(chip, Ui.Ink, 0, "shadow"); sh.sprite = Ui.Round(32);
-            Ui.Place(sh.rectTransform, 3, 3, ChipD, ChipD);
+            sh.enabled = false; Ui.Place(sh.rectTransform, 0, 0, ChipD, ChipD);
             var ring = Ui.Rect(chip, Ui.Ink, 0, "ring"); ring.sprite = Ui.Round(32);
-            Ui.Place(ring.rectTransform, 0, 0, ChipD, ChipD);
+            ring.enabled = false; Ui.Place(ring.rectTransform, 0, 0, ChipD, ChipD);
             chipFill = Ui.Rect(chip, Ui.Hex("#d8a24a"), 0, "colour"); chipFill.sprite = Ui.Round(32);
-            Ui.Place(chipFill.rectTransform, 3, 3, ChipD - 6, ChipD - 6);
+            Ui.Place(chipFill.rectTransform, 0, 0, ChipD, ChipD);
             chipFill.gameObject.AddComponent<Mask>().showMaskGraphic = true;
             chipPhoto = new GameObject("portrait", typeof(RectTransform)).AddComponent<RawImage>();
             chipPhoto.rectTransform.SetParent(chipFill.rectTransform, false);
@@ -306,9 +309,11 @@ namespace Hiraeth.Bridge
             chipLetter = Ui.Label(chip, "letter", mono, LetterSize, Ui.Paper, TextAnchor.MiddleCenter, FontStyle.Bold);
             Ui.Place(chipLetter.rectTransform, 0, 0, ChipD, ChipD);
             var ls = chipLetter.gameObject.AddComponent<Shadow>(); ls.effectColor = Ui.Ink; ls.effectDistance = new Vector2(2, -2);
-            chip.localRotation = Quaternion.Euler(0, 0, 3);
+            chip.localRotation = Quaternion.identity;
             // (the name in plain ink on the paper's first line, issue #208: no caption box, no subtitle)
             dlgTag = Ui.Panel(dlg, "tag", Color.clear, Ui.Ink, 0);
+            dlgAction = Ui.Label(dlgPanel.rt, "action", mono, 16, HintInk0, TextAnchor.MiddleLeft);
+            dlgAdvance = MakeBadge(dlgPanel.rt, "advance");
             dlgName = Ui.Label(dlgTag.rt, "name", mono, NameSize, Ui.Ink, TextAnchor.LowerLeft, FontStyle.Bold); Ui.Space(dlgName, 0.08f);
             dlgTitle = Ui.Label(dlgTag.rt, "title", mono, TitleSize, Ui.Hex("#fffaf0", 0.85f), TextAnchor.LowerLeft, FontStyle.Italic);
         }
@@ -1837,8 +1842,11 @@ namespace Hiraeth.Bridge
             wheelFill.color = s.Get("winded") is bool w && w ? Ui.Red : Ui.Gold;
         }
 
-        void DrawTalk(Dictionary<string, object> d, int sel)
+        string DialogueRich(string text) => RichMarked(text).Replace("<color=#b23a2c>", solid ? "<color=#704000>" : "<color=#edbc76>");
+
+        void DrawTalk(Dictionary<string, object> d, int sel, int fitPass = 0)
         {
+            if (fitPass == 0) dialogueFit = 1;
             Show(dlg, d != null);
             if (d == null) return;
             // (Hud.cs DrawTalk: the same layout)
@@ -1849,18 +1857,21 @@ namespace Hiraeth.Bridge
             var choices = d.L("choices") ?? new List<object>();
             // (the words at the Text size setting's size, the panel in em with them; the plain background: white, black words, no ruled lines)
             dlgText.fontSize = Body; dlgName.fontSize = NameSize;
-            dlgPanel.SetFill(solid ? Color.white : Ui.Paper);
-            dlgText.color = solid ? Color.black : Ui.Ink;
-            Show(dlgLines, !solid);
+            dlgPanel.SetFill(solid ? Color.white : Ui.Hex("#161d1d", .97f));
+            dlgPanel.border.color = solid ? Color.black : Ui.Hex("#d9b575");
+            dlgName.color = solid ? Color.black : Ui.Hex("#edbc76");
+            dlgText.color = solid ? Color.black : HintInk0;
+            Show(dlgLines, false);
             // (the page whole at once, issue #147: the bundle sends it all, shown = its length; the panel 46 em wide)
             float pw = Mathf.Min(46 * Em, W - 32);
-            float padL = 6.3f * Em, padR = 1.3f * Em, padT = 1.95f * Em, padB = 0.85f * Em, cw = pw - padL - padR;
+            bool narrow = W < 600;
+            float padL = (narrow ? .75f : 4.15f) * Em, padR = .85f * Em, padT = (narrow ? 3.6f : 1.9f) * Em, padB = .65f * Em, cw = pw - padL - padR;
             // (a {glyph}: a gap in the words, the shared makers' mark in it: BridgeHud.Mark.cs, issue #513)
-            var body = RichMarked(shown) + (done ? "" : "<color=#2b211f99>▍</color>");
+            var body = DialogueRich(shown) + (done ? "" : "<color=#d9b575>▍</color>");
             Ui.Set(dlgText, body, cw);
             // (as tall as the node's longest page, the page's .dlg-ghost: the panel keeps its size as the pages turn)
             var ghost = d.S("ghost") ?? "";
-            float textH = Mathf.Max(Body * 2.9f, Ui.Measure(dlgText, RichMarked(text), cw).y, ghost.Length > text.Length ? Ui.Measure(dlgText, RichMarked(ghost), cw).y : 0);
+            float textH = Mathf.Max(Body * 1.4f, Ui.Measure(dlgText, DialogueRich(text), cw).y, ghost.Length > text.Length ? Ui.Measure(dlgText, DialogueRich(ghost), cw).y : 0);
             Ui.Place(dlgText.rectTransform, padL, padT + 4, cw, textH);
             var markPic = MarkPicture(d.L("mark"));
             dlgMarks.Lay(dlgText, body, new Vector2(cw, textH), markPic);
@@ -1870,6 +1881,16 @@ namespace Hiraeth.Bridge
             // button's badge on the answer it would pick and › on the others; issue #526: Unity drew the number always)
             var ak = d.O("answerKey");
             string kind = ak?.S("kind") ?? "keys", okKey = ak?.S("key") ?? "";
+            bool actionOn = kind == "pad" && okKey.Length > 0;
+            dlgAction.fontSize = Mathf.Max(10, Mathf.RoundToInt(.8f * AnswerSize));
+            dlgAction.color = solid ? Color.black : HintInk0;
+            var actionSize = Ui.Set(dlgAction, choices.Count > 0 ? "Choose" : "Next", cw);
+            float actionGap = .4f * Em, actionKeyH = 1.8f * .82f * AnswerSize;
+            var actionBadgeSize = PlaceBadge(dlgAdvance, 0, 0, okKey, .82f * AnswerSize, true);
+            float actionW = Ui.Measure(dlgAction, "Choose", cw).x + actionGap + Mathf.Max(actionKeyH, actionBadgeSize.x);
+            float lastChoiceH = 0;
+            Show(dlgAction, actionOn);
+            dlgAdvance.rt.gameObject.SetActive(actionOn && choices.Count == 0);
             for (int i = 0; i < dlgChoices.Count; i++)
             {
                 var (box, num, tx, line) = dlgChoices[i];
@@ -1880,51 +1901,69 @@ namespace Hiraeth.Bridge
                 if (!badge && dlgKeys[i] != null) dlgKeys[i].rt.gameObject.SetActive(false);
                 if (!has) continue;
                 bool hi = i == sel;
-                num.text = badge ? "" : kind == "pad" || kind == "touch" ? "›" : (i + 1).ToString();
+                num.text = hi ? "◆" : kind == "keys" ? (i + 1).ToString() : "";
+                num.color = solid ? Color.black : Ui.Hex("#edbc76");
                 num.alignment = kind == "keys" ? TextAnchor.UpperLeft : TextAnchor.UpperCenter;
                 num.fontSize = AnswerSize; tx.fontSize = AnswerSize;
                 Ui.Place(num.rectTransform, 0, 2, kind == "keys" ? keyW : 1.1f * Em, AnswerSize * 1.4f);   // (the › centred in the page's 1.1 em column)
                 if (badge)
                 {
                     // (#dialogue .dlg-key .key: .82 of the answer's size, 1.8 of it across, centred on the mark's column at the first line)
-                    var bg = dlgKeys[i] ??= MakeBadge(box.rt, "key");
+                    var bg = dlgKeys[i] ??= MakeBadge(dlgPanel.rt, "key");
                     bg.rt.gameObject.SetActive(true);
                     float px = 0.82f * AnswerSize;
                     var ks = PlaceBadge(bg, 0, 0, okKey, px, true);
                     float kh = Mathf.Round(1.8f * px), kw = Mathf.Max(kh, ks.x);
-                    bg.ring.enabled = bg.shadow.enabled = false;   // (in the panel: the plain ink circle, no ring)
-                    Ui.Place(bg.rt, 0.55f * Em - kw / 2, 2 + AnswerSize * 0.7f - kh / 2, kw, kh);
+                    bg.ring.enabled = bg.shadow.enabled = false; bg.pill.color = solid ? Color.white : HintInk0; bg.letter.color = solid ? Color.black : Ui.Hex("#18201f");   // (in the panel: the plain ink circle, no ring)
+                    Ui.Place(bg.rt, pw - kw - .8f * Em, 0, kw, kh);
                     Ui.Place(bg.pill.rectTransform, 0, 0, kw, kh);
                 }
-                var said = RichMarked(PlainKeepingMark((choices[i] as Dictionary<string, object>).S("text")));
-                var s = Ui.Set(tx, said, cw - keyW);
+                var said = DialogueRich(PlainKeepingMark((choices[i] as Dictionary<string, object>).S("text")));
+                var s = Ui.Set(tx, said, cw - keyW - (actionOn && !narrow && i == choices.Count - 1 ? actionW + .6f * Em : 0));
                 Ui.Place(tx.rectTransform, keyW, 2, s.x, s.y);
                 while (choiceMarks.Count <= i) choiceMarks.Add(new InlineMarks());
                 choiceMarks[i].Lay(tx, said, s, markPic);
-                tx.color = hi ? (solid ? Color.black : Ui.Ink) : (solid ? Ui.Hex("#333333") : Muted);
-                Show(line, hi);
+                tx.color = solid ? Color.black : hi ? Ui.Hex("#edbc76") : HintInk0;
+                Show(line, false);
                 Ui.Place(line.rectTransform, keyW, 2 + s.y + 1, s.x, 2.2f);
                 float bh = Mathf.Max(AnswerSize * 1.4f, s.y) + 6;
+                if (i == choices.Count - 1) lastChoiceH = bh;
                 Ui.Place(box.rt, padL, y, cw, bh);
                 y += bh + 3;
             }
-            // (the answers still to come: their room kept on the pages before them, the page's .dlg-choices.waiting, so the
-            // panel stands as tall from the first page and the answers come up in place; issue #264)
-            var ahead = choices.Count == 0 ? d.L("ahead") : null;
-            if (ahead != null && ahead.Count > 0 && dlgChoices.Count > 0)
+            // Only visible replies occupy rows; the longest text page stays stable above.
+            if (choices.Count > 0) y -= 3;
+            if (actionOn && (narrow || choices.Count == 0)) padB = 1.9f * Em;
+            float ph = Mathf.Max(4f * Em, y + padB);
+            // Match the page fitting its actual outer edge, including the visible replies.
+            if (ph > H - 42 && fitPass < 4)
             {
-                var tx0 = dlgChoices[0].text; tx0.fontSize = AnswerSize;
-                foreach (var a in ahead) { var s0 = Ui.Measure(tx0, RichMarked(PlainKeepingMark(a as string ?? "")), cw - keyW); y += Mathf.Max(AnswerSize * 1.4f, s0.y) + 6 + 3; }
+                dialogueFit *= Mathf.Clamp((H - 42) / ph, .6f, .96f);
+                DrawTalk(d, sel, fitPass + 1);
+                return;
             }
-            if (choices.Count > 0 || (ahead?.Count ?? 0) > 0) y -= 3;
-            float ph = Mathf.Max(5.2f * Em, y + padB);
+            float actionY = actionOn && !narrow && choices.Count > 0 ? y - lastChoiceH + (lastChoiceH - actionKeyH) / 2 : ph - .45f * Em - actionKeyH;
+            if (actionOn) Ui.Place(dlgAction.rectTransform, pw - padR - actionSize.x, actionY, actionSize.x, actionKeyH);
+            foreach (var badgeView in dlgKeys) if (badgeView != null && badgeView.rt.gameObject.activeSelf)
+                Ui.Place(badgeView.rt, pw - padR - actionSize.x - actionGap - badgeView.rt.sizeDelta.x, actionY, badgeView.rt.sizeDelta.x, badgeView.rt.sizeDelta.y);
+            if (actionOn && choices.Count == 0) {
+                var size = PlaceBadge(dlgAdvance, 0, 0, okKey, .82f * AnswerSize, true);
+                float kw = Mathf.Max(actionKeyH, size.x);
+                dlgAdvance.ring.enabled = dlgAdvance.shadow.enabled = false;
+                dlgAdvance.pill.color = solid ? Color.white : HintInk0;
+                dlgAdvance.letter.color = solid ? Color.black : Ui.Hex("#18201f");
+                Ui.Place(dlgAdvance.rt, pw - padR - actionSize.x - actionGap - kw, actionY, kw, actionKeyH);
+                Ui.Place(dlgAdvance.pill.rectTransform, 0, 0, kw, actionKeyH);
+            }
             Ui.Place(dlg, W / 2 - pw / 2, H - 26 - ph, pw, ph);
             Ui.Place(dlgPanel.rt, 0, 0, pw, ph);
             dlgLines.Clear();
-            if (!solid) for (float ly = 1.7f * Em; ly < ph; ly += 1.7f * Em + 1) dlgLines.Box(new Rect(-pw / 2, ph / 2 - ly - 1, pw, 1), Ui.Hex("#2b211f", 0.05f));
-            Show(dlgMore, d.Get("more") is bool m && m);
+            // D keeps only the outer edge; no ruled paper or inner choice frames.
+            Show(dlgMore, !actionOn && d.Get("more") is bool m && m);
             dlgMore.rectTransform.anchoredPosition = new Vector2(-1.4f * Em, 0.7f * Em + 3 * (0.5f - 0.5f * Mathf.Cos(Time.unscaledTime * Mathf.PI * 2)));
-            Ui.Place(chip, 0.8f * Em, -2.1f * Em, ChipD, ChipD);
+            float chipSize = (narrow ? 2.4f : 2.7f) * Em;
+            Ui.Place(chip, .75f * Em, .65f * Em, ChipD, ChipD);
+            chip.localScale = Vector3.one * (chipSize / ChipD);
             var name = d.S("name") ?? "";
             // their portrait when the engine drew one (engine:portrait:n), on its backdrop; else their initial on their colour
             RenderTexture photo = null;
@@ -1936,11 +1975,24 @@ namespace Hiraeth.Bridge
             Show(chipPhoto, photo);
             Show(chipLetter, !photo);
             chipLetter.text = name.Length > 0 ? name.Substring(0, 1) : "?";
-            var ns = Ui.Set(dlgName, Ui.Upper(name));
+            float headerLeft = (narrow ? 3.75f : 4.15f) * Em;
+            float headerWidth = Mathf.Max(1, pw - headerLeft - padR);
+            dlgName.horizontalOverflow = HorizontalWrapMode.Wrap;
+            dlgName.verticalOverflow = VerticalWrapMode.Truncate;
+            var displayName = Ui.Upper(name);
+            var nameElements = System.Globalization.StringInfo.ParseCombiningCharacters(displayName);
+            int nameCount = nameElements.Length;
+            while (nameCount > 1 && Ui.Measure(dlgName, displayName, 10000).x > headerWidth)
+            {
+                nameCount--;
+                displayName = Ui.Upper(name).Substring(0, nameElements[nameCount]) + "…";
+            }
+            var ns = Ui.Set(dlgName, displayName, headerWidth);
             Show(dlgTitle, false);
-            float tw = Mathf.Min(pw - padL - padR, ns.x), th = 30;
+            float tw = Mathf.Min(headerWidth, ns.x), th = NameSize * 1.3f;
+            dlgName.alignment = TextAnchor.UpperLeft;
             Ui.Place(dlgName.rectTransform, 0, 0, tw, th);
-            Ui.Place(dlgTag.rt, padL, 0.4f * Em, tw, th);
+            Ui.Place(dlgTag.rt, headerLeft, (narrow ? 1.05f : .6f) * Em, tw, th);
         }
     }
 }

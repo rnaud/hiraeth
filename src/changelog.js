@@ -9,6 +9,12 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   {
+    v: '2.21', date: '2026-10-24',
+    items: [
+      { text: 'Conversations use a compact dark panel, a small portrait and plain replies, with a brass diamond marking the selected answer.', see: 'Talk to someone, move between replies and compare Larger text or the plain speech background. The words and controls are unchanged.' },
+    ],
+  },
+  {
     v: '2.20', date: '2026-10-24',
     items: [
       {"text": "Kamal now looks the same on his fan sled as he does beside the canyon.", "see": "Meet Kamal beside the canyon, start his race, and retry from the pause menu. His appearance stays consistent as the sled banks and lands."},

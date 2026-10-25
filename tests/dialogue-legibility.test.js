@@ -9,7 +9,7 @@ import { readFileSync } from 'node:fs';
 import { GameState } from '../src/game-state.js';
 import { Quests } from '../src/story/quests.js';
 import { Dialogue, choiceHtml } from '../src/story/dialogue.js';
-import { page } from '../src/platform.js';
+import { page, screen } from '../src/platform.js';
 
 const HTML = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const HUD = readFileSync(new URL('../unity/Hiraeth/Assets/HiraethJS/Runtime/BridgeHud.cs', import.meta.url), 'utf8');
@@ -70,6 +70,25 @@ test('home speech has no translator trace', () => {
   d.close();
 });
 
+test('future answers do not reserve invisible rows or become selectable early', () => {
+  const { d, ui } = talk(ALIEN);
+  const ghost = screen.state.dialogue.ghost;
+  assert.equal(ui.part('.dlg-choices').innerHTML, '');
+  assert.deepEqual(screen.state.dialogue.choices, []);
+  assert.deepEqual(screen.state.dialogue.ahead, []);
+  assert.equal(d.runner.choicesAhead().length, 2, 'authored future choices still exist');
+  d.choose(0);
+  assert.equal(d.runner.page, 0, 'an early choice cannot skip the page');
+  assert.equal(d.open, true);
+  d.next();
+  assert.equal(screen.state.dialogue.ghost, ghost, 'longest text reservation stays stable');
+  assert.equal(screen.state.dialogue.choices.length, 2);
+  assert.match(ui.part('.dlg-choices').innerHTML, /Which well\?/);
+  assert.deepEqual(screen.state.dialogue.ahead, []);
+  d.choose(d.runner.choices()[0].index);
+  assert.equal(d.open, false, 'ordinary last-page choice still works');
+});
+
 test('the next page\'s answers come up with it, before its voice is done, and a press picks one', () => {
   const { d, ui } = talk(ALIEN);
   d.next();
@@ -99,7 +118,7 @@ test('the page\'s type: about 3 % of the screen\'s height on every screen, never
   // a phone upright: from its width, never under 15 px
   assert.match(HTML, /@media \(max-width: 600px\)\s*\{\s*#dialogue\s*\{\s*--dlg:\s*calc\(clamp\(15px,\s*[\d.]+vw/);
   // the name and the answers in em of it (they scale with it)
-  assert.match(rule('#dialogue .dlg-name'), /font-size:\s*1(\.\d+)?em/);
+  assert.match(rule('#dialogue .dlg-name'), /font-size:\s*\.8em/);
   assert.match(rule('#dialogue .dlg-choices button'), /font-size:\s*0\.9\d?em/);
 });
 
@@ -109,17 +128,19 @@ test('answers are words on the paper: no box, no border, no shadow; a cue on the
   assert.match(b, /border:\s*0/);
   assert.match(b, /box-shadow:\s*none/);
   assert.ok(!/transform/.test(rule('#dialogue .dlg-choices button:hover, #dialogue .dlg-choices button:focus')), 'nothing jumps when it is picked');
-  assert.match(rule('#dialogue .dlg-choices button:hover .dlg-say, #dialogue .dlg-choices button:focus .dlg-say'), /text-decoration-line:\s*underline/);
+  assert.match(rule('#dialogue .dlg-choices button:hover .dlg-say, #dialogue .dlg-choices button:focus .dlg-say'), /text-decoration:\s*none/);
   // the pad's badge on the focused one, the keyboard's numbers, touch's mark (choiceHtml)
-  assert.match(choiceHtml({ index: 0, text: '~neutral~ Yes.' }, 0, 'A / ×'), /dlg-num">1<.*dlg-mark">›<.*A \/ ×/);
-  assert.match(HTML, /body\.controller #dialogue button:focus \.dlg-key \.key \{ visibility: visible; \}/);
+  assert.match(choiceHtml({ index: 0, text: '~neutral~ Yes.' }, 0, 'A / ×'), /dlg-num">1<.*dlg-mark">◆<.*A \/ ×/);
+  assert.match(HTML, /body\.controller #dialogue button:focus \.dlg-confirm \{ display: inline-flex; position: absolute;/);
+  assert.match(HTML, /button:last-child \{ padding-right: 6\.5em;/, 'wide last reply reserves the inline confirmation cue');
+  assert.doesNotMatch(HTML, /padding-bottom: 2\.25em/, 'no empty controller footer band');
   // Reduce motion: no translator fade either
   assert.match(HTML, /html\.reduce-motion[^{]*#dialogue \.dlg-text\.heard > \.dlg-live[^{]*\{ animation: none; \}/);
   assert.ok(!/dlg-caret/.test(HTML), 'no caret left in the style');
 });
 
 test('the Unity bridge\'s panel: the same sizes (a 720-tall canvas), answers without boxes', () => {
-  const body = +HUD.match(/int Body => Sz\((\d+)\)/)[1];   // (× the Text size setting, issue #346)
+  const body = +HUD.match(/int Body =>[^;]*Sz\((\d+)\)/)[1];   // (× the Text size setting, issue #346)
   assert.ok(body / 720 >= 0.028, `${body} px of 720`);
   assert.match(HUD, /Ui\.Panel\(dlgPanel\.rt, "choice" \+ i, Color\.clear, Ui\.Ink, 0\)/);
   assert.ok(!/SetShadow\(hi/.test(HUD), 'no lifted box on the picked answer');
@@ -128,7 +149,7 @@ test('the Unity bridge\'s panel: the same sizes (a 720-tall canvas), answers wit
 test('the name is plain ink on the paper: no black caption box, nothing slanted, no subtitle (issue #208)', () => {
   const tag = rule('#dialogue .dlg-tag'), name = rule('#dialogue .dlg-name');
   assert.ok(!/background|box-shadow|rotate|skew/.test(tag + name), `${tag} ${name}`);
-  assert.match(tag, /color:\s*#2b211f/);
+  assert.match(tag, /color:\s*#edbc76/);
   assert.ok(!/font-style:\s*italic/.test(name));
   assert.ok(!/dlg-title/.test(HTML), 'no subtitle rule left in the style');
   const { d, ui } = talk({ ...ALIEN, title: 'Keeper of the well' });
@@ -159,4 +180,21 @@ test('once they are done talking, the first answer is the default: focused, with
   d.render();
   assert.equal(focused.length, 2, 'a redraw does not take the focus back from where it was moved');
   d.close();
+});
+
+
+test('integrated portrait fit keeps readable text when the complete panel already fits', () => {
+  const old = globalThis.getComputedStyle;
+  globalThis.getComputedStyle = () => ({ fontSize: '30' });
+  const values = [];
+  const d = Object.create(Dialogue.prototype);
+  d.el = { offsetTop: 40, offsetHeight: 300, style: { removeProperty() {}, setProperty(k,v) { values.push([k,v]); } } };
+  try {
+    d.fit();
+    assert.equal(d.fitted, 1, 'no shrink to reserve the removed floating portrait');
+    assert.deepEqual(values, []);
+    d.el.offsetTop = -20;
+    d.fit();
+    assert.ok(d.fitted < 1 && d.fitted > 0, 'an actual overflowing outer panel still invokes fitting');
+  } finally { if (old === undefined) delete globalThis.getComputedStyle; else globalThis.getComputedStyle = old; }
 });

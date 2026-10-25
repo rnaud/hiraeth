@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v2.21 — 2026-10-24
+
+- Conversations use a compact dark panel, a small portrait and plain replies, with a brass diamond marking the selected answer.
+
 ## v2.20 — 2026-10-24
 
 - Teasel explains which crystals to quiet in the Hush-House, and Briony explains how to bring light to the Lamp-House’s moth.

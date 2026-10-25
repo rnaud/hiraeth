@@ -108,7 +108,8 @@ test('the makers\' mark in a line goes with the shared mark\'s own contours, for
   const cs = (f) => readFileSync(new URL(`../unity/Hiraeth/Assets/HiraethJS/Runtime/${f}`, import.meta.url), 'utf8');
   const hud = cs('BridgeHud.cs'), parts = cs('BridgeHud.Parts.cs'), mark = cs('BridgeHud.Mark.cs');
   assert.match(mark, /MarkTexture\(contours/);
-  assert.match(hud, /RichMarked\(shown\)/); assert.match(hud, /dlgMarks\.Lay\(dlgText/); assert.match(hud, /choiceMarks\[i\]\.Lay/);
+  assert.match(hud, /DialogueRich\(shown\)/);
+  assert.match(hud, /string DialogueRich\(string text\) => RichMarked\(text\)\.Replace/, 'dialogue contrast mapping retains shared mark-aware rich text'); assert.match(hud, /dlgMarks\.Lay\(dlgText/); assert.match(hud, /choiceMarks\[i\]\.Lay/);
   assert.match(parts, /balloonMarks\[i\]\.Lay\(text, said, s, MarkPicture\(m\.L\("mark"\)\)\)/);
   assert.doesNotMatch(hud + parts, /Ui\.Rich\(shown\)|Ui\.Rich\(m\.S\("text"\)/);
 });
